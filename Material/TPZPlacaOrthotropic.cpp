@@ -41,10 +41,15 @@ void TPZPlacaOrthotropic::Tensor(TPZVec<REAL> &ksi, TPZFMatrix &T) {
   //  co[2] = ksi;
   TPZManVector<REAL> tensor(9);
   fIntel->Solution(ksi,fTensorVar,tensor);
-  int i;
-  for(i=0; i<9; i++) {
+  int i,j;
+  for(i=0; i<9; i++) {//original
     T(i%3,i/3) = tensor[i];
   }
+//   for(i=0; i<3; i++) {//é simétrico
+//     for(j=0; j<3; j++) {
+//       T(i,j) = tensor[3*i+j];
+//     }
+//   }
 }
 
 REAL TPZPlacaOrthotropic::Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &direction){
@@ -59,7 +64,9 @@ REAL TPZPlacaOrthotropic::Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &
     rule.Point(ip,pos,weight);
     ksi[2] = pos[0];
     Tensor(ksi,tensor);
-    REAL z = fZMin + (fZMax-fZMin)*(pos[0]+1.)/2.;
+    REAL z = fZMin + (fZMax-fZMin)*(pos[0]+1.)/2.;//original
+    //REAL f = (fZMin + fZMax)/2.0;//não
+    //REAL z = fH*pos[0]/2. + f;//não
     REAL tension = 0.;
     int n,d;
     for(n=0; n<3; n++) {
@@ -67,7 +74,8 @@ REAL TPZPlacaOrthotropic::Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &
 	tension += normal[n]*tensor(n,d)*direction[d];
       }
     }
-    moment += weight*tension*(z-zref);
+    moment += weight*tension*(z-zref);//original
+    //moment += weight*tension*z;//não
   }
   moment *= fH/2.;
   return moment;
@@ -173,9 +181,9 @@ void TPZPlacaOrthotropic::PrintTensors(ostream &out) {
       //out << endl;
     }
     out << endl;
-//     REAL normat = TensionNorm(tensor,3,3);
-//     out << "Norma do tensor " << normat << endl;
-//     cout << "Norma do tensor " << normat << endl;
+    REAL normat = TensionNorm(tensor,3,3);
+    out << "Norma do tensor " << normat << endl;
+    cout << "Norma do tensor " << normat << endl;
   }
 }
 
@@ -210,7 +218,7 @@ REAL TPZPlacaOrthotropic::GradMoment(REAL zref, TPZVec<REAL> &graddir, TPZVec<RE
     Tensor(ksi2,tensor2);
     tensordif = tensor2;
     tensordif -= tensor1;
-    REAL z = fZMin + (fZMax-fZMin)*(pos[0]+1.)/2.;
+    REAL z = fZMin + (fZMax-fZMin)*(pos[0]+1.)/2.;// = (z+f)
     REAL tension = 0.;
     int n,d;
     for(n=0; n<3; n++) {
@@ -218,7 +226,8 @@ REAL TPZPlacaOrthotropic::GradMoment(REAL zref, TPZVec<REAL> &graddir, TPZVec<RE
 	tension += normal[n]*tensordif(n,d)*direction[d];
       }
     }
-    moment += weight*tension*(z-zref);
+    moment += weight*tension*(z-zref);//original
+    //moment += weight*tension*z;//não
   }
   moment *= fH/(2.*dist);
   return moment;
@@ -286,8 +295,13 @@ void TPZPlacaOrthotropic::GradTensor(TPZVec<REAL> &graddir, TPZVec<REAL> &ksi, T
   TPZManVector<REAL> tensor(9);
   fIntel->Solution(ksi1,fTensorVar,tensor1);
   fIntel->Solution(ksi2,fTensorVar,tensor2);
-  int i;
-  for(i=0; i<9; i++) {
+  int i,j;
+  for(i=0; i<9; i++) {//é simétrico OK
     T(i%3,i/3) = (tensor2[i]-tensor1[i])/dist;
   }
+//   for(i=0; i<3; i++) {//não simétrico
+//     for(j=0; j<3; j++) {
+//       T(i,j) = (tensor2[3*i+j]-tensor1[3*i+j])/dist;
+//     }
+//   }
 }

@@ -41,28 +41,28 @@ TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int
 
   int i;
   for(i=0; i<3; i++) {
-    fMX[i] = 0.;
-    fMY[i] = 0.;
-    fMXY[i] = 0.;
-    fNX[i] = 0.;
-    fNY[i] = 0.;
-    fNXY[i] = 0.;
-    fQX[i] = 0.;
-    fQY[i] = 0.;
-    fdMXdX[i]=0;
-    fdMXdY[i]=0;
-    fdMYdY[i]=0;
-    fdMYdX[i]=0;
+    fMX[i]     = 0.;
+    fMY[i]     = 0.;
+    fMXY[i]    = 0.;
+    fNX[i]     = 0.;
+    fNY[i]     = 0.;
+    fNXY[i]    = 0.;
+    fQX[i]     = 0.;
+    fQY[i]     = 0.;
+    fdMXdX[i]  = 0.;
+    fdMXdY[i]  = 0.;
+    fdMYdY[i]  = 0.;
+    fdMYdX[i]  = 0.;
     fdMXYdX[i] = 0.;
-    fdMXYdY[i] = 0;
-    fdQXdX[i] = 0;
-    fdQXdY[i] = 0;
-    fdQYdX[i] = 0.;
-    fdQYdY[i] = 0.;
-    fdNXdX[i] = 0.;
-    fdNXdY[i] = 0.;
-    fdNYdX[i] = 0.;
-    fdNYdY[i] = 0.;
+    fdMXYdY[i] = 0.;
+    fdQXdX[i]  = 0.;
+    fdQXdY[i]  = 0.;
+    fdQYdX[i]  = 0.;
+    fdQYdY[i]  = 0.;
+    fdNXdX[i]  = 0.;
+    fdNXdY[i]  = 0.;
+    fdNYdX[i]  = 0.;
+    fdNYdY[i]  = 0.;
     fdNXYdX[i] = 0.;
     fdNXYdY[i] = 0.;
   }
@@ -187,11 +187,11 @@ void TPZMulticamadaOrthotropic::AnalyticTensor(TPZVec<REAL> &co, TPZFMatrix &ten
   tensor(0,0) += 12.*(fMX[2]+x*fLinearX*fdMXdX[2])*zrel/(height3);
   tensor(1,1) += 12.*(fMY[2]+y*fLinearY*fdMYdY[2])*zrel/height3;
   tensor(0,1) += 12.*(fMXY[2]+fLinearX*x*fdMXYdX[2]+fLinearY*y*fdMXYdY[2])*zrel/height3;
-  tensor(1,0) += tensor(1,0);
+  tensor(1,0) = tensor(0,1);
   tensor(0,2) += -6.*(fQX[2]+fLinearX*x*fdQXdX[2])*(zrel*zrel-height*height/4.)/height3;
-  tensor(2,0) += tensor(0,2);
+  tensor(2,0) = tensor(0,2);
   tensor(1,2) += -6.*(fQY[2]+fLinearY*y*fdQYdY[2])*(zrel*zrel-height*height/4.)/height3;
-  tensor(2,1) += tensor(1,2);
+  tensor(2,1)  = tensor(1,2);
 
 }
 
@@ -381,6 +381,9 @@ void TPZMulticamadaOrthotropic::ComputeSolution(ostream &out,int print){
   TPZStepSolver solve;
   solve.SetDirect(ELDLt);
   an.SetSolver(solve);
+  //  an.Assemble();
+  an.Solution().Zero();
+  //  an.Solve();
   an.Run();
   if(print) an.Print("* PRINT ANALISYS *",out);  
 }

@@ -169,9 +169,9 @@ int main(){
 
     multcam->ComputeSolution(out,0);
     multcam->ComputeCenterForces();
-//     multcam->PrintCenterForces(out);
-//     multcam->PrintTensors(out);
-    multcam->PrintTensors(out,tensin,tensout);
+    multcam->PrintCenterForces(out);
+    multcam->PrintTensors(out);
+    //multcam->PrintTensors(out,tensin,tensout);
     tensin = tensout;
   }
 

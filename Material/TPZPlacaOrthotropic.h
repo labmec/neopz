@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: TPZPlacaOrthotropic.h,v 1.6 2003-11-11 20:52:48 cedric Exp $
+// $Id: TPZPlacaOrthotropic.h,v 1.7 2003-11-12 19:41:02 cedric Exp $
 #ifndef PLACAORTHOTROPIC
 #define PLACAORTHOTROPIC
 #include "pzvec.h"
@@ -23,8 +23,10 @@ class TPZPlacaOrthotropic {
   /**elemento computacional da placa*/
   TPZInterpolatedElement *fIntel;
   /**Espessura da placa*/
-  REAL fH;
+  REAL fH;// = fZmax - fZmin
+  /**alturas mínimas e máximas da placa horizontal*/
   REAL fZMin, fZMax;
+  //number of the pos-processed variable
   int fTensorVar;
   //double dx, dy;
   
