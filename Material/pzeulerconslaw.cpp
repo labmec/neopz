@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.31 2004-06-03 06:38:23 phil Exp $
+//$Id: pzeulerconslaw.cpp,v 1.32 2004-06-13 23:33:30 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -535,7 +535,6 @@ void TPZEulerConsLaw2::ContributeInterface(
 		TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 		TPZFMatrix &ek,TPZFMatrix &ef)
 {
-   int with_entropy_fix = 1;
 
    // contributing face-based quantities
    if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
@@ -545,22 +544,22 @@ void TPZEulerConsLaw2::ContributeInterface(
       #ifdef _AUTODIFF
          #ifdef FASTEST_IMPLICIT
             ContributeFastestImplConvFace(fDim, x, solL, solR,
-                         weight, normal, phiL, phiR, ek, ef, with_entropy_fix);
+                         weight, normal, phiL, phiR, ek, ef);
 	 #else
          TPZVec<FADREAL> FADsolL, FADsolR;
          PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
-         ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef,with_entropy_fix);
+         ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
 	 #endif
       #else
       // forcing explicit contribution and issueing an warning
          cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
-         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef,with_entropy_fix);
+         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
       #endif
       }
 
    if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
    {
-      ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef,with_entropy_fix);
+      ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
    }
 }
 
@@ -575,13 +574,12 @@ void TPZEulerConsLaw2::ContributeInterface(
 		TPZFMatrix &ef)
 {
 
-  int with_entropy_fix = 1;
    // contributing face-based quantities
    if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT
                      ||
       fConvFace == Explicit_TD && fContributionTime == Last_CT)
         {
-           ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef,with_entropy_fix);
+           ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
         }
 
 }
@@ -636,8 +634,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
    TPZVec<REAL> solR(nstate,0.);
    TPZFMatrix dsolR(dsolL.Rows(), dsolL.Cols(),0.);
    TPZFMatrix phiR(0,0), dphiR(0,0);
-   int with_entropy_fix = 1;
-   if(bc.Type() == 5) with_entropy_fix = 0;
+   int entropyFix;
 
    // contributing face-based quantities
    if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
@@ -647,10 +644,10 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
       #ifdef _AUTODIFF
          if(bc.Type() ==5)
          {
-            with_entropy_fix = 0;
+	    int entropyFix2;
             TPZManVector<REAL,5 > flux(nstate,0.);
-            ComputeGhostState(solL, solR, normal, bc);
-            Roe_Flux<REAL>(solL, solR, normal, fGamma, flux,with_entropy_fix);
+            ComputeGhostState(solL, solR, normal, bc, entropyFix2);
+            Roe_Flux<REAL>(solL, solR, normal, fGamma, flux, entropyFix2);
             REAL norflux = flux[1]*normal[1]-flux[2]*normal[0];
             REAL err = fabs(flux[0])+fabs(norflux)+fabs(flux[3]);
             if(err > 1.e-5)
@@ -665,20 +662,20 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
 	 #else
          TPZVec<FADREAL> FADsolL, FADsolR;
          PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
-	 ComputeGhostState(FADsolL, FADsolR, normal, bc);
-         ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef, with_entropy_fix);
+	 ComputeGhostState(FADsolL, FADsolR, normal, bc, entropyFix);
+         ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef, entropyFix);
 	 #endif
       #else
       // forcint explicit contribution and issueing an warning
          cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
-         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef,with_entropy_fix);
+         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
       #endif
       }
 
    if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
    {
-         ComputeGhostState(solL, solR, normal, bc);
-         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef,with_entropy_fix);
+         ComputeGhostState(solL, solR, normal, bc, entropyFix);
+         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef, entropyFix);
    }
 } 
 
@@ -693,42 +690,45 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
    TPZVec<REAL> solR(nstate,0.);
    TPZFMatrix dsolR(dsolL.Rows(), dsolL.Cols(),0.);
    TPZFMatrix phiR(0,0), dphiR(0,0);
-   int with_entropy_fix = 1;
-   if(bc.Type() == 5) with_entropy_fix = 0;
+   int entropyFix;
 
    if(fConvFace == Implicit_TD && fContributionTime == Advanced_CT
                   ||
       fConvFace == Explicit_TD && fContributionTime == Last_CT)
    {
-         ComputeGhostState(solL, solR, normal, bc);
-         TPZManVector<REAL,3> normal2(2,0.);
-         TPZManVector<REAL,5> flux2(nstate,0.);
-         normal2[0] = -normal[0];
-         normal2[1] = -normal[1];
-         TPZManVector<REAL,5 > flux(nstate,0.);
-         Roe_Flux<REAL>(solL, solR, normal, fGamma, flux, with_entropy_fix);
-         Roe_Flux<REAL>(solR, solL, normal2, fGamma, flux2, with_entropy_fix);
-         REAL fluxs = fabs(flux[0]+flux2[0])+fabs(flux[1]+flux2[1])+fabs(flux[2]+flux2[2])+fabs(flux[3]+flux2[3]);
-         if(fluxs > 1.e-10)
-         {
-          cout << "Fluxo nao simetrico fluxs = " << fluxs << endl;
-         }
-         
-         if(bc.Type() ==5)
-         {
-            REAL norflux = flux[1]*normal[1]-flux[2]*normal[0];
-            REAL err = fabs(flux[0])+fabs(norflux)+fabs(flux[3]);
-            if(err > 1.e-5)
-            {
-              cout << "fluxo de parede errado 2 err " << err << endl;
-              Roe_Flux<REAL>(solL,solR,normal,fGamma,flux,with_entropy_fix);
-            } else 
-            {
-              Roe_Flux<REAL>(solL,solR,normal,fGamma,flux,with_entropy_fix);
-            }
-         }
+         ComputeGhostState(solL, solR, normal, bc, entropyFix);
 
-         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef,with_entropy_fix);
+         {// flux tests
+            TPZManVector<REAL,3> normal2(2,0.);
+            TPZManVector<REAL,5> flux2(nstate,0.);
+            normal2[0] = -normal[0];
+            normal2[1] = -normal[1];
+            TPZManVector<REAL,5 > flux(nstate,0.);
+            Roe_Flux<REAL>(solL, solR, normal, fGamma, flux);
+            Roe_Flux<REAL>(solR, solL, normal2, fGamma, flux2);
+            REAL fluxs = fabs(flux[0]+flux2[0])+fabs(flux[1]+flux2[1])+fabs(flux[2]+flux2[2])+fabs(flux[3]+flux2[3]);
+            if(fluxs > 1.e-10)
+            {
+               cout << "Fluxo nao simetrico fluxs = " << fluxs << endl;
+            }
+
+            if(bc.Type() ==5)
+            {
+               REAL norflux = flux[1]*normal[1]-flux[2]*normal[0];
+               REAL err = fabs(flux[0])+fabs(norflux)+fabs(flux[3]);
+               if(err > 1.e-5)
+               {
+                  cout << "fluxo de parede errado 2 err " << err << endl;
+                 Roe_Flux<REAL>(solL,solR,normal,fGamma,flux);
+               } else
+               {
+                 Roe_Flux<REAL>(solL,solR,normal,fGamma,flux);
+               }
+            }
+	 } // end of tests
+
+         ContributeExplConvFace(x,solL,solR,weight,normal,
+	                        phiL,phiR,ef,entropyFix);
    }
 }
 
@@ -786,6 +786,7 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(TPZVec<REAL> &x,
    typedef TinyFad<2*(dim+2), REAL> TFADREALInterface;
 #endif
 
+   int entropyFix;
 
    int nstate = NStateVariables();
    TPZVec<REAL> solR(nstate,0.);
@@ -800,28 +801,27 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(TPZVec<REAL> &x,
       for(int i = 0; i < nstate; i++)
          solL[i] = solR[i] = res[i];
    }
-   int with_entropy_fix = 1;
-   if(bc.Type() == 5) with_entropy_fix = 0;
 
    TPZVec<TFADREALInterface > FADsolL(nstate),
                                    FADsolR(nstate);
 
    PrepareFastestInterfaceFAD(solL, solR, FADsolL, FADsolR);
 
-   ComputeGhostState(FADsolL, FADsolR, normal, bc);
+   ComputeGhostState(FADsolL, FADsolR, normal, bc, entropyFix);
 
    ContributeFastestImplConvFace_T(x, FADsolL, FADsolR,
                                  weight, normal,
 				 phiL, phiR,
-				 ek, ef, with_entropy_fix);
+				 ek, ef,
+				 entropyFix);
 };
 
 #endif
 
 template <class T>
-void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc)
+void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc, int & entropyFix)
 {
-
+  entropyFix = 1;
 
   int nstate = NStateVariables();
   T vpn=0.;
@@ -845,6 +845,7 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
     for(i=1;i<nstate-1;i++) solR[i] = solL[i] - T(2.0*normal[i-1])*vpn;
     solR[0] = solL[0];
     solR[nstate-1] = solL[nstate-1];
+    entropyFix = 0;
     break;
   case 6://não refletivas (campo distante)
     for(i=0;i<nstate;i++) solR[i] = solL[i];
@@ -1071,6 +1072,7 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
 
   case 11:// SOLID WALL - No input needed
 
+    entropyFix = 0;
     // Invariants w1 and w2 are imposed, w5 computed
     // This gives a set of closed BCs.
 
@@ -1189,11 +1191,11 @@ void TPZEulerConsLaw2::ContributeExplConvFace(TPZVec<REAL> &x,
 			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ef, int with_entropy_fix)
+			TPZFMatrix &ef, int entropyFix)
 {
    int nState = NStateVariables();
    TPZVec<REAL > flux(nState,0.);
-   Roe_Flux<REAL>(solL, solR, normal, fGamma, flux,with_entropy_fix);
+   Roe_Flux<REAL>(solL, solR, normal, fGamma, flux, entropyFix);
    int nShapeL = phiL.Rows(),
        nShapeR = phiR.Rows(),
        i_shape, i_state;
@@ -1226,11 +1228,12 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
 			TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ek,TPZFMatrix &ef,int with_entropy_fix)
+			TPZFMatrix &ek,TPZFMatrix &ef,
+			int entropyFix)
 {
    int nState = NStateVariables();
    TPZVec<FADREAL > flux(nState,0.);
-   Roe_Flux(solL, solR, normal, fGamma, flux,with_entropy_fix);
+   Roe_Flux(solL, solR, normal, fGamma, flux, entropyFix);
    
    // Testing whether Roe_Flux<REAL> gives the same result as Roe_Flux<FADREAL>
    
@@ -1291,21 +1294,22 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace(int dim,
 			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ek,TPZFMatrix &ef, int with_entropy_fix)
+			TPZFMatrix &ek,TPZFMatrix &ef,
+			int entropyFix)
 {
    switch(dim)
    {
       case(1):
       ContributeFastestImplConvFace_dim<1>(x, solL, solR, weight, normal,
-			phiL, phiR, ek, ef, with_entropy_fix);
+			phiL, phiR, ek, ef, entropyFix);
       break;
       case(2):
       ContributeFastestImplConvFace_dim<2>(x, solL, solR, weight, normal,
-			phiL, phiR, ek, ef, with_entropy_fix);
+			phiL, phiR, ek, ef, entropyFix);
       break;
       case(3):
       ContributeFastestImplConvFace_dim<3>(x, solL, solR, weight, normal,
-			phiL, phiR, ek, ef, with_entropy_fix);
+			phiL, phiR, ek, ef, entropyFix);
       break;
       default:
       PZError << "\nTPZEulerConsLaw2::ContributeFastestImplConvFace unhandled dimension\n";
@@ -1319,7 +1323,8 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_dim(
 			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ek,TPZFMatrix &ef, int with_entropy_fix)
+			TPZFMatrix &ek,TPZFMatrix &ef,
+			int entropyFix)
 {
 #ifdef _TFAD
    typedef TFad<2*(dim+2), REAL> TFADREALInterface;
@@ -1337,7 +1342,7 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_dim(
    PrepareFastestInterfaceFAD(solL, solR, FADsolL, FADsolR);
 
    ContributeFastestImplConvFace_T(x, FADsolL, FADsolR, weight, normal,
-			phiL, phiR, ek, ef, with_entropy_fix);
+			phiL, phiR, ek, ef, entropyFix);
 }
 
 template <class T>
@@ -1345,7 +1350,8 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 			TPZVec<T> &FADsolL,TPZVec<T> &FADsolR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ek,TPZFMatrix &ef, int with_entropy_fix)
+			TPZFMatrix &ek,TPZFMatrix &ef,
+			int entropyFix)
 {
   const int nState = NStateVariables();
 
@@ -1364,7 +1370,7 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
    #endif
 
 
-   Roe_Flux(FADsolL, FADsolR, normal, fGamma, FADflux,with_entropy_fix);
+   Roe_Flux(FADsolL, FADsolR, normal, fGamma, FADflux, entropyFix);
 
    // Contribution referring to the left element
    for(i_shape = 0; i_shape < nShapeL; i_shape ++)
