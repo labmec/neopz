@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.37 2004-04-26 13:06:27 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.38 2004-05-21 13:37:24 erick Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -969,10 +969,16 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
   buf.Read(&rightelindex,1);
   buf.Read(&matid,1);
   fMaterial = Mesh()->FindMaterial(matid);
+  if(!fMaterial) PZError << "TPZInterfaceElement::Read - null material\n";
   fLeftEl = dynamic_cast<TPZCompElDisc *> (Mesh()->ElementVec()[leftelindex]);
   fRightEl = dynamic_cast<TPZCompElDisc *> (Mesh()->ElementVec()[rightelindex]);
   fConnectL = &(Mesh()->ConnectVec()[fConnectIndexL]);
-  fConnectR = &(Mesh()->ConnectVec()[fConnectIndexR]);
+  if(fConnectIndexR < 0)
+  {
+    fConnectR = NULL;
+  }else{
+    fConnectR = &(Mesh()->ConnectVec()[fConnectIndexR]);
+  }
   ReadObjects(buf,fNormal);
 }
 
