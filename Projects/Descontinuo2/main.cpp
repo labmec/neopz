@@ -53,6 +53,83 @@ void InitialGuess(TPZVec<REAL> &x,TPZVec<REAL> &result){
    result.Fill(0.);
 }
 
+
+void GetSolutionGraph (int bc_id, ostream &arq, TPZFlowCompMesh *cmesh){
+int nelem = cmesh->NElements();
+int i,j;
+TPZVec<int> mark (nelem,0);
+TPZStack<TPZGeoEl *> bcStack;
+//int nmark = 0;
+
+//Get the selected bcs
+ for (i=0;i<nelem;i++){
+  TPZCompEl *cel = cmesh->ElementVec()[i];
+  if (!cel) continue;
+  TPZGeoEl * pGEl;
+  pGEl = cel->Reference();
+  int matid = pGEl->MaterialId();
+  if (matid== bc_id){
+    bcStack.Push(cel->Reference());
+  }
+ }
+
+ int nBcs = bcStack.NElements();
+
+ //Get the neighbors of the select bcs
+ for (i=0;i<nBcs;i++){
+   TPZGeoEl *gel = bcStack[i];
+   int nsides = gel->NSides();
+   for (j=0;j<nsides;j++){
+     TPZGeoElSide thisside (gel,j);
+     TPZGeoElSide neighbour = thisside.Neighbour();
+     while (neighbour.Exists() && neighbour != thisside){
+       TPZCompEl * celneig = neighbour.Element()->Reference();
+       if (celneig) {
+         int index = celneig->Index();
+         mark[index] = 1;
+       }
+       neighbour = neighbour.Neighbour();
+     }
+   }
+ }
+
+ int nstate = cmesh->MaterialVec()[0]->NStateVariables();
+
+  arq << "State Variables\n";
+
+ for (i=0;i<nelem;i++){
+   if (!mark[i]) continue;
+   TPZCompEl *cel = cmesh->ElementVec()[i];
+   if (!cel || cel->Type() != EDiscontinuous) continue;
+   TPZGeoEl *gel = cel->Reference();
+   TPZVec<REAL> coord (3,0.), coordX(3, 0.);
+   gel->CenterPoint(gel->NSides()-1,coord);
+   gel->X(coord, coordX);
+
+   int nconnects = cel->NConnects();
+   int connectindex = cel->ConnectIndex(nconnects-1);
+   if(connectindex < 0 )continue;
+
+   for(j = 0; j < coordX.NElements(); j++)
+   {
+      arq << "\t" << coordX[j];
+   }
+
+   int seqnum = cmesh->ConnectVec()[connectindex].SequenceNumber();
+
+   int pos = cmesh->Block().Position(seqnum);
+   int size = cmesh->Block().Size(seqnum);
+
+   //for (int sz = 0; sz < size; sz++)
+   for(j = 0; j < nstate; j++)
+   {
+      //arq << "\t" << cmesh->Solution()(pos + size - nstate + j);
+      arq << "\t" << cmesh->Solution()(pos + size - nstate + j , 0);
+   }
+   arq << "\n";
+ }
+}
+
 // saveable test
 int main1()
 {
@@ -108,122 +185,127 @@ int run(istream & input, ostream & output)
    TPZFlowCompMesh * cmesh;
    TPZGeoMesh * gmesh;
 
-   output << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n\t5: RadialShock\n\t6: NACA\n\t7: From File\n";
+   output << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n\t5: RadialShock\n\t6: NACA\n\t7: GenerateNACAProfile\n\t8: From File\n";
 
    input >> ProblemType;
 
+   if(ProblemType != 7)
+   {
+
    output << "\nDiffusion type:\n\t0: None\n\t1: LS\n\t2: SUPG\n\t3: Bornhaus\n\t4: Transposed LS\n";
 
-   input >> temp;
 
-   if(temp == 0)
-   {
-      DiffType = None_AD;
-      Diff_TD  = None_TD;
-      filename += "NoDiff_";
-   }else{
-      switch(temp)
+      input >> temp;
+
+      if(temp == 0)
       {
-         case 1:
-	 DiffType = LeastSquares_AD;
-	 filename += "LeastSqr";
-	 break;
-	 case 2:
-	 DiffType = SUPG_AD;
-	 filename += "SUPG";
-	 break;
-	 case 3:
-	 DiffType = Bornhaus_AD;
-	 filename += "Bornhaus";
-	 break;
-	 case 4:
-	 DiffType = TrnLeastSquares_AD;
-	 filename += "TrnLeastSqr";
-	 break;
+         DiffType = None_AD;
+         Diff_TD  = None_TD;
+         filename += "NoDiff_";
+      }else{
+         switch(temp)
+         {
+            case 1:
+	    DiffType = LeastSquares_AD;
+	    filename += "LeastSqr";
+	    break;
+	    case 2:
+	    DiffType = SUPG_AD;
+	    filename += "SUPG";
+	    break;
+	    case 3:
+	    DiffType = Bornhaus_AD;
+	    filename += "Bornhaus";
+	    break;
+	    case 4:
+	    DiffType = TrnLeastSquares_AD;
+	    filename += "TrnLeastSqr";
+	    break;
+         }
+
+         output << "\nDiffusion Time Discr:\n\t0: ApproxImplicit\n\t1: Implicit\n\t2: Explicit\n";
+
+
+         input >> temp;
+
+         switch(temp)
+         {
+            case 0:
+            Diff_TD = ApproxImplicit_TD;
+            filename += "ApproxImpl=";
+            break;
+            case 1:
+            Diff_TD = Implicit_TD;
+            filename += "Impl=";
+            break;
+            case 2:
+            Diff_TD = Explicit_TD;
+            filename += "Expl=";
+            break;
+         }
+
+         output << "\nDelta\n";
+         input >> delta;
+         sprintf(number, "%lf_", delta);
+         filename += number;
       }
 
-      output << "\nDiffusion Time Discr:\n\t0: ApproxImplicit\n\t1: Implicit\n\t2: Explicit\n";
-
+      output << "\nVolume convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n";
 
       input >> temp;
 
       switch(temp)
       {
          case 0:
-         Diff_TD = ApproxImplicit_TD;
-         filename += "ApproxImpl=";
+         ConvVol_TD = None_TD;
+         filename += "NoConvVol_";
          break;
          case 1:
-         Diff_TD = Implicit_TD;
-         filename += "Impl=";
+         ConvVol_TD = Implicit_TD;
+         filename += "ImplConvVol_";
          break;
          case 2:
-         Diff_TD = Explicit_TD;
-         filename += "Expl=";
+         ConvVol_TD = Explicit_TD;
+         filename += "ExplConvVol_";
          break;
       }
 
-      output << "\nDelta\n";
-      input >> delta;
-      sprintf(number, "%lf_", delta);
+
+      output << "\nFace convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n";
+
+      input >> temp;
+
+      switch(temp)
+      {
+         case 0:
+         ConvFace_TD = None_TD;
+         filename += "NoConvFace_";
+         break;
+         case 1:
+         ConvFace_TD = Implicit_TD;
+         filename += "ImplConvFace_";
+         break;
+         case 2:
+         ConvFace_TD = Explicit_TD;
+         filename += "ExplConvFace_";
+         break;
+      }
+
+      output << "\nCFL\n";
+      input >> CFL;
+      sprintf(number, "CFL%lf_", CFL);
       filename += number;
+
+      output << "\nEvolute CFL? 0:[no] 1:[yes] 2:[super]\n";
+      input >> EvolCFL;
+      if(EvolCFL == 1)
+      {
+         filename += "EvolCFL_";
+      }
+
    }
 
-   output << "\nVolume convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n";
-
-   input >> temp;
-
-   switch(temp)
-   {
-      case 0:
-      ConvVol_TD = None_TD;
-      filename += "NoConvVol_";
-      break;
-      case 1:
-      ConvVol_TD = Implicit_TD;
-      filename += "ImplConvVol_";
-      break;
-      case 2:
-      ConvVol_TD = Explicit_TD;
-      filename += "ExplConvVol_";
-      break;
-   }
-
-
-   output << "\nFace convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n";
-
-   input >> temp;
-
-   switch(temp)
-   {
-      case 0:
-      ConvFace_TD = None_TD;
-      filename += "NoConvFace_";
-      break;
-      case 1:
-      ConvFace_TD = Implicit_TD;
-      filename += "ImplConvFace_";
-      break;
-      case 2:
-      ConvFace_TD = Explicit_TD;
-      filename += "ExplConvFace_";
-      break;
-   }
-
-   output << "\nCFL\n";
-   input >> CFL;
-   sprintf(number, "CFL%lf_", CFL);
-   filename += number;
-
-   output << "\nEvolute CFL? 0:[no] 1:[yes] 2:[super]\n";
-   input >> EvolCFL;
-   if(EvolCFL == 1)
-   {
-      filename += "EvolCFL_";
-   }
-
-
-   if(ProblemType!=7)
+   if(ProblemType<7)
    {
       output << "\nInterpolation degree\n";
       input >> p;
@@ -282,6 +364,7 @@ int run(istream & input, ostream & output)
       break;
 
       case 7:
+      case 8:
       {
          file = "FromFile_";
 
@@ -311,30 +394,63 @@ int run(istream & input, ostream & output)
 	 pEuler->ArtDiff().SetDelta(delta);
 
 
-	 output << "Interpolation Degree:\n";
-	 input >> p;
-	 sprintf(number, "P%d_", p);
-	 filename += number;
-	 filename += startFileName;
+	 if(ProblemType == 8)
+	 {
+	   output << "Interpolation Degree:\n";
+	   input >> p;
+	   sprintf(number, "P%d_", p);
+	   filename += number;
+	   filename += startFileName;
+	 }
 
 	 int i_el, nEl = cmesh->NElements();
 	 TPZCompElDisc * pCEl;
 	 TPZCompEl * pEl;
+	 TPZGeoEl * pGEl;
 	 TPZInterfaceElement * pIEl;
+
+
          for(i_el = 0; i_el < nEl; i_el++)
 	 {
 	    pEl = cmesh->ElementVec()[i_el];
 	    pCEl = dynamic_cast<TPZCompElDisc *>(pEl);
 	    pIEl = dynamic_cast<TPZInterfaceElement *>(pEl);
-	    if(!pIEl && pCEl)pCEl -> SetDegree(p);
-	    pEl->Reference()->SetReference(pEl); // building cross references
+	    if(!pIEl && pCEl && ProblemType == 8)pCEl -> SetDegree(p);
+	    pGEl = pEl->Reference();
+	    pGEl->SetReference(pEl); // building cross references
 	 }
-         cmesh->ExpandSolution2();
+
+         if(ProblemType == 8)
+	 {
+	    cmesh->ExpandSolution2();
+	 }else
+	 {
+           ofstream arq("profile.csv");
+           GetSolutionGraph (-1, arq, cmesh);
+	   return 0;
+	 }
 
       }
       break;
    }
    file += filename;
+
+   // computing number of generated elements and faces
+   int nEl = cmesh->NElements();
+   int nfaces= 0, nelements = 0;
+   for(int i = 0; i < nEl; i++)
+   {
+      TPZCompElDisc * pCEl;
+      TPZCompEl * pEl;
+      TPZInterfaceElement * pIEl;
+      pEl = cmesh->ElementVec()[i];
+      pCEl = dynamic_cast<TPZCompElDisc *>(pEl);
+      pIEl = dynamic_cast<TPZInterfaceElement *>(pEl);
+      if(pCEl)nelements++;
+      if(pIEl)nfaces++;
+   }
+   output << "Number of elements:" << nelements << " faces:" << nfaces << "\n";
+
 
    output << "\nMaxIter\n";
    input >> MaxIter;
@@ -415,7 +531,7 @@ int run(istream & input, ostream & output)
    TPZMatrix * mat = StrMatrix.Create();
 
    An.SetLinSysCriteria(1e-8, 100);
-   An.SetNewtonCriteria(1e-8, 200);
+   An.SetNewtonCriteria(1e-8, 4);
    An.SetTimeIntCriteria(1e-8,MaxIter);
 
    //Preconditioner
