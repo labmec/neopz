@@ -53,7 +53,6 @@ TPZGeoEl::TPZGeoEl(int id,int materialid,TPZGeoMesh &mesh) {
 TPZGeoEl::TPZGeoEl(const TPZGeoEl &el) {
   fMesh = el.fMesh;
   fId = fMesh->CreateUniqueElementId();
- // fMesh->SetElementIdUsed(fId);
   fMatId = el.fMatId;
   fReference = 0;
   fFather = el.fFather;
@@ -138,10 +137,10 @@ int TPZGeoEl::WhichSide(TPZVec<int> &SideNodeIds) {
       int isn1 = SideNodeIndex(side,0);
       int isn2 = SideNodeIndex(side,1);//sao = para side<3
       if(isn1 == SideNodeIds[0] && isn2 == SideNodeIds[1] ||
-			isn2 == SideNodeIds[0] && isn1 == SideNodeIds[1])    return side;
+      isn2 == SideNodeIds[0] && isn1 == SideNodeIds[1])    return side;
     } else if(NSideNodes(side)== 1 && cap ==1) {
-    				if(SideNodeIndex(side,0) == SideNodeIds[0]) return side;
-    	//completar
+      if(SideNodeIndex(side,0) == SideNodeIds[0]) return side;
+      //completar
     } else if(NSideNodes(side) == 3 && cap==3) {
          int sni[3],snx[3],k;
          for(k=0;k<3;k++) snx[k] = SideNodeIndex(side,k);//el atual
@@ -223,8 +222,8 @@ void TPZGeoEl::Print(ostream & out) {
     else {
       int count = 0;
       while (neighbour != thisside && count++ < 10) {
-	out << neighbour.Element()->Id() << "/" << neighbour.Side() << ' ';
-	neighbour = neighbour.Neighbour();
+        out << neighbour.Element()->Id() << "/" << neighbour.Side() << ' ';
+        neighbour = neighbour.Neighbour();
       }
       out << endl;
     }
@@ -1078,3 +1077,4 @@ void TPZGeoEl::InitializeNeighbours(){
     }
   }
 }
+
