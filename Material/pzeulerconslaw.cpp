@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.33 2004-06-14 22:46:22 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.34 2004-06-15 18:51:03 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -59,7 +59,7 @@ REAL TPZEulerConsLaw2::OptimalCFL(int degree)
    return 1./((2.0*(REAL)degree) + 1.0);
 }
 
-void TPZEulerConsLaw2::SetTimeStep(REAL maxveloc,REAL deltax,int degree)
+REAL TPZEulerConsLaw2::SetTimeStep(REAL maxveloc,REAL deltax,int degree)
 {
   REAL CFL = fCFL;
   // Notice that fCFL remains 0, so that optimal CFL will
@@ -69,6 +69,8 @@ void TPZEulerConsLaw2::SetTimeStep(REAL maxveloc,REAL deltax,int degree)
   REAL deltaT = CFL*deltax/maxveloc;
   //cout << "TPZCompMesh::Delta Time : " << deltaT << endl;
   TPZConservationLaw2::SetTimeStep(deltaT);
+
+  return deltaT;
 }
 
 int TPZEulerConsLaw2::NStateVariables(int dim) {

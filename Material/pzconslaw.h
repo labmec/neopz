@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.15 2004-06-03 06:38:23 phil Exp $
+//$Id: pzconslaw.h,v 1.16 2004-06-15 18:51:03 erick Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -62,12 +62,13 @@ public:
 
   /**
    * Sets the time step used for time integration
+   * Returns the resultant time step.
    *
    * @param maxveloc [in] maximal speed of flow inside the cell
    * @param deltax [in] greatest dimension
    * @param degree [in] interpolation degree
    */
-  virtual void SetTimeStep(REAL maxveloc,REAL deltax,int degree)=0;
+  virtual REAL SetTimeStep(REAL maxveloc,REAL deltax,int degree)=0;
 
   /**
    * Returns the CFL number

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.28 2004-06-14 22:46:22 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.29 2004-06-15 18:51:03 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -56,7 +56,7 @@ public :
   /**
    * See declaration in base class
    */
-  virtual void SetTimeStep(REAL maxveloc,REAL deltax,int degree);
+  virtual REAL SetTimeStep(REAL maxveloc,REAL deltax,int degree);
 
   /**
    * See declaration in base class
