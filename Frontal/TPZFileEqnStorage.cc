@@ -270,17 +270,7 @@ TPZFileEqnStorage::~TPZFileEqnStorage()
 {
      remove(fFileName);
 }
-void TPZFileEqnStorage::Store_Old(int ieq, int jeq, const char *name)
-{
-	int loop_limit = jeq-ieq;
-	int i;
-	int items_writen = 0;
-	FILE *out_file = fopen(name,"wb");
-/*	for(i=0;i<loop_limit;i++){
-		fwrite((const char *)fEqnStack, 8, i, name);
-	}
-	*/
-}
+
 void TPZFileEqnStorage::main()
 {
 	int Loop_Limit=24;
@@ -372,21 +362,7 @@ TPZFileEqnStorage::TPZFileEqnStorage()
 	
   
 }
-/*
-void TPZFileEqnStorage::SetFileName(const char * name)
-{
-	strcpy(fFileName,name);
-	fIOStream = fopen(fFileName,"rb"); //open for reading
-	/**
-	 *Opens binary files and get initial information
-	 *use this information for storage requirements
-	 
-	fread(&fNumHeaders,sizeof(int),1,fIOStream);
-	fread(&fNumBlocks,sizeof(int),1,fIOStream);
-//	ReadBlockPositions();
 
-}
-*/
 void TPZFileEqnStorage::ReOpen()
 {
 	fIOStream = fopen(fFileName,"rb"); //open for reading

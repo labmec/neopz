@@ -141,7 +141,7 @@ void TPZEqnArray::EqnForward(TPZFMatrix & F, DecomposeType dec){
       }else last_term = fEqStart[j+1];
   		//if(fEqStart.NElements()
   		
-      int num_terms = last_term - index;
+
       /** cholesky e lu */
       if(dec==ECholesky || dec==ELU) {
           F(fIndex[index],0) /= fEqValues[index];
@@ -171,7 +171,7 @@ void TPZEqnArray::EqnForward(TPZFMatrix & F, DecomposeType dec){
       }else last_term = fEqStart[j+1];
          //if(fEqStart.NElements()
          
-      int num_terms = last_term - index;
+      
       /** cholesky e lu */
       if(dec==ECholesky || dec==ELU) {
 			F(fIndex[index],0) /= fEqValues[index];

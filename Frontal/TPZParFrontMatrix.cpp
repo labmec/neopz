@@ -105,7 +105,6 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
 	fFront.AddKel(elmat, sourceindex, destinationindex);
 //	EquationsToDecompose(destinationindex);
  //         cout << "AddKel::destination index 2" << endl;
-     int i;
 //          for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
  //         cout << endl;
  //         cout.flush();
@@ -153,7 +152,6 @@ void * TPZParFrontMatrix<store, front>::WriteFile(void *t){
      TPZParFrontMatrix<store, front> *parfront = (TPZParFrontMatrix<store, front>*) t;       
      cout << endl << "Entering Decomposition" << endl;
      cout.flush();
-     int nlocal=0;
      while(1){
           TPZStack<TPZEqnArray *> local;
           pthread_mutex_lock(&parfront->fwritelock);

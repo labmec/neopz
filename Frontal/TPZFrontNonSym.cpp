@@ -275,7 +275,7 @@ void TPZFrontNonSym::Compress(){
 	for(;i<fGlobal.NElements();i++) fGlobal[i] = -1;
 
 	if(nfound+fFree.NElements()!=fFront) cout << "TPZFront.Compress inconsistent data structure\n";
-	int frontold = fFront;
+
 	fFront = nfound;
 	fFree.Resize(0);	
 	fGlobal.Resize(fFront);

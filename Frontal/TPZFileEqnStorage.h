@@ -38,12 +38,7 @@ public:
     /** Static main for testing */
 	static void main();
 
-    /**
-     * Stores "n" equations in binary files. It uses a special indexation for improvements on searching and writing 
-     */
-	void Store_Old(int ieq, int jeq, const char *name);
-		
-    /** Simple destructor */
+      /** Simple destructor */
     ~TPZFileEqnStorage();
     /** Constructor
         option can assume "w" or "r" for writeing and reading respectively

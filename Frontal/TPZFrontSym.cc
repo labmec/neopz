@@ -144,7 +144,7 @@ void TPZFrontSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 {
      //eqnarray.SetSymmetric();
     
-     int i, j, ilocal;
+     int i, ilocal;
      ilocal = Local(ieq);
      TPZVec<REAL> AuxVec(fFront);
 

@@ -25,7 +25,7 @@ public:
 
 #endif
     /** Simple destructor */
-    ~TPZFront();
+    virtual ~TPZFront();
     /** Simple constructor */
     TPZFront();
     /** Constructor with a initial size parameter */

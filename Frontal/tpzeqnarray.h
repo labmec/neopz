@@ -138,14 +138,14 @@ private:
     int fNumEq;
 
     /** Equation start point index */
-    TPZStack < int > fEqStart;
-    TPZStack < int > fEqNumber;
+    TPZStack < int , 100 > fEqStart;
+    TPZStack < int , 100 > fEqNumber;
 
     /** Equations coefficients values */
-    TPZStack < REAL > fEqValues;
+    TPZStack < REAL, 1000 > fEqValues;
 
     /** Line/Column number associated to each fEqValues values. */
-    TPZStack < int > fIndex;
+    TPZStack < int , 1000 > fIndex;
 
     /** Indicates the last used position in fEqValues */
     int fLastTerm;
