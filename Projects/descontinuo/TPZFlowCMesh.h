@@ -12,6 +12,8 @@ class TPZFlowCompMesh : public TPZCompMesh {
 
  public:
 
+  //TPZFlowCompMesh();/**empty constructor*/
+
   TPZFlowCompMesh(TPZGeoMesh* gr);
   
   ~TPZFlowCompMesh(){};

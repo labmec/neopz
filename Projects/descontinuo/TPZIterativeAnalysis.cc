@@ -80,6 +80,8 @@ void TPZIterativeAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TP
     graph.DrawSolution(draw++,time);
     dxout->flush();
   }
+  LoadSolution();
+  //dxout->close();
   CoutTime(fInit,"TPZIterativeAnalysis:: general time of iterative process");
 }
 

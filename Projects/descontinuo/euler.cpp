@@ -80,7 +80,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <ostream>
-
+#include <string.h>
+using namespace std;
 //                        c = sqrt(gama*p/ro)  velocidade do som
 
 
@@ -136,9 +137,11 @@ TPZMaterial *FluxConst2D(int grau);
 void ContagemDeElementos(TPZMaterial *mat);
 void FileNB(TPZGeoMesh &gmesh,ostream &out,int var);
 void Function(TPZVec<REAL> &x,TPZVec<REAL> &result);
-void Divisao (TPZCompMesh *cmesh);
 void PostProcess(TPZGeoMesh &gmesh,ostream &out);
+void Divisao (TPZCompMesh *cmesh);
 void NivelDivide(TPZCompMesh *cmesh);
+void SequenceDivide2();
+void SequenceDivide(int fat[100],int numbel);
 void TestShapesDescontinous();
 static clock_t start,end;//,begin,ttot=0;
 void CoutTime(clock_t &start);
@@ -173,17 +176,18 @@ int main() {
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
   cin >> grau;
   TPZCompElDisc::gDegree = grau;
-  TPZMaterial *mat;
+  //TPZMaterial *mat;
+  TPZConservationLaw *mat;
 
-  if(tipo==0) mat = TresTriangulos(grau);
-  if(tipo==1) mat = TresPrismas(grau);
-  if(tipo==2) mat = FluxConst3D(grau);
-  if(tipo==3 || tipo == 4) mat = FluxConst2D(grau);
+  if(tipo==0) mat = dynamic_cast<TPZConservationLaw *>(TresTriangulos(grau));
+  if(tipo==1) mat = dynamic_cast<TPZConservationLaw *>(TresPrismas(grau));
+  if(tipo==2) mat = dynamic_cast<TPZConservationLaw *>(FluxConst3D(grau));
+  if(tipo==3 || tipo == 4) mat = dynamic_cast<TPZConservationLaw *>(FluxConst2D(grau));
   if(tipo==5){
-    mat = NoveQuadrilateros(grau);
+    mat = dynamic_cast<TPZConservationLaw *>(NoveQuadrilateros(grau));
     problem = 0;
   }
-  if(tipo==6) mat = NoveCubos(grau);
+  if(tipo==6) mat = dynamic_cast<TPZConservationLaw *>(NoveCubos(grau));
 
   if(1){
     cout << "\ndescontinuo.c::main verificando a consistencia da malha de interfaces\t";
@@ -219,7 +223,8 @@ int main() {
 
   if(1){
     start = clock();
-    NivelDivide(cmesh);
+    if(1) NivelDivide(cmesh);
+    if(0) SequenceDivide2();
     CoutTime(start);
     int nstate=-1;
     if(tipo == 0) nstate = 4;
@@ -266,37 +271,36 @@ int main() {
 	int resolution=0;
 	cout << "main:: Parametro resolution : \n";
 	//cin >> resolution;
-	resolution = 0; cout << resolution << "\n";
+	resolution = 0;
+	cout << resolution << "\n";
 	an.IterativeProcess(outgm,tol,numiter,mat,marcha,resolution);
 	if(0) PostProcess(*gmesh,outgm);
-	if(1){
-	  TPZVec<char *> scalar(1),vector(0);
-	  scalar[0] = "pressure";
-	  int dim = mat->Dimension();
-	  TPZDXGraphMesh graph(cmesh,dim,mat,scalar,vector);
-	  ofstream *dxout = new ofstream("ConsLawFinal.dx");
-	  cout << "\nmain::IterativeProcess out file : ConsLawFinal.dx\n";
-	  graph.SetOutFile(*dxout);
-	  graph.SetResolution(0);
-	  graph.DrawMesh(dim);
-	  an.LoadSolution();
-	  cout << "\nmain::Divisao manual\n";
+	if(0){//MALHAS NÃO CONFORMES
 	  Divisao(cmesh);
+	  cmesh->AdjustBoundaryElements();
 	  if(1){
 	    cout << "\nmain::Imprime malhas depois de divide manual\n";
 	    gmesh->Print(outgm);
 	    cmesh->Print(outgm);
 	    outgm.flush();
-	  } 
+	  }
+	  TPZVec<char *> scalar(1),vector(0);
+	  scalar[0] = "pressure";
+	  int dim = mat->Dimension();
+	  TPZDXGraphMesh graph(cmesh,dim,mat,scalar,vector);
+	  ofstream *dx = new ofstream("ConsLawFinal.dx");
+	  cout << "\nmain::Out file : ConsLawFinal.dx\n";
+	  graph.SetOutFile(*dx);
+	  graph.SetResolution(resolution);
+	  graph.DrawMesh(dim);
+	  an.LoadSolution();
 	  an.SetBlockNumber();
 	  an.Solution().Zero();
-	  an.SetDeltaTime(cmesh,mat);
-	  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
-	  REAL time = law->TimeStep();
+	  an.Run();
+	  REAL time = mat->TimeStep();
 	  graph.DrawSolution(0,time);
-	  dxout->flush();
-	  dxout->close();
-	  //if(dxout) delete dxout;
+	  dx->flush();
+	  //dx->close();
 	}
       }
     }
@@ -1378,6 +1382,7 @@ TPZMaterial *FluxConst3D(int grau){
   CriacaoDeNos(8,hexaedro1);
   //elemento de volume
   TPZVec<int> nodes;
+  int index;
   nodes.Resize(8);
   nodes[0] = 0;
   nodes[1] = 1;
@@ -1387,9 +1392,13 @@ TPZMaterial *FluxConst3D(int grau){
   nodes[5] = 5;
   nodes[6] = 6;
   nodes[7] = 7;
-  TPZGeoElC3d *elgc3d = new TPZGeoElC3d(nodes,1,*gmesh);
+  TPZGeoEl *elgc3d = gmesh->CreateGeoElement(ECube,nodes,1,index);
   //construtor descontínuo
-
+  TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  //TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  //TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  //TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity2();
@@ -1783,7 +1792,7 @@ TPZMaterial *NoveCubos(int grau){
   nodes.Resize(8);
   TPZVec<TPZGeoEl *> elem(9);
   elem.Resize(9);
-  int i;
+  int i,index;
   for(i=0;i<9;i++){
     nodes[0] = INCID[i][0];
     nodes[1] = INCID[i][1];
@@ -1793,9 +1802,14 @@ TPZMaterial *NoveCubos(int grau){
     nodes[5] = INCID[i][5];
     nodes[6] = INCID[i][6];
     nodes[7] = INCID[i][7];
-    elem[i] = new TPZGeoElC3d(nodes,1,*gmesh);
+    elem[i] = gmesh->CreateGeoElement(ECube,nodes,1,index);
   }
 
+  //elemento de volume descontínuo
+  TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  //TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  //TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity2();
@@ -1907,3 +1921,89 @@ TPZMaterial *NoveCubos(int grau){
   cmesh->AutoBuild();
   return mat;
 }
+
+void SequenceDivide(int fat[100],int numbel){
+
+  TPZVec<int> csub(0);
+  int i,el;
+  for(i=0;i<numbel;i++){
+    cout << "\nId do elemento geometrico a dividir -> " << fat[i] << endl;
+    cmesh->Divide(fat[i],csub,1);
+  }
+  cout << "Elementos divissiveis:\n";
+  numbel = cmesh->ElementVec().NElements();
+  for(el=0;el<numbel;el++) {
+    TPZCompEl *cpel = cmesh->ElementVec()[el];
+    if(cpel && cpel->Type() != 16){
+      TPZGeoEl *gel = cpel->Reference();
+      if(gel) cout << gel->Id() << ",";
+    }
+  }
+}
+
+void SequenceDivide2(){
+
+  TPZVec<int> s(0),s2(0);
+  cmesh->Divide(1,s,0);
+  int niv = 0;
+  if(0){
+    while(niv++ < 4){
+      cmesh->Divide(s[0],s2,0);
+      cmesh->Divide(s[1],s2,0);
+      cmesh->Divide(s[3],s2,0);
+      cmesh->Divide(s[2],s,0);
+    }
+    niv = 0;
+    cmesh->Divide(2,s,0);
+    while(niv++ < 4){
+      cmesh->Divide(s[0],s2,0);
+      cmesh->Divide(s[3],s2,0);
+      cmesh->Divide(s[1],s,0);
+    }
+  }
+  if(0){
+    int i;//novecubos
+    for(i=0;i<9;i++) cmesh->Divide(i,s,0);
+  }
+  if(1){//1 cubos
+    cmesh->Divide(0,s,0);
+    cmesh->Divide(s[7],s,0);//6
+    cmesh->Divide(s[5],s,0);//4
+    cmesh->Divide(s[5],s,0);//4: essa combina¢ão da problemas
+    //cmesh->Divide(s[4],s,0);
+  }
+}
+
+
+
+// 	if(1){
+// 	  TPZVec<char *> scalar(1),vector(0);
+// 	  scalar[0] = "pressure";
+// 	  int dim = mat->Dimension();
+// 	  TPZDXGraphMesh graph(cmesh,dim,mat,scalar,vector);
+// 	  ofstream *dx = new ofstream("ConsLawFinal.dx");
+// 	  cout << "\nmain::out file : ConsLawFinal.dx\n";
+// 	  graph.SetOutFile(*dx);
+// 	  graph.SetResolution(0);
+// 	  graph.DrawMesh(dim);
+// 	  //an.LoadSolution();
+// 	  cout << "\nmain::Divisao manual\n";
+// 	  Divisao(cmesh);
+// 	  cmesh->AdjustBoundaryElements();
+// 	  if(1){
+// 	    cout << "\nmain::Imprime malhas depois de divide manual\n";
+// 	    gmesh->Print(outgm);
+// 	    cmesh->Print(outgm);
+// 	    outgm.flush();
+// 	  }
+// 	  an.Solution().Zero();
+// 	  an.SetBlockNumber();
+// 	  an.Run();
+// 	  //an.LoadSolution();
+// 	  an.SetDeltaTime(cmesh,mat);
+// 	  REAL time = mat->TimeStep();
+// 	  graph.DrawSolution(0,time);
+// 	  dx->flush();
+// 	  //dx->close();
+// 	  //if(dx) delete dxout;
+// 	}
