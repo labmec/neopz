@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzelct3d.cc,v 1.9 2003-11-06 19:15:19 cesar Exp $
+//$Id: pzelct3d.cc,v 1.10 2003-11-25 17:58:29 cesar Exp $
 #include "pzelct3d.h"
 //#include "pzelgt3d.h"
 #include "pzgeoel.h"
@@ -132,7 +132,8 @@ int TPZCompElT3d::SideConnectLocId(int node, int side) {
 
 int TPZCompElT3d::SideOrder(int side) {
 	//0 <= side <= 15
-  if(side<4 || side>15) return 0;//cantos ou side ruim
+  if(side<4) return 1;
+  if(side>15) return -1;//cantos ou side ruim
   return fSideOrder[side-4];//ordens dos lados e faces
                             //side = 4,5,6,7,8,9,10,11,12,13
 }
@@ -289,7 +290,7 @@ TPZIntPoints *TPZCompElT3d::CreateSideIntegrationRule(int side) {
 }
 
 int TPZCompElT3d::PreferredSideOrder(int side) {
-   if(side>-1 && side<4) return 0;//cantos
+   if(side>-1 && side<4) return 1;//cantos
    if(side<15) {
 	   int order = fPreferredSideOrder[side-4];//lados,faces e centro (ou interior)
 	  return AdjustPreferredSideOrder(side,order);
@@ -316,6 +317,9 @@ void TPZCompElT3d::SetSideOrder(int side, int order) {
   if(side>3) fSideOrder[side-4] = order;
   if(fConnectIndexes[side] !=-1) {
     TPZConnect &c = Connect(side);
+    if(c.HasDependency() && c.Order() != order) {
+      cout << "TPZCompElT3d::SetSideOrder fodeu\n";
+    }
     c.SetOrder(order);
     int seqnum = c.SequenceNumber();
     int nvar = 1;
@@ -362,11 +366,32 @@ void TPZCompElT3d::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &ph
 }
 
 void TPZCompElT3d::SetIntegrationRule(int order) {
-	TPZIntTetra3D inttetra(order);
-   SetIntegrationRule(inttetra);
+  TPZIntTetra3D inttetra(order);
+  SetIntegrationRule(inttetra);
 }
 
 void TPZCompElT3d::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) {
   //if(dimension == 3) new TPZGraphEl(this,&grmesh);
+}
+
+int TPZCompElT3d::CheckElementConsistency() {
+
+  int n = NCornerConnects();
+  int nc = NConnects();
+  for(;n<nc; n++) {
+    TPZConnect &c = Connect(n);
+    int order = c.Order();
+    int order2 = fSideOrder[n-NCornerConnects()];
+    int ndof = c.NDof(*Mesh());
+    int ndof2 = Material()->NStateVariables()*NConnectShapeF(n);
+    if(order != order2 || ndof != ndof2) {
+      cout << "TPZCompElT3d :" << fIndex << " inconsistent datastructure connect order " << order
+           << " side order " << order2 << " blocksize " << ndof << " computed blocksize " << ndof2 << endl;
+      c.Print(*fMesh,cout);
+      Print();
+      return 0;
+    }
+  }
+  return 1;
 }
 

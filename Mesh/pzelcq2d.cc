@@ -1,4 +1,4 @@
-//$Id: pzelcq2d.cc,v 1.11 2003-11-18 12:37:17 cesar Exp $
+//$Id: pzelcq2d.cc,v 1.12 2003-11-25 17:58:29 cesar Exp $
 
 // -*- c++ -*-
 #include "pzelcq2d.h"
@@ -146,7 +146,7 @@ TPZIntPoints *TPZCompElQ2d::CreateSideIntegrationRule(int side) {  // or TPZInt.
 }
 
 int TPZCompElQ2d::PreferredSideOrder(int side) {
-  if(side<4) return 0;
+  if(side<4) return 1;
   if(side<9) {
 	  int order =fPreferredSideOrder[side-4];
 	  return AdjustPreferredSideOrder(side,order);
@@ -172,6 +172,9 @@ void TPZCompElQ2d::SetSideOrder(int side, int order) {
   if(side>3) fSideOrder[side-4] = order;
   if(fConnectIndexes[side] != -1) {
     TPZConnect &c = Connect(side);
+    if(c.HasDependency() && order != c.Order()) {
+      cout << "TPZCompElQ2d::SetSideOrder fodeu\n";
+    }
     c.SetOrder(order);
     int seqnum = c.SequenceNumber();
     int nvar = 1;

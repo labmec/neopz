@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.6 2003-11-11 18:46:23 phil Exp $
+//$Id: pzconnect.cpp,v 1.7 2003-11-25 17:58:29 cesar Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -219,6 +219,34 @@ void TPZConnectBC::Print(TPZCompMesh &mesh,ostream &out){
   if(fConnect) fConnect->Print(mesh,out);
   if(fBC) fBC->Print(out);
 }
+
+int TPZConnect::CheckDependency(int nshape, TPZCompMesh *mesh, int nstate) {
+
+   if(HasDependency()) {
+    TPZConnect::TPZDepend *first = FirstDepend();
+    while(first) {
+      int nr = first->fDepMatrix.Rows();
+      int nc = first->fDepMatrix.Cols();
+      if(nr != nshape) {
+        cout << "TPZCheckMesh inconsistent dependency nshape = " << nshape << " nrows " << nr << endl;
+        return -1;
+      }
+       TPZConnect &c2 = mesh->ConnectVec()[first->fDepConnectIndex];
+       if(nc*nstate != c2.NDof(*mesh)) {
+         cout << "TPZCheckMesh inconsistent dependency ndof = " << c2.NDof(*mesh) << " ncols " << nc << endl;
+         return -1;
+         int c2result = 0;
+         if(c2.HasDependency()) {
+           c2result = c2.CheckDependency(c2.NDof(*mesh)/nstate,mesh,nstate);
+         }
+         if(c2result == -1) return c2result;
+       }
+       first = first->fNext;
+    }
+  }
+  return 0;
+}
+
 void TPZConnect::ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &blocksize, TPZFMatrix &phi, TPZFMatrix &dphi){
 
     if(!fDependList) return;

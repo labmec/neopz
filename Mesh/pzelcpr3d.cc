@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzelcpr3d.cc,v 1.9 2003-11-06 19:15:19 cesar Exp $
+//$Id: pzelcpr3d.cc,v 1.10 2003-11-25 17:58:29 cesar Exp $
 #include "pzelcpr3d.h"
 #include "pzelct3d.h"
 #include "pzgeoel.h"
@@ -137,7 +137,8 @@ int TPZCompElPr3d::SideConnectLocId(int node, int side) {
 
 int TPZCompElPr3d::SideOrder(int side) {
   //0 <= side <= 20
-  if(side<6 || side>20) return 0;//cantos ou side ruim
+  if(side<6) return 1;
+  if(side>20) return -1;//cantos ou side ruim
   return fSideOrder[side-6];//deve tirar os cantos
 
 }
@@ -305,7 +306,7 @@ TPZIntPoints *TPZCompElPr3d::CreateSideIntegrationRule(int side) {
 }
 
 int TPZCompElPr3d::PreferredSideOrder(int side) {
-  if(side>-1 && side<6) return 0;//cantos
+  if(side>-1 && side<6) return 1;//cantos
   if(side<21) {
     int order = fPreferredSideOrder[side-6];//lados,faces e centro (ou interior)
     return AdjustPreferredSideOrder(side,order);
@@ -327,11 +328,15 @@ void TPZCompElPr3d::SetSideOrder(int side, int order) {
 /*   } */
   if(side<0 || side>20 || order<1) {
     PZError << "TPZCompElPr3d::SetSideOrder. Bad paramenter side.\n";
+    int a; cin >> a;
     return;
   }
   if(side>5) fSideOrder[side-6] = order;
   if(fConnectIndexes[side] !=-1) {
     TPZConnect &c = Connect(side);
+    if(c.HasDependency() && c.Order() != order) {
+      cout << "TPZCompElPr3d::SetSideOrder fodeu\n";
+    }
     c.SetOrder(order);
     int seqnum = c.SequenceNumber();
     int nvar = 1;

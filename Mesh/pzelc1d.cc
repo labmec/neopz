@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelc1d.cc,v 1.10 2003-11-06 19:15:19 cesar Exp $
+// $Id: pzelc1d.cc,v 1.11 2003-11-25 17:58:29 cesar Exp $
 //METHODS DEFINITION FOR CLASS ELEM1D
 
 #include "pzelc1d.h"
@@ -134,7 +134,7 @@ void TPZCompEl1d::GetInterpolationOrder(TPZVec<int> &ord) {
 }
 
 int TPZCompEl1d::PreferredSideOrder(int side) {
-  if(side == 0 || side == 1) return 0;
+  if(side == 0 || side == 1) return 1;
   if(side == 2) return fPreferredSideOrder;
   return -1;
 }
@@ -157,6 +157,10 @@ void TPZCompEl1d::SetSideOrder(int side, int order) {
    
    if(fConnectIndexes[side] !=-1) {
      TPZConnect &c = Connect(side);
+    if(c.HasDependency() && order != c.Order()) {
+      cout << "TPZCompEl1d::SetSideOrder fodeu\n";
+    }
+
      c.SetOrder(order);
      int seqnum = c.SequenceNumber();
      int nvar = 1;
@@ -171,7 +175,7 @@ void TPZCompEl1d::SetSideOrder(int side, int order) {
 }
 
 int TPZCompEl1d::SideOrder(int side) {
-  if(side == 0 || side == 1) return 0;
+  if(side == 0 || side == 1) return 1;
   if(side == 2) return fSideOrder;
   return -1;
 }

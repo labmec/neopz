@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzelcpi3d.cc,v 1.10 2003-11-06 19:15:19 cesar Exp $
+//$Id: pzelcpi3d.cc,v 1.11 2003-11-25 17:58:29 cesar Exp $
 #include "pzelcpi3d.h"
 #include "pzelct3d.h"
 //#include "pzelgt3d.h"
@@ -78,7 +78,13 @@ TPZCompElPi3d::TPZCompElPi3d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
     mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
     IdentifySideOrder(i);
   }
-  TPZVec<int> order(3,2*fSideOrder[18]);//integra variavel ao quadrado em cada direção
+  int maxorder = fIntRule.GetMaxOrder();
+  int volorder = 2*fSideOrder[18] > maxorder ? maxorder : 2*fSideOrder[18];
+  
+  
+  TPZVec<int> order(3,volorder);//integra variavel ao quadrado em cada direção
+
+
   fIntRule.SetOrder(order);
 }
 
@@ -303,7 +309,7 @@ TPZIntPoints *TPZCompElPi3d::CreateSideIntegrationRule(int side) {
 }
 
 int TPZCompElPi3d::PreferredSideOrder(int side) {
-  if(side>-1 && side<5) return 0;//cantos
+  if(side>-1 && side<5) return 1;//cantos
   if(side<19) {
     int order = fPreferredSideOrder[side-5];//lados,faces e centro (ou interior)
     return AdjustPreferredSideOrder(side,order);
@@ -317,7 +323,7 @@ void TPZCompElPi3d::SetPreferredSideOrder(int order) {
 }
 
 int TPZCompElPi3d::SideOrder(int side) {
-	if(side < 5) return 0;
+	if(side < 5) return 1;
 	if(side <19) return fSideOrder[side-5];
     PZError << "TPZCompElPi3d::SideOrder. Bad paramenter side.\n";
 	return -1;
@@ -335,6 +341,10 @@ void TPZCompElPi3d::SetSideOrder(int side, int order) {
   if(side>4) fSideOrder[side-5] = order;
   if(fConnectIndexes[side] !=-1) { 
     TPZConnect &c = Connect(side);
+    if(c.HasDependency() && c.Order() != order) {
+      cout << "TPZCompElPi3d::SetSideOrder fodeu\n";
+    }
+
     c.SetOrder(order);
     int seqnum = c.SequenceNumber();
     int nvar = 1;

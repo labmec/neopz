@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cc,v 1.7 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzgmesh.cc,v 1.8 2003-11-25 17:58:30 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -18,6 +18,10 @@ Method definition for class TPZGeoMesh.*/
 #include "pzcosys.h"
 #include "pzmatrix.h"
 #include "pzavlmap.h"
+
+#include "pzelgt2d.h"
+#include "pzelgt3d.h"
+#include "pzelgpi3d.h"
 
 
 TPZGeoMesh::TPZGeoMesh() : fElementVec(0), fNodeVec(0), fCosysVec(0),
@@ -471,23 +475,26 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(
 	    nodeindexes, matid, *this, index );
 
       case 2://triangle
-	 return new TPZGeoElement<
-	    TPZShapeTriang, TPZGeoTriangle, TPZRefTriangle >(
-	       nodeindexes, matid, *this, index );
+//	 return new TPZGeoElement<
+//	    TPZShapeTriang, TPZGeoTriangle, TPZRefTriangle >(
+//	       nodeindexes, matid, *this, index );
+     return new TPZGeoElT2d(nodeindexes,matid,*this);
 
       case 3://quadrilatera
 	 return  new TPZGeoElement< TPZShapeQuad, TPZGeoQuad, TPZRefQuad >(
 	    nodeindexes, matid, *this, index );
 
       case 4://tetraedra
-	 return new TPZGeoElement<
-	    TPZShapeTetra, TPZGeoTetrahedra, TPZRefTetrahedra >(
-	       nodeindexes, matid, *this, index );
+     return new TPZGeoElT3d(nodeindexes,matid,*this);
+//	 return new TPZGeoElement<
+//	    TPZShapeTetra, TPZGeoTetrahedra, TPZRefTetrahedra >(
+//	       nodeindexes, matid, *this, index );
 
       case 5:
-	 return new TPZGeoElement<
-	    TPZShapePiram, TPZGeoPyramid, TPZRefPyramid >(
-	       nodeindexes, matid, *this, index );
+     return new TPZGeoElPi3d(nodeindexes,matid,*this);
+//	 return new TPZGeoElement<
+//	    TPZShapePiram, TPZGeoPyramid, TPZRefPyramid >(
+//	       nodeindexes, matid, *this, index );
 
       case 6:
 	 return new TPZGeoElement< TPZShapePrism, TPZGeoPrism, TPZRefPrism >(

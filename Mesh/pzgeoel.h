@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.9 2003-11-06 19:19:11 cesar Exp $
+//$Id: pzgeoel.h,v 1.10 2003-11-25 17:58:30 cesar Exp $
 
 // -*- c++ -*-
 
@@ -152,10 +152,11 @@ public:
   /**
    * returns the element type acording to pzeltype.h
    */
-virtual int Type() {
-    cout << "ElementType should never be called\n";
-    return -1;
-  }
+virtual int Type() =0;
+// {
+//    cout << "ElementType should never be called\n";
+//    return -1;
+//  }
   /**return the number of connectivities of the element*/
   virtual int NSides() = 0;
 
