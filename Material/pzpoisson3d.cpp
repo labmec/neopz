@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.9 2004-09-07 23:41:33 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.10 2005-01-28 16:48:37 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -10,16 +10,15 @@
 #include "pzerror.h"
 #include <math.h>
 
-//int TPZMatPoisson3d::problema = 0;
-
 REAL TPZMatPoisson3d::gAlfa = 0.5;
 
 TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim) {
   fK = 1.;
   fC = 0.;
-  fConvDir[0] =1.;
-  fConvDir[1] =0.;
-  fConvDir[2] =0.;
+  fConvDir[0] = 1.;
+  fConvDir[1] = 0.;
+  fConvDir[2] = 0.;
+  this->SetNonSymmetric();
 }
 
 void TPZMatPoisson3d::SetParameters(REAL diff, REAL conv, TPZVec<REAL> &convdir) {
@@ -90,11 +89,11 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
         ConvDirAx[2] = axes(2,0)*fConvDir[0]+axes(2,1)*fConvDir[1]+axes(2,2)*fConvDir[2];
         break;
       default:
-        cout << "TPZMatPoisson3d::Contribute dimension error " << fDim << endl;
+        PZError << "TPZMatPoisson3d::Contribute dimension error " << fDim << endl;
     }
   }
     
-  //Equação de Poisson
+  //Equacao de Poisson
   for( int in = 0; in < phr; in++ ) {
     int kd;
     ef(in, 0) += - weight * fXf*phi(in,0);
@@ -110,6 +109,7 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
       }
     }
   }
+    if ( !ek.VerifySymmetry() ) cout << "MATRIZ NAO SIMETRICA" << endl;
 }
 
 
@@ -135,7 +135,7 @@ void TPZMatPoisson3d::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REA
       ef(in,0) += v2[0] * phi(in,0) * weight;
     }
     break;
-  case 2 :		// condiçao mista
+  case 2 :		// condiï¿½o mista
     for(in = 0 ; in < phi.Rows(); in++) {
       ef(in, 0) += v2[0] * phi(in, 0) * weight;
       for (jn = 0 ; jn < phi.Rows(); jn++) {
@@ -144,6 +144,7 @@ void TPZMatPoisson3d::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REA
       }
     }
   }
+    if ( !ek.VerifySymmetry() ) cout << "MATRIZ NAO SIMETRICA" << endl;
 }
 
 /** returns the variable index associated with the name*/
@@ -213,7 +214,7 @@ void TPZMatPoisson3d::ContributeEnergy(TPZVec<REAL> &x,
 {
       int dim = dsol.NElements()/sol.NElements();
 
-      //Equação de Poisson
+      //Equaï¿½o de Poisson
 
       int i, eqs = dsol.NElements()/dim;
       if(sol.NElements() != 1) PZError << "";
@@ -268,7 +269,7 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
     // U -= weight * Integral([g].u dOmega)
     U -= sol[0] * FADREAL( bc.Val2()(0,0) * weight);
     break;
-  case 2 :	// condiçao mista
+  case 2 :	// condiï¿½o mista
     // U += 1/2 * weight * Integral(<(u-u0), [g].(u-u0)> dOmega)
     U += ( solMinBC * /*scalar*/ FADREAL(bc.Val1()(0,0)) * /*matrix oprt*/ solMinBC ) * FADREAL(weight / 2.);
     break;
@@ -286,6 +287,8 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
   int nrowl = phiL.Rows();
   int nrowr = phiR.Rows();
   int il,jl,ir,jr,id;
+  
+  //Convection term
   REAL ConvNormal = 0.;
   for(id=0; id<fDim; id++) ConvNormal += fConvDir[id]*normal[id];
   if(ConvNormal > 0.) {
@@ -311,6 +314,11 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
       }
     }
   }
+  
+  
+  //diffusion term
+  
+  // 1)
   for(il=0; il<nrowl; il++) {
     REAL dphiLinormal = 0.;
     for(id=0; id<fDim; id++) {
@@ -322,10 +330,12 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
         dphiLjnormal += dphiL(id,jl)*normal[id];
       }
       ek(il,jl) += weight*fK*(
-        0.5*dphiLinormal*phiL(jl,0)-0.5*dphiLjnormal*phiL(il,0)
+        this->fSymmetry * 0.5*dphiLinormal*phiL(jl,0)-0.5*dphiLjnormal*phiL(il,0)
       );
     }
   }
+  
+  // 2)
   for(ir=0; ir<nrowr; ir++) {
     REAL dphiRinormal = 0.;
     for(id=0; id<fDim; id++) {
@@ -337,10 +347,12 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
         dphiRjnormal += dphiR(id,jr)*normal[id];
       }
       ek(ir+nrowl,jr+nrowl) += weight*fK*(
-        -0.5 * dphiRinormal * phiR(jr) + 0.5 * dphiRjnormal * phiR(ir)
+        this->fSymmetry * (-0.5 * dphiRinormal * phiR(jr) ) + 0.5 * dphiRjnormal * phiR(ir)
       );
     }
   }
+  
+  // 3)
   for(il=0; il<nrowl; il++) {
     REAL dphiLinormal = 0.;
     for(id=0; id<fDim; id++) {
@@ -352,10 +364,12 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
         dphiRjnormal += dphiR(id,jr)*normal[id];
       }
       ek(il,jr+nrowl) += weight*fK*(
-        -0.5 * dphiLinormal * phiR(jr) - 0.5 * dphiRjnormal * phiL(il)
+        this->fSymmetry * (-0.5 * dphiLinormal * phiR(jr) ) - 0.5 * dphiRjnormal * phiL(il)
       );
     }
   }
+  
+  // 4)
   for(ir=0; ir<nrowr; ir++) {
     REAL dphiRinormal = 0.;
     for(id=0; id<fDim; id++) {
@@ -367,10 +381,12 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
         dphiLjnormal += dphiL(id,jl)*normal[id];
       }
       ek(ir+nrowl,jl) += weight*fK*(
-        + 0.5 * dphiRinormal * phiL(jl) + 0.5 * dphiLjnormal * phiR(ir)
+        this->fSymmetry * 0.5 * dphiRinormal * phiL(jl) + 0.5 * dphiLjnormal * phiR(ir)
       );
     }
   }
+  
+  if ( !ek.VerifySymmetry() ) cout << "MATRIZ NAO SIMETRICA" << endl;
 }
 
 void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
@@ -383,20 +399,24 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
   for(id=0; id<fDim; id++) ConvNormal += fConvDir[id]*normal[id];
   switch(bc.Type()) {
   case 0: // DIRICHLET
+    
+    //Diffusion
     for(il=0; il<nrowl; il++) {
       REAL dphiLinormal = 0.;
       for(id=0; id<fDim; id++) {
         dphiLinormal += dphiL(id,il)*normal[id];
       }
-      ef(il,0) += weight*fK*dphiLinormal*bc.Val2()(0,0);
+      ef(il,0) += weight*fK*dphiLinormal*bc.Val2()(0,0) * this->fSymmetry;
       for(jl=0; jl<nrowl; jl++) {
         REAL dphiLjnormal = 0.;
         for(id=0; id<fDim; id++) {
           dphiLjnormal += dphiL(id,jl)*normal[id];
         }
-        ek(il,jl) += weight*fK*(dphiLinormal*phiL(jl,0)-dphiLjnormal*phiL(il,0));
+        ek(il,jl) += weight*fK*(this->fSymmetry * dphiLinormal * phiL(jl,0) - dphiLjnormal * phiL(il,0));
       }
     }
+    
+    //Convection
     if(ConvNormal > 0.) {
       for(il=0; il<nrowl; il++) {
         for(jl=0; jl<nrowl; jl++) {
@@ -419,6 +439,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
     PZError << "TPZMatPoisson3d::Wrong boundary condition type\n";
     break;
   }
+    if ( !ek.VerifySymmetry() ) cout << "MATRIZ NAO SIMETRICA" << endl;
 }
 
 void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,

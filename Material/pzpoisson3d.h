@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.9 2004-05-21 13:34:22 erick Exp $
+//$Id: pzpoisson3d.h,v 1.10 2005-01-28 16:48:37 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -17,21 +17,33 @@
 
 
 class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
+ 
+  protected :
 
   /** Forcing function value */
   REAL fXf;
+  
+  /** Problem dimension */
   int fDim;
-  /** Coeficient which multiplies the Laplace operator */
+  
+  /** Coeficient which multiplies the Laplacian operator */
   REAL fK;
+  
   /** Variable which multiplies the convection term of the equation */
   REAL fC;
+  
   /** Direction of the convection operator */
   REAL fConvDir[3];
   
+  /** Symmetry coefficient of elliptic term.
+   * Symmetrical formulation - Global element method - has coefficient = -1.
+   * Non-symmetrical formulation - Baumann's formulation - has coefficient = +1.
+   */
+  REAL fSymmetry;
+  
   public :
 
-//  static int problema;
-
+  /** Usado em InterfaceErrors */
   static REAL gAlfa;
 
   TPZMatPoisson3d(int nummat, int dim);
@@ -43,9 +55,21 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
     fDim = copy.fDim;
     fK   = copy.fK;
     fC   = copy.fC;
-    for (int i = 0; i < 3; i++)
-      fConvDir[i] = copy.fConvDir[i];
+    for (int i = 0; i < 3; i++) fConvDir[i] = copy.fConvDir[i];
+    fSymmetry = copy.fSymmetry;
 
+  }
+  
+  /** Set material elliptic term as the global element method, i.e. the symmetrical formulation.
+  */
+  void SetSymmetric(){
+    this->fSymmetry = -1.0;
+  }
+  
+  /** Set material elliptic term as the Baumann's formulation, i.e. the non-symmetrical formulation.
+  */  
+  void SetNonSymmetric() {
+    this->fSymmetry = +1.0; 
   }
 
   virtual TPZMaterial *NewMaterial(){
