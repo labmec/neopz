@@ -34,6 +34,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Refine/pzreftriangle.o \
 	../Refine/TPZRefCube.o \
 	../Refine/TPZRefLinear.o \
+	../Refine/TPZRefPattern.o \
 	../Mesh/pzcmesh.o \
         ../Mesh/pzflowcmesh.o \
 	../Mesh/pzcompel.o \
@@ -72,6 +73,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Mesh/TPZInterfaceEl.o \
 	../Mesh/TPZAgglomerateEl.o \
 	../Mesh/pzelctemp.o \
+	../Mesh/tpzgeoelrefpattern.o \
 	../Shape/pzshapecube.o \
 	../Shape/pzshapelinear.o \
 	../Shape/pzshapepiram.o \
