@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.10 2004-02-06 22:42:04 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.11 2004-02-12 00:18:43 erick Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -117,7 +117,7 @@ public:
     * solver, because it performs only part
     * of one linear iteration.
     */
-   void Solve(REAL & res);
+   void Solve(REAL & res, TPZFMatrix * residual);
 
    /**
     * Implements the Newton's method.

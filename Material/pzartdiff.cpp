@@ -116,6 +116,76 @@ void TPZArtDiff::ODotOperator(TPZVec<REAL> &dphi, TPZVec<TPZVec<T> > &TauDiv, TP
      for(i=0;i<neq;i++)Result[i] += TauDiv[k][i] * dphi[k];
 }
 
+template <class T>
+void TPZArtDiff::Divergent(TPZFMatrix &dsol,
+			   TPZFMatrix & phi,
+			   TPZFMatrix & dphi,
+			   TPZVec<TPZDiffMatrix<T> > & Ai,
+			   TPZVec<REAL> & Div,
+			   TPZDiffMatrix<REAL> * dDiv)
+{
+   int nstate = Ai[0].Cols();
+   int dim = nstate - 2;
+   int nshape = dphi.Cols();
+   Div.Resize(nstate);
+   Div = 0.;
+
+   int i, j, k;
+
+// computing the divergent:
+// A.du/dx + B.du/dy + C.du/dz
+   for(k=0;k<dim;k++)
+      for(i=0;i<nstate; i++)
+         for(j=0;j<nstate;j++)
+	    {
+	       Div[i] += Ai[k](i,j).val() * dsol(k,j);
+	    }
+
+   if(!dDiv)return;
+
+// computing an approximation to the divergent derivative:
+
+// dDiv/dUj ~= A.d2U/dUidx + B.d2U/dUidy + C.d2U/dUidz
+
+   dDiv->Redim(nstate, nstate * nshape);
+   int l;
+   REAL buff;
+   for(l=0;l<nshape;l++)
+      for(j=0;j<nstate;j++)
+         for(i=0;i<nstate; i++)
+	 {
+            buff =0.;
+            for(k=0;k<dim;k++)
+	    {
+               buff+=Ai[k](i,j).val()*dphi(k,l);
+	    }
+         dDiv->operator()(i,j+l*nstate)=buff;
+         }
+
+// dDiv/dUj += (dA/dU.dU/dx).dU/dUj +
+//             (dB/dU.dU/dy).dU/dUj +
+//             (dC/dU.dU/dz).dU/dUj
+//Tem algum erro daqui para baixo
+   TPZVec<T> ADiv(nstate);
+   T temp;
+   for( k = 0; k < dim; k++)
+   {
+      //Ai[k].Multiply(Div, ADiv);
+      for(i = 0; i < nstate; i++)
+      {
+         temp = T(0.);
+         for(j = 0; j < nstate; j++)
+	    temp += Ai[k](i,j) * dsol(k,j);//[j];
+	 ADiv[i] = temp;
+      }
+      for(l=0;l<nshape;l++)
+         for(j=0;j<nstate;j++)
+            for(i=0;i<nstate; i++)
+               dDiv->operator()(i,j+l*nstate) +=
+	                 ADiv[i].fastAccessDx(j) * phi(l,0);
+   }
+}
+
 
 void TPZArtDiff::Divergent(TPZFMatrix &dsol,
 			   TPZFMatrix & dphi,
@@ -140,7 +210,6 @@ void TPZArtDiff::Divergent(TPZFMatrix &dsol,
 	       Div[i]+=Ai[k](i,j)*dsol(k,j);
 	    }
 
-
    if(!dDiv)return;
 // computing an approximation to the divergent derivative:
 
@@ -160,7 +229,9 @@ void TPZArtDiff::Divergent(TPZFMatrix &dsol,
 	    }
          dDiv->operator()(i,j+l*nstate)=buff;
          }
+
 }
+
 
 #ifdef _AUTODIFF
 void TPZArtDiff::Divergent(TPZVec<FADREAL> &dsol,
@@ -400,6 +471,106 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix &jacinv, TPZVec<FADREAL> &s
 #endif
 
 
+#ifdef _AUTODIFF
+template <int dim>
+void TPZArtDiff::PrepareFastestDiff(TPZFMatrix &jacinv,
+		TPZVec<REAL> &sol,
+                TPZFMatrix &dsol,
+		TPZFMatrix &phi,
+                TPZFMatrix &dphi,
+		TPZVec<TPZVec<REAL> > & TauDiv,
+		TPZVec<TPZDiffMatrix<REAL> > & dTauDiv)
+{
+
+typedef TFad<dim+2, REAL> TFADREALdim;
+
+  const int nstate = sol.NElements();
+  const int nshape = phi.Rows();
+
+  TPZVec<TFADREALdim >                FADsol(nstate);
+  TPZVec<TPZDiffMatrix<TFADREALdim> > FADAi(dim);
+  TPZVec<TPZDiffMatrix<REAL> >           Ai(dim);
+  TPZVec<TPZDiffMatrix<TFADREALdim> > FADTau(dim);
+  TPZVec<TPZDiffMatrix<REAL> >           Tau(dim);
+  TPZVec<TPZVec<TFADREALdim> >        FADTauDiv(dim);
+  TFADREALdim temp;
+
+  int i, j, k, l;
+  for(i = 0; i < nstate; i++)
+  {
+     FADsol[i] = sol[i];
+     FADsol[i].diff(i, nstate);
+  }
+
+  TPZEulerConsLaw2::JacobFlux(fGamma, dim, FADsol, FADAi);
+  ComputeTau(dim, jacinv, FADsol, FADAi, FADTau);
+
+  for( k = 0; k < dim; k++)
+  {
+     Tau[k].Redim(nstate, nstate);
+     Ai [k].Redim(nstate, nstate);
+     for(i = 0; i < nstate; i++)
+        for( j = 0; j < nstate; j++)
+	{
+           Tau[k](i,j) = FADTau[k](i,j).val();
+	   Ai [k](i,j) = FADAi [k](i,j).val();
+	}
+  }
+
+  TPZVec<REAL> Div;
+  TPZDiffMatrix<REAL> dDiv;
+
+  //Computing the divergent with derivatives
+  Divergent(dsol, phi, dphi, FADAi, Div, &dDiv);
+
+  TauDiv. Resize(dim);
+  dTauDiv.Resize(dim);
+
+  //Computing Tau * Div and DTau * Div
+  for(k=0;k<dim;k++)
+  {
+     TauDiv [k].Resize(nstate);
+     dTauDiv[k].Redim(nstate, nstate);
+     //FADTau[k].Multiply(Div, FADTauDiv[k]);
+     FADTauDiv[k].Resize(nstate);
+     for(i = 0; i < nstate; i++)
+     {
+        temp = 0.;
+        for(j = 0; j < nstate; j++)
+	   temp += FADTau[k](i,j) * Div[j];
+	FADTauDiv[k][i] = temp;
+     }//
+
+     // copying data using REAL
+     dTauDiv[k].Redim(nstate, nstate * nshape);
+     for(i = 0; i < nstate; i++)
+     {
+        TauDiv[k][i] = FADTauDiv[k][i].val();
+	for(j = 0; j < nstate; j++)
+	{
+	   for(l = 0; l < nshape; l++)
+	       dTauDiv[k](i,l * nstate + j) =
+	             FADTauDiv[k][i].fastAccessDx(j) * phi(l,0);
+	}
+     }
+
+  }
+
+  TPZDiffMatrix<REAL>  TaudDiv_k; // temporary storage
+
+  for(k = 0; k < dim; k++)
+  {
+     Tau[k].Multiply(dDiv, TaudDiv_k);
+     dTauDiv[k].Add(TaudDiv_k, 1.);
+  }
+
+  //Computing DTauDiv = DTau * Div + Tau * DDiv
+}
+
+#endif
+
+
+
 //-----------------Contribute
 
 void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol,  TPZFMatrix &dphix, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight, REAL timeStep)
@@ -452,6 +623,40 @@ void TPZArtDiff::ContributeExplDiff(int dim, TPZFMatrix &jacinv, TPZVec<REAL> &s
        for(i=0;i<nstate;i++)
 	  for(k=0;k<dim;k++)
 	     ef(i+l*nstate,0) += dphix(k,l) * TauDiv[k][i] * constant;
+}
+
+void TPZArtDiff::ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &phi, TPZFMatrix &dphi, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight, REAL timeStep)
+{
+    REAL delta = Delta();
+    REAL constant = /*-*/ weight * delta * timeStep;
+    REAL buff;
+
+    TPZVec<TPZVec<REAL> > TauDiv;
+    TPZVec<TPZDiffMatrix<REAL> > dTauDiv;
+
+    PrepareFastestDiff<2>( jacinv, sol, dsol, phi, dphi, TauDiv, dTauDiv);
+
+    int i, j, k, l;
+    int nshape = dphi.Cols();
+    int nstate = dim + 2;
+    int neq = nstate * nshape;
+
+    // ODotProduct speeded up
+
+    for(l=0;l<nshape;l++)
+       for(i=0;i<nstate;i++)
+          for(k=0;k<dim;k++)
+	     {
+	     buff = dphi(k,l) * constant;
+	     ef(i+l*nstate,0) += buff * TauDiv[k][i];
+             for(j=0;j<neq;j++)
+	        ek(i+l*nstate,j) -= buff * dTauDiv[k](i,j);
+	     }
+/*
+    for(l=0;l<nshape;l++)
+       for(i=0;i<nstate;i++)
+	  for(k=0;k<dim;k++)
+	     ef(i+l*nstate,0) += dphix(k,l) * TauDiv[k][i] * constant;*/
 }
 
 #ifdef _AUTODIFF

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.15 2004-02-09 19:02:39 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.16 2004-02-12 00:17:54 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -344,6 +344,14 @@ public:
 			TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
 			REAL weight,
 			TPZFMatrix &ek,TPZFMatrix &ef);
+
+  void ContributeFastestImplDiff(TPZVec<REAL> &x,
+			TPZFMatrix &jacinv,
+			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+			TPZFMatrix &phi,TPZFMatrix &dphi,
+			REAL weight,
+			TPZFMatrix &ek,TPZFMatrix &ef);
+
 #endif
 
   void ContributeExplConvFace(TPZVec<REAL> &x,
@@ -356,6 +364,13 @@ public:
 
   void ContributeImplConvFace(TPZVec<REAL> &x,
 			TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
+			REAL weight,TPZVec<REAL> &normal,
+			TPZFMatrix &phiL,TPZFMatrix &phiR,
+			TPZFMatrix &ek,TPZFMatrix &ef);
+
+template <int dim>
+  void ContributeFastestImplConvFace(TPZVec<REAL> &x,
+			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
 			TPZFMatrix &ek,TPZFMatrix &ef);
@@ -689,18 +704,24 @@ inline void TPZEulerConsLaw2::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVe
   }
 }
 
+
+
+#ifdef _AUTODIFF
 template <class T>
 inline REAL val(T & number)
 {
-   return number;
-}
-
-#ifdef _AUTODIFF
+   return number.val();
+}/*
 inline REAL val(FADREAL & number)
 {
    return number.val();
-}
+}*/
 #endif
+
+inline REAL val(REAL & number)
+{
+   return number;
+}
 
 template< class T >
 inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T> &U)

@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.18 2004-02-06 22:42:04 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.19 2004-02-12 00:18:43 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -190,25 +190,17 @@ void TPZEulerAnalysis::AssembleRhs()
    fRhs+=/*.Add(fRhsLast, */fRhsLast/*)*/;
 }
 
-ofstream eulerout("Matrizes.out");
+//ofstream eulerout("Matrizes.out");
 
-void TPZEulerAnalysis::Solve(REAL & res) {
+void TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix * residual) {
    int numeq = fCompMesh->NEquations();
    if(fRhs.Rows() != numeq ) return;
 
-   TPZFMatrix residual(fRhs);
+   TPZFMatrix rhs(fRhs);
 
    TPZFMatrix delu(numeq,1);
- /*  if(fpSolution->Rows() != numeq) {
-     fpSolution->Redim(numeq,1);
-   } else {
-     fSolver->Matrix()->Residual(*fpSolution,fRhs,residual);
-   }*/
-   //      REAL normres  = Norm(residual);
-   //	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
 
-   fSolver->Solve(residual, delu);
-   //fSolution += delu;
+   fSolver->Solve(rhs, delu);
 
 /*
    fSolver->Matrix()->Print("Matriz", eulerout, EMathematicaInput);
@@ -218,17 +210,15 @@ void TPZEulerAnalysis::Solve(REAL & res) {
 */
    UpdateSolution(delu);
 
+   if(residual)
+   {   // verifying the inversion of the linear system
+      fSolver->Matrix()->Residual(delu, fRhs, *residual);
+      res = Norm(*residual);
 
-   // verifying the inversion of the linear system
-   /*TPZFMatrix res2;
-   fSolver->Matrix()->Residual(delu, fRhs, res2);
-   cout << "Linear invertion residual:"<< Norm(res2) << endl;
-   */
-
-
-   //fCompMesh->LoadSolution(*fpSolution);
-   res = Norm(residual);
-
+      if(res > fLinSysEps)
+      cout << "\n\tLinear system invertion did not achieve expected tolerance:" << res;
+      cout.flush();
+   }
 }
 
 int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
@@ -241,16 +231,18 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
    epsilon = fNewtonEps * 2.;// ensuring the loop will be
    // performed at least once.
 
+   TPZFMatrix residual;
+
    while(i < fNewtonMaxIter && epsilon > fNewtonEps)
    {
       //Solves the linearized system and updates the solution.
-      Solve(res);
-
+      Solve(res, &residual);
+//      cout << "\n      LinEpsilon:" << res;
       // Linearizes the system with the newest iterative solution
       Assemble();
 
       epsilon = Norm(fRhs);
-      //cout << "\nEpsilon:" << epsilon;
+      cout << "\n   NonLinEpsilon:" << epsilon;
       i++;
    }
 

@@ -226,7 +226,7 @@ int main()
 
 //Solver attributes
 
-
+/*
    { // LU
    TPZFStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
@@ -242,37 +242,42 @@ int main()
    Solver.SetMatrix(mat);
    An.SetSolver(Solver);
    }
-//*/
-
-/*
+//
+*/
    { // GMRES
    TPZFStructMatrix StrMatrix(cmesh);
+      //TPZFStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
 
    TPZMatrix * mat = StrMatrix.Create();
 
-   An.SetLinSysCriteria(1e-10, 100);
-   An.SetNewtonCriteria(1e-9, 20);
+   An.SetLinSysCriteria(1e-8, 100);
+   An.SetNewtonCriteria(1e-8, 8);
    An.SetTimeIntCriteria(1e-8,MaxIter);
 
    //Preconditioner
    TPZStepSolver Pre;
+   //Main Solver
+//   Pre.SetSSOR(100, 1.1,
+//		1e-10,
+//		0);
+
    Pre.SetJacobi(1,//numiterations,
-		 1e-9,//tol
+		 1e-8,//tol
 		  0);//From Current
    Pre.SetMatrix(mat);
 
    //Main Solver
    TPZStepSolver Solver;
-   Solver.SetGMRES(20,
-		10,
+   Solver.SetGMRES(10000,
+		500,
 		Pre,
 		1e-9,
 		0);
    Solver.SetMatrix(mat);
    An.SetSolver(Solver);
    }
-//*/
+//
 /*
    { // SSOR
    TPZFStructMatrix StrMatrix(cmesh);
@@ -286,7 +291,7 @@ int main()
 
    //Main Solver
    TPZStepSolver Solver;
-   Solver.SetSSOR(1, 1.1,
+   Solver.SetSSOR(1000, 1.1,
 		1e-10,
 		0);
    Solver.SetMatrix(mat);

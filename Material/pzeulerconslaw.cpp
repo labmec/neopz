@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.19 2004-02-09 19:02:38 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.20 2004-02-12 00:17:54 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -11,6 +11,8 @@
 #include "pzreal.h"
 #include <math.h>
 #include "pzstring.h"
+
+//#define FASTEST_IMPLICIT
 
 TPZEulerConsLaw2::~TPZEulerConsLaw2(){
 
@@ -434,7 +436,7 @@ void TPZEulerConsLaw2::ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 
 
 void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
-			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+			TPZVec<REAL> &sol, TPZFMatrix &dsol,
 			REAL weight,
 			TPZFMatrix &phi, TPZFMatrix &dphi,
 			TPZFMatrix &ek, TPZFMatrix &ef)
@@ -455,9 +457,14 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
       // if diffusive term is implicit
       // then the FAD classes must be initialized
       #ifdef _AUTODIFF
+         #ifdef FASTEST_IMPLICIT
+             ContributeFastestImplDiff(x, jacinv, sol, dsol,
+	                               phi, dphi, weight, ek, ef);
+	 #else
          TPZVec<FADREAL> FADsol, FADdsol;
          PrepareFAD(sol, dsol, phi, dphi, FADsol, FADdsol);
 	    ContributeImplDiff(x, jacinv, FADsol,FADdsol, weight, ek, ef);
+	 #endif
       #else
          cout << "TPZEulerConsLaw2::Contribute> Implicit diffusive contribution: _AUTODIFF directive not configured -> Using an approximation to the tgMatrix";
          ContributeApproxImplDiff(x, jacinv, sol,dsol,weight,phi,dphi,ek,ef);
@@ -525,9 +532,14 @@ void TPZEulerConsLaw2::ContributeInterface(
       // if face contribution is implicit,
       // then the FAD classes must be initialized
       #ifdef _AUTODIFF
+         #ifdef FASTEST_IMPLICIT
+            ContributeFastestImplConvFace<2>(x, solL, solR,
+	                      weight, normal, phiL, phiR, ek, ef);
+	 #else
          TPZVec<FADREAL> FADsolL, FADsolR;
          PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
          ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
+	 #endif
       #else
       // forcint explicit contribution and issueing an warning
          cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
@@ -580,6 +592,7 @@ void TPZEulerConsLaw2::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &sol,REAL w
     }
   }
 }
+
 
 
 void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
@@ -732,6 +745,13 @@ void TPZEulerConsLaw2::ContributeImplDiff(TPZVec<REAL> &x,
    fArtDiff.ContributeImplDiff(fDim, jacinv, sol, dsol,
 			ek, ef, weight, TimeStep());
 }
+
+void TPZEulerConsLaw2::ContributeFastestImplDiff(TPZVec<REAL> &x, TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &phi, TPZFMatrix &dphi, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+{
+   fArtDiff.ContributeFastestImplDiff(fDim, jacinv, sol, dsol, phi, dphi,
+			ek, ef, weight, TimeStep());
+}
+
 #endif
 
 void TPZEulerConsLaw2::ContributeExplConvFace(TPZVec<REAL> &x,
@@ -804,6 +824,90 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
 	 for(j = 0; j < nDer; j++)
 	    ek(index, j) += flux[i_state].dx(j) *
 	       phiR(i_shape,0) * constant;
+      }
+}
+
+template <int dim>
+void TPZEulerConsLaw2::ContributeFastestImplConvFace(TPZVec<REAL> &x,
+			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+			REAL weight,TPZVec<REAL> &normal,
+			TPZFMatrix &phiL,TPZFMatrix &phiR,
+			TPZFMatrix &ek,TPZFMatrix &ef)
+{
+  const int nState = NStateVariables();
+  const int nVars = 2 * nState;
+typedef TFad<2*(dim+2), REAL> TFADREALInterface;
+
+   TPZVec<TFADREALInterface> FADsolL(nState),
+                             FADsolR(nState),
+			     FADflux(nState);
+
+   int nShapeL = phiL.Rows(),
+       nShapeR = phiR.Rows(),
+       i_shape, i_state, i, j, k,
+       nDerL = nShapeL * nState;
+   REAL constant =  TimeStep() * weight; // - deltaT * weight
+
+
+   for(i = 0; i < nState; i++)
+   {
+      FADsolL[i] = solL[i];
+      FADsolL[i].diff(i, nVars);
+
+      FADsolR[i] = solR[i];
+      FADsolR[i].diff(i + nState, nVars);
+   }
+
+   Roe_Flux(FADsolL, FADsolR, normal, fGamma, FADflux);
+
+   // Contribution referring to the left element
+   for(i_shape = 0; i_shape < nShapeL; i_shape ++)
+      for(i_state = 0; i_state < nState; i_state++)
+      {
+         int index = i_shape*nState + i_state;
+         ef(index,0) +=
+	    FADflux[i_state].val() * phiL(i_shape,0) * constant;
+	 for(k = 0; k < nState; k++)
+	 {
+	    for(j = 0; j < nShapeL; j++)
+	       ek(index, j * nState + k) -=
+	                       FADflux[i_state].fastAccessDx(k) *
+	                       phiL(j) * /*df/dUl*/
+	                       phiL(i_shape,0) /*test function*/ *
+			       constant;
+	    for(j = 0; j < nShapeR; j++)
+	       ek(index, j*nState + k + nDerL) -=
+	                       FADflux[i_state].fastAccessDx(k + nState) *
+	                       phiR(j) * /*df/dUl*/
+	                       phiL(i_shape,0) /*test function*/ *
+			       constant;
+	  }
+      }
+
+   // Contribution referring to the right element
+   // REM: The contributions are negative in comparison
+   // to the left elements: opposed normals
+   for(i_shape = 0; i_shape < nShapeR; i_shape ++)
+      for(i_state = 0; i_state < nState; i_state++)
+      {
+         int index = (nShapeL + i_shape) * nState + i_state;
+         ef(index,0) -=
+	    FADflux[i_state].val() * phiR(i_shape,0) * constant;
+	 for(k = 0; k < nState; k++)
+	 {
+	    for(j = 0; j < nShapeL; j++)
+	       ek(index, j * nState + k) +=
+	                       FADflux[i_state].fastAccessDx(k) *
+	                       phiL(j) * /*df/dUl*/
+	                       phiR(i_shape,0) /*test function*/ *
+			       constant;
+	    for(j = 0; j < nShapeR; j++)
+	       ek(index, j * nState + k + nDerL) +=
+	                       FADflux[i_state].fastAccessDx(k + nState) *
+	                       phiR(j) * /*df/dUl*/
+	                       phiR(i_shape,0) /*test function*/ *
+			       constant;
+	 }
       }
 }
 

@@ -115,18 +115,42 @@ public:
    * Evaluates the divergent of F
    * @param dsol [in] vector of solution values derived with respect to the spatial variables
    * @param dphi [in] matrix containig the derivatives of shapefuntions
-   * @param Ai [in] vector of matrices tangent to the flux components
+   * @param Ai [in] vector of matrices tangent to the flux components.
    * @param Div [out] value of the divergent
    * @param dDiv [out] an apposimation to the matrix tangent to the divergent
    *
    */
-  void Divergent(TPZFMatrix &dsol,
+
+void Divergent(TPZFMatrix &dsol,
 			   TPZFMatrix & dphi,
 			   TPZVec<TPZDiffMatrix<REAL> > & Ai,
 			   TPZVec<REAL> & Div,
 			   TPZDiffMatrix<REAL> * dDiv);
 
 #ifdef _AUTODIFF
+
+  /**
+   * Evaluates the divergent of F
+   * @param dsol [in] vector of solution values derived with respect to the spatial variables
+   * @param phi [in] matrix containig the shapefuntions
+   * @param dphi [in] matrix containig the derivatives of shapefuntions
+   * @param Ai [in] vector of matrices tangent to the flux components.
+   * T must be a FAD class type, so the consistent Divergent jacobian is
+   * evaluated
+   * @param Div [out] value of the divergent
+   * @param dDiv [out] an apposimation to the matrix tangent to the divergent
+   *
+   */
+
+template <class T>
+void Divergent(TPZFMatrix &dsol,
+			   TPZFMatrix & phi,
+			   TPZFMatrix & dphi,
+			   TPZVec<TPZDiffMatrix<T> > & Ai,
+			   TPZVec<REAL> & Div,
+			   TPZDiffMatrix<REAL> * dDiv);
+
+
 
   /**
    * Evaluates the divergent of F with FAD type
@@ -232,14 +256,24 @@ void PrepareFastDiff(int dim,
    * @param dim [in] dimension
    * @param jacinv [in] Inverse jacobian of the mapping.
    * @param sol [in] solution of the dim+2 state functions setup with shape functions
-   * @param dsol [in] derivatives of sol with respect to the dim dimensions with derivatives
+   * @param dsol [in] derivatives of sol with respect to the dim dimensions
    * *aligned as a vector)
-   * @param TauDiv [out] Vector of Vectors to store the values of Tau_i*Div with derivatives
+   * @param TauDiv [out] Vector of Vectors to store the values of Tau_i*Div
    *
    */
 void PrepareFastDiff(int dim,
 		 TPZFMatrix &jacinv, TPZVec<FADREAL> &sol,
                  TPZVec<FADREAL> &dsol, TPZVec<TPZVec<FADREAL> > & TauDiv);
+
+template <int dim>
+void TPZArtDiff::PrepareFastestDiff(TPZFMatrix &jacinv,
+		TPZVec<REAL> &sol,
+                TPZFMatrix &dsol,
+		TPZFMatrix &phi,
+                TPZFMatrix &dphi,
+		TPZVec<TPZVec<REAL> > & TauDiv,
+		TPZVec<TPZDiffMatrix<REAL> > & dTauDiv);
+
 #endif
 
 //-----------------Contribute
@@ -300,6 +334,27 @@ void ContributeImplDiff(int dim,
                            TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol,
 			   TPZFMatrix &ek, TPZFMatrix &ef,
 			   REAL weight, REAL timeStep);
+
+  /**
+   * Contributes the diffusion term to the tangent matrix (ek) and residual vector (ef) with FAD template classes
+   * @param dim [in] dimension
+   * @param jacinv [in] Inverse jacobian of the mapping.
+   * @param sol [in] solution of the dim+2 state functions setup with derivatives
+   * @param dsol [in] derivatives of U with respect to the dim dimensions setup with derivatives (xi components aligned as a vector)
+   * @param phi [in] list of shape functions.
+   * @param dphi [in] derivatives of shape functions.
+   * @param ek [out] Tangent matrix to contribute to
+   * @param ef [out] Residual vector to contribute to
+   * @param weight [in] Gaussian quadrature integration weight
+   * @param timeStep [in]
+   */
+
+void TPZArtDiff::ContributeFastestImplDiff(int dim,
+                          TPZFMatrix &jacinv,
+			  TPZVec<REAL> &sol, TPZFMatrix &dsol,
+			  TPZFMatrix &phi, TPZFMatrix &dphi,
+			  TPZFMatrix &ek, TPZFMatrix &ef,
+			  REAL weight, REAL timeStep);
 
 #endif
 
