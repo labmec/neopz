@@ -3,7 +3,7 @@
  * @file pzvec_extra.h
  * @brief Extra utilities for TPZVec.
  */
-// $Id: pzvec_extras.h,v 1.8 2004-04-16 17:51:29 tiago Exp $
+// $Id: pzvec_extras.h,v 1.9 2004-04-19 22:51:45 cacs Exp $
 
 #ifndef PZVEC_EXTRAS_H
 #define PZVEC_EXTRAS_H
@@ -106,6 +106,16 @@ TPZVec< T >& Sort( TPZVec< T >& v )
    std::sort( static_cast< T* >( v ), v + v.NElements() );
 
    return v;
+}
+
+template< class T >
+int Find( TPZVec< T >& v, const T& e)
+{
+   T* found = std::find( static_cast< T* >( v ), v + v.NElements(), e );
+
+   int dist = distance(static_cast< T* >( v ), found);
+
+   return (dist == v.NElements()? -1 : dist);
 }
 
 template< class T >
