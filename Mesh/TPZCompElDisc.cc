@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.33 2003-11-28 16:41:25 cedric Exp $
+//$Id: TPZCompElDisc.cc,v 1.34 2003-11-28 17:11:27 cedric Exp $
 
 // -*- c++ -*- 
 
@@ -1231,8 +1231,8 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
     PZError << "TPZCompElDisc::BuilTransferMatrix error II\n";
   if(!transfer.HasRowDefinition(locblockseq)){
     //PZError << "TPZCompElDisc::BuilTransferMatrix error III\n";
-    transfer.AddBlockNumbers(locblockseq,globblockvec);
   }
+  transfer.AddBlockNumbers(locblockseq,globblockvec);
   if(cornshape == 0 || locnshape == 0)
     PZError << "TPZCompElDisc::BuilTransferMatrix error IV\n";
   loccormat.GetSub(0,0,locnshape,cornshape,small);
