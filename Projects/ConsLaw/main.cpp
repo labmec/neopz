@@ -31,30 +31,30 @@ void CheckJacobFlux(
 
 int main()
 {
+  const int dim = 3;
+  const int nstate = dim+2;
+  const int nphi = 6;
+
   gDebug = 0;
 
   TPZEulerConsLaw2 MatTest(0/*nummat*/,
 		 0.3/*timeStep*/,
 		 1.4 /*gama*/,
-		 3 /*dim */,
-		 Bornhaus_AD);
+		 dim,
+		 /*SUPG_AD*/Bornhaus_AD);
 
   MatTest.SetTimeDiscr(Implicit_TD, Implicit_TD, Implicit_TD/*Implicit_TD, Implicit_TD*/);
   MatTest.SetContributionTime(Advanced_CT);
   MatTest.Print(cout);
 
-  const int dim = 3;
-  const int nstate = dim+2;
-  const int nphi = 6;
-
   // emulating state variables
-  TPZFMatrix dsol(dim,nstate);
-  TPZFMatrix dphi(dim,nphi);
-  TPZFMatrix phi(nphi,1);
+  TPZFMatrix dsol(dim,nstate, 0.);
+  TPZFMatrix dphi(dim,nphi, 0.);
+  TPZFMatrix phi(nphi,1, 0.);
   TPZVec<REAL> sol(nstate);
 
-  TPZFMatrix ef(nphi * nstate, 1);
-  TPZFMatrix ek(nphi * nstate, nphi * nstate);
+  TPZFMatrix ef(nphi * nstate, 1, 0.);
+  TPZFMatrix ek(nphi * nstate, nphi * nstate, 0.);
 
   TPZVec<FADREAL> FADsol(nstate);
   TPZVec<FADREAL> FADdsol(nstate*dim);
@@ -77,11 +77,11 @@ int main()
         dphi(i,j)=45.8*i-3.2*j+2.; // any choice
 
   // individual solution coefficients
-  TPZFMatrix u(nstate * nphi,1);
+  TPZFMatrix u(nstate * nphi,1, 0.);
   for(i = 0; i < nstate * nphi; i++)
   {
     u(i,0) = 10. * (double)(i+1) / (double)(i+2);
-    if(i == 4) u(i,0) +=100.;// increasing the energy to avoid negative pressure
+    if(i == nstate * nphi - 1) u(i,0) +=100.;// increasing the energy to avoid negative pressure
   }
 
    cout << "\nu" << u;
@@ -159,15 +159,15 @@ void CheckConv(const double step,
 
    int nCoeff = coeff.Rows(), i, j;
 
-   TPZFMatrix deltaCoeff1(nCoeff),
-              deltaCoeff2(nCoeff),
-	      updatedCoeff(nCoeff);
+   TPZFMatrix deltaCoeff1(nCoeff, 1, 0.),
+              deltaCoeff2(nCoeff, 1, 0.),
+	      updatedCoeff(nCoeff, 1, 0.);
 
-   TPZFMatrix Tangent(nCoeff, nCoeff),
-              TrashTangent(nCoeff, nCoeff);
-   TPZFMatrix F0(nCoeff,1),
-   	      F1(nCoeff,1),
-   	      F2(nCoeff,1);
+   TPZFMatrix Tangent(nCoeff, nCoeff, 0.),
+              TrashTangent(nCoeff, nCoeff, 0.);
+   TPZFMatrix F0(nCoeff,1, 0.),
+   	      F1(nCoeff,1, 0.),
+   	      F2(nCoeff,1, 0.);
 
    int dim = dphi.Rows();
    TPZFMatrix jacinv(dim, dim, 7.);
