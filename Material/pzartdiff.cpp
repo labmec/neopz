@@ -16,6 +16,14 @@ fCFL(CFL)
 
 }
 
+TPZArtDiff::TPZArtDiff():
+fArtDiffType(None_AD),
+fGamma(1.4),
+fDelta(0.),
+fCFL(1.)
+{
+}
+
 TPZArtDiff::~TPZArtDiff()
 {
 }
@@ -48,7 +56,7 @@ TPZString TPZArtDiff::DiffusionName()
 	return rtstr;
      break;
      default:
-     PZError << "Unknown artificial diffision term (" << fArtDiffType << ")";
+     PZError << "Unknown artificial diffusion term (" << fArtDiffType << ")";
      return rtstr;
   }
 }
@@ -810,4 +818,27 @@ void TPZArtDiff::Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U)
    TPZEulerConsLaw2::Pressure(gamma, dim, press, U);
 }
 
+
+void TPZArtDiff::Write(TPZStream &buf, int withclassid)
+{
+   TPZSaveable::Write(buf, withclassid);
+   buf.Write(&static_cast<int>(fArtDiffType),1);
+   buf.Write(&fGamma, 1);
+   buf.Write(&fDelta, 1);
+   buf.Write(&fCFL, 1);
+}
+
+void TPZArtDiff::Read(TPZStream &buf, void *context)
+{
+   TPZSaveable::Read(buf, context);
+   int ArtDiffType;
+   buf.Read(&ArtDiffType, 1);
+   fArtDiffType = static_cast<TPZArtDiffType>(ArtDiffType);
+   buf.Read(&fGamma, 1);
+   buf.Read(&fDelta, 1);
+   buf.Read(&fCFL, 1);
+
+}
+
 #endif
+

@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.h,v 1.9 2004-04-26 14:27:03 phil Exp $
+//$Id: pzflowcmesh.h,v 1.10 2004-05-21 13:35:15 erick Exp $
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -27,7 +27,8 @@ public:
   //TPZFlowCompMesh();/**empty constructor*/
 
   TPZFlowCompMesh(TPZGeoMesh* gr);
-    
+
+  TPZFlowCompMesh();
 
   ~TPZFlowCompMesh(){};
 
@@ -100,7 +101,24 @@ public:
    * Returns the number of Flow materials.
    */
   int NFlowMaterials();
-  
+
+
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+  virtual int ClassId() const;
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
+
+
+
 protected:
 
    /**

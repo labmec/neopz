@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.cpp,v 1.9 2004-01-22 17:16:44 erick Exp $
+//$Id: pzflowcmesh.cpp,v 1.10 2004-05-21 13:35:15 erick Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
@@ -6,6 +6,10 @@
 //#include "TPZInterfaceEl.h"
 
 TPZFlowCompMesh::TPZFlowCompMesh(TPZGeoMesh* gr) : TPZCompMesh(gr) {
+
+}
+
+TPZFlowCompMesh::TPZFlowCompMesh() : TPZCompMesh() {
 
 }
 
@@ -186,3 +190,22 @@ void TPZFlowCompMesh::SetResidualType(TPZResidualType type)
       fFluidMaterial[i]->SetResidualType(type);
    }
 }
+
+int TPZFlowCompMesh::ClassId() const 
+{
+   return TPZFLOWCOMPMESHID;
+}
+
+void TPZFlowCompMesh::Write(TPZStream &buf, int withclassid)
+{
+   TPZSaveable::Write(buf,withclassid);
+   TPZCompMesh::Write(buf,0);
+}
+
+void TPZFlowCompMesh::Read(TPZStream &buf, void *context)
+{
+   TPZSaveable::Read(buf, context);
+   TPZCompMesh::Read(buf, context);
+   CollectFluidMaterials();
+}
+

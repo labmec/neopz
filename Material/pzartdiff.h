@@ -7,7 +7,8 @@
 #include "pzdiffmatrix.h"
 #include "pzstring.h"
 #include "TPZCompElDisc.h"
-
+#include "pzsave.h"
+#include "pzmaterialid.h"
 
 #ifdef _AUTODIFF
    #include "fadType.h"
@@ -19,9 +20,9 @@ enum TPZArtDiffType
 {
   None_AD = -1,
   LeastSquares_AD = 1,
-  Bornhaus_AD,
-  SUPG_AD,
-  TrnLeastSquares_AD
+  Bornhaus_AD = 2,
+  SUPG_AD = 3,
+  TrnLeastSquares_AD = 4
 };
 
 /**
@@ -32,13 +33,15 @@ enum TPZArtDiffType
  * @author Erick Slis
  * @author Cedric Marcelo Augusto Ayala Bravo
  */
-class TPZArtDiff
+class TPZArtDiff : public TPZSaveable
 {
 public:
 
+   TPZArtDiff();
+
    TPZArtDiff(TPZArtDiffType type, REAL gamma, REAL CFL = 0., REAL delta = 0.);
 
-   ~TPZArtDiff();
+   virtual ~TPZArtDiff();
 
 //-----------------Attributes and parameters
 
@@ -373,6 +376,23 @@ void ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv,
 			  REAL weight, REAL timeStep);
 
 #endif
+
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
+
+  /**
+  Class identificator
+  */
+  virtual int ClassId() const {
+     return TPZARTDIFFID;
+  }
 
 
 private:

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.8 2004-04-06 14:55:43 erick Exp $
+//$Id: pzbndcond.h,v 1.9 2004-05-21 13:33:15 erick Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -36,13 +36,18 @@ protected:
   TPZFMatrix	fBCVal2;            // second value of boundary condition
   TPZMaterial	*fMaterial;	        // pointer to material which created bc
 
+public :
+
   TPZBndCond(TPZBndCond & bc) : TPZDiscontinuousGalerkin(bc), fBCVal1(bc.fBCVal1),
     fBCVal2(bc.fBCVal2){
     fMaterial = bc.fMaterial;
     fType = bc.fType;
   }
 
-  public :
+
+  TPZBndCond() : TPZDiscontinuousGalerkin(0), fBCVal1(),
+    fBCVal2(){
+  }
 
     ~TPZBndCond(){}
 
@@ -158,6 +163,20 @@ protected:
     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
     //NOTHING TO BE DONE HERE
   }
+
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+  virtual int ClassId() const;
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
 
 };
 

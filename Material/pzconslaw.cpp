@@ -1,4 +1,4 @@
-//$Id: pzconslaw.cpp,v 1.8 2004-02-26 22:48:09 erick Exp $
+//$Id: pzconslaw.cpp,v 1.9 2004-05-21 13:33:15 erick Exp $
 
 #include "pzconslaw.h"
 #include "pzelmat.h"
@@ -67,12 +67,24 @@ void TPZConservationLaw2::Print(ostream &out)
    }
 }
 
-//void TPZConservationLaw2::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
-  //Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
-//}
+void TPZConservationLaw2::Write(TPZStream &buf, int withclassid)
+{
+   TPZMaterial::Write(buf, withclassid);
+   buf.Write(&fDim,1);
+   buf.Write(&fTimeStep,1);
+   buf.Write(&fCFL,1);
+   buf.Write(&fGamma,1);
+}
 
-//void TPZConservationLaw2::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
-//			       TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
-//			       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
+void TPZConservationLaw2::Read(TPZStream &buf, void *context)
+{
+   TPZMaterial::Read(buf, context);
+   buf.Read(&fDim,1);
+   buf.Read(&fTimeStep,1);
+   buf.Read(&fCFL,1);
+   buf.Read(&fGamma,1);
 
-//}
+   fContributionTime = Last_CT;
+   fResidualType = Residual_RT;
+}
+

@@ -1,6 +1,7 @@
 
 #include "pzbndcond.h"
 #include "pzadmchunk.h"
+#include "pzcmesh.h"
 
 void TPZBndCond::Clone(TPZAdmChunkVector<TPZMaterial *> &matvec) {
   int matid = Id();
@@ -107,7 +108,7 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
    if(phiL.Rows() == 0) {
       TPZManVector<REAL,3> nor(normal.NElements(),0.);
       for(int i=0; i<nor.NElements(); i++) nor[i] = -normal[i];
-      mat->ContributeBCInterface(x,solR,dsolR,weight,nor,phiR,dphiR,ek,ef,*this, RightPOrder, faceSize ); 
+      mat->ContributeBCInterface(x,solR,dsolR,weight,nor,phiR,dphiR,ek,ef,*this, RightPOrder, faceSize );
       return;
    }
 
@@ -116,5 +117,35 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
       return;
    }
 
+}
+
+
+int TPZBndCond::ClassId() const
+{
+   return TPZBNDCONDID;
+}
+
+void TPZBndCond::Write(TPZStream &buf, int withclassid)
+{
+   TPZSaveable::Write(buf,withclassid);
+   TPZMaterial::Write(buf, 0);
+   buf.Write(&fType, 1);
+   fBCVal1.Write(buf, 0);
+   fBCVal2.Write(buf, 0);
+   int MatId =fMaterial->Id();
+   buf.Write(&MatId, 1);
+}
+
+void TPZBndCond::Read(TPZStream &buf, void *context)
+{
+   TPZSaveable::Read(buf, context);
+   TPZMaterial::Read(buf, context);
+   buf.Read(&fType, 1);
+   fBCVal1.Read(buf, 0);
+   fBCVal2.Read(buf, 0);
+   int MatId;
+   buf.Read(&MatId,1);
+   TPZCompMesh * pCM = (TPZCompMesh * )/*dynamic_cast<TPZCompMesh *>*/(context);
+   fMaterial = pCM->FindMaterial(MatId);
 }
 

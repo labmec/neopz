@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.13 2004-02-12 18:46:27 erick Exp $
+//$Id: pzconslaw.h,v 1.14 2004-05-21 13:33:15 erick Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -158,37 +158,11 @@ public:
 
 
 //------------------solutions
-  /**
-   * compute the boundary condition left solution
-   */
-/*  virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,
-			TPZVec<REAL> &normal,TPZBndCond *bcleft) = 0;
-*/
-  /**
-   * compute the boundary condition right solution
-   */
-/*  virtual void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,
-			TPZVec<REAL> &normal,TPZBndCond *bcright)=0;
-*/
 
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
 			TPZFMatrix &axes,int var,
 			TPZVec<REAL> &Solout)=0;
 
-  /**
-   * computes the value of the flux function to be used
-   * by ZZ error estimator
-   */
-   /*
-  virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol,
-			TPZFMatrix &DSol, TPZFMatrix &axes,
-			TPZVec<REAL> &flux);
-
-  virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,
-	      TPZVec<REAL> &values);
-*/
 
 //------------------contributions
 
@@ -229,6 +203,18 @@ public:
   //virtual void SetIntegDegree(int degree) = 0;
 
 //---------------------Attributes
+
+
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
+
 protected:
 
   /**

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.28 2004-04-13 22:29:53 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.29 2004-05-21 13:33:25 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -1533,3 +1533,29 @@ void TPZEulerConsLaw2::ContributeExplT2(TPZVec<REAL> &x,
               constant; // the T2 parcell is negative
       }
 }
+
+
+void TPZEulerConsLaw2::Write(TPZStream &buf, int withclassid)
+{
+   TPZSaveable::Write(buf, 1);
+   TPZConservationLaw2::Write(buf, 0);
+   fArtDiff.Write(buf, 0);
+   buf.Write(&static_cast<int>(fDiff),1);
+   buf.Write(&static_cast<int>(fConvVol),1);
+   buf.Write(&static_cast<int>(fConvFace),1);
+}
+
+void TPZEulerConsLaw2::Read(TPZStream &buf, void *context)
+{
+   TPZSaveable::Read(buf, context);
+   TPZConservationLaw2::Read(buf, context);
+   fArtDiff.Read(buf, context);
+   int diff;
+   buf.Read(&diff,1);
+   fDiff = static_cast<TPZTimeDiscr>(diff);
+   buf.Read(&diff,1);
+   fConvVol = static_cast<TPZTimeDiscr>(diff);
+   buf.Read(&diff,1);
+   fConvFace = static_cast<TPZTimeDiscr>(diff);
+}
+

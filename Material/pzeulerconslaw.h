@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.22 2004-04-13 20:26:31 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.23 2004-05-21 13:33:25 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -503,6 +503,25 @@ template <class T>
 			TPZFMatrix &phi,
 			TPZFMatrix &ef);
 
+
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
+
+  /**
+  Class identificator
+  */
+  virtual int ClassId() const {
+     return TPZEULERCONSLAW2ID;
+  }
+
+
 //--------------------
 
 //---------------------Attributes
@@ -863,40 +882,6 @@ void TPZEulerConsLaw2::Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> 
 template <class T>
 void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux)
 {
-/*   int nState = solL.NElements();
-   if(nState == 5)
-   {
-      Roe_Flux(solL[0], solL[1], solL[2], solL[3], solL[4],
-              solR[0], solR[1], solR[2], solR[3], solR[4],
-	      normal[0], normal[1], normal[2],
-	      gamma,
-	      flux[0], flux[1], flux[2], flux[3], flux[4]);
-
-   }else if(nState == 4)
-   {
-      Roe_Flux(solL[0], solL[1], solL[2], solL[3],
-              solR[0], solR[1], solR[2], solR[3],
-	      -normal[0], -normal[1],
-	      gamma,
-	      flux[0], flux[1], flux[2], flux[3]);
-   }else if(nState == 3)
-   {
-      //using the 2D expression for 1d problem
-      T auxL = 0.,
-        auxR = 0.,
-        fluxaux = 0.;
-	auxL = flux[0];
-      Roe_Flux(solL[0], solL[1], auxL, solL[2],
-              solR[0], solR[1], auxR, solR[2],
-	      normal[0], 0,
-	      gamma,
-	      flux[0], flux[1], fluxaux, flux[2]);
-   }else
-   {
-       PZError << "No flux on " << nState << " state variables.\n";
-   }
-
-*/
    // Normals outgoing from the BC elements into the
    // mesh elements -> all the normals are opposited to
    // the common convention -> changing the left/right
@@ -912,13 +897,6 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
 
    }else if(nState == 4)
    {
-/*      Roe_Flux(solR[0], solR[1], solR[2], solR[3],
-              solL[0], solL[1], solL[2], solL[3],
-	      -normal[0], -normal[1],
-	      gamma,
-	      flux[0], flux[1], flux[2], flux[3]);
-*/
-
       Roe_Flux(solL[0], solL[1], solL[2], solL[3],
               solR[0], solR[1], solR[2], solR[3],
 	      normal[0], normal[1],
