@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.16 2004-06-17 06:26:41 phil Exp $
+//$Id: pzgeoel.h,v 1.17 2004-11-24 17:51:39 cesar Exp $
 
 // -*- c++ -*-
 
@@ -129,8 +129,9 @@ public:
   virtual void Read(TPZStream &str, void *context);
   
   virtual void Write(TPZStream &str, int withclassid);
+  
   /**Destructor*/
-  virtual ~TPZGeoEl() { }
+  virtual ~TPZGeoEl(){};
 
   /**it removes the connectivities of the element*/
   void RemoveConnectivities();
@@ -226,6 +227,8 @@ virtual int Type() =0;
     return (fFatherIndex == -1) ? 0 : Mesh()->ElementVec()[fFatherIndex]; 
   }
 
+  int FatherIndex() { return fFatherIndex; } 
+
   //@}
 
   /**method which creates a computational element based on the current
@@ -262,7 +265,7 @@ virtual int Type() =0;
   virtual void SetNeighbour(int side,const TPZGeoElSide &neighbour) = 0;
 
   /**Print all relevant data of the element to cout*/
-virtual  void Print(ostream & out = cout);
+  virtual  void Print(ostream & out = cout);
 
   /**Make the current element reference to the computational element*/
   void SetReference(TPZCompEl *elp) { fReference = elp; }
