@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.20 2004-01-27 13:55:53 tiago Exp $
+dnl $Id: configure.in,v 1.21 2004-02-03 13:09:59 longhin Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -292,6 +292,132 @@ case "${sloan_enabled}" in
 esac
 
 AC_SUBST(USING_SLOAN)
+
+dnl ----------------------------------------------------------------------------
+dnl                              ENABLE atlas?
+dnl ----------------------------------------------------------------------------
+
+AC_ARG_ENABLE(atlas,
+  [  --enable-atlas=no       Enables the use of atlas [default=no]],
+  [atlas_enabled=$enableval],
+  [atlas_enabled="no"])
+
+case "${atlas_enabled}" in
+  yes)
+    echo "Enabling atlas code."
+    USING_ATLAS="-DUSING_ATLAS"
+  ;;
+  no)
+    echo "atlas not chosen."
+    USING_ATLAS=""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${atlas_enabled} for --enable-atlas)
+  ;;
+esac
+
+AM_CONDITIONAL( atlas, test x${atlas_enabled} = xyes )
+
+AC_SUBST(USING_ATLAS)
+
+dnl ----------------------------------------------------------------------------
+dnl                               atlas LOCATION
+dnl ----------------------------------------------------------------------------
+
+dnl atlas location
+AC_ARG_WITH(atlas-dir,
+  [  --with-atlas-dir=DIR    Root of atlas instalation [/usr/local/atlas]] -> Normally something like /usr/local/ATLAS/lib/<SomeLinuxArchitecture>,
+  [atlas_dir=$withval],
+  [atlas_dir=${atlas_dir="/usr/local/atlas"}])
+
+case "${atlas_enabled}" in
+  yes)
+    ATLASDIR=$atlas_dir
+    ATLASINCLUDE="-I$ATLASDIR/../../include"
+    ATLASLIBDIR="-L$ATLASDIR"
+    ATLASLIB="-latlas"
+    LIBATLAS="$ATLASDIR/libcblas.a $ATLASDIR/liblapack.a $ATLASDIR/libatlas.a"
+  ;;
+  no)
+    ATLASDIR=""
+    ATLASINCLUDE=""
+    ATLASLIBDIR=""
+    ATLASLIB=""
+    LIBATLAS=""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${atlas_enabled} for --enable-atlas)
+  ;;
+esac
+
+AC_SUBST(ATLASDIR)
+AC_SUBST(ATLASINCLUDE)
+AC_SUBST(ATLASLIBDIR)
+AC_SUBST(ATLASLIB)
+AC_SUBST(LIBATLAS)
+
+dnl ----------------------------------------------------------------------------
+dnl                              ENABLE BLAS?
+dnl ----------------------------------------------------------------------------
+
+AC_ARG_ENABLE(blas,
+  [  --enable-blas=no       Enables the use of blas [default=no]],
+  [blas_enabled=$enableval],
+  [blas_enabled="no"])
+
+case "${blas_enabled}" in
+  yes)
+    echo "Enabling BLAS."
+    USING_BLAS="-DUSING_BLAS"
+  ;;
+  no)
+    echo "blas not chosen."
+    USING_BLAS=""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${blas_enabled} for --enable-blas)
+  ;;
+esac
+
+AM_CONDITIONAL( blas, test x${blas_enabled} = xyes )
+
+AC_SUBST(USING_BLAS)
+
+dnl ----------------------------------------------------------------------------
+dnl                               blas LOCATION
+dnl ----------------------------------------------------------------------------
+
+dnl blas location
+AC_ARG_WITH(blas-dir,
+  [  --with-blas-dir=DIR    Root of blas instalation [/usr/lib]],
+  [blas_dir=$withval],
+  [blas_dir=${blas_dir="/usr/lib/"}])
+
+case "${blas_enabled}" in
+  yes)
+    BLASDIR=$blas_dir
+    BLASINCLUDE="-I$BLASDIR/src/"
+    BLASLIBDIR="-L/usr/lib/"
+    BLASLIB="-s -llapack -lcblas -lblas"
+    LIBBLAS=" -s /usr/lib/liblapack.so /usr/lib/libcblas.a /usr/lib/libblas.a"
+  ;;
+  no)
+    BLASDIR=""
+    BLASINCLUDE=""
+    BLASLIBDIR=""
+    BLASLIB=""
+    LIBBLAS=""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${blas_enabled} for --enable-blas)
+  ;;
+esac
+
+AC_SUBST(BLASDIR)
+AC_SUBST(BLASINCLUDE)
+AC_SUBST(BLASLIBDIR)
+AC_SUBST(BLASLIB)
+AC_SUBST(LIBBLAS)
 
 dnl ----------------------------------------------------------------------------
 dnl                                  CLEANING

@@ -9,12 +9,19 @@
 #include "tpzeqnarray.h"
 
 using namespace std;
+#ifdef USING_BLAS
+void cblas_dspr(const enum CBLAS_ORDER order, const enum CBLAS_UPLO Uplo,
+                const int N, const double alpha, const double *X,
+                const int incX, double *Ap);
+
+//#include <cblas.h>
 //#include <clapack.h>
 //#include <f2c.h>
 //#include <blaswrap.h>
+#endif
 
 
-#ifdef ATLAS
+#ifdef USING_ATLAS
      void cblas_dspr(const enum CBLAS_ORDER Order, const enum CBLAS_UPLO Uplo,
                 const int N, const double alpha, const double *X,
                 const int incX, double *Ap);
@@ -159,34 +166,36 @@ void TPZFrontSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
     
      eqnarray.BeginEquation(ieq);       
      eqnarray.AddTerm(ieq, diag);
-     int j=0;
       
 //Blas utilizatioin  
-#ifdef BLAS     
-     long resultado;
-     char * up_lo="u";
-     long sz = fFront;
-     long incx = 1;
-     double db = -1.;//AuxVec[ilocal];
-     resultado=dspr_(up_lo,&sz,&db,&AuxVec[0],&incx,&Element(0,0));
-#endif
-#ifdef ATLAS
+#ifdef USING_BLAS     
      CBLAS_ORDER order = CblasColMajor;
      CBLAS_UPLO up_lo = CblasUpper;
-     long resultado;
+     int sz = fFront;
+     long incx = 1;
+     double db = -1.;//AuxVec[ilocal];
+     cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
+
+#endif
+#ifdef USING_ATLAS
+     CBLAS_ORDER order = CblasColMajor;
+     CBLAS_UPLO up_lo = CblasUpper;
      int sz = fFront;
      long incx = 1;
      double db = -1.;//AuxVec[ilocal];
      cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
      //cout << "Using ATLAS" << endl;
 #endif
-//#ifdef NOBLAS
+#ifndef USING_BLAS
+#ifndef USING_ATLAS
+     int j=0;
      for(i=0;i<fFront;i++){
-		for(j=i;j<fFront;j++){
-			Element(i,j)=Element(i,j)-AuxVec[i]*AuxVec[j];
-		}
-	}
-//#endif
+   		for(j=i;j<fFront;j++){
+   			Element(i,j)=Element(i,j)-AuxVec[i]*AuxVec[j];
+   		}
+   	}
+#endif
+#endif
 
      
     for(i=0;i<fFront;i++) {

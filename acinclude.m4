@@ -3,7 +3,7 @@ dnl acinclude.m4 for NeoPZ
 dnl
 dnl Process this file with GNU aclocal to produce a configure script.
 dnl
-dnl $Id: acinclude.m4,v 1.3 2003-06-03 13:52:01 erick Exp $
+dnl $Id: acinclude.m4,v 1.4 2004-02-03 13:09:59 longhin Exp $
 dnl
 
 dnl
@@ -104,6 +104,15 @@ AC_DEFUN(PZ_BYEBYE,
       ;;
     esac
 
+    case "${atlas_enabled}" in
+      yes)
+        echo "      -> ATLAS enabled."
+      ;;
+      no)
+        echo "      -> ATLAS not enabled."
+      ;;
+    esac
+    
     echo
     echo "   type \"make\" to start compilation."
     echo "   type \"make install\" as root to install it."

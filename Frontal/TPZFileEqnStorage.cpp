@@ -64,9 +64,7 @@ void TPZFileEqnStorage::Store(int ieq, int jeq, const char *name){
 	//Initial tests with C input output files !
 	int loop_limit=100;// = jeq-ieq;
 	int i;
-	int items_writen = 0;
-	int block_size;
-	FILE *out_file = fopen(name,"wb"); 
+	FILE *out_file = fopen(name,"wb");
 	//cout << "Loop Limit "; 
 	//cin >> loop_limit ;
 	//cout << "Block Size";
@@ -81,7 +79,7 @@ void TPZFileEqnStorage::Store(int ieq, int jeq, const char *name){
 	char list[30];
 	int  i, numread, numwritten;
 
-	/* Open file in text mode: 
+	 Open file in text mode: 
 	if( (stream = fopen( "fread.out", "w+t" )) != NULL )
 	{
 	  for ( i = 0; i < 25; i++ )
@@ -94,7 +92,6 @@ void TPZFileEqnStorage::Store(int ieq, int jeq, const char *name){
 	double number=2.1;
 	double val = 0;
 	long int fPos[5] = {0};
-	int p;
 	long int firstpos = ftell(out_file);
 	fwrite(fPos,sizeof(long  int),5,out_file);
 	double readvec[4][100];

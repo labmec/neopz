@@ -74,6 +74,14 @@ target_triplet = @target@
 AR = @AR@
 ARCH_INCLUDES = @ARCH_INCLUDES@
 ARFLAGS = @ARFLAGS@
+ATLASDIR = @ATLASDIR@
+ATLASINCLUDE = @ATLASINCLUDE@
+ATLASLIB = @ATLASLIB@
+ATLASLIBDIR = @ATLASLIBDIR@
+BLASDIR = @BLASDIR@
+BLASINCLUDE = @BLASINCLUDE@
+BLASLIB = @BLASLIB@
+BLASLIBDIR = @BLASLIBDIR@
 CC = @CC@
 COMPILATION_MODE = @COMPILATION_MODE@
 CXX = @CXX@
@@ -82,6 +90,8 @@ FADINCLUDE = @FADINCLUDE@
 FADINCLUDE_FAD = @FADINCLUDE_FAD@
 FADINCLUDE_TFAD = @FADINCLUDE_TFAD@
 FADINCLUDE_TFADET = @FADINCLUDE_TFADET@
+LIBATLAS = @LIBATLAS@
+LIBBLAS = @LIBBLAS@
 MAKEINFO = @MAKEINFO@
 METISDIR = @METISDIR@
 METISINCLUDE = @METISINCLUDE@
@@ -96,6 +106,8 @@ PZ_MK = @PZ_MK@
 PZ_REV = @PZ_REV@
 PZ_VERSION = @PZ_VERSION@
 RANLIB = @RANLIB@
+USING_ATLAS = @USING_ATLAS@
+USING_BLAS = @USING_BLAS@
 USING_FAD = @USING_FAD@
 USING_METIS = @USING_METIS@
 USING_SLOAN = @USING_SLOAN@
@@ -110,7 +122,7 @@ frontal_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzfrontal.a
 
-libpzfrontal_a_SOURCES = pzvecfrontal.cc 	tpzeqnarray.cc 	TPZFileEqnStorage.cc 	TPZFront.cc 	TPZFrontMatrix.cc 	TPZFrontNonSym.cc 	TPZFrontSym.cc 	TPZParFrontMatrix.cc 	TPZStackEqnStorage.cc 
+libpzfrontal_a_SOURCES = pzvecfrontal.cpp 	tpzeqnarray.cpp 	TPZFileEqnStorage.cpp 	TPZFront.cpp 	TPZFrontMatrix.cpp 	TPZFrontNonSym.cpp 	TPZFrontSym.cpp 	TPZParFrontMatrix.cpp 	TPZStackEqnStorage.cpp 
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
@@ -147,7 +159,7 @@ OBJECTS = $(libpzfrontal_a_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cc .o .s
+.SUFFIXES: .S .c .cpp .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu Frontal/Makefile
 
@@ -185,7 +197,7 @@ libpzfrontal.a: $(libpzfrontal_a_OBJECTS) $(libpzfrontal_a_DEPENDENCIES)
 	-rm -f libpzfrontal.a
 	$(AR) cru libpzfrontal.a $(libpzfrontal_a_OBJECTS) $(libpzfrontal_a_LIBADD)
 	$(RANLIB) libpzfrontal.a
-.cc.o:
+.cpp.o:
 	$(CXXCOMPILE) -c $<
 
 install-frontalHEADERS: $(frontal_HEADERS)
@@ -285,7 +297,7 @@ maintainer-clean-depend:
 	    >> .deps/$(*F).P; \
 	rm -f .deps/$(*F).pp
 
-%.o: %.cc
+%.o: %.cpp
 	@echo '$(CXXCOMPILE) -c $<'; \
 	$(CXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
 	@-cp .deps/$(*F).pp .deps/$(*F).P; \
@@ -294,7 +306,7 @@ maintainer-clean-depend:
 	    >> .deps/$(*F).P; \
 	rm .deps/$(*F).pp
 
-%.lo: %.cc
+%.lo: %.cpp
 	@echo '$(LTCXXCOMPILE) -c $<'; \
 	$(LTCXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
 	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \

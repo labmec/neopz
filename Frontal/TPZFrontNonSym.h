@@ -4,13 +4,7 @@ class TPZEqnArray;
 #ifndef TPZFRONTNONSYM_H
 #define TPZFRONTNONSYM_H
 
-
-#ifdef BLAS
-extern "C"{
-#include "g2c.h"
-#include "fblaswr.h"
-};
-#endif
+using namespace std;
 
 #include <pzmatrix.h>
 #include <pzstack.h>
@@ -19,13 +13,27 @@ extern "C"{
 
 #include <math.h>
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
+//#include <stdio.h>
+//#include <stdlib.h>
 #include <fstream>
 #include "TPZStackEqnStorage.h"
 #include "TPZFileEqnStorage.h"
 
-using namespace std;
+#ifdef USING_BLAS
+extern "C"{
+  #include <cblas.h>
+//#include "g2c.h"
+//#include "fblaswr.h"
+};
+#endif
+
+#ifdef USING_ATLAS
+extern "C"{
+  #include <cblas.h>
+//#include "g2c.h"
+//#include "fblaswr.h"
+};
+#endif
 
 
 /**

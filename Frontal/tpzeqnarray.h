@@ -18,7 +18,7 @@
 #ifndef TPZEQNARRAY_H
 #define TPZEQNARRAY_H
 
-
+using namespace std;
 
 #include <pzmatrix.h>
 #include <pzstack.h>
@@ -27,9 +27,7 @@
 #include <pzmanvector.h>
 #include <pzvec.h>
 
-
-#include <stdio.h>
-//#include <stdlib.h>
+#include <stdlib.h>
 
 /**
  * It is an equation array, generally in its decomposed form. \n

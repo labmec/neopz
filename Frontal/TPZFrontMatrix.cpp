@@ -44,12 +44,14 @@ void TPZFrontMatrix<store, front>::SetNumElConnected(TPZVec < int > &numelconnec
 	#ifdef BLAS
      	cout << "Using BLAS" << endl;
      #endif
-     #ifdef ATLAS
+     #ifdef USING_ATLAS
           cout << "Using ATLAS" << endl;     
      #endif
-	#ifdef NOBLAS
+	#ifndef BLAS
+  #ifndef USING_ATLAS
      	cout << "Not Using BLAS" << endl;
 	#endif
+  #endif
 }
 
 /** Add a contribution of a stiffness matrix */
