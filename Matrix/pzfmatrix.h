@@ -213,6 +213,8 @@ class TPZFMatrix : public TPZMatrix {
   virtual int DerivedFrom(const char *classname) const; // a class with name classname
 #endif
 
+      operator REAL*() const { return fElem; }
+
  private:
 
   int Error(const char *msg1,const char *msg2=0 ) const;
