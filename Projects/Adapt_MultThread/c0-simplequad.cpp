@@ -60,18 +60,19 @@ TPZCompMesh *CreateSillyMesh(){
  
   // Descomentar o trecho abaixo para habilitar a
   // divisão dos elementos geométricos criados 
-  /*
-  geomesh->BuildConnectivity2();
-  geomesh->Print(cout);
+                      
+  geomesh->BuildConnectivity();
+//  geomesh->Print(cout);
 
   //Divisão dos elementos
-  TPZVec<TPZGeoEl *> sub;
+  TPZVec<TPZGeoEl *> sub,subsub;
   gel[0]->Divide(sub);
-  for (i=0;i<(sub.NElements()-1);i++){
-    TPZVec<TPZGeoEl *> subsub;
-    sub[i]->Divide(subsub);
-  }
-  */
+  sub[0]->Divide(subsub);
+  subsub[2]->Divide(sub);
+  
+//  for (i=0;i< (sub.NElements()-1) ;i++){
+//    sub[i]->Divide(subsub);
+//  }
   
   // Criação das condições de contorno geométricas
   TPZGeoElBC t3(gel[0],4,-1,*geomesh);

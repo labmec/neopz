@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cc,v 1.12 2003-12-12 19:59:20 phil Exp $
+// $Id: pzelctemp.cc,v 1.13 2003-12-15 12:44:01 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -30,8 +30,9 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &ind
     mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
     IdentifySideOrder(i);
   }
-  
-  TPZManVector<int,3> order(3,2*TPZCompEl::gOrder);
+
+  int sideorder = SideOrder(TSHAPE::NSides-1);  
+  TPZManVector<int,3> order(3,2*sideorder);
   fIntRule.SetOrder(order);
   
 }
@@ -185,7 +186,7 @@ void TPZIntelGen<TGEO,TSHAPE>::SetSideOrder(int side, int order) {
     if(mat) nvar = mat->NStateVariables();
     Mesh()->Block().Set(seqnum,NConnectShapeF(side)*nvar);
     if(side == TSHAPE::NSides-1) {
-      SetIntegrationRule(order);
+      SetIntegrationRule(2*order);
     }
   }
 }

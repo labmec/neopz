@@ -30,7 +30,7 @@ void Exact3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
 
 static ofstream MALHAG("malhageometrica");//CEDRIC
-static int mygorder = 1;
+static int mygorder = 2;
 void CompareNeighbours(TPZGeoMesh *mesh);
 
 
@@ -39,6 +39,8 @@ int main(){
   int nref = 0;
   int dim = 0;
   int opt = 0;
+  cout << "Entry order : ";
+  cin >> mygorder;
 
   TPZCompEl::gOrder = mygorder;
   gDebug = 0;
@@ -126,6 +128,7 @@ int main(){
       delete direct;
       direct = 0;
 
+//      cmesh->Print(cout);
       an.Run();
       //an.Rhs().Print();
       //an.Solution().Print();

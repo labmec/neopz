@@ -496,8 +496,8 @@ static TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   //  return new TPZCompEl1d(mesh,gel,index);
 }
 static TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-//  return new TPZIntelGen<TPZGeoQuad,TPZShapeQuad>(mesh,gel,index);
-    return new TPZCompElQ2d(mesh,gel,index);
+  return new TPZIntelGen<TPZGeoQuad,TPZShapeQuad>(mesh,gel,index);
+//    return new TPZCompElQ2d(mesh,gel,index);
 }
 static TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>(mesh,gel,index);
