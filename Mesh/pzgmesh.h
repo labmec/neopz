@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.6 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzgmesh.h,v 1.7 2004-02-05 18:01:49 tiago Exp $
 
 /**File : pzgmes.h
 
@@ -24,6 +24,7 @@ contained within the TPZGeoMesh.
 
 #include <iostream>
 #include <string.h>
+#include <map>
 
 #include "pzreal.h"
 #include "pzeltype.h"
@@ -69,6 +70,10 @@ class  TPZGeoMesh {
   int fNodeMaxId;
   /**Maximum id used by all elements of this mesh*/
   int fElementMaxId;
+
+  typedef map<pair<int,int>, int> InterfaceMaterialsMap;
+  
+  InterfaceMaterialsMap fInterfaceMaterials;
 
  public:
   /**Constructors and destructor*/
@@ -181,6 +186,26 @@ virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes
    */
   void DeleteElement(TPZGeoEl *gel, int index = -1);
 
+  /**
+   * Add an interface material associated to left and right element materials.
+   * If pair<left, right> already exist, nothing is made and method returns 0.
+   * If material is inserted in geomesh method returns 1.
+   * @since Feb 05, 2004
+   */
+  int AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial);
+
+  /**
+   * Returns the interface material associated to left and right element materials.
+   * @since Feb 05, 2004
+   */
+  int InterfaceMaterial(int leftmaterial, int rightmaterial);
+
+  /**
+   * Delete all interface materials in map.
+   * @since Feb 05, 2004
+   */
+  void ClearInterfaceMaterialsMap();
+
  private:
 
   /**Find all elements in elmap or neighbour of elements in elmap which contain a node*/
@@ -191,6 +216,46 @@ virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes
   void FindElement(TPZAVLMap<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
 };
 
+inline int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial){
+  pair<int, int> leftright(leftmaterial, rightmaterial);
+  pair<int, int> rightleft(rightmaterial, leftmaterial);
+  InterfaceMaterialsMap::iterator w, e;
+  e = fInterfaceMaterials.end();
+
+  w = fInterfaceMaterials.find(leftright);
+  if (w == e) { //pair leftright does not exist yet
+    w = fInterfaceMaterials.find(rightleft);
+    if (w == e){ //pair rightleft does not exist too
+      fInterfaceMaterials[leftright] = interfacematerial;
+      return 1;
+    }
+  }
+  return 0;
+}
+
+inline int TPZGeoMesh::InterfaceMaterial(int leftmaterial, int rightmaterial){
+  pair<int, int> leftright(leftmaterial, rightmaterial);
+  pair<int, int> rightleft(rightmaterial, leftmaterial);
+  InterfaceMaterialsMap::iterator w, e;
+  e = fInterfaceMaterials.end();
+  w = fInterfaceMaterials.find(leftright);
+  if (w != e)
+    return w->second;
+
+  w = fInterfaceMaterials.find(rightleft);
+  if (w != e)
+    return w->second;
+
+  PZError << "\nTPZGeoMesh::InterfaceMaterial - Interface material not found " << endl;
+  return -9999;
+}
+
+inline void TPZGeoMesh::ClearInterfaceMaterialsMap(){
+  InterfaceMaterialsMap::iterator b, e;
+  b = fInterfaceMaterials.begin();
+  e = fInterfaceMaterials.end();
+  fInterfaceMaterials.erase(b, e);    
+}
 
 #endif
 
