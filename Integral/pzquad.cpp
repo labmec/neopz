@@ -300,13 +300,13 @@ TPZIntRuleT::TPZIntRuleT(int precision){
   case 2:
     fLocationKsi[0]= 0.166666666667;
     fLocationEta[0]= 0.166666666667;
-    fWeight[0]= 0.166667;
+    fWeight[0]= 0.166666666667;
     fLocationKsi[1]= 0.166666666667;
     fLocationEta[1]= 0.666666666667;
-    fWeight[1]= 0.166667;
+    fWeight[1]= 0.166666666667;
     fLocationKsi[2]= 0.666666666667;
     fLocationEta[2]= 0.166666666667;
-    fWeight[2]= 0.166667;
+    fWeight[2]= 0.166666666667;
     break;
 
   case 3:
@@ -2033,8 +2033,11 @@ void TPZIntRuleT::Loc(int i, TPZVec<REAL> &Points) {
 //***************************************
 REAL TPZIntRuleT::W(int i) {
 
+  // Quando eu encontrar o IDIOTA que introduziu este bug!!!
+  // Philippe
   if (fWeight && i>=0 && i<fNumInt)
-    return fWeight[i]*0.5;
+    return fWeight[i];
+    //    return fWeight[i]*0.5;
   else {
     PZError << "ERROR(TPZIntRule::w) Out of bounds!!\n";
     return 0.0;
