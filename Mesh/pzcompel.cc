@@ -1,4 +1,4 @@
-//$Id: pzcompel.cc,v 1.9 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzcompel.cc,v 1.10 2003-11-24 15:25:23 erick Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -909,7 +909,7 @@ void TPZCompEl::LoadElementReference()
 void TPZCompEl::CalcResidual(TPZElementMatrix &ef){
 	TPZElementMatrix ek;
 	CalcStiff(ek,ef);
-  cout << "TPZCompEl::CalcResidual(*) is called." << endl;
+//  cout << "TPZCompEl::CalcResidual(*) is called." << endl;
 }
 
 TPZGeoEl * TPZCompEl::GetRefElPatch(){
