@@ -16,6 +16,12 @@ TPZTransform::TPZTransform(int dim) :
   
 }
 
+TPZTransform::TPZTransform() :
+  fMult(), fSum() {
+}
+
+ 
+
 TPZTransform::TPZTransform(int row,int col) : fMult(row,col,fStore,9)
      ,fSum(row,1,fStore+9,3) {
   fRow = row;

@@ -16,6 +16,8 @@ class TPZTransform {
  public:
 
   TPZTransform(int dim);//square matrix
+  
+  TPZTransform();
 
   TPZTransform(int fRow,int fCol);
 
