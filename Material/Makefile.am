@@ -36,6 +36,7 @@ libpzmaterial_a_SOURCES = eulerdif.cc \
 	TPZLinearConvection.cc \
 	tpzmultcamada.cc \
 	TPZMulticamadaOrtho.cc \
-	TPZPlacaOrthotropic.cc 
+	TPZPlacaOrthotropic.cc \
+	TPZConservationLaw.cc
 
 ## --| NeoPZ |------------------------------------------------------------------
