@@ -469,6 +469,10 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
     fine->Reference()->ResetReference();
     fine->LoadReferences();
   }
+
+  TPZGeoCloneMesh *gclmesh = dynamic_cast<TPZGeoCloneMesh *> (fine->Reference());
+  if (gclmesh->GetMeshReferenceElement()->MaterialId() < 0) return;
+
   int diagnostic = 0;
   if(diagnostic) {
     ofstream test("test.txt",ios::app);
@@ -654,8 +658,8 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
     maxorder = interpolation[dim] < maxorder ? maxorder : interpolation[dim];
   }
   for(dim=0; dim<dimension; dim++) {
-    //order[dim] = 20;//Cedric
-    order[dim] = maxorder;
+    order[dim] = 20;//Cedric
+    //order[dim] = maxorder;
   }
   intrule.SetOrder(order);
   

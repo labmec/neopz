@@ -196,9 +196,9 @@ int main(){
       time_t sttime;
       time (& sttime);
       TPZCompMesh *adptmesh;
-      if (opt == 1 || opt == 2) adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact,truervec,effect);
-      else if (opt == 4) adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,ExactSimple3D,truervec,effect);
-      else if (opt == 12) adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact3D,truervec,effect);
+      if (opt == 1 || opt == 2) adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact,truervec,effect,0);
+      else if (opt == 4) adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,ExactSimple3D,truervec,effect,0);
+      else if (opt == 12) adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact3D,truervec,effect,0);
       else adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,0,truervec,effect);
       time_t endtime;
       time (& endtime);
@@ -212,7 +212,11 @@ int main(){
 	   << " true " << valtruerror <<  " effect " << valerror/valtruerror << endl;
 
 
-      convergence  << cmesh->NEquations() << "\t" << valerror << "\t" << valtruerror << "\t" << sttime <<endl;
+      convergence  << cmesh->NEquations() << "\t" 
+		   << valerror << "\t" 
+		   << valtruerror << "\t" 
+		   << ( valtruerror / valerror ) <<  "\t"
+		   << sttime <<endl;
       for (prt=0;prt<ervec.NElements();prt++){
 	cout <<"error " << ervec[prt] << "  truerror = " << truervec[prt] << "  Effect " << effect[prt] << endl;
 	// convergence << '\t' << ervec[prt] << '\t' << truervec[prt] << "  Effect " << effect[prt] <<  endl;
@@ -1912,4 +1916,133 @@ void CompareNeighbours(TPZGeoMesh *mesh) {
       }
     }
   }
+}
+
+/** Placa do Cedric **/
+static double Teste2Nos[5][3]  = { {0.,0.,0.},{2.,0.,0.},{2.,2.,0.},{0.,2.,0.},{1.,1.,0.}};
+static int    Teste2Elems[4][8] = {{0,1,4},{1,2,4},{2,3,4},{3,0,4}};
+
+TPZCompMesh *PlateMesh (){
+
+  //inserindo a ordem de interpola¢ão dos elementos e do espa¢o
+  int ord;
+  cout << "Entre ordem 1,2,3,4,5 : -> 1";
+  //cin >> ord;
+  ord = 1; cout << endl;
+  TPZCompEl::gOrder = ord;
+
+  //malha geometrica
+  TPZGeoMesh *geomesh = new TPZGeoMesh;
+
+  geomesh->Reference();
+
+  //cria nós geométricos
+  geomesh->NodeVec().Resize(5);
+  TPZVec<REAL> coord(3);
+  int i;
+  for(i=0;i<num;i++) {
+    coord[0]= Teste2Nos[i][0];
+    coord[1]= Teste2Nos[i][1];
+    coord[2]= Teste2Nos[i][2];
+    geomesh.NodeVec()[i].Initialize(coord,geomesh);
+  }
+
+  //elementos geométricos 
+  TPZVec<int> index(3);
+  int i,j,indice;
+  for(i=0;i<4;i++) {
+    for(j=0;j<3;j++) {
+      index[j] =  Teste2Elems[i][j];
+    }
+    geomesh.CreateGeoElement(ETriangle,index,1,indice);
+  }
+
+  //montagem de conectividades entre elementos
+  geomesh->BuildConnectivity();
+
+  //cria malha computacional
+  TPZCompMesh *compmesh = new TPZCompMesh(geomesh);
+   
+  //cria material do problema
+  TPZMaterial *placa = LerMaterial("placa.in",*compmesh);
+
+  //transferindo para o material uma carga conhecida 
+  //placa->SetForcingFunction(LoadSolution);
+  (dynamic_cast<TPZPlaca *>(placa))->SetExactFunction(LoadSolution);
+   
+  //cria condi¢ões de contorno
+  if(1) CriaCondContTeste4(*geomesh);
+
+  //cria elementos computacionais
+  compmesh->AutoBuild();
+  cmesh->AdjustBoundaryElements();
+  cmesh->CleanUpUnconnectedNodes();
+
+
+  //calcula o erro energia da solu¢ão
+  SolutionError(compmesh);
+
+  //arquivo de saida de dados
+  ofstream data("mesh.out");
+  geomesh->Print(data);
+  compmesh->Print(data);
+  data.flush();
+  data.close();
+  erros.close();
+
+  delete compmesh;
+  delete geomesh;
+  return 0;
+
+}
+
+TPZMaterial *LerMaterial(char *filename, TPZCompMesh &cmesh) {
+  ifstream input(filename);
+  TPZFMatrix naxes(3,3);
+  REAL ni1,ni2,h,E1,E2,G12,G13,G23,f;
+  REAL n00,n01,n02,n10,n11,n12,n20,n21,n22;
+  TPZVec<REAL> xf(6);
+  int matindex;
+  input >> matindex;
+  input >> f   >>  h  >>
+    E1  >> E2  >>
+    G12 >> G13 >> G23 >>
+    ni1 >> ni2;
+  input >> n00 >> n01 >> n02;
+  input >> n10 >> n11 >> n12;
+  input >> n20 >> n21 >> n22;
+  input >> xf[0] >> xf[1] >> xf[2] >> xf[3] >> xf[4] >> xf[5];
+  naxes(0,0) =  n00;    naxes(0,1) =  n01;    naxes(0,2) =  n02;
+  naxes(1,0) =  n10;    naxes(1,1) =  n11;    naxes(1,2) =  n12;
+  naxes(2,0) =  n20;    naxes(2,1) =  n21;    naxes(2,2) =  n22;
+  TPZMaterial *placa = new TPZPlaca(matindex,h,f,E1,E2,ni1,ni2,G12,G13,G23,naxes,xf);
+  cmesh.InsertMaterialObject(placa);
+  return placa;
+}
+
+void CriaCondContTeste4(TPZGeoMesh &gmesh){
+  int indicematerial = 1;
+  TPZMaterial *placa = gmesh.Reference()->FindMaterial(indicematerial);
+  if(!placa){
+    cout << "main::CriaCond material nao existe, CC nao criadas\n";
+    cout << "\t\tindice material pedido : " << indicematerial << endl;
+    return;
+  }
+  TPZGeoEl *elg0 = gmesh.FindElement(0);
+  TPZGeoEl *elg1 = gmesh.FindElement(1);
+  TPZGeoEl *elg2 = gmesh.FindElement(2);
+  TPZGeoEl *elg3 = gmesh.FindElement(3);
+  //malha computacional
+  TPZCompMesh *cmesh = gmesh.Reference();
+  //BIG number
+  //REAL big = 1.e12;
+  //valor das CC
+  TPZFMatrix val1(6,6,0.),val2(6,1,0.);
+  TPZGeoElBC(elg0,3,-1,gmesh);
+  TPZGeoElBC(elg1,3,-1,gmesh);
+  TPZGeoElBC(elg2,3,-1,gmesh);
+  TPZGeoElBC(elg3,3,-1,gmesh);
+  TPZBndCond *bc = placa->CreateBC(-1,0,val1,val2);
+  bc->SetForcingFunction(BCSolution);
+  cmesh->InsertMaterialObject(bc);
 }

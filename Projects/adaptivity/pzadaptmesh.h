@@ -46,18 +46,22 @@ class TPZAdaptMesh {
    * @param f: analitical solution
    * @param truervec: real element error at each orginal mesh element
    * @param effect: error estimator effectivity
+   * @param use_trueerror: evaluates the error throgh the analitical solution provided by f
    */
   TPZCompMesh * GetAdaptedMesh(REAL &error,
 			       REAL &truerror,
 			       TPZVec<REAL> &ervec, 
 			       void (*f)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 			       TPZVec<REAL> &truervec, 
-			       TPZVec<REAL> &effect);
+			       TPZVec<REAL> &effect,
+			       int use_trueerror = 0);
 
   /**
    * ??
    */
   static void DeleteElements(TPZCompMesh *mesh);
+
+  REAL UseTrueError(TPZInterpolatedElement *coarse, void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv));
 
  protected:
   
@@ -96,8 +100,9 @@ class TPZAdaptMesh {
    */
   TPZCompMesh* CreateCompMesh (TPZCompMesh *mesh,TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
   
+
+
  private:   
-  
   
   static TPZInterpolatedElement * LargeElement(TPZInterpolatedElement *cint);
   
