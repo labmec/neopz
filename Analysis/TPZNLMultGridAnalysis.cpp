@@ -296,7 +296,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
   fBegin = clock();
   an.LoadSolution();
   ofstream out("ANALYSIS.out");
-  an.Print("\n\n* * * SOLUCAO PELO ANALYSIS  * * *\n\n",out);
+  an.Print("\n\n* * * SOLUCAO PELO ANALYSIS: primeira iteracão * * *\n\n",out);
   fBegin = clock();
   mat->SetForcingFunction(0);
   REAL normsol = Norm(Solution());
@@ -319,7 +319,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
 	 << " due the great norm of the solution, norm solution = " << normsol << endl;
   }
   an.LoadSolution();
-  an.Print("\n\n* * * SOLUCAO PELO ANALYSIS  * * *\n\n",out);
+  an.Print("\n\n* * * SOLUCAO PELO ANALYSIS: última iteracão * * *\n\n",out);
   CoutTime(fInit,"TPZNonLinMultGridAnalysis::SmoothingSolution general time of iterative process");
 }
 
@@ -394,18 +394,18 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   TPZCompMesh *coarcmesh = fMeshes[0];//malha grosseira inicial
   int meshdim = coarcmesh->Dimension();
   //criando a malha fina
-  int levelnumbertorefine = 4;
-  cout << "TPZNonLinMultGridAnalysis:: número de níveis a dividir: ";
-  cin >> levelnumbertorefine;
+  int levelnumbertorefine = 1;
+  cout << "TPZNonLinMultGridAnalysis:: número de níveis a dividir: 1\n";
+  //cin >> levelnumbertorefine;
   int setdegree = -1;//preserva o grau da malha inicial
   //newmesh = 0: coarcmesh se tornou a malha fina
   TPZCompMesh *finemesh = UniformlyRefineMesh(coarcmesh,levelnumbertorefine,setdegree);
   finemesh->SetDimModel(meshdim);
   finemesh->SetName("\n\t\t\t* * * MALHA COMPUTACIONAL FINA * * *\n\n");
   //obtendo-se a malha menos fina por agrupamento
-  int levelnumbertogroup = 2;//serão agrupados dois níveis de divisão
-  cout << "TPZNonLinMultGridAnalysis:: número do nível a ser agrupado: ";
-  cin >> levelnumbertogroup;
+  int levelnumbertogroup = 0;//serão agrupados dois níveis de divisão
+  cout << "TPZNonLinMultGridAnalysis:: número do nível a ser agrupado: 0\n";
+  //cin >> levelnumbertogroup;
   TPZCompMesh *aggmesh = AgglomerateMesh(finemesh,levelnumbertogroup);
   aggmesh->SetName("\n\t\t\t* * * MALHA COMPUTACIONAL AGLOMERADA * * *\n\n");
   aggmesh->SetDimModel(meshdim);
@@ -446,30 +446,40 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   REAL tol = 1.e15;
   int numiter,marcha;
   cout << "\nNumero de iteracoes presuavisamento? : 10\n";
-  cin >> numiter;
-  //numiter = 10;
+  //cin >> numiter;
+  numiter = 0;
   cout << "main:: Parametro marcha (nulo não cria .dx): 2\n";
-  cin >> marcha;
-  //marcha = 2;
+  //cin >> marcha;
+  marcha = 0;
   fMeshes[2]->Reference()->ResetReference();
   fMeshes[2]->LoadReferences();
   TPZMaterial *mat = fMeshes[2]->FindMaterial(nummat);
-  ofstream *dxout = new ofstream("PreSmoothingEuler.dx");
+  ofstream *dxout=0,*dxout2=0;
+  if(numiter) dxout = new ofstream("PreSmoothingEuler.dx");
   SmoothingSolution(tol,numiter,mat,finean,*dxout,marcha);
   coarsean.Print("\n\n\t\t\t* * * ANALYSIS MALHA GROSSA * * *\n\n",out);
   finean.Print("\n\n\t\t\t* * * ANALYSIS MALHA FINA * * *\n\n",out);
   out.flush();
-  int numeq = fMeshes[2]->NEquations();
-  TPZFMatrix res(numeq,1);
-  CalcResidual(finean.Solution(),res,finean,"LDLt");
+  //int numeq = fMeshes[2]->NEquations();
+  //TPZFMatrix res(numeq,1);
+  ofstream OUT("TRANSFER.out");
+  //CalcResidual(finean.Solution(),res,finean,"LDLt");
+  //res.Print("\n\n\t\t\t* * * TPZNonLinMultGridAnalysis::RESÍDUO DO PRÉ-SUAVISAMENTO* * *\n\n",OUT);
   TPZTransfer transfer;
   fMeshes[2]->BuildTransferMatrixDesc(*fMeshes[1],transfer);
-  ofstream OUT("TRANSFER.out");
-  transfer.Print("\n\n\t\t\t* * * MATRIZ DE TRANSFERÊNCIA * * *\n\n",OUT);
+  int neq = fMeshes[1]->NEquations();
+  TPZFMatrix coarsesol(neq,1);
+  transfer.Print("\n\n\t\t\t* * * TPZNonLinMultGridAnalysis::MATRIZ DE TRANSFERÊNCIA * * *\n\n",OUT);
+  //transfer.TransferSolution(coarsesol,finean.Solution());
+  //coarsesol.Print("\n\n\t\t\t* * * TPZNonLinMultGridAnalysis::SOLUCÃO TRANSFERIDA * * *\n\n",OUT);
+  transfer.TransferResidual(finean.Solution(),coarsesol);
+  coarsesol.Print("\n\n\t\t\t* * * TPZNonLinMultGridAnalysis::RESÍDUO TRANSFERIDO * * *\n\n",OUT);
   OUT.flush();
   OUT.close();
-  ofstream *dxout2 = new ofstream("PostSmoothingEuler.dx");
-  SmoothingSolution(tol,numiter,mat,coarsean,*dxout2,marcha);
+  if(0){
+    if(numiter) dxout2 = new ofstream("PostSmoothingEuler.dx");
+    SmoothingSolution(tol,numiter,mat,coarsean,*dxout2,marcha);
+  }
 }
 
 void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZFMatrix &res,TPZAnalysis &an,char *decompose){
@@ -477,16 +487,18 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZFMatrix &res,TPZA
   //TPZStepSolver *solver = dynamic_cast<TPZStepSolver *>(&an.Solver());
   //TPZMatrix *stiff = solver->Matrix();
   TPZMatrix *stiff = an.Solver().Matrix();
+//   ofstream out("Calc_Residual_STIFF.out");
+//   stiff->Print("\n\n\t\t\t* * * MATRIZ DE RIGIDEZ * * *\n\n",out);
   int dim = stiff->Dim(),i,j;
   //cálculo de stiff * solution
   TPZFMatrix tsup(dim,1),diag(dim,1),tinf(dim,1);
 
-  if(decompose == "LDLt"){
+  if( !strcmp(decompose , "LDLt") ){
     //triângulo superior
     for(i=0;i<dim;i++){
       REAL sum = 0.;
       for(j=i+1;j<dim;j++){
-	 sum += stiff->GetVal(i,j);
+	 sum += stiff->GetVal(i,j) * sol(j,0);
       }
       tsup(i,0) = sol(i,0) + sum;
     }
@@ -495,90 +507,68 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZFMatrix &res,TPZA
     //triângulo superior
     for(i=0;i<dim;i++){
       REAL sum = 0.;
-      for(j=0;j<i-1;j++){
-	 sum += stiff->GetVal(i,j) * diag(i,0);
+      for(j=0;j<i;j++){
+	 sum += stiff->GetVal(i,j) * diag(j,0);
       }
-      tinf(i,0) = sum + sol(i,0);
+      tinf(i,0) = sum + diag(i,0);
     }
     //diferenca (f - stiff * x)
-    TPZMatrix rhs = an.Rhs();
-    for(i=0;i<dim;i++) res(i,0) = rhs.GetVal(i,0) - tinf(i,0);
+    TPZFMatrix rhs = an.Rhs();
+    for(i=0;i<dim;i++) res(i,0) = rhs(i,0) - tinf(i,0);
+    ofstream out("CalcResidual.out");
+    res.Print("* * * MULTIGRID -> res * * *\n",out);
+    rhs.Print("* * * MULTIGRID -> rhs * * *\n",out);
+    tinf.Print("* * * MULTIGRID -> tinf * * *\n",out);
   } else {
     cout << "TPZNonLinMultGridAnalysis::CalcResidual Calculation of the residue for this decomposition"
 	 << " is not implemented, implements now!\n";
   }
 }
 
+void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZFMatrix &anres,TPZFMatrix &res,
+					     TPZAnalysis &an,char *decompose){
+  //   PARA TESTES    PARA TESTES    PARA TESTES    PARA TESTES    PARA TESTES 
+  TPZMatrix *stiff = an.Solver().Matrix();
+  int dim = stiff->Dim(),i,j;
+  //cálculo de stiff * solution
+  TPZFMatrix tsup(dim,1),diag(dim,1),tinf(dim,1);
 
-// void TPZNonLinMultGridAnalysis::IterativeProcess(TPZAnalysis &an,REAL tol,int numiter,
-// 						 TPZMaterial *mat,int marcha,int resolution) {
+  if( !strcmp(decompose , "LDLt") ){
+    //triângulo superior
+    for(i=0;i<dim;i++){
+      REAL sum = 0.;
+      for(j=i+1;j<dim;j++){
+	 sum += stiff->GetVal(i,j) * sol(j,0);
+      }
+      tsup(i,0) = sol(i,0) + sum;
+    }
+    tsup.Print("* * * MULTIGRID -> produto tsup = (stiff_sup * sol) * * *\n",cout);
+    //diagonal
+    for(i=0;i<dim;i++) diag(i,0) = stiff->GetVal(i,i) * tsup(i,0);
+    diag.Print("* * * MULTIGRID -> produto diag = (stiff_diag * tsup) * * *\n",cout);
+    //triângulo superior
+    for(i=0;i<dim;i++){
+      REAL sum = 0.;
+      for(j=0;j<i;j++){
+	 sum += stiff->GetVal(i,j) * diag(j,0);
+      }
+      tinf(i,0) = sum + diag(i,0);
+    }
+    tinf.Print("* * * MULTIGRID -> produto tinf = (stiff_inf * diag) * * *\n",cout);
+    //diferenca (f - stiff * x)
+    //TPZMatrix rhs = an.Rhs();
+    for(i=0;i<dim;i++) res(i,0) = anres.GetVal(i,0) - tinf(i,0);
+    sol.Print("* * * MULTIGRID -> sol * * *\n",cout);
+    anres.Print("* * * MULTIGRID -> anres * * *\n",cout);
+    tinf.Print("* * * MULTIGRID -> tinf * * *\n",cout);
+    res.Print("* * * MULTIGRID -> residuo * * *\n",cout);
+  } else {
+    cout << "TPZNonLinMultGridAnalysis::CalcResidual Calculation of the residue for this decomposition"
+	 << " is not implemented, implements now!\n";
+  }
+}
 
-//   cout << "PZAnalysis::IterativeProcessTest beginning of the iterative process, general time 0\n";
-//   TPZVec<char *> scalar(1),vector(0);
-//   scalar[0] = "pressure";
-//   //scalar[1] = "density";
-//   //scalar[2] = "normvelocity";
-//   TPZCompMesh *anmesh = an.Mesh();
-//   cout << "TPZIterativeAnalysis::IterativeProcess solution required : " << scalar[0] << endl;
-//   //       << "\n" << scalar[1] << "\n" << scalar[2] << endl;
-//   int dim = mat->Dimension();
-//   ResetReference(anmesh);//retira referências para criar graph consistente
-//   TPZDXGraphMesh graph(anmesh,dim,mat,scalar,vector);
-//   SetReference(anmesh);//recupera as referências retiradas
-//   ofstream *dxout = new ofstream("ConsLaw.dx");
-//   cout << "\nTPZIterativeAnalysis::IterativeProcess out file : ConsLaw.dx\n";
-//   graph.SetOutFile(*dxout);
-//   graph.SetResolution(resolution);
-//   graph.DrawMesh(dim);
-//   int iter = 0,draw=0;
-// //   SetReference(anmesh);//recupera as referências retiradas
-//   SetDeltaTime(anmesh,mat,iter);
-//   an.Solution().Zero();
-//   fBegin = clock();
-//   an.Run();
-//   cout << "TPZIterativeAnalysis::IterativeProcess iteracao = " << ++iter << endl;
-//   CoutTime(fBegin,"TPZIterativeAnalysis:: Fim system solution first iteration");
-//   fBegin = clock();
-//   an.LoadSolution();
-//   TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
-//   REAL time = law->TimeStep();
-//   fBegin = clock();
-//   graph.DrawSolution(draw++,time);
-//   dxout.flush();
-//   mat->SetForcingFunction(0);
-//   REAL normsol = Norm(fSolution);
+// void TPZNonLinMultGridAnalysis::ProjectingSolution(TPZFMatrix &finesol,){
 
-//   while(iter < numiter && normsol < tol) {
-    
-//     fBegin = clock();
-//     an.Solution().Zero();
-//     SetDeltaTime(anmesh,mat,iter);
-//     an.Run();
-//     CoutTime(fBegin,"TPZIterativeAnalysis:: Fim system solution actual iteration");
-//     CoutTime(fInit,"TPZIterativeAnalysis:: accumulated time");
-//     fBegin = clock();
-//     an.LoadSolution();
-//     //CoutTime(fBegin,"TPZIterativeAnalysis:: Fim Load Solution");
-//     if( REAL(iter) / REAL(marcha) == draw || marcha == 1){
-//       fBegin = clock();
-//       time = law->TimeStep();
-//       graph.DrawSolution(draw++,time);
-//       dxout.flush();
-//       //CoutTime(fBegin,"TPZIterativeAnalysis:: Fim Draw Solution");
-//     }
-//     cout << "TPZIterativeAnalysis::IterativeProcess iteracao = " << ++iter << endl;
-//     normsol = Norm(fSolution);
-//   }
-//   dxout.flush();
-//   if(iter < numiter){
-//     cout << "\nTPZIterativeAnalysis::IterativeProcess the iterative process stopped due the great norm "
-// 	 << "of the solution, norm solution = " << normsol << endl;
-//     time = law->TimeStep();
-//     graph.DrawSolution(draw++,time);
-//     dxout.flush();
-//   }
-//   an.LoadSolution();
-//   //dxout.close();
-//   CoutTime(fInit,"TPZIterativeAnalysis:: general time of iterative process");
+
 // }
-

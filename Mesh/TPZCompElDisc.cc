@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.34 2003-11-28 17:11:27 cedric Exp $
+//$Id: TPZCompElDisc.cc,v 1.35 2003-11-28 19:48:36 cedric Exp $
 
 // -*- c++ -*- 
 
@@ -978,8 +978,7 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *agg
   if(numaggl < 1 || nlist < 2){
     PZError << "TPZCompElDisc::CreateAgglomerateMesh number agglomerate elements"
 	    << " out of range\nMALHA AGGLOMERADA NÂO CRIADA\n";
-    if(aggmesh) delete aggmesh;
-    aggmesh = 0;
+    aggmesh = new TPZCompMesh(*finemesh);
     return;
   }
   //TPZFlowCompMesh aggmesh(finemesh->Reference());
@@ -1211,7 +1210,6 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
   }
   loclocmat.SolveDirect(loccormat,ELDLt);
 
-
   int locblockseq = Connect(0).SequenceNumber();
   TPZStack<int> globblockvec;
   int numnonzero = 0;
@@ -1227,16 +1225,23 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
     globblockvec.Push(corblockseq);
     numnonzero++;
   }
+
   if(!numnonzero)
     PZError << "TPZCompElDisc::BuilTransferMatrix error II\n";
-  if(!transfer.HasRowDefinition(locblockseq)){
-    //PZError << "TPZCompElDisc::BuilTransferMatrix error III\n";
-  }
+
+  if(transfer.HasRowDefinition(locblockseq))
+    PZError << "TPZCompElDisc::BuilTransferMatrix error III\n";
+
   transfer.AddBlockNumbers(locblockseq,globblockvec);
+
   if(cornshape == 0 || locnshape == 0)
     PZError << "TPZCompElDisc::BuilTransferMatrix error IV\n";
+
   loccormat.GetSub(0,0,locnshape,cornshape,small);
   transfer.SetBlockMatrix(locblockseq,globblockvec[0],small);
 
   SetDegree(locdeg);
 }
+
+
+
