@@ -33,10 +33,13 @@ libpzmaterial_a_SOURCES = eulerdif.cc \
 	pzplaca.cc \
 	pzpoisson3d.cc \
 	TPZEuler.cc \
+	TPZEulerConsLaw.cc \
+	TPZDiffusionConsLaw.cc \
 	TPZLinearConvection.cc \
 	tpzmultcamada.cc \
 	TPZMulticamadaOrtho.cc \
 	TPZPlacaOrthotropic.cc \
-	TPZConservationLaw.cc
+	TPZConservationLaw.cc \
+	TPZConsLawTest.cc
 
 ## --| NeoPZ |------------------------------------------------------------------
