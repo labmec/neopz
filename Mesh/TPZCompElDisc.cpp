@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.55 2004-04-26 13:06:27 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.56 2004-05-21 13:36:10 erick Exp $
 
 // -*- c++ -*- 
 
@@ -1173,14 +1173,16 @@ void TPZCompElDisc::AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) {
 }
 
 void TPZCompElDisc::SetDegree(int degree) {
+  if(fConnectIndex<0) return;
   TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
   c.SetOrder(degree);
   int seqnum = c.SequenceNumber();
   int nvar = 1;
   TPZMaterial *mat = Material();
   if(mat) nvar = mat->NStateVariables();
-  Mesh()->Block().Set(seqnum,NShapeF()*nvar);
   fDegree = degree;
+  Mesh()->Block().Set(seqnum,NShapeF()*nvar);
+  //fDegree = degree;
 }
 
   /**
@@ -1204,7 +1206,7 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
   buf.Write(&matid,1);
   int shapetype = fShapefunctionType;
   buf.Write(&shapetype,1);
-  
+
 }
   
   /**
@@ -1220,8 +1222,9 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
   int matid;
   buf.Read(&matid,1);
   fMaterial = Mesh()->FindMaterial(matid);
+  if(!fMaterial)PZError << "TPZCompElDisc::Read - null material\n";
   int shapetype;
-  buf.Write(&shapetype,1);
+  buf.Read(&shapetype,1);
   fShapefunctionType = (TPZShapeDisc::MShapeType) shapetype;
  }
 
