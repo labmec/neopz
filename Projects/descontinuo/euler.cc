@@ -178,18 +178,18 @@ int main() {
   ofstream outgm("mesh.out");
 
   cout << "\ntipo\n"
-       << "\t[0: TresTriangulos]\n"
-       << "\t[1: TresPrismas]\n"
-       << "\t[2: FluxConst3D]\n"
-       << "\t[3: FluxConst2D]\n"
-       << "\t[4: FluxConst2D (outra CC)]\n"
+//        << "\t[0: TresTriangulos]\n"
+//        << "\t[1: TresPrismas]\n"
+//        << "\t[2: FluxConst3D]\n"
+//        << "\t[3: FluxConst2D]\n"
+//        << "\t[4: FluxConst2D (outra CC)]\n"
        << "\t[5: NoveQuadrilateros]\n"
        << "\t[6: NoveCubos]\n"
-       << "\t[7: ProblemaQ2D1El]\n"
+//        << "\t[7: ProblemaQ2D1El]\n"
        << "\t\t\t";
 
-  //cin >> tipo;
-  tipo = 6;
+  cin >> tipo;
+  //tipo = 6;
   problem = tipo;
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
   //cin >> grau;
