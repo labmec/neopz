@@ -8,14 +8,14 @@
 template <class TObj>
 TPZGenMatrix<TObj>::TPZGenMatrix(){
   fRows = 0;
-  fCols = 0;
+  this->fCols = 0;
   fMem = NULL;
 }
 
 template <class TObj>
 TPZGenMatrix<TObj>::TPZGenMatrix(int Rows, int columns) {
   fRows = Rows;
-  fCols = columns;
+  this->fCols = columns;
   fMem = new int[Rows*columns];
 
   if(fMem){
@@ -38,12 +38,12 @@ TPZGenMatrix<TObj>::TPZGenMatrix(const TPZGenMatrix<TObj> & A) {
   fMem = new TObj[naloc];
   if(fMem) {
     fRows = A.fRows;
-    fCols = A.fCols;
+    this->fCols = A.fCols;
     TObj *f = fMem,*l = f+naloc,*fa = A.fMem;
     while(f<l) *f++ = *fa++;
   } else {
     fRows = 0;
-    fCols = 0;
+    this->fCols = 0;
   }
 }
 
@@ -61,7 +61,7 @@ void TPZGenMatrix<TObj>::Resize(const int newrow, const int newcol) {
   delete []fMem;
   fMem = sht;
   fRows = newrow;
-  fCols = newcol;
+  this->fCols = newcol;
 }
 
 template <class TObj>
@@ -69,7 +69,7 @@ TPZGenMatrix<TObj>::~TPZGenMatrix() {
   if(fMem) delete []fMem;
   fMem = 0;
   fRows = 0;
-  fCols = 0;
+  this->fCols = 0;
 }
 
 template <class TObj>
@@ -78,12 +78,12 @@ TPZGenMatrix<TObj>& TPZGenMatrix<TObj>::operator= (const TPZGenMatrix<TObj> & rv
   if(this == &rval) return *this;
   if(fMem) delete fMem;
   fRows = rval.fRows;
-  fCols = rval.fCols;
-  fMem = new int[fRows*fCols];
+  this->fCols = rval.fCols;
+  fMem = new int[fRows*this->fCols];
 
   if(fMem) {
     TObj *pbeg,*pfinal;
-    pfinal = &(fMem[fRows*fCols]);
+    pfinal = &(fMem[fRows*this->fCols]);
     TObj *rvalm = rval.fMem;
     for (pbeg = fMem; pbeg<pfinal; pbeg++,rvalm++) *pbeg = *rvalm;
   } else {
@@ -95,14 +95,14 @@ TPZGenMatrix<TObj>& TPZGenMatrix<TObj>::operator= (const TPZGenMatrix<TObj> & rv
 
 template <class TObj>
 TPZGenAMatrix<TObj> TPZGenAMatrix<TObj>::operator+ (const TPZGenAMatrix<TObj> & rval) const {
-  if ( (fRows != rval.fRows) || (fCols != rval.fCols) )
+  if ( (this->fRows != rval.fRows) || (this->fCols != rval.fCols) )
     cout << "ERROR-> different TPZGenMatrix<TObj> size for addition";
 
 
-  TPZGenAMatrix<TObj> sum(Rows(), Cols());
-  TObj *pbeg1 = fMem, *pfin;
+  TPZGenAMatrix<TObj> sum(this->Rows(), this->Cols());
+  TObj *pbeg1 = this->fMem, *pfin;
   TObj *pbeg2 = sum.fMem, *pbeg3 = rval.fMem;
-  pfin = pbeg1 + (fRows*fCols);
+  pfin = pbeg1 + (this->fRows*this->fCols);
   for ( ; pbeg1<pfin; pbeg1++, pbeg2++, pbeg3++)
     *pbeg2 = *pbeg1 + *pbeg3;
   return sum;
@@ -111,37 +111,37 @@ TPZGenAMatrix<TObj> TPZGenAMatrix<TObj>::operator+ (const TPZGenAMatrix<TObj> & 
 template <class TObj>
 TPZGenAMatrix<TObj> TPZGenAMatrix<TObj>::operator+ (const TObj x) const {
 
-  TPZGenAMatrix<TObj> sum(Rows(), Cols());
+  TPZGenAMatrix<TObj> sum(this->Rows(), this->Cols());
 
-  for (int i=0; i<fRows*fCols; i++)
-    sum.fMem[i] = fMem[i] + x;
+  for (int i=0; i<this->fRows*this->fCols; i++)
+    sum.fMem[i] = this->fMem[i] + x;
   return sum;
 }
 
 template <class TObj>
 TPZGenAMatrix<TObj> TPZGenAMatrix<TObj>::operator- () const {
 
-  TPZGenAMatrix<TObj> unaryminus(Rows(), Cols());
+  TPZGenAMatrix<TObj> unaryminus(this->Rows(), this->Cols());
 
-  for (int i=0; i<fRows*fCols; i++)
-    unaryminus.fMem[i] = - fMem[i];
+  for (int i=0; i<this->fRows*this->fCols; i++)
+    unaryminus.fMem[i] = - this->fMem[i];
   return unaryminus;
 }
 
 template <class TObj>
 TPZGenAMatrix<TObj> TPZGenAMatrix<TObj>::operator* (const TPZGenAMatrix<TObj> & rval) const {
 
-  if (fCols != rval.fRows)
+  if (this->fCols != rval.fRows)
     cout << "ERROR-> unsuitable TPZGenMatrix<TObj> size for multiplication\n";
   cout.flush();
 
-  TPZGenAMatrix<TObj> result(Rows(), rval.Cols());
+  TPZGenAMatrix<TObj> result(this->Rows(), rval.Cols());
 
   TObj *ptr = result.fMem;
-  for (int i=0; i<(fRows*fCols); i+=fCols)
+  for (int i=0; i<(this->fRows*this->fCols); i+=this->fCols)
     for (int j=0; j<rval.fCols; j++, ptr++)
-      for (int k=0; k<fCols; k++)
-	*ptr += fMem[i+k] * rval.fMem[j+k*rval.fCols];
+      for (int k=0; k<this->fCols; k++)
+	*ptr += this->fMem[i+k] * rval.fMem[j+k*rval.fCols];
 
   return result;
 }
@@ -149,23 +149,23 @@ TPZGenAMatrix<TObj> TPZGenAMatrix<TObj>::operator* (const TPZGenAMatrix<TObj> & 
 template <class TObj>
 TPZGenAMatrix<TObj> TPZGenAMatrix<TObj>::operator* (const TObj x) const {
 
-  TPZGenAMatrix<TObj> result(Rows(), Cols());
+  TPZGenAMatrix<TObj> result(this->Rows(), this->Cols());
 
-  for (int i=0; i<fRows*fCols; i++)
-    result.fMem[i] = fMem[i] * x;
+  for (int i=0; i<this->fRows*this->fCols; i++)
+    result.fMem[i] = this->fMem[i] * x;
   return result;
 }
 
 template <class TObj>
 TPZGenAMatrix<TObj>& TPZGenAMatrix<TObj>::operator+=(const TPZGenAMatrix<TObj> & rval) {
 
-  if ( (fRows != rval.fRows) || (fCols != rval.fCols) )
+  if ( (this->fRows != rval.fRows) || (this->fCols != rval.fCols) )
     cout << "ERROR-> different TPZGenMatrix<TObj> size for addition";
   cout.flush();
 
-  int *pbeg1 = fMem, *pfin;
+  int *pbeg1 = this->fMem, *pfin;
   int *pbeg3 = rval.fMem;
-  pfin = pbeg1 + (fRows*fCols);
+  pfin = pbeg1 + (this->fRows*this->fCols);
   for ( ; pbeg1<pfin; pbeg1++, pbeg3++)
     *pbeg1 += *pbeg3;
   return (*this);
@@ -174,21 +174,21 @@ TPZGenAMatrix<TObj>& TPZGenAMatrix<TObj>::operator+=(const TPZGenAMatrix<TObj> &
 template <class TObj>
 TPZGenAMatrix<TObj>& TPZGenAMatrix<TObj>::operator+=(const TObj x) {
 
-  for (int i=0; i<fRows*fCols; i++)
-    fMem[i] += x;
+  for (int i=0; i<this->fRows*this->fCols; i++)
+    this->fMem[i] += x;
   return (*this);
 }
 
 template <class TObj>
 TPZGenAMatrix<TObj>& TPZGenAMatrix<TObj>::operator-=(const TPZGenAMatrix<TObj> & rval) {
 
-  if ( (fRows != rval.fRows) || (fCols != rval.fCols) )
+  if ( (this->fRows != rval.fRows) || (this->fCols != rval.fCols) )
     cout << "ERROR-> different TPZGenMatrix<TObj> size for addition";
   cout.flush();
 
-  int *pbeg1 = fMem, *pfin;
+  int *pbeg1 = this->fMem, *pfin;
   int *pbeg3 = rval.fMem;
-  pfin = pbeg1 + (fRows*fCols);
+  pfin = pbeg1 + (this->fRows*this->fCols);
   for ( ; pbeg1<pfin; pbeg1++, pbeg3++)
     *pbeg1 -= *pbeg3;
   return (*this);
@@ -197,28 +197,28 @@ TPZGenAMatrix<TObj>& TPZGenAMatrix<TObj>::operator-=(const TPZGenAMatrix<TObj> &
 template <class TObj>
 TPZGenAMatrix<TObj>& TPZGenAMatrix<TObj>::operator-=(const TObj x) {
 
-  for (int i=0; i<fRows*fCols; i++)
-    fMem[i] -= x;
+  for (int i=0; i<this->fRows*this->fCols; i++)
+    this->fMem[i] -= x;
   return (*this);
 }
 
 template <class TObj>
 TPZGenAMatrix<TObj>& TPZGenAMatrix<TObj>::operator*=(const TObj x) {
 
-  for (int i=0; i<fRows*fCols; i++)
-    fMem[i] *= x;
+  for (int i=0; i<this->fRows*this->fCols; i++)
+    this->fMem[i] *= x;
   return (*this);
 }
 
 template <class TObj>
 TObj & TPZGenMatrix<TObj>::operator()(const int i,const int j) const{
 
-  if (i>=0 && i<fRows && j>=0 && j<fCols)
-    return fMem[i*fCols+j];
+  if (i>=0 && i<this->fRows && j>=0 && j<this->fCols)
+    return fMem[i*this->fCols+j];
   else {
     cout << "ERROR-> TPZGenMatrix<TObj> index out of range\n"
       " i = " << i << " j = " << j << " Rows = " <<
-      fRows << " columns = " << fCols << "\n";
+      this->fRows << " columns = " << this->fCols << "\n";
     cout.flush();
     return fMem[0];
   }
@@ -227,13 +227,13 @@ TObj & TPZGenMatrix<TObj>::operator()(const int i,const int j) const{
 template <class TObj>
 TPZGenAMatrix<TObj> TPZGenAMatrix<TObj>::Transpose () const {
 
-  TPZGenAMatrix<TObj> transp(Cols(),Rows());
+  TPZGenAMatrix<TObj> transp(this->Cols(),this->Rows());
 
-  TObj *ptr  = fMem;
+  TObj *ptr  = this->fMem;
 
-  for (int i=0; i < fRows; i++) {		//loop over columns of Transpose
+  for (int i=0; i < this->fRows; i++) {		//loop over columns of Transpose
     TObj *trp = transp.fMem + i;
-    for (int j=0; j<fCols; j++, ptr++, trp += fRows) {
+    for (int j=0; j<this->fCols; j++, ptr++, trp += this->fRows) {
       *trp = *ptr;
     }
   }
@@ -246,12 +246,12 @@ void TPZGenMatrix<TObj>::Print (ostream & out) {
 		cout << "NULL TPZGenMatrix<TObj>\n";
 		return;
 	}
-	out << "TPZGenMatrix<TObj>  Rows = " << fRows << " columns = " << fCols << "\n";
-	for (int i=0; i<fRows; i++) {
+	out << "TPZGenMatrix<TObj>  Rows = " << this->fRows << " columns = " << this->fCols << "\n";
+	for (int i=0; i<this->fRows; i++) {
 		out << "\n row " << i;
-		for (int j=0; j<fCols; j++) {
+		for (int j=0; j<this->fCols; j++) {
 			if ( !(j%6) ) out << "\n";
-			out << "  " << fMem[(i*fCols)+j];
+			out << "  " << fMem[(i*this->fCols)+j];
 		}
 	}
 	out << "\n";
@@ -267,12 +267,12 @@ void TPZGenMatrix<TObj>::Print (const char *c, ostream & out) const {
     return;
   }
   out << c << endl;
-  out << "TPZGenMatrix<TObj>  Rows = " << fRows << " columns = " << fCols << endl;
-  for (int i=0; i<fRows; i++) {
+  out << "TPZGenMatrix<TObj>  Rows = " << this->fRows << " columns = " << this->fCols << endl;
+  for (int i=0; i<this->fRows; i++) {
     out << "\n row " << i;
-    for (int j=0; j<fCols; j++) {
+    for (int j=0; j<this->fCols; j++) {
       if ( !(j%6) ) out << "\n";
-      out << "  " << fMem[(i*fCols)+j];
+      out << "  " << fMem[(i*this->fCols)+j];
     }
   }
   out << "\n";
@@ -282,16 +282,16 @@ void TPZGenMatrix<TObj>::Print (const char *c, ostream & out) const {
 
 template <class TObj>
 TPZGenAMatrix<TObj> TPZGenAMatrix<TObj>::operator- (const TPZGenAMatrix<TObj> & rval) const {
-  if ( (fRows != rval.fRows) || (fCols != rval.fCols) )
+  if ( (this->fRows != rval.fRows) || (this->fCols != rval.fCols) )
     cout << "ERROR-> different TPZGenMatrix<TObj> size for subtraction";
   cout.flush();
 
 
-  TPZGenAMatrix<TObj> sum(Rows(), Cols());
+  TPZGenAMatrix<TObj> sum(this->Rows(), this->Cols());
 
-  int *pbeg1 = fMem, *pfin;
+  int *pbeg1 = this->fMem, *pfin;
   int *pbeg2 = sum.fMem, *pbeg3 = rval.fMem;
-  pfin = pbeg1 + (fRows*fCols);
+  pfin = pbeg1 + (this->fRows*this->fCols);
   for ( ; pbeg1<pfin; pbeg1++, pbeg2++, pbeg3++)
     *pbeg2 = *pbeg1 - *pbeg3;
   return sum;
@@ -301,10 +301,10 @@ template <class TObj>
 TPZGenAMatrix<TObj> TPZGenAMatrix<TObj>::operator- (const TObj x) const {
 
 
-  TPZGenAMatrix<TObj> sum(Rows(), Cols());
+  TPZGenAMatrix<TObj> sum(this->Rows(), this->Cols());
 
-  for (int i=0; i<fRows*fCols; i++)
-    sum.fMem[i] = fMem[i] - x;
+  for (int i=0; i<this->fRows*this->fCols; i++)
+    sum.fMem[i] = this->fMem[i] - x;
   return sum;
 }
 

@@ -67,7 +67,7 @@ TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess(TPZGeoElRefLess  &gel):TPZGeoEl(ge
 
 template<class TShape, class TGeo>
 TPZGeoElRefLess<TShape,TGeo>::~TPZGeoElRefLess(){
-//  TPZGeoEl::~TPZGeoEl();
+  //RemoveConnectivities();
 }
 /** divides the element and puts the resulting elements in the vector */
 //template<class TShape, class TGeo>
@@ -474,28 +474,6 @@ TPZGeoElRefLess<TShape,TGeo>::Write(TPZStream &buf, int withclassid){
   buf.Write(fNodeIndexes,TGeo::NNodes);
 }
 
-template class TPZGeoElRefLess<TPZShapeCube,TPZGeoCube>;
-template class TPZGeoElRefLess<TPZShapeLinear,TPZGeoLinear>;
-template class TPZGeoElRefLess<TPZShapeQuad,TPZGeoQuad>;
-template class TPZGeoElRefLess<TPZShapeTriang,TPZGeoTriangle>;
-template class TPZGeoElRefLess<TPZShapePrism,TPZGeoPrism>;
-template class TPZGeoElRefLess<TPZShapeTetra,TPZGeoTetrahedra>;
-template class TPZGeoElRefLess<TPZShapePiram,TPZGeoPyramid>;
-template class TPZGeoElRefLess<TPZShapePoint,TPZGeoPoint>;
-
-int main_refless(){
-//TPZGeoElRefLess <TPZShapeCube,TPZGeoCube> el1;
-//TPZGeoElRefLess <TPZShapeLinear,TPZGeoLinear> el2;
-//TPZGeoElRefLess <TPZShapeQuad,TPZGeoQuad> el3;
-//TPZGeoElRefLess <TPZShapeTriang,TPZGeoTriangle> el4;
-//TPZGeoElRefLess <TPZShapePrism,TPZGeoPrism> el5;
-//TPZGeoElRefLess <TPZShapeTetra,TPZGeoTetrahedra> el6;
-//TPZGeoElRefLess <TPZShapePiram,TPZGeoPyramid> el7;
-//TPZGeoElRefLess <TPZShapePoint,TPZGeoPoint> el8;
-
-return 0;
-}
-
 #include "pzelcpoint.h"
 #include "pzelcq2d.h"
 #include "pzelc1d.h"
@@ -540,13 +518,49 @@ static TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 }
 
 
+template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZShapePoint,TPZGeoPoint>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
+template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZShapeLinear,TPZGeoLinear>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
+template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZShapeQuad,TPZGeoQuad>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;
+template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZShapeTriang,TPZGeoTriangle>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
+template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZShapeCube,TPZGeoCube>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateCubeEl;
+template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZShapePrism,TPZGeoPrism>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePrismEl;
+template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZShapeTetra,TPZGeoTetrahedra>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;
+template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZShapePiram,TPZGeoPyramid>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePyramEl;
+
+
+template class TPZGeoElRefLess<TPZShapeCube,TPZGeoCube>;
+template class TPZGeoElRefLess<TPZShapeLinear,TPZGeoLinear>;
+template class TPZGeoElRefLess<TPZShapeQuad,TPZGeoQuad>;
+template class TPZGeoElRefLess<TPZShapeTriang,TPZGeoTriangle>;
+template class TPZGeoElRefLess<TPZShapePrism,TPZGeoPrism>;
+template class TPZGeoElRefLess<TPZShapeTetra,TPZGeoTetrahedra>;
+template class TPZGeoElRefLess<TPZShapePiram,TPZGeoPyramid>;
+template class TPZGeoElRefLess<TPZShapePoint,TPZGeoPoint>;
+
+int main_refless(){
+//TPZGeoElRefLess <TPZShapeCube,TPZGeoCube> el1;
+//TPZGeoElRefLess <TPZShapeLinear,TPZGeoLinear> el2;
+//TPZGeoElRefLess <TPZShapeQuad,TPZGeoQuad> el3;
+//TPZGeoElRefLess <TPZShapeTriang,TPZGeoTriangle> el4;
+//TPZGeoElRefLess <TPZShapePrism,TPZGeoPrism> el5;
+//TPZGeoElRefLess <TPZShapeTetra,TPZGeoTetrahedra> el6;
+//TPZGeoElRefLess <TPZShapePiram,TPZGeoPyramid> el7;
+//TPZGeoElRefLess <TPZShapePoint,TPZGeoPoint> el8;
+
+return 0;
+}
+
+
+
+
+
 
 
