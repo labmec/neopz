@@ -40,7 +40,7 @@ void TPZShapeLinear::Chebyshev(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
   }
 }
 
-void (*TPZShapeLinear::fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi) = TPZShapeLinear::Chebyshev;//Chebyshev;
+void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix &, TPZFMatrix &) = TPZShapeLinear::Chebyshev/*(REAL ,int ,TPZFMatrix& ,TPZFMatrix& )*/;//Chebyshev;
 
 //  REAL TPZCompEl::gTrans1d[2] = {1.,-1.};
 
@@ -276,3 +276,50 @@ void TPZShapeLinear::CenterPoint(int side, TPZVec<REAL> &center) {
     center[i] = MidSideNode[side][i];
   }
 }
+
+#ifdef _AUTODIFF
+void TPZShapeLinear::Shape1dInternal(FADREAL & x,int num,TPZVec<FADREAL> & phi,int transformation_index){
+  // Quadratic or higher shape functions
+  if(num <= 0) return;
+  FADREAL y;
+  TransformPoint1d(transformation_index,x,y);
+  FADfOrthogonal(y,num,phi);
+//  TransformDerivative1d(transformation_index,num,phi);
+}
+
+void TPZShapeLinear::TransformPoint1d(int transid,FADREAL & in,FADREAL &out) {
+  if (!transid) out =  in;
+  else          out = -in;
+}
+
+void TPZShapeLinear::Chebyshev(FADREAL & x,int num,TPZVec<FADREAL> &phi){
+  // Quadratic or higher shape functions
+  if(num <= 0) return;
+  //phi.Put(0,0,1.0);
+  //dphi.Put(0,0, 0.0);
+  phi[0] = 1.0; // <!> Remark: the derivatives other than the 0th are set to null
+  if(num == 1) return;
+  //phi.Put(1,0, x);
+  //dphi.Put(0,1, 1.0);
+  phi[1] = x;
+  //phi[1].fastAccessDx(0)=1.0; // <!> Remark: the derivatives other than the 0th aren't set to null
+  //just ensuring the derivatives are properly initialized and that FAD objects of more than
+  // one derivative are used
+  int ord;
+  for(ord = 2;ord<num;ord++) {
+    //phi.Put(ord,0, 2.0*x*phi(ord-1,0) - phi(ord-2,0));
+    //dphi.Put(0,ord, 2.0*x*dphi(0,ord-1) + 2.0*phi(ord-1,0) - dphi(0,ord-2));
+    phi[ord] = x * phi[ord-1] * 2.0 - phi[ord-2];
+  }
+}
+
+void (*TPZShapeLinear::FADfOrthogonal)(FADREAL&,int ,TPZVec<FADREAL> &) =  TPZShapeLinear::Chebyshev/*(FADREAL&, int, TPZVec<FADREAL>&)*/;//Chebyshev;
+/*
+void TPZShapeLinear::TransformDerivative1d(int transid,int num,TPZVec<FADREAL> &in) {
+
+  if(transid == 0) return;
+  int i;
+  for(i=0;i<num;i++) in[i].fastAccessDx(0) = -in[i].d(0);//(0,i) = -in(0,i);
+}
+*/
+#endif

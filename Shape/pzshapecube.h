@@ -5,6 +5,12 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 #include "pzgeoelside.h"
+
+
+#ifdef _AUTODIFF
+#include "fadType.h"
+#endif
+
 /** 
  *
  * @brief Implements the shape functions of a hexahedral (3D) element
@@ -30,6 +36,19 @@ class TPZShapeCube {
  */
 static void ShapeCube(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi);
 
+#ifdef _AUTODIFF
+/**
+ * Computes the values of the shape functions and their derivatives for a hexahedral element
+ * These values depend on the point, the order of interpolation and ids of the corner points
+ * The shapefunction computation uses the shape functions of the linear and quadrilateral element for its implementation
+ * @param point (input) point where the shape functions are computed
+ * @param id (input) indexes of the corner points which determine the orientation of the shape functions
+ * @param order (input) order of the side connects different from the corner connects (5 connects in this case)
+ * @param phi (output) values of the shape functions and derivatives
+ */
+static void ShapeCube(TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZVec<FADREAL> &phi);
+#endif
+
 /**
  * Computes the corner shape functions for a hexahedral element
  * @param pt (input) point where the shape function is computed
@@ -38,7 +57,16 @@ static void ShapeCube(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZ
  */
 static void ShapeCornerCube(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
 
-/** 
+#ifdef _AUTODIFF
+/**
+ * Computes the corner shape functions for a hexahedral element
+ * @param pt (input) point where the shape function is computed already setup with derivatives
+ * @param phi (output) value of the (8) shape functions and derivatives
+ */
+static void ShapeCornerCube(TPZVec<FADREAL> &pt, TPZVec<FADREAL> &phi);
+#endif
+
+/**
  * Compute the internal functions of the hexahedral shape function at a point\n
  * the internal shape functions are the shapefunctions before being multiplied by the corner
  * shape functions\n
@@ -51,7 +79,19 @@ static void ShapeCornerCube(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
  */
 static void Shape3dCubeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
 				                   TPZFMatrix &dphi);//,int quad_transformation_index
-
+#ifdef _AUTODIFF
+/**
+ * Compute the internal functions of the hexahedral shape function at a point\n
+ * the internal shape functions are the shapefunctions before being multiplied by the corner
+ * shape functions\n
+ * Shape3dCubeInternal is basically a call to the orthogonal shapefunction with the transformation
+ * determined by the transformation index
+ * @param x coordinate of the point (with derivatives already setup)
+ * @param order maximum order of shape functions to be computed
+ * @param phi shapefunction values (and derivatives)
+ */
+static void Shape3dCubeInternal(TPZVec<FADREAL> &x, int order,TPZVec<FADREAL> &phi);//,int quad_transformation_index
+#endif
 /**
  * Projects a point from the interior of the element to a rib
  * @param rib rib index to which the point should be projected
@@ -59,6 +99,16 @@ static void Shape3dCubeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
  * @param outval coordinate of the point on the rib
  */
 static void ProjectPoint3dCubeToRib(int side, TPZVec<REAL> &in, REAL &outval);
+
+#ifdef _AUTODIFF
+/**
+ * Projects a point from the interior of the element to a rib
+ * @param rib rib index to which the point should be projected
+ * @param in coordinate of the point at the interior of the element already setup with derivatives
+ * @param outval coordinate of the point on the rib
+ */
+static void ProjectPoint3dCubeToRib(int side, TPZVec<FADREAL> &in, FADREAL &outval);
+#endif
 
 /**
  * Projects a point from the interior of the element to a rib
@@ -83,7 +133,15 @@ static void ProjectPoint3dCubeFace(int face, TPZVec<REAL> &in, TPZVec<REAL> &out
  * @param out coordinates of the point on the face
  */
 static void ProjectPoint3dCubeToFace(int face, TPZVec<REAL> &in, TPZVec<REAL> &outval);
-
+#ifdef _AUTODIFF
+/**
+ * Projects a point from the interior of the element to a face
+ * @param face face index to which the point should be projected
+ * @param in coordinate of the point at the interior of the element (with derivatives)
+ * @param out coordinates of the point on the face (with derivatives)
+ */
+static void ProjectPoint3dCubeToFace(int face, TPZVec<FADREAL> &in, TPZVec<FADREAL> &outval);
+#endif
 /**
  * Transforms the derivative of a shapefunction computed on the rib into the three dimensional derivative
  * of the function with respect to the element. The parameter dphi should be dimensioned (3,num), at least
@@ -92,7 +150,16 @@ static void ProjectPoint3dCubeToFace(int face, TPZVec<REAL> &in, TPZVec<REAL> &o
  * @dphi values of the derivatives of the shapefunctions (modified in place)
  */
 static void TransformDerivativeFromRibToCube(int rib,int num,TPZFMatrix &dphi);
-
+#ifdef _AUTODIFF
+/**
+ * Transforms the derivative of a shapefunction computed on the rib into the three dimensional derivative
+ * of the function with respect to the element. The parameter dphi should be dimensioned (3,num), at least
+ * @param rib rib index along which the shapefunction is defined
+ * @num number of shapefunction derivatives which need to be transformed
+ * @phi values of the derivatives of the shapefunctions (modified in place)
+ */
+//static void TransformDerivativeFromRibToCube(int rib,int num,TPZVec<FADREAL> &phi);
+#endif
 /**
  * Transforms the derivative of a shapefunction computed on the face into the three dimensional derivative
  * of the function with respect to the element. The parameter dphi should be dimensioned (3,num), at least
@@ -102,6 +169,16 @@ static void TransformDerivativeFromRibToCube(int rib,int num,TPZFMatrix &dphi);
  */
 static void TransformDerivativeFromFaceToCube(int rib,int num,TPZFMatrix &dphi);
 
+#ifdef _AUTODIFF
+/**
+ * Transforms the derivative of a shapefunction computed on the face into the three dimensional derivative
+ * of the function with respect to the element. The parameter dphi should be dimensioned (3,num), at least
+ * @param rib rib index along which the shapefunction is defined
+ * @param num number of shapefunction derivatives which need to be transformed
+ * @param phi values of the shapefunctions (modified in place) with derivatives.
+ */
+//static void TransformDerivativeFromFaceToCube(int rib,int num,TPZVec<FADREAL> &phi);
+#endif
 /**
  * Returns the transformation which projects a point from the interior of the element to the side
  * @param side side to which the point will be tranformed (0<=side<=26)

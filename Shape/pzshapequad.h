@@ -5,6 +5,10 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 
+#ifdef _AUTODIFF
+#include "fadType.h"
+#endif
+
 /** 
  *
  * @brief Implements the shape functions of a quadrilateral (2D) element
@@ -57,6 +61,24 @@ class TPZShapeQuad {
   static void Shape2dQuadInternal(TPZVec<REAL> &x, int order,
   						TPZFMatrix &phi,TPZFMatrix &dphi,int quad_transformation_index);
 
+#ifdef _AUTODIFF
+/**
+ * Compute the internal functions of the quadrilateral shape function at a point\n
+ * the internal shape functions are the shapefunctions before being multiplied by the corner
+ * shape functions\n
+ * Shape2dQuadInternal is basically a call to the orthogonal shapefunction with the transformation
+ * determined by the transformation index
+ * @param x coordinate of the point (already setup with derivatives)
+ * @param order maximum order of shape functions to be computed
+ * @param phi shapefunction values (with derivatives)
+ * @param quad_transformation_index determines the transformation applied to the internal shape
+ * functions. This parameter is computed by the GetTransformId2dQ method
+ * @see GetTransformId2dQ
+ */
+  static void Shape2dQuadInternal(TPZVec<FADREAL> &x, int order,
+  					TPZVec<FADREAL> &phi,int quad_transformation_index);
+#endif
+
 /**
  * Transform the derivatives of num shapefunctions in place for a quadrilateral
  * @param transid identifier of the transformation of the quad element as obtained by the GetTransformId2dQ method
@@ -66,6 +88,16 @@ class TPZShapeQuad {
  */
   static void TransformDerivative2dQ(int transid, int num, TPZFMatrix &in);
 
+#ifdef _AUTODIFF
+/**
+ * Transform the derivatives of num shapefunctions in place for a quadrilateral
+ * @param transid identifier of the transformation of the quad element as obtained by the GetTransformId2dQ method
+ * @param num number of shapefunctions needed to transform
+ * @in matrix containing the values of the shapefunctions and derivatives.n return
+ */
+//  static void TransformDerivative2dQ(int transid, int num, TPZVec<FADREAL> &in);
+#endif
+
 /**
  * Transform the coordinates of the point in the space of the quadrilateral
  * master element based on the transformation id
@@ -74,7 +106,17 @@ class TPZShapeQuad {
  * @param out coordinates of the transformed parameter
  */
   static void TransformPoint2dQ(int transid,TPZVec<REAL> &in,TPZVec<REAL> &out);
+#ifdef _AUTODIFF
+/**
+ * Transform the coordinates of the point in the space of the quadrilateral
+ * master element based on the transformation id
+ * @param transid identifier of the transformation of the element as obtained by the GetTransformId2dQ method
+ * @param in coordinates of the variational parameter (with derivatives)
+ * @param out coordinates of the transformed parameter (with derivatives)
+ */
+  static void TransformPoint2dQ(int transid,TPZVec<FADREAL> &in,TPZVec<FADREAL> &out);
 
+#endif
 /**
  * Projects a point from the interior of the element to a rib
  * @param rib rib index to which the point should be projected
@@ -82,7 +124,6 @@ class TPZShapeQuad {
  * @param out coordinate of the point on the rib
  */
   static void ProjectPoint2dQuadToRib(int rib, TPZVec<REAL> &in, REAL &out);
-
 /**
  * Method which identifies the quadrilateral transformation based on the IDs
  * of the corner nodes
@@ -99,7 +140,16 @@ class TPZShapeQuad {
  * @dphi values of the derivatives of the shapefunctions
  */
   static void TransformDerivativeFromRibToQuad(int rib,int num,TPZFMatrix &dphi);
-
+#ifdef _AUTODIFF
+/**
+ * Transforms the derivative of a shapefunction computed on the rib into the two dimensional derivative
+ * of the function with respect to the element. The parameter dphi should be dimensioned (2,num), at least
+ * @param rib rib index along which the shapefunction is defined
+ * @num number of shapefunction derivatives which need to be transformed
+ * @phi values of the shapefunctions (with derivatives)
+ */
+//  static void TransformDerivativeFromRibToQuad(int rib,int num,TPZVec<FADREAL> &phi);
+#endif
 /**
  * Returns the transformation which transform a point from the interior of the element to the side
  * @param side side to which the point will be tranformed (0<=side<=8)
@@ -194,6 +244,7 @@ static int SideConnectLocId(int side, int c);
 
  /**volume of the master element*/
 static REAL RefElVolume(){return 0.;}
+
 
 
 };

@@ -452,3 +452,66 @@ void TPZShapeQuad::CenterPoint(int side, TPZVec<REAL> &center) {
     center[i] = MidSideNode[side][i];
   }
 }
+
+#ifdef _AUTODIFF
+
+void TPZShapeQuad::Shape2dQuadInternal(TPZVec<FADREAL> &x, int order,
+					TPZVec<FADREAL> &phi,int quad_transformation_index) {
+
+  const int ndim = 3;
+  if(order < 0) return;
+  int ord1 = order+1;
+  int numshape = ord1*ord1;
+  TPZVec<FADREAL> out(2);
+  TransformPoint2dQ(quad_transformation_index,x,out);
+
+  if(numshape > phi.NElements()/*Rows()*/ || phi[0].size()/*Cols()*/ < ndim) phi.Resize(numshape, FADREAL(ndim, 0.0));
+  //if(dphi.Rows() < 2 || dphi.Cols() < numshape) dphi.Resize(2,numshape);
+  //REAL store1[20],store2[20],store3[20],store4[20];
+  //TPZFMatrix phi0(ord1,1,store1,20),phi1(ord1,1,store2,20),dphi0(1,ord1,store3,20),dphi1(1,ord1,store4,20);
+  TPZVec<FADREAL> phi0(20, FADREAL(ndim, 0.0)),
+                  phi1(20, FADREAL(ndim, 0.0));
+
+  TPZShapeLinear::FADfOrthogonal(out[0],ord1,phi0);
+  TPZShapeLinear::FADfOrthogonal(out[1],ord1,phi1);
+  for (int i=0;i<ord1;i++) {
+    for (int j=0;j<ord1;j++) {
+      int index = i*ord1+j;
+      //phi(index,0) =  phi0(i,0)* phi1(j,0);
+      phi[index] =  phi0[i] * phi1[j];
+      /*dphi(0,index) = dphi0(0,i)* phi1(j,0);
+      dphi(1,index) =  phi0(i,0)*dphi1(0,j);*/
+    }
+  }
+//  TransformDerivative2dQ(quad_transformation_index,numshape,phi);
+}
+
+void TPZShapeQuad::TransformPoint2dQ(int transid, TPZVec<FADREAL> &in, TPZVec<FADREAL> &out) {
+
+  out[0] = gTrans2dQ[transid][0][0]*in[0]+gTrans2dQ[transid][0][1]*in[1];//Cedric 23/02/99
+  out[1] = gTrans2dQ[transid][1][0]*in[0]+gTrans2dQ[transid][1][1]*in[1];//Cedric 23/02/99
+}
+/*
+void TPZShapeQuad::TransformDerivative2dQ(int transid, int num, TPZVec<FADREAL> &in) {
+
+  for(int i=0;i<num;i++) {
+    double aux[2];
+    aux[0] = in[i].d(0);
+    aux[1] = in[i].d(1);
+    in[i].fastAccessDx(0) = gTrans2dQ[transid][0][0]*aux[0]+gTrans2dQ[transid][1][0]*aux[1];
+    in[i].fastAccessDx(1) = gTrans2dQ[transid][0][1]*aux[0]+gTrans2dQ[transid][1][1]*aux[1];
+  }
+}
+
+void TPZShapeQuad::TransformDerivativeFromRibToQuad(int rib,int num,TPZVec<FADREAL> &phi) {
+
+  for (int j = 0;j<num;j++) {
+    //dphi(1,j) = gRibTrans2dQ1d[rib][1]*dphi(0,j);
+    //dphi(0,j) = gRibTrans2dQ1d[rib][0]*dphi(0,j);
+    phi[j].fastAccessDx(1) = gRibTrans2dQ1d[rib][1]*phi[j].d(0);
+    phi[j].fastAccessDx(0) = gRibTrans2dQ1d[rib][0]*phi[j].d(0);
+  }
+}
+*/
+
+#endif

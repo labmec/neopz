@@ -6,6 +6,7 @@
 #include "pzerror.h"
 #include "pzreal.h"
 
+
 REAL TPZShapeCube::gRibTrans3dCube1d[12][3] = {
   {1., 0.,0.} , { 0.,1.,0.} , {-1., 0.,0.} ,
   {0.,-1.,0.} , { 0.,0.,1.} , { 0., 0.,1.} ,
@@ -285,6 +286,7 @@ void TPZShapeCube::ShapeCornerCube(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix
       dphi(1,7) = x[0]*dy[1]*z[1];
       dphi(2,7) = x[0]*y[1]*dz[1];
 }
+
 
 void TPZShapeCube::ShapeCube(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
   ShapeCornerCube(pt,phi,dphi);
@@ -831,3 +833,211 @@ void TPZShapeCube::CenterPoint(int side, TPZVec<REAL> &center) {
     center[i] = MidSideNode[side][i];
   }
 }
+
+
+#ifdef _AUTODIFF
+
+void TPZShapeCube::ShapeCube(TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZVec<FADREAL> &phi)
+{
+  const int ndim = 3;
+
+  TPZVec<FADREAL> pt(3);
+  pt[0] = point[0];
+  pt[0].diff(0, ndim);
+
+  pt[1] = point[1];
+  pt[1].diff(1, ndim);
+
+  pt[2] = point[2];
+  pt[2].diff(2, ndim);
+
+  ShapeCornerCube(pt,phi);
+
+  int shape = 8;
+  //rib shapes
+  for (int rib = 0; rib < 12; rib++) {
+    FADREAL outval(ndim, 0.0);
+    ProjectPoint3dCubeToRib(rib,pt,outval);
+    TPZVec<int> ids(2);
+    int id0,id1;
+    id0 = SideNodes[rib][0];
+    id1 = SideNodes[rib][1];
+    ids[0] = id[id0];
+    ids[1] = id[id1];
+    //REAL store1[20], store2[60];
+    int ordin = order[rib]-1;//three orders : order in x , order in y and order in z
+    //TPZFMatrix phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
+    //phin.Zero();
+    //dphin.Zero();
+    TPZVec<FADREAL> phin(20, FADREAL(ndim, 0.0)); //3d
+    TPZShapeLinear::Shape1dInternal(outval,ordin,phin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
+//    TransformDerivativeFromRibToCube(rib,ordin,phin);
+    for (int i = 0; i < ordin; i++) {
+      //phi(shape,0) = phi(id0,0)*phi(id1,0)*phin(i,0);
+      phi[shape] = phi[id0] * phi[id1] * phin[i];
+      /*for(int xj=0;xj<3;xj++) {
+         dphi(xj,shape) = dphi(xj ,id0) * phi(id1, 0 )  * phin( i, 0) +
+                          phi(id0, 0 )  * dphi(xj ,id1) * phin( i, 0) +
+                          phi(id0, 0 )  * phi(id1, 0 )  * dphin(xj,i);
+      }*/ // implicitly done
+      shape++;
+    }
+
+  }
+  //face shapes
+  for (int face = 0; face < 6; face++) {
+
+    //TPZVec<REAL> outval(2);
+    TPZVec<FADREAL> outval(2, FADREAL(ndim, 0.0));
+    ProjectPoint3dCubeToFace(face,pt,outval);
+  //  REAL store1[20],store2[60];
+    int ord1,ord2;
+	ord1 = order[12+face];
+	ord2=ord1;
+//    FaceOrder(face,ord1,ord2); // already commented in the non-FAD version
+    if(ord1<2 || ord2<2) continue;
+    int ord =  (ord1-1)*(ord2-1);
+    //TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);//ponto na face
+    TPZVec<FADREAL> phin(20, FADREAL(ndim, 0.0)); //3d
+    //phin.Zero();
+    //dphin.Zero();
+    int ordin =  (ord1 > ord2) ? ord1 : ord2;
+    ordin--;
+    TPZManVector<int> ids(4);
+    //TPZVec<int> ids(4);
+    int id0,id1,i;
+    for(i=0;i<4;i++) ids[i] = id[FaceNodes[face][i]];
+    id0 = ShapeFaceId[face][0];//numero das shapes da face que compoem a shape atual
+    id1 = ShapeFaceId[face][1];
+    TPZShapeQuad::Shape2dQuadInternal(outval,ord1-2,phin,TPZShapeQuad::GetTransformId2dQ(ids));//ordin = ordem de um lado
+//    TransformDerivativeFromFaceToCube(face,ord,phin);//ord = numero de shapes
+    for(i=0;i<ord;i++)	{
+//      phi(shape,0) = phi(id0,0)*phi(id1,0)*phin(i,0);
+        phi[shape] = phi[id0] * phi[id1] * phin[i];
+/*      for(int xj=0;xj<3;xj++) {
+         dphi(xj,shape) = dphi(xj,id0)* phi(id1 , 0 )* phin(i ,0) +
+                           phi(id0, 0)*dphi(xj  ,id1)* phin(i ,0) +
+                           phi(id0, 0)* phi(id1 , 0 )*dphin(xj,i);  // implicitly done
+      }*/
+      shape++;
+    }
+  }
+
+  //volume shapes
+  //REAL store1[20],store2[60];
+  int ordmin1 = (order[18]-1);
+  int ord =  ordmin1*ordmin1*ordmin1;//(p-1)^3 : 0<=n1,n2,n3<=p-2
+  //TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);
+  TPZVec<FADREAL> phin(20, FADREAL(ndim, 0.0)); //3d
+  //phin.Zero();
+  //dphin.Zero();
+  Shape3dCubeInternal(pt,ordmin1,phin);
+  for(int i=0;i<ord;i++)	{
+    //phi(shape,0) = phi(0,0)*phi(6,0)*phin(i,0);
+    phi[shape] = phi[0] * phi[6] * phin[i];
+    /*
+    for(int xj=0;xj<3;xj++) {
+      dphi(xj,shape) = dphi(xj,0)* phi(6 ,0)* phin(i ,0) +
+                        phi(0, 0)*dphi(xj,6)* phin(i ,0) +
+                        phi(0, 0)* phi(6 ,0)*dphin(xj,i);
+    }*/
+    shape++;
+  }
+}
+
+
+void TPZShapeCube::ShapeCornerCube(TPZVec<FADREAL> &pt, TPZVec<FADREAL> &phi)
+{
+      FADREAL x[2], y[2], z[2];
+
+      x[0]  = (1.-pt[0])/2.;
+      x[1]  = (1.+pt[0])/2.;
+      y[0]  = (1.-pt[1])/2.;
+      y[1]  = (1.+pt[1])/2.;
+      z[0]  = (1.-pt[2])/2.;
+      z[1]  = (1.+pt[2])/2.;
+
+      phi[0]  = x[0]*y[0]*z[0];
+      phi[1]  = x[1]*y[0]*z[0];
+      phi[2]  = x[1]*y[1]*z[0];
+      phi[3]  = x[0]*y[1]*z[0];
+      phi[4]  = x[0]*y[0]*z[1];
+      phi[5]  = x[1]*y[0]*z[1];
+      phi[6]  = x[1]*y[1]*z[1];
+      phi[7]  = x[0]*y[1]*z[1];
+}
+
+void TPZShapeCube::ProjectPoint3dCubeToRib(int side, TPZVec<FADREAL> &in, FADREAL &outval)
+{
+  outval = gRibTrans3dCube1d[side][0]*in[0]+gRibTrans3dCube1d[side][1]*in[1]+gRibTrans3dCube1d[side][2]*in[2];
+}
+/*
+void TPZShapeCube::TransformDerivativeFromRibToCube(int rib,int num,TPZVec<FADREAL> &phi) {
+  for (int j = 0;j<num;j++) {
+    //dphi(2,j) = gRibTrans3dCube1d[rib][2]*dphi(0,j);
+    //dphi(1,j) = gRibTrans3dCube1d[rib][1]*dphi(0,j);
+    //dphi(0,j) = gRibTrans3dCube1d[rib][0]*dphi(0,j);
+    phi[j].fastAccessDx(2) = gRibTrans3dCube1d[rib][2]*phi[j].d(0);
+    phi[j].fastAccessDx(1) = gRibTrans3dCube1d[rib][1]*phi[j].d(0);
+    phi[j].fastAccessDx(0) = gRibTrans3dCube1d[rib][0]*phi[j].d(0);
+  }
+}
+*/
+void TPZShapeCube::ProjectPoint3dCubeToFace(int face, TPZVec<FADREAL> &in, TPZVec<FADREAL> &outval) {
+  outval[0] = gFaceTrans3dCube2d[face][0][0]*in[0]+gFaceTrans3dCube2d[face][0][1]*in[1]+gFaceTrans3dCube2d[face][0][2]*in[2];
+  outval[1] = gFaceTrans3dCube2d[face][1][0]*in[0]+gFaceTrans3dCube2d[face][1][1]*in[1]+gFaceTrans3dCube2d[face][1][2]*in[2];
+}
+
+/*
+void TPZShapeCube::TransformDerivativeFromFaceToCube(int rib,int num,TPZVec<FADREAL> &phi) {
+
+  for (int j = 0;j<num;j++) {
+
+    //dphi(2,j) = gFaceTrans3dCube2d[rib][0][2]*dphi(0,j)+gFaceTrans3dCube2d[rib][1][2]*dphi(1,j);
+    //REAL dphi1j = dphi(1,j);
+    //dphi(1,j) = gFaceTrans3dCube2d[rib][0][1]*dphi(0,j)+gFaceTrans3dCube2d[rib][1][1]*dphi(1,j);
+    //dphi(0,j) = gFaceTrans3dCube2d[rib][0][0]*dphi(0,j)+gFaceTrans3dCube2d[rib][1][0]*dphi1j;//dphi(1,j);
+
+    REAL dphijd1 = phi[j].d(1);
+    phi[j].fastAccessDx(2) =  gFaceTrans3dCube2d[rib][0][2]*phi[j].d(0)+gFaceTrans3dCube2d[rib][1][2]*dphijd1;
+    phi[j].fastAccessDx(1) =  gFaceTrans3dCube2d[rib][0][1]*phi[j].d(0)+gFaceTrans3dCube2d[rib][1][1]*dphijd1;
+    phi[j].fastAccessDx(0) =  gFaceTrans3dCube2d[rib][0][0]*phi[j].d(0)+gFaceTrans3dCube2d[rib][1][0]*dphijd1;
+  }
+}
+*/
+
+void TPZShapeCube::Shape3dCubeInternal(TPZVec<FADREAL> &x, int order,TPZVec<FADREAL> &phi)
+{//,int cube_transformation_index
+  const int ndim = 3;
+
+  if(order < 1) return;
+  int ord = order;//fSideOrder[18]-1;
+  order = order*order*order;
+  phi.Resize(order, FADREAL(ndim, 0.0));
+  TPZVec<FADREAL> phi0(20, FADREAL(ndim, 0.0)),
+                  phi1(20, FADREAL(ndim, 0.0)),
+		  phi2(20, FADREAL(ndim, 0.0));
+  //phi.Resize(order, 1);
+  //dphi.Resize(3,order);
+  //REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
+  //TPZFMatrix phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
+  //  dphi0(1,ord,store4,20),dphi1(1,ord,store5,20),dphi2(1,ord,store6,20);
+  TPZShapeLinear::FADfOrthogonal(x[0],ord,phi0);
+  TPZShapeLinear::FADfOrthogonal(x[1],ord,phi1);
+  TPZShapeLinear::FADfOrthogonal(x[2],ord,phi2);
+  for (int i=0;i<ord;i++) {
+    for (int j=0;j<ord;j++) {
+      for (int k=0;k<ord;k++) {
+         int index = ord*(ord*i+j)+k;
+          //phi(index,0) =  phi0(i,0)* phi1(j,0)* phi2(k,0);
+	  phi[index] =  phi0[i] * phi1[j] * phi2[k];
+         /*dphi(0,index) = dphi0(0,i)* phi1(j,0)* phi2(k,0);
+         dphi(1,index) =  phi0(i,0)*dphi1(0,j)* phi2(k,0);
+         dphi(2,index) =  phi0(i,0)* phi1(j,0)*dphi2(0,k);
+	 */
+      }
+    }
+  }
+}
+
+#endif
