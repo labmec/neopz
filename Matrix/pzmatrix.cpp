@@ -937,14 +937,17 @@ void TPZMatrix::Read( TPZStream &buf, void *context ){
   TPZSaveable::Read(buf,context);
   buf.Read(&fRow,1);
   buf.Read(&fCol,1);
-  buf.Read(&fDecomposed,1);
+  int tmp;
+  buf.Read(&tmp,1);
+  fDecomposed = (char) tmp;
 }
 
 void TPZMatrix::Write( TPZStream &buf, int withclassid ) {
   TPZSaveable::Write(buf,withclassid);
   buf.Write(&fRow,1);
   buf.Write(&fCol,1);
-  buf.Write(&fDecomposed,1);
+  int tmp = fDecomposed;
+  buf.Write(&tmp,1);
 }
 
 
