@@ -16,21 +16,20 @@ int main(){
   int banda=50;
   int i,j;
  
-  TPZFMatrix  cheia(neq,neq, 0.);
-  FillMatrix(cheia,neq,banda);
+  TPZFMatrix  *cheia = new TPZFMatrix(neq,neq, 0.);
+  FillMatrix(*cheia,neq,banda);
 
   TPZVec <int> skyvec(neq,0);
-  for (i=0;i<neq-banda;i++);{
-    if (i >= banda && i <neq-banda ) skyvec[i]=2*banda-1;
-    else if (i < banda) skyvec[i]=banda+i;
-    else skyvec[i] = banda+neq-i;
+  for (i=0;i<neq;i++);{
+    skyvec[i] = i-banda;
+    if(skyvec[i] < 0) skyvec[i] = 0;
   }
 
-  TPZSkylMatrix  skyline(neq,skyvec);
-  FillMatrix(skyline,neq,banda);
+  TPZSkylMatrix  *skyline = new TPZSkylMatrix(neq,skyvec);
+  FillMatrix(*skyline,neq,banda);
 
-  cheia.Print( "Matriz cheia ",cout);
-  skyline.Print( "Matriz skyline ",cout);
+  cheia->Print( "Matriz cheia ",cout);
+  skyline->Print( "Matriz skyline ",cout);
 
   TPZFMatrix F;
   FillF(F,neq,1);
@@ -41,7 +40,7 @@ int main(){
   direct.SetDirect(ECholesky);
   direct.Solve(F,resultcheia);*/
 
-  TPZStepSolver step(&cheia);
+  TPZStepSolver step(cheia);
   TPZStepSolver precond(step);
   int numiterpre =2;
   int numiter = 5;
@@ -60,7 +59,7 @@ void FillMatrix(TPZMatrix &mat,int neq, int banda){
   int i,j;
   for ( i=0;i<neq;i++){
     mat(i,i)=2000.;
-    int col = i+banda;
+    int col = i+banda+1;
     if (col >= neq ) col = neq; 
     for ( j=i+1;j<col;j++){
       mat(i,j)=500./(j-i);
