@@ -1,5 +1,6 @@
 // -*- c++ -*-
-// $Id: TPZShapeDisc.h,v 1.3 2003-11-25 18:22:30 phil Exp $
+
+// $Id: TPZShapeDisc.h,v 1.4 2004-04-02 16:04:45 tiago Exp $
 #ifndef SHAPEDISCHPP
 #define SHAPEDISCHPP
 
@@ -22,16 +23,26 @@ public:
  */
 static void Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
 
- public:
+static void Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
 
-  enum MShapeType {ETensorial, EOrdemTotal};
-  TPZShapeDisc();
-  ~TPZShapeDisc() {};
+/**
+ * UseOrthoShape = 1 means it will be used Legendre polynomial as shape function. 
+ * @since Mar 31, 2004
+ */
+static void (*fOrthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix & phi, TPZFMatrix & dphi, int n = 1);
+
+public:
+
+enum MShapeType {ETensorial, EOrdemTotal};
+
+TPZShapeDisc();
+
+~TPZShapeDisc() {};
   
-  /**
-   * Number of shapefunctions dependent on the dimension and order of interpolation
-   */
-  static int NShapeF(int degree, int dimension, MShapeType type);
+/**
+ * Number of shapefunctions dependent on the dimension and order of interpolation
+ */
+static int NShapeF(int degree, int dimension, MShapeType type);
 /**
  * discontinous polynomials of the line element
  */
