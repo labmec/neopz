@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.21 2004-02-04 13:42:16 rgdamas Exp $
+// $Id: pzintel.cpp,v 1.22 2004-02-04 20:32:29 cesar Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1398,8 +1398,22 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
   //  REAL dsolstore[90];
   TPZFNMatrix<90> dsol(dim,numdof);
 
-
+  //--->>>
+  //Cesar 2004-02-02 -->> To correct error evaluation when
+  //forcing function is provided
   TPZIntPoints &intrule = GetIntegrationRule();
+  TPZVec<int> prevorder(dim);
+  if (fMaterial->HasForcingFunction()){
+    intrule.GetOrder(prevorder);
+    int maxorder = intrule.GetMaxOrder();
+    TPZManVector<int,3> order(dim,0);
+    for(i=0; i<dim; i++) {
+      order[i] = maxorder;
+    }
+    intrule.SetOrder(order);
+  }
+  //<<<---
+
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
 
     intrule.Point(int_ind,intpoint,weight);
@@ -1460,7 +1474,16 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
       cout << "\nCalcStiff dsol\n" << dsol;
     }
     fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,*ek.fMat,*ef.fMat);
+//    ek.Print(*this->fMesh,cout);
+//    ef.Print(*this->fMesh,cout);
+
   }
+  //--->>>
+  //Cesar 2004-02-02
+  if (fMaterial->HasForcingFunction()){
+    intrule.SetOrder(prevorder);
+  }
+  //<<<---
 }
 
 void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
