@@ -70,7 +70,7 @@ int main()
 
    cin >> ProblemType;
 
-   cout << "\nDiffusion type:\n\t0: None\n\t1: Implicit LS\n\t2: Implicit SUPG\n\t3: Implicit Bornhaus\n\t4: Explicit LS\n\t5: Explicit SUPG\n\t6: Explicit Bornhaus\n";
+   cout << "\nDiffusion type:\n\t0: None\n\t1: LS\n\t2: SUPG\n\t3: Bornhaus\n\t4: Transposed LS\n";
 
    cin >> temp;
 
@@ -84,34 +84,41 @@ int main()
       {
          case 1:
 	 DiffType = LeastSquares_AD;
-	 Diff_TD = Implicit_TD;
-	 filename += "ImplLeastSqr=";
+	 filename += "LeastSqr";
 	 break;
 	 case 2:
 	 DiffType = SUPG_AD;
-	 Diff_TD = Implicit_TD;
-	 filename += "ImplSUPG=";
+	 filename += "SUPG";
 	 break;
 	 case 3:
 	 DiffType = Bornhaus_AD;
-	 Diff_TD = Implicit_TD;
-	 filename += "ImplBornhaus=";
+	 filename += "Bornhaus";
 	 break;
-         case 4:
-	 DiffType = LeastSquares_AD;
-	 Diff_TD = Explicit_TD;
-	 filename += "ExplLeastSqr=";
+	 case 4:
+	 DiffType = TrnLeastSquares_AD;
+	 filename += "TrnLeastSqr";
 	 break;
-	 case 5:
-	 DiffType = SUPG_AD;
-	 Diff_TD = Explicit_TD;
-	 filename += "ExplSUPG=";
-	 break;
-	 case 6:
-	 DiffType = Bornhaus_AD;
-	 Diff_TD = Explicit_TD;
-	 filename += "ExplBornhaus=";
-	 break;
+      }
+
+      cout << "\nDiffusion Time Discr:\n\t0: ApproxImplicit\n\t1: Implicit\n\t2: Explicit\n";
+
+
+      cin >> temp;
+
+      switch(temp)
+      {
+         case 0:
+         Diff_TD = ApproxImplicit_TD;
+         filename += "ApproxImpl=";
+         break;
+         case 1:
+         Diff_TD = Implicit_TD;
+         filename += "Impl=";
+         break;
+         case 2:
+         Diff_TD = Explicit_TD;
+         filename += "Expl=";
+         break;
       }
 
       cout << "\nDelta\n";
@@ -119,7 +126,6 @@ int main()
       sprintf(number, "%lf_", delta);
       filename += number;
    }
-
 
    cout << "\nVolume convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n";
 
@@ -182,7 +188,7 @@ int main()
 
    cout << "\nNumber of Subdivisions\n";
    cin >> nSubdiv;
-   sprintf(number, "N%d.dx", nSubdiv);
+   sprintf(number, "N%d", nSubdiv);
    filename += number;
 
    switch(ProblemType)
@@ -319,8 +325,8 @@ int main()
 
    //Main Solver
    TPZStepSolver Solver;
-   Solver.SetGMRES(10000,
-		1000,
+   Solver.SetGMRES(100,
+		100,
 		Pre,
 		1e-9,
 		0);
@@ -369,8 +375,10 @@ int main()
 
    cout << "Generating File:" << file.Str() << endl;
 
-   ofstream * dxout = new ofstream(file.Str());
-   An.Run(cout, * dxout);
+   ofstream * dxout = new ofstream((file+".dx" ).Str());
+   ofstream *   out = new ofstream((file+".csv").Str());
+
+   An.Run(* out, * dxout);
 
    return 0;
 }

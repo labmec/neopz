@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.22 2004-02-17 17:21:27 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.23 2004-02-17 19:40:28 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -290,6 +290,9 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout)
 
    out << "\nBeginning time integration";
 
+   clock_t startTime, endTime;
+   startTime = clock();//time(&startTime);
+
    TPZDXGraphMesh * graph = PrepareDXMesh(dxout);
    int numIterDX = 1;
    int outputStep = 0;
@@ -327,6 +330,8 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout)
 */
    // Buffers the contribution of the last state
    BufferLastStateAssemble();
+
+   out << "\niter\teps(dU/dt)\tNewtonEps=\tnNewtonIter";
 
 
    while(i < fTimeIntMaxIter && epsilon > fTimeIntEps)
@@ -369,10 +374,15 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout)
       }
       lastEpsilon = epsilon;
 
-      out << "\niter:" << i
-          << "\t eps(dU/dt)=" << epsilon
-	  << "\t |NewtonEps=" << epsilon_Newton
-	  << "\t nIter=" << numIter_Newton;
+      out << "\n" << i
+          << "\t" << epsilon
+	  << "\t" << epsilon_Newton
+	  << "\t" << numIter_Newton;
+
+      cout << "\niter:" << i
+           << "\t eps(dU/dt)=" << epsilon
+	   << "\t |NewtonEps=" << epsilon_Newton
+	   << "\t nIter=" << numIter_Newton;
 
       i++;
    }
@@ -388,6 +398,14 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout)
 
    //graph->Close();
    delete graph;
+
+   endTime = clock();//time(&endTime);
+   const double CPS = CLOCKS_PER_SEC;
+
+   out  << "\nElapsed time in seconds: " << ((double)(endTime - startTime))/CPS << endl;
+
+   cout << "\nElapsed time in seconds: " << ((double)(endTime - startTime))/CPS << endl;
+
 }
 
 void TPZEulerAnalysis::ComputeTimeStep()
