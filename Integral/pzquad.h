@@ -71,6 +71,8 @@ Philippe Remy Bernard Devloo
 
 //THIS IMPLEMENT THE INTEGRATION RULE AS A CLASS
 
+
+
 class  TPZIntRule  {
 
   friend class TPZIntRuleList;
@@ -208,6 +210,7 @@ class TPZIntPoints{
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) = 0;
   virtual void SetOrder(TPZVec<int> &ord) = 0;
   virtual void GetOrder(TPZVec<int> &ord) = 0;
+  virtual int GetMaxOrder() = 0;
 };
 
 //*******************************************************************
@@ -224,6 +227,7 @@ class TPZInt1d : public TPZIntPoints{
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
   virtual void SetOrder(TPZVec<int> &ord);
   virtual void GetOrder(TPZVec<int> &ord);
+  virtual int GetMaxOrder();
 };
 //*******************************************************************
 // Base Class TPZIntTriang - which handles the integration
@@ -240,6 +244,7 @@ class TPZIntTriang : public TPZIntPoints{
   virtual int  NPoints();
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
   virtual void GetOrder(TPZVec<int> &ord);
+  virtual int GetMaxOrder();
 };
 //*******************************************************************
 // Base Class TPZIntQuad - 	which handles the integration
@@ -258,6 +263,7 @@ class TPZIntQuad : public TPZIntPoints{
   virtual int NPoints();
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
   virtual void GetOrder(TPZVec<int> &ord);
+  virtual int GetMaxOrder();  
 };
 
 //#########################################################################
@@ -282,6 +288,7 @@ class TPZIntCube3D : public TPZIntPoints{
   virtual int NPoints();
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
   virtual void GetOrder(TPZVec<int> &ord);
+  virtual int GetMaxOrder();
 };
 //#########################################################################
 //          Cedric 24/05/98
@@ -352,6 +359,7 @@ class TPZIntTetra3D : public TPZIntPoints {
   virtual int NPoints();
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
   virtual void GetOrder(TPZVec<int> &ord);
+  virtual int GetMaxOrder();  
 };
 //#########################################################################
 //#########################################################################
@@ -371,6 +379,7 @@ class TPZIntPyram3D : public TPZIntPoints {
   virtual int NPoints();
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
   virtual void GetOrder(TPZVec<int> &ord);
+  virtual int GetMaxOrder();  
 };
 //#########################################################################
 //#########################################################################
@@ -393,6 +402,7 @@ class TPZIntPrism3D  : public TPZIntPoints {
   int NPoints();
   void Point(int ip, TPZVec<REAL> &pos, REAL &w);
   void GetOrder(TPZVec<int> &ord);
+  virtual int GetMaxOrder();  
 };
 //#########################################################################
 //#########################################################################
@@ -413,6 +423,7 @@ class TPZInt1Point  : public TPZIntPoints {
   int NPoints();
   void Point(int ip, TPZVec<REAL> &pos, REAL &w);
   void GetOrder(TPZVec<int> &ord);
+  virtual int GetMaxOrder();  
 };
 
 #endif

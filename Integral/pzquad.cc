@@ -8,12 +8,25 @@
 //#pragma segment UTIL
 //***** number of integration rules in PZINTVEC
 
-#define NUMINT_RULES 	23
+#define NUMINT_RULES    23
 #define NUMINT_RULEST   19
 #define NUMINT_RULEST3D  8
 #define NUMINT_RULESP3D  8
 
 TPZIntRuleList  gIntRuleList;
+
+
+int TPZInt1Point::GetMaxOrder() {return 1;}
+int TPZInt1d::GetMaxOrder() {return NUMINT_RULES - 1;}
+int TPZIntTriang::GetMaxOrder() {return NUMINT_RULEST - 1 ;}
+int TPZIntQuad::GetMaxOrder() {return NUMINT_RULES - 2 ;}
+int TPZIntCube3D::GetMaxOrder() {return NUMINT_RULES - 3;}
+int TPZIntTetra3D::GetMaxOrder() {return NUMINT_RULEST3D - 1;}
+int TPZIntPyram3D::GetMaxOrder() {return NUMINT_RULEST3D - 1;}
+int TPZIntPrism3D::GetMaxOrder() {return NUMINT_RULESP3D - 1;}
+
+
+
 //***************************************
 //***************************************
 TPZIntRule::TPZIntRule(int precision){
