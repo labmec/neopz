@@ -145,12 +145,14 @@ public:
 
   /**
    * Computes the diffusive term according to the name
+   * @param jacinv [in] Inverse jacobian of the mapping.
    * @param dim [in] Spatial dimension of the problem
    * @param Ai [in] vector of tensors tangent to the directional fluxes
    * @param Tau [out] Diffusive tensors
    */
   template <class T>
   void ComputeTau(int dim,
+		 TPZFMatrix &jacinv,
 		 TPZVec<T> & Sol,
 		 TPZVec<TPZDiffMatrix<T> > &Ai,
 		 TPZVec<TPZDiffMatrix<T> > &Tau);
@@ -169,7 +171,7 @@ template <class T>
 static void EigenSystemSUPG(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZDiffMatrix<T> &X, TPZDiffMatrix<T> &Xi, TPZDiffMatrix<T> &Lambda);
 
 template <class T>
-static void EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZVec<T> & aaS, TPZDiffMatrix<T> &Y, TPZDiffMatrix<T> &Yi, TPZDiffMatrix<T> &Lambda);
+static void EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZVec<REAL> & aaS, TPZDiffMatrix<T> &Y, TPZDiffMatrix<T> &Yi, TPZDiffMatrix<T> &Lambda);
 
 private:
 
@@ -180,7 +182,7 @@ private:
   void LS(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
 
   template <class T>
-  void Bornhaus(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
+  void Bornhaus(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
 
 public:
 
@@ -191,12 +193,14 @@ public:
    * for contributions
    *
    * @param dim [in]
+   * @param jacinv [in] Inverse jacobian of the mapping.
    * @param U [in] vector of solutions at the point
    * @param Ai [out] matrixes A B C
    * @param Tau [out] diffusive vector of matrixes
    */
   template <class T>
-  void PrepareDiff(int dim, TPZVec<T> &U,
+  void PrepareDiff(int dim,
+		 TPZFMatrix &jacinv, TPZVec<T> &U,
 		 TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
 
   /**
@@ -204,6 +208,7 @@ public:
    * as fast as possible, sparing operations
    *
    * @param dim [in] dimension
+   * @param jacinv [in] Inverse jacobian of the mapping.
    * @param sol [in] solution of the dim+2 state functions
    * @param dsol [in] derivatives of U with respect to the dim dimensions
    * @param TauDiv [out] Vector of Vectors to store the values of Tau_i*Div
@@ -213,7 +218,8 @@ public:
    *
    */
 
-void PrepareFastDiff(int dim,TPZVec<REAL> &sol,
+void PrepareFastDiff(int dim,
+		 TPZFMatrix &jacinv, TPZVec<REAL> &sol,
                  TPZFMatrix &dsol, TPZFMatrix & dphi,
 		 TPZVec<TPZVec<REAL> > & TauDiv,
 		 TPZVec<TPZDiffMatrix<REAL> > * pTaudDiv = NULL);
@@ -224,13 +230,15 @@ void PrepareFastDiff(int dim,TPZVec<REAL> &sol,
    * as fast as possible, sparing operations
    *
    * @param dim [in] dimension
+   * @param jacinv [in] Inverse jacobian of the mapping.
    * @param sol [in] solution of the dim+2 state functions setup with shape functions
    * @param dsol [in] derivatives of sol with respect to the dim dimensions with derivatives
    * *aligned as a vector)
    * @param TauDiv [out] Vector of Vectors to store the values of Tau_i*Div with derivatives
    *
    */
-void PrepareFastDiff(int dim, TPZVec<FADREAL> &sol,
+void PrepareFastDiff(int dim,
+		 TPZFMatrix &jacinv, TPZVec<FADREAL> &sol,
                  TPZVec<FADREAL> &dsol, TPZVec<TPZVec<FADREAL> > & TauDiv);
 #endif
 
@@ -239,6 +247,7 @@ void PrepareFastDiff(int dim, TPZVec<FADREAL> &sol,
   /**
    * Contributes the diffusion term to the tangent matrix (ek-approximated) and residual vector (ef)
    * @param dim [in] dimension
+   * @param jacinv [in] Inverse jacobian of the mapping.
    * @param sol [in] solution of the dim+2 state functions
    * @param dsol [in] derivatives of U with respect to the dim dimensions
    * @param ek [out] Tangent matrix to contribute to
@@ -248,6 +257,7 @@ void PrepareFastDiff(int dim, TPZVec<FADREAL> &sol,
    * is to be computed and contributed to ek.
    */
 void ContributeApproxImplDiff(int dim,
+			   TPZFMatrix &jacinv,
                            TPZVec<REAL> &sol, TPZFMatrix &dsol,
 			   TPZFMatrix &dphix,
 			   TPZFMatrix &ek, TPZFMatrix &ef,
@@ -256,6 +266,7 @@ void ContributeApproxImplDiff(int dim,
   /**
    * Contributes the diffusion term to the tangent matrix (ek-approximated) and residual vector (ef)
    * @param dim [in] dimension
+   * @param jacinv [in] Inverse jacobian of the mapping.
    * @param sol [in] solution of the dim+2 state functions
    * @param dsol [in] derivatives of U with respect to the dim dimensions
    * @param ek [out] Tangent matrix to contribute to
@@ -265,6 +276,7 @@ void ContributeApproxImplDiff(int dim,
    * is to be computed and contributed to ek.
    */
 void ContributeExplDiff(int dim,
+			   TPZFMatrix &jacinv,
                            TPZVec<REAL> &sol, TPZFMatrix &dsol,
 			   TPZFMatrix &dphix,
 			   TPZFMatrix &ef,
@@ -275,6 +287,7 @@ void ContributeExplDiff(int dim,
   /**
    * Contributes the diffusion term to the tangent matrix (ek) and residual vector (ef)
    * @param dim [in] dimension
+   * @param jacinv [in] Inverse jacobian of the mapping.
    * @param sol [in] solution of the dim+2 state functions setup with derivatives
    * @param dsol [in] derivatives of U with respect to the dim dimensions setup with derivatives (xi components aligned as a vector)
    * @param ek [out] Tangent matrix to contribute to
@@ -283,6 +296,7 @@ void ContributeExplDiff(int dim,
    * @param timeStep [in]
    */
 void ContributeImplDiff(int dim,
+			   TPZFMatrix &jacinv,
                            TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol,
 			   TPZFMatrix &ek, TPZFMatrix &ef,
 			   REAL weight, REAL timeStep);
@@ -527,7 +541,7 @@ void TPZArtDiff::EigenSystemSUPG(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZ
 
 
 template <class T>
-void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZVec<T> & aaS, TPZDiffMatrix<T> &Y, TPZDiffMatrix<T> &Yi, TPZDiffMatrix<T> &Lambda)
+void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZVec<REAL> & aaS, TPZDiffMatrix<T> &Y, TPZDiffMatrix<T> &Yi, TPZDiffMatrix<T> &Lambda)
 {
    int nstate = sol.NElements();
    int dim = nstate - 2;
@@ -549,18 +563,18 @@ void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma,
       Y(0,1) = 1.;
       Y(0,2) = 1. / c2;
       Y(0,3) = Y(0,2);
-      Y(1,0) = -aaS[1] / aaS[0];
+      Y(1,0) = -aaS[1] ;/// aaS[0];
       Y(1,2) = -aaS[0] / (k * rho_c);
       Y(1,3) = -Y(1,2);
-      Y(2,0) = 1.;
+      Y(2,0) = aaS[0];//1.;
       Y(2,2) = -aaS[1] / (k * rho_c);
       Y(2,3) = -Y(2,2);
       Y(3,2) = 1.;
       Y(3,3) = 1.;
 
       Yi.Redim(nstate,nstate);
-      Yi(0,1) = - aaS[0] * aaS[1] / k2;
-      Yi(0,2) =   aaS[0] * aaS[0] / k2;
+      Yi(0,1) = - /*aaS[0] * */aaS[1] / k2;
+      Yi(0,2) =   /*aaS[0] * */aaS[0] / k2;
       Yi(1,0) = 1.;
       Yi(1,3) = -1. / c2;
       Yi(2,1) = - aaS[0] * rho_c / (2. * k);

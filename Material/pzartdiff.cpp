@@ -117,7 +117,7 @@ void TPZArtDiff::ODotOperator(TPZVec<REAL> &dphi, TPZVec<TPZVec<T> > &TauDiv, TP
 }
 
 
-	void TPZArtDiff::Divergent(TPZFMatrix &dsol,
+void TPZArtDiff::Divergent(TPZFMatrix &dsol,
 			   TPZFMatrix & dphi,
 			   TPZVec<TPZDiffMatrix<REAL> > & Ai,
 			   TPZVec<REAL> & Div,
@@ -183,6 +183,8 @@ void TPZArtDiff::Divergent(TPZVec<FADREAL> &dsol,
 	 for(k=0;k<dim;k++)
 	    Div[i]+=Ai[k](i,j)*dsol[j*dim+k];
    }
+
+//   cout << Div[0].val() << endl;
 }
 
 #endif
@@ -190,7 +192,7 @@ void TPZArtDiff::Divergent(TPZVec<FADREAL> &dsol,
 //----------------------Tau tensor
 
 template <class T>
-void TPZArtDiff::ComputeTau(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > &Ai,
+void TPZArtDiff::ComputeTau(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > &Ai,
 		 TPZVec<TPZDiffMatrix<T> > &Tau)
 {
   Tau.Resize(dim);
@@ -204,7 +206,7 @@ void TPZArtDiff::ComputeTau(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > 
         LS(dim, sol, Ai, Tau);
      break;
      case Bornhaus_AD:
-        Bornhaus(dim, sol, Ai, Tau);
+        Bornhaus(dim, jacinv, sol, Ai, Tau);
      break;
      default:
      PZError << "Unknown artificial diffision term (" << fArtDiffType << ")";
@@ -239,8 +241,6 @@ void TPZArtDiff::SUPG(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, 
    for(int i = 0; i < Ai.NElements();i++)
    {
       Ai[i].Multiply(INVA2B2, Tau[i]);
-     //Ai[i].Multiply(INVA2B2, Temp);
-     //Temp.Transpose(Tau[i]);//*/
    }
 }
 
@@ -248,13 +248,58 @@ template <class T>
 void TPZArtDiff::LS(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
   int i;
   for(i = 0; i < dim; i++)
-     //Tau[i] = Ai[i];
-     Ai[i].Transpose(Tau[i]);
+  {
+     Tau[i] = Ai[i];
+     //Ai[i].Transpose(Tau[i]);
+  }
 }
 
 template <class T>
-void TPZArtDiff::Bornhaus(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
-    cout << "TPZArtDiff::Bornhaus artificial diffusion Bornhaus not implemented\n";
+void TPZArtDiff::Bornhaus(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
+
+   int i, j;
+   int nstate = Ai[0].Rows();
+
+   TPZDiffMatrix<T> Rot, RotT,
+			 Y, Yi,
+			 M, Mi,
+			 Temp, Temp2,
+			 BornhausTau(nstate, nstate),
+			 LambdaBornhaus;
+   T us, c;
+   TPZVec<REAL> alphas(dim,0.);
+
+   TPZEulerConsLaw2::uRes(sol, us);
+   TPZEulerConsLaw2::cSpeed(sol, 1.4, c);
+
+   RotMatrix(sol, us, Rot, RotT);
+   MMatrix(sol, us, fGamma, M, Mi);
+
+   for( i = 0; i < dim; i++)
+   {
+      for( j = 0; j < dim; j++)
+         alphas[j] = jacinv(i,j);
+
+      EigenSystemBornhaus(sol, us, c, fGamma, alphas,
+   	Y, Yi, LambdaBornhaus);
+
+      Y.   Multiply(LambdaBornhaus, Temp);
+      Temp.Multiply(Yi, Temp2);
+
+      BornhausTau.Add(Temp2);
+   }
+
+   RotT.   Multiply(M, Temp);
+   Temp.   Multiply(BornhausTau, Temp2);
+   Temp2.  Multiply(Mi, Temp);
+   Temp.   Multiply(Rot, BornhausTau);
+
+   BornhausTau.Inverse();
+//cout << BornhausTau;
+   for( i = 0; i < dim;i++)
+   {
+      Ai[i].Multiply(BornhausTau, Tau[i]);
+   }
 }
 
 
@@ -262,14 +307,14 @@ void TPZArtDiff::Bornhaus(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & 
 //------------------ Diff setup
 
 template <class T>
-void TPZArtDiff::PrepareDiff(int dim, TPZVec<T> &U,
+void TPZArtDiff::PrepareDiff(int dim, TPZFMatrix &jacinv, TPZVec<T> &U,
 		 TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau)
 {
   TPZEulerConsLaw2::JacobFlux(fGamma, dim, U, Ai);
-  ComputeTau(dim, sol, Ai, Tau);
+  ComputeTau(dim, jacinv, sol, Ai, Tau);
 }
 
-void TPZArtDiff::PrepareFastDiff(int dim, TPZVec<REAL> &sol,
+void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix &jacinv, TPZVec<REAL> &sol,
                  TPZFMatrix &dsol, TPZFMatrix & dphi,
 		 TPZVec<TPZVec<REAL> > & TauDiv, TPZVec<TPZDiffMatrix<REAL> > * pTaudDiv)
 {
@@ -277,7 +322,7 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZVec<REAL> &sol,
   TPZVec<TPZDiffMatrix<REAL> > Tau;
 
   TPZEulerConsLaw2::JacobFlux(fGamma, dim, sol, Ai);
-  ComputeTau(dim, sol, Ai, Tau);
+  ComputeTau(dim, jacinv, sol, Ai, Tau);
 
   TPZVec<REAL> Div;
 
@@ -307,14 +352,14 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZVec<REAL> &sol,
 }
 
 #ifdef _AUTODIFF
-void TPZArtDiff::PrepareFastDiff(int dim, TPZVec<FADREAL> &sol,
+void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix &jacinv, TPZVec<FADREAL> &sol,
                  TPZVec<FADREAL> &dsol, TPZVec<TPZVec<FADREAL> > & TauDiv)
 {
   TPZVec<TPZDiffMatrix<FADREAL> > Ai;
   TPZVec<TPZDiffMatrix<FADREAL> > Tau;
 
   TPZEulerConsLaw2::JacobFlux(fGamma, dim, sol, Ai);
-  ComputeTau(dim, sol, Ai, Tau);
+  ComputeTau(dim, jacinv, sol, Ai, Tau);
 
 //  #define TEST_PARTIAL_DIFF
   // Uncomment line above to zero the derivatives of
@@ -357,7 +402,7 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZVec<FADREAL> &sol,
 
 //-----------------Contribute
 
-void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix &dsol,  TPZFMatrix &dphix, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight, REAL timeStep)
+void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol,  TPZFMatrix &dphix, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight, REAL timeStep)
 {
     REAL delta = Delta();
     REAL constant = /*-*/ weight * delta * timeStep;
@@ -368,7 +413,7 @@ void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix
 
     pTaudDiv = & TaudDiv;
 
-    PrepareFastDiff(dim, sol, dsol, dphix, TauDiv, pTaudDiv);
+    PrepareFastDiff(dim, jacinv, sol, dsol, dphix, TauDiv, pTaudDiv);
 
     int i, j, k, l;
     int nshape = dphix.Cols();
@@ -389,14 +434,14 @@ void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix
 	     }
 }
 
-void TPZArtDiff::ContributeExplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix &dsol,  TPZFMatrix &dphix, TPZFMatrix &ef, REAL weight, REAL timeStep)
+void TPZArtDiff::ContributeExplDiff(int dim, TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol,  TPZFMatrix &dphix, TPZFMatrix &ef, REAL weight, REAL timeStep)
 {
     REAL delta = Delta();
     REAL constant = /*-*/ weight * delta * timeStep;
 
     TPZVec<TPZVec<REAL> > TauDiv;
 
-    PrepareFastDiff(dim, sol, dsol, dphix, TauDiv, NULL);
+    PrepareFastDiff(dim, jacinv, sol, dsol, dphix, TauDiv, NULL);
 
     int i, k, l;
     int nshape = dphix.Cols();
@@ -411,14 +456,14 @@ void TPZArtDiff::ContributeExplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix &dsol
 
 #ifdef _AUTODIFF
 
-void TPZArtDiff::ContributeImplDiff(int dim, TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight,  REAL timeStep)
+void TPZArtDiff::ContributeImplDiff(int dim, TPZFMatrix &jacinv, TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight,  REAL timeStep)
 {
     REAL delta = Delta();
     REAL constant = /*-*/ delta * weight * timeStep;
 
     TPZVec<TPZVec<FADREAL> > TauDiv;
 
-    PrepareFastDiff(dim, sol, dsol, TauDiv);
+    PrepareFastDiff(dim, jacinv, sol, dsol, TauDiv);
 
     TPZVec<FADREAL> Diff;
     TPZVec<REAL> gradv(dim);

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.14 2004-02-06 22:41:55 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.15 2004-02-09 19:02:39 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -325,12 +325,14 @@ public:
 //-------------------
 
   void ContributeApproxImplDiff(TPZVec<REAL> &x,
+			TPZFMatrix &jacinv,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
 			TPZFMatrix &ek,TPZFMatrix &ef);
 
   void ContributeExplDiff(TPZVec<REAL> &x,
+			TPZFMatrix &jacinv,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
 			TPZFMatrix &phi, TPZFMatrix &dphi,
@@ -338,6 +340,7 @@ public:
 
 #ifdef _AUTODIFF
   void ContributeImplDiff(TPZVec<REAL> &x,
+			TPZFMatrix &jacinv,
 			TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
 			REAL weight,
 			TPZFMatrix &ek,TPZFMatrix &ef);
@@ -1286,6 +1289,7 @@ inline void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
 	 PZError << "TPZEulerConsLaw2::uRes Zero Velocity\n";
 	 exit(-1);
       }
+      us = sqrt(temp)/sol[0];
       break;
       default:
       PZError << "TPZArtDiff::uRes Error: invalid Dimension\n";

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.18 2004-02-06 22:41:55 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.19 2004-02-09 19:02:38 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -423,7 +423,7 @@ void TPZEulerConsLaw2::ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
    // contributing volume-based quantities
    // diffusive term
    if (fDiff == Explicit_TD)
-         ContributeExplDiff(x,sol,dsol,weight, phi, dphi, ef);
+         ContributeExplDiff(x, jacinv, sol,dsol,weight, phi, dphi, ef);
 
    // Volume Convective term
    if (fConvVol == Explicit_TD)
@@ -457,15 +457,15 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
       #ifdef _AUTODIFF
          TPZVec<FADREAL> FADsol, FADdsol;
          PrepareFAD(sol, dsol, phi, dphi, FADsol, FADdsol);
-	    ContributeImplDiff(x,FADsol,FADdsol, weight, ek, ef);
+	    ContributeImplDiff(x, jacinv, FADsol,FADdsol, weight, ek, ef);
       #else
          cout << "TPZEulerConsLaw2::Contribute> Implicit diffusive contribution: _AUTODIFF directive not configured -> Using an approximation to the tgMatrix";
-         ContributeApproxImplDiff(x,sol,dsol,weight,phi,dphi,ek,ef);
+         ContributeApproxImplDiff(x, jacinv, sol,dsol,weight,phi,dphi,ek,ef);
       #endif
    }else
    {
       if (fDiff == ApproxImplicit_TD)
-         ContributeApproxImplDiff(x,sol,dsol,weight,phi,dphi,ek,ef);
+         ContributeApproxImplDiff(x, jacinv, sol,dsol,weight,phi,dphi,ek,ef);
    }
 
    // Volume convective term
@@ -698,23 +698,25 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
 //------------------internal contributions
 
 void TPZEulerConsLaw2::ContributeApproxImplDiff(TPZVec<REAL> &x,
+			TPZFMatrix &jacinv,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
 			TPZFMatrix &ek,TPZFMatrix &ef)
 {
-   fArtDiff.ContributeApproxImplDiff(fDim, sol, dsol, dphi,
+   fArtDiff.ContributeApproxImplDiff(fDim, jacinv, sol, dsol, dphi,
 			ek, ef, weight,
 			TimeStep());
 }
 
 void TPZEulerConsLaw2::ContributeExplDiff(TPZVec<REAL> &x,
+			TPZFMatrix &jacinv,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
 			TPZFMatrix &ef)
 {
-   fArtDiff.ContributeExplDiff(fDim, sol, dsol, dphi,
+   fArtDiff.ContributeExplDiff(fDim, jacinv, sol, dsol, dphi,
 			ef, weight,
 			TimeStep());
 }
@@ -722,11 +724,12 @@ void TPZEulerConsLaw2::ContributeExplDiff(TPZVec<REAL> &x,
 
 #ifdef _AUTODIFF
 void TPZEulerConsLaw2::ContributeImplDiff(TPZVec<REAL> &x,
+			TPZFMatrix &jacinv,
 			TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
 			REAL weight,
 			TPZFMatrix &ek,TPZFMatrix &ef)
 {
-   fArtDiff.ContributeImplDiff(fDim, sol, dsol,
+   fArtDiff.ContributeImplDiff(fDim, jacinv, sol, dsol,
 			ek, ef, weight, TimeStep());
 }
 #endif
