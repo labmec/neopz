@@ -7,6 +7,7 @@
 #include "stdlib.h"
 #include "pztempmat.h"
 
+int gDebug;
 
 void error(char * teste)
 {
@@ -30,6 +31,8 @@ void CheckJacobFlux(
 
 int main()
 {
+  gDebug = 0;
+
   TPZEulerConsLaw2 MatTest(0/*nummat*/,
 		 0.3/*timeStep*/,
 		 1.4 /*gama*/,
