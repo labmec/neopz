@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.13 2003-11-19 15:07:52 cedric Exp $
+//$Id: TPZAgglomerateEl.h,v 1.14 2003-12-01 20:37:03 cedric Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -142,12 +142,12 @@ public:
 
   static void ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int nivel,int &numaggl,int dim);
 
-  void RestrictionOperator();
-
-  void RestrictionOperator2();
-
-  void FineSolution(TPZCompElDisc *disc,TPZFMatrix &aggphix,TPZVec<REAL> &uh);
+  void FineSolution(TPZVec<REAL> &x,TPZCompElDisc *disc,TPZVec<REAL> &uh);
+  void FineSolution(TPZVec<REAL> &x,TPZVec<REAL> &uh);
 
   void Print(TPZStack<int> &listindex);
+
+  void ProjectSolution(TPZFMatrix &projectsol);
+  void ProjectSolution2(TPZFMatrix &projectsol);
 };
 #endif

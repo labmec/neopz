@@ -1,4 +1,3 @@
-
 #include "pztransfer.h"
 #include "pzfmatrix.h"
 #include <stdlib.h>
@@ -182,7 +181,7 @@ void TPZTransfer::ExpandDoubleValueEntries(int num){
 
 
 void TPZTransfer::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-			  const REAL alpha,const REAL beta,const int opt,const int stride) const {
+		       const REAL alpha,const REAL beta,const int opt,const int stride) const {
   // multiplies the transfer matrix and puts the result in z
   if ((!opt && Cols()*stride != x.Rows()) || (opt && Rows()*stride != x.Rows()))
     Error( "TPZTransfer::MultAdd <matrices with incompatible dimensions>" );
@@ -207,9 +206,9 @@ void TPZTransfer::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
 	  int col = fColumnBlockNumber[colpos+c];
 	  int colblockpos = fColBlock.Position(col);
 	  int colblocksize = fColBlock.Size(col);
-	  TPZFMatrix xloc(colblocksize*stride,1,&x.g(colblockpos*stride,ic), colblocksize*stride);
+       TPZFMatrix xloc(colblocksize*stride,1,&x.g(colblockpos*stride,ic), colblocksize*stride);
 	  TPZFMatrix aloc(rowblocksize,colblocksize,
-			  &fDoubleValues[fColumnBlockPosition[colpos+c]],rowblocksize*colblocksize);
+		     &fDoubleValues[fColumnBlockPosition[colpos+c]],rowblocksize*colblocksize);
 	  aloc.MultAdd(xloc,zloc,zloc,alpha,1.,opt,stride);
 	}
       }
@@ -228,7 +227,7 @@ void TPZTransfer::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
 	  int colblocksize = fColBlock.Size(col);
 	  TPZFMatrix zloc(colblocksize*stride,1,&z(colblockpos*stride,ic),colblocksize*stride);
 	  TPZFMatrix aloc(rowblocksize,colblocksize,
-			  &fDoubleValues[fColumnBlockPosition[colpos+c]],rowblocksize*colblocksize);
+	             &fDoubleValues[fColumnBlockPosition[colpos+c]],rowblocksize*colblocksize);
 	  aloc.MultAdd(xloc,zloc,zloc,alpha,1.,opt,stride);
 	  col = rowblockpos-1;
 	  rowblockpos = col+1;
@@ -266,6 +265,7 @@ void TPZTransfer::TransferSolution(const TPZFMatrix &coarsesol, TPZFMatrix &fine
    * Will transfer the residual, taking into acount there may be more than
    * one state variable
    */
+
 void TPZTransfer::TransferResidual(const TPZFMatrix &fine, TPZFMatrix &coarse){
   int iv;
   int nrf = fine.Rows();
@@ -278,8 +278,30 @@ void TPZTransfer::TransferResidual(const TPZFMatrix &fine, TPZFMatrix &coarse){
     coarse.Redim(nrc,ncf);
   }
   for(iv=0; iv<fNStateVar; iv++) {
-    TPZFMatrix finewrap(nrf,ncf,&fine.g(iv,0),nrf*ncf);
-    TPZFMatrix coarsewrap(nrc,ncc,&coarse.g(iv,0),nrc*ncc);
+    REAL *fvp = &fine.g(iv,0);
+    REAL *cvp = &coarse.g(iv,0);
+    TPZFMatrix finewrap(nrf,ncf,fvp,nrf*ncf);
+    TPZFMatrix coarsewrap(nrc,ncc,cvp,nrc*ncc);
     Multiply(finewrap, coarsewrap,1,fNStateVar);
   }
+}
+
+void TPZTransfer::Multiply(const TPZFMatrix &A, TPZFMatrix &B,const int opt,
+			   const int stride) const{
+  if (opt==0 && Cols()*stride != A.Rows() || opt ==1 && Rows()*stride != A.Rows())
+    Error( "TPZTransfer::Multiply incompatible dimensions" );
+
+  if(!opt && (B.Rows() != Rows()*stride || B.Cols() != A.Cols())) {
+    B.Redim(Rows()*stride,A.Cols());
+  }
+  else if (opt && (B.Rows() != Cols()*stride || B.Cols() != A.Cols())) {
+    B.Redim(Cols()*stride,A.Cols());
+  }
+//   if(opt == 0) {
+//     B.Redim(Rows()*stride, A.Cols() );
+//   } else {
+//     B.Redim(Cols()*stride, A.Cols() );
+//   }
+
+  MultAdd( A, B, B, 1.0, 0.0, opt,stride);
 }

@@ -1,5 +1,5 @@
-//#include "pzmetis.h"
-//#include "pztrnsform.h"
+//c = sqrt(gama*p/ro)  velocidade do som
+
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
@@ -23,7 +23,6 @@
 #include "pzgeopyramid.h"
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
-
 #include "TPZGeoElement.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
@@ -70,16 +69,12 @@
 #include "TPZCompElDisc.h"
 #include "TPZShapeDisc.h"
 #include "TPZInterfaceEl.h"
-//#include "TPZIterativeAnalysis.h"
 #include "TPZExtendGridDimension.h"
-//#include "TPZFlowCMesh.h"
 #include "pzreal.h"
 #include "TPZNLMultGridAnalysis.h"
 #include "pzflowcmesh.h"
-//#include "TPZJacobMat.h"
-//#include "TPZRefPattern.h"
-//#include "TPZJacobStrMatrix.h"
 #include "pzdxmesh.h"
+#include "pzmganalysis.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -88,44 +83,25 @@
 #include <ostream>
 #include <string.h>
 using namespace std;
-//                        c = sqrt(gama*p/ro)  velocidade do som
 
 static REAL p1=0.7,p2=0.902026,p3=1.80405,p4=2.96598,p5=3.2,p6=4.12791,p7=0.22;
 
-static double novequads[15][3] = { {0.,0.,0.},{p1+p1/4.,0.,0.},{p3,0.,0.},{p5-p7/1.5,0.,0.},{p6,0.,0.},
-				  {0.,p7,0.},{p1,p7,0.},{p2,.5,0.},{p3,.75,0.},{p4,.5,0.},
-				  {p5,p7,0.},{p6,p7,0.},{0.,1.,0.},{p3,1.,0.},{p6,1.,0.}};
+static double novequads[15][3] = { {0.,0.,0.},{p1+p1/4.,0.,0.},{p3,0.,0.},
+				   {p5-p7/1.5,0.,0.},{p6,0.,0.},{0.,p7,0.},{p1,p7,0.},
+				   {p2,.5,0.},{p3,.75,0.},{p4,.5,0.},{p5,p7,0.},
+				   {p6,p7,0.},{0.,1.,0.},{p3,1.,0.},{p6,1.,0.}};
 
-static double novecubos[30][3] = { {0.,0.,0.},{p1+p1/4.,0.,0.},{p3,0.,0.},{p5-p7/1.5,0.,0.},{p6,0.,0.},
-				  {0.,p7,0.},{p1,p7,0.},{p2,.5,0.},{p3,.75,0.},{p4,.5,0.},
-				  {p5,p7,0.},{p6,p7,0.},{0.,1.,0.},{p3,1.,0.},{p6,1.,0.},
-				   {0.,0.,0.3},{p1+p1/4.,0.,0.3},{p3,0.,0.3},{p5-p7/1.5,0.,0.3},{p6,0.,0.3},
-				  {0.,p7,0.3},{p1,p7,0.3},{p2,.5,0.3},{p3,.75,0.3},{p4,.5,0.3},
-				   {p5,p7,0.3},{p6,p7,0.3},{0.,1.,0.3},{p3,1.,0.3},{p6,1.,0.3} };
+static double novecubos[30][3] = { {0.,0.,0.},{p1+p1/4.,0.,0.},{p3,0.,0.},
+				   {p5-p7/1.5,0.,0.},{p6,0.,0.},{0.,p7,0.},
+				   {p1,p7,0.},{p2,.5,0.},{p3,.75,0.},{p4,.5,0.},
+				   {p5,p7,0.},{p6,p7,0.},{0.,1.,0.},{p3,1.,0.},
+				   {p6,1.,0.},{0.,0.,0.3},{p1+p1/4.,0.,0.3},
+				   {p3,0.,0.3},{p5-p7/1.5,0.,0.3},{p6,0.,0.3},
+				   {0.,p7,0.3},{p1,p7,0.3},{p2,.5,0.3},{p3,.75,0.3},
+				   {p4,.5,0.3},{p5,p7,0.3},{p6,p7,0.3},
+				   {0.,1.,0.3},{p3,1.,0.3},{p6,1.,0.3} };
 
-static double quadrilatero[4][3] = { {0.,0.,0.},{4.1,0.,0.},{4.1,1.,0.},{0.,1.,0.} };
 
-static double quadrado[4][3] = { {0.,0.,0.},{4.,0.,0.},{4.,4.,0.},{0.,4.,0.} };
-
-static double quadrilatero2[5][3] = { {0.,0.,0.},{1.80405,0.,0.},{4.12791,0.,0.},{0.,1.,0.},{4.12791,1.,0.} };
-
-// static double quadrilatero3[8][3] = { {0.,0.,0.},{0.6,0.,0.},{0.,0.2,0.},{0.6,0.2,0.},
-// 				      {3.,0.2,0.},{0.,1.,0.},{0.6,1.,0.},{3.,1.,0.} };
-
-static double tresprismas[10][3] = { {0.,0.,0.},{1.80405,0.,0.},{4.12791,0.,0.},{0.,1.,0.},{4.12791,1.,0.},
-				     {0.,0.,1.},{1.80405,0.,1.},{4.12791,0.,1.},{0.,1.,1.},{4.12791,1.,1.} };
-
-static double hexaedro1[8][3] = { {0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.},
-				 {0.,0.,1.},{1.,0.,1.},{1.,1.,1.},{0.,1.,1.} };
-
-static double hexaedro[8][3] = { {0.,0.,0.},{4.1,0.,0.},{4.1,1.,0.},{0.,1.,0.},
-				 {0.,0.,1.},{4.1,0.,1.},{4.1,1.,1.},{0.,1.,1.} };
-
-//static TPZRefPattern hexaedro9("hexaedro9subs.in");
-//static TPZRefPattern hexaedro8("hexaedro8.in");//hexaedro mestre 8 sub-elementos
-//static TPZRefPattern hexaedro2("hexaedro2.in");
-//static TPZRefPattern quad4("quadrilatero4.in");//quadrilatero mestre 4 sub-elementos*/
-//static TPZRefPattern linha2("linha2.in");//aresta mestre 2 sub-elementos*/
 void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl);
 void SetDeltaTime(TPZMaterial *mat,REAL deltaT);
 void CriacaoDeNos(int nnodes,double lista[20][3]);
@@ -144,7 +120,7 @@ TPZMaterial *FluxConst2D(int grau);
 void ContagemDeElementos(TPZMaterial *mat);
 void FileNB(TPZGeoMesh &gmesh,ostream &out,int var);
 void Function(TPZVec<REAL> &x,TPZVec<REAL> &result);
-void PostProcess(TPZGeoMesh &gmesh,ostream &out);
+void PostProcess(TPZCompMesh &cmesh,ostream &out,int var);
 void Divisao (TPZCompMesh *cmesh);
 void NivelDivide(TPZCompMesh *cmesh);
 void SequenceDivide2();
@@ -154,75 +130,61 @@ static clock_t end;//,start,begin,ttot=0;
 void CoutTime(clock_t &start);
 //void ResetReference(TPZCompMesh *aggcmesh);
 static TPZGeoMesh *gmesh = new TPZGeoMesh;
-static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh),*aggcmesh = new TPZFlowCompMesh(gmesh);
-//static TPZCompMesh *aggcmesh = new TPZFlowCompMesh(gmesh);
-
-//static TPZVec<REAL> x0(3,0.);
+static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh),
+*aggcmesh = new TPZFlowCompMesh(gmesh);
 static int grau = 0;
 static int tipo;
-static int problem=0;
-//static REAL pi = 2.0*asin(1.0);
+static int problem=0;;
 static REAL CFL=-1.0;
 static REAL gama = 1.4;
 static int meshdim = -1;
-//#define NOTDEBUG
-#define CEDRICDEBUG
-
 void Forcing(TPZVec<REAL> &x,TPZVec<REAL> &result);
-void G_Function(TPZVec<REAL> &x,TPZVec<REAL> &result);
+//#define NOTDEBUG
+//#define CEDRICDEBUG
+
+//* _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ 
+//    * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ *
 
 int main() {
+
+//   TPZMGAnalysis::main();
+//   return 0;
 
   gmesh->SetName("\n\t\t\t* * * MALHA GEOMÈTRICA INICIAL * * *\n\n");
   cmesh->SetName("\n\t\t\t* * * MALHA COMPUTACIONAL INICIAL * * *\n\n");
   ofstream outgm("mesh.out");
 
   cout << "\ntipo\n"
-//        << "\t[0: TresTriangulos]\n"
-//        << "\t[1: TresPrismas]\n"
-//        << "\t[2: FluxConst3D]\n"
-//        << "\t[3: FluxConst2D]\n"
-//        << "\t[4: FluxConst2D (outra CC)]\n"
        << "\t[5: NoveQuadrilateros]\n"
        << "\t[6: NoveCubos]\n"
-//        << "\t[7: ProblemaQ2D1El]\n"
        << "\t\t\t";
 
-  cin >> tipo;
-  //tipo = 6;
+  //cin >> tipo;
+  tipo = 5;
   problem = tipo;
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
-  //cin >> grau;
-  grau = 0;
+  cin >> grau;
+  //grau = 0;
   TPZCompElDisc::gDegree = grau;
-  //TPZMaterial *mat;
   TPZConservationLaw *mat;
-
-  if(tipo==0) mat = dynamic_cast<TPZConservationLaw *>(TresTriangulos(grau));
-  if(tipo==1) mat = dynamic_cast<TPZConservationLaw *>(TresPrismas(grau));
-  if(tipo==2) mat = dynamic_cast<TPZConservationLaw *>(FluxConst3D(grau));
-  if(tipo==3 || tipo == 4) mat = dynamic_cast<TPZConservationLaw *>(FluxConst2D(grau));
   if(tipo==5){
     mat = dynamic_cast<TPZConservationLaw *>(NoveQuadrilateros(grau));
     meshdim = 2;
     problem = 0;
-  }
-  if(tipo==6){
+  } else if(tipo==6){
     mat = dynamic_cast<TPZConservationLaw *>(NoveCubos(grau));
     meshdim = 3;
   }
-  if(tipo==7) mat = dynamic_cast<TPZConservationLaw *>(ProblemaQ2D1El(grau));
   if(1){
     cout << "\neuler.c::main verificando a consistencia da malha de interfaces\t";
     if(TPZInterfaceElement::main(*cmesh)){
       cout << "->\tOK!";
     } else {
       cout << "->\tPROBLEMAS COM INTERFACES\n\n";
-      //return 0;
+      ContagemDeElementos(mat);
+      return 0;
     }
-    //ContagemDeElementos();
   }
-
   if(0){
     cout << "\nmain::Imprime malhas\n";
     gmesh->Print(outgm);
@@ -234,10 +196,10 @@ int main() {
 
   cout << "\nmain:: entre CFL (si nulo sera calculado) -> \n";
   cin >> CFL;
-  //CFL = 0.1;
+  //CFL = 0.3;
   TPZDiffusionConsLaw::fCFL = CFL;
   cout << "main:: delta (si nulo sera calculado) -> 0.0\n";
-
+  TPZDiffusionConsLaw::fDelta = 0.0;
 
   if(0){
     cout << "\nmain::Ajuste no contorno e imprime malhas\n";
@@ -251,19 +213,27 @@ int main() {
 
   //com matriz não simétrica e ELU 2D e 3D convergen
   int numat = mat->Id();
+  ofstream outan("PostProcess.out");
   if(1){
     cmesh->SetDimModel(meshdim);
     TPZNonLinMultGridAnalysis mgnlan(cmesh);
     mgnlan.SetAnalysisFunction(SetDeltaTime);
     mgnlan.TwoGridAlgorithm(outgm,numat);
     ContagemDeElementos(mat);
+    //PostProcess(*mgnlan.IMesh(1),outan,0);//malha grossa
+    //PostProcess(*mgnlan.IMesh(2),outan,0);//malha fina
   }
+  outan.flush();
+  outan.close();
 
   outgm.close();
   //if(cmesh) delete cmesh;//foi apagada no multigrid
   if(gmesh) delete gmesh;
   return 0;
 }
+
+//* FIM_MAIN * FIM_MAIN * FIM_MAIN * FIM_MAIN * FIM_MAIN * FIM_MAIN * FIM_MAIN 
+//* FIM_MAIN * FIM_MAIN * FIM_MAIN * FIM_MAIN * FIM_MAIN * FIM_MAIN * FIM_MAIN 
 
 void CriacaoDeNos(int nnodes,double lista[20][3]){
 
@@ -476,29 +446,29 @@ int Nivel(TPZGeoEl *gel){
 static REAL point[5][3] = {{-.8,0.,0.},{-.4,.0,.0},{.0,.0,.0},{.4,.0,.0},{.8,0.,0.}};//linha
 static REAL quad[5][3] = {{-.5,-.5,0.},{.5,-.5,.0},{.5,.5,.0},{-.5,.5,.0},{.0,.0,0.}};//quadrilatero
 static REAL hexa[9][3] = { {-0.8,-0.8,-0.8},{0.8,-0.8,-0.8},{0.8,0.8,-0.8},{-0.8,0.8,-0.8},
-			   {-0.8,-0.8,00.8},{0.8,-0.8,00.8},{0.8,0.8,00.8},{-0.8,0.8,00.8},{0.,0.,0.} };//hexaedro
-void PostProcess(TPZGeoMesh &gmesh,ostream &out) {
+			   {-0.8,-0.8,00.8},{0.8,-0.8,00.8},{0.8,0.8,00.8},{-0.8,0.8,00.8},
+			   {0.,0.,0.} };//hexaedro
+void PostProcess(TPZCompMesh &cmesh,ostream &out,int var) {
 
-  int nel = gmesh.Reference()->ElementVec().NElements();
+  int nel = cmesh.ElementVec().NElements();
+  TPZGeoMesh *gmesh = cmesh.Reference();
   if(nel > 1000){
     cout << "main::PostProcess mas de 10000 elementos -> processa 2000\n";
   }
-  int idmax = 0,dim,chega=1,finish=-1;
+  int idmax = 0,dim=cmesh.Dimension(),finish=-1,i;
   for(int iel=0;iel<nel;iel++){//procurando o id mais alto da lista
     if(++finish >= 2000) return;
-    TPZCompEl *cel = gmesh.Reference()->ElementVec()[iel];
+    TPZCompEl *cel = cmesh.ElementVec()[iel];
     if(!cel) continue;
-    TPZGeoEl *el = gmesh.ElementVec()[iel];
-    if(chega && cel->Type()==EDiscontinuous) {dim = el->Dimension(); chega = 0;}
+    TPZGeoEl *el = gmesh->ElementVec()[iel];
     int id = el->Id();
     if(id > idmax) idmax = id;
   }
   for(int iel=0;iel<nel;iel++) {
-    if(!gmesh.Reference()->ElementVec()[iel]) continue;      
-    int elemtype = gmesh.Reference()->ElementVec()[iel]->Type();
-    if(elemtype==EInterface) continue;
-    TPZCompEl *el = gmesh.Reference()->ElementVec()[iel];
-    if(el->Material()->Id() < 0) continue;
+    TPZCompEl *el = cmesh.ElementVec()[iel];
+    if(!el) continue;      
+    if(el->Dimension() != dim) continue;
+    int elemtype = el->Type();
     TPZGeoEl *gel = el->Reference();
     if(el && gel) {
       TPZGeoElPoint  *el0d=0;
@@ -547,23 +517,27 @@ void PostProcess(TPZGeoMesh &gmesh,ostream &out) {
 	  csi[2] = hexa[p][2];
 	}
 	gel->X(csi,x);
-	if(elemtype==0) el0d->Reference()->Solution(csi,0,sol);
-	if(elemtype==1) el1d->Reference()->Solution(csi,0,sol);
-	if(elemtype==2) elt2d->Reference()->Solution(csi,0,sol);
-	if(elemtype==3) elq2d->Reference()->Solution(csi,0,sol);
-	if(elemtype==4) elt3d->Reference()->Solution(csi,0,sol);
-	if(elemtype==5) elpi3d->Reference()->Solution(csi,0,sol);
-	if(elemtype==6) elpr3d->Reference()->Solution(csi,0,sol);
-	if(elemtype==7) elc3d->Reference()->Solution(csi,0,sol);
+	if(elemtype==0) el0d->Reference()->Solution(csi,var,sol);
+	if(elemtype==1) el1d->Reference()->Solution(csi,var,sol);
+	if(elemtype==2) elt2d->Reference()->Solution(csi,var,sol);
+	if(elemtype==3) elq2d->Reference()->Solution(csi,var,sol);
+	if(elemtype==4) elt3d->Reference()->Solution(csi,var,sol);
+	if(elemtype==5) elpi3d->Reference()->Solution(csi,var,sol);
+	if(elemtype==6) elpr3d->Reference()->Solution(csi,var,sol);
+	if(elemtype==7) elc3d->Reference()->Solution(csi,var,sol);
 	if(elemtype==EDiscontinuous){
-	  if(nsides==1) el0d->Reference()->Solution(csi,0,sol);
-	  if(nsides==3) el1d->Reference()->Solution(csi,0,sol);
-	  if(nsides==7) elt2d->Reference()->Solution(csi,0,sol);
-	  if(nsides==9) elq2d->Reference()->Solution(csi,0,sol);
-	  if(nsides==27) elc3d->Reference()->Solution(csi,0,sol);
+	  if(nsides==1) el0d->Reference()->Solution(csi,var,sol);
+	  if(nsides==3) el1d->Reference()->Solution(csi,var,sol);
+	  if(nsides==7) elt2d->Reference()->Solution(csi,var,sol);
+	  if(nsides==9) elq2d->Reference()->Solution(csi,var,sol);
+	  if(nsides==27) elc3d->Reference()->Solution(csi,var,sol);
 	}
-	out << "solucao em x    = " << x[0] << ' ' << x[1] << ' ' << x[2] << endl;
-	out << "               u = " << sol[0] << endl;	    
+	int size = sol.NElements();
+	out << "solucao em x    = " << x[0] << ' ' << x[1] << ' ' << x[2];
+	out << " -> u = ";
+	for(i=0;i<size;i++)
+	  out << sol[i] << " ";
+	out << endl;	    
       }
     }
   }
@@ -741,7 +715,7 @@ void CoutTime(clock_t &start){
 TPZMaterial *Hexaedro(int grau){
   //Problema teste do Cedric <=> problema teste no paper A. Coutinho e paper Zhang, Yu, Chang levado para 3D
   // e teste no paper de Peyrard and Villedieu
-  CriacaoDeNos(8,hexaedro);
+  //  CriacaoDeNos(8,hexaedro);
   //elemento de volume
   TPZVec<int> nodes;
   nodes.Resize(8);
@@ -866,7 +840,7 @@ TPZMaterial *Hexaedro(int grau){
 TPZMaterial *ProblemaT2D(int grau){
   //Teste no paper de A. Coutinho e primeiro problema teste na tese de Jorge Calle
   //teste do papern Zhang, Yu, Chang e teste no paper de Peyrard and Villedieu
-  CriacaoDeNos(4,quadrilatero);//para formar dois triangulos
+  //  CriacaoDeNos(4,quadrilatero);//para formar dois triangulos
   //elemento de volume
   TPZVec<int> nodes;
   nodes.Resize(3);
@@ -976,7 +950,7 @@ TPZMaterial *ProblemaT2D(int grau){
 TPZMaterial *ProblemaQ2D1El(int grau){
   //Teste no paper de A. Coutinho e primeiro problema teste na tese de Jorge Calle
   //teste do papern Zhang, Yu, Chang  e teste no paper de Peyrard and Villedieu
-  CriacaoDeNos(4,quadrado);
+  //  CriacaoDeNos(4,quadrado);
   //elemento de volume
   TPZVec<int> nodes;
   int index;
@@ -1090,7 +1064,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
 TPZMaterial *TresTriangulos(int grau){
   //Teste no paper de A. Coutinho e primeiro problema teste na tese de Jorge Calle
   //teste do papern Zhang, Yu, Chang e teste no paper de Peyrard and Villedieu
-  CriacaoDeNos(5,quadrilatero2);//para formar dois triangulos
+  //  CriacaoDeNos(5,quadrilatero2);//para formar dois triangulos
   //elemento de volume
   TPZVec<int> nodes;
   int index;
@@ -1197,7 +1171,7 @@ TPZMaterial *TresTriangulos(int grau){
 TPZMaterial *TresPrismas(int grau){
   //Problema teste do Cedric <=> problema teste no paper A. Coutinho e paper Zhang, Yu, Chang levado para 3D
   // e teste no paper de Peyrard and Villedieu
-  CriacaoDeNos(10,tresprismas);
+  //  CriacaoDeNos(10,tresprismas);
   //elemento de volume
   TPZVec<int> nodes;
   nodes.Resize(6);
@@ -1322,7 +1296,7 @@ TPZMaterial *TresPrismas(int grau){
 TPZMaterial *FluxConst3D(int grau){
   //Problema teste do Cedric <=> problema teste no paper A. Coutinho e paper Zhang, Yu, Chang levado para 3D
   // e teste no paper de Peyrard and Villedieu
-  CriacaoDeNos(8,hexaedro1);
+  //  CriacaoDeNos(8,hexaedro1);
   //elemento de volume
   TPZVec<int> nodes;
   int index;
@@ -1422,7 +1396,7 @@ TPZMaterial *FluxConst3D(int grau){
 //----------------------------------------------------------------------------------------------
 TPZMaterial *FluxConst2D(int grau){
 
-  CriacaoDeNos(4,quadrilatero);
+  //  CriacaoDeNos(4,quadrilatero);
   //elemento de volume
   TPZVec<int> nodes;
   nodes.Resize(4);
@@ -1968,7 +1942,7 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
 /////////////////////////////////////////////////////////////////////////////////////////////
 TPZMaterial *Quadrado(int grau){
 
-  CriacaoDeNos(4,quadrado);
+  //  CriacaoDeNos(4,quadrado);
   //elemento de volume
   TPZVec<int> nodes;
   nodes.Resize(4);
@@ -2020,9 +1994,11 @@ void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh){
   for(i=1;i<nstate-1;i++) prod += sol[i]*sol[i];//(u²+v²+w²)*ro²
   REAL dens2 = sol[0]*sol[0];
   maxveloc = sqrt(prod/dens2);//velocidade
-  TPZEulerConsLaw *law = dynamic_cast<TPZEulerConsLaw *>(mat);//TPZEulerConsLaw *law = (TPZEulerConsLaw *)(mat);
+  TPZEulerConsLaw *law = dynamic_cast<TPZEulerConsLaw *>(mat);
+  //TPZEulerConsLaw *law = (TPZEulerConsLaw *)(mat);
   REAL press = law->Pressure(sol);
-  if(press < 0) cout << "main::SetDeltaTime pressao negativa, toma valor absoluto para calculo do som\n";
+  if(press < 0) 
+    cout << "main::SetDeltaTime pressao <0 , toma valor absoluto para calculo do som\n";
   REAL sound = sqrt(gama*press/sol[0]);
   maxveloc += sound;
   //REAL deltax = cmesh->DeltaX();
@@ -2053,3 +2029,52 @@ void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh){
 //        << "\nDelta x = " << delta_x
 //        << "\ndelta t = " << delta_t
 //        << "\ndiffusao = " << artdiff << endl;
+
+
+//static TPZRefPattern hexaedro9("hexaedro9subs.in");
+//static TPZRefPattern hexaedro8("hexaedro8.in");//hexaedro mestre 8 sub-elementos
+//static TPZRefPattern hexaedro2("hexaedro2.in");
+//static TPZRefPattern quad4("quadrilatero4.in");//quadrilatero mestre 4 sub-elementos*/
+//static TPZRefPattern linha2("linha2.in");//aresta mestre 2 sub-elementos*/
+
+//   if(0){
+//     TPZFMatrix TS(4,4,0.),D(4,4,0.),TI(4,4),mat(4,4,0.);
+//     TS(0,0) = 1.0; TS(0,1) = 1.0; TS(0,2) = 2.0; TS(0,3) = 4.0; 
+//     TS(1,1) = 1.0; TS(1,2) = 3.0; TS(1,3) = 5.0;
+//     TS(2,2) = 1.0; TS(2,3) = 6.0;
+//     TS(3,3) = 1.0;
+//     TS.Transpose(&TI);
+//     D(0,0) = 10.0;
+//     D(1,1) = 20.0;
+//     D(2,2) = 30.0;
+//     D(3,3) = 40.0;
+//     ofstream mats("MATRIZES_TESTES.out");
+//     mats << "\n\n\t\t\t* * * MATRIZES TESTES * * *\n\n";
+//     TI.Print("\n\n\t\t\t* * * MATRIZES INFERIOR * * *\n\n",mats);
+//      D.Print("\n\n\t\t\t* * * MATRIZES DIAGONAL * * *\n\n",mats);
+//     TS.Print("\n\n\t\t\t* * * MATRIZES SUPERIOR * * *\n\n",mats);
+//     mat = TI * (D * TS);
+//     mat.Print("\n\n\t\t\t* * * MATRIZES PRODUTO TI*D*TS * * *\n\n",mats);
+
+//     TPZNonLinMultGridAnalysis an(cmesh);
+//     TPZFStructMatrix stiff(cmesh);
+//     an.SetStructuralMatrix(stiff);
+//     an.Solution().Zero();
+//     TPZStepSolver solver;
+//     solver.SetDirect(ELDLt);//ELU, ECholesky
+//     an.SetSolver(solver);
+//     an.Solver().SetMatrix(&mat);
+//     TPZFMatrix sol(4,1,0.),res(4,1,0.),anres(4,1,0.);
+//     sol(0,0) = 1.0;
+//     sol(1,0) = 1.0;
+//     sol(2,0) = 1.0;
+//     sol(3,0) = 1.0;
+//     an.CalcResidual(sol,anres,res,an,"LDLt");
+//     res.Print("\n\n\t\t\t* * * MATRIZ RESÍDUO * * *\n\n",cout);
+//     mats.flush();
+//     mats.close();
+
+//   }
+//     //if(cmesh) delete cmesh;
+//   //    if(gmesh) delete gmesh;
+//   //  return 1;

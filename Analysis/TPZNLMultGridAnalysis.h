@@ -72,6 +72,9 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    */
   TPZCompMesh *PopMesh ();
   
+
+  TPZCompMesh *IMesh(int index);
+
   /**
    * Uses fSolver object to apply a solution
    * algorithm
@@ -107,7 +110,9 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
 
   void TwoGridAlgorithm(ostream &out,int nummat);
 
-  void CalcResidual(TPZMatrix &sol,TPZFMatrix &res,TPZAnalysis &an,char *decompose);
+  void CalcResidual(TPZMatrix &sol,TPZAnalysis &an,char *decompose,TPZFMatrix &res);
+
+  void CalcResidual(TPZMatrix &sol,TPZFMatrix &anres,TPZFMatrix &res,TPZAnalysis &an,char *decompose);
 
 /*   void IterativeProcess(TPZAnalysis &an,REAL tol,int numiter, */
 /* 			TPZMaterial *mat,int marcha,int resolution); */
