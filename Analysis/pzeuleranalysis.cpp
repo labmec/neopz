@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.29 2004-04-13 12:57:28 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.30 2004-04-15 23:11:43 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -146,9 +146,10 @@ void TPZEulerAnalysis::Assemble()
 
    TPZMatrix * pTangentMatrix = fSolver->Matrix();
 
-   if(!pTangentMatrix && dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym> *>(fStructMatrix))
+   if(!pTangentMatrix || dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym> *>(fStructMatrix))
    {
       pTangentMatrix = fStructMatrix->CreateAssemble(fRhs);
+      fSolver->SetMatrix(pTangentMatrix);
    }
    else
    {
@@ -237,9 +238,10 @@ void TPZEulerAnalysis::Assemble()
 
    TPZMatrix * pTangentMatrix = fSolver->Matrix();
 
-   if(!pTangentMatrix && dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym> *>(fStructMatrix))
+   if(!pTangentMatrix || dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym> *>(fStructMatrix))
    {
       pTangentMatrix = fStructMatrix->CreateAssemble(fRhs);
+      fSolver->SetMatrix(pTangentMatrix);
    }
    else
    {
@@ -437,7 +439,7 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
    startTime = clock();//time(&startTime);
 
    TPZDXGraphMesh * graph = PrepareDXMesh(dxout, dxRes);
-   int numIterDX = 1;
+   int numIterDX = 10000000;
    int outputStep = 0;
 
    REAL epsilon_Newton/*, epsilon_Global*/;
