@@ -108,7 +108,7 @@ int main() {
    TPZManVector<TPZGeoEl *> pv(4);
    int n1=1,level=0; 
    cout << "\nDividir ate nivel ? ";
-   int resp = 2;
+   int resp = 1;
 //   cin >> resp;      
    int nelc = malha->ElementVec().NElements();
    int el;  
@@ -126,7 +126,7 @@ int main() {
    malhacomp->AutoBuild();
    malhacomp->AdjustBoundaryElements();
    malhacomp->InitializeBlock();
-
+/*
    TPZNodesetCompute nodeset;
    TPZStack<int> elementgraph,elementgraphindex;
    malhacomp->ComputeElGraph(elementgraph,elementgraphindex);
@@ -148,14 +148,18 @@ int main() {
    file << "Vertex graph\n";
    nodeset.Print(file,blockgraphindex,blockgraph);
 
-
+*/
    TPZAnalysis an(malhacomp);
    TPZSkylineStructMatrix strmat(malhacomp);
    an.SetStructuralMatrix(strmat);
    
-   TPZStepSolver step(0);
-   step.SetDirect(ECholesky);   
+   TPZStepSolver step(strmat.Create());
+//   step.SetDirect(ECholesky);   
    an.SetSolver(step);
+   TPZMatrixSolver *precond = an.BuildPreconditioner(TPZAnalysis::EElement,false);
+   step.SetCG(100,*precond,1.e-10,0);
+   an.SetSolver(step);
+   delete precond;
 
    malhacomp->SetName("Malha Computacional :  Connects e Elementos");
    // Posprocessamento
@@ -285,7 +289,7 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
 	TPZMat2dLin *meumat = new TPZMat2dLin(1);
 	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	meumat->SetMaterial (xk,xc,xf);
-	meumat->SetForcingFunction(forcingfunction);
+//	meumat->SetForcingFunction(forcingfunction);
 	cmesh.InsertMaterialObject(meumat);
 
 	// inserir a condicao de contorno
