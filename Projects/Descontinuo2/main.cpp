@@ -31,6 +31,8 @@
 #include "TPZFrontNonSym.h"
 #include "TPBSpStructMatrix.h"
 #include "pzstring.h"
+#include "pzblockdiag.h"
+#include "pzbdstrmatrix.h"
 
 int gDebug;
 
@@ -247,7 +249,7 @@ int main()
    An.SetSolver(Solver);
    }
 //
-*/
+
    { // GMRES
    TPZSpStructMatrix StrMatrix(cmesh);
       //TPZFStructMatrix StrMatrix(cmesh);
@@ -282,6 +284,52 @@ int main()
    An.SetSolver(Solver);
    }
 //
+
+
+
+*/
+   { // GMRES with block preconditioning
+   TPZSpStructMatrix StrMatrix(cmesh);
+      //TPZFStructMatrix StrMatrix(cmesh);
+   An.SetStructuralMatrix(StrMatrix);
+
+   TPZMatrix * mat = StrMatrix.Create();
+
+   An.SetLinSysCriteria(1e-8, 100);
+   An.SetNewtonCriteria(1e-8, 8);
+   An.SetTimeIntCriteria(1e-8,MaxIter);
+
+   //Preconditioner
+   TPZStepSolver Pre;
+   //Main Solver
+//   Pre.SetSSOR(100, 1.1,
+//		1e-10,
+//		0);
+
+   TPZBlockDiagonalStructMatrix strBlockDiag(cmesh);
+   //just to retrieve blocksizes
+//   TPZVec<int> blocksizes;
+//   blockDiag.BlockSizes(blocksizes);
+//   TPZBlockDiagonal * block = new TPZBlockDiagonal(blocksizes);
+   TPZBlockDiagonal * block = new TPZBlockDiagonal();//blockDiag.Create();
+   strBlockDiag.AssembleBlockDiagonal(*block); // just to initialize structure
+
+   Pre.SetMatrix(block);
+   Pre.SetDirect(ELU);
+
+   //Main Solver
+   TPZStepSolver Solver;
+   Solver.SetGMRES(10000,
+		1000,
+		Pre,
+		1e-9,
+		0);
+   Solver.SetMatrix(mat);
+   An.SetSolver(Solver);
+   An.SetBlockDiagonalPrecond(block);
+   }
+//
+
 /*
    { // SSOR
    TPZFStructMatrix StrMatrix(cmesh);
