@@ -558,6 +558,10 @@ public:
    * @param buf Buffer which will receive the bytes
    */
   virtual void Write( TPZStream &buf, int withclassid );
+  /**
+  * Extract the block indicated by the indices from the matrix
+  */
+    void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
 
 protected:
 

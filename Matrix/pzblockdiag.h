@@ -111,6 +111,12 @@ public:
      @param block Block to be added
   */
   void AddBlock(int i, TPZFMatrix &block);
+  /**
+     Sets a block in the current matrix
+     @param i Adds in ith position
+     @param block Block to be added
+  */
+  void SetBlock(int i, TPZFMatrix &block);
 
   /**
      Gets a block from current matrix
@@ -133,7 +139,7 @@ public:
 
   int NumberofBlocks() {return fBlockSize.NElements();}
 
-private:
+protected:
   /**
      Stores matrix data
   */

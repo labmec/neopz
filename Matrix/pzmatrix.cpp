@@ -948,3 +948,21 @@ void TPZMatrix::Write( TPZStream &buf, int withclassid ) {
 }
 
 
+
+
+/*!
+    \fn TPZMatrix::GetSub(TPZVec<int> &indices,TPZFMatrix &block)
+ */
+void TPZMatrix::GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const
+{
+    int nel = indices.NElements();
+    int iel,jel;
+    for(iel=0; iel<nel; iel++) 
+    {
+      for(jel=0; jel<nel; jel++)
+      {
+        block(iel,jel) = GetVal(indices[iel],indices[jel]);
+      }
+    }
+    
+}

@@ -45,6 +45,25 @@ void TPZBlockDiagonal::AddBlock(int i, TPZFMatrix &block){
   }
 }
 
+void TPZBlockDiagonal::SetBlock(int i, TPZFMatrix &block){
+  // ::cout << "Iniciando insercão de bloco na posicão\t" ;
+  int firstpos = fBlockPos[i];
+  //  ::cout << firstpos << "\n";
+  int bsize = fBlockSize[i];
+  //  ::cout << "Dimensão do bloco a ser inserido\t" << bsize << "\n";
+  
+  int r,c;
+  for(r=0; r<bsize; r++) {
+    for(c=0; c<bsize; c++) {
+      //  ::cout << " inserindo elemento: \t local[" << r <<"," << c
+      //     << "]\t global [" << firstpos+r+bsize*c << "]= \t"
+      //     << block(r,c) << "\t totalizando \t" <<fStorage[firstpos+r+bsize*c] + block(r,c)
+      //     << "\n";
+      fStorage[firstpos+r+bsize*c] = block(r,c);
+    }
+  }
+}
+
 void TPZBlockDiagonal::GetBlock(int i, TPZFMatrix &block){
     int firstpos = fBlockPos[i];
     int bsize = fBlockSize[i];
