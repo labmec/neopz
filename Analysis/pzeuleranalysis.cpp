@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.8 2003-11-07 22:50:36 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.9 2003-11-12 00:04:55 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -140,7 +140,7 @@ void TPZEulerAnalysis::Assemble()
    // Contributing referring to the last state (n index)
    fRhs+=/*.Add(fRhsLast, fRhsLast)*/ fRhsLast;
 
-   pTangentMatrix->Print("TangentMatrix", cout);
+   //pTangentMatrix->Print("TangentMatrix", cout);
 }
 
 
@@ -205,7 +205,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
       Assemble();
 
       epsilon = Norm(fRhs);
-      cout << "\nEpsilon:" << epsilon;
+      //cout << "\nEpsilon:" << epsilon;
       i++;
    }
 
@@ -267,6 +267,11 @@ void TPZEulerAnalysis::Run(ostream &out)
       // resetting the forcing function for iterations greater than the 1st
       fFlowCompMesh->SetFlowforcingFunction(NULL);
 
+
+//      cout << "\nLast Solution\n" << *fpLastSol;
+      cout << "\nCurrent Solution\n" << *fpCurrSol;
+
+
       // updates the history of state variable vectors
       UpdateHistory();
 
@@ -280,12 +285,10 @@ void TPZEulerAnalysis::Run(ostream &out)
       AssembleRhs(); // computing the residual only
       epsilon = Norm(fRhs);
 
-      cout << "\nCurrent Solution\n" << *fpCurrSol;
-
       out << "\niter:" << i
-          << " eps=" << epsilon
-	  << " |NewtonEps=" << epsilon_Newton
-	  << " nIter=" << numIter_Newton;
+          << "\t eps=" << epsilon
+	  << "\t |NewtonEps=" << epsilon_Newton
+	  << "\t nIter=" << numIter_Newton;
 
       i++;
    }

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.7 2003-10-24 19:03:34 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.8 2003-11-12 00:03:41 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -150,6 +150,11 @@ public :
    */
 //  void Flux(TPZVec<REAL> &U,TPZVec<REAL> &Fx,TPZVec<REAL> &Fy,TPZVec<REAL> &Fz);
 
+  /**
+   * Test flux -> returns the averaged state variables across an interface
+   */
+  template <class T>
+  void Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux);
 
   /**
    * This flux encapsultes the two and three dimensional fluxes
@@ -705,12 +710,25 @@ inline void TPZEulerConsLaw2::Pressure(T & press, TPZVec<T> &U)
   }
 }
 
+//----------------Test Flux
+
+template <class T>
+void TPZEulerConsLaw2::Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux)
+{
+   int nState = flux.NElements();
+   for(int i = 0; i < nState; i++)
+   {
+      flux[i] = (solR[i]-solL[i]);
+   }
+}
+
+
 //----------------Roe Flux
 
 template <class T>
 void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux)
 {
-   int nState = solL.NElements();
+/*   int nState = solL.NElements();
    if(nState == 5)
    {
       Roe_Flux(solL[0], solL[1], solL[2], solL[3], solL[4],
@@ -736,6 +754,44 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
       Roe_Flux(solL[0], solL[1], auxL, solL[2],
               solR[0], solR[1], auxR, solR[2],
 	      normal[0], 0,
+	      gamma,
+	      flux[0], flux[1], fluxaux, flux[2]);
+   }else
+   {
+       PZError << "No flux on " << nState << " state variables.\n";
+   }
+   */
+
+   // Normals outgoing from the BC elements into the
+   // mesh elements -> all the normals are opposited to
+   // the common convention -> changing the left/right
+   // elements and normals.
+   int nState = solL.NElements();
+   if(nState == 5)
+   {
+      Roe_Flux(solR[0], solR[1], solR[2], solR[3], solR[4],
+              solL[0], solL[1], solL[2], solL[3], solL[4],
+	      normal[0], -normal[1], -normal[2],
+	      gamma,
+	      flux[0], flux[1], flux[2], flux[3], flux[4]);
+
+   }else if(nState == 4)
+   {
+      Roe_Flux(solR[0], solR[1], solR[2], solR[3],
+              solL[0], solL[1], solL[2], solL[3],
+	      -normal[0], -normal[1],
+	      gamma,
+	      flux[0], flux[1], flux[2], flux[3]);
+   }else if(nState == 3)
+   {
+      //using the 2D expression for 1d problem
+      T auxL = 0.,
+        auxR = 0.,
+        fluxaux = 0.;
+	auxL = flux[0];
+      Roe_Flux(solR[0], solR[1], auxR, solR[2],
+              solL[0], solL[1], auxL, solL[2],
+	      -normal[0], 0,
 	      gamma,
 	      flux[0], flux[1], fluxaux, flux[2]);
    }else

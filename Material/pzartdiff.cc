@@ -461,7 +461,6 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZVec<REAL> &sol,
   //Computing the divergent
   Divergent(dsol, dphi, Ai, Div, pdDiv);
 /*
-
   cout << "\n\ndiv\n" << Div;
 
   cout << "\n\nddiv\n" << dDiv;
@@ -534,7 +533,7 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZVec<FADREAL> &sol,
 void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix &dsol,  TPZFMatrix &dphix, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight, REAL timeStep)
 {
     REAL delta = Delta();
-    REAL constant = weight * delta * timeStep;
+    REAL constant = /*-*/ weight * delta * timeStep;
 
     TPZVec<TPZVec<REAL> > TauDiv;
     TPZVec<TPZDiffMatrix<REAL> > * pTaudDiv = NULL;
@@ -566,7 +565,7 @@ void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix
 void TPZArtDiff::ContributeExplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix &dsol,  TPZFMatrix &dphix, TPZFMatrix &ef, REAL weight, REAL timeStep)
 {
     REAL delta = Delta();
-    REAL constant = weight * delta * timeStep;
+    REAL constant = /*-*/ weight * delta * timeStep;
 
     TPZVec<TPZVec<REAL> > TauDiv;
 
@@ -588,7 +587,7 @@ void TPZArtDiff::ContributeExplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix &dsol
 void TPZArtDiff::ContributeImplDiff(int dim, TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight,  REAL timeStep)
 {
     REAL delta = Delta();
-    REAL constant = delta * weight * timeStep;
+    REAL constant = /*-*/ delta * weight * timeStep/1000.;
 
     TPZVec<TPZVec<FADREAL> > TauDiv;
 

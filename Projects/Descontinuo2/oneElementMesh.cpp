@@ -99,7 +99,7 @@ TPZGeoMesh * CreateOneElGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
 TPZFlowCompMesh * OneElCompMesh()
 {
-   TPZCompElDisc::gDegree = 2;
+   TPZCompElDisc::gDegree = 4;
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
@@ -180,6 +180,7 @@ TPZFlowCompMesh * OneElCompMesh()
 
 // generating initial guess for the mesh solution
    TPZFMatrix Solution = cmesh->Solution();
+   Solution.Zero();
 
    int j, NSolutionBlocks;
    //TPZBlock * pBlock = cmesh->Block();
@@ -197,6 +198,10 @@ TPZFlowCompMesh * OneElCompMesh()
       Solution(blockOffset+1,0) = ro * u;
       Solution(blockOffset+2,0) = ro * v;
       Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+      Solution(blockOffset  ,0) = ro/1.9;
+      Solution(blockOffset+1,0) = ro * u/1.9;
+      Solution(blockOffset+2,0) = ro * v/1.9;
+      Solution(blockOffset+3,0) = (p/(gamma-1.0) + 0.5 * ro * vel2)/1.9;
    }
 
    cmesh->LoadSolution(Solution);

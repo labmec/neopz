@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cc,v 1.8 2003-11-07 22:49:42 erick Exp $
+//$Id: pzeulerconslaw.cc,v 1.9 2003-11-12 00:03:41 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -58,7 +58,7 @@ void TPZEulerConsLaw2::SetTimeStep(REAL maxveloc,REAL deltax,int degree)
   if(CFL == 0.0) CFL = OptimalCFL(degree);
 
   REAL deltaT = CFL*deltax/maxveloc;
-  cout << "TPZCompMesh::Delta Time : " << deltaT << endl;
+  //cout << "TPZCompMesh::Delta Time : " << deltaT << endl;
   TPZConservationLaw2::SetTimeStep(deltaT);
 }
 
@@ -415,13 +415,13 @@ void TPZEulerConsLaw2::PrepareInterfaceFAD(
       {
          int index = i_state + i_shape * nState;
          FADsolL[i_state].fastAccessDx(index)=phiL(i_shape,0);
-         FADsolR[i_state].fastAccessDx(index)=phiL(i_shape,0);
+         //FADsolR[i_state].fastAccessDx(index)=phiL(i_shape,0);
       }
    for(i_shape = 0/*nShapeL*/; i_shape < /*nShapeL +*/ nShapeR; i_shape++)
       for(i_state = 0; i_state < nState; i_state++)
       {
          int index = i_state + (i_shape + nShapeL) * nState;
-         FADsolL[i_state].fastAccessDx(index)=phiR(i_shape,0);
+         //FADsolL[i_state].fastAccessDx(index)=phiR(i_shape,0);
          FADsolR[i_state].fastAccessDx(index)=phiR(i_shape,0);
       }
 }
@@ -664,7 +664,7 @@ void TPZEulerConsLaw2::ContributeExplConvFace(TPZVec<REAL> &x,
 {
    int nState = NStateVariables();
    TPZVec<REAL > flux(nState,0.);
-   Roe_Flux<REAL>(solL, solR, normal, fGamma, flux);
+   Roe_Flux/*Test_Flux*/<REAL>(solL, solR, normal, fGamma, flux);
    int nShapeL = phiL.Rows(),
        nShapeR = phiR.Rows(),
        i_shape, i_state;
@@ -695,7 +695,7 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
 {
    int nState = NStateVariables();
    TPZVec<FADREAL > flux(nState,0.);
-   Roe_Flux(solL, solR, normal, fGamma, flux);
+   Roe_Flux/*Test_Flux*/(solL, solR, normal, fGamma, flux);
    int nShapeL = phiL.Rows(),
        nShapeR = phiR.Rows(),
        i_shape, i_state, j,
@@ -739,7 +739,7 @@ void TPZEulerConsLaw2::ContributeExplConvVol(TPZVec<REAL> &x,
 {
    TPZVec< TPZVec<REAL> > F(3);
    Flux(sol, F[0], F[1], F[2]);
-   REAL constant = - TimeStep() * weight;
+   REAL constant = TimeStep() * weight;
 
    int i_state, i_shape, nShape = phi.Rows(), k;
    int nState = NStateVariables();
@@ -767,7 +767,7 @@ void TPZEulerConsLaw2::ContributeImplConvVol(TPZVec<REAL> &x,
 {
    TPZVec< TPZVec<REAL> > F(3);
    Flux(sol, F[0], F[1], F[2]);
-   REAL constant = - TimeStep() * weight;
+   REAL constant = TimeStep() * weight;
 
    TPZVec< TPZDiffMatrix<REAL> > Ai(3);
    JacobFlux(sol, Ai);

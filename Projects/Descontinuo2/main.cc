@@ -19,6 +19,7 @@
 #include "TPZGeoLinear.h"
 #include "TPZRefLinear.h"
 #include "pzbstrmatrix.h"
+#include "pzfstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzblock.h"
 
@@ -42,8 +43,12 @@ int main()
    TPZEulerAnalysis An(cmesh, anFile);
 
    // Creating the structural matrix
-   TPZBandStructMatrix StrMatrix(cmesh);
+   TPZFStructMatrix StrMatrix(cmesh);
+   //TPZBandStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
+
+   An.SetNewtonCriteria(1e-12, 10);
+   An.SetTimeIntCriteria(1e-12, 1000);
 
    // Creating the solver for the linearized systems
    TPZStepSolver Solver;
