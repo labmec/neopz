@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.19 2005-01-04 21:42:26 phil Exp $
+//$Id: pzanalysis.cpp,v 1.20 2005-01-14 16:46:40 tiago Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -100,7 +100,7 @@ void TPZAnalysis::SetBlockNumber(){
 //  metis.Print(write);
 //  out.flush();
 	metis.Resequence(perm,iperm);
-//	fCompMesh->Permute(perm);
+	fCompMesh->Permute(iperm);
 }
 
 void TPZAnalysis::Assemble() {
@@ -122,7 +122,7 @@ void TPZAnalysis::Assemble() {
           TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
           //mat->Print("Rigidez");
           fSolver->SetMatrix(mat);
-          //aqui TPZFMatrix não é nula
+          //aqui TPZFMatrix nï¿½ ï¿½nula
         }
         fSolver->UpdateFrom(fSolver->Matrix());
         //fRhs.Print("Rhs");
