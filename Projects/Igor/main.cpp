@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.4 2003-12-01 14:53:55 tiago Exp $
+//$Id: main.cpp,v 1.5 2003-12-08 14:20:08 phil Exp $
 /**
  * Galerkin descontinuo: visita do professor Igor.
  * 24/11/2003
@@ -95,19 +95,23 @@ int main(){
   char filedx[20];
   cout << "\nOrdem p" << endl;
 
-  cin >> p;
+//  cin >> p;
+  p=1;
 
   cout << "\nRefinamento" << endl;
 
-  cin >> h;
+//  cin >> h;
+  h = 3;
 
   cout << "\nArquivo" << endl;
 
-  cin >> filename;
+//  cin >> filename;
+  strcpy(filename,"test.dat");
 
   cout << "\nArquivoDX" << endl;
 
-  cin >> filedx;
+//  cin >> filedx;
+  strcpy(filedx,"test.dx");
 
   if (h == 0) {
     gDivide[0] = 0;
@@ -171,7 +175,7 @@ int main(){
 
   ofstream out(filename), outdx(filedx);
 
-  TPZCompEl::gOrder = 1;
+  TPZCompEl::gOrder = p;
   TPZCompElDisc::gDegree = p;
 
   gDebug = 0;
@@ -193,6 +197,9 @@ int main(){
 
   step.SetDirect(ELU);
   an.SetSolver(step);
+  TPZFMatrix fillin;
+  cmesh->ComputeFillIn(20,fillin);
+  fillin.Print("Fillin of the computable mesh");
 
 
   /*
@@ -285,44 +292,40 @@ TPZCompMesh *CreateMesh() {
   for(int i = 0; i < nelem; i++){
     TPZVec<TPZGeoEl *> children, netos, bisnetos, tata1, tata2, tata3;
     cout << "\ngDivide[0] = \n" << gDivide[0];
-    if(gDivide[0] == 1)
-      {
+    if(gDivide[0] == 1) {
       elvec[i]->Divide(children);
       cout <<  "\n Primeira divisao \n" ;
+      if (gDivide[1] == 1) {
+        for(int j = 0; j < children.NElements(); j++) {
+          children[j]->Divide(netos);
+          cout <<  "\n Segunda divisao \n" ;
+          if(gDivide[2] == 1) {
+            for(int k = 0; k < netos.NElements(); k++) {
+              netos[k]->Divide(bisnetos); 
+              cout <<  "\n Terceira divisao \n" ;
+              if(gDivide[3] == 1) {
+                for(int k = 0; k < bisnetos.NElements(); k++) {
+                  bisnetos[k]->Divide(tata1); 
+                  cout <<  "\n Quarta divisao \n" ;
+                  if(gDivide[4] == 1) {
+                    for(int k = 0; k < tata1.NElements(); k++) {
+                      tata1[k]->Divide(tata2); 
+                      cout <<  "\n Quinta divisao \n" ;
+                      if(gDivide[5] == 1) {
+                        for(int k = 0; k < tata2.NElements(); k++) tata2[k]->Divide(tata3); 
+                        cout <<  "\n Sexta divisao \n" ;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
-    if (gDivide[1] == 1)
-      {
-      for(int j = 0; j < children.NElements(); j++)
-	children[j]->Divide(netos);
-      cout <<  "\n Segunda divisao \n" ;
-      }
-    if(gDivide[2] == 1) 
-      {
-      for(int k = 0; k < netos.NElements(); k++)
-	netos[k]->Divide(bisnetos); 
-      cout <<  "\n Terceira divisao \n" ;
-      }
-    if(gDivide[3] == 1) 
-      {
-      for(int k = 0; k < bisnetos.NElements(); k++)
-	bisnetos[k]->Divide(tata1); 
-      cout <<  "\n Quarta divisao \n" ;
-      }
-    if(gDivide[4] == 1) 
-      {
-      for(int k = 0; k < tata1.NElements(); k++)
-	tata1[k]->Divide(tata2); 
-      cout <<  "\n Quinta divisao \n" ;
-      }
-    if(gDivide[5] == 1) 
-      {
-      for(int k = 0; k < tata2.NElements(); k++)
-	tata2[k]->Divide(tata3); 
-      cout <<  "\n Sexta divisao \n" ;
-      }
-
+    }
   }  
-  
+ 
   TPZGeoElBC gbc;
 
 /* Lineare em y:
@@ -333,36 +336,42 @@ TPZCompMesh *CreateMesh() {
 */
 
   // bc -1 -> Dirichlet homogeneo
-  TPZGeoElBC gbc1(elvec[0],5,-1,*gmesh); // bottom
+//  TPZGeoElBC gbc1(elvec[0],5,-2,*gmesh); // bottom
   TPZGeoElBC gbc2(elvec[0],6,-2,*gmesh); // right
   TPZGeoElBC gbc3(elvec[1],5,-2,*gmesh); // right
-  TPZGeoElBC gbc4(elvec[1],6,-1,*gmesh); // top
-  TPZGeoElBC gbc5(elvec[2],5,-1,*gmesh); // top
-  TPZGeoElBC gbc6(elvec[2],6,-2,*gmesh); // left
-  TPZGeoElBC gbc7(elvec[3],5,-2,*gmesh); // left
-  TPZGeoElBC gbc8(elvec[3],6,-1,*gmesh); // bottom
+//  TPZGeoElBC gbc4(elvec[1],6,-1,*gmesh); // top
+//  TPZGeoElBC gbc5(elvec[2],5,-2,*gmesh); // top
+  TPZGeoElBC gbc6(elvec[2],6,-1,*gmesh); // left
+  TPZGeoElBC gbc7(elvec[3],5,-1,*gmesh); // left
+//  TPZGeoElBC gbc8(elvec[3],6,-1,*gmesh); // bottom
   
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   cmesh->SetDimModel(2);
   
-  TPZMaterial *mat;
+  TPZMatPoisson3d *mat;
   mat = new TPZMatPoisson3d(1, 2);
-  mat->SetForcingFunction(Forcing1);
+//  mat->SetForcingFunction(Forcing1);
 
+  TPZManVector<REAL,2> convdir(2,0.);
+  convdir[0] = 1.;
+//  convdir[1] = 1.;
+  mat->SetParameters(0.,1.,convdir);
   int nstate = 1;
   TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
   TPZBndCond *bc[2];
   
-
+  val2(0,0) = 1.;
   bc[0] = mat->CreateBC(-1,0,val1,val2);
   //  bc[0]->SetForcingFunction(Dirichlet1);
 
+  val2.Zero();
   bc[1] = mat->CreateBC(-2,0,val1,val2);
   //  bc[1]->SetForcingFunction(Dirichlet2);
   
   cmesh->InsertMaterialObject(mat);
   int i;
   for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
+
 
   TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
