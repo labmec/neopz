@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.31 2004-06-08 06:23:04 phil Exp $
+//$Id: TPZCompElDisc.h,v 1.32 2004-06-28 20:53:15 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -221,7 +221,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   /**
    * it calculates the normalizing constant of the bases of the element 
    */
-  REAL NormalizeConst();
+  virtual REAL NormalizeConst();
 
   /**
    * it returns the connect index from the element 
