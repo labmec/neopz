@@ -1,5 +1,5 @@
-
 #include "NACA4digit.h"
+#include "ratio.h"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
@@ -105,7 +105,6 @@ double entrance = 5. * scale,
 	     q = 1.5,
 	     qn = 1.5;
 */
-double PI = 3.14159265359;
 
 double
  entrance = 25.,
@@ -117,22 +116,6 @@ double
  scale = 5.;
 
 int l, m, n, p, k;
-
-double Spg(double a0, double q, int N)
-{
-   return a0*(pow(q, N+1.)-1.)/(q-1.);
-}
-
-double xpg(double q, int n, int N)
-{
-   if(q==1.)return ((double)n) / ((double)N);
-   return Spg(1., q, n-1)/Spg(1., q, N-1);
-}
-
-double xtrig(int n, int N)
-{
-   return (1.-cos(((double)n)/((double)N)*PI))/2.;
-}
 
 void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int nSubdiv)
 {
@@ -194,7 +177,8 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
    pt[0] = coord;
 
    coord[0] = profile.xla(1. * cord);
-   coord[1] = height/2.;
+   coord[1] = ( profile.yla(1. * cord) +
+                profile.yua(1. * cord) ) / 2.;//height/2.;
    coord[2] = 0.;
    pt[m] = coord;
 
@@ -303,7 +287,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
       // center point
       index = m; // index of existent point
       indexPt = firstExitPt + (2*l+1) * (i-1);
-      coord[0] = pt[index][0] + /*entrance + cord +*/ 1.5 * cord * ratio;
+      coord[0] = /*pt[index][0] */ entrance + cord + 1.5 * cord * ratio;
       coord[1] = pt[index][1];
       coord[2] = 0.;
       pt[indexPt] = coord;
@@ -915,6 +899,11 @@ TPZFlowCompMesh *
    x0[0] = entrance;
    x0[1] = height/2.;
    REAL profangle = 0.;
+
+   cout << "\nAirfoil angle [degrees]\n";
+   cin >> profangle;
+   profangle *= PI/180.;
+
    TPZNACAXXXX profile(cord,digits,profangle,x0);
 
    NACAPoints(profile, nodes, elms, nSubdiv);
@@ -959,10 +948,7 @@ TPZFlowCompMesh *
    bc = mat->CreateBC(-1,/*11*/5,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
-   double angle;
-   cout << "\nAirfoil angle [degrees]\n";
-   cin >> angle;
-   angle *= PI/180.;
+   double angle = 0.;
 
    cout << "\nMach number\n";
    cin >> Mach;
