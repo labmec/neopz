@@ -143,7 +143,6 @@ class  TPZMaterial
 			  TPZVec<REAL> &uexact, TPZFMatrix &duexact,
 			  TPZVec<REAL> &val) {}
 
-      /**Incremented by Jorge*/
       /**To create another material of the same type*/
       virtual TPZMaterial *NewMaterial();
 
@@ -162,8 +161,7 @@ class  TPZMaterial
        * which is passed on
        */
       virtual void Clone(TPZAdmChunkVector<TPZMaterial *> &matvec);
-	
-      /**Jorge 17/09/99*/
+
       /**To return a numerical flux type to apply over the interfaces
        * of the elements*/
       virtual int FluxType() { return 2; }

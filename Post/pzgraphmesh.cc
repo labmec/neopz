@@ -10,10 +10,11 @@
 #include "pzgraphnode.h"
 #include "pzmaterial.h"
 #include "TPZCompElDisc.h"
+#include "TPZAgglomerateEl.h"
 
 TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial *mat)
 {
-	int nel,i;
+  int nel,i;
   fElementList.Resize(0);
   fElementList.CompactDataStructure(1);
   fNodeMap.Resize(0);
@@ -27,8 +28,17 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial *mat)
   nel = gelvec.NElements();
   for(i=0;i<nel;i++) {
     ge = gelvec[i];
-    if(!ge || !ge->Reference() || ge->Reference()->Type() == 16 || !ge->Reference()->IsInterpolated()) continue;
-    ge->Reference()->CreateGraphicalElement(*this, dimension);
+    if(!ge || !ge->Reference() || ge->Reference()->Type() == EInterface || !ge->Reference()->IsInterpolated()) continue;
+//     TPZCompEl *celtype = ge->Reference();
+//     if(celtype->Type() == EAgglomerate){
+//       TPZStack<TPZCompEl *> discvec;
+//       dynamic_cast<TPZAgglomerateElement *>(celtype)->ListOfDiscEl(discvec);
+//       int nd = discvec.NElements(),el;
+//       for(el=0;el<nd;el++)
+// 	discvec[el]->CreateGraphicalElement(*this, dimension);
+//     } else {
+      ge->Reference()->CreateGraphicalElement(*this, dimension);
+//     }
   }
 /*
   TPZAdmChunkVector<TPZCompEl *> &celvec = fCompMesh->ElementVec();
@@ -253,8 +263,16 @@ TPZCompEl *TPZGraphMesh::FindFirstInterpolatedElement(TPZCompMesh *mesh, int dim
   for(iel=0; iel<nel; iel++) {
     cel = mesh->ElementVec()[iel];
     if(!cel) continue;
-    TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(cel);
-    if(disc && disc->Reference()->Dimension() == dim) return disc;
+    int type = cel->Type();
+    if(type == EAgglomerate){
+      if(!cel->Reference()) continue;
+      TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
+      if(agg && agg->Dimension() == dim) return agg;
+    }
+    if(type == EDiscontinuous){
+      TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(cel);
+      if(disc && disc->Reference()->Dimension() == dim) return disc;
+    }
     TPZCompEl *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
     if(intel && intel->Reference()->Dimension() == dim) return intel;
     TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);

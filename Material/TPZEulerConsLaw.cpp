@@ -478,6 +478,57 @@ void TPZEulerConsLaw::Flux(TPZVec<REAL> &x,TPZVec<REAL> &Sol,TPZFMatrix &DSol,
   }
 }
 
+void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,
+                                 REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ef) {
+
+  int phr = phi.Rows();// phi(in, 0) = phi_in  ,  dphi(i,jn) = dphi_jn/dxi
+  int i,nstate = NStateVariables();//3, 4 ou 5
+  if(fForcingFunction) {
+    //na 2a iteração deve-se ter fForcingFunction = 0
+    TPZManVector<REAL> res(nstate);
+    fForcingFunction(x,res);
+    for(i=0;i<nstate;i++) sol[i] = res[i];
+  }
+  int dim = dphi.Rows();//dx, dy ou dz
+  if(Dimension() != dim)
+    PZError << "TPZEulerConsLaw::Contribute dimension error, dimension = " << dim << endl;
+
+  //neste passo é calculada (ðFx/ðU,ðFy/ðU,ðFz/ðU) (no construtor)
+  TPZDiffusionConsLaw diffusion(sol,fGamma,dim,fArtificialDiffusion);
+  TPZVec<REAL> Fx(nstate),Fy(nstate),Fz(nstate);
+  Flux(sol,Fx,Fy,Fz);
+  TPZVec<REAL> gradphi(3,0.);
+  TPZFMatrix Tx(nstate,nstate),Ty(nstate,nstate),Tz(nstate,nstate);
+  TPZFMatrix DF1(nstate,nstate),DF2(nstate,nstate),DF3(nstate,nstate);
+  diffusion.Tau(Tx,Ty,Tz);
+//   TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
+//   Tx.Transpose(&Trx);
+//   Ty.Transpose(&Try);
+//   Tz.Transpose(&Trz);
+  diffusion.GradientOfTheFlow(DF1,DF2,DF3);
+  REAL timestep = TimeStep();
+  REAL delta = diffusion.Delta();
+  if(!fDelta) delta = diffusion.DeltaOtimo();
+  TPZFMatrix divF(nstate,1),prodpoint(nstate,nstate);
+  TPZVec<REAL> sum1(nstate,0.),sum2(nstate,0.);
+
+  for( int in = 0; in < phr; in++ ) {
+    
+    // w * Un
+    for(i=0;i<nstate;i++) sum1[i] = phi(in, 0) * sol[i];
+
+    // grad(w) . F
+    for(i=0;i<nstate;i++){
+      if(dim>0) sum2[i]  = Fx[i] * dphi(0,in);
+      if(dim>1) sum2[i] += Fy[i] * dphi(1,in);
+      if(dim>2) sum2[i] += Fz[i] * dphi(2,in);
+    }
+
+    //EF : w * Un + deltaT * (grad(w) . F)
+    for(i=0;i<nstate;i++)
+      ef(in * nstate + i, 0) += weight * (sum1[i] + timestep * sum2[i]);
+  }//in
+}
 
 //método para testes de implementa¢ão, verifica¢ão das integrais elementares
 void TPZEulerConsLaw::ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,

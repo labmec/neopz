@@ -51,6 +51,13 @@ void TPZConservationLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<RE
   
 }
 
+void TPZConservationLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
+				TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ef) {
+  
+  cout << "TPZConservationLaw::Contribute this metod does not have to be called\n";
+  
+}
+
 void TPZConservationLaw::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
 				     TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
   

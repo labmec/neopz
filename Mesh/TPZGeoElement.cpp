@@ -499,7 +499,6 @@ static TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 }
 
 
-
 TPZCompEl *(*TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
 TPZCompEl *(*TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
 TPZCompEl *(*TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;
@@ -508,3 +507,4 @@ TPZCompEl *(*TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::fp)(TPZGeoEl *el
 TPZCompEl *(*TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePrismEl;
 TPZCompEl *(*TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;
 TPZCompEl *(*TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePyramEl;
+
