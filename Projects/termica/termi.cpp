@@ -1,193 +1,253 @@
+//Classes utilitárias
+#include "pzvec.h"
+#include "pzstack.h"
+#include "TPZTimer.h"
 
+//Classes Geométricas
+#include "pzgmesh.h"
+#include "pzgeoel.h"
 
+//Classes Computacionais
+#include "pzcmesh.h"
+#include "pzcompel.h"
+
+//Materiais
+#include "pzelasmat.h"
+#include "pzmat2dlin.h"
+#include "pzbndcond.h"
+
+//Matrizes de armazenamento e estruturais
 #include "pzfmatrix.h"
 //#include "pzskylmat.h"
+#include "pzysmp.h"
 #include "pzskylstrmatrix.h"
 #include "TPZParSkylineStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
 #include "TPZFrontSym.h"
-#include "pzgmesh.h"
-#include "pzcmesh.h"
-#include "pzstepsolver.h"
-#include "pzelasmat.h"
-#include "pzbndcond.h"
-#include <stdlib.h>
-#include <iostream>
-#include "pzvec.h"
-#include "pzstack.h"
-#include "pzcompel.h"
-#include "pzgeoel.h"
 
-//#include "pzelgq2d.h"
-//#include "pzelgt2d.h"
-#include "pzmat2dlin.h"
+//Solver
+#include "pzstepsolver.h"
+
+//Análise
 #include "pzanalysis.h"
+
+//Reordenamento de equações grafos
 #include "pzmetis.h"
 #include "tpznodesetcompute.h"
-#include "pzysmp.h"
-#include "TPZTimer.h"
+
+//Pós-processamento
 #include "pzvisualmatrix.h"
 
+//Bibliotecas std, math etc
+#include <stdlib.h>
+#include <iostream>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
-
 #include "fast.h"
 //#include "pzelct2d.h"
 //template<class T>
 //class TPZVec;
 //#define NOTDEBUG
 
+//Método para inserção de materiais
 void InicializarMaterial(TPZCompMesh &cmesh);
+
+//Método para a leitura da malha
 void LerMalha(char *arquivo,TPZGeoMesh &mesh);
+
+//Método para a criação de um elemento
 void UmElemento(TPZGeoMesh &malha);
+
+//Inserção de uma condição de contorno dada por uma função
 void forcingfunction(TPZVec<REAL> &ponto, TPZVec<REAL> &force);
 
 int main() {
-  
-  
+  //Arquivo de impressão de log (não essencial)
   std::ofstream file("graphtest.txt");
-   //malha geometrica
-   TPZGeoMesh *malha = new TPZGeoMesh;
-   malha->SetName("Malha gerada por Paulo Lyra, nao tem garantia nemhuma");
    
+  //malha geometrica
+  TPZGeoMesh *malha = new TPZGeoMesh;
+  malha->SetName("Malha geometrica Curso Floripa");
+   
+  //Cria e insere um elemento na malha geométrica criada acima
+  UmElemento(*malha);
+  
+  // Os elementos da malha original podem ser refinados
+  TPZVec<int> csub(0);
+  TPZManVector<TPZGeoEl *> pv(4);  //vetor auxiliar que receberá os subelementos 
+  int n1=1,level=0;   
+  cout << "\nDividir ate nivel ? ";
+  int resp = 3;
+  cin >> resp;      
+  
+  int nelc = malha->ElementVec().NElements(); //número de elementos da malha
+  int el;  //iterador
 
-   //UmElemento(*malha);
-   LerMalha("quad_st_800_1R_16X.gri",*malha);
+  TPZGeoEl *cpel;  //ponteiro auxiliar para um elemento geométrico
+  for(el=0;el<malha->ElementVec().NElements();el++) { //loop sobre todos os elementos da malha
+    cpel = malha->ElementVec()[el];    // obtém o ponteiro para o elemento da malha de 
+                                       // posição igual ao do iterador atual
+    if(cpel && cpel->Level() < resp){  // verifica se o ponteiro não é nulo e se
+                                       // se o nível de refinamento é menor que o nível desejado
+      cpel->Divide(pv);                // Executa a divisão do elemento
+    }
+  }
+  
+  //solicita ao usuário uma ordem p de interpolacao padrão para a malha
+  int ord = 4;
+  cout << "Entre ordem 1,2,3,4,5 : ";
+  cin >> ord;
+  
+  //Define a ordem p de criação de todo elemento computacional como sendo ord
+  TPZCompEl::gOrder = ord;
+  
+  // Construção da malha computacional. Aqui a malha terá apenas uma referência
+  // para a malha geométrica...
+  TPZCompMesh *malhacomp = new TPZCompMesh(malha);
+  
+  //Pode-se dar um nome a malha para efeito de impressão de resultados...
+  malhacomp->SetName("Malha Computacional :  Connects e Elementos");
+  
+  // Define-se o problema a resolver em cada parte do domínio / definem-se os materiais
+  InicializarMaterial(*malhacomp);
+  
+  //Define-se o espaço de aproximação
+  malhacomp->AutoBuild();
+  
+  //Ajusta o espaço levando em conta as condições de contorno
+  malhacomp->AdjustBoundaryElements();
+  
+  //Inicializa-se a estrutura de dados
+  malhacomp->InitializeBlock();
+  
+   
+  //Verificação e melhoria da banda da matriz de rigidez (Opcional)
+  TPZFMatrix before, after;
+  malhacomp->ComputeFillIn(100,before);
 
-   //ordem de interpolacao
-   int ord = 4;
-   cout << "Entre ordem 1,2,3,4,5 : ";
-//   cin >> ord;
-   TPZCompEl::gOrder = ord;
-   //construï¿½o malha computacional
-   TPZVec<int> csub(0);
-   TPZManVector<TPZGeoEl *> pv(4);
-   int n1=1,level=0; 
-   cout << "\nDividir ate nivel ? ";
-   int resp = 3;
-//   cin >> resp;      
-   int nelc = malha->ElementVec().NElements();
-   int el;  
+  // Cria-se um objeto análise. O único parâmetro é a malha computacional
+  // com toda a sua estrutura de dados já preparada. O PZ tentará otimizar
+  // a banda aqui.
+  TPZAnalysis an(malhacomp);
+  
+  // cálculo da banda após o ajuste
+  malhacomp->ComputeFillIn(100,after);
+  
+  //Pós processamento da matriz de rigidez antes e depois da otimização da banda 
+  VisualMatrix(before,"before.dx");
+  VisualMatrix(after,"after.dx");
+   
+  //Escolha do padrão de armazenamento. O parâmetro de entrada é a malha computacional
+  //TPZSkylineStructMatrix strmat(malhacomp);
+  TPZParSkylineStructMatrix strmat(malhacomp);       //skyline em paralelo (multthread)
+  //TPZParFrontStructMatrix<TPZFrontSym> strmat(malhacomp);
+  
+  //Define-se o padrão de armazenamento para a análise
+  an.SetStructuralMatrix(strmat);
+  
+  //Criação e definição do solver 
+  TPZStepSolver step;
+  step.SetDirect(ECholesky);   
+  
+  //Define-se o solver para a análise
+  an.SetSolver(step);
+  /*
+  TPZMatrixSolver *precond = an.BuildPreconditioner(TPZAnalysis::EElement,false);
+  step.SetCG(100,*precond,1.e-10,0);
+  an.SetSolver(step);
+  delete precond;
+  */
+  //Processamento
+  cout << "Number of equations " << malhacomp->NEquations() << endl;
+  an.Run();
 
-   TPZGeoEl *cpel;
-   for(el=0;el<malha->ElementVec().NElements();el++) {
-     cpel = malha->ElementVec()[el];
-     if(cpel && cpel->Level() < resp)
-		cpel->Divide(pv);
-
-   }
-   //analysis
-   TPZCompMesh *malhacomp = new TPZCompMesh(malha);
-   InicializarMaterial(*malhacomp);
-   malhacomp->AutoBuild();
-   malhacomp->AdjustBoundaryElements();
-   malhacomp->InitializeBlock();
-   
-   TPZFMatrix before, after;
-   malhacomp->ComputeFillIn(500,before);
-/*
-   TPZNodesetCompute nodeset;
-   TPZStack<int> elementgraph,elementgraphindex;
-   malhacomp->ComputeElGraph(elementgraph,elementgraphindex);
-   int nindep = malhacomp->NIndependentConnects();
-   malhacomp->ComputeElGraph(elementgraph,elementgraphindex);
-   int nel = elementgraphindex.NElements()-1;
-   TPZMetis renum(nel,nindep);
-   nodeset.Print(file,elementgraphindex,elementgraph);
-   renum.ConvertGraph(elementgraph,elementgraphindex,nodeset.Nodegraph(),nodeset.Nodegraphindex());
-//   cout << "nodegraphindex " << nodeset.Nodegraphindex() << endl;
-//   cout << "nodegraph " << nodeset.Nodegraph() << endl;
-   nodeset.AnalyseGraph();
-   nodeset.Print(file);
-   TPZStack<int> blockgraph,blockgraphindex;
-//   nodeset.BuildNodeGraph(blockgraph,blockgraphindex);
-//   nodeset.BuildVertexGraph(blockgraph,blockgraphindex);
-   nodeset.BuildElementGraph(blockgraph,blockgraphindex);
-   
-   file << "Vertex graph\n";
-   nodeset.Print(file,blockgraphindex,blockgraph);
-
-*/
-   TPZAnalysis an(malhacomp);
-   
-   malhacomp->ComputeFillIn(500,after);
-   
-   VisualMatrix(before,"before.dx");
-   VisualMatrix(after,"after.dx");
-   
-   //return 0;
-   //TPZSkylineStructMatrix strmat(malhacomp);
-   TPZParSkylineStructMatrix strmat(malhacomp);
-   //TPZParFrontStructMatrix<TPZFrontSym> strmat(malhacomp);
-   an.SetStructuralMatrix(strmat);
-   
-   TPZStepSolver step;
-   step.SetDirect(ECholesky);   
-   
-   an.SetSolver(step);
-   /*
-   TPZMatrixSolver *precond = an.BuildPreconditioner(TPZAnalysis::EElement,false);
-   step.SetCG(100,*precond,1.e-10,0);
-   an.SetSolver(step);
-   delete precond;
-*/
-   malhacomp->SetName("Malha Computacional :  Connects e Elementos");
-   // Posprocessamento
-   cout << "Number of equations " << malhacomp->NEquations() << endl;
-   an.Run();
-   TPZVec<char *> scalnames(1);
-   scalnames[0] = "state";
-
-   TPZVec<char *> vecnames(0);
-
-   char plotfile[] =  "termica.dx";
-   an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
-   an.PostProcess(2);
-   //   an.DefineGraphMesh(2, scalnames, vecnames, pltfile);
-   //   an.PostProcess(2);
-   delete malhacomp;
-   delete malha;
-   return 0;
+  // Posprocessamento
+  TPZVec<char *> scalnames(1);
+  scalnames[0] = "state";    //nome das variáveis que se quer pós-processar
+  TPZVec<char *> vecnames(0);
+  char plotfile[] =  "termica.dx"; //nome do arquivo de resultados
+  //Define-se para a análise as variáveis a pós-processar
+  an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
+  //Executa os cálculos para geração dos resultados de pós-processamento
+  an.PostProcess(2);
+  //   an.DefineGraphMesh(2, scalnames, vecnames, pltfile);
+  //   an.PostProcess(2);
+  
+  //limpar a memória alocada dinamicamente.
+  delete malhacomp;
+  delete malha;
+  return 0;
 }
 
 void UmElemento(TPZGeoMesh &malha) {
-	double coordstore[4][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.}};
-	// criar um objeto tipo malha geometrica
+  //Para efeito de teste será criado um elemento quadrilateral de
+  //comprimento 1, com as seguintes coordenadas (x,y,z)
+  // - canto inferior esquerdo: (0,0,0);
+  // - canto inferior direito : (0,1,0);
+  // - canto superior direito : (1,1,0);
+  // - canto superior esquerdo: (0,1,0);  
+  double coordstore[4][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.}};
 
-	// criar quatro nos
-	int i,j;
-	TPZVec<REAL> coord(3,0.);
-	for(i=0; i<4; i++) {
-		// initializar as coordenadas do no em um vetor
-		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
+  // criar os quatro nós geométricos
+  int i,j;                              //iteradores
+  TPZVec<REAL> coord(3,0.);             //vetor auxiliar para armazenar uma coordenada
+  
+  for(i=0; i<4; i++) {                  //loop sobre o número de nós da malha
+    
+    // inicializar as coordenadas do no em um vetor do tipo pz
+    for (j=0; j<3; j++) coord[j] = coordstore[i][j]; 
+    // identificar um espaço no vetor da malha geométrica 
+    // onde podemos armazenar o objeto nó a criar
+    int nodeindex = malha.NodeVec ().AllocateNewElement ();
 
-		// identificar um espaï¿½ no vetor onde podemos armazenar
-		// este vetor
-		int nodeindex = malha.NodeVec ().AllocateNewElement ();
+    // criar um nó geométrico e inserí-lo na posição 
+    // alocada no vetor de nós da malha geométrica
+    malha.NodeVec ()[i].Initialize (i,coord,malha);
+  
+  }
 
-		// initializar os dados do nï¿½		
-		malha.NodeVec ()[i].Initialize (i,coord,malha);
-	}
-
-	// criar um elemento
-
-	// initializar os indices dos nï¿½
-	TPZVec<int> indices(4);
-	for(i=0; i<4; i++) indices[i] = i;
-
-	// O proprio construtor vai inserir o elemento na malha
-//	TPZGeoEl *gel = new TPZGeoElQ2d(0,indices,1,malha);
+  // Criação de um elemento geométrico
+  // inicializar os índices dos nós do elemento
+  TPZVec<int> indices(4);
+  for(i=0; i<4; i++) indices[i] = i; //loop sobre o número de nós do elemento
+  //no caso só há quatro nós e eles foram criados na ordem correta para o
+  //elemento em questão. A ordem dos nós deve seguir um padrão pré-estabelecido
+  
+  // O próprio construtor vai inserir o elemento na malha
+  // os parâmetros de criação do elemento são os seguintes:
+  // 1) Tipo geométrico do elemento
+  // - EPoint            element 0D - type point        -  associated index 0
+  // - EOned             element 1D - type oned         -  associated index 1
+  // - ETriangle         element 2D - type triangle     -  associated index 2
+  // - EQuadrilateral    element 2D - type quad         -  associated index 3
+  // - ETetraedro        element 3D - type tetraedro    -  associated index 4
+  // - EPiramide         element 3D - type piramide     -  associated index 5
+  // - EPrisma           element 3D - type prisma       -  associated index 6
+  // - ECube             element 3D - type cube         -  associated index 7
+  // 2) Vetor de conectividades dos elementos (o número de nós deve ser 
+  //    compatível com o número de nós do tipo do elemento
+  // 3) Índice do material que será associado ao elemento
+  // 4) Variável onde será retornado o índice do elemento criado no vetor
+  //    de elementos da malha geométrica
+  // TPZGeoEl *gel = new TPZGeoElQ2d(0,indices,1,malha);  //forma antiga.
   int index;
-	TPZGeoEl *gel = malha.CreateGeoElement(EQuadrilateral,indices,1,index);
+  TPZGeoEl *gel = malha.CreateGeoElement(EQuadrilateral,indices,1,index);
 
+  //Gerar as estruturas de dados de conectividade e vizinhança
+  malha.BuildConnectivity ();
 
-	malha.BuildConnectivity ();
-
-	// Associar o lado de um elemento com uma condicao de contorno
-	// Este objeto ira inserir-se automaticamente na malha
-	TPZGeoElBC(gel,4,-4,malha);
+  // Identificar onde serão inseridas condições de contorno.
+  // Uma condição de contorno é aplicada a um lado (parte do contorno) 
+  // de um elemento. Este objeto irá inserir-se automaticamente na malha
+  // Os parâmetros são os seguintes:
+  // 1) elemento onde será aplicada a condição de contorno
+  // 2) lado do elemento onde será inserida a condição de contorno
+  // 3) identificador da condição de contorno
+  // 4) referência para a malha geométrica.
+  TPZGeoElBC(gel,4,-4,malha);
 }
+
 
 void forcingfunction(TPZVec<REAL> &p, TPZVec<REAL> &f) {
   REAL x0=0.5,y0=0.2,r=0.005,eps=0.0001;
@@ -203,9 +263,12 @@ void forcingfunction(TPZVec<REAL> &p, TPZVec<REAL> &f) {
   } else f[0] = 0.;
 }
 
-
+// Exemplo de leitura de malha a partir de um arquivo
+// os parâmetros utilizados são o nome do arquivo e uma
+// referência para a malha geométrica que receberá os dados
 void LerMalha(char *nome, TPZGeoMesh &grid) {
-	ifstream infile(nome);
+  //Criação de um objeto arquivo de entrada de dados;
+  ifstream infile(nome);
 
 	int linestoskip;
 	char buf[256];
@@ -256,24 +319,52 @@ void LerMalha(char *nome, TPZGeoMesh &grid) {
 }
 
 void InicializarMaterial(TPZCompMesh &cmesh) {
+  //O parâmetro básico para a criação de um material é o 
+  // identificador. Esse deve corresponder aos índices utilizados
+  // na criação dos elementos geométricos.
+  // No restante, o material define a equação diferencial a ser
+  // resolvida...
+  TPZMat2dLin *meumat = new TPZMat2dLin(1);
+  
+  //Cada material tem parâmetros de inicialização próprios, assim
+  //deve-se consultar a documentação para verificar como definir os
+  //parâmetros. No caso em questão o material requer três matrizes
+  //e uma função de cálculo também é fornecida
+  TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
+  meumat->SetMaterial (xk,xc,xf);
+  meumat->SetForcingFunction(forcingfunction);
+  
+  //Após a criação do material este dever ser inserido na estrutura
+  //de dados da malha computacional
+  cmesh.InsertMaterialObject(meumat);
 
-	TPZMat2dLin *meumat = new TPZMat2dLin(1);
-	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
-	meumat->SetMaterial (xk,xc,xf);
-	meumat->SetForcingFunction(forcingfunction);
-	cmesh.InsertMaterialObject(meumat);
-
-	// inserir a condicao de contorno
-	TPZFMatrix val1(1,1,0.),val2(1,1,0.);
-	TPZMaterial *bnd = meumat->CreateBC (-4,0,val1,val2);
-	cmesh.InsertMaterialObject(bnd);
-	bnd = meumat->CreateBC (-3,0,val1,val2);
-	cmesh.InsertMaterialObject(bnd);
-	bnd = meumat->CreateBC (-2,0,val1,val2);
-	cmesh.InsertMaterialObject(bnd);
-	bnd = meumat->CreateBC (-1,0,val1,val2);
-	cmesh.InsertMaterialObject(bnd);
-
-
+  // inserir as condições de contorno
+  // Uma condição de contorno pode ser dada por duas matrizes
+  // relacionadas a rigidez e ao vetor de carga. As dimensões dessas
+  // matrizes dependem da dimensão e do número de variáveis de estado
+  // do problema. O tipo de condição de contorno é definido por um 
+  // identificador, onde:
+  //  - 0 = Dirichlet
+  //  - 1 = Neumann
+  //  - 2 = Mista
+  TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+  
+  //Os parâmetros necessários à criação de uma condição de contorno são:
+  // 1) Identificador da condição de contorno (lembre-se que uma BC é como um material)
+  // 2) O Tipo da BC : Dirichlet, Neumann ou Mista 
+  // 3) Os valores da BC
+  TPZMaterial *bnd = meumat->CreateBC (-4,0,val1,val2);
+  
+  //Da mesma forma que para os materiais, após sua criação é necessário
+  //a sua inserção na estrutura de dados da malha computacional 
+  cmesh.InsertMaterialObject(bnd);
+  
+  //criação e inserção de outras BC's
+  bnd = meumat->CreateBC (-3,0,val1,val2);
+  cmesh.InsertMaterialObject(bnd);
+  bnd = meumat->CreateBC (-2,0,val1,val2);
+  cmesh.InsertMaterialObject(bnd);
+  bnd = meumat->CreateBC (-1,0,val1,val2);
+  cmesh.InsertMaterialObject(bnd);
 }
 
