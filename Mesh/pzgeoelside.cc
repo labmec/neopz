@@ -78,6 +78,7 @@ void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const {
   }
 }
 
+/*
 TPZGeoElSide TPZGeoElSide::Neighbour() const {
   if (!fGeoEl) return TPZGeoElSide();
   TPZGeoElSide neighbour = fGeoEl->Neighbour(fSide);
@@ -96,6 +97,7 @@ void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
 		neigh = neigh.Neighbour();
 	}
 }
+*/
 
 void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
   if(fSide < fGeoEl->NCornerNodes()) 

@@ -175,4 +175,26 @@ void HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec, int onlyinte
 
 };
 
+#include "pzgeoel.h"
+
+inline TPZGeoElSide TPZGeoElSide::Neighbour() const {
+  return fGeoEl ? fGeoEl->Neighbour(fSide) : TPZGeoElSide();
+}
+
+inline void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
+#ifndef NDEBUG
+  if(! Exists() || ! this->Neighbour().Exists()) 
+    {
+      cout << "TPZGeoElSide AllNeighbours inconsistent\n";
+      return;
+    }
+#endif
+  TPZGeoElSide neigh = Neighbour();
+  while(neigh != *this)
+    {
+      allneigh.Push(neigh);
+      neigh = neigh.Neighbour();
+    }
+}
+
 #endif
