@@ -1,4 +1,4 @@
-//$Id: pzelct2d.cc,v 1.9 2003-11-06 19:15:19 cesar Exp $
+//$Id: pzelct2d.cc,v 1.10 2003-11-25 12:56:33 cesar Exp $
 
 // -*- c++ -*-
 #include "pzelct2d.h"
@@ -46,12 +46,29 @@ TPZCompElT2d::TPZCompElT2d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 
 //  RemoveSideRestraintsII(EInsert);
   ref->SetReference(this);
+static int counter = 0;
+  counter++;
+  
   for(i=0;i<7;i++) {
     fConnectIndexes[i] = CreateMidSideConnect(i);
+    CheckElementConsistency();
     mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
   }
   for(i=3;i<7;i++)
     IdentifySideOrder(i);
+
+    
+/*  for(i=0;i<3;i++) {
+    fConnectIndexes[i] = CreateMidSideConnect(i);
+    mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
+  }
+  for(i=3;i<7;i++){
+    fConnectIndexes[i] = CreateMidSideConnect(i);
+    mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
+    IdentifySideOrder(i);    
+  }
+*/
+  
   TPZVec<int> order(2,2*fSideOrder[3]);
   fIntRule.SetOrder(order);
 }
@@ -138,7 +155,7 @@ TPZIntPoints *TPZCompElT2d::CreateSideIntegrationRule(int side) {  // or TPZInt.
 }
 
 int TPZCompElT2d::PreferredSideOrder(int side) {
-  if(side<3) return 0;
+  if(side<3) return 1;
   if(side<7) {
 	  int order = fPreferredSideOrder[side-3];
 	  return AdjustPreferredSideOrder(side,order);
@@ -160,11 +177,15 @@ void TPZCompElT2d::SetSideOrder(int side, int order) {
 /*   } */
   if(side<0 || side>6 || order <1){
     PZError << "TPZCompElT2d::SetSideOrder. Bad parameter side.\n";
+    int a; cin >> a;
     return;
   }
   if(side>2) fSideOrder[side-3] = order;
   if(fConnectIndexes[side] !=-1) { 
     TPZConnect &c = Connect(side);
+    if(c.HasDependency() && c.Order() != order) {
+      cout << "TPZCompElT2d::SetSideOrder fodeu\n";
+    }
     c.SetOrder(order);
     int seqnum = c.SequenceNumber();
     int nvar = 1;
@@ -179,7 +200,8 @@ void TPZCompElT2d::SetSideOrder(int side, int order) {
 }
 
 int TPZCompElT2d::SideOrder(int side) {
-  if(side<3 || side>6) return 0;
+  if(side<3) return 1;
+  if(side>6) return 0;
   return fSideOrder[side-3];
 }
 
@@ -325,4 +347,31 @@ TPZCompMesh *TPZCompElT2d::CreateMesh() {
 
 
    return secondmesh;
+}
+
+int TPZCompElT2d::CheckElementConsistency() {
+
+  int n,ncorner = NCornerConnects();
+  int nc = NConnects();
+  for(n=0;n<nc; n++) {
+    int connectindex = ConnectIndex(n);
+    if(connectindex < 0) continue;
+    TPZConnect &c = Connect(n);
+    int nshape = NConnectShapeF(n);
+    if(c.HasDependency() && c.CheckDependency(nshape,Mesh(),Material()->NStateVariables()) == -1){
+      cout << "TPZCompElT2d::CheckElementConsistency() detected inconsistency\n";
+    }
+    if(n<ncorner) continue;
+    int order = c.Order();
+    int order2 = fSideOrder[n-NCornerConnects()];
+    int ndof = c.NDof(*Mesh());
+    int ndof2 = Material()->NStateVariables()*NConnectShapeF(n);
+    if(order != order2 || ndof != ndof2) {
+      cout << "TPZCompElT2d inconsistent datastructure connect order " << order << " side order " << order2 << " blocksize " << ndof <<
+	" computed blocksize " << ndof2 << endl;
+      Print();
+      return 0;
+    }
+  }
+  return 1;
 }
