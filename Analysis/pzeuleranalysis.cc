@@ -1,8 +1,9 @@
-//$Id: pzeuleranalysis.cc,v 1.5 2003-10-21 18:10:58 erick Exp $
+//$Id: pzeuleranalysis.cc,v 1.6 2003-10-24 00:01:01 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
 #include "TPZCompElDisc.h"
+#include "pzfstrmatrix.h"
 
 TPZEulerAnalysis::TPZEulerAnalysis():
 TPZAnalysis(), fFlowCompMesh(NULL),
@@ -27,11 +28,6 @@ fTimeIntEps(1e-8), fTimeIntMaxIter(100)
 
 TPZEulerAnalysis::~TPZEulerAnalysis()
 {
-}
-
-void RunNewton(REAL & epsilon, int & numIter)
-{
-
 }
 
 void TPZEulerAnalysis::SetAdvancedState()
@@ -100,7 +96,24 @@ void TPZEulerAnalysis::BufferLastStateAssemble()
 
 void TPZEulerAnalysis::Assemble()
 {
-   if(!fCompMesh || !fStructMatrix || !fSolver) return;
+   if(!fCompMesh)
+   {
+      PZError << "TPZEulerAnalysis::Assemble Error: No Computational Mesh\n";
+      return;
+   }
+
+   if(!fStructMatrix)
+   {
+      PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
+      return;
+   }
+
+   if(!fSolver)
+   {
+      PZError << "TPZEulerAnalysis::Assemble Error: No Solver\n";
+      return;
+   }
+
 
    // retrieving the matrix stored in the Solver,
    // attempting to reuse it.
@@ -186,6 +199,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
       Assemble();
 
       epsilon = Norm(fRhs);
+      cout << "\nEpsilon:" << epsilon;
       i++;
    }
 
@@ -206,24 +220,32 @@ void TPZEulerAnalysis::Run(ostream &out)
 
    out << "\nBeginning time integration";
 
-   REAL epsilon_Newton, epsilon_Global;
+   REAL epsilon_Newton/*, epsilon_Global*/;
    int numIter_Newton/*, numIter_Global*/;
    REAL epsilon;
 
-   int i;
-   epsilon_Global = 2. * fTimeIntEps;
+   int i = 0;
+   epsilon = 2. * fTimeIntEps;
 
+   // initializing the solution pointers
+   fpCurrSol = & fSolution;
+   fpLastSol = & fSolution2;
 
    // copying the solution from the mesh into the sol vector.
-   (*fpLastSol) = fFlowCompMesh->Solution();
+   fpLastSol->operator=(fFlowCompMesh->Solution());
 
 #ifdef RESTART_ZEROED
-   fpLastSol->Zero();
+   fpCurrSol->Zero();
 #else
    // the history must be rebuilt -> a current state does not exist yet.
-   (*fpCurrSol) = (*fpLastSol); // deltaState = 0;
+   fpCurrSol->operator=(*fpLastSol); // deltaState = 0;
 #endif
-
+/*
+// The lines below initialize all the variables with Ones.
+   for(int j = 0; j < fpLastSol->Rows(); j++)
+   fpLastSol->operator()(j,0) = 1.;
+   fFlowCompMesh->LoadSolution(*fpLastSol);
+*/
    // Buffers the contribution of the last state
    BufferLastStateAssemble();
 
@@ -231,11 +253,14 @@ void TPZEulerAnalysis::Run(ostream &out)
    // (last Sol, since Curr sol equals it)
    ComputeTimeStep();
 
-   while(i < fTimeIntMaxIter && epsilon_Global > fTimeIntEps)
+   while(i < fTimeIntMaxIter && epsilon > fTimeIntEps)
    {
       // Solves the nonlinear system, updates the solution,
       // history and last state assemble buffer.
       RunNewton(epsilon_Newton, numIter_Newton);
+
+      // resetting the forcing function for iterations greater than the 1st
+      fFlowCompMesh->SetFlowforcingFunction(NULL);
 
       // Computing the time step, verifying the convergency
       // using the newest time step.
