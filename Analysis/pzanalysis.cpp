@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.13 2003-12-02 17:08:42 phil Exp $
+//$Id: pzanalysis.cpp,v 1.14 2003-12-08 14:16:53 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -101,10 +101,10 @@ void TPZAnalysis::Assemble() {
 	fRhs.Redim(fCompMesh->NEquations(),1);
 	fSolver->SetMatrix(0);
 	TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
-	mat->Print("Rigidez");
+//mat->Print("Rigidez");
 	fSolver->SetMatrix(mat);//aqui TPZFMatrix não é nula
-	fRhs.Print("Rhs");
-	cout.flush();
+//fRhs.Print("Rhs");
+//cout.flush();
 }
 
 void TPZAnalysis::Solve() {
