@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.16 2004-01-21 00:23:47 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.17 2004-02-02 15:15:22 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -183,7 +183,7 @@ void TPZEulerAnalysis::AssembleRhs()
    fRhs+=/*.Add(fRhsLast, */fRhsLast/*)*/;
 }
 
-ofstream out("Matrizes.out");
+ofstream eulerout("Matrizes.out");
 
 void TPZEulerAnalysis::Solve(REAL & res) {
    int numeq = fCompMesh->NEquations();
@@ -204,10 +204,10 @@ void TPZEulerAnalysis::Solve(REAL & res) {
    //fSolution += delu;
 
 
-   fSolver->Matrix()->Print("Matriz", out, EMathematicaInput);
-   delu.Print("delu", out, EMathematicaInput);
-   fRhs.Print("Rhs", out, EMathematicaInput);
-   out.flush();
+   fSolver->Matrix()->Print("Matriz", eulerout, EMathematicaInput);
+   delu.Print("delu", eulerout, EMathematicaInput);
+   fRhs.Print("Rhs", eulerout, EMathematicaInput);
+   eulerout.flush();
 
    UpdateSolution(delu);
 
