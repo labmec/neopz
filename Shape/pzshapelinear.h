@@ -65,6 +65,12 @@ static void Chebyshev(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
  */
 static void Legendre(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
 
+/**
+ * Legendre function computing several derivatives.
+ * @param see Legendre(Real, int, TPZFMatrix, TPZFMatrix)
+ */
+static void Legendre(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi, int nderiv);
+
 static REAL fJacobiAlfa;
 static REAL fJacobiBeta;
 

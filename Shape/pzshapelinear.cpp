@@ -45,17 +45,20 @@ void TPZShapeLinear::Chebyshev(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
 }
 
 void TPZShapeLinear::Legendre(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
+
   // Quadratic or higher shape functions
   if (num <= 0) return;
   phi.Put(0, 0, 1.0);
   dphi.Put(0, 0, 0.0);
+
   if (num == 1) return;
-//<!> Por que Phi sempre tem col = 0 e dphi sempre tem row = 0 ?
+
   phi.Put(1, 0, x);
   dphi.Put(0, 1, 1.0);
+
   int ord;
 //Aqui fica diferente do Chebyshev
-REAL ord_real, value;
+  REAL ord_real, value;
   for (ord = 2; ord < num; ord++)
     {
       //casting int ord to REAL ord_real
@@ -68,6 +71,10 @@ REAL ord_real, value;
       value    = (2.0 * (ord_real - 1.0) + 1.0) * phi(ord - 1, 0) + dphi(0, ord - 2);
       dphi.Put(0, ord, value);
     }
+
+
+
+#ifdef DEBUG
     int printing = 0;
     if (printing){
         cout << "Legendre" << endl;
@@ -79,6 +86,67 @@ REAL ord_real, value;
 	  cout << endl;
 	}
    }
+#endif
+
+} //end of method
+
+void TPZShapeLinear::Legendre(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi, int nderiv){
+
+  // Quadratic or higher shape functions
+  if (num <= 0) return;
+  phi.Put(0, 0, 1.0);
+  dphi.Put(0, 0, 0.0);
+
+  int ideriv;
+  for (ideriv = 1; ideriv < nderiv; ideriv++)
+     dphi.Put(ideriv, 0, 0.0);
+
+
+  if (num == 1) return;
+
+  phi.Put(1, 0, x);
+  dphi.Put(0, 1, 1.0);
+
+  for (ideriv = 1; ideriv < nderiv; ideriv++)
+     dphi.Put(ideriv, 1, 0.0);
+ 
+  int ord;
+//Aqui fica diferente do Chebyshev
+  REAL ord_real, value;
+  for (ord = 2; ord < num; ord++)
+    {
+      //casting int ord to REAL ord_real
+      ord_real = (REAL)ord;
+      //computing the ord_th function
+      value    = ( (2.0 * (ord_real - 1.0) + 1.0) * x * phi(ord - 1, 0) - (ord_real - 1.0) * phi(ord - 2 , 0) ) / (ord_real);
+      phi.Put(ord, 0, value);
+
+      //computing the ord_th function's derivative
+      value    = (2.0 * (ord_real - 1.0) + 1.0) * phi(ord - 1, 0) + dphi(0, ord - 2);
+      dphi.Put(0, ord, value);
+
+      for (ideriv = 1; ideriv < nderiv; ideriv++){
+	 value = (2.0 * (ord_real - 1.0) + 1.0) * dphi(ideriv - 1, ord - 1) + dphi(ideriv, ord - 2);
+	 dphi.Put(ideriv, ord, value);	    	 
+      }
+
+    }
+
+
+#ifdef DEBUG
+    int printing = 0;
+    if (printing){
+        cout << "Legendre" << endl;
+	for(ord = 0; ord < num; ord++)
+	{
+	  cout << "x = " << x << endl;
+	  cout << "phi(" << ord << ", 0) = " << phi(ord, 0) << endl;
+	  cout << "dphi(0, " << ord << " = " << dphi(0, ord) << endl;
+	  cout << endl;
+	}
+   }
+#endif
+
 } //end of method
 
 
