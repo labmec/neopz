@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.18 2004-03-30 18:19:20 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.19 2004-04-05 23:30:18 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -305,12 +305,12 @@ template <class T>
    * See declaration in base class
    * Contributes only to the rhs.
    */
-   // Not yet implemented, but soon necessary
-/*  virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
+
+  virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
 			TPZVec<REAL> &sol, TPZFMatrix &dsol, REAL weight,
 			TPZFMatrix &axes, TPZFMatrix &phi,
 			TPZFMatrix &dphi, TPZFMatrix &ef);
-*/
+
   /**
    * See declaration in base class
    */
@@ -368,6 +368,12 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(
 			REAL weight,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
 			TPZFMatrix &ek,TPZFMatrix &ef);
+
+  virtual void ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
+			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+			REAL weight,
+			TPZFMatrix &phi,TPZFMatrix &dphi,
+			TPZFMatrix &ef);
 
 //-------------------
 
@@ -459,6 +465,12 @@ template <class T>
 			REAL weight,
 			TPZFMatrix &ek,TPZFMatrix &ef);
 #endif
+
+  void ContributeExplT1(TPZVec<REAL> &x,
+			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+			REAL weight,
+			TPZFMatrix &phi,TPZFMatrix &dphi,
+			TPZFMatrix &ef);
 
   void ContributeImplT1(TPZVec<REAL> &x,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
@@ -1135,7 +1147,7 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
   T    rhouv_t, rhouv_f;
   T    lambda_f, lambda_t;
   T    delta_rho, delta_rhou,delta_rhov, delta_rhoE;
-  T    hnx, hny;
+  REAL hnx, hny;
   T    tempo11, usc;
 
   flux_rho = 0;
@@ -1156,10 +1168,10 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
   T    somme_coef = coef1 + coef2;
   T    u_f = rhou_f/rho_f;
   T    v_f = rhov_f/rho_f;
-  T    h_f = (gam * rhoE_f/rho_f) - (gam1 / 2.0) * (u_f * u_f + v_f * v_f);
+  T    h_f = (gam * rhoE_f/rho_f) -  (u_f * u_f + v_f * v_f) * (gam1 / 2.0);
   T    u_t = rhou_t/rho_t;
   T    v_t = rhov_t/rho_t;
-  T    h_t = (gam * rhoE_t/rho_t) - (gam1 / 2.0) * (u_t * u_t + v_t * v_t);
+  T    h_t = (gam * rhoE_t/rho_t) -  (u_t * u_t + v_t * v_t) * (gam1 / 2.0);
 
   //.... averages
   //REAL rho_ave = coef1 * coef2;
@@ -1169,7 +1181,7 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
   //
   //.. Compute Speed of sound
   T    scal = u_ave * nx + v_ave * ny;
-  T    norme = sqrt(nx * nx + ny * ny);
+  REAL norme = sqrt(nx * nx + ny * ny);
   T    u2pv2 = u_ave * u_ave + v_ave * v_ave;
   T    c_speed = gam1 * (h_ave - 0.5 * u2pv2);
   if(c_speed < 1e-6) c_speed = 1e-6;    // avoid division by 0 if critical

@@ -399,8 +399,8 @@ void TPZArtDiff::Bornhaus(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec<T
       ContributeBornhaus(sol, us, c, fGamma, alphas, BornhausTau);
    }
 
-   RTM.     Multiply(BornhausTau, Temp);
-   Temp.   Multiply(RMi, BornhausTau);
+   RTM. Multiply(BornhausTau, Temp);
+   Temp.Multiply(RMi, BornhausTau);
 
    BornhausTau.Inverse();
 //cout << BornhausTau;

@@ -183,14 +183,19 @@ TPZFlowCompMesh *
    val1.Zero();
    val2.Zero();
    val2(0,0) = ro;
+   val2(1,0) = /*ro */ .5;
+   val2(2,0) = /*ro */ 0.;
+   val2(3,0) = p;///(gamma-1.0) + 0.5 * ro * vel2;
+/*
+   val2(0,0) = ro;
    val2(1,0) = ro * u;
    val2(2,0) = ro * v;
-   val2(3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+   val2(3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;*/
    TPZGeoElBC((TPZGeoEl *)gElem[0],4,-1,*gmesh);
    TPZGeoElBC((TPZGeoEl *)gElem[0],5,-1,*gmesh);
    TPZGeoElBC((TPZGeoEl *)gElem[0],6,-1,*gmesh);
    TPZGeoElBC((TPZGeoEl *)gElem[0],7,-1,*gmesh);
-   bc = mat->CreateBC(-1,3,val1,val2);
+   bc = mat->CreateBC(-1,9,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
    cmesh->AutoBuild();
@@ -222,14 +227,15 @@ TPZFlowCompMesh *
    {
       int blockOffset = cmesh->Block().Position(j) + lastShapeFun;
 
-      REAL ro = 2.0,
-	   u = 5.7,
-	   v = 0,//3.5,
-	   p = 2.8,
-	   vel2 = u*u + v*v;
+      REAL ro = 1.7,
+	   u = .5,
+	   v = 0.01,//0.0821588,//3.5,
+	   p = 2.,
+	   c = sqrt(1.4 * p / ro);
+      REAL vel2 = (u*u + v*v) * c*c;
       Solution(blockOffset  ,0) = ro;
-      Solution(blockOffset+1,0) = ro * u;
-      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+1,0) = ro * u * c;
+      Solution(blockOffset+2,0) = ro * v * c;
       Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
  /*     ro = 1.4;
       u = 3.3;
@@ -240,8 +246,8 @@ TPZFlowCompMesh *
       Solution(blockOffset+1,0) = ro * u;
       Solution(blockOffset+2,0) = ro * v;
       Solution(blockOffset+3,0) = (p/(gamma-1.0) + 0.5 * ro * vel2);
-*//*
-      int nVars = Solution.Rows();
+*/
+/*      int nVars = Solution.Rows();
       int k;
       for(k = 4; k < nVars; k++)Solution(k,0) = .05;*/
    }
