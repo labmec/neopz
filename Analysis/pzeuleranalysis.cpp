@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.19 2004-02-12 00:18:43 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.20 2004-02-12 20:50:35 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -212,6 +212,7 @@ void TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix * residual) {
 
    if(residual)
    {   // verifying the inversion of the linear system
+      residual->Redim(numeq,1);
       fSolver->Matrix()->Residual(delu, fRhs, *residual);
       res = Norm(*residual);
 
