@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.15 2004-01-14 12:14:03 rgdamas Exp $
+//$Id: pzanalysis.cpp,v 1.16 2004-04-02 15:58:27 tiago Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -155,8 +155,7 @@ void TPZAnalysis::Print( char *name , std::ostream &out )
 }
 
 
-void
-TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out ){
+void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out ){
 
   int neq = fCompMesh->NEquations();
   TPZVec<REAL> ux((int) neq);
@@ -175,7 +174,7 @@ TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out ){
       int nerrors = errors.NElements();
       values.Resize(nerrors, 0.);
       for(int ier = 0; ier < nerrors; ier++)
-	values[ier] += errors[ier];
+	values[ier] += errors[ier] * errors[ier];
     }
   }
 
@@ -185,15 +184,15 @@ if (nerrors < 3) {
   PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
   out<<endl<<"############"<<endl;
   for(int ier = 0; ier < nerrors; ier++)
-    out << endl << "error " << ier << "  = " << values[ier];
+    out << endl << "error " << ier << "  = " << sqrt(values[ier]);
 }
 else{
   out << endl << "############" << endl;
-  out << endl << "true_error="  << values[0] << endl;
-  out << endl << "L2_error="    << values[1] << endl;
-  out << endl << "estimate="    <<values[2]  <<endl;
+  out << endl << "true_error (Norma H1) = "  << sqrt(values[0]) << endl;
+  out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
+  out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
   for(int ier = 3; ier < nerrors; ier++)
-    out << endl << "other norms = " << values[ier] << endl;
+    out << endl << "other norms = " << sqrt(values[ier]) << endl;
 }
 
 return;
