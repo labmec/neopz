@@ -950,25 +950,62 @@ REAL TPZGeoEl::Distance(TPZVec<REAL> &centel,TPZVec<REAL> &centface){
 
 REAL TPZGeoEl::ElementRadius(){
 
-  TPZVec<REAL> centel(3,0.),centface(3,0.);
-  TPZVec<REAL> masscent(3,0.),massface(3,0.);
-  REAL mindist = 1000.,dist;
-  CenterPoint(NSides()-1,centel);
-  X(centel,masscent);
-  int nfaces,face,face0;
-       if(NSides()==15) {nfaces = 14; face0 = 10;}//tetrahedron
-  else if(NSides()==19) {nfaces = 18; face0 = 13;}//pyramid
-  else if(NSides()==21) {nfaces = 20; face0 = 15;}//prism
-  else if(NSides()==27) {nfaces = 26; face0 = 20;}//hexahedro
-  else return 0.;//line, point, triangle, quadrilateral
-  for(face=face0;face<nfaces;face++){
-    CenterPoint(face,centface);
-    X(centface,massface);
-    dist = Distance(masscent,massface);
-    if(mindist > dist) mindist = dist;
-  }
-  return mindist;
-}
+   switch( this->Dimension() )
+   {
+      case 0:
+	 return 0.;
+	 break;
+	 
+      case 1:
+      case 2:{
+	 TPZManVector<REAL, 3> centel  (this->Dimension(), 0.);
+	 TPZManVector<REAL, 3> centface(this->Dimension(), 0.);
+	 TPZManVector<REAL, 3> masscent(3,0.), massface(3, 0.);
+	 REAL mindist = 1000.;
+	 REAL dist;
+
+	 CenterPoint(NSides()-1,centel);
+	 X(centel,masscent);
+
+	 int nsides = NSides();
+	 for(int iside = 0; iside < nsides - 1; iside++){
+	    CenterPoint(iside, centface);
+	    X(centface,massface);
+	    dist = Distance(masscent,massface);
+	    if(mindist > dist) mindist = dist;
+	 }
+	 return mindist;
+	 break;
+      }
+
+      case 3:{
+	 TPZManVector<REAL, 3> centel(3,0.),centface(3,0.);
+	 TPZManVector<REAL, 3> masscent(3,0.),massface(3,0.);
+	 REAL mindist = 1000.,dist;
+	 CenterPoint(NSides()-1,centel);
+	 X(centel,masscent);
+	 int nfaces,face,face0;
+	 if(NSides()==15) {nfaces = 14; face0 = 10;}//tetrahedron
+	 else if(NSides()==19) {nfaces = 18; face0 = 13;}//pyramid
+	 else if(NSides()==21) {nfaces = 20; face0 = 15;}//prism
+	 else if(NSides()==27) {nfaces = 26; face0 = 20;}//hexahedro
+	 else return 0.;//line, point, triangle, quadrilateral
+	 for(face=face0;face<nfaces;face++){
+	    CenterPoint(face,centface);
+	    X(centface,massface);
+	    dist = Distance(masscent,massface);
+	    if(mindist > dist) mindist = dist;
+	 }
+	 return mindist;
+	 break;
+      }
+
+      default:
+	 PZError <<  "TPZGeoEl::ElementRadius - Dimension not implemented." << endl;
+	 return 0.;
+
+   }//end of switch
+} //end of method
 
 REAL TPZGeoEl::TriangleArea(TPZVec<TPZGeoNode *> &nodes){
 
