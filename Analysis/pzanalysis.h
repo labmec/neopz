@@ -28,6 +28,11 @@ template<class T, int N> class TPZStack;
 
 class TPZAnalysis {
 
+public:
+
+ enum EPrecond { EJacobi, EBlockJacobi, EElement, ENodeCentered };
+ 
+
  protected:
   /**
    * Geometric Mesh
@@ -159,7 +164,22 @@ class TPZAnalysis {
   * Returns a reference to the structural matrix
   */
   TPZStructMatrix &StructMatrix() { return *fStructMatrix;}
+  
+  /**
+  * Define the type of preconditioner used
+  * This method will create the stiffness matrix but without assembling
+  */
+  TPZMatrixSolver *BuildPreconditioner(EPrecond preconditioner, bool overlap);
+  
+ private:
+ 
+ /**
+ * Build a sequence solver based on the block graph and its colors
+ */
+TPZMatrixSolver *BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq, int numcolors, TPZVec<int> &colors);
+  
 
+public:
   void ShowShape( TPZVec<char *> &scalnames, TPZVec<char *> &vecnames,//1o : TPZConnect* nod,
 		  char *plotfile, ostream &out=cout);
 

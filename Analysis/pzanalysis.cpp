@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.18 2004-12-08 18:53:41 phil Exp $
+//$Id: pzanalysis.cpp,v 1.19 2005-01-04 21:42:26 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -22,6 +22,11 @@
 //#include "pzsloan.h"
 #include "pzmaterial.h"
 #include "pzstrmatrix.h"
+
+#include "tpznodesetcompute.h"
+#include "tpzsparseblockdiagonal.h"
+#include "pzseqsolver.h"
+
 #include <fstream>
 using namespace std;
 #include <string.h>
@@ -107,13 +112,21 @@ void TPZAnalysis::Assemble() {
         }
 
 	fRhs.Redim(fCompMesh->NEquations(),1);
-        TPZMatrix *zero(0);
-	fSolver->SetMatrix(zero);
-	TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
-//mat->Print("Rigidez");
-	fSolver->SetMatrix(mat);//aqui TPZFMatrix não é nula
-//fRhs.Print("Rhs");
-//cout.flush();
+        if(fSolver->Matrix())
+        {
+          fSolver->Matrix()->Zero();
+          fStructMatrix->Assemble(*(fSolver->Matrix()),fRhs);
+        }
+        else
+        {
+          TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
+          //mat->Print("Rigidez");
+          fSolver->SetMatrix(mat);
+          //aqui TPZFMatrix não é nula
+        }
+        fSolver->UpdateFrom(fSolver->Matrix());
+        //fRhs.Print("Rhs");
+        //cout.flush();
 }
 
 void TPZAnalysis::Solve() {
@@ -461,3 +474,99 @@ void TPZAnalysis::SetSolver(TPZMatrixSolver &solver){
     fSolver = (TPZMatrixSolver *) solver.Clone();
 }
 
+TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool overlap)
+{
+  if(!fSolver || !fSolver->Matrix())
+  {
+    cout << __FUNCTION__ << " called with uninitialized stiffness matrix\n";
+    
+  }
+  if(preconditioner == EJacobi)
+  {
+  }
+  else
+  {
+    TPZNodesetCompute nodeset;
+    TPZStack<int> elementgraph,elementgraphindex;
+    fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
+    int nindep = fCompMesh->NIndependentConnects();
+    int neq = fCompMesh->NEquations();
+    fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
+    int nel = elementgraphindex.NElements()-1;
+    TPZMetis renum(nel,nindep);
+    //nodeset.Print(file,elementgraphindex,elementgraph);
+    renum.ConvertGraph(elementgraph,elementgraphindex,nodeset.Nodegraph(),nodeset.Nodegraphindex());
+  //   cout << "nodegraphindex " << nodeset.Nodegraphindex() << endl;
+  //   cout << "nodegraph " << nodeset.Nodegraph() << endl;
+    nodeset.AnalyseGraph();
+    //nodeset.Print(file);
+    TPZStack<int> blockgraph,blockgraphindex;
+    switch(preconditioner)    
+    {
+      case EJacobi:
+        return 0;
+      case EBlockJacobi:
+        nodeset.BuildNodeGraph(blockgraph,blockgraphindex);
+        break;
+      case  EElement:
+         nodeset.BuildElementGraph(blockgraph,blockgraphindex);
+         break;
+      case ENodeCentered:
+         nodeset.BuildVertexGraph(blockgraph,blockgraphindex);
+         break;
+    }
+    TPZStack<int> expblockgraph,expblockgraphindex;
+    
+    nodeset.ExpandGraph(blockgraph,blockgraphindex,fCompMesh->Block(),expblockgraph,expblockgraphindex);
+    if(overlap)
+    {
+      TPZSparseBlockDiagonal *sp = new TPZSparseBlockDiagonal(expblockgraph,expblockgraphindex,neq);
+      TPZStepSolver *step = new TPZStepSolver(sp);
+      step->SetDirect(ELU);
+      step->SetReferenceMatrix(fSolver->Matrix());
+      return step;
+    }
+    else
+    {
+      TPZVec<int> blockcolor;
+      int numcolors = nodeset.ColorGraph(expblockgraph,expblockgraphindex,neq,blockcolor);
+      return BuildSequenceSolver(expblockgraph,expblockgraphindex,neq,numcolors,blockcolor);
+    }
+  }
+  return 0;
+}
+
+ /**
+ * Build a sequence solver based on the block graph and its colors
+ */
+TPZMatrixSolver *TPZAnalysis::BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq, int numcolors, TPZVec<int> &colors)
+{
+  TPZVec<TPZMatrix *> blmat(numcolors);
+  TPZVec<TPZStepSolver *> steps(numcolors);
+  int c;
+  for(c=0; c<numcolors; c++)
+  {
+    blmat[c] = new TPZSparseBlockDiagonal(graph,graphindex, neq, c, colors);
+    steps[c] = new TPZStepSolver(blmat[c]);
+    steps[c]->SetDirect(ELU);
+    steps[c]->SetReferenceMatrix(fSolver->Matrix());
+  }
+  if(numcolors == 1) return steps[0];
+  TPZSequenceSolver *result = new TPZSequenceSolver;
+  result->ShareMatrix(*fSolver);
+  for(c=numcolors-1; c>=0; c--)
+  {
+    result->AppendSolver(*steps[c]);
+  }
+  for(c=1; c<numcolors; c++)
+  {
+    steps[c]->SetReferenceMatrix(0);
+    result->AppendSolver(*steps[c]);
+  }
+  for(c=0; c<numcolors; c++)
+  {
+    delete steps[c];
+  }
+  return result;
+}
+  
