@@ -149,16 +149,17 @@ void TPZFrontSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
      TPZVec<REAL> AuxVec(fFront);
 
      for(i=0;i<ilocal;i++) AuxVec[i]=Element(i,ilocal);
-	for(i=ilocal;i<fFront;i++) AuxVec[i]=Element(ilocal,i);
+     for(i=ilocal;i<fFront;i++) AuxVec[i]=Element(ilocal,i);
 
-	if(AuxVec[ilocal]<0) {
-		cout << "TPZFront::DecomposeOneEquation AuxVec[ilocal] < 0 " << AuxVec[ilocal] << " ilocal=" << ilocal << " fGlobal=" << fGlobal[ilocal] << endl;
- 	}
+     if(AuxVec[ilocal]<0) {
+       cout << "TPZFront::DecomposeOneEquation AuxVec[ilocal] < 0 " << AuxVec[ilocal] << " ilocal=" << ilocal << " fGlobal=" << fGlobal[ilocal] << endl;
+     }
      REAL diag = sqrt(AuxVec[ilocal]);
      for(i=0;i<fFront;i++) AuxVec[i]/=diag;
     
      eqnarray.BeginEquation(ieq);       
      eqnarray.AddTerm(ieq, diag);
+     int j=0;
       
 //Blas utilizatioin  
 #ifdef BLAS     
@@ -179,13 +180,13 @@ void TPZFrontSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
      cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
      //cout << "Using ATLAS" << endl;
 #endif
-#ifdef NOBLAS
+//#ifdef NOBLAS
      for(i=0;i<fFront;i++){
 		for(j=i;j<fFront;j++){
 			Element(i,j)=Element(i,j)-AuxVec[i]*AuxVec[j];
 		}
 	}
-#endif
+//#endif
 
      
     for(i=0;i<fFront;i++) {

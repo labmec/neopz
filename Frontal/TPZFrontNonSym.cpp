@@ -179,7 +179,7 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 #endif
     AuxVecRow[ilocal]=1.;
     eqnarray.BeginEquation(ieq);
-	eqnarray.AddTerm(ieq,diag);
+    eqnarray.AddTerm(ieq,diag);
     for(i=0;i<fFront;i++) {
 		if(i!=ilocal && fGlobal[i]!= -1 && AuxVecRow[i] != 0.) eqnarray.AddTerm(fGlobal[i],AuxVecRow[i]);
 	}
