@@ -3,6 +3,7 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzreal.h"
+#include "pzeulerconslaw.h"
 
 /*REAL TPZArtDiff::fGamma = 1.4;
 REAL TPZArtDiff::fDelta = 1.0;
@@ -81,208 +82,6 @@ REAL TPZArtDiff::OptimalCFL(int degree)
   if(fCFL) return fCFL;
   return (1.0/(2.0*(REAL)degree+1.0));
 }
-
-//-------------------A B C matrices and operations
-
-template <class T>
-void TPZArtDiff::JacobFlux(int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai)
-{//OK
-
-  Ai.Resize(dim);
-  int i;
-  for(i=0;i<dim;i++)Ai[i].Redim(dim+2, dim+2);
-
-  if(U[0] < 1.e-6) {
-    PZError << "\nTPZArtDiff::JacobFlux: Density almost null or negative, jacobian evaluation fails\n"
-       << "Density = " << U[0] << endl;
-       return;
-  }
-
-  // dimension must lie between 1 and 3
-  if(!(1<=dim && dim<=3)){
-    PZError << "\nTPZArtDiff::JacobFlux: Unhandled dimension" << dim;
-    return;
-  }
-
-  T    u,v,w,e;
-  REAL gamma1 = fGamma-1.;
-  REAL gamma2 = gamma1/2.;
-  REAL gamma3 = fGamma-3;
-
-  if(dim == 3){
-
-    u = U[1]/U[0];
-    v = U[2]/U[0];
-    w = U[3]/U[0];
-    e = U[4]/U[0];
-
-    T    u2 = u*u;
-    T    v2 = v*v;
-    T    w2 = w*w;
-    T    vel = u2+v2+w2;
-
-    Ai[0](0,0) = 0.;
-    Ai[0](0,1) = 1.;
-    Ai[0](0,2) = 0.;
-    Ai[0](0,3) = 0.;
-    Ai[0](0,4) = 0.;
-
-    Ai[0](1,0) =  gamma2*vel-u2;
-    Ai[0](1,1) = -gamma3*u;
-    Ai[0](1,2) = -gamma1*v;
-    Ai[0](1,3) = -gamma1*w;
-    Ai[0](1,4) =  gamma1;
-
-    Ai[0](2,0) = -u*v;
-    Ai[0](2,1) =  v;
-    Ai[0](2,2) =  u;
-    Ai[0](2,3) =  0.;
-    Ai[0](2,4) =  0.;
-
-    Ai[0](3,0) = -u*w;
-    Ai[0](3,1) =  w;
-    Ai[0](3,2) =  0.;
-    Ai[0](3,3) =  u;
-    Ai[0](3,4) =  0.;
-
-    Ai[0](4,0) = -fGamma*e*u + gamma1*u*vel;
-    Ai[0](4,1) =  fGamma*e - gamma1*u2 - gamma2*vel;
-    Ai[0](4,2) = -gamma1*u*v;
-    Ai[0](4,3) = -gamma1*u*w;
-    Ai[0](4,4) =  fGamma*u;
-
-    Ai[1](0,0) = 0.;
-    Ai[1](0,1) = 0.;
-    Ai[1](0,2) = 1.;
-    Ai[1](0,3) = 0.;
-    Ai[1](0,4) = 0.;
-
-    Ai[1](1,0) = -u*v;
-    Ai[1](1,1) =  v;
-    Ai[1](1,2) =  u;
-    Ai[1](1,3) =  0.;
-    Ai[1](1,4) =  0.;
-
-    Ai[1](2,0) =  gamma2*vel-v2;
-    Ai[1](2,1) = -gamma1*u;
-    Ai[1](2,2) = -gamma3*v;
-    Ai[1](2,3) = -gamma1*w;
-    Ai[1](2,4) =  gamma1;
-
-    Ai[1](3,0) = -v*w;
-    Ai[1](3,1) =  0.;
-    Ai[1](3,2) =  w;
-    Ai[1](3,3) =  v;
-    Ai[1](3,4) =  0.;
-
-    Ai[1](4,0) = -fGamma*e*v + gamma1*v*vel;
-    Ai[1](4,1) = -gamma1*u*v;
-    Ai[1](4,2) =  fGamma*e - gamma1*v2 - gamma2*vel;
-    Ai[1](4,3) = -gamma1*v*w;
-    Ai[1](4,4) =  fGamma*v;
-
-    Ai[2](0,0) = 0.;
-    Ai[2](0,1) = 0.;
-    Ai[2](0,2) = 0.;
-    Ai[2](0,3) = 1.;
-    Ai[2](0,4) = 0.;
-
-    Ai[2](1,0) = -u*w;
-    Ai[2](1,1) =  w;
-    Ai[2](1,2) =  0.;
-    Ai[2](1,3) =  u;
-    Ai[2](1,4) =  0.;
-
-    Ai[2](2,0) = -v*w;
-    Ai[2](2,1) =  0.;
-    Ai[2](2,2) =  w;
-    Ai[2](2,3) =  v;
-    Ai[2](2,4) =  0.;
-
-    Ai[2](3,0) =  gamma2*vel-w2;
-    Ai[2](3,1) = -gamma1*u;
-    Ai[2](3,2) = -gamma1*v;
-    Ai[2](3,3) = -gamma3*w;
-    Ai[2](3,4) =  gamma1;
-
-    Ai[2](4,0) = -fGamma*e*w + gamma1*w*vel;
-    Ai[2](4,1) = -gamma1*u*w;
-    Ai[2](4,2) = -gamma1*v*w;
-    Ai[2](4,3) =  fGamma*e - gamma1*w2 - gamma2*vel;
-    Ai[2](4,4) =  fGamma*w;
-
-  } else if(dim == 2){
-
-    u = U[1]/U[0];
-    v = U[2]/U[0];
-    e = U[3]/U[0];
-
-    T    u2 = u*u;
-    T    v2 = v*v;
-    T    vel = u2+v2;
-
-    Ai[0](0,0) = 0.;
-    Ai[0](0,1) = 1.;
-    Ai[0](0,2) = 0.;
-    Ai[0](0,3) = 0.;
-
-    Ai[0](1,0) =  gamma2*vel-u2;
-    Ai[0](1,1) = -gamma3*u;
-    Ai[0](1,2) = -gamma1*v;
-    Ai[0](1,3) =  gamma1;
-
-    Ai[0](2,0) = -u*v;
-    Ai[0](2,1) =  v;
-    Ai[0](2,2) =  u;
-    Ai[0](2,3) =  0.;
-
-    Ai[0](3,0) = -fGamma*e*u + gamma1*u*vel;
-    Ai[0](3,1) =  fGamma*e - gamma1*u2 - gamma2*vel;
-    Ai[0](3,2) = -gamma1*u*v;
-    Ai[0](3,3) =  fGamma*u;
-
-    Ai[1](0,0) = 0.;
-    Ai[1](0,1) = 0.;
-    Ai[1](0,2) = 1.;
-    Ai[1](0,3) = 0.;
-
-    Ai[1](1,0) = -u*v;
-    Ai[1](1,1) =  v;
-    Ai[1](1,2) =  u;
-    Ai[1](1,3) =  0.;
-
-    Ai[1](2,0) =  gamma2*vel-v2;
-    Ai[1](2,1) = -gamma1*u;
-    Ai[1](2,2) = -gamma3*v;
-    Ai[1](2,3) =  gamma1;
-
-    Ai[1](3,0) = -fGamma*e*v + gamma1*v*vel;
-    Ai[1](3,1) = -gamma1*u*v;
-    Ai[1](3,2) =  fGamma*e - gamma1*v2 - gamma2*vel;
-    Ai[1](3,3) =  fGamma*v;
-
-  } else if(dim == 1){
-
-    u = U[1]/U[0];
-    e = U[2]/U[0];
-
-    T    u2 = u*u;
-    T    vel = u2;
-
-    Ai[0](0,0) = 0.;
-    Ai[0](0,1) = 1.;
-    Ai[0](0,2) = 0.;
-
-    Ai[0](1,0) =  gamma2*vel-u2;
-    Ai[0](1,1) = -gamma3*u;
-    Ai[0](1,2) =  gamma1;
-
-    Ai[0](2,0) = -fGamma*e*u + gamma1*u*vel;
-    Ai[0](2,1) =  fGamma*e - gamma1*u2 - gamma2*vel;
-    Ai[0](2,2) =  fGamma*u;
-  }
-}
-
 
 template <class T>
 void TPZArtDiff::ODotOperator(TPZVec<REAL> &dphi, TPZVec<TPZDiffMatrix<T> > &M, TPZDiffMatrix<T> &Result){
@@ -391,7 +190,7 @@ void TPZArtDiff::Divergent(TPZVec<FADREAL> &dsol,
 //----------------------Tau tensor
 
 template <class T>
-void TPZArtDiff::ComputeTau(int dim, TPZVec<TPZDiffMatrix<T> > &Ai,
+void TPZArtDiff::ComputeTau(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > &Ai,
 		 TPZVec<TPZDiffMatrix<T> > &Tau)
 {
   Tau.Resize(dim);
@@ -399,13 +198,13 @@ void TPZArtDiff::ComputeTau(int dim, TPZVec<TPZDiffMatrix<T> > &Ai,
   switch(fArtDiffType)
   {
      case SUPG_AD:
-        SUPG(Ai, Tau);
+        SUPG(dim, sol, Ai, Tau);
      break;
      case LeastSquares_AD:
-        LS(Ai, Tau);
+        LS(dim, sol, Ai, Tau);
      break;
      case Bornhaus_AD:
-        Bornhaus(Ai, Tau);
+        Bornhaus(dim, sol, Ai, Tau);
      break;
      default:
      PZError << "Unknown artificial diffision term (" << fArtDiffType << ")";
@@ -414,20 +213,20 @@ void TPZArtDiff::ComputeTau(int dim, TPZVec<TPZDiffMatrix<T> > &Ai,
 
 
 template <class T>
-void TPZArtDiff::SUPG(TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
+void TPZArtDiff::SUPG(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
   cout << "TPZDiffusionConsLaw:: SUPG artificial diffusion SUPG not implemented\n";
 }
 
 template <class T>
-void TPZArtDiff::LS(TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
-  int i, dim = Ai.NElements();
+void TPZArtDiff::LS(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
+  int i;
   for(i = 0; i < dim; i++)
-  //  Tau[i]=Ai[i];
-     Ai[i].Transpose(Tau[i]);
+     Tau[i] = Ai[i];
+     //Ai[i].Transpose(Tau[i]);
 }
 
 template <class T>
-void TPZArtDiff::Bornhaus(TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
+void TPZArtDiff::Bornhaus(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
     cout << "TPZArtDiff::Bornhaus artificial diffusion Bornhaus not implemented\n";
 }
 
@@ -439,8 +238,8 @@ template <class T>
 void TPZArtDiff::PrepareDiff(int dim, TPZVec<T> &U,
 		 TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau)
 {
-  JacobFlux(dim, U, Ai);
-  ComputeTau(dim, Ai, Tau);
+  TPZEulerConsLaw2::JacobFlux(fGamma, dim, U, Ai);
+  ComputeTau(dim, sol, Ai, Tau);
 }
 
 void TPZArtDiff::PrepareFastDiff(int dim, TPZVec<REAL> &sol,
@@ -450,8 +249,8 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZVec<REAL> &sol,
   TPZVec<TPZDiffMatrix<REAL> > Ai;
   TPZVec<TPZDiffMatrix<REAL> > Tau;
 
-  JacobFlux(dim, sol, Ai);
-  ComputeTau(dim, Ai, Tau);
+  TPZEulerConsLaw2::JacobFlux(fGamma, dim, sol, Ai);
+  ComputeTau(dim, sol, Ai, Tau);
 
   TPZVec<REAL> Div;
 
@@ -487,8 +286,8 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZVec<FADREAL> &sol,
   TPZVec<TPZDiffMatrix<FADREAL> > Ai;
   TPZVec<TPZDiffMatrix<FADREAL> > Tau;
 
-  JacobFlux(dim, sol, Ai);
-  ComputeTau(dim, Ai, Tau);
+  TPZEulerConsLaw2::JacobFlux(fGamma, dim, sol, Ai);
+  ComputeTau(dim, sol, Ai, Tau);
 
 //  #define TEST_PARTIAL_DIFF
   // Uncomment line above to zero the derivatives of
@@ -559,7 +358,7 @@ void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix
 	     buff = dphix(k,l) * constant;
 	     ef(i+l*nstate,0) += buff * TauDiv[k][i];
              for(j=0;j<neq;j++)
-	        ek(i+l*nstate,j) += buff * TaudDiv[k](i,j);
+	        ek(i+l*nstate,j) -= buff * TaudDiv[k](i,j);
 	     }
 }
 
@@ -611,10 +410,15 @@ void TPZArtDiff::ContributeImplDiff(int dim, TPZVec<FADREAL> &sol, TPZVec<FADREA
 	      {
 	      ef(i+l*nstate,0) += constant * Diff[i].val();
 	      for(j=0;j<neq;j++)
-	         ek(i+l*nstate, j) += constant * Diff[i].fastAccessDx(j);
+	         ek(i+l*nstate, j) -= constant * Diff[i].fastAccessDx(j);
 	      }
        }
 }
 
-#endif
+template< class T >
+void TPZArtDiff::Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U)
+{
+   TPZEulerConsLaw2::Pressure(gamma, dim, press, U);
+}
 
+#endif

@@ -8,6 +8,7 @@
 #include "pzstring.h"
 #include "TPZCompElDisc.h"
 
+
 #ifdef _AUTODIFF
 #include "fadType.h"
 #endif
@@ -80,19 +81,13 @@ public:
     */
    REAL OptimalCFL(int degree = TPZCompElDisc::gDegree);
 
+   /**
+    * pressure
+    */
+   template< class T >
+   static void Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U);
+
 //-------------------A B C matrices and operations
-
-  /**
-   * Jacobian of the tensor flux of Euler
-   * @param dim [in]
-   * @param U [in] dim+2 solutions at given point
-   * @param Ai [out] vector of dim tensors of (dim+2)*(dim*2),
-   * representing the derivatives of F with respect to the
-   * dim spatial dimensions
-   */
-
-  template <class T>
-  void JacobFlux(int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai);
 
   /**
    * operation product point in the diffusion term
@@ -156,19 +151,36 @@ public:
    */
   template <class T>
   void ComputeTau(int dim,
+		 TPZVec<T> & Sol,
 		 TPZVec<TPZDiffMatrix<T> > &Ai,
 		 TPZVec<TPZDiffMatrix<T> > &Tau);
+
+//----------------------Intermediate Matrices
+
+
+
+template <class T>
+inline static void RotMatrix(TPZVec<T> & sol, T & us, TPZDiffMatrix<T> &Rot, TPZDiffMatrix<T> &RotT);
+
+template <class T>
+inline static void MMatrix(TPZVec<T> & sol, T & us, REAL gamma, TPZDiffMatrix<T> &M, TPZDiffMatrix<T> &Mi);
+
+template <class T>
+static void EigenSystemSUPG(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZDiffMatrix<T> &X, TPZDiffMatrix<T> &Xi, TPZDiffMatrix<T> &Lambda);
+
+template <class T>
+static void EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZVec<T> & aaS, TPZDiffMatrix<T> &Y, TPZDiffMatrix<T> &Yi, TPZDiffMatrix<T> &Lambda);
 
 private:
 
   template <class T>
-  void SUPG(TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
+  void SUPG(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
 
   template <class T>
-  void LS(TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
+  void LS(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
 
   template <class T>
-  void Bornhaus(TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
+  void Bornhaus(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
 
 public:
 
@@ -303,6 +315,334 @@ private:
 
 
 };
+
+
+template <class T>
+void TPZArtDiff::RotMatrix(TPZVec<T> & sol, T & us, TPZDiffMatrix<T> &Rot, TPZDiffMatrix<T> &RotT)
+{
+   int nstate = sol.NElements();
+   int dim = nstate - 2;
+
+   T u, v, w, u2, v2, w2, uspuInv, usInv;
+
+   switch (dim)
+   {
+      case (2):
+      u = sol[1]/sol[0];
+      v = sol[2]/sol[0];
+      u2 = u * u;
+      v2 = v * v;
+      usInv= T(1.)/us;
+
+      Rot.Redim(nstate,nstate);
+      Rot(0,0) = 1.;
+      Rot(3,3) = 1.;
+      Rot(1,1) = u * usInv;
+      Rot(1,2) = v * usInv;
+      Rot(2,1) = - Rot(1,2);
+      Rot(2,2) = Rot(1,1);
+
+      Rot.Transpose(RotT);
+      break;
+      case (3):
+      u = sol[1]/sol[0];
+      v = sol[2]/sol[0];
+      w = sol[3]/sol[0];
+      u2 = u * u;
+      v2 = v * v;
+      w2 = w * w;
+      uspuInv = T(1.)/(us + u);
+      usInv = T(1.)/us;
+      uspuInv *= usInv;
+
+      Rot.Redim(nstate,nstate);
+      Rot(0,0) = 1.;
+      Rot(4,4) = 1.;
+      Rot(1,1) = u * usInv;
+      Rot(1,2) = v * usInv;
+      Rot(1,3) = w * usInv;
+      Rot(2,1) = -Rot(1,2);
+      Rot(2,2) = Rot(1,1) + w2 * uspuInv;
+      Rot(2,3) = - w*v * uspuInv;
+      Rot(3,1) = -Rot(1,3);
+      Rot(3,2) = Rot(2,3);
+      Rot(3,3) = Rot(1,1) + v2 * uspuInv;
+
+      Rot.Transpose(RotT);
+      break;
+
+      default:
+      PZError << "TPZArtDiff::RotMatrix Error: Invalid Dimension\n";
+   }
+
+}
+
+
+template <class T>
+void TPZArtDiff::MMatrix(TPZVec<T> & sol, T & us, REAL gamma, TPZDiffMatrix<T> &M, TPZDiffMatrix<T> &Mi)
+{
+   int nstate = sol.NElements();
+   int dim = nstate - 2;
+
+   T u, rhoInv, usInv;
+
+   switch (dim)
+   {
+      case (2):
+      u = sol[1]/sol[0];
+      usInv= T(1.)/us;
+      rhoInv = T(1.)/sol[0];
+
+      M.Redim(nstate,nstate);
+      M(0,0) = 1.;
+      M(1,0) = us;
+      M(1,1) = sol[0];
+      M(2,2) = sol[0];
+      M(3,0) = us * us /2.;
+      M(3,1) = sol[0] * us;
+      M(3,3) = T(1.)/(gamma-1.);
+
+      Mi.Redim(nstate,nstate);
+      Mi(0,0) = 1.;
+      Mi(1,0) = - rhoInv * us;
+      Mi(1,1) = rhoInv;
+      Mi(2,2) = rhoInv;
+      Mi(3,0) = T((gamma-1.)/2.) * us * us;
+      Mi(3,1) = T(1.-gamma)*us;
+      Mi(3,3) = gamma-1.;
+
+      break;
+      case(3):
+      u = sol[1]/sol[0];
+      usInv= T(1.)/us;
+      rhoInv = T(1.)/sol[0];
+
+      M.Redim(nstate,nstate);
+      M(0,0) = 1.;
+      M(1,0) = us;
+      M(1,1) = sol[0];
+      M(2,2) = sol[0];
+      M(3,3) = sol[0];
+      M(4,0) = us * us /2.;
+      M(4,1) = sol[0] * us;
+      M(4,4) = T(1.)/(gamma-1.);
+
+      Mi.Redim(nstate,nstate);
+      Mi(0,0) = 1.;
+      Mi(1,0) = - rhoInv * us;
+      Mi(1,1) = rhoInv;
+      Mi(2,2) = rhoInv;
+      Mi(3,3) = rhoInv;
+      Mi(4,0) = T((gamma-1.)/2.) * us * us;
+      Mi(4,1) = T(1.-gamma)*us;
+      Mi(4,4) = gamma-1.;
+      break;
+
+      default:
+      PZError << "TPZArtDiff::MMatrix Error: Invalid Dimension\n";
+   }
+}
+
+template <class T>
+void TPZArtDiff::EigenSystemSUPG(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZDiffMatrix<T> &X, TPZDiffMatrix<T> &Xi, TPZDiffMatrix<T> &Lambda)
+{
+   int nstate = sol.NElements();
+   int dim = nstate - 2;
+
+   T us2, c2, s, rho_c_us;
+
+   c2 = c * c;
+   us2 = us * us;
+   rho_c_us = sol[0] * c * us;
+
+   switch (dim)
+   {
+      case (2):
+      s = sqrt(c2 + us2 * 16.);
+
+      X.Redim(nstate,nstate);
+      X(0,0) = 1.;
+      X(0,2) = 4. * sol[0] * us / c2;
+      X(0,3) = X(0,2);
+      X(1,2) = - s/c -1.;
+      X(1,3) =   s/c -1.;
+      X(2,1) = 1.;
+      X(3,2) = 4. * sol[0] * us;
+      X(3,3) = X(3,2);
+
+      Xi.Redim(nstate,nstate);
+      Xi(0,0) = 1.;
+      Xi(0,3) = - 1. / c2;
+      Xi(1,2) = 1.;
+      Xi(2,1) = - c / (2. * s);
+      Xi(2,3) = (s-c)/(8. * sol[0] * s * us);
+      Xi(3,1) = -Xi(2,1);
+      Xi(3,3) = (s+c)/(8. * sol[0] * s * us);
+
+      Lambda.Redim(nstate,nstate);
+      Lambda(0,0) = 1./us;
+      Lambda(1,1) = 1./sqrt(us2 + c2);
+      Lambda(2,2) = 1./sqrt(us2 + 1.5 * c2 - .5 * c * s);
+      Lambda(3,3) = 1./sqrt(us2 + 1.5 * c2 + .5 * c * s);
+
+      break;
+      case(3):
+
+      s = sqrt(c2 + us2 * 4.);
+
+      X.Redim(nstate,nstate);
+      X(0,0) = 1.;
+      X(0,3) = 1. / c2;
+      X(0,4) = X(0,3);
+      X(1,3) = (-s-c)/(2. * rho_c_us);
+      X(1,4) = ( s-c)/(2. * rho_c_us);
+      X(2,2) = 1.;
+      X(3,1) = 1.;
+      X(4,3) = 1.;
+      X(4,4) = 1.;
+
+
+      Xi.Redim(nstate,nstate);
+      Xi(0,0) = 1.;
+      Xi(0,4) = - 1. / c2;
+      Xi(1,3) = 1.;
+      Xi(2,2) = 1.;
+      Xi(3,1) = - rho_c_us / s;
+      Xi(3,4) = .5 - c / (2. * s);
+      Xi(4,1) = -Xi(3,1);
+      Xi(4,4) = .5 + c / (2. * s);
+
+      Lambda.Redim(nstate,nstate);
+      Lambda(0,0) = 1./us;
+      Lambda(1,1) = 1./sqrt(us2 + c2);
+      Lambda(2,2) = Lambda(1,1);
+      Lambda(3,3) = 1./sqrt(us2 + 2. * c2 - c * s);
+      Lambda(4,4) = 1./sqrt(us2 + 2. * c2 + c * s);
+      break;
+
+      default:
+      PZError << "TPZArtDiff::EigenSystemSUPG Error: Invalid Dimension\n";
+   }
+}
+
+
+template <class T>
+void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZVec<T> & aaS, TPZDiffMatrix<T> &Y, TPZDiffMatrix<T> &Yi, TPZDiffMatrix<T> &Lambda)
+{
+   int nstate = sol.NElements();
+   int dim = nstate - 2;
+
+   T k, us2, c2, rho_c, temp1, temp2, temp3, k2;
+
+   c2 = c * c;
+   us2 = us * us;
+   rho_c = sol[0] * c;
+
+   switch (dim)
+   {
+      case (2):
+      k2 = aaS[0]*aaS[0] + aaS[1]*aaS[1];
+      k = sqrt(k2);
+
+
+      Y.Redim(nstate,nstate);
+      Y(0,1) = 1.;
+      Y(0,2) = 1. / c2;
+      Y(0,3) = Y(0,2);
+      Y(1,0) = -aaS[1] / aaS[0];
+      Y(1,2) = -aaS[0] / (k * rho_c);
+      Y(1,3) = -Y(1,2);
+      Y(2,0) = 1.;
+      Y(2,2) = -aaS[1] / (k * rho_c);
+      Y(2,3) = -Y(2,2);
+      Y(3,2) = 1.;
+      Y(3,3) = 1.;
+
+      Yi.Redim(nstate,nstate);
+      Yi(0,1) = - aaS[0] * aaS[1] / k2;
+      Yi(0,2) =   aaS[0] * aaS[0] / k2;
+      Yi(1,0) = 1.;
+      Yi(1,3) = -1. / c2;
+      Yi(2,1) = - aaS[0] * rho_c / (2. * k);
+      Yi(2,2) = - aaS[1] * rho_c / (2. * k);
+      Yi(2,3) = .5;
+      Yi(3,1) = -Yi(2,1);
+      Yi(3,2) = -Yi(2,2);
+      Yi(3,3) = .5;
+
+      temp1 = aaS[0] * us;
+      if(val(temp1) < 0)temp1 = -temp1;
+      temp2 = aaS[0] * us - k * c;
+      if(val(temp2) < 0)temp2 = -temp2;
+      temp3 = aaS[0] * us + k * c;
+      if(val(temp3) < 0)temp3 = -temp3;
+
+      Lambda.Redim(nstate,nstate);
+      Lambda(0,0) = temp1;
+      Lambda(1,1) = temp1;
+      Lambda(2,2) = temp2;
+      Lambda(3,3) = temp3;
+
+      break;
+      case (3):
+      k = sqrt(aaS[0]*aaS[0] + aaS[1]*aaS[1] + aaS[2]*aaS[2]);
+
+      Y.Redim(nstate,nstate);
+      Y(0,2) = 1.;
+      Y(0,3) = 1. / c2;
+      Y(0,4) = Y(0,3);
+      Y(0,3) = Y(0,2);
+      Y(1,0) = -aaS[2]/aaS[0];
+      Y(1,1) = -aaS[1]/aaS[0];
+      Y(1,3) = -aaS[0]/(k * rho_c);
+      Y(1,4) = -Y(1,3);
+      Y(2,1) = 1.;
+      Y(2,3) = -aaS[1]/(k * rho_c);
+      Y(2,4) = -Y(2,3);
+      Y(3,0) = 1.;
+      Y(3,3) = -aaS[3]/(k * rho_c);
+      Y(3,4) = -Y(2,3);
+      Y(4,3) = 1.;
+      Y(4,4) = 1.;
+
+      Yi.Redim(nstate,nstate);
+      Yi(0,1) = - aaS[0] * aaS[2] / k2;
+      Yi(0,2) = - aaS[1] * aaS[0] / k2;
+      Yi(0,2) =  (aaS[0] * aaS[0] + aaS[1] * aaS[1]) / k2;
+      Yi(1,1) = - aaS[0] * aaS[1] / k2;
+      Yi(1,2) =  (aaS[0] * aaS[0] + aaS[2] * aaS[2]) / k2;
+      Yi(1,3) =  Y(0,2);
+      Yi(2,0) = 1.;
+      Yi(2,4) = -1. / c2;
+      Yi(3,1) = - aaS[0] * rho_c / (2. * k);
+      Yi(3,2) = - aaS[1] * rho_c / (2. * k);
+      Yi(3,3) = - aaS[2] * rho_c / (2. * k);
+      Yi(3,4) = .5;
+      Yi(4,1) = - Y(3,1);
+      Yi(4,2) = - Y(3,2);
+      Yi(4,3) = - Y(3,3);
+      Yi(4,4) = .5;
+
+      temp1 = aaS[0] * us;
+      if(val(temp1) < 0)temp1 = -temp1;
+      temp2 = aaS[0] * us - k * c;
+      if(val(temp2) < 0)temp2 = -temp2;
+      temp3 = aaS[0] * us + k * c;
+      if(val(temp3) < 0)temp3 = -temp3;
+
+      Lambda.Redim(nstate,nstate);
+      Lambda(0,0) = temp1;
+      Lambda(1,1) = temp1;
+      Lambda(2,2) = temp1;
+      Lambda(3,3) = temp2;
+      Lambda(4,4) = temp3;
+
+      break;
+      default:
+      PZError << "TPZArtDiff::EigenSystemBornhaus Error: Invalid Dimension\n";
+   }
+}
+
 
 #endif
 

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.11 2003-12-18 20:05:12 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.12 2004-01-20 12:04:06 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -51,6 +51,11 @@ public :
   /**
    * See declaration in base class
    */
+  static int NStateVariables(int dim);
+
+  /**
+   * Object-based overload
+   */
   int NStateVariables();
 
   /**
@@ -59,7 +64,19 @@ public :
    * @param U [in] vector of state variables (sol)
    */
   template< class T >
-  void Pressure(T& press, TPZVec<T> &U);
+  static void Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U);
+
+  /**
+   * Evaluates the speed of sound in the fluid
+   */
+  template <class T>
+  static void cSpeed(TPZVec<T> & sol, REAL gamma, T & c);
+
+  /**
+   * u = Sqrt(u2 + v2 + w2);
+   */
+  template <class T>
+  static void uRes(TPZVec<T> & sol, T & us);
 
   /**
    * See declaration in base class
@@ -149,7 +166,7 @@ void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, T
    */
 
   template <class T>
-  void JacobFlux(TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai);
+  static void JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai);
 
   /**
    * tensor of the three-dimensional flux of Euler
@@ -164,7 +181,7 @@ void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, T
   void Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux);
 
   /**
-   * This flux encapsultes the two and three dimensional fluxes
+   * This flux encapsulates the two and three dimensional fluxes
    * acquired from the Mouse program
    *
    * @param solL [in]
@@ -419,7 +436,7 @@ template < class T >
 inline void TPZEulerConsLaw2::Flux(TPZVec<T> &U,TPZVec<T> &Fx,TPZVec<T> &Fy,TPZVec<T> &Fz) {
 
   T press;
-  Pressure(press, U);
+  Pressure(fGamma, fDim, press, U);
   int nstate = NStateVariables();
   if(nstate < 3 && nstate > 5){
     cout << "TPZEulerConsLaw2::Flux case not implemented\n";
@@ -476,13 +493,13 @@ inline void TPZEulerConsLaw2::Flux(TPZVec<T> &U,TPZVec<T> &Fx,TPZVec<T> &Fy,TPZV
 
 
 template <class T>
-inline void TPZEulerConsLaw2::JacobFlux(TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai)
+inline void TPZEulerConsLaw2::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai)
 {//OK
 
-  Ai.Resize(fDim);
+  Ai.Resize(dim);
   int i;
-  for(i=0;i<fDim;i++)Ai[i].Redim(NStateVariables(), NStateVariables());
-  
+  for(i=0;i<dim;i++)Ai[i].Redim(TPZEulerConsLaw2::NStateVariables(dim), TPZEulerConsLaw2::NStateVariables(dim));
+
   if(U[0] < 1.e-6) {
     PZError << "\nTPZEulerConsLaw2::JacobFlux: Density almost null or negative, jacobian evaluation fails\n"
        << "Density = " << U[0] << endl;
@@ -490,11 +507,11 @@ inline void TPZEulerConsLaw2::JacobFlux(TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > 
   }
 
   T    u,v,w,e;
-  REAL gamma1 = fGamma-1.;
+  REAL gamma1 = gamma-1.;
   REAL gamma2 = gamma1/2.;
-  REAL gamma3 = fGamma-3;
+  REAL gamma3 = gamma-3;
 
-  if(fDim == 3){
+  if(dim == 3){
 
     u = U[1]/U[0];
     v = U[2]/U[0];
@@ -530,11 +547,11 @@ inline void TPZEulerConsLaw2::JacobFlux(TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > 
     Ai[0](3,3) =  u;
     Ai[0](3,4) =  0.;
 
-    Ai[0](4,0) = -fGamma*e*u + gamma1*u*vel;
-    Ai[0](4,1) =  fGamma*e - gamma1*u2 - gamma2*vel;
+    Ai[0](4,0) = -gamma*e*u + gamma1*u*vel;
+    Ai[0](4,1) =  gamma*e - gamma1*u2 - gamma2*vel;
     Ai[0](4,2) = -gamma1*u*v;
     Ai[0](4,3) = -gamma1*u*w;
-    Ai[0](4,4) =  fGamma*u;
+    Ai[0](4,4) =  gamma*u;
 
     Ai[1](0,0) = 0.;
     Ai[1](0,1) = 0.;
@@ -560,11 +577,11 @@ inline void TPZEulerConsLaw2::JacobFlux(TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > 
     Ai[1](3,3) =  v;
     Ai[1](3,4) =  0.;
 
-    Ai[1](4,0) = -fGamma*e*v + gamma1*v*vel;
+    Ai[1](4,0) = -gamma*e*v + gamma1*v*vel;
     Ai[1](4,1) = -gamma1*u*v;
-    Ai[1](4,2) =  fGamma*e - gamma1*v2 - gamma2*vel;
+    Ai[1](4,2) =  gamma*e - gamma1*v2 - gamma2*vel;
     Ai[1](4,3) = -gamma1*v*w;
-    Ai[1](4,4) =  fGamma*v;
+    Ai[1](4,4) =  gamma*v;
 
     Ai[2](0,0) = 0.;
     Ai[2](0,1) = 0.;
@@ -590,13 +607,13 @@ inline void TPZEulerConsLaw2::JacobFlux(TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > 
     Ai[2](3,3) = -gamma3*w;
     Ai[2](3,4) =  gamma1;
 
-    Ai[2](4,0) = -fGamma*e*w + gamma1*w*vel;
+    Ai[2](4,0) = -gamma*e*w + gamma1*w*vel;
     Ai[2](4,1) = -gamma1*u*w;
     Ai[2](4,2) = -gamma1*v*w;
-    Ai[2](4,3) =  fGamma*e - gamma1*w2 - gamma2*vel;
-    Ai[2](4,4) =  fGamma*w;
+    Ai[2](4,3) =  gamma*e - gamma1*w2 - gamma2*vel;
+    Ai[2](4,4) =  gamma*w;
 
-  } else if(fDim == 2){
+  } else if(dim == 2){
 
     u = U[1]/U[0];
     v = U[2]/U[0];
@@ -621,10 +638,10 @@ inline void TPZEulerConsLaw2::JacobFlux(TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > 
     Ai[0](2,2) =  u;
     Ai[0](2,3) =  0.;
 
-    Ai[0](3,0) = -fGamma*e*u + gamma1*u*vel;
-    Ai[0](3,1) =  fGamma*e - gamma1*u2 - gamma2*vel;
+    Ai[0](3,0) = -gamma*e*u + gamma1*u*vel;
+    Ai[0](3,1) =  gamma*e - gamma1*u2 - gamma2*vel;
     Ai[0](3,2) = -gamma1*u*v;
-    Ai[0](3,3) =  fGamma*u;
+    Ai[0](3,3) =  gamma*u;
 
     Ai[1](0,0) = 0.;
     Ai[1](0,1) = 0.;
@@ -641,12 +658,12 @@ inline void TPZEulerConsLaw2::JacobFlux(TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > 
     Ai[1](2,2) = -gamma3*v;
     Ai[1](2,3) =  gamma1;
 
-    Ai[1](3,0) = -fGamma*e*v + gamma1*v*vel;
+    Ai[1](3,0) = -gamma*e*v + gamma1*v*vel;
     Ai[1](3,1) = -gamma1*u*v;
-    Ai[1](3,2) =  fGamma*e - gamma1*v2 - gamma2*vel;
-    Ai[1](3,3) =  fGamma*v;
+    Ai[1](3,2) =  gamma*e - gamma1*v2 - gamma2*vel;
+    Ai[1](3,3) =  gamma*v;
 
-  } else if(fDim == 1){
+  } else if(dim == 1){
 
     u = U[1]/U[0];
     e = U[2]/U[0];
@@ -662,9 +679,9 @@ inline void TPZEulerConsLaw2::JacobFlux(TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > 
     Ai[0](1,1) = -gamma3*u;
     Ai[0](1,2) =  gamma1;
 
-    Ai[0](2,0) = -fGamma*e*u + gamma1*u*vel;
-    Ai[0](2,1) =  fGamma*e - gamma1*u2 - gamma2*vel;
-    Ai[0](2,2) =  fGamma*u;
+    Ai[0](2,0) = -gamma*e*u + gamma1*u*vel;
+    Ai[0](2,1) =  gamma*e - gamma1*u2 - gamma2*vel;
+    Ai[0](2,2) =  gamma*u;
   }
 }
 
@@ -682,7 +699,7 @@ inline REAL val(FADREAL & number)
 #endif
 
 template< class T >
-inline void TPZEulerConsLaw2::Pressure(T & press, TPZVec<T> &U)
+inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T> &U)
 {
   if(fabs(val(U[0])) < 1.e-6) {
     cout << "\nTPZEulerConsLaw2::Pressure> Density neares zero!\n\tImplicit method won't be accurate!!";
@@ -692,23 +709,23 @@ inline void TPZEulerConsLaw2::Pressure(T & press, TPZVec<T> &U)
   // Pressão = (gam-1)*(E - ro*||(u,v,w)||²/2)
   // onde aqui ro_e = E (nota¢ão)
 
-  int nstate = NStateVariables();
+  int nstate = NStateVariables(dim);
   press = 0.0;
   if(U.NElements() != nstate) U.Resize(nstate);
   if(nstate == 5){
     //U = (U0,U1,U2,U3,U4) = (ro , ro u , ro v , ro w , ro e)
     T rho_velocity = ( U[1]*U[1] + U[2]*U[2] + U[3]*U[3] )/U[0];
-    press = ((fGamma-1.)*( U[4] - 0.5 * rho_velocity ));
+    press = ((gamma-1.)*( U[4] - 0.5 * rho_velocity ));
   } else
   if(nstate == 4){
     //U = (U0,U1,U2,U3,U4) = (ro , ro u , ro v , ro e)
     T rho_velocity = ( U[1]*U[1] + U[2]*U[2] )/U[0];
-    press = ((fGamma-1.)*( U[3] - 0.5 * rho_velocity ));
+    press = ((gamma-1.)*( U[3] - 0.5 * rho_velocity ));
   } else
   if(nstate == 3){
     //U = (U0,U1,U2,U3,U4) = (ro , ro u , ro e)
     T rho_velocity = ( U[1]*U[1] )/U[0];
-    press = ((fGamma-1.)*( U[2] - 0.5 * rho_velocity ));
+    press = ((gamma-1.)*( U[2] - 0.5 * rho_velocity ));
   } else {
     cout << "\nTPZEulerConsLaw2::Pressure> Unknown case - returning zero\n";
     press = 0.0;
@@ -716,7 +733,7 @@ inline void TPZEulerConsLaw2::Pressure(T & press, TPZVec<T> &U)
   }
   if(val(press) < 0){
     PZError << "TPZEulerConsLaw2::Pressure> Negative pressure: " << press << endl;
-    press = (fGamma-1.)*U[nstate-1];
+    press = (gamma-1.)*U[nstate-1];
     PZError << "TPZEulerConsLaw2::Pressure> Substitute pressure: (gama-1)*E = " << press << endl;
   }
 }
@@ -1216,5 +1233,31 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
 }
 
 
+template <class T>
+void TPZEulerConsLaw2::cSpeed(TPZVec<T> & sol, REAL gamma, T & c)
+{
+   int dim = sol.NElements() - 2;
+   T press;
+   Pressure(gamma, dim, press, sol);
+   c = sqrt(gamma * press/ sol[0]);
+}
+
+template <class T>
+void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
+{
+   switch(sol.NElements())
+   {
+      case(3):
+      us = sol[1]/sol[0];
+      case(4):
+      us = sqrt(sol[1]*sol[1] + sol[2]*sol[2])/sol[0];
+      break;
+      case(5):
+      us = sqrt(sol[1]*sol[1] + sol[2]*sol[2] + sol[3]*sol[3])/sol[0];
+      break;
+      default:
+      PZError << "TPZArtDiff::uRes Error: invalid Dimension\n";
+   }
+}
 
 #endif

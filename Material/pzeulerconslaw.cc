@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cc,v 1.14 2003-12-30 09:37:56 phil Exp $
+//$Id: pzeulerconslaw.cc,v 1.15 2004-01-20 12:03:53 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -62,14 +62,18 @@ void TPZEulerConsLaw2::SetTimeStep(REAL maxveloc,REAL deltax,int degree)
   TPZConservationLaw2::SetTimeStep(deltaT);
 }
 
+int TPZEulerConsLaw2::NStateVariables(int dim) {
+  return (2 + dim);//U = (rho, rhou, rhov, rhow, rhoe)
+}
+
 int TPZEulerConsLaw2::NStateVariables() {
-  return (2 + Dimension());//U = (rho, rhou, rhov, rhow, rhoe)
+  return NStateVariables(Dimension());//U = (rho, rhou, rhov, rhow, rhoe)
 }
 
 REAL TPZEulerConsLaw2::Pressure(TPZVec<REAL> &U)
 {
    REAL press;
-   Pressure(press, U);
+   Pressure(fGamma, fDim, press, U);
    return press;
 }
 
@@ -152,77 +156,6 @@ int TPZEulerConsLaw2::NFluxes()
 }
 
 //-----------------Solutions
-
-/*
-void TPZEulerConsLaw2::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft){
-
-  if(!bcleft){
-    PZError << "TPZEulerConsLaw2::ComputeSolLeft null bundary condition return\n";
-    return;
-  }
-  int i,nstate = NStateVariables();
-  REAL vpn=0.;
-  switch (bcleft->Type()){
-  case 0://Dirichlet
-  case 1://Neumann
-  case 2://Mista
-    PZError << "TPZEulerConsLaw2::ComputeSolLeft boundary condition error\n";
-    break;
-  case 3://Dirichlet: nada a fazer a CC é a correta
-    for(i=0;i<nstate; i++) soll[i] = bcleft->Val2().operator()(i,0);//<!>erick
-    break;
-  case 4://recuperar valor da solu¢ão MEF direita: saida livre
-    for(i=0;i<nstate; i++) soll[i] = solr[i];
-    break;
-  case 5://parede
-    for(i=1;i<nstate-1;i++) vpn += solr[i]*normal[i-1];//v.n
-    for(i=1;i<nstate-1;i++) soll[i] = solr[i] - 2.0*vpn*normal[i-1];
-    soll[0] = solr[0];
-    soll[nstate-1] = solr[nstate-1];
-    break;
-  case 6://não refletivas (campo distante)
-    for(i=0;i<nstate;i++) soll[i] = solr[i];
-    break;
-  default:
-    PZError << "TPZEulerConsLaw2::ContributeInterface Boundary Condition Type  does Not Exist\n";
-  }
-}
-
-
-void TPZEulerConsLaw2::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright){
-
-  if(!bcright){
-    PZError << "TPZEulerConsLaw2::ComputeSolLeft null bundary condition return\n";
-    return;
-  }
-  int i,nstate = NStateVariables();
-  REAL vpn=0.;
-  switch (bcright->Type()){
-  case 0://Dirichlet
-  case 1://Neumann
-  case 2://Mista
-    PZError << "TPZEulerConsLaw2::ComputeSolLeft boundary condition error\n";
-    break;
-  case 3://Dirichlet: nada a fazer a CC é a correta
-    for(i=0;i<nstate; i++) solr[i] = bcright->Val2().operator()(i,0);//<!>erick
-    break;
-  case 4://recuperar valor da solu¢ão MEF esquerda: saida livre
-    for(i=0;i<nstate; i++) solr[i] = soll[i];
-    break;
-  case 5://condi¢ão de parede
-    for(i=1;i<nstate-1;i++) vpn += soll[i]*normal[i-1];//v.n
-    for(i=1;i<nstate-1;i++) solr[i] = soll[i] - 2.0*vpn*normal[i-1];
-    solr[0] = soll[0];
-    solr[nstate-1] = soll[nstate-1];
-    break;
-  case 6://não refletivas (campo distante)
-    for(i=0;i<nstate;i++) solr[i] = soll[i];
-    break;
-  default:
-    PZError << "TPZEulerConsLaw2::ContributeInterface Boundary Condition Type does Not Exist\n";
-  }
-}
-*/
 
 void TPZEulerConsLaw2::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 
@@ -552,7 +485,7 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 	    {
 	      j = i;
 	       /*for(j = 0; j < nstate; j++)*/
-	          ek(ishape * nstate + i,jshape * nstate + j) +=
+	          ek(ishape * nstate + i,jshape * nstate + j) -=
 		     (dphi(0,ishape)*dphi(0,jshape)+
 		      dphi(1,ishape)*dphi(1,jshape)
 		      )*weight/**TimeStep()*/;
@@ -609,53 +542,6 @@ void TPZEulerConsLaw2::ContributeInterface(
 
 }
 
-/*
-
-void TPZEulerConsLaw2::ContributeWall(
-		TPZVec<REAL> &x,
-		TPZVec<REAL> &solL, TPZVec<REAL> &solR,
-		TPZFMatrix &dsolL, TPZFMatrix &dsolR,
-		REAL weight, TPZVec<REAL> &normal,
-		TPZFMatrix &phiL,TPZFMatrix &phiR,
-		TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-		TPZFMatrix &ek,TPZFMatrix &ef)
-{
-//return;
-   // initial guesses for left and right sol
-   // fForcingFunction is null at iterations > 0
-   if(fForcingFunction)
-   {
-      TPZVec<REAL> res;
-      int i, nState = NStateVariables();
-      fForcingFunction(x, res);
-      for(i = 0; i < nState; i++)
-         solL[i] = solR[i] = res[i];
-   }
-
-
-   // contributing face-based quantities
-   if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
-      {
-      // if face contribution is implicit,
-      // then the FAD classes must be initialized
-      #ifdef _AUTODIFF
-         TPZVec<FADREAL> FADsolL, FADsolR;
-         PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
-         ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
-      #else
-      // forcint explicit contribution and issueing an warning
-         cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
-         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
-      #endif
-      }
-
-   if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
-   {
-         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
-   }
-
-}
-*/
 void TPZEulerConsLaw2::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &sol,REAL weight,
                                    TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,
                                    TPZFMatrix &ef,TPZBndCond &bc)
@@ -673,7 +559,7 @@ void TPZEulerConsLaw2::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &sol,REAL w
         ef(in*nstate+i,0) += gBigNumber * weight * v2[i] * phi(in,0);
       for (jn = 0 ; jn < phr; jn++) {
         for(i = 0 ; i < nstate; i++)
-          ek(in*nstate+i,jn*nstate+i) += gBigNumber * weight * phi(in,0) * phi(jn,0);
+          ek(in*nstate+i,jn*nstate+i) -= gBigNumber * weight * phi(in,0) * phi(jn,0);
       }
     }
     break;
@@ -689,7 +575,7 @@ void TPZEulerConsLaw2::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &sol,REAL w
         ef(in*nstate+i, 0) += weight * v2[i] * phi(in, 0);
       for (jn = 0 ; jn < phi.Rows(); jn++) {
         for(i = 0 ; i < nstate; i++) for(j = 0 ; j < nstate; j++)
-          ek(in*nstate+i,jn*nstate+j) += weight * bc.Val1()(i,j) * phi(in,0) * phi(jn,0);
+          ek(in*nstate+i,jn*nstate+j) -= weight * bc.Val1()(i,j) * phi(in,0) * phi(jn,0);
       }
     }
   }
@@ -893,7 +779,7 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
          ef(index,0) +=
 	    flux[i_state].val() * phiL(i_shape,0) * constant;
 	 for(j = 0; j < nDer; j++)
-	    ek(index, j) += flux[i_state].dx(j) *
+	    ek(index, j) -= flux[i_state].dx(j) *
 	       phiL(i_shape,0) * constant;
       }
 
@@ -907,7 +793,7 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
          ef(index,0) -=
 	    flux[i_state].val() * phiR(i_shape,0) * constant;
 	 for(j = 0; j < nDer; j++)
-	    ek(index, j) -= flux[i_state].dx(j) *
+	    ek(index, j) += flux[i_state].dx(j) *
 	       phiR(i_shape,0) * constant;
       }
 }
@@ -953,7 +839,7 @@ void TPZEulerConsLaw2::ContributeImplConvVol(TPZVec<REAL> &x,
    REAL constant = - TimeStep() * weight;
 
    TPZVec< TPZDiffMatrix<REAL> > Ai(3);
-   JacobFlux(sol, Ai);
+   JacobFlux(fGamma, fDim, sol, Ai);
    int j_shape, j_state;
    int i_state, i_shape, nShape = phi.Rows(), k;
    int nState = NStateVariables();
@@ -969,7 +855,7 @@ void TPZEulerConsLaw2::ContributeImplConvVol(TPZVec<REAL> &x,
                                            * constant;
             for(j_shape = 0; j_shape < nShape; j_shape++)
                 for(j_state = 0; j_state < nState; j_state++)
-                   ek(index, j_state + j_shape * nState) +=
+                   ek(index, j_state + j_shape * nState) -=
                                 Ai[k](i_state, j_state) *
                                 dphi(k, i_shape) *
                                 phi(j_shape,0) *
@@ -1002,7 +888,7 @@ void TPZEulerConsLaw2::ContributeImplT1(TPZVec<REAL> &x,
               weight;
 	  // ek += phi(i)*phi(j)
           for(j_shape = 0; j_shape < nShape; j_shape++)
-             ek(index, j_shape * nState + ij_state) +=
+             ek(index, j_shape * nState + ij_state) -=
                 phi(i_shape,0) *
                 phi(j_shape,0) *
                 weight;
