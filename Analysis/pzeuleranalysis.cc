@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cc,v 1.12 2003-11-24 18:59:18 cedric Exp $
+//$Id: pzeuleranalysis.cc,v 1.13 2003-12-09 22:19:28 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -229,7 +229,7 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh()
   //scalar[1] = "density";
   //scalar[2] = "normvelocity";
 
-  TPZMaterial * mat = 0;//fFlowCompMesh->GetFlowMaterial(0);
+  TPZMaterial * mat = fFlowCompMesh->GetFlowMaterial(0);
   int dim = mat->Dimension();
   //ResetReference(Mesh());//retira referências para criar graph consistente
   TPZDXGraphMesh * graph = new TPZDXGraphMesh (Mesh(),dim,mat,scalar,vector);
@@ -329,7 +329,7 @@ void TPZEulerAnalysis::Run(ostream &out)
 
       if(lastEpsilon>0.&&epsilon>0.)
       {
-	//         fFlowCompMesh->ScaleCFL(sqrt(lastEpsilon/epsilon));
+         fFlowCompMesh->ScaleCFL(sqrt(lastEpsilon/epsilon));
       }
       lastEpsilon = epsilon;
 
@@ -376,4 +376,3 @@ void TPZEulerAnalysis::SetTimeIntCriteria(REAL epsilon, int maxIter)
    fTimeIntEps     = epsilon;
    fTimeIntMaxIter = maxIter;
 }
-
