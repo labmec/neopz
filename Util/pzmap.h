@@ -31,6 +31,10 @@
 
 class TReceiveStorage;
 
+/// class which implements a binary tree
+/**
+DO NOT USE DEPRECATED
+*/
 template <class TIndex, class TObj>
 class TMap
 {

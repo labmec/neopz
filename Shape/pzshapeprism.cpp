@@ -1,4 +1,4 @@
-// $Id: pzshapeprism.cpp,v 1.4 2003-11-25 17:59:45 cesar Exp $
+// $Id: pzshapeprism.cpp,v 1.5 2005-02-28 22:11:26 phil Exp $
 #include "pzshapeprism.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -8,6 +8,8 @@
 #include "pzerror.h"
 #include "pzreal.h"
 
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
 
 /*Projection of the point within a piramide to a rib*/
 REAL TPZShapePrism::gRibTrans3dPrisma1d[9][3] = {//parâmetros de arestas
@@ -815,3 +817,5 @@ void TPZShapePrism::CenterPoint(int side, TPZVec<REAL> &center) {
     center[i] = MidSideNode[side][i];
   }
 }
+
+};

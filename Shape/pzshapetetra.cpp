@@ -1,4 +1,4 @@
-// $Id: pzshapetetra.cpp,v 1.4 2003-11-18 12:37:17 cesar Exp $
+// $Id: pzshapetetra.cpp,v 1.5 2005-02-28 22:11:26 phil Exp $
 #include "pzshapetetra.h"
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
@@ -7,6 +7,8 @@
 #include "pzerror.h"
 #include "pzreal.h"
 
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
 
 /*Projection of the point within a tetraedro to a rib*/
 REAL TPZShapeTetra::gRibTrans3dTetr1d[6][3] = {
@@ -664,3 +666,5 @@ void TPZShapeTetra::SideShape(int side, TPZVec<REAL> &point, TPZVec<int> &id, TP
   }
 
 }
+
+};

@@ -1,13 +1,25 @@
 // -*- c++ -*-
 
-// $Id: TPZShapeDisc.h,v 1.6 2005-01-28 17:01:32 tiago Exp $
+// $Id: TPZShapeDisc.h,v 1.7 2005-02-28 22:11:26 phil Exp $
 #ifndef SHAPEDISCHPP
 #define SHAPEDISCHPP
 
 #include "pzfmatrix.h"
 #include "pzvec.h"
 
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
 
+
+/** 
+ *
+ * @brief Implements the shape functions discontinuous elements
+
+ * This class computes the shape functions for n-dimensional elements
+ * the shape functions can be tensor based or interpolation order based
+ * The Shape2dFull method also computes higher order derivatives
+ * @ingroup shape
+ */
 class TPZShapeDisc {
 
 public:
@@ -69,4 +81,7 @@ static void Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFM
 static void Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type);
 
 };
+
+};
+
 #endif

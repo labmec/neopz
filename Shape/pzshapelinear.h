@@ -12,6 +12,9 @@
 #include "fadType.h"
 #endif
 
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
+
 /**
  *
  * @brief Implements the shape functions of a linear (1D) element
@@ -269,6 +272,8 @@ static int SideConnectLocId(int side, int c);
  /**volume of the master element*/
 static REAL RefElVolume(){return 2.0;}
 
+
+};
 
 };
 #endif

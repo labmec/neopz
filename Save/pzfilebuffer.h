@@ -11,7 +11,11 @@
 using namespace std;
 
 
-
+/// this class defines the interface for saving and reading data
+/**
+In fact, this class could use the facilities of the stream class of the std library
+This class is a subset of the functionality of the stream classes
+*/
 class TPZStream {
 
  public:
@@ -51,6 +55,7 @@ class TPZStream {
 
 };
 
+/// This class implements reading from and writing to an ascii file
 class TPZFileStream : public TPZStream {
 
   ofstream fo;

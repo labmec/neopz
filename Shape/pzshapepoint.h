@@ -7,10 +7,14 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 
-//template<class T>
-//class TPZVec<REAL>;
-//class TPZVec<int>;
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
 
+/// Computes the shpae functions associated with a point
+/**
+ Compute the single shape function associated with a point
+ @ingroup shape
+*/
 class TPZShapePoint {
 public:
   enum {NNodes = 1, NSides = 1, Dimension = 0};
@@ -120,5 +124,5 @@ public:
 
 };
 
-
+};
 #endif

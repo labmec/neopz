@@ -7,6 +7,9 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
+
 /** 
  *
  * @brief Implements the shape functions of a triangular (2D) element
@@ -195,5 +198,6 @@ static int SideConnectLocId(int side, int c);
 
  /**volume of the master element*/
 static REAL RefElVolume(){return 0.5;}
+};
 };
 #endif

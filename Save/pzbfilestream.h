@@ -28,7 +28,7 @@ extern "C" {
 using namespace std;
 
 
-
+/// this class implements the interface to a binary file
 /**
 @author Thiago M. N. Oliveira
 */

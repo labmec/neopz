@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzshapecube.h,v 1.5 2004-10-06 19:12:23 phil Exp $
+// $Id: pzshapecube.h,v 1.6 2005-02-28 22:11:26 phil Exp $
 #ifndef SHAPECUBEHPP
 #define SHAPECUBEHPP
 
@@ -12,6 +12,8 @@
 #ifdef _AUTODIFF
 #include "fadType.h"
 #endif
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
 
 /** 
  *
@@ -293,4 +295,5 @@ static int SideDimension(int side);
 static REAL RefElVolume(){return 8.0;}
 };
 
+};
 #endif

@@ -4,6 +4,8 @@
 #include "pzerror.h"
 #include "pzreal.h"
 
+namespace pzshape {
+
 REAL TPZShapeLinear::fJacobiAlfa = 1.;
 REAL TPZShapeLinear::fJacobiBeta = 1.;
 static int nhighdimsides[3] = {1,1,0};
@@ -508,3 +510,5 @@ void TPZShapeLinear::TransformDerivative1d(int transid,int num,TPZVec<FADREAL> &
 }
 */
 #endif
+
+};

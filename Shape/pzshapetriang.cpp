@@ -1,4 +1,4 @@
-// $Id: pzshapetriang.cpp,v 1.4 2003-11-25 17:59:45 cesar Exp $
+// $Id: pzshapetriang.cpp,v 1.5 2005-02-28 22:11:26 phil Exp $
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -6,6 +6,7 @@
 #include "pzerror.h"
 #include "pzreal.h"
 
+namespace pzshape {
 
 /**Transformation of the point within a triangular face */
 REAL TPZShapeTriang::gTrans2dT[6][2][2] = {//s* , t*
@@ -445,3 +446,5 @@ void TPZShapeTriang::CenterPoint(int side, TPZVec<REAL> &center) {
     center[i] = MidSideNode[side][i];
   }
 }
+
+};

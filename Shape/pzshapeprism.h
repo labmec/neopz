@@ -6,7 +6,9 @@
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include "pztrnsform.h"
-class TPZCompElPr3d;
+
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
 
 /** 
  *
@@ -233,5 +235,7 @@ static int SideConnectLocId(int side, int c);
 
  /**volume of the master element*/
 static REAL RefElVolume(){return 1.0;}
+};
+
 };
 #endif

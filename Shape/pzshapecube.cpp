@@ -6,6 +6,7 @@
 #include "pzerror.h"
 #include "pzreal.h"
 
+namespace pzshape {
 
 REAL TPZShapeCube::gRibTrans3dCube1d[12][3] = {
   {1., 0.,0.} , { 0.,1.,0.} , {-1., 0.,0.} ,
@@ -1060,3 +1061,5 @@ void TPZShapeCube::Shape3dCubeInternal(TPZVec<FADREAL> &x, int order,TPZVec<FADR
 }
 
 #endif
+
+};

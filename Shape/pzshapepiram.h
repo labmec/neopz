@@ -7,6 +7,8 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
 
 /** 
  *
@@ -219,6 +221,8 @@ static int SideConnectLocId(int side, int c);
 
   /**volume of the master element*/
 static REAL RefElVolume(){return (4./3.);}
+
+};
 
 };
 #endif

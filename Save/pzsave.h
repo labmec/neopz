@@ -21,6 +21,7 @@ class TPZSaveable;
 typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,void *);
 
 
+/// This class defines the interface to save and restore objects from TPZStream objects
 class TPZSaveable {
 
 static map<int,TPZRestore_t> &Map() {
@@ -318,6 +319,11 @@ TPZSaveable *Restore(TPZStream &buf, void *context) {
   return ptr;
 }
 
+/// this class implements an interface to register a class id and a restore function
+/**
+A declaration of the type "template class<classname, classid> put in .cpp file does the trick
+The static object which is "automatically" created calls the proper interface of the TPZSaveable class
+*/
 template<class T, int N>
 class TPZRestoreClass {
 public:

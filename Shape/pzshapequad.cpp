@@ -1,4 +1,4 @@
-// $Id: pzshapequad.cpp,v 1.6 2004-09-07 23:41:35 phil Exp $
+// $Id: pzshapequad.cpp,v 1.7 2005-02-28 22:11:26 phil Exp $
 #include "pzshapequad.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -7,6 +7,7 @@
 #include "pzerror.h"
 #include "pzreal.h"
 
+namespace pzshape {
 
 /**Transformation of the point within a quadrilateral face */
 REAL TPZShapeQuad::gTrans2dQ[8][2][2] = {//s* , t*
@@ -538,3 +539,5 @@ void TPZShapeQuad::TransformDerivativeFromRibToQuad(int rib,int num,TPZVec<FADRE
 */
 
 #endif
+
+};

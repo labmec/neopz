@@ -1,11 +1,14 @@
 // -*- c++ -*-
-// $Id: pzshapetetra.h,v 1.3 2003-10-06 01:32:07 phil Exp $
+// $Id: pzshapetetra.h,v 1.4 2005-02-28 22:11:26 phil Exp $
 #ifndef SHAPETETRAHPP
 #define SHAPETETRAHPP
 
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include "pztrnsform.h"
+
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
 
 /** 
  *
@@ -244,5 +247,7 @@ static void CenterPoint(int side, TPZVec<REAL> &center);
 
  /**volume of the master element*/
 static REAL RefElVolume(){return (1./6.);}
+};
+
 };
 #endif

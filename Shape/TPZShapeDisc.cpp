@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
+
 void (*TPZShapeDisc::fOrthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix & phi, TPZFMatrix & dphi, int n) = TPZShapeDisc::Polynomial;
 
 TPZShapeDisc::TPZShapeDisc(){
@@ -311,3 +314,4 @@ int  TPZShapeDisc::NShapeF(int degree, int dimension, MShapeType type) {
   }
 }
 
+};

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzshapequad.h,v 1.5 2003-11-20 15:35:18 cedric Exp $
+// $Id: pzshapequad.h,v 1.6 2005-02-28 22:11:26 phil Exp $
 
 #ifndef SHAPEQUADHPP
 #define SHAPEQUADHPP
@@ -11,6 +11,9 @@
 #ifdef _AUTODIFF
 #include "fadType.h"
 #endif
+
+/// groups all classes dedicated to the computation of shape functions
+namespace pzshape {
 
 /** 
  *
@@ -251,6 +254,8 @@ static int SideConnectLocId(int side, int c);
 static REAL RefElVolume(){return 4.0;}
 
 
+
+};
 
 };
 #endif
