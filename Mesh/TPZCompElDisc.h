@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.15 2003-11-10 16:15:07 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.16 2003-11-14 21:20:10 cedric Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -253,6 +253,8 @@ protected:
   REAL LesserEdgeOfEl();
 
   void CalcResidual(TPZElementMatrix &ef);
+
+  void BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &transfer);
 };
 
 inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index) {

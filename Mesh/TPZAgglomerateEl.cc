@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cc,v 1.14 2003-11-10 20:31:07 tiago Exp $
+//$Id: TPZAgglomerateEl.cc,v 1.15 2003-11-14 21:20:10 cedric Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -736,7 +736,6 @@ int Level(TPZGeoEl *gel){
   return niv;
 }
 
-// Void Tpzagglomerateelement::Projectresidual(){
 void TPZAgglomerateElement::RestrictionOperator(){
 
   //projeta a solução dos elementos contidos na aglomeração
@@ -789,8 +788,6 @@ void TPZAgglomerateElement::RestrictionOperator(){
   int npoints = intrule->NPoints();
   REAL weight,detjac;
   int in,jn,kn,ip,ind;
-//   TPZBlock &fineblock = MotherMesh()->Block();
-//   TPZFMatrix &FineMeshSol = MotherMesh()->Solution();
   TPZCompElDisc *disc;
 
   for(ind=0;ind<size;ind++){
@@ -813,10 +810,10 @@ void TPZAgglomerateElement::RestrictionOperator(){
 	  // => a regra  dos pequenos integra ok
 	  aggmat(in,jn) += weight*aggphix(in,0)*aggphix(jn,0);
 	}
-      }
-      //a soma das regras dos pequenos cobre a geometria do grande
-      for(kn=0; kn<nvar; kn++) {
-	loadvec(in,kn) += weight*aggphix(in,0)*uh[kn];
+	//a soma das regras dos pequenos cobre a geometria do grande
+	for(kn=0; kn<nvar; kn++) {
+	  loadvec(in,kn) += weight*aggphix(in,0)*uh[kn];
+	}
       }
     }
   }
@@ -828,7 +825,7 @@ void TPZAgglomerateElement::RestrictionOperator(){
   TPZConnect *df = &Connect(0);
   int dfseq = df->SequenceNumber();
   int dfvar = block.Size(dfseq);
-  for(jn=0; jn<dfvar; jn++) {
+  for(jn=0; jn<dfvar; jn++) {//??????????????
     block(dfseq,0,jn,0) = loadvec(iv/nvar,iv%nvar);
     iv++;
   }
@@ -855,4 +852,18 @@ void TPZAgglomerateElement::FineSolution(TPZCompElDisc *disc,TPZFMatrix &aggphix
 void TPZAgglomerateElement::RestrictionOperator2(){
 
   cout << "TPZAgglomerateElement::RestrictionOperator2 NOT IMPLEMENTED\n";
+}
+
+
+void TPZAgglomerateElement::RestrictionOperator(TPZCompElDisc &coarse,TPZTransfer &transf){
+
+  //projeta a solução dos elementos contidos na aglomeração
+  //no elemento por eles aglomerado
+  PZError <<  "TPZAgglomerateElement::RestrictionOperator it would not have to be called!\n";
+}
+
+
+int TPZAgglomerateElement::NShapeF(){
+  cout << "TPZAgglomerateElement::NShapeF IMPLEMENTE AGORA\n";
+  return 0;
 }

@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.11 2003-11-10 20:26:24 tiago Exp $
+//$Id: TPZAgglomerateEl.h,v 1.12 2003-11-14 21:20:10 cedric Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -8,12 +8,13 @@
 #include "TPZCompElDisc.h"
 #include <iostream>
 
+struct TPZElementMatrix;
 class TPZGeoEl;
 class TPZCompEl;
 class TPZCompMesh;
 class TPZGeoElSide;
 class TPZInterfaceElement;
-struct TPZElementMatrix;
+class TPZTransfer;
 using namespace std;
 
 /**
@@ -71,6 +72,12 @@ public:
   * This method re-implement the mother's method.
   */
   void CenterPoint(TPZVec<REAL> &center);
+
+  /**
+   * it returns the shapes number of the element 
+   */
+  int NShapeF();
+
 
   /** retorna o volume do elemento geométrico referenciado */
   REAL VolumeOfEl();
@@ -155,8 +162,11 @@ public:
 
   void RestrictionOperator();
 
+  void RestrictionOperator(TPZCompElDisc &coarse,TPZTransfer &transf);
+
   void RestrictionOperator2();
 
   void FineSolution(TPZCompElDisc *disc,TPZFMatrix &aggphix,TPZVec<REAL> &uh);
+
 };
 #endif

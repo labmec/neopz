@@ -1,7 +1,8 @@
-//$Id: pzcmesh.cpp,v 1.16 2003-11-06 19:11:33 cesar Exp $
+//$Id: pzcmesh.cpp,v 1.17 2003-11-14 21:20:10 cedric Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
+#include "pzeltype.h"
 #include "pzerror.h"
 #include "pzcmesh.h"
 #include "pzgmesh.h"
@@ -17,6 +18,7 @@
 #include "pzblock.h"
 #include "pzelmat.h"
 #include "TPZCompElDisc.h"
+#include "TPZAgglomerateEl.h"
 #include "pztrnsform.h"
 #include "pztransfer.h"
 #include "pzavlmap.h"
@@ -832,6 +834,60 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
     locel->BuildTransferMatrix(*coarsel,t,transfer);
   }
 }
+
+void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &coarsemesh, TPZTransfer &transfer) {
+
+  TPZBlock &localblock = Block();
+  TPZBlock &coarseblock = coarsemesh.Block();
+  // adapt the block size of the blocks, dividing by the number of variables
+  //  of the material
+  int i, nmat = NMaterials();
+  TPZMaterial *mat = 0;
+  for(i=0; i<nmat; i++) {
+    mat = fMaterialVec[i];
+    if(mat) break;//o primeiro material é o de volume - supostamente
+  }
+  if(!mat) {
+    PZError << "TPZCompMesh::BuildTransferMatrixDesc no material object found\n";
+    return;
+  }
+  int nvar = mat->NStateVariables();
+  int dim = mat->Dimension();
+  
+  int ncon = NIndependentConnects(),coarncon = coarsemesh.NIndependentConnects();
+  transfer.SetBlocks(localblock,coarseblock,nvar,ncon,coarncon);
+  Reference()->ResetReference();//geométricos apontam para nulo
+  coarsemesh.LoadReferences();//geométricos apontam para computacionais do coarsemesh
+  int nelem = NElements();
+  TPZAgglomerateElement *aggel = 0;
+
+  for(i=0; i<nelem; i++) {
+    TPZCompEl *comp = fElementVec[i];
+    if(!comp) continue;
+    aggel = dynamic_cast<TPZAgglomerateElement *>(comp);
+    if(!aggel){
+      PZError << "TPZCompMesh::BuildTransferMatrixDesc mesh agglomerated with element of volume not agglomerated\n";
+      continue;
+    }
+    if(aggel->Dimension() != dim) continue;    
+    TPZStack<int> elvec;
+    aggel->IndexesDiscSubEls(elvec);
+    int size = elvec.NElements(),i;
+    for(i=0;i<size;i++){
+      TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(fElementVec[elvec[i]]);
+      if(!disc){
+	PZError << "TPZCompMesh::BuildTransferMatrixDesc index with null elemento\n";
+	continue;
+      }
+      if(disc->Type() != 'EDiscontinuous') {
+	PZError << "TPZCompMesh::BuildTransferMatrixDesc index of not discontinous element\n";
+	continue;
+      }
+      disc->BuildTransferMatrix(*aggel,transfer);
+    }
+  }
+}
+
 
 /*
 void TPZCompMesh::CreateConnectBC() {

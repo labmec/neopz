@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.12 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzcmesh.h,v 1.13 2003-11-14 21:20:10 cedric Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -432,6 +432,11 @@ public:
    * @param transfer transfer matrix between the current mesh and the coarse mesh
    */
   void BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &transfer);
+
+  /**
+   * Para elementos decontínuos
+   */
+  void BuildTransferMatrixDesc(TPZCompMesh &coarsemesh, TPZTransfer &transfer);
 
   /**
    * Creates the computational elements, and the degree of freedom nodes

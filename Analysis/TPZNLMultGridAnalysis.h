@@ -76,7 +76,7 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    * Uses fSolver object to apply a solution
    * algorithm
    */
-  virtual void Solve ();
+  //virtual void Solve ();
 
   /**
    * it creates a new established computational mesh in the refinement uniform 
@@ -86,7 +86,7 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    * setdegree: degree of interpolation
    * newmesh = 0 coarcmesh is refined other case new mesh is create
    */
-   static TPZCompMesh *UniformlyRefineMesh (TPZCompMesh *coarcmesh,int levelnumbertorefine,int setdegree,int newmesh = 0);
+   static TPZCompMesh *UniformlyRefineMesh (TPZCompMesh *coarcmesh,int levelnumbertorefine,int setdegree);
 
    /**
    * it generates a new mesh based on the agglomeration of elements of the fine mesh
@@ -99,7 +99,7 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    */
   void ComputeError (TPZVec<REAL> &error);
 
-  void SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat);
+  void SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an);
   
   void ResetReference(TPZCompMesh *aggcmesh);
 
@@ -109,12 +109,9 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
 
   void CoutTime(clock_t &start,char *title);
 
-  void TwoGridAlgorithm(ostream &out);
+  void TwoGridAlgorithm(ostream &out,int nummat);
 
-  /**
-   * Validation routines
-   */
-  static int main();
+  void CalcResidual(TPZMatrix &sol,TPZFMatrix &res,TPZAnalysis &an,char *decompose);
 
 };
 #endif

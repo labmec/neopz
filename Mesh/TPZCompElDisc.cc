@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.27 2003-11-12 13:31:26 erick Exp $
+//$Id: TPZCompElDisc.cc,v 1.28 2003-11-14 21:20:10 cedric Exp $
 
 // -*- c++ -*- 
 
@@ -38,7 +38,7 @@
 #include "pztrigraphd.h"
 #include "pztrigraph.h"
 #include "pzgraphel.h"
-//#include "TPZFlowCMesh.h"
+#include "pztransfer.h"
 
 #include "time.h"
 #include "pzgeoel.h"
@@ -899,7 +899,7 @@ REAL TPZCompElDisc::LesserEdgeOfEl(){
       //juntando os nodos do grupo
       TPZCompEl *comp = This->MotherMesh()->ElementVec()[elvec[i]];
       TPZGeoEl *geo = comp->Reference();
-      if(!geo) PZError <<  "TPZAgglomerateElement::Solution null reference\n";
+      if(!geo) PZError <<  "TPZCompElDisc::Solution null reference\n";
       nvertices = geo->NNodes();
       for(l=0;l<nvertices;l++) nodes.Push( geo->NodePtr(l) );
     }
@@ -932,7 +932,7 @@ REAL TPZCompElDisc::LesserEdgeOfEl(){
     for(i=0;i<size;i++){
       TPZCompEl *comp = This->MotherMesh()->ElementVec()[elvec[i]];
       TPZGeoEl *geo = comp->Reference();
-      if(!geo) PZError <<  "TPZAgglomerateElement::Solution null reference\n";
+      if(!geo) PZError <<  "TPZCompElDisc::Solution null reference\n";
       int nvertices = geo->NNodes();
       for(l=0;l<nvertices;l++){
 	for(j=l+1;j<nvertices;j++){
@@ -1046,5 +1046,141 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh &agg
   }
 }
 
+void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarse, TPZTransfer &transfer){
+  // accumulates the transfer coefficients between the current element and the
+  // coarse element into the transfer matrix, using the transformation t
+  int lncon = NConnects();//=1?
+  int cncon = coarse.NConnects();//=1?
+  int lnshape = NShapeF();
+  int cnshape = coarse.NShapeF();
+
+  // o grau de this deve >= que o grau do coarse
+  int locdeg = Degree(),coardeg = coarse.Degree();
+  if(locdeg < coardeg) {
+    //cout << "TPZCompElDisc::BuildTransferMatrix incompatible degrees" << endl;
+    //return;
+    SetDegree(coardeg);
+  }
+  TPZStack<int> connectlistcoarse, corblocksize;
+  connectlistcoarse.Resize(0);//precisa?
+  corblocksize.Resize(0);//precisa?
+  connectlistcoarse.Push(coarse.ConnectIndex(0));
+  coarse.BuildConnectList(connectlistcoarse);
+  cncon = connectlistcoarse.NElements();
+  int nvar = coarse.Material()->NStateVariables();
+  TPZBlock corblock(0,cncon);
+  int in;
+  int blsize = coarse.NShapeF();
+  corblock.Set(0,blsize);
+  corblocksize.Push(blsize);
+  int c;
+
+  for(in=1; in<cncon; in++) {// DEVE SER ncon = 2 !?
+    c = connectlistcoarse[in];
+    blsize = coarse.Mesh()->ConnectVec()[c].NDof(*(coarse.Mesh()))/nvar;
+    corblock.Set(in,blsize);
+    corblocksize.Push(blsize);
+    cnshape += blsize;
+  }
+  corblock.Resequence();
+
+  TPZFNMatrix<500> loclocmat(lnshape,lnshape);
+  TPZFMatrix loccormat(lnshape,cnshape);
+  loclocmat.Zero();
+  loccormat.Zero();
+
+  int integdeg = Degree() + coarse.Degree();
+  TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integdeg);
+  int dimension = Dimension();
+
+  TPZBlock locblock(0,lncon);
+
+  locblock.Set(in,NShapeF());
+  locblock.Resequence();
+
+  REAL locphistore[50]={0.},locdphistore[150]={0.};
+  TPZFMatrix locphi(lnshape,1,locphistore,50);
+  TPZFMatrix locdphi(dimension,lnshape,locdphistore,150);
+  locphi.Zero();
+  locdphi.Zero();
+  // derivative of the local shape function
+  // in the master domain
+
+  TPZFMatrix corphi(cnshape,1);
+  TPZFMatrix cordphi(dimension,cnshape);
+  // derivative of the coarse shape function
+  // in the master domain
+
+  TPZManVector<REAL> int_point(dimension);
+  TPZFNMatrix<9> jacobian(dimension,dimension),jacinv(dimension,dimension),axes(3,3);
+  TPZManVector<REAL> x(3);
+  int_point.Fill(0.,0);
+  REAL jac_det = 1.;
+  fReference->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
+  REAL multiplier = 1./jac_det;
+
+  int numintpoints = intrule->NPoints();
+  REAL weight;
+  int lin,ljn,cjn;
+
+  for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
+
+    intrule->Point(int_ind,int_point,weight);
+    fReference->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
+    fReference->X(int_point, x);
+    Shape(x,locphi,locdphi);
+    weight *= jac_det;
+    corphi.Zero();
+    cordphi.Zero();
+    coarse.Shape(x,corphi,cordphi);
+
+    //coarse.ExpandShapeFunctions(connectlistcoarse,dependencyordercoarse,corblocksize,corphi,cordphi);
+
+    for(lin=0; lin<lnshape; lin++) {
+      for(ljn=0; ljn<lnshape; ljn++) {
+	loclocmat(lin,ljn) += weight*locphi(lin,0)*locphi(ljn,0)*multiplier;
+      }
+      for(cjn=0; cjn<cnshape; cjn++) {
+	loccormat(lin,cjn) += weight*locphi(lin,0)*corphi(cjn,0)*multiplier;
+      }
+    }
+    jacobian.Zero();
+  }
+  loclocmat.SolveDirect(loccormat,ELDLt);
 
 
+  int locblocknumber = Connect(0).SequenceNumber();
+  int locblocksize = locblock.Size(0);
+  int locblockpos = locblock.Position(0);
+
+  TPZStack<int> locblockvec;
+  TPZStack<int> globblockvec;
+
+  int cblocksize = corblock.Size(0);
+  int cblockpos = corblock.Position(0);
+  int cind = connectlistcoarse[0];
+  TPZConnect &con = coarse.Mesh()->ConnectVec()[cind];
+
+  int corblocknumber = con.SequenceNumber();
+  if(locblocksize == 0 || cblocksize == 0) PZError << "TPZCompElDisc::BuildTransferMatrix error I\n";
+  TPZFMatrix small(locblocksize,cblocksize,0.);
+  loccormat.GetSub(locblockpos,cblockpos,locblocksize,cblocksize,small);
+  REAL tol = Norm(small);
+  if(tol >= 1.e-10) {
+    locblockvec.Push(0);
+    globblockvec.Push(corblocknumber);
+  }
+
+  if(transfer.HasRowDefinition(locblocknumber)) PZError << "TPZCompElDisc::BuildTransferMatrix error II\n";
+  transfer.AddBlockNumbers(locblocknumber,globblockvec);
+
+  int jn = locblockvec[0];
+  cblocksize = corblock.Size(jn);
+  cblockpos = corblock.Position(jn);
+  if(cblocksize == 0 || locblocksize == 0) PZError << "TPZCompElDisc::BuildTransferMatrix error III\n";
+  TPZFMatrix small2(locblocksize,cblocksize,0.);
+  loccormat.GetSub(locblockpos,cblockpos,locblocksize,cblocksize,small2);
+  transfer.SetBlockMatrix(locblocknumber,globblockvec[0],small2);
+
+  SetDegree(locdeg);
+}
