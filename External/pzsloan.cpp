@@ -15,7 +15,7 @@ void TPZSloan::Resequence(int n_nodes, int n_elements, int *nnn,int *npn, int *x
 	//Sloan routine with npn and xnpn as parameters
 	//Renumbering using the npn and xnpn vectors already built.
 	int nen;
-	int k=0;
+//	int k=0;
 
 	/**
 	*Must be updated to work in accordance to TPZMetis!
@@ -115,7 +115,7 @@ void TPZSloan::Resequence(TPZVec<int> &perm)
 	*/
 	//feed npn and xnpn with data from jj and jk
 	int i;
-	int k=0;
+//	int k=0;
 	int nnodes_per_element=27;
 	
 	int iadj = fElementGraph.NElements()* nnodes_per_element* (nnodes_per_element-1);
