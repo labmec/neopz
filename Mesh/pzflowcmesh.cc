@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.cc,v 1.8 2003-12-18 20:05:41 erick Exp $
+//$Id: pzflowcmesh.cc,v 1.9 2004-01-22 17:16:44 erick Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
@@ -23,7 +23,11 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
   while(i<nel){
 
     TPZCompEl *pElComp = ElementVec()[i];
-    if(!pElComp)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh: No associated computation element.\n";
+    if(!pElComp)
+    {
+       cout << "TPZFlowCompMesh::MaxVelocityOfMesh: No associated computation element.\n";
+       continue;
+    }
 
     TPZMaterial *mat = pElComp->Material();
     if(!mat)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh ERROR: null material.\n";
