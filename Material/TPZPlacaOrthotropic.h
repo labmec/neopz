@@ -6,6 +6,7 @@ class TPZVec;
 class TPZFMatrix;
 class TPZInterpolatedElement;
 class TPZCompEl;
+class TPZGeoEl;
 
 // o objeto desta classe representa uma placa do objeto multicamada; 
 //este útlimo representa fisicamente a superposi¢ão de várias placas. 
@@ -16,26 +17,30 @@ class TPZPlacaOrthotropic {
 
  private:
 
+  TPZGeoEl *fGeoEl;
   /**elemento computacional da placa*/
   TPZInterpolatedElement *fIntel;
   /**Espessura da placa*/
   REAL fH;
+  REAL fZMin, fZMax;
+  int fTensorVar;
   //double dx, dy;
   
  public:
 
+  TPZPlacaOrthotropic();
   /**construtor da placa*/
-  TPZPlacaOrthotropic(TPZInterpolatedElement *cel,REAL hight = 0. );
+  TPZPlacaOrthotropic(TPZGeoEl *gel,REAL zmin, REAL zmax);
   /*destrutor*/
   ~TPZPlacaOrthotropic(){}
   /**devolve o tensor de tensões da placa*/
-  void Tensor(TPZFMatrix &T, REAL z);
+  void Tensor(REAL ksi, TPZFMatrix &T);
   /**Dados dois vetores n1 e n2 retorna o momento*/
-  REAL Moment(TPZVec<REAL> n1, TPZVec<REAL> n2);
+  REAL Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &direction);
   /**Dados dois vetores n1 e n2 retorna a forca*/
-  REAL Force(TPZVec<REAL> n1, TPZVec<REAL> n2);
+  REAL Force(TPZVec<REAL> &normal, TPZVec<REAL> &direction);
   
-  REAL FH(){return fH;}
+  REAL Height(){return fH;}
 
   void Print();
 

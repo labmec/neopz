@@ -1,3 +1,4 @@
+// $Id: pzbctension.cpp,v 1.3 2003-11-04 00:26:33 phil Exp $
 
 #include "pzbctension.h"
 #include "pzadmchunk.h"
@@ -6,7 +7,7 @@
 //#include "TPZPlacaOrthotropic.h"
 
 TPZBCTension::TPZBCTension(TPZMaterial *material,int id,int type,
-			   TPZFMatrix &val1,TPZFMatrix &val2,TPZFMatrix &esforcos) :
+			   TPZFMatrix &val1,TPZFMatrix &val2, TPZMultiCamadaOrthotropic *mult) :
   TPZBndCond(material,id,type,val1,val2) {
   fMx = 0.;
   fQxy = 0.;

@@ -1,3 +1,5 @@
+// -*- c++ -*-
+// $Id: pzbctension.h,v 1.3 2003-11-04 00:26:33 phil Exp $
 
 #ifndef BCTENSIONHPP
 #define BCTENSIONHPP
@@ -28,31 +30,8 @@ class TPZBCTension : public TPZBndCond {
     
     ~TPZBCTension(){}
 
-  TPZBCTension(TPZMaterial *material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2,TPZFMatrix &esforcos);
+  TPZBCTension(TPZMaterial *material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2, TPZMulticamadaOrthotropic *mult);
 
-
-  REAL MX(int placa, int face);
-  
-REAL QXY(int placa, int face);
-
- REAL HIGHT(int placa);
-
- REAL LXLYDIM(int placa);
-
- REAL MY(int placa, int face);
-
- REAL MXY(int placa, int face);
-
- REAL NX(int placa, int face);
-
- REAL NY(int placa, int face);
-
- REAL NXY(int placa, int face);
-
- REAL QX(int placa, int face);
-
- REAL QY(int placa, int face);
- 
 
   void FeedBCTension(){;}
 
