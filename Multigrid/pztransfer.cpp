@@ -197,6 +197,7 @@ void TPZTransfer::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
       for ( r=0; r < rows; r++) {
 	int rowblockpos = fRowBlock.Position(r);
 	int rowblocksize = fRowBlock.Size(r);
+  if(!rowblocksize) continue;
 	int colpos = fColPosition[r];
 	if(colpos == -1) continue;
 	int numcolbl = fNumberofColumnBlocks[r];
@@ -216,6 +217,7 @@ void TPZTransfer::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
       for ( r=0; r < rows; r++) {
 	int rowblockpos = fRowBlock.Position(r);
 	int rowblocksize = fRowBlock.Size(r);
+  if(!rowblocksize) continue;
 	TPZFMatrix xloc(rowblocksize*stride,1,&x.g(rowblockpos*stride,ic),rowblocksize*stride);
 	int colpos = fColPosition[r];
 	if(colpos == -1) continue;

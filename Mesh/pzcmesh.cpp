@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.32 2004-06-08 06:23:04 phil Exp $
+//$Id: pzcmesh.cpp,v 1.33 2005-02-04 16:58:11 cesar Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -76,7 +76,7 @@ void TPZCompMesh::CleanUp() {
     }
   }
   for(i=0; i<nelem; i++) {
-    TPZCompEl *el = fElementVec[i];
+    TPZCompEl *el = fElementVec[i];   
     if(!el) continue;
     if(el && el->Type() == EInterface) 
     {
@@ -859,7 +859,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
       continue;
     }
     TPZTransform t(coarsel->Dimension());
-    locgel->BuildTransform2(locel->NConnects()-1,coarsegel,t);
+    t=locgel->BuildTransform2(locel->NConnects()-1,coarsegel,t);
     locel->BuildTransferMatrix(*coarsel,t,transfer);
   }
 }
