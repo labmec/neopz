@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZMulticamadaOrtho.h,v 1.11 2003-11-17 21:11:06 cedric Exp $
+// $Id: TPZMulticamadaOrtho.h,v 1.12 2004-02-10 14:08:34 phil Exp $
 #ifndef MULTICAMADAORTH
 #define MULTICAMADAORTH
 
@@ -94,6 +94,11 @@ class TPZMulticamadaOrthotropic {
   void SetNX(REAL NX) {
     fNX[0] = NX;
     fNX[2] = NX;
+  }
+
+  void SetNY(REAL NY) {
+    fNY[0] = NY;
+    fNY[2] = NY;
   }
 
   void SetMY(REAL MX) { 

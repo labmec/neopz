@@ -183,14 +183,14 @@ void TPZPlacaOrthotropic::PrintTensors(ostream &out) {
     for(i=0; i<3; i++) {
       for(j=0; j<3; j++){
 	REAL tension = tensor(i,j);
-	if(fabs(tension) < 1.e-10) out << 0 << " , ";
-	else out << tension << " , ";
+	if(fabs(tension) < 1.e-10) out << 0 << " ";
+	else out << tension << " ";
       }
       //out << endl;
     }
     out << endl;
     REAL normat = TensionNorm(tensor,3,3);
-    out << "Norma do tensor " << normat << endl;
+    //    out << "Norma do tensor " << normat << endl;
     cout << "Norma do tensor " << normat << endl;
   }
 }
