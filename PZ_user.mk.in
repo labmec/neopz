@@ -3,7 +3,7 @@
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
-# $Id: PZ_user.mk.in,v 1.8 2004-05-10 13:22:36 tiago Exp $
+# $Id: PZ_user.mk.in,v 1.9 2005-02-02 12:49:35 cesar Exp $
 #
 
 PZ_INCLUDES = -I@prefix@/Util \
@@ -32,13 +32,12 @@ PZ_INCLUDES = -I@prefix@/Util \
 	@FADINCLUDE_FAD@ \
 	@FADINCLUDE_TFAD@ \
 	@FADINCLUDE_TFADET@ \
-	@ATLASINCLUDE@ \
-	@BLASINCLUDE@
+	@ATLASINCLUDE@
 
 PZ_LIBDIR = -L@prefix@/lib @METISLIBDIR@ @ATLASLIBDIR@ 
 
 PZ_LIB = -lpz @METISLIB@ @ATLASLIB@
 
-PZ_CXXFLAGS = @USING_METIS@ @USING_SLOAN@ @USING_FAD@ @USING_ATLAS@ @USING_BLAS@
+PZ_CXXFLAGS = @USING_METIS@ @USING_FAD@ @USING_ATLAS@
 
 ## --| NeoPZ |------------------------------------------------------------------
