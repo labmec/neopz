@@ -48,11 +48,11 @@ class TPZLink
   /**
    * Simple constructor
    */
-  inline  TPZLink();
+  TPZLink();
   /**
    * Simple destructor
    */
-  inline  ~TPZLink();
+  ~TPZLink();
 
 #ifdef WORKPOOL
   /**
@@ -71,50 +71,50 @@ class TPZLink
    * Inserts a element on the list
    * @param &elem Element being inserted
    */
-  inline  int Insert( ElemType &elem );
+  int Insert( ElemType &elem );
   /**
    * Appends an element to the list
    * @param &elem Element being appended
    */
-  inline  int Append( ElemType &elem );
+  int Append( ElemType &elem );
   /**
    * Removes an element from the list
    */
-  inline  int Remove();
+  int Remove();
   /**
    * Updates the current list
    * @param &elem Updated element on the list
    */
-  inline  int Update( ElemType &elem );
+  int Update( ElemType &elem );
   /**
    * Clears the entire list
    */
-  inline  int Clear();
+  int Clear();
   //@}
 
   TPZLink<ElemType> &operator=( TPZLink<ElemType> & );
   /**
    * Returns to the head of the list
    */
-  inline int Head();
+  int Head();
   /**
    * Moves to the next element on list
    */
-  inline int Next();
+  int Next();
   /**
    * Returns an element from the list
    * @param *pElem contains the returned element
    */
-  inline int Get( ElemType *pElem );
+  int Get( ElemType *pElem );
   /**
    * Returns the node's element type
    */
-  inline ElemType *GetNode();
+  ElemType *GetNode();
   /**
    * Returns the last element on the list
    * @param *pELem contains the last element
    */
-  inline int GetLast( ElemType *pElem );
+  int GetLast( ElemType *pElem );
 
  private:
   /**
