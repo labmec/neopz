@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.23 2004-05-21 13:33:25 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.24 2004-05-25 12:58:00 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -40,6 +40,11 @@ public :
    * @param ConvFace [in] refers to the numerical flux
    */
   void SetTimeDiscr(TPZTimeDiscr Diff, TPZTimeDiscr ConvVol, TPZTimeDiscr ConvFace);
+
+  /**
+   * Returns a reference to the artificial diffusion term
+   */
+  TPZArtDiff & ArtDiff(){ return fArtDiff; };
 
   /**
    * returns the best value for the CFL number based on
