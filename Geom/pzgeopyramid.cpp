@@ -17,6 +17,22 @@
 
 
 void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
+  if(abs(pt[0])<1.e-10 && abs(pt[1])<1.e-10 && pt[2]==1.) {
+    //para testes com transformações geometricas-->>Que  o que faz o RefPattern!!
+    //(0,0,1) nunca é um ponto de integração
+     phi(0,0)  = 0.;
+     phi(1,0)  = 0.;
+     phi(2,0)  = 0.;
+     phi(3,0)  = 0.;
+     phi(4,0)  = 1.;
+     for(int i=0;i<5;i++) {
+        dphi(0,i) = 0.;
+        dphi(1,i) = 0.;
+        dphi(2,i) = 0.;
+     }
+     return;
+  }
+  
 	REAL T0xz = .5*(1.-pt[2]-pt[0]) / (1.-pt[2]);
 	REAL T0yz = .5*(1.-pt[2]-pt[1]) / (1.-pt[2]);
 	REAL T1xz = .5*(1.-pt[2]+pt[0]) / (1.-pt[2]);
