@@ -9,7 +9,9 @@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES     = @PZ_CLEANFILES@
 
--include $(top_srcdir)/@PZ_MK@
+-include $(top_srcdir)/@PZ_MK@ 
+
+CXXFLAGS = -I$(top_srcdir)/Util -I$(top_srcdir)/Common
 
 savedir = $(prefix)/Save
 

@@ -7,6 +7,7 @@
 #include "pzmanvector.h"
 #include "pzadmchunk.h"
 #include "pzfilebuffer.h"
+#include "pzreal.h"
 
 const int TPZSAVEABLEID = -1;
 
@@ -227,6 +228,9 @@ static TPZSaveable *Restore(TPZStream &buf, void *context);
 
 };
 
+
+
+
 template<class T>
 TPZSaveable *Restore(TPZStream &buf, void *context) {
   T *ptr = new T;
@@ -295,4 +299,5 @@ private:
   char fStr[20];
 
 };
+template class TPZRestoreClass<TPZSaveable, -1>;
 #endif //PZSAVEH

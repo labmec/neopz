@@ -14,21 +14,21 @@ class TPZStream {
 
   virtual ~TPZStream() {}
 
-  virtual void Write(int *p, int size)=0;
+  virtual void Write(int *p, int size=1)=0;
 
-  virtual void Write(double *p, int size)=0;
+  virtual void Write(double *p, int size=1)=0;
 
-  virtual void Write(const char *p, int size)=0;
+  virtual void Write(const char *p, int size=1)=0;
   
-  virtual void Write(string *p, int size) = 0;
+  virtual void Write(string *p, int size=1) = 0;
 
-  virtual void Read(int *p, int size)=0;
+  virtual void Read(int *p, int size=1)=0;
 
-  virtual void Read(double *p, int size)=0;
+  virtual void Read(double *p, int size=1)=0;
 
-  virtual void Read(char *p, int size)=0;
+  virtual void Read(char *p, int size=1)=0;
 
-  virtual void Read(string *p, int size) = 0;
+  virtual void Read(string *p, int size=1) = 0;
 
 };
 
