@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.21 2004-02-13 15:08:30 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.22 2004-02-17 17:21:27 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -262,11 +262,10 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 
 TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout)
 {
-  TPZVec<char *> scalar(1),vector(0);
+  TPZVec<char *> scalar(3),vector(0);
   scalar[0] = "density";
-  //scalar[0] = "pressure";
-  //scalar[1] = "density";
-  //scalar[2] = "normvelocity";
+  scalar[1] = "pressure";
+  scalar[2] = "normvelocity";
 
   TPZMaterial * mat = fFlowCompMesh->GetFlowMaterial(0);
   int dim = mat->Dimension();
