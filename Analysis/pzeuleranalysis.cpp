@@ -1,10 +1,12 @@
-//$Id: pzeuleranalysis.cpp,v 1.31 2004-05-21 13:32:35 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.32 2004-06-03 06:37:20 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
 #include "TPZCompElDisc.h"
 #include "pzfstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
+#include "tpzoutofrange.h"
+#include "pztempmat.h"
 
 TPZEulerAnalysis::TPZEulerAnalysis():
 TPZAnalysis(), fFlowCompMesh(NULL),
@@ -141,8 +143,7 @@ void TPZEulerAnalysis::Assemble()
    }
 
    // redimensions and zeroes Rhs
-   //fRhs.Redim(fCompMesh->NEquations(),1);
-   fRhs = fRhsLast;
+   fRhs.Redim(fCompMesh->NEquations(),1);
 
    TPZMatrix * pTangentMatrix = fSolver->Matrix();
 
@@ -167,6 +168,8 @@ void TPZEulerAnalysis::Assemble()
       // (n+1 index)
       fStructMatrix->Assemble(*pTangentMatrix, fRhs);
    }
+
+   fRhs += fRhsLast;
 
    if(fpBlockDiag)
    {
@@ -310,23 +313,17 @@ void TPZEulerAnalysis::AssembleRhs()
 
 //ofstream eulerout("Matrizes.out");
 
-void TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix * residual) {
+int TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix * residual) {
    int numeq = fCompMesh->NEquations();
-   if(fRhs.Rows() != numeq ) return;
+   if(fRhs.Rows() != numeq ) return 0;
 
    TPZFMatrix rhs(fRhs);
+   REAL initres = Norm(rhs);
+   REAL nextres = 0.;
 
    TPZFMatrix delu(numeq,1);
 
    fSolver->Solve(rhs, delu);
-
-/*
-   fSolver->Matrix()->Print("Matriz", eulerout, EMathematicaInput);
-   delu.Print("delu", eulerout, EMathematicaInput);
-   fRhs.Print("Rhs", eulerout, EMathematicaInput);
-   eulerout.flush();
-*/
-   UpdateSolution(delu);
 
    if(residual)
    {   // verifying the inversion of the linear system
@@ -335,9 +332,45 @@ void TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix * residual) {
       res = Norm(*residual);
 
       if(res > fLinSysEps)
-      cout << "\n\tLinear system invertion did not achieve expected tolerance:" << res;
-      cout.flush();
+      {
+        cout << "Linear system invertion did not achieve expected tolerance:" << res << endl;
+        cout.flush();
+      }
    }
+/*
+   fSolver->Matrix()->Print("Matriz", eulerout, EMathematicaInput);
+   delu.Print("delu", eulerout, EMathematicaInput);
+   fRhs.Print("Rhs", eulerout, EMathematicaInput);
+   eulerout.flush();
+*/
+    int outofrange = 0;
+    try
+    {
+        *fpCurrSol += delu;
+        fCompMesh->LoadSolution(*fpCurrSol);
+        AssembleRhs();
+        nextres = Norm(fRhs);
+    }
+    catch(TPZOutofRange obj)
+    {
+        outofrange = 1;
+        *fpCurrSol -= delu;
+        nextres = initres;
+        fCompMesh->LoadSolution(*fpCurrSol);
+    }
+    if(nextres > initres)
+    {
+      *fpCurrSol -= delu;
+      fCompMesh->LoadSolution(*fpCurrSol);
+    }
+    if(outofrange || nextres > initres)
+    {
+      int resultlin =  LineSearch(initres,*fpCurrSol,delu);
+      *fpCurrSol += delu;
+      fCompMesh->LoadSolution(*fpCurrSol);
+      return resultlin;
+    }
+    return 1;
 }
 
 int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
@@ -382,19 +415,37 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
    // performed at least once.
 
    TPZFMatrix residual;
+//    REAL res1,res2 = 0.;
 
    while(i < fNewtonMaxIter && epsilon > fNewtonEps)
    {
       // Linearizes the system with the newest iterative solution
       Assemble();
+  
+      if(i==0)
+      {
+        epsilon = Norm(fRhs);
+        cout << "Entry NonLinEpsilon:" << epsilon << endl;
+      }
+      
+      // Testing whether the rhs computed by assemble is the same as the rhs computed by AssembleRhs
+      // Both are different, because expression templates change the order of the computations
+/*      
+      res1 = Norm(fRhs);
+      if(res2 != 0. && res1 != res2)
+      {
+        this->CompareRhs();
+      }
+*/
       //Solves the linearized system and updates the solution.
-      Solve(res, &residual);
+      if(Solve(res, &residual) == 0) return 0;
       //cout << "\n      LinEpsilon:" << res;
 
       AssembleRhs();
 
       epsilon = Norm(fRhs);
-      cout << "\n   NonLinEpsilon:" << epsilon;
+/*      res2 = epsilon;*/
+      cout << "NonLinEpsilon:" << epsilon << endl;
       i++;
    }
 
@@ -470,7 +521,7 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
    // Buffers the contribution of the last state
    BufferLastStateAssemble();
 
-   out << "\niter\teps(dU/dt)\tNewtonEps=\tnNewtonIter";
+   out << "iter\teps(dU/dt)\tNewtonEps=\tnNewtonIter\n";
 
 
    while(i < fTimeIntMaxIter && epsilon > fTimeIntEps)
@@ -486,50 +537,71 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
 
       // Solves the nonlinear system, updates the solution,
       // history and last state assemble buffer.
-      RunNewton(epsilon_Newton, numIter_Newton);
-
+      int newtonreturn = RunNewton(epsilon_Newton, numIter_Newton);
+        
       // resetting the forcing function for iterations greater than the 1st
-      fFlowCompMesh->SetFlowforcingFunction(NULL);
-
-      // updates the history of state variable vectors
-      UpdateHistory();
-
-      // buffering the contribution to the RHS
-      BufferLastStateAssemble();
-
-      // Computing the time step, verifying the convergency
-      // using the newest time step.
-      ComputeTimeStep();
-
-      epsilon = EvaluateFluxEpsilon();
-
-      // CFL control based on Flux reduction
-      if((lastEpsilon>0.&&epsilon>0.) && fEvolCFL >= 1)
+     fFlowCompMesh->SetFlowforcingFunction(NULL);
+      if(newtonreturn)
       {
-         fFlowCompMesh->ScaleCFL(lastEpsilon/epsilon);
-      }
 
-      // CFL control based on Nonlinear invertion
-      if(epsilon_Newton < fNewtonEps && fEvolCFL >= 2)
-      {
-         fFlowCompMesh->ScaleCFL(2.);
-      }
-      if(epsilon_Newton > fNewtonEps && fEvolCFL >= 3)
-      {
-         fFlowCompMesh->ScaleCFL(.5);
-      }
+        // updates the history of state variable vectors
+//        if(newtonreturn)
+//        {
+          UpdateHistory();
+//        }
+//        else 
+//        {
+//            *fpCurrSol = *fpLastSol;
+//            fFlowCompMesh->LoadSolution(*fpCurrSol);
+//        }
+//        *fpCurrSol = *fpLastSol;
+//        fFlowCompMesh->LoadSolution(*fpCurrSol);
 
-      lastEpsilon = epsilon;
+        // buffering the contribution to the RHS
+        BufferLastStateAssemble();
+
+        // Computing the time step, verifying the convergency
+        // using the newest time step.
+        ComputeTimeStep();
+
+        epsilon = EvaluateFluxEpsilon();
+
+        // CFL control based on Flux reduction
+        if((lastEpsilon>0.&&epsilon>0.) && fEvolCFL >= 1)
+        {
+          fFlowCompMesh->ScaleCFL(lastEpsilon/epsilon);
+        }
+
+        // CFL control based on Nonlinear invertion
+        if(epsilon_Newton < fNewtonEps && fEvolCFL >= 2)
+        {
+          fFlowCompMesh->ScaleCFL(2.);
+        }
+        if(epsilon_Newton > fNewtonEps && fEvolCFL >= 3)
+        {
+          fFlowCompMesh->ScaleCFL(.5);
+        }
+
+        lastEpsilon = epsilon;
+      }
+      else 
+      {
+        *fpCurrSol = *(this->fpLastSol);
+        fFlowCompMesh->LoadSolution(*fpCurrSol);
+        BufferLastStateAssemble();
+        ComputeTimeStep();
+        fFlowCompMesh->ScaleCFL(.5);
+      }
 
       out << "\n" << i
           << "\t" << epsilon
 	  << "\t" << epsilon_Newton
 	  << "\t" << numIter_Newton;
 
-      cout << "\niter:" << i
+      cout << "iter:" << i
            << "\t eps(dU/dt)=" << epsilon
 	   << "\t |NewtonEps=" << epsilon_Newton
-	   << "\t nIter=" << numIter_Newton;
+	   << "\t nIter=" << numIter_Newton << endl;
 
       i++;
    }
@@ -594,4 +666,90 @@ void TPZEulerAnalysis::WriteCMesh( const char * str)
    fstr.OpenWrite(str);
    fGeoMesh->Write(fstr,1);
    fFlowCompMesh->Write(fstr,1);
+}
+
+
+/*!
+    \fn TPZEulerAnalysis::LineSearch(REAL &residual, TPZFMatrix &sol0, TPZFMatrix &dir)
+ */
+int TPZEulerAnalysis::LineSearch(REAL &residual, TPZFMatrix &sol0, TPZFMatrix &direction)
+{
+  REAL smallestincr = 1.e-3;
+  REAL dist = 0.;
+  REAL incr = 1.0;
+  TPZFMatrix solution;
+  fFlowCompMesh->LoadSolution(sol0);
+  AssembleRhs();
+  REAL preverr = Norm(fRhs);
+  REAL error;
+  dist += incr;
+  while (fabs(incr) > smallestincr) {
+    solution = sol0;
+    solution += (direction *dist);
+    fFlowCompMesh->LoadSolution(solution);
+    try
+    {
+      AssembleRhs();
+      error = Norm(fRhs);
+    }
+    catch(TPZOutofRange obj)
+    {
+      error = 2*preverr+2.;
+    }
+    if (error < preverr && fabs(dist - 1.0) < 1.e-9) {
+      incr = 0.;
+    }
+    else if (error < preverr && dist < 1.00 && dist > 0.) {
+      dist += incr;
+      preverr = error;
+    }
+    else 
+    {
+      dist -= incr;
+      incr *= 0.1;
+      dist += incr;
+    }
+  }
+  dist -= incr;
+  if (dist <= 0.) {
+    cout << "TPBNonLinearAnalysis improper search direction\n";
+    direction *= smallestincr;
+  }
+  else {
+    direction *= dist;
+    if (fabs(dist - 1.) > smallestincr) {
+      // cout << "MaxDescent scale = " << dist << endl;
+      // cout.flush();
+    }
+  }
+  fFlowCompMesh->LoadSolution(sol0);
+  if(dist > 0.) return 1;
+  else return 0;
+}
+
+
+
+/*!
+    \fn TPZEulerAnalysis::CompareRhs()
+ */
+void TPZEulerAnalysis::CompareRhs()
+{
+  int iel;
+  //int numel = 0;
+  int nelem = fCompMesh->NElements();
+  TPZElementMatrix ek1,ef1,ef2;
+
+  TPZAdmChunkVector<TPZCompEl *> &elementvec = fCompMesh->ElementVec();
+  TPZFNMatrix<64> diff(8,8);
+  REAL diffnorm;
+
+  for(iel=0; iel < nelem; iel++) {
+    TPZCompEl *el = elementvec[iel];
+    if(!el) continue;
+    el->CalcStiff(ek1,ef1);
+    el->CalcResidual(ef2);
+    diff =ef1.fMat;
+    diff -= ef2.fMat;
+    diffnorm = Norm(diff);
+  }
 }

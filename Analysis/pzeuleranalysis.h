@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.14 2004-05-21 13:32:35 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.15 2004-06-03 06:37:20 phil Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -124,8 +124,11 @@ public:
     * Not to be misunderstood as a global
     * solver, because it performs only part
     * of one linear iteration.
+    @param res residual of the linear system solution
+    @param residual pointer to a temporary matrix storage
+    @return 1 if everything fine, 0 otherwise (no better solution found)
     */
-   void Solve(REAL & res, TPZFMatrix * residual);
+   int Solve(REAL & res, TPZFMatrix * residual);
 
    /**
     * Implements the Newton's method.
@@ -172,6 +175,16 @@ public:
     * Informs a block diagonal to be used as preconditioning
     */
    void SetBlockDiagonalPrecond(TPZBlockDiagonal * blockDiag);
+   
+   /**
+   This method will search for the $sol0+\alpha dir$ solution which minimizes the residual
+   @param [in/out] residual initial residual (of sol0) and on exiting final residual
+   @param [in/out] sol0 solution vector
+   @param [in] dir search direction
+   @return 1 if a direction was found, 0 otherwise
+   */
+   int LineSearch(REAL &residual, TPZFMatrix &sol0, TPZFMatrix &dir);
+    void CompareRhs();
 
 protected:
 
