@@ -193,10 +193,16 @@ template <class T>
 inline static void MMatrix(TPZVec<T> & sol, T & us, REAL gamma, TPZDiffMatrix<T> &M, TPZDiffMatrix<T> &Mi);
 
 template <class T>
+inline static void RMMatrix(TPZVec<T> & sol, T & us, REAL gamma, TPZDiffMatrix<T> &RTM, TPZDiffMatrix<T> &RMi);
+
+template <class T>
 static void EigenSystemSUPG(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZDiffMatrix<T> &X, TPZDiffMatrix<T> &Xi, TPZDiffMatrix<T> &Lambda);
 
 template <class T>
 static void EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZVec<REAL> & aaS, TPZDiffMatrix<T> &Y, TPZDiffMatrix<T> &Yi, TPZDiffMatrix<T> &Lambda);
+
+template <class T>
+static void ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZVec<REAL> & aaS, TPZDiffMatrix<T> &Mat);
 
 private:
 
@@ -464,12 +470,11 @@ void TPZArtDiff::MMatrix(TPZVec<T> & sol, T & us, REAL gamma, TPZDiffMatrix<T> &
    int nstate = sol.NElements();
    int dim = nstate - 2;
 
-   T u, rhoInv, usInv;
+   T rhoInv, usInv;
 
    switch (dim)
    {
       case (2):
-      u = sol[1]/sol[0];
       usInv= T(1.)/us;
       rhoInv = T(1.)/sol[0];
 
@@ -493,7 +498,6 @@ void TPZArtDiff::MMatrix(TPZVec<T> & sol, T & us, REAL gamma, TPZDiffMatrix<T> &
 
       break;
       case(3):
-      u = sol[1]/sol[0];
       usInv= T(1.)/us;
       rhoInv = T(1.)/sol[0];
 
@@ -522,6 +526,146 @@ void TPZArtDiff::MMatrix(TPZVec<T> & sol, T & us, REAL gamma, TPZDiffMatrix<T> &
       PZError << "TPZArtDiff::MMatrix Error: Invalid Dimension\n";
    }
 }
+
+
+template <class T>
+void TPZArtDiff::RMMatrix(TPZVec<T> & sol, T & us, REAL gamma, TPZDiffMatrix<T> &RTM, TPZDiffMatrix<T> &RMi)
+{
+   int nstate = sol.NElements();
+   int dim = nstate - 2;
+
+   T u, v, w, u2, v2, w2,
+     rhoInv, usInv, uspu, uspuInv;
+   T kt, st;
+
+   switch (dim)
+   {
+      case (2):
+      u = sol[1]/sol[0];
+      usInv= T(1.)/us;
+      rhoInv = T(1.)/sol[0];
+      // kt = u/us, st = v/us
+      kt = sol[1]/sol[0]/us;
+      st = sol[2]/sol[0]/us;
+
+      RTM.Redim(nstate,nstate);
+      RTM(0,0) =  1.;
+      RTM(1,0) =  us * kt;
+      RTM(1,1) =  sol[0] * kt;
+      RTM(1,2) = -sol[0] * st;
+      RTM(2,0) =  us * st;
+      RTM(2,1) = -RTM(1,2);
+      RTM(2,2) =  RTM(1,1);
+      RTM(3,0) = us * us /2.;
+      RTM(3,1) = sol[0] * us;
+      RTM(3,3) = 1./(gamma-1.);
+
+      RMi.Redim(nstate,nstate);
+      RMi(0,0) = 1.;
+      RMi(1,0) = - rhoInv * us;
+      RMi(1,1) = rhoInv * kt;
+      RMi(1,2) = rhoInv * st;
+      RMi(2,1) = - RMi(1,2);
+      RMi(2,2) = RMi(1,1);
+      RMi(3,0) = T((gamma-1.)/2.) * us * us;
+      RMi(3,1) = T(1.-gamma)*us*kt;
+      RMi(3,2) = T(1.-gamma)*us*st;
+      RMi(3,3) = gamma-1.;
+
+      break;
+      case(3):
+      u = sol[1]/sol[0];
+      v = sol[2]/sol[0];
+      w = sol[3]/sol[0];
+      u2 = u * u;
+      v2 = v * v;
+      w2 = w * w;
+      uspu = us + u;
+      uspuInv = T(1.)/uspu;
+      usInv = T(1.)/us;
+      kt = T(1.)/(sol[0] * us * (uspu * u + v2 + w2));
+#ifdef NOTDEFINED
+      RTM.Redim(nstate,nstate);
+      RTM(0,0) = 1.;
+      RTM(1,0) = u2 * usInv;
+      RTM(1,1) = sol[1]/*rhou*/*usInv;
+      RTM(1,2) = sol[2]/*rhov*/*usInv;
+      RTM(1,3) = sol[3]/*rhow*/*usInv;
+      RTM(2,0) = - u * v * usInv;
+      RTM(2,1) = - RTM(1,2);
+      RTM(2,2) = RTM(1,1) + sol[3] * w * uspuInv * usInv;
+      RTM(2,3) = - RTM(1,2) * w * uspuInv;
+      RTM(3,0) = - u * w * usInv;
+      RTM(3,1) = -RTM(1,3);
+      RTM(3,2) = RTM(2,3);
+      RTM(3,3) = RTM(1,1) + sol[2] * v * uspuInv * usInv;
+      RTM(4,0) = u2/2.;
+      RTM(4,1) = sol[1];
+      RTM(4,4) = 1./(gamma-1.);
+
+      RMi.Redim(nstate,nstate);
+      RMi(0,0) = 1.;
+      RMi(1,0) = - u / sol[0];
+      RMi(1,1) = - RMi(1,0) * usInv;
+      RMi(1,2) = - v * usInv / sol[0];
+      RMi(1,3) = - w * usInv / sol[0];
+      RMi(2,1) = - RMi(1,2);
+      RMi(2,2) = (u * v2 + uspu * (u2+w2)) * kt;
+      RMi(2,3) = (u - uspu) * v * w * kt;
+      RMi(3,1) = - RMi(1,3);
+      RMi(3,2) = RMi(2,3);
+      RMi(3,3) = (uspu * (u2+v2) + u* w2) * kt;
+      RMi(4,0) = u2 * T((gamma-1.)/2.);
+      RMi(4,1) = - u2 * usInv * T(gamma - 1.);
+      RMi(4,2) =   u * v * usInv * T(gamma -1.);
+      RMi(4,3) =   u * w * usInv * T(gamma -1.);
+      RMi(4,4) = gamma -1.;
+#endif
+
+      RTM.Redim(nstate,nstate);
+      RTM(0,0) = 1.;
+      RTM(1,0) = u;
+      RTM(1,1) = sol[1]/*rhou*/*usInv;
+      RTM(1,2) = - sol[2]/*rhov*/*usInv;
+      RTM(1,3) = - sol[3]/*rhow*/*usInv;
+      RTM(2,0) = v;
+      RTM(2,1) = - RTM(1,2);
+      RTM(2,2) = RTM(1,1) + sol[3] * w * uspuInv * usInv;
+      RTM(2,3) = RTM(1,2) * w * uspuInv;
+      RTM(3,0) = w;
+      RTM(3,1) = -RTM(1,3);
+      RTM(3,2) = RTM(2,3);
+      RTM(3,3) = RTM(1,1) + sol[2] * v * uspuInv * usInv;
+      RTM(4,0) = us * us /2.;
+      RTM(4,1) = sol[0] * us;
+      RTM(4,4) = 1./(gamma-1.);
+
+      RMi.Redim(nstate,nstate);
+      RMi(0,0) = 1.;
+      RMi(1,0) = - us / sol[0];
+      RMi(1,1) = u * usInv / sol[0];
+      RMi(1,2) = v * usInv / sol[0];
+      RMi(1,3) = w * usInv / sol[0];
+      RMi(2,1) = - RMi(1,2);
+      RMi(2,2) = (u * v2 + uspu * (u2+w2)) * kt;
+      RMi(2,3) = (u - uspu) * v * w * kt;
+      RMi(3,1) = - RMi(1,3);
+      RMi(3,2) = RMi(2,3);
+      RMi(3,3) = (uspu * (u2+v2) + u* w2) * kt;
+      RMi(4,0) = us * us * T((gamma-1.)/2.);
+      RMi(4,1) = u * T(1.-gamma);
+      RMi(4,2) = v * T(1.-gamma);
+      RMi(4,3) = w * T(1.-gamma);
+      RMi(4,4) = gamma -1.;
+
+      break;
+
+      default:
+      PZError << "TPZArtDiff::MMatrix Error: Invalid Dimension\n";
+   }
+}
+
+
 
 template <class T>
 void TPZArtDiff::EigenSystemSUPG(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZDiffMatrix<T> &X, TPZDiffMatrix<T> &Xi, TPZDiffMatrix<T> &Lambda)
@@ -604,6 +748,8 @@ void TPZArtDiff::EigenSystemSUPG(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZ
       PZError << "TPZArtDiff::EigenSystemSUPG Error: Invalid Dimension\n";
    }
 }
+
+
 
 
 template <class T>
@@ -724,6 +870,110 @@ void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma,
 }
 
 
+
+template <class T>
+void TPZArtDiff::ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZVec<REAL> & aaS, TPZDiffMatrix<T> &Mat)
+{
+   int nstate = sol.NElements();
+   int dim = nstate - 2;
+
+   T k, us2, l1, l3, l4, twoCK, c2, temp1, temp2, temp3, k2;
+
+
+   c2 = c * c;
+   us2 = us * us;
+   //rho_c = sol[0] * c;
+
+   switch (dim)
+   {
+      case (2):
+      k2 = aaS[0]*aaS[0] + aaS[1]*aaS[1];
+      k = sqrt(k2);
+      twoCK = c * T(k * 2.);
+
+      l1 = aaS[0] * us;
+      if(val(l1) < 0.)l1 = -l1;
+      l3 = aaS[0] * us - k * c;
+      if(val(l3) < 0.)l3 = -l3;
+      l4 = aaS[0] * us + k * c;
+      if(val(l4) < 0.)l4 = -l4;
+
+      temp1 = (l4 - l3) * sol[0] / twoCK;
+      temp2 = l3 + l4 - 2.*l1;
+      Mat(0,0) += l1;
+      Mat(0,1) += aaS[0] * temp1;
+      Mat(0,2) += aaS[1] * temp1;
+      Mat(0,3) += temp2 / (2. * c2);
+      Mat(1,1) += (aaS[1]*aaS[1] * l1 + aaS[0]*aaS[0] * (l3+l4) *.5)/k2;
+      Mat(1,2) += aaS[0]*aaS[1] * temp2/(2. * k2);
+      Mat(1,3) += aaS[0]*(l4-l3)/(c * k * sol[0] * 2.);
+      Mat(2,1) += aaS[0]*aaS[1] * temp2/(2. * k2);
+      Mat(2,2) += (aaS[0]*aaS[0] * l1 + aaS[1]*aaS[1] * (l3+l4) *.5)/k2;
+      Mat(2,3) += aaS[1]*(l4-l3)/(c * k * sol[0] * 2.);
+      Mat(3,1) += aaS[0] * c2 * temp1;
+      Mat(3,2) += aaS[1] * c2 * temp1;
+      Mat(3,3) += (l3 + l4)/2.;
+
+
+      break;
+/*      case (3):
+      k2 = aaS[0]*aaS[0] + aaS[1]*aaS[1] + aaS[2]*aaS[2];
+      k = sqrt(k2);
+
+      Y.Redim(nstate,nstate);
+      Y(0,2) = 1.;
+      Y(0,3) = 1. / c2;
+      Y(0,4) = Y(0,3);
+      Y(1,0) = -aaS[2]/aaS[0];
+      Y(1,1) = -aaS[1]/aaS[0];
+      Y(1,3) = -aaS[0]/(k * rho_c);
+      Y(1,4) = -Y(1,3);
+      Y(2,1) = 1.;
+      Y(2,3) = -aaS[1]/(k * rho_c);
+      Y(2,4) = -Y(2,3);
+      Y(3,0) = 1.;
+      Y(3,3) = -aaS[2]/(k * rho_c);
+      Y(3,4) = -Y(3,3);
+      Y(4,3) = 1.;
+      Y(4,4) = 1.;
+
+      Yi.Redim(nstate,nstate);
+      Yi(0,1) = - aaS[0] * aaS[2] / k2;
+      Yi(0,2) = - aaS[1] * aaS[2] / k2;
+      Yi(0,3) =  (aaS[0] * aaS[0] + aaS[1] * aaS[1]) / k2;
+      Yi(1,1) = - aaS[0] * aaS[1] / k2;
+      Yi(1,2) =  (aaS[0] * aaS[0] + aaS[2] * aaS[2]) / k2;
+      Yi(1,3) =  Yi(0,2);
+      Yi(2,0) = 1.;
+      Yi(2,4) = -1. / c2;
+      Yi(3,1) = - aaS[0] * rho_c / (2. * k);
+      Yi(3,2) = - aaS[1] * rho_c / (2. * k);
+      Yi(3,3) = - aaS[2] * rho_c / (2. * k);
+      Yi(3,4) = .5;
+      Yi(4,1) = - Yi(3,1);
+      Yi(4,2) = - Yi(3,2);
+      Yi(4,3) = - Yi(3,3);
+      Yi(4,4) = .5;
+
+      temp1 = aaS[0] * us;
+      if(val(temp1) < 0)temp1 = -temp1;
+      temp2 = aaS[0] * us - k * c;
+      if(val(temp2) < 0)temp2 = -temp2;
+      temp3 = aaS[0] * us + k * c;
+      if(val(temp3) < 0)temp3 = -temp3;
+
+      Lambda.Redim(nstate,nstate);
+      Lambda(0,0) = temp1;
+      Lambda(1,1) = temp1;
+      Lambda(2,2) = temp1;
+      Lambda(3,3) = temp2;
+      Lambda(4,4) = temp3;
+
+      break;*/
+      default:
+      PZError << "TPZArtDiff::EigenSystemBornhaus Error: Invalid Dimension\n";
+   }
+}
 
 #endif
 

@@ -23,11 +23,12 @@
 // creates an one-quadrilateral element mesh
 
 // This file generates a mesh for the NACA airfoils
-double scale = 5.;
-double entrance = 4. * scale,
+double scale = 4.;
+double entrance = /*4.*/ 5. * scale,
              exitlength = 4. * scale,
 	     cord = 5.,
 	     height = 10. * scale,
+	     extraheight = scale,
 	     q = 1.5,
 	     qn = 1.5;
 /*const int m = 6,
@@ -195,16 +196,22 @@ qn = pow(2., 1./(double)n);
  cout << "yl" << yl(6.05, 1224, 7) << endl;
 
 */
+/*
  n = 5 * m / 9 * (int) pow(scale, .6);
  l = m / 3;
- k = n / 2 + 1;
+ k = n / 2 + 1;*/
 
  q  = pow(5.6 * scale, 1./(double)m);
  qn = pow(2.6 * scale, 1./(double)n);
 
+ n = 5 * m / 9 * (int) pow(scale, .6) * 4 / 3;
+ l = m / 3;
+ k = n / 2 + 1;
+
+ q  = pow(5.6 * .25 * scale, 1./(double)m);
+ qn = pow(2.6 * 2. * scale, 1./(double)n);
 
    int index, indexPt, indexPt2;
-   double angle;
 
    TPZVec<REAL> coord(3), coordBC(3), coordNACA(3);
    elms.Resize(m*n*2);
@@ -212,12 +219,13 @@ qn = pow(2., 1./(double)n);
 
    cout << "\nNumber of Points: "<< pt.NElements();
 
+/*   double angle;
    cout << "\nAirfoil angle [degrees]\n";
 
    cin >> angle;
 
    angle *= PI/180.;
-
+*/
    // defining points on the surface of the airfoil
    // i: airfoil index;
    // j: radial index
@@ -225,23 +233,23 @@ qn = pow(2., 1./(double)n);
    for(i = 1; i < m; i++)
       {
          double x = xpg(q, i, m);
-	 coord[0] = xua(x * cord, FourDigits, cord, angle) + entrance;
-	 coord[1] = yua(x * cord, FourDigits, cord, angle) + height/2.;
+	 coord[0] = xua(x * cord, FourDigits, cord, 0./*angle*/) + entrance;
+	 coord[1] = yua(x * cord, FourDigits, cord, 0./*angle*/) + height/2.;
 	 coord[2] = 0.;
 	 pt[i] = coord;
 
-	 coord[0] = xla(x * cord, FourDigits, cord, angle) + entrance;
-	 coord[1] = yla(x * cord, FourDigits, cord, angle) + height/2.;
+	 coord[0] = xla(x * cord, FourDigits, cord, 0./*angle*/) + entrance;
+	 coord[1] = yla(x * cord, FourDigits, cord, 0./*angle*/) + height/2.;
 	 coord[2] = 0.;
 	 pt[2*m -i] = coord;
       }
-   coord[0] = xua(0., FourDigits, cord, angle) + entrance;///*xu(0., FourDigits, cord) +*/ entrance + ;
-   coord[1] = yua(0. * cord, FourDigits, cord, angle) + height/2.;///*yu(0., FourDigits, cord) +*/ height/2.;
+   coord[0] = xua(0., FourDigits, cord, 0./*angle*/) + entrance;///*xu(0., FourDigits, cord) +*/ entrance + ;
+   coord[1] = yua(0. * cord, FourDigits, cord, 0./*angle*/) + height/2.;///*yu(0., FourDigits, cord) +*/ height/2.;
    coord[2] = 0.;
    pt[0] = coord;
 
-   coord[0] = xla(1. * cord, FourDigits, cord, angle) + entrance;//cord + /*xu(1., FourDigits, cord) +*/ entrance;
-   coord[1] = yla(1. * cord, FourDigits, cord, angle) + height/2.;///*yu(1., FourDigits, cord) +*/ height/2.;
+   coord[0] = xla(1. * cord, FourDigits, cord, 0./*angle*/) + entrance;//cord + /*xu(1., FourDigits, cord) +*/ entrance;
+   coord[1] = yla(1. * cord, FourDigits, cord, 0./*angle*/) + height/2.;///*yu(1., FourDigits, cord) +*/ height/2.;
    coord[2] = 0.;
    pt[m] = coord;
 
@@ -256,25 +264,25 @@ qn = pow(2., 1./(double)n);
    for(i = 1; i < l; i++)
    {
       coord[0] = 0.;
-      coord[1] =  xpg(1., i, l) * height/2. + height/2.;
+      coord[1] =  xpg(q, i, l) * height/2. + height/2.;
       coord[2] = 0.;
       pt[index + i] = coord;
 
       coord[0] = 0.;
-      coord[1] = -xpg(1., i, l) * height/2. + height/2.;
+      coord[1] = -xpg(q, i, l) * height/2. + height/2.;
       coord[2] = 0.;
       pt[index + (2*m+1) - i] = coord;
    }
 
    for(i = l; i <= m; i++)
    {
-      coord[0] = xpg(1., i-l, m-l) * (entrance + cord);
-      coord[1] = height;
+      coord[0] = xpg(1./q, i-l, m-l) * (entrance + cord);
+      coord[1] = height + xpg(1./q, i-l, m-l) * extraheight;
       coord[2] = 0.;
       pt[index + i] = coord;
 
-      coord[0] = xpg(1., i-l, m-l) * (entrance + cord);
-      coord[1] = 0.;
+      coord[0] = xpg(1./q, i-l, m-l) * (entrance + cord);
+      coord[1] = 0. - xpg(1./q, i-l, m-l) * extraheight;
       coord[2] = 0.;
       pt[index + (2*m+1) - i] = coord;
    }
@@ -611,6 +619,11 @@ TPZFlowCompMesh *
    bc = mat->CreateBC(-1,5,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
+   double angle;
+   cout << "\nAirfoil angle [degrees]\n";
+   cin >> angle;
+   angle *= PI/180.;
+
    cout << "\nMach number\n";
    cin >> Mach;
 
@@ -618,36 +631,31 @@ TPZFlowCompMesh *
    val1.Zero();
    val2.Zero();
    val2(0,0) = 1.;// rho
-   val2(1,0) = Mach;// Mach
+   val2(1,0) = Mach * cos(angle);// Machx
+   val2(2,0) = Mach * sin(angle);// Machy
    val2(3,0) = 2.;// pressure
    for( i = 0; i < l; i++)
    {
       TPZGeoElBC((TPZGeoEl *)gElem[(n-1)*2*m+i],6,-2,*gmesh);
       TPZGeoElBC((TPZGeoEl *)gElem[n*2*m-i-1]  ,6,-2,*gmesh);
    }
-   //bc = mat->CreateBC(-2,7,val1,val2);
-   bc = mat->CreateBC(-2,10,val1,val2); // inflow/outflow
+   bc = mat->CreateBC(-2,10,val1,val2); // inflow
    cmesh->InsertMaterialObject(bc);
 
-   // upper and lower extern NACA BC faces
-   // Wall
+   // upper and lower extern NACA BC faces: inflow/outflow
    for( i = (n-1)*2*m + l; i < n*2*m - l; i++)
    {
-      //TPZGeoElBC((TPZGeoEl *)gElem[i],6,-3,*gmesh);
       TPZGeoElBC((TPZGeoEl *)gElem[i],6,-3,*gmesh);
    }
-   // exit upper and bottom faces: Wall
+   // exit upper and bottom faces:  inflow/outflow
    for(i = 0; i < k; i++)
    {
-      /*TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+i*n*2],6,-3,*gmesh);
-      TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(i+1)*n*2-1],4,-3,*gmesh);*/
       TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+i*n*2],6,-3,*gmesh);
       TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(i+1)*n*2-1],4,-3,*gmesh);
    }
-   // rightmost exit face: Exit
+   // rightmost exit face: inflow/outflow (Exit)
    for(i = 0; i < 2*n; i++)
    {
-      //TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(k-1)*n*2+i],5,-4,*gmesh);
       TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(k-1)*n*2+i],5,-3,*gmesh);
    }
 

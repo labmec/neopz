@@ -10,7 +10,7 @@ REAL TPZArtDiff::fDelta = 1.0;
 REAL TPZArtDiff::fCFL = 0.0;*/
 //char *TPZArtDiff::fArtificialDiffusion = "LS";
 
-
+#define FASTESTDIFF
 
 TPZArtDiff::TPZArtDiff(TPZArtDiffType type, REAL gamma, REAL CFL, REAL delta):
 fArtDiffType(type),
@@ -294,6 +294,33 @@ void TPZArtDiff::ComputeTau(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec
 template <class T>
 void TPZArtDiff::SUPG(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
 
+#ifdef FASTESTDIFF
+
+   TPZDiffMatrix<T> RTM, RMi,
+			 X, Xi,
+			 Temp, INVA2B2,
+			 LambdaSUPG;
+   T us, c;
+
+   TPZEulerConsLaw2::uRes(sol, us);
+   TPZEulerConsLaw2::cSpeed(sol, 1.4, c);
+
+   RMMatrix(sol, us, fGamma, RTM, RMi);
+
+   EigenSystemSUPG(sol, us, c, fGamma, X, Xi, LambdaSUPG);
+
+
+   RTM.     Multiply(X, Temp);
+   Temp.   Multiply(LambdaSUPG, INVA2B2);
+   INVA2B2.Multiply(Xi, Temp);
+   Temp.   Multiply(RMi, INVA2B2);
+
+   for(int i = 0; i < Ai.NElements();i++)
+   {
+      Ai[i].Multiply(INVA2B2, Tau[i]);
+   }
+#else
+
    TPZDiffMatrix<T> Rot, RotT,
 			 X, Xi,
 			 M, Mi,
@@ -319,6 +346,8 @@ void TPZArtDiff::SUPG(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, 
    {
       Ai[i].Multiply(INVA2B2, Tau[i]);
    }
+
+#endif
 }
 
 template <class T>
@@ -342,6 +371,45 @@ void TPZArtDiff::LST(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, T
 
 template <class T>
 void TPZArtDiff::Bornhaus(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
+
+#ifdef FASTESTDIFF
+
+   int i, j;
+   int nstate = Ai[0].Rows();
+
+   TPZDiffMatrix<T> RTM, RMi,
+			 Y, Yi,
+			 Temp, Temp2,
+			 BornhausTau(nstate, nstate),
+			 LambdaBornhaus;
+   T us, c;
+   TPZVec<REAL> alphas(dim,0.);
+
+   TPZEulerConsLaw2::uRes(sol, us);
+   TPZEulerConsLaw2::cSpeed(sol, 1.4, c);
+
+   RMMatrix(sol, us, fGamma, RTM, RMi);
+
+   BornhausTau.Redim(nstate, nstate);
+
+   for( i = 0; i < dim; i++)
+   {
+      for( j = 0; j < dim; j++)
+         alphas[j] = jacinv(i,j);
+      ContributeBornhaus(sol, us, c, fGamma, alphas, BornhausTau);
+   }
+
+   RTM.     Multiply(BornhausTau, Temp);
+   Temp.   Multiply(RMi, BornhausTau);
+
+   BornhausTau.Inverse();
+//cout << BornhausTau;
+   for( i = 0; i < dim;i++)
+   {
+      Ai[i].Multiply(BornhausTau, Tau[i]);
+   }
+
+#else
 
    int i, j;
    int nstate = Ai[0].Rows();
@@ -386,6 +454,8 @@ void TPZArtDiff::Bornhaus(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec<T
    {
       Ai[i].Multiply(BornhausTau, Tau[i]);
    }
+#endif
+
 }
 
 

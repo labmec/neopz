@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.24 2004-02-26 22:47:33 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.25 2004-04-04 23:18:11 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -369,10 +369,21 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
 
       epsilon = EvaluateFluxEpsilon();
 
-      if((lastEpsilon>0.&&epsilon>0.) && fEvolCFL == 1)
+      // CFL control based on Flux reduction
+      if((lastEpsilon>0.&&epsilon>0.) && fEvolCFL >= 1)
       {
-         fFlowCompMesh->ScaleCFL(/*sqrt(*/lastEpsilon/epsilon/*)*/);
+         fFlowCompMesh->ScaleCFL(lastEpsilon/epsilon);
       }
+
+      // CFL control based on Nonlinear invertion
+      if(epsilon_Newton < fNewtonEps && fEvolCFL >= 2)
+      {
+         fFlowCompMesh->ScaleCFL(2.);
+      }
+      if(epsilon_Newton < fNewtonEps && fEvolCFL >= 3){
+         fFlowCompMesh->ScaleCFL(.5);
+      }
+
       lastEpsilon = epsilon;
 
       out << "\n" << i
@@ -391,7 +402,7 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
    fSolver->ResetMatrix(); // deletes the memory allocated
    // for the storage of the tangent matrix.
 
-   fpCurrSol->Print("Solution", cout);
+   //fpCurrSol->Print("Solution", cout);
 
    graph->DrawSolution(outputStep, i);
    graph->Out()->flush();

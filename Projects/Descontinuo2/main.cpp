@@ -175,7 +175,7 @@ int main()
    sprintf(number, "CFL%lf_", CFL);
    filename += number;
 
-   cout << "\nEvolute CFL? 0:[no] 1:[yes]\n";
+   cout << "\nEvolute CFL? 0:[no] 1:[yes] 2:[super]\n";
    cin >> EvolCFL;
    if(EvolCFL == 1)
    {
