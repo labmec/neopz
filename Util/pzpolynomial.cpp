@@ -2,6 +2,8 @@
 #include "pznumeric.h"
 #include <iostream>
 #include <algorithm>
+#include <functional>
+
 using namespace std;
 /**
  * Calcula as raízes do polinomio pelo método de Tartaglia Retorna 0 se o indice da potência de grau 3 é igual a zero: não é

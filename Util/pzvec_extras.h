@@ -3,12 +3,12 @@
  * @file pzvec_extra.h
  * @brief Extra utilities for TPZVec.
  */
-// $Id: pzvec_extras.h,v 1.9 2004-04-19 22:51:45 cacs Exp $
+// $Id: pzvec_extras.h,v 1.10 2004-04-22 11:03:51 cantao Exp $
 
 #ifndef PZVEC_EXTRAS_H
 #define PZVEC_EXTRAS_H
 
-#include <bits/stl_algo.h>
+#include <algorithm>
 #include "pzstack.h"
 
 using namespace std;
