@@ -421,7 +421,7 @@ int TPZGeoCloneMesh::main(){
 //  	TPZGeoElBC t3(gel[0],4,-1,geomesh); 
 //  	TPZGeoElBC t4(gel[numel-1],6,-2,geomesh); 
   	geomesh.Print(output);
-	geomesh.BuildConnectivity();
+	geomesh.BuildConnectivity2();
 	TPZStack <TPZGeoEl *> patch;
  
 	

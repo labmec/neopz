@@ -457,7 +457,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
   return cmesh;
 }
 
-void TPZCompCloneMesh::MeshError(TPZCompMesh *fine, 
+void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
 				 TPZVec<REAL> &ervec, 
 				 void(*f)(TPZVec<REAL> &loc, 
 					  TPZVec<REAL> &val, 
@@ -574,11 +574,16 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
     REAL truerror = 0.;
     REAL erro =  ElementError(cint,cintlarge,transform,f,truerror);
     ervec[index] += erro;
-    if(erro > 1.0e-8)//CEDRIC
-      cout << "index: " << index << "  Erro somado: " << erro << endl;
+    if(erro > 1.0e-8 || truerror > 1.e-8) {//CEDRIC
+      cout << "index: " << index << "  Erro somado: " << erro;
+	}
     if(f){
-      if (truerror > 5e-20)  truervec[index]  += truerror;
+      if (truerror > 0)  truervec[index]  += truerror;
+      if(erro > 1.0e-8 || truerror > 1.e-8) {//CEDRIC
+	  	cout << " erro real " << truerror;
+	  }
     }
+	if(erro > 1.0e-8 || truerror > 1.e-8) cout << endl;
   }
 }
 
