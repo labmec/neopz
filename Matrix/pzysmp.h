@@ -13,6 +13,11 @@
 
 #ifndef YSMPMATH
 #define YSMPMATH
+#ifdef USING_BLAS
+extern "C"{
+     #include <cblas.h>
+     };
+#endif
 
 #include "pzmatrix.h"
 
@@ -64,7 +69,6 @@ class TPZFYsmpMatrix : public TPZMatrix {
   		);    
 
   void AddKel(TPZFMatrix & elmat, TPZVec<int> & destinationindex);    
-  void AddKel2(TPZFMatrix & elmat, TPZVec<int> & destinationindex);    
 
   void Multiply(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res);    
 

@@ -5,6 +5,12 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 
+#ifdef USING_BLAS
+	double cblas_ddoti(const int N, const double *X, const int *indx,
+                   const double *Y);
+#endif
+
+
 // ****************************************************************************
 //
 // Constructors and the destructor
@@ -73,47 +79,6 @@ void TPZFYsmpMatrix::AddKel(TPZFMatrix & elmat, TPZVec<int> & destinationindex){
         }
     }
 }
-
-void TPZFYsmpMatrix::AddKel2(TPZFMatrix & elmat, TPZVec<int> & destinationindex){
-  int i,j,k;
-  REAL value=0.;
-  int ipos,jpos,lastpos;
-  for(i=0;i<elmat.Rows();i++){
-    ipos=destinationindex[i];
-    if(fIA[ipos] == fIA[ipos+1]) {
-      cout << "No space reserved for equation fIA[ipos] " << fIA[ipos] << " fIA[ipos+1] " << fIA[ipos+1] << endl;
-      //debugging message
-    }
-    lastpos = fIA[ipos]-1;
-    for(j=0;j<elmat.Cols();j++){
-      jpos=destinationindex[j];
-      value=elmat(i,j);
-      //cout << "j= " << j << endl;
-      if(value){
-	//cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
-	k= lastpos+1;
-	lastpos++;
-	while(1) {
-	  if(k == fIA[ipos+1]) k= fIA[ipos];
-	  if(fJA[k]==jpos){
-	    //cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
-	    //cout << "k " << k << "   "<< jpos << "   " << value << endl;
-	    fA[k]+=value;
-	    lastpos = k;
-	    break;
-	  }
-	  k++;
-	  if(k==lastpos) {
-	    cout << "Equation not found k " << k << " lastpos  "<< lastpos << " value " << value << endl;
-	    break;
-	    //error condition
-	  }
-	}
-      }
-    }
-  }
-}
-
 void TPZFYsmpMatrix::AddKelOld(TPZFMatrix & elmat, TPZVec < int > & destinationindex){
   int i=0;
   int j=0;
@@ -224,10 +189,17 @@ void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
     if(opt == 0) {
 
       for(ir=0; ir<Rows(); ir++) {
+#ifndef USING_BLAS
 	for(sum = 0.0, icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
 	  if(fJA[icol]==-1) break;//Checa a existência de dado ou não
 	  sum += fA[icol] * x.g((fJA[icol])*stride,ic);
 	}
+#endif
+#ifdef USING_BLAS
+	int size = fIA[ir+1] - fIA[ir];
+	sum = cblas_ddoti(size, &fA[fIA[ir]], &fJA[fIA[ir]],
+                   &x.g(0,ic));
+#endif
 	z(ir*stride,ic) += alpha * sum;
       }
     }
@@ -238,11 +210,11 @@ void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
       int jc;
       int icol;
       for(ir=0; ir<Rows(); ir++) {
-	for(icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
-	  if(fJA[icol]==-1) break; //Checa a existência de dado ou não
-	  jc = fJA[icol];
-	  z(jc*stride,ic) += alpha * fA[icol] * x.g(jc*stride,ic);
-	}
+		for(icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
+		  if(fJA[icol]==-1) break; //Checa a existência de dado ou não
+		  jc = fJA[icol];
+		  z(jc*stride,ic) += alpha * fA[icol] * x.g(jc*stride,ic);
+		}
       }
     }
   }

@@ -20,6 +20,24 @@
 #include <alloc.h>
 #endif
 
+
+#ifdef USING_ATLAS
+extern "C"{
+     #include <cblas.h>
+     };
+
+void cblas_zaxpy(const int N, const void *alpha, const void *X,
+                 const int incX, void *Y, const int incY);
+#endif
+#ifdef USING_BLAS
+extern "C"{
+     #include <cblas.h>
+     };
+
+void cblas_zaxpy(const int N, const void *alpha, const void *X,
+                 const int incX, void *Y, const int incY);
+#endif
+
 #include "pzfmatrix.h"
 #include "pztempmat.h"
 #include "pzvec.h"
@@ -35,20 +53,65 @@
 /********************/
 /*** Constructors ***/
 
+TPZFMatrix::TPZFMatrix(const int rows,const int cols,REAL * buf,const int sz)
+: TPZMatrix( rows, cols ), fGiven(buf) {
+	fSize = sz;
+	long size = ((long)rows) * cols;
+	if(!buf || size > sz) {
+		fElem=new REAL[size];
+		if ( fElem == NULL && size) Error( "Constructor <memory allocation error>." );
+		Zero();
+	} else {
+		fElem = buf;
+	}
+}
 
 
+TPZFMatrix::TPZFMatrix(const int rows,const int cols,const REAL & val )
+: TPZMatrix( rows, cols ), fGiven(0) {
+	 fSize = 0;
+	 long size = ((long)rows) * cols;
+#ifdef __BOORLANDC__
+	 const int bits = 8*sizeof(unsigned);
+	 if(size >= (1L<<(bits))) {
+		Error("TPZFMatrix::TPZFMatrix matrix size too large\n");
+	 }
+	// fElem = (REALPtr) farcalloc(size,sizeof(REAL));
+     fElem=new REAL[size];
+#else
+	 //fElem = (REALPtr) calloc(size,sizeof(REAL));
+	 fElem=new REAL[size];
+#endif
+	 if ( fElem == NULL && size) Error( "Constructor <memory allocation error>." );
+	 // Zera a Matriz.
+//	 REALPtr p = fElem,plast = p+size;
+//	 while(p < plast) {*p = val;p++;}
+	for(int i=0;i<size;i++) fElem[i] = val;
+}
 
-TPZFMatrix::TPZFMatrix(const TPZMatrix &mat) : TPZMatrix(mat), fElem(0),fGiven(0),fSize(0) {
-  if(fRow*fCol) {
-    fElem = new REAL[fRow*fCol];
-    REALPtr p = fElem;
-    int i,j;
-    for(j=0; j<fCol; j++) {
-      for(i=0; i<fRow; i++) {
-	*p++ = mat.GetVal(i,j);
-      }
-    }
-  }
+TPZFMatrix::TPZFMatrix(const TPZMatrix &mat) {
+	fRow = mat.Rows();
+	fCol = mat.Cols();
+#ifdef __BOORLANDC__
+	 long size = ((long)fRow) * fCol;
+	 const int bits = 8*sizeof(unsigned);
+	 if(size >= (1L<<(bits))) {
+		Error("TPZFMatrix::TPZFMatrix matrix size too large\n");
+	 }
+ //	fElem = (REALPtr) farcalloc(size,sizeof(REAL));
+ 		fElem = new REAL[fRow*fCol];
+#else
+	//fElem = (REALPtr) calloc(size,sizeof(REAL));
+   fElem = new REAL[fRow*fCol];
+#endif
+	REALPtr p = fElem;
+	int i,j;
+	for(j=0; j<fRow; j++) {
+		for(i=0; i<fRow; i++) {
+			*p++ = mat.GetVal(i,j);
+		}
+	}
+	fSize = 0;
 }
 
 
@@ -58,21 +121,41 @@ TPZFMatrix::TPZFMatrix(const TPZMatrix &mat) : TPZMatrix(mat), fElem(0),fGiven(0
 /*** Constructor( TPZFMatrix& ) ***/
 
 TPZFMatrix::TPZFMatrix (const TPZFMatrix & A)
-  : TPZMatrix( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
-    int size = fRow * fCol;
-    if(!size) return;
+: TPZMatrix( A.fRow, A.fCol ), fGiven(0) {
+	 fSize = 0;
+	 long size = A.fRow * A.fCol;
+#ifdef __BOORLANDC__
+	 //fElem = (REALPtr) farcalloc(size,sizeof(REAL));//
     fElem = new( REAL[ size ] );
-#ifdef DEBUG
-    if ( size && fElem == NULL ) Error( "Constructor <memory allocation error>." );
+#else
+	 //fElem = (REALPtr) calloc(size,sizeof(REAL));//
+	 fElem = new( REAL[ size ] );
 #endif
-    // Copia a matriz
-    REALPtr src = A.fElem;
-    REALPtr p = fElem;
-    memcpy(p,src,(size_t)size*sizeof(REAL));
-  }
+	 if ( size && fElem == NULL ) Error( "Constructor <memory allocation error>." );
+
+		  // Copia a matriz
+	 REALPtr src = A.fElem;
+	 REALPtr p = fElem;
+	 memcpy(p,src,(size_t)size*sizeof(REAL));
+}
 
 
 
+/******************/
+/*** Destructor ***/
+
+TPZFMatrix::~TPZFMatrix () {
+#ifdef __BOORLANDC__
+	 if(fElem && fElem != fGiven)  delete[]( fElem );
+    //farfree(fElem); //
+
+#else
+	 if(fElem && fElem != fGiven) delete[]( fElem );
+    //farfree( fElem );
+#endif
+	 fElem = 0;
+	 fSize = 0;
+}
 
 
 
@@ -134,7 +217,7 @@ TPZFMatrix::TPZFMatrix( TPZTempFMatrix Atemp ) : fGiven(Atemp.Object().fGiven) {
 
 TPZFMatrix &TPZFMatrix::operator=(const TPZFMatrix &A ) {
 	if(this == &A) return *this;
-	 long size = A.fRow * A.fCol;
+	 long size = ((long)A.fRow) * A.fCol;
 
 	 REALPtr newElem = fElem;
 	 if(fSize < size && size != fRow*fCol) {
@@ -348,9 +431,26 @@ TPZFMatrix &TPZFMatrix::operator-=(const TPZFMatrix &A ) {
 }
 
 void TPZFMatrix::ZAXPY(const REAL alpha,const TPZFMatrix &p) {
-	REALPtr pt = fElem, ptlast = fElem + fRow*fCol;
+
+#ifndef USING_ATLAS
+#ifndef USING_BLAS
+	REALPtr pt = fElem;
 	REALPtr pp = p.fElem;
+	REALPtr ptlast = fElem + fRow*fCol;
 	while(pt < ptlast) *pt++ += alpha * *pp++;
+#endif
+#endif
+#ifdef USING_ATLAS
+	//Como definir o tamanho dos vetores
+	int size  = (fRow*fCol) ;
+	cblas_daxpy(size, alpha, &p.fElem[0], 1, &fElem[0], 1);
+#endif
+#ifdef USING_BLAS
+	//Como definir o tamanho dos vetores
+	int size  = (fRow*fCol) ;
+	cblas_daxpy(size, alpha, &p.fElem[0], 1, &fElem[0], 1);
+#endif
+
 }
 
 void TPZFMatrix::TimesBetaPlusZ(const REAL beta,const TPZFMatrix &z) {
@@ -373,25 +473,37 @@ void TPZFMatrix::TimesBetaPlusZ(const REAL beta,const TPZFMatrix &z) {
 /*** Operator = ***/
 
 TPZFMatrix &TPZFMatrix::operator=(const TPZMatrix &A ) {
-  int arows  = A.Rows();
-  int acols  = A.Cols();
-  int size = arows * acols;
-  if(fElem != fGiven) {
-    delete []fElem;
-    fElem = 0;
-  }
-  fRow  =  arows;
-  fCol  = acols;
-  if(fSize < size) {
-    fElem = new( REAL[ arows * acols ] );
-  } else {
-    fElem = fGiven;
-  }
-  REALPtr dst = fElem;
-  for ( int c = 0; c < fCol; c++ )
-    for ( int r = 0; r < fRow; r++ ) 
-      *dst++ = A.Get( r, c );
-  return( *this );
+	 long arows  = A.Rows();
+	 long acols  = A.Cols();
+	 long size = arows * acols;
+	 if(fElem != fGiven) {
+#ifdef __BOORLANDC__
+		 // farfree(fElem); //
+       delete []fElem;
+#else
+		 // free(fElem);
+       delete []fElem;
+#endif
+		  fElem = 0;
+	 }
+	 if(fSize < size) {
+		  Clear();
+		  fRow  = (int) arows;
+		  fCol  = (int) acols;
+#ifdef __BOORLANDC__
+		 // fElem = (REALPtr) farcalloc(arows*acols,sizeof(REAL));//
+       fElem = new( REAL[ arows * acols ] );
+#else
+		 // fElem = (REALPtr) calloc(arows*acols,sizeof(REAL));//
+		 fElem = new( REAL[ arows * acols ] );
+#endif
+	 }
+	 // Copia a matriz.
+	 REALPtr dst = fElem;
+	 for ( int c = 0; c < fCol; c++ )
+		  for ( int r = 0; r < fRow; r++ )    *dst++ = A.Get( r, c );
+
+	 return( *this );
 }
 
 
@@ -637,6 +749,57 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
 
 /*************/
 /*** Redim ***/
+
+int TPZFMatrix::Redim(const int newRows,const int newCols) {
+	 if ( newRows == Rows() && newCols == Cols() ) {
+		  Zero();
+		  return( 1 );
+	 }
+	 int newsize = newRows*newCols;
+#ifdef __BOORLANDC__
+	 if(fElem && fElem != fGiven)  delete []fElem;
+    // farfree(fElem);//
+
+#else
+	 if(fElem && fElem != fGiven) delete []fElem;
+    //free(fElem);//
+
+#endif
+	 if(fGiven && newsize <= fSize) {
+		  fElem = fGiven;
+	 } else if(newsize == 0) {
+        fElem = NULL;
+    } else {
+#ifdef __BOORLANDC__
+		  //fElem = (REALPtr) farcalloc(newsize,sizeof(REAL));//
+        fElem = new( REAL[ newsize ] );
+#else
+		  //fElem = (REALPtr) calloc(newsize,sizeof(REAL));//
+		  fElem = new( REAL[ newsize ] );
+#endif
+	 }
+	 if (newsize && fElem == NULL )
+		  Error( "Resize <memory allocation error>." );
+
+	 fRow  = newRows;
+	 fCol  = newCols;
+
+	 Zero();
+
+	 return( 1 );
+}
+
+/***************/
+/****Zero*******/
+
+int TPZFMatrix::Zero() {
+	 int size = fRow * fCol * sizeof(REAL);
+	 memset(fElem,'\0',size);
+//	 REALPtr p = fElem, plast = p+size;
+//	 while(p < plast) *p++ = 0.0;
+	 fDecomposed = 0;
+	 return( 1 );
+}
 
 
 

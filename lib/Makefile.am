@@ -18,7 +18,6 @@ libpz_a_SOURCES =
 libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Util/pzmap.o \
 	../Util/pzadmchunkgen.o \
-	../Util/pzavlmap.o \
 	../Util/pzchunkgen.o \
 	../Util/pzavlmapgen.o \
 	../Util/pzstackgen.o \
@@ -187,7 +186,6 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Post/pztrigraph.o \
 	../Post/pztrigraphd.o \
 	../Post/pzv3dmesh.o \
-	../Post/pzvisualmatrix.o \
 	../Multigrid/pzmgsolver.o \
 	../Multigrid/pztransfer.o \
 	../Multigrid/pztrnsform.o \
