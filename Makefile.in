@@ -15,7 +15,7 @@
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
-# $Id: Makefile.in,v 1.6 2003-05-12 16:48:01 cedric Exp $
+# $Id: Makefile.in,v 1.7 2003-05-12 18:48:15 cedric Exp $
 #
 
 
@@ -98,9 +98,7 @@ usermkdir = $(prefix)
 
 usermk_DATA = PZ_user.mk
 
-SUBDIRS = Util Matrix Cosys Multigrid Material Post Shape Integral Geom \
-	Mesh Refine External Analysis Frontal StrMatrix Pre Common \
-	LinearSolvers lib
+SUBDIRS = Util Matrix Cosys Multigrid Material Post Shape Integral Geom 	Mesh Refine External Analysis Frontal StrMatrix Pre Common 	LinearSolvers lib
 
 
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
