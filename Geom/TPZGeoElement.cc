@@ -111,11 +111,9 @@ TPZGeoElement<TShape,TGeo,TRef>::NSideSubElements2(int side){
 }
 
 template<class TShape, class TGeo, class TRef>
-TPZCompEl *
-TPZGeoElement<TShape,TGeo,TRef>::CreateBCCompEl(int side, int bc, 
-												TPZCompMesh &cmesh){
-	cout << "TPZGeoElement::CreateBCCompEl deve ser substituido por CreateBCGeoEl\n";
-	return 0;
+TPZGeoEl *
+TPZGeoElement<TShape,TGeo,TRef>::CreateBCGeoEl(int side, int bc){
+  return TGeo::CreateBCGeoEl(this,side,bc);
 }
 
 template<class TShape, class TGeo, class TRef>

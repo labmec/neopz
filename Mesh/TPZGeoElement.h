@@ -102,7 +102,7 @@ public:
    * method which creates a computational boundary condition element based
    * on the current geometric element, a side and a boundary condition number
    */
-  TPZCompEl *CreateBCCompEl(int side, int bc, TPZCompMesh &cmesh);
+  TPZGeoEl *CreateBCGeoEl(int side, int bc);
 
   /**initializes the node i of the element*/
   void SetNodeIndex(int i,int nodeindex);
