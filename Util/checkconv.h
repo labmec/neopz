@@ -56,11 +56,11 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 
       obj.ComputeTangent(Tangent,coefs,icase);
 
-      //      Tangent.Print("tangent matrix");
+//            Tangent.Print("tangent matrix");
 
       obj.Residual(ReferenceResidual,icase);
 
-      //      ReferenceResidual.Print("reference residual");
+//            ReferenceResidual.Print("reference residual");
 
       EstimateRes.Redim(ReferenceResidual.Rows(),ReferenceResidual.Cols());
 
@@ -92,7 +92,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 
          obj.Residual(residual,icase);
 
-	 //	 residual.Print("residual");
+//	 	 residual.Print("residual");
 
          residual -= ReferenceResidual;
 
@@ -100,9 +100,9 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 
          residual = residual - EstimateRes*(REAL(interval/10.));
 
-	 //	 residual.Print("residual adaptado");
+//	 residual.Print("residual adaptado");
          difnorm[interval] = Norm(residual);
-	 //	 cout << "difnorm = " << difnorm[interval];
+//	 cout << "difnorm = " << difnorm[interval];
 
       }
 

@@ -19,6 +19,9 @@
 #include "pzelmat.h"
 #include "pzysmp.h"
 
+#include "pzbndcond.h"
+#include "pzmetis.h"
+
 
 int TPBSpStructMatrix::main() {
      

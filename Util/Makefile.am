@@ -22,3 +22,4 @@ noinst_LIBRARIES = libpzutil.a
 libpzutil_a_SOURCES = pzadmchunkgen.cpp pzavlmapgen.cpp pzchunkgen.cpp pzmanvectorgen.cpp pzmap.cpp pzstackgen.cpp pzstring.cpp pzvecgen.cpp pzline.cpp pzplane.cpp pznumeric.cpp pzpolynomial.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
+AM_CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@ @USING_FAD@ @USING_ATLAS@ @USING_BLAS@

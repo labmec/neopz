@@ -29,6 +29,7 @@
 using namespace std;
 
 #include "pzelmat.h"
+#include "pzbndcond.h"
 
 
 void UniformRefine(int num, TPZGeoMesh &m);

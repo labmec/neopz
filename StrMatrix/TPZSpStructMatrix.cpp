@@ -20,6 +20,8 @@ using namespace std;
 #include "pzelmat.h"
 
 #include "pzysmp.h"
+#include "pzmetis.h"
+#include "pzbndcond.h"
 
 void UniformRefine(int num, TPZGeoMesh &m);
 

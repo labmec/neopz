@@ -3,16 +3,14 @@
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
-# $Id: Makefile.am,v 1.4 2004-04-22 13:16:05 phil Exp $
+# $Id: Makefile.am,v 1.5 2004-10-06 19:08:46 phil Exp $
 #
 
 usermkdir = $(prefix)
 
 usermk_DATA = PZ_user.mk
 
-SUBDIRS = Mesh Refine Geom Util Matrix Cosys Multigrid Material Post Shape Integral \
-	External Analysis Frontal StrMatrix Pre Common \
-	LinearSolvers Save lib 
+SUBDIRS = Common Mesh Refine Geom Util Matrix Cosys Multigrid Material Post Shape Integral External Analysis Frontal StrMatrix Pre LinearSolvers Save lib
 #Projects
 
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
@@ -37,3 +35,4 @@ backup: clean-project distclean
 	@ echo -----------------------------------------------------------------
 
 ## --| NeoPZ |------------------------------------------------------------------
+AM_CXXFLAGS = -D_AUTODIFF -DUSING_METIS

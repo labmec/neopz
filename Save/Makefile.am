@@ -22,3 +22,4 @@ noinst_LIBRARIES = libSave.a
 libSave_a_SOURCES = pzsave.cpp 	pzfilebuffer.cpp pzbfilestream.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
+AM_CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@ @USING_FAD@ @USING_ATLAS@ @USING_BLAS@

@@ -14,7 +14,7 @@
 
 #include "pzelgq2d.h"
 #include "pzgnode.h"
-#include "pzmat2dlin.h"
+//#include "pzmat2dlin.h"
 
 TPZStructMatrix::~TPZStructMatrix() {}
 

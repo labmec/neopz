@@ -11,6 +11,7 @@
 #include "pzelgq2d.h"
 #include "pzelcq2d.h"
 #include "pzmat2dlin.h"
+#include "pzbndcond.h"
 
 #include "pzanalysis.h"
 #include "pzsolve.h"

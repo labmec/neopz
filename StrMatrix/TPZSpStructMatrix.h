@@ -9,7 +9,7 @@
 #include "pzcmesh.h"
 #include "pzsubcmesh.h"
 #include "pzelmat.h"
-#include "pzmetis.h"
+//#include "pzmetis.h"
 
 class TPZElementMatrix;
 class TPZCompMesh;
