@@ -357,8 +357,9 @@ TPZGeoElSide
 TPZGeoElement<TShape,TGeo,TRef>::Father2(int side){//cout << " Father2 teste Cedric: 08/05/2003\n";
   if(!fFather) return TPZGeoElSide();
   int son = WhichSubel(); 
-  if(son<0) return TPZGeoElSide(); 
-  return TPZGeoElSide(fFather,TRef::FatherSide(side,son));     
+  if(son<0) return TPZGeoElSide();
+  int fathsid = fFather->FatherSide(side,son);
+  return TPZGeoElSide(fFather,fathsid);     
 }
 
 

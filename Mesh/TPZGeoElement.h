@@ -174,6 +174,10 @@ public:
 
   virtual TPZGeoElSide Father2(int side);
 
+  virtual int FatherSide(int side, int son) {
+    return TRef::FatherSide(side,son);
+  }
+
   /**divides the element and puts the resulting elements in the vector*/
   virtual void Divide(TPZVec<TPZGeoEl *> &pv);//Cedric: 08/05/2003
 
