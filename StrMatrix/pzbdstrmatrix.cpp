@@ -28,7 +28,7 @@ void TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal(TPZBlockDiagonal & bloc
   int el;
   for(el=0; el<numel; el++) {
     TPZCompEl *cel = elementvec[el];
-    if(!cel || !cel->IsInterpolated()) continue;
+    if(!cel) continue;
     TPZBlockDiagonal eldiag;
     cel->CalcBlockDiagonal(connectlist,elblock);
     //    elblock.Print("Element block diagonal");
