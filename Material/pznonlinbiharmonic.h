@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pznonlinbiharmonic.h,v 1.1 2005-02-04 12:21:30 paulo Exp $
+//$Id: pznonlinbiharmonic.h,v 1.2 2005-03-08 13:10:47 paulo Exp $
 
 #ifndef TPZNONLINBIHARMONICHPP
 #define TPZNONLINBIHARMONICHPP
@@ -24,6 +24,7 @@ public :
 
   static REAL gLambda1, gLambda2, gSigmaA,gSigmaB, gL_alpha, gM_alpha, gL_betta, 
               gM_betta, g_teta, Re;
+  static int NorP;
 
   /**
    * Inicialisation of biharmonic material
@@ -35,7 +36,7 @@ public :
   /**
    * Returns the number of norm errors. Default is 3: energy, L2,  H1, semi-norm H2 and H2.
    */
-  virtual int NEvalErrors() {return 5;}
+  virtual int NEvalErrors() {return 8;}
 
   void SetMaterial(REAL &xfin){
     fXf = xfin;
