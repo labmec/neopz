@@ -31,6 +31,22 @@ class TPZFYsmpMatrix : public TPZMatrix {
 
   public :
 
+ struct TPZMThread {
+   const TPZFYsmpMatrix *target;
+   int fFirsteq;
+   int fLasteq;
+   const TPZFMatrix *fX;
+   TPZFMatrix *fZ;
+   REAL fAlpha;
+   int fOpt;
+   int fStride;
+ };
+ 
+private:
+
+static void * ExecuteMT(void *entrydata);
+
+public: 
     TPZFYsmpMatrix(const int rows,const int cols );
   // sets up the StencilMatrix based on the stencil
 
@@ -45,6 +61,11 @@ class TPZFYsmpMatrix : public TPZMatrix {
 
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 )const;
+                       
+  virtual void MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 )const;
+  
+  
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
 

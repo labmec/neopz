@@ -1,5 +1,6 @@
 #include <memory.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "pzysmp.h"
 #include "pzfmatrix.h"
@@ -230,6 +231,80 @@ void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 
 // ****************************************************************************
 //
+// Multiply and Multiply-Add
+//
+// ****************************************************************************
+
+void TPZFYsmpMatrix::MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y,
+			     TPZFMatrix &z,
+			     const REAL alpha,const REAL beta,const int opt,const int stride ) const {
+  // computes z = beta * y + alpha * opt(this)*x
+  //          z and x cannot share storage
+  int  ic, xcols;
+  xcols = x.Cols();
+  int  r = (opt) ? Cols() : Rows();
+
+  // Determine how to initialize z
+  for(ic=0; ic<xcols; ic++) {
+    REAL *zp = &(z(0,ic));
+    if(beta != 0) {
+      const REAL *yp = &(y.g(0,0));
+      REAL *zlast = zp+r*stride;
+      if(beta != 1. || (&z != &y && stride != 1)) {
+	while(zp < zlast) {
+	  *zp = beta * (*yp);
+	  zp += stride;
+	  yp += stride;
+	}
+      }
+      else if(&z != &y) {
+	memcpy(zp,yp,r*sizeof(REAL));
+      }
+    } else {
+      REAL *zp = &(z(0,0)), *zlast = zp+r*stride;
+      while(zp != zlast) {
+	*zp = 0.;
+	zp += stride;
+      }
+    }
+  }
+/*
+   TPZFYsmpMatrix *target;
+   int fFirsteq;
+   int fLasteq;
+   TPZFMatrix *fX;
+   TPZFMatrix *fZ;
+   REAL fAlpha;
+   int fOpt;
+   int fStride;
+*/
+  const int numthreads = 4;
+  pthread_t allthreads[numthreads];
+  TPZMThread alldata[numthreads];
+  int res[numthreads];
+  int i;
+  int eqperthread = r/numthreads;
+  int firsteq = 0;
+  for(i=0;i<numthreads;i++) 
+  {
+    alldata[i].target = this;
+    alldata[i].fFirsteq = firsteq;
+    alldata[i].fLasteq = firsteq+eqperthread;
+    firsteq += eqperthread;
+    if(i==numthreads-1) alldata[i].fLasteq = Rows();
+    alldata[i].fX = &x;
+    alldata[i].fZ = &z;
+    alldata[i].fAlpha = alpha;
+    alldata[i].fOpt = opt;
+    alldata[i].fStride = stride;
+    res[i] = pthread_create(&allthreads[i],NULL,ExecuteMT, &alldata[i]);
+  }
+  for(i=0;i<numthreads;i++) pthread_join(allthreads[i], NULL);
+
+}
+
+// ****************************************************************************
+//
 // Print the matrix
 //
 // ****************************************************************************
@@ -316,4 +391,48 @@ int TPZFYsmpMatrix::Zero()
    memset(fA,'\0',size);
    memset(fDiag,'\0', diagSize);
    return 1;
+}
+
+void *TPZFYsmpMatrix::ExecuteMT(void *entrydata)
+{
+  TPZMThread *data = (TPZMThread *) entrydata;
+  const TPZFYsmpMatrix *mat = data->target;
+  REAL sum;
+  int xcols = data->fX->Cols();
+  int ic,ir,icol;
+  // Compute alpha * A * x
+  for(ic=0; ic<xcols; ic++) {
+    if(data->fOpt == 0) {
+
+      for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
+#ifndef USING_BLAS
+	for(sum = 0.0, icol=mat->fIA[ir]; icol<mat->fIA[ir+1]; icol++ ) {
+	  if(mat->fJA[icol]==-1) break;//Checa a existência de dado ou não
+	  sum += mat->fA[icol] * data->fX->g((mat->fJA[icol])*data->fStride,ic);
+	}
+#endif
+#ifdef USING_BLAS
+	int size = mat->fIA[ir+1] - mat->fIA[ir];
+	sum = cblas_ddoti(size, &mat->fA[mat->fIA[ir]], &mat->fJA[mat->fIA[ir]],
+                   &data->fX->g(0,ic));
+#endif
+	data->fZ->operator()(ir*data->fStride,ic) += data->fAlpha * sum;
+      }
+    }
+
+  // Compute alpha * A^T * x
+    else {
+
+      int jc;
+      int icol;
+      for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
+		for(icol=mat->fIA[ir]; icol<mat->fIA[ir+1]; icol++ ) {
+		  if(mat->fJA[icol]==-1) break; //Checa a existência de dado ou não
+		  jc = mat->fJA[icol];
+		  data->fZ->operator()(jc*data->fStride,ic) += data->fAlpha * mat->fA[icol] * data->fX->g(jc*data->fStride,ic);
+		}
+      }
+    }
+  }
+  return 0;
 }
