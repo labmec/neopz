@@ -527,16 +527,18 @@ private:
    */
   void ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix &phi, TPZFMatrix &dphi);
 
+public:
+
 #ifdef _AUTODIFF
   /**
    * This method fills the matrix ek and load vector ef
    * with the data in the FADFADREAL U second and first derivatives.
    *
    */
-  void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
+ static void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
 #endif
 
-public:
+
   /** 
 	 * To enable to work with discontinuous element that can to have interface
 	 * elements*/
