@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.21 2004-02-04 20:30:24 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.22 2004-04-02 15:56:37 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -166,6 +166,33 @@ class TPZInterfaceElement : public TPZCompEl {
    * @param ef element right hand side
    */
   virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+  /**
+   * Standard CalcStiff of interface element
+   * @param ek element matrix
+   * @param ef element right hand side
+   */
+  void CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+  /**
+   * CalcStiff with penalty term based on left and right p order and 
+   * interface inner radius.
+   * @param ek element matrix
+   * @param ef element right hand side
+   * @author Paulo Bösing & Igor Mozolevski
+   * @since April 01, 2004
+   */
+  void CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+  /**
+   * gCalcStiff = 1 means standard CalcStiff
+   * gCalcStiff = 2 means CalcStiff with penalty
+   */
+  static int gCalcStiff;
+
+  static void SetCalcStiffStandard(){ TPZInterfaceElement::gCalcStiff = 1; }
+
+  static void SetCalcStiffPenalty(){ TPZInterfaceElement::gCalcStiff = 2; }
 
   /**
    * Print attributes of the object

@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.30 2004-03-31 23:57:33 erick Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.31 2004-04-02 15:56:37 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -10,6 +10,8 @@
 #include "TPZConservationLaw.h"
 #include "pzconslaw.h"
 #include "pzbndcond.h"
+
+int TPZInterfaceElement::gCalcStiff = 1;
 
 /**
  * Para CloneInterface.
@@ -158,6 +160,24 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index,
 
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
+   switch (TPZInterfaceElement::gCalcStiff)
+   {
+      case 1 : 
+	 this->CalcStiffStandard(ek, ef);
+	 break;
+
+      case 2 :
+	 this->CalcStiffPenalty(ek, ef);
+	 break;
+
+      default:
+	 PZError << "TPZInterfaceElement::CalcStiff - CalcStiff method not implemented." << endl;
+   }
+
+}
+
+void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatrix &ef){
+
   //#ifdef _AUTODIFF
   //  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
   //#else
@@ -305,11 +325,165 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     //      if(!bcright) PZError << "TPZInterfaceElement::CalcStiff material does not exists\n";
     //      mat->ComputeSolRight(solr,soll,fNormal,bcright);
     //    }
+
+
     mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,*ek.fMat,*ef.fMat);
   }
   
   delete intrule;
 }
+
+
+void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatrix &ef){
+
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+  if(!mat || !strcmp("no_name",mat->Name())){
+    PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
+    return;
+  }
+  TPZCompElDisc *left = LeftElement();
+  TPZCompElDisc *right = RightElement();
+  if(!left->Material() || !right->Material()){
+    PZError << "TPZInterfaceElement::CalcStiff null material\n";
+    return;
+  }
+
+  int nshapel = left->NShapeF();
+  int nshaper = right->NShapeF();
+  TPZBlock &block = Mesh()->Block();
+  TPZFMatrix &MeshSol = Mesh()->Solution();
+  int nstatel = left->Material()->NStateVariables();
+  int nstater = right->Material()->NStateVariables();
+  int neql = nshapel * nstatel;
+  int neqr = nshaper * nstater;
+  int dim = Dimension();
+  int diml = left->Dimension();
+  int dimr = right->Dimension();
+  int ncon = NConnects(),i;
+
+  // clean ek and ef
+  if(!ek.fMat) ek.fMat = new TPZFMatrix();
+  if(!ef.fMat) ef.fMat = new TPZFMatrix();
+  if(!ek.fBlock) ek.fBlock = new TPZBlock(ek.fMat);
+  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
+
+  int neq = neql + neqr;
+  ek.fMat->Redim(neq,neq);
+  ef.fMat->Redim(neq,1);
+  if(ncon){//no máximo ncon = 1
+    int ic = 0;
+    ek.fBlock->SetNBlocks(ncon);
+    ef.fBlock->SetNBlocks(ncon);
+    if(left->NConnects()) {
+      ek.fBlock->Set(ic,left->NShapeF()*nstatel);
+      ef.fBlock->Set(ic,left->NShapeF()*nstatel);
+      ic++;
+    }
+    if(right->NConnects()) {
+      ek.fBlock->Set(ic,right->NShapeF()*nstater);
+      ef.fBlock->Set(ic,right->NShapeF()*nstater);
+    }
+    ek.fBlock->Resequence();
+    ef.fBlock->Resequence();
+  }
+  if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
+    cout << "TPZInterfaceElement::CalcStiff : not enough storage for local stifness"
+      " matrix \n";
+    Print(cout);
+    if(ek.fMat)   delete ek.fMat;
+    if(ek.fBlock) delete ek.fBlock;
+    if(ef.fMat)   delete ef.fMat;
+    if(ef.fBlock) delete ef.fBlock;
+    ek.fMat=  NULL;
+    ek.fBlock = NULL;
+    ef.fMat = NULL;
+    ef.fBlock = NULL;
+    return;
+  }
+  ek.fConnect.Resize(ncon);
+  ef.fConnect.Resize(ncon);
+  for(i=0;i<ncon;i++){//pelo menos 2: 1 para cada elemento right e left
+    (ef.fConnect)[i] = ConnectIndex(i);
+    (ek.fConnect)[i] = ConnectIndex(i);
+  }
+
+  TPZFMatrix phixl(neql,1,0.),dphixl(diml,neql);
+  TPZFMatrix phixr(neqr,1,0.),dphixr(dimr,neqr);
+  TPZFMatrix axes(3,3,0.);
+  TPZFMatrix jacobian(dim,dim);
+  TPZFMatrix jacinv(dim,dim);
+  TPZVec<REAL> x(3,0.);
+  TPZVec<REAL> intpoint(dim,0.);
+  REAL detjac,weight;
+  TPZVec<REAL> soll(nstatel,0.),solr(nstater,0.);
+  TPZFMatrix dsoll(diml,nstatel,0.),dsolr(dimr,nstater,0.);
+  int pl = left->Degree();
+  int pr = right->Degree();
+  int p = (pl > pr) ? pl : pr;
+  int face = fReference->NSides()-1;
+  TPZIntPoints *intrule = fReference->CreateSideIntegrationRule(face,2*p);//integra u(n)*fi
+  int npoints = intrule->NPoints();
+  int ip;
+  TPZVec<REAL> point(3,0.),normal(3,0.);
+//  TPZBndCond *bcleft = 0,*bcright=0;
+
+  for(ip=0;ip<npoints;ip++){
+    intrule->Point(ip,intpoint,weight);
+    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    weight *= fabs(detjac);
+    fReference->X(intpoint, x);
+    left->Shape(x,phixl,dphixl);
+    right->Shape(x,phixr,dphixr);
+    //solu¢ão da itera¢ão anterior
+    soll.Fill(0.);
+    dsoll.Zero();
+    if(left->NConnects()){
+      TPZConnect *df = &left->Connect(0);
+      int dfseq = df->SequenceNumber();
+      int dfvar = block.Size(dfseq);
+      int pos = block.Position(dfseq);
+      int iv = 0,d;
+      for(int jn=0; jn<dfvar; jn++) {
+	soll[iv%nstatel] += phixl(iv/nstatel,0)*MeshSol(pos+jn,0);
+	for(d=0; d<diml; d++)
+	  dsoll(d,iv%nstatel) += dphixl(d,iv/nstatel)*MeshSol(pos+jn,0);
+	iv++;
+      }
+    } 
+
+    //solu¢ão da itera¢ão anterior
+    solr.Fill(0.);
+    dsolr.Zero();
+    if(right->NConnects()){
+      TPZConnect *df = &right->Connect(0);
+      int dfseq = df->SequenceNumber();
+      int dfvar = block.Size(dfseq);
+      int pos = block.Position(dfseq);
+      int iv = 0,d;
+      for(int jn=0; jn<dfvar; jn++) {
+	solr[iv%nstater] += phixr(iv/nstater,0)*MeshSol(pos+jn,0);
+	for(d=0; d<dimr; d++)
+	  dsolr(d,iv%nstater) += dphixr(d,iv/nstater)*MeshSol(pos+jn,0);
+	iv++;
+      }
+    } 
+
+    REAL faceSize;
+    if (this->Reference()->Dimension() == 0){ //it means point
+       //2*(a+b)/2
+       faceSize = left->InnerRadius() + right->InnerRadius();//we cannot use right->Reference()->ElementRadius because of right may be an agglomerate
+    }
+    else{
+       faceSize = 2. * this->Reference()->ElementRadius();
+    }
+
+    mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,*ek.fMat,*ef.fMat, left->Degree(), right->Degree(), faceSize);
+
+  }
+delete intrule;
+}
+
+
 
 void TPZInterfaceElement::GetTransformsLeftAndRight(TPZTransform &tl,TPZTransform &tr){
 
