@@ -8,8 +8,14 @@
 #include <TPZGeoElement.h>
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
+#include "pzfilebuffer.h"
+#include "pzmatrixid.h"
+#include "pzmaterialid.h"
+#include "pzmeshid.h"
+#include "pzbfilestream.h"
 //IO
 #include <iostream>
+#include <fstream>
 using namespace std;
 
 // nx = number of nodes in x direction
@@ -17,6 +23,10 @@ using namespace std;
 TPZGeoMesh * GetMesh(int nx,int ny);
 
 int main(){
+  TPZSaveable::Register(TPZSAVEABLEID,Restore<TPZSaveable>);
+  RegisterMeshClasses();
+  RegisterMatrixClasses();
+  RegisterMaterialClasses();
 	cout << "***********************************************************************\n";
 	cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	cout << "PZ - Class 5 -->> Geometric Meshes and h refinment\n";
@@ -32,9 +42,8 @@ int main(){
 
 	//Creates the geometric mesh
 	TPZGeoMesh *mesh = GetMesh(nx,ny);
-
-	//Prints the refined mesh
-	mesh->Print(cout);
+ mesh->SetName("testing a space");
+ ofstream out("all.dat");
 
   TPZCompMesh *cmesh = new TPZCompMesh(mesh);
 
@@ -47,8 +56,30 @@ int main(){
 //  TPZSkylStructMatrix skystr(cmesh);
   cmesh->AutoBuild();
   TPZVec<int> subelindex(4,0);
-  cmesh->ElementVec()[0]->Divide(0,subelindex,0);
+  cmesh->ElementVec()[0]->Divide(0,subelindex,0);  
   cmesh->Reference()->Print(cout);
+  out << "antes de lido\n";
+  //Prints the refined mesh
+  //mesh->Print(out);
+  cmesh->Print(out);
+  {
+    TPZFileStream fstr;
+    fstr.OpenWrite("dump.dat");
+    mesh->Write(fstr,1);
+    cmesh->Write(fstr,1);
+  }
+  {
+    TPZFileStream fstr;
+    fstr.OpenRead("dump.dat");
+    TPZSaveable *sv = TPZSaveable::Restore(fstr,0);
+    TPZGeoMesh *tst = dynamic_cast<TPZGeoMesh*>(sv);
+    sv = TPZSaveable::Restore(fstr,tst);
+    TPZCompMesh *tsc = dynamic_cast<TPZCompMesh *>(sv);
+    out << "depois de lido "<<endl;
+    //if(tst) tst->Print(out);
+    if(tsc) tsc->Print(out);
+    delete tst;
+  }
 
   delete cmesh;
   delete mesh;
