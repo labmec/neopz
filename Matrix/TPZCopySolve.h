@@ -4,7 +4,7 @@
 #define TPZCOPYSOLVE_H
 #include "pzsolve.h"
 class TPZFMatrix;
-class TPZCopySolve : TPZSolver {
+class TPZCopySolve : public TPZMatrixSolver {
 public:  
 
     /**
@@ -13,12 +13,12 @@ public:
      *      @param F contains Force vector
      *      @param result contains the solution
      */
-    void Solve(const TPZFMatrix &F, TPZFMatrix &result){result=F;}  
+  virtual void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix * ){result=F;}  
 
     /**
      *      Clones the current object returning a pointer of type TPZSolver
       */
-    TPZSolver *Clone() const = 0{return new TPZSolver;}
+  virtual TPZSolver *Clone() const {return new TPZCopySolve;}
 
 ;
 };
