@@ -1,7 +1,7 @@
+// -*- c++ -*-
+
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
-
-// -*- c++ -*-
 
 /*******       TPZGeoElSide       *******/
 
@@ -68,7 +68,8 @@ class TPZGeoElSide {
 
   void SetConnectivity(const TPZGeoElSide &neighbour) const;
 
-  void RemoveConnectivity();
+  // CHECK THIS! This method wasn't previously defined!
+  void RemoveConnectivity() {};
 
 static void BuildConnectivities(TPZVec<TPZGeoElSide> &elvec, TPZVec<TPZGeoElSide> &neighvec);
 
