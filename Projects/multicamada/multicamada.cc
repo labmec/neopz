@@ -100,10 +100,10 @@ int main(){
   int nelx = 1;
   int nely = 1;
   cout << "multicamada::main\n"
-       << "dx\n"
-       << "dy\n"
-       << "nelx\n"
-       << "nely\n";
+       << "dx " << dx <<  "\n"
+       << "dy " << dy << "\n"
+       << "nelx " << nelx << "\n"
+       << "nely " << nely << "\n";
   //cin >> dx >> dy >> nelx >> nely;
 
   TPZMulticamadaOrthotropic *multcam = new TPZMulticamadaOrthotropic(zmin,dx,dy,nelx,nely);
@@ -148,7 +148,7 @@ int main(){
 
   multcam->GenerateMesh();
 
-  multcam->SetNX(1.);
+  multcam->SetQY(1.);
 
   multcam->GeoMesh()->Print(out);
   multcam->CompMesh()->Print(out);
