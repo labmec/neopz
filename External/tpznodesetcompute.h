@@ -39,7 +39,13 @@ public:
     
     void BuildElementGraph(TPZStack<int> &blockgraph, TPZStack<int> &blockgraphindex);
 
-void BuildNodeSet(int node, std::set<int> &nodeset);  
+void BuildNodeSet(int node, std::set<int> &nodeset);
+
+void Print(std::ostream &file) const;
+
+static void Print(std::ostream &file, const TPZVec<int> &graphindex, const TPZVec<int> &graph);
+
+static void Print(std::ostream &file, const std::set<int> &nodeset, const char *text);
 
 TPZVec<int> &Nodegraph() {
 return fNodegraph;
@@ -67,7 +73,7 @@ void AnalyseNode(int node, TPZVec< std::set<int> > &nodeset);
 /**
  * Build the set of nodes which are vertices
  */
-void BuildVertexSet(int node, std::set<int> &nodeset);
+//void BuildVertexSet(int node, std::set<int> &nodeset);
 
 /**
  * Look for elements formed by vertices, intersecting with the intersectvertices, one by one

@@ -13,6 +13,9 @@
 #include "pzstack.h"
 #include <set>
 #include <map>
+#include <fstream>
+
+static std::ofstream out("nodeset.txt");
 
 TPZNodesetCompute::TPZNodesetCompute()
 {
@@ -49,21 +52,22 @@ void TPZNodesetCompute::AnalyseGraph()
 void TPZNodesetCompute::AnalyseNode(int node, TPZVec< std::set<int> > &nodeset)
 {
   if(fSeqNumber[node] != -1) return;
-  if(! nodeset[node].size()) nodeset[node].insert(&fNodegraph[fNodegraphindex[node]],&fNodegraph[fNodegraphindex[node+1]]);
+  if(! nodeset[node].size()) 
+  {
+    nodeset[node].insert(&fNodegraph[fNodegraphindex[node]],&fNodegraph[fNodegraphindex[node+1]]);
+    nodeset[node].insert(node);
+  }
   int minlevel = 0;
   std::set<int>::iterator it;
   TPZStack<int> equalnodes;
   for(it = nodeset[node].begin(); it != nodeset[node].end(); it++)
   {
     int othernode = *it;
-    if(fSeqNumber[othernode] != -1) 
-    {
-      minlevel = minlevel < fLevel[othernode]+1 ? fLevel[othernode]+1 : minlevel;
-      continue;
-    }
-    else if(! nodeset[othernode].size())
+    if(othernode == node) continue;
+    if(! nodeset[othernode].size())
     {
       nodeset[othernode].insert(&fNodegraph[fNodegraphindex[othernode]],&fNodegraph[fNodegraphindex[othernode+1]]);
+      nodeset[othernode].insert(othernode);
     }
     bool inc = includes(nodeset[node].begin(),nodeset[node].end(),nodeset[othernode].begin(),nodeset[othernode].end());
     bool diff = nodeset[node] != nodeset[othernode];
@@ -76,12 +80,21 @@ void TPZNodesetCompute::AnalyseNode(int node, TPZVec< std::set<int> > &nodeset)
     {
       equalnodes.Push(othernode);
     }
+    if(inc && fSeqNumber[othernode] != -1)
+    {
+      minlevel = minlevel < fLevel[othernode]+1 ? fLevel[othernode]+1 : minlevel;
+    }
   }
   fMaxSeqNum++;
   fSeqNumber[node] = fMaxSeqNum;
   fSeqCard.Push(1);
   fMaxLevel = fMaxLevel < minlevel ? minlevel : fMaxLevel;
   fLevel[node] = minlevel;
+  for(it = nodeset[node].begin(); it != nodeset[node].end(); it++)
+  {
+    int othernode = *it;
+    if(fSeqNumber[othernode] != -1 && fLevel[othernode] <= minlevel) nodeset[othernode].clear();
+  }
   nodeset[node].clear();
   int neq = equalnodes.NElements();
   int ieq;
@@ -132,6 +145,7 @@ void TPZNodesetCompute::BuildVertexGraph(TPZStack<int> &blockgraph, TPZVec<int> 
   for(it=vertices.begin(); it != vertices.end(); it++)
   {
     int node = (*it).second;
+    blockgraph.Push(node);
     std::set<int> vertexset;
     std::set<int> included;
     std::set<int> notincluded;
@@ -140,25 +154,36 @@ void TPZNodesetCompute::BuildVertexGraph(TPZStack<int> &blockgraph, TPZVec<int> 
     std::set<int>::iterator versetit;
     for(versetit = vertexset.begin(); versetit != vertexset.end(); versetit++)
     {
-      int seq = fSeqNumber[*versetit];
+      int linkednode = *versetit;
+      if(linkednode == node) continue;
+      int seq = fSeqNumber[linkednode];
+      
+      // if the sequence number of the equation is already included in the nodeset of the vertex, put it in the blockgraph
       if(included.count(seq))
       {
-        blockgraph.Push(*versetit);
+        blockgraph.Push(linkednode);
       }
+      // if the seq number is recognized as not to be included stop analysing
       else if(notincluded.count(seq))
       {
         continue;
       }
-      std::set<int> locset;
-      BuildNodeSet(*versetit,locset);
-      if(includes(vertexset.begin(),vertexset.end(),locset.begin(),locset.end()))
+      // the equation hasn t been analysed yet 
+      else 
       {
-        included.insert(seq);
-        blockgraph.Push(*versetit);
-      }
-      else
-      {
-        notincluded.insert(seq);
+        std::set<int> locset;
+        BuildNodeSet(linkednode,locset);
+        // if its nodeset is included in the vertexset
+        if(includes(vertexset.begin(),vertexset.end(),locset.begin(),locset.end()))
+        {
+          included.insert(seq);
+          blockgraph.Push(linkednode);
+        }
+        // else this sequence number should not be analysed anymore
+        else
+        {
+          notincluded.insert(seq);
+        }
       }
     }
     blockgraphindex[iv] = blockgraph.NElements();
@@ -170,6 +195,7 @@ void TPZNodesetCompute::BuildNodeSet(int node, std::set<int> &nodeset)
 {
   nodeset.clear();
   nodeset.insert(&fNodegraph[fNodegraphindex[node]],&fNodegraph[fNodegraphindex[node+1]]);
+  nodeset.insert(node);
 }
 
 /**
@@ -179,43 +205,75 @@ void TPZNodesetCompute::BuildNodeSet(int node, std::set<int> &nodeset)
 void TPZNodesetCompute::AnalyseForElements(std::set<int> &vertices, std::set< std::set<int> > &elements)
 {
 
+  if(!vertices.size()) return;
   std::set<int> elem;
   std::set<int>::iterator intit,diffit;
+  out << __PRETTY_FUNCTION__ << " Original set of nodes ";
+  Print(out,vertices,0);
   for(intit = vertices.begin(); intit != vertices.end(); intit++)
   {
-    std::set<int> locset,diffset,interset,unionset;
+    std::set<int> locset,diffset,interset,unionset,loclocset;
+    // locset = all nodes connected to a vertex
     BuildNodeSet(*intit,locset);
+    // only diffset with nodes which have no connection with lower nodes interest us
+    if(*locset.begin() < *vertices.begin()) continue;
+    // diffset contains all vertices in the mesh, except for those in the influence zone of intit????
     set_difference(vertices.begin(),vertices.end(),locset.begin(),locset.end(),inserter(diffset,diffset.begin()));
+    // the influence zone of the vertex includes other vertices
     if(diffset.size())
     {
+      out << "Difference after taking the intersection with " << *intit;
+      Print(out,diffset," Difference set");
     // some unions need to be made before calling this method
       for(diffit=diffset.begin(); diffit!= diffset.end(); diffit++) 
       {
-        locset.clear();
-        BuildNodeSet(*diffit,locset);
-        unionset.insert(locset.begin(),locset.end());
+      
+        loclocset.clear();
+        // locset now will contain the influence zone of each vertex node in diffset
+        BuildNodeSet(*diffit,loclocset);
+        if(*loclocset.begin() < *vertices.begin()) continue;
+        unionset.insert(loclocset.begin(),loclocset.end());
       }
+      // locset now contains the union of all influence zones of vertices influenced by intit
       diffset.clear();
+      // diffset will now contain only vertex nodes
       set_intersection(unionset.begin(),unionset.end(),vertices.begin(),vertices.end(),inserter(diffset,diffset.begin()));
-      AnalyseForElements(diffset,elements);
+      Print(out,diffset,"First set to be reanalised");
       set_intersection(vertices.begin(),vertices.end(),locset.begin(),locset.end(),inserter(interset,interset.begin()));
+      Print(out,interset,"Second set to be reanalised");
+      AnalyseForElements(diffset,elements);
       AnalyseForElements(interset,elements);
       return;
     }
   }
-  elem = vertices;
-  for(intit = vertices.begin(); intit != vertices.end(); intit++)
+  
+  intit = vertices.begin();
+  BuildNodeSet(*intit,elem);
+  intit++;
+//  elem = vertices;
+  // this code doesnt make sense!!!
+  for(;intit != vertices.end(); intit++)
   {
     std::set<int> locset,interset;
-    BuildVertexSet(*intit,locset);
+    BuildNodeSet(*intit,locset);
     set_intersection(elem.begin(),elem.end(),locset.begin(),locset.end(),inserter(interset,interset.begin()));
     elem = interset;
   }
-  elements.insert(elem);
+  if(vertices != elem)
+  {
+    out << "Discarding a vertex set as incomplete";
+    Print(out,vertices,0);
+  }
+  else if(elem.size())
+  {
+    Print(out,elem,"Inserted element");
+    elements.insert(elem);
+  }
 }
 
 void TPZNodesetCompute::BuildElementGraph(TPZStack<int> &blockgraph, TPZStack<int> &blockgraphindex)
 {
+  out << __PRETTY_FUNCTION__ << " entering build element graph\n";
   blockgraph.Resize(0);
   blockgraphindex.Resize(1);
   blockgraphindex[0] = 0;
@@ -226,7 +284,10 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int> &blockgraph, TPZStack<in
   {
     std::set< std::set<int> > elements;
     BuildNodeSet(in,nodeset);
+    out << "Nodeset for " << in << ' ';
+    Print(out,nodeset,"Nodeset");
     SubstractLowerNodes(in,nodeset);
+    Print(out,nodeset,"LowerNodes result");
     AnalyseForElements(nodeset,elements);
     std::set< std::set<int> >::iterator itel;
     for(itel = elements.begin(); itel != elements.end(); itel++)
@@ -245,6 +306,8 @@ void TPZNodesetCompute::SubstractLowerNodes(int node, std::set<int> &nodeset)
 {
   std::set<int> lownode,lownodeset,unionset;
   std::set<int>::iterator it;
+  out << __PRETTY_FUNCTION__;
+  Print(out,nodeset," Incoming nodeset");
   for(it=nodeset.begin(); it != nodeset.end() && *it < node; it++)
   {
     BuildNodeSet(*it,lownodeset);
@@ -253,6 +316,7 @@ void TPZNodesetCompute::SubstractLowerNodes(int node, std::set<int> &nodeset)
   }
   set_difference(nodeset.begin(),nodeset.end(),unionset.begin(),unionset.end(),
     inserter(lownode,lownode.begin()));
+  Print(out,lownode," What is left after substracting the influence of lower numbered nodes ");
   unionset.clear();
   for(it=lownode.begin(); it!=lownode.end(); it++)
   {
@@ -263,5 +327,41 @@ void TPZNodesetCompute::SubstractLowerNodes(int node, std::set<int> &nodeset)
   lownode.clear();
   set_intersection(unionset.begin(),unionset.end(),nodeset.begin(),nodeset.end(),
     inserter(lownode,lownode.begin()));
+  Print(out,lownode," Resulting lower nodeset");
   nodeset = lownode;
+}
+
+void TPZNodesetCompute::Print(std::ostream &file) const
+{
+  file << "TPZNodesetCompute\n";
+  file << "Node graph\n";
+  Print(file,fNodegraphindex,fNodegraph);
+  file << "Node sequence number and level\n";
+  int nnode = fNodegraphindex.NElements()-1;
+  int in;
+  for(in=0; in<nnode; in++) file << in << "/" << fSeqNumber[in] << "/" << fLevel[in] << " ";
+  file << std::endl;
+}
+
+void TPZNodesetCompute::Print(std::ostream &file, const TPZVec<int> &graphindex, const TPZVec<int> &graph)
+{
+  int nnode = graphindex.NElements()-1;
+  int in;
+  for(in =0; in<nnode; in++)
+  {
+    file << "Node Number " << in;
+    int first = graphindex[in];
+    int last = graphindex[in+1];
+    int jn;
+    for(jn = first; jn< last; jn++) file << " " << graph[jn];
+    file << std::endl;
+  }
+}
+
+void TPZNodesetCompute::Print(std::ostream &file, const std::set<int> &nodeset, const char *text)
+{
+  if(text) file << text;
+  std::set<int>::const_iterator it;
+  for(it=nodeset.begin(); it!=nodeset.end(); it++) file << *it << ' ';
+  file << std::endl;
 }
