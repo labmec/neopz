@@ -1,5 +1,5 @@
 /** @file pzstring.cc */
-// $Id: pzstring.cc,v 1.3 2003-10-17 13:45:37 rgdamas Exp $
+// $Id: pzstring.cc,v 1.4 2003-10-17 13:57:33 rgdamas Exp $
 
 #include "pzstring.h"
 
@@ -9,20 +9,6 @@ TPZString::TPZString()
 {
 	// NOTHING TO DO HERE!
 }
-
-/*
-TPZString::TPZString(const char * source)
-{
-   int len=strlen(source);
-   Resize(len+1);
-   strcpy(fStore, source);
-
-   // although the TPZStack class already stores the length, the null
-   // character is necessary to export string as a null character
-   // ended string
-   fStore[len]='\0';
-}
-*/
 
 TPZString::TPZString(char const * source)
 {
