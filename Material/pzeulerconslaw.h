@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.27 2004-06-13 23:33:30 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.28 2004-06-14 22:46:22 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -67,6 +67,21 @@ public :
    * Object-based overload
    */
   int NStateVariables();
+
+  /**
+   * Estimates the deltax (element diameter) based on the inverse
+   * of the jacobian.
+   * <!> Works only for quadratic and hexahedral elements
+   * (it assumes that each element is parametrized tensorially
+   * with functions varying from -1 to 1)
+   */
+  double DeltaX(double detJac);
+
+  /**
+   * Computes the determinant of a 2d or 3d matrix.
+   * Used by recompute the element size
+   */
+  double Det(TPZFMatrix & Mat);
 
   /**
    * termodynamic pressure determined by the law of an ideal gas

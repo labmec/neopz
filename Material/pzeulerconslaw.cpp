@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.32 2004-06-13 23:33:30 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.33 2004-06-14 22:46:22 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -12,6 +12,7 @@
 #include <math.h>
 #include "pzstring.h"
 #include <pzsave.h>
+#include "pzerror.h"
 
 #define FASTEST_IMPLICIT
 
@@ -157,6 +158,38 @@ int TPZEulerConsLaw2::NSolutionVariables(int var){
 
   cout << "TPZEulerConsLaw2::NSolutionVariables not defined\n";
   return 0;
+}
+
+double TPZEulerConsLaw2::DeltaX(double detJac)
+{
+   return 2 * pow(detJac, 1./((double) fDim));
+}
+
+double TPZEulerConsLaw2::Det(TPZFMatrix & Mat)
+{
+   switch(Mat.Rows())
+   {
+      case 1:
+        return Mat(0,0);
+	break;
+      case 2:
+        return Mat(0,0) * Mat(1,1) -
+	        Mat(1,0) * Mat(0,1);
+        break;
+      case 3:
+        return Mat(0,0) * Mat(1,1) * Mat(2,2) +
+                Mat(1,0) * Mat(2,1) * Mat(0,2) +
+		Mat(2,0) * Mat(0,1) * Mat(1,2) -
+		Mat(0,2) * Mat(1,1) * Mat(2,0) -
+		Mat(1,2) * Mat(2,1) * Mat(0,0) -
+		Mat(2,2) * Mat(0,1) * Mat(1,0);
+        break;
+      default:
+        PZError << "TPZEulerConsLaw2::Det error: unhandled matrix size: " <<
+	          Mat.Rows() << endl;
+   }
+
+   return 0.;
 }
 
 int TPZEulerConsLaw2::NFluxes()
@@ -1127,13 +1160,17 @@ void TPZEulerConsLaw2::ContributeApproxImplDiff(TPZVec<REAL> &x,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
 			TPZFMatrix &ek,TPZFMatrix &ef)
 {
+   // computing the determinant of the jacobian
+   double deltaX = DeltaX(1./Det(jacinv));
+
    fArtDiff.ContributeApproxImplDiff(fDim, jacinv, sol, dsol, dphi,
 			ek, ef, weight,
 			#ifdef DIVTIMESTEP
-			   1.
+			   1.,
 			#else
-			   TimeStep()
+			   TimeStep(),
 			#endif
+			deltaX
 			);
 }
 
@@ -1144,13 +1181,17 @@ void TPZEulerConsLaw2::ContributeExplDiff(TPZVec<REAL> &x,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
 			TPZFMatrix &ef)
 {
+   // computing the determinant of the jacobian
+   double deltaX = DeltaX(1./Det(jacinv));
+
    fArtDiff.ContributeExplDiff(fDim, jacinv, sol, dsol, dphi,
 			ef, weight,
 			#ifdef DIVTIMESTEP
-			   1.
+			   1.,
 			#else
-			   TimeStep()
+			   TimeStep(),
 			#endif
+			deltaX
 			);
 }
 
@@ -1162,26 +1203,34 @@ void TPZEulerConsLaw2::ContributeImplDiff(TPZVec<REAL> &x,
 			REAL weight,
 			TPZFMatrix &ek,TPZFMatrix &ef)
 {
+   // computing the determinant of the jacobian
+   double deltaX = DeltaX(1./Det(jacinv));
+
    fArtDiff.ContributeImplDiff(fDim, jacinv, sol, dsol,
 			ek, ef, weight,
 			#ifdef DIVTIMESTEP
-			   1.
+			   1.,
 			#else
-			   TimeStep()
+			   TimeStep(),
 			#endif
+			deltaX
 			);
 }
 
 
 void TPZEulerConsLaw2::ContributeFastestImplDiff(int dim, TPZVec<REAL> &x, TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &phi, TPZFMatrix &dphi, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
 {
+   // computing the determinant of the jacobian
+   double deltaX = DeltaX(1./Det(jacinv));
+
       fArtDiff.ContributeFastestImplDiff(dim, jacinv, sol, dsol, phi, dphi,
 			ek, ef, weight,
 			#ifdef DIVTIMESTEP
-			   1.
+			   1.,
 			#else
-			   TimeStep()
+			   TimeStep(),
 			#endif
+			deltaX
 			);
 }
 

@@ -70,8 +70,18 @@ public:
 
    /**
     * Returns the stored value for delta
+    *
+    * @para [in] deltaX
+    * if fDelta is positive, then it is used as an overall
+    * scale on the deltaX.
+    * if fDelta is negative, then the absolute value of it
+    * is used as the delta for all elements.
+    * if fDelta is zero, then the routine OptimalDelta
+    * is called, but this method is useful only for
+    * the reflected shock problem.
+    * Prefer to use fDelta = 1.
     */
-   REAL Delta();
+   REAL Delta(double deltaX);
 
    /**
     * Sets the value for delta
@@ -319,14 +329,15 @@ void TPZArtDiff::PrepareFastestDiff(TPZFMatrix &jacinv,
    * @param ef [out] Residual vector to contribute to
    * @param weight [in] Gaussian quadrature integration weight
    * @param timeStep [in]
-   * is to be computed and contributed to ek.
+   * @param deltaX [in] diameter of element (used only if fDelta > 0);
    */
 void ContributeApproxImplDiff(int dim,
 			   TPZFMatrix &jacinv,
                            TPZVec<REAL> &sol, TPZFMatrix &dsol,
 			   TPZFMatrix &dphix,
 			   TPZFMatrix &ek, TPZFMatrix &ef,
-			   REAL weight, REAL timeStep);
+			   REAL weight, REAL timeStep,
+			   double deltaX);
 
   /**
    * Contributes the diffusion term to the tangent matrix (ek-approximated) and residual vector (ef)
@@ -338,14 +349,15 @@ void ContributeApproxImplDiff(int dim,
    * @param ef [out] Residual vector to contribute to
    * @param weight [in] Gaussian quadrature integration weight
    * @param timeStep [in]
-   * is to be computed and contributed to ek.
+   * @param deltaX [in] diameter of element (used only if fDelta > 0);
    */
 void ContributeExplDiff(int dim,
 			   TPZFMatrix &jacinv,
                            TPZVec<REAL> &sol, TPZFMatrix &dsol,
 			   TPZFMatrix &dphix,
 			   TPZFMatrix &ef,
-			   REAL weight, REAL timeStep);
+			   REAL weight, REAL timeStep,
+			   double deltaX);
 
 #ifdef _AUTODIFF
 
@@ -359,12 +371,14 @@ void ContributeExplDiff(int dim,
    * @param ef [out] Residual vector to contribute to
    * @param weight [in] Gaussian quadrature integration weight
    * @param timeStep [in]
+   * @param deltaX [in] diameter of element (used only if fDelta > 0);
    */
 void ContributeImplDiff(int dim,
 			   TPZFMatrix &jacinv,
                            TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol,
 			   TPZFMatrix &ek, TPZFMatrix &ef,
-			   REAL weight, REAL timeStep);
+			   REAL weight, REAL timeStep,
+			   double deltaX);
 
   /**
    * Contributes the diffusion term to the tangent matrix (ek) and residual vector (ef) with FAD template classes
@@ -378,6 +392,7 @@ void ContributeImplDiff(int dim,
    * @param ef [out] Residual vector to contribute to
    * @param weight [in] Gaussian quadrature integration weight
    * @param timeStep [in]
+   * @param deltaX [in] diameter of element (used only if fDelta > 0);
    */
 
 template <int dim>
@@ -386,13 +401,15 @@ void ContributeFastestImplDiff_dim(
 			  TPZVec<REAL> &sol, TPZFMatrix &dsol,
 			  TPZFMatrix &phi, TPZFMatrix &dphi,
 			  TPZFMatrix &ek, TPZFMatrix &ef,
-			  REAL weight, REAL timeStep);
+			  REAL weight, REAL timeStep,
+			  double deltaX);
 
 void ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv,
 			  TPZVec<REAL> &sol, TPZFMatrix &dsol,
 			  TPZFMatrix &phi, TPZFMatrix &dphi,
 			  TPZFMatrix &ek, TPZFMatrix &ef,
-			  REAL weight, REAL timeStep);
+			  REAL weight, REAL timeStep,
+			  double deltaX);
 
 #endif
 
