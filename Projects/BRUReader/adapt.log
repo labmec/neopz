@@ -1,0 +1,10 @@
+Reading data for adaptive analysis
+Job Name       Adaptive
+Bru Files:
+	Parameters:  funil_ref9.1	Nodes:       funil_ref9.2	Incindency   funil_ref9.3	Boundary Condfunil_ref9.5	Father Index funil_ref9.0Number of state variables in solution vector = 1
+Dimension of each state variable =              1
+State variable to use in analysis =             8
+Error indicator for each state variable =       0
+Error analysis type for each state variable  =  0
+Maximum error for each state variable  =        0
+Minimum error for each state variable  =        0
