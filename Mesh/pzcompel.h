@@ -1,13 +1,13 @@
 //HEADER FILE FOR CLASS ELBAS
 
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.13 2004-04-26 20:58:12 phil Exp $
+// $Id: pzcompel.h,v 1.14 2004-10-06 19:20:57 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
 
 #include "pzreal.h"
-#include "pzshapelinear.h"
+//#include "pzshapelinear.h"
 #include <iostream>
 #include <fstream>
 #include "pzcmesh.h"
@@ -625,10 +625,6 @@ inline void TPZCompEl::CreateGraphicalElement(TPZGraphMesh &, int) {
   cout << "TPZCompEl::CreateGrafEl called\n";
 }
 
-inline void TPZCompEl::SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,
-								TPZFMatrix & phi,TPZFMatrix & dphi)) {
-	TPZShapeLinear::fOrthogonal = orthogonal;
-}
 
 inline void TPZCompEl::CalcStiff(TPZElementMatrix &,TPZElementMatrix &){
   cout << "TPZCompEl::CalcStiff(*,*) is called." << endl;

@@ -1,10 +1,11 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.18 2004-06-23 15:43:53 phil Exp $
+// $Id: pzelctemp.cpp,v 1.19 2004-10-06 19:22:57 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
 #include "pzgeoel.h"
+#include "pzmaterial.h"
 
 //template<class TGEO, class TSHAPE>
 //class TPZIntelGen : public TPZInterpolatedElement {

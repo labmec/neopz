@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.8 2004-04-26 14:25:42 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.9 2004-10-06 19:23:31 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -19,6 +19,7 @@
 #include "pzfstrmatrix.h"
 #include "TPZFrontStructMatrix.h"
 #include "pzsmfrontalanal.h"
+#include "pzbndcond.h"
 
 #include <stdio.h>
 

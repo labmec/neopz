@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.6 2004-04-26 14:27:03 phil Exp $
+//$Id: pzsubcmesh.h,v 1.7 2004-10-06 19:23:31 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -14,11 +14,12 @@
 #include <stdlib.h>
 #include "pzcompel.h"
 #include "pzcmesh.h"
-#include "pzsmanal.h"
+//#include "pzsmanal.h"
 #include "pzvec.h"
 #include "pzreal.h"
 
 class TPZSubMeshFrontalAnalysis;
+class TPZAnalysis;
 /**
  * Class TPZSubCompMesh derived from Computacional mesh and
  * computacional element classes.

@@ -1,4 +1,4 @@
-//$Id: pzcheckmesh.cpp,v 1.4 2003-11-25 18:13:56 cesar Exp $
+//$Id: pzcheckmesh.cpp,v 1.5 2004-10-06 19:19:31 phil Exp $
 
 // _*_ c++ _*_
 //#include <fstream>
@@ -9,6 +9,7 @@
 #include "pzgeoelside.h"
 #include "pzstack.h"
 #include "pzintel.h"
+#include "pzmaterial.h"
 //#include "pzcmesh.h"
 //#include "pzcompel.h"
 

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.19 2004-05-25 12:58:48 erick Exp $
+//$Id: pzcmesh.h,v 1.20 2004-10-06 19:20:57 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -10,7 +10,7 @@
 #include "pzfmatrix.h"
 #include "pzblock.h"
 #include "pzconnect.h"
-#include "pzanalysis.h"
+//#include "pzanalysis.h"
 //#include <iostream>
 //using namespace std;
 

@@ -2,6 +2,7 @@
 #include "pzgraphmesh.h"
 #include "pzcompel.h"
 #include "pzgeoel.h"
+#include "pzmaterial.h"
 
 TPZGraphEl::TPZGraphEl(TPZCompEl *cel, TPZGraphMesh *gmesh, TPZGraphNode **connectvec)
 {

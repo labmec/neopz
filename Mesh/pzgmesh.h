@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.13 2004-04-26 14:27:03 phil Exp $
+//$Id: pzgmesh.h,v 1.14 2004-10-06 19:22:57 phil Exp $
 
 /**File : pzgmes.h
 
@@ -30,7 +30,7 @@ contained within the TPZGeoMesh.
 #include "pzreal.h"
 #include "pzeltype.h"
 #include "pzgnode.h"
-#include "pzbndcond.h"
+//#include "pzbndcond.h"
 #include "pzcmesh.h"
 #include "pzadmchunk.h"
 

@@ -1,4 +1,4 @@
-//$Id: pzcheckrestraint.cpp,v 1.7 2004-03-01 21:55:52 cesar Exp $
+//$Id: pzcheckrestraint.cpp,v 1.8 2004-10-06 19:20:57 phil Exp $
 
 #include "pzcheckrestraint.h"
 #include "pzintel.h"
@@ -9,6 +9,7 @@
 #include "pzquad.h"
 #include "pzgeoel.h"
 #include "pzcheckgeom.h"
+#include "pzmaterial.h"
 
 TPZCheckRestraint::TPZCheckRestraint(TPZCompElSide small, TPZCompElSide large) {
 

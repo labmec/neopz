@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.13 2004-04-26 13:33:55 phil Exp $
+//$Id: pzcompel.cpp,v 1.14 2004-10-06 19:20:57 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -11,7 +11,7 @@
 #include "pzconnect.h"
 #include "pzblockdiag.h"
 
-//#include "pzshapelinear.h"
+#include "pzshapelinear.h"
 //#include "pzshapequad.h"
 //#include "pzshapetriang.h"
 //#include "pzshapetetra.h"
@@ -1031,4 +1031,9 @@ void TPZCompEl::Read(TPZStream &buf, void *context)
   fMesh = (TPZCompMesh *) context;
   buf.Read(&fIndex,1);
   buf.Read(&fReferenceIndex,1);
+}
+
+void TPZCompEl::SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,
+								TPZFMatrix & phi,TPZFMatrix & dphi)) {
+	TPZShapeLinear::fOrthogonal = orthogonal;
 }
