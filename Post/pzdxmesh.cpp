@@ -1,4 +1,4 @@
-//$Id: pzdxmesh.cpp,v 1.5 2003-11-04 20:18:39 cedric Exp $
+//$Id: pzdxmesh.cpp,v 1.6 2004-03-03 18:01:02 rgdamas Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -104,18 +104,18 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
   (*fOutFile) << "#" << endl;
   object++;
 
-  if(dim==1) {
-	//normal vectors
-	fNormalObject = object;
-	(*fOutFile) <<  "object " << object << " class array type float rank 1 shape 3 items "
-	      << nn << " data follows"<< endl;
-	DrawNormals(nn);
-	(*fOutFile) << "attribute \"dep\" string \"positions\"" << endl;
-	(*fOutFile) << "#" << endl;
-  object++;
-  } else {
+//   if(dim==1) {
+// 	//normal vectors
+// 	fNormalObject = object;
+// 	(*fOutFile) <<  "object " << object << " class array type float rank 1 shape 3 items "
+// 	      << nn << " data follows"<< endl;
+// 	DrawNormals(nn);
+// 	(*fOutFile) << "attribute \"dep\" string \"positions\"" << endl;
+// 	(*fOutFile) << "#" << endl;
+//   object++;
+//   } else {
 	  fNormalObject = -1;
-  }
+	  //  }
 	
   //  field connectivity
   int it;
@@ -235,7 +235,7 @@ void TPZDXGraphMesh::DrawSolution(int step, double time){//0,
       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
       (*fOutFile) << "component \"connections\" value " << fElConnectivityObject[EOned] << endl;
-      (*fOutFile) << "component \"normals\" value " << fNormalObject << endl;
+      if(fNormalObject > 0) (*fOutFile) << "component \"normals\" value " << fNormalObject << endl;
       (*fOutFile) << "attribute \"name\" string \"" << (char *) fScalarNames[n]
 		  << step << (0) << "\"" << endl;
       (*fOutFile) << "#" << endl;
