@@ -64,6 +64,18 @@ public:
     */
   void SetContributionTime(TPZContributeTime time);
 
+   /**
+    * Sets the forcing funtion for all fluid materials in the mesh.
+    */
+  void SetFlowforcingFunction(void (*fp)(TPZVec<REAL> &loc,
+					 TPZVec<REAL> &result));
+
+  /**
+   * Creates the computational elements, and the degree of freedom nodes.
+   * In this reimplementation, also calls CollectFluidMaterials;
+   */
+  virtual void AutoBuild();
+
 protected:
 
    /**
