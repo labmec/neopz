@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cc,v 1.7 2003-10-24 00:02:56 erick Exp $
+//$Id: pzeulerconslaw.cc,v 1.8 2003-11-07 22:49:42 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -169,6 +169,7 @@ void TPZEulerConsLaw2::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZV
     PZError << "TPZEulerConsLaw2::ComputeSolLeft boundary condition error\n";
     break;
   case 3://Dirichlet: nada a fazer a CC é a correta
+    for(i=0;i<nstate; i++) soll[i] = bcleft->Val2().operator()(i,0);//<!>erick
     break;
   case 4://recuperar valor da solu¢ão MEF direita: saida livre
     for(i=0;i<nstate; i++) soll[i] = solr[i];
@@ -203,6 +204,7 @@ void TPZEulerConsLaw2::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZ
     PZError << "TPZEulerConsLaw2::ComputeSolLeft boundary condition error\n";
     break;
   case 3://Dirichlet: nada a fazer a CC é a correta
+    for(i=0;i<nstate; i++) solr[i] = bcright->Val2().operator()(i,0);//<!>erick
     break;
   case 4://recuperar valor da solu¢ão MEF esquerda: saida livre
     for(i=0;i<nstate; i++) solr[i] = soll[i];
@@ -434,6 +436,8 @@ void TPZEulerConsLaw2::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 			TPZFMatrix &phi, TPZFMatrix &dphi,
 			TPZFMatrix &ek,TPZFMatrix &ef)
 {
+//return;
+
    // initial guesses for sol
    // fForcingFunction is null at iterations > 0
    if(fForcingFunction)
@@ -540,6 +544,7 @@ void TPZEulerConsLaw2::ContributeInterface(
 		TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 		TPZFMatrix &ek,TPZFMatrix &ef)
 {
+//return;
    // initial guesses for left and right sol
    // fForcingFunction is null at iterations > 0
    if(fForcingFunction)
@@ -566,9 +571,12 @@ void TPZEulerConsLaw2::ContributeInterface(
          cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
          ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
       #endif
-      }else{
-         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
       }
+
+   if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
+   {
+         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
+   }
 }
 
 
