@@ -1,10 +1,10 @@
-//$Id: pzeuleranalysis.cpp,v 1.26 2004-04-06 13:08:08 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.27 2004-04-08 15:35:10 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
 #include "TPZCompElDisc.h"
 #include "pzfstrmatrix.h"
-
+#include "TPZParFrontStructMatrix.h"
 
 TPZEulerAnalysis::TPZEulerAnalysis():
 TPZAnalysis(), fFlowCompMesh(NULL),
@@ -141,23 +141,31 @@ void TPZEulerAnalysis::Assemble()
    }
 
    // redimensions and zeroes Rhs
-   fRhs.Redim(fCompMesh->NEquations(),1);
+   //fRhs.Redim(fCompMesh->NEquations(),1);
+   fRhs = fRhsLast;
 
    TPZMatrix * pTangentMatrix = fSolver->Matrix();
 
-   if(!pTangentMatrix)
+   if(!pTangentMatrix && dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym> *>(fStructMatrix))
    {
-      PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
-      exit(-1);
-      return;
-
+      pTangentMatrix = fStructMatrix->CreateAssemble(fRhs);
    }
+   else
+   {
+      if(!pTangentMatrix)
+      {
+         PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
+         exit(-1);
+         return;
 
-   pTangentMatrix->Zero();
+      }
 
-  // Contributing referring to the advanced state
-  // (n+1 index)
-   fStructMatrix->Assemble(*pTangentMatrix, fRhs);
+      pTangentMatrix->Zero();
+
+      // Contributing referring to the advanced state
+      // (n+1 index)
+      fStructMatrix->Assemble(*pTangentMatrix, fRhs);
+   }
 
    if(fpBlockDiag)
    {
@@ -167,7 +175,7 @@ void TPZEulerAnalysis::Assemble()
    }
 
    // Contributing referring to the last state (n index)
-   fRhs+=/*.Add(fRhsLast, fRhsLast)*/ fRhsLast;
+   //fRhs+=/*.Add(fRhsLast, fRhsLast)*/ fRhsLast;
 
 /*
 ofstream Mout("Matriz.out");
