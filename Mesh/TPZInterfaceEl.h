@@ -119,6 +119,12 @@ class TPZInterfaceElement : public TPZCompEl {
   void Print(ostream &out = cout);
 
   /**
+   * computes the direction of the normal vector from the left element to the right element
+   */
+
+  void Normal(TPZVec<REAL> &normal);
+
+  /**
    * it verifies the existence of interfaces associates
    * with the side of an element
    * case to interface should exist and exists only a returns 1

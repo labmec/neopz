@@ -400,11 +400,6 @@ inline void TPZGeoEl::Divide(TPZVec<TPZGeoEl *> &) {
 
 inline TPZGeoElSide TPZGeoEl::HigherDimensionSides(int side,int targetdimension){//SÓ PARA TESTAR CONTINUIDADE - APAGAR DEPOIS
   cout << "TPZGeoEl::HigherDimensionSides is called." << endl;
-<<<<<<< pzgeoel.h
   return TPZGeoElSide();
-=======
-
-  return TPZGeoElSide();
->>>>>>> 1.2
 }
 #endif
