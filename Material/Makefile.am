@@ -40,6 +40,7 @@ libpzmaterial_a_SOURCES = eulerdif.cc \
 	TPZMulticamadaOrtho.cc \
 	TPZPlacaOrthotropic.cc \
 	TPZConservationLaw.cc \
-	TPZConsLawTest.cc
+	TPZConsLawTest.cc \
+	pzartdiff.cc 
 
 ## --| NeoPZ |------------------------------------------------------------------
