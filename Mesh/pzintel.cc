@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cc,v 1.13 2003-11-04 20:03:06 cedric Exp $
+// $Id: pzintel.cc,v 1.14 2003-11-10 00:58:28 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -567,13 +567,15 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 	newnod.Print(*cmesh);
       }
       int seqnum = newnod.SequenceNumber();
-      cmesh->Block().Set(seqnum,nvar*NConnectShapeF(nodloc));
+      newnod.SetOrder(TPZCompEl::gOrder);
       SetConnectIndex(nodloc,newnodeindex);   //Is true only to one-dimensional case
+      cmesh->Block().Set(seqnum,nvar*NConnectShapeF(nodloc));
       // We created a new node, check whether the node needs to be constrained
       TPZCompElSide father = thisside.LowerLevelElementList(1);
       if(father.Exists()) {
       	int side_neig = father.Side();
       	TPZInterpolatedElement *cel = (TPZInterpolatedElement *) father.Element();
+	newnod.SetOrder(cel->SideOrder(side_neig));
       	RestrainSide(side,cel,side_neig);
       }
     }
@@ -597,9 +599,10 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
   } else {
     newnodeindex = cmesh->AllocateNewConnect();
     TPZConnect &newnod = cmesh->ConnectVec()[newnodeindex];
+    newnod.SetOrder(TPZCompEl::gOrder);
     int seqnum = newnod.SequenceNumber();
-    cmesh->Block().Set(seqnum,nvar*NConnectShapeF(nodloc));
     SetConnectIndex(nodloc,newnodeindex);
+    cmesh->Block().Set(seqnum,nvar*NConnectShapeF(nodloc));
     newnodecreated = 1;
   }
   TPZCompElSide father = thisside.LowerLevelElementList(1);
