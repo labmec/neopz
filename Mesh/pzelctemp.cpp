@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.3 2003-10-20 02:11:22 phil Exp $
+// $Id: pzelctemp.cpp,v 1.4 2003-10-20 16:46:05 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -142,9 +142,26 @@ int TPZIntelGen<TGEO,TSHAPE>::PreferredSideOrder(int side) {
   
 }
 
+template<class TGEO, class TSHAPE>
+int TPZIntelGen<TGEO,TSHAPE>::ConnectIndex(int con) {
+
+#ifndef NDEBUG
+  if(con<0 || con>= TSHAPE::NSides) {
+    cout << "TPZIntelgen::ConnectIndex wrong parameter con " << con << 
+      " NSides " << TSHAPE::NSides << endl;
+    return -1;
+  }
+
+#endif
+  return fConnectIndexes[con];
+}
+
+
+
 /**Sets the preferred interpolation order along a side
    This method only updates the datastructure of the element
-   In order to change the interpolation order of an element, use the method PRefine*/
+   In order to change the interpolation order of an element, use the method PRefine
+*/
 template<class TGEO, class TSHAPE>
 void TPZIntelGen<TGEO,TSHAPE>::SetPreferredSideOrder(int order) {
   fPreferredSideOrder = order;
