@@ -15,6 +15,7 @@
 //#include "pzconslaw.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"
+#include "pzbndcond.h"
 
 void RegisterMaterialClasses() {
 

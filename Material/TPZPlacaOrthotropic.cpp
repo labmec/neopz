@@ -4,6 +4,7 @@
 #include "pzgeoel.h"
 #include "pzquad.h"
 #include "pztempmat.h"
+#include "pzmaterial.h"
 
 TPZPlacaOrthotropic::TPZPlacaOrthotropic(TPZGeoEl *gel,REAL zmin, REAL zmax ){ 
 

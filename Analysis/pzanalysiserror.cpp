@@ -1,4 +1,4 @@
-//$Id: pzanalysiserror.cpp,v 1.5 2004-09-07 23:41:32 phil Exp $
+//$Id: pzanalysiserror.cpp,v 1.6 2004-10-06 19:17:10 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysiserror.h"
@@ -11,6 +11,7 @@
 #include "pzstepsolver.h"
 #include "pzintel.h"
 #include "pzskylstrmatrix.h"
+#include "pzmaterial.h"
 
 TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,ostream &out) : TPZAnalysis(mesh,out),fElIndexes(0),fElErrors(0),
 	fSingular(),fTotalError(0.),fAdmissibleError(0.0),fEtaAdmissible(0.05),fNIterations(4) {}
