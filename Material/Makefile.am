@@ -37,6 +37,7 @@ libpzmaterial_a_SOURCES = eulerdif.cc \
 	TPZDiffusionConsLaw.cc \
 	TPZLinearConvection.cc \
 	tpzmultcamada.cc \
+	pzbctension.cc \
 	TPZMulticamadaOrtho.cc \
 	TPZPlacaOrthotropic.cc \
 	TPZConservationLaw.cc \

@@ -1,10 +1,28 @@
+#include "TPZPlacaOrthotropic.h"
 
 #include "TPZMulticamadaOrtho.h"
 #include "pzmatorthotropic.h"
+#include "pzgmesh.h"
+#include "pzintel.h"
+#include "pzgeoel.h"
+// #include "pzelmat.h"
+// #include "pzbndcond.h"
+// #include "pzmatrix.h"
+// #include "pzfmatrix.h"
+// #include "pzerror"
+// #include "pztempmat.h"
+// #include "pzmanvector.h"
+// #include <math.h>
+// #include <fstream>
+// using namespace std;
 
 
-TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy){
 
+
+TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, TPZGeoMesh *gmesh, TPZCompMesh *cmesh){
+
+  fGeoMesh = gmesh;
+  fCompMesh = cmesh;
   fZ  =  z;
   fDx = dx;
   fDy = dy;
@@ -13,16 +31,57 @@ TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy){
 }
 
 
-void TPZMulticamadaOrthotropic::GenerateMesh(){}
-
-
-int TPZMulticamadaOrthotropic::main(){
-/**
- * dica: devera ler as carasteristica de cada placa a partir
- * de um arquivo de entrada e criar o material ortotropico
- * com aqueles dados (classe TPZMatOrthotropic), logo chamar o
- * método AddPlacaOrth() para adicionar esta placa na 
- * lista de placas, variável fPlacaOrth
- */ 
+void TPZMulticamadaOrthotropic::GenerateMesh(){
 
 }
+
+
+void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZPlacaOrthotropic *placa){
+  
+  fPlacaOrth.Push(placa);
+  
+}
+
+void  TPZMulticamadaOrthotropic::Print(ostream &out){
+
+  int i, nplaca=fPlacaOrth.NElements();
+  out << "TPZMulticamadaOrthotropic::Print\n";
+  out << nplaca << endl;
+  for (i=0; i<nplaca; i++){
+    //TPZMulticamadaOrthotropic *multcam;
+    TPZPlacaOrthotropic *placa = fPlacaOrth[i];
+    out << "placa : " << i << endl;
+    fPlacaOrth[i]->Print();
+   //out << "quantidade de camadas :" << multcam->ZHight(placa); 
+  }
+}
+  
+REAL TPZMulticamadaOrthotropic::ZHight(TPZPlacaOrthotropic *placa){
+
+  int i,j;
+  fZ = 0.;
+  int quantplacas;
+
+  TPZMulticamadaOrthotropic * multcam; 
+  j = multcam->RQPlacas();
+  for (i=0; i<j; i++){
+    fZ += multcam->RPlacaOrtho()[i]->FH();
+    
+  }
+
+  return fZ;
+}
+
+int TPZMulticamadaOrthotropic::RQPlacas(){
+
+  int quantplacas;
+  cout << "digitar a quantidade de placas desejadas : ";
+  cin >> quantplacas;
+  fQuantPlacas = quantplacas;
+  return fQuantPlacas;
+}
+
+
+
+  
+

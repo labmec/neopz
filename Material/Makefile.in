@@ -110,7 +110,7 @@ material_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzmaterial.a
 
-libpzmaterial_a_SOURCES = eulerdif.cc 	pzbndcond.cc 	pzelasmat.cc 	pzmat1dlin.cc 	pzmat2dlin.cc 	pzmaterial.cc 	pzmathyperelastic.cc 	pzmatorthotropic.cc 	pzmatplaca2.cc 	pzmatplaca.cc 	pzmattest3d.cc 	pzmattest.cc 	pzmultplaca.cc 	pzplaca.cc 	pzpoisson3d.cc 	TPZEuler.cc 	TPZEulerConsLaw.cc 	TPZDiffusionConsLaw.cc 	TPZLinearConvection.cc 	tpzmultcamada.cc 	TPZMulticamadaOrtho.cc 	TPZPlacaOrthotropic.cc 	TPZConservationLaw.cc 	TPZConsLawTest.cc
+libpzmaterial_a_SOURCES = eulerdif.cc 	pzbndcond.cc 	pzelasmat.cc 	pzmat1dlin.cc 	pzmat2dlin.cc 	pzmaterial.cc 	pzmathyperelastic.cc 	pzmatorthotropic.cc 	pzmatplaca2.cc 	pzmatplaca.cc 	pzmattest3d.cc 	pzmattest.cc 	pzmultplaca.cc 	pzplaca.cc 	pzpoisson3d.cc 	TPZEuler.cc 	TPZEulerConsLaw.cc 	TPZDiffusionConsLaw.cc 	TPZLinearConvection.cc 	tpzmultcamada.cc 	pzbctension.cc 	TPZMulticamadaOrtho.cc 	TPZPlacaOrthotropic.cc 	TPZConservationLaw.cc 	TPZConsLawTest.cc 	pzartdiff.cc 	swelling.cc         pzconslaw.cc         pzeulerconslaw.cc 	pzartdiff.cc 
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
@@ -127,8 +127,9 @@ pzmat1dlin.o pzmat2dlin.o pzmaterial.o pzmathyperelastic.o \
 pzmatorthotropic.o pzmatplaca2.o pzmatplaca.o pzmattest3d.o pzmattest.o \
 pzmultplaca.o pzplaca.o pzpoisson3d.o TPZEuler.o TPZEulerConsLaw.o \
 TPZDiffusionConsLaw.o TPZLinearConvection.o tpzmultcamada.o \
-TPZMulticamadaOrtho.o TPZPlacaOrthotropic.o TPZConservationLaw.o \
-TPZConsLawTest.o
+pzbctension.o TPZMulticamadaOrtho.o TPZPlacaOrthotropic.o \
+TPZConservationLaw.o TPZConsLawTest.o pzartdiff.o swelling.o \
+pzconslaw.o pzeulerconslaw.o pzartdiff.o
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
@@ -145,12 +146,14 @@ GZIP_ENV = --best
 DEP_FILES =  .deps/TPZConsLawTest.P .deps/TPZConservationLaw.P \
 .deps/TPZDiffusionConsLaw.P .deps/TPZEuler.P .deps/TPZEulerConsLaw.P \
 .deps/TPZLinearConvection.P .deps/TPZMulticamadaOrtho.P \
-.deps/TPZPlacaOrthotropic.P .deps/eulerdif.P .deps/pzbndcond.P \
-.deps/pzelasmat.P .deps/pzmat1dlin.P .deps/pzmat2dlin.P \
-.deps/pzmaterial.P .deps/pzmathyperelastic.P .deps/pzmatorthotropic.P \
-.deps/pzmatplaca.P .deps/pzmatplaca2.P .deps/pzmattest.P \
-.deps/pzmattest3d.P .deps/pzmultplaca.P .deps/pzplaca.P \
-.deps/pzpoisson3d.P .deps/tpzmultcamada.P
+.deps/TPZPlacaOrthotropic.P .deps/eulerdif.P .deps/pzartdiff.P \
+.deps/pzbctension.P .deps/pzbndcond.P .deps/pzconslaw.P \
+.deps/pzelasmat.P .deps/pzeulerconslaw.P .deps/pzmat1dlin.P \
+.deps/pzmat2dlin.P .deps/pzmaterial.P .deps/pzmathyperelastic.P \
+.deps/pzmatorthotropic.P .deps/pzmatplaca.P .deps/pzmatplaca2.P \
+.deps/pzmattest.P .deps/pzmattest3d.P .deps/pzmultplaca.P \
+.deps/pzplaca.P .deps/pzpoisson3d.P .deps/swelling.P \
+.deps/tpzmultcamada.P
 SOURCES = $(libpzmaterial_a_SOURCES)
 OBJECTS = $(libpzmaterial_a_OBJECTS)
 
