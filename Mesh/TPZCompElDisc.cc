@@ -1,4 +1,6 @@
-// _*_ c++ _*_ 
+//$Id: TPZCompElDisc.cc,v 1.17 2003-10-17 15:23:43 cedric Exp $
+
+// _*_ c++ _*_
 
 #include "pzelmat.h"
 #include "pzelgc3d.h"
@@ -75,12 +77,10 @@ void TPZCompElDisc::CreateInterfaces(){
   for(side=nsides;side>=0;side--){
     if(fReference->SideDimension(side) != gInterfaceDimension) continue;
     TPZCompElSide thisside(this,side);
-//     if(ExistsInterface(thisside)) {
-//       int stop;
-//       cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
-//       cin >> stop;
-//       continue;
-//     }
+    if(ExistsInterface(thisside.Reference())) {
+      cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
+      continue;
+    }
     TPZStack<TPZCompElSide> highlist;
     thisside.HigherLevelElementList(highlist,0,1);
     //a interface se cria uma vez só: quando existem ambos 
@@ -116,7 +116,7 @@ void TPZCompElDisc::CreateInterface(int side){
       matid = list[0].Element()->Material()->Id();
     }
     TPZGeoEl *gel = fReference->CreateBCGeoEl(side,matid);
-    //isto acertou as vizinhanas da interface geométrica com o atual
+    //isto acertou as vizinhan¢as da interface geométrica com o atual
     int index;
     TPZCompElDisc *list0 = dynamic_cast<TPZCompElDisc *>(list[0].Element());
     if(Dimension() > list0->Dimension()){
@@ -186,11 +186,9 @@ void TPZCompElDisc::Shape(TPZVec<REAL> X, TPZFMatrix &phi, TPZFMatrix &dphi) {
 
 void TPZCompElDisc::Print(ostream &out) {
 
-  if(Type() == 15){//descontínuo
-    out << "\nDiscontinous element : \n";
-    out << "\tGeometric reference id : " << fReference->Id() << endl;
-  }
-  out << "\tMaterial id : " << Material()->Id() << endl
+  out << "\nDiscontinous element : \n";
+  out << "\tGeometric reference id : " << fReference->Id() << endl
+      << "\tMaterial id : " << fReference->MaterialId() << endl
       << "\tDegrau of interpolation : " <<  fDegree << endl
       << "\tConnect index : " << fConnectIndex << endl
       << "\tNormalizing constant : " << fConstC << endl
@@ -226,7 +224,7 @@ int TPZCompElDisc::CreateMidSideConnect(){
   TPZStack<TPZCompElSide> list;
   int nsides = fReference->NSides();
   int dimgrid = 1+gInterfaceDimension;
-  int dim = fReference->Dimension();
+  int dim = Dimension();//fReference->Dimension();//change 09/10/2003
   int existsconnect = 0;
 
   if(dimgrid == dim){
@@ -744,12 +742,6 @@ TPZCompMesh *TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<i
    * de index 8 será agrupado para formar o elemento 4
    * na nova malha todos são aglomerados
    * todo elemento deve ter associado um agrupamento pudendo ser um único elemento
-   * (no precisa ter pai para ser aglomerado/agrupado)
-   * se accumlist[n] = -1 => o elemento é interface ou um que não será aglomerado,
-   * pode ser um elemento que é equivalente àquele que será obtido por aglomera¢ão
-   * (por exemplo: elemento pai dos aglomerados)
-   * vários elementos podem ser aglomerados sem por isso ter um pai geométrico
-   * condi¢ão : a reunião dos geométricos dos aglomerados deve ser iagual ao domínio todo
    */
   int nlist = accumlist.NElements();
   if(numaggl < 1 || nlist < 2){
@@ -757,18 +749,21 @@ TPZCompMesh *TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<i
     return NULL;
   }
   TPZCompMesh *aggmesh = new TPZCompMesh(finemesh->Reference());
-  int i,index,nel = finemesh->NElements();
-  //criando os agrupamentos vazios
-  for(i=0;i<numaggl;i++)  new TPZAgglomerateElement(index,*aggmesh,finemesh); 
+  int i,index,nel = finemesh->NElements(),nummat;
+  //criando agrupamentos iniciais
+  for(i=0;i<numaggl;i++) new TPZAgglomerateElement(nummat,index,*aggmesh,finemesh);
 
-  //  int mat = -1;
+  int mat = -1;
   for(i=0;i<nel;i++){
     TPZCompEl *cel = finemesh->ElementVec()[i];
     if(!cel) continue;
-    int father = accumlist[i];
-    int type = cel->Type();
-    if( (type == 15 || type == 17) && father > -1 ){//elemento aglomerado ou descontínuo
-//       if(mat == -1){
+    int father = accumlist[i],type = cel->Type();
+    if(type == 15 || type == 17){//elemento descontínuo ou aglomerado
+      if(father == -1){
+	PZError << "TPZCompElDisc::CreateAgglomerateMesh element null father\n";
+	return NULL;
+      }
+//       if(mat < 0){
 // 	mat = finemesh->ElementVec()[i]->Reference()->MaterialId();
 //       }
       //incorporando o index do sub-elemento
@@ -777,27 +772,26 @@ TPZCompMesh *TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<i
       TPZInterfaceElement *interf = dynamic_cast<TPZInterfaceElement *>(cel);
       int indleft = interf->LeftElement()->Index();
       int indright = interf->RightElement()->Index();
-      int fatleft = accumlist[indleft];
-      int fatright = accumlist[indright];
-      if(fatleft == -1 || fatright == -1){
-	PZError << "TPZCompElDisc::CreateAgglomerateMesh data error: element "
-		<< "without associated agglomeration\n";
+      if(accumlist[indleft] == -1 || accumlist[indright] == -1){
+	PZError << "TPZCompElDisc::CreateAgglomerateMesh data error: element without associated agglomeration\n";
 	return NULL;
       }
       //mesmo pai: interface interior a grupo de elementos
-      if(fatleft == fatright) continue;
-      interf->CloneInterface(aggmesh,fatleft,fatright);
+      if(accumlist[indleft] == accumlist[indright]) continue;
+      interf->CloneInterface(aggmesh);
     }
   }
+
   nel = aggmesh->ElementVec().NElements();
   //inizializando elementos aglomerados
   for(i=0;i<nel;i++){
     TPZCompEl *cel = aggmesh->ElementVec()[i];
-    if(cel->Type() == 17){//só aglomerado
+    if(cel->Type() == 17){//agglomerate element
       TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
-      agg->InitializeElement();//mat
+      agg->InitializeElement();
     }
   }
   return aggmesh;
 }
+
 
