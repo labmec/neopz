@@ -2228,3 +2228,143 @@ int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
   return maxorder;
 
 }
+
+
+#ifdef _AUTODIFF
+
+/**calculate the element stiffness matrix*/
+void TPZInterpolatedElement::CalcStiffAD(TPZElementMatrix &ek, TPZElementMatrix &ef) {
+
+  int i;
+
+  if(fMaterial == NULL){
+    PZError << "TPZInterpolatedElement::CalcStiff : no material for this element\n";
+    Print(PZError);
+    return;
+  }
+  int numdof = fMaterial->NStateVariables();
+  int ncon = NConnects();
+  int dim = Dimension();
+  int nshape = NShapeF();
+  TPZBlock &block = Mesh()->Block();
+  TPZFMatrix &MeshSol = Mesh()->Solution();
+  // clean ek and ef
+  if(!ek.fMat) ek.fMat = new TPZFMatrix();
+  if(!ef.fMat) ef.fMat = new TPZFMatrix();
+  if(!ek.fBlock) ek.fBlock = new TPZBlock(ek.fMat);
+  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
+
+  int numeq = nshape*numdof;
+  ek.fMat->Redim(numeq,numeq);
+  ef.fMat->Redim(numeq,1);
+  ek.fBlock->SetNBlocks(ncon);
+  ef.fBlock->SetNBlocks(ncon);
+
+  for (i = 0; i < ncon ; i++)	{
+    ek.fBlock->Set(i,NConnectShapeF(i)*numdof);
+    ef.fBlock->Set(i,NConnectShapeF(i)*numdof);
+  }
+
+  if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
+    cout << "TPZInterpolatedElement.calc_stiff : not enough storage for local stifness"
+      " matrix \n";
+    Print(cout);
+    if(ek.fMat)   delete ek.fMat;
+    if(ek.fBlock) delete ek.fBlock;
+    if(ef.fMat)   delete ef.fMat;
+    if(ef.fBlock) delete ef.fBlock;
+    ek.fMat=  NULL;
+    ek.fBlock = NULL;
+    ef.fMat = NULL;
+    ef.fBlock = NULL;
+    return;
+  }
+  ek.fConnect.Resize(ncon);
+  ef.fConnect.Resize(ncon);
+
+  for(i=0; i<ncon; ++i){
+    (ef.fConnect)[i] = ConnectIndex(i);
+    (ek.fConnect)[i] = ConnectIndex(i);
+  }
+  //suficiente para ordem 5 do cubo
+  REAL phistore[220],dphistore[660],dphixstore[660];
+  TPZFMatrix phi(nshape,1,phistore,220);
+  TPZFMatrix dphi(dim,nshape,dphistore,660),dphix(dim,nshape,dphixstore,660);
+  TPZFMatrix axes(3,3,0.);
+  TPZFMatrix jacobian(dim,dim);
+  TPZFMatrix jacinv(dim,dim);
+  REAL detjac;
+  TPZVec<REAL> x(3,0.);
+  TPZVec<REAL> intpoint(dim,0.);
+  REAL weight = 0.;
+
+  //TPZVec<REAL> sol(numdof,0.);
+  TPZVec<FADREAL> sol(numdof, FADREAL(nshape, 0.));
+  //REAL dsolstore[90];
+  //TPZFMatrix dsol(dim,numdof,dsolstore,90);
+  TPZVec<FADREAL> dsol(numdof * dim, FADREAL(nshape, 0.));// x, y and z data aligned
+
+
+  TPZIntPoints &intrule = GetIntegrationRule();
+  for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
+
+    intrule.Point(int_ind,intpoint,weight);
+
+    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+
+    fReference->X(intpoint, x);
+
+    weight *= fabs(detjac);
+
+    Shape(intpoint,phi,dphi);
+
+    int ieq;
+    switch(dim) {
+    case 0:
+      break;
+    case 1:
+      dphix = dphi*(1./detjac);
+      break;
+    case 2:
+      for(ieq = 0; ieq < nshape; ieq++) {
+	dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
+	dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
+      }
+      break;
+    case 3:
+      for(ieq = 0; ieq < nshape; ieq++) {
+	dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
+	dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
+	dphix(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
+      }
+      break;
+    default:
+      PZError << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
+      PZError.flush();
+    }
+    int iv=0,d;
+
+    sol.Fill(FADREAL(nshape, 0.));
+    dsol.Fill(FADREAL(nshape, 0.));
+    for(int in=0; in<ncon; in++) {
+      TPZConnect *df = &Connect(in);
+      int dfseq = df->SequenceNumber();
+      int dfvar = block.Size(dfseq);
+      int pos = block.Position(dfseq);
+      for(int jn=0; jn<dfvar; jn++) {
+	sol[iv%numdof] += phi(iv/numdof,0)*MeshSol(pos+jn,0);
+	sol[iv%numdof].fastAccessDx(iv/numdof) += phi(iv/numdof,0); // dsol/dMeshsol
+	for(d=0; d<dim; d++)
+	{
+	  dsol[d * dim + iv%numdof] += dphix(d,iv/numdof)*MeshSol(pos+jn,0);
+	  dsol[d * dim + iv%numdof].fastAccessDx(iv/numdof) += dphix(iv/numdof,0); //
+	}
+	iv++;
+      }
+    }
+
+    fMaterial->Contribute(x,jacinv, dim, sol,dsol,weight,axes,*ek.fMat,*ef.fMat);
+  }
+}
+
+#endif

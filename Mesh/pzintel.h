@@ -210,6 +210,23 @@ public:
    */
   virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
+#ifdef _AUTODIFF
+
+  /**
+   * @name Computational methods
+   * Methods used to perform computations on the interpolated element
+   */
+  //@{
+
+  /**
+   * CalcStiff computes the element stiffness matrix and right hand side
+   * @param ek element matrix
+   * @param ef element right hand side
+   */
+  virtual void CalcStiffAD(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+#endif
+
   /**
    * CalcResidual only computes the element residual
    * @param ef element residual
@@ -229,15 +246,15 @@ public:
      the interior of the element*/
   virtual TPZIntPoints &GetIntegrationRule() = 0;
 
-  /** 
+  /**
    * Allocates dynamically an integration rule adequate for the side
    * the caller to the method needs to call the delete method!
    * this method is being migrated to the geometric element
-   * @param side side along which an integration rule is created 
+   * @param side side along which an integration rule is created
    * @return dynamically allocated integration rule
    */
 //  virtual TPZIntPoints *CreateSideIntegrationRule(int side) = 0;
-  
+
   /**computes the shape function set at the point x. This method uses the order of interpolation
    * of the element along the sides to compute the number of shapefunctions
    * @param x point in master element coordinates
