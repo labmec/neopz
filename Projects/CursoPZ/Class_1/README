@@ -15,5 +15,7 @@ Solution
 2.) Take the number of integration points for this rule and the respective weights;
 3.) Evaluate the sum of function on each point multiplied by the respective weight.
 
+You can verify the results using the mathematica in the repository.
+
 
 
