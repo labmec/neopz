@@ -1,0 +1,46 @@
+[./Class_3.kdevprj]
+dist=true
+install=false
+install_location=
+type=DATA
+
+[./Makefile.am]
+files=./main.cc,./Class_3.kdevprj,
+sub_dirs=
+type=normal
+
+[./main.cc]
+dist=true
+install=false
+install_location=
+type=SOURCE
+
+[Config for BinMakefileAm]
+addcxxflags=
+bin_program=main
+cxxflags=
+ldadd=../../../lib/libpz.a
+ldflags=
+
+[General]
+AMChanged=false
+author=cesar
+email=cesar@becks.fec.unicamp.br
+kdevprj_version=1.3
+lfv_open_groups=Others
+makefiles=./Makefile.am,
+project_name=Class_3
+project_type=normal_empty
+sub_dir=
+version=
+version_control=CVS
+workspace=1
+
+[LFV Groups]
+GNU=AUTHORS,COPYING,ChangeLog,INSTALL,README,TODO,NEWS,
+Headers=*.h,*.hxx,*.hpp,*.H,
+Others=*,
+Sources=*.cpp,*.c,*.cc,*.C,*.cxx,*.ec,*.ecpp,*.lxx,*.l++,*.ll,*.l,
+Translations=*.ts,*.po,
+User Interface=*.ui,*.kdevdlg,*.rc,
+groups=Headers,Sources,GNU,Translations,User Interface,Others
