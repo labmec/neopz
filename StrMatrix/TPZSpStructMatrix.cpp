@@ -114,10 +114,10 @@ TPZMatrix * TPZSpStructMatrix::Create(){
         int colpos = fMesh->Block().Position(i);
         int jbleq;
         for(jbleq=0; jbleq<colsize; jbleq++) {
-            if(colpos == ieq) continue;
-	    EqCol[pos] = colpos;
+            if(colpos+jbleq == ieq) continue;
+	    EqCol[pos] = colpos+jbleq;
             EqValue[pos] = 0.;
-            colpos++;
+	    //            colpos++;
             pos++;
         }
 
