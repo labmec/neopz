@@ -315,11 +315,11 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 -include $(top_srcdir)/@PZ_MK@
-#	adaptivity angletest checkcont checkconv cycleref cylin \
-#	materialhyperelastico matrix multplaca placyl pzvc qualif \
-#	termica teste testeisotropia testgeom testmat testshape \
-#	viga3d descontinuo DiffusionTest Error Jacobi_Base \
-#	Adapt_MultThread Curso_PZ
+	adaptivity angletest checkcont checkconv cycleref cylin \
+	materialhyperelastico matrix multplaca placyl pzvc qualif \
+	termica teste testeisotropia testgeom testmat testshape \
+	viga3d descontinuo DiffusionTest Error Jacobi_Base \
+	Adapt_MultThread Curso_PZ Igor
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

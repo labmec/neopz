@@ -12,10 +12,10 @@ CLEANFILES     = @PZ_CLEANFILES@
 -include $(top_srcdir)/@PZ_MK@
 
 SUBDIRS = Adapt_MultThread 
-#	adaptivity angletest checkcont checkconv cycleref cylin \
-#	materialhyperelastico matrix multplaca placyl pzvc qualif \
-#	termica teste testeisotropia testgeom testmat testshape \
-#	viga3d descontinuo DiffusionTest Error Jacobi_Base \
-#	Adapt_MultThread Curso_PZ
+	adaptivity angletest checkcont checkconv cycleref cylin \
+	materialhyperelastico matrix multplaca placyl pzvc qualif \
+	termica teste testeisotropia testgeom testmat testshape \
+	viga3d descontinuo DiffusionTest Error Jacobi_Base \
+	Adapt_MultThread Curso_PZ Igor
 
 ## --| NeoPZ |------------------------------------------------------------------
