@@ -72,10 +72,12 @@
 #include "TPZInterfaceEl.h"
 #include "TPZIterativeAnalysis.h"
 #include "TPZExtendGridDimension.h"
-#include "TPZFlowCMesh.h"
+//#include "TPZFlowCMesh.h"
 #include "TPZIterativeAnalysis.h"
 #include "TPZFlowCMesh.h"
 #include "pzreal.h"
+#include "TPZNLMultGridAnalysis.h"
+#include "pzflowcmesh.h"
 //#include "TPZJacobMat.h"
 //#include "TPZRefPattern.h"
 //#include "TPZJacobStrMatrix.h"
@@ -183,7 +185,7 @@ int main() {
        << "\t\t\t";
 
   //cin >> tipo;
-  tipo = 5;
+  tipo = 7;
   problem = tipo;
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
   //cin >> grau;
@@ -222,10 +224,10 @@ int main() {
 
   int numiter,marcha;
   cout << "\nNumero de iteracoes requerida ? :";
-  cin >> numiter;
+  //cin >> numiter;
   //numiter = 0;//100;
   cout << "main:: Parametro marcha : \n";
-  cin >> marcha;
+  //cin >> marcha;
   //marcha = 10;
   if(1){
     cout << "main:: entre CFL (si nulo sera calculado) -> ";
@@ -241,7 +243,7 @@ int main() {
 
   if(1){
     start = clock();
-    if(1) NivelDivide(cmesh);
+    if(0) NivelDivide(cmesh);
     if(0) SequenceDivide2();
     CoutTime(start);
     int nstate=-1;
@@ -270,83 +272,15 @@ int main() {
       outgm.flush();
     }
   }
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-  TPZVec<int> accumlist;
-  int nivel,numaggl;
-  cout << "main::Entre nivel da nova malha : ";
-  cin >> nivel;
-  AgrupaList(accumlist,nivel,numaggl);
-  TPZCompElDisc::CreateAgglomerateMesh(cmesh,*aggcmesh,accumlist,numaggl);
-  if(!aggcmesh || !aggcmesh->ElementVec().NElements())
-    PZError << "main:: malha computacional aglomerada não criada\n\n";
-  else {
-    outgm << "\n\n\n* * * MALHA AGLOMERADA : COMPUTACIONAL * * *\n\n\n";
-    aggcmesh->Print(outgm);
-    cmesh = aggcmesh;
-    cout << "\n\nmain:: MUDANDO DE MALHA\n";
-    aggcmesh->InitializeBlock();
-  }
-  outgm.flush();
-  /////////////////////////////////////////////////////////////////////////////////////////////////
   //com matriz não simétrica e ELU 2D e 3D convergen
+  int numat = mat->Id();
   if(1){
-    TPZIterativeAnalysis an(cmesh,outgm);
-    if(1){//Analysis
-      cout << "\nmain::Resolve o sistema\n";
-      TPZSkylineStructMatrix stiff(cmesh);//para formula¢ão LS : matriz simétrica
-      //TPZFStructMatrix stiff(cmesh);//não simétrica
-      an.SetStructuralMatrix(stiff);
-      an.Solution().Zero();
-      TPZStepSolver solver;// ECholesky -> simétrica e positiva definida
-      //solver.SetDirect(ELU);//    ELU -> matriz não singular
-      solver.SetDirect(ELDLt);//  ELDLt -> só simétrica
-      an.SetSolver(solver);
-      if(1){
-	REAL tol;
-	tol = 1.0e15;// = norma da solução inicial + epsilon
-	cout << "\nTolerancia ? : " << tol << "\n";
-	//cin >> tol;
-	//an.SetExact(Solution);
-	int resolution=0;
-	cout << "main:: Parametro resolution : \n";
-	//cin >> resolution;
-	resolution = 0;
-	cout << resolution << "\n";
-	an.IterativeProcess(outgm,tol,numiter,mat,marcha,resolution);
-	an.Print("SOLUÇÃO DO ANALYSIS",outgm);
-	outgm.flush();
-	if(0) PostProcess(*gmesh,outgm);
-	if(0){//MALHAS NÃO CONFORMES
-	  Divisao(cmesh);
-	  cmesh->AdjustBoundaryElements();
-	  if(1){
-	    cout << "\nmain::Imprime malhas depois de divide manual\n";
-	    gmesh->Print(outgm);
-	    cmesh->Print(outgm);
-	    outgm.flush();
-	  }
-	  TPZVec<char *> scalar(1),vector(0);
-	  scalar[0] = "pressure";
-	  int dim = mat->Dimension();
-	  TPZDXGraphMesh graph(cmesh,dim,mat,scalar,vector);
-	  ofstream *dx = new ofstream("ConsLawFinal.dx");
-	  cout << "\nmain::Out file : ConsLawFinal.dx\n";
-	  graph.SetOutFile(*dx);
-	  graph.SetResolution(resolution);
-	  graph.DrawMesh(dim);
-	  an.LoadSolution();
-	  an.SetBlockNumber();
-	  an.Solution().Zero();
-	  an.Run();
-	  REAL time = mat->TimeStep();
-	  graph.DrawSolution(0,time);
-	  dx->flush();
-	  //dx->close();
-	}
-      }
-    }
+    cmesh->SetDimModel(2);
+    TPZNonLinMultGridAnalysis mgnlan(cmesh);
+    cmesh->SetDimModel(2);
+    mgnlan.TwoGridAlgorithm(outgm,numat);
     ContagemDeElementos(mat);
-  }//if(0/1)
+  }
 
   outgm.close();
   if(cmesh) delete cmesh;
@@ -1100,10 +1034,10 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   gmesh->BuildConnectivity();
   int nummat = 1;
   char *artdiff = "LS";
-  cout << "\nmain::Divisao Nivel final da malha ? : ";
-  cin >> nivel;
+//   cout << "\nmain::Divisao Nivel final da malha ? : ";
+//   cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
-  REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
+    REAL delta_x =  1.0;//( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
   REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
@@ -2094,47 +2028,4 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
   if(newfat != numaggl) cout << "main::AgrupaList número de pais não confere\n";
 }
 
-// void ResetReference(TPZCompMesh *aggcmesh){
-//   //APLICAR ESTA FUNÇÃO ANTES DE GERAR A MALHA COM O DX
-
-//   //caso o aglomerado tem referência anulam-se as referencias
-//   //dos sub-elementos 'geométricos' aglomerados por ele
-//   //caso contrário deixa-se um único elemento geométrico
-//   //apontando para o aglomerado
-//   //isso forma uma partição da malha atual por elementos computacionais
-
-//   int nel = aggcmesh->NElements(),i;
-//   //não todo index é sub-elemento
-//   for(i=0;i<nel;i++){
-//     TPZCompEl *cel = aggcmesh->ElementVec()[i];
-//     if(!cel) continue;
-//     if(cel->Type() == EInterface) continue;
-//     TPZMaterial *mat = cel->Material();
-//     if(!mat) PZError << "main::ResetReference null material\n";
-//     if(mat->Id() < 0) continue;
-//     TPZGeoEl *gel = cel->Reference();
-//     TPZStack<int> vec;
-//     TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
-//     IndexesDiscSubEls(vec);
-//     int i,size = vec.NElements();
-//     if(!size) PZError << "main::ResetReference error1\n";
-//     TPZCompEl *sub0 = aggcmesh->ElementVec()[vec[0]],sub;
-//     for(i=1;i<size){
-//       sub = aggcmesh->ElementVec()[vec[i]];
-//       TPZGeoEl *ref = sub->REference();
-//       if(!ref) PZError << "main::ResetReference error2\n";
-//       ref->SetReference(NULL);
-//       //o aglomerado não tem geométrico direto associado
-//       //agora existe um único geométrico apontando
-//       //para ele
-//     }
-//     if(gel){
-//       TPZGeoEl *ref0 = sub0->REference();
-//       if(!ref0) PZError << "main::ResetReference error2\n";
-//       ref0->SetReference(NULL);
-//       //o aglomerado tem geométrico direto associado
-//       //e esse aponta para ele
-//     }
-//   }
-// }
 
