@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.50 2004-04-05 14:09:35 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.51 2004-04-06 17:40:32 erick Exp $
 
 // -*- c++ -*- 
 
@@ -495,7 +495,7 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
       int iv = 0,d;
       for(int jn=0; jn<dfvar; jn++) {
 	sol[iv%nstate] += phix(iv/nstate,0)*MeshSol(pos+jn,0);
-	for(d=0; d<phix.Rows() ; d++)
+	for(d=0; d<dphix.Rows() ; d++)
 	  dsol(d,iv%nstate) += dphix(d,iv/nstate)*MeshSol(pos+jn,0);
 	iv++;
       }
