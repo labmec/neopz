@@ -103,6 +103,8 @@ static double novecubos[30][3] = { {0.,0.,0.},{p1+p1/4.,0.,0.},{p3,0.,0.},
 				   {p4,.5,0.3},{p5,p7,0.3},{p6,p7,0.3},
 				   {0.,1.,0.3},{p3,1.,0.3},{p6,1.,0.3} };
 
+static double quadrilatero2[5][3] = { {0.,0.,0.},{1.80405,0.,0.},{4.12791,0.,0.},{0.,1.,0.},{4.12791,1.,0.} };
+
 void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl);
 void SetDeltaTime(TPZMaterial *mat,REAL deltaT);
 void CriacaoDeNos(int nnodes,double lista[20][3]);
@@ -136,7 +138,7 @@ static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh),
 static int grau = 0;
 static int tipo;
 static int problem=0;;
-static REAL CFL=-1.0;
+static REAL CFL=-1.0,deltaT = -1.0;
 static REAL gama = 1.4;
 static int meshdim = -1;
 void Forcing(TPZVec<REAL> &x,TPZVec<REAL> &result);
@@ -156,18 +158,24 @@ int main() {
   ofstream outgm("mesh.out");
 
   cout << "\ntipo\n"
+       << "\t[0: TresTriangulos]\n"
        << "\t[5: NoveQuadrilateros]\n"
        << "\t[6: NoveCubos]\n"
        << "\t\t\t";
 
   //cin >> tipo;
-  tipo = 5;
+  tipo = 0;
   problem = tipo;
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
   cin >> grau;
   //grau = 0;
   TPZCompElDisc::gDegree = grau;
   TPZConservationLaw *mat;
+  if(tipo==0){
+    mat = dynamic_cast<TPZConservationLaw *>(TresTriangulos(grau));
+    meshdim = 2;
+    problem = 0;
+  } else
   if(tipo==5){
     mat = dynamic_cast<TPZConservationLaw *>(NoveQuadrilateros(grau));
     meshdim = 2;
@@ -201,12 +209,14 @@ int main() {
   if(0) NivelDivide(cmesh);
 
   cout << "\nmain:: entre CFL (si nulo sera calculado) -> \n";
-  cin >> CFL;
-  //CFL = 0.3;
+  cin >> CFL;//CFL = 0.3;
   TPZDiffusionConsLaw::fCFL = CFL;
-  cout << "main:: delta (si nulo sera calculado) -> 0.0\n";
-  TPZDiffusionConsLaw::fDelta = 0.0;
-
+//   SetDeltaTime(mat,cmesh);
+//   REAL timestep = mat->TimeStep();
+//   cout << "\nmain::Passo inicial de tempo -> " << timestep << endl;
+//   mat->SetTimeStep(-1.0);//para reiniciar com SetDeltaTime(mat,cmesh);
+  cout << "main:: delta (si nulo sera calculado) -> \n";
+  cin >> TPZDiffusionConsLaw::fDelta;
   if(0){
     cout << "\nmain::Ajuste no contorno e imprime malhas\n";
     cmesh->AdjustBoundaryElements();
@@ -218,20 +228,32 @@ int main() {
   }
 
   //com matriz não simétrica e ELU 2D e 3D convergen
-  int numat = mat->Id();
-  ofstream outan("PostProcess.out");
+  int numat = mat->Id(),alg;
+  //ofstream outan("PostProcess.out");
+  cout << "\nmain:: algoritmo a uma ou duas malhas?\n";
+  cin >> alg;
   if(1){
     cmesh->SetDimModel(meshdim);
     TPZNonLinMultGridAnalysis mgnlan(cmesh);
     mgnlan.SetAnalysisFunction(SetDeltaTime);
-    mgnlan.TwoGridAlgorithm(outgm,numat);
+    if(alg == 1){
+      mgnlan.OneGridAlgorithm(outgm,numat);
+    } else if(alg == 2){
+      mgnlan.TwoGridAlgorithm(outgm,numat);
+    }
+    int nm = mgnlan.NMeshes();
+    TPZCompMesh *mesh = mgnlan.IMesh(nm-1);//malha fina
+    if(1){
+      mesh->Print(outgm);
+      mesh->Reference()->Print(outgm);
+      outgm.flush();
+    }
     ContagemDeElementos(mat);
     //PostProcess(*mgnlan.IMesh(1),outan,0);//malha grossa
     //PostProcess(*mgnlan.IMesh(2),outan,0);//malha fina
   }
-  outan.flush();
-  outan.close();
-
+  //outan.flush();
+  //outan.close();
   outgm.close();
   //if(cmesh) delete cmesh;//foi apagada no multigrid
   if(gmesh) delete gmesh;
@@ -346,14 +368,6 @@ void ContagemDeElementos(TPZMaterial *mat){
     if(comp->Reference()->MaterialId() < 0) bcel++;
     niv = comp->Reference()->Level();
     if(nivmax < niv) nivmax = niv;
-/*     if(comp->Type() == 00) poin++; */
-/*     if(comp->Type() == 01) line++; */
-/*     if(comp->Type() == 02) tria++; */
-/*     if(comp->Type() == 03) quad++; */
-/*     if(comp->Type() == 04) tetr++; */
-/*     if(comp->Type() == 05) pira++; */
-/*     if(comp->Type() == 06) pris++; */
-/*     if(comp->Type() == 07) hexa++; */
     if(comp->Type() == EDiscontinuous) disc++;
     if(comp->Type() == EInterface) inte++;
   }
@@ -400,6 +414,7 @@ void ContagemDeElementos(TPZMaterial *mat){
   if(mat){
     cout << "\nPropriedades materiais             : ";
     mat->Print();
+    cout << "Time Step = : " << deltaT << endl;
   }
   cout << "\nDeltaX                             : " <<  cmesh->DeltaX() << endl;
   cout << "\nLesserEdgeOfEl                     : " <<  cmesh->LesserEdgeOfMesh() << endl;
@@ -1070,7 +1085,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
 TPZMaterial *TresTriangulos(int grau){
   //Teste no paper de A. Coutinho e primeiro problema teste na tese de Jorge Calle
   //teste do papern Zhang, Yu, Chang e teste no paper de Peyrard and Villedieu
-  //  CriacaoDeNos(5,quadrilatero2);//para formar dois triangulos
+  CriacaoDeNos(5,quadrilatero2);//para formar dois triangulos
   //elemento de volume
   TPZVec<int> nodes;
   int index;
@@ -1092,25 +1107,27 @@ TPZMaterial *TresTriangulos(int grau){
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
-  int nummat = 1,nivel;
+  int nummat = 1;
+//   int nivel;
   char *artdiff = "LS";
-  cout << "\nmain::Divisao Nivel final da malha ? : ";
-  cin >> nivel;
-  REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
-  REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
-  REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
+  //cout << "\nmain::Divisao Nivel final da malha ? : ";
+  //cin >> nivel;
+//   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );//0.5;
+//   REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
+//   REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
   //calculando novos valores
-  delta_t = delta_x*cfl;
-  REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
+//   delta_t = delta_x*cfl;
+//   REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
   gama = 1.4;
-  cout << "\nDominio [0,1]x[0,1]"
-       << "\nMax df/dx (desconhecido) = 1.0"
-       << "\nCFL = " << cfl
-       << "\ndelta otimo = " << delta
-       << "\nDelta x = " << delta_x
-       << "\ndelta t = " << delta_t
-       << "\ndiffusao = " << artdiff << endl;
+//   cout << "\nDominio [0,1]x[0,1]"
+//        << "\nMax df/dx (desconhecido) = 1.0"
+//        << "\nCFL = " << cfl
+//        << "\ndelta otimo = " << delta
+//        << "\nDelta x = " << delta_x
+//        << "\ndelta t = " << delta_t
+//        << "\ndiffusao = " << artdiff << endl;
 
+  REAL delta_t = 0.0;
   int dim = 2;
   TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 
@@ -2016,7 +2033,7 @@ void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh){
   //REAL deltax = cmesh->DeltaX();
   REAL deltax = cmesh->LesserEdgeOfMesh();
   //REAL deltax = cmesh->MaximumRadiusOfMesh();
-  REAL deltaT = CFL*deltax/maxveloc;
+  deltaT = CFL*deltax/maxveloc;//static REAL 
   cout << "main::SetDeltaTime : " << deltaT << endl;
   law->SetTimeStep(deltaT);
   int continua;
@@ -2090,4 +2107,5 @@ void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh){
 //     //if(cmesh) delete cmesh;
 //   //    if(gmesh) delete gmesh;
 //   //  return 1;
+
 
