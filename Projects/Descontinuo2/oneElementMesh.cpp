@@ -173,10 +173,10 @@ TPZFlowCompMesh *
    TPZBndCond * bc;
    TPZFMatrix val1(4,4), val2(4,1);
    REAL ro = 1.7,
-	u = 5.5,
-	v = 0,//3.3,
-	p = 2.,
-	vel2 = u*u + v*v;
+	//u = 5.5,
+	//v = 0,//3.3,
+	p = 2.;
+	//vel2 = u*u + v*v;
 
 // copiado do Cedric
    //CC Todas as arestas: DIRICHLET
