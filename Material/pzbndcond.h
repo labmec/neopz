@@ -9,7 +9,7 @@
 using namespace std;
 
 #include "pzreal.h"
-#include "pzmaterial.h"
+#include "pzdiscgal.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
@@ -23,7 +23,7 @@ class TPZManVector;
 
 // this class defines the boundary condition for a 1d linear problem
 
-class TPZBndCond : public TPZMaterial {
+class TPZBndCond : public TPZDiscontinuousGalerkin {
 
   friend class TPZMaterial;
 protected:
@@ -32,7 +32,7 @@ protected:
   TPZFMatrix	fBCVal2;            // second value of boundary condition
   TPZMaterial	*fMaterial;	        // pointer to material which created bc
 
-  TPZBndCond(TPZBndCond & bc) : TPZMaterial(bc), fBCVal1(bc.fBCVal1),
+  TPZBndCond(TPZBndCond & bc) : TPZDiscontinuousGalerkin(bc), fBCVal1(bc.fBCVal1),
     fBCVal2(bc.fBCVal2){
     fMaterial = bc.fMaterial;
     fType = bc.fType;
@@ -43,14 +43,14 @@ protected:
     ~TPZBndCond(){}
 
   TPZBndCond(TPZMaterial *material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2) :
-    TPZMaterial(id), fBCVal1(val1), fBCVal2(val2) {
+    TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2) {
     //cria um novo material
     fMaterial = material;
     fType = type;
 
   }
 
-  TPZBndCond(TPZBndCond &copy, TPZMaterial *ref) : TPZMaterial(copy), fType(copy.fType),
+  TPZBndCond(TPZBndCond &copy, TPZMaterial *ref) : TPZDiscontinuousGalerkin(copy), fType(copy.fType),
 						   fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref) {}
  
   void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
@@ -129,6 +129,16 @@ protected:
   }
 
   virtual void Clone(TPZAdmChunkVector<TPZMaterial *> &matvec);
+
+  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+				   TPZFMatrix &ek,TPZFMatrix &ef);
+  
+  virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+}
+
 };
 
 

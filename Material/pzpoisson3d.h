@@ -2,7 +2,7 @@
 #define MATPOISSON3DHPP
 
 #include <iostream>
-#include "pzmaterial.h"
+#include "pzdiscgal.h"
 #include "pzfmatrix.h"
 
 //#include "pzmanvector.h"
@@ -12,7 +12,7 @@
 #endif
 
 
-class TPZMatPoisson3d : public TPZMaterial {
+class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 
   TPZFMatrix fXf;//fonte
   int fDim;
@@ -73,6 +73,15 @@ class TPZMatPoisson3d : public TPZMaterial {
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
+
+  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+				   TPZFMatrix &ek,TPZFMatrix &ef);
+  
+  virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+			    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
 };
 
 #endif

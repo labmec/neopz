@@ -8,7 +8,7 @@
 
 int TPZMatPoisson3d::problema = 0;
 
-TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZMaterial(nummat), fXf(1,1,0.), fDim(dim) {
+TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(1,1,0.), fDim(dim) {
 }
 
 TPZMatPoisson3d::~TPZMatPoisson3d() {
@@ -33,32 +33,16 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
     fForcingFunction(x,res);       // dphi(i,j) = dphi_j/dxi
     fXf(0,0) = res[0];
   }
-  int dim = dphi.Rows();
-
-  if(problema==1) {
-    //projeção L2 da carga fXf : fForcingFunction
-    for( int in = 0; in < phr; in++ ) {
-      ef(in, 0) += weight * fXf(0,0) * phi(in, 0);
-      for( int jn = 0; jn < phr; jn++ ) {
-	ek(in,jn) += weight * phi(in,0)* phi(jn,0);
+  //Equação de Poisson
+  for( int in = 0; in < phr; in++ ) {
+    int kd;
+    ef(in, 0) += - weight * fXf(0,0)*phi(in,0);
+    for( int jn = 0; jn < phr; jn++ ) {
+      for(kd=0; kd<fDim; kd++) {
+	ek(in,jn) += weight * ( dphi(kd,in) * dphi(kd,jn) );
       }
     }
-  } else
-    if(problema==2) {
-      //Equação de Poisson
-      for( int in = 0; in < phr; in++ ) {
-        int kd;
-        for(kd=0; kd<dim; kd++) {
-        	ef(in, 0) += - weight * dsol(kd, 0) * dphi(kd, in);
-        }
-	ef(in, 0) += weight * fXf(0,0) * phi(in, 0);
-	for( int jn = 0; jn < phr; jn++ ) {
-	  for(kd=0; kd<dim; kd++) {
-	    ek(in,jn) += weight * ( dphi(kd,in) * dphi(kd,jn) );
-	  }
-	}
-      }
-    }
+  }
 }
 
 
@@ -107,18 +91,23 @@ int TPZMatPoisson3d::VariableIndex(char *name){
 
 int TPZMatPoisson3d::NSolutionVariables(int var){
 
-  if(var == 0 || var == 1 || var == 2 || var == 10) return 1;
-  cout << "TPZMatPoisson3d::NSolutionVariables Error\n";
-  return 0;
+  if(var == 0) return 6;
+  if(var == 1) return 1;
+  if(var == 2) return fDim;
+  if(var == 10) return 1;
+  return TPZMaterial::NSolutionVariables(var);
+  //  cout << "TPZMatPoisson3d::NSolutionVariables Error\n";
+  //  return 0;
 }
 
 void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*axes*/,int var,TPZVec<REAL> &Solout){
 
   if(var == 0 || var == 1) Solout[0] = Sol[0];//function
   if(var == 2) {
-    Solout[0] = DSol(0,0);//derivate
-    Solout[1] = DSol(1,0);//derivate
-    Solout[2] = DSol(2,0);//derivate
+    int id;
+    for(id=0 ; id<fDim; id++) {
+      Solout[id] = DSol(id,0);//derivate
+    }
   }
 }
 
@@ -130,18 +119,19 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 			       TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
 			       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
 
-  TPZVec<REAL> sol(1),dsol(3);
+  TPZVec<REAL> sol(1),dsol(3,0.);
   Solution(u,dudx,axes,1,sol);
   Solution(u,dudx,axes,2,dsol);
-  REAL dx = dsol[0]*axes(0,0)+dsol[1]*axes(1,0)+dsol[2]*axes(2,0);
-  REAL dy = dsol[0]*axes(0,1)+dsol[1]*axes(1,1)+dsol[2]*axes(2,1);
-  REAL dz = dsol[0]*axes(0,2)+dsol[1]*axes(1,2)+dsol[2]*axes(2,2);
+  REAL dx[3] = {0.};
+  int id,jd;
+  for(id=0; id<fDim; id++) for(jd=0; jd<3; jd++) dx[jd] += dsol[id]*axes(id,jd);
   //values[1] : eror em norma L2
-  values[1]  = pow(sol[0] - u_exact[0],2.0);
+  values[1]  = (sol[0] - u_exact[0])*(sol[0] - u_exact[0]);
   //values[2] : erro em semi norma H1
-  values[2]  = pow(dx - du_exact(0,0),2.0);
-  values[2] += pow(dy - du_exact(1,0),2.0);
-  values[2] += pow(dz - du_exact(2,0),2.0);
+  values[2] = 0.;
+  for(id=0; id<fDim; id++) {
+    values[2]  += (dx[id] - du_exact(id,0))*(dx[id] - du_exact(id,0));
+  }
   //values[0] : erro em norma H1 <=> norma Energia
   values[0]  = values[1]+values[2];
 }
@@ -220,3 +210,107 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 }
 
 #endif
+
+void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+					  TPZFMatrix &ek,TPZFMatrix &ef){
+
+  int nrowl = phiL.Rows();
+  int nrowr = phiR.Rows();
+  int il,jl,ir,jr,id;
+  for(il=0; il<nrowl; il++) {
+    REAL dphiLinormal = 0.;
+    for(id=0; id<fDim; id++) {
+      dphiLinormal += dphiL(id,il)*normal[id];
+    }
+    for(jl=0; jl<nrowl; jl++) {
+      REAL dphiLjnormal = 0.;
+      for(id=0; id<fDim; id++) {
+	dphiLjnormal += dphiL(id,jl)*normal[id];
+      }
+      ek(il,jl) += weight*(
+			   0.5*dphiLinormal*phiL(jl,0)-0.5*dphiLjnormal*phiL(il,0)
+			   );
+    }
+  }
+  for(ir=0; ir<nrowr; ir++) {
+    REAL dphiRinormal = 0.;
+    for(id=0; id<fDim; id++) {
+      dphiRinormal += dphiR(id,ir)*normal[id];
+    }
+    for(jr=0; jr<nrowr; jr++) {
+      REAL dphiRjnormal = 0.;
+      for(id=0; id<fDim; id++) {
+	dphiRjnormal += dphiR(id,jr)*normal[id];
+      }
+      ek(ir+nrowl,jr+nrowl) += weight*(
+			   -0.5*dphiRinormal*phiR(jr)+0.5*dphiRjnormal*phiR(ir)
+			   );
+    }
+  }
+  for(il=0; il<nrowl; il++) {
+    REAL dphiLinormal = 0.;
+    for(id=0; id<fDim; id++) {
+      dphiLinormal += dphiL(id,il)*normal[id];
+    }
+    for(jr=0; jr<nrowr; jr++) {
+      REAL dphiRjnormal = 0.;
+      for(id=0; id<fDim; id++) {
+	dphiRjnormal += dphiR(id,jr)*normal[id];
+      }
+      ek(il,jr+nrowl) += weight*(
+			   -0.5*dphiLinormal*phiR(jr)-0.5*dphiRjnormal*phiL(il)
+			   );
+    }
+  }
+  for(ir=0; ir<nrowr; ir++) {
+    REAL dphiRinormal = 0.;
+    for(id=0; id<fDim; id++) {
+      dphiRinormal += dphiR(id,ir)*normal[id];
+    }
+    for(jl=0; jl<nrowl; jl++) {
+      REAL dphiLjnormal = 0.;
+      for(id=0; id<fDim; id++) {
+	dphiLjnormal += dphiL(id,jl)*normal[id];
+      }
+      ek(ir+nrowl,jl) += weight*(
+			   +0.5*dphiRinormal*phiL(jl)+0.5*dphiLjnormal*phiR(ir)
+			   );
+    }
+  }
+}
+
+void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+					    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+
+  //  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
+  int il,jl,nrowl,id;
+  nrowl = phiL.Rows();
+  switch(bc.Type()) {
+  case 0: // DIRICHLET
+    for(il=0; il<nrowl; il++) {
+      REAL dphiLinormal = 0.;
+      for(id=0; id<fDim; id++) {
+	dphiLinormal += dphiL(id,il)*normal[id];
+      }
+      ef(il,0) += weight*dphiLinormal*bc.Val2()(0,0);
+      for(jl=0; jl<nrowl; jl++) {
+	REAL dphiLjnormal = 0.;
+	for(id=0; id<fDim; id++) {
+	  dphiLjnormal += dphiL(id,jl)*normal[id];
+	}
+	ek(il,jl) += weight*(dphiLinormal*phiL(jl,0)-dphiLjnormal*phiL(il,0));
+      }
+    }
+    break;
+  case 1: // Neumann
+    for(il=0; il<nrowl; il++) {
+      ef(il,0) += weight*phiL(il,0)*bc.Val2()(0,0);
+    }
+    break;
+  default:
+    PZError << "TPZMatPoisson3d::Wrong boundary condition type\n";
+    break;
+  }
+}
