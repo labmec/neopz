@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.27 2004-02-04 20:30:24 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.28 2004-04-03 19:43:28 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -980,13 +980,15 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
       //each time it is required.
       //if the stored inner radius is bigger than the computed one, the computed one takes its place, because of we are computing the INNER radius.
       if(LeftEl->Type()  == EAgglomerate){
-        LeftEl->SetInnerRadius(LeftDistance);
-        LeftEl ->SetNInterfaces(LeftEl->NInterfaces() + 1);
+	 if ( LeftDistance < Left->InnerRadius2() )
+	    LeftEl->SetInnerRadius(LeftDistance);
+	 LeftEl ->SetNInterfaces(LeftEl->NInterfaces() + 1);
       }
 
       if(RightEl->Type() == EAgglomerate){
-        RightEl->SetInnerRadius(RightDistance);
-        RightEl->SetNInterfaces(RightEl->NInterfaces()+ 1);
+	 if ( RightDistance < Right->InnerRadius2() )
+	    RightEl->SetInnerRadius(RightDistance);
+	 RightEl->SetNInterfaces(RightEl->NInterfaces()+ 1);
       }
 
     }//end of if
