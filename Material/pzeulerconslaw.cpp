@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.34 2004-06-15 18:51:03 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.35 2004-06-27 00:31:12 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -164,7 +164,7 @@ int TPZEulerConsLaw2::NSolutionVariables(int var){
 
 double TPZEulerConsLaw2::DeltaX(double detJac)
 {
-   return 2 * pow(detJac, 1./((double) fDim));
+   return 2 * pow(fabs(detJac), 1./((double) fDim));
 }
 
 double TPZEulerConsLaw2::Det(TPZFMatrix & Mat)
@@ -677,7 +677,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
       // if face contribution is implicit,
       // then the FAD classes must be initialized
       #ifdef _AUTODIFF
-         if(bc.Type() ==5)
+         if(bc.Type() ==5 && fDim == 2)
          {
 	    int entropyFix2;
             TPZManVector<REAL,5 > flux(nstate,0.);
@@ -733,7 +733,8 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
    {
          ComputeGhostState(solL, solR, normal, bc, entropyFix);
 
-         {// flux tests
+	 if(fDim == 2)
+	 {// flux tests
             TPZManVector<REAL,3> normal2(2,0.);
             TPZManVector<REAL,5> flux2(nstate,0.);
             normal2[0] = -normal[0];
@@ -948,6 +949,8 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
 
     if(un < 0.)// Inflow
     {
+//if(normal[0]>0.) cout << "\ndirection error\n ";
+
        if(/*us>c*/ Mach >= 1.)
        {//supersonic
         // all Riemann invariants retain their imposed values
@@ -975,6 +978,30 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
 	  cghost = (w5 - w1) * T((fGamma - 1.)/4.);
 	  solR[0] = pow(cghost * cghost / (T(fGamma) * w2), 1./(fGamma - 1.));
 	  unghost = (w1 + w5) / T(2.);
+	  usghost = us / un * unghost;
+	  for(i = 1; i < nstate - 1; i++)
+	     solR[i] = solR[0]  // rho
+	               * usghost *  // velocity
+	               bc.Val2()(i,0) / Mach; // element velocity component
+
+
+	  // rhoe = rho * (c^2 / (gamma(gamma -1)) + vel^2/2)
+	  solR[nstate - 1] = solR[0] * (
+	                     cghost * cghost /T(fGamma * (fGamma - 1.)) +
+			     usghost * usghost / T(2.));
+			     /*
+        // Invariants w1 and w2 are imposed, w5 computed
+          w1 = uninf - T(2.) * cinf/ T(fGamma - 1.);
+	  // Modified w2 invariant: w2 = p/rho^(gamma-1)
+	  // or w2 = c^2/(gamma * rho^(gamma-1))
+	  w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), fGamma - 1.));
+	  // w5 computed based on flow state
+	  w5 = un + T(2.) * c / T(fGamma - 1.);
+
+          // computing ghost values
+	  cghost = (w5 - w1) * T((fGamma - 1.)/4.);
+	  solR[0] = pow(cghost * cghost / (T(fGamma) * w2), 1./(fGamma - 1.));
+	  unghost = (w1 + w5) / T(2.);
 	  for(i = 1; i < nstate - 1; i++)
 	     solR[i] = solR[0]  // rho
 	               * unghost / un *  // scale factor
@@ -984,10 +1011,11 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
 	  // rhoe = rho * (c^2 / (gamma(gamma -1)) + vel^2/2)
 	  solR[nstate - 1] = solR[0] * (
 	                     cghost * cghost /T(fGamma * (fGamma - 1.)) +
-			     usghost * usghost / T(2.));
+			     usghost * usghost / T(2.));*/
        }
     }else
     { // Outflow
+//if(normal[0]<0.) cout << "\ndirection error 2\n ";
        if(us>c)
        { // supersonic: no BC at all are required
           for(i = 0; i < nstate; i++)
