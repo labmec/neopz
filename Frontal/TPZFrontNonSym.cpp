@@ -11,6 +11,9 @@ void cblas_dger(const enum CBLAS_ORDER order, const int M, const int N,
 void cblas_dger(const enum CBLAS_ORDER order, const int M, const int N,
                 const double alpha, const double  *X, const int incX,
                 const double  *Y, const int incY, double  *A, const int lda);
+void cblas_dscal(const int N, const double alpha, double *X, const int incX);
+void cblas_dcopy(const int N, const double *X, const int incX,
+                 double *Y, const int incY);
 #endif
 
 DecomposeType TPZFrontNonSym::GetDecomposeType() const{
@@ -90,6 +93,7 @@ void TPZFrontNonSym::Reset(int GlobalSize)
 	fLocal.Resize(GlobalSize);
 	fLocal.Fill(-1);
 	fMaxFront=0;
+	fWork=0;
 }
 int TPZFrontNonSym::NFree()
 {
@@ -142,32 +146,32 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
      ilocal = Local(ieq);
      TPZVec<REAL> AuxVecRow(fFront);
      TPZVec<REAL> AuxVecCol(fFront);
-//	PrintGlobal("Before", output);
-    
-	for(i=0;i<fFront;i++) AuxVecCol[i]=Element(i,ilocal);
-	for(i=0;i<fFront;i++) AuxVecRow[i]=Element(ilocal,i);
-/*	output << "TPZFront::DecomposeOneEquation AuxVec[ilocal] < 0 " << AuxVec[ilocal] << " ilocal=" << ilocal << " fGlobal=" << fGlobal[ilocal] << endl;
-	for(i=ieq;i<fLocal.NElements();i++){
-		if(fLocal[i]!=-1){
-			output << Element(ilocal,fLocal[i]) << " ";
-		}
-	}
-	output << endl;
-	output.flush();
-*/
-/*	if(abs(AuxVecCol[ilocal])<.000001) {
-		cout << "TPZFront::DecomposeOneEquation AuxVecCol[ilocal] < 0 " << AuxVecCol[ilocal] << " ilocal=" << ilocal << " fGlobal=" << fGlobal[ilocal] << endl;
-		cout << "TPZFront::DecomposeOneEquation AuxVecRow[ilocal] < 0 " << AuxVecRow[ilocal] << " ilocal=" << ilocal << " fGlobal=" << fGlobal[ilocal] << endl;
-	}
-	*/
-//    REAL diag = sqrt(AuxVec[ilocal]);
-//    for(i=0;i<fFront;i++) AuxVecCol[i]/=diag;
-	REAL diag = AuxVecRow[ilocal];
 
+#ifdef USING_ATLAS
+	cblas_dcopy(fFront, &Element(0, ilocal), 1, &AuxVecCol[0], 1);
+	cblas_dcopy(fFront, &Element(ilocal, 0), fFront, &AuxVecRow[0], 1);
+#else
 	for(i=0;i<fFront;i++){
-		AuxVecCol[i]/=diag;
+		AuxVecCol[i]=Element(i,ilocal);
+		AuxVecRow[i]=Element(ilocal,i);
 	}
+#endif
+	//memcpy(&AuxVecCol[0], &Element(0,ilocal), fFront);
+	//for(i=0;i<fFront;i++) AuxVecRow[i]=Element(ilocal,i);
+	//memcpy(&AuxVecRow[0], &Element(ilocal, 0), fFront);
 	
+	
+	REAL diag = AuxVecRow[ilocal];
+#ifdef USING_ATLAS
+	
+	cblas_dscal(fFront, (1/diag), &AuxVecCol[0], 1);
+	
+#else
+	for(i=0;i<fFront;i++){
+		AuxVecCol[i]=/diag;
+	}
+#endif
+	fWork+=fFront*fFront;
 #ifdef USING_ATLAS
      //Blas utilizatioin
      CBLAS_ORDER order = CblasColMajor;
@@ -219,13 +223,18 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 	for(i=0;i<fFront;i++) {
         if(i!=ilocal && fGlobal[i]!= -1 && AuxVecCol[i] != 0.) eqnarray.AddTerm(fGlobal[i],AuxVecCol[i]);
 	}
-     eqnarray.EndEquation();
+    eqnarray.EndEquation();
 
+#ifdef USING_ATLAS
+	TPZVec<double> zero(fFront, 0.);
+	cblas_dcopy(fFront, &Element(0, ilocal), 1, &zero[0], 1);
+	cblas_dcopy(fFront, &Element(ilocal, 0), fFront, &zero[0], 1);
+#else
 	for(i=0;i<fFront;i++){
         Element(i,ilocal)=0.;
         Element(ilocal,i)=0.;
     }
-	
+#endif
 
     FreeGlobal(ieq);
     fDecomposeType=ELU;
@@ -355,14 +364,18 @@ void TPZFrontNonSym::DecomposeEquations(int mineq, int maxeq, TPZEqnArray & eqna
 TPZFrontNonSym::TPZFrontNonSym(int GlobalSize) : TPZFront(GlobalSize)
 {
 	fDecomposeType=ELU;
+	fWork=0;
 }
 
 TPZFrontNonSym::TPZFrontNonSym() : TPZFront() {
      fDecomposeType=ELU;
+	 fWork=0;
 }
 
 TPZFrontNonSym::~TPZFrontNonSym(){}
 
+
+	
 #ifndef WIN32
 void TPZFrontNonSym::main()
 {
