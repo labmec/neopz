@@ -125,6 +125,11 @@ class TPZInterfaceElement : public TPZCompEl {
   void Normal(TPZVec<REAL> &normal);
 
   /**
+   * returns the normal one to the face from element
+   */
+  void NormalToFace(TPZVec<REAL> &normal);
+
+  /**
    * it verifies the existence of interfaces associates
    * with the side of an element
    * case to interface should exist and exists only a returns 1

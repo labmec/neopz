@@ -389,3 +389,20 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
   return 1;
 }
 
+void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal){
+
+  REAL detjac;
+  TPZVec<REAL> param(3);
+  TPZFMatrix jacobian(3,3),jacinv(3,3),axes(3,3);
+  int face = fReference->NSides()-1;//face: lado do elemento bidimensional ou aresta do unidimensional
+  //cada face tem no máximo 3 elementos ligados, um de interface + esquerdo e direito
+  //se a face é de fronteira um dos elementos é de contorno
+  //pelos menos 1 é de volume
+  fReference->CenterPoint(face,param);//ponto da face  
+  fReference->Jacobian(param,jacobian,axes,detjac,jacinv);
+  int i;
+  for(i=0;i<3;i++) normal[i] = axes(2,i);
+  //vetor que sai do elemento esquerdo e entra no 
+  //elemento direito (veja TPZInterfaceElement::VolumeEls)
+
+}
