@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.39 2003-12-02 21:05:58 tiago Exp $
+//$Id: TPZCompElDisc.cc,v 1.40 2003-12-04 18:11:10 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -1111,9 +1111,14 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *agg
       TPZCompElDisc * LeftEl  = interface -> LeftElement();
       TPZCompElDisc * RightEl = interface -> RightElement();
 
-      TPZManVector<REAL, 3> InterfaceCenter(3), LeftCenter(3), RightCenter(3);
+/*<!>      if ( (LeftEl->Index() == 0) || (RightEl->Index() == 0) ) {
+	cout << "pare";
+      }*/
+
+      TPZManVector<REAL, 3> InterfaceCenter(3), RefInterfaceCenter(3), LeftCenter(3), RightCenter(3);
       REAL LeftDistance = 0., RightDistance = 0.;
-      interface->Reference()->CenterPoint(interface->Reference()->NSides() - 1, InterfaceCenter);
+      interface->Reference()->CenterPoint(interface->Reference()->NSides() - 1, RefInterfaceCenter);
+      interface->Reference()->X(RefInterfaceCenter, InterfaceCenter);
       //<!> It is admited the center point is already calculated
       LeftCenter = LeftEl -> fCenterPoint;
       RightCenter = RightEl -> fCenterPoint;
@@ -1122,18 +1127,65 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *agg
 	  LeftDistance  += (LeftCenter[isum] - InterfaceCenter[isum]) * (LeftCenter[isum] - InterfaceCenter[isum]);
 	  RightDistance += (RightCenter[isum] - InterfaceCenter[isum]) * (RightCenter[isum] - InterfaceCenter[isum]);
 	}
+
       LeftDistance  = sqrt(LeftDistance);
       RightDistance = sqrt(RightDistance);
+
+      //Once computed distance from interface center to element center, we try the distance from interface nodes to element center.
+      int facennodes = interface->Reference()->NNodes();
+      for(int inode = 0; inode < facennodes; inode++) {
+	REAL left = 0., right = 0.;
+	//Getting the node coordinate
+	TPZGeoNode * Node = interface->Reference()->NodePtr(inode);	  
+	REAL nodecoord;
+	for (int isum = 0; isum < dim; isum++){
+	  nodecoord = Node->Coord(isum);
+	  left  += (LeftCenter[isum] - nodecoord) * (LeftCenter[isum] - nodecoord);
+	  right += (RightCenter[isum] - nodecoord) * (RightCenter[isum] - nodecoord);
+	}	
+	left  = sqrt(left);
+	right = sqrt(right);
+	if(left < LeftDistance)
+	  LeftDistance = left;
+	if(right < RightDistance)
+	  RightDistance = right;
+      }
+
+      int nsides = interface->Reference()->NSides();
+      for (int irib = facennodes; irib < nsides - 1; irib++){
+	REAL left = 0., right = 0.;
+	//Getting the node coordinate
+	interface->Reference()->CenterPoint(irib, RefInterfaceCenter);
+	interface->Reference()->X(RefInterfaceCenter, InterfaceCenter);	
+
+      for (int isum = 0; isum < dim; isum++)
+	{
+	  left  += (LeftCenter[isum] - InterfaceCenter[isum]) * (LeftCenter[isum] - InterfaceCenter[isum]);
+	  right += (RightCenter[isum] - InterfaceCenter[isum]) * (RightCenter[isum] - InterfaceCenter[isum]);
+	}
+	left  = sqrt(left);
+	right = sqrt(right);
+	if(left < LeftDistance)
+	  LeftDistance = left;
+	if(right < RightDistance)
+	  RightDistance = right;	
+      }
+
 
       //<!>I think if it is not agglomerate, i.e. it is a CompElDisc, the InnerRadius is not stored, but computed
       //each time it is required.
       //if the stored inner radius is bigger than the computed one, the computed one takes its place, because of we are computing the INNER radius.
       if(LeftEl->Type()  == EAgglomerate){
-	if (LeftDistance  < LeftEl->InnerRadius()) LeftEl->SetInnerRadius(LeftDistance);
+	if (LeftDistance  < LeftEl->InnerRadius()) 
+	  LeftEl->SetInnerRadius(LeftDistance);
+
 	LeftEl ->SetNInterfaces(LeftEl->NInterfaces() + 1);
       }
+
       if(RightEl->Type() == EAgglomerate){
-	if (RightDistance < RightEl->InnerRadius()) RightEl->SetInnerRadius(RightDistance);
+	if (RightDistance < RightEl->InnerRadius()) 
+	  RightEl->SetInnerRadius(RightDistance);
+
 	RightEl->SetNInterfaces(RightEl->NInterfaces()+ 1);
       }
 
