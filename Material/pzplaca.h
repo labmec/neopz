@@ -60,6 +60,16 @@ class TPZPlaca : public TPZMaterial{
   /**returns the solution associated with the var index based on the finite element approximation*/
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 
+  /**Exact solution for tests*/
+  void SetExactFunction( void (*fp)(TPZFMatrix &axes,TPZVec<REAL> &x,TPZFMatrix &uexact,TPZFMatrix &duexact) )
+    {
+      fExactFunction = fp;
+    }
+  
+ protected:
+
+  void (*fExactFunction)(TPZFMatrix &axes,TPZVec<REAL> &x,TPZFMatrix &uexact,TPZFMatrix &duexact);
+
 };
 
 #endif

@@ -152,30 +152,46 @@ void TPZPlaca::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZ
 
    B000  = fB00R ;
 
+   int idf,jdf,i,j;
+   int nshape = phi.Rows();
+   TPZFMatrix KIJ(6,6);
+   
+   for(i=0; i<nshape; i++) {
+     if(fExactFunction) {
+       TPZFMatrix u(6,1),du(2,6),Fun(6,1),dux(6,1),duy(6,1);
+       fExactFunction(axes,x,u,du);
+       for(int k=0;k<6;k++){
+	 dux(k,0) = du(0,k);
+	 duy(k,0) = du(1,k);
+       }
+       Fun =  (dphi(0,i)*(Kn1n1*dux)+
+	       dphi(0,i)*(Kn1n2*duy)+
+	       dphi(1,i)*(Kn2n1*dux)+
+	       dphi(1,i)*(Kn2n2*duy)+
+	       dphi(0,i)*( Bn10* u )+
+	       dphi(1,i)*( Bn20* u )+
+	       phi(i,0) *(B0n1 *dux)+
+	       phi(i,0) *(B0n2 *duy)+
+	       phi(i,0) *( B000* u ));
+       for(idf=0; idf<6; idf++) ef(6*i+idf,0) += weight*Fun(idf,0)*phi(i,0);
+     }
 
-
-  int nshape = phi.Rows();
-  TPZFMatrix KIJ(6,6);
-
-
-
-  int idf,jdf,i,j;
-  for(i=0; i<nshape; i++) {
-  	for(idf=0; idf<6; idf++) ef(6*i+idf) += weight*fXF[idf]*phi(i,0);
-  	for(j=0; j<nshape; j++) {
-     KIJ = weight*(dphi(0,i)*dphi(0,j)*Kn1n1+
-                          dphi(0,i)*dphi(1,j)*Kn1n2+
-                          dphi(1,i)*dphi(0,j)*Kn2n1+
-                          dphi(1,i)*dphi(1,j)*Kn2n2+
-                          dphi(0,i)*phi(j)   *Bn10 +
-                          dphi(1,i)*phi(j)   *Bn20 +
-                          phi(i)   *dphi(0,j)*B0n1 +
-                          phi(i)   *dphi(1,j)*B0n2 +
-                          phi(i)   *phi(j)   *B000 );
-      for(idf=0; idf<6; idf++) for(jdf=0; jdf<6; jdf++)
-      	ek(i*6+idf,j*6+jdf) += KIJ(idf,jdf);
+     for(idf=0; idf<6; idf++) ef(6*i+idf,0) += weight*fXF[idf]*phi(i,0);
+     
+     for(j=0; j<nshape; j++) {
+       KIJ = weight*(dphi(0,i)*dphi(0,j)*Kn1n1+
+		     dphi(0,i)*dphi(1,j)*Kn1n2+
+		     dphi(1,i)*dphi(0,j)*Kn2n1+
+		     dphi(1,i)*dphi(1,j)*Kn2n2+
+		     dphi(0,i)*phi(j,0) *Bn10 +
+		     dphi(1,i)*phi(j,0) *Bn20 +
+		     phi(i,0) *dphi(0,j)*B0n1 +
+		     phi(i,0) *dphi(1,j)*B0n2 +
+		     phi(i,0) *phi(j,0) *B000 );
+       for(idf=0; idf<6; idf++) for(jdf=0; jdf<6; jdf++)
+	 ek(i*6+idf,j*6+jdf) += KIJ(idf,jdf);
+     }
    }
-  }
 }
 
 void TPZPlaca::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
@@ -240,11 +256,6 @@ void TPZPlaca::Flux(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix &/*dudx*/
   PZError << "TPZPlaca::Flux is called\n";
 }
 
-void TPZPlaca::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix &/*dudx*/,TPZFMatrix &/*axes*/,TPZVec<REAL> &/*flux*/,
-			 TPZVec<REAL> &/*u_exact*/,TPZFMatrix &/*du_exact*/,TPZVec<REAL> &/*values*/) {
-  PZError << "TPZPlaca::Errors is called\n";
-}
-
 void TPZPlaca::Print(ostream & out) {
   //out << "Material type TPZPlaca -- number = " << Id() << "\n";
   //out << "Matrix xk ->  "; fXk.Print("fXk",out);
@@ -259,23 +270,23 @@ void TPZPlaca::Print(ostream & out) {
 
   /**returns the variable index associated with the name*/
 int TPZPlaca::VariableIndex(char *name){
-	if(!strcmp(name,"Deslocx")) return 2;// Desloc. eixo x global
-	if(!strcmp(name,"Deslocy")) return 3;// Desloc. eixo y global
-	if(!strcmp(name,"Deslocz")) return 4;// Desloc. eixo z global
-   if(!strcmp(name,"Mn1"))     return 5;// Mom. fletor eixo n1 da fibra
-   if(!strcmp(name,"Mn2"))     return 6;// Mom. fletor eixo n2 da fibra
-   if(!strcmp(name,"Mn1n2"))   return 7;// Mom. volvente eixos n1 e n2 da fibra
-   if(!strcmp(name,"Sign1"))   return 8;// tensão normal na direção n1
-   if(!strcmp(name,"Sign2"))   return 9;// tensão normal na direção n2
-   if(!strcmp(name,"Taun1n2")) return 10;// tensão cisalhamento eixos n1 e n2
-   if(!strcmp(name,"Taun1n3")) return 11;// tensão cisalhamento eixos n1 e n3
-   if(!strcmp(name,"Taun2n3")) return 12;// tensão cisalhamento eixos n2 e n2
-   if(!strcmp(name,"Displacement")) return 13;// deslocamento x,y,z
-   int var;
-   cout << "TPZPlaca name not found " << name << endl;
-   cout.flush();
-   cin >> var;
-
+  if(!strcmp(name,"Deslocx")) return 2;// Desloc. eixo x global
+  if(!strcmp(name,"Deslocy")) return 3;// Desloc. eixo y global
+  if(!strcmp(name,"Deslocz")) return 4;// Desloc. eixo z global
+  if(!strcmp(name,"Mn1"))     return 5;// Mom. fletor eixo n1 da fibra
+  if(!strcmp(name,"Mn2"))     return 6;// Mom. fletor eixo n2 da fibra
+  if(!strcmp(name,"Mn1n2"))   return 7;// Mom. volvente eixos n1 e n2 da fibra
+  if(!strcmp(name,"Sign1"))   return 8;// tensão normal na direção n1
+  if(!strcmp(name,"Sign2"))   return 9;// tensão normal na direção n2
+  if(!strcmp(name,"Taun1n2")) return 10;// tensão cisalhamento eixos n1 e n2
+  if(!strcmp(name,"Taun1n3")) return 11;// tensão cisalhamento eixos n1 e n3
+  if(!strcmp(name,"Taun2n3")) return 12;// tensão cisalhamento eixos n2 e n2
+  if(!strcmp(name,"Displacement")) return 13;// deslocamento x,y,z
+  int var;
+  cout << "TPZPlaca name not found " << name << endl;
+  cout.flush();
+  cin >> var;
+  
    return TPZMaterial::VariableIndex(name);
 }
 
@@ -356,7 +367,7 @@ void TPZPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
           Mn1 = -fE1*fh*fh*fh*fmi*(-fni2*DSolnn(1,3)+DSolnn(0,4))/12.;
           Mn1 += fE1*ff*fh*fmi*(ff*fni2*DSolnn(1,3)-fni2*DSolnn(1,1)
           -ff*DSolnn(0,4)-DSolnn(0,0));
-          Solout[0] = Mn1;
+          Solout[0] = -Mn1;
           return;
       }
 
@@ -365,7 +376,7 @@ void TPZPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
           Mn2  =-(fE2*fh*fh*fh*fmi*(-DSolnn(1,3) + fni1*DSolnn(0,4)))/12.;
           Mn2 +=  fE2*ff*fh*fmi*(ff*DSolnn(1,3)  - DSolnn(1,1) -
                   ff*fni1*DSolnn(0,4) - fni1*DSolnn(0,0));
-          Solout[0] = Mn2;
+          Solout[0] = -Mn2;
           return;
       }
 
@@ -374,7 +385,7 @@ void TPZPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
           Mn1n2  = fG12*fh*fh*fh*(DSolnn(1,4) - DSolnn(0,3))/24.;
           Mn1n2 += (ff*fG12*fh*(ff*DSolnn(1,4) + DSolnn(1,0) -
                     ff*DSolnn(0,3) + DSolnn(0,1)))/2.;
-          Solout[0] = Mn1n2;
+          Solout[0] = -Mn1n2;
           return;
       }
       if (var == 8 ) {
@@ -423,3 +434,48 @@ void TPZPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
 }
 
 
+void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx,TPZFMatrix &axes,TPZVec<REAL> &flux,
+			 TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
+
+  //ENERGY NORM
+  //solution error:
+  int ndof = NStateVariables();
+  TPZFMatrix err(ndof,1),dxerr(ndof,1),dyerr(ndof,1);
+  int i;
+  // u - uh
+  for(i=0;i<6;i++) err(i,0) = u_exact[i] - u[i];
+  // du/dx - duh/dx
+  for(i=0;i<6;i++){
+    dxerr(i,0) = du_exact(0,i) - dudx(0,i);
+    dyerr(i,0) = du_exact(1,i) - dudx(1,i);
+  }
+  // error transpose
+  TPZFMatrix errt(1,ndof),dxerrt(1,ndof),dyerrt(1,ndof);
+  err.Transpose(&errt);
+  dxerr.Transpose(&dxerrt);
+  dyerr.Transpose(&dyerrt);
+  TPZFMatrix ENERGY(1,1);
+  
+  //ENERGY norm calculation
+  ENERGY  = dxerrt * (fKxxR * dxerr) + dyerrt * (fKyyR * dyerr);
+  ENERGY += dxerrt * (fKxyR * dyerr) + dyerrt * (fKyxR * dxerr);
+  ENERGY += errt   * (fB0xR * dxerr) + dxerrt * (fBx0R *   err);
+  ENERGY += errt   * (fB0yR * dyerr) + dyerrt * (fBy0R *   err);
+  ENERGY += errt   * (fB00R * err);
+  values[0] = ENERGY(0,0);  
+
+}
+
+//   // u - uh
+//     for(i=0;i<6;i++) err(i,0) = 0.0;
+//   // du/dx - duh/dx
+//   for(i=0;i<6;i++){
+//     dxerr(i,0) = 0.0;
+//     dyerr(i,0) = 0.0;
+//   }
+
+//   // u - uh
+//   err(2,0) = fabs(u_exact[2] - u[2]);
+//   // du/dx - duh/dx
+//   dxerr(2,0) = fabs(du_exact(0,2) - dudx(0,2));
+//   dyerr(2,0) = fabs(du_exact(1,2) - dudx(1,2));
