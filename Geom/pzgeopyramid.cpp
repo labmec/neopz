@@ -15,6 +15,9 @@
 #include "pzshapetetra.h"
 #include "pzshapepiram.h"
 
+using namespace pzshape;
+
+namespace pzgeom {
 
 void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
   if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
@@ -222,3 +225,5 @@ TPZIntPoints * TPZGeoPyramid::CreateSideIntegrationRule(int side, int order){
 	}
 	return 0;
 }
+
+};

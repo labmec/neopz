@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.7 2004-12-17 13:10:48 phil Exp $
+//$Id: pzgnode.h,v 1.8 2005-02-28 22:08:52 phil Exp $
 
 /**File : pzgnode.h
 
@@ -24,6 +24,13 @@ class TPZVec;
 class TPZGeoMesh;
 class TPZGeoEl;
 
+/// Implements a geometric node in the pz environment
+/**
+A geometric node is a place holder for 3d coordinates and a global Id
+Note that the global id will influence the orientation of the shape functions
+It is very important that the global Ids will not be duplicated within a single mesh
+@ingroup geometry
+*/
 class TPZGeoNode : public TPZSaveable {
 
   /**Identity of node*/
@@ -100,10 +107,11 @@ inline REAL TPZGeoNode::Coord(int i) {
   return fCoord[i];
 }
 
-/**TPZGeoNodeBC
-
-TPZGeoNodeBc defines a boundary condition applied to a geometrical node
-*******       *******/
+///TPZGeoNodeBc defines a boundary condition applied to a geometrical node
+/**
+\deprecated
+@ingroup geometry
+*/
 
 struct TPZGeoNodeBC {
   TPZGeoNode	 	*fNode;

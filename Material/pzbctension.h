@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzbctension.h,v 1.6 2003-11-07 00:40:34 phil Exp $
+// $Id: pzbctension.h,v 1.7 2005-02-28 22:08:18 phil Exp $
 
 #ifndef BCTENSIONHPP
 #define BCTENSIONHPP
@@ -16,8 +16,7 @@ class TPZInterpolatedElement;
 class TPZMulticamadaOrthotropic;
 
 
-// this class defines the boundary condition for a 1d linear problem
-
+/// Class which implements a tension boundary condition, where the tensor is computed from a finite element analysis
 class TPZBCTension : public TPZBndCond {
 
   TPZMulticamadaOrthotropic *fMultCam;

@@ -9,6 +9,9 @@ class TPZGeoEl;
 class TPZGeoElSide;
 class TPZTransform;
 
+namespace pzrefine {
+
+/// implements the uniform refinement of a geometric prism element
 class TPZRefPrism {
 
 public:
@@ -24,5 +27,7 @@ public:
 	static TPZTransform GetTransform(int side,int son);
 	static int FatherSide(int side,int son);
 	//static int NSubElements();
+};
+
 };
 #endif

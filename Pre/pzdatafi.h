@@ -56,9 +56,6 @@ Jose Sergio Rodrigues Alves Filho
 Philippe Remy Bernard Devloo
 
 ************************************************************************** */
-
-
-//------------------------------------------------------------
 class TDatafile 
 {
 protected:

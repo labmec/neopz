@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.30 2004-09-07 23:41:33 phil Exp $
+//$Id: pzeulerconslaw.h,v 1.31 2005-02-28 22:08:18 phil Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -8,7 +8,6 @@
 #include "tpzoutofrange.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
-//#include "TPZConservationLaw.h"
 #include "pzconslaw.h"
 #include "pzartdiff.h"
 
@@ -20,6 +19,7 @@
    //#define _TINYFAD // Doesn't work well -> apparently, derivatives do not accumulate well.
 #endif
 
+/// This material implements the weak statement of the compressible euler equations
 class TPZEulerConsLaw2  : public TPZConservationLaw2
 {
 public :

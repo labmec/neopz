@@ -6,7 +6,10 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 
-
+/// This class implements the interface for conservation laws, keeping track of the timestep as well
+/**
+THIS CLASS IS DEPRECATED BY TPZConservationLaw2
+*/
 class TPZConservationLaw  : public TPZMaterial {
 
   int fDim;

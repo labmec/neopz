@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.14 2004-10-06 19:20:57 phil Exp $
+//$Id: pzcompel.cpp,v 1.15 2005-02-28 22:08:50 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -1035,5 +1035,5 @@ void TPZCompEl::Read(TPZStream &buf, void *context)
 
 void TPZCompEl::SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,
 								TPZFMatrix & phi,TPZFMatrix & dphi)) {
-	TPZShapeLinear::fOrthogonal = orthogonal;
+	pzshape::TPZShapeLinear::fOrthogonal = orthogonal;
 }

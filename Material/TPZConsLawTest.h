@@ -7,6 +7,8 @@
 #include "pzvec.h"
 #include "TPZConservationLaw.h"
 
+
+/// DEPRECATED CLASS, was used for testing purposes
 class TPZConsLawTest  : public TPZConservationLaw {
   
   TPZFMatrix fXf;//fonte

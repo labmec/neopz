@@ -1,5 +1,3 @@
-/**This class implementent : "A Fast hp Adaptive Finite Element Mesh Design"
-                       for : A. A. Novotny et al.*/
 // -*- c++ -*-
                        
 #ifndef TPZANALYSISERRORH
@@ -15,6 +13,8 @@ using namespace std;
 class TPZCompMesh;
 class TPZCompElSide;
 
+/**This class implements : "A Fast hp Adaptive Finite Element Mesh Design"
+                       for : A. A. Novotny et al.*/
 class TPZAnalysisError : public TPZAnalysis {
 
    TPZManVector<int> fElIndexes;

@@ -1,4 +1,4 @@
-//$Id: pzgeoelbc.h,v 1.3 2004-04-26 14:27:03 phil Exp $
+//$Id: pzgeoelbc.h,v 1.4 2005-02-28 22:08:52 phil Exp $
 
 #ifndef PZGEOELBCH
 #define PZGEOELBCH
@@ -14,6 +14,13 @@ class TPZGeoElSide;
 
 /*******       TPZGeoElBC       *******/
 
+/// Associates an geometric element side with a boundary condition
+/**
+within the pz environment specific geometric elements represent the boundary conditions
+This class simplifies the creation of these boundary elements
+The constructor of the class automatically creates a copy of the object in the mesh object which is passed as parameter
+@ingroup geometry
+*/
 struct TPZGeoElBC : public TPZSaveable {
   TPZGeoEl		*fElement;
   TPZGeoEl		*fBCElement;

@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.14 2004-08-17 18:48:09 cesar Exp $
+//$Id: pzgeoelside.cpp,v 1.15 2005-02-28 22:08:52 phil Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -12,6 +12,7 @@
 #include "pzcompel.h"
 #include "pzintel.h"
 
+using namespace pzshape;
 
 void TPZGeoElSide::RemoveConnectivity(){
 

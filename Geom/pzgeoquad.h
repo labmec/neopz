@@ -17,6 +17,10 @@ class TPZGeoEl;
 class TPZIntPoints;
 class TPZIntQuad;
 class TPZGraphElQ2dd;
+
+namespace pzgeom {
+
+/// implements the geometry of a quadrilateral element
 class TPZGeoQuad  
 {
 public:
@@ -55,4 +59,5 @@ static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
   typedef TPZGraphElQ2dd GraphElType;
 };
 
+};
 #endif 

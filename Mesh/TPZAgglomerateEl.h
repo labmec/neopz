@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.22 2004-07-29 18:46:30 tiago Exp $
+//$Id: TPZAgglomerateEl.h,v 1.23 2005-02-28 22:08:52 phil Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -17,13 +17,14 @@ class TPZGeoElSide;
 class TPZInterfaceElement;
 struct TPZElementMatrix;
 class TPZAgglomerateMesh;
-using namespace std;
+//using namespace std;
 
+/// Implements an agglomerated discontinuous element
 /**
  * TPZAgglomerateElement clase that it manages the generation of elements 
  * from the agglomeration of some geometric elements
+ @ingroup CompElement
  */
-
 class TPZAgglomerateElement : public TPZCompElDisc { 
 
 private:

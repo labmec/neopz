@@ -10,6 +10,9 @@ class TPZGeoEl;
 class TPZGeoElSide;
 class TPZTransform;
 
+namespace pzrefine {
+
+/// implements the uniform refinement of a geometric hexahedral element
 class TPZRefQuad {
 
 public:
@@ -25,5 +28,7 @@ static int NSideSubElements(int side);
 static TPZTransform GetTransform(int side,int son);
 static int FatherSide(int side,int son);
 //static int NSubElements();
+};
+
 };
 #endif

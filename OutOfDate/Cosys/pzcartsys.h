@@ -6,11 +6,11 @@ class TPZCosys;
 
 #include "pzcosys.h"
 #include "pzvec.h"
+
 /**
  * @ingroup cosys
- * Defines the cartesian coordinate system class
+ * @brief Defines the cartesian coordinate system class
  */
-
 class  TPZCartsys : public TPZCosys {
 
 public:

@@ -211,6 +211,11 @@ TPZGeoElement<TShape,TGeo,TRef>::ClassId() const {
   return -1;
 }
 */
+
+using namespace pzgeom;
+using namespace pzrefine;
+using namespace pzshape;
+
 template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
 template class TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>;
 template class TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>;

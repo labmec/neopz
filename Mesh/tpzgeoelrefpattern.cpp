@@ -38,6 +38,9 @@
 #include "pzvec.h"
 #include "pzmanvector.h"
 
+using namespace pzgeom;
+using namespace pzshape;
+
 class TPZGeoElRefPattern<TPZShapeCube,TPZGeoCube>;
 class TPZGeoElRefPattern<TPZShapeLinear,TPZGeoLinear>;
 class TPZGeoElRefPattern<TPZShapeQuad,TPZGeoQuad>;

@@ -11,6 +11,9 @@ class TPZGeoEl;
 class TPZGeoElSide;
 class TPZTransform;
 
+namespace pzrefine {
+
+/// implements the uniform refinement of a geometric hexahedral element
 class TPZRefPyramid{
 
 public:
@@ -26,5 +29,7 @@ public:
 	static int FatherSide(int side,int son);
 	static void MidCoordSide(int side,TPZVec<REAL> &coord);
 	//static int NSubElements();
+};
+
 };
 #endif

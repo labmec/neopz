@@ -1,4 +1,4 @@
-//$Id: pzelctemp.h,v 1.7 2004-04-26 14:26:17 phil Exp $
+//$Id: pzelctemp.h,v 1.8 2005-02-28 22:08:51 phil Exp $
 
 // -*- c++ -*-
 #ifndef PZELCTEMPH
@@ -6,6 +6,11 @@
 
 #include "pzintel.h"
 
+/// This class implements a "generic" computational element
+/**
+By varying the classes passed as template arguments, the complete family of computational elements are implemented
+@ingroup CompElement
+*/
 template<class TGEO, class TSHAPE>
 class TPZIntelGen : public TPZInterpolatedElement {
 

@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.16 2004-06-15 18:51:03 erick Exp $
+//$Id: pzconslaw.h,v 1.17 2005-02-28 22:08:18 phil Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -9,7 +9,7 @@
 #include "pzvec.h"
 #include "pzdiscgal.h"
 
-
+/// Indicates the type of time discretization
 enum TPZTimeDiscr
 {
    None_TD = -1,
@@ -19,6 +19,7 @@ enum TPZTimeDiscr
    Unknown_TD = 3
 };
 
+/// indicates which term is put in the right hand side and tangent matrix
 enum TPZContributeTime
 {
    None_CT = -1,
@@ -26,6 +27,7 @@ enum TPZContributeTime
    Advanced_CT = 1
 };
 
+/// which terms are being contributed
 enum TPZResidualType
 {
    None_RT = -1,
@@ -33,6 +35,10 @@ enum TPZResidualType
    Flux_RT = 1
 };
 
+/// This class implements the interface for conservation laws, keeping track of the timestep as well
+/**
+This class defines the aditional interface necessary to compute contributions over the interfaces between elements
+*/
 class TPZConservationLaw2  : public TPZDiscontinuousGalerkin
 {
 public:

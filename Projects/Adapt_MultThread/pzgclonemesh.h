@@ -28,7 +28,7 @@ class TPZGeoNode;
 class TPZGeoEl;
 
 
-
+/// class which implements a geometric mesh which contains references to a reference mesh
 class  TPZGeoCloneMesh : public TPZGeoMesh
 {
 

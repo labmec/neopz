@@ -60,7 +60,7 @@ void cblas_daxpy(const int N, const void *alpha, const void *X,
 TPZFMatrix::TPZFMatrix(const TPZMatrix &mat) : TPZMatrix(mat), fElem(0),fGiven(0),fSize(0) {
   if(fRow*fCol) {
     fElem = new REAL[fRow*fCol];
-    REALPtr p = fElem;
+    REAL * p = fElem;
     int i,j;
     for(j=0; j<fCol; j++) {
       for(i=0; i<fRow; i++) {
@@ -85,8 +85,8 @@ TPZFMatrix::TPZFMatrix (const TPZFMatrix & A)
     if ( size && fElem == NULL ) Error( "Constructor <memory allocation error>." );
 #endif
     // Copia a matriz
-    REALPtr src = A.fElem;
-    REALPtr p = fElem;
+    REAL * src = A.fElem;
+    REAL * p = fElem;
     memcpy(p,src,(size_t)size*sizeof(REAL));
   }
 
@@ -155,7 +155,7 @@ TPZFMatrix &TPZFMatrix::operator=(const TPZFMatrix &A ) {
 	if(this == &A) return *this;
 	 long size = A.fRow * A.fCol;
 
-	 REALPtr newElem = fElem;
+	 REAL * newElem = fElem;
 	 if(fSize < size && size != fRow*fCol) {
 		 newElem = new( REAL[size] );
 	 } else if (fSize >= size) {
@@ -213,9 +213,9 @@ TPZTempFMatrix TPZFMatrix::operator+(const TPZFMatrix &A ) const {
   TPZTempFMatrix res;
   res.Object().Redim( Rows(), Cols() );
   long size = ((long)Rows()) * Cols();
-  REALPtr pm = fElem, plast = fElem+size;
-  REALPtr pa = A.fElem;
-  REALPtr pr = res.Object().fElem;
+  REAL * pm = fElem, *plast = fElem+size;
+  REAL * pa = A.fElem;
+  REAL * pr = res.Object().fElem;
 
   while(pm < plast) *pr++ = (*pm++) + (*pa++);
 
@@ -234,9 +234,9 @@ TPZTempFMatrix TPZFMatrix::operator-(const TPZFMatrix &A ) const {
 	 TPZTempFMatrix res;
     res.Object().Redim( Rows(), Cols() );
 	 long size = ((long)Rows()) * Cols();
-	 REALPtr pm = fElem;
-	 REALPtr pa = A.fElem;
-	 REALPtr pr = res.Object().fElem, prlast =pr+size;
+	 REAL * pm = fElem;
+	 REAL * pa = A.fElem;
+	 REAL * pr = res.Object().fElem, *prlast =pr+size;
 
 	 while(pr < prlast) *pr++ = (*pm++) - (*pa++);
 	 return( res );
@@ -292,8 +292,8 @@ void TPZFMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
   for (ic = 0; ic < xcols; ic++) {
     if(!opt) {
       for ( c = 0; c<cols; c++) {
-	REALPtr zp = &z(0,ic), zlast = zp+rows*stride;
-	REALPtr fp = fElem +rows*c;
+	REAL * zp = &z(0,ic), *zlast = zp+rows*stride;
+	REAL * fp = fElem +rows*c;
 	const REAL * xp = &x.g(c*stride,ic);
 	while(zp < zlast) {
 	  *zp += alpha* *fp++ * *xp;
@@ -301,11 +301,11 @@ void TPZFMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 	}
       }
     } else {
-      REALPtr fp = fElem,  zp = &z(0,ic);
+      REAL * fp = fElem,  *zp = &z(0,ic);
       for (c = 0; c<cols; c++) {
 	REAL val = 0.;
 	// bug correction philippe 5/2/97
-	//					 REALPtr xp = &x(0,ic), xlast = xp + numeq*stride;
+	//					 REAL * xp = &x(0,ic), xlast = xp + numeq*stride;
 	const REAL *xp = &x.g(0,ic);
 	const REAL *xlast = xp + rows*stride;
 	while(xp < xlast) {
@@ -342,8 +342,8 @@ TPZFMatrix & TPZFMatrix::operator+=(const TPZFMatrix &A ) {
 		  Error( "Operator+= <matrixs with different dimensions>" );
 
 	 long size = ((long)Rows()) * Cols();
-	 REALPtr pm = fElem, pmlast=pm+size;
-	 REALPtr pa = A.fElem;
+	 REAL * pm = fElem, *pmlast=pm+size;
+	 REAL * pa = A.fElem;
 	 while(pm < pmlast) (*pm++) += (*pa++);
 	 return( *this );
 }
@@ -358,8 +358,8 @@ TPZFMatrix &TPZFMatrix::operator-=(const TPZFMatrix &A ) {
 		  Error( "Operator-= <matrixs with different dimensions>" );
 
 	 long size = ((long)Rows()) * Cols();
-	 REALPtr pm = fElem;
-	 REALPtr pa = A.fElem;
+	 REAL * pm = fElem;
+	 REAL * pa = A.fElem;
 
 	 for ( long i = 0; i < size; i++ ) *pm++ -= *pa++;
 
@@ -370,9 +370,9 @@ void TPZFMatrix::ZAXPY(const REAL alpha,const TPZFMatrix &p) {
 
 #ifndef USING_ATLAS
 #ifndef USING_BLAS
-	REALPtr pt = fElem;
-	REALPtr pp = p.fElem;
-	REALPtr ptlast = fElem + fRow*fCol;
+	REAL * pt = fElem;
+	REAL * pp = p.fElem;
+	REAL * ptlast = fElem + fRow*fCol;
 	while(pt < ptlast) *pt++ += alpha * *pp++;
 #endif
 #endif
@@ -395,8 +395,8 @@ void TPZFMatrix::TimesBetaPlusZ(const REAL beta,const TPZFMatrix &z) {
   cblas_daxpy(size,1.,z.fElem,1,fElem,1);
 #else
 
-	REALPtr pt = fElem,  ptlast = fElem + fRow*fCol;
-	REALPtr pz = z.fElem;
+	REAL * pt = fElem,  *ptlast = fElem + fRow*fCol;
+	REAL * pz = z.fElem;
 //	while(pt < ptlast) *pt++ *= (beta) + *pz++;
 	while(pt < ptlast) {
 		*pt *= (beta);
@@ -428,7 +428,7 @@ TPZFMatrix &TPZFMatrix::operator=(const TPZMatrix &A ) {
   } else {
     fElem = fGiven;
   }
-  REALPtr dst = fElem;
+  REAL * dst = fElem;
   for ( int c = 0; c < fCol; c++ )
     for ( int r = 0; r < fRow; r++ ) 
       *dst++ = A.Get( r, c );
@@ -446,8 +446,8 @@ TPZTempFMatrix TPZFMatrix::operator+(const TPZMatrix &A ) const {
 
 	 TPZTempFMatrix res;
     res.Object().Redim( Rows(), Cols() );
-	 REALPtr src = fElem;
-	 REALPtr dst = res.Object().fElem;
+	 REAL * src = fElem;
+	 REAL * dst = res.Object().fElem;
 	 long row = Rows();
 	 long col = Cols();
 	 for ( int c = 0; c < col; c++ )
@@ -490,9 +490,9 @@ TPZTempFMatrix TPZFMatrix::operator*(const TPZMatrix &A ) const {
 				rows=Rows(),
 				cols=Cols();
 
-	 REALPtr pr = res.Object().fElem, /*Percorre os elementos da matriz 'res'*/
-				pm,
-				pm_aux;
+	 REAL * pr = res.Object().fElem, /*Percorre os elementos da matriz 'res'*/
+				*pm,
+				*pm_aux;
 
 	 for (  c = 0; c < acols; c++) {
 		  pm = fElem;     // Percorre os elementos desta matriz.
@@ -520,7 +520,7 @@ TPZFMatrix &TPZFMatrix::operator+=(const TPZMatrix &A ) {
 	 if ( (Rows() != A.Rows()) || (Cols() != A.Cols()) )
 		  Error( "Operator+ (TPZMatrix &) <different dimensions>" );
 
-	 REALPtr pm = fElem;
+	 REAL * pm = fElem;
 	 long cols = Cols();
 	 long rows = Rows();
 	 for ( int c = 0; c < cols; c++ )
@@ -539,7 +539,7 @@ TPZFMatrix &TPZFMatrix::operator-=(const TPZMatrix &A ) {
 	 if ( (Rows() != A.Rows()) || (Cols() != A.Cols()) )
 		  Error( "Operator+ (TPZMatrix &) <different dimensions>" );
 
-	 REALPtr pm = fElem;
+	 REAL * pm = fElem;
 	 int cols = Cols();
 	 int rows = Rows();
 	 for ( int c = 0; c < cols; c++ )
@@ -558,7 +558,7 @@ TPZFMatrix &TPZFMatrix::operator-=(const TPZMatrix &A ) {
 
 TPZFMatrix& TPZFMatrix::operator=(const REAL value ) {
 	 long size = ((long)fRow) * fCol;
-	 REALPtr dst   = fElem;
+	 REAL * dst   = fElem;
 	 for ( long i = 0; i < size; i++ )
 		  *dst++ = value;
 	 fDecomposed = 0;
@@ -573,7 +573,7 @@ TPZFMatrix& TPZFMatrix::operator=(const REAL value ) {
 TPZFMatrix &TPZFMatrix::operator+=(const REAL value ) {
 	 long size = ((long)Rows()) * Cols();
 
-	 REALPtr dst = fElem, dstlast = dst+size;
+	 REAL * dst = fElem, *dstlast = dst+size;
 	 while ( dst < dstlast ) *dst++ += value;
 	 return( *this );
 }
@@ -587,7 +587,7 @@ TPZTempFMatrix TPZFMatrix::operator+(const REAL value ) const {
 	 TPZTempFMatrix res( *this );
 	 long size = ((long)Rows()) * Cols();
 
-	 REALPtr dst = res.Object().fElem,  dstlast = dst+size;
+	 REAL * dst = res.Object().fElem,  *dstlast = dst+size;
 	 while ( dst < dstlast )
 		  *dst++ += value;
 
@@ -617,7 +617,7 @@ TPZFMatrix::operator*(const REAL value ) const
 
 TPZFMatrix &TPZFMatrix::operator*=( const REAL value ) {
   long size = ((long)Rows()) * Cols();
-  REALPtr dst = fElem, dstlast = dst+size;
+  REAL * dst = fElem, *dstlast = dst+size;
   while ( dst < dstlast ) *dst++ *= value;
   return( *this );
 }
@@ -631,11 +631,11 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
 	 if ( newRows == Rows() && newCols == Cols() )
 		  return( 1 );
 	 long newsize = ((long)newRows)*newCols;
-	 REALPtr newElem;
+	 REAL * newElem;
 	 if(fGiven && fElem != fGiven && newsize <= fSize) {
 		  newElem = fGiven;
 	 } else {
-		 // newElem = (REALPtr) calloc(newRows*newCols,sizeof(REAL));//
+		 // newElem = (REAL *) calloc(newRows*newCols,sizeof(REAL));//
        newElem = new( REAL[ newRows * newCols ] );
 	 }
 	 if ( newElem == NULL )
@@ -643,8 +643,8 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
 
 	 long minRow  = ( fRow < newRows ? fRow : newRows );
 	 long minCol  = ( fCol < newCols ? fCol : newCols );
-	 REALPtr src;
-	 REALPtr dst;
+	 REAL * src;
+	 REAL * dst;
 	 long r, c;
 
 	 for ( c = 0; c < minCol; c++ ) {
@@ -700,10 +700,10 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
         fElem = NULL;
     } else {
 #ifdef __BOORLANDC__
-		  //fElem = (REALPtr) farcalloc(newsize,sizeof(REAL));//
+		  //fElem = (REAL *) farcalloc(newsize,sizeof(REAL));//
         fElem = new( REAL[ newsize ] );
 #else
-		  //fElem = (REALPtr) calloc(newsize,sizeof(REAL));//
+		  //fElem = (REAL *) calloc(newsize,sizeof(REAL));//
 		  fElem = new( REAL[ newsize ] );
 #endif
 	 }
@@ -724,7 +724,7 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
 /*int TPZFMatrix::Zero() {
 	 int size = fRow * fCol * sizeof(REAL);
 	 memset(fElem,'\0',size);
-//	 REALPtr p = fElem, plast = p+size;
+//	 REAL * p = fElem, plast = p+size;
 //	 while(p < plast) *p++ = 0.0;
 	 fDecomposed = 0;
 	 return( 1 );
@@ -739,7 +739,7 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
 void TPZFMatrix::Transpose(TPZMatrix *const T) const{
 	  T->Resize( Cols(), Rows() );
 //Transposta por filas
-	 REALPtr p = fElem;
+	 REAL * p = fElem;
 	 for ( int c = 0; c < Cols(); c++ ) {
 		 for ( int r = 0; r < Rows(); r++ ) {
 				T->PutVal( c, r, *p++ );
@@ -774,7 +774,7 @@ int TPZFMatrix::Decompose_LU() {
   if (  fDecomposed && fDecomposed != ELU)  Error( "Decompose_LU <TPZFMatrix already Decomposed with other scheme>" );
   if (fDecomposed) return 1;
   REAL nn;
-  REALPtr ptrpivot,pik, pij,pkj;
+  REAL * ptrpivot,*pik, *pij,*pkj;
   
   int i,j,k,rows=Rows(),cols=Cols();
   int  min = ( cols < (rows-1) ) ? cols : rows - 1;

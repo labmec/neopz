@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.25 2004-04-26 13:06:27 phil Exp $
+//$Id: TPZInterfaceEl.h,v 1.26 2005-02-28 22:08:52 phil Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -16,9 +16,11 @@
 #include <time.h>
 #include <stdlib.h>
 #include <iostream>
-using namespace std;
-class TPZGeoElQ2d;
 
+/// This class computes the contribution over an interface between two discontinuous elements
+/**
+@ingroup CompElement
+*/
 class TPZInterfaceElement : public TPZCompEl {
 
   /**

@@ -8,10 +8,8 @@
 
 /**
  * @ingroup cosys
- * Defines the esferical coordinate system
+ * @brief Defines the esferical coordinate system
  */
-
-
 class TPZEsfersys : public TPZCosys {
 
  public:

@@ -1,7 +1,7 @@
 //HEADER FILE FOR CLASS ELBAS
 
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.14 2004-10-06 19:20:57 phil Exp $
+// $Id: pzcompel.h,v 1.15 2005-02-28 22:08:50 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -48,7 +48,7 @@ class TPZTransfer;
 
 
 /**
- * @brief Class TPZCompEl implemments computational element
+ * @brief Class TPZCompEl defines the interface of a computational element
 
  * @ingroup CompElement
  */
@@ -469,6 +469,12 @@ public:
 
 class TPZGeoElSide;
 
+/// this class represents a computational element and a side
+/**
+This class was created to implement all algorithms associated with element/sides
+Objects of this class are mostly temporary
+@ingroup interpolation
+*/
 class TPZCompElSide {
 
   /**

@@ -11,6 +11,9 @@
 //#include "pzelgq2d.h"
 #include "pzshapequad.h"
 
+using namespace pzshape;
+
+namespace pzgeom {
 
 void TPZGeoQuad::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
@@ -170,3 +173,5 @@ TPZIntPoints * TPZGeoQuad::CreateSideIntegrationRule(int side, int order){
   if(side==8) return new TPZIntQuad(order,order);
   return 0;
 }
+
+};

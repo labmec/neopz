@@ -6,7 +6,7 @@
 //#include "pzgeoelside.h"
 #include "pzgmesh.h"
 
-
+namespace pzrefine {
 static int subeldata[1][1][2] =
 {
 	{{0}}
@@ -143,3 +143,5 @@ int TPZRefPoint::FatherSide(int side,int whichsubel) {
 	}
 	return 0;//fatherside[whichsubel][side];
 }
+
+};

@@ -6,6 +6,10 @@
 #include "pzshapecube.h"
 #include "pzquad.h"
 
+using namespace pzshape;
+
+namespace pzgeom {
+
 void TPZGeoCube::X(TPZFMatrix &nodes,TPZVec<REAL> & loc,TPZVec<REAL> &result){
 
   int nrow = nodes.Rows();
@@ -210,3 +214,4 @@ TPZIntPoints *TPZGeoCube::CreateSideIntegrationRule(int side, int order){
 
 }
 
+};

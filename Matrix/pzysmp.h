@@ -31,6 +31,10 @@ class TPZFYsmpMatrix : public TPZMatrix {
 
   public :
 
+/// An auxiliary structure to hold the data of the subset of equations used to multiply in a multitrheaded environment
+/**
+In future versions this structure should be defined in a derived class
+*/
  struct TPZMThread {
    const TPZFYsmpMatrix *target;
    int fFirsteq;

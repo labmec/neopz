@@ -8,6 +8,11 @@
 #include "pzgeoel.h"
 #include "pzgmesh.h"
 
+using namespace pzshape;
+
+namespace pzrefine {
+
+
 static int nsubeldata[15] = {1,1,1,1,3,3,3,3,3,3,7,7,7,7,11};
 
 static int subeldata[15][11][2] = {//TAMANHO DISTINTO
@@ -366,3 +371,4 @@ int TPZRefTetrahedra::FatherSide(int side,int whichsubel){
 	return fatherside[whichsubel][side];
 }
 
+};

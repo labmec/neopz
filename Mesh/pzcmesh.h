@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.20 2004-10-06 19:20:57 phil Exp $
+//$Id: pzcmesh.h,v 1.21 2005-02-28 22:08:50 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -14,7 +14,8 @@
 //#include <iostream>
 //using namespace std;
 
-#include <string.h>
+#include <set>
+#include <string>
 #include "pzreal.h"	// Added by ClassView
 #include "pzsave.h"
 
@@ -30,13 +31,15 @@ class TPZTransfer;
 class TPZCoSys;
 class TPZGeoEl;
 class TPZStream;
-	/**
-	 * Class TPZCompMesh implemments computational mesh
-	 * @ingroup CompMesh
-	 */
-//-----------------------------------------------------------------------------
-// class structure
-//-----------------------------------------------------------------------------
+/**
+ * @brief Class TPZCompMesh implemments computational mesh
+ The computational mesh is a repository for computational elements, nodes and
+ material objects
+ The computational mesh also contains the current solution of the mesh and an
+ elementwise solution vector
+ The data structure of this object is rather simple
+ * @ingroup CompMesh
+ */
 class TPZCompMesh : public virtual TPZSaveable {
 
 protected:
@@ -48,7 +51,7 @@ protected:
   /**
    * Grid name for model identification
    */
-  string fName;
+  std::string fName;
   
 
   /**
@@ -120,9 +123,14 @@ public:
   virtual REAL CompareMesh(int var, char *matname);
   /**
    * Gives all patches of the mesh
-   * @param grefpatch - stack where will be inserted the geometric elements
+   * @param grpatch - stack where will be inserted the geometric elements
    */
    void GetRefPatches(TPZStack<TPZGeoEl *> &grpatch);
+  /**
+   * Gives all patches of the mesh
+   * @param grpatch - set with all reference geometric elements
+   */
+   void GetRefPatches(std::set<TPZGeoEl *>  &grpatch);
 
    /**
     * Gives the conects graphs
@@ -141,7 +149,7 @@ public:
   /**
    * Set the mesh name
    */
-  void SetName(const string &nm);
+  void SetName(const std::string &nm);
 
   /**set de dimension of the domain of the problem*/
   void SetDimModel(int dim){fDimModel = dim;}
@@ -152,7 +160,7 @@ public:
   /**
    * Return the mesh name
    */
-  string &Name() {return fName;}
+  std::string &Name() {return fName;}
 
   /**
    * Delete all the dynamically allocated data structures

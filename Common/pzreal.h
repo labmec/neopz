@@ -22,6 +22,10 @@ extern int gPrintLevel;
 enum MOptype {ESum,EProd,EDiv,ESqrt,EPow,ECos,ESin,EAcos,EAsin,EAtan,EExp,ELog};
 const int gNumOp = 12;
 
+/// This class implements a counter
+/**
+By modifying the definition of the type of REAL, the number of floating point operations can be counted
+*/
 struct TPZCounter {
    int fCount[gNumOp];
    
@@ -41,6 +45,10 @@ std::ostream &operator<<(std::ostream &out,const TPZCounter &count);
 
 namespace std {
 
+/// This class implements floating point number associated with a counter
+/**
+By modifying the definition of the type of REAL, the number of floating point operations can be counted
+*/
 class TPZFlopCounter {
 public:
     double fVal;
@@ -306,7 +314,9 @@ inline std::istream &operator>>(std::istream &out, const TPZFlopCounter &val)
 typedef std::TPZFlopCounter REAL;
 typedef std::TPZFlopCounter* REALPtr;
 */
+
+/// This is the type of floating point number PZ will use
 typedef double REAL;
-typedef double *REALPtr;
+//typedef double *REALPtr;
 
 #endif

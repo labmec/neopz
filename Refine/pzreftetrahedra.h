@@ -14,6 +14,9 @@ class TPZVec;
 template<class T, int N>
 class TPZStack;
 
+namespace pzrefine {
+
+/// implements the uniform refinement of a geometric tetrahedral element
 class TPZRefTetrahedra {
 
 public:
@@ -28,5 +31,7 @@ public:
 	static TPZTransform GetTransform(int side,int son);
 	static int FatherSide(int side,int son);
 	//static int NSubElements();
+};
+
 };
 #endif

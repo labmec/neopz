@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.6 2004-04-26 13:33:55 phil Exp $
+//$Id: pzconnect.h,v 1.7 2005-02-28 22:08:50 phil Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -19,7 +19,13 @@ class TPZStream;
 
 
 
-
+/// This class represents a set of shape functions associated with a computational element/side
+/**
+This class keeps track of information associated with an element/side such as order of interpolation
+sequence number in the vector of blocks of equations
+Objects of this class also contain the information necessary for constraints between shapefunctions
+@ingroup interpolation
+*/
 class TPZConnect {
   /**Node block number*/
   int		fSequenceNumber;
@@ -133,12 +139,12 @@ void Read(TPZStream &buf, void *context);
 };
 
 
-/**   TPZConnectBC
-
-Associated a degree of freedom node with a boundary condition
+/** 
+@brief Associate a degree of freedom node with a boundary condition
 such boundary condition can be dirichlet, point load or mixed boundary condition.
+\deprecated
+THIS CLASS IS DEPRECATED
 */
-
 struct TPZConnectBC {
 
   TPZConnect *fConnect;

@@ -108,6 +108,8 @@ int TPZIdentifyRefPattern::IdentifySide(TPZGeoEl *father, TPZVec<TPZGeoEl *> sub
   return side;
 }
 
+using namespace pzrefine;
+
 int TPZIdentifyRefPattern::UniformSubElem( int eltype){
   switch (eltype) {
     case (EPoint)         : return TPZRefPoint::NSubEl;

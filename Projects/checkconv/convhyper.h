@@ -5,6 +5,7 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 
+/// class used to check the consistency of the hyperelastic material
 class TPZConvHyper : public TPZMatHyperElastic {
 
   TPZFMatrix fState;

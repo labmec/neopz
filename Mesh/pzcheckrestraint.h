@@ -1,4 +1,4 @@
-//$Id: pzcheckrestraint.h,v 1.2 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzcheckrestraint.h,v 1.3 2005-02-28 22:08:50 phil Exp $
 #ifndef PZCHECKRESTRAINTH
 #define PZCHECKRESTRAINTH
 
@@ -8,6 +8,7 @@
 
 class TPZCompMesh;
 
+/// this class will verify the consistency of the restraints of shape functions along a side
 class TPZCheckRestraint {
 
 	TPZCompElSide fSmall;

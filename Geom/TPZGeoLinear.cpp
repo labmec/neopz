@@ -6,7 +6,9 @@
 #include "pzshapelinear.h"
 #include "pzgeoel.h"
 
+using namespace pzshape;
 
+namespace pzgeom {
 
 void TPZGeoLinear::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 	REAL x = pt[0];
@@ -56,3 +58,4 @@ TPZIntPoints *TPZGeoLinear::CreateSideIntegrationRule(int side, int order) {
 
 }
 
+};

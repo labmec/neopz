@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.19 2004-11-24 17:50:44 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.20 2005-02-28 22:08:52 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -494,6 +494,10 @@ int TPZGeoMesh::NodeIndex(TPZGeoNode *nod){
 #include "pzgeopoint.h"
 #include "pzrefpoint.h"
 #include "pzshapepoint.h"
+
+using namespace pzgeom;
+using namespace pzrefine;
+using namespace pzshape;
 
 TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
                                        TPZVec<int>& nodeindexes,

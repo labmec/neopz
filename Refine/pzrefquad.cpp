@@ -5,6 +5,10 @@
 #include "pzgeoel.h"
 #include "pzgmesh.h"
 
+using namespace pzshape;
+
+namespace pzrefine {
+
 
 static int nsubeldata[9] = {1,1,1,1,3,3,3,3,9};
 
@@ -250,3 +254,4 @@ int TPZRefQuad::FatherSide(int side,int whichsubel){
   return fatherside[whichsubel][side];
 }
 
+};

@@ -17,6 +17,7 @@ using namespace std;
 
 /*************/
 
+/// class which generates a three dimensional mesh as an extension of a two dimensional mesh
 class TPZExtendGridDimension {
 
   /**

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeopyramid.h,v 1.3 2003-10-20 02:13:25 phil Exp $
+// $Id: pzgeopyramid.h,v 1.4 2005-02-28 22:08:04 phil Exp $
 
 // TPZGeoPiramid.h: interface for the TPZGeoQuad class.
 //
@@ -16,6 +16,9 @@ class TPZGeoEl;
 class TPZIntPoints;
 class TPZIntPyram3D;
 
+namespace pzgeom {
+
+/// implements the geometry of pyramid element
 class TPZGeoPyramid  
 {
 public:
@@ -51,6 +54,8 @@ public:
 	static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
 
 	typedef TPZIntPyram3D IntruleType;
+};
+
 };
 
 #endif 

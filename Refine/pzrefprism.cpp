@@ -6,6 +6,11 @@
 #include "pzgmesh.h"
 #include "pzgeoelside.h"
 
+using namespace pzshape;
+
+namespace pzrefine {
+
+
 static int nsubeldata[21] = {1,1,1,1,1,1,3,3,3,3,3,3,3,3,3,7,9,9,9,7,21};
 
 static int subeldata[21][21][2] = {
@@ -476,3 +481,4 @@ int TPZRefPrism::FatherSide(int side,int whichsubel){
 	return fatherside[whichsubel][side];
 }
 
+};

@@ -1,4 +1,4 @@
-//$Id: pzcheckmesh.h,v 1.3 2003-11-18 12:37:17 cesar Exp $
+//$Id: pzcheckmesh.h,v 1.4 2005-02-28 22:08:50 phil Exp $
 
 #ifndef PZGHECKMESHH
 #define PZCHECKMESHH
@@ -17,7 +17,7 @@ template <class T, int N>
 class TPZStack;
 
 
-
+/// This class verifies the consistency of the datastructure of a TPZCompMesh object
 class TPZCheckMesh {
 
  protected:

@@ -1,15 +1,15 @@
-//$Id: TPZCompElDisc.cpp,v 1.63 2005-02-04 21:48:40 paulo Exp $
+//$Id: TPZCompElDisc.cpp,v 1.64 2005-02-28 22:08:52 phil Exp $
 
 // -*- c++ -*- 
 
 #include "pztransfer.h"
 #include "pzelmat.h"
-#include "pzelgc3d.h"
-#include "pzelgt3d.h"
-#include "pzelgpi3d.h"
-#include "pzelgpr3d.h"
-#include "pzelgt2d.h"
-#include "pzelgq2d.h"
+//#include "pzelgc3d.h"
+//#include "pzelgt3d.h"
+//#include "pzelgpi3d.h"
+//#include "pzelgpr3d.h"
+//#include "pzelgt2d.h"
+//#include "pzelgq2d.h"
 #include "pzmatrix.h"
 #include "pzelmat.h"
 #include "pzquad.h"
@@ -45,20 +45,22 @@
 #include <math.h>
 #include <stdio.h>
 
+using namespace pzshape;
+
 int TPZCompElDisc::gDegree = 0;
 
 TPZCompElDisc::TPZCompElDisc() : TPZCompEl(), fCenterPoint(3,0.)
 {
   fDegree = -1;
   fMaterial = NULL;
-  fShapefunctionType = TPZShapeDisc::ETensorial;
+  fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
 }
 //construtor do elemento aglomerado
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
 		TPZCompEl(mesh,0,index), fCenterPoint(3) {
   fDegree = gDegree;
   fMaterial = NULL;
-  fShapefunctionType = TPZShapeDisc::EOrdemTotal;
+  fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
@@ -98,16 +100,16 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 		TPZCompEl(mesh,ref,index), fCenterPoint(3) {
   fDegree = gDegree;
-  fShapefunctionType = TPZShapeDisc::EOrdemTotal;
+  fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
   switch(ref->Type()) {
   case EQuadrilateral:
   case ECube:
   case EPrisma:
     fShapefunctionType =
 #ifdef _AUTODIFF
-    TPZShapeDisc::EOrdemTotal;
+    pzshape::TPZShapeDisc::EOrdemTotal;
 #else
-    TPZShapeDisc::ETensorial;
+    pzshape::TPZShapeDisc::ETensorial;
 #endif
   }
 //  fReference = ref;
@@ -249,6 +251,7 @@ REAL TPZCompElDisc::NormalizeConst()
   }
   return maxdist;  
 }
+
 
 void TPZCompElDisc::Shape(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi) {
 

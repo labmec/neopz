@@ -5,6 +5,10 @@
 #include "pzelgq2d.h"
 #include "pzcosys.h"
 
+/// Quadrilateral element defined in a cylindrical coordinate system
+/**
+THIS CLASS NEEDS TO BE REWRITTEN
+*/
 class TPZGeoElQ2dCyl : public TPZGeoElQ2d {
 
 public:

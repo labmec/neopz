@@ -13,6 +13,9 @@
 //#include "pzelgpr3d.h"
 #include "pzshapeprism.h"
 
+using namespace pzshape;
+
+namespace pzgeom {
 
 void TPZGeoPrism::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
@@ -213,3 +216,5 @@ TPZIntPoints * TPZGeoPrism::CreateSideIntegrationRule(int side, int order){
 	}
 	return 0;
 }
+
+};

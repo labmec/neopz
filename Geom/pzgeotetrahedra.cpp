@@ -14,6 +14,11 @@
 //#include "pzelgt3d.h"
 #include "pzshapetetra.h"
 
+using namespace pzshape;
+
+using namespace pzshape;
+
+namespace pzgeom {
 
 void TPZGeoTetrahedra::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
   phi(0,0)  = 1-pt[0]-pt[1]-pt[2];
@@ -169,3 +174,5 @@ TPZIntPoints * TPZGeoTetrahedra::CreateSideIntegrationRule(int side, int order){
 	}
 	return 0;
 }
+
+};

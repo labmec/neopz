@@ -19,17 +19,3 @@
  * The computational element classes are responsible for the organise element data structure
  */
 
-/** @defgroup CompElements-1D One dimensional computational elements
- * @ingroup CompElement
- * One dimensional computational elements
- */
-
-/** @defgroup CompElements-2D Bi dimensional computational elements
- * @ingroup CompElement
- * Bi dimensional computational elements
- */
-
-/** @defgroup CompElements-3D Tri dimensional computational elements
- * @ingroup CompElement
- * Tri dimensional computational elements
- */

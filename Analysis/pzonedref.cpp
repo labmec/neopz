@@ -1,4 +1,4 @@
-// $Id: pzonedref.cpp,v 1.5 2004-03-13 17:23:10 cesar Exp $
+// $Id: pzonedref.cpp,v 1.6 2005-02-28 22:07:24 phil Exp $
 
 #include "pzonedref.h"
 #include "pzquad.h"
@@ -44,11 +44,11 @@ void TPZOneDRef::IntegrateMatrices(){
   TPZManVector<int,1> maxvec(1,gMaxP);
   for(ip=0; ip<integr.NPoints(); ip++) {
     integr.Point(ip,pos,weight);
-    TPZShapeLinear::Shape(pos,ids,maxvec,phis,dphis);
+    pzshape::TPZShapeLinear::Shape(pos,ids,maxvec,phis,dphis);
     t1.Apply(pos,posbig1);
     t2.Apply(pos,posbig2);
-    TPZShapeLinear::Shape(posbig1,ids,maxvec,phib1,dphib1);
-    TPZShapeLinear::Shape(posbig2,ids,maxvec,phib2,dphib2);
+    pzshape::TPZShapeLinear::Shape(posbig1,ids,maxvec,phib1,dphib1);
+    pzshape::TPZShapeLinear::Shape(posbig2,ids,maxvec,phib2,dphib2);
     int i,j;
     for(i=0; i<gMaxP+1; i++) {
       for(j=0; j<gMaxP+1; j++) {

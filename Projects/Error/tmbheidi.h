@@ -7,6 +7,8 @@
 #include "pzstack.h"
 
 class TPZCompMesh;
+
+/// Error indicator for finite volume solutions
 class TMBHeidi : public TPZErrorIndicator{
 
  public:

@@ -11,6 +11,9 @@
 //#include "pzelgt2d.h"
 #include "pzshapetriang.h"
 
+using namespace pzshape;
+
+namespace pzgeom {
 
 void TPZGeoTriangle::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
 	REAL x = param[0], y = param[1];
@@ -148,3 +151,5 @@ TPZIntPoints * TPZGeoTriangle::CreateSideIntegrationRule(int side, int order){
 	if(side==6)return new TPZIntTriang(order);
 	return 0;
 }
+
+};

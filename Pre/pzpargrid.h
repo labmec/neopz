@@ -23,9 +23,20 @@ class TPZGeoMesh;
 #include "pzvec.h"
 
 
-/*************/
+/// class which implements the generation of a geometric grid
+/**
+Implements the generation of part of the grid
+This class uses DEPRECATED objects, but can be easily updated
+*/
 class TPZGenPartialGrid{
 public:
+/**
+@param x0 lower left coordinate
+@param x1 upper right coordinate
+@param nx number of nodes in x and y
+@param rangex range of nodes which need to be created
+@param rangey range of nodes which need to be created
+*/
 	TPZGenPartialGrid(TPZVec<int> &nx, TPZVec<int> &rangex, TPZVec<int> &rangey, TPZVec<REAL> &x0, TPZVec<REAL> &x1);
 
 	~TPZGenPartialGrid();

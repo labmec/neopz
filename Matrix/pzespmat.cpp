@@ -765,7 +765,7 @@ void TPZSpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
 	z(r*stride,ic) += alpha*val;
       }
     } else {
-      REALPtr firstelz = &z(0,ic);
+      REAL * firstelz = &z(0,ic);
       TPZNode *currentnode;
       for (r = 0; r<rows; r++) {
 	REAL elx = x.g(r*stride,ic);

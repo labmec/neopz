@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.12 2004-04-01 19:11:38 cesar Exp $
+//$Id: pzgeoelside.h,v 1.13 2005-02-28 22:08:52 phil Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -15,6 +15,11 @@ class TPZCompElSide;
 #include "pzvec.h"
 #include "pzstack.h"
 
+/// utility class which represents an element with its side
+/**
+This class is often used to manipulate neighbouring information between elements
+@ingroup geometry
+*/
 class TPZGeoElSide {
 
   TPZGeoEl *fGeoEl;

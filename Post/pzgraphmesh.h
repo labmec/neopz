@@ -19,6 +19,12 @@ class TPZBlock;
 
 enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle};
 
+/// This class represents a graphical mesh used for post processing purposes
+/**
+The  graphical mesh represents a logically refined version of the computational mesh
+This logical refinement means that the refined element object are not actually created
+They only exist in the output file. 
+*/
 class TPZGraphMesh{
 public:
   TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial *mat);

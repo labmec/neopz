@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.16 2005-02-04 16:57:53 cesar Exp $
+//$Id: pzgmesh.h,v 1.17 2005-02-28 22:08:52 phil Exp $
 
 /**File : pzgmes.h
 
@@ -51,6 +51,12 @@ class TPZVec;
 
 template <class TShape, class TGeo> class TPZGeoElRefPattern;
 
+/// this class implements a geometric mesh for the pz environment
+/**
+@ingroup geometry
+A geometry mesh consists of a collection of geometric nodes and elements
+Other auxiliary data structures help in the construction of the mesh
+*/
 class  TPZGeoMesh : public TPZSaveable {
 
   /** TPZGeoMesh name for model identification*/
@@ -74,6 +80,9 @@ class  TPZGeoMesh : public TPZSaveable {
 
   typedef map<pair<int,int>, int> InterfaceMaterialsMap;
   
+  /**
+  Datastructure which indicates the index of the interface material which needs to be created between two different materials @see AddInterfaceMaterial
+  */
   InterfaceMaterialsMap fInterfaceMaterials;
 
  public:

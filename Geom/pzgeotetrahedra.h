@@ -16,6 +16,9 @@ class TPZGeoEl;
 class TPZIntPoints;
 class TPZIntTetra3D;
 
+namespace pzgeom {
+
+/// implements the geometry of a tetrahedral element
 class TPZGeoTetrahedra  
 {
 public:
@@ -53,4 +56,5 @@ public:
 	typedef TPZIntTetra3D IntruleType;
 };
 
+};
 #endif 

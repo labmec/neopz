@@ -10,6 +10,9 @@ class TPZGeoEl;
 class TPZTransform;
 class TPZGeoElSide;
 
+namespace pzrefine {
+
+/// implements the uniform refinement of a geometric triangular element
 class TPZRefTriangle{
 public:
 
@@ -23,5 +26,7 @@ public:
 	static TPZTransform GetTransform(int side,int son);
 	static int FatherSide(int side,int son);
 	//static int NSubElements();
+};
+
 };
 #endif

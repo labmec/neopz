@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.h,v 1.4 2004-04-06 14:55:43 erick Exp $
+// $Id: pzdiscgal.h,v 1.5 2005-02-28 22:08:18 phil Exp $
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 
@@ -9,6 +9,7 @@
 #include "pzvec.h"
 
 
+/// This class defines the interface which material objects need to implement for discontinuous Galerkin formulations
 class TPZDiscontinuousGalerkin  : public TPZMaterial {
 
   

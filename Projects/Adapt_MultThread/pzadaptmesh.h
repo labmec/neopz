@@ -16,6 +16,7 @@ template<class T, class V>
 class TPZAvlMap;
 class TPZOneDRef;
 
+/// interface to generate adapted meshes
 class TPZAdaptMesh {
  public:
   
@@ -139,7 +140,7 @@ class TPZAdaptMesh {
   /**
    * Geometric reference elements vector
    */
-  TPZStack < TPZGeoEl * > fGeoRef;
+  std::set< TPZGeoEl * > fGeoRef;
   
   /**
    * Patches vector

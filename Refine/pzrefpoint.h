@@ -10,6 +10,14 @@ class TPZGeoEl;
 class TPZGeoElSide;
 class TPZTransform;
 
+/// groups all classes which model the h refinement
+/**
+* Objects of this class implement the uniform refinement of an element
+* These classes are used as template arguments of @seealso TPZGeoElement
+*/
+namespace pzrefine {
+
+/// implements the uniform refinement of a geometric point element
 class TPZRefPoint {
 
 public:
@@ -23,5 +31,7 @@ public:
 	static int NSideSubElements(int side);
 	static TPZTransform GetTransform(int side,int son);
 	static int FatherSide(int side,int son);
+};
+
 };
 #endif

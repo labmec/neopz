@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.19 2004-10-06 19:22:57 phil Exp $
+// $Id: pzelctemp.cpp,v 1.20 2005-02-28 22:08:51 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -351,7 +351,8 @@ void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::Shape(TPZVec<REAL> &pt, TPZFMatrix 
   phi(0,0) = 1.;
 }
 */
-
+using namespace pzgeom;
+using namespace pzshape;
 
 void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 0) cout << "A point element has no graphical representation\n";

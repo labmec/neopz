@@ -5,6 +5,7 @@
 #include "pzvec.h"
 #include "pzstack.h"
 
+/// Interface for refining meshes based on a simple error estimator
 class TMBAdaptInterface {
 
  public:

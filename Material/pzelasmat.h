@@ -6,6 +6,7 @@ using namespace std;
 
 #include "pzmaterial.h"
 
+/// This class implements a two dimensional elastic material in plane stress or strain
 class TPZElasticityMaterial : public TPZMaterial {
 
 public :

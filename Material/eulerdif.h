@@ -5,6 +5,10 @@
 #include "pzvec.h" 
 #include "pzfmatrix.h"
 
+/// class which implements a numerical diffusivity coeficient for the SUPG method
+/**
+This class is to be used as a template argument for a different class
+*/
 class TEulerDiffusivity {
 
 static  REAL  fGamma;

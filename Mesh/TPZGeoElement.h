@@ -1,7 +1,7 @@
 
 // -*- c++ -*-
 
-// $Id: TPZGeoElement.h,v 1.12 2004-04-26 13:00:13 phil Exp $
+// $Id: TPZGeoElement.h,v 1.13 2005-02-28 22:08:04 phil Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
@@ -15,7 +15,7 @@ class TPZCompEl;
 template<class T,int N>
 class TPZStack;
 
-
+/// Implements a generic geometric element with a uniform refinement pattern
 template <class TShape, class TGeo, class TRef>
 class TPZGeoElement : public TPZGeoElRefLess<TShape,TGeo> {
 

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.11 2004-09-07 23:41:33 phil Exp $
+//$Id: pzbndcond.h,v 1.12 2005-02-28 22:08:18 phil Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -26,8 +26,10 @@ using namespace std;
 template <class T, int N>
 class TPZManVector;
 
-// this class defines the boundary condition for a 1d linear problem
-
+/// this class defines the boundary condition for TPZMaterial objects
+/**
+This class redirects the call to Contribute to calls ContributeBC of the referring material object
+*/
 class TPZBndCond : public TPZDiscontinuousGalerkin {
 
   friend class TPZMaterial;

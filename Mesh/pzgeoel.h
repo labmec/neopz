@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.17 2004-11-24 17:51:39 cesar Exp $
+//$Id: pzgeoel.h,v 1.18 2005-02-28 22:08:52 phil Exp $
 
 // -*- c++ -*-
 
@@ -32,7 +32,7 @@ class TPZVec;
 template<class T, int N>
 class TPZStack;
 
-
+/// defines the behaviour of all geometric elements
 /** 
  * TPZGeoEl is the common denominator for all geometric elements.
  * @ingroup geometry

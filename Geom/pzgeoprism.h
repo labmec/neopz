@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeoprism.h,v 1.5 2003-10-20 02:13:25 phil Exp $
+// $Id: pzgeoprism.h,v 1.6 2005-02-28 22:08:03 phil Exp $
 
 // TPZGeoPrism.h: interface for the TPZGeoQuad class.
 //
@@ -16,6 +16,9 @@ class TPZGeoEl;
 class TPZIntPoints;
 class TPZIntPrism3D;
 
+namespace pzgeom {
+
+/// implements the geometry of a prism element
 class TPZGeoPrism  
 {
 public:
@@ -54,4 +57,5 @@ static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
 
 };
 
+};
 #endif 

@@ -7,6 +7,8 @@
 #include "pzstack.h"
 #include "pzgeoel.h"
 
+namespace pzgeom {
+
 void TPZGeoPoint::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
   int i;
   for (i=0;i<3;i++){
@@ -51,3 +53,4 @@ TPZIntPoints *TPZGeoPoint::CreateSideIntegrationRule(int side, int order) {
   return new TPZInt1Point();
 }
 
+};

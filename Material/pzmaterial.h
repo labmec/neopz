@@ -25,6 +25,13 @@ using namespace std;
 class TPZBndCond;
 class TPZMaterial;
 
+/// This abstract class defines the behaviour which each derived class needs to implement
+/**
+classes derived from the TPZMaterial class implement the weak statement of the differential equation
+within the PZ environment
+It is noteworthy to observe that this definition does not depend on the definition of the interpolation space
+TPZMaterial objects also need to implement the interface for post processing the results
+*/
 class  TPZMaterial : public TPZSaveable
 {
       int fId;

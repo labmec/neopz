@@ -59,12 +59,13 @@ class TPZCompCloneMesh : public TPZCompMesh {
   //  void CleanUp();
   
  public:
+ /// represents a refinement pattern for one dimensional side
   struct TPZRefPattern {
     int fId[3]; 	//Subelements connectivities ids
     int fp[2];		//subelements p-order refinement
     int fh[2];		//subelements h-order refinement
-    REAL fhError;	//??
-    REAL fError;  //??
+    REAL fhError;	// best error for h-refinement
+    REAL fError;  // best error for p-refinement
   };
 
   /**

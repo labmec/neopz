@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.33 2005-02-04 16:58:11 cesar Exp $
+//$Id: pzcmesh.cpp,v 1.34 2005-02-28 22:08:50 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1679,6 +1679,23 @@ void TPZCompMesh::GetRefPatches(TPZStack<TPZGeoEl *> &grpatch){
 	return;
 }
 
+void TPZCompMesh::GetRefPatches(std::set<TPZGeoEl *> &grpatch){
+	int i;
+	int nel = NElements();
+	//	cout << "GetRefPatches\n" << nel << endl;
+	for (i=0; i<nel; i++){
+		if (fElementVec[i]){
+			TPZGeoEl *gel = fElementVec[i]->Reference();
+			if (gel) gel = fElementVec[i]->GetRefElPatch();
+			if (gel) 
+                        {
+                          grpatch.insert(gel);
+			}
+		}
+	}
+	return;
+}
+
 
 void  TPZCompMesh::GetNodeToElGraph(TPZVec<int> &nodtoelgraph, TPZVec<int> &nodtoelgraphindex, TPZStack<int> &elgraph, TPZVec<int> &elgraphindex){
 
@@ -1707,22 +1724,22 @@ void TPZCompMesh::GetElementPatch(TPZVec<int> nodtoelgraph, TPZVec<int> nodtoelg
 
 //  int aux =0;
   //TPZAVLMap<int,int> elconmap(aux);
-  map<int , int> elconmap;
+  std::set<int > elconmap;
   int i,j;
   for (i= elgraphindex[elind]; i<elgraphindex[elind+1];i++){
     int node = elgraph[i];
     for (j = nodtoelgraphindex[node];  j<nodtoelgraphindex[node+1]; j++){
-      elconmap[nodtoelgraph[j]] = elind; 
+      elconmap.insert(nodtoelgraph[j]);
       
     }
   }
   patch.Resize(0);
 
   //TPZPix iter = elconmap.First();
-  map<int , int>::iterator iter = elconmap.begin();
+  set<int >::iterator iter = elconmap.begin();
   while(iter!=elconmap.end()){
     //patch.Push(elconmap.Key(iter));
-	patch.Push(iter->first);//elconmap.Key(iter));
+	patch.Push(*iter);//elconmap.Key(iter));
     iter++;//elconmap.Next(iter);
   }	
 }

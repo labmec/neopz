@@ -35,6 +35,12 @@ class TPZRefPattern;
 
 template <class TShape, class TGeo>  
 
+/// Implements a generic geometric element which is refined according to a generic refinement pattern
+/**
+@ingroup geometry
+Using this class it is possible to create inconsistent meshes
+The consistency of the h-refined mesh using generic refinement patterns is the responsability of the user of the class
+*/
 class TPZGeoElRefPattern : public TPZGeoElRefLess<TShape,TGeo>  {
 
     TPZVec<int> fSubEl;

@@ -23,11 +23,21 @@ class TPZGeoMesh;
 #include "pzreal.h"
 
 #include <fstream>
-/*************/
+
+/// class which implements the generation of a multilayered geometric grid
+/**
+This class uses DEPRECATED objects, but can be easily updated
+*/
 class TPZGenGrid{
 
 public:
 
+/**
+@param x0 lower left coordinate
+@param x1 upper right coordinate
+@param numl number of layers
+@param rot rotation applied to the grid
+*/
 TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
 
 virtual ~TPZGenGrid();

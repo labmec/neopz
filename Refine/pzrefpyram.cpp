@@ -10,6 +10,10 @@
 #include "pzstack.h"
 #include "pzeltype.h"
 
+using namespace pzshape;
+
+namespace pzrefine {
+
 
 static int nsubeldata[19] = {1,1,1,1,1,3,3,3,3,3,3,3,3,9,7,7,7,7,27};
 
@@ -468,3 +472,4 @@ int TPZRefPyramid::FatherSide(int side,int whichsubel){
 	return fatherside[whichsubel][side];
 }
 
+};

@@ -16,7 +16,6 @@ class TPZCartsys;
  * @brief Root class for the coordinate system
  * Root class for the coordinate system
  */
-
 class TPZCosys {
 
 public:

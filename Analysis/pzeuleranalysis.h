@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.16 2004-06-15 18:49:48 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.17 2005-02-28 22:07:24 phil Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -18,6 +18,12 @@
 
 #include <iostream>
 
+/// This class implements an analysis procedure for computing the steady state solution of a compressible Euler flow simulation
+/**
+This class implements several tricks to obtain the steady state solution as fast as possible
+It evoluates the CFL of the simulation according to the residual of the system of equations and according to the number of iterations of the Newton method at each step
+@author Erick Raggio Slis dos Santos
+*/
 class TPZEulerAnalysis : public TPZAnalysis
 {
 

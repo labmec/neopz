@@ -237,8 +237,8 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
   int Error(const char *msg1,const char *msg2=0 ) const;
   int Clear();
 
-  REALPtr fElem;
-  REALPtr fGiven;
+  REAL *fElem;
+  REAL *fGiven;
   int fSize;
 };
 

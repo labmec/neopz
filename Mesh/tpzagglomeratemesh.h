@@ -14,10 +14,12 @@
 
 #include <pzflowcmesh.h>
 
+/// Implements a mesh that contains agglomerated elements
 /**
 This class contains both discontinuous, continuous and agglomerated elements
 Its distinction from other meshes is that it points to a reference fine mesh
 
+@ingroup CompMesh
 @author Philippe R. B. Devloo
 */
 class TPZAgglomerateMesh : public TPZFlowCompMesh

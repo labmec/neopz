@@ -4,7 +4,10 @@
 #include "pzgraphmesh.h"
 #include "pzstack.h"
 
-
+/// This class implements the interface of the graphmesh to the OpenDX graphics package
+/**
+This is the most actively supported graphics interface of the pz environment
+*/
 class TPZDXGraphMesh : public TPZGraphMesh {
 
   int fNextDataField;

@@ -484,6 +484,9 @@ TPZGeoElRefLess<TShape,TGeo>::Write(TPZStream &buf, int withclassid){
 #include "pzelcpi3d.h"
 #include "pzelctemp.h"
 
+using namespace pzgeom;
+using namespace pzshape;
+
 static TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoPoint,TPZShapePoint>(mesh,gel,index);
   //  return new TPZCompElPoint(mesh,gel,index);

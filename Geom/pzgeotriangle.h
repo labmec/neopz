@@ -16,6 +16,9 @@ class TPZIntPoints;
 class TPZGraphElTd;
 class TPZIntTriang;
 
+namespace pzgeom {
+
+/// implements the geometry of a triangle element
 class TPZGeoTriangle  
 {
 public:
@@ -56,4 +59,5 @@ static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
 
 };
 
+};
 #endif 

@@ -47,7 +47,9 @@
 #include "pzflowcmesh.h"
 #include "pzsubcmesh.h"
 
-
+using namespace pzgeom;
+using namespace pzrefine;
+using namespace pzshape;
 
 
 void RegisterMeshClasses() {

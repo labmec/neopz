@@ -8,9 +8,8 @@
 
 /**
  * @ingroup cosys
- * Defines the cylindrical coordinate system
+ * @brief Defines the cylindrical coordinate system
  */
-
 class  TPZCylinsys : public TPZCosys {
 
 public:

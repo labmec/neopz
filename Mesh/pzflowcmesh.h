@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.h,v 1.12 2004-06-15 19:09:48 erick Exp $
+//$Id: pzflowcmesh.h,v 1.13 2005-02-28 22:08:52 phil Exp $
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -12,12 +12,13 @@ class TPZMaterial;
 class TPZGeoMesh;
 #include <iostream>
 #include "pzcmesh.h"
-using namespace std;
-/*******************/
+//using namespace std;
+
+/// Computational mesh with additional data for CFD problems
 /**
  * This class implements the additions behavior and
  * data to handle CFD problems as computional meshes.
- *
+ * @ingroup CompMesh
  */
 class TPZFlowCompMesh : public TPZCompMesh
 {

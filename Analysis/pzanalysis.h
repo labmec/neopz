@@ -26,10 +26,15 @@ class TPZStructMatrix;
 
 template<class T, int N> class TPZStack;
 
+/// class which implements the sequence of actions to perform a finite element analysis
+/**
+This class will renumerate the nodes upon construction
+*/
 class TPZAnalysis {
 
 public:
 
+/// Precondtioners which can be created by objects of this class
  enum EPrecond { EJacobi, EBlockJacobi, EElement, ENodeCentered };
  
 
@@ -71,7 +76,7 @@ public:
    */
   int fStep;
   /**
-   * Time ?? (time step ??)
+   * Time variable which is used in dx output
    */
   REAL fTime;
 
@@ -80,6 +85,7 @@ public:
    */
   TPZStructMatrix * fStructMatrix;
 
+  /// datastructure which defines postprocessing for one dimensional meshes
   struct TTablePostProcess {
     TPZVec<int> fGeoElId;
     TPZVec<TPZCompEl *> fCompElPtr;

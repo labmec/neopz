@@ -7,6 +7,7 @@
 #include <iostream>
 using namespace std;
 
+/// generic class which holds a matrix of objects
 template <class TObj>
 class TPZGenMatrix {
 
@@ -47,7 +48,7 @@ class TPZGenMatrix {
 
 };
 
-
+/// A generic matrix of objects which implement arithmetic operations
 template <class TObj>
 class TPZGenAMatrix : public TPZGenMatrix<TObj> {
 

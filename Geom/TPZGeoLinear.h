@@ -15,7 +15,9 @@ class TPZGeoEl;
 class TPZIntPoints;
 class TPZInt1d;
 class TPZGraphEl1dd;
+namespace pzgeom {
 
+/// implements the geometry of a one dimensional linear element
 class TPZGeoLinear {
 
 public:
@@ -121,5 +123,6 @@ inline void TPZGeoLinear::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &re
 
 }
 
+};
 #endif
 

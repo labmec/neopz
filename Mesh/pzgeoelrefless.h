@@ -29,7 +29,13 @@ class TPZStack;
 /**Implements a class which subelement is the clone of the element (i.e. the same nodes, material, but a self pointer)
   *@author phil
   */
-  
+
+/// Implements a generic geometric element class without h-refinement
+/**
+This class implements the mapping between the master element and deformed element
+Its data structure is the vector of node indices and element neighbours
+@ingroup geometry
+*/
 template <class TShape, class TGeo>
 class TPZGeoElRefLess : public TPZGeoEl  {
 //  int fSubElement;

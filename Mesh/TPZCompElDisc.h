@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.33 2005-01-28 16:58:44 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.34 2005-02-28 22:08:52 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -32,7 +32,10 @@ class TPZGeoElQ2d;
 class TPZGeoEl1d;
 class TPZGeoElPoint;
 
-
+/// This class implements a discontinuous element (for use with discontinuous Galerkin)
+/**
+@ingroup CompElement
+*/
 class TPZCompElDisc : public TPZCompEl{
 
   /**
@@ -48,7 +51,7 @@ class TPZCompElDisc : public TPZCompEl{
   /**
    * Shape function type used by the element
    */
-  TPZShapeDisc::MShapeType fShapefunctionType;
+  pzshape::TPZShapeDisc::MShapeType fShapefunctionType;
 
   /**
    * it preserves index of connect associated to the element 
@@ -95,7 +98,7 @@ protected:
    * @param orthogonal pointer to a function which will be used to generate the shape functions
    */
   static void SetOrthogonalFunction(void (*orthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix & phi, TPZFMatrix & dphi, int n)){
-    TPZShapeDisc::fOrthogonal = orthogonal;
+    pzshape::TPZShapeDisc::fOrthogonal = orthogonal;
   }
 
   /**

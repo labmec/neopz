@@ -34,6 +34,7 @@ class TPZGeoEl;
 //template<class TShape, class TGeo, class TRef>
 //class TPZGeoElement<TShape,TGeo,TRef>;
 
+/// Collection of typedefs for creation of geometric elements in groups
 class GeoElTypes {
 
  public:
@@ -49,6 +50,10 @@ class GeoElTypes {
 
 };
 
+/// A geometric mesh which generates elements in blocks
+/**
+The idea behind this development is to reduce the number of dynamic memory allocations
+*/
 template<class Types>
 class TPZGeoBMesh : public TPZGeoMesh {
 

@@ -28,7 +28,6 @@ pthread_mutex_t TPZAdaptMesh::fLock_clindex = PTHREAD_MUTEX_INITIALIZER;
 
 TPZAdaptMesh::TPZAdaptMesh(){
   fReference = 0;
-  fGeoRef.Resize(0);
   fPatch.Resize(0);
   fPatchIndex.Resize(0);
   fElementError.Resize(0);
@@ -392,8 +391,9 @@ void TPZAdaptMesh::BuildReferencePatch(){
   gmesh->ResetReference();
   TPZCompMesh *tmpcmesh = new TPZCompMesh (gmesh);
   int i,j;
-  for (i=0;i<fGeoRef.NElements();i++){
-    fGeoRef[i]->CreateCompEl(*tmpcmesh,i);
+  std::set<TPZGeoEl *>::iterator it;
+  for (it=fGeoRef.begin();it!=fGeoRef.end();it++){
+    (*it)->CreateCompEl(*tmpcmesh,i);
   } 
   tmpcmesh->CleanUpUnconnectedNodes();
   TPZStack <int> patchelindex;
@@ -428,13 +428,14 @@ void TPZAdaptMesh::CreateClones(){
   TPZStack<TPZGeoEl*> patch;
   
   int clid,elid;
-  for (clid=0; clid<fPatchIndex.NElements()-1;clid++){
+  std::set<TPZGeoEl *>::iterator it;
+  for (it=fGeoRef.begin(), clid=0; clid<fPatchIndex.NElements()-1;clid++,it++){
     TPZGeoCloneMesh *geoclone = new TPZGeoCloneMesh(geomesh);
     TPZStack<TPZGeoEl*> patch;
     for (elid=fPatchIndex[clid];elid<fPatchIndex[clid+1];elid++){
       patch.Push(fPatch[elid]);
     }
-    geoclone->SetElements(patch,fGeoRef[clid]);
+    geoclone->SetElements(patch,*it);
     TPZVec<TPZGeoEl *> sub;
     //    int ngcel = geoclone->ElementVec().NElements();
     int printing = 0;

@@ -1,4 +1,4 @@
-//$Id: pzanalysiserror.cpp,v 1.6 2004-10-06 19:17:10 phil Exp $
+//$Id: pzanalysiserror.cpp,v 1.7 2005-02-28 22:07:24 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysiserror.h"
@@ -338,7 +338,7 @@ arq << "CurrentEtaAdmissible "  << CurrentEtaAdmissible << endl;
       if (iter == MaxIter)
           PZError << "\n - Newton's Method Failed at Element = " << elem->Reference()->Id() << endl;
       if(pFn < 1.) pFn = 1.;
-      int pNew = 0.;//(int) floor(pFn + 0.5);  // get the integer
+      int pNew = 0;//(int) floor(pFn + 0.5);  // get the integer
       while(REAL(pNew) < (pFn+0.5)) pNew++;
       TPZVec<REAL> x(3),cs(2,0.);
       elem->Reference()->X(cs,x);

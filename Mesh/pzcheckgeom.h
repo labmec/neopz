@@ -1,4 +1,4 @@
-//$Id: pzcheckgeom.h,v 1.2 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzcheckgeom.h,v 1.3 2005-02-28 22:08:50 phil Exp $
 
 #ifndef TPZCHECKGEOMH
 #define TPZCHECKGEOMH
@@ -6,6 +6,7 @@
 #include "pzgeoel.h"
 #include "pzgmesh.h"
 
+/// This class performs a series of consistency tests on geometric transformations between elements
 class TPZCheckGeom {
 
 	TPZGeoMesh *fMesh;

@@ -14,7 +14,16 @@ class TPZIntPoints;
 class TPZInt1Point;
 class TPZGraphEl1dd;
 
+/// groups all classes which model the geometry
+/**
+* Objects of this class implement the mapping between the master element
+* and deformed element
+* These classes are used as template arguments of @seealso TPZGeoElement and
+* @seealso TPZIntelGen
+*/
+namespace pzgeom {
 
+/// implements the geometry of a point element
 class TPZGeoPoint {
 
 public:
@@ -40,6 +49,8 @@ public:
 
 	typedef TPZInt1Point IntruleType;
 	//	typedef TPZGraphEl1dd GraphElType;
+};
+
 };
 #endif
 

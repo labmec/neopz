@@ -14,6 +14,7 @@ template<class T, class V>
 class TPZAvlMap;
 class TPZOneDRef;
 
+/// interface to generate adapted meshes
 class TPZAdaptMesh {
  public:
 	 void RemoveCloneBC(TPZCompMesh *mesh);

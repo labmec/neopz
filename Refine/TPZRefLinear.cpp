@@ -5,6 +5,9 @@
 #include "pzgeoel.h"
 #include "pzgmesh.h"
 
+using namespace pzshape;
+
+namespace pzrefine {
 static int InNeigh[2][1][3] = {
 	{{1,1,0}},{{0,0,1}}
 };
@@ -182,3 +185,4 @@ int TPZRefLinear::FatherSide(int side,int whichsubel) {
   return fatherside[whichsubel][side];
 
 }
+};
