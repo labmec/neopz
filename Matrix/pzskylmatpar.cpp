@@ -214,7 +214,7 @@ int TPZSkylParMatrix::Decompose_Cholesky()//, TPZVec<int> fDec, TPZVec<int> fThr
   ParallelCholesky(this);
   for(i=0;i<fNthreads-1;i++) pthread_join(allthreads[i], NULL);
   
-  delete allthreads;// fThreadUsed, fDec;
+  delete []allthreads;// fThreadUsed, fDec;
 
   for(i=0;i<Dim();i++) {
 	fDec[i]=fSkyline[i]-1;
