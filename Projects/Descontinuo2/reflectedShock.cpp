@@ -194,10 +194,10 @@ TPZGeoMesh * CreateRSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // Constructing neighborhood
 
    gmesh->BuildConnectivity();
-
+/*
    TPZVec< TPZGeoEl * > firstDivision;
    for(i = 0; i < gEls.NElements();i++)gEls[i]->Divide(firstDivision);
-
+*/
 
    return gmesh;
 }
@@ -208,7 +208,7 @@ TPZGeoMesh * CreateRSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
 TPZFlowCompMesh * RSCompMesh()
 {
-   TPZCompElDisc::gDegree = 1;
+   TPZCompElDisc::gDegree = 2;
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
@@ -249,7 +249,7 @@ TPZFlowCompMesh * RSCompMesh()
    // object computes the delta when it equals null.
 
    mat->SetCFL(1);
-   mat->SetDelta(10);
+   mat->SetDelta(1);
 
    cmesh -> InsertMaterialObject(mat);
 
@@ -344,6 +344,8 @@ TPZFlowCompMesh * RSCompMesh()
       Solution(blockOffset+1,0) = ro * u;
       Solution(blockOffset+2,0) = ro * v;
       Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+
+      for(int k = 4; k < 12; k++)Solution(blockOffset+k)=-1;
 
       cmesh->LoadSolution(Solution);
    }
