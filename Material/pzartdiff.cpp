@@ -587,7 +587,7 @@ void TPZArtDiff::ContributeExplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix &dsol
 void TPZArtDiff::ContributeImplDiff(int dim, TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight,  REAL timeStep)
 {
     REAL delta = Delta();
-    REAL constant = /*-*/ delta * weight * timeStep/1000.;
+    REAL constant = /*-*/ delta * weight * timeStep;
 
     TPZVec<TPZVec<FADREAL> > TauDiv;
 

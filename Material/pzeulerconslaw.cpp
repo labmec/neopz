@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.9 2003-11-12 00:03:41 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.10 2003-11-17 21:43:57 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -483,7 +483,7 @@ void TPZEulerConsLaw2::ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 
    // the parcell T2 is always explicit.
    ContributeExplT2(x,sol,weight,phi,ef);
-
+/*
    // contributing volume-based quantities
    // diffusive term
    if (fDiff == Explicit_TD)
@@ -492,7 +492,7 @@ void TPZEulerConsLaw2::ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
    // Volume Convective term
    if (fConvVol == Explicit_TD)
          ContributeExplConvVol(x, sol, weight, phi, dphi, ef);
-
+*/
 }
 
 
@@ -527,11 +527,16 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
       if (fDiff == ApproxImplicit_TD)
          ContributeApproxImplDiff(x,sol,dsol,weight,phi,dphi,ek,ef);
    }
-
+/*
    // Volume convective term
    if (fConvVol == Implicit_TD)
          ContributeImplConvVol(x,sol,dsol,weight,phi,dphi,ek,ef);
-
+*/
+/*
+ek(0,0) = 1.;
+ek(1,1) = 1.;
+ek(2,2) = 1.;
+ek(3,3) = 1.;*/
 }
 
 
@@ -556,7 +561,7 @@ void TPZEulerConsLaw2::ContributeInterface(
          solL[i] = solR[i] = res[i];
    }
 
-
+/*
    // contributing face-based quantities
    if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
       {
@@ -577,6 +582,7 @@ void TPZEulerConsLaw2::ContributeInterface(
    {
          ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
    }
+   */
 }
 
 
@@ -910,7 +916,7 @@ void TPZEulerConsLaw2::ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec
 //   TPZVec<REAL> sum1(nstate,0.),sum2(nstate,0.);
 
 //   for( int in = 0; in < phr; in++ ) {
-    
+
 //     // w * Un
 //     for(i=0;i<nstate;i++) sum1[i] = phi(in, 0) * sol[i];
 
