@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.41 2005-02-04 17:55:31 paulo Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.42 2005-02-10 14:16:13 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -942,7 +942,9 @@ void TPZInterfaceElement::Normal(TPZVec<REAL> &normal) {
 }
 
 void TPZInterfaceElement::EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-  TPZVec<REAL> &errors, TPZBlock * /*flux */) {}
+  TPZVec<REAL> &errors, TPZBlock * /*flux */) {
+   errors.Fill(0.0);
+}
 
   /**
   * returns the unique identifier for reading/writing objects to streams
