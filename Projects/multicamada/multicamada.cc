@@ -92,7 +92,6 @@ using namespace std;
 
 int main(){
 
-  ofstream out("MALHA.OUT");
   //criando objetos das classes computacional e geométrica
   REAL zmin = 0.;
   REAL dx = 1.0;
@@ -148,15 +147,29 @@ int main(){
 
   multcam->GenerateMesh();
 
-  multcam->SetQY(1.);
+  ofstream out("QX.out");
 
-  multcam->GeoMesh()->Print(out);
-  multcam->CompMesh()->Print(out);
+  multcam->SetQX(1.);
+
+  //  multcam->GeoMesh()->Print(out);
+  //  multcam->CompMesh()->Print(out);
   out.flush();
+
+  multcam->PrintCenterForces(out);
+
+  multcam->ComputeSolution(out,1);
+
+  multcam->PrintTensors(out);
+
+  multcam->ComputeCenterForces();
+
+  multcam->PrintCenterForces(out);
+  //  orto->Print(out);
 
   multcam->ComputeSolution(out,1);
 
   multcam->ComputeCenterForces();
+  multcam->PrintCenterForces(out);
 
 
   out.close();
