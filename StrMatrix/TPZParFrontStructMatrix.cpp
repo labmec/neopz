@@ -201,6 +201,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
   TPZParFrontStructMatrix<front> *parfront = (TPZParFrontStructMatrix<front> *) t;
   TPZAdmChunkVector<TPZCompEl *> &elementvec = parfront->fMesh->ElementVec();
   while(parfront->fCurrentAssembled < parfront->fNElements) {
+	 #ifndef USING_ATLAS
      cout << "*";
      cout.flush();
      if(!(parfront->fCurrentAssembled%20)){
@@ -212,7 +213,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
                cout.flush();
           }
      }
-               
+     #endif
      /**
       *Lock mutex and search for an available element
       *A global variable to be updated whenever a element is processed
@@ -265,6 +266,11 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
      delete ekaux;
      delete efaux; 
   }//fim for iel
+#ifdef USING_ATLAS
+	cout << "Matrix decomposed\n";
+	cout.flush();
+#endif  
+
   return 0;
 }
 
@@ -290,6 +296,7 @@ TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
      
      //TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
      TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
+	 // TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZParFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
      GetNumElConnected(numelconnected);
      mat->SetNumElConnected(numelconnected);
      
@@ -528,4 +535,3 @@ class TPZFrontNonSym;
 
 template class TPZParFrontStructMatrix<TPZFrontSym>;
 template class TPZParFrontStructMatrix<TPZFrontNonSym>;
-
