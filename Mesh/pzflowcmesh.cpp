@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.cpp,v 1.3 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzflowcmesh.cpp,v 1.4 2003-11-12 18:42:11 erick Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
@@ -20,8 +20,6 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 
   i = 0;
   while(i<nel){
-
-    cout << endl << i;
 
     TPZCompEl *pElComp = ElementVec()[i];
     if(!pElComp)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh: No associated computation element.\n";
@@ -76,51 +74,6 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
   }
   return maxvel;
 
-/*
-  for(i=0;i<nel;i++){
-    TPZCompEl *pElComp = ElementVec()[i];
-    if(!pElComp)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh: No associated computation element.\n";
-
-    TPZMaterial *mat = pElComp->Material();
-    TPZGeoEl *pElGeo = pElComp->Reference();
-    if(!mat || !pElGeo)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh ERROR: null material or element.\n";
-
-    dim = mat->Dimension();
-    elDim = pElGeo->Dimension();
-    if(elDim != dim)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh2 ERROR: element and material with different dimensions.\n";
-
-    TPZConservationLaw2 *law = dynamic_cast<TPZConservationLaw2 *>(mat);
-    if(!law)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh2 ERROR: non-fluid material.\n";
-
-    // number of state variables for this material.
-    nstate = law->NStateVariables();
-
-    // getting the center point of the internal side.
-    pElGeo->CenterPoint(pElGeo->NSides()-1,param);//com->Solution(sol,j+100,sol2);
-    // verifying the density answer
-    pElComp->Solution(param,1,density);
-    if(density[0] < 0.0)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh: Negative density\n";
-
-    // Getting the velocity answers
-    pElComp->Solution(param,6,velocity);
-    // getting the whole vector of solutions
-    sol.Resize(nstate);
-    pElComp->Solution(param,5,sol);
-
-    press = law->Pressure(sol);
-    if(press < 0.0)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh minus pressure\n";
-
-    // retrieving the constant of gas.
-    gamma = law->Gamma();
-
-    sound = sqrt(gamma*press/density[0]);
-
-    // maximal eigenvalue velocity
-    veloc = velocity[0] + sound;
-    if(veloc > maxvel) maxvel = veloc;
-  }
-  return maxvel;
-  */
 }
 
 void TPZFlowCompMesh::CollectFluidMaterials()
