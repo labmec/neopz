@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.19 2004-01-14 12:36:17 cantao Exp $
+dnl $Id: configure.in,v 1.20 2004-01-27 13:55:53 tiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -353,12 +353,26 @@ dnl --| Projects subtree |--
 	Projects/testshape/Makefile \
 	Projects/viga3d/Makefile \
 	Projects/descontinuo/Makefile \
-        Projects/PoissonFAD/Makefile \
+	Projects/PoissonFAD/Makefile \
 	Projects/HyperElasticityFAD/Makefile \
 	Projects/ShapeFAD/Makefile \
 	Projects/Adapt_MultThread/Makefile \
-        Projects/ConsLaw/Makefile \
-	Projects/Igor/Makefile
+	Projects/ConsLaw/Makefile \
+	Projects/Igor/Makefile \
+	Projects/CursoPZ/Makefile \
+	Projects/CursoPZ/Class_1/Makefile \
+	Projects/CursoPZ/Class_2/Makefile \
+	Projects/CursoPZ/Class_3/Makefile \
+	Projects/CursoPZ/Class_4/Makefile \
+	Projects/CursoPZ/Class_5/Makefile \
+	Projects/CursoPZ/FinalWorks/Makefile \
+	Projects/CursoPZ/FinalWorks/TiagoForti/Makefile \
+	Projects/CursoPZ/FinalWorks/ErickSlis/Makefile \
+	Projects/CursoPZ/FinalWorks/Longhin/Makefile \
+	Projects/CursoPZ/FinalWorks/CesarRylo/Makefile \
+	Projects/CursoPZ/FinalWorks/RGDamas/Makefile \
+
+
 ])
 
 PZ_BYEBYE
