@@ -2,7 +2,7 @@
  * @file pzstack.h
  * @brief A simple stack.
  */
-// $Id: pzstack.h,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+// $Id: pzstack.h,v 1.2 2003-03-26 13:13:23 cantao Exp $
 
 #ifndef PZSTACK_H
 #define PZSTACK_H
@@ -58,6 +58,12 @@ class TPZStack : public TPZManVector< T, NumExtAlloc >
        * message is sent to PZError.
        */
       T Pop();
+
+      /** Casting operator.
+       *
+       *  @return The fStore pointer.
+       */
+      operator T*() const { return fStore; }
 
       /**@shapeType DependencyLink*/
       /*#  TPZManVector<T> lnkUnnamed*/
