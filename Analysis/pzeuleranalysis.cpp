@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.10 2003-11-20 21:39:21 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.11 2003-11-24 10:57:10 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -293,6 +293,15 @@ void TPZEulerAnalysis::Run(ostream &out)
 
    while(i < fTimeIntMaxIter && epsilon > fTimeIntEps)
    {
+
+
+      if(i%numIterDX==0)
+      {
+         graph->DrawSolution(outputStep, i);
+	 graph->Out()->flush();
+	 outputStep++;
+      }
+
       // Solves the nonlinear system, updates the solution,
       // history and last state assemble buffer.
       RunNewton(epsilon_Newton, numIter_Newton);
@@ -303,7 +312,6 @@ void TPZEulerAnalysis::Run(ostream &out)
 
 //      cout << "\nLast Solution\n" << *fpLastSol;
 //      cout << "\nCurrent Solution\n" << *fpCurrSol;
-
 
       // updates the history of state variable vectors
       UpdateHistory();
@@ -318,6 +326,7 @@ void TPZEulerAnalysis::Run(ostream &out)
       AssembleRhs(); // computing the residual only
       epsilon = Norm(fRhs);
 
+
       if(lastEpsilon>0.&&epsilon>0.)
       {
          fFlowCompMesh->ScaleCFL(sqrt(lastEpsilon/epsilon));
@@ -329,13 +338,6 @@ void TPZEulerAnalysis::Run(ostream &out)
 	  << "\t |NewtonEps=" << epsilon_Newton
 	  << "\t nIter=" << numIter_Newton;
 
-      if(i%numIterDX==0)
-      {
-         graph->DrawSolution(outputStep, i);
-	 graph->Out()->flush();
-	 outputStep++;
-      }
-
       i++;
    }
 
@@ -343,6 +345,10 @@ void TPZEulerAnalysis::Run(ostream &out)
    // for the storage of the tangent matrix.
 
    fpCurrSol->Print("Solution", cout);
+
+   graph->DrawSolution(outputStep, i);
+   graph->Out()->flush();
+   outputStep++;
 
    //graph->Close();
    delete graph;
