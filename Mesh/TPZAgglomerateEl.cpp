@@ -1,4 +1,3 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.9 2003-11-04 18:26:46 cedric Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -12,7 +11,6 @@
 #include "pzadmchunk.h"
 #include "pzquad.h"
 #include "pzelmat.h"
-#include "pztempmat.h"
 #include "pzgraphel.h"
 #include "pzgraphelq2dd.h"
 #include "pzgraphelq3dd.h"
@@ -167,84 +165,10 @@ TPZCompEl *TPZAgglomerateElement::FineElement(int index){
   return cel;
 }
 
-// a regra de integra¢ão será criada no CalcStiff e CalcRes
-void TPZAgglomerateElement::CalcResidual(TPZElementMatrix &ef){
+// a regra de integra¢ão será criada no CalcStiff e CalcRes cada ves
+void TPZAgglomerateElement::CalcResidual(TPZFMatrix &Rhs,TPZCompElDisc *el){
 
-  if(Reference()) return TPZCompElDisc::CalcResidual(ef);
-
-  if(Material() == NULL){
-    cout << "TPZAgglomerateElement::CalcResidual no material for this element\n";
-    return;
-  }
-  int ncon = NConnects();
-  int dim = Dimension();
-  int nstate = Material()->NStateVariables();
-  int nshape = NShapeF();
-  TPZBlock &block = Mesh()->Block();
-  TPZFMatrix &MeshSol = Mesh()->Solution();
-  int numeq = nshape * nstate;
-
-  // clean ef
-  if(!ef.fMat) ef.fMat = new TPZFMatrix();
-  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
-
-  ef.fMat->Redim(numeq,1);
-  if(ncon){//pode ser no máximo ncon = 1
-    ef.fBlock->SetNBlocks(ncon); 
-    ef.fBlock->Set(0,NShapeF()*nstate);
-  }
-  if( !ef.fMat || !ef.fBlock){
-    cout << "TPZAgglomerateElement::CalcResidual not enough storage for local stifness"
-      " matrix \n";
-    Print(cout);
-    if(ef.fMat)   delete ef.fMat;
-    if(ef.fBlock) delete ef.fBlock;
-    ef.fMat = NULL;
-    ef.fBlock = NULL;
-    return;
-  }
-  ef.fConnect.Resize(ncon);
-  for(int i=0;i<ncon;i++){
-    (ef.fConnect)[i] = ConnectIndex(i);
-  }
-  if(ncon==0) return;//elemento CC no passa
-  TPZFMatrix phix(nshape,1),dphix(dim,nshape);
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacinv(dim,dim);
-  TPZVec<REAL> x(3,0.);
-  REAL weight;
-  int integ = 2*Degree();
-  TPZStack<REAL> points,weights;
-  //acumula as regras dos obtidos por aglomeração
-  AccumulateIntegrationRule(integ,points,weights);//integra fi*fj
-  int ip,npoints = weights.NElements();
-  TPZVec<REAL> sol(nstate,0.);
-  TPZFMatrix dsol(dim,nstate,0.);
-
-  for(ip=0;ip<npoints;ip++){
-    x[0] = points[3*ip];
-    x[1] = points[3*ip+1];
-    x[2] = points[3*ip+2];
-    weight = weights[ip];
-    Shape(x,phix,dphix);
-    //solu¢ão da itera¢ão anterior
-    sol.Fill(0.);
-    dsol.Zero();
-    for(int in=0; in<ncon; in++) {
-      TPZConnect *df = &Connect(in);
-      int dfseq = df->SequenceNumber();
-      int dfvar = block.Size(dfseq);
-      int pos = block.Position(dfseq);
-      int iv = 0,d;
-      for(int jn=0; jn<dfvar; jn++) {
-	sol[iv%nstate] += phix(iv/nstate,0)*MeshSol(pos+jn,0);
-	for(d=0; d<dim; d++)
-	  dsol(d,iv%nstate) += dphix(d,iv/nstate)*MeshSol(pos+jn,0);
-	iv++;
-      }
-    }
-    Material()->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,*ef.fMat);
-  }
+  PZError << "TPZAgglomerateElement::CalcResidual DEVE SER IMPLEMENTADO";
 }
 
 void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
@@ -252,7 +176,7 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
   if(Reference()) return TPZCompElDisc::CalcStiff(ek,ef);
 
   if(Material() == NULL){
-    cout << "TPZAgglomerateElement::CalcStiff no material for this element\n";
+    cout << "TPZCompElDisc::CalcStiff : no material for this element\n";
     return;
   }
   int ncon = NConnects();
@@ -278,7 +202,7 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     ef.fBlock->Set(0,NShapeF()*nstate);
   }
   if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
-    cout << "TPZAgglomerateElement::CalcStiff not enough storage for local stifness"
+    cout << "TPZInterpolatedElement.calc_stiff : not enough storage for local stifness"
       " matrix \n";
     Print(cout);
     if(ek.fMat)   delete ek.fMat;
@@ -428,16 +352,16 @@ int TPZAgglomerateElement::CreateMidSideConnect(){
   return ConnectIndex();
 }
 
-// int TPZAgglomerateElement::Dimension(){
+int TPZAgglomerateElement::Dimension(){
 
-// //  int nind = NIndexes();
-//   return (gInterfaceDimension + 1);//?!
-// //   if(!nind){
-// //     PZError << "TPZAgglomerateElement::Dimension() empty list of elements\n";
-// //     return -1;
-// //   }
-// //   return ( fMotherMesh->ElementVec()[fIndexes[0]]->Reference()->Dimension() );
-// }
+//  int nind = NIndexes();
+  return (gInterfaceDimension + 1);//?!
+//   if(!nind){
+//     PZError << "TPZAgglomerateElement::Dimension() empty list of elements\n";
+//     return -1;
+//   }
+//   return ( fMotherMesh->ElementVec()[fIndexes[0]]->Reference()->Dimension() );
+}
 
 void TPZAgglomerateElement::Print(ostream &out) {
 
@@ -685,6 +609,7 @@ TPZGeoEl *TPZAgglomerateElement::FatherN(TPZGeoEl *sub,int n){
   }
   return fat;
 }
+
 
 int Level(TPZGeoEl *gel);
 void TPZAgglomerateElement::ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &accumlist,

@@ -238,17 +238,17 @@ public:
   //     * Virtual Method! See declaration in TPZCompEl class. 
   //     * The use of this method in submesh class return -1 == Error! 
   //     */
-	virtual int Dimension() const;
+	virtual int Dimension();
 
   //    /**
   //     * Returns the connection index i. 
   //     */
-	virtual int ConnectIndex(int i) const;
+	virtual int ConnectIndex(int i);
 
   //    /**
   //     * Returns the number of connections. 
   //     */
-	virtual int NConnects() const;
+	virtual int NConnects();
 	
   //  /**
   //     * Load the father mesh solution to all submesh connects -

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelc1d.cc,v 1.8 2003-11-04 18:37:59 cedric Exp $
+// $Id: pzelc1d.cc,v 1.9 2003-11-04 20:03:06 cedric Exp $
 //METHODS DEFINITION FOR CLASS ELEM1D
 
 #include "pzelc1d.h"

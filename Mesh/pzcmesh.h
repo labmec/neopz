@@ -1,5 +1,5 @@
-//$Id: pzcmesh.h,v 1.10 2003-11-04 18:37:58 cedric Exp $
-
+// -*- c++ -*-
+// $ Id: $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -15,7 +15,7 @@
 //using namespace std;
 
 #include <string.h>
-#include "pzreal.h" // Added by ClassView
+#include "pzreal.h"	// Added by ClassView
 
 class TPZCompEl;
 class TPZGeoEl;
@@ -42,12 +42,12 @@ protected:
    * Geometric grid to which this grid refers
    */
   TPZGeoMesh	*fReference;
-
+  
   /**
    * Grid name for model identification
    */
   char		fName[127];
-
+  
 
   /**
    * List of pointers to elements
@@ -63,7 +63,7 @@ protected:
    * List of pointers to materials
    */
   TPZAdmChunkVector<TPZMaterial *>		fMaterialVec;
-
+  
   /**
    * List of nodes with associated boundary conditions
    */
@@ -76,9 +76,9 @@ protected:
 
   /**Solution vector*/
   TPZFMatrix	fSolution;
-
+  
   /**
-   * Block structure to right construction of the
+   * Block structure to right construction of the 
    * stiffness matrix and load vector
    */
   TPZBlock		fBlock;
@@ -88,9 +88,7 @@ protected:
    */
   TPZFMatrix fElementSolution;
 
-  /**
-   * Dimension of the simulation or the model
-   */
+  /*set the dimension of the simulation or the model*/
   int fDimModel;
 
 public:

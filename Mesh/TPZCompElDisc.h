@@ -1,5 +1,3 @@
-//$Id: TPZCompElDisc.h,v 1.12 2003-11-04 17:01:50 cedric Exp $
-
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
 ////////////////////////////////////////////////////////////////////////////////
@@ -13,7 +11,6 @@ using namespace std;
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzreal.h"
-//#include "pzeltype.h"
 
 struct TPZElementMatrix;
 class TPZFMatrix;
@@ -79,8 +76,9 @@ protected:
 
   static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
   /**return the geometric element to which this element references*/
-  TPZGeoEl *Reference() const { return fReference;}
+  TPZGeoEl *Reference() { return fReference;}
   void SetReference(TPZGeoEl *ref) {fReference = ref;}
+
   /**
    * default degree of imterpolation
    */
@@ -92,7 +90,7 @@ protected:
   TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy);
   TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index);
 
-  TPZCompElDisc *Clone(TPZCompMesh &mesh) const {
+  TPZCompEl *Clone(TPZCompMesh &mesh) const {
     return new TPZCompElDisc(mesh,*this);
   }
 
@@ -118,16 +116,13 @@ protected:
    */
   virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
-  virtual void CalcResidual(TPZElementMatrix &ef);
-
-
   /**
    * value of the bases and derivatives of the element deformed in point X 
    */
   void Shape(TPZVec<REAL> X, TPZFMatrix &phi, TPZFMatrix &dphi);
 
   /**
-   * Type of the element
+   * Type of the element 
    */
   virtual MElementType Type() {return EDiscontinuous;}
 
@@ -170,17 +165,17 @@ protected:
    */
   virtual void SetDegree(int degree) {fDegree = degree;}
 
-  int NConnects() const;
+  int NConnects();
 
   /**
    * amount of vertices of the element 
    */
-  int NCornerConnects() const { return Reference()->NNodes();}
+  int NCornerConnects() { return Reference()->NNodes();}
 
   /**
    * it returns dimension from the element 
    */
-  int Dimension() const { return Reference()->Dimension();}
+  int Dimension() { return Reference()->Dimension();}
 
   /**
    * it calculates the normalizing constant of the bases of the element 
@@ -190,13 +185,13 @@ protected:
   /**
    * it returns the connect index from the element 
    */
-  int ConnectIndex(int side = 0) const;
+  int ConnectIndex(int side = 0);
   void  SetConnectIndex(int /*inode*/, int index) {fConnectIndex = index;}
 
   /**
    * it returns the shapes number of the element 
    */
-  int  NShapeF() const;
+  int  NShapeF();
 
   void CreateInterfaces();
 
@@ -208,7 +203,9 @@ protected:
 
   int ExistsInterface(TPZGeoElSide geosd);
 
-  REAL CenterPoint(int index) const {return fCenterPoint[index];}
+  REAL CenterPoint(int index) {return fCenterPoint[index];}
+
+  void CenterPoint(TPZVec<REAL> &center);
   
   void SetCenterPoint(int i,REAL x){fCenterPoint[i] = x;}
 
@@ -218,9 +215,9 @@ protected:
    * Wherever possible, use dynamic_cast instead of this method
    * @return 0 if the element is not interpolated
    */
-  virtual int IsInterpolated() const {return 1;}
+  virtual int IsInterpolated() {return 1;}
 
-  REAL SizeOfElement() const;
+  REAL SizeOfElement();
 
   /**
    * Creates corresponding graphical element(s) if the dimension matches
@@ -243,15 +240,15 @@ protected:
   static void CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh &aggmesh,TPZVec<int> &accumlist,int numaggl);
 
   virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
-  
+
   int NSides();
 
   REAL LesserEdgeOfEl();
 
+  void CalcResidual(TPZElementMatrix &ef);
 };
 
 inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index) {
-  //  TPZGeoEl *cop = geo;
   return new TPZCompElDisc(mesh,geo,index);
 }
 //Exemplo do quadrilátero: 

@@ -1,7 +1,7 @@
 //HEADER FILE FOR CLASS ELBAS
 
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.7 2003-11-04 18:37:58 cedric Exp $
+// $Id: pzcompel.h,v 1.8 2003-11-04 20:03:06 cedric Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -133,47 +133,47 @@ public:
    * You may not redefine this method, because a lot of "unsafe" casts depend
    * on the result of this method
    */
-  virtual int IsInterpolated() const {return 0;}
-  virtual int IsInterface() const { return 0; }
+  virtual int IsInterpolated() {return 0;}
+  virtual int IsInterface() { return 0; }
 
   /**
    * Return a pointer to the corresponding geometric element if such exists
    * return 0 otherwise
    */
-  virtual TPZGeoEl *Reference() const { return 0; }
+  virtual TPZGeoEl *Reference() { return 0; }
 
   /**
    * Return the number of nodes of the element
    */
-  virtual int NConnects() const = 0;
+  virtual int NConnects()=0;
 
   /**
    * Return the number of equations of the element
    */
-  virtual int NEquations() const;
+  virtual int NEquations();
 
   /**
    * Return element index of the mesh fELementVec list
    */
-  int Index() const;
+  int Index();
 
   /**
    * Return the index of the ith connectivity of the element
    * @param i connectivity index who want knows
    */
-  virtual int ConnectIndex(int i) const = 0;
+  virtual int ConnectIndex(int i) = 0;
 
   /**
    * Return a pointer to the ith node
    * @param i node index
    */
-  virtual TPZConnect &Connect(int i) const;
+  virtual TPZConnect &Connect(int i);
 
   /**
    * Dimension of the element
    */
-  virtual int Dimension() const = 0;
-
+  virtual int Dimension() = 0;
+	
   /**
    * Identify the material object associated with the element
    */
@@ -181,7 +181,7 @@ public:
 
   /**
    * Set the material associated with the object
-   * @param mat new element material
+   * @param mat new element material 
    */
   virtual void SetMaterial(TPZMaterial *mat) = 0;
 
@@ -221,7 +221,7 @@ public:
   /**
    * Return a pointer to the grid of the element
    */
-  TPZCompMesh *Mesh() const;
+  TPZCompMesh *Mesh();
   //@}
 
   /**

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzintel.h,v 1.8 2003-10-23 17:11:06 tiago Exp $
+// $ Id: $
 #ifndef PZINTEL_H
 #define PZINTEL_H
 
@@ -77,18 +77,13 @@ public:
    */
   int MaterialId() const;
 
-    /**
-   * Method for creating a copy of the element
-   */
-  virtual TPZCompEl * Clone(TPZCompMesh &mesh) const = 0;
-
   /**
    * Print the relevant data of the element to the output stream
    */
   virtual void Print(ostream &out = cout);
 
   /**return the geometric element to which this element references*/
-  virtual TPZGeoEl *Reference() const { return fReference;}
+  virtual TPZGeoEl *Reference() { return fReference;}
 
   /**declare the element as interpolated or not.
    * You may not redefine this method, because a lot of "unsafe" casts depend
@@ -96,51 +91,51 @@ public:
    * Wherever possible, use dynamic_cast instead of this method
    * @return 0 if the element is not interpolated
    */
-  virtual int IsInterpolated() const {return 1;}
+  virtual int IsInterpolated() {return 1;}
 
   /**returns the number of shapefunctions associated with a connect*/
-  virtual int NConnectShapeF(int inod) const  = 0;
+  virtual int NConnectShapeF(int inod) = 0;
 
   /**returns the total number of shapefunctions*/
-  int NShapeF() const;
+  int NShapeF();
   
   /**returns the number of shape functions on a side*/
-  int NSideShapeF(int side) const;
+  int NSideShapeF(int side);
 
   /**return the number of dof nodes along side iside*/
-  virtual int NSideConnects(int iside) const = 0;
+  virtual int NSideConnects(int iside) = 0;
 
   /**
    * returns the local node number of icon along is
    * @param icon connect number along side is
    * @is side which is being queried
    */
-  virtual int SideConnectLocId(int icon,int is) const  = 0;
+  virtual int SideConnectLocId(int icon,int is) = 0;
 
   /**
    * returns the local id of the connect in the middle of the side
    * @param is side which is being queried
    */
-  virtual int MidSideConnectLocId(int is) const;
+  virtual int MidSideConnectLocId(int is);
   
   /**return the index of the c th connect object along side is*/
-  int SideConnectIndex(int icon,int is) const;
+  int SideConnectIndex(int icon,int is);
 
   /**
    * return a pointer to the icon th connect object along side is
    */
-  TPZConnect *SideConnect(int icon,int is) const;
+  TPZConnect *SideConnect(int icon,int is);
 
   /**
    * returns the dimension of the element
    */
-  virtual int Dimension() const = 0;
+  virtual int Dimension() = 0;
 
   /**return the number of corner connects of the element*/
-  virtual int NCornerConnects() const = 0;
+  virtual int NCornerConnects() = 0;
 
   /**return the number of connect objects of the element*/
-  virtual int NConnects() const = 0;
+  virtual int NConnects() = 0;
 	
   /**identify the material object associated with the element*/
   TPZMaterial *Material() const {return fMaterial;}
@@ -153,20 +148,20 @@ public:
    * PreferredSideOrder
    * @param ord vector which will be filled with the side orders of the element
    */
-  virtual void GetInterpolationOrder(TPZVec<int> &ord) const  = 0;
+  virtual void GetInterpolationOrder(TPZVec<int> &ord) = 0;
 
   /**return the preferred order of the polynomial along
      side iside*/
-  virtual int PreferredSideOrder(int iside) const = 0;
+  virtual int PreferredSideOrder(int iside) = 0;
 
   /** adjusts the preferredSideOrder for faces 
    * @param side : side for which the order needs adjustment
    * @param order : original order which has to be compared with the sides
   */
-  int AdjustPreferredSideOrder(int side, int order) const;
+  int AdjustPreferredSideOrder(int side, int order);
 
   /**returns the actual interpolation order of the polynomial along the side*/
-  virtual int SideOrder(int side) const = 0;
+  virtual int SideOrder(int side) = 0;
 
   //@}
 

@@ -1,5 +1,5 @@
 // -*- c++ -*- 
-//$Id: TPZCompElDisc.cpp,v 1.23 2003-11-04 16:42:02 cedric Exp $
+
 
 #include "pzelmat.h"
 #include "pzelgc3d.h"

@@ -1,5 +1,3 @@
-//$Id: pzcompel.cpp,v 1.7 2003-11-04 18:37:58 cedric Exp $
-
 //METHODS DEFINITION FOR CLASS ELBAS
 
 #include "pzcompel.h"
@@ -191,12 +189,12 @@ void TPZCompEl::SetMesh(TPZCompMesh *mesh) {
   fMesh = mesh;
 }
 
-TPZCompMesh *TPZCompEl::Mesh() const {
+TPZCompMesh *TPZCompEl::Mesh() {
   //	if(!fMesh) PZError << "TPZCompEl.Mesh returned NULL pointer\n";
   return fMesh;
 }
 
-TPZConnect &TPZCompEl::Connect(int i) const {
+TPZConnect &TPZCompEl::Connect(int i) {
   if(fMesh) {
     int connectindex = ConnectIndex(i);
     if(connectindex >= 0) {
@@ -673,7 +671,7 @@ void TPZCompEl::BuildDependencyOrder(TPZVec<int> &connectlist,
   }
 }
 
-int TPZCompEl::Index() const {
+int TPZCompEl::Index() {
 
 /*   int i=0; */
 /*   int numel = fMesh->NElements(); */
@@ -686,7 +684,7 @@ int TPZCompEl::Index() const {
   return fIndex;
 }
 
-int TPZCompEl::NEquations() const {
+int TPZCompEl::NEquations(){
 	int i=0;
 	int numeq=0;
 	for (;i<NConnects(); i++){

@@ -267,15 +267,15 @@ TPZCompMesh * TPZSubCompMesh::CommonMesh(TPZCompMesh *mesh){
 	return (pos1 >=0 ) ? (s1[pos1+1]) : s2[pos2+1];
 }
 
-int TPZSubCompMesh::NConnects() const {
+int TPZSubCompMesh::NConnects(){
 	return fConnectIndex.NElements();
 }
 
-int TPZSubCompMesh::ConnectIndex(int i) const {
+int TPZSubCompMesh::ConnectIndex(int i){
 	return fConnectIndex[i];
 }
 
-int TPZSubCompMesh::Dimension() const{
+int TPZSubCompMesh::Dimension(){
 	return -1;
 }
 
