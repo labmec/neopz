@@ -186,6 +186,10 @@ class  TPZMaterial
 					   TPZFMatrix &phiright,
 					   TPZVec<REAL> &normal,
 					   TPZFMatrix &ek, TPZFMatrix &ef);
+
+public:
+  /**Return 1 if forcing function is defined 0 elsewhere*/
+  int HasForcingFunction() {if (fForcingFunction) return  1; else return 0;}             
 };
 
 inline void TPZMaterial::ContributeOverInterface(
