@@ -30,7 +30,16 @@ TPZConnect::~TPZConnect() {
        delete fDependList;
        fDependList = 0;
     }
-  }
+}
+
+void TPZConnect::operator=(const TPZConnect &copy) {
+  if(this == &copy) return;
+  if(fDependList) delete fDependList;
+  fSequenceNumber = copy.fSequenceNumber;
+  fNElConnected = copy.fNElConnected;
+  fOrder = copy.fOrder;
+  if(copy.fDependList) fDependList = new TPZDepend(*copy.fDependList);
+}
 
 void TPZConnect::Print(TPZCompMesh &mesh, ostream & out) {
   out << "TPZConnect : " << "Sequence number = " << fSequenceNumber;
@@ -155,6 +164,11 @@ TPZConnect::TPZDepend::TPZDepend(int dependindex,TPZFMatrix &depmat,int ipos,int
   int i,j;
   for(i=0; i<isize; i++) for(j=0; j<jsize; j++) fDepMatrix(i,j) = depmat(ipos+i,jpos+j);
   fNext = 0;
+}
+
+TPZConnect::TPZDepend::TPZDepend(const TPZDepend &copy) : fDepConnectIndex(copy.fDepConnectIndex),
+							  fDepMatrix(copy.fDepMatrix), fNext(0) {
+  if(copy.fNext) fNext = new TPZDepend(*fNext);
 }
 
 TPZConnect::TPZDepend::~TPZDepend() {

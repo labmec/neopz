@@ -1,3 +1,6 @@
+// -*- c++ -*-
+
+// $ Id: $
 #ifndef PZINTEL_H
 #define PZINTEL_H
 
@@ -56,6 +59,10 @@ public:
   TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int &index);
 
   /**
+   * Constructor aimed at creating a copy of an interpolated element within a new mesh
+   */
+  TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy);
+  /**
    * destructor, does nothing
    */
   virtual ~TPZInterpolatedElement();
@@ -68,7 +75,7 @@ public:
   /** 
    * @return return the index of the material
    */
-  int MaterialId();
+  int MaterialId() const;
 
   /**
    * Print the relevant data of the element to the output stream
@@ -131,7 +138,7 @@ public:
   virtual int NConnects() = 0;
 	
   /**identify the material object associated with the element*/
-  virtual TPZMaterial *Material() {return fMaterial;}
+  TPZMaterial *Material() const {return fMaterial;}
 
 
   /**
@@ -177,13 +184,13 @@ public:
   }
   
   /**Sets the interpolation order for the interior of the element*/
-  virtual void SetInterpolationOrder(TPZVec<int> &ord) = 0;
+  //  virtual void SetInterpolationOrder(TPZVec<int> &ord) = 0;
 
   /**Sets the preferred interpolation order along a side
    * This method only updates the datastructure of the element
    * In order to change the interpolation order of an element, use the method PRefine
    */
-  virtual void SetPreferredSideOrder(int side, int order) = 0;
+  virtual void SetPreferredSideOrder(int order) = 0;
 
 protected:
   /**
@@ -352,14 +359,10 @@ public:
    * This call will not ¨necessarily¨ modify the interpolation order of the side. The interpolation
    * order of neighbouring elements need to remain compatible. The actual order is obtained by calling
    * ComputeSideOrder
-   * @param side side along which the order will be modified
    * @param order interpolation order which the user requests
    * @see ComputeSideOrder
    * @note This is the user interface to adaptive refinement of this class
    */
-  void PRefine(int side, int order);
-  
-  /**Changes the interpolation order of all sides. Updates all constraints and block sizes*/
   void PRefine(int order);
 
  /**compute the shapefunction restraints which need to be applied to the shape functions

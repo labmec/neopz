@@ -279,7 +279,7 @@ int TPZSubCompMesh::Dimension(){
 	return -1;
 }
 
-TPZMaterial *TPZSubCompMesh::Material(){
+TPZMaterial *TPZSubCompMesh::Material() const{
 	return 0;
 }
 

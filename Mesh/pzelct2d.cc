@@ -65,6 +65,16 @@ TPZCompElT2d::TPZCompElT2d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index,int /*noco
 //  RemoveSideRestraintsII(EInsert);
 }
 
+TPZCompElT2d::TPZCompElT2d(TPZCompMesh &mesh, const TPZCompElT2d &copy) :
+		TPZInterpolatedElement(mesh,copy), fIntRule(copy.fIntRule) {
+  int i;
+  for(i=0; i<7; i++) fConnectIndexes[i]=copy.fConnectIndexes[i];
+  for(i=0;i<4;i++) {
+    fSideOrder[i] = copy.fSideOrder[i];
+    fPreferredSideOrder[i] = copy.fPreferredSideOrder[i];
+  }
+}
+
 void TPZCompElT2d::SetConnectIndex(int i,int connectindex) {
   if(i>-1 && i<7) fConnectIndexes[i] = connectindex;
   else {
@@ -135,10 +145,9 @@ int TPZCompElT2d::PreferredSideOrder(int side) {
   return 0;
 }
 
-void TPZCompElT2d::SetPreferredSideOrder(int side, int order) {
-	if(side < 3) return;
-   if(side < 7) fPreferredSideOrder[side-3] = order;
-   return;
+void TPZCompElT2d::SetPreferredSideOrder(int order) {
+  int side;
+  for(side=3; side<7; side++) fPreferredSideOrder[side-3] = order;
 }
 
 
@@ -153,6 +162,7 @@ void TPZCompElT2d::SetSideOrder(int side, int order) {
     fSideOrder[side-3] = order;
     if(fConnectIndexes[side] !=-1) { 
       TPZConnect &c = Connect(side);
+      c.SetOrder(order);
       int seqnum = c.SequenceNumber();
       int nvar = 1;
       TPZMaterial *mat = Material();

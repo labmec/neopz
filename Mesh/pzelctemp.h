@@ -16,7 +16,13 @@ public:
 
   TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 
+  TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,TSHAPE> &copy);
+
 virtual ~TPZIntelGen();
+
+  virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+    return new TPZIntelGen<TGEO, TSHAPE> (mesh, *this);
+  }
 
   virtual MElementType Type();
 
@@ -40,6 +46,8 @@ virtual ~TPZIntelGen();
 
   virtual int SideConnectLocId(int node, int side);
 
+  virtual int ConnectIndex(int node);
+
   virtual void SetIntegrationRule(int ord);
 
   /**Sets the interpolation order for the interior of the element*/
@@ -54,7 +62,7 @@ virtual ~TPZIntelGen();
   /**Sets the preferred interpolation order along a side
   This method only updates the datastructure of the element
   In order to change the interpolation order of an element, use the method PRefine*/
-  virtual void SetPreferredSideOrder(int side, int order);
+  virtual void SetPreferredSideOrder(int order);
 
   /**sets the interpolation order of side to order*/
   virtual void SetSideOrder(int side, int order);
@@ -84,6 +92,10 @@ virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
    * Returns the transformation which transform a point from the side to the interior of the element
    */
   TPZTransform TransformSideToElement(int side);
+
+  virtual TPZIntPoints &GetIntegrationRule() {
+    return fIntRule;
+  }
 
 
 

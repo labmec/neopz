@@ -61,6 +61,16 @@ TPZCompElQ2d::TPZCompElQ2d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index,int /*noco
   fIntRule.SetOrder(order);
 }
 
+TPZCompElQ2d::TPZCompElQ2d(TPZCompMesh &mesh, const TPZCompElQ2d &copy) :
+			TPZInterpolatedElement(mesh,copy), fIntRule(copy.fIntRule) {
+  int i;
+  for(i=0; i<9; i++) fConnectIndexes[i] = copy.fConnectIndexes[i];
+  for(i=0;i<5;i++) {
+    fSideOrder[i] = copy.fSideOrder[i];
+    fPreferredSideOrder[i] = copy.fPreferredSideOrder[i];
+  }
+}
+
 void TPZCompElQ2d::VarRange(int var,double &min,double &max) {
 	PZError << "TPZCompElQ2d::VarRange is not defined.\n";
    if(var>-1) max = min = 0.;
@@ -143,10 +153,9 @@ int TPZCompElQ2d::PreferredSideOrder(int side) {
   return 0;
 }
 
-void TPZCompElQ2d::SetPreferredSideOrder(int side, int order) {
-	if(side < 4) return;
-   if(side < 9) fPreferredSideOrder[side-4] = order;
-   return;
+void TPZCompElQ2d::SetPreferredSideOrder(int order) {
+  int side;
+  for(side=0; side<5; side++) fPreferredSideOrder[side] = order;
 }
 
 void TPZCompElQ2d::SetSideOrder(int side, int order) {
@@ -160,6 +169,7 @@ void TPZCompElQ2d::SetSideOrder(int side, int order) {
 	  fSideOrder[side-4] = order;
 	  if(fConnectIndexes[side] != -1) {
 	    TPZConnect &c = Connect(side);
+	    c.SetOrder(order);
 	    int seqnum = c.SequenceNumber();
 	    int nvar = 1;
 	    TPZMaterial *mat = Material();

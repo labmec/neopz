@@ -1,4 +1,5 @@
 // -*- c++ -*-
+// $ Id: $
 #include "pzelct3d.h"
 //#include "pzelgt3d.h"
 #include "pzgeoel.h"
@@ -78,6 +79,16 @@ TPZCompElT3d::TPZCompElT3d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index,int /*noco
   for(i=0;i<11;i++) {
     fSideOrder[i] = gOrder;
     fPreferredSideOrder[i] = gOrder;
+  }
+}
+
+TPZCompElT3d::TPZCompElT3d(TPZCompMesh &mesh, const TPZCompElT3d &copy) :
+  TPZInterpolatedElement(mesh,copy), fIntRule(copy.fIntRule) {
+  int i;
+  for(i=0; i<15; i++) fConnectIndexes[i]=copy.fConnectIndexes[i];
+  for(i=0;i<11;i++) {
+    fSideOrder[i] = copy.fSideOrder[i];
+    fPreferredSideOrder[i] = copy.fPreferredSideOrder[i];
   }
 }
 
@@ -288,11 +299,9 @@ int TPZCompElT3d::PreferredSideOrder(int side) {
    return 0;
 }
 
-void TPZCompElT3d::SetPreferredSideOrder(int side, int order) {
-  if(side>-1 && side<4) return;//cantos
-  if(side<15) fPreferredSideOrder[side-4] = order;//sides 4 a 14
-  else PZError << "TPZCompElT3d::SetPreferredSideOrder called for side = " << side << "\n";
-  return;
+void TPZCompElT3d::SetPreferredSideOrder(int order) {
+  int side;
+  for(side=4; side<15; side++) fPreferredSideOrder[side-4] = order;//sides 4 a 14
 }
 
 void TPZCompElT3d::SetSideOrder(int side, int order) {
@@ -308,6 +317,7 @@ void TPZCompElT3d::SetSideOrder(int side, int order) {
     fSideOrder[side-4] = order;
     if(fConnectIndexes[side] !=-1) {
       TPZConnect &c = Connect(side);
+      c.SetOrder(order);
       int seqnum = c.SequenceNumber();
       int nvar = 1;
       TPZMaterial *mat = Material();

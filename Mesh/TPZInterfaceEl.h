@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.11 2003-10-17 18:18:03 cantao Exp $
+//$Id: TPZInterfaceEl.h,v 1.12 2003-10-20 02:12:07 phil Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -56,13 +56,17 @@ class TPZInterfaceElement : public TPZCompEl {
   //construtor do descontínuo
   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElDisc *left,TPZCompElDisc *right,int leftside);
+  TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
 
   ~TPZInterfaceElement(){};
 
+  virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+    return new TPZInterfaceElement(mesh, *this);
+  }
   /**return the geometric element to which this element references*/
   virtual TPZGeoEl *Reference() { return fReference;}
 
-  TPZMaterial *Material() { return fMaterial;}
+  TPZMaterial *Material() const { return fMaterial;}
 
   void SetMaterial(TPZMaterial *mat) { fMaterial = mat;}
 

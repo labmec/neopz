@@ -1,3 +1,4 @@
+// -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -71,6 +72,11 @@ public:
    * Destructor. 
    */
   virtual ~TPZSubCompMesh();
+
+  virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+    cout << "TPZSubCompMesh::Clone should be implemented\n";
+    return 0;
+  }
 
   /**
    * Static function for validation tests.
@@ -226,7 +232,7 @@ public:
   //    /**
   //     * Virtual Method! See declaration in TPZCompEl class. 
   //     */
-	virtual TPZMaterial *Material();
+	virtual TPZMaterial *Material() const;
 
   //    /**
   //     * Virtual Method! See declaration in TPZCompEl class. 

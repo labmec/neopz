@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.17 2003-10-17 15:23:43 cedric Exp $
+//$Id: TPZCompElDisc.cc,v 1.18 2003-10-20 02:12:07 phil Exp $
 
 // _*_ c++ _*_
 
@@ -49,6 +49,19 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
   fDegree = gDegree;
   fReference = NULL;
   fMaterial = NULL;
+}
+
+TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
+		TPZCompEl(mesh,copy), fCenterPoint(copy.fCenterPoint) {
+  fDegree = copy.fDegree;
+  fReference = copy.fReference;
+  TPZMaterial *mat = copy.Material();
+  if(mat) {
+    int materialid = mat->Id();
+    fMaterial = mesh.FindMaterial(materialid);
+  } else {
+    fMaterial = 0;
+  }
 }
 
 //construtor do elemento descontínuo

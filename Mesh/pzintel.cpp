@@ -1,4 +1,6 @@
 // -*- c++ -*-
+
+// $Id: pzintel.cpp,v 1.9 2003-10-20 02:12:07 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -25,13 +27,25 @@ TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *refe
   fMaterial = mesh.FindMaterial(materialid);
 }
 
+TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy) :
+  TPZCompEl(mesh,copy) {
+  fReference = copy.fReference;
+  TPZMaterial *mat = copy.Material();
+  if(mat) {
+    int materialid = mat->Id();
+    fMaterial = mesh.FindMaterial(materialid);
+  } else {
+    fMaterial = 0;
+  }
+}
+
 TPZInterpolatedElement::~TPZInterpolatedElement() {
 }
 
-int TPZInterpolatedElement::MaterialId() {
+int TPZInterpolatedElement::MaterialId() const {
   if(!fMaterial) {
     PZError << "TPZIntEl::MaterialIndex. This element has no material.\n";
-    return -1;
+    return -999;
   }
 
   return fMaterial->Id();
@@ -1688,24 +1702,18 @@ void TPZInterpolatedElement::Print(ostream &out) {
   out << endl;
 }
 
-void TPZInterpolatedElement::PRefine(int side, int order) {
-  SetPreferredSideOrder(side,order);
-  IdentifySideOrder(side);
+void TPZInterpolatedElement::PRefine(int order) {
+  SetPreferredSideOrder(order);
+  int side;
+  for(side=0; side<NConnects(); side++) {
+    IdentifySideOrder(side);
+  }
 //   if (side == NConnects()-1){
 //     int trueorder = SideOrder(side);
 //     SetIntegrationRule(2*trueorder+2);
 //   }
 }
 
-void TPZInterpolatedElement::PRefine(int order) {
-  int side = NCornerConnects();
-  int nconnects = NConnects();
-  for(;side < nconnects; side++) {
-    PRefine(side,order);
-  }
-  //  int maxorder = SideOrder(nconnects-1);
-  //  SetIntegrationRule(2*maxorder);
-}
 
 void TPZInterpolatedElement::EvaluateError(
 					   void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),

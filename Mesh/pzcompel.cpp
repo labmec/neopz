@@ -105,6 +105,13 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, int &index) {
   fIndex = index;
 }
 
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy) {
+  fMesh = &mesh;
+  int index = copy.fIndex;
+  if(index >= 0) mesh.ElementVec()[index] = this;
+  fIndex = index;
+}
+
 TPZCompEl::~TPZCompEl() {
   int index = Index();
 	fMesh->ElementVec()[index] = 0;

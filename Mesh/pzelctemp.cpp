@@ -1,5 +1,7 @@
 // -*- c++ -*-
 
+// $Id: pzelctemp.cpp,v 1.3 2003-10-20 02:11:22 phil Exp $
+
 #include "pzelctemp.h"
 #include "pzquad.h"
 #include "pzgeoel.h"
@@ -31,6 +33,16 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &ind
   
   //  TPZVec<int> order(2,2*fSideOrder[4]+2);
   
+}
+
+template<class TGEO, class TSHAPE>
+TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,TSHAPE> &copy) :
+  TPZInterpolatedElement(mesh,copy), fIntRule(copy.fIntRule) {
+  fPreferredSideOrder = copy.fPreferredSideOrder;
+  int i;
+  for(i=0;i<TSHAPE::NSides;i++) {
+    fConnectIndexes[i] = copy.fConnectIndexes[i];
+  }
 }
 
 template<class TGEO, class TSHAPE>
@@ -134,7 +146,7 @@ int TPZIntelGen<TGEO,TSHAPE>::PreferredSideOrder(int side) {
    This method only updates the datastructure of the element
    In order to change the interpolation order of an element, use the method PRefine*/
 template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::SetPreferredSideOrder(int side, int order) {
+void TPZIntelGen<TGEO,TSHAPE>::SetPreferredSideOrder(int order) {
   fPreferredSideOrder = order;
 }
 
@@ -249,6 +261,7 @@ TPZTransform TPZIntelGen<TGEO,TSHAPE>::TransformSideToElement(int side){
 #include "pzgraphelq2dd.h"
 #include "pzgraphel1dd.h"
 #include "pztrigraphd.h"
+#include "pzgraphelq3dd.h"
 
 void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
   phi(0,0) = 1.;
@@ -258,7 +271,23 @@ void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh
   if(dimension == 0) cout << "A point element has no graphical representation\n";
 }
 
+void TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+  if(dimension == 3) cout << "A tetrahedra element has no graphical representation\n";
+}
+
+void TPZIntelGen<TPZGeoPrism,TPZShapePrism>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+  if(dimension == 3) cout << "A prism element has no graphical representation\n";
+}
+
+void TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+  if(dimension == 3) cout << "A pyramid element has no graphical representation\n";
+}
+
 template class TPZIntelGen<TPZGeoPoint,TPZShapePoint>;
 template class TPZIntelGen<TPZGeoLinear, TPZShapeLinear>;
 template class TPZIntelGen<TPZGeoQuad,TPZShapeQuad>;
 template class TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>;
+template class TPZIntelGen<TPZGeoCube,TPZShapeCube>;
+template class TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>;
+template class TPZIntelGen<TPZGeoPrism,TPZShapePrism>;
+template class TPZIntelGen<TPZGeoPyramid,TPZShapePiram>;

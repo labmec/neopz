@@ -1,6 +1,7 @@
 //HEADER FILE FOR CLASS ELBAS
 
-// _*_ c++ _*_
+// -*- c++ -*-
+// $Id: pzcompel.h,v 1.5 2003-10-20 02:11:22 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -72,6 +73,16 @@ public:
    * Simple destructor
    */
   virtual ~TPZCompEl();
+
+  /**
+   * Method for creating a copy of the element
+   */
+  virtual TPZCompEl *Clone(TPZCompMesh &mesh) const = 0;
+
+  /**
+   * put a copy of the element in the referred mesh
+   */
+  TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy);
 
   /**
    * Default interpolation order
@@ -161,7 +172,7 @@ public:
   /**
    * Identify the material object associated with the element
    */
-  virtual TPZMaterial *Material() = 0;
+  virtual TPZMaterial *Material() const = 0;
 
   /**
    * Set the material associated with the object

@@ -1,4 +1,5 @@
 // -*- c++ -*-
+// $ Id: $
 #include "pzelcpoint.h"
 #include "pzelct2d.h"
 #include "pzelcq2d.h"
@@ -41,6 +42,12 @@ TPZCompElPoint::TPZCompElPoint(TPZCompMesh &mesh,TPZGeoEl *ref,int &index,int /*
 
   fConnectIndexes = -1;
 //  RemoveSideRestraintsII(EInsert);
+}
+
+TPZCompElPoint::TPZCompElPoint(TPZCompMesh &mesh, const TPZCompElPoint &copy) :
+		TPZInterpolatedElement(mesh,copy), fIntRule(copy.fIntRule) {
+
+  fConnectIndexes = copy.fConnectIndexes;
 }
 
 void TPZCompElPoint::SetConnectIndex(int i,int connectindex) {
@@ -99,10 +106,7 @@ int TPZCompElPoint::PreferredSideOrder(int /*side*/) {
   return 0;
 }
 
-void TPZCompElPoint::SetPreferredSideOrder(int side, int /*order*/) {
-  if (side)
-    PZError << "TPZCompElPoint::SetPreferredSideOrder. Bad paramenter side: " << side << "\n";
-  //  if(side != 0) return;
+void TPZCompElPoint::SetPreferredSideOrder(int /*order*/) {
 }
 
 

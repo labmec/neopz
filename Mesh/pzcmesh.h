@@ -1,4 +1,5 @@
-
+// -*- c++ -*-
+// $ Id: $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -47,10 +48,6 @@ protected:
    */
   char		fName[127];
   
-  /**
-   * TRUE if grid is checked and ready
-   */
-  char		fChecked;
 
   /**
    * List of pointers to elements
@@ -70,7 +67,7 @@ protected:
   /**
    * List of nodes with associated boundary conditions
    */
-  TPZAdmChunkVector<TPZConnectBC>		fBCConnectVec;
+  //  TPZAdmChunkVector<TPZConnectBC>		fBCConnectVec;
 
   /**
    * Block structure of the solution vector ????
@@ -99,6 +96,11 @@ public:
    * @param gr pointer to geometrical reference mesh
    */
   TPZCompMesh(TPZGeoMesh* gr);
+
+  /**
+   * Copy constructor
+   */
+  TPZCompMesh(const TPZCompMesh &copy);
 
   /**
    * Simple Destructor
@@ -175,7 +177,7 @@ public:
   /**
    * Number of connects with boundary condition
    */
-  int NBCConnects() {return fBCConnectVec.NElements();}
+  //  int NBCConnects() {return fBCConnectVec.NElements();}
   //@}
 
   /**
@@ -201,7 +203,7 @@ public:
   /**
    * Return a reference to the vector of nodal boundary condition pointers
    */
-  TPZAdmChunkVector<TPZConnectBC>  &BCConnectVec() { return fBCConnectVec; }
+  //  TPZAdmChunkVector<TPZConnectBC>  &BCConnectVec() { return fBCConnectVec; }
 
   /**
    * Return a pointer to the geometrical mesh associated
@@ -255,7 +257,7 @@ public:
   /**
    * Create degree of freedom boundary conditions
    */
-  void CreateConnectBC();
+  //  void CreateConnectBC();
   //@}
 
   /**
@@ -442,7 +444,7 @@ public:
   /**
    * ??
    */
-  char IsChecked() { return fChecked; }
+  //  char IsChecked() { return fChecked; }
 
   /**
    * Given the solution of the global system of equations, computes and stores the
@@ -497,12 +499,12 @@ public:
   /**
    * Clone this mesh
    */
-  TPZCompMesh * Clone();
+  TPZCompMesh * Clone() const;
 
   /**
    * Copies the materials of this mesh to the given mesh
    */
-  void CopyMaterials(TPZCompMesh *mesh);
+  void CopyMaterials(TPZCompMesh *mesh) const ;
 
   REAL DeltaX();
 

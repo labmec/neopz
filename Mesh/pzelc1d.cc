@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelc1d.cc,v 1.5 2003-10-06 21:29:53 phil Exp $
+// $Id: pzelc1d.cc,v 1.6 2003-10-20 02:11:22 phil Exp $
 //METHODS DEFINITION FOR CLASS ELEM1D
 
 #include "pzelc1d.h"
@@ -56,14 +56,22 @@ TPZCompEl1d::TPZCompEl1d(TPZCompMesh &mesh,TPZGeoEl *ref, int &index)
   fIntRule.SetOrder(order);
 }
 
+TPZCompEl1d::TPZCompEl1d(TPZCompMesh &mesh, const TPZCompEl1d &copy)
+  : TPZInterpolatedElement(mesh,copy), fIntRule(copy.fIntRule) {
+  int i;
+  for(i=0; i<3; i++) fConnectIndexes[i] = copy.fConnectIndexes[i];
+  fSideOrder = copy.fSideOrder;
+  fPreferredSideOrder = copy.fPreferredSideOrder;
+}
+
 TPZCompEl1d::TPZCompEl1d(TPZCompMesh &mesh,TPZGeoEl *ref, int &index, int)
-  : TPZInterpolatedElement(mesh,ref,index), fIntRule(1) {
+  : TPZInterpolatedElement(mesh,ref,index), fIntRule(1) 
+{
 
   int i;
   for(i=0; i<3; i++) fConnectIndexes[i] = -1;
   fSideOrder = gOrder;
   fPreferredSideOrder = gOrder;
-//  RemoveSideRestraintsII(EInsert);
 }
 
 TPZCompEl1d::~TPZCompEl1d(){
@@ -131,10 +139,9 @@ int TPZCompEl1d::PreferredSideOrder(int side) {
   return -1;
 }
 
-void TPZCompEl1d::SetPreferredSideOrder(int side, int order) {
-	if(side < 2) return;
-   if(side < 3) fPreferredSideOrder = order;
-   return;
+void TPZCompEl1d::SetPreferredSideOrder(int order) {
+  fPreferredSideOrder = order;
+  return;
 }
 
 void TPZCompEl1d::SetSideOrder(int side, int order) {
@@ -147,6 +154,7 @@ void TPZCompEl1d::SetSideOrder(int side, int order) {
       fSideOrder = order;
        if(fConnectIndexes[side] !=-1) {
 	 TPZConnect &c = Connect(side);
+	 c.SetOrder(order);
 	 int seqnum = c.SequenceNumber();
 	 int nvar = 1;
 	 TPZMaterial *mat = Material();

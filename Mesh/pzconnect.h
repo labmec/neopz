@@ -35,6 +35,9 @@ class TPZConnect {
     TPZDepend		*fNext;
 
     TPZDepend(int DepConnectIndex,TPZFMatrix &depmat,int ipos,int jpos, int isize, int jsize);
+
+    TPZDepend(const TPZDepend &copy);
+
     ~TPZDepend();
     TPZDepend *HasDepend(int DepConnectIndex);
     TPZDepend *RemoveDepend(TPZDepend *Ptr);
@@ -48,6 +51,9 @@ class TPZConnect {
   TPZConnect();
   /**Destructor*/
   ~TPZConnect();
+
+  void operator=(const TPZConnect &con);
+
   /**Number of degrees of freedom associated with the object
      It needs the mesh object to access this information*/
   int NDof(TPZCompMesh &mesh); /*Cedric 30/09/98 -  14:05*/

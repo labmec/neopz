@@ -26,12 +26,12 @@
 
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
   fConnectVec(0),fMaterialVec(0),
-  fBCConnectVec(0), fSolution(0,1) {
+  fSolution(0,1) {
   
   //Initializing class members
   
   fReference = gr;
-  fChecked = 0;
+  //  fChecked = 0;
   fName[0] = '\0';
   fName[126] = '\0';
   if(gr) {
@@ -71,8 +71,8 @@ void TPZCompMesh::CleanUp() {
   }
   fMaterialVec.Resize(0);
   fMaterialVec.CompactDataStructure(1);
-  fBCConnectVec.Resize(0);
-  fBCConnectVec.CompactDataStructure(1);
+  //  fBCConnectVec.Resize(0);
+  //  fBCConnectVec.CompactDataStructure(1);
   
   fBlock.SetNBlocks(0);
   fSolutionBlock.SetNBlocks(0);
@@ -97,7 +97,7 @@ void TPZCompMesh::Print (ostream & out) {
   out << "number of connects            = " << NConnects() << endl;
   out << "number of elements            = " << NElements() << endl;
   out << "number of materials           = " << NMaterials() << endl;
-  out << "number of nodal bound cond    = " << NBCConnects() << endl;
+  //  out << "number of nodal bound cond    = " << NBCConnects() << endl;
 
   out << "\n\t Connect Information:\n\n";
   int i, nelem = NConnects();
@@ -131,11 +131,11 @@ void TPZCompMesh::Print (ostream & out) {
     mt->Print(out);
   }
   out << "\nNodal boundary conditions\n";
-  nelem = NBCConnects();
-  for(i=0; i<nelem; i++) {
-    if(!fBCConnectVec[i].fConnect) continue;
-    fBCConnectVec[i].Print(*this,out);
-  }
+  //  nelem = NBCConnects();
+  //  for(i=0; i<nelem; i++) {
+  //    if(!fBCConnectVec[i].fConnect) continue;
+  //    fBCConnectVec[i].Print(*this,out);
+  //  }
 }
 
 /**Insert a material object in the datastructure*/
@@ -457,6 +457,7 @@ if(ek.fConstrMat->Decompose_LU() != -1) {
   // Add contribution of nodal boundary conditions
   // Philippe 8/4/97
   //test.flush();
+  /*
   static REAL BigNumber = 1.e9;
   nelem = fBCConnectVec.NElements();
   for(iel=0; iel<nelem; iel++) {
@@ -516,7 +517,7 @@ if(ek.fConstrMat->Decompose_LU() != -1) {
        }
     }
   }
-
+  */
   cout << endl;
 }
 
@@ -607,7 +608,8 @@ if(ek.fConstrMat->Decompose_LU() != -1) {
   }//fim for iel
   // Add contribution of nodal boundary conditions
   // Philippe 8/4/97
-  //test.flush();
+  //test.flush();]
+  /*
   static REAL BigNumber = 1.e9;
   nelem = fBCConnectVec.NElements();
   for(iel=0; iel<nelem; iel++) {
@@ -655,7 +657,7 @@ if(ek.fConstrMat->Decompose_LU() != -1) {
        }
     }
   }
-
+  */
 //  cout << endl;
 }
 
@@ -830,6 +832,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
   }
 }
 
+/*
 void TPZCompMesh::CreateConnectBC() {
   TPZGeoMesh *geo = Reference();
   TPZAdmChunkVector<TPZGeoNodeBC> *geobndcondvec = &geo->BCNodeVec();
@@ -856,11 +859,12 @@ void TPZCompMesh::CreateConnectBC() {
     TPZCompElSide cel = neighbourset[in].Reference();
     TPZConnect *df = &cel.Element()->Connect(neighbourset[in].Side());
     if(!df) continue;
-    TPZConnectBC dfbc(df,(TPZBndCond *) bc);
-    int key = BCConnectVec().AllocateNewElement();
-    BCConnectVec()[key] = dfbc;
+        TPZConnectBC dfbc(df,(TPZBndCond *) bc);
+        int key = BCConnectVec().AllocateNewElement();
+        BCConnectVec()[key] = dfbc;
   }
 }
+*/
 
 /*
 void TPZCompMesh::ComputeConnecttoElGraph(TPZVec<int> &firstel, TPZVec<int> &connectelgraph){
@@ -1626,9 +1630,23 @@ void TPZCompMesh::GetElementPatch(TPZVec<int> nodtoelgraph, TPZVec<int> nodtoelg
   }	
 }
 
+TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) : fReference(copy.fReference), fElementVec(copy.fElementVec),
+						    fConnectVec(copy.fConnectVec), fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
+						    fSolution(copy.fSolution), fBlock(copy.fBlock), fElementSolution(copy.fElementSolution)
+{
+  copy.CopyMaterials(this);
+  int nel = fElementVec.NElements();
+  int iel;
+  for(iel = 0; iel<nel; iel++) {
+    TPZCompEl *cel = fElementVec[iel];
+    if(cel) cel->Clone(*this);
+  }
+}
 
-TPZCompMesh* TPZCompMesh::Clone(){
-
+TPZCompMesh* TPZCompMesh::Clone() const {
+  return new TPZCompMesh(*this);
+}
+/*
   TPZGeoMesh *gmesh = Reference();
   gmesh->ResetReference();
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
@@ -1700,15 +1718,15 @@ TPZCompMesh* TPZCompMesh::Clone(){
   }
   return cmesh;
 }
+*/
 
-
-void TPZCompMesh::CopyMaterials(TPZCompMesh *mesh){
-  int nmat = MaterialVec().NElements();
+void TPZCompMesh::CopyMaterials(TPZCompMesh *mesh) const {
+  int nmat = fMaterialVec.NElements();
   int m;
   for(m=0; m<nmat; m++) {
-    TPZMaterial *mat = MaterialVec()[m];
+    TPZMaterial *mat = fMaterialVec[m];
     if(!mat) continue;
-    mat->Clone(mesh->MaterialVec());
+    mat->Clone(mesh->fMaterialVec);
   }
 
 }

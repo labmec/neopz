@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.15 2003-10-17 15:16:24 cedric Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.16 2003-10-20 02:12:07 phil Exp $
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
 #include "pzgeoelside.h"
@@ -27,12 +27,36 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   NormalToFace(fNormal,leftside);
 }
 
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy) 
+  : TPZCompEl(mesh,copy), fNormal(copy.fNormal) {
+  fLeftEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[copy.fLeftEl->Index()]);
+  fRightEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[copy.fRightEl->Index()]);
+  if(!fLeftEl || ! fRightEl) {
+    cout << "Something wrong with clone of interface element\n";
+    exit(-1);
+  }
+  if(fLeftEl->Mesh() != &mesh || fRightEl->Mesh() != &mesh) {
+    cout << "The discontinuous elements should be cloned before the interface elements\n";
+    exit(-1);
+  }
+  fReference = copy.fReference;
+  TPZMaterial *mat = copy.Material();
+  if(mat) {
+    int materialid = mat->Id();
+    fMaterial = mesh.FindMaterial(materialid);
+  } else {
+    fMaterial = 0;
+  }
+  //  fMaterial = copy.fMaterial;
+}
+
 void TPZInterfaceElement::CloneInterface(TPZCompMesh *aggmesh){
 
   int index,leftside=0;
   //lado do elemento esquerdo é para calcular a normal
   //não é necessário atualmente dado que esta é uma copia
   TPZInterfaceElement *interf = new TPZInterfaceElement(*aggmesh,fReference,index,LeftElement(),RightElement(),leftside);
+  cout << "Philippe:: I believe this method is wrong\n";
   TPZVec<REAL> normal(3,0.);
   Normal(normal);
   //interf->SetNormal(normal);

@@ -85,6 +85,13 @@ protected:
 
   TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index);//original
   TPZCompElDisc(TPZCompMesh &mesh,int &index);//construtor do aglomerado
+
+  TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy);
+
+  TPZCompEl *Clone(TPZCompMesh &mesh) const {
+    return new TPZCompElDisc(mesh,*this);
+  }
+
   ~TPZCompElDisc() {
       if(Reference()) {
          Reference()->ResetReference();
@@ -116,7 +123,7 @@ protected:
   /**
    * it returns the material object 
    */
-  virtual TPZMaterial *Material() {return fMaterial;}
+  virtual TPZMaterial *Material() const {return fMaterial;}
 
   /**
    *

@@ -90,7 +90,16 @@ TPZCompElC3d::TPZCompElC3d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index,int /*noco
     fSideOrder[i] = gOrder;
     fPreferredSideOrder[i] = gOrder;
   }
-  RemoveSideRestraintsII(EInsert);
+  //  RemoveSideRestraintsII(EInsert);
+}
+TPZCompElC3d::TPZCompElC3d(TPZCompMesh &mesh,const TPZCompElC3d &copy) :
+  TPZInterpolatedElement(mesh,copy), fIntRule(copy.fIntRule) {
+  int i;
+  for(i=0; i<27; i++) fConnectIndexes[i]=copy.fConnectIndexes[i];
+  for(i=0;i<19;i++) {
+    fSideOrder[i] = copy.fSideOrder[i];
+    fPreferredSideOrder[i] = copy.fPreferredSideOrder[i];
+  }
 }
 
 void TPZCompElC3d::Shape(TPZVec<REAL> &x, TPZFMatrix &phi, TPZFMatrix &dphi) {
@@ -298,11 +307,9 @@ int TPZCompElC3d::PreferredSideOrder(int side) {
   return 0;
 }
 
-void TPZCompElC3d::SetPreferredSideOrder(int side, int order) {
-  if(side>-1 && side<8) return;//cantos
-  if(side<27) fPreferredSideOrder[side-8] = order;//sides 8 a 26
-  else PZError << "TPZCompElC3d::SetPreferredSideOrder called for side = " << side << "\n";
-  return;
+void TPZCompElC3d::SetPreferredSideOrder(int order) {
+  int side;
+  for(side= 8; side<27; side++) fPreferredSideOrder[side-8] = order;//sides 8 a 26
 }
 
 void TPZCompElC3d::SetSideOrder(int side, int order) {
@@ -319,6 +326,7 @@ void TPZCompElC3d::SetSideOrder(int side, int order) {
     fSideOrder[side-8] = order;
     if(fConnectIndexes[side] != -1){
       TPZConnect &c = Connect(side);
+      c.SetOrder(order);
       int seqnum = c.SequenceNumber();
       int nvar = 1;
       TPZMaterial *mat = Material();
