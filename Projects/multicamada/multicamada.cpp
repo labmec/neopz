@@ -150,13 +150,15 @@ int main(){
 
   multcam->SetNX(1.);
 
-  multcam->ComputeSolution();
-
-  multcam->ComputeCenterForces();
-
   multcam->GeoMesh()->Print(out);
   multcam->CompMesh()->Print(out);
   out.flush();
+
+  multcam->ComputeSolution(out,1);
+
+  multcam->ComputeCenterForces();
+
+
   out.close();
 
   return 0;

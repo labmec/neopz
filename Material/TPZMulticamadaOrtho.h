@@ -75,7 +75,7 @@ class TPZMulticamadaOrthotropic {
    */
   void ComputeCenterForces();
 
-  void ComputeSolution();
+  void ComputeSolution(ostream &out = cout,int print = 0);
 
   void SetMX(REAL MX) { 
     fMX[0] = MX;

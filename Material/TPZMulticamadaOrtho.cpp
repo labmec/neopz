@@ -214,7 +214,7 @@ void TPZMulticamadaOrthotropic::Tensor(TPZVec<REAL> &x, int placa, TPZFMatrix &t
 
 }
 
-void TPZMulticamadaOrthotropic::ComputeSolution(){
+void TPZMulticamadaOrthotropic::ComputeSolution(ostream &out,int print){
 
   TPZAnalysis an(fCompMesh);
   TPZSkylineStructMatrix skyl(fCompMesh);
@@ -223,4 +223,5 @@ void TPZMulticamadaOrthotropic::ComputeSolution(){
   solve.SetDirect(ELDLt);
   an.SetSolver(solve);
   an.Run();
+  if(print) an.Print("* PRINT ANALISYS *",out);  
 }
