@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.27 2004-04-22 13:14:20 phil Exp $
+// $Id: pzintel.cpp,v 1.28 2004-04-22 15:36:53 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -2386,6 +2386,7 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
   FADFADREAL U(defaultFADFAD); // Zeroed Energy Value -> ready for contribution
 
 
+  TPZGeoEl *ref = Reference();
   TPZIntPoints &intrule = GetIntegrationRule();
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
 
