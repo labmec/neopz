@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.10 2003-10-17 15:18:25 cedric Exp $
+//$Id: TPZInterfaceEl.h,v 1.11 2003-10-17 18:18:03 cantao Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -78,10 +78,20 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   TPZCompElDisc *RightElement(){return fRightEl;}
 
+      void SetRightElement( TPZCompElDisc* el )
+      {
+	 fRightEl = el;
+      }
+
   /**
    * it returns the left element from the element interface 
    */
   TPZCompElDisc *LeftElement(){return fLeftEl;}
+
+      void SetLeftElement( TPZCompElDisc* el )
+      {
+	 fLeftEl = el;
+      }
 
   /**
    * it returns the normal one to the face from the element
