@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.9 2003-11-05 16:02:21 tiago Exp $
+//$Id: TPZAgglomerateEl.h,v 1.10 2003-11-07 12:57:52 cedric Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -141,5 +141,11 @@ public:
   int NSubCompEl(TPZGeoEl *father);
 
   static void ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int nivel,int &numaggl,int dim);
+
+  void RestrictionOperator();
+
+  void RestrictionOperator2();
+
+  void FineSolution(TPZCompElDisc *disc,TPZFMatrix &aggphix,TPZVec<REAL> &uh);
 };
 #endif

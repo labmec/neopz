@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cc,v 1.12 2003-11-05 19:14:52 cedric Exp $
+//$Id: TPZAgglomerateEl.cc,v 1.13 2003-11-07 12:57:52 cedric Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -703,4 +703,125 @@ int Level(TPZGeoEl *gel){
     niv++;
   }
   return niv;
+}
+
+// Void Tpzagglomerateelement::Projectresidual(){
+void TPZAgglomerateElement::RestrictionOperator(){
+
+  //projeta a solução dos elementos contidos na aglomeração
+  //no elemento por eles aglomerado
+
+  if(Reference()){
+    //elemento grande com geometria definida
+    RestrictionOperator2();
+    cout << "TPZAgglomerateElement::RestrictionOperator CONTINUA\n";
+    //return;
+  }
+  int dimension = Dimension();
+  int aggmatsize = NShapeF();
+  int nvar = Material()->NStateVariables();
+  TPZFMatrix aggmat(aggmatsize,aggmatsize,0.);
+  TPZFMatrix loadvec(aggmatsize,nvar,0.);
+  //verificar que o grau do grande é <= que o grau de cada um dos pequenos ???
+  TPZStack<int> elvec;
+  IndexesDiscSubEls(elvec);
+  int size = elvec.NElements(),i;
+  int mindegree = 1000,coarsedeg = Degree(),maxdegree = 0;
+  for(i=0;i<size;i++){
+    TPZCompElDisc *disc = 
+      dynamic_cast<TPZCompElDisc *>(MotherMesh()->ElementVec()[elvec[i]]);
+    int degree = disc->Degree();
+    if(mindegree > degree) mindegree = degree;
+    if(maxdegree < degree) maxdegree = degree;
+  }
+  if(coarsedeg > mindegree){
+    //PZError << "TPZAgglomerateElement::RestrictionOperator incompatible degrees\n";
+    //return;
+    cout << "TPZAgglomerateElement::RestrictionOperator MUDANDO A ORDEM DO ELEMENTO\n";
+    SetDegree(mindegree);
+    coarsedeg = mindegree;
+  }
+  //para integrar uh * fi sobre cada o sub-elemento:
+  //fi base do grande, uh solução sobre os pequenos
+  TPZGeoEl *ref = MotherMesh()->ElementVec()[elvec[0]]->Reference();
+  TPZIntPoints *intrule = 
+    ref->CreateSideIntegrationRule(ref->NSides()-1,maxdegree + coarsedeg);
+  //eventualmente pode criar uma regra para cada sub-elemento dentro do laço
+  //de integração para reduzir o número de pontos caso os grus são distintos
+  TPZFMatrix aggphix(aggmatsize,1);
+  TPZFMatrix aggdphix(dimension,aggmatsize);
+  TPZVec<REAL> intpoint(dimension);
+  TPZFMatrix jacobian(dimension,dimension),jacinv(dimension,dimension);
+  TPZFMatrix axes(3,3,0.);
+  TPZVec<REAL> x(3,0.);
+  TPZVec<REAL> uh(nvar);
+  int npoints = intrule->NPoints();
+  REAL weight,detjac;
+  int in,jn,kn,ip,ind;
+//   TPZBlock &fineblock = MotherMesh()->Block();
+//   TPZFMatrix &FineMeshSol = MotherMesh()->Solution();
+  TPZCompElDisc *disc;
+
+  for(ind=0;ind<size;ind++){
+    disc = dynamic_cast<TPZCompElDisc *>(MotherMesh()->ElementVec()[elvec[ind]]);
+    ref = disc->Reference();
+
+    for(ip=0;ip<npoints;ip++){
+      intrule->Point(ip,intpoint,weight);
+      ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+      ref->X(intpoint, x);
+      weight *= fabs(detjac);
+      Shape(x,aggphix,aggdphix);
+      FineSolution(disc,aggphix,uh);
+      //projetando a solução fina no elemento aglomerado
+      //a soma dos detjac dos sub-elementos dá o detjac do grande
+      //a geometria do grande é a soma das geometrias dos pequenos
+      for(in=0; in<aggmatsize; in++) {
+	for(jn=0; jn<aggmatsize; jn++) {
+	  //ordem do grande <= a menor ordem dos pequenos
+	  // => a regra  dos pequenos integra ok
+	  aggmat(in,jn) += weight*aggphix(in,0)*aggphix(jn,0);
+	}
+      }
+      //a soma das regras dos pequenos cobre a geometria do grande
+      for(kn=0; kn<nvar; kn++) {
+	loadvec(in,kn) += weight*aggphix(in,0)*uh[kn];
+      }
+    }
+  }
+  //achando a solução restringida
+  aggmat.SolveDirect(loadvec,ELU);
+  //transferindo a solução obtida por restrição
+  int iv=0;
+  TPZBlock &block = Mesh()->Block();
+  TPZConnect *df = &Connect(0);
+  int dfseq = df->SequenceNumber();
+  int dfvar = block.Size(dfseq);
+  for(jn=0; jn<dfvar; jn++) {
+    block(dfseq,0,jn,0) = loadvec(iv/nvar,iv%nvar);
+    iv++;
+  }
+}
+
+void TPZAgglomerateElement::FineSolution(TPZCompElDisc *disc,TPZFMatrix &aggphix,TPZVec<REAL> &uh){
+   
+  TPZBlock &fineblock = MotherMesh()->Block();
+  int nstate = disc->Material()->NStateVariables();
+  TPZFMatrix &FineMeshSol = MotherMesh()->Solution();
+
+  TPZConnect *df = &disc->Connect(0);
+  int dfseq = df->SequenceNumber();
+  int dfvar = fineblock.Size(dfseq);
+  int pos   = fineblock.Position(dfseq);
+  int iv = 0,d;
+  uh.Fill(0.);
+  for(d=0; d<dfvar; d++) {
+    uh[iv%nstate] += aggphix(iv/nstate,0)*FineMeshSol(pos+d,0);
+    iv++;
+  }
+}
+
+void TPZAgglomerateElement::RestrictionOperator2(){
+
+  cout << "TPZAgglomerateElement::RestrictionOperator2 NOT IMPLEMENTED\n";
 }
