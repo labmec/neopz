@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.h,v 1.4 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzflowcmesh.h,v 1.5 2003-11-19 20:06:24 cedric Exp $
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -35,7 +35,7 @@ public:
    * the greatest velocity in the mesh.
    */
   REAL MaxVelocityOfMesh();
-
+  REAL MaxVelocityOfMesh2();
   /**
    * Computes the current time step for the mesh.
    * User must call CollectFluidMaterials and

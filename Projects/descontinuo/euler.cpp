@@ -72,9 +72,8 @@
 #include "TPZInterfaceEl.h"
 #include "TPZIterativeAnalysis.h"
 #include "TPZExtendGridDimension.h"
-//#include "TPZFlowCMesh.h"
 #include "TPZIterativeAnalysis.h"
-#include "TPZFlowCMesh.h"
+//#include "TPZFlowCMesh.h"
 #include "pzreal.h"
 #include "TPZNLMultGridAnalysis.h"
 #include "pzflowcmesh.h"
@@ -222,7 +221,7 @@ int main() {
     outgm.flush();
   }  
 
-  int numiter,marcha;
+  //  int numiter,marcha;
   cout << "\nNumero de iteracoes requerida ? :";
   //cin >> numiter;
   //numiter = 0;//100;
@@ -277,7 +276,6 @@ int main() {
   if(1){
     cmesh->SetDimModel(2);
     TPZNonLinMultGridAnalysis mgnlan(cmesh);
-    cmesh->SetDimModel(2);
     mgnlan.TwoGridAlgorithm(outgm,numat);
     ContagemDeElementos(mat);
   }

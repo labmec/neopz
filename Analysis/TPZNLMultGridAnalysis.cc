@@ -255,7 +255,7 @@ void TPZNonLinMultGridAnalysis::CoutTime(clock_t &start,char *title){
 void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat){
 
   TPZFlowCompMesh *fm  = dynamic_cast<TPZFlowCompMesh *>(CompMesh);//= new TPZFlowCompMesh(CompMesh->Reference());
-  REAL maxveloc = fm->MaxVelocityOfMesh();
+  REAL maxveloc = fm->MaxVelocityOfMesh2();
   REAL deltax = CompMesh->LesserEdgeOfMesh();//REAL deltax = CompMesh->DeltaX();
   //REAL deltax = CompMesh->MaximumRadiusOfEl();
   TPZCompElDisc *disc;
@@ -318,7 +318,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   //newmesh = 0: coarcmesh se tornou a malha fina
   TPZCompMesh *finemesh = UniformlyRefineMesh(coarcmesh,levelnumbertorefine,setdegree);
   finemesh->SetDimModel(2);
-  out << "\n\t\t* * * MALHA FINA * * *\n";
+  out << "\n\n\t\t* * * MALHA FINA * * *\n";
   finemesh->Reference()->Print(out);
   finemesh->Print(out);
   out.flush();
@@ -328,6 +328,10 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   cin >> levelnumbertogroup;
   TPZCompMesh *aggmesh = AgglomerateMesh(finemesh,levelnumbertogroup);
   AppendMesh(aggmesh);
+  out << "\n\n\t\t* * * MALHA AGLOMERADA * * *\n";
+  aggmesh->Reference()->Print(out);
+  aggmesh->Print(out);
+  out.flush();
   //analysis na malha aglomerada
   TPZAnalysis coarsean(fMeshes[1]);
   TPZSkylineStructMatrix coarsestiff(fMeshes[1]);
@@ -354,9 +358,9 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   //suavisar a solução na malha fina
   REAL tol = 1.e15;
   int numiter = 100;
-  int numeq = fMeshes[0]->NEquations();
+  int numeq = fMeshes[2]->NEquations();
   TPZFMatrix res(numeq,1);
-  TPZMaterial *mat = fMeshes[0]->FindMaterial(nummat);
+  TPZMaterial *mat = fMeshes[2]->FindMaterial(nummat);
   SmoothingSolution(tol,numiter,mat,finean);
   //CalcResidual(finean.Solution(),res,finean,"LDLt");
   TPZTransfer transfer;

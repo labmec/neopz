@@ -29,7 +29,7 @@ enum TPZArtDiffType
  * term is introduced to stabilize the numerical method of approach.
  *
  * @author Erick Slis
- * @author Cedric Ayala
+ * @author Cedric Marcelo Augusto Ayala Bravo
  */
 class TPZArtDiff
 {
