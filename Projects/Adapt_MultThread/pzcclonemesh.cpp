@@ -29,6 +29,7 @@
 #include "pzonedref.h"
 #include "pzvec.h"
 #include "pzskylstrmatrix.h"
+#include "pzanalysis.h"
 #include "pzdebug.h"
 #include "pzcheckmesh.h"
 
@@ -37,7 +38,7 @@ template class TPZVec<TPZCompCloneMesh::TPZRefPattern>;
 static ofstream gDeduce("deduce.txt");
 static int zero = 0;
 
-TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : TPZCompMesh(gr), fMapConnects(zero){
+TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : TPZCompMesh(gr)/*, fMapConnects(zero)*/{
   fCloneReference = cmesh;
   int nmat = cmesh->MaterialVec().NElements();
   int m;
@@ -340,10 +341,13 @@ void TPZCompCloneMesh::CreateCloneBC(){
 }
 
 int TPZCompCloneMesh::HasConnect(int cnid){
-  TPZPix has;
+/*  TPZPix has;
   has = fMapConnects.Seek(cnid);
   if (has) return 1;
-  else return 0;
+  else return 0;*/
+  std::map<int,int>::iterator it;
+  it = fMapConnects.find(cnid);
+  return (it==fMapConnects.end()) ? 0 : 1;
 }
 
 TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
@@ -929,7 +933,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
   int nsides = gel->NSides();
   int side;
   
-  int maxp = TPZOneDRef::gMaxP;
+  //int maxp = TPZOneDRef::gMaxP;
 
   //Calcula o número de arestas
   for(side=0; side<nsides; side++) if(gel->SideDimension(side) == 1) n1dsides++;

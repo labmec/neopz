@@ -7,8 +7,9 @@
 #include "pzmatrix.h"
 
 #include "pzelasmat.h"
-//#include "pzplaca.h"
 #include "pzmat2dlin.h"
+#include "pzmaterial.h"
+#include "pzbndcond.h"
 //#include "pzmathyperelastic.h"
 //#include "pzmattest3d.h"
 //#include "pzmatplaca2.h"
@@ -37,7 +38,8 @@ TPZCompMesh *CreateSillyMesh(){
       TPZVec<REAL> coord(2);
       coord[0] = j;
       coord[1] = i;
-      geomesh->NodeVec()[nodind] = TPZGeoNode(i*(numcel+1)+j,coord,*geomesh);
+      TPZGeoNode pznode(i*(numcel+1)+j,coord,*geomesh);
+      geomesh->NodeVec()[nodind] = pznode;
     }
   }
 
@@ -67,8 +69,8 @@ TPZCompMesh *CreateSillyMesh(){
   //Divisão dos elementos
   TPZVec<TPZGeoEl *> sub,subsub;
   gel[0]->Divide(sub);
-  sub[0]->Divide(subsub);
-  subsub[2]->Divide(sub);
+//  sub[0]->Divide(subsub);
+//  subsub[2]->Divide(sub);
   
 //  for (i=0;i< (sub.NElements()-1) ;i++){
 //    sub[i]->Divide(subsub);
@@ -108,6 +110,7 @@ TPZCompMesh *CreateSillyMesh(){
   // comp->Print(cout);
 
   // Ajuste da estrutura de dados computacional
+  geomesh->Print(cout);
   comp->AutoBuild();
   //  comp->Print(cout);
   comp->AdjustBoundaryElements();

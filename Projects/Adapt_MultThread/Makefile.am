@@ -19,6 +19,6 @@ Adapt_MultThread_SOURCES = main.cpp pzadaptmesh.cpp pzcclonemesh.cpp pzgclonemes
 		c08-Mixed.cpp c09-Plate-Cedric.cpp c10-Prism-Pref.cpp c11-Piram-Tetra.cpp \
 		c15-Exp-Hexa.cpp
 
-Adapt_MultThread_LDADD =  -lpthread $(top_builddir)/lib/libpz.a @METISDIR@/lib/libmetis.a 
+Adapt_MultThread_LDADD = $(top_builddir)/lib/libpz.a $(top_builddir)/External/sloan/libsloan.a -lpthread @METISDIR@/lib/libmetis.a
 
 ## --| NeoPZ |------------------------------------------------------------------

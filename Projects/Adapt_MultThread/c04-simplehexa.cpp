@@ -1,4 +1,5 @@
 #include "includes.h"
+#include "pzbndcond.h"
 
 static TPZCompMesh *CreateSimple3DMesh();
 
@@ -34,7 +35,8 @@ TPZCompMesh *CreateSimple3DMesh() {
     coord[0] = co[nod][0];
     coord[1] = co[nod][1];
     coord[2] = co[nod][2];
-    gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+    TPZGeoNode pznode (nod,coord,*gmesh);
+    gmesh->NodeVec()[nodind] = pznode;
   }
 
   int el;

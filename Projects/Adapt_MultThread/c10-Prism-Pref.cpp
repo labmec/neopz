@@ -1,4 +1,5 @@
 #include "includes.h"
+#include "pzbndcond.h"
 
 static TPZCompMesh *CreateAleatorioMesh();
 
@@ -32,7 +33,8 @@ TPZCompMesh *CreateAleatorioMesh() {
     coord[0] = co[nod][0];
     coord[1] = co[nod][1];
     coord[2] = co[nod][2];
-    gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+    TPZGeoNode pznode (nod,coord,*gmesh);
+    gmesh->NodeVec()[nodind] = pznode;
   }
   
   int el;
@@ -101,7 +103,7 @@ TPZCompMesh *CreateAleatorioMesh() {
   TPZVec <int> subelvec;
   cmesh->ElementVec()[0]->Divide(0,subelvec,1);
 
-  int  pord = 3;
+  //int  pord = 3;
   cmesh->ElementVec()[subelvec [7]]->Divide(subelvec [7],subelvec,1);
   TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cmesh->ElementVec()[subelvec [7]]);
   intel->PRefine(2);

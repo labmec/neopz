@@ -27,7 +27,7 @@ Method definition for class TPZGeoCloneMesh.*/
 static int zero=0;
 static TPZGeoEl *zeropoint = 0;
 
-TPZGeoCloneMesh::TPZGeoCloneMesh(TPZGeoMesh *ref) : TPZGeoMesh(), fMapNodes(zero),fMapElements(zeropoint) {
+TPZGeoCloneMesh::TPZGeoCloneMesh(TPZGeoMesh *ref) : TPZGeoMesh()/*, fMapNodes(zero),fMapElements(zeropoint) */{
   if (!ref) {
     cout << "TPZGeoCloneMesh::Error\n Reference mesh and reference element must not be NULL!\n";
   }
@@ -186,17 +186,16 @@ int  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
 
 int TPZGeoCloneMesh::HasNode(int nodeindex){
   TPZPix has;
-  has = fMapNodes.Seek(nodeindex);
-  if (has) return 1;
-  else return 0;
+  std::map<int,int>::iterator it;
+  it = fMapNodes.find(nodeindex);
+  return (it==fMapNodes.end()) ? 0 : 1;
 }
 
 int TPZGeoCloneMesh::HasElement(TPZGeoEl *el){
   if(!el) return 0;
-  TPZPix has;
-  has = fMapElements.Seek(el);
-  if (has) return 1;
-  else return 0;
+  std::map<TPZGeoEl *,TPZGeoEl *>::iterator it;
+  it = fMapElements.find(el);
+  return (it==fMapElements.end()) ? 0 : 1;
 }
 
 int TPZGeoCloneMesh::IsPatchReferenceElement(TPZGeoEl *refpatch){
@@ -387,7 +386,7 @@ int TPZGeoCloneMesh::main(){
   	//malha quadrada de nr x nc
 	const int numrel = 3;
   	const int numcel = 3;
-  	int numel = numrel*numcel;
+  	//int numel = numrel*numcel;
   	TPZVec<REAL> coord(2,0.);
   
   	// criar um objeto tipo malha geometrica
@@ -401,7 +400,8 @@ int TPZGeoCloneMesh::main(){
       			TPZVec<REAL> coord(2);
       			coord[0] = j;//co[nod][0];
       			coord[1] = i;//co[nod][1];
-      			geomesh.NodeVec()[nodind] = TPZGeoNode(i*(numrel+1)+j,coord,geomesh);
+                        TPZGeoNode pznode(i*(numrel+1)+j,coord,geomesh);
+      			geomesh.NodeVec()[nodind] = pznode;
       		}
   	}
   	// criação dos elementos

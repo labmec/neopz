@@ -7,6 +7,7 @@
 #include "pzmatrix.h"
 
 #include "pzelasmat.h"
+#include "pzbndcond.h"
 //#include "pzplaca.h"
 #include "pzmat2dlin.h"
 
@@ -64,7 +65,8 @@ TPZCompMesh *CreateMesh() {
     TPZVec<REAL> coord(2);
     coord[0] = co[nod][0];
     coord[1] = co[nod][1];
-    gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+    TPZGeoNode pznode(nod,coord,*gmesh);
+    gmesh->NodeVec()[nodind] = pznode;
   }
 
   int el;

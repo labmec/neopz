@@ -11,6 +11,9 @@
 #include "pzquad.h"
 #include "pzonedref.h"
 #include "pzcheckmesh.h"
+
+#include "pzmaterial.h"
+
 //multithread -->>
 #include <pthread.h>
 #include <signal.h>
@@ -193,8 +196,8 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
       fNClones_to_Analyse --;
       fThreads_in_use ++;
       if (pthread_create(&allthreads[thr_index],NULL,(void*(*)(void*))TPZAdaptMesh::MeshError,this)){
- 	cout << "TPZAdaptMesh::GetAdaptMesh : Error on thread creation... exiting\n";
- 	exit (-1);
+        cout << "TPZAdaptMesh::GetAdaptMesh : Error on thread creation... exiting\n";
+        exit (-1);
       }
       pthread_cond_wait (&fSignal_free,&fLock_clindex);
       pthread_mutex_unlock(&fLock_clindex);
@@ -204,7 +207,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
   for(i=0;i<fClonestoAnalyse.NElements();i++){
     pthread_join(allthreads[i],0);
   }
-  delete allthreads;
+  delete []allthreads;
   truervec = fTrueErrorVec;
 
   //Ordena o vetor de erros

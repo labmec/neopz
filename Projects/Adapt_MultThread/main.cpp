@@ -18,7 +18,6 @@
 
 int gDebug = 0;
 int gPrintLevel = 0;
-int gDebug;
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp);
 static REAL angle = 0.2;
 
@@ -34,7 +33,7 @@ void Exact3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
 
 static ofstream MALHAG("malhageometrica");//CEDRIC
-static int mygorder = 2;
+static int mygorder = 1;
 void CompareNeighbours(TPZGeoMesh *mesh);
 
 
@@ -55,7 +54,7 @@ int main(){
   //	return 0;
   //	return (TPZGeoCloneMesh::main());
 
-  ofstream convergence("conv3d.txt");
+  ofstream convergence("conv3d-porra.txt");
 
   cmesh->Reference()->SetName("Malha Geométrica original");
   // cmesh->Reference()->Print(cout);
@@ -199,7 +198,8 @@ int main(){
 
       convergence   << cmesh->NEquations() << "\t"
                     << valerror << "\t" << valtruerror << "\t"
-                    << ( valtruerror / valerror ) <<  "\t" << sttime <<endl;
+                    << ( valtruerror / valerror ) <<  "\t" << sttime 
+		    << "\t" << time_elapsed <<endl;
 
       for (prt=0;prt<ervec.NElements();prt++){
         cout <<"error " << ervec[prt] << "  truerror = " << truervec[prt] << "  Effect " << effect[prt] << endl;
@@ -416,7 +416,8 @@ TPZCompMesh *ReadKumar(char *filename) {
   	int nod;
   	for(nod=0; nod< nnodes; nod++) {
     		input >> id >> coord[0] >> coord[1];
-    		gmesh->NodeVec()[id] = TPZGeoNode(id,coord,*gmesh);
+                TPZGeoNode pznode (id,coord,*gmesh);
+    		gmesh->NodeVec()[id] = pznode;
   	}
 
   	input.getline(buf,256);

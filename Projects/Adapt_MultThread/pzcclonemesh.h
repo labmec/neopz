@@ -8,7 +8,12 @@
 
 #include "pzcmesh.h"
 //#include "pzgclonemesh.h"
-#include "pzavlmap.h"
+//#include "pzavlmap.h"
+#ifndef WIN32
+#include <map>
+#else
+#include <map.h> 
+#endif
 
 class TPZCompEl;
 class TPZGeoEl;
@@ -44,7 +49,7 @@ class TPZCompCloneMesh : public TPZCompMesh {
   /**
    * Maps connect index from original mesh to cloned mesh
    */
-  TPZAVLMap <int,int> fMapConnects;
+  std::map<int,int> fMapConnects;
   
   /**
    * Maps connect index from cloned mesh to original mesh

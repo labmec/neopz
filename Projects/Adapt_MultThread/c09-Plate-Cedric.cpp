@@ -2,9 +2,9 @@
 #include "includes.h"
 
 static TPZCompMesh *Create3DDiscMesh();
-static void BCSolution(TPZVec<REAL> &x,TPZVec<REAL> &result);
-static void Solution(TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix &deriv);
-static void LoadSolution(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du);
+//static void BCSolution(TPZVec<REAL> &x,TPZVec<REAL> &result);
+//static void Solution(TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix &deriv);
+//static void LoadSolution(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du);
 
 
 //*************************************
@@ -43,7 +43,8 @@ TPZCompMesh *Create3DDiscMesh() {
     coord[0] = co[nod][0];
     coord[1] = co[nod][1];
     coord[2] = co[nod][2];
-    gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
+    TPZGeoNode pznode (nod,coord,*gmesh);
+    gmesh->NodeVec()[nodind] = pznode;
   }
   
   int el;
@@ -108,7 +109,7 @@ TPZCompMesh *Create3DDiscMesh() {
 
   
   cmesh->InsertMaterialObject(mat);
-  int i;
+  //int i;
   // for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
   
   cmesh->AutoBuild();
@@ -119,7 +120,7 @@ TPZCompMesh *Create3DDiscMesh() {
   TPZVec <int> subelvec;
   cmesh->ElementVec()[0]->Divide(0,subelvec,1);
 
-  int  pord = 3;
+  //int  pord = 3;
   cmesh->ElementVec()[subelvec [7]]->Divide(subelvec [7],subelvec,1);
   TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cmesh->ElementVec()[subelvec [7]]);
   intel->PRefine(2);

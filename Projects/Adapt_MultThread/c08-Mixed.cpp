@@ -1,4 +1,5 @@
 #include "includes.h"
+#include "pzbndcond.h"
 
 static TPZCompMesh *CreateTestMesh();
 
