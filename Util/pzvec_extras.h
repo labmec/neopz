@@ -3,13 +3,15 @@
  * @file pzvec_extra.h
  * @brief Extra utilities for TPZVec.
  */
-// $Id: pzvec_extras.h,v 1.6 2003-05-22 12:31:19 erick Exp $
+// $Id: pzvec_extras.h,v 1.7 2003-06-11 13:17:57 cantao Exp $
 
 #ifndef PZVEC_EXTRAS_H
 #define PZVEC_EXTRAS_H
 
 #include <bits/stl_algo.h>
 #include "pzstack.h"
+
+using namespace std;
 
 /**
  * Performs a saxpy operation: x <- x + s * y.
@@ -106,6 +108,35 @@ TPZVec< T >& Sort( TPZVec< T >& v )
    return v;
 }
 
+template< class T >
+T Min( TPZVec< T >& v )
+{
+   int nel = v.NElements();
+
+   int m = v[ 0 ];
+
+   for( int ii = 1; ii < nel; ii++ )
+   {
+      m = min( m, v[ ii ] );
+   }
+
+   return m;
+}
+
+template< class T >
+T Max( TPZVec< T >& v )
+{
+   int nel = v.NElements();
+
+   int m = v[ 0 ];
+
+   for( int ii = 1; ii < nel; ii++ )
+   {
+      m = max( m, v[ ii ] );
+   }
+
+   return m;
+}
 
 template< class T, int N >
 void Intersect(const TPZVec< T > &one, const TPZVec< T > &two, TPZStack< T, N > &result)
