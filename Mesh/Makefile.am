@@ -54,6 +54,7 @@ libpzmesh_a_SOURCES = pzelctemp.cpp \
 	pzvecmesh.cpp \
 	TPZCompElDisc.cpp \
 	TPZInterfaceEl.cpp \
-	TPZAgglomerateEl.cpp
+	TPZAgglomerateEl.cpp \
+	tpzgeoelrefpattern.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
