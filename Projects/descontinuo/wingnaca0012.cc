@@ -1,6 +1,3 @@
-
-//$Id: wingnaca0012.cc,v 1.2 2003-10-17 16:35:16 cedric Exp $
-//lê malha gerada pelo GMSH
 #include "TPZConservationLaw.h"
 #include "TPZConsLawTest.h"
 #include "TPZEulerConsLaw.h"
@@ -132,6 +129,21 @@ int main() {
     readmesh.ReadMesh3D("naca0012_3d.msh",elem,elembc);
     mat = Wing2d(grau,elembc);
   }
+
+  TPZVec<int> accumlist(10);
+  accumlist[0] = 0;
+  accumlist[1] = 1;
+  accumlist[2] = 2;
+  accumlist[3] = 2;
+  accumlist[4] = 3;
+  accumlist[5] = 0;
+  accumlist[6] = 1;
+  accumlist[7] = 2;
+  accumlist[8] = 3;
+  accumlist[9] = 0;
+  TPZCompMesh *cmesh2 = cmesh->ComputeMesh(accumlist);
+  cmesh2->Print(outgm);
+  return 0;
 
   if(1){
     cout << "\ndescontinuo.c::main verificando a consistencia da malha de interfaces\n";
@@ -274,7 +286,7 @@ void LeituraDaMalha(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoElS
       for(i=0;i<nvert;i++) nodes[i] = nos[i]-1;
       elem.Push(gmesh->CreateGeoElement(ETetraedro,nodes,1,index));
       continue;
-    } else if(nvert == 8){//hexaaedros
+    } else if(nvert == 8){//hexahedros
       nodes.Resize(8);
       for(i=0;i<nvert;i++) nodes[i] = nos[i]-1;
       elem.Push(gmesh->CreateGeoElement(ECube,nodes,1,index));
@@ -605,13 +617,13 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
   }
   bc = mat->CreateBC(-1,5,val1,val2);//parede
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-2,6,val1,val2);//no refletivas
+  bc = mat->CreateBC(-2,2,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-3,6,val1,val2);//no refletivas
+  bc = mat->CreateBC(-3,2,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-4,6,val1,val2);//no refletivas
+  bc = mat->CreateBC(-4,2,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-5,6,val1,val2);//no refletivas
+  bc = mat->CreateBC(-5,2,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
   cout << "main::Wing2d fim CC\n";
 

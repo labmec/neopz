@@ -54,6 +54,8 @@
 #include "pzelcpi3d.h"
 #include "pzelgpr3d.h"
 #include "pzelcpr3d.h"
+#include "pzelgq2d.h"
+#include "pzelcq2d.h"
 #include "pzelmat.h"
 #include "pzelasmat.h"
 #include "pzmattest.h"
@@ -278,6 +280,8 @@ int main() {
     outgm << "\n\n\n* * * MALHA AGLOMERADA : COMPUTACIONAL * * *\n\n\n";
     cmesh2->Print(outgm);
   }
+  outgm.flush();
+  outgm.close();
   cout << "\n\nmain:: FIM DO PROGRAMA\n\n";
   return 0;
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -399,12 +403,12 @@ void Divisao (TPZCompMesh *cmesh){
       cpel = cmesh->ElementVec()[el];
       if(cpel && cpel->Reference()->Id() == n1) break;
     }
-    if(cpel && el < nelc && cpel->Type() == 16){
+    if(cpel && el < nelc && cpel->Type() == EInterface){
       PZError << "main::Divisao elemento interface (nao foi dividido!)\n\n";
       cout << "Elementos divissiveis:\n";
       for(el=0;el<nelc;el++) {
 	cpel = cmesh->ElementVec()[el];
-	if(cpel && cpel->Type() != 16){
+	if(cpel && cpel->Type() != EInterface){
 	  TPZGeoEl *gel = cpel->Reference();
 	  if(gel) cout << gel->Id() << ",";
 	}
@@ -475,8 +479,8 @@ void ContagemDeElementos(TPZMaterial *mat){
 /*     if(comp->Type() == 05) pira++; */
 /*     if(comp->Type() == 06) pris++; */
 /*     if(comp->Type() == 07) hexa++; */
-    if(comp->Type() == 15) disc++;
-    if(comp->Type() == 16) inte++;
+    if(comp->Type() == EDiscontinuous) disc++;
+    if(comp->Type() == EInterface) inte++;
   }
   nelem = gmesh->ElementVec().NElements();
   int total=0,nivmax2=0;
@@ -544,7 +548,7 @@ void NivelDivide(TPZCompMesh *cmesh){
   while(++el<nelc) {
     cpel = cmesh->ElementVec()[el];
     if(!cpel) continue;
-    if(cpel->Type() == 16) continue;
+    if(cpel->Type() == EInterface) continue;
     if(cpel->Material()->Id() < 0) continue;
     gel = cpel->Reference();
     actual = Nivel(gel);
@@ -586,14 +590,14 @@ void PostProcess(TPZGeoMesh &gmesh,ostream &out) {
     TPZCompEl *cel = gmesh.Reference()->ElementVec()[iel];
     if(!cel) continue;
     TPZGeoEl *el = gmesh.ElementVec()[iel];
-    if(chega && cel->Type()==15) {dim = el->Dimension(); chega = 0;}
+    if(chega && cel->Type()==EDiscontinuous) {dim = el->Dimension(); chega = 0;}
     int id = el->Id();
     if(id > idmax) idmax = id;
   }
   for(int iel=0;iel<nel;iel++) {
     if(!gmesh.Reference()->ElementVec()[iel]) continue;      
     int elemtype = gmesh.Reference()->ElementVec()[iel]->Type();
-    if(elemtype==16) continue;
+    if(elemtype==EInterface) continue;
     TPZCompEl *el = gmesh.Reference()->ElementVec()[iel];
     if(el->Material()->Id() < 0) continue;
     TPZGeoEl *gel = el->Reference();
@@ -615,7 +619,7 @@ void PostProcess(TPZGeoMesh &gmesh,ostream &out) {
       if(elemtype==6) elpr3d = (TPZGeoElPr3d  *) gel;
       if(elemtype==7) elc3d  = (TPZGeoElC3d   *) gel;
       int nsides = gel->NSides();
-      if(elemtype==15){
+      if(elemtype==EDiscontinuous){
 	if(nsides==1) el0d   = (TPZGeoElPoint *) gel;
 	if(nsides==3) el1d   = (TPZGeoEl1d    *) gel;
 	if(nsides==7) elt2d  = (TPZGeoElT2d   *) gel;
@@ -652,7 +656,7 @@ void PostProcess(TPZGeoMesh &gmesh,ostream &out) {
 	if(elemtype==5) elpi3d->Reference()->Solution(csi,0,sol);
 	if(elemtype==6) elpr3d->Reference()->Solution(csi,0,sol);
 	if(elemtype==7) elc3d->Reference()->Solution(csi,0,sol);
-	if(elemtype==15){
+	if(elemtype==EDiscontinuous){
 	  if(nsides==1) el0d->Reference()->Solution(csi,0,sol);
 	  if(nsides==3) el1d->Reference()->Solution(csi,0,sol);
 	  if(nsides==7) elt2d->Reference()->Solution(csi,0,sol);
@@ -677,7 +681,7 @@ void FileNB(TPZGeoMesh &gmesh,ostream &out,int var) {
     TPZCompEl *cel = gmesh.Reference()->ElementVec()[iel];
     if(!cel) continue;
     TPZGeoEl *el = gmesh.ElementVec()[iel];
-    if(chega && cel->Type()==15) {dim = el->Dimension(); chega = 0;}
+    if(chega && cel->Type()==EDiscontinuous) {dim = el->Dimension(); chega = 0;}
     int id = el->Id();
     if(id > idmax) idmax = id;
   }
@@ -688,7 +692,7 @@ void FileNB(TPZGeoMesh &gmesh,ostream &out,int var) {
     for(int iel=0;iel<nel;iel++) {
       if(!gmesh.Reference()->ElementVec()[iel]) continue;      
       int elemtype = gmesh.Reference()->ElementVec()[iel]->Type();
-      if(elemtype==16) continue;//interface
+      if(elemtype==EInterface) continue;//interface
       TPZCompEl *el = gmesh.Reference()->ElementVec()[iel];
       if(el->Material()->Id() < 0) continue;
       //só elementos de volume
@@ -712,7 +716,7 @@ void FileNB(TPZGeoMesh &gmesh,ostream &out,int var) {
 	  if(elemtype==6) elpr3d = (TPZGeoElPr3d  *) gel;
 	  if(elemtype==7) elc3d  = (TPZGeoElC3d   *) gel;
 	  int nsides = gel->NSides();
-	  if(elemtype==15){
+	  if(elemtype==EDiscontinuous){
 	    if(nsides==1) el0d   = (TPZGeoElPoint *) gel;
 	    if(nsides==3) el1d   = (TPZGeoEl1d    *) gel;
 	    if(nsides==7) elt2d  = (TPZGeoElT2d   *) gel;
@@ -741,7 +745,7 @@ void FileNB(TPZGeoMesh &gmesh,ostream &out,int var) {
 	    if(elemtype==5) elpi3d->Reference()->Solution(csi,var,sol);
 	    if(elemtype==6) elpr3d->Reference()->Solution(csi,var,sol);
 	    if(elemtype==7) elc3d->Reference()->Solution(csi,var,sol);
-	    if(elemtype==15){
+	    if(elemtype==EDiscontinuous){
 	      if(nsides==1) el0d->Reference()->Solution(csi,var,sol);
 	      if(nsides==3) el1d->Reference()->Solution(csi,var,sol);
 	      if(nsides==7) elt2d->Reference()->Solution(csi,var,sol);
@@ -1110,7 +1114,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
        << "\ndelta aproximado = " << delta << endl;
 
   int dim = 2;
-  TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
+  TPZMaterial *mat = new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
@@ -1973,7 +1977,7 @@ void SequenceDivide(int fat[100],int numbel){
   numbel = cmesh->ElementVec().NElements();
   for(el=0;el<numbel;el++) {
     TPZCompEl *cpel = cmesh->ElementVec()[el];
-    if(cpel && cpel->Type() != 16){
+    if(cpel && cpel->Type() != EInterface){
       TPZGeoEl *gel = cpel->Reference();
       if(gel) cout << gel->Id() << ",";
     }
@@ -2015,24 +2019,26 @@ void SequenceDivide2(){
 
 void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
   //todo elemento deve ser agrupado nem que for para ele mesmo
-  cmesh->SetModel(2);
+  cmesh->SetDimModel(2);
   cout << "\n\nmain::AgrupaList para malha 2D\n\n";
   int nel = cmesh->NElements(),i;
   //não todo index é sub-elemento
   accumlist.Resize(nel,-1);
+  int mdim = cmesh->Dimension();
+  int sdim = mdim - 1;
   for(i=0;i<nel;i++){
     TPZCompEl *cel = cmesh->ElementVec()[i];
     if(!cel) continue;
     TPZGeoEl *gel = cel->Reference();
-    //agrupando elementos computacionais
-    if(cel->Type() == EInterface) continue;//pula interface
-    if(cel->Dimension() == 1){
-      accumlist[i] = gel->Id();
-      continue;//discontinuo BC passa a ser aglomerado
-    }
+    int type = cel->Type(),eldim = cel->Dimension();
+    //agrupando elementos computacionais de volume
+    if(type == EInterface) continue;//interface será clonada
+    if(eldim == sdim) continue;//discontinuo BC será clonado
     TPZGeoEl *father = gel->Father();
     if(!father) continue;
-    if(Nivel(father) != nivel) continue;
+    while(father && Nivel(father) != nivel) father = father->Father();//nova
+    if (!father) continue;//nova
+    //if(Nivel(father) != nivel) continue;//antiga
     int fatid = father->Id();
     accumlist[i] = fatid;
   }
@@ -2049,17 +2055,17 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
     }    
   }
   //conta o número de elementos obtidos por aglomera¢ão
-  numaggl = 1;
+  numaggl = 0;
+  int act2 = -1;
   for(i=0;i<nel;i++){
     int act = list[i];
-    if(act == -1) continue;
+    if(act == act2) continue;
     for(j=i+1;j<nel;j++){
       int next = list[j];
-      if(next == -1) continue;
-      if(next != act){
+      if(next != act2){
 	numaggl++;
-	i = j;
 	j = nel;
+	act2 = act;
       }
     }
   }
@@ -2080,54 +2086,8 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
     }
     newfat++;
   }
+  if(newfat != numaggl) cout << "main::AgrupaList número de pais não confere\n";
 }
 
 
-//TESTE DA MALHA GERADA DE 2D -> 3D
 
-//   TPZConservationLaw *mat2;
-//   grau = 1;
-//   if(0) mat2 = dynamic_cast<TPZConservationLaw *>(TresTriangulos(grau));
-//   if(1) mat2 = dynamic_cast<TPZConservationLaw *>(NoveQuadrilateros(grau));
-//   NivelDivide(cmesh);
-//   TPZExtendGridDimension ext(gmesh,-1.0);
-//   TPZGeoMesh *extmesh = ext.ExtendedMesh();
-//   gmesh->Print(outgm);
-//   extmesh->Print(outgm);
-//   return 0;
-
-
-//   // --> FIM <-- --> FIM <-- --> FIM <-- --> FIM <-- --> FIM <-- --> FIM <--
-//   for(i=0;i<nlist;i++){
-//     int fatid1 = accumlist[i];
-//     if(fatid1 < 0) continue;
-//     indexes.Push(i);
-//     accumlist[i] = -1;
-//     for(j=i+1;j<nlist;j++){
-//       int fatid2 = accumlist[j];
-//       if(fatid2 == fatid1){
-// 	indexes.Push(j);
-// 	accumlist[j] = -1;
-//       }
-//     }
-//     new TPZAgglomerateElement(indexes,indexout,*aggmesh);
-//   }
-//   return aggmesh;
-
-//   if(agg){
-//     int npoints,k,l;
-//     for(i=0;i<nsubs;i++){
-//       agg = dynamic_cast<TPZAgglomerateElement *>(SubElement(i));
-//       TPZStack<REAL> points = agg->RulePoints();
-//       TPZStack<REAL> weights = agg->RuleWeights();
-//       npoints = agg->NRuleWeights();
-//       for(k=0;k<npoints;k++){
-// 	l = 3*k;
-// 	fRulePoints.Push(points[l]);
-// 	fRulePoints.Push(points[++l]);
-// 	fRulePoints.Push(points[++l]);
-// 	fRuleWeights.Push(weights[k]);
-//       }
-//     }
-//     return;
-//   }

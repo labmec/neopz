@@ -1,6 +1,6 @@
 ///#include "pzmetis.h"
 //#include "pztrnsform.h"
-#include "pzgmesh.h"
+#include "pzgmesh.h" 
 #include "pzcmesh.h"
 #include "pzfmatrix.h"
 #include "pzelgc3d.h"
@@ -1770,3 +1770,17 @@ TPZMaterial *QuadrilateroNovo(int ordem){
 
   return mater;
 }
+//,ur(1,6),dux2(6,1),duy2(6,1)
+// 	 ur(0,k) = u(k,0);
+// 	 dux(0,k) = du(0,k);
+// 	 duy(0,k) = du(1,k);
+//        Fun =  (dphi(0,i)*(dux*Kn1n1)+
+// 	       dphi(0,i)*(duy*Kn1n2)+
+// 	       dphi(1,i)*(dux*Kn2n1)+
+// 	       dphi(1,i)*(duy*Kn2n2)+
+// 	       dphi(0,i)*(ur*  Bn10 )+
+// 	       dphi(1,i)*(ur*  Bn20 )+
+// 	       phi(i,0) *(dux*B0n1 )+
+// 	       phi(i,0) *(duy*B0n2 )+
+// 	       phi(i,0) *(ur*  B000 ));
+//       for(idf=0; idf<6; idf++) ef(6*i+idf,0) += weight*Fun(0,idf)*phi(i,0);
