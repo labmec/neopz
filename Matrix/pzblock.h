@@ -231,6 +231,11 @@ class TPZBlock
   {
     int pos; /**< Position of node */
     int dim; /**< Dimension of node */
+
+    TNode() {
+      pos=0;
+      dim=0;
+    }
   };
 
   /**

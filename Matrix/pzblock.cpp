@@ -109,7 +109,7 @@ TPZBlock::SetNBlocks(const int num_of_blocks )
 {
   //modified Philippe 24/7/97
   // a small optimization
-  int MaxBlocks = fBlock.NElements();
+  int MaxBlocks = fBlock.NAlloc();
   if(num_of_blocks >= MaxBlocks) fBlock.Expand((int) (num_of_blocks*1.2));
   TNode copy;
   fBlock.Resize(num_of_blocks,copy);
