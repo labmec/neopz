@@ -80,7 +80,7 @@ void TPZBlockDiagonal::Initialize(const TPZVec<int> &blocksize){
   fRow = neq;
   fCol = neq;
 
-  fStorage.Print(std::cout);
+  //fStorage.Print(std::cout);
 }
 
 void TPZBlockDiagonal::BuildFromMatrix(TPZMatrix &mat) {
