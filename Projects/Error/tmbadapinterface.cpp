@@ -65,7 +65,7 @@ TPZCompMesh *TMBAdaptInterface::GetAdaptedMesh(TPZVec<int> &erind, TPZVec<int> &
   
   TPZVec<int> side_ref;
   MarkedElListH (fMark,side_ref,side_ref_dim,side_ref_state);
-  cout << fMark << endl;
+//  cout << fMark << endl;
   int i;
   int nel = fMesh->ElementVec().NElements();
   switch (reftype){
@@ -309,19 +309,56 @@ int TMBAdaptInterface::MaxLevel(TPZCompMesh *mesh) {
 }*/
 /** Implements side based refinement for the specified element. */
 void TMBAdaptInterface::SideRefine(TPZCompEl *cel, int side){
+  int i,j;
   TPZCompElSide celside(cel,side);
   TPZStack<TPZCompElSide> elsidevec;
   elsidevec.Push(celside);
   TPZVec<int> subelindex;
   celside.EqualLevelElementList(elsidevec,0,0);
-  int i,nel = elsidevec.NElements();
+  TPZStack<TPZGeoElSide> geosidevec;
+  for (j=0;j<elsidevec.NElements();j++){
+    geosidevec.Push(elsidevec[j].Reference());
+  }
+  int nel = elsidevec.NElements();
+  TPZManVector<TPZConnect *,3> con(3,0),conc(3,0);
   for(i=0;i<nel;i++) {
-    TPZCompEl *cel = elsidevec[i].Element();
-    TPZGeoEl *gel = cel->Reference();
+    TPZCompEl *celneig = elsidevec[i].Element();
+    TPZGeoEl *gel = celneig->Reference();
     int refside = elsidevec[i].Side();
     bool chg = ChangeRefPattern(gel,refside);
     if (!chg) return;
-    cel->Divide(cel->Index(),subelindex,0);
+    celneig->Divide(celneig->Index(),subelindex,0);
+    TPZStack<TPZGeoElSide> subels;
+    gel->GetSubElements2(refside,subels);
+    if(con[0] == 0) {
+      con[0] = &subels[0].Element()->Reference()->Connect(subels[0].Side());
+      con[1] = &subels[1].Element()->Reference()->Connect(subels[1].Side());
+      con[2] = &subels[2].Element()->Reference()->Connect(subels[2].Side());
+    } else {
+      conc[0] = &subels[0].Element()->Reference()->Connect(subels[0].Side());
+      conc[1] = &subels[1].Element()->Reference()->Connect(subels[1].Side());
+      conc[2] = &subels[2].Element()->Reference()->Connect(subels[2].Side());
+      if(con[0] != conc[0]) {
+        cout << "fodeu1\n";
+        cout << geosidevec << endl;
+        for (j=0;j<geosidevec.NElements();j++){
+          int nsub = geosidevec[j].Element()->NSubElements();
+          for (int isub=0;isub<nsub;isub++){
+            geosidevec[j].Element()->SubElement(isub)->Print(cout);
+          }
+        }
+      }
+      if(con[1] != conc[1] && con[1] != conc[2]) {
+        cout << "fodeu2\n";
+        cout << geosidevec << endl;
+      }
+      if(con[2] != conc[1] && con[2] != conc[2]) {
+        cout << "fodeu3\n";
+        cout << geosidevec << endl;
+      }
+    }
+    int index = celneig->Index();
+    if (index < fMark.NElements()) fMark[index] = 0;
   }
 }
 
