@@ -1,5 +1,4 @@
-// $Id: TPZInterfaceEl.cpp,v 1.14 2003-10-01 21:07:15 tiago Exp $
-
+//$Id: TPZInterfaceEl.cpp,v 1.15 2003-10-17 15:16:24 cedric Exp $
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
 #include "pzgeoelside.h"
@@ -12,7 +11,7 @@
 
 //construtor para o elemento descontinuo
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
-					 TPZCompElDisc *left,TPZCompElDisc *right,int leftside)
+					 TPZCompElDisc *left,TPZCompElDisc *right,int leftside) 
   : TPZCompEl(mesh,index), fNormal(3,0.) {
 
   fReference = geo;
@@ -23,38 +22,31 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   }
   //poderia eliminar esta variável e carrega-la do elemento de volume associado
   fMaterial = mesh.FindMaterial(materialid);
-  if(!fMaterial) PZError << "TPZInterfaceElement::TPZInterfaceElement material not found\n";
   fLeftEl = left;
   fRightEl = right;
-  if(leftside > -1) NormalToFace(fNormal,leftside);
+  NormalToFace(fNormal,leftside);
 }
 
-void TPZInterfaceElement::CloneInterface(TPZCompMesh *aggmesh,int left,int right) {
+void TPZInterfaceElement::CloneInterface(TPZCompMesh *aggmesh){
 
-  TPZCompElDisc *leftcel = dynamic_cast<TPZCompElDisc *>(aggmesh->ElementVec()[left]);
-  TPZCompElDisc *rightcel = dynamic_cast<TPZCompElDisc *>(aggmesh->ElementVec()[right]);
-  //copiando ou transferindo o material
-  int matid = Material()->Id();
-  TPZMaterial *mater = aggmesh->FindMaterial(matid);
-  if(!mater){
-    //cria copia de material da malha fina    
-    mater = Mesh()->FindMaterial(matid);
-    mater->Clone(aggmesh->MaterialVec());
-//    if( !strcmp(mater->Name(),"TPZEulerConsLaw") ){
-//      TPZEulerConsLaw *euler = dynamic_cast<TPZEulerConsLaw *>(mater);
-//      mater = new TPZEulerConsLaw(*euler);
-//    }
-//    aggmesh->InsertMaterialObject(mater);
-  }
-  int leftside = -1,index;
-  TPZGeoEl *gel = Reference();
-  //criando a interface na nova malha aglomerada
-  TPZInterfaceElement *interf = new TPZInterfaceElement(*aggmesh,gel,index,leftcel,rightcel,leftside);
-  //copiando a normal
-  TPZVec<REAL> normal(3);
+  int index,leftside=0;
+  //lado do elemento esquerdo é para calcular a normal
+  //não é necessário atualmente dado que esta é uma copia
+  TPZInterfaceElement *interf = new TPZInterfaceElement(*aggmesh,fReference,index,LeftElement(),RightElement(),leftside);
+  TPZVec<REAL> normal(3,0.);
   Normal(normal);
-  interf->SetNormal(normal);
+  //interf->SetNormal(normal);
+  interf->fNormal[0] = normal[0];
+  interf->fNormal[1] = normal[1];
+  interf->fNormal[2] = normal[2];
 }
+
+// void TPZInterfaceElement::SetNormal(TPZVec<REAL> &normal){
+
+//   fNormal[0] = normal[0];
+//   fNormal[1] = normal[1];
+//   fNormal[2] = normal[2];
+// }
 
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
@@ -282,22 +274,16 @@ void TPZInterfaceElement::Print(ostream &out){
 
   out << "\nInterface element : \n";
   out << "\tId of the geometric reference : " << fReference->Id() << endl;
+  out << "\tGeometric reference of the left element of id : ";
   if(fLeftEl){
-    if(fLeftEl->Type() == 17) out << "\tElement index of the left element : "<< fLeftEl->Index() << endl;
-    else {
-      out << "\tGeometric reference of the left element of id : ";
-      out <<  fLeftEl->Reference()->Id() << endl;
-    }
+    out <<  fLeftEl->Reference()->Id() << endl;
   } else {
     out << "Null" << endl;
     cout << "TPZInterfaceElement::Print null left element\n\n";
   }
+  out << "\tGeometric reference of the right element of id : ";
   if(fRightEl){
-    if(fRightEl->Type() == 17) out << "\tElement index of the right element : "<< fRightEl->Index() << endl;
-    else {
-      out << "\tGeometric reference of the right element of id : ";
-      out << fRightEl->Reference()->Id() << endl;
-    }
+    out << fRightEl->Reference()->Id() << endl;
   } else {
     out << "Null" << endl;
     cout << "TPZInterfaceElement::Print null right element\n\n";
@@ -431,12 +417,11 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
 }
 
 void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
-
 void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
 
   //  int dim = fReference->Dimension();
   int face = fReference->NSides()-1;
-  //face: lado do elemento bidimensional ou aresta
+  //face: lado do elemento bidimensional ou aresta 
   //do unidimensional ou canto do ponto
   normal.Resize(3,0.);
   TPZCompElSide neigh(fLeftEl,leftside);
@@ -471,7 +456,7 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
     for(i=0;i<3;i++) normal[i] = normal[i]/normalize;
     break;
   case 2:
-    fReference->CenterPoint(face,param);//ponto da face
+    fReference->CenterPoint(face,param);//ponto da face  
     fReference->Jacobian(param,jacobian,axes,detjac,jacinv);
     for(i=0;i<3;i++) normal[i] = axes(2,i);
     break;
@@ -480,23 +465,6 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
     normal.Resize(0);
     return;
   }
-  int leftdim = fLeftEl->Dimension();
-  int lefts = fLeftEl->Reference()->NSides();
-  int rightdim = fRightEl->Dimension();
-  int rights = fRightEl->Reference()->NSides();
-  TPZVec<REAL> leftp(leftdim), rightp(rightdim), leftx(3),rightx(3);
-  fLeftEl->Reference()->CenterPoint(lefts-1,leftp);
-  fLeftEl->Reference()->X(leftp,leftx);
-  fRightEl->Reference()->CenterPoint(rights-1,rightp);
-  fRightEl->Reference()->X(rightp,rightx);
-  REAL prod = normal[0]*(rightx[0]-leftx[0])+normal[1]*(rightx[1]-leftx[1])+normal[2]*(rightx[2]-leftx[2]);
-  if(prod < 0.) {
-  	normal[0] *= -1.;
-  	normal[1] *= -1.;
-  	normal[2] *= -1.;
-  }
-
-//  cout << "Normal : " << normal[0] << " , " << normal[1] << " , " << normal[2] << endl;
 }
 
 void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet){
@@ -512,27 +480,6 @@ void TPZInterfaceElement::Normal(TPZVec<REAL> &normal){
   for(int i=0;i<3;i++) normal[i] = fNormal[i];
 }
 
-void TPZInterfaceElement::SetNormal(TPZVec<REAL> &normal){
-
-  for(int i=0;i<3;i++) fNormal[i] = normal[i];
-}
-
 /**
  *  ESTA ALTERA¢ÃO É SÓ PARA ATUALIZAR O PZREPOSITORY (CVS)
  */
-  //achando o lado do vizinho esquerdo
-//   int side = fReference->NSides()-1;
-//   TPZGeoElSide refside(fReference,side);
-//   TPZGeoElSide neigh = refside.Neighbour();
-//   TPZGeoEl *gel = neigh.Element();
-//   while(gel && neigh != refside){
-//     TPZCompEl *cel = gel->Reference();
-//     if(cel && cel == LeftElement()) break;
-//     neigh = neigh.Neighbour();
-//     gel = neigh.Element();
-//   }
-//   if(!gel || neigh == refside){
-//     PZError << "TPZInterfaceElement::CloneInterface left element not found\n";
-//     exit(-1);
-//   }
-//  int leftside = neigh.Side(),index;
