@@ -3,7 +3,7 @@
 
 #include "pzvec.h"
 #include "pzgmesh.h"
-#include <iostream.h>
+#include <iostream>
 
 class TPZGeoNode;
 class TPZCompMesh;
@@ -188,7 +188,7 @@ public:
      * It compares two hashings: in case that are equal returns 0,
      * case is distinct returns 1
      */
-    int IsNotEqual(TPZTransform Told, TPZTransform Tnew);
+    int IsNotEqual(TPZTransform &Told, TPZTransform &Tnew);
 
     /**
      * Each side of the element father is gotten as a partition enters the
@@ -236,7 +236,7 @@ public:
         TPZVec<int> fInitSonSides;
 
         /**
-         * Side of the element father associated with the side of the 
+         * Side of the element father associated with the side of the
          * sub-element
          */
         TPZVec<int> fFatherSide;
