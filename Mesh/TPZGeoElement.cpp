@@ -463,30 +463,39 @@ return 0;
 #include "pzelct3d.h"
 #include "pzelcpr3d.h"
 #include "pzelcpi3d.h"
+#include "pzelctemp.h"
 
 static TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZCompElPoint(mesh,gel,index);
+  return new TPZIntelGen<TPZGeoPoint,TPZShapePoint>(mesh,gel,index);
+  //  return new TPZCompElPoint(mesh,gel,index);
 }
 static TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZCompEl1d(mesh,gel,index);
+  return new TPZIntelGen<TPZGeoLinear,TPZShapeLinear>(mesh,gel,index);
+  //  return new TPZCompEl1d(mesh,gel,index);
 }
 static TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZCompElQ2d(mesh,gel,index);
+  return new TPZIntelGen<TPZGeoQuad,TPZShapeQuad>(mesh,gel,index);
+  //  return new TPZCompElQ2d(mesh,gel,index);
 }
 static TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZCompElT2d(mesh,gel,index);
+  return new TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>(mesh,gel,index);
+  //  return new TPZCompElT2d(mesh,gel,index);
 }
 static TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZCompElC3d(mesh,gel,index);
+  return new TPZIntelGen<TPZGeoCube,TPZShapeCube>(mesh,gel,index);
+  //  return new TPZCompElC3d(mesh,gel,index);
 }
 static TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZCompElPr3d(mesh,gel,index);
+  return new TPZIntelGen<TPZGeoPrism,TPZShapePrism>(mesh,gel,index);
+  //  return new TPZCompElPr3d(mesh,gel,index);
 }
 static TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZCompElPi3d(mesh,gel,index);
+  return new TPZIntelGen<TPZGeoPyramid,TPZShapePiram>(mesh,gel,index);
+  //  return new TPZCompElPi3d(mesh,gel,index);
 }
 static TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZCompElT3d(mesh,gel,index);
+  return new TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>(mesh,gel,index);
+  //  return new TPZCompElT3d(mesh,gel,index);
 }
 
 
