@@ -1,4 +1,11 @@
-//oocalc &
+
+//criando objeto para a classe material
+//REAL E = 200000.0, G = 173913.0, v = 0.15;
+//REAL E = 10000.0, G = 4347.83, v = 0.15;//teste
+//REAL E = 15.133e6, G = 2.59398e7, v = 0.471;//Pinus Pinaster ait.
+//REAL E = 69.0e6, G = 5.14378e6, v = 0.330;//Aluminio
+//REAL eppx=E, eppy=E, eppz=E, vxy=v, vyz=v,vzx=v, gxy=G, gyz=G, gzx=G;
+
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
@@ -83,6 +90,10 @@
 #include <ostream>
 #include <string.h>
 #include <math.h>
+#include <stdio.h>
+
+int gDebug;
+
 using namespace std;
 void ComputeSolution(TPZAnalysis &an,TPZMaterial *mat,ofstream &out,int numiter);
 static TPZMulticamadaOrthotropic *multcam;
@@ -104,17 +115,8 @@ int main(){
        << "dy " << dy << "\n"
        << "nelx " << nelx << "\n"
        << "nely " << nely << "\n";
-  cin >> dx >> dy >> nelx >> nely;
-
-  multcam = new TPZMulticamadaOrthotropic(zmin,dx,dy,nelx,nely);
-  TPZMatOrthotropic *orto;
-
-  //criando objeto para a classe material
-  //REAL E = 200000.0, G = 173913.0, v = 0.15;
-  //REAL E = 10000.0, G = 4347.83, v = 0.15;//teste
-  //REAL E = 15.133e6, G = 2.59398e7, v = 0.471;//Pinus Pinaster ait.
-  //REAL E = 69.0e6, G = 5.14378e6, v = 0.330;//Aluminio
-  //REAL eppx=E, eppy=E, eppz=E, vxy=v, vyz=v,vzx=v, gxy=G, gyz=G, gzx=G;
+  int niter = 20;//,it;
+  //  cin >> dx >> dy >> nelx >> nely;
   int numat = 1;
   TPZFMatrix naxes(3,3);
   naxes(0,0) =  1.0;    naxes(0,1) =  0.0;    naxes(0,2) =  0.0;
@@ -122,6 +124,7 @@ int main(){
   naxes(2,0) =  0.0;    naxes(2,1) =  0.0;    naxes(2,2) =  1.0;
   REAL Elast = 100.0;
   REAL nu = 0.3;
+
   REAL eppx = Elast;
   REAL eppy = Elast;
   REAL eppz = Elast;
@@ -132,67 +135,155 @@ int main(){
   REAL gyz = Elast/(2.*(1.+nu));
   REAL gzx = Elast/(2.*(1.+nu));
 
-  orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-  multcam->AddPlacaOrtho(orto,0.2);
+  cout << "which problem (0,1,2) " << endl;
+  int problem;
+  cin >> problem;
+  int esfor;
+  char rootname[8][5] = 
+    {"NX","NY","NXY","MX","MY","MXY","QX","QY"};
+  char outfilename[256];
+  for(esfor=0; esfor<8;esfor++) {
+    cout << "force (0,...,7) " << esfor << endl;
+    sprintf(outfilename,"%s%d.out",rootname[esfor],problem);
+    ofstream out;
+    out.open(outfilename);
+    out.flush();
+    TPZMatOrthotropic *orto;
   
-    Elast = 100.0; // if(0){
-    eppx = Elast;
-    eppy = Elast;
-    eppz = Elast;
-    vxy = nu;
-    vyz = nu;
-    vzx = nu;
-    gxy = Elast/(2.*(1.+nu));
-    gyz = Elast/(2.*(1.+nu));
-    gzx = Elast/(2.*(1.+nu));
-    orto = new TPZMatOrthotropic(numat+1, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-    multcam->AddPlacaOrtho(orto,0.2);
-  
+    multcam = new TPZMulticamadaOrthotropic(zmin,dx,dy,nelx,nely);
+    switch(esfor) {
+    case 0:
+    multcam->SetNX(1.);
+    break;
+    case 1:
+    multcam->SetNY(1.);
+    break;
+    case 2:
+    multcam->SetNXY(1.);
+    break;
+    case 3:
+    multcam->SetMX(1.);
+    break;
+    case 4:
+    multcam->SetMY(1.);
+    break;
+    case 5:
+    multcam->SetMXY(1.);
+    break;
+    case 6:
+    multcam->SetQX(1.);
+    break;
+    case 7:
+    multcam->SetQY(1.);
+    break;
+    }
 
-  multcam->GenerateMesh();
+    switch(problem) {
+    case 0:
+      orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+      multcam->AddPlacaOrtho(orto,0.2);
+      
+      orto = new TPZMatOrthotropic(numat+1, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+      multcam->AddPlacaOrtho(orto,0.2);
+      multcam->GenerateMesh();
+      out.flush();
 
-  ofstream out("QX2.out");
+      orto->Print(out);
 
-  multcam->SetQY(1.);
-  //multcam->SetQY(2.5);
-
-  //    multcam->GeoMesh()->Print(out);
-  //    multcam->CompMesh()->Print(out);
-  out.flush();
-
-  int niter = 20;//,it;
-  cout << "Numero de iterações" << endl;
-  cin >> niter;
-
-  //TPZFMatrix tensin(5,9,0.),tensout(5,9);
-
-  orto->Print(out);
-
-//   TPZCompMesh *cmesh = multcam->CompMesh();
-//   TPZAnalysis an(cmesh);
-//   TPZSkylineStructMatrix skyl(cmesh);
-//   an.SetStructuralMatrix(skyl);
-//   TPZStepSolver solve;
-//   solve.SetDirect(ELDLt);
-//   an.SetSolver(solve);
-//   an.Solution().Zero();
-//  ComputeSolution(an,orto,out,niter);//local
-
-
-  multcam->ComputeSolution(orto,out,niter);
-
-//   for(it=0; it<niter; it++) {
-
-//     multcam->ComputeSolution(out,0);
-//     multcam->ComputeCenterForces();
-//     multcam->PrintCenterForces(out);
-//     multcam->PrintTensors(out);
-//     //multcam->PrintTensors(out,tensin,tensout);
-//     //tensin = tensout;
-//   }
-
-  out.close();
-
+      multcam->ComputeSolution(orto,out,niter);
+      break;
+    case 1:
+      Elast = 100000.0; // if(0){
+      eppx = Elast;
+      eppy = Elast;
+      eppz = Elast;
+      vxy = nu;
+      vyz = nu;
+      vzx = nu;
+      gxy = Elast/(2.*(1.+nu)); //isotropico
+      gyz = Elast/(2.*(1.+nu));
+      gzx = Elast/(2.*(1.+nu));
+      orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+      multcam->AddPlacaOrtho(orto,0.01); // *mat, espessura
+      Elast = 100.0;
+      eppx = Elast;
+      eppy = Elast;
+      eppz = Elast;
+      vxy = nu;
+      vyz = nu;
+      vzx = nu;
+      gxy = Elast/(2.*(1.+nu));
+      gyz = Elast/(2.*(1.+nu));
+      gzx = Elast/(2.*(1.+nu));
+      orto = new TPZMatOrthotropic(numat+1, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+      multcam->AddPlacaOrtho(orto,0.2);
+      Elast = 100000.0;
+      eppx = Elast;
+      eppy = Elast;
+      eppz = Elast;
+      vxy = nu;
+      vyz = nu;
+      vzx = nu;
+      gxy = Elast/(2.*(1.+nu));
+      gyz = Elast/(2.*(1.+nu));
+      gzx = Elast/(2.*(1.+nu));
+      orto = new TPZMatOrthotropic(numat+2, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+      multcam->AddPlacaOrtho(orto,0.01);
+      multcam->GenerateMesh();
+      out.flush();
+      //   orto->Print(out);
+      multcam->ComputeSolution(orto,out,niter);
+      break;
+    case 2:
+      Elast = 100.0; // if(0){
+      eppx = Elast*1000.;
+      eppy = Elast;
+      eppz = Elast;
+      vxy = nu;
+      vyz = nu/2.; 
+      vzx = nu;
+      gxy = Elast/(3.*(1.+nu));
+      gyz = Elast/(1.*(1.+nu));
+      gzx = Elast/(4.*(1.+nu));
+      naxes(0,0) = 1./sqrt(2.);
+      naxes(1,0) = naxes(0,0);
+      naxes(0,1) = -naxes(0,0);
+      naxes(1,1) = naxes(0,0);
+      orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+      multcam->AddPlacaOrtho(orto,0.1);
+      naxes(0,0) = 1./sqrt(2.);
+      naxes(1,0) = -naxes(0,0);
+      naxes(0,1) = naxes(0,0);
+      naxes(1,1) = naxes(0,0);
+      orto = new TPZMatOrthotropic(numat+1, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+      multcam->AddPlacaOrtho(orto,0.1);
+      naxes(0,0) = 1./sqrt(2.);
+      naxes(1,0) = naxes(0,0);
+      naxes(0,1) = -naxes(0,0);
+      naxes(1,1) = naxes(0,0);
+      orto = new TPZMatOrthotropic(numat+2, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+      multcam->AddPlacaOrtho(orto,0.1);
+      naxes(0,0) = 1./sqrt(2.);
+      naxes(1,0) = -naxes(0,0);
+      naxes(0,1) = naxes(0,0);
+      naxes(1,1) = naxes(0,0);
+      orto = new TPZMatOrthotropic(numat+3, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+      multcam->AddPlacaOrtho(orto,0.1);
+      naxes(0,0) = 1./sqrt(2.);
+      naxes(1,0) = naxes(0,0);
+      naxes(0,1) = -naxes(0,0);
+      naxes(1,1) = naxes(0,0);
+      orto = new TPZMatOrthotropic(numat+4, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+      multcam->AddPlacaOrtho(orto,0.1);
+      multcam->GenerateMesh();
+      out.flush();
+      //   orto->Print(out);
+      multcam->ComputeSolution(orto,out,niter);
+      break;
+    }
+    out.close();
+    delete multcam;
+  }
   return 0;
 }
 
