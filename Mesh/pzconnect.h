@@ -1,3 +1,5 @@
+//$Id: pzconnect.h,v 1.4 2003-11-05 16:02:21 tiago Exp $
+
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
 

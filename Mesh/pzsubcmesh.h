@@ -1,3 +1,5 @@
+//$Id: pzsubcmesh.h,v 1.5 2003-11-05 16:02:21 tiago Exp $
+
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
 //
@@ -238,7 +240,7 @@ public:
   //     * Virtual Method! See declaration in TPZCompEl class. 
   //     * The use of this method in submesh class return -1 == Error! 
   //     */
-	virtual int Dimension();
+	virtual int Dimension() const;
 
   //    /**
   //     * Returns the connection index i. 

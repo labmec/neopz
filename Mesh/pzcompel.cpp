@@ -1,3 +1,5 @@
+//$Id: pzcompel.cpp,v 1.9 2003-11-05 16:02:21 tiago Exp $
+
 //METHODS DEFINITION FOR CLASS ELBAS
 
 #include "pzcompel.h"

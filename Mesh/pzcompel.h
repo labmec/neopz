@@ -1,7 +1,7 @@
 //HEADER FILE FOR CLASS ELBAS
 
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.8 2003-11-04 20:03:06 cedric Exp $
+// $Id: pzcompel.h,v 1.9 2003-11-05 16:02:21 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -140,7 +140,7 @@ public:
    * Return a pointer to the corresponding geometric element if such exists
    * return 0 otherwise
    */
-  virtual TPZGeoEl *Reference() { return 0; }
+  virtual TPZGeoEl *Reference() const { return 0; }
 
   /**
    * Return the number of nodes of the element
@@ -172,7 +172,7 @@ public:
   /**
    * Dimension of the element
    */
-  virtual int Dimension() = 0;
+  virtual int Dimension() const = 0;
 	
   /**
    * Identify the material object associated with the element

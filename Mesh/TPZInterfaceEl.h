@@ -1,3 +1,4 @@
+//$Id: TPZInterfaceEl.h,v 1.17 2003-11-05 16:02:21 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -68,7 +69,7 @@ class TPZInterfaceElement : public TPZCompEl {
   //TPZCompEl * CloneInterface(TPZCompMesh &aggmesh, TPZVec<int> &destindex,int &index) const;
 
   /**return the geometric element to which this element references*/
-  virtual TPZGeoEl *Reference() { return fReference;}
+  virtual TPZGeoEl *Reference() const { return fReference;}
 
   TPZMaterial *Material() const { return fMaterial;}
 
@@ -124,9 +125,9 @@ class TPZInterfaceElement : public TPZCompEl {
   void SetConnectIndex(int node, int index);
 
   /**
-   * it returns the dimension from the element interface 
+   * it returns the dimension from the element interface
    */
-  int Dimension() {return TPZCompElDisc::gInterfaceDimension;}
+  int Dimension() const {return TPZCompElDisc::gInterfaceDimension;}
 
   /**
    * Type of the element 

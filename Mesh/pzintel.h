@@ -1,6 +1,5 @@
-// -*- c++ -*-
+//$Id: pzintel.h,v 1.10 2003-11-05 16:02:21 tiago Exp $
 
-// $ Id: $
 #ifndef PZINTEL_H
 #define PZINTEL_H
 
@@ -83,7 +82,7 @@ public:
   virtual void Print(ostream &out = cout);
 
   /**return the geometric element to which this element references*/
-  virtual TPZGeoEl *Reference() { return fReference;}
+  virtual TPZGeoEl *Reference() const { return fReference;}
 
   /**declare the element as interpolated or not.
    * You may not redefine this method, because a lot of "unsafe" casts depend
@@ -129,7 +128,7 @@ public:
   /**
    * returns the dimension of the element
    */
-  virtual int Dimension() = 0;
+  virtual int Dimension() const = 0;
 
   /**return the number of corner connects of the element*/
   virtual int NCornerConnects() = 0;

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $ Id: $
+//$Id: pzcmesh.h,v 1.12 2003-11-05 16:02:21 tiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -145,7 +145,7 @@ public:
   void SetDimModel(int dim){fDimModel = dim;}
 
   /**return the dimension of the simulation*/
-  int Dimension(){return fDimModel;}
+  int Dimension() const {return fDimModel;}
 
   /**
    * Return the mesh name
@@ -216,7 +216,7 @@ public:
   /**
    * Return a pointer to the geometrical mesh associated
    */
-  TPZGeoMesh *Reference() { return fReference; }
+  TPZGeoMesh *Reference() const { return fReference; }
 
   /**
    * Access the block structure of the solution vector

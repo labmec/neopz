@@ -1,3 +1,5 @@
+//$Id: pzcheckgeom.cc,v 1.2 2003-11-05 16:02:21 tiago Exp $
+
 #include <fstream>
 using namespace std;
 #include "pzcheckgeom.h"

@@ -1,3 +1,4 @@
+//$Id: pzgeoel.h,v 1.8 2003-11-05 16:02:21 tiago Exp $
 
 // -*- c++ -*-
 
@@ -146,7 +147,7 @@ public:
   int MaterialId() { return fMatId; }
 
   /**return a pointer to the element referenced by the geometric element*/
-  TPZCompEl *Reference() { return fReference; }
+  TPZCompEl *Reference() const { return fReference; }
 
   /**
    * returns the element type acording to pzeltype.h
@@ -307,7 +308,7 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
   virtual int SideDimension(int side) = 0;
 
   /**Returns the dimension of the element*/
-  virtual int Dimension()=0;
+  virtual int Dimension() =0;
 
   /** */
   virtual TPZGeoElSide HigherDimensionSides(int side,int targetdimension);//SÓ PARA TESTAR CONTINUIDADE - APAGAR DEPOIS

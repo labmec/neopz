@@ -1,3 +1,5 @@
+//$Id: TPZCompElDisc.h,v 1.14 2003-11-05 16:02:21 tiago Exp $
+
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
 ////////////////////////////////////////////////////////////////////////////////
@@ -76,7 +78,7 @@ protected:
 
   static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
   /**return the geometric element to which this element references*/
-  TPZGeoEl *Reference() { return fReference;}
+  TPZGeoEl *Reference() const { return fReference;}
   void SetReference(TPZGeoEl *ref) {fReference = ref;}
 
   /**
@@ -173,9 +175,9 @@ protected:
   int NCornerConnects() { return Reference()->NNodes();}
 
   /**
-   * it returns dimension from the element 
+   * it returns dimension from the element
    */
-  int Dimension() { return Reference()->Dimension();}
+  int Dimension() const { return Reference()->Dimension();}
 
   /**
    * it calculates the normalizing constant of the bases of the element 

@@ -1,3 +1,5 @@
+//$Id: pzsubcmesh.cpp,v 1.6 2003-11-05 16:02:21 tiago Exp $
+
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -275,7 +277,7 @@ int TPZSubCompMesh::ConnectIndex(int i){
 	return fConnectIndex[i];
 }
 
-int TPZSubCompMesh::Dimension(){
+int TPZSubCompMesh::Dimension() const {
 	return -1;
 }
 

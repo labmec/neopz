@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $ Id: $
+//$Id: pzelcpoint.cc,v 1.6 2003-11-05 16:02:21 tiago Exp $
 #include "pzelcpoint.h"
 #include "pzelct2d.h"
 #include "pzelcq2d.h"

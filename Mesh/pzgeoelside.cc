@@ -1,3 +1,5 @@
+//$Id: pzgeoelside.cc,v 1.9 2003-11-05 16:02:21 tiago Exp $
+
 // -*- c++ -*-
 #include "pzgeoelside.h"
 #include "pzgeoel.h"
@@ -258,13 +260,13 @@ int TPZGeoElSide::NeighbourExists(const TPZGeoElSide &gel) const {
   return 0;
 }
 
-TPZCompElSide TPZGeoElSide::Reference() {
+TPZCompElSide TPZGeoElSide::Reference() const {
   TPZCompElSide compside(fGeoEl->Reference(),fSide);
   return compside;
 }
 
 
-int TPZGeoElSide::Dimension() {
+int TPZGeoElSide::Dimension() const {
   if (!fGeoEl) {
     PZError << "TPZGeoElSide::Dimension : null element\n";
     return -1;

@@ -1,3 +1,5 @@
+//$Id: pzgmesh.h,v 1.6 2003-11-05 16:02:21 tiago Exp $
+
 /**File : pzgmes.h
 
 Header file for class TPZGeoMesh.
@@ -110,7 +112,7 @@ class  TPZGeoMesh {
   /**Sets the reference of the geometric grid to ref*/
   void SetReference(TPZCompMesh *ref) { fReference = ref;}
   /**Returns the currently loaded computational grid*/
-  TPZCompMesh *Reference() {return fReference;}
+  TPZCompMesh *Reference() const {return fReference;}
 
   /** Print the information of the grid to an ostream*/
 virtual  void Print(ostream & out = cout);

@@ -1,3 +1,5 @@
+//$Id: pzgeoelside.h,v 1.9 2003-11-05 16:02:21 tiago Exp $
+
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
 
@@ -54,7 +56,7 @@ class TPZGeoElSide {
   void ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh);
  
   int Id();
-  int Dimension();
+  int Dimension() const;
 
   int operator==(const TPZGeoElSide &other) const {
     return fGeoEl == other.fGeoEl && fSide == other.fSide;
@@ -121,7 +123,7 @@ static void BuildConnectivities(TPZVec<TPZGeoElSide> &elvec, TPZVec<TPZGeoElSide
   /**returns the number of fathers that can be followed*/
   //int Level();
   /**return a pointer to the elementside referenced by the geometric elementside*/
-  TPZCompElSide Reference();
+  TPZCompElSide Reference() const;
   /*return 1 if the element has subelements along side*/
   int HasSubElement();
 	

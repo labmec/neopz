@@ -1,3 +1,5 @@
+//$Id: pzelctemp.h,v 1.5 2003-11-05 16:02:21 tiago Exp $
+
 // -*- c++ -*-
 #ifndef PZELCTEMPH
 #define PZELCTEMPH
@@ -34,7 +36,7 @@ virtual ~TPZIntelGen();
 
   virtual int NConnectShapeF(int connect);
 
-  virtual int Dimension() {
+  virtual int Dimension() const {
     return TSHAPE::Dimension;
   }
 
