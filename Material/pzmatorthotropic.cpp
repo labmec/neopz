@@ -380,6 +380,37 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &
     fLocAxs.Transpose(&locaxsT);
     TPZFMatrix SigGlob = locaxsT*(Tensor*fLocAxs);
 
+    if(var == 10){
+      Solout.Resize(1);
+      Solout[0] = SigX;
+      return;
+    }
+    if(var == 11){
+      Solout.Resize(1);
+      Solout[0] = SigY;
+      return;
+    }
+    if(var == 12){
+      Solout.Resize(1);
+      Solout[0] = SigZ;
+      return;
+    }
+    if(var == 13){
+      Solout.Resize(1);
+      Solout[0] = TauXY;
+      return;
+    }
+    if(var == 14){
+      Solout.Resize(1);
+      Solout[0] = TauZX;
+      return;
+    }
+    if(var == 15){
+      Solout.Resize(1);
+      Solout[0] = TauYZ;
+      return;
+    }
+
     /**ORIGINAL*/
     Solout[0] = SigGlob(0,0);//SigX
     Solout[1] = SigGlob(1,1);//SigY
@@ -387,37 +418,6 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &
     Solout[3] = SigGlob(0,1);//TauXY
     Solout[4] = SigGlob(1,2);//TauYZ
     Solout[5] = SigGlob(2,0);//TauZX
-
-    if(var == 10){
-      Solout.Resize(1);
-      Solout[0] = Solout[0];
-      return;
-    }
-    if(var == 11){
-      Solout.Resize(1);
-      Solout[0] = Solout[1];
-      return;
-    }
-    if(var == 11){
-      Solout.Resize(1);
-      Solout[0] = Solout[2];
-      return;
-    }
-    if(var == 13){
-      Solout.Resize(1);
-      Solout[0] = Solout[3];
-      return;
-    }
-    if(var == 14){
-      Solout.Resize(1);
-      Solout[0] = Solout[5];
-      return;
-    }
-    if(var == 13){
-      Solout.Resize(1);
-      Solout[0] = Solout[4];
-      return;
-    }
 
     if(var == 8) return;
 
