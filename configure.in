@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.33 2005-01-10 19:41:11 phil Exp $
+dnl $Id: configure.in,v 1.34 2005-01-21 12:13:27 phil Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -140,7 +140,7 @@ dnl         MODE_OPTIONS="-DDEBUG -Wall -ggdb3 -pipe -fno-default-inline -fno-in
 	dnl -fno-math-errno -funsafe-math-optimizations -fno-trapping-math \
 	dnl -mfpmath=sse
 
-        MODE_OPTIONS="-DNOTDEBUG -DNODEBUG -w -s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -fexpensive-optimizations -fmove-all-movables -finline-limit=1000 -fdefault-inline -ftemplate-depth-60 -pipe"
+        MODE_OPTIONS="-DNOTDEBUG -DNODEBUG -w -s -O2 -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -fexpensive-optimizations -fmove-all-movables -finline-limit=1000 -fdefault-inline -ftemplate-depth-60 -pipe"
         ;;
       *)
         AC_MSG_ERROR(unsupported compiler.)
@@ -451,7 +451,7 @@ dnl ----------------------------------------------------------------------------
 dnl                              CONGRATULATIONS!
 dnl ----------------------------------------------------------------------------
 
-AC_OUTPUT([ Makefile PZ.mk PZ_user.mk \
+AC_OUTPUT([ Makefile PZ.mk PZ_user.mk  External/sloan/Makefile \
 	 Util/Makefile \
 	Matrix/Makefile \
 	Cosys/Makefile \
