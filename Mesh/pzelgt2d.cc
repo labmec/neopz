@@ -91,6 +91,10 @@ int TPZGeoElT2d::SideNodeIndex(int side,int node) {
 	return -1;
 }
 
+int TPZGeoElT2d::SideNodeLocIndex(int side,int node) {
+	return TPZShapeTriang::SideNodeLocId(side,node);
+}
+
 void TPZGeoElT2d::MidSideNodeIndex(int side,int &index) {
   index = -1;
   if(side<0 || side>5) {

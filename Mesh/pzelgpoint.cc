@@ -93,6 +93,16 @@ int TPZGeoElPoint::SideNodeIndex(int side, int /*node*/){
   return -1;
 }
 
+int TPZGeoElPoint::SideNodeLocIndex(int side, int /*node*/){
+  switch(side) {
+     case 0:
+       return 0;
+     default:
+       PZError << "TPZGeoElPoint::SideNodeIndex. Bad parameter side.\n";
+     }
+  return -1;
+}
+
 void TPZGeoElPoint::MidSideNodeIndex(int side,int &index) {
   switch(side) {
   case 0:

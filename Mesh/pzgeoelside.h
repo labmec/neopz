@@ -42,6 +42,9 @@ class TPZGeoElSide {
   void SetSide(int side) { fSide = side; }
   int Exists() const {return fGeoEl != 0;}
   TPZGeoElSide Neighbour() const;//return neighbour of the side fSide
+  void AllNeighbours(TPZStack<TPZGeoElSide> &allneigh);
+  
+  void ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh);
  
   int Id();
   int Dimension();
@@ -51,6 +54,14 @@ class TPZGeoElSide {
   }
   int operator!=(const TPZGeoElSide &other) const {
     return fGeoEl != other.fGeoEl || fSide != other.fSide;
+  }
+  
+  int operator<(const TPZGeoElSide &other) const {
+	  return (fGeoEl < other.fGeoEl || (fGeoEl == other.fGeoEl && fSide < other.fSide));
+  }
+  
+  int operator>(const TPZGeoElSide &other) const {
+	  return (fGeoEl > other.fGeoEl || (fGeoEl == other.fGeoEl && fSide > other.fSide));
   }
 
   //void SideTransform(TPZGeoElSide neighbour,TPZTransform &t);

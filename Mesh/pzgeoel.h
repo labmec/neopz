@@ -142,6 +142,9 @@ public:
 
   /**returns the index of the nodenum node of side*/
   virtual int SideNodeIndex(int side,int nodenum) = 0;
+  
+  /**returns the local index of a node on a side*/
+  virtual int SideNodeLocIndex(int side, int nodenum) = 0;
 
   /**returns 1 if the side has not been defined by buildconnectivity
      After construction the side is undefined. The buildconnectivity method

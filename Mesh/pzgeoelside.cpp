@@ -3,6 +3,7 @@
 #include "pzgeoel.h"
 #include "pztrnsform.h"
 #include "pzstack.h"
+#include "pzvec_extras.h"
 #include "pzquad.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -110,6 +111,84 @@ TPZGeoElSide TPZGeoElSide::Neighbour() const {
   TPZGeoElSide neighbour = fGeoEl->Neighbour(fSide);
   return neighbour;
 }
+
+void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
+	if(! Exists() || ! this->Neighbour().Exists()) 
+	{
+		return;
+	}
+	TPZGeoElSide neigh = Neighbour();
+	while(neigh != *this)
+	{
+		allneigh.Push(neigh);
+		neigh = neigh.Neighbour();
+	}
+}
+
+void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
+  if(fSide < fGeoEl->NCornerNodes()) 
+    {
+      AllNeighbours(compneigh);
+      return;
+    }
+  int nsnodes = NSideNodes();
+  TPZStack<TPZGeoElSide> GeoElSideSet;
+  TPZStack<TPZGeoEl *> GeoElSet[27];
+  int in;
+  TPZManVector<int> nodeindexes(nsnodes);
+  for(in=0; in<nsnodes; in++) 
+    {
+      nodeindexes[in] = SideNodeIndex(in);
+      int locnod = fGeoEl->SideNodeLocIndex(fSide,in);
+      GeoElSideSet.Resize(0);
+      TPZGeoElSide locside(fGeoEl,locnod);
+      locside.AllNeighbours(GeoElSideSet);
+      int nel = GeoElSideSet.NElements();
+      int el;
+      for(el=0; el<nel; el++) {
+	GeoElSet[in].Push(GeoElSideSet[el].Element());
+      }
+      Sort<TPZGeoEl *>(GeoElSet[in]);
+    }
+  TPZStack<TPZGeoEl *,100> result;
+  switch(nsnodes) {
+  case 1:
+    {
+      result = GeoElSet[0];
+    }
+    break;
+  case 2:
+    Intersect<TPZGeoEl *,100>(GeoElSet[0],GeoElSet[1],result);
+    break;
+  case 3:
+    Intersect<TPZGeoEl *,100>(GeoElSet[0],GeoElSet[1],GeoElSet[2],result);
+    break;
+  case 4:
+    {
+      TPZStack<TPZGeoEl *> inter1, inter2;
+      Intersect<TPZGeoEl *,100>(GeoElSet[0],GeoElSet[2],inter1);
+      Intersect<TPZGeoEl *,100>(GeoElSet[1],GeoElSet[3],inter2);
+      Intersect<TPZGeoEl *,100>(inter1,inter2,result);
+    }
+    break;
+  default:
+    {
+      TPZStack<TPZGeoEl *> inter1, inter2;
+      inter1 = GeoElSet[0];
+      for(in=0; in<nsnodes-1; in++) {
+	inter2.Resize(0);
+	Intersect<TPZGeoEl *,100>(inter1,GeoElSet[in+1],inter2);
+	inter1 = inter2;
+      }
+      result = inter2;
+    }
+  }
+  int el,nel = result.NElements();
+  for(el=0; el<nel; el++) {
+    compneigh.Push(TPZGeoElSide(result[el],result[el]->WhichSide(nodeindexes)));
+  }
+}
+
 
 /**Calcula a transformação entre o lado side do el. atual e o lado do vizinho que contem side*/
 /*

@@ -82,6 +82,10 @@ int TPZGeoElPi3d::SideNodeIndex(int side,int node) {
 	return fNodeIndexes[loc];
 }
 
+int TPZGeoElPi3d::SideNodeLocIndex(int side,int node) {
+	return TPZShapePiram::SideNodeLocId(side,node);
+}
+
 void TPZGeoElPi3d::MidSideNodeIndex(int side,int &index) {
 	TPZRefPyramid::MidSideNodeIndex(this,side,index);
 }

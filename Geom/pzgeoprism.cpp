@@ -61,7 +61,7 @@ void TPZGeoPrism::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &j
       " 6 nodes, NumberOfNodes = " << nnodes << "\n";
   }
   if(param.NElements() != 3 || param[0] < 0. || param[0] > 1. ||
-     param[1] < 0. || param[1] > 1. || param[2] < 0. || param[2] > 1.) {
+     param[1] < 0. || param[1] > 1. || param[2] < -1. || param[2] > 1.) {
     PZError << "TPZGeoElPr3d.jacobian. param out of range : "
       " param.NElements() = " << param.NElements() <<
       "\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";

@@ -61,15 +61,15 @@ void TPZGeoPyramid::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix 
 		PZError <<	"TPZGeoElPi3d.jacobian only implemented for"
 					" 5 nodes, NumberOfNodes = " << nnodes << "\n";
 	}
-	if(param.NElements() != 3 || param[0] < 0. || param[0] > 1. ||
-		param[1] < 0. || param[1] > 1. || param[2] < 0. || param[2] > 1.) {
+	if(param.NElements() != 3 || param[0] < -1. || param[0] > 1. ||
+		param[1] < -1. || param[1] > 1. || param[2] < 0. || param[2] > 1.) {
 		PZError << "TPZGeoElPi3d.jacobian. param out of range : "
 					" param.NElements() = " << param.NElements() <<
 					"\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
 		return;
 	}
 #endif
-  
+
 	REAL spacephi[5];
 	TPZFMatrix phi(5,1,spacephi,5);
 	REAL spacedphi[15];

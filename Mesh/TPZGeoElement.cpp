@@ -27,6 +27,17 @@ TPZGeoElement<TShape,TGeo,TRef>::SideNodeIndex(int side,int node) {
 }
 
 template<class TShape, class TGeo, class TRef>
+int
+TPZGeoElement<TShape,TGeo,TRef>::SideNodeLocIndex(int side,int node) {
+
+	if(side<0 || side>(TShape::NSides - 1) || node<0) {
+    PZError << "TPZGeoElement::SideNodeIndex. Bad parameter side.\n";
+    return -1;
+  }
+  return TShape::SideNodeLocId(side,node);
+}
+
+template<class TShape, class TGeo, class TRef>
 void 
 TPZGeoElement<TShape,TGeo,TRef>::SetSubElement(int id, TPZGeoEl *el){
 

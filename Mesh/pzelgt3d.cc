@@ -81,6 +81,10 @@ int TPZGeoElT3d::SideNodeIndex(int side,int node) {
 	return fNodeIndexes[loc];
 }
 
+int TPZGeoElT3d::SideNodeLocIndex(int side,int node) {
+	return TPZShapeTetra::SideNodeLocId(side,node);
+}
+
 void TPZGeoElT3d::MidSideNodeIndex(int side,int &index) {
 	TPZRefTetrahedra::MidSideNodeIndex(this,side,index);
 }

@@ -80,6 +80,10 @@ int TPZGeoElC3d::SideNodeIndex(int side,int node) {
 	return fNodeIndexes[loc];
 }
 
+int TPZGeoElC3d::SideNodeLocIndex(int side,int node) {
+	return TPZShapeCube::SideNodeLocId(side,node);
+}
+
 void TPZGeoElC3d::MidSideNodeIndex(int side,int &index) {
 	TPZRefCube::MidSideNodeIndex(this,side,index);
 }

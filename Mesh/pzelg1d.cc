@@ -101,6 +101,10 @@ int TPZGeoEl1d::SideNodeIndex(int side, int node){
 	return NodeIndex(locind);
 }
 
+int TPZGeoEl1d::SideNodeLocIndex(int side, int node){
+	return TPZShapeLinear::SideNodeLocId(side,node);
+}
+
 void TPZGeoEl1d::MidSideNodeIndex(int side,int &index) {
 	TPZRefLinear::MidSideNodeIndex(this,side,index);
 }

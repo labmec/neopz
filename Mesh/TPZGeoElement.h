@@ -43,6 +43,8 @@ public:
 
   int SideNodeIndex(int side,int node);
 
+  int SideNodeLocIndex(int side,int node);
+
   /**flags the side as defined, this means no neighbouring element
    * was found*/
   void SetSideDefined(int side) { fNeighbours[side] = TPZGeoElSide(this,side); }

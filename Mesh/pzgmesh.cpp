@@ -251,6 +251,65 @@ TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co) {
   }
   return gnkeep;
 }
+
+	void TPZGeoMesh::BuildConnectivity2()
+	{
+	TPZVec<int> SideNum(NNodes(),-1);
+	TPZVec<TPZGeoEl *> NeighNode(NNodes(),0);
+	int nelem = NElements();
+	int iel = 0;
+	for(iel=0; iel<nelem; iel++)
+	{
+		TPZGeoEl *gel = fElementVec[iel];
+		if(!gel) continue;
+		int ncor = gel->NCornerNodes();
+		int in;
+		for(in=0; in<ncor; in++) {
+			int nod = gel->NodeIndex(in);
+			if(SideNum[nod] == -1)
+			{
+				NeighNode[nod] = gel;
+				SideNum[nod] = in;
+				gel->SetSideDefined(in);
+			} else
+			{
+				TPZGeoElSide neigh(NeighNode[nod],SideNum[nod]);
+				TPZGeoElSide gelside(gel,in);
+				neigh.SetConnectivity(gelside);
+			}
+		}
+	}
+	for(iel=0; iel<nelem; iel++)
+	{
+		TPZGeoEl *gel = fElementVec[iel];
+		if(!gel) continue;
+		int ncor = gel->NCornerNodes();
+		int nsides = gel->NSides();
+		int is;
+		for(is=ncor; is<nsides; is++)
+		{
+			if( gel->SideIsUndefined(is))
+			{
+				TPZGeoElSide gelside(gel,is);
+				TPZStack<TPZGeoElSide> neighbours;
+				gelside.ComputeNeighbours(neighbours);
+				int nneigh = neighbours.NElements();
+				if(nneigh)
+				{
+					int in;
+					for(in=0; in<nneigh; in++) {
+						gelside.SetConnectivity(neighbours[in]);
+					}
+				} else
+				{
+					gel->SetSideDefined(is);
+				}
+			}
+		}
+	}
+
+}
+
 void TPZGeoMesh::BuildConnectivity() {
 
   TPZVec<int> SideNum(NNodes(),-1);

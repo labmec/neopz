@@ -3,7 +3,7 @@
  * @file pzvec_extra.h
  * @brief Extra utilities for TPZVec.
  */
-// $Id: pzvec_extras.h,v 1.4 2003-04-02 13:43:58 cantao Exp $
+// $Id: pzvec_extras.h,v 1.5 2003-05-05 15:09:37 phil Exp $
 
 #ifndef PZVEC_EXTRAS_H
 #define PZVEC_EXTRAS_H
@@ -103,6 +103,71 @@ TPZVec< T >& Sort( TPZVec< T >& v )
    std::sort( static_cast< T* >( v ), v + v.NElements() );
 
    return v;
+}
+
+
+template< class T, int N >
+void Intersect(const TPZVec< T > &one, const TPZVec< T > &two, TPZStack< T, N > &result)
+{
+	int firstc, secondc, nfirst, nsecond;
+	nfirst = one.NElements();
+	nsecond = two.NElements();
+	firstc = 0;
+	secondc = 0;
+	while(firstc < nfirst && secondc < nsecond) {
+		while(firstc < nfirst && one[firstc] < two[secondc]) 
+		{
+			firstc++;
+		}
+		if(firstc == nfirst) break;
+		while(secondc < nsecond && two[secondc] < one[firstc])
+		{
+			secondc++;
+		}
+		if(firstc < nfirst && secondc < nsecond && one[firstc] == two[secondc])
+		{
+			result.Push(one[firstc]);
+			firstc++;
+			secondc++;
+		}
+	}
+			
+}
+
+template< class T, int N >
+void Intersect(const TPZVec< T > &one, const TPZVec< T > &two, const TPZVec< T > &three, TPZStack< T, N > &result)
+{
+	int firstc, secondc, thirdc, nfirst, nsecond, nthird;
+	nfirst = one.NElements();
+	nsecond = two.NElements();
+	nthird = three.NElements();
+	firstc = 0;
+	secondc = 0;
+	thirdc = 0;
+	while(firstc < nfirst && secondc < nsecond && thirdc < nthird) {
+		while(firstc < nfirst && (one[firstc] < two[secondc] || one[firstc] < three[thirdc])) 
+		{
+			firstc++;
+		}
+		if(firstc==nfirst)break;
+		while(secondc < nsecond && (two[secondc] < one[firstc] || two[secondc] < three[thirdc]))
+		{
+			secondc++;
+		}
+		if(secondc==nsecond) break;
+		while(thirdc < nthird && (three[thirdc] < one[firstc] || three[thirdc] < two[secondc]))
+		{
+			thirdc++;
+		}
+		if(firstc < nfirst && secondc < nsecond && thirdc < nthird && one[firstc] == two[secondc] && one[firstc] == three[thirdc])
+		{
+			result.Push(one[firstc]);
+			firstc++;
+			secondc++;
+			thirdc++;
+		}
+	}
+			
 }
 
 #endif //PZVEC_EXTRAS_H

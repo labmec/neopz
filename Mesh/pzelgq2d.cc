@@ -120,6 +120,10 @@ int TPZGeoElQ2d::SideNodeIndex(int side,int node) {
   return fNodeIndexes[TPZShapeQuad::SideNodeLocId(side,node)];
 }
 
+int TPZGeoElQ2d::SideNodeLocIndex(int side,int node) {
+	return TPZShapeQuad::SideNodeLocId(side,node);
+}
+
 void TPZGeoElQ2d::MidSideNodeIndex(int side,int &index) {
 	TPZRefQuad::MidSideNodeIndex(this,side,index);
 }

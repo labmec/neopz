@@ -118,6 +118,10 @@ virtual  void Print(ostream & out = cout);
      this method is VERY INEFICIENT*/
   TPZGeoNode* FindNode(TPZVec<REAL> &co);
 
+
+  /**Alternative method for computing the connectivity*/
+  void BuildConnectivity2();
+
   /**Build the connectivity of the grid*/
   void BuildConnectivity();
 
