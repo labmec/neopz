@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZMulticamadaOrtho.h,v 1.12 2004-02-10 14:08:34 phil Exp $
+// $Id: TPZMulticamadaOrtho.h,v 1.13 2004-02-11 13:30:23 tiago Exp $
 #ifndef MULTICAMADAORTH
 #define MULTICAMADAORTH
 
@@ -46,11 +46,17 @@ class TPZMulticamadaOrthotropic {
   int fLinearX,fLinearY;
   TPZManVector<REAL,3> fDirx, fDiry;
 
+  /**
+   * Relaxation factor to correct resulting forces.
+   * @since Feb 10, 2004
+   */
+  REAL fCorrect;
+
 
 
  public:
   /**construtor*/
-  TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int nelx, int nely);
+  TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int nelx, int nely, REAL Correct = 1.0);
   /*destrutor*/
   ~TPZMulticamadaOrthotropic(){}
 
@@ -138,6 +144,10 @@ class TPZMulticamadaOrthotropic {
   TPZGeoMesh *GeoMesh(){return fGeoMesh;}
 
   TPZCompMesh *CompMesh(){return fCompMesh;}
+
+  void SetCorrect(REAL Correct){ fCorrect = Correct;}
+
+  REAL CorrectFactor(){return fCorrect;}
 
   void PrintTensors(ostream &out);
 
