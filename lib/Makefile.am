@@ -184,7 +184,6 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../External/pzrenumbering.o \
 	../Pre/pzgengrid.o \
 	../Pre/pzpargrid.o \
-	../Mesh/TPZFlowCMesh.o \
 	../Pre/TPZGMSHReadMesh.o
 
 ## --| NeoPZ |------------------------------------------------------------------
