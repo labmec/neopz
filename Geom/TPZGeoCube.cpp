@@ -76,9 +76,9 @@ void TPZGeoCube::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 void TPZGeoCube::Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
 
 #ifdef DEBUG
-  if (nnodes != 8) {
+  if (NNodes != 8) {
     PZError << "TPZGeoElC3d.jacobian only implemented for"
-      " 8 nodes, NumberOfNodes = " << nnodes << "\n";
+      " 8 nodes, NumberOfNodes = " << NNodes << "\n";
   }
   if(param.NElements() != 3 || param[0] < -1. || param[0] > 1. ||
      param[1] < -1. || param[1] > 1. || param[2] < -1. || param[2] > 1.) {
