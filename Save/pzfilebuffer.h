@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include "pzmanvector.h"
 using namespace std;
 
 
@@ -17,7 +18,9 @@ class TPZStream {
 
   virtual void Write(double *p, int size)=0;
 
-  virtual void Write(char *p, int size)=0;
+  virtual void Write(const char *p, int size)=0;
+  
+  virtual void Write(string *p, int size) = 0;
 
   virtual void Read(int *p, int size)=0;
 
@@ -25,6 +28,7 @@ class TPZStream {
 
   virtual void Read(char *p, int size)=0;
 
+  virtual void Read(string *p, int size) = 0;
 
 };
 
@@ -55,16 +59,21 @@ class TPZFileStream : public TPZStream {
     Writes<double>(p,size);
   }
 
-  virtual void Write(char *p, int size) {
+  virtual void Write(const char *p, int size) {
     Writes<char>(p,size);
   }
 
+  virtual void Write(string *p, int size) {
+    Writes<string>(p,size);
+  }
+  
   template<class T>
-    void  Writes(T *p, int size) 
+    void  Writes(const T *p, int size) 
   {
     int c;
-    for(c=0; c<size; c++) fo << p[c] << ' ';
+    for(c=0; c<size; c++) fo << p[c] << endl;
   }
+  
   
   virtual void Read(int *p, int size) {
     Reads<int>(p,size);
@@ -78,10 +87,22 @@ class TPZFileStream : public TPZStream {
     Reads<char>(p,size);
   }
 
+  virtual void Read(string *p, int size) {
+    int c;
+    char buf[2560];
+    for(c=0; c<size; c++) 
+    {
+      fi.getline(buf,2560);
+      p[c] = buf;
+    }
+  }
+
   template<class T>
     void Reads(T *p, int size) {
     int c;
+    char buf[100];
     for(c=0; c<size; c++) fi >> p[c];
+    fi.getline(buf,100);
   }
 
 };

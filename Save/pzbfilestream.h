@@ -14,6 +14,8 @@
 
 #include <pzfilebuffer.h>
 
+#include <stdio.h>
+/*
 extern "C" {
 #include <string.h>
 #include <unistd.h>
@@ -21,7 +23,7 @@ extern "C" {
 #include <sys/stat.h>
 #include <fcntl.h>
 }
-
+*/
 
 using namespace std;
 
@@ -33,24 +35,27 @@ using namespace std;
 class TPZBFileStream : public TPZStream
 {
 
-  int ofd;
-  int ifd;
+  FILE *ofd;
+  FILE *ifd;
 
  public:
 
-  TPZBFileStream(){}
+  TPZBFileStream(){
+    ofd=0;
+    ifd=0;
+  }
 
   virtual ~TPZBFileStream() {
-    close(ofd);
-    close(ifd);
+    if(ofd) fclose(ofd);
+    if(ifd) fclose(ifd);
   }
 
   void OpenWrite(const string &filename) {
-    ofd = open(filename.c_str(), O_WRONLY | O_CREAT, 0644);
+    ofd = fopen(filename.c_str(),"wb" );
   }
 
   void OpenRead(const string &filename) {
-    ifd = open(filename.c_str(), O_RDONLY);
+    ifd = fopen(filename.c_str(), "rb");
   }
 
   virtual void Write(int *p, int size) {
@@ -61,19 +66,24 @@ class TPZBFileStream : public TPZStream
     Writes<double>(p,size);
   }
 
-  virtual void Write(char *p, int size) {
+  virtual void Write(const char *p, int size) {
     Writes<char>(p,size);
   }
 
+  virtual void Write(string *p, int size) {
+    int c;
+    for(c=0; c<size; c++) 
+    {
+      int sz = p[c].size();
+      Write(&sz,1);
+      Write(p[c].c_str(),p[c].size());
+    }
+  }
+  
   template<class T>
-    void  Writes(T *p, int size) 
+    void  Writes(const T *p, int size) 
   {
-    int n_bytes = size*sizeof(T);
-    char *buff = (char*) calloc (n_bytes+3, sizeof(char));
-    strncat(buff, (char*) p, n_bytes);
-    write(ofd, buff, n_bytes);
-    fsync(ofd);
-    free(buff);
+    fwrite(p,sizeof(T),size,ofd);
   }
 
   
@@ -88,15 +98,25 @@ class TPZBFileStream : public TPZStream
   virtual void Read(char *p, int size) {
     Reads<char>(p,size);
   }
+  
+  virtual void Read(string *p, int size) 
+  {
+    char buf[1000];
+    int c;
+    for(c=0; c<size; c++) 
+    {
+      int sz;
+      Read(&sz,1);
+      Read(buf,sz);
+      buf[sz] = 0;
+      p[c] = buf;
+    }
+  }
 
   template<class T>
     void Reads(T *p, int size)
   {
-    int n_bytes = size*sizeof(T);
-    char *buff = (char*) calloc (n_bytes+3, sizeof(char));
-    read(ifd, buff, n_bytes);
-    memcpy(p, buff, n_bytes);
-    free(buff);
+    fread(p,sizeof(T),size,ifd);
   }
 
 };

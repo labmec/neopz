@@ -4,8 +4,11 @@
 
 #include <map>
 #include "pzvec.h"
+#include "pzmanvector.h"
 #include "pzadmchunk.h"
 #include "pzfilebuffer.h"
+
+const int TPZSAVEABLEID = -1;
 
 using namespace std;
 
@@ -60,24 +63,42 @@ static void WriteObjects(TPZStream &buf, TPZVec<T> &vec)
 template<class T>
 static void WriteObjectPointers(TPZStream &buf, TPZVec<T *> &vec) 
 {
-  int c,nc = vec.NElements();
+  int c,nc = vec.NElements(),one = -1;
   buf.Write(&nc,1);
-  for(c=0; c<nc; c++) vec[c]->Write(buf);
+  for(c=0; c<nc; c++) 
+  {
+    if(vec[c]) 
+    {
+      vec[c]->Write(buf);
+    } else {
+      buf.Write(&one,1);
+    }
+  }
 }
 
   template<class T, int EXP>
   static void WriteObjectPointers(TPZStream &buf, TPZChunkVector<T *,EXP> &vec)
   {
-    int c,nc = vec.NElements();
-    for(c=0; c<nc; c++) vec[c]->Write(buf);
+    int c,m1=-1,nc = vec.NElements();
+    for(c=0; c<nc; c++) 
+    {
+      T *ptr = vec[c];
+      if(ptr) ptr->Write(buf);
+      else buf.Write(&m1,1);
+    }
   }
 
   template<class T, int EXP>
   static void WriteObjectPointers(TPZStream &buf, TPZAdmChunkVector<T *,EXP> &vec)
   {
-    int c,nc = vec.NElements();
+    int c,m1=-1,nc = vec.NElements();
     buf.Write(&nc,1);
-    for(c=0; c<nc; c++) vec[c]->Write(buf);
+    for(c=0; c<nc; c++) 
+    {
+      T *ptr = vec[c];
+      if(ptr) ptr->Write(buf,1);
+      else buf.Write(&m1,1);
+    }
     buf.Write(&vec.fCompactScheme,1);
     WriteObjects(buf,vec.fFree);
     WriteObjects(buf,vec.fNFree);
@@ -94,6 +115,25 @@ static void ReadObjects(TPZStream &buf, TPZVec<T> &vec, void *context)
     vec[c].Read(buf,context);
   }
 }
+
+static void ReadObjects(TPZStream &buf, TPZVec<int> &vec) 
+{
+  int nc;
+  buf.Read(&nc,1);
+  vec.Resize(nc);
+  if(nc) buf.Read(&vec[0],nc);
+}
+
+
+template<int N>
+static void ReadObjects(TPZStream &buf, TPZManVector<REAL,N> &vec) 
+{
+  int nc;
+  buf.Read(&nc,1);
+  vec.Resize(nc);
+  if(nc) buf.Read(&vec[0],nc);
+}
+
 
   template<class T, int EXP>
   static void ReadObjects(TPZStream &buf, TPZChunkVector<T,EXP> &vec, void *context) 
@@ -157,18 +197,24 @@ static void ReadObjectPointers(TPZStream &buf, TPZVec<T *> &vec, void *context)
 
 static void WriteObjects(TPZStream &buf, TPZVec<double> &vec) 
 {
-  buf.Write(&vec[0],vec.NElements());
+  int nel = vec.NElements();
+  buf.Write(&nel,1);
+  if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
 static void WriteObjects(TPZStream &buf, TPZVec<int> &vec) 
 {
-  buf.Write(&vec[0],vec.NElements());
+  int nel = vec.NElements();
+  buf.Write(&nel,1);
+  if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
 
 static void WriteObjects(TPZStream &buf, TPZVec<char> &vec) 
 {
-  buf.Write(&vec[0],vec.NElements());
+  int nel = vec.NElements();
+  buf.Write(&nel,1);
+  if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
 
@@ -183,6 +229,11 @@ TPZSaveable *Restore(TPZStream &buf, void *context) {
   T *ptr = new T;
   ptr->Read(buf,context);
   return ptr;
+}
+
+template<>
+inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, void *context) {
+  return 0;
 }
 
 class TPZToto : public TPZSaveable {
