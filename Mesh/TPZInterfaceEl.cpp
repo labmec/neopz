@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.32 2004-04-05 14:09:35 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.33 2004-04-05 17:13:46 erick Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -269,8 +269,8 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
   ek.fBlock.Resequence();
   ef.fBlock.Resequence();
 
-  TPZFNMatrix<100> phixl(neql,1),dphixl(diml,neql);
-  TPZFNMatrix<100> phixr(neqr,1),dphixr(dimr,neqr);
+  TPZFNMatrix<100> phixl(nshapel,1),dphixl(diml,nshapel);
+  TPZFNMatrix<100> phixr(nshaper,1),dphixr(dimr,nshaper);
   TPZFNMatrix<9> axes(3,3);
   TPZFNMatrix<9> jacobian(dim,dim);
   TPZFNMatrix<9> jacinv(dim,dim);
