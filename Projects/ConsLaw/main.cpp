@@ -37,7 +37,7 @@ int main()
 		 LeastSquares_AD);
 
   MatTest.SetTimeDiscr(Implicit_TD, Implicit_TD, Implicit_TD/*Implicit_TD, Implicit_TD*/);
-
+  MatTest.SetContributionTime(Advanced_CT);
   MatTest.Print(cout);
 
   const int dim = 3;
@@ -174,9 +174,12 @@ void CheckConv(const double step,
 
    MatTest.Contribute(x, jacinv, sol, dsol, 13, jacinv, phi, dphi, Tangent, F0);
 
+/* To test the explicit last state contributions, remember to comment out
+the contributions to T1 and T2;
    // testing explicit contributions
-   MatTest.SetTimeDiscr(Explicit_TD, Explicit_TD, Explicit_TD/*Implicit_TD, Implicit_TD*/);
-
+   MatTest.SetTimeDiscr(Explicit_TD, Explicit_TD, Explicit_TD);
+   MatTest.SetContributionTime(Last_CT);
+*/
    for(i = 0; i < nCoeff; i++)
    {
       deltaCoeff1.Zero();
