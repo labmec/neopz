@@ -449,12 +449,13 @@ void TPZRefPattern::NSideSubElements(){
     int pos = fFatherSides.fInitSide[sidepos];
     int pos2 = fFatherSides.fInitSide[sidepos+1];
     int p,size = pos2-pos;
-    TPZVec<int> subs(size,0);/**tamanho máximo*/
-    for(p=pos;p<pos2;p++) subs[p-pos] = fFatherSides.fPartitionSubSide[p].Element()->Id();/**todos positivos > 0*/
-    for(int i=0;i<size;i++) for(int j=i+1;j<size;j++) if(subs[j]==subs[i]) subs[j] = 0;/**anulando os repetidos*/
-    int count = 0;
-    for(int k=0;k<size;k++) if(subs[k]) count++;
-    fFatherSides.fNSubSideFather[side] = count;
+    //    TPZVec<int> subs(size,0);/**tamanho máximo*/
+    //    for(p=pos;p<pos2;p++) subs[p-pos] = fFatherSides.fPartitionSubSide[p].Element()->Id();/**todos positivos > 0*/
+    //    for(int i=0;i<size;i++) for(int j=i+1;j<size;j++) if(subs[j]==subs[i]) subs[j] = 0;/**anulando os repetidos*/
+    //    int count = 0;
+    //    for(int k=0;k<size;k++) if(subs[k]) count++;
+    //    fFatherSides.fNSubSideFather[side] = count;
+    fFatherSides.fNSubSideFather[side] = size;
   }
 }
 
@@ -685,74 +686,81 @@ int TPZRefPattern::IsNotEqual(TPZTransform &Told, TPZTransform &Tnew){
 }
 
 
-void TPZRefPattern::CreateMidSideNodes (TPZGeoMesh *mesh, TPZGeoEl * gel, TPZVec<int> &newnodeindexes){
-  int j,k,side,index;
-  int sum = gel->NCornerNodes();
-  int nnodes = sum;
+void TPZRefPattern::CreateNewNodes (TPZGeoEl * gel, TPZVec<int> &newnodeindexes){
+  int side;
+  int nnodes = gel->NCornerNodes();
   int totalnodes = fMesh->NNodes();
-  newnodeindexes.Resize(totalnodes-nnodes);
+  newnodeindexes.Resize(totalnodes);
   
   if (gel->HasSubElement()){
-    for (side=gel->NCornerNodes();side<gel->NSides();side++){
-      gel->MidSideNodeIndex(side,index);
-      newnodeindexes[side-sum] = index;
-    }
+    cout << "CreateNewNodes called for an element which is already divided. \n";
+    cout.flush();
     return;
+// Este trecho nao teria funcionado mesmo. Nada garante que esta ordem seria
+// respeitada pelo padrao de refinamento
+//    for (side=gel->NCornerNodes();side<gel->NSides();side++){
+//      gel->MidSideNodeIndex(side,index);
+//      newnodeindexes[side-sum] = index;
+//    }
+//    return;
   }
 
+  int nsides = gel->NSides();
   //Nao estou mais iterando em i... melhorou??
-  for (side = nnodes;side<totalnodes;side++){
-    //Se o lado tiver apenas um subelemento nao tera midsidenode!
-    if (NSideSubElements(side)<=1) continue;
+  for (side = nnodes;side<nsides;side++){
+    CreateMidSideNodes(gel,side,newnodeindexes);
+  }
+}
 
-    //SideNodes retorna um vetor com os indices dos nos internos da malha refpatern
-    //com ele eu sei quantos nos internos ou, na linguagem antiga , quantos MidSideNodes tem
-    TPZVec<int> sidenodes;
-    SideNodes(side,sidenodes);
-    for (j=0;j<sidenodes.NElements();j++){
-      index = sidenodes[j];
-      //coordenadas do novo no na malha ref pattern
-      TPZVec<REAL> refnodecoord(3,0.);
-      for (k=0;k<3;k++) refnodecoord[k] = Mesh()->NodeVec()[index].Coord(k);
-      //passando para as coordenadas do elemento da malha real...
-      TPZVec<REAL> newnodecoord(Element(0)->Dimension(),0.);
-      //coordenada no espaco do elemento mestre do elemento de
-      //referencia da malha refpattern
-      Element(0)->ComputeXInverse(refnodecoord,newnodecoord);
-      //coordenada espacial do no na malha real
-      gel->X(newnodecoord,refnodecoord);
-
-      //verificar se um vizinho ja criou o no
-      TPZGeoElSide gelside = gel->Neighbour(side);
-      index = -1;
-      if(gelside.Element() && gelside.Side()>-1) {
-        bool isRefNode = false;
-        while(gelside.Element() != gel && !isRefNode) {
-          gelside.Element()->MidSideNodeIndex(gelside.Side(),index);
-          gelside = gelside.Neighbour();
-          if (index > -1){
-            REAL dif = 0.;
-            for (k=0;k<3;k++) {
-              REAL indexcoord = Mesh()->NodeVec()[index].Coord(k);
-              dif += (refnodecoord[k] - indexcoord) * (refnodecoord[k] - indexcoord);
-            }
-            if (dif < 1e-12) isRefNode = true;
-            else index = -1;
-          }
-        }
-      }      
-
-      if (index > -1) {
-        newnodeindexes[sum-nnodes] = index;
-        sum ++;
-        continue;
+void TPZRefPattern::CreateMidSideNodes (TPZGeoEl * gel, int side, TPZVec<int> &newnodeindexes){
+  
+  int i,j,k,index;
+  TPZGeoMesh *gmesh = gel->Mesh();
+  //SideNodes retorna um vetor com os indices dos nos internos da malha refpatern
+  //com ele eu sei quantos nos internos ou, na linguagem antiga , quantos MidSideNodes tem
+  TPZManVector<int> sidenodes;
+  SideNodes(side,sidenodes);
+  TPZGeoElSide gelside(gel,side);
+  TPZGeoElSide neighbour(gelside.Neighbour());
+  TPZManVector<int> sideindices(0);
+  while(neighbour.Element() && neighbour != gelside) {
+    if(!neighbour.HasSubElement()) {
+      neighbour.Element()->MidSideNodeIndices(neighbour.Side(),sideindices);
+      break;
+    }
+    neighbour = neighbour.Neighbour();
+  }
+  for (j=0;j<sidenodes.NElements();j++){
+    index = sidenodes[j];
+    //coordenadas do novo no na malha ref pattern
+    TPZVec<REAL> refnodecoord(3,0.);
+    TPZManVector<REAL,3> neighbourcoord(3,0.);
+    for (k=0;k<3;k++) refnodecoord[k] = Mesh()->NodeVec()[index].Coord(k);
+    //passando para as coordenadas do elemento da malha real...
+    TPZManVector<REAL,3> newnodecoord(Element(0)->Dimension(),0.);
+    //coordenada no espaco do elemento mestre do elemento de
+    //referencia da malha refpattern
+    Element(0)->ComputeXInverse(refnodecoord,newnodecoord);
+    //coordenada espacial do no na malha real
+    gel->X(newnodecoord,refnodecoord);
+    newnodeindexes[index] = -1;
+    //verificar se um vizinho ja criou o no
+    for(i=0; i< sideindices.NElements(); i++) {
+      for(k=0; k<3; k++) neighbourcoord[k] = gmesh->NodeVec()[sideindices[i]].Coord(k);
+      REAL dif = 0.;
+      for (k=0;k<3;k++) {
+        dif += (refnodecoord[k] - neighbourcoord[k]) * (refnodecoord[k] - neighbourcoord[k]);
       }
-      
+      if (dif < 1e-12) {
+        newnodeindexes[index] = sideindices[i];
+        break;
+      }
+    }
+    if (newnodeindexes[index] == -1) {
       //Caso o no nao exista nos vizinhos sera necessario cria-lo...
-      index = mesh->NodeVec().AllocateNewElement();
-      mesh->NodeVec()[index].Initialize(refnodecoord,*mesh);
-      newnodeindexes[sum-nnodes] = index;
-      sum ++;
+      int newindex = gmesh->NodeVec().AllocateNewElement();
+      gmesh->NodeVec()[newindex].Initialize(refnodecoord,*gmesh);
+      newnodeindexes[index] = newindex;
     }
   }
 }

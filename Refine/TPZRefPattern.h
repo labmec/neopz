@@ -298,11 +298,16 @@ private:
     void ResizeSubElPattern(int size){fSubElRefPattern.Resize(size);}
     TPZRefPattern *SubElRefPattern(int sub){return fSubElRefPattern[sub];}
     int NSubElPatt(){return fSubElRefPattern.NElements();}
-  /** This method is used to create / identify the midside nodes for element elindex in its division process. The method verify if the nodes are already created by the self element or by some neighbour.
-@param mesh - pointer to geometric mesh where will be created the nodes.
-@param elindex - index of the element which are being divided
+  /** This method is used to create / identify the nodes of the refined elements.
+   * The method verify if the nodes are already created by the self element or by some neighbour.
+@param gel - pointer to the element which are being divided
 @param newnodeindexes - return all midside node indexes for the element division. */
-  void CreateMidSideNodes (TPZGeoMesh *mesh, TPZGeoEl *gel, TPZVec<int> &newnodeindexes);
+  void CreateNewNodes (TPZGeoEl *gel, TPZVec<int> &newnodeindexes);
+  /** This method is used to create / identify the midside nodes for element elindex in its division process. The method verify if the nodes are already created by the self element or by some neighbour.
+@param gel - pointer to the element which are being divided
+@param side - Side along which the nodes will be identified/created
+@param newnodeindexes - return all midside node indexes for the element division. */
+  void CreateMidSideNodes (TPZGeoEl *gel, int side, TPZVec<int> &newnodeindexes);
 };
 
 #endif
