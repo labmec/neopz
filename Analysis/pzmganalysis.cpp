@@ -121,6 +121,7 @@ int TPZMGAnalysis::main() {
 
   TPZCompMesh *cmesh = TPZCompElQ2d::CreateMesh();
   cmesh->CleanUpUnconnectedNodes();
+  cmesh->ExpandSolution();
   ofstream out("output.txt");
   TPZMGAnalysis mgan(cmesh);
   TPZSkylineStructMatrix strskyl(cmesh);
@@ -129,9 +130,15 @@ int TPZMGAnalysis::main() {
   direct.SetDirect(ELDLt);
   mgan.SetSolver(direct);
   mgan.Run();
-  TPZCompMesh *cmesh2 = mgan.UniformlyRefineMesh(cmesh,false);
+  TPZCompMesh *cmesh2;
+  cmesh2 = mgan.UniformlyRefineMesh(cmesh,false);
   mgan.AppendMesh(cmesh2);
-
+  mgan.Run();
+  cmesh2 = mgan.UniformlyRefineMesh(cmesh2,false);
+  mgan.AppendMesh(cmesh2);
+  mgan.Run();
+  cmesh2 = mgan.UniformlyRefineMesh(cmesh2,false);
+  mgan.AppendMesh(cmesh2);
   mgan.Run();
   // TPZMGAnalysis an(cmesh2);
   //  TPZTransfer *trf = TPZMGAnalysis::BuildTransferMatrix(cmesh2,cmesh);
