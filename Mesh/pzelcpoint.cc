@@ -17,7 +17,7 @@
 
 
 
-TPZCompElPoint::TPZCompElPoint(TPZCompMesh &mesh,TPZGeoElPoint *ref,int &index) :
+TPZCompElPoint::TPZCompElPoint(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 		TPZInterpolatedElement(mesh,ref,index), fIntRule() {
   fConnectIndexes = -1;
   // Jorge 19/5/99
@@ -36,7 +36,7 @@ TPZCompElPoint::TPZCompElPoint(TPZCompMesh &mesh,TPZGeoElPoint *ref,int &index) 
   mesh.ConnectVec()[fConnectIndexes].IncrementElConnected();
 }
 
-TPZCompElPoint::TPZCompElPoint(TPZCompMesh &mesh,TPZGeoElPoint *ref,int &index,int /*noconnects*/) :
+TPZCompElPoint::TPZCompElPoint(TPZCompMesh &mesh,TPZGeoEl *ref,int &index,int /*noconnects*/) :
 		TPZInterpolatedElement(mesh,ref,index), fIntRule() {
 
   fConnectIndexes = -1;

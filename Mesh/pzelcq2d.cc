@@ -22,7 +22,7 @@
 //#include "../graf/grafnode.h"
 
 
-TPZCompElQ2d::TPZCompElQ2d(TPZCompMesh &mesh,TPZGeoElQ2d *ref,int &index) :
+TPZCompElQ2d::TPZCompElQ2d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 		TPZInterpolatedElement(mesh,ref,index), fIntRule(2,2) {
   int i;
   for(i=0;i<5;i++) {
@@ -47,7 +47,7 @@ TPZCompElQ2d::TPZCompElQ2d(TPZCompMesh &mesh,TPZGeoElQ2d *ref,int &index) :
   fIntRule.SetOrder(order);
 }
 
-TPZCompElQ2d::TPZCompElQ2d(TPZCompMesh &mesh,TPZGeoElQ2d *ref,int &index,int /*noconnects*/) :
+TPZCompElQ2d::TPZCompElQ2d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index,int /*noconnects*/) :
 			TPZInterpolatedElement(mesh,ref,index), fIntRule(2,2) {
   int i;
   for(i=0; i<9; i++) fConnectIndexes[i] = -1;

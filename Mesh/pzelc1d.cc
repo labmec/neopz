@@ -20,7 +20,7 @@
 #include <math.h>
 
 
-TPZCompEl1d::TPZCompEl1d(TPZCompMesh &mesh,TPZGeoEl1d *ref, int &index)
+TPZCompEl1d::TPZCompEl1d(TPZCompMesh &mesh,TPZGeoEl *ref, int &index)
   : TPZInterpolatedElement(mesh,ref,index), fIntRule(1) {
 
   fSideOrder = gOrder;
@@ -55,7 +55,7 @@ TPZCompEl1d::TPZCompEl1d(TPZCompMesh &mesh,TPZGeoEl1d *ref, int &index)
   fIntRule.SetOrder(order);
 }
 
-TPZCompEl1d::TPZCompEl1d(TPZCompMesh &mesh,TPZGeoEl1d *ref, int &index, int)
+TPZCompEl1d::TPZCompEl1d(TPZCompMesh &mesh,TPZGeoEl *ref, int &index, int)
   : TPZInterpolatedElement(mesh,ref,index), fIntRule(1) {
 
   int i;

@@ -59,7 +59,7 @@ int TPZCompElC3d::FaceConnectLocId[6][9] = { {0,1,2,3,8,9,10,11,20},{0,1,5,4,8,1
 					     {1,2,6,5,9,14,17,13,22},{3,2,6,7,10,14,18,15,23},//{2,3,7,6,10,15,18,14,23}
 					     {0,3,7,4,11,15,19,12,24},{4,5,6,7,16,17,18,19,25} };
 
-TPZCompElC3d::TPZCompElC3d(TPZCompMesh &mesh,TPZGeoElC3d *ref,int &index) :
+TPZCompElC3d::TPZCompElC3d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
   TPZInterpolatedElement(mesh,ref,index), fIntRule(2,2,2) {
   int i;                                     //dois pontos por eixo
   for(i=0; i<27; i++) fConnectIndexes[i]=-1;
@@ -82,7 +82,7 @@ TPZCompElC3d::TPZCompElC3d(TPZCompMesh &mesh,TPZGeoElC3d *ref,int &index) :
   fIntRule.SetOrder(order);
 }
 
-TPZCompElC3d::TPZCompElC3d(TPZCompMesh &mesh,TPZGeoElC3d *ref,int &index,int /*noconnects*/) :
+TPZCompElC3d::TPZCompElC3d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index,int /*noconnects*/) :
   TPZInterpolatedElement(mesh,ref,index), fIntRule(2,2,2) {
   int i;
   for(i=0; i<27; i++) fConnectIndexes[i]=-1;

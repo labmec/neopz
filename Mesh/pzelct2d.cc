@@ -20,7 +20,7 @@
 //#include "pzgraphnode.h"
 
 
-TPZCompElT2d::TPZCompElT2d(TPZCompMesh &mesh,TPZGeoElT2d *ref,int &index) :
+TPZCompElT2d::TPZCompElT2d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 		TPZInterpolatedElement(mesh,ref,index), fIntRule(1) {
 
   int i;
@@ -53,7 +53,7 @@ TPZCompElT2d::TPZCompElT2d(TPZCompMesh &mesh,TPZGeoElT2d *ref,int &index) :
   fIntRule.SetOrder(order);
 }
 
-TPZCompElT2d::TPZCompElT2d(TPZCompMesh &mesh,TPZGeoElT2d *ref,int &index,int /*noconnects*/) :
+TPZCompElT2d::TPZCompElT2d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index,int /*noconnects*/) :
 		TPZInterpolatedElement(mesh,ref,index), fIntRule(1) {
   int i;
   for(i=0; i<7; i++) fConnectIndexes[i]=-1;
