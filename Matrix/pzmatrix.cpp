@@ -308,6 +308,19 @@ void TPZMatrix::Print(const char *name, ostream& out,const MatrixOutputFormat fo
 	      }
 	   }
       out << "-1 -1 0.\n";
+   } else if( form == EMathematicaInput)
+   {
+     out << name << "\n{ ";
+	 for ( int row = 0; row < Rows(); row++) {
+	 out << "\n{ ";
+   	   for ( int col = 0; col < Cols(); col++ ) {
+         	REAL val = Get (row, col);
+         	out << val << ", ";
+	      }
+	 out << "\b\b },";
+	   }
+
+     out << "\b }\n";
    }
 
 }

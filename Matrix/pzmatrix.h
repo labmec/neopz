@@ -47,7 +47,7 @@ double ddot(int *N, double *X, int *INCX, double *Y, int *INCY);
  */
 enum DecomposeType {ENoDecompose, ELU, ECholesky, ELDLt};
 
-enum MatrixOutputFormat {EFormatted, EInputFormat};
+enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput};
 
 
 /**
