@@ -27,7 +27,7 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial *mat)
   nel = gelvec.NElements();
   for(i=0;i<nel;i++) {
     ge = gelvec[i];
-    if(!ge || !ge->Reference() || !ge->Reference()->IsInterpolated()) continue;
+    if(!ge || !ge->Reference() || ge->Reference()->Type() == 16 || !ge->Reference()->IsInterpolated()) continue;
     ge->Reference()->CreateGraphicalElement(*this, dimension);
   }
 /*
