@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.17 2003-12-02 21:05:58 tiago Exp $
+//$Id: TPZAgglomerateEl.h,v 1.18 2003-12-22 17:52:06 tiago Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -94,8 +94,11 @@ public:
   /** acumula a lista de regras de integra¢ão no elemento deformado*/
   virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
 
-  /**calcula o ponto centro de massa dos elementos aglomerados */
+  /** calcula o ponto centro de massa dos elementos aglomerados */
   void CenterPoint();
+
+  /** devolve o centro de massa do elemento */
+  virtual void CenterPoint(TPZVec<REAL> &center);
 
   /** retorna o volume do elemento geométrico referenciado */
   REAL VolumeOfEl();

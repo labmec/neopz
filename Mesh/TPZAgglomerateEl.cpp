@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.21 2003-12-02 21:05:58 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.22 2003-12-22 17:52:06 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -145,6 +145,11 @@ void TPZAgglomerateElement::CenterPoint(){
   SetCenterPoint(0,centx/voltot);
   SetCenterPoint(1,centy/voltot);
   SetCenterPoint(2,centz/voltot);
+}
+
+void TPZAgglomerateElement::CenterPoint(TPZVec<REAL> &center){
+  for(int i = 0; i < 3; i++) 
+    center[i] = fCenterPoint[i];
 }
 
 REAL TPZAgglomerateElement::VolumeOfEl(){
