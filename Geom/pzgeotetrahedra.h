@@ -1,3 +1,6 @@
+// -*- c++ -*-
+// $ Id: $
+
 // TPZGeoTetrahedra.h: interface for the TPZGeoQuad class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -11,6 +14,7 @@
 class TPZFMatrix;
 class TPZGeoEl;
 class TPZIntPoints;
+class TPZIntTetra3D;
 
 class TPZGeoTetrahedra  
 {
@@ -45,6 +49,8 @@ public:
 	* @param side side to create integration rule
 	*/
 	static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
+
+	typedef TPZIntTetra3D IntruleType;
 };
 
 #endif 
