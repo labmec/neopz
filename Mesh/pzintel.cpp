@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.20 2004-01-05 17:47:22 cesar Exp $
+// $Id: pzintel.cpp,v 1.21 2004-02-04 13:42:16 rgdamas Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1417,7 +1417,7 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
     case 0:
       break;
     case 1:
-      dphix = dphix;
+      dphix = dphi;
       dphix *= (1./detjac);
       break;
     case 2:
