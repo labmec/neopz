@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.35 2004-06-27 00:31:12 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.36 2004-06-29 00:22:21 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -552,7 +552,7 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
       ContributeExplT1(x,sol,dsol,weight, phi,dphi,ef);
    }
    // Flux_RT -> contribution only to the residual vector
-   if (fDiff == Implicit_TD)
+   if (fDiff == Implicit_TD || fDiff == ApproxImplicit_TD)
       ContributeExplDiff(x, jacinv, sol,dsol,weight, phi, dphi, ef);
    if (fConvVol == Implicit_TD)
       ContributeExplConvVol(x, sol, weight, phi, dphi, ef);
@@ -1176,6 +1176,13 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
                   cghost * cghost /T(fGamma * (fGamma - 1.)) +
                   usghost * usghost / T(2.));
   break;
+    case 12://Symmetry
+    for(i=1;i<nstate-1;i++) vpn += solL[i]*T(normal[i-1]);//v.n
+    for(i=1;i<nstate-1;i++) solR[i] = solL[i] - T(2.0*normal[i-1])*vpn;
+    solR[0] = solL[0];
+    solR[nstate-1] = solL[nstate-1];
+    entropyFix = 1;
+    break;
   default:
     for(i=0;i<nstate;i++) solR[i] = 0.;
   }
