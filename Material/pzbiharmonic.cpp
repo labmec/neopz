@@ -1,4 +1,4 @@
-//$Id: pzbiharmonic.cpp,v 1.3 2004-03-31 21:10:44 tiago Exp $
+//$Id: pzbiharmonic.cpp,v 1.4 2004-04-02 15:59:32 tiago Exp $
 
 #include "pzbiharmonic.h"
 #include "pzelmat.h"
@@ -15,9 +15,6 @@ REAL TPZBiharmonic::gL_alpha = 6.0;
 REAL TPZBiharmonic::gM_alpha = 3.0;
 REAL TPZBiharmonic::gL_betta = 2.0;
 REAL TPZBiharmonic::gM_betta = 1.0;
-int TPZBiharmonic::gPorder  = 3;
-REAL TPZBiharmonic::gHRef   = 0.25;
-
 
 
 TPZBiharmonic::TPZBiharmonic(int nummat, REAL f) : TPZDiscontinuousGalerkin(nummat), fXf(f){}
@@ -153,18 +150,31 @@ void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 }
 
 
+
 void TPZBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-					  TPZFMatrix &ek,TPZFMatrix &ef){
+					TPZFMatrix &ek,TPZFMatrix &ef){
+
+   PZError << "TPZBiharmonic::ContributeInterface - this material requires left and right p order and interface size." << endl 
+	   << "Assuming pL = pR = 3 and faceSize = 1." << endl;
+
+   this->ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef, 3, 3, 1.);
+
+}
+
+
+void TPZBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+				   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
 
   int nrowl = phiL.Rows();
   int nrowr = phiR.Rows();
   int il,jl,ir,jr,id;
 
-  /*provisorio */
-  REAL alpha = pow(gPorder, gL_alpha) / pow(gHRef, gM_alpha);
-  REAL betta = pow(gPorder, gL_betta) / pow(gHRef, gM_betta);
+  REAL alpha = ( pow(LeftPOrder, gL_alpha) + pow(RightPOrder, gL_alpha) ) / (2. * pow(faceSize, gM_alpha) );
+  REAL betta = ( pow(LeftPOrder, gL_betta) + pow(RightPOrder, gL_betta) ) / (2. * pow(faceSize, gM_betta) );
 
   /* Primeira Integral */
 
@@ -433,16 +443,20 @@ void TPZBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVe
 }
 
 void TPZBiharmonic::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-					    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+					  TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
 
+  PZError << "TPZBiharmonic::ContributeBCInterface - this material requires p order and interface size." << endl 
+	   << "Assuming p = 3 and faceSize = 1." << endl;
 
+   this->ContributeBCInterface(x, solL,  dsolL, weight, normal, phiL, dphiL, ek, ef, bc, 3, 1.);
 
-  //  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
- 
+}
 
-  /*provisorio */
-  REAL alpha = pow(gPorder, gL_alpha) / pow(gHRef, gM_alpha);
-  REAL betta = pow(gPorder, gL_betta) / pow(gHRef, gM_betta);
+void TPZBiharmonic::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+					    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize) {
+
+   REAL alpha = pow(POrder, gL_alpha) /  pow(faceSize, gM_alpha);
+   REAL betta = pow(POrder, gL_betta) /  pow(faceSize, gM_betta);
 
   int il,jl,nrowl,id;
   nrowl = phiL.Rows();

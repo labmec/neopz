@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzbiharmonic.h,v 1.3 2004-03-31 21:10:44 tiago Exp $
+//$Id: pzbiharmonic.h,v 1.4 2004-04-02 15:59:32 tiago Exp $
 
 #ifndef  TPZBIHARMONICHPP
 #define TPZBIHARMONICHPP
@@ -23,10 +23,6 @@ private:
 public :
 
   static REAL gLambda1, gLambda2, gSigma, gL_alpha, gM_alpha, gL_betta, gM_betta;
-
-  static int gPorder;
-
-  static REAL gHRef;
 
   /**
    * Inicialisation of biharmonic material
@@ -84,14 +80,17 @@ public :
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 				   TPZFMatrix &ek,TPZFMatrix &ef);
+
+  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+				   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
   
-  /**
-   * gklgfkljf
-   * Va1 from TPZBndCond  means ff
-   *
-   */
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
 				     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
+  virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+				     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize);
 
 };
 
