@@ -46,8 +46,8 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern():TPZGeoElRefLess<TShape,TGe
 
 template<class TShape, class TGeo>
 TPZGeoElRefPattern<TShape,TGeo>::~TPZGeoElRefPattern(){
-#warning "Acredito que os objetos deste tipo devem ser administrados pela malha"
-  if (fRefPattern) delete fRefPattern;
+//#warning "Acredito que os objetos deste tipo devem ser administrados pela malha"
+//  if (fRefPattern) delete fRefPattern;
 }
 
 template<class TShape, class TGeo>
@@ -59,6 +59,7 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int
     PZError << "TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern : NULL refinement pattern given" << endl;
     return;
   }
+  Mesh()->InsertRefPattern(refpat);
   fRefPattern = refpat;
   int i;
   int nsubel = refpat->NSubElements();
@@ -284,7 +285,7 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
   }
   int index,k,j,sub,matid=MaterialId();
 
-  int totalnodes = fRefPattern->Mesh()->NodeVec().NElements();  
+  int totalnodes = fRefPattern->NNodes();  
   TPZManVector<int> np(totalnodes);
   int nnodes = NNodes();
 
@@ -292,7 +293,7 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
     np[j] = NodeIndex(j);
   }
   fRefPattern->CreateNewNodes (this, np);
-//  cout << "NewNodeIndexes : " << newnodeindexes << endl;
+ //cout << "NewNodeIndexes : " << np << endl;
 
 
   // I dont think the previous part will work...
@@ -310,6 +311,7 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
       int cornerid = fRefPattern->Element(i+1)->NodeIndex(j);
       cornerindexes[j] = np[cornerid];
     }
+    //cout << "Subel corner " << cornerindexes << endl;
     TPZGeoEl *subel = Mesh()->CreateGeoElement((MElementType)fRefPattern->Element(i+1)->Type(),cornerindexes,matid,index);
     SetSubElement(i,subel);
   }
