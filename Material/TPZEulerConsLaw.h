@@ -105,6 +105,8 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   void ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,
 		       REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,
 		       TPZFMatrix &ek,TPZFMatrix &ef);// PARA TESTE PARA TESTE PARA PARA TESTE
+
+  void TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL &increment);
 };
 
 #endif

@@ -55,7 +55,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
   ref->X(csi,fCenterPoint);
   fConstC = NormalizeConst();
   //criando os elementos interface
-  CreateInterfaces();//argumento: número de faces
+  CreateInterfaces();
 }
 
 void TPZCompElDisc::CreateInterfaces(){
@@ -67,7 +67,9 @@ void TPZCompElDisc::CreateInterfaces(){
     if(fReference->SideDimension(side) != gInterfaceDimension) continue;
     TPZCompElSide thisside(this,side);
     if(ExistsInterface(thisside)) {
-      cout << "TPZCompElDisc::CreateInterface inconsistent\n";
+      int stop;
+      cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
+      cin >> stop;
       continue;
     }
     TPZStack<TPZCompElSide> highlist;

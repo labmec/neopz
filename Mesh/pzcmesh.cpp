@@ -1719,7 +1719,6 @@ REAL TPZCompMesh::LesserEdgeOfMesh(){
   int nel = ElementVec().NElements(),i;
   if(nel == 0) cout << "\nTPZCompMesh::MaximumRadiusOfMesh malha vazia\n";
   REAL mindist =10000.0,dist=0.0;
-  TPZGeoNode *node0,*node1;
   for(i=0;i<nel;i++){
     TPZCompEl *com = ElementVec()[i];
     if(!com) continue;
