@@ -143,6 +143,11 @@ class  TPZMaterial
 			  TPZVec<REAL> &uexact, TPZFMatrix &duexact,
 			  TPZVec<REAL> &val) {}
 
+      /**
+       * Returns the number of norm errors. Default is 3: energy, L2 and H1.
+       */
+      virtual int NEvalErrors() {return 3;}
+
       /**To create another material of the same type*/
       virtual TPZMaterial *NewMaterial();
 
