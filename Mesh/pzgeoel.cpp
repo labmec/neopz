@@ -47,7 +47,9 @@ TPZGeoEl::TPZGeoEl(int id,int materialid,TPZGeoMesh &mesh) {
   fMatId = materialid;
   fReference = 0;
   fFather = 0;
+  fFatherIndex = -1;
   int index = fMesh->ElementVec().AllocateNewElement();
+  fIndex = index;
   fMesh->ElementVec()[index] = this;
 //	fMesure = 0.;
 }
