@@ -1,7 +1,7 @@
 #ifndef PZELTYPEH
 #define PZELTYPEH
 
-// $Id: pzeltype.h,v 1.3 2003-10-20 22:11:29 cedric Exp $
+// $Id: pzeltype.h,v 1.4 2003-11-07 00:41:50 phil Exp $
 /**
    @enum MElementType
  * Defines the element types
@@ -32,6 +32,6 @@ enum MElementType { EPoint, EOned, ETriangle, EQuadrilateral, ETetraedro, EPiram
 //                        11                 12                13          14       
 		    EInterfaceLinear, EInterfaceSurface, ESubstructure, EGlobLoc,
 //                       15              16             17          18
-		    EDiscontinuous, EInterfaceDisc, EAgglomerate, ENoType};
+		    EDiscontinuous, EAgglomerate, ENoType, EInterfaceDisc = EInterface};
                      
 #endif
