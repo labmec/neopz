@@ -187,6 +187,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Post/pztrigraph.o \
 	../Post/pztrigraphd.o \
 	../Post/pzv3dmesh.o \
+	../Post/pzvisualmatrix.o \
 	../Multigrid/pzmgsolver.o \
 	../Multigrid/pztransfer.o \
 	../Multigrid/pztrnsform.o \
