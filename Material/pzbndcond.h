@@ -49,7 +49,7 @@ class TPZBndCond : public TPZMaterial {
   TPZBndCond(TPZBndCond &copy, TPZMaterial *ref) : TPZMaterial(copy), fType(copy.fType),
 						   fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref) {}
  
-  void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}  //Cedric 29/10/98
+  void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
 
   /**returns the integrable dimension of the material*/
   int Dimension() { return fMaterial->Dimension(); }
