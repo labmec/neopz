@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.25 2004-04-05 23:30:18 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.26 2004-04-06 14:55:43 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -561,16 +561,6 @@ void TPZEulerConsLaw2::ContributeInterface(
 {
    // initial guesses for left and right sol
    // fForcingFunction is null at iterations > 0
-/*   if(fForcingFunction)
-   {
-      TPZVec<REAL> res;
-      int i, nState = NStateVariables();
-      fForcingFunction(x, res);
-      for(i = 0; i < nState; i++)
-         solL[i] = solR[i] = res[i];
-   }
-*/
-
    if(fResidualType == Residual_RT)
    {
       // contributing face-based quantities
@@ -607,6 +597,29 @@ void TPZEulerConsLaw2::ContributeInterface(
                 ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
 
    }
+
+}
+
+
+void TPZEulerConsLaw2::ContributeInterface(
+		TPZVec<REAL> &x,
+		TPZVec<REAL> &solL, TPZVec<REAL> &solR,
+		TPZFMatrix &dsolL, TPZFMatrix &dsolR,
+		REAL weight, TPZVec<REAL> &normal,
+		TPZFMatrix &phiL,TPZFMatrix &phiR,
+		TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+		TPZFMatrix &ef)
+{
+   // initial guesses for left and right sol
+   // fForcingFunction is null at iterations > 0
+
+   // contributing face-based quantities
+   if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT
+                     ||
+      fConvFace == Explicit_TD && fContributionTime == Last_CT)
+        {
+           ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
+        }
 
 }
 
@@ -684,6 +697,27 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
       }
 
    if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
+   {
+         ComputeGhostState(solL, solR, normal, bc);
+         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
+   }
+}
+
+
+void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
+			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
+			REAL weight, TPZVec<REAL> &normal,
+			TPZFMatrix &phiL,TPZFMatrix &dphiL,
+			TPZFMatrix &ef,TPZBndCond &bc)
+{
+   int nstate = NStateVariables();
+   TPZVec<REAL> solR(nstate,0.);
+   TPZFMatrix dsolR(dsolL.Rows(), dsolL.Cols(),0.);
+   TPZFMatrix phiR(0,0), dphiR(0,0);
+
+   if(fConvFace == Implicit_TD && fContributionTime == Advanced_CT
+                  ||
+      fConvFace == Explicit_TD && fContributionTime == Last_CT)
    {
          ComputeGhostState(solL, solR, normal, bc);
          ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);

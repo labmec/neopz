@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.23 2004-04-05 14:09:35 phil Exp $
+//$Id: TPZInterfaceEl.h,v 1.24 2004-04-06 14:55:43 erick Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -178,11 +178,24 @@ class TPZInterfaceElement : public TPZCompEl {
   virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
   /**
+   * CalcResidual only computes the element residual
+   * @param ef element residual
+   */
+  virtual void CalcResidual(TPZElementMatrix &ef);
+
+  /**
    * Standard CalcStiff of interface element
    * @param ek element matrix
    * @param ef element right hand side
    */
   void CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+  /**
+   * Standard CalcResidual of interface element
+   * @param ek element matrix
+   * @param ef element right hand side
+   */
+  void CalcResidualStandard(TPZElementMatrix &ef);
 
   /**
    * CalcStiff with penalty term based on left and right p order and 

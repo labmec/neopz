@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.33 2004-04-05 17:13:46 erick Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.34 2004-04-06 14:55:43 erick Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -190,7 +190,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
    switch (TPZInterfaceElement::gCalcStiff)
    {
-      case 1 : 
+      case 1 :
 	 this->CalcStiffStandard(ek, ef);
 	 break;
 
@@ -204,13 +204,21 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
 }
 
+void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
+
+   switch (TPZInterfaceElement::gCalcStiff)
+   {
+      case 1 :
+	 this->CalcResidualStandard(ef);
+	 break;
+
+	 PZError << "TPZInterfaceElement::CalcStiff - CalcStiff method not implemented." << endl;
+   }
+
+}
+
 void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
-  //#ifdef _AUTODIFF
-  //  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
-  //#else
-  //  TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>(fMaterial);
-  //#endif
 
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
 #ifndef NODEBUG
@@ -310,7 +318,7 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
 	  dsoll(d,iv%nstatel) += dphixl(d,iv/nstatel)*MeshSol(pos+jn,0);
 	iv++;
       }
-    } 
+    }
     //solu¢ão da itera¢ão anterior
     if(fConnectR){
       right->Shape(x,phixr,dphixr);
@@ -327,11 +335,136 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
 	  dsolr(d,iv%nstater) += dphixr(d,iv/nstater)*MeshSol(pos+jn,0);
 	iv++;
       }
-    } 
-
+    }
+  delete intrule;
+}
     mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,ek.fMat,ef.fMat);
   }
-  
+
+
+void TPZInterfaceElement::CalcResidualStandard(TPZElementMatrix &ef){
+
+
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+#ifndef NODEBUG
+  if(!mat || !strcmp("no_name",mat->Name())){
+    PZError << "TPZInterfaceElement::CalcResidual interface material null, do nothing\n";
+    return;
+  }
+#endif
+  TPZCompElDisc *left = LeftElement();
+  TPZCompElDisc *right = RightElement();
+#ifndef NODEBUG
+  if(!left->Material() || !right->Material()){
+    PZError << "TPZInterfaceElement::CalcResidual null material\n";
+    return;
+  }
+#endif
+  //  cout << "TPZInterfaceElement::CalcStiff normal" << fNormal << "left " << left->Reference()->Id() << " right " << right->Reference()->Id() << endl;
+
+  int nshapel = left->NShapeF();
+  int nshaper = right->NShapeF();
+  TPZBlock &block = Mesh()->Block();
+  TPZFMatrix &MeshSol = Mesh()->Solution();
+  int nstatel = left->Material()->NStateVariables();
+  int nstater = right->Material()->NStateVariables();
+  int neql = nshapel * nstatel;
+  int neqr = nshaper * nstater;
+  int dim = Dimension();
+  int diml = left->Dimension();
+  int dimr = right->Dimension();
+  int ncon = 0;
+  if(fConnectL) ncon++;
+  if(fConnectR) ncon++;
+
+
+  int neq = neql + neqr;
+  //ek.fMat.Redim(neq,neq);
+  ef.fMat.Redim(neq,1);
+  int ic = 0;
+  //ek.fBlock.SetNBlocks(ncon);
+  ef.fBlock.SetNBlocks(ncon);
+  //ek.fConnect.Resize(ncon);
+  ef.fConnect.Resize(ncon);
+  if(fConnectL) {
+      //ek.fBlock.Set(ic,neql);
+      ef.fBlock.Set(ic,neql);
+    (ef.fConnect)[ic] = fConnectIndexL;
+    //(ek.fConnect)[ic] = fConnectIndexL;
+      ic++;
+  }
+  if(fConnectR) {
+    //ek.fBlock.Set(ic,neqr);
+    ef.fBlock.Set(ic,neqr);
+    (ef.fConnect)[ic] = fConnectIndexR;
+    //(ek.fConnect)[ic] = fConnectIndexR;
+  }
+  //ek.fBlock.Resequence();
+  ef.fBlock.Resequence();
+
+  TPZFNMatrix<100> phixl(nshapel,1),dphixl(diml,nshapel);
+  TPZFNMatrix<100> phixr(nshaper,1),dphixr(dimr,nshaper);
+  TPZFNMatrix<9> axes(3,3);
+  TPZFNMatrix<9> jacobian(dim,dim);
+  TPZFNMatrix<9> jacinv(dim,dim);
+  TPZManVector<REAL,3> x(3);
+  TPZManVector<REAL,3> intpoint(dim);
+  REAL detjac,weight;
+  TPZManVector<REAL,5> soll(nstatel),solr(nstater);
+  TPZFNMatrix<15> dsoll(diml,nstatel),dsolr(dimr,nstater);
+  int pl = left->Degree();
+  int pr = right->Degree();
+  int p = (pl > pr) ? pl : pr;
+  int face = fReference->NSides()-1;
+  TPZIntPoints *intrule = fReference->CreateSideIntegrationRule(face,2*p);//integra u(n)*fi
+  int npoints = intrule->NPoints();
+  int ip;
+  //  TPZManVector<REAL,3> point(3);
+//  TPZBndCond *bcleft = 0,*bcright=0;
+
+  for(ip=0;ip<npoints;ip++){
+    intrule->Point(ip,intpoint,weight);
+    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    weight *= fabs(detjac);
+    fReference->X(intpoint, x);
+    //solu¢ão da itera¢ão anterior
+    if(fConnectL){
+      left->Shape(x,phixl,dphixl);
+      soll.Fill(0.);
+      dsoll.Zero();
+      TPZConnect *df = fConnectL;
+      int dfseq = df->SequenceNumber();
+      int dfvar = block.Size(dfseq);
+      int pos = block.Position(dfseq);
+      int iv = 0,d;
+      for(int jn=0; jn<dfvar; jn++) {
+	soll[iv%nstatel] += phixl(iv/nstatel,0)*MeshSol(pos+jn,0);
+	for(d=0; d<diml; d++)
+	  dsoll(d,iv%nstatel) += dphixl(d,iv/nstatel)*MeshSol(pos+jn,0);
+	iv++;
+      }
+    }
+    //solu¢ão da itera¢ão anterior
+    if(fConnectR){
+      right->Shape(x,phixr,dphixr);
+      solr.Fill(0.);
+      dsolr.Zero();
+      TPZConnect *df = fConnectR;
+      int dfseq = df->SequenceNumber();
+      int dfvar = block.Size(dfseq);
+      int pos = block.Position(dfseq);
+      int iv = 0,d;
+      for(int jn=0; jn<dfvar; jn++) {
+	solr[iv%nstater] += phixr(iv/nstater,0)*MeshSol(pos+jn,0);
+	for(d=0; d<dimr; d++)
+	  dsolr(d,iv%nstater) += dphixr(d,iv/nstater)*MeshSol(pos+jn,0);
+	iv++;
+      }
+    }
+
+    mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,/*ek.fMat,*/ef.fMat);
+  }
+
   delete intrule;
 }
 

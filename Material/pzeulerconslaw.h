@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.19 2004-04-05 23:30:18 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.20 2004-04-06 14:55:43 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -325,6 +325,17 @@ template <class T>
   /**
    * See declaration in base class
    */
+  virtual void ContributeInterface(TPZVec<REAL> &x,
+			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+			TPZFMatrix &dsolL,TPZFMatrix &dsolR,
+			REAL weight,TPZVec<REAL> &normal,
+			TPZFMatrix &phiL,TPZFMatrix &phiR,
+			TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+			TPZFMatrix &ef);
+
+  /**
+   * See declaration in base class
+   */
 
   virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,
 			REAL weight,TPZFMatrix &axes,
@@ -338,6 +349,11 @@ template <class T>
 			TPZFMatrix &phiL, TPZFMatrix &dphiL,
 			TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
+  virtual void ContributeBCInterface(TPZVec<REAL> &x,
+			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
+			REAL weight, TPZVec<REAL> &normal,
+			TPZFMatrix &phiL, TPZFMatrix &dphiL,
+			TPZFMatrix &ef,TPZBndCond &bc);
 
 //------------------internal contributions
 

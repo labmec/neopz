@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.7 2004-04-02 16:01:30 tiago Exp $
+//$Id: pzbndcond.h,v 1.8 2004-04-06 14:55:43 erick Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -143,6 +143,11 @@ protected:
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 				   TPZFMatrix &ek,TPZFMatrix &ef);
+
+  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+				   TPZFMatrix &ef);
   
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,

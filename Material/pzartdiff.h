@@ -877,7 +877,7 @@ void TPZArtDiff::ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, 
    int nstate = sol.NElements();
    int dim = nstate - 2;
 
-   T k, us2, l1, l3, l4, twoCK, c2, temp1, temp2, temp3, k2;
+   T k, us2, l1, l3, l4, twoCK, c2, temp1, temp2/*, temp3*/, k2;
 
 
    c2 = c * c;
