@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.h,v 1.1 2003-11-25 17:08:00 phil Exp $
+// $Id: pzdiscgal.h,v 1.2 2004-02-05 16:12:28 tiago Exp $
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 
@@ -33,6 +33,17 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 
   //  virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
   //			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ef);
+
+  /**
+   * Dicontinuous galerkin materials implement contribution of discontinuous elements and interfaces. 
+   * Interfaces may be conservative or not conservative. It is important to agglomeration techniques
+   * when using multigrid pre-conditioner. Conservative interfaces into agglomerate elements do not
+   * need to be computed. However non-conservative interfaces must be computed in all multigrid levels.
+   * Default is non-conservative, because of the computation of a conservative interface into an agglomerate
+   * does not ruin the solution.
+   * @since Feb 05, 2004
+   */
+  virtual int IsInterfaceConservative(){ return 0; }
 };
   
 #endif

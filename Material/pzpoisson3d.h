@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.7 2004-01-12 15:58:42 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.8 2004-02-05 16:12:42 tiago Exp $
 
 #ifndef MATPOISSON3DHPP
 #define MATPOISSON3DHPP
@@ -113,6 +113,8 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 		       TPZVec<REAL> &/*flux*/,
 		       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values, 
 		       TPZVec<REAL> normal, REAL elsize);
+
+  virtual int IsInterfaceConservative(){ return 1;}
 
 };
 
