@@ -37,7 +37,7 @@ int main()
 		 0.3/*timeStep*/,
 		 1.4 /*gama*/,
 		 3 /*dim */,
-		 LeastSquares_AD);
+		 Bornhaus_AD);
 
   MatTest.SetTimeDiscr(Implicit_TD, Implicit_TD, Implicit_TD/*Implicit_TD, Implicit_TD*/);
   MatTest.SetContributionTime(Advanced_CT);
@@ -93,7 +93,7 @@ int main()
 
   cout << "\ndsol" << dsol;
 
-  TPZFMatrix jacinv(dim, dim);
+  TPZFMatrix jacinv(dim, dim, 7.);
   TPZVec<REAL> x(3);
 
   MatTest.Contribute(x, jacinv, sol, dsol, 13, jacinv, phi, dphi, ek, ef);
@@ -106,7 +106,7 @@ cout << "\nek\n" << ek;
 
 cout.flush();
 
-  CheckConv(.01, u, phi, dphi, MatTest);
+  CheckConv(.0001, u, phi, dphi, MatTest);
 
   return 0;
 }
@@ -170,7 +170,7 @@ void CheckConv(const double step,
    	      F2(nCoeff,1);
 
    int dim = dphi.Rows();
-   TPZFMatrix jacinv(dim, dim);
+   TPZFMatrix jacinv(dim, dim, 7.);
    TPZVec<REAL> x(3);
 
    Flatten(coeff, phi, dphi, sol, dsol);
