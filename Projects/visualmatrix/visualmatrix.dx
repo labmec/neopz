@@ -1,0 +1,32 @@
+# Graphical Visualization of Matrix.
+# Positions as the indexes of the matrix, beginning by column.
+# The number of elements in x direction correspond to the number of the columns of the matrix.
+# The number of elements in y direction correspond to the number of the rows of the matrix.
+object 1 class gridpositions counts 4 4
+origin 0. 0.
+delta 1. 0.
+delta 0. 1.
+attribute "dep" string "positions"
+
+object 2 class gridconnections counts 4 4
+attribute "element type" string "quads"
+attribute "ref" string "positions"
+object 3 class array type float rank 0 items 9 data follows
+0
+1
+2
+3
+4
+5
+6
+7
+8
+attribute "dep" string "connections" 
+
+object 4 class field
+component "data" value 3
+component "positions" value 1
+component "connections" value 2
+attribute "name" string "Matrix"
+
+end
