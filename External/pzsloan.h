@@ -4,7 +4,6 @@
 #include "pzrenumbering.h"
 //#include "sloan\\sloan.h"
 
-#ifdef USING_SLOAN
 
 #include "sloan.h"
 
@@ -13,7 +12,7 @@ class TPZSloan : TPZRenumbering {
  public:
   void Resequence(int * jj, int * jk, int n_nodes, int n_elements, int * nnn, int old_profile, int new_profile);
   void Resequence(int n_nodes, int n_elements, int *nnn,int *npn, int *xnpn, int old_profile, int new_profile);
-  void Resequence(TPZVec<int> &perm);
+  void Resequence(TPZVec<int> &perm, TPZVec<int> &iperm);
 
   void SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex);
   /**Sets the number of equations associated with each node
@@ -61,4 +60,3 @@ class TPZSloan : TPZRenumbering {
 
 #endif
 
-#endif

@@ -20,3 +20,4 @@ noinst_LIBRARIES = libpzexternal.a
 libpzexternal_a_SOURCES = pzmetis.cpp 	pzrenumbering.cpp 	pzsloan.cpp tpznodesetcompute.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
+SUBDIRS = sloan
