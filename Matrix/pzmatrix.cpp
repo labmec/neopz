@@ -969,3 +969,35 @@ void TPZMatrix::GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const
     }
     
 }
+
+int TPZMatrix::VerifySymmetry() const{
+  int nrows = this->Rows();
+  int ncols = this->Cols();
+  if (nrows != ncols) return 0;
+  
+  for( int i = 0; i < nrows; i++){
+    for(int j = 0; j <= i; j++){
+      if ( fabs( this->Get(i,j) - this->Get(j,i) ) > 1.e-13 ) {
+        cout << "Elemento: " << i << ", " << j << "  -> " << fabs(this->Get(i,j) - this->Get(j,i) ) << endl;
+	return 0;       
+      }
+    }  
+  }
+  return 1;
+}
+
+bool TPZMatrix::CompareValues(TPZMatrix &M, REAL tol){
+
+  int nrows = this->Rows();
+  int ncols = this->Cols();
+  if ( (M.Rows() != nrows) || (M.Cols() != ncols) ) return false;
+
+  REAL diff;
+  for( int i = 0; i < nrows; i++)
+    for( int j = 0; j < ncols; j++){
+      diff = fabs( this->Get(i,j) - M.Get(i,j) );
+      if (diff > tol) return false;
+    }
+   
+  return true;
+}

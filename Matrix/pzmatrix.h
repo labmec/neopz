@@ -40,7 +40,7 @@ double ddot(int *N, double *X, int *INCX, double *Y, int *INCY);
  * @param ECholesky Decomposed using Cholesky method
  * @param ELDLt Decomposed using LDLt method
  */
-enum DecomposeType {ENoDecompose, ELU, ECholesky, ELDLt};
+enum DecomposeType {ENoDecompose, ELU, ELUPivot, ECholesky, ELDLt};
 
 enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput};
 
@@ -73,6 +73,11 @@ public:
     fRow = 0;
     fCol = 0; 
   }
+  
+    /**
+   * Checks if current matrix value is symmetric
+   */  
+  virtual int VerifySymmetry() const;  
 
   /**
      Put values with bounds checking if DEBUG variable is defined.
@@ -570,6 +575,11 @@ public:
   * Extract the block indicated by the indices from the matrix
   */
     void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
+    
+  /**
+   * Compare values of this to B, with a precision tolerance tol.
+   */  
+    bool CompareValues(TPZMatrix &M, REAL tol);
 
 protected:
 
