@@ -1,3 +1,4 @@
+//$Id: TPZAgglomerateEl.cc,v 1.7 2003-10-23 15:44:04 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -246,7 +247,7 @@ int TPZAgglomerateElement::CreateMidSideConnect(){
   return ConnectIndex();
 }
 
-int TPZAgglomerateElement::Dimension(){
+int TPZAgglomerateElement::Dimension() const {
 
 //  int nind = NIndexes();
   return (gInterfaceDimension + 1);
