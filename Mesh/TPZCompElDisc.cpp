@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.52 2004-04-06 18:31:57 erick Exp $
+//$Id: TPZCompElDisc.cpp,v 1.53 2004-04-15 15:00:52 phil Exp $
 
 // -*- c++ -*- 
 
@@ -1147,4 +1147,15 @@ void TPZCompElDisc::AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) {
   int nvertices = geo->NNodes();
   int l;
   for(l=0;l<nvertices;l++) nodes.Push( geo->NodePtr(l) );
+}
+
+void TPZCompElDisc::SetDegree(int degree) {
+  TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
+  c.SetOrder(degree);
+  int seqnum = c.SequenceNumber();
+  int nvar = 1;
+  TPZMaterial *mat = Material();
+  if(mat) nvar = mat->NStateVariables();
+  Mesh()->Block().Set(seqnum,NShapeF()*nvar);
+  fDegree = degree;
 }

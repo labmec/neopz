@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.27 2004-04-02 15:55:42 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.28 2004-04-15 15:00:52 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -202,7 +202,7 @@ protected:
   /**
    * it assigns the degree of the element 
    */
-  virtual void SetDegree(int degree) {fDegree = degree;}
+  virtual void SetDegree(int degree);// {fDegree = degree;}
 
   int NConnects();
 
