@@ -219,11 +219,12 @@ public:
   //@{
 
   /**
-   * CalcStiff computes the element stiffness matrix and right hand side
+   * CalcEnergy computes the element stiffness matrix and right hand side
+   * by the energy.
    * @param ek element matrix
    * @param ef element right hand side
    */
-  virtual void CalcStiffAD(TPZElementMatrix &ek, TPZElementMatrix &ef);
+  virtual void CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
 #endif
 
@@ -525,6 +526,15 @@ private:
    * @param dphi (input/output) values of the derivatives of the shapefunctions
    */
   void ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix &phi, TPZFMatrix &dphi);
+
+#ifdef _AUTODIFF
+  /**
+   * This method fills the matrix ek and load vector ef
+   * with the data in the FADFADREAL U second and first derivatives.
+   *
+   */
+  void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
+#endif
 
 public:
   /** 

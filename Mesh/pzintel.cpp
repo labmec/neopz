@@ -1348,6 +1348,8 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
       }
     }
 
+    cout << "\nCalcStiff sol\n" << sol;
+    cout << "\nCalcStiff dsol\n" << dsol;
     fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,*ek.fMat,*ef.fMat);
   }
 }
@@ -2232,9 +2234,9 @@ int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
 
 #ifdef _AUTODIFF
 
-/**calculate the element stiffness matrix*/
-void TPZInterpolatedElement::CalcStiffAD(TPZElementMatrix &ek, TPZElementMatrix &ef) {
-
+/**calculate the element Energy*/
+void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &ef) {
+	cout << "\nCalcEnergy Called";
   int i;
 
   if(fMaterial == NULL){
@@ -2298,11 +2300,14 @@ void TPZInterpolatedElement::CalcStiffAD(TPZElementMatrix &ek, TPZElementMatrix 
   TPZVec<REAL> intpoint(dim,0.);
   REAL weight = 0.;
 
-  //TPZVec<REAL> sol(numdof,0.);
-  TPZVec<FADREAL> sol(numdof, FADREAL(nshape, 0.));
-  //REAL dsolstore[90];
-  //TPZFMatrix dsol(dim,numdof,dsolstore,90);
-  TPZVec<FADREAL> dsol(numdof * dim, FADREAL(nshape, 0.));// x, y and z data aligned
+  TPZVec<FADFADREAL> sol(numdof);
+  TPZVec<FADFADREAL> dsol(numdof * dim);// x, y and z data aligned
+
+  FADREAL defaultFAD(numeq, 0., 0.);
+  if(defaultFAD.dx(0)==1.)PZError << "\nError: FAD doesn't have default constructor for parameters: (number of derivatives, default value, default derivative value) !";
+  FADFADREAL defaultFADFAD(numeq, defaultFAD, defaultFAD);
+
+  FADFADREAL U(defaultFADFAD); // Zeroed Energy Value -> ready for contribution
 
 
   TPZIntPoints &intrule = GetIntegrationRule();
@@ -2344,26 +2349,67 @@ void TPZInterpolatedElement::CalcStiffAD(TPZElementMatrix &ek, TPZElementMatrix 
     }
     int iv=0,d;
 
-    sol.Fill(FADREAL(nshape, 0.));
-    dsol.Fill(FADREAL(nshape, 0.));
+    sol.Fill(defaultFADFAD);
+    dsol.Fill(defaultFADFAD);
+
     for(int in=0; in<ncon; in++) {
       TPZConnect *df = &Connect(in);
       int dfseq = df->SequenceNumber();
       int dfvar = block.Size(dfseq);
       int pos = block.Position(dfseq);
       for(int jn=0; jn<dfvar; jn++) {
-	sol[iv%numdof] += phi(iv/numdof,0)*MeshSol(pos+jn,0);
-	sol[iv%numdof].fastAccessDx(iv/numdof) += phi(iv/numdof,0); // dsol/dMeshsol
+        /*FADFADREAL upos(numeq, iv, FADREAL(numeq, iv, MeshSol(pos+jn,0)));
+
+	sol[iv%numdof] += upos * FADREAL(phi(iv/numdof,0));*/
+	// Using direct access to the fad derivatives to enhance performance
+
+	sol[iv%numdof].val().val() += MeshSol(pos+jn,0) * phi(iv/numdof,0);
+	sol[iv%numdof].val().fastAccessDx(iv) += phi(iv/numdof,0);
+	sol[iv%numdof].fastAccessDx(iv).val() += phi(iv/numdof,0);
 	for(d=0; d<dim; d++)
 	{
-	  dsol[d * dim + iv%numdof] += dphix(d,iv/numdof)*MeshSol(pos+jn,0);
-	  dsol[d * dim + iv%numdof].fastAccessDx(iv/numdof) += dphix(iv/numdof,0); //
+	//dsol[d+(iv%numdof)*dim] += upos * FADREAL (dphix(d, iv/numdof));
+	// Using direct access to the fad derivatives to enhance performance
+
+	   dsol[d+(iv%numdof)*dim].val().val() += MeshSol(pos+jn,0) * dphix(d, iv/numdof);
+	   dsol[d+(iv%numdof)*dim].val().fastAccessDx(iv) += dphix(d, iv/numdof);
+	   dsol[d+(iv%numdof)*dim].fastAccessDx(iv).val() += dphix(d, iv/numdof);
 	}
+
 	iv++;
       }
     }
 
-    fMaterial->Contribute(x,jacinv, dim, sol,dsol,weight,axes,*ek.fMat,*ef.fMat);
+    fMaterial->ContributeEnergy(x,sol,dsol,U,weight);
+  }
+
+  FADToMatrix(U, *ek.fMat, *ef.fMat);
+}
+
+void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef)
+{
+
+  int efsz = ef.Rows();
+  int ekrows = ek.Rows();
+  int ekcols = ek.Cols();
+
+  int Ucols = U.size();
+  int Urows = U.val().size();
+
+  if(efsz != Urows)PZError << "Energy Fad type and ef vectors are of different sizes\n";
+  if(ekrows != Urows || ekcols != Ucols)PZError << "Energy Fad type and ek matrix are of different sizes\n";
+
+  FADREAL * pBufferFAD;
+  int i,j;
+  for(j = 0; j < Urows; j++)
+  {
+     pBufferFAD = & U.fastAccessDx(j);
+     ef(j,0) = - pBufferFAD->val();
+     // U.val().fastAccessDx(i); must be the same as U.fastAccessDx(i).val();
+     for(i = 0; i < Ucols; i++)
+     {
+        ek(i,j) = pBufferFAD->fastAccessDx(i);
+     }
   }
 }
 
