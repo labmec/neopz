@@ -2,7 +2,7 @@
  * @file pzvec_extra.h
  * @brief Extra utilities for TPZVec.
  */
-// $Id: pzvec_extras.h,v 1.2 2003-03-21 13:31:48 tiago Exp $
+// $Id: pzvec_extras.h,v 1.3 2003-03-26 13:14:50 cantao Exp $
 
 #ifndef PZVEC_EXTRAS_H
 #define PZVEC_EXTRAS_H
@@ -18,7 +18,7 @@ void saxpy( TPZVec< T1 >& x, const TPZVec< T2 >& y, Scalar s )
 {
    int size = x.NElements();
 
-#ifndef NOTDEBUG
+#ifdef DEBUG
    if( size != y.NElements() ) {
       PZError << "SAXPY error!" << endl
 	      << "Vectors with different sizes #x = " << size
