@@ -24,6 +24,7 @@ libpzrefine_a_SOURCES = pzrefpoint.cc \
 	pzreftetrahedra.cc \
 	pzreftriangle.cc \
 	TPZRefCube.cc \
-	TPZRefLinear.cc 
+	TPZRefLinear.cc \
+	TPZRefPattern.cc
 
 ## --| NeoPZ |------------------------------------------------------------------
