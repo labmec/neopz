@@ -121,7 +121,7 @@ void TPZSkylParMatrix::ColumnToWork(int &lcol, int &lprevcol) {
 void * TPZSkylParMatrix::ParallelCholesky(void *t) {
 
   TPZSkylParMatrix *loc = (TPZSkylParMatrix *) t;
-  int aux_col, k;
+  int aux_col;//, k;
   int col, prevcol;
   prevcol=0;
   pthread_mutex_lock(&skymutex);
@@ -375,8 +375,8 @@ void TPZSkylParMatrix::DecomposeColumn(int col, int prevcol){
   REAL *run2 = ptrcol + (col-minline);
   REAL sum = 0;
   
-  long n1=1;
-  long n2=1;  
+//  long n1=1;
+//  long n2=1;  
 #ifndef BLAS
 #ifdef USETEMPLATE
   while(run1-ptrprev > templatedepth) {

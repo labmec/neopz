@@ -1015,46 +1015,106 @@ void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index) {
 
   TPZGeoEl *father = 0;
   TPZCompEl *cel = fElementVec[elements[0]];
-  if(!cel->IsInterpolated()) {
-    index = -1;
+  if (!cel) {
+  	index = -1;
+   	return;
+	}
+  if(cel) father = cel->Reference()->Father();
+ 	if(!father) {
+   	index = -1;
     return;
-  }
-  TPZInterpolatedElement *el;
-  el = (TPZInterpolatedElement *)fElementVec[elements[0]];
-  if(el) father = el->Reference()->Father();
-  if(!father) {
-    index = -1;
-    return;
-  }
-
+ 	}
   for(i=1;i<nelem;i++) {
-    if(!fElementVec[elements[i]]) {
-      index = -1;
+ 	  if(!fElementVec[elements[i]]) {
+			index = -1;
       return;
     }
     TPZGeoEl *father2 = fElementVec[elements[i]]->Reference()->Father();
     if(!father2 || father != father2) {
-      index = -1;
+    	index = -1;
       return;
     }
   }
-
-  if(nelem != father->NSubElements())
-    cout << "TPZCompEl::Coarsen : incomplete list of elements sons\n";
-
-  for(i=0; i<nelem; i++) {
-    el = (TPZInterpolatedElement *)fElementVec[elements[i]];
-    if(el->CanToHaveInterface()) el->DeleteInterfaces();
-//
-    el->RemoveSideRestraintsII(TPZInterpolatedElement::EDelete);
-    el->Reference()->ResetReference();
-  }
-
-  for(i=0; i<nelem; i++) {
-    el = (TPZInterpolatedElement *)fElementVec[elements[i]];
-    delete el;
-  }
-  father->CreateCompEl(*this,index);
+  if(cel->IsInterpolated()) {
+	  TPZInterpolatedElement *el = dynamic_cast<TPZInterpolatedElement *> (fElementVec[elements[0]]);
+  	if(nelem != father->NSubElements())
+    	cout << "TPZCompEl::Coarsen : incomplete list of elements sons\n";
+  	for(i=0; i<nelem; i++) {
+    	el = dynamic_cast<TPZInterpolatedElement *> (fElementVec[elements[i]]);
+	    el->RemoveSideRestraintsII(TPZInterpolatedElement::EDelete);
+  	  el->Reference()->ResetReference();
+  	}
+  	for(i=0; i<nelem; i++) {
+   		el = dynamic_cast<TPZInterpolatedElement *> (fElementVec[elements[i]]);
+    	delete el;
+  	}
+  	father->CreateCompEl(*this,index);
+  }else{
+  	int nstate = fElementVec[elements[0]]->Material()->NStateVariables();
+  	TPZVec <REAL> solution(elements.NElements()*nstate,0.);
+  	for (i=0;i<nelem;i++){
+	  	TPZCompElDisc *el = dynamic_cast<TPZCompElDisc *>(fElementVec[elements[i]]);
+  	 	el->RemoveInterfaces();
+     	int j,k,ncon = el->NConnects();
+      for (j=0;j<ncon;j++){
+				int conindex = el->ConnectIndex(j);
+				TPZConnect con = ConnectVec()[conindex];
+				int bl = con.SequenceNumber();
+//				int blpos = Block().Position(bl);
+				int nvar = Block().Size(bl);
+				TPZConnect::TPZDepend *dep = con.FirstDepend();
+				int iv,jv,idf;
+				while(dep) {
+					int depconindex = dep->fDepConnectIndex;
+					TPZConnect &depcon = ConnectVec()[depconindex];
+					int depseq = depcon.SequenceNumber();
+					int numdepvar = fBlock.Size(depseq);
+					int depseqpos = fBlock.Position(depseq);
+					for(iv=0; iv<nvar; iv+=nstate) {
+						for(jv=0; jv<numdepvar; jv+=nstate) {
+//							int coef = (int)dep->fDepMatrix((int)(iv/nstate),(int)(jv/nstate));
+							for(idf=0; idf<nstate; idf++){
+								solution[iv+idf] += fSolution(depseqpos+jv+idf,0);
+							}
+						}
+					}
+				}				
+      }
+     	//Falta pegar a solucao de maneira descente ...
+			delete el;
+			father->CreateCompEl(*this,index);
+			el = dynamic_cast<TPZCompElDisc *> (father);
+			ncon = el->NConnects();
+      for (j=0;j<ncon;j++){
+				int conindex = el->ConnectIndex(j);
+				TPZConnect con = ConnectVec()[conindex];
+				int bl = con.SequenceNumber();
+//				int blpos = Block().Position(bl);
+				int nvar = Block().Size(bl);
+				TPZConnect::TPZDepend *dep = con.FirstDepend();
+				int iv,jv,idf;
+				while(dep) {
+					int depconindex = dep->fDepConnectIndex;
+					TPZConnect &depcon = ConnectVec()[depconindex];
+					int depseq = depcon.SequenceNumber();
+					int numdepvar = fBlock.Size(depseq);
+					int depseqpos = fBlock.Position(depseq);
+					for(iv=0; iv<nvar; iv+=nstate) {
+						for(jv=0; jv<numdepvar; jv+=nstate) {
+							for(idf=0; idf<nstate; idf++){
+								REAL sol = 0.;
+								for (k=0;k<elements.NElements();k++){
+									sol += solution[k*nstate+iv+idf];
+								}
+								sol /= elements.NElements();
+								fSolution(depseqpos+jv+idf,0) = sol;
+							}
+						}
+					}
+				}
+			}
+    }
+	}
 }
 
 /**ExpandSolution must be called before calling this*/

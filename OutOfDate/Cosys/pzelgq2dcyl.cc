@@ -129,7 +129,7 @@ void TPZGeoElQ2dCyl::Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatri
 
 	//TPZGeoNode *np;
 	TPZVec<REAL> V1(3,0.),v1aux(3,0.),V2(3,0.),v2aux(3,0.),V2til(3,0.),V3(3,0.);
-	REAL V1Norm=0.,V1V2=0.,V2tilNorm=0.,theta=0.,z=0.,r=0.;
+	REAL V1Norm=0.,V1V2=0.,V2tilNorm=0.;//,theta=0.,z=0.,r=0.;
 	//R Theta e Z
 	TPZVec<REAL> Xco(3,0.);
 	for (i=0;i<4;i++){
@@ -203,7 +203,7 @@ void TPZGeoElQ2dCyl::Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatri
 void TPZGeoElQ2dCyl::X(TPZVec<REAL> & loc,TPZVec<REAL> &result){
 	REAL spacephi[4],spacedphi[8];
 	int i,j;
-	REAL point[3] = {0.};
+//	REAL point[3] = {0.};
 	TPZFMatrix phi(4,1,spacephi,4);
 	TPZFMatrix dphi(2,4,spacedphi,8);
 	Shape(loc,phi,dphi);
