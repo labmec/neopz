@@ -915,7 +915,8 @@ void TPZArtDiff::ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, 
    int nstate = sol.NElements();
    int dim = nstate - 2;
 
-   T k, us2, l1, l3, l4, twoCK, c2, temp1, temp2/*, temp3*/, k2;
+   T k, us2, l1, l3, l4, l5, lstar,
+     lsum, ldiff, twoCK, c2, temp1, temp2/*, temp3*/, k2;
 
 
    c2 = c * c;
@@ -954,60 +955,47 @@ void TPZArtDiff::ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, 
 
 
       break;
-/*      case (3):
+      case (3):
       k2 = aaS[0]*aaS[0] + aaS[1]*aaS[1] + aaS[2]*aaS[2];
       k = sqrt(k2);
 
-      Y.Redim(nstate,nstate);
-      Y(0,2) = 1.;
-      Y(0,3) = 1. / c2;
-      Y(0,4) = Y(0,3);
-      Y(1,0) = -aaS[2]/aaS[0];
-      Y(1,1) = -aaS[1]/aaS[0];
-      Y(1,3) = -aaS[0]/(k * rho_c);
-      Y(1,4) = -Y(1,3);
-      Y(2,1) = 1.;
-      Y(2,3) = -aaS[1]/(k * rho_c);
-      Y(2,4) = -Y(2,3);
-      Y(3,0) = 1.;
-      Y(3,3) = -aaS[2]/(k * rho_c);
-      Y(3,4) = -Y(3,3);
-      Y(4,3) = 1.;
-      Y(4,4) = 1.;
+      l1 = aaS[0] * us;
+      if(val(l1) < 0.)l1 = -l1;
+      l4 = aaS[0] * us - k * c;
+      if(val(l3) < 0.)l3 = -l3;
+      l5 = aaS[0] * us + k * c;
+      if(val(l4) < 0.)l4 = -l4;
 
-      Yi.Redim(nstate,nstate);
-      Yi(0,1) = - aaS[0] * aaS[2] / k2;
-      Yi(0,2) = - aaS[1] * aaS[2] / k2;
-      Yi(0,3) =  (aaS[0] * aaS[0] + aaS[1] * aaS[1]) / k2;
-      Yi(1,1) = - aaS[0] * aaS[1] / k2;
-      Yi(1,2) =  (aaS[0] * aaS[0] + aaS[2] * aaS[2]) / k2;
-      Yi(1,3) =  Yi(0,2);
-      Yi(2,0) = 1.;
-      Yi(2,4) = -1. / c2;
-      Yi(3,1) = - aaS[0] * rho_c / (2. * k);
-      Yi(3,2) = - aaS[1] * rho_c / (2. * k);
-      Yi(3,3) = - aaS[2] * rho_c / (2. * k);
-      Yi(3,4) = .5;
-      Yi(4,1) = - Yi(3,1);
-      Yi(4,2) = - Yi(3,2);
-      Yi(4,3) = - Yi(3,3);
-      Yi(4,4) = .5;
+      lsum = l5 + l4;
+      ldiff= l5 - l4;
+      lstar = lsum - 2.*l1;
 
-      temp1 = aaS[0] * us;
-      if(val(temp1) < 0)temp1 = -temp1;
-      temp2 = aaS[0] * us - k * c;
-      if(val(temp2) < 0)temp2 = -temp2;
-      temp3 = aaS[0] * us + k * c;
-      if(val(temp3) < 0)temp3 = -temp3;
+      twoCK = c * k * 2.;
 
-      Lambda.Redim(nstate,nstate);
-      Lambda(0,0) = temp1;
-      Lambda(1,1) = temp1;
-      Lambda(2,2) = temp1;
-      Lambda(3,3) = temp2;
-      Lambda(4,4) = temp3;
+      Mat.Redim(nstate,nstate);
+      Mat(0,0) = l1;
+      Mat(0,1) = aaS[0] * sol[0] * ldiff / twoCK;
+      Mat(0,2) = aaS[1] * sol[0] * ldiff / twoCK;
+      Mat(0,3) = aaS[2] * sol[0] * ldiff / twoCK;
+      Mat(0,4) = lstar / ( c2 * 2. );
+      Mat(1,1) = aaS[0] * aaS[0] * lstar / (k2 * 2.) + l1;
+      Mat(1,2) = aaS[0] * aaS[1] * lstar / (k2 * 2.);
+      Mat(1,3) = aaS[0] * aaS[2] * lstar / (k2 * 2.);
+      Mat(1,4) = aaS[0] / twoCK / sol[0] * ldiff;
+      Mat(2,1) = Mat(1,2);
+      Mat(2,2) = aaS[1] * aaS[1] * lstar / (k2 * 2.) + l1;
+      Mat(2,3) = aaS[1] * aaS[2] * lstar / (k2 * 2.);
+      Mat(2,4) = aaS[1] / twoCK / sol[0] * ldiff;
+      Mat(3,1) = Mat(1,3);
+      Mat(3,2) = Mat(2,3);
+      Mat(3,3) = aaS[2] * aaS[2] * lstar / (k2 * 2.) + l1;
+      Mat(3,4) = aaS[2] / twoCK / sol[0] * ldiff;
+      Mat(4,1) = aaS[0] * c * sol[0] * ldiff / (k * 2.);
+      Mat(4,2) = aaS[1] * c * sol[0] * ldiff / (k * 2.);
+      Mat(4,3) = aaS[2] * c * sol[0] * ldiff / (k * 2.);
+      Mat(4,4) = lstar/2. + l1;
 
-      break;*/
+      break;
       default:
       PZError << "TPZArtDiff::EigenSystemBornhaus Error: Invalid Dimension\n";
    }
