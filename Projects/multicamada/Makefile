@@ -53,7 +53,7 @@ AUTOCONF = autoconf
 AUTOMAKE = automake-1.4
 AUTOHEADER = autoheader
 
-INSTALL = /usr//bin/install -c
+INSTALL = /usr/bin/install -c
 INSTALL_PROGRAM = ${INSTALL} $(AM_INSTALL_PROGRAM_FLAGS)
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_SCRIPT = ${INSTALL_PROGRAM}
@@ -65,23 +65,33 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-build_alias = i686-pc-linux-gnu
-build_triplet = i686-pc-linux-gnu
-host_alias = i686-pc-linux-gnu
-host_triplet = i686-pc-linux-gnu
-target_alias = i686-pc-linux-gnu
-target_triplet = i686-pc-linux-gnu
+build_alias = x86_64-unknown-linux-gnu
+build_triplet = x86_64-unknown-linux-gnu
+host_alias = x86_64-unknown-linux-gnu
+host_triplet = x86_64-unknown-linux-gnu
+target_alias = x86_64-unknown-linux-gnu
+target_triplet = x86_64-unknown-linux-gnu
 AR = ar
 ARCH_INCLUDES = 
 ARFLAGS = -rcsv
+ATLASDIR = 
+ATLASINCLUDE = 
+ATLASLIB = 
+ATLASLIBDIR = 
+BLASDIR = 
+BLASINCLUDE = 
+BLASLIB = 
+BLASLIBDIR = 
 CC = gcc
 COMPILATION_MODE = Development compilation mode.
-CXX = g++
+CXX = c++
 FADDIR = 
 FADINCLUDE = 
 FADINCLUDE_FAD = 
 FADINCLUDE_TFAD = 
 FADINCLUDE_TFADET = 
+LIBATLAS = 
+LIBBLAS = 
 MAKEINFO = makeinfo
 METISDIR = /usr/local/metis
 METISINCLUDE = -I/usr/local/metis/include
@@ -96,6 +106,8 @@ PZ_MK = PZ.mk
 PZ_REV = 0
 PZ_VERSION = 2
 RANLIB = ranlib
+USING_ATLAS = 
+USING_BLAS = 
 USING_FAD = 
 USING_METIS = -DUSING_METIS
 USING_SLOAN = 
@@ -106,8 +118,7 @@ CLEANFILES = *~ core octave-core *.o *.info
 
 bin_PROGRAMS = main
 
-main_SOURCES = multicamada.cc
-
+main_SOURCES = multicamada.cpp
 
 main_LDADD = $(top_srcdir)/lib/libpz.a /usr/local/metis/lib/libmetis.a
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -119,7 +130,7 @@ DEFS =  -DPACKAGE=\"pz\" -DVERSION=\"2.0\"  -I. -I$(srcdir)
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
-main_OBJECTS =  multicamada.o 
+main_OBJECTS =  multicamada.o
 main_DEPENDENCIES =  $(top_srcdir)/lib/libpz.a /usr/local/metis/lib/libmetis.a
 main_LDFLAGS = 
 CXXFLAGS = -g -O2
@@ -133,15 +144,15 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES = .dest/multicamada.P
+DEP_FILES =  .deps/multicamada.P
 SOURCES = $(main_SOURCES)
 OBJECTS = $(main_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cc .o .s
+.SUFFIXES: .S .c .cpp .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu Projects/teste/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu Projects/multicamada/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -192,7 +203,7 @@ maintainer-clean-compile:
 main: $(main_OBJECTS) $(main_DEPENDENCIES)
 	@rm -f main
 	$(CXXLINK) $(main_LDFLAGS) $(main_OBJECTS) $(main_LDADD) $(LIBS)
-.cc.o:
+.cpp.o:
 	$(CXXCOMPILE) -c $<
 
 tags: TAGS
@@ -226,14 +237,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = Projects/teste
+subdir = Projects/multicamada
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Projects/teste/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Projects/multicamada/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
@@ -277,7 +288,7 @@ maintainer-clean-depend:
 	    >> .deps/$(*F).P; \
 	rm -f .deps/$(*F).pp
 
-%.o: %.cc
+%.o: %.cpp
 	@echo '$(CXXCOMPILE) -c $<'; \
 	$(CXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
 	@-cp .deps/$(*F).pp .deps/$(*F).P; \
@@ -286,7 +297,7 @@ maintainer-clean-depend:
 	    >> .deps/$(*F).P; \
 	rm .deps/$(*F).pp
 
-%.lo: %.cc
+%.lo: %.cpp
 	@echo '$(LTCXXCOMPILE) -c $<'; \
 	$(LTCXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
 	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \

@@ -74,6 +74,14 @@ target_triplet = @target@
 AR = @AR@
 ARCH_INCLUDES = @ARCH_INCLUDES@
 ARFLAGS = @ARFLAGS@
+ATLASDIR = @ATLASDIR@
+ATLASINCLUDE = @ATLASINCLUDE@
+ATLASLIB = @ATLASLIB@
+ATLASLIBDIR = @ATLASLIBDIR@
+BLASDIR = @BLASDIR@
+BLASINCLUDE = @BLASINCLUDE@
+BLASLIB = @BLASLIB@
+BLASLIBDIR = @BLASLIBDIR@
 CC = @CC@
 COMPILATION_MODE = @COMPILATION_MODE@
 CXX = @CXX@
@@ -82,6 +90,8 @@ FADINCLUDE = @FADINCLUDE@
 FADINCLUDE_FAD = @FADINCLUDE_FAD@
 FADINCLUDE_TFAD = @FADINCLUDE_TFAD@
 FADINCLUDE_TFADET = @FADINCLUDE_TFADET@
+LIBATLAS = @LIBATLAS@
+LIBBLAS = @LIBBLAS@
 MAKEINFO = @MAKEINFO@
 METISDIR = @METISDIR@
 METISINCLUDE = @METISINCLUDE@
@@ -96,6 +106,8 @@ PZ_MK = @PZ_MK@
 PZ_REV = @PZ_REV@
 PZ_VERSION = @PZ_VERSION@
 RANLIB = @RANLIB@
+USING_ATLAS = @USING_ATLAS@
+USING_BLAS = @USING_BLAS@
 USING_FAD = @USING_FAD@
 USING_METIS = @USING_METIS@
 USING_SLOAN = @USING_SLOAN@
@@ -106,8 +118,7 @@ CLEANFILES = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = multicamada.cc
-
+main_SOURCES = multicamada.cpp
 
 main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -119,7 +130,7 @@ DEFS = @DEFS@ -I. -I$(srcdir)
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-main_OBJECTS =  multicamada.o 
+main_OBJECTS =  multicamada.o
 main_DEPENDENCIES =  $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 main_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
@@ -133,15 +144,15 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .dest/multicamada.P
+DEP_FILES =  .deps/multicamada.P
 SOURCES = $(main_SOURCES)
 OBJECTS = $(main_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cc .o .s
+.SUFFIXES: .S .c .cpp .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu Projects/teste/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu Projects/multicamada/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -192,7 +203,7 @@ maintainer-clean-compile:
 main: $(main_OBJECTS) $(main_DEPENDENCIES)
 	@rm -f main
 	$(CXXLINK) $(main_LDFLAGS) $(main_OBJECTS) $(main_LDADD) $(LIBS)
-.cc.o:
+.cpp.o:
 	$(CXXCOMPILE) -c $<
 
 tags: TAGS
@@ -226,14 +237,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = Projects/teste
+subdir = Projects/multicamada
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Projects/teste/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Projects/multicamada/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
@@ -277,7 +288,7 @@ maintainer-clean-depend:
 	    >> .deps/$(*F).P; \
 	rm -f .deps/$(*F).pp
 
-%.o: %.cc
+%.o: %.cpp
 	@echo '$(CXXCOMPILE) -c $<'; \
 	$(CXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
 	@-cp .deps/$(*F).pp .deps/$(*F).P; \
@@ -286,7 +297,7 @@ maintainer-clean-depend:
 	    >> .deps/$(*F).P; \
 	rm .deps/$(*F).pp
 
-%.lo: %.cc
+%.lo: %.cpp
 	@echo '$(LTCXXCOMPILE) -c $<'; \
 	$(LTCXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
 	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \

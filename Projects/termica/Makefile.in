@@ -74,6 +74,14 @@ target_triplet = @target@
 AR = @AR@
 ARCH_INCLUDES = @ARCH_INCLUDES@
 ARFLAGS = @ARFLAGS@
+ATLASDIR = @ATLASDIR@
+ATLASINCLUDE = @ATLASINCLUDE@
+ATLASLIB = @ATLASLIB@
+ATLASLIBDIR = @ATLASLIBDIR@
+BLASDIR = @BLASDIR@
+BLASINCLUDE = @BLASINCLUDE@
+BLASLIB = @BLASLIB@
+BLASLIBDIR = @BLASLIBDIR@
 CC = @CC@
 COMPILATION_MODE = @COMPILATION_MODE@
 CXX = @CXX@
@@ -82,6 +90,8 @@ FADINCLUDE = @FADINCLUDE@
 FADINCLUDE_FAD = @FADINCLUDE_FAD@
 FADINCLUDE_TFAD = @FADINCLUDE_TFAD@
 FADINCLUDE_TFADET = @FADINCLUDE_TFADET@
+LIBATLAS = @LIBATLAS@
+LIBBLAS = @LIBBLAS@
 MAKEINFO = @MAKEINFO@
 METISDIR = @METISDIR@
 METISINCLUDE = @METISINCLUDE@
@@ -96,6 +106,8 @@ PZ_MK = @PZ_MK@
 PZ_REV = @PZ_REV@
 PZ_VERSION = @PZ_VERSION@
 RANLIB = @RANLIB@
+USING_ATLAS = @USING_ATLAS@
+USING_BLAS = @USING_BLAS@
 USING_FAD = @USING_FAD@
 USING_METIS = @USING_METIS@
 USING_SLOAN = @USING_SLOAN@
@@ -106,7 +118,7 @@ CLEANFILES = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = main.cc pzadaptmesh.cc pzcclonemesh.cc pzgclonemesh.cc
+main_SOURCES = main.cpp pzadaptmesh.cpp pzcclonemesh.cpp pzgclonemesh.cpp
 
 main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -139,7 +151,7 @@ OBJECTS = $(main_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cc .o .s
+.SUFFIXES: .S .c .cpp .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu Projects/termica/Makefile
 
@@ -192,7 +204,7 @@ maintainer-clean-compile:
 main: $(main_OBJECTS) $(main_DEPENDENCIES)
 	@rm -f main
 	$(CXXLINK) $(main_LDFLAGS) $(main_OBJECTS) $(main_LDADD) $(LIBS)
-.cc.o:
+.cpp.o:
 	$(CXXCOMPILE) -c $<
 
 tags: TAGS
@@ -277,7 +289,7 @@ maintainer-clean-depend:
 	    >> .deps/$(*F).P; \
 	rm -f .deps/$(*F).pp
 
-%.o: %.cc
+%.o: %.cpp
 	@echo '$(CXXCOMPILE) -c $<'; \
 	$(CXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
 	@-cp .deps/$(*F).pp .deps/$(*F).P; \
@@ -286,7 +298,7 @@ maintainer-clean-depend:
 	    >> .deps/$(*F).P; \
 	rm .deps/$(*F).pp
 
-%.lo: %.cc
+%.lo: %.cpp
 	@echo '$(LTCXXCOMPILE) -c $<'; \
 	$(LTCXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
 	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \

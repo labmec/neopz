@@ -74,6 +74,14 @@ target_triplet = @target@
 AR = @AR@
 ARCH_INCLUDES = @ARCH_INCLUDES@
 ARFLAGS = @ARFLAGS@
+ATLASDIR = @ATLASDIR@
+ATLASINCLUDE = @ATLASINCLUDE@
+ATLASLIB = @ATLASLIB@
+ATLASLIBDIR = @ATLASLIBDIR@
+BLASDIR = @BLASDIR@
+BLASINCLUDE = @BLASINCLUDE@
+BLASLIB = @BLASLIB@
+BLASLIBDIR = @BLASLIBDIR@
 CC = @CC@
 COMPILATION_MODE = @COMPILATION_MODE@
 CXX = @CXX@
@@ -82,6 +90,8 @@ FADINCLUDE = @FADINCLUDE@
 FADINCLUDE_FAD = @FADINCLUDE_FAD@
 FADINCLUDE_TFAD = @FADINCLUDE_TFAD@
 FADINCLUDE_TFADET = @FADINCLUDE_TFADET@
+LIBATLAS = @LIBATLAS@
+LIBBLAS = @LIBBLAS@
 MAKEINFO = @MAKEINFO@
 METISDIR = @METISDIR@
 METISINCLUDE = @METISINCLUDE@
@@ -96,6 +106,8 @@ PZ_MK = @PZ_MK@
 PZ_REV = @PZ_REV@
 PZ_VERSION = @PZ_VERSION@
 RANLIB = @RANLIB@
+USING_ATLAS = @USING_ATLAS@
+USING_BLAS = @USING_BLAS@
 USING_FAD = @USING_FAD@
 USING_METIS = @USING_METIS@
 USING_SLOAN = @USING_SLOAN@
@@ -104,7 +116,7 @@ VERSION = @VERSION@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES = @PZ_CLEANFILES@
 
-SUBDIRS = Adapt_MultThread 
+SUBDIRS = Adapt_MultThread CursoPZ Adapt_Phil
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  Makefile.am Makefile.in
@@ -136,7 +148,7 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 all-recursive install-data-recursive install-exec-recursive \
 installdirs-recursive install-recursive uninstall-recursive  \
 check-recursive installcheck-recursive info-recursive dvi-recursive:
-	@set fnord $(MAKEFLAGS); amf=$$2; \
+	@set fnord $$MAKEFLAGS; amf=$$2; \
 	dot_seen=no; \
 	target=`echo $@ | sed s/-recursive//`; \
 	list='$(SUBDIRS)'; for subdir in $$list; do \
@@ -156,7 +168,7 @@ check-recursive installcheck-recursive info-recursive dvi-recursive:
 
 mostlyclean-recursive clean-recursive distclean-recursive \
 maintainer-clean-recursive:
-	@set fnord $(MAKEFLAGS); amf=$$2; \
+	@set fnord $$MAKEFLAGS; amf=$$2; \
 	dot_seen=no; \
 	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
 	  rev="$$subdir $$rev"; \
