@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.9 2004-02-19 16:44:20 cesar Exp $
+//$Id: pzgmesh.h,v 1.10 2004-03-01 21:54:19 cesar Exp $
 
 /**File : pzgmes.h
 
@@ -158,26 +158,9 @@ virtual  void Print(ostream & out = cout);
    * @param type element topology
    * @param cornerindexes indexes of the corner nodes of the element
    * @param index index of the element in the vector of element pointers
+   * @param reftype defines the type of refinement : 0 -> uniform 1-> refinement pattern
    */
-virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes,int matid,int &index);
-
-  /**
-   * Generic method for creating a geometric element.
-   *
-   * Putting this method centrally facilitates the modification of the
-   * element type all through the code.
-   *
-   * @param type Element topology.
-   *
-   * @param ptr Pointer to a contiguous memory portion containing the
-   * incidence of that element.
-   *
-   * @param matid Material ID.
-   *
-   * @param index Index of the element in the vector of element pointers.
-   */
-//  TPZGeoEl* CreateGeoElement( MElementType type, int* cornerindexes,
-//			      int matid, int& index );
+  virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes,int matid,int &index, int reftype = 0);
 
 //  virtual void DeleteElement(int gelindex);
   /**
