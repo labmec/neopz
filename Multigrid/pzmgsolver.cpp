@@ -49,7 +49,7 @@ void TPZMGSolver::ResetTranferMatrix(){
   fStep.ResetMatrix();
 }
 void TPZMGSolver::SetTransferMatrix(TPZTransfer *Refmat){
-  fStep.SetMatrix(Refmat);
+  fStep.SetMatrix((TPZMatrix *)Refmat);
   //    if(fTransfer->Matrix() == Refmat || !fTransfer->Matrix()) {
   //        fTransfer->SetMatrix(Refmat);
   //    } else {

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.31 2004-10-06 19:24:04 phil Exp $
+// $Id: pzintel.cpp,v 1.32 2004-12-08 18:59:19 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -769,7 +769,8 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
   int numshape = NSideShapeF(side);
   int numshapel = large->NSideShapeF(neighbourside);
   TPZFMatrix phis(numshape,1),dphis(2,numshape),phil(numshapel,1),dphil(2,numshapel);
-  TPZFMatrix M(numshape,numshape,0.),MSL(numshape,numshapel,0.);
+  TPZFMatrix MSL(numshape,numshapel,0.);
+  TPZFNMatrix<1000> *M = new TPZFNMatrix<1000>(numshape,numshape,0.);
   TPZVec<REAL> par(3),pointl(3),point(3);
   int in,jn;
   REAL weight;
@@ -780,17 +781,17 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     large->SideShapeFunction(neighbourside,pointl,phil,dphil);
     for(in=0; in<numshape; in++) {
       for(jn=0; jn<numshape; jn++) {
-        M(in,jn) += phis(in,0)*phis(jn,0)*weight;
+        (*M)(in,jn) += phis(in,0)*phis(jn,0)*weight;
       }
       for(jn=0; jn<numshapel; jn++) {
         MSL(in,jn) += phis(in,0)*phil(jn,0)*weight;
       }
     }
   }
-  TPZStepSolver MSolve(&M);
+  TPZStepSolver MSolve(M);
   MSolve.SetDirect(ELU);
   MSolve.Solve(MSL,MSL);
-  MSolve.ResetMatrix();
+  //MSolve.ResetMatrix();
   int numsidenodes_small = NSideConnects(side);
   // Philippe 12/3/99
   //  int numsidenodes_large = NSideConnects(neighbourside);
