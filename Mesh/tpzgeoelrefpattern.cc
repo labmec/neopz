@@ -131,7 +131,63 @@ REAL TPZGeoElRefPattern<TShape,TGeo>::RefElVolume(){
 
 template<class TShape, class TGeo>
 void TPZGeoElRefPattern<TShape,TGeo>::MidSideNodeIndex(int side,int &index){
-//  TRef::MidSideNodeIndex(this,side,index);
+  index = -1;
+  int i,j;
+  if(side<0 || side>NSides()-1) {
+    PZError << "TPZGeoElRefPattern::MidSideNodeIndex. Bad parameter side = " << side << endl;
+    return;
+  }
+  //corner side
+  if(side<NCornerNodes()) {//o nó medio do lado 0 é o 0 etc.
+    index = NodeIndex(side);
+    return;
+  }
+  //o nó medio da face é o centro e o nó medio do centro é o centro
+  //como nó de algum filho se este existir
+  //caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
+  if(HasSubElement()) {
+    //side -= NCornerNodes();
+    //index =(gel->SubElement(MidSideNodes[side][0]))->NodeIndex(MidSideNodes[side][1]);
+    int nsubel = NSideSubElements(side);
+    TPZStack <TPZGeoElSide> subels;
+    GetSubElements2(side,subels);
+    if (nsubel == 1) {
+      subels[0].Element()->MidSideNodeIndex(subels[0].Side(),index);
+      return;
+    }
+    TPZStack <int> msnindex;
+    int subnodeindex = subels[0].SideNodeIndex(subels[0].Side());
+    msnindex.Push(subnodeindex);
+    for (i=1;i<nsubel;i++){
+      subnodeindex = subels[i].SideNodeIndex(subels[i].Side());
+      for (j=0;j<msnindex.NElements();j++){
+        if (subnodeindex != msnindex[j]){
+          cout << "TPZGeoElRefPattern<TShape,TGeo>::MidSideNodeIndex element with more than one midsidenodeindex..." << endl;
+          msnindex.Push(subnodeindex);
+        }
+      }
+    }
+    if (msnindex.NElements() == 1) index = msnindex[0];
+    else {
+      TPZVec<REAL> centerpt(Dimension(),0.);
+      TPZVec<REAL> auxpt(Dimension(),0.);      
+      CenterPoint(side,auxpt);
+      X(auxpt,centerpt);
+
+      REAL dif = 1e6;
+      REAL aux = 0;
+      index = msnindex[0];
+      for (i=0;i<msnindex.NElements();i++){
+        for (j=0;j<Dimension();j++)
+          aux += (Mesh()->NodeVec()[msnindex[i]].Coord(j) - centerpt[j]) *
+                    (Mesh()->NodeVec()[msnindex[i]].Coord(j) - centerpt[j]);
+        if (aux < dif){
+          dif = aux;
+          index = msnindex[i];
+        }
+      }
+    }
+  }
 }
 
 template<class TShape, class TGeo>
@@ -177,13 +233,6 @@ TPZTransform TPZGeoElRefPattern<TShape,TGeo>::GetTransform(int side,int son){
 
 template<class TShape, class TGeo>
 void
-TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &pv){
-
-//  TRef::Divide(this,pv);
-}
-
-template<class TShape, class TGeo>
-void
 TPZGeoElRefPattern<TShape,TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel){
   //TRef::GetSubElements(this,side,subel);
   int i,nsidesubel = fRefPattern->NSideSubElements(side);
@@ -191,6 +240,119 @@ TPZGeoElRefPattern<TShape,TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide
     subel.Push(SideSubElement(side,i));  
   }
 }
+
+
+template<class TShape, class TGeo>
+void
+TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
+  int i;
+  int NSubEl = fRefPattern->NSubElements();
+  if(HasSubElement()) {
+    SubElVec.Resize(NSubEl);
+    for(i=0;i<NSubEl;i++) SubElVec[i] = SubElement(i);
+    return;//If exist fSubEl return this sons
+  }
+  int index,k,j,sub,matid=MaterialId();
+
+  const int totalnodes = fRefPattern->Mesh()->NodeVec().NElements();  
+  int np[totalnodes];
+
+  for(j=0;j<NNodes();j++) np[j] = NodeIndex(j);
+  //verifico no padro de refinamento os nos que compoem o lado
+  //caso tenha nos que nao sejam nos de canto eu verificarei a necessidade
+  //de cria-los.
+  //Sera necessario nos seguintes casos: nenhum subelemento o criou ainda,
+  //nenhum vizinho o possui ou ainda esses nao coincidam com os nos dos vizinhos
+  //o que criaria uma inconsistencia nos elementos continuos ainda nao contemplada
+  //no momento ??mas que pode vir a ser considerada??
+  int sum = NCornerNodes(); 
+  for (i=NNodes();i<NSides();i++){
+    if (fRefPattern->NSideSubElements(i)<=1) continue;
+
+    //equivalente as coordenadas no elemento mestre...
+    TPZVec<REAL> refnodecoord(3,0.);
+    for (k=0;k<3;k++) refnodecoord[k] = fRefPattern->Mesh()->NodeVec()[i].Coord(k);
+    //passando para as coordenadas do elemento da malha real...
+    TPZVec<REAL> newnodecoord(3,0.);
+    X(refnodecoord,newnodecoord);
+    
+    TPZVec<int> sidenodes;
+    fRefPattern->SideNodes(i,sidenodes);
+    for (j=0;j<sidenodes.NElements();j++){
+      index = -1;
+      //De fato nao seria necessario pois criarei todos os nos antes de criar os subelementos
+      MidSideNodeIndex(i,index);
+      if(index < 0) {
+        //verificar se um vizinho ja criou o no
+        TPZGeoElSide gelside = Neighbour(i);
+        if(gelside.Element() && gelside.Side()>-1) {
+          bool isRefNode = false;
+          while(gelside.Element() != this && !isRefNode) {
+            gelside.Element()->MidSideNodeIndex(gelside.Side(),index);
+            gelside = gelside.Neighbour();
+            if (index > -1){
+              REAL dif = 0.;
+              for (k=0;k<3;k++) {
+                REAL indexcoord = Mesh()->NodeVec()[index].Coord(k);
+                dif += (newnodecoord[k] - indexcoord) * (newnodecoord[k] - indexcoord);
+              }
+              if (dif < 1e-12) isRefNode = true;
+              else index = -1;
+            }
+          }
+        }
+        if (index > -1) {
+          np[sum] = index;
+          sum ++;
+          continue;
+        }
+        //Caso o no nao exista nos vizinhos sera necessario cria-lo...
+        index = Mesh()->NodeVec().AllocateNewElement();
+        Mesh()->NodeVec()[index].Initialize(newnodecoord,*Mesh());
+        np[sum] = index;
+        sum ++;
+      }
+    }
+  }
+
+  // creating new subelements
+  int nsubel = fRefPattern->NSubElements();
+  for(i=0;i<nsubel;i++) {
+    int subcorner = fRefPattern->Element(i+1)->NCornerNodes();
+    TPZManVector<int> cornerindexes(subcorner);
+    for(j=0;j<subcorner;j++) {
+      int cornerid = fRefPattern->Element(i+1)->NodeIndex(j);
+      cornerindexes[j] = np[cornerid];
+    }
+    TPZGeoEl *subel = Mesh()->CreateGeoElement((MElementType)fRefPattern->Element(i+1)->Type(),cornerindexes,matid,index);
+    SetSubElement(i,subel);
+  }
+
+  SubElVec.Resize(NSubEl);
+  for(sub=0;sub<NSubEl;sub++) {
+    SubElVec[sub] = SubElement(sub);
+    SubElVec[sub]->SetFather(this);
+  }
+
+  //conectividades entre os filhos : viz interna  
+  for(i=0;i<NSubEl;i++) {
+    TPZGeoEl *refsubel = fRefPattern->Element(i+1);
+    for (j=0;j<refsubel->NSides();j++){
+      TPZGeoElSide refneigh = refsubel->Neighbour(j);
+      if (refneigh.Element() && refneigh.Side() > -1){
+        //como nao me deixam guardar o index do elemento geometrico...
+        for (k=0;k<NSubEl;k++){
+          if (fRefPattern->Element(k+1) == refneigh.Element()){
+            TPZGeoElSide neighbour (SubElVec[k],refneigh.Side());
+            SubElVec[i]->SetNeighbour(j,neighbour);
+          }
+        }
+      }
+    }
+  }  
+  SetSubElementConnectivities();
+}
+
 
 template class TPZGeoElRefPattern<TPZShapeCube,TPZGeoCube>;
 template class TPZGeoElRefPattern<TPZShapeLinear,TPZGeoLinear>;
