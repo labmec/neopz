@@ -69,6 +69,16 @@ TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh) {
 //	fMesure = 0.;
 }
 
+void TPZGeoEl::Initialize(int materialid, TPZGeoMesh &mesh, int &index) {
+  fId = mesh.CreateUniqueElementId();
+  fMesh = &mesh;
+  fMatId = materialid;
+  fReference = 0;
+  fFather = 0;
+  index = fMesh->ElementVec().AllocateNewElement();
+  fMesh->ElementVec()[index] = this;
+}
+
 void TPZGeoEl::Shape1d(double x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
   if(num != 2 && num != 3){
     PZError << "elcalc1d.shape, at this point only linear and quadratic elements\n";

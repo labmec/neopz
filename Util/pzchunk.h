@@ -1,8 +1,9 @@
+// -*- c++ -*-
 /**
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzchunk.h,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+// $Id: pzchunk.h,v 1.2 2003-10-05 00:31:56 phil Exp $
 
 #ifndef PZCHUNK_H
 #define PZCHUNK_H
@@ -83,6 +84,11 @@ class TPZChunkVector
        * may modify the result of the code.
        */
       T &operator[](const int nelem) const;
+
+      /**
+       * Finds the index of an object by its pointer
+       */
+      int FindObject(T *object);
 
    protected:
       /** Number of elements of the chunk vector. */
@@ -168,6 +174,25 @@ void TPZChunkVector<T>::Resize(const int newsize) {
    
    fVec.Resize(chunksneeded);
    fNElements = newsize;
+}
+
+template<class T>
+int TPZChunkVector<T>::FindObject(T *obj) {
+  int nch = fVec.NElements();
+  int ich;
+  int index = 0;
+  // number of elements in a chunk
+  int nelch = 1<<fExponent;
+  for(ich=0; ich<nch; ich++) {
+    if(fVec[ich] == 0) continue;
+    if(obj >= fVec[ich] && obj < fVec[ich]+nelch) {
+      return index + (obj-fVec[ich]);
+    } else {
+      index += nelch;
+    }
+  }
+  if(ich == nch) return -1;
+  return index;
 }
 
 // Return a reference to the ith element of the vector

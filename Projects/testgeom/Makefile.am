@@ -11,10 +11,10 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 -include $(top_srcdir)/@PZ_MK@
 
-bin_PROGRAMS = main
+bin_PROGRAMS = geom
 
-main_SOURCES = main.cc pzadaptmesh.cc pzcclonemesh.cc pzgclonemesh.cc
+geom_SOURCES = geom.cpp pzgbmesh.cc
 
-main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
+geom_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 
 ## --| NeoPZ |------------------------------------------------------------------

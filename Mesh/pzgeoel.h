@@ -99,7 +99,16 @@ public:
    * @param index index of the new element in the element vector
    */
   TPZGeoEl(int materialindex,TPZGeoMesh &mesh,int &index);
-  TPZGeoEl() {}
+  TPZGeoEl() {
+    fId = -1;
+    fMesh = 0;
+    fMatId = 0;
+    fReference = 0;
+    fFather = 0;
+  }
+
+  virtual void Initialize(int materialindex, TPZGeoMesh &mesh, int &index);
+
   /**Destructor*/
   virtual ~TPZGeoEl() { }
 
