@@ -35,11 +35,11 @@ TPZMatrix * TPZSpStructMatrix::CreateAssemble(TPZFMatrix &rhs){
       return new TPZFYsmpMatrix(0,0);
     }
     TPZMatrix *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
-    TPZFYsmpMatrix *mat = dynamic_cast<TPZFYsmpMatrix *> stiff;
+    TPZFYsmpMatrix *mat = dynamic_cast<TPZFYsmpMatrix *> (stiff);
     rhs.Redim(neq,1);
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     Assemble(*stiff,rhs);
-    mat->ComputeDiagonal();
+    //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     return stiff;
 }
@@ -60,7 +60,7 @@ TPZMatrix * TPZSpStructMatrix::Create(){
     */
     TPZStack<int> elgraph;
     TPZVec<int> elgraphindex;
-    int nnodes = 0;
+    //    int nnodes = 0;
     fMesh->ComputeElGraph(elgraph,elgraphindex);
     /**Creates a element graph*/
     TPZMetis metis(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
@@ -74,7 +74,7 @@ TPZMatrix * TPZSpStructMatrix::Create(){
      */
     metis.ConvertGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
     /**vector sizes*/
-    int i,j;
+    int i;
     int nblock = nodegraphindex.NElements()-1;
     int totalvar = 0;
     int totaleq = 0;
@@ -103,7 +103,7 @@ TPZMatrix * TPZSpStructMatrix::Create(){
     REAL * EqValue = new REAL [totalvar];
     for(i=0;i<nblock;i++){
       int iblsize = fMesh->Block().Size(i);
-      if(pos != fMesh->Block().Position(i)) cout << "TPZSpStructMatrix::Create I dont understand\n";
+      if(ieq != fMesh->Block().Position(i)) cout << "TPZSpStructMatrix::Create I dont understand\n";
       int ibleq;
       for(ibleq=0; ibleq<iblsize; ibleq++) {
         Eq[ieq] = pos;
@@ -173,7 +173,7 @@ int TPZSpStructMatrix::main() {
        int nodeindex = gmesh.NodeVec ().AllocateNewElement ();
        
        // initializar os dados do nó
-       gmesh.NodeVec ()[i].Initialize (i,coord,gmesh);
+       gmesh.NodeVec ()[nodeindex].Initialize (i,coord,gmesh);
      }
      int el;
      TPZGeoEl *gel;
@@ -185,7 +185,7 @@ int TPZSpStructMatrix::main() {
        // O proprio construtor vai inserir o elemento na malha
        //       gel = new TPZGeoElQ2d(el,indices,1,gmesh);
        int index;
-       gel = gmesh->CreateGeoElement(EQuadrilateral,indices,1,index);
+       gel = gmesh.CreateGeoElement(EQuadrilateral,indices,1,index);
      }
      gmesh.BuildConnectivity ();
      
@@ -230,7 +230,7 @@ int TPZSpStructMatrix::main() {
      //	TPZAnalysis an2(&cmesh,output);
 
      TPZVec<int> numelconnected(cmesh.NEquations(),0);
-     int ic;
+     //     int ic;
      //cout << "Número de Equações -> " << cmesh.NEquations() << endl;
      //cout.flush();
 	
