@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cc,v 1.25 2003-12-09 19:27:49 tiago Exp $
+//$Id: TPZInterfaceEl.cc,v 1.26 2003-12-16 11:23:29 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -157,10 +157,20 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   ek.fMat->Redim(neq,neq);
   ef.fMat->Redim(neq,1);
   if(ncon){//no máximo ncon = 1
+    int ic = 0;
     ek.fBlock->SetNBlocks(ncon);
     ef.fBlock->SetNBlocks(ncon);
-    ek.fBlock->Set(0,left->NShapeF()*nstatel,right->NShapeF()*nstater);
-    ef.fBlock->Set(0,left->NShapeF()*nstatel);
+    if(left->NConnects()) {
+      ek.fBlock->Set(ic,left->NShapeF()*nstatel);
+      ef.fBlock->Set(ic,left->NShapeF()*nstatel);
+      ic++;
+    }
+    if(right->NConnects()) {
+      ek.fBlock->Set(ic,right->NShapeF()*nstater);
+      ef.fBlock->Set(ic,right->NShapeF()*nstater);
+    }
+    ek.fBlock->Resequence();
+    ef.fBlock->Resequence();
   }
   if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
     cout << "TPZInterfaceElement::CalcStiff : not enough storage for local stifness"
