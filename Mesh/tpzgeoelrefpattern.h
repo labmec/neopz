@@ -87,8 +87,9 @@ public:
   virtual void Divide(TPZVec<TPZGeoEl *> &pv);
 
   virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
-  /** Defines the element refinement pattern  */
-  void SetRefPattern (TPZRefPattern *refpat);
+  
+  /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
+  virtual void SetRefPattern(TPZRefPattern *refpat );
 
 };
 

@@ -40,7 +40,8 @@
 
 template<class TShape, class TGeo>
 TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern():TPZGeoElRefLess<TShape,TGeo>(){
-  fSubEl = 0;
+  fSubEl.Resize(1);
+  fSubEl[0] = 0;
   fRefPattern = 0;
 }
 
@@ -55,7 +56,8 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int
   TPZGeoElRefLess<TShape,TGeo>(nodeindices,matind,mesh) {
   if (!refpat){
     fRefPattern = 0;
-    fSubEl = 0;
+    fSubEl.Resize(1);
+    fSubEl[0] = 0;
     PZError << "TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern : NULL refinement pattern given" << endl;
     return;
   }
@@ -72,7 +74,8 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int
   TPZGeoElRefLess<TShape,TGeo>(nodeindices,matind,mesh,index) {
   if (!refpat){
     fRefPattern = 0;
-    fSubEl.Resize(0);
+    fSubEl.Resize(1);
+    fSubEl [0] = 0;
     PZError << "TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern : NULL refinement pattern given" << endl;
     return;
   }
@@ -88,7 +91,8 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(int id,TPZVec<int> &nodeinde
   TPZGeoElRefLess<TShape,TGeo>(id,nodeindexes,matind,mesh) {
   if (!refpat){
     fRefPattern = 0;
-    fSubEl.Resize(0);
+    fSubEl.Resize(1);
+    fSubEl[0] = 0;
    // PZError << "TPZGeoElRefPattern<TShape,TGeo>::Initialize : NULL refinement pattern given" << endl;
     return;
   }
@@ -104,7 +108,8 @@ void TPZGeoElRefPattern<TShape,TGeo>::Initialize(TPZVec<int> &nodeindices, int m
   TPZGeoElRefLess<TShape,TGeo>::Initialize(nodeindices,matind,mesh,index);
   if (!refpat){
     fRefPattern = 0;
-    fSubEl.Resize(0);
+    fSubEl.Resize(1);
+    fSubEl [0] = 0;
  //   PZError << "TPZGeoElRefPattern<TShape,TGeo>::Initialize : NULL refinement pattern given" << endl;
     return;
   }
@@ -198,16 +203,19 @@ void TPZGeoElRefPattern<TShape,TGeo>::MidSideNodeIndex(int side,int &index){
 
 template<class TShape, class TGeo>
 int TPZGeoElRefPattern<TShape,TGeo>::NSubElements(){
+  if (!fRefPattern) return 0;
   return fRefPattern->NSubElements();
 }
 
 template<class TShape, class TGeo>
 int TPZGeoElRefPattern<TShape,TGeo>::NSideSubElements2(int side){
+  if (!fRefPattern) return 0;
   return fRefPattern->NSideSubElements(side);
 }
 
 template<class TShape, class TGeo>
 TPZGeoEl * TPZGeoElRefPattern<TShape,TGeo>::SubElement(int is){
+  if (!fRefPattern) return 0;
   int nsubel = fRefPattern->NSubElements();
   if(is<0 || is>nsubel){
     cout << "TPZGeoElRefPattern::SubElement index error is= " << is << endl;;
@@ -276,6 +284,11 @@ TPZGeoElRefPattern<TShape,TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide
 template<class TShape, class TGeo>
 void
 TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
+  if (!fRefPattern) {
+    PZError << "TPZGeoElRefPattern<TShape,TGeo>::Divide ERROR : Undefined Refinement Pattern!" << endl;
+    SubElVec.Resize(0);
+    return;
+  }
   int i;
   int NSubEl = fRefPattern->NSubElements();
   if(HasSubElement()) {
@@ -293,7 +306,7 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
     np[j] = NodeIndex(j);
   }
   fRefPattern->CreateNewNodes (this, np);
- //cout << "NewNodeIndexes : " << np << endl;
+  cout << "NewNodeIndexes : " << np << endl;
 
 
   // I dont think the previous part will work...
@@ -311,8 +324,8 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
       int cornerid = fRefPattern->Element(i+1)->NodeIndex(j);
       cornerindexes[j] = np[cornerid];
     }
-    //cout << "Subel corner " << cornerindexes << endl;
-    TPZGeoEl *subel = Mesh()->CreateGeoElement((MElementType)fRefPattern->Element(i+1)->Type(),cornerindexes,matid,index);
+    cout << "Subel corner " << cornerindexes << endl;
+    TPZGeoEl *subel = Mesh()->CreateGeoElement((MElementType)fRefPattern->Element(i+1)->Type(),cornerindexes,matid,index,1);
     SetSubElement(i,subel);
   }
 
@@ -322,42 +335,53 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
     SubElVec[sub]->SetFather(this);
   }
 
-//  Mesh()->Print(cout);
+  Mesh()->Print(cout);
 
 //  fRefPattern->Mesh()->Print(cout);
   
-//  cout << "conectividades entre os filhos : viz interna  " << endl;
+  cout << "conectividades entre os filhos : viz interna  " << endl;
   for(i=0;i<NSubEl;i++) {
-//    cout << "SubElement " << i << endl;
+    cout << "SubElement " << i << endl;
     TPZGeoEl *refsubel = fRefPattern->Element(i+1);
     for (j=0;j<refsubel->NSides();j++){
-//      cout << "\t Side " << j << endl;
+      cout << "\t Side " << j << endl;
       TPZGeoElSide thisside (refsubel,j);
       TPZGeoElSide refneigh = refsubel->Neighbour(j);
-
-      while (refneigh != thisside && refneigh.Exists()) {
+      if(refneigh.Exists() && refneigh != thisside) {
         //como nao me deixam guardar o index do elemento geometrico...
-        for (k=0;k<NSubEl;k++){
-          if (fRefPattern->Element(k+1) == refneigh.Element() && k != i){
-//            cout << "\t\t\tFinded subel " << k << "  side of subel " << refneigh.Side()
-//                << "For subelement " << i << " side " << j << endl;
-            TPZGeoElSide neighbour (SubElement(k),refneigh.Side());
-            SubElement(i)->SetNeighbour(j,neighbour);
+        for (k=0;k<NSubEl+1;k++){
+          if (fRefPattern->Element(k) == refneigh.Element() && k-1 != i){
+            cout << "\t\t\tFound subel " << k << "  side of subel " << refneigh.Side()
+                << "For subelement " << i << " side " << j << endl;
+            TPZGeoElSide neighbour;
+            if(k) {
+              neighbour = TPZGeoElSide(SubElement(k-1),refneigh.Side());
+            } else {
+              neighbour = TPZGeoElSide(this, refneigh.Side());
+            }
+            TPZGeoElSide gs(SubElement(i),j);
+            if(!gs.NeighbourExists(neighbour)) gs.SetConnectivity(neighbour);
+            break;
           }
         }
-        refneigh = refneigh.Neighbour();
+        if(k == NSubEl+1) {
+          cout << "TPZGeoElRefPattern<TShape,TGeo>::Divide inconsistent datastructure subelement "
+            << i << " Side " << j << endl;
+        }
+      } else {
+        SubElement(i)->SetNeighbour(j,TPZGeoElSide(SubElement(i),j));
       }
     }
   }
 
-//  Print(cout);
-//  for (i=0;i<NSubEl;i++){
-//    TPZGeoEl *subel = SubElement(i);
-//    if (subel) cout << "Subel " << i << " OK " << endl ; //subel->Print(cout);
-//    else  cout << "Erro no subelement0 " << i << endl;
-//  }
+  Print(cout);
+  for (i=0;i<NSubEl;i++){
+    TPZGeoEl *subel = SubElement(i);
+    if (subel) cout << "Subel " << i << " OK " << endl ; //subel->Print(cout);
+    else  cout << "Erro no subelement0 " << i << endl;
+  }
 
-//  cout << "Chegou aqui ..." << endl;
+  cout << "Chegou aqui ..." << endl;
   SetSubElementConnectivities();
 }
 
