@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.43 2004-01-20 20:41:41 phil Exp $
+//$Id: TPZCompElDisc.cc,v 1.44 2004-01-23 19:12:25 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -126,7 +126,6 @@ void TPZCompElDisc::CreateInterfaces(){
     if(fReference->SideDimension(side) != gInterfaceDimension) continue;
     TPZCompElSide thisside(this,side);
     if(ExistsInterface(thisside.Reference())) {
-      int stop;
       cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
       continue;
     }
@@ -160,12 +159,26 @@ void TPZCompElDisc::CreateInterface(int side){
   //já criados antes de criar o elemento interface
   if(size){
     //neste caso existem ambos: esquerdo e direito, this e list[0], e são vizinhos
-    int matid1 = fMaterial->Id();
-    int matid2 = list[0].Element()->Material()->Id();
-    int matid = (matid1 < matid2) ? matid1 : matid2;
-    //    if(matid < 0){
-    //      matid = list[0].Element()->Material()->Id();
-    //    }
+/*    int matid1 = fMaterial->Id();
+    int matid2 = list[0].Element()->Material()->Id(); 
+    int matid = (matid1 < matid2) ? matid1 : matid2; */
+    
+//Antes (comentado acima) a interface tinha o material de menor id entre esquerdo e direito
+//Agora, a interface tem o material do elemento de menor dimensão (i.e. condicao de contorno)
+//Seria interessante testar se o material do contorno eh filho do TPZBndCond, mas traria problemas ao cfdk.
+    int matid;
+    int thisdim = this->Dimension();
+    int neighbourdim = list[0].Element()->Dimension();
+    if (thisdim == neighbourdim) 
+      matid = this->Material()->Id();
+    else {
+      if (thisdim < neighbourdim)
+	matid = this->Material()->Id();
+      else
+	matid = list[0].Element()->Material()->Id();
+    }
+
+
     TPZGeoEl *gel = fReference->CreateBCGeoEl(side,matid);
     //isto acertou as vizinhan¢as da interface geométrica com o atual
     int index;
