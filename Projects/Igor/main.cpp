@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.9 2003-12-15 19:21:28 tiago Exp $
+//$Id: main.cpp,v 1.10 2004-02-05 16:11:13 tiago Exp $
 /**
  * Galerkin descontinuo: visita do professor Igor.
  * 24/11/2003
@@ -126,7 +126,7 @@ int main(){
 
 #ifdef DEBUGM
   p = 6;
-  h = 1;
+  h = 0;
 #endif
 
   cout << "\nQuadrado = 1; Triang = 2" << endl;
@@ -385,6 +385,11 @@ TPZCompMesh *CreateMesh() {
 
   gmesh->BuildConnectivity();
 
+
+  //<!>
+  TPZVec<TPZGeoEl *> filho;
+  elvec[0]->Divide(filho);
+
     
   for(int i = 0; i < nelem; i++){
     TPZVec<TPZGeoEl *> children, netos, bisnetos, tata1, tata2, tata3;
@@ -506,8 +511,6 @@ TPZCompMesh *CreateMesh() {
   TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
-  
-  TPZCompElDisc::gInterfaceDimension = 1;
   
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
@@ -673,9 +676,6 @@ TPZCompMesh *CreateMesh2() {
   TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
-
-  
-  TPZCompElDisc::gInterfaceDimension = 1;
   
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
@@ -825,8 +825,6 @@ TPZCompMesh *CreateMeshPhil() {
   TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
-  
-  TPZCompElDisc::gInterfaceDimension = 1;
   
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
@@ -993,9 +991,6 @@ TPZCompMesh *CreateMesh3() {
   TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
 
-  
-  TPZCompElDisc::gInterfaceDimension = 1;
-  
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
