@@ -1,5 +1,5 @@
 #
-# NeoPZ adaptivity makefile
+# NeoPZ materialhyperelastico makefile
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
@@ -11,10 +11,12 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 -include $(top_srcdir)/@PZ_MK@
 
-bin_PROGRAMS = main
+bin_PROGRAMS = testhyperelastic hyperelastic
 
-main_SOURCES = main.cc pzadaptmesh.cc pzcclonemesh.cc pzgclonemesh.cc
+testhyperelastic_SOURCES = testhyperelastic.cc
+hyperelastic_SOURCES = hyperelastic.cc
 
-main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
+testhyperelastic_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
+hyperelastic_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 
 ## --| NeoPZ |------------------------------------------------------------------

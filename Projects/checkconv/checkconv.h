@@ -1,8 +1,11 @@
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <fstream.h>
+#include <cstdlib>
+#include <fstream>
+#include <cmath>
 #include "pztempmat.h"
+
+using namespace std;
 
 template <class TConv>
 void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<REAL> &coefs){
@@ -14,7 +17,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
      double randnum = (rand()&1000)/999.;
       incval(i,0) = range(i,0)*randnum;
    }
-   ofstream log("conv.log");
+   ofstream logfile("conv.log");
    int icase;
    int numcases = obj.NumCases();
    int ncoefs = coefs.NElements();
@@ -42,18 +45,18 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
          difnorm[interval] = Norm(residual);
       }
       cout << "icase = " << icase << endl;
-      log << "icase = " << icase << endl;
+      logfile << "icase = " << icase << endl;
       for(interval = 2; interval<10; interval++) {
          if(fabs(difnorm[interval]) < 1.e-12 || fabs(difnorm[interval-1]) <1.e-12) {
 	   cout << "residual too small\n";
-           log << "residual too small\n";
+           logfile << "residual too small\n";
 	   break;
 	 }
          cout << (log10(difnorm[interval])-log10(difnorm[interval-1]))/
                  (log10(interval)-log10(interval-1)) << endl;
-         log << (log10(difnorm[interval])-log10(difnorm[interval-1]))/
-                (log10(interval)-log10(interval-1)) << endl;
+         logfile << (log10(difnorm[interval])-log10(difnorm[interval-1]))/
+	    (log10(interval)-log10(interval-1)) << endl;
       }
    }
-   log.flush();
+   logfile.flush();
 }

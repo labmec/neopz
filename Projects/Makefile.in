@@ -79,6 +79,9 @@ COMPILATION_MODE = @COMPILATION_MODE@
 CXX = @CXX@
 MAKEINFO = @MAKEINFO@
 METISDIR = @METISDIR@
+METISINCLUDE = @METISINCLUDE@
+METISLIB = @METISLIB@
+METISLIBDIR = @METISLIBDIR@
 MODE_OPTIONS = @MODE_OPTIONS@
 PACKAGE = @PACKAGE@
 PZ_CLEANFILES = @PZ_CLEANFILES@
@@ -95,7 +98,8 @@ VERSION = @VERSION@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES = @PZ_CLEANFILES@
 
-SUBDIRS = adaptivity angletest checkcont
+SUBDIRS = adaptivity angletest checkcont checkconv cycleref cylin 	materialhyperelastico matrix multplaca placyl pzvc qualif 	termica teste testeisotropia testgeom testmat testshape viga3d
+
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  Makefile.am Makefile.in

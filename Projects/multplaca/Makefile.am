@@ -1,5 +1,5 @@
 #
-# NeoPZ adaptivity makefile
+# NeoPZ multplaca makefile
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
@@ -11,10 +11,10 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 -include $(top_srcdir)/@PZ_MK@
 
-bin_PROGRAMS = main
+bin_PROGRAMS = jornadas
 
-main_SOURCES = main.cc pzadaptmesh.cc pzcclonemesh.cc pzgclonemesh.cc
+jornadas_SOURCES = jornadas.cc
 
-main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
+jornadas_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
 
 ## --| NeoPZ |------------------------------------------------------------------

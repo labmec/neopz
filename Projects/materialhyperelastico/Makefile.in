@@ -11,7 +11,7 @@
 # PARTICULAR PURPOSE.
 
 #
-# NeoPZ adaptivity makefile
+# NeoPZ materialhyperelastico makefile
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
@@ -98,11 +98,13 @@ VERSION = @VERSION@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES = @PZ_CLEANFILES@
 
-bin_PROGRAMS = main
+bin_PROGRAMS = testhyperelastic hyperelastic
 
-main_SOURCES = main.cc pzadaptmesh.cc pzcclonemesh.cc pzgclonemesh.cc
+testhyperelastic_SOURCES = testhyperelastic.cc
+hyperelastic_SOURCES = hyperelastic.cc
 
-main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
+testhyperelastic_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
+hyperelastic_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 PROGRAMS =  $(bin_PROGRAMS)
@@ -112,9 +114,14 @@ DEFS = @DEFS@ -I. -I$(srcdir)
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-main_OBJECTS =  main.o pzadaptmesh.o pzcclonemesh.o pzgclonemesh.o
-main_DEPENDENCIES =  $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
-main_LDFLAGS = 
+testhyperelastic_OBJECTS =  testhyperelastic.o
+testhyperelastic_DEPENDENCIES =  $(top_srcdir)/lib/libpz.a \
+@METISDIR@/lib/libmetis.a
+testhyperelastic_LDFLAGS = 
+hyperelastic_OBJECTS =  hyperelastic.o
+hyperelastic_DEPENDENCIES =  $(top_srcdir)/lib/libpz.a \
+@METISDIR@/lib/libmetis.a
+hyperelastic_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
@@ -126,16 +133,15 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/main.P .deps/pzadaptmesh.P .deps/pzcclonemesh.P \
-.deps/pzgclonemesh.P
-SOURCES = $(main_SOURCES)
-OBJECTS = $(main_OBJECTS)
+DEP_FILES =  .deps/hyperelastic.P .deps/testhyperelastic.P
+SOURCES = $(testhyperelastic_SOURCES) $(hyperelastic_SOURCES)
+OBJECTS = $(testhyperelastic_OBJECTS) $(hyperelastic_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cc .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu Projects/adaptivity/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu Projects/materialhyperelastico/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -183,9 +189,13 @@ distclean-compile:
 
 maintainer-clean-compile:
 
-main: $(main_OBJECTS) $(main_DEPENDENCIES)
-	@rm -f main
-	$(CXXLINK) $(main_LDFLAGS) $(main_OBJECTS) $(main_LDADD) $(LIBS)
+testhyperelastic: $(testhyperelastic_OBJECTS) $(testhyperelastic_DEPENDENCIES)
+	@rm -f testhyperelastic
+	$(CXXLINK) $(testhyperelastic_LDFLAGS) $(testhyperelastic_OBJECTS) $(testhyperelastic_LDADD) $(LIBS)
+
+hyperelastic: $(hyperelastic_OBJECTS) $(hyperelastic_DEPENDENCIES)
+	@rm -f hyperelastic
+	$(CXXLINK) $(hyperelastic_LDFLAGS) $(hyperelastic_OBJECTS) $(hyperelastic_LDADD) $(LIBS)
 .cc.o:
 	$(CXXCOMPILE) -c $<
 
@@ -220,14 +230,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = Projects/adaptivity
+subdir = Projects/materialhyperelastico
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Projects/adaptivity/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Projects/materialhyperelastico/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \

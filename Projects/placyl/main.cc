@@ -15,8 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <iostream.h>
-#include <stdlib.h>
+#include <iostream>
+#include <cstdlib>
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -29,6 +29,7 @@
 #include "pzskylmat.h"
 #include "pzanalysis.h"
 #include "pzsolve.h"
+#include "pzcylinsys.h"
 
 void CycleRefinements(TPZCompMesh&cm, int numcycles, int minel, int maxel, ofstream &out);
 int IsGroup(int ind, TPZCompEl *cel, TPZVec<int> &indgroup);

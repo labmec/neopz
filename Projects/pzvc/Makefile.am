@@ -1,5 +1,5 @@
 #
-# NeoPZ adaptivity makefile
+# NeoPZ pzvc makefile
 #
 # It will be processed by GNU automake to produce Makefile.in
 #

@@ -1,5 +1,5 @@
 #
-# NeoPZ adaptivity makefile
+# NeoPZ checkcont makefile
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
@@ -15,6 +15,6 @@ bin_PROGRAMS = continue2
 
 continue2_SOURCES = continue2.cc
 
-continue2_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
+continue2_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 
 ## --| NeoPZ |------------------------------------------------------------------

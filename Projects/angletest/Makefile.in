@@ -79,6 +79,9 @@ COMPILATION_MODE = @COMPILATION_MODE@
 CXX = @CXX@
 MAKEINFO = @MAKEINFO@
 METISDIR = @METISDIR@
+METISINCLUDE = @METISINCLUDE@
+METISLIB = @METISLIB@
+METISLIBDIR = @METISLIBDIR@
 MODE_OPTIONS = @MODE_OPTIONS@
 PACKAGE = @PACKAGE@
 PZ_CLEANFILES = @PZ_CLEANFILES@
@@ -99,7 +102,7 @@ bin_PROGRAMS = testeangular
 
 testeangular_SOURCES = testeangular.cc
 
-testeangular_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
+testeangular_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 PROGRAMS =  $(bin_PROGRAMS)
@@ -111,7 +114,7 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 testeangular_OBJECTS =  testeangular.o
 testeangular_DEPENDENCIES =  $(top_srcdir)/lib/libpz.a \
-@METISDIR@/Lib/libmetis.a
+@METISDIR@/lib/libmetis.a
 testeangular_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
