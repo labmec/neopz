@@ -12,8 +12,8 @@ void FillMatrix(TPZMatrix &mat,int neq, int banda);
 void FillF(TPZFMatrix &f, int neq, int nst);
 
 int main(){
-  int neq=10;
-  int banda=2;
+  int neq=1000;
+  int banda=50;
   int i,j;
  
   TPZFMatrix  cheia(neq,neq, 0.);
@@ -43,18 +43,17 @@ int main(){
 
   TPZStepSolver step(&cheia);
   TPZStepSolver precond(step);
-  int numiterpre =5;
-  int numiter = 20;
+  int numiterpre =2;
+  int numiter = 5;
   double overrelax = 1.1;
   double tol = 1e-8;
-  precond.SetSSOR(numiterpre,overrelax,tol,1);
-  step.SetCG(numiter,precond,tol,1);
+  precond.SetSSOR(numiterpre,overrelax,tol,0);
+  step.SetCG(numiter,precond,tol,0);
   step.Solve(F,resultcheia);
 
+  
   resultcheia.Print("Solucão ",cout);
-   
-  cout << "Integral = " << endl;
-  return 0;
+	return 0;
 }
 
 void FillMatrix(TPZMatrix &mat,int neq, int banda){
