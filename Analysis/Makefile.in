@@ -110,7 +110,7 @@ analysis_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzanalysis.a
 
-libpzanalysis_a_SOURCES = pzanalysis.cc 	pzanalysiserror.cc 	pzmganalysis.cc 	pznonlinanalysis.cc 	pzonedref.cc 	pzsmanal.cc 	pzsmfrontalanal.cc
+libpzanalysis_a_SOURCES = pzanalysis.cc 		pzanalysiserror.cc 		pzmganalysis.cc 		pznonlinanalysis.cc 		pzonedref.cc 		pzsmanal.cc 		pzsmfrontalanal.cc 		TPZIterativeAnalysis.cc
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
@@ -123,7 +123,8 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libpzanalysis_a_LIBADD = 
 libpzanalysis_a_OBJECTS =  pzanalysis.o pzanalysiserror.o pzmganalysis.o \
-pznonlinanalysis.o pzonedref.o pzsmanal.o pzsmfrontalanal.o
+pznonlinanalysis.o pzonedref.o pzsmanal.o pzsmfrontalanal.o \
+TPZIterativeAnalysis.o
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
@@ -137,9 +138,9 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/pzanalysis.P .deps/pzanalysiserror.P \
-.deps/pzmganalysis.P .deps/pznonlinanalysis.P .deps/pzonedref.P \
-.deps/pzsmanal.P .deps/pzsmfrontalanal.P
+DEP_FILES =  .deps/TPZIterativeAnalysis.P .deps/pzanalysis.P \
+.deps/pzanalysiserror.P .deps/pzmganalysis.P .deps/pznonlinanalysis.P \
+.deps/pzonedref.P .deps/pzsmanal.P .deps/pzsmfrontalanal.P
 SOURCES = $(libpzanalysis_a_SOURCES)
 OBJECTS = $(libpzanalysis_a_OBJECTS)
 
