@@ -1,0 +1,173 @@
+#include "pzgmesh.h"
+#include "pzcmesh.h"
+#include "pzgeoel.h"
+#include "pzcompel.h"
+#include "pzvec.h"
+#include "pzerror.h"
+#include <pzmat1dlin.h>
+#include <pzmattest3d.h>
+#include "TPZRefPattern.h"
+#include "tpzgeoelrefpattern.h"
+
+//Shape Classes
+#include <pzshapepoint.h>
+#include <pzshapelinear.h>
+#include <pzshapetriang.h>
+#include <pzshapequad.h>
+#include <pzshapetetra.h>
+#include <pzshapepiram.h>
+#include <pzshapeprism.h>
+#include <pzshapecube.h>
+
+//Geometry Classes
+#include <pzgeopoint.h>
+#include <TPZGeoLinear.h>
+#include <pzgeotriangle.h>
+#include <pzgeoquad.h>
+#include <pzgeotetrahedra.h>
+#include <pzgeopyramid.h>
+#include <pzgeoprism.h>
+#include <TPZGeoCube.h>
+
+//matrix and analysis classes
+#include "pzfmatrix.h"
+#include "pzanalysis.h"
+#include "pzskylstrmatrix.h"
+
+//solvers
+#include "pzsolve.h"
+#include "pzstepsolver.h"
+
+//IO
+#include <iostream>
+using namespace std;
+
+void ExactSimple3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+
+
+int main(){
+  int nx = 2;
+  int ny = 2;
+  int nz = 2;
+  int i,j,k;
+
+  TPZGeoMesh *gmesh = new TPZGeoMesh();
+  TPZGeoEl * elvec[(const int)((nx-1)*(ny-1)*(nz-1))];
+
+  TPZVec <REAL> coord (3,0.);
+  TPZVec <int> connect(8,0);
+  REAL lx = 1.;
+  REAL ly = 1.;
+  REAL lz = 1.;
+  int id, index;
+  //Nodes initialization
+  for(i = 0; i < nx; i++){
+    for(j = 0; j < ny; j++){
+      for(k = 0; k < nz; k++){
+        id = (i)*nz*ny + (j)*nz + k;
+        coord[0] = (i)*lx/(nx - 1);
+        coord[1] = (j)*ly/(ny - 1);
+        coord[2] = (k)*lz/(nz - 1);
+        //cout << coord << endl;
+        index = gmesh->NodeVec().AllocateNewElement();
+        gmesh->NodeVec()[index] = TPZGeoNode(id,coord,*gmesh);
+      }
+    }
+  }
+
+  //Element connectivities
+  TPZRefPattern unifcube ("/home/pos/cesar/RefPattern/Hexa_Unif.rpt");
+  unifcube.Mesh()->Print(cout);
+  for(i = 0; i < (nx - 1); i++){
+    for(j = 0; j < (ny - 1); j++){
+      for(k = 0; k < (nz - 1); k++){
+        index = (i)*(nz - 1)*(ny - 1) + (j)*(nz - 1) + k;
+        connect[0] = (i)*nz*ny + (j)*nz + k;
+        connect[1] = connect[0]+(ny)*(nz);
+        connect[2] = connect[1]+(nz);
+        connect[3] = connect[0]+(nz);
+        connect[4] = connect[0] + 1;
+        connect[5] = connect[1] + 1;
+        connect[6] = connect[2] + 1;
+        connect[7] = connect[3] + 1;
+        //cout << connect << endl;
+        int a = 0;
+        if (a)  elvec[index] = gmesh->CreateGeoElement(ECube,connect,1,id);
+        else {
+          TPZGeoElRefPattern <TPZShapeCube,TPZGeoCube> *gel =
+              new TPZGeoElRefPattern <TPZShapeCube,TPZGeoCube> (index,connect,1,*gmesh,&unifcube);
+          elvec[index] = gel;
+        }
+      }
+    }
+  }
+  
+  gmesh->Print(cout);
+  //Create computational mesh
+
+  TPZGeoElBC gbc;
+
+  // bc -1 -> Dirichlet at the bottom face of the cube
+  TPZGeoElBC gbc1(elvec[0],20,-1,*gmesh);
+  // bc -2 -> Neumann at the top face of the cube
+  TPZGeoElBC gbc2(elvec[0],25,-2,*gmesh);
+  //Generate neighborhod information
+
+  gmesh->BuildConnectivity();
+
+  TPZVec<TPZGeoEl*> subel;
+//  gmesh->ElementVec()[0]->Divide(subel);
+//  TPZVec<TPZGeoEl*> subelaux;
+//  for (i=0;i<subel.NElements();i++){
+//    subel[i]->Divide(subelaux);
+//  }
+  
+
+  TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+  TPZMaterial *mat;
+  mat = new TPZMaterialTest3D(1);
+  TPZFMatrix mp (3,1,0.);
+  TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
+  TPZMaterialTest3D::eq3=1;
+  mataux->SetMaterial(mp);
+  TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+  TPZBndCond *bc[2];
+  bc[0] = mat->CreateBC(-1,0,val1,val2);
+  val2(0,0)=1.;
+  bc[1] = mat->CreateBC(-2,1,val1,val2);
+
+  cmesh->InsertMaterialObject(mat);
+  for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
+  TPZCompEl::gOrder = 1;
+  cmesh->AutoBuild();
+
+  TPZVec<int> subelindex;
+  cmesh->ElementVec()[0]->Divide(0,subelindex);
+  ofstream out("malha-rp.out");
+  cmesh->Print(out);
+
+  TPZSkylineStructMatrix strskyl(cmesh);
+  TPZAnalysis an(cmesh);
+  an.SetStructuralMatrix(strskyl);
+  an.SetExact(ExactSimple3D);
+  TPZStepSolver *direct = new TPZStepSolver;
+  direct->SetDirect(ECholesky);
+  an.SetSolver(*direct);
+  delete direct;
+  direct = 0;
+  an.Run();
+  cmesh->Solution().Print("Vetor Solucao",cout);
+  an.Solution().Print("Vetor Solucao",cout);
+  delete cmesh;
+  return 0;
+}
+
+
+
+
+void ExactSimple3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
+  sol[0] = x[2];
+  dsol(0,0) = 0.;
+  dsol(1,0) = 0.;
+  dsol(2,0) = 1.;
+}
