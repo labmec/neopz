@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.12 2004-03-01 21:54:19 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.13 2004-04-01 19:12:49 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -69,8 +69,7 @@ void TPZGeoMesh::CleanUp() {
     map<string,TPZRefPattern *>::iterator name_last = map_el.end();
     map<string,TPZRefPattern *>::iterator name_iter;    
     for(name_iter = name_first; name_iter != name_last; name_iter++){
-      TPZRefPattern *refpat = (*name_iter).second;
-      delete refpat;
+      map_el.erase(name_iter);
     }
   }
 }
