@@ -32,6 +32,8 @@ void Residual(TPZFMatrix &residual, int icase);
 
 void LoadSolution(TPZFMatrix &state);
 
+void LoadState(TPZFMatrix &state);
+
 };
 
 #endif

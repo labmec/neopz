@@ -43,7 +43,7 @@ void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter) {
 	
    while(error > tol && iter < numiter) {
 
-      fSolution.Zero();
+      fSolution.Redim(0,0);
       Run();
       REAL norm = SolutionNorm();
       cout << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << endl;
@@ -98,6 +98,11 @@ void TPZNonLinearAnalysis::Residual(TPZFMatrix &residual, int icase){
 }
 
 void TPZNonLinearAnalysis::LoadSolution(TPZFMatrix &state){
+
+	Mesh()->LoadSolution(state);
+}
+
+void TPZNonLinearAnalysis::LoadState(TPZFMatrix &state){
 
 	Mesh()->LoadSolution(state);
 }
