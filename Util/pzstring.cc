@@ -1,5 +1,5 @@
 /** @file pzstring.cc */
-// $Id: pzstring.cc,v 1.4 2003-10-17 13:57:33 rgdamas Exp $
+// $Id: pzstring.cc,v 1.5 2004-01-14 12:21:01 rgdamas Exp $
 
 #include "pzstring.h"
 
@@ -182,5 +182,24 @@ void TPZString::SimplifyWhiteSpace()
 		}
 	}
 	fStore[newpos] = '\0';
+}
+
+int TPZString::Replace( const char * replace_str, const char *new_substr){
+  string newstring(fStore);
+  const int replace_len = strlen(replace_str);
+  int  count = 0;
+  string::size_type pos = newstring.find(replace_str, 0);
+  while( pos!= string::npos) {
+    newstring.replace(pos, replace_len, new_substr);
+    pos = newstring.find(replace_str, 0);
+    count++;
+  }
+  if(count) strcpy(fStore, newstring.c_str());
+  return(count);
+}
+
+int TPZString::Find(const char * find_str){
+	string fchr(fStore);
+	return fchr.find(find_str, 0);
 }
 //--| PZ |----------------------------------------------------------------------

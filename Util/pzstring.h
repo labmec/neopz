@@ -2,7 +2,7 @@
  * @file pzstring.h
  * @brief String implementation.
  */
-// $Id: pzstring.h,v 1.3 2003-10-17 13:45:37 rgdamas Exp $
+// $Id: pzstring.h,v 1.4 2004-01-14 12:21:01 rgdamas Exp $
 
 #ifndef PZSTRING_H
 #define PZSTRING_H
@@ -51,6 +51,14 @@ public:
 
 	/** Appends a character at the end. Resizes if necessary. */
 	void operator += (const char increment);
+
+	/** operator =. Resizes if necessary. */
+	bool operator == (const TPZString cmp)
+	{
+		if(!strcmp(fStore, cmp.fStore)) return true;
+		else return false;
+
+	}
 
 	/** operator =. Resizes if necessary. */
 	void operator = (const char * source)
@@ -111,7 +119,14 @@ public:
 	 */
 	void Optimize();
 
+	/** Remove the repeat white spaces */
 	void SimplifyWhiteSpace();
+
+	/** Replace the subset of string. Return the times of replacement. */
+	int Replace(const char * old_str, const char * new_str);
+
+	/** Find the positions of the first occurence of the find string */
+	int Find(const char * find_str);
 };
 
 
