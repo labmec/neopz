@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.64 2005-02-28 22:08:52 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.65 2005-03-01 14:08:40 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -717,7 +717,7 @@ int TPZCompElDisc::ExistsInterface(TPZGeoElSide geosd){
 void TPZCompElDisc::RemoveInterfaces(){
 
   int nsides = Reference()->NSides();
-  int InterfaceDimension = fMaterial->Dimension();
+  int InterfaceDimension = fMaterial->Dimension() - 1;
   int is;
   TPZStack<TPZCompElSide> list,equal;
   for(is=0;is<nsides;is++){
