@@ -29,12 +29,15 @@ int main()
 			 X, Xi,
 			 Y, Yi,
 			 M, Mi,
+			 RM, RMi,
 			 Temp, Temp2,
-			 LambdaSUPG, LambdaB;
+			 LambdaSUPG, LambdaB,
+			 BornhausCompl;
 
  {// 2d Tests
 
-   TPZVec<Number> sol, aaS;
+   TPZVec<Number> sol;
+   TPZVec<REAL> aaS;
    Number us, c;
 
    //creating data
@@ -72,6 +75,23 @@ int main()
    M.Multiply(Mi, Temp);
    cout << "M.Mi" << Temp << endl;
 
+   cout << "Testing RMMatrix 2d\n";
+
+   TPZArtDiff::RMMatrix(sol, us, 1.4, RM, RMi);
+
+   cout << "RM" << RM << endl;
+   cout << "RMi" << RMi << endl;
+   RM.Multiply(RMi, Temp);
+   cout << "RM.RMi" << Temp << endl;
+
+   RotT.Multiply(M,Temp);
+   Temp.Add(RM, -1);
+   cout << "RM-RotT.M" << Temp << endl;
+
+   Mi.Multiply(Rot,Temp);
+   Temp.Add(RMi, -1);
+   cout << "RMi-Mi.Rot" << Temp << endl;
+
    cout << "Testing SUPG 2d\n";
 
    TPZArtDiff::EigenSystemSUPG(sol, us, c, 1.4, X, Xi, LambdaSUPG);
@@ -98,7 +118,7 @@ int main()
 
    aaS.Resize(2);
    aaS[0] = 2.1;
-   aaS[1] = 2.3;
+   aaS[1] = 12.3;
 
    TPZArtDiff::EigenSystemBornhaus(sol, us, c, 1.4, aaS, Y, Yi, LambdaB);
 
@@ -107,11 +127,21 @@ int main()
    Y.Multiply(Yi, Temp);
    cout << "Y.Yi" << Temp << endl;
 
+   BornhausCompl.Redim(sol.NElements(), sol.NElements());
+   TPZArtDiff::ContributeBornhaus(sol, us, c, 1.4, aaS, BornhausCompl);
+   Y. Multiply(LambdaB, Temp);
+   Temp.Multiply(Yi, Temp2);
+   Temp2.Add(BornhausCompl, -1.);
+   cout << "BornhausCompl" << endl;
+   cout << BornhausCompl << endl;
+   cout << "Y.Lambda.Yi - BornhausCompl" << endl;
+   cout << Temp2<< endl;
  }
 
  {// 3d Tests
 
-   TPZVec<Number> sol, aaS;
+   TPZVec<Number> sol;
+   TPZVec<REAL> aaS;
    Number us, c;
 
    //creating data
@@ -151,6 +181,23 @@ int main()
    cout << "Mi" << Mi << endl;
    M.Multiply(Mi, Temp);
    cout << "M.Mi" << Temp << endl;
+
+   cout << "Testing RMMatrix 3d\n";
+
+   TPZArtDiff::RMMatrix(sol, us, 1.4, RM, RMi);
+
+   cout << "RM" << RM << endl;
+   cout << "RMi" << RMi << endl;
+   RM.Multiply(RMi, Temp);
+   cout << "RM.RMi" << Temp << endl;
+
+   RotT.Multiply(M,Temp);
+   Temp.Add(RM, -1);
+   cout << "RTM-RotT.M" << Temp << endl;
+
+   Mi.Multiply(Rot,Temp);
+   Temp.Add(RMi, -1);
+   cout << "RMi-Mi.Rot" << Temp << endl;
 
    cout << "Testing SUPG 3d\n";
 
