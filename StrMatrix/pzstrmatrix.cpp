@@ -10,6 +10,7 @@
 #include "pzgmesh.h"
 #include "pzelmat.h"
 #include "pzcompel.h"
+#include "pzintel.h"
 
 #include "pzelgq2d.h"
 #include "pzgnode.h"
@@ -53,7 +54,19 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
     TPZCompEl *el = elementvec[iel];
     if(!el) continue;
     //	  int dim = el->NumNodes();
+#ifndef _AUTODIFF
     el->CalcStiff(ek,ef);
+#else
+    TPZInterpolatedElement * pIntel = NULL;
+    pIntel = dynamic_cast<TPZInterpolatedElement *>(el);
+    if(pIntel)
+    {
+       pIntel->CalcEnergy(ek,ef);
+    }else
+    {
+       el->CalcStiff(ek,ef);
+    }
+#endif
     if( nelem < 34 || (nelem > 33 && iel < 33) ){
       out << "Element id : " << el->Reference()->Id() << endl;
       ek.fMat->Print("MATRIZ EK",out);
@@ -130,10 +143,10 @@ if(ek.fConstrMat->Decompose_LU() != -1) {
   }//fim for iel
 //
   int neq = rhs.Rows();
-  if(nelem < 34 && neq < 100){
+/*  if(nelem < 34 && neq < 100){
     stiffness.Print("TPZStructMatrix::Assemble GLOBAL MATRIX (after Assemble)",out);
     rhs.Print("TPZStructMatrix::Assemble GLOBAL LOAD (after Assemble)",out);
-  }
+  }*/
 }
 
 TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh){
