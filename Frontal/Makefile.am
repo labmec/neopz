@@ -28,5 +28,5 @@ libpzfrontal_a_SOURCES = pzvecfrontal.cpp \
 	TPZStackEqnStorage.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------
-AM_CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@ @USING_FAD@ @USING_ATLAS@ @USING_BLAS@
+AM_CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@ @USING_FAD@ @USING_ATLAS@ @USING_BLAS@ @ATLASINCLUDE@ 
 INCLUDES = -I$(top_srcdir)/Common -I$(top_srcdir)/Matrix -I$(top_srcdir)/Save -I$(top_srcdir)/Util
