@@ -66,6 +66,10 @@ protected:
   int fNNodes;
 };
 
+class TPZCompMesh;
+
+void ResequenceByGeometry(TPZCompMesh *cmesh,const TPZVec<REAL> &normal);
+
 #endif //TPZRENUMBERING_H
 
 

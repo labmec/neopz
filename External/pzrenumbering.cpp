@@ -5,6 +5,8 @@
 #include "pzvec.h"
 #include "pzerror.h"
 #include "pzstack.h"
+#include <map>
+using namespace std;
 
 void TPZRenumbering::NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &nodtoelgraph, TPZVec<int> &nodtoelgraphindex){
   /*        cout << "fNNodes +1: " << (fNNodes+1) << endl;
@@ -165,5 +167,58 @@ void TPZRenumbering::Print(TPZVec<int> &grapho, TPZVec<int> &graphoindex, const 
 		cout << endl;
 	}
 }
+#include "pzgeoel.h"
+#include "pzgnode.h"
+#include "pzcompel.h"
 	
+static REAL XMin(TPZGeoEl *gel, const TPZVec<REAL> &normal) {
 
+  int nnode = gel->NNodes();
+  REAL distmin = 1.e10;
+  if(!nnode) {
+    cout << "Geometric element without nodes??? \n";
+    gel->Print(cout);
+    return distmin;
+  }
+  TPZGeoNode *gn = gel->NodePtr(0);
+  distmin = gn->Coord(0)*normal[0]+ gn->Coord(1)*normal[1]+ gn->Coord(2)*normal[2];
+  int in;
+  for(in=0; in<nnode; in++) {
+    gn=gel->NodePtr(in);
+    REAL dist = gn->Coord(0)*normal[0]+ gn->Coord(1)*normal[1]+ gn->Coord(2)*normal[2];
+    distmin = distmin < dist ? distmin : dist;
+  }
+  return distmin;
+
+}
+void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
+
+  TPZCompEl *cel;
+  multimap<REAL, TPZCompEl *> elmap;
+  int nelem = cmesh->ElementVec().NElements();
+  int iel;
+  for(iel=0; iel<nelem; iel++) {
+    cel = cmesh->ElementVec()[iel];
+    if(!cel) continue;
+    TPZGeoEl *gel = cel->Reference();
+    if(!gel) continue;
+    REAL dist = XMin(gel,normal);
+    elmap.insert(pair<REAL,TPZCompEl *>(dist,cel));
+  }
+  TPZVec<int> Permute(cmesh->NConnects(),-1);
+  multimap<REAL, TPZCompEl *>::iterator it;
+  it = elmap.begin();
+  int iseq=0;
+  while(it != elmap.end()) {
+    cel = it->second;
+    int nc = cel->NConnects();
+    int ic;
+    for(ic=0; ic<nc; ic++) {
+      int seqnum = cel->Connect(ic).SequenceNumber();
+      if(Permute[seqnum] == -1) Permute[seqnum] = iseq++;
+    }
+    it++;
+  }
+  cmesh->Permute(Permute);
+
+}
