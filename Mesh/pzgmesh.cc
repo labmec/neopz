@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cc,v 1.8 2003-11-25 17:58:30 cesar Exp $
+//$Id: pzgmesh.cc,v 1.9 2003-12-12 19:59:20 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -467,34 +467,34 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(
    switch( type )
    {
       case 0://point
-	 return new TPZGeoElement< TPZShapePoint, TPZGeoPoint, TPZRefPoint>(
-	    nodeindexes, matid, *this, index );
+      return new TPZGeoElement< TPZShapePoint, TPZGeoPoint, TPZRefPoint>(
+        nodeindexes, matid, *this, index );
 
       case 1://line
 	 return new TPZGeoElement< TPZShapeLinear, TPZGeoLinear, TPZRefLinear>(
 	    nodeindexes, matid, *this, index );
 
       case 2://triangle
-//	 return new TPZGeoElement<
-//	    TPZShapeTriang, TPZGeoTriangle, TPZRefTriangle >(
-//	       nodeindexes, matid, *this, index );
-     return new TPZGeoElT2d(nodeindexes,matid,*this);
+	 return new TPZGeoElement<
+	    TPZShapeTriang, TPZGeoTriangle, TPZRefTriangle >(
+	       nodeindexes, matid, *this, index );
+//     return new TPZGeoElT2d(nodeindexes,matid,*this);
 
       case 3://quadrilatera
 	 return  new TPZGeoElement< TPZShapeQuad, TPZGeoQuad, TPZRefQuad >(
 	    nodeindexes, matid, *this, index );
 
       case 4://tetraedra
-     return new TPZGeoElT3d(nodeindexes,matid,*this);
-//	 return new TPZGeoElement<
-//	    TPZShapeTetra, TPZGeoTetrahedra, TPZRefTetrahedra >(
-//	       nodeindexes, matid, *this, index );
+//     return new TPZGeoElT3d(nodeindexes,matid,*this);
+	 return new TPZGeoElement<
+	    TPZShapeTetra, TPZGeoTetrahedra, TPZRefTetrahedra >(
+	       nodeindexes, matid, *this, index );
 
       case 5:
-     return new TPZGeoElPi3d(nodeindexes,matid,*this);
-//	 return new TPZGeoElement<
-//	    TPZShapePiram, TPZGeoPyramid, TPZRefPyramid >(
-//	       nodeindexes, matid, *this, index );
+//     return new TPZGeoElPi3d(nodeindexes,matid,*this);
+	 return new TPZGeoElement<
+	    TPZShapePiram, TPZGeoPyramid, TPZRefPyramid >(
+	       nodeindexes, matid, *this, index );
 
       case 6:
 	 return new TPZGeoElement< TPZShapePrism, TPZGeoPrism, TPZRefPrism >(

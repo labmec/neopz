@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.10 2003-11-25 17:58:30 cesar Exp $
+//$Id: pzgeoel.h,v 1.11 2003-12-12 19:59:20 phil Exp $
 
 // -*- c++ -*-
 
@@ -100,6 +100,12 @@ public:
    * @param index index of the new element in the element vector
    */
   TPZGeoEl(int materialindex,TPZGeoMesh &mesh,int &index);
+
+  /**
+   * Copy constructor
+   */
+  TPZGeoEl(const TPZGeoEl &el) ;
+
   TPZGeoEl() {
     fId = -1;
     fMesh = 0;

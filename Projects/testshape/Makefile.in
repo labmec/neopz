@@ -106,7 +106,7 @@ CLEANFILES = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = main.cc pzadaptmesh.cc pzcclonemesh.cc pzgclonemesh.cc
+main_SOURCES = mainshape.cc
 
 main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -118,7 +118,7 @@ DEFS = @DEFS@ -I. -I$(srcdir)
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-main_OBJECTS =  main.o pzadaptmesh.o pzcclonemesh.o pzgclonemesh.o
+main_OBJECTS =  mainshape.o
 main_DEPENDENCIES =  $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
 main_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
@@ -132,8 +132,7 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/main.P .deps/pzadaptmesh.P .deps/pzcclonemesh.P \
-.deps/pzgclonemesh.P
+DEP_FILES =  .deps/mainshape.P
 SOURCES = $(main_SOURCES)
 OBJECTS = $(main_OBJECTS)
 

@@ -49,6 +49,19 @@ TPZGeoEl::TPZGeoEl(int id,int materialid,TPZGeoMesh &mesh) {
   fMesh->ElementVec()[index] = this;
 //	fMesure = 0.;
 }
+
+TPZGeoEl::TPZGeoEl(const TPZGeoEl &el) {
+  fMesh = el.fMesh;
+  fId = fMesh->CreateUniqueElementId();
+ // fMesh->SetElementIdUsed(fId);
+  fMatId = el.fMatId;
+  fReference = 0;
+  fFather = el.fFather;
+  int index = fMesh->ElementVec().AllocateNewElement();
+  fMesh->ElementVec()[index] = this;
+}
+
+
 TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh, int &index) {
   fId = mesh.CreateUniqueElementId();
   fMesh = &mesh;

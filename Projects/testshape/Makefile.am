@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = main.cc pzadaptmesh.cc pzcclonemesh.cc pzgclonemesh.cc
+main_SOURCES = mainshape.cc
 
 main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
 

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cc,v 1.11 2003-12-08 14:17:43 phil Exp $
+// $Id: pzelctemp.cc,v 1.12 2003-12-12 19:59:20 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -126,7 +126,7 @@ void TPZIntelGen<TGEO,TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
   ord.Resize(TSHAPE::NSides-TSHAPE::NNodes);
   int i;
   for(i=0; i<TSHAPE::NSides-TSHAPE::NNodes; i++) {
-    ord[i] = SideOrder(i);
+    ord[i] = SideOrder(i+TSHAPE::NNodes);
   }
 }
 

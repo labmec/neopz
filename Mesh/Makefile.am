@@ -45,6 +45,7 @@ libpzmesh_a_SOURCES = pzelctemp.cc \
 	pzgeoelbc.cc \
 	pzgeoel.cc \
 	pzgeoelside.cc \
+	pzgeoelrefless.cc \
 	pzgmesh.cc \
 	pzgnode.cc \
 	pzintel.cc \

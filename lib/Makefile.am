@@ -61,6 +61,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Mesh/pzgeoelbc.o \
 	../Mesh/pzgeoel.o \
 	../Mesh/pzgeoelside.o \
+	../Mesh/pzgeoelrefless.o \
 	../Mesh/pzgmesh.o \
 	../Mesh/pzgnode.o \
 	../Mesh/pzintel.o \

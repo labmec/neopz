@@ -183,7 +183,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
      fClonestoAnalyse.Push(cliter);
 }
 
-  int nthreads = 8;
+  int nthreads = 2;
   fNClones_to_Analyse = fClonestoAnalyse.NElements();
   pthread_t *allthreads = new pthread_t[(const int)fNClones_to_Analyse];
   while (fNClones_to_Analyse) {

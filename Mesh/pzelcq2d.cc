@@ -1,4 +1,4 @@
-//$Id: pzelcq2d.cc,v 1.12 2003-11-25 17:58:29 cesar Exp $
+//$Id: pzelcq2d.cc,v 1.13 2003-12-12 19:59:20 phil Exp $
 
 // -*- c++ -*-
 #include "pzelcq2d.h"
@@ -165,7 +165,7 @@ void TPZCompElQ2d::SetSideOrder(int side, int order) {
 /*     cout << "TPZCompElQ2d::SetSideOrder called for uninitialized connect\n"; */
 /*     return; */
 /*   } */
-  if(side<0 || side>8 || order < 1){
+  if(side<0 || side>8 || (order < 1 && side > 3)){
     PZError << "TPZCompElQ2d::SetSideOrder. Bad paramenter side.\n" << side << " order = " << order << endl;
     return;
   }
