@@ -1,4 +1,4 @@
-# Doxyfile 1.3.5-KDevelop
+# Doxyfile 1.3.7
 
 #---------------------------------------------------------------------------
 # Project related configuration options
@@ -6,6 +6,7 @@
 PROJECT_NAME           = neopz.kdevelop
 PROJECT_NUMBER         = $VERSION$
 OUTPUT_DIRECTORY       = 
+CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
 USE_WINDOWS_ENCODING   = NO
 BRIEF_MEMBER_DESC      = YES
@@ -25,6 +26,7 @@ ALWAYS_DETAILED_SEC    = NO
 INLINE_INHERITED_MEMB  = NO
 FULL_PATH_NAMES        = NO
 STRIP_FROM_PATH        = /home/phil/NeoPZ/
+STRIP_FROM_INC_PATH    = 
 SHORT_NAMES            = NO
 JAVADOC_AUTOBRIEF      = NO
 MULTILINE_CPP_IS_BRIEF = NO
@@ -43,6 +45,7 @@ EXTRACT_ALL            = NO
 EXTRACT_PRIVATE        = YES
 EXTRACT_STATIC         = NO
 EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_LOCAL_METHODS  = NO
 HIDE_UNDOC_MEMBERS     = NO
 HIDE_UNDOC_CLASSES     = NO
 HIDE_FRIEND_COMPOUNDS  = NO
@@ -74,7 +77,7 @@ WARN_LOGFILE           = doxywarn.txt
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = /home/phil/NeoPZ
+INPUT                  = 
 FILE_PATTERNS          = *.c \
                          *.cc \
                          *.cxx \
@@ -106,11 +109,10 @@ FILE_PATTERNS          = *.c \
                          *.xpm \
                          *.dox
 RECURSIVE              = YES
-EXCLUDE                = /home/phil/NeoPZ/Projects/Adapt_Phil \
-                         /home/phil/NeoPZ/Projects/Error \
-                         /home/phil/NeoPZ/Projects/descontinuo \
-                         /home/phil/NeoPZ/Projects/cylin \
-                         /home/phil/NeoPZ/Projects/placyl
+EXCLUDE                = ./Projects/Adapt_Phil \
+                         ./Projects/Error \
+                         ./Projects/descontinuo \
+                         ./Projects/placyl
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = 
 EXAMPLE_PATH           = 
