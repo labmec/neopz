@@ -105,10 +105,16 @@ TPZGeoMesh * CreateRSNAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // Constructing neighborhood
 
    gmesh->BuildConnectivity();
-/*
+
+   int j;
    TPZVec< TPZGeoEl * > firstDivision;
-   for(i = 0; i < gEls.NElements();i++)gEls[i]->Divide(firstDivision);
-*/
+   for(i = 0; i < gEls.NElements();i++)
+   {
+      gEls[i]->Divide(firstDivision);
+      TPZVec< TPZGeoEl * > secondDivision;
+      for(j = 0; j < firstDivision.NElements();j++)firstDivision[j]->Divide(secondDivision);
+   }
+
 
    return gmesh;
 }
@@ -119,7 +125,7 @@ TPZGeoMesh * CreateRSNAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
 TPZFlowCompMesh * RSNACompMesh()
 {
-   TPZCompElDisc::gDegree = 8;
+   TPZCompElDisc::gDegree = 4;
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
@@ -154,7 +160,7 @@ TPZFlowCompMesh * RSNACompMesh()
 // Setting initial solution
    mat->SetForcingFunction(NULL);
    // Setting the time discretization method
-   mat->SetTimeDiscr(None_TD/*Diff*/,
+   mat->SetTimeDiscr(Implicit_TD/*Diff*/,
                      Implicit_TD/*ConvVol*/,
 		     Implicit_TD/*ConvFace*/);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
@@ -170,7 +176,7 @@ TPZFlowCompMesh * RSNACompMesh()
 
    cout << .22/(2/**lambdaMax*/);
 
-   mat->SetDelta(1);
+   mat->SetDelta(.1);
 
    cmesh -> InsertMaterialObject(mat);
 

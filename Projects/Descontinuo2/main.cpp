@@ -1,7 +1,8 @@
-#include "oneElementMesh.cc"
-#include "reflectedShock.cc"
-#include "reflectedShock_nonalignedmesh.cc"
-#include "SimpleShock.cc"
+
+#include "oneElementMesh.cpp"
+#include "reflectedShock.cpp"
+#include "reflectedShock_nonalignedmesh.cpp"
+#include "SimpleShock.cpp"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
@@ -26,7 +27,7 @@
 #include "pzblock.h"
 #include "TPZFrontStructMatrix.h"
 #include "TPZFrontNonSym.h"
-#include "TPZSpStructMatrix.h"
+#include "TPBSpStructMatrix.h"
 
 
 void error(char *) {}
@@ -53,6 +54,8 @@ int main()
 
 
 //Solver attributes
+
+
    { // LU
    TPZFStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
@@ -60,8 +63,8 @@ int main()
    TPZMatrix * mat = StrMatrix.Create();
 
    An.SetLinSysCriteria(1e-10, 0);
-   An.SetNewtonCriteria(1e-10, 2);
-   An.SetTimeIntCriteria(1e-10,20);
+   An.SetNewtonCriteria(1e-10, 1);
+   An.SetTimeIntCriteria(1e-10,100);
 
    TPZStepSolver Solver;
    Solver.SetDirect(ELU);// ECholesky -> simétrica e positiva definida
@@ -69,17 +72,17 @@ int main()
    An.SetSolver(Solver);
    }
 
-/*
 
+/*
    { // GMRES
    TPZFStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
 
    TPZMatrix * mat = StrMatrix.Create();
 
-   An.SetLinSysCriteria(1e-10, 1000);
+   An.SetLinSysCriteria(1e-10, 100);
    An.SetNewtonCriteria(1e-9, 1);
-   An.SetTimeIntCriteria(1e-8,100);
+   An.SetTimeIntCriteria(1e-8,10);
 
    //Preconditioner
    TPZStepSolver Pre;
@@ -90,10 +93,10 @@ int main()
 
    //Main Solver
    TPZStepSolver Solver;
-   Solver.SetGMRES(1000,
+   Solver.SetGMRES(100,
 		10,
 		Pre,
-		1e-3,
+		1e-9,
 		0);
    Solver.SetMatrix(mat);
    An.SetSolver(Solver);
@@ -112,13 +115,13 @@ int main()
 
    //Main Solver
    TPZStepSolver Solver;
-   Solver.SetSSOR(10000, 1.1,
+   Solver.SetSSOR(1, 1.1,
 		1e-10,
 		0);
    Solver.SetMatrix(mat);
    An.SetSolver(Solver);
    }
-*/
+//*/
    An.Run(cout);
 
    return 0;
