@@ -102,7 +102,6 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Matrix/pzstepsolver.o \
 	../Matrix/pzsysmp.o \
 	../Matrix/pztempmat.o \
-	../Matrix/pzworkpool.o \
 	../Matrix/pzysmp.o \
 	../Geom/pzgeopoint.o \
 	../Geom/pzgeoprism.o \
