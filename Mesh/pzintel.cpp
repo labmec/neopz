@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.24 2004-02-09 17:58:53 phil Exp $
+// $Id: pzintel.cpp,v 1.25 2004-03-08 13:03:13 cantao Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -864,18 +864,18 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         }
       }
     }
-    int a;
-    gDebug = 1;
-    cin >> a;
+//     int a;
+//     gDebug = 1;
+//     cin >> a;
   }
       
   // verificar a norma de MSL
   if(test.CheckRestraint()) {
     cout << "TPZInterpolatedElement::Error::Bad restraints detected\n";// recado de erro.
     test.Print(cout);
-    int a;
-    gDebug = 1;
-    cin >> a; 
+//     int a;
+//     gDebug = 1;
+//     cin >> a; 
     test.Diagnose();
     TPZCheckRestraint test2(thisside,largecompside);
   }
