@@ -3,6 +3,9 @@
 #include "pzfmatrix.h"
 //#include "pzskylmat.h"
 #include "pzskylstrmatrix.h"
+#include "TPZParSkylineStructMatrix.h"
+#include "TPZParFrontStructMatrix.h"
+#include "TPZFrontSym.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzstepsolver.h"
@@ -23,6 +26,7 @@
 #include "tpznodesetcompute.h"
 #include "pzysmp.h"
 #include "TPZTimer.h"
+#include "pzvisualmatrix.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -42,73 +46,26 @@ void forcingfunction(TPZVec<REAL> &ponto, TPZVec<REAL> &force);
 int main() {
   
   
-//  string filename("CursoAltoDes.in");
-//  string filename("matriz1089.in");
-//  string filename("matriz12.in");
-//  string filename("matriz16000.in");
-  string filename("matriz260000.in");
-  TPZFMatrix rhs,sol;
-  
-  TPZMultiTimer timer(5);
-  cout << "Leitura\n";
-  timer.processName(0) = "Leitura da matriz";
-  timer.start(0);
-  TPZFYsmpMatrix *faster = ReadMatrix(filename,rhs);
-  timer.stop(0);
-  
-  cout << "Multiplicacao Numero de termos " << faster->NumTerms() << "\n";
-  TimeMultiply(faster,timer);
-  
-  cout << "Jacobi\n";
-  SolveJacobi(faster, rhs, 1.e-8,timer);
-  
-  cout << "SSor\n";
-  SolveSSOR(faster,rhs,1.e-8,timer);
-  
-  cout << "CG\n";
-  SolveCG(faster,rhs,1.e-8,timer);
-  
-  cout << timer;
-/*
-  TPZFMatrix test(*faster);
-  
-  cputime = SolveJacobi(&test,rhs,1.e-8);
-  
-  cout << "Tempo para Jacobi "<< cputime << endl;
-
-  cputime = SolveSSOR(&test,rhs,1.e-8);
-  
-  cout << "Tempo para SSOR "<< cputime << endl;
-
-  cputime = SolveCG(&test,rhs,1.e-8);
-  
-  cout << "Tempo para CG "<< cputime << endl;
-*/
-  
-//  TPZStepSolver stepsolve(faster);
-
-  return 0;
-  
   std::ofstream file("graphtest.txt");
    //malha geometrica
    TPZGeoMesh *malha = new TPZGeoMesh;
    malha->SetName("Malha gerada por Paulo Lyra, nao tem garantia nemhuma");
    
 
-   UmElemento(*malha);
-   //LerMalha("quad_st_800_1R_16X.gri",*malha);
+   //UmElemento(*malha);
+   LerMalha("quad_st_800_1R_16X.gri",*malha);
 
    //ordem de interpolacao
-   int ord = 1;
+   int ord = 4;
    cout << "Entre ordem 1,2,3,4,5 : ";
 //   cin >> ord;
    TPZCompEl::gOrder = ord;
-   //construção malha computacional
+   //construï¿½o malha computacional
    TPZVec<int> csub(0);
    TPZManVector<TPZGeoEl *> pv(4);
    int n1=1,level=0; 
    cout << "\nDividir ate nivel ? ";
-   int resp = 1;
+   int resp = 3;
 //   cin >> resp;      
    int nelc = malha->ElementVec().NElements();
    int el;  
@@ -126,6 +83,9 @@ int main() {
    malhacomp->AutoBuild();
    malhacomp->AdjustBoundaryElements();
    malhacomp->InitializeBlock();
+   
+   TPZFMatrix before, after;
+   malhacomp->ComputeFillIn(500,before);
 /*
    TPZNodesetCompute nodeset;
    TPZStack<int> elementgraph,elementgraphindex;
@@ -150,20 +110,31 @@ int main() {
 
 */
    TPZAnalysis an(malhacomp);
-   TPZSkylineStructMatrix strmat(malhacomp);
+   
+   malhacomp->ComputeFillIn(500,after);
+   
+   VisualMatrix(before,"before.dx");
+   VisualMatrix(after,"after.dx");
+   
+   //return 0;
+   //TPZSkylineStructMatrix strmat(malhacomp);
+   TPZParSkylineStructMatrix strmat(malhacomp);
+   //TPZParFrontStructMatrix<TPZFrontSym> strmat(malhacomp);
    an.SetStructuralMatrix(strmat);
    
-   TPZStepSolver step(strmat.Create());
-//   step.SetDirect(ECholesky);   
+   TPZStepSolver step;
+   step.SetDirect(ECholesky);   
+   
    an.SetSolver(step);
+   /*
    TPZMatrixSolver *precond = an.BuildPreconditioner(TPZAnalysis::EElement,false);
    step.SetCG(100,*precond,1.e-10,0);
    an.SetSolver(step);
    delete precond;
-
+*/
    malhacomp->SetName("Malha Computacional :  Connects e Elementos");
    // Posprocessamento
-   
+   cout << "Number of equations " << malhacomp->NEquations() << endl;
    an.Run();
    TPZVec<char *> scalnames(1);
    scalnames[0] = "state";
@@ -172,7 +143,7 @@ int main() {
 
    char plotfile[] =  "termica.dx";
    an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
-   an.PostProcess(1);
+   an.PostProcess(2);
    //   an.DefineGraphMesh(2, scalnames, vecnames, pltfile);
    //   an.PostProcess(2);
    delete malhacomp;
@@ -191,17 +162,17 @@ void UmElemento(TPZGeoMesh &malha) {
 		// initializar as coordenadas do no em um vetor
 		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
 
-		// identificar um espaço no vetor onde podemos armazenar
+		// identificar um espaï¿½ no vetor onde podemos armazenar
 		// este vetor
 		int nodeindex = malha.NodeVec ().AllocateNewElement ();
 
-		// initializar os dados do nó
+		// initializar os dados do nï¿½		
 		malha.NodeVec ()[i].Initialize (i,coord,malha);
 	}
 
 	// criar um elemento
 
-	// initializar os indices dos nós
+	// initializar os indices dos nï¿½
 	TPZVec<int> indices(4);
 	for(i=0; i<4; i++) indices[i] = i;
 
@@ -289,7 +260,7 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
 	TPZMat2dLin *meumat = new TPZMat2dLin(1);
 	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	meumat->SetMaterial (xk,xc,xf);
-//	meumat->SetForcingFunction(forcingfunction);
+	meumat->SetForcingFunction(forcingfunction);
 	cmesh.InsertMaterialObject(meumat);
 
 	// inserir a condicao de contorno

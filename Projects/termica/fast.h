@@ -20,6 +20,7 @@ class TPZFYsmpMatrix;
 class TPZFMatrix;
 class TPZMatrix;
 
+void RunFast();
 // this function will read the matrix
 TPZFYsmpMatrix *ReadMatrix(const std::string &filename, TPZFMatrix &rhs);
 

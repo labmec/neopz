@@ -22,6 +22,38 @@
 #include "pzstepsolver.h"
 #include "TPZCopySolve.h"
 
+void RunFast()
+{
+  
+//  string filename("CursoAltoDes.in");
+//  string filename("matriz1089.in");
+//  string filename("matriz12.in");
+//  string filename("matriz16000.in");
+  string filename("matriz260000.in");
+  TPZFMatrix rhs,sol;
+  
+  TPZMultiTimer timer(5);
+  cout << "Leitura\n";
+  timer.processName(0) = "Leitura da matriz";
+  timer.start(0);
+  TPZFYsmpMatrix *faster = ReadMatrix(filename,rhs);
+  timer.stop(0);
+  
+  cout << "Multiplicacao Numero de termos " << faster->NumTerms() << "\n";
+  TimeMultiply(faster,timer);
+  
+  cout << "Jacobi\n";
+  SolveJacobi(faster, rhs, 1.e-8,timer);
+  
+  cout << "SSor\n";
+  SolveSSOR(faster,rhs,1.e-8,timer);
+  
+  cout << "CG\n";
+  SolveCG(faster,rhs,1.e-8,timer);
+  
+  cout << timer;
+
+}
 // this function will read the matrix
 TPZFYsmpMatrix *ReadMatrix(const std::string &filename, TPZFMatrix &rhs)
 {

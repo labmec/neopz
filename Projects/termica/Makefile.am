@@ -15,8 +15,10 @@ bin_PROGRAMS = main
 
 
 
-main_LDADD = $(top_builddir)/lib/libpz.a @LIBATLAS@ -lpthread @METISDIR@/lib/libmetis.a
+main_LDADD = $(top_builddir)/lib/libpz.a \
+	$(top_builddir)/External/sloan/libsloan.a @LIBATLAS@ -lpthread @METISDIR@/lib/libmetis.a
 
 ## --| NeoPZ |------------------------------------------------------------------
 
 main_SOURCES = termi.cpp fast.cpp
+
