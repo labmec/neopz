@@ -3,10 +3,10 @@
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
-# $Id: PZ.mk.in,v 1.3 2003-02-10 17:58:35 cantao Exp $
+# $Id: PZ.mk.in,v 1.4 2003-05-20 13:36:14 erick Exp $
 #
 
-CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@
+CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@ @USING_FAD@
 INCLUDES = -I$(top_srcdir)/Util \
 	-I$(top_srcdir)/Common \
 	-I$(top_srcdir)/Mesh \
@@ -25,6 +25,10 @@ INCLUDES = -I$(top_srcdir)/Util \
 	-I$(top_srcdir)/Post \
 	-I$(top_srcdir)/External \
 	-I$(top_srcdir)/External/sloan \
-	@METISINCLUDE@
+	@METISINCLUDE@ \
+        @FADINCLUDE@ \
+	@FADINCLUDE_FAD@ \
+        @FADINCLUDE_TFAD@ \
+        @FADINCLUDE_TFADET@ 
 
 ## --| NeoPZ |------------------------------------------------------------------
