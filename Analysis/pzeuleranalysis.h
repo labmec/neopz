@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.12 2004-02-13 15:08:30 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.13 2004-02-26 22:47:33 erick Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -31,7 +31,7 @@ public:
    /**
     * see declaration in the base class.
     */
-   virtual void Run(ostream &out, ofstream & dxout);
+   virtual void Run(ostream &out, ofstream & dxout, int dxRes);
 
    /**
     * Sets the solution vector to be the one
@@ -159,7 +159,7 @@ public:
    /**
     * Prepares the DX graph mesh
     */
-   TPZDXGraphMesh * PrepareDXMesh(ofstream &dxout);
+   TPZDXGraphMesh * PrepareDXMesh(ofstream &dxout, int dxRes);
 
    /**
     * Informs a block diagonal to be used as preconditioning

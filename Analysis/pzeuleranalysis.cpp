@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.23 2004-02-17 19:40:28 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.24 2004-02-26 22:47:33 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -260,12 +260,13 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
    return 1;
 }
 
-TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout)
+TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout, int dxRes)
 {
-  TPZVec<char *> scalar(3),vector(0);
+  TPZVec<char *> scalar(4),vector(0);
   scalar[0] = "density";
   scalar[1] = "pressure";
   scalar[2] = "normvelocity";
+  scalar[3] = "Mach";
 
   TPZMaterial * mat = fFlowCompMesh->GetFlowMaterial(0);
   int dim = mat->Dimension();
@@ -275,14 +276,14 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout)
   //ofstream *dxout = new ofstream("ConsLaw.dx");
   //cout << "\nDX output file : ConsLaw.dx\n";
   graph->SetOutFile(dxout);
-  int resolution = 2;
-  graph->SetResolution(resolution);
+  //int resolution = 2;
+  graph->SetResolution(dxRes);
   graph->DrawMesh(dim);
 
   return graph;
 }
 
-void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout)
+void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
 {
    // this analysis loop encloses several calls
    // to Newton's linearizations, updating the
@@ -293,7 +294,7 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout)
    clock_t startTime, endTime;
    startTime = clock();//time(&startTime);
 
-   TPZDXGraphMesh * graph = PrepareDXMesh(dxout);
+   TPZDXGraphMesh * graph = PrepareDXMesh(dxout, dxRes);
    int numIterDX = 1;
    int outputStep = 0;
 
