@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.32 2004-12-08 18:59:19 phil Exp $
+// $Id: pzintel.cpp,v 1.33 2005-01-31 11:14:05 cesar Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1227,6 +1227,10 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
   int cormatsize = coarsel.NShapeF();
   int nvar = fMaterial->NStateVariables();
   int dimension = Dimension();
+  if (!dimension) {
+    std::cout << "TPZInterpolatedElement::InterpolateSolution WARNING - trying to interpolate a node solution " << endl;
+    return ;
+  }
 
   TPZFMatrix loclocmat(locmatsize,locmatsize,0.);
   TPZFMatrix projectmat(locmatsize,nvar,0.);
@@ -1250,7 +1254,7 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
     for (ccc = 0; ccc < interpolation.NElements(); ccc++)
       cout << "  " << interpolation[ccc];
     cout << "  }" << endl;
-  }
+  } 
 
   // compute the interpolation order of the shapefunctions squared
   int nel = interpolation.NElements();
