@@ -1,5 +1,5 @@
 //
-// time: Tue Mar 30 15:21:22 2004
+// time: Thu May 27 15:09:08 2004
 //
 // version: 3.1.2 (format), 4.2.0 (DX)
 //
@@ -13,8 +13,8 @@ macro main(
 ) {
     // 
     // node FileSelector[1]: x = 396, y = 6, inputs = 0, label = FileSelector
-    // output[1]: visible = 1, type = 32, value = "/compile/erick/co15.03.2004/NeoPZ/Projects/Descontinuo2/NACA_NoDiff_ImplConvVol_ImplConvFace_CFL100.000000_EvolCFL_P0_N12.dx"
-    // output[2]: visible = 1, type = 32, value = "NACA_NoDiff_ImplConvVol_ImplConvFace_CFL100.000000_EvolCFL_P0_N12.dx"
+    // output[1]: visible = 1, type = 32, value = "/compile/erick/co17.05.2004/NeoPZ/Projects/Descontinuo2/NACA_.8_0/FromFile_NoDiff_ImplConvVol_ImplConvFace_CFL1.000000_P3_P2.pzf.dx"
+    // output[2]: visible = 1, type = 32, value = "FromFile_NoDiff_ImplConvVol_ImplConvFace_CFL1.000000_P3_P2.pzf.dx"
     //
     // 
     // node Import[1]: x = 407, y = 81, inputs = 6, label = Import
@@ -95,11 +95,11 @@ main_Compute_2_out_1 =
     // node Sequencer[1]: x = 384, y = 556, inputs = 7, label = Sequencer
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Sequencer_1"
     // input[4]: defaulting = 0, visible = 1, type = 1, value = 0
-    // input[5]: defaulting = 1, visible = 1, type = 1, value = 14
+    // input[5]: defaulting = 1, visible = 1, type = 1, value = 1
     // input[6]: defaulting = 1, visible = 0, type = 1, value = 1
-    // input[7]: defaulting = 0, visible = 0, type = 16777217, value = { 0 14 1 0 14 1 }
-    // vcr[1]: min = 0, max = 14, beg = 0, end = 14, cur = 0, inc = 1, loop = off, step = off, pal = off
-    // window: position = (0.3887,0.1658), size = 0.2188x0.0733
+    // input[7]: defaulting = 0, visible = 0, type = 16777217, value = { 0 1 1 0 1 1 }
+    // vcr[1]: min = 0, max = 1, beg = 0, end = 1, cur = 0, inc = 1, loop = off, step = on, pal = off
+    // window: position = (0.5437,-0.0125), size = 0.2188x0.0733
     //
     main_Sequencer_1_in_3 = @frame;
 main_Sequencer_1_out_1[cache: 2] = 
@@ -289,13 +289,13 @@ main_Color_2_out_1 =
     // node Image[2]: x = 123, y = 953, inputs = 49, label = Image
     // input[1]: defaulting = 0, visible = 0, type = 67108863, value = "Image_2"
     // input[4]: defaulting = 0, visible = 0, type = 1, value = 1
-    // input[5]: defaulting = 0, visible = 0, type = 8, value = [18.5 20 -2.71429]
-    // input[6]: defaulting = 0, visible = 0, type = 8, value = [18.5 20 127.799]
-    // input[7]: defaulting = 0, visible = 0, type = 5, value = 69.9418
+    // input[5]: defaulting = 0, visible = 0, type = 8, value = [28.4032 19.9 -3.15634]
+    // input[6]: defaulting = 0, visible = 0, type = 8, value = [28.4032 19.9 148.053]
+    // input[7]: defaulting = 0, visible = 0, type = 5, value = 30.8125
     // input[8]: defaulting = 0, visible = 0, type = 1, value = 810
     // input[9]: defaulting = 0, visible = 0, type = 5, value = 0.790741
     // input[10]: defaulting = 0, visible = 0, type = 8, value = [0 1 0]
-    // input[11]: defaulting = 0, visible = 0, type = 5, value = 30.0001
+    // input[11]: defaulting = 1, visible = 0, type = 5, value = 11.6352
     // input[12]: defaulting = 0, visible = 0, type = 1, value = 0
     // input[14]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[15]: defaulting = 1, visible = 0, type = 32, value = "none"
@@ -307,7 +307,7 @@ main_Color_2_out_1 =
     // input[29]: defaulting = 1, visible = 0, type = 3, value = 0
     // input[41]: defaulting = 0, visible = 0, type = 32, value = "panzoom"
     // depth: value = 24
-    // window: position = (0.2575,0.3767), size = 0.5150x0.5700
+    // window: position = (0.2637,0.1883), size = 0.5150x0.5700
     // internal caching: 1
     //
 main_Image_2_out_1,
@@ -371,7 +371,7 @@ main_Image_2_out_3 =
 // network: end of macro body
 CacheScene(main_Image_2_in_1, main_Image_2_out_1, main_Image_2_out_2);
 }
-main_FileSelector_1_out_1 = "/compile/erick/co15.03.2004/NeoPZ/Projects/Descontinuo2/NACA_NoDiff_ImplConvVol_ImplConvFace_CFL100.000000_EvolCFL_P0_N12.dx";
+main_FileSelector_1_out_1 = "/compile/erick/co17.05.2004/NeoPZ/Projects/Descontinuo2/NACA_.8_0/FromFile_NoDiff_ImplConvVol_ImplConvFace_CFL1.000000_P3_P2.pzf.dx";
 main_Import_1_in_2 = NULL;
 main_Import_1_in_3 = NULL;
 main_Import_1_in_4 = NULL;
@@ -402,12 +402,12 @@ main_Sequencer_1_in_2 = NULL;
 main_Sequencer_1_in_3 = NULL;
 main_Sequencer_1_in_4 = 0;
 main_Sequencer_1_in_6 = NULL;
-main_Sequencer_1_in_7 = { 0 14 1 0 14 1 };
+main_Sequencer_1_in_7 = { 0 1 1 0 1 1 };
 main_Sequencer_1_out_1 = NULL;
 
 @startframe = 0;
 @nextframe  = @startframe;
-@endframe   = 14;
+@endframe   = 1;
 @deltaframe = 1;
 main_Select_1_in_3 = NULL;
 main_Select_1_out_1 = NULL;
@@ -784,13 +784,13 @@ macro Image(
 main_Image_2_in_1 = "Image_2";
 main_Image_2_in_3 = "X24,,";
 main_Image_2_in_4 = 1;
-main_Image_2_in_5 = [18.5 20 -2.71429];
-main_Image_2_in_6 = [18.5 20 127.799];
-main_Image_2_in_7 = 69.9418;
+main_Image_2_in_5 = [28.4032 19.9 -3.15634];
+main_Image_2_in_6 = [28.4032 19.9 148.053];
+main_Image_2_in_7 = 30.8125;
 main_Image_2_in_8 = 810;
 main_Image_2_in_9 = 0.790741;
 main_Image_2_in_10 = [0 1 0];
-main_Image_2_in_11 = 30.0001;
+main_Image_2_in_11 = NULL;
 main_Image_2_in_12 = 0;
 main_Image_2_in_13 = NULL;
 main_Image_2_in_14 = 1;
