@@ -513,7 +513,7 @@ TPZGeoEl *TPZRefPattern::CreateGeoEl(int ntype, int mat,TPZVec<int> &nodes,TPZGe
       return gmesh->CreateGeoElement(EQuadrilateral,nodes,mat,index,el);
       //return;
     case 7://tetraedro ; elgt3d =
-      return gmesh->CreateGeoElement(ETetraedro,nodes,mat,index,el);    
+      return gmesh->CreateGeoElement(ETetraedro,nodes,mat,index,el);
       //return new TPZGeoElT3d(nodes,mat,*gmesh);
       //return;
     case 5://pirâmide ; elgpi3d =
@@ -536,6 +536,7 @@ TPZGeoEl *TPZRefPattern::CreateGeoEl(int ntype, int mat,TPZVec<int> &nodes,TPZGe
   PZError <<  "\nTPZRefPattern::CreateGeoEl ntype error, ntype = " << ntype << endl;
   PZError << "\nAborted program\n";
   exit(-1);/**acabou a festa*/
+  return 0;
 }
 
 int TPZRefPattern::SizeOfSubsSides(int ison){/**ison é o número do sub-elemento*/
