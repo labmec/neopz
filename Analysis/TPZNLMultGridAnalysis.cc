@@ -23,6 +23,7 @@
 #include "pzquad.h"
 #include "pzmaterial.h"
 #include "TPZConservationLaw.h"
+#include "TPZDiffusionConsLaw.h"
 #include "pzonedref.h"
 #include "pzdxmesh.h"
 #include "pzsolve.h"
@@ -40,10 +41,11 @@ TPZNonLinMultGridAnalysis::TPZNonLinMultGridAnalysis(TPZCompMesh *cmesh) :
   fMeshes.Push(cmesh);
   TPZStepSolver solver;
   solver.SetDirect(ELDLt);
-  SetSolver(solver);
-  fSolutions.Push(&Solution());
-  fSolvers.Push(&solver);
-  fPrecondition.Push(&solver);
+  TPZMatrixSolver *clone = dynamic_cast<TPZMatrixSolver *>(solver.Clone());
+  SetSolver(*clone);
+  fSolvers.Push(clone);
+  fSolutions.Push(new TPZFMatrix(fSolution));
+  fPrecondition.Push(0);
 }
 
 TPZNonLinMultGridAnalysis::~TPZNonLinMultGridAnalysis() {
@@ -266,6 +268,7 @@ void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *
 
 void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an) {
 
+  ofstream out("ANALYSIS.out");
   fInit = clock();
   cout << "PZAnalysis::SmoothingSolutionTest beginning of the iterative process," 
        << " general time 0\n";
@@ -275,12 +278,13 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
   an.Solution().Zero();
   fBegin = clock();
   an.Run();
+  an.Print("\n\n* * * SOLUCAO PELO ANALYSIS  * * *\n\n",out);
   cout << "TPZNonLinMultGridAnalysis::SmoothingSolution iteration = " << ++iter << endl;
   CoutTime(fBegin,"TPZNonLinMultGridAnalysis:: Fim system solution first iteration");
   fBegin = clock();
   an.LoadSolution();
-  SetDeltaTime(fCompMesh,mat);
-  //  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
+  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
+  law->SetTimeStep(0.001);// SetDeltaTime(fCompMesh,mat);//a primeira vez é calculada no main
   fBegin = clock();
   mat->SetForcingFunction(0);
   REAL normsol = Norm(Solution());
@@ -294,7 +298,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
     CoutTime(fInit,"TPZNonLinMultGridAnalysis:: accumulated time");
     fBegin = clock();
     an.LoadSolution();
-    SetDeltaTime(fCompMesh,mat);
+    law->SetTimeStep(0.001);// SetDeltaTime(fCompMesh,mat);
     cout << "TPZNonLinMultGridAnalysis::SmoothingSolution iteracao = " << ++iter << endl;
     normsol = Norm(Solution());
   }
@@ -318,51 +322,69 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   //newmesh = 0: coarcmesh se tornou a malha fina
   TPZCompMesh *finemesh = UniformlyRefineMesh(coarcmesh,levelnumbertorefine,setdegree);
   finemesh->SetDimModel(2);
-  out << "\n\n\t\t* * * MALHA FINA * * *\n";
-  finemesh->Reference()->Print(out);
-  finemesh->Print(out);
-  out.flush();
   //obtendo-se a malha menos fina por agrupamento
   int levelnumbertogroup = 2;//serão agrupados dois níveis de divisão
   cout << "TPZNonLinMultGridAnalysis:: número de níveis a agrupar: ";
   cin >> levelnumbertogroup;
   TPZCompMesh *aggmesh = AgglomerateMesh(finemesh,levelnumbertogroup);
   AppendMesh(aggmesh);
-  out << "\n\n\t\t* * * MALHA AGLOMERADA * * *\n";
-  aggmesh->Reference()->Print(out);
+  aggmesh->Reference()->Print(out);//malha geométrica é uma só
+  out << "\n\n\t\t\t* * * MALHA AGLOMERADA * * *\n\n";
   aggmesh->Print(out);
+  out << "\n\n\t\t\t* * * MALHA FINA * * *\n\n";
+  finemesh->Print(out);
   out.flush();
   //analysis na malha aglomerada
   TPZAnalysis coarsean(fMeshes[1]);
   TPZSkylineStructMatrix coarsestiff(fMeshes[1]);
   coarsean.SetStructuralMatrix(coarsestiff);
-  coarsean.Solution().Zero();
   TPZStepSolver coarsesolver;
   coarsesolver.SetDirect(ELDLt);
-  coarsean.SetSolver(coarsesolver);
-  fSolutions.Push(&coarsean.Solution());
-  fSolvers.Push(&coarsesolver);
-  fPrecondition.Push(&coarsesolver);
+  TPZMatrixSolver *clone = dynamic_cast<TPZMatrixSolver *>(coarsesolver.Clone());
+  coarsean.SetSolver(*clone);
+  fSolvers.Push(clone);
+  coarsean.Solution().Zero();
+  fSolutions.Push(new TPZFMatrix(coarsean.Solution()));
+  fPrecondition.Push(0);
   //analysis na malha fina
   AppendMesh(finemesh);
   TPZAnalysis finean(fMeshes[2]);
   TPZSkylineStructMatrix finestiff(fMeshes[2]);
   finean.SetStructuralMatrix(finestiff);
-  finean.Solution().Zero();
   TPZStepSolver finesolver;
   finesolver.SetDirect(ELDLt);
-  finean.SetSolver(finesolver);
-  fSolutions.Push(&finean.Solution());
-  fSolvers.Push(&finesolver);
-  fPrecondition.Push(&finesolver);
+  clone = dynamic_cast<TPZMatrixSolver *>(finesolver.Clone());
+  finean.SetSolver(*clone);
+  fSolvers.Push(clone);
+  finean.Solution().Zero();
+  fSolutions.Push(new TPZFMatrix(finean.Solution()));
+  fPrecondition.Push(0);
   //suavisar a solução na malha fina
-  REAL tol = 1.e15;
-  int numiter = 100;
-  int numeq = fMeshes[2]->NEquations();
-  TPZFMatrix res(numeq,1);
+  REAL tol = 1.e15,delta,CFL;
+  int numiter,marcha;
+  cout << "\nNumero de iteracoes requerida ? : 10\n";
+  //cin >> numiter;
+  numiter = 10;
+  cout << "main:: Parametro marcha : 2\n";
+  //cin >> marcha;
+  marcha = 2;
+  cout << "main:: entre CFL (si nulo sera calculado) -> 0.1\n";
+  //cin >> CFL;
+  CFL = 0.1;
+  TPZDiffusionConsLaw::fCFL = CFL;
+  cout << "main:: entre delta (si nulo sera calculado) -> 0.0\n";
+  //cin >> delta;
+  delta = 0.0;
+  TPZDiffusionConsLaw::fDelta= delta;
   TPZMaterial *mat = fMeshes[2]->FindMaterial(nummat);
   SmoothingSolution(tol,numiter,mat,finean);
-  //CalcResidual(finean.Solution(),res,finean,"LDLt");
+  coarsean.Print("\n\n\t\t\t* * * ANALYSIS MALHA GROSSA * * *\n\n",out);
+  finean.Print("\n\n\t\t\t* * * ANALYSIS MALHA FINA * * *\n\n",out);
+  out.flush();
+//   int numeq = fMeshes[2]->NEquations();
+//   TPZFMatrix res(numeq,1);
+//   CalcResidual(finean.Solution(),res,finean,"LDLt");
+  return;
   TPZTransfer transfer;
   finemesh->BuildTransferMatrixDesc(*aggmesh,transfer);
   SmoothingSolution(tol,numiter,mat,coarsean);

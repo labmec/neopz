@@ -128,7 +128,7 @@ static double hexaedro[8][3] = { {0.,0.,0.},{4.1,0.,0.},{4.1,1.,0.},{0.,1.,0.},
 //static TPZRefPattern quad4("quadrilatero4.in");//quadrilatero mestre 4 sub-elementos*/
 //static TPZRefPattern linha2("linha2.in");//aresta mestre 2 sub-elementos*/
 void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl);
-void SetDeltaTime(TPZMaterial *mat,int nstate);
+void SetDeltaTime(TPZMaterial *mat,REAL deltaT);
 void CriacaoDeNos(int nnodes,double lista[20][3]);
 TPZMaterial *NoveCubos(int grau);
 TPZMaterial *NoveQuadrilateros(int grau);
@@ -150,7 +150,7 @@ void NivelDivide(TPZCompMesh *cmesh);
 void SequenceDivide2();
 void SequenceDivide(int fat[100],int numbel);
 void TestShapesDescontinous();
-static clock_t start,end;//,begin,ttot=0;
+static clock_t end;//,start,begin,ttot=0;
 void CoutTime(clock_t &start);
 //void ResetReference(TPZCompMesh *aggcmesh);
 static TPZGeoMesh *gmesh = new TPZGeoMesh;
@@ -159,10 +159,10 @@ static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh),*aggcmesh = new TPZFlowCo
 
 //static TPZVec<REAL> x0(3,0.);
 static int grau = 0;
-static int nivel = 0,tipo;
+static int tipo;
 static int problem=0;
 //static REAL pi = 2.0*asin(1.0);
-static REAL CFL=-1.0;
+//static REAL CFL=-1.0;
 static REAL gama = 1.4;
 
 //#define NOTDEBUG
@@ -184,7 +184,7 @@ int main() {
        << "\t\t\t";
 
   //cin >> tipo;
-  tipo = 7;
+  tipo = 5;
   problem = tipo;
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
   //cin >> grau;
@@ -221,46 +221,7 @@ int main() {
     outgm.flush();
   }  
 
-  //  int numiter,marcha;
-  cout << "\nNumero de iteracoes requerida ? :";
-  //cin >> numiter;
-  //numiter = 0;//100;
-  cout << "main:: Parametro marcha : \n";
-  //cin >> marcha;
-  //marcha = 10;
-  if(1){
-    cout << "main:: entre CFL (si nulo sera calculado) -> ";
-    //cin >> CFL;
-    CFL = 0.3;
-    TPZDiffusionConsLaw::fCFL = CFL;
-    cout << "main:: entre delta (si nulo sera calculado) -> ";
-    REAL delta;
-    //cin >> delta;
-    delta = 0.0;
-    TPZDiffusionConsLaw::fDelta= delta;
-  }
-
-  if(1){
-    start = clock();
-    if(0) NivelDivide(cmesh);
-    if(0) SequenceDivide2();
-    CoutTime(start);
-    int nstate=-1;
-    if(tipo == 0) nstate = 4;
-    if(tipo == 1) nstate = 5;
-    if(tipo == 2) nstate = 5;
-    if(tipo == 3) nstate = 4;
-    if(tipo == 4) nstate = 4;
-    if(tipo == 5) nstate = 4;
-    if(tipo == 6) nstate = 5;
-    if(tipo == 7) nstate = 4;
-    SetDeltaTime(mat,nstate);//COLOCAR DEPOIS DE CRIADA A MALHA AGLOMERADA
-    if(0){
-      gmesh->Print(outgm);
-      cmesh->Print(outgm);
-      outgm.flush();
-    }
-  }
+  SetDeltaTime(mat,0.001);
 
   if(1){
     cout << "\nmain::Ajuste no contorno e imprime malhas\n";
@@ -281,9 +242,8 @@ int main() {
   }
 
   outgm.close();
-  if(cmesh) delete cmesh;
+  //if(cmesh) delete cmesh;//foi apagada no multigrid
   if(gmesh) delete gmesh;
-  //AvisoAudioVisual();
   return 0;
 }
 
@@ -300,27 +260,11 @@ void CriacaoDeNos(int nnodes,double lista[20][3]){
   }
 }
 
-void SetDeltaTime(TPZMaterial *mat,int nstate){
+void SetDeltaTime(TPZMaterial *mat,REAL deltaT){
 
-  TPZVec<REAL> x(3,0.0),sol;
-  int i;
-  x[0] = 0.5;
-  x[1] = 0.5;
-  Function(x,sol);
-  REAL prod = 0.0,maxveloc;
-  for(i=1;i<nstate-1;i++) prod += sol[i]*sol[i];//(u²+v²+w²)*ro²
-  REAL dens2 = sol[0]*sol[0];
-  maxveloc = sqrt(prod/dens2);//velocidade
-  TPZEulerConsLaw *law = dynamic_cast<TPZEulerConsLaw *>(mat);//TPZEulerConsLaw *law = (TPZEulerConsLaw *)(mat);
-  REAL press = law->Pressure(sol);
-  if(press < 0) cout << "main::SetDeltaTime pressao negativa, toma valor absoluto para calculo do som\n";
-  REAL sound = sqrt(law->Gamma()*press/sol[0]);
-  maxveloc += sound;
-  //REAL deltax = cmesh->DeltaX();
-  REAL deltax = cmesh->LesserEdgeOfMesh();
-  //REAL deltax = cmesh->MaximumRadiusOfMesh();
-  REAL deltaT = CFL*deltax/maxveloc;
-  cout << "main::SetDeltaTime : " << deltaT << endl;
+
+  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
+
   law->SetTimeStep(deltaT);
 
 }
@@ -472,10 +416,10 @@ int Nivel(TPZGeoEl *gel);
 void NivelDivide(TPZCompMesh *cmesh){
 
   TPZVec<int> csub(0);
-  //int nivel;
+  int nivel;
   cout << "\nmain::Divisao todos os elementos da malha serao divididos!\n";
-  //cout << "\nmain::Divisao Nivel da malha final ? : ";
-  //cin >> nivel;
+  cout << "\nmain::Divisao Nivel da malha final ? : ";
+  cin >> nivel;
   cout << "\nNivel da malha a ser atingido = " << nivel << endl;
   int nelc = cmesh->ElementVec().NElements();
   int el,actual;
@@ -799,6 +743,7 @@ TPZMaterial *Hexaedro(int grau){
   gmesh->BuildConnectivity();
   int nummat = 1;
   char *artdiff = "LS";
+  int nivel;
   cout << "\nmain::Divisao Nivel final da malha ? : ";
   cin >> nivel;
   REAL cfl,delta_x,delta_t,delta,gama;//,maxflinha;
@@ -921,6 +866,7 @@ TPZMaterial *ProblemaT2D(int grau){
   gmesh->BuildConnectivity();
   int nummat = 1;
   char *artdiff = "LS";
+  int nivel;
   cout << "\nmain::Divisao Nivel final da malha ? : ";
   cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
@@ -1032,10 +978,11 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   gmesh->BuildConnectivity();
   int nummat = 1;
   char *artdiff = "LS";
-//   cout << "\nmain::Divisao Nivel final da malha ? : ";
-//   cin >> nivel;
-  REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
-    REAL delta_x =  1.0;//( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
+  int nivel;
+  cout << "\nmain::Divisao Nivel final da malha ? : ";
+  cin >> nivel;
+  REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );
+  REAL delta_x = ( 1.0 / pow(2.0,(REAL)nivel ) );
   REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
@@ -1147,7 +1094,7 @@ TPZMaterial *TresTriangulos(int grau){
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
-  int nummat = 1;
+  int nummat = 1,nivel;
   char *artdiff = "LS";
   cout << "\nmain::Divisao Nivel final da malha ? : ";
   cin >> nivel;
@@ -1261,7 +1208,7 @@ TPZMaterial *TresPrismas(int grau){
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity2();
-  int nummat = 1;
+  int nummat = 1,nivel;
   char *artdiff = "LS";
   cout << "\nmain::Divisao Nivel final da malha ? : ";
   cin >> nivel;
@@ -1380,7 +1327,7 @@ TPZMaterial *FluxConst3D(int grau){
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity2();
-  int nummat = 1;
+  int nummat = 1,nivel;
   char *artdiff = "LS";
   cout << "\nmain::Divisao Nivel final da malha ? : ";
   cin >> nivel;
@@ -1470,7 +1417,7 @@ TPZMaterial *FluxConst2D(int grau){
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
-  int nummat = 1;
+  int nummat = 1,nivel;
   char *artdiff = "LS";
   cout << "\nmain::Divisao Nivel final da malha ? : ";
   cin >> nivel;
@@ -1563,8 +1510,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
   gmesh->BuildConnectivity();
   int nummat = 1;
   char *artdiff = "LS";
-  cout << "\nmain::Divisao Nivel final da malha ? : ";
-  cin >> nivel;
+  int nivel = 10;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
   REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
   REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
@@ -1793,7 +1739,7 @@ TPZMaterial *NoveCubos(int grau){
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity2();
-  int nummat = 1;
+  int nummat = 1,nivel;
   char *artdiff = "LS";
   cout << "\nmain::Divisao Nivel final da malha ? : ";
   cin >> nivel;

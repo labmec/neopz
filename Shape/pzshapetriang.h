@@ -194,6 +194,6 @@ static int SideConnectLocId(int side, int c);
  static void CenterPoint(int side, TPZVec<REAL> &center);
 
  /**volume of the master element*/
-static REAL RefElVolume(){return 0.;}
+static REAL RefElVolume(){return 0.5;}
 };
 #endif

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzshapequad.h,v 1.4 2003-10-06 01:32:07 phil Exp $
+// $Id: pzshapequad.h,v 1.5 2003-11-20 15:35:18 cedric Exp $
 
 #ifndef SHAPEQUADHPP
 #define SHAPEQUADHPP
@@ -248,7 +248,7 @@ static int SideConnectLocId(int side, int c);
  static void CenterPoint(int side, TPZVec<REAL> &center);
 
  /**volume of the master element*/
-static REAL RefElVolume(){return 0.;}
+static REAL RefElVolume(){return 4.0;}
 
 
 

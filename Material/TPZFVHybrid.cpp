@@ -19,26 +19,32 @@ int TPZMatHybrid::NStateVariables() {
 }
 
 void TPZMatHybrid::Print(ostream &out) {
-	out << "name of material : " << Name() << "\n";
-	out << "properties : \n";
-   out << "Material id   = " << fNumMat   << endl;
+  out << "name of material : " << Name() << "\n";
+  out << "properties : \n";
+  out << "Material id   = " << fNumMat   << endl;
 }
 
 void TPZMatHybrid::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &,REAL weight,
 			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
 
   int phr = phi.Rows();
-
+  int dim = phi.Cols();
+  int k;
   if(fForcingFunction) {            // phi(in, 0) :  função de forma associada ao nó in
     TPZManVector<REAL> res(1);
     fForcingFunction(x,res);       // dphi(i,j) :  derivada c/r a xi da função de forma j
     fXf(0,0) = res[0];
   }
 
+  TPZVec<REAL> normal(3);
+  for(k=0;k<3;k++) normal[k] = axes(0,k);//primeira linha de axes
+
   for( int in = 0; in < phr; in++ ) {
     ef(in, 0) += weight * fXf(0,0) * phi(in, 0) ;
     for( int jn = 0; jn < phr; jn++ ) {
-      ek(in,jn) += weight * (dphi(0,in) * dphi(0,jn) + dphi(1,in) * dphi(1,jn));
+      REAL sum = 0.0;
+      for(k=0;k<dim;k++) sum +=dphi(k,in) * dphi(k,jn);
+	ek(in,jn) += weight * sum;
     }
   }
 }
@@ -102,10 +108,8 @@ void TPZMatHybrid::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL w
 
 /** returns the variable index associated with the name*/
 int TPZMatHybrid::VariableIndex(char *name){
-  if(!strcmp("Displacement6",name)) return 0;
+  if(!strcmp("Pressao",name))       return 0;
   if(!strcmp("Solution",name))      return 1;
-  if(!strcmp("Derivate",name))      return 2;
-  if(!strcmp("POrder",name))        return 99;
 
   return TPZMaterial::VariableIndex(name);
 }
@@ -118,42 +122,41 @@ int TPZMatHybrid::NSolutionVariables(int var){
 
 void TPZMatHybrid::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 
-  if(var == 0 || var == 1) {
-    Solout[0] = Sol[0];//function
+  if(var == 1) {
+    cout << "TPZMatHybrid::Solution implementar Pressao\n";
     return;
   }
-  if(var == 2) {
-    Solout[0] = DSol(0,0);//derivate
-    Solout[1] = DSol(1,0);//derivate
+  if(var == 1) {
+    Solout[0] = Sol[0];
     return;
   }
+
   TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
 
 void TPZMatHybrid::Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux) {
-	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6) {
-   	cout << "TPZMatHybrid::Flux only serves for xy configuration\n";
-      axes.Print("axes");
-   }
+  if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6) {
+    cout << "TPZMatHybrid::Flux only serves for xy configuration\n";
+    axes.Print("axes");
+  }
 }
 //ofstream arq1("Simetria.dat");
-void TPZMatHybrid::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-				  TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &,
-		        TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
+void TPZMatHybrid::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &,
+			  TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
 
-   TPZVec<REAL> sol(1),dsol(2);
-   Solution(u,dudx,axes,1,sol);
-   Solution(u,dudx,axes,2,dsol);
-   for (int i = 0; i < 3; i++)
-       values[i] = 0.0;
-   //values[0] : norma energia do erro
-   values[0] = (dsol[0] - du_exact(0,0))*(dsol[0] - du_exact(0,0));
-   values[0] += (dsol[1] - du_exact(1,0))*(dsol[1] - du_exact(1,0));
-   //values[1] -> norma energia da solucao Uhp (aproximada)
-   values[1]  = (dsol[0])*(dsol[0]);
-   values[1] += (dsol[1])*(dsol[1]);
-   //values[2] -> morma enaergia da solucao U (exata)
-   values[2]  = (du_exact(0,0))*(du_exact(0,0));
-   values[2] += (du_exact(1,0))*(du_exact(1,0));
+  TPZVec<REAL> sol(1),dsol(2);
+  Solution(u,dudx,axes,1,sol);
+  Solution(u,dudx,axes,2,dsol);
+  for (int i = 0; i < 3; i++)
+    values[i] = 0.0;
+  //values[0] : norma energia do erro
+  values[0] = (dsol[0] - du_exact(0,0))*(dsol[0] - du_exact(0,0));
+  values[0] += (dsol[1] - du_exact(1,0))*(dsol[1] - du_exact(1,0));
+  //values[1] -> norma energia da solucao Uhp (aproximada)
+  values[1]  = (dsol[0])*(dsol[0]);
+  values[1] += (dsol[1])*(dsol[1]);
+  //values[2] -> morma enaergia da solucao U (exata)
+  values[2]  = (du_exact(0,0))*(du_exact(0,0));
+  values[2] += (du_exact(1,0))*(du_exact(1,0));
 }
 
