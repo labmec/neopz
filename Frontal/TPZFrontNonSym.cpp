@@ -168,7 +168,7 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 	
 #else
 	for(i=0;i<fFront;i++){
-		AuxVecCol[i]=/diag;
+		AuxVecCol[i]/=diag;
 	}
 #endif
 	fWork+=fFront*fFront;
