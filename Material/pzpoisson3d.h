@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.4 2003-12-01 16:04:53 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.5 2003-12-05 16:59:55 phil Exp $
 
 #ifndef MATPOISSON3DHPP
 #define MATPOISSON3DHPP
@@ -18,23 +18,26 @@
 
 class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 
-  TPZFMatrix fXf;//fonte
+  /** Forcing function value */
+  REAL fXf;
   int fDim;
+  /** Coeficient which multiplies the Laplace operator */
+  REAL fK;
+  /** Variable which multiplies the convection term of the equation */
+  REAL fC;
+  /** Direction of the convection operator */
+  REAL fConvDir[3];
   
   public :
 
-  static int problema;
+//  static int problema;
   
   static REAL gAlfa;
   
   TPZMatPoisson3d(int nummat, int dim);
   
   virtual ~TPZMatPoisson3d();
-  
-  void SetMaterial(TPZFMatrix &xfin){
-    fXf = xfin;
-  }
-  
+    
   int Dimension() { return fDim;}
 
   int NStateVariables();

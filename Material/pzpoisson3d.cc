@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cc,v 1.4 2003-12-01 16:04:53 tiago Exp $
+//$Id: pzpoisson3d.cc,v 1.5 2003-12-05 16:59:40 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -10,11 +10,16 @@
 #include "pzerror.h"
 #include <math.h>
 
-int TPZMatPoisson3d::problema = 0;
+//int TPZMatPoisson3d::problema = 0;
 
 REAL TPZMatPoisson3d::gAlfa = 0.5;
 
-TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(1,1,0.), fDim(dim) {
+TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim) {
+  fK = 1.;
+  fC = 0.;
+  fConvDir[0] =1.;
+  fConvDir[1] =0.;
+  fConvDir[2] =0.;
 }
 
 TPZMatPoisson3d::~TPZMatPoisson3d() {
@@ -26,26 +31,65 @@ int TPZMatPoisson3d::NStateVariables() {
 
 void TPZMatPoisson3d::Print(ostream &out) {
   out << "name of material : " << Name() << "\n";
-  out << "properties : \n";           
+  out << "Laplace operator multiplier fK "<< fK << endl;
+  out << "Convection coeficient fC " << fC << endl;
+  out << "Convection direction " << fConvDir[0] << ' ' << fConvDir[1] << ' ' <<  fConvDir[2] << endl;
+  out << "Forcing vector fXf " << fXf << endl;
+  out << "Base Class properties : \n";
   TPZMaterial::Print(out);
 }
 
-void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &  dsol ,REAL weight,TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &  dsol ,REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
 
   int phr = phi.Rows();
 
   if(fForcingFunction) {            // phi(in, 0) = phi_in
     TPZManVector<REAL> res(1);
     fForcingFunction(x,res);       // dphi(i,j) = dphi_j/dxi
-    fXf(0,0) = res[0];
+    fXf = res[0];
   }
+  REAL delx = 0.;
+  REAL ConvDirAx[3] = {0.};
+  if(fC) {
+    switch(fDim) {
+      case 1:
+        delx = jacinv(0,0);
+        ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
+        break;
+      case 2:
+        delx = jacinv(0,0)*jacinv(1,1)-jacinv(1,0)*jacinv(0,1);
+        ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
+        ConvDirAx[1] = axes(1,0)*fConvDir[0]+axes(1,1)*fConvDir[1]+axes(1,2)*fConvDir[2];
+        break;
+      case 3:
+        delx = jacinv(0,0)*jacinv(1,1)*jacinv(2,2)+
+          jacinv(0,1)*jacinv(1,2)*jacinv(2,0)+
+          jacinv(1,0)*jacinv(2,1)*jacinv(0,2)-
+          jacinv(2,0)*jacinv(1,1)*jacinv(0,2)-
+          jacinv(1,0)*jacinv(0,1)*jacinv(2,2)-
+          jacinv(2,1)*jacinv(2,1)*jacinv(0,0);
+        ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
+        ConvDirAx[1] = axes(1,0)*fConvDir[0]+axes(1,1)*fConvDir[1]+axes(1,2)*fConvDir[2];
+        ConvDirAx[2] = axes(2,0)*fConvDir[0]+axes(2,1)*fConvDir[1]+axes(2,2)*fConvDir[2];
+        break;
+      default:
+        cout << "TPZMatPoisson3d::Contribute dimension error " << fDim << endl;
+    }
+  }
+    
   //Equação de Poisson
   for( int in = 0; in < phr; in++ ) {
     int kd;
-    ef(in, 0) += - weight * fXf(0,0)*phi(in,0);
+    ef(in, 0) += - weight * fXf*phi(in,0);
+    REAL dphiic = 0;
+    for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
     for( int jn = 0; jn < phr; jn++ ) {
       for(kd=0; kd<fDim; kd++) {
-	ek(in,jn) += weight * ( dphi(kd,in) * dphi(kd,jn) );
+        ek(in,jn) += weight * (
+          fK * ( dphi(kd,in) * dphi(kd,jn) ) -
+          fC * ( ConvDirAx[kd]* dphi(kd,in) * phi(jn) )+
+          delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
+          );
       }
     }
   }
@@ -136,7 +180,7 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
   //values[2] : erro em semi norma H1
   values[2] = 0.;
   for(id=0; id<fDim; id++) {
-    values[2]  += (dx[id] - du_exact(id,0))*(dx[id] - du_exact(id,0));
+    values[2]  += fK*(dx[id] - du_exact(id,0))*(dx[id] - du_exact(id,0));
   }
   //values[0] : erro em norma H1 <=> norma Energia
   values[0]  = values[1]+values[2];
@@ -161,23 +205,23 @@ void TPZMatPoisson3d::ContributeEnergy(TPZVec<REAL> &x,
 
       //FADFADREAL Buff;
 
-      U+= sol[0] * FADREAL(weight * fXf(0,0));
+      U+= sol[0] * FADREAL(weight * fXf);
 
       switch(dim)
       {
       case 1:
-             U+=(dsol[0] * dsol[0])*FADREAL(weight/2.); // U=((du/dx)^2)/2
+             U+=fK*(dsol[0] * dsol[0])*FADREAL(weight/2.); // U=((du/dx)^2)/2
 
 	 break;
       case 2:
-             U+=(dsol[0] * dsol[0] +
+             U+=fK*(dsol[0] * dsol[0] +
 	         dsol[1] * dsol[1])*(weight/2.); // U=((du/dx)^2+(du/dy)^2)/2
              /*Buff  = dsol[0] * dsol[0];
              Buff += dsol[1] * dsol[1];
 	     U += Buff * FADREAL(weight/2.); // U=((du/dx)^2+(du/dy)^2)/2*/
 	 break;
       case 3:
-             U+=(dsol[0] * dsol[0] +
+             U+=fK*(dsol[0] * dsol[0] +
                  dsol[1] * dsol[1] +
 	         dsol[2] * dsol[2])*(weight/2.); // U=((du/dx)^2+(du/dy)^2+(du/dz)^2)/2*/
              /*Buff  = dsol[0] * dsol[0];
@@ -218,13 +262,38 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 #endif
 
 void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-					  TPZFMatrix &ek,TPZFMatrix &ef){
+                        TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+                        TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                        TPZFMatrix &ek,TPZFMatrix &ef){
 
   int nrowl = phiL.Rows();
   int nrowr = phiR.Rows();
   int il,jl,ir,jr,id;
+  REAL ConvNormal = 0.;
+  for(id=0; id<fDim; id++) ConvNormal = fConvDir[id]*normal[id];
+  if(ConvNormal > 0.) {
+    for(il=0; il<nrowl; il++) {
+      for(jl=0; jl<nrowl; jl++) {
+        ek(il,jl) += weight * fC * ConvNormal * phiL(il)*phiL(jl);
+      }
+    }
+    for(ir=0; ir<nrowr; ir++) {
+      for(jl=0; jl<nrowl; jl++) {
+        ek(ir+nrowl,jl) -= weight * fC * ConvNormal * phiR(ir) * phiL(jl);
+      }
+    }
+  } else {
+    for(ir=0; ir<nrowr; ir++) {
+      for(jr=0; jr<nrowr; jr++) {
+        ek(ir+nrowl,jr+nrowl) -= weight * fC * ConvNormal * phiR(ir) * phiR(jr);
+      }
+    }
+    for(il=0; il<nrowl; il++) {
+      for(jr=0; jr<nrowr; jr++) {
+        ek(il,jr+nrowl) += weight * fC * ConvNormal * phiL(il) * phiR(jr);
+      }
+    }
+  }
   for(il=0; il<nrowl; il++) {
     REAL dphiLinormal = 0.;
     for(id=0; id<fDim; id++) {
@@ -233,11 +302,11 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     for(jl=0; jl<nrowl; jl++) {
       REAL dphiLjnormal = 0.;
       for(id=0; id<fDim; id++) {
-	dphiLjnormal += dphiL(id,jl)*normal[id];
+        dphiLjnormal += dphiL(id,jl)*normal[id];
       }
-      ek(il,jl) += weight*(
-			   0.5*dphiLinormal*phiL(jl,0)-0.5*dphiLjnormal*phiL(il,0)
-			   );
+      ek(il,jl) += weight*fK*(
+        0.5*dphiLinormal*phiL(jl,0)-0.5*dphiLjnormal*phiL(il,0)
+      );
     }
   }
   for(ir=0; ir<nrowr; ir++) {
@@ -248,11 +317,11 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     for(jr=0; jr<nrowr; jr++) {
       REAL dphiRjnormal = 0.;
       for(id=0; id<fDim; id++) {
-	dphiRjnormal += dphiR(id,jr)*normal[id];
+        dphiRjnormal += dphiR(id,jr)*normal[id];
       }
-      ek(ir+nrowl,jr+nrowl) += weight*(
-			   -0.5*dphiRinormal*phiR(jr)+0.5*dphiRjnormal*phiR(ir)
-			   );
+      ek(ir+nrowl,jr+nrowl) += weight*fK*(
+        -0.5 * dphiRinormal * phiR(jr) + 0.5 * dphiRjnormal * phiR(ir)
+      );
     }
   }
   for(il=0; il<nrowl; il++) {
@@ -263,11 +332,11 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     for(jr=0; jr<nrowr; jr++) {
       REAL dphiRjnormal = 0.;
       for(id=0; id<fDim; id++) {
-	dphiRjnormal += dphiR(id,jr)*normal[id];
+        dphiRjnormal += dphiR(id,jr)*normal[id];
       }
-      ek(il,jr+nrowl) += weight*(
-			   -0.5*dphiLinormal*phiR(jr)-0.5*dphiRjnormal*phiL(il)
-			   );
+      ek(il,jr+nrowl) += weight*fK*(
+        -0.5 * dphiLinormal * phiR(jr) - 0.5 * dphiRjnormal * phiL(il)
+      );
     }
   }
   for(ir=0; ir<nrowr; ir++) {
@@ -278,11 +347,11 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     for(jl=0; jl<nrowl; jl++) {
       REAL dphiLjnormal = 0.;
       for(id=0; id<fDim; id++) {
-	dphiLjnormal += dphiL(id,jl)*normal[id];
+        dphiLjnormal += dphiL(id,jl)*normal[id];
       }
-      ek(ir+nrowl,jl) += weight*(
-			   +0.5*dphiRinormal*phiL(jl)+0.5*dphiLjnormal*phiR(ir)
-			   );
+      ek(ir+nrowl,jl) += weight*fK*(
+        + 0.5 * dphiRinormal * phiL(jl) + 0.5 * dphiLjnormal * phiR(ir)
+      );
     }
   }
 }
@@ -290,7 +359,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
 void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
 					    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
-  //  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
+  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
   int il,jl,nrowl,id;
   nrowl = phiL.Rows();
   switch(bc.Type()) {
