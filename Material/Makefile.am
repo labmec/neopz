@@ -41,6 +41,7 @@ libpzmaterial_a_SOURCES = eulerdif.cc \
 	TPZPlacaOrthotropic.cc \
 	TPZConservationLaw.cc \
 	TPZConsLawTest.cc \
+	TPZFVHybrid.cc \
 	pzartdiff.cc \
 	swelling.cc \
         pzconslaw.cc \
