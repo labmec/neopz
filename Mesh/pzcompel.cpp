@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.12 2004-04-05 14:09:35 phil Exp $
+//$Id: pzcompel.cpp,v 1.13 2004-04-26 13:33:55 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -100,11 +100,13 @@ TPZCompEl::TPZCompEl() {
   fIndex = -1;
 }
 
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, int &index) {
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) {
   fMesh = &mesh;
   index = mesh.ElementVec().AllocateNewElement();
   mesh.ElementVec()[index] = this;
   fIndex = index;
+  fReference = ref;
+  fReferenceIndex = (ref == 0) ? -1 : ref->Index();
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy) {
@@ -112,6 +114,8 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy) {
   int index = copy.fIndex;
   if(index >= 0) mesh.ElementVec()[index] = this;
   fIndex = index;
+  fReference = copy.Reference();
+  fReferenceIndex = copy.fReferenceIndex;
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index) {
@@ -119,6 +123,8 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index) {
   index = mesh.ElementVec().AllocateNewElement();
   if(index >= 0) mesh.ElementVec()[index] = this;
   fIndex = index;
+  fReference = copy.fReference;
+  fReferenceIndex = copy.fReferenceIndex;
 }
 
 TPZCompEl::~TPZCompEl() {
@@ -1006,3 +1012,23 @@ REAL TPZCompEl::LesserEdgeOfEl(){
 }
 
 
+  /**
+  Save the element data to a stream
+  */
+void TPZCompEl::Write(TPZStream &buf, int withclassid) 
+{
+  TPZSaveable::Write(buf,withclassid);
+  buf.Write(&fIndex,1);
+  buf.Write(&fReferenceIndex,1);
+}  
+  
+  /**
+  Read the element data from a stream
+  */
+void TPZCompEl::Read(TPZStream &buf, void *context)
+{
+  TPZSaveable::Read(buf,context);
+  fMesh = (TPZCompMesh *) context;
+  buf.Read(&fIndex,1);
+  buf.Read(&fReferenceIndex,1);
+}

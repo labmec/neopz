@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.5 2003-11-25 17:50:42 cesar Exp $
+//$Id: pzconnect.h,v 1.6 2004-04-26 13:33:55 phil Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -15,6 +15,7 @@ using namespace std;
 class TPZBndCond;
 class TPZCompMesh;
 class TPZBlock;
+class TPZStream;
 
 
 
@@ -39,10 +40,13 @@ class TPZConnect {
     TPZDepend(int DepConnectIndex,TPZFMatrix &depmat,int ipos,int jpos, int isize, int jsize);
 
     TPZDepend(const TPZDepend &copy);
+    TPZDepend(int connectindex);
 
     ~TPZDepend();
     TPZDepend *HasDepend(int DepConnectIndex);
     TPZDepend *RemoveDepend(TPZDepend *Ptr);
+    void Write(TPZStream &buf);
+    void Read(TPZStream &buf);
   };
 
  private:
@@ -115,6 +119,17 @@ class TPZConnect {
   void SetDependenceOrder(int myindex, TPZCompMesh &mesh, int CurrentOrder,TPZVec<int> &connectlist,TPZVec<int> &DependenceOrder);
 
   void ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &blocksize, TPZFMatrix &phi, TPZFMatrix &dphi);
+  
+  /**
+  Save the element data to a stream
+  */
+void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+void Read(TPZStream &buf, void *context);
+
 };
 
 

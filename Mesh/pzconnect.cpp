@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.8 2004-01-05 18:01:10 cesar Exp $
+//$Id: pzconnect.cpp,v 1.9 2004-04-26 13:33:55 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -9,6 +9,8 @@
 #include "pzstack.h"
 #include "pzcmesh.h"
 #include "pzbndcond.h"
+#include "pzsave.h"
+#include "pzstream.h"
 
 
 TPZConnect::TPZConnect() {
@@ -173,6 +175,11 @@ TPZConnect::TPZDepend::TPZDepend(const TPZDepend &copy) : fDepConnectIndex(copy.
   if(copy.fNext) fNext = new TPZDepend(*copy.fNext);
 }
 
+TPZConnect::TPZDepend::TPZDepend(int connectindex) : fDepConnectIndex(connectindex),
+  fDepMatrix(),fNext(0)
+{
+}
+ 
 TPZConnect::TPZDepend::~TPZDepend() {
   if(fNext) delete fNext;
 }
@@ -298,4 +305,89 @@ void TPZConnect::ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &bl
             dphi(d,eqloc+r) = 0.;
         }
     }
+}
+
+
+/*!
+    \fn TPZConnect::TPZDepend::Write(TPZStream &buf, int withclassid)
+ */
+void TPZConnect::TPZDepend::Write(TPZStream &buf)
+{
+  buf.Write(&fDepConnectIndex,1);
+  fDepMatrix.Write(buf,0);
+  if(fNext)
+  {
+    fNext->Write(buf);
+  }
+  else
+  {
+    int min1 = -1;
+    buf.Write(&min1,1);
+  }
+}
+
+
+/*!
+    \fn TPZConnect::TPZDepend::Read(TPZStream &buf, void *context)
+ */
+void TPZConnect::TPZDepend::Read(TPZStream &buf)
+{
+  fDepMatrix.Read(buf,0);
+  int nextindex;
+  buf.Read(&nextindex,1);
+  if(nextindex >= 0)
+  {
+    fNext = new TPZDepend(nextindex);
+    fNext->Read(buf);
+  }
+  else
+  {
+    fNext = 0;
+  }
+}
+  /**Node block number*/
+  int		fSequenceNumber;
+  /**Number of element connected*/
+  int		fNElConnected;
+  /**
+   * Interpolation order of the associated shape functions
+   */
+  int fOrder;
+
+  /**
+  Save the element data to a stream
+  */
+void TPZConnect::Write(TPZStream &buf, int withclassid) 
+{
+  buf.Write(&fSequenceNumber,1);
+  buf.Write(&fNElConnected,1);
+  buf.Write(&fOrder,1);
+  if(fDependList)
+  {
+    fDependList->Write(buf);
+  } else
+  {
+    int min1 = -1;
+    buf.Write(&min1,1);
+  }
+}
+  
+  /**
+  Read the element data from a stream
+  */
+void TPZConnect::Read(TPZStream &buf, void *context)
+{
+  buf.Read(&fSequenceNumber,1);
+  buf.Read(&fNElConnected,1);
+  buf.Read(&fOrder,1);
+  int seq;
+  buf.Read(&seq,1);
+  if(seq >= 0)
+  {
+    fDependList = new TPZDepend(seq);
+    fDependList->Read(buf);
+  } else
+  {
+    fDependList = 0;
+  }
 }

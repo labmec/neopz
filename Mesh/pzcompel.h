@@ -1,7 +1,7 @@
 //HEADER FILE FOR CLASS ELBAS
 
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.11 2003-12-01 14:51:53 tiago Exp $
+// $Id: pzcompel.h,v 1.12 2004-04-26 13:33:55 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -10,6 +10,10 @@
 #include "pzshapelinear.h"
 #include <iostream>
 #include <fstream>
+#include "pzcmesh.h"
+#include "pzgmesh.h"
+#include "pzgeoel.h"
+#include "pzsave.h"
 
 using namespace std;
 
@@ -48,7 +52,7 @@ class TPZTransfer;
 
  * @ingroup CompElement
  */
-class TPZCompEl {
+class TPZCompEl : public TPZSaveable {
 
 protected:
 
@@ -61,6 +65,16 @@ protected:
    * Element index into mesh element vector
    */
   int fIndex;
+  
+private:
+  /**
+  * Reference to geometric element
+  */
+  TPZGeoEl *fReference;
+  /**
+  * Index of reference element
+  */
+  int fReferenceIndex;
 
 public:
 
@@ -90,6 +104,14 @@ public:
   TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index); 
 
   /**
+   * Create a computational element within mesh
+   * Inserts the element within the data structure of the mesh
+   * @param mesh mesh wher will be created the element
+   * @param index new elemen index
+   */
+  TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
+  
+  /**
    * Default interpolation order
    */
   static int gOrder;
@@ -99,8 +121,8 @@ public:
    */
   virtual  REAL VolumeOfEl()
  {
-  PZError << "TPZCompEl does not have a reference to the geometric mesh. This method must be re-implemented by child classes." << endl;
-  return 0.;
+   if(fReferenceIndex == 0) return 0.;
+   return Reference()->Volume();
  }
 
   /**
@@ -118,13 +140,6 @@ public:
   //  /**pointer to function which returns num orthogonal functions at the point x*/
   //  static void (*fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
 
-  /**
-   * Create a computational element within mesh
-   * Inserts the element within the data structure of the mesh
-   * @param mesh mesh wher will be created the element
-   * @param index new elemen index
-   */
-  TPZCompEl(TPZCompMesh &mesh, int &index);
 
   /**
    * @name Access
@@ -149,7 +164,28 @@ public:
    * Return a pointer to the corresponding geometric element if such exists
    * return 0 otherwise
    */
-  virtual TPZGeoEl *Reference() const { return 0; }
+  TPZGeoEl *Reference() const 
+  { 
+    return (fReferenceIndex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex]; 
+  }
+  
+  
+  void SetReference(int referenceindex) 
+  {
+    fReferenceIndex = referenceindex;
+    fReference = (referenceindex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex];
+  }
+  
+  void SetReference(TPZGeoEl *ref)
+  {
+    fReference = ref;
+    if(ref)
+    {
+     fReferenceIndex = ref->Index();
+    } else {
+      fReferenceIndex = -1;
+    }
+  }
 
   /**
    * Return the number of nodes of the element
@@ -413,6 +449,16 @@ public:
   REAL MaximumRadiusOfEl();
 
   REAL LesserEdgeOfEl();
+  
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
 };
 
 

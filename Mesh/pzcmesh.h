@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.16 2003-12-05 21:33:28 phil Exp $
+//$Id: pzcmesh.h,v 1.17 2004-04-26 13:33:55 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -16,6 +16,7 @@
 
 #include <string.h>
 #include "pzreal.h"	// Added by ClassView
+#include "pzsave.h"
 
 class TPZCompEl;
 class TPZGeoEl;
@@ -28,6 +29,7 @@ class TPZGeoMesh;
 class TPZTransfer;
 class TPZCoSys;
 class TPZGeoEl;
+class TPZStream;
 	/**
 	 * Class TPZCompMesh implemments computational mesh
 	 * @ingroup CompMesh
@@ -35,7 +37,7 @@ class TPZGeoEl;
 //-----------------------------------------------------------------------------
 // class structure
 //-----------------------------------------------------------------------------
-class TPZCompMesh {
+class TPZCompMesh : public TPZSaveable {
 
 protected:
   /**
@@ -46,7 +48,7 @@ protected:
   /**
    * Grid name for model identification
    */
-  char		fName[127];
+  string fName;
   
 
   /**
@@ -97,7 +99,7 @@ public:
    * Constructor from geometrical mesh
    * @param gr pointer to geometrical reference mesh
    */
-  TPZCompMesh(TPZGeoMesh* gr);
+  TPZCompMesh(TPZGeoMesh* gr=0);
 
   /**
    * Copy constructor
@@ -139,7 +141,7 @@ public:
   /**
    * Set the mesh name
    */
-  void SetName(char *nm);
+  void SetName(const string &nm);
 
   /**set de dimension of the domain of the problem*/
   void SetDimModel(int dim){fDimModel = dim;}
@@ -150,7 +152,7 @@ public:
   /**
    * Return the mesh name
    */
-  char* Name() {return fName;}
+  string &Name() {return fName;}
 
   /**
    * Delete all the dynamically allocated data structures
@@ -536,6 +538,21 @@ public:
 @param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element */
   void ComputeFillIn(int resolution, TPZFMatrix &fillin);
 
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+  virtual int ClassId() const;
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
+
+  
 };
 
 

@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.28 2004-04-06 03:17:59 longhin Exp $
+//$Id: pzcmesh.cpp,v 1.29 2004-04-26 13:33:55 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -26,6 +26,7 @@
 #include "pzadmchunk.h"
 
 #include "pzmetis.h"
+#include "pzstream.h"
 #include <map>
 
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
@@ -36,8 +37,8 @@ TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
   fDimModel = 0;
   fReference = gr;
   //  fChecked = 0;
-  fName[0] = '\0';
-  fName[126] = '\0';
+  //fName[0] = '\0';
+  //fName[126] = '\0';
   if(gr) {
     SetName( gr->Name() );
     gr->SetReference(this);
@@ -83,13 +84,8 @@ void TPZCompMesh::CleanUp() {
   fSolution.Redim(0,0);
 }
 
-void TPZCompMesh::SetName (char *nm) {
-  
-  if (nm != NULL) {
-    strncpy(fName,nm,126);
-  } else {
-    fName[0] = '\0';
-  }
+void TPZCompMesh::SetName (const string &nm) {
+  fName = nm;
 }
 
 void TPZCompMesh::Print (ostream & out) {
@@ -1673,7 +1669,7 @@ void  TPZCompMesh::GetNodeToElGraph(TPZVec<int> &nodtoelgraph, TPZVec<int> &nodt
 
 void TPZCompMesh::GetElementPatch(TPZVec<int> nodtoelgraph, TPZVec<int> nodtoelgraphindex, TPZStack<int> &elgraph, TPZVec<int> &elgraphindex,int elind ,TPZStack<int> &patch){
 
-  int aux =0;
+//  int aux =0;
   //TPZAVLMap<int,int> elconmap(aux);
   map<int , int> elconmap;
   int i,j;
@@ -1954,3 +1950,45 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix &projectsol) {
     aggel->ProjectSolution(projectsol);
   }
 } 
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+int TPZCompMesh::ClassId() const
+{
+  return TPZCOMPMESHID;
+}
+  /**
+  Save the element data to a stream
+  */
+void TPZCompMesh::Write(TPZStream &buf, int withclassid)
+{
+  TPZSaveable::Write(buf,withclassid);
+  buf.Write(&fName,1);
+  buf.Write(&fDimModel,1);
+  WriteObjects<TPZConnect>(buf,fConnectVec);
+  WriteObjectPointers<TPZMaterial>(buf,fMaterialVec);
+  WriteObjectPointers<TPZCompEl>(buf,fElementVec);
+  fSolution.Write(buf,0);
+  fSolutionBlock.Write(buf,0);
+  fBlock.Write(buf,0);
+  
+}
+  
+  /**
+  Read the element data from a stream
+  */
+void TPZCompMesh::Read(TPZStream &buf, void *context)
+{
+  TPZSaveable::Read(buf,context);
+  this->fReference = (TPZGeoMesh *) context;
+  buf.Read(&fName,1);
+  buf.Read(&fDimModel,1);
+  ReadObjects<TPZConnect>(buf,fConnectVec,0);
+  ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,0);
+  ReadObjectPointers<TPZCompEl>(buf,fElementVec,this);
+  fSolution.Read(buf,0);
+  fSolutionBlock.Read(buf,&fSolution);
+  fBlock.Read(buf,&fSolution);
+
+}
+
