@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.5 2003-12-08 14:20:08 phil Exp $
+//$Id: main.cpp,v 1.6 2003-12-09 17:53:00 phil Exp $
 /**
  * Galerkin descontinuo: visita do professor Igor.
  * 24/11/2003
@@ -202,8 +202,12 @@ int main(){
   fillin.Print("Fillin of the computable mesh");
 
 
-  /*
+  /*  
   an.Assemble();
+  an.Solver().Matrix()->Print("Global stiffness",out);
+  an.Rhs().Print("Right hand side",out);
+  */
+  /*
 
   TPZFMatrix mysol(8,1,0.),myres(8,1,0.);
   mysol(1,0) = 1.;
@@ -216,7 +220,7 @@ int main(){
   */
   an.Run();
 
-  // an.Print( "Nosso primeiro teste",out);
+  an.Print( "Nosso primeiro teste",out);
 
   TPZVec<char *> scalnames(1);
   TPZVec<char *> vecnames(1);
@@ -336,14 +340,14 @@ TPZCompMesh *CreateMesh() {
 */
 
   // bc -1 -> Dirichlet homogeneo
-//  TPZGeoElBC gbc1(elvec[0],5,-2,*gmesh); // bottom
+  TPZGeoElBC gbc1(elvec[0],5,-2,*gmesh); // bottom
   TPZGeoElBC gbc2(elvec[0],6,-2,*gmesh); // right
-  TPZGeoElBC gbc3(elvec[1],5,-2,*gmesh); // right
-//  TPZGeoElBC gbc4(elvec[1],6,-1,*gmesh); // top
-//  TPZGeoElBC gbc5(elvec[2],5,-2,*gmesh); // top
-  TPZGeoElBC gbc6(elvec[2],6,-1,*gmesh); // left
+  TPZGeoElBC gbc3(elvec[1],5,-1,*gmesh); // right
+  TPZGeoElBC gbc4(elvec[1],6,-1,*gmesh); // top
+  TPZGeoElBC gbc5(elvec[2],5,-2,*gmesh); // top
+  TPZGeoElBC gbc6(elvec[2],6,-2,*gmesh); // left
   TPZGeoElBC gbc7(elvec[3],5,-1,*gmesh); // left
-//  TPZGeoElBC gbc8(elvec[3],6,-1,*gmesh); // bottom
+  TPZGeoElBC gbc8(elvec[3],6,-1,*gmesh); // bottom
   
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   cmesh->SetDimModel(2);
@@ -354,7 +358,7 @@ TPZCompMesh *CreateMesh() {
 
   TPZManVector<REAL,2> convdir(2,0.);
   convdir[0] = 1.;
-//  convdir[1] = 1.;
+  convdir[1] = 1.;
   mat->SetParameters(0.,1.,convdir);
   int nstate = 1;
   TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
@@ -372,7 +376,7 @@ TPZCompMesh *CreateMesh() {
   int i;
   for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
 
-
+  /*
   TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
@@ -381,7 +385,7 @@ TPZCompMesh *CreateMesh() {
   TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
-
+  */
   TPZCompElDisc::gInterfaceDimension = 1;
   
   cmesh->AutoBuild();
