@@ -21,7 +21,9 @@
 #include "pzstepsolver.h"
 #include "pzblock.h"
 // Creates a mesh for the reflected shock problem
-
+ using namespace pzgeom;
+ using namespace pzshape;
+ using namespace pzrefine;
 void RSNAMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 {
    REAL x1 = 0.,

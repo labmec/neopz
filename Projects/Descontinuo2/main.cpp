@@ -43,6 +43,9 @@
 #include "TPZInterfaceEl.h"
 #include "tpzoutofrange.h"
 
+ using namespace pzgeom;
+ using namespace pzshape;
+ using namespace pzrefine;
 
 int gDebug;
 

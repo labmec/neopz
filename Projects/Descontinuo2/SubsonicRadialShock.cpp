@@ -21,7 +21,9 @@
 #include "pzstepsolver.h"
 #include "pzblock.h"
 // creates an one-quadrilateral element mesh
-
+ using namespace pzgeom;
+ using namespace pzshape;
+ using namespace pzrefine;
 const int nn = 2;
 const int mm = 4;
 const REAL pi = 3.14159265359;

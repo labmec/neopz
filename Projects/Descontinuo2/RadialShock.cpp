@@ -21,7 +21,9 @@
 #include "pzstepsolver.h"
 #include "pzblock.h"
 // creates an one-quadrilateral element mesh
-
+ using namespace pzgeom;
+ using namespace pzshape;
+ using namespace pzrefine;
 void OneElMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 {
    REAL x1 = 0.,

@@ -20,7 +20,9 @@
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzblock.h"
-
+ using namespace pzgeom;
+ using namespace pzshape;
+ using namespace pzrefine;
 const int nSTEl = 2 * 1;
 
 // Creates a mesh for the simple shock problem

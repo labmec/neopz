@@ -13,15 +13,19 @@
 #include <fstream>
 #include "TPZGeoElement.h"
 #include "pzshapequad.h"
+#include "pzshapelinear.h"
 #include "pzgeoquad.h"
 #include "pzrefquad.h"
 #include "TPZGeoLinear.h"
 #include "TPZRefLinear.h"
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
+#include "pzbndcond.h"
 #include "pzblock.h"
 // creates an one-quadrilateral element mesh
-
+ using namespace pzgeom;
+ using namespace pzshape;
+ using namespace pzrefine;
 void OneElMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 {
    REAL x1 = 0.,

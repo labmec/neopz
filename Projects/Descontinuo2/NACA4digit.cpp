@@ -21,7 +21,9 @@
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzblock.h"
-
+ using namespace pzgeom;
+ using namespace pzshape;
+ using namespace pzrefine;
 REAL TPZNACAXXXX::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt) {
 
   REAL distminlow = 20.*fCord;

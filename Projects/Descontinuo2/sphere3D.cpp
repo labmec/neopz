@@ -24,7 +24,9 @@
 #include "pzstepsolver.h"
 #include "pzblock.h"
 // creates a quarter of a tridimentional sphere
-
+ using namespace pzgeom;
+ using namespace pzshape;
+ using namespace pzrefine;
 void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int nSubdiv)
 {
 
