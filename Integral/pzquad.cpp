@@ -2151,10 +2151,13 @@ TPZIntRule* TPZIntRuleList::GetRule(int fNumInt) {
   if (fNumInt < 0 || fNumInt > intavail) {
     PZError << "\nERROR(TPZIntRuleList::getrule)-> Numint = " << fNumInt;
     //		PZError.show();
-    return NULL;
+    fNumInt = intavailT-1;
+    PZError << "\n                     precision obtained = " << fNumInt;
+    //return NULL;
   }
   if(fNumInt == 0) fNumInt = 1;
-  return intlist[fNumInt-1];
+  //return intlist[fNumInt-1];
+  return intlist[fNumInt];
 }
 
 //**************************************
@@ -2165,7 +2168,7 @@ TPZIntRuleT* TPZIntRuleList::GetRuleT(int precision) {
   if (precision < 0 || precision >= intavailT) {
     PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision;
     precision = intavailT-1;
-    PZError << "\n                                   precision obtain = " << precision;
+    PZError << "\n                                 precision obtained = " << precision;
     //		PZError.show();
   }
 
