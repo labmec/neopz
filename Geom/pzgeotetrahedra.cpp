@@ -6,12 +6,12 @@
 #include "pzfmatrix.h"
 #include "pzgeoel.h"
 #include "pzquad.h"
-#include "pzelgpoint.h"
-#include "pzelg1d.h"
-#include "pzelgt2d.h"
-#include "pzelgq2d.h"
-#include "pzelgpi3d.h"
-#include "pzelgt3d.h"
+//#include "pzelgpoint.h"
+//#include "pzelg1d.h"
+//#include "pzelgt2d.h"
+//#include "pzelgq2d.h"
+//#include "pzelgpi3d.h"
+//#include "pzelgt3d.h"
 #include "pzshapetetra.h"
 
 
@@ -115,16 +115,20 @@ TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	}
 	if(side<4) {
 	  TPZManVector<int> nodeindexes(1);
-		TPZGeoElPoint *gel;
+	  //		TPZGeoElPoint *gel;
 		nodeindexes[0] = orig->NodeIndex(side);
-		gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
+		int index;
+		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
+		//		gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;
    } else if (side > 3 && side < 10) {//side =4 a 9 : lados
  		TPZManVector<int> nodes(2);
 		nodes[0] = orig->SideNodeIndex(side,0);
 		nodes[1] = orig->SideNodeIndex(side,1);
-		TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
+		int index;
+		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
+		//		TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::SideConnectLocId(side,0)));
 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::SideConnectLocId(side,1)));
 		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
@@ -135,7 +139,9 @@ TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		for (in=0;in<3;in++){
 			nodes[in] = orig->SideNodeIndex(side,in);
 		}
-		TPZGeoElT2d *gel = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
+		int index;
+		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
+		//		TPZGeoElT2d *gel = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
 		for (in=0;in<6;in++){
 			TPZGeoElSide(gel,in).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::SideConnectLocId(side,in)));
 		}

@@ -6,6 +6,7 @@
 #define TPZGEOQUADH
 
 #include "pzvec.h"
+#include "pzeltype.h"
 
 class TPZFMatrix;
 class TPZGeoEl;
@@ -16,6 +17,11 @@ class TPZGeoQuad
 public:
 
 	enum {NNodes = 4, NSides = 9};
+
+  /**
+   * return the type of the element as specified in file pzeltype.h
+   */
+  static MElementType Type() { return EQuadrilateral;}
 
   /** implementation of two-dimensional bilinear interpolation*/
 static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);

@@ -6,9 +6,9 @@
 #include "pzfmatrix.h"
 #include "pzgeoel.h"
 #include "pzquad.h"
-#include "pzelgpoint.h"
-#include "pzelg1d.h"
-#include "pzelgq2d.h"
+//#include "pzelgpoint.h"
+//#include "pzelg1d.h"
+//#include "pzelgq2d.h"
 #include "pzshapequad.h"
 
 
@@ -123,7 +123,9 @@ TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
     for (i=0;i<4;i++) {
       nodes[i] = orig->SideNodeIndex(side,i);
     }
-    TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
+    int index;
+    TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EQuadrilateral,nodes,bc,index);
+    //    TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
     int iside;
     for (iside = 0; iside <8; iside++){
       TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,iside)));
@@ -133,9 +135,11 @@ TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
   }
   else if(side>-1 && side<4) {//side = 0,1,2,3
     TPZManVector<int> nodeindexes(1);
-    TPZGeoElPoint *gel;
+    //    TPZGeoElPoint *gel;
     nodeindexes[0] = orig->SideNodeIndex(side,0);
-    gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
+    int index;
+    TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
+    //    gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
     TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
     return gel;
   }
@@ -143,7 +147,9 @@ TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
     TPZManVector<int> nodes(2);
     nodes[0] = orig->SideNodeIndex(side,0);
     nodes[1] = orig->SideNodeIndex(side,1);
-    TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
+    //    TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
+    int index;
+    TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
     TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,0)));
     TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,1)));
     TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));

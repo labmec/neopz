@@ -1,7 +1,7 @@
 
 #include "TPZGeoLinear.h"
-#include "pzelg1d.h"
-#include "pzelgpoint.h"
+//#include "pzelg1d.h"
+//#include "pzelgpoint.h"
 #include "pzquad.h"
 #include "pzshapelinear.h"
 #include "pzgeoel.h"
@@ -68,7 +68,9 @@ TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
       TPZManVector<int> nodes(2);
       nodes[0] = orig->SideNodeIndex(side,0);
       nodes[1] = orig->SideNodeIndex(side,1);
-      TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
+      int index;
+      TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
+      //      TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
       TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::SideConnectLocId(side,0)));
       TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::SideConnectLocId(side,1)));
       TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
@@ -76,9 +78,11 @@ TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
   }
   else if(side==0 || side==1) {
       TPZManVector<int> nodeindexes(1);
-      TPZGeoElPoint *gel;
+      //      TPZGeoElPoint *gel;
       nodeindexes[0] = orig->SideNodeIndex(side,0);
-      gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
+      int index;
+      TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodeindexes,bc,index);
+      //      gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
       TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 	  return gel;
   }

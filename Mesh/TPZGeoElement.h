@@ -17,13 +17,16 @@ class TPZGeoElement : public TPZGeoEl {
 	TPZGeoEl *fSubEl[TRef::NSubEl];
 	int fNodeIndexes[TGeo::NNodes];
 	TPZGeoElSide fNeighbours[TShape::NSides];
+public:
 	static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+  //  static int fTest;
 
 public:
 
   TPZGeoElement();
   TPZGeoElement(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
   TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
+  TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
   ~TPZGeoElement(){};
 
   TPZCompEl *CreateCompEl(TPZCompMesh &mesh,int &index);
@@ -61,6 +64,13 @@ public:
    * and able to integrate a polynom of order exactly
    */
   TPZIntPoints * CreateSideIntegrationRule(int side, int order);
+
+  /**
+   * returns the type of the element acording to the definition in pzeltype.h
+   */
+  int Type() {
+    return TGeo::Type();
+  }
 
   /**return the number of nodes of the element*/
   int NNodes();

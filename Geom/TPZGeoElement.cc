@@ -38,12 +38,26 @@
 #include "pzmanvector.h"
 //#include "pzstack.h"
 
-template<class TShape, class TGeo, class TRef>
-TPZCompEl *(*TPZGeoElement<TShape,TGeo,TRef>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+//template<class TShape, class TGeo, class TRef>
+//int TPZGeoElement<TShape,TGeo,TRef>::fTest;
 
 template<class TShape, class TGeo, class TRef>
 TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) : 
   TPZGeoEl(matind,mesh) {
+  
+  int i,nnod = nodeindices.NElements();
+  if(nnod!=TGeo::NNodes) {
+    PZError << "TPZGeoElement<TShape,TGeo,TRef>::Constuctor, number of nodes : " << nnod << endl;
+    return;
+  }
+  
+  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
+  for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = 0;
+}
+
+template<class TShape, class TGeo, class TRef>
+TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) : 
+  TPZGeoEl(matind,mesh,index) {
   
   int i,nnod = nodeindices.NElements();
   if(nnod!=TGeo::NNodes) {
@@ -68,6 +82,7 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(int id,TPZVec<int> &nodeindexes,i
   for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindexes[i];
   for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = 0;
 }
+
 
 template<class TShape, class TGeo, class TRef>
 TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement() {
@@ -340,9 +355,10 @@ TPZGeoElement<TShape,TGeo,TRef>::CenterPoint(int side, TPZVec<REAL> &cent){
 template<class TShape, class TGeo, class TRef>
 TPZGeoElSide 
 TPZGeoElement<TShape,TGeo,TRef>::Father2(int side){//cout << " Father2 teste Cedric: 08/05/2003\n";
-    int son = WhichSubel(); 
-    if(son<0) return TPZGeoElSide(); 
-    return TPZGeoElSide(fFather,TRef::FatherSide(side,son));     
+  if(!fFather) return TPZGeoElSide();
+  int son = WhichSubel(); 
+  if(son<0) return TPZGeoElSide(); 
+  return TPZGeoElSide(fFather,TRef::FatherSide(side,son));     
 }
 
 
@@ -382,3 +398,48 @@ TPZGeoElement <TPZShapeLinear,TPZGeoPoint,TPZRefPoint> el8;
 
 return 0;
 }
+
+#include "pzelcpoint.h"
+#include "pzelcq2d.h"
+#include "pzelc1d.h"
+#include "pzelct2d.h"
+#include "pzelcc3d.h"
+#include "pzelct3d.h"
+#include "pzelcpr3d.h"
+#include "pzelcpi3d.h"
+
+static TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+  return new TPZCompElPoint(mesh,gel,index);
+}
+static TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+  return new TPZCompEl1d(mesh,gel,index);
+}
+static TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+  return new TPZCompElQ2d(mesh,gel,index);
+}
+static TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+  return new TPZCompElT2d(mesh,gel,index);
+}
+static TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+  return new TPZCompElC3d(mesh,gel,index);
+}
+static TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+  return new TPZCompElPr3d(mesh,gel,index);
+}
+static TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+  return new TPZCompElPi3d(mesh,gel,index);
+}
+static TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+  return new TPZCompElT3d(mesh,gel,index);
+}
+
+
+
+TPZCompEl *(*TPZGeoElement<TPZShapeLinear,TPZGeoPoint,TPZRefPoint>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
+TPZCompEl *(*TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
+TPZCompEl *(*TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;
+TPZCompEl *(*TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
+TPZCompEl *(*TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateCubeEl;
+TPZCompEl *(*TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePrismEl;
+TPZCompEl *(*TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;
+TPZCompEl *(*TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePyramEl;

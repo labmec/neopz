@@ -5,6 +5,7 @@
 
 
 #include "pzvec.h"
+#include "pzeltype.h"
 
 class TPZFMatrix;
 class TPZGeoEl;
@@ -14,6 +15,11 @@ class TPZGeoLinear {
 
 public:
 	enum {NNodes = 2, NSides = 3};
+
+  /**
+   * return the type of the element as specified in file pzeltype.h
+   */
+  static MElementType Type() { return EOned;}
 
 static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 

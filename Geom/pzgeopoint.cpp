@@ -1,8 +1,11 @@
 
 #include "pzgeopoint.h"
-#include "pzelgpoint.h"
-#include "pzelg1d.h"
+//#include "pzelgpoint.h"
+//#include "pzelg1d.h"
 #include "pzquad.h"
+#include "pzfmatrix.h"
+#include "pzstack.h"
+#include "pzgeoel.h"
 
 void TPZGeoPoint::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
   int i;
@@ -31,8 +34,12 @@ void TPZGeoPoint::Jacobian(TPZFMatrix coord,TPZVec<REAL> &param,TPZFMatrix &jaco
 TPZGeoEl *TPZGeoPoint::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
   if(side==0) {
     TPZManVector<int> nodeindexes(1);
+    nodeindexes[0] = orig->NodeIndex(0);
     //TPZGeoElPoint *gel = CreateGeoEl(nodes,bc,*Mesh());
-    TPZGeoElPoint *gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
+    int index;
+    TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodeindexes,bc,index);
+
+    //    TPZGeoElPoint *gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
     TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,0));
     return gel;
   }

@@ -4,6 +4,7 @@
 #define TPZGEOPOINTH
 
 #include "pzvec.h"
+#include "pzeltype.h"
 
 class TPZFMatrix;
 class TPZGeoEl;
@@ -13,6 +14,11 @@ class TPZGeoPoint {
 
 public:
 	enum {NNodes = 1, NSides = 1};
+
+  /**
+   * return the type of the element as specified in file pzeltype.h
+   */
+  static MElementType Type() { return EPoint;}
 
 	static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 

@@ -6,11 +6,11 @@
 #include "pzfmatrix.h"
 #include "pzgeoel.h"
 #include "pzquad.h"
-#include "pzelgpoint.h"
-#include "pzelg1d.h"
-#include "pzelgt2d.h"
-#include "pzelgq2d.h"
-#include "pzelgpr3d.h"
+//#include "pzelgpoint.h"
+//#include "pzelg1d.h"
+//#include "pzelgt2d.h"
+//#include "pzelgq2d.h"
+//#include "pzelgpr3d.h"
 #include "pzshapeprism.h"
 
 
@@ -132,19 +132,22 @@ TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		return result;
 	}
 
+	int index;
 	if(side<6) {
 		TPZManVector<int> nodeindexes(1);
-		TPZGeoElPoint *gel;
+		TPZGeoEl *gel;
 //		int nodestore [4];
 		nodeindexes[0] = orig->NodeIndex(side);
-		gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
+		gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
+		//gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 		result = gel;
 	} else if (side > 5 && side < 15) {//side = 6 a 14 : arestas
 		TPZManVector<int> nodes(2);
 		nodes[0] = orig->SideNodeIndex(side,0);//(TPZCompElPr3d::SideNodes[s][0]);
 		nodes[1] = orig->SideNodeIndex(side,1);//NodeIndex(TPZCompElPr3d::SideNodes[s][1]);
-		TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
+		//TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
+		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,0)));
 		//(TPZGeoElSide(this,TPZCompElPr3d::SideNodes[s][0]));
 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,1)));
@@ -158,10 +161,11 @@ TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		for (iside=0;iside<4;iside++){
 			nodes[iside] = orig->SideNodeIndex(side,iside);
 		}
-		TPZGeoElT2d *gelt;
-		TPZGeoElQ2d *gelq;
+		TPZGeoEl *gelt;
+		TPZGeoEl *gelq;
 		if(side>15 && side<19) {
-    		gelq = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
+		gelq = orig->Mesh()->CreateGeoElement(EQuadrilateral,nodes,bc,index);
+    		//gelq = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
 			
 			for (iside=0;iside<8;iside++){
 				TPZGeoElSide(gelq,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,iside)));
@@ -170,7 +174,8 @@ TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 			result = gelq;
 		} else {
 			nodes.Resize(3);
-			gelt = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
+			gelt = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
+			//			gelt = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
 			int iside;
 			for (iside=0;iside<6;iside++){
 				TPZGeoElSide(gelt,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,iside)));
