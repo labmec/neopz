@@ -43,80 +43,15 @@ void TPZShapeDisc::Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TP
    x = (x - x0) / C;
    phi.Redim(degree+1,1);
    dphi.Redim(n,degree+1);
-   
-   int num = degree + 1;
-   int nderiv = n;
 
-  // Quadratic or higher shape functions
-  if (num <= 0) return;
-  phi.Put(0, 0, 1.0);
-  dphi.Put(0, 0, 0.0);
+   TPZShapeLinear::Legendre(x, degree+1, phi, dphi, n);
 
-  int ideriv;
-  for (ideriv = 1; ideriv < nderiv; ideriv++)
-     dphi.Put(ideriv, 0, 0.0);
-
-
-  if (num == 1) return;
-
-  phi.Put(1, 0, x);
-  dphi.Put(0, 1, 1.0/C);
-
-  for (ideriv = 1; ideriv < nderiv; ideriv++)
-     dphi.Put(ideriv, 1, 0.0);
- 
-  int ord;
-
-  REAL ord_real, ideriv_real, value, cte;
-  for (ord = 2; ord < num; ord++)
-    {
-      //casting int ord to REAL ord_real
-      ord_real = (REAL)ord;
-      //computing the ord_th function
-      value    = ( (2.0 * (ord_real - 1.0) + 1.0) * x * phi(ord - 1, 0) - (ord_real - 1.0) * phi(ord - 2 , 0) ) / (ord_real);
-      phi.Put(ord, 0, value);
-
-      //computing the ord_th function's derivative
-
-      cte = (2.0 * (ord_real - 1.0) + 1.0);
-      value = cte * phi(ord-1,0) / (ord_real * C);
-      value += cte * x * dphi(0, ord - 1) /(ord_real);
-      value +=  - (ord_real - 1.0) * dphi(0, ord - 2) / (ord_real);
-
-      dphi.Put(0, ord, value);
-
-      for (ideriv = 1; ideriv < nderiv; ideriv++){
-
-	 ideriv_real = (REAL)ideriv;
-
-	 cte = (2.0 * (ord_real - 1.0) + 1.0);
-	 value = (ideriv_real + 1.)* cte * dphi(ideriv -1, ord-1) / (ord_real * C);
-	 value += cte * x * dphi(ideriv, ord - 1) /(ord_real);
-	 value +=  - (ord_real - 1.0) * dphi(ideriv, ord - 2) / (ord_real);
-
-//	 value = (2.0 * (ord_real - 1.0) + 1.0) * dphi(ideriv - 1, ord - 1) + dphi(ideriv, ord - 2) / C;
-	 dphi.Put(ideriv, ord, value);	    	 
+   REAL val;
+   for(int ord = 0; ord < degree+1; ord++)
+      for (int ideriv = 0; ideriv < n; ideriv++){
+	 val = dphi(ideriv, ord) / pow(C, ideriv+1);
+	 dphi.Put(ideriv, ord, val);
       }
-
-    }
- 
-
-#ifdef DEBUG
-    int printing = 0;
-    if (printing){
-        cout << "Legendre" << endl;
-	cout << "x0 = " << x0 << endl;
-	cout << "C = " << C << endl;
-	for(ord = 0; ord < num; ord++)
-	{
-	  cout << "x = " << x << endl;
-	  cout << "phi(" << ord << ", 0) = " << phi(ord, 0) << endl;
-	  for (int ii = 0; ii < nderiv; ii++)
-	     cout << "dphi(" << ii << ", " << ord << " = " << dphi(ii, ord) << endl;
-	  cout << endl;
-	}
-   }
-#endif
 
 } //end of method
 
