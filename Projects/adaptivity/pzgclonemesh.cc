@@ -14,14 +14,14 @@ Method definition for class TPZGeoCloneMesh.*/
 //#include "pzcosys.h"
 #include "pzmatrix.h"
 #include "pzavlmap.h"
-#include "pzelg1d.h"
-#include "pzelgc3d.h"
-#include "pzelgpi3d.h"
-#include "pzelgpoint.h"
-#include "pzelgpr3d.h"
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
-#include "pzelgt3d.h"
+//#include "pzelg1d.h"
+//#include "pzelgc3d.h"
+//#include "pzelgpi3d.h"
+//#include "pzelgpoint.h"
+//#include "pzelgpr3d.h"
+//#include "pzelgq2d.h"
+//#include "pzelgt2d.h"
+//#include "pzelgt3d.h"
 #include "pzelasmat.h"
 
 static int zero=0;
@@ -243,79 +243,85 @@ TPZGeoCloneMesh::~TPZGeoCloneMesh() {
 
 TPZGeoEl* TPZGeoCloneMesh::InitializeClone(TPZGeoEl *org){
   int i;
-  TPZGeoEl1d *el1d = dynamic_cast<TPZGeoEl1d *>(org);
-  if (el1d){
-    TPZVec<int> ni(2,0);
-    for (i=0;i<2;i++){
-      ni[i]=el1d->NodeIndex(i);
-    }
-    TPZGeoEl1d *gel = new TPZGeoEl1d (ni,org->MaterialId(),*this);
-    return gel;
+  TPZVec<int> ni(org->NNodes());
+  for(i=0; i<ni.NElements(); i++) {
+    ni[i] = org->NodeIndex(i);
   }
-  TPZGeoElC3d *elc3d = dynamic_cast<TPZGeoElC3d *>(org);
-  if (elc3d) {
-    TPZVec<int> ni(8,0);
-    for (i=0;i<8;i++){
-      ni[i]=elc3d->NodeIndex(i);
-    }
-    TPZGeoElC3d *gel = new TPZGeoElC3d (ni,org->MaterialId(),*this);
-    return gel;
-  }
-  TPZGeoElPi3d *elpi3d = dynamic_cast<TPZGeoElPi3d *>(org);
-  if (elpi3d) {
-    TPZVec<int> ni(5,0);
-    for (i=0;i<5;i++){
-      ni[i]=elpi3d->NodeIndex(i);
-    }
-    TPZGeoElPi3d *gel = new TPZGeoElPi3d (ni,org->MaterialId(),*this);
-    return gel;
-  }
-  TPZGeoElPoint *elpoint = dynamic_cast<TPZGeoElPoint *>(org);
-  if (elpoint) {
-    TPZVec<int> ni(1,0);
-    for (i=0;i<1;i++){
-      ni[i]=elpoint->NodeIndex(i);
-    }
-    TPZGeoElPoint *gel = new TPZGeoElPoint (ni,org->MaterialId(),*this);
-    return gel;
-  }
-  TPZGeoElPr3d *elpr3d = dynamic_cast<TPZGeoElPr3d *>(org);
-  if (elpr3d) {
-    TPZVec<int> ni(6,0);
-    for (i=0;i<6;i++){
-      ni[i]=elpr3d->NodeIndex(i);
-    }
-    TPZGeoElPr3d *gel = new TPZGeoElPr3d (ni,org->MaterialId(),*this);
-    return gel;
-  }
-  TPZGeoElQ2d *elq2d = dynamic_cast<TPZGeoElQ2d *>(org);
-  if (elq2d) {
-    TPZVec<int> ni(4,0);
-    for (i=0;i<4;i++){
-      ni[i]=elq2d->NodeIndex(i);
-    }
-    TPZGeoElQ2d *gel = new TPZGeoElQ2d (ni,org->MaterialId(),*this);
-    return gel;
-  }
-  TPZGeoElT2d *elt2d = dynamic_cast<TPZGeoElT2d *>(org);
-  if (elt2d) {
-    TPZVec<int> ni(3,0);
-    for (i=0;i<3;i++){
-      ni[i]=elt2d->NodeIndex(i);
-    }
-    TPZGeoElT2d *gel = new TPZGeoElT2d (ni,org->MaterialId(),*this);
-    return gel;
-  }
-  TPZGeoElT3d *elt3d = dynamic_cast<TPZGeoElT3d *>(org);
-  if (elt3d) {
-    TPZVec<int> ni(4,0);
-    for (i=0;i<4;i++){
-      ni[i]=elt3d->NodeIndex(i);
-    }
-    TPZGeoElT3d *gel = new TPZGeoElT3d (ni,org->MaterialId(),*this);
-    return gel;
-  }
-  return 0;
+  int index;
+  return CreateGeoElement((MElementType)org->Type(),ni,org->MaterialId(),index);
+//   TPZGeoEl1d *el1d = dynamic_cast<TPZGeoEl1d *>(org);
+//   if (el1d){
+//     TPZVec<int> ni(2,0);
+//     for (i=0;i<2;i++){
+//       ni[i]=el1d->NodeIndex(i);
+//     }
+//     TPZGeoEl1d *gel = new TPZGeoEl1d (ni,org->MaterialId(),*this);
+//     return gel;
+//   }
+//   TPZGeoElC3d *elc3d = dynamic_cast<TPZGeoElC3d *>(org);
+//   if (elc3d) {
+//     TPZVec<int> ni(8,0);
+//     for (i=0;i<8;i++){
+//       ni[i]=elc3d->NodeIndex(i);
+//     }
+//     TPZGeoElC3d *gel = new TPZGeoElC3d (ni,org->MaterialId(),*this);
+//     return gel;
+//   }
+//   TPZGeoElPi3d *elpi3d = dynamic_cast<TPZGeoElPi3d *>(org);
+//   if (elpi3d) {
+//     TPZVec<int> ni(5,0);
+//     for (i=0;i<5;i++){
+//       ni[i]=elpi3d->NodeIndex(i);
+//     }
+//     TPZGeoElPi3d *gel = new TPZGeoElPi3d (ni,org->MaterialId(),*this);
+//     return gel;
+//   }
+//   TPZGeoElPoint *elpoint = dynamic_cast<TPZGeoElPoint *>(org);
+//   if (elpoint) {
+//     TPZVec<int> ni(1,0);
+//     for (i=0;i<1;i++){
+//       ni[i]=elpoint->NodeIndex(i);
+//     }
+//     TPZGeoElPoint *gel = new TPZGeoElPoint (ni,org->MaterialId(),*this);
+//     return gel;
+//   }
+//   TPZGeoElPr3d *elpr3d = dynamic_cast<TPZGeoElPr3d *>(org);
+//   if (elpr3d) {
+//     TPZVec<int> ni(6,0);
+//     for (i=0;i<6;i++){
+//       ni[i]=elpr3d->NodeIndex(i);
+//     }
+//     TPZGeoElPr3d *gel = new TPZGeoElPr3d (ni,org->MaterialId(),*this);
+//     return gel;
+//   }
+//   TPZGeoElQ2d *elq2d = dynamic_cast<TPZGeoElQ2d *>(org);
+//   if (elq2d) {
+//     TPZVec<int> ni(4,0);
+//     for (i=0;i<4;i++){
+//       ni[i]=elq2d->NodeIndex(i);
+//     }
+//     TPZGeoElQ2d *gel = new TPZGeoElQ2d (ni,org->MaterialId(),*this);
+//     return gel;
+//   }
+//   TPZGeoElT2d *elt2d = dynamic_cast<TPZGeoElT2d *>(org);
+//   if (elt2d) {
+//     TPZVec<int> ni(3,0);
+//     for (i=0;i<3;i++){
+//       ni[i]=elt2d->NodeIndex(i);
+//     }
+//     TPZGeoElT2d *gel = new TPZGeoElT2d (ni,org->MaterialId(),*this);
+//     return gel;
+//   }
+//   TPZGeoElT3d *elt3d = dynamic_cast<TPZGeoElT3d *>(org);
+//   if (elt3d) {
+//     TPZVec<int> ni(4,0);
+//     for (i=0;i<4;i++){
+//       ni[i]=elt3d->NodeIndex(i);
+//     }
+//     TPZGeoElT3d *gel = new TPZGeoElT3d (ni,org->MaterialId(),*this);
+//     return gel;
+//   }
+//   return 0;
 }
 
 TPZGeoEl* TPZGeoCloneMesh::ReferenceElement(int i) {
@@ -408,7 +414,9 @@ int TPZGeoCloneMesh::main(){
       			indices[3] = indices[0]+numrel+1;
       			indices[2] = indices[1]+numrel+1;
       			// O proprio construtor vai inserir o elemento na malha
-      			gel[elr*numrel+elc] = new TPZGeoElQ2d(elr*numrel+elc,indices,1,geomesh);
+			int index;
+			gel[elr*numrel+elc] = geomesh.CreateGeoElement(EQuadrilateral,indices,1,index);
+      			//gel[elr*numrel+elc] = new TPZGeoElQ2d(elr*numrel+elc,indices,1,geomesh);
     		}
   	}
 	//Divisão dos elementos
