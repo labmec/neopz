@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.30 2004-04-15 23:11:43 phil Exp $
+//$Id: pzeuleranalysis.cpp,v 1.31 2004-05-21 13:32:35 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -182,7 +182,7 @@ void TPZEulerAnalysis::Assemble()
 ofstream Mout("Matriz.out");
 ofstream Vout("Vetor.out");
 
-   pTangentMatrix->Print("Matrix", Mout);///*EMathematicaInput);
+   pTangentMatrix->Print("Matrix", Mout);//EMathematicaInput);
 
    fRhs.Print("Rhs", Vout);
 
@@ -274,7 +274,7 @@ void TPZEulerAnalysis::Assemble()
 ofstream Mout("Matriz.out");
 ofstream Vout("Vetor.out");
 
-   pTangentMatrix->Print("Matrix", Mout);///*EMathematicaInput);
+   pTangentMatrix->Print("Matrix", Mout);//EMathematicaInput);
 
    fRhs.Print("Rhs", Vout);
 
@@ -586,4 +586,12 @@ void TPZEulerAnalysis::SetEvolCFL(int EvolCFL)
 void TPZEulerAnalysis::SetBlockDiagonalPrecond(TPZBlockDiagonal * blockDiag)
 {
    fpBlockDiag = blockDiag;
+}
+
+void TPZEulerAnalysis::WriteCMesh( const char * str)
+{
+   TPZFileStream fstr;
+   fstr.OpenWrite(str);
+   fGeoMesh->Write(fstr,1);
+   fFlowCompMesh->Write(fstr,1);
 }

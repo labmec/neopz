@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.13 2004-02-26 22:47:33 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.14 2004-05-21 13:32:35 erick Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -14,6 +14,7 @@
 #include "pzdxmesh.h"
 #include "pzstepsolver.h"
 #include "pzblockdiag.h"
+#include "pzsave.h"
 
 #include <iostream>
 
@@ -27,6 +28,12 @@ public:
    TPZEulerAnalysis(TPZFlowCompMesh *mesh,std::ostream &out = cout);
 
    ~TPZEulerAnalysis();
+
+
+   /**
+    * Writes the computational mesh onto disk
+    */
+   void WriteCMesh( const char * str);
 
    /**
     * see declaration in the base class.
