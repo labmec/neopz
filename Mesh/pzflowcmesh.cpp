@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.cpp,v 1.11 2004-05-25 12:58:55 erick Exp $
+//$Id: pzflowcmesh.cpp,v 1.12 2004-06-08 06:21:16 phil Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
@@ -124,8 +124,10 @@ void TPZFlowCompMesh::ComputeTimeStep()
     }
 }
 
+#define MAXCFL 1.e6
 void TPZFlowCompMesh::SetCFL(REAL CFL)
 {
+    if(CFL > MAXCFL) CFL = MAXCFL;
     int i, NumFluid = fFluidMaterial.NElements();
     for(i = 0; i < NumFluid; i++)
     {
@@ -138,7 +140,9 @@ void TPZFlowCompMesh::ScaleCFL(REAL scale)
     int i, NumFluid = fFluidMaterial.NElements();
     for(i = 0; i < NumFluid; i++)
     {
-       fFluidMaterial[i]->SetCFL(fFluidMaterial[i]->CFL()*scale);
+      REAL newCFL = fFluidMaterial[i]->CFL()*scale;
+      if(newCFL > MAXCFL) newCFL = MAXCFL;
+      fFluidMaterial[i]->SetCFL(newCFL);
     }
 }
 
