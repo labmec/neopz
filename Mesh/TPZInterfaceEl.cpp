@@ -1,3 +1,4 @@
+// $Id: TPZInterfaceEl.cpp,v 1.13 2003-10-01 20:58:13 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -12,7 +13,7 @@
 
 //construtor para o elemento descontinuo
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
-					 TPZCompElDisc *left,TPZCompElDisc *right,int leftside) 
+					 TPZCompElDisc *left,TPZCompElDisc *right,int leftside)
   : TPZCompEl(mesh,index), fNormal(3,0.) {
 
   fReference = geo;
@@ -430,11 +431,12 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
 }
 
 void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
+
 void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
 
   //  int dim = fReference->Dimension();
   int face = fReference->NSides()-1;
-  //face: lado do elemento bidimensional ou aresta 
+  //face: lado do elemento bidimensional ou aresta
   //do unidimensional ou canto do ponto
   normal.Resize(3,0.);
   TPZCompElSide neigh(fLeftEl,leftside);
@@ -469,7 +471,7 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
     for(i=0;i<3;i++) normal[i] = normal[i]/normalize;
     break;
   case 2:
-    fReference->CenterPoint(face,param);//ponto da face  
+    fReference->CenterPoint(face,param);//ponto da face
     fReference->Jacobian(param,jacobian,axes,detjac,jacinv);
     for(i=0;i<3;i++) normal[i] = axes(2,i);
     break;
@@ -478,6 +480,23 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
     normal.Resize(0);
     return;
   }
+  int leftdim = fLeftEl->Dimension();
+  int lefts = fLeftEl->Reference()->NSides();
+  int rightdim = fRightEl->Dimension();
+  int rights = fRightEl->Reference()->NSides();
+  TPZVec<REAL> leftp(leftdim), rightp(rightdim), leftx(3),rightx(3);
+  fLeftEl->Reference()->CenterPoint(lefts-1,leftp);
+  fLeftEl->Reference()->X(leftp,leftx);
+  fRightEl->Reference()->CenterPoint(rights-1,rightp);
+  fRightEl->Reference()->X(rightp,rightx);
+  REAL prod = normal[0]*(rightx[0]-leftx[0])+normal[1]*(rightx[1]-leftx[1])+normal[2]*(rightx[2]-leftx[2]);
+  if(prod < 0.) {
+  	normal[0] *= -1.;
+  	normal[1] *= -1.;
+  	normal[2] *= -1.;
+  }
+
+//  cout << "Normal : " << normal[0] << " , " << normal[1] << " , " << normal[2] << endl;
 }
 
 void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet){
