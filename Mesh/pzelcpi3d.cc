@@ -371,7 +371,7 @@ void TPZCompElPi3d::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &p
     id[2] = fReference->NodePtr(FaceNodes[face][2])->Id();
     if(face == 0) {//face quadrilateral
       TPZManVector<int> ord(5);
-      id[3] = fReference->NodeIndex(FaceNodes[face][3]);
+      id[3] = fReference->NodePtr(FaceNodes[face][3])->Id();//fReference->NodeIndex(FaceNodes[face][3]); <-> ERRO DETECTADO PELO TESTE
       ord[0] = fSideOrder[FaceSides[face][0]-5];//arestas
       ord[1] = fSideOrder[FaceSides[face][1]-5];
       ord[2] = fSideOrder[FaceSides[face][2]-5];
