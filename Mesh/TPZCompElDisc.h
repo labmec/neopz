@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.26 2004-02-04 20:30:24 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.27 2004-04-02 15:55:42 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -87,6 +87,14 @@ protected:
 
   /**set the geometric element to which this element references*/
   void SetReference(TPZGeoEl *ref) {fReference = ref;}
+
+  /**
+   * Sets the orthogonal function which will be used throughout the program.
+   * @param orthogonal pointer to a function which will be used to generate the shape functions
+   */
+  static void SetOrthogonalFunction(void (*orthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix & phi, TPZFMatrix & dphi, int n)){
+    TPZShapeDisc::fOrthogonal = orthogonal;
+  }
 
   /**
    * Set the inner radius value.

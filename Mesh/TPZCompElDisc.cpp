@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.47 2004-04-01 00:00:14 erick Exp $
+//$Id: TPZCompElDisc.cpp,v 1.48 2004-04-02 15:55:42 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -243,17 +243,26 @@ REAL TPZCompElDisc::NormalizeConst(){
 void TPZCompElDisc::Shape(TPZVec<REAL> X, TPZFMatrix &phi, TPZFMatrix &dphi) {
 
   if(fDegree < 0) return;
-  if(Dimension()==0)
+
+  if(Dimension()==0){
     TPZShapeDisc::Shape0D(fConstC,fCenterPoint,X,fDegree,phi,dphi);
-  else
-    if(Dimension()==1)
-      TPZShapeDisc::Shape1D(fConstC,fCenterPoint,X,fDegree,phi,dphi);
-    else
-      if(Dimension()==2)
-	TPZShapeDisc::Shape2D(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);
-      else
-	if(Dimension()==3)
-	  TPZShapeDisc::Shape3D(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);
+    return;
+  }
+
+  if(Dimension()==1){
+     TPZShapeDisc::Shape1D(fConstC,fCenterPoint,X,fDegree,phi,dphi);
+     return;
+  }
+
+  if(Dimension()==2){
+     TPZShapeDisc::Shape2DFull(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);
+  }
+
+  if(Dimension()==3){
+     TPZShapeDisc::Shape3D(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);  
+     return;
+  }
+
 }
 
 void TPZCompElDisc::Print(ostream &out) {
@@ -413,7 +422,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   TPZVec<REAL> x(3,0.);
   TPZVec<REAL> intpoint(dim,0.);
   REAL detjac,weight;
-  int integ = max(2*Degree() - 1,0);
+  int integ = max( 2 * Degree() - 1, 0);
   TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
   int npoints = intrule->NPoints(),ip;                                              //integra fi*fj
   TPZVec<REAL> sol(nstate,0.);
@@ -428,6 +437,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     axes.Identity();
     //solu¢ão da itera¢ão anterior
     sol.Fill(0.);
+    dsol.Redim(dphix.Rows(),nstate);
     dsol.Zero();
     for(int in=0; in<ncon; in++) {
       TPZConnect *df = &Connect(in);
@@ -437,7 +447,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
       int iv = 0,d;
       for(int jn=0; jn<dfvar; jn++) {
 	sol[iv%nstate] += phix(iv/nstate,0)*MeshSol(pos+jn,0);
-	for(d=0; d<dim; d++)
+	for(d=0; d<dphix.Rows(); d++)
 	  dsol(d,iv%nstate) += dphix(d,iv/nstate)*MeshSol(pos+jn,0);
 	iv++;
       }
@@ -515,7 +525,7 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
       int iv = 0,d;
       for(int jn=0; jn<dfvar; jn++) {
 	sol[iv%nstate] += phix(iv/nstate,0)*MeshSol(pos+jn,0);
-	for(d=0; d<dim; d++)
+	for(d=0; d<phix.Rows() ; d++)
 	  dsol(d,iv%nstate) += dphix(d,iv/nstate)*MeshSol(pos+jn,0);
 	iv++;
       }
@@ -1015,6 +1025,12 @@ void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &v
     fReference->Jacobian( intpoint , jacobian, axes, detjac , jacinv);
     fReference->X( intpoint , x);
     Shape(x,phi,dphix);
+
+    //it is possible to have more than first derivative, as Laplacian and its derivatives.
+    int nderiv = dphix.Rows();
+    du_exact.Redim(nderiv, ndof);
+    dudx.Redim(nderiv, ndof);
+
     axes.Identity();
     weight *= fabs(detjac);
     int iv=0,in,jn,d;
@@ -1027,7 +1043,8 @@ void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &v
       int dfvar = block.Size(dfseq);
       for(jn=0; jn<dfvar; jn++) {
 	u[iv%ndof] += phi(iv/ndof,0)*block(dfseq,0,jn,0);
-	for(d=0; d<dim; d++)
+//	for(d=0; d<dim; d++)
+	for(d=0; d<nderiv; d++)
 	  dudx(d,iv%ndof) += dphix(d,iv/ndof)*block(dfseq,0,jn,0);
 	iv++;
       }
