@@ -77,6 +77,11 @@ ARFLAGS = @ARFLAGS@
 CC = @CC@
 COMPILATION_MODE = @COMPILATION_MODE@
 CXX = @CXX@
+FADDIR = @FADDIR@
+FADINCLUDE = @FADINCLUDE@
+FADINCLUDE_FAD = @FADINCLUDE_FAD@
+FADINCLUDE_TFAD = @FADINCLUDE_TFAD@
+FADINCLUDE_TFADET = @FADINCLUDE_TFADET@
 MAKEINFO = @MAKEINFO@
 METISDIR = @METISDIR@
 METISINCLUDE = @METISINCLUDE@
@@ -91,6 +96,7 @@ PZ_MK = @PZ_MK@
 PZ_REV = @PZ_REV@
 PZ_VERSION = @PZ_VERSION@
 RANLIB = @RANLIB@
+USING_FAD = @USING_FAD@
 USING_METIS = @USING_METIS@
 USING_SLOAN = @USING_SLOAN@
 VERSION = @VERSION@
@@ -98,10 +104,7 @@ VERSION = @VERSION@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES = @PZ_CLEANFILES@
 
-SUBDIRS = adaptivity angletest checkcont checkconv cycleref cylin \
-	materialhyperelastico matrix multplaca placyl pzvc qualif \
-	termica teste testeisotropia testgeom testmat testshape \
-	viga3d descontinuo
+SUBDIRS = adaptivity angletest checkcont checkconv cycleref cylin 	materialhyperelastico matrix multplaca placyl pzvc qualif 	termica teste testeisotropia testgeom testmat testshape 	viga3d descontinuo
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 

@@ -15,7 +15,7 @@ dnl acinclude.m4 for NeoPZ
 dnl
 dnl Process this file with GNU aclocal to produce a configure script.
 dnl
-dnl $Id: aclocal.m4,v 1.7 2003-05-12 18:48:15 cedric Exp $
+dnl $Id: aclocal.m4,v 1.8 2003-05-21 13:54:22 erick Exp $
 dnl
 
 dnl

@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.8 2003-05-12 16:48:01 cedric Exp $
+dnl $Id: configure.in,v 1.9 2003-05-21 13:54:22 erick Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -203,6 +203,71 @@ AC_SUBST(METISINCLUDE)
 AC_SUBST(METISLIBDIR)
 AC_SUBST(METISLIB)
 
+
+dnl ----------------------------------------------------------------------------
+dnl                              ENABLE FAD?
+dnl ----------------------------------------------------------------------------
+
+AC_ARG_ENABLE(fad,
+  [  --enable-fad=no         Enables FAD Automatic differentiation [default=no]],
+  [fad_enabled=$enableval],
+  [fad_enabled="no"])
+
+case "${fad_enabled}" in
+  yes)
+    echo "Enabling FAD."
+    USING_FAD="-D_AUTODIFF"
+  ;;
+  no)
+    echo "FAD not chosen."
+    USING_FAD=""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${fad_enabled} for --enable-fad)
+  ;;
+esac
+
+AM_CONDITIONAL( FAD, test x${fad_enabled} = xyes )
+
+AC_SUBST(USING_FAD)
+
+dnl ----------------------------------------------------------------------------
+dnl                               FAD LOCATION
+dnl ----------------------------------------------------------------------------
+
+dnl FAD location
+AC_ARG_WITH(fad-dir,
+  [  --with-fad-dir=DIR      Root of FAD instalation [/usr/local/fad]],
+  [fad_dir=$withval],
+  [fad_dir=${fad_dir="/usr/local/fad"}])
+
+case "${fad_enabled}" in
+  yes)
+    FADDIR=$fad_dir
+    FADINCLUDE="-I$FADDIR"
+    FADINCLUDE_FAD="-I$FADDIR/Fad"
+    FADINCLUDE_TFAD="-I$FADDIR/TinyFad"
+    FADINCLUDE_TFADET="-I$FADDIR/TinyFadET"
+  ;;
+  no)
+    FADDIR=""
+    FADINCLUDE=""
+    FADINCLUDE_FAD=""
+    FADINCLUDE_TFAD=""
+    FADINCLUDE_TFADET=""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${fad_dir} for --with-fad-dir)
+  ;;
+esac
+
+AC_SUBST(FADDIR)
+AC_SUBST(FADINCLUDE)
+AC_SUBST(FADINCLUDE_FAD)
+AC_SUBST(FADINCLUDE_TFAD)
+AC_SUBST(FADINCLUDE_TFADET)
+
+
 dnl ----------------------------------------------------------------------------
 dnl                              ENABLE Sloan
 dnl ----------------------------------------------------------------------------
@@ -287,6 +352,9 @@ dnl --| Projects subtree |--
 	Projects/testshape/Makefile \
 	Projects/viga3d/Makefile \
 	Projects/descontinuo/Makefile \
+        Projects/PoissonFAD/Makefile \
+	Projects/HyperElasticityFAD/Makefile \
+	Projects/ShapeFAD/Makefile \
 ])
 
 PZ_BYEBYE
