@@ -84,6 +84,8 @@
 #include <string.h>
 using namespace std;
 
+static double quadrado[4][3] = { {0.,0.,0.},{4.,0.,0.},{4.,4.,0.},{0.,4.,0.} };
+
 static REAL p1=0.7,p2=0.902026,p3=1.80405,p4=2.96598,p5=3.2,p6=4.12791,p7=0.22;
 
 static double novequads[15][3] = { {0.,0.,0.},{p1+p1/4.,0.,0.},{p3,0.,0.},
@@ -100,7 +102,6 @@ static double novecubos[30][3] = { {0.,0.,0.},{p1+p1/4.,0.,0.},{p3,0.,0.},
 				   {0.,p7,0.3},{p1,p7,0.3},{p2,.5,0.3},{p3,.75,0.3},
 				   {p4,.5,0.3},{p5,p7,0.3},{p6,p7,0.3},
 				   {0.,1.,0.3},{p3,1.,0.3},{p6,1.,0.3} };
-
 
 void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl);
 void SetDeltaTime(TPZMaterial *mat,REAL deltaT);
@@ -174,6 +175,11 @@ int main() {
   } else if(tipo==6){
     mat = dynamic_cast<TPZConservationLaw *>(NoveCubos(grau));
     meshdim = 3;
+  } else {
+    //INCOMPLETO só interesa o domínio quadrado
+    mat = dynamic_cast<TPZConservationLaw *>(ProblemaQ2D1El(grau));
+    meshdim = 2;
+    problem = -1;
   }
   if(1){
     cout << "\neuler.c::main verificando a consistencia da malha de interfaces\t";
@@ -950,7 +956,7 @@ TPZMaterial *ProblemaT2D(int grau){
 TPZMaterial *ProblemaQ2D1El(int grau){
   //Teste no paper de A. Coutinho e primeiro problema teste na tese de Jorge Calle
   //teste do papern Zhang, Yu, Chang  e teste no paper de Peyrard and Villedieu
-  //  CriacaoDeNos(4,quadrado);
+  CriacaoDeNos(4,quadrado);
   //elemento de volume
   TPZVec<int> nodes;
   int index;
@@ -970,11 +976,11 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   gmesh->BuildConnectivity();
   int nummat = 1;
   char *artdiff = "LS";
-  int nivel;
-  cout << "\nmain::Divisao Nivel final da malha ? : ";
-  cin >> nivel;
+  //  int nivel = 10;
+  //cout << "\nmain::Divisao Nivel final da malha ? : ";
+  //cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );
-  REAL delta_x = ( 1.0 / pow(2.0,(REAL)nivel ) );
+  REAL delta_x = 1.0;//( 1.0 / pow(2.0,(REAL)nivel ) );
   REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
@@ -1573,6 +1579,12 @@ TPZMaterial *NoveQuadrilateros(int grau){
 ////////////////////////////////////
 void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
 
+  if(problem == -1){
+    result.Resize(4);
+    for(int i=0;i<4;i++) result[i] = 1.;
+    return;
+  }
+
   if(problem == 6){
     result.Resize(5);
     //Condi¢ão inicial t =  0
@@ -2078,3 +2090,4 @@ void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh){
 //     //if(cmesh) delete cmesh;
 //   //    if(gmesh) delete gmesh;
 //   //  return 1;
+
