@@ -2,7 +2,7 @@
 
 #include "TPZNLMultGridAnalysis.h"
 #include "TPZCompElDisc.h"
-#include "TPZFlowCMesh.h"
+#include "pzflowcmesh.h"
 #include "TPZAgglomerateEl.h"
 #include "pzflowcmesh.h"
 #include "pzcmesh.h"
@@ -95,7 +95,7 @@ TPZCompMesh *TPZNonLinMultGridAnalysis::AgglomerateMesh(TPZCompMesh *finemesh,
   int numaggl,dim = finemesh->Dimension();
   TPZAgglomerateElement::ListOfGroupings(finemesh,accumlist,levelnumbertogroup,numaggl,dim);
   TPZCompMesh *aggmesh = new TPZFlowCompMesh(finemesh->Reference());
-  TPZCompElDisc::CreateAgglomerateMesh(finemesh,aggmesh,accumlist,numaggl);
+  TPZAgglomerateElement::CreateAgglomerateMesh(finemesh,aggmesh,accumlist,numaggl);
   return aggmesh;
 }
 
@@ -275,6 +275,7 @@ void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *
     return;
   }
   //int nstate = mat->NStateVariables();
+
   REAL maxveloc;//,gama = 1.4;
   //maxveloc = fm->MaxVelocityOfMesh(nstate,gama);
   maxveloc = fm->MaxVelocityOfMesh();
@@ -730,6 +731,7 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZFMatrix &anres,
 //   CalcResidual(finesol,finean,"LDLt",res);
 //   res.Print("\n\n\t\t\t* * * RESÍDUO MALHA FINA * * *\n\n",out);
 //   finesol.Print("\n\n* * * SOLUÇÂO TRANSFERIDA: GROSSA -> FINA * * *\n\n",OUT);
+
 //   OUT.flush();
 //   OUT.close();
 //   }
@@ -812,6 +814,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   //out << "\n\n\t\t\t* * * MALHA FINA * * *\n\n";
   finemesh->Print(out);
   out.flush();
+
   //analysis na malha aglomerada
   TPZAnalysis coarsean(fMeshes[1]);
   TPZSkylineStructMatrix coarsestiff(fMeshes[1]);
@@ -939,15 +942,15 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
       CalcResidual(projfinesol,coarsean,"LDLt",rhs);//rhs = Stiffcoar * projfinesol
       //no assemble será adicionado +fRhs por isso: rhs = rhs - fRhs
       rhs = rhs + projfineres;
-      coarsean.SetResidual(rhs);//resíduo
+      coarsean.Rhs() = rhs;//resíduo
       coarsean.Solve();
     } else if(residuo == 2){// forma 2
       coarsean.Solution().Zero();
       fSolvers[1]->SetMatrix(0);
       //argumento 1 espera? adicionar o resíduo anterior ao atual calculado
-      fSolvers[1]->SetMatrix(coarsean.StructMatrix().CreateAssemble(coarsean.Rhs(),0));
+      fSolvers[1]->SetMatrix(coarsean.StructMatrix().CreateAssemble(coarsean.Rhs()));
       TPZFMatrix coarres = coarsean.Rhs() + projfineres;
-      coarsean.SetResidual(coarres);//resíduo
+      coarsean.Rhs() = coarres;//resíduo
       coarsean.Solve();
     }
     coarsesolkeep = coarsesol;// = 0 ou solução grossa da iteração anterior

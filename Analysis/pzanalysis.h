@@ -155,7 +155,10 @@ class TPZAnalysis {
    *Returns the pointer to the computational mesh
    **/
   TPZCompMesh *Mesh() { return fCompMesh;}
-
+  /**
+  * Returns a reference to the structural matrix
+  */
+  TPZStructMatrix &StructMatrix() { return *fStructMatrix;}
 
   void ShowShape( TPZVec<char *> &scalnames, TPZVec<char *> &vecnames,//1o : TPZConnect* nod,
 		  char *plotfile, ostream &out=cout);
