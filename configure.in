@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.37 2005-02-03 18:06:06 tiago Exp $
+dnl $Id: configure.in,v 1.38 2005-02-04 17:05:50 paulo Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -416,6 +416,8 @@ AC_OUTPUT([ Makefile PZ.mk PZ_user.mk  External/sloan/Makefile \
 	Projects/ConsLaw/Makefile \
 	Projects/Igor/Makefile \
 	Projects/BoundaryLayer/Makefile \
+	Projects/BiHarmonic/Makefile \
+	Projects/NonLinBiharmonic/Makefile \
 	Projects/Bench/Makefile \
 	Projects/CursoPZ/Makefile \
 	Projects/CursoPZ/Class_1/Makefile \
