@@ -117,11 +117,9 @@ void TPZFileEqnStorage::Store(int ieq, int jeq, const char *name){
 
 void TPZFileEqnStorage::Forward(TPZFMatrix &f, DecomposeType dec) const
 {
-  #ifdef _DEBUG
-     cout << "Inside TPZFileEqnStorage::Forward" << endl;
-     cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
-  #endif
-
+  cout << "Inside TPZFileEqnStorage::Forward" << endl;
+  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
+ 
   //if(!fIOStream) SetFileName(fFileName);
   TPZEqnArray REqnArray;
   int i;
@@ -153,11 +151,9 @@ void TPZFileEqnStorage::Forward(TPZFMatrix &f, DecomposeType dec) const
 }
 void TPZFileEqnStorage::Backward(TPZFMatrix &f, DecomposeType dec) const
 {
-     #ifdef _DEBUG
-         cout << "Inside TPZFileEqnStorage::Backward" << endl;
-         cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
-     #endif
-
+  cout << "Inside TPZFileEqnStorage::Backward" << endl;
+  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
+     
 	TPZEqnArray REqnArray;
 	int i;
 	for(i=fBlockPos.NElements()-1;i>=0;i--){
@@ -444,7 +440,15 @@ void TPZFileEqnStorage::ReadBlockPositions()
 	int aux = fNumBlocks * (fNumHeaders-1);
 	fBlockPos.Resize(aux);
 	int i, ibl = 0;
+  cout << "Reading Block Positions\n";
+  cout.flush();
 	for(i=0;i<fNumBlocks;i++) {
+    cout << "*";
+    cout.flush();
+    if(!(i%20)){
+      cout << 100*i/fNumBlocks << "% Read\n";
+      cout.flush();
+    }
 		fread(&fBlockPos[ibl],sizeof(long int),fNumHeaders-1,fIOStream);
 		ibl+=fNumHeaders-1;
 		long int nextpos;

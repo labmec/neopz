@@ -324,7 +324,8 @@ void TPZFrontSym::DecomposeEquations(int mineq, int maxeq, TPZEqnArray & eqnarra
         int ieq;
         eqnarray.Reset();
         eqnarray.SetSymmetric();
-
+        //cout << "Decomposing from " << mineq << " to " << maxeq << "\n";
+        //cout.flush();
         for (ieq = mineq; ieq <= maxeq; ieq++) {
             // message #1.2.1 to this:TPZFront
             this->DecomposeOneEquation(ieq, eqnarray);

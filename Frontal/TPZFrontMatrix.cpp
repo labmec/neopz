@@ -47,7 +47,7 @@ void TPZFrontMatrix<store, front>::SetNumElConnected(TPZVec < int > &numelconnec
      #ifdef USING_ATLAS
           cout << "Using ATLAS" << endl;     
      #endif
-	#ifndef BLAS
+	#ifndef USING_BLAS
   #ifndef USING_ATLAS
      	cout << "Not Using BLAS" << endl;
 	#endif
@@ -265,6 +265,8 @@ int TPZFrontMatrix<store, front>::Substitution(TPZFMatrix *b) const {
 
 template<class store, class front>
 int TPZFrontMatrix<store, front>::Subst_Forward(TPZFMatrix *b) const {
+  cout << "Entering Forward Substitution\n";
+  cout.flush();
 	DecomposeType dec = fFront.GetDecomposeType();
 	if(dec != ECholesky) cout << "TPZFrontMatrix::Subst_Forward non matching decomposition\n";
 	fStorage.Forward(*b, ECholesky);
@@ -273,6 +275,8 @@ int TPZFrontMatrix<store, front>::Subst_Forward(TPZFMatrix *b) const {
 
 template<class store, class front>
 int TPZFrontMatrix<store, front>::Subst_Backward(TPZFMatrix *b) const {
+  cout << "Entering Backward Substitution\n";
+  cout.flush();
 	DecomposeType dec = fFront.GetDecomposeType();
 	if(dec != ECholesky) cout << "TPZFrontMatrix::Subst_Forward non matching decomposition\n";
 	fStorage.Backward(*b, ECholesky);
