@@ -15,6 +15,13 @@ enum TPZTimeDiscr
    Implicit_TD = 2
 };
 
+enum TPZContributeTime
+{
+   None_CT = -1,
+   Current_CT = 0,
+   Advanced_CT = 1
+};
+
 class TPZConservationLaw2  : public TPZMaterial
 {
 public:
@@ -87,6 +94,12 @@ public:
    * @param gamma [in]
    */
   void SetGamma(int gamma);
+
+  /**
+   * 
+   *
+   */
+  void SetContributionTime(TPZContributeTime time);
 
   /**
    * Number of state variables according to the dimension

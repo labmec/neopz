@@ -51,6 +51,8 @@ REAL TPZEulerConsLaw2::OptimalCFL(int degree)
 void TPZEulerConsLaw2::SetTimeStep(REAL maxveloc,REAL deltax,int degree)
 {
   REAL CFL = fCFL;
+  // Notice that fCFL remains 0, so that optimal CFL will
+  // be computed unless CFL is redefined.
   if(CFL == 0.0) CFL = OptimalCFL(degree);
 
   REAL deltaT = CFL*deltax/maxveloc;

@@ -238,6 +238,16 @@ public:
 
   /**
    * See declaration in base class
+   * Contributes only to the rhs.
+   */
+   // Not yet implemented, but soon necessary
+/*  virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
+			TPZVec<REAL> &sol, TPZFMatrix &dsol, REAL weight,
+			TPZFMatrix &axes, TPZFMatrix &phi,
+			TPZFMatrix &dphi, TPZFMatrix &ef);
+*/
+  /**
+   * See declaration in base class
    */
   virtual void ContributeInterface(TPZVec<REAL> &x,
 			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
