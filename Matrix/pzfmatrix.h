@@ -32,6 +32,15 @@ using namespace std;
 
 #endif
 
+
+
+// MACROS
+#define GETVAL(MAT,rows,row,col) MAT->fElem[((unsigned)col)*rows+row]
+#define PUTVAL(MAT,rows,row,col,val) MAT->fElem[((unsigned)col)*rows+row]=val
+
+
+
+
 /******************************/
 
 class TPZTempFMatrix;
@@ -350,6 +359,7 @@ inline REAL &TPZFMatrix::g( const int row, const int col) const {
 #endif
   return *(fElem+col*fRow+row);
 }
+
 
 inline REAL &TPZFMatrix::operator()(const int row) {
 #ifdef DEBUG
