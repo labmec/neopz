@@ -51,6 +51,7 @@ TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int
 
 void TPZMulticamadaOrthotropic::GenerateMesh(){
   fGeoMesh->BuildConnectivity();
+  TPZCompEl::gOrder = 1;
   fCompMesh->AutoBuild();
   int nplaca = fPlacaOrth.NElements();
   int ip;
@@ -97,10 +98,6 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMatOrthotropic *material, REAL 
       TPZGeoElBC gbc2(gel,22,-material->Id(),*fGeoMesh);
       TPZGeoElBC gbc3(gel,23,-material->Id(),*fGeoMesh);
       TPZGeoElBC gbc4(gel,24,-material->Id(),*fGeoMesh);
-      if(elx == fNelx/2 && ely == fNely/2) {
-	TPZPlacaOrthotropic placa(gel,fZMax-height,fZMax);
-	fPlacaOrth.Push(placa);
-      }
       int nplaca = fPlacaOrth.NElements();
       if(nplaca == 0 && elx == 0 && ely == 0) {
 	TPZBndCond *bc2 = new TPZBndCond(material,-100,0,val1,val2);
@@ -116,6 +113,10 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMatOrthotropic *material, REAL 
 	TPZBndCond *bc4 = new TPZBndCond(material,-102,2,val1,val2);
 	fCompMesh->InsertMaterialObject(bc4);
 	TPZGeoElBC gbc7(gel,2,-102,*fGeoMesh);
+      }
+      if(elx == fNelx/2 && ely == fNely/2) {
+	TPZPlacaOrthotropic placa(gel,fZMax-height,fZMax);
+	fPlacaOrth.Push(placa);
       }
     }
   }
@@ -235,6 +236,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(){
   TPZStepSolver solve;
   solve.SetDirect(ELDLt);
   an.SetSolver(solve);
-  fGeoMesh->BuildConnectivity();
-  fCompMesh->AutoBuild();
+  //  fGeoMesh->BuildConnectivity();
+  //  fCompMesh->AutoBuild();
+  an.Run();
 }

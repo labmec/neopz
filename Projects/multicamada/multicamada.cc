@@ -128,7 +128,7 @@ int main(){
 
   multcam->GenerateMesh();
 
-  multcam->SetMX(1.);
+  multcam->SetNX(1.);
 
   multcam->ComputeSolution();
 

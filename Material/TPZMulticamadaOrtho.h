@@ -80,10 +80,12 @@ class TPZMulticamadaOrthotropic {
 
   void SetMX(REAL MX) { 
     fMX[0] = MX;
+    fMX[2] = MX;
   }
 
   void SetNX(REAL NX) {
     fNX[0] = NX;
+    fNX[2] = NX;
   }
 
 };
