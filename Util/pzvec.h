@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+// $Id: pzvec.h,v 1.2 2003-03-26 13:14:05 cantao Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -92,15 +92,27 @@ class TPZVec {
        */
       T& operator[]( const int index ) const
       {
-#ifndef NODEBUG
+#ifdef DEBUG
 	 if( index < 0 || index >= fNElements )
 	 {
-	    PZError << "TPZVec acessing element out of range\n";
+	    PZError << "TPZVec::operator[] acessing element out of range.";
+	    PZError << "|" << endl;
+	    PZError << "+-> NElements = " << NElements() << endl;
+	    PZError << "|" << endl;
+	    PZError << "+-> Index = " << index << endl;
+
 	    exit( -1 );
 	 }
 #endif
 	 return fStore[ index ];
       }
+
+      /** Casting operator.
+       *
+       *  @return The fStore pointer.
+       */
+      operator T*() const { return fStore; }
+
       /**
        * Will fill the elements of the vector with a copy object.
        * @param copy object which will be copied
