@@ -98,7 +98,7 @@ void TPZErrorIndicator::Sort(TPZFMatrix &error, TPZFMatrix &perm) {
 @param sidedim dimension of the sides which will be analysed */
 int TPZErrorIndicator::GetRefSide(TPZCompEl *cel, int sidedim, int sidestate, TPZMatrix *errormat){
   int e,s,nsides = cel->Reference()->NSides();
-  REAL sum = 0;
+  REAL sum = 0.;
   int side = -1;
   for (s=0;s<nsides;s++){
     TPZCompElSide celside (cel,s);
@@ -106,12 +106,14 @@ int TPZErrorIndicator::GetRefSide(TPZCompEl *cel, int sidedim, int sidestate, TP
     TPZStack<TPZCompElSide> elsidevec;
     celside.EqualLevelElementList(elsidevec,0,0);
     REAL auxsum = 0;
-    for (e=0;e<elsidevec.NElements();e++){
+    int neigbyside = elsidevec.NElements();
+    for (e=0;e<neigbyside;e++){
       int index = elsidevec[e].Element()->Index();
       double val = 0.;
       val = errormat->Get(e,sidestate);
       auxsum += val;
     }
+    auxsum /= ((REAL) neigbyside);
     if(auxsum > sum){
       sum = auxsum;
       side = s;
