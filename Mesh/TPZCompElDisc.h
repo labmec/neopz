@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.18 2003-11-24 18:59:18 cedric Exp $
+//$Id: TPZCompElDisc.h,v 1.19 2003-11-25 17:35:00 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -13,6 +13,7 @@ using namespace std;
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzreal.h"
+#include "TPZShapeDisc.h"
 
 struct TPZElementMatrix;
 class TPZFMatrix;
@@ -43,6 +44,11 @@ class TPZCompElDisc : public TPZCompEl{	// header file for the computational ele
    * Interpolation order of the discontinous element 
    */
   int fDegree;
+
+  /**
+   * Shape function type used by the element
+   */
+  TPZShapeDisc::MShapeType fShapefunctionType;
 
   /**
    * it preserves index of connect associated to the element 
@@ -255,7 +261,10 @@ protected:
   void CalcResidual(TPZElementMatrix &ef);
 
   void BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &transfer);
-  
+
+void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
+		   REAL &true_error,REAL &L2_error,TPZBlock * /*flux */,REAL &estimate);
+
 };
 
 inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index) {
