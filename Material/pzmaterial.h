@@ -15,6 +15,10 @@
 #include "pzfmatrix.h"
 #include "pzadmchunk.h"
 
+#ifdef _AUTODIFF
+#include "fadType.h"
+#endif
+
 using namespace std;
 
 class TPZBndCond;
@@ -95,6 +99,18 @@ class  TPZMaterial
 			      TPZFMatrix &phi, TPZFMatrix &dphi,
 			      TPZFMatrix &ek, TPZFMatrix &ef) = 0;
 
+#ifdef _AUTODIFF
+
+      /**Compute contribution to the energy at an integration point*/
+      virtual void ContributeEnergy(TPZVec<REAL> &x,
+			      TPZVec<FADFADREAL> &sol,
+			      TPZVec<FADFADREAL> &dsol,
+			      FADFADREAL &U,
+			      REAL weight);
+
+#endif
+
+
       /** Compute contribution to the stiffness matrix and right hand
        * side at the integration point of a boundary*/
       virtual void ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
@@ -102,6 +118,14 @@ class  TPZMaterial
 				TPZFMatrix &phi, TPZFMatrix &ek,
 				TPZFMatrix &ef, TPZBndCond &bc) = 0;
 
+#ifdef _AUTODIFF
+
+      /** Compute contribution of BC to the Energy*/
+      virtual void ContributeBCEnergy(TPZVec<REAL> & x,
+	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
+	REAL weight, TPZBndCond &bc);
+
+#endif
       /**Set a procedure as source function for the material.  loc
 	 corresponds to the coordinate of the point where the source
 	 function is applied*/

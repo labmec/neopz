@@ -14,6 +14,10 @@ using namespace std;
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
 
+#ifdef _AUTODIFF
+#include "fadType.h"
+#endif
+
 template <class T, int N>
 class TPZManVector;
 
@@ -92,7 +96,7 @@ class TPZBndCond : public TPZMaterial {
     int typetmp = fType;
     if (fType == 50){
 	    int i;
-	    for (i=0;i<sol.NElements();i++){ 
+	    for (i=0;i<sol.NElements();i++){
 		fBCVal2(i,0) = gBigNumber*sol[i];
 		fBCVal1(i,i) = gBigNumber;
 	    }
@@ -102,9 +106,22 @@ class TPZBndCond : public TPZMaterial {
     fType = typetmp;
   }
 
+
+#ifdef _AUTODIFF
+
+  void ContributeEnergy(TPZVec<REAL> &x,
+			      TPZVec<FADFADREAL> &sol,
+			      TPZVec<FADFADREAL> &dsol,
+			      FADFADREAL &U,
+			      REAL weight);
+
+#endif
+
+
   void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,TPZFMatrix &axes,
 		    TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
   }
+
 
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix &dsol, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	      TPZVec<REAL> &uexact,TPZFMatrix &duexact,TPZVec<REAL> &val){

@@ -84,3 +84,21 @@ void TPZMaterial::Clone(TPZAdmChunkVector<TPZMaterial *> &matvec) {
    TPZMaterial *newmat = NewMaterial();
    matvec[vecpos] = newmat;
 }
+
+#ifdef _AUTODIFF
+
+void TPZMaterial::ContributeEnergy(TPZVec<REAL> &x,
+	TPZVec<FADFADREAL> &sol, TPZVec<FADFADREAL> &dsol,
+	FADFADREAL &U, REAL weight)
+{
+	PZError << "\nEnergy Contribution not implemented\n";
+}
+
+void TPZMaterial::ContributeBCEnergy(TPZVec<REAL> & x,
+	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
+	REAL weight, TPZBndCond &bc)
+{
+	PZError << "\nBC Energy Contribution not implemented\n";
+}
+
+#endif

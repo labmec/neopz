@@ -4,8 +4,9 @@
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
 
-
-
+#ifdef _AUTODIFF
+#include "fadType.h"
+#endif
 
 class TPZMatHyperElastic : public TPZMaterial {
 
@@ -40,6 +41,22 @@ virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv ,TPZVec<REAL> &sol,TP
 
 virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,double weight,
 			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
+#ifdef _AUTODIFF
+
+/**Compute contribution to the energy at an integration point*/
+virtual void ContributeEnergy(TPZVec<REAL> &x,
+			      TPZVec<FADFADREAL> &sol,
+			      TPZVec<FADFADREAL> &dsol,
+			      FADFADREAL &U,
+			      REAL weight);
+
+/** Compute contribution of BC to the Energy*/
+virtual void ContributeBCEnergy(TPZVec<REAL> & x,
+	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
+	REAL weight, TPZBndCond &bc);
+
+#endif
 
 virtual int VariableIndex(char *name);
 

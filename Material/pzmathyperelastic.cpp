@@ -309,7 +309,6 @@ void TPZMatHyperElastic::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/
 }*/
 
 
-
 /** returns the variable index associated with the name*/
 int TPZMatHyperElastic::VariableIndex(char *name){
 if(!strcmp("Displacement6",name))   return  1;
@@ -475,9 +474,195 @@ void TPZMatHyperElastic::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,double w
 							}
 						}
 					}
-				}				
+				}
 
             }
 
 	}//fim switch
 }
+
+
+#ifdef _AUTODIFF
+
+
+/* The function below makes the correspondence between the dsol vector
+ and a matrix ordered F operator
+*/
+inline int ith(const int i, const int j)
+{
+   return i*3+j;
+}
+
+
+void TPZMatHyperElastic::ContributeEnergy(TPZVec<REAL> &x,
+	TPZVec<FADFADREAL> &sol, TPZVec<FADFADREAL> &dsol,
+	FADFADREAL &U, REAL weight)
+{
+     const int dim = 3;
+     FADFADREAL J, TrC; // J = det(F); TrC = Trace(C)
+/*     int numder = dsol[0].size();
+     FADFADREAL F[3][3], J, J2, TrC; // J = det(F); TrC = Trace(C)
+     FADREAL defaultFAD(numder, 0., 0.);
+
+
+     FADFADREAL ADOne(numder, FADREAL(numder, 1., 0.), defaultFAD);
+     FADFADREAL ADTwo(numder, FADREAL(numder, 2., 0.), defaultFAD);
+     FADFADREAL ADThree(numder, FADREAL(numder, 3., 0.), defaultFAD);
+     FADFADREAL ADFour(numder, FADREAL(numder, 4., 0.), defaultFAD);
+     FADFADREAL ADLambda(numder, FADREAL(numder, fLambda, 0.), defaultFAD);
+     FADFADREAL ADNu(numder, FADREAL(numder, fNu, 0.), defaultFAD);
+     TrC = FADFADREAL(numder, defaultFAD, defaultFAD);
+
+     int i,j,k;
+     for(i = 0; i < dim; i++)
+     {
+         for(j = 0; j < dim; j++)
+	     F[i][j] = dsol[i * dim + j]; // Fij = dUi/dXj // GradU
+	 F[i][i] += ADOne; // F = GradU + I
+     }
+
+// C = Transpose[F] * F
+// evaluating the diagonal of the Cauchy tensor
+
+
+     for(i = 0; i < dim; i++)
+     {
+	 for(k = 0; k < dim; k++)
+	     TrC += F[k][i] * F[k][i]; // matrix multiplication
+     }
+
+     J = F[0][0] * F[1][1] * F[2][2] +
+         F[0][1] * F[1][2] * F[2][0] +
+	 F[0][2] * F[1][0] * F[2][1] -
+	 F[0][2] * F[1][1] * F[2][0] -
+	 F[0][1] * F[1][0] * F[2][2] -
+	 F[0][0] * F[1][2] * F[2][1]; //  J = det(F)
+
+     TPZVecFADFADREAL> DiagF(3);
+     DiagF[0] = dsol[    0] + FADREAL(1.);// element [0][0]
+     DiagF[1] = dsol[  3+1] + FADREAL(1.);// element [1][1]
+     DiagF[2] = dsol[2*3+2] + FADREAL(1.);// element [2][2]
+
+     TrC = DiagF[0]*DiagF[0]+
+           dsol[ith(1,0)] * dsol[ith(1,0)] +
+	   dsol[ith(2,0)] * dsol[ith(2,0)] +
+
+	   dsol[ith(0,1)] * dsol[ith(0,1)] +
+           DiagF[1]*DiagF[1]+
+	   dsol[ith(2,1)] * dsol[ith(2,1)] +
+
+	   dsol[ith(0,2)] * dsol[ith(0,2)] +
+	   dsol[ith(1,2)] * dsol[ith(1,2)] +
+	   DiagF[2]*DiagF[2];
+*/
+     FADFADREAL DiagF0(dsol[    0]);
+     DiagF0.val().val() += 1.;// element [0][0]
+
+     FADFADREAL DiagF1(dsol[  3+1]);
+     DiagF1.val().val() += 1.;// element [0][0]
+
+     FADFADREAL DiagF2(dsol[2*3+2]);
+     DiagF2.val().val() += 1.;// element [0][0]
+/*
+     TrC = DiagF0*DiagF0 +
+           dsol[ith(1,0)] * dsol[ith(1,0)] +
+           dsol[ith(2,0)] * dsol[ith(2,0)] +
+
+           dsol[ith(0,1)] * dsol[ith(0,1)] +
+           DiagF1*DiagF1 +
+           dsol[ith(2,1)] * dsol[ith(2,1)] +
+
+           dsol[ith(0,2)] * dsol[ith(0,2)] +
+           dsol[ith(1,2)] * dsol[ith(1,2)] +
+           DiagF2*DiagF2;
+
+     J = DiagF0          * DiagF1         * DiagF2 +
+         dsol[ith(0,1)] * dsol[ith(1,2)] * dsol[ith(2,0)] +
+         dsol[ith(0,2)] * dsol[ith(1,0)] * dsol[ith(2,1)] -
+         dsol[ith(0,2)] * DiagF1         * dsol[ith(2,0)] -
+         dsol[ith(0,1)] * dsol[ith(1,0)] * DiagF2 -
+         DiagF0         * dsol[ith(1,2)] * dsol[ith(2,1)]; //  J = det(F)
+
+     U += (J*J - FADREAL(1.)) * FADREAL(fLambda/4.) -
+          log( J ) * FADREAL(fLambda/2.+fNu) +
+	  (TrC - FADREAL(3.)) * FADREAL(fNu/2.);
+
+ */
+     TrC =  DiagF0*DiagF0;
+     TrC += dsol[ith(1,0)] * dsol[ith(1,0)];
+     TrC += dsol[ith(2,0)] * dsol[ith(2,0)];
+
+     TrC += dsol[ith(0,1)] * dsol[ith(0,1)];
+     TrC += DiagF1*DiagF1;
+     TrC += dsol[ith(2,1)] * dsol[ith(2,1)];
+
+     TrC += dsol[ith(0,2)] * dsol[ith(0,2)];
+     TrC += dsol[ith(1,2)] * dsol[ith(1,2)];
+     TrC += DiagF2*DiagF2;
+
+     J = DiagF0          * DiagF1         * DiagF2;
+     J += dsol[ith(0,1)] * dsol[ith(1,2)] * dsol[ith(2,0)];
+     J += dsol[ith(0,2)] * dsol[ith(1,0)] * dsol[ith(2,1)];
+     J -= dsol[ith(0,2)] * DiagF1         * dsol[ith(2,0)];
+     J -= dsol[ith(0,1)] * dsol[ith(1,0)] * DiagF2;
+     J -= DiagF0         * dsol[ith(1,2)] * dsol[ith(2,1)]; //  J = det(F)
+
+     U += (J*J - FADREAL(1.)) * FADREAL(fLambda/4.);
+     U -= log( J ) * FADREAL(fLambda/2.+fNu);
+     U += (TrC - FADREAL(3.)) * FADREAL(fNu/2.);
+
+}
+
+void TPZMatHyperElastic::ContributeBCEnergy(TPZVec<REAL> & x,
+	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
+	REAL weight, TPZBndCond &bc)
+{
+	if(bc.Material() != this){
+		PZError << "TPZMatHyperElastic.ContributeBC : this material doesn't exist \n";
+	}
+
+	if(bc.Type() < 0 && bc.Type() > 2){
+		PZError << "ContributeBC.aplybc, unknown boundary condition type : "<<bc.Type() << endl;
+	}
+
+	TPZVec<FADFADREAL> solMinBC(3), BCsolMinBC(3);
+	solMinBC[0] = sol[0] - FADREAL(bc.Val2()(0,0));
+	solMinBC[1] = sol[1] - FADREAL(bc.Val2()(1,0));
+	solMinBC[2] = sol[2] - FADREAL(bc.Val2()(2,0));
+
+	switch(bc.Type()){
+	  case 0:// Dirichlet condition
+            // U += 1/2* Big * weight * Integral((u - u0)^2 dOmega)
+	    U += ( (solMinBC[0] * solMinBC[0]) +
+	           (solMinBC[1] * solMinBC[1]) +
+	           (solMinBC[2] * solMinBC[2]) ) *
+	         FADREAL(gBigNumber * weight / 2.);
+	  break;
+	  case 1:// Neumann condition
+            // U -= weight * Integral([g].u dOmega)
+	    U -= ( sol[0] * FADREAL(bc.Val2()(0,0) ) +
+	           sol[1] * FADREAL(bc.Val2()(1,0) ) +
+	           sol[2] * FADREAL(bc.Val2()(2,0) ) ) *
+	         FADREAL(weight);
+	  break;
+	  case 2:// condiçao mista
+            // U += 1/2 * weight * Integral(<(u-u0), [g].(u-u0)> dOmega)
+	    BCsolMinBC[0] = solMinBC[0] * FADREAL(bc.Val1()(0,0)) +
+	                    solMinBC[1] * FADREAL(bc.Val1()(0,1)) +
+	                    solMinBC[2] * FADREAL(bc.Val1()(0,2));
+	    BCsolMinBC[1] = solMinBC[0] * FADREAL(bc.Val1()(1,0)) +
+	                    solMinBC[1] * FADREAL(bc.Val1()(1,1)) +
+	                    solMinBC[2] * FADREAL(bc.Val1()(1,2));
+	    BCsolMinBC[2] = solMinBC[0] * FADREAL(bc.Val1()(2,0)) +
+	                    solMinBC[1] * FADREAL(bc.Val1()(2,1)) +
+	                    solMinBC[2] * FADREAL(bc.Val1()(2,2));
+	    U += ( solMinBC[0] * BCsolMinBC[0] +
+	           solMinBC[1] * BCsolMinBC[1] +
+	           solMinBC[2] * BCsolMinBC[2] ) *
+	         FADREAL(weight / 2.);
+	  break;
+	}
+}
+
+
+#endif

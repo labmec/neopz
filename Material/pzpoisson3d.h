@@ -7,14 +7,18 @@
 
 //#include "pzmanvector.h"
 
+#ifdef _AUTODIFF
+#include "fadType.h"
+#endif
+
 
 class TPZMatPoisson3d : public TPZMaterial {
-  
+
   TPZFMatrix fXf;//fonte
   int fDim;
   
   public :
-    
+
     static int problema;
   
   TPZMatPoisson3d(int nummat, int dim);
@@ -26,7 +30,7 @@ class TPZMatPoisson3d : public TPZMaterial {
   }
   
   int Dimension() { return fDim;}
-  
+
   int NStateVariables();
   
   virtual void Print(ostream & out);
@@ -35,11 +39,26 @@ class TPZMatPoisson3d : public TPZMaterial {
   
   virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
 			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
-  
-  
+#ifdef _AUTODIFF
+  /**Compute contribution to the energy at an integration point*/
+  void TPZMatPoisson3d::ContributeEnergy(TPZVec<REAL> &x,
+			      TPZVec<FADFADREAL> &sol,
+			      TPZVec<FADFADREAL> &dsol,
+			      FADFADREAL &U,
+			      REAL weight);
+#endif
+
   virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
 			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
-  
+
+#ifdef _AUTODIFF
+
+  virtual void ContributeBCEnergy(TPZVec<REAL> & x,
+	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
+	REAL weight, TPZBndCond &bc);
+
+#endif
+
   virtual int VariableIndex(char *name);
   
   virtual int NSolutionVariables(int var);

@@ -32,3 +32,27 @@ void TPZBndCond::Clone(TPZAdmChunkVector<TPZMaterial *> &matvec) {
   TPZMaterial *newmat = new TPZBndCond(*this, newrefmaterial);
   matvec[vecpos] = newmat;
 }
+
+#ifdef _AUTODIFF
+
+void TPZBndCond::ContributeEnergy(TPZVec<REAL> &x,
+	TPZVec<FADFADREAL> &sol, TPZVec<FADFADREAL> &dsol,
+	FADFADREAL &U, REAL weight)
+{
+
+    int typetmp = fType;
+    if (fType == 50){
+	    int i;
+	    for (i=0;i<sol.NElements();i++){
+		fBCVal2(i,0) = gBigNumber*sol[i].val().val();
+		fBCVal1(i,i) = gBigNumber;
+	    }
+	    fType = 2;
+    }
+    fMaterial->ContributeBCEnergy(x,sol,U,weight,*this);
+    fType = typetmp;
+  
+
+}
+
+#endif
