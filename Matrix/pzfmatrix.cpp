@@ -638,57 +638,6 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
 /*************/
 /*** Redim ***/
 
-int TPZFMatrix::Redim(const int newRows,const int newCols) {
-	 if ( newRows == Rows() && newCols == Cols() ) {
-		  Zero();
-		  return( 1 );
-	 }
-	 int newsize = newRows*newCols;
-#ifdef __BOORLANDC__
-	 if(fElem && fElem != fGiven)  delete []fElem;
-    // farfree(fElem);//
-
-#else
-	 if(fElem && fElem != fGiven) delete []fElem;
-    //free(fElem);//
-
-#endif
-	 if(fGiven && newsize <= fSize) {
-		  fElem = fGiven;
-	 } else if(newsize == 0) {
-        fElem = NULL;
-    } else {
-#ifdef __BOORLANDC__
-		  //fElem = (REALPtr) farcalloc(newsize,sizeof(REAL));//
-        fElem = new( REAL[ newsize ] );
-#else
-		  //fElem = (REALPtr) calloc(newsize,sizeof(REAL));//
-		  fElem = new( REAL[ newsize ] );
-#endif
-	 }
-	 if (newsize && fElem == NULL )
-		  Error( "Resize <memory allocation error>." );
-
-	 fRow  = newRows;
-	 fCol  = newCols;
-
-	 Zero();
-
-	 return( 1 );
-}
-
-/***************/
-/****Zero*******/
-
-int TPZFMatrix::Zero() {
-	 int size = fRow * fCol * sizeof(REAL);
-	 memset(fElem,'\0',size);
-//	 REALPtr p = fElem, plast = p+size;
-//	 while(p < plast) *p++ = 0.0;
-	 fDecomposed = 0;
-	 return( 1 );
-}
-
 
 
 /********************/

@@ -612,7 +612,7 @@ protected:
    * @param row Number of rows
    * @param col Number of cols
    */
-  TPZMatrix (const int row,const int col )
+inline  TPZMatrix (const int row,const int col )
   { fRow = row; fCol = col;fDefPositive=0; fDecomposed = 0;}
 
   /**

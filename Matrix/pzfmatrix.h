@@ -68,7 +68,7 @@ class TPZFMatrix : public TPZMatrix {
      @param rows Initial number of rows
      @param cols Number of columns
   */
-  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,columns), fElem(0),fGiven(0),fSize(0) {
+inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,columns), fElem(0),fGiven(0),fSize(0) {
   	if(rows*columns) fElem = new REAL[rows*columns];
   }
   //@{
@@ -233,51 +233,6 @@ class TPZFMatrix : public TPZMatrix {
   int fSize;
 };
 
-/**
- * Non abstract class which implements full matrices with preallocated storage
- * @ingroup matrix
- */
-template<int N>
-class TPZFNMatrix : public TPZFMatrix {
-  REAL fBuf[N];
-
-public:
-  /*
-   * Constructor which does not initialize the data
-   * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col
-   * @param row Number of rows
-   * @param col Number of cols
-   */
-  TPZFNMatrix(int row, int col) : TPZFMatrix(row,col,fBuf,N) {}
-
-  /*
-   * Constructor which initializes the data
-   * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col
-   * @param row Number of rows
-   * @param col Number of cols
-   * @param val initial value of the matrix elements
-   */
-  TPZFNMatrix(int row, int col, const REAL &val) : TPZFMatrix(row,col,fBuf,N) {
-    TPZFMatrix::operator=(val);
-  }
-
-  TPZFMatrix &operator=(const TPZFMatrix &copy) {
-    return TPZFMatrix::operator=(copy);
-  }
-  TPZFNMatrix<N> &operator=(const TPZFNMatrix<N> &copy) {
-    TPZFMatrix::operator=(copy);
-    return *this;
-  }
-
-};
-
-REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B);
-
-REAL Norm(const TPZFMatrix &A);
-
-
-
-
 inline TPZFMatrix::TPZFMatrix(const int rows,const int cols,REAL * buf,const int sz)
   : TPZMatrix( rows, cols ), fElem(buf),fGiven(buf),fSize(sz) {
     int size = rows * cols;
@@ -299,6 +254,52 @@ inline TPZFMatrix::TPZFMatrix(const int rows,const int cols,const REAL & val )
 #endif
 	 for(int i=0;i<size;i++) fElem[i] = val;
 }
+
+/**
+ * Non abstract class which implements full matrices with preallocated storage
+ * @ingroup matrix
+ */
+template<int N>
+class TPZFNMatrix : public TPZFMatrix {
+  REAL fBuf[N];
+
+public:
+  /*
+   * Constructor which does not initialize the data
+   * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col
+   * @param row Number of rows
+   * @param col Number of cols
+   */
+inline TPZFNMatrix(int row, int col) : TPZFMatrix(row,col,fBuf,N) {}
+
+  /*
+   * Constructor which initializes the data
+   * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col
+   * @param row Number of rows
+   * @param col Number of cols
+   * @param val initial value of the matrix elements
+   */
+inline  TPZFNMatrix(int row, int col, const REAL &val) : TPZFMatrix(row,col,fBuf,N) {
+    TPZFMatrix::operator=(val);
+  }
+
+inline  TPZFMatrix &operator=(const TPZFMatrix &copy) {
+    return TPZFMatrix::operator=(copy);
+  }
+inline  TPZFNMatrix<N> &operator=(const TPZFNMatrix<N> &copy) {
+    TPZFMatrix::operator=(copy);
+    return *this;
+  }
+
+};
+
+REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B);
+
+REAL Norm(const TPZFMatrix &A);
+
+
+
+
 
 /**************/
 /*** PutVal ***/
@@ -359,6 +360,48 @@ inline REAL &TPZFMatrix::operator()(const int row) {
 #endif
   return *(fElem+row);
 }
+
+inline int TPZFMatrix::Redim(const int newRows,const int newCols) {
+  int newsize = newRows*newCols;
+  int size = fRow*fCol;
+  if ( newsize == size) {
+    fRow = newRows;
+    fCol = newCols;
+    Zero();
+    return( 1 );
+  }
+  if(fElem && fElem != fGiven) delete []fElem;
+
+  if(fGiven && newsize <= fSize) {
+    fElem = fGiven;
+  } else if(newsize == 0) {
+    fElem = NULL;
+  } else {
+    fElem = new( REAL[ newsize ] );
+  }
+#ifndef NODEBUG
+  if (newsize && fElem == NULL )
+    Error( "Resize <memory allocation error>." );
+#endif
+
+  fRow  = newRows;
+  fCol  = newCols;
+
+  Zero();
+
+  return( 1 );
+}
+
+/***************/
+/****Zero*******/
+
+inline int TPZFMatrix::Zero() {
+	 int size = fRow * fCol * sizeof(REAL);
+	 memset(fElem,'\0',size);
+	 fDecomposed = 0;
+	 return( 1 );
+}
+
 
 /**************************/
 /*** Operations Global ***/
