@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cc,v 1.15 2003-11-14 21:20:10 cedric Exp $
+//$Id: TPZAgglomerateEl.cc,v 1.16 2003-11-19 15:07:51 cedric Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -138,37 +138,6 @@ void TPZAgglomerateElement::CenterPoint(){
   SetCenterPoint(1,centy/voltot);
   SetCenterPoint(2,centz/voltot);
 }
-
-void TPZAgglomerateElement::CenterPoint(TPZVec<REAL> &center)
-{
-  this->CenterPoint();
-  center = fCenterPoint;
-}
-
-
-REAL TPZAgglomerateElement::RadiusOfEl(){
-   TPZManVector<REAL,3> centel(3,0.), centface(3,0.);
-   TPZManVector<REAL,3> masscent(3,0.), massface(3,0.);
-   REAL mindist = 1000., dist;
-
-   this->CenterPoint(centel);//Computes de element center point
-   // X(centel,masscent);
-//    int nfaces,face,face0;
-//    if(NSides()==15) {nfaces = 14; face0 = 10;}//tetrahedron
-//    else if(NSides()==19) {nfaces = 18; face0 = 13;}//pyramid
-//    else if(NSides()==21) {nfaces = 20; face0 = 15;}//prism
-//    else if(NSides()==27) {nfaces = 26; face0 = 20;}//hexahedro
-//    else return 0.;//line, point, triangle, quadrilateral
-//    for(face=face0;face<nfaces;face++){
-//      CenterPoint(face,centface);
-//      X(centface,massface);
-//      dist = Distance(masscent,massface);
-//      if(mindist > dist) mindist = dist;
-//    }
-   PZError << "Cuidado esse metodo nao esta implementado"<< endl;
-   return mindist;
- }
-
 
 REAL TPZAgglomerateElement::VolumeOfEl(){
 
@@ -723,6 +692,27 @@ void TPZAgglomerateElement::ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &a
   if(newfat != numaggl) cout << "TPZAgglomerateElement::ListOfGroupings número de pais não confere\n";
 }
 
+void TPZAgglomerateElement::Print(TPZStack<int> &listindex){
+  
+  cout << "TPZAgglomerateElement::Print agrupamento de indexes: saida AGRUPAMENTO.out\n";
+  ofstream out("AGRUPAMENTO.out");
+  int size = listindex.NElements(),i,father = 0;
+  out << "\n\t\t\t* * * AGRUPAMENTO DE INDEXES * * *\n\n";
+  int exists = 0;
+  for(i=0;i<size;i++){
+    if(listindex[i] == father){
+      out << i << ' ';
+      exists = 1;
+    }
+    if( (i+1) == size && exists ){
+      out << "-> father = " << father << endl;
+      i = -1;
+      father++;
+      exists = 0;
+    }
+  }
+}
+
 int Level(TPZGeoEl *gel){
   //retorna o nível do elemento gel
   if(!gel) return -1;
@@ -736,6 +726,7 @@ int Level(TPZGeoEl *gel){
   return niv;
 }
 
+// Void Tpzagglomerateelement::Projectresidual(){
 void TPZAgglomerateElement::RestrictionOperator(){
 
   //projeta a solução dos elementos contidos na aglomeração
@@ -788,6 +779,8 @@ void TPZAgglomerateElement::RestrictionOperator(){
   int npoints = intrule->NPoints();
   REAL weight,detjac;
   int in,jn,kn,ip,ind;
+//   TPZBlock &fineblock = MotherMesh()->Block();
+//   TPZFMatrix &FineMeshSol = MotherMesh()->Solution();
   TPZCompElDisc *disc;
 
   for(ind=0;ind<size;ind++){
@@ -810,10 +803,10 @@ void TPZAgglomerateElement::RestrictionOperator(){
 	  // => a regra  dos pequenos integra ok
 	  aggmat(in,jn) += weight*aggphix(in,0)*aggphix(jn,0);
 	}
-	//a soma das regras dos pequenos cobre a geometria do grande
-	for(kn=0; kn<nvar; kn++) {
-	  loadvec(in,kn) += weight*aggphix(in,0)*uh[kn];
-	}
+      }
+      //a soma das regras dos pequenos cobre a geometria do grande
+      for(kn=0; kn<nvar; kn++) {
+	loadvec(in,kn) += weight*aggphix(in,0)*uh[kn];
       }
     }
   }
@@ -825,7 +818,7 @@ void TPZAgglomerateElement::RestrictionOperator(){
   TPZConnect *df = &Connect(0);
   int dfseq = df->SequenceNumber();
   int dfvar = block.Size(dfseq);
-  for(jn=0; jn<dfvar; jn++) {//??????????????
+  for(jn=0; jn<dfvar; jn++) {
     block(dfseq,0,jn,0) = loadvec(iv/nvar,iv%nvar);
     iv++;
   }
@@ -852,18 +845,4 @@ void TPZAgglomerateElement::FineSolution(TPZCompElDisc *disc,TPZFMatrix &aggphix
 void TPZAgglomerateElement::RestrictionOperator2(){
 
   cout << "TPZAgglomerateElement::RestrictionOperator2 NOT IMPLEMENTED\n";
-}
-
-
-void TPZAgglomerateElement::RestrictionOperator(TPZCompElDisc &coarse,TPZTransfer &transf){
-
-  //projeta a solução dos elementos contidos na aglomeração
-  //no elemento por eles aglomerado
-  PZError <<  "TPZAgglomerateElement::RestrictionOperator it would not have to be called!\n";
-}
-
-
-int TPZAgglomerateElement::NShapeF(){
-  cout << "TPZAgglomerateElement::NShapeF IMPLEMENTE AGORA\n";
-  return 0;
 }
