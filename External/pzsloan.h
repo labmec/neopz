@@ -51,6 +51,10 @@ class TPZSloan : TPZRenumbering {
  public:
   TPZSloan(int NElements, int NNodes);
 
+  virtual ~TPZSloan()
+     {
+     }
+
 };
 
 #endif

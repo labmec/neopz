@@ -38,6 +38,7 @@ public:
 /**Instantiates an object which will compute the resequencing
 scheme of the metis package*/
   TPZMetis(int NElements, int NNodes);
+  virtual ~TPZMetis() {}
   void Print(ostream &out);
   void Print(ostream &out,char * title);
 };
