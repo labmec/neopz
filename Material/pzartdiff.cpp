@@ -422,6 +422,7 @@ template <class T>
 void TPZArtDiff::LS(TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
   int i, dim = Ai.NElements();
   for(i = 0; i < dim; i++)
+  //  Tau[i]=Ai[i];
      Ai[i].Transpose(Tau[i]);
 }
 

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.11 2003-11-20 21:39:06 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.12 2003-12-10 19:24:54 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -153,7 +153,7 @@ int TPZEulerConsLaw2::NFluxes()
 
 //-----------------Solutions
 
-
+/*
 void TPZEulerConsLaw2::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft){
 
   if(!bcleft){
@@ -222,7 +222,7 @@ void TPZEulerConsLaw2::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZ
     PZError << "TPZEulerConsLaw2::ContributeInterface Boundary Condition Type does Not Exist\n";
   }
 }
-
+*/
 
 void TPZEulerConsLaw2::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 
@@ -626,6 +626,47 @@ void TPZEulerConsLaw2::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &sol,REAL w
 }
 
 
+void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+			    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+
+  TPZVec<REAL> solR(solL.NElements(),0.);
+  TPZFMatrix dsolR(dsolL.Rows(), dsolL.Cols(),0.);
+  TPZFMatrix phiR(0,0), dphiR(0,0);
+
+  int nstate = NStateVariables();
+  REAL vpn=0.;
+  int i;
+
+  switch (bc.Type()){
+  case 3://Dirichlet: nada a fazer a CC é a correta
+    for(i=0;i<nstate; i++) solR[i] = bc.Val2().operator()(i,0);
+    ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal,
+                        phiL, phiR, dphiL, dphiR, ek, ef);
+    break;
+  case 4://recuperar valor da solu¢ão MEF esquerda: saida livre
+    for(i=0;i<nstate; i++) solR[i] = solL[i];
+    ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal,
+                        phiL, phiR, dphiL, dphiR, ek, ef);
+    break;
+  case 5://condi¢ão de parede
+    for(i=1;i<nstate-1;i++) vpn += solL[i]*normal[i-1];//v.n
+    for(i=1;i<nstate-1;i++) solR[i] = solL[i] - 2.0*vpn*normal[i-1];
+    solR[0] = solL[0];
+    solR[nstate-1] = solL[nstate-1];
+    ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal,
+                        phiL, phiR, dphiL, dphiR, ek, ef);
+    break;
+  case 6://não refletivas (campo distante)
+    for(i=0;i<nstate;i++) solR[i] = solL[i];
+    ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal,
+                        phiL, phiR, dphiL, dphiR, ek, ef);
+    break;
+  default:
+    PZError << "TPZEulerConsLaw2::ContributeInterface Boundary Condition Type does Not Exist\n";
+  }
+
+};
+
 //------------------internal contributions
 
 void TPZEulerConsLaw2::ContributeApproxImplDiff(TPZVec<REAL> &x,
@@ -674,7 +715,7 @@ void TPZEulerConsLaw2::ContributeExplConvFace(TPZVec<REAL> &x,
    int nShapeL = phiL.Rows(),
        nShapeR = phiR.Rows(),
        i_shape, i_state;
-   REAL constant = - TimeStep() * weight; // - deltaT * weight
+   REAL constant =  TimeStep() * weight; // - deltaT * weight
 
    // Contribution referring to the left element
    for(i_shape = 0; i_shape < nShapeL; i_shape ++)
@@ -706,7 +747,7 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
        nShapeR = phiR.Rows(),
        i_shape, i_state, j,
        nDer = (nShapeL + nShapeR) * nState;
-   REAL constant = - TimeStep() * weight; // - deltaT * weight
+   REAL constant =  TimeStep() * weight; // - deltaT * weight
 
    // Contribution referring to the left element
    for(i_shape = 0; i_shape < nShapeL; i_shape ++)
@@ -745,7 +786,7 @@ void TPZEulerConsLaw2::ContributeExplConvVol(TPZVec<REAL> &x,
 {
    TPZVec< TPZVec<REAL> > F(3);
    Flux(sol, F[0], F[1], F[2]);
-   REAL constant = -TimeStep() * weight;
+   REAL constant = - TimeStep() * weight;
 
    int i_state, i_shape, nShape = phi.Rows(), k;
    int nState = NStateVariables();
@@ -773,7 +814,7 @@ void TPZEulerConsLaw2::ContributeImplConvVol(TPZVec<REAL> &x,
 {
    TPZVec< TPZVec<REAL> > F(3);
    Flux(sol, F[0], F[1], F[2]);
-   REAL constant = -TimeStep() * weight;
+   REAL constant = - TimeStep() * weight;
 
    TPZVec< TPZDiffMatrix<REAL> > Ai(3);
    JacobFlux(sol, Ai);

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.9 2003-11-20 21:39:06 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.10 2003-12-10 19:24:55 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -96,16 +96,16 @@ public :
 
   /**
    * See declaration in base class
-   */
+   *//*
   virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,
 			TPZVec<REAL> &normal,TPZBndCond *bcleft);
-
+*/
   /**
    * See declaration in base class
-   */
+   *//*
   virtual void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,
 			TPZVec<REAL> &normal,TPZBndCond *bcright);
-
+*/
   /**
    * See declaration in base class
    */
@@ -274,11 +274,15 @@ public:
   /**
    * See declaration in base class
    */
+
   virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,
 			REAL weight,TPZFMatrix &axes,
 			TPZFMatrix &phi,
 			TPZFMatrix &ek, TPZFMatrix &ef,
 			TPZBndCond &bc);
+
+  virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+			    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
 //------------------internal contributions
 
@@ -473,7 +477,7 @@ inline void TPZEulerConsLaw2::JacobFlux(TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > 
   for(i=0;i<fDim;i++)Ai[i].Redim(NStateVariables(), NStateVariables());
   
   if(U[0] < 1.e-6) {
-    PZError << "\nTPZArtDiff::JacobFlux: Density almost null or negative, jacobian evaluation fails\n"
+    PZError << "\nTPZEulerConsLaw2::JacobFlux: Density almost null or negative, jacobian evaluation fails\n"
        << "Density = " << U[0] << endl;
        return;
   }
@@ -769,16 +773,23 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
    int nState = solL.NElements();
    if(nState == 5)
    {
-      Roe_Flux(solR[0], solR[1], solR[2], solR[3], solR[4],
-              solL[0], solL[1], solL[2], solL[3], solL[4],
-	      normal[0], -normal[1], -normal[2],
+      Roe_Flux(solL[0], solL[1], solL[2], solL[3], solL[4],
+              solR[0], solR[1], solR[2], solR[3], solR[4],
+	      normal[0], normal[1], normal[2],
 	      gamma,
 	      flux[0], flux[1], flux[2], flux[3], flux[4]);
 
    }else if(nState == 4)
-   {
+   {/*
       Roe_Flux(solR[0], solR[1], solR[2], solR[3],
               solL[0], solL[1], solL[2], solL[3],
+	      -normal[0], -normal[1],
+	      gamma,
+	      flux[0], flux[1], flux[2], flux[3]);
+	      */
+
+      Roe_Flux(solL[0], solL[1], solL[2], solL[3],
+              solR[0], solR[1], solR[2], solR[3],
 	      normal[0], normal[1],
 	      gamma,
 	      flux[0], flux[1], flux[2], flux[3]);
@@ -789,9 +800,9 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
         auxR = 0.,
         fluxaux = 0.;
 	auxL = flux[0];
-      Roe_Flux(solR[0], solR[1], auxR, solR[2],
-              solL[0], solL[1], auxL, solL[2],
-	      -normal[0], 0,
+      Roe_Flux(solL[0], solL[1], auxL, solL[2],
+              solR[0], solR[1], auxR, solR[2],
+	      normal[0], 0,
 	      gamma,
 	      flux[0], flux[1], fluxaux, flux[2]);
    }else

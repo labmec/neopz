@@ -1,4 +1,4 @@
-//$Id: pzconslaw.cpp,v 1.4 2003-10-21 18:12:11 erick Exp $
+//$Id: pzconslaw.cpp,v 1.5 2003-12-10 19:24:54 erick Exp $
 
 #include "pzconslaw.h"
 #include "pzelmat.h"
@@ -11,7 +11,7 @@
 
 
 TPZConservationLaw2::TPZConservationLaw2(int nummat,REAL timeStep,int dim) :
-                                                      TPZMaterial(nummat),
+                                           TPZDiscontinuousGalerkin(nummat),
 fDim(dim),
 fTimeStep(0),
 fCFL(0),

@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.7 2003-10-24 00:02:23 erick Exp $
+//$Id: pzconslaw.h,v 1.8 2003-12-10 19:24:54 erick Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -7,6 +7,7 @@
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
+#include "pzdiscgal.h"
 
 
 enum TPZTimeDiscr
@@ -24,7 +25,7 @@ enum TPZContributeTime
    Advanced_CT = 1
 };
 
-class TPZConservationLaw2  : public TPZMaterial
+class TPZConservationLaw2  : public TPZDiscontinuousGalerkin
 {
 public:
 
@@ -146,15 +147,15 @@ public:
   /**
    * compute the boundary condition left solution
    */
-  virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,
+/*  virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,
 			TPZVec<REAL> &normal,TPZBndCond *bcleft) = 0;
-
+*/
   /**
    * compute the boundary condition right solution
    */
-  virtual void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,
+/*  virtual void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,
 			TPZVec<REAL> &normal,TPZBndCond *bcright)=0;
-
+*/
 
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
 			TPZFMatrix &axes,int var,
