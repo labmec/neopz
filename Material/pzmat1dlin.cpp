@@ -10,9 +10,11 @@
 
 #include <math.h>
 
-void TPZMat1dLin::Contribute(TPZVec<REAL> &x,TPZFMatrix &, TPZVec<REAL> &/*sol*/, TPZFMatrix &,REAL weight,REAL ,
-			     TPZFMatrix &/* axes*/,
-			     TPZFMatrix &phi, TPZFMatrix &dphi, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZMat1dLin::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
+			      TPZVec<REAL> &sol, TPZFMatrix &dsol,
+			      REAL weight,TPZFMatrix &axes,
+			      TPZFMatrix &phi, TPZFMatrix &dphi,
+			     TPZFMatrix &ek, TPZFMatrix &ef){
 
   // this method adds the contribution of the material to the stiffness
   // matrix and right hand side
@@ -46,9 +48,10 @@ void TPZMat1dLin::Contribute(TPZVec<REAL> &x,TPZFMatrix &, TPZVec<REAL> &/*sol*/
   }
 }
 
-void TPZMat1dLin::ContributeBC(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*sol*/, double weight,
-			       TPZFMatrix &/*axes*/,
-			       TPZFMatrix &phi, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
+void TPZMat1dLin::ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
+				REAL weight, TPZFMatrix &axes,
+				TPZFMatrix &phi, TPZFMatrix &ek,
+			       TPZFMatrix &ef, TPZBndCond &bc){
 
   //void TPZMat1dLin::ContributeBc(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*sol*/, TElementMatrix &ek, TElementMatrix &ef, TPZBndCond &bc, int nod) {
 
