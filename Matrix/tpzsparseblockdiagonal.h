@@ -58,7 +58,7 @@ Equation numbers for each block
 Index to first element of each block
 */
     TPZVec<int> fBlockIndex;
-private:
+
     void Scatter(const TPZFMatrix &in, TPZFMatrix &out, int stride) const;
     void Gather(const TPZFMatrix &in, TPZFMatrix &out, int stride) const;
 };
