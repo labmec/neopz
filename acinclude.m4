@@ -3,7 +3,7 @@ dnl acinclude.m4 for NeoPZ
 dnl
 dnl Process this file with GNU aclocal to produce a configure script.
 dnl
-dnl $Id: acinclude.m4,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+dnl $Id: acinclude.m4,v 1.2 2003-05-21 18:54:23 erick Exp $
 dnl
 
 dnl
@@ -92,6 +92,15 @@ AC_DEFUN(PZ_BYEBYE,
       ;;
       no)
         echo "      -> Sloan not enabled."
+      ;;
+    esac
+
+    case "${fad_enabled}" in
+      yes)
+        echo "      -> FAD enabled."
+      ;;
+      no)
+        echo "      -> FAD not enabled."
       ;;
     esac
 
