@@ -27,8 +27,6 @@
 #include "pzonedref.h"
 #include "pzdxmesh.h"
 #include "pzsolve.h"
-
-
 #include "pztempmat.h"
 
 using namespace std;
@@ -268,10 +266,12 @@ void TPZNonLinMultGridAnalysis::CoutTime(clock_t &start,char *title){
     cout << segundos/60.0 << " minutos" << endl << endl;
 }
 
-void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat,int niter){
+void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat){
 
   TPZFlowCompMesh *fm  = dynamic_cast<TPZFlowCompMesh *>(CompMesh);
-  if(!niter){
+  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
+  REAL timestep = law->TimeStep();
+  if(timestep <= 0.0){
     fFunction(mat,CompMesh);
     return;
   }
@@ -284,14 +284,13 @@ void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *
   //REAL deltax = CompMesh->MaximumRadiusOfEl();
   TPZCompElDisc *disc;
   int degree = disc->gDegree;
-  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
   law->SetDeltaTime(maxveloc,deltax,degree);
 }
 
 void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,
-						  TPZAnalysis &an,ofstream &dxout,int marcha) {
+						  TPZAnalysis &an,int marcha,ostream &dxout) {
   if(marcha){
-    SmoothingSolution2(tol,numiter,mat,an,dxout,marcha);
+    SmoothingSolution2(tol,numiter,mat,an,marcha,dxout);
     return;
   }
   TPZCompMesh *anmesh = an.Mesh();
@@ -301,7 +300,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
   int iter = 0;
   an.Solution().Zero();
   fBegin = clock();
-  SetDeltaTime(anmesh,mat,iter);
+  SetDeltaTime(anmesh,mat);
   an.Run();
   cout << "TPZNonLinMultGridAnalysis::SmoothingSolution iteration = " << ++iter << endl;
   CoutTime(fBegin,"TPZNonLinMultGridAnalysis:: Fim system solution first iteration");
@@ -310,12 +309,12 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
   static int file = -1;
   file++;
   //ofstream out("SmoothingSolution_ANALYSIS.out");
-  ofstream *out[2];
-  char *name;
-  if(!file) name = "SmoothingSolution_ANALYSIS1.out";
-  if( file) name = "SmoothingSolution_ANALYSIS2.out";
-  out[file] = new ofstream(name);
-  an.Print("\n\n* * * SOLUCAO PELO ANALYSIS: primeira solução  * * *\n\n",*out[file]);
+//   ofstream *out[2];
+//   char *name;
+//   if(!file) name = "SmoothingSolution_ANALYSIS1.out";
+//   if( file) name = "SmoothingSolution_ANALYSIS2.out";
+//   out[file] = new ofstream(name);
+//   an.Print("\n\n* * * SOLUCAO PELO ANALYSIS: primeira solução  * * *\n\n",*out[file]);
   fBegin = clock();
   mat->SetForcingFunction(0);
   REAL normsol = Norm(Solution());
@@ -324,7 +323,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
     
     fBegin = clock();
     an.Solution().Zero();
-    SetDeltaTime(anmesh,mat,iter);
+    SetDeltaTime(anmesh,mat);
     an.Run();
     CoutTime(fBegin,"TPZNonLinMultGridAnalysis:: Fim system solution actual iteration");
     CoutTime(fInit,"TPZNonLinMultGridAnalysis:: accumulated time");
@@ -338,14 +337,14 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
 	 << " due the great norm of the solution, norm solution = " << normsol << endl;
   }
   an.LoadSolution();
-  an.Print("\n\n* * * SOLUCAO PELO ANALYSIS: última solução  * * *\n\n",*out[file]);
+//  an.Print("\n\n* * * SOLUCAO PELO ANALYSIS: última solução  * * *\n\n",*out[file]);
   CoutTime(fInit,"TPZNonLinMultGridAnalysis::SmoothingSolution general time of iterative process");
-  out[file]->flush();
-  out[file]->close();
+//   out[file]->flush();
+//   out[file]->close();
 }
 
 void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,
-						   ofstream &dxout,int marcha) {
+						   int marcha,ostream &dxout) {
 
   TPZVec<char *> scalar(1),vector(0);
   scalar[0] = "pressure";
@@ -364,7 +363,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMater
   fInit = clock();
   an.Solution().Zero();
   fBegin = clock();
-  SetDeltaTime(anmesh,mat,iter);
+  SetDeltaTime(anmesh,mat);
   cout << "TPZNonLinMultGridAnalysis::SmoothingSolution iteration = " << ++iter
        << " general time 0\n";
   an.Run();
@@ -381,7 +380,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMater
     
     fBegin = clock();
     an.Solution().Zero();
-    SetDeltaTime(anmesh,mat,iter);
+    SetDeltaTime(anmesh,mat);
     an.Run();
     CoutTime(fBegin,"TPZNonLinMultGridAnalysis:: Fim system solution actual iteration");
     CoutTime(fInit,"TPZNonLinMultGridAnalysis:: accumulated time");
@@ -505,6 +504,211 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZFMatrix &anres,TP
   }
 }
 
+// void Null(){
+
+
+//   if(1){//TESTE 3
+//     cout << "\n\nTESTE 3: Project Solution\n\n";
+//     //ESTE TESTE MOSTRA QUE A SOLUÇÃO É TRANSFERIDA DA 
+//     //MALHA FINA PARA A MALHA GROSSA DE FORMA CONSISTENTE
+//     //PARA QUALQUER GRAU DE INTERPOLAÇÃO 
+//     neq = fMeshes[2]->NEquations();
+//     REAL c = sqrt(2.0);
+//     TPZFMatrix finesol(neq,1,c),finesol2(neq,1,0.);;//para grau 1
+//     if(1){
+//     //com grau 1 esta solução com o quadrilátero
+//     int l;//[0,4]x[0,4] dividido em 4 elementos
+//     for(l=0; l<4 ;l++) finesol(l,0) = 2.0;//como malha fina
+//     for(l=12;l<16;l++) finesol(l,0) = 4.0;
+//     for(l=24;l<28;l++) finesol(l,0) = 6.0;
+//     for(l=36;l<40;l++) finesol(l,0) = 4.0;
+// //     for(l=0;l<12;l++) if(!(l%3)) finesol(l,0) = 2.0;//como malha fina
+// //     for(l=12;l<24;l++) if(!(l%3)) finesol(l,0) = 4.0;//e sem dividir com
+// //     for(l=24;l<36;l++) if(!(l%3)) finesol(l,0) = 6.0;//malha grossa da soluçção
+// //     for(l=36;l<48;l++) if(!(l%3)) finesol(l,0) = 4.0;//exata  X+Y
+//     }
+//     if(0){//para grau 2
+//     //com grau 2 esta solução com o quadrilátero
+//     int l;//[0,4]x[0,4] dividido em 4 elementos
+//     c = sqrt(2.0);
+//     REAL c2 = c*c;
+//     for(l=0;l<24;l++) {//como malha fina
+//       if(l <  4)    {finesol(l,0) = 2.0;  continue;}
+//       if(l <  8)    {finesol(l,0) = 2.*c; continue;}
+//       if(l < 12)    {finesol(l,0) = c2;   continue;}
+//       if(l < 16)    {finesol(l,0) = 2.*c; continue;}
+//       if(l < 20)    {finesol(l,0) = 0.0;  continue;}
+//       if(l < 24)    {finesol(l,0) = c2;   continue;}
+//     }
+//     for(l=24;l<48;l++) {
+//       if(l < 28)    {finesol(l,0) = 10.;  continue;}
+//       if(l < 32)    {finesol(l,0) = 2.*c; continue;}
+//       if(l < 36)    {finesol(l,0) = c2;   continue;}
+//       if(l < 40)    {finesol(l,0) = 6.*c; continue;}
+//       if(l < 44)    {finesol(l,0) = 0.0;  continue;}
+//       if(l < 48)    {finesol(l,0) = c2;   continue;}
+//     }
+//     for(l=48;l<72;l++) {
+//       if(l < 52)    {finesol(l,0) = 18.;  continue;}
+//       if(l < 56)    {finesol(l,0) = 6.*c; continue;}
+//       if(l < 60)    {finesol(l,0) = c2;   continue;}
+//       if(l < 64)    {finesol(l,0) = 6.*c; continue;}
+//       if(l < 68)    {finesol(l,0) = 0.0;  continue;}
+//       if(l < 72)    {finesol(l,0) = c2;   continue;}
+//     }
+//     for(l=72;l<96;l++) {
+//       if(l < 76)    {finesol(l,0) = 10.;  continue;}
+//       if(l < 80)    {finesol(l,0) = 6.*c; continue;}
+//       if(l < 84)    {finesol(l,0) = c2;   continue;}
+//       if(l < 88)    {finesol(l,0) = 2.*c; continue;}
+//       if(l < 92)    {finesol(l,0) = 0.0;  continue;}
+//       if(l < 96)    {finesol(l,0) = c2;   continue;}
+//     }
+//     }
+//     fMeshes[2]->LoadSolution(finesol);
+//     neq = fMeshes[1]->NEquations();
+//     TPZFMatrix coarsesol(neq,1,0.);
+//     fMeshes[1]->ProjectSolution(coarsesol);
+//     fMeshes[1]->LoadSolution(coarsesol);
+//     finesol.Print("\n\n\t\t\t* * * finesol antes de projetada * * *\n\n",OUT);
+//     coarsesol.Print("\n\n\t\t\t* * * coarsesol * * *\n\n",OUT);
+//     transfer.TransferSolution(coarsesol,finesol2);
+//     finesol.Print("\n\n\t\t\t* * * finesol depois de transferida * * *\n\n",OUT);
+//     TPZFMatrix residuo = finesol - finesol2;
+//     residuo.Print("\n\n\t\t\t* * * RESIDUO: PROJETADA - TRANSFERIDA * * *\n\n",OUT);
+//     int nel = fMeshes[1]->ElementVec().NElements(),i;
+//     TPZVec<REAL> csi(3,0.),x(3);
+//     TPZAgglomerateElement *aggel;
+//     for(i=0;i<nel;i++){
+//       TPZCompEl *cel = fMeshes[1]->ElementVec()[i];
+//       if(!cel) continue;
+//       if(cel->Type() != EAgglomerate) continue;
+//       aggel = dynamic_cast<TPZAgglomerateElement *>(cel);
+//       //basta 1 para teste
+//       int size = aggel->NIndexes(),k;
+//       for(k=0;k<size;k++){
+// 	fMeshes[2]->Reference()->ResetReference();
+// 	fMeshes[2]->LoadReferences();
+// 	TPZCompEl *fineel0 = aggel->FineElement(k);
+// 	TPZGeoEl *ref = fineel0->Reference();
+// 	TPZManVector<REAL> sol;
+// 	int var = 1;//solução u densidade
+// 	fineel0->Solution(csi,var,sol);
+// 	ref->X(csi,x);
+// 	OUT << "Elemento -> " << ref->Id() << "\n";
+// 	OUT << "x = " << x[0] << " " << x[1] << " " << x[2] << " : ";
+// 	OUT << "solução fina -> " << sol[0] << "\n";
+// 	fMeshes[1]->Reference()->ResetReference();
+// 	fMeshes[1]->LoadReferences();
+// 	aggel->Solution(x,-var,sol);//ponto real
+// 	OUT << "\t\t\tsolução grossa -> " << sol[0] << "\n";}
+//     }
+//   }
+
+//   if(0){//TESTE 2
+//     cout << "\n\nTESTE 2: Transfer Solution\n\n";
+//   //ESTE TESTE MOSTRA QUE A SOLUÇÃO É TRANSFERIDA DA 
+//   //MALHA GROSSA PARA A MALHA FINA DE FORMA EXATA
+//   //PARA QUALQUER GRAU DE INTERPOLAÇÃO
+//   TPZFMatrix coarsesol(neq,1,1.);
+//   REAL val0 = 1.,val1 = 0.,val2 = 0.1,val3 = 1.0;//com CFL = 0
+//   //cout << "TPZNonLinMultGridAnalysis::TwoGridAlgorithm: Entre valores : ";
+//   //cin >> val1 >> val2 >> val3;
+//   REAL eps = 0.001;
+//   for(int i=0;i<neq;i++){
+//     int k = (i+1)%4;
+//     if(k == 2){
+//       coarsesol(i,0) = val1;// + eps * i;
+//       continue;
+//     }
+//     if(k == 3){
+//       coarsesol(i,0) = val2 + eps * i;
+//       continue;
+//     }
+//     if(k == 0) coarsesol(i,0) = val3 + eps * i;
+//     if(k == 1) coarsesol(i,0) = val0 + eps * i;
+//   }
+//   neq = fMeshes[2]->NEquations();
+//   TPZFMatrix finesol(neq,1,0.);
+//   fMeshes[1]->LoadSolution(coarsesol);
+//   transfer.TransferSolution(coarsesol,finesol);
+//   coarsesol.Print("\n\n\t\t\t* * * coarsesol * * *\n\n",OUT);
+//   finesol.Print("\n\n\t\t\t* * * finesol * * *\n\n",OUT);
+//   fMeshes[2]->LoadSolution(finesol);
+//   int nel = fMeshes[1]->ElementVec().NElements(),i;
+//   TPZVec<REAL> csi(3,0.),x(3);
+//   TPZAgglomerateElement *aggel;
+//   for(i=0;i<nel;i++){
+//     TPZCompEl *cel = fMeshes[1]->ElementVec()[i];
+//     if(!cel) continue;
+//     if(cel->Type() != EAgglomerate) continue;
+//     aggel = dynamic_cast<TPZAgglomerateElement *>(cel);
+//     TPZStack<int> elvec;
+//     aggel->IndexesDiscSubEls(elvec);
+//     //basta 1 para teste
+//     TPZCompEl *fineel0 = fMeshes[2]->ElementVec()[elvec[0]];
+//     TPZGeoEl *ref = fineel0->Reference();
+//     TPZManVector<REAL> sol;
+//     int var = 4;//pressão
+//     fineel0->Solution(csi,var,sol);
+//     ref->X(csi,x);
+//     OUT << "Elemento -> " << ref->Id() << "\n";
+//     OUT << "x = " << x[0] << " " << x[1] << " " << x[2] << " : ";
+//     OUT << "solução fina -> " << sol[0] << "\n";
+//     aggel->Solution(x,-var,sol);//ponto real
+//     OUT << "\t\t\tsolução grossa -> " << sol[0] << "\n";
+//   }
+//   }
+
+//   if(0){//TESTE 1: para verificar a qualidade da 
+//         //         transferência do resíduo
+//   TPZFMatrix coarsesol(neq,1,1.),transcoarsesol(neq,1,0.);
+//   neq = fMeshes[2]->NEquations();
+//   TPZFMatrix finesol(neq,1,0.);
+//   transfer.TransferSolution(coarsesol,finesol);
+//   transfer.TransferResidual(finesol,transcoarsesol);
+//   coarsesol.Print("\n\n\t\t\t* * * coarsesol * * *\n\n",OUT);
+//   finesol.Print("\n\n\t\t\t* * * finesol * * *\n\n",OUT);
+//   transcoarsesol.Print("\n\n\t\t\t* * * transcoarsesol * * *\n\n",OUT);
+//   OUT.flush();
+//   OUT.close();
+//   }
+
+//   if(0){
+//   transfer.Print("\n\n\t\t\t* * * MATRIZ DE TRANSFERÊNCIA * * *\n\n",OUT);
+//   int neq = fMeshes[1]->NEquations();
+//   TPZFMatrix coarseRhs(neq,1,0.);
+//   transfer.TransferResidual(finean.Rhs(),coarseRhs);//transferindo résiduo
+//   coarseRhs.Print("\n\n* * * RESÍDUO TRANSFERIDO: FINO -> GROSSO * * *\n\n",OUT);
+//   ofstream *dxout2 = new ofstream("PostSmoothingEuler.dx");
+//   cout << "\nNumero de iteracoes pós-suavisamento? :\n";
+//   cin >> numiter;
+//   fMeshes[1]->Reference()->ResetReference();
+//   fMeshes[1]->LoadReferences();
+//   mat = fMeshes[1]->FindMaterial(nummat);
+//   SmoothingSolution(tol,numiter,mat,coarsean,*dxout2,marcha);
+//   coarsean.Rhs().Print("\n\n* * * RESÍDUO DA MALHA GROSSA * * *\n\n",OUT);
+//   coarsean.Print("\n\n\t\t\t* * * ANALYSIS MALHA GROSSA após SmoothingSolution * * *\n\n",out);
+//   neq = fMeshes[2]->NEquations();
+//   TPZFMatrix finesol(neq,1,0.);
+//   transfer.TransferSolution(coarsean.Solution(),finesol);//transferindo solução
+//   fMeshes[2]->LoadSolution(finesol);
+//   TPZFMatrix res;
+//   CalcResidual(finesol,finean,"LDLt",res);
+//   res.Print("\n\n\t\t\t* * * RESÍDUO MALHA FINA * * *\n\n",out);
+//   finesol.Print("\n\n* * * SOLUÇÂO TRANSFERIDA: GROSSA -> FINA * * *\n\n",OUT);
+//   OUT.flush();
+//   OUT.close();
+//   }
+// }
+
+
+/////////////////////////////////////////////////////////////////////////////
+////                                                                     ////
+////               ALGORITMO MULTIGRID A DUAS MALHAS                      ////
+////                                                                     ////
+/////////////////////////////////////////////////////////////////////////////
+
 void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
 
   TPZCompMesh *coarcmesh = fMeshes[0];//malha grosseira inicial
@@ -558,195 +762,103 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   finean.Solution().Zero();
   fSolutions.Push(new TPZFMatrix(finean.Solution()));
   fPrecondition.Push(0);
-  //suavisar a solução na malha fina
-  REAL tol = 1.e15;//valor máximo da ||solução||
-  int numiter,marcha;
+  //preparacão para aplicar método multigrid a duas malhas
+  REAL sol_tol = 1.e15;//valor máximo da ||solução||
+  int preiter,positer,premarcha,posmarcha;
   cout << "\nNumero de iteracoes pre-suavisamento? :\n";
-  cin >> numiter;
-  //numiter = 10;
-  cout << "main:: Parametro marcha (nulo não cria .dx): 0\n";
-  //cin >> marcha;
-  marcha = 0;
+  cin >> preiter;
+  //preiter = 10;
+  //cout << "main:: Parametro marcha (nulo não cria .dx): 0\n";
+  //cin >> premarcha;
+  premarcha = 0;
+  cout << "\nNumero de iteracoes pós-suavisamento? :\n";
+  cin >> positer;
+  //cout << "main:: Parametro marcha no pós-suavisamento (nulo não cria .dx):\n";
+  //cin >> posmarcha;
+  posmarcha = 0;
   fMeshes[2]->Reference()->ResetReference();
   fMeshes[2]->LoadReferences();
-  TPZMaterial *mat = fMeshes[2]->FindMaterial(nummat);
-  ofstream *dxout = new ofstream("PreSmoothingEuler.dx");
-  SmoothingSolution(tol,numiter,mat,finean,*dxout,marcha);
-  finean.Print("\n\n\t\t\t* * * ANALYSIS MALHA FINA após SmoothingSolution * * *\n\n",out);
-  out.flush();
+  //ofstream *dxout = new ofstream("PreSmoothingEuler.dx");//parâmetro de SmootSolution
+  //ofstream *dxout2 = new ofstream("PostSmoothingEuler.dx");
   // TRANSFERÊNCIA DE SOLUÇÕES
-  ofstream OUT("TwoGridAlgorithm_TRANSFER.out");
+  TPZGeoMesh *geomesh = fMeshes[0]->Reference();
+  ofstream OUT("TwoGridAlgorithm_ 0TRANSFER.out");
   TPZTransfer transfer;
   fMeshes[2]->BuildTransferMatrixDesc(*fMeshes[1],transfer);
   TPZFMatrix projectsol;
-  //fMeshes[1]->ProjectSolution(projectsol);
-  //return;
-  int neq;// = fMeshes[1]->NEquations();
+  REAL normsolfine = 0.0,normsolcoar = 1.e10,erro;
+  REAL errsol = fabs(normsolcoar - normsolfine);
+  REAL gridtol = 0.01;
+  int coarneq = fMeshes[1]->NEquations();
+  int fineneq = fMeshes[2]->NEquations();
+  TPZFMatrix finesol(fineneq,1,0.),finesol2(fineneq,1),fineres(fineneq,1);
+  TPZFMatrix coarsesol(coarneq,1,0.),coarseres(coarneq,1),rhs(coarneq,1),frhsk;
+  TPZFMatrix finesolkeep,coarsesolkeep;
+  int mgmaxiter = 100,mgiter = 0;
+  TPZVec<char *> scalar(1),vector(0);
+  scalar[0] = "pressure";
+  TPZMaterial *finemat = fMeshes[2]->FindMaterial(nummat);
+  TPZMaterial *coarsemat = fMeshes[1]->FindMaterial(nummat);
+  int finedim = finemat->Dimension();
+  int coarsedim = coarsemat->Dimension();
+  geomesh->ResetReference();
+  fMeshes[2]->LoadReferences();
+  TPZDXGraphMesh finegraph(fMeshes[2],finedim,finemat,scalar,vector);
+  ResetReference(fMeshes[1]);//retira referências para criar coarsegraph consistente  
+  TPZDXGraphMesh coarsegraph(fMeshes[1],coarsedim,coarsemat,scalar,vector);
+  SetReference(fMeshes[1]);
+  ofstream *finedx = new ofstream("FineSmoothing.dx");
+  finegraph.SetOutFile(*finedx);
+  finegraph.SetResolution(0);
+  finegraph.DrawMesh(finedim);
+  ofstream *coarsedx = new ofstream("CoarseSmoothing.dx");
+  coarsegraph.SetOutFile(*coarsedx);
+  coarsegraph.SetResolution(0);
+  coarsegraph.DrawMesh(coarsedim);
+  REAL time,skm1 = 1.0,skm1inv;
+  int draw = 0;
 
-  if(1){//TESTE 3
-    cout << "\n\nTESTE 3: Project Solution\n\n";
-    //ESTE TESTE MOSTRA QUE A SOLUÇÃO É TRANSFERIDA DA 
-    //MALHA FINA PARA A MALHA GROSSA (EXATA PARA GRAU 0)
-    neq = fMeshes[2]->NEquations();
-    TPZFMatrix finesol(neq,1,1.);
-    REAL val0 = 1.,val1 = 0.,val2 = 0.1,val3 = 1.0;//com CFL = 0
-    //cout << "TPZNonLinMultGridAnalysis::TwoGridAlgorithm: Entre valores : ";
-    //cin >> val1 >> val2 >> val3;
-    REAL eps = 0.0;
-    for(int i=0;i<neq;i++){
-      int k = (i+1)%4;
-      if(k == 2){
-	finesol(i,0) = val1;// + eps * i;
-	continue;
-      }
-      if(k == 3){
-	finesol(i,0) = val2 + eps * i;
-	continue;
-      }
-      if(k == 0) finesol(i,0) = val3 + eps * i;
-      if(k == 1) finesol(i,0) = val0 + eps * i;
+  while( errsol > gridtol || mgiter++ < mgmaxiter){
+
+    cout << "\nTwoGridAlgorithm: iteracão número = " << mgiter << "\n\n";
+    time = (REAL)mgiter;
+    finesolkeep = finesol;
+    SmoothingSolution(sol_tol,preiter,finemat,finean,premarcha);// PASSO 1
+    finesol = finean.Solution();
+    {
+      finegraph.DrawSolution(draw,time);
+      finesolkeep = finesol - finesolkeep;
+      erro = Norm(finesolkeep);
+      cout << "TwoGridAlgorithm: ||finesol(i) - finesol(i-1)|| = " << erro << endl;
     }
-    fMeshes[2]->LoadSolution(finesol);
-    neq = fMeshes[1]->NEquations();
-    TPZFMatrix coarsesol(neq,1,0.);
+    fineres = finean.Rhs();// PASSO 2
+    transfer.TransferResidual(fineres,coarseres);// PASSO 3
     fMeshes[1]->ProjectSolution(coarsesol);
-//     TPZFMatrix DIFF = fMeshes[1]->Solution() - coarsesol;
-//     cout << "* * * NORMA DO ERROR -->>>" << Norm(DIFF) << endl;
+    CalcResidual(finesol,finean,"LDLt",rhs);
+    frhsk = skm1 * coarseres;
+    coarsean.SetResidual(frhsk);// PASSO 4
+    fMeshes[1]->LoadSolution(coarseres);// PASSO 4    
     fMeshes[1]->LoadSolution(coarsesol);
-    //transfer.TransferSolution(coarsesol,finesol);
-    finesol.Print("\n\n\t\t\t* * * finesol * * *\n\n",OUT);
-    coarsesol.Print("\n\n\t\t\t* * * coarsesol * * *\n\n",OUT);
-    int nel = fMeshes[1]->ElementVec().NElements(),i;
-    TPZVec<REAL> csi(3,0.),x(3);
-    TPZAgglomerateElement *aggel;
-    for(i=0;i<nel;i++){
-      TPZCompEl *cel = fMeshes[1]->ElementVec()[i];
-      if(!cel) continue;
-      if(cel->Type() != EAgglomerate) continue;
-      aggel = dynamic_cast<TPZAgglomerateElement *>(cel);
-//       TPZStack<int> elvec;
-//       aggel->IndexesDiscSubEls(elvec);
-//       TPZCompEl *fineel0 = fMeshes[2]->ElementVec()[elvec[0]];//basta 1 para teste
-      int nindex = aggel->NIndexes(),i;
-      for(i=0;i<nindex;i++){
-	TPZCompEl *fineeli = aggel->FineElement(i);
-	TPZGeoEl *ref = fineeli->Reference();
-	TPZManVector<REAL> sol;
-	int var = 4;//pressão
-	fineeli->Solution(csi,var,sol);
-	ref->X(csi,x);
-	OUT << "Elemento -> " << ref->Id() << "\n";
-	OUT << "x = " << x[0] << " " << x[1] << " " << x[2] << " : ";
-	OUT << "solução fina -> " << sol[0] << "\n";
-	aggel->Solution(x,-var,sol);//ponto real
-	OUT << "\t\t\tsolução grossa -> " << sol[0] << "\n";
-      }
+    geomesh->ResetReference();
+    fMeshes[1]->LoadReferences();
+    coarsesolkeep = coarsesol;
+    SmoothingSolution(sol_tol,positer,coarsemat,coarsean,posmarcha);// PASSO 5
+    coarsesol = coarsean.Solution() - coarsesol;
+    transfer.TransferSolution(coarsesol,finesol);//transfer.TransferSolution(coarsesol,finesol2);
+    skm1inv = 1.0/skm1;
+    finesol *= skm1inv;
+    finesol = finesolkeep + finesol;
+    fMeshes[2]->LoadSolution(finesol);// PASSO 6
+    {
+      coarsegraph.DrawSolution(draw++,time);
+      coarsesolkeep = coarsesol - coarsesolkeep;
+      erro = Norm(coarsesolkeep);
+      cout << "||coarsesol(i) - coarsesol(i-1)|| = " << erro << endl;
+      normsolfine = Norm(finesol);
+      normsolcoar = Norm(coarsesol);
+      errsol = fabs(normsolcoar - normsolfine);
+      cout << "| ||finesol(i)|| - ||coarsesol(i)|| | = " << errsol << endl;
     }
-    OUT.flush();
-    OUT.close();
-  }
-
-  if(0){//TESTE 2
-  cout << "\n\nTESTE 2: Transfer Solution\n\n";
-  //ESTE TESTE MOSTRA QUE A SOLUÇÃO É TRANSFERIDA DA 
-  //MALHA GROSSA PARA A MALHA FINA DE FORMA EXATA
-  //PARA QUALQUER GRAU DE INTERPOLAÇÃO
-  neq = fMeshes[1]->NEquations();
-  TPZFMatrix coarsesol(neq,1,1.);
-  REAL val0 = 1.,val1 = 0.,val2 = 0.1,val3 = 1.0;//com CFL = 0
-  //cout << "TPZNonLinMultGridAnalysis::TwoGridAlgorithm: Entre valores : ";
-  //cin >> val1 >> val2 >> val3;
-  REAL eps = 0.001;
-  for(int i=0;i<neq;i++){
-    int k = (i+1)%4;
-    if(k == 2){
-      coarsesol(i,0) = val1;// + eps * i;
-      continue;
-    }
-    if(k == 3){
-      coarsesol(i,0) = val2 + eps * i;
-      continue;
-    }
-    if(k == 0) coarsesol(i,0) = val3 + eps * i;
-    if(k == 1) coarsesol(i,0) = val0 + eps * i;
-  }
-  neq = fMeshes[2]->NEquations();
-  TPZFMatrix finesol(neq,1,0.);
-  fMeshes[1]->LoadSolution(coarsesol);
-  transfer.TransferSolution(coarsesol,finesol);
-  coarsesol.Print("\n\n\t\t\t* * * coarsesol * * *\n\n",OUT);
-  finesol.Print("\n\n\t\t\t* * * finesol * * *\n\n",OUT);
-  fMeshes[2]->LoadSolution(finesol);
-  int nel = fMeshes[1]->ElementVec().NElements(),i;
-  TPZVec<REAL> csi(3,0.),x(3);
-  TPZAgglomerateElement *aggel;
-  for(i=0;i<nel;i++){
-    TPZCompEl *cel = fMeshes[1]->ElementVec()[i];
-    if(!cel) continue;
-    if(cel->Type() != EAgglomerate) continue;
-    aggel = dynamic_cast<TPZAgglomerateElement *>(cel);
-//     TPZStack<int> elvec;
-//     aggel->IndexesDiscSubEls(elvec);
-//     //basta 1 para teste
-//     TPZCompEl *fineel0 = fMeshes[2]->ElementVec()[elvec[0]];
-    TPZCompEl *fineel0 = aggel->FineElement(0);//basta 1 para teste
-    TPZGeoEl *ref = fineel0->Reference();
-    TPZManVector<REAL> sol;
-    int var = 4;//pressão
-    fineel0->Solution(csi,var,sol);
-    ref->X(csi,x);
-    OUT << "Elemento -> " << ref->Id() << "\n";
-    OUT << "x = " << x[0] << " " << x[1] << " " << x[2] << " : ";
-    OUT << "solução fina -> " << sol[0] << "\n";
-    aggel->Solution(x,-var,sol);//ponto real
-    OUT << "\t\t\tsolução grossa -> " << sol[0] << "\n";
-  }
-  OUT.flush();
-  OUT.close();
-  }
-
-  if(0){//TESTE 1: para verificar a qualidade da 
-        //         transferência do resíduo
-  neq = fMeshes[1]->NEquations();
-  TPZFMatrix coarsesol(neq,1,1.),transcoarsesol(neq,1,0.);
-  neq = fMeshes[2]->NEquations();
-  TPZFMatrix finesol(neq,1,0.);
-  transfer.TransferSolution(coarsesol,finesol);
-  transfer.TransferResidual(finesol,transcoarsesol);
-  coarsesol.Print("\n\n\t\t\t* * * coarsesol * * *\n\n",OUT);
-  finesol.Print("\n\n\t\t\t* * * finesol * * *\n\n",OUT);
-  transcoarsesol.Print("\n\n\t\t\t* * * transcoarsesol * * *\n\n",OUT);
-  OUT.flush();
-  OUT.close();
-  }
-
-  if(0){
-  transfer.Print("\n\n\t\t\t* * * MATRIZ DE TRANSFERÊNCIA * * *\n\n",OUT);
-  int neq = fMeshes[1]->NEquations();
-  TPZFMatrix coarseRhs(neq,1,0.);
-  transfer.TransferResidual(finean.Rhs(),coarseRhs);//transferindo résiduo
-  coarseRhs.Print("\n\n* * * RESÍDUO TRANSFERIDO: FINO -> GROSSO * * *\n\n",OUT);
-  ofstream *dxout2 = new ofstream("PostSmoothingEuler.dx");
-  cout << "\nNumero de iteracoes pós-suavisamento? :\n";
-  cin >> numiter;
-  fMeshes[1]->Reference()->ResetReference();
-  fMeshes[1]->LoadReferences();
-  mat = fMeshes[1]->FindMaterial(nummat);
-  SmoothingSolution(tol,numiter,mat,coarsean,*dxout2,marcha);
-  coarsean.Rhs().Print("\n\n* * * RESÍDUO DA MALHA GROSSA * * *\n\n",OUT);
-  coarsean.Print("\n\n\t\t\t* * * ANALYSIS MALHA GROSSA após SmoothingSolution * * *\n\n",out);
-  neq = fMeshes[2]->NEquations();
-  TPZFMatrix finesol(neq,1,0.);
-  transfer.TransferSolution(coarsean.Solution(),finesol);//transferindo solução
-  fMeshes[2]->LoadSolution(finesol);
-  TPZFMatrix res;
-  CalcResidual(finesol,finean,"LDLt",res);
-  res.Print("\n\n\t\t\t* * * RESÍDUO MALHA FINA * * *\n\n",out);
-  finesol.Print("\n\n* * * SOLUÇÂO TRANSFERIDA: GROSSA -> FINA * * *\n\n",OUT);
-  OUT.flush();
-  OUT.close();
   }
 }
 
-//  CalcResidual(finean.Solution(),res,finean,"LDLt");
-//  res.Print("\n\n\t\t\t* * * RESÍDUO MALHA FINA * * *\n\n",out);
