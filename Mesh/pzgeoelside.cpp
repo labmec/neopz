@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.11 2003-12-03 19:56:06 cesar Exp $
+//$Id: pzgeoelside.cpp,v 1.12 2004-03-03 23:15:46 cesar Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -623,4 +623,10 @@ void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZG
       }
     }
   }
+}
+
+ostream &operator << (ostream & out,const TPZGeoElSide &geoside){
+ out << "TPZGeoElSide : side = " << geoside.Side() << endl ;
+ geoside.Element()->Print(out);
+ return out;
 }

@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.10 2004-02-05 12:03:53 cesar Exp $
+//$Id: pzgeoelside.h,v 1.11 2004-03-03 23:15:46 cesar Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -39,8 +39,8 @@ class TPZGeoElSide {
   TPZGeoElSide(){ fGeoEl = 0; fSide  = -1;}
   //TPZGeoElSide(const TPZGeoElSide &gelside);
   TPZGeoElSide(TPZGeoEl *gel,int side){  fGeoEl = gel; fSide  = side;}
-  TPZGeoEl *Element(){return fGeoEl;}
-  int Side(){return fSide;}
+  TPZGeoEl *Element()const{return fGeoEl;}
+  int Side() const {return fSide;}
   void SetSide(int side) { fSide = side; }
   int Exists() const {return (fGeoEl != 0 && fSide > -1);}
   TPZGeoElSide Neighbour() const;//return neighbour of the side fSide
@@ -176,6 +176,8 @@ void HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec, int onlyinte
   //void GetCompSubElements(TPZStack<TPZCompElSide> &elsidevec,int onlyinterpolated,int removeduplicates);
 
 };
+
+ostream  &operator << (ostream & out,const TPZGeoElSide &geoside);
 
 #include "pzgeoel.h"
 
