@@ -168,7 +168,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
   } 
 
   //Creates an uniformly refined mesh and evaluates the error
-  for (cliter = 0; cliter<ncl; cliter++){
+  for (cliter = ncl-1; cliter>=0; cliter--){
     //Análise dos Clones
       //    if (gcmesh->ReferenceElement(0)->MaterialId() <  0 || (use_trueerror && f && !HasTrueError(cliter,minerror,auxerrorvec))){
       
