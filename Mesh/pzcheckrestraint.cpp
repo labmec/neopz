@@ -104,7 +104,7 @@ void TPZCheckRestraint::AddConnect(int connectindex) {
 }
 
 void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectindex, TPZFMatrix &dependmatrix) {
-  
+
   int small = SmallConnect(smallconnectindex);
   //  TPZConnect &smallc = fMesh->ConnectVec()[smallconnectindex];
   int large = LargeConnect(largeconnectindex);
@@ -114,14 +114,14 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
     int firstc = fLargePos[large];
     int lastc = firstc+fLargeSize[large];
     int ic,il;
-    if (firstc < 0 || lastc > fRestraint.Cols() || firstl < 0 || lastl > fRestraint.Rows()){
-      cout << "TPZCheckRestraint::AddDependency : fRestraintMatrix dimension error\n";
+    if (firstc != lastc && firstl != lastl && (firstc < 0 || lastc > fRestraint.Cols() || firstl < 0 || lastl > fRestraint.Rows())){
+      cout << "TPZCheckRestraint::AddDependency : indexing error\n";
       //      int a;
       //      cin >> a;
       return;
     }
     if ((lastc - firstc) != dependmatrix.Cols() ||  (lastl-firstl) != dependmatrix.Rows()){
-      cout << "TPZCheckRestraint::AddDependency : fRestraintMatrix dimension error\n";
+      cout << "TPZCheckRestraint::AddDependency : incompatible dimensions\n";
       //      int a;
       //  cin >> a;
       return;
@@ -131,13 +131,13 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
       for (ic=firstc; ic<lastc; ic ++){
 	int column = ic - firstc;
 	if (ic < 0 || ic >= fRestraint.Cols() || il < 0 || il >= fRestraint.Rows()){
-	  cout << "TPZCheckRestraint::AddDependency : fRestraintMatrix dimension error\n";
+	  cout << "TPZCheckRestraint::AddDependency : Should never pass here, was already checked 1\n";
 	  //	  int a;
 	  //  cin >> a;
 	  return;
 	}
 	if (line >= dependmatrix.Rows() || column >= dependmatrix.Cols()){
-	  cout << "TPZCheckRestraint::AddDependency : fRestraintMatrix dimension error\n";
+	  cout << "TPZCheckRestraint::AddDependency : Should never pass here, was already checked 2\n";
 	  //	  int a;
 	  //	  cin >> a;
 	  return;
@@ -159,13 +159,13 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
       int deprows,depcols;
       deprows = depend->fDepMatrix.Rows();
       depcols = dependmatrix.Cols();
-      
+
       if (deprows != depcols){
 	cout << "TPZCheckRestraint::Error:\tLarge connect without dependency\n";
 	cout.flush();
 	//return;
       }
-      
+
       TPZFMatrix depmat = dependmatrix * depend->fDepMatrix;
       AddDependency(smallconnectindex,depend->fDepConnectIndex,depmat);
       depend = depend->fNext;
@@ -174,7 +174,7 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
 }
 
 TPZFMatrix& TPZCheckRestraint::RestraintMatrix(){
-  
+
   return fRestraint;
 
 }
