@@ -85,7 +85,7 @@ TPZCompMesh *TPZNonLinMultGridAnalysis::AgglomerateMesh(TPZCompMesh *finemesh,
 							int levelnumbertogroup){
 
   TPZVec<int> accumlist;
-  int numaggl,dim = 2;
+  int numaggl,dim = finemesh->Dimension();
   TPZAgglomerateElement::ListOfGroupings(finemesh,accumlist,levelnumbertogroup,numaggl,dim);
   TPZCompMesh *aggmesh = new TPZFlowCompMesh(finemesh->Reference());
   TPZCompElDisc::CreateAgglomerateMesh(finemesh,aggmesh,accumlist,numaggl);
@@ -314,7 +314,6 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
     CoutTime(fInit,"TPZNonLinMultGridAnalysis:: accumulated time");
     fBegin = clock();
     an.LoadSolution();
-
     cout << "TPZNonLinMultGridAnalysis::SmoothingSolution iteracao = " << ++iter << endl;
     normsol = Norm(Solution());
   }
@@ -344,11 +343,11 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMater
   graph.DrawMesh(dim);
   int iter = 0,draw=0;
   fInit = clock();
-  cout << "PZAnalysis::SmoothingSolutionTest beginning of the iterative process," 
-       << " general time 0\n";
   an.Solution().Zero();
   fBegin = clock();
   SetDeltaTime(anmesh,mat,iter);
+  cout << "TPZNonLinMultGridAnalysis::SmoothingSolution iteration = " << ++iter
+       << " general time 0\n";
   an.Run();
   CoutTime(fBegin,"TPZNonLinMultGridAnalysis:: Fim system solution first iteration");
   fBegin = clock();
@@ -369,8 +368,6 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMater
     CoutTime(fInit,"TPZNonLinMultGridAnalysis:: accumulated time");
     fBegin = clock();
     an.LoadSolution();
-    //law->SetTimeStep(0.001);
-
     cout << "TPZNonLinMultGridAnalysis::SmoothingSolution iteracao = " << ++iter << endl;
     normsol = Norm(Solution());
     if( REAL(iter) / REAL(marcha) == draw || marcha == 1){
@@ -388,11 +385,16 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMater
   time = (REAL)iter;
   graph.DrawSolution(draw++,time);
   dxout->flush();
+  ofstream out("ANALYSIS2.out");
+  an.Print("\n\n* * * SOLUCAO PELO ANALYSIS  * * *\n\n",out);
+  out.flush();
+  out.close();
 }
 
 void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
 
   TPZCompMesh *coarcmesh = fMeshes[0];//malha grosseira inicial
+  int meshdim = coarcmesh->Dimension();
   //criando a malha fina
   int levelnumbertorefine = 4;
   cout << "TPZNonLinMultGridAnalysis:: número de níveis a dividir: ";
@@ -400,7 +402,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   int setdegree = -1;//preserva o grau da malha inicial
   //newmesh = 0: coarcmesh se tornou a malha fina
   TPZCompMesh *finemesh = UniformlyRefineMesh(coarcmesh,levelnumbertorefine,setdegree);
-  finemesh->SetDimModel(2);
+  finemesh->SetDimModel(meshdim);
   finemesh->SetName("\n\t\t\t* * * MALHA COMPUTACIONAL FINA * * *\n\n");
   //obtendo-se a malha menos fina por agrupamento
   int levelnumbertogroup = 2;//serão agrupados dois níveis de divisão
@@ -408,7 +410,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   cin >> levelnumbertogroup;
   TPZCompMesh *aggmesh = AgglomerateMesh(finemesh,levelnumbertogroup);
   aggmesh->SetName("\n\t\t\t* * * MALHA COMPUTACIONAL AGLOMERADA * * *\n\n");
-  aggmesh->SetDimModel(2);
+  aggmesh->SetDimModel(meshdim);
   AppendMesh(aggmesh);
   aggmesh->Reference()->SetName("\n\t\t\t* * * MALHA GEOMÈTRICA REFINADA * * *\n\n");
   aggmesh->Reference()->Print(out);//malha geométrica é uma só

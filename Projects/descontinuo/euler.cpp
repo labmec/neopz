@@ -164,7 +164,7 @@ static int problem=0;
 //static REAL pi = 2.0*asin(1.0);
 static REAL CFL=-1.0;
 static REAL gama = 1.4;
-
+static int meshdim = -1;
 //#define NOTDEBUG
 #define CEDRICDEBUG
 
@@ -189,7 +189,7 @@ int main() {
        << "\t\t\t";
 
   //cin >> tipo;
-  tipo = 5;
+  tipo = 6;
   problem = tipo;
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
   //cin >> grau;
@@ -204,12 +204,16 @@ int main() {
   if(tipo==3 || tipo == 4) mat = dynamic_cast<TPZConservationLaw *>(FluxConst2D(grau));
   if(tipo==5){
     mat = dynamic_cast<TPZConservationLaw *>(NoveQuadrilateros(grau));
+    meshdim = 2;
     problem = 0;
   }
-  if(tipo==6) mat = dynamic_cast<TPZConservationLaw *>(NoveCubos(grau));
+  if(tipo==6){
+    mat = dynamic_cast<TPZConservationLaw *>(NoveCubos(grau));
+    meshdim = 3;
+  }
   if(tipo==7) mat = dynamic_cast<TPZConservationLaw *>(ProblemaQ2D1El(grau));
   if(1){
-    cout << "\ndescontinuo.c::main verificando a consistencia da malha de interfaces\t";
+    cout << "\neuler.c::main verificando a consistencia da malha de interfaces\t";
     if(TPZInterfaceElement::main(*cmesh)){
       cout << "->\tOK!";
     } else {
@@ -248,7 +252,7 @@ int main() {
   //com matriz não simétrica e ELU 2D e 3D convergen
   int numat = mat->Id();
   if(1){
-    cmesh->SetDimModel(2);
+    cmesh->SetDimModel(meshdim);
     TPZNonLinMultGridAnalysis mgnlan(cmesh);
     mgnlan.SetAnalysisFunction(SetDeltaTime);
     mgnlan.TwoGridAlgorithm(outgm,numat);
@@ -1738,25 +1742,10 @@ TPZMaterial *NoveCubos(int grau){
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity2();
-  int nummat = 1,nivel;
+  int nummat = 1;
   char *artdiff = "LS";
-  cout << "\nmain::Divisao Nivel final da malha ? : ";
-  cin >> nivel;
-  REAL cfl,delta_x,delta_t,delta,gama;//,maxflinha;
-
-  cfl = ( 1./(2.0*(REAL)grau+1.0) );
-  delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );
-  delta_t = cfl*delta_x;//delta_t é <= que este valor
-  delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
-  gama = 1.4;
-  cout << "\nDominio [0,1]x[0,1]"
-       << "\nMax df/dx (desconhecido) = 1.0"
-       << "\nCFL = " << cfl
-       << "\ndelta otimo = " << delta
-       << "\nDelta x = " << delta_x
-       << "\ndelta t = " << delta_t
-       << "\ndiffusao = " << artdiff << endl;
-  
+  REAL delta_t = 0.0;//será calculado
+  gama = 1.4;//ar
   int dim = 3;
   TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 
@@ -1901,7 +1890,7 @@ void SequenceDivide2(){
 
 void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
   //todo elemento deve ser agrupado nem que for para ele mesmo
-  cmesh->SetDimModel(2);
+  cmesh->SetDimModel(meshdim);
   cout << "\n\nmain::AgrupaList para malha 2D\n\n";
   int nel = cmesh->NElements(),i;
   //não todo index é sub-elemento
@@ -2047,3 +2036,20 @@ void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh){
   cin >> continua;
 
 }
+
+//   cout << "\nmain::Divisao Nivel final da malha ? : ";
+//   cin >> nivel;
+//   REAL cfl,delta_x,delta_t,delta,gama;//,maxflinha;
+
+//   cfl = ( 1./(2.0*(REAL)grau+1.0) );
+//   delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );
+//   delta_t = cfl*delta_x;//delta_t é <= que este valor
+//   delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
+//   gama = 1.4;
+//   cout << "\nDominio [0,1]x[0,1]"
+//        << "\nMax df/dx (desconhecido) = 1.0"
+//        << "\nCFL = " << cfl
+//        << "\ndelta otimo = " << delta
+//        << "\nDelta x = " << delta_x
+//        << "\ndelta t = " << delta_t
+//        << "\ndiffusao = " << artdiff << endl;
