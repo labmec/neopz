@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.3 2003-02-10 17:58:35 cantao Exp $
+dnl $Id: configure.in,v 1.4 2003-02-12 16:15:43 cantao Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -266,6 +266,22 @@ dnl --| Projects subtree |--
 	Projects/adaptivity/Makefile \
 	Projects/angletest/Makefile \
 	Projects/checkcont/Makefile \
+	Projects/checkconv/Makefile \
+	Projects/cycleref/Makefile \
+	Projects/cylin/Makefile \
+	Projects/materialhyperelastico/Makefile \
+	Projects/matrix/Makefile \
+	Projects/multplaca/Makefile \
+	Projects/placyl/Makefile \
+	Projects/pzvc/Makefile \
+	Projects/qualif/Makefile \
+	Projects/termica/Makefile \
+	Projects/teste/Makefile \
+	Projects/testeisotropia/Makefile \
+	Projects/testgeom/Makefile \
+	Projects/testmat/Makefile \
+	Projects/testshape/Makefile \
+	Projects/viga3d/Makefile \
 ])
 
 PZ_BYEBYE

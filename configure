@@ -1830,6 +1830,22 @@ trap 'rm -fr `echo " Makefile PZ.mk PZ_user.mk \
 	Projects/adaptivity/Makefile \
 	Projects/angletest/Makefile \
 	Projects/checkcont/Makefile \
+	Projects/checkconv/Makefile \
+	Projects/cycleref/Makefile \
+	Projects/cylin/Makefile \
+	Projects/materialhyperelastico/Makefile \
+	Projects/matrix/Makefile \
+	Projects/multplaca/Makefile \
+	Projects/placyl/Makefile \
+	Projects/pzvc/Makefile \
+	Projects/qualif/Makefile \
+	Projects/termica/Makefile \
+	Projects/teste/Makefile \
+	Projects/testeisotropia/Makefile \
+	Projects/testgeom/Makefile \
+	Projects/testmat/Makefile \
+	Projects/testshape/Makefile \
+	Projects/viga3d/Makefile \
 " | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
@@ -1975,6 +1991,22 @@ CONFIG_FILES=\${CONFIG_FILES-"Makefile PZ.mk PZ_user.mk \
 	Projects/adaptivity/Makefile \
 	Projects/angletest/Makefile \
 	Projects/checkcont/Makefile \
+	Projects/checkconv/Makefile \
+	Projects/cycleref/Makefile \
+	Projects/cylin/Makefile \
+	Projects/materialhyperelastico/Makefile \
+	Projects/matrix/Makefile \
+	Projects/multplaca/Makefile \
+	Projects/placyl/Makefile \
+	Projects/pzvc/Makefile \
+	Projects/qualif/Makefile \
+	Projects/termica/Makefile \
+	Projects/teste/Makefile \
+	Projects/testeisotropia/Makefile \
+	Projects/testgeom/Makefile \
+	Projects/testmat/Makefile \
+	Projects/testshape/Makefile \
+	Projects/viga3d/Makefile \
 "}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
