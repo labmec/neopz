@@ -24,6 +24,16 @@ class TPZGeoEl;
  */
 class TPZMGAnalysis : public TPZAnalysis {
  public:
+  /**
+   * Refinement Pattern store struct
+   */
+  struct TPZRefPattern {
+    int fId[3]; 	//Subelements connectivities ids
+    int fp[2];		//subelements p-order refinement
+    int fh[2];		//subelements h-order refinement
+    REAL fhError;	//pure h-refinement error
+    REAL fError;        //minimal error
+  };
   
   /**
    * Destructor
@@ -64,11 +74,9 @@ class TPZMGAnalysis : public TPZAnalysis {
   static int main ();
   
   /**
-   * Proceeds the uniformly h-p refinement of mesh
-   * @param mesh : input mesh which will be refined
-   * @param withP : if true, increase the p-order
+   * Proceeds the uniformly h-p refinement of mesh\
    */
-  static TPZCompMesh *UniformlyRefineMesh (TPZCompMesh *mesh, bool withP = false);
+  static TPZCompMesh *UniformlyRefineMesh (TPZCompMesh *mesh);
   
   /**
    * Evaluates the error between aproximation
@@ -88,6 +96,17 @@ class TPZMGAnalysis : public TPZAnalysis {
 				       TPZFMatrix &deriv),
 			    TPZVec<REAL> &truervec);
   
+  /**
+   * Return the computational the optimal h-p refined mesh
+   * @param fine - uniformly refined mesh
+   * @param coarse - some father mesh of fine
+   * @param totalerror	- will return the calculated mesh error
+   * @param totaltrueerror - if some exact solution is available
+   * @effect - efectivity of the error estimator
+   */
+  TPZCompMesh *RefinementPattern (  TPZCompMesh *fine,TPZCompMesh *coarse,
+				    REAL &totalerror,REAL &totaltruerror,
+				    TPZVec<REAL> &effect);
   
  private:    
   /**
@@ -112,6 +131,43 @@ class TPZMGAnalysis : public TPZAnalysis {
    */
   TPZStack <TPZMatrixSolver *> fPrecondition;
 
+  /**
+   * Sort the vector val, storing the permutation vector in perm
+   */
+  static void Sort (TPZVec<REAL> &val, TPZVec<int> &perm);
+  
+  static void HeapSort (TPZVec<REAL> &sol, TPZVec<int> &perm);
+
+  /**
+   * Create an refined computational mesh based on model
+   * and in  the geometric elements to be refined with porders
+   * @param model: model computational mesh
+   * @param gel: geometric elements vector to be refined
+   * @param porders: p order to the elements from gel
+   */
+  static TPZCompMesh *CreateCompMesh (	TPZCompMesh *model,
+					TPZVec<TPZGeoEl *> &gel,
+					TPZVec<int> &porders);
+  
+  /**
+   * Call the methods to analyse the error of each element
+   * @param f: object to ond dimensional h-p refinement analysis
+   * @param cint: element to be analysed
+   * @param subs: will return the subelements
+   * @param porders: will return the calculated porders
+   */
+  static void AnalyseElement (	TPZOneDRef &f, TPZInterpolatedElement *cint,
+				TPZStack<TPZGeoEl *> &subs, TPZStack<int> &porders);
+  
+  /**
+   * Computes the p-orders of all sub-elements acording to the proposed refinement patterns along the edges
+   * @param refpat (input): a vector specifying the proposed refinement patterns along the edges
+   * @param cornerids (input): ids of the corners of the element
+   * @param porders (output) : order of refinement of the elements ordered by the corner ids
+   * @param originalp (input) : order of interpolation of the element which will be refined
+   * This method will be extended in the future to indicate which refinement pattern would be most appropriate
+   */
+  static void DeduceRefPattern (TPZVec<TPZRefPattern> &refpat, TPZVec<int> &cornerids, TPZVec<int> &porders, int originalp);
   
   /**
    * Calculates an element error based on two aproximations
