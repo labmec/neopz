@@ -29,6 +29,7 @@ libpzpost_a_SOURCES = pzdxmesh.cpp \
 	pzmvmesh.cpp \
 	pztrigraph.cpp \
 	pztrigraphd.cpp \
-	pzv3dmesh.cpp 
+	pzv3dmesh.cpp \
+	pzvisualmatrix.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
