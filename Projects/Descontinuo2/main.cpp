@@ -249,7 +249,7 @@ int main()
 //
 */
    { // GMRES
-   TPZFStructMatrix StrMatrix(cmesh);
+   TPZSpStructMatrix StrMatrix(cmesh);
       //TPZFStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
 
