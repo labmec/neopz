@@ -153,6 +153,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Material/pzmat1dlin.o \
 	../Material/pzmat2dlin.o \
 	../Material/pzmaterial.o \
+	../Material/tpzoutofrange.o \
 	../Material/pzmathyperelastic.o \
 	../Material/pzmatorthotropic.o \
 	../Material/pzmatplaca2.o \
