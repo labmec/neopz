@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.12 2004-03-31 14:57:56 tiago Exp $
+//$Id: main.cpp,v 1.13 2004-04-02 16:02:26 tiago Exp $
 
 /**
  * Galerkin descontinuo: visita do professor Igor.
@@ -104,6 +104,9 @@ void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   deriv(1,0) = 1.;
 }*/
 
+//1 quadrado
+TPZCompMesh * SimpleMesh();
+
 //4 quadrados iguais, podendo ser divididos
 TPZCompMesh *CreateMesh();
 
@@ -120,14 +123,16 @@ TPZCompMesh *CreateMeshPhil();
 
 
 int main(){
+   
+//   TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
 
   int p, h;
   char filename[20];
   char filedx[20];
 
 #ifdef DEBUGM
-  p = 6;
-  h = 1;
+  p = 8;
+  h = 2;
 #endif
 
   cout << "\nQuadrado = 1; Triang = 2" << endl;
@@ -228,11 +233,12 @@ int main(){
   TPZCompEl::gOrder = p;
   TPZCompElDisc::gDegree = p;
 
-  gDebug = 0;
+//  gDebug = 0;
 
   TPZCompMesh *cmesh;
   if (gMeshType == 1) //Quadrado
-    cmesh = CreateMesh();
+//    cmesh = CreateMesh();
+     cmesh = SimpleMesh();
   if (gMeshType == 2) //Triangulo
     //    cmesh = CreateMesh2();
     cmesh = CreateMesh3();
@@ -264,8 +270,9 @@ int main(){
 #endif
 
 #ifdef DIRECT_SOLVER
-  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
-   an.SetStructuralMatrix(full);
+//  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
+  TPZFStructMatrix full(cmesh);  
+  an.SetStructuralMatrix(full);
   TPZStepSolver step;
   step.SetDirect(ELU);
 #endif
@@ -360,7 +367,82 @@ int main(){
 #include "pzgeopoint.h"
 #include "pzshapepoint.h"
 
+TPZCompMesh *SimpleMesh(){
+  REAL co[4][2] = {{1.,-1.},{1.,1.},{-1.,1.},{-1,-1}};
+  int indices[1][4] = {{0,1,2,3}};
+  TPZGeoEl *elvec[4];
+  TPZGeoMesh *gmesh = new TPZGeoMesh();
+  int nnode = 4;
+  int nelem = 1;
+  int nod;
+  for(nod=0; nod<nnode; nod++) {
+    int nodind = gmesh->NodeVec().AllocateNewElement();
+    TPZManVector<REAL,2> coord(2);
+    coord[0] = co[nod][0];
+    coord[1] = co[nod][1];
+    gmesh->NodeVec()[nodind].Initialize(nod,coord,*gmesh);
+  }
+
+  int el;
+  for(el=0; el<nelem; el++) {
+    TPZManVector<int,4> nodind(4);
+    for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+    int index;
+    elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
+  }
+
+  gmesh->BuildConnectivity();
+
+  TPZGeoElBC gbc;
+
+  TPZGeoElBC gbc1(elvec[0],4,-3,*gmesh); // bottom
+  TPZGeoElBC gbc2(elvec[0],5,-3,*gmesh); // right
+  TPZGeoElBC gbc3(elvec[0],6,-3,*gmesh); // right
+  TPZGeoElBC gbc4(elvec[0],7,-3,*gmesh); // top
+  
+  TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+  cmesh->SetDimModel(2);
+  
+  TPZMatPoisson3d *mat;
+  mat = new TPZMatPoisson3d(1, 2);
+  mat->SetForcingFunction(Forcing1);
+
+  TPZManVector<REAL,2> convdir(2,0.);
+  convdir[0] = 1.;
+  convdir[1] = 1.;
+  //Difusao pura. conveccao = 0.
+  mat->SetParameters(gDif, 0., convdir);
+  int nstate = 1;
+  TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
+  TPZBndCond *bc;
+  
+  val2.Zero();
+  bc = mat->CreateBC(-3, 0,val1,val2);
+
+  
+  cmesh->InsertMaterialObject(mat);
+  cmesh->InsertMaterialObject(bc);
+
+  TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
+  
+  cmesh->AutoBuild();
+  //  cmesh->AdjustBoundaryElements();
+  //  cmesh->CleanUpUnconnectedNodes();
+  //  cmesh->ExpandSolution();
+  
+  return cmesh;
+}
+
+
 TPZCompMesh *CreateMesh() {
+
   REAL co[9][2] = {{0.,0.},{0.,-1.},{1.,-1.},{1.,0.},{1.,1.},{0.,1.},{-1.,1.},{-1.,0.},{-1,-1}};
   int indices[4][4] = {{0,1,2,3},{0,3,4,5},{0,5,6,7},{0,7,8,1}};
   TPZGeoEl *elvec[4];
