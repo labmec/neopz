@@ -33,7 +33,7 @@ TPZStructMatrix *TPZStructMatrix::Clone() {
   return 0;
 }
 
-ofstream out("MATRIZES.out");
+//ofstream out("MATRIZES.out");
 void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
 
   int iel;
@@ -67,11 +67,11 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
        el->CalcStiff(ek,ef);
     }
 #endif
-    if( nelem < 34 || (nelem > 33 && iel < 33) ){
-      out << "Element id : " << el->Reference()->Id() << endl;
-      ek.fMat->Print("MATRIZ EK",out);
-      ef.fMat->Print("VETOR  EF",out);
-    }
+//     if( nelem < 34 || (nelem > 33 && iel < 33) ){
+//       out << "Element id : " << el->Reference()->Id() << endl;
+//       ek.fMat->Print("MATRIZ EK",out);
+//       ef.fMat->Print("VETOR  EF",out);
+//     }
     //    if(!(numel%20)) cout << endl << numel;
     //    cout << '*';
     //    cout.flush();
