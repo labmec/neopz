@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: TPZCompElDisc.cc,v 1.20 2003-10-22 20:34:04 tiago Exp $
+//$Id: TPZCompElDisc.cc,v 1.21 2003-10-24 00:07:15 erick Exp $
 
 #include "pzelmat.h"
 #include "pzelgc3d.h"
@@ -640,8 +640,12 @@ void TPZCompElDisc::RemoveInterface(int side) {
 }
 
 void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
-
+#ifdef _AUTODIFF
+  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
+#else
   TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>(fMaterial);
+#endif
+
   if(var >= 100) {
     TPZCompEl::Solution(qsi,var,sol);
     return;

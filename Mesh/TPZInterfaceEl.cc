@@ -88,7 +88,11 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh, TPZVec<int
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
 
+#ifdef _AUTODIFF
+  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
+#else
   TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>(fMaterial);
+#endif
   if(!mat || !strcmp("no_name",mat->Name())){
     PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
     return;
