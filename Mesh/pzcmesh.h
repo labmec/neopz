@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.14 2003-12-01 14:51:53 tiago Exp $
+//$Id: pzcmesh.h,v 1.15 2003-12-01 21:06:36 cedric Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -436,7 +436,8 @@ public:
   /**
    * Para elementos decontínuos
    */
-  void BuildTransferMatrixDesc(TPZCompMesh &coarsemesh, TPZTransfer &transfer);
+  void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer &transfer);
+  void ProjectSolution(TPZFMatrix &projectsol);
 
   /**
    * Creates the computational elements, and the degree of freedom nodes

@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cc,v 1.20 2003-12-01 14:51:53 tiago Exp $
+//$Id: pzcmesh.cc,v 1.21 2003-12-01 21:06:36 cedric Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -835,10 +835,11 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
   }
 }
 
-void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &coarsemesh, TPZTransfer &transfer) {
+void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
+					  TPZTransfer &transfer) {
 
   TPZBlock &localblock = Block();
-  TPZBlock &coarseblock = coarsemesh.Block();
+  TPZBlock &transferblock = transfermesh.Block();
   // adapt the block size of the blocks, dividing by the number of variables
   //  of the material
   int i, nmat = NMaterials();
@@ -853,14 +854,14 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &coarsemesh, TPZTransfer &
   }
   int nvar = mat->NStateVariables();
   int dim = mat->Dimension();
-  
-  int ncon = NIndependentConnects(),coarncon = coarsemesh.NIndependentConnects();
-  transfer.SetBlocks(localblock,coarseblock,nvar,ncon,coarncon);
+  //o seguinte é igual ao número de conects da malha
+  int ncon = NIndependentConnects(),coarncon = transfermesh.NIndependentConnects();
+  transfer.SetBlocks(localblock,transferblock,nvar,ncon,coarncon);
   Reference()->ResetReference();//geométricos apontam para nulo
-  coarsemesh.LoadReferences();
-  //geométricos apontam para computacionais do coarsemesh
+  transfermesh.LoadReferences();
+  //geométricos apontam para computacionais da malha atual
   TPZAgglomerateElement *aggel = 0;
-  TPZAdmChunkVector<TPZCompEl *> &elvec = coarsemesh.ElementVec();
+  TPZAdmChunkVector<TPZCompEl *> &elvec = transfermesh.ElementVec();
   int nelem = elvec.NElements();
 
   for(i=0; i<nelem; i++) {
@@ -873,12 +874,14 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &coarsemesh, TPZTransfer &
       continue;
     }
     aggel = dynamic_cast<TPZAgglomerateElement *>(comp);
-    TPZStack<int> elvec;
+    //TPZStack<int> elvec;
     //retorna todos os descontínuos aglomerados por aggel
-    aggel->IndexesDiscSubEls(elvec);
-    int size = elvec.NElements(),i;
+    //aggel->IndexesDiscSubEls(elvec);
+    //int size = elvec.NElements(),i;
+    int size = aggel->NIndexes(),i;
     for(i=0;i<size;i++){
-      TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(fElementVec[elvec[i]]);
+      //TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(fElementVec[elvec[i]]);
+      TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(aggel->FineElement(i));
       if(!disc){
 	PZError << "TPZCompMesh::BuildTransferMatrixDesc index with null" 
 		<< " elemento\n";
@@ -892,8 +895,7 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &coarsemesh, TPZTransfer &
       disc->BuildTransferMatrix(*aggel,transfer);
     }
   }
-}
-
+} 
 
 /*
 void TPZCompMesh::CreateConnectBC() {
@@ -1851,3 +1853,47 @@ REAL TPZCompMesh::LesserEdgeOfMesh(){
   return mindist;
 }
 
+void TPZCompMesh::ProjectSolution(TPZFMatrix &projectsol) {
+
+  //  * * A MALHA ATUAL DEVE SER AGLOMERADA * * *
+
+//   TPZBlock &localblock = Block();
+//   TPZBlock &transferblock = finemesh.Block();
+  // adapt the block size of the blocks, dividing by the number of variables
+  //  of the material
+  int neq = NEquations();
+  projectsol.Redim(neq,1);
+  projectsol.Zero();
+  int i, nmat = NMaterials();
+  TPZMaterial *mat = 0;
+  for(i=0; i<nmat; i++) {
+    mat = fMaterialVec[i];
+    if(mat) break;//o primeiro material é o de volume - supostamente
+  }
+  if(!mat) {
+    PZError << "TPZCompMesh::BuildTransferMatrixDesc2 no material object found\n";
+    return;
+  }
+  //int nvar = mat->NStateVariables();
+  int dim = mat->Dimension();
+  Reference()->ResetReference();//geométricos apontam para nulo
+  LoadReferences();
+  //geométricos apontam para computacionais da malha atual
+  TPZAgglomerateElement *aggel = 0;
+  TPZAdmChunkVector<TPZCompEl *> &elvec = ElementVec();
+  int nelem = elvec.NElements();
+  
+
+  for(i=0; i<nelem; i++) {
+    TPZCompEl *comp = elvec[i];
+    if(!comp) continue;
+    if(comp->Dimension() != dim) continue;
+    if(comp->Type() != EAgglomerate){
+      PZError << "TPZCompMesh::BuildTransferMatrixDesc2 mesh agglomerated"
+	      << " with element of volume not agglomerated\n";
+      continue;
+    }
+    aggel = dynamic_cast<TPZAgglomerateElement *>(comp);
+    aggel->ProjectSolution(projectsol);
+  }
+} 
