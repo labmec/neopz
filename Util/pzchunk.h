@@ -3,7 +3,7 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzchunk.h,v 1.2 2003-10-05 00:31:56 phil Exp $
+// $Id: pzchunk.h,v 1.3 2003-10-10 20:30:04 cesar Exp $
 
 #ifndef PZCHUNK_H
 #define PZCHUNK_H
@@ -26,7 +26,7 @@ const int DEFAULTCHUNKEXPONENT = 10;
  * objects by chunks. The expansion of a TChunkVector object does not
  * involve the copying of the already allocated objects.
  */
-template<class T>
+template<class T,int EXP=10>
 class TPZChunkVector
 {
    public :
@@ -36,7 +36,7 @@ class TPZChunkVector
        * @param TCh Chunk vector from which the elements will be
        * copied.
        */
-      TPZChunkVector<T> & operator=(const TPZChunkVector<T> &TCh);
+      TPZChunkVector<T,EXP> & operator=(const TPZChunkVector<T,EXP> &TCh);
 
       /**
        * Copy constructor.
@@ -44,7 +44,7 @@ class TPZChunkVector
        * @param TCh The elements of the current object will be copied
        * from TCh.
        */
-      TPZChunkVector(const TPZChunkVector<T> &TCh);
+      TPZChunkVector(const TPZChunkVector<T,EXP> &TCh);
 
       /**
        * Access method to query the number of elements of the vector.
@@ -60,8 +60,7 @@ class TPZChunkVector
        * @param chunkexponent Indicates the size of the chunks as an
        * exponent of 2.
        */
-      TPZChunkVector(int numberofchunks = DEFAULTNUMBEROFCHUNKS,
-		     int chunkexponent  = DEFAULTCHUNKEXPONENT);
+      TPZChunkVector(int numberofchunks = DEFAULTNUMBEROFCHUNKS);
       /**
        * Destructor.
        */
@@ -73,7 +72,7 @@ class TPZChunkVector
        * @param newsize New size of the vector. Does not indicate how
        * much memory will be allocated!
        */
-      virtual void Resize(const int newsize);
+      void Resize(const int newsize);
 
       /**
        * Returns a reference to the ith element of the vector.
@@ -96,7 +95,7 @@ class TPZChunkVector
 
 
       /** Exponent which determines the size of each chunk. */
-      int fExponent;
+      //int fExponent;
 
       /** Vector which points to each chunk of objects. */
       TPZManVector<T*> fVec;
@@ -104,22 +103,10 @@ class TPZChunkVector
 
 //--| IMPLEMENTATION |----------------------------------------------------------
 
-template< class T >
-TPZChunkVector<T>::TPZChunkVector(int numberofchunks, int chunkexponent) :
+template< class T, int EXP >
+TPZChunkVector<T,EXP>::TPZChunkVector(int numberofchunks) :
    fVec(numberofchunks)
 {
-#ifndef NOTDEBUG
-   if(chunkexponent<0) {
-      PZError << "TPZChunkVector constructor. "
-	      << "Bad parameter chunkexponent, then chunkexponent = 0."
-	      << endl;
-
-      PZError.flush();
-      chunkexponent = 0;
-   }
-#endif
-
-   fExponent = chunkexponent;
    fNElements = 0;
 
    for(int i=0; i<numberofchunks; i++)
@@ -128,8 +115,8 @@ TPZChunkVector<T>::TPZChunkVector(int numberofchunks, int chunkexponent) :
    fVec.Resize(0);
 }
 
-template< class T >
-TPZChunkVector<T>::~TPZChunkVector()
+template< class T,int EXP >
+TPZChunkVector<T,EXP>::~TPZChunkVector()
 {
    int nchunks=fVec.NElements();
 
@@ -139,30 +126,34 @@ TPZChunkVector<T>::~TPZChunkVector()
 
 // Increase the size of the chunk vector
 
-template< class T >
-void TPZChunkVector<T>::Resize(const int newsize) {
-#ifndef NOTDEBUG
+template< class T ,int EXP>
+void TPZChunkVector<T,EXP>::Resize(const int newsize) {
+#ifndef NDEBUG
    if(newsize<0) {
       PZError << "TPZChunkVector::Resize. Bad parameter newsize." << endl;
       PZError.flush();
       return;
    }
 #endif
+   fNElements = newsize;
 
-   int i,sizechunk = 1 << fExponent;
+   int i;
    int nchunks = fVec.NElements();
 
-   // equivalent to newsize>>fExponent??
-   int chunksneeded = ((newsize-1)/sizechunk)+1;
+   int chunksneeded = newsize >> EXP;
+   if (chunksneeded == nchunks-1) return;
 
-   if(newsize == 0)
-      chunksneeded = 0;
+   //int chunksneeded = ((newsize-1)/sizechunk)+1;
+
+   //   if(newsize == 0)
+   //      chunksneeded = 0;
 
    T *NullPointer = 0;
 
    if(chunksneeded > nchunks)
       fVec.Resize(chunksneeded,NullPointer);
 
+   const int sizechunk = 1 << EXP;
    for(i = 0; i<chunksneeded; i++ )
       if(!fVec[i])
 	 fVec[i] = new T[sizechunk];
@@ -171,18 +162,17 @@ void TPZChunkVector<T>::Resize(const int newsize) {
       delete [] fVec[i];
       fVec[i] = 0;
    }
-   
+ 
    fVec.Resize(chunksneeded);
-   fNElements = newsize;
 }
 
-template<class T>
-int TPZChunkVector<T>::FindObject(T *obj) {
+template<class T, int EXP>
+int TPZChunkVector<T,EXP>::FindObject(T *obj) {
   int nch = fVec.NElements();
   int ich;
   int index = 0;
   // number of elements in a chunk
-  int nelch = 1<<fExponent;
+  int nelch = 1<<EXP;
   for(ich=0; ich<nch; ich++) {
     if(fVec[ich] == 0) continue;
     if(obj >= fVec[ich] && obj < fVec[ich]+nelch) {
@@ -196,9 +186,9 @@ int TPZChunkVector<T>::FindObject(T *obj) {
 }
 
 // Return a reference to the ith element of the vector
-template< class T >
-T &TPZChunkVector<T>::operator[](const int nelem) const {
-#ifndef NODEBUG
+template< class T, int EXP >
+T &TPZChunkVector<T,EXP>::operator[](const int nelem) const {
+#ifndef NDEBUG
    if(nelem<0 || nelem >= NElements()) {
       PZError << "TPZChunkVector::operator[]. "
 	      << "Bad parameter nelem." << nelem << " NElements "
@@ -209,16 +199,16 @@ T &TPZChunkVector<T>::operator[](const int nelem) const {
    }
 #endif
 
-   int mask = (1 << fExponent)-1;
+   const int mask = (1 << EXP)-1;
 
    // nelem & mask deve ser nelem ??
-   return (fVec[nelem >> fExponent])[nelem & mask];
+   return (fVec[nelem >> EXP])[nelem & mask];
 }
 
-template< class T >
-TPZChunkVector<T>::TPZChunkVector(const TPZChunkVector<T> &TCh) :
+template< class T, int EXP >
+TPZChunkVector<T,EXP>::TPZChunkVector(const TPZChunkVector<T,EXP> &TCh) :
    fVec(TCh.fVec.NElements()) {
-   fExponent = TCh.fExponent;
+
    fNElements = TCh.NElements();
    int nchunks = TCh.fVec.NElements();
 
@@ -226,35 +216,43 @@ TPZChunkVector<T>::TPZChunkVector(const TPZChunkVector<T> &TCh) :
       if(!TCh.fVec[i]) {
 	 fVec[i] = 0;
       } else {
-	 int j,k=1<<fExponent;
-	 fVec[i] = new T[1 << TCh.fExponent];
-	 for(j=0;j<k;j++) fVec[i][j] = TCh.fVec[i][j];
+	 int j,k=1<<EXP;
+	 T* ptr = new  T[1 << EXP];
+	 fVec[i] = ptr;
+	 T* ptrcp = TCh.fVec[i];
+	 for(j=0;j<k;j++) ptr[j] = ptrcp[j];
       }
    }
 }
 
 
-template < class T >
-TPZChunkVector<T> & TPZChunkVector<T>::operator=(const TPZChunkVector<T> &TCh){
+template < class T, int EXP >
+TPZChunkVector<T,EXP> & TPZChunkVector<T,EXP>::operator=(const TPZChunkVector<T,EXP> &TCh){
    if(this == &TCh) return *this;
-   int n=fVec.NElements();
+   //   int n=fVec.NElements();
 
-   for(int i=0;i<n;i++)
-      if(fVec[i])
-	 delete[] fVec[i];
-   fVec.Resize(TCh.fVec.NElements());
+   //   for(int i=0;i<n;i++)
+   //      if(fVec[i])
+   //	 delete[] fVec[i];
+   int prvsz = fVec.NElements();
+   int sz = TCh.fVec.NElements();
+   for(int i=sz;i<prvsz;i++)
+     if(fVec[i])
+       delete[] fVec[i];
+   
+   fVec.Resize(sz,0);
    fVec.Shrink();
-   fExponent = TCh.fExponent;
+   //   fExponent = TCh.fExponent;
    fNElements = TCh.NElements();
 
-   int nchunks = TCh.fVec.NElements();
+   int nchunks = sz;
 
    for(int i=0; i<nchunks; i++) {
       if(!TCh.fVec[i]) {
 	 fVec[i] = 0;
       } else {
-	 int j,k=1<<fExponent;
-	 fVec[i] = new T[1 << TCh.fExponent];
+	 int j,k=1<<EXP;
+	 fVec[i] = new T[1 << EXP];
 
 	 for(j=0;j<k;j++)
 	    fVec[i][j] = TCh.fVec[i][j];

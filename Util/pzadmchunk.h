@@ -2,7 +2,7 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzadmchunk.h,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+// $Id: pzadmchunk.h,v 1.2 2003-10-10 20:30:04 cesar Exp $
 
 #ifndef PZADMCHUNK_H
 #define PZADMCHUNK_H
@@ -19,8 +19,8 @@
  * the type administered and allows the user to flag given elements as
  * unused.
  */
-template <class T>
-class TPZAdmChunkVector : public TPZChunkVector<T>
+template <class T,int EXP=10>
+class TPZAdmChunkVector : public TPZChunkVector<T,EXP>
 {
    public :
       /**
@@ -31,14 +31,14 @@ class TPZAdmChunkVector : public TPZChunkVector<T>
        *
        * @param TPZAdmCh Vector which will be duplicated.
        */
-      TPZAdmChunkVector<T> & operator=(const TPZAdmChunkVector<T> &TPZAdmCh);
+      TPZAdmChunkVector<T,EXP> & operator=(const TPZAdmChunkVector<T,EXP> &TPZAdmCh);
 
       /**
        * Copy constructor.
        *
        * @param AdmCh Object whose elements will be copied.
        */
-      TPZAdmChunkVector(const TPZAdmChunkVector<T> &AdmCh);
+      TPZAdmChunkVector(const TPZAdmChunkVector<T,EXP> &AdmCh);
 
       /**
        * Constructor.
@@ -53,8 +53,7 @@ class TPZAdmChunkVector : public TPZChunkVector<T>
        * @param chunkexponent Indicates the size of the chunks as an
        * exponent of 2.
        */
-      TPZAdmChunkVector(int numberofchunks = DEFAULTNUMBEROFCHUNKS,
-			int chunkexponent  = DEFAULTCHUNKEXPONENT);
+      TPZAdmChunkVector(int numberofchunks = DEFAULTNUMBEROFCHUNKS);
 
       /**
        * Destructor
@@ -140,9 +139,9 @@ class TPZAdmChunkVector : public TPZChunkVector<T>
 
 //--| IMPLEMENTATION |----------------------------------------------------------
 
-template< class T >
-TPZAdmChunkVector<T>::TPZAdmChunkVector(int numberofchunks,int chunkexponent)
-   : TPZChunkVector<T>(numberofchunks,chunkexponent),
+template< class T , int EXP>
+TPZAdmChunkVector<T,EXP>::TPZAdmChunkVector(int numberofchunks)
+   : TPZChunkVector<T,EXP>(numberofchunks),
      fCompactScheme( 0 ),    // never compact the data structure
      fNFree( numberofchunks ),
      fFree()
@@ -153,16 +152,16 @@ TPZAdmChunkVector<T>::TPZAdmChunkVector(int numberofchunks,int chunkexponent)
    fNFree.Resize(0);
 }
 
-template< class T >
-TPZAdmChunkVector<T>::~TPZAdmChunkVector() { }
+template< class T, int EXP >
+TPZAdmChunkVector<T,EXP>::~TPZAdmChunkVector() { }
 
 // Return the index of a free element
-template< class T >
-int TPZAdmChunkVector<T>::AllocateNewElement() {
+template< class T,int EXP >
+int TPZAdmChunkVector<T,EXP>::AllocateNewElement() {
    if(fFree.NElements() >0)
    {
       int index = fFree.Pop(),chunk;
-      chunk = index >> fExponent;
+      chunk = index >> EXP;
       fNFree[chunk]--;
       return index;
    }
@@ -173,9 +172,9 @@ int TPZAdmChunkVector<T>::AllocateNewElement() {
 }
 
 // Indicate an element as free
-template< class T >
-void TPZAdmChunkVector<T>::SetFree(int index) {
-#ifndef NODEBUG
+template< class T,int EXP >
+void TPZAdmChunkVector<T,EXP>::SetFree(int index) {
+#ifndef NDEBUG
    if(index<0) {
       PZError << "TPZAdmChunkVector::SetFree. Bad parameter index." << endl;
       PZError.flush();
@@ -183,7 +182,7 @@ void TPZAdmChunkVector<T>::SetFree(int index) {
    }
 #endif
 
-   int chunk = index >> fExponent;
+   int chunk = index >> EXP;
 
    fNFree[chunk]++;
    fFree.Push(index);
@@ -194,9 +193,9 @@ void TPZAdmChunkVector<T>::SetFree(int index) {
 
 // Let to compact the data structure.
 // If type=0 never compact, (type=1 let to compact now),(type=2  let to compact always)
-template< class T >
-void TPZAdmChunkVector<T>::CompactDataStructure(int type) {
-#ifndef NOTDEBUG
+template< class T, int EXP >
+void TPZAdmChunkVector<T,EXP>::CompactDataStructure(int type) {
+#ifndef NDEBUG
    if(type<0) {
       PZError << "TPZAdmChunkVector::CompactDataStructure. Bad parameter type."
 	      << endl;
@@ -211,11 +210,11 @@ void TPZAdmChunkVector<T>::CompactDataStructure(int type) {
       return;
    }
    if(type == 2) fCompactScheme = 2;
-   int i,chunksize = 1<<fExponent;
+   int i,chunksize = 1<<EXP;
    int nchunksused = 0;
-   if(NElements()) nchunksused = ((NElements()-1) >> fExponent)+1;
+   if(NElements()) nchunksused = ((NElements()-1) >> EXP)+1;
    i = nchunksused-1;
-   int maxfree = NElements()-((nchunksused-1) << fExponent);
+   int maxfree = NElements()-((nchunksused-1) << EXP);
 
    if(i>=0 && fVec[i] && fNFree[i] == maxfree) {
       Resize(chunksize*i);
@@ -230,22 +229,22 @@ void TPZAdmChunkVector<T>::CompactDataStructure(int type) {
    fFree.Shrink();
 }
 
-template < class T >
-TPZAdmChunkVector<T>::TPZAdmChunkVector(const TPZAdmChunkVector<T> &AdmCh) :
-   TPZChunkVector<T>(AdmCh), fCompactScheme( AdmCh.fCompactScheme ),
+template < class T,int EXP >
+TPZAdmChunkVector<T,EXP>::TPZAdmChunkVector(const TPZAdmChunkVector<T,EXP> &AdmCh) :
+   TPZChunkVector<T,EXP>(AdmCh), fCompactScheme( AdmCh.fCompactScheme ),
    fNFree(AdmCh.fNFree), fFree(AdmCh.fFree)
 {
    // NOTHING TO DO HERE!
 }
 
-template < class T >
-TPZAdmChunkVector<T> & TPZAdmChunkVector<T>::operator=(
-   const TPZAdmChunkVector<T> &AdmCh)
+template < class T , int EXP>
+TPZAdmChunkVector<T,EXP> & TPZAdmChunkVector<T,EXP>::operator=(
+   const TPZAdmChunkVector<T,EXP> &AdmCh)
 {
    if(this == &AdmCh)
       return *this;
 
-   TPZChunkVector<T>::operator=(AdmCh);
+   TPZChunkVector<T,EXP>::operator=(AdmCh);
 
    fFree = AdmCh.fFree;
    fNFree = AdmCh.fNFree;
@@ -254,9 +253,9 @@ TPZAdmChunkVector<T> & TPZAdmChunkVector<T>::operator=(
    return *this;
 }
 
-template< class T >
-void TPZAdmChunkVector<T>::Resize(const int newsize) {
-#ifndef NOTDEBUG
+template< class T, int EXP >
+void TPZAdmChunkVector<T,EXP>::Resize(const int newsize) {
+#ifndef NDEBUG
    if(newsize<0) {
       PZError << "TPZAdmChunkVector::Resize. Bad parameter newsize." << endl;
       PZError.flush();
@@ -264,9 +263,9 @@ void TPZAdmChunkVector<T>::Resize(const int newsize) {
    }
 #endif
 
-   TPZChunkVector<T>::Resize(newsize);
+   TPZChunkVector<T,EXP>::Resize(newsize);
 
-   int sizechunk = 1 << fExponent;
+   //   int sizechunk = 1 << EXP;
    int nchunks = fNFree.NElements();
    int chunksneeded = fVec.NElements(); // equivalent to newsize>>fExponent??
 
@@ -287,7 +286,7 @@ void TPZAdmChunkVector<T>::Resize(const int newsize) {
       if(index < newsize)
 	 temp.Push(index);
       else {
-	 int chunk = index/sizechunk;
+	 int chunk = index >> EXP;
 
 	 if(chunk == chunksneeded-1)
 	    fNFree[chunksneeded-1]--;
