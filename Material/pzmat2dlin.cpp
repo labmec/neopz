@@ -150,7 +150,7 @@ void TPZMat2dLin::Print(ostream & out) {
   out << "Matrix Kxx ->  "; fKxx.Print("fKxx",out);
   out << "Matrix Kyy ->  "; fKyy.Print("fKyy",out);
   out << "Matrix Kxy ->  "; fKxy.Print("fKxy",out);
-  out << "Matrix Kyx ->  "; fKxx.Print("fKyx",out);
+  out << "Matrix Kyx ->  "; fKyx.Print("fKyx",out);
   out << "Matrix Kx0 ->  "; fKx0.Print("fKx0",out);
   out << "Matrix K0x ->  "; fK0x.Print("fK0x",out);
   out << "Matrix Ky0 ->  "; fKy0.Print("fKy0",out);
