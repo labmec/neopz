@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cc,v 1.9 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzgeoelside.cc,v 1.10 2003-11-17 18:08:10 phil Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -286,16 +286,35 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform &t)	{
     t = NeighbourSideTransform(neighbour).Multiply(t);
     return;
   }
-  TPZGeoElSide nextfather = father.Father2();
-  while(nextfather.Exists()) {
+  TPZGeoElSide start,neighbourwithfather,neighfather;
+  start = *this;
+  neighbourwithfather = *this;
+  do {
+    neighfather = neighbourwithfather.Father2();
+    if(!neighfather.Exists()) neighbourwithfather = neighbourwithfather.Neighbour();
+  } while(!neighfather.Exists() && neighbourwithfather.Exists() && neighbourwithfather != start);
+  int secondcase = 0;
+
+  //  TPZGeoElSide nextfather = father.Father2();
+  while(neighfather.Exists()) {
+    if(neighbourwithfather != start) secondcase++;
+    if(neighbourwithfather != start) t = start.NeighbourSideTransform(neighbourwithfather).Multiply(t);
     //father.Element()->BuildTransform(Side(),nextfather.Element(),t);
-    t = father.Element()->BuildTransform2(father.Side(),nextfather.Element(),t);//Cedric 01/10/99 e  e 30/04/00
-    father = nextfather;
-    if(father.NeighbourExists(neighbour)) {
-      t = father.NeighbourSideTransform(neighbour).Multiply(t);
+    t = neighbourwithfather.Element()->BuildTransform2(neighbourwithfather.Side(),neighfather.Element(),t);//Cedric 01/10/99 e  e 30/04/00
+    start = neighfather;
+    if(start.NeighbourExists(neighbour)) {
+      t = start.NeighbourSideTransform(neighbour).Multiply(t);
+      //      if(secondcase) {
+      //	cout << "TPZGeoElSide:SideTranform3 secondcase = " << secondcase << "\n";
+      //      }
       return;
     }
-    nextfather = father.Father2();
+    neighbourwithfather = start;
+    do {
+      neighfather = neighbourwithfather.Father2();
+      if(!neighfather.Exists()) neighbourwithfather = neighbourwithfather.Neighbour();
+    } while(!neighfather.Exists() && neighbourwithfather.Exists() && neighbourwithfather != start);
+    //    nextfather = father.Father2();
   }
 
   PZError << "TPZGeoElSide:SideTranform3 did not find the neighbour\n";
@@ -398,16 +417,39 @@ int TPZGeoElSide::SideNodeIndex(int nodenum) {
 
 TPZCompElSide TPZGeoElSide::LowerLevelCompElementList2(int onlyinterpolated)
 {
-	TPZGeoElSide father = StrictFather();
-	if(!father.Exists()) return TPZCompElSide();
-	TPZStack<TPZCompElSide> equal;
-	father.EqualLevelCompElementList(equal,onlyinterpolated,1);
-	while(father.Exists() && equal.NElements() == 0) {
-		father = father.StrictFather();
-		father.EqualLevelCompElementList(equal,onlyinterpolated,1);
-	}
-	if(equal.NElements()) return equal[0];
-	return TPZCompElSide();
+  // This method was modified to look for the father of any neighbouring element
+  // It is not suficient to look for the father of the current element only, because a neighbour
+  // might have a father where the current element doesn t. This happens in the clone meshes. It probably
+  // will happen when working with interface elements or any situation where an element is inserted in an already refined mesh
+  TPZGeoElSide father,neighbour,start;
+  start = *this;
+  neighbour =  Neighbour();
+  father = StrictFather();
+  int secondcase = 0;
+  while(!father.Exists() && neighbour.Exists() && neighbour != start) {
+    father = neighbour.StrictFather();
+    neighbour = neighbour.Neighbour();
+    secondcase++;
+  }
+  if(!father.Exists()) return TPZCompElSide();
+  TPZStack<TPZCompElSide> equal;
+  father.EqualLevelCompElementList(equal,onlyinterpolated,1);
+  while(father.Exists() && equal.NElements() == 0) {
+    neighbour = father.Neighbour();
+    start = father;
+    father = father.StrictFather();
+    while(!father.Exists() && neighbour.Exists() && neighbour != start) {
+      secondcase++;
+      father = neighbour.StrictFather();
+      neighbour = neighbour.Neighbour();
+    }
+    father.EqualLevelCompElementList(equal,onlyinterpolated,1);
+  }
+  //  if(equal.NElements() && secondcase) {
+  //    cout << "TPZGeoElSide::LowerLevelCompElementList second case " << secondcase << "\n";
+  //  }
+  if(equal.NElements()) return equal[0];
+  return TPZCompElSide();
 }
 
 TPZGeoElSide TPZGeoElSide::Father2()
