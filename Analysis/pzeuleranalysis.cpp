@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.17 2004-02-02 15:15:22 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.18 2004-02-06 22:42:04 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -12,7 +12,8 @@ fSolution2(), fRhsLast(), fpCurrSol(NULL),
 fpLastSol(NULL), fpSolution(NULL),
 fLinSysEps(1e-10), fLinSysMaxIter(20),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
-fTimeIntEps(1e-8), fTimeIntMaxIter(100)
+fTimeIntEps(1e-8), fTimeIntMaxIter(100),
+fEvolCFL(0)
 {
 
 }
@@ -22,7 +23,8 @@ TPZAnalysis(mesh, out), fFlowCompMesh(mesh),
 fSolution2(), fRhsLast(), fpCurrSol(NULL), fpLastSol(NULL),
 fpSolution(NULL), fLinSysEps(1e-10), fLinSysMaxIter(20),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
-fTimeIntEps(1e-8), fTimeIntMaxIter(100)
+fTimeIntEps(1e-8), fTimeIntMaxIter(100),
+fEvolCFL(0)
 {
 
 }
@@ -121,50 +123,55 @@ void TPZEulerAnalysis::Assemble()
    {
       PZError << "TPZEulerAnalysis::Assemble Error: No Computational Mesh\n";
       return;
+      exit(-1);
    }
 
    if(!fStructMatrix)
    {
       PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
+      exit(-1);
       return;
    }
 
    if(!fSolver)
    {
       PZError << "TPZEulerAnalysis::Assemble Error: No Solver\n";
+      exit(-1);
       return;
    }
+
+   // redimensions and zeroes Rhs
+   fRhs.Redim(fCompMesh->NEquations(),1);
 
    TPZMatrix * pTangentMatrix = fSolver->Matrix();
 
    if(!pTangentMatrix)
    {
       PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
+      exit(-1);
       return;
-   }
 
+   }
 
    pTangentMatrix->Zero();
 
-   // redimensions and zeroes Rhs
-   fRhs.Redim(fCompMesh->NEquations(),1);
-
-   // Contributing referring to the advanced state
-   // (n+1 index)
+  // Contributing referring to the advanced state
+  // (n+1 index)
    fStructMatrix->Assemble(*pTangentMatrix, fRhs);
 
    // Contributing referring to the last state (n index)
    fRhs+=/*.Add(fRhsLast, fRhsLast)*/ fRhsLast;
 
+/*
 ofstream Mout("Matriz.out");
 ofstream Vout("Vetor.out");
 
-   pTangentMatrix->Print("Matrix", Mout/*EMathematicaInput*/);
+   pTangentMatrix->Print("Matrix", Mout);///*EMathematicaInput);
 
-   fRhs.Print("Rhs", Vout);//*/
+   fRhs.Print("Rhs", Vout);
 
    Mout.close();
-   Vout.close();
+   Vout.close();*/
 }
 
 
@@ -203,12 +210,12 @@ void TPZEulerAnalysis::Solve(REAL & res) {
    fSolver->Solve(residual, delu);
    //fSolution += delu;
 
-
+/*
    fSolver->Matrix()->Print("Matriz", eulerout, EMathematicaInput);
    delu.Print("delu", eulerout, EMathematicaInput);
    fRhs.Print("Rhs", eulerout, EMathematicaInput);
    eulerout.flush();
-
+*/
    UpdateSolution(delu);
 
 
@@ -253,7 +260,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
    return 1;
 }
 
-TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh()
+TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout)
 {
   TPZVec<char *> scalar(1),vector(0);
   scalar[0] = "density";
@@ -266,9 +273,9 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh()
   //ResetReference(Mesh());//retira referências para criar graph consistente
   TPZDXGraphMesh * graph = new TPZDXGraphMesh (Mesh(),dim,mat,scalar,vector);
   //SetReference(Mesh());//recupera as referências retiradas
-  ofstream *dxout = new ofstream("ConsLaw.dx");
+  //ofstream *dxout = new ofstream("ConsLaw.dx");
   //cout << "\nDX output file : ConsLaw.dx\n";
-  graph->SetOutFile(*dxout);
+  graph->SetOutFile(dxout);
   int resolution = 2;
   graph->SetResolution(resolution);
   graph->DrawMesh(dim);
@@ -276,7 +283,7 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh()
   return graph;
 }
 
-void TPZEulerAnalysis::Run(ostream &out)
+void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout)
 {
    // this analysis loop encloses several calls
    // to Newton's linearizations, updating the
@@ -284,7 +291,7 @@ void TPZEulerAnalysis::Run(ostream &out)
 
    out << "\nBeginning time integration";
 
-   TPZDXGraphMesh * graph = PrepareDXMesh();
+   TPZDXGraphMesh * graph = PrepareDXMesh(dxout);
    int numIterDX = 1;
    int outputStep = 0;
 
@@ -357,7 +364,7 @@ void TPZEulerAnalysis::Run(ostream &out)
 
       epsilon = EvaluateFluxEpsilon();
 
-      if(lastEpsilon>0.&&epsilon>0.)
+      if((lastEpsilon>0.&&epsilon>0.) && fEvolCFL == 1)
       {
          fFlowCompMesh->ScaleCFL(/*sqrt(*/lastEpsilon/epsilon/*)*/);
       }
@@ -405,4 +412,9 @@ void TPZEulerAnalysis::SetTimeIntCriteria(REAL epsilon, int maxIter)
 {
    fTimeIntEps     = epsilon;
    fTimeIntMaxIter = maxIter;
+}
+
+void TPZEulerAnalysis::SetEvolCFL(int EvolCFL)
+{
+   fEvolCFL = EvolCFL;
 }

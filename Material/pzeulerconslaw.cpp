@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.17 2004-02-04 17:41:50 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.18 2004-02-06 22:41:55 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -160,8 +160,8 @@ int TPZEulerConsLaw2::NFluxes()
 void TPZEulerConsLaw2::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 
   if(fabs(Sol[0]) < 1.e-10) {
-    cout << "\nTPZEulerConsLaw2::Solution: Density almost null\n";
-    cout << "Density = " << Sol[0] << endl;
+    PZError << "\nTPZEulerConsLaw2::Solution: Density almost null\n"
+            << "Density = " << Sol[0] << endl;
   }
 
   if(var == 1) {
@@ -237,7 +237,7 @@ void TPZEulerConsLaw2::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
                                TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
                                TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
 
-  cout << "\nTPZEulerConsLaw2::Errors not implemented yet, program exit\n";
+  PZError << "\nTPZEulerConsLaw2::Errors not implemented yet, program exit\n";
   exit(-1);
 
 //   TPZVec<REAL> sol(1),dsol(3);

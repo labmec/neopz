@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.13 2004-01-21 00:23:32 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.14 2004-02-06 22:41:55 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -439,7 +439,7 @@ inline void TPZEulerConsLaw2::Flux(TPZVec<T> &U,TPZVec<T> &Fx,TPZVec<T> &Fy,TPZV
   Pressure(fGamma, fDim, press, U);
   int nstate = NStateVariables();
   if(nstate < 3 && nstate > 5){
-    cout << "TPZEulerConsLaw2::Flux case not implemented\n";
+    PZError << "TPZEulerConsLaw2::Flux case not implemented\n";
     Fx.Resize(0);
     Fy.Resize(0);
     Fz.Resize(0);
@@ -503,6 +503,7 @@ inline void TPZEulerConsLaw2::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVe
   if(U[0] < 1.e-6) {
     PZError << "\nTPZEulerConsLaw2::JacobFlux: Density almost null or negative, jacobian evaluation fails\n"
        << "Density = " << U[0] << endl;
+       exit(-1);
        return;
   }
 
@@ -702,9 +703,9 @@ template< class T >
 inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T> &U)
 {
   if(fabs(val(U[0])) < 1.e-6) {
-    cout << "\nTPZEulerConsLaw2::Pressure> Density neares zero!\n\tImplicit method won't be accurate!!";
-    cout << "Density = " << U[0] << endl;
-    //exit(-1);
+    PZError << "\nTPZEulerConsLaw2::Pressure> Density neares zero!\n\tImplicit method won't be accurate!!"
+         << "Density = " << U[0] << endl;
+    exit(-1);
   }
   // Pressão = (gam-1)*(E - ro*||(u,v,w)||²/2)
   // onde aqui ro_e = E (nota¢ão)
@@ -735,6 +736,7 @@ inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T>
     PZError << "TPZEulerConsLaw2::Pressure> Negative pressure: " << press << endl;
     press = (gamma-1.)*U[nstate-1];
     PZError << "TPZEulerConsLaw2::Pressure> Substitute pressure: (gama-1)*E = " << press << endl;
+    exit(-1);
   }
 }
 
@@ -1236,24 +1238,54 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
 template <class T>
 void TPZEulerConsLaw2::cSpeed(TPZVec<T> & sol, REAL gamma, T & c)
 {
+   if(sol[0] < 1e-10)
+   {
+      PZError << "TPZEulerConsLaw2::cSpeed Too low or negative density\n";
+      exit(-1);
+   }
+
    int dim = sol.NElements() - 2;
-   T press;
+   T press, temp;
    TPZEulerConsLaw2::Pressure(gamma, dim, press, sol);
+   temp = gamma * press;
+
+   if(temp < 1e-10) // too low or negative
+   {
+      PZError << "TPZEulerConsLaw2::cSpeed Too low or negative numerator\n";
+   }
    c = sqrt(gamma * press/ sol[0]);
 }
 
 template <class T>
-void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
+inline void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
 {
+   if(sol[0] < 1e-10)
+   {
+      PZError << "TPZEulerConsLaw2::cSpeed Too low or negative density\n";
+      exit(-1);
+   }
+
+   T temp;
    switch(sol.NElements())
    {
       case(3):
       us = sol[1]/sol[0];
       case(4):
-      us = sqrt(sol[1]*sol[1] + sol[2]*sol[2])/sol[0];
+      temp = sol[1]*sol[1] + sol[2]*sol[2];
+      if(temp < 1e-40)
+      {
+	 PZError << "TPZEulerConsLaw2::uRes Zero Velocity\n";
+	 exit(-1);
+      }
+      us = sqrt(temp)/sol[0];
       break;
       case(5):
-      us = sqrt(sol[1]*sol[1] + sol[2]*sol[2] + sol[3]*sol[3])/sol[0];
+      temp = sol[1]*sol[1] + sol[2]*sol[2] + sol[3]*sol[3];
+      if(temp < 1e-40)
+      {
+	 PZError << "TPZEulerConsLaw2::uRes Zero Velocity\n";
+	 exit(-1);
+      }
       break;
       default:
       PZError << "TPZArtDiff::uRes Error: invalid Dimension\n";

@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.9 2004-01-20 12:04:58 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.10 2004-02-06 22:42:04 erick Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -30,7 +30,7 @@ public:
    /**
     * see declaration in the base class.
     */
-   virtual void Run(ostream &out = cout);
+   virtual void Run(ostream &out, ofstream & dxout);
 
    /**
     * Sets the solution vector to be the one
@@ -56,6 +56,12 @@ public:
     * or explicitly.
     */
    void SetContributionTime(TPZContributeTime time);
+
+   /**
+    * Indicates whether the CFL is to evolute or not
+    */
+   void SetEvolCFL(int EvolCFL);
+
 
    /**
     * Adds deltaSol to the last solution and stores it as the current
@@ -152,7 +158,7 @@ public:
    /**
     * Prepares the DX graph mesh
     */
-   TPZDXGraphMesh * PrepareDXMesh();
+   TPZDXGraphMesh * PrepareDXMesh(ofstream &dxout);
 
 protected:
 
@@ -202,6 +208,14 @@ protected:
 
    REAL fTimeIntEps;
    int fTimeIntMaxIter;
+
+
+   /**
+    * Indicates whether the CFL is to evolute or not.
+    */
+   int fEvolCFL;
+
+
 };
 
 #endif
