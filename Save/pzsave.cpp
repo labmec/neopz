@@ -91,7 +91,7 @@ int TPZToto::main()
     f.OpenWrite("file.out");
     test.Write(f);
     WriteObjects(f,tes);
-    WriteObjects<TPZToto>(f,vectes);
+    TPZSaveable::WriteObjects<TPZToto>(f,vectes);
   }
   {
     TPZFileStream f;
