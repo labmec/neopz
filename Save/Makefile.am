@@ -15,6 +15,7 @@ noinst_LIBRARIES = libSave.a
 
 libSave_a_SOURCES = \
 	pzsave.cpp \
-	pzfilebuffer.cpp
+	pzfilebuffer.cpp \
+	pzbfilestream.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
