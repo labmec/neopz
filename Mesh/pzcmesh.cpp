@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.22 2003-12-05 21:33:18 phil Exp $
+//$Id: pzcmesh.cpp,v 1.23 2003-12-09 18:39:52 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -267,7 +267,7 @@ void TPZCompMesh::LoadReferences() {
 	int i, nelem = NElements();
 	for(i=0; i<nelem; i++) {
 		TPZCompEl *el = fElementVec[i];
-		if(!el || !el->IsInterpolated()) continue;
+		if(!el) continue;
 		el->LoadElementReference();
 /*  TPZGeoEl *gel = el->Reference();
     if(!gel) continue;
@@ -733,7 +733,7 @@ void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
    for(i=0; i<neq; i++) skyline[i] = i;
    for(i=0; i<nelem; i++) {
       TPZCompEl *el = fElementVec[i];
-      if(!el || !el->IsInterpolated()) continue;
+      if(!el) continue;
 //      if(!el) continue;
       connectlist.Resize(0);
       el->BuildConnectList(connectlist);
