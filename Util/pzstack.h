@@ -2,7 +2,7 @@
  * @file pzstack.h
  * @brief A simple stack.
  */
-// $Id: pzstack.h,v 1.2 2003-03-26 13:13:23 cantao Exp $
+// $Id: pzstack.h,v 1.3 2004-11-24 18:01:47 cesar Exp $
 
 #ifndef PZSTACK_H
 #define PZSTACK_H
@@ -63,7 +63,7 @@ class TPZStack : public TPZManVector< T, NumExtAlloc >
        *
        *  @return The fStore pointer.
        */
-      operator T*() const { return fStore; }
+      operator T*() const { return this->fStore; }
 
       /**@shapeType DependencyLink*/
       /*#  TPZManVector<T> lnkUnnamed*/
@@ -73,38 +73,38 @@ class TPZStack : public TPZManVector< T, NumExtAlloc >
 
 template<class T, int NumExtAlloc >
 TPZStack<T, NumExtAlloc>::TPZStack() : TPZManVector<T, NumExtAlloc>(0) {
-   Expand(NumExtAlloc);
+   this->Expand(NumExtAlloc);
 }
 
 // Puts an object on the stack
 template<class T, int NumExtAlloc >
 void TPZStack<T, NumExtAlloc>::Push(const T object) {
-   Resize(NElements()+1);
-   operator[](NElements()-1) = object;
+   Resize(this->NElements()+1);
+   operator[](this->NElements()-1) = object;
 }
 
 // Retrieve an object from the stack
 template<class T, int NumExtAlloc >
 T TPZStack<T, NumExtAlloc>::Pop() {
-   fNElements--;
-   if(fNElements <0){
-      fNElements = 0;
+   this->fNElements--;
+   if(this->fNElements <0){
+      this->fNElements = 0;
       PZError << "TPZStack popping beyond the stack object" << endl;
       PZError.flush();
       T temp;
       return temp;
    }
-   return fStore[fNElements];
+   return this->fStore[this->fNElements];
 }
 
 template <class T, int NumExtAlloc >
 T & TPZStack<T, NumExtAlloc>::Peek() const {
-   if(NElements() <= 0) {
+   if(this->NElements() <= 0) {
       PZError << "TPZStack peek beyond the stack object" << endl;
       PZError.flush();
       exit(-1);
    }
-   return operator[](NElements()-1);
+   return operator[](this->NElements()-1);
 }
 
 #endif // PZSTACK_H

@@ -80,7 +80,7 @@ void TPZParFrontStructMatrix<front>::SetNumberOfThreads(int nthreads)
 
 template<class front>     
 TPZStructMatrix * TPZParFrontStructMatrix<front>::Clone(){
-     TPZParFrontStructMatrix<front> * mat = new TPZParFrontStructMatrix<front>(fMesh);
+     TPZParFrontStructMatrix<front> * mat = new TPZParFrontStructMatrix<front>(this->fMesh);
      mat->SetNumberOfThreads(fNThreads);
      //return new TPZParFrontStructMatrix<front>(fMesh);
      return (TPZStructMatrix*)mat;
@@ -292,18 +292,18 @@ TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
      int *res = new int[nthreads];
      int i;
  
-     TPZVec <int> numelconnected(fMesh->NEquations(),0);  
+     TPZVec <int> numelconnected(this->fMesh->NEquations(),0);  
      //TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
      
      //TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
-     TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
+     TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(this->fMesh->NEquations());
 	 // TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZParFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
-     GetNumElConnected(numelconnected);
+     this->GetNumElConnected(numelconnected);
      mat->SetNumElConnected(numelconnected);
      
-     fNElements = fMesh->NElements();
+     fNElements = this->fMesh->NElements();
      
-     OrderElement();
+     this->OrderElement();
      fStiffness = mat;
      fRhs = &rhs;
      fCurrentElement = 0;

@@ -3,7 +3,7 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzadmchunk.h,v 1.4 2004-04-22 13:16:05 phil Exp $
+// $Id: pzadmchunk.h,v 1.5 2004-11-24 17:58:30 cesar Exp $
 
 #ifndef PZADMCHUNK_H
 #define PZADMCHUNK_H
@@ -171,9 +171,9 @@ int TPZAdmChunkVector<T,EXP>::AllocateNewElement() {
       return index;
    }
 
-   Resize(NElements()+1);
+   Resize(this->NElements()+1);
 
-   return NElements()-1;
+   return this->NElements()-1;
 }
 
 // Indicate an element as free
@@ -217,19 +217,19 @@ void TPZAdmChunkVector<T,EXP>::CompactDataStructure(int type) {
    if(type == 2) fCompactScheme = 2;
    int i,chunksize = 1<<EXP;
    int nchunksused = 0;
-   if(NElements()) nchunksused = ((NElements()-1) >> EXP)+1;
+   if(this->NElements()) nchunksused = ((this->NElements()-1) >> EXP)+1;
    i = nchunksused-1;
-   int maxfree = NElements()-((nchunksused-1) << EXP);
+   int maxfree = this->NElements()-((nchunksused-1) << EXP);
 
-   if(i>=0 && fVec[i] && fNFree[i] == maxfree) {
+   if(i>=0 && this->fVec[i] && fNFree[i] == maxfree) {
       Resize(chunksize*i);
       i--;
-      while(i >=0 && fVec[i] && fNFree[i] == chunksize) {
+      while(i >=0 && this->fVec[i] && fNFree[i] == chunksize) {
 	 Resize(chunksize*i);
 	 i--;
       }
    }
-   fVec.Shrink();
+   this->fVec.Shrink();
    fNFree.Shrink();
    fFree.Shrink();
 }
@@ -272,7 +272,7 @@ void TPZAdmChunkVector<T,EXP>::Resize(const int newsize) {
 
    //   int sizechunk = 1 << EXP;
    int nchunks = fNFree.NElements();
-   int chunksneeded = fVec.NElements(); // equivalent to newsize>>fExponent??
+   int chunksneeded = this->fVec.NElements(); // equivalent to newsize>>fExponent??
 
    fNFree.Resize(chunksneeded);
 

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZShapeDisc.h,v 1.4 2004-04-02 16:04:45 tiago Exp $
+// $Id: TPZShapeDisc.h,v 1.5 2004-11-24 17:56:52 cesar Exp $
 #ifndef SHAPEDISCHPP
 #define SHAPEDISCHPP
 
@@ -29,7 +29,7 @@ static void Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatri
  * UseOrthoShape = 1 means it will be used Legendre polynomial as shape function. 
  * @since Mar 31, 2004
  */
-static void (*fOrthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix & phi, TPZFMatrix & dphi, int n = 1);
+static void (*fOrthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix & phi, TPZFMatrix & dphi, int n);
 
 public:
 
