@@ -2091,7 +2091,7 @@ TPZIntRuleList::TPZIntRuleList(){
 
     int i;
     for(i = 1; i<=intavail; ++i) {
-      intlist[i-1] = new TPZIntRule(i);
+      intlist[i-1] = new TPZIntRule(i-1);
       if(intlist[i-1] == NULL) {
 	PZError << "TPZIntRuleList error: some integration rules"
 	  "could not be initialized\n";
