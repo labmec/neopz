@@ -3,13 +3,14 @@
 #define BCTENSIONHPP
 
 #include "pzbndcond.h"
+#include "TPZPlacaOrthotropic.h"
 
 using namespace std;
 
 template <class T, int N>
 class TPZManVector;
-
-class TPZMulticamadaOrtho;
+class TPZInterpolatedElement;
+class TPZMulticamadaOrthotropic;
 
 
 // this class defines the boundary condition for a 1d linear problem
@@ -17,7 +18,11 @@ class TPZMulticamadaOrtho;
 class TPZBCTension : public TPZBndCond {
 
   REAL fHight,fLxLyDim,fMx,fMy,fMxy,fNx,fNy,fNxy,fQx,fQy,fQxy;
-  TPZMulticamadaOrtho *fMultCam;
+  TPZMulticamadaOrthotropic *fMultCam;
+
+  private:
+
+  TPZInterpolatedElement *fReference;
 
   public :
     
@@ -25,7 +30,34 @@ class TPZBCTension : public TPZBndCond {
 
   TPZBCTension(TPZMaterial *material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2,TPZFMatrix &esforcos);
 
-  void Tensor();
+
+  REAL MX(int placa, int face);
+  
+REAL QXY(int placa, int face);
+
+ REAL HIGHT(int placa);
+
+ REAL LXLYDIM(int placa);
+
+ REAL MY(int placa, int face);
+
+ REAL MXY(int placa, int face);
+
+ REAL NX(int placa, int face);
+
+ REAL NY(int placa, int face);
+
+ REAL NXY(int placa, int face);
+
+ REAL QX(int placa, int face);
+
+ REAL QY(int placa, int face);
+ 
+
+  void FeedBCTension(){;}
+
+  void Tensor(TPZVec<REAL> &Point, int placa, int var, TPZManVector<REAL> &SolOut);
+
 
   virtual int NFluxes(){ return Material()->NFluxes(); }
 
