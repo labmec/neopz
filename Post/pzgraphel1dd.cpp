@@ -26,7 +26,7 @@ int TPZGraphEl1dd::NElements(){
 }
 
 long TPZGraphEl1dd::EqNum(TPZVec<int> &co) {
-	int res = fGraphMesh->Res();
+  //int res = fGraphMesh->Res();
 	return fConnect->FirstPoint() + co[0];
 }
 
