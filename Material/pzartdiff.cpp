@@ -496,7 +496,7 @@ void TPZArtDiff::PrepareDiff(int dim, TPZFMatrix &jacinv, TPZVec<T> &U,
 		 TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau)
 {
   TPZEulerConsLaw2::JacobFlux(fGamma, dim, U, Ai);
-  ComputeTau(dim, jacinv, sol, Ai, Tau);
+  ComputeTau(dim, jacinv, U, Ai, Tau);
 }
 
 void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix &jacinv, TPZVec<REAL> &sol,
