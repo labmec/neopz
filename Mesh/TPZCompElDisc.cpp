@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.58 2004-06-08 06:23:04 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.59 2004-06-17 06:25:12 phil Exp $
 
 // -*- c++ -*- 
 
@@ -330,6 +330,10 @@ void TPZCompElDisc::CreateInterface(int side)
     //isto acertou as vizinhan¢as da interface geométrica com o atual
     int index;
     TPZCompElDisc *list0 = dynamic_cast<TPZCompElDisc *>(list[0].Element());
+    if(!list0)
+    {
+      list[0].Element()->Print(cout);
+    }
     if(Dimension() > list0->Dimension()){
       //o de volume é o direito caso um deles seja BC
       //a normal aponta para fora do contorno
@@ -831,7 +835,10 @@ int TPZCompElDisc::ExistsInterface(TPZGeoElSide geosd){
     neighside = neighside.Neighbour();
     if(!neighcompside.Element()) continue;
     if(neighcompside.Element()->Type() == EInterface) 
+    {
+      neighcompside.Element()->Print(cout);
       return 1;
+    }
   }
   return 0;
 }
