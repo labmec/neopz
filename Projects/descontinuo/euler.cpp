@@ -1,4 +1,3 @@
-$Id: euler.cpp,v 1.6 2003-10-17 15:49:49 cedric Exp $
 //#include "pzmetis.h"
 //#include "pztrnsform.h"
 #include "TPZGeoCube.h"
@@ -104,6 +103,8 @@ static double novecubos[30][3] = { {0.,0.,0.},{p1+p1/4.,0.,0.},{p3,0.,0.},{p5-p7
 
 static double quadrilatero[4][3] = { {0.,0.,0.},{4.1,0.,0.},{4.1,1.,0.},{0.,1.,0.} };
 
+static double quadrado[4][3] = { {0.,0.,0.},{4.,0.,0.},{4.,4.,0.},{0.,4.,0.} };
+
 static double quadrilatero2[5][3] = { {0.,0.,0.},{1.80405,0.,0.},{4.12791,0.,0.},{0.,1.,0.},{4.12791,1.,0.} };
 
 // static double quadrilatero3[8][3] = { {0.,0.,0.},{0.6,0.,0.},{0.,0.2,0.},{0.6,0.2,0.},
@@ -159,7 +160,6 @@ static int problem=0;
 static REAL CFL=-1.0;
 static REAL gama = 1.4;
 
-
 //#define NOTDEBUG
 #define CEDRICDEBUG
 
@@ -175,10 +175,11 @@ int main() {
        << "\t[4: FluxConst2D (outra CC)]\n"
        << "\t[5: NoveQuadrilateros]\n"
        << "\t[6: NoveCubos]\n"
+       << "\t[7: ProblemaQ2D1El]\n"
        << "\t\t\t";
 
-  cin >> tipo;
-  //tipo = 5;
+  //cin >> tipo;
+  tipo = 7;
   problem = tipo;
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
   //cin >> grau;
@@ -196,7 +197,7 @@ int main() {
     problem = 0;
   }
   if(tipo==6) mat = dynamic_cast<TPZConservationLaw *>(NoveCubos(grau));
-
+  if(tipo==7) mat = dynamic_cast<TPZConservationLaw *>(ProblemaQ2D1El(grau));
   if(1){
     cout << "\ndescontinuo.c::main verificando a consistencia da malha de interfaces\t";
     if(TPZInterfaceElement::main(*cmesh)){
@@ -217,20 +218,20 @@ int main() {
 
   int numiter,marcha;
   cout << "\nNumero de iteracoes requerida ? : ";
-  cin >> numiter;
-  //numiter = 100;
+  //cin >> numiter;
+  numiter = 100;
   cout << "main:: Parametro marcha : \n";
-  cin >> marcha;
-  //marcha = 10;
+  //cin >> marcha;
+  marcha = 10;
   if(1){
     cout << "main:: entre CFL (si nulo sera calculado) -> ";
-    cin >> CFL;
-    //CFL = 0.0;
+    //cin >> CFL;
+    CFL = 0.0;
     TPZDiffusionConsLaw::fCFL = CFL;
     cout << "main:: entre delta (si nulo sera calculado) -> ";
     REAL delta;
-    cin >> delta;
-    //delta = 0.0;
+    //cin >> delta;
+    delta = 0.0;
     TPZDiffusionConsLaw::fDelta= delta;
   }
 
@@ -247,6 +248,7 @@ int main() {
     if(tipo == 4) nstate = 4;
     if(tipo == 5) nstate = 4;
     if(tipo == 6) nstate = 5;
+    if(tipo == 7) nstate = 4;
     SetDeltaTime(mat,nstate);
     if(0){
       gmesh->Print(outgm);
@@ -264,21 +266,21 @@ int main() {
       outgm.flush();
     }
   }
-  if(0){
   /////////////////////////////////////////////////////////////////////////////////////////////////
   TPZVec<int> accumlist;
   int nivel,numaggl;
   cout << "main::Entre nivel da nova malha : ";
   cin >> nivel;
   AgrupaList(accumlist,nivel,numaggl);
-  int index;
-  TPZCompElDisc disc(*cmesh,index);
-  TPZCompMesh *cmesh2 = disc.CreateAgglomerateMesh(cmesh,accumlist,numaggl);
-  if(cmesh2) cmesh2->Print(outgm);
+  TPZCompMesh *cmesh2 = TPZCompElDisc::CreateAgglomerateMesh(cmesh,accumlist,numaggl);
+  if(!cmesh2) PZError << "main:: malha computacional não criada\n\n";
+  else {
+    outgm << "\n\n\n* * * MALHA AGLOMERADA : COMPUTACIONAL * * *\n\n\n";
+    cmesh2->Print(outgm);
+  }
   cout << "\n\nmain:: FIM DO PROGRAMA\n\n";
   return 0;
   /////////////////////////////////////////////////////////////////////////////////////////////////
-    }
   //com matriz não simétrica e ELU 2D e 3D convergen
   if(1){
     TPZIterativeAnalysis an(cmesh,outgm);
@@ -1069,15 +1071,20 @@ TPZMaterial *ProblemaT2D(int grau){
 TPZMaterial *ProblemaQ2D1El(int grau){
   //Teste no paper de A. Coutinho e primeiro problema teste na tese de Jorge Calle
   //teste do papern Zhang, Yu, Chang  e teste no paper de Peyrard and Villedieu
-  CriacaoDeNos(4,quadrilatero);
+  CriacaoDeNos(4,quadrado);
   //elemento de volume
   TPZVec<int> nodes;
+  int index;
   nodes.Resize(4);
   nodes[0] = 0;
   nodes[1] = 1;
   nodes[2] = 2;
   nodes[3] = 3;
-  TPZGeoElQ2d *elgq2d = new TPZGeoElQ2d(nodes,1,*gmesh);
+  TPZGeoEl *elgq2d = gmesh->CreateGeoElement(EQuadrilateral,nodes,1,index);
+
+  //construtor descontínuo
+  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
@@ -1511,17 +1518,13 @@ TPZMaterial *FluxConst2D(int grau){
 
   CriacaoDeNos(4,quadrilatero);
   //elemento de volume
-  int index;
   TPZVec<int> nodes;
   nodes.Resize(4);
   nodes[0] = 0;
   nodes[1] = 1;
   nodes[2] = 2;
   nodes[3] = 3;
-  TPZGeoEl *elgq2d = gmesh->CreateGeoElement(EQuadrilateral,nodes,1,index);
-  //construtor descontínuo
-  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElQ2d *elgq2d = new TPZGeoElQ2d(nodes,1,*gmesh);
 
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
@@ -1785,7 +1788,7 @@ void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
       return;
     }
   }
-  if(problem == 3){
+  if(problem == 3 || problem == 7){
     result.Resize(4);
     //Condi¢ão inicial t =  0
     REAL ro = 1.0;
@@ -2012,6 +2015,7 @@ void SequenceDivide2(){
 
 void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
   //todo elemento deve ser agrupado nem que for para ele mesmo
+  cmesh->SetModel(2);
   cout << "\n\nmain::AgrupaList para malha 2D\n\n";
   int nel = cmesh->NElements(),i;
   //não todo index é sub-elemento
@@ -2021,42 +2025,109 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
     if(!cel) continue;
     TPZGeoEl *gel = cel->Reference();
     //agrupando elementos computacionais
-    if(cel->Type() == 16) continue;//pula interface: fica -1 na lista
+    if(cel->Type() == EInterface) continue;//pula interface
+    if(cel->Dimension() == 1){
+      accumlist[i] = gel->Id();
+      continue;//discontinuo BC passa a ser aglomerado
+    }
     TPZGeoEl *father = gel->Father();
     if(!father) continue;
     if(Nivel(father) != nivel) continue;
     int fatid = father->Id();
     accumlist[i] = fatid;
   }
+  //reordena a lista por ordem crescente do pai
+  TPZVec<int> list(accumlist);
   int j;
-  //contagem dos elementos
-  numaggl = 0;
-  //interface tem entrada -1 em list
-  TPZVec<int> list(nel,-1);
   for(i=0;i<nel;i++){
-    int fat = accumlist[i];
-    int num = list[i];
-    if(fat > -1 && num == -1){
-      list[i] = numaggl;
-      for(j=i+1;j<nel;j++){
-	int fat2 = accumlist[j];
-	if(fat2 == fat)
-	  list[j] = numaggl;
+    for(j=i+1;j<nel;j++){
+      if(list[i] > list[j]){
+	int aux = list[i];
+	list[i] = list[j];
+	list[j] = aux;
       }
-      numaggl++;
+    }    
+  }
+  //conta o número de elementos obtidos por aglomera¢ão
+  numaggl = 1;
+  for(i=0;i<nel;i++){
+    int act = list[i];
+    if(act == -1) continue;
+    for(j=i+1;j<nel;j++){
+      int next = list[j];
+      if(next == -1) continue;
+      if(next != act){
+	numaggl++;
+	i = j;
+	j = nel;
+      }
     }
   }
-  accumlist = list;//for(i=0;i<nel;i++) cout << list[i] << "\n";
+  //reformula o pai de 0 a nmax
+  TPZVec<int> newlist(accumlist);
+  int newfat = 0;
+  for(i=0;i<nel;i++){
+    int fatid1 = newlist[i];
+    if(fatid1 < 0) continue;
+    accumlist[i] = newfat;
+    newlist[i] = -1;
+    for(j=i+1;j<nel;j++){
+      int fatid2 = newlist[j];
+      if(fatid2 == fatid1){
+	accumlist[j] = newfat;
+	newlist[j] = -1;
+      }
+    }
+    newfat++;
+  }
 }
 
 
-//   TPZVec<int> list2(accumlist);
-//   for(i=0;i<nel;i++){
-//     for(j=i+1;j<nel;j++){
-//       if(list2[i] > list2[j]){
-// 	int aux = list2[i];
-// 	list2[i] = list2[j];
-// 	list2[j] = aux;
+//TESTE DA MALHA GERADA DE 2D -> 3D
+
+//   TPZConservationLaw *mat2;
+//   grau = 1;
+//   if(0) mat2 = dynamic_cast<TPZConservationLaw *>(TresTriangulos(grau));
+//   if(1) mat2 = dynamic_cast<TPZConservationLaw *>(NoveQuadrilateros(grau));
+//   NivelDivide(cmesh);
+//   TPZExtendGridDimension ext(gmesh,-1.0);
+//   TPZGeoMesh *extmesh = ext.ExtendedMesh();
+//   gmesh->Print(outgm);
+//   extmesh->Print(outgm);
+//   return 0;
+
+
+//   // --> FIM <-- --> FIM <-- --> FIM <-- --> FIM <-- --> FIM <-- --> FIM <--
+//   for(i=0;i<nlist;i++){
+//     int fatid1 = accumlist[i];
+//     if(fatid1 < 0) continue;
+//     indexes.Push(i);
+//     accumlist[i] = -1;
+//     for(j=i+1;j<nlist;j++){
+//       int fatid2 = accumlist[j];
+//       if(fatid2 == fatid1){
+// 	indexes.Push(j);
+// 	accumlist[j] = -1;
 //       }
-//     }    
+//     }
+//     new TPZAgglomerateElement(indexes,indexout,*aggmesh);
+//   }
+//   return aggmesh;
+
+//   if(agg){
+//     int npoints,k,l;
+//     for(i=0;i<nsubs;i++){
+//       agg = dynamic_cast<TPZAgglomerateElement *>(SubElement(i));
+//       TPZStack<REAL> points = agg->RulePoints();
+//       TPZStack<REAL> weights = agg->RuleWeights();
+//       npoints = agg->NRuleWeights();
+//       for(k=0;k<npoints;k++){
+// 	l = 3*k;
+// 	fRulePoints.Push(points[l]);
+// 	fRulePoints.Push(points[++l]);
+// 	fRulePoints.Push(points[++l]);
+// 	fRuleWeights.Push(weights[k]);
+//       }
+//     }
+//     return;
 //   }
