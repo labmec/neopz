@@ -427,12 +427,13 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int degree){
     discel->SetDegree(deg);
   }
 
-  static int key = 1;
+  static int key = 1,nao=0;
   if(key){
-    cout << "\nTPZCompElDisc::Divide INTERPOLATE SOLUTION COM BUG (unico aviso)\n";
+    cout << "TPZCopElDisc::Divide Debug ExpandSolution ? ";
+    cin >> nao;
     key = 0;
   }
-  if(0){//COM PROBLEMAS
+  if(nao){
     Mesh()->ExpandSolution();
     for(i=0; i<nsubs; i++) {
       discel = (TPZCompElDisc *) fMesh->ElementVec()[subindex[i]];
