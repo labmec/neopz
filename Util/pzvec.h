@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.6 2004-12-17 13:05:40 phil Exp $
+// $Id: pzvec.h,v 1.7 2005-01-14 22:29:59 phil Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -95,7 +95,7 @@ class TPZVec {
 #ifdef DEBUG
          if( index < 0 || index >= fNElements )
          {
-            PZError << "TPZVec::operator[] acessing element out of range.";
+            PZError << __PRETTY_FUNCTION__ << " acessing element out of range.";
             PZError << "|" << endl;
             PZError << "+-> NElements = " << NElements() << endl;
             PZError << "|" << endl;
