@@ -427,7 +427,13 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int degree){
     discel->SetDegree(deg);
   }
 
-  if(0){
+  static int key = 1,nao=0;
+  if(key){
+    cout << "TPZCompElDisc::Divide Debug ExpandSolution ? ";
+    cin >> nao;
+    key = 0;
+  }
+  if(nao){
     Mesh()->ExpandSolution();
     for(i=0; i<nsubs; i++) {
       discel = (TPZCompElDisc *) fMesh->ElementVec()[subindex[i]];
@@ -637,7 +643,7 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) 
   TPZFMatrix jacinv(dim,dim,jacinvstore,10);
   TPZManVector<REAL> x(3);
   REAL detjac;
-  fReference->Jacobian(qsi,jacobian,axes,detjac,jacinv);//?
+  fReference->Jacobian(qsi,jacobian,axes,detjac,jacinv);//(calcula axes)
   fReference->X(qsi,x);
   Shape(x,phi,dphi);
   int iv=0,in,jn,d;

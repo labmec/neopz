@@ -40,7 +40,17 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   TPZEulerConsLaw(int nummat,REAL delta_t,REAL gamma,int dim,char *artdiff);
   
   ~TPZEulerConsLaw();
-  
+
+  /**
+   * compute the boundary condition left solution 
+   */
+  virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft);
+
+  /**
+   * compute the boundary condition right solution 
+   */
+  virtual void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright);
+
   /**
    * termodinamic pressure determined by the law of an ideal gas 
    */
@@ -70,8 +80,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,
-				   TPZFMatrix &ef,TPZBndCond *bc);
+				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,TPZFMatrix &ef);
   
   virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,TPZFMatrix &axes,
 			    TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);

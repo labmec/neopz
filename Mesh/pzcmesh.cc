@@ -1670,7 +1670,7 @@ REAL TPZCompMesh::MaxVelocityOfMesh(int nstate){
       cout << "TPZCompMesh::MaxVelocityOfMesh minus pressure\n";
     }
     sound = sqrt(law->Gamma()*press/density[0]);
-    veloc = veloc + sound;
+    veloc = velocity[0] + sound;
     if(veloc > maxvel) maxvel = veloc;
   }
   return maxvel;
@@ -1680,7 +1680,7 @@ REAL TPZCompMesh::DeltaX(){
 
   int nel = ElementVec().NElements(),i,j;
   if(nel == 0) cout << "\nTPZCompMesh::DeltaX nenhum elemento computacional foi criado\n";
-  REAL maxdist = 0.0,dist=0;
+  REAL maxdist = 0.0,dist=0.0;
   TPZVec<REAL> point0(3),point1(3);
   TPZGeoNode *node0,*node1;
   for(i=0;i<nel;i++){

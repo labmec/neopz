@@ -98,8 +98,7 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
 void TPZEulerConsLaw::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,
                                           TPZFMatrix &dsolL,TPZFMatrix &dsolR,REAL weight,
                                           TPZVec<REAL> &normal,TPZFMatrix &phiL,TPZFMatrix &phiR,
-                                          TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,
-                                          TPZFMatrix &ef,TPZBndCond *bc){
+                                          TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,TPZFMatrix &ef){
   int phrl = phiL.Rows();
   int phrr = phiR.Rows();
   int i,nstate = NStateVariables();//3, 4 ou 5
@@ -111,23 +110,6 @@ void TPZEulerConsLaw::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     if(phrr) for(i=0;i<nstate;i++) solR[i] = res[i];//nas iterações > 0 fForcingFunction = 0
   }
   
-  if(bc){
-    TPZFMatrix jacinv(0,0),axes(0,0);
-    switch (bc->Type()){
-    case 0://Dirichlet
-    case 1://Neumann
-    case 2://Mista
-      if(!phrl) bc->Contribute(x,jacinv,solL,dsolL,weight,axes,phiR,dphiR,ek,ef);
-      if(!phrr) bc->Contribute(x,jacinv,solR,dsolR,weight,axes,phiL,dphiL,ek,ef);
-      break;
-    case 3://aplicar Dirichlet esquerdo ou direito
-      //nada a fazer: só aplicar Dirichlet do valor da CC para o cálculo do fluxo
-      break;    
-    default:
-      PZError << "TPZEulerConsLaw::ContributeInterface Boundary Condition Type Not Exists\n";
-    }
-  }
-
   //A defini¢ão das variáveis pode ser otimizada
   REAL flux_rho,flux_rhou,flux_rhov,flux_rhow,flux_rhoE;
   TPZVec<REAL> flux_Roe(nstate,0.);
@@ -303,7 +285,7 @@ void TPZEulerConsLaw::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
   } else if(var == 5) {
     int nstate = NStateVariables();
     Solout.Resize(nstate);
-    for(int i=0;i<nstate;i++) Solout[i] = Sol[i];//(ro,u,v,w,E)
+    for(int i=0;i<nstate;i++) Solout[i] = Sol[i];//(ro,ro*u,ro*v,ro*w,E)
     return;
   } else if(var == 6) {
     int nstate = NStateVariables();
@@ -537,3 +519,71 @@ void TPZEulerConsLaw::ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<
   }
 }
 
+void TPZEulerConsLaw::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft){
+
+  if(!bcleft){
+    PZError << "TPZEulerConsLaw::ComputeSolLeft null bundary condition return\n";
+    return;
+  }
+  int i,nstate = NStateVariables();
+  TPZFMatrix jacinv(0,0),axes(0,0);
+  REAL vpn=0.;
+  switch (bcleft->Type()){
+  case 0://Dirichlet
+  case 1://Neumann
+  case 2://Mista
+    PZError << "TPZEulerConsLaw::ComputeSolLeft boundary condition error\n";
+    break;
+  case 3://Dirichlet: nada a fazer a CC é a correta
+    break;
+  case 4://recuperar valor da solu¢ão MEF direita: saida livre
+    for(i=0;i<nstate; i++) soll[i] = solr[i];
+    break;
+  case 5://parede
+    for(i=1;i<nstate-1;i++) vpn += solr[i]*normal[i-1];//v.n
+    for(i=1;i<nstate-1;i++) soll[i] = solr[i] - 2.0*vpn*normal[i-1];
+    soll[0] = solr[0];
+    soll[nstate-1] = solr[nstate-1];
+    break;
+  default:
+    PZError << "TPZEulerConsLaw::ContributeInterface Boundary Condition Type Not Exists\n";
+  }
+}
+
+
+void TPZEulerConsLaw::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright){
+
+  if(!bcright){
+    PZError << "TPZEulerConsLaw::ComputeSolLeft null bundary condition return\n";
+    return;
+  }
+  int i,nstate = NStateVariables();
+  TPZFMatrix jacinv(0,0),axes(0,0);
+  REAL vpn=0.;
+  switch (bcright->Type()){
+  case 0://Dirichlet
+  case 1://Neumann
+  case 2://Mista
+    PZError << "TPZEulerConsLaw::ComputeSolLeft boundary condition error\n";
+    break;
+  case 3://Dirichlet: nada a fazer a CC é a correta
+    break;
+  case 4://recuperar valor da solu¢ão MEF esquerda: saida livre
+    for(i=0;i<nstate; i++) solr[i] = soll[i];
+    break;
+  case 5://condi¢ão de parede
+    for(i=1;i<nstate-1;i++) vpn += soll[i]*normal[i-1];//v.n
+    for(i=1;i<nstate-1;i++) solr[i] = soll[i] - 2.0*vpn*normal[i-1];
+    solr[0] = soll[0];
+    solr[nstate-1] = soll[nstate-1];
+    break;
+  default:
+    PZError << "TPZEulerConsLaw::ContributeInterface Boundary Condition Type Not Exists\n";
+  }
+}
+
+//   case 0://Dirichlet
+//   case 1://Neumann
+//   case 2://Mista
+//     if(!phrl) bc->Contribute(x,jacinv,solL,dsolL,weight,axes,phiR,dphiR,ek,ef);
+//     if(!phrr) bc->Contribute(x,jacinv,solR,dsolR,weight,axes,phiL,dphiL,ek,ef);

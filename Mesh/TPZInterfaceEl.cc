@@ -175,7 +175,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   int npoints = intrule->NPoints();
   int ip;
   TPZVec<REAL> point(3,0.),normal(3,0.);
-  TPZBndCond *bc = 0;
+  TPZBndCond *bcleft = 0,*bcright=0;
 
   for(ip=0;ip<npoints;ip++){
     intrule->Point(ip,intpoint,weight);
@@ -200,9 +200,9 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	iv++;
       }
     } else {
-      bc = dynamic_cast<TPZBndCond *> (left->Material());
-      if(!bc) PZError << "TPZInterfaceElement::CalcStiff material does not exists\n";
-      for(i=0;i<nstatel;i++) soll[i] = bc->Val2()(i,0);
+      bcleft = dynamic_cast<TPZBndCond *> (left->Material());
+      if(!bcleft) PZError << "TPZInterfaceElement::CalcStiff material does not exists\n";
+      for(i=0;i<nstatel;i++) soll[i] = bcleft->Val2()(i,0);
     }
     //solu¢ão da itera¢ão anterior
     solr.Fill(0.);
@@ -220,11 +220,19 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	iv++;
       }
     } else {
-      bc = dynamic_cast<TPZBndCond *> (right->Material());
-      if(!bc) PZError << "TPZInterfaceElement::CalcStiff material does not exists\n";
-      for(i=0;i<nstater;i++) solr[i] = bc->Val2()(i,0);
+      bcright = dynamic_cast<TPZBndCond *> (right->Material());
+      if(!bcright) PZError << "TPZInterfaceElement::CalcStiff material does not exists\n";
+      for(i=0;i<nstater;i++) solr[i] = bcright->Val2()(i,0);
     }
-    mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,*ek.fMat,*ef.fMat,bc);
+    if(bcleft){
+      for(i=0;i<nstatel;i++) soll[i] = bcleft->Val2()(i,0);
+      mat->ComputeSolLeft(solr,soll,fNormal,bcleft);
+    }
+    if(bcright){
+      for(i=0;i<nstater;i++) solr[i] = bcright->Val2()(i,0);
+      mat->ComputeSolRight(soll,solr,fNormal,bcright);
+    }
+    mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,*ek.fMat,*ef.fMat);
   }
 }
 
