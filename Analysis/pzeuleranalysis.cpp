@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.27 2004-04-08 15:35:10 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.28 2004-04-13 12:50:49 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -116,7 +116,7 @@ REAL TPZEulerAnalysis::EvaluateFluxEpsilon()
    return Norm(Flux);
 }
 
-
+#ifdef NOTDEFINED
 void TPZEulerAnalysis::Assemble()
 {
    if(!fCompMesh)
@@ -203,6 +203,107 @@ void TPZEulerAnalysis::AssembleRhs()
 
    // Contributing referring to the last state (n index)
    fRhs+=/*.Add(fRhsLast, */fRhsLast/*)*/;
+}
+
+#endif
+
+
+void TPZEulerAnalysis::Assemble()
+{
+   if(!fCompMesh)
+   {
+      PZError << "TPZEulerAnalysis::Assemble Error: No Computational Mesh\n";
+      return;
+      exit(-1);
+   }
+
+   if(!fStructMatrix)
+   {
+      PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
+      exit(-1);
+      return;
+   }
+
+   if(!fSolver)
+   {
+      PZError << "TPZEulerAnalysis::Assemble Error: No Solver\n";
+      exit(-1);
+      return;
+   }
+
+   // redimensions and zeroes Rhs
+   //fRhs.Redim(fCompMesh->NEquations(),1);
+   fRhs = fRhsLast;
+
+   TPZMatrix * pTangentMatrix = fSolver->Matrix();
+
+   if(!pTangentMatrix && dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym>>(fStructMatrix))
+   {
+      pTangentMatrix = fStrMatrix->CreateAssemble(An.Rhs());
+   }
+   else
+   {
+      if(!pTangentMatrix)
+      {
+         PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
+         exit(-1);
+         return;
+
+      }
+
+      pTangentMatrix->Zero();
+
+      // Contributing referring to the advanced state
+      // (n+1 index)
+      fStructMatrix->Assemble(*pTangentMatrix, fRhs);
+   }
+
+   if(fpBlockDiag)
+   {
+      fpBlockDiag->Zero();
+      //fpBlockDiag->SetIsDecomposed(0); // Zero already makes it
+      fpBlockDiag->BuildFromMatrix(*pTangentMatrix);
+   }
+
+   // Contributing referring to the last state (n index)
+   //fRhs+=/*.Add(fRhsLast, fRhsLast)*/ fRhsLast;
+
+/*
+ofstream Mout("Matriz.out");
+ofstream Vout("Vetor.out");
+
+   pTangentMatrix->Print("Matrix", Mout);///*EMathematicaInput);
+
+   fRhs.Print("Rhs", Vout);
+
+   Mout.close();
+   Vout.close();*/
+}
+
+
+void TPZEulerAnalysis::AssembleRhs()
+{
+   if(!fCompMesh) return;
+
+   // Contributing referring to the last state (n index)
+   fRhs = fRhsLast;
+
+   // Contributing referring to the advanced state
+   // (n+1 index)
+   fFlowCompMesh->Assemble(fRhs);
+
+/*
+      if(!fCompMesh) return;
+
+   // redimensions and zeroes Rhs
+   fRhs.Redim(fCompMesh->NEquations(),1);
+
+   // Contributing referring to the advanced state
+   // (n+1 index)
+   fFlowCompMesh->Assemble(fRhs);
+
+   // Contributing referring to the last state (n index)
+   fRhs+=fRhsLast;*/
 }
 
 //ofstream eulerout("Matrizes.out");
@@ -411,7 +512,8 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
       {
          fFlowCompMesh->ScaleCFL(2.);
       }
-      if(epsilon_Newton < fNewtonEps && fEvolCFL >= 3){
+      if(epsilon_Newton > fNewtonEps && fEvolCFL >= 3)
+      {
          fFlowCompMesh->ScaleCFL(.5);
       }
 
