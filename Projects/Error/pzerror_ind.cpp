@@ -108,12 +108,15 @@ int TPZErrorIndicator::GetRefSide(TPZCompEl *cel, int sidedim, int sidestate, TP
     REAL auxsum = 0;
     for (e=0;e<elsidevec.NElements();e++){
       int index = elsidevec[e].Element()->Index();
-      auxsum += errormat->Get(e,sidestate);//fodeu nao era aquifErInd
+      double val = 0.;
+      val = errormat->Get(e,sidestate);
+      auxsum += val;
     }
     if(auxsum > sum){
       sum = auxsum;
       side = s;
     }
   }
+  return side;
 }
 

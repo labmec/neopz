@@ -60,6 +60,7 @@ TPZGeoEl *GeoElement(TPZGeoMesh *gmesh, int ncon,
                       int index);
 
 TPZCompMesh *ReadElementsMesh();
+TPZCompMesh *TetraMesh();
 
 void WriteMesh(TPZGeoMesh *mesh,ofstream &arq);
 
@@ -91,7 +92,8 @@ int main(){
   //  cout << "Reading Mesh\n";
   ifstream arq_mesh ("/compile/cesar/NeoPZ/Projects/Error/Mesh.data");
   //cmesh = ReadMesh(arq_mesh,meshsize);
-  cmesh = ReadElementsMesh();
+  //cmesh = ReadElementsMesh();
+  cmesh = TetraMesh();
   cout << "Reading Solution\n";
   ifstream arq_solution ("/compile/cesar/NeoPZ/Projects/Error/Solution.data");
   TPZStack<char *> scalnames,vecnames;
@@ -114,7 +116,7 @@ int main(){
     TPZCompMesh *adaptmesh;
     TMBAdaptInterface adapt(cmesh,nstate,dimstate,usestate,solution);
     adapt.SetMaxMinError(maxerror,minerror);
-    adaptmesh = adapt.GetAdaptedMesh(erind,erantype,true,0);
+    adaptmesh = adapt.GetAdaptedMesh(erind,erantype,true,1,1,0);
     //cmesh->Reference()->ResetReference();
     //   cmesh->LoadReferences();
     //delete cmesh;
@@ -385,6 +387,67 @@ TPZCompMesh *ReadElementsMesh(){
   gmesh->Print(cout);
   gmesh->BuildConnectivity();
   gmesh->Print(cout);
+  //Create computational mesh
+  TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+  TPZMaterial *mat;
+  mat = new TPZMaterialTest3D (1);
+  cmesh->InsertMaterialObject(mat);
+
+  cmesh->AutoBuild();
+  return cmesh;
+}
+
+TPZCompMesh *TetraMesh(){
+  REAL Coord [8][3] = {
+    {0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.},
+    {0.,0.,1.},{1.,0.,1.},{1.,1.,1.},{0.,1.,1.}
+  };
+
+  int Connects [5][4] = {
+    {0,1,3,4},
+    {1,2,3,6},
+    {5,6,4,1},
+    {7,6,4,3},
+    {1,3,4,6}
+  };
+
+  int i,j;
+  TPZGeoMesh *gmesh = new TPZGeoMesh();
+  TPZGeoEl * elvec[5];
+  TPZVec <REAL> coord (3,0.);
+  int index;
+  //Nodes initialization
+  for(i = 0; i < 8; i++){
+    for(j=0;j<3;j++){
+      coord[j] = Coord[i][j];
+    }
+    index = gmesh->NodeVec().AllocateNewElement();
+    gmesh->NodeVec()[index] = TPZGeoNode(i,coord,*gmesh);
+  }
+
+  TPZVec<TPZRefPattern *> refinement_Patterns(6,0);
+//  refinement_Patterns.Resize(6);
+  refinement_Patterns[0] = new TPZRefPattern("/home/pos/cesar/RefPattern/Tetra_Rib_Side_4.rpt");
+  refinement_Patterns[1] = new TPZRefPattern("/home/pos/cesar/RefPattern/Tetra_Rib_Side_5.rpt");
+  refinement_Patterns[2] = new TPZRefPattern("/home/pos/cesar/RefPattern/Tetra_Rib_Side_6.rpt");
+  refinement_Patterns[3] = new TPZRefPattern("/home/pos/cesar/RefPattern/Tetra_Rib_Side_7.rpt");
+  refinement_Patterns[4] = new TPZRefPattern("/home/pos/cesar/RefPattern/Tetra_Rib_Side_8.rpt");
+  refinement_Patterns[5] = new TPZRefPattern("/home/pos/cesar/RefPattern/Tetra_Rib_Side_9.rpt");
+
+  for (i=0;i<6;i++) gmesh->InsertRefPattern(refinement_Patterns[i]);
+
+  for (i=0;i<5;i++){
+    int ncon = 4;
+    TPZVec <int> connect(ncon,0);
+    for(j=0; j<ncon;j++){
+      connect[j] = Connects[i][j];
+    }
+    elvec[i] = GeoElementRefPattern(gmesh,7,connect,1,i,refinement_Patterns);
+  }
+  //Generate neighborhod information
+//  gmesh->Print(cout);
+  gmesh->BuildConnectivity();
+//  gmesh->Print(cout);
   //Create computational mesh
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   TPZMaterial *mat;

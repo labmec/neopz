@@ -141,6 +141,7 @@ void TMBAdaptInterface::MarkedElListH(TPZVec<int> &elindex, TPZVec<int> &side, i
     if (level < 2 || !(level%2)){
       TMBXubinShih xushi(fMesh,fDimState.NElements(), fDimState,state_XuShih,*fSolution);
       xushi.SetError(max_XuShih,min_XuShih,ertype_XuShih);
+
       xushi.MarkedElListH(elindex,side,sidedim,sidestate);
     }
     else{
