@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.14 2005-01-14 16:47:15 tiago Exp $
+//$Id: main.cpp,v 1.15 2005-01-21 18:16:07 tiago Exp $
 
 /**
  * Galerkin descontinuo: visita do professor Igor.
@@ -36,11 +36,13 @@
 #include "pzfstrmatrix.h"
 #include "pzskylstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
+#include "TPZParFrontMatrix.h"
 #include "TPZFrontNonSym.h"
 #include "pzbdstrmatrix.h"
 #include "pzblockdiag.h"
 #include "TPZSpStructMatrix.h"
 #include "TPZCopySolve.h"
+#include "TPZStackEqnStorage.h"
 
 
 #include "pzbstrmatrix.h"
@@ -128,7 +130,7 @@ TPZCompMesh *CreateMeshPhil();
 ////////////////////////////////////////////////////////////////////////////////
 
 
-int main(){
+int mainqvale(){
    
 //   TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
 
@@ -255,8 +257,7 @@ int main(){
 
   //METODOS DE RESOLUCAO: ITERATIVO OU DIRETO
 
-#define ITER_SOLVER
-//_PRECOND
+#define ITER_SOLVER_PRECOND
 //#define DIRECT_SOLVER
 
 #ifdef ITER_SOLVER
@@ -288,6 +289,23 @@ int main(){
   step.SetGMRES( 2000000, 30, precond, 1.e-13, 0); 
   an.SetSolver(step);
 
+#endif
+
+#ifdef ITER_SOLVER_PRECOND2
+  cout << "ITER_SOLVER_PRECOND2" << endl;
+  
+  TPZSpStructMatrix full(cmesh);
+  
+  an.SetStructuralMatrix(full);
+  
+  TPZStepSolver step(full.Create());
+  an.SetSolver(step);
+  TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EElement, false);
+    
+  step.SetGMRES( 2000000, 30, *precond, 1.e-13, 0); 
+  
+  an.SetSolver(step);
+  delete precond;
 #endif
 
 #ifdef DIRECT_SOLVER
@@ -1082,4 +1100,129 @@ TPZCompMesh *CreateMesh3() {
   cmesh->CleanUpUnconnectedNodes();
   
   return cmesh;
+}
+
+
+int main(){
+
+for(int tiagop = 6; tiagop < 9; tiagop++){
+   
+  for( int tiagoh = 0; tiagoh < 4; tiagoh++){
+
+  int p, h;
+  p = tiagop;
+  h = tiagoh;
+  
+  char filename[20];
+  sprintf(filename,"dg_p%d_h%d.dat",p,h);
+  char filedx[20];
+  sprintf(filedx,"dg_p%d_h%d.dx",p,h);
+  
+ //cout << "\nQuadrado = 1; Triang = 2" << endl;
+  gMeshType = 1;
+
+ gDif = 1.0;
+
+  if (h == 0) {
+    gDivide[0] = 0;
+    gDivide[1] = 0;
+    gDivide[2] = 0;
+    gDivide[3] = 0;
+    gDivide[4] = 0;
+    gDivide[5] = 0;
+  }
+  if (h == 1) {
+    gDivide[0] = 1;
+    gDivide[1] = 0;
+    gDivide[2] = 0;
+    gDivide[3] = 0;
+    gDivide[4] = 0;
+    gDivide[5] = 0;
+  } 
+  if (h == 2) {
+    gDivide[0] = 1;
+    gDivide[1] = 1;
+    gDivide[2] = 0;
+    gDivide[3] = 0;
+    gDivide[4] = 0;
+    gDivide[5] = 0;
+  }  
+  if (h == 3) {
+    gDivide[0] = 1;
+    gDivide[1] = 1;
+    gDivide[2] = 1;
+    gDivide[3] = 0;
+    gDivide[4] = 0;
+    gDivide[5] = 0;
+  }
+  if (h == 4) {
+    gDivide[0] = 1;
+    gDivide[1] = 1;
+    gDivide[2] = 1;
+    gDivide[3] = 1;
+    gDivide[4] = 0;
+    gDivide[5] = 0;
+  }
+  if (h == 5) {
+    gDivide[0] = 1;
+    gDivide[1] = 1;
+    gDivide[2] = 1;
+    gDivide[3] = 1;
+    gDivide[4] = 1;
+    gDivide[5] = 0;
+  }
+  if (h == 6) {
+    gDivide[0] = 1;
+    gDivide[1] = 1;
+    gDivide[2] = 1;
+    gDivide[3] = 1;
+    gDivide[4] = 1;
+    gDivide[5] = 1;
+  }
+
+
+  PI = 4.*atan(1.);
+
+  ofstream out(filename);
+
+  TPZCompEl::gOrder = p;
+  TPZCompElDisc::gDegree = p;
+
+  TPZCompMesh *cmesh;
+  cmesh = CreateMesh();
+
+  TPZGeoMesh *gmesh = cmesh->Reference();
+
+  TPZAnalysis an(cmesh);
+
+
+  cout << "DIRECT_SOLVER" << endl;
+  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
+  
+//  full.SetNumberOfThreads(3);
+//  TPZFStructMatrix full(cmesh);  
+  an.SetStructuralMatrix(full);
+  TPZStepSolver step;
+  step.SetDirect(ELU);
+  an.SetSolver(step);
+
+{  
+  TPZFMatrix fillin;
+  cmesh->ComputeFillIn(50,fillin);
+  //fillin.Print("Fillin of the computable mesh");
+  VisualMatrix(fillin , filedx);
+}
+
+  an.Run();
+
+  an.SetExact(ExactSolution);
+  TPZVec<REAL> pos;
+  an.PostProcess(pos,out);
+  out << "\nNumero de equacoes: " << an.Solution().Rows() << endl;  
+  
+  delete cmesh;
+  delete gmesh;
+  }//p
+  }//h
+  return 0;
 }
