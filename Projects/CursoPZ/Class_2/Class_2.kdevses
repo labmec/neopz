@@ -3,21 +3,24 @@
 <KDevPrjSession>
  <LastCompileConfig>(Default)</LastCompileConfig>
  <Mainframe MaximizeMode="1" />
- <DocsAndViews NumberOfDocuments="5" >
-  <Doc0 CursorPosLine="71" Type="KWriteDoc" NumberOfViews="1" CursorPosCol="36" FileName="/compile/cesar/NeoPZ/Projects/Curso_PZ/Class_2/main.cc" >
-   <View0 Top="0" Width="1166" Attach="1" Height="692" Left="0" Focus="0" Type="KWriteView" MinMaxMode="0" />
+ <DocsAndViews NumberOfDocuments="6" >
+  <Doc0 CursorPosLine="1" Type="KWriteDoc" NumberOfViews="1" CursorPosCol="0" FileName="/compile/cesar/NeoPZ/Projects/Curso_PZ/Class_2/main.cc" >
+   <View0 Top="0" Width="1166" Attach="1" Height="692" Left="0" Focus="1" Type="KWriteView" MinMaxMode="0" />
   </Doc0>
-  <Doc1 CursorPosLine="0" Type="KWriteDoc" NumberOfViews="1" CursorPosCol="0" FileName="/compile/cesar/NeoPZ/Projects/Curso_PZ/Class_2/Class_2.kdevprj" >
+  <Doc1 CursorPosLine="1" Type="KWriteDoc" NumberOfViews="1" CursorPosCol="0" FileName="/compile/cesar/NeoPZ/Projects/Curso_PZ/Class_2/Class_2.kdevprj" >
    <View0 Top="0" Width="96" Attach="1" Height="26" Left="0" Focus="0" Type="KWriteView" MinMaxMode="0" />
   </Doc1>
-  <Doc2 CursorPosLine="0" Type="KWriteDoc" NumberOfViews="1" CursorPosCol="0" FileName="/compile/cesar/NeoPZ/Projects/Curso_PZ/Class_2/Makefile.am" >
+  <Doc2 CursorPosLine="1" Type="KWriteDoc" NumberOfViews="1" CursorPosCol="0" FileName="/compile/cesar/NeoPZ/Projects/Curso_PZ/Class_2/Makefile.am" >
    <View0 Top="0" Width="1166" Attach="1" Height="692" Left="0" Focus="0" Type="KWriteView" MinMaxMode="0" />
   </Doc2>
   <Doc3 CursorPosLine="0" Type="KWriteDoc" NumberOfViews="1" CursorPosCol="0" FileName="/compile/cesar/NeoPZ/Projects/Curso_PZ/Class_2/Makefile.in" >
    <View0 Top="0" Width="1166" Attach="1" Height="692" Left="0" Focus="0" Type="KWriteView" MinMaxMode="0" />
   </Doc3>
   <Doc4 CursorPosLine="0" Type="KWriteDoc" NumberOfViews="1" CursorPosCol="0" FileName="/compile/cesar/NeoPZ/Projects/Curso_PZ/Class_2/Makefile" >
-   <View0 Top="0" Width="1166" Attach="1" Height="692" Left="0" Focus="1" Type="KWriteView" MinMaxMode="0" />
+   <View0 Top="0" Width="1166" Attach="1" Height="692" Left="0" Focus="0" Type="KWriteView" MinMaxMode="0" />
   </Doc4>
+  <Doc5 CursorPosLine="1" Type="KWriteDoc" NumberOfViews="1" CursorPosCol="0" FileName="/compile/cesar/NeoPZ/Projects/Curso_PZ/Class_2/Class_2.kdevses" >
+   <View0 Top="0" Width="1166" Attach="1" Height="692" Left="0" Focus="0" Type="KWriteView" MinMaxMode="0" />
+  </Doc5>
  </DocsAndViews>
 </KDevPrjSession>
