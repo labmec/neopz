@@ -1,0 +1,16 @@
+#
+# NeoPZ Projects makefile
+#
+# It will be processed by GNU automake to produce Makefile.in
+#
+# $Id#
+#
+
+DISTCLEANFILES = @PZ_DISTCLEANFILES@
+CLEANFILES     = @PZ_CLEANFILES@
+
+-include $(top_srcdir)/@PZ_MK@
+
+SUBDIRS = Class_1 Class_2
+
+## --| NeoPZ |------------------------------------------------------------------
