@@ -6,6 +6,7 @@
 #include "pzfmatrix.h"
 #include "pzcompel.h"
 #include "TPZConservationLaw.h"
+#include "TPZDiffusionConsLaw.h"
 #include "TPZCompElDisc.h"
 #include "pzintel.h"
 #include "pzgeoel.h"
@@ -469,13 +470,13 @@ void TPZAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TPZMaterial
   CoutTime(begin,"TPZAnalysis:: Fim system solution first iteration");
   begin = clock();
   LoadSolution();
-  CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
+  //CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
   SetDeltaTime(fCompMesh,mat);
   REAL time = (dynamic_cast<TPZConservationLaw *> (mat))->TimeStep();
   begin = clock();
   graph.DrawSolution(draw++,time);
   dxout->flush();
-  CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
+  //CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
   mat->SetForcingFunction(0);
   REAL normsol = Norm(fSolution);
 
@@ -487,23 +488,24 @@ void TPZAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TPZMaterial
     CoutTime(begin,"TPZAnalysis:: Fim system solution actual iteration");
     begin = clock();
     LoadSolution();
-    CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
+    //CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
     SetDeltaTime(fCompMesh,mat);
     time = (dynamic_cast<TPZConservationLaw *> (mat))->TimeStep();
     if( REAL(iter) / REAL(marcha) == draw || marcha == 1){
       begin = clock();
       graph.DrawSolution(draw++,time);
       dxout->flush();
-      CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
+      //CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
     }
     cout << "TPZAnalysis::IterativeProcess iteracao = " << ++iter << endl;
     normsol = Norm(fSolution);
   }
   out.flush();
   dxout->flush();
-  if(iter < numiter)
-    cout << "\nTPZAnalysis::IterativeProcess norm solution = " << normsol << endl;
-
+  if(iter < numiter){
+    cout << "\nTPZAnalysis::IterativeProcess the iterative process stopped due the great norm "
+	 << "of the solution, norm solution = " << normsol << endl;
+  }
   CoutTime(init,"TPZAnalysis:: general time of iterative process");
 }
 
@@ -529,12 +531,12 @@ void TPZAnalysis::IterativeProcessTest(ostream &out,REAL tol,int numiter,TPZMate
   CoutTime(begin,"TPZAnalysis:: Fim system solution first iteration");
   begin = clock();
   LoadSolution();
-  CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
+  //CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
   begin = clock();
   REAL time = (dynamic_cast<TPZConservationLaw *> (mat))->TimeStep();
   graph.DrawSolution(draw++,time);
   dxout->flush();
-  CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
+  //CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
   mat->SetForcingFunction(0);
   REAL normsol = Norm(fSolution);
 
@@ -546,22 +548,23 @@ void TPZAnalysis::IterativeProcessTest(ostream &out,REAL tol,int numiter,TPZMate
     CoutTime(begin,"TPZAnalysis:: Fim system solution actual iteration");
     begin = clock();
     LoadSolution();
-    CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
+    //CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
     if( REAL(iter) / REAL(marcha) == draw || marcha == 1){
       begin = clock();
       time = (dynamic_cast<TPZConservationLaw *> (mat))->TimeStep();
       graph.DrawSolution(draw++,time);
       dxout->flush();
-      CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
+      //CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
     }
     cout << "TPZAnalysis::IterativeProcess iteracao = " << ++iter << endl;
     normsol = Norm(fSolution);
   }
   out.flush();
   dxout->flush();
-  if(iter < numiter)
-    cout << "\nTPZAnalysis::IterativeProcess norm solution = " << normsol << endl;
-
+  if(iter < numiter){
+    cout << "\nTPZAnalysis::IterativeProcess the iterative process stopped due the great norm "
+	 << "of the solution, norm solution = " << normsol << endl;
+  }
   CoutTime(init,"TPZAnalysis:: general time of iterative process");
 }
 
@@ -577,13 +580,18 @@ void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat){
 
   int nstate = mat->NStateVariables();
   REAL maxveloc = CompMesh->MaxVelocityOfMesh(nstate);
-  REAL deltax = CompMesh->DeltaX();
+  //REAL deltax = CompMesh->DeltaX();
+  REAL deltax = CompMesh->LesserEdgeOfMesh();
+  //REAL deltax = CompMesh->MaximumRadiusOfEl();
   TPZCompElDisc *disc;
   int degree = disc->gDegree;
   REAL CFL = 1./((2.0*(REAL)degree) + 1.0);
-  REAL delta = ( (10./3.)*CFL*CFL - (2./3.)*CFL + 1./10. );
-  dynamic_cast<TPZConservationLaw *>(mat)->SetTimeStep(delta*deltax/maxveloc);
+  TPZDiffusionConsLaw *diff;
+  if(!degree) CFL = diff->fCFL;
+
+  dynamic_cast<TPZConservationLaw *>(mat)->SetTimeStep(CFL*deltax/maxveloc);
 }
+
 /*
   int sizesol = fSolution.Rows();
 

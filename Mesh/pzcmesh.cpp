@@ -1638,7 +1638,6 @@ void TPZCompMesh::CopyMaterials(TPZCompMesh *mesh){
 
 }
 
-
 REAL TPZCompMesh::MaxVelocityOfMesh(int nstate){
 
   int nel = ElementVec().NElements(),i;
@@ -1696,5 +1695,37 @@ REAL TPZCompMesh::DeltaX(){
     dist = TPZGeoEl::Distance(point0,point1);
     if(dist > maxdist) maxdist = dist;
   }
-  return dist;
+  return maxdist;
+}
+
+REAL TPZCompMesh::MaximumRadiusOfMesh(){
+
+  int nel = ElementVec().NElements(),i;
+  if(nel == 0) cout << "\nTPZCompMesh::MaximumRadiusOfMesh malha vazia\n";
+  REAL maxdist = 0.0,dist=0.0;
+  TPZVec<REAL> point0(3),point1(3);
+  for(i=0;i<nel;i++){
+    TPZCompEl *com = ElementVec()[i];
+    if(!com) continue;
+    if(com->Type()==16 || com->Material()->Id() < 0) continue;
+    dist = com->MaximumRadiusOfEl();
+    if(dist > maxdist) maxdist = dist;
+  }
+  return maxdist;
+}
+
+REAL TPZCompMesh::LesserEdgeOfMesh(){
+
+  int nel = ElementVec().NElements(),i;
+  if(nel == 0) cout << "\nTPZCompMesh::MaximumRadiusOfMesh malha vazia\n";
+  REAL mindist =10000.0,dist=0.0;
+  TPZGeoNode *node0,*node1;
+  for(i=0;i<nel;i++){
+    TPZCompEl *com = ElementVec()[i];
+    if(!com) continue;
+    if(com->Type()==16 || com->Material()->Id() < 0) continue;
+    dist = com->LesserEdgeOfEl();
+    if(dist < mindist) mindist = dist;
+  }
+  return mindist;
 }

@@ -925,3 +925,52 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
 void TPZCompel::GetPatch(TPZStack <TPZCompel *> patch){
 */
   
+REAL TPZCompEl::MaximumRadiusOfEl(){
+
+  //O elemento deve ser a envoltura convexa dos seus vértices
+
+  if(!this) cout << "TPZCompMesh::MaximumRadiusOfEl() null element";
+
+  int i,j,k;
+  REAL maxdist = 0.0,dist=0.0;
+  TPZVec<REAL> point0(3),point1(3);
+  TPZGeoNode *node0,*node1;
+  int nvertices = Reference()->NNodes();
+  for(i=0;i<nvertices;i++){
+    for(j=i+1;j<nvertices;j++){
+      node0 = Reference()->NodePtr(i);
+      node1 = Reference()->NodePtr(j);
+      for(k=0;k<3;k++){
+	point0[k] = node0->Coord(k);
+	point1[k] = node1->Coord(k);
+      }
+      dist = TPZGeoEl::Distance(point0,point1);
+      if(dist > maxdist) maxdist = dist;
+    }
+  }
+  return maxdist;
+}
+
+REAL TPZCompEl::LesserEdgeOfEl(){
+
+  if(!this) cout << "TPZCompMesh::LesserEdgeOfEl null element";
+
+  int i,j,k;
+  REAL mindist = 1000.0,dist=0.0;
+  TPZVec<REAL> point0(3),point1(3);
+  TPZGeoNode *node0,*node1;
+  int nvertices = Reference()->NNodes();
+  for(i=0;i<nvertices;i++){
+    for(j=i+1;j<nvertices;j++){
+      node0 = Reference()->NodePtr(i);
+      node1 = Reference()->NodePtr(j);
+      for(k=0;k<3;k++){
+	point0[k] = node0->Coord(k);
+	point1[k] = node1->Coord(k);
+      }
+      dist = TPZGeoEl::Distance(point0,point1);
+      if(dist < mindist) mindist = dist;
+    }
+  }
+  return mindist;
+}

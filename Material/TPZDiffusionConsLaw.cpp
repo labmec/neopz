@@ -4,18 +4,16 @@
 #include "pzvec.h"
 #include "pzreal.h"
 
-REAL TPZDiffusionConsLaw::fDelta = 1.0;
 REAL TPZDiffusionConsLaw::fGamma = 1.4;
+REAL TPZDiffusionConsLaw::fDelta = 1.0;
+REAL TPZDiffusionConsLaw::fCFL = 0.0;
 char *TPZDiffusionConsLaw::fArtificialDiffusion = "LS";
 
 TPZDiffusionConsLaw::~TPZDiffusionConsLaw(){}
 
 TPZDiffusionConsLaw::TPZDiffusionConsLaw(){
 
-  fGamma = 0.0;
-  fDelta = 0.0;
   fDimension = 0;
-  fArtificialDiffusion = "/0";
   fA.Redim(0,0);
   fB.Redim(0,0);
   fC.Redim(0,0);
@@ -24,7 +22,6 @@ TPZDiffusionConsLaw::TPZDiffusionConsLaw(){
 TPZDiffusionConsLaw::TPZDiffusionConsLaw(TPZVec<REAL> U,REAL gamma,int dim,char *diff) :
                                                               fA(0,0), fB(0,0), fC(0,0) {
   fGamma = gamma;
-  fDelta = 1.0;
   fDimension = dim;
   fArtificialDiffusion = diff;
   int nstate = 2 + dim;
@@ -36,6 +33,7 @@ TPZDiffusionConsLaw::TPZDiffusionConsLaw(TPZVec<REAL> U,REAL gamma,int dim,char 
 
 REAL TPZDiffusionConsLaw::CFL(int degree){
 
+  if(fCFL) return fCFL;
   return (1.0/(2.0*(REAL)degree+1.0));
 } 
 

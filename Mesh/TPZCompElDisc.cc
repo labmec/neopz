@@ -43,7 +43,7 @@ int TPZCompElDisc::gInterfaceDimension = 2;//default
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 		TPZCompEl(mesh,index), fCenterPoint(3) {
-  fDegree = gOrder;
+  fDegree = gDegree;
   fReference = ref;
   ref->SetReference(this);
   fMesh = &mesh;

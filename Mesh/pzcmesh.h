@@ -506,6 +506,10 @@ public:
   REAL MaxVelocityOfMesh(int nstate);
 
   REAL DeltaX();
+
+  REAL MaximumRadiusOfMesh();
+
+  REAL LesserEdgeOfMesh();
 };
 
 

@@ -998,7 +998,7 @@ REAL TPZGeoEl::SideArea(int side){
     for(i=0;i<3;i++)
       nodes[i] = &Mesh()->NodeVec()[  SideNodeIndex(side,i) ];
 
-    if(NSides() != 15  && SideNodeIndex(side,3) > -1){//15: tetraedro manda mensagem com node = 3 (tirar a mensagem)
+    if(NSides() != 15  && SideNodeIndex(side,3) > -1){
       nodes.Resize(4);
       nodes[3] = &Mesh()->NodeVec()[ SideNodeIndex(side,3) ];
       return ( QuadArea(nodes) );

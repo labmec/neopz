@@ -40,7 +40,12 @@ class TPZDiffusionConsLaw {
   static REAL fDelta;
 
   /**
-   * Termo que adiciona estabilidade ao método numérico de aproximação
+   * parámetro that it limits the condition of stability of the numerical approach
+   */
+  static REAL fCFL;
+
+  /**
+   * Term that adds stability to the numerical method of approach
    * SUPG
    * LS
    * Bornhaus

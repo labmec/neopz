@@ -27,6 +27,8 @@ void TPZEulerConsLaw::Print(ostream &out) {
   out << "Properties : \n";
   out << "Gamma : " << fGamma << endl;
   out << "Delta : " << TPZDiffusionConsLaw::fDelta << endl;
+  TPZDiffusionConsLaw *diff;
+  out << "Delta otimo : " << diff->DeltaOtimo() << endl;
   out << "Time step : " << TimeStep() << endl;
   out << "Difusao artificial : " << fArtificialDiffusion << endl;
   out << "Dimensao do problema : " << Dimension() << endl;
@@ -136,20 +138,18 @@ void TPZEulerConsLaw::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     flux_Roe[3] = flux_rhoE;
 
   } else if(nstate == 3){//dimensão 1
-    // LAX FRIEDRICHS: INCOMPLETO * INCOMPLETO * INCOMPLETO * INCOMPLETO
-    //cout << "\nTPZEulerConsLaw::ContributeInterface flux not implemented, nstate = 3, dimension = 1\n";
-    TPZVec<REAL> Fx(3),Fy(3),Fz(3);
-    REAL alfa = 1;//alfa = Max{|f¹(s)| : min(u,v) <= s <= max(u,v)}
-    TPZVec<REAL> medsol(3);
-    for(int i=0;i<3;i++) medsol[i] = (solR[i]-solL[i])/2.0;//fabs?
-    REAL veloc = fabs(solR[1] - solL[1])/2;//velocidade media
-    REAL c = sqrt(fGamma*Pressure(medsol)/medsol[0]);
-    alfa = veloc + c;//deve ser a máxima velocidade
-    Flux(solL,Fx,Fz,Fz);
-    Flux(solR,Fy,Fz,Fz);
-    flux_Roe[0] = 0.5*( (solR[0] - solL[0])/alfa + Fy[0] + Fx[0] );
-    flux_Roe[1] = 0.5*( (solR[1] - solL[1])/alfa + Fy[1] + Fx[1] );
-    flux_Roe[2] = 0.5*( (solR[2] - solL[2])/alfa + Fy[2] + Fx[2] );
+    TPZVec<REAL> left(2),right(2);
+    left[0] = 0.0;
+    left[1] = solL[2];
+    right[0] = 0.0;
+    right[1] = solR[2];          // ro     ro_u    0.0     E
+    TPZDiffusionConsLaw::Roe_Flux(solL[0],solL[1],left[0],left[1],
+				  solR[0],solR[1],right[0],right[1],
+				  normal[0],normal[1],fGamma,
+				  flux_rho,flux_rhou,flux_rhov,flux_rhoE);
+    flux_Roe[0] = flux_rho;
+    flux_Roe[1] = flux_rhou;
+    flux_Roe[2] = flux_rhoE;
   }
   //contribui¢ão do elemento interface para a carga
   REAL timestep = TimeStep();
@@ -587,3 +587,18 @@ void TPZEulerConsLaw::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZV
 //   case 2://Mista
 //     if(!phrl) bc->Contribute(x,jacinv,solL,dsolL,weight,axes,phiR,dphiR,ek,ef);
 //     if(!phrr) bc->Contribute(x,jacinv,solR,dsolR,weight,axes,phiL,dphiL,ek,ef);
+
+//     // LAX FRIEDRICHS: INCOMPLETO * INCOMPLETO * INCOMPLETO * INCOMPLETO
+//     //cout << "\nTPZEulerConsLaw::ContributeInterface flux not implemented, nstate = 3, dimension = 1\n";
+//     TPZVec<REAL> Fx(3),Fy(3),Fz(3);
+//     REAL alfa = 1;//alfa = Max{|f¹(s)| : min(u,v) <= s <= max(u,v)}
+//     TPZVec<REAL> medsol(3);
+//     for(int i=0;i<3;i++) medsol[i] = (solR[i]-solL[i])/2.0;//fabs?
+//     REAL veloc = fabs(solR[1] - solL[1])/2;//velocidade media
+//     REAL c = sqrt(fGamma*Pressure(medsol)/medsol[0]);
+//     alfa = veloc + c;//deve ser a máxima velocidade
+//     Flux(solL,Fx,Fz,Fz);
+//     Flux(solR,Fy,Fz,Fz);
+//     flux_Roe[0] = 0.5*( (solR[0] - solL[0])/alfa + Fy[0] + Fx[0] );
+//     flux_Roe[1] = 0.5*( (solR[1] - solL[1])/alfa + Fy[1] + Fx[1] );
+//     flux_Roe[2] = 0.5*( (solR[2] - solL[2])/alfa + Fy[2] + Fx[2] );
