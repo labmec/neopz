@@ -14,8 +14,11 @@
 #include "c11-Piram-Tetra.cpp"
 #include "c15-Exp-Hexa.cpp"
 
+#define HUGE_DEBUG
+
 int gDebug = 0;
 int gPrintLevel = 0;
+int gDebug;
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp);
 static REAL angle = 0.2;
 
@@ -153,7 +156,7 @@ int main(){
 
       cout << "\n\n\n\nEntering Auto Adaptive Methods... step " << r << "\n\n\n\n";
 
-      if(r==4) gDebug = 1;
+//      if(r==4) gDebug = 1;
       time_t sttime;
       time (& sttime);
       TPZCompMesh *adptmesh;

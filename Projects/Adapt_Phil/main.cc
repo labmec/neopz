@@ -31,7 +31,7 @@ void Exact3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
 
 static ofstream MALHAG("malhageometrica");//CEDRIC
-static int mygorder = 3;
+static int mygorder = 1;
 void CompareNeighbours(TPZGeoMesh *mesh);
 
 

@@ -179,6 +179,7 @@ void TPZAdaptMesh::GetAdaptedMesh(TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> 
     minerror = SortMinError(fElementError,perm,0.65);
     cout << "MinError " << minerror << endl;
   }
+  truerror = 0.;
   if(f) {
     for(i=0; i<nelem; i++){
       truerror += fTrueErrorVec[i];
@@ -215,8 +216,8 @@ void TPZAdaptMesh::GetAdaptedMesh(TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> 
     
   //Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
   for (i=0;i<fCloneStructs.NElements();i++){
-    fCloneStructs[i].PrintElementIds(cout);
-    cout << endl;
+//    fCloneStructs[i].PrintElementIds(cout);
+//    cout << endl;
     fCloneStructs[i].AddSelectedElements(fElementError,minerror,gelstack,porder);
   }
   int nelg = gelstack.NElements();

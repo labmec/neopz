@@ -64,8 +64,8 @@ void TPZCompCloneMesh::AutoBuild() {
   }
   
   if (gDebug) {
-    gclm->SetName("Malha Clone Geometrica");
-    gclm->Print(cout);
+//    gclm->SetName("Malha Clone Geometrica");
+//    gclm->Print(cout);
     //Reference()->Print(cout);
   }
   
@@ -81,14 +81,14 @@ void TPZCompCloneMesh::AutoBuild() {
         }
         if(gclm->IsPatchSon(gel)) {
           if (gDebug){
-            cout << "TPZCompCloneMesh::AutoBuild : Creating computational element \n Geometric Reference Element:\n" 
-            << endl;
-            gel->Print();
+//            cout << "TPZCompCloneMesh::AutoBuild : Creating computational element \n Geometric Reference Element:\n" 
+//            << endl;
+  //          gel->Print();
           }
           TPZCompEl *clcel = gel->CreateCompEl(*this,index);
           if (gDebug){
-            cout << "TPZCompCloneMesh::AutoBuild : Computational element created:\n" << endl;
-            clcel->Print();
+//            cout << "TPZCompCloneMesh::AutoBuild : Computational element created:\n" << endl;
+//            clcel->Print();
           }
           int ncon = clcel->NConnects();
           for (j=0; j<ncon; j++){
@@ -113,17 +113,17 @@ void TPZCompCloneMesh::AutoBuild() {
           TPZInterpolatedElement *clintel = dynamic_cast<TPZInterpolatedElement *> (clcel);
 
           if (gDebug){
-            for (j=0;j<cel->Reference()->NSides();j++){
-              cout << "TPZCompCloneMesh::AutoBuild :Computational Element Before  PRefine:\n " << endl;
-              clcel->Print();
-            }
+//            for (j=0;j<cel->Reference()->NSides();j++){
+//              cout << "TPZCompCloneMesh::AutoBuild :Computational Element Before  PRefine:\n " << endl;
+//              clcel->Print();
+//            }
           }
           int porder = orgintel->SideOrder(cel->Reference()->NSides()-1);
           clintel->PRefine(porder);
           if (gDebug){
-            cout << "Porder " << porder << "    Side : " << j << endl;
-            cout << "TPZCompCloneMesh::AutoBuild :Computational Element After  PRefine:\n " << endl;
-            clcel->Print();
+//            cout << "Porder " << porder << "    Side : " << j << endl;
+//            cout << "TPZCompCloneMesh::AutoBuild :Computational Element After  PRefine:\n " << endl;
+//            clcel->Print();
           }
           #warning "Cesar, com esta modificacao os tamanhos dos blocos podem nao ser iguais"
         }
@@ -132,8 +132,8 @@ void TPZCompCloneMesh::AutoBuild() {
   }
   //CleanUp
   if (gDebug){
-    cout << "TPZCompCloneMesh::AutoBuild :Computational Mesh Before BC\n " << endl;
-    Print(cout);
+//    cout << "TPZCompCloneMesh::AutoBuild :Computational Mesh Before BC\n " << endl;
+//    Print(cout);
   }
 
 #ifdef HUGE_DEBUG
@@ -159,7 +159,7 @@ void TPZCompCloneMesh::AutoBuild() {
   nelem = elbcvec.NElements();
 
   if (gDebug){
-    cout << "TPZCompCloneMesh::AutoBuild : After Clone BCs generation\n " << endl;
+//    cout << "TPZCompCloneMesh::AutoBuild : After Clone BCs generation\n " << endl;
   }
   
   for(i=0; i<nelem; i++) {
@@ -168,8 +168,8 @@ void TPZCompCloneMesh::AutoBuild() {
       if(cel){
         elbcvec[i].fBCElement = cel->Reference();
         if (gDebug){
-          cout << "TPZCompCloneMesh::AutoBuild : BC Clone\n " << endl;
-          cel->Print(cout);
+//          cout << "TPZCompCloneMesh::AutoBuild : BC Clone\n " << endl;
+//          cel->Print(cout);
         }
       }
     }
@@ -200,12 +200,12 @@ void TPZCompCloneMesh::AutoBuild() {
       
       int ord = fCloneReference->ConnectVec()[i].Order();
       int ordclone = ConnectVec()[fMapConnects[i]].Order();
-      ConnectVec()[fMapConnects[i]].Print(*this,cout);
-      fCloneReference->ConnectVec()[i].Print(*fCloneReference,cout);
+//      ConnectVec()[fMapConnects[i]].Print(*this,cout);
+//      fCloneReference->ConnectVec()[i].Print(*fCloneReference,cout);
       //      Print(cout);
-      cout << "\nNumber of degree of freedom incompatible between clone and original mesh!\n";
-      cout << "Clone connect id: " << i << "  Clone dof: " << ndofclone << "  Original dof: " << ndoforg << endl;
-      cout << "Clone order " << ordclone  << "  Original order " << ord <<  endl;
+//      cout << "\nNumber of degree of freedom incompatible between clone and original mesh!\n";
+//      cout << "Clone connect id: " << i << "  Clone dof: " << ndofclone << "  Original dof: " << ndoforg << endl;
+//      cout << "Clone order " << ordclone  << "  Original order " << ord <<  endl;
 
 #ifdef HUGE_DEBUG            
       this->CheckOrders(fCloneReference);
@@ -520,7 +520,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
   //fine->Print(cout);
 
 //  TPZGeoCloneMesh *gclmesh = dynamic_cast<TPZGeoCloneMesh *> (fine->Reference());
-  fine->Reference()->Print(cout);
+//  fine->Reference()->Print(cout);
   //  if (gclmesh->GetMeshReferenceElement()->MaterialId() < 0) return;
 
   int diagnostic = 0;
