@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZMulticamadaOrtho.h,v 1.8 2003-11-07 00:40:34 phil Exp $
+// $Id: TPZMulticamadaOrtho.h,v 1.9 2003-11-10 01:00:33 phil Exp $
 #ifndef MULTICAMADAORTH
 #define MULTICAMADAORTH
 
@@ -41,6 +41,10 @@ class TPZMulticamadaOrthotropic {
   REAL fZMin, fZMax;
   //  double fQuantPlacas;
   REAL fMX[3],fMY[3],fMXY[3],fQX[3],fQY[3],fNX[3],fNY[3],fNXY[3];
+  REAL fdMXdX[3],fdMXdY[3],fdMYdX[3],fdMYdY[3],fdMXYdX[3],fdMXYdY[3],
+     fdQXdX[3],fdQXdY[3],fdQYdX[3],fdQYdY[3],fdNXdX[3],fdNXdY[3],fdNYdX[3],fdNYdY[3],fdNXYdX[3],fdNXYdY[3];
+  int fLinearX,fLinearY;
+  TPZManVector<REAL,3> fDirx, fDiry;
 
 
 
@@ -108,15 +112,28 @@ class TPZMulticamadaOrthotropic {
   void SetQX(REAL QX) {
     fQX[0] = QX;
     fQX[2] = QX;
+    fdMXdX[0] = QX;
+    fdMXdX[2] = QX;
+    if(QX != 0.) fLinearX = 1;
+    else fLinearX = 0;
   }
 
   void SetQY(REAL QY) {
     fQY[0] = QY;
     fQY[2] = QY;
+    fdMYdY[0] = QY;
+    fdMYdY[2] = QY;
+    if(QY != 0.) fLinearY = 1;
+    else fLinearY = 0;
+
   }
 
   TPZGeoMesh *GeoMesh(){return fGeoMesh;}
 
   TPZCompMesh *CompMesh(){return fCompMesh;}
+
+  void PrintTensors(ostream &out);
+
+  void PrintCenterForces(ostream &out);
 };
 #endif

@@ -95,6 +95,16 @@ void TPZMatOrthotropic::Print(ostream &out) {
   out << "vxy = " << fVxy << "\tvyx = " << fVyx << endl;
   out << "gxy = " << fGxy << "\tgyz = " << fGyz << "\tgzx = " << fGzx << endl;
   out << "numnomvar = " << fNumNom << endl; 
+  out << "\n>>>>>>>>>>>>>> MATRIZES KIJ <<<<<<<<<<<<<<<<<<\n\n";
+  fKXX.Print("KXX",out);  
+  fKXY.Print("KXY",out);  
+  fKXZ.Print("KXZ",out);  
+  fKYX.Print("KYX",out);  
+  fKYY.Print("KYY",out);  
+  fKYZ.Print("KYZ",out);  
+  fKZX.Print("KZX",out);  
+  fKZY.Print("KZY",out);  
+  fKZZ.Print("KZZ",out);  
          
   TPZMaterial::Print(out);
 }
@@ -135,16 +145,16 @@ void TPZMatOrthotropic::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REA
 	 kzy = R*(fKZY*Rt); 
 	 kzz = R*(fKZZ*Rt); 
 
-/* 	 MatrizesK << "\n>>>>>>>>>>>>>> MATRIZES KIJ <<<<<<<<<<<<<<<<<<\n\n";  */
-/* 	 kxx.Print("KXX",MatrizesK);  */
-/* 	 kxy.Print("KXY",MatrizesK);  */
-/*       kxz.Print("KXZ",MatrizesK);  */
-/* 	 kyx.Print("KYX",MatrizesK);  */
-/* 	 kyy.Print("KYY",MatrizesK);  */
-/*       kyz.Print("KYZ",MatrizesK);  */
-/* 	 kzx.Print("KZX",MatrizesK);  */
-/* 	 kzy.Print("KZY",MatrizesK);  */
-/*       kzz.Print("KZZ",MatrizesK);  */
+ 	 MatrizesK << "\n>>>>>>>>>>>>>> MATRIZES KIJ <<<<<<<<<<<<<<<<<<\n\n";
+ 	 kxx.Print("KXX",MatrizesK);  
+ 	 kxy.Print("KXY",MatrizesK);  
+       kxz.Print("KXZ",MatrizesK);  
+ 	 kyx.Print("KYX",MatrizesK);  
+ 	 kyy.Print("KYY",MatrizesK);  
+       kyz.Print("KYZ",MatrizesK);  
+ 	 kzx.Print("KZX",MatrizesK);  
+ 	 kzy.Print("KZY",MatrizesK);  
+       kzz.Print("KZZ",MatrizesK);  
 
    for( int in = 0; in < phr; in++ ) {
       ef(3*in, 0)   += weight * phi(in, 0) * fXf(0,0);

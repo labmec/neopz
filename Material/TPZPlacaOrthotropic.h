@@ -1,3 +1,5 @@
+// -*- c++ -*-
+// $Id: TPZPlacaOrthotropic.h,v 1.5 2003-11-10 01:00:33 phil Exp $
 #ifndef PLACAORTHOTROPIC
 #define PLACAORTHOTROPIC
 #include "pzvec.h"
@@ -33,12 +35,34 @@ class TPZPlacaOrthotropic {
   TPZPlacaOrthotropic(TPZGeoEl *gel,REAL zmin, REAL zmax);
   /*destrutor*/
   ~TPZPlacaOrthotropic(){}
-  /**devolve o tensor de tensões da placa*/
-  void Tensor(REAL ksi, TPZFMatrix &T);
+  /**devolve o tensor de tensões da placa
+   * @param ksi ponto no espaco parametrico
+   */
+  void Tensor(TPZVec<REAL> &ksi, TPZFMatrix &T);
   /**Dados dois vetores n1 e n2 retorna o momento*/
   REAL Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &direction);
   /**Dados dois vetores n1 e n2 retorna a forca*/
   REAL Force(TPZVec<REAL> &normal, TPZVec<REAL> &direction);
+
+  /**
+   * gradiente do momento na direcao indicada por graddir (a direcao e dada em espaco parametrico)
+   * a derivada e devolvida em espaco real
+   */
+  REAL GradMoment(REAL zref, TPZVec<REAL> &graddir, TPZVec<REAL> &normal, TPZVec<REAL> &direction);
+
+  /**
+   * gradiente da forca na direcao indicada por graddir (a direcao e dada em espaco parametrico)
+   * a derivada e devolvida em espaco real
+   */
+  REAL GradForce(TPZVec<REAL> &graddir, TPZVec<REAL> &normal, TPZVec<REAL> &direction);
+
+  /**
+   * gradiente do tensor na direcao indicada por graddir (a direcao e dada em espaco parametrico)
+   * a derivada e devolvida em espaco real
+   */
+  void GradTensor(TPZVec<REAL> &graddir, TPZVec<REAL> &ksi,  TPZFMatrix &gradtensor);
+
+  void PrintTensors(ostream &out);
   
   REAL Height(){return fH;}
 
