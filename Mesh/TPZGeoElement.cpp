@@ -154,7 +154,7 @@ TPZGeoElement<TShape,TGeo,TRef>::SubElement(int is){
     cout << "TPZGeoElement::SubElement index error is= " << is << endl;;
   }
   if(fSubEl[is] == -1) return 0;
-  return Mesh()->ElementVec()[fSubEl[is]];
+  return this->Mesh()->ElementVec()[fSubEl[is]];
 }
 
 template<class TShape, class TGeo, class TRef>

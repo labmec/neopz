@@ -67,7 +67,7 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
 {
 
           // message #1.3 to fFront:TPZFront
-          fFront.AddKel(elmat, destinationindex);
+          this->fFront.AddKel(elmat, destinationindex);
     /*      cout << "destination index" << endl;
           int i;
           for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
@@ -76,7 +76,7 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
           elmat.Print("Element Matrix");
           */
 		int mineq, maxeq;
-		EquationsToDecompose(destinationindex, mineq, maxeq);
+		this->EquationsToDecompose(destinationindex, mineq, maxeq);
 		TPZEqnArray *AuxEqn = new TPZEqnArray;
 		if(maxeq >= mineq) {
 //               if(!(maxeq%10)){
@@ -84,11 +84,11 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
 //	               cout.flush();
  //              }
 
-			fFront.DecomposeEquations(mineq,maxeq,*AuxEqn);
-			CheckCompress();
+			this->fFront.DecomposeEquations(mineq,maxeq,*AuxEqn);
+			this->CheckCompress();
 			pthread_mutex_lock(&fwritelock);
 			fEqnStack.Push(AuxEqn);
-			if(maxeq == Rows()-1){
+			if(maxeq == this->Rows()-1){
 	               cout << "Decomposition finished" << endl;
                     cout.flush();
      			FinishWriting();
@@ -97,12 +97,12 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
 			pthread_mutex_unlock(&fwritelock);
 			pthread_cond_signal(&fwritecond);
 		}
-		fDecomposed = fFront.GetDecomposeType();
+		this->fDecomposed = this->fFront.GetDecomposeType();
 } 
 template<class store, class front>
 void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex)
 {
-	fFront.AddKel(elmat, sourceindex, destinationindex);
+	this->fFront.AddKel(elmat, sourceindex, destinationindex);
 //	EquationsToDecompose(destinationindex);
  //         cout << "AddKel::destination index 2" << endl;
 //          for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
@@ -110,7 +110,7 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
  //         cout.flush();
 //          elmat.Print("AddKel: Element Matrix 2");
 	int mineq, maxeq;
-	EquationsToDecompose(destinationindex, mineq, maxeq);
+	this->EquationsToDecompose(destinationindex, mineq, maxeq);
 	TPZEqnArray *AuxEqn = new TPZEqnArray;
 	if(maxeq >= mineq) {
 //	     if(!(maxeq%10)){
@@ -118,26 +118,26 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
 //	          cout.flush();
 //          }
 
-		fFront.DecomposeEquations(mineq,maxeq,*AuxEqn);
-		CheckCompress();
+		this->fFront.DecomposeEquations(mineq,maxeq,*AuxEqn);
+		this->CheckCompress();
 		//fStorage.AddEqnArray(&AuxEqn);
 		//adds an equation to a stack!!!
 		//some sort of lock here
 //          fEqnStack->Push(&AuxEqn);
     		pthread_mutex_lock(&fwritelock);
     		fEqnStack.Push(AuxEqn);
-		if(maxeq == Rows()-1){
+		if(maxeq == this->Rows()-1){
             //check if writeing is over and closes file
                cout << endl << "Decomposition finished" << endl;
                cout.flush();
 			FinishWriting();
-			fFront.Reset(0);
+			this->fFront.Reset(0);
 			//fStorage.ReOpen();
 		}
     		pthread_mutex_unlock(&fwritelock);
      	pthread_cond_signal(&fwritecond);
 	}
-	fDecomposed = fFront.GetDecomposeType();
+	this->fDecomposed = this->fFront.GetDecomposeType();
 }
 
 template<class store, class front>
