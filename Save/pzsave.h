@@ -320,7 +320,7 @@ TPZSaveable *Restore(TPZStream &buf, void *context) {
 
 template<class T, int N>
 class TPZRestoreClass {
-
+public:
 TPZRestoreClass()
 {
   std::string func_name = __PRETTY_FUNCTION__;
