@@ -82,6 +82,7 @@ void TPZMaterial::Clone(TPZAdmChunkVector<TPZMaterial *> &matvec) {
    }
    int vecpos = matvec.AllocateNewElement();
    TPZMaterial *newmat = NewMaterial();
+   newmat->SetForcingFunction(TPZMaterial::fForcingFunction);
    matvec[vecpos] = newmat;
 }
 
