@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.22 2004-02-26 22:48:09 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.23 2004-03-30 18:19:20 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -199,7 +199,7 @@ void TPZEulerConsLaw2::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &a
     Solout[0] = sqrt(veloc/ro2);
     return;
   } else if(var == 7) {
-    int nstate = NStateVariables();
+//    int nstate = NStateVariables();
     Solout.Resize(1);
     REAL cspeed;
     REAL us;
@@ -712,9 +712,13 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
 
   int nstate = NStateVariables();
   T vpn=0.;
-  T us, c;
+  T us, un, c;
   REAL Mach, temp;
   int i;
+  //Riemann Invariants
+  T w1, w2, w5, uninf, usinf,
+    cghost, usghost, unghost, p;
+  REAL cinf;
 
   switch (bc.Type()){
   case 3://Dirichlet: nada a fazer a CC é a correta
@@ -724,15 +728,15 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
     for(i=0;i<nstate; i++) solR[i] = solL[i];
     break;
   case 5://condi¢ão de parede
-    for(i=1;i<nstate-1;i++) vpn += solL[i]*normal[i-1];//v.n
-    for(i=1;i<nstate-1;i++) solR[i] = solL[i] - 2.0*vpn*normal[i-1];
+    for(i=1;i<nstate-1;i++) vpn += solL[i]*T(normal[i-1]);//v.n
+    for(i=1;i<nstate-1;i++) solR[i] = solL[i] - T(2.0*normal[i-1])*vpn;
     solR[0] = solL[0];
     solR[nstate-1] = solL[nstate-1];
     break;
   case 6://não refletivas (campo distante)
     for(i=0;i<nstate;i++) solR[i] = solL[i];
     break;
-  case 7:// INLET
+  case 7:// INLET (Dirichlet using Mach)
     Mach = bc.Val2().operator()(1,0);
     solR[0] = bc.Val2().operator()(0,0);//solL[0];
     solR[nstate-1] = bc.Val2().operator()(nstate - 1,0);
@@ -742,8 +746,12 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
               ( solR[0] * (2 + temp)) );
 
     for(i=1;i<nstate-1;i++) solR[i] = - us * normal[i-1];
+
+/*    solR[nstate-1] = bc.Val2().operator()(nstate - 1,0)/(fGamma -1.) +
+                     solR[0] * us * us / 2.;*/
+
     break;
-  case 8:// OUTLET
+  case 8:// OUTLET (Dirichlet using Mach)
     Mach = bc.Val2().operator()(1,0);
     if(bc.Val2().operator()(0,0) == 0.)
     {
@@ -752,20 +760,206 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
     {
       solR[0] = bc.Val2().operator()(0,0);//solL[0];
     }
-    if(bc.Val2().operator()(nstate - 1,0) == 0.)
-    {
-      solR[nstate - 1] = solL[nstate - 1];
-    }else
-    {
-        solR[nstate-1] = bc.Val2().operator()(nstate - 1,0);
-    }
 
     temp = Mach * Mach * fGamma * (fGamma - 1);
-    us = sqrt(2 * temp * solR[nstate-1] /
-              ( solR[0] * (2 + temp)) );
+    us = sqrt(T(2.) * temp * solR[nstate-1] /
+              ( solR[0] * (T(2.) + temp)) );
 
     for(i=1;i<nstate-1;i++) solR[i] = us * normal[i-1];
     break;
+  case 9:// INFLOW/OUTFLOW (dedpending on direction of internal
+         // velocity vector.
+         // Inputs are in terms of primitive variables
+         // rho, Mach, p
+
+    // computing normal velocity and speed norm
+    un = 0.;
+    us = 0.;
+    Mach = 0.;
+    for(i = 1; i < nstate-1; i++)
+    {
+       un += solL[i]/solL[0]*normal[i-1];
+       us += solL[i] * solL[i] / solL[0] / solL[0];
+       Mach += bc.Val2()(i,0)*bc.Val2()(i,0);
+    }
+    us = sqrt(us);
+    Mach = sqrt(Mach);
+
+    // cinf = sqrt(gamma p / rho)
+    cinf = sqrt(fGamma * bc.Val2()(nstate-1,0)/bc.Val2()(0,0));
+
+    //computing the pressure
+    // p = (gamma - 1.) * (rhoe - rho*vel^2 / 2)
+    p = (fGamma - 1.) * (solL[nstate - 1] - solL[0] * us * us / T(2.));
+    //c speed
+    c = sqrt(fGamma * p / solL[0]);
+
+    usinf = /*bc.Val2()(1,0)*/ Mach * cinf;
+    uninf = un / us * usinf;
+
+    if(un < 0.)// Inflow
+    {
+       if(/*us>c*/ Mach >= 1.)
+       {//supersonic
+        // all Riemann invariants retain their imposed values
+          solR[0] = bc.Val2()(0,0);
+          // rho vel = rho * Mach * c * u_directioni / us
+          for(i = 1; i < nstate-1; i++)
+             solR[i] = bc.Val2()(0,0) *
+                       usinf *
+		       solL[i]/solL[0] / us; // versor (direction)
+          // rhoe = p / (gamma - 1) + rho * vel*vel/2
+          solR[nstate-1] = bc.Val2()(nstate-1,0) / T(fGamma - 1.) +
+                         bc.Val2()(0,0) * usinf * usinf / T(2.);
+       }
+       else
+       {//subsonic
+        // Invariants w1 and w2 are imposed, w5 computed
+          w1 = uninf - T(2.) * cinf/ T(fGamma - 1.);
+	  // Modified w2 invariant: w2 = p/rho^(gamma-1)
+	  // or w2 = c^2/(gamma * rho^(gamma-1))
+	  w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), fGamma - 1.));
+	  // w5 computed based on flow state
+	  w5 = un + T(2.) * c / T(fGamma - 1.);
+
+          // computing ghost values
+	  cghost = (w5 - w1) * T((fGamma - 1.)/4.);
+	  solR[0] = pow(cghost * cghost / (T(fGamma) * w2), 1./(fGamma - 1.));
+	  unghost = (w1 + w5) / T(2.);
+	  for(i = 1; i < nstate - 1; i++)
+	     solR[i] = solR[0]  // rho
+	               * unghost / un *  // scale factor
+	               solL[i] / solL[0]; // element velocity component
+          usghost = us / un * unghost;
+
+	  // rhoe = rho * (c^2 / (gamma(gamma -1)) + vel^2/2)
+	  solR[nstate - 1] = solR[0] * (
+	                     cghost * cghost /T(fGamma * (fGamma - 1.)) +
+			     usghost * usghost / T(2.));
+       }
+    }else
+    { // Outflow
+       if(us>c)
+       { // supersonic: no BC at all are required
+          for(i = 0; i < nstate; i++)
+	     solR[i] = solL[i];
+       }else
+       { // subsonic outlet
+         // only the condition w1 referring to the first Riemann invariant
+	 // is imposed. As a rule, the imposition of pressure is applied
+	 // instead.
+
+         solR[0] = solL[0] * pow(bc.Val2()(nstate-1,0)/p, 1./fGamma);
+
+	 cghost = sqrt(fGamma * bc.Val2()(nstate-1,0)/ solR[0]);
+
+	 unghost = (c - cghost) * T(2./(fGamma - 1.));
+         usghost = 0.;
+	 // ughost = u + 2.*(c - cghost)/(fGamma - 1.) * normal
+	 for(i = 1; i < nstate - 1; i++)
+	 {
+	    solR[i] = solR[0] * // rho
+	              (solL[i] / solL[0] + // element vel
+		       unghost * normal[i-1]); // ghost correction
+	    usghost += solR[i] * solR[i] / solR[0] / solR[0];
+	 }
+	 usghost = sqrt(usghost);
+
+         // rhoe = p / (gamma - 1) + rho * vel*vel/2
+	 solR[nstate-1] = T(bc.Val2()(nstate-1,0)/(fGamma - 1.)) +
+	                solR[0] * usghost * usghost / T(2.);
+
+       }
+/*
+       if(fabs(val(un)) < .01*val(us))
+       {
+          if(un < 0.)cout << "\ntangent inlet";
+	  if(un > 0.)cout << "\ntangent outlet";
+	  if(un == 0.) cout << "\n tangent pure";
+       }
+*/
+    }
+  break;
+
+
+  case 10:// Directional INFLOW
+         // velocity vector.
+         // Inputs are in terms of primitive variables
+         // rho, Machx, Machy, Machz, p
+
+    // computing normal velocity and speed norm
+    un = 0.;
+    us = 0.;
+    Mach = 0.;
+    for(i = 1; i < nstate-1; i++)
+    {
+       un += solL[i]/solL[0]*normal[i-1];
+       us += solL[i] * solL[i] / solL[0] / solL[0];
+       Mach += bc.Val2()(i,0)*bc.Val2()(i,0);
+    }
+    us = sqrt(us);
+    Mach = sqrt(Mach);
+
+    // cinf = sqrt(gamma p / rho)
+    cinf = sqrt(fGamma * bc.Val2()(nstate-1,0)/bc.Val2()(0,0));
+
+    //computing the pressure
+    // p = (gamma - 1.) * (rhoe - rho*vel^2 / 2)
+    p = (fGamma - 1.) * (solL[nstate - 1] - solL[0] * us * us / T(2.));
+    //c speed
+    c = sqrt(fGamma * p / solL[0]);
+
+    usinf = /*bc.Val2()(1,0)*/ Mach * cinf;
+    uninf = un / us * usinf;
+
+    if(un < 0.)// Inflow
+    {
+       if(/*us>c*/ Mach >= 1.)
+       {//supersonic
+        // all Riemann invariants retain their imposed values
+          solR[0] = bc.Val2()(0,0);
+          // rho vel = rho * Mach * c * u_directioni / us
+          for(i = 1; i < nstate-1; i++)
+             solR[i] = bc.Val2()(0,0) *
+                       usinf *
+		       solL[i]/solL[0] / us; // versor (direction)
+          // rhoe = p / (gamma - 1) + rho * vel*vel/2
+          solR[nstate-1] = bc.Val2()(nstate-1,0) / T(fGamma - 1.) +
+                         bc.Val2()(0,0) * usinf * usinf / T(2.);
+       }
+       else
+       {//subsonic
+        // Invariants w1 and w2 are imposed, w5 computed
+          w1 = uninf - T(2.) * cinf/ T(fGamma - 1.);
+	  // Modified w2 invariant: w2 = p/rho^(gamma-1)
+	  // or w2 = c^2/(gamma * rho^(gamma-1))
+	  w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), fGamma - 1.));
+	  // w5 computed based on flow state
+	  w5 = un + T(2.) * c / T(fGamma - 1.);
+
+          // computing ghost values
+	  cghost = (w5 - w1) * T((fGamma - 1.)/4.);
+	  solR[0] = pow(cghost * cghost / (T(fGamma) * w2), 1./(fGamma - 1.));
+	  unghost = (w1 + w5) / T(2.);
+	  usghost = us / un * unghost;
+	  for(i = 1; i < nstate - 1; i++)
+	     solR[i] = solR[0]  // rho
+	               * usghost *  // velocity
+	               bc.Val2()(i,0) / Mach; // element velocity component
+
+
+	  // rhoe = rho * (c^2 / (gamma(gamma -1)) + vel^2/2)
+	  solR[nstate - 1] = solR[0] * (
+	                     cghost * cghost /T(fGamma * (fGamma - 1.)) +
+			     usghost * usghost / T(2.));
+       }
+    }else
+    { // Outflow
+       cout << "\nError: Outflow in inflow BC\n";
+
+    }
+  break;
+
   default:
     for(i=0;i<nstate;i++) solR[i] = 0.;
   }
@@ -872,7 +1066,7 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
          ef(index,0) +=
 	    flux[i_state].val() * phiL(i_shape,0) * constant;
 	 for(j = 0; j < nDer; j++)
-	    ek(index, j) -= flux[i_state].dx(j) *
+	    ek(index, j) -= flux[i_state].fastAccessDx(j) *
 	       phiL(i_shape,0) * constant;
       }
 
@@ -886,7 +1080,7 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
          ef(index,0) -=
 	    flux[i_state].val() * phiR(i_shape,0) * constant;
 	 for(j = 0; j < nDer; j++)
-	    ek(index, j) += flux[i_state].dx(j) *
+	    ek(index, j) += flux[i_state].fastAccessDx(j) *
 	       phiR(i_shape,0) * constant;
       }
 }
@@ -957,6 +1151,68 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 
    Roe_Flux(FADsolL, FADsolR, normal, fGamma, FADflux);
 
+   REAL phiL_i_shape_constant,
+        phiR_i_shape_constant,
+	temp;
+/*
+   // Contribution referring to the left element
+   for(i_shape = 0; i_shape < nShapeL; i_shape ++)
+   {
+      phiL_i_shape_constant = phiL(i_shape,0) * constant;
+
+      for(i_state = 0; i_state < nState; i_state++)
+      {
+         int index = i_shape*nState + i_state;
+         ef(index,0) +=
+	    FADflux[i_state].val() * phiL_i_shape_constant;
+	 for(k = 0; k < nState; k++)
+	 {
+	    temp = FADflux[i_state].fastAccessDx(k) *
+	           phiL_i_shape_constant;
+	    for(j = 0; j < nShapeL; j++)
+	       ek(index, j * nState + k) -=
+	                       temp * phiL(j);
+
+	    temp = FADflux[i_state].fastAccessDx(k + nState) *
+	           phiL_i_shape_constant;
+
+	    for(j = 0; j < nShapeR; j++)
+	       ek(index, j*nState + k + nDerL) -=
+	                       temp * phiR(j);
+	  }
+      }
+   }
+   // Contribution referring to the right element
+   // REM: The contributions are negative in comparison
+   // to the left elements: opposed normals
+   for(i_shape = 0; i_shape < nShapeR; i_shape ++)
+   {
+      phiR_i_shape_constant = phiR(i_shape,0) * constant;
+
+      for(i_state = 0; i_state < nState; i_state++)
+      {
+         int index = (nShapeL + i_shape) * nState + i_state;
+         ef(index,0) -=
+	    FADflux[i_state].val() * phiR_i_shape_constant;
+	 for(k = 0; k < nState; k++)
+	 {
+	    temp = FADflux[i_state].fastAccessDx(k) *
+	           phiR_i_shape_constant;
+	    for(j = 0; j < nShapeL; j++)
+	       ek(index, j * nState + k) +=
+	                       temp * phiL(j);
+
+	    temp = FADflux[i_state].fastAccessDx(k + nState) *
+	           phiR_i_shape_constant;
+	    for(j = 0; j < nShapeR; j++)
+	       ek(index, j * nState + k + nDerL) +=
+	                       temp * phiR(j);
+	 }
+      }
+   }
+
+*/
+
    // Contribution referring to the left element
    for(i_shape = 0; i_shape < nShapeL; i_shape ++)
       for(i_state = 0; i_state < nState; i_state++)
@@ -969,14 +1225,14 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 	    for(j = 0; j < nShapeL; j++)
 	       ek(index, j * nState + k) -=
 	                       FADflux[i_state].fastAccessDx(k) *
-	                       phiL(j) * /*df/dUl*/
-	                       phiL(i_shape,0) /*test function*/ *
+	                       phiL(j) * //df/dUl
+	                       phiL(i_shape,0) * //test function
 			       constant;
 	    for(j = 0; j < nShapeR; j++)
 	       ek(index, j*nState + k + nDerL) -=
 	                       FADflux[i_state].fastAccessDx(k + nState) *
-	                       phiR(j) * /*df/dUl*/
-	                       phiL(i_shape,0) /*test function*/ *
+	                       phiR(j) * //df/dUl
+	                       phiL(i_shape,0) * //test function
 			       constant;
 	  }
       }
@@ -995,17 +1251,18 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 	    for(j = 0; j < nShapeL; j++)
 	       ek(index, j * nState + k) +=
 	                       FADflux[i_state].fastAccessDx(k) *
-	                       phiL(j) * /*df/dUl*/
-	                       phiR(i_shape,0) /*test function*/ *
+	                       phiL(j) * //df/dUl
+	                       phiR(i_shape,0) * //test function
 			       constant;
 	    for(j = 0; j < nShapeR; j++)
 	       ek(index, j * nState + k + nDerL) +=
 	                       FADflux[i_state].fastAccessDx(k + nState) *
-	                       phiR(j) * /*df/dUl*/
-	                       phiR(i_shape,0) /*test function*/ *
+	                       phiR(j) * //df/dUl
+	                       phiR(i_shape,0) * //test function
 			       constant;
 	 }
       }
+
 }
 
 #endif

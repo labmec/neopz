@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.17 2004-02-12 18:46:27 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.18 2004-03-30 18:19:20 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -880,13 +880,13 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
 	      flux[0], flux[1], flux[2], flux[3], flux[4]);
 
    }else if(nState == 4)
-   {/*
-      Roe_Flux(solR[0], solR[1], solR[2], solR[3],
+   {
+/*      Roe_Flux(solR[0], solR[1], solR[2], solR[3],
               solL[0], solL[1], solL[2], solL[3],
 	      -normal[0], -normal[1],
 	      gamma,
 	      flux[0], flux[1], flux[2], flux[3]);
-	      */
+*/
 
       Roe_Flux(solL[0], solL[1], solL[2], solL[3],
               solR[0], solR[1], solR[2], solR[3],
