@@ -35,7 +35,7 @@ void TPZStepSolver::ResetMatrix()
   /**
   This method gives a preconditioner to share a matrix with the referring solver object
   */
-void TPZStepSolver::SetMatrix(TPZMatrixSolver *solver)
+/*void TPZStepSolver::SetMatrix(TPZMatrixSolver *solver)
 {
   switch(fSolver)
   {
@@ -51,7 +51,7 @@ void TPZStepSolver::SetMatrix(TPZMatrixSolver *solver)
       ;    
   }
 }
-  
+*/  
 
 void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual){
   if(!Matrix()) {

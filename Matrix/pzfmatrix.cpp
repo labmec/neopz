@@ -389,6 +389,12 @@ void TPZFMatrix::ZAXPY(const REAL alpha,const TPZFMatrix &p) {
 }
 
 void TPZFMatrix::TimesBetaPlusZ(const REAL beta,const TPZFMatrix &z) {
+#ifdef USING_ATLAS
+  int size = fRow*fCol;
+  cblas_dscal(size,beta,fElem,1);
+  cblas_daxpy(size,1.,z.fElem,1,fElem,1);
+#else
+
 	REALPtr pt = fElem,  ptlast = fElem + fRow*fCol;
 	REALPtr pz = z.fElem;
 //	while(pt < ptlast) *pt++ *= (beta) + *pz++;
@@ -396,7 +402,7 @@ void TPZFMatrix::TimesBetaPlusZ(const REAL beta,const TPZFMatrix &z) {
 		*pt *= (beta);
 		*pt++ += *pz++;
 	}
-
+#endif
 }
 
 

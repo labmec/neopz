@@ -51,6 +51,7 @@ class TPZSYsmpMatrix : public TPZMatrix {
 		const REAL overrelax, REAL &tol,
 		const int FromCurrent = 0,const int direction = 1 ) const;
 
+
  private:
 
   void ComputeDiagonal();

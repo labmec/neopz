@@ -69,7 +69,7 @@ void TPZSequenceSolver::ResetMatrix()
   /**
   This method gives a preconditioner to share a matrix with the referring solver object
   */
-void TPZSequenceSolver::SetMatrix(TPZMatrixSolver *solver)
+/*void TPZSequenceSolver::SetMatrix(TPZMatrixSolver *solver)
 {
     int nums = fSolvers.NElements();
     int s;
@@ -78,3 +78,4 @@ void TPZSequenceSolver::SetMatrix(TPZMatrixSolver *solver)
     }
     ShareMatrix(*solver);
 }
+*/

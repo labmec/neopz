@@ -54,7 +54,7 @@ virtual  void SetMatrix(TPZMatrix *Refmat)
   /**
   This method gives a preconditioner to share a matrix with the referring solver object
   */
-  virtual void SetMatrix(TPZMatrixSolver *solver);
+//  virtual void SetMatrix(TPZMatrixSolver *solver);
   
     void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
 

@@ -590,7 +590,7 @@ void TPZMatrix::SolveSOR(int & numiterations, const TPZFMatrix &F,
 		cout << "TPZMatrix::SolveSOR called with residual and F equal, no solution\n";
 		return;
 	}
-	REAL res = 2*tol;;
+	REAL res = 2*tol+1.;
 	if(residual) res = Norm(*residual);
 	if(!FromCurrent) {
 		result.Zero();
@@ -601,7 +601,7 @@ void TPZMatrix::SolveSOR(int & numiterations, const TPZFMatrix &F,
 	int it;
 	if(direction == -1) {
 		ifirst = r-1;  //misael
-		ilast = 0;
+		ilast = -1;
 		iinc = -1;
 	}
 	REAL eqres;

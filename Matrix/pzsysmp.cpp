@@ -258,3 +258,4 @@ void TPZSYsmpMatrix::SolveSOR( int &numiterations,const TPZFMatrix &rhs, TPZFMat
   numiterations = iteration;
   if(residual) Residual(x,rhs,*residual);
 }
+

@@ -56,6 +56,10 @@ public:
   virtual const REAL &GetVal(const int row,const int col ) const;
   // Get the matrix entry at (row,col) without bound checking
 
+  int NumTerms() 
+  {
+    return fIA[Rows()];
+  }
 
   void PutVal(const int row, const int col, REAL Value);
 
@@ -75,6 +79,26 @@ public:
   virtual void Print(const char *title, ostream &out = cout , const MatrixOutputFormat form = EFormatted) const;
   // Print the matrix along with a identification title
 
+  /**
+   * @name Solvers
+   * Linear system solvers. \n
+   * For symmetric decompositions lower triangular matrix is used. \n
+   * Solves a system A*X = B returning X in B
+   */  
+  //@{
+  /**
+   * Solves the linear system using Jacobi method. \n
+   * @param numinterations The number of interations for the process.
+   * @param F The right hand side of the system.
+   * @param result The solution.
+   * @param residual Returns F - A*U which is the solution residual.
+   * @param scratch Available manipulation area on memory.
+   * @param tol The tolerance value.
+   * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
+   */
+  virtual void SolveJacobi(int & numiterations, const TPZFMatrix & F, TPZFMatrix & result,
+			   TPZFMatrix * residual, TPZFMatrix & scratch, REAL & tol, const int FromCurrent = 0) const;
+  
   void SolveSOR(int &numiterations, const TPZFMatrix &rhs, TPZFMatrix &x,
 		TPZFMatrix *residual, TPZFMatrix &scratch,
 		const REAL overrelax, REAL &tol,

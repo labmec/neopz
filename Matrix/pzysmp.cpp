@@ -159,7 +159,7 @@ const REAL & TPZFYsmpMatrix::GetVal(const int row,const int col ) const {
 //
 // ****************************************************************************
 
-void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
+void TPZFYsmpMatrix::MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y,
 			     TPZFMatrix &z,
 			     const REAL alpha,const REAL beta,const int opt,const int stride ) const {
   // computes z = beta * y + alpha * opt(this)*x
@@ -194,36 +194,45 @@ void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
     }
   }
   // Compute alpha * A * x
-  for(ic=0; ic<xcols; ic++) {
-    if(opt == 0) {
-
-      for(ir=0; ir<Rows(); ir++) {
-#ifndef USING_BLAS
-	for(sum = 0.0, icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
-	  if(fJA[icol]==-1) break;//Checa a existência de dado ou não
-	  sum += fA[icol] * x.g((fJA[icol])*stride,ic);
-	}
-#endif
-#ifdef USING_BLAS
-	int size = fIA[ir+1] - fIA[ir];
-	sum = cblas_ddoti(size, &fA[fIA[ir]], &fJA[fIA[ir]],
-                   &x.g(0,ic));
-#endif
-	z(ir*stride,ic) += alpha * sum;
+  if(xcols == 1 && stride == 1 && opt == 0)
+  {
+    for(ir=0; ir<r; ir++) {
+      int icolmin = fIA[ir];
+      int icolmax = fIA[ir+1];
+      const REAL *xptr = &(x.g(0,0));
+      REAL *Aptr = fA;
+      int *JAptr = fJA;
+      for(sum = 0.0, icol=icolmin; icol<icolmax; icol++ ) {
+        sum += Aptr[icol] * xptr[JAptr[icol]];
       }
+      z(ir,0) += alpha * sum;
     }
-
-  // Compute alpha * A^T * x
-    else {
-
-      int jc;
-      int icol;
-      for(ir=0; ir<Rows(); ir++) {
-		for(icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
-		  if(fJA[icol]==-1) break; //Checa a existência de dado ou não
-		  jc = fJA[icol];
-		  z(jc*stride,ic) += alpha * fA[icol] * x.g(jc*stride,ic);
-		}
+  }
+  else 
+  {
+    for(ic=0; ic<xcols; ic++) {
+      if(opt == 0) {
+  
+        for(ir=0; ir<Rows(); ir++) {
+    for(sum = 0.0, icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
+      sum += fA[icol] * x.g((fJA[icol])*stride,ic);
+    }
+    z(ir*stride,ic) += alpha * sum;
+        }
+      }
+  
+    // Compute alpha * A^T * x
+      else {
+  
+        int jc;
+        int icol;
+        for(ir=0; ir<Rows(); ir++) {
+      for(icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
+        if(fJA[icol]==-1) break; //Checa a existência de dado ou não
+        jc = fJA[icol];
+        z(jc*stride,ic) += alpha * fA[icol] * x.g(jc*stride,ic);
+      }
+        }
       }
     }
   }
@@ -235,7 +244,7 @@ void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 //
 // ****************************************************************************
 
-void TPZFYsmpMatrix::MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y,
+void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			     TPZFMatrix &z,
 			     const REAL alpha,const REAL beta,const int opt,const int stride ) const {
   // computes z = beta * y + alpha * opt(this)*x
@@ -278,7 +287,7 @@ void TPZFYsmpMatrix::MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y,
    int fOpt;
    int fStride;
 */
-  const int numthreads = 4;
+  const int numthreads = 2;
   pthread_t allthreads[numthreads];
   TPZMThread alldata[numthreads];
   int res[numthreads];
@@ -370,8 +379,8 @@ void TPZFYsmpMatrix::SolveSOR( int &numiterations, const TPZFMatrix &rhs, TPZFMa
     int ir=irStart;
     while(ir != irLast) {
       REAL xnewval=rhs.g(ir,0);
-      for(int ic=fIA[ir]-1; ic<fIA[ir+1]-1; ic++) {
-	xnewval -= fA[ic] * x(fJA[ic]-1,0);
+      for(int ic=fIA[ir]; ic<fIA[ir+1]; ic++) {
+	xnewval -= fA[ic] * x(fJA[ic],0);
       }
       eqres += xnewval*xnewval;
       x(ir,0) += overrelax*(xnewval/fDiag[ir]);
@@ -393,6 +402,69 @@ int TPZFYsmpMatrix::Zero()
    return 1;
 }
 
+  /**
+   * @name Solvers
+   * Linear system solvers. \n
+   * For symmetric decompositions lower triangular matrix is used. \n
+   * Solves a system A*X = B returning X in B
+   */  
+  //@{
+  /**
+   * Solves the linear system using Jacobi method. \n
+   * @param numinterations The number of interations for the process.
+   * @param F The right hand side of the system.
+   * @param result The solution.
+   * @param residual Returns F - A*U which is the solution residual.
+   * @param scratch Available manipulation area on memory.
+   * @param tol The tolerance value.
+   * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
+   */
+void TPZFYsmpMatrix::SolveJacobi(int & numiterations, const TPZFMatrix & F, TPZFMatrix & result,             TPZFMatrix * residual, TPZFMatrix & scratch, REAL & tol, const int FromCurrent) const
+{
+  if(!fDiag) {
+    cout << "TPZSYsmpMatrix::Jacobi cannot be called without diagonal\n";
+    numiterations = 0;
+    if(residual) {
+      Residual(result,F,*residual);
+      tol = sqrt(Norm(*residual));
+    }
+    return;
+  }
+	int c = F.Cols();
+  int r = Rows();
+	int it=0;
+	if(FromCurrent) {
+		Residual(result,F,scratch);
+  	for(int ic=0; ic<c; ic++) {
+	  	for(int i=0; i<r; i++) {
+		  	result(i,ic) += scratch(i,ic)/(fDiag)[i];
+		  }
+	  }
+	} else 
+  {
+  	for(int ic=0; ic<c; ic++) {
+	  	for(int i=0; i<r; i++) {
+		  	result(i,ic) = F.GetVal(i,ic)/(fDiag)[i];
+		  }
+	  }
+ }
+  if(it<numiterations)
+  {
+  	Residual(result,F,scratch);
+	  REAL res = Norm(scratch);
+	  for(int it=1; it<numiterations && res > tol; it++) {
+  		for(int ic=0; ic<c; ic++) {
+			  for(int i=0; i<r; i++) {
+				  result(i,ic) += (scratch)(i,ic)/(fDiag)[i];
+			  }
+		  }
+		  Residual(result,F,scratch);
+		  res = Norm(scratch);
+	  }
+ }
+	if(residual) *residual = scratch;
+}
+
 void *TPZFYsmpMatrix::ExecuteMT(void *entrydata)
 {
   TPZMThread *data = (TPZMThread *) entrydata;
@@ -401,36 +473,47 @@ void *TPZFYsmpMatrix::ExecuteMT(void *entrydata)
   int xcols = data->fX->Cols();
   int ic,ir,icol;
   // Compute alpha * A * x
-  for(ic=0; ic<xcols; ic++) {
-    if(data->fOpt == 0) {
-
-      for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
-#ifndef USING_BLAS
-	for(sum = 0.0, icol=mat->fIA[ir]; icol<mat->fIA[ir+1]; icol++ ) {
-	  if(mat->fJA[icol]==-1) break;//Checa a existência de dado ou não
-	  sum += mat->fA[icol] * data->fX->g((mat->fJA[icol])*data->fStride,ic);
-	}
-#endif
-#ifdef USING_BLAS
-	int size = mat->fIA[ir+1] - mat->fIA[ir];
-	sum = cblas_ddoti(size, &mat->fA[mat->fIA[ir]], &mat->fJA[mat->fIA[ir]],
-                   &data->fX->g(0,ic));
-#endif
-	data->fZ->operator()(ir*data->fStride,ic) += data->fAlpha * sum;
+  if(xcols == 1 && data->fStride == 1 && data->fOpt == 0)
+  {
+    for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
+      int icolmin = mat->fIA[ir];
+      int icolmax = mat->fIA[ir+1];
+      const REAL *xptr = &(data->fX->g(0,0));
+      REAL *Aptr = mat->fA;
+      int *JAptr = mat->fJA;
+      for(sum = 0.0, icol=icolmin; icol<icolmax; icol++ ) {
+        sum += Aptr[icol] * xptr[JAptr[icol]];
       }
+      data->fZ->operator()(ir,0) += data->fAlpha * sum;
     }
-
-  // Compute alpha * A^T * x
-    else {
-
-      int jc;
-      int icol;
-      for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
-		for(icol=mat->fIA[ir]; icol<mat->fIA[ir+1]; icol++ ) {
-		  if(mat->fJA[icol]==-1) break; //Checa a existência de dado ou não
-		  jc = mat->fJA[icol];
-		  data->fZ->operator()(jc*data->fStride,ic) += data->fAlpha * mat->fA[icol] * data->fX->g(jc*data->fStride,ic);
-		}
+  }
+  else 
+  {
+    for(ic=0; ic<xcols; ic++) {
+      if(data->fOpt == 0) {
+  
+        for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
+    for(sum = 0.0, icol=mat->fIA[ir]; icol<mat->fIA[ir+1]; icol++ ) {
+      sum += mat->fA[icol] * data->fX->g((mat->fJA[icol])*data->fStride,ic);
+    }
+    data->fZ->operator()(ir*data->fStride,ic) += data->fAlpha * sum;
+        }
+      }
+  
+    // Compute alpha * A^T * x
+      else {
+        cout << "This code doesn't work" << endl;
+        DebugStop();
+        exit(-1);
+        int jc;
+        int icol;
+        for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
+      for(icol=mat->fIA[ir]; icol<mat->fIA[ir+1]; icol++ ) {
+        if(mat->fJA[icol]==-1) break; //Checa a existência de dado ou não
+        jc = mat->fJA[icol];
+        data->fZ->operator()(jc*data->fStride,ic) += data->fAlpha * mat->fA[icol] * data->fX->g(jc*data->fStride,ic);
+      }
+        }
       }
     }
   }

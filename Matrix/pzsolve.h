@@ -39,7 +39,7 @@ class TPZSolver {
   /**
   This method gives a preconditioner to share a matrix with the referring solver object
   */
-  virtual void SetMatrix(TPZMatrixSolver *solver);
+//  virtual void SetMatrix(TPZMatrixSolver *solver);
 
 };
 
@@ -83,7 +83,7 @@ virtual  void SetMatrix(TPZMatrix *Refmat);
   /**
   This method gives a preconditioner to share a matrix with the referring solver object
   */
-  virtual void SetMatrix(TPZMatrixSolver *solver);
+//  virtual void SetMatrix(TPZMatrixSolver *solver);
 
   /**
      Returns a pointer to TPZMatrix

@@ -40,7 +40,7 @@ public:
   /**
   This method gives a preconditioner to share a matrix with the referring solver object
   */
-  virtual void SetMatrix(TPZMatrixSolver *solver);
+//  virtual void SetMatrix(TPZMatrixSolver *solver);
   
   void AppendSolver(TPZMatrixSolver & solve);
   
