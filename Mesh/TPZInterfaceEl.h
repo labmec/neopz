@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.19 2003-12-02 12:37:58 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.20 2004-01-23 19:13:07 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -127,7 +127,11 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * it returns the dimension from the element interface
    */
-  int Dimension() const {return TPZCompElDisc::gInterfaceDimension;}
+  int Dimension() const {
+    //return TPZCompElDisc::gInterfaceDimension;
+    //Não concordo com a linha acima. Pira
+    return this->Reference()->Dimension();
+}
 
   /**
    * Type of the element 
