@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.21 2005-01-21 20:02:57 phil Exp $
+//$Id: pzanalysis.cpp,v 1.22 2005-02-10 14:16:42 tiago Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -194,6 +194,7 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out ){
   for(int i=0;i<nel;i++) {
     TPZCompEl *el = (TPZCompEl *) elvec[i];
     if(el) {
+      errors.Fill(0.0);
       el->EvaluateError(fExact, errors, 0);
       int nerrors = errors.NElements();
       values.Resize(nerrors, 0.);
