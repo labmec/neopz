@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.7 2003-12-09 17:48:27 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.8 2004-06-23 16:29:00 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -427,7 +427,9 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
                                       TPZVec<REAL> &/*flux*/,
 				      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values, 
 				      TPZVec<REAL> normal, REAL elsize) {
+#ifndef DOS
 #warning Metodo nao funcional
+#endif
   TPZManVector<REAL,3> Lsol(1), Ldsol(3,0.), Rsol(1), Rdsol(3,0.);
 
   //<!> Phil, matei os eixos. So vai chamar InterfaceErrors um problema descontinuo
