@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.23 2004-02-09 13:01:00 phil Exp $
+// $Id: pzintel.cpp,v 1.24 2004-02-09 17:58:53 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1468,12 +1468,6 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
 //    ef.Print(*this->fMesh,cout);
 
   }
-  //--->>>
-  //Cesar 2004-02-02
-  if (fMaterial->HasForcingFunction()){
-    intrule.SetOrder(prevorder);
-  }
-  //<<<---
 }
 
 void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
