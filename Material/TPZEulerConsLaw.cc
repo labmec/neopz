@@ -47,7 +47,7 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
                                  TPZFMatrix &ek,TPZFMatrix &ef) {
 
   int phr = phi.Rows();// phi(in, 0) = phi_in  ,  dphi(i,jn) = dphi_jn/dxi
-  int i,j,k,l,p,nstate = NStateVariables();//3, 4 ou 5
+  int i,k,l,p,nstate = NStateVariables();//3, 4 ou 5
   if(fForcingFunction) {
     //na 2a iteração deve-se ter fForcingFunction = 0
     TPZManVector<REAL> res(nstate);
@@ -64,22 +64,16 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   Flux(sol,Fx,Fy,Fz);
   TPZVec<REAL> gradphi(3,0.);
   TPZFMatrix Tx(nstate,nstate),Ty(nstate,nstate),Tz(nstate,nstate);
-  TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
   TPZFMatrix DF1(nstate,nstate),DF2(nstate,nstate),DF3(nstate,nstate);
   diffusion.Tau(Tx,Ty,Tz);
-  if(1){
-    Tx.Transpose(&Trx);
-    Ty.Transpose(&Try);
-    Tz.Transpose(&Trz);
-  } else {
-    Trx = Tx;
-    Try = Ty;
-    Trz = Tz;
-  }
+//   TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
+//   Tx.Transpose(&Trx);
+//   Ty.Transpose(&Try);
+//   Tz.Transpose(&Trz);
   diffusion.GradientOfTheFlow(DF1,DF2,DF3);
   REAL timestep = TimeStep();
-  //REAL delta = diffusion.Delta();
-  REAL delta = diffusion.DeltaOtimo(),Lpl,Hkp,Pkl;
+  REAL delta = diffusion.Delta(),Lpl,Hkp,Pkl;
+  if(!fDelta) delta = diffusion.DeltaOtimo();
   TPZFMatrix divF(nstate,1),prodpoint(nstate,nstate);
   TPZVec<REAL> sum1(nstate,0.),sum2(nstate,0.);
 
@@ -110,9 +104,9 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
 	  Pkl = 0.0;
 	  for(p=0;p<nstate;p++){
 	    
-	    if(dim>0) {Hkp  = dphi(0,jn)*Trx(k,p); Lpl  = dphi(0,in)*DF1(p,l);}
-	    if(dim>1) {Hkp += dphi(1,jn)*Try(k,p); Lpl += dphi(1,in)*DF2(p,l);}
-	    if(dim>2) {Hkp += dphi(2,jn)*Trz(k,p); Lpl += dphi(2,in)*DF3(p,l);}
+	    if(dim>0) {Hkp  = dphi(0,jn)*Tx(k,p); Lpl  = dphi(0,in)*DF1(p,l);}
+	    if(dim>1) {Hkp += dphi(1,jn)*Ty(k,p); Lpl += dphi(1,in)*DF2(p,l);}
+	    if(dim>2) {Hkp += dphi(2,jn)*Tz(k,p); Lpl += dphi(2,in)*DF3(p,l);}
 	    Pkl += Hkp * Lpl;
 	    
 	  }
@@ -475,7 +469,7 @@ void TPZEulerConsLaw::Flux(TPZVec<REAL> &x,TPZVec<REAL> &Sol,TPZFMatrix &DSol,
 }
 
 
-//método ocasional para testes de implementa¢ão, verifica¢ão das integrais elementares
+//método para testes de implementa¢ão, verifica¢ão das integrais elementares
 void TPZEulerConsLaw::ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,
 				 REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,
 				      TPZFMatrix &ek,TPZFMatrix &ef) {
@@ -511,8 +505,8 @@ void TPZEulerConsLaw::ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<
     firsttime = 0;
   }
 
-  int phr = phi.Rows();// phi(in, 0) = phi_in  ,  dphi(i,jn) = dphi_jn/dxi
-  int i,nstate = NStateVariables();//3, 4 ou 5
+  //int phr = phi.Rows();// phi(in, 0) = phi_in  ,  dphi(i,jn) = dphi_jn/dxi
+  int nstate = NStateVariables();//3, 4 ou 5
   if(fForcingFunction) {
     //na 2a iteração deve-se ter fForcingFunction = 0
     TPZManVector<REAL> res(nstate);
@@ -523,46 +517,60 @@ void TPZEulerConsLaw::ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<
   if(Dimension() != dim)
     PZError << "TPZEulerConsLaw::Contribute dimension error, dimension = " << dim << endl;
 
-  TPZDiffusionConsLaw diffusion(sol,fGamma,dim,fArtificialDiffusion);
-  TPZVec<REAL> Fx(nstate),Fy(nstate),Fz(nstate);
-  Flux(sol,Fx,Fy,Fz);
-  TPZVec<REAL> gradphi(3,0.),prodpoint(nstate),divF(nstate);
-  REAL timestep = TimeStep();
-  REAL delta = diffusion.Delta();
+//   TPZDiffusionConsLaw diffusion(sol,fGamma,dim,fArtificialDiffusion);
+//   TPZVec<REAL> Fx(nstate),Fy(nstate),Fz(nstate);
+//   Flux(sol,Fx,Fy,Fz);
+//   TPZVec<REAL> gradphi(3,0.),prodpoint(nstate),divF(nstate);
+//   diffusion.GradientOfTheFlow(DF1,DF2,DF3);
+//   REAL timestep = TimeStep();
+//   //REAL delta = diffusion.Delta();
+//   REAL delta = diffusion.DeltaOtimo(),Lpl,Hkp,Pkl;
+//   TPZFMatrix divF(nstate,1),prodpoint(nstate,nstate);
+//   TPZVec<REAL> sum1(nstate,0.),sum2(nstate,0.);
 
 //   for( int in = 0; in < phr; in++ ) {
+    
+//     // w * Un
+//     for(i=0;i<nstate;i++) sum1[i] = phi(in, 0) * sol[i];
 
-//     TPZVec<REAL> sum1(nstate,0.);
-//     for(i=0;i<nstate;i++) sum1[i] = phi(in, 0) * sol[i];//fi * Un
-
-//     TPZVec<REAL> sum2(nstate,0.);//    Fn * grad fi
+//     // grad(w) . F
 //     for(i=0;i<nstate;i++){
-//       if(dim==1) sum2[i] = Fx[i] * dphi(0,in); else
-// 	if(dim==2) sum2[i] = Fx[i] * dphi(0,in) + Fy[i] * dphi(1,in); else
-// 	  if(dim==3) sum2[i] = Fx[i] * dphi(0,in) + Fy[i] * dphi(1,in) + Fz[i] * dphi(2,in);
+//       if(dim>0) sum2[i]  = Fx[i] * dphi(0,in);
+//       if(dim>1) sum2[i] += Fy[i] * dphi(1,in);
+//       if(dim>2) sum2[i] += Fz[i] * dphi(2,in);
 //     }
 
-//     //EF
+//     //EF : w * Un + deltaT * (grad(w) . F)
 //     for(i=0;i<nstate;i++)
 //       ef(in * nstate + i, 0) += weight * (EF[0] * sum1[i] + EF[1] * timestep * sum2[i]);
 
 //     //EK
-//     for(i=0;i<dim;i++) gradphi[i] = dphi(i,in);
-//     diffusion.PointOperator(gradphi,prodpoint);
+//     // w * Un+1 + (grad(w) @ T) * div F(Un+1)    
 //     for( int jn = 0; jn < phr; jn++ ) {
-//       //primeira parcela: fi * U
-//       for(i=0;i<nstate;i++)
-// 	ek(in * nstate + i, jn * nstate + i) += EK[0] * weight * phi(in,0) * phi(jn,0);
+      
+//       // DIFUSÃO + w * Un+1
+//       for(k=0;k<nstate;k++){
+// 	for(l=0;l<nstate;l++){
+	  
+// 	  Pkl = 0.0;
+// 	  for(p=0;p<nstate;p++){
+	    
+// 	    if(dim>0) {Hkp  = dphi(0,jn)*Tx(k,p); Lpl  = dphi(0,in)*DF1(p,l);}
+// 	    if(dim>1) {Hkp += dphi(1,jn)*Ty(k,p); Lpl += dphi(1,in)*DF2(p,l);}
+// 	    if(dim>2) {Hkp += dphi(2,jn)*Tz(k,p); Lpl += dphi(2,in)*DF3(p,l);}
+// 	    Pkl += Hkp * Lpl;
+	    
+// 	  }
 
-//       for(i=0;i<dim;i++) gradphi[i] = dphi(i,jn);
-//       diffusion.Divergence(gradphi,divF);
-//       //segunda parcela: termo difusivo: dt * d * (grad fi o T) * div F
-//       REAL diff_term = 0.0;
-//       for(i=0;i<nstate;i++) diff_term += prodpoint[i] * divF[i];
-//       for(i=0;i<nstate;i++)
-// 	ek(in * nstate + i, jn * nstate + i) += EK[1] * weight * timestep * delta * diff_term;
-//     }
-//   }
+// 	  // Dt * delta * (grad(w) o T) * div F (nstatex1)
+// 	  ek(nstate  * in + k, nstate  * jn + l) += EK[1] * weight * timestep * delta * Pkl;
+
+// 	  // w * Un+1 (nstatex1)
+// 	  if(l == k) ek(nstate * in + k, nstate * jn + l) += EK[0] * weight * phi(in,0) * phi(jn,0);
+// 	}
+//       }
+//     }//jn
+//   }//in
 }
 
 void TPZEulerConsLaw::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft){
@@ -648,7 +656,7 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   //61 GRAUS 
   //-66.7169 GRAUS (-1.16443 RADIANOS)
   //região R1
-  REAL r1M = 2.9;//Mach
+  //  REAL r1M = 2.9;//Mach
   REAL r1ro = 1.0;
   REAL r1u = 2.9;
   REAL r1v = 0.0;
@@ -656,7 +664,7 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   REAL r1p = 0.714286;
   REAL r1vel2 = r1u*r1u+r1v*r1v+r1w*r1w;
   //região R2
-  REAL r2M = 2.3781;//Mach
+  //REAL r2M = 2.3781;//Mach
   REAL r2ro = 1.7;
   REAL r2u = 2.61934;
   REAL r2v = -0.50632;
@@ -664,7 +672,7 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   REAL r2p = 1.52819;
   REAL r2vel2 = r2u*r2u+r2v*r2v+r2w*r2w;
   //região R3
-  REAL r3M = 1.94235;//Mach
+  //REAL r3M = 1.94235;//Mach
   REAL r3ro = 2.68728;
   REAL r3u = 2.40140;
   REAL r3v = 0.0;
@@ -675,7 +683,7 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   //entre as regiões R1 e R2
   //reta (cos ø , sen ø) de ângulo ø
   //(sen ø , -cos ø) normal à reta de ângulo ø apontando da região R1 para a região R2
-  REAL teta=0.0,flux_rho,flux_rhou,flux_rhov,flux_rhow,flux_rhoE,gama = 1.4;
+  REAL teta=0.0,flux_rho,flux_rhou,flux_rhov,flux_rhoE,gama = 1.4;//flux_rhow,
   //REAL increment=0.00001;
   TPZVec<REAL> U1(5,0.),U2(5,0.),U3(5,0.),r1Fx(0),r1Fy(0),r1Fz(0),r2Fx(0),r2Fy(0),r2Fz(0),r3Fx(0),r3Fy(0),r3Fz(0),n(3,0.);
   int i,enter=0;
