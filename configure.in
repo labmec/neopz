@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.38 2005-02-04 17:05:50 paulo Exp $
+dnl $Id: configure.in,v 1.39 2005-03-11 13:05:57 cesar Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -221,6 +221,25 @@ AC_SUBST(METISINCLUDE)
 AC_SUBST(METISLIBDIR)
 AC_SUBST(METISLIB)
 
+dnl ----------------------------------------------------------------------------
+dnl                               LOG4CXX LOCATION
+dnl ----------------------------------------------------------------------------
+
+dnl Log4Cxx location
+AC_ARG_WITH(log4cxx-dir,
+  [  --with-log4cxx-dir=DIR    Root of Log4cxx instalation [/usr/local]],
+  [log4cxx_dir=$withval],
+  [log4cxx_dir=${log4cxx_dir="/usr/local"}])
+
+LOG4CXXDIR=$log4cxx_dir
+LOG4CXXINCLUDE="-I$LOG4CXXDIR/include"
+LOG4CXXLIBDIR="-L$LOG4CXXDIR/lib"
+LOG4CXXLIB="-llog4cxx"
+
+AC_SUBST(LOG4CXXDIR)
+AC_SUBST(LOG4CXXINCLUDE)
+AC_SUBST(LOG4CXXLIBDIR)
+AC_SUBST(LOG4CXXLIB)
 
 dnl ----------------------------------------------------------------------------
 dnl                              ENABLE FAD?
@@ -363,75 +382,7 @@ AC_SUBST(PZ_CLEANFILES)
 dnl ----------------------------------------------------------------------------
 dnl                              CONGRATULATIONS!
 dnl ----------------------------------------------------------------------------
-
-AC_OUTPUT([ Makefile PZ.mk PZ_user.mk  External/sloan/Makefile \
-	 Util/Makefile \
-	Matrix/Makefile \
-	Cosys/Makefile \
-	Multigrid/Makefile \
-	Material/Makefile \
-	Post/Makefile \
-	Shape/Makefile \
-	Integral/Makefile \
-	Geom/Makefile \
-	Mesh/Makefile \
-	Refine/Makefile \
-	External/Makefile \
-	Analysis/Makefile \
-	Frontal/Makefile \
-	StrMatrix/Makefile \
-	Pre/Makefile \
-	Common/Makefile \
-	LinearSolvers/Makefile \
-        Save/Makefile \
-	lib/Makefile \
-
-	Projects/Makefile \
-        Projects/DiffusionTest/Makefile \
-	Projects/adaptivity/Makefile \
-	Projects/angletest/Makefile \
-	Projects/checkconv/Makefile \
-	Projects/cylin/Makefile \
-	Projects/materialhyperelastico/Makefile \
-	Projects/matrix/Makefile \
-	Projects/multplaca/Makefile \
-	Projects/multicamada/Makefile \
-	Projects/placyl/Makefile \
-	Projects/pzvc/Makefile \
-	Projects/qualif/Makefile \
-	Projects/sorting/Makefile \
-	Projects/termica/Makefile \
-	Projects/teste/Makefile \
-	Projects/testeisotropia/Makefile \
-	Projects/testgeom/Makefile \
-	Projects/testmat/Makefile \
-	Projects/testshape/Makefile \
-	Projects/viga3d/Makefile \
-	Projects/descontinuo/Makefile \
-	Projects/PoissonFAD/Makefile \
-	Projects/HyperElasticityFAD/Makefile \
-	Projects/ShapeFAD/Makefile \
-	Projects/Adapt_MultThread/Makefile \
-        Projects/Descontinuo2/Makefile \
-	Projects/ConsLaw/Makefile \
-	Projects/Igor/Makefile \
-	Projects/BoundaryLayer/Makefile \
-	Projects/BiHarmonic/Makefile \
-	Projects/NonLinBiharmonic/Makefile \
-	Projects/Bench/Makefile \
-	Projects/CursoPZ/Makefile \
-	Projects/CursoPZ/Class_1/Makefile \
-	Projects/CursoPZ/Class_2/Makefile \
-	Projects/CursoPZ/Class_3/Makefile \
-	Projects/CursoPZ/Class_4/Makefile \
-	Projects/CursoPZ/Class_5/Makefile \
-	Projects/visualmatrix/Makefile \
-	Projects/LuisGuilherme/Makefile  \
-  Projects/multigrid/Makefile
-
-])
-                    
-
+AC_OUTPUT([ Makefile PZ.mk PZ_user.mk Projects/AltoDes/Makefile Util/Makefile Matrix/Makefile Cosys/Makefile Multigrid/Makefile Material/Makefile Post/Makefile Shape/Makefile Integral/Makefile Geom/Makefile Mesh/Makefile Refine/Makefile External/Makefile External/sloan/Makefile Analysis/Makefile Frontal/Makefile StrMatrix/Makefile Pre/Makefile Common/Makefile LinearSolvers/Makefile Save/Makefile lib/Makefile Projects/Makefile Projects/adaptivity/Makefile Projects/Test_RefPattern/Makefile Projects/Adapt_MultThread/Makefile])
 
 
 PZ_BYEBYE

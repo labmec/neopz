@@ -3,7 +3,7 @@
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
-# $Id: PZ.mk.in,v 1.10 2005-02-02 12:49:35 cesar Exp $
+# $Id: PZ.mk.in,v 1.11 2005-03-11 13:06:39 cesar Exp $
 #
 
 CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_FAD@ @USING_ATLAS@
@@ -34,10 +34,11 @@ INCLUDES = -I$(top_srcdir)/Util \
 	@FADINCLUDE_FAD@ \
         @FADINCLUDE_TFAD@ \
         @FADINCLUDE_TFADET@ \
-        @ATLASINCLUDE@
+        @ATLASINCLUDE@ \
+        @LOG4CXXINCLUDE@
 
-PZ_LIBDIR = -L$(top_builddir)/lib @METISLIBDIR@ @ATLASLIBDIR@ 
+PZ_LIBDIR = -L$(top_builddir)/lib @METISLIBDIR@ @ATLASLIBDIR@ @LOG4CXXLIBDIR@
 
-PZ_LIB = -lpz @METISLIB@ @ATLASLIB@
+PZ_LIB = -lpz @METISLIB@ @ATLASLIB@ @LOG4CXXLIB@
 
 ## --| NeoPZ |------------------------------------------------------------------
