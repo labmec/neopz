@@ -253,6 +253,14 @@ int TPZMatOrthotropic::VariableIndex(char *name){
    if(!strcmp("FiberDisplac",name))      return  7;
    if(!strcmp("Tension",name))           return  8;
    if(!strcmp("Tensor",name))            return  9;
+   if(!strcmp("SigX",name))              return 10;
+   if(!strcmp("SigY",name))              return 11;
+   if(!strcmp("SigZ",name))              return 12;
+   if(!strcmp("TauXY",name))             return 13;
+   if(!strcmp("TauXZ",name))             return 14;
+   if(!strcmp("TauYZ",name))             return 15;
+
+
    cout << "TPZMatOrthotropic::VariableIndex Error\n";
    return -1;
 }
@@ -263,11 +271,12 @@ int TPZMatOrthotropic::NSolutionVariables(int var){
   if(var == 6 || var == 7) return 3;//vetores
   if(var == 8)             return 6;//deve ser
   if(var == 9)             return 9;//tensor completo (simétrico)
+  if(var > 9 && var < 16)  return 1;
   cout << "TPZMatOrthotropic::NSolutionVariables Error\n";
   return 0;
 }
 
-void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
+void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){ //OBS.:acrescentado ostream
 
   if(var == 0){
     Solout.Resize(1);
@@ -358,6 +367,15 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &
     Tensor(1,2) = Tensor(2,1) = TauYZ;
     Tensor(2,0) = Tensor(0,2) = TauZX;
 
+    //trecho adicionado apenas para conferencia
+//     cout << "Tensor(0,0) = SigX" << "  =  " << SigX << endl;
+//     cout << "Tensor(1,1) = SigY" << "  =  " << SigY << endl;
+//     cout << "Tensor(2,2) = SigZ" << "  =  " << SigZ << endl;
+//     cout << "Tensor(0,1) = Tensor(1,0) = TauXY" << "  =  " << TauXY << endl;
+//     cout << "Tensor(1,2) = Tensor(2,1) = TauYZ" << "  =  " << TauYZ << endl;
+//     cout << "Tensor(2,0) = Tensor(0,2) = TauZX" << "  =  " << TauZX << endl;
+    //final do trecho
+
     TPZFMatrix locaxsT(3,3,0.);
     fLocAxs.Transpose(&locaxsT);
     TPZFMatrix SigGlob = locaxsT*(Tensor*fLocAxs);
@@ -369,6 +387,37 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &
     Solout[3] = SigGlob(0,1);//TauXY
     Solout[4] = SigGlob(1,2);//TauYZ
     Solout[5] = SigGlob(2,0);//TauZX
+
+    if(var == 10){
+      Solout.Resize(1);
+      Solout[0] = Solout[0];
+      return;
+    }
+    if(var == 11){
+      Solout.Resize(1);
+      Solout[0] = Solout[1];
+      return;
+    }
+    if(var == 11){
+      Solout.Resize(1);
+      Solout[0] = Solout[2];
+      return;
+    }
+    if(var == 13){
+      Solout.Resize(1);
+      Solout[0] = Solout[3];
+      return;
+    }
+    if(var == 14){
+      Solout.Resize(1);
+      Solout[0] = Solout[5];
+      return;
+    }
+    if(var == 13){
+      Solout.Resize(1);
+      Solout[0] = Solout[4];
+      return;
+    }
 
     if(var == 8) return;
 

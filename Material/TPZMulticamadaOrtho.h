@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZMulticamadaOrtho.h,v 1.10 2003-11-11 20:52:48 cedric Exp $
+// $Id: TPZMulticamadaOrtho.h,v 1.11 2003-11-17 21:11:06 cedric Exp $
 #ifndef MULTICAMADAORTH
 #define MULTICAMADAORTH
 
@@ -14,8 +14,8 @@ class TPZGeoMesh;
 class TPZCompMesh;
 class TPZPlacaOrthotropic;
 class TPZMatOrthotropic;
-
-
+class TPZAnalysis;
+class TPZMaterial;
 /**
  * Gerencia um conjunto de placas
  * dispostas em forma multicamada
@@ -83,6 +83,8 @@ class TPZMulticamadaOrthotropic {
   void ComputeCenterForces();
 
   void ComputeSolution(ostream &out = cout,int print = 0);
+
+  void ComputeSolution(TPZMaterial *mat,ofstream &out,int numiter);
 
   void SetMX(REAL MX) { 
     fMX[0] = MX;

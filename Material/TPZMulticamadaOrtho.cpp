@@ -10,6 +10,7 @@
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
+#include "pzdxmesh.h"
 
 TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int nelx, int nely) : fDirx(3,0.), fDiry(3,0.) {
 
@@ -381,12 +382,67 @@ void TPZMulticamadaOrthotropic::ComputeSolution(ostream &out,int print){
   TPZStepSolver solve;
   solve.SetDirect(ELDLt);
   an.SetSolver(solve);
-  //  an.Assemble();
+
   an.Solution().Zero();
-  //  an.Solve();
+
   an.Run();
   if(print) an.Print("* PRINT ANALISYS *",out);  
 }
+
+void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,ofstream &out,int numiter){
+
+  TPZAnalysis an(fCompMesh);
+  TPZSkylineStructMatrix skyl(fCompMesh);
+  an.SetStructuralMatrix(skyl);
+  TPZStepSolver solve;
+  solve.SetDirect(ELDLt);
+  an.SetSolver(solve);
+  an.Solution().Zero();
+
+  TPZVec<char *> scalar(3),vector(0);
+  scalar[0] = "SigX";
+  scalar[1] = "SigY";
+  scalar[2] = "TauXY";
+
+  TPZCompMesh *cmesh = an.Mesh();
+  int dim = mat->Dimension();
+  TPZDXGraphMesh graph(cmesh,dim,mat,scalar,vector);
+  ofstream *dxout = new ofstream("MultCam.dx");
+  cout << "\nmain::ComputeSolution out file : MultCam.dx\n";
+  graph.SetOutFile(*dxout);
+  int resolution = 0;
+  graph.SetResolution(resolution);
+  graph.DrawMesh(dim);
+  int iter = 0,draw=0;
+  an.Solution().Zero();
+  an.Run();
+  ComputeCenterForces();
+  PrintCenterForces(out);
+  PrintTensors(out);
+  cout << "Iteracao = " << ++iter << endl;
+  an.LoadSolution();
+  REAL time = 0.0;
+  graph.DrawSolution(draw++,time);
+  dxout->flush();
+
+  while(iter < numiter) {
+
+    an.Solution().Zero();
+    an.Run();
+    ComputeCenterForces();
+    PrintCenterForces(out);
+    PrintTensors(out);
+    an.LoadSolution();
+    time += 0.1;
+    graph.DrawSolution(draw++,time);
+    dxout->flush();
+    cout << "Iteracao = " << ++iter << endl;
+  }
+  out.flush();
+  dxout->flush();
+  an.LoadSolution();
+}
+
 
 void TPZMulticamadaOrthotropic::PrintTensors(ostream &out) {
 

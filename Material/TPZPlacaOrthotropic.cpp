@@ -41,7 +41,7 @@ void TPZPlacaOrthotropic::Tensor(TPZVec<REAL> &ksi, TPZFMatrix &T) {
   //  co[2] = ksi;
   TPZManVector<REAL> tensor(9);
   fIntel->Solution(ksi,fTensorVar,tensor);
-  int i,j;
+  int i;
   for(i=0; i<9; i++) {//original
     T(i%3,i/3) = tensor[i];
   }
@@ -164,13 +164,21 @@ void TPZPlacaOrthotropic::PrintTensors(ostream &out) {
   TPZManVector<REAL,3> pos(1,0.), ksi(3,0.), x(3,0.);
   TPZFNMatrix<9> tensor(3,3,0.);
   int ip;
-  for(ip = 0; ip<np; ip++) {
-    REAL weight;
+  REAL weight;
+  TPZStack<REAL> point;
+  point.Push(-1.0);
+  for(ip = 0; ip<np; ip++){
     rule.Point(ip,pos,weight);
-    ksi[2] = pos[0];
+    point.Push(pos[0]);
+  }
+  point.Push(1.0);
+  np += 2;
+  for(ip = 0; ip<np; ip++) {
+
+    ksi[2] = point[ip];
     fGeoEl->X(ksi,x);
     Tensor(ksi,tensor);
-    out << "Tensor at pos " << pos[0] << " x " << x << " ";
+    out << "Tensor at pos " << point[ip] << " x " << x << " -> ";
     int i,j;
     for(i=0; i<3; i++) {
       for(j=0; j<3; j++){
@@ -295,7 +303,7 @@ void TPZPlacaOrthotropic::GradTensor(TPZVec<REAL> &graddir, TPZVec<REAL> &ksi, T
   TPZManVector<REAL> tensor(9);
   fIntel->Solution(ksi1,fTensorVar,tensor1);
   fIntel->Solution(ksi2,fTensorVar,tensor2);
-  int i,j;
+  int i;
   for(i=0; i<9; i++) {//é simétrico OK
     T(i%3,i/3) = (tensor2[i]-tensor1[i])/dist;
   }
