@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.1 2005-02-03 18:07:23 tiago Exp $
+//$Id: main.cpp,v 1.2 2005-02-04 19:47:07 tiago Exp $
 
 /**
  * Galerkin descontinuo: problema de camada limite
@@ -50,66 +50,95 @@
 #include <time.h>
 #include <stdio.h>
 
+static REAL epsilon;
 
-void ForcingFunction(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
-  disp[0] = - exp(0.75 * (x[0] + x[1])) * (8. * (1. - x[1] * x[1]) + 12. * x[0] * (1. - x[1] * x[1]) -4.5 * (1. - x[0] * x[0])* (1. - x[1] * x[1] )+
-					  8. * (1. - x[0] * x[0]) + 12. * x[1] * (1. - x[0] * x[0]));
-}
-void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
-  u[0] = 4. * (1. - x[0] * x[0] ) * (1. - x[1] * x[1]) * exp(0.75 * (x[0] + x[1]));
-  deriv(0,0) = (-8. * x[0] * (1. - x[1] * x[1]) + 3. * (1. - x[0] * x[0] ) * (1. - x[1] * x[1]) ) * exp(0.75 * (x[0] + x[1]));
-  deriv(1,0) = (-8. * x[1] * (1. - x[0] * x[0]) + 3. * (1. - x[0] * x[0] ) * (1. - x[1] * x[1]) ) * exp(0.75 * (x[0] + x[1]));
-}
-
-void Dirichlet1(TPZVec<REAL> &x, TPZVec<REAL> &f) {
-  f[0] = exp(-(x[0]*x[0]+1));
+void ForcingFunction(TPZVec<REAL> &pto, TPZVec<REAL> &force){
+  REAL x = pto[0];
+  REAL y = pto[1];
+  
+  force.Resize(1);
+  force[0] = (-(-1.0 + exp(1.0/epsilon)) * epsilon * (-2.0+x+y)
+             +exp( (x+y-x*y)/epsilon ) * (-x + x*x + (-1+y)*y) ) / ( ( -1.0 + exp(1.0/epsilon) ) * epsilon);
+  force[0] *= -1.0;
 }
 
-void Dirichlet2(TPZVec<REAL> &x, TPZVec<REAL> &f) {
-  f[0] = exp(-(x[1]*x[1]+1));
+void ForcingFunctionSemBeta(TPZVec<REAL> &pto, TPZVec<REAL> &force){
+  REAL x = pto[0];
+  REAL y = pto[1];
+  
+  force.Resize(1);
+  force[0] = exp((x+y-x*y)/epsilon)*(2.-2.*x+x*x-2.*y+y*y)/( (-1.+exp(1./epsilon))*epsilon );
+}
+
+void ExactSolution(TPZVec<REAL> &pto, TPZVec<REAL> &u, TPZFMatrix &deriv) {
+  REAL x = pto[0];
+  REAL y = pto[1];
+  u.Resize(1);
+  deriv.Resize(2,1);
+  
+  u[0] = ( exp(-1.0/epsilon) -exp( (-1.0+x) * (1.0-y) / epsilon ) ) / ( 1.0 - exp( -1.0/epsilon) ) + x + (1.0-x)*y;
+  
+  deriv[0] = ( exp((x+y-x*y)/epsilon) + epsilon - exp(1.0/epsilon) * epsilon) * (-1.0 + y) / ( (-1.0+exp(1.0/epsilon))*epsilon );
+  
+  deriv[1] = ( exp((x+y-x*y)/epsilon) + epsilon - exp(1.0/epsilon) * epsilon) * (-1.0 + x) / ( (-1.0+exp(1.0/epsilon))*epsilon );
+  
+}
+
+void Dirichlet_X_IgualA_0(TPZVec<REAL> &pto, TPZVec<REAL> &u) {
+//  REAL x = pto[0];
+  REAL y = pto[1];
+  u.Resize(1);
+  u[0] = -(-1.0+exp(y/epsilon)+y-exp(1.0/epsilon)*y) / (-1.0 + exp(1.0/epsilon));
+}
+
+void Dirichlet_Y_IgualA_0(TPZVec<REAL> &pto, TPZVec<REAL> &u) {
+  REAL x = pto[0];
+//  REAL y = pto[1];
+  u.Resize(1);
+  u[0] = -(-1.0+exp(x/epsilon)+x-exp(1.0/epsilon)*x) / (-1.0 + exp(1.0/epsilon));
 }
 
 //4 quadrados iguais, podendo ser divididos
-TPZCompMesh *CreateMesh();
+TPZCompMesh *CreateMesh(int h = 0);
 
 //8 triangulos
 TPZCompMesh *CreateMesh2();
-
-static REAL PI;
 
 ////////////////////////////////////////////////////////////////////////////////
 
 
 int main(){
    
+   int nmaxeq = 10000;//numero maximo de equacoes do problema
+for(int pp = 0; pp < 8; pp++){
+ for(int hh = 0; hh < 6; hh++){
+
   TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
 
   int p, h;
-  char filename[20];
-  char filedx[20];
-  PI = 4.*atan(1.);
-
-  ofstream out(filename);
-
+  p = pp;
+  epsilon = 0.01;
+  h = hh;
+      
   TPZCompEl::gOrder = p;
   TPZCompElDisc::gDegree = p;
 
   TPZCompMesh *cmesh;
-  cmesh = CreateMesh(); //    cmesh = CreateMesh2();
+  cmesh = CreateMesh(h); //    cmesh = CreateMesh2();
     
   TPZGeoMesh *gmesh = cmesh->Reference();
 
   TPZAnalysis an(cmesh);
 
-//  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
+  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
 //  full.SetNumberOfThreads(3);
 //  TPZFStructMatrix full(cmesh);  
 #define direct
 #ifdef direct
-  TPZBandStructMatrix/*TPZSkylineStructMatrix*/ full(cmesh);
+//  TPZFStructMatrix/*TPZSkylineStructMatrix*/ full(cmesh);
   an.SetStructuralMatrix(full);
   TPZStepSolver step;
-  step.SetDirect( ELU /*ELDLt*/ );
+  step.SetDirect( ELU /*ECholesky*/ /*ELDLt*/ );
   an.SetSolver(step);
 #endif
 
@@ -125,54 +154,56 @@ int main(){
 //  TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EElement , true);
   TPZCopySolve precond( full.Create() );
   step.ShareMatrix( precond );  
-  step.SetGMRES( 200000, 100, precond, 1.e-13, 0 ); 
+  step.SetGMRES( 200000, 20, precond, 1.e-13, 0 ); 
   //step.SetCG( 200000, *precond, 1e-13, 0);
   //delete precond;
   an.SetSolver(step);
 #endif
 
   cout << "\nNumero de equacoes: " << an.Mesh()->NEquations() << endl;
-   if (an.Mesh()->NEquations() > 22000) { 
+   if (an.Mesh()->NEquations() > nmaxeq) { 
      cout << "skipping simulation...\n" << endl;
-     continue;
+     break;
    }
   char filename[20];
   sprintf(filename,"baumann_p%d_h%d.dat",p,h);
   char filedx[20];
   sprintf(filedx,"baumann_p%d_h%d.dx",p,h);
-  ofstream out(filename);
+
   
   
-{  
+/*{  
   TPZFMatrix fillin;
   cmesh->ComputeFillIn(50,fillin);
   //fillin.Print("Fillin of the computable mesh");
   VisualMatrix(fillin , filedx);
-}
+}*/
 
   an.Run();
 
 /**** Aqui faz DX ****/
-/*  TPZVec<char *> scalnames(1);
+  TPZVec<char *> scalnames(1);
   TPZVec<char *> vecnames(1);
   scalnames[0] = "Solution";
   vecnames[0] = "Derivate";
   an.DefineGraphMesh(2,scalnames,vecnames,filedx);
+  an.PostProcess(2);
 
-  if (gMeshType == 1)
-    an.PostProcess(2);
+//   if (gMeshType == 2)
+//     an.PostProcess(0);
 
-  if (gMeshType == 2)
-    an.PostProcess(0);
-*/
 
   an.SetExact(ExactSolution);
   TPZVec<REAL> pos;
+  ofstream out(filename);
   an.PostProcess(pos,out);
   out << "\nNumero de equacoes: " << an.Solution().Rows() << endl;  
   
   delete cmesh;
   delete gmesh;
+}
+}
+
   return 0;
 }
 
@@ -212,9 +243,9 @@ int main(){
 #include "pzgeopoint.h"
 #include "pzshapepoint.h"
 
-TPZCompMesh *CreateMesh() {
+TPZCompMesh *CreateMesh(int h) {
 
-  REAL co[9][2] = {{0.,0.},{0.,-1.},{1.,-1.},{1.,0.},{1.,1.},{0.,1.},{-1.,1.},{-1.,0.},{-1,-1}};
+  REAL co[9][2] = {{0.5,0.5},{0.5,0.},{1.,0.},{1.,0.5},{1.,1.},{0.5,1.},{0.,1.},{0.,0.5},{0.,0.}};
   int indices[4][4] = {{1,2,3,0},{0,3,4,5},{7,0,5,6},{8,1,0,7}};
   TPZGeoEl *elvec[4];
   TPZGeoMesh *gmesh = new TPZGeoMesh();
@@ -239,57 +270,65 @@ TPZCompMesh *CreateMesh() {
 
   gmesh->BuildConnectivity();
 
-  TPZGeoElBC gbc;
+  TPZVec<TPZGeoEl*> filhos;
+  for(int i = 0; i < h; i++){
+     int n = gmesh->NElements();
+     for(int j = 0; j < n; j++){
+	if (gmesh->ElementVec()[j]->Dimension() == 2) gmesh->ElementVec()[j]->Divide(filhos);
+     }
+  }
 
-  TPZGeoElBC gbc1(elvec[0],4,-3,*gmesh); // bottom
+  //TPZGeoElBC gbc;
+
+  TPZGeoElBC gbc1(elvec[0],4,-1,*gmesh); // bottom
   TPZGeoElBC gbc2(elvec[0],5,-3,*gmesh); // right
   TPZGeoElBC gbc3(elvec[1],5,-3,*gmesh); // right
   TPZGeoElBC gbc4(elvec[1],6,-3,*gmesh); // top
   TPZGeoElBC gbc5(elvec[2],6,-3,*gmesh); // top
-  TPZGeoElBC gbc6(elvec[2],7,-3,*gmesh); // left
-  TPZGeoElBC gbc7(elvec[3],7,-3,*gmesh); // left
-  TPZGeoElBC gbc8(elvec[3],4,-3,*gmesh); // bottom
-  
-
-  
+  TPZGeoElBC gbc6(elvec[2],7,-2,*gmesh); // left
+  TPZGeoElBC gbc7(elvec[3],7,-2,*gmesh); // left
+  TPZGeoElBC gbc8(elvec[3],4,-1,*gmesh); // bottom
+    
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   cmesh->SetDimModel(2);
   
   TPZMatPoisson3d *mat;
   mat = new TPZMatPoisson3d(1, 2);
-  mat->SetForcingFunction(Forcing1);
+  mat->SetForcingFunction(ForcingFunction);
   mat->SetNonSymmetric();
-
 
   TPZManVector<REAL,2> convdir(2,0.);
   convdir[0] = 1.;
   convdir[1] = 1.;
-  //Difusao pura. conveccao = 0.
-  mat->SetParameters(gDif, 0., convdir);
-  int nstate = 1;
-  TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
-  TPZBndCond *bc;
-  
-  val2.Zero();
-  bc = mat->CreateBC(-3, 0,val1,val2);
 
+  REAL beta = 1.0;
+  mat->SetParameters(epsilon, beta, convdir);
+  int nstate = 1;
+  
+  
+  TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
+  TPZBndCond *bc[3];
+  val2.Zero();
+  bc[0] = mat->CreateBC(-3, 0,val1,val2);
+  
+  bc[1] = mat->CreateBC(-1, 0, val1, val2);
+  bc[1]->SetForcingFunction(Dirichlet_Y_IgualA_0);
+  
+  bc[2] = mat->CreateBC(-2, 0, val1, val2);
+  bc[2]->SetForcingFunction(Dirichlet_X_IgualA_0);
   
   cmesh->InsertMaterialObject(mat);
-  cmesh->InsertMaterialObject(bc);
-
-
+  for(int ii = 0; ii < 3; ii++) cmesh->InsertMaterialObject(bc[ii]);
 
   
-  TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc); 
-  //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
-  cout << "\nGALERKIN DESCONTINUO" << endl;
-//  cout << "\nELEMENTOS FINITOS" << endl;
+     TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+     TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+     TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+     TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+     TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+     TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+     TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc); 
+
   
   cmesh->AutoBuild();
   //  cmesh->AdjustBoundaryElements();
@@ -354,12 +393,12 @@ TPZCompMesh *CreateMesh2() {
   
   TPZMatPoisson3d *mat;
   mat = new TPZMatPoisson3d(1, 2);
-  mat->SetForcingFunction(Forcing1);
+  mat->SetForcingFunction(ForcingFunction);
 
   TPZManVector<REAL,2> convdir(2,0.);
   convdir[0] = 1.;
   convdir[1] = 1.;
-  mat->SetParameters(gDif, 0., convdir);
+  mat->SetParameters(epsilon, 0., convdir);
   int nstate = 1;
   TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
 
@@ -388,178 +427,3 @@ TPZCompMesh *CreateMesh2() {
 }
 
 
-int main(){
-
-TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
-  
-cout << "Script" << endl;
-
-for(int tiagop = 2; tiagop < 9; tiagop++){
-   
-  for( int tiagoh = 0; tiagoh < 7; tiagoh++){
-
-  int p, h;
-  p = tiagop;
-  h = tiagoh;
-  
-  cout << "\n\n" << "p = " << p << " - h = " << h << endl;
-  
- //cout << "\nQuadrado = 1; Triang = 2" << endl;
-  gMeshType = 1;
-
- gDif = 1.0;
-
-  if (h == 0) {
-    gDivide[0] = 0; 
-    gDivide[1] = 0;
-    gDivide[2] = 0;
-    gDivide[3] = 0;
-    gDivide[4] = 0;
-    gDivide[5] = 0;
-  }
-  if (h == 1) {
-    gDivide[0] = 1;
-    gDivide[1] = 0;
-    gDivide[2] = 0;
-    gDivide[3] = 0;
-    gDivide[4] = 0;
-    gDivide[5] = 0;
-  } 
-  if (h == 2) {
-    gDivide[0] = 1;
-    gDivide[1] = 1;
-    gDivide[2] = 0;
-    gDivide[3] = 0;
-    gDivide[4] = 0;
-    gDivide[5] = 0;
-  }  
-  if (h == 3) {
-    gDivide[0] = 1;
-    gDivide[1] = 1;
-    gDivide[2] = 1;
-    gDivide[3] = 0;
-    gDivide[4] = 0;
-    gDivide[5] = 0;
-  }
-  if (h == 4) {
-    gDivide[0] = 1;
-    gDivide[1] = 1;
-    gDivide[2] = 1;
-    gDivide[3] = 1;
-    gDivide[4] = 0;
-    gDivide[5] = 0;
-  }
-  if (h == 5) {
-    gDivide[0] = 1;
-    gDivide[1] = 1;
-    gDivide[2] = 1;
-    gDivide[3] = 1;
-    gDivide[4] = 1;
-    gDivide[5] = 0;
-  }
-  if (h == 6) {
-    gDivide[0] = 1;
-    gDivide[1] = 1;
-    gDivide[2] = 1;
-    gDivide[3] = 1;
-    gDivide[4] = 1;
-    gDivide[5] = 1;
-  }
-
-
-  PI = 4.*atan(1.);
-
-  TPZCompEl::gOrder = p;
-  TPZCompElDisc::gDegree = p;
-
-  TPZCompMesh *cmesh;
-  cmesh = CreateMesh();
-
-  TPZGeoMesh *gmesh = cmesh->Reference();
-  
-//  gmesh->Print();
-
-  TPZAnalysis an(cmesh);
-
-
-//  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
-//  full.SetNumberOfThreads(3);
-//  TPZFStructMatrix full(cmesh);  
-#define direct
-#ifdef direct
-  TPZBandStructMatrix/*TPZSkylineStructMatrix*/ full(cmesh);
-  an.SetStructuralMatrix(full);
-  TPZStepSolver step;
-  step.SetDirect( ELU /*ELDLt*/ );
-  an.SetSolver(step);
-#endif
-
-//#define iter
-#ifdef iter
-  cout << "ITER_SOLVER" << endl;  
-  TPZSpStructMatrix full(cmesh);
-  //TPZSkylineStructMatrix full(cmesh);
-  an.SetStructuralMatrix(full);  
-  TPZStepSolver step( full.Create() );
-  an.SetSolver(step);
-  
-//  TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EElement , true);
-  TPZCopySolve precond( full.Create() );
-  step.ShareMatrix( precond );  
-  step.SetGMRES( 200000, 100, precond, 1.e-13, 0 ); 
-  //step.SetCG( 200000, *precond, 1e-13, 0);
-  //delete precond;
-  an.SetSolver(step);
-#endif
-
-  cout << "\nNumero de equacoes: " << an.Mesh()->NEquations() << endl;
-   if (an.Mesh()->NEquations() > 22000) { 
-     cout << "skipping simulation...\n" << endl;
-     continue;
-   }
-  char filename[20];
-  sprintf(filename,"baumann_p%d_h%d.dat",p,h);
-  char filedx[20];
-  sprintf(filedx,"baumann_p%d_h%d.dx",p,h);
-  ofstream out(filename);
-
-{  
-  TPZFMatrix fillin;
-  cmesh->ComputeFillIn(50,fillin);
-  //fillin.Print("Fillin of the computable mesh");
-  VisualMatrix(fillin , filedx);
-}
-
- // PIRAArrumaNormal( *cmesh );
- 
-  an.Run();
-
-  an.SetExact(ExactSolution);
-  TPZVec<REAL> pos;
-  an.PostProcess(pos,out);
-  out << "\nNumero de equacoes: " << an.Solution().Rows() << endl;  
-  
-  delete cmesh;
-  delete gmesh;
-  }//p
-  }//h
-  return 0;
-}
-
-#include "TPZInterfaceEl.h"
-void PIRAArrumaNormal( TPZCompMesh &cmesh ){
-
-  cout << "PIRAArrumaNormal" << endl;
-  int nel = cmesh.ElementVec().NElements();
-  for(int i = 0; i < nel; i++){
-    TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*> (cmesh.ElementVec()[i]);
-    if (face) face->PIRAArrumaNormal();    
-  }
-
-
-
-
-
-
-
-}

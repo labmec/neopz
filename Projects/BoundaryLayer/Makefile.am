@@ -16,6 +16,6 @@ bin_PROGRAMS = main
 main_SOURCES = main.cpp 
 
 main_LDADD = $(top_builddir)/lib/libpz.a \
-	$(top_builddir)/External/sloan/libsloan.a @METISDIR@/lib/libmetis.a -lpthread
+	$(top_builddir)/External/sloan/libsloan.a -lpthread
 
 ## --| NeoPZ |------------------------------------------------------------------
