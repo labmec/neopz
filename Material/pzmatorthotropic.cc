@@ -331,7 +331,7 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &
       return;
     }
   }
-  if(var == 8 || var == 9) {    
+  if(var > 7 && var < 16) {    
     Solout.Resize(6);
     TPZFMatrix axest(3,3,0.),floc_axt(3,3,0.),grdUGdn(3,3,0.),grdUlocdn(3,3,0.);
     axes.Transpose(&axest);
