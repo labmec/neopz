@@ -38,11 +38,11 @@ TPZRefPattern::TPZRefPattern(const TPZRefPattern &copy) : fSubElRefPattern(copy.
 TPZRefPattern::TPZRefPattern(string file ) : fSubElRefPattern(0),fBCRefPattern(0) {
   fMesh = new TPZGeoMesh;
   fMesh->SetName("* * * Refinement Pattern * * *");
-  fFileRefPatt = file;/**arquivo contendo o padrão de refinamento*/
-  ReadPattern();/**lê o arquivo contendo o refinamento e cria a malha fMesh*/
+  fFileRefPatt = file;/**arquivo contendo o padrï¿½ de refinamento*/
+  ReadPattern();/**lï¿½o arquivo contendo o refinamento e cria a malha fMesh*/
   fMesh->BuildConnectivity();/**conectividades entre sub-elementos*/
-  ComputeTransforms();/**calcula as transformações entre filhos e pai*/
-  ComputePartition();/**efetua a partição do elemento pai de acordo com os lados dos sub-elementos*/
+  ComputeTransforms();/**calcula as transformaï¿½es entre filhos e pai*/
+  ComputePartition();/**efetua a partiï¿½o do elemento pai de acordo com os lados dos sub-elementos*/
   fBCRefPattern.Resize(0);
 }
 
@@ -58,8 +58,8 @@ TPZRefPattern::TPZRefPattern(TPZGeoMesh *GMesh): fSubElRefPattern(0),fBCRefPatte
   fMesh = GMesh;
   fNSubEl = GMesh->NElements() - 1;
   fMesh->BuildConnectivity();/**conectividades entre sub-elementos*/
-  ComputeTransforms();/**calcula as transformações entre filhos e pai*/
-  ComputePartition();/**efetua a partição do elemento pai de acordo com os lados dos sub-elementos*/
+  ComputeTransforms();/**calcula as transformaï¿½es entre filhos e pai*/
+  ComputePartition();/**efetua a partiï¿½o do elemento pai de acordo com os lados dos sub-elementos*/
   fBCRefPattern.Resize(0);
 }
 
@@ -72,7 +72,7 @@ void TPZRefPattern::ReadPattern(){
   in >> fName;
   TPZVec<REAL> coord(3);
   fMesh->NodeVec().Resize(nnodes);
-  //criacão dos objetos nodais
+  //criacï¿½ dos objetos nodais
   for(inode=0;inode<nnodes;inode++){
     in >> coord[0];
     in >> coord[1];
@@ -81,9 +81,9 @@ void TPZRefPattern::ReadPattern(){
     fMesh->NodeVec()[inode].Initialize(inode,coord,*fMesh);
   }
   TPZGeoEl *father;
-  //criacão dos elementos geométricos que definem a particão
+  //criacï¿½ dos elementos geomï¿½ricos que definem a particï¿½
   int ntype,nummat,ncorners,incid,el;
-  for(el=0;el<nelems;el++) {/**os sub-elementos podem não ter de uma mesma geometria*/
+  for(el=0;el<nelems;el++) {/**os sub-elementos podem nï¿½ ter de uma mesma geometria*/
     in >> ntype >> nummat;
     ncorners = ntype;
     if(ntype == 7) ncorners = 4;/**tetraedro*/
@@ -106,45 +106,45 @@ void TPZRefPattern::ReadPattern(){
 }
 
 /** Preenche-se a estrutura elemento/lado com aqueles objetos que tem
- *  transformação associada.Calcula-se a transformação entre o lado
+ *  transformaï¿½o associada.Calcula-se a transformaï¿½o entre o lado
  *  do sub-elemento e o lado do pai respectivo.
  */
 void TPZRefPattern::ComputePartition(){
-  int sizeinit = fTransforms.fInitSonSides.NElements()-1;/**igual ao número de filhos*/
+  int sizeinit = fTransforms.fInitSonSides.NElements()-1;/**igual ao nmero de filhos*/
   int init,iside;
-  TPZGeoEl *fat = Element(0);/**elemento pai da divisão*/
-  DefinitionOfSizePartition();/**calcula o tamanho da particão dos lados do pai e inicializa fInitSide*/
+  TPZGeoEl *fat = Element(0);/**elemento pai da divisï¿½*/
+  DefinitionOfSizePartition();/**calcula o tamanho da particï¿½ dos lados do pai e inicializa fInitSide*/
   int sidestot = fFatherSides.fPartitionSubSide.NElements();
-  /**inicializando o vetor de transformacões*/
+  /**inicializando o vetor de transformacï¿½s*/
   for(int p=0;p<sidestot;p++) fFatherSides.fPartitionSubSide[p] = TPZGeoElSide();/**zera as entradas*/
-  /**calcular a partição*/
+  /**calcular a partiï¿½o*/
   for(init=0;init<sizeinit;init++){/**percorre os filhos*/
-    int initsideson = fTransforms.fInitSonSides[init];/**começo dos lados do filho*/
-//    int lastsideson = fTransforms.fInitSonSides[init+1];/**comeco dos lados do próximo filho*/
-//    int nsonsd = lastsideson-initsideson;/**comprimento da particão*/
+    int initsideson = fTransforms.fInitSonSides[init];/**comeï¿½ dos lados do filho*/
+//    int lastsideson = fTransforms.fInitSonSides[init+1];/**comeco dos lados do prï¿½imo filho*/
+//    int nsonsd = lastsideson-initsideson;/**comprimento da particï¿½*/
     TPZGeoEl *son = Element(init+1);/**filho*/
     int nsides = son->NSides();
     for(iside=0;iside<nsides;iside++){/**percorre-se os lados do filho*/
       int sdf = fTransforms.fFatherSide[initsideson+iside];/**lado do pai associado ao lado do sub-elemento*/
-      if(sdf < fat->NNodes()) continue;/**cantos do pai não entram na partição do lado*/
+      if(sdf < fat->NNodes()) continue;/**cantos do pai nï¿½ entram na partiï¿½o do lado*/
       int pos = 0;
-      int sdf2 = sdf - fat->NNodes();/**fInitSide não contempla os cantos, só a partir de aresta para cima*/
-      int initss = fFatherSides.fInitSide[sdf2];/**inicio da particão do lado sdf do pai*/
-      TPZGeoElSide sonside = fFatherSides.fPartitionSubSide[initss+pos];/**1o sub/lado da partição do lado do pai*/
+      int sdf2 = sdf - fat->NNodes();/**fInitSide nï¿½ contempla os cantos, sï¿½a partir de aresta para cima*/
+      int initss = fFatherSides.fInitSide[sdf2];/**inicio da particï¿½ do lado sdf do pai*/
+      TPZGeoElSide sonside = fFatherSides.fPartitionSubSide[initss+pos];/**1o sub/lado da partiï¿½o do lado do pai*/
       TPZGeoElSide empty(sonside);/**copia de sonside*/
       int sizept = fFatherSides.fInitSide[sdf2+1]-initss;/**comprimento da faixa do lado*/
       while(empty.Element() && pos < sizept){/**percorre-se a faixa do lado do pai*/
         pos++;/**procura-se o primeiro lugar desocupado na faixa do lado do pai*/
         empty = fFatherSides.fPartitionSubSide[initss+pos];
       }
-      if(pos > sizept-1){/**a faixa toda esta ocupada com sub/lado não nulo*/
+      if(pos > sizept-1){/**a faixa toda esta ocupada com sub/lado nï¿½ nulo*/
         PZError << "TPZRefPattern::ComputePartition erro de dimensionamento\n";
         //exit(-1);
       }
       fFatherSides.fPartitionSubSide[initss+pos] = TPZGeoElSide(son,iside);
     }
   }
-  /**conferindo a consistência da particão*/
+  /**conferindo a consistï¿½cia da particï¿½*/
   for(int ss=0;ss<sidestot;ss++){
     if(!fFatherSides.fPartitionSubSide[ss].Element()){
       PZError << "TPZRefPattern::ComputePartition particao inconsistente";
@@ -153,13 +153,13 @@ void TPZRefPattern::ComputePartition(){
   /**saida do arquivo de dados da particao*/
 //  ofstream out("partition.out");
 //  fFatherSides.Print(*fMesh,out);
-  /**extraindo sub/side quando o side é repetido dentro da particão do lado*/
+  /**extraindo sub/side quando o side ï¿½repetido dentro da particï¿½ do lado*/
   int init2;
   sizeinit = fFatherSides.fInitSide.NElements()-1;
   for(iside=0;iside<sizeinit;iside++){/**percorrendo fInitSide*/
-    init = fFatherSides.fInitSide[iside];/**posicão inicial*/
-    init2 = fFatherSides.fInitSide[iside+1];/**posicão final*/
-    for(int sd=init;sd<init2;sd++){/**percorrendo a particão do lado do pai*/
+    init = fFatherSides.fInitSide[iside];/**posicï¿½ inicial*/
+    init2 = fFatherSides.fInitSide[iside+1];/**posicï¿½ final*/
+    for(int sd=init;sd<init2;sd++){/**percorrendo a particï¿½ do lado do pai*/
       TPZGeoElSide gs = fFatherSides.fPartitionSubSide[sd];/**1o sub/side do lado*/
       if(!gs.Element()) continue;
       for(int sd2=sd+1;sd2<init2;sd2++){
@@ -170,16 +170,16 @@ void TPZRefPattern::ComputePartition(){
       }
     }
   }
-  /**tirando os buracos da particão*/
-  TPZVec<int> newinit(fFatherSides.fInitSide.NElements());/**capacidade máxima*/
-  TPZVec<TPZGeoElSide> newpartition(fFatherSides.fPartitionSubSide.NElements());/**capacidade máxima*/
+  /**tirando os buracos da particï¿½*/
+  TPZVec<int> newinit(fFatherSides.fInitSide.NElements());/**capacidade mï¿½ima*/
+  TPZVec<TPZGeoElSide> newpartition(fFatherSides.fPartitionSubSide.NElements());/**capacidade mï¿½ima*/
   newinit[0] = 0;
   int count = 0;
   for(iside=0;iside<sizeinit;iside++){/**percorrendo fInitSide*/
-    init = fFatherSides.fInitSide[iside];/**posicão inicial*/
-    init2 = fFatherSides.fInitSide[iside+1];/**posicão final*/
+    init = fFatherSides.fInitSide[iside];/**posicï¿½ inicial*/
+    init2 = fFatherSides.fInitSide[iside+1];/**posicï¿½ final*/
     newinit[iside+1] = newinit[iside];
-    for(int sd=init;sd<init2;sd++){/**percorrendo a particão do lado do pai*/
+    for(int sd=init;sd<init2;sd++){/**percorrendo a particï¿½ do lado do pai*/
       TPZGeoElSide gs = fFatherSides.fPartitionSubSide[sd];/**1o sub/side do lado*/
       if(!gs.Element()) continue;
       newinit[iside+1]++;
@@ -188,7 +188,7 @@ void TPZRefPattern::ComputePartition(){
   }
   fFatherSides.fInitSide = newinit;
   fFatherSides.fPartitionSubSide = newpartition;
-  NSideSubElements();/**preenche fNSubSideFather com o número de elementos associados a cada lado do pai*/
+  NSideSubElements();/**preenche fNSubSideFather com o nmero de elementos associados a cada lado do pai*/
 //  out << "\n\n               *** Particao enxuta ***\n\n";
 //  fFatherSides.Print(*fMesh,out);
 //  out.flush();
@@ -202,7 +202,7 @@ void TPZRefPattern::ComputePartition(){
 }
 
 void TPZRefPattern::TPZPartitionFatherSides::Print(TPZGeoMesh &gmesh,ostream &out){
-  out << "TPZRefPattern::TPZSideTransform::Print particão dos lados do pai pelos lados dos sub-elementos\n\n";
+  out << "TPZRefPattern::TPZSideTransform::Print particï¿½ dos lados do pai pelos lados dos sub-elementos\n\n";
   int iss,iside;//,count=0;
   TPZGeoEl *father = gmesh.ElementVec()[0];/**elemento pai*/
   int nsfat = father->NSides();
@@ -212,10 +212,10 @@ void TPZRefPattern::TPZPartitionFatherSides::Print(TPZGeoMesh &gmesh,ostream &ou
     out << "\nLado do elemento pai = " << (iside+nnod) << endl;
     int initsideson = fInitSide[iside];
     int lastsideson = fInitSide[iside+1];
-    for(iss=initsideson;iss<lastsideson;iss++){/**percorre-se os sub/lado da partição*/
+    for(iss=initsideson;iss<lastsideson;iss++){/**percorre-se os sub/lado da partiï¿½o*/
       TPZGeoElSide subside = fPartitionSubSide[iss];
       if(!subside.Element()){
-        cout <<  "ERRO : Elemento da particão nulo\n ";
+        cout <<  "ERRO : Elemento da particï¿½ nulo\n ";
         continue;
       }
       out << "Sub id = " << subside.Element()->Id() << "  Lado do sub " << subside.Side()  << endl;
@@ -242,8 +242,8 @@ void TPZRefPattern::Print1(TPZGeoMesh &gmesh,ostream &out){
 }
 
 /** Determina-se, para todos e cada um dos lados dos sub-elementos, o lado do pai no
- *  qual está contido. Caso o lado do elemento é igual ao lado do pai asigna-se
- *  o valor -1. Neste caso nã existe dependência. 
+ *  qual estï¿½contido. Caso o lado do elemento ï¿½igual ao lado do pai asigna-se
+ *  o valor -1. Neste caso nï¿½existe dependï¿½cia. 
  */
 void TPZRefPattern::ComputeTransforms(){
 /**calcula transformacoes entre lado de filho e lado de pai*/
@@ -257,24 +257,22 @@ void TPZRefPattern::ComputeTransforms(){
   int isub,nsubs = NSubElements();/**total filhos*/
   /**preenchendo a estrutura TPZFatherSides*/
   int initside=0,cont=0,side,fatside;  
-  TPZVec<REAL> masscent(3,0.),xpoint(3,0.);
-  xpoint[0] = 0.;
-  xpoint[1] = 0.;
-  xpoint[2] = 0.; 
-  fTransforms.fInitSonSides.Resize(nsubs+1);/** +1 para incluir a posição final de fSideFather*/
+  TPZVec<REAL> masscent(3,0.),xpoint(3,0.), ksipoint(3,0.);
+  fTransforms.fInitSonSides.Resize(nsubs+1);/** +1 para incluir a posiï¿½o final de fSideFather*/
   int size = SizeOfSubsSides(nsubs);
-  fTransforms.fFatherSide.Resize(size);/**vale -1 quando o lado não é contido propriamente*/
+  fTransforms.fFatherSide.Resize(size);/**vale -1 quando o lado nï¿½ ï¿½contido propriamente*/
   fTransforms.fSideTransform.Resize(size);
   for(isub=0;isub<nsubs;isub++){
     fTransforms.fInitSonSides[isub] = initside;
-    TPZGeoEl *son = Element(isub+1);/**o pai não sabe quem são os filhos*/
+    TPZGeoEl *son = Element(isub+1);/**o pai nï¿½ sabe quem sï¿½ os filhos*/
     int nsides = son->NSides();/**um dos elementos implementados no PZ*/
     //cout << "\n------------------------> ELemento de id = " << son->Id() << endl << endl;
-    for(side=0;side<nsides;side++){/**cantos + arestas + faces, o interior não é compartilhado*/
+    for(side=0;side<nsides;side++){/**cantos + arestas + faces, o interior nï¿½ ï¿½compartilhado*/
       son->CenterPoint(side,masscent);/**percorre todos os lados do elemento filho*/
       son->X(masscent,xpoint);
+      fath->ComputeXInverse(xpoint,ksipoint);
       //cout << "\nxpoint = " << xpoint[0] << " , " << xpoint[1] << " , " << xpoint[2] << endl << endl;
-      fatside = fath->WhichSide(xpoint);/**lado do pai contendo o lado do filho*/
+      fatside = fath->WhichSide(ksipoint);/**lado do pai contendo o lado do filho*/
       fTransforms.fSideTransform[cont] = son->ComputeParamTrans(fath,fatside,side);
       //cout << "sub/side -> fath side: " << son->Id() << "/" << side << " -> " << fatside << endl; 
       //fTransforms.fSideTransform[cont].Mult().Print(" T ");
@@ -283,7 +281,7 @@ void TPZRefPattern::ComputeTransforms(){
       initside++;
     }
   }
-  fTransforms.fInitSonSides[isub] = initside;/**posição final em fSideFather*/
+  fTransforms.fInitSonSides[isub] = initside;/**posiï¿½o final em fSideFather*/
 //  ofstream out("transformacoes.out");
 //  fTransforms.Print(*fMesh,out);
 //  out.flush();
@@ -294,10 +292,10 @@ void TPZRefPattern::ComputeTransforms(){
 void TPZRefPattern::TPZSideTransform::Print(TPZGeoMesh &gmesh,ostream &out){
   out << "TPZRefPattern::TPZSideTransform::Print transformacoes parametricas\n\n";
   int isub,iside,count=0;
-  int nsubs = gmesh.ElementVec().NElements()-1;/**a malha contém um elemento pai e filhos*/
+  int nsubs = gmesh.ElementVec().NElements()-1;/**a malha contï¿½ um elemento pai e filhos*/
   for(isub=0;isub<nsubs;isub++){
     int elid = gmesh.ElementVec()[isub+1]->Id();
-    out << "\n>>>>>>>>>>>> Sub-element id = " << elid << " <<<<<<<<<<<< " << endl << endl;/**a informação da malha é estática*/
+    out << "\n>>>>>>>>>>>> Sub-element id = " << elid << " <<<<<<<<<<<< " << endl << endl;/**a informaï¿½o da malha ï¿½estï¿½ica*/
     int nsides = gmesh.ElementVec()[isub+1]->NSides();
     for(iside=0;iside<nsides;iside++){/**percorre-se os lados de cada filho*/
       out << "> Sub-element/side = " << elid << "/" << iside << "  Side of father = " << fFatherSide[count] << endl;
@@ -333,7 +331,7 @@ TPZTransform TPZRefPattern::Transform(int side, int sub){
 }
 
 void TPZRefPattern::SideNodes(int side, TPZVec<int> &vecnodes){
-  /**side é um lado é do pai, é preciso achar todos os nós internos ao lado*/
+  /**side ï¿½um lado ï¿½do pai, ï¿½preciso achar todos os nï¿½ internos ao lado*/
   TPZGeoEl *father = Element(0);
   int nsdfat = father->NSides();
   int nnod = father->NNodes();
@@ -370,7 +368,7 @@ if (gDebug == 2){
     
   int pos = fFatherSides.fInitSide[side];
   int pos2 = fFatherSides.fInitSide[side+1];
-  vecnodes.Resize(pos2-pos);/**o número de nós no lado é menor que isto*/
+  vecnodes.Resize(pos2-pos);/**o nmero de nï¿½ no lado ï¿½menor que isto*/
   int count = 0;
   for(int par=pos;par<pos2;par++){/**intervalo do lado side*/
     TPZGeoElSide subs = fFatherSides.fPartitionSubSide[par];//[pos];
@@ -384,7 +382,7 @@ if (gDebug == 2){
     if(sd < nnod){
       TPZGeoEl *el = subs.Element();
       int node = el->NodeIndex(sd);
-      //vecnodes[par-pos] = sd;/**cada nó aparece uma única ves na particão do lado*/
+      //vecnodes[par-pos] = sd;/**cada nï¿½aparece uma nica ves na particï¿½ do lado*/
       vecnodes[par-pos] = node;
       count++;
     }
@@ -437,26 +435,26 @@ void TPZRefPattern::SideSubElement(int sidein, int position, int & sub, int & si
          << " side " << fFatherSides.fPartitionSubSide[i].Side() << endl;
   }
 */  
-  if(position < 0 || position > (insd2-insd)){/**subs2-subsd é o número de sub's do lado*/
+  if(position < 0 || position > (insd2-insd)){/**subs2-subsd ï¿½o nmero de sub's do lado*/
      PZError << "TPZRefPattern::SideSubElement wrong position, position = " << position << endl;
      sub = sideout = -1;
      return;
   }
-  /**a ordem é determinada pela particão dos lados do pai, é uma ordem fixa*/
+  /**a ordem ï¿½determinada pela particï¿½ dos lados do pai, ï¿½uma ordem fixa*/
   sub = fFatherSides.fPartitionSubSide[insd].Element()->Id()-1;/**id contemplado como filho*/
   sideout = fFatherSides.fPartitionSubSide[insd].Side();
 }
 
 void TPZRefPattern::NSideSubElements(){
-  /**procura-se o número de sub-elementos da particão, isto não é igual ao número de
-     elementos da particão*/
-  /**side é um lado do pai, é preciso achar o número de sub-elementos ligados a este lado*/
+  /**procura-se o nmero de sub-elementos da particï¿½, isto nï¿½ ï¿½igual ao nmero de
+     elementos da particï¿½*/
+  /**side ï¿½um lado do pai, ï¿½preciso achar o nmero de sub-elementos ligados a este lado*/
   TPZGeoEl *father = Element(0);
   int nsdfat = father->NSides();
   int nnod = father->NNodes();
   fFatherSides.fNSubSideFather.Resize(nsdfat); 
   for(int side=0;side<nsdfat;side++){/**percorre-se os lados do pai*/
-    if(side<nnod){/**os cantos não fazem parte da particão*/
+    if(side<nnod){/**os cantos nï¿½ fazem parte da particï¿½*/
     /*
       TPZGeoElSide fat(Element(0),side),neigh;//elemento pai e seu vizinho
       if(!fat.Element()){
@@ -464,7 +462,7 @@ void TPZRefPattern::NSideSubElements(){
         exit(-1);//radicalizou
       }
       neigh = fat.Neighbour();
-      //isso  um crime... pq conta aqui en no conta para os outros lados ??? int count = 1;//o pai está contado
+      //isso  um crime... pq conta aqui en no conta para os outros lados ??? int count = 1;//o pai estï¿½contado
       int count = 0;
       while(neigh.Element() && neigh.Element()!=fat.Element()){
         neigh = neigh.Neighbour(); 
@@ -479,12 +477,12 @@ void TPZRefPattern::NSideSubElements(){
       continue;
     }
     /**arestas, faces e interior: side > nnod*/
-    /**tomo todos os elemento distintos da particão do lado*/
+    /**tomo todos os elemento distintos da particï¿½ do lado*/
     int sidepos = side-nnod;
     int pos = fFatherSides.fInitSide[sidepos];
     int pos2 = fFatherSides.fInitSide[sidepos+1];
     int size = pos2-pos;
-    //    TPZVec<int> subs(size,0);/**tamanho máximo*/
+    //    TPZVec<int> subs(size,0);/**tamanho mï¿½imo*/
     //    for(p=pos;p<pos2;p++) subs[p-pos] = fFatherSides.fPartitionSubSide[p].Element()->Id();/**todos positivos > 0*/
     //    for(int i=0;i<size;i++) for(int j=i+1;j<size;j++) if(subs[j]==subs[i]) subs[j] = 0;/**anulando os repetidos*/
     //    int count = 0;
@@ -522,18 +520,18 @@ TPZGeoEl *TPZRefPattern::CreateGeoEl(int ntype, int mat,TPZVec<int> &nodes,TPZGe
       return gmesh->CreateGeoElement(EOned,nodes,mat,index,el);
       //return new TPZGeoEl1d(nodes,mat,*gmesh);
       //return;
-    case 3://triângulo ; elgt2d =
+    case 3://triï¿½gulo ; elgt2d =
       return gmesh->CreateGeoElement(ETriangle,nodes,mat,index,el);
       //return new TPZGeoElT2d(nodes,mat,*gmesh);
       //return;
-    case 4://quadrilátero ; elgq2d
+    case 4://quadrilï¿½ero ; elgq2d
       return gmesh->CreateGeoElement(EQuadrilateral,nodes,mat,index,el);
       //return;
     case 7://tetraedro ; elgt3d =
       return gmesh->CreateGeoElement(ETetraedro,nodes,mat,index,el);
       //return new TPZGeoElT3d(nodes,mat,*gmesh);
       //return;
-    case 5://pirâmide ; elgpi3d =
+    case 5://pirï¿½ide ; elgpi3d =
       return gmesh->CreateGeoElement(EPiramide,nodes,mat,index,el);
       //return new TPZGeoElPi3d(nodes,mat,*gmesh);
       //return;
@@ -556,7 +554,7 @@ TPZGeoEl *TPZRefPattern::CreateGeoEl(int ntype, int mat,TPZVec<int> &nodes,TPZGe
   return 0;
 }
 
-int TPZRefPattern::SizeOfSubsSides(int ison){/**ison é o número do sub-elemento*/
+int TPZRefPattern::SizeOfSubsSides(int ison){/**ison ï¿½o nmero do sub-elemento*/
   int nsubs = NSubElements();
   if(ison==nsubs) ison--;
   if(ison < 0 || ison > nsubs-1){
@@ -571,26 +569,26 @@ int TPZRefPattern::SizeOfSubsSides(int ison){/**ison é o número do sub-elemento*
 }
 
 int TPZRefPattern::IsFatherNeighbour(TPZGeoElSide fathside,TPZGeoEl *son){
-  /**se elementos filho e pai tem um lado em comum eles compartilham a vizinhança*/
+  /**se elementos filho e pai tem um lado em comum eles compartilham a vizinhanï¿½*/
   TPZGeoElSide neighbour = fathside.Neighbour();
   while(neighbour.Element() && neighbour.Element()->Id() != fathside.Element()->Id()){
-    if(neighbour.Element()->Id() == son->Id()) return 1;/**elementos pai e filho são vizinhos*/
-    neighbour = neighbour.Neighbour();/**percorre-se a vizinhança do lado do pai*/
+    if(neighbour.Element()->Id() == son->Id()) return 1;/**elementos pai e filho sï¿½ vizinhos*/
+    neighbour = neighbour.Neighbour();/**percorre-se a vizinhanï¿½ do lado do pai*/
   }
-  return 0;//**se não é vizinho então nenhum sub-elemento compartilha esse lado*/
+  return 0;//**se nï¿½ ï¿½vizinho entï¿½ nenhum sub-elemento compartilha esse lado*/
 }
 
 void TPZRefPattern::DefinitionOfSizePartition(){
-  TPZGeoEl *fat = Element(0);/**elemento pai da divisão*/
+  TPZGeoEl *fat = Element(0);/**elemento pai da divisï¿½*/
   int nsidefat = fat->NSides();
   int nnodes = fat->NNodes();
   int nsides = nsidefat-nnodes;
-  fFatherSides.fInitSide.Resize(nsides+1);/**número de lados do pai + final*/  
+  fFatherSides.fInitSide.Resize(nsides+1);/**nmero de lados do pai + final*/  
   int maxsize = 0,sidefat,sf;
 //  int nsubs = NSubElements();
   int size = fTransforms.fFatherSide.NElements();  
   fFatherSides.fInitSide[0] = 0;
-  for(sf=nnodes;sf<nsidefat;sf++){/**os cantos do pai não são particionados*/
+  for(sf=nnodes;sf<nsidefat;sf++){/**os cantos do pai nï¿½ sï¿½ particionados*/
     int sd = 0;
     int nsidestot = 0;
     while(sd < size){
@@ -598,8 +596,8 @@ void TPZRefPattern::DefinitionOfSizePartition(){
       if(sidefat == sf) nsidestot++;/**conta todos os lados repetidos igual a sf*/      
       sd++;
     }
-    maxsize += nsidestot;/**número total de lados que particionam os lados do pai (exceto cantos do pai)*/
-    fFatherSides.fInitSide[sf-nnodes + 1] = maxsize;/**comeco do próximo lado do pai*/    
+    maxsize += nsidestot;/**nmero total de lados que particionam os lados do pai (exceto cantos do pai)*/
+    fFatherSides.fInitSide[sf-nnodes + 1] = maxsize;/**comeco do prï¿½imo lado do pai*/    
   }
   fFatherSides.fPartitionSubSide.Resize(maxsize);
   /**PARA TESTES*/
@@ -621,27 +619,27 @@ TPZGeoEl *TPZRefPattern::Element(int iel){
 }
 
 int TPZRefPattern::SidePartition(TPZVec<TPZGeoElSide> &gelvec, int side){
-  int nsides = Element(0)->NSides();/**número de lados do pai*/
+  int nsides = Element(0)->NSides();/**nmero de lados do pai*/
   int nnodes = Element(0)->NNodes();
   if(side<nnodes || side>nsides){
     PZError <<  "TPZRefaPattern::SidePartition side error: side = " << side << endl;
     gelvec.Resize(0);
     return 0;
   }
-  side -= Element(0)->NNodes();/**não inclui cantos*/
-  int firstpos = fFatherSides.fInitSide[side];/**posicão inicial da particão do lado*/
-  int lastpos = fFatherSides.fInitSide[side+1];/**posicão final da particão do lado*/
+  side -= Element(0)->NNodes();/**nï¿½ inclui cantos*/
+  int firstpos = fFatherSides.fInitSide[side];/**posicï¿½ inicial da particï¿½ do lado*/
+  int lastpos = fFatherSides.fInitSide[side+1];/**posicï¿½ final da particï¿½ do lado*/
   int size = lastpos-firstpos;
-  gelvec.Resize(size);/**tamanho: número de elementos da particão do lado*/
+  gelvec.Resize(size);/**tamanho: nmero de elementos da particï¿½ do lado*/
   int pos;
   for(pos = firstpos;pos<lastpos;pos++){
     int pos0 = pos - firstpos;
     gelvec[pos0] = fFatherSides.fPartitionSubSide[pos];
   }
-  return size;/**número de elementos da particão do lado*/;
+  return size;/**nmero de elementos da particï¿½ do lado*/;
 }
 
-/**verifica as transformacões do lado do sub-elemento para o lado do pai*/
+/**verifica as transformacï¿½s do lado do sub-elemento para o lado do pai*/
 void TPZRefPattern::TransformationTest(){
   int isub,sd,ip;
   //x1 no filho deformado, x2 no pai deformado
@@ -659,15 +657,15 @@ void TPZRefPattern::TransformationTest(){
       if( sd<subel->NNodes() && IsFatherNeighbour(TPZGeoElSide(father,sd),subel) ) continue;
       int dims = subel->SideDimension(sd);
       int dimsub = subel->Dimension();
-      /**regra de integracão para o espaco paramêtrico do lado do sub-elemento*/
+      /**regra de integracï¿½ para o espaco paramï¿½rico do lado do sub-elemento*/
       TPZIntPoints *rule = subel->CreateSideIntegrationRule(sd,5);
       TPZVec<int> order(dims,5);
       TPZVec<REAL> point(dims,0.),point2(dimsub);
       rule->SetOrder(order);
       for(ip=0;ip<rule->NPoints();ip++){
-        /**ponto no espaco paramêtrico do lado do filho*/
+        /**ponto no espaco paramï¿½rico do lado do filho*/
         rule->Point(ip,point,weight);        
-        TPZTransform sidet(dimsub);/**transformacão unitária*/
+        TPZTransform sidet(dimsub);/**transformacï¿½ unitï¿½ia*/
         if(dims < dimsub){          
           sidet = subel->SideToSideTransform(sd,nsides-1);/**transf. no elemento metre*/
        //   TPZTransform told(sidet);
@@ -675,28 +673,28 @@ void TPZRefPattern::TransformationTest(){
       //    if(IsNotEqual(sidet,told)) 
        //     PZError <<  "TPZRefPattern::TransformationTest as transformacoes nao sao iguais -> 1\n\n";
         }
-        sidet.Apply(point,point2);//**transformacão para o interior do mestre do sub-elemento*
+        sidet.Apply(point,point2);//**transformacï¿½ para o interior do mestre do sub-elemento*
         subel->X(point2,x1);/**ponto no lado do filho deformado*/
-        /**transformacão: espaco paramêtrico do filho/lado  -> espaco paramêtrico do pai/lado*/
-        fatside = father->WhichSide(x1);/**no elemento mestre do pai, father é o deformado*/;
+        /**transformacï¿½: espaco paramï¿½rico do filho/lado  -> espaco paramï¿½rico do pai/lado*/
+        fatside = father->WhichSide(x1);/**no elemento mestre do pai, father ï¿½o deformado*/;
         dimfatside = father->SideDimension(fatside);
-        TPZTransform trans = Transform(sd,isub);/**transformação calculada pelo TPZRefPattern*/
-        /**------------teste das transformações-----------*/
+        TPZTransform trans = Transform(sd,isub);/**transformaï¿½o calculada pelo TPZRefPattern*/
+        /**------------teste das transformaï¿½es-----------*/
         TPZTransform sdtosd(dims);
         TPZGeoElSide(subel,sd).SideTransform3(TPZGeoElSide(father,fatside),sdtosd);
         if(IsNotEqual(trans,sdtosd)){
           PZError <<  "TPZRefPattern::TransformationTest as transformacoes nao sao iguais -> 2\n\n";
         }
-        /**-----------fim teste das transformações--------*/
+        /**-----------fim teste das transformaï¿½es--------*/
         TPZVec<REAL> pf(dimfatside);
-        trans.Apply(point,pf);/**ponto pf no espaco paramêtrico do lado do pai*/
-        TPZTransform sidetf(dimfatside);/**unitária do lado do pai*/
+        trans.Apply(point,pf);/**ponto pf no espaco paramï¿½rico do lado do pai*/
+        TPZTransform sidetf(dimfatside);/**unitï¿½ia do lado do pai*/
         if(dimfatside < dimfat){
           /**para o interior do sub-elemento*/  
           sidetf = father->SideToSideTransform(fatside,father->NSides()-1);
           //sidetf =  father->SideToElemShapeT(fatside);
         }
-        sidetf.Apply(pf,xpf);/**do espaco paramêtrico do lado do pai para o interior do pai*/
+        sidetf.Apply(pf,xpf);/**do espaco paramï¿½rico do lado do pai para o interior do pai*/
         father->X(xpf,x2);//ponto no lado do pai deformado	
         if( sqrt( (x1[0]-x2[0])*(x1[0]-x2[0]) + (x1[1]-x2[1])*(x1[1]-x2[1]) + (x1[2]-x2[2])*(x1[2]-x2[2]) ) > 1.e-10 ){
           PZError << "\nTransformacao errada\n";
