@@ -13,7 +13,12 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 cosysdir = $(prefix)/Cosys
 
-cosys_HEADERS = $(wildcard *.h)
+cosys_HEADERS = pzcartsys.h \
+	pzcosys.h \
+	pzcylinsys.h \
+	pzelgq2dcyl.h \
+	pzesfersys.h 
+
 
 noinst_LIBRARIES = libpzcosys.a
 
