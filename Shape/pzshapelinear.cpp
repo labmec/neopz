@@ -387,7 +387,7 @@ void TPZShapeLinear::CenterPoint(int side, TPZVec<REAL> &center) {
 }
 
 #ifdef _AUTODIFF
-void TPZShapeLinear::Shape1dInternal(FADREAL & x,int num,TPZVec<FADREAL> & phi,int transformation_index){
+void TPZShapeLinear::ShapeInternal(FADREAL & x,int num,TPZVec<FADREAL> & phi,int transformation_index){
   // Quadratic or higher shape functions
   if(num <= 0) return;
   FADREAL y;

@@ -880,7 +880,7 @@ void TPZShapeCube::ShapeCube(TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &
     //phin.Zero();
     //dphin.Zero();
     TPZVec<FADREAL> phin(20, FADREAL(ndim, 0.0)); //3d
-    TPZShapeLinear::Shape1dInternal(outval,ordin,phin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
+    TPZShapeLinear::ShapeInternal(outval,ordin,phin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
 //    TransformDerivativeFromRibToCube(rib,ordin,phin);
     for (int i = 0; i < ordin; i++) {
       //phi(shape,0) = phi(id0,0)*phi(id1,0)*phin(i,0);
