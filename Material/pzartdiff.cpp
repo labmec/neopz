@@ -318,7 +318,7 @@ void TPZArtDiff::ODotOperator(TPZVec<REAL> &dphi, TPZVec<TPZVec<T> > &TauDiv, TP
 }
 
 
-void TPZArtDiff::Divergent(TPZFMatrix &dsol,
+	void TPZArtDiff::Divergent(TPZFMatrix &dsol,
 			   TPZFMatrix & dphi,
 			   TPZVec<TPZDiffMatrix<REAL> > & Ai,
 			   TPZVec<REAL> & Div,

@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.8 2003-12-10 19:24:54 erick Exp $
+//$Id: pzconslaw.h,v 1.9 2003-12-18 20:05:11 erick Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -15,7 +15,8 @@ enum TPZTimeDiscr
    None_TD = -1,
    Explicit_TD = 0,
    ApproxImplicit_TD = 1,
-   Implicit_TD = 2
+   Implicit_TD = 2,
+   Unknown_TD = 3
 };
 
 enum TPZContributeTime
@@ -23,6 +24,13 @@ enum TPZContributeTime
    None_CT = -1,
    Last_CT = 0,
    Advanced_CT = 1
+};
+
+enum TPZResidualType
+{
+   None_RT = -1,
+   Residual_RT = 0,
+   Flux_RT = 1
 };
 
 class TPZConservationLaw2  : public TPZDiscontinuousGalerkin
@@ -99,10 +107,16 @@ public:
   void SetGamma(int gamma);
 
   /**
-   * 
+   * Sets whether the contribution is advanced or referring to the last
+   * state.
    *
    */
   void SetContributionTime(TPZContributeTime time);
+
+  /**
+   * Residual_RT for calculations and Flux_RT for convergence check.
+   */
+  void TPZConservationLaw2::SetResidualType(TPZResidualType type);
 
   /**
    * Number of state variables according to the dimension
@@ -248,6 +262,14 @@ protected:
    * contributed. If last, then the explicit.
    */
   TPZContributeTime fContributionTime;
+
+  /**
+   * Variable to indicate the type of residual to be computed by Assemble.
+   * A Flux Evaluation type is interesting for residual evaluation, and
+   * a complete residual for the global invertion.
+   */
+  TPZResidualType fResidualType;
+
 };
 
 /*
@@ -293,7 +315,8 @@ inline void TPZConservationLaw2::SetTimeStep(REAL timeStep)
 
 inline REAL TPZConservationLaw2::TimeStep()
 {
-   return fTimeStep;
+   /*if(fResidualType == Residual_RT)*/return fTimeStep;
+   return 1.;
 }
 /*
 inline char * TPZConservationLaw2::Name()
@@ -309,6 +332,15 @@ inline int TPZConservationLaw2::NFluxes()
 inline void TPZConservationLaw2::SetContributionTime(TPZContributeTime time)
 {
    fContributionTime = time;
+}
+
+
+inline void TPZConservationLaw2::SetResidualType(TPZResidualType type)
+{
+   fResidualType = type;
+   /*
+   if(fResidualType == Flux_RT)cout << "Flux Residual Type\n";
+   if(fResidualType == Residual_RT)cout << "Residual Residual Type\n";*/
 }
 
 #endif

@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.7 2003-11-20 21:39:21 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.8 2003-12-18 20:06:16 erick Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -83,6 +83,12 @@ public:
     * when finished.
     */
    void BufferLastStateAssemble();
+
+   /**
+    * Evaluates the flux part of the residual for
+    * convergence check.
+    */
+   REAL EvaluateFluxEpsilon();
 
    /**
     * Assembles the stiffness matrix

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.10 2003-12-10 19:24:55 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.11 2003-12-18 20:05:12 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -106,6 +106,13 @@ public :
   virtual void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,
 			TPZVec<REAL> &normal,TPZBndCond *bcright);
 */
+
+/*
+   Computes the ghost state variables bsed on the BC type
+*/
+template <class T>
+void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc);
+
   /**
    * See declaration in base class
    */

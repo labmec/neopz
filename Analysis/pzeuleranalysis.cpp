@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.13 2003-12-09 22:19:28 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.14 2003-12-18 20:06:16 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -91,6 +91,27 @@ void TPZEulerAnalysis::BufferLastStateAssemble()
    SetLastState();
    fFlowCompMesh->Assemble(fRhsLast);
    SetAdvancedState();
+}
+
+REAL TPZEulerAnalysis::EvaluateFluxEpsilon()
+{
+// enabling the flux evaluation type
+   fFlowCompMesh->SetResidualType(Flux_RT);
+   TPZFMatrix Flux;
+   Flux.Redim(fCompMesh->NEquations(),1);
+   Flux.Zero();
+// contribution of last state
+   SetLastState();
+   fFlowCompMesh->Assemble(Flux);
+
+// constribution of adv state
+   SetAdvancedState();
+   fFlowCompMesh->Assemble(Flux);
+
+// reseting the residual type to residual
+   fFlowCompMesh->SetResidualType(Residual_RT);
+
+   return Norm(Flux);
 }
 
 void TPZEulerAnalysis::Assemble()
@@ -211,7 +232,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
       Assemble();
 
       epsilon = Norm(fRhs);
-      //cout << "\nEpsilon:" << epsilon;
+//      cout << "\nEpsilon:" << epsilon;
       i++;
    }
 
@@ -237,7 +258,7 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh()
   ofstream *dxout = new ofstream("ConsLaw.dx");
   //cout << "\nDX output file : ConsLaw.dx\n";
   graph->SetOutFile(*dxout);
-  int resolution = 3;
+  int resolution = 2;
   graph->SetResolution(resolution);
   graph->DrawMesh(dim);
 
@@ -323,9 +344,7 @@ void TPZEulerAnalysis::Run(ostream &out)
       // using the newest time step.
       ComputeTimeStep();
 
-      AssembleRhs(); // computing the residual only
-      epsilon = Norm(fRhs);
-
+      epsilon = EvaluateFluxEpsilon();
 
       if(lastEpsilon>0.&&epsilon>0.)
       {

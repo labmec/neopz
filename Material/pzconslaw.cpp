@@ -1,4 +1,4 @@
-//$Id: pzconslaw.cpp,v 1.5 2003-12-10 19:24:54 erick Exp $
+//$Id: pzconslaw.cpp,v 1.6 2003-12-18 20:05:11 erick Exp $
 
 #include "pzconslaw.h"
 #include "pzelmat.h"
@@ -31,6 +31,8 @@ fGamma(1.4)
       exit(-1);
    }
    fDim = dim;
+   fResidualType = Residual_RT;
+
 }
 
 
