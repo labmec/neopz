@@ -192,7 +192,7 @@ que inclui os efeitos da deformação por cortante desprezadas por
  que que não fica necessariamente normal à tangente da superfície deformada.
 \layout Standard
 
-Se de um lado desenvolveram-se teorias para se descrever o comportammento
+Se de um lado desenvolveram-se teorias para se descrever o comportamento
  de placas, de outro desenvolveram-se diversos tipos de materiais com caracterís
 ticas distintas.
  Neste sentido, foram desenvolvidos os chamados materiais compostos, que
@@ -524,13 +524,17 @@ No caso das teorias denominadas Continuum based theories, todas tridimensionais,
  isotrópicas homogêneas, simplesmente apoiadas.
  Posteriormente, com o desenvolvimento de materiais compostos, surgiram
  outros estudos, procurando descrever de forma mais aproximada o comportamento
- de tais 
+ de tais tr
+\begin_inset ERT
+status Collapsed
+
 \layout Standard
 
-3
-\layout Standard
+\backslash 
+^e
+\end_inset 
 
-materiais.
+s materiais.
  Deste modo, alguns pesquisadores estudaram o comportamento dinâmico de
  placas retangulares, apresentando soluções analíticas para o caso de flexão
  e vibração de placas retangulares anisotrópicas multicamadas, ou desenvolveram
@@ -627,8 +631,7 @@ As tensões de cisalhamento nas faces externas, paralelas ao plano médio
 \begin{array}{c}
  \gamma _{xz}=\frac{\partial u}{\partial z}+\frac{\partial w}{\partial x}=0\\
  \gamma _{yz}=\frac{\partial v}{\partial z}+\frac{\partial w}{\partial y}=0\\
- \sigma _{z}=0\end{array}
-\label{eq:1}\end{equation}
+ \sigma _{z}=0\end{array}\label{eq:1}\end{equation}
 
 \end_inset 
 
@@ -655,12 +658,10 @@ Para o caso de placa de Kirchhoff verifica-se que os deslocamentos de um
 U(x,y,z)=\left\{ \begin{array}{c}
  u(x,y,z)\\
  v(x,y,z)\\
- w(x,y)\end{array}
-\right\} =\left\{ \begin{array}{c}
+ w(x,y)\end{array}\right\} =\left\{ \begin{array}{c}
  u_{0}(x,y)+z\alpha (x,y)\\
  v_{0}(x,y)+z\beta (x,y)\\
- w(x,y)\end{array}
-\right\} \label{eq:2}\end{equation}
+ w(x,y)\end{array}\right\} \label{eq:2}\end{equation}
 
 \end_inset 
 
@@ -695,7 +696,7 @@ Da hipótese de que
 
 , resulta que:
 \begin_inset Formula \begin{equation}
-\gamma _{xz}=\frac{1}{2}\left(\frac{\partial u}{\partial z}+\frac{\partial w}{\partial x}\right)=0\label{eq:3}\end{equation}
+\gamma _{xz}=\left(\frac{\partial u}{\partial z}+\frac{\partial w}{\partial x}\right)=0\label{eq:3}\end{equation}
 
 \end_inset 
 
@@ -750,12 +751,10 @@ Pode-se então, reescrever a cinemática da placa (que descreve o deslocamento
 U(x,y,z)=\left\{ \begin{array}{c}
  u(x,y,z)\\
  v(x,y,z)\\
- w(x,y)\end{array}
-\right\} =\left\{ \begin{array}{c}
+ w(x,y)\end{array}\right\} =\left\{ \begin{array}{c}
  u(x,y)-z\frac{\partial w(x,y)}{\partial x}\\
  v(x,y)-z\frac{\partial w(x,y)}{\partial y}\\
- w(x,y)\end{array}
-\right\} \label{eq:8}\end{equation}
+ w(x,y)\end{array}\right\} \label{eq:8}\end{equation}
 
 \end_inset 
 
@@ -778,15 +777,13 @@ Das hipóteses discutidas anteriormente, verifica-se que as deformações para
  \varepsilon _{z}\\
  \gamma _{yz}\\
  \gamma _{xz}\\
- \gamma _{xy}\end{array}
-\right\} =\left\{ \begin{array}{c}
+ \gamma _{xy}\end{array}\right\} =\left\{ \begin{array}{c}
  \frac{\partial u(x,y,z)}{\partial x}\\
  \frac{\partial v(x,y,z)}{\partial y}\\
  0\\
  0\\
  0\\
- \frac{1}{2}\left(\frac{\partial u(x,y,z)}{\partial y}+\frac{\partial v(x,y,z)}{\partial x}\right)\end{array}
-\right\} \label{eq:9}\end{equation}
+ \frac{1}{2}\left(\frac{\partial u(x,y,z)}{\partial y}+\frac{\partial v(x,y,z)}{\partial x}\right)\end{array}\right\} \label{eq:9}\end{equation}
 
 \end_inset 
 
@@ -838,10 +835,9 @@ A cinemática proposta pelo modelo de Reissner-Mindlin pode ser verificada
  através do seguinte modelo dado por:
 \begin_inset Formula \begin{equation}
 u(x,y,z)=\left[\begin{array}{c}
- u(x,y,z)=u_{0}(x,y)+z\theta _{x}\\
- v(x,y,z)=v_{0}(x,y)+z\theta _{y}\\
- w(x,y,z)=w_{0}(x,y)\end{array}
-\right]\label{eq:10}\end{equation}
+ u(x,y,z)=u_{0}(x,y)-z\theta _{y}(x,y)\\
+ v(x,y,z)=v_{0}(x,y)+z\theta _{x}(x,y)\\
+ w(x,y,z)=w_{0}(x,y)\end{array}\right]\label{eq:10}\end{equation}
 
 \end_inset 
 
@@ -899,17 +895,15 @@ obtida pela diferença entre
  \varepsilon _{x}\\
  \varepsilon _{y}\\
  \varepsilon _{\theta z}\\
- \varepsilon _{yz}\\
  \varepsilon _{xz}\\
- \varepsilon _{xy}\end{array}
-\right\} =\left\{ \begin{array}{c}
+ \varepsilon _{yz}\\
+ \varepsilon _{xy}\end{array}\right\} =\left\{ \begin{array}{c}
  \frac{\partial u(x,y,z)}{\partial x}\\
  \frac{\partial v(x,y,z)}{\partial y}\\
  \theta _{z}(x_{r},y_{r})-\frac{1}{2}\left(\frac{\partial v(x,y,-f)}{\partial x}-\frac{\partial u(x,y,-f)}{\partial y}\right)\\
- \frac{1}{2}\left(\frac{\partial w(x,y,z)}{\partial x}-\frac{\partial u(x,y,z)}{\partial z}\right)\\
- \frac{1}{2}\left(\frac{\partial w(x,y,z)}{\partial y}-\frac{\partial v(x,y,z)}{\partial z}\right)\\
- \frac{1}{2}\left(\frac{\partial u(x,y,z)}{\partial y}-\frac{\partial v(x,y,z)}{\partial x}\right)\end{array}
-\right\} \label{eq:12}\end{equation}
+ \frac{1}{2}\left(\frac{\partial w(x,y,z)}{\partial x}+\frac{\partial u(x,y,z)}{\partial z}\right)\\
+ \frac{1}{2}\left(\frac{\partial w(x,y,z)}{\partial y}+\frac{\partial v(x,y,z)}{\partial z}\right)\\
+ \frac{1}{2}\left(\frac{\partial u(x,y,z)}{\partial y}+\frac{\partial v(x,y,z)}{\partial x}\right)\end{array}\right\} \label{eq:12}\end{equation}
 
 \end_inset 
 
@@ -921,15 +915,13 @@ obtida pela diferença entre
  \sigma _{z}\\
  \tau _{yz}\\
  \tau _{xz}\\
- \tau _{xy}\end{array}
-\right\} =\left\{ \begin{array}{c}
+ \tau _{xy}\end{array}\right\} =\left\{ \begin{array}{c}
  \frac{E_{x}(\varepsilon _{x}+\upsilon _{y}\varepsilon _{y})}{1-\nu _{x}\nu _{y}}\\
  \frac{E_{y}(\varepsilon _{y}+\upsilon _{x}\varepsilon _{x})}{1-\nu _{x}\nu _{y}}\\
  0\\
  G_{xz}\gamma _{xz}\\
  G_{yz}\gamma _{yz}\\
- G_{xy}\gamma _{xy}\end{array}
-\right\} \label{eq:13}\end{equation}
+ G_{xy}\gamma _{xy}\end{array}\right\} \label{eq:13}\end{equation}
 
 \end_inset 
 
@@ -1002,7 +994,7 @@ com rotações independentes que variam de camada para camada.
 \layout Standard
 
 Admite-se nesta análise que os deslocamentos fundamentais admitidos numa
- dada seção transversal, são as translações 
+ dada seção transversal, são determinados pelas translações 
 \begin_inset Formula $u(x,y)$
 \end_inset 
 
@@ -1250,8 +1242,7 @@ Observa-se na figura abaixo (que ilustra a obtenção do deslocamento na direção
 \begin{array}{c}
  u=u(x_{r},y_{r})\\
  v=v(x_{r},y_{r})\\
- w=w(x_{r},y_{r})\end{array}
-\label{eq:14}\end{equation}
+ w=w(x_{r},y_{r})\end{array}\label{eq:14}\end{equation}
 
 \end_inset 
 
@@ -1335,8 +1326,7 @@ a
 \begin{array}{c}
  \bar{u}(x,y,z)=u(x_{r},y_{r})+(f+z)\theta _{y}\\
  \bar{v}(x,y,z)=v(x_{r},y_{r})-(f+z)\theta _{x}\\
- \bar{w}(x,y,z)=w(x_{r},y_{r})\end{array}
-\label{eq:15}\end{equation}
+ \bar{w}(x,y,z)=w(x_{r},y_{r})\end{array}\label{eq:15}\end{equation}
 
 \end_inset 
 
@@ -1469,16 +1459,13 @@ O vetor de deformações pode ser calculadas em função dos seus deslocamentos,
  \varepsilon _{\theta z}\\
  \gamma _{xz}\\
  \gamma _{yz}\\
- \gamma _{xy}\end{array}
-\right\} =\left\{ \begin{array}{c}
+ \gamma _{xy}\end{array}\right\} =\left\{ \begin{array}{c}
  \frac{\partial \bar{u}(x,y,z)}{\partial x}\\
  \frac{\partial \bar{v}(x,y,z)}{\partial y}\\
  \theta _{z}(x_{r},y_{r})-\frac{1}{2}\left(\frac{\partial \bar{v}(x,y,-f)}{\partial x}+\frac{\partial \bar{u}(x,y,-f)}{\partial y}\right)\\
  \frac{1}{2}\left(\frac{\partial \bar{u}(x,y,z)}{\partial z}+\frac{\partial \bar{w}(x,y,z)}{\partial x}\right)\\
  \frac{1}{2}\left(\frac{\partial \bar{v}(x,y,z)}{\partial z}+\frac{\partial \bar{w}(x,y,z)}{\partial y}\right)\\
- \frac{1}{2}\left(\frac{\partial \bar{u}(x,y,z)}{\partial y}+\frac{\partial \bar{w}(x,y,z)}{\partial x}\right)\end{array}
-\right\} \end{array}
-\label{eq:18}\end{equation}
+ \frac{1}{2}\left(\frac{\partial \bar{u}(x,y,z)}{\partial y}+\frac{\partial \bar{w}(x,y,z)}{\partial x}\right)\end{array}\right\} \end{array}\label{eq:18}\end{equation}
 
 \end_inset 
 
@@ -1500,15 +1487,13 @@ A placa está submetida ao estado plano de tensões e, do mesmo modo como
  \sigma _{\theta z}\\
  \tau _{xz}\\
  \tau _{yz}\\
- \tau _{xy}\end{array}
-\right\} =\left\{ \begin{array}{c}
+ \tau _{xy}\end{array}\right\} =\left\{ \begin{array}{c}
  \frac{E_{x}(\varepsilon _{x}+\upsilon _{y}\varepsilon _{y})}{1-\upsilon _{x}\upsilon _{y}}\\
  \frac{E_{y}(\varepsilon _{y}+\upsilon _{x}\varepsilon _{x})}{1-\upsilon _{x}\upsilon _{y}}\\
  0\\
  G_{xz}\gamma _{xz}\\
  G_{yz}\gamma _{yz}\\
- G_{xy}\gamma _{xy}\end{array}
-\right\} \label{eq:19}\end{equation}
+ G_{xy}\gamma _{xy}\end{array}\right\} \label{eq:19}\end{equation}
 
 \end_inset 
 
@@ -1809,8 +1794,7 @@ O trabalho interno pode ser calculado através dos esforços solicitantes
  N_{y}\frac{\partial \delta v\left(x,y,-f\right)}{\partial y}+N_{xy}\left(\frac{\partial \delta u\left(x,y,-f\right)}{\partial y}+\frac{\partial \delta v\left(x,y,-f\right)}{\partial x}\right)+\\
  +V_{x}\left(\frac{\partial \delta u\left(x,y,z\right)}{\partial z}+\frac{\partial \delta w\left(x,y,z\right)}{\partial x}\right)+V_{y}\left(\frac{\partial \delta v\left(x,y,z\right)}{\partial z}+\frac{\partial \delta w\left(x,y,z\right)}{\partial y}\right)+\\
  +M_{x}\frac{\partial \delta \theta _{y}\left(x_{r},y_{r}\right)}{\partial x}-M_{y}\frac{\partial \delta \theta _{x}\left(x_{r},y_{r}\right)}{\partial x}+M_{xy}\left(\frac{\partial \delta \theta _{y}\left(x_{r},y_{r}\right)}{\partial y}-\frac{\partial \delta \theta _{x}\left(x_{r},y_{r}\right)}{\partial x}\right)+\\
- \left.+M_{\theta z}\left(\delta \theta _{z}\left(x_{r},y_{r}\right)-\frac{1}{2}\left(\frac{\partial \delta _{v}\left(x,y,-f\right)}{\partial x}-\frac{\partial \delta _{x}\left(x,y,-f\right)}{\partial y}\right)\right)\right]\end{array}
-\label{eq:24}\end{equation}
+ \left.+M_{\theta z}\left(\delta \theta _{z}\left(x_{r},y_{r}\right)-\frac{1}{2}\left(\frac{\partial \delta _{v}\left(x,y,-f\right)}{\partial x}-\frac{\partial \delta _{x}\left(x,y,-f\right)}{\partial y}\right)\right)\right]\end{array}\label{eq:24}\end{equation}
 
 \end_inset 
 
@@ -1967,8 +1951,7 @@ Com esta separação, e utilizando-se o programa
 \begin{array}{c}
  W_{int}=\int _{A}\left[\left(\frac{\partial {\delta u}^{T}}{\partial x}\right)K_{xx}\frac{\partial {u}}{\partial x}+\left(\frac{\partial {\delta u}^{T}}{\partial y}\right)K_{yy}\frac{\partial {u}}{\partial y}+\left(\frac{\partial {\delta u}^{T}}{\partial x}\right)K_{xy}\frac{\partial {u}}{\partial y}+\right.\\
  +\left(\frac{\partial {\delta u}^{T}}{\partial y}\right)K_{yx}\frac{\partial {u}}{\partial x}+{\delta u}^{T}B_{ox}\frac{\partial {u}}{\partial x}+{\delta u}^{T}B_{oy}\frac{\partial {u}}{\partial y}+\\
- \left.+\left(\frac{\partial {\delta u}^{T}}{\partial x}\right)^{T}B_{xo}{u}+\left(\frac{\partial {\delta u}^{T}}{\partial y}\right)^{T}K_{yo}{u}+{\delta u}^{T}B_{oo}{u}\right]dxdy\end{array}
-\label{eq:26}\end{equation}
+ \left.+\left(\frac{\partial {\delta u}^{T}}{\partial x}\right)^{T}B_{xo}{u}+\left(\frac{\partial {\delta u}^{T}}{\partial y}\right)^{T}K_{yo}{u}+{\delta u}^{T}B_{oo}{u}\right]dxdy\end{array}\label{eq:26}\end{equation}
 
 \end_inset 
 
@@ -2181,8 +2164,7 @@ e
 \begin{array}{ccc}
  a_{1}=(a_{00},a_{01},a_{02}) & \, \, \, \, \,  & n_{1}=(n_{00},n_{01},n_{02})\\
  a_{2}=(a_{10},a_{11},a_{12}) & \, \, \, \, \,  & n_{2}=(n_{10},n_{11},n_{12})\\
- a_{3}=(a_{20},a_{21},a_{22}) & \, \, \, \, \,  & n_{3}=(n_{20},n_{21},n_{22})\end{array}
-\label{eq:27}\end{equation}
+ a_{3}=(a_{20},a_{21},a_{22}) & \, \, \, \, \,  & n_{3}=(n_{20},n_{21},n_{22})\end{array}\label{eq:27}\end{equation}
 
 \end_inset 
 
@@ -2236,20 +2218,16 @@ Um vetor
 \left\{ \begin{array}{c}
  t_{n_{1}}\\
  t_{n_{2}}\\
- t_{n_{3}}\end{array}
-\right\} =\left[\begin{array}{ccc}
+ t_{n_{3}}\end{array}\right\} =\left[\begin{array}{ccc}
  n_{00} & n_{01} & n_{02}\\
  n_{10} & n_{11} & n_{12}\\
- n_{20} & n_{21} & n_{22}\end{array}
-\right]\left\{ \begin{array}{c}
+ n_{20} & n_{21} & n_{22}\end{array}\right]\left\{ \begin{array}{c}
  t_{x}\\
  t_{y}\\
- t_{z}\end{array}
-\right\} =[r]\left\{ \begin{array}{c}
+ t_{z}\end{array}\right\} =[r]\left\{ \begin{array}{c}
  t_{x}\\
  t_{y}\\
- t_{z}\end{array}
-\right\} \label{eq:28}\end{equation}
+ t_{z}\end{array}\right\} \label{eq:28}\end{equation}
 
 \end_inset 
 
@@ -2258,12 +2236,10 @@ Um vetor
 \left\{ \begin{array}{c}
  t_{x}\\
  t_{y}\\
- t_{z}\end{array}
-\right\} =[r]^{T}\left\{ \begin{array}{c}
+ t_{z}\end{array}\right\} =[r]^{T}\left\{ \begin{array}{c}
  t_{n_{1}}\\
  t_{n_{2}}\\
- t_{n_{3}}\end{array}
-\right\} \label{eq:29}\end{equation}
+ t_{n_{3}}\end{array}\right\} \label{eq:29}\end{equation}
 
 \end_inset 
 
@@ -2342,8 +2318,7 @@ a
 \begin{array}{c}
  u_{n}=u_{n}(n_{1},n_{2})\\
  v_{n}=v_{n}(n_{1},n_{2})\\
- w_{n}=w_{n}(n_{1},n_{2})\end{array}
-\label{eq:30}\end{equation}
+ w_{n}=w_{n}(n_{1},n_{2})\end{array}\label{eq:30}\end{equation}
 
 \end_inset 
 
@@ -2355,8 +2330,7 @@ já no sistema globaln são escritas com:
 \begin{array}{c}
  u=u(x_{r},y_{r},z_{r})\\
  v=v(x_{r},y_{r},z_{r})\\
- w=w(x_{r},y_{r},z_{r})\end{array}
-\label{eq:31}\end{equation}
+ w=w(x_{r},y_{r},z_{r})\end{array}\label{eq:31}\end{equation}
 
 \end_inset 
 
@@ -2374,8 +2348,7 @@ Considera-se como constante a rotação ao longo das camadas do composto laminado,
 \begin{array}{c}
  \theta _{1}=\theta _{1}(n_{1},n_{2})\\
  \theta _{2}=\theta _{2}(n_{1},n_{2})\\
- \theta _{3}=\theta _{3}(n_{1},n_{2})\end{array}
-\label{eq:32}\end{equation}
+ \theta _{3}=\theta _{3}(n_{1},n_{2})\end{array}\label{eq:32}\end{equation}
 
 \end_inset 
 
@@ -2391,8 +2364,7 @@ já no sistema
 \begin{array}{c}
  \theta _{x}=\theta _{x}(x_{r},y_{r},z_{r})\\
  \theta _{y}=\theta _{y}(x_{r},y_{r},z_{r})\\
- \theta _{z}=\theta _{z}(x_{r},y_{r},z_{r})\end{array}
-\label{eq:33}\end{equation}
+ \theta _{z}=\theta _{z}(x_{r},y_{r},z_{r})\end{array}\label{eq:33}\end{equation}
 
 \end_inset 
 
@@ -2433,8 +2405,7 @@ dada em:
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
  \left\{ u_{n}\right\} ^{T}=\left\{ u_{n},v_{n},w_{n},\theta _{1},\theta _{2},\theta _{3}\right\} \\
- \left\{ u\right\} =\left\{ u,v,w,\theta _{x},\theta _{y},\theta _{z}\right\} \end{array}
-\label{eq:34}\end{equation}
+ \left\{ u\right\} =\left\{ u,v,w,\theta _{x},\theta _{y},\theta _{z}\right\} \end{array}\label{eq:34}\end{equation}
 
 \end_inset 
 
@@ -2452,8 +2423,7 @@ Cada um destes vetores é composto por três componentes de translação e três
 \begin_inset Formula \begin{equation}
 \left\{ u_{n}\right\} _{6\times 1}=\left[\begin{array}{cc}
  [r]_{3\times 3} & 0\\
- 0 & [r]_{3\times 3}\end{array}
-\right]\left\{ u\right\} _{6\times 1}\label{eq:35}\end{equation}
+ 0 & [r]_{3\times 3}\end{array}\right]\left\{ u\right\} _{6\times 1}\label{eq:35}\end{equation}
 
 \end_inset 
 
@@ -2461,8 +2431,7 @@ Cada um destes vetores é composto por três componentes de translação e três
 \begin_inset Formula \begin{equation}
 \left\{ u\right\} _{6\times 1}=\left[\begin{array}{cc}
  [r]_{3\times 3}^{T} & 0\\
- 0 & [r]_{3\times 3}^{T}\end{array}
-\right]\left\{ u_{n}\right\} _{6\times 1}\label{eq:36}\end{equation}
+ 0 & [r]_{3\times 3}^{T}\end{array}\right]\left\{ u_{n}\right\} _{6\times 1}\label{eq:36}\end{equation}
 
 \end_inset 
 
@@ -2486,8 +2455,7 @@ O movimento de translação do ponto
 \begin{array}{c}
  u_{e}(e_{1},e_{2},e_{3})=u_{n}(n_{1},n_{2})+(f+e_{3})\theta _{2}\\
  v_{e}(e_{1},e_{2},e_{3})=v_{n}(n_{1},n_{2})-(f+e_{3})\theta _{1}\\
- w_{e}(e_{1},e_{2},e_{3})=w_{n}(n_{1},n_{2})\end{array}
-\label{eq:37}\end{equation}
+ w_{e}(e_{1},e_{2},e_{3})=w_{n}(n_{1},n_{2})\end{array}\label{eq:37}\end{equation}
 
 \end_inset 
 
@@ -2589,8 +2557,7 @@ a
  \varepsilon _{\theta _{3}}=\theta _{3}(n_{1},n_{2})-\frac{1}{2}\left(\frac{\partial v_{e}(e_{1},e_{2},-f)}{\partial e_{1}}+\frac{\partial u_{e}(e_{1},e_{2},-f)}{\partial e_{2}}\right)\\
  \varepsilon _{13}=\frac{1}{2}\left(\frac{\partial u_{e}(e_{1},e_{2},e_{3})}{\partial e_{3}}+\frac{\partial w_{e}(e_{1},e_{2},e_{3})}{\partial e_{1}}\right)\\
  \varepsilon _{23}=\frac{1}{2}\left(\frac{\partial v_{e}(e_{1},e_{2},e_{3})}{\partial e_{3}}+\frac{\partial w_{e}(e_{1},e_{2},e_{3})}{\partial e_{2}}\right)\\
- \varepsilon _{12}=\frac{1}{2}\left(\frac{\partial u_{e}(e_{1},e_{2},e_{3})}{\partial e_{2}}+\frac{\partial w_{e}(e_{1},e_{2},e_{3})}{\partial e_{1}}\right)\end{array}
-\label{eq:39}\end{equation}
+ \varepsilon _{12}=\frac{1}{2}\left(\frac{\partial u_{e}(e_{1},e_{2},e_{3})}{\partial e_{2}}+\frac{\partial w_{e}(e_{1},e_{2},e_{3})}{\partial e_{1}}\right)\end{array}\label{eq:39}\end{equation}
 
 \end_inset 
 
@@ -2635,15 +2602,13 @@ As direções de ortotropia são dadas, neste caso, nas direções dos eixos
  \sigma _{3}\\
  \tau _{13}\\
  \tau _{23}\\
- \tau _{12}\end{array}
-\right\} =\left\{ \begin{array}{c}
+ \tau _{12}\end{array}\right\} =\left\{ \begin{array}{c}
  \frac{E_{1}(\varepsilon _{1}+\upsilon _{2}\varepsilon _{2})}{1-\upsilon _{1}\upsilon _{2}}\\
  \frac{E_{2}(\varepsilon _{2}+\upsilon _{1}\varepsilon _{1})}{1-\upsilon _{1}\upsilon _{2}}\\
  0\\
  G_{13}\gamma _{13}\\
  G_{23}\gamma _{23}\\
- G_{12}\gamma _{12}\end{array}
-\right\} \label{eq:40}\end{equation}
+ G_{12}\gamma _{12}\end{array}\right\} \label{eq:40}\end{equation}
 
 \end_inset 
 
@@ -2780,8 +2745,7 @@ a
  N_{2}\frac{\partial \delta v_{e}\left(e_{1},e_{2},-f\right)}{\partial n_{2}}+N_{12}\left(\frac{\partial \delta u_{e}\left(e_{1},e_{2},-f\right)}{\partial n_{2}}+\frac{\partial \delta v_{e}\left(e_{1},e_{2},-f\right)}{\partial n_{1}}\right)+\\
  +V_{1}\left(\frac{\partial \delta u_{e}\left(e_{1},e_{2},e_{3}\right)}{\partial n_{3}}+\frac{\partial \delta w_{e}\left(e_{1},e_{2},e_{3}\right)}{\partial n_{1}}\right)+V_{2}\left(\frac{\partial \delta v_{e}\left(e_{1},e_{2},e_{3}\right)}{\partial n_{3}}+\frac{\partial \delta w_{e}\left(e_{1},e_{2},e_{3}\right)}{\partial n_{2}}\right)+\\
  +M_{1}\frac{\partial \delta \theta _{2}\left(n_{1},n_{2}\right)}{\partial n_{1}}-M_{2}\frac{\partial \delta \theta _{1}\left(n_{1},n_{2}\right)}{\partial n_{2}}+M_{12}\left(\frac{\partial \delta \theta _{2}\left(n_{1},n_{2}\right)}{\partial n_{2}}-\frac{\partial \delta \theta _{1}\left(n_{1},n_{2}\right)}{\partial n_{1}}\right)+\\
- \left.+M_{\theta 3}\left(\delta \theta _{3}\left(n_{1},n_{2}\right)-\frac{1}{2}\left(\frac{\partial \delta v_{e}\left(e_{1},e_{2},-f\right)}{\partial n_{1}}-\frac{\partial \delta u_{e}\left(e_{1},e_{2},-f\right)}{\partial n_{2}}\right)\right)\right]dn_{1}dn_{2}\end{array}
-\label{eq:45}\end{equation}
+ \left.+M_{\theta 3}\left(\delta \theta _{3}\left(n_{1},n_{2}\right)-\frac{1}{2}\left(\frac{\partial \delta v_{e}\left(e_{1},e_{2},-f\right)}{\partial n_{1}}-\frac{\partial \delta u_{e}\left(e_{1},e_{2},-f\right)}{\partial n_{2}}\right)\right)\right]dn_{1}dn_{2}\end{array}\label{eq:45}\end{equation}
 
 \end_inset 
 
@@ -2905,8 +2869,7 @@ Na implementação computacional, os deslocamentos foram escritos em coordenadas
 \begin{array}{c}
  W_{int}=\int _{A}\left[\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial a_{1}}\right)K_{11}\frac{\partial \left\{ u\right\} }{\partial a_{1}}+\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial a_{2}}\right)K_{22}\frac{\partial \left\{ u\right\} }{\partial a_{2}}+\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial a_{1}}\right)K_{12}\frac{\partial \left\{ u\right\} }{\partial a_{2}}+\right.\\
  +\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial a_{2}}\right)K_{21}\frac{\partial \left\{ u\right\} }{\partial a_{1}}+\left\{ \delta u\right\} ^{T}B_{o1}\frac{\partial }{\partial a_{1}}+\left\{ \delta u\right\} ^{T}B_{o2}\frac{\partial \left\{ u\right\} }{\partial a_{2}}+\\
- \left.+\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial a_{1}}\right)^{T}B_{1o}\left\{ u\right\} +\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial a_{2}}\right)^{T}K_{2o}\left\{ u\right\} +\left\{ \delta u\right\} ^{T}B_{ooo}\left\{ u\right\} \right]da_{1}da_{2}\end{array}
-\label{eq:46}\end{equation}
+ \left.+\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial a_{1}}\right)^{T}B_{1o}\left\{ u\right\} +\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial a_{2}}\right)^{T}K_{2o}\left\{ u\right\} +\left\{ \delta u\right\} ^{T}B_{ooo}\left\{ u\right\} \right]da_{1}da_{2}\end{array}\label{eq:46}\end{equation}
 
 \end_inset 
 
@@ -2944,8 +2907,7 @@ O mesmo processo de implementação computacional da formulação usada para
  B_{10}=[r]^{T}\left(B_{x0}\frac{\partial a_{1}}{\partial n_{1}}+B_{y0}\frac{\partial a_{1}}{\partial n_{2}}\right)[r]\\
  B_{02}=[r]^{T}\left(B_{0x}\frac{\partial a_{2}}{\partial n_{1}}+B_{0y}\frac{\partial a_{2}}{\partial n_{2}}\right)[r]\\
  B_{20}=[r]^{T}\left(B_{x0}\frac{\partial a_{2}}{\partial n_{1}}+B_{y0}\frac{\partial a_{2}}{\partial n_{2}}\right)[r]\\
- B_{000}=[r]^{T}(B_{00})[r]\end{array}
-\label{eq:47}\end{equation}
+ B_{000}=[r]^{T}(B_{00})[r]\end{array}\label{eq:47}\end{equation}
 
 \end_inset 
 
@@ -3164,8 +3126,7 @@ a
  +...+h_{a-1}\theta _{a-1y}+(\frac{h_{a}}{2}+z)\theta _{ay}\\
  v(x,y,z)=v(x_{r},y_{r})-(f+z)\theta _{rx}-h_{i}\theta _{ix}-h_{i+1}\theta _{i+1x}-\\
  -...-h_{a-1}\theta _{a-1x}-(\frac{h_{a}}{2}+z)\theta _{ax}\\
- w(x,y,z)=w(x_{r},y_{r})\end{array}
-\label{eq:48}\end{equation}
+ w(x,y,z)=w(x_{r},y_{r})\end{array}\label{eq:48}\end{equation}
 
 \end_inset 
 
@@ -3382,8 +3343,7 @@ de dimensão (
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
  \left\{ u\right\} ^{T}=\left\{ u,v,w,\theta _{0x},\theta _{0y},\theta _{0z},\theta _{1x},\theta _{1y},\theta _{1z},...,\theta _{n-1x},\theta _{n-1y},\theta _{n-1z}\right\} \\
- \left\{ u_{n}\right\} ^{T}=\left\{ u_{n},v_{n},w_{n},\theta _{0n_{1}},\theta _{0n_{2}},\theta _{0n_{3}},\theta _{1n_{1}},\theta _{1n_{2}},\theta _{1n_{3}},...,\theta _{n-1n_{1}},\theta _{n-1n_{2}},\theta _{n-1n_{3}}\right\} \end{array}
-\label{eq:52}\end{equation}
+ \left\{ u_{n}\right\} ^{T}=\left\{ u_{n},v_{n},w_{n},\theta _{0n_{1}},\theta _{0n_{2}},\theta _{0n_{3}},\theta _{1n_{1}},\theta _{1n_{2}},\theta _{1n_{3}},...,\theta _{n-1n_{1}},\theta _{n-1n_{2}},\theta _{n-1n_{3}}\right\} \end{array}\label{eq:52}\end{equation}
 
 \end_inset 
 
@@ -3413,8 +3373,7 @@ Para relacionarmos estas duas matrizes, usamos a mesma matriz de rotação
   &  & ... &  &  & \\
   &  &  & ... &  & \\
   &  &  &  & \left[r\right] & \\
-  &  &  &  &  & \left[r\right]\end{array}
-\right]\label{eq:53}\end{equation}
+  &  &  &  &  & \left[r\right]\end{array}\right]\label{eq:53}\end{equation}
 
 \end_inset 
 
@@ -3489,8 +3448,7 @@ a
  +...+h_{a-1}\theta _{a-1n_{2}}+(\frac{h_{a}}{2}+e_{3})\theta _{an_{2}}\\
  v_{e}(e_{1},e_{2},e_{3})=v_{n}(n_{1},n_{2})-(f+e_{3})\theta _{rn_{1}}-h_{i}\theta _{in_{1}}-h_{i+1}\theta _{i+1n_{1}}-\\
  -...-h_{a-1}\theta _{a-1n_{1}}-(\frac{h_{a}}{2}+e_{3})\theta _{an_{1}}\\
- w_{e}(e_{1},e_{2},e_{3})=w_{n}(n_{1},n_{2})\end{array}
-\label{eq:55}\end{equation}
+ w_{e}(e_{1},e_{2},e_{3})=w_{n}(n_{1},n_{2})\end{array}\label{eq:55}\end{equation}
 
 \end_inset 
 
@@ -3891,12 +3849,10 @@ onde as componentes do vetor são multiplicadas pelos versores nas direções
 U(x,y,z)=\left\{ \begin{array}{c}
  u(x,y,z)\\
  v(x,y,z)\\
- w(x,y)\end{array}
-\right\} =\left\{ \begin{array}{c}
+ w(x,y)\end{array}\right\} =\left\{ \begin{array}{c}
  u_{0}(x,y)-z\frac{\partial w_{0}(x,y)}{\partial x}\\
  v_{0}(x,y)-z\frac{\partial w_{0}(x,y)}{\partial y}\\
- w_{0}(x,y)\end{array}
-\right\} \label{eq:59}\end{equation}
+ w_{0}(x,y)\end{array}\right\} \label{eq:59}\end{equation}
 
 \end_inset 
 
@@ -3962,16 +3918,13 @@ Deste modo, as relações constitutivas lineares usadas para 1 camada (lâmina)
 \left\{ \begin{array}{c}
  \sigma _{1}\\
  \sigma _{2}\\
- \sigma _{6}\end{array}
-\right\} ^{(k)}=\left[\begin{array}{ccc}
+ \sigma _{6}\end{array}\right\} ^{(k)}=\left[\begin{array}{ccc}
  C_{11} & C_{12} & 0\\
  C_{12} & C_{22} & 0\\
- 0 & 0 & C_{66}\end{array}
-\right]^{(k)}\left\{ \begin{array}{c}
+ 0 & 0 & C_{66}\end{array}\right]^{(k)}\left\{ \begin{array}{c}
  \varepsilon _{1}\\
  \varepsilon _{2}\\
- \varepsilon _{6}\end{array}
-\right\} ^{(k)}\]
+ \varepsilon _{6}\end{array}\right\} ^{(k)}\]
 
 \end_inset 
 
@@ -3998,16 +3951,13 @@ onde
 \left\{ \begin{array}{c}
  \sigma _{xx}\\
  \sigma _{yy}\\
- \tau _{xy}\end{array}
-\right\} ^{(k)}=\left[\begin{array}{ccc}
+ \tau _{xy}\end{array}\right\} ^{(k)}=\left[\begin{array}{ccc}
  \bar{C_{11}} & \bar{C_{12}} & \bar{C_{16}}\\
  \bar{C_{12}} & \bar{C_{22}} & \bar{C_{26}}\\
- \bar{C_{16}} & \bar{C_{26}} & \bar{C_{66}}\end{array}
-\right]^{(k)}\left\{ \begin{array}{c}
+ \bar{C_{16}} & \bar{C_{26}} & \bar{C_{66}}\end{array}\right]^{(k)}\left\{ \begin{array}{c}
  \varepsilon _{xx}\\
  \varepsilon _{yy}\\
- \gamma _{xy}\end{array}
-\right\} ^{(k)}\]
+ \gamma _{xy}\end{array}\right\} ^{(k)}\]
 
 \end_inset 
 
@@ -4031,20 +3981,16 @@ As ações atuantes no laminado podem ser dadas:
 \left\{ \begin{array}{c}
  N_{xx}\\
  N_{yy}\\
- N_{xy}\end{array}
-\right\} ^{(k)}=\sum _{k=1}^{N}\int _{z_{k}}^{z_{k+1}}\left\{ \begin{array}{c}
+ N_{xy}\end{array}\right\} ^{(k)}=\sum _{k=1}^{N}\int _{z_{k}}^{z_{k+1}}\left\{ \begin{array}{c}
  \sigma _{xx}\\
  \sigma _{yy}\\
- \tau _{xy}\end{array}
-\right\} dz=\sum _{k=1}^{N}\int _{z_{k}}^{z_{k+1}}\left[\begin{array}{ccc}
+ \tau _{xy}\end{array}\right\} dz=\sum _{k=1}^{N}\int _{z_{k}}^{z_{k+1}}\left[\begin{array}{ccc}
  \bar{C_{11}} & \bar{C_{12}} & \bar{C_{16}}\\
  \bar{C_{12}} & \bar{C_{22}} & \bar{C_{26}}\\
- \bar{C_{16}} & \bar{C_{26}} & \bar{C_{66}}\end{array}
-\right]^{(k)}\left\{ \begin{array}{c}
+ \bar{C_{16}} & \bar{C_{26}} & \bar{C_{66}}\end{array}\right]^{(k)}\left\{ \begin{array}{c}
  \varepsilon _{xx}\\
  \varepsilon _{yy}\\
- \gamma _{xy}\end{array}
-\right\} ^{(k)}\]
+ \gamma _{xy}\end{array}\right\} ^{(k)}\]
 
 \end_inset 
 
@@ -4063,20 +4009,16 @@ onde N correspondem às solicitações normais ao laminado, nas direções
 \left\{ \begin{array}{c}
  M_{xx}\\
  M_{yy}\\
- M_{xy}\end{array}
-\right\} ^{(k)}=\sum _{k=1}^{N}\int _{z_{k}}^{z_{k+1}}\left\{ \begin{array}{c}
+ M_{xy}\end{array}\right\} ^{(k)}=\sum _{k=1}^{N}\int _{z_{k}}^{z_{k+1}}\left\{ \begin{array}{c}
  \sigma _{xx}\\
  \sigma _{yy}\\
- \tau _{xy}\end{array}
-\right\} zdz=\sum _{k=1}^{N}\int _{z_{k}}^{z_{k+1}}\left[\begin{array}{ccc}
+ \tau _{xy}\end{array}\right\} zdz=\sum _{k=1}^{N}\int _{z_{k}}^{z_{k+1}}\left[\begin{array}{ccc}
  \bar{C_{11}} & \bar{C_{12}} & \bar{C_{16}}\\
  \bar{C_{12}} & \bar{C_{22}} & \bar{C_{26}}\\
- \bar{C_{16}} & \bar{C_{26}} & \bar{C_{66}}\end{array}
-\right]^{(k)}z\left\{ \begin{array}{c}
+ \bar{C_{16}} & \bar{C_{26}} & \bar{C_{66}}\end{array}\right]^{(k)}z\left\{ \begin{array}{c}
  \varepsilon _{xx}\\
  \varepsilon _{yy}\\
- \gamma _{xy}\end{array}
-\right\} ^{(k)}\]
+ \gamma _{xy}\end{array}\right\} ^{(k)}\]
 
 \end_inset 
 
@@ -4102,12 +4044,10 @@ A segunda teoria pertencente ao grupo ESL, corresponde à teoria FSDT (First
 U(x,y,z)=\left\{ \begin{array}{c}
  u(x,y,z)\\
  v(x,y,z)\\
- w(x,y)\end{array}
-\right\} =\left\{ \begin{array}{c}
+ w(x,y)\end{array}\right\} =\left\{ \begin{array}{c}
  u_{0}(x,y)+z\phi _{x}(x,y)\\
  v_{0}(x,y)+z\phi _{y}(x,y)\\
- w_{0}(x,y)\end{array}
-\right\} \label{eq:59}\end{equation}
+ w_{0}(x,y)\end{array}\right\} \label{eq:59}\end{equation}
 
 \end_inset 
 
@@ -4172,14 +4112,11 @@ ASs deformações transversais cisalhantes são reprentadas como constantes
 \begin_inset Formula \[
 \left\{ \begin{array}{c}
  \sigma _{yz}\\
- \sigma _{xz}\end{array}
-\right\} ^{(k)}=\left[\begin{array}{cc}
+ \sigma _{xz}\end{array}\right\} ^{(k)}=\left[\begin{array}{cc}
  \bar{C_{44}} & \bar{C_{45}}\\
- \bar{C_{45}} & \bar{C_{55}}\end{array}
-\right]^{(k)}\left\{ \begin{array}{c}
+ \bar{C_{45}} & \bar{C_{55}}\end{array}\right]^{(k)}\left\{ \begin{array}{c}
  \gamma _{yz}\\
- \gamma _{xz}\end{array}
-\right\} ^{(k)}\]
+ \gamma _{xz}\end{array}\right\} ^{(k)}\]
 
 \end_inset 
 
@@ -4194,11 +4131,9 @@ as ações solicitantes no laminado são dadas pelas mesmas equações determinadas
 \begin_inset Formula \[
 \left\{ \begin{array}{c}
  Q_{y}\\
- Q_{x}\end{array}
-\right\} =K\sum _{k=1}^{N}\int _{z_{k}}^{z_{k+1}}\left\{ \begin{array}{c}
+ Q_{x}\end{array}\right\} =K\sum _{k=1}^{N}\int _{z_{k}}^{z_{k+1}}\left\{ \begin{array}{c}
  \sigma _{yz}\\
- \sigma _{xz}\end{array}
-\right\} \]
+ \sigma _{xz}\end{array}\right\} \]
 
 \end_inset 
 
@@ -4215,8 +4150,7 @@ onde os termos
  C_{11}=\frac{E_{1}}{1-\nu _{12}\nu _{21}}\\
  C_{12}=\frac{\nu _{12}E_{2}}{1-\nu _{12}\nu _{21}}\\
  C_{22}=\frac{E_{2}}{1-\nu _{12}\nu _{21}}\\
- C_{66}=G_{12}\end{array}
-\label{eq:62}\end{equation}
+ C_{66}=G_{12}\end{array}\label{eq:62}\end{equation}
 
 \end_inset 
 
@@ -4238,22 +4172,17 @@ o e obedecem as leis de Hooke; apesar da variaçào das deformações serem
  \left\{ \begin{array}{c}
  N_{xx}\\
  N_{yy}\\
- N_{xy}\end{array}
-\right\} =\sum \int _{z_{k}}^{z_{k+1}}\left\{ \begin{array}{c}
+ N_{xy}\end{array}\right\} =\sum \int _{z_{k}}^{z_{k+1}}\left\{ \begin{array}{c}
  \sigma _{xx}\\
  \sigma _{yy}\\
- \sigma _{xy}\end{array}
-\right\} dz=\\
+ \sigma _{xy}\end{array}\right\} dz=\\
  \sum \int _{z_{k}}^{z_{k+1}}\left[\begin{array}{ccc}
  \bar{C_{11}} & \bar{C_{12}} & \bar{C_{16}}\\
  \bar{C_{12}} & \bar{C_{22}} & \bar{C_{26}}\\
- \bar{C_{16}} & \bar{C_{26}} & \bar{C_{66}}\end{array}
-\right]^{(k)}\left\{ \begin{array}{c}
+ \bar{C_{16}} & \bar{C_{26}} & \bar{C_{66}}\end{array}\right]^{(k)}\left\{ \begin{array}{c}
  \varepsilon _{xx}^{(0)}+z\varepsilon _{xx}^{(1)}\\
  \varepsilon _{yy}^{(0)}+z\varepsilon _{yy}^{(1)}\\
- \gamma _{xy}^{(0)}+z\gamma _{xy}^{(1)}\end{array}
-\right\} dz\end{array}
-\label{eq:65}\end{equation}
+ \gamma _{xy}^{(0)}+z\gamma _{xy}^{(1)}\end{array}\right\} dz\end{array}\label{eq:65}\end{equation}
 
 \end_inset 
 
@@ -4263,22 +4192,17 @@ o e obedecem as leis de Hooke; apesar da variaçào das deformações serem
  \left\{ \begin{array}{c}
  M_{xx}\\
  M_{yy}\\
- M_{xy}\end{array}
-\right\} =\sum \int _{z_{k}}^{z_{k+1}}\left\{ \begin{array}{c}
+ M_{xy}\end{array}\right\} =\sum \int _{z_{k}}^{z_{k+1}}\left\{ \begin{array}{c}
  \sigma _{xx}\\
  \sigma _{yy}\\
- \sigma _{xy}\end{array}
-\right\} zdz=\\
+ \sigma _{xy}\end{array}\right\} zdz=\\
  =\sum \int _{z_{k}}^{z_{k+1}}\left[\begin{array}{ccc}
  \bar{C_{11}} & \bar{C_{12}} & \bar{C_{16}}\\
  \bar{C_{12}} & \bar{C_{22}} & \bar{C_{26}}\\
- \bar{C_{16}} & \bar{C_{26}} & \bar{C_{66}}\end{array}
-\right]^{(k)}\left\{ \begin{array}{c}
+ \bar{C_{16}} & \bar{C_{26}} & \bar{C_{66}}\end{array}\right]^{(k)}\left\{ \begin{array}{c}
  \varepsilon _{xx}^{(0)}+z\varepsilon _{xx}^{(1)}\\
  \varepsilon _{yy}^{(0)}+z\varepsilon _{yy}^{(1)}\\
- \gamma _{xy}^{(0)}+z\gamma _{xy}^{(1)}\end{array}
-\right\} zdz\end{array}
-\label{eq:66}\end{equation}
+ \gamma _{xy}^{(0)}+z\gamma _{xy}^{(1)}\end{array}\right\} zdz\end{array}\label{eq:66}\end{equation}
 
 \end_inset 
 
@@ -4578,8 +4502,7 @@ A implementação das características do material ortotrópico, é implementada
  C_{13} & C_{23} & C_{33} & 0 & 0 & 0\\
  0 & 0 & 0 & C_{44} & 0 & 0\\
  0 & 0 & 0 & 0 & C_{55} & 0\\
- 0 & 0 & 0 & 0 & 0 & C_{66}\end{array}
-\right]\label{eq:108}\end{equation}
+ 0 & 0 & 0 & 0 & 0 & C_{66}\end{array}\right]\label{eq:108}\end{equation}
 
 \end_inset 
 
@@ -4597,8 +4520,7 @@ cujos valores elásticos são dados por
  \frac{E_{x}\upsilon _{zx}+E_{x}\upsilon _{yx}\upsilon _{zy}}{\Delta } & \frac{E_{y}\upsilon _{zy}+E_{y}\upsilon _{xy}\upsilon _{zx}}{\Delta } & \frac{E_{z}-E_{z}\upsilon _{xy}\upsilon _{yx}}{\Delta } & 0 & 0 & 0\\
  0 & 0 & 0 & G_{23} & 0 & 0\\
  0 & 0 & 0 & 0 & G_{13} & 0\\
- 0 & 0 & 0 & 0 & 0 & G_{12}\end{array}
-\right]\label{eq:109}\end{equation}
+ 0 & 0 & 0 & 0 & 0 & G_{12}\end{array}\right]\label{eq:109}\end{equation}
 
 \end_inset 
 
@@ -4638,15 +4560,13 @@ sendo que
  \sigma _{z}\\
  \tau _{xz}\\
  \tau _{yz}\\
- \tau _{xy}\end{array}
-\right\} =\left\{ \begin{array}{c}
+ \tau _{xy}\end{array}\right\} =\left\{ \begin{array}{c}
  \frac{-E_{x}[\varepsilon _{x}(1-\nu _{yz}\nu _{zy})+\varepsilon _{y}(\nu _{yx}+\nu _{yz}\nu _{zx})+\varepsilon _{z}(\nu _{zx}+\nu _{yx}\nu _{zy})]}{-1+\nu _{xy}\nu _{yx}+\nu _{xz}\nu _{zx}+\nu _{yz}\nu _{zy}+\nu _{xy}\nu _{yz}\nu _{zx}+\nu _{yx}\nu _{zy}\nu _{xz}}\\
  \frac{-E_{y}[\varepsilon _{y}(1-\nu _{xz}\nu _{zx})+\varepsilon _{x}(\nu _{xy}+\nu _{xz}\nu _{zy})+\varepsilon _{z}(\nu _{zy}+\nu _{xy}\nu _{zx})}{-1+\nu _{xy}\nu _{yx}+\nu _{xz}\nu _{zx}+\nu _{yz}\nu _{zy}+\nu _{xy}\nu _{yz}\nu _{zx}+\nu _{yx}\nu _{zy}\nu _{xz}}\\
  \frac{-E_{z}[\varepsilon _{z}(1-\nu _{xy}\nu _{yx})+\varepsilon _{x}(\nu _{xz}+\nu _{xy}\nu _{yz})+\varepsilon _{y}(\nu _{yz}+\nu _{xz}\nu _{yx})]}{-1+\nu _{xy}\nu _{yx}+\nu _{xz}\nu _{zx}+\nu _{yz}\nu _{zy}+\nu _{xy}\nu _{yz}\nu _{zx}+\nu _{yx}\nu _{zy}\nu _{xz}}\\
  2G_{xy}\gamma _{xy}\\
  2G_{yz}\gamma _{yz}\\
- 2G_{zx}\gamma _{zx}\end{array}
-\right\} \label{eq:68}\end{equation}
+ 2G_{zx}\gamma _{zx}\end{array}\right\} \label{eq:68}\end{equation}
 
 \end_inset 
 
@@ -4721,8 +4641,7 @@ Da equação
  \varepsilon _{z}=\frac{\nu _{zx}}{E_{x}}\sigma _{x}-\frac{\nu _{zy}}{E_{y}}\sigma _{y}+\frac{\sigma _{z}}{E_{z}}\\
  \varepsilon _{yz}=\frac{\tau _{xy}}{2G_{xy}}\\
  \varepsilon _{xz}=\frac{\tau _{yz}}{2G_{yz}}\\
- \varepsilon _{xy}=\frac{\tau _{zx}}{2G_{zx}}\end{array}
-\label{eq:110}\end{equation}
+ \varepsilon _{xy}=\frac{\tau _{zx}}{2G_{zx}}\end{array}\label{eq:110}\end{equation}
 
 \end_inset 
 
@@ -4928,8 +4847,7 @@ O trabalho interno pode ser calculado através dos esforços solicitantes
 \begin{array}{c}
  W_{int}=\int \left[N_{x}\frac{\partial \delta u\left(x,y,-f\right)}{\partial x}+\right.\\
  N_{y}\frac{\partial \delta v\left(x,y,-f\right)}{\partial y}+N_{xy}\left(\frac{\partial \delta u\left(x,y,-f\right)}{\partial y}+\frac{\partial \delta v\left(x,y,-f\right)}{\partial x}\right)+\\
- \left.+V_{x}\left(\frac{\partial \delta u\left(x,y,z\right)}{\partial z}+\frac{\partial \delta w\left(x,y,z\right)}{\partial x}\right)+V_{y}\left(\frac{\partial \delta v\left(x,y,z\right)}{\partial z}+\frac{\partial \delta w\left(x,y,z\right)}{\partial y}\right)+\right]\end{array}
-\label{eq:74}\end{equation}
+ \left.+V_{x}\left(\frac{\partial \delta u\left(x,y,z\right)}{\partial z}+\frac{\partial \delta w\left(x,y,z\right)}{\partial x}\right)+V_{y}\left(\frac{\partial \delta v\left(x,y,z\right)}{\partial z}+\frac{\partial \delta w\left(x,y,z\right)}{\partial y}\right)+\right]\end{array}\label{eq:74}\end{equation}
 
 \end_inset 
 
@@ -5041,8 +4959,7 @@ Com esta separação, e utilizando-s e o programa
 \begin{array}{c}
  W_{int}=\int _{A}\left[\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial x}\right)K_{xx}\frac{\partial \left\{ u\right\} }{\partial x}+\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial y}\right)K_{yy}\frac{\partial \left\{ u\right\} }{\partial y}+\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial x}\right)K_{xy}\frac{\partial \left\{ u\right\} }{\partial y}+\right.\\
  +\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial y}\right)K_{yx}\frac{\partial \left\{ u\right\} }{\partial x}+\left\{ \delta u\right\} ^{T}B_{ox}\frac{\partial \left\{ u\right\} }{\partial x}+\left\{ \delta u\right\} ^{T}B_{oy}\frac{\partial \left\{ u\right\} }{\partial y}+\\
- \left.+\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial x}\right)^{T}B_{xo}\left\{ u\right\} +\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial y}\right)^{T}K_{yo}\left\{ u\right\} +\left\{ \delta u\right\} ^{T}B_{oo}\left\{ u\right\} \right]dxdy\end{array}
-\label{eq:75}\end{equation}
+ \left.+\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial x}\right)^{T}B_{xo}\left\{ u\right\} +\left(\frac{\partial \left\{ \delta u\right\} ^{T}}{\partial y}\right)^{T}K_{yo}\left\{ u\right\} +\left\{ \delta u\right\} ^{T}B_{oo}\left\{ u\right\} \right]dxdy\end{array}\label{eq:75}\end{equation}
 
 \end_inset 
 
@@ -6007,8 +5924,6 @@ int NStateVariables(){return Material()->NStateVariables();}: retorna o
 void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv, TPZVec<REAL> &sol,
  TPZFMatrix &dsol, REAL weight, TPZFMatrix &axes, TPZFMatrix &phi, TPZFMatrix
  &dphi, TPZFMatrix &ek, TPZFMatrtix &ef):
-\layout Standard
-
 \layout Chapter*
 
 Apêndice
@@ -6064,8 +5979,7 @@ deformação
 u=\left[\begin{array}{c}
  u(x,y,z)\\
  v(x,y,z)\\
- z(x,y,z)\end{array}
-\right]\label{eq:67}\end{equation}
+ z(x,y,z)\end{array}\right]\label{eq:67}\end{equation}
 
 \end_inset 
 
@@ -6169,8 +6083,7 @@ onde
 \nabla u=\left[\begin{array}{ccc}
  \frac{\partial u_{x}}{\partial x} & \frac{\partial u_{x}}{\partial y} & \frac{\partial u_{x}}{\partial z}\\
  \frac{\partial u_{y}}{\partial x} & \frac{\partial u_{y}}{\partial y} & \frac{\partial u_{y}}{\partial z}\\
- \frac{\partial u_{z}}{\partial x} & \frac{\partial u_{z}}{\partial y} & \frac{\partial u_{z}}{\partial z}\end{array}
-\right]\label{eq:73}\end{equation}
+ \frac{\partial u_{z}}{\partial x} & \frac{\partial u_{z}}{\partial y} & \frac{\partial u_{z}}{\partial z}\end{array}\right]\label{eq:73}\end{equation}
 
 \end_inset 
 
@@ -6223,15 +6136,13 @@ onde o termo
  \varepsilon _{z}\\
  \varepsilon _{xy}\\
  \varepsilon _{xz}\\
- \varepsilon _{yz}\end{array}
-\right\} =\left\{ \begin{array}{c}
+ \varepsilon _{yz}\end{array}\right\} =\left\{ \begin{array}{c}
  \frac{\partial u}{\partial x}+\frac{1}{2}\left[\left(\frac{\partial u}{\partial x}\right)^{2}+\left(\frac{\partial v}{\partial x}\right)^{2}+\left(\frac{\partial w}{\partial x}\right)^{2}\right]\\
  \frac{\partial v}{\partial y}+\frac{1}{2}\left[\left(\frac{\partial u}{\partial y}\right)^{2}+\left(\frac{\partial v}{\partial y}\right)^{2}+\left(\frac{\partial w}{\partial y}\right)^{2}\right]\\
  \frac{\partial w}{\partial x}+\frac{1}{2}\left[\left(\frac{\partial u}{\partial z}\right)^{2}+\left(\frac{\partial v}{\partial z}\right)^{2}+\left(\frac{\partial w}{\partial z}\right)^{2}\right]\\
  \frac{1}{2}\left(\frac{\partial u}{\partial y}+\frac{\partial v}{\partial x}+\frac{\partial u}{\partial x}\frac{\partial u}{\partial y}+\frac{\partial v}{\partial x}\frac{\partial v}{\partial y}+\frac{\partial w}{\partial x}\frac{\partial w}{\partial y}\right)\\
  \frac{1}{2}\left(\frac{\partial u}{\partial z}+\frac{\partial w}{\partial x}+\frac{\partial u}{\partial x}\frac{\partial u}{\partial y}+\frac{\partial v}{\partial x}\frac{\partial v}{\partial y}+\frac{\partial w}{\partial x}\frac{\partial w}{\partial y}\right)\\
- \frac{1}{2}\left(\frac{\partial v}{\partial z}+\frac{\partial w}{\partial y}+\frac{\partial u}{\partial x}\frac{\partial u}{\partial y}+\frac{\partial v}{\partial x}\frac{\partial v}{\partial y}+\frac{\partial w}{\partial x}\frac{\partial w}{\partial y}\right)\end{array}
-\right\} \label{eq:75}\end{equation}
+ \frac{1}{2}\left(\frac{\partial v}{\partial z}+\frac{\partial w}{\partial y}+\frac{\partial u}{\partial x}\frac{\partial u}{\partial y}+\frac{\partial v}{\partial x}\frac{\partial v}{\partial y}+\frac{\partial w}{\partial x}\frac{\partial w}{\partial y}\right)\end{array}\right\} \label{eq:75}\end{equation}
 
 \end_inset 
 
@@ -6329,9 +6240,7 @@ onde os índices
  =\left[\begin{array}{ccc}
  \frac{\partial u_{1}}{\partial X_{1}} & \frac{1}{2}\left(\frac{\partial u_{1}}{\partial X_{2}}+\frac{\partial u_{2}}{\partial X_{1}}\right) & \frac{1}{2}\left(\frac{\partial u_{1}}{\partial X_{3}}+\frac{\partial u_{3}}{\partial X_{1}}\right)\\
  \frac{1}{2}\left(\frac{\partial u_{1}}{\partial X_{2}}+\frac{\partial u_{2}}{\partial X_{1}}\right) & \frac{\partial u_{2}}{\partial X_{2}} & \frac{1}{2}\left(\frac{\partial u_{2}}{\partial X_{3}}+\frac{\partial u_{3}}{\partial X_{2}}\right)\\
- \frac{1}{2}\left(\frac{\partial u_{1}}{\partial X_{3}}+\frac{\partial u_{3}}{\partial X_{1}}\right) & \frac{1}{2}\left(\frac{\partial u_{2}}{\partial X_{3}}+\frac{\partial u_{3}}{\partial X_{2}}\right) & \frac{\partial u_{3}}{\partial X_{3}}\end{array}
-\right]\end{array}
-\label{eq:80}\end{equation}
+ \frac{1}{2}\left(\frac{\partial u_{1}}{\partial X_{3}}+\frac{\partial u_{3}}{\partial X_{1}}\right) & \frac{1}{2}\left(\frac{\partial u_{2}}{\partial X_{3}}+\frac{\partial u_{3}}{\partial X_{2}}\right) & \frac{\partial u_{3}}{\partial X_{3}}\end{array}\right]\end{array}\label{eq:80}\end{equation}
 
 \end_inset 
 
@@ -6473,8 +6382,7 @@ onde esta integral é calculada considerando-se todas as tensões que agem
 \int _{\partial P}d_{n}(x)dw=\left(\begin{array}{c}
  -d_{xx}A_{x}-d_{yx}A_{y}-d_{zx}A_{z}+d_{nx}A\\
  -d_{xy}A_{x}-d_{yy}A_{y}-d_{zy}A_{z}+d_{nz}A\\
- -d_{xz}A_{x}-d_{yz}A_{y}-d_{zz}A_{z}+d_{nz}A\end{array}
-\right)\label{eq:82}\end{equation}
+ -d_{xz}A_{x}-d_{yz}A_{y}-d_{zz}A_{z}+d_{nz}A\end{array}\right)\label{eq:82}\end{equation}
 
 \end_inset 
 
@@ -6489,20 +6397,16 @@ daí conclui-se que:
 \left(\begin{array}{c}
  d_{nx}\\
  d_{ny}\\
- d_{nz}\end{array}
-\right)=\left(\begin{array}{c}
+ d_{nz}\end{array}\right)=\left(\begin{array}{c}
  d_{xx}n_{x}+d_{yx}n_{y}+d_{zx}n_{z}\\
  d_{xy}n_{x}+d_{yy}n_{y}+d_{zy}n_{z}\\
- d_{xz}n_{x}+d_{yz}n_{y}+d_{zz}n_{z}\end{array}
-\right)\, \, \, \, \, \, \, \, \, \, d_{n}=\left[\begin{array}{c}
+ d_{xz}n_{x}+d_{yz}n_{y}+d_{zz}n_{z}\end{array}\right)\, \, \, \, \, \, \, \, \, \, d_{n}=\left[\begin{array}{c}
  d_{xx}\, \, d_{yx}\, \, d_{zx}\\
  d_{xy}\, \, d_{yy}\, \, d_{zy}\\
- d_{xz}\, \, d_{yz}\, \, d_{zz}\end{array}
-\right].\left[\begin{array}{c}
+ d_{xz}\, \, d_{yz}\, \, d_{zz}\end{array}\right].\left[\begin{array}{c}
  n_{x}\\
  n_{y}\\
- n_{z}\end{array}
-\right]\label{eq:83}\end{equation}
+ n_{z}\end{array}\right]\label{eq:83}\end{equation}
 
 \end_inset 
 
@@ -6655,22 +6559,19 @@ tes elásticas independentes.
  \sigma _{3}\\
  \sigma _{4}\\
  \sigma _{5}\\
- \sigma _{6}\end{array}
-\right\} =\left[\begin{array}{cccccc}
+ \sigma _{6}\end{array}\right\} =\left[\begin{array}{cccccc}
  C_{11} & C_{12} & C_{13} & C_{14} & C_{15} & C_{16}\\
  C_{21} & C_{22} & C_{23} & C_{24} & C_{25} & C_{26}\\
  C_{31} & C_{32} & C_{33} & C_{34} & C_{35} & C_{36}\\
  C_{41} & C_{42} & C_{43} & C_{44} & C_{45} & C_{46}\\
  C_{51} & C_{52} & C_{53} & C_{54} & C_{55} & C_{56}\\
- C_{61} & C_{62} & C_{63} & C_{64} & C_{65} & C_{66}\end{array}
-\right]\left\{ \begin{array}{c}
+ C_{61} & C_{62} & C_{63} & C_{64} & C_{65} & C_{66}\end{array}\right]\left\{ \begin{array}{c}
  \varepsilon _{1}\\
  \varepsilon _{2}\\
  \varepsilon _{3}\\
  \varepsilon _{4}\\
  \varepsilon _{5}\\
- \varepsilon _{6}\end{array}
-\right\} \label{eq:89}\end{equation}
+ \varepsilon _{6}\end{array}\right\} \label{eq:89}\end{equation}
 
 \end_inset 
 
@@ -6719,8 +6620,7 @@ sendo que podemos, então escrever:
 \begin{array}{c}
  \sigma _{x}=C_{11}\varepsilon _{x}+C_{12}\varepsilon _{y}+C_{13}\varepsilon _{z}+C_{14}\varepsilon _{yz}+C_{15}\varepsilon _{zx}+C_{16}\varepsilon _{xy}\\
  \vdots \\
- \sigma _{x}=C_{61}\varepsilon _{x}+C_{62}\varepsilon _{y}+C_{63}\varepsilon _{z}+C_{64}\varepsilon _{yz}+C_{65}\varepsilon _{zx}+C_{66}\varepsilon _{xy}\end{array}
-\label{eq:93}\end{equation}
+ \sigma _{x}=C_{61}\varepsilon _{x}+C_{62}\varepsilon _{y}+C_{63}\varepsilon _{z}+C_{64}\varepsilon _{yz}+C_{65}\varepsilon _{zx}+C_{66}\varepsilon _{xy}\end{array}\label{eq:93}\end{equation}
 
 \end_inset 
 
@@ -6816,8 +6716,7 @@ São denominados assim, os materiais que apresentam o mesmo valor de coeficientes
 \left[T\right]=\left[\begin{array}{ccc}
  1 & 0 & 0\\
  0 & 1 & 0\\
- 0 & 0 & -1\end{array}
-\right]\label{eq:95}\end{equation}
+ 0 & 0 & -1\end{array}\right]\label{eq:95}\end{equation}
 
 \end_inset 
 
@@ -6837,8 +6736,7 @@ de modo que aplicando esta matriz de rotação na equação
  C_{13} & C_{23} & C_{33} & 0 & 0 & C_{36}\\
  0 & 0 & 0 & C_{44} & C_{45} & 0\\
  0 & 0 & 0 & C_{45} & C_{55} & 0\\
- C_{16} & C_{26} & C_{36} & 0 & 0 & C_{66}\end{array}
-\right]\label{eq:96}\end{equation}
+ C_{16} & C_{26} & C_{36} & 0 & 0 & C_{66}\end{array}\right]\label{eq:96}\end{equation}
 
 \end_inset 
 
@@ -6992,8 +6890,7 @@ os coeficientes do tensor
 \begin{array}{c}
  C_{11}=C_{22}=C_{33}=\lambda +2\mu \\
  C_{12}=C_{13}=C_{23}=\lambda \\
- C_{44}=C_{55}=C_{66}=\mu \end{array}
-\label{eq:104}\end{equation}
+ C_{44}=C_{55}=C_{66}=\mu \end{array}\label{eq:104}\end{equation}
 
 \end_inset 
 
@@ -7012,8 +6909,7 @@ de modo que o tensor
  \nu  & \nu  & (1-\nu ) & 0 & 0 & 0\\
  0 & 0 & 0 & \frac{(1-2\nu )}{2} & 0 & 0\\
  0 & 0 & 0 & 0 & \frac{(1-2\nu )}{2} & 0\\
- 0 & 0 & 0 & 0 & 0 & \frac{(1-2\nu )}{2}\end{array}
-\right]\label{eq:105}\end{equation}
+ 0 & 0 & 0 & 0 & 0 & \frac{(1-2\nu )}{2}\end{array}\right]\label{eq:105}\end{equation}
 
 \end_inset 
 
@@ -7038,8 +6934,7 @@ onde
  \varepsilon _{z}=\frac{1}{E}\left[\sigma _{z}-\nu (\sigma _{x}+\sigma _{y})\right]\\
  \varepsilon _{yz}=\frac{\tau _{yz}}{2G}\\
  \varepsilon _{xz}=\frac{\tau _{xz}}{2G}\\
- \varepsilon _{xy}=\frac{\tau _{xy}}{2G}\end{array}
-\label{eq:106}\end{equation}
+ \varepsilon _{xy}=\frac{\tau _{xy}}{2G}\end{array}\label{eq:106}\end{equation}
 
 \end_inset 
 
@@ -7059,8 +6954,7 @@ onde, o termo
  \sigma _{z}=\frac{E[\varepsilon _{z}+\upsilon (\varepsilon _{x}+\varepsilon _{y}-\varepsilon _{z})]}{(1+\nu )(-1+2\nu )}\\
  \tau _{xy}=2G\varepsilon _{xy}\\
  \tau _{yz}=2G\varepsilon _{yz}\\
- \tau _{zx}=2G\varepsilon _{zx}\end{array}
-\label{eq:107}\end{equation}
+ \tau _{zx}=2G\varepsilon _{zx}\end{array}\label{eq:107}\end{equation}
 
 \end_inset 
 
