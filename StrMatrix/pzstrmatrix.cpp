@@ -43,11 +43,6 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
   TPZElementMatrix ek,ef;
   TPZManVector<int> destinationindex(0);
   TPZManVector<int> sourceindex(0);
-  REAL stor1[1000],stor2[1000],stor3[100],stor4[100];
-  ek.fMat = new TPZFMatrix(0,0,stor1,1000);
-  ek.fConstrMat = new TPZFMatrix(0,0,stor2,1000);
-  ef.fMat = new TPZFMatrix(0,0,stor3,100);
-  ef.fConstrMat = new TPZFMatrix(0,0,stor4,100);
 
   TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
 
@@ -84,7 +79,7 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
       //ek.fMat->Print("stiff has no constraint",test);
       //ef.fMat->Print("rhs has no constraint",test);
       //test.flush();
-      destinationindex.Resize(ek.fMat->Rows());
+      destinationindex.Resize(ek.fMat.Rows());
       int destindex = 0;
       int numnod = ek.NConnects();
       for(int in=0; in<numnod; in++) {
@@ -100,8 +95,8 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
            destinationindex[destindex++] = firsteq+idf;
          }
       }
-      stiffness.AddKel(*ek.fMat,destinationindex);
-      rhs.AddFel(*ef.fMat,destinationindex);
+      stiffness.AddKel(ek.fMat,destinationindex);
+      rhs.AddFel(ef.fMat,destinationindex);
     } else {
       // the element has dependent nodes
       el->ApplyConstraints(ek,ef);
@@ -113,8 +108,8 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
       //test << "sum of columns\n";
       int destindex = 0;
       int fullmatindex = 0;
-      destinationindex.Resize(ek.fConstrMat->Rows());
-      sourceindex.Resize(ek.fConstrMat->Rows());
+      destinationindex.Resize(ek.fConstrMat.Rows());
+      sourceindex.Resize(ek.fConstrMat.Rows());
       int numnod = ek.fConstrConnect.NElements();
       for(int in=0; in<numnod; in++) {
          int npindex = ek.fConstrConnect[in];
@@ -133,8 +128,8 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
       }
       sourceindex.Resize(destindex);
       destinationindex.Resize(destindex);
-      stiffness.AddKel(*ek.fConstrMat,sourceindex,destinationindex);
-      rhs.AddFel(*ef.fConstrMat,sourceindex,destinationindex);
+      stiffness.AddKel(ek.fConstrMat,sourceindex,destinationindex);
+      rhs.AddFel(ef.fConstrMat,sourceindex,destinationindex);
 /*
 if(ek.fConstrMat->Decompose_LU() != -1) {
     el->ApplyConstraints(ek,ef);

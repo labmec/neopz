@@ -106,15 +106,15 @@ TPZMatrix * TPZSpStructMatrix::Create(){
       if(ieq != fMesh->Block().Position(i)) cout << "TPZSpStructMatrix::Create I dont understand\n";
       int ibleq;
       for(ibleq=0; ibleq<iblsize; ibleq++) {
-        Eq[ieq] = pos;
-	EqCol[pos] = ieq;
-	EqValue[pos] = 0.;
-	pos++;
+	Eq[ieq] = pos;
+// 	EqCol[pos] = ieq;
+// 	EqValue[pos] = 0.;
+// 	pos++;
         int colsize = fMesh->Block().Size(i);
         int colpos = fMesh->Block().Position(i);
         int jbleq;
         for(jbleq=0; jbleq<colsize; jbleq++) {
-            if(colpos+jbleq == ieq) continue;
+//             if(colpos+jbleq == ieq) continue;
 	    EqCol[pos] = colpos+jbleq;
             EqValue[pos] = 0.;
 	    //            colpos++;
