@@ -317,7 +317,7 @@ int main()
 
 
 */
-
+/*
    { // GMRES with block preconditioning
    TPZSpStructMatrix StrMatrix(cmesh);
       //TPZFStructMatrix StrMatrix(cmesh);
@@ -359,6 +359,7 @@ int main()
    An.SetBlockDiagonalPrecond(block);
    }
 //
+*/
 
 /*
    { // SSOR
@@ -381,22 +382,21 @@ int main()
    }
 //*/
 
-/*
+
   TPZParFrontStructMatrix <TPZFrontNonSym> StrMatrix(cmesh);
   An.SetStructuralMatrix(StrMatrix);
 
   TPZMatrix * mat = NULL;//StrMatrix.CreateAssemble(An.Rhs());
 
-  An.SetLinSysCriteria(1e-10, 100);
-  An.SetNewtonCriteria(1e-9, 10);
-  An.SetTimeIntCriteria(1e-8,MaxIter);
+   An.SetLinSysCriteria(1e-8, 100);
+   An.SetNewtonCriteria(1e-8, 4);
+   An.SetTimeIntCriteria(1e-8,MaxIter);
 
   TPZStepSolver Solver;
   Solver.SetDirect(ELU);
   Solver.SetMatrix(mat);
   An.SetSolver(Solver);
 
-*/
    cout << "Generating File:" << file.Str() << endl;
 
    ofstream * dxout = new ofstream((file+".dx" ).Str());
