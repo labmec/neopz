@@ -1,4 +1,4 @@
-//$Id: pzelctemp.h,v 1.6 2003-11-06 14:36:10 cedric Exp $
+//$Id: pzelctemp.h,v 1.7 2004-04-26 14:26:17 phil Exp $
 
 // -*- c++ -*-
 #ifndef PZELCTEMPH
@@ -19,6 +19,8 @@ public:
   TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 
   TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,TSHAPE> &copy);
+  
+  TPZIntelGen();
 
 virtual ~TPZIntelGen();
 
@@ -98,6 +100,20 @@ virtual ~TPZIntelGen();
   virtual TPZIntPoints &GetIntegrationRule() {
     return fIntRule;
   }
+
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+  virtual int ClassId() const;
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
 
 
 

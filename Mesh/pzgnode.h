@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.4 2004-04-02 17:10:20 tiago Exp $
+//$Id: pzgnode.h,v 1.5 2004-04-26 14:27:03 phil Exp $
 
 /**File : pzgnode.h
 
@@ -12,6 +12,9 @@ Header file for class TPZGeoNode. TPZGeoNode defines a geometrical node.
 #include <iostream>
 #include "pzreal.h"
 #include "pzerror.h"
+#include "pzsave.h"
+#include "pzstream.h"
+#include "pzmeshid.h"
 
 using namespace std;
 
@@ -21,7 +24,7 @@ class TPZVec;
 class TPZGeoMesh;
 class TPZGeoEl;
 
-class TPZGeoNode {
+class TPZGeoNode : public TPZSaveable {
 
   /**Identity of node*/
   int		fId;
@@ -36,7 +39,32 @@ class TPZGeoNode {
   /**Constructor copy*/
   TPZGeoNode(TPZGeoNode &node);
   /**Destructor*/
-  ~TPZGeoNode() { }
+virtual  ~TPZGeoNode() { }
+  
+  /**
+  return the id of the class (used for writing reading the object)
+  */
+  virtual int ClassId() {
+    return TPZGEONODEID;
+  }
+  
+  /**
+  Read the object from disk
+  */
+  virtual void Read(TPZStream &buf, void *context) {
+    TPZSaveable::Read(buf,context);
+    buf.Read(&fId,1);
+    buf.Read(fCoord,3);
+  }
+  
+  /**
+  Write the object to disk
+  */
+  virtual void Write(TPZStream &buf, int withclassid) {
+    TPZSaveable::Write(buf,withclassid);
+    buf.Write(&fId,1);
+    buf.Write(fCoord,3);
+  }
 
   /**Return the identity of the current node*/
   int Id() { return fId; }

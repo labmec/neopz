@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.20 2004-01-23 19:11:38 tiago Exp $
+//$Id: TPZAgglomerateEl.h,v 1.21 2004-04-26 14:27:03 phil Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -16,6 +16,7 @@ class TPZCompMesh;
 class TPZGeoElSide;
 class TPZInterfaceElement;
 struct TPZElementMatrix;
+class TPZAgglomerateMesh;
 using namespace std;
 
 /**
@@ -55,6 +56,8 @@ public:
    * um novo index caso contrário index = -1
    */
   TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh);
+  
+  TPZAgglomerateElement();
 
   /** inicializa os dados caracteristicos do elemento aglomerado */
   void InitializeElement();
@@ -249,9 +252,25 @@ virtual REAL LesserEdgeOfEl();
 //  void ProjectSolution2(TPZFMatrix &projectsol);
 
 
-  static void CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *aggmesh,TPZVec<int> &accumlist,int numaggl);
+  static TPZAgglomerateMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);
 
   static void ComputeNeighbours(TPZCompMesh *mesh, map<TPZCompElDisc *,set<TPZCompElDisc *> > &neighbours);
+  
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+  virtual int ClassId() const;
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
+
+
 
 };
 #endif

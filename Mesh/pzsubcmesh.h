@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.5 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzsubcmesh.h,v 1.6 2004-04-26 14:27:03 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -69,6 +69,7 @@ public:
    * @param index reference mesh element index to transfer to submesh
    */
   TPZSubCompMesh(TPZCompMesh &mesh, int &index);
+  TPZSubCompMesh();
 
   /**
    * Destructor. 
@@ -260,6 +261,20 @@ public:
 	
 	virtual void GetExternalConnectIndex (TPZVec<int> &extconn);
   //@}
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+  virtual int ClassId() const;
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
+
 };
 
 #endif

@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.14 2004-04-22 13:14:20 phil Exp $
+//$Id: pzgeoel.h,v 1.15 2004-04-26 14:27:03 phil Exp $
 
 // -*- c++ -*-
 
@@ -9,6 +9,7 @@
 
 using namespace std;
 
+#include "pzsave.h"
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzgmesh.h"
@@ -24,6 +25,7 @@ class TPZCompElSide;
 class TPZGeoElSide;
 class TPZIntPoints;
 class TPZRefPattern;
+class TPZStream;
 
 template<class T>
 class TPZVec;
@@ -35,7 +37,7 @@ class TPZStack;
  * TPZGeoEl is the common denominator for all geometric elements.
  * @ingroup geometry
  */
-class TPZGeoEl { 	// header file for the element class
+class TPZGeoEl : public TPZSaveable { 	// header file for the element class
 
  private:
 
@@ -124,6 +126,9 @@ public:
 
   virtual void Initialize(int materialindex, TPZGeoMesh &mesh, int &index);
 
+  virtual void Read(TPZStream &str, void *context);
+  
+  virtual void Write(TPZStream &str, int withclassid);
   /**Destructor*/
   virtual ~TPZGeoEl() { }
 
@@ -319,7 +324,7 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
   /**Sets the father element index*/
   void SetFather(int fatherindex)
   {
-    fFatherIndex = -1;
+    fFatherIndex = fatherindex;
   }
 
   /**returns a pointer to the subelement is*/

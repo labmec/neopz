@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.28 2004-04-22 15:36:53 phil Exp $
+// $Id: pzintel.cpp,v 1.29 2004-04-26 14:27:03 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -23,15 +23,15 @@
 #include "pzcheckmesh.h"
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int &index) :
-  TPZCompEl(mesh,index) {
-  fReference = reference;
+  TPZCompEl(mesh,reference,index) {
+//  fReference = reference;
   int materialid = reference->MaterialId();
   fMaterial = mesh.FindMaterial(materialid);
 }
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy) :
   TPZCompEl(mesh,copy) {
-  fReference = copy.fReference;
+//  fReference = copy.fReference;
   TPZMaterial *mat = copy.Material();
   if(mat) {
     int materialid = mat->Id();
@@ -39,6 +39,12 @@ TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInter
   } else {
     fMaterial = 0;
   }
+}
+
+TPZInterpolatedElement::TPZInterpolatedElement() :
+  TPZCompEl() {
+//  fReference = reference;
+  fMaterial = 0;
 }
 
 TPZInterpolatedElement::~TPZInterpolatedElement() {
@@ -2491,3 +2497,25 @@ void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMat
 }
 
 #endif
+
+
+  /**
+  Save the element data to a stream
+  */
+void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid)
+{
+  TPZCompEl::Write(buf,withclassid);
+  int matid = fMaterial->Id();
+  buf.Write(&matid,1);
+}
+  
+  /**
+  Read the element data from a stream
+  */
+void TPZInterpolatedElement::Read(TPZStream &buf, void *context)
+{
+  TPZCompEl::Read(buf,context);
+  int matid;
+  buf.Read(&matid,1);
+  fMaterial = Mesh()->FindMaterial(matid);
+}

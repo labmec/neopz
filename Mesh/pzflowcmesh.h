@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.h,v 1.8 2003-12-18 20:05:41 erick Exp $
+//$Id: pzflowcmesh.h,v 1.9 2004-04-26 14:27:03 phil Exp $
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -27,6 +27,7 @@ public:
   //TPZFlowCompMesh();/**empty constructor*/
 
   TPZFlowCompMesh(TPZGeoMesh* gr);
+    
 
   ~TPZFlowCompMesh(){};
 
@@ -99,8 +100,7 @@ public:
    * Returns the number of Flow materials.
    */
   int NFlowMaterials();
-
-
+  
 protected:
 
    /**
@@ -110,6 +110,7 @@ protected:
     * the contribution processes.
     */
    TPZAdmChunkVector< TPZConservationLaw2 * > fFluidMaterial;
+   
 
 };
 

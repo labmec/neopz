@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.12 2004-04-05 20:23:13 longhin Exp $
+//$Id: pzgmesh.h,v 1.13 2004-04-26 14:27:03 phil Exp $
 
 /**File : pzgmes.h
 
@@ -26,6 +26,7 @@ contained within the TPZGeoMesh.
 #include <string>
 #include <map>
 
+#include "pzsave.h"
 #include "pzreal.h"
 #include "pzeltype.h"
 #include "pzgnode.h"
@@ -50,23 +51,21 @@ class TPZVec;
 
 template <class TShape, class TGeo> class TPZGeoElRefPattern;
 
-class  TPZGeoMesh {
+class  TPZGeoMesh : public TPZSaveable {
 
   /** TPZGeoMesh name for model identification*/
-  char			fName[63];
+  string fName;
   /** Computational mesh associated*/
   TPZCompMesh 	*fReference;
 
   /** List of pointers to finite elements*/
-  TPZAdmChunkVector<TPZGeoEl *>		fElementVec;
+  TPZAdmChunkVector<TPZGeoEl *> fElementVec;
   /** List of pointers to nodes*/
-  TPZAdmChunkVector<TPZGeoNode>		fNodeVec;
+  TPZAdmChunkVector<TPZGeoNode> fNodeVec;
   /** List of pointers to reference systems*/
-  TPZAdmChunkVector<TPZCosys *>		fCosysVec;
+  TPZAdmChunkVector<TPZCosys *> fCosysVec;
   /** List of pointers to elements, boundary side and type*/
-  TPZAdmChunkVector<TPZGeoElBC>		fBCElementVec;
-  /** List of pointers to nodes and bc-type*/
-  TPZAdmChunkVector<TPZGeoNodeBC>	fBCNodeVec;
+  TPZAdmChunkVector<TPZGeoElBC> fBCElementVec;
 
   /**Maximum id used by all nodes of this mesh*/
   int fNodeMaxId;
@@ -85,6 +84,12 @@ class  TPZGeoMesh {
 
   /**Deletes all items in the TPZGeoMesh*/
   void CleanUp();
+  
+virtual int ClassId() const;
+
+virtual void Read(TPZStream &buf, void *context);
+
+virtual void Write(TPZStream &buf, int withclassid);
 
   /**Indicates that a node with id was created*/
   void SetNodeIdUsed(int id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
@@ -102,13 +107,13 @@ class  TPZGeoMesh {
   int NElements() {return fElementVec.NElements();}
 
   void SetName(char *name);
-  char* Name() { return fName; }
+  string &Name() { return fName; }
 
   /**Methods for handling pzlists*/
   TPZAdmChunkVector<TPZGeoEl *> &ElementVec() { return fElementVec; }
   TPZAdmChunkVector<TPZGeoNode> &NodeVec() { return fNodeVec; }
   TPZAdmChunkVector<TPZGeoElBC> &BCElementVec() { return fBCElementVec; }
-  TPZAdmChunkVector<TPZGeoNodeBC> &BCNodeVec() { return fBCNodeVec; }
+//  TPZAdmChunkVector<TPZGeoNodeBC> &BCNodeVec() { return fBCNodeVec; }
   TPZAdmChunkVector<TPZCosys *> &CosysVec() { return fCosysVec; }
 
   /**Resets all load references in elements and nodes*/

@@ -1135,3 +1135,17 @@ void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<int> &indices) {
 void TPZGeoEl::SetRefPattern(TPZRefPattern *){
   PZError << "TPZGeoEl::SetRefPattern ERROR : Should not be called in TPZGeoEl" << endl;
 }
+
+void TPZGeoEl::Read(TPZStream &buf, void *context) {
+  fMesh = (TPZGeoMesh *) context;    
+  buf.Read(&fId,1);
+  buf.Read(&fIndex,1);
+  buf.Read(&fFatherIndex,1);
+}
+
+void TPZGeoEl::Write(TPZStream &buf, int withclassid) {
+  TPZSaveable::Write(buf,withclassid);
+  buf.Write(&fId,1);
+  buf.Write(&fIndex,1);
+  buf.Write(&fFatherIndex,1);
+}

@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.15 2004-04-22 13:14:20 phil Exp $
+//$Id: pzgmesh.cpp,v 1.16 2004-04-26 14:27:03 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -28,9 +28,9 @@ Method definition for class TPZGeoMesh.*/
 
 
 TPZGeoMesh::TPZGeoMesh() : fElementVec(0), fNodeVec(0), fCosysVec(0),
-  fBCElementVec(0), fBCNodeVec(0) {
+  fBCElementVec(0) {
 
-  fName[0] = '\0';
+//  fName[0] = '\0';
   fReference = 0;
   fNodeMaxId = -1;
   fElementMaxId = -1;
@@ -56,8 +56,8 @@ void TPZGeoMesh::CleanUp() {
   fCosysVec.CompactDataStructure(1);
   fBCElementVec.Resize(0);
   fBCElementVec.CompactDataStructure(1);
-  fBCNodeVec.Resize(0);
-  fBCNodeVec.CompactDataStructure(1);
+//  fBCNodeVec.Resize(0);
+//  fBCNodeVec.CompactDataStructure(1);
 
   map< int,map<string,TPZRefPattern *> >::iterator first = fRefPatterns.begin();
   map< int,map<string,TPZRefPattern *> >::iterator last = fRefPatterns.end();
@@ -76,10 +76,11 @@ void TPZGeoMesh::CleanUp() {
 }
 
 void TPZGeoMesh::SetName (char *nm) {
-  if(nm != NULL) {
-    strncpy(fName,nm,62);
-    fName[62] = '\0';
-  }
+  fName = nm;
+//  if(nm != NULL) {
+//    strncpy(fName,nm,62);
+//    fName[62] = '\0';
+//  }
 }
 
 
@@ -729,3 +730,51 @@ TPZRefPattern * TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side){
   }
   return GetRefPattern(type,name);
 }
+
+int TPZGeoMesh::ClassId() const {
+  return TPZGEOMESHID;
+}
+
+void TPZGeoMesh::Read(TPZStream &buf, void *context)
+{
+  TPZSaveable::Read(buf,context);
+  buf.Read(&fName,1);
+  ReadObjects(buf,fNodeVec,this);
+  ReadObjectPointers(buf,fElementVec,this);
+  ReadObjects(buf,this->fBCElementVec,this);
+  buf.Read(&fNodeMaxId,1);
+  buf.Read(&fElementMaxId,1);
+  int ninterfacemaps;
+  buf.Read(&ninterfacemaps,1);
+  int c;
+  for(c=0; c< ninterfacemaps; c++) 
+  {
+    int vals[3];
+    buf.Read(vals,3);
+    fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
+    }
+    BuildConnectivity();
+}
+
+void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
+{
+  TPZSaveable::Write(buf,withclassid);
+  buf.Write(&fName,1);
+  WriteObjects(buf,fNodeVec);
+  WriteObjectPointers(buf,fElementVec);
+  WriteObjects(buf,fBCElementVec);
+  buf.Write(&fNodeMaxId,1);
+  buf.Write(&fElementMaxId,1);
+  int ninterfacemaps = fInterfaceMaterials.size();
+  buf.Write(&ninterfacemaps,1);
+  InterfaceMaterialsMap::iterator it = fInterfaceMaterials.begin();
+  while(it != fInterfaceMaterials.end())
+  {
+    int vals[3];
+    vals[0] = (it->first).first;
+    vals[1] = (it->first).second;
+    vals[2] = it->second;
+    buf.Write(vals,3);
+  }
+}
+

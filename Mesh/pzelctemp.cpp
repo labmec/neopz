@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.16 2004-04-22 13:14:20 phil Exp $
+// $Id: pzelctemp.cpp,v 1.17 2004-04-26 14:26:17 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -48,6 +48,16 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,
   int i;
   for(i=0;i<TSHAPE::NSides;i++) {
     fConnectIndexes[i] = copy.fConnectIndexes[i];
+  }
+}
+
+template<class TGEO, class TSHAPE>
+TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen() :
+  TPZInterpolatedElement(), fIntRule() {
+  fPreferredSideOrder = -1;
+  int i;
+  for(i=0;i<TSHAPE::NSides;i++) {
+    fConnectIndexes[i] = -1;
   }
 }
 
@@ -272,6 +282,44 @@ TPZTransform TPZIntelGen<TGEO,TSHAPE>::TransformSideToElement(int side){
   return TSHAPE::TransformSideToElement(side);
 }
 
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+template<class TGEO, class TSHAPE>
+int TPZIntelGen<TGEO,TSHAPE>::ClassId() const
+{
+  cout << "TPZIntelGen<TGEO,TSHAPE>::ClassId() type not specified at " << __FILE__ << ':' << __LINE__ << endl;
+  return -1;
+}
+  /**
+  Save the element data to a stream
+  */
+template<class TGEO, class TSHAPE>
+void TPZIntelGen<TGEO,TSHAPE>::Write(TPZStream &buf, int withclassid)
+{
+  TPZInterpolatedElement::Write(buf,withclassid);
+  TPZManVector<int,3> order(3,0);
+  fIntRule.GetOrder(order);
+  WriteObjects(buf,order);
+  buf.Write(fConnectIndexes,TSHAPE::NSides);
+  buf.Write(&fPreferredSideOrder,1);
+}
+  
+  /**
+  Read the element data from a stream
+  */
+template<class TGEO, class TSHAPE>
+void TPZIntelGen<TGEO,TSHAPE>::Read(TPZStream &buf, void *context)
+{
+  TPZInterpolatedElement::Read(buf,context);
+  TPZManVector<int,3> order;
+  ReadObjects(buf,order);
+  fIntRule.SetOrder(order);
+  buf.Read(fConnectIndexes,TSHAPE::NSides);
+  buf.Read(&fPreferredSideOrder,1);
+}
+
+
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
@@ -320,6 +368,41 @@ void TPZIntelGen<TPZGeoPrism,TPZShapePrism>::CreateGraphicalElement(TPZGraphMesh
 void TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 3) cout << "A pyramid element has no graphical representation\n";
 }
+
+int TPZIntelGen<TPZGeoPoint,TPZShapePoint>::ClassId() const
+{
+  return TPZINTELPOINTID;
+}
+int TPZIntelGen<TPZGeoLinear,TPZShapeLinear>::ClassId() const
+{
+  return TPZINTELLINEARID;
+}
+int TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>::ClassId() const
+{
+  return TPZINTELTRIANGLEID;
+}
+int TPZIntelGen<TPZGeoQuad,TPZShapeQuad>::ClassId() const
+{
+  return TPZINTELQUADID;
+}
+int TPZIntelGen<TPZGeoCube,TPZShapeCube>::ClassId() const
+{
+  return TPZINTELCUBEID;
+}
+
+int TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::ClassId() const
+{
+  return TPZINTELTETRAID;
+}
+int TPZIntelGen<TPZGeoPrism,TPZShapePrism>::ClassId() const
+{
+  return TPZINTELPRISMID;
+}
+int TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::ClassId() const
+{
+  return TPZINTELPYRAMID;
+}
+
 
 template class TPZIntelGen<TPZGeoPoint,TPZShapePoint>;
 template class TPZIntelGen<TPZGeoLinear, TPZShapeLinear>;

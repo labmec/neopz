@@ -1,9 +1,11 @@
-//$Id: pzgeoelbc.cpp,v 1.2 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzgeoelbc.cpp,v 1.3 2004-04-26 14:27:03 phil Exp $
 
 #include "pzgeoelbc.h"
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
 #include "pzgmesh.h"
+#include "pzmeshid.h"
+#include "pzstream.h"
 
 
 TPZGeoElBC::TPZGeoElBC() {
@@ -43,3 +45,31 @@ void TPZGeoElBC::Print(ostream &out)
 
 }
 
+int TPZGeoElBC::ClassId() const {
+  return TPZGEOELBCID;
+}
+
+void TPZGeoElBC::Write(TPZStream &buf, int withclassid) {
+  TPZSaveable::Write(buf,withclassid);
+  int bcelindex = -1;
+  int elemindex = -1;
+  if(fBCElement) bcelindex = fBCElement->Index();
+  if(fElement) elemindex = fElement->Index();
+  buf.Write(&bcelindex,1);
+  buf.Write(&elemindex,1);
+  buf.Write(&fId,1);
+  buf.Write(&fSide,1);
+}
+
+void TPZGeoElBC::Read(TPZStream &buf, void *context) {
+  TPZSaveable::Read(buf,context);  
+  TPZGeoMesh *gmesh = (TPZGeoMesh *) context;
+  int bcelindex = -1;
+  int elemindex = -1;
+  buf.Read(&bcelindex,1);
+  buf.Read(&elemindex,1);
+  buf.Read(&fId,1);
+  buf.Read(&fSide,1);
+  if(bcelindex != -1) fBCElement = gmesh->ElementVec()[bcelindex];
+  if(elemindex != -1) fElement = gmesh->ElementVec()[elemindex];
+}

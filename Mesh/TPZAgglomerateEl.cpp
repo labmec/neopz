@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.32 2004-04-14 13:46:45 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.33 2004-04-26 14:27:03 phil Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -23,6 +23,8 @@
 #include "pztrigraph.h"
 #include "pzgraphel.h"
 #include "pzerror.h"
+#include "pzmeshid.h"
+#include "tpzagglomeratemesh.h"
 
 TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh) : 
   TPZCompElDisc(aggcmesh,index) {
@@ -48,6 +50,11 @@ TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &
     PZError << "TPZAgglomerateElement::TPZAgglomerateElement material not found\n";
   }
   CreateMidSideConnect();
+}
+
+TPZAgglomerateElement::TPZAgglomerateElement() : TPZCompElDisc(), fIndexes(),
+fMotherMesh(0),fInnerRadius(-1.),fNFaces(-1)
+{
 }
 
 void TPZAgglomerateElement::AddSubElementIndex(TPZCompMesh *aggcmesh,int subel,int father){
@@ -790,7 +797,7 @@ void TPZAgglomerateElement::AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) {
 
 
 
-void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *aggmesh,TPZVec<int> &accumlist,int numaggl){
+TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh, TPZVec<int> &accumlist,int numaggl){
 
   /**
    * somente são aglomerados elementos de volume
@@ -809,12 +816,12 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
   if(numaggl < 1 || nlist < 2){
     PZError << "TPZCompElDisc::CreateAgglomerateMesh number agglomerate elements"
       << " out of range\nMALHA AGGLOMERADA NÂO CRIADA\n";
-    aggmesh = new TPZCompMesh(*finemesh);
-    return;
+//    aggmesh = new TPZCompMesh(*finemesh);
+    return 0;
   }
   //TPZFlowCompMesh aggmesh(finemesh->Reference());
   int index,nel = finemesh->NElements(),nummat,size = accumlist.NElements(),i;
-
+  TPZAgglomerateMesh *aggmesh = new TPZAgglomerateMesh(finemesh);
   //copiando materiais para nova malha
   //finemesh->fMaterials eh copiado para aggmesh
   finemesh->CopyMaterials(aggmesh);
@@ -855,7 +862,7 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
         if(father == -1){
           PZError << "TPZCompElDisc::CreateAgglomerateMesh element null father\n";
           if(aggmesh) delete aggmesh;
-          return;
+          return 0;
         }
         //incorporando o index do sub-elemento
         //o elemento de index i vai para o pai father = accumlist[i]
@@ -863,7 +870,7 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
 	IdElNewMesh[i] = father;
       } else if(eldim == surfacedim){
         //clonando o elemento descontínuo BC, o clone existira na malha aglomerada
-        TPZCompEl * AggCell = dynamic_cast<TPZCompElDisc *>(cel)->Clone2(*aggmesh,index);
+        TPZCompEl * AggCell = dynamic_cast<TPZCompElDisc *>(cel)->Clone(*aggmesh,index);
 	IdElNewMesh[i] = AggCell->Index();
       }
     }
@@ -883,7 +890,7 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
         //no máximo um elemento pode ser BC
         PZError << "TPZCompElDisc::CreateAgglomerateMesh data error\n";
         if(aggmesh) delete aggmesh;
-        return;
+        return 0;
       }
       int index;
       //interfaces com esquerdo e direito iguais não são clonadas
@@ -990,6 +997,7 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
     }//end of if
 
   }//end of loop over elements
+  return aggmesh;
 
 }//end of method
 
@@ -1011,5 +1019,45 @@ void TPZAgglomerateElement::ComputeNeighbours(TPZCompMesh *mesh, map<TPZCompElDi
   }
 }
     
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+int TPZAgglomerateElement::ClassId() const
+{
+  return TPZAGGLOMERATEELID;
+}
+  /**
+  Save the element data to a stream
+  */
+ void TPZAgglomerateElement::Write(TPZStream &buf, int withclassid)
+ {
+   TPZCompElDisc::Write(buf,withclassid);
+  TPZAgglomerateMesh *mesh = dynamic_cast<TPZAgglomerateMesh *> (Mesh());
+  if(!mesh)
+  {
+    cout << "TPZAgglomerateEl::Write built from non agglomeratemesh at " << __FILE__ << ":" << __LINE__ << endl;
+  }
+  WriteObjects(buf,fIndexes);
+  buf.Write(&fInnerRadius,1);
+  buf.Write(&fNFaces,1);
+ }
+  
+  /**
+  Read the element data from a stream
+  */
+void TPZAgglomerateElement::Read(TPZStream &buf, void *context)
+{
+  TPZCompElDisc::Read(buf,context);
+  TPZAgglomerateMesh *mesh = dynamic_cast<TPZAgglomerateMesh *> (Mesh());
+  if(!mesh)
+  {
+    cout << "TPZAgglomerateEl::Read built from non agglomeratemesh at " << __FILE__ << ":" << __LINE__ << endl;
+    fMotherMesh = 0;
+  } else {
+    fMotherMesh = mesh->FineMesh();
+  }
+  ReadObjects(buf,fIndexes);
+  buf.Read(&fInnerRadius,1);
+  buf.Read(&fNFaces,1);
+}
 
-                                               

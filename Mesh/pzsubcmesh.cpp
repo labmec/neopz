@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.7 2004-04-05 14:09:35 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.8 2004-04-26 14:25:42 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -223,12 +223,16 @@ int TPZSubCompMesh::main() {
 
 
 
-TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, int &index) : TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,index)  {
+TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, int &index) : TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index)  {
 
 	fAnalysis = NULL;
 
 }
 
+TPZSubCompMesh::TPZSubCompMesh() : TPZCompMesh(), TPZCompEl()  {
+
+	fAnalysis = NULL;
+}
 
 TPZSubCompMesh::~TPZSubCompMesh(){
 }
@@ -802,3 +806,33 @@ TPZAnalysis * TPZSubCompMesh::GetAnalysis()
 {
 	return fAnalysis;
 }
+
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+int TPZSubCompMesh::ClassId() const
+{
+  return TPZSUBCOMPMESHID;
+}
+  /**
+  Save the element data to a stream
+  */
+void TPZSubCompMesh::Write(TPZStream &buf, int withclassid)
+{
+  TPZCompEl::Write(buf,withclassid);
+  TPZCompMesh::Write(buf,0);
+  WriteObjects(buf,fConnectIndex);
+  WriteObjects(buf,fExternalLocIndex);
+}
+  
+  /**
+  Read the element data from a stream
+  */
+void TPZSubCompMesh::Read(TPZStream &buf, void *context)
+{
+  TPZCompEl::Read(buf,context);
+  TPZCompMesh::Read(buf,Mesh()->Reference());
+  ReadObjects(buf,fConnectIndex);
+  ReadObjects(buf,fExternalLocIndex);
+}
+

@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.12 2003-12-02 11:50:01 tiago Exp $
+//$Id: pzintel.h,v 1.13 2004-04-26 14:27:03 phil Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -25,7 +25,7 @@ class TPZInterpolatedElement : public TPZCompEl {
   /**
    * Geometric element to which this element refers
    */
-  TPZGeoEl *fReference;
+//  TPZGeoEl *fReference;
   /**
    * Material object of this element
    */
@@ -61,10 +61,22 @@ public:
    * Constructor aimed at creating a copy of an interpolated element within a new mesh
    */
   TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy);
+  
+  TPZInterpolatedElement();
   /**
    * destructor, does nothing
    */
   virtual ~TPZInterpolatedElement();
+  
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
 
   /** @name data access methods
    * methods which allow to access the internal data structure of the element
@@ -82,7 +94,7 @@ public:
   virtual void Print(ostream &out = cout);
 
   /**return the geometric element to which this element references*/
-  virtual TPZGeoEl *Reference() const { return fReference;}
+//  virtual TPZGeoEl *Reference() const { return fReference;}
 
   /**declare the element as interpolated or not.
    * You may not redefine this method, because a lot of "unsafe" casts depend

@@ -460,6 +460,20 @@ TPZGeoElRefLess<TShape,TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &
   return;
 }
 
+template<class TShape, class TGeo>
+void
+TPZGeoElRefLess<TShape,TGeo>::Read(TPZStream &buf, void *context){
+  TPZGeoEl::Read(buf,context);
+  buf.Read(fNodeIndexes,TGeo::NNodes);
+}
+
+template<class TShape, class TGeo>
+void
+TPZGeoElRefLess<TShape,TGeo>::Write(TPZStream &buf, int withclassid){
+  TPZGeoEl::Write(buf,withclassid);
+  buf.Write(fNodeIndexes,TGeo::NNodes);
+}
+
 template class TPZGeoElRefLess<TPZShapeCube,TPZGeoCube>;
 template class TPZGeoElRefLess<TPZShapeLinear,TPZGeoLinear>;
 template class TPZGeoElRefLess<TPZShapeQuad,TPZGeoQuad>;

@@ -45,6 +45,10 @@ public:
   TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
   TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
 
+  virtual void Read(TPZStream &str, void *context);
+  
+  virtual void Write(TPZStream &str, int withclassid);
+  
   virtual void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
   
   static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
