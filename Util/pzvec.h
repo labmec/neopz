@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.4 2004-06-23 16:36:28 phil Exp $
+// $Id: pzvec.h,v 1.5 2004-06-23 22:41:19 phil Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -109,7 +109,7 @@ class TPZVec {
 
       /// Extraction operator.
 #ifndef DOS
-      friend ostream& operator<<( ostream& Out, const TPZVec< T >& v );
+      friend ostream& operator<<( ostream& Out, const TPZVec< T >& v )
       {
          streamsize width = Out.width();
 
