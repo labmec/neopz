@@ -27,7 +27,11 @@ const int nSTEl = 2 * 1;
 
 void STMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 {
-   REAL alpha = 0.;//3.14159 / 2.;
+   cout << "\nAlpha [Deg]?\n";
+   REAL alpha;
+   cin >> alpha;
+   alpha*= 3.14159 / 180.;
+
    REAL cosA = cos(alpha);
    REAL sinA = sin(alpha);
 

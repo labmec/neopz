@@ -4,6 +4,7 @@
 #include "reflectedShock_nonalignedmesh.cpp"
 #include "SimpleShock.cpp"
 #include "ShockTube2d.cpp"
+#include "SubsonicRadialShock.cpp"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
@@ -66,7 +67,7 @@ int main()
    int nSubdiv = 0;
    TPZFlowCompMesh * cmesh;
 
-   cout << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n";
+   cout << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n\t5: RadialShock\n";
 
    cin >> ProblemType;
 
@@ -223,6 +224,12 @@ int main()
          STCompMesh(CFL, delta, p, nSubdiv, DiffType,
 	            Diff_TD, ConvVol_TD, ConvFace_TD);
       break;
+      case 5:
+      file = "SRS_";
+      cmesh =
+         SRSCompMesh(CFL, delta, p, nSubdiv, DiffType,
+	            Diff_TD, ConvVol_TD, ConvFace_TD);
+      break;
    }
    file += filename;
 
@@ -325,8 +332,8 @@ int main()
 
    //Main Solver
    TPZStepSolver Solver;
-   Solver.SetGMRES(100,
-		100,
+   Solver.SetGMRES(1000,
+		300,
 		Pre,
 		1e-9,
 		0);
@@ -378,7 +385,7 @@ int main()
    ofstream * dxout = new ofstream((file+".dx" ).Str());
    ofstream *   out = new ofstream((file+".csv").Str());
 
-   An.Run(* out, * dxout);
+   An.Run(* out, * dxout, max(0, p-1));
 
    return 0;
 }
