@@ -50,10 +50,10 @@ public:
     /**Empty constructor*/
     TPZRefPattern();
     /**
-     * Constructor whose argument is the name of the archive with the definition
+     * Constructor whose argument is the name of the file with the definition
      * of the refinement standard
      */
-    TPZRefPattern(string);
+    TPZRefPattern(const string &filename);
     
     /**Copy constructor*/
     TPZRefPattern (const TPZRefPattern &copy);
@@ -328,6 +328,7 @@ private:
   void CreateMidSideNodes (TPZGeoEl *gel, int side, TPZVec<int> &newnodeindexes);
   /** Returns the refinement pattern identifier */
   string GetName();
+    int operator==(const TPZRefPattern &compare) const;
 protected: // Protected attributes
   /** Identifier for the refinement pattern */
   string fName;
