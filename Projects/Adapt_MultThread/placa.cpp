@@ -133,6 +133,8 @@ ofstream erros("ERROS.out");
 
 int main() {
 
+  
+
   //inserindo a ordem de interpola¢ão dos elementos e do espa¢o
   int ord;
   cout << "Entre ordem 1,2,3,4,5 : -> 1";
@@ -217,6 +219,7 @@ void CriaNos(int num, TPZGeoMesh &geomesh, double list [20][3] ){
     coord[1]= list[i][1];
     coord[2]= list[i][2];
     geomesh.NodeVec()[i].Initialize(coord,geomesh);
+
   }
 }
 

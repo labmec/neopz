@@ -38,6 +38,9 @@ void CompareNeighbours(TPZGeoMesh *mesh);
 
 
 int main(){
+  RegisterMeshClasses();
+  RegisterMatrixClasses();
+  RegisterMaterialClasses();
 
   int nref = 0;
   int dim = 0;

@@ -314,7 +314,7 @@ void * TPZAdaptMesh::MeshError(void *t){
   }
   else {
     //Teste para tentar encaixar o oopar    
-    adapt->fFineCloneMesh [cliter] = adapt->fCloneMesh[cliter]->UniformlyRefineMesh();
+    //adapt->fFineCloneMesh [cliter] = adapt->fCloneMesh[cliter]->UniformlyRefineMesh();
          {
            TPZBFileStream temp;
            temp.OpenWrite("temp.bin");
@@ -333,15 +333,20 @@ void * TPZAdaptMesh::MeshError(void *t){
            sav = TPZSaveable::Restore(temp,geolocclone);
            locclone = dynamic_cast<TPZCompCloneMesh *>(sav);
          }
-           
+
+         TPZCompMesh *locfineclone = locclone->UniformlyRefineMesh();
+         TPZGeoMesh *geolocfineclone = locfineclone->Reference();
+                      
          {
-           TPZBFileStream temp;
-           temp.OpenWrite("temp.bin");
-           adapt->fFineCloneMesh[cliter]->Reference()->Write(temp,1);
-           adapt->fFineCloneMesh[cliter]->Write(temp,1);
+//           TPZBFileStream temp;
+//           temp.OpenWrite("temp.bin");
+//           adapt->fFineCloneMesh[cliter]->Reference()->Write(temp,1);
+//           adapt->fFineCloneMesh[cliter]->Write(temp,1);
+             TPZBFileStream temp;
+             temp.OpenWrite("temp.bin");
+             adapt->fFineCloneMesh[cliter]->Reference()->Write(temp,1);
+             adapt->fFineCloneMesh[cliter]->Write(temp,1);
          }
-         TPZCompMesh *locfineclone = 0;
-         TPZGeoMesh *geolocfineclone = 0;
          {
            TPZBFileStream temp;
            temp.OpenRead("temp.bin");
