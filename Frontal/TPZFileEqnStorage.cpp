@@ -3,8 +3,13 @@
 #include "TPZFileEqnStorage.h"
 #include <string.h>
 #include <stdlib.h>
+
+#ifdef DOS
+#include <dir.h>
+#endif
+
 #include <fstream>
-using namespace std;         
+using namespace std;
 
 void TPZFileEqnStorage::WriteHeaders(){
 	/**

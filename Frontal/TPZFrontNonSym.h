@@ -4,7 +4,6 @@ class TPZEqnArray;
 #ifndef TPZFRONTNONSYM_H
 #define TPZFRONTNONSYM_H
 
-using namespace std;
 
 #include <pzmatrix.h>
 #include <pzstack.h>
@@ -16,6 +15,7 @@ using namespace std;
 //#include <stdio.h>
 //#include <stdlib.h>
 #include <fstream>
+using namespace std;
 #include "TPZStackEqnStorage.h"
 #include "TPZFileEqnStorage.h"
 

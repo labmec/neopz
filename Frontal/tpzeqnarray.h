@@ -18,7 +18,7 @@
 #ifndef TPZEQNARRAY_H
 #define TPZEQNARRAY_H
 
-using namespace std;
+//using namespace std;
 
 #include <pzmatrix.h>
 #include <pzstack.h>
