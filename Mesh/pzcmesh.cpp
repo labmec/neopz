@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.25 2004-01-20 20:41:40 phil Exp $
+//$Id: pzcmesh.cpp,v 1.26 2004-04-05 14:09:35 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -383,11 +383,6 @@ void TPZCompMesh::Assemble(TPZMatrix &stiffness,TPZFMatrix &rhs) {
   TPZElementMatrix ek,ef;
   TPZManVector<int> destinationindex(0);
   TPZManVector<int> sourceindex(0);
-  REAL stor1[1000],stor2[1000],stor3[100],stor4[100];
-  ek.fMat = new TPZFMatrix(0,0,stor1,1000);
-  ek.fConstrMat = new TPZFMatrix(0,0,stor2,1000);
-  ef.fMat = new TPZFMatrix(0,0,stor3,100);
-  ef.fConstrMat = new TPZFMatrix(0,0,stor4,100);
 
   for(iel=0; iel < nelem; iel++) {
     TPZCompEl *el = fElementVec[iel];
@@ -405,7 +400,7 @@ void TPZCompMesh::Assemble(TPZMatrix &stiffness,TPZFMatrix &rhs) {
       //ek.fMat->Print("stiff has no constraint",test);
       //ef.fMat->Print("rhs has no constraint",test);
       //test.flush();
-      destinationindex.Resize(ek.fMat->Rows());
+      destinationindex.Resize(ek.fMat.Rows());
       int destindex = 0;
       int numnod = ek.NConnects();
       for(int in=0; in<numnod; in++) {
@@ -418,8 +413,8 @@ void TPZCompMesh::Assemble(TPZMatrix &stiffness,TPZFMatrix &rhs) {
            destinationindex[destindex++] = firsteq+idf;
          }
       }
-      stiffness.AddKel(*ek.fMat,destinationindex);
-      rhs.AddFel(*ef.fMat,destinationindex);                 //  ??????????? Erro
+      stiffness.AddKel(ek.fMat,destinationindex);
+      rhs.AddFel(ef.fMat,destinationindex);                 //  ??????????? Erro
     } else {
       // the element has dependent nodes
       el->ApplyConstraints(ek,ef);
@@ -431,8 +426,8 @@ void TPZCompMesh::Assemble(TPZMatrix &stiffness,TPZFMatrix &rhs) {
       //test << "sum of columns\n";
       int destindex = 0;
       int fullmatindex = 0;
-      destinationindex.Resize(ek.fConstrMat->Rows());
-      sourceindex.Resize(ek.fConstrMat->Rows());
+      destinationindex.Resize(ek.fConstrMat.Rows());
+      sourceindex.Resize(ek.fConstrMat.Rows());
       int numnod = ek.fConstrConnect.NElements();
       for(int in=0; in<numnod; in++) {
          int npindex = ek.fConstrConnect[in];
@@ -451,8 +446,8 @@ void TPZCompMesh::Assemble(TPZMatrix &stiffness,TPZFMatrix &rhs) {
       }
       sourceindex.Resize(destindex);
       destinationindex.Resize(destindex);
-      stiffness.AddKel(*ek.fConstrMat,sourceindex,destinationindex);
-      rhs.AddFel(*ef.fConstrMat,sourceindex,destinationindex);
+      stiffness.AddKel(ek.fConstrMat,sourceindex,destinationindex);
+      rhs.AddFel(ef.fConstrMat,sourceindex,destinationindex);
 /*
 if(ek.fConstrMat->Decompose_LU() != -1) {
     el->ApplyConstraints(ek,ef);
@@ -539,9 +534,6 @@ void TPZCompMesh::Assemble(TPZFMatrix &rhs) {
   TPZElementMatrix ef;
   TPZManVector<int> destinationindex(0);
   TPZManVector<int> sourceindex(0);
-  REAL stor3[100],stor4[100];
-  ef.fMat = new TPZFMatrix(0,0,stor3,100);
-  ef.fConstrMat = new TPZFMatrix(0,0,stor4,100);
 
   for(iel=0; iel < nelem; iel++) {
     TPZCompEl *el = fElementVec[iel];
@@ -559,7 +551,7 @@ void TPZCompMesh::Assemble(TPZFMatrix &rhs) {
       //ek.fMat->Print("stiff has no constraint",test);
       //ef.fMat->Print("rhs has no constraint",test);
       //test.flush();
-      destinationindex.Resize(ef.fMat->Rows());
+      destinationindex.Resize(ef.fMat.Rows());
       int destindex = 0;
       int numnod = ef.NConnects();
       for(int in=0; in<numnod; in++) {
@@ -572,7 +564,7 @@ void TPZCompMesh::Assemble(TPZFMatrix &rhs) {
            destinationindex[destindex++] = firsteq+idf;
          }
       }
-      rhs.AddFel(*ef.fMat,destinationindex);                 //  ??????????? Erro
+      rhs.AddFel(ef.fMat,destinationindex);                 //  ??????????? Erro
     } else {
       // the element has dependent nodes
       el->ApplyConstraints(ef);
@@ -584,8 +576,8 @@ void TPZCompMesh::Assemble(TPZFMatrix &rhs) {
       //test << "sum of columns\n";
       int destindex = 0;
       int fullmatindex = 0;
-      destinationindex.Resize(ef.fConstrMat->Rows());
-      sourceindex.Resize(ef.fConstrMat->Rows());
+      destinationindex.Resize(ef.fConstrMat.Rows());
+      sourceindex.Resize(ef.fConstrMat.Rows());
       int numnod = ef.fConstrConnect.NElements();
       for(int in=0; in<numnod; in++) {
          int npindex = ef.fConstrConnect[in];
@@ -604,7 +596,7 @@ void TPZCompMesh::Assemble(TPZFMatrix &rhs) {
       }
       sourceindex.Resize(destindex);
       destinationindex.Resize(destindex);
-      rhs.AddFel(*ef.fConstrMat,sourceindex,destinationindex);
+      rhs.AddFel(ef.fConstrMat,sourceindex,destinationindex);
 /*
 if(ek.fConstrMat->Decompose_LU() != -1) {
     el->ApplyConstraints(ek,ef);

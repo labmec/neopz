@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.31 2004-04-02 15:56:37 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.32 2004-04-05 14:09:35 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -18,7 +18,7 @@ int TPZInterfaceElement::gCalcStiff = 1;
  * A normal é clonada, e não recalculada.
  */
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElDisc *left,TPZCompElDisc *right, TPZVec<REAL> normal)
-  : TPZCompEl(mesh,index), fNormal(3,0.) {
+  : TPZCompEl(mesh,index), fNormal(3,0.), fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1) {
 
   fReference = geo;
   geo->SetReference(this);
@@ -30,13 +30,20 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   fMaterial = mesh.FindMaterial(materialid);
   fLeftEl = left;
   fRightEl = right;
+  int ic = 0;
   int icon;
   for(icon = 0; icon < left->NConnects(); icon++){
     left ->Connect(icon).IncrementElConnected();
+    fConnectL = &left->Connect(icon);
+    fConnectIndexL = left->ConnectIndex(icon);
+    ic++;
   }
 
   for(icon = 0; icon < right->NConnects(); icon++){
     right ->Connect(icon).IncrementElConnected();
+    fConnectR = &right->Connect(icon);
+    fConnectIndexR = right->ConnectIndex(icon);
+    ic++;
   }
 
   for (int i = 0; i < fNormal.NElements(); i++)
@@ -50,7 +57,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 //construtor para o elemento descontinuo
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
 					 TPZCompElDisc *left,TPZCompElDisc *right/*,int leftside*/) 
-  : TPZCompEl(mesh,index), fNormal(3,0.) {
+  : TPZCompEl(mesh,index), fNormal(3,0.) , fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1){
 
   fReference = geo;
   geo->SetReference(this);
@@ -63,19 +70,26 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   fLeftEl = left;
   fRightEl = right;
   int icon;
+  int ic=0;
   for(icon = 0; icon < left->NConnects(); icon++){
     left ->Connect(icon).IncrementElConnected();
+    fConnectL = &left->Connect(icon);
+    fConnectIndexL = left->ConnectIndex(icon);
+    ic++;
   }
 
   for(icon = 0; icon < right->NConnects(); icon++){
     right ->Connect(icon).IncrementElConnected();
+    fConnectR = &right->Connect(icon);
+    fConnectIndexR = right->ConnectIndex(icon);
+    ic++;
   }
 
   NormalToFace(fNormal/*,leftside*/);
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy)
-  : TPZCompEl(mesh,copy), fNormal(copy.fNormal) {
+  : TPZCompEl(mesh,copy), fNormal(copy.fNormal), fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1) {
   fLeftEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[copy.fLeftEl->Index()]);
   fRightEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[copy.fRightEl->Index()]);
 
@@ -100,18 +114,25 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
   }
   //  fMaterial = copy.fMaterial;
 
+  int ic=0;
   int icon;
   for(icon = 0; icon < fLeftEl->NConnects(); icon++){
     fLeftEl ->Connect(icon).IncrementElConnected();
+    fConnectL = &fLeftEl->Connect(icon);
+    fConnectIndexR = fLeftEl->ConnectIndex(icon);
+    ic++;
   }
 
   for(icon = 0; icon < fRightEl->NConnects(); icon++){
     fRightEl ->Connect(icon).IncrementElConnected();
+    fConnectR = &fRightEl->Connect(icon);
+    fConnectIndexR = fRightEl->ConnectIndex(icon);
+    ic++;
   }
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int &index) 
-  : TPZCompEl(mesh,index), fNormal(copy.fNormal) {
+  : TPZCompEl(mesh,index), fNormal(copy.fNormal), fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1) {
 
   //ambos elementos esquerdo e direito já foram clonados e moram na malha aglomerada
   //o geometrico da malha fina aponta para o computacional da malha aglomerada
@@ -141,13 +162,20 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
     fMaterial = 0;
   }
   //  fMaterial = copy.fMaterial;
+  int ic=0;
   int icon;
   for(icon = 0; icon < fLeftEl->NConnects(); icon++){
     fLeftEl ->Connect(icon).IncrementElConnected();
+    fConnectL = &fLeftEl->Connect(icon);
+    fConnectIndexL = fLeftEl->ConnectIndex(icon);
+    ic++;
   }
 
   for(icon = 0; icon < fRightEl->NConnects(); icon++){
     fRightEl ->Connect(icon).IncrementElConnected();
+    fConnectR = &fRightEl->Connect(icon);
+    fConnectIndexR = fRightEl->ConnectIndex(icon);
+    ic++;
   }
 
 }
@@ -185,16 +213,20 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
   //#endif
 
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+#ifndef NODEBUG
   if(!mat || !strcmp("no_name",mat->Name())){
     PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
     return;
   }
+#endif
   TPZCompElDisc *left = LeftElement();
   TPZCompElDisc *right = RightElement();
+#ifndef NODEBUG
   if(!left->Material() || !right->Material()){
     PZError << "TPZInterfaceElement::CalcStiff null material\n";
     return;
   }
+#endif
   //  cout << "TPZInterfaceElement::CalcStiff normal" << fNormal << "left " << left->Reference()->Id() << " right " << right->Reference()->Id() << endl;
 
   int nshapel = left->NShapeF();
@@ -208,64 +240,45 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
   int dim = Dimension();
   int diml = left->Dimension();
   int dimr = right->Dimension();
-  int ncon = NConnects(),i;
+  int ncon = 0;
+  if(fConnectL) ncon++;
+  if(fConnectR) ncon++;
 
-  // clean ek and ef
-  if(!ek.fMat) ek.fMat = new TPZFMatrix();
-  if(!ef.fMat) ef.fMat = new TPZFMatrix();
-  if(!ek.fBlock) ek.fBlock = new TPZBlock(ek.fMat);
-  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
 
   int neq = neql + neqr;
-  ek.fMat->Redim(neq,neq);
-  ef.fMat->Redim(neq,1);
-  if(ncon){//no máximo ncon = 1
-    int ic = 0;
-    ek.fBlock->SetNBlocks(ncon);
-    ef.fBlock->SetNBlocks(ncon);
-    if(left->NConnects()) {
-      ek.fBlock->Set(ic,left->NShapeF()*nstatel);
-      ef.fBlock->Set(ic,left->NShapeF()*nstatel);
-      ic++;
-    }
-    if(right->NConnects()) {
-      ek.fBlock->Set(ic,right->NShapeF()*nstater);
-      ef.fBlock->Set(ic,right->NShapeF()*nstater);
-    }
-    ek.fBlock->Resequence();
-    ef.fBlock->Resequence();
-  }
-  if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
-    cout << "TPZInterfaceElement::CalcStiff : not enough storage for local stifness"
-      " matrix \n";
-    Print(cout);
-    if(ek.fMat)   delete ek.fMat;
-    if(ek.fBlock) delete ek.fBlock;
-    if(ef.fMat)   delete ef.fMat;
-    if(ef.fBlock) delete ef.fBlock;
-    ek.fMat=  NULL;
-    ek.fBlock = NULL;
-    ef.fMat = NULL;
-    ef.fBlock = NULL;
-    return;
-  }
+  ek.fMat.Redim(neq,neq);
+  ef.fMat.Redim(neq,1);
+  int ic = 0;
+  ek.fBlock.SetNBlocks(ncon);
+  ef.fBlock.SetNBlocks(ncon);
   ek.fConnect.Resize(ncon);
   ef.fConnect.Resize(ncon);
-  for(i=0;i<ncon;i++){//pelo menos 2: 1 para cada elemento right e left
-    (ef.fConnect)[i] = ConnectIndex(i);
-    (ek.fConnect)[i] = ConnectIndex(i);
+  if(fConnectL) {
+      ek.fBlock.Set(ic,neql);
+      ef.fBlock.Set(ic,neql);
+    (ef.fConnect)[ic] = fConnectIndexL;
+    (ek.fConnect)[ic] = fConnectIndexL;
+      ic++;
   }
+  if(fConnectR) {
+    ek.fBlock.Set(ic,neqr);
+    ef.fBlock.Set(ic,neqr);
+    (ef.fConnect)[ic] = fConnectIndexR;
+    (ek.fConnect)[ic] = fConnectIndexR;
+  }
+  ek.fBlock.Resequence();
+  ef.fBlock.Resequence();
 
-  TPZFMatrix phixl(neql,1,0.),dphixl(diml,neql);
-  TPZFMatrix phixr(neqr,1,0.),dphixr(dimr,neqr);
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
-  TPZVec<REAL> x(3,0.);
-  TPZVec<REAL> intpoint(dim,0.);
+  TPZFNMatrix<100> phixl(neql,1),dphixl(diml,neql);
+  TPZFNMatrix<100> phixr(neqr,1),dphixr(dimr,neqr);
+  TPZFNMatrix<9> axes(3,3);
+  TPZFNMatrix<9> jacobian(dim,dim);
+  TPZFNMatrix<9> jacinv(dim,dim);
+  TPZManVector<REAL,3> x(3);
+  TPZManVector<REAL,3> intpoint(dim);
   REAL detjac,weight;
-  TPZVec<REAL> soll(nstatel,0.),solr(nstater,0.);
-  TPZFMatrix dsoll(diml,nstatel,0.),dsolr(dimr,nstater,0.);
+  TPZManVector<REAL,5> soll(nstatel),solr(nstater);
+  TPZFNMatrix<15> dsoll(diml,nstatel),dsolr(dimr,nstater);
   int pl = left->Degree();
   int pr = right->Degree();
   int p = (pl > pr) ? pl : pr;
@@ -273,7 +286,7 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
   TPZIntPoints *intrule = fReference->CreateSideIntegrationRule(face,2*p);//integra u(n)*fi
   int npoints = intrule->NPoints();
   int ip;
-  TPZVec<REAL> point(3,0.),normal(3,0.);
+  //  TPZManVector<REAL,3> point(3);
 //  TPZBndCond *bcleft = 0,*bcright=0;
 
   for(ip=0;ip<npoints;ip++){
@@ -281,13 +294,12 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
     fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
     weight *= fabs(detjac);
     fReference->X(intpoint, x);
-    left->Shape(x,phixl,dphixl);
-    right->Shape(x,phixr,dphixr);
     //solu¢ão da itera¢ão anterior
-    soll.Fill(0.);
-    dsoll.Zero();
-    if(left->NConnects()){
-      TPZConnect *df = &left->Connect(0);
+    if(fConnectL){
+      left->Shape(x,phixl,dphixl);
+      soll.Fill(0.);
+      dsoll.Zero();
+      TPZConnect *df = fConnectL;
       int dfseq = df->SequenceNumber();
       int dfvar = block.Size(dfseq);
       int pos = block.Position(dfseq);
@@ -299,16 +311,12 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
 	iv++;
       }
     } 
-    //    else {
-    //      bcleft = dynamic_cast<TPZBndCond *> (left->Material());
-    //      if(!bcleft) PZError << "TPZInterfaceElement::CalcStiff material does not exists\n";
-    //      mat->ComputeSolLeft(solr,soll,fNormal,bcleft);
-    //    }
     //solu¢ão da itera¢ão anterior
-    solr.Fill(0.);
-    dsolr.Zero();
-    if(right->NConnects()){
-      TPZConnect *df = &right->Connect(0);
+    if(fConnectR){
+      right->Shape(x,phixr,dphixr);
+      solr.Fill(0.);
+      dsolr.Zero();
+      TPZConnect *df = fConnectR;
       int dfseq = df->SequenceNumber();
       int dfvar = block.Size(dfseq);
       int pos = block.Position(dfseq);
@@ -320,14 +328,8 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
 	iv++;
       }
     } 
-    //    else {
-    //      bcright = dynamic_cast<TPZBndCond *> (right->Material());
-    //      if(!bcright) PZError << "TPZInterfaceElement::CalcStiff material does not exists\n";
-    //      mat->ComputeSolRight(solr,soll,fNormal,bcright);
-    //    }
 
-
-    mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,*ek.fMat,*ef.fMat);
+    mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,ek.fMat,ef.fMat);
   }
   
   delete intrule;
@@ -361,44 +363,25 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
   int dimr = right->Dimension();
   int ncon = NConnects(),i;
 
-  // clean ek and ef
-  if(!ek.fMat) ek.fMat = new TPZFMatrix();
-  if(!ef.fMat) ef.fMat = new TPZFMatrix();
-  if(!ek.fBlock) ek.fBlock = new TPZBlock(ek.fMat);
-  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
 
   int neq = neql + neqr;
-  ek.fMat->Redim(neq,neq);
-  ef.fMat->Redim(neq,1);
+  ek.fMat.Redim(neq,neq);
+  ef.fMat.Redim(neq,1);
   if(ncon){//no máximo ncon = 1
     int ic = 0;
-    ek.fBlock->SetNBlocks(ncon);
-    ef.fBlock->SetNBlocks(ncon);
+    ek.fBlock.SetNBlocks(ncon);
+    ef.fBlock.SetNBlocks(ncon);
     if(left->NConnects()) {
-      ek.fBlock->Set(ic,left->NShapeF()*nstatel);
-      ef.fBlock->Set(ic,left->NShapeF()*nstatel);
+      ek.fBlock.Set(ic,left->NShapeF()*nstatel);
+      ef.fBlock.Set(ic,left->NShapeF()*nstatel);
       ic++;
     }
     if(right->NConnects()) {
-      ek.fBlock->Set(ic,right->NShapeF()*nstater);
-      ef.fBlock->Set(ic,right->NShapeF()*nstater);
+      ek.fBlock.Set(ic,right->NShapeF()*nstater);
+      ef.fBlock.Set(ic,right->NShapeF()*nstater);
     }
-    ek.fBlock->Resequence();
-    ef.fBlock->Resequence();
-  }
-  if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
-    cout << "TPZInterfaceElement::CalcStiff : not enough storage for local stifness"
-      " matrix \n";
-    Print(cout);
-    if(ek.fMat)   delete ek.fMat;
-    if(ek.fBlock) delete ek.fBlock;
-    if(ef.fMat)   delete ef.fMat;
-    if(ef.fBlock) delete ef.fBlock;
-    ek.fMat=  NULL;
-    ek.fBlock = NULL;
-    ef.fMat = NULL;
-    ef.fBlock = NULL;
-    return;
+    ek.fBlock.Resequence();
+    ef.fBlock.Resequence();
   }
   ek.fConnect.Resize(ncon);
   ef.fConnect.Resize(ncon);
@@ -477,7 +460,7 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
        faceSize = 2. * this->Reference()->ElementRadius();
     }
 
-    mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,*ek.fMat,*ef.fMat, left->Degree(), right->Degree(), faceSize);
+    mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,ek.fMat,ef.fMat, left->Degree(), right->Degree(), faceSize);
 
   }
 delete intrule;

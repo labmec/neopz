@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.25 2004-03-08 13:03:13 cantao Exp $
+// $Id: pzintel.cpp,v 1.26 2004-04-05 14:09:35 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1342,40 +1342,18 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
   TPZBlock &block = Mesh()->Block();
   TPZFMatrix &MeshSol = Mesh()->Solution();
   // clean ek and ef
-  if(!ek.fMat) ek.fMat = new TPZFMatrix();
-  if(!ef.fMat) ef.fMat = new TPZFMatrix();
-  if(!ek.fBlock) ek.fBlock = new TPZBlock(ek.fMat);
-  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
 
   int numeq = nshape*numdof;
-  ek.fMat->Redim(numeq,numeq);
-  ef.fMat->Redim(numeq,1);
-  ek.fBlock->SetNBlocks(ncon);
-  ef.fBlock->SetNBlocks(ncon);
-  TPZVec<REAL> sol(numdof,0.);
+  ek.fMat.Redim(numeq,numeq);
+  ef.fMat.Redim(numeq,1);
+  ek.fBlock.SetNBlocks(ncon);
+  ef.fBlock.SetNBlocks(ncon);
+  TPZManVector<REAL> sol(numdof,0.);
   for (i = 0; i < ncon ; i++)	{
-    ek.fBlock->Set(i,NConnectShapeF(i)*numdof);
-    ef.fBlock->Set(i,NConnectShapeF(i)*numdof);
+    ek.fBlock.Set(i,NConnectShapeF(i)*numdof);
+    ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
   }
 
-  int printing = 0;
-
-  if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
-    if (printing){
-      cout << "TPZInterpolatedElement.calc_stiff : not enough storage for local stifness"
-	   << " matrix \n";
-      Print(cout);
-    }
-    if(ek.fMat)   delete ek.fMat;
-    if(ek.fBlock) delete ek.fBlock;
-    if(ef.fMat)   delete ef.fMat;
-    if(ef.fBlock) delete ef.fBlock;
-    ek.fMat=  NULL;
-    ek.fBlock = NULL;
-    ef.fMat = NULL;
-    ef.fBlock = NULL;
-    return;
-  }
   ek.fConnect.Resize(ncon);
   ef.fConnect.Resize(ncon);
 
@@ -1463,7 +1441,7 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
       cout << "\nCalcStiff sol\n" << sol;
       cout << "\nCalcStiff dsol\n" << dsol;
     }
-    fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,*ek.fMat,*ef.fMat);
+    fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ek.fMat,ef.fMat);
 //    ek.Print(*this->fMesh,cout);
 //    ef.Print(*this->fMesh,cout);
 
@@ -1486,31 +1464,12 @@ void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix 
   TPZBlock &block = Mesh()->Block();
   TPZIntPoints &intrule = GetIntegrationRule();
 
-  if(!ek.fMat) ek.fMat = new TPZFMatrix();
-  if(!ek.fBlock) ek.fBlock = new TPZBlock(ek.fMat);
-  if(!ef.fMat) ef.fMat = new TPZFMatrix();
-  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
-
   int numeq = nshape;
-  ek.fMat->Resize(numeq,numeq);
-  ek.fBlock->SetNBlocks(ncon);
-  ef.fMat->Resize(numeq,num_flux);
-  ef.fBlock->SetNBlocks(ncon);
+  ek.fMat.Resize(numeq,numeq);
+  ek.fBlock.SetNBlocks(ncon);
+  ef.fMat.Resize(numeq,num_flux);
+  ef.fBlock.SetNBlocks(ncon);
 
-  if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
-    PZError << "TPZInterpolatedElement.projectflux : not enough storage for local stifne"
-      " matrix \n";
-    Print(cout);
-    if(ek.fMat)   delete ek.fMat;
-    if(ek.fBlock) delete ek.fBlock;
-    if(ef.fMat)   delete ef.fMat;
-    if(ef.fBlock) delete ef.fBlock;
-    ek.fMat=  NULL;
-    ek.fBlock = NULL;
-    ef.fMat = NULL;
-    ef.fBlock = NULL;
-    return;
-  }
 
   for(int i=0; i<ncon; ++i){
     (ef.fConnect)[i] = ConnectIndex(i);
@@ -1583,10 +1542,10 @@ void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix 
     fMaterial->Flux(x,sol,dsol,axes,flux);
     for(in=0; in<nshape; in++){
       for(int ifl=0; ifl<num_flux; ifl++){
-	(*ef.fMat)(in,ifl) += flux[ifl]*phi(in,0)*weight;
+	(ef.fMat)(in,ifl) += flux[ifl]*phi(in,0)*weight;
       }
       for(int jn = 0; jn<nshape; jn++){
-	(*ek.fMat)(in,jn) += phi(in,0)*phi(jn,0)*weight;
+	(ek.fMat)(in,jn) += phi(in,0)*phi(jn,0)*weight;
       }
     }
   }
@@ -1856,11 +1815,11 @@ void TPZInterpolatedElement::EvaluateError(
   TPZIntPoints &intrule = GetIntegrationRule();
   int dim = Dimension();
 
-  TPZManVector<int> prevorder(dim),
+  TPZManVector<int,3> prevorder(dim),
     order(dim);
   intrule.GetOrder(prevorder);
 
-  TPZManVector<int> interpolation(0);
+  TPZManVector<int,3> interpolation(0);
   GetInterpolationOrder(interpolation);
 
   // compute the interpolation order of the shapefunctions squared
@@ -1979,47 +1938,35 @@ void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
   TPZBlock &block = Mesh()->Block();
   TPZFMatrix &MeshSol = Mesh()->Solution();
   // clean ek and ef
-  if(!ef.fMat) ef.fMat = new TPZFMatrix();
-  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
 
   int numeq = nshape*numdof;
-  ef.fMat->Redim(numeq,1);
-  ef.fBlock->SetNBlocks(ncon);
-  TPZVec<REAL> sol(numdof,0.);
+  ef.fMat.Redim(numeq,1);
+  ef.fBlock.SetNBlocks(ncon);
+  TPZManVector<REAL,6> sol(numdof,0.);
   for (i = 0; i < ncon ; i++)	{
-    ef.fBlock->Set(i,NConnectShapeF(i)*numdof);
+    ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
   }
 
-  if( !ef.fMat || !ef.fBlock){
-    cout << "TPZCompEl1d.calc_stiff : not enough storage for local stifness"
-      " matrix \n";
-    Print(cout);
-    if(ef.fMat)   delete ef.fMat;
-    if(ef.fBlock) delete ef.fBlock;
-    ef.fMat = NULL;
-    ef.fBlock = NULL;
-    return;
-  }
   ef.fConnect.Resize(ncon);
 
   for(i=0; i<ncon; ++i){
     (ef.fConnect)[i] = ConnectIndex(i);
   }
+
+
   //suficiente para ordem 5 do cubo
-  REAL phistore[220],dphistore[660],dphixstore[660];
-  TPZFMatrix phi(nshape,1,phistore,220);
-  TPZFMatrix dphi(dim,nshape,dphistore,660),dphix(dim,nshape,dphixstore,660);
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
+  TPZFNMatrix<200> phi(nshape,1);
+  TPZFNMatrix<600> dphi(dim,nshape),dphix(dim,nshape);
+  TPZFNMatrix<9> axes(3,3,0.);
+  TPZFNMatrix<9> jacobian(dim,dim);
+  TPZFNMatrix<9> jacinv(dim,dim);
   REAL detjac;
-  TPZVec<REAL> x(3,0.);
-  TPZVec<REAL> intpoint(dim,0.);
+  TPZManVector<REAL,3> x(3);
+  TPZManVector<REAL,3> intpoint(dim);
   REAL weight = 0.;
 
   REAL dsolstore[90];
-  TPZFMatrix dsol(dim,numdof,dsolstore,90);
-
+  TPZFNMatrix<20> dsol(dim,numdof);
 
   TPZIntPoints &intrule = GetIntegrationRule();
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
@@ -2038,7 +1985,8 @@ void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
     case 0:
       break;
     case 1:
-      dphix = dphi*(1./detjac);
+      dphix = dphi;
+      dphix *= (1./detjac);
       break;
     case 2:
       for(ieq = 0; ieq < nshape; ieq++) {
@@ -2074,7 +2022,7 @@ void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
       }
     }
 
-    fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,*ef.fMat);
+    fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ef.fMat);
   }
 }
 void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & blockdiag) {
@@ -2288,26 +2236,17 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
   int dim = Dimension();
   int nshape = NShapeF();
   TPZBlock &block = Mesh()->Block();
-  if(!ef.fMat) ef.fMat = new TPZFMatrix();
-  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
 
   int numeq = nshape*numdof;
-  ef.fMat->Redim(numeq,1);
-  ef.fBlock->SetNBlocks(ncon);
+  ef.fMat.Redim(numeq,1);
+  ef.fBlock.SetNBlocks(ncon);
   TPZVec<REAL> sol(numdof,0.);
   for(i=0;i<ncon;i++)
-    ef.fBlock->Set(i,NConnectShapeF(i)*numdof);
+    ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
 
   int in,jn;
   TPZConnect *df;
 
-  if(!ef.fMat || !ef.fBlock){
-    if(ef.fMat)   delete ef.fMat;
-    if(ef.fBlock) delete ef.fBlock;
-    ef.fBlock = NULL;
-    ef.fMat = NULL;
-    return;
-  }
   ef.fConnect.Resize(ncon);
 
   for(i=0; i<ncon; ++i)
@@ -2346,7 +2285,7 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
     }
     for(in=0;in<nshape;in++)
       for(l=0;l<numdof;l++)
-        (*ef.fMat)(in*numdof+l,0) += weight*phi(in,0)*sol[l];
+        (ef.fMat)(in*numdof+l,0) += weight*phi(in,0)*sol[l];
   }
 }
 
@@ -2391,36 +2330,18 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
   TPZBlock &block = Mesh()->Block();
   TPZFMatrix &MeshSol = Mesh()->Solution();
   // clean ek and ef
-  if(!ek.fMat) ek.fMat = new TPZFMatrix();
-  if(!ef.fMat) ef.fMat = new TPZFMatrix();
-  if(!ek.fBlock) ek.fBlock = new TPZBlock(ek.fMat);
-  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
 
   int numeq = nshape*numdof;
-  ek.fMat->Redim(numeq,numeq);
-  ef.fMat->Redim(numeq,1);
-  ek.fBlock->SetNBlocks(ncon);
-  ef.fBlock->SetNBlocks(ncon);
+  ek.fMat.Redim(numeq,numeq);
+  ef.fMat.Redim(numeq,1);
+  ek.fBlock.SetNBlocks(ncon);
+  ef.fBlock.SetNBlocks(ncon);
 
   for (i = 0; i < ncon ; i++)	{
-    ek.fBlock->Set(i,NConnectShapeF(i)*numdof);
-    ef.fBlock->Set(i,NConnectShapeF(i)*numdof);
+    ek.fBlock.Set(i,NConnectShapeF(i)*numdof);
+    ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
   }
 
-  if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
-    cout << "TPZInterpolatedElement.calc_stiff : not enough storage for local stifness"
-      " matrix \n";
-    Print(cout);
-    if(ek.fMat)   delete ek.fMat;
-    if(ek.fBlock) delete ek.fBlock;
-    if(ef.fMat)   delete ef.fMat;
-    if(ef.fBlock) delete ef.fBlock;
-    ek.fMat=  NULL;
-    ek.fBlock = NULL;
-    ef.fMat = NULL;
-    ef.fBlock = NULL;
-    return;
-  }
   ek.fConnect.Resize(ncon);
   ef.fConnect.Resize(ncon);
 
@@ -2523,7 +2444,7 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
     fMaterial->ContributeEnergy(x,sol,dsol,U,weight);
   }
 
-  FADToMatrix(U, *ek.fMat, *ef.fMat);
+  FADToMatrix(U, ek.fMat, ef.fMat);
 }
 
 void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef)

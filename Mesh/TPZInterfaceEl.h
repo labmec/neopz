@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.22 2004-04-02 15:56:37 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.23 2004-04-05 14:09:35 phil Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -34,7 +34,17 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * Normal to the face element
    */
-  TPZVec<REAL> fNormal;
+  TPZManVector<REAL,3> fNormal;
+
+  /**
+   * Keep track of the connects of the element
+   */
+    TPZConnect *fConnectL, *fConnectR;
+
+  /**
+   * Keep track of the connect indexes
+   */
+  int fConnectIndexL, fConnectIndexR;
 
   /**
    * Geometric element to which this element refers

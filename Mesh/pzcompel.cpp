@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.11 2003-12-01 14:51:53 tiago Exp $
+//$Id: pzcompel.cpp,v 1.12 2004-04-05 14:09:35 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -44,7 +44,7 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal &
     ApplyConstraints(ek,ef);
     int numblock = ek.fConstrConnect.NElements();
     TPZVec<int> blocksize(numblock);
-    for(b=0; b<numblock; b++) blocksize[b] = ek.fConstrBlock->Size(b);
+    for(b=0; b<numblock; b++) blocksize[b] = ek.fConstrBlock.Size(b);
     blockdiag.Initialize(blocksize);
     connectlist = ek.fConstrConnect;
     for(b=0; b<numblock; b++) {
@@ -53,10 +53,10 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal &
         if(Mesh()->ConnectVec()[conind].HasDependency()) continue;
         TPZFMatrix ekbl(blsize,blsize);
         int r,c;
-    	TPZBlock *mbl = ek.fConstrBlock;
+    	TPZBlock &mbl = ek.fConstrBlock;
         for(r=0; r<blsize; r++) {
             for(c=0; c<blsize; c++) {
-                ekbl(r,c) = (*mbl)(b,b,r,c);
+                ekbl(r,c) = (mbl)(b,b,r,c);
             }
         }
         blockdiag.AddBlock(b,ekbl);
@@ -64,17 +64,17 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal &
   } else {
     int numblock = ek.fConnect.NElements();
     TPZVec<int> blocksize(numblock);
-    for(b=0; b<numblock; b++) blocksize[b] = ek.fBlock->Size(b);
+    for(b=0; b<numblock; b++) blocksize[b] = ek.fBlock.Size(b);
     blockdiag.Initialize(blocksize);
     connectlist = ek.fConnect;
     for(b=0; b<numblock; b++) {
         int blsize = blocksize[b];
         TPZFMatrix ekbl(blsize,blsize);
         int r,c;
-	    TPZBlock *mbl = ek.fBlock;
+	    TPZBlock &mbl = ek.fBlock;
         for(r=0; r<blsize; r++) {
             for(c=0; c<blsize; c++) {
-                ekbl(r,c) = (*mbl)(b,b,r,c);
+                ekbl(r,c) = (mbl)(b,b,r,c);
             }
         }
         blockdiag.AddBlock(b,ekbl);
@@ -197,6 +197,7 @@ TPZCompMesh *TPZCompEl::Mesh() {
 }
 
 TPZConnect &TPZCompEl::Connect(int i) {
+#ifndef NODEBUG
   if(fMesh) {
     int connectindex = ConnectIndex(i);
     if(connectindex >= 0) {
@@ -210,6 +211,9 @@ TPZConnect &TPZCompEl::Connect(int i) {
   }
   static TPZConnect dummy;
   return dummy;
+#else
+  return fMesh->ConnectVec()[ConnectIndex(i)];
+#endif
 }
 
 
@@ -326,8 +330,7 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat
   int numstate = mat->NStateVariables();
 
   // initialize the block structure
-  if(!ekmat.fConstrBlock) ekmat.fConstrBlock = new TPZBlock(0,totalnodes);
-  else ekmat.fConstrBlock->SetNBlocks(totalnodes);
+  ekmat.fConstrBlock.SetNBlocks(totalnodes);
 
   // toteq contains the total number of equations of the constrained matrix
   int toteq = 0;
@@ -335,20 +338,17 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat
     int dfnindex = ekmat.fConstrConnect[in];
     TPZConnect &dfn = Mesh()->ConnectVec()[dfnindex];
     int ndf = dfn.NDof(*Mesh());
-    ekmat.fConstrBlock->Set(in,ndf);
+    ekmat.fConstrBlock.Set(in,ndf);
     toteq += ndf;
   }
 
-  // initialize the constrained matrices
-  if(!ekmat.fConstrMat) ekmat.fConstrMat = new TPZFMatrix;
-  if(!efmat.fConstrMat) efmat.fConstrMat = new TPZFMatrix;
 
-  ekmat.fConstrBlock->Resequence();
-  ekmat.fConstrBlock->SetMatrix(ekmat.fConstrMat);
+  ekmat.fConstrBlock.Resequence();
+  ekmat.fConstrBlock.SetMatrix(&ekmat.fConstrMat);
 
-  int nrhs = efmat.fMat->Cols();
-  ekmat.fConstrMat->Redim(toteq,toteq);
-  efmat.fConstrMat->Redim(toteq,nrhs);
+  int nrhs = efmat.fMat.Cols();
+  ekmat.fConstrMat.Redim(toteq,toteq);
+  efmat.fConstrMat.Redim(toteq,nrhs);
 
   // copy the original matrix to the constrained matrix
   int numnod = ekmat.fConnect.NElements();
@@ -359,17 +359,17 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat
     while(irnode < totalnodes && ekmat.fConstrConnect[irnode] != idfn) irnode++;
 
     // first and last rows in the original matrix
-    int ifirst = ekmat.fBlock->Position(in);
-    int ilast = ifirst+ekmat.fBlock->Size(in);
+    int ifirst = ekmat.fBlock.Position(in);
+    int ilast = ifirst+ekmat.fBlock.Size(in);
 
     // first and last rows in the desination (reception) matrix
-    int irfirst = ekmat.fConstrBlock->Position(irnode);
+    int irfirst = ekmat.fConstrBlock.Position(irnode);
     //	   int irlast = irfirst+ekmat.fConstrBlock->Size(irnode);
 
     int i,ir,ieq;
     for(i=ifirst,ir=irfirst;i<ilast;i++,ir++) {
       for(ieq=0; ieq<nrhs; ieq++) {
-	(*efmat.fConstrMat)(ir,ieq) = (*efmat.fMat)(i,ieq);
+	(efmat.fConstrMat)(ir,ieq) = (efmat.fMat)(i,ieq);
       }
     }
     int jn;
@@ -382,15 +382,15 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat
 	cout << "TPZCompEl::ApplyConstraints node not found in node list\n";
       }
       // first and last columns in the original matrix
-      int jfirst = ekmat.fBlock->Position(jn);
-      int jlast = jfirst+ekmat.fBlock->Size(jn);
+      int jfirst = ekmat.fBlock.Position(jn);
+      int jlast = jfirst+ekmat.fBlock.Size(jn);
       // first and last columns in the desination (reception) matrix
-      int jrfirst = ekmat.fConstrBlock->Position(jrnode);
+      int jrfirst = ekmat.fConstrBlock.Position(jrnode);
       //			int jrlast = irfirst+ekmat.fConstrBlock->Size(jrnode);
       int j,jr;
       for(i=ifirst,ir=irfirst;i<ilast; i++,ir++) {
 	for(j=jfirst,jr=jrfirst;j<jlast; j++,jr++) {
-	  (*ekmat.fConstrMat)(ir,jr) = (*ekmat.fMat)(i,j);
+	  (ekmat.fConstrMat)(ir,jr) = (ekmat.fMat)(i,j);
 	}
       }
     }
@@ -409,8 +409,8 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat
       // current order are processed
       numnodes_processed++;
 
-      int inpos = ekmat.fConstrBlock->Position(in);
-      int insize = ekmat.fConstrBlock->Size(in);
+      int inpos = ekmat.fConstrBlock.Position(in);
+      int insize = ekmat.fConstrBlock.Size(in);
       // inpos : position of the dependent equation
       // insize : number of equations processed
 
@@ -425,8 +425,8 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat
 	  cout << "TPZCompEl::ApplyConstraints node not found in node list\n";
 	}
 
-	int deppos = ekmat.fConstrBlock->Position(depindex);
-	int depsize = ekmat.fConstrBlock->Size(depindex);
+	int deppos = ekmat.fConstrBlock.Position(depindex);
+	int depsize = ekmat.fConstrBlock.Size(depindex);
 				// deppos : position of the receiving equation
 				// depsize : number of receiving equations
 
@@ -441,10 +441,10 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat
 	  for(receive=deppos; receive<deppos+depsize; receive += numstate) {
 	    coef = dep->fDepMatrix((send-inpos)/numstate,(receive-deppos)/numstate);
 	    for(ieq=0; ieq<toteq; ieq++) for(idf=0; idf<numstate; idf++)  {
-	      (*ekmat.fConstrMat)(receive+idf,ieq) += coef*(*ekmat.fConstrMat)(send+idf,ieq);
+	      (ekmat.fConstrMat)(receive+idf,ieq) += coef*(ekmat.fConstrMat)(send+idf,ieq);
 	    }
 	    for(ieq=0; ieq<nrhs; ieq++) for(idf=0; idf<numstate; idf++) {
-	      (*efmat.fConstrMat)(receive+idf,ieq) += coef*(*efmat.fConstrMat)(send+idf,ieq);
+	      (efmat.fConstrMat)(receive+idf,ieq) += coef*(efmat.fConstrMat)(send+idf,ieq);
 	    }
 	  }
 	}
@@ -453,7 +453,7 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat
 	  for(receive=deppos; receive<deppos+depsize; receive += numstate) {
 	    coef = dep->fDepMatrix((send-inpos)/numstate,(receive-deppos)/numstate);
 	    for(ieq=0; ieq<toteq; ieq++) for(idf=0; idf<numstate; idf++) {
-	      (*ekmat.fConstrMat)(ieq,receive+idf) += coef*(*ekmat.fConstrMat)(ieq,send+idf);
+	      (ekmat.fConstrMat)(ieq,receive+idf) += coef*(ekmat.fConstrMat)(ieq,send+idf);
 	    }
 	  }
 	}
@@ -491,8 +491,7 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &efmat) {
   int numstate = mat->NStateVariables();
 
   // initialize the block structure
-  if(!efmat.fConstrBlock) efmat.fConstrBlock = new TPZBlock(0,totalnodes);
-  else efmat.fConstrBlock->SetNBlocks(totalnodes);
+  efmat.fConstrBlock.SetNBlocks(totalnodes);
 
   // toteq contains the total number of equations of the constrained matrix
   int toteq = 0;
@@ -500,18 +499,17 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &efmat) {
     int dfnindex = efmat.fConstrConnect[in];
     TPZConnect &dfn = Mesh()->ConnectVec()[dfnindex];
     int ndf = dfn.NDof(*Mesh());
-    efmat.fConstrBlock->Set(in,ndf);
+    efmat.fConstrBlock.Set(in,ndf);
     toteq += ndf;
   }
 
   // initialize the constrained matrices
-  if(!efmat.fConstrMat) efmat.fConstrMat = new TPZFMatrix;
 
-  efmat.fConstrBlock->Resequence();
-  efmat.fConstrBlock->SetMatrix(efmat.fConstrMat);
+  efmat.fConstrBlock.Resequence();
+  efmat.fConstrBlock.SetMatrix(&efmat.fConstrMat);
 
-  int nrhs = efmat.fMat->Cols();
-  efmat.fConstrMat->Redim(toteq,nrhs);
+  int nrhs = efmat.fMat.Cols();
+  efmat.fConstrMat.Redim(toteq,nrhs);
 
   // copy the original matrix to the constrained matrix
   int numnod = efmat.fConnect.NElements();
@@ -522,17 +520,17 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &efmat) {
     while(irnode < totalnodes && efmat.fConstrConnect[irnode] != idfn) irnode++;
 
     // first and last rows in the original matrix
-    int ifirst = efmat.fBlock->Position(in);
-    int ilast = ifirst+efmat.fBlock->Size(in);
+    int ifirst = efmat.fBlock.Position(in);
+    int ilast = ifirst+efmat.fBlock.Size(in);
 
     // first and last rows in the desination (reception) matrix
-    int irfirst = efmat.fConstrBlock->Position(irnode);
+    int irfirst = efmat.fConstrBlock.Position(irnode);
     //	   int irlast = irfirst+ekmat.fConstrBlock->Size(irnode);
 
     int i,ir,ieq;
     for(i=ifirst,ir=irfirst;i<ilast;i++,ir++) {
       for(ieq=0; ieq<nrhs; ieq++) {
-	(*efmat.fConstrMat)(ir,ieq) = (*efmat.fMat)(i,ieq);
+	(efmat.fConstrMat)(ir,ieq) = (efmat.fMat)(i,ieq);
       }
     }
     int jn;
@@ -560,8 +558,8 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &efmat) {
       // current order are processed
       numnodes_processed++;
 
-      int inpos = efmat.fConstrBlock->Position(in);
-      int insize = efmat.fConstrBlock->Size(in);
+      int inpos = efmat.fConstrBlock.Position(in);
+      int insize = efmat.fConstrBlock.Size(in);
       // inpos : position of the dependent equation
       // insize : number of equations processed
 
@@ -576,8 +574,8 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &efmat) {
 	  cout << "TPZCompEl::ApplyConstraints node not found in node list\n";
 	}
 
-	int deppos = efmat.fConstrBlock->Position(depindex);
-	int depsize = efmat.fConstrBlock->Size(depindex);
+	int deppos = efmat.fConstrBlock.Position(depindex);
+	int depsize = efmat.fConstrBlock.Size(depindex);
 				// deppos : position of the receiving equation
 				// depsize : number of receiving equations
 
@@ -592,7 +590,7 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &efmat) {
 	  for(receive=deppos; receive<deppos+depsize; receive += numstate) {
 	    coef = dep->fDepMatrix((send-inpos)/numstate,(receive-deppos)/numstate);
 	    for(ieq=0; ieq<nrhs; ieq++) for(idf=0; idf<numstate; idf++) {
-	      (*efmat.fConstrMat)(receive+idf,ieq) += coef*(*efmat.fConstrMat)(send+idf,ieq);
+	      (efmat.fConstrMat)(receive+idf,ieq) += coef*(efmat.fConstrMat)(send+idf,ieq);
 	    }
 	  }
 	}

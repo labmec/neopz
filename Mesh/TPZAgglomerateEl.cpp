@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.29 2004-04-03 20:11:06 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.30 2004-04-05 14:10:48 phil Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -187,33 +187,14 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
   TPZFMatrix &MeshSol = Mesh()->Solution();
   int numeq = nshape * nstate;
 
-  // clean ek and ef
-  if(!ek.fMat) ek.fMat = new TPZFMatrix();
-  if(!ef.fMat) ef.fMat = new TPZFMatrix();
-  if(!ek.fBlock) ek.fBlock = new TPZBlock(ek.fMat);
-  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
 
-  ek.fMat->Redim(numeq,numeq);
-  ef.fMat->Redim(numeq,1);
+  ek.fMat.Redim(numeq,numeq);
+  ef.fMat.Redim(numeq,1);
   if(ncon){//pode ser no máximo ncon = 1
-    ek.fBlock->SetNBlocks(ncon);
-    ef.fBlock->SetNBlocks(ncon); 
-    ek.fBlock->Set(0,NShapeF()*nstate);
-    ef.fBlock->Set(0,NShapeF()*nstate);
-  }
-  if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
-    cout << "TPZInterpolatedElement.calc_stiff : not enough storage for local stifness"
-      " matrix \n";
-    Print(cout);
-    if(ek.fMat)   delete ek.fMat;
-    if(ek.fBlock) delete ek.fBlock;
-    if(ef.fMat)   delete ef.fMat;
-    if(ef.fBlock) delete ef.fBlock;
-    ek.fMat=  NULL;
-    ek.fBlock = NULL;
-    ef.fMat = NULL;
-    ef.fBlock = NULL;
-    return;
+    ek.fBlock.SetNBlocks(ncon);
+    ef.fBlock.SetNBlocks(ncon); 
+    ek.fBlock.Set(0,NShapeF()*nstate);
+    ef.fBlock.Set(0,NShapeF()*nstate);
   }
   ek.fConnect.Resize(ncon);
   ef.fConnect.Resize(ncon);
@@ -256,7 +237,7 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
         iv++;
       }
     }
-    Material()->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,*ek.fMat,*ef.fMat);
+    Material()->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ek.fMat,ef.fMat);
   }
 }
 

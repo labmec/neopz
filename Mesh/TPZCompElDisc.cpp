@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.49 2004-04-02 17:35:25 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.50 2004-04-05 14:09:35 phil Exp $
 
 // -*- c++ -*- 
 
@@ -381,32 +381,14 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   int numeq = nshape * nstate;
 
   // clean ek and ef
-  if(!ek.fMat) ek.fMat = new TPZFMatrix();
-  if(!ef.fMat) ef.fMat = new TPZFMatrix();
-  if(!ek.fBlock) ek.fBlock = new TPZBlock(ek.fMat);
-  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
 
-  ek.fMat->Redim(numeq,numeq);
-  ef.fMat->Redim(numeq,1);
+  ek.fMat.Redim(numeq,numeq);
+  ef.fMat.Redim(numeq,1);
   if(ncon){//pode serr no máximo ncon = 1
-    ek.fBlock->SetNBlocks(ncon);
-    ef.fBlock->SetNBlocks(ncon); 
-    ek.fBlock->Set(0,NShapeF()*nstate);
-    ef.fBlock->Set(0,NShapeF()*nstate);
-  }
-  if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
-    cout << "TPZInterpolatedElement.calc_stiff : not enough storage for local stifness"
-      " matrix \n";
-    Print(cout);
-    if(ek.fMat)   delete ek.fMat;
-    if(ek.fBlock) delete ek.fBlock;
-    if(ef.fMat)   delete ef.fMat;
-    if(ef.fBlock) delete ef.fBlock;
-    ek.fMat=  NULL;
-    ek.fBlock = NULL;
-    ef.fMat = NULL;
-    ef.fBlock = NULL;
-    return;
+    ek.fBlock.SetNBlocks(ncon);
+    ef.fBlock.SetNBlocks(ncon); 
+    ek.fBlock.Set(0,NShapeF()*nstate);
+    ef.fBlock.Set(0,NShapeF()*nstate);
   }
   ek.fConnect.Resize(ncon);
   ef.fConnect.Resize(ncon);
@@ -452,7 +434,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	iv++;
       }
     }
-    fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,*ek.fMat,*ef.fMat);
+    fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ek.fMat,ef.fMat);
   }
 }
 
@@ -471,23 +453,11 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
   int numeq = nshape * nstate;
 
   // clean ef
-  if(!ef.fMat) ef.fMat = new TPZFMatrix();
-  if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
 
-  ef.fMat->Redim(numeq,1);
+  ef.fMat.Redim(numeq,1);
   if(ncon){//pode serr no máximo ncon = 1
-    ef.fBlock->SetNBlocks(ncon); 
-    ef.fBlock->Set(0,NShapeF()*nstate);
-  }
-  if( !ef.fMat || !ef.fBlock){
-    cout << "TPZInterpolatedElement.calc_stiff : not enough storage for local stifness"
-      " matrix \n";
-    Print(cout);
-    if(ef.fMat)   delete ef.fMat;
-    if(ef.fBlock) delete ef.fBlock;
-    ef.fMat = NULL;
-    ef.fBlock = NULL;
-    return;
+    ef.fBlock.SetNBlocks(ncon); 
+    ef.fBlock.Set(0,NShapeF()*nstate);
   }
   ef.fConnect.Resize(ncon);
   for(int i=0;i<ncon;i++){
@@ -530,7 +500,7 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
 	iv++;
       }
     }
-    fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,*ef.fMat);
+    fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ef.fMat);
   }
 }
 

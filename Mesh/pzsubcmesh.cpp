@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.6 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzsubcmesh.cpp,v 1.7 2004-04-05 14:09:35 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -591,10 +591,6 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	TPZBlock &block = Mesh()->Block();
 	//	TPZFMatrix &MeshSol = Mesh()->Solution();
 	// clean ek and ef
-	if(!ek.fMat) ek.fMat = new TPZFMatrix();
-	if(!ef.fMat) ef.fMat = new TPZFMatrix();
-	if(!ek.fBlock) ek.fBlock = new TPZBlock(ek.fMat);
-	if(!ef.fBlock) ef.fBlock = new TPZBlock(ef.fMat);
 
 	int nmeshnodes = fConnectVec.NElements();
 	int numeq=0;
@@ -611,32 +607,17 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	numeq = (TPZCompMesh::NEquations()) - numeq;
 //??
 
-	ek.fMat->Redim(numeq,numeq);
-	ef.fMat->Redim(numeq,1);
+	ek.fMat.Redim(numeq,numeq);
+	ef.fMat.Redim(numeq,1);
 
 	int nelemnodes = NConnects();
 	
-	ek.fBlock->SetNBlocks(nelemnodes);
-	ef.fBlock->SetNBlocks(nelemnodes);
+	ek.fBlock.SetNBlocks(nelemnodes);
+	ef.fBlock.SetNBlocks(nelemnodes);
 	for (i = 0; i < nelemnodes ; i++)	{
 		int nodeindex = ConnectIndex(i);
-  		ek.fBlock->Set(i,block.Size(nodeindex));
-  		ef.fBlock->Set(i,block.Size(nodeindex));
-	  }
-
-	  if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
-		cout << "TPZSubCompMesh.Calc_stiff : not enough storage for local stifness"
-		  " matrix \n";
-		TPZCompMesh::Print(cout);
-		if(ek.fMat)   delete ek.fMat;
-		if(ek.fBlock) delete ek.fBlock;
-		if(ef.fMat)   delete ef.fMat;
-		if(ef.fBlock) delete ef.fBlock;
-		ek.fMat=  NULL;
-		ek.fBlock = NULL;
-		ef.fMat = NULL;
-		ef.fBlock = NULL;
-		return;
+  		ek.fBlock.Set(i,block.Size(nodeindex));
+  		ef.fBlock.Set(i,block.Size(nodeindex));
 	  }
 	  ek.fConnect.Resize(nelemnodes);
 	  ef.fConnect.Resize(nelemnodes);
@@ -646,11 +627,11 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		(ek.fConnect)[i] = ConnectIndex(i);
 	  }
 	if (! fAnalysis){
-		Assemble (*ek.fMat,*ef.fMat);
+		Assemble (ek.fMat,ef.fMat);
 	}
 	else{
 		fAnalysis->Run(cout);
-		fAnalysis->CondensedSolution(*ek.fMat,*ef.fMat);
+		fAnalysis->CondensedSolution(ek.fMat,ef.fMat);
 //		ek.fMat->Print("ek reduzido");
 //		cout.flush();
 	}

@@ -376,6 +376,11 @@ TPZGeoElRefLess<TShape,TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,
     }
   }
   TGeo::Jacobian(nodes,coordinate,jac,axes,detjac,jacinv);
+//   if(TGeo::NNodes == 2) {
+//     detjac = 1.;
+//     jacinv(0,0) = 1.;
+//     jac(0,0) = 1.;
+//   }
 }
 
 template<class TShape, class TGeo>
