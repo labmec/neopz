@@ -47,7 +47,7 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
                                  TPZFMatrix &ek,TPZFMatrix &ef) {
 
   int phr = phi.Rows();// phi(in, 0) = phi_in  ,  dphi(i,jn) = dphi_jn/dxi
-  int i,j,nstate = NStateVariables();//3, 4 ou 5
+  int i,j,k,l,p,nstate = NStateVariables();//3, 4 ou 5
   if(fForcingFunction) {
     //na 2a iteração deve-se ter fForcingFunction = 0
     TPZManVector<REAL> res(nstate);
@@ -58,48 +58,81 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   if(Dimension() != dim)
     PZError << "TPZEulerConsLaw::Contribute dimension error, dimension = " << dim << endl;
 
+  //neste passo é calculada (ðFx/ðU,ðFy/ðU,ðFz/ðU) (no construtor)
   TPZDiffusionConsLaw diffusion(sol,fGamma,dim,fArtificialDiffusion);
   TPZVec<REAL> Fx(nstate),Fy(nstate),Fz(nstate);
   Flux(sol,Fx,Fy,Fz);
   TPZVec<REAL> gradphi(3,0.);
-  TPZFMatrix prodpoint(nstate,nstate),divF(nstate,1);
+  TPZFMatrix Tx(nstate,nstate),Ty(nstate,nstate),Tz(nstate,nstate);
+  TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
+  TPZFMatrix DF1(nstate,nstate),DF2(nstate,nstate),DF3(nstate,nstate);
+  diffusion.Tau(Tx,Ty,Tz);
+  Tx.Transpose(&Trx);
+  Ty.Transpose(&Try);
+  Tz.Transpose(&Trz);
+  diffusion.GradientOfTheFlow(DF1,DF2,DF3);
   REAL timestep = TimeStep();
   //REAL delta = diffusion.Delta();
-  REAL delta = diffusion.DeltaOtimo();
+  REAL delta = diffusion.DeltaOtimo(),Lpl,Hkp,Pkl;
+  TPZFMatrix divF(nstate,1),prodpoint(nstate,nstate);
+  TPZVec<REAL> sum1(nstate,0.),sum2(nstate,0.);
 
   for( int in = 0; in < phr; in++ ) {
+    
+    // w * Un
+    for(i=0;i<nstate;i++) sum1[i] = phi(in, 0) * sol[i];
 
-    TPZVec<REAL> sum1(nstate,0.);
-    for(i=0;i<nstate;i++) sum1[i] = phi(in, 0) * sol[i];//fi * Un
-
-    TPZVec<REAL> sum2(nstate,0.);//    Fn * grad fi
+    // grad(w) . F
     for(i=0;i<nstate;i++){
-      if(dim==1) sum2[i] = Fx[i] * dphi(0,in); else
-        if(dim==2) sum2[i] = Fx[i] * dphi(0,in) + Fy[i] * dphi(1,in); else
-          if(dim==3) sum2[i] = Fx[i] * dphi(0,in) + Fy[i] * dphi(1,in) + Fz[i] * dphi(2,in);
+      if(dim>0) sum2[i]  = Fx[i] * dphi(0,in);
+      if(dim>1) sum2[i] += Fy[i] * dphi(1,in);
+      if(dim>2) sum2[i] += Fz[i] * dphi(2,in);
     }
 
-    //EF
+    //EF : w * Un + deltaT * (grad(w) . F)
     for(i=0;i<nstate;i++)
       ef(in * nstate + i, 0) += weight * (sum1[i] + timestep * sum2[i]);
 
     //EK
-    for(i=0;i<dim;i++) gradphi[i] = dphi(i,in);
-    //    diffusion.PointOperator(gradphi,prodpoint);
+    // w * Un+1 + (grad(w) @ T) * div F(Un+1)
+    
     for( int jn = 0; jn < phr; jn++ ) {
-      //primeira parcela: fi * U
-      for(i=0;i<nstate;i++)
-        ek(in * nstate + i, jn * nstate + i) += weight * phi(in,0) * phi(jn,0);
 
-      for(i=0;i<dim;i++) gradphi[i] = dphi(i,jn);
-      diffusion.Divergence(gradphi,divF);
-      //segunda parcela: termo difusivo: dt * d * (grad fi o T) * div F (nstatex1)
-      TPZVec<REAL> diff_term(nstate,0.);
-      for(i=0;i<nstate;i++) for(j=0;j<nstate;j++) diff_term[j] += prodpoint(i,j) * divF(j,0);
-      for(i=0;i<nstate;i++)
-        ek(in * nstate + i, jn * nstate + i) += weight * timestep * delta * diff_term[i];
-    }
-  }
+      if(0){// DIFUSÃO NA CARGA
+	// grad(w)
+	for(i=0;i<dim;i++) gradphi[i] = dphi(i,in);
+	// grad(w) @ T (point product)
+	diffusion.PointOperator(gradphi,prodpoint);
+	for(i=0;i<dim;i++) gradphi[i] = dsol(i,0);
+	diffusion.Divergence(gradphi,divF);
+	TPZVec<REAL> diff_term(nstate,0.);
+	for(i=0;i<nstate;i++) for(j=0;j<nstate;j++) diff_term[i] += prodpoint(i,j) * divF(j,0);
+	for(i=0;i<nstate;i++)
+	  ef(in * nstate + i, 0) += weight * timestep * delta * diff_term[i];
+      }
+      
+      if(1){// DIFUSÃO NA MATRIZ
+	for(k=0;k<nstate;k++){
+	  for(l=0;l<nstate;l++){
+	    
+	    Pkl = 0.0;
+	    for(p=0;p<nstate;p++){
+	      
+	      if(dim>0) {Hkp  = dphi(0,jn)*Trx(k,p); Lpl  = dphi(0,in)*DF1(p,l);}
+	      if(dim>1) {Hkp += dphi(1,jn)*Try(k,p); Lpl += dphi(1,in)*DF2(p,l);}
+	      if(dim>2) {Hkp += dphi(2,jn)*Trz(k,p); Lpl += dphi(2,in)*DF3(p,l);}
+	      Pkl += Hkp * Lpl;
+	      
+	    }
+	    // Dt * delta * (grad(w) o T) * div F (nstatex1)
+	    ek(nstate  * in + k, nstate  * jn + l) += weight * timestep * delta * Pkl;
+	    // w * Un+1 (nstatex1)
+	    if(l == k) ek(nstate * in + k, nstate * jn + l) += weight * phi(in,0) * phi(jn,0);
+	  }
+	}
+      }//if
+    }//jn
+  }//in
 }
 
 void TPZEulerConsLaw::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,

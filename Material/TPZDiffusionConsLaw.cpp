@@ -31,6 +31,13 @@ TPZDiffusionConsLaw::TPZDiffusionConsLaw(TPZVec<REAL> U,REAL gamma,int dim,char 
   JacobFlux(U,fA,fB,fC);
 }
 
+void TPZDiffusionConsLaw::GradientOfTheFlow(TPZFMatrix &DF1,TPZFMatrix &DF2,TPZFMatrix &DF3){
+
+  DF1 = fA;
+  DF2 = fB;
+  DF3 = fC;
+}
+
 REAL TPZDiffusionConsLaw::CFL(int degree){
 
   if(fCFL) return fCFL;
@@ -74,9 +81,10 @@ void TPZDiffusionConsLaw::PointOperator(TPZVec<REAL> &dphi,TPZFMatrix &diff_term
   Ty.Transpose(&Try);
   Tz.Transpose(&Trz);
   int i,j;
+  // ðw/ðx *  (T1)'  + ðw/ðy * (T2)'  + ðw/ðz * (T3)'
   for(i=0;i<nstate;i++){
-    for(j=0;j<nstate;j++){  // Tx¹ * d/dx  + Ty¹ * d/dy + Tz¹ * d/dz
-      diff_term(i,j) = Trx(i,j)*dphi[0] + Try(i,j)*dphi[1] + Trz(i,j)*dphi[2];
+    for(j=0;j<nstate;j++){
+      diff_term(i,j) = dphi[0] * Trx(i,j) + dphi[1] * Try(i,j) + dphi[2] * Trz(i,j);
     }
   }
 }
@@ -91,7 +99,7 @@ void TPZDiffusionConsLaw::Tau(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz){
     LS(Tx,Ty,Tz);
     return;
   }
-  if(!strcmp(fArtificialDiffusion,"SUPG")){
+  if(!strcmp(fArtificialDiffusion,"BORNHAUS")){
     Bornhaus(Tx,Ty,Tz);
     return;
   }

@@ -73,6 +73,8 @@ class TPZDiffusionConsLaw {
 
   //static void SetDelta(REAL delta){TPZDiffusionConsLaw::fDelta = delta;}
 
+  void GradientOfTheFlow(TPZFMatrix &DF1,TPZFMatrix &DF2,TPZFMatrix &DF3);
+
   REAL DeltaOtimo();
 
   REAL Delta();
