@@ -15,6 +15,6 @@ bin_PROGRAMS = main
 
 main_SOURCES = main.cc
 
-main_LDADD =  $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a 
+main_LDADD =  $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 
 ## --| NeoPZ |------------------------------------------------------------------
