@@ -84,7 +84,7 @@ void TPZAgglomerateElement::AccumulateIntegrationRule(int degree, TPZStack<REAL>
   cout << "TPZAgglomerateElement::AccumulateIntegrationRule INCOMPLETE\n\n";
   int nsubs = NIndexes(),i;
   for(i=0; i<nsubs; i++){
-    if(SubElement(i)->Type() == 16){
+    if(SubElement(i)->Type() == 15){
       TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(SubElement(i));
       disc->AccumulateIntegrationRule(degree,point,weight);
     } else {//chamada recursiva
