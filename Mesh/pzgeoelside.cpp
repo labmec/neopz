@@ -167,7 +167,9 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
     {
       TPZStack<TPZGeoEl *> inter1, inter2;
       Intersect<TPZGeoEl *,100>(GeoElSet[0],GeoElSet[2],inter1);
+      if(inter1.NElements()==0) break;
       Intersect<TPZGeoEl *,100>(GeoElSet[1],GeoElSet[3],inter2);
+      if(inter2.NElements()==0) break;
       Intersect<TPZGeoEl *,100>(inter1,inter2,result);
     }
     break;
@@ -178,6 +180,7 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
       for(in=0; in<nsnodes-1; in++) {
 	inter2.Resize(0);
 	Intersect<TPZGeoEl *,100>(inter1,GeoElSet[in+1],inter2);
+	if(inter2.NElements() == 0) break;
 	inter1 = inter2;
       }
       result = inter2;
