@@ -80,8 +80,9 @@ public:
     * is called, but this method is useful only for
     * the reflected shock problem.
     * Prefer to use fDelta = 1.
+    * @param Sol [in] solution
     */
-   REAL Delta(double deltaX);
+   REAL Delta(double deltaX, TPZVec<REAL> & sol);
 
    /**
     * Sets the value for delta
