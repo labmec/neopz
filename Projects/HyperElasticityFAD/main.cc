@@ -1,3 +1,18 @@
+// Obs:
+// O pzintel.cc deste diretorio tem as inclusoes de
+//
+//  TPZVec<int> order(3,1);
+//  intrule.SetOrder(order);
+//
+// depois das linhas de
+//
+//  TPZIntPoints &intrule = GetIntegrationRule();
+//
+// nos metodos calcStiff e CalcEnergy, para validar
+// o codigo para 1 pto de integracao.
+// Fazer o mesmo para demais pontos!!!!!
+
+
 #include "pzvec.h"
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
