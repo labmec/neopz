@@ -1,4 +1,4 @@
-//$Id: pzanalysiserror.cc,v 1.3 2003-12-01 14:49:23 tiago Exp $
+//$Id: pzanalysiserror.cc,v 1.4 2003-12-02 17:09:16 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysiserror.h"
@@ -52,6 +52,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmi
       out << " - Eta Reached        :  " << errors[0]/errors[2] << endl;
 
 #warning Philippe, não entendo nada!!!!! //<!>
+#warning De fato Thiago, voce tem razao
 
       out << " - Number of D.O.F.   :  " << fCompMesh->NEquations() << endl;
       out.flush();	  
