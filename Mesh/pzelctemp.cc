@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cc,v 1.7 2003-11-04 20:03:06 cedric Exp $
+// $Id: pzelctemp.cc,v 1.8 2003-11-05 00:25:37 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -31,7 +31,8 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &ind
     IdentifySideOrder(i);
   }
   
-  //  TPZVec<int> order(2,2*fSideOrder[4]+2);
+  TPZManVector<int,3> order(3,2*TPZCompEl::gOrder);
+  fIntRule.SetOrder(order);
   
 }
 
