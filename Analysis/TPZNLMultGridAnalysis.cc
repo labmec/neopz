@@ -586,8 +586,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   if(1){//TESTE 3
     cout << "\n\nTESTE 3: Project Solution\n\n";
     //ESTE TESTE MOSTRA QUE A SOLUÇÃO É TRANSFERIDA DA 
-    //MALHA FINA PARA A MALHA GROSSA DE FORMA EXATA
-    //PARA QUALQUER GRAU DE INTERPOLAÇÃO 
+    //MALHA FINA PARA A MALHA GROSSA (EXATA PARA GRAU 0)
     neq = fMeshes[2]->NEquations();
     TPZFMatrix finesol(neq,1,1.);
     REAL val0 = 1.,val1 = 0.,val2 = 0.1,val3 = 1.0;//com CFL = 0
