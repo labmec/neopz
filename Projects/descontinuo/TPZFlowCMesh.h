@@ -8,17 +8,17 @@ class TPZGeoMesh;
 #include "pzcmesh.h"
 using namespace std;
 /*******************/
-class TPZFlowCompMesh : public TPZCompMesh {
+class TPZFlowCompMesh1 : public TPZCompMesh {
 
   int fExists;
 
  public:
 
-  //TPZFlowCompMesh();/**empty constructor*/
+  //TPZFlowCompMesh1();/**empty constructor*/
 
-  TPZFlowCompMesh(TPZGeoMesh* gr);
+  TPZFlowCompMesh1(TPZGeoMesh* gr);
   
-  ~TPZFlowCompMesh();
+  ~TPZFlowCompMesh1();
 
   REAL MaxVelocityOfMesh(int nstate,REAL gamma);
 
