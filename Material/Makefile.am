@@ -44,9 +44,10 @@ libpzmaterial_a_SOURCES = eulerdif.cc \
 	TPZFVHybrid.cc \
 	pzartdiff.cc \
 	swelling.cc \
-        pzconslaw.cc \
-        pzeulerconslaw.cc \
+	pzconslaw.cc \
+	pzeulerconslaw.cc \
 	pzartdiff.cc \
-	pzbctension.cc
+	pzbctension.cc \
+	pzbiharmonic.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
