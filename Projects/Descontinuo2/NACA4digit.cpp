@@ -23,7 +23,7 @@
 // creates an one-quadrilateral element mesh
 
 // This file generates a mesh for the NACA airfoils
-double scale = 4.;
+double scale = 5.;
 double entrance = 4. * scale,
              exitlength = 4. * scale,
 	     cord = 5.,
@@ -195,7 +195,7 @@ qn = pow(2., 1./(double)n);
  cout << "yl" << yl(6.05, 1224, 7) << endl;
 
 */
- n = 5 * m / 9 * (int) sqrt(scale);
+ n = 5 * m / 9 * (int) pow(scale, .6);
  l = m / 3;
  k = n / 2 + 1;
 
@@ -345,7 +345,7 @@ qn = pow(2., 1./(double)n);
       // center point
       index = m; // index of existent point
       indexPt2 = indexPt + n + (2*n+1)*(i-1) ;
-      coord[0] = entrance + cord + exitlength * xpg(qn, i, k);
+      coord[0] = entrance + cord + exitlength * xpg(sqrt(qn), i, k);
       coord[1] = pt[index][1];
       coord[2] = 0.;
       pt[indexPt2] = coord;
@@ -354,7 +354,7 @@ qn = pow(2., 1./(double)n);
          //upper points
          index = j * (2 * m + 1) + m - 1; // index of existent point
          indexPt2 = indexPt + n - j + (2*n+1)*(i-1);
-         coord[0] = entrance + cord + exitlength * xpg(qn, i, k);
+         coord[0] = entrance + cord + exitlength * xpg(sqrt(qn), i, k);
          coord[1] = pt[index][1];
          coord[2] = 0.;
          pt[indexPt2] = coord;
@@ -362,7 +362,7 @@ qn = pow(2., 1./(double)n);
          // bottom points
          index = j * (2 * m + 1) + m; // index of existent point
          indexPt2 = indexPt + n + j + (2*n+1)*(i-1);
-         coord[0] = entrance + cord + exitlength * xpg(qn, i, k);
+         coord[0] = entrance + cord + exitlength * xpg(sqrt(qn), i, k);
          coord[1] = pt[index][1];
          coord[2] = 0.;
          pt[indexPt2] = coord;
