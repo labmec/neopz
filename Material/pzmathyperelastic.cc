@@ -607,9 +607,9 @@ void TPZMatHyperElastic::ContributeEnergy(TPZVec<REAL> &x,
      J -= dsol[ith(0,1)] * dsol[ith(1,0)] * DiagF2;
      J -= DiagF0         * dsol[ith(1,2)] * dsol[ith(2,1)]; //  J = det(F)
 
-     U += (J*J - FADREAL(1.)) * FADREAL(fLambda/4.);
-     U -= log( J ) * FADREAL(fLambda/2.+fNu);
-     U += (TrC - FADREAL(3.)) * FADREAL(fNu/2.);
+     U += (J*J - FADREAL(1.)) * FADREAL(weight*fLambda/4.);
+     U -= log( J ) * FADREAL(weight*(fLambda/2.+fNu));
+     U += (TrC - FADREAL(3.)) * FADREAL(weight*fNu/2.);
 
 }
 
