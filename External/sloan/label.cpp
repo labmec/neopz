@@ -111,17 +111,17 @@ L20:
 
 /*     Use original numbering if it gives a smaller profile */
 
-    if (*oldpro < *newpro)
+/*    if (*oldpro < *newpro)
     {
         i__1 = *n;
         for (i = 1; i <= i__1; ++i)
         {
             nnn[i] = i;
-/* L30: */
+//  L30: 
         }
         *newpro = *oldpro;
     }
-
+*/
 	++adj;
 	++xadj;
 
