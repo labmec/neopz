@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cc,v 1.15 2003-11-25 12:56:07 cesar Exp $
+// $Id: pzintel.cc,v 1.16 2003-11-25 18:13:56 cesar Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1243,7 +1243,7 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
   for(dim=1;dim<nel;dim++) maxorder = (interpolation[dim] > maxorder) ? interpolation[dim] : maxorder;
 
   // Cesar 2003-11-25 -->> To avoid integration warnings...
-  maxorder = (maxorder > intrule.GetMaxOrder() ) ? intrule.GerMaxOrder() : maxorder;
+  maxorder = (maxorder > intrule.GetMaxOrder() ) ? intrule.GetMaxOrder() : maxorder;
 
   for(dim=0; dim<dimension; dim++) {
     order[dim] = maxorder*2;

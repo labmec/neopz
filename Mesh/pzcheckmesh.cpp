@@ -1,4 +1,4 @@
-//$Id: pzcheckmesh.cpp,v 1.3 2003-11-18 12:37:17 cesar Exp $
+//$Id: pzcheckmesh.cpp,v 1.4 2003-11-25 18:13:56 cesar Exp $
 
 // _*_ c++ _*_
 //#include <fstream>
@@ -202,6 +202,35 @@ int TPZCheckMesh::CheckConstraintDimension()
 int TPZCheckMesh::CheckConnectOrderConsistency() {
 
   int nel = fMesh->ElementVec().NElements();
+  int nstate = fMesh->MaterialVec()[0]->NStateVariables();
+  int iel;
+  for(iel = 0; iel<nel; iel++) {
+    TPZCompEl *cel = fMesh->ElementVec()[iel];
+    if(!cel) continue;
+    TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+    if(!intel->CheckElementConsistency()) {
+      intel->Print();
+      return iel;
+    }
+    int nc = intel->NConnects();
+    int ic;
+    for(ic = 0; ic<nc; ic++) {
+      TPZConnect &c = intel->Connect(ic);
+      int nshape = intel->NConnectShapeF(ic);
+      if(c.CheckDependency(nshape, fMesh, nstate) == -1) {
+        cout << "TPZCheckMesh inconsistent dependency" << endl;
+        intel->Print();
+        return iel;
+      }
+    }
+  }
+  return -1;
+}
+
+/*
+int TPZCheckMesh::CheckConnectOrderConsistency() {
+
+  int nel = fMesh->ElementVec().NElements();
   int iel;
   for(iel = 0; iel<nel; iel++) {
     TPZCompEl *cel = fMesh->ElementVec()[iel];
@@ -229,3 +258,4 @@ int TPZCheckMesh::CheckConnectOrderConsistency() {
   }
   return -1;
 }
+*/
