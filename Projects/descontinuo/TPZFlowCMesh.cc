@@ -3,9 +3,22 @@
 #include "pzgeoel.h"
 #include "TPZConservationLaw.h"
 #include "TPZFlowCMesh.h"
+#include "TPZAgglomerateEl.h"
+
+TPZFlowCompMesh::~TPZFlowCompMesh(){
+
+}
+
+void TPZFlowCompMesh::NotCreate(){
+  fExists = 0;
+}
+
+int TPZFlowCompMesh::Exists(){
+  return fExists;
+}
 
 TPZFlowCompMesh::TPZFlowCompMesh(TPZGeoMesh* gr) : TPZCompMesh(gr) {
-
+  fExists = 1;
 }
 
 
@@ -18,16 +31,24 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(int nstate,REAL gamma){
   for(i=0;i<nel;i++){
     TPZCompEl *com = ElementVec()[i];
     if(!com) continue;
+    int type = com->Type();
+    if(type == EInterface) continue;
     TPZMaterial *mat = com->Material();
-    TPZGeoEl *geo = com->Reference();
-    if(!mat || !geo){
-      cout << "TPZFlowCompMesh::MaxVelocityOfMesh ERROR: null material or element\n";
+    if(!mat){
+      cout << "TPZFlowCompMesh::MaxVelocityOfMesh ERROR: null material\n";
       continue;
     }
-    int dim = mat->Dimension();
-    int dimel = geo->Dimension();
-    if(dimel != dim) continue;
-    geo->CenterPoint(geo->NSides()-1,param);//com->Solution(sol,j+100,sol2);
+    if(mat->Id() < 0) continue;//BC element
+    TPZGeoEl *geo = com->Reference();
+    if(type == EAgglomerate || type == EDiscontinuous){
+      //ponto deformado
+      dynamic_cast<TPZCompElDisc *>(com)->InternalPoint(param);
+    } else if(geo){
+      //interpolados: ponto no elemento mestre
+      geo->CenterPoint(geo->NSides()-1,param);//com->Solution(sol,j+100,sol2);
+    } else {
+      cout << "TPZFlowCompMesh::MaxVelocityOfMesh unknown case\n";
+    }
     com->Solution(param,1,density);
     if(density[0] < 0.0){
       cout << "TPZFlowCompMesh::MaxVelocityOfMesh minus density\n";

@@ -10,17 +10,23 @@ using namespace std;
 /*******************/
 class TPZFlowCompMesh : public TPZCompMesh {
 
+  int fExists;
+
  public:
 
   //TPZFlowCompMesh();/**empty constructor*/
 
   TPZFlowCompMesh(TPZGeoMesh* gr);
   
-  ~TPZFlowCompMesh(){};
+  ~TPZFlowCompMesh();
 
   REAL MaxVelocityOfMesh(int nstate,REAL gamma);
 
   void SetDeltaTime(TPZMaterial *mat);
+
+  int Exists();
+
+  void NotCreate();
 };
 
 #endif

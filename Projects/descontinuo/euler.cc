@@ -151,9 +151,11 @@ void SequenceDivide(int fat[100],int numbel);
 void TestShapesDescontinous();
 static clock_t start,end;//,begin,ttot=0;
 void CoutTime(clock_t &start);
-
+//void ResetReference(TPZCompMesh *aggcmesh);
 static TPZGeoMesh *gmesh = new TPZGeoMesh;
-static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh);
+static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh),*aggcmesh = new TPZFlowCompMesh(gmesh);
+//static TPZCompMesh *aggcmesh = new TPZFlowCompMesh(gmesh);
+
 //static TPZVec<REAL> x0(3,0.);
 static int grau = 0;
 static int nivel = 0,tipo;
@@ -181,7 +183,7 @@ int main() {
        << "\t\t\t";
 
   //cin >> tipo;
-  tipo = 7;
+  tipo = 5;
   problem = tipo;
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
   //cin >> grau;
@@ -219,16 +221,16 @@ int main() {
   }  
 
   int numiter,marcha;
-  cout << "\nNumero de iteracoes requerida ? : ";
-  //cin >> numiter;
-  numiter = 100;
+  cout << "\nNumero de iteracoes requerida ? :";
+  cin >> numiter;
+  //numiter = 0;//100;
   cout << "main:: Parametro marcha : \n";
-  //cin >> marcha;
-  marcha = 10;
+  cin >> marcha;
+  //marcha = 10;
   if(1){
     cout << "main:: entre CFL (si nulo sera calculado) -> ";
     //cin >> CFL;
-    CFL = 0.0;
+    CFL = 0.3;
     TPZDiffusionConsLaw::fCFL = CFL;
     cout << "main:: entre delta (si nulo sera calculado) -> ";
     REAL delta;
@@ -251,7 +253,7 @@ int main() {
     if(tipo == 5) nstate = 4;
     if(tipo == 6) nstate = 5;
     if(tipo == 7) nstate = 4;
-    SetDeltaTime(mat,nstate);
+    SetDeltaTime(mat,nstate);//COLOCAR DEPOIS DE CRIADA A MALHA AGLOMERADA
     if(0){
       gmesh->Print(outgm);
       cmesh->Print(outgm);
@@ -274,29 +276,30 @@ int main() {
   cout << "main::Entre nivel da nova malha : ";
   cin >> nivel;
   AgrupaList(accumlist,nivel,numaggl);
-  TPZCompMesh *cmesh2 = TPZCompElDisc::CreateAgglomerateMesh(cmesh,accumlist,numaggl);
-  if(!cmesh2) PZError << "main:: malha computacional não criada\n\n";
+  TPZCompElDisc::CreateAgglomerateMesh(cmesh,*aggcmesh,accumlist,numaggl);
+  if(!aggcmesh || !aggcmesh->ElementVec().NElements())
+    PZError << "main:: malha computacional aglomerada não criada\n\n";
   else {
     outgm << "\n\n\n* * * MALHA AGLOMERADA : COMPUTACIONAL * * *\n\n\n";
-    cmesh2->Print(outgm);
+    aggcmesh->Print(outgm);
+    cmesh = aggcmesh;
+    cout << "\n\nmain:: MUDANDO DE MALHA\n";
+    aggcmesh->InitializeBlock();
   }
   outgm.flush();
-  outgm.close();
-  cout << "\n\nmain:: FIM DO PROGRAMA\n\n";
-  return 0;
   /////////////////////////////////////////////////////////////////////////////////////////////////
   //com matriz não simétrica e ELU 2D e 3D convergen
   if(1){
     TPZIterativeAnalysis an(cmesh,outgm);
     if(1){//Analysis
       cout << "\nmain::Resolve o sistema\n";
-      //TPZSkylineStructMatrix stiff(cmesh);//para formula¢ão LS : matriz simétrica
-      TPZFStructMatrix stiff(cmesh);//não simétrica
+      TPZSkylineStructMatrix stiff(cmesh);//para formula¢ão LS : matriz simétrica
+      //TPZFStructMatrix stiff(cmesh);//não simétrica
       an.SetStructuralMatrix(stiff);
       an.Solution().Zero();
       TPZStepSolver solver;// ECholesky -> simétrica e positiva definida
-      solver.SetDirect(ELU);//    ELU -> matriz não singular
-      //solver.SetDirect(ELDLt);//  ELDLt -> só simétrica
+      //solver.SetDirect(ELU);//    ELU -> matriz não singular
+      solver.SetDirect(ELDLt);//  ELDLt -> só simétrica
       an.SetSolver(solver);
       if(1){
 	REAL tol;
@@ -310,6 +313,8 @@ int main() {
 	resolution = 0;
 	cout << resolution << "\n";
 	an.IterativeProcess(outgm,tol,numiter,mat,marcha,resolution);
+	an.Print("SOLUÇÃO DO ANALYSIS",outgm);
+	outgm.flush();
 	if(0) PostProcess(*gmesh,outgm);
 	if(0){//MALHAS NÃO CONFORMES
 	  Divisao(cmesh);
@@ -2089,5 +2094,47 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
   if(newfat != numaggl) cout << "main::AgrupaList número de pais não confere\n";
 }
 
+// void ResetReference(TPZCompMesh *aggcmesh){
+//   //APLICAR ESTA FUNÇÃO ANTES DE GERAR A MALHA COM O DX
 
+//   //caso o aglomerado tem referência anulam-se as referencias
+//   //dos sub-elementos 'geométricos' aglomerados por ele
+//   //caso contrário deixa-se um único elemento geométrico
+//   //apontando para o aglomerado
+//   //isso forma uma partição da malha atual por elementos computacionais
+
+//   int nel = aggcmesh->NElements(),i;
+//   //não todo index é sub-elemento
+//   for(i=0;i<nel;i++){
+//     TPZCompEl *cel = aggcmesh->ElementVec()[i];
+//     if(!cel) continue;
+//     if(cel->Type() == EInterface) continue;
+//     TPZMaterial *mat = cel->Material();
+//     if(!mat) PZError << "main::ResetReference null material\n";
+//     if(mat->Id() < 0) continue;
+//     TPZGeoEl *gel = cel->Reference();
+//     TPZStack<int> vec;
+//     TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
+//     IndexesDiscSubEls(vec);
+//     int i,size = vec.NElements();
+//     if(!size) PZError << "main::ResetReference error1\n";
+//     TPZCompEl *sub0 = aggcmesh->ElementVec()[vec[0]],sub;
+//     for(i=1;i<size){
+//       sub = aggcmesh->ElementVec()[vec[i]];
+//       TPZGeoEl *ref = sub->REference();
+//       if(!ref) PZError << "main::ResetReference error2\n";
+//       ref->SetReference(NULL);
+//       //o aglomerado não tem geométrico direto associado
+//       //agora existe um único geométrico apontando
+//       //para ele
+//     }
+//     if(gel){
+//       TPZGeoEl *ref0 = sub0->REference();
+//       if(!ref0) PZError << "main::ResetReference error2\n";
+//       ref0->SetReference(NULL);
+//       //o aglomerado tem geométrico direto associado
+//       //e esse aponta para ele
+//     }
+//   }
+// }
 

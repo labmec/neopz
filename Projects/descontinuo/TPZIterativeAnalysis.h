@@ -26,6 +26,10 @@ public:
   void CoutTime(clock_t &start,char *title);
 
   virtual void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat);
+
+  void ResetReference(TPZCompMesh *aggcmesh);
+
+  void SetReference(TPZCompMesh *aggcmesh);
 };
 
 #endif
