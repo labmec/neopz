@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.30 2004-04-05 14:10:48 phil Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.31 2004-04-05 19:31:51 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -970,7 +970,7 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
 
       //if the stored inner radius is bigger than the computed one, the computed one takes its place, because of we are computing the INNER radius.
       TPZAgglomerateElement *LeftAgg = dynamic_cast <TPZAgglomerateElement*> (LeftEl);
-#ifdef DEBUF
+#ifdef DEBUG
       if (!LeftAgg)
 	 PZError << "TPZAgglomerateElemnet::CreateAgglomerateMesh - LeftElemet must be a TPZAgglomerateElement " << endl;
 #endif
@@ -979,7 +979,7 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
       LeftAgg ->SetNInterfaces(LeftEl->NInterfaces() + 1);
 
       TPZAgglomerateElement *RightAgg = dynamic_cast <TPZAgglomerateElement*> (RightEl);
-#ifdef DEBUF
+#ifdef DEBUG
       if (!RightAgg)
 	 PZError << "TPZAgglomerateElemnet::CreateAgglomerateMesh - RightElemet must be a TPZAgglomerateElement " << endl;
 #endif
