@@ -78,34 +78,6 @@ void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const {
   }
 }
 
-/**Null object*/
-TPZGeoElSide::TPZGeoElSide() {
-  fGeoEl = 0;
-  fSide  = -1;
-}
-/**Copy object*/
-TPZGeoElSide::TPZGeoElSide(const TPZGeoElSide &gelside) {
-  fGeoEl = gelside.fGeoEl;
-  fSide  = gelside.fSide;
-if(fSide > 26)
-  cout << "TPZGeoElSide bad side" << endl;
-}
-/**object construct with element gel and fSide side*/
-TPZGeoElSide::TPZGeoElSide(TPZGeoEl *gel,int side) {
-  fGeoEl = gel;
-  fSide  = side;
-if(fSide > 26)
-   cout << "TPZGeoElSide bad parameter side" << endl;
-}
-
-TPZGeoEl * TPZGeoElSide::Element() {
-  return fGeoEl;
-}
-
-int TPZGeoElSide::Side() {
-  return fSide;
-}
-
 TPZGeoElSide TPZGeoElSide::Neighbour() const {
   if (!fGeoEl) return TPZGeoElSide();
   TPZGeoElSide neighbour = fGeoEl->Neighbour(fSide);

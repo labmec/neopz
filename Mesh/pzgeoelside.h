@@ -34,11 +34,11 @@ class TPZGeoElSide {
 	  */
 	 void EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates);
 
-  TPZGeoElSide();
-  TPZGeoElSide(const TPZGeoElSide &gelside);
-  TPZGeoElSide(TPZGeoEl *gel,int side);
-  TPZGeoEl *Element();//return fGeoEl
-  int Side();//return fSide
+  TPZGeoElSide(){ fGeoEl = 0; fSide  = -1;}
+  //TPZGeoElSide(const TPZGeoElSide &gelside);
+  TPZGeoElSide(TPZGeoEl *gel,int side){  fGeoEl = gel; fSide  = side;}
+  TPZGeoEl *Element(){return fGeoEl;}
+  int Side(){return fSide;}
   void SetSide(int side) { fSide = side; }
   int Exists() const {return fGeoEl != 0;}
   TPZGeoElSide Neighbour() const;//return neighbour of the side fSide
