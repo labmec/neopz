@@ -76,10 +76,13 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   TPZFMatrix Tx(nstate,nstate),Ty(nstate,nstate),Tz(nstate,nstate);
   TPZFMatrix DF1(nstate,nstate),DF2(nstate,nstate),DF3(nstate,nstate);
   diffusion.Tau(Tx,Ty,Tz);
-//   TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
-//   Tx.Transpose(&Trx);
-//   Ty.Transpose(&Try);
-//   Tz.Transpose(&Trz);
+  TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
+  int permite = 0;//SEM TRANSPOStA É A TEORIA
+  if(permite){
+    Tx.Transpose(&Trx);
+    Ty.Transpose(&Try);
+    Tz.Transpose(&Trz);
+  }
   diffusion.GradientOfTheFlow(DF1,DF2,DF3);
   REAL timestep = TimeStep();
   REAL delta = diffusion.Delta(),Lpl,Hkp,Pkl;
@@ -114,9 +117,15 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
 	  Pkl = 0.0;
 	  for(p=0;p<nstate;p++){
 	    
-	    if(dim>0) {Hkp  = dphi(0,jn)*Tx(k,p); Lpl  = dphi(0,in)*DF1(p,l);}
-	    if(dim>1) {Hkp += dphi(1,jn)*Ty(k,p); Lpl += dphi(1,in)*DF2(p,l);}
-	    if(dim>2) {Hkp += dphi(2,jn)*Tz(k,p); Lpl += dphi(2,in)*DF3(p,l);}
+	    if(permite){
+	      if(dim>0) {Hkp  = dphi(0,jn)*Trx(k,p); Lpl  = dphi(0,in)*DF1(p,l);}
+	      if(dim>1) {Hkp += dphi(1,jn)*Try(k,p); Lpl += dphi(1,in)*DF2(p,l);}
+	      if(dim>2) {Hkp += dphi(2,jn)*Trz(k,p); Lpl += dphi(2,in)*DF3(p,l);}
+	    } else {
+	      if(dim>0) {Hkp  = dphi(0,jn)*Tx(k,p); Lpl  = dphi(0,in)*DF1(p,l);}
+	      if(dim>1) {Hkp += dphi(1,jn)*Ty(k,p); Lpl += dphi(1,in)*DF2(p,l);}
+	      if(dim>2) {Hkp += dphi(2,jn)*Tz(k,p); Lpl += dphi(2,in)*DF3(p,l);}
+	    }
 	    Pkl += Hkp * Lpl;
 	    
 	  }
@@ -501,10 +510,10 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   TPZFMatrix Tx(nstate,nstate),Ty(nstate,nstate),Tz(nstate,nstate);
   TPZFMatrix DF1(nstate,nstate),DF2(nstate,nstate),DF3(nstate,nstate);
   diffusion.Tau(Tx,Ty,Tz);
-//   TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
-//   Tx.Transpose(&Trx);
-//   Ty.Transpose(&Try);
-//   Tz.Transpose(&Trz);
+  TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
+  Tx.Transpose(&Trx);
+  Ty.Transpose(&Try);
+  Tz.Transpose(&Trz);
   diffusion.GradientOfTheFlow(DF1,DF2,DF3);
   REAL timestep = TimeStep();
   REAL delta = diffusion.Delta();
@@ -649,6 +658,7 @@ void TPZEulerConsLaw::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVe
     PZError << "TPZEulerConsLaw::ComputeSolLeft boundary condition error\n";
     break;
   case 3://Dirichlet: nada a fazer a CC é a correta
+    for(i=0;i<nstate;i++) soll[i] = bcleft->Val2()(i,0);
     break;
   case 4://recuperar valor da solu¢ão MEF direita: saida livre
     for(i=0;i<nstate; i++) soll[i] = solr[i];
