@@ -1,4 +1,4 @@
-//$Id: pzconnect.cc,v 1.4 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzconnect.cc,v 1.5 2003-11-06 19:14:35 cesar Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -44,7 +44,7 @@ void TPZConnect::operator=(const TPZConnect &copy) {
 }
 
 void TPZConnect::Print(TPZCompMesh &mesh, ostream & out) {
-  out << "TPZConnect : " << "Sequence number = " << fSequenceNumber;
+  out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fOrder;
   if(fSequenceNumber > -1)
 	  out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
   out << endl;
