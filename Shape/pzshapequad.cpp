@@ -491,6 +491,7 @@ void TPZShapeQuad::TransformPoint2dQ(int transid, TPZVec<FADREAL> &in, TPZVec<FA
   out[0] = gTrans2dQ[transid][0][0]*in[0]+gTrans2dQ[transid][0][1]*in[1];//Cedric 23/02/99
   out[1] = gTrans2dQ[transid][1][0]*in[0]+gTrans2dQ[transid][1][1]*in[1];//Cedric 23/02/99
 }
+
 /*
 void TPZShapeQuad::TransformDerivative2dQ(int transid, int num, TPZVec<FADREAL> &in) {
 

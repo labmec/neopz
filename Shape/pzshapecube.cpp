@@ -970,6 +970,9 @@ void TPZShapeCube::ShapeCornerCube(TPZVec<FADREAL> &pt, TPZVec<FADREAL> &phi)
 void TPZShapeCube::ProjectPoint3dCubeToRib(int side, TPZVec<FADREAL> &in, FADREAL &outval)
 {
   outval = gRibTrans3dCube1d[side][0]*in[0]+gRibTrans3dCube1d[side][1]*in[1]+gRibTrans3dCube1d[side][2]*in[2];
+/* outval =  gRibTrans3dCube1d[side][0]*in[0];
+ outval += gRibTrans3dCube1d[side][1]*in[1];
+ outval += gRibTrans3dCube1d[side][2]*in[2];*/
 }
 /*
 void TPZShapeCube::TransformDerivativeFromRibToCube(int rib,int num,TPZVec<FADREAL> &phi) {
@@ -986,6 +989,12 @@ void TPZShapeCube::TransformDerivativeFromRibToCube(int rib,int num,TPZVec<FADRE
 void TPZShapeCube::ProjectPoint3dCubeToFace(int face, TPZVec<FADREAL> &in, TPZVec<FADREAL> &outval) {
   outval[0] = gFaceTrans3dCube2d[face][0][0]*in[0]+gFaceTrans3dCube2d[face][0][1]*in[1]+gFaceTrans3dCube2d[face][0][2]*in[2];
   outval[1] = gFaceTrans3dCube2d[face][1][0]*in[0]+gFaceTrans3dCube2d[face][1][1]*in[1]+gFaceTrans3dCube2d[face][1][2]*in[2];
+/*  outval[0] = gFaceTrans3dCube2d[face][0][0]*in[0];
+  outval[0] += gFaceTrans3dCube2d[face][0][1]*in[1];
+  outval[0] += gFaceTrans3dCube2d[face][0][2]*in[2];
+  outval[1] = gFaceTrans3dCube2d[face][1][0]*in[0];
+  outval[1] += gFaceTrans3dCube2d[face][1][1]*in[1];
+  outval[1] += gFaceTrans3dCube2d[face][1][2]*in[2];*/
 }
 
 /*
