@@ -162,7 +162,7 @@ static REAL MidSideNode[15][3] = {
 static int FaceConnectLocId[4][7] = { {0,1,2,4,5,6,10},{0,1,3,4,8,7,11},
 					     {1,2,3,5,9,8,12},{0,2,3,6,9,7,13} };
 
-void TPZShapeTetra::CornerShapeTetraedro(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+void TPZShapeTetra::CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
   phi(0,0)  = 1-pt[0]-pt[1]-pt[2];
   phi(1,0)  = pt[0];
   phi(2,0)  = pt[1];
@@ -183,9 +183,9 @@ void TPZShapeTetra::CornerShapeTetraedro(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZF
 }
 
 //ifstream inn("mats.dt");
-void TPZShapeTetra::ShapeTetra(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
+void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
 
-  CornerShapeTetraedro(pt,phi,dphi);
+  CornerShape(pt,phi,dphi);
   //  if(order[9]<2) return;
   int shape = 4;
   //rib shapes
@@ -193,6 +193,7 @@ void TPZShapeTetra::ShapeTetra(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &o
     REAL outval;
     ProjectPoint3dTetraToRib(rib,pt,outval);
     TPZVec<int> ids(2);
+    TPZManVector<REAL,1> outvalvec(1,outval);
     int id0,id1;
     id0 = SideNodes[rib][0];
     id1 = SideNodes[rib][1];
@@ -203,7 +204,7 @@ void TPZShapeTetra::ShapeTetra(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &o
     TPZFMatrix phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
     phin.Zero();
     dphin.Zero();
-    TPZShapeLinear::Shape1dInternal(outval,ordin,phin,dphin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
+    TPZShapeLinear::ShapeInternal(outvalvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
     TransformDerivativeFromRibToTetra(rib,ordin,dphin);
     for (int i = 0; i < ordin; i++) {
       phi(shape,0) = phi(id0,0)*phi(id1,0)*phin(i,0);
@@ -240,7 +241,7 @@ void TPZShapeTetra::ShapeTetra(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &o
     int transid = TPZShapeTriang::GetTransformId2dT(ids);
     outval[0] = (outval[0]+1.)/2.;//devido a correção na função
     outval[1] = (outval[1]+1.)/2.;//Shape2dTriangleInternal(..)
-    TPZShapeTriang::Shape2dTriangleInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
+    TPZShapeTriang::ShapeInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
     int c = dphin.Cols();
     for(i=0;i<c;i++) {
     	dphin(0,i) /= 2.;
@@ -272,7 +273,7 @@ void TPZShapeTetra::ShapeTetra(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &o
   TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);
   phin.Zero();
   dphin.Zero();
-  Shape3dTetraInternal(pt,order[10],phin,dphin);
+  ShapeInternal(pt,order[10],phin,dphin);
   for(i=0;i<ord;i++)	{
     phi(shape,0) = phi(0,0)*phi(1,0)*phi(2,0)*phi(3,0)*phin(i,0);
     for(int xj=0;xj<3;xj++) {
@@ -297,7 +298,7 @@ void TPZShapeTetra::ProjectPoint3dTetrFace(int face, TPZVec<REAL> &in, TPZVec<RE
   out[1] = gFaceTrans3dTetr2d[face][1][0]*in[0]+gFaceTrans3dTetr2d[face][1][1]*in[1]+gFaceTrans3dTetr2d[face][1][2]*in[2]+gVet2dTetr[face][1];
 }
 
-void TPZShapeTetra::Shape3dTetraInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
+void TPZShapeTetra::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
 				                    TPZFMatrix &dphi) {
   if(order < 4) return;
   int ord = order-3;

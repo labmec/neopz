@@ -1,3 +1,4 @@
+// -*- c++ -*-
 #ifndef SHAPEPIRAMHPP
 #define SHAPEPIRAMHPP
 
@@ -28,7 +29,8 @@ public:
    * @param phi (output) values of the shape functions
    * @param dphi (output) values of the derivatives of the shapefunctions   
    */
-  static void ShapePiramide(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi);
+  static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi);
+  static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi);
   
   /**
    * Computes the corner shape functions of the element
@@ -36,7 +38,7 @@ public:
    * @param phi (output) value of the (5) shape functions
    * @param dphi (output) value of the derivatives of the (5) shape functions holding the derivatives in a column
    */
-  static void CornerShapePiramide(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+  static void CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
   
   /** 
    * Compute the internal functions of the pyramid shape function at a point\n
@@ -47,7 +49,7 @@ public:
    * @param phi shapefunction values
    * @param dphi values of the derivatives of the shape functions
    */
-  static void Shape3dPiramInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
+  static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
 				                   TPZFMatrix &dphi);
 
   /**

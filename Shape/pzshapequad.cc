@@ -1,5 +1,6 @@
 #include "pzshapequad.h"
 #include "pzshapelinear.h"
+#include "pzshapepoint.h"
 //#include "pzelgq2d.h"
 #include "pzmanvector.h"
 #include "pzerror.h"
@@ -105,8 +106,8 @@ void TPZShapeQuad::ShapeCornerQuad(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix
   dphi(1,3) = x[0]*dy[1];
 }
 
-void TPZShapeQuad::ShapeQuad(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
-			  TPZFMatrix &phi,TPZFMatrix &dphi) {
+void TPZShapeQuad::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+			 TPZFMatrix &phi,TPZFMatrix &dphi) {
   ShapeCornerQuad(pt,phi,dphi);
   REAL out;
   int shape = 4;
@@ -114,12 +115,13 @@ void TPZShapeQuad::ShapeQuad(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &ord
 
     ProjectPoint2dQuadToRib(rib,pt,out);
     TPZVec<int> ids(2);
+    TPZManVector<REAL,1> outvec(1,out);
     ids[0] = id[rib%4];
     ids[1] = id[(rib+1)%4];
     REAL store1[20],store2[40];
     int ord2 = order[rib]-1;//two orders : order in x and order in y
     TPZFMatrix phin(ord2,1,store1,20),dphin(2,ord2,store2,40);
-    TPZShapeLinear::Shape1dInternal(out,ord2,phin,dphin,TPZShapeLinear::GetTransformId1d(ids));
+    TPZShapeLinear::ShapeInternal(outvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));
     TransformDerivativeFromRibToQuad(rib,ord2,dphin);
     for (int i = 0; i < ord2; i++) {
       phi(shape,0) = phi(rib,0)*phi((rib+1)%4,0)*phin(i,0);
@@ -134,7 +136,7 @@ void TPZShapeQuad::ShapeQuad(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &ord
   REAL store1[20],store2[40];
   int ord = (order[4]-1)*(order[4]-1);
   TPZFMatrix phin(ord,1,store1,20),dphin(2,ord,store2,40);
-  Shape2dQuadInternal(pt,order[4]-2,phin,dphin,GetTransformId2dQ(id));
+  ShapeInternal(pt,order[4]-2,phin,dphin,GetTransformId2dQ(id));
   for(int i=0;i<ord;i++)	{//funcoes de interior são em numero ordem-1
     phi(shape,0) = phi(0,0)*phi(2,0)*phin(i,0);
     for(int xj=0;xj<2;xj++) {//x e y
@@ -146,7 +148,27 @@ void TPZShapeQuad::ShapeQuad(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &ord
   }
 }
 
-void TPZShapeQuad::Shape2dQuadInternal(TPZVec<REAL> &x, int order,
+void TPZShapeQuad::SideShape(int side,TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+			 TPZFMatrix &phi,TPZFMatrix &dphi) {
+  switch(side) {
+  case 0:
+  case 1:
+  case 2:
+  case 3:
+    TPZShapePoint::Shape(pt, id, order, phi, dphi);
+    break;
+  case 4:
+  case 5:
+  case 6:
+  case 7:
+    TPZShapeLinear::Shape(pt, id, order, phi, dphi);
+    break;
+  case 8:
+    Shape(pt, id, order, phi, dphi);
+  }
+}
+
+void TPZShapeQuad::ShapeInternal(TPZVec<REAL> &x, int order,
 					TPZFMatrix &phi, TPZFMatrix &dphi,int quad_transformation_index) {
 
   if(order < 0) return;

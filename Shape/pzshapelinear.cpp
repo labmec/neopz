@@ -1,4 +1,5 @@
 #include "pzshapelinear.h"
+#include "pzshapepoint.h"
 #include "pzerror.h"
 #include "pzreal.h"
 
@@ -139,52 +140,65 @@ void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix &, TPZFMatrix &) = TPZ
 
 //  REAL TPZCompEl::gTrans1d[2] = {1.,-1.};
 
-void TPZShapeLinear::Shape1d(REAL x,int order,TPZFMatrix &phi,TPZFMatrix &dphi,TPZVec<int> &id) {
+void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi) {
   //	num = number of functions to compute
-  if ( order < 0 ) {
-    PZError << "Compelbas::shape --> Invalid dimension for arguments: order = " << order
+  if ( order[0] < 0 ) {
+    PZError << "Compelbas::shape --> Invalid dimension for arguments: order = " << order[0]
 	    << " phi.Rows = " << (int) phi.Rows() << " dphi.Cols = " << (int) dphi.Cols() << "\n";
     return;
   }
-  if(phi.Rows() < order+1) phi.Resize(order, phi.Cols());
-  if(dphi.Cols() < order+1) dphi.Resize(dphi.Rows(),order);
+  if(phi.Rows() < order[0]+1) phi.Resize(order[0], phi.Cols());
+  if(dphi.Cols() < order[0]+1) dphi.Resize(dphi.Rows(),order[0]);
 
-  if ( order == 0) {
+  if ( order[0] == 0) {
     phi(0,0) = 1.;
     dphi(0,0) = 0.;
-  } else if (order == 1) {		// Linear shape functions
-    phi.Put(0,0, (1-x)/2.);
-    phi.Put(1,0, (1+x)/2.);
+  } else if (order[0] == 1) {		// Linear shape functions
+    phi.Put(0,0, (1-x[0])/2.);
+    phi.Put(1,0, (1+x[0])/2.);
     dphi.Put(0,0, -0.5);
     dphi.Put(0,1, 0.5);
     return;
   }
 
   // Quadratic or higher shape functions
-  int num2 = order-1;
+  int num2 = order[0]-1;
   int transformationindex = GetTransformId1d(id);
-  if(num2 > 0) Shape1dInternal(x,num2,phi,dphi,transformationindex);
+  if(num2 > 0) ShapeInternal(x,order[0],phi,dphi,transformationindex);
   int ord;
-  for (ord = order; ord > 1; ord--) {
+  for (ord = order[0]; ord > 1; ord--) {
     phi(ord,0) = phi(ord-2,0);
     dphi(0,ord) = dphi(0,ord-2);
   }
-  phi(0,0) = (1-x)/2.;
-  phi(1,0) = (1+x)/2.;
+  phi(0,0) = (1-x[0])/2.;
+  phi(1,0) = (1+x[0])/2.;
   dphi(0,0) = -0.5;
   dphi(0,1) = 0.5;
-  for (ord = 2; ord < order+1; ord++) {    // even functions
+  for (ord = 2; ord < order[0]+1; ord++) {    // even functions
     dphi(0,ord) *= phi(0,0)*phi(1,0);
     dphi(0,ord) += 0.5*phi(0,0)*phi(ord,0)-0.5*phi(1,0)*phi(ord,0);
     phi(ord,0) *= phi(0,0)*phi(1,0);
   }
 }
 
-void TPZShapeLinear::Shape1dInternal(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi,int transformation_index){
+void TPZShapeLinear::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi) {
+  switch(side) {
+  case 0:
+  case 1:
+    TPZShapePoint::Shape(pt,id,order,phi,dphi);
+    break;
+  case 2:
+    Shape(pt,id,order,phi,dphi);
+    break;
+  }
+}
+
+void TPZShapeLinear::ShapeInternal(TPZVec<REAL>  &x, int ord,TPZFMatrix &phi,TPZFMatrix &dphi,int transformation_index){
   // Quadratic or higher shape functions
+  int num = ord-1;
   if(num <= 0) return;
   REAL y;
-  TransformPoint1d(transformation_index,x,y);
+  TransformPoint1d(transformation_index,x[0],y);
   fOrthogonal(y,num,phi,dphi);
   TransformDerivative1d(transformation_index,num,dphi);
 }

@@ -87,7 +87,7 @@ void TPZCompElT3d::Shape(TPZVec<REAL> &x, TPZFMatrix &phi, TPZFMatrix &dphi) {
   for(i=0;i<4;i++) id[i] = fReference->NodePtr(i)->Id();//fReference->NodeIndex(i);
   TPZManVector<int> ord(11);
   for(i=0; i<11; i++) ord[i] = fSideOrder[i];
-  TPZShapeTetra::ShapeTetra(x,id,ord,phi,dphi);
+  TPZShapeTetra::Shape(x,id,ord,phi,dphi);
 }
 
 int TPZCompElT3d::NConnectShapeF(int side) {
@@ -332,10 +332,11 @@ void TPZCompElT3d::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &ph
   else if(side<4) phi(0,0)=1.;
   else if(side<10) {//4 a 9
     TPZVec<int> id(2);
+    TPZManVector<int,1> sideord(1,SideOrder(side));
     int s = side-4;                 //nó local
     id[0] = fReference->NodePtr(SideNodes[s][0])->Id();
     id[1] = fReference->NodePtr(SideNodes[s][1])->Id();//nó global
-    TPZShapeLinear::Shape1d(point[0],SideOrder(side),phi,dphi,id);
+    TPZShapeLinear::Shape(point,id,sideord,phi,dphi);
   }
   else if(side<14) {//faces 10,11,12,13
     TPZVec<int> id(3);
@@ -348,7 +349,7 @@ void TPZCompElT3d::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &ph
     ord[1] = fSideOrder[FaceSides[face][1]-4];
     ord[2] = fSideOrder[FaceSides[face][2]-4];
     ord[3] = fSideOrder[side-4];//face
-    TPZShapeTriang::ShapeTriang(point,id,ord,phi,dphi);
+    TPZShapeTriang::Shape(point,id,ord,phi,dphi);
   }
 }
 

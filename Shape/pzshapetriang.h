@@ -1,3 +1,4 @@
+// -*- c++ -*-
 #ifndef SHAPETRIANGHPP
 #define SHAPETRIANGHPP
 
@@ -30,7 +31,9 @@ class TPZShapeTriang {
  * @param dphi (output) values of the derivatives of the shapefunctions
 
  */
-static void ShapeTriang(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+             			   TPZFMatrix &phi,TPZFMatrix &dphi);
+static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
              			   TPZFMatrix &phi,TPZFMatrix &dphi);
 
 /**
@@ -39,7 +42,7 @@ static void ShapeTriang(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
  * @param phi (output) value of the (3) shape functions
  * @param dphi (output) value of the derivatives of the (4) shape functions holding the derivatives in a column
  */
-static void ShapeCornerTriang(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
 
 /**compute the internal functions of the triangle shape function at a point
  * the internal shape functions are the shapefunctions before being multiplied by the corner
@@ -54,7 +57,7 @@ static void ShapeCornerTriang(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dph
  * functions. This parameter is computed by the GetTransformId2dT method
  * @see GetTransformId2dQ
 */
-static void Shape2dTriangleInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,TPZFMatrix &dphi,int triangle_transformation_index);
+static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,TPZFMatrix &dphi,int triangle_transformation_index);
 
 
 /**

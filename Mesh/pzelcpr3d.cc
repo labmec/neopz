@@ -96,7 +96,7 @@ void TPZCompElPr3d::Shape(TPZVec<REAL> &x, TPZFMatrix &phi, TPZFMatrix &dphi) {
 
   TPZManVector<int> ord(15);
   for(i=0; i<15; i++) ord[i] = fSideOrder[i];
-  TPZShapePrism::ShapePrisma(x,id,ord,phi,dphi);
+  TPZShapePrism::Shape(x,id,ord,phi,dphi);
 }
 
 int TPZCompElPr3d::NConnectShapeF(int side) {
@@ -370,12 +370,12 @@ void TPZCompElPr3d::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &p
 /*     id[0] = fReference->NodePtr(SideNodes[s][0])->Id(); */
 /*     id[1] = fReference->NodePtr(SideNodes[s][1])->Id(); */
 /*     TPZShapeLinear::Shape1d(point[0],SideOrder(side),phi,dphi,id); */
-    TPZShapeLinear::Shape1d(point[0],ord[0],phi,dphi,ids);
+    TPZShapeLinear::Shape(point,ids,ord,phi,dphi);
   }
   else if(side == 15 || side == 19) {
-    TPZShapeTriang::ShapeTriang(point,ids,ord,phi,dphi);
+    TPZShapeTriang::Shape(point,ids,ord,phi,dphi);
   } else {
-    TPZShapeQuad::ShapeQuad(point,ids,ord,phi,dphi);
+    TPZShapeQuad::Shape(point,ids,ord,phi,dphi);
   }
 /*   else if(side<20) { */
 /*     TPZVec<int> id(4); */

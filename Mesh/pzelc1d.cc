@@ -109,9 +109,10 @@ int TPZCompEl1d::SideConnectLocId(int c,int side) {
 
 void TPZCompEl1d::Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi) {
   TPZVec<int> id(2);
+  TPZManVector<int,1> sideorder(1,fSideOrder);
   id[0] = fReference->NodePtr(0)->Id();
   id[1] = fReference->NodePtr(1)->Id();
-  TPZShapeLinear::Shape1d(x[0],fSideOrder,phi,dphi,id);  //Shape1d(x[0],NumberOfShapeF(),phi,dphi,id);
+  TPZShapeLinear::Shape(x,id,sideorder,phi,dphi);  //Shape1d(x[0],NumberOfShapeF(),phi,dphi,id);
 }            //Porque utilizar os ids dos elementos geometricos id[1] < id[0] ?
 
 void TPZCompEl1d::SetInterpolationOrder(TPZVec<int> &ord) {

@@ -1,3 +1,4 @@
+// -*- c++ -*-
 #ifndef SHAPELINEARHPP
 #define SHAPELINEARHPP
 
@@ -94,7 +95,10 @@ static void Chebyshev(FADREAL & x,int num,TPZVec<FADREAL> &phi);
  * @param dphi values of the derivatives of the shape functions
  * @param id determines the orientation of the shape functions
  */
-static void Shape1d(REAL x,int order,TPZFMatrix &phi,TPZFMatrix &dphi,TPZVec<int> &id);
+static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi);
+
+ static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi);
+
 /**
  * Computes the values of the orthogonal shapefunctions before multiplying them by the
  * corner shapefunctions
@@ -108,7 +112,8 @@ static void Shape1d(REAL x,int order,TPZFMatrix &phi,TPZFMatrix &dphi,TPZVec<int
  * functions. This parameter is computed by the GetTransformId1d method
  * @see GetTransformId1d
  */
-static void Shape1dInternal(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi,int transformation_index);
+static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix &phi,TPZFMatrix &dphi,int transformation_index);
+
 #ifdef _AUTODIFF
 /**
  * Computes the values of the orthogonal shapefunctions before multiplying them by the
@@ -123,7 +128,7 @@ static void Shape1dInternal(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi,int 
  * @see GetTransformId1d
  * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
  */
-static void Shape1dInternal(FADREAL & x,int num,TPZVec<FADREAL> & phi,int transformation_index);
+static void ShapeInternal(FADREAL & x,int num,TPZVec<FADREAL> & phi,int transformation_index);
 
 #endif
 /**

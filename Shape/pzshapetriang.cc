@@ -1,5 +1,6 @@
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
+#include "pzshapepoint.h"
 #include "pzmanvector.h"
 #include "pzerror.h"
 #include "pzreal.h"
@@ -70,7 +71,7 @@ static REAL MidSideNode[7][3] = {
 /*03*/{.5,0.},/*04*/{0.5,.5},/*05*/{0.,0.5},
 /*06*/{ 1./3.,1./3.} };
 
-void TPZShapeTriang::ShapeCornerTriang(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+void TPZShapeTriang::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
 
   phi(0,0) =  1.-pt[0]-pt[1];
   phi(1,0) =  pt[0];
@@ -83,15 +84,16 @@ void TPZShapeTriang::ShapeCornerTriang(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMa
   dphi(1,2) =  1.;
 }
 
-void TPZShapeTriang::ShapeTriang(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+void TPZShapeTriang::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
 			    TPZFMatrix &phi,TPZFMatrix &dphi) {
-  ShapeCornerTriang(pt,phi,dphi);
+  ShapeCorner(pt,phi,dphi);
   if (order[0] < 2 && order[1] < 2 && order[2] < 2) return;
   REAL out;
   int shape = 3;
   for (int rib = 0; rib < 3; rib++) {
 
     ProjectPoint2dTriangToRib(rib,pt,out);
+    TPZManVector<REAL,1> outvec(1,out);
     TPZVec<int> ids(2);
     ids[0] = id[rib%3];
     ids[1] = id[(rib+1)%3];
@@ -99,7 +101,7 @@ void TPZShapeTriang::ShapeTriang(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> 
     int ord2 = order[rib]-1;//numero de shapes por lado rib
     TPZFMatrix phin(ord2,1,store1,20),dphin(2,ord2,store2,40);
     TPZShapeLinear *shplin=0;
-    shplin->Shape1dInternal(out,ord2,phin,dphin,shplin->GetTransformId1d(ids));
+    shplin->ShapeInternal(outvec,order[rib],phin,dphin,shplin->GetTransformId1d(ids));
     TransformDerivativeFromRibToTriang(rib,ord2,dphin);
     for (int i = 0; i < ord2; i++) {
       phi(shape,0) = phi(rib,0)*phi((rib+1)%3,0)*phin(i,0);
@@ -116,7 +118,7 @@ void TPZShapeTriang::ShapeTriang(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> 
   int ord =  order[3]-2;//num de shapes da face
   int nsh = (ord*(ord+1))/2;
   TPZFMatrix phin(nsh,1,store1,20),dphin(2,nsh,store2,40);
-  Shape2dTriangleInternal(pt,order[3]-2,phin,dphin,GetTransformId2dT(id));
+  ShapeInternal(pt,order[3]-2,phin,dphin,GetTransformId2dT(id));
   for(int i=0;i<nsh;i++)	{//number of internal shape equal maximal order
     phi(shape,0) = phi(0,0)*phi(1,0)*phi(2,0)*phin(i,0);
     for(int d=0;d<2;d++) {
@@ -129,7 +131,19 @@ void TPZShapeTriang::ShapeTriang(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> 
   }
 }
 
-void TPZShapeTriang::Shape2dTriangleInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
+void TPZShapeTriang::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+			    TPZFMatrix &phi,TPZFMatrix &dphi) {
+  if(side<0 || side>6) PZError << "TPZShapeTriang::SideShape. Bad paramenter side.\n";
+  else if(side==6) Shape(pt,id,order,phi,dphi);
+  else if(side<3) {
+    TPZShapePoint::Shape(pt,id,order,phi,dphi);
+  } else {
+    TPZShapeLinear::Shape(pt,id,order,phi,dphi);
+  }
+
+
+}
+void TPZShapeTriang::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
 					TPZFMatrix &dphi,int triangle_transformation_index) {
 
   if(order < 0) return;

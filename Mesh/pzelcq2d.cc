@@ -255,11 +255,12 @@ void TPZCompElQ2d::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &ph
   		phi(0,0)=1.;
   } else {
     TPZVec<int> id(2);
+    TPZManVector<int,1> sideord(1,SideOrder(side));
     //    id[0] = fReference->NodeIndex(side-4);
     //    id[1] = fReference->NodeIndex((side-3)%4);
     id[0] =  fReference->NodePtr(side-4)->Id();
     id[1] =  fReference->NodePtr((side-3)%4)->Id();
-    TPZShapeLinear::Shape1d(point[0],SideOrder(side),phi,dphi,id);
+    TPZShapeLinear::Shape(point,id,sideord,phi,dphi);
   }
 }
 
@@ -270,7 +271,7 @@ void TPZCompElQ2d::Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
   TPZManVector<int> ord(5);//Cedric
   for(i=0; i<5; i++) ord[i] = fSideOrder[i];
-  TPZShapeQuad::ShapeQuad(x,id,ord,phi,dphi);
+  TPZShapeQuad::Shape(x,id,ord,phi,dphi);
 }
 
 void TPZCompElQ2d::SetIntegrationRule(int order) {

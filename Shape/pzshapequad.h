@@ -1,3 +1,5 @@
+// -*- c++ -*-
+
 #ifndef SHAPEQUADHPP
 #define SHAPEQUADHPP
 
@@ -33,7 +35,9 @@ class TPZShapeQuad {
  * @param dphi (output) values of the derivatives of the shapefunctions
 
  */
-  static void ShapeQuad(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+  static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+			TPZFMatrix &phi,TPZFMatrix &dphi);
+  static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
 			TPZFMatrix &phi,TPZFMatrix &dphi);
 
 /**
@@ -58,7 +62,7 @@ class TPZShapeQuad {
  * functions. This parameter is computed by the GetTransformId2dQ method
  * @see GetTransformId2dQ
  */
-  static void Shape2dQuadInternal(TPZVec<REAL> &x, int order,
+  static void ShapeInternal(TPZVec<REAL> &x, int order,
   						TPZFMatrix &phi,TPZFMatrix &dphi,int quad_transformation_index);
 
 #ifdef _AUTODIFF

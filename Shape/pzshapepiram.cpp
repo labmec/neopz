@@ -2,7 +2,7 @@
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
-
+#include "pzshapepoint.h"
 #include "pzmanvector.h"
 #include "pzerror.h"
 #include "pzreal.h"
@@ -180,7 +180,7 @@ static REAL MidSideNode[19][3] = {
 /*13*/{0.,  0. ,  0. },/*14*/{  0.  ,-2./3.,1./3.},/*15*/{2./3.,0.,1./3.},
 /*16*/{0.,2./3.,1./3.},/*17*/{-2./3.,  0.  ,1./3.},/*18*/{  0. ,0.,1./5.} };
 
-void TPZShapePiram::CornerShapePiramide(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+void TPZShapePiram::CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
 
   /*if(abs(pt[0])<1.e-10 && abs(pt[1])<1.e-10 && pt[2]==1.) {
   	//para testes com transformações geometricas
@@ -270,9 +270,9 @@ void TPZCompEl::ShapeCornerPira(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &d
   dphi(2,4) = 1.0;
 }*/
 
-void TPZShapePiram::ShapePiramide(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
+void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
 
-  CornerShapePiramide(pt,phi,dphi);
+  CornerShape(pt,phi,dphi);
   //  if(order[13]<2) return;//order tem as ordens dos lados do elemento
   int shape = 5;
   //rib shapes
@@ -281,6 +281,7 @@ void TPZShapePiram::ShapePiramide(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int>
     REAL outval;
     ProjectPoint3dPiramToRib(rib,pt,outval);
     TPZVec<int> ids(2);
+    TPZManVector<REAL,1> outvalvec(1,outval);
     int id0,id1;
     id0 = SideNodes[rib][0];
     id1 = SideNodes[rib][1];
@@ -291,7 +292,7 @@ void TPZShapePiram::ShapePiramide(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int>
     TPZFMatrix phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
     phin.Zero();
     dphin.Zero();
-    TPZShapeLinear::Shape1dInternal(outval,ordin,phin,dphin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
+    TPZShapeLinear::ShapeInternal(outvalvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
     TransformDerivativeFromRibToPiram(rib,ordin,dphin);
     for (int i = 0; i < ordin; i++) {
       phi(shape,0) = phi(id0,0)*phi(id1,0)*phin(i,0);
@@ -332,13 +333,13 @@ void TPZShapePiram::ShapePiramide(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int>
     int transid;
     if(!face) {
       transid = TPZShapeQuad::GetTransformId2dQ(ids);
-    	TPZShapeQuad::Shape2dQuadInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
+      TPZShapeQuad::ShapeInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
     } else {
        ids.Resize(3);
     	 transid = TPZShapeTriang::GetTransformId2dT(ids);
        outval[0] = (outval[0]+1.)/2.;//devido a correção na função
        outval[1] = (outval[1]+1.)/2.;//Shape2dTriangleInternal(..) : correto aqui
-    	 TPZShapeTriang::Shape2dTriangleInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
+       TPZShapeTriang::ShapeInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
        int c = dphin.Cols();//isto da (p-2)(p-1)/2 ; ord1 = p ; correto aqui
        for(int i=0;i<c;i++) {
          dphin(0,i) /= 2.;//correcao da derivada OK! aqui
@@ -374,7 +375,7 @@ void TPZShapePiram::ShapePiramide(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int>
   TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);
   phin.Zero();
   dphin.Zero();
-  Shape3dPiramInternal(pt,order[13],phin,dphin);
+  ShapeInternal(pt,order[13],phin,dphin);
   for(i=0;i<ord;i++)	{
     phi(shape,0) = phi(0,0)*phi(2,0)*phi(4,0)*phin(i,0);
     for(int xj=0;xj<3;xj++) {
@@ -387,7 +388,22 @@ void TPZShapePiram::ShapePiramide(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int>
   }
 }
 
-void TPZShapePiram::Shape3dPiramInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
+void TPZShapePiram::SideShape(int side, TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
+
+  if(side<0 || side>18) PZError << "TPZCompElPi3d::SideShapeFunction. Bad paramenter side.\n";
+  else if(side==18) Shape(point,id,order,phi,dphi);
+  else if(side<5) TPZShapePoint::Shape(point,id,order,phi,dphi);
+  else if(side<13) {//5 a 12
+    TPZShapeLinear::Shape(point,id,order,phi,dphi);
+  } else if(side == 13) {
+    TPZShapeQuad::Shape(point,id,order,phi,dphi);
+  } else if(side<18) {//faces 13  a 17
+      TPZShapeTriang::Shape(point,id,order,phi,dphi);
+  }
+
+}
+
+void TPZShapePiram::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
 				                    TPZFMatrix &dphi) {
   //valor da função e derivada do produto das funções ortogonais
   if(order < 3) return;

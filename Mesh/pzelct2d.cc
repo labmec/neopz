@@ -226,7 +226,7 @@ void TPZCompElT2d::ElementToSideParameter(int side,TPZVec<REAL> &point,TPZVec<RE
 }
 
 void TPZCompElT2d::CornerShape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
-  TPZShapeTriang::ShapeCornerTriang(pt,phi,dphi);
+  TPZShapeTriang::ShapeCorner(pt,phi,dphi);
 }
 
 void TPZCompElT2d::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &phi,TPZFMatrix &dphi) {  //    id ???
@@ -236,9 +236,10 @@ void TPZCompElT2d::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &ph
   	phi(0,0) = 1.;
   } else {
     TPZVec<int> id(2);
+    TPZManVector<int,1> sideord(1,SideOrder(side));
     id[0] = fReference->NodePtr(side-3)->Id();
     id[1] = fReference->NodePtr((side-2)%3)->Id();
-    TPZShapeLinear::Shape1d(point[0],SideOrder(side),phi,dphi,id);
+    TPZShapeLinear::Shape(point,id,sideord,phi,dphi);
   }
 }
 
@@ -249,7 +250,7 @@ void TPZCompElT2d::Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi) {
   for(i=0;i<3;i++) id[i] = fReference->NodePtr(i)->Id();//>NodeIndex(i);
   TPZManVector<int> ord(4);
   for(i=0; i<4; i++) ord[i] = fSideOrder[i];
-  TPZShapeTriang::ShapeTriang(x,id,ord,phi,dphi);
+  TPZShapeTriang::Shape(x,id,ord,phi,dphi);
 }
 //Cedric 16/03/99
 void TPZCompElT2d::SetIntegrationRule(int order) {

@@ -99,7 +99,7 @@ void TPZCompElC3d::Shape(TPZVec<REAL> &x, TPZFMatrix &phi, TPZFMatrix &dphi) {
   TPZManVector<int> ord(19);
   int i;
   for(i=0; i<19; i++ ) ord[i] = fSideOrder[i];
-  TPZShapeCube::ShapeCube(x,id,ord,phi,dphi);
+  TPZShapeCube::Shape(x,id,ord,phi,dphi);
 }
 
 int TPZCompElC3d::NConnectShapeF(int side) {
@@ -340,12 +340,13 @@ void TPZCompElC3d::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &ph
   else if(side<8) phi(0,0)=1.;
   else if(side<20) {//8 a 19
     TPZVec<int> id(2);
+    TPZManVector<int,1> sideord(1,SideOrder(side));
     int s = side-8;                 //nó local
     //       id[0] = fReference->NodeIndex(SideNodes[s][0]);
     //       id[1] = fReference->NodeIndex(SideNodes[s][1]);//nó global
     id[0] = fReference->NodePtr(SideNodes[s][0])->Id();
     id[1] = fReference->NodePtr(SideNodes[s][1])->Id();
-    TPZShapeLinear::Shape1d(point[0],SideOrder(side),phi,dphi,id);
+    TPZShapeLinear::Shape(point,id,sideord,phi,dphi);
   }
   else if(side<26) {//faces
     TPZVec<int> id(4);
@@ -370,7 +371,7 @@ void TPZCompElC3d::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &ph
       cout << "TPZCompElC3d::SideShapeFunction achei um bug!!\n";
       cout.flush();
     }
-    TPZShapeQuad::ShapeQuad(point,id,ord,phi,dphi);
+    TPZShapeQuad::Shape(point,id,ord,phi,dphi);
   }
 }
 
