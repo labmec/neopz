@@ -618,20 +618,26 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   //(sen ø , -cos ø) normal à reta de ângulo ø apontando da região R1 para a região R2
   REAL teta=0.0,flux_rho,flux_rhou,flux_rhov,flux_rhow,flux_rhoE,gama = 1.4;
   //REAL increment=0.00001;
-  TPZVec<REAL> U1(5,0.),U2(5,0.),r1Fx(0),r1Fy(0),r1Fz(0),r2Fx(0),r2Fy(0),r2Fz(0),n(3,0.);
+  TPZVec<REAL> U1(5,0.),U2(5,0.),U3(5,0.),r1Fx(0),r1Fy(0),r1Fz(0),r2Fx(0),r2Fy(0),r2Fz(0),r3Fx(0),r3Fy(0),r3Fz(0),n(3,0.);
   int i,enter=0;
   U1[0] = r1ro;
   U1[1] = r1ro*r1u;
   U1[2] = r1ro*r1v;
   U1[3] = r1p/(gama-1.0)+r1ro*r1vel2*0.5;
-  U1[4] = 0.0;
+  U1[4] = 0.0;//
   U2[0] = r2ro;
   U2[1] = r2ro*r2u;
   U2[2] = r2ro*r2v;
   U2[3] = r2p/(gama-1.0)+r2ro*r2vel2*0.5;
-  U2[4] = 0.0;
+  U2[4] = 0.0;//
+  U3[0] = r3ro;
+  U3[1] = r3ro*r3u;
+  U3[2] = r3ro*r3v;
+  U3[3] = r3p/(gama-1.0)+r3ro*r3vel2*0.5;
+  U3[4] = 0.0;
   //REAL tetamax = 2.0*asin(1.0)+0.1;
   REAL soma = 1.0;
+  REAL suma = 1.0;
   teta = tetainit;
   while(teta < tetamax){
     teta += increment;
@@ -639,9 +645,14 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
     n[1] = sin(teta);
     Flux(U1,r1Fx,r1Fy,r1Fz);
     Flux(U2,r2Fx,r2Fy,r2Fz);
+    Flux(U3,r3Fx,r3Fy,r3Fz);
     soma = 0.0;
+    suma = 0.0;
     for(i=0;i<4;i++){
       soma += (r1Fx[i] - r2Fx[i])*n[0] + (r1Fy[i] - r2Fy[i])*n[1];
+    }
+    for(i=0;i<4;i++){
+      suma += (r2Fx[i] - r3Fx[i])*n[0] + (r2Fy[i] - r3Fy[i])*n[1];
     }
     if(fabs(soma) < tol){
       cout << "TPZEulerConsLaw::TestOfRoeFlux found angle, angle = " << teta << "\tradians\n";
@@ -666,6 +677,31 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
 	   << "density : " << flux_rhov << endl
 	   << "density : " << flux_rhoE << endl << endl;
       cout << "\nTPZEulerConsLaw::TestOfRoeFlux norma da diferenca |F1*n - F2*n| = " << fabs(soma) << "\n\n";
+      enter = 1;
+    }
+    if(fabs(suma) < tol){
+      cout << "TPZEulerConsLaw::TestOfRoeFlux found angle, angle = " << teta << "\tradians\n";
+      //a normal aponta da região R1 para a região R2: 
+      TPZDiffusionConsLaw::Roe_Flux(U2[0],U2[1],U2[2],U2[3],
+				    U3[0],U3[1],U3[2],U3[3],
+				    n[0],n[1],gama,
+				    flux_rho,flux_rhou,flux_rhov,flux_rhoE);
+      cout << "TPZEulerConsLaw::TestOfRoeFlux flow in the R1 region\n";
+      cout << "density : " << r2Fx[0]*n[0]+r2Fy[0]*n[1] << endl
+	   << "density : " << r2Fx[1]*n[0]+r2Fy[1]*n[1] << endl
+	   << "density : " << r2Fx[2]*n[0]+r2Fy[2]*n[1] << endl
+	   << "density : " << r2Fx[3]*n[0]+r2Fy[3]*n[1] << endl << endl;
+      cout << "TPZEulerConsLaw::TestOfRoeFlux flow in the R2 region\n";
+      cout << "density : " << r3Fx[0]*n[0]+r3Fy[0]*n[1] << endl
+	   << "density : " << r3Fx[1]*n[0]+r3Fy[1]*n[1] << endl
+	   << "density : " << r3Fx[2]*n[0]+r3Fy[2]*n[1] << endl
+	   << "density : " << r3Fx[3]*n[0]+r3Fy[3]*n[1] << endl << endl;
+      cout << "TPZEulerConsLaw::TestOfRoeFlux the calculation of the flow of Roe is\n";
+      cout << "density : " << flux_rho << endl
+	   << "density : " << flux_rhou << endl
+	   << "density : " << flux_rhov << endl
+	   << "density : " << flux_rhoE << endl << endl;
+      cout << "\nTPZEulerConsLaw::TestOfRoeFlux norma da diferenca |F2*n - F3*n| = " << fabs(suma) << "\n\n";
       enter = 1;
       //break;
 //       if(fabs(soma) > 1.e-9){
