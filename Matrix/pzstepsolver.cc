@@ -17,6 +17,7 @@ TPZStepSolver::TPZStepSolver(const TPZStepSolver & copy) : TPZMatrixSolver(copy)
     fPrecond = 0;
     if(copy.fPrecond) fPrecond = copy.fPrecond->Clone();
     fFromCurrent = copy.fFromCurrent;
+    fNumVectors = copy.fNumVectors;//Cedric: 24/04/2003 - 12:39
 }
 
 TPZStepSolver::~TPZStepSolver() {
