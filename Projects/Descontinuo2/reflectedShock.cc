@@ -195,6 +195,10 @@ TPZGeoMesh * CreateRSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
    gmesh->BuildConnectivity();
 
+   TPZVec< TPZGeoEl * > firstDivision;
+   for(i = 0; i < gEls.NElements();i++)gEls[i]->Divide(firstDivision);
+
+
    return gmesh;
 }
 
@@ -204,7 +208,7 @@ TPZGeoMesh * CreateRSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
 TPZFlowCompMesh * RSCompMesh()
 {
-   TPZCompElDisc::gDegree = 2;
+   TPZCompElDisc::gDegree = 1;
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
@@ -238,11 +242,15 @@ TPZFlowCompMesh * RSCompMesh()
 // Setting initial solution
    mat->SetForcingFunction(NULL);
    // Setting the time discretization method
-   mat->SetTimeDiscr(Implicit_TD/*Diff*/,
+   mat->SetTimeDiscr(None_TD/*Diff*/,
                      Implicit_TD/*ConvVol*/,
 		     Implicit_TD/*ConvFace*/);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
    // object computes the delta when it equals null.
+
+   mat->SetCFL(1);
+   mat->SetDelta(10);
+
    cmesh -> InsertMaterialObject(mat);
 
 // Boundary conditions
@@ -328,17 +336,95 @@ TPZFlowCompMesh * RSCompMesh()
       int blockOffset = cmesh->Block().Position(j);
 
       REAL ro = 1.7,
-           u = 2.61934,
-           v = -0.50632,
-           p = 1.52819,
+           u = 2.9,
+           v = 0,
+           p = 2.714286,
            vel2 = u*u + v*v;
       Solution(blockOffset  ,0) = ro;
       Solution(blockOffset+1,0) = ro * u;
       Solution(blockOffset+2,0) = ro * v;
       Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+
+      cmesh->LoadSolution(Solution);
    }
+/*
+   // Exact Solution (Lucia Catabriga, Alvaro Coutinho)
+   {
+      Solution.Zero();
+      REAL ro = 1.0,
+           u = 2.9,
+           v = 0,
+           p = 0.714286,
+           vel2 = u*u + v*v;
+
+      int blockOffset = cmesh->Block().Position(0);
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+
+      blockOffset = cmesh->Block().Position(1);
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+
+      blockOffset = cmesh->Block().Position(4);
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+
+      ro = 1.7;
+      u = 2.61934;
+      v = -0.50632;
+      p = 1.52819;
+      vel2 = u*u + v*v;
+
+      blockOffset = cmesh->Block().Position(5);
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+
+      blockOffset = cmesh->Block().Position(7);
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+
+      blockOffset = cmesh->Block().Position(8);
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+
+      ro = 2.68728;
+      u = 2.40140;
+      v = 0;
+      p = 2.93407;
+      vel2 = u*u + v*v;
+            blockOffset = cmesh->Block().Position(2);
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+
+      blockOffset = cmesh->Block().Position(3);
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+
+      blockOffset = cmesh->Block().Position(6);
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+
 
    cmesh->LoadSolution(Solution);
-
+   }
+*/
    return cmesh;
 }

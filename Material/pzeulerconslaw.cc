@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cc,v 1.10 2003-11-17 21:43:57 erick Exp $
+//$Id: pzeulerconslaw.cc,v 1.11 2003-11-20 21:39:06 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -483,7 +483,7 @@ void TPZEulerConsLaw2::ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 
    // the parcell T2 is always explicit.
    ContributeExplT2(x,sol,weight,phi,ef);
-/*
+
    // contributing volume-based quantities
    // diffusive term
    if (fDiff == Explicit_TD)
@@ -492,7 +492,7 @@ void TPZEulerConsLaw2::ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
    // Volume Convective term
    if (fConvVol == Explicit_TD)
          ContributeExplConvVol(x, sol, weight, phi, dphi, ef);
-*/
+
 }
 
 
@@ -527,11 +527,11 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
       if (fDiff == ApproxImplicit_TD)
          ContributeApproxImplDiff(x,sol,dsol,weight,phi,dphi,ek,ef);
    }
-/*
+
    // Volume convective term
    if (fConvVol == Implicit_TD)
          ContributeImplConvVol(x,sol,dsol,weight,phi,dphi,ek,ef);
-*/
+
 /*
 ek(0,0) = 1.;
 ek(1,1) = 1.;
@@ -561,7 +561,7 @@ void TPZEulerConsLaw2::ContributeInterface(
          solL[i] = solR[i] = res[i];
    }
 
-/*
+
    // contributing face-based quantities
    if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
       {
@@ -582,7 +582,7 @@ void TPZEulerConsLaw2::ContributeInterface(
    {
          ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
    }
-   */
+
 }
 
 
@@ -745,7 +745,7 @@ void TPZEulerConsLaw2::ContributeExplConvVol(TPZVec<REAL> &x,
 {
    TPZVec< TPZVec<REAL> > F(3);
    Flux(sol, F[0], F[1], F[2]);
-   REAL constant = TimeStep() * weight;
+   REAL constant = -TimeStep() * weight;
 
    int i_state, i_shape, nShape = phi.Rows(), k;
    int nState = NStateVariables();
@@ -773,7 +773,7 @@ void TPZEulerConsLaw2::ContributeImplConvVol(TPZVec<REAL> &x,
 {
    TPZVec< TPZVec<REAL> > F(3);
    Flux(sol, F[0], F[1], F[2]);
-   REAL constant = TimeStep() * weight;
+   REAL constant = -TimeStep() * weight;
 
    TPZVec< TPZDiffMatrix<REAL> > Ai(3);
    JacobFlux(sol, Ai);

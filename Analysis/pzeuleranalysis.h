@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.6 2003-10-24 19:03:10 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.7 2003-11-20 21:39:21 erick Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -11,6 +11,7 @@
 #include "pzconslaw.h"
 #include "pzstrmatrix.h"
 #include "pzsolve.h"
+#include "pzdxmesh.h"
 
 #include <iostream>
 
@@ -140,6 +141,11 @@ public:
     * Settings for the time integration method.
     */
    void SetTimeIntCriteria(REAL epsilon, int maxIter);
+
+   /**
+    * Prepares the DX graph mesh
+    */
+   TPZDXGraphMesh * PrepareDXMesh();
 
 protected:
 

@@ -22,6 +22,8 @@
 #include "pzfstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzblock.h"
+#include "TPZFrontStructMatrix.h"
+#include "TPZFrontNonSym.h"
 
 void error(char *) {}
 
@@ -34,8 +36,9 @@ void InitialGuess(TPZVec<REAL> &x,TPZVec<REAL> &result){
 int main()
 {
    //Creating the computational and geometric meshes.
-   //TPZFlowCompMesh * cmesh = RSCompMesh();
-   TPZFlowCompMesh * cmesh = OneElCompMesh();
+   TPZFlowCompMesh * cmesh = RSCompMesh();
+//   TPZFlowCompMesh * cmesh = OneElCompMesh();
+
 
 // Creating the analysis object
 
@@ -44,11 +47,12 @@ int main()
 
    // Creating the structural matrix
    TPZFStructMatrix StrMatrix(cmesh);
+//   TPZFrontStructMatrix<TPZFrontNonSym> StrMatrix(cmesh);
    //TPZBandStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
 
-   An.SetNewtonCriteria(1e-8, 10);
-   An.SetTimeIntCriteria(1e-9, 1000);
+   An.SetNewtonCriteria(1e-9, 10);
+   An.SetTimeIntCriteria(1e-8,100);
 
    // Creating the solver for the linearized systems
    TPZStepSolver Solver;

@@ -1,9 +1,10 @@
-//$Id: pzeuleranalysis.cc,v 1.9 2003-11-12 00:04:55 erick Exp $
+//$Id: pzeuleranalysis.cc,v 1.10 2003-11-20 21:39:21 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
 #include "TPZCompElDisc.h"
 #include "pzfstrmatrix.h"
+
 
 TPZEulerAnalysis::TPZEulerAnalysis():
 TPZAnalysis(), fFlowCompMesh(NULL),
@@ -139,8 +140,13 @@ void TPZEulerAnalysis::Assemble()
 
    // Contributing referring to the last state (n index)
    fRhs+=/*.Add(fRhsLast, fRhsLast)*/ fRhsLast;
+/*
+   pTangentMatrix->Print("TangentMatrix", cout, EMathematicaInput);
 
-   //pTangentMatrix->Print("TangentMatrix", cout);
+
+   cout << "\nRhs\n" << fRhs;
+
+   cout << "\nSolution\n" << *fpCurrSol;//*/
 }
 
 
@@ -215,6 +221,29 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
    return 1;
 }
 
+TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh()
+{
+  TPZVec<char *> scalar(1),vector(0);
+  scalar[0] = "density";
+  //scalar[0] = "pressure";
+  //scalar[1] = "density";
+  //scalar[2] = "normvelocity";
+
+  TPZMaterial * mat = fFlowCompMesh->GetFlowMaterial(0);
+  int dim = mat->Dimension();
+  //ResetReference(Mesh());//retira referências para criar graph consistente
+  TPZDXGraphMesh * graph = new TPZDXGraphMesh (Mesh(),dim,mat,scalar,vector);
+  //SetReference(Mesh());//recupera as referências retiradas
+  ofstream *dxout = new ofstream("ConsLaw.dx");
+  //cout << "\nDX output file : ConsLaw.dx\n";
+  graph->SetOutFile(*dxout);
+  int resolution = 3;
+  graph->SetResolution(resolution);
+  graph->DrawMesh(dim);
+
+  return graph;
+}
+
 void TPZEulerAnalysis::Run(ostream &out)
 {
    // this analysis loop encloses several calls
@@ -223,9 +252,13 @@ void TPZEulerAnalysis::Run(ostream &out)
 
    out << "\nBeginning time integration";
 
+   TPZDXGraphMesh * graph = PrepareDXMesh();
+   int numIterDX = 1;
+   int outputStep = 0;
+
    REAL epsilon_Newton/*, epsilon_Global*/;
    int numIter_Newton/*, numIter_Global*/;
-   REAL epsilon;
+   REAL epsilon, lastEpsilon=0;
 
    int i = 0;
    epsilon = 2. * fTimeIntEps;
@@ -269,7 +302,7 @@ void TPZEulerAnalysis::Run(ostream &out)
 
 
 //      cout << "\nLast Solution\n" << *fpLastSol;
-      cout << "\nCurrent Solution\n" << *fpCurrSol;
+//      cout << "\nCurrent Solution\n" << *fpCurrSol;
 
 
       // updates the history of state variable vectors
@@ -285,18 +318,34 @@ void TPZEulerAnalysis::Run(ostream &out)
       AssembleRhs(); // computing the residual only
       epsilon = Norm(fRhs);
 
+      if(lastEpsilon>0.&&epsilon>0.)
+      {
+         fFlowCompMesh->ScaleCFL(sqrt(lastEpsilon/epsilon));
+      }
+      lastEpsilon = epsilon;
+
       out << "\niter:" << i
           << "\t eps=" << epsilon
 	  << "\t |NewtonEps=" << epsilon_Newton
 	  << "\t nIter=" << numIter_Newton;
 
+      if(i%numIterDX==0)
+      {
+         graph->DrawSolution(outputStep, i);
+	 graph->Out()->flush();
+	 outputStep++;
+      }
+
       i++;
    }
 
-   out.flush();
-
    fSolver->ResetMatrix(); // deletes the memory allocated
    // for the storage of the tangent matrix.
+
+   fpCurrSol->Print("Solution", cout);
+
+   //graph->Close();
+   delete graph;
 }
 
 void TPZEulerAnalysis::ComputeTimeStep()

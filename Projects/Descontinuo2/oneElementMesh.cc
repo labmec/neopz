@@ -84,15 +84,18 @@ TPZGeoMesh * CreateOneElGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
    for( i = 0; i < elms.NElements(); i++)
    {
       gEls[i] = gmesh->CreateGeoElement(ElType, elms[i], matId, i);
+
    }
 
 // Constructing neighborhood
 
    gmesh->BuildConnectivity();
 
+// Dividing elements to create a mesh of 4 elems.
+/*
    TPZVec< TPZGeoEl * > firstDivision;
    gEls[0]->Divide(firstDivision);
-
+*/
    return gmesh;
 }
 
@@ -142,7 +145,8 @@ TPZFlowCompMesh * OneElCompMesh()
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
    // object computes the delta when it equals null.
 
-   mat->SetCFL(1000.);
+   mat->SetCFL(.01);
+   mat->SetDelta(.001);
 
    cmesh -> InsertMaterialObject(mat);
 
@@ -204,7 +208,7 @@ TPZFlowCompMesh * OneElCompMesh()
       Solution(blockOffset+1,0) = ro * u;
       Solution(blockOffset+2,0) = ro * v;
       Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
-      ro = 1.4;
+ /*     ro = 1.4;
       u = 3.3;
       v = 5.5;
       p = 4.;
@@ -213,6 +217,10 @@ TPZFlowCompMesh * OneElCompMesh()
       Solution(blockOffset+1,0) = ro * u;
       Solution(blockOffset+2,0) = ro * v;
       Solution(blockOffset+3,0) = (p/(gamma-1.0) + 0.5 * ro * vel2);
+*/
+      int nVars = Solution.Rows();
+      int k;
+      for(k = 4; k < nVars; k++)Solution(k,0) = .05;
    }
 
    cmesh->LoadSolution(Solution);

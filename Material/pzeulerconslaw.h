@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.8 2003-11-12 00:03:41 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.9 2003-11-20 21:39:06 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -741,7 +741,7 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
    {
       Roe_Flux(solL[0], solL[1], solL[2], solL[3],
               solR[0], solR[1], solR[2], solR[3],
-	      normal[0], normal[1],
+	      -normal[0], -normal[1],
 	      gamma,
 	      flux[0], flux[1], flux[2], flux[3]);
    }else if(nState == 3)
@@ -760,8 +760,8 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
    {
        PZError << "No flux on " << nState << " state variables.\n";
    }
-   */
 
+*/
    // Normals outgoing from the BC elements into the
    // mesh elements -> all the normals are opposited to
    // the common convention -> changing the left/right
@@ -779,7 +779,7 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
    {
       Roe_Flux(solR[0], solR[1], solR[2], solR[3],
               solL[0], solL[1], solL[2], solL[3],
-	      -normal[0], -normal[1],
+	      normal[0], normal[1],
 	      gamma,
 	      flux[0], flux[1], flux[2], flux[3]);
    }else if(nState == 3)
@@ -798,6 +798,7 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
    {
        PZError << "No flux on " << nState << " state variables.\n";
    }
+
 }
 
 //left = **_f    right = **_t
