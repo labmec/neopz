@@ -13,6 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 SUBDIRS = adaptivity angletest checkcont checkconv cycleref cylin \
 	materialhyperelastico matrix multplaca placyl pzvc qualif \
-	termica teste testeisotropia testgeom testmat testshape viga3d
+	termica teste testeisotropia testgeom testmat testshape \
+	viga3d descontinuo
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -98,7 +98,10 @@ VERSION = @VERSION@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES = @PZ_CLEANFILES@
 
-SUBDIRS = adaptivity angletest checkcont checkconv cycleref cylin 	materialhyperelastico matrix multplaca placyl pzvc qualif 	termica teste testeisotropia testgeom testmat testshape viga3d
+SUBDIRS = adaptivity angletest checkcont checkconv cycleref cylin \
+	materialhyperelastico matrix multplaca placyl pzvc qualif \
+	termica teste testeisotropia testgeom testmat testshape \
+	viga3d descontinuo
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
