@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.17 2003-12-12 19:59:20 phil Exp $
+dnl $Id: configure.in,v 1.18 2003-12-15 13:28:38 tiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -359,7 +359,8 @@ dnl --| Projects subtree |--
 #	Projects/Jacobi_Base/Makefile \
 	Projects/Error/Makefile \
 	Projects/Adapt_MultThread/Makefile \
-        Projects/ConsLaw/Makefile 
+        Projects/ConsLaw/Makefile \
+	Projects/Igor/Makefile
 ])
 
 PZ_BYEBYE
