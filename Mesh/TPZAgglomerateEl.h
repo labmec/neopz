@@ -98,5 +98,7 @@ public:
 
    REAL NormalizeConst();
 
+  static TPZCompMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);
+
 };
 #endif
