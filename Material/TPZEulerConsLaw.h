@@ -71,7 +71,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,
-				   TPZFMatrix &ef);
+				   TPZFMatrix &ef,TPZBndCond *bc);
   
   virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,TPZFMatrix &axes,
 			    TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);

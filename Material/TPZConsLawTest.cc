@@ -62,7 +62,7 @@ void TPZConsLawTest::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> 
     sum1 = phi(in, 0) * sol[0];
     //segunda parcela
     sum2 = 0.;
-    for(i=0;i<dim;i++) sum2 += B(i,x) * dphi(i,in);
+    for(i=0;i<dim;i++) sum2 += B(i,x) * dphi(i,in);//F = (B0*u.B1*u,B2*u)
     sum2 *= time * sol[0];
     //terceira parcela: contribui¢ão do elemento interface: feita na classe TPZInterfaceElement
     //contribui¢ão final
@@ -104,7 +104,7 @@ REAL TPZConsLawTest::B(int i,TPZVec<REAL> &x){
 
   if(fTest==1){
     if(i==0) return (-x[1]+0.5);
-    if(i==1) return  (x[0]-0.5);
+    if(i==1) return (x[0]-0.5);
     if(i==2) return  0.0;
   }
   if(fTest==2){
