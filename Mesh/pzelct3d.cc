@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzelct3d.cc,v 1.10 2003-11-25 17:58:29 cesar Exp $
+//$Id: pzelct3d.cc,v 1.11 2004-01-05 17:58:58 cesar Exp $
 #include "pzelct3d.h"
 //#include "pzelgt3d.h"
 #include "pzgeoel.h"
@@ -68,7 +68,9 @@ TPZCompElT3d::TPZCompElT3d(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
     mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
     IdentifySideOrder(i);
   }
-  TPZVec<int> order(3,2*fSideOrder[10]);//integra variavel ao quadrado em cada direção
+  int maxorder = 2*fSideOrder[10];
+  maxorder = (maxorder <= fIntRule.GetMaxOrder()) ? maxorder : fIntRule.GetMaxOrder();
+  TPZVec<int> order(3,maxorder);//integra variavel ao quadrado em cada direção
   fIntRule.SetOrder(order);
 }
 
@@ -139,26 +141,25 @@ int TPZCompElT3d::SideOrder(int side) {
 }
 
 void TPZCompElT3d::FaceOrder(int face,int &ord1,int &ord2) {
-
- if (face<0 || face>3) cout << "\nTPZCompElT3d::FaceOrder called whit face = " << face << endl;
- //ordem minima para cada direção do plano da face
- ord2 = 0;
- if (face == 0 || face == 10) {//10
-	 ord1 = (fSideOrder[0] <= fSideOrder[1]) ? fSideOrder[0] : fSideOrder[1];
+  if (face<0 || face>3) cout << "\nTPZCompElT3d::FaceOrder called whit face = " << face << endl;
+    //ordem minima para cada direção do plano da face
+  ord2 = 0;
+  if (face == 0 || face == 10) {//10
+    ord1 = (fSideOrder[0] <= fSideOrder[1]) ? fSideOrder[0] : fSideOrder[1];
     ord1 = (   ord1       <= fSideOrder[2]) ?     ord1      : fSideOrder[2];
- } else
- if (face == 1 || face == 11) {//11
-	 ord1 = (fSideOrder[0] <= fSideOrder[3]) ? fSideOrder[0] : fSideOrder[3];
+  } else
+  if (face == 1 || face == 11) {//11
+    ord1 = (fSideOrder[0] <= fSideOrder[3]) ? fSideOrder[0] : fSideOrder[3];
     ord1 = (   ord1       <= fSideOrder[4]) ?     ord1      : fSideOrder[4];
- } else
- if (face == 2 || face == 12) {//12
-	 ord1 = (fSideOrder[1] <= fSideOrder[4]) ? fSideOrder[1] : fSideOrder[4];
-   ord1 = (    ord1       <= fSideOrder[5]) ?     ord1      : fSideOrder[5];
- } else
- if (face == 3 || face == 13) {//13
-	 ord1 = (fSideOrder[2] <= fSideOrder[3]) ? fSideOrder[2] : fSideOrder[3];
+  } else
+  if (face == 2 || face == 12) {//12
+    ord1 = (fSideOrder[1] <= fSideOrder[4]) ? fSideOrder[1] : fSideOrder[4];
+    ord1 = (    ord1       <= fSideOrder[5]) ?     ord1      : fSideOrder[5];
+  } else
+  if (face == 3 || face == 13) {//13
+    ord1 = (fSideOrder[2] <= fSideOrder[3]) ? fSideOrder[2] : fSideOrder[3];
     ord1 = (   ord1       <= fSideOrder[5]) ?     ord1      : fSideOrder[5];
- }
+  }
 }
 
 /*void TPZCompElT3d::SetFaceOrder(int face, int order) {
@@ -237,12 +238,12 @@ void TPZCompElT3d::EqNumber(TPZShortMatrix &/*mat*/) {
 }
 
 void TPZCompElT3d::VarRange(int var,REAL &min,REAL &max) {
-	PZError << "TPZCompElT3d::VarRange is not defined.\n";
-   if(var>-1) max = min = 0.;
+  PZError << "TPZCompElT3d::VarRange is not defined.\n";
+  if(var>-1) max = min = 0.;
 }
 
 void TPZCompElT3d::Load() {
-	PZError << "TPZCompElT3d::Load is called.\n";
+  PZError << "TPZCompElT3d::Load is called.\n";
 }
 
 void TPZCompElT3d::SetConnectIndex(int i,int connectindex) {
@@ -254,16 +255,16 @@ void TPZCompElT3d::SetConnectIndex(int i,int connectindex) {
 }
 
 int TPZCompElT3d::ConnectIndex(int i) {
-	if(i<0 || i>15) {
-   	PZError << "TCompElT2d::ConnectIndex. Bad parameter i.\n";
-      return -1;
-   }
-   return fConnectIndexes[i];
+  if(i<0 || i>15) {
+    PZError << "TCompElT2d::ConnectIndex. Bad parameter i.\n";
+    return -1;
+  }
+  return fConnectIndexes[i];
 }
 
 void TPZCompElT3d::SetInterpolationOrder(TPZVec<int> &ord) {
   if(ord.NElements()!=11)
-  	PZError << "TPZCompElT3d::SetInterpolationOrder. ord has bad number of elements.\n";
+    PZError << "TPZCompElT3d::SetInterpolationOrder. ord has bad number of elements.\n";
   for(int i=0;i<11;i++) fPreferredSideOrder[i] = ord[i];
 }
 
@@ -273,31 +274,32 @@ void TPZCompElT3d::GetInterpolationOrder(TPZVec<int> &ord) {
 }
 
 TPZIntPoints *TPZCompElT3d::CreateSideIntegrationRule(int side) {
-   if(side<0 || side>15) {
-		PZError << "TPZCompElT3d::CreateSideIntegrationRule. bad side number.\n";
-   	return new TPZInt1d(0);
-   }
-   //SideOrder corrige sides de 4 a 14 para 0 a 10
-   if(side<4)   return new TPZInt1d(0);//cantos 0 a 3 : cria regra com um ponto
-   if(side<10)  return new TPZInt1d(2*SideOrder(side));//lados 4 a 9
-   if(side<14)  {//faces : 10 a 13
-   	return new TPZIntTriang(2*SideOrder(side));
-   }
-   if(side==14) {//integração do elemento
-   	return new TPZIntTetra3D(3*SideOrder(14));
-   }
-   return new TPZInt1d(0);//TPZInt1Point(1)
+  if(side<0 || side>15) {
+    PZError << "TPZCompElT3d::CreateSideIntegrationRule. bad side number.\n";
+  return new TPZInt1d(0);
+  }
+  //SideOrder corrige sides de 4 a 14 para 0 a 10
+  if(side<4)   return new TPZInt1d(0);//cantos 0 a 3 : cria regra com um ponto
+  if(side<10)  return new TPZInt1d(2*SideOrder(side));//lados 4 a 9
+  if(side<14)  {//faces : 10 a 13
+    return new TPZIntTriang(2*SideOrder(side));
+  }
+  if(side==14) {//integração do elemento
+    return new TPZIntTetra3D(3*SideOrder(14));
+  }
+  PZError << "TPZCompElT3d::CreateSideIntegrationRule. Never should pass here.\n";
+  return new TPZInt1d(0);//TPZInt1Point(1)
 }
 
 int TPZCompElT3d::PreferredSideOrder(int side) {
-   if(side>-1 && side<4) return 1;//cantos
-   if(side<15) {
-	   int order = fPreferredSideOrder[side-4];//lados,faces e centro (ou interior)
-	  return AdjustPreferredSideOrder(side,order);
+  if(side>-1 && side<4) return 1;//cantos
+  if(side<15) {
+    int order = fPreferredSideOrder[side-4];//lados,faces e centro (ou interior)
+    return AdjustPreferredSideOrder(side,order);
   }
 
-   PZError << "TPZCompElT3d::PreferredSideOrder called for side = " << side << "\n";
-   return 0;
+  PZError << "TPZCompElT3d::PreferredSideOrder called for side = " << side << "\n";
+  return 0;
 }
 
 void TPZCompElT3d::SetPreferredSideOrder(int order) {
@@ -333,7 +335,7 @@ void TPZCompElT3d::SetSideOrder(int side, int order) {
   int s;
   int maxorder = 0;
   for (s = 4; s<NConnects()-1; s++){
-    if (fSideOrder[s]>maxorder)maxorder=fSideOrder[s];	
+    if (fSideOrder[s]>maxorder)maxorder=fSideOrder[s];  //??
   }
 }
 
