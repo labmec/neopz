@@ -1,7 +1,7 @@
-//$Id: pzconslaw.h,v 1.6 2003-10-21 18:12:11 erick Exp $
+//$Id: pzconslaw.h,v 1.7 2003-10-24 00:02:23 erick Exp $
 
-#ifndef CONSERVATIONLAWHPP
-#define CONSERVATIONLAWHPP
+#ifndef PZCONSLAW_H
+#define PZCONSLAW_H
 
 #include <iostream>
 #include "pzmaterial.h"
