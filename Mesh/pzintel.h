@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.10 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzintel.h,v 1.11 2003-11-18 12:37:17 cesar Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -457,7 +457,7 @@ public:
   /**
    * Checks element data structure consistancy
    */
-  int CheckElementConsistency();
+virtual  int CheckElementConsistency();
 
   /**
    * Compare the shape functions of sides of an element

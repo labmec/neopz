@@ -1,51 +1,3 @@
-/*#include "pzgclonemesh.h"
-#include "pzcclonemesh.h"
-
-#include "pzvec.h"
-#include "pzadmchunk.h"
-#include "pzcmesh.h"
-#include "pzavlmap.h"
-#include "pzvec_extras.h"
-#include "pzdebug.h"
-#include "pzcheckgeom.h"
-//#include "pzerror.h"
-
-#include "pzgeoel.h"
-#include "pzgnode.h"
-#include "pzelg1d.h"
-#include "pzelgc3d.h"
-#include "pzelgpi3d.h"
-#include "pzelgpoint.h"
-#include "pzelgpr3d.h"
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
-#include "pzelgt3d.h"
-#include "pzgeoelside.h"
-
-#include "pzintel.h"
-#include "pzcompel.h"
-#include "pzelcq2d.h"
-
-#include "pzmatrix.h"
-
-#include "pzanalysis.h"
-#include "pzfstrmatrix.h"
-#include "pzskylstrmatrix.h"
-#include "pzstepsolver.h"    		
-#include "pzadaptmesh.h"
-#include "pzonedref.h"
-
-#include "pzmaterial.h"
-#include "pzelasmat.h"
-#include "pzplaca.h"
-#include "pzmat2dlin.h"
-#include "pzmathyperelastic.h"
-#include "pzmattest3d.h"
-#include "pzmatplaca2.h"
-
-#include <time.h>
-#include <stdio.h>
-*/
 #include "includes.h"
 
 #include "c0-simplequad.cc"
@@ -60,12 +12,7 @@
 #include "c09-Plate-Cedric.cc"
 #include "c10-Prism-Pref.cc"
 #include "c11-Piram-Tetra.cc"
-/*#include "c06-Tetra.cc"
- #include "c06-Tetra.cc"
-#include "c06-Tetra.cc"*/
 #include "c15-Exp-Hexa.cc"
-
-
 
 int gPrintLevel = 0;
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp);
@@ -73,24 +20,9 @@ static REAL angle = 0.2;
 
 TPZCompMesh *ReadCase(int &nref, int &dim, int &opt);
 
-// TPZCompMesh *CreateMesh();
-// TPZCompMesh *CreateTriangularMesh();
-// TPZCompMesh *Create3DMesh();
-// TPZCompMesh *CreateSimple3DMesh();
-// TPZCompMesh *Create3DTetraMesh();
-// TPZCompMesh *Create3DPrismMesh();
-// TPZCompMesh *CreatePlanMesh();
-// TPZCompMesh *CreateTestMesh();
-// TPZCompMesh *CreatePyramTetraMesh();
-// TPZCompMesh *CreateAleatorioMesh();
-// TPZCompMesh *Create3DDiscMesh();
-// TPZCompMesh *Create3DExpMesh();
-
 TPZCompMesh *ReadKumar(char *filename);
 int MaxLevel(TPZCompMesh *mesh);
 
-
-//void NeumannExp(TPZVec<REAL> &x, TPZVec<REAL> &force);
 
 void Exact(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 void ExactSimple3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
@@ -119,12 +51,11 @@ int main(){
 
   ofstream convergence("conv3d.txt");
 
-
   cmesh->Reference()->SetName("Malha Geométrica original");
   // cmesh->Reference()->Print(cout);
 
   cmesh->SetName("Malha Computacional Original");
-  // cmesh->Print(cout);
+  //  cmesh->Print(cout);
 
   cmesh->CleanUpUnconnectedNodes();
   TPZStack<char *> scalnames, vecnames;
@@ -163,19 +94,17 @@ int main(){
   {
     int r;
     for(r=0; r<nref; r++) {
-
       //      if (r == 7) gDebug = 1;
-
       TPZAnalysis an (cmesh);
       if (opt == 4 || opt == 7 || opt == 8){
-	an.SetExact(ExactSimple3D);
-	// an.SetExact(Exact3DExp);
+        an.SetExact(ExactSimple3D);
+        // an.SetExact(Exact3DExp);
       }
       else if(opt==1 || opt==2){
-	an.SetExact(Exact);
+        an.SetExact(Exact);
       }
       else if(opt==12){
-	an.SetExact(Exact3D);
+        an.SetExact(Exact3D);
       }
       char buf [256];
       sprintf(buf,"hptest%d.dx",r);
@@ -184,8 +113,8 @@ int main(){
       cmesh->SetName("Malha computacional adaptada");
 
       if (gDebug == 1){
-	cmesh->Reference()->Print(cout);
-	cmesh->Print(cout);
+        cmesh->Reference()->Print(cout);
+        cmesh->Print(cout);
       }
 
       TPZSkylineStructMatrix strskyl(cmesh);
@@ -202,7 +131,7 @@ int main(){
       //an.Solution().Print();
 
       if (r==nref -1)
-	an.PostProcess(0,dim);
+        an.PostProcess(0,dim);
 
       REAL valerror =0.;
       REAL valtruerror=0.;
@@ -220,34 +149,34 @@ int main(){
 
       cout << "\n\n\n\nEntering Auto Adaptive Methods... step " << r << "\n\n\n\n";
 
-      //if(r==4) gPrintLevel = 1;
+      if(r==4) gDebug = 1;
       time_t sttime;
       time (& sttime);
       TPZCompMesh *adptmesh;
 
       switch (opt){
       case (1) :{
-	adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,Exact,truervec,effect,0);
-	break;
+        adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,Exact,truervec,effect,0);
+        break;
       }
       case (2) :{
-	adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact,truervec,effect,0);
-	break;
+        adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact,truervec,effect,0);
+        break;
       }
       case (4) :{
-	adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,ExactSimple3D,truervec,effect,0);
-	break;
+        adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,ExactSimple3D,truervec,effect,0);
+        break;
       }
       case (12) : {
-	adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact3D,truervec,effect,0);
-	break;
+        adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact3D,truervec,effect,0);
+        break;
       }
       case (15):{
-	adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,Exact3DExp,truervec,effect,0);
-	break;
+        adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,Exact3DExp,truervec,effect,0);
+        break;
       }
       default:
-	adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,0,truervec,effect,0);
+        adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,0,truervec,effect,0);
       }
 
       time_t endtime;
@@ -255,22 +184,20 @@ int main(){
       
       int time_elapsed = endtime - sttime;
       cout << "\n\n\n\nExiting Auto Adaptive Methods....step " << r 
-	   << "time elapsed " << time_elapsed << "\n\n\n\n";
+           << "time elapsed " << time_elapsed << "\n\n\n\n";
 
       int prt;
       cout << "neq = " << cmesh->NEquations() << " erestimate = " << valerror 
-	   << " true " << valtruerror <<  " effect " << valerror/valtruerror << endl;
+           << " true " << valtruerror <<  " effect " << valerror/valtruerror << endl;
 
+      convergence   << cmesh->NEquations() << "\t"
+                    << valerror << "\t" << valtruerror << "\t"
+                    << ( valtruerror / valerror ) <<  "\t" << sttime <<endl;
 
-      convergence  << cmesh->NEquations() << "\t" 
-		   << valerror << "\t" 
-		   << valtruerror << "\t" 
-		   << ( valtruerror / valerror ) <<  "\t"
-		   << sttime <<endl;
       for (prt=0;prt<ervec.NElements();prt++){
-	cout <<"error " << ervec[prt] << "  truerror = " << truervec[prt] << "  Effect " << effect[prt] << endl;
-	// convergence << '\t' << ervec[prt] << '\t' << truervec[prt] << "  Effect " << effect[prt] <<  endl;
-	//  adptmesh->Print(cout);
+        cout <<"error " << ervec[prt] << "  truerror = " << truervec[prt] << "  Effect " << effect[prt] << endl;
+        // convergence << '\t' << ervec[prt] << '\t' << truervec[prt] << "  Effect " << effect[prt] <<  endl;
+        //  adptmesh->Print(cout);
       }
 
       //      if (r==6){

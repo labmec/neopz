@@ -1,4 +1,4 @@
-//$Id: pzcheckmesh.h,v 1.2 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzcheckmesh.h,v 1.3 2003-11-18 12:37:17 cesar Exp $
 
 #ifndef PZGHECKMESHH
 #define PZCHECKMESHH
@@ -63,6 +63,13 @@ class TPZCheckMesh {
 
   //loop over all connects;
   int VerifyAllConnects();
+
+
+  /**
+   * This method will verify whether the fSiderOrder data structure is in sink with the Order of the Connect
+   * and whether the blocksize is in sink with the NConnectShapeF and material
+   */
+  int CheckConnectOrderConsistency();
 private:
 	int fNState;
 };

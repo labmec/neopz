@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cc,v 1.9 2003-11-06 14:36:10 cedric Exp $
+// $Id: pzelctemp.cc,v 1.10 2003-11-18 12:37:17 cesar Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -216,6 +216,19 @@ int TPZIntelGen<TGEO,TSHAPE>::SideOrder(int side) {
 template<class TGEO, class TSHAPE>
 void TPZIntelGen<TGEO,TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
+  int nc = TSHAPE::NSideConnects(side);
+  int nn = TSHAPE::NSideNodes(side);
+  TPZManVector<int,27> id(nn),order(nc-nn);
+  int n,c;
+  for (n=0;n<nn;n++){
+    int nodloc = TSHAPE::SideNodeLocId(side,n);
+    id [n] = fReference->NodePtr(nodloc)->Id();
+  }
+  for (c=nn;c<nc;c++){
+    int conloc = TSHAPE::SideConnectLocId(side,c);
+    order[c-nn] = SideOrder(conloc);
+  }
+  TSHAPE::SideShape(side, point, id, order, phi, dphi);
 }
 
 template<class TGEO, class TSHAPE>

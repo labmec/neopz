@@ -1,4 +1,4 @@
-// $Id: pzshapetetra.cpp,v 1.3 2003-10-06 01:32:07 phil Exp $
+// $Id: pzshapetetra.cpp,v 1.4 2003-11-18 12:37:17 cesar Exp $
 #include "pzshapetetra.h"
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
@@ -649,4 +649,18 @@ void TPZShapeTetra::CenterPoint(int side, TPZVec<REAL> &center) {
   for(i=0; i<Dimension; i++) {
     center[i] = MidSideNode[side][i];
   }
+}
+
+void TPZShapeTetra::SideShape(int side, TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
+
+  if(side<0 || side>15) PZError << "TPZCompElT3d::SideShapeFunction. Bad paramenter side.\n";
+  else if(side==14) Shape(point,id,order,phi,dphi);
+  else if(side<4) phi(0,0)=1.;
+  else if(side<10) {//4 a 9
+    TPZShapeLinear::Shape(point,id,order,phi,dphi);
+  }
+  else if(side<14) {//faces 10,11,12,13
+    TPZShapeTriang::Shape(point,id,order,phi,dphi);
+  }
+
 }

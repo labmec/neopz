@@ -5,7 +5,7 @@ install_location=
 type=DATA
 
 [./Makefile.am]
-files=./c0-simplequad.cc,./c01-lshape-quad.cc,./c02-lshape-triang.cc,./c03-lshape-quadtri.cc,./c04-simplehexa.cc,./c05-cornercube.cc,./c06-Tetra.cc,./c07-Prism.cc,./c08-Mixed.cc,./c09-Plate-Cedric.cc,./c10-Prism-Pref.cc,./c11-Piram-Tetra.cc,./c15-Exp-Hexa.cc,./includes.h,./main.cc,./malhageometrica,./placa.cc,./pzadaptmesh.cc,./pzadaptmesh.cc.cesar,./pzadaptmesh.h,./pzcclonemesh.cc,./pzcclonemesh.h,./pzgclonemesh.cc,./pzgclonemesh.h,./Adapt_MultThread.kdevprj,./main,./onedref.txt,./deduce.txt,./conv3d.txt,./output.txt,./hptest0.dx,./hptest1.dx,./configure,
+files=./c0-simplequad.cc,./c01-lshape-quad.cc,./c02-lshape-triang.cc,./c03-lshape-quadtri.cc,./c04-simplehexa.cc,./c05-cornercube.cc,./c06-Tetra.cc,./c07-Prism.cc,./c08-Mixed.cc,./c09-Plate-Cedric.cc,./c10-Prism-Pref.cc,./c11-Piram-Tetra.cc,./c15-Exp-Hexa.cc,./includes.h,./main.cc,./pzadaptmesh.cc,./pzadaptmesh.h,./pzcclonemesh.cc,./pzcclonemesh.h,./pzgclonemesh.cc,./pzgclonemesh.h,./Adapt_MultThread.kdevprj,./configure,
 sub_dirs=
 type=prog_main
 

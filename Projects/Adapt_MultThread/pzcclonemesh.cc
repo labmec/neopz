@@ -69,72 +69,64 @@ void TPZCompCloneMesh::AutoBuild() {
     //Reference()->Print(cout);
   }
   
-
   for(i=0; i<nelem; i++) {
     TPZGeoEl *gel = elvec[i];
     TPZGeoEl *clgel = gclm->ReferenceElement(i);
     if (clgel) {
       TPZCompEl *cel = clgel->Reference();	
       if (cel){
-	if(!gel){
-	  cout << "TPZCompCloneMesh::AutoBuild: null geometric element detected" << endl;
-	  continue;
-	}
-	if(gclm->IsPatchSon(gel)) {
-	  
-	  if (gDebug){
-	    cout << "TPZCompCloneMesh::AutoBuild : Creating computational element \n Geometric Reference Element:\n" 
-		 << endl;
-	    gel->Print();
-	  }
-	  
-	  TPZCompEl *clcel = gel->CreateCompEl(*this,index);
-	  
-	  if (gDebug){
-	    cout << "TPZCompCloneMesh::AutoBuild : Computational element created:\n" << endl;
-	    clcel->Print();
-	  }
-	  
-	  int ncon = clcel->NConnects();
-	  for (j=0; j<ncon; j++){
-	    int refcon = cel->ConnectIndex(j);
-	    int conid = clcel->ConnectIndex(j);
-	    
-	    if (gDebug){
-	      cout << "Connects --- Reference :  " << refcon << "   Clone   " << conid << endl;
-	    }
-	    
-	    if (! HasConnect(refcon) ){
-	      fMapConnects [refcon] = conid;
-	      if(conid == fOriginalConnects.NElements()) {
-		fOriginalConnects.Push(refcon);
-	      } else if(conid < fOriginalConnects.NElements()) {
-		fOriginalConnects[conid] = refcon;
-	      } else {
-		fOriginalConnects.Resize(conid+1);
-		fOriginalConnects[conid] = refcon;
-	      }
-	    }
-	  }
-	  TPZInterpolatedElement *orgintel = dynamic_cast<TPZInterpolatedElement *> (cel);
-	  TPZInterpolatedElement *clintel = dynamic_cast<TPZInterpolatedElement *> (clcel);
+        if(!gel){
+          cout << "TPZCompCloneMesh::AutoBuild: null geometric element detected" << endl;
+          continue;
+        }
+        if(gclm->IsPatchSon(gel)) {
+          if (gDebug){
+            cout << "TPZCompCloneMesh::AutoBuild : Creating computational element \n Geometric Reference Element:\n" 
+            << endl;
+            gel->Print();
+          }
+          TPZCompEl *clcel = gel->CreateCompEl(*this,index);
+          if (gDebug){
+            cout << "TPZCompCloneMesh::AutoBuild : Computational element created:\n" << endl;
+            clcel->Print();
+          }
+          int ncon = clcel->NConnects();
+          for (j=0; j<ncon; j++){
+            int refcon = cel->ConnectIndex(j);
+            int conid = clcel->ConnectIndex(j);
+            if (gDebug){
+              cout << "Connects --- Reference :  " << refcon << "   Clone   " << conid << endl;
+            }
+            if (! HasConnect(refcon) ){
+              fMapConnects [refcon] = conid;
+              if(conid == fOriginalConnects.NElements()) {
+                fOriginalConnects.Push(refcon);
+              } else if(conid < fOriginalConnects.NElements()) {
+                fOriginalConnects[conid] = refcon;
+              } else {
+                fOriginalConnects.Resize(conid+1);
+                fOriginalConnects[conid] = refcon;
+              }
+            }
+          }
+          TPZInterpolatedElement *orgintel = dynamic_cast<TPZInterpolatedElement *> (cel);
+          TPZInterpolatedElement *clintel = dynamic_cast<TPZInterpolatedElement *> (clcel);
 
-	  if (gDebug){
-	    for (j=0;j<cel->Reference()->NSides();j++){
-	      cout << "TPZCompCloneMesh::AutoBuild :Computational Element Before  PRefine:\n " << endl;
-	      clcel->Print();
-	    }
-	  }
-	  int porder = orgintel->SideOrder(cel->Reference()->NSides()-1);
-	  clintel->PRefine(porder);
-   
-	  if (gDebug){
-	    cout << "Porder " << porder << "    Side : " << j << endl;
-	    cout << "TPZCompCloneMesh::AutoBuild :Computational Element After  PRefine:\n " << endl;
-	    clcel->Print();
-	  }
-#warning "Cesar, com esta modificacao os tamanhos dos blocos podem nao ser iguais"
-	}
+          if (gDebug){
+            for (j=0;j<cel->Reference()->NSides();j++){
+              cout << "TPZCompCloneMesh::AutoBuild :Computational Element Before  PRefine:\n " << endl;
+              clcel->Print();
+            }
+          }
+          int porder = orgintel->SideOrder(cel->Reference()->NSides()-1);
+          clintel->PRefine(porder);
+          if (gDebug){
+            cout << "Porder " << porder << "    Side : " << j << endl;
+            cout << "TPZCompCloneMesh::AutoBuild :Computational Element After  PRefine:\n " << endl;
+            clcel->Print();
+          }
+          #warning "Cesar, com esta modificacao os tamanhos dos blocos podem nao ser iguais"
+        }
       }
     }
   }
@@ -143,10 +135,22 @@ void TPZCompCloneMesh::AutoBuild() {
     cout << "TPZCompCloneMesh::AutoBuild :Computational Mesh Before BC\n " << endl;
     Print(cout);
   }
+
+
+  TPZCheckMesh check(this, &cout);
+
+  if(check.CheckConnectOrderConsistency() != -1) {
+    cout << "TPZCompCloneMesh::AutoBuild The mesh is inconsistent before CreateCloneBC\n " << endl;
+
+  }
   CleanUpUnconnectedNodes();
  
   CreateCloneBC();
   
+  if(check.CheckConnectOrderConsistency() != -1) {
+    cout << "TPZCompCloneMesh::AutoBuild The mesh is inconsistent after CreateCloneBC\n " << endl;
+
+  }
   TPZCompEl *cel;
   TPZAdmChunkVector<TPZGeoElBC> &elbcvec = Reference()->BCElementVec();
   nelem = elbcvec.NElements();
@@ -159,13 +163,11 @@ void TPZCompCloneMesh::AutoBuild() {
     if(!elbcvec[i].fBCElement) { 
       cel = elbcvec[i].fElement->CreateBCCompEl(elbcvec[i].fSide,elbcvec[i].fId,*this);
       if(cel){
-	elbcvec[i].fBCElement = cel->Reference();
-	
-	if (gDebug){
-	  cout << "TPZCompCloneMesh::AutoBuild : BC Clone\n " << endl;
-	  cel->Print(cout);
-	}
-	
+        elbcvec[i].fBCElement = cel->Reference();
+        if (gDebug){
+          cout << "TPZCompCloneMesh::AutoBuild : BC Clone\n " << endl;
+          cel->Print(cout);
+        }
       }
     }
   }
@@ -173,10 +175,9 @@ void TPZCompCloneMesh::AutoBuild() {
   // Adjust the sideorders of the elements and sizes of blocks to match the original mesh
   CopyConnectStructure();
   InitializeBlock();
-
   
   //	Print(cout);
-  
+ 
   //Copiar Solução Bloco a Bloco
   int nc = fCloneReference->NConnects();
   for (i=0;i<nc;i++){
@@ -186,12 +187,20 @@ void TPZCompCloneMesh::AutoBuild() {
     int ndoforg 	= fCloneReference->ConnectVec()[i].NDof(*fCloneReference);
     int ndofclone 	= ConnectVec()[fMapConnects[i]].NDof(*this);
     if( ndoforg != ndofclone) {
+      TPZCheckMesh chkref(fCloneReference,&cout);
+      chkref.CheckConnectOrderConsistency();
+      TPZCheckMesh chkthis(this,&cout);
+      chkthis.CheckConnectOrderConsistency();
       int ord = fCloneReference->ConnectVec()[i].Order();
       int ordclone = ConnectVec()[fMapConnects[i]].Order();
+      ConnectVec()[fMapConnects[i]].Print(*this,cout);
+      fCloneReference->ConnectVec()[i].Print(*fCloneReference,cout);
       //      Print(cout);
-      cout << "Number of degree of freedom incompatible between clone and original mesh!\n";
+      cout << "\nNumber of degree of freedom incompatible between clone and original mesh!\n";
       cout << "Clone connect id: " << i << "  Clone dof: " << ndofclone << "  Original dof: " << ndoforg << endl;
       cout << "Clone order " << ordclone  << "  Original order " << ord <<  endl;
+      this->CheckOrders(fCloneReference);
+      this->CheckOrders(this);
       continue;
     }
     for (j=0;j<ndoforg;j++){//clpos; j<(clpos + ndoforg); j++){
@@ -850,6 +859,8 @@ void TPZCompCloneMesh::ApplyRefPattern(REAL minerror, TPZVec<REAL> &ervec, TPZCo
     /*     } */
     /*     TPZCompEl *orgel = clgel->Reference(); */
     TPZCompEl *cel = ElementVec()[i];
+    if (cel->Material()->Id() < 0) continue;
+
     TPZGeoEl *gel = cel->Reference();
 
     //if the element is a reference element ...
@@ -1338,9 +1349,13 @@ void TPZCompCloneMesh::CopyConnectStructure() {
   TPZCompEl *cel;
   TPZInterpolatedElement *cint;
   int nel = fElementVec.NElements();
+  TPZCheckMesh check(this,&cout);
+  if(check.CheckConnectOrderConsistency() != -1) {
+    cout  << "TPZCompCloneMesh the mesh is inconsistent to start with \n";
+  }
   int iel;
   int dim;
-  for(dim=0 ; dim<3; dim++) {
+  for(dim=1 ; dim<3; dim++) {
     for(iel = 0; iel<nel; iel++) {
       cel = fElementVec[iel];
       if(!cel) continue;
@@ -1349,24 +1364,62 @@ void TPZCompCloneMesh::CopyConnectStructure() {
       int ncon = cel->NConnects();
       int cornercon = cint->NCornerConnects();
       int ic;
-      //      for(ic=0; ic<ncon; ic++) {
-      for(ic=cornercon; ic<ncon; ic++) {
-	TPZCompElSide celside(cint,ic);
-	TPZGeoElSide gelside = celside.Reference();
-	if(gelside.Dimension() != dim) continue;
-	int conind = cint->ConnectIndex(ic);
-	TPZConnect &c = fConnectVec[conind];
-	int ndof = c.NDof(*fCloneReference);
-	int order = c.Order();
-	if(order != cint->SideOrder(ic) && ! c.HasDependency()) {
-	  cint->ForceSideOrder(ic,order);
-	  int ndof2 = c.NDof(*fCloneReference);
-	  if(ndof != ndof2) {
-	    cout << "TPZCompCloneMesh::CopyConnectStructure wrong data structure ndof "<< ndof << " ndof2 " << ndof2 << endl ;
-	  }
-	}
+      for(ic=0; ic<ncon; ic++) {
+      //for(ic=cornercon; ic<ncon; ic++) {
+        TPZCompElSide celside(cint,ic);
+        TPZGeoElSide gelside = celside.Reference();
+        if(gelside.Dimension() != dim) continue;
+        int conind = cint->ConnectIndex(ic);
+        //TPZConnect &c = fConnectVec[conind];
+        TPZConnect &c = fCloneReference->ConnectVec()[fOriginalConnects[conind]];
+        int ndof = c.NDof(*fCloneReference);
+	int ndof2 = ConnectVec()[conind].NDof(*this);
+        int order = c.Order();
+        if(ndof != ndof2 && ! ConnectVec()[conind].HasDependency()) {
+          cint->ForceSideOrder(ic,order);
+          //int ndof2 = c.NDof(*fCloneReference);
+          int ndof2 = ConnectVec()[conind].NDof(*this);
+//          int ndof2 = c.NDof(*this);
+          if(ndof != ndof2 || check.CheckConnectOrderConsistency() != -1) {
+            cout << "TPZCompCloneMesh::CopyConnectStructure wrong data structure ndof "<< ndof << " ndof2 " << ndof2 << endl ;
+          }
+        }
+        //cint->CheckConstraintConsitancy();//???
       }
     }
   }
   ExpandSolution();
+}
+/** Verifies if the connects orders is equal to the element order */
+void TPZCompCloneMesh::CheckOrders(TPZCompMesh *mesh){
+	int nel = mesh->ElementVec().NElements();
+	int e,con,s;
+	for (e=0; e<nel; e++){
+		int printing = 0;
+		TPZCompEl *cel = mesh->ElementVec()[e];
+		if (!cel) continue;
+		TPZInterpolatedElement *cintel = dynamic_cast<TPZInterpolatedElement *> (cel);
+		int nsides = cintel->NConnects();
+		//		int elorder = cintel->SideOrder(nsides-1);		
+		for (s=0;s<nsides;s++){
+			int ncon = cintel->NSideConnects(s);
+			for (con=0;con<ncon;con++){
+			  int conindex = cintel->SideConnectLocId(con,s);
+			  if(conindex < cintel->NCornerConnects()) continue;
+			  int elorder = cintel->SideOrder(conindex);
+				TPZConnect * connect = cintel->SideConnect(con,s);
+				int conorder = connect->Order();
+				if (conorder != elorder){
+					cout << "Element " << e << "   Side " << s << "   Connect " << con <<endl;
+					cout << "Element Order " << elorder << "    Connect Order " << conorder << endl;
+					connect->Print(*mesh,cout);
+				}
+				else {
+				  //					cout << "\n\nElement " << e <<  "    Side " << s << "    Connect " << con << "  OK!\n";
+					//					printing = 1;
+				}
+			}
+		}
+		if (printing) cintel->Print(cout);
+	}
 }

@@ -1,4 +1,4 @@
-//$Id: pzelcc3d.cc,v 1.8 2003-11-06 19:15:19 cesar Exp $
+//$Id: pzelcc3d.cc,v 1.9 2003-11-18 12:37:17 cesar Exp $
 
 // -*- c++ -*-
 #include "pzelcc3d.h"
@@ -453,3 +453,23 @@ void TPZCompElC3d::FaceIdsCube(int face,TPZVec<int> &ids,TPZVec<int> &id,int &id
   }
 }
 */
+
+int TPZCompElC3d::CheckElementConsistency() {
+
+  int n = NCornerConnects();
+  int nc = NConnects();
+  for(;n<nc; n++) {
+    TPZConnect &c = Connect(n);
+    int order = c.Order();
+    int order2 = fSideOrder[n-NCornerConnects()];
+    int ndof = c.NDof(*Mesh());
+    int ndof2 = Material()->NStateVariables()*NConnectShapeF(n);
+    if(order != order2 || ndof != ndof2) {
+      cout << "TPCompElC3d inconsistent datastructure connect order " << order << " side order " << order2 << " blocksize " << ndof <<
+	" computed blocksize " << ndof2 << endl;
+      Print();
+      return 0;
+    }
+  }
+  return 1;
+}

@@ -193,6 +193,8 @@ public:
 
 
   void Print(ostream &out);
+  /** Verifies if the connects orders is equal to the element order */
+  void CheckOrders(TPZCompMesh *mesh);
 };
 
 #endif

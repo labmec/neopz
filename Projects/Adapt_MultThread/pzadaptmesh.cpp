@@ -10,6 +10,7 @@
 #include "pzintel.h"
 #include "pzquad.h"
 #include "pzonedref.h"
+#include "pzcheckmesh.h"
 //multithread -->>
 #include <pthread.h>
 #include <signal.h>
@@ -257,10 +258,22 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
   
   TPZStack <TPZGeoEl*> gelstack;
   TPZStack <int> porder;
+  int ibc;
+  for (ibc=0;ibc<fReference->ElementVec().NElements();ibc++){
+    TPZCompEl *cel = fReference->ElementVec()[ibc];
+    if(!cel) continue;
+    TPZInterpolatedElement *cintel = dynamic_cast<TPZInterpolatedElement *> (cel);
+    int matid =cintel->Material()->Id();
+    if ( matid < 0 && matid != -1000){
+      int cintorder = cintel->PreferredSideOrder(cintel->NConnects() -1);
+      gelstack.Push(cintel->Reference());
+      porder.Push(cintorder);      
+    }
+  }
     
   //Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
   for (i=0;i<fCloneMesh.NElements();i++){
-    if (!fFineCloneMesh[i])continue;
+    if (!fFineCloneMesh[i]) continue;
     fCloneMesh[i]->ApplyRefPattern(ninetyfivepercent,fElementError,fFineCloneMesh[i],gelstack,porder);
   }
   
@@ -268,7 +281,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
 /*   for (igeo =0; igeo<ngeoel; igeo++){ */
 /*     gelstack[igeo]->Print(); */
 /*   } */
-
+  
   TPZCompMesh * adapted =   CreateCompMesh(fReference,gelstack,porder);
   return adapted;
 }
@@ -278,7 +291,7 @@ void * TPZAdaptMesh::MeshError(void *t){
   pthread_mutex_lock(&adapt->fLock_clindex);
   int cliter = adapt->fClonestoAnalyse[adapt->fNClones_to_Analyse];
 //   TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (adapt->fCloneMesh[cliter]->Reference());
-  adapt->fFineCloneMesh [cliter] = adapt->fCloneMesh[cliter]->UniformlyRefineMesh();
+//  adapt->fFineCloneMesh [cliter] = adapt->fCloneMesh[cliter]->UniformlyRefineMesh();
 //   if (gcmesh->ReferenceElement(0)->MaterialId() <  0){
 //     pthread_cond_signal (&adapt->fSignal_free);
 //     pthread_mutex_unlock(&adapt->fLock_clindex);
@@ -289,10 +302,17 @@ void * TPZAdaptMesh::MeshError(void *t){
 //   }
   pthread_cond_signal (&adapt->fSignal_free);
   pthread_mutex_unlock(&adapt->fLock_clindex);
-  adapt->fCloneMesh[cliter]->MeshError(adapt->fFineCloneMesh[cliter],
+  TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (adapt->fCloneMesh[cliter]->Reference());
+  if (gcmesh->ReferenceElement(0)->MaterialId() <  0){
+    adapt->fFineCloneMesh[cliter] = 0;
+  }
+  else {
+    adapt->fFineCloneMesh [cliter] = adapt->fCloneMesh[cliter]->UniformlyRefineMesh();
+    adapt->fCloneMesh[cliter]->MeshError(adapt->fFineCloneMesh[cliter],
 				       adapt->fElementError, 
 				       adapt->fExact, 
 				       adapt->fTrueErrorVec);
+  }
   pthread_mutex_lock(&adapt->fLock_clindex);
   fThreads_in_use --;
   pthread_mutex_unlock(&adapt->fLock_clindex);
@@ -392,7 +412,6 @@ void TPZAdaptMesh::Sort(TPZVec<REAL> &vec, TPZVec<int> &perm) {
 }
 
 void TPZAdaptMesh::HeapSort(TPZVec<REAL> &sol, TPZVec<int> &perm){
-
   int nelem = perm.NElements();
   int i,j;
   for(i=0; i<nelem; i++) perm[i] = i;
@@ -429,68 +448,78 @@ void TPZAdaptMesh::HeapSort(TPZVec<REAL> &sol, TPZVec<int> &perm){
   }
 }
 
-TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                                          //malha a refinar
-					     TPZVec<TPZGeoEl *> &gelstack,   //
-					     TPZVec<int> &porders) {
+TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,             //malha a refinar
+					   TPZVec<TPZGeoEl *> &gelstack,  //
+					   TPZVec<int> &porders) {
 
-        //Cria um ponteiro para a malha geométrica de mesh
+  //Cria um ponteiro para a malha geométrica de mesh
   TPZGeoMesh *gmesh = mesh->Reference();
   if(!gmesh) {
     cout << "TPZAdaptMesh::CreateCompMesh encountered no geometric mesh\n";
     return 0;
   }
 
-        //Reseta as referências do ponteiro para a malha geométrica criada
-        //e cria uma nova malha computacional baseada nesta malha geométrica
+  //Reseta as referências do ponteiro para a malha geométrica criada
+  //e cria uma nova malha computacional baseada nesta malha geométrica
   gmesh->ResetReference();
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+  TPZCheckMesh check(cmesh,&cout);
   int nmat = mesh->MaterialVec().NElements();
   int m;
 
-        //Cria um clone do vetor de materiais da malha mesh
+  //Cria um clone do vetor de materiais da malha mesh
   for(m=0; m<nmat; m++) {
     TPZMaterial *mat = mesh->MaterialVec()[m];
     if(!mat) continue;
     mat->Clone(cmesh->MaterialVec());
   }
 
-        //Idenifica o vetor de elementos computacionais de mesh
+  //Idenifica o vetor de elementos computacionais de mesh
   //  TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh->ElementVec();
-
+  
   int el,nelem = gelstack.NElements();
   //  cmesh->SetName("Antes PRefine");
   //  cmesh->Print(cout);
-  for(el=0; el<nelem; el++) {
 
-                //identifica os elementos geométricos passados em gelstack
+  for(el=0; el<nelem; el++) {
+    //identifica os elementos geométricos passados em gelstack
     TPZGeoEl *gel = gelstack[el];
     if(!gel) {
       cout << "TPZAdaptMesh::CreateCompMesh encountered an null element\n";
       continue;
     }
     int celindex;
-
-                //Cria um TPZIntel baseado no gel identificado
+    //Cria um TPZIntel baseado no gel identificado
+    int temporder = TPZCompEl::gOrder;
+    TPZCompEl::gOrder = porders[el];
     TPZInterpolatedElement *csint;
     csint = dynamic_cast<TPZInterpolatedElement *> (gel->CreateCompEl(*cmesh,celindex));
-    if(!csint) continue;
-
-                //Refina em p o elemento criado
-    //	cmesh->SetName("depois criar elemento");
-    //	cmesh->Print(cout);
-     
-    csint->PRefine(porders[el]);
-    //	cmesh->SetName("depois prefine no elemento");
-    //	cmesh->Print(cout);
+    TPZCompEl::gOrder = temporder;
+    if(check.CheckConnectOrderConsistency() != -1) {
+      cout << "TPZAdaptMesh::CreateCompMesh mesh inconsistent\n";
+    }
+    
+    /**PRefine precisar ser verificado!!!
+       if(!csint) continue;
+       //Refina em p o elemento criado
+       //cmesh->SetName("depois criar elemento");
+       //	cmesh->Print(cout);
+       csint->PRefine(porders[el]);
+       //	cmesh->SetName("depois prefine no elemento");
+       //	cmesh->Print(cout);
+       */
   }
-        //Mais einh!!
+
+  //Mais einh!!
   //	cmesh->SetName("Antes Adjust");
   //	cmesh->Print(cout);
   cmesh->AdjustBoundaryElements();
   //  cmesh->SetName("Depois");
   //  cmesh->Print(cout);
+  if(check.CheckConnectOrderConsistency() != -1) {
+    cout << "TPZAdaptMesh::CreateCompMesh mesh inconsistent\n";
+  }
   return cmesh;
-
 }
 
 void TPZAdaptMesh::RemoveCloneBC(TPZCompMesh *mesh)

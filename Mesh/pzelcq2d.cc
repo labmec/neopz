@@ -1,4 +1,4 @@
-//$Id: pzelcq2d.cc,v 1.10 2003-11-06 19:15:19 cesar Exp $
+//$Id: pzelcq2d.cc,v 1.11 2003-11-18 12:37:17 cesar Exp $
 
 // -*- c++ -*-
 #include "pzelcq2d.h"
@@ -391,4 +391,24 @@ TPZCompMesh *TPZCompElQ2d::CreateMesh() {
    secondmesh->AdjustBoundaryElements();
 
    return secondmesh;
+}
+
+int TPZCompElQ2d::CheckElementConsistency() {
+
+  int n = NCornerConnects();
+  int nc = NConnects();
+  for(;n<nc; n++) {
+    TPZConnect &c = Connect(n);
+    int order = c.Order();
+    int order2 = fSideOrder[n-NCornerConnects()];
+    int ndof = c.NDof(*Mesh());
+    int ndof2 = Material()->NStateVariables()*NConnectShapeF(n);
+    if(order != order2 || ndof != ndof2) {
+      cout << "TPCompElC3d inconsistent datastructure connect order " << order << " side order " << order2 << " blocksize " << ndof <<
+	" computed blocksize " << ndof2 << endl;
+      Print();
+      return 0;
+    }
+  }
+  return 1;
 }
