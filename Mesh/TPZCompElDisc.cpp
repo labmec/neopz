@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.26 2003-11-10 16:15:07 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.27 2003-11-12 13:31:26 erick Exp $
 
 // -*- c++ -*- 
 
@@ -28,6 +28,8 @@
 #include "TPZInterfaceEl.h"
 #include "TPZConservationLaw.h"
 #include "TPZEulerConsLaw.h"
+#include "pzconslaw.h"
+#include "pzeulerconslaw.h"
 #include "pzgraphel.h"
 #include "pzgraphelq2dd.h"
 #include "pzgraphelq3dd.h"
