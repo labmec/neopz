@@ -111,7 +111,7 @@ TPZGeoElement<TShape,TGeo,TRef>::SetSubElement(int id, TPZGeoEl *el){
 
   if (id<0 || id >(TRef::NSubEl - 1)){
     PZError << "TPZGeoElement::Trying do define subelement :" 
-	    << id << endl;
+	    << id << "Max Allowed = " << TRef::NSubEl - 1 << endl;
     return;
   }
   fSubEl[id] = el->Index();
