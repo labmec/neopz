@@ -2,6 +2,11 @@
 
 #include <stdlib.h>
 
+  /**
+     Destructor
+  */
+TPZSolver::~TPZSolver() {}
+
 TPZMatrixSolver::TPZMatrixSolver(TPZMatrix *Refmat) : fScratch() {
 
   fContainer = new TPZContainer(Refmat);

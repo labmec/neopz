@@ -3,6 +3,8 @@
 
 #include "pzfmatrix.h"
 
+class TPZMatrixSolver;
+
 /**
    @ingroup solver
    Defines a abstract class of solvers  which will be used by matrix classes
@@ -27,7 +29,17 @@ class TPZSolver {
   /**
      Destructor
   */
-  virtual ~TPZSolver() {}
+  virtual ~TPZSolver();
+  
+  /**
+  This method will reset the matrix associated with the solver
+  This is useful when the matrix needs to be recomputed in a non linear problem
+  */
+  virtual void ResetMatrix() {}
+  /**
+  This method gives a preconditioner to share a matrix with the referring solver object
+  */
+  virtual void SetMatrix(TPZMatrixSolver *solver);
 
 };
 
@@ -61,12 +73,17 @@ class TPZMatrixSolver : public TPZSolver {
      Sets a matrix to the current object
      @param RefMat Sets reference matrix to RefMat     
   */
-  void SetMatrix(TPZMatrix *Refmat);
+virtual  void SetMatrix(TPZMatrix *Refmat);
 
   /**
      Resets current object
   */
   void ResetMatrix();
+
+  /**
+  This method gives a preconditioner to share a matrix with the referring solver object
+  */
+  virtual void SetMatrix(TPZMatrixSolver *solver);
 
   /**
      Returns a pointer to TPZMatrix
