@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.16 2004-02-12 00:17:54 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.17 2004-02-12 18:46:27 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -14,6 +14,7 @@
 #ifdef _AUTODIFF
    #include "fadType.h"
 #endif
+
 
 class TPZEulerConsLaw2  : public TPZConservationLaw2
 {
@@ -111,19 +112,6 @@ public :
 
 //------------------solutions
 
-  /**
-   * See declaration in base class
-   *//*
-  virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,
-			TPZVec<REAL> &normal,TPZBndCond *bcleft);
-*/
-  /**
-   * See declaration in base class
-   *//*
-  virtual void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,
-			TPZVec<REAL> &normal,TPZBndCond *bcright);
-*/
-
 /*
    Computes the ghost state variables bsed on the BC type
 */
@@ -138,16 +126,17 @@ void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, T
   /**
    * See declaration in base class
    */
-  virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes,
+/*  virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes,
 		    TPZVec<REAL> &flux);
-
+*/
   /**
    * See declaration in base class
    */
-  virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
+/*  virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
-
+	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values)
+	      {};
+*/
 //------------------Fluxes
 
   /**
@@ -207,17 +196,42 @@ public:
    * Flux of Roe (MOUSE program)
    */
   template <class T>
-  static void Roe_Flux(const T & rho_f, const T & rhou_f, const T & rhov_f, const T & rhow_f, const T & rhoE_f,
-	       const T & rho_t, const T & rhou_t, const T & rhov_t, const T & rhow_t, const T & rhoE_t,
-	       const REAL nx, const REAL ny, const REAL nz, const REAL gam, T & flux_rho, T & flux_rhou,
-	       T & flux_rhov,T & flux_rhow, T & flux_rhoE);
+  static void Roe_Flux(const T & rho_f,
+  		       const T & rhou_f,
+		       const T & rhov_f,
+		       const T & rhow_f,
+		       const T & rhoE_f,
+		       const T & rho_t,
+		       const T & rhou_t,
+		       const T & rhov_t,
+		       const T & rhow_t,
+		       const T & rhoE_t,
+		       const REAL nx,
+		       const REAL ny,
+		       const REAL nz,
+		       const REAL gam,
+		       T & flux_rho,
+		       T & flux_rhou,
+		       T & flux_rhov,
+		       T & flux_rhow,
+		       T & flux_rhoE);
 
   template <class T>
-  static void Roe_Flux(const T & rho_f,const T & rhou_f,const T & rhov_f,const T & rhoE_f,
-		   const T & rho_t, const T & rhou_t, const T & rhov_t, const T & rhoE_t,
-		   const REAL nx, const REAL ny, const REAL gam,
-		   T &flux_rho, T &flux_rhou,
-		   T &flux_rhov, T &flux_rhoE);
+  static void Roe_Flux(const T & rho_f,
+                       const T & rhou_f,
+		       const T & rhov_f,
+		       const T & rhoE_f,
+		       const T & rho_t,
+		       const T & rhou_t,
+		       const T & rhov_t,
+		       const T & rhoE_t,
+		       const REAL nx,
+		       const REAL ny,
+		       const REAL gam,
+		       T &flux_rho,
+		       T &flux_rhou,
+		       T &flux_rhov,
+		       T &flux_rhoE);
 
 //------------------Differentiable variables setup
 
@@ -237,7 +251,7 @@ public:
    * and coefficient derivatives (dphi) at the point
    */
   void PrepareFAD(TPZVec<REAL> & sol, TPZFMatrix & dsol,
- 		TPZFMatrix & phi, TPZFMatrix & dphi,
+		TPZFMatrix & phi, TPZFMatrix & dphi,
 		TPZVec<FADREAL> & FADsol,
 		TPZVec<FADREAL> & FADdsol);
 
@@ -260,6 +274,19 @@ public:
 		TPZFMatrix &phiL,TPZFMatrix &phiR,
 		TPZVec<FADREAL> & FADsolL,
 		TPZVec<FADREAL> & FADsolR);
+
+  /**
+   * Converts the REAL values into FAD differentiable objects
+   * with respect to the left and right interface volumes.
+   * The derivatives are only with respect to the left and
+   * right state variables, not the shape functions.
+   * It returns a TFADET class type
+   */
+template <class T>
+  void PrepareFastestInterfaceFAD(
+		TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+		TPZVec<T> & FADsolL,
+		TPZVec<T> & FADsolR);
 
 #endif
 
@@ -305,10 +332,30 @@ public:
 			TPZFMatrix &ek, TPZFMatrix &ef,
 			TPZBndCond &bc);
 
-  virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-			    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+  virtual void ContributeBCInterface(TPZVec<REAL> &x,
+			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
+			REAL weight, TPZVec<REAL> &normal,
+			TPZFMatrix &phiL, TPZFMatrix &dphiL,
+			TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
 
 //------------------internal contributions
+
+void TPZEulerConsLaw2::ContributeFastestBCInterface(int dim,
+			TPZVec<REAL> &x,
+			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
+			REAL weight, TPZVec<REAL> &normal,
+			TPZFMatrix &phiL, TPZFMatrix &dphiL,
+			TPZFMatrix &ek,TPZFMatrix &ef, TPZBndCond &bc);
+
+template <int dim>
+void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(
+			TPZVec<REAL> &x,
+			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
+			REAL weight, TPZVec<REAL> &normal,
+			TPZFMatrix &phiL,TPZFMatrix &dphiL,
+			TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
 
   virtual void ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
@@ -345,7 +392,8 @@ public:
 			REAL weight,
 			TPZFMatrix &ek,TPZFMatrix &ef);
 
-  void ContributeFastestImplDiff(TPZVec<REAL> &x,
+  void ContributeFastestImplDiff(int dim,
+			TPZVec<REAL> &x,
 			TPZFMatrix &jacinv,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
@@ -368,9 +416,25 @@ public:
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
 			TPZFMatrix &ek,TPZFMatrix &ef);
 
-template <int dim>
-  void ContributeFastestImplConvFace(TPZVec<REAL> &x,
+
+  void ContributeFastestImplConvFace(int dim,
+			TPZVec<REAL> &x,
 			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+			REAL weight,TPZVec<REAL> &normal,
+			TPZFMatrix &phiL,TPZFMatrix &phiR,
+			TPZFMatrix &ek,TPZFMatrix &ef);
+
+template <int dim>
+  void ContributeFastestImplConvFace_dim(
+			TPZVec<REAL> &x,
+			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+			REAL weight,TPZVec<REAL> &normal,
+			TPZFMatrix &phiL,TPZFMatrix &phiR,
+			TPZFMatrix &ek,TPZFMatrix &ef);
+
+template <class T>
+  void ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
+			TPZVec<T> &FADsolL,TPZVec<T> &FADsolR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
 			TPZFMatrix &ek,TPZFMatrix &ef);
@@ -409,20 +473,6 @@ template <int dim>
 			TPZFMatrix &ef);
 
 //--------------------
-
-
-  //virtual void SetIntegDegree(int degree){fIntegrationDegree = degree;}
-
-  //virtual int IntegrationDegree(){return fIntegrationDegree;}
-
-//--------------------Test purposes
-
-  // PARA TESTE PARA TESTE PARA PARA TESTE
-  void ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,
-		       REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,
-		       TPZFMatrix &ek,TPZFMatrix &ef);// PARA TESTE PARA TESTE PARA PARA TESTE
-
-  void TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL &increment);
 
 //---------------------Attributes
 protected:

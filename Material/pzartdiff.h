@@ -349,8 +349,15 @@ void ContributeImplDiff(int dim,
    * @param timeStep [in]
    */
 
-void TPZArtDiff::ContributeFastestImplDiff(int dim,
+template <int dim>
+void ContributeFastestImplDiff_dim(
                           TPZFMatrix &jacinv,
+			  TPZVec<REAL> &sol, TPZFMatrix &dsol,
+			  TPZFMatrix &phi, TPZFMatrix &dphi,
+			  TPZFMatrix &ek, TPZFMatrix &ef,
+			  REAL weight, REAL timeStep);
+
+void ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv,
 			  TPZVec<REAL> &sol, TPZFMatrix &dsol,
 			  TPZFMatrix &phi, TPZFMatrix &dphi,
 			  TPZFMatrix &ek, TPZFMatrix &ef,
@@ -711,6 +718,7 @@ void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma,
       PZError << "TPZArtDiff::EigenSystemBornhaus Error: Invalid Dimension\n";
    }
 }
+
 
 
 #endif

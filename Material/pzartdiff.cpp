@@ -468,10 +468,6 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix &jacinv, TPZVec<FADREAL> &s
      Tau[k].Multiply(Div, TauDiv[k]);
 }
 
-#endif
-
-
-#ifdef _AUTODIFF
 template <int dim>
 void TPZArtDiff::PrepareFastestDiff(TPZFMatrix &jacinv,
 		TPZVec<REAL> &sol,
@@ -567,8 +563,8 @@ typedef TFad<dim+2, REAL> TFADREALdim;
   //Computing DTauDiv = DTau * Div + Tau * DDiv
 }
 
-#endif
 
+#endif
 
 
 //-----------------Contribute
@@ -625,39 +621,6 @@ void TPZArtDiff::ContributeExplDiff(int dim, TPZFMatrix &jacinv, TPZVec<REAL> &s
 	     ef(i+l*nstate,0) += dphix(k,l) * TauDiv[k][i] * constant;
 }
 
-void TPZArtDiff::ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &phi, TPZFMatrix &dphi, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight, REAL timeStep)
-{
-    REAL delta = Delta();
-    REAL constant = /*-*/ weight * delta * timeStep;
-    REAL buff;
-
-    TPZVec<TPZVec<REAL> > TauDiv;
-    TPZVec<TPZDiffMatrix<REAL> > dTauDiv;
-
-    PrepareFastestDiff<2>( jacinv, sol, dsol, phi, dphi, TauDiv, dTauDiv);
-
-    int i, j, k, l;
-    int nshape = dphi.Cols();
-    int nstate = dim + 2;
-    int neq = nstate * nshape;
-
-    // ODotProduct speeded up
-
-    for(l=0;l<nshape;l++)
-       for(i=0;i<nstate;i++)
-          for(k=0;k<dim;k++)
-	     {
-	     buff = dphi(k,l) * constant;
-	     ef(i+l*nstate,0) += buff * TauDiv[k][i];
-             for(j=0;j<neq;j++)
-	        ek(i+l*nstate,j) -= buff * dTauDiv[k](i,j);
-	     }
-/*
-    for(l=0;l<nshape;l++)
-       for(i=0;i<nstate;i++)
-	  for(k=0;k<dim;k++)
-	     ef(i+l*nstate,0) += dphix(k,l) * TauDiv[k][i] * constant;*/
-}
 
 #ifdef _AUTODIFF
 
@@ -691,6 +654,68 @@ void TPZArtDiff::ContributeImplDiff(int dim, TPZFMatrix &jacinv, TPZVec<FADREAL>
 	      }
        }
 }
+
+template <int dim>
+void TPZArtDiff::ContributeFastestImplDiff_dim(TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &phi, TPZFMatrix &dphi, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight, REAL timeStep)
+{
+    REAL delta = Delta();
+    REAL constant = /*-*/ weight * delta * timeStep;
+    REAL buff;
+
+    TPZVec<TPZVec<REAL> > TauDiv;
+    TPZVec<TPZDiffMatrix<REAL> > dTauDiv;
+
+    PrepareFastestDiff<dim>( jacinv, sol, dsol, phi, dphi, TauDiv, dTauDiv);
+
+    int i, j, k, l;
+    int nshape = dphi.Cols();
+    int nstate = dim + 2;
+    int neq = nstate * nshape;
+
+    // ODotProduct speeded up
+
+    for(l=0;l<nshape;l++)
+       for(i=0;i<nstate;i++)
+          for(k=0;k<dim;k++)
+	     {
+	     buff = dphi(k,l) * constant;
+	     ef(i+l*nstate,0) += buff * TauDiv[k][i];
+             for(j=0;j<neq;j++)
+	        ek(i+l*nstate,j) -= buff * dTauDiv[k](i,j);
+	     }
+/*
+    for(l=0;l<nshape;l++)
+       for(i=0;i<nstate;i++)
+	  for(k=0;k<dim;k++)
+	     ef(i+l*nstate,0) += dphix(k,l) * TauDiv[k][i] * constant;*/
+}
+
+
+void TPZArtDiff::ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &phi, TPZFMatrix &dphi, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight, REAL timeStep)
+{
+   switch(dim)
+   {
+      case(1):
+      ContributeFastestImplDiff_dim<1>(jacinv, sol, dsol,
+                                   phi, dphi, ek, ef,
+				   weight, timeStep);
+      break;
+      case(2):
+      ContributeFastestImplDiff_dim<2>(jacinv, sol, dsol,
+                                   phi, dphi, ek, ef,
+				   weight, timeStep);
+      break;
+      case(3):
+      ContributeFastestImplDiff_dim<3>(jacinv, sol, dsol,
+                                   phi, dphi, ek, ef,
+				   weight, timeStep);
+      break;
+      default:
+      PZError << "\nTPZArtDiff::ContributeFastestImplDiff unhandled dimension\n";
+      exit(-1);
+   }
+}
+
 
 template< class T >
 void TPZArtDiff::Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U)

@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.12 2004-02-09 19:02:38 erick Exp $
+//$Id: pzconslaw.h,v 1.13 2004-02-12 18:46:27 erick Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -179,6 +179,7 @@ public:
    * computes the value of the flux function to be used
    * by ZZ error estimator
    */
+   /*
   virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol,
 			TPZFMatrix &DSol, TPZFMatrix &axes,
 			TPZVec<REAL> &flux);
@@ -187,7 +188,7 @@ public:
 	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,
 	      TPZVec<REAL> &values);
-
+*/
 
 //------------------contributions
 
@@ -246,11 +247,6 @@ protected:
   REAL fCFL;
 
   /**
-   * Delta coefficient related to the Artificial diffusive term
-   */
-//  REAL fDelta;
-
-  /**
    * ratio between specific heat is constant and the specific heat the constant
    * volume of a polytropic gas
    */
@@ -272,17 +268,6 @@ protected:
 
 };
 
-/*
-inline void TPZConservationLaw2::SetDelta(REAL delta)
-{
-   fDelta = delta;
-}
-
-inline REAL TPZConservationLaw2::Delta()
-{
-   return fDelta;
-}
-*/
 inline int TPZConservationLaw2::Dimension()
 {
    return fDim;
@@ -320,12 +305,6 @@ inline REAL TPZConservationLaw2::TimeStep()
    if(fResidualType == Residual_RT)return fTimeStep;
    return 1.;
 }
-/*
-inline char * TPZConservationLaw2::Name()
-{
-   return "TPZConservationLaw2";
-}
-*/
 inline int TPZConservationLaw2::NFluxes()
 {
    return 1;
@@ -340,9 +319,6 @@ inline void TPZConservationLaw2::SetContributionTime(TPZContributeTime time)
 inline void TPZConservationLaw2::SetResidualType(TPZResidualType type)
 {
    fResidualType = type;
-   /*
-   if(fResidualType == Flux_RT)cout << "Flux Residual Type\n";
-   if(fResidualType == Residual_RT)cout << "Residual Residual Type\n";*/
 }
 
 #endif

@@ -1,4 +1,4 @@
-//$Id: pzconslaw.cpp,v 1.6 2003-12-18 20:05:11 erick Exp $
+//$Id: pzconslaw.cpp,v 1.7 2004-02-12 18:46:27 erick Exp $
 
 #include "pzconslaw.h"
 #include "pzelmat.h"
@@ -15,7 +15,6 @@ TPZConservationLaw2::TPZConservationLaw2(int nummat,REAL timeStep,int dim) :
 fDim(dim),
 fTimeStep(0),
 fCFL(0),
-//fDelta(0),
 fGamma(1.4)
 {
    fTimeStep = timeStep;
@@ -65,18 +64,12 @@ void TPZConservationLaw2::Print(ostream &out)
    }
 }
 
-// void TPZConservationLaw2::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*axes*/,int var,TPZVec<REAL> &Solout){
-
-//   cout << "TPZConservationLaw2::Solution nao deve ser chamada\n";
-
-// }
-
-void TPZConservationLaw2::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
+//void TPZConservationLaw2::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
   //Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
-}
+//}
 
-void TPZConservationLaw2::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
-			       TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
-			       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
+//void TPZConservationLaw2::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
+//			       TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
+//			       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
 
-}
+//}
