@@ -176,8 +176,8 @@ int main() {
        << "\t[6: NoveCubos]\n"
        << "\t\t\t";
 
-  //cin >> tipo;
-  tipo = 3;
+  cin >> tipo;
+  //tipo = 5;
   problem = tipo;
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
   //cin >> grau;
@@ -216,20 +216,20 @@ int main() {
 
   int numiter,marcha;
   cout << "\nNumero de iteracoes requerida ? : ";
-  //cin >> numiter;
-  numiter = 100;
+  cin >> numiter;
+  //numiter = 100;
   cout << "main:: Parametro marcha : \n";
-  //cin >> marcha;
-  marcha = 10;
+  cin >> marcha;
+  //marcha = 10;
   if(1){
     cout << "main:: entre CFL (si nulo sera calculado) -> ";
-    //cin >> CFL;
-    CFL = 0.0;
+    cin >> CFL;
+    //CFL = 0.0;
     TPZDiffusionConsLaw::fCFL = CFL;
     cout << "main:: entre delta (si nulo sera calculado) -> ";
     REAL delta;
-    //cin >> delta;
-    delta = 0.0;
+    cin >> delta;
+    //delta = 0.0;
     TPZDiffusionConsLaw::fDelta= delta;
   }
 
@@ -263,6 +263,7 @@ int main() {
       outgm.flush();
     }
   }
+  if(0){
   /////////////////////////////////////////////////////////////////////////////////////////////////
   TPZVec<int> accumlist;
   int nivel,numaggl;
@@ -276,6 +277,7 @@ int main() {
   cout << "\n\nmain:: FIM DO PROGRAMA\n\n";
   return 0;
   /////////////////////////////////////////////////////////////////////////////////////////////////
+    }
   //com matriz não simétrica e ELU 2D e 3D convergen
   if(1){
     TPZIterativeAnalysis an(cmesh,outgm);
