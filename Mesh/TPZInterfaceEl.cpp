@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.29 2004-02-04 20:30:24 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.30 2004-03-31 23:57:33 erick Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -307,6 +307,8 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     //    }
     mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,*ek.fMat,*ef.fMat);
   }
+  
+  delete intrule;
 }
 
 void TPZInterfaceElement::GetTransformsLeftAndRight(TPZTransform &tl,TPZTransform &tr){
