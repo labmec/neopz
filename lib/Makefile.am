@@ -176,6 +176,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Material/pzeulerconslaw.o \
 	../Material/pzbiharmonic.o \
         ../Material/pzmaterialid.o \
+        ../Material/tpzoutofrange.o \
 	../Post/pzdxmesh.o \
 	../Post/pzgraphel1d.o \
 	../Post/pzgraphel1dd.o \
