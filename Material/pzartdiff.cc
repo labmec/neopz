@@ -88,6 +88,10 @@ template <class T>
 void TPZArtDiff::JacobFlux(int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai)
 {//OK
 
+  Ai.Resize(dim);
+  int i;
+  for(i=0;i<dim;i++)Ai[i].Redim(dim+2, dim+2);
+
   if(U[0] < 1.e-6) {
     PZError << "\nTPZArtDiff::JacobFlux: Density almost null or negative, jacobian evaluation fails\n"
        << "Density = " << U[0] << endl;
@@ -99,10 +103,6 @@ void TPZArtDiff::JacobFlux(int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai)
     PZError << "\nTPZArtDiff::JacobFlux: Unhandled dimension" << dim;
     return;
   }
-
-  Ai.Resize(dim);
-  int i;
-  for(i=0;i<dim;i++)Ai[i].Redim(dim+2, dim+2);
 
   T    u,v,w,e;
   REAL gamma1 = fGamma-1.;
@@ -420,10 +420,9 @@ void TPZArtDiff::SUPG(TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > 
 
 template <class T>
 void TPZArtDiff::LS(TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
-
-  Ai[0].Transpose(Tau[0]);
-  Ai[1].Transpose(Tau[1]);
-  Ai[2].Transpose(Tau[2]);
+  int i, dim = Ai.NElements();
+  for(i = 0; i < dim; i++)
+     Ai[i].Transpose(Tau[i]);
 }
 
 template <class T>
