@@ -35,9 +35,11 @@ TPZMatrix * TPZSpStructMatrix::CreateAssemble(TPZFMatrix &rhs){
       return new TPZFYsmpMatrix(0,0);
     }
     TPZMatrix *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
+    TPZFYsmpMatrix *mat = dynamic_cast<TPZFYsmpMatrix *> stiff;
     rhs.Redim(neq,1);
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     Assemble(*stiff,rhs);
+    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     return stiff;
 }
@@ -101,14 +103,19 @@ TPZMatrix * TPZSpStructMatrix::Create(){
     REAL * EqValue = new REAL [totalvar];
     for(i=0;i<nblock;i++){
       int iblsize = fMesh->Block().Size(i);
+      if(pos != fMesh->Block().Position(i)) cout << "TPZSpStructMatrix::Create I dont understand\n";
       int ibleq;
       for(ibleq=0; ibleq<iblsize; ibleq++) {
         Eq[ieq] = pos;
+	EqCol[pos] = ieq;
+	EqValue[pos] = 0.;
+	pos++;
         int colsize = fMesh->Block().Size(i);
         int colpos = fMesh->Block().Position(i);
         int jbleq;
         for(jbleq=0; jbleq<colsize; jbleq++) {
-            EqCol[pos] = -1;//colpos;
+            if(colpos == ieq) continue;
+	    EqCol[pos] = colpos;
             EqValue[pos] = 0.;
             colpos++;
             pos++;
@@ -122,7 +129,7 @@ TPZMatrix * TPZSpStructMatrix::Create(){
         	colsize = fMesh->Block().Size(col);
         	colpos = fMesh->Block().Position(col);
         	for(jbleq=0; jbleq<colsize; jbleq++) {
-            	  EqCol[pos] = -1;//colpos;
+            	  EqCol[pos] = colpos;
             	  EqValue[pos] = 0.;
             	  colpos++;
             	  pos++;
@@ -176,7 +183,9 @@ int TPZSpStructMatrix::main() {
        TPZVec<int> indices(4);
        for(i=0; i<4; i++) indices[i] = i;
        // O proprio construtor vai inserir o elemento na malha
-       gel = new TPZGeoElQ2d(el,indices,1,gmesh);
+       //       gel = new TPZGeoElQ2d(el,indices,1,gmesh);
+       int index;
+       gel = gmesh->CreateGeoElement(EQuadrilateral,indices,1,index);
      }
      gmesh.BuildConnectivity ();
      
@@ -225,22 +234,22 @@ int TPZSpStructMatrix::main() {
      //cout << "Número de Equações -> " << cmesh.NEquations() << endl;
      //cout.flush();
 	
-     ofstream out("cmeshBlock_out.txt");
+     //     ofstream out("cmeshBlock_out.txt");
      //	cmesh.Print(out);
      //	cmesh.Block().Print("Block",out);
-     for(ic=0; ic<cmesh.ConnectVec().NElements(); ic++) {
-       TPZConnect &cn = cmesh.ConnectVec()[ic];
-       if(cn.HasDependency()) continue;
-       int seqn = cn.SequenceNumber();
-       if(seqn < 0) continue;
-       int firsteq = cmesh.Block().Position(seqn);
-       int lasteq = firsteq+cmesh.Block().Size(seqn);
-       int ind;
-       int temp = cmesh.ConnectVec()[ic].NElConnected();
-       for(ind=firsteq;ind<lasteq;ind++) {
-	        numelconnected[ind] = temp;//cmesh.ConnectVec()[ic].NElConnected();
-       }
-     }
+     //     for(ic=0; ic<cmesh.ConnectVec().NElements(); ic++) {
+     //       TPZConnect &cn = cmesh.ConnectVec()[ic];
+     //       if(cn.HasDependency()) continue;
+     //       int seqn = cn.SequenceNumber();
+     //       if(seqn < 0) continue;
+     //       int firsteq = cmesh.Block().Position(seqn);
+     //       int lasteq = firsteq+cmesh.Block().Size(seqn);
+     //       int ind;
+     //       int temp = cmesh.ConnectVec()[ic].NElConnected();
+     //       for(ind=firsteq;ind<lasteq;ind++) {
+     //	        numelconnected[ind] = temp;//cmesh.ConnectVec()[ic].NElConnected();
+     //       }
+     //     }
      //	//cout << "nequations " << numelconnected.NElements();
      //	for(ic=0;ic<numelconnected.NElements(); ic++) //cout << numelconnected[ic] <<' ';
      //	//cout << endl;
@@ -270,10 +279,11 @@ int TPZSpStructMatrix::main() {
 	
      TPZStepSolver sol;
      //	sol.SetDirect(ELU);
-     sol.SetDirect(ECholesky);
+     // sol.SetDirect(ECholesky);
      //	TPZStepSolver sol2;
      //	sol2.SetDirect(ECholesky);
      //	sol.SetDirect(ELU);
+     sol.SetJacobi(100,1.e-5,0);
 	
 	
      an.SetSolver(sol);
