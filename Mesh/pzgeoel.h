@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.18 2005-02-28 22:08:52 phil Exp $
+//$Id: pzgeoel.h,v 1.19 2005-03-09 23:23:10 phil Exp $
 
 // -*- c++ -*-
 
@@ -354,7 +354,7 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
   virtual int Dimension() =0;
 
   /** */
-  virtual TPZGeoElSide HigherDimensionSides(int side,int targetdimension);//SÓ PARA TESTAR CONTINUIDADE - APAGAR DEPOIS
+  virtual TPZGeoElSide HigherDimensionSides(int side,int targetdimension);//Sï¿½PARA TESTAR CONTINUIDADE - APAGAR DEPOIS
   virtual void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides) = 0;
   virtual void LowerDimensionSides(int side,TPZStack<int> &smallsides) = 0;
 
@@ -395,13 +395,10 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
   **/
 virtual TPZTransform BuildTransform2(int side, TPZGeoEl *father, TPZTransform &t);
 
-	/**
-	* This method will return a partition of the side of the current element
-	* as the union of sub elements/side which are put in the stack
-	**/
 
 	/**returns the side number which is connected to the point pt
-     *returns -1 if no side is found
+        * @param pt coordinates of the point in parameter space
+     * @return lowest dimension side which contains the point, -1 if no side is found
      */
      int WhichSide(TPZVec<REAL> &pt);
 
@@ -410,15 +407,23 @@ virtual TPZTransform BuildTransform2(int side, TPZGeoEl *father, TPZTransform &t
    */
   virtual void CenterPoint(int side, TPZVec<REAL> &masscent) = 0;
 
-
+/**
+* This method will return a partition of the side of the current element
+* as the union of sub elements/side which are put in the stack
+**/
 virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
 
+/**
+* This method will return a partition of the side of the current element
+* as the union of sub elements/side which are put in the stack
+* only element/sides of the given dimension are put on the stack
+**/
 void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dimension);
 
-/*return the son number of the sub element gel*/
+/** return the son number of the sub element gel*/
 int WhichSubel();
 
-//checa a estrutura de dados de Father() e GetSubelement2()
+///checa a estrutura de dados de Father() e GetSubelement2()
 void CheckSubelDataStructure();
 
      /*testa as transformacoes entre lados de pais e filhos*/
@@ -449,10 +454,10 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
   /**returns the area from the face*/
   virtual REAL SideArea(int side);
 
-  /**return the área from a quadrilateral face*/
+  /**return the ï¿½ea from a quadrilateral face*/
   static  REAL QuadArea(TPZVec<TPZGeoNode *> &nodes);
 
-  /**return the área from the triangular face*/
+  /**return the ï¿½ea from the triangular face*/
   static REAL TriangleArea(TPZVec<TPZGeoNode *> &nodes);
 
   virtual REAL ElementRadius();//TPZGeoEl
@@ -494,7 +499,7 @@ inline void TPZGeoEl::Divide(TPZVec<TPZGeoEl *> &) {
 #include "pzgeoelside.h"
 #include "pzgeoelbc.h"
 
-inline TPZGeoElSide TPZGeoEl::HigherDimensionSides(int side,int targetdimension){//SÓ PARA TESTAR CONTINUIDADE - APAGAR DEPOIS
+inline TPZGeoElSide TPZGeoEl::HigherDimensionSides(int side,int targetdimension){//Sï¿½PARA TESTAR CONTINUIDADE - APAGAR DEPOIS
   cout << "TPZGeoEl::HigherDimensionSides is called." << endl;
   return TPZGeoElSide();
 }
