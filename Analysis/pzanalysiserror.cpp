@@ -11,7 +11,7 @@
 #include "pzskylstrmatrix.h"
 
 TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,ostream &out) : TPZAnalysis(mesh,out),fElIndexes(0),fElErrors(0),
-	fAdmissibleError(0.0),fNIterations(4),fEtaAdmissible(0.05),fTotalError(0.),fSingular() {}
+	fSingular(),fTotalError(0.),fAdmissibleError(0.0),fEtaAdmissible(0.05),fNIterations(4) {}
 
 void TPZAnalysisError::SetAdaptivityParameters(REAL EtaAdmissible, int NIterations) {
 	fEtaAdmissible = EtaAdmissible;
@@ -42,7 +42,6 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmi
 	  HPAdapt(CurrentEtaAdmissible,out);//processa os restantes elementos ; (nadmerror)
 	  Mesh()->AdjustBoundaryElements();
   	  SetBlockNumber();
-      int numeq = Mesh()->NEquations();
       TPZSkylineStructMatrix skystr(fCompMesh);
       SetStructuralMatrix(skystr);
       TPZStepSolver sol;

@@ -101,7 +101,6 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
     SetSolver(s4);
     fSolvers.Push((TPZMatrixSolver *) s4.Clone());
   } else if(!mg && numeq > 15000) {
-    int nmeshes = fSolvers.NElements();
     TPZTransfer tr;
     //isso modifica a forma de apresentação da
     // matriz solução do coarse ou do mesh
@@ -116,7 +115,6 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
     TPZStepSolver s1(bd);
     s1.SetDirect(ELU);
       //    TPZSkylMatrix *skyl = (TPZSkylMatrix *) skstr.CreateAssemble(fRhs);
-    int nvar = mesh->MaterialVec()[0]->NStateVariables();
     TPZStepSolver s4;
     fPrecondition.Push((TPZMatrixSolver *)s1.Clone());
     s4.SetCG(200,s1,1.e-6,1);
@@ -971,7 +969,6 @@ TPZCompMesh *TPZMGAnalysis::CreateCompMesh(TPZCompMesh *mesh, TPZVec<TPZGeoEl *>
     if(!mat) continue;
     mat->Clone(cmesh->MaterialVec());
   }
-  TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh->ElementVec();
   int el,nelem = gelstack.NElements();
   for(el=0; el<nelem; el++) {
 
