@@ -96,15 +96,15 @@ void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZF
   fOrthogonal(C,x0,x,degree,phix,dphix);
   fOrthogonal(C,y0,y,degree,phiy,dphiy);
 
-  int i,j,counter=0,num = degree+1;
-  
+  int i, j, k, counter=0, num = degree+1;
+
   int nshape = NShapeF(degree,2,type);
 //  int count=num,ind=0;
   phi.Redim(nshape,1);
   dphi.Redim(2,nshape);
   phi.Zero();
   dphi.Zero();
-
+/*
   //valor da função
   for(i=0;i<num;i++){
     for(j=0;j<num;j++){
@@ -115,6 +115,30 @@ void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZF
       counter++;
     }
   }
+  */
+
+  //valor da função
+  // k: degree loop
+  for(k = 0; k < num; k++)
+     for(i=0;i<num;i++)
+     {
+        for(j=0;j<num;j++)
+	{
+           if(( type == ETensorial
+	         ||
+	        (i+j <= k && type == EOrdemTotal))
+		&&
+               (i+j == k)
+	   )
+	   {
+              phi(counter,0) = phix(i,0)*phiy(j,0);
+              dphi(0,counter) = dphix(0,i)*phiy(j,0);
+              dphi(1,counter) = phix(i,0)*dphiy(0,j);
+              counter++;
+	   }
+        }
+     }
+
   if(counter != nshape) {
     PZError << "TPZShapeDisc::Shape2D wrong shape count\n";
   }
