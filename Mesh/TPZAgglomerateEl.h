@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.16 2003-12-02 14:08:43 tiago Exp $
+//$Id: TPZAgglomerateEl.h,v 1.17 2003-12-02 21:05:58 tiago Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -36,7 +36,16 @@ private:
    */
   TPZCompMesh *fMotherMesh;
 
+  /**
+   * Stores the element's inner radius.
+   * It is the lessest distance between the element center point and its interface's center points.
+   */
   REAL fInnerRadius;
+
+  /**
+   * Stores the number of interfaces of the element.
+   */
+  int fNFaces;
 
 public:
 
@@ -57,6 +66,16 @@ public:
    * Returns the inner radius value.
    */
   REAL InnerRadius() {return fInnerRadius;}
+
+  /**
+   * Set element's number of interfaces.
+   */
+  void SetNInterfaces(int nfaces) {fNFaces = nfaces; }
+
+  /**
+   * Retunrs the number of interfaces;
+   */
+  int NInterfaces() {return fNFaces;}
 
   /** adiciona index do sub-elemento*/
   static void AddSubElementIndex(TPZCompMesh *aggcmesh,int subel,int destind);
@@ -140,6 +159,9 @@ public:
 
   void IndexesDiscSubEls(TPZStack<int> &elvec);
 
+  /**
+   * Returns the number of sides. If all the volumes agglomerated have the same number, it returns this number, else it returns -1.
+   */
   int NSides();
 
   void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);

@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.20 2003-12-02 12:37:58 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.21 2003-12-02 21:05:58 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -36,6 +36,9 @@ TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &
 
   //<!> Initialized as bignumber because I expect the radius will be lesser than that.
   fInnerRadius = TPZMaterial::gBigNumber; 
+
+  //<!>It is set up as zero. It must be initialized after.
+  fNFaces = 0;
 
   TPZMaterial *mater = Mesh()->FindMaterial(nummat);
   if(mater){

@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.38 2003-12-02 14:08:43 tiago Exp $
+//$Id: TPZCompElDisc.cc,v 1.39 2003-12-02 21:05:58 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -846,6 +846,45 @@ int TPZCompElDisc::NSides(){
   return fReference->NSides();
 }
 
+int TPZCompElDisc::NInterfaces(){
+
+  int nsides = this->NSides();
+
+  switch( nsides )
+    {
+    case 3: //line
+      return 2;
+      break;
+
+    case 7: //triangle
+      return 3;
+      break;
+
+    case 9: //square
+      return 4;      
+      
+    case 15: // Tetrahedra.
+      return 4;
+      break;
+	
+    case 19: // Prism.
+      return 5;
+      break;	
+
+    case 21: // Pyramid.
+      return 6;
+      break;
+
+    case 27: // Hexaedra.
+      return 8;
+      break;
+
+    default:
+      PZError << "TPZCompElDisc::NFaces() - Unknown element shape!" << endl;
+      exit (-1);
+    }
+}
+
 #include "TPZAgglomerateEl.h"
 void TPZCompElDisc::AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight){
 
@@ -1057,10 +1096,14 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *agg
     if(cel->Type() == EAgglomerate){//agglomerate element
       TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
       agg->InitializeElement();
+      //it is set up as zero. It will be computed below.
+      agg->SetNInterfaces(0);
     }
   }
   int dim = aggmesh->Dimension();
   //<!>Loop over all elements to compute for each interface the distance between interface's center point to volume's center point.
+  //The lessest distance is adopted as the element's inner radius (fInnerRadius).
+  //It is also computed, the number of interfaces of an agglomerate element (fNFaces).
   for(i = 0; i < nel; i++){
     TPZCompEl *cel = aggmesh->ElementVec()[i];
     if(cel->Type() == EInterface){
@@ -1087,13 +1130,17 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *agg
       //if the stored inner radius is bigger than the computed one, the computed one takes its place, because of we are computing the INNER radius.
       if(LeftEl->Type()  == EAgglomerate){
 	if (LeftDistance  < LeftEl->InnerRadius()) LeftEl->SetInnerRadius(LeftDistance);
+	LeftEl ->SetNInterfaces(LeftEl->NInterfaces() + 1);
       }
       if(RightEl->Type() == EAgglomerate){
 	if (RightDistance < RightEl->InnerRadius()) RightEl->SetInnerRadius(RightDistance);
+	RightEl->SetNInterfaces(RightEl->NInterfaces()+ 1);
       }
 
     }//end of if
+
   }//end of loop over elements
+
 }//end of method
 
 void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),

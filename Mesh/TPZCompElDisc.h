@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.22 2003-12-02 14:08:43 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.23 2003-12-02 21:05:58 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -92,6 +92,17 @@ protected:
    */
   virtual void SetInnerRadius(REAL InnerRadius) {PZError << "TPZCompElDisc::SetInnerRadius - This method should never be called because the inner" << endl 
 							 << "radius is not stored in TPZCompElDisc. It is stored in TPZAgglomerateElement." << endl;}
+
+  /**
+   * Set element's number of interfaces.
+   */
+  virtual void SetNInterfaces(int nfaces) {PZError << "TPZCompElDisc::SetNFaces - This method should never be called because the number of interfaces" << endl 
+				      << "is not stored in TPZCompElDisc. It is only stored by TPZAgglomerateElement." << endl;}
+
+  /**
+   * Retunrs the number of interfaces.
+   */
+  virtual int NInterfaces();
 
   /**
    * Returns the inner radius value.
