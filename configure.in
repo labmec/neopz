@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.5 2003-03-21 14:39:37 cantao Exp $
+dnl $Id: configure.in,v 1.6 2003-03-21 14:40:40 cantao Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -40,7 +40,7 @@ AM_INIT_AUTOMAKE(pz, $PZ_VERSION.$PZ_REV)
 AM_SANITY_CHECK
 
 dnl Tests the existance of a c++ compiler (m4 macro)
-PZ_PROG_CXX
+AC_PROG_CXX
 
 dnl Checks for other common programs (gcc, ar, ranlib and install)
 AC_PROG_CC
