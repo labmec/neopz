@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.28 2004-04-03 19:43:28 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.29 2004-04-03 20:11:06 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -949,15 +949,26 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
   //The lessest distance is adopted as the element's inner radius (fInnerRadius).
   //It is also computed, the number of interfaces of an agglomerate element (fNFaces).
   for(i = 0; i < nel; i++){
+
     TPZCompEl *cel = aggmesh->ElementVec()[i];
-    if(cel->Type() == EInterface){
-      TPZInterfaceElement * interface = dynamic_cast<TPZInterfaceElement * > (cel);
+
+    TPZInterfaceElement * interface = dynamic_cast<TPZInterfaceElement * > (cel);
+
+    if (interface) {
+
       TPZCompElDisc * LeftEl  = interface -> LeftElement();
       TPZCompElDisc * RightEl = interface -> RightElement();
 
       TPZManVector<REAL, 3> InterfaceCenter(3), RefInterfaceCenter(3), LeftCenter(3), RightCenter(3);
+
+      LeftEl->CenterPoint(LeftCenter);
+      RightEl->CenterPoint(RightCenter);
+      
+
       REAL LeftDistance = -1., RightDistance = -1.;
       int nsides = interface->Reference()->NSides();
+
+
       for (int irib = 0; irib < nsides; irib++){
         REAL left = 0., right = 0.;
         //Getting the node coordinate
@@ -976,20 +987,25 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
       }
 
 
-      //<!>I think if it is not agglomerate, i.e. it is a CompElDisc, the InnerRadius is not stored, but computed
-      //each time it is required.
       //if the stored inner radius is bigger than the computed one, the computed one takes its place, because of we are computing the INNER radius.
-      if(LeftEl->Type()  == EAgglomerate){
-	 if ( LeftDistance < Left->InnerRadius2() )
-	    LeftEl->SetInnerRadius(LeftDistance);
-	 LeftEl ->SetNInterfaces(LeftEl->NInterfaces() + 1);
-      }
+      TPZAgglomerateElement *LeftAgg = dynamic_cast <TPZAgglomerateElement*> (LeftEl);
+#ifdef DEBUF
+      if (!LeftAgg)
+	 PZError << "TPZAgglomerateElemnet::CreateAgglomerateMesh - LeftElemet must be a TPZAgglomerateElement " << endl;
+#endif
+      if ( LeftDistance < LeftAgg->InnerRadius2() )
+	 LeftAgg->SetInnerRadius(LeftDistance);
+      LeftAgg ->SetNInterfaces(LeftEl->NInterfaces() + 1);
 
-      if(RightEl->Type() == EAgglomerate){
-	 if ( RightDistance < Right->InnerRadius2() )
-	    RightEl->SetInnerRadius(RightDistance);
-	 RightEl->SetNInterfaces(RightEl->NInterfaces()+ 1);
-      }
+      TPZAgglomerateElement *RightAgg = dynamic_cast <TPZAgglomerateElement*> (RightEl);
+#ifdef DEBUF
+      if (!RightAgg)
+	 PZError << "TPZAgglomerateElemnet::CreateAgglomerateMesh - RightElemet must be a TPZAgglomerateElement " << endl;
+#endif
+      if ( RightDistance < RightAgg->InnerRadius2() )
+	 RightAgg->SetInnerRadius(RightDistance);
+      RightAgg->SetNInterfaces(RightAgg->NInterfaces() + 1);
+      
 
     }//end of if
 
