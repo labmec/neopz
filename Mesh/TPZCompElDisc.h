@@ -118,7 +118,7 @@ protected:
   /**
    * Type of the element 
    */
-  virtual MElementType Type() {return EDiscontinous;}
+  virtual MElementType Type() {return EDiscontinuous;}
 
   /**
    * it returns the material object 

@@ -110,7 +110,7 @@ pre_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzpre.a
 
-libpzpre_a_SOURCES = pzgengrid.cc pzpargrid.cc TPZGMSHReadMesh.cc 
+libpzpre_a_SOURCES = pzgengrid.cc pzpargrid.cc TPZGMSHReadMesh.cc  TPZExtendGridDimension.cc
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 LIBRARIES =  $(noinst_LIBRARIES)
@@ -121,7 +121,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libpzpre_a_LIBADD = 
-libpzpre_a_OBJECTS =  pzgengrid.o pzpargrid.o TPZGMSHReadMesh.o
+libpzpre_a_OBJECTS =  pzgengrid.o pzpargrid.o TPZGMSHReadMesh.o \
+TPZExtendGridDimension.o
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
@@ -135,7 +136,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/TPZGMSHReadMesh.P .deps/pzgengrid.P .deps/pzpargrid.P
+DEP_FILES =  .deps/TPZExtendGridDimension.P .deps/TPZGMSHReadMesh.P \
+.deps/pzgengrid.P .deps/pzpargrid.P
 SOURCES = $(libpzpre_a_SOURCES)
 OBJECTS = $(libpzpre_a_OBJECTS)
 

@@ -23,8 +23,15 @@ TPZConservationLaw::TPZConservationLaw(int nummat,REAL delta_t,int dim) :
   fDim = dim;
 }
 
+TPZConservationLaw::TPZConservationLaw(TPZConservationLaw &copy) : TPZMaterial(copy) {
+  fDim = copy.fDim;
+  fTimeStep = copy.fTimeStep;
+  fDelta = copy.fDelta;
+}
 
-TPZConservationLaw::~TPZConservationLaw() {
+TPZMaterial *TPZConservationLaw::NewMaterial() {
+   PZError << "TPZConservationLaw::::NewMaterial is called.\n";
+   return 0;
 }
 
 int TPZConservationLaw::NStateVariables() {

@@ -38,7 +38,13 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   public :
   
   TPZEulerConsLaw(int nummat,REAL delta_t,REAL gamma,int dim,char *artdiff);
-  
+
+  /**copy constructor*/
+  TPZEulerConsLaw(TPZEulerConsLaw & copy);
+
+  /**To create another material of the same type*/
+  virtual TPZMaterial *NewMaterial();
+
   ~TPZEulerConsLaw();
 
   /**

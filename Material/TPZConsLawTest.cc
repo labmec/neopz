@@ -274,9 +274,8 @@ void TPZConsLawTest::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec
     PZError << "TPZConsLawTest::ComputeSolLeft null bundary condition return\n";
     return;
   }
-  int i,nstate = NStateVariables();
+  //int nstate = NStateVariables();
   TPZFMatrix jacinv(0,0),axes(0,0);
-  REAL vpn=0.;
   switch (bcleft->Type()){
   case 0://Dirichlet
   case 1://Neumann
@@ -300,9 +299,8 @@ void TPZConsLawTest::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVe
     PZError << "TPZConsLawTest::ComputeSolLeft null bundary condition return\n";
     return;
   }
-  int i,nstate = NStateVariables();
+  //int nstate = NStateVariables();
   TPZFMatrix jacinv(0,0),axes(0,0);
-  REAL vpn=0.;
   switch (bcright->Type()){
   case 0://Dirichlet
   case 1://Neumann

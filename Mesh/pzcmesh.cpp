@@ -29,7 +29,7 @@ TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
   fSolution(0,1) {
   
   //Initializing class members
-  
+  fDimModel = 0;
   fReference = gr;
   //  fChecked = 0;
   fName[0] = '\0';

@@ -17,8 +17,14 @@ class TPZConservationLaw  : public TPZMaterial {
   REAL fDelta;
   
   TPZConservationLaw(int nummat,REAL delta_t,int dim);
-  
-  virtual ~TPZConservationLaw();
+
+  /**copy constructor*/
+  TPZConservationLaw(TPZConservationLaw &copy);
+
+  /**To create another material of the same type*/
+  TPZMaterial *NewMaterial();
+
+  ~TPZConservationLaw(){};
 
   /**
    * compute the boundary condition left solution 

@@ -1,7 +1,7 @@
 #ifndef PZELTYPEH
 #define PZELTYPEH
 
-// $Id: pzeltype.h,v 1.2 2003-10-05 00:25:12 phil Exp $
+// $Id: pzeltype.h,v 1.3 2003-10-20 22:11:29 cedric Exp $
 /**
    @enum MElementType
  * Defines the element types
@@ -20,7 +20,7 @@
  * @param EInterfaceSurface element 3D - type interface    -  associated index 12
  * @param ESubstructure     element nD - type submesh      -  associated index 13
  * @param EGlobLoc          element nD - type global-local -  associated index 14
- * @param EDiscontinous     element nD - type discontinous -  associated index 15
+ * @param EDiscontinuous    element nD - type discontinuous-  associated index 15
  * @param EInterfaceDisc    element nD - type interface    -  associated index 16
  * @param EAgglomerate      element nD - type agglomerate  -  associated index 17
  * @param ENoType           element 0D - type none         -  associated index 18
@@ -32,6 +32,6 @@ enum MElementType { EPoint, EOned, ETriangle, EQuadrilateral, ETetraedro, EPiram
 //                        11                 12                13          14       
 		    EInterfaceLinear, EInterfaceSurface, ESubstructure, EGlobLoc,
 //                       15              16             17          18
-		    EDiscontinous, EInterfaceDisc,  ENoType};
+		    EDiscontinuous, EInterfaceDisc, EAgglomerate, ENoType};
                      
 #endif

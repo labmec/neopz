@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.16 2003-10-20 02:12:07 phil Exp $
+
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
 #include "pzgeoelside.h"
@@ -50,27 +50,40 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
   //  fMaterial = copy.fMaterial;
 }
 
-void TPZInterfaceElement::CloneInterface(TPZCompMesh *aggmesh){
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index) 
+  : TPZCompEl(mesh,index), fNormal(copy.fNormal) {
 
-  int index,leftside=0;
-  //lado do elemento esquerdo é para calcular a normal
-  //não é necessário atualmente dado que esta é uma copia
-  TPZInterfaceElement *interf = new TPZInterfaceElement(*aggmesh,fReference,index,LeftElement(),RightElement(),leftside);
-  cout << "Philippe:: I believe this method is wrong\n";
-  TPZVec<REAL> normal(3,0.);
-  Normal(normal);
-  //interf->SetNormal(normal);
-  interf->fNormal[0] = normal[0];
-  interf->fNormal[1] = normal[1];
-  interf->fNormal[2] = normal[2];
+  TPZCompElDisc *left = LeftElement();
+  int leftindex = left->Index();
+  int leftindexnew = destindex[leftindex];
+  fLeftEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[leftindexnew]);
+  TPZCompElDisc *right = RightElement();
+  int rightindex = right->Index();
+  int rightindexnew = destindex[rightindex]; 
+  fRightEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[rightindexnew]);
+
+  if(!fLeftEl || ! fRightEl) {
+    cout << "Something wrong with clone of interface element\n";
+    exit(-1);
+  }
+  if(fLeftEl->Mesh() != &mesh || fRightEl->Mesh() != &mesh) {
+    cout << "The discontinuous elements should be cloned before the interface elements\n";
+    exit(-1);
+  }
+  fReference = copy.fReference;
+  TPZMaterial *mat = copy.Material();
+  if(mat) {
+    int materialid = mat->Id();
+    fMaterial = mesh.FindMaterial(materialid);
+  } else {
+    fMaterial = 0;
+  }
+  //  fMaterial = copy.fMaterial;
 }
 
-// void TPZInterfaceElement::SetNormal(TPZVec<REAL> &normal){
-
-//   fNormal[0] = normal[0];
-//   fNormal[1] = normal[1];
-//   fNormal[2] = normal[2];
-// }
+TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh, TPZVec<int> &destindex,int &index) const {
+  return new TPZInterfaceElement(aggmesh, *this, destindex,index);
+}
 
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 

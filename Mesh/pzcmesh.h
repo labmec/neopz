@@ -88,6 +88,8 @@ protected:
    */
   TPZFMatrix fElementSolution;
 
+  /*set the dimension of the simulation or the model*/
+  int fDimModel;
 
 public:
 
@@ -138,6 +140,12 @@ public:
    * Set the mesh name
    */
   void SetName(char *nm);
+
+  /**set de dimension of the domain of the problem*/
+  void SetModel(int dim){fDimModel = dim;}
+
+  /**return the dimension of the simulation*/
+  int Dimension(){return fDimModel;}
 
   /**
    * Return the mesh name

@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.5 2003-10-17 15:37:44 cedric Exp $
+
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
 #include "TPZEulerConsLaw.h"
@@ -45,7 +45,7 @@ void TPZAgglomerateElement::InitializeElement() {
   for(i=1;i<indsize;i++){
     mat2 = FineElement(i)->Reference()->MaterialId();
     if(mat2 != mat){
-      for(int k=0;k<20;k++)
+      for(int k=0;k<10;k++)
 	PZError << "TPZAgglomerateElement::TPZAgglomerateElement data error, distinct material\n";
       exit(-1);
     }
@@ -260,8 +260,8 @@ int TPZAgglomerateElement::Dimension(){
 void TPZAgglomerateElement::Print(ostream &out) {
 
   out << "\nTPZAgglomerateElement element : \n";
-  out << "\nComputational mesh : " << fMotherMesh << endl;
-  out << "\tAgglomerate elements : ";
+  out << "\tComputational mesh : " << fMotherMesh << endl;
+  out << "\tAgglomerate elements indexes : ";
   int naggel = NIndexes(),i;
   for(i=0;i<naggel;i++) out << fIndexes[i] << " ";
   out << "\n\tMaterial id : " << fMotherMesh->ElementVec()[fIndexes[0]]->Material()->Id() << endl

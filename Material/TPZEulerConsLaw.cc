@@ -23,6 +23,16 @@ TPZEulerConsLaw::TPZEulerConsLaw(int nummat,REAL delta_t,REAL gamma,int dim,char
   fGamma = gamma;
 }
 
+TPZEulerConsLaw::TPZEulerConsLaw(TPZEulerConsLaw & copy) : TPZConservationLaw(copy){
+  fArtificialDiffusion = copy.fArtificialDiffusion;
+  fGamma = copy.fGamma;
+}
+
+TPZMaterial *TPZEulerConsLaw::NewMaterial(){
+  TPZEulerConsLaw *result = new TPZEulerConsLaw(*this);
+  return result;
+}
+
 void TPZEulerConsLaw::Print(ostream &out) {
 
   TPZDiffusionConsLaw *diff;

@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.12 2003-10-20 02:12:07 phil Exp $
+//$Id: TPZInterfaceEl.h,v 1.13 2003-10-20 22:11:30 cedric Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -57,12 +57,16 @@ class TPZInterfaceElement : public TPZCompEl {
   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElDisc *left,TPZCompElDisc *right,int leftside);
   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
+  TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index);
 
   ~TPZInterfaceElement(){};
 
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
     return new TPZInterfaceElement(mesh, *this);
   }
+
+  TPZCompEl * CloneInterface(TPZCompMesh &aggmesh, TPZVec<int> &destindex,int &index) const;
+
   /**return the geometric element to which this element references*/
   virtual TPZGeoEl *Reference() { return fReference;}
 
@@ -127,7 +131,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * Type of the element 
    */
-  MElementType Type() { return EInterfaceDisc; }
+  MElementType Type() { return EInterface; }
 
   /**declare the element as interpolated or not.
    * You may not redefine this method, because a lot of "unsafe" casts depend
