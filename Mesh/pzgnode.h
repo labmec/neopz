@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.6 2004-06-23 16:22:08 phil Exp $
+//$Id: pzgnode.h,v 1.7 2004-12-17 13:10:48 phil Exp $
 
 /**File : pzgnode.h
 
@@ -87,6 +87,8 @@ virtual  ~TPZGeoNode() { }
 
   void Print(ostream & out = cout);
 };
+
+template class TPZRestoreClass<TPZGeoNode,TPZGEONODEID>;
 
 inline REAL TPZGeoNode::Coord(int i) {
 #ifndef NODEBUG
