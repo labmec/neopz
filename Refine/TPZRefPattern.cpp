@@ -46,6 +46,22 @@ TPZRefPattern::TPZRefPattern(string file ) : fSubElRefPattern(0),fBCRefPattern(0
   fBCRefPattern.Resize(0);
 }
 
+TPZRefPattern::TPZRefPattern(TPZGeoMesh *GMesh): fSubElRefPattern(0),fBCRefPattern(0){
+  if (!GMesh){
+    fMesh = 0;
+    fBCRefPattern.Resize(0);
+    fNSubEl = 0;
+  }
+  fFileRefPatt = '\0';
+  fRefineType = -1;  
+  fName = "";
+  fMesh = GMesh;
+  fMesh->BuildConnectivity();/**conectividades entre sub-elementos*/
+  ComputeTransforms();/**calcula as transformações entre filhos e pai*/
+  ComputePartition();/**efetua a partição do elemento pai de acordo com os lados dos sub-elementos*/
+  fBCRefPattern.Resize(0);
+}
+
 void TPZRefPattern::ReadPattern(){
   ifstream in(fFileRefPatt.data());
   int nnodes,nelems,inode;

@@ -59,6 +59,11 @@ public:
     TPZRefPattern (const TPZRefPattern &copy);
 
     /**
+     * Creates an TPZRefPattern from a given mesh
+     */
+    TPZRefPattern(TPZGeoMesh *GMesh);
+    
+    /**
      * Destructor of the object
      */
     ~TPZRefPattern(){if(fMesh) delete fMesh;}
