@@ -90,6 +90,9 @@ TPZGeoMesh * CreateOneElGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
    gmesh->BuildConnectivity();
 
+   TPZVec< TPZGeoEl * > firstDivision;
+   gEls[0]->Divide(firstDivision);
+
    return gmesh;
 }
 
@@ -99,7 +102,7 @@ TPZGeoMesh * CreateOneElGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
 TPZFlowCompMesh * OneElCompMesh()
 {
-   TPZCompElDisc::gDegree = 4;
+   TPZCompElDisc::gDegree = 1;
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
@@ -138,6 +141,9 @@ TPZFlowCompMesh * OneElCompMesh()
 		     Implicit_TD/*ConvFace*/);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
    // object computes the delta when it equals null.
+
+   mat->SetCFL(1000.);
+
    cmesh -> InsertMaterialObject(mat);
 
 // Boundary conditions
@@ -166,7 +172,7 @@ TPZFlowCompMesh * OneElCompMesh()
    cmesh->InsertMaterialObject(bc);
 
    cmesh->AutoBuild();
-//   cmesh->AdjustBoundaryElements();
+   //cmesh->AdjustBoundaryElements();
 
 // printing meshes
 
@@ -198,10 +204,15 @@ TPZFlowCompMesh * OneElCompMesh()
       Solution(blockOffset+1,0) = ro * u;
       Solution(blockOffset+2,0) = ro * v;
       Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
-      Solution(blockOffset  ,0) = ro/1.9;
-      Solution(blockOffset+1,0) = ro * u/1.9;
-      Solution(blockOffset+2,0) = ro * v/1.9;
-      Solution(blockOffset+3,0) = (p/(gamma-1.0) + 0.5 * ro * vel2)/1.9;
+      ro = 1.4;
+      u = 3.3;
+      v = 5.5;
+      p = 4.;
+      vel2 = u*u + v*v;
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = (p/(gamma-1.0) + 0.5 * ro * vel2);
    }
 
    cmesh->LoadSolution(Solution);

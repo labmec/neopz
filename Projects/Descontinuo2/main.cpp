@@ -47,12 +47,25 @@ int main()
    //TPZBandStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
 
-   An.SetNewtonCriteria(1e-12, 10);
-   An.SetTimeIntCriteria(1e-12, 1000);
+   An.SetNewtonCriteria(1e-8, 10);
+   An.SetTimeIntCriteria(1e-9, 1000);
 
    // Creating the solver for the linearized systems
    TPZStepSolver Solver;
    Solver.SetDirect(ELU);// ECholesky -> simétrica e positiva definida
+   An.SetSolver(Solver);
+//   Solver.SetGMRES(100,5,);
+/*
+   TPZStepSolver Pre;
+   Pre.SetSSOR (2,//numiterations,
+                 1.1,//overrelax
+		 .0001,//tol
+		 0);//From Current
+
+   Solver.SetCG (10,//numiterations
+                Pre,//pre
+		1e-8,//tol
+		0);//From Current*/
    An.SetSolver(Solver);
 
    An.Run(cout /*anFile*/);
