@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "TPZNLMultGridAnalysis.h"
 #include "TPZCompElDisc.h"
-
+#include "TPZAgglomerateEl.h"
 
 #include "pzcmesh.h"
 #include "pzintel.h"
@@ -126,9 +126,14 @@ void TPZNonLinMultGridAnalysis::Solve() {
 //  
 }
 
-TPZCompMesh *TPZNonLinMultGridAnalysis::AgglomerateMesh (TPZCompMesh *finemesh){
+TPZCompMesh *TPZNonLinMultGridAnalysis::AgglomerateMesh (TPZCompMesh *finemesh,int levelnumbertorefine,int setdegree){
 
-
+  TPZVec<int> accumlist;
+  int numaggl,dim;
+  TPZAgglomerateElement::ListOfGroupings(finemesh,accumlist,levelnumbertorefine,numaggl,dim);
+  TPZCompMesh *aggmesh = new TPZCompMesh(finemesh->Reference());
+  TPZCompElDisc::CreateAgglomerateMesh(finemesh,*aggmesh,accumlist,numaggl);
+  return aggmesh;
 }
 
 TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcmesh,int levelnumbertorefine,int setdegree) {

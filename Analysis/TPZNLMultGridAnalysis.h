@@ -87,7 +87,7 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    /**
    * it generates a new mesh based on the agglomeration of elements of the fine mesh
    */
-  static TPZCompMesh *AgglomerateMesh (TPZCompMesh *finemesh);
+  static TPZCompMesh *AgglomerateMesh(TPZCompMesh *finemesh,int levelnumbertorefine,int setdegree);
 
   /**
    * Loads the last two solutions and
