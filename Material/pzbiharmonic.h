@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzbiharmonic.h,v 1.4 2004-04-02 15:59:32 tiago Exp $
+//$Id: pzbiharmonic.h,v 1.5 2005-02-04 12:14:25 paulo Exp $
 
 #ifndef  TPZBIHARMONICHPP
 #define TPZBIHARMONICHPP
@@ -22,7 +22,7 @@ private:
   
 public :
 
-  static REAL gLambda1, gLambda2, gSigma, gL_alpha, gM_alpha, gL_betta, gM_betta;
+  static REAL gLambda1, gLambda2, gSigmaA,gSigmaB, gL_alpha, gM_alpha, gL_betta, gM_betta;
 
   /**
    * Inicialisation of biharmonic material
