@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.28 2004-04-06 15:06:45 longhin Exp $
+dnl $Id: configure.in,v 1.29 2004-04-08 14:48:42 rgdamas Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -352,7 +352,7 @@ case "${atlas_enabled}" in
     ATLASDIR=$atlas_dir
     ATLASINCLUDE="-I$ATLASDIR/../../include"
     ATLASLIBDIR="-L$ATLASDIR"
-    ATLASLIB="-latlas"
+    ATLASLIB="-lcblas -llapack -latlas"
     LIBATLAS="$ATLASDIR/libcblas.a $ATLASDIR/liblapack.a $ATLASDIR/libatlas.a"
   ;;
   no)
@@ -507,6 +507,7 @@ AC_OUTPUT([ Makefile PZ.mk PZ_user.mk \
 	Projects/CursoPZ/Class_3/Makefile \
 	Projects/CursoPZ/Class_4/Makefile \
 	Projects/CursoPZ/Class_5/Makefile \
+	Projects/visualmatrix/Makefile
 
 ])
 
