@@ -1,16 +1,17 @@
 #include "pzgclonemesh.h"
 #include "pzcclonemesh.h"
+
 #include "pzvec.h"
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
-#include "pzcompel.h"
-#include "pzgnode.h"
-#include "pzmaterial.h"
-//#include "pzerror.h"
-#include "pzgeoel.h"
-//#include "pzcosys.h"
-#include "pzmatrix.h"
 #include "pzavlmap.h"
+#include "pzvec_extras.h"
+#include "pzdebug.h"
+#include "pzcheckgeom.h"
+//#include "pzerror.h"
+
+#include "pzgeoel.h"
+#include "pzgnode.h"
 #include "pzelg1d.h"
 #include "pzelgc3d.h"
 #include "pzelgpi3d.h"
@@ -19,26 +20,32 @@
 #include "pzelgq2d.h"
 #include "pzelgt2d.h"
 #include "pzelgt3d.h"
-#include "pzelasmat.h"
+#include "pzgeoelside.h"
+
+#include "pzintel.h"
+#include "pzcompel.h"
+#include "pzelcq2d.h"
+
+#include "pzmatrix.h"
+
 #include "pzanalysis.h"
 #include "pzfstrmatrix.h"
+#include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"    		
 #include "pzadaptmesh.h"
-#include "pzintel.h"
-#include "pzelcq2d.h"
-#include "pzskylstrmatrix.h"
+#include "pzonedref.h"
+
+#include "pzmaterial.h"
+#include "pzelasmat.h"
+#include "pzplaca.h"
 #include "pzmat2dlin.h"
 #include "pzmathyperelastic.h"
 #include "pzmattest3d.h"
 #include "pzmatplaca2.h"
-#include "pzelgt3d.h"
-#include "pzcheckgeom.h"
+
 #include <time.h>
 #include <stdio.h>
-#include "pzdebug.h"
-#include "pzonedref.h"
-#include "pzvec_extras.h"
-#include "pzgeoelside.h"
+
 
 int gPrintLevel = 0;
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp);
@@ -73,7 +80,9 @@ void Exact3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 static ofstream MALHAG("malhageometrica");//CEDRIC
 static int mygorder = 1;
 void CompareNeighbours(TPZGeoMesh *mesh);
-
+void BCSolution(TPZVec<REAL> &x,TPZVec<REAL> &result);
+void Solution(TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix &deriv);
+void LoadSolution(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du);
 
 int main(){
 
@@ -1924,7 +1933,7 @@ static int    Teste2Elems[4][8] = {{0,1,4},{1,2,4},{2,3,4},{3,0,4}};
 
 TPZCompMesh *PlateMesh (){
 
-  //inserindo a ordem de interpola¢ão dos elementos e do espa¢o
+  /*  //inserindo a ordem de interpola¢ão dos elementos e do espa¢o
   int ord;
   cout << "Entre ordem 1,2,3,4,5 : -> 1";
   //cin >> ord;
@@ -1993,6 +2002,7 @@ TPZCompMesh *PlateMesh (){
   delete compmesh;
   delete geomesh;
   return 0;
+  */
 
 }
 
@@ -2045,4 +2055,101 @@ void CriaCondContTeste4(TPZGeoMesh &gmesh){
   TPZBndCond *bc = placa->CreateBC(-1,0,val1,val2);
   bc->SetForcingFunction(BCSolution);
   cmesh->InsertMaterialObject(bc);
+}
+
+void BCSolution(TPZVec<REAL> &x,TPZVec<REAL> &result){
+  TPZFMatrix deriv(2,6);
+  Solution(x,result,deriv);
+}
+
+void Solution(TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix &deriv){
+  TPZFMatrix eixos(3,3,0.);
+  eixos(0,0) = 1.0;
+  eixos(1,1) = 1.0;
+  eixos(2,2) = 1.0;
+  TPZFMatrix u(6,1);
+  LoadSolution(eixos,x,u,deriv);
+  for(int i=0;i<6;i++) result[i] = u(i,0);
+}
+
+void LoadSolution(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du){
+
+  REAL k,eps,div;
+  static int key = 1;
+  static REAL val;
+
+  k = 0.0;//0.00001;
+  eps = 0.4;//-1.0 é interessante
+  div = 100.0;
+
+  if(key){
+    cout << "main::LoadSolution valor de div = ";
+    cin >> val;
+    cout << endl;
+    key = 0;
+  }
+  div = val;
+
+  REAL x = X[0],y=X[1];
+
+  REAL x2 = (x-1.0)*(x-1.0);
+  REAL y2 = (y-1.0)*(y-1.0);
+  REAL eps2 = eps*eps;
+
+  REAL expx = exp(-x2/eps2);
+  REAL expy = exp(-y2/eps2);
+
+  REAL exdivmk = expx/div+k;
+  REAL eydivmk = expy/div+k;
+
+  REAL exy = expx*expy;
+
+  REAL exmeydivmk = 2.*expx*eydivmk / div / eps2;
+  REAL eymexdivmk = 2.*expy*exdivmk / div / eps2;
+  //u exact
+  u(0,0) =  0.0;//u
+  u(1,0) =  0.0;//v
+  u(2,0) =  (expx/div+k)*(expy/div+k);//w
+  u(3,0) = -( 2.*expy*(expx/div+k)*(y-1.) ) / div / eps2;//øx
+  u(4,0) =  ( 2.*expx*(expy/div+k)*(x-1.) ) / div / eps2;//øy
+  u(5,0) =  0.0;//øz
+
+  //du exact
+  TPZFMatrix dur(2,6);
+  dur(0,0)  =  0.0;//du/dx
+  dur(1,0)  =  0.0;//du/dy
+
+  dur(0,1)  =  0.0;//dv/dx
+  dur(1,1)  =  0.0;//dv/dx
+
+  dur(0,2)  =  -exmeydivmk*(x-1.);//dw/dx
+  dur(1,2)  =  -eymexdivmk*(y-1.);//dw/dy
+
+  dur(0,3)  =  4.*exy*(x-1.)*(y-1.) / (div*div) / (eps2*eps2);//døx/dx
+  dur(1,3)  = -eymexdivmk + 2.*eymexdivmk*(y-1.)*(y-1.) / eps2;//døx/dy
+
+  dur(0,4)  =  exmeydivmk - 2.*exmeydivmk*(x-1.)*(x-1.) / eps2;//døy/dx
+  dur(1,4)  = -4.*exy*(x-1.)*(y-1.) / (div*div) / (eps2*eps2);//døy/dy
+
+  dur(0,5)  = 0.0;//døz/dx
+  dur(1,5)  = 0.0;//døz/dy
+
+  du(0,0) = axes(0,0)*dur(0,0) + axes(1,0)*dur(1,0);
+  du(1,0) = axes(0,1)*dur(0,0) + axes(1,1)*dur(1,0);
+
+  du(0,1) = axes(0,0)*dur(0,1) + axes(1,0)*dur(1,1);
+  du(1,1) = axes(0,1)*dur(0,1) + axes(1,1)*dur(1,1);
+
+  du(0,2) = axes(0,0)*dur(0,2) + axes(1,0)*dur(1,2);
+  du(1,2) = axes(0,1)*dur(0,2) + axes(1,1)*dur(1,2);
+
+  du(0,3) = axes(0,0)*dur(0,3) + axes(1,0)*dur(1,3);
+  du(1,3) = axes(0,1)*dur(0,3) + axes(1,1)*dur(1,3);
+
+  du(0,4) = axes(0,0)*dur(0,4) + axes(1,0)*dur(1,4);
+  du(1,4) = axes(0,1)*dur(0,4) + axes(1,1)*dur(1,4);
+
+  du(0,5) = axes(0,0)*dur(0,5) + axes(1,0)*dur(1,5);
+  du(1,5) = axes(0,1)*dur(0,5) + axes(1,1)*dur(1,5);
+
 }

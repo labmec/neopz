@@ -91,6 +91,12 @@ class TPZAdaptMesh {
    * Sort
    */
   void HeapSort(TPZVec<REAL> &sol, TPZVec<int> &perm);
+  
+  /**
+   * Sorts the errvec returning the ordering indexes in perm param.
+   * errpercent is the percentual of the error that must be considered in returning minimum error
+   */
+  REAL TPZAdaptMesh::SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL errpercent);
 
   /**
    * Creates an adpted computational mesh based on original mesh and in a hp refinement pattern also
@@ -99,6 +105,8 @@ class TPZAdaptMesh {
    * @param porders: p refinement pattern for each element of gelstack
    */
   TPZCompMesh* CreateCompMesh (TPZCompMesh *mesh,TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
+
+  
   
 
 

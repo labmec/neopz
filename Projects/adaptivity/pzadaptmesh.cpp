@@ -32,10 +32,10 @@ void TPZAdaptMesh::SetCompMesh(TPZCompMesh * mesh){
     return;
   }
   CleanUp();
-  //  fReference = mesh;
   fReference = mesh;
   int nel = fReference->ElementVec().NElements();
   fElementError.Resize(nel);
+  fElementError.Fill(0.);
 }
 
 void TPZAdaptMesh::SetMaxP(int maxp){
@@ -49,34 +49,26 @@ void TPZAdaptMesh::SetMaxP(int maxp){
 }
 
 void TPZAdaptMesh::CleanUp(){
-
   int i;
   for (i=0;i<fCloneMesh.NElements();i++){
     TPZGeoCloneMesh *gmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMesh[i]->Reference());
+    //Cesar June 30th 2003 -- 
+    // The baoundary elements are not used to create clone meshes
+#ifndef CLONEBCTOO
+    if (gmesh && gmesh->GetMeshReferenceElement()->MaterialId() < 0) continue;
+#endif
+    //end Cesar
     gmesh->ResetReference();
-    
-//     //Cesar June 30th 2003
-//     if (gmesh && gmesh->GetMeshReferenceElement()->MaterialId() < 0){
-//       gmesh->ResetReference();
-//       fCloneMesh[i]->LoadReferences();
-//       RemoveCloneBC(fCloneMesh[i]);
-//       DeleteElements(fCloneMesh[i]);
-//       delete fCloneMesh[i];
-//       delete gmesh;
-//       continue;
-//     }
-//     //end
-
     fFineCloneMesh[i]->LoadReferences();
-    this->RemoveCloneBC(fFineCloneMesh[i]);
+    RemoveCloneBC(fFineCloneMesh[i]);
     DeleteElements(fFineCloneMesh[i]);
     delete fFineCloneMesh[i];
-    gmesh->ResetReference();
     fCloneMesh[i]->LoadReferences();
     RemoveCloneBC(fCloneMesh[i]);
     DeleteElements(fCloneMesh[i]);
     delete fCloneMesh[i];
     delete gmesh;
+    //    continue;
   }
   fCloneMesh.Resize(0);
   fFineCloneMesh.Resize(0);
@@ -87,133 +79,145 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
 					   TPZVec<REAL> &truervec, 
 					   TPZVec<REAL> &effect, int use_trueerror){
   int i;
+  //clone analysis
+  int cliter;
+  int nelmesh = fReference->ElementVec().NElements();
+  fElementError.Resize(nelmesh);
+  effect.Resize(nelmesh);
+  truervec.Resize(nelmesh);
+  ervec.Resize(nelmesh);
+  ervec.Fill(0.);
+  truervec.Fill(0.);
+  effect.Fill(0.);
+  fElementError.Fill(0);
+
+  for (cliter=0;cliter<nelmesh;cliter++)  fElementError[cliter] = 0.;
+
+  //int nelem = fElementError.NElements();
+  TPZVec<int> perm(nelmesh,0);
+  REAL minerror;
+
+
+
+  //gets the geometric reference elements that will generate the patch
+  GetReferenceElements();
+
   if (use_trueerror && f){
     for (i=0;i<fReference->ElementVec().NElements();i++){
       TPZInterpolatedElement *el = dynamic_cast<TPZInterpolatedElement *> (fReference->ElementVec()[i]);
       if (el) {
 	ervec[i] = UseTrueError (el , f);
+	fElementError[i] = ervec[i];
 	truerror += ervec[i];
 	error = truerror;
       }
-      else ervec[i] = 0.;
-    }
-  }
-  else {
-    //gets the geometric reference elements that will generate the patch
-    GetReferenceElements();
-    //  int ngrp = fGeoRef.NElements();
-
-    //Generates the patch
-    BuildReferencePatch();
-
-    //Creates the patch clones;
-    fReference->ComputeNodElCon();
-
-    int printing = 0;
-    if(printing) {
-      ofstream test("test.txt",ios::app);
-      fReference->Print(test);
-      fReference->Reference()->Print(test);
-    }
-    CreateClones();
-
-    //clone analysis
-    int cliter;
-    int ncl = fCloneMesh.NElements();
-    fFineCloneMesh.Resize(ncl);
-    int nelmesh = fReference->ElementVec().NElements();
-    fElementError.Resize(nelmesh);
-  
-    effect.Resize(nelmesh);
-    truervec.Resize(nelmesh);
-    ervec.Resize(nelmesh);
-    ervec.Fill(0.);
-    truervec.Fill(0.);
-    effect.Fill(0.);
-    fElementError.Fill(0);
-
-    for (cliter=0;cliter<nelmesh;cliter++)  fElementError[cliter] = 0.;
-
-    //Creates an uniformly refined mesh and evaluates the error
-    for (cliter = 0; cliter<ncl; cliter++){
-      //Análise dos Clones
-      //    if(cliter == 24 && gPrintLevel ==1) gPrintLevel =2;
-//       TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMesh[cliter]->Reference());
-//       if (gcmesh && gcmesh->GetMeshReferenceElement()->MaterialId() < 0) continue;
-      fFineCloneMesh [cliter] = fCloneMesh[cliter]->UniformlyRefineMesh();
-      {
-	ofstream out("output.txt");
-	fCloneMesh[cliter]->Print(out);
-	out.close();
-      }
-
-      fCloneMesh[cliter]->MeshError(fFineCloneMesh[cliter],fElementError,f,truervec);  
-      //    fCloneMesh[cliter]->MeshError(fCloneMesh[cliter],fElementError,f,truervec);  
-    }
-  }
-  //Ordena o vetor de erros
-
-  int nelem = fElementError.NElements();
-  TPZVec<int> perm(nelem,0);
-  for(i=0; i<nelem; i++) {
-    perm[i] = i;
-    ervec[i]=fElementError[i];
-  }
-  Sort(fElementError,perm);
-  
-  //  REAL totalerror = 0.;
-  //  REAL totaltruerror = 0.;
-  //somatório dos componentes do vetor de erro
-  for(i=0; i<nelem; i++) error += fElementError[i];
-
-  REAL ninetyfivepercent,auxerror = 0.;
-  for(i=0;i<nelem;i++){
-    auxerror += fElementError[perm[i]];
-    if (auxerror >= 0.65*error){
-      ninetyfivepercent = fElementError[perm[i]];
-      break;
-    }
-  }
-
-  if(f) {
-    for(i=0; i<nelem; i++){
-      truerror += truervec[i];
-    }
-  }
-  
-  //inicializa effect com o tamanho de trueeerror
-  effect.Resize(truervec.NElements());
-  effect.Fill(0.);
-  if(f) {
-    for(i=0; i<nelem; i++) {
-      if(truervec[i] >= 1.e-4*truerror && truervec[i] >= 5e-20 ) {
-	effect[i] = ervec[i]/truervec[i];
-      }
-      else {
-	effect[i]=0.;
-	truervec[i]=0.;
+      else{
+	ervec[i] = 0.;
+	fElementError[i] = 0.;
       }
     }
+    minerror = SortMinError(fElementError,perm,0.65);
+  } 
+  //  else {
+  //  int ngrp = fGeoRef.NElements();
+
+  //Generates the patch -
+  BuildReferencePatch(/*minerror,perm[i]*/);
+
+  //Creates the patch clones;
+  fReference->ComputeNodElCon();
+
+  int printing = 0;
+  if(printing) {
+    ofstream test("test.txt",ios::app);
+    fReference->Print(test);
+    fReference->Reference()->Print(test);
   }
-  //  int nstate = fCloneMesh[0]->MaterialVec()[0]->NStateVariables();
+
+  CreateClones();
+  int ncl = fCloneMesh.NElements();
+  fFineCloneMesh.Resize(ncl);
+
+
+  //Creates an uniformly refined mesh and evaluates the error
+  for (cliter = 0; cliter<ncl; cliter++){
+    //Análise dos Clones
+    //    if(cliter == 24 && gPrintLevel ==1) gPrintLevel =2;
+    //       TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMesh[cliter]->Reference());
+    //       if (gcmesh && gcmesh->GetMeshReferenceElement()->MaterialId() < 0) continue;
+    fFineCloneMesh [cliter] = fCloneMesh[cliter]->UniformlyRefineMesh();
+    {
+      ofstream out("output.txt");
+      fCloneMesh[cliter]->Print(out);
+      out.close();
+    }
+
+    fCloneMesh[cliter]->MeshError(fFineCloneMesh[cliter],fElementError,f,truervec);  
+    //    fCloneMesh[cliter]->MeshError(fCloneMesh[cliter],fElementError,f,truervec);  
+  }
+
+
+//Ordena o vetor de erros
+
+for(i=0; i<nelmesh; i++) {
+  perm[i] = i;
+  ervec[i]=fElementError[i];
+}
+Sort(fElementError,perm);
   
-  TPZStack <TPZGeoEl*> gelstack;
-  TPZStack <int> porder;
+//  REAL totalerror = 0.;
+//  REAL totaltruerror = 0.;
+//somatório dos componentes do vetor de erro
+for(i=0; i<nelmesh; i++) error += fElementError[i];
+
+REAL ninetyfivepercent,auxerror = 0.;
+for(i=0;i<nelmesh;i++){
+  auxerror += fElementError[perm[i]];
+  if (auxerror >= 0.65*error){
+    ninetyfivepercent = fElementError[perm[i]];
+    break;
+  }
+}
+
+if(f) {
+  for(i=0; i<nelmesh; i++){
+    truerror += truervec[i];
+  }
+}
+  
+//inicializa effect com o tamanho de trueeerror
+effect.Resize(truervec.NElements());
+effect.Fill(0.);
+if(f) {
+  for(i=0; i<nelmesh; i++) {
+    if(truervec[i] >= 1.e-4*truerror && truervec[i] >= 5e-20 ) {
+      effect[i] = ervec[i]/truervec[i];
+    }
+    else {
+      effect[i]=0.;
+      truervec[i]=0.;
+    }
+  }
+}
+//  int nstate = fCloneMesh[0]->MaterialVec()[0]->NStateVariables();
+  
+TPZStack <TPZGeoEl*> gelstack;
+TPZStack <int> porder;
     
-  //Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
-  for (i=0;i<fCloneMesh.NElements();i++){
-//     TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMesh[i]->Reference());
-//     if (gcmesh && gcmesh->GetMeshReferenceElement()->MaterialId() < 0) continue;
-    fCloneMesh[i]->ApplyRefPattern(ninetyfivepercent,fElementError,fFineCloneMesh[i],gelstack,porder);
-  }
+//Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
+for (i=0;i<fCloneMesh.NElements();i++){
+  //     TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMesh[i]->Reference());
+  //     if (gcmesh && gcmesh->GetMeshReferenceElement()->MaterialId() < 0) continue;
+  fCloneMesh[i]->ApplyRefPattern(ninetyfivepercent,fElementError,fFineCloneMesh[i],gelstack,porder);
+}
   
 /*   int igeo,ngeoel = gelstack.NElements(); */
 /*   for (igeo =0; igeo<ngeoel; igeo++){ */
 /*     gelstack[igeo]->Print(); */
 /*   } */
 
-  TPZCompMesh * adapted =   CreateCompMesh(fReference,gelstack,porder);
-  return adapted;
+TPZCompMesh * adapted =   CreateCompMesh(fReference,gelstack,porder);
+return adapted;
 }
 
 
@@ -232,8 +236,8 @@ void TPZAdaptMesh::GetReferenceElements(){
 #ifndef CLONEBCTOO
    //This will exclude geometric elements associated to bc from clone creation
    for (i=0;i<nel; i++){ 
-     int id = (georef[i]->MaterialId();
-     if id > 0){
+     int id = georef[i]->MaterialId();
+     if (id > 0){
        fGeoRef.Push(georef[i]);
      }
    }
@@ -305,7 +309,6 @@ void TPZAdaptMesh::CreateClones(){
     fCloneMesh.Push(clonecompmesh);    
   }
 }
-
 
 void TPZAdaptMesh::Sort(TPZVec<REAL> &vec, TPZVec<int> &perm) {
   int i,j;
@@ -616,25 +619,25 @@ REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse,
 }
 
 
-//   //Ordena o vetor de erros
-//   int nelem = fElementError.NElements();
-//   TPZVec<int> perm(nelem,0);
-//   for(i=0; i<nelem; i++) {
-//     perm[i] = i;
-//     ervec[i]=fElementError[i];
-//   }
-//   Sort(fElementError,perm);
-  
-//   //  REAL totalerror = 0.;
-//   //  REAL totaltruerror = 0.;
-//   //somatório dos componentes do vetor de erro
-//   for(i=0; i<nelem; i++) error += fElementError[i];
-
-//   REAL ninetyfivepercent,auxerror = 0.;
-//   for(i=0;i<nelem;i++){
-//     auxerror += fElementError[perm[i]];
-//     if (auxerror >= 0.65*error){
-//       ninetyfivepercent = fElementError[perm[i]];
-//       break;
-//     }
-//   }
+REAL TPZAdaptMesh::SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL percenterror){
+  //Ordena o vetor de erros
+  int nelem = errvec.NElements();
+  int i;
+  REAL error;
+  for(i=0; i<nelem; i++) {
+    perm[i] = i;
+    //ervec[i]=fElementError[i];
+  }
+  Sort(fElementError,perm);
+  //somatório dos componentes do vetor de erro
+  for(i=0; i<nelem; i++) error += fElementError[i];
+  REAL ninetyfivepercent,auxerror = 0.;
+  for(i=0;i<nelem;i++){
+    auxerror += fElementError[perm[i]];
+    if (auxerror >=  percenterror*error){
+      ninetyfivepercent = fElementError[perm[i]];
+      break;
+    }
+  }
+  return ninetyfivepercent;
+}
