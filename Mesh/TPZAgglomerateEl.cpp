@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.8 2003-11-04 16:47:05 cedric Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.9 2003-11-04 18:26:46 cedric Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -428,16 +428,16 @@ int TPZAgglomerateElement::CreateMidSideConnect(){
   return ConnectIndex();
 }
 
-int TPZAgglomerateElement::Dimension(){
+// int TPZAgglomerateElement::Dimension(){
 
-//  int nind = NIndexes();
-  return (gInterfaceDimension + 1);//?!
-//   if(!nind){
-//     PZError << "TPZAgglomerateElement::Dimension() empty list of elements\n";
-//     return -1;
-//   }
-//   return ( fMotherMesh->ElementVec()[fIndexes[0]]->Reference()->Dimension() );
-}
+// //  int nind = NIndexes();
+//   return (gInterfaceDimension + 1);//?!
+// //   if(!nind){
+// //     PZError << "TPZAgglomerateElement::Dimension() empty list of elements\n";
+// //     return -1;
+// //   }
+// //   return ( fMotherMesh->ElementVec()[fIndexes[0]]->Reference()->Dimension() );
+// }
 
 void TPZAgglomerateElement::Print(ostream &out) {
 
