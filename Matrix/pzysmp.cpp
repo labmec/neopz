@@ -73,6 +73,47 @@ void TPZFYsmpMatrix::AddKel(TPZFMatrix & elmat, TPZVec<int> & destinationindex){
         }
     }
 }
+
+void TPZFYsmpMatrix::AddKel2(TPZFMatrix & elmat, TPZVec<int> & destinationindex){
+  int i,j,k;
+  REAL value=0.;
+  int ipos,jpos,lastpos;
+  for(i=0;i<elmat.Rows();i++){
+    ipos=destinationindex[i];
+    if(fIA[ipos] == fIA[ipos+1]) {
+      cout << "No space reserved for equation fIA[ipos] " << fIA[ipos] << " fIA[ipos+1] " << fIA[ipos+1] << endl;
+      //debugging message
+    }
+    lastpos = fIA[ipos]-1;
+    for(j=0;j<elmat.Cols();j++){
+      jpos=destinationindex[j];
+      value=elmat(i,j);
+      //cout << "j= " << j << endl;
+      if(value){
+	//cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
+	k= lastpos+1;
+	lastpos++;
+	while(1) {
+	  if(k == fIA[ipos+1]) k= fIA[ipos];
+	  if(fJA[k]==jpos){
+	    //cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
+	    //cout << "k " << k << "   "<< jpos << "   " << value << endl;
+	    fA[k]+=value;
+	    lastpos = k;
+	    break;
+	  }
+	  k++;
+	  if(k==lastpos) {
+	    cout << "Equation not found k " << k << " lastpos  "<< lastpos << " value " << value << endl;
+	    break;
+	    //error condition
+	  }
+	}
+      }
+    }
+  }
+}
+
 void TPZFYsmpMatrix::AddKelOld(TPZFMatrix & elmat, TPZVec < int > & destinationindex){
   int i=0;
   int j=0;

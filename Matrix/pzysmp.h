@@ -64,6 +64,7 @@ class TPZFYsmpMatrix : public TPZMatrix {
   		);    
 
   void AddKel(TPZFMatrix & elmat, TPZVec<int> & destinationindex);    
+  void AddKel2(TPZFMatrix & elmat, TPZVec<int> & destinationindex);    
 
   void Multiply(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res);    
 
