@@ -11,36 +11,35 @@
 TPZPlaca::TPZPlaca(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
                    REAL ni1 , REAL ni2 , REAL G12 , REAL G13 ,
                    REAL G23 , TPZFMatrix &naxes, TPZVec<REAL> &xf) :
-   TPZMaterial(num), fnaxes(naxes),
-   fE1(E1), fE2(E2), fG12(G12), fG13(G13), fG23(G23),
-   fh(h),ff(f),fmi(1./(-1.+ni1*ni2)),fni1(ni1),fni2(ni2),
-   fRmat(6,6,0.),fRmatT(6,6,0.),
-   fKxxR(6,6,0.),fKyyR(6,6,0.),fKxyR(6,6,0.),fKyxR(6,6,0.),
-   fBx0R(6,6,0.),fXF(xf)
-{
-
-
-   TPZFMatrix Kxx(6,6,0.),Kxy(6,6,0.),Kyx(6,6,0.),Kyy(6,6,0.),
-              Bx0(6,6,0.),B0x(6,6,0.),By0(6,6,0.),B0y(6,6,0.),B00(6,6,0.),
-              B0xR(6,6,0.),By0R(6,6,0.),B0yR(6,6,0.),B00R(6,6,0.);
-   TPZFMatrix Kn1n1(6,6,0.),Kn1n2(6,6,0.),Kn2n1(6,6,0.),Kn2n2(6,6,0.),
-              Bn10(6,6,0.),B0n1(6,6,0.),Bn20(6,6,0.),B0n2(6,6,0.),B000(6,6,0.);
-//   TPZFMatrix fRmat(6,6),fRmatT(6,6);
-   REAL Small , k, mi;
-   Small = 1.E-5;
-   k = 5./6.; // coeficiente de cisalhamento
-   mi = 1./(-1.0 + ni1 * ni2);
-
-   fRmat(0,0) = fnaxes(0,0); fRmat(0,1) = fnaxes(0,1); fRmat(0,2) = fnaxes(0,2);
-   fRmat(1,0) = fnaxes(1,0); fRmat(1,1) = fnaxes(1,1); fRmat(1,2) = fnaxes(1,2);
-   fRmat(2,0) = fnaxes(2,0); fRmat(2,1) = fnaxes(2,1); fRmat(2,2) = fnaxes(2,2);
-
-   fRmat(3,3) = fnaxes(0,0); fRmat(3,4) = fnaxes(0,1); fRmat(3,5) = fnaxes(0,2);
-   fRmat(4,3) = fnaxes(1,0); fRmat(4,4) = fnaxes(1,1); fRmat(4,5) = fnaxes(1,2);
-   fRmat(5,3) = fnaxes(2,0); fRmat(5,4) = fnaxes(2,1); fRmat(5,5) = fnaxes(2,2);
-
-   fRmat.Transpose(&fRmatT);
-
+  TPZMaterial(num), fnaxes(naxes),
+  fE1(E1), fE2(E2), fG12(G12), fG13(G13), fG23(G23),
+  fh(h),ff(f),fmi(1./(-1.+ni1*ni2)),fni1(ni1),fni2(ni2),
+  fRmat(6,6,0.),fRmatT(6,6,0.),
+  fKxxR(6,6,0.),fKyyR(6,6,0.),fKxyR(6,6,0.),fKyxR(6,6,0.),
+  fBx0R(6,6,0.),fXF(xf) {
+  
+  
+  TPZFMatrix Kxx(6,6,0.),Kxy(6,6,0.),Kyx(6,6,0.),Kyy(6,6,0.),
+    Bx0(6,6,0.),B0x(6,6,0.),By0(6,6,0.),B0y(6,6,0.),B00(6,6,0.),
+    B0xR(6,6,0.),By0R(6,6,0.),B0yR(6,6,0.),B00R(6,6,0.);
+  TPZFMatrix Kn1n1(6,6,0.),Kn1n2(6,6,0.),Kn2n1(6,6,0.),Kn2n2(6,6,0.),
+    Bn10(6,6,0.),B0n1(6,6,0.),Bn20(6,6,0.),B0n2(6,6,0.),B000(6,6,0.);
+  //   TPZFMatrix fRmat(6,6),fRmatT(6,6);
+  REAL Small , k, mi;
+  Small = 1.E-5;
+  k = 5./6.; // coeficiente de cisalhamento
+  mi = 1./(-1.0 + ni1 * ni2);
+  
+  fRmat(0,0) = fnaxes(0,0); fRmat(0,1) = fnaxes(0,1); fRmat(0,2) = fnaxes(0,2);
+  fRmat(1,0) = fnaxes(1,0); fRmat(1,1) = fnaxes(1,1); fRmat(1,2) = fnaxes(1,2);
+  fRmat(2,0) = fnaxes(2,0); fRmat(2,1) = fnaxes(2,1); fRmat(2,2) = fnaxes(2,2);
+  
+  fRmat(3,3) = fnaxes(0,0); fRmat(3,4) = fnaxes(0,1); fRmat(3,5) = fnaxes(0,2);
+  fRmat(4,3) = fnaxes(1,0); fRmat(4,4) = fnaxes(1,1); fRmat(4,5) = fnaxes(1,2);
+  fRmat(5,3) = fnaxes(2,0); fRmat(5,4) = fnaxes(2,1); fRmat(5,5) = fnaxes(2,2);
+  
+  fRmat.Transpose(&fRmatT);
+  
 
 
    Kxx(0,0) = -E1*h*mi;
@@ -466,16 +465,3 @@ void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx,TPZFMatri
 
 }
 
-//   // u - uh
-//     for(i=0;i<6;i++) err(i,0) = 0.0;
-//   // du/dx - duh/dx
-//   for(i=0;i<6;i++){
-//     dxerr(i,0) = 0.0;
-//     dyerr(i,0) = 0.0;
-//   }
-
-//   // u - uh
-//   err(2,0) = fabs(u_exact[2] - u[2]);
-//   // du/dx - duh/dx
-//   dxerr(2,0) = fabs(du_exact(0,2) - dudx(0,2));
-//   dyerr(2,0) = fabs(du_exact(1,2) - dudx(1,2));

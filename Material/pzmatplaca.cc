@@ -1,4 +1,4 @@
-#include "pzplaca.h"
+#include "pzmatplaca2.h"
 #include "pzmaterial.h"
 #include "pztempmat.h"
 
@@ -10,17 +10,18 @@ using namespace std;
 #include "pzerror.h"
 
 
-TPZPlaca::TPZPlaca(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
-                   REAL ni1 , REAL ni2 , REAL G12 , REAL G13 ,
-                   REAL G23 , TPZFMatrix &naxes, TPZVec<REAL> &xf) : TPZMaterial(num), fXF(xf),
-                   fE1(E1), fE2(E2), fG12(G12), fG13(G13), fG23(G23),
-                   fh(h),ff(f),fmi(1./(-1.+ni1*ni2)),fni1(ni1),fni2(ni2),
-                   fRmat(6,6,0.),fnaxes(naxes),fRmatT(6,6,0.),
-                   fKxxR(6,6,0.),fKxyR(6,6,0.),fKyxR(6,6,0.),fKyyR(6,6,0.),
-		             fBx0R(6,6,0.)
-                    {
-
-
+TPZPlaca2::TPZPlaca2(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
+		     REAL ni1 , REAL ni2 , REAL G12 , REAL G13 ,
+		     REAL G23 , TPZFMatrix &naxes, TPZVec<REAL> &xf) : 
+  TPZMaterial(num), 
+  fnaxes(naxes),
+  fE1(E1), fE2(E2), fG12(G12), fG13(G13), fG23(G23),
+  fh(h),ff(f),fmi(1./(-1.+ni1*ni2)),fni1(ni1),fni2(ni2),
+  fRmat(6,6,0.),fRmatT(6,6,0.),
+  fKxxR(6,6,0.),fKyyR(6,6,0.),fKxyR(6,6,0.),fKyxR(6,6,0.),fBx0R(6,6,0.),fXF(xf)
+{
+  
+  
    TPZFMatrix Kxx(6,6,0.),Kxy(6,6,0.),Kyx(6,6,0.),Kyy(6,6,0.),
               Bx0(6,6,0.),B0x(6,6,0.),By0(6,6,0.),B0y(6,6,0.),B00(6,6,0.),
               B0xR(6,6,0.),By0R(6,6,0.),B0yR(6,6,0.),B00R(6,6,0.);
@@ -102,7 +103,7 @@ TPZPlaca::TPZPlaca(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
 }
 
 static ofstream placatest("placatest.dat");
-void TPZPlaca::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &,REAL weight,
+void TPZPlaca2::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &,REAL weight,
 			     TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
   // this method adds the contribution of the material to the stiffness
   // matrix and right hand side
@@ -110,7 +111,7 @@ void TPZPlaca::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZ
   // check on the validity of the arguments
   //rows x cols
   if(phi.Cols() != 1 || dphi.Rows() != 2 || phi.Rows() != dphi.Cols()){
-    PZError << "TPZPlaca.contr, inconsistent input data : phi.Cols() = "
+    PZError << "TPZPlaca2.contr, inconsistent input data : phi.Cols() = "
 	    << phi.Cols() << " dphi.Cols + " << dphi.Cols() <<
       " phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
       dphi.Rows() << "\n";
@@ -196,7 +197,7 @@ placatest.flush();
   }
 }
 
-void TPZPlaca::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
+void TPZPlaca2::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
 			       TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
   if(bc.Material() != this){
@@ -252,31 +253,31 @@ void TPZPlaca::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weigh
   }
 }
 
-int TPZPlaca::NFluxes() {return 1;}
+int TPZPlaca2::NFluxes() {return 1;}
 
-void TPZPlaca::Flux(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix &/*dudx*/,TPZFMatrix &/*axes*/,TPZVec<REAL> &/*fl*/) {
-  PZError << "TPZPlaca::Flux is called\n";
+void TPZPlaca2::Flux(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix &/*dudx*/,TPZFMatrix &/*axes*/,TPZVec<REAL> &/*fl*/) {
+  PZError << "TPZPlaca2::Flux is called\n";
 }
 
-void TPZPlaca::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix &/*dudx*/,TPZFMatrix &/*axes*/,TPZVec<REAL> &/*flux*/,
+void TPZPlaca2::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix &/*dudx*/,TPZFMatrix &/*axes*/,TPZVec<REAL> &/*flux*/,
 			 TPZVec<REAL> &/*u_exact*/,TPZFMatrix &/*du_exact*/,TPZVec<REAL> &/*values*/) {
-  PZError << "TPZPlaca::Errors is called\n";
+  PZError << "TPZPlaca2::Errors is called\n";
 }
 
-void TPZPlaca::Print(ostream & out) {
-  //out << "Material type TPZPlaca -- number = " << Id() << "\n";
+void TPZPlaca2::Print(ostream & out) {
+  //out << "Material type TPZPlaca2 -- number = " << Id() << "\n";
   //out << "Matrix xk ->  "; fXk.Print("fXk",out);
   //out << "Matrix xC ->  "; fCk.Print("fCf",out);
   //out << "Matrix xf ->  "; fXf.Print("fXf",out);
 }
 
-/*TPZBndCond *TPZPlaca::CreateBC(int num,int typ,TPZFMatrix &val1,TPZFMatrix &val2) {
-  PZError << "TPZPlaca::CreateBC is called\n";
+/*TPZBndCond *TPZPlaca2::CreateBC(int num,int typ,TPZFMatrix &val1,TPZFMatrix &val2) {
+  PZError << "TPZPlaca2::CreateBC is called\n";
   return 0;
 }        */
 
   /**returns the variable index associated with the name*/
-int TPZPlaca::VariableIndex(char *name){
+int TPZPlaca2::VariableIndex(char *name){
 	if(!strcmp(name,"Displacement6")) return 0;
 	if(!strcmp(name,"Deslocx")) return 2;// Desloc. eixo x global
 	if(!strcmp(name,"Deslocy")) return 3;// Desloc. eixo y global
@@ -300,7 +301,7 @@ int TPZPlaca::VariableIndex(char *name){
 
   /** returns the number of variables associated with the variable indexed by var.
       var is obtained by calling VariableIndex*/
-int TPZPlaca::NSolutionVariables(int var){
+int TPZPlaca2::NSolutionVariables(int var){
   	if(var == 2) return 1;
   	if(var == 3) return 1;
   	if(var == 4) return 1;
@@ -320,7 +321,7 @@ int TPZPlaca::NSolutionVariables(int var){
 }
 
   /**returns the solution associated with the var index based on the finite element approximation*/
-void TPZPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
+void TPZPlaca2::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
                TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 
 	REAL k = 5./6.;
