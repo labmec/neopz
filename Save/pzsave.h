@@ -2,6 +2,7 @@
 #ifndef PZSAVEH
 #define PZSAVEH
 
+//#include "glib.h"
 #include <map>
 #include "pzvec.h"
 #include "pzmanvector.h"
@@ -250,6 +251,8 @@ class TPZRestoreClass {
 
 TPZRestoreClass()
 {
+  std::string func_name = __PRETTY_FUNCTION__;
+  std::cout << func_name << std::endl;
   TPZSaveable::Register(N,Restore);
 }
 
@@ -275,36 +278,5 @@ inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, void *context) {
   return 0;
 }
 
-class TPZToto : public TPZSaveable {
-  
-public:
-
-TPZToto() {
-  int i;
-  for(i=0; i<10; i++) fNum[i] = i;
-  for(i=0; i<20; i++) fDNum[i] = i*30;
-  for(i=0; i<20; i++) fStr[i] = 'a'+i;
-}
-
-virtual int ClassId() const 
-{
-  return 1;
-}
-
- virtual void Write(TPZStream &buf, int withclassid = 1);
-
-virtual void Read(TPZStream &buf, void *context);
-
-static int main();
-
-static TPZSaveable *Restore(TPZStream &buf, void *context);
-
-private:
-  
-  int fNum[10];
-  REAL fDNum[20];
-  char fStr[20];
-
-};
 template class TPZRestoreClass<TPZSaveable, -1>;
 #endif //PZSAVEH
