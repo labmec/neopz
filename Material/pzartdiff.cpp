@@ -819,10 +819,14 @@ void TPZArtDiff::Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U)
 }
 
 
+
+#endif
+
 void TPZArtDiff::Write(TPZStream &buf, int withclassid)
 {
    TPZSaveable::Write(buf, withclassid);
-   buf.Write(&static_cast<int>(fArtDiffType),1);
+   int tmp = static_cast<int>(fArtDiffType);
+   buf.Write(&tmp,1);
    buf.Write(&fGamma, 1);
    buf.Write(&fDelta, 1);
    buf.Write(&fCFL, 1);
@@ -837,8 +841,4 @@ void TPZArtDiff::Read(TPZStream &buf, void *context)
    buf.Read(&fGamma, 1);
    buf.Read(&fDelta, 1);
    buf.Read(&fCFL, 1);
-
 }
-
-#endif
-

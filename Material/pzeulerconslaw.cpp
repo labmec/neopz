@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.29 2004-05-21 13:33:25 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.30 2004-05-25 14:04:52 phil Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -11,6 +11,7 @@
 #include "pzreal.h"
 #include <math.h>
 #include "pzstring.h"
+#include <pzsave.h>
 
 #define FASTEST_IMPLICIT
 
@@ -1540,9 +1541,12 @@ void TPZEulerConsLaw2::Write(TPZStream &buf, int withclassid)
    TPZSaveable::Write(buf, 1);
    TPZConservationLaw2::Write(buf, 0);
    fArtDiff.Write(buf, 0);
-   buf.Write(&static_cast<int>(fDiff),1);
-   buf.Write(&static_cast<int>(fConvVol),1);
-   buf.Write(&static_cast<int>(fConvFace),1);
+   int tmp = static_cast < int > (fDiff);
+   buf.Write(& tmp,1);
+   tmp = static_cast<int>(fConvVol);
+   buf.Write(& tmp,1);
+   tmp = static_cast<int>(fConvFace);
+   buf.Write(&tmp,1);
 }
 
 void TPZEulerConsLaw2::Read(TPZStream &buf, void *context)

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.24 2004-05-25 12:58:00 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.25 2004-05-25 14:04:52 phil Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -512,17 +512,17 @@ template <class T>
   /**
   Save the element data to a stream
   */
-  virtual void Write(TPZStream &buf, int withclassid);
+  void Write(TPZStream &buf, int withclassid);
 
   /**
   Read the element data from a stream
   */
-  virtual void Read(TPZStream &buf, void *context);
+  void Read(TPZStream &buf, void *context);
 
   /**
   Class identificator
   */
-  virtual int ClassId() const {
+  int ClassId() const {
      return TPZEULERCONSLAW2ID;
   }
 

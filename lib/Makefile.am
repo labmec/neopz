@@ -172,8 +172,8 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Material/TPZConservationLaw.o \
 	../Material/TPZDiffusionConsLaw.o \
 	../Material/pzconslaw.o \
-	../Material/pzeulerconslaw.o \
 	../Material/pzartdiff.o \
+	../Material/pzeulerconslaw.o \
 	../Material/pzbiharmonic.o \
         ../Material/pzmaterialid.o \
 	../Post/pzdxmesh.o \

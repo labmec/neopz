@@ -84,6 +84,25 @@ public:
     */
    REAL OptimalCFL(int degree = TPZCompElDisc::gDegree);
 
+     /**
+  Save the element data to a stream
+  */
+  void Write(TPZStream &buf, int withclassid);
+
+  /**
+  Read the element data from a stream
+  */
+  void Read(TPZStream &buf, void *context);
+
+  /**
+  Class identificator
+  */
+  virtual int ClassId() const {
+     return TPZARTDIFFID;
+  }
+
+
+   
    /**
     * pressure
     */
@@ -376,23 +395,6 @@ void ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv,
 			  REAL weight, REAL timeStep);
 
 #endif
-
-  /**
-  Save the element data to a stream
-  */
-  virtual void Write(TPZStream &buf, int withclassid);
-
-  /**
-  Read the element data from a stream
-  */
-  virtual void Read(TPZStream &buf, void *context);
-
-  /**
-  Class identificator
-  */
-  virtual int ClassId() const {
-     return TPZARTDIFFID;
-  }
 
 
 private:
