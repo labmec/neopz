@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.14 2003-12-08 14:16:53 phil Exp $
+//$Id: pzanalysis.cpp,v 1.15 2004-01-14 12:14:03 rgdamas Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -48,7 +48,10 @@ TPZAnalysis::TPZAnalysis() : fRhs(), fSolution(), fTable() {
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh,std::ostream &out) :
     fRhs(), fSolution(), fTable()
 {
+	this->SetCompMesh(mesh);
+}
 
+void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh) {
 	fCompMesh = mesh;
    fGeoMesh = mesh->Reference();
    fStructMatrix = 0;

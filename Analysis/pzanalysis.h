@@ -98,7 +98,12 @@ class TPZAnalysis {
    */
   TPZAnalysis(TPZCompMesh *mesh,std::ostream &out = cout);
 
-  /**
+	/**
+	 * Set the computational mesh of the analysis.
+	 **/
+	void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh)
+
+	/**
    *Create an empty TPZAnalysis object 
    **/
   TPZAnalysis();
