@@ -121,14 +121,13 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 	   break;
 
 	 }
-
          cout << (log10(difnorm[interval])-log10(difnorm[interval-1]))/
 
-                 (log10(interval)-log10(interval-1)) << endl;
+                 (log10((float)interval)-log10(interval-1.0)) << endl;
 
          log << (log10(difnorm[interval])-log10(difnorm[interval-1]))/
 
-                (log10(interval)-log10(interval-1)) << endl;
+                (log10((float)interval)-log10(interval-1.0)) << endl;
 
       }
 
