@@ -1,5 +1,5 @@
 /** @file pzstring.cc */
-// $Id: pzstring.cc,v 1.2 2003-09-26 18:30:26 erick Exp $
+// $Id: pzstring.cc,v 1.3 2003-10-17 13:45:37 rgdamas Exp $
 
 #include "pzstring.h"
 
@@ -7,8 +7,9 @@
 
 TPZString::TPZString()
 {
-   // NOTHING TO DO HERE!
+	// NOTHING TO DO HERE!
 }
+
 /*
 TPZString::TPZString(const char * source)
 {
@@ -22,53 +23,54 @@ TPZString::TPZString(const char * source)
    fStore[len]='\0';
 }
 */
+
 TPZString::TPZString(char const * source)
 {
-   int len=strlen(source);
-   Resize(len+1);
-   strcpy(fStore, source);
+	int len = strlen(source);
+	Resize(len + 1);
+	strcpy(fStore, source);
 
-   // although the TPZStack class already stores the length, the null
-   // character is necessary to export string as a null character
-   // ended string
-   fStore[len]='\0';
+	// although the TPZStack class already stores the length, the null
+	// character is necessary to export string as a null character
+	// ended string
+	fStore[len] = '\0';
 }
 
 
 TPZString::TPZString(const int size)
 {
-   Resize(size);
+	Resize(size);
 }
 
 TPZString::TPZString(const char chr)
 {
-   Resize(2);
-   fStore[0]=chr;
-   fStore[1]='\0';
+	Resize(2);
+	fStore[0] = chr;
+	fStore[1] = '\0';
 }
 
-TPZString TPZString::operator+(const char * increment)const
+TPZString TPZString::operator + (const char * increment) const
 {
-   TPZString newstring(*this);
-   newstring.Append(increment);
-   return newstring;
+	TPZString newstring(* this);
+	newstring.Append(increment);
+	return newstring;
 }
 
-TPZString TPZString::operator+(const TPZString & increment)const
+TPZString TPZString::operator + (const TPZString & increment) const
 {
-   TPZString newstring(*this);
-   newstring.Append(increment);
-   return newstring;
+	TPZString newstring(* this);
+	newstring.Append(increment);
+	return newstring;
 }
 
-void TPZString::operator+=(const char increment)
+void TPZString::operator += (const char increment)
 {
-   this->Append(increment);
+	this->Append(increment);
 }
 
-void TPZString::operator+=(const char * increment)
+void TPZString::operator += (const char * increment)
 {
-   this->Append(increment);
+	this->Append(increment);
 }
 
 /*
@@ -80,88 +82,119 @@ void TPZString::operator+=(const char * increment)
 }
 */
 
-TPZString::operator const char *()const
+TPZString::operator const char * () const
 {
-   return Str();
+	return Str();
 }
 
-const char* TPZString::Str()const
+const char * TPZString::Str() const
 {
-   if(fNElements>0)
-   {
-      return fStore;
-   }
+	if (fNElements > 0)
+	{
+		return fStore;
+	}
 
-   return NULL;
+	return NULL;
 }
 
-int TPZString::Length()const
+int TPZString::Length() const
 {
-   if(fNElements==0)return 0;
-   return strlen(fStore);
+	if (fNElements == 0) return 0;
+	return strlen(fStore);
 }
 
 void TPZString::Append(const char TailIncrement)
-{	
-   int len=Length();
-   // if the allocated memory is less than the length +1 (null char)
-   // +1 (new char), reallocates it
-   if(fNElements<len+2)
-   {
-      Push('\0');
-   }
-   else
-   {
-      fStore[len+1]='\0';
-   }
-   
-   fStore[len]=TailIncrement;
+{
+	int len = Length();
+	// if the allocated memory is less than the length +1 (null char)
+	// +1 (new char), reallocates it
+	if (fNElements < len + 2)
+	{
+		Push('\0');
+	}
+	else
+	{
+		fStore[len + 1] = '\0';
+	}
+
+	fStore[len] = TailIncrement;
 }
-	
+
 void TPZString::Append(const char * TailIncrement)
 {
-   int OldLength=Length();
-   int len=strlen(TailIncrement);
+	int OldLength = Length();
+	int len = strlen(TailIncrement);
 
-   if(fNElements<OldLength+len+1)Resize(OldLength+len+1); // the 1 stands for the null char
-	
-   strcpy(fStore+OldLength, TailIncrement);
-   fStore[Length()]='\0'; // just to ensure the string contains a null character
+	if (fNElements < OldLength + len + 1) Resize(OldLength + len + 1); // the 1 stands for the null char
+
+	strcpy(fStore + OldLength, TailIncrement);
+	fStore[Length()] = '\0'; // just to ensure the string contains a null character
 }
 
-TPZString TPZString::SubStr(const int start,const int end)const
+TPZString TPZString::SubStr(const int start, const int end) const
 {
-   int len=Length();
-   if(start>len || start>end)
-   {
-      TPZString newstring;
-      return newstring;
-   }
+	int len = Length();
+	if (start > len || start > end)
+	{
+		TPZString newstring;
+		return newstring;
+	}
 
-   int startpos = start, endpos = end, i;
+	int startpos = start, endpos = end, i;
 
-   if(startpos<0)startpos=0;
+	if (startpos < 0) startpos = 0;
 
-   if(endpos>len)endpos=len-1; // null ending character index
+	if (endpos > len) endpos = len - 1; // null ending character index
 
-   TPZString newstring(endpos-startpos+2);
-   for(i=startpos; i<=endpos; i++)newstring[i-startpos]=fStore[i];
+	TPZString newstring(endpos - startpos + 2);
+	for (i = startpos; i <= endpos; i++) newstring[i - startpos] = fStore[i];
 
-   newstring[newstring.NElements()-1]='\0';
-   return newstring;
+	newstring[newstring.NElements() - 1] = '\0';
+	return newstring;
 }
 
 void TPZString::Empty()
 {
-   Resize(0);
+	Resize(0);
 }
 
 void TPZString::Optimize()
 {
-   int len = Length();
+	int len = Length();
 
-   if(len+1<fNElements)
-      Resize(len+1);
+	if (len + 1 < fNElements) Resize(len + 1);
 }
 
+void TPZString::SimplifyWhiteSpace()
+{
+	unsigned int i, newpos = 0;
+	const unsigned int length = Length();
+	char current = '0', next = '0';
+	for (i = 0; i < length - 1; i++)
+	{
+		current = fStore[i];
+		if (current == ' ')
+		{
+			if (i)
+			{
+				fStore[newpos] = ' ';
+				newpos++;
+			}
+			next = fStore[i + 1];
+			while (next == ' ')
+			{
+				i++;
+				next = fStore[i + 1];
+			}
+			fStore[newpos] = next;
+			newpos++;
+		}
+		else
+		{
+			if (newpos != i) fStore[newpos] = current;
+			newpos++;
+		}
+	}
+	fStore[newpos] = '\0';
+}
 //--| PZ |----------------------------------------------------------------------

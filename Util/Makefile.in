@@ -110,7 +110,7 @@ util_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzutil.a
 
-libpzutil_a_SOURCES = pzadmchunkgen.cc			pzavlmap.cc					pzavlmapgen.cc					pzchunkgen.cc					pzmanvectorgen.cc				pzmap.cc					pzstackgen.cc					pzstring.cc					pzvecgen.cc					pzvecmesh.cc 
+libpzutil_a_SOURCES = pzadmchunkgen.cc			pzavlmap.cc					pzavlmapgen.cc					pzchunkgen.cc					pzmanvectorgen.cc				pzmap.cc					pzstackgen.cc					pzstring.cc					pzvecgen.cc					pzvecmesh.cc					pzline.cc					pzplane.cc					pznumeric.cc					pzpolynomial.cc
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
@@ -124,7 +124,7 @@ LIBS = @LIBS@
 libpzutil_a_LIBADD = 
 libpzutil_a_OBJECTS =  pzadmchunkgen.o pzavlmap.o pzavlmapgen.o \
 pzchunkgen.o pzmanvectorgen.o pzmap.o pzstackgen.o pzstring.o \
-pzvecgen.o pzvecmesh.o
+pzvecgen.o pzvecmesh.o pzline.o pzplane.o pznumeric.o pzpolynomial.o
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
@@ -139,7 +139,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/pzadmchunkgen.P .deps/pzavlmap.P .deps/pzavlmapgen.P \
-.deps/pzchunkgen.P .deps/pzmanvectorgen.P .deps/pzmap.P \
+.deps/pzchunkgen.P .deps/pzline.P .deps/pzmanvectorgen.P .deps/pzmap.P \
+.deps/pznumeric.P .deps/pzplane.P .deps/pzpolynomial.P \
 .deps/pzstackgen.P .deps/pzstring.P .deps/pzvecgen.P .deps/pzvecmesh.P
 SOURCES = $(libpzutil_a_SOURCES)
 OBJECTS = $(libpzutil_a_OBJECTS)
