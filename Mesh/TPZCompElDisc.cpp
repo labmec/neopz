@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.57 2004-05-21 19:08:50 cantao Exp $
+//$Id: TPZCompElDisc.cpp,v 1.58 2004-06-08 06:23:04 phil Exp $
 
 // -*- c++ -*- 
 
@@ -105,11 +105,11 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
   case ECube:
   case EPrisma:
     fShapefunctionType =
-#ifdef _AUTODIFF
-    TPZShapeDisc::EOrdemTotal;
-#else
+//#ifdef _AUTODIFF
+//    TPZShapeDisc::EOrdemTotal;
+//#else
     TPZShapeDisc::ETensorial;
-#endif
+//#endif
   }
 //  fReference = ref;
   ref->SetReference(this);
@@ -839,7 +839,7 @@ int TPZCompElDisc::ExistsInterface(TPZGeoElSide geosd){
 void TPZCompElDisc::RemoveInterfaces(){
 
   int nsides = Reference()->NSides();
-  int InterfaceDimension = fMaterial->Dimension();
+  int InterfaceDimension = fMaterial->Dimension()-1;
   int is;
   TPZStack<TPZCompElSide> list,equal;
   for(is=0;is<nsides;is++){
@@ -887,7 +887,12 @@ void TPZCompElDisc::RemoveInterface(int side) {
     return;// nada a ser feito
   }
   // aqui existe a interface
-  TPZCompEl *cel = list[i].Element();
+  TPZInterfaceElement *cel = dynamic_cast<TPZInterfaceElement *> (list[i].Element());
+  if(!cel || (cel->LeftElement()!=this && cel->RightElement() != this))
+  {
+    cout << "TPZCompElDisc::RemoveInterface wrong code?? " << __FILE__ << " " << __LINE__ << endl;
+    return;
+  }
   TPZGeoEl *gel = cel->Reference();
   gel->RemoveConnectivities();// deleta o elemento das vizinhancas
   TPZGeoMesh *gmesh = Mesh()->Reference();

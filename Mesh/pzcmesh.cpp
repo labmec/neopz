@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.31 2004-05-25 12:58:48 erick Exp $
+//$Id: pzcmesh.cpp,v 1.32 2004-06-08 06:23:04 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -63,8 +63,27 @@ void TPZCompMesh::CleanUp() {
   int i, nelem = NElements();
   for(i=0; i<nelem; i++) {
     TPZCompEl *el = fElementVec[i];
-    if(el) delete el;
-    fElementVec[i] = 0;
+    if(!el) continue;
+    TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(el);
+    if(disc)
+    {
+      disc->RemoveInterfaces();
+    }
+    if(el && el->Type() != EInterface) 
+    {
+      delete el;
+      fElementVec[i] = 0;
+    }
+  }
+  for(i=0; i<nelem; i++) {
+    TPZCompEl *el = fElementVec[i];
+    if(!el) continue;
+    if(el && el->Type() == EInterface) 
+    {
+      cout << "TPZCompMesh::CleanUp some interface elements were not deleted\n";
+      delete el;
+      fElementVec[i] = 0;
+    }
   }
   fElementVec.Resize(0);
   fElementVec.CompactDataStructure(1);

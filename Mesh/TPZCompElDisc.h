@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.30 2004-05-21 19:08:50 cantao Exp $
+//$Id: TPZCompElDisc.h,v 1.31 2004-06-08 06:23:04 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -142,6 +142,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   }
 
   ~TPZCompElDisc() {
+    if(Reference())Reference()->ResetReference();
    }
 
   /**
