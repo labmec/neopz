@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.16 2005-03-03 21:53:58 tiago Exp $
+// $Id: pzcompel.h,v 1.17 2005-03-11 20:51:39 cesar Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -277,14 +277,14 @@ public:
    * Prints element data
    * @param out indicates the device where the data will be printed
    */
-  virtual void Print(ostream & out = cout);
+  virtual void Print(std::ostream & out = cout);
 
   /**
    * Output device operator 
    * @param out indicates the device where the data will be printed
    * @param el element to print
    */
-  friend ostream& operator<<(ostream &out,TPZCompEl &el);
+  friend std::ostream& operator<<(std::ostream &out,TPZCompEl &el);
 
   /**
    * Prints the solution - sol - for the variable "VarName"
@@ -293,7 +293,7 @@ public:
    * @param VarName name of variable to print
    * @param out indicates the device where the data will be printed
    */
-  virtual void PrintSolution(TPZVec<REAL> &point,char *VarName,ostream &out);
+  virtual void PrintSolution(TPZVec<REAL> &point,char *VarName,std::ostream &out);
 
   /**
    * Prints one coordinate index corresponding to the point to the output stream
@@ -301,14 +301,14 @@ public:
    * @param CoordinateIndex index of the coordinate corresponding to the point
    * @param out indicates the device where the data will be printed
    */
-  virtual void PrintCoordinate(TPZVec<REAL> &point,int CoordinateIndex,ostream &out);
+  virtual void PrintCoordinate(TPZVec<REAL> &point,int CoordinateIndex,std::ostream &out);
 
   /**
    * Prints the variables names associated with the element material 
    * @param VarName pointer to variable parameter wha want to print
    * @param out indicates the device where the data will be printed
    */
-  virtual void PrintTitle(char *VarName,ostream &out);
+  virtual void PrintTitle(char *VarName,std::ostream &out);
   //@}
 
   /**
