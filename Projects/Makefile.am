@@ -11,7 +11,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 -include $(top_builddir)/@PZ_MK@
 
-SUBDIRS = termica Igor BoundaryLayer
+SUBDIRS = termica Igor BoundaryLayer NonLinBiharmonic
 
 #SUBDIRS = Adapt_MultThread CursoPZ Adapt_Phil
 #	adaptivity angletest checkcont checkconv cycleref cylin 
