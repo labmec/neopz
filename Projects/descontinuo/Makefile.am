@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = wingnaca0012.cc \
+main_SOURCES = euler.cc \
 	TPZFlowCMesh.cc \
 	TPZIterativeAnalysis.cc
 

@@ -4,11 +4,15 @@
 #include "TPZFlowCMesh.h"
 #include "TPZConservationLaw.h"
 #include "TPZIterativeAnalysis.h"
+#include <string.h>
+#include <stdio.h>
 #include "pzdxmesh.h"
 using namespace std;
 
 TPZIterativeAnalysis::TPZIterativeAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,out) {
 
+  fBegin = 0.0;
+  fInit = 0.0;
 }
 
 void TPZIterativeAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha,int resolution) {

@@ -1,5 +1,29 @@
 //#include "pzmetis.h"
 //#include "pztrnsform.h"
+#include "TPZGeoCube.h"
+#include "pzshapecube.h"
+#include "TPZRefCube.h"
+#include "pzshapelinear.h"
+#include "TPZGeoLinear.h"
+#include "TPZRefLinear.h"
+#include "pzrefquad.h"
+#include "pzshapequad.h"
+#include "pzgeoquad.h"
+#include "pzshapetriang.h"
+#include "pzreftriangle.h"
+#include "pzgeotriangle.h"
+#include "pzshapeprism.h"
+#include "pzrefprism.h"
+#include "pzgeoprism.h"
+#include "pzshapetetra.h"
+#include "pzreftetrahedra.h"
+#include "pzgeotetrahedra.h"
+#include "pzshapepiram.h"
+#include "pzrefpyram.h"
+#include "pzgeopyramid.h"
+#include "pzrefpoint.h"
+#include "pzgeopoint.h"
+
 #include "TPZGeoElement.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
@@ -43,6 +67,8 @@
 #include "TPZCompElDisc.h"
 #include "TPZShapeDisc.h"
 #include "TPZInterfaceEl.h"
+#include "TPZIterativeAnalysis.h"
+#include "TPZFlowCMesh.h"
 #include "pzreal.h"
 //#include "TPZJacobMat.h"
 //#include "TPZRefPattern.h"
@@ -110,7 +136,7 @@ TPZMaterial *FluxConst2D(int grau);
 void ContagemDeElementos(TPZMaterial *mat);
 void FileNB(TPZGeoMesh &gmesh,ostream &out,int var);
 void Function(TPZVec<REAL> &x,TPZVec<REAL> &result);
-void Divisao (TPZCompMesh *cmesh,int key);
+void Divisao (TPZCompMesh *cmesh);
 void PostProcess(TPZGeoMesh &gmesh,ostream &out);
 void NivelDivide(TPZCompMesh *cmesh);
 void TestShapesDescontinous();
@@ -118,7 +144,7 @@ static clock_t start,end;//,begin,ttot=0;
 void CoutTime(clock_t &start);
 
 static TPZGeoMesh *gmesh = new TPZGeoMesh;
-static TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh);
 static TPZVec<REAL> x0(3,0.);
 static int grau = 0;
 static int nivel = 0,tipo;
@@ -170,7 +196,7 @@ int main() {
     //ContagemDeElementos();
   }
 
-  if(1){
+  if(0){
     cout << "\nmain::Imprime malhas\n";
     gmesh->Print(outgm);
     cmesh->Print(outgm);
@@ -222,7 +248,7 @@ int main() {
   }
 
   if(1){
-    TPZAnalysis an(cmesh,outgm);
+    TPZIterativeAnalysis an(cmesh,outgm);
     if(1){//Analysis
       cout << "\nmain::Resolve o sistema\n";
       TPZSkylineStructMatrix stiff(cmesh);
@@ -243,6 +269,35 @@ int main() {
 	resolution = 0; cout << resolution << "\n";
 	an.IterativeProcess(outgm,tol,numiter,mat,marcha,resolution);
 	if(0) PostProcess(*gmesh,outgm);
+	if(1){
+	  TPZVec<char *> scalar(1),vector(0);
+	  scalar[0] = "pressure";
+	  int dim = mat->Dimension();
+	  TPZDXGraphMesh graph(cmesh,dim,mat,scalar,vector);
+	  ofstream *dxout = new ofstream("ConsLawFinal.dx");
+	  cout << "\nmain::IterativeProcess out file : ConsLawFinal.dx\n";
+	  graph.SetOutFile(*dxout);
+	  graph.SetResolution(0);
+	  graph.DrawMesh(dim);
+	  an.LoadSolution();
+	  cout << "\nmain::Divisao manual\n";
+	  Divisao(cmesh);
+	  if(1){
+	    cout << "\nmain::Imprime malhas depois de divide manual\n";
+	    gmesh->Print(outgm);
+	    cmesh->Print(outgm);
+	    outgm.flush();
+	  } 
+	  an.SetBlockNumber();
+	  an.Solution().Zero();
+	  an.SetDeltaTime(cmesh,mat);
+	  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
+	  REAL time = law->TimeStep();
+	  graph.DrawSolution(0,time);
+	  dxout->flush();
+	  dxout->close();
+	  //if(dxout) delete dxout;
+	}
       }
     }
     ContagemDeElementos(mat);
@@ -293,9 +348,8 @@ void SetDeltaTime(TPZMaterial *mat,int nstate){
 
 }
 
-void Divisao (TPZCompMesh *cmesh,int key){
-  
-  if(key < 0) return;
+void Divisao (TPZCompMesh *cmesh){
+
   TPZVec<int> csub(0);
   int n1=1;
   while(n1) {
@@ -762,8 +816,7 @@ TPZMaterial *Hexaedro(int grau){
   nodes[7] = 7;
   TPZGeoElC3d *elgc3d = new TPZGeoElC3d(nodes,1,*gmesh);
   //construtor descontínuo
-  TPZGeoElC3d::SetCreateFunction(TPZCompElDisc::CreateC3Disc);//de volume
-  TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//não de interface
+
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -885,8 +938,7 @@ TPZMaterial *ProblemaT2D(int grau){
   nodes[1] = 1;
   nodes[2] = 2;
   TPZGeoElT2d *elgt2d1 = new TPZGeoElT2d(nodes,1,*gmesh);
-  TPZGeoElT2d::SetCreateFunction(TPZCompElDisc::CreateT2Disc);//de volume
-  TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//não de interface
+
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -992,8 +1044,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   nodes[2] = 2;
   nodes[3] = 3;
   TPZGeoElQ2d *elgq2d = new TPZGeoElQ2d(nodes,1,*gmesh);
-  TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//de volume
-  TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//não de interface
+
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -1095,21 +1146,22 @@ TPZMaterial *TresTriangulos(int grau){
   CriacaoDeNos(5,quadrilatero2);//para formar dois triangulos
   //elemento de volume
   TPZVec<int> nodes;
+  int index;
   nodes.Resize(3);
   nodes[0] = 0;
   nodes[1] = 1;
   nodes[2] = 3;
-  TPZGeoElT2d *elgt2d0 = new TPZGeoElT2d(nodes,1,*gmesh);
+  TPZGeoEl *elgt2d0 = gmesh->CreateGeoElement(ETriangle,nodes,1,index);
   nodes[0] = 1;
   nodes[1] = 2;
   nodes[2] = 4;
-  TPZGeoElT2d *elgt2d1 = new TPZGeoElT2d(nodes,1,*gmesh);
+  TPZGeoEl *elgt2d1 = gmesh->CreateGeoElement(ETriangle,nodes,1,index);
   nodes[0] = 1;
   nodes[1] = 4;
   nodes[2] = 3;
-  TPZGeoElT2d *elgt2d2 = new TPZGeoElT2d(nodes,1,*gmesh);
-  TPZGeoElT2d::SetCreateFunction(TPZCompElDisc::CreateT2Disc);//de volume
-  TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//não de interface
+  TPZGeoEl *elgt2d2 = gmesh->CreateGeoElement(ETriangle,nodes,1,index);
+  TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -1223,9 +1275,7 @@ TPZMaterial *TresPrismas(int grau){
   nodes[4] = 6;
   nodes[5] = 9;
   TPZGeoElPr3d *elg3 = new TPZGeoElPr3d(nodes,1,*gmesh);
-  TPZGeoElPr3d::SetCreateFunction(TPZCompElDisc::CreatePr3Disc);
-  TPZGeoElT2d::SetCreateFunction(TPZCompElDisc::CreateT2Disc);
-  TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);
+
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity2();
@@ -1339,8 +1389,7 @@ TPZMaterial *FluxConst3D(int grau){
   nodes[7] = 7;
   TPZGeoElC3d *elgc3d = new TPZGeoElC3d(nodes,1,*gmesh);
   //construtor descontínuo
-  TPZGeoElC3d::SetCreateFunction(TPZCompElDisc::CreateC3Disc);//de volume
-  TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//não de interface
+
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity2();
@@ -1430,8 +1479,7 @@ TPZMaterial *FluxConst2D(int grau){
   nodes[2] = 2;
   nodes[3] = 3;
   TPZGeoElQ2d *elgq2d = new TPZGeoElQ2d(nodes,1,*gmesh);
-  TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//de volume
-  TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//não de interface
+
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -1520,8 +1568,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
     nodes[3] = INCID[i][3];
     elem[i] = new TPZGeoElQ2d(nodes,1,*gmesh);
   }
-  TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//de volume
-  TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//não de interface
+
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -1748,8 +1795,7 @@ TPZMaterial *NoveCubos(int grau){
     nodes[7] = INCID[i][7];
     elem[i] = new TPZGeoElC3d(nodes,1,*gmesh);
   }
-  TPZGeoElC3d::SetCreateFunction(TPZCompElDisc::CreateC3Disc);//de volume
-  TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//não de interface
+
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity2();
