@@ -32,9 +32,9 @@ public:
 
 virtual int ClassId() const ;
 
-virtual void Write(TPZStream &buf, int withclassid = 1);
+virtual void Write(TPZStream &buf, int withclassid);
 
-virtual void Read(TPZStream &buf, void *context = 0);
+virtual void Read(TPZStream &buf, void *context);
 
 template<class T>
 static void WriteObjects(TPZStream &buf, TPZVec<T> &vec) 
