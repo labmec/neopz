@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.24 2004-01-22 17:09:33 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.25 2004-01-22 17:59:29 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -288,7 +288,7 @@ REAL TPZAgglomerateElement::NormalizeConst(){
   for(i=0;i<nindex;i++){
     TPZCompElDisc *cel = dynamic_cast<TPZCompElDisc *>(SubElement(i));
     if(!cel) continue;
-    maxsub = NormalizeConst();
+    maxsub = cel->NormalizeConst();
     if(maxall < maxsub) maxall = maxsub;
   }
   return maxall;  
