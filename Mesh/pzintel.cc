@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cc,v 1.9 2003-10-20 02:12:07 phil Exp $
+// $Id: pzintel.cc,v 1.10 2003-10-20 22:44:44 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -87,67 +87,20 @@ TPZConnect *TPZInterpolatedElement::SideConnect(int connect,int side) {
 
 
 
-void TPZInterpolatedElement::IdentifySideOrder(int side){
+void TPZInterpolatedElement::ForceSideOrder(int side, int order){
   TPZCompElSide thisside(this,side);
   TPZCompElSide large = thisside.LowerLevelElementList(1);
+  if(large.Exists()) return;
   int sideorder = SideOrder(side);
-  int neworder;
+  int neworder = order;
+  int orderchanged = (sideorder != neworder);
   TPZStack<TPZCompElSide> elvec;
   thisside.EqualLevelElementList(elvec,1,0);
   elvec.Push(thisside);
-  int cap,il,computorder;
+  int cap,il;
   TPZInterpolatedElement *equal;
   int equalside;
-  if(large.Exists()) {
-    // There is a larger element
-    // identify the order of the larger element and set the interpolation order
-    // of the current element and all its neighbours of equal level to this order
-    TPZInterpolatedElement *largel = (TPZInterpolatedElement *) large.Element();
-    neworder = largel->SideOrder(large.Side());
-    // We assume the datastructure of the elements is consistent in the sense
-    // that if the current element has the same side order than the large
-    //  element, then all its neighbours will also have the same order
-    if(neworder != sideorder) {
-      RemoveSideRestraintWithRespectTo(side,large);
-      cap = elvec.NElements();
-      for(il = 0; il<cap; il++) {
-	equal = (TPZInterpolatedElement *) elvec[il].Element();
-	equalside = elvec[il].Side();
-	if(equal->ConnectIndex(equalside) != -1) {
-	  equal->SetSideOrder(equalside,neworder);
-	}
-      }
-      if(largel->ConnectIndex(large.Side()) != -1) {
-	RestrainSide(side,largel,large.Side());
-      }
-    }
-    computorder = neworder;
-  } else {
-    // There is no larger element connected to the side
-    // identify the new side order by comparing the orders of the equal level elements
-    neworder = ComputeSideOrder(elvec);
-    // Verify is the side order of all elements is equal to neworder
-    cap = elvec.NElements();
-    il = 0;
-    computorder = neworder;//Cedric
-    while(il<cap) {//SideOrder(int side)
-      equal = (TPZInterpolatedElement *) elvec[il].Element();
-      equalside = elvec[il].Side();
-      int equalorder = equal->SideOrder(equalside);
-      if(equalorder != neworder) {
-	computorder = neworder+1;//Cedric
-      }
-      il++;
-    }
-  }
-  if(neworder != sideorder || neworder != computorder) {//Cedric :  || neworder != computorder
-    // The order of the current element changed
-    // Therefore the constraints of all smaller elements connected to the current
-    // element will need to be adapted
-    // The following loop will happen twice, but doesn't affect anything
-
-    elvec.Resize(0);
-    thisside.EqualLevelElementList(elvec,1,0);
+  if(orderchanged == 1) {
     elvec.Push(thisside);
     cap = elvec.NElements();
     for(il=0; il<cap; il++) {
@@ -157,16 +110,22 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
 	equal->SetSideOrder(equalside,neworder);
       }
     }
+    // Put the accumulated higher dimension sides in highdim (neighbours will not be included because of the third parameter)
+    // The higher dimension sides are only analysed for one dimensional sides
     TPZStack<TPZCompElSide> highdim;
     if(thisside.Reference().Dimension() == 1) {
       for(il=0; il<cap; il++) {
 	elvec[il].HigherDimensionElementList(highdim,1,1);
       }
     }
+
+    // reuse elvec to put the smaller elements (element/sides restrained by the current element side
+
     elvec.Resize(0);
     // Adapt the restraints of all smaller elements connected to the current side
     thisside.HigherLevelElementList(elvec,1,1);
-//    thisside.ExpandConnected(elvec,1);
+
+    // analyse their side order because they are restrained by me
     cap = elvec.NElements();
     TPZInterpolatedElement *small;
     int smallside;
@@ -181,36 +140,169 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
 	small->IdentifySideOrder(smallside);
       }
     }
-	// look for a large element with dimension 2
-	while(large.Exists() && large.Reference().Dimension() <2) {
-		large = large.LowerLevelElementList(1);
-	}
+
+    // Loop over all higher dimension sides
     cap = highdim.NElements();
     for(il=0; il<cap; il++) {
+
+      // verify if the higher dimension element/side is restrained.
+      // if it is restrained then its order will not have changed
+      TPZCompElSide highlarge = highdim[il].LowerLevelElementList(1);
+      if(highlarge.Exists()) continue;
+
+      // verify if the order of the higher dimension side has changed
       TPZInterpolatedElement *el;
       int highside;
       el = dynamic_cast<TPZInterpolatedElement *> (highdim[il].Element());
       highside = highdim[il].Side();
       int order, comporder;
-      order = el->SideOrder(highside);
       TPZStack<TPZCompElSide> equallist;
       highdim[il].EqualLevelElementList(equallist,1,0);
       equallist.Push(highdim[il]);
-      TPZCompElSide highlarge = highdim[il].LowerLevelElementList(1);
       // when the  element highdim is restricted by the same element as the original side, do nothing
       // the restriction will be taken care of in the future
-	  //EXPERIMENTAL
-	  if(highlarge.Exists()) continue;
-      if(highlarge.Element() == large.Element() && highlarge.Side() == large.Side() && large.Element()) continue;
-      if(highlarge.Exists()) {
-	TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (highlarge.Element());
-	comporder = cel->SideOrder(highlarge.Side());
-      } else {
-	comporder = el->ComputeSideOrder(equallist);
-      }
+      // verify if the order of the higher dimension side changed due to the change in order of the side being studied
+      order = el->SideOrder(highside);
+      comporder = el->ComputeSideOrder(equallist);
       if(order != comporder) {
+	// the order has changed
 	el->IdentifySideOrder(highside);
       } else {
+	// the order hasnt changed
+	el->RecomputeRestraints(highside);
+      }
+    }
+  }
+}
+
+void TPZInterpolatedElement::IdentifySideOrder(int side){
+  TPZCompElSide thisside(this,side);
+  TPZCompElSide large = thisside.LowerLevelElementList(1);
+  int sideorder = SideOrder(side);
+  int neworder;
+  int orderchanged = 0;
+  TPZStack<TPZCompElSide> elvec;
+  thisside.EqualLevelElementList(elvec,1,0);
+  elvec.Push(thisside);
+  int cap,il;
+  TPZInterpolatedElement *equal;
+  int equalside;
+  if(large.Exists()) {
+    // There is a larger element
+    // identify the order of the larger element and set the interpolation order
+    // of the current element and all its neighbours of equal level to this order
+    TPZInterpolatedElement *largel = (TPZInterpolatedElement *) large.Element();
+    neworder = largel->SideOrder(large.Side());
+    // We assume the datastructure of the elements is consistent in the sense
+    // that if the current element has the same side order than the large
+    //  element, then all its neighbours will also have the same order
+    if(neworder != sideorder) {
+      orderchanged = 1;
+      RemoveSideRestraintWithRespectTo(side,large);
+      cap = elvec.NElements();
+      for(il = 0; il<cap; il++) {
+	equal = (TPZInterpolatedElement *) elvec[il].Element();
+	equalside = elvec[il].Side();
+	if(equal->ConnectIndex(equalside) != -1) {
+	  equal->SetSideOrder(equalside,neworder);
+	}
+      }
+      if(largel->ConnectIndex(large.Side()) != -1) {
+	RestrainSide(side,largel,large.Side());
+      }
+    }
+  } else {
+    // There is no larger element connected to the side
+    // identify the new side order by comparing the orders of the equal level elements
+    neworder = ComputeSideOrder(elvec);
+    // Verify is the side order of all elements is equal to neworder
+    cap = elvec.NElements();
+    il = 0;
+    while(il<cap) {//SideOrder(int side)
+      equal = (TPZInterpolatedElement *) elvec[il].Element();
+      equalside = elvec[il].Side();
+      int equalorder = equal->SideOrder(equalside);
+      if(equalorder != neworder) {
+	orderchanged = 1;
+      }
+      il++;
+    }
+  }
+  if(orderchanged == 1) {//Cedric :  || neworder != computorder
+    // The order of the current element changed
+    // Therefore the constraints of all smaller elements connected to the current
+    // element will need to be adapted
+    // The following loop will happen twice, but doesn't affect anything
+
+    //    elvec.Resize(0);
+    //    thisside.EqualLevelElementList(elvec,1,0);
+    elvec.Push(thisside);
+    cap = elvec.NElements();
+    for(il=0; il<cap; il++) {
+      equal = (TPZInterpolatedElement *) elvec[il].Element();
+      equalside = elvec[il].Side();
+      if(equal->ConnectIndex(equalside) != -1) {
+	equal->SetSideOrder(equalside,neworder);
+      }
+    }
+    // Put the accumulated higher dimension sides in highdim (neighbours will not be included because of the third parameter)
+    // The higher dimension sides are only analysed for one dimensional sides
+    TPZStack<TPZCompElSide> highdim;
+    if(thisside.Reference().Dimension() == 1) {
+      for(il=0; il<cap; il++) {
+	elvec[il].HigherDimensionElementList(highdim,1,1);
+      }
+    }
+
+    // reuse elvec to put the smaller elements (element/sides restrained by the current element side
+
+    elvec.Resize(0);
+    // Adapt the restraints of all smaller elements connected to the current side
+    thisside.HigherLevelElementList(elvec,1,1);
+
+    // analyse their side order because they are restrained by me
+    cap = elvec.NElements();
+    TPZInterpolatedElement *small;
+    int smallside;
+    int dimension;
+    for(dimension = 0; dimension < 4; dimension++) {
+      for(il=0; il<cap; il++) {
+	if(elvec[il].Reference().Dimension() != dimension) continue;
+	small = (TPZInterpolatedElement *) elvec[il].Element();
+	smallside = elvec[il].Side();
+	// Identify Side Order is used because it will call itself recursively
+	// for its smaller elements too.
+	small->IdentifySideOrder(smallside);
+      }
+    }
+
+    cap = highdim.NElements();
+    for(il=0; il<cap; il++) {
+
+      // verify if the higher dimension element/side is restrained.
+      // if it is restrained then its order will not have changed
+      TPZCompElSide highlarge = highdim[il].LowerLevelElementList(1);
+      if(highlarge.Exists()) continue;
+
+      // verify if the order of the higher dimension side has changed
+      TPZInterpolatedElement *el;
+      int highside;
+      el = dynamic_cast<TPZInterpolatedElement *> (highdim[il].Element());
+      highside = highdim[il].Side();
+      int order, comporder;
+      TPZStack<TPZCompElSide> equallist;
+      highdim[il].EqualLevelElementList(equallist,1,0);
+      equallist.Push(highdim[il]);
+      // when the  element highdim is restricted by the same element as the original side, do nothing
+      // the restriction will be taken care of in the future
+      // verify if the order of the higher dimension side changed due to the change in order of the side being studied
+      order = el->SideOrder(highside);
+      comporder = el->ComputeSideOrder(equallist);
+      if(order != comporder) {
+	// the order has changed
+	el->IdentifySideOrder(highside);
+      } else {
+	// the order hasnt changed
 	el->RecomputeRestraints(highside);
       }
     }

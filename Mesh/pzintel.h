@@ -192,7 +192,7 @@ public:
    */
   virtual void SetPreferredSideOrder(int order) = 0;
 
-protected:
+public:
   /**
    * Sets the interpolation order of side to order
    * This method only updates the datastructure of the element and
@@ -200,6 +200,11 @@ protected:
    * @note DO NOT CALL THIS METHOD
    */
   virtual void SetSideOrder(int side, int order) = 0;
+
+  /**
+   * Impose an interpolation order on a given side (without using computesideorder)
+   */
+  virtual void ForceSideOrder(int side, int order);
 public:
 
   //@}
