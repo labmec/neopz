@@ -25,6 +25,7 @@
 #include <pzbndmat.h> 
 #include <pzbiharmonic.h>
 #include "TPZGeoElement.h"
+#include "TPZInterfaceEl.h"
 #include <pzanalysiserror.h> 
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
@@ -50,6 +51,7 @@
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
 #include "pzshapepoint.h"
+#include "TPZShapeDisc.h"
 
 
 static REAL Pi;
@@ -108,13 +110,13 @@ int main2(){
 
 int main(){
   
-  int ordem_interp=2;
+   TPZInterfaceElement::SetCalcStiffPenalty();
 
-  //  cin >> ordem_interp;
+   TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
 
-  TPZBiharmonic::gPorder = ordem_interp;
- 
-  TPZBiharmonic::gHRef = 1./2.;
+  int ordem_interp = 3;
+
+  cin >> ordem_interp;
 
   Pi = 4.*atan(1.);
  
@@ -127,6 +129,8 @@ int main(){
 
   //  SolveIterative(an, malha, geomalha);
   SolveLU(an, malha, geomalha);
+  an.PostProcess(1);  /* O parametro é o número de pontos p/ o "dx" construir o 
+			 gráfico. Ex. 1 => somente os nós, 2 => nós e pto médio */
 
   ofstream analy("Analysis.out");
   an.Print("Analysis.out", analy);
@@ -291,8 +295,8 @@ TPZCompMesh * CreateMesh(int type, int resolution, int porder){
 //  Refinar malha 
    TPZVec<TPZGeoEl *> children, netos;    
    geoel[0]->Divide(children);
-//    for(int i = 0; i < children.NElements(); i++)
-//      children[i]->Divide(netos);
+//   for(int i = 0; i < children.NElements(); i++)
+   //    children[i]->Divide(netos);
 
   /*  for(int i = 0; i< 4; i++) {    
     geoel[i]->Divide(children);    
