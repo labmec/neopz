@@ -116,7 +116,7 @@ void TPZNodesetCompute::BuildNodeGraph(TPZVec<int> &blockgraph, TPZVec<int> &blo
   int seq = 0;
   blockgraphindex[0] = 0;
   blockgraphindex[1] = 0;
-  for(seq=2; seq<fSeqCard.NElements(); seq++)
+  for(seq=2; seq<=fSeqCard.NElements(); seq++)
   {
     blockgraphindex[seq] = blockgraphindex[seq-1]+fSeqCard[seq-2];
   }
