@@ -40,7 +40,7 @@ void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const {
   
   if(!Exists()) return;
   if(fSide >= fGeoEl->NSides()) {
-    PZError << "ERROR(TPZGeoEl::SetConnectivity)-> Index greater than number of sides.\n";
+    PZError << "ERROR(TPZGeoElSide::SetConnectivity)-> Index greater than number of sides.\n";
     PZError << " fNumSides = " << fGeoEl->NSides() << " side = " << fSide << "\n";
   }
   if(!neighbour.Exists()) {
@@ -60,7 +60,7 @@ void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const {
     // It would be convenient to check the consistency of both loops
     // insert the connectivity between two independent loops
     if(NeighbourExists(neighbour) || neighbour.NeighbourExists(*this)) {
-      PZError << "TPZGeoEl::SetConnectivity Fourth untreated case, wrong data structure\n";
+      PZError << "TPZGeoElSide::SetConnectivity Fourth untreated case, wrong data structure\n";
     } else {
       SetNeighbour(neighneigh);
       neighbour.SetNeighbour(currentneigh);
