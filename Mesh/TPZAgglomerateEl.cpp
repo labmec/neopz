@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.13 2003-11-07 12:57:52 cedric Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.14 2003-11-10 20:31:07 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -138,6 +138,37 @@ void TPZAgglomerateElement::CenterPoint(){
   SetCenterPoint(1,centy/voltot);
   SetCenterPoint(2,centz/voltot);
 }
+
+void TPZAgglomerateElement::CenterPoint(TPZVec<REAL> &center)
+{
+  this->CenterPoint();
+  center = fCenterPoint;
+}
+
+
+REAL TPZAgglomerateElement::RadiusOfEl(){
+   TPZManVector<REAL,3> centel(3,0.), centface(3,0.);
+   TPZManVector<REAL,3> masscent(3,0.), massface(3,0.);
+   REAL mindist = 1000., dist;
+
+   this->CenterPoint(centel);//Computes de element center point
+   // X(centel,masscent);
+//    int nfaces,face,face0;
+//    if(NSides()==15) {nfaces = 14; face0 = 10;}//tetrahedron
+//    else if(NSides()==19) {nfaces = 18; face0 = 13;}//pyramid
+//    else if(NSides()==21) {nfaces = 20; face0 = 15;}//prism
+//    else if(NSides()==27) {nfaces = 26; face0 = 20;}//hexahedro
+//    else return 0.;//line, point, triangle, quadrilateral
+//    for(face=face0;face<nfaces;face++){
+//      CenterPoint(face,centface);
+//      X(centface,massface);
+//      dist = Distance(masscent,massface);
+//      if(mindist > dist) mindist = dist;
+//    }
+   PZError << "Cuidado esse metodo nao esta implementado"<< endl;
+   return mindist;
+ }
+
 
 REAL TPZAgglomerateElement::VolumeOfEl(){
 

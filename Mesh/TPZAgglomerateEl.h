@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.10 2003-11-07 12:57:52 cedric Exp $
+//$Id: TPZAgglomerateEl.h,v 1.11 2003-11-10 20:26:24 tiago Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -66,9 +66,20 @@ public:
   /**calcula o ponto centro de massa dos elementos aglomerados */
   void CenterPoint();
 
+ /**
+  * Computes the center point of this element.
+  * This method re-implement the mother's method.
+  */
+  void CenterPoint(TPZVec<REAL> &center);
+
   /** retorna o volume do elemento geométrico referenciado */
   REAL VolumeOfEl();
 
+ /**
+  * Returns the radius of the internal sphere to the element.
+  */
+  REAL RadiusOfEl();
+ 
   /**
    * Calcula a restrição da solução ou resíduo dos elementos aglomerados para o
    * obtido por aglomeração - este último chamado de elemento pai
