@@ -38,7 +38,7 @@ libpz_a_LIBADD = ../External/pzsloan.o ../Util/TPZTimer.o \
 	../Matrix/pzmatred.o ../Matrix/pzmatrix.o ../Matrix/pzsbndmat.o ../Matrix/pzseqsolver.o \
 	../Matrix/pzsespmat.o ../Matrix/pzsfulmat.o ../Matrix/pzshtmat.o ../Matrix/pzskylmat.o \
 	../Matrix/pzskylmatpar.o ../Matrix/pzsolve.o ../Matrix/pzstencil.o ../Matrix/pzstepsolver.o \
-	../Matrix/pzsysmp.o ../Matrix/pztempmat.o ../Matrix/pzysmp.o ../Matrix/pzmatrixid.o \
+	../Matrix/pzsysmp.o ../Matrix/pztempmat.o ../Matrix/pzysmp.o ../Matrix/pzmatrixid.o ../Matrix/pzspblockdiagpivot.o \
 	../Geom/pzgeopoint.o ../Geom/pzgeoprism.o ../Geom/pzgeopyramid.o ../Geom/pzgeoquad.o \
 	../Geom/pzgeotetrahedra.o ../Geom/pzgeotriangle.o ../Geom/TPZGeoCube.o ../Geom/TPZGeoElement.o \
 	../Geom/TPZGeoLinear.o ../StrMatrix/pzbdstrmatrix.o ../StrMatrix/pzbstrmatrix.o \
