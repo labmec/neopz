@@ -84,24 +84,39 @@ REAL TPZNACAXXXX::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt) {
 // creates an one-quadrilateral element mesh
 
 // This file generates a mesh for the NACA airfoils
+
+/*
 double scale = 4.;
-double entrance = /*4.*/ 5. * scale,
+double entrance = 5. * scale,
              exitlength = 4. * scale,
 	     cord = 5.,
 	     height = 10. * scale,
 	     extraheight = scale,
 	     q = 1.5,
 	     qn = 1.5;
-/*const int m = 6,
-          n = 2,
-	  l = 2;*/
-
+	     */
+/*
+double scale = 10.; //4;
+double entrance = 5. * scale,
+             exitlength = 4. * scale,
+	     cord = 1.,//5.,
+	     height = 10. * scale,
+	     extraheight = scale,
+	     q = 1.5,
+	     qn = 1.5;
+*/
 double PI = 3.14159265359;
 
-
+double
+ entrance = 25.,
+ exitlength = 25.,
+ cord = 1.,
+ extraheight = 5.,
+ height = 40.,
+ qn, ql, q,
+ scale = 5.;
 
 int l, m, n, p, k;
-
 
 double Spg(double a0, double q, int N)
 {
@@ -114,19 +129,38 @@ double xpg(double q, int n, int N)
    return Spg(1., q, n-1)/Spg(1., q, N-1);
 }
 
-
+double xtrig(int n, int N)
+{
+   return (1.-cos(((double)n)/((double)N)*PI))/2.;
+}
 
 void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int nSubdiv)
 {
 
+
+
  m = nSubdiv;
 
  n = 5 * m / 9 * (int) pow(scale, .6);
- l = m / 2;
- p = m / 4;
+ l = n / 2;
+ p = n / 4;
 
- q  = pow(5.6 * .25 * scale, 1./(double)m);
- qn = pow(2.6 * 2. * scale, 1./(double)n);
+ q  = pow(7., 1./(double)m);
+ qn = pow(196., 1./(double)n);
+ double ql = pow(7., 1./(double)l);
+
+
+
+
+ n = 3 * m / 2;
+ l = m / 4;
+ p = n / 2;
+
+
+ q  = pow(7., 1./(double)m);
+ qn = pow(98., 1./(double)n);
+ ql = pow(28., 1./(double)l);
+
 
    int index, indexPt, indexPt2;
 
@@ -142,7 +176,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
    int i, j;
    for(i = 1; i < m; i++)
       {
-         double x = xpg(q, i, m);
+         double x = xtrig(i, m + 1);//xpg(q, i, m);
 	 coord[0] = profile.xua(x * cord);
 	 coord[1] = profile.yua(x * cord);
 	 coord[2] = 0.;
@@ -269,7 +303,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
       // center point
       index = m; // index of existent point
       indexPt = firstExitPt + (2*l+1) * (i-1);
-      coord[0] = pt[index][0] + /*entrance + cord +*/ exitlength / 8. * ratio;
+      coord[0] = pt[index][0] + /*entrance + cord +*/ 1.5 * cord * ratio;
       coord[1] = pt[index][1];
       coord[2] = 0.;
       pt[indexPt] = coord;
@@ -279,7 +313,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
          //upper points
          index = j * (2 * m + 1) + m - 1; // index of existent point
          indexPt2 = indexPt + j;
-         coord[0] = entrance + cord + exitlength / 8. * ratio;
+         coord[0] = entrance + cord + 1.5 * cord * ratio;
 	 coord[1] = pt[index][1];// - extraheight * ratio * xpg(sqrt(qn), j, n);
          coord[2] = 0.;
          pt[indexPt2] = coord;
@@ -287,7 +321,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
          // bottom points
          index = j * (2 * m + 1) + m; // index of existent point
          indexPt2 = indexPt + l + j;
-         coord[0] = entrance + cord + exitlength / 8. * ratio;
+         coord[0] = entrance + cord + 1.5 * cord * ratio;
          coord[1] = pt[index][1];// + extraheight * ratio * xpg(sqrt(qn), j, n);
          coord[2] = 0.;
          pt[indexPt2] = coord;
@@ -711,23 +745,23 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
      //first row near naca
      TPZVec<TPZGeoEl * > firstDiv, secondDiv, thirdDiv;
      TPZManVector<REAL, 3> pt(3,0.);
-     int ii;
+     int ii;//, jj;
      for(i = 0; i < 2*m; i++)
        {
 	 gEls[i]->Divide(firstDiv);
 	 pt[0] = firstDiv[0]->NodePtr(1)->Coord(0);
 	 pt[1] = firstDiv[0]->NodePtr(1)->Coord(1);
-	 profile.ProjectPoint(pt, 4*m + 1);
+	 profile.ProjectPoint(pt, 32*m + 1);
 	 firstDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
 	 firstDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
 
-	 if(fabs(i-m+.5) > 3*m/4)
+	 if(fabs(i-m+.5) > 3*m/4 || fabs(i-m+.5) < m/5)
 	 {
             for(j = 0; j < 2; j++) {
 	      firstDiv[j]->Divide(secondDiv);
 	      pt[0] = secondDiv[0]->NodePtr(1)->Coord(0);
 	      pt[1] = secondDiv[0]->NodePtr(1)->Coord(1);
-	      profile.ProjectPoint(pt, 8*m + 1);
+	      profile.ProjectPoint(pt, 64*m + 1);
 	      secondDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
 	      secondDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
 	      for(ii = 0; ii < 2; ii++)
@@ -735,7 +769,7 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
 	        secondDiv[ii]->Divide(thirdDiv);
 	        pt[0] = thirdDiv[0]->NodePtr(1)->Coord(0);
 	        pt[1] = thirdDiv[0]->NodePtr(1)->Coord(1);
-	        profile.ProjectPoint(pt, 32*m + 1);
+	        profile.ProjectPoint(pt, 256*m + 1);
 	        thirdDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
 	        thirdDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
 	      }
@@ -775,13 +809,28 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
      // exit mesh
      for(j = 0; j < p; j++)
 	{
-	   for(i = 0; i < 2*(p-j); i++)
+	   for(i = 0; i < min(2*(p-j+1),2*l); i++)
            {
 	     gEls[2*m*n+j*(l*2)+i]->Divide(firstDiv);
-             if(i < 2 && j < p/2)
-	       for(ii = 0; ii < 2; ii++)
+             if(i < 2 && j < p /*- 1*/)
+	       if(j < p/4)
 	       {
-                  firstDiv[ii + 2*i]->Divide(secondDiv);
+	          for(ii = 0; ii < 2; ii++)
+	          {
+                     firstDiv[ii + 2*i]->Divide(secondDiv);
+		     if(j < p/4)
+		     {
+                        secondDiv[2*i]->Divide(thirdDiv);
+		        secondDiv[2*i+1]->Divide(thirdDiv);
+		     }
+		     firstDiv[ii + 2 -2*i]->Divide(secondDiv);
+                  }
+	       }else{
+	          for(ii = 0; ii < 2; ii++)
+	          {
+                     firstDiv[ii + 2 * i]->Divide(secondDiv);
+		  }
+
                }
 	   }
 	}
@@ -789,12 +838,32 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
      for(i = 0; i < n-l; i++)
      {
         int index = 2*m*n + 2*l*p + l + p + 2*(l+p)*i;
-        gEls[index]->Divide(firstDiv);
-	gEls[index-1]->Divide(firstDiv);
+        gEls[index-1]->Divide(firstDiv);
+	{
+	   if(i == 0)
+	   {
+	      firstDiv[0]->Divide(secondDiv);
+	      firstDiv[1]->Divide(secondDiv);
+	   }else{
+	      firstDiv[1]->Divide(secondDiv);
+	      firstDiv[2]->Divide(secondDiv);
+	   }
+	}
+	gEls[index]->Divide(firstDiv);
+	{
+	   if(i == 0)
+	   {
+	      firstDiv[2]->Divide(secondDiv);
+	      firstDiv[3]->Divide(secondDiv);
+	   }else{
+	      firstDiv[0]->Divide(secondDiv);
+	      firstDiv[3]->Divide(secondDiv);
+	   }
+	}
      }
 
      // shock wings
-     for(i = n/3; i < n/2; i++)
+     for(i = n/3; i < n/2-1; i++)
         for(j = l + i - n/3; j < m; j++)
         {
 	   gEls[i*2*m+j]->Divide(firstDiv);
@@ -841,7 +910,7 @@ TPZFlowCompMesh *
    TPZVec< TPZVec< REAL > > nodes;
    TPZVec< TPZVec< int  > > elms;
    TPZVec< TPZGeoEl *> gElem;
-   const int digits = 0012;
+   const int digits = 12;
    TPZManVector<REAL> x0(3,0.);
    x0[0] = entrance;
    x0[1] = height/2.;
