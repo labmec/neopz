@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.16 2004-01-21 00:23:32 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.17 2004-02-04 17:41:50 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -644,6 +644,12 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,
          PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
 	 ComputeGhostState(FADsolL, FADsolR, normal, bc);
          ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
+/*
+	 int nstate = NStateVariables();
+	 int k, numShape = ef.Rows() / nstate;
+	 cout << "\n";
+	 for(k = 0; k < numShape; k++)
+	    cout << "\t"<< ef(k*nstate,0);*/
       #else
       // forcint explicit contribution and issueing an warning
          cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";

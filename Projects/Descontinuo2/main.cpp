@@ -3,6 +3,7 @@
 #include "reflectedShock.cpp"
 #include "reflectedShock_nonalignedmesh.cpp"
 #include "SimpleShock.cpp"
+#include "ShockTube2d.cpp"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
@@ -45,7 +46,8 @@ int main()
 //   TPZFlowCompMesh * cmesh = SSCompMesh();
 //   TPZFlowCompMesh * cmesh = RSCompMesh();
 //   TPZFlowCompMesh * cmesh = OneElCompMesh();
-   TPZFlowCompMesh * cmesh = RSNACompMesh();
+//   TPZFlowCompMesh * cmesh = RSNACompMesh();
+     TPZFlowCompMesh * cmesh = STCompMesh();
 
 // Creating the analysis object
 
@@ -63,7 +65,7 @@ int main()
    TPZMatrix * mat = StrMatrix.Create();
 
    An.SetLinSysCriteria(1e-10, 0);
-   An.SetNewtonCriteria(1e-10, 1);
+   An.SetNewtonCriteria(1e-10, 100);
    An.SetTimeIntCriteria(1e-10,100);
 
    TPZStepSolver Solver;

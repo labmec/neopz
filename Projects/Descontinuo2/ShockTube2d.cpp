@@ -1,0 +1,234 @@
+
+#include "pzeuleranalysis.h"
+#include "pzconslaw.h"
+#include "pzmaterial.h"
+#include "pzeulerconslaw.h"
+#include "pzartdiff.h"
+#include "pzreal.h"
+#include "pzvec.h"
+#include "pzflowcmesh.h"
+#include "pzgmesh.h"
+#include "pzgeoelbc.h"
+#include <iostream>
+#include <fstream>
+#include "TPZGeoElement.h"
+#include "pzshapequad.h"
+#include "pzgeoquad.h"
+#include "pzrefquad.h"
+#include "TPZGeoLinear.h"
+#include "TPZRefLinear.h"
+#include "pzbstrmatrix.h"
+#include "pzstepsolver.h"
+#include "pzblock.h"
+
+const int nSTEl = 2 * 5;
+
+// Creates a mesh for the simple shock problem
+
+void STMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
+{
+   REAL alpha = 0.;//3.14159 / 2.;
+   REAL cosA = cos(alpha);
+   REAL sinA = sin(alpha);
+
+   REAL y1=0,
+	y2=.5;
+
+   pt.Resize(2*nSTEl + 2);
+   TPZVec<REAL> coord(3);
+
+   int i;
+   int nPts = nSTEl*2 + 2;
+
+   for(i = 0; i < nPts/2; i++)
+   {
+      coord[0] = ((double)i)/((double)nSTEl) * cosA - y1 * sinA;
+      coord[1] = y1 * cosA + ((double)i)/((double)nSTEl) * sinA;
+      coord[2] = 0.;
+      pt[i] = coord;
+
+      coord[0] = ((double)i)/((double)nSTEl) * cosA - y2 * sinA;
+      coord[1] = y2 * cosA + ((double)i)/((double)nSTEl) * sinA;
+      coord[2] = 0.;
+      pt[nPts/2 + i] = coord;
+   }
+
+// quadrilateral data
+
+   TPZVec< int > nodes(4);
+
+   elms.Resize(nSTEl);
+
+   for(i = 0; i < nSTEl; i++)
+   {
+      nodes[0] = i;
+      nodes[1] = i+1;
+      nodes[2] = nPts/2 + i + 1;
+      nodes[3] = nPts/2 + i;
+      elms[i] = nodes;
+   }
+}
+
+TPZGeoMesh * CreateSTGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
+                           TPZVec< TPZVec< int > > & elms,
+			   MElementType ElType, int matId,
+			   TPZVec<TPZGeoEl *> & gEls)
+{
+   TPZGeoMesh * gmesh = new TPZGeoMesh;
+
+   gEls.Resize(elms.NElements());
+   gmesh->NodeVec().Resize(nodes.NElements());
+   int i;
+   for(i = 0; i < nodes.NElements(); i++)
+   {
+      gmesh->NodeVec()[i].Initialize(nodes[i],*gmesh);
+   }
+
+   for( i = 0; i < elms.NElements(); i++)
+   {
+      gEls[i] = gmesh->CreateGeoElement(ElType, elms[i], matId, i);
+   }
+
+// Constructing neighborhood
+
+   gmesh->BuildConnectivity();
+/*
+   TPZVec< TPZGeoEl * > firstDivision;
+   for(i = 0; i < gEls.NElements();i++)gEls[i]->Divide(firstDivision);
+*/
+
+   return gmesh;
+}
+
+
+// Creating all the geometric and computational meshes
+// for the reflected shock problem.
+
+TPZFlowCompMesh * STCompMesh()
+{
+   TPZCompElDisc::gDegree = 2;
+   REAL gamma = 1.4;
+
+// Configuring the PZ to generate discontinuous elements
+   TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
+                ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+
+   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>
+                ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+
+   int dim = 2;
+   int interfdim = dim -1;
+   TPZCompElDisc::gInterfaceDimension = interfdim;
+
+
+// Retrieving the point coordinates and element references
+   TPZVec< TPZVec< REAL > > nodes;
+   TPZVec< TPZVec< int  > > elms;
+   TPZVec< TPZGeoEl *> gElem;
+   STMeshPoints(nodes, elms);
+
+// Creating the geometric mesh
+   TPZGeoMesh * gmesh = CreateSTGeoMesh(nodes, elms, EQuadrilateral, 1, gElem);
+
+   TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
+
+// Creating the materials
+   TPZEulerConsLaw2 * mat = new TPZEulerConsLaw2(1/*nummat*/,
+                                            0/*timeStep*/,
+					    gamma /*gamma*/,
+					    2 /* dim*/,
+					    LeastSquares_AD/*LeastSquares_AD/*LeastSquares_AD /*pzartdiff.h*/);
+// Setting initial solution
+   mat->SetForcingFunction(NULL);
+   // Setting the time discretization method
+   mat->SetTimeDiscr(/*Implicit_TD/*Diff*/Implicit_TD,
+                     Implicit_TD/*ConvVol*/,
+		     Implicit_TD/*ConvFace*/);
+   //mat->SetDelta(0.1); // Not necessary, since the artDiff
+   // object computes the delta when it equals null.
+
+   mat->SetCFL(.1);
+   mat->SetDelta(.01/*2 + .410707*/);
+
+   cmesh -> InsertMaterialObject(mat);
+
+// Boundary conditions
+
+   TPZBndCond * bc;
+
+   REAL rhol  = 2.,
+        ul = 0.,
+	vl = 0.,
+	pl = 2.;
+   REAL rhoel = pl/(gamma - 1.) + rhol * (ul * ul + vl * vl);
+
+   REAL rhor  = 1.,
+        ur = 0.,
+	vr = 0.,
+	pr = 1.;
+   REAL rhoer = pr/(gamma - 1.) + rhor * (ur * ur + vr * vr);
+
+   //CC Todas as arestas : PAREDE
+   TPZFMatrix val1, val2;
+   val1.Zero();
+   val2.Zero();
+   int i;
+   for(i = 0; i < nSTEl; i++)
+   {
+      TPZGeoElBC((TPZGeoEl *)gElem[i],4,-1,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-1,*gmesh);
+   }
+   // aresta direita
+   TPZGeoElBC((TPZGeoEl *)gElem[nSTEl-1],5,-1,*gmesh);
+   // aresta esquerda
+   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-1,*gmesh);
+
+   bc = mat->CreateBC(-1,5,val1,val2);
+   cmesh->InsertMaterialObject(bc);
+
+   cmesh->AutoBuild();
+//   cmesh->AdjustBoundaryElements();
+
+// printing meshes
+
+   ofstream geoOut("geomesh.out");
+   gmesh->Print(geoOut);
+   geoOut.close();
+
+   ofstream compOut("compmesh.out");
+   cmesh->Print(compOut);
+   compOut.close();
+
+// generating initial guess for the mesh solution
+   TPZFMatrix Solution = cmesh->Solution();
+
+   int nVars = Solution.Rows();
+   for(int k = 0; k < nVars; k++)Solution(k)=-.01;
+
+   Solution.Zero();
+   int j, NSolutionBlocks;
+   //TPZBlock * pBlock = cmesh->Block();
+   NSolutionBlocks = cmesh->Block().NBlocks();
+   int nShape = Solution.Rows() / NSolutionBlocks / (dim + 2);
+   int lastShapeFun = (nShape - 1)*(dim+2);
+   for(j = 0; j < NSolutionBlocks / 2; j++)
+   {
+      int blockOffset = cmesh->Block().Position(j) + lastShapeFun;
+
+      Solution(blockOffset  ,0) = rhol;
+      Solution(blockOffset+1,0) = ul * rhol;
+      Solution(blockOffset+2,0) = vl * rhol;
+      Solution(blockOffset+3,0) = rhoel;
+
+      blockOffset = cmesh->Block().Position(j + NSolutionBlocks / 2) + lastShapeFun;
+
+      Solution(blockOffset  ,0) = rhor;
+      Solution(blockOffset+1,0) = ur * rhor;
+      Solution(blockOffset+2,0) = vr * rhor;
+      Solution(blockOffset+3,0) = rhoer;
+
+   }
+   cmesh->LoadSolution(Solution);
+
+   return cmesh;
+}

@@ -248,8 +248,8 @@ template <class T>
 void TPZArtDiff::LS(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
   int i;
   for(i = 0; i < dim; i++)
-     Tau[i] = Ai[i];
-     //Ai[i].Transpose(Tau[i]);
+     //Tau[i] = Ai[i];
+     Ai[i].Transpose(Tau[i]);
 }
 
 template <class T>
