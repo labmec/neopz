@@ -1,4 +1,4 @@
-
+// -*- c++ -*-
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -19,12 +19,7 @@
 #include "pzstream.h"
 #include "pzreal.h"
 
-#ifdef OOPARLIB
-
-#include "pzsaveable.h"
-#include "pzmatdefs.h"
-
-#endif
+#include "pzsave.h"
 
 class TPZFMatrix;
 class TPZSolver;
@@ -54,10 +49,7 @@ enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput};
  * Abstract class TPZMatrix which defines interface of derived matrix classes. 
  * @ingroup matrix
  */
-class TPZMatrix
-#ifdef OOPARLIB
-  : public TSaveable
-#endif
+class TPZMatrix  : public TPZSaveable
 
 {
 public:
@@ -551,53 +543,21 @@ public:
    */
   virtual int Subst_Diag( TPZFMatrix * b ) const;
   //@}
-#ifdef OOPARLIB
   /**
-   * @name Saveable
-   * Methods which would make TPZMatrix compliant with TSaveable
+   * @name TPZSaveable
+   * Methods which would make TPZMatrix compliant with TPZSaveable
    */
   //@{
-  /**
-   * Returns Class ID
-   */
-  virtual long GetClassID() const{ return TMATRIX_ID; }
-
   /**
    * Unpacks the object structure from a stream of bytes
    * @param buf The buffer containing the object in a packed form
    */
-  virtual int Unpack( TReceiveStorage * buf );
-
-
-  /**
-   * Static method which will recompose an object of type TPZMatrix based on buf
-   * @param buf Stream of bytes where the object is stored
-   */
-  static TSaveable *Restore(TReceiveStorage * buf);
+  virtual void  Read(TPZStream &buf, void *context );
   /**
    * Packs the object structure in a stream of bytes
    * @param buf Buffer which will receive the bytes
    */
-  virtual int Pack( TSendStorage * buf ) const;
-
-  /**
-   * Returns class name
-   */
-  virtual char *ClassName() const{ return( "TPZMatrix" ); }
-
-  /**
-   * Returns true if the object belongs to a class which is derived from Classid
-   * @param Classid Inquired base class ID
-   */
-  virtual int DerivedFrom(const long Classid) const;
-
-  /**
-   * Returns true if the object belongs to a class which is derived from classname
-   * @param classname Inquired base class name
-   */
-  virtual int DerivedFrom(const char * classname) const; // a class with name classname
-  //@}
-#endif
+  virtual void Write( TPZStream &buf, int withclassid );
 
 protected:
 

@@ -195,6 +195,9 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Pre/pzgengrid.o \
 	../Pre/pzpargrid.o \
 	../Pre/TPZGMSHReadMesh.o \
-	../Pre/TPZExtendGridDimension.o
+	../Pre/TPZExtendGridDimension.o \
+	../Save/pzsave.o \
+	../Save/pzfilebuffer.o
+
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -933,44 +933,18 @@ int TPZMatrix::Error(const char *msg ,const char *msg2) const {
     return 0;
 }
 
-#ifdef OOPARLIB
-
-int TPZMatrix::Unpack( TReceiveStorage *buf ){
-    TSaveable::Unpack(buf);
-	 buf->UpkInt(&fRow);
-    buf->UpkInt(&fCol);
-    buf->UpkByte(&fDecomposed);
-    return 1;
+void TPZMatrix::Read( TPZStream &buf, void *context ){
+  TPZSaveable::Read(buf,context);
+  buf.Read(&fRow,1);
+  buf.Read(&fCol,1);
+  buf.Read(&fDecomposed,1);
 }
 
-
-
-TSaveable *TPZMatrix::Restore(TReceiveStorage *buf) {
-    TPZMatrix *m = new TPZMatrix(0,0);
-    m->Unpack(buf);
-    return m;
+void TPZMatrix::Write( TPZStream &buf, int withclassid ) {
+  TPZSaveable::Write(buf,withclassid);
+  buf.Write(&fRow,1);
+  buf.Write(&fCol,1);
+  buf.Write(&fDecomposed,1);
 }
-
-int TPZMatrix::Pack( TSendStorage *buf )const {
-    TSaveable::Pack(buf);
-    buf->PkInt(&fRow);
-    buf->PkInt(&fCol);
-    buf->PkByte(&fDecomposed);
-    return 1;
-}
-
-
-int TPZMatrix::DerivedFrom(const long Classid) const {
-    if(Classid == GetClassID()) return 1;
-    return TSaveable::DerivedFrom(Classid);
-}
-
-int TPZMatrix::DerivedFrom(const char *classname) const {
-
-    if(!strcmp(ClassName(),classname)) return 1;
-    return TSaveable::DerivedFrom(classname);
-}
-
-#endif
 
 

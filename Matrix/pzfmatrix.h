@@ -1,4 +1,4 @@
-
+// -*- c++ -*-
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -25,12 +25,10 @@ using namespace std;
 
 #include <math.h>
 
-#ifdef OOPARLIB
 
-#include "pzsaveable.h"
-#include "pzmatdefs.h"
+#include "pzsave.h"
+#include "pzmatrixid.h"
 
-#endif
 
 
 
@@ -218,19 +216,11 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
 
   //routines to send and receive messages
 
-#ifdef OOPARLIB
-  virtual long GetClassID() const   { return TFMATRIX_ID; }
-  virtual int Unpack( TReceiveStorage *buf );
-  static TSaveable *Restore(TReceiveStorage *buf);
-  inline virtual int Pack( TSendStorage *buf ) const;
-  virtual char *ClassName() const   { return( "TPZFMatrix" ); }
-  virtual int DerivedFrom(const long Classid) const; // returns  true if the object
-  //  belongs to a class which is derived from a class
-  //  with id classid
-  virtual int DerivedFrom(const char *classname) const; // a class with name classname
-#endif
+  virtual int ClassId() const   { return TPZFMATRIXID; }
+  virtual void Read( TPZStream &buf, void *context );
+  virtual void Write(TPZStream &buf, int withclassid );
 
-      operator REAL*() const { return fElem; }
+  operator REAL*() const { return fElem; }
 
  private:
 

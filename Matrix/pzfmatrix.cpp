@@ -944,57 +944,23 @@ int TPZFMatrix::Error(const char *msg1,const char *msg2 ) const {
 /*** Clear ***/
 
 int TPZFMatrix::Clear() {
-#ifdef __BOORLANDC__
-	 if(fElem && fElem != fGiven) delete[]( fElem );
-    //farfree(fElem);//
-
-#else
-	 if(fElem && fElem != fGiven) delete[]( fElem );
-    //free(fElem);//
-
-#endif
-	 fElem = NULL;
-	 fRow  = fCol = 0;
-	 return( 1 );
+  if(fElem && fElem != fGiven) delete[]( fElem );
+  fElem = NULL;
+  fRow  = fCol = 0;
+  return( 1 );
 }
 
-#ifdef OOPARLIB
-
-int TPZFMatrix::Unpack( TReceiveStorage *buf ){
-	 TPZMatrix::Unpack(buf);
-	 fSize = 0;
-#ifdef __BOORLANDC__
-	 //fElem= (REALPtr) farcalloc(fRow*fCol,sizeof(REAL));//
-    fElem = new REAL[fRow*fCol];
-#else
-	 //fElem= (REALPtr) calloc(fRow*fCol,sizeof(REAL));//
-    fElem = new REAL[fRow*fCol];
-#endif
-	 buf->UpkDouble(fElem,fRow*fCol);
-	 return 1;
+void TPZFMatrix::Read( TPZStream &buf, void *context ){
+  TPZMatrix::Read(buf,context);
+  int row = fRow;
+  int col = fCol;
+  fRow = fCol = 0;
+  Resize(row,col);
+  buf.Read(fElem,fRow*fCol);
 }
 
-TSaveable *TPZFMatrix::Restore(TReceiveStorage *buf) {
-	 TPZFMatrix *m = new TPZFMatrix();
-	 m->Unpack(buf);
-	 return m;
+void TPZFMatrix::Write( TPZStream &buf, int withclassid ) {
+  TPZMatrix::Write(buf,withclassid);
+  buf.Write(fElem,fRow*fCol);
 }
 
-int TPZFMatrix::Pack( TSendStorage *buf ) const {
-	 TPZMatrix::Pack(buf);
-	 buf->PkDouble(fElem,fRow*fCol);
-	 return 1;
-}
-
-int TPZFMatrix::DerivedFrom(const long Classid) const{
-	 if(Classid == GetClassID()) return 1;
-	 return TPZMatrix::DerivedFrom(Classid);
-}
-
-int TPZFMatrix::DerivedFrom(const char *classname) const{
-
-	 if(!strcmp(ClassName(),classname)) return 1;
-	 return TPZMatrix::DerivedFrom(classname);
-}
-
-#endif

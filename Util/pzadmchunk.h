@@ -1,8 +1,9 @@
+// -*- c++ -*-
 /**
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzadmchunk.h,v 1.3 2004-04-02 13:12:42 phil Exp $
+// $Id: pzadmchunk.h,v 1.4 2004-04-22 13:16:05 phil Exp $
 
 #ifndef PZADMCHUNK_H
 #define PZADMCHUNK_H
@@ -10,6 +11,8 @@
 #include "pzchunk.h"
 #include "pzstack.h"
 #include "pzerror.h"
+
+   class TPZSaveable;
 
 /**
  * @ingroup util
@@ -120,6 +123,8 @@ class TPZAdmChunkVector : public TPZChunkVector<T,EXP>
       void Resize(const int newsize);
 
    private:
+
+   friend class TPZSaveable;
       /** @shapeType DependencyLink */
       /*# TPZChunkVector lnkUnnamed */
       

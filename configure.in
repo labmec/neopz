@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.29 2004-04-08 14:48:42 rgdamas Exp $
+dnl $Id: configure.in,v 1.30 2004-04-22 13:19:51 phil Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -469,6 +469,7 @@ AC_OUTPUT([ Makefile PZ.mk PZ_user.mk \
 	Pre/Makefile \
 	Common/Makefile \
 	LinearSolvers/Makefile \
+        Save/Makefile \
 	lib/Makefile \
 
 	Projects/Makefile \
@@ -500,6 +501,7 @@ AC_OUTPUT([ Makefile PZ.mk PZ_user.mk \
         Projects/Descontinuo2/Makefile \
 	Projects/ConsLaw/Makefile \
 	Projects/Igor/Makefile \
+	Projects/multicamada/Makefile \
 	Projects/Bench/Makefile \
 	Projects/CursoPZ/Makefile \
 	Projects/CursoPZ/Class_1/Makefile \

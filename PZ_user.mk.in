@@ -3,7 +3,7 @@
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
-# $Id: PZ_user.mk.in,v 1.6 2004-04-08 14:48:42 rgdamas Exp $
+# $Id: PZ_user.mk.in,v 1.7 2004-04-22 13:22:27 phil Exp $
 #
 
 PZ_INCLUDES = -I@prefix@/Util \
@@ -25,13 +25,15 @@ PZ_INCLUDES = -I@prefix@/Util \
 	-I@prefix@/Pre \
 	-I@prefix@/External \
 	-I@prefix@/External/sloan \
+	-I@prefix@/Save \
+	@METISINCLUDE@
 	@METISINCLUDE@ \
-  @FADINCLUDE@ \
+	@FADINCLUDE@ \
 	@FADINCLUDE_FAD@ \
-  @FADINCLUDE_TFAD@ \
-  @FADINCLUDE_TFADET@ \
-  @ATLASINCLUDE@ \
-  @BLASINCLUDE@
+	@FADINCLUDE_TFAD@ \
+	@FADINCLUDE_TFADET@ \
+	@ATLASINCLUDE@ \
+	@BLASINCLUDE@
 
 PZ_LIBDIR = -L@prefix@/lib @METISLIBDIR@ @ATLASLIBDIR@ 
 

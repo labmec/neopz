@@ -3,7 +3,7 @@
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
-# $Id: PZ.mk.in,v 1.6 2004-02-03 13:09:59 longhin Exp $
+# $Id: PZ.mk.in,v 1.7 2004-04-22 13:19:10 phil Exp $
 #
 
 CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@ @USING_FAD@ @USING_ATLAS@ @USING_BLAS@
@@ -26,6 +26,7 @@ INCLUDES = -I$(top_srcdir)/Util \
 	-I$(top_srcdir)/Pre \
 	-I$(top_srcdir)/External \
 	-I$(top_srcdir)/External/sloan \
+	-I$(top_srcdir)/Save \
 	@METISINCLUDE@ \
         @FADINCLUDE@ \
 	@FADINCLUDE_FAD@ \
