@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.32 2005-01-05 00:03:20 phil Exp $
+dnl $Id: configure.in,v 1.33 2005-01-10 19:41:11 phil Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -102,11 +102,12 @@ case "${comp_mode}" in
     echo "Development mode chosen. Debug symbols will be added."
     COMPILATION_MODE="Development compilation mode."
     case "$CXX" in
-      c++ | g++)
+      c++ | g++ | /usr/local/gcc-3.3.5/installdir/bin/gcc | /usr/local/gcc-3.3.5/installdir/bin/g++)
         MODE_OPTIONS="-DDEBUG -Wall -ggdb3 -pipe -fno-default-inline -fno-inline"
         ;;
       *)
-        AC_MSG_ERROR(unsupported compiler.)
+dnl         MODE_OPTIONS="-DDEBUG -Wall -ggdb3 -pipe -fno-default-inline -fno-inline"
+       AC_MSG_ERROR(unsupported compiler.)
         ;;
     esac
     ;;
