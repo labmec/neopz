@@ -758,6 +758,7 @@ void TPZGeoEl::SetSubElementConnectivities() {
 		  neighbour = neighbour.Neighbour();
 	  }
   }
+  InitializeNeighbours();
 }
 
 void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
@@ -1042,5 +1043,25 @@ void TPZGeoEl::RemoveConnectivities(){
   for(side=0;side<nsides;side++){
     TPZGeoElSide thisside(this,side);
     thisside.RemoveConnectivity();
+  }
+}
+
+void TPZGeoEl::InitializeNeighbours(){
+  int i,j;
+  for (i=0;i<NSides();i++){
+
+    TPZStack <TPZGeoElSide> subel;
+    if (HasSubElement()){
+      GetSubElements2(i,subel);
+      for (j=0;j<subel.NElements();j++){
+	TPZGeoEl *el = subel[j].Element();
+	el->InitializeNeighbours();
+      }
+    }
+    TPZGeoElSide neighside = Neighbour(i);
+    if (!neighside.Element() || neighside.Side() == -1){
+      TPZGeoElSide thisside (this,i);
+      SetNeighbour(i,thisside);
+    }
   }
 }

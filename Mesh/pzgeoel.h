@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.8 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzgeoel.h,v 1.9 2003-11-06 19:19:11 cesar Exp $
 
 // -*- c++ -*-
 
@@ -418,6 +418,12 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 
  protected:
 //  REAL fMesure;
+ private:
+  /**
+   * To be used after the buid connectivity. If some neighbour isn't initialized\
+   * It will be initialized as the TPZGeoElSide (this, thisside)
+   */
+  void InitializeNeighbours();
 };
 
 inline void TPZGeoEl::Divide(TPZVec<TPZGeoEl *> &) {
@@ -426,6 +432,8 @@ inline void TPZGeoEl::Divide(TPZVec<TPZGeoEl *> &) {
 //inline void TPZGeoEl::NodeFaceIds(TPZVec<int> &ids,int face) {
 //	cout << "TPZGeoEl::NodeFaceIds is called." << endl;
 //}
+
+
 
 
 #include "pzgeoelside.h"
