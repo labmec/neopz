@@ -42,6 +42,7 @@ template<class store, class front>
 void TPZFrontMatrix<store, front>::SetNumElConnected(TPZVec < int > &numelconnected){
      fNumElConnected.Resize(numelconnected.NElements());
 	fNumElConnected=numelconnected;
+	fNumElConnectedBackup = fNumElConnected;
 	cout << "Storage Schema -> " << fStorage.GetStorage() << endl; 
 	cout << "Front Matrix Type -> " << fFront.GetMatrixType() << endl;
 	#ifdef BLAS
@@ -144,6 +145,7 @@ TPZFrontMatrix<store, front>::TPZFrontMatrix()
 	fFront.Reset();
 	fStorage.Reset();
 	fNumElConnected.Resize(0);
+	fNumElConnectedBackup.Resize(0);
 	fLastDecomposed = -1;
 	fNumEq=0;
 }
@@ -154,6 +156,7 @@ TPZFrontMatrix<store, front>::TPZFrontMatrix(int globalsize) : TPZMatrix(globals
 	fFront.Reset(globalsize);
 	fStorage.Reset();
 	fNumElConnected.Resize(0);
+	fNumElConnectedBackup.Resize(0);
 	fLastDecomposed = -1;
 	fNumEq=globalsize;
 }
