@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cc,v 1.21 2003-11-04 17:06:55 cedric Exp $
+//$Id: TPZInterfaceEl.cc,v 1.22 2003-11-04 20:16:46 cedric Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -284,7 +284,7 @@ void TPZInterfaceElement::GetTransformsLeftAndRight(TPZTransform &tl,TPZTransfor
   tr = t2r;
 }
 
-int TPZInterfaceElement::NConnects() const {
+int TPZInterfaceElement::NConnects() {
 
   if(!fLeftEl && !fRightEl) return 0;
   if(!fLeftEl || !fRightEl) return 1;
@@ -293,7 +293,7 @@ int TPZInterfaceElement::NConnects() const {
   return (nl+nr);//that's the right and left element
 }
 
-int TPZInterfaceElement::ConnectIndex(int i) const {
+int TPZInterfaceElement::ConnectIndex(int i) {
 
 
   if(i<0 || i>1)
@@ -519,7 +519,7 @@ void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet){
   kvet[2] =  ivet[0]*jvet[1] - ivet[1]*jvet[0];
 }
 
-void TPZInterfaceElement::Normal(TPZVec<REAL> &normal) const {
+void TPZInterfaceElement::Normal(TPZVec<REAL> &normal) {
 
   for(int i=0;i<3;i++) normal[i] = fNormal[i];
 }
