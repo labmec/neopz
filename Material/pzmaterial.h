@@ -151,7 +151,10 @@ class  TPZMaterial : public TPZSaveable
       virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol,
 			  TPZFMatrix &axes, TPZVec<REAL> &flux,
 			  TPZVec<REAL> &uexact, TPZFMatrix &duexact,
-			  TPZVec<REAL> &val) {}
+			  TPZVec<REAL> &val){
+	PZError << __PRETTY_FUNCTION__ << endl;
+	PZError << "Method not implemented! Error comparison not available. Please, implement it." << endl;
+      }
 
       /**
        * Returns the number of norm errors. Default is 3: energy, L2 and H1.
