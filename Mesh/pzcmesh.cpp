@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.29 2004-04-26 13:33:55 phil Exp $
+//$Id: pzcmesh.cpp,v 1.30 2004-05-10 13:14:55 tiago Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1965,7 +1965,7 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
   TPZSaveable::Write(buf,withclassid);
   buf.Write(&fName,1);
   buf.Write(&fDimModel,1);
-  WriteObjects<TPZConnect>(buf,fConnectVec);
+  TPZSaveable::WriteObjects<TPZConnect>(buf,fConnectVec);
   WriteObjectPointers<TPZMaterial>(buf,fMaterialVec);
   WriteObjectPointers<TPZCompEl>(buf,fElementVec);
   fSolution.Write(buf,0);
