@@ -16,6 +16,6 @@ SUBDIRS = Adapt_MultThread CursoPZ Adapt_Phil
 	materialhyperelastico matrix multplaca placyl pzvc qualif \
 	termica teste testeisotropia testgeom testmat testshape \
 	viga3d descontinuo DiffusionTest Error Jacobi_Base \
-	Adapt_MultThread Curso_PZ Igor visualmatrix
+	Adapt_MultThread Curso_PZ Igor visualmatrix Bench
 
 ## --| NeoPZ |------------------------------------------------------------------
