@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.15 2003-12-01 21:06:36 cedric Exp $
+//$Id: pzcmesh.h,v 1.16 2003-12-05 21:33:28 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -531,6 +531,10 @@ public:
    * serão acumulados
    */
   TPZCompMesh *ComputeMesh(TPZVec<int> &accumlist,int numaggl);
+  /** This method will fill the matrix passed as parameter with a representation of the fillin of the global stiffness matrix, based on the sequence number of the connects
+@param resolution Number of rows and columns of the matrix
+@param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element */
+  void ComputeFillIn(int resolution, TPZFMatrix &fillin);
 
 };
 

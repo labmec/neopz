@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.21 2003-12-01 21:06:36 cedric Exp $
+//$Id: pzcmesh.cpp,v 1.22 2003-12-05 21:33:18 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -26,6 +26,7 @@
 #include "pzadmchunk.h"
 
 #include "pzmetis.h"
+#include <map>
 
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
   fConnectVec(0),fMaterialVec(0),
@@ -357,7 +358,7 @@ void TPZCompMesh::ComputeNodElCon() {
   nelem = NElements();
   for(i=0; i<nelem; i++) {
     TPZCompEl *el = fElementVec[i];
-    if(!el || !el->IsInterpolated()) continue;
+    if(!el) continue;
 //    if(!el) continue;
     nodelist.Resize(0);
     el->BuildConnectList(nodelist);
@@ -992,7 +993,7 @@ void TPZCompMesh::ComputeElGraph(TPZStack<int> &elgraph, TPZVec<int> &elgraphind
   int curel=0;
   for(i=0; i<nelem; i++) {
     TPZCompEl *el = fElementVec[i];
-    if(!el || !el->IsInterpolated()){
+    if(!el){
       elgraphindex[curel+1]=elgraph.NElements();
       curel++;
       continue;
@@ -1853,6 +1854,62 @@ REAL TPZCompMesh::LesserEdgeOfMesh(){
   return mindist;
 }
 
+/** This method will fill the matrix passed as parameter with a representation of the fillin of the global stiffness matrix, based on the sequence number of the connects
+@param resolution Number of rows and columns of the matrix
+@param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element */
+void TPZCompMesh::ComputeFillIn(int resolution, TPZFMatrix &fillin){
+  int nequations = NEquations();
+  int divider = nequations/resolution;
+  if(divider*resolution != nequations) divider++;
+  REAL factor = 1./(divider*divider);
+  fillin.Redim(resolution,resolution);
+  
+  TPZStack<int> graphelindex, graphel, graphnodeindex, graphnode;
+  this->ComputeElGraph(graphel,graphelindex);
+  TPZMetis renum(fElementVec.NElements(),fConnectVec.NElements());
+  renum.ConvertGraph(graphel,graphelindex,graphnode,graphnodeindex);
+  std::map<int,TPZConnect *> seqtoconnect;
+  int ic,ncon = fConnectVec.NElements();
+  for(ic=0; ic<ncon; ic++) {
+    TPZConnect &c = fConnectVec[ic];
+    if(c.HasDependency() || c.SequenceNumber() < 0) continue;
+    seqtoconnect[c.SequenceNumber()] = &c;
+  }
+  int iseqnum;
+  for(iseqnum = 0; iseqnum < graphnodeindex.NElements()-1; iseqnum++) {
+    if(!seqtoconnect.count(iseqnum)) continue;
+    int firstieq = Block().Position(iseqnum);
+    int lastieq = Block().Size(iseqnum)+firstieq;
+    int firstnode = graphnodeindex[iseqnum];
+    int lastnode = graphnodeindex[iseqnum+1];
+    {
+      int ieq;
+      for(ieq=firstieq; ieq<lastieq; ieq++) {
+        int rowp = ieq/divider;
+        int ieq2;
+        for(ieq2=firstieq; ieq2<lastieq; ieq2++) {
+          int rowp2 = ieq2/divider;
+          fillin(rowp,rowp2) += factor;
+        }
+      }
+    }
+    int in;
+    for(in=firstnode; in<lastnode; in++) {
+      int jseqnum = graphnode[in];
+      int firstjeq = Block().Position(jseqnum);
+      int lastjeq = Block().Size(jseqnum)+firstjeq;
+      int ieq;
+      for(ieq=firstieq; ieq<lastieq; ieq++) {
+        int rowp = ieq/divider;
+        int jeq;
+        for(jeq=firstjeq; jeq<lastjeq; jeq++) {
+          int colp = jeq/divider;
+          fillin(rowp,colp) += factor;
+        }
+      }
+    }
+  }
+}
 void TPZCompMesh::ProjectSolution(TPZFMatrix &projectsol) {
 
   //  * * A MALHA ATUAL DEVE SER AGLOMERADA * * *
