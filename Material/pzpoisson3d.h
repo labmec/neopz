@@ -1,3 +1,7 @@
+// -*- c++ -*-
+
+//$Id: pzpoisson3d.h,v 1.4 2003-12-01 16:04:53 tiago Exp $
+
 #ifndef MATPOISSON3DHPP
 #define MATPOISSON3DHPP
 
@@ -19,7 +23,9 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
   
   public :
 
-    static int problema;
+  static int problema;
+  
+  static REAL gAlfa;
   
   TPZMatPoisson3d(int nummat, int dim);
   
@@ -81,6 +87,13 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
   
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
 			    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
+  void InterfaceErrors(TPZVec<REAL> &/*x*/,
+		       TPZVec<REAL> &leftu, TPZFMatrix &leftdudx, /* TPZFMatrix &leftaxes,*/ 
+		       TPZVec<REAL> &rightu, TPZFMatrix &rightdudx, /* TPZFMatrix &rightaxes,*/ 
+		       TPZVec<REAL> &/*flux*/,
+		       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values, 
+		       TPZVec<REAL> normal, REAL elsize);
 
 };
 

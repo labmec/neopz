@@ -1,3 +1,7 @@
+// -*- c++ -*-
+
+//$Id: pzpoisson3d.cpp,v 1.4 2003-12-01 16:04:53 tiago Exp $
+
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
@@ -7,6 +11,8 @@
 #include <math.h>
 
 int TPZMatPoisson3d::problema = 0;
+
+REAL TPZMatPoisson3d::gAlfa = 0.5;
 
 TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(1,1,0.), fDim(dim) {
 }
@@ -314,3 +320,68 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
     break;
   }
 }
+
+void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
+                                      TPZVec<REAL> &leftu, TPZFMatrix &leftdudx, /* TPZFMatrix &leftaxes,*/ 
+				      TPZVec<REAL> &rightu, TPZFMatrix &rightdudx, /* TPZFMatrix &rightaxes,*/ 
+                                      TPZVec<REAL> &/*flux*/,
+				      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values, 
+				      TPZVec<REAL> normal, REAL elsize) {
+#warning Metodo nao funcional
+  TPZManVector<REAL,3> Lsol(1), Ldsol(3,0.), Rsol(1), Rdsol(3,0.);
+
+  //<!> Phil, matei os eixos. So vai chamar InterfaceErrors um problema descontinuo
+  TPZFMatrix fake_axes(fDim,fDim,0.);  
+
+  Solution(leftu,leftdudx,fake_axes,1,Lsol);
+  Solution(leftu,leftdudx,fake_axes,2,Ldsol);
+
+  Solution(rightu,rightdudx,fake_axes,1,Rsol);
+  Solution(rightu,rightdudx,fake_axes,2,Rdsol);
+
+#ifdef DEBUG
+  if ( (leftdudx.Rows() != rightdudx.Rows()) || (leftdudx.Rows() != du_exact.Rows()) ){
+    PZError << "TPZMatPoisson3d::InterfaceErrors - Left and right matrices should have" 
+	    << endl 
+	    << "same sizes in internal boundaries." 
+	    << endl;
+    exit (-1);
+  }
+#endif
+
+  REAL Ldsolnormal = 0., Rdsolnormal = 0., ExactDNormal = 0.;
+  for(int id = 0; id < fDim; id++) {
+    Ldsolnormal  += Ldsol[id] * normal[id];
+    Rdsolnormal  += Rdsol[id] * normal[id];
+    ExactDNormal += du_exact(id, 0) * normal[id];
+  }
+ 
+  values.Resize(3);
+  REAL aux;
+
+  //values[1] : eror em norma L2
+
+  //Jump aprox. solution - jump of exact solution i.e. zero
+  aux = (Lsol - Rsol);
+
+  //*= h ^ -gAlfa
+  aux *= pow(elsize, -1.0 * gAlfa);
+  values[1] = aux * aux;
+
+  //values[2] : erro em semi norma H1
+  values[2] = 0.;
+
+  for(int id=0; id<fDim; id++) {
+    //Normal gradient average <grad V> = 0.5 * (grad_left.n + grad_right.n)
+    aux = 0.5 * (Ldsolnormal + Rdsolnormal);
+    //<grad V> - <grad exact> = <grad V> - grad exact
+    aux = aux - ExactDNormal;
+    //*= h ^ gAlfa
+    aux *= pow(elsize, gAlfa);
+    values[2]  += aux * aux;
+  }
+  //values[0] : erro em norma H1 <=> norma Energia
+  values[0]  = values[1]+values[2];
+}
+
+
