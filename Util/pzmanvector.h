@@ -4,7 +4,7 @@
  * @file pzmanvector.h
  * @brief Free store vector implementation.
  */
-// $Id: pzmanvector.h,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+// $Id: pzmanvector.h,v 1.2 2003-02-26 12:28:49 cantao Exp $
 
 #ifndef PZMANVECTOR_H
 #define PZMANVECTOR_H
@@ -167,9 +167,8 @@ class TPZManVector : public TPZVec< T >
 
 //--| IMPLEMENTATION |----------------------------------------------------------
 
-template< class T, int NumExtAlloc
- >
-TPZManVector< T, NumExtAlloc >::TPZManVector( const int size ) :
+template< class T, int NumExtAlloc >
+TPZManVector< T, NumExtAlloc >::TPZManVector( const int size = 0 ) :
    TPZVec<T>( 0 ) // There is always some static allocation.
 {
    /* If the size requested fits inside the size already provided
