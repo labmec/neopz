@@ -172,7 +172,7 @@ protected:
   /**
    * it returns the connect index from the element 
    */
-  int ConnectIndex(int side=0);
+  int ConnectIndex(int side = 0);
   void  SetConnectIndex(int /*inode*/, int index) {fConnectIndex = index;}
 
   /**

@@ -1,10 +1,10 @@
-
+//$Id: TPZAgglomerateEl.h,v 1.4 2003-10-17 15:37:44 cedric Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
 #include "pzreal.h"
 #include "pzstack.h"
-//#include "pzeltype.h"
+#include "pzeltype.h"
 #include "TPZCompElDisc.h"
 #include <iostream>
 
@@ -31,7 +31,8 @@ private:
   TPZStack<int> fIndexes;
 
   /**
-   * malha da qual o elemento atual foi gerado
+   * malha à qual os elementos aglomerados fazem parte e 
+   * do qual o atual foi obtido
    */
   TPZCompMesh *fMotherMesh;
 
@@ -40,13 +41,13 @@ public:
   /** Constructor: caso o elemento é passível de ser agrupado retorna-se 
    * um novo index caso contrário index = -1
    */
-  TPZAgglomerateElement(int &index,TPZCompMesh &cmesh,TPZCompMesh *finemesh);
+  TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh);
 
   /** inicializa os dados caracteristicos do elemento aglomerado */
   void InitializeElement();
 
   /** adiciona index do sub-elemento*/
-  static void AddSubElementIndex(TPZCompMesh *cmesh,int subel,int destind);
+  static void AddSubElementIndex(TPZCompMesh *aggcmesh,int subel,int destind);
 
   /**Destructor do objeto*/
   ~TPZAgglomerateElement(){};
@@ -98,9 +99,20 @@ public:
 
    REAL NormalizeConst();
 
-   int CreateMidSideConnect();
+  /**
+   * it creates new conect that it associates the degrees of freedom of the
+   * element and returns its index 
+   */
+  virtual int CreateMidSideConnect();
 
-   void Print(ostream &out);
+  /**
+   * it returns dimension from the elements
+   */
+  int Dimension();
 
+  /**
+   * it prints the features of the element 
+   */
+  virtual void Print(ostream & out = cout);
 };
 #endif
