@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.37 2003-12-02 12:37:58 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.38 2003-12-02 14:08:43 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -967,16 +967,16 @@ REAL TPZCompElDisc::LesserEdgeOfEl(){
 
 void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *aggmesh,TPZVec<int> &accumlist,int numaggl){
 
-  /** 
+  /**
    * somente são aglomerados elementos de volume
-   * elementos de interface não são aglomerados, cada interface deve conhecer 
+   * elementos de interface não são aglomerados, cada interface deve conhecer
    * o elemento aglomerado esquerdo ou direito
    * elementos fantasmas ou BC não são aglomerados, a cada elemento BC
    * corresponde um elemento interface de igual tamanho ou nível
    * todo elemento interface e todo elemento BC deve ser clonada para a malha aglomerada
    * todo elemento de volume deve ter associado um agrupamento pudendo ser um único elemento
    * a posi¢ão K de accumlist indica o index K do elemento computacional que será acumulado,
-   * o inteiro guardado nessa posi¢ão indica o elemento ao qual será 
+   * o inteiro guardado nessa posi¢ão indica o elemento ao qual será
    * aglomerado, assim si accumlist[8] = 4 então o elemento computacional
    * de index 8 será agrupado para formar o elemento aglomerado de index 4
    */
@@ -1059,8 +1059,42 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *agg
       agg->InitializeElement();
     }
   }
-}
+  int dim = aggmesh->Dimension();
+  //<!>Loop over all elements to compute for each interface the distance between interface's center point to volume's center point.
+  for(i = 0; i < nel; i++){
+    TPZCompEl *cel = aggmesh->ElementVec()[i];
+    if(cel->Type() == EInterface){
+      TPZInterfaceElement * interface = dynamic_cast<TPZInterfaceElement * > (cel);
+      TPZCompElDisc * LeftEl  = interface -> LeftElement();
+      TPZCompElDisc * RightEl = interface -> RightElement();
 
+      TPZManVector<REAL, 3> InterfaceCenter(3), LeftCenter(3), RightCenter(3);
+      REAL LeftDistance = 0., RightDistance = 0.;
+      interface->Reference()->CenterPoint(interface->Reference()->NSides() - 1, InterfaceCenter);
+      //<!> It is admited the center point is already calculated
+      LeftCenter = LeftEl -> fCenterPoint;
+      RightCenter = RightEl -> fCenterPoint;
+      for (int isum = 0; isum < dim; isum++)
+	{
+	  LeftDistance  += (LeftCenter[isum] - InterfaceCenter[isum]) * (LeftCenter[isum] - InterfaceCenter[isum]);
+	  RightDistance += (RightCenter[isum] - InterfaceCenter[isum]) * (RightCenter[isum] - InterfaceCenter[isum]);
+	}
+      LeftDistance  = sqrt(LeftDistance);
+      RightDistance = sqrt(RightDistance);
+
+      //<!>I think if it is not agglomerate, i.e. it is a CompElDisc, the InnerRadius is not stored, but computed
+      //each time it is required.
+      //if the stored inner radius is bigger than the computed one, the computed one takes its place, because of we are computing the INNER radius.
+      if(LeftEl->Type()  == EAgglomerate){
+	if (LeftDistance  < LeftEl->InnerRadius()) LeftEl->SetInnerRadius(LeftDistance);
+      }
+      if(RightEl->Type() == EAgglomerate){
+	if (RightDistance < RightEl->InnerRadius()) RightEl->SetInnerRadius(RightDistance);
+      }
+
+    }//end of if
+  }//end of loop over elements
+}//end of method
 
 void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 				    TPZVec<REAL> &errors,TPZBlock * /*flux */) {

@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.15 2003-12-02 12:37:58 tiago Exp $
+//$Id: TPZAgglomerateEl.h,v 1.16 2003-12-02 14:08:43 tiago Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -47,6 +47,16 @@ public:
 
   /** inicializa os dados caracteristicos do elemento aglomerado */
   void InitializeElement();
+
+  /**
+   * Set the inner radius value.
+   */
+  void SetInnerRadius(REAL InnerRadius) { fInnerRadius = InnerRadius;}
+
+  /**
+   * Returns the inner radius value.
+   */
+  REAL InnerRadius() {return fInnerRadius;}
 
   /** adiciona index do sub-elemento*/
   static void AddSubElementIndex(TPZCompMesh *aggcmesh,int subel,int destind);

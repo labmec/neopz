@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.21 2003-12-02 12:37:58 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.22 2003-12-02 14:08:43 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -70,7 +70,7 @@ protected:
   /**
    * it keeps the interior point coordinations of the element 
    */
-  TPZVec<REAL> fCenterPoint;
+  TPZManVector<REAL,3> fCenterPoint;
 
   /**
    * it creates new conect that it associates the degrees of freedom of the
@@ -86,6 +86,17 @@ protected:
   /**return the geometric element to which this element references*/
   TPZGeoEl *Reference() const { return fReference;}
   void SetReference(TPZGeoEl *ref) {fReference = ref;}
+
+  /**
+   * Set the inner radius value.
+   */
+  virtual void SetInnerRadius(REAL InnerRadius) {PZError << "TPZCompElDisc::SetInnerRadius - This method should never be called because the inner" << endl 
+							 << "radius is not stored in TPZCompElDisc. It is stored in TPZAgglomerateElement." << endl;}
+
+  /**
+   * Returns the inner radius value.
+   */
+  virtual REAL InnerRadius() {return this->Reference()->ElementRadius();}
 
   /**
    * default degree of imterpolation
