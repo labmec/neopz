@@ -1,3 +1,5 @@
+//$Id: pzelctemp.h,v 1.3 2003-10-22 20:32:33 tiago Exp $
+
 // -*- c++ -*-
 #ifndef PZELCTEMPH
 #define PZELCTEMPH
@@ -26,27 +28,27 @@ virtual ~TPZIntelGen();
 
   virtual MElementType Type();
 
-  virtual int NConnects() {
+  virtual int NConnects() const {
     return TSHAPE::NSides;
   }
 
   virtual void SetConnectIndex(int i, int connectindex);
 
-  virtual int NConnectShapeF(int connect);
+  virtual int NConnectShapeF(int connect) const;
 
-  virtual int Dimension() {
+  virtual int Dimension() const {
     return TSHAPE::Dimension;
   }
 
-  virtual int NCornerConnects() {
+  virtual int NCornerConnects() const {
     return TSHAPE::NNodes;
   }
 
-  virtual int NSideConnects(int side);
+  virtual int NSideConnects(int side) const;
 
-  virtual int SideConnectLocId(int node, int side);
+  virtual int SideConnectLocId(int node, int side) const;
 
-  virtual int ConnectIndex(int node);
+  virtual int ConnectIndex(int node) const;
 
   virtual void SetIntegrationRule(int ord);
 
@@ -54,10 +56,10 @@ virtual ~TPZIntelGen();
   virtual void SetInterpolationOrder(int order);
 
   /**Identifies the interpolation order on the interior of the element*/
-  virtual void GetInterpolationOrder(TPZVec<int> &ord);
+  virtual void GetInterpolationOrder(TPZVec<int> &ord) const;
 
   /**return the preferred order of the polynomial along side iside*/
-  virtual int PreferredSideOrder(int iside);
+  virtual int PreferredSideOrder(int iside) const;
 
   /**Sets the preferred interpolation order along a side
   This method only updates the datastructure of the element
@@ -68,7 +70,7 @@ virtual ~TPZIntelGen();
   virtual void SetSideOrder(int side, int order);
 
   /**returns the actual interpolation order of the polynomial along the side*/
-  virtual int SideOrder(int side);
+  virtual int SideOrder(int side) const;
 
   /**transform a point in the parameter space of the side into a point in the space
      of the master element*/

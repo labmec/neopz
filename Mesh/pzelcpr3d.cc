@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $ Id: $
+//$Id: pzelcpr3d.cc,v 1.6 2003-10-22 20:32:33 tiago Exp $
 #include "pzelcpr3d.h"
 #include "pzelct3d.h"
 #include "pzgeoel.h"
@@ -110,7 +110,7 @@ void TPZCompElPr3d::Shape(TPZVec<REAL> &x, TPZFMatrix &phi, TPZFMatrix &dphi) {
   TPZShapePrism::Shape(x,id,ord,phi,dphi);
 }
 
-int TPZCompElPr3d::NConnectShapeF(int side) {
+int TPZCompElPr3d::NConnectShapeF(int side) const {
   if(side<6) return 1;//0 a 4
   int s = side-6;//s = 0 a 14 ou side = 6 a 20
   if(side<15) return (fSideOrder[s]-1);//6 a 14
@@ -127,15 +127,15 @@ int TPZCompElPr3d::NConnectShapeF(int side) {
   return 0;
 }
 
-int TPZCompElPr3d::NSideConnects(int side) {
+int TPZCompElPr3d::NSideConnects(int side) const {
 	return TPZShapePrism::NSideConnects(side);
 }
 //até aqui até aqui até aqui até aqui até aqui até aqui até aqui até aqui até aqui
-int TPZCompElPr3d::SideConnectLocId(int node, int side) {
+int TPZCompElPr3d::SideConnectLocId(int node, int side) const {
 	return TPZShapePrism::SideConnectLocId(side,node);
 }
 
-int TPZCompElPr3d::SideOrder(int side) {
+int TPZCompElPr3d::SideOrder(int side) const {
   //0 <= side <= 20
   if(side<6 || side>20) return 0;//cantos ou side ruim
   return fSideOrder[side-6];//deve tirar os cantos
@@ -265,7 +265,7 @@ void TPZCompElPr3d::SetConnectIndex(int i,int connectindex) {
   }
 }
 
-int TPZCompElPr3d::ConnectIndex(int i) {
+int TPZCompElPr3d::ConnectIndex(int i) const {
   if(i<0 || i>21) {
     PZError << "TCompElT2d::ConnectIndex. Bad parameter i.\n";
     return -1;
@@ -279,7 +279,7 @@ void TPZCompElPr3d::SetInterpolationOrder(TPZVec<int> &ord) {
   for(int i=0;i<14;i++) fPreferredSideOrder[i] = ord[i];
 }
 
-void TPZCompElPr3d::GetInterpolationOrder(TPZVec<int> &ord) {
+void TPZCompElPr3d::GetInterpolationOrder(TPZVec<int> &ord) const {
   ord.Resize(15);
   for(int i=0;i<15;i++) ord[i] = fSideOrder[i];
 }
@@ -304,7 +304,7 @@ TPZIntPoints *TPZCompElPr3d::CreateSideIntegrationRule(int side) {
   return new TPZInt1Point();
 }
 
-int TPZCompElPr3d::PreferredSideOrder(int side) {
+int TPZCompElPr3d::PreferredSideOrder(int side) const {
   if(side>-1 && side<6) return 0;//cantos
   if(side<21) {
     int order = fPreferredSideOrder[side-6];//lados,faces e centro (ou interior)

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $ Id: $
+//$Id: pzelcpoint.cc,v 1.4 2003-10-22 20:32:33 tiago Exp $
 #include "pzelcpoint.h"
 #include "pzelct2d.h"
 #include "pzelcq2d.h"
@@ -58,7 +58,7 @@ void TPZCompElPoint::SetConnectIndex(int i,int connectindex) {
   }
 }
 
-int TPZCompElPoint::ConnectIndex(int i) {
+int TPZCompElPoint::ConnectIndex(int i) const {
   if(i != 0) {
     PZError << "TPZCompElPoint::ConnectIndex. Bad parameter i.\n";
     return -1;
@@ -66,13 +66,13 @@ int TPZCompElPoint::ConnectIndex(int i) {
   return fConnectIndexes;
 }
 
-int TPZCompElPoint::NConnectShapeF(int side) {
+int TPZCompElPoint::NConnectShapeF(int side) const {
 	  if(side==0)  return 1;
      PZError << "TPZCompElPoint::NConnectShapeF, bad parameter iconnect " << side << endl;
      return 0;
 }
 
-int TPZCompElPoint::NSideConnects(int side) {
+int TPZCompElPoint::NSideConnects(int side) const {
   if(side!=0) {
     PZError << "TPZCompElPoint::NSideConnects. Bad parameter i.\n";
     return 0;
@@ -81,7 +81,7 @@ int TPZCompElPoint::NSideConnects(int side) {
 }
 
 /**It do not verify the values of the c*/
-int TPZCompElPoint::SideConnectLocId(int c, int side) {
+int TPZCompElPoint::SideConnectLocId(int c, int side) const {
 
     if(c==0 && side==0) return 0;
     PZError << "TPZCompElPoint::SideConnectLocId, connect = " << c << endl;
@@ -93,7 +93,7 @@ void TPZCompElPoint::SetInterpolationOrder(TPZVec<int> &ord) {
     PZError << "TPZCompElPoint::SetInterpolationOrder. ord has bad number of elements.\n";
 }
 
-void TPZCompElPoint::GetInterpolationOrder(TPZVec<int> &ord) {
+void TPZCompElPoint::GetInterpolationOrder(TPZVec<int> &ord) const {
   ord.Resize(1);
   ord[0] = -1;
 }
@@ -102,7 +102,7 @@ TPZIntPoints *TPZCompElPoint::CreateSideIntegrationRule(int ) {
    return new TPZInt1Point();
 }
 
-int TPZCompElPoint::PreferredSideOrder(int /*side*/) {
+int TPZCompElPoint::PreferredSideOrder(int /*side*/) const {
   return 0;
 }
 
@@ -114,7 +114,7 @@ void TPZCompElPoint::SetSideOrder(int /*side*/, int order) {
   if(order) PZError << "TPZCompElPoint::SetSideOrder. Bad paramenter side.\n";
 }
 
-int TPZCompElPoint::SideOrder(int /*side*/) {
+int TPZCompElPoint::SideOrder(int /*side*/) const {
   return 0;
 }
 

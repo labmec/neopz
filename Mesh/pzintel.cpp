@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.10 2003-10-20 22:44:44 phil Exp $
+// $Id: pzintel.cpp,v 1.11 2003-10-22 20:33:44 tiago Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -51,14 +51,14 @@ int TPZInterpolatedElement::MaterialId() const {
   return fMaterial->Id();
 }
 
-int TPZInterpolatedElement::NShapeF() {
+int TPZInterpolatedElement::NShapeF() const {
   int nn = NConnects();
   int in,res=0;
   for(in=0;in<nn;in++) res += NConnectShapeF(in);
   return res;
 }
 
-int TPZInterpolatedElement::NSideShapeF(int side) {
+int TPZInterpolatedElement::NSideShapeF(int side) const {
   int ns = NSideConnects(side);
   int in,res=0;
   for(in=0;in<ns;in++) res+= NConnectShapeF(SideConnectLocId(in,side));
@@ -66,18 +66,18 @@ int TPZInterpolatedElement::NSideShapeF(int side) {
 }
 
 
-int TPZInterpolatedElement::MidSideConnectLocId(int side) {
+int TPZInterpolatedElement::MidSideConnectLocId(int side) const {
   int il = 1 + NConnects() - (fReference->NSides());
   int nodloc = SideConnectLocId(NSideConnects(side)-il,side);
   return nodloc;
 }
 
 
-int TPZInterpolatedElement::SideConnectIndex(int connect, int side) {
+int TPZInterpolatedElement::SideConnectIndex(int connect, int side) const {
   return ConnectIndex(SideConnectLocId(connect,side));
 }
 
-TPZConnect *TPZInterpolatedElement::SideConnect(int connect,int side) {
+TPZConnect *TPZInterpolatedElement::SideConnect(int connect,int side) const {
   if(side<0 || connect<0 || side>fReference->NSides()) {
     PZError << "TPZIntEl::SideConnect has bad first or second parameter.\n";
     return 0;
@@ -2318,7 +2318,7 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
   }
 }
 
-int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
+int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) const {
   TPZGeoEl *gel = Reference();
   if(!gel) return order;
   int dim = gel->SideDimension(side);

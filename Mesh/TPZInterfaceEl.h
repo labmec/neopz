@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.13 2003-10-20 22:11:30 cedric Exp $
+//$Id: TPZInterfaceEl.h,v 1.14 2003-10-22 20:34:04 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -68,7 +68,7 @@ class TPZInterfaceElement : public TPZCompEl {
   TPZCompEl * CloneInterface(TPZCompMesh &aggmesh, TPZVec<int> &destindex,int &index) const;
 
   /**return the geometric element to which this element references*/
-  virtual TPZGeoEl *Reference() { return fReference;}
+  virtual TPZGeoEl *Reference() const { return fReference;}
 
   TPZMaterial *Material() const { return fMaterial;}
 
@@ -84,7 +84,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * it returns the right element from the element interface 
    */
-  TPZCompElDisc *RightElement(){return fRightEl;}
+  TPZCompElDisc *RightElement() const {return fRightEl;}
 
       void SetRightElement( TPZCompElDisc* el )
       {
@@ -92,9 +92,9 @@ class TPZInterfaceElement : public TPZCompEl {
       }
 
   /**
-   * it returns the left element from the element interface 
+   * it returns the left element from the element interface
    */
-  TPZCompElDisc *LeftElement(){return fLeftEl;}
+  TPZCompElDisc * LeftElement() const {return fLeftEl;}
 
       void SetLeftElement( TPZCompElDisc* el )
       {
@@ -104,19 +104,19 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * it returns the normal one to the face from the element
    */
-  void Normal(TPZVec<REAL> &normal);
+  void Normal(TPZVec<REAL> &normal) const;
 
 /*   void SetNormal(TPZVec<REAL> &normal); */
 
   /**
-   * it returns the number from connectivities of the element 
+   * it returns the number from connectivities of the element
    */
-  int NConnects();
+  int NConnects() const;
 
   /**
    * Its return the connects of the left and right element associates
    */
-  int ConnectIndex(int i);
+  int ConnectIndex(int i) const;
 
   /**
    * This function should not be called
@@ -124,14 +124,14 @@ class TPZInterfaceElement : public TPZCompEl {
   void SetConnectIndex(int node, int index);
 
   /**
-   * it returns the dimension from the element interface 
+   * it returns the dimension from the element interface
    */
-  int Dimension(){return TPZCompElDisc::gInterfaceDimension;}
+  int Dimension() const {return TPZCompElDisc::gInterfaceDimension;}
 
   /**
-   * Type of the element 
+   * Type of the element
    */
-  MElementType Type() { return EInterface; }
+  MElementType Type() /*const*/ { return EInterface; }
 
   /**declare the element as interpolated or not.
    * You may not redefine this method, because a lot of "unsafe" casts depend
@@ -142,8 +142,8 @@ class TPZInterfaceElement : public TPZCompEl {
   virtual int IsInterpolated() {return 0;}
 
   /**
-   * it returns the shapes number of the element 
-   * the associated space of interpolation is gotten 
+   * it returns the shapes number of the element
+   * the associated space of interpolation is gotten
    * of the elements left and right
    */
   int  NShapeF() {return 0;}

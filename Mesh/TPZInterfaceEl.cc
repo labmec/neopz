@@ -27,7 +27,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   NormalToFace(fNormal,leftside);
 }
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy) 
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy)
   : TPZCompEl(mesh,copy), fNormal(copy.fNormal) {
   fLeftEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[copy.fLeftEl->Index()]);
   fRightEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[copy.fRightEl->Index()]);
@@ -50,16 +50,16 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
   //  fMaterial = copy.fMaterial;
 }
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index) 
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index)
   : TPZCompEl(mesh,index), fNormal(copy.fNormal) {
 
-  TPZCompElDisc *left = LeftElement();
+  TPZCompElDisc *left = copy.fLeftEl;
   int leftindex = left->Index();
   int leftindexnew = destindex[leftindex];
   fLeftEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[leftindexnew]);
-  TPZCompElDisc *right = RightElement();
+  TPZCompElDisc *right = copy.fRightEl;
   int rightindex = right->Index();
-  int rightindexnew = destindex[rightindex]; 
+  int rightindexnew = destindex[rightindex];
   fRightEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[rightindexnew]);
 
   if(!fLeftEl || ! fRightEl) {
@@ -279,7 +279,7 @@ void TPZInterfaceElement::GetTransformsLeftAndRight(TPZTransform &tl,TPZTransfor
   tr = t2r;
 }
 
-int TPZInterfaceElement::NConnects(){ 
+int TPZInterfaceElement::NConnects() const{ 
 
   if(!fLeftEl && !fRightEl) return 0;
   if(!fLeftEl || !fRightEl) return 1;
@@ -288,7 +288,7 @@ int TPZInterfaceElement::NConnects(){
   return (nl+nr);//that's the right and left element
 }
 
-int TPZInterfaceElement::ConnectIndex(int i) {
+int TPZInterfaceElement::ConnectIndex(int i) const {
 
 
   if(i<0 || i>1)
@@ -512,7 +512,7 @@ void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet){
   kvet[2] =  ivet[0]*jvet[1] - ivet[1]*jvet[0];
 }
 
-void TPZInterfaceElement::Normal(TPZVec<REAL> &normal){
+void TPZInterfaceElement::Normal(TPZVec<REAL> &normal) const {
 
   for(int i=0;i<3;i++) normal[i] = fNormal[i];
 }

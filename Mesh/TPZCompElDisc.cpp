@@ -1,5 +1,5 @@
-// -*- c++ -*- 
-//$Id: TPZCompElDisc.cpp,v 1.19 2003-10-20 22:11:30 cedric Exp $
+// -*- c++ -*-
+//$Id: TPZCompElDisc.cpp,v 1.20 2003-10-22 20:34:04 tiago Exp $
 
 #include "pzelmat.h"
 #include "pzelgc3d.h"
@@ -212,12 +212,12 @@ void TPZCompElDisc::Print(ostream &out) {
   out << fCenterPoint[i] << endl;
 }
 
-int TPZCompElDisc::ConnectIndex(int side) {
+int TPZCompElDisc::ConnectIndex(int side) const {
 
   return fConnectIndex;
 }
 
-int TPZCompElDisc::NConnects(){
+int TPZCompElDisc::NConnects() const {
 
   
   return (fConnectIndex !=-1);
@@ -279,7 +279,7 @@ int TPZCompElDisc::CreateMidSideConnect(){
   return fConnectIndex;
 }
 
-int TPZCompElDisc::NShapeF(){
+int TPZCompElDisc::NShapeF() const {
 
   if(fConnectIndex == -1) return 0;
   //deve ter pelo menos um connect
@@ -399,7 +399,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   }
 }
 
-REAL TPZCompElDisc::SizeOfElement(){
+REAL TPZCompElDisc::SizeOfElement() const {
 
   int dim = fReference->Dimension();
   int side = fReference->NSides()-1;
@@ -742,7 +742,7 @@ void TPZCompElDisc::AccumulateIntegrationRule(int degree, TPZStack<REAL> &point,
       point.Push(x[0]);
       point.Push(x[1]);
       point.Push(x[2]);
-    
+
       weight.Push(wt * fabs(detjac));
     }
   }
@@ -763,21 +763,35 @@ TPZCompMesh *TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<i
     return NULL;
   }
   TPZCompMesh *aggmesh = new TPZCompMesh(finemesh->Reference());
-  int i,index,nel = finemesh->NElements(),nummat;
+  int i,index,nel = finemesh->NElements();
+  int nummat;
   //criando agrupamentos iniciais
-  for(i=0;i<numaggl;i++) new TPZAgglomerateElement(nummat,index,*aggmesh,finemesh);
+  int j = 0;
+  for(i=0;i<numaggl;i++) { //<!>
+    //TPZCompEl *cel;
+    for(j = 0; j < nel; j++) {
+      if (accumlist[j] == i) {
+        nummat = finemesh->ElementVec()[j]->Material()->Id();
+        //nummat = cel->Material()->Id();
+	break;
+      }
+    }
+//    cel = finemesh->ElementVec()[i];
+//    nummat = cel->Material()->Id();
+    new TPZAgglomerateElement(nummat, index,*aggmesh,finemesh);
+  }
 
   for(i=0;i<nel;i++){
     TPZCompEl *cel = finemesh->ElementVec()[i];
     if(!cel) continue;
-    int father = accumlist[i],type = cel->Type();
+    int father = accumlist[i], type = cel->Type();
     if(type == EDiscontinuous || type == EAgglomerate){//elemento descontínuo ou aglomerado
       if(father == -1){
 	PZError << "TPZCompElDisc::CreateAgglomerateMesh element null father\n";
 	return NULL;
       }
-      if(cel->Dimension() == finemesh->Dimension()){
-	dynamic_cast<TPZCompElDisc *>(cel)->Clone(*aggmesh);//elemento discontinuo BC
+      if(cel->Dimension() < finemesh->Dimension()){ //<!> mexi aqui == por <
+	dynamic_cast<TPZCompElDisc *>(cel)->Clone(*aggmesh);//elemento descontinuo BC
 	continue;//a copia existira na malha aglomerada
       }
       //incorporando o index do sub-elemento

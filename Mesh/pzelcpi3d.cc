@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $ Id: $
+//$Id: pzelcpi3d.cc,v 1.7 2003-10-22 20:32:33 tiago Exp $
 #include "pzelcpi3d.h"
 #include "pzelct3d.h"
 //#include "pzelgt3d.h"
@@ -111,7 +111,7 @@ void TPZCompElPi3d::Shape(TPZVec<REAL> &x, TPZFMatrix &phi, TPZFMatrix &dphi) {
   TPZShapePiram::Shape(x,id,ord,phi,dphi);
 }
 
-int TPZCompElPi3d::NConnectShapeF(int side) {
+int TPZCompElPi3d::NConnectShapeF(int side) const {
   if(side<5) return 1;//0 a 4
   int s = side-5;//s = 0 a 14 ou side = 5 a 18
   if(side<13) return fSideOrder[s]-1;//5 a 12
@@ -133,11 +133,11 @@ int TPZCompElPi3d::NConnectShapeF(int side) {
   return 0;
 }
 
-int TPZCompElPi3d::NSideConnects(int side) {
+int TPZCompElPi3d::NSideConnects(int side) const {
 	return TPZShapePiram::NSideConnects(side);
 }
 
-int TPZCompElPi3d::SideConnectLocId(int node, int side) {
+int TPZCompElPi3d::SideConnectLocId(int node, int side) const {
 	return TPZShapePiram::SideConnectLocId(side,node);
 }
 
@@ -265,7 +265,7 @@ void TPZCompElPi3d::SetConnectIndex(int i,int connectindex) {
   }
 }
 
-int TPZCompElPi3d::ConnectIndex(int i) {
+int TPZCompElPi3d::ConnectIndex(int i) const {
   if(i<0 || i>19) {
     PZError << "TCompElT2d::ConnectIndex. Bad parameter i.\n";
     return -1;
@@ -279,7 +279,7 @@ void TPZCompElPi3d::SetInterpolationOrder(TPZVec<int> &ord) {
   for(int i=0;i<14;i++) fPreferredSideOrder[i] = ord[i];
 }
 
-void TPZCompElPi3d::GetInterpolationOrder(TPZVec<int> &ord) {
+void TPZCompElPi3d::GetInterpolationOrder(TPZVec<int> &ord) const {
   ord.Resize(14);
   for(int i=0;i<14;i++) ord[i] = fSideOrder[i];
 }
@@ -302,7 +302,7 @@ TPZIntPoints *TPZCompElPi3d::CreateSideIntegrationRule(int side) {
   return new TPZInt1Point();
 }
 
-int TPZCompElPi3d::PreferredSideOrder(int side) {
+int TPZCompElPi3d::PreferredSideOrder(int side) const {
   if(side>-1 && side<5) return 0;//cantos
   if(side<19) {
     int order = fPreferredSideOrder[side-5];//lados,faces e centro (ou interior)
@@ -316,7 +316,7 @@ void TPZCompElPi3d::SetPreferredSideOrder(int order) {
   for(int side = 5; side<19; side++) fPreferredSideOrder[side-5] = order;//sides 5 a 18
 }
 
-int TPZCompElPi3d::SideOrder(int side) {
+int TPZCompElPi3d::SideOrder(int side) const {
 	if(side < 5) return 0;
 	if(side <19) return fSideOrder[side-5];
     PZError << "TPZCompElPi3d::SideOrder. Bad paramenter side.\n";

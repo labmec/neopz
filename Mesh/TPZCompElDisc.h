@@ -11,6 +11,7 @@ using namespace std;
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzreal.h"
+//#include "pzeltype.h"
 
 struct TPZElementMatrix;
 class TPZFMatrix;
@@ -76,7 +77,7 @@ protected:
 
   static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
   /**return the geometric element to which this element references*/
-  TPZGeoEl *Reference() { return fReference;}
+  TPZGeoEl *Reference() const { return fReference;}
 
   /**
    * default degree of imterpolation
@@ -88,8 +89,12 @@ protected:
 
   TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy);
 
-  TPZCompEl *Clone(TPZCompMesh &mesh) const {
-    return new TPZCompElDisc(mesh,*this);
+  TPZCompElDisc *Clone(TPZCompMesh &mesh) const {
+/*    TPZCompElDisc * clone;
+    clone = new TPZCompElDisc(mesh,*this);
+    clone
+    return clone;
+    //*/return new TPZCompElDisc(mesh,*this);
   }
 
   ~TPZCompElDisc() {
@@ -116,7 +121,7 @@ protected:
   void Shape(TPZVec<REAL> X, TPZFMatrix &phi, TPZFMatrix &dphi);
 
   /**
-   * Type of the element 
+   * Type of the element
    */
   virtual MElementType Type() {return EDiscontinuous;}
 
@@ -159,17 +164,17 @@ protected:
    */
   virtual void SetDegree(int degree) {fDegree = degree;}
 
-  int NConnects();
+  int NConnects() const;
 
   /**
    * amount of vertices of the element 
    */
-  int NCornerConnects() { return Reference()->NNodes();}
+  int NCornerConnects() const { return Reference()->NNodes();}
 
   /**
    * it returns dimension from the element 
    */
-  int Dimension() { return Reference()->Dimension();}
+  int Dimension() const { return Reference()->Dimension();}
 
   /**
    * it calculates the normalizing constant of the bases of the element 
@@ -179,13 +184,13 @@ protected:
   /**
    * it returns the connect index from the element 
    */
-  int ConnectIndex(int side = 0);
+  int ConnectIndex(int side = 0) const;
   void  SetConnectIndex(int /*inode*/, int index) {fConnectIndex = index;}
 
   /**
    * it returns the shapes number of the element 
    */
-  int  NShapeF();
+  int  NShapeF() const;
 
   void CreateInterfaces();
 
@@ -197,7 +202,7 @@ protected:
 
   int ExistsInterface(TPZGeoElSide geosd);
 
-  REAL CenterPoint(int index) {return fCenterPoint[index];}
+  REAL CenterPoint(int index) const {return fCenterPoint[index];}
   
   void SetCenterPoint(int i,REAL x){fCenterPoint[i] = x;}
 
@@ -207,9 +212,9 @@ protected:
    * Wherever possible, use dynamic_cast instead of this method
    * @return 0 if the element is not interpolated
    */
-  virtual int IsInterpolated() {return 1;}
+  virtual int IsInterpolated() const {return 1;}
 
-  REAL SizeOfElement();
+  REAL SizeOfElement() const;
 
   /**
    * Creates corresponding graphical element(s) if the dimension matches

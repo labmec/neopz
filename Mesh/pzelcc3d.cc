@@ -1,3 +1,5 @@
+//$Id: pzelcc3d.cc,v 1.5 2003-10-22 20:32:33 tiago Exp $
+
 // -*- c++ -*-
 #include "pzelcc3d.h"
 #include "pzelgc3d.h"
@@ -111,7 +113,7 @@ void TPZCompElC3d::Shape(TPZVec<REAL> &x, TPZFMatrix &phi, TPZFMatrix &dphi) {
   TPZShapeCube::Shape(x,id,ord,phi,dphi);
 }
 
-int TPZCompElC3d::NConnectShapeF(int side) {
+int TPZCompElC3d::NConnectShapeF(int side) const {
   //fSideOrder[0 a 18] : lados 8 a 26
   if(side<8) return 1;//0 a 7
   int s = side-8;
@@ -122,16 +124,16 @@ int TPZCompElC3d::NConnectShapeF(int side) {
   return 0;
 }
 
-int TPZCompElC3d::NSideConnects(int side) {
+int TPZCompElC3d::NSideConnects(int side) const {
 	return TPZShapeCube::NSideConnects(side);
 }
 
 // Pronto 23/04/98
-int TPZCompElC3d::SideConnectLocId(int node, int side) {
+int TPZCompElC3d::SideConnectLocId(int node, int side) const {
 	return TPZShapeCube::SideConnectLocId(side,node);
 }
 
-int TPZCompElC3d::SideOrder(int side) {
+int TPZCompElC3d::SideOrder(int side) const {
   //0 <= side <= 26
   if(side<8 || side>26) return 0;//cantos ou side ruim
   return fSideOrder[side-8];//deve tirar os cantos
@@ -258,7 +260,7 @@ void TPZCompElC3d::SetConnectIndex(int i,int connectindex) {
   }
 }
 
-int TPZCompElC3d::ConnectIndex(int i) {
+int TPZCompElC3d::ConnectIndex(int i) const {
   if(i<0 || i>26) {
     PZError << "TCompElT2d::ConnectIndex. Bad parameter i.\n";
     return -1;
@@ -272,7 +274,7 @@ void TPZCompElC3d::SetInterpolationOrder(TPZVec<int> &ord) {
   for(int i=0;i<19;i++) fPreferredSideOrder[i] = ord[i];
 }
 
-void TPZCompElC3d::GetInterpolationOrder(TPZVec<int> &ord) {
+void TPZCompElC3d::GetInterpolationOrder(TPZVec<int> &ord) const {
   ord.Resize(19);
   for(int i=0;i<19;i++) ord[i] = fSideOrder[i];
 }
@@ -296,7 +298,7 @@ TPZIntPoints *TPZCompElC3d::CreateSideIntegrationRule(int side) {
   return new TPZInt1d(0);
 }
 
-int TPZCompElC3d::PreferredSideOrder(int side) {
+int TPZCompElC3d::PreferredSideOrder(int side) const {
   if(side>-1 && side<8) return 0;//cantos
 
   if(side<27) {
