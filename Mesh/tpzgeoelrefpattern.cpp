@@ -88,7 +88,7 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(int id,TPZVec<int> &nodeinde
   if (!refpat){
     fRefPattern = 0;
     fSubEl.Resize(0);
-    PZError << "TPZGeoElRefPattern<TShape,TGeo>::Initialize : NULL refinement pattern given" << endl;
+   // PZError << "TPZGeoElRefPattern<TShape,TGeo>::Initialize : NULL refinement pattern given" << endl;
     return;
   }
   fRefPattern = refpat;
@@ -104,7 +104,7 @@ void TPZGeoElRefPattern<TShape,TGeo>::Initialize(TPZVec<int> &nodeindices, int m
   if (!refpat){
     fRefPattern = 0;
     fSubEl.Resize(0);
-    PZError << "TPZGeoElRefPattern<TShape,TGeo>::Initialize : NULL refinement pattern given" << endl;
+ //   PZError << "TPZGeoElRefPattern<TShape,TGeo>::Initialize : NULL refinement pattern given" << endl;
     return;
   }
   fRefPattern = refpat;
@@ -385,6 +385,27 @@ void TPZGeoElRefPattern<TShape,TGeo>::MidSideNodeIndices(int side,TPZVec<int> &i
   indices.Resize(counter);  
 }
 
+/** Defines the element refinement pattern  */
+template<class TShape, class TGeo> 
+void TPZGeoElRefPattern<TShape,TGeo>::SetRefPattern (TPZRefPattern *refpat){
+#ifdef HUGE_DEBUG
+  if (!refpat) {
+    PZError << "Error trying to set a null refinement pattern objetct" << endl;
+    return;
+  }
+#endif
+  Mesh()->InsertRefPattern(refpat);
+  //para nao manter copias, caso exista uso o existente;
+  int eltype = refpat->Element(0)->Type();
+  string refname = refpat->GetName();
+  refpat = Mesh()->GetRefPattern(eltype,refname);
+  fRefPattern = refpat;
+  int i;
+  int nsubel = refpat->NSubElements();
+  fSubEl.Resize(nsubel);
+  for(i=0;i<nsubel;i++) fSubEl[i] = 0;
+}
+
 
 template class TPZGeoElRefPattern<TPZShapeCube,TPZGeoCube>;
 template class TPZGeoElRefPattern<TPZShapeLinear,TPZGeoLinear>;
@@ -394,3 +415,5 @@ template class TPZGeoElRefPattern<TPZShapePrism,TPZGeoPrism>;
 template class TPZGeoElRefPattern<TPZShapeTetra,TPZGeoTetrahedra>;
 template class TPZGeoElRefPattern<TPZShapePiram,TPZGeoPyramid>;
 template class TPZGeoElRefPattern<TPZShapePoint,TPZGeoPoint>;
+
+
