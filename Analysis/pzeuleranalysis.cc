@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cc,v 1.14 2003-12-18 20:06:16 erick Exp $
+//$Id: pzeuleranalysis.cc,v 1.15 2004-01-20 12:04:58 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -52,7 +52,7 @@ void TPZEulerAnalysis::SetContributionTime(TPZContributeTime time)
 
 void TPZEulerAnalysis::UpdateSolution(TPZFMatrix & deltaSol)
 {
-   (*fpCurrSol) -= deltaSol;
+   (*fpCurrSol) += deltaSol;
 
    fCompMesh->LoadSolution(*fpCurrSol);
 }
@@ -114,6 +114,7 @@ REAL TPZEulerAnalysis::EvaluateFluxEpsilon()
    return Norm(Flux);
 }
 
+
 void TPZEulerAnalysis::Assemble()
 {
    if(!fCompMesh)
@@ -134,23 +135,16 @@ void TPZEulerAnalysis::Assemble()
       return;
    }
 
-
-   // retrieving the matrix stored in the Solver,
-   // attempting to reuse it.
    TPZMatrix * pTangentMatrix = fSolver->Matrix();
 
-   // verifies if the matrix really exists
    if(!pTangentMatrix)
    {
-      // creates a matrix prepared for contribution
-      pTangentMatrix = fStructMatrix->Create();
-
-      // attaches the matrix to a solver.
-      fSolver->SetMatrix(pTangentMatrix);
-   }else{
-
-      pTangentMatrix->Zero();
+      PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
+      return;
    }
+
+
+   pTangentMatrix->Zero();
 
    // redimensions and zeroes Rhs
    fRhs.Redim(fCompMesh->NEquations(),1);
@@ -161,13 +155,16 @@ void TPZEulerAnalysis::Assemble()
 
    // Contributing referring to the last state (n index)
    fRhs+=/*.Add(fRhsLast, fRhsLast)*/ fRhsLast;
-/*
-   pTangentMatrix->Print("TangentMatrix", cout, EMathematicaInput);
 
+ofstream Mout("Matriz.out");
+ofstream Vout("Vetor.out");
 
-   cout << "\nRhs\n" << fRhs;
+   pTangentMatrix->Print("Matrix", Mout/*EMathematicaInput*/);
 
-   cout << "\nSolution\n" << *fpCurrSol;//*/
+   fRhs.Print("Rhs", Vout);//*/
+
+   Mout.close();
+   Vout.close();
 }
 
 
@@ -186,14 +183,11 @@ void TPZEulerAnalysis::AssembleRhs()
    fRhs+=/*.Add(fRhsLast, */fRhsLast/*)*/;
 }
 
+ofstream out("Matrizes.out");
+
 void TPZEulerAnalysis::Solve(REAL & res) {
    int numeq = fCompMesh->NEquations();
    if(fRhs.Rows() != numeq ) return;
-/*
-   TPZFMatrix residual(numeq,1,0.);//(fRhs);
-   residual -= fRhs;
-*/
-   // residual = -fRhs;
 
    TPZFMatrix residual(fRhs);
 
@@ -205,12 +199,27 @@ void TPZEulerAnalysis::Solve(REAL & res) {
    }*/
    //      REAL normres  = Norm(residual);
    //	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
+
    fSolver->Solve(residual, delu);
    //fSolution += delu;
+
+
+   fSolver->Matrix()->Print("Matriz", out, EMathematicaInput);
+   delu.Print("delu", out, EMathematicaInput);
+   fRhs.Print("Rhs", out, EMathematicaInput);
+   out.flush();
+
    UpdateSolution(delu);
+
+
+   // verifying the inversion of the linear system
+   TPZFMatrix res2;
+   fSolver->Matrix()->Residual(delu, fRhs, res2);
+   cout << "Linear invertion residual:"<< Norm(res2) << endl;
 
    //fCompMesh->LoadSolution(*fpSolution);
    res = Norm(residual);
+
 }
 
 int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
@@ -232,7 +241,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
       Assemble();
 
       epsilon = Norm(fRhs);
-//      cout << "\nEpsilon:" << epsilon;
+      //cout << "\nEpsilon:" << epsilon;
       i++;
    }
 
@@ -348,7 +357,7 @@ void TPZEulerAnalysis::Run(ostream &out)
 
       if(lastEpsilon>0.&&epsilon>0.)
       {
-         fFlowCompMesh->ScaleCFL(sqrt(lastEpsilon/epsilon));
+         fFlowCompMesh->ScaleCFL(/*sqrt(*/lastEpsilon/epsilon/*)*/);
       }
       lastEpsilon = epsilon;
 

@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.8 2003-12-18 20:06:16 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.9 2004-01-20 12:04:58 erick Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -12,6 +12,7 @@
 #include "pzstrmatrix.h"
 #include "pzsolve.h"
 #include "pzdxmesh.h"
+#include "pzstepsolver.h"
 
 #include <iostream>
 
