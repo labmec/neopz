@@ -214,7 +214,30 @@ void TPZArtDiff::ComputeTau(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > 
 
 template <class T>
 void TPZArtDiff::SUPG(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
-  cout << "TPZDiffusionConsLaw:: SUPG artificial diffusion SUPG not implemented\n";
+
+   TPZDiffMatrix<T> Rot, RotT,
+			 X, Xi,
+			 M, Mi,
+			 Temp, INVA2B2,
+			 LambdaSUPG;
+   T us, c;
+
+   TPZEulerConsLaw2::uRes(sol, us);
+   TPZEulerConsLaw2::cSpeed(sol, 1.4, c);
+
+   RotMatrix(sol, us, Rot, RotT);
+   MMatrix(sol, us, fGamma, M, Mi);
+   EigenSystemSUPG(sol, us, c, fGamma, X, Xi, LambdaSUPG);
+
+   RotT.   Multiply(M, Temp);
+   Temp.   Multiply(X, INVA2B2);
+   INVA2B2.Multiply(LambdaSUPG, Temp);
+   Temp.   Multiply(Xi, INVA2B2);
+   INVA2B2.Multiply(Mi, Temp);
+   Temp.   Multiply(Rot, INVA2B2);
+
+   for(int i = 0; i < Ai.NElements();i++)
+      Ai[i].Multiply(INVA2B2, Tau[i]);
 }
 
 template <class T>

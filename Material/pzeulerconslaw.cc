@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cc,v 1.15 2004-01-20 12:03:53 erick Exp $
+//$Id: pzeulerconslaw.cc,v 1.16 2004-01-21 00:23:32 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -73,7 +73,7 @@ int TPZEulerConsLaw2::NStateVariables() {
 REAL TPZEulerConsLaw2::Pressure(TPZVec<REAL> &U)
 {
    REAL press;
-   Pressure(fGamma, fDim, press, U);
+   TPZEulerConsLaw2::Pressure(fGamma, fDim, press, U);
    return press;
 }
 

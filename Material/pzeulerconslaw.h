@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.12 2004-01-20 12:04:06 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.13 2004-01-21 00:23:32 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -1238,7 +1238,7 @@ void TPZEulerConsLaw2::cSpeed(TPZVec<T> & sol, REAL gamma, T & c)
 {
    int dim = sol.NElements() - 2;
    T press;
-   Pressure(gamma, dim, press, sol);
+   TPZEulerConsLaw2::Pressure(gamma, dim, press, sol);
    c = sqrt(gamma * press/ sol[0]);
 }
 

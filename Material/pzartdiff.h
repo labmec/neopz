@@ -585,13 +585,13 @@ void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma,
 
       break;
       case (3):
-      k = sqrt(aaS[0]*aaS[0] + aaS[1]*aaS[1] + aaS[2]*aaS[2]);
+      k2 = aaS[0]*aaS[0] + aaS[1]*aaS[1] + aaS[2]*aaS[2];
+      k = sqrt(k2);
 
       Y.Redim(nstate,nstate);
       Y(0,2) = 1.;
       Y(0,3) = 1. / c2;
       Y(0,4) = Y(0,3);
-      Y(0,3) = Y(0,2);
       Y(1,0) = -aaS[2]/aaS[0];
       Y(1,1) = -aaS[1]/aaS[0];
       Y(1,3) = -aaS[0]/(k * rho_c);
@@ -600,27 +600,27 @@ void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma,
       Y(2,3) = -aaS[1]/(k * rho_c);
       Y(2,4) = -Y(2,3);
       Y(3,0) = 1.;
-      Y(3,3) = -aaS[3]/(k * rho_c);
-      Y(3,4) = -Y(2,3);
+      Y(3,3) = -aaS[2]/(k * rho_c);
+      Y(3,4) = -Y(3,3);
       Y(4,3) = 1.;
       Y(4,4) = 1.;
 
       Yi.Redim(nstate,nstate);
       Yi(0,1) = - aaS[0] * aaS[2] / k2;
-      Yi(0,2) = - aaS[1] * aaS[0] / k2;
-      Yi(0,2) =  (aaS[0] * aaS[0] + aaS[1] * aaS[1]) / k2;
+      Yi(0,2) = - aaS[1] * aaS[2] / k2;
+      Yi(0,3) =  (aaS[0] * aaS[0] + aaS[1] * aaS[1]) / k2;
       Yi(1,1) = - aaS[0] * aaS[1] / k2;
       Yi(1,2) =  (aaS[0] * aaS[0] + aaS[2] * aaS[2]) / k2;
-      Yi(1,3) =  Y(0,2);
+      Yi(1,3) =  Yi(0,2);
       Yi(2,0) = 1.;
       Yi(2,4) = -1. / c2;
       Yi(3,1) = - aaS[0] * rho_c / (2. * k);
       Yi(3,2) = - aaS[1] * rho_c / (2. * k);
       Yi(3,3) = - aaS[2] * rho_c / (2. * k);
       Yi(3,4) = .5;
-      Yi(4,1) = - Y(3,1);
-      Yi(4,2) = - Y(3,2);
-      Yi(4,3) = - Y(3,3);
+      Yi(4,1) = - Yi(3,1);
+      Yi(4,2) = - Yi(3,2);
+      Yi(4,3) = - Yi(3,3);
       Yi(4,4) = .5;
 
       temp1 = aaS[0] * us;

@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.9 2003-12-18 20:05:11 erick Exp $
+//$Id: pzconslaw.h,v 1.10 2004-01-21 00:23:32 erick Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -315,7 +315,7 @@ inline void TPZConservationLaw2::SetTimeStep(REAL timeStep)
 
 inline REAL TPZConservationLaw2::TimeStep()
 {
-   /*if(fResidualType == Residual_RT)*/return fTimeStep;
+   if(fResidualType == Residual_RT)return fTimeStep;
    return 1.;
 }
 /*
