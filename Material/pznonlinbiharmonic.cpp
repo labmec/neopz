@@ -1,4 +1,4 @@
-//$Id: pznonlinbiharmonic.cpp,v 1.1 2005-02-04 12:21:29 paulo Exp $
+//$Id: pznonlinbiharmonic.cpp,v 1.2 2005-03-08 13:10:19 paulo Exp $
 
 #include "pznonlinbiharmonic.h"
 #include "pzelmat.h"
@@ -17,7 +17,9 @@ REAL TPZNonLinBiharmonic::gM_alpha = 3.0; //            IGUAL
 REAL TPZNonLinBiharmonic::gL_betta = 4.0; //            [-2, 4
 REAL TPZNonLinBiharmonic::gM_betta = 1.0; //            IGUAL
 REAL TPZNonLinBiharmonic::g_teta = 0.5; // Parametro da parte advectiva.
-REAL TPZNonLinBiharmonic::Re = 1000.0; // Parametro da parte advectiva.
+REAL TPZNonLinBiharmonic::Re = 50.0; // 
+int TPZNonLinBiharmonic::NorP = 1; // Constante. Se for 1, entao Metodo de Newton
+                                   //            Se for 0, entao Metodo de Picard
 
 TPZNonLinBiharmonic::TPZNonLinBiharmonic(int nummat, REAL f) : TPZDiscontinuousGalerkin(nummat),
 						   fXf(f){}
@@ -51,16 +53,15 @@ void TPZNonLinBiharmonic::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<R
   //Equação de non linear biharmonic
   for( int in = 0; in < phr; in++ ) {
     ef(in, 0) +=  weight * fXf*phi(in,0)
-                  
 		  - weight*(Re_1*dsol(2,0)*dphi(2,in)
-    				+ dsol(2,0)*(dsol(1,0)*dphi(0,in) + dsol(0,0)*dphi(1,in)) ) ;
+    				+ dsol(2,0)*(dsol(1,0)*dphi(0,in) - dsol(0,0)*dphi(1,in)) ) ;
 					  
     for( int jn = 0; jn < phr; jn++ ) {
       ek(in,jn) +=  weight * ( Re_1*dphi(2,in) * dphi(2,jn)   
       
-      				+   dphi(2,jn)*(dsol(1,0)*dphi(0,in) + dsol(0,0)*dphi(1,in)) 
-				
-				+ dsol(2,0)*(dphi(1,jn)*dphi(0,in) + dphi(0,jn)*dphi(1,in) ) );
+      				+   dphi(2,jn)*(dsol(1,0)*dphi(0,in) - dsol(0,0)*dphi(1,in)) ); 
+      if(NorP==1)
+      ek(in,jn) +=  weight * ( dsol(2,0)*(dphi(1,jn)*dphi(0,in) - dphi(0,jn)*dphi(1,in) ) );
     }
   }
 }
@@ -117,7 +118,7 @@ void TPZNonLinBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix
 			   TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,
 			   TPZVec<REAL> &values) {
 
-  TPZVec<REAL> sol(1), dsol(5,0.);
+  TPZVec<REAL> sol(1), dsol(8,0.);
   Solution(u,dudx,axes,1,sol);
   Solution(u,dudx,axes,2,dsol);
     //values[1] : error em norma L2
@@ -133,9 +134,14 @@ void TPZNonLinBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix
 
   //values[0] : erro em norma H1
   values[0]  = values[1]+values[2];
-
+  // dxx
+  values[5] = (dsol[5] - du_exact(5,0))*(dsol[5] - du_exact(5,0));
+  // dyy
+  values[6] = (dsol[6] - du_exact(6,0))*(dsol[6] - du_exact(6,0));
+  // dxy
+  values[7] = (dsol[7] - du_exact(7,0))*(dsol[7] - du_exact(7,0));
   //values[4] : erro em norma H2
-  values[4]  = values[3]+values[0];
+  values[4]  = values[5]+values[6]+values[7]+values[0];
 
 }
 
@@ -182,8 +188,8 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL
   REAL uRnorF=  dsolR(1,0)*normal[0];  //
   REAL vRnorS= -dsolR(0,0)*normal[1];
     
-  REAL absUnorL = 0.5*fabs(uLnorF + vLnorS);
-  REAL absUnorR = 0.5*fabs(uRnorF + vRnorS);
+  REAL absUnorL = fabs(uLnorF + vLnorS);
+  REAL absUnorR = fabs(uRnorF + vRnorS);
 
 
   for(il=0; il<nrowl; il++) {
@@ -196,15 +202,16 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL
       REAL deriv_vLnorS = -dphiL(0,jl)*normal[1];
       
       REAL deriv_absUnorL = 0.;
-      if(uLnorF+vLnorS > 0.) deriv_absUnorL += 0.5*(deriv_uLnorF+deriv_vLnorS);
-      else deriv_absUnorL -= 0.5*(deriv_uLnorF+deriv_vLnorS);
+      if(uLnorF+vLnorS > 0.) deriv_absUnorL += (deriv_uLnorF+deriv_vLnorS);
+      else deriv_absUnorL -= (deriv_uLnorF+deriv_vLnorS);
       
       ek(il,jl) -= weight*0.5*( dphiL(2,jl)*phiL(il,0)*(uLnorF + vLnorS))
                   +weight*g_teta*absUnorL*(dphiL(2,jl)*phiL(il,0)*norFnorF + 
-		  			   dphiL(2,jl)*phiL(il,0)*norSnorS) 
-					  
-		+ weight*0.5*(dsolL(2,0)*phiL(il,0)*(deriv_uLnorF+deriv_vLnorS)) +
-		weight*g_teta*deriv_absUnorL*(dsolL(2,0)*phiL(il,0)*norFnorF +
+		  			   dphiL(2,jl)*phiL(il,0)*norSnorS) ; 
+
+      if(NorP==1) 					  
+        ek(il,jl) -= + weight*0.5*(dsolL(2,0)*phiL(il,0)*(deriv_uLnorF+deriv_vLnorS)) +
+		      weight*g_teta*deriv_absUnorL*(dsolL(2,0)*phiL(il,0)*norFnorF +
 		                              dsolL(2,0)*phiL(il,0)*norSnorS );
     }
   }
@@ -222,15 +229,15 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL
       REAL deriv_vRnorS = -dphiR(0,jr)*normal[1];
       
       REAL deriv_absUnorR = 0.;
-      if(uRnorF + vRnorS > 0.) deriv_absUnorR += 0.5*(deriv_uRnorF+deriv_vRnorS);
-      else deriv_absUnorR -= 0.5*(deriv_uRnorF+deriv_vRnorS);
+      if(uRnorF + vRnorS > 0.) deriv_absUnorR += (deriv_uRnorF+deriv_vRnorS);
+      else deriv_absUnorR -= (deriv_uRnorF+deriv_vRnorS);
     
       ek(ir+nrowl,jr+nrowl) -= weight*0.5*(
       				- dphiR(2,jr)*phiR(ir,0)*(uRnorF + vRnorS))
                   +weight*g_teta*absUnorR*(dphiR(2,jr)*phiR(ir,0)*norFnorF + 
-		  			  dphiR(2,jr)*phiR(ir,0)*norSnorS)
-					  
- 		  + weight*0.5*(
+		  			  dphiR(2,jr)*phiR(ir,0)*norSnorS );
+      if(NorP==1)					  
+        ek(ir+nrowl,jr+nrowl) -=   + weight*0.5*(
       				- dsolR(2,0)*phiR(ir,0)*(deriv_uRnorF + deriv_vRnorS))
                     +weight*g_teta*deriv_absUnorR*(dsolR(2,0)*phiR(ir,0)*norFnorF + 
 		  			           dsolR(2,0)*phiR(ir,0)*norSnorS);
@@ -251,16 +258,18 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL
       REAL deriv_vRnorS = -dphiR(0,jr)*normal[1];
       
       REAL deriv_absUnorR = 0.;
-      if(uRnorF + vRnorS > 0.) deriv_absUnorR += 0.5*(deriv_uRnorF+deriv_vRnorS);
-      else deriv_absUnorR -= 0.5*(deriv_uRnorF+deriv_vRnorS);
+      if(uRnorF + vRnorS > 0.) deriv_absUnorR += (deriv_uRnorF+deriv_vRnorS);
+      else deriv_absUnorR -= (deriv_uRnorF+deriv_vRnorS);
       
       ek(il,jr+nrowl) -= weight*0.5*(
       				  dphiR(2,jr)*phiL(il,0)*(uRnorF + vRnorS))      
                   -weight*g_teta*absUnorR*(dphiR(2,jr)*phiL(il,0)*norFnorF + 
-		  			  dphiR(2,jr)*phiL(il,0)*norSnorS)
-		  +weight*0.5*(
+		  			  dphiR(2,jr)*phiL(il,0)*norSnorS) ;
+
+      if(NorP==1)
+        ek(il,jr+nrowl) -=   +weight*0.5*(
       				  dsolR(2,0)*phiL(il,0)*(deriv_uRnorF + deriv_vRnorS))      
-                  -weight*g_teta*deriv_absUnorR*(dsolR(2,0)*phiL(il,0)*norFnorF+ 
+                  -weight*g_teta*deriv_absUnorR*(dsolR(2,0)*phiL(il,0)*norFnorF + 
 		  			         dsolR(2,0)*phiL(il,0)*norSnorS) ;
     }
   }
@@ -277,15 +286,15 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL
       REAL deriv_vLnorS = -dphiL(0,jl)*normal[1];
 
       REAL deriv_absUnorL = 0.;
-      if(uLnorF+vLnorS > 0.) deriv_absUnorL += 0.5*(deriv_uLnorF+deriv_vLnorS);
-      else deriv_absUnorL -= 0.5*(deriv_uLnorF+deriv_vLnorS);
+      if(uLnorF+vLnorS > 0.) deriv_absUnorL += (deriv_uLnorF+deriv_vLnorS);
+      else deriv_absUnorL -= (deriv_uLnorF+deriv_vLnorS);
           
       ek(ir+nrowl,jl) -= weight*0.5*(
       				  - dphiL(2,jl)*phiR(ir,0)*(uLnorF + vLnorS))            
                   -weight*g_teta*absUnorL*(dphiL(2,jl)*phiR(ir,0)*norFnorF + 
-		  			  dphiL(2,jl)*phiR(ir,0)*norSnorS)
-					  
-		  +weight*0.5*(
+		  			  dphiL(2,jl)*phiR(ir,0)*norSnorS );
+      if(NorP==1)
+        ek(ir+nrowl,jl) -=  +weight*0.5*(
       				  - dsolL(2,0)*phiR(ir,0)*(deriv_uLnorF + deriv_vLnorS))
 				              
                   -weight*g_teta*deriv_absUnorL*(dsolL(2,0)*phiR(ir,0)*norFnorF + 
@@ -682,10 +691,10 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &so
   REAL ULnormal = dsolL(1,0)*normal[0] - dsolL(0,0)*normal[1];
   for(il=0; il<nrowl; il++){ 
     for(jl=0; jl<nrowl; jl++){ 
-      ek(il,jl) -= weight*dphiL(2,jl)*phiL(il,0)*ULnormal 
+      ek(il,jl) -= weight*dphiL(2,jl)*phiL(il,0)*ULnormal;
                    
-		  +weight*dsolL(2,0)*phiL(il,0)*(
-		   dphiL(1,jl)*normal[0] - dphiL(0,jl)*normal[1]);
+      if(NorP==1)
+        ek(il,jl) -=   +weight*dsolL(2,0)*phiL(il,0)*( dphiL(1,jl)*normal[0] - dphiL(0,jl)*normal[1]);
     }
     
     ef(il,0) += weight*dsolL(2,0)*phiL(il,0)*ULnormal;
