@@ -168,8 +168,13 @@ static REAL gama = 1.4;
 //#define NOTDEBUG
 #define CEDRICDEBUG
 
+void Forcing(TPZVec<REAL> &x,TPZVec<REAL> &result);
+void G_Function(TPZVec<REAL> &x,TPZVec<REAL> &result);
+
 int main() {
 
+    gmesh->SetName("\n\t\t\t* * * MALHA GEOMÈTRICA INICIAL * * *\n\n");
+  cmesh->SetName("\n\t\t\t* * * MALHA COMPUTACIONAL INICIAL * * *\n\n");
   ofstream outgm("mesh.out");
 
   cout << "\ntipo\n"
@@ -232,6 +237,7 @@ int main() {
       outgm.flush();
     }
   }
+
   //com matriz não simétrica e ELU 2D e 3D convergen
   int numat = mat->Id();
   if(1){
@@ -1958,4 +1964,50 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
   if(!newfat && !numaggl) cout << "main::AgrupaList lista de elementos aglomerados vacia\n";
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+TPZMaterial *Quadrado(int grau){
+
+  CriacaoDeNos(4,quadrado);
+  //elemento de volume
+  TPZVec<int> nodes;
+  nodes.Resize(4);
+  TPZGeoEl *elem;
+  int i,index;
+  nodes[0] = 0;
+  nodes[1] = 1;
+  nodes[2] = 2;
+  nodes[3] = 3;
+  elem = gmesh->CreateGeoElement(EQuadrilateral,nodes,1,index);
+  
+  //construtor descontínuo
+  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  int interfdim = 1;
+  TPZCompElDisc::gInterfaceDimension = interfdim;
+  gmesh->BuildConnectivity();
+  int nummat = 1;
+  int dim = 2;
+  TPZMaterial *mat;// = new TPZMatHybrid(nummat,dim);
+  mat->SetForcingFunction(Forcing);
+  cmesh->InsertMaterialObject(mat);
+
+  //condições de contorno  
+  TPZBndCond *bc;
+  TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+
+  //CC DE NEUMANN
+  
+  TPZGeoElBC(elem,5,-1,*gmesh);
+  bc = mat->CreateBC(-1,1,val1,val2);
+  //  bc->SetForcingFunction(G_Function);
+  cmesh->InsertMaterialObject(bc);
+
+  cmesh->AutoBuild();
+
+  return mat;
+}
 

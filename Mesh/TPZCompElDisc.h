@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.17 2003-11-20 18:25:38 cedric Exp $
+//$Id: TPZCompElDisc.h,v 1.18 2003-11-24 18:59:18 cedric Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -255,6 +255,7 @@ protected:
   void CalcResidual(TPZElementMatrix &ef);
 
   void BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &transfer);
+  
 };
 
 inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index) {

@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.30 2003-11-20 18:25:38 cedric Exp $
+//$Id: TPZCompElDisc.cc,v 1.31 2003-11-24 18:59:18 cedric Exp $
 
 // -*- c++ -*- 
 
@@ -970,6 +970,7 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *agg
     PZError << "TPZCompElDisc::CreateAgglomerateMesh number agglomerate elements"
 	    << " out of range\nMALHA AGGLOMERADA NÂO CRIADA\n";
     if(aggmesh) delete aggmesh;
+    aggmesh = 0;
     return;
   }
   //TPZFlowCompMesh aggmesh(finemesh->Reference());
@@ -1047,31 +1048,177 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *agg
 }
 
 
-void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarse,
-					TPZTransfer &transfer){
+// void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarse,
+// 					TPZTransfer &transfer){
+//   // accumulates the transfer coefficients between the current element and the
+//   // coarse element into the transfer matrix, using the transformation t
+//   int locnod = NConnects();
+//   int cornod = coarse.NConnects();
+//   int locmatsize = NShapeF();
+//   int cormatsize = coarse.NShapeF();
+
+//   // compare interpolation orders
+//   // the interpolation order of this >= that interpolation order of coarse
+//   int locdeg = Degree(), coarsedeg = coarse.Degree();
+//   if(coarsedeg > locdeg) {
+//     SetDegree(coarsedeg);
+//   }
+//   TPZStack<int> connectlistcoarse,corblocksize;
+
+//   connectlistcoarse.Push(coarse.ConnectIndex(0));
+//   cornod = connectlistcoarse.NElements();// deve ser = 1
+//   TPZBlock corblock(0,cornod);
+//   int in;
+
+//   int blsize = coarse.NShapeF();
+//   corblock.Set(in,blsize);
+//   corblocksize.Push(blsize);
+
+//   TPZFNMatrix<500> loclocmat(locmatsize,locmatsize);
+//   TPZFMatrix loccormat(locmatsize,cormatsize);
+//   loclocmat.Zero();
+//   loccormat.Zero();
+
+//   TPZGeoEl *ref = Reference();
+//   int integdeg = locdeg >= coarsedeg ? locdeg : coarsedeg;
+//   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1,2*integdeg);
+//   int dimension = Dimension();
+
+//   TPZBlock locblock(0,locnod);
+
+//   locblock.Set(0,NShapeF());
+
+//   locblock.Resequence();
+
+//   TPZFNMatrix<50> locphi(locmatsize,1);
+//   TPZFNMatrix<150> locdphi(dimension,locmatsize);
+//   locphi.Zero();
+//   locdphi.Zero();
+//   // derivative of the shape function
+//   // in the master domain
+
+//   TPZFMatrix corphi(cormatsize,1);
+//   TPZFMatrix cordphi(dimension,cormatsize);
+//   // derivative of the shape function
+//   // in the master domain
+
+//   TPZManVector<REAL> int_point(dimension);
+//   TPZFNMatrix<9> jacobian(dimension,dimension);
+//   TPZFMatrix jacinv(dimension,dimension);
+//   TPZFNMatrix<9> axes(3,3);
+//   TPZManVector<REAL> x(3);
+//   int_point.Fill(0.,0);
+//   REAL jac_det = 1.;
+//   fReference->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
+//   REAL multiplier = 1./jac_det;
+
+//   int numintpoints = intrule->NPoints();
+//   REAL weight;
+//   int lin,ljn,cjn;
+
+//   for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
+
+//     intrule->Point(int_ind,int_point,weight);
+//     fReference->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
+//     fReference->X(int_point, x);
+//     Shape(int_point,locphi,locdphi);
+//     weight *= jac_det;
+//     corphi.Zero();
+//     cordphi.Zero();
+//     coarse.Shape(int_point,corphi,cordphi);
+
+//     //coarse.ExpandShapeFunctions(connectlistcoarse,
+//     //dependencyordercoarse,corblocksize,corphi,cordphi);
+
+//     for(lin=0; lin<locmatsize; lin++) {
+//       for(ljn=0; ljn<locmatsize; ljn++) {
+// 	loclocmat(lin,ljn) += weight*locphi(lin,0)*locphi(ljn,0)*multiplier;
+//       }
+//       for(cjn=0; cjn<cormatsize; cjn++) {
+// 	loccormat(lin,cjn) += weight*locphi(lin,0)*corphi(cjn,0)*multiplier;
+//       }
+//     }
+//     jacobian.Zero();
+//   }
+//   loclocmat.SolveDirect(loccormat,ELDLt);
+
+//   {
+//     int locblocknumber = Connect(0).SequenceNumber();
+//     int locblocksize = locblock.Size(0);
+//     int locblockpos = locblock.Position(0);
+//     TPZStack<int> locblockvec;
+//     TPZStack<int> globblockvec;
+//     int numnonzero = 0;
+//     {
+//       int corblocksize = corblock.Size(0);
+//       int corblockpos = corblock.Position(0);
+//       int cind = connectlistcoarse[0];
+//       TPZConnect &con = coarse.Mesh()->ConnectVec()[cind];
+//       int corblocknumber = con.SequenceNumber();
+//       if(locblocksize == 0 || corblocksize == 0)
+// 	PZError << "TPZCompElDisc::BuilTransferMatrix error I\n";
+//       TPZFMatrix small(locblocksize,corblocksize,0.);
+//       loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,small);
+//       REAL tol = Norm(small);
+//       if(tol >= 1.e-10) {
+// 	locblockvec.Push(0);
+// 	globblockvec.Push(corblocknumber);
+// 	numnonzero++;
+//       }
+//     }
+//     if(transfer.HasRowDefinition(locblocknumber))
+//       PZError << "TPZCompElDisc::BuilTransferMatrix error II\n";
+//     transfer.AddBlockNumbers(locblocknumber,globblockvec);
+//     {
+//       int jn = locblockvec[0];
+//       int corblocksize = corblock.Size(jn);
+//       int corblockpos = corblock.Position(jn);
+//       if(corblocksize == 0 || locblocksize == 0)
+// 	PZError << "TPZCompElDisc::BuilTransferMatrix error III\n";
+//       TPZFMatrix small(locblocksize,corblocksize,0.);
+//       loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,small);
+//       transfer.SetBlockMatrix(locblocknumber,globblockvec[0],small);
+//     }
+//   }
+//   SetDegree(locdeg);//recupera grau de interpolação
+// }
+
+void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &transfer){
   // accumulates the transfer coefficients between the current element and the
   // coarse element into the transfer matrix, using the transformation t
   int locnod = NConnects();
-  int cornod = coarse.NConnects();
+  int cornod = coarsel.NConnects();
   int locmatsize = NShapeF();
-  int cormatsize = coarse.NShapeF();
+  int cormatsize = coarsel.NShapeF();
 
   // compare interpolation orders
   // the interpolation order of this >= that interpolation order of coarse
-  int locdeg = Degree(), coarsedeg = coarse.Degree();
+  int locdeg = Degree(), coarsedeg = coarsel.Degree();
   if(coarsedeg > locdeg) {
     SetDegree(coarsedeg);
   }
+
   TPZStack<int> connectlistcoarse,corblocksize;
-
-  connectlistcoarse.Push(coarse.ConnectIndex(0));
-  cornod = connectlistcoarse.NElements();// deve ser = 1
+  connectlistcoarse.Resize(0);
+  corblocksize.Resize(0);
+  connectlistcoarse.Push(coarsel.ConnectIndex(0));
+  coarsel.BuildConnectList(connectlistcoarse);
+  cornod = connectlistcoarse.NElements();
+  int nvar = coarsel.Material()->NStateVariables();
   TPZBlock corblock(0,cornod);
-  int in;
-
-  int blsize = coarse.NShapeF();
+  int in=0;
+  int blsize = coarsel.NShapeF();
   corblock.Set(in,blsize);
   corblocksize.Push(blsize);
+
+  int c;
+  c = connectlistcoarse[1];
+  blsize = coarsel.Mesh()->ConnectVec()[c].NDof(*(coarsel.Mesh()))/nvar;
+  corblock.Set(in,blsize);
+  corblocksize.Push(blsize);
+  cormatsize += blsize;
+
+  corblock.Resequence();
 
   TPZFNMatrix<500> loclocmat(locmatsize,locmatsize);
   TPZFMatrix loccormat(locmatsize,cormatsize);
@@ -1106,6 +1253,7 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarse,
   TPZFMatrix jacinv(dimension,dimension);
   TPZFNMatrix<9> axes(3,3);
   TPZManVector<REAL> x(3);
+
   int_point.Fill(0.,0);
   REAL jac_det = 1.;
   fReference->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
@@ -1124,9 +1272,9 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarse,
     weight *= jac_det;
     corphi.Zero();
     cordphi.Zero();
-    coarse.Shape(int_point,corphi,cordphi);
+    coarsel.Shape(int_point,corphi,cordphi);
 
-    //coarse.ExpandShapeFunctions(connectlistcoarse,
+    //coarsel.ExpandShapeFunctions(connectlistcoarse,
     //dependencyordercoarse,corblocksize,corphi,cordphi);
 
     for(lin=0; lin<locmatsize; lin++) {
@@ -1141,26 +1289,29 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarse,
   }
   loclocmat.SolveDirect(loccormat,ELDLt);
 
+  in = 0;
   {
-    int locblocknumber = Connect(0).SequenceNumber();
-    int locblocksize = locblock.Size(0);
-    int locblockpos = locblock.Position(0);
+    int locblocknumber = Connect(in).SequenceNumber();
+    int locblocksize = locblock.Size(in);
+    int locblockpos = locblock.Position(in);
     TPZStack<int> locblockvec;
     TPZStack<int> globblockvec;
-    int numnonzero = 0;
+    int numnonzero = 0,jn = 0;
+
     {
-      int corblocksize = corblock.Size(0);
-      int corblockpos = corblock.Position(0);
-      int cind = connectlistcoarse[0];
-      TPZConnect &con = coarse.Mesh()->ConnectVec()[cind];
+      int corblocksize = corblock.Size(jn);
+      int corblockpos = corblock.Position(jn);
+      int cind = connectlistcoarse[jn];
+      TPZConnect &con = coarsel.Mesh()->ConnectVec()[cind];
       int corblocknumber = con.SequenceNumber();
       if(locblocksize == 0 || corblocksize == 0)
 	PZError << "TPZCompElDisc::BuilTransferMatrix error I\n";
       TPZFMatrix small(locblocksize,corblocksize,0.);
-      loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,small);
+      loccormat.GetSub(locblockpos,corblockpos,
+		       locblocksize,corblocksize,small);
       REAL tol = Norm(small);
       if(tol >= 1.e-10) {
-	locblockvec.Push(0);
+	locblockvec.Push(jn);
 	globblockvec.Push(corblocknumber);
 	numnonzero++;
       }
@@ -1168,16 +1319,18 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarse,
     if(transfer.HasRowDefinition(locblocknumber))
       PZError << "TPZCompElDisc::BuilTransferMatrix error II\n";
     transfer.AddBlockNumbers(locblocknumber,globblockvec);
+    int jnn = 0;
     {
-      int jn = locblockvec[0];
+      jn = locblockvec[jnn];
       int corblocksize = corblock.Size(jn);
       int corblockpos = corblock.Position(jn);
       if(corblocksize == 0 || locblocksize == 0)
 	PZError << "TPZCompElDisc::BuilTransferMatrix error III\n";
       TPZFMatrix small(locblocksize,corblocksize,0.);
       loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,small);
-      transfer.SetBlockMatrix(locblocknumber,globblockvec[0],small);
+      transfer.SetBlockMatrix(locblocknumber,globblockvec[jnn],small);
     }
   }
-  SetDegree(locdeg);//recupera grau de interpolação
+  SetDegree(locdeg);
+
 }

@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cc,v 1.17 2003-11-14 21:20:10 cedric Exp $
+//$Id: pzcmesh.cc,v 1.18 2003-11-24 18:59:18 cedric Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -857,30 +857,36 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &coarsemesh, TPZTransfer &
   int ncon = NIndependentConnects(),coarncon = coarsemesh.NIndependentConnects();
   transfer.SetBlocks(localblock,coarseblock,nvar,ncon,coarncon);
   Reference()->ResetReference();//geométricos apontam para nulo
-  coarsemesh.LoadReferences();//geométricos apontam para computacionais do coarsemesh
-  int nelem = NElements();
+  coarsemesh.LoadReferences();
+  //geométricos apontam para computacionais do coarsemesh
   TPZAgglomerateElement *aggel = 0;
+  TPZAdmChunkVector<TPZCompEl *> &elvec = coarsemesh.ElementVec();
+  int nelem = elvec.NElements();
 
   for(i=0; i<nelem; i++) {
-    TPZCompEl *comp = fElementVec[i];
+    TPZCompEl *comp = elvec[i];
     if(!comp) continue;
-    aggel = dynamic_cast<TPZAgglomerateElement *>(comp);
-    if(!aggel){
-      PZError << "TPZCompMesh::BuildTransferMatrixDesc mesh agglomerated with element of volume not agglomerated\n";
+    if(comp->Dimension() != dim) continue;
+    if(comp->Type() != EAgglomerate){
+      PZError << "TPZCompMesh::BuildTransferMatrixDesc mesh agglomerated"
+	      << " with element of volume not agglomerated\n";
       continue;
     }
-    if(aggel->Dimension() != dim) continue;    
+    aggel = dynamic_cast<TPZAgglomerateElement *>(comp);
     TPZStack<int> elvec;
+    //retorna todos os descontínuos aglomerados por aggel
     aggel->IndexesDiscSubEls(elvec);
     int size = elvec.NElements(),i;
     for(i=0;i<size;i++){
       TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(fElementVec[elvec[i]]);
       if(!disc){
-	PZError << "TPZCompMesh::BuildTransferMatrixDesc index with null elemento\n";
+	PZError << "TPZCompMesh::BuildTransferMatrixDesc index with null" 
+		<< " elemento\n";
 	continue;
       }
-      if(disc->Type() != 'EDiscontinuous') {
-	PZError << "TPZCompMesh::BuildTransferMatrixDesc index of not discontinous element\n";
+      if(disc->Type() != EDiscontinuous) {
+	PZError << "TPZCompMesh::BuildTransferMatrixDesc index of not" 
+		<< " discontinous element\n";
 	continue;
       }
       disc->BuildTransferMatrix(*aggel,transfer);
