@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.11 2005-02-02 17:03:11 cesar Exp $
+//$Id: pzpoisson3d.h,v 1.12 2005-02-04 11:36:34 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -70,6 +70,12 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
   */  
   void SetNonSymmetric() {
     this->fSymmetry = +1.0; 
+  }
+  
+  bool IsSymetric(){
+    if (fSymmetry == -1.0) return true;
+    if (fSymmetry == +1.0) return false;
+    PZError << __PRETTY_FUNCTION__ << "\n Comparacao de numeros reais da errado\n";
   }
 
   virtual TPZMaterial *NewMaterial(){
