@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.17 2004-06-17 06:26:21 phil Exp $
+//$Id: pzgmesh.cpp,v 1.18 2004-06-23 15:57:29 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -15,7 +15,7 @@ Method definition for class TPZGeoMesh.*/
 #include "pzmaterial.h"
 #include "pzerror.h"
 #include "pzgeoel.h"
-#include "pzcosys.h"
+//#include "pzcosys.h"
 #include "pzmatrix.h"
 //#include "pzavlmap.h"
 
@@ -689,7 +689,7 @@ TPZRefPattern * TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side){
     name += "0" ;
     size = 1;
   }
-  char aux[size];
+  char aux[256];
   sprintf(aux,"%d",side);
   name += aux;
 
