@@ -11,6 +11,8 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 -include $(top_srcdir)/@PZ_MK@
 
+CXXFLAGS = -I$(top_srcdir)/Common
+
 utildir = $(prefix)/Util
 
 util_HEADERS = $(wildcard *.h)
