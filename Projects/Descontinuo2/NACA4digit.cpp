@@ -28,7 +28,7 @@ REAL TPZNACAXXXX::NearestParameter(TPZVec<REAL> &pt, int &uplow) {
   REAL distminup = 20.*fCord;
   REAL distlow,distup;
   REAL ptl[2],ptu[2];
-  int ip,maxp=100;
+  int ip,maxp=1000;
   REAL par,parlow,parup;
   for(ip=0; ip<=maxp; ip++) {
     par = ip*fCord/maxp;
