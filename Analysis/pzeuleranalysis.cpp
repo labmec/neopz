@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.33 2004-06-15 18:49:47 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.34 2004-06-17 23:19:37 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -7,6 +7,7 @@
 #include "TPZParFrontStructMatrix.h"
 #include "tpzoutofrange.h"
 #include "pztempmat.h"
+#include <time.h>
 
 TPZEulerAnalysis::TPZEulerAnalysis():
 TPZAnalysis(), fFlowCompMesh(NULL),
@@ -74,14 +75,20 @@ void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix & deltaSol, REAL & epsilon)
     {
       fSolution -= deltaSol;
       fCompMesh->LoadSolution(fSolution);
+      /*int resultlin = */
+      LineSearch(initEpsilon ,fSolution, deltaSol);
+      fSolution += deltaSol;
+      fCompMesh->LoadSolution(fSolution);
+      epsilon = Norm(fRhs);
     }
 
-    if(outofrange || epsilon > initEpsilon)
+    if(outofrange)
     {
       /*int resultlin = */LineSearch(initEpsilon ,fSolution, deltaSol);
       fSolution += deltaSol;
       fCompMesh->LoadSolution(fSolution);
       epsilon = Norm(fRhs);
+      fFlowCompMesh->ScaleCFL(.5);
     }
 }
 
@@ -327,8 +334,7 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
 
    out << "\nBeginning time integration";
 
-   clock_t startTime, endTime;
-   startTime = clock();//time(&startTime);
+   time_t startTime_t = time(NULL);
 
    TPZDXGraphMesh * graph = PrepareDXMesh(dxout, dxRes);
    int numIterDX = 1;
@@ -414,12 +420,12 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
 
    delete graph;
 
-   endTime = clock();
-   const double CPS = CLOCKS_PER_SEC;
+   time_t endTime_t = time(NULL);
 
-   out  << "\nElapsed time in seconds: " << ((double)(endTime - startTime))/CPS << endl;
+   out  << "\nElapsed time in seconds: " << (endTime_t - startTime_t) << endl;
 
-   cout << "\nElapsed time in seconds: " << ((double)(endTime - startTime))/CPS << endl;
+   cout << "\nElapsed time in seconds: " << (endTime_t - startTime_t) << endl;
+
 
 }
 
