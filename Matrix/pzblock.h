@@ -21,7 +21,7 @@
 
 
 #include "pzmatrix.h"
-#include "pzvec.h"
+#include "pzmanvector.h"
 #include "pzreal.h"
 
 #ifdef OOPARLIB
@@ -183,11 +183,11 @@ class TPZBlock
   /**
      Returns the max number of blocks on diagonal
   */
-  int MaxBlockSize() const {return fMaxBlocks;}
+  int MaxBlockSize() const {return fBlock.NElements();}
   /**
      Returns number of blocks on diagonal
   */
-  int NBlocks() const {return fMaxBlocks;}
+  int NBlocks() const {return fBlock.NElements();}
 
   //retorna a dimensao do bloco 
   /**
@@ -207,7 +207,7 @@ class TPZBlock
   /**
      Returns matrix dimension pointed by block
   */
-  int Dim() const {return fMaxBlocks ? fBlock[fMaxBlocks-1].pos+fBlock[fMaxBlocks-1].dim : 0; }
+  int Dim() const {return fBlock.NElements() ? fBlock[fBlock.NElements()-1].pos+fBlock[fBlock.NElements()-1].dim : 0; }
 
 #ifdef OOPARLIB
   virtual long GetClassID() const        { return TBLOCK_ID; }
@@ -234,13 +234,9 @@ class TPZBlock
   };
 
   /**
-     Max number of blocks
-  */
-  int   fMaxBlocks;
-  /**
      Node
   */
-  TNode    *fBlock;
+  TPZManVector<TNode>    fBlock;
   /**
      Pointer to TPZMatrix
   */

@@ -25,11 +25,12 @@ REAL TPZBlock::gZero = 0;//Cedric
 
 TPZBlock::TPZBlock( TPZMatrix *const pMatrix,const int nBlocks,const int dim )
 {
-  if(pMatrix) fMaxBlocks = ( nBlocks ? nBlocks : pMatrix->Rows() );
-  else fMaxBlocks = nBlocks;
+  int MaxBlocks = 0;
+  if(pMatrix) MaxBlocks = ( nBlocks ? nBlocks : pMatrix->Rows() );
+  else MaxBlocks = nBlocks;
 
-  fBlock = 0;
-  if(fMaxBlocks) fBlock = new( TNode[fMaxBlocks] );
+  //  fBlock = 0;
+  if(MaxBlocks) fBlock.Resize(MaxBlocks);
   fpMatrix = pMatrix;
 
   // sugestao de implementacao:
@@ -43,28 +44,29 @@ TPZBlock::TPZBlock( TPZMatrix *const pMatrix,const int nBlocks,const int dim )
 	  // The row dimension of the matrix determines the size of the block object
     mat_size = pMatrix->Rows();
     if ( (dim*nBlocks!=mat_size) )
-      dim2 = mat_size/fMaxBlocks;
+      dim2 = mat_size/MaxBlocks;
   }
   // fim de sugestao
 
   int pos = 0;
-  for ( int i = 0; i < fMaxBlocks; i++, pos += dim2 )
+  for ( int i = 0; i < fBlock.NElements(); i++, pos += dim2 )
     {
       fBlock[i].pos = pos;
       fBlock[i].dim = dim2;
     }
-  if(fMaxBlocks && dim2) fBlock[fMaxBlocks-1].dim = dim2 + mat_size%dim2;
-  else if(fMaxBlocks) fBlock[fMaxBlocks-1].dim = mat_size-dim2;
+  if(MaxBlocks && dim2) fBlock[MaxBlocks-1].dim = dim2 + mat_size%dim2;
+  else if(MaxBlocks) fBlock[MaxBlocks-1].dim = mat_size-dim2;
 }
 
-TPZBlock::TPZBlock(const TPZBlock &bl) {
-  fMaxBlocks = bl.fMaxBlocks;
-  fBlock = new( TNode[fMaxBlocks] );
-  int ibl;
-  for(ibl=0; ibl<fMaxBlocks; ibl++) {
-    fBlock[ibl].pos = bl.fBlock[ibl].pos;
-    fBlock[ibl].dim = bl.fBlock[ibl].dim;
-  }
+TPZBlock::TPZBlock(const TPZBlock &bl) : fBlock(bl.fBlock) {
+  //  fBlock = bl.fBlock;
+  //  fMaxBlocks = bl.fMaxBlocks;
+  //  fBlock = new( TNode[fMaxBlocks] );
+  //  int ibl;
+  //  for(ibl=0; ibl<fMaxBlocks; ibl++) {
+  //    fBlock[ibl].pos = bl.fBlock[ibl].pos;
+  //    fBlock[ibl].dim = bl.fBlock[ibl].dim;
+  //  }
   fpMatrix = bl.fpMatrix;
 }
 
@@ -72,15 +74,16 @@ TPZBlock::TPZBlock(const TPZBlock &bl) {
 /*** operator =  ***/
 TPZBlock &TPZBlock::operator=(const TPZBlock & bl) {
   if(this == &bl) return *this;
-  if(fMaxBlocks != bl.fMaxBlocks) {
-    delete [] fBlock;
-    fBlock = new( TNode[bl.fMaxBlocks] );
-  }
-  fMaxBlocks = bl.fMaxBlocks;
-  int ibl;
-  for(ibl=0; ibl<fMaxBlocks; ibl++) {
-    fBlock[ibl] = bl.fBlock[ibl];
-  }
+  //  if(fMaxBlocks != bl.fMaxBlocks) {
+  //    delete [] fBlock;
+  //    fBlock = new( TNode[bl.fMaxBlocks] );
+  //  }
+  fBlock = bl.fBlock;
+  //  fMaxBlocks = bl.fMaxBlocks;
+  //  int ibl;
+  //  for(ibl=0; ibl<fMaxBlocks; ibl++) {
+  //    fBlock[ibl] = bl.fBlock[ibl];
+  //  }
   fpMatrix = bl.fpMatrix;
   return *this;
 }
@@ -88,7 +91,7 @@ TPZBlock &TPZBlock::operator=(const TPZBlock & bl) {
 /******************/
 /***  Destrutor ***/
 TPZBlock::~TPZBlock() {
-  delete[] fBlock;
+  //  delete[] fBlock;
 }
 
 /******************/
@@ -106,14 +109,19 @@ TPZBlock::SetNBlocks(const int num_of_blocks )
 {
   //modified Philippe 24/7/97
   // a small optimization
-  if(num_of_blocks == fMaxBlocks) return 1;
-  if ( num_of_blocks <= fMaxBlocks )
+  int MaxBlocks = fBlock.NElements();
+  if(num_of_blocks >= MaxBlocks) fBlock.Expand((int) (MaxBlocks*1.2));
+  TNode copy;
+  fBlock.Resize(num_of_blocks,copy);
+  if(num_of_blocks == MaxBlocks) return 1;
+  /*
+  if ( num_of_blocks <= MaxBlocks )
     {
       int i;
-      for (i = num_of_blocks; i < fMaxBlocks; i++ ){
+      for (i = num_of_blocks; i < MaxBlocks; i++ ){
 	fBlock[i].pos=0;fBlock[i].dim=0;
       }
-      fMaxBlocks = num_of_blocks;
+      MaxBlocks = num_of_blocks;
       return( 1 );
     }
 
@@ -130,11 +138,12 @@ TPZBlock::SetNBlocks(const int num_of_blocks )
   delete []fBlock;
   fBlock     = newBlocks;
   fMaxBlocks = num_of_blocks;
+  */
   return ( 1 );
 }
 
 int TPZBlock::Set(const int b,const int dim,const int pos ) {
-  if ( b >= fMaxBlocks ) {
+  if ( b >= fBlock.NElements() ) {
     cout << "TPZBlock::Set called with parameter out of range\n";
     return( 0 );
   }
@@ -178,8 +187,9 @@ TPZBlock::SetAll( TPZVec<int> & dimensions )
 /*****************/
 /*** Resequence **/
 int TPZBlock::Resequence(const int start) {
-  if (start>=fMaxBlocks) return 0;
-  for (int i= start+1; i < fMaxBlocks; i++)
+  int MaxBlocks = fBlock.NElements();
+  if (start>=MaxBlocks) return 0;
+  for (int i= start+1; i < MaxBlocks; i++)
     fBlock[i].pos=fBlock[i-1].pos+fBlock[i-1].dim;
   return ( 1 );
 }
@@ -189,7 +199,8 @@ int TPZBlock::Resequence(const int start) {
 int
 TPZBlock::Remove(const int index )
 {
-  if ( index >= fMaxBlocks )
+  int MaxBlocks = fBlock.NElements();
+  if ( index >= MaxBlocks )
     return( 0 );
 
   fBlock[index].dim = 0;    // and the corresponding elements into the fpMatrix???
@@ -203,10 +214,11 @@ TPZBlock::Remove(const int index )
 int
 TPZBlock::Verify() const
 {
-  for ( int i = 0; i < fMaxBlocks-1; i++ )
+  int MaxBlocks = fBlock.NElements();
+  for ( int i = 0; i < MaxBlocks-1; i++ )
     if (fBlock[i].pos + fBlock[i].dim != fBlock[i+1].pos) return ( 0 );
 
-  if (fBlock[fMaxBlocks-1].pos + fBlock[fMaxBlocks-1].dim != fpMatrix->Rows())
+  if (fBlock[MaxBlocks-1].pos + fBlock[MaxBlocks-1].dim != fpMatrix->Rows())
     return ( 0 );
   return ( 1 );
 }
@@ -218,7 +230,8 @@ const REAL &
 TPZBlock::Get(const int bRow,const int bCol,const int r,const int c ) const
 {
   int row(r),col(c);
-  if ( (bRow >= fMaxBlocks) || (bCol >= fMaxBlocks) )
+  int MaxBlocks = fBlock.NElements();
+  if ( (bRow >= MaxBlocks) || (bCol >= MaxBlocks) )
     Error( "Get <block index out of range>" );
 
   int rowDim = fBlock[bRow].dim;
@@ -244,8 +257,9 @@ int
 TPZBlock::Put(const int bRow,const int bCol,const int r,const int c,
 	      const REAL& value )
 {
+  int MaxBlocks = fBlock.NElements();
   int row(r),col(c);
-  if ( (bRow >= fMaxBlocks) || (bCol >= fMaxBlocks) )
+  if ( (bRow >= MaxBlocks) || (bCol >= MaxBlocks) )
     Error( "Put <block index out of range>" );
 
   int rowDim = fBlock[bRow].dim;
@@ -269,8 +283,9 @@ TPZBlock::Put(const int bRow,const int bCol,const int r,const int c,
 const REAL &
 TPZBlock::GetVal(const int bRow,const int bCol,const int r,const int c ) const
 {
+  int MaxBlocks = fBlock.NElements();
   int row(r),col(c);
-  if(bRow <0 || bRow >= fMaxBlocks || bCol <0 || bCol >= fMaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
+  if(bRow <0 || bRow >= MaxBlocks || bCol <0 || bCol >= MaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
     cout << "TPZBlock::GetVal indexes out of range\n";
     exit(-1);
   }
@@ -283,8 +298,9 @@ TPZBlock::GetVal(const int bRow,const int bCol,const int r,const int c ) const
 REAL &
 TPZBlock::operator()(const int bRow,const int bCol,const int r,const int c )
 {
+  int MaxBlocks = fBlock.NElements();
   int row(r),col(c);
-  if(bRow <0 || bRow >= fMaxBlocks || bCol <0 || bCol >= fMaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
+  if(bRow <0 || bRow >= MaxBlocks || bCol <0 || bCol >= MaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
     cout << "TPZBlock::operator() indexes out of range\n";
     exit(-1);
   }
@@ -404,9 +420,10 @@ TPZBlock::Print(const char *title, TPZostream &out,TPZMatrix *mat) {
   if (mat) SetMatrix(mat);
   char block_title[32];
 
+  int MaxBlocks = fBlock.NElements();
   out << title << ":";
-  for ( int bRow = 0; bRow < fMaxBlocks; bRow++ )
-    for ( int bCol = 0; bCol < fMaxBlocks; bCol++ )
+  for ( int bRow = 0; bRow < MaxBlocks; bRow++ )
+    for ( int bCol = 0; bCol < MaxBlocks; bCol++ )
       {
 	out << "\n";
 	sprintf( block_title, "Block (%d,%d) of %dX%d:", bRow, bCol,
@@ -425,8 +442,9 @@ TPZBlock::PrintSolution(const char *title, TPZostream &out) {
 
   char block_title[32];
 
+  int MaxBlocks = fBlock.NElements();
   out << title << ":";
-  for ( int bRow = 0; bRow < fMaxBlocks; bRow++ )
+  for ( int bRow = 0; bRow < MaxBlocks; bRow++ )
       {
 	out << "\n";
 	sprintf( block_title, "Block (%d,%d) of %dX%d:", bRow, 0,
@@ -453,11 +471,11 @@ TPZBlock::Error(const char *msg ) const
 
 int TPZBlock::Unpack (TReceiveStorage *buf ){
   TSaveable::Unpack(buf);
-  fBlock= new TNode [fMaxBlocks];
-  buf->UpkInt((int *)fBlock,2*fMaxBlocks);
-  TSaveable *sav = buf->Restore();
-  if(!sav->DerivedFrom("TPZMatrix")) exit(-1);
-  fpMatrix = (TPZMatrix *) sav;
+  //  fBlock= new TNode [fMaxBlocks];
+  //  buf->UpkInt((int *)fBlock,2*fMaxBlocks);
+  //  TSaveable *sav = buf->Restore();
+  //  if(!sav->DerivedFrom("TPZMatrix")) exit(-1);
+  //  fpMatrix = (TPZMatrix *) sav;
   return 1;
 }
 
@@ -470,7 +488,7 @@ TSaveable *TPZBlock::Restore(TReceiveStorage *buf) {
 
 int TPZBlock::Pack( TSendStorage *buf ) const {
   TSaveable::Pack(buf);
-  buf->PkInt( (int *) fBlock,2*fMaxBlocks);
+  //  buf->PkInt( (int *) fBlock,2*fMaxBlocks);
   fpMatrix->Pack(buf);
   return 1;
 }

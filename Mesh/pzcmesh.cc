@@ -25,8 +25,8 @@
 #include "pzmetis.h"
 
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
-  fMaterialVec(0), fConnectVec(0),fSolution(0,1),
-  fBCConnectVec(0) {
+  fConnectVec(0),fMaterialVec(0),
+  fBCConnectVec(0), fSolution(0,1) {
   
   //Initializing class members
   
@@ -177,7 +177,18 @@ TPZMaterial* TPZCompMesh::FindMaterial(int matid){	// find the material object w
 void TPZCompMesh::AutoBuild() {
   TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
   int i, nelem = elvec.NElements();
+  int neltocreate = 0;
   int index;
+  for(i=0; i<nelem; i++) {
+    TPZGeoEl *gel = elvec[i];
+    if(!gel) continue;
+    if(!gel->HasSubElement()) {
+      neltocreate++;
+    }
+  }
+  int nbl = fBlock.NBlocks();
+  if(neltocreate > nbl) fBlock.SetNBlocks(neltocreate);
+  fBlock.SetNBlocks(nbl);
   for(i=0; i<nelem; i++) {
     TPZGeoEl *gel = elvec[i];
     if(!gel) continue;
