@@ -1,6 +1,6 @@
 #ifndef PZDEBUG
 #define PZDEBUG
 
-	static int gDebug;	
+	extern int gDebug;	
 
 #endif
