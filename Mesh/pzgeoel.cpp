@@ -748,7 +748,7 @@ int TPZGeoEl::main(TPZGeoEl *gel,int type){
 /**Initializes the external connectivities of the subelements*/
 void TPZGeoEl::SetSubElementConnectivities() {
 
-  this->Print(cout);
+//  this->Print(cout);
   int side,el;
   for(side=0; side<NCornerNodes(); side++) {
     TPZGeoElSide thisside(this,side);
@@ -759,7 +759,7 @@ void TPZGeoEl::SetSubElementConnectivities() {
     //  cout << "TPZGeoEl::SetSubElementConnectivities wrong data\n";
     //} else {
     //for (el=0;el<subel.NElements();el++)
-      if(!subel[0].NeighbourExists(subel[0])) subel[0].SetConnectivity(thisside);
+      if(!subel[0].NeighbourExists(thisside)) subel[0].SetConnectivity(thisside);
     //}
   }
   for(side=NCornerNodes(); side<NSides(); side++) {
