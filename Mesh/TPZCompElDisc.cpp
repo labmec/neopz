@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.51 2004-04-06 17:40:32 erick Exp $
+//$Id: TPZCompElDisc.cpp,v 1.52 2004-04-06 18:31:57 erick Exp $
 
 // -*- c++ -*- 
 
@@ -404,7 +404,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   TPZVec<REAL> x(3,0.);
   TPZVec<REAL> intpoint(dim,0.);
   REAL detjac,weight;
-  int integ = max( 2 * Degree() - 1, 0);
+  int integ = max( 2 * Degree(), 0);
   TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
   int npoints = intrule->NPoints(),ip;                                              //integra fi*fj
   TPZVec<REAL> sol(nstate,0.);
