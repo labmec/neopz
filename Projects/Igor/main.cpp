@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.1 2003-11-26 18:13:12 phil Exp $
+//$Id: main.cpp,v 1.2 2003-11-26 18:44:12 phil Exp $
 /**
  * Galerkin descontinuo: visita do professor Igor.
  * 24/11/2003
@@ -37,18 +37,18 @@
 static REAL PI;
 
 int gPrintLevel = 0;
-/*
+
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
-  disp[0] = 2.0 * PI * PI * sin( PI * x[0]) * sin(PI * x[1]);
+  disp[0] = -2.0 * PI * PI * sin( PI * x[0]) * sin(PI * x[1]);
 }
 void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   u[0] = sin(PI*x[0])*sin(PI*x[1]);
   deriv(0,0) = PI*cos(PI*x[0])*sin(PI*x[1]);
   deriv(1,0) = PI*cos(PI*x[1])*sin(PI*x[0]);
 }
-*/
-/*
-void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
+
+
+/*void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
   disp[0] =  PI * PI * sin(PI * (x[1]+1.)/2.) / 4.;
 }
 void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
@@ -57,7 +57,7 @@ void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   deriv(1,0) = PI*cos(PI*(x[1]+1.)/2.)/2.;
 }
 */
-void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
+/*void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
   //  disp[0] =  -2.;
   disp[0] = 0.;
 }
@@ -65,7 +65,7 @@ void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   u[0] = (x[1]+1.);
   deriv(0,0) = 0.;
   deriv(1,0) = 1.;
-}
+}*/
 
 TPZCompMesh *CreateMesh();
 
@@ -74,7 +74,7 @@ int main(){
   PI = 4.*atan(1.);
 
   TPZCompEl::gOrder = 1;
-  TPZCompElDisc::gDegree = 2;
+  TPZCompElDisc::gDegree = 6;
   gDebug = 0;
 
   TPZCompMesh *cmesh = CreateMesh();
@@ -82,13 +82,13 @@ int main(){
   TPZGeoMesh *gmesh = cmesh->Reference();
 
   ofstream out("test.dat");
-  gmesh->Print(out);
-  cmesh->Print(out);
+  //  gmesh->Print(out);
+  //  cmesh->Print(out);
 
   TPZAnalysis an(cmesh);
 
-  TPZFStructMatrix band(cmesh);
-  an.SetStructuralMatrix(band);
+  TPZFStructMatrix full(cmesh);
+  an.SetStructuralMatrix(full);
 
   TPZStepSolver step;
   step.SetDirect(ELU);
@@ -160,7 +160,7 @@ TPZCompMesh *CreateMesh() {
   TPZGeoEl *elvec[4];
   TPZGeoMesh *gmesh = new TPZGeoMesh();
   int nnode = 9;
-  int nelem = 2;
+  int nelem = 4;
   int nod;
   for(nod=0; nod<nnode; nod++) {
     int nodind = gmesh->NodeVec().AllocateNewElement();
@@ -181,28 +181,30 @@ TPZCompMesh *CreateMesh() {
   gmesh->BuildConnectivity();
 
     
-/*  for(int i = 0; i < nelem; i++){
+  for(int i = 0; i < nelem; i++){
     TPZVec<TPZGeoEl *> children;
     elvec[i]->Divide(children);
-  } */
+  } 
   
   
   TPZGeoElBC gbc;
-  
+
+/* Lineare em y:
+  TPZGeoElBC gbc1(elvec[0],5,-1,*gmesh); // bottom
+  TPZGeoElBC gbc4(elvec[1],6,-2,*gmesh); // top
+  TPZGeoElBC gbc5(elvec[2],5,-2,*gmesh); // top
+  TPZGeoElBC gbc8(elvec[3],6,-1,*gmesh); // bottom
+*/
+
   // bc -1 -> Dirichlet homogeneo
   TPZGeoElBC gbc1(elvec[0],5,-1,*gmesh); // bottom
-  //  TPZGeoElBC gbc2(elvec[0],6,-1,*gmesh); // right
-  //    TPZGeoElBC gbc9(elvec[0],7,-2,*gmesh); // bottom
-  
-  // bc -2 -> Dirichlet homogeneo
-  // TPZGeoElBC gbc3(elvec[1],5,-1,*gmesh); // right
-  TPZGeoElBC gbc4(elvec[1],6,-2,*gmesh); // top
-  
-       // TPZGeoElBC gbc5(elvec[2],5,-2,*gmesh); // top
-  //  TPZGeoElBC gbc6(elvec[2],6,-1,*gmesh); // left
-    
-  //TPZGeoElBC gbc7(elvec[3],5,-1,*gmesh); // left
-      // TPZGeoElBC gbc8(elvec[3],6,-1,*gmesh); // bottom
+  TPZGeoElBC gbc2(elvec[0],6,-1,*gmesh); // right
+  TPZGeoElBC gbc3(elvec[1],5,-1,*gmesh); // right
+  TPZGeoElBC gbc4(elvec[1],6,-1,*gmesh); // top
+  TPZGeoElBC gbc5(elvec[2],5,-1,*gmesh); // top
+  TPZGeoElBC gbc6(elvec[2],6,-1,*gmesh); // left
+  TPZGeoElBC gbc7(elvec[3],5,-1,*gmesh); // left
+  TPZGeoElBC gbc8(elvec[3],6,-1,*gmesh); // bottom
   
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   cmesh->SetDimModel(2);
