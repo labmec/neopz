@@ -1,5 +1,6 @@
 #include "oneElementMesh.cc"
 #include "reflectedShock.cc"
+#include "SimpleShock.cc"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
@@ -24,6 +25,8 @@
 #include "pzblock.h"
 #include "TPZFrontStructMatrix.h"
 #include "TPZFrontNonSym.h"
+#include "TPZSpStructMatrix.h"
+
 
 void error(char *) {}
 
@@ -45,34 +48,76 @@ int main()
    ofstream anFile("analysis.out");
    TPZEulerAnalysis An(cmesh, anFile);
 
-   // Creating the structural matrix
+
+//Solver attributes
+
+   { // LU
    TPZFStructMatrix StrMatrix(cmesh);
-//   TPZFrontStructMatrix<TPZFrontNonSym> StrMatrix(cmesh);
-   //TPZBandStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
 
+   TPZMatrix * mat = StrMatrix.Create();
+
+   An.SetLinSysCriteria(1e-10, 0);
    An.SetNewtonCriteria(1e-9, 1);
    An.SetTimeIntCriteria(1e-8,100);
 
-   // Creating the solver for the linearized systems
    TPZStepSolver Solver;
    Solver.SetDirect(ELU);// ECholesky -> simétrica e positiva definida
+   Solver.SetMatrix(mat);
    An.SetSolver(Solver);
-//   Solver.SetGMRES(100,5,);
+   }
+
 /*
+
+   { // GMRES
+   TPZFStructMatrix StrMatrix(cmesh);
+   An.SetStructuralMatrix(StrMatrix);
+
+   TPZMatrix * mat = StrMatrix.Create();
+
+   An.SetLinSysCriteria(1e-10, 1000);
+   An.SetNewtonCriteria(1e-9, 1);
+   An.SetTimeIntCriteria(1e-8,100);
+
+   //Preconditioner
    TPZStepSolver Pre;
-   Pre.SetSSOR (2,//numiterations,
-                 1.1,//overrelax
-		 .0001,//tol
-		 0);//From Current
+   Pre.SetJacobi(1,//numiterations,
+		 1e-9,//tol
+		  0);//From Current
+   Pre.SetMatrix(mat);
 
-   Solver.SetCG (10,//numiterations
-                Pre,//pre
-		1e-8,//tol
-		0);//From Current*/
+   //Main Solver
+   TPZStepSolver Solver;
+   Solver.SetGMRES(1000,
+		10,
+		Pre,
+		1e-3,
+		0);
+   Solver.SetMatrix(mat);
    An.SetSolver(Solver);
+   }
+//*/
+/*
+   { // SSOR
+   TPZFStructMatrix StrMatrix(cmesh);
+   An.SetStructuralMatrix(StrMatrix);
 
-   An.Run(cout /*anFile*/);
+   TPZMatrix * mat = StrMatrix.Create();
+
+   An.SetLinSysCriteria(1e-10, 1000);
+   An.SetNewtonCriteria(1e-9, 10);
+   An.SetTimeIntCriteria(1e-8,100);
+
+   //Main Solver
+   TPZStepSolver Solver;
+   Solver.SetSSOR(10000, 1.1,
+		1e-10,
+		0);
+   Solver.SetMatrix(mat);
+   An.SetSolver(Solver);
+   }
+*/
+   An.Run(cout);
 
    return 0;
 }

@@ -243,14 +243,23 @@ TPZFlowCompMesh * RSCompMesh()
 // Setting initial solution
    mat->SetForcingFunction(NULL);
    // Setting the time discretization method
-   mat->SetTimeDiscr(None_TD/*Diff*/,
+   mat->SetTimeDiscr(Implicit_TD/*Diff*/,
                      Implicit_TD/*ConvVol*/,
 		     Implicit_TD/*ConvFace*/);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
    // object computes the delta when it equals null.
 
-   mat->SetCFL(1);
-   mat->SetDelta(.1);
+   mat->SetCFL(.5);
+
+
+   REAL us = sqrt(2.6 * 2.6 + .51 * .51);
+   REAL press = 1.52819;
+   REAL cspeed = sqrt(1.4*press/1.7);
+   REAL lambdaMax = us + cspeed;
+
+   cout << .22/(2*lambdaMax);
+
+   mat->SetDelta(.22/(2*lambdaMax));
 
    cmesh -> InsertMaterialObject(mat);
 
@@ -330,7 +339,7 @@ TPZFlowCompMesh * RSCompMesh()
    TPZFMatrix Solution = cmesh->Solution();
 
    int nVars = Solution.Rows();
-   for(int k = 0; k < nVars; k++)Solution(k)=-.1;
+   for(int k = 0; k < nVars; k++)Solution(k)=.1;
 
 
    int j, NSolutionBlocks;
@@ -434,6 +443,6 @@ TPZFlowCompMesh * RSCompMesh()
 
    cmesh->LoadSolution(Solution);
    }
-*/
+//*/
    return cmesh;
 }

@@ -101,7 +101,7 @@ TPZGeoMesh * CreateSSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
 TPZFlowCompMesh * SSCompMesh()
 {
-   TPZCompElDisc::gDegree = 3;
+   TPZCompElDisc::gDegree = 2;
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements

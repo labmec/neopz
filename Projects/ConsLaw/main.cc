@@ -205,8 +205,9 @@ the contributions to T1 and T2;
       F1 -= F0;
       F2 -= F0;
 
-      F1 -= Tangent * deltaCoeff1;
-      F2 -= Tangent * deltaCoeff2;
+      // matrix is already negative
+      F1 += Tangent * deltaCoeff1;
+      F2 += Tangent * deltaCoeff2;
 
       for(j = 0; j < nCoeff; j ++)
       {
@@ -259,7 +260,7 @@ void CheckJacobFlux(
 			   Difference(dim);
    TPZVec< TPZVec< FADREAL > > FadFlux(3);
 
-   MatTest.JacobFlux(U, Tangent);
+   MatTest.JacobFlux(1.4, dim, U, Tangent);
    MatTest.Flux(FadU, FadFlux[0], FadFlux[1], FadFlux[2]);
 
 cout << "aqui";

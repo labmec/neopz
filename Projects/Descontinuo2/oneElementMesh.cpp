@@ -146,8 +146,14 @@ TPZFlowCompMesh * OneElCompMesh()
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
    // object computes the delta when it equals null.
 
-   mat->SetCFL(1);
-   mat->SetDelta(.001);
+   mat->SetCFL(.5);
+
+   REAL us = sqrt(5.5 * 5.5 + 3.3 * 3.3);
+   REAL press = 2.;
+   REAL cspeed = sqrt(1.4*press/1.7);
+   REAL lambdaMax = us + cspeed;
+
+   mat->SetDelta(lambdaMax);
 
    cmesh -> InsertMaterialObject(mat);
 
@@ -195,7 +201,7 @@ TPZFlowCompMesh * OneElCompMesh()
 
    int nVars = Solution.Rows();
    int k;
-   for(k = 0; k < nVars; k++)Solution(k,0) = .05;
+   for(k = 0; k < nVars; k++)Solution(k,0) = 0;//.05;
    int j, NSolutionBlocks;
    //TPZBlock * pBlock = cmesh->Block();
    NSolutionBlocks = cmesh->Block().NBlocks();
@@ -205,10 +211,10 @@ TPZFlowCompMesh * OneElCompMesh()
    {
       int blockOffset = cmesh->Block().Position(j) + lastShapeFun;
 
-      REAL ro = 1.7,
-	   u = 5.5,
-	   v = 3.3,
-	   p = 2.,
+      REAL ro = 2.0,
+	   u = 5.7,
+	   v = 3.5,
+	   p = 2.8,
 	   vel2 = u*u + v*v;
       Solution(blockOffset  ,0) = ro;
       Solution(blockOffset+1,0) = ro * u;
