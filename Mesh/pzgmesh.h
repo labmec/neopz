@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.7 2004-02-05 18:01:49 tiago Exp $
+//$Id: pzgmesh.h,v 1.8 2004-02-10 20:20:13 cesar Exp $
 
 /**File : pzgmes.h
 
@@ -23,7 +23,7 @@ contained within the TPZGeoMesh.
 
 
 #include <iostream>
-#include <string.h>
+#include <string>
 #include <map>
 
 #include "pzreal.h"
@@ -41,6 +41,7 @@ struct TPZGeoElBC;
 class TPZCosys;
 class TPZMatrix;
 class TPZCompMesh;
+class TPZRefPattern;
 
 template<class T>
 class TPZVec;
@@ -214,6 +215,12 @@ virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes
   /**Method which works only for two dimensional topologies!
      Find, within elmap, the element which has currentnode as its first boundary side node*/
   void FindElement(TPZAVLMap<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
+protected: // Protected attributes
+  /** Maps all refinement pattern objects in the mesh */
+  map<int,map<string,TPZRefPattern *> > fRefPatterns;
+public:
+  void InsertRefPattern(TPZRefPattern *refpat);
+  TPZRefPattern * GetRefPattern(int eltype, string name);
 };
 
 inline int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial){

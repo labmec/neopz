@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.9 2003-12-12 19:59:20 phil Exp $
+//$Id: pzgmesh.cpp,v 1.10 2004-02-10 20:18:48 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -20,8 +20,10 @@ Method definition for class TPZGeoMesh.*/
 #include "pzavlmap.h"
 
 #include "pzelgt2d.h"
+#include "pzelgq2d.h"
 #include "pzelgt3d.h"
 #include "pzelgpi3d.h"
+#include <TPZRefPattern.h>
 
 
 TPZGeoMesh::TPZGeoMesh() : fElementVec(0), fNodeVec(0), fCosysVec(0),
@@ -56,6 +58,20 @@ void TPZGeoMesh::CleanUp() {
   fBCNodeVec.Resize(0);
   fBCNodeVec.CompactDataStructure(1);
 
+  map< int,map<string,TPZRefPattern *> >::iterator first = fRefPatterns.begin();
+  map< int,map<string,TPZRefPattern *> >::iterator last = fRefPatterns.end();
+  map< int,map<string,TPZRefPattern *> >::iterator  iter;
+  for (iter = first; iter != last; iter++){
+    map<string,TPZRefPattern *> &map_el = (*iter).second;
+
+    map<string,TPZRefPattern *>::iterator name_first = map_el.begin();
+    map<string,TPZRefPattern *>::iterator name_last = map_el.end();
+    map<string,TPZRefPattern *>::iterator name_iter;    
+    for(name_iter = name_first; name_iter != name_last; name_iter++){
+      TPZRefPattern *refpat = (*name_iter).second;
+      delete refpat;
+    }
+  }
 }
 
 void TPZGeoMesh::SetName (char *nm) {
@@ -483,6 +499,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(
       case 3://quadrilatera
 	 return  new TPZGeoElement< TPZShapeQuad, TPZGeoQuad, TPZRefQuad >(
 	    nodeindexes, matid, *this, index );
+	//return new TPZGeoElQ2d(nodeindexes,matid,*this);
 
       case 4://tetraedra
 //     return new TPZGeoElT3d(nodeindexes,matid,*this);
@@ -511,6 +528,31 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(
    }
 
    return NULL;
+}
+
+void TPZGeoMesh::InsertRefPattern(TPZRefPattern *refpat){
+  int eltype = refpat->Element(0)->Type();
+  string name = refpat->GetName();
+  map<int,map<string,TPZRefPattern *> >::iterator eltype_iter = fRefPatterns.find(eltype);
+
+  if (eltype_iter == fRefPatterns.end()) {
+    fRefPatterns [eltype][name] = refpat;
+    return;
+  }
+  
+  map <string,TPZRefPattern *>::iterator name_iter = fRefPatterns[eltype].find(name);
+  if (name_iter != fRefPatterns[eltype].end()) return; // ja existe...
+  fRefPatterns [eltype][name] = refpat;
+}
+
+TPZRefPattern * TPZGeoMesh::GetRefPattern(int eltype, string name){
+  TPZRefPattern *refpat = 0;
+  map<int,map<string,TPZRefPattern *> >::iterator eltype_iter = fRefPatterns.find(eltype);
+  if (eltype_iter == fRefPatterns.end()) return refpat;
+  map <string,TPZRefPattern *>::iterator name_iter = fRefPatterns[eltype].find(name);
+  if (name_iter != fRefPatterns[eltype].end()) refpat = fRefPatterns[eltype][name];
+  return refpat;
+
 }
 
 /*
