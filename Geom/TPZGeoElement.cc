@@ -83,6 +83,43 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(int id,TPZVec<int> &nodeindexes,i
   for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = 0;
 }
 
+template< class TShape, class TGeo, class TRef >
+TPZGeoElement< TShape, TGeo, TRef >::TPZGeoElement(
+   int* nodeindices, int matind, TPZGeoMesh& mesh ) :
+   TPZGeoEl( matind, mesh )
+{
+   // BEWARE! We do not test the number of elements here, cause we are
+   // passing a pointer to some memory portion!
+  
+  for( int i = 0; i < TGeo::NNodes; i++ )
+  {
+     fNodeIndexes[ i ] = *nodeindices++ - 1;
+  }
+
+  for( int i = 0; i < TGeo::NNodes; i++ )
+  {
+     fSubEl[ i ] = 0;
+  }
+}
+
+template< class TShape, class TGeo, class TRef >
+TPZGeoElement< TShape, TGeo, TRef >::TPZGeoElement(
+   int* nodeindices, int matind, TPZGeoMesh& mesh, int& index ) :
+   TPZGeoEl( matind, mesh, index )
+{
+   // BEWARE! We do not test the number of elements here, cause we are
+   // passing a pointer to some memory portion!
+  
+  for( int i = 0; i < TGeo::NNodes; i++ )
+  {
+     fNodeIndexes[ i ] = *nodeindices++ - 1;
+  }
+
+  for( int i = 0; i < TGeo::NNodes; i++ )
+  {
+     fSubEl[ i ] = 0;
+  }
+}
 
 template<class TShape, class TGeo, class TRef>
 TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement() {
