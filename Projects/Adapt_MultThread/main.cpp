@@ -1,19 +1,20 @@
 #include "includes.h"
 
-#include "c0-simplequad.cc"
-#include "c01-lshape-quad.cc"
-#include "c02-lshape-triang.cc"
-#include "c03-lshape-quadtri.cc"
-#include "c04-simplehexa.cc"
-#include "c05-cornercube.cc"
-#include "c06-Tetra.cc"
-#include "c07-Prism.cc"
-#include "c08-Mixed.cc"
-#include "c09-Plate-Cedric.cc"
-#include "c10-Prism-Pref.cc"
-#include "c11-Piram-Tetra.cc"
-#include "c15-Exp-Hexa.cc"
+#include "c0-simplequad.cpp"
+#include "c01-lshape-quad.cpp"
+#include "c02-lshape-triang.cpp"
+#include "c03-lshape-quadtri.cpp"
+#include "c04-simplehexa.cpp"
+#include "c05-cornercube.cpp"
+#include "c06-Tetra.cpp"
+#include "c07-Prism.cpp"
+#include "c08-Mixed.cpp"
+#include "c09-Plate-Cedric.cpp"
+#include "c10-Prism-Pref.cpp"
+#include "c11-Piram-Tetra.cpp"
+#include "c15-Exp-Hexa.cpp"
 
+int gDebug = 0;
 int gPrintLevel = 0;
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp);
 static REAL angle = 0.2;
