@@ -46,6 +46,12 @@ void TPZMatrix::Multiply(const TPZFMatrix &A, TPZFMatrix&B,const int opt,const i
 //   } else {
 //     B.Redim(Cols()*stride, A.Cols() );
 //   }
+	if(!opt && (B.Rows() != Cols()*stride || B.Cols() != A.Cols())) {
+		B.Redim(Cols()*stride,A.Cols());
+	}
+	else if (opt && (B.Rows() != Rows()*stride || B.Cols() != A.Cols())) {
+		B.Redim(Rows()*stride,A.Cols());
+	}
   MultAdd( A, B, B, 1.0, 0.0, opt,stride);
 }
 
