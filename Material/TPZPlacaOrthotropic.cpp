@@ -48,7 +48,7 @@ void TPZPlacaOrthotropic::Tensor(TPZVec<REAL> &ksi, TPZFMatrix &T) {
 }
 
 REAL TPZPlacaOrthotropic::Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &direction){
-  TPZInt1d rule(4);
+  TPZInt1d rule(8);
   int np = rule.NPoints();
   TPZManVector<REAL,3> pos(1,0.), ksi(3,0.);
   TPZFNMatrix<9> tensor(3,3,0.);
@@ -75,7 +75,7 @@ REAL TPZPlacaOrthotropic::Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &
 }
 
 REAL TPZPlacaOrthotropic::Force(TPZVec<REAL> &normal, TPZVec<REAL> &direction){
-  TPZInt1d rule(4);
+  TPZInt1d rule(8);
   int np = rule.NPoints();
   TPZManVector<REAL,3> pos(1,0.), ksi(3,0.);
   TPZFNMatrix<9> tensor(3,3,0.);
@@ -121,7 +121,7 @@ void TPZPlacaOrthotropic::IdentifyCompEl() {
 }
 
 void TPZPlacaOrthotropic::PrintTensors(ostream &out) {
-  TPZInt1d rule(4);
+  TPZInt1d rule(8);
   int np = rule.NPoints();
   TPZManVector<REAL,3> pos(1,0.), ksi(3,0.), x(3,0.);
   TPZFNMatrix<9> tensor(3,3,0.);
@@ -140,12 +140,13 @@ void TPZPlacaOrthotropic::PrintTensors(ostream &out) {
       }
       out << endl;
     }
+    out << endl;
   }
 
 }
 
 REAL TPZPlacaOrthotropic::GradMoment(REAL zref, TPZVec<REAL> &graddir, TPZVec<REAL> &normal, TPZVec<REAL> &direction){
-  TPZInt1d rule(4);
+  TPZInt1d rule(8);
   int np = rule.NPoints();
   TPZManVector<REAL,3> pos(1,0.), ksi1(3,0.), ksi2(3,0.), x1(3,0.), x2(3,0.);
   TPZFNMatrix<9> tensor1(3,3,0.), tensor2(3,3,0.), tensordif(3,3,0.);
@@ -183,7 +184,7 @@ REAL TPZPlacaOrthotropic::GradMoment(REAL zref, TPZVec<REAL> &graddir, TPZVec<RE
 }
 
 REAL TPZPlacaOrthotropic::GradForce(TPZVec<REAL> &graddir, TPZVec<REAL> &normal, TPZVec<REAL> &direction){
-  TPZInt1d rule(4);
+  TPZInt1d rule(8);
   int np = rule.NPoints();
   TPZManVector<REAL,3> pos(1,0.), ksi1(3,0.), ksi2(3,0.), x1(3,0.), x2(3,0.);
   TPZFNMatrix<9> tensor1(3,3,0.), tensor2(3,3,0.), tensordif(3,3,0.);

@@ -207,6 +207,22 @@ void TPZMulticamadaOrthotropic::ComputeCenterForces() {
   fNXY[1] = 0.;
   fQX[1] = 0.;
   fQY[1] = 0.;
+  fdMXdX[1] = 0.;
+  fdMYdX[1] = 0.;
+  fdMXYdX[1] = 0.;
+  fdNXdX[1] = 0.;
+  fdNYdX[1] = 0.;
+  fdNXYdX[1] = 0.;
+  fdQXdX[1] = 0.;
+  fdQYdX[1] = 0.;
+  fdMXdY[1] = 0.;
+  fdMYdY[1] = 0.;
+  fdMXYdY[1] = 0.;
+  fdNXdY[1] = 0.;
+  fdNYdY[1] = 0.;
+  fdNXYdY[1] = 0.;
+  fdQXdY[1] = 0.;
+  fdQYdY[1] = 0.;
   REAL zref = (fZMax+fZMin)/2.;
   TPZManVector<REAL,3> normal(3,0.),direction(3,0.);
   for(ip=0; ip<nplaca; ip++) {
@@ -299,38 +315,38 @@ void TPZMulticamadaOrthotropic::ComputeCenterForces() {
       fdQYdY[1] = 0.;
     }
   }
-  fMX[2] = fMX[1]-fMX[0];
-  fMY[2] = fMY[1]-fMY[0];
-  fMXY[2] = fMXY[1]-fMXY[0];
-  fNX[2] = fNX[1]-fNX[0];
-  fNY[2] = fNY[1]-fNY[0];
-  fNXY[2] = fNXY[1]-fNXY[0];
-  fQX[2] = fQX[1]-fQX[0];
-  fQY[2] = fQY[1]-fQY[0];
+  fMX[2] = fMX[0]-fMX[1];
+  fMY[2] = fMY[0]-fMY[1];
+  fMXY[2] = fMXY[0]-fMXY[1];
+  fNX[2] = fNX[0]-fNX[1];
+  fNY[2] = fNY[0]-fNY[1];
+  fNXY[2] = fNXY[0]-fNXY[1];
+  fQX[2] = fQX[0]-fQX[1];
+  fQY[2] = fQY[0]-fQY[1];
 
-  fdMXdX[2] = fdMXdX[1]-fdMXdX[0];
+  fdMXdX[2] = fdMXdX[0]-fdMXdX[1];
   //  fdMYdX[2] = fdMYdX[1]-fdMYdX[0];
   fdMYdX[2] = 0.;
-  fdMXYdX[2] = fdMXYdX[1]-fdMXYdX[0];
-  fdNXdX[2] = fdNXdX[1]-fdNXdX[0];
+  fdMXYdX[2] = fdMXYdX[0]-fdMXYdX[1];
+  fdNXdX[2] = fdNXdX[0]-fdNXdX[1];
   //  fdNYdX[2] = fdNYdX[1]-fdNYdX[0];
   fdNYdX[2] = 0.;
-  fdNXYdX[2] = fdNXYdX[1]-fdNXYdX[0];
-  fdQXdX[2] = fdQXdX[1]-fdQXdX[0];
+  fdNXYdX[2] = fdNXYdX[0]-fdNXYdX[1];
+  fdQXdX[2] = fdQXdX[0]-fdQXdX[1];
   //  fdQYdX[2] = fdQYdX[1]-fdQYdX[0];
   fdQYdX[2] = 0.;
 
   //  fdMXdY[2] = fdMXdY[1]-fdMXdY[0];
   fdMXdY[2] = 0.;
-  fdMYdY[2] = fdMYdY[1]-fdMYdY[0];
-  fdMXYdY[2] = fdMXYdY[1]-fdMXYdY[0];
+  fdMYdY[2] = fdMYdY[0]-fdMYdY[1];
+  fdMXYdY[2] = fdMXYdY[0]-fdMXYdY[1];
   // fdNXdY[2] = fdNXdY[1]-fdNXdY[0];
   fdNXdY[2] = 0.;
-  fdNYdY[2] = fdNYdY[1]-fdNYdY[0];
-  fdNXYdY[2] = fdNXYdY[1]-fdNXYdY[0];
+  fdNYdY[2] = fdNYdY[0]-fdNYdY[1];
+  fdNXYdY[2] = fdNXYdY[0]-fdNXYdY[1];
   //  fdQXdY[2] = fdQXdY[1]-fdQXdY[0];
   fdQXdY[2] = 0.;
-  fdQYdY[2] = fdQYdY[1]-fdQYdY[0];
+  fdQYdY[2] = fdQYdY[0]-fdQYdY[1];
 
 }
 
@@ -371,56 +387,25 @@ void TPZMulticamadaOrthotropic::ComputeSolution(ostream &out,int print){
 
 void TPZMulticamadaOrthotropic::PrintTensors(ostream &out) {
 
+  out << "Output for the tensors at the center of the plates\n\n";
   int nplaca = fPlacaOrth.NElements();
   int ip;
   for(ip=0; ip< nplaca; ip++) {
     out << "Tensor para placa " << ip << endl;
     fPlacaOrth[ip].PrintTensors(out);
+    out << endl;
   }
+  out << endl << endl;
 }
 
 void TPZMulticamadaOrthotropic::PrintCenterForces(ostream &out) {
 
+  out << "Integrated force and moment values and their numerically computed derivatives " << endl << endl;
   int i;
   out << "fMX ";
   for(i=0; i<3; i++) {
     out << 
     fMX[i] << " ";
-  }
-  out << "\nfMY ";
-  for(i=0; i<3; i++) {
-    out << 
-    fMY[i] << " ";
-  }
-  out << "\nfMXY ";
-  for(i=0; i<3; i++) {
-    out << 
-    fMXY[i] << " ";
-  }
-  out << "\nfNX ";
-  for(i=0; i<3; i++) {
-    out << 
-    fNX[i] << " ";
-  }
-  out << "\nfNY ";
-  for(i=0; i<3; i++) {
-    out << 
-    fNY[i] << " ";
-  }
-  out << "\nfNXY ";
-  for(i=0; i<3; i++) {
-    out << 
-    fNXY[i] << " ";
-  }
-  out << "\nfQX ";
-  for(i=0; i<3; i++) {
-    out << 
-    fQX[i] << " ";
-  }
-  out << "\nfQY ";
-  for(i=0; i<3; i++) {
-    out << 
-    fQY[i] << " ";
   }
   out << "\nfdMXdX ";
   for(i=0; i<3; i++) {
@@ -432,15 +417,25 @@ void TPZMulticamadaOrthotropic::PrintCenterForces(ostream &out) {
     out << 
     fdMXdY[i] << " ";
   }
-  out << "\nfdMYdY ";
+  out << "\nfMY ";
   for(i=0; i<3; i++) {
     out << 
-    fdMYdY[i] << " ";
+    fMY[i] << " ";
   }
   out << "\nfMYdX ";
   for(i=0; i<3; i++) {
     out << 
     fdMYdX[i] << " ";
+  }
+  out << "\nfdMYdY ";
+  for(i=0; i<3; i++) {
+    out << 
+    fdMYdY[i] << " ";
+  }
+  out << "\nfMXY ";
+  for(i=0; i<3; i++) {
+    out << 
+    fMXY[i] << " ";
   }
   out << "\nfdMXYdX ";
   for(i=0; i<3; i++) {
@@ -452,25 +447,10 @@ void TPZMulticamadaOrthotropic::PrintCenterForces(ostream &out) {
     out << 
     fdMXYdY[i] << " ";
   }
-  out << "\nfdQXdX ";
+  out << "\nfNX ";
   for(i=0; i<3; i++) {
     out << 
-    fdQXdX[i] << " ";
-  }
-  out << "\nfdQXdY ";
-  for(i=0; i<3; i++) {
-    out << 
-    fdQXdY[i] << " ";
-  }
-  out << "\nfdQYdX ";
-  for(i=0; i<3; i++) {
-    out << 
-    fdQYdX[i] << " ";
-  }
-  out << "\nfdQYdY ";
-  for(i=0; i<3; i++) {
-    out << 
-    fdQYdY[i] << " ";
+    fNX[i] << " ";
   }
   out << "\nfdNXdX ";
   for(i=0; i<3; i++) {
@@ -482,6 +462,11 @@ void TPZMulticamadaOrthotropic::PrintCenterForces(ostream &out) {
     out << 
     fdNXdY[i] << " ";
   }
+  out << "\nfNY ";
+  for(i=0; i<3; i++) {
+    out << 
+    fNY[i] << " ";
+  }
   out << "\nfdNYdX ";
   for(i=0; i<3; i++) {
     out << 
@@ -491,6 +476,11 @@ void TPZMulticamadaOrthotropic::PrintCenterForces(ostream &out) {
   for(i=0; i<3; i++) {
     out << 
     fdNYdY[i] << " ";
+  }
+  out << "\nfNXY ";
+  for(i=0; i<3; i++) {
+    out << 
+    fNXY[i] << " ";
   }
   out << "\nfdNXYdX ";
   for(i=0; i<3; i++) {
@@ -502,5 +492,35 @@ void TPZMulticamadaOrthotropic::PrintCenterForces(ostream &out) {
     out << 
    fdNXYdY[i] << " ";
   }
-  out << endl;
+  out << "\nfQX ";
+  for(i=0; i<3; i++) {
+    out << 
+    fQX[i] << " ";
+  }
+  out << "\nfdQXdX ";
+  for(i=0; i<3; i++) {
+    out << 
+    fdQXdX[i] << " ";
+  }
+  out << "\nfdQXdY ";
+  for(i=0; i<3; i++) {
+    out << 
+    fdQXdY[i] << " ";
+  }
+  out << "\nfQY ";
+  for(i=0; i<3; i++) {
+    out << 
+    fQY[i] << " ";
+  }
+  out << "\nfdQYdX ";
+  for(i=0; i<3; i++) {
+    out << 
+    fdQYdX[i] << " ";
+  }
+  out << "\nfdQYdY ";
+  for(i=0; i<3; i++) {
+    out << 
+    fdQYdY[i] << " ";
+  }
+  out << endl << endl;
 }

@@ -119,58 +119,55 @@ int main(){
   naxes(0,0) =  1.0;    naxes(0,1) =  0.0;    naxes(0,2) =  0.0;
   naxes(1,0) =  0.0;    naxes(1,1) =  1.0;    naxes(1,2) =  0.0;
   naxes(2,0) =  0.0;    naxes(2,1) =  0.0;    naxes(2,2) =  1.0;
-  REAL eppx = 100.0;
-  REAL eppy = 100.0;
-  REAL eppz = 100.0;
-  REAL vxy = 0.;
-  REAL vyz = 0.;
-  REAL vzx = 0.;
-  REAL gxy = 50.0;
-  REAL gyz = 50.0;
-  REAL gzx = 50.0;
+  REAL Elast = 100.0;
+  REAL nu = 0.2;
+  REAL eppx = Elast;
+  REAL eppy = Elast;
+  REAL eppz = Elast;
+  REAL vxy = nu;
+  REAL vyz = nu;
+  REAL vzx = nu;
+  REAL gxy = Elast/(2.*(1.+nu));
+  REAL gyz = Elast/(2.*(1.+nu));
+  REAL gzx = Elast/(2.*(1.+nu));
 
   orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
   multcam->AddPlacaOrtho(orto,0.2);
-  if(0){
-    eppx = 100.0;
-    eppy = 100.0;
-    eppz = 100.0;
-    vxy = 0.;
-    vyz = 0.;
-    vzx = 0.;
-    gxy = 50.0;
-    gyz = 50.0;
-    gzx = 50.0;
-    orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+  if(1){
+    Elast = 200.;
+    eppx = Elast;
+    eppy = Elast;
+    eppz = Elast;
+    vxy = nu;
+    vyz = nu;
+    vzx = nu;
+    gxy = Elast/(2.*(1.+nu));
+    gyz = Elast/(2.*(1.+nu));
+    gzx = Elast/(2.*(1.+nu));
+    orto = new TPZMatOrthotropic(numat+1, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
     multcam->AddPlacaOrtho(orto,0.1);
   }
 
   multcam->GenerateMesh();
 
-  ofstream out("QX.out");
+  ofstream out("QX2.out");
 
   multcam->SetQX(1.);
 
-  //  multcam->GeoMesh()->Print(out);
-  //  multcam->CompMesh()->Print(out);
+  //    multcam->GeoMesh()->Print(out);
+  //    multcam->CompMesh()->Print(out);
   out.flush();
 
-  multcam->PrintCenterForces(out);
+  int niter = 20;
+  int it;
+  for(it=0; it<niter; it++) {
 
-  multcam->ComputeSolution(out,1);
+    multcam->ComputeSolution(out,0);
+    multcam->ComputeCenterForces();
+    multcam->PrintCenterForces(out);
 
+  }
   multcam->PrintTensors(out);
-
-  multcam->ComputeCenterForces();
-
-  multcam->PrintCenterForces(out);
-  //  orto->Print(out);
-
-  multcam->ComputeSolution(out,1);
-
-  multcam->ComputeCenterForces();
-  multcam->PrintCenterForces(out);
-
 
   out.close();
 
