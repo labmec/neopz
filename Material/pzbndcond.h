@@ -62,6 +62,11 @@ protected:
 
   int NStateVariables() { return fMaterial->NStateVariables(); }
 
+  /**
+   * Returns the number of norm errors. Default is 3: energy, L2 and H1.
+   */
+  virtual int NEvalErrors() {return fMaterial->NEvalErrors();}
+
   int Type() { return fType; }
 
   TPZFMatrix &Val1() { return fBCVal1; }
