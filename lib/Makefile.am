@@ -17,9 +17,7 @@ libpz_a_SOURCES =
 
 libpz_a_LIBADD = ../External/pzsloan.o ../Util/TPZTimer.o \
 	../Matrix/tpzsparseblockdiagonal.o ../External/tpznodesetcompute.o ../Common/pzreal.o ../Util/pzmap.o \
-	../Util/pzadmchunkgen.o ../Util/pzchunkgen.o ../Util/pzavlmapgen.o ../Util/pzstackgen.o \
-	../Util/pzmanvectorgen.o ../Util/pzstring.o ../Util/pzvecgen.o ../Refine/pzrefpoint.o \
-	../Refine/pzrefprism.o ../Refine/pzrefpyram.o ../Refine/pzrefquad.o \
+	../Util/pzstring.o ../Refine/pzrefpoint.o ../Refine/pzrefprism.o ../Refine/pzrefpyram.o ../Refine/pzrefquad.o \
 	../Refine/pzreftetrahedra.o ../Refine/pzreftriangle.o ../Refine/TPZRefCube.o \
 	../Refine/TPZRefLinear.o ../Refine/TPZRefPattern.o ../Mesh/pzcmesh.o ../Mesh/pzflowcmesh.o \
 	../Mesh/pzcompel.o ../Mesh/pzconnect.o ../Mesh/pzelc1d.o ../Mesh/pzcheckgeom.o \
@@ -72,9 +70,5 @@ libpz_a_LIBADD = ../External/pzsloan.o ../Util/TPZTimer.o \
 	../External/sloan/gegra.o ../External/sloan/iorele.o ../External/sloan/isorti.o \
 	../External/sloan/label.o ../External/sloan/number.o ../External/sloan/profi1.o \
 	../External/sloan/rootls.o ../External/sloan/vsrtp1.o
-
-
-
-
 
 ## --| NeoPZ |------------------------------------------------------------------
