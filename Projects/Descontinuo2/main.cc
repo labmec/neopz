@@ -16,11 +16,16 @@
 #include "pzrefquad.h"
 #include "TPZGeoLinear.h"
 #include "TPZRefLinear.h"
+#include "pzbstrmatrix.h"
+#include "pzstepsolver.h"
+#include "pzblock.h"
 
 void error(char *) {}
 
-void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
+void InitialGuess(TPZVec<REAL> &x,TPZVec<REAL> &result){
 // makes nothing
+   result.Resize(4 /*(2 dimensões + rho + energy)*/);
+   result.Fill(0.);
 }
 
 void MeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
@@ -199,7 +204,7 @@ TPZGeoMesh * CreateGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
 int main()
 {
-
+   TPZCompElDisc::gDegree = 2;
    REAL gamma = 1.4;
 
 // Retrieving the point coordinates and element references
@@ -211,12 +216,18 @@ int main()
 // Creating the geometric mesh
    TPZGeoMesh * gmesh = CreateGeoMesh(nodes, elms, EQuadrilateral, 1, gElem);
 
+
 // Por que o Cedric faz isto?
    TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
 
    TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>
                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+
+   int interfdim = 1;
+   TPZCompElDisc::gInterfaceDimension = interfdim;
+
+
 
 // Constructing neighborhood
 
@@ -231,7 +242,7 @@ int main()
 					    2 /* dim*/,
 					    LeastSquares_AD /*pzartdiff.h*/);
 // Setting initial solution
-   mat->SetForcingFunction(Function);
+   mat->SetForcingFunction(NULL);
    // Setting the time discretization method
    mat->SetTimeDiscr(Implicit_TD/*Diff*/,
                      Implicit_TD/*ConvVol*/,
@@ -304,8 +315,6 @@ int main()
    bc = mat->CreateBC(-4,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
-
-
    cmesh->AutoBuild();
 //   cmesh->AdjustBoundaryElements();
 
@@ -319,12 +328,44 @@ int main()
    cmesh->Print(compOut);
    compOut.close();
 
+// generating initial guess for the mesh solution
+   TPZFMatrix Solution = cmesh->Solution();
+
+   int j, NSolutionBlocks;
+   //TPZBlock * pBlock = cmesh->Block();
+   NSolutionBlocks = cmesh->Block().NBlocks();
+   for(j = 0; j < NSolutionBlocks; j++)
+   {
+      int blockOffset = cmesh->Block().Position(j);
+
+      REAL ro = 1.7,
+           u = 2.61934,
+           v = -0.50632,
+           p = 1.52819,
+           vel2 = u*u + v*v;
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+   }
+
+   cmesh->LoadSolution(Solution);
+
 // Creating the analysis object
 
    ofstream anFile("analysis.out");
    TPZEulerAnalysis An(cmesh, anFile);
 
-//   An.Run(anFile);
+   // Creating the structural matrix
+   TPZBandStructMatrix StrMatrix(cmesh);
+   An.SetStructuralMatrix(StrMatrix);
+
+   // Creating the solver for the linearized systems
+   TPZStepSolver Solver;
+   Solver.SetDirect(ELU);// ECholesky -> simétrica e positiva definida
+   An.SetSolver(Solver);
+
+   An.Run(anFile);
 
    return 0;
 }
