@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cc,v 1.18 2003-12-01 20:37:03 cedric Exp $
+//$Id: TPZAgglomerateEl.cc,v 1.19 2003-12-01 21:38:28 cedric Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -782,18 +782,6 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix &projectsol){
   int in,jn,kn,ip,ind;
   TPZCompElDisc *finedisc;
   intpoint.Fill(0.,0);
-//   if(Reference())
-//     Reference()->Jacobian( intpoint,jacobian ,axes,detjac,jacinv);
-//   else {
-//     for(ind=0;ind<size;ind++){
-//       finedisc = dynamic_cast<TPZCompElDisc *>(FineElement(ind));
-//       ref = finedisc->Reference();
-//       ref->Jacobian( intpoint,jacobian ,axes,detjac,jacinv);
-//       accum += detjac;
-//     }
-//     detjac = accum;
-//   }
-//   REAL mult = detjac;
 
   for(ind=0;ind<size;ind++){
     finedisc = dynamic_cast<TPZCompElDisc *>(FineElement(ind));
@@ -807,7 +795,6 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix &projectsol){
       ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
       ref->X(intpoint, x);
       weight *= fabs(detjac);
-      //weight *= fabs(mult);
       Shape(x,aggphix,aggdphix);
       FineSolution(x,finedisc,uh);
       //projetando a solução fina no elemento aglomerado
