@@ -219,7 +219,8 @@ void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int
       pt[i][1] /= size;
       pt[i][2] /= size;
    }
-
+#ifdef CONIC_EXTERNAL
+// conic external points
    //creating internal / external points
    for(j = 0; j < nPtsPerSphereLayer; j++)
    {
@@ -277,7 +278,7 @@ void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int
       }
    }
 
-/*
+#else
    //creating all points
    for(i = nLayerPts-1; i >= 0; i--)
    {
@@ -291,7 +292,7 @@ void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int
 	 pt[i * nPtsPerSphereLayer + j] = coord;
       }
    }
-*/
+#endif
 // cube data
 
    int nElsPerLayer = nn * 2;
@@ -472,6 +473,9 @@ TPZFlowCompMesh *
       TPZGeoElBC((TPZGeoEl *)gElem[i],20,-1,*gmesh);
    }
 
+   bc = mat->CreateBC(-1,5,val1,val2);
+   cmesh->InsertMaterialObject(bc);
+
    // Symmetry faces: slipwall
    val1.Zero();
    val2.Zero();
@@ -479,24 +483,24 @@ TPZFlowCompMesh *
    for( i = 0; i < nLayerEls; i++)
       for( j = 0; j < nElsPerLayer; j++)
       {
-         TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + j],21,-1,*gmesh);
+         TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + j],21,-2,*gmesh);
       }
    // lower faces
    for( i = 0; i < nLayerEls; i++)
       for( j = 0; j < nn; j++)
       {
          // left elms.
-         TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + j * nElsPerLayer],24,-1,*gmesh);
+         TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + j * nElsPerLayer],24,-2,*gmesh);
 	 // right elms.
 	 if(j < nn-1)
 	 {
-            TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + (j+1) * nElsPerLayer - 1],22,-1,*gmesh);
+            TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + (j+1) * nElsPerLayer - 1],22,-2,*gmesh);
 	 }else{
-            TPZGeoElBC((TPZGeoEl *)gElem[(i+1)*nElsPerSphereLayer - 1],22,-1,*gmesh);
+            TPZGeoElBC((TPZGeoEl *)gElem[(i+1)*nElsPerSphereLayer - 1],22,-2,*gmesh);
 	 }
       }
    // slipwall
-   bc = mat->CreateBC(-1,5,val1,val2);
+   bc = mat->CreateBC(-2,12,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
    //external sphere faces: inflow/outflow
@@ -520,17 +524,17 @@ TPZFlowCompMesh *
       if(X[0] > 0.)
       {
       // outflow
-         TPZGeoElBC(pEl,25,-2,*gmesh);
+         TPZGeoElBC(pEl,25,-3,*gmesh);
       }else{
       // inflow
-         TPZGeoElBC(pEl,25,-3,*gmesh);
+         TPZGeoElBC(pEl,25,-4,*gmesh);
       }
    }
    // outflow
-   bc = mat->CreateBC(-2,9,val1,val2);
+   bc = mat->CreateBC(-3,9,val1,val2);
    cmesh->InsertMaterialObject(bc);
    // inflow
-   bc = mat->CreateBC(-3,9,val1,val2);
+   bc = mat->CreateBC(-4,9,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
    cmesh->AutoBuild();
