@@ -257,9 +257,9 @@ TPZFlowCompMesh * RSCompMesh()
    REAL cspeed = sqrt(1.4*press/1.7);
    REAL lambdaMax = us + cspeed;
 
-   cout << .22/(2*lambdaMax);
+   cout << .22/(2/**lambdaMax*/);
 
-   mat->SetDelta(.22/(2*lambdaMax));
+   mat->SetDelta(.22/(2/**lambdaMax*/));
 
    cmesh -> InsertMaterialObject(mat);
 

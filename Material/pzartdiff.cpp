@@ -237,7 +237,11 @@ void TPZArtDiff::SUPG(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, 
    Temp.   Multiply(Rot, INVA2B2);
 
    for(int i = 0; i < Ai.NElements();i++)
+   {
       Ai[i].Multiply(INVA2B2, Tau[i]);
+     //Ai[i].Multiply(INVA2B2, Temp);
+     //Temp.Transpose(Tau[i]);//*/
+   }
 }
 
 template <class T>

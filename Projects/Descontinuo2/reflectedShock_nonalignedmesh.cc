@@ -20,51 +20,69 @@
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzblock.h"
+// Creates a mesh for the reflected shock problem
 
-const int nEl = 2;
-
-// Creates a mesh for the simple shock problem
-
-void SSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
+void RSNAMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 {
-   REAL y1=0,
-	y2=.5;
+   REAL x1 = 0.,
+        x2 = 4.12791,
+	y1 = 0.,
+	y2 = 1.;
 
-   pt.Resize(2*nEl + 2);
+   pt.Resize(6);
    TPZVec<REAL> coord(3);
 
-   int i;
-   int nPts = nEl*2 + 2;
-   for(i = 0; i < nPts/2; i++)
-   {
-      coord[0] = ((double)i)/((double)nEl);
-      coord[1] = y1;
-      coord[2] = 0.;
-      pt[i] = coord;
+   coord[0] = 0.;
+   coord[1] = 0.;
+   coord[2] = 0.;
+   pt[0] = coord;
 
-      coord[0] = ((double)i)/((double)nEl);
-      coord[1] = y2;
-      coord[2] = 0.;
-      pt[nPts/2 + i] = coord;
-   }
+   coord[0] = x2/2.;
+   coord[1] = 0.;
+   coord[2] = 0.;
+   pt[1] = coord;
+
+   coord[0] = x2;
+   coord[1] = 0.;
+   coord[2] = 0.;
+   pt[2] = coord;
+
+   coord[0] = 0.;
+   coord[1] = 1.;
+   coord[2] = 0.;
+   pt[3] = coord;
+
+   coord[0] = x2/2;
+   coord[1] = 1.;
+   coord[2] = 0.;
+   pt[4] = coord;
+
+   coord[0] = x2;
+   coord[1] = 1.;
+   coord[2] = 0.;
+   pt[5] = coord;
 
 // quadrilateral data
 
    TPZVec< int > nodes(4);
 
-   elms.Resize(nEl);
+   elms.Resize(2);
 
-   for(i = 0; i < nEl; i++)
-   {
-      nodes[0] = i;
-      nodes[1] = i+1;
-      nodes[2] = nPts/2 + i + 1;
-      nodes[3] = nPts/2 + i;
-      elms[i] = nodes;
-   }
+   nodes[0] = 0;
+   nodes[1] = 1;
+   nodes[2] = 4;
+   nodes[3] = 3;
+   elms[0] = nodes;
+
+   nodes[0] = 1;
+   nodes[1] = 2;
+   nodes[2] = 5;
+   nodes[3] = 4;
+   elms[1] = nodes;
+
 }
 
-TPZGeoMesh * CreateSSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
+TPZGeoMesh * CreateRSNAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
                            TPZVec< TPZVec< int > > & elms,
 			   MElementType ElType, int matId,
 			   TPZVec<TPZGeoEl *> & gEls)
@@ -99,9 +117,9 @@ TPZGeoMesh * CreateSSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // Creating all the geometric and computational meshes
 // for the reflected shock problem.
 
-TPZFlowCompMesh * SSCompMesh()
+TPZFlowCompMesh * RSNACompMesh()
 {
-   TPZCompElDisc::gDegree = 3;
+   TPZCompElDisc::gDegree = 8;
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
@@ -120,10 +138,10 @@ TPZFlowCompMesh * SSCompMesh()
    TPZVec< TPZVec< REAL > > nodes;
    TPZVec< TPZVec< int  > > elms;
    TPZVec< TPZGeoEl *> gElem;
-   SSMeshPoints(nodes, elms);
+   RSNAMeshPoints(nodes, elms);
 
 // Creating the geometric mesh
-   TPZGeoMesh * gmesh = CreateSSGeoMesh(nodes, elms, EQuadrilateral, 1, gElem);
+   TPZGeoMesh * gmesh = CreateRSNAGeoMesh(nodes, elms, EQuadrilateral, 1, gElem);
 
    TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
 
@@ -132,24 +150,27 @@ TPZFlowCompMesh * SSCompMesh()
                                             0/*timeStep*/,
 					    gamma /*gamma*/,
 					    2 /* dim*/,
-					    SUPG_AD/*LeastSquares_AD/*LeastSquares_AD /*pzartdiff.h*/);
+					    SUPG_AD /*LeastSquares_AD /*pzartdiff.h*/);
 // Setting initial solution
    mat->SetForcingFunction(NULL);
    // Setting the time discretization method
-   mat->SetTimeDiscr(Implicit_TD/*Diff*/,
+   mat->SetTimeDiscr(None_TD/*Diff*/,
                      Implicit_TD/*ConvVol*/,
 		     Implicit_TD/*ConvFace*/);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
    // object computes the delta when it equals null.
 
-/*
+   mat->SetCFL(.5);
+
+
    REAL us = sqrt(2.6 * 2.6 + .51 * .51);
    REAL press = 1.52819;
    REAL cspeed = sqrt(1.4*press/1.7);
    REAL lambdaMax = us + cspeed;
-*/
-   mat->SetCFL(.5);
-   mat->SetDelta(100/*2 + .410707*/);
+
+   cout << .22/(2/**lambdaMax*/);
+
+   mat->SetDelta(1);
 
    cmesh -> InsertMaterialObject(mat);
 
@@ -157,61 +178,41 @@ TPZFlowCompMesh * SSCompMesh()
 
    TPZBndCond * bc;
    TPZFMatrix val1(4,4), val2(4,1);
-   REAL rhol  = 1.,
-        rhoul = 1.,
-	rhovl = 0.,
-	rhoel = 0.9463,
-	rhor  = 2.66709340161093,
-	rhour = 1.,
-	rhovr = 0.,
-	rhoer = 2.19642;
+   REAL ro = 1.7,
+	u = 2.61934,
+	v = -0.50632,
+	p = 1.52819,
+	vel2 = u*u + v*v;
 
-
-   //CC ARESTA INFERIOR E SUPERIOR : PAREDE
+// copiado do Cedric
+   //CC ARESTA INFERIOR : PAREDE
    val1.Zero();
    val2.Zero();
-   int i;
-   for(i = 0; i < nEl; i++)
-   {
-      TPZGeoElBC((TPZGeoEl *)gElem[i],4,-1,*gmesh);
-      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-1,*gmesh);
-   }
+   TPZGeoElBC((TPZGeoEl *)gElem[0],4,-1,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[1],4,-1,*gmesh);
    bc = mat->CreateBC(-1,5,val1,val2);
    cmesh->InsertMaterialObject(bc);
-/*
+
    //CC ARESTA DIREITA : OUTFLOW
    val1.Zero();
    val2.Zero();
-   TPZGeoElBC((TPZGeoEl *)gElem[3],5,-2,*gmesh);
-   TPZGeoElBC((TPZGeoEl *)gElem[6],5,-2,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[1],5,-2,*gmesh);
    bc = mat->CreateBC(-2,4,val1,val2);
    cmesh->InsertMaterialObject(bc);
-*/
-   //CC ARESTA DIREITA : DIRICHLET
-   val1.Zero();
-   val2.Zero();
-   val2(0,0) = rhor;
-   val2(1,0) = rhour;
-   val2(2,0) = rhovr;
-   val2(3,0) = rhoer;
-//   TPZGeoElBC((TPZGeoEl *)gElem[0],5,-2,*gmesh);
-   TPZGeoElBC((TPZGeoEl *)gElem[nEl-1],5,-2,*gmesh);
-   bc = mat->CreateBC(-2,3,val1,val2);
-   cmesh->InsertMaterialObject(bc);
 
-   //CC ARESTA ESQUERDA : DIRICHLET
+   //CC ARESTA SUPERIOR : DIRICHLET
    val1.Zero();
    val2.Zero();
-   val2(0,0) = rhol;
-   val2(1,0) = rhoul;
-   val2(2,0) = rhovl;
-   val2(3,0) = rhoel;
-   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-3,*gmesh);
-//   TPZGeoElBC((TPZGeoEl *)gElem[1],7,-3,*gmesh);
+   val2(0,0) = ro;
+   val2(1,0) = ro * u;
+   val2(2,0) = ro * v;
+   val2(3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+   TPZGeoElBC((TPZGeoEl *)gElem[0],6,-3,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[1],6,-3,*gmesh);
    bc = mat->CreateBC(-3,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
-/*
+
    //CC ARESTA ESQUERDA : INFLOW
    val1.Zero();
    val2.Zero();
@@ -225,10 +226,9 @@ TPZFlowCompMesh * SSCompMesh()
    vel2 = u*u+v*v;
    val2(3,0) = p/(gamma-1.0) +  0.5 * ro * vel2;
    TPZGeoElBC((TPZGeoEl *)gElem[0],7,-4,*gmesh);
-   TPZGeoElBC((TPZGeoEl *)gElem[4],7,-4,*gmesh);
    bc = mat->CreateBC(-4,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
-*/
+
    cmesh->AutoBuild();
 //   cmesh->AdjustBoundaryElements();
 
@@ -246,9 +246,9 @@ TPZFlowCompMesh * SSCompMesh()
    TPZFMatrix Solution = cmesh->Solution();
 
    int nVars = Solution.Rows();
-   for(int k = 0; k < nVars; k++)Solution(k)=-.01;
+   for(int k = 0; k < nVars; k++)Solution(k)=.1;
 
-   Solution.Zero();
+
    int j, NSolutionBlocks;
    //TPZBlock * pBlock = cmesh->Block();
    NSolutionBlocks = cmesh->Block().NBlocks();
@@ -258,60 +258,19 @@ TPZFlowCompMesh * SSCompMesh()
    {
       int blockOffset = cmesh->Block().Position(j) + lastShapeFun;
 
-      Solution(blockOffset  ,0) = (rhor+rhol);
-      Solution(blockOffset+1,0) = (rhour+rhoul);
-      Solution(blockOffset+2,0) = (rhovr+rhovl);
-      Solution(blockOffset+3,0) = (rhoer+rhoel);
+      REAL ro = 1.7,
+           u = 2.9,
+           v = 0,
+           p = 2.714286,
+           vel2 = u*u + v*v;
+      Solution(blockOffset  ,0) = ro;
+      Solution(blockOffset+1,0) = ro * u;
+      Solution(blockOffset+2,0) = ro * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
 /*
-      if(j < NSolutionBlocks/2)
-      {
-         Solution(blockOffset  ,0) = rhol;
-         Solution(blockOffset+1,0) = rhoul;
-         Solution(blockOffset+2,0) = rhovl;
-         Solution(blockOffset+3,0) = rhoel;
-      }else{
-         Solution(blockOffset  ,0) = rhor;
-         Solution(blockOffset+1,0) = rhour;
-         Solution(blockOffset+2,0) = rhovr;
-         Solution(blockOffset+3,0) = rhoer;
-      }
-
-*/
-/*
-      Solution(blockOffset  ,0) = 2.01136;
-      Solution(blockOffset+1,0) = 1.11521;
-      Solution(blockOffset+2,0) = 0;
-      Solution(blockOffset+3,0) = 1.65903;
-
-//      for(int k = 4; k < 12; k++)Solution(blockOffset+k)=-1;*/
+      for(int k = 4; k < 12; k++)Solution(blockOffset+k)=-1;*/
 
    }
    cmesh->LoadSolution(Solution);
-
-/*
-   {
-      //Solution.Zero();
-
-      for(i = 0; i < nEl/2; i ++)
-      {
-         int blockOffset = cmesh->Block().Position(i) + lastShapeFun;
-         Solution(blockOffset  ,0) = rhol;
-         Solution(blockOffset+1,0) = rhoul;
-         Solution(blockOffset+2,0) = rhovl;
-         Solution(blockOffset+3,0) = rhoel;
-      }
-
-      for(i; i < nEl; i++)
-      {
-         int blockOffset = cmesh->Block().Position(i) + lastShapeFun;
-         Solution(blockOffset  ,0) = rhor;
-         Solution(blockOffset+1,0) = rhour;
-         Solution(blockOffset+2,0) = rhovr;
-         Solution(blockOffset+3,0) = rhoer;
-      }
-
-   cmesh->LoadSolution(Solution);
-   }
-*/
    return cmesh;
 }

@@ -1,5 +1,6 @@
 #include "oneElementMesh.cc"
 #include "reflectedShock.cc"
+#include "reflectedShock_nonalignedmesh.cc"
 #include "SimpleShock.cc"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
@@ -39,9 +40,11 @@ void InitialGuess(TPZVec<REAL> &x,TPZVec<REAL> &result){
 int main()
 {
    //Creating the computational and geometric meshes.
-   TPZFlowCompMesh * cmesh = RSCompMesh();
-//   TPZFlowCompMesh * cmesh = OneElCompMesh();
 
+//   TPZFlowCompMesh * cmesh = SSCompMesh();
+//   TPZFlowCompMesh * cmesh = RSCompMesh();
+//   TPZFlowCompMesh * cmesh = OneElCompMesh();
+   TPZFlowCompMesh * cmesh = RSNACompMesh();
 
 // Creating the analysis object
 
@@ -50,7 +53,6 @@ int main()
 
 
 //Solver attributes
-
    { // LU
    TPZFStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
@@ -58,8 +60,8 @@ int main()
    TPZMatrix * mat = StrMatrix.Create();
 
    An.SetLinSysCriteria(1e-10, 0);
-   An.SetNewtonCriteria(1e-10, 1);
-   An.SetTimeIntCriteria(1e-10,100);
+   An.SetNewtonCriteria(1e-10, 2);
+   An.SetTimeIntCriteria(1e-10,20);
 
    TPZStepSolver Solver;
    Solver.SetDirect(ELU);// ECholesky -> simétrica e positiva definida

@@ -28,7 +28,7 @@ const int nEl = 2;
 void SSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 {
    REAL y1=0,
-	y2=0.2;
+	y2=.5;
 
    pt.Resize(2*nEl + 2);
    TPZVec<REAL> coord(3);
@@ -101,7 +101,7 @@ TPZGeoMesh * CreateSSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
 TPZFlowCompMesh * SSCompMesh()
 {
-   TPZCompElDisc::gDegree = 2;
+   TPZCompElDisc::gDegree = 3;
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
@@ -132,18 +132,24 @@ TPZFlowCompMesh * SSCompMesh()
                                             0/*timeStep*/,
 					    gamma /*gamma*/,
 					    2 /* dim*/,
-					    LeastSquares_AD /*pzartdiff.h*/);
+					    SUPG_AD/*LeastSquares_AD/*LeastSquares_AD /*pzartdiff.h*/);
 // Setting initial solution
    mat->SetForcingFunction(NULL);
    // Setting the time discretization method
-   mat->SetTimeDiscr(Unknown_TD/*Diff*/,
+   mat->SetTimeDiscr(Implicit_TD/*Diff*/,
                      Implicit_TD/*ConvVol*/,
 		     Implicit_TD/*ConvFace*/);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
    // object computes the delta when it equals null.
 
-   mat->SetCFL(1);
-   mat->SetDelta(2 + .410707);
+/*
+   REAL us = sqrt(2.6 * 2.6 + .51 * .51);
+   REAL press = 1.52819;
+   REAL cspeed = sqrt(1.4*press/1.7);
+   REAL lambdaMax = us + cspeed;
+*/
+   mat->SetCFL(.5);
+   mat->SetDelta(100/*2 + .410707*/);
 
    cmesh -> InsertMaterialObject(mat);
 
@@ -155,7 +161,7 @@ TPZFlowCompMesh * SSCompMesh()
         rhoul = 1.,
 	rhovl = 0.,
 	rhoel = 0.9463,
-	rhor  = 2.66709,
+	rhor  = 2.66709340161093,
 	rhour = 1.,
 	rhovr = 0.,
 	rhoer = 2.19642;
@@ -240,7 +246,7 @@ TPZFlowCompMesh * SSCompMesh()
    TPZFMatrix Solution = cmesh->Solution();
 
    int nVars = Solution.Rows();
-   for(int k = 0; k < nVars; k++)Solution(k)=-.001;
+   for(int k = 0; k < nVars; k++)Solution(k)=-.01;
 
    Solution.Zero();
    int j, NSolutionBlocks;
@@ -252,23 +258,32 @@ TPZFlowCompMesh * SSCompMesh()
    {
       int blockOffset = cmesh->Block().Position(j) + lastShapeFun;
 
-      Solution(blockOffset  ,0) = (rhor+rhol)/2.;
-      Solution(blockOffset+1,0) = (rhour+rhoul)/2.;
-      Solution(blockOffset+2,0) = (rhovr+rhovl)/2.;
-      Solution(blockOffset+3,0) = (rhoer+rhoel)/2.;
+      Solution(blockOffset  ,0) = (rhor+rhol);
+      Solution(blockOffset+1,0) = (rhour+rhoul);
+      Solution(blockOffset+2,0) = (rhovr+rhovl);
+      Solution(blockOffset+3,0) = (rhoer+rhoel);
 /*
-      Solution(blockOffset  ,0) = rhor;
-      Solution(blockOffset+1,0) = rhour;
-      Solution(blockOffset+2,0) = rhovr;
-      Solution(blockOffset+3,0) = rhoer;
+      if(j < NSolutionBlocks/2)
+      {
+         Solution(blockOffset  ,0) = rhol;
+         Solution(blockOffset+1,0) = rhoul;
+         Solution(blockOffset+2,0) = rhovl;
+         Solution(blockOffset+3,0) = rhoel;
+      }else{
+         Solution(blockOffset  ,0) = rhor;
+         Solution(blockOffset+1,0) = rhour;
+         Solution(blockOffset+2,0) = rhovr;
+         Solution(blockOffset+3,0) = rhoer;
+      }
+
 */
 /*
       Solution(blockOffset  ,0) = 2.01136;
       Solution(blockOffset+1,0) = 1.11521;
       Solution(blockOffset+2,0) = 0;
-      Solution(blockOffset+3,0) = 1.65903;*/
-/*
-      for(int k = 4; k < 12; k++)Solution(blockOffset+k)=-1;*/
+      Solution(blockOffset+3,0) = 1.65903;
+
+//      for(int k = 4; k < 12; k++)Solution(blockOffset+k)=-1;*/
 
    }
    cmesh->LoadSolution(Solution);

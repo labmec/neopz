@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.10 2004-01-21 00:23:32 erick Exp $
+//$Id: pzconslaw.h,v 1.11 2004-01-22 00:33:46 erick Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -295,6 +295,7 @@ inline REAL TPZConservationLaw2::CFL()
 
 inline void TPZConservationLaw2::SetCFL(REAL CFL)
 {
+   //if(CFL > 1e3) CFL = 1e3;
    fCFL = CFL;
 }
 

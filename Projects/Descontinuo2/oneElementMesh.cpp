@@ -140,13 +140,13 @@ TPZFlowCompMesh * OneElCompMesh()
 // Setting initial solution
    mat->SetForcingFunction(NULL);
    // Setting the time discretization method
-   mat->SetTimeDiscr(None_TD/*Diff*/,
+   mat->SetTimeDiscr(Implicit_TD/*Diff*/,
                      Implicit_TD/*ConvVol*/,
 		     Implicit_TD/*ConvFace*/);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
    // object computes the delta when it equals null.
 
-   mat->SetCFL(.5);
+   mat->SetCFL(1);
 
    REAL us = sqrt(5.5 * 5.5 + 3.3 * 3.3);
    REAL press = 2.;
