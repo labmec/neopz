@@ -2176,6 +2176,15 @@ test "$no_create" = yes || ${CONFIG_SHELL-/bin/sh} $CONFIG_STATUS || exit 1
       ;;
     esac
 
+    case "${fad_enabled}" in
+      yes)
+        echo "      -> FAD enabled."
+      ;;
+      no)
+        echo "      -> FAD not enabled."
+      ;;
+    esac
+
     echo
     echo "   type \"make\" to start compilation."
     echo "   type \"make install\" as root to install it."
