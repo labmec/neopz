@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.26 2004-03-31 21:03:55 tiago Exp $
+dnl $Id: configure.in,v 1.27 2004-04-06 14:24:02 longhin Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -32,8 +32,6 @@ PZ_GREETINGS
 dnl System variables
 AC_CANONICAL_SYSTEM
 
-dnl Elects c++ as the default testing language
-AC_LANG_CPLUSPLUS
 
 dnl Initializes automake (must provide aclocal.m4!)
 AM_INIT_AUTOMAKE(pz, $PZ_VERSION.$PZ_REV)
@@ -42,11 +40,24 @@ AM_SANITY_CHECK
 dnl Tests the existance of a c++ compiler (m4 macro)
 AC_PROG_CXX
 
+dnl Elects c++ as the default testing language
+AC_LANG_CPLUSPLUS
+
 dnl Checks for other common programs (gcc, ar, ranlib and install)
 AC_PROG_CC
 PZ_PROG_AR
 AC_PROG_RANLIB
 AC_PROG_INSTALL
+
+AC_TYPE_GETGROUPS
+dnl AC_TYPE_MBSTATE_T
+AC_TYPE_MODE_T
+AC_TYPE_OFF_T
+AC_TYPE_PID_T
+AC_TYPE_SIGNAL
+AC_TYPE_SIZE_T
+AC_TYPE_UID_T
+dnl AC_CHECK_SIZEOF(int *)
 
 dnl ----------------------------------------------------------------------------
 dnl                          ARCHITECTURE SPECIFICS     
@@ -61,6 +72,9 @@ case "$target" in
     ARCH_INCLUDES=
     ;;
   x86_64*)
+    ARCH_INCLUDES=
+    ;;
+  *-apple-*)
     ARCH_INCLUDES=
     ;;
  *)
@@ -385,7 +399,6 @@ esac
 AM_CONDITIONAL( blas, test x${blas_enabled} = xyes )
 
 AC_SUBST(USING_BLAS)
-
 dnl ----------------------------------------------------------------------------
 dnl                               blas LOCATION
 dnl ----------------------------------------------------------------------------
@@ -399,10 +412,10 @@ AC_ARG_WITH(blas-dir,
 case "${blas_enabled}" in
   yes)
     BLASDIR=$blas_dir
-    BLASINCLUDE="-I$BLASDIR/src/"
-    BLASLIBDIR="-L/usr/lib/"
-    BLASLIB="-s -llapack -lcblas -lblas"
-    LIBBLAS=" -s /usr/lib/liblapack.so /usr/lib/libcblas.a /usr/lib/libblas.a"
+    BLASINCLUDE="-I/usr/include"
+    BLASLIBDIR="-L/usr/lib/ -L$BLASDIR"
+    BLASLIB=" -L$BLASLIBDIR -lblas -lpthread"
+    LIBBLAS=" $BLASDIR/libguide.a $BLASDIR/liblapack.a $BLASDIR/libblas.a"
   ;;
   no)
     BLASDIR=""
@@ -487,7 +500,6 @@ AC_OUTPUT([ Makefile PZ.mk PZ_user.mk \
         Projects/Descontinuo2/Makefile \
 	Projects/ConsLaw/Makefile \
 	Projects/Igor/Makefile \
-	Projects/BiHarmonic/Makefile \
 	Projects/CursoPZ/Makefile \
 	Projects/CursoPZ/Class_1/Makefile \
 	Projects/CursoPZ/Class_2/Makefile \
