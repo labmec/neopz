@@ -21,6 +21,7 @@ int main() {
 	// criar quatro nos
 	int i,j;
 	TPZVec<REAL> coord(3,0.);
+	malha.NodeVec().Resize(4);
 	for(i=0; i<4; i++) {
 		// initializar as coordenadas do no em um vetor
 		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
