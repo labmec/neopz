@@ -255,7 +255,7 @@ void TPZNonLinMultGridAnalysis::CoutTime(clock_t &start,char *title){
 void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat){
 
   TPZFlowCompMesh *fm  = dynamic_cast<TPZFlowCompMesh *>(CompMesh);//= new TPZFlowCompMesh(CompMesh->Reference());
-  REAL maxveloc = fm->MaxVelocityOfMesh2();
+  REAL maxveloc = fm->MaxVelocityOfMesh();
   REAL deltax = CompMesh->LesserEdgeOfMesh();//REAL deltax = CompMesh->DeltaX();
   //REAL deltax = CompMesh->MaximumRadiusOfEl();
   TPZCompElDisc *disc;
