@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.5 2004-06-23 22:41:19 phil Exp $
+// $Id: pzvec.h,v 1.6 2004-12-17 13:05:40 phil Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -100,7 +100,7 @@ class TPZVec {
             PZError << "+-> NElements = " << NElements() << endl;
             PZError << "|" << endl;
             PZError << "+-> Index = " << index << endl;
-
+            DebugStop();
             exit( -1 );
          }
 #endif
