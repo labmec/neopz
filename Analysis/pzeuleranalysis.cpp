@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.15 2004-01-20 12:04:58 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.16 2004-01-21 00:23:47 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -213,9 +213,11 @@ void TPZEulerAnalysis::Solve(REAL & res) {
 
 
    // verifying the inversion of the linear system
-   TPZFMatrix res2;
+   /*TPZFMatrix res2;
    fSolver->Matrix()->Residual(delu, fRhs, res2);
    cout << "Linear invertion residual:"<< Norm(res2) << endl;
+   */
+
 
    //fCompMesh->LoadSolution(*fpSolution);
    res = Norm(residual);
@@ -362,7 +364,7 @@ void TPZEulerAnalysis::Run(ostream &out)
       lastEpsilon = epsilon;
 
       out << "\niter:" << i
-          << "\t eps=" << epsilon
+          << "\t eps(dU/dt)=" << epsilon
 	  << "\t |NewtonEps=" << epsilon_Newton
 	  << "\t nIter=" << numIter_Newton;
 
