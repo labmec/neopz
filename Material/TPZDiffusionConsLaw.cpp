@@ -60,7 +60,13 @@ void TPZDiffusionConsLaw::Divergence(TPZVec<REAL> &dphi,TPZFMatrix &diverg){
 
   char *type = fArtificialDiffusion;
   fArtificialDiffusion = "LS";
-  PointOperator(dphi,diverg);
+  TPZFMatrix diffterm(0,0);
+  PointOperator(dphi,diffterm);
+  int i,j,nstate=2+fDimension;
+  diverg.Redim(nstate,1);
+  diverg.Zero();
+  // soma das linhas de diffterm da : div(F) = ðF1/ðU [ðw/ðx] + ðF2/ðU [ðw/ðy] + ðF3/ðU [ðw/ðz]
+  for(i=0;i<nstate;i++) for(j=0;j<nstate;j++) diverg(i,0) += diffterm(i,j);// 5x1 (3D)
   fArtificialDiffusion = type;
 }
 

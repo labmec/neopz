@@ -76,7 +76,7 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   REAL delta = diffusion.DeltaOtimo(),Lpl,Hkp,Pkl;
   TPZFMatrix divF(nstate,1),prodpoint(nstate,nstate);
   TPZVec<REAL> sum1(nstate,0.),sum2(nstate,0.);
-
+  int diffright = 0,diffleft=1;
   for( int in = 0; in < phr; in++ ) {
     
     // w * Un
@@ -93,25 +93,30 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
     for(i=0;i<nstate;i++)
       ef(in * nstate + i, 0) += weight * (sum1[i] + timestep * sum2[i]);
 
-    //EK
-    // w * Un+1 + (grad(w) @ T) * div F(Un+1)
+    if(diffright){// DIFUSÃO NA CARGA
+      // grad(w)
+      for(i=0;i<dim;i++) gradphi[i] = dphi(i,in);
+      // grad(w) @ T (point product)
+      diffusion.PointOperator(gradphi,prodpoint);
+      for(i=0;i<dim;i++) gradphi[i] = dsol(i,0);
+      diffusion.Divergence(gradphi,divF);
+      TPZVec<REAL> diff_term(nstate,0.);
+      for(i=0;i<nstate;i++) for(j=0;j<nstate;j++) diff_term[i] += prodpoint(i,j) * divF(j,0);
+      for(i=0;i<nstate;i++)
+	ef(in * nstate + i, 0) += weight * timestep * delta * diff_term[i];
+    }
     
+    //EK
+    // w * Un+1 + (grad(w) @ T) * div F(Un+1)    
     for( int jn = 0; jn < phr; jn++ ) {
 
-      if(0){// DIFUSÃO NA CARGA
-	// grad(w)
-	for(i=0;i<dim;i++) gradphi[i] = dphi(i,in);
-	// grad(w) @ T (point product)
-	diffusion.PointOperator(gradphi,prodpoint);
-	for(i=0;i<dim;i++) gradphi[i] = dsol(i,0);
-	diffusion.Divergence(gradphi,divF);
-	TPZVec<REAL> diff_term(nstate,0.);
-	for(i=0;i<nstate;i++) for(j=0;j<nstate;j++) diff_term[i] += prodpoint(i,j) * divF(j,0);
+      if(diffright){// DIFUSÃO NA CARGA
+	// w * Un+1 
 	for(i=0;i<nstate;i++)
-	  ef(in * nstate + i, 0) += weight * timestep * delta * diff_term[i];
+	  ek(nstate * in + i, nstate * jn + i) += weight * phi(in,0) * phi(jn,0);
       }
       
-      if(1){// DIFUSÃO NA MATRIZ
+      if(diffleft){// DIFUSÃO NA MATRIZ
 	for(k=0;k<nstate;k++){
 	  for(l=0;l<nstate;l++){
 	    
@@ -130,7 +135,7 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
 	    if(l == k) ek(nstate * in + k, nstate * jn + l) += weight * phi(in,0) * phi(jn,0);
 	  }
 	}
-      }//if
+      }//if diffleft
     }//jn
   }//in
 }
