@@ -102,7 +102,11 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 
   while(parfront->fCurrentElement < parfront->fNElements) {
      ek = new TPZElementMatrix;
+     ek->fMat = new TPZFMatrix(0,0);
+     ek->fConstrMat = new TPZFMatrix(0,0);
      ef = new TPZElementMatrix;
+     ef->fMat = new TPZFMatrix(0,0);
+     ef->fConstrMat = new TPZFMatrix(0,0);
      
      /**
       *Lock mutex and search for an avilable element
@@ -198,29 +202,9 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 
 template<class front>
 void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
-//void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
-  //cout << "Entering GlobalAssemble" << endl;
-  //cout.flush();                    
-
-//  int iel;            
-//  int numel = 0;
-//  int nelem = fMesh->NElements();
   TPZParFrontStructMatrix<front> *parfront = (TPZParFrontStructMatrix<front> *) t;
-  //TPZElementMatrix *ek,ef;
-  
-//  ef.fMat = new TPZFMatrix(0,0);
-//  ef.fConstrMat = new TPZFMatrix(0,0);
-
   TPZAdmChunkVector<TPZCompEl *> &elementvec = parfront->fMesh->ElementVec();
-  
-  
-
-  //cout << "Entering FIRST while" << endl;
-  //cout.flush();
-  
   while(parfront->fCurrentAssembled < parfront->fNElements) {
-     
-     
      cout << "*";
      cout.flush();
      if(!(parfront->fCurrentAssembled%20)){
@@ -233,12 +217,6 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
           }
      }
                
-     //cout << "Executing FIRST while" << endl;
-     //cout.flush();
-/*     ek = new TPZElementMatrix;
-     ek->fMat = new TPZFMatrix(0,0);
-     ek->fConstrMat = new TPZFMatrix(0,0);
-*/     
      /**
       *Lock mutex and search for an available element
       *A global variable to be updated whenever a element is processed
@@ -251,52 +229,22 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
      if(parfront->fElementOrder[local_element] < 0) continue;
      TPZCompEl *el = elementvec[parfront->fElementOrder[local_element]];
      if(!el) continue;
-     //		int dim = el->NumNodes();
-    
      //Searches for next element
      int i=0;
      int aux = -1;
      TPZElementMatrix *ekaux, *efaux;
      pthread_mutex_lock(&mutex_global_assemble);
-     //cout << "Global Assemble Locked 'mutex_global_assemble' aux = " << aux << endl;
-     //cout << "Global Assemble local_element = " << local_element << endl;
-     //cout.flush();                    
-
      while(aux != local_element){
-          //cout << "Executing SECOND while" << endl;
-          //cout.flush();
           while(i < parfront->felnum.NElements()) {
-               //cout << "Entering THIRD while" << i << "  " << parfront->felnum[i] << endl;
-               //cout.flush();
                if(parfront->felnum[i] == local_element){
-                    //Assemble global matrix with local_element contribution
-                    //cout << "Found element " << local_element << endl;
-                    //cout.flush();                    
-               
                     TPZElementMatrix *ektemp, *eftemp;
-                              
                     aux = parfront->felnum[i];
                     ekaux = parfront->fekstack[i];
                     efaux = parfront->fefstack[i];
-
                     int itemp = parfront->felnum.Pop();
-                    //cout << "itemp " << itemp << endl;
-                    //cout.flush();
                     ektemp = parfront->fekstack.Pop();
                     eftemp = parfront->fefstack.Pop();
-                    //Restarts threads waiting !!!
-                    
-                    /*if(!(parfront->fCurrentAssembled%20)){
-                       if(parfront->felnum.NElements()<parfront->fMaxStackSize){
-                            cout << "Stack unloaded" << endl;
-                            cout.flush();
-                            pthread_cond_broadcast(&stackfull); 
-                       }
-                     
-                    } */
                     if(parfront->felnum.NElements()<parfront->fMaxStackSize){
-                         /*cout << "Stack unloaded" << endl;
-                         cout.flush();*/
                          pthread_cond_broadcast(&stackfull); 
                     }
                     
@@ -312,24 +260,14 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
           }
           if(aux!=local_element){
                i=0;
-               //cout << "Going to Cond_Wait on 'condassemble' and 'mutex_global_assemble'" << endl;
-               //cout.flush();                    
                pthread_cond_wait(&condassemble, &mutex_global_assemble);
-               //cout << "Waking on 'condassemble' and 'mutex_global_assemble'" << endl;
-               //cout.flush();                    
           }
      }
-               //unlock
      pthread_mutex_unlock(&mutex_global_assemble);
      parfront->AssembleElement(el, *ekaux, *efaux, *parfront->fStiffness, *parfront->fRhs);
                
      delete ekaux;
      delete efaux; 
-                                   
-     /* cout << endl << "                                    Assembling " << parfront->fCurrentAssembled << " on thread " << pthread_self() << endl;
-     cout << '#';
-     cout.flush(); */
-      
   }//fim for iel
   return 0;
 }
@@ -397,30 +335,15 @@ TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
  	               cout << "ElementAssemble Thread "<< i+1 <<  " created Successfuly "<< allthreads[i] << endl;
                     cout.flush();
  	          }else{
-		    // if (res[i]==EAGAIN) cout << "EAGAIN\t";
-		    cout << "Error " << res[i] << "\t";
-		    cout << "ElementAssemble Thread "<< i+1 << " Fail " << allthreads[i] << endl;       
-		    cout.flush();
- 	   //               exit;
+        		    cout << "Error " << res[i] << "\t";
+        		    cout << "ElementAssemble Thread "<< i+1 << " Fail " << allthreads[i] << endl;
+        		    cout.flush();
  	          }
           }    
-      //}
-/*      catch(TPZDecompErr){
-          cout << "something wrong inside here" << endl;
-      }*/
-     //for(i=0;i<nthreads-1;i++) res[i] = pthread_create(&allthreads[i],NULL,this->ElementAssemble, this);
-     
-     
-     
-//     Assemble(*mat,rhs);
-//     for(i=0;i<nthreads-1;i++) pthread_join(allthreads[i], NULL);
      for(i=0;i<nthreads;i++) pthread_join(allthreads[i], NULL);
   
      delete allthreads;// fThreadUsed, fDec;
      delete res;
-     
-//     Assemble(*mat,rhs);
-     
      fStiffness = 0;
      fRhs = 0;
      return mat;
