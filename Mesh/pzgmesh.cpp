@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.13 2004-04-01 19:12:49 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.14 2004-04-05 20:23:13 longhin Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -17,7 +17,7 @@ Method definition for class TPZGeoMesh.*/
 #include "pzgeoel.h"
 #include "pzcosys.h"
 #include "pzmatrix.h"
-#include "pzavlmap.h"
+//#include "pzavlmap.h"
 
 #include "pzelgt2d.h"
 #include "pzelgq2d.h"
@@ -69,7 +69,8 @@ void TPZGeoMesh::CleanUp() {
     map<string,TPZRefPattern *>::iterator name_last = map_el.end();
     map<string,TPZRefPattern *>::iterator name_iter;    
     for(name_iter = name_first; name_iter != name_last; name_iter++){
-      map_el.erase(name_iter);
+      TPZRefPattern *refpat = (*name_iter).second;
+      delete refpat;
     }
   }
 }
@@ -154,7 +155,8 @@ void TPZGeoMesh::RestoreReference(TPZCompMesh *cmesh) {
 void TPZGeoMesh::GetBoundaryElements(int NodFrom, int NodTo,TPZStack<TPZGeoEl *> &ElementVec,TPZStack<int> &Sides) {
   // Find a first element whose first node on the side is NodFrom
   TPZGeoEl *def = 0;
-  TPZAVLMap<int,TPZGeoEl *> elmap(def);
+  //TPZAVLMap<int,TPZGeoEl *> elmap(def);
+  map<int,TPZGeoEl *> elmap;
   int i,nelements=NElements();
   for(i=0;i<nelements;i++) {
     TPZGeoEl *el = fElementVec[i];
@@ -180,7 +182,7 @@ void TPZGeoMesh::GetBoundaryElements(int NodFrom, int NodTo,TPZStack<TPZGeoEl *>
     if(index <nelvec && Sides[index]==candidateside) break;
     ElementVec.Push(candidate);
     Sides.Push(candidateside);
-    elmap.CleanUp();
+    elmap.erase(elmap.begin(), elmap.end());//CleanUp();
     elmap[candidate->Id()] = candidate;
     // initialize the list in which to look for connected elements
     currentnode = candidate->SideNodeIndex(candidateside,1);
@@ -188,25 +190,29 @@ void TPZGeoMesh::GetBoundaryElements(int NodFrom, int NodTo,TPZStack<TPZGeoEl *>
 }
 
 // Find all elements in elmap or neighbour of elements in elmap which contain a node
-void TPZGeoMesh::BuildElementsAroundNode(int currentnode,TPZAVLMap<int,TPZGeoEl*> &elmap){
-
+//void TPZGeoMesh::BuildElementsAroundNode(int currentnode,TPZAVLMap<int,TPZGeoEl*> &elmap){
+void TPZGeoMesh::BuildElementsAroundNode(int currentnode,map<int,TPZGeoEl*> &elmap){
   // first eliminate all elements which do not contain currentnode
-  TPZPix iel = elmap.First();
+  //TPZPix iel = elmap.First();
+	map<int, TPZGeoEl *>::iterator ielprev,iel=elmap.begin();
   TPZGeoEl *el;
   int i;
-  while(iel) {
-    el = elmap.Contents(iel);
-    elmap.Next(iel);
+  while(iel!=elmap.end()) {
+    el = iel->second;
+	ielprev=iel;
+    iel++;//elmap.Next(iel);
     int numnode = el->NNodes();
     for(i=0; i< numnode; i++) {
       if(el->NodeIndex(i) == currentnode) break;
     }
-    if(i == numnode) elmap.Delete(el->Id());
+    if(i == numnode) {
+		elmap.erase(ielprev);
+	}
   }
-  iel = elmap.First();
-  while(iel) {
-    el = elmap.Contents(iel);
-    elmap.Next(iel);
+  iel = elmap.begin();
+  while(iel!=elmap.end()) {
+    el = iel->second;//elmap.Contents(iel);
+    iel++;//elmap.Next(iel);
     int nside = el->NSides();
     for(int is=0; is<nside; is++) {
       TPZGeoElSide neigh = el->Neighbour(is);
@@ -214,11 +220,11 @@ void TPZGeoMesh::BuildElementsAroundNode(int currentnode,TPZAVLMap<int,TPZGeoEl*
       int numnode = neigh.Element()->NNodes();
       for(i=0; i< numnode; i++) {
 	if(neigh.Element()->NodeIndex(i) == currentnode){
-	  if(!elmap.Contains(neigh.Element()->Id())) {
+	  if(elmap.find(neigh.Element()->Id())!=elmap.end()) {
 	    // this should be implemented as a stack, so that we dont have to
 	    // 	go through the list again each time
 	    elmap[neigh.Element()->Id()] = neigh.Element();
-	    iel = elmap.First();
+	    iel = elmap.begin();
 	  }
 	  break;	// get out of the loop over the nodes
 	}
@@ -229,13 +235,16 @@ void TPZGeoMesh::BuildElementsAroundNode(int currentnode,TPZAVLMap<int,TPZGeoEl*
 
 // find, within elmap the element which has currentnode as its first boundary side
 //  	node
-void TPZGeoMesh::FindElement(TPZAVLMap<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside) {
+//void TPZGeoMesh::FindElement(TPZAVLMap<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside) {
+void TPZGeoMesh::FindElement(map<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside) {
 
   candidate = 0;
-  TPZPix iel = elmap.First();
-  while(iel) {
-    TPZGeoEl *el = elmap.Contents(iel);
-    elmap.Next(iel);
+  //TPZPix iel = elmap.First();
+  map<int , TPZGeoEl *>::iterator ielprev, iel = elmap.begin();
+  while(iel!=elmap.end()) {
+    TPZGeoEl *el = iel->second;//elmap.Contents(iel);
+	ielprev=iel;
+    iel++;//elmap.Next(iel);
     int ns = el->NSides();
     int is = el->NCornerNodes();
     for(; is < ns; is++) {

@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.11 2004-03-19 19:17:18 cantao Exp $
+//$Id: pzgmesh.h,v 1.12 2004-04-05 20:23:13 longhin Exp $
 
 /**File : pzgmes.h
 
@@ -45,8 +45,8 @@ class TPZRefPattern;
 
 template<class T>
 class TPZVec;
-template<class T,class TT>
-class TPZAVLMap;
+//template<class T,class TT>
+//class TPZAVLMap;
 
 template <class TShape, class TGeo> class TPZGeoElRefPattern;
 
@@ -194,11 +194,13 @@ virtual  void Print(ostream & out = cout);
  private:
 
   /**Find all elements in elmap or neighbour of elements in elmap which contain a node*/
-  void BuildElementsAroundNode(int currentnode,TPZAVLMap<int,TPZGeoEl *> &elmap);
+  //void BuildElementsAroundNode(int currentnode,TPZAVLMap<int,TPZGeoEl *> &elmap);
+ void BuildElementsAroundNode(int currentnode,map<int,TPZGeoEl *> &elmap);
 
   /**Method which works only for two dimensional topologies!
      Find, within elmap, the element which has currentnode as its first boundary side node*/
-  void FindElement(TPZAVLMap<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
+  //void FindElement(TPZAVLMap<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
+ 	void FindElement(map<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
 protected: // Protected attributes
   /** Maps all refinement pattern objects in the mesh */
   map<int,map<string,TPZRefPattern *> > fRefPatterns;
@@ -251,6 +253,3 @@ inline void TPZGeoMesh::ClearInterfaceMaterialsMap(){
 }
 
 #endif
-
-
-
