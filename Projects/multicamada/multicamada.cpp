@@ -1,4 +1,4 @@
-
+//oocalc &
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
@@ -133,7 +133,7 @@ int main(){
 
   orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
   multcam->AddPlacaOrtho(orto,0.2);
-  if(1){
+  if(0){
     Elast = 200.;
     eppx = Elast;
     eppy = Elast;
@@ -160,14 +160,20 @@ int main(){
 
   int niter = 20;
   int it;
+  cout << "Numero de iterações" << endl;
+  cin >> niter;
+
+  TPZFMatrix tensin(5,9,0.),tensout(5,9);
+
   for(it=0; it<niter; it++) {
 
     multcam->ComputeSolution(out,0);
     multcam->ComputeCenterForces();
-    multcam->PrintCenterForces(out);
-
+//     multcam->PrintCenterForces(out);
+//     multcam->PrintTensors(out);
+    multcam->PrintTensors(out,tensin,tensout);
+    tensin = tensout;
   }
-  multcam->PrintTensors(out);
 
   out.close();
 
