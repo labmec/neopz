@@ -1348,8 +1348,11 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
       }
     }
 
-    cout << "\nCalcStiff sol\n" << sol;
-    cout << "\nCalcStiff dsol\n" << dsol;
+    int printing = 0;
+    if (printing){
+      cout << "\nCalcStiff sol\n" << sol;
+      cout << "\nCalcStiff dsol\n" << dsol;
+    }
     fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,*ek.fMat,*ef.fMat);
   }
 }
