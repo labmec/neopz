@@ -52,8 +52,8 @@ class TPZFMatrix : public TPZMatrix {
      Constructor with initialization parameters
      @param rows Initial number of rows
      @param cols Number of columns
-     @param buf Who knows !!!
-     @param size Who knows too !!!
+     @param buf Preallocated memory area which can be used by the matrix object
+     @param size Size of the area pointed to by buf
   */
   TPZFMatrix (const int rows ,const int columns = 1, REAL * buf = NULL,const int size = 0 );
   /**
@@ -223,6 +223,35 @@ class TPZFMatrix : public TPZMatrix {
   int fSize;
 };
 
+/**
+ * Non abstract class which implements full matrices with preallocated storage
+ * @ingroup matrix
+ */
+template<int N>
+class TPZFNMatrix : public TPZFMatrix {
+  REAL fBuf[N];
+
+public:
+  /*
+   * Constructor which does not initialize the data
+   * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col
+   * @param row Number of rows
+   * @param col Number of cols
+   */
+  TPZFNMatrix(int row, int col) : TPZFMatrix(row,col,fBuf,N) {}
+
+  /*
+   * Constructor which initializes the data
+   * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col
+   * @param row Number of rows
+   * @param col Number of cols
+   * @param val initial value of the matrix elements
+   */
+  TPZFNMatrix(int row, int col, const REAL &val) : TPZFMatrix(row,col,fBuf,N) {
+    TPZFMatrix::operator=(val);
+  }
+
+};
 
 REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B);
 
