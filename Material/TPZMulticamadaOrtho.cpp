@@ -37,7 +37,7 @@ TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int
   fLinearY = 0;
 
   fDirx[0] = 0.25;
-  fDiry[0] = 0.25;
+  fDiry[0] = 0.25;//A COMPONENTE ESTÁ CERTA?????? não deve ser [1]
 
   int i;
   for(i=0; i<3; i++) {
