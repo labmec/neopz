@@ -1,4 +1,5 @@
-//$Id: main.cpp,v 1.11 2004-02-05 16:40:08 tiago Exp $
+//$Id: main.cpp,v 1.12 2004-03-31 14:57:56 tiago Exp $
+
 /**
  * Galerkin descontinuo: visita do professor Igor.
  * 24/11/2003
@@ -64,10 +65,10 @@ void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   u[0] = sin(PI*x[0])*sin(PI*x[1]);
   deriv(0,0) = PI*cos(PI*x[0])*sin(PI*x[1]);
   deriv(1,0) = PI*cos(PI*x[1])*sin(PI*x[0]); 
-}*/
+}**/
 
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
-  disp[0] = - exp(0.75 * (x[0] + x[1])) * (8. * (1. - x[1] * x[1]) + 12. * x[0] * (1. - x[1] * x[1]) -4.5 * (1. - x[0] * x[0])* (1. - x[1] * x[1] )+ 
+  disp[0] = - exp(0.75 * (x[0] + x[1])) * (8. * (1. - x[1] * x[1]) + 12. * x[0] * (1. - x[1] * x[1]) -4.5 * (1. - x[0] * x[0])* (1. - x[1] * x[1] )+
 					  8. * (1. - x[0] * x[0]) + 12. * x[1] * (1. - x[0] * x[0]));
 }
 void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
