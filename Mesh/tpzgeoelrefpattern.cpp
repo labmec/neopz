@@ -353,6 +353,10 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
   SetSubElementConnectivities();
 }
 
+template<class TShape, class TGeo> int TPZGeoElRefPattern<TShape,TGeo>::FatherSide(int side, int son){
+  return fRefPattern->FatherSide(side,son);
+
+}
 
 template class TPZGeoElRefPattern<TPZShapeCube,TPZGeoCube>;
 template class TPZGeoElRefPattern<TPZShapeLinear,TPZGeoLinear>;
