@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.11 2004-03-03 23:15:46 cesar Exp $
+//$Id: pzgeoelside.h,v 1.12 2004-04-01 19:11:38 cesar Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -128,10 +128,10 @@ static void BuildConnectivities(TPZVec<TPZGeoElSide> &elvec, TPZVec<TPZGeoElSide
   int HasSubElement();
 	
   /*return the number of nodes for a particular side*/
-  int NSideNodes();
+  int NSideNodes() const;
 
   /**returns the index of the nodenum node of side*/
-  int SideNodeIndex(int nodenum);
+  int SideNodeIndex(int nodenum) const;
 
   /**returns 1 if neighbour is a neighbour of the element along side*/
   int NeighbourExists(const TPZGeoElSide &neighbour) const;
