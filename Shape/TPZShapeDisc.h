@@ -11,8 +11,8 @@ class TPZShapeDisc {
 public:
 
 /**
- * @param C:      normalizing constant
- * @param x0:     interior point of the deformed element
+ * @param C:      normalizing constant, it provided by the discontinous element
+ * @param x0:     interior point of the deformed element, it can be, for example, the center of mass of the element
  * @param x:      coordinate of the point
  * @param degree: degree of interpolation of the element
  * @param phi:    shapefunction values
@@ -24,6 +24,11 @@ static void Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMat
 
     TPZShapeDisc();
     ~TPZShapeDisc() {};
+
+/**
+ * discontinous polynomials of the line element
+ */
+static void Shape0D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi);
 
 /**
  * discontinous polynomials of the line element

@@ -10,6 +10,31 @@
 #include "pzintel.h"
 
 
+void TPZGeoElSide::RemoveConnectivity(){
+
+  if(!Exists()) return;
+  if(fSide < 0 || fSide >= fGeoEl->NSides()) {
+    PZError << "TPZGeoElSide::SetConnectivity Index out of bound\n";
+  }
+  //it removes the connectivity of the cycle where this inserted one: 
+  //neighpre->this->neighpos => neighpre->neighpos
+  TPZGeoElSide neighpre,neigh = Neighbour();
+  if(neigh.Element() == NULL || neigh.Side() == -1){
+    PZError << "TPZGeoElSide::SetConnectivity trying to remove null or inexistent connection";
+  }
+  TPZGeoElSide neighpos = neigh;
+  while(neigh.Exists() && neigh != *this){
+    neighpre = neigh;
+    neigh = neigh.Neighbour();
+  }
+  if(neigh == *this){
+    this->SetNeighbour(TPZGeoElSide());
+    neighpre.SetNeighbour(neighpos);
+  } else {
+    PZError << "TPZGeoElSide::SetConnectivity neighbourhood cycle error";
+  }
+}
+
 void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const {
   
   if(!Exists()) return;

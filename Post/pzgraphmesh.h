@@ -59,7 +59,7 @@ protected:
   TPZVec<char *> fScalarNames, fVecNames;
   virtual void SequenceNodes();
 
-  TPZInterpolatedElement *FindFirstInterpolatedElement(TPZCompMesh *mesh,int dimension);
+  TPZCompEl *FindFirstInterpolatedElement(TPZCompMesh *mesh,int dimension);
 	
 public:
   virtual TPZMaterial *Material();

@@ -11,8 +11,9 @@
 TPZConservationLaw::TPZConservationLaw(int nummat,REAL delta_t,int dim) : 
                                                       TPZMaterial(nummat), fDim(dim) {
 
+  fTimeStep = delta_t;
   if(delta_t < 0 || delta_t > 1){
-    PZError << "TPZConsLawTest::TPZConsLawTest time step parameter, default 1.0\n";
+    PZError << "TPZConservationLaw::TPZConservationLaw time step parameter > 1 , default 1.0\n";
     fTimeStep = 1.0;
   }
   if(dim < 1 || dim > 3){
@@ -20,7 +21,6 @@ TPZConservationLaw::TPZConservationLaw(int nummat,REAL delta_t,int dim) :
     exit(-1);
   }
   fDim = dim;
-  fTimeStep = delta_t;
 }
 
 
@@ -64,10 +64,11 @@ int TPZConservationLaw::NSolutionVariables(int var){
   return 0;
 }
 
-void TPZConservationLaw::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*axes*/,int var,TPZVec<REAL> &Solout){
+// void TPZConservationLaw::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*axes*/,int var,TPZVec<REAL> &Solout){
   
+//   cout << "TPZConservationLaw::Solution nao deve ser chamada\n";
 
-}
+// }
 
 void TPZConservationLaw::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
   //Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)

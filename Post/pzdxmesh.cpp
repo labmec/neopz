@@ -8,6 +8,12 @@
 #include "pzgraphnode.h"
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
+#include "pzgeoel.h"
+
+// 		if(ce->NConnects() == 3) fElementType = "lines";
+// 		if(ce->NConnects() == 7) fElementType = "triangles";
+// 		if(ce->NConnects() == 9) fElementType = "quads";
+// 		if(ce->NConnects() == 27) fElementType = "cubes";
 
 TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial *mat, TPZVec<char *> &scalarnames, TPZVec<char *> &vecnames) : TPZGraphMesh(cmesh,dimension,mat) {
   SetNames(scalarnames,vecnames);
@@ -17,10 +23,16 @@ TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial *m
 	TPZCompEl *ce = FindFirstInterpolatedElement(cmesh,dimension);
 	fElementType = "noname";
 	if(ce) {
-		if(ce->NConnects() == 3) fElementType = "lines";
-		if(ce->NConnects() == 7) fElementType = "triangles";
-		if(ce->NConnects() == 9) fElementType = "quads";
-		if(ce->NConnects() == 27) fElementType = "cubes";
+		if(ce->Type() == 1) fElementType = "lines";
+		if(ce->Type() == 2) fElementType = "triangles";
+		if(ce->Type() == 3) fElementType = "quads";
+		if(ce->Type() == 15){
+		  TPZGeoEl *gel = ce->Reference();
+		  if(gel->NNodes()==4 && dimension==2) fElementType = "quads";
+		  if(gel->NNodes()==3 && dimension==2) fElementType = "triangles";
+		  if(dimension==3) fElementType = "cubes";
+		}
+		if(ce->Type() == 7) fElementType = "cubes";		
 	}
 	fNumCases = 0;
 	fNumConnectObjects[0] = 1;

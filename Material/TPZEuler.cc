@@ -44,24 +44,25 @@ void TPZEuler::Print(ostream & out) {
     TPZMaterial::Print(out);
 }
 void TPZEuler::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,double weight,
-			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
-
+			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,
+			    TPZFMatrix &ef,TPZBndCond &bc) {
+  
   if(fState == 0) return;
   if(bc.Material() != this){
     PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
   }
-
+  
   if(bc.Type() < 0 && bc.Type() > 3){
     PZError << "TPZEuler.aplybc, unknown boundary condition type :"  <<
       bc.Type() << " boundary condition ignored\n";
     return;
   }
-
-
+  
+  
   int numdof = NStateVariables();
   int numnod = ek.Rows()/numdof;
   int r = numdof;
-
+  
   TPZVec<REAL> flux(8);
   gEul.Flux(sol,flux);
   REAL normal[2] = {axes(0,1),-axes(0,0)};
@@ -73,69 +74,69 @@ void TPZEuler::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,double weight,
   */
   int idf,jdf,in,jn;
   switch(bc.Type()){
-
-     case 0:
-         for(in=0 ; in<numnod ; ++in){
-            for(idf = 0;idf<r;idf++) {
-               (ef)(in*r+idf,0) += gBigNumber*phi(in,0)*bc.Val2()(idf,0)*weight;
-            }
-            for(jn=0 ; jn<numnod ; ++jn) {
-               for(idf = 0;idf<r;idf++) {
-                 ek(in*r+idf,jn*r+idf) += gBigNumber*phi(in,0)*phi(jn,0)*weight;
-               }
-            }
-         }
-         break;
-
-     case 1:
-         for(in=0 ; in<numnod ; ++in){
-            for(idf = 0;idf<r;idf++) {
-               (ef)(in*r+idf,0) += phi(in,0)*bc.Val2()(idf,0)*weight;
-            }
-         }
-         break;
-
-     case 2:
-         for(in=0 ; in<numnod ; ++in){
-            for(idf = 0;idf<r;idf++) {
-               (ef)(in*r+idf,0) += phi(in,0)*bc.Val2()(idf,0)*weight;
-            }
-            for(jn=0 ; jn<numnod ; ++jn) {
-               for(idf = 0;idf<r;idf++) {
-                 for(jdf = 0;jdf<r;jdf++) {
-                   ek(in*r+idf,jn*r+jdf) += bc.Val1()(idf,jdf)*phi(in,0)*phi(jn,0)*weight;
-                 }
-               }
-            }
-	 case 3: {
-	   TPZFMatrix A(4,4),B(4,4);
-	   gEul.JacobFlux(sol,A,B);
-	   for(in=0; in<numnod; in++) {
-	     for(idf=0; idf<4; idf++) {
-	       /*
-		 ef(4*in+idf) += weight*fDeltaT*(
-		 -phi(in,0)*flux[idf]*normal[0]
-		 -phi(in,0)*flux[idf+4]*normal[1]
-		 );
-	       */
-	       for(jn=0; jn<numnod; jn++) {
-		 for(jdf=0; jdf<4; jdf++) {
-		   
-		   ek(4*in+idf,4*jn+jdf) += weight*fDeltaT*(
-							    phi(in,0)*A(idf,jdf)*phi(jn,0)*normal[0]
-							    +phi(in,0)*B(idf,jdf)*phi(jn,0)*normal[1]
-							    );
-		   
-		 }
-	       }
-	     }
-	   }
-	 }
-         }//fim switch
+    
+  case 0:
+    for(in=0 ; in<numnod ; ++in){
+      for(idf = 0;idf<r;idf++) {
+	(ef)(in*r+idf,0) += gBigNumber*phi(in,0)*bc.Val2()(idf,0)*weight;
+      }
+      for(jn=0 ; jn<numnod ; ++jn) {
+	for(idf = 0;idf<r;idf++) {
+	  ek(in*r+idf,jn*r+idf) += gBigNumber*phi(in,0)*phi(jn,0)*weight;
+	}
+      }
+    }
+    break;
+    
+  case 1:
+    for(in=0 ; in<numnod ; ++in){
+      for(idf = 0;idf<r;idf++) {
+	(ef)(in*r+idf,0) += phi(in,0)*bc.Val2()(idf,0)*weight;
+      }
+    }
+    break;
+    
+  case 2:
+    for(in=0 ; in<numnod ; ++in){
+      for(idf = 0;idf<r;idf++) {
+	(ef)(in*r+idf,0) += phi(in,0)*bc.Val2()(idf,0)*weight;
+      }
+      for(jn=0 ; jn<numnod ; ++jn) {
+	for(idf = 0;idf<r;idf++) {
+	  for(jdf = 0;jdf<r;jdf++) {
+	    ek(in*r+idf,jn*r+jdf) += bc.Val1()(idf,jdf)*phi(in,0)*phi(jn,0)*weight;
+	  }
+	}
+      }
+    case 3: {
+      TPZFMatrix A(4,4),B(4,4);
+      gEul.JacobFlux(sol,A,B);
+      for(in=0; in<numnod; in++) {
+	for(idf=0; idf<4; idf++) {
+	  /*
+	    ef(4*in+idf) += weight*fDeltaT*(
+	    -phi(in,0)*flux[idf]*normal[0]
+	    -phi(in,0)*flux[idf+4]*normal[1]
+	    );
+	  */
+	  for(jn=0; jn<numnod; jn++) {
+	    for(jdf=0; jdf<4; jdf++) {      
+	      ek(4*in+idf,4*jn+jdf) += weight*fDeltaT*
+		(phi(in,0)*A(idf,jdf)*phi(jn,0)*normal[0]
+		 + phi(in,0)*B(idf,jdf)*phi(jn,0)*normal[1]);
+	      
+	    }
+	  }
+	}
+      }
+    }
+    }//fim switch
   }
 }
-void TPZEuler::Contribute(TPZVec<REAL> &x, TPZFMatrix &daxesdksi, TPZVec<REAL> &sol,TPZFMatrix &dsol, REAL weight,
-  			  TPZFMatrix &axes, TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZEuler::Contribute(TPZVec<REAL> &x, TPZFMatrix &daxesdksi, TPZVec<REAL> &sol,
+			  TPZFMatrix &dsol, REAL weight,TPZFMatrix &axes, 
+			  TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,
+			  TPZFMatrix &ef) {
     int nshape = phi.Rows();
     REAL dphix[2];
     int in,jn,idf,jdf;
@@ -163,7 +164,6 @@ void TPZEuler::Contribute(TPZVec<REAL> &x, TPZFMatrix &daxesdksi, TPZVec<REAL> &
       }
       return;
     }
-
     TPZVec<REAL> flux(8);
     gEul.Flux(sol,flux);
     /*
@@ -185,46 +185,43 @@ void TPZEuler::Contribute(TPZVec<REAL> &x, TPZFMatrix &daxesdksi, TPZVec<REAL> &
     gEul.JacobFlux(sol,A,B);
     for(in=0; in<nshape; in++) {
       for(idf=0; idf<4; idf++) {
-	ef(4*in+idf) += weight*(
-				phi(in,0)*sol[idf]
-				//+fDeltaT*dphi(0,in)*flux[idf]
-				//+fDeltaT*dphi(1,in)*flux[idf+4]
-				);
+	ef(4*in+idf) += weight*phi(in,0)*sol[idf];
+	
+	//+fDeltaT*dphi(0,in)*flux[idf]
+	//+fDeltaT*dphi(1,in)*flux[idf+4]);
 	/*
-	for(jdf=0; jdf<4; jdf++) {
+	  for(jdf=0; jdf<4; jdf++) {
 	  ef(in*4+idf,0) += weight*fDeltaT*(
-					    -dphi(0,in)*KXX(idf,jdf)*dsol(0,jdf)
-					    -dphi(0,in)*KXY(idf,jdf)*dsol(1,jdf)
-					    -dphi(1,in)*KYX(idf,jdf)*dsol(0,jdf)
-					    -dphi(1,in)*KYY(idf,jdf)*dsol(1,jdf)
-				);
-	}
+	  -dphi(0,in)*KXX(idf,jdf)*dsol(0,jdf)
+	  -dphi(0,in)*KXY(idf,jdf)*dsol(1,jdf)
+	  -dphi(1,in)*KYX(idf,jdf)*dsol(0,jdf)
+	  -dphi(1,in)*KYY(idf,jdf)*dsol(1,jdf)
+	  );
+	  }
 	*/
-        for(jn=0; jn<nshape; jn++) {
+	for(jn=0; jn<nshape; jn++) {
 	  for(jdf=0; jdf<4;jdf++) {
 	    
 	    ek(4*in+idf,4*jn+jdf) += fDeltaT*weight*(
-						     
-						     dphi(0,in)*KXX(idf,jdf)*dphi(0,jn)
-						     +dphi(0,in)*KXY(idf,jdf)*dphi(1,jn)
-						     +dphi(1,in)*KYX(idf,jdf)*dphi(0,jn)
-						     +dphi(1,in)*KYY(idf,jdf)*dphi(1,jn)
-						     
-						     -dphi(0,in)*A(idf,jdf)*phi(jn)
-						     -dphi(1,in)*B(idf,jdf)*phi(jn)
-						     );
-	    
+			dphi(0,in)*KXX(idf,jdf)*dphi(0,jn)
+			+dphi(0,in)*KXY(idf,jdf)*dphi(1,jn)
+			+dphi(1,in)*KYX(idf,jdf)*dphi(0,jn)
+			+dphi(1,in)*KYY(idf,jdf)*dphi(1,jn)
+			
+			-dphi(0,in)*A(idf,jdf)*phi(jn)
+			-dphi(1,in)*B(idf,jdf)*phi(jn)
+			); 
 	  }
 	  ek(4*in+idf,4*jn+idf) += weight*phi(in,0)*phi(jn,0);
-        }
+	}
       }
     }
 }
 int TPZEuler::NStateVariables()  {
-    return 4;
+  return 4;
 }
 int TPZEuler::Dimension() {
-    return 2;
+  return 2;
 }
 TPZEuler::TPZEuler(TPZEuler & copy) : TPZMaterial(copy){
   fDeltaT = copy.fDeltaT;

@@ -9,6 +9,7 @@
 #include "pztrigraph.h"
 #include "pzgraphnode.h"
 #include "pzmaterial.h"
+#include "TPZCompElDisc.h"
 
 TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial *mat)
 {
@@ -244,21 +245,23 @@ void TPZGraphMesh::SetCompMesh(TPZCompMesh *mesh, TPZMaterial *mat){
 
 }
 
-TPZInterpolatedElement *TPZGraphMesh::FindFirstInterpolatedElement(TPZCompMesh *mesh, int dim){
+TPZCompEl *TPZGraphMesh::FindFirstInterpolatedElement(TPZCompMesh *mesh, int dim){
 
-	int nel = mesh->NElements();
-	TPZCompEl *cel;
-	int iel;
-	for(iel=0; iel<nel; iel++) {
-		cel = mesh->ElementVec()[iel];
-		if(!cel) continue;
-		TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-		if(intel) return intel;
-		TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
-		if(subcmesh) {
-			intel = FindFirstInterpolatedElement(subcmesh,dim);
-			if(intel) return intel;
-		}
-	}
-	return 0;
+  int nel = mesh->NElements();
+  TPZCompEl *cel;
+  int iel;
+  for(iel=0; iel<nel; iel++) {
+    cel = mesh->ElementVec()[iel];
+    if(!cel) continue;
+    TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(cel);
+    if(disc && disc->Reference()->Dimension() == dim) return disc;
+    TPZCompEl *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+    if(intel && intel->Reference()->Dimension() == dim) return intel;
+    TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
+    if(subcmesh) {
+      intel = FindFirstInterpolatedElement(subcmesh,dim);
+      if(intel) return intel;
+    }
+  }
+  return 0;
 }

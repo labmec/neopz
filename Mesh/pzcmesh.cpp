@@ -14,7 +14,8 @@
 #include "pzfmatrix.h"
 #include "pzblock.h"
 #include "pzelmat.h"
-
+#include "TPZCompElDisc.h"
+#include "TPZEulerConsLaw.h"
 #include "pztrnsform.h"
 #include "pztransfer.h"
 #include "pzavlmap.h"
@@ -939,6 +940,57 @@ void TPZCompMesh::Divide(int index,TPZVec<int> &subindex,int interpolate) {
   el->Divide(index,subindex,interpolate);
 }
 
+void TPZCompMesh::CoarsenDisc(TPZVec<int> &elements, int &index) {
+  int i,nelem = elements.NElements();
+  if(!nelem) {
+    index = -1;
+    return;
+  }
+
+  TPZGeoEl *father = 0;
+  TPZCompEl *cel = fElementVec[elements[0]];
+
+  if(!cel->IsInterpolated() ) {
+    index = -1;
+    return;
+  }
+
+  TPZCompElDisc *el;
+  el = (TPZCompElDisc *) fElementVec[elements[0]];
+  if(el) father = el->Reference()->Father();
+  if(!father) {
+    index = -1;
+    return;
+  }
+
+  for(i=1;i<nelem;i++) {
+    if(!fElementVec[elements[i]]) {
+      index = -1;
+      return;
+    }
+    TPZGeoEl *father2 = fElementVec[elements[i]]->Reference()->Father();
+    if(!father2 || father != father2) {
+      index = -1;
+      return;
+    }
+  }
+
+  if(nelem != father->NSubElements())
+    cout << "TPZCompEl::Coarsen : incomplete list of elements sons\n";
+
+  for(i=0; i<nelem; i++) {
+    el = (TPZCompElDisc *) fElementVec[elements[i]];
+    el->RemoveInterfaces();
+    el->Reference()->ResetReference();
+  }
+
+  for(i=0; i<nelem; i++) {
+    el = (TPZCompElDisc *) fElementVec[elements[i]];
+    delete el;
+  }
+  father->CreateCompEl(*this,index);
+}
+
 void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index) {
   int i,nelem = elements.NElements();
   if(!nelem) {
@@ -1584,4 +1636,65 @@ void TPZCompMesh::CopyMaterials(TPZCompMesh *mesh){
     mat->Clone(mesh->MaterialVec());
   }
 
+}
+
+
+REAL TPZCompMesh::MaxVelocityOfMesh(int nstate){
+
+  int nel = ElementVec().NElements(),i;
+  TPZManVector<REAL> density(1),sol(nstate),velocity(1);
+  REAL maxvel = 0.0,veloc,sound,press;
+  TPZVec<REAL> param(3,0.);
+  for(i=0;i<nel;i++){
+    TPZCompEl *com = ElementVec()[i];
+    if(!com) continue;
+    TPZMaterial *mat = com->Material();
+    TPZGeoEl *geo = com->Reference();
+    if(!mat || !geo){
+      cout << "TPZCompMesh::MaxVelocityOfMesh ERROR: null material or element\n";
+      continue;
+    }
+    int dim = mat->Dimension();
+    int dimel = geo->Dimension();
+    if(dimel != dim) continue;
+    geo->CenterPoint(geo->NSides()-1,param);//com->Solution(sol,j+100,sol2);
+    com->Solution(param,1,density);
+    if(density[0] < 0.0){
+      cout << "TPZCompMesh::MaxVelocityOfMesh minus density\n";
+    }
+    com->Solution(param,6,velocity);
+    com->Solution(param,5,sol);
+    TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
+    press = law->Pressure(sol);
+    if(press < 0.0){
+      cout << "TPZCompMesh::MaxVelocityOfMesh minus pressure\n";
+    }
+    sound = sqrt(law->Gamma()*press/density[0]);
+    veloc = veloc + sound;
+    if(veloc > maxvel) maxvel = veloc;
+  }
+  return maxvel;
+}
+
+REAL TPZCompMesh::DeltaX(){
+
+  int nel = ElementVec().NElements(),i,j;
+  if(nel == 0) cout << "\nTPZCompMesh::DeltaX nenhum elemento computacional foi criado\n";
+  REAL maxdist = 0.0,dist=0;
+  TPZVec<REAL> point0(3),point1(3);
+  TPZGeoNode *node0,*node1;
+  for(i=0;i<nel;i++){
+    TPZCompEl *com = ElementVec()[i];
+    if(!com) continue;
+    if(com->Type()==16 || com->Material()->Id() < 0) continue;
+    node0 = com->Reference()->NodePtr(0);
+    node1 = com->Reference()->NodePtr(1);
+    for(j=0;j<3;j++){
+      point0[j] = node0->Coord(j);
+      point1[j] = node1->Coord(j);
+    }
+    dist = TPZGeoEl::Distance(point0,point1);
+    if(dist > maxdist) maxdist = dist;
+  }
+  return dist;
 }

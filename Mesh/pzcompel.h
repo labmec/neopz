@@ -63,7 +63,7 @@ class TPZTransfer;
 //Cedric 30/03/00  //  0      1        2            3             4            5         6       7        8           9
 enum MElementType { EPoint, EOned, ETriangle, EQuadrilateral, ETetraedro, EPiramide, EPrisma,  ECube, EPolygonal, EInterface,
             		  EInterfacePoint, EInterfaceLinear, EInterfaceSurface, ESubstructure, EGlobLoc, EDiscontinous, EInterfaceDisc, ENoType };
-                     //        10               11                  12              13           14
+                     //        10               11                  12              13           14           15            16             17
 
 /*Anterior : enum MElementType { ENoType, EOned, ETriangle, EQuadrilateral, EPolygonal, EInterface,
 		    EInterfacePoint, EInterfaceLinear, EInterfaceSurface, ESubstructure };*/

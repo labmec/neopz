@@ -273,7 +273,6 @@ void TPZCompElQ2d::Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi) {
   TPZShapeQuad::ShapeQuad(x,id,ord,phi,dphi);
 }
 
-//Cedric 19/03/99
 void TPZCompElQ2d::SetIntegrationRule(int order) {
   TPZIntQuad intquad(order,order);
   SetIntegrationRule(intquad);

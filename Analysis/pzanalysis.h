@@ -10,6 +10,7 @@ class TPZSolver;
 class TPZMatrixSolver;
 class TPZCompEl;
 class TPZGraphMesh;
+class TPZMaterial;
 #include "pzvec.h"
 #include "pzadmchunk.h"
 #include <iostream>
@@ -143,7 +144,7 @@ class TPZAnalysis {
   /**
    *Returns the solution matrix
    **/
-  TPZFMatrix &Solution() { return fSolution;}//Cedric 11/04/99
+  TPZFMatrix &Solution() { return fSolution;}
 
   /**
    *Returns the pointer to the computational mesh
@@ -202,6 +203,10 @@ class TPZAnalysis {
   void SetSolver(TPZMatrixSolver &solver);
 
   void SetStructuralMatrix(TPZStructMatrix &strmatrix);
+
+  void IterativeProcess(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha=1,int resolution=0);
+
+  void IterativeProcessTest(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha,int resolution=0);
 };
 
 

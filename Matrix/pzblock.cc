@@ -417,7 +417,25 @@ TPZBlock::Print(const char *title, TPZostream &out,TPZMatrix *mat) {
   SetMatrix( sol);
 }
 
+/*************/
+/*** Print ***/
+void
+TPZBlock::PrintSolution(const char *title, TPZostream &out) {
+  TPZMatrix *sol=fpMatrix;
 
+  char block_title[32];
+
+  out << title << ":";
+  for ( int bRow = 0; bRow < fMaxBlocks; bRow++ )
+      {
+	out << "\n";
+	sprintf( block_title, "Block (%d,%d) of %dX%d:", bRow, 0,
+		 fBlock[bRow].dim,fBlock[0].dim );
+	PrintBlock(bRow,0,block_title,out);
+      }
+  out << "\n";
+  SetMatrix( sol);
+}
 
 /*************************** Private ***************************/
 

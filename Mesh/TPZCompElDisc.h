@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef ELCC3DDISCHPP
-#define ELCC3DDISCHPP
+#ifndef ELCOMPDISCHPP
+#define ELCOMPDISCHPP
 
 #include <iostream>
 using namespace std;
@@ -110,10 +110,10 @@ protected:
 
   /**
    * CalcStiff computes the element stiffness matrix and right hand side
-   * param ek element matrix
-   * param ef element right hand side
+   * @param ek element matrix
+   * @param ef element right hand side
    */
-  void CalcStiffDisc(TPZFMatrix &ek, TPZFMatrix &ef);
+  virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
   /**
    * value of the bases and derivatives of the element deformed in point X 
@@ -162,7 +162,7 @@ protected:
    */
   virtual void SetDegree(int degree) {fDegree = degree;}
 
-  int NConnects() { return 1;}
+  int NConnects();
 
   /**
    * amount of vertices of the element 
@@ -209,31 +209,44 @@ protected:
    * @return 0 if the element is not interpolated
    */
   virtual int IsInterpolated() {return 1;}
-  
+
+  REAL SizeOfElement();
+
+  /**
+   * Creates corresponding graphical element(s) if the dimension matches
+   * graphical elements are used to generate output files
+   * @param graphmesh graphical mesh where the element will be created
+   * @param dimension target dimension of the graphical element
+   */
+  void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
+
+  /**
+   * Calculates the solution - sol - for the variable var
+   * at point qsi, where qsi is expressed in terms of the
+   * master element coordinates
+   * @param qsi master element coordinate
+   * @param var variable name
+   * @param sol vetor for the solution
+   */
+  virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
 };
 
 inline TPZCompEl *TPZCompElDisc::CreateC3Disc(TPZGeoElC3d *geo, TPZCompMesh &mesh, int &index) {
   //  TPZGeoEl *cop = geo;
   return new TPZCompElDisc(mesh,(TPZGeoEl *) geo,index);
 }
-
 inline TPZCompEl *TPZCompElDisc::CreateT3Disc(TPZGeoElT3d *geo, TPZCompMesh &mesh, int &index) {
   return new TPZCompElDisc(mesh,(TPZGeoEl *) geo,index);
 }
-
 inline TPZCompEl *TPZCompElDisc::CreatePi3Disc(TPZGeoElPi3d *geo, TPZCompMesh &mesh, int &index) {
   return new TPZCompElDisc(mesh,(TPZGeoEl *) geo,index);
 }
-
 inline TPZCompEl *TPZCompElDisc::CreatePr3Disc(TPZGeoElPr3d *geo, TPZCompMesh &mesh, int &index) {
   return new TPZCompElDisc(mesh,(TPZGeoEl *) geo,index);
 }
-
 inline TPZCompEl *TPZCompElDisc::CreateQ2Disc(TPZGeoElQ2d *geo, TPZCompMesh &mesh, int &index) {
   return new TPZCompElDisc(mesh,(TPZGeoEl *) geo,index);
 }
-//Acessar com -> TPZGeoElXXd::SetCreateFunction(createCompXXDisc);
-
 inline TPZCompEl *TPZCompElDisc::CreateT2Disc(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index) {
   return new TPZCompElDisc(mesh,(TPZGeoEl *)geo,index);
 }
@@ -243,4 +256,5 @@ inline TPZCompEl *TPZCompElDisc::Create1dDisc(TPZGeoEl1d *geo, TPZCompMesh &mesh
 inline TPZCompEl *TPZCompElDisc::CreatePointDisc(TPZGeoElPoint *geo, TPZCompMesh &mesh, int &index) {
   return new TPZCompElDisc(mesh,(TPZGeoEl *)geo,index);
 }
+//Acessar com -> TPZGeoElXXd::SetCreateFunction(createCompXXDisc);
 #endif

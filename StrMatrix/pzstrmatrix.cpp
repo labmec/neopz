@@ -32,10 +32,12 @@ TPZStructMatrix *TPZStructMatrix::Clone() {
   return 0;
 }
 
+ofstream out("MATRIZES.out");
 void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
 
   int iel;
-  int numel = 0, nelem = fMesh->NElements();
+  //int numel = 0;
+  int nelem = fMesh->NElements();
   TPZElementMatrix ek,ef;
   TPZManVector<int> destinationindex(0);
   TPZManVector<int> sourceindex(0);
@@ -50,14 +52,17 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
   for(iel=0; iel < nelem; iel++) {
     TPZCompEl *el = elementvec[iel];
     if(!el) continue;
-    //		int dim = el->NumNodes();
+    //	  int dim = el->NumNodes();
     el->CalcStiff(ek,ef);
-      //ek.fMat->Print(out);
-    //ef.fMat->Print();
-/*    if(!(numel%20)) cout << endl << numel;   //Jorge 8/7/2001
-//    cout << '*';
-//	cout.flush(); */
-    numel++;
+    if( nelem < 34 || (nelem > 33 && iel < 33) ){
+      out << "Elemento : " << el->Reference()->Id() << endl;
+      ek.fMat->Print("MATRIZ EK",out);
+      ef.fMat->Print("VETOR  EF",out);
+    }
+    //    if(!(numel%20)) cout << endl << numel;
+    //    cout << '*';
+    //    cout.flush();
+    //    numel++;
 
     if(!el->HasDependency()) {
       //ek.fMat->Print("stiff has no constraint",test);
@@ -123,7 +128,12 @@ if(ek.fConstrMat->Decompose_LU() != -1) {
 */
     }
   }//fim for iel
-//  cout << endl;
+//
+  int neq = rhs.Rows();
+  if(nelem < 34 && neq < 100){
+    stiffness.Print("TPZStructMatrix::Assemble MATRIZ GLOBAL (depois de Assemble)",out);
+    rhs.Print("TPZStructMatrix::Assemble CARGA GLOBAL (depois de Assemble)",out);
+  }
 }
 
 TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh){

@@ -465,6 +465,8 @@ public:
    */
   void Coarsen(TPZVec<int> &elements, int &index);
 
+  void CoarsenDisc(TPZVec<int> &elements, int &index);
+
   /**
    * Will refine the elements associated with a boundary condition till there are
    * no elements constrained by boundary condition elements 
@@ -500,6 +502,10 @@ public:
    * Copies the materials of this mesh to the given mesh
    */
   void CopyMaterials(TPZCompMesh *mesh);
+
+  REAL MaxVelocityOfMesh(int nstate);
+
+  REAL DeltaX();
 };
 
 

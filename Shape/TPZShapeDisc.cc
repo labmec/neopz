@@ -13,10 +13,12 @@ TPZShapeDisc::TPZShapeDisc(){
 
 void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
 
+  if(degree < 0){
+    PZError << "TPZShapeDisc::Polynomial the degree of the polynomial cannot be minus, aborting\n";
+    exit(-1);
+  }
   phi.Redim(degree+1,1);
   dphi.Redim(1,degree+1);
-
-  if(degree < 0) return;
   //grau zero ou constante
   phi.Put(0,0,1.0);
   dphi.Put(0,0, 0.0);
@@ -38,6 +40,17 @@ void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,T
   }
 }
 
+void  TPZShapeDisc::Shape0D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
+
+  if(degree < 0){
+    PZError << "TPZShapeDisc::Polynomial the degree of the polynomial cannot be minus, aborting\n";
+    exit(-1);
+  }
+  int cap = degree+1;
+  phi.Redim(cap,1);
+  for(int i=0;i<cap;i++) phi.PutVal(i,0,1.0);//fun¢ão unitária
+  dphi.Redim(0,0);//não existe a derivada em um ponto: dimensão nula
+}
 
 void  TPZShapeDisc::Shape1D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
 

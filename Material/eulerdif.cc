@@ -228,8 +228,9 @@ void TEulerDiffusivity::InvJacob2d(TPZFMatrix &axes,TPZFMatrix &jacinv) {
   jacinv(1,1) = tmp[1][1];
 }
 
-void TEulerDiffusivity::MatrixDiff(TPZVec<REAL> &sol,TPZFMatrix &axes, TPZFMatrix &jacinv,TPZFMatrix
-&ATauA,TPZFMatrix &ATauB,TPZFMatrix &BTauA,TPZFMatrix &BTauB) {
+void TEulerDiffusivity::MatrixDiff(TPZVec<REAL> &sol,TPZFMatrix &axes, TPZFMatrix &jacinv,
+				   TPZFMatrix &ATauA,TPZFMatrix &ATauB,TPZFMatrix &BTauA,
+				   TPZFMatrix &BTauB) {
 
   //Computando o jacobiano da transformacao do elemento mestre ao elemento triangular
   InvJacob2d(axes,jacinv);

@@ -178,6 +178,7 @@ class TPZBlock
   //Imprime todos os blocos da matriz
   void Print(const char *title = "",TPZostream &out = cout,TPZMatrix *mat=NULL);
 
+  void PrintSolution(const char *title, TPZostream &out);
 
   //retorna o numero maximo de blocos na diagonal
   /**
