@@ -51,7 +51,7 @@ int main()
    //TPZBandStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
 
-   An.SetNewtonCriteria(1e-9, 10);
+   An.SetNewtonCriteria(1e-9, 1);
    An.SetTimeIntCriteria(1e-8,100);
 
    // Creating the solver for the linearized systems
