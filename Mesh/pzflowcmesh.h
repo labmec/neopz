@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.h,v 1.10 2004-05-21 13:35:15 erick Exp $
+//$Id: pzflowcmesh.h,v 1.11 2004-05-25 12:58:56 erick Exp $
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -117,7 +117,10 @@ public:
   */
   virtual void Read(TPZStream &buf, void *context);
 
-
+  /**
+   * Adapt the solution vector to new block dimensions
+   */
+  virtual void ExpandSolution2();
 
 protected:
 

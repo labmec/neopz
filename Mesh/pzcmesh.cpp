@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.30 2004-05-10 13:14:55 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.31 2004-05-25 12:58:48 erick Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -223,11 +223,28 @@ void TPZCompMesh::ExpandSolution() {
   int ibl,nblocks = fBlock.NBlocks();
   
   TPZFMatrix OldSolution(fSolution);
-  
+
   int cols = fSolution.Cols();
   fSolution.Redim(fBlock.Dim(),cols);
   int minblocks = nblocks < fSolutionBlock.NBlocks() ? nblocks : fSolutionBlock.NBlocks();
-
+/*
+  int ic;
+  for(ic=0; ic<cols; ic++) {
+     for(ibl = 0;ibl<minblocks;ibl++) {
+       int oldsize = fSolutionBlock.Size(ibl);
+       int oldposition = fSolutionBlock.Position(ibl);
+       int newsize = fBlock.Size(ibl);
+       int newposition = fBlock.Position(ibl);
+       int minsize = (oldsize < newsize) ? oldsize : newsize;
+       int ieq;
+       int offset = 0;
+       if(Discontinuous)offset = newsize - oldsize;
+       for(ieq=0; ieq<minsize; ieq++) {
+         fSolution(newposition+ieq+offset,ic) = OldSolution(oldposition+ieq,ic);
+       }
+     }
+  }
+*/
   int ic;
   for(ic=0; ic<cols; ic++) {
      for(ibl = 0;ibl<minblocks;ibl++) {
@@ -246,7 +263,7 @@ void TPZCompMesh::ExpandSolution() {
 }
 
 void TPZCompMesh::LoadSolution(TPZFMatrix &mat){
-  
+
   int nrow = mat.Rows();
   int ncol = mat.Cols();
   int i,j;
@@ -1971,7 +1988,7 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
   fSolution.Write(buf,0);
   fSolutionBlock.Write(buf,0);
   fBlock.Write(buf,0);
-  
+
 }
   
   /**
@@ -1984,7 +2001,7 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
   buf.Read(&fName,1);
   buf.Read(&fDimModel,1);
   ReadObjects<TPZConnect>(buf,fConnectVec,0);
-  ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,0);
+  ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,this);
   ReadObjectPointers<TPZCompEl>(buf,fElementVec,this);
   fSolution.Read(buf,0);
   fSolutionBlock.Read(buf,&fSolution);

@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.cpp,v 1.10 2004-05-21 13:35:15 erick Exp $
+//$Id: pzflowcmesh.cpp,v 1.11 2004-05-25 12:58:55 erick Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
@@ -209,3 +209,51 @@ void TPZFlowCompMesh::Read(TPZStream &buf, void *context)
    CollectFluidMaterials();
 }
 
+
+void TPZFlowCompMesh::ExpandSolution2()
+{
+   int nFluid = fFluidMaterial.NElements();
+
+   if(nFluid != 1)
+   {
+      PZError << "\nTPZFlowCompMesh::ExpandSolution - Wrong number of fluid materials\n";
+   }
+
+   int nstate = fFluidMaterial[0]->NStateVariables();
+
+   fBlock.Resequence();
+   int ibl,nblocks = fBlock.NBlocks();
+
+   int ic, cols = fSolution.Cols();
+   for(ic=0; ic<cols; ic++) {
+      for(ibl = 0;ibl<nblocks;ibl++) {
+         int size = fSolutionBlock.Size(ibl);
+         int position = fSolutionBlock.Position(ibl);
+	 int lastStatePos = position + size - nstate;
+         int ieq;
+	 double temp;
+         for(ieq=0; ieq<nstate; ieq++) {
+            temp = fSolution(position+ieq,ic);
+            fSolution(position+ieq,ic) = fSolution(lastStatePos+ieq,ic);
+	    fSolution(lastStatePos+ieq,ic) = temp;
+         }
+      }
+   }
+
+   TPZCompMesh::ExpandSolution();
+
+   for(ic=0; ic<cols; ic++) {
+      for(ibl = 0;ibl<nblocks;ibl++) {
+         int size = fSolutionBlock.Size(ibl);
+         int position = fSolutionBlock.Position(ibl);
+	 int lastStatePos = position + size - nstate;
+         int ieq;
+	 double temp;
+         for(ieq=0; ieq<nstate; ieq++) {
+            temp = fSolution(position+ieq,ic);
+            fSolution(position+ieq,ic) = fSolution(lastStatePos+ieq,ic);
+	    fSolution(lastStatePos+ieq,ic) = temp;
+         }
+      }
+   }
+}

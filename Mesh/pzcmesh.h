@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.18 2004-04-26 20:58:12 phil Exp $
+//$Id: pzcmesh.h,v 1.19 2004-05-25 12:58:48 erick Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -80,7 +80,7 @@ protected:
   TPZFMatrix	fSolution;
   
   /**
-   * Block structure to right construction of the 
+   * Block structure to right construction of the
    * stiffness matrix and load vector
    */
   TPZBlock		fBlock;
@@ -262,7 +262,7 @@ public:
   /**
    * Adapt the solution vector to new block dimensions
    */
-  void ExpandSolution();
+  virtual void ExpandSolution();
 
   /**
    * Create degree of freedom boundary conditions
