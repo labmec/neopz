@@ -1,4 +1,4 @@
-//$Id: pzcheckrestraint.cpp,v 1.6 2003-11-25 17:58:29 cesar Exp $
+//$Id: pzcheckrestraint.cpp,v 1.7 2004-03-01 21:55:52 cesar Exp $
 
 #include "pzcheckrestraint.h"
 #include "pzintel.h"
@@ -106,6 +106,9 @@ void TPZCheckRestraint::AddConnect(int connectindex) {
     }
   } else {
     TPZConnect::TPZDepend *depend = smallc.FirstDepend();
+    if(!depend) {
+      cout << "TPZCheckRestraint::AddConnect data structure error 1\n";
+    }
     while(depend) {
       AddDependency(connectindex,depend->fDepConnectIndex,depend->fDepMatrix);
       depend = depend->fNext;
