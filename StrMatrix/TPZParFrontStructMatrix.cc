@@ -195,6 +195,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
      
       
   }//fim for iel
+  return NULL;
 
 }
 
