@@ -84,7 +84,8 @@
 #include <string.h>
 #include <math.h>
 using namespace std;
-
+void ComputeSolution(TPZAnalysis &an,TPZMaterial *mat,ofstream &out,int numiter);
+static TPZMulticamadaOrthotropic *multcam;
 
 /**
  * -> PROGRAMA PRINCIPAL <- -> PROGRAMA PRINCIPAL <- -> PROGRAMA PRINCIPAL <- -> PROGRAMA PRINCIPAL <-
@@ -103,9 +104,9 @@ int main(){
        << "dy " << dy << "\n"
        << "nelx " << nelx << "\n"
        << "nely " << nely << "\n";
-  //cin >> dx >> dy >> nelx >> nely;
+  cin >> dx >> dy >> nelx >> nely;
 
-  TPZMulticamadaOrthotropic *multcam = new TPZMulticamadaOrthotropic(zmin,dx,dy,nelx,nely);
+  multcam = new TPZMulticamadaOrthotropic(zmin,dx,dy,nelx,nely);
   TPZMatOrthotropic *orto;
 
   //criando objeto para a classe material
@@ -120,7 +121,7 @@ int main(){
   naxes(1,0) =  0.0;    naxes(1,1) =  1.0;    naxes(1,2) =  0.0;
   naxes(2,0) =  0.0;    naxes(2,1) =  0.0;    naxes(2,2) =  1.0;
   REAL Elast = 100.0;
-  REAL nu = 0.2;
+  REAL nu = 0.3;
   REAL eppx = Elast;
   REAL eppy = Elast;
   REAL eppz = Elast;
@@ -133,8 +134,8 @@ int main(){
 
   orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
   multcam->AddPlacaOrtho(orto,0.2);
-  if(0){
-    Elast = 200.;
+  
+    Elast = 100.0; // if(0){
     eppx = Elast;
     eppy = Elast;
     eppz = Elast;
@@ -145,38 +146,99 @@ int main(){
     gyz = Elast/(2.*(1.+nu));
     gzx = Elast/(2.*(1.+nu));
     orto = new TPZMatOrthotropic(numat+1, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-    multcam->AddPlacaOrtho(orto,0.1);
-  }
+    multcam->AddPlacaOrtho(orto,0.2);
+  
 
   multcam->GenerateMesh();
 
   ofstream out("QX2.out");
 
-  multcam->SetQX(1.);
+  multcam->SetQY(1.);
+  //multcam->SetQY(2.5);
 
   //    multcam->GeoMesh()->Print(out);
   //    multcam->CompMesh()->Print(out);
   out.flush();
 
-  int niter = 20;
-  int it;
+  int niter = 20;//,it;
   cout << "Numero de iterações" << endl;
   cin >> niter;
 
-  TPZFMatrix tensin(5,9,0.),tensout(5,9);
+  //TPZFMatrix tensin(5,9,0.),tensout(5,9);
 
-  for(it=0; it<niter; it++) {
+  orto->Print(out);
 
-    multcam->ComputeSolution(out,0);
-    multcam->ComputeCenterForces();
-    multcam->PrintCenterForces(out);
-    multcam->PrintTensors(out);
-    //multcam->PrintTensors(out,tensin,tensout);
-    tensin = tensout;
-  }
+//   TPZCompMesh *cmesh = multcam->CompMesh();
+//   TPZAnalysis an(cmesh);
+//   TPZSkylineStructMatrix skyl(cmesh);
+//   an.SetStructuralMatrix(skyl);
+//   TPZStepSolver solve;
+//   solve.SetDirect(ELDLt);
+//   an.SetSolver(solve);
+//   an.Solution().Zero();
+//  ComputeSolution(an,orto,out,niter);//local
+
+
+  multcam->ComputeSolution(orto,out,niter);
+
+//   for(it=0; it<niter; it++) {
+
+//     multcam->ComputeSolution(out,0);
+//     multcam->ComputeCenterForces();
+//     multcam->PrintCenterForces(out);
+//     multcam->PrintTensors(out);
+//     //multcam->PrintTensors(out,tensin,tensout);
+//     //tensin = tensout;
+//   }
 
   out.close();
 
   return 0;
 }
 
+//POR FUTURAMENTE NA CLASSE TPZPlacaOrthotropic
+void ComputeSolution(TPZAnalysis &an,TPZMaterial *mat,ofstream &out,int numiter){
+
+  TPZVec<char *> scalar(3),vector(0);
+  scalar[0] = "SigX";
+  scalar[1] = "SigY";
+  scalar[2] = "TauXY";
+
+  TPZCompMesh *cmesh = an.Mesh();
+  int dim = mat->Dimension();
+  TPZDXGraphMesh graph(cmesh,dim,mat,scalar,vector);
+  ofstream *dxout = new ofstream("MultCam.dx");
+  cout << "\nmain::ComputeSolution out file : MultCam.dx\n";
+  graph.SetOutFile(*dxout);
+  int resolution = 0;
+  graph.SetResolution(resolution);
+  graph.DrawMesh(dim);
+  int iter = 0,draw=0;
+  an.Solution().Zero();
+  an.Run();
+  multcam->ComputeCenterForces();
+  multcam->PrintCenterForces(out);
+  multcam->PrintTensors(out);
+  cout << "Iteracao = " << ++iter << endl;
+  an.LoadSolution();
+  REAL time = 0.0;
+  graph.DrawSolution(draw++,time);
+  dxout->flush();
+
+  while(iter < numiter) {
+
+    an.Solution().Zero();
+    an.Run();
+    multcam->ComputeCenterForces();
+    multcam->PrintCenterForces(out);
+    multcam->PrintTensors(out);
+    an.LoadSolution();
+    time += 0.1;
+    graph.DrawSolution(draw++,time);
+    dxout->flush();
+    cout << "Iteracao = " << ++iter << endl;
+  }
+  out.flush();
+  dxout->flush();
+  an.LoadSolution();
+}
