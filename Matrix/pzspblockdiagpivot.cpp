@@ -33,6 +33,7 @@ int TPZSpBlockDiagPivot::Decompose_LU(){
   this->fPivotIndices.Fill( -1 );
 #endif
   TPZManVector<int> pivot;
+  int pivotindex = 0;
   const int nb = fBlockSize.NElements();
   for(int b = 0; b < nb; b++) {
     const int pos = fBlockPos[b];
@@ -41,10 +42,11 @@ int TPZSpBlockDiagPivot::Decompose_LU(){
     TPZFMatrix temp(bsize,bsize,&fStorage[pos],bsize*bsize);
     temp.Decompose_LU(pivot);
     for(int id = 0; id < bsize; id++){
-      this->fPivotIndices[pos+id] = pivot[id];
+      this->fPivotIndices[pivotindex + id] = pivot[id];
     }
+    pivotindex += bsize;
   }
-  fDecomposed = ELU;
+  fDecomposed = ELUPivot;
 #ifdef DEBUG
   {
     int n = this->fPivotIndices.NElements();
@@ -80,6 +82,7 @@ int TPZSpBlockDiagPivot::Substitution2( TPZFMatrix *B) const
   int c, nc = B->Cols();
   for(c=0; c<nc; c++) {
     eq = 0;
+    int pivotindex = 0;
     for(b=0;b<nb; b++) {
       const int pos = fBlockPos[b];
       const int bsize = fBlockSize[b];
@@ -88,9 +91,11 @@ int TPZSpBlockDiagPivot::Substitution2( TPZFMatrix *B) const
       temp.SetIsDecomposed(ELUPivot);
       TPZFMatrix BTemp(bsize,1,&(B->operator()(eq,c)),bsize);
       pivot.Resize(bsize);
+//      memcpy(&pivot[0],&fPivotIndices[pivotindex],bsize*sizeof(int));
       for(int id = 0; id < bsize; id++){
-        pivot[id] = this->fPivotIndices[pos+id];
-      }     
+        pivot[id] = this->fPivotIndices[pivotindex+id];
+      }
+      pivotindex += bsize;
       temp.Substitution(&BTemp, pivot);
       eq+= bsize;
     }
