@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.22 2004-02-06 22:42:32 erick Exp $
+dnl $Id: configure.in,v 1.23 2004-02-10 14:40:09 tiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -467,6 +467,7 @@ dnl --| Projects subtree |--
 	Projects/materialhyperelastico/Makefile \
 	Projects/matrix/Makefile \
 	Projects/multplaca/Makefile \
+	Projects/multicamada/Makefile \
 	Projects/placyl/Makefile \
 	Projects/pzvc/Makefile \
 	Projects/qualif/Makefile \
