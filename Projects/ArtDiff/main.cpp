@@ -147,10 +147,10 @@ int main()
    //creating data
    sol.Resize(5);
    sol[0] = 1.1;
-   sol[1] = 3.4;
+   sol[1] = 5.4;
    sol[2] = 2.7;
    sol[3] = 4.9;
-   sol[4] = 20.;
+   sol[4] = 2800.;
 
 
 #ifdef Using_FAD
@@ -234,6 +234,18 @@ int main()
    cout << "Yi" << Yi << endl;
    Y.Multiply(Yi, Temp);
    cout << "Y.Yi" << Temp << endl;
+
+
+   BornhausCompl.Redim(sol.NElements(), sol.NElements());
+   TPZArtDiff::ContributeBornhaus(sol, us, c, 1.4, aaS, BornhausCompl);
+   Y. Multiply(LambdaB, Temp);
+   Temp.Multiply(Yi, Temp2);
+   Temp2.Add(BornhausCompl, -1.);
+   cout << "BornhausCompl" << endl;
+   cout << BornhausCompl << endl;
+   cout << "Y.Lambda.Yi - BornhausCompl" << endl;
+   cout << Temp2<< endl;
+
  }
 }
 
