@@ -171,7 +171,6 @@ void TPZArtDiff::Divergent(TPZFMatrix &dsol,
 // dDiv/dUj += (dA/dU.dU/dx).dU/dUj +
 //             (dB/dU.dU/dy).dU/dUj +
 //             (dC/dU.dU/dz).dU/dUj
-//Tem algum erro daqui para baixo
    TPZVec<T> ADiv(nstate);
    T temp;
    for( k = 0; k < dim; k++)
