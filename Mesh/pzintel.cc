@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cc,v 1.14 2003-11-10 00:58:28 phil Exp $
+// $Id: pzintel.cc,v 1.15 2003-11-25 12:56:07 cesar Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -19,6 +19,8 @@
 #include "pzblockdiag.h"
 #include "pzcheckrestraint.h"
 #include "pzdebug.h"
+
+#include "pzcheckmesh.h"
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int &index) :
   TPZCompEl(mesh,index) {
@@ -179,6 +181,8 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
   TPZCompElSide thisside(this,side);
   TPZCompElSide large = thisside.LowerLevelElementList(1);
   int sideorder = SideOrder(side);
+  int dimension = Reference()->SideDimension(side);
+  if(dimension == 0) sideorder = -1;
   int neworder;
   int orderchanged = 0;
   TPZStack<TPZCompElSide> elvec;
@@ -201,19 +205,23 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
       RemoveSideRestraintWithRespectTo(side,large);
       cap = elvec.NElements();
       for(il = 0; il<cap; il++) {
-	equal = (TPZInterpolatedElement *) elvec[il].Element();
-	equalside = elvec[il].Side();
-	if(equal->ConnectIndex(equalside) != -1) {
-	  equal->SetSideOrder(equalside,neworder);
-	}
+        equal = (TPZInterpolatedElement *) elvec[il].Element();
+        equalside = elvec[il].Side();
+        if(equal->ConnectIndex(equalside) != -1) {
+          equal->SetSideOrder(equalside,neworder);
+        }
       }
       if(largel->ConnectIndex(large.Side()) != -1) {
-	RestrainSide(side,largel,large.Side());
+        RestrainSide(side,largel,large.Side());
       }
     }
   } else {
     // There is no larger element connected to the side
     // identify the new side order by comparing the orders of the equal level elements
+    if(Connect(side).HasDependency()) {
+      cout << "TPZInterpolatedElement SetSideOrder fodeu\n";
+      large = thisside.LowerLevelElementList(1);
+    }
     neworder = ComputeSideOrder(elvec);
     // Verify is the side order of all elements is equal to neworder
     cap = elvec.NElements();
@@ -223,9 +231,17 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
       equalside = elvec[il].Side();
       int equalorder = equal->SideOrder(equalside);
       if(equalorder != neworder) {
-	orderchanged = 1;
+        orderchanged = 1;
       }
       il++;
+    }
+    cap = elvec.NElements();
+    for(il=0; il<cap; il++) {
+      equal = (TPZInterpolatedElement *) elvec[il].Element();
+      equalside = elvec[il].Side();
+      if(equal->ConnectIndex(equalside) != -1) {
+        equal->SetSideOrder(equalside,neworder);
+      }
     }
   }
   if(orderchanged == 1) {//Cedric :  || neworder != computorder
@@ -236,21 +252,12 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
 
     //    elvec.Resize(0);
     //    thisside.EqualLevelElementList(elvec,1,0);
-    elvec.Push(thisside);
-    cap = elvec.NElements();
-    for(il=0; il<cap; il++) {
-      equal = (TPZInterpolatedElement *) elvec[il].Element();
-      equalside = elvec[il].Side();
-      if(equal->ConnectIndex(equalside) != -1) {
-	equal->SetSideOrder(equalside,neworder);
-      }
-    }
     // Put the accumulated higher dimension sides in highdim (neighbours will not be included because of the third parameter)
     // The higher dimension sides are only analysed for one dimensional sides
     TPZStack<TPZCompElSide> highdim;
     if(thisside.Reference().Dimension() == 1) {
       for(il=0; il<cap; il++) {
-	elvec[il].HigherDimensionElementList(highdim,1,1);
+        elvec[il].HigherDimensionElementList(highdim,1,1);
       }
     }
 
@@ -563,8 +570,8 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
       newnodeindex = cmesh->AllocateNewConnect();
       TPZConnect &newnod = cmesh->ConnectVec()[newnodeindex];
       if(newnod.HasDependency()) {
-	cout << "TPZInterpolatedElement::CreateMidSideConnect, new node has dependency\n";
-	newnod.Print(*cmesh);
+        cout << "TPZInterpolatedElement::CreateMidSideConnect, new node has dependency\n";
+        newnod.Print(*cmesh);
       }
       int seqnum = newnod.SequenceNumber();
       newnod.SetOrder(TPZCompEl::gOrder);
@@ -573,10 +580,10 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
       // We created a new node, check whether the node needs to be constrained
       TPZCompElSide father = thisside.LowerLevelElementList(1);
       if(father.Exists()) {
-      	int side_neig = father.Side();
-      	TPZInterpolatedElement *cel = (TPZInterpolatedElement *) father.Element();
-	newnod.SetOrder(cel->SideOrder(side_neig));
-      	RestrainSide(side,cel,side_neig);
+        int side_neig = father.Side();
+        TPZInterpolatedElement *cel = (TPZInterpolatedElement *) father.Element();
+        newnod.SetOrder(cel->SideOrder(side_neig));
+        RestrainSide(side,cel,side_neig);
       }
     }
     return newnodeindex;
@@ -634,10 +641,18 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 	cel->RestrainSide(elvec[il].Side(),this,side);
       }
     }
+  } else if(father.Exists() && ! newnodecreated){
+    side_neig = father.Side();
+    TPZInterpolatedElement *elfather = (TPZInterpolatedElement *) father.Element();
+    int sideorder = elfather->SideOrder(side_neig);
+    SetSideOrder(side,sideorder);
   } else if(!father.Exists() && !newnodecreated){
     // The element does not have a larger element connected along the side
     // The insertion of the new element may have an effect on the interpolation
     // order of all equal level elements which are connected
+    if(Connect(side).HasDependency()) {
+      cout << "TPZInterpolatedElement fodeu side " << side << endl;
+    }
     elvec.Resize(0);
     thisside.EqualLevelElementList(elvec,1,0);
     int oldorder = -1;
@@ -746,10 +761,10 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     large->SideShapeFunction(neighbourside,pointl,phil,dphil);
     for(in=0; in<numshape; in++) {
       for(jn=0; jn<numshape; jn++) {
-	M(in,jn) += phis(in,0)*phis(jn,0)*weight;
+        M(in,jn) += phis(in,0)*phis(jn,0)*weight;
       }
       for(jn=0; jn<numshapel; jn++) {
-	MSL(in,jn) += phis(in,0)*phil(jn,0)*weight;
+        MSL(in,jn) += phis(in,0)*phil(jn,0)*weight;
       }
     }
   }
@@ -797,7 +812,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     if(blocknorm(in,jn) < 1.e-8) continue;
     int jnodindex = large->SideConnectIndex(jn,neighbourside);
     inod.AddDependency(inodindex,jnodindex,MSL,MBlocksmall.Position(in),MBlocklarge.Position(jn),
-		       MBlocksmall.Size(in),MBlocklarge.Size(jn));
+                       MBlocksmall.Size(in),MBlocklarge.Size(jn));
     ndepend++;
   }
 
@@ -806,7 +821,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     for(jn = 0; jn<numsidenodes_large; jn++) {
       int jnodindex = large->SideConnectIndex(jn,neighbourside);
       inod.AddDependency(inodindex,jnodindex,MSL,MBlocksmall.Position(in),MBlocklarge.Position(jn),
-			 MBlocksmall.Size(in),MBlocklarge.Size(jn));
+      MBlocksmall.Size(in),MBlocklarge.Size(jn));
       ndepend++;
     }    
   }
@@ -824,7 +839,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
   
   if (rtest!=rmsl || ctest!=cmsl){
     cout << "TPZInterpolatedElement::Error::Restraint matrix side incompatibility: MSL (rows,cols): ( " << rmsl 
-	 << " , " << cmsl << " )" << " RestraintMatrix (rows,cols): (" << rtest << " , "  << ctest << " )\n";
+         << " , " << cmsl << " )" << " RestraintMatrix (rows,cols): (" << rtest << " , "  << ctest << " )\n";
     int a;
     cin >> a;
     return;
@@ -844,15 +859,16 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     mslc.Print("Difference Matrix ",cout);
     for (imsl=0; imsl<rmsl; imsl++){
       for (jmsl=0; jmsl<cmsl; jmsl++){
-	if (fabs(MSL(imsl,jmsl) - test.RestraintMatrix()(imsl,jmsl)) > 1.E-6){
-	  cout << "msl[ " << imsl << " , " << jmsl << " ] = " << MSL(imsl,jmsl) << "\t " << test.RestraintMatrix()(imsl,jmsl) << endl;
-	}
+        if (fabs(MSL(imsl,jmsl) - test.RestraintMatrix()(imsl,jmsl)) > 1.E-6){
+          cout << "msl[ " << imsl << " , " << jmsl << " ] = " << MSL(imsl,jmsl) << "\t "
+               << test.RestraintMatrix()(imsl,jmsl) << endl;
+        }
       }
-    }    int a;
+    }
+    int a;
     gDebug = 1;
     cin >> a;
   }
-	
       
   // verificar a norma de MSL
   if(test.CheckRestraint()) {
@@ -864,7 +880,6 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     test.Diagnose();
     TPZCheckRestraint test2(thisside,largecompside);
   }
-  
 }
 
 void TPZInterpolatedElement::CheckConstraintConsistency() {
@@ -878,6 +893,19 @@ int TPZInterpolatedElement::CheckElementConsistency(){
   int dimel = Dimension();
   int iside;
   int a;
+  int nstate = 1;
+  nstate = Material()->NStateVariables();
+
+  for(iside=0; iside<NConnects(); iside++) {
+    int nshape = NConnectShapeF(iside);
+    if(Connect(iside).CheckDependency(nshape, Mesh(), nstate) == -1){
+      cout << "TPZInterpolatedElement::CheckElementConsistency detected inconsistency 1\n";
+    }
+    if(Connect(iside).NDof(*Mesh()) != nshape*nstate) {
+      cout << "TPZInterpolatedElement::CheckElementConsistency detected inconsistency 2\n";
+    }
+
+  }
   for (iside = 0; iside<(fReference->NSides()-1); iside++){
     TPZCompElSide celside(this,iside);
     int dimsmall = celside.Reference().Dimension();
@@ -921,7 +949,7 @@ int TPZInterpolatedElement::CheckElementConsistency(){
 	  sirule->Point(ipt,pts,w);
 	  SideShapeFunction(iside,pts,phis,dphis);
 	  transform.Apply(pts,ptl);
-	  SideShapeFunction(iside,ptl,phil,dphil);
+	  SideShapeFunction(sidel,ptl,phil,dphil);
 	  int check = CompareShapeF(iside,sidel,phis,dphis,phil,dphil,transform);
 	  if (!check) return check;
 	}
@@ -936,7 +964,7 @@ int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix &phis
   int ncons = NSideConnects(sides);
   int nconl = NSideConnects(sidel);
   TPZVec<int> posl(nconl+1), poss(ncons+1);
-  int icon;
+  int icon, icons, iconl;
   if(nconl) posl[0] =0;
   if(ncons) poss[0] = 0;
   for(icon=0; icon<nconl; icon++) {
@@ -945,68 +973,37 @@ int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix &phis
   for(icon=0; icon<ncons; icon++) {
     poss[icon+1] = poss[icon] + NConnectShapeF(SideConnectLocId(icon,sides));
   }
-
-  for (icon=0; icon<nconl; icon++){
-    int conlindl = SideConnectLocId(icon,sidel);
-    int conscounter = -1;
-    //    int i;
-    TPZCompElSide cellsmallside(this,sides);
-
-    for(conscounter=0; conscounter<ncons; conscounter++) if(SideConnectLocId(conscounter,sides) == conlindl) break;
-    if(conscounter != ncons) {
-      int firsts = poss[conscounter];
-      int firstl = posl[icon];
-     
-      int dimsmall = cellsmallside.Reference().Dimension();
-      int idim;
-      for (idim = 0; idim < dimsmall; idim++){
-	if (phis(firsts+idim,0) != phil(firstl+idim,0)){
-	  cout << "TPZInterpolatedElement::CompareShapeF : Inconsistent transformation side detected\n";
-	  cout << "small side connect shape [ " << firsts+idim << " ] = " << phis(firsts+idim,0)
-	       << "large side connect shape [ " << firstl+idim << " ] = " << phil(firstl+idim,0) << endl;
-	  return 0;
+	REAL diff = 0.;
+  for (icons=0; icons<ncons; icons++){
+  	int consind = SideConnectLocId(icons,sides);
+   	for (iconl=0; iconl<nconl; iconl++) {
+			int conlind = SideConnectLocId(iconl,sidel);
+			if(consind == conlind) {
+				int nshape = poss[icons+1]-poss[icons];
+				int dims = Reference()->SideDimension(sides);
+				int diml = Reference()->SideDimension(sidel);
+				int ishape, idim,jdim;
+				for(ishape=0; ishape<nshape; ishape++) {
+					int shapel = posl[iconl]+ishape;
+					int shapes = poss[icons]+ishape;
+					diff += (phis(shapes,0)-phil(shapel,0))*(phis(shapes,0)-phil(shapel,0));
+					REAL derivcomp[3];
+					for(idim=0; idim<dims; idim++) {
+						derivcomp[idim]=0.;
+						for(jdim=0; jdim<diml; jdim++) {
+							derivcomp[idim] += dphil(jdim,shapel)*transform.Mult()(jdim,idim);
+						}
+						diff += (dphis(idim,shapes)-derivcomp[idim])*(dphis(idim,shapes)-derivcomp[idim]);
+					}
+				}
+			}
+		}
 	}
-      }
-      
-      //como aplicar o transform a matrizes??
-      TPZFMatrix left = transform.Mult()*dphil;
-      left -= dphis;
 
-      int m,n;
-      for (m=0;m<left.Rows();m++)
-	for (n=0;n<left.Cols();n++)
-	  if (fabs(left(m,n)) > 1E-6){
-	    cout << "TPZInterpolatedElement::CompareShapeF : Erro TrT * dphil not equal dphis\n"
-		 << "dphis =  [ " << m << " , " << n << " ] = " << dphis(m,n) << " TrT*dphil = " << left(m,n);
-	  }
-      
-
-    }
-    else {
-      int idim;
-      int dimsmall = cellsmallside.Reference().Dimension();
-      int firsts = poss[conscounter];
-
-      for (idim = 0; idim < dimsmall; idim++){
-	if (phis(firsts+idim,0) != 0){
-	  cout << "TPZInterpolatedElement::CompareShapeF : Inconsistent transformation side detected\n";
-	  cout << "small side connect shape [ " << firsts+idim << " ] = " << phis(firsts+idim,0) << "  Must be 0\n";
-	  return 0;
+	if(diff >= 1.e-6) {
+		cout << "TPZInterpolatedElement::CompareShapeF sides " << sides << " sidel " << sidel << " do not compare diff " << diff << endl;
 	}
-      }
-
-      TPZFMatrix left = transform.Mult()*dphil;
-
-      int m,n;
-      for (m=0;m<left.Rows();m++)
-	for (n=0;n<left.Cols();n++)
-	  if (fabs(left(m,n)) > 1E-6){
-	    cout << "TPZInterpolatedElement::CompareShapeF : Erro TrT * dphil not equal dphis\n"
-		 << "dphis =  [ " << m << " , " << n << " ] = " << dphis(m,n) << " TrT*dphil = " << left(m,n);
-	  }
-    }
-  }
-  return 1;
+	return 1;
 }
 
 void TPZInterpolatedElement::CheckConstraintConsistency(int side) {
@@ -1083,37 +1080,46 @@ void TPZInterpolatedElement::RemoveSideRestraintWithRespectTo(int side,
 }
 
 void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
+ if(mode == EInsert) {//modo insercao
+   PZError << "RemoveSideRestraintsII with mode insert should not be called\n";
+   return;
+  }
   TPZCompElSide large;//elemento grande
   TPZStack<TPZCompElSide> elemset;//elementos pequenos
   int numsides = Reference()->NSides();
   int side,nelem,iel;
-
+  if(mode == EDelete) {
+    for(side = 0; side<numsides; side++) {
+      TPZCompElSide thisside(this,side);
+      elemset.Resize(0);
+      thisside.EqualLevelElementList(elemset,1,0);//iguais
+      if(side < NCornerConnects()) thisside.HigherLevelElementList(elemset,1,0);
+      nelem = elemset.NElements();
+      TPZStack<TPZCompElSide> smallset;
+      thisside.HigherLevelElementList(smallset,1,1);//menores
+      int nsmall = smallset.NElements();
+      large = thisside.LowerLevelElementList(1);
+      if(!nelem) {//nao existem iguais
+        if(large.Exists()) {//existe grande : a23 , ab3
+          RemoveSideRestraintWithRespectTo(side,large);
+        }//fim large
+        if(nsmall) {//existem pequenos : a23
+  //	    thisside.ExpandConnected(smallset,1);
+          nsmall = smallset.NElements();
+          for(iel=0; iel<nsmall; iel++) {
+            TPZInterpolatedElement *cel = (TPZInterpolatedElement *) smallset[iel].Element();
+            cel->RemoveSideRestraintWithRespectTo(smallset[iel].Side(),thisside);
+          }
+        }//ab3
+      }
+    }
+  }
+  TPZCompEl *refloaded = Reference()->Reference();
+  Reference()->ResetReference();
   for(side = 0; side < numsides; side++) {
 
-    TPZCompElSide thisside(this,side);
-    if(mode == EInsert && side >= NCornerConnects()) {//modo insercao
-      PZError << "RemoveSideRestraintsII with mode insert should not be called\n";
-      return;
-      elemset.Resize(0);
-      thisside.EqualLevelElementList(elemset,1,0);
-      nelem = elemset.NElements();
-      large = thisside.LowerLevelElementList(1);
-      if(!nelem && large.Exists()) {//existe grande e nao existe igual
-	elemset.Resize(0);
-	thisside.HigherLevelElementList(elemset,1,1);
-//	large.ExpandConnected(elemset,1);
-	nelem = elemset.NElements();// se existem pequenos
-	for(iel=0; iel<nelem; iel++) {//remover restricoes dos pequenos para o grande
-	  TPZInterpolatedElement *cels = (TPZInterpolatedElement *) elemset[iel].Element();
-	  //cels->RemoveSideRestraintWithRespectTo(elemset[iel].Side(),large,&thisside);
-	  cels->RemoveSideRestraintWithRespectTo(elemset[iel].Side(),large);
-	}
-	//no construtor é feito a identificacao da ordem : IdentifySideOrder(i)
-      }
-      continue;
-    }//fim mode Einsert
-
     if(mode == EDelete) {//modo remoção
+      TPZCompElSide thisside(this,side);
       elemset.Resize(0);
       thisside.EqualLevelElementList(elemset,1,0);//iguais
       if(side < NCornerConnects()) thisside.HigherLevelElementList(elemset,1,0);
@@ -1127,12 +1133,12 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
 	/* 	int oldorder = SideOrder(side); */
 	/* 	int order = ComputeSideOrder(elemset); */
 	/* 	if(order != oldorder) { */
-	Reference()->ResetReference();
-	TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (elemset[0].Element());
-	if(cel) {
-	  cel->IdentifySideOrder(elemset[0].Side());
-	}
-	Reference()->SetReference(this);
+//        Reference()->ResetReference();
+        TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (elemset[0].Element());
+        if(cel) {
+          cel->IdentifySideOrder(elemset[0].Side());
+        }
+//        Reference()->SetReference(this);
 	/* 	  for(iel=0; iel<nelem; iel++) { */
 	/* 	    TPZInterpolatedElement *cel = (TPZInterpolatedElement *) elemset[iel].Element(); */
 	/* 	    cel->SetSideOrder(elemset[iel].Side(),order); */
@@ -1154,34 +1160,24 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
 	//	}//12c e 1bc
       }
       else if(!nelem) {//nao existem iguais
-	if(large.Exists()) {//existe grande : a23 , ab3
-	  RemoveSideRestraintWithRespectTo(side,large);
-	}//fim large
-	if(nsmall) {//existem pequenos : a23
-//	  thisside.ExpandConnected(smallset,1);
-	  nsmall = smallset.NElements();
-	  for(iel=0; iel<nsmall; iel++) {
-	    TPZInterpolatedElement *cel = (TPZInterpolatedElement *) smallset[iel].Element();
-	    cel->RemoveSideRestraintWithRespectTo(smallset[iel].Side(),thisside);
-	  }
-	}//ab3
-	if(large.Exists() && nsmall) {
-	  Reference()->ResetReference();
-	  int dim;
-	  for(dim=0; dim<4; dim++) {
-	    for(iel=0; iel<nsmall; iel++) {
-	      if(smallset[iel].Reference().Dimension() == dim) {
-		TPZInterpolatedElement *cel = (TPZInterpolatedElement *) smallset[iel].Element();
-		TPZInterpolatedElement *largel = (TPZInterpolatedElement *) large.Element();
-		cel->RestrainSide(smallset[iel].Side(),largel,large.Side());
-	      }
-	    }
-	  }
-	  Reference()->SetReference(this);
-	}
+        if(large.Exists() && nsmall) {
+//          Reference()->ResetReference();
+          int dim;
+          for(dim=0; dim<4; dim++) {
+            for(iel=0; iel<nsmall; iel++) {
+              if(smallset[iel].Reference().Dimension() == dim) {
+                TPZInterpolatedElement *cel = (TPZInterpolatedElement *) smallset[iel].Element();
+                TPZInterpolatedElement *largel = (TPZInterpolatedElement *) large.Element();
+                cel->RestrainSide(smallset[iel].Side(),largel,large.Side());
+              }
+            }
+          }
+//          Reference()->SetReference(this);
+        }
       }//fim nelem e large
     }//fim mode EDelete
   }//fim for
+  Reference()->SetReference(refloaded);
 }//fim todos
 
 int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
@@ -1245,6 +1241,9 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
   int nel = interpolation.NElements();
   int dim,maxorder = interpolation[0];
   for(dim=1;dim<nel;dim++) maxorder = (interpolation[dim] > maxorder) ? interpolation[dim] : maxorder;
+
+  // Cesar 2003-11-25 -->> To avoid integration warnings...
+  maxorder = (maxorder > intrule.GetMaxOrder() ) ? intrule.GerMaxOrder() : maxorder;
 
   for(dim=0; dim<dimension; dim++) {
     order[dim] = maxorder*2;
@@ -1608,28 +1607,54 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
   fReference->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional é dividido
   if(!pv.NElements()) {
     sub.Resize(0);
+    PZError << "TPZInterpolatedElement::Divide subelements error";
     return;
   }
 
   int i;
+
+//  TPZCheckMesh chk(Mesh(),&cout);
+//  if(chk.CheckConnectOrderConsistency() != -1) {
+//    cout << "TPZInterpolatedElement::Divide deu erro antes\n";
+//  }
+  
+
   RemoveSideRestraintsII(EDelete);//Cedric 25/03/99
+
+  fMesh->ElementVec()[index] = 0; //Cesar 2003-11-19
+  Reference()->ResetReference();
 
   TPZGeoEl *ref;
   TPZInterpolatedElement *cel;
-  Reference()->ResetReference();
+
+  if(NConnects() == 7) {
+    TPZCheckMesh chk(Mesh(),&cout);
+    if(chk.CheckConnectOrderConsistency() != -1) {
+      cout << "TPZInterpolatedElement::Divide deu erro depois\n";
+    }
+  }
+  
   int ncon = fReference->NSides();
   TPZInterpolatedElement::gOrder = PreferredSideOrder(ncon-1);
   for (i=0;i<nsubelements;i++)	{
     ref = pv[i];//ponteiro para subelemento i
     ref->CreateCompEl(*fMesh,sub[i]);
-    cel = (TPZInterpolatedElement *) fMesh->ElementVec()[sub[i]];
-    cel->CheckConstraintConsistency();
+//    cel = (TPZInterpolatedElement *) fMesh->ElementVec()[sub[i]];
+//    cel->CheckConstraintConsistency();
+//    if(chk.CheckConnectOrderConsistency() != -1) {
+//      cout << "TPZInterpolatedElement::Divide deu erro\n";
+//    }
+
     // e' assumido que CreateCompEl inseri o elemento comp no vetor de elementos da malha
   }
   if(interpolatesolution) {
     Mesh()->ExpandSolution();
     for(i=0; i<nsubelements; i++) {
-      cel = (TPZInterpolatedElement *) fMesh->ElementVec()[sub[i]];
+      cel = dynamic_cast<TPZInterpolatedElement *> (fMesh->ElementVec()[sub[i]]);
+      if (!cel) {
+        PZError << "TPZInterpolatedElement::Divide interpolate cast error";
+        continue;
+      }
       cel->CheckConstraintConsistency();
       cel->InterpolateSolution(*this);
       // e' assumido que CreateCompEl inseri o elemento comp no vetor de elementos da malha
