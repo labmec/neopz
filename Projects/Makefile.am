@@ -9,7 +9,7 @@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES     = @PZ_CLEANFILES@
 
--include $(top_srcdir)/@PZ_MK@
+-include $(top_builddir)/@PZ_MK@
 
 SUBDIRS = termica
 

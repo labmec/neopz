@@ -9,9 +9,8 @@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES     = @PZ_CLEANFILES@
 
--include $(top_srcdir)/@PZ_MK@
+-include $(top_builddir)/@PZ_MK@
 
-CXXFLAGS = -I$(top_srcdir)/Common
 
 utildir = $(prefix)/Util
 
@@ -22,4 +21,3 @@ noinst_LIBRARIES = libpzutil.a
 libpzutil_a_SOURCES = pzadmchunkgen.cpp pzavlmapgen.cpp pzchunkgen.cpp pzmanvectorgen.cpp pzmap.cpp pzstackgen.cpp pzstring.cpp pzvecgen.cpp pzline.cpp pzplane.cpp pznumeric.cpp pzpolynomial.cpp TMBTimer.cpp TMBTimer.h
 
 ## --| NeoPZ |------------------------------------------------------------------
-AM_CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@ @USING_FAD@ @USING_ATLAS@ @USING_BLAS@ @ATLASINCLUDE@ 

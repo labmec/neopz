@@ -9,7 +9,7 @@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES     = @PZ_CLEANFILES@
 
--include $(top_srcdir)/@PZ_MK@
+-include $(top_builddir)/@PZ_MK@
 
 SUBDIRS = Class_5
 #Class_1 Class_2 Class_3 Class_4

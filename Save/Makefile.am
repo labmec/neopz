@@ -9,9 +9,8 @@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES     = @PZ_CLEANFILES@
 
--include $(top_srcdir)/@PZ_MK@ 
+-include $(top_builddir)/@PZ_MK@ 
 
-CXXFLAGS = -I$(top_srcdir)/Util -I$(top_srcdir)/Common
 
 savedir = $(prefix)/Save
 
@@ -22,4 +21,3 @@ noinst_LIBRARIES = libSave.a
 libSave_a_SOURCES = pzsave.cpp 	pzfilebuffer.cpp pzbfilestream.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
-AM_CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@ @USING_FAD@ @USING_ATLAS@ @USING_BLAS@ @ATLASINCLUDE@ 

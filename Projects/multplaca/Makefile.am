@@ -9,12 +9,12 @@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES     = @PZ_CLEANFILES@
 
--include $(top_srcdir)/@PZ_MK@
+-include $(top_builddir)/@PZ_MK@
 
 bin_PROGRAMS = jornadas
 
 jornadas_SOURCES = jornadas.cpp
 
-jornadas_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
+jornadas_LDADD = $(top_builddir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
 
 ## --| NeoPZ |------------------------------------------------------------------

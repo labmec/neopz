@@ -9,12 +9,12 @@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES     = @PZ_CLEANFILES@
 
--include $(top_srcdir)/@PZ_MK@
+-include $(top_builddir)/@PZ_MK@
 
 bin_PROGRAMS = main
 
 main_SOURCES = main.cc 
 
-main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a /home/ic/luis/Documents/dxflib-2.0.1.3-1.src/lib/libdxf.a
+main_LDADD = $(top_builddir)/lib/libpz.a @METISDIR@/lib/libmetis.a /home/ic/luis/Documents/dxflib-2.0.1.3-1.src/lib/libdxf.a
 
 ## --| NeoPZ |------------------------------------------------------------------

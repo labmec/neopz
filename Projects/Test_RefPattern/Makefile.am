@@ -9,12 +9,12 @@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES     = @PZ_CLEANFILES@
 
--include $(top_srcdir)/@PZ_MK@
+-include $(top_builddir)/@PZ_MK@
 
 bin_PROGRAMS = RefPat
 
 RefPat_SOURCES = main.cpp
 
-RefPat_LDADD =  $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a 
+RefPat_LDADD =  $(top_builddir)/lib/libpz.a @METISDIR@/lib/libmetis.a 
 
 ## --| NeoPZ |------------------------------------------------------------------
