@@ -1,7 +1,7 @@
-// -*- c++ -*-
-
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
+
+// -*- c++ -*-
 
 /*******       TPZGeoElSide       *******/
 
