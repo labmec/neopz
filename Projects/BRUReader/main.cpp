@@ -63,6 +63,11 @@
 using namespace std;
 int gDebug = 0;
 
+void error(char *msg)
+{
+  cout << msg << endl;
+}
+
 int ReadNodes(istream &arq,TPZGeoMesh *gmesh){
    int nnodes = 0;
    TPZVec<REAL> coord (3,0.);
@@ -236,7 +241,23 @@ int ReadFathers(istream &arq,TPZGeoMesh *gmesh){
     }
     //The subelements are read and write in asceding sequence!!!
     gel->SetFather(father);
-    father->SetSubElement(RegSubElement[index],gel);
+    // THIS WILL WORK ONLY FOR QUAD AND TRIANGLE BEWARE !!!!
+    int ncor = gel->NCornerNodes();
+    int ic;
+    for(ic=0 ;ic<ncor; ic++)
+    {
+      TPZGeoElSide small(gel,ic),large(father,ic);
+      if(small.NeighbourExists(large)) 
+      {
+        father->SetSubElement(ic,gel);
+        break;
+      }
+      if(ic == ncor-1)
+      {
+        cout << "Father Son non implemented element type?\n";
+      }
+    }
+//    father->SetSubElement(RegSubElement[index],gel);
     RegSubElement[index] ++;      
   }
   return 1;  
@@ -253,11 +274,7 @@ int main(){
   ReadNodes(nodes,gmesh);
   //ReadBoundaries (bcs,gmesh);  
   ReadElements(incid,gmesh);
-  ReadBoundaries (bcs,gmesh);  
-  ReadFathers(father,gmesh);
-  
-
- // gmesh->Print(cout);
+  ReadBoundaries (bcs,gmesh);
   
   cout << endl << endl << "Antes Build Connectivities" << endl << endl;
   
@@ -265,7 +282,16 @@ int main(){
   
   cout << endl << endl << "Depois Build Connectivities" << endl << endl;
   
+  ReadFathers(father,gmesh);
+  
+
  // gmesh->Print(cout);
+  
+//  gmesh->BuildConnectivity();
+  
+  ofstream out("output.txt");
+  gmesh->Print(out);
+  
   
 //     TPZGeoElement< TPZShapeTetra, TPZGeoTetrahedra, TPZRefTetrahedra >::
 //       SetCreateFunction( TPZCompElDisc::CreateDisc );
