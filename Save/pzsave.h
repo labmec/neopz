@@ -247,7 +247,7 @@ TPZToto() {
   for(i=0; i<20; i++) fStr[i] = 'a'+i;
 }
 
-virtual int ClassId() 
+virtual int ClassId() const 
 {
   return 1;
 }
