@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.21 2004-04-26 14:27:03 phil Exp $
+//$Id: TPZAgglomerateEl.h,v 1.22 2004-07-29 18:46:30 tiago Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -75,7 +75,7 @@ public:
 
   /**
    * Returns the inner radius value.
-   * Inner radius is the sub-element's radius average.
+   * Inner radius is the sub-element's radius average weighted by their volumes.
    */
   REAL InnerRadius(){
     int nsubel = this->NIndexes();
@@ -89,9 +89,9 @@ public:
 	exit (-1);
       }
 #endif
-      value += disc->InnerRadius();
+      value += disc->InnerRadius() * disc->VolumeOfEl();
     }
-    value = value / nsubel;
+    value = value / this->VolumeOfEl();
     return value;  
   }
 
