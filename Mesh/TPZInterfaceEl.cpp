@@ -230,7 +230,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     }
     if(bcright){
       for(i=0;i<nstater;i++) solr[i] = bcright->Val2()(i,0);
-      mat->ComputeSolRight(soll,solr,fNormal,bcright);
+      mat->ComputeSolRight(solr,soll,fNormal,bcright);
     }
     mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,*ek.fMat,*ef.fMat);
   }

@@ -1,9 +1,13 @@
-#include "pzelgt3d.h"
-#include "pzelgpi3d.h"
-#include "pzreftetrahedra.h"
-#include "pzshapetetra.h"
+#include "pzrefpyram.h"
+#include "pzgeopyramid.h"
 #include "pzshapepiram.h"
+#include "pzreftetrahedra.h"
+#include "pzgeotetrahedra.h"
+#include "pzshapetetra.h"
+#include "pzgeoelside.h"
+#include "TPZGeoElement.h"
 #include "pzgeoel.h"
+#include "pzgmesh.h"
 
 static int nsubeldata[15] = {1,1,1,1,3,3,3,3,3,3,7,7,7,7,11};
 
@@ -211,26 +215,27 @@ void TPZRefTetrahedra::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 	}
 	// creating new subelements
 	for (i=0;i<4;i++){
-		TPZGeoElT3d *tr3d = (TPZGeoElT3d *) geo;
-			TPZManVector<int> cornerindexes(TPZShapeTetra::NNodes);
-			for(int j=0;j<TPZShapeTetra::NNodes;j++) 
-				cornerindexes[j] = np[CornerSons[i][j]];
-			//tr3d->SetSubElement(i , tr3d->CreateGeoEl(npvec,matid,*geo->Mesh()));
-			TPZGeoElT3d *tr3dsub = new TPZGeoElT3d (cornerindexes,matid,*geo->Mesh()); 
-			tr3d->SetSubElement(i,tr3dsub);
-			tr3dsub->SetFather(geo);
-			SubElVec[i] = tr3dsub;
+	  TPZManVector<int> cornerindexes(TPZShapeTetra::NNodes);
+	  for(int j=0;j<TPZShapeTetra::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
+	  TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra> *t3sub = 
+	    dynamic_cast<TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra> *>(geo->Mesh()->CreateGeoElement(4,cornerindexes,matid,index));
+	    //CreateGeoElement(4,cornerindexes,matid,index);
+	    //new TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>(cornerindexes,matid,*geo->Mesh());
+	  geo->SetSubElement(i,t3sub);
+	  t3sub->SetFather(geo);
+	  SubElVec[i] = t3sub;
 	}
 	for (;i<6;i++){
-		TPZGeoElPi3d *pi3d = (TPZGeoElPi3d *) geo;
-			TPZManVector<int> cornerindexes(TPZShapePiram::NNodes);
-			for(int j=0;j<TPZShapePiram::NNodes;j++) 
-				cornerindexes[j] = np[CornerSons[i][j]];
-			//pi3d->SetSubElement(i , pi3d->CreateGeoEl(npvec,matid,*geo->Mesh()));
-			TPZGeoElPi3d *pi3dsub = new TPZGeoElPi3d (cornerindexes,matid,*geo->Mesh()); 
-			pi3d->SetSubElement(i,pi3dsub);
-			pi3dsub->SetFather(geo);
-			SubElVec[i] = pi3dsub;
+	  TPZManVector<int> cornerindexes(TPZShapePiram::NNodes);
+	  for(int j=0;j<TPZShapePiram::NNodes;j++) 
+	    cornerindexes[j] = np[CornerSons[i][j]];
+	  TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid> *pi3sub = 
+	    dynamic_cast<TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid> *>(geo->Mesh()->CreateGeoElement(5,cornerindexes,matid,index));
+	    //CreateGeoElement(5,cornerindexes,matid,index);
+	  //new TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>(cornerindexes,matid,*geo->Mesh());
+	  geo->SetSubElement(i,pi3sub);
+	  pi3sub->SetFather(geo);
+	  SubElVec[i] = pi3sub;
 	}
 	for(i=0;i<NSubEl;i++) {//conectividades entre os filhos : viz interna
 		for(j=0;j<NumInNeigh;j++) {        //lado do subel  numero do filho viz.             lado do viz.

@@ -15,7 +15,7 @@ class TPZGeoPrism
 {
 public:
 
-	enum {NNodes = 6, NSides = 19};
+	enum {NNodes = 6, NSides = 21};
 
   /** implementation of two-dimensional bilinear interpolation*/
 static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);

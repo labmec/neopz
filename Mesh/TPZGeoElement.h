@@ -7,6 +7,9 @@
 class TPZGeoElSide;
 class TPZCompMesh;
 class TPZCompEl;
+template<class T,int N>
+class TPZStack;
+
 
 template <class TShape, class TGeo, class TRef>
 class TPZGeoElement : public TPZGeoEl {
@@ -18,7 +21,9 @@ class TPZGeoElement : public TPZGeoEl {
 
 public:
 
-//  TPZGeoElement(TGeo *ref,int &index);  
+  TPZGeoElement();
+  TPZGeoElement(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
+  TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
   ~TPZGeoElement(){};
 
   TPZCompEl *CreateCompEl(TPZCompMesh &mesh,int &index);
@@ -154,7 +159,15 @@ public:
    */
   virtual void CenterPoint(int side, TPZVec<REAL> &masscent);
 
+  //===========================novos métodos================================
+  //Cedric: 08/05/2003
 
+  virtual TPZGeoElSide Father2(int side);
+
+  /**divides the element and puts the resulting elements in the vector*/
+  virtual void Divide(TPZVec<TPZGeoEl *> &pv);//Cedric: 08/05/2003
+
+  virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
 };
 
 template<class TShape, class TGeo, class TRef>

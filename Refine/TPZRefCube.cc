@@ -1,6 +1,8 @@
-#include "pzelgc3d.h"
+#include "TPZGeoCube.h"
 #include "TPZRefCube.h"
 #include "pzshapecube.h"
+#include "TPZGeoElement.h"
+#include "pzgeoelside.h"
 #include "pzgeoel.h"
 
 static int nsubeldata[27] = {1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3,3,3,3,3,9,9,9,9,9,9,26};
@@ -326,12 +328,14 @@ void TPZRefCube::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
     np[sub] = index;
   }
   // creating new subelements
-  TPZGeoElC3d *c3d = (TPZGeoElC3d *) geo;
   for(i=0;i<TPZShapeCube::NNodes;i++) {
 	  TPZManVector<int>cornerindexes(TPZShapeCube::NNodes);
 	  for(int j=0;j<TPZShapeCube::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-
-    c3d->SetSubElement(i , c3d->CreateGeoEl(cornerindexes,matid,*geo->Mesh()));
+	  TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube> *c3sub = 
+	    dynamic_cast<TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube> *>(geo->Mesh()->CreateGeoElement(7,cornerindexes,matid,index));
+	    //CreateGeoElement(7,cornerindexes,index);
+	    //new TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>(cornerindexes,matid,*geo->Mesh());
+	  geo->SetSubElement(i , c3sub);
   }
 
   SubElVec.Resize(NSubEl);

@@ -1,7 +1,10 @@
-#include "pzelgt2d.h"
 #include "pzreftriangle.h"
+#include "pzgeotriangle.h"
 #include "pzshapetriang.h"
+#include "TPZGeoElement.h"
+#include "pzgeoelside.h"
 #include "pzgeoel.h"
+#include "pzgmesh.h"
 
 static int nsubeldata[7] = {1,1,1,3,3,3,7};
 
@@ -114,12 +117,14 @@ void TPZRefTriangle::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 		np[sub] = index;
 	}
 	// creating new subelements
-	TPZGeoElT2d *t2d = (TPZGeoElT2d *) geo;
 	for(i=0;i<NSubEl;i++) {
 		TPZManVector<int> cornerindexes(TPZShapeTriang::NNodes);
 		for(int j=0;j<TPZShapeTriang::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-
-		t2d->SetSubElement(i , t2d->CreateGeoEl(cornerindexes,matid,*geo->Mesh()));
+		TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle> *t2sub = 
+		  dynamic_cast<TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle> *>(geo->Mesh()->CreateGeoElement(2,cornerindexes,matid,index));
+		  //CreateGeoElement(2,cornerindexes,matid,index);
+		  //new TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>(cornerindexes,matid,*geo->Mesh());
+		geo->SetSubElement(i , t2sub);
 	}
 
 	SubElVec.Resize(NSubEl);

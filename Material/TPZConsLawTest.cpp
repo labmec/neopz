@@ -88,9 +88,9 @@ REAL TPZConsLawTest::Delta(){
 
 REAL TPZConsLawTest::DeltaOtimo(){
 
-  //  REAL cfl = CFL(fIntegrationDegree);
+  //REAL cfl = CFL(1);
   //REAL delta = ( (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10. );
-  return 0.;//delta;
+  return 0.0;//delta;
 }
 
 REAL TPZConsLawTest::CFL(int degree){
@@ -103,8 +103,8 @@ REAL TPZConsLawTest::B(int i,TPZVec<REAL> &x){
   if(fTest==0) return fB[i];
 
   if(fTest==1){
-    if(i==0) return (-x[1]+0.5);
-    if(i==1) return (x[0]-0.5);
+    if(i==0) return -x[1];
+    if(i==1) return  x[0];
     if(i==2) return  0.0;
   }
   if(fTest==2){
@@ -144,16 +144,16 @@ REAL TPZConsLawTest::T(int jn,TPZVec<REAL> &x){
 
 void TPZConsLawTest::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,TPZFMatrix &phiR,
-				   TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,TPZFMatrix &ef){
+ 				   TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,TPZFMatrix &ef){
 
   int phrl = phiL.Rows();
   int phrr = phiR.Rows();
 
   if(fForcingFunction) {      // phi(in, 0) = phi_in
     TPZManVector<REAL> res(1);// dphi(i,j) = dphi_j/dxi
-    fForcingFunction(x,res);//fXf(0,0) = res[0];//if(!solL[0])//if(!solR[0])
-    solL[0] = res[0];//solução inicial, na iteração 0 sol = 0 e res != 0
-    solR[0] = res[0];//nas iterações > 0 sol != 0 e res = 0
+    fForcingFunction(x,res);
+    if(phrl) solL[0] = res[0];//solução inicial interior (t=0), na iteração 0 sol = 0 e res != 0
+    if(phrr) solR[0] = res[0];//nas iterações > 0 sol != 0 e res = 0
   }
 
   REAL Bn=0.0;
@@ -266,4 +266,55 @@ void TPZConsLawTest::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
   values[2] += pow(dz - du_exact(2,0),2.0);
   //values[0] : erro em norma H1 <=> norma Energia
   values[0]  = values[1]+values[2];
+}
+
+void TPZConsLawTest::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft){
+
+  if(!bcleft){
+    PZError << "TPZConsLawTest::ComputeSolLeft null bundary condition return\n";
+    return;
+  }
+  int i,nstate = NStateVariables();
+  TPZFMatrix jacinv(0,0),axes(0,0);
+  REAL vpn=0.;
+  switch (bcleft->Type()){
+  case 0://Dirichlet
+  case 1://Neumann
+  case 2://Mista
+    PZError << "TPZConsLawTest::ComputeSolLeft boundary condition error\n";
+    break;
+  case 3://Dirichlet: nada a fazer a CC é a correta
+    break;
+  case 4://recuperar valor da solu¢ão MEF direita: saida livre
+    soll[0] = solr[0];
+    break;
+  default:
+    PZError << "TPZConsLawTest::ContributeInterface Boundary Condition Type Not Exists\n";
+  }
+}
+
+
+void TPZConsLawTest::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright){
+
+  if(!bcright){
+    PZError << "TPZConsLawTest::ComputeSolLeft null bundary condition return\n";
+    return;
+  }
+  int i,nstate = NStateVariables();
+  TPZFMatrix jacinv(0,0),axes(0,0);
+  REAL vpn=0.;
+  switch (bcright->Type()){
+  case 0://Dirichlet
+  case 1://Neumann
+  case 2://Mista
+    PZError << "TPZConsLawTest::ComputeSolLeft boundary condition error\n";
+    break;
+  case 3://Dirichlet: nada a fazer a CC é a correta
+    break;
+  case 4://recuperar valor da solu¢ão MEF esquerda: saida livre
+    solr[0] = soll[0];
+    break;
+  default:
+    PZError << "TPZConsLawTest::ContributeInterface Boundary Condition Type Not Exists\n";
+  }
 }

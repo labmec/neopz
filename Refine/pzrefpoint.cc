@@ -1,6 +1,12 @@
 #include "pzrefpoint.h"
+#include "pzgeopoint.h"
 #include "pzshapelinear.h"
-#include "pzelgpoint.h"
+#include "TPZGeoElement.h"
+#include "pzgeoel.h"
+//#include "pzgeoelside.h"
+#include "pzgmesh.h"
+
+
 
 static int NumInNeigh = 0;
 static int InNeigh[1][1][1] = {
@@ -37,49 +43,33 @@ static int fatherside[1][1] = {
 
 
 void TPZRefPoint::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
-	int i;
-	if(geo->HasSubElement()) {
-		SubElVec.Resize(NSubEl);
-		for(i=0;i<NSubEl;i++) 
-			SubElVec[i] = geo->SubElement(i);
-		return;//If exist fSubEl return this sons
-	}
-	//int j,index;
-	int sub,matid=geo->MaterialId();
-	int np[1/*TPZShapePoint::NSides*/];//guarda conectividades dos 8 subelementos
-
-	np[0] = geo->NodeIndex(0);
-//  for(j=0;j<1/*TPZShapeLinear::NNodes*/;j++) 
-//	  np[j] = geo->NodeIndex(j);
-//  for(sub=1/*TPZShapeLinear::NNodes*/;sub<1;sub++) {
-//    NewMidSideNode(geo,sub,index);
-//    np[sub] = index;
-//  }
+  int i;
+  if(geo->HasSubElement()) {
+    SubElVec.Resize(NSubEl);
+    for(i=0;i<NSubEl;i++) 
+      SubElVec[i] = geo->SubElement(i);
+    return;//If exist fSubEl return this sons
+  }
+  //int j,index;
+  int sub,matid = geo->MaterialId();
+  int np[1];
+  np[0] = geo->NodeIndex(0);
   // creating new subelements
-	TPZGeoElPoint *pt0d = (TPZGeoElPoint *) geo;
-	//for(i=0;i<TPZShapeLinear::NNodes;i++) {
-		TPZManVector<int>  cornerindexes(1/*TPZShapeLinear::NNodes*/);
-		cornerindexes[0]=np[0];
-		//for(int j=0;j<TPZShapeLinear::NNodes;j++) 
-		//	cornerindexes[j] = np[CornerSons[i][j]];
-		TPZGeoElPoint *npt = new TPZGeoElPoint(cornerindexes,matid,*geo->Mesh());
-		pt0d->SetSubElement(/*i*/0 , npt);
-	//}
-
+  TPZManVector<int>  cornerindexes(1);
+  cornerindexes[0] = np[0];
+  int index;//CreateGeoElement(0,cornerindexes,matid,index);
+  TPZGeoElement<TPZShapeLinear,TPZGeoPoint,TPZRefPoint> *p0sub = 
+    dynamic_cast<TPZGeoElement<TPZShapeLinear,TPZGeoPoint,TPZRefPoint> *>(geo->Mesh()->CreateGeoElement(0,cornerindexes,matid,index));
+  //new TPZGeoElement<TPZShapeLinear,TPZGeoPoint,TPZRefPoint>(cornerindexes,matid,*geo->Mesh());
+  geo->SetSubElement(0 , p0sub);
   SubElVec.Resize(NSubEl);
   for(sub=0;sub<NSubEl;sub++) {
     SubElVec[sub] = geo->SubElement(sub);
     SubElVec[sub]->SetFather(geo);
   }
-  //for(i=0;i<NSubEl;i++) {//conectividades entre os filhos : viz interna
-  //  for(j=0;j<1;j++) {        //lado do subel                                          numero do filho viz.             lado do viz.
-  //    geo->SubElement(i)->SetNeighbour(InNeigh[i][j][0],TPZGeoElSide(geo->SubElement(InNeigh[i][j][1]),InNeigh[i][j][2]));
-  //  }
-  //}
-
   geo->SetSubElementConnectivities();
-
 }
+
 void TPZRefPoint::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index){
   index = -1;
   if(side != 0) {
@@ -135,8 +125,7 @@ void TPZRefPoint::GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSid
   }
   int nsub = NSideSubElements(side);//nsubeldata[side];
   for(int i=0;i<nsub;i++)
-    subel.Push(TPZGeoElSide(father->SubElement(subeldata[side][i][0]),
-												subeldata[side][i][1]));
+    subel.Push(TPZGeoElSide(father->SubElement(subeldata[side][i][0]),subeldata[side][i][1]));
 
 }
 int TPZRefPoint::NSideSubElements(int side) {

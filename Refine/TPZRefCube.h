@@ -6,6 +6,7 @@
 
 #include "pzstack.h"
 class TPZGeoEl;
+class TPZGeoElSide;
 class TPZTransform;
 
 class TPZRefCube {

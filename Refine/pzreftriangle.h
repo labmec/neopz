@@ -8,6 +8,7 @@
 
 class TPZGeoEl;
 class TPZTransform;
+class TPZGeoElSide;
 
 class TPZRefTriangle{
 public:
@@ -19,7 +20,6 @@ public:
 	static void NewMidSideNode(TPZGeoEl *gel,int side,int &index);
 	static void GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel);
 	static int NSideSubElements(int side);
-	//static int NSideSubElements(int side);
 	static TPZTransform GetTransform(int side,int son);
 	static int FatherSide(int side,int son);
 	//static int NSubElements();

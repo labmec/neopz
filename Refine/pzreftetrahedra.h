@@ -6,7 +6,9 @@
 #define TPZREFTETRAHEDRAH
 
 class TPZGeoEl;
+class TPZGeoElSide;
 class TPZTransform;
+
 template<class T>
 class TPZVec;
 template<class T, int N>
@@ -23,7 +25,6 @@ public:
 	static void NewMidSideNode(TPZGeoEl *gel,int side,int &index);
 	static void GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel);
 	static int NSideSubElements(int side);
-	//static int NSideSubElements(int side);
 	static TPZTransform GetTransform(int side,int son);
 	static int FatherSide(int side,int son);
 	//static int NSubElements();

@@ -1,11 +1,81 @@
+#include "pzelgpoint.h"
+#include "pzelg1d.h"
+#include "pzelgt2d.h"
+#include "pzelgq2d.h"
+#include "pzelgt3d.h"
+#include "pzelgpi3d.h"
+#include "pzelgpr3d.h"
+#include "pzelgc3d.h"
+
+#include "TPZGeoCube.h"
+#include "pzshapecube.h"
+#include "TPZRefCube.h"
+#include "pzshapelinear.h"
+#include "TPZGeoLinear.h"
+#include "TPZRefLinear.h"
+#include "pzrefquad.h"
+#include "pzshapequad.h"
+#include "pzgeoquad.h"
+#include "pzshapetriang.h"
+#include "pzreftriangle.h"
+#include "pzgeotriangle.h"
+#include "pzshapeprism.h"
+#include "pzrefprism.h"
+#include "pzgeoprism.h"
+#include "pzshapetetra.h"
+#include "pzreftetrahedra.h"
+#include "pzgeotetrahedra.h"
+#include "pzshapepiram.h"
+#include "pzrefpyram.h"
+#include "pzgeopyramid.h"
+#include "pzrefpoint.h"
+#include "pzgeopoint.h"
+#include "pzgmesh.h"
+#include "pzgeoel.h"
 #include "TPZGeoElement.h"
 //#include "TPZRefPattern.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
+//#include "pzstack.h"
 
 template<class TShape, class TGeo, class TRef>
 TPZCompEl *(*TPZGeoElement<TShape,TGeo,TRef>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
 
+template<class TShape, class TGeo, class TRef>
+TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) : 
+  TPZGeoEl(matind,mesh) {
+  
+  int i,nnod = nodeindices.NElements();
+  if(nnod!=TGeo::NNodes) {
+    PZError << "TPZGeoElement<TShape,TGeo,TRef>::Constuctor, number of nodes : " << nnod << endl;
+    return;
+  }
+  
+  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
+  for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = 0;
+}
+
+template<class TShape, class TGeo, class TRef>
+TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh) :
+  TPZGeoEl(id,matind,mesh) {
+
+  int i,nnod = nodeindexes.NElements();
+  if(nnod!=TGeo::NNodes) {
+    PZError << "TPZGeoElement<TShape,TGeo,TRef>::Constuctor, number of nodes : " << nnod << endl;
+    return;
+  }
+  
+  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindexes[i];
+  for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = 0;
+}
+
+template<class TShape, class TGeo, class TRef>
+TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement() {
+
+  int no;
+  cout << "TPZGeoElement::TPZGeoElement constructor not implemented yet -> ";
+  cin >> no;
+}
 
 template<class TShape, class TGeo, class TRef>
 int 
@@ -19,7 +89,7 @@ template<class TShape, class TGeo, class TRef>
 int
 TPZGeoElement<TShape,TGeo,TRef>::SideNodeIndex(int side,int node) {
 
-	if(side<0 || side>(TShape::NSides - 1) || node<0) {
+  if(side<0 || side>(TShape::NSides - 1) || node<0) {
     PZError << "TPZGeoElement::SideNodeIndex. Bad parameter side.\n";
     return -1;
   }
@@ -30,7 +100,7 @@ template<class TShape, class TGeo, class TRef>
 int
 TPZGeoElement<TShape,TGeo,TRef>::SideNodeLocIndex(int side,int node) {
 
-	if(side<0 || side>(TShape::NSides - 1) || node<0) {
+  if(side<0 || side>(TShape::NSides - 1) || node<0) {
     PZError << "TPZGeoElement::SideNodeIndex. Bad parameter side.\n";
     return -1;
   }
@@ -41,9 +111,9 @@ template<class TShape, class TGeo, class TRef>
 void 
 TPZGeoElement<TShape,TGeo,TRef>::SetSubElement(int id, TPZGeoEl *el){
 
-	if (id<0 || id >(TRef::NSubEl - 1)){
+  if (id<0 || id >(TRef::NSubEl - 1)){
     PZError << "TPZGeoElement::Trying do define subelement :" 
-			<< id << endl;
+	    << id << endl;
     return;
   }
   fSubEl[id] = el;
@@ -106,13 +176,13 @@ TPZGeoElement<TShape,TGeo,TRef>::SideIsUndefined(int side){
 template<class TShape, class TGeo, class TRef>
 int
 TPZGeoElement<TShape,TGeo,TRef>::NSubElements(){
-	return -1;//TGeo::NSubElements();
+	return TRef::NSubEl;
 }
 
 template<class TShape, class TGeo, class TRef>
 int
 TPZGeoElement<TShape,TGeo,TRef>::NSideSubElements(int side){
-	return -1;//TRef::NSideSubElements(side);
+	return TRef::NSideSubElements(side);
 }
 
 template<class TShape, class TGeo, class TRef>
@@ -131,46 +201,46 @@ template<class TShape, class TGeo, class TRef>
 void
 TPZGeoElement<TShape,TGeo,TRef>::SetNodeIndex(int i,int nodeindex){
 
-	if(i<0 || i>(TGeo::NNodes - 1)){
-		cout << "TPZGeoElement::SetNodeIndex index error i = " << i << endl;
-		return;
-	}
-	fNodeIndexes[i] = nodeindex;
+  if(i<0 || i>(TGeo::NNodes - 1)){
+    cout << "TPZGeoElement::SetNodeIndex index error i = " << i << endl;
+    return;
+  }
+  fNodeIndexes[i] = nodeindex;
 }
 
 template<class TShape, class TGeo, class TRef>
 TPZTransform
 TPZGeoElement<TShape,TGeo,TRef>::SideToSideTransform(int sidefrom,int sideto){
-	return TShape::SideToSideTransform(sidefrom,sideto);
+  return TShape::SideToSideTransform(sidefrom,sideto);
 }
 
 template<class TShape, class TGeo, class TRef>
 TPZGeoEl *
 TPZGeoElement<TShape,TGeo,TRef>::SubElement(int is){
-	if(is<0 || is>(TRef::NSubEl - 1)){
-		cout << "TPZGeoElement::SubElement index error is= " << is << endl;;
-	}
-	return fSubEl[is];
+  if(is<0 || is>(TRef::NSubEl - 1)){
+    cout << "TPZGeoElement::SubElement index error is= " << is << endl;;
+  }
+  return fSubEl[is];
 }
 
 template<class TShape, class TGeo, class TRef>
 TPZGeoElSide
 TPZGeoElement<TShape,TGeo,TRef>::SideSubElement(int side,int position){
-	TPZStack<TPZGeoElSide> subs;
-	TRef::GetSubElements(this,side,subs);
-	return subs[position];
+  TPZStack<TPZGeoElSide> subs;
+  TRef::GetSubElements(this,side,subs);
+  return subs[position];
 }
 
 template<class TShape, class TGeo, class TRef>
 int
 TPZGeoElement<TShape,TGeo,TRef>::SideDimension(int side){
-	return TShape::SideDimension(side);
+  return TShape::SideDimension(side);
 }
 
 template<class TShape, class TGeo, class TRef>  
 int
 TPZGeoElement<TShape,TGeo,TRef>::Dimension(){
-	return TShape::Dimension;
+  return TShape::Dimension;
 }
 
 template<class TShape, class TGeo, class TRef> 
@@ -182,12 +252,12 @@ TPZGeoElement<TShape,TGeo,TRef>::HigherDimensionSides(int side,int targetdimensi
 
 template<class TShape, class TGeo, class TRef>
 void
-TPZGeoElement<TShape,TGeo,TRef>::AllHigherDimensionSides(int side,
-			     int targetdimension,TPZStack<TPZGeoElSide> &elsides){
-	TPZStack<int> highsides;
-	TShape::HigherDimensionSides(side,highsides);
-	int i,size = highsides.NElements();
-	for(i=0;i<size;i++) elsides.Push(TPZGeoElSide(this,highsides[i]));
+TPZGeoElement<TShape,TGeo,TRef>::AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides){
+  TPZStack<int> highsides;
+  TShape::HigherDimensionSides(side,highsides);
+  int i,size = highsides.NElements();
+  for(i=0;i<size;i++)
+    elsides.Push(TPZGeoElSide(this,highsides[i]));
 }
 
 template<class TShape, class TGeo, class TRef>
@@ -195,13 +265,8 @@ void
 TPZGeoElement<TShape,TGeo,TRef>::LowerDimensionSides(int side,TPZStack<int> &smallsides){
 	int nsidecon = TShape::NSideConnects(side);
 	int is;
-	for(is=0; is<nsidecon-1; is++) smallsides.Push(TShape::SideConnectLocId(side,is));
-	return;
-
-	//TPZStack<int> smallsidesint;
-	//TShape::LowerDimensionSides(side,smallsidesint);
-	//int i,size = smallsidesint.NElements();
-	//for(i=0;i<size;i++) smallsides.Push(TPZGeoElSide(this,smallsidesint[i]));
+	for(is=0; is<nsidecon-1; is++)
+	  smallsides.Push(TShape::SideConnectLocId(side,is));
 }
 
 template<class TShape, class TGeo, class TRef>
@@ -244,11 +309,11 @@ template<class TShape, class TGeo, class TRef>
 TPZTransform
 TPZGeoElement<TShape,TGeo,TRef>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform &t){//Augusto:09/01/01
   
-	if(side<0 || side>(TShape::NSides-1) || !fFather){
+  if(side<0 || side>(TShape::NSides-1) || !fFather){
     PZError << "TPZGeoElement::BuildTransform2 side out of range or father null\n";
     return TPZTransform(0,0);
   }
-	TPZGeoElSide fathloc = Father2(side);
+  TPZGeoElSide fathloc = Father2(side);
   int son = WhichSubel();
   TPZTransform trans=fFather->GetTransform(side,son);
   trans = trans.Multiply(t);
@@ -272,30 +337,29 @@ TPZGeoElement<TShape,TGeo,TRef>::CenterPoint(int side, TPZVec<REAL> &cent){
 	return TShape::CenterPoint(side,cent);
 }
 
-#include "TPZGeoCube.h"
-#include "pzshapecube.h"
-#include "TPZRefCube.h"
-#include "pzshapelinear.h"
-#include "TPZGeoLinear.h"
-#include "TPZRefLinear.h"
-#include "pzrefquad.h"
-#include "pzshapequad.h"
-#include "pzgeoquad.h"
-#include "pzshapetriang.h"
-#include "pzreftriangle.h"
-#include "pzgeotriangle.h"
-#include "pzshapeprism.h"
-#include "pzrefprism.h"
-#include "pzgeoprism.h"
-#include "pzshapetetra.h"
-#include "pzreftetrahedra.h"
-#include "pzgeotetrahedra.h"
-#include "pzshapepiram.h"
-#include "pzrefpyram.h"
-#include "pzgeopyramid.h"
-#include "pzrefpoint.h"
-#include "pzgeopoint.h"
+template<class TShape, class TGeo, class TRef>
+TPZGeoElSide 
+TPZGeoElement<TShape,TGeo,TRef>::Father2(int side){//cout << " Father2 teste Cedric: 08/05/2003\n";
+    int son = WhichSubel(); 
+    if(son<0) return TPZGeoElSide(); 
+    return TPZGeoElSide(fFather,TRef::FatherSide(side,son));     
+}
 
+
+
+template<class TShape, class TGeo, class TRef>
+void
+TPZGeoElement<TShape,TGeo,TRef>::Divide(TPZVec<TPZGeoEl *> &pv){
+
+  TRef::Divide(this,pv);
+}
+
+template<class TShape, class TGeo, class TRef>
+void
+TPZGeoElement<TShape,TGeo,TRef>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel){
+
+  TRef::GetSubElements(this,side,subel);
+}
 
 template class TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>;
 template class TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>;

@@ -112,11 +112,11 @@ void TPZEulerConsLaw::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     TPZManVector<REAL> res(nstate);// phi(in, 0) = phi_in , dphi(i,j) = dphi_j/dxi
     fForcingFunction(x,res);//fXf(0,0) = res[0];
     //si o elemento é BC então não tem espa¢o de interpola¢ão associado => phi = {ø} (vacio) e a CC é aplicada
-    if(phrl) for(i=0;i<nstate;i++) solL[i] = res[i];//solução inicial fForcingFunction != 0
+    if(phrl) for(i=0;i<nstate;i++) solL[i] = res[i];//solução inicial (interior, t=0) fForcingFunction != 0
     if(phrr) for(i=0;i<nstate;i++) solR[i] = res[i];//nas iterações > 0 fForcingFunction = 0
-  }
+  }//caso phr=0 a CC já está em sol
   
-  //A defini¢ão das variáveis pode ser otimizada
+  //No que se segue a defini¢ão das variáveis pode ser otimizada
   REAL flux_rho,flux_rhou,flux_rhov,flux_rhow,flux_rhoE;
   TPZVec<REAL> flux_Roe(nstate,0.);
 
@@ -132,10 +132,25 @@ void TPZEulerConsLaw::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     flux_Roe[4] = flux_rhoE;
     
   } else if(nstate == 4){//dimensão 2
-    TPZDiffusionConsLaw::Roe_Flux(solL[0],solL[1],solL[2],solL[3],
-				  solR[0],solR[1],solR[2],solR[3],
-				  normal[0],normal[1],fGamma,
-				  flux_rho,flux_rhou,flux_rhov,flux_rhoE);
+
+    if(1){//TESTE : utiliza Roe 3D para o cálculo de Roe 2D
+      TPZVec<REAL> left(2),right(2);
+      left[0] = 0.0;
+      left[1] = solL[3];
+      right[0] = 0.0;
+      right[1] = solR[3];          // ro     ro_u    ro_v    0.0     E
+      TPZDiffusionConsLaw::Roe_Flux(solL[0],solL[1],solL[2],left[0],left[1],          //
+				    solR[0],solR[1],solR[2],right[0],right[1],        // dimensão 1 : Roe 3D -> Roe 2D
+				    normal[0],normal[1],normal[2],fGamma,             //
+				    flux_rho,flux_rhou,flux_rhov,flux_rhow,flux_rhoE);//
+    }
+    if(0){
+      TPZDiffusionConsLaw::Roe_Flux(solL[0],solL[1],solL[2],solL[3],
+				    solR[0],solR[1],solR[2],solR[3],
+				    normal[0],normal[1],fGamma,
+				    flux_rho,flux_rhou,flux_rhov,flux_rhoE);
+    }
+
     flux_Roe[0] = flux_rho;
     flux_Roe[1] = flux_rhou;
     flux_Roe[2] = flux_rhov;
@@ -530,7 +545,6 @@ void TPZEulerConsLaw::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVe
     return;
   }
   int i,nstate = NStateVariables();
-  TPZFMatrix jacinv(0,0),axes(0,0);
   REAL vpn=0.;
   switch (bcleft->Type()){
   case 0://Dirichlet
@@ -562,7 +576,6 @@ void TPZEulerConsLaw::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZV
     return;
   }
   int i,nstate = NStateVariables();
-  TPZFMatrix jacinv(0,0),axes(0,0);
   REAL vpn=0.;
   switch (bcright->Type()){
   case 0://Dirichlet
@@ -589,7 +602,7 @@ void TPZEulerConsLaw::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZV
 void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL &increment){
   //Problema teste choque refletido estacionário de três estados constantes 
   //região R1
-  REAL r1M = 2.9;
+  REAL r1M = 2.9;//Mach
   REAL r1ro = 1.0;
   REAL r1u = 2.9;
   REAL r1v = 0.0;
@@ -597,7 +610,7 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   REAL r1p = 0.714286;
   REAL r1vel2 = r1u*r1u+r1v*r1v+r1w*r1w;
   //região R2
-  REAL r2M = 2.3781;
+  REAL r2M = 2.3781;//Mach
   REAL r2ro = 1.7;
   REAL r2u = 2.61934;
   REAL r2v = -0.50632;
@@ -605,7 +618,7 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   REAL r2p = 1.52819;
   REAL r2vel2 = r2u*r2u+r2v*r2v+r2w*r2w;
   //região R3
-  REAL r3M = 1.94235;
+  REAL r3M = 1.94235;//Mach
   REAL r3ro = 2.68728;
   REAL r3u = 2.40140;
   REAL r3v = 0.0;
@@ -663,19 +676,19 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
 				    flux_rho,flux_rhou,flux_rhov,flux_rhoE);
       cout << "TPZEulerConsLaw::TestOfRoeFlux flow in the R1 region\n";
       cout << "density : " << r1Fx[0]*n[0]+r1Fy[0]*n[1] << endl
-	   << "density : " << r1Fx[1]*n[0]+r1Fy[1]*n[1] << endl
-	   << "density : " << r1Fx[2]*n[0]+r1Fy[2]*n[1] << endl
-	   << "density : " << r1Fx[3]*n[0]+r1Fy[3]*n[1] << endl << endl;
+	   << "u*ro    : " << r1Fx[1]*n[0]+r1Fy[1]*n[1] << endl
+	   << "v*ro    : " << r1Fx[2]*n[0]+r1Fy[2]*n[1] << endl
+	   << "energy  : " << r1Fx[3]*n[0]+r1Fy[3]*n[1] << endl << endl;
       cout << "TPZEulerConsLaw::TestOfRoeFlux flow in the R2 region\n";
       cout << "density : " << r2Fx[0]*n[0]+r2Fy[0]*n[1] << endl
-	   << "density : " << r2Fx[1]*n[0]+r2Fy[1]*n[1] << endl
-	   << "density : " << r2Fx[2]*n[0]+r2Fy[2]*n[1] << endl
-	   << "density : " << r2Fx[3]*n[0]+r2Fy[3]*n[1] << endl << endl;
+	   << "u*ro    : " << r2Fx[1]*n[0]+r2Fy[1]*n[1] << endl
+	   << "v*ro    : " << r2Fx[2]*n[0]+r2Fy[2]*n[1] << endl
+	   << "energy  : " << r2Fx[3]*n[0]+r2Fy[3]*n[1] << endl << endl;
       cout << "TPZEulerConsLaw::TestOfRoeFlux the calculation of the flow of Roe is\n";
       cout << "density : " << flux_rho << endl
-	   << "density : " << flux_rhou << endl
-	   << "density : " << flux_rhov << endl
-	   << "density : " << flux_rhoE << endl << endl;
+	   << "u*ro    : " << flux_rhou << endl
+	   << "v*ro    : " << flux_rhov << endl
+	   << "energy  : " << flux_rhoE << endl << endl;
       cout << "\nTPZEulerConsLaw::TestOfRoeFlux norma da diferenca |F1*n - F2*n| = " << fabs(soma) << "\n\n";
       enter = 1;
     }
@@ -688,19 +701,19 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
 				    flux_rho,flux_rhou,flux_rhov,flux_rhoE);
       cout << "TPZEulerConsLaw::TestOfRoeFlux flow in the R1 region\n";
       cout << "density : " << r2Fx[0]*n[0]+r2Fy[0]*n[1] << endl
-	   << "density : " << r2Fx[1]*n[0]+r2Fy[1]*n[1] << endl
-	   << "density : " << r2Fx[2]*n[0]+r2Fy[2]*n[1] << endl
-	   << "density : " << r2Fx[3]*n[0]+r2Fy[3]*n[1] << endl << endl;
+	   << "u*ro    : " << r2Fx[1]*n[0]+r2Fy[1]*n[1] << endl
+	   << "v*ro    : " << r2Fx[2]*n[0]+r2Fy[2]*n[1] << endl
+	   << "energy  : " << r2Fx[3]*n[0]+r2Fy[3]*n[1] << endl << endl;
       cout << "TPZEulerConsLaw::TestOfRoeFlux flow in the R2 region\n";
       cout << "density : " << r3Fx[0]*n[0]+r3Fy[0]*n[1] << endl
-	   << "density : " << r3Fx[1]*n[0]+r3Fy[1]*n[1] << endl
-	   << "density : " << r3Fx[2]*n[0]+r3Fy[2]*n[1] << endl
-	   << "density : " << r3Fx[3]*n[0]+r3Fy[3]*n[1] << endl << endl;
+	   << "u*ro    : " << r3Fx[1]*n[0]+r3Fy[1]*n[1] << endl
+	   << "v*ro    : " << r3Fx[2]*n[0]+r3Fy[2]*n[1] << endl
+	   << "energy  : " << r3Fx[3]*n[0]+r3Fy[3]*n[1] << endl << endl;
       cout << "TPZEulerConsLaw::TestOfRoeFlux the calculation of the flow of Roe is\n";
       cout << "density : " << flux_rho << endl
-	   << "density : " << flux_rhou << endl
-	   << "density : " << flux_rhov << endl
-	   << "density : " << flux_rhoE << endl << endl;
+	   << "u*ro    : " << flux_rhou << endl
+	   << "v*ro    : " << flux_rhov << endl
+	   << "energy  : " << flux_rhoE << endl << endl;
       cout << "\nTPZEulerConsLaw::TestOfRoeFlux norma da diferenca |F2*n - F3*n| = " << fabs(suma) << "\n\n";
       enter = 1;
       //break;
@@ -716,6 +729,9 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   if(enter) cout << "\nTPZEulerConsLaw::TestOfRoeFlux angle not found, The End\n";
   else cout << "\nTPZEulerConsLaw::TestOfRoeFlux norma da diferenca |F1*n - F2*n| = " << fabs(soma) << "\n\n";
   cout << "\nTPZEulerConsLaw::TestOfRoeFlux concluded test\n";
+  //OS VALORES ENCONTRADOS SÃO:
+  //61 GRAUS 
+  //-66.7169 GRAUS (-1.16443 RADIANOS)
 }
 //   case 0://Dirichlet
 //   case 1://Neumann

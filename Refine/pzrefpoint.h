@@ -7,8 +7,8 @@
 #include "pzstack.h"
 
 class TPZGeoEl;
-class TPZTransform;
 class TPZGeoElSide;
+class TPZTransform;
 
 class TPZRefPoint {
 

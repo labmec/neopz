@@ -1,7 +1,10 @@
 #include "pzrefquad.h"
-#include "pzelgq2d.h"
+#include "pzgeoquad.h"
 #include "pzshapequad.h"
+#include "TPZGeoElement.h"
 #include "pzgeoel.h"
+#include "pzgmesh.h"
+
 
 static int nsubeldata[9] = {1,1,1,1,3,3,3,3,9};
 
@@ -11,29 +14,27 @@ static int subeldata[9][9][2] =
   {{1,1}},/*side=1*/
   {{2,2}},/*side=2*/
   {{3,3}},/*side=3*/
-  // {{0,4},{0,1},{1,4}},/*side=4*/
- {{0,1},{0,4},{1,4}},/*side=4*/
+  {{0,1},{0,4},{1,4}},/*side=4*/  // {{0,4},{0,1},{1,4}},/*side=4*/
   {{1,2},{1,5},{2,5}},/*side=5*/
   {{2,3},{2,6},{3,6}},/*side=6*/
-  {{3,0},{3,7},{0,7}},/*side=7*/
-   //	{{0,2},{0,8},{1,8},{2,8},{3,8},{0,5},{0,6},{2,4},{2,7}}/*side=8*/
-  {{0,2},{0,5},{0,6},{2,4},{2,7},{0,8},{1,8},{2,8},{3,8}}/*side=8*/
+  {{3,0},{3,7},{0,7}},/*side=7*/         //{0,2},{0,8},{1,8},{2,8},{3,8},{0,5},{0,6},{2,4},{2,7}}/*side=8*/
+  {{0,2},{0,5},{0,6},{2,4},{2,7},{0,8},{1,8},{2,8},{3,8}}/*side=8*/  
 };
 
 static int MidSideNodes[5][2] = {
-  {0,1},	//side 4
-  {1,2},	//side 5
-  {2,3},	//side 6
-  {3,0},	//side 7
+  {0,1},//side 4
+  {1,2},//side 5
+  {2,3},//side 6
+  {3,0},//side 7
   {0,2}	//side 8
 };
 
 
 static REAL MidCoord[5][2] = { 
-  {0.,-1.}, //side 4
+  {0.,-1.},//side 4
   {1.,0.}, //side 5
   {0.,1.}, //side 6
-  {-1.,0.}, //side 7
+  {-1.,0.},//side 7
   {0.,0.}  //side 8
 };
 
@@ -129,12 +130,15 @@ void TPZRefQuad::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
     np[sub] = index;
   }
   // creating new subelements
-  TPZGeoElQ2d *q2d = (TPZGeoElQ2d *) geo;
   for(i=0;i<TPZShapeQuad::NNodes;i++) {
     TPZManVector<int>  cornerindexes(TPZShapeQuad::NNodes);
     for(int j=0;j<TPZShapeQuad::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-    
-    q2d->SetSubElement(i , q2d->CreateGeoEl(cornerindexes,matid,*geo->Mesh()));
+    TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad> *q2sub = 
+      dynamic_cast<TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad> *>(geo->Mesh()->CreateGeoElement(3,cornerindexes,matid,index));
+      //TPZGeoEl *q2sub = (geo->Mesh()->CreateGeoElement(3,cornerindexes,matid,index));
+      //CreateGeoElement(3,cornerindexes,matid,index);
+      //new TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>(cornerindexes,matid,*geo->Mesh());   
+    geo->SetSubElement(i , q2sub);
   }
   
   SubElVec.Resize(NSubEl);
@@ -143,7 +147,7 @@ void TPZRefQuad::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
     SubElVec[sub]->SetFather(geo);
   }
   for(i=0;i<NSubEl;i++) {//conectividades entre os filhos : viz interna
-    for(j=0;j<NumInNeigh;j++) {        //lado do subel                                          numero do filho viz.             lado do viz.
+    for(j=0;j<NumInNeigh;j++) {        //lado do subel              numero do filho viz.             lado do viz.
       geo->SubElement(i)->SetNeighbour(InNeigh[i][j][0],TPZGeoElSide(geo->SubElement(InNeigh[i][j][1]),InNeigh[i][j][2]));
     }
   }
@@ -203,17 +207,17 @@ void TPZRefQuad::GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide
 
   subel.Resize(0);
   if(side<0 || side>TPZShapeQuad::NSides || !father->HasSubElement()){
-    PZError << "TPZRefQuad::GetSubelements2 called with error arguments\n";
+    PZError << "TPZRefQuad::GetSubelements called with error arguments\n";
     return;
   }
-  int nsub = NSideSubElements(side);//nsubeldata[side];
+  int nsub = NSideSubElements(side);
   for(int i=0;i<nsub;i++)
     subel.Push(TPZGeoElSide(father->SubElement(subeldata[side][i][0]),subeldata[side][i][1]));
 }
 
 int TPZRefQuad::NSideSubElements(int side) {  
   if(side<0 || side>TPZShapeQuad::NSides-1){
-    PZError << "TPZRefQuad::NSideSubelements2 called with error arguments\n";
+    PZError << "TPZRefQuad::NSideSubelements called with error arguments\n";
     return -1;
   }
   return nsubeldata[side];

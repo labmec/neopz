@@ -1142,13 +1142,14 @@ TPZCompMesh * CreateTestMesh() {
   };
 
   int nodind[7][8] = {
-    {0,1,4,3,6,7,10,9},
-    {2,4,10,8,5},
-    {8,10,11,5},
-    {2,4,1,8,10,7},
+    {0,1,4,3,6,7,10,9},//cubo
+    {2,4,10,8,5},//pirâmide
+    {8,10,11,5},//tetraedro
+    {2,4,1,8,10,7},//prisma
     {0,1},
     {0,1,7,6},
-    {1,2,7}
+    //{1,2,7}//essa face não pertence a um elem. 3D
+    {5,10,8}//Cedric: face interior ao domínio
   };
 
   int numnos[7] = {8,5,4,6,2,4,3};
@@ -1178,7 +1179,7 @@ TPZCompMesh * CreateTestMesh() {
     }
     switch(nel) {
     case 0:
-//      gelvec[nel]=new TPZGeoElC3d(nodeindex,matid,*gmesh);
+      gelvec[nel]=new TPZGeoElC3d(nodeindex,matid,*gmesh);
       break;
     case 1:
        gelvec[nel]=new TPZGeoElPi3d(nodeindex,matid,*gmesh);
@@ -1187,10 +1188,10 @@ TPZCompMesh * CreateTestMesh() {
        gelvec[nel]=new TPZGeoElT3d(nodeindex,matid,*gmesh);
       break;
     case 3:
-//       gelvec[nel]=new TPZGeoElPr3d(nodeindex,matid,*gmesh);
+      gelvec[nel]=new TPZGeoElPr3d(nodeindex,matid,*gmesh);
       break;
     case 4:
-      //      gelvec[nel]=new TPZGeoEl1d(nodeindex,2,*gmesh);
+      // gelvec[nel]=new TPZGeoEl1d(nodeindex,2,*gmesh);
       break;
     case 5:
       //      gelvec[nel]=new TPZGeoElQ2d(nodeindex,3,*gmesh);
@@ -1212,15 +1213,15 @@ TPZCompMesh * CreateTestMesh() {
   TPZGeoElBC gbc;
 
   // bc -1 -> Dirichlet
-//  TPZGeoElBC gbc1(gelvec[0],20,-1,*gmesh);
+  TPZGeoElBC gbc1(gelvec[0],20,-1,*gmesh);
   TPZGeoElBC gbc11(gelvec[1],14,-1,*gmesh);
-//  TPZGeoElBC gbc12(gelvec[3],15,-1,*gmesh);
+  TPZGeoElBC gbc12(gelvec[3],15,-1,*gmesh);
 
 
 
   // bc -2 -> Neumann at the right x==1
-//  TPZGeoElBC gbc2(gelvec[0],25,-2,*gmesh);
-//  TPZGeoElBC gbc21(gelvec[3],19,-2,*gmesh);
+  TPZGeoElBC gbc2(gelvec[0],25,-2,*gmesh);
+  TPZGeoElBC gbc21(gelvec[3],19,-2,*gmesh);
   TPZGeoElBC gbc22(gelvec[2],10,-2,*gmesh);
 
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);

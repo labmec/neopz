@@ -1,8 +1,9 @@
 #include "TPZRefLinear.h"
 #include "pzshapelinear.h"
-#include "pzelg1d.h"
-
-
+#include "TPZGeoLinear.h"
+#include "TPZGeoElement.h"
+#include "pzgeoel.h"
+#include "pzgmesh.h"
 
 static int InNeigh[2][1][3] = {
 	{{1,1,0}},{{0,0,1}}
@@ -63,12 +64,14 @@ void TPZRefLinear::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
     np[sub] = index;
   }
   // creating new subelements
-  TPZGeoEl1d *c3d = (TPZGeoEl1d *) geo;
   for(i=0;i<TPZShapeLinear::NNodes;i++) {
-	  TPZManVector<int> cornerindexes(TPZShapeLinear::NNodes);
-	  for(int j=0;j<TPZShapeLinear::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-
-    c3d->SetSubElement(i , c3d->CreateGeoEl(cornerindexes,matid,*geo->Mesh()));
+    TPZManVector<int> cornerindexes(TPZShapeLinear::NNodes);
+    for(int j=0;j<TPZShapeLinear::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
+    int ondex;//CreateGeoElement(1,cornerindexes,matid,index);
+    TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear> *l1sub = 
+      dynamic_cast<TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear> *>(geo->Mesh()->CreateGeoElement(1,cornerindexes,matid,index));
+    //new TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>(cornerindexes,matid,*geo->Mesh());
+    geo->SetSubElement(i , l1sub);
   }
 
   SubElVec.Resize(NSubEl);

@@ -1,7 +1,10 @@
-#include "pzelgpr3d.h"
 #include "pzrefprism.h"
+#include "pzgeoprism.h"
 #include "pzshapeprism.h"
+#include "TPZGeoElement.h"
 #include "pzgeoel.h"
+#include "pzgmesh.h"
+#include "pzgeoelside.h"
 
 static int nsubeldata[21] = {1,1,1,1,1,1,3,3,3,3,3,3,3,3,3,7,9,9,9,7,21};
 
@@ -330,17 +333,18 @@ void TPZRefPrism::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 		np[j] = index;
 	}
 	// creating new subelements
-	TPZGeoElPr3d *pr3d = (TPZGeoElPr3d *) geo;
-	TPZGeoElPr3d *sub0;//TESTE
+	//TPZGeoElPr3d *sub0;//TESTE
 	for(i=0;i<TPZRefPrism::NSubEl;i++) {
 		TPZManVector<int> cornerindexes(TPZShapePrism::NNodes);
-		for(int j=0;j<TPZShapePrism::NNodes;j++) 
-			cornerindexes[j] = np[CornerSons[i][j]];
-		TPZGeoElPr3d *subel = new TPZGeoElPr3d(cornerindexes,matid,*geo->Mesh());
-		if(i == 0) sub0 = subel;//TESTE
-		pr3d->SetSubElement(i , subel);
-		SubElVec[i] = subel;
-		subel->SetFather(geo);
+		for(int j=0;j<TPZShapePrism::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
+		TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism> *pr3sub = 
+		  dynamic_cast<TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism> *>(geo->Mesh()->CreateGeoElement(6,cornerindexes,matid,index));
+		  //CreateGeoElement(6,cornerindexes,matid,index);
+		  //new TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>(cornerindexes,matid,*geo->Mesh());
+		//if(i == 0) sub0 = subel;//TESTE
+		geo->SetSubElement(i , pr3sub);
+		SubElVec[i] = pr3sub;
+		pr3sub->SetFather(geo);
 	}
 
 	for(sub=0;sub<NSubEl;sub++) {

@@ -43,8 +43,7 @@ void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &ja
     PZError << "TPZGeoElQ2d.jacobian only implemented for"
       " 4, 8 or 9 nodes, NumberOfNodes = " << nnodes << "\n";
   }
-  //  if(param.NElements() != 2 || param[0] < -1. || param[0] > 1. ||
-  if(/*param.NElements() < 3 ||*/ param[0] < -1. || param[0] > 1. ||
+  if( param[0] < -1. || param[0] > 1. ||  //param.NElements() != 3 ||
      param[1] < -1. || param[1] > 1.) {
     PZError << "TPZGeoElQ2d.jacobian. param out of range : "
       " param.NElements() = " << param.NElements() <<
