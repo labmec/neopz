@@ -9,7 +9,7 @@
  *
  * @author Cantao!
  */
-// $Id: TPZTimer.h,v 1.1 2005-01-10 16:11:56 phil Exp $
+// $Id: TPZTimer.h,v 1.2 2005-03-29 18:28:53 cesar Exp $
 
 #ifndef TPZTIMER_H
 #define TPZTIMER_H
@@ -36,29 +36,30 @@ using namespace std;
 #      include <sys/resource.h>
 #   else
 
-struct pzrusage  // Process resource usage structure.
+/// Process resource usage structure.
+struct pzrusage  
 {
-      struct timeval ru_utime;	// User time used.
-      struct timeval ru_stime;	// System time used.
+  struct timeval ru_utime;	// User time used.
+  struct timeval ru_stime;	// System time used.
 
-      // They're here just for completeness.
-      int ru_maxrss, ru_ixrss, ru_idrss, ru_isrss,
-	 ru_minflt, ru_majflt, ru_nswap, ru_inblock, 
-	 ru_oublock, ru_msgsnd, ru_msgrcv, ru_nsignals,
-	 ru_nvcsw, ru_nivcsw;
+  // They're here just for completeness.
+  int ru_maxrss, ru_ixrss, ru_idrss, ru_isrss,
+  ru_minflt, ru_majflt, ru_nswap, ru_inblock, 
+  ru_oublock, ru_msgsnd, ru_msgrcv, ru_nsignals,
+  ru_nvcsw, ru_nivcsw;
 };
 #   endif
 #endif
 
-// Information on the resources used by a child process.
-typedef struct
+/// Information on the resources used by a child process.
+struct PZResourceUsage
 {
       int waitstatus;
 
       struct pzrusage ru;
 
       struct timeval start, elapsed;   // Wallclock time of process.
-} PZResourceUsage;   // Change from the original "RESUSE".
+} ;   // Change from the original "RESUSE".
 
 #if !HAVE_WAIT3
 #   include <sys/times.h>
