@@ -5,7 +5,6 @@
 #include <fstream>
 using namespace std;
 
-map<int,TPZRestore_t> TPZSaveable::gMap;
 
 int TPZSaveable::ClassId() const {
   return -1;
@@ -30,21 +29,21 @@ void TPZSaveable::Read(TPZStream &buf, void *context)
 void TPZSaveable::Register(int classid, TPZRestore_t fun) 
 {
   map<int,TPZRestore_t>::iterator it;
-  it = gMap.find(classid);
-  if(it != gMap.end()) 
+ it = Map().find(classid);
+  if(it != Map().end()) 
   {
     cout << "TPZSaveable::Register duplicate classid " << classid << endl;
     return;
   }
-  gMap[classid] = fun;
+  Map()[classid] = fun;
 }
 
 TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
   int classid;
   buf.Read(&classid,1);
   map<int,TPZRestore_t>::iterator it;
-  it = gMap.find(classid);
-  if(it == gMap.end()) 
+  it = Map().find(classid);
+  if(it == Map().end()) 
   {
     cout << "TPZSaveable trying to restore unknown object " << classid << endl;
     return 0;

@@ -20,7 +20,10 @@ typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,void *);
 
 class TPZSaveable {
 
+static map<int,TPZRestore_t> &Map() {
 static map<int,TPZRestore_t> gMap;
+   return gMap;
+}
 
 public:
 
@@ -230,6 +233,31 @@ TPZSaveable *Restore(TPZStream &buf, void *context) {
   ptr->Read(buf,context);
   return ptr;
 }
+
+template<class T, int N>
+class TPZRestoreClass {
+
+TPZRestoreClass()
+{
+  TPZSaveable::Register(N,Restore);
+}
+
+public:
+static TPZSaveable *Restore(TPZStream &buf, void *context) {
+  T *ptr = new T;
+  ptr->Read(buf,context);
+  return ptr;
+}
+
+private:
+static TPZRestoreClass gRestoreObject;
+
+
+};
+
+template<class T, int N>
+TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
+
 
 template<>
 inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, void *context) {
