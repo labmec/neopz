@@ -26,11 +26,13 @@
 #include "pzonedref.h"
 #include "pzdxmesh.h"
 #include "pzsolve.h"
+#include "pzflowcmesh.h"
 using namespace std;
 #include <string.h>
 #include <stdio.h>
 #include <iostream>
 //class TPZTransfer;
+
 
 
 TPZNonLinMultGridAnalysis::TPZNonLinMultGridAnalysis(TPZCompMesh *cmesh) : 
@@ -80,15 +82,15 @@ TPZCompMesh *TPZNonLinMultGridAnalysis::AgglomerateMesh(TPZCompMesh *finemesh,
 							int levelnumbertogroup){
 
   TPZVec<int> accumlist;
-  int numaggl,dim;
+  int numaggl,dim = 2;
   TPZAgglomerateElement::ListOfGroupings(finemesh,accumlist,levelnumbertogroup,numaggl,dim);
-  TPZCompMesh *aggmesh = new TPZCompMesh(finemesh->Reference());
+  TPZCompMesh *aggmesh = new TPZFlowCompMesh(finemesh->Reference());
   TPZCompElDisc::CreateAgglomerateMesh(finemesh,*aggmesh,accumlist,numaggl);
   return aggmesh;
 }
 
-TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcmesh,int levelnumbertorefine,
-							     int setdegree) {
+
+TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcmesh,int levelnumbertorefine,int setdegree) {
 
 if(levelnumbertorefine < 1) return NULL;
   TPZGeoMesh *gmesh = coarcmesh->Reference();
@@ -100,7 +102,9 @@ if(levelnumbertorefine < 1) return NULL;
        << " levels to be fine = " << levelnumbertorefine << endl;
 
   gmesh->ResetReference();
-  TPZCompMesh *finemesh = new TPZCompMesh(gmesh);
+  TPZCompMesh *finemesh;
+
+  finemesh = new TPZFlowCompMesh(gmesh);
 
   int nmat = coarcmesh->MaterialVec().NElements();
   int m;
@@ -129,23 +133,21 @@ if(levelnumbertorefine < 1) return NULL;
 	   << " geometric reference\n";
       continue;
     }
-    TPZStack<TPZGeoEl *> sub0,sub1,sub;
+    TPZStack<TPZGeoEl *> sub,sub1;
     //GetRefinedGeoEls(geo,sub);
     int lev = 0,k,nsons,i;
-    gel->Divide(sub0);
+    gel->Divide(sub);
+    lev++;
     while(lev <  levelnumbertorefine){
-      int nsubs = sub0.NElements();
-      TPZVec<TPZGeoEl *> copy(sub0);
+      int nsubs = sub.NElements();
+      TPZVec<TPZGeoEl *> copy(sub);
+      sub.Resize(0);
       for(i=0;i<nsubs;i++){
 	copy[i]->Divide(sub1);
 	nsons = sub1.NElements();
-	if(lev == levelnumbertorefine){
-	  for(k=0;k<nsons;k++) sub.Push(sub1[k]);
-	} else {
-	  for(k=0;k<nsons;k++) sub0.Push(sub1[k]);
-	}
-      lev++;
+	for(k=0;k<nsons;k++) sub.Push(sub1[k]);
       }
+      lev++;
     }
     int nsub = sub.NElements(),isub,index;
     //o construtor adequado ja deveria ter sido definido
@@ -154,9 +156,8 @@ if(levelnumbertorefine < 1) return NULL;
       if(setdegree > 0 && setdegree != degree) disc->SetDegree(degree);
       //caso setdegree < 0 preserva-se o grau da malha inicial
     }
-    return finemesh;
   }
-  return NULL;
+  return finemesh;
 }
 
 void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
@@ -311,15 +312,37 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   TPZCompMesh *coarcmesh = fMeshes[0];//malha grosseira inicial
   //criando a malha fina
   int levelnumbertorefine = 4;
+  cout << "TPZNonLinMultGridAnalysis:: número de níveis a dividir: ";
+  cin >> levelnumbertorefine;
   int setdegree = -1;//preserva o grau da malha inicial
   //newmesh = 0: coarcmesh se tornou a malha fina
   TPZCompMesh *finemesh = UniformlyRefineMesh(coarcmesh,levelnumbertorefine,setdegree);
+  finemesh->SetDimModel(2);
+  out << "\n\t\t* * * MALHA FINA * * *\n";
+  finemesh->Reference()->Print(out);
+  finemesh->Print(out);
+  out.flush();
   //obtendo-se a malha menos fina por agrupamento
   int levelnumbertogroup = 2;//serão agrupados dois níveis de divisão
+  cout << "TPZNonLinMultGridAnalysis:: número de níveis a agrupar: ";
+  cin >> levelnumbertogroup;
   TPZCompMesh *aggmesh = AgglomerateMesh(finemesh,levelnumbertogroup);
+  AppendMesh(aggmesh);
+  //analysis na malha aglomerada
+  TPZAnalysis coarsean(fMeshes[1]);
+  TPZSkylineStructMatrix coarsestiff(fMeshes[1]);
+  coarsean.SetStructuralMatrix(coarsestiff);
+  coarsean.Solution().Zero();
+  TPZStepSolver coarsesolver;
+  coarsesolver.SetDirect(ELDLt);
+  coarsean.SetSolver(coarsesolver);
+  fSolutions.Push(&coarsean.Solution());
+  fSolvers.Push(&coarsesolver);
+  fPrecondition.Push(&coarsesolver);
   //analysis na malha fina
-  TPZAnalysis finean(fMeshes[0]);
-  TPZSkylineStructMatrix finestiff(fMeshes[0]);
+  AppendMesh(finemesh);
+  TPZAnalysis finean(fMeshes[2]);
+  TPZSkylineStructMatrix finestiff(fMeshes[2]);
   finean.SetStructuralMatrix(finestiff);
   finean.Solution().Zero();
   TPZStepSolver finesolver;
@@ -328,18 +351,6 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   fSolutions.Push(&finean.Solution());
   fSolvers.Push(&finesolver);
   fPrecondition.Push(&finesolver);
-  AppendMesh(aggmesh);
-  //analysis na malha aglomerada
-  TPZAnalysis coarsean(fMeshes[1]);
-  TPZSkylineStructMatrix coarsestiff(fMeshes[1]);
-  finean.SetStructuralMatrix(coarsestiff);
-  coarsean.Solution().Zero();
-  TPZStepSolver coarsesolver;
-  coarsesolver.SetDirect(ELDLt);
-  coarsean.SetSolver(coarsesolver);
-  fSolutions.Push(&coarsean.Solution());
-  fSolvers.Push(&coarsesolver);
-  fPrecondition.Push(&coarsesolver);
   //suavisar a solução na malha fina
   REAL tol = 1.e15;
   int numiter = 100;

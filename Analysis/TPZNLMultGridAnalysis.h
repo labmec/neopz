@@ -54,7 +54,7 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
   /**
    * Destructor
    */
-  virtual ~TPZNonLinMultGridAnalysis();
+  ~TPZNonLinMultGridAnalysis();
   
   /**
    * Creates an object multigrid analysis
@@ -92,12 +92,6 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    * it generates a new mesh based on the agglomeration of elements of the fine mesh
    */
   static TPZCompMesh *AgglomerateMesh(TPZCompMesh *finemesh,int levelnumbertogroup);
-
-  /**
-   * Loads the last two solutions and
-   * call the error between these two aproximations
-   */
-  void ComputeError (TPZVec<REAL> &error);
 
   void SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an);
   
