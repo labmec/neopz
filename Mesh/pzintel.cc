@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cc,v 1.18 2003-12-02 11:50:01 tiago Exp $
+// $Id: pzintel.cc,v 1.19 2003-12-08 14:18:28 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1849,6 +1849,7 @@ void TPZInterpolatedElement::EvaluateError(
     Print(PZError);
     return;
   }
+  if(fMaterial->Id() < 0) return;
   // Adjust the order of the integration rule
   TPZIntPoints &intrule = GetIntegrationRule();
   int dim = Dimension();
