@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.20 2005-01-14 16:46:40 tiago Exp $
+//$Id: pzanalysis.cpp,v 1.21 2005-01-21 20:02:57 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -19,7 +19,7 @@
 #include "pzsolve.h"
 #include "pzstepsolver.h"
 #include "pzmetis.h"
-//#include "pzsloan.h"
+#include "pzsloan.h"
 #include "pzmaterial.h"
 #include "pzstrmatrix.h"
 
@@ -87,20 +87,25 @@ void TPZAnalysis::SetBlockNumber(){
 
 	if(!fCompMesh) return;
 	fCompMesh->InitializeBlock();
+	TPZVec<int> perm,iperm;
 
 	TPZStack<int> elgraph,elgraphindex;
 	int nindep = fCompMesh->NIndependentConnects();
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 	int nel = elgraphindex.NElements()-1;
+	TPZSloan sloan(nel,nindep);
+	sloan.SetElementGraph(elgraph,elgraphindex);
+//	TPZVec<int> perm,iperm;
+	sloan.Resequence(perm,iperm);
+	fCompMesh->Permute(perm);
+/*
+	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
+
 	TPZMetis metis(nel,nindep);
 	metis.SetElementGraph(elgraph,elgraphindex);
-	TPZVec<int> perm,iperm;
-//  ofstream write("Graph.chk");
-//  metis.Print(out,"Graph File");
-//  metis.Print(write);
-//  out.flush();
 	metis.Resequence(perm,iperm);
 	fCompMesh->Permute(iperm);
+*/
 }
 
 void TPZAnalysis::Assemble() {
