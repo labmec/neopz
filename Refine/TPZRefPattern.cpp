@@ -24,24 +24,33 @@ TPZRefPattern::TPZRefPattern() : fSubElRefPattern(0),fBCRefPattern(0) {
   fMesh = 0;
   fBCRefPattern.Resize(0);
   fName = "";
+  fNSubEl = 0;
 }
 
-TPZRefPattern::TPZRefPattern(char * file ) : fSubElRefPattern(0),fBCRefPattern(0) {
+TPZRefPattern::TPZRefPattern(const TPZRefPattern &copy) : fSubElRefPattern(copy.fSubElRefPattern),fBCRefPattern(copy.fBCRefPattern) {
+  fFileRefPatt = copy.fFileRefPatt;
+  fRefineType = copy.fRefineType;
+  fMesh = copy.fMesh;
+  fName = copy.fName;
+  fNSubEl = copy.fNSubEl;
+}
+
+TPZRefPattern::TPZRefPattern(string file ) : fSubElRefPattern(0),fBCRefPattern(0) {
   fMesh = new TPZGeoMesh;
   fMesh->SetName("* * * Refinement Pattern * * *");
   fFileRefPatt = file;/**arquivo contendo o padrão de refinamento*/
   ReadPattern();/**lê o arquivo contendo o refinamento e cria a malha fMesh*/
   fMesh->BuildConnectivity();/**conectividades entre sub-elementos*/
-//  MeshPrint();//TETSTE
   ComputeTransforms();/**calcula as transformações entre filhos e pai*/
   ComputePartition();/**efetua a partição do elemento pai de acordo com os lados dos sub-elementos*/
   fBCRefPattern.Resize(0);
 }
 
 void TPZRefPattern::ReadPattern(){
-  ifstream in(fFileRefPatt);
+  ifstream in(fFileRefPatt.data());
   int nnodes,nelems,inode;
   in >> nnodes >> nelems;
+  fNSubEl = nelems - 1;
   in >> fRefineType;
   in >> fName;
   TPZVec<REAL> coord(3);
@@ -68,14 +77,14 @@ void TPZRefPattern::ReadPattern(){
     TPZGeoEl *subel = CreateGeoEl(ntype,nummat,nodes,fMesh);
     if(el==0){
       father = subel;
-      //father->ResizeSubEl(nelems-1);//número de filhos
+      subel->SetRefPattern(this);
+      
     }
     if(el>0){
       father->SetSubElement(el-1,subel);
       subel->SetFather(father);
     }
   }
- // MeshPrint();
 }
 
 /** Preenche-se a estrutura elemento/lado com aqueles objetos que tem
@@ -382,7 +391,8 @@ int TPZRefPattern::NSideNodes(int side){
 }
 
 int TPZRefPattern::NSubElements(){
-  return ( fMesh->ElementVec().NElements() - 1 );
+  //return ( fMesh->ElementVec().NElements() - 1 );
+  return fNSubEl;
 }
 
 void TPZRefPattern::SideSubElement(int sidein, int position, int & sub, int & sideout){
@@ -455,7 +465,7 @@ void TPZRefPattern::NSideSubElements(){
     int sidepos = side-nnod;
     int pos = fFatherSides.fInitSide[sidepos];
     int pos2 = fFatherSides.fInitSide[sidepos+1];
-    int p,size = pos2-pos;
+    int size = pos2-pos;
     //    TPZVec<int> subs(size,0);/**tamanho máximo*/
     //    for(p=pos;p<pos2;p++) subs[p-pos] = fFatherSides.fPartitionSubSide[p].Element()->Id();/**todos positivos > 0*/
     //    for(int i=0;i<size;i++) for(int j=i+1;j<size;j++) if(subs[j]==subs[i]) subs[j] = 0;/**anulando os repetidos*/
@@ -484,36 +494,37 @@ void TPZRefPattern::MeshPrint(){
   out.close();
 }
 
-TPZGeoEl *TPZRefPattern::CreateGeoEl(int ntype, int mat,TPZVec<int> &nodes,TPZGeoMesh *gmesh){
+TPZGeoEl *TPZRefPattern::CreateGeoEl(int ntype, int mat,TPZVec<int> &nodes,TPZGeoMesh *gmesh, int el){
   int index = -1;
+  el = (el == 0) ? ntype : 0;
   switch(ntype) {//tipo de elemento
     case 1:
-      return gmesh->CreateGeoElement(EPoint,nodes,mat,index);
+      return gmesh->CreateGeoElement(EPoint,nodes,mat,index,el);
     case 2://unidimensional ; elg1d =
-      return gmesh->CreateGeoElement(EOned,nodes,mat,index);
+      return gmesh->CreateGeoElement(EOned,nodes,mat,index,el);
       //return new TPZGeoEl1d(nodes,mat,*gmesh);
       //return;
     case 3://triângulo ; elgt2d =
-      return gmesh->CreateGeoElement(ETriangle,nodes,mat,index);
+      return gmesh->CreateGeoElement(ETriangle,nodes,mat,index,el);
       //return new TPZGeoElT2d(nodes,mat,*gmesh);
       //return;
     case 4://quadrilátero ; elgq2d
-      return gmesh->CreateGeoElement(EQuadrilateral,nodes,mat,index);
+      return gmesh->CreateGeoElement(EQuadrilateral,nodes,mat,index,el);
       //return;
     case 7://tetraedro ; elgt3d =
-      return gmesh->CreateGeoElement(ETetraedro,nodes,mat,index);    
+      return gmesh->CreateGeoElement(ETetraedro,nodes,mat,index,el);    
       //return new TPZGeoElT3d(nodes,mat,*gmesh);
       //return;
     case 5://pirâmide ; elgpi3d =
-      return gmesh->CreateGeoElement(EPiramide,nodes,mat,index);
+      return gmesh->CreateGeoElement(EPiramide,nodes,mat,index,el);
       //return new TPZGeoElPi3d(nodes,mat,*gmesh);
       //return;
     case 6://prisma ; elgpi3d =
-      return gmesh->CreateGeoElement(EPrisma,nodes,mat,index);
+      return gmesh->CreateGeoElement(EPrisma,nodes,mat,index,el);
       //return new TPZGeoElPr3d(nodes,mat,*gmesh);
       //return;
     case 8://cubo ; elgc3d =
-      return gmesh->CreateGeoElement(ECube,nodes,mat,index);
+      return gmesh->CreateGeoElement(ECube,nodes,mat,index,el);
       //return new TPZGeoElC3d(nodes,mat,*gmesh);
       //return;
     default:

@@ -4,6 +4,7 @@
 #include "pzvec.h"
 #include "pzgmesh.h"
 #include <iostream>
+#include <string>
 
 class TPZGeoNode;
 class TPZCompMesh;
@@ -52,7 +53,10 @@ public:
      * Constructor whose argument is the name of the archive with the definition
      * of the refinement standard
      */
-    TPZRefPattern(char * file);
+    TPZRefPattern(string);
+    
+    /**Copy constructor*/
+    TPZRefPattern (const TPZRefPattern &copy);
 
     /**
      * Destructor of the object
@@ -76,8 +80,14 @@ public:
 
     /**
      * It create geometric elements
+     * @param ntype type of the element to be created. It equals to corner nodes except for \
+     tetrahedra whose type is 7
+     * @param mat material identifier
+     @ @param nddes vector with incident nodes
+     * @param gmesh pointer to geometric mesh where the element will be created
+     * @param el element index
      */
-     TPZGeoEl *CreateGeoEl(int ntype,int mat,TPZVec<int> &nodes,TPZGeoMesh *gmesh);
+     TPZGeoEl *CreateGeoEl(int ntype,int mat,TPZVec<int> &nodes,TPZGeoMesh *gmesh, int el=0);
     
     /**
      * It calculates the hashings between the sides of the son and the father 
@@ -264,7 +274,7 @@ private:
     /**
      * Name of the file that defines the refinement standard
      */
-    char * fFileRefPatt;
+    string fFileRefPatt;
 
     /**
      * Indice or type of the current refinement 
@@ -287,6 +297,9 @@ private:
 
     /**refinamento para elementos de contorno associados ao refinamento atual*/
     TPZVec<TPZRefPattern *> fBCRefPattern;
+    
+    /**This should be available before the mesh initialization*/
+    int fNSubEl;
 
  public:
     /**refinamento do contorno do element*/
