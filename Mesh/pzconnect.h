@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.4 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzconnect.h,v 1.5 2003-11-25 17:50:42 cesar Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -103,6 +103,9 @@ class TPZConnect {
   int DependencyDepth(TPZCompMesh &mesh);
 
   int HasDependency() { return fDependList != 0; }
+
+  int CheckDependency(int nshape, TPZCompMesh *mesh, int nstate);
+
 
   TPZDepend *FirstDepend() { return fDependList; }
 
