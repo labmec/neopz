@@ -1,12 +1,15 @@
-//$Id: main.cpp,v 1.8 2003-12-15 17:46:35 tiago Exp $
+//$Id: main.cpp,v 1.9 2003-12-15 19:21:28 tiago Exp $
 /**
  * Galerkin descontinuo: visita do professor Igor.
  * 24/11/2003
  */
 
 //pra acertar as condicoes de contorno
-//#define DIFUSAO_EXP
-#define DESCONTINUIDADE
+//DIFUSAO_EXP eh difusao pura
+//DESCONTINUIDADE eh conveccao-difusao sem vetor de carga
+//DEBUGM nao pergunta parametros h e p, nem nome dos arquivos
+#define DIFUSAO_EXP
+//#define DESCONTINUIDADE
 #define DEBUGM
 
 
@@ -111,6 +114,10 @@ TPZCompMesh *CreateMesh3();
 //malha de triangulos do Philippe
 TPZCompMesh *CreateMeshPhil();
  
+
+////////////////////////////////////////////////////////////////////////////////
+
+
 int main(){
 
   int p, h;
@@ -118,8 +125,8 @@ int main(){
   char filedx[20];
 
 #ifdef DEBUGM
-  p = 2;
-  h = 0;
+  p = 6;
+  h = 1;
 #endif
 
   cout << "\nQuadrado = 1; Triang = 2" << endl;
@@ -231,35 +238,36 @@ int main(){
 
   TPZGeoMesh *gmesh = cmesh->Reference();
 
-  //  gmesh->Print(out);
-  //  cmesh->Print(out);
-
   TPZAnalysis an(cmesh);
-  //  TPZFStructMatrix full(cmesh);
-  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
- 
+
+  //METODOS DE RESOLUCAO: ITERATIVO OU DIRETO
+
+  // #define ITER_SOLVER
+#define DIRECT_SOLVER
+
+#ifdef ITER_SOLVER
+  TPZFStructMatrix full(cmesh);
   an.SetStructuralMatrix(full);
-
-/*  TPZBlockDiagonalStructMatrix strblock(cmesh);
-
+  
+  TPZBlockDiagonalStructMatrix strblock(cmesh);
   TPZBlockDiagonal * block = new TPZBlockDiagonal();
   strblock.AssembleBlockDiagonal(*block);
-
-
+  
   TPZStepSolver step, precond(block);
-//  block->Print("Bloco DIAGONAL, DEVLOO", out);
-
-  //precond.SetJacobi(1, 0.00001, 0);
+  block->Print("Bloco DIAGONAL, DEVLOO", out);
+  
   precond.SetDirect(ELU);
 
-  step.SetGMRES( 2000, 10, precond, 0.0000000001, 0);
-  //   step.SetDirect(ELU);
-*/ 
+  step.SetGMRES( 2000, 10, precond, 0.0000000001, 0); 
 
+#endif
+
+#ifdef DIRECT_SOLVER
+  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
+   an.SetStructuralMatrix(full);
   TPZStepSolver step;
-  //      step.SetJacobi(2000, 0.000000001, 0);
   step.SetDirect(ELU);
-  
+#endif
 
   an.SetSolver(step);
 /*  TPZFMatrix fillin;
@@ -311,6 +319,18 @@ int main(){
   delete gmesh;
   return 0;
 }
+
+
+
+
+//////////////////////// COMECAM AS MALHAS:
+/////////////////////// CREATEMESH -> 4 QUADRADOS
+////////////////////// CREATEMESH2 -> 8 TRIANGULOS
+///////////////////// CREATEMESH3 -> 8 TRIANGULOS ALINHADOS COM A DESCONTINUIDADE
+//////////////////// CREATEMESHPHIL -> MALHA DE TRIANGULOS DO PHILIPPE
+
+
+
 
 #include "TPZGeoElement.h"
 
