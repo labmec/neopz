@@ -80,14 +80,14 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    * of a fixed number of levels of the original geometric mesh
    * coarcmesh : initial computational mesh
    * levelnumbertorefine: number of the levels to be refined
-   * setdegree: 
+   * setdegree: degree of interpolation
    */
   static TPZCompMesh *UniformlyRefineMesh (TPZCompMesh *coarcmesh,int levelnumbertorefine,int setdegree);
 
    /**
-   * Proceeds the uniformly h-p refinement of mesh
+   * it generates a new mesh based on the agglomeration of elements of the fine mesh
    */
-  static TPZCompMesh *AgglomerateMesh (TPZCompMesh *mesh);
+  static TPZCompMesh *AgglomerateMesh (TPZCompMesh *finemesh);
 
   /**
    * Loads the last two solutions and

@@ -123,9 +123,13 @@ void TPZNonLinMultGridAnalysis::Solve() {
 //   } else {
 //     int nsol = fSolutions.NElements();
 //     *(fSolutions[nsol-1]) = fSolution;
-//   }
+//  
 }
 
+TPZCompMesh *TPZNonLinMultGridAnalysis::AgglomerateMesh (TPZCompMesh *finemesh){
+
+
+}
 
 TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcmesh,int levelnumbertorefine,int setdegree) {
 
