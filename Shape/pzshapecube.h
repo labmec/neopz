@@ -1,12 +1,12 @@
 // -*- c++ -*-
-// $Id: pzshapecube.h,v 1.4 2003-10-06 01:32:07 phil Exp $
+// $Id: pzshapecube.h,v 1.5 2004-10-06 19:12:23 phil Exp $
 #ifndef SHAPECUBEHPP
 #define SHAPECUBEHPP
 
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include "pztrnsform.h"
-#include "pzgeoelside.h"
+//#include "pzgeoelside.h"
 
 
 #ifdef _AUTODIFF
