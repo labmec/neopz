@@ -48,7 +48,7 @@ REAL TPZNACAXXXX::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt) {
     uplow = 0;
     REAL distprev = distminlow;
     par = parlow;
-    while(fabs(delpar) > 0.001/maxp) {
+    while(fabs(delpar) > 0.00001/maxp) {
       ptl[0] = xla(par+delpar);
       ptl[1] = yla(par+delpar);
       distlow = (ptl[0]-pt[0])*(ptl[0]-pt[0])+(ptl[1]-pt[1])*(ptl[1]-pt[1]);
@@ -122,7 +122,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
  m = nSubdiv;
 
  n = 5 * m / 9 * (int) pow(scale, .6);
- l = m / 3;
+ l = m / 2;
  p = m / 4;
 
  q  = pow(5.6 * .25 * scale, 1./(double)m);
@@ -152,10 +152,6 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
 	 coord[1] = profile.yla(x * cord);
 	 coord[2] = 0.;
 	 pt[2*m -i] = coord;
-
-
-	 cout << "\ndeltax" << pt[i][0] - pt[2*m-i][0];
-         cout << "\ndeltay" << pt[i][1] + pt[2*m-i][1] - height;
 
       }
    coord[0] = profile.xua(0.);
@@ -311,7 +307,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
    // vertical exit face
    for(j = 1; j <= l; j++)
    {
-      double ratio = xpg(qn, j, l);
+      double ratio = xpg(pow(4., 1./l), j, l);
       //upper points
       indexPt2 = outerCenterExitPt + j;
       coord[0] = entrance + cord + exitlength;
@@ -707,13 +703,15 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
 // Constructing neighborhood
 
    gmesh->BuildConnectivity();
-   
+
 
 
    {// Dividing elements to create a mesh of 4 elems around NACA surface
 
-     TPZVec<TPZGeoEl * > firstDiv, secondDiv;
+     //first row near naca
+     TPZVec<TPZGeoEl * > firstDiv, secondDiv, thirdDiv;
      TPZManVector<REAL, 3> pt(3,0.);
+     int ii;
      for(i = 0; i < 2*m; i++)
        {
 	 gEls[i]->Divide(firstDiv);
@@ -723,16 +721,86 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
 	 firstDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
 	 firstDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
 
-         for(j = 0; j < 2; j++) {
-	   firstDiv[j]->Divide(secondDiv);
-	   pt[0] = secondDiv[0]->NodePtr(1)->Coord(0);
-	   pt[1] = secondDiv[0]->NodePtr(1)->Coord(1);
-	   profile.ProjectPoint(pt, 8*m + 1);
-	   secondDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
-	   secondDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
-	   
-	 }
+	 if(fabs(i-m+.5) > 3*m/4)
+	 {
+            for(j = 0; j < 2; j++) {
+	      firstDiv[j]->Divide(secondDiv);
+	      pt[0] = secondDiv[0]->NodePtr(1)->Coord(0);
+	      pt[1] = secondDiv[0]->NodePtr(1)->Coord(1);
+	      profile.ProjectPoint(pt, 8*m + 1);
+	      secondDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
+	      secondDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
+	      for(ii = 0; ii < 2; ii++)
+	      {
+	        secondDiv[ii]->Divide(thirdDiv);
+	        pt[0] = thirdDiv[0]->NodePtr(1)->Coord(0);
+	        pt[1] = thirdDiv[0]->NodePtr(1)->Coord(1);
+	        profile.ProjectPoint(pt, 32*m + 1);
+	        thirdDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
+	        thirdDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
+	      }
+	      if(i == 0 || i == 2*m-1)
+	         for(ii = 2; ii < 4; ii++)
+	         {
+	           secondDiv[ii]->Divide(thirdDiv);
+	         }
+	    }
+	    for(j = 2; j < 4; j++)
+	    {
+              firstDiv[j]->Divide(secondDiv);
+	    }
+	 }else{
+            for(j = 0; j < 2; j++) {
+	      firstDiv[j]->Divide(secondDiv);
+	      pt[0] = secondDiv[0]->NodePtr(1)->Coord(0);
+	      pt[1] = secondDiv[0]->NodePtr(1)->Coord(1);
+	      profile.ProjectPoint(pt, 8*m + 1);
+	      secondDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
+	      secondDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
+	    }
+         }
        }
+
+     // first n/3 rows of elements near naca
+     for(i = 2*m; i < 2*(n/3)*m; i++)
+     {
+        gEls[i]->Divide(firstDiv);
+	if( ((i==2*m)||(i==4*m-1)) )
+	    for(j = 0; j < 4; j++)
+	    {
+              firstDiv[j]->Divide(secondDiv);
+	    }
+     }
+
+     // exit mesh
+     for(j = 0; j < p; j++)
+	{
+	   for(i = 0; i < 2*(p-j); i++)
+           {
+	     gEls[2*m*n+j*(l*2)+i]->Divide(firstDiv);
+             if(i < 2 && j < p/2)
+	       for(ii = 0; ii < 2; ii++)
+	       {
+                  firstDiv[ii + 2*i]->Divide(secondDiv);
+               }
+	   }
+	}
+     // conic exit mesh
+     for(i = 0; i < n-l; i++)
+     {
+        int index = 2*m*n + 2*l*p + l + p + 2*(l+p)*i;
+        gEls[index]->Divide(firstDiv);
+	gEls[index-1]->Divide(firstDiv);
+     }
+
+     // shock wings
+     for(i = n/3; i < n/2; i++)
+        for(j = l + i - n/3; j < m; j++)
+        {
+	   gEls[i*2*m+j]->Divide(firstDiv);
+	   gEls[(i+1)*2*m-j-1]->Divide(firstDiv);
+        }
+
    }
 
   // if(nSubdiv > 1)PZError << "CreateOneElGeoMesh unsupported number of subdivisions";
@@ -803,12 +871,6 @@ TPZFlowCompMesh *
    // object computes the delta when it equals null.
 
    mat->SetCFL(CFL);
-/*
-   REAL us = sqrt(5.5 * 5.5 + 3.3 * 3.3);
-   REAL press = 2.;
-   REAL cspeed = sqrt(1.4*press/1.7);
-   REAL lambdaMax = us + cspeed;
-*/
    mat->SetDelta(delta);
 
    cmesh -> InsertMaterialObject(mat);
@@ -842,7 +904,7 @@ TPZFlowCompMesh *
    val2(0,0) = 1.;// rho
    val2(1,0) = Mach * cos(angle);// Machx
    val2(2,0) = Mach * sin(angle);// Machy
-   val2(3,0) = 2.;// pressure
+   val2(3,0) = 1.;// pressure
    for( i = 0; i < l; i++)
    {
       TPZGeoElBC((TPZGeoEl *)gElem[(n-1)*2*m+i],6,-2,*gmesh);
@@ -852,12 +914,12 @@ TPZFlowCompMesh *
    cmesh->InsertMaterialObject(bc);
 
 
-   // Material was -3 - not directional
+   // Material was -2 - directional
    // Apparently nothing changed...
    // upper and lower extern NACA BC faces: inflow/outflow
    for( i = (n-1)*2*m + l; i < n*2*m - l; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-2,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-3,*gmesh);
    }
 
    int lastElement = 2*(m*n + p*n + (n-l) * l);
@@ -899,7 +961,7 @@ TPZFlowCompMesh *
       int blockOffset = cmesh->Block().Position(j) + lastShapeFun;
 
       REAL rho = 1.0,
-           p = 2.,
+           p = 1.,
 	   u = sqrt(1.4 * p / rho) * Mach,
 	   v = 0.,
 	   vel2 = u*u + v*v;
