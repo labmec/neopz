@@ -30,16 +30,18 @@
 extern "C"{
      #include <cblas.h>
      };
-
-void cblas_zaxpy(const int N, const void *alpha, const void *X,
+double cblas_ddot(const int N, const double *X, const int incX,
+                  const double *Y, const int incY);
+void cblas_daxpy(const int N, const void *alpha, const void *X,
                  const int incX, void *Y, const int incY);
 #endif
 #ifdef USING_BLAS
 extern "C"{
      #include <cblas.h>
      };
-
-void cblas_zaxpy(const int N, const void *alpha, const void *X,
+double cblas_ddot(const int N, const double *X, const int incX,
+                  const double *Y, const int incY);
+void cblas_daxpy(const int N, const void *alpha, const void *X,
                  const int incX, void *Y, const int incY);
 #endif
 
@@ -885,11 +887,21 @@ int TPZFMatrix::Substitution( TPZFMatrix *B ) const {
 
 REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B) {
 	int size = (A.Rows())*A.Cols();
+	double result = 0.;
+#ifdef USING_ATLAS
+	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
+	return result;
+
+#elif USING_BLAS
+	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
+	return result;
+
+#else
 	const REAL *fpA = &A.g(0,0), *fpB = &B.g(0,0);
 	const REAL *fpLast = fpA+size;
-	REAL result = 0.;
 	while(fpA < fpLast) result += *fpA++ * *fpB++;
 	return result;
+#endif
 }
 
 TPZTempFMatrix operator+(const REAL value, const TPZFMatrix &A ) {
