@@ -74,7 +74,7 @@
 #include "pzmatorthotropic.h"
 #include "TPZMulticamadaOrtho.h"
 #include "TPZPlacaOrthotropic.h"
-//#include "TPZSurfaceInteg.h"
+
 
 #include <stdio.h>
 #include <time.h>
@@ -85,46 +85,66 @@
 #include <math.h>
 using namespace std;
 
-void ProcessamentoLocal(TPZGeoMesh &gmesh,ostream &out);
-void CriaNos(int num, TPZGeoMesh &geomesh, double list [20][3]);
-void CriaElementos(int numelem,int ncon,TPZGeoMesh &geomesh, int list[20][8] );
-void CriaCondCont(TPZGeoMesh &gmesh);
-void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat);
-void PosProcessamento(TPZAnalysis &an);
-void Print(TPZGeoMesh *geomesh);
-void CriaCondCont2(TPZGeoMesh &gmesh);
-//static double NosPlaca[8][3] = {{
-
-
-
 
 /**
  * -> PROGRAMA PRINCIPAL <- -> PROGRAMA PRINCIPAL <- -> PROGRAMA PRINCIPAL <- -> PROGRAMA PRINCIPAL <-
  */
 
 int main(){
-  int ord, quantplacas;
 
-//criando objetos das classes computacional e geométrica
-  TPZMulticamadaOrthotropic *multcam = new TPZMulticamadaOrthotropic(0., 2.0, 1.5,1,1);
+  ofstream out("MALHA.OUT");
+  //criando objetos das classes computacional e geométrica
+  REAL zmin = 0.;
+  REAL dx = 1.0;
+  REAL dy = 1.0;
+  int nelx = 1;
+  int nely = 1;
+  cout << "multicamada::main\n"
+       << "dx\n"
+       << "dy\n"
+       << "nelx\n"
+       << "nely\n";
+  //cin >> dx >> dy >> nelx >> nely;
 
+  TPZMulticamadaOrthotropic *multcam = new TPZMulticamadaOrthotropic(zmin,dx,dy,nelx,nely);
+  TPZMatOrthotropic *orto;
 
-  TPZFMatrix naxes(3,3);
-  //  REAL E = 200000.0, G = 173913.0, v = 0.15;
+  //criando objeto para a classe material
+  //REAL E = 200000.0, G = 173913.0, v = 0.15;
   //REAL E = 10000.0, G = 4347.83, v = 0.15;//teste
   //REAL E = 15.133e6, G = 2.59398e7, v = 0.471;//Pinus Pinaster ait.
- //  REAL E = 69.0e6, G = 5.14378e6, v = 0.330;//Aluminio
-//   REAL eppx=E, eppy=E, eppz=E, vxy=v, vyz=v,vzx=v, gxy=G, gyz=G, gzx=G;
-//  int matindex = 1;
-
+  //REAL E = 69.0e6, G = 5.14378e6, v = 0.330;//Aluminio
+  //REAL eppx=E, eppy=E, eppz=E, vxy=v, vyz=v,vzx=v, gxy=G, gyz=G, gzx=G;
+  int numat = 1;
+  TPZFMatrix naxes(3,3);
   naxes(0,0) =  1.0;    naxes(0,1) =  0.0;    naxes(0,2) =  0.0;
   naxes(1,0) =  0.0;    naxes(1,1) =  1.0;    naxes(1,2) =  0.0;
   naxes(2,0) =  0.0;    naxes(2,1) =  0.0;    naxes(2,2) =  1.0;
+  REAL eppx = 100.0;
+  REAL eppy = 100.0;
+  REAL eppz = 100.0;
+  REAL vxy = 0.;
+  REAL vyz = 0.;
+  REAL vzx = 0.;
+  REAL gxy = 50.0;
+  REAL gyz = 50.0;
+  REAL gzx = 50.0;
 
-  //criando objeto para a classe material
-  TPZMatOrthotropic *orto;
-  orto = new TPZMatOrthotropic(1, naxes, 69.e06, 69.e06, 69.e06, 0.33, 0.33, 0.33, 5.15378e06, 5.15378e06, 5.15378e06) ;
+  orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
   multcam->AddPlacaOrtho(orto,0.2);
+  if(0){
+    eppx = 100.0;
+    eppy = 100.0;
+    eppz = 100.0;
+    vxy = 0.;
+    vyz = 0.;
+    vzx = 0.;
+    gxy = 50.0;
+    gyz = 50.0;
+    gzx = 50.0;
+    orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
+    multcam->AddPlacaOrtho(orto,0.1);
+  }
 
   multcam->GenerateMesh();
 
@@ -133,6 +153,11 @@ int main(){
   multcam->ComputeSolution();
 
   multcam->ComputeCenterForces();
+
+  multcam->GeoMesh()->Print(out);
+  multcam->CompMesh()->Print(out);
+  out.flush();
+  out.close();
 
   return 0;
 }

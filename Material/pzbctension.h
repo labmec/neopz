@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzbctension.h,v 1.4 2003-11-04 16:45:07 phil Exp $
+// $Id: pzbctension.h,v 1.5 2003-11-06 18:09:14 cedric Exp $
 
 #ifndef BCTENSIONHPP
 #define BCTENSIONHPP
@@ -51,6 +51,7 @@ class TPZBCTension : public TPZBndCond {
       TPZFNMatrix<9> tensor(3,3);
       fMultCam->Tensor(x,fCamada,tensor);
       int i,j;
+      Val2().Zero();
       for(i=0; i<3; i++) {
 	for(j=0; j<3; j++) {
 	  Val2()(i,0) += tensor(i,j)*normal[j];
