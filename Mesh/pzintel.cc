@@ -390,7 +390,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 
 
   for(in=0; in<locnod; in++) {
-    int cind = connectlistcoarse[in];
+    //    int cind = connectlistcoarse[in];
     if(Connect(in).HasDependency()) continue;
     int locblocknumber = Connect(in).SequenceNumber();
     int locblocksize = locblock.Size(in);
@@ -760,7 +760,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 
 void TPZInterpolatedElement::CheckConstraintConsistency() {
   int nc = fReference->NSides();
-  int a;
+  //  int a;
   for(int c=0; c<nc; c++) CheckConstraintConsistency(c);
 }
 
@@ -840,7 +840,7 @@ int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix &phis
   for (icon=0; icon<nconl; icon++){
     int conlindl = SideConnectLocId(icon,sidel);
     int conscounter = -1;
-    int i;
+    //    int i;
     TPZCompElSide cellsmallside(this,sides);
 
     for(conscounter=0; conscounter<ncons; conscounter++) if(SideConnectLocId(conscounter,sides) == conlindl) break;
@@ -849,7 +849,7 @@ int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix &phis
       int firstl = posl[icon];
      
       int dimsmall = cellsmallside.Reference().Dimension();
-      int idim,ish;
+      int idim;
       for (idim = 0; idim < dimsmall; idim++){
 	if (phis(firsts+idim,0) != phil(firstl+idim,0)){
 	  cout << "TPZInterpolatedElement::CompareShapeF : Inconsistent transformation side detected\n";
@@ -936,8 +936,8 @@ void TPZInterpolatedElement::CheckConstraintConsistency(int side) {
 void TPZInterpolatedElement::RemoveSideRestraintWithRespectTo(int side,
 							      const TPZCompElSide & neighbour) {
   TPZCompElSide thisside(this,side);
-  TPZGeoElSide thisgeoside = thisside.Reference();
-  TPZGeoElSide largegeoside = neighbour.Reference();
+  //  TPZGeoElSide thisgeoside = thisside.Reference();
+  //  TPZGeoElSide largegeoside = neighbour.Reference();
   TPZCompElSide largeset = thisside.LowerLevelElementList(1);
   if(!largeset.Exists()) {
     PZError << "TPZInterpolatedElement::RemoveSideRestraintWithRespectTo inconsistent 1\n";
@@ -1972,7 +1972,7 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
   for(b=0; b<numblocks; b++) {
     blocksizes[b] /= numdof;
   }
-  int numeq = nshape*numdof;
+  //  int numeq = nshape*numdof;
   TPZVec<REAL> sol(numdof,0.);
   //suficiente para ordem 5 do cubo
   REAL phistore[220],dphistore[660],dphixstore[660];

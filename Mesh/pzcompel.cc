@@ -826,17 +826,33 @@ TPZCompElSide TPZCompElSide::LowerIdElementList(TPZCompElSide &expandvec,int onl
 
   if(!expandvec.Element()) return TPZCompElSide();
   TPZGeoElSide gelside = expandvec.Reference();
-  TPZGeoElSide neighbour = gelside.Neighbour(),lowidneigh(gelside);
-  if(!neighbour.Element()) return expandvec;
+  TPZStack<TPZGeoElSide> neighbourset;
+  gelside.AllNeighbours(neighbourset);
+  neighbourset.Push(gelside);
+  int lowidindex = neighbourset.NElements()-1;
+  //  TPZGeoElSide neighbour = gelside.Neighbour(),
+  TPZGeoElSide lowidneigh(gelside);
+//   if(!neighbour.Element()) return expandvec;
   int lowid = gelside.Id();
-  while(neighbour!=gelside) {     //pode ser um viz. inativo
-    TPZCompEl *ref = neighbour.Reference().Element();
-    if(neighbour.Id() < lowid && ref && (!onlyinterpolated || ref->IsInterpolated())) {
-      lowidneigh = neighbour;
+  int in, nneigh = neighbourset.NElements()-1;
+  while(in < nneigh) {
+    TPZCompEl *ref = neighbourset[in].Reference().Element();
+    if(neighbourset[in].Id() < lowid && ref && (!onlyinterpolated || ref->IsInterpolated())) {
+      lowidneigh = neighbourset[in];
       lowid = lowidneigh.Id();
+      lowidindex = in;
     }
-    neighbour = neighbour.Neighbour();
-  }//for
+    in++;
+  }
+    
+//   while(neighbour!=gelside) {     //pode ser um viz. inativo
+//     TPZCompEl *ref = neighbour.Reference().Element();
+//     if(neighbour.Id() < lowid && ref && (!onlyinterpolated || ref->IsInterpolated())) {
+//       lowidneigh = neighbour;
+//       lowid = lowidneigh.Id();
+//     }
+//     neighbour = neighbour.Neighbour();
+//   }//for
   return lowidneigh.Reference();
 }
 

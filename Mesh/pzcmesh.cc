@@ -831,14 +831,19 @@ void TPZCompMesh::CreateConnectBC() {
     // find a geometric element which has a
     //      corresponding computational element
     TPZGeoElSide gel(gbc.fGeoEl,gbc.fGeoElSide);
-    TPZGeoElSide neighbour;
-    neighbour = gel.Neighbour();
-    while(neighbour.Exists() && neighbour != gel && !neighbour.Reference().Exists()) {
-      neighbour = neighbour.Neighbour();
-    }
-    if(!neighbour.Exists() || ! neighbour.Reference().Exists()) continue;
-    TPZCompElSide cel = neighbour.Reference();
-    TPZConnect *df = &cel.Element()->Connect(neighbour.Side());
+    TPZStack<TPZGeoElSide> neighbourset;
+    gel.AllNeighbours(neighbourset);
+    int in=0,nneigh;
+    nneigh = neighbourset.NElements();
+    while(in<nneigh && !neighbourset[in].Reference().Exists()) in++;
+//     neighbour = gel.Neighbour();
+//     while(neighbour.Exists() && neighbour != gel && !neighbour.Reference().Exists()) {
+//       neighbour = neighbour.Neighbour();
+//     }
+//     if(!neighbour.Exists() || ! neighbour.Reference().Exists()) continue;
+    if(in == nneigh) continue;
+    TPZCompElSide cel = neighbourset[in].Reference();
+    TPZConnect *df = &cel.Element()->Connect(neighbourset[in].Side());
     if(!df) continue;
     TPZConnectBC dfbc(df,(TPZBndCond *) bc);
     int key = BCConnectVec().AllocateNewElement();

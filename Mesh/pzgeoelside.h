@@ -42,8 +42,15 @@ class TPZGeoElSide {
   void SetSide(int side) { fSide = side; }
   int Exists() const {return fGeoEl != 0;}
   TPZGeoElSide Neighbour() const;//return neighbour of the side fSide
+
+  /**
+   * returns the set of neighbours which can directly be accessed by the datastructure
+   */
   void AllNeighbours(TPZStack<TPZGeoElSide> &allneigh);
   
+  /**
+   * returns the set of neighbours as computed by the intersection of neighbours along vertices
+   */
   void ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh);
  
   int Id();
