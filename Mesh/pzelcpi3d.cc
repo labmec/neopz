@@ -1,8 +1,9 @@
 // -*- c++ -*-
 #include "pzelcpi3d.h"
 #include "pzelct3d.h"
-#include "pzelgt3d.h"
-#include "pzelgpi3d.h"
+//#include "pzelgt3d.h"
+//#include "pzelgpi3d.h"
+#include "pzgeoel.h"
 #include "pzmatrix.h"
 #include "pzelmat.h"
 #include "pzquad.h"

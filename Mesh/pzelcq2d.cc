@@ -4,7 +4,7 @@
 #include "pzelmat.h"
 #include "pzquad.h"
 #include "pzgeoel.h"
-#include "pzelgq2d.h"
+//#include "pzelgq2d.h"
 #include "pzcmesh.h"
 #include "pzmaterial.h"
 #include "pzerror.h"
@@ -351,7 +351,9 @@ TPZCompMesh *TPZCompElQ2d::CreateMesh() {
    nodeindexes[2] = 2;
    nodeindexes[3] = 3;
     //elementos geometricos
-   TPZGeoEl *elg0 = new TPZGeoElQ2d(nodeindexes,1,*firstmesh);
+   int index;
+   TPZGeoEl *elg0 = firstmesh->CreateGeoElement(EQuadrilateral,nodeindexes,1,index);
+   //   TPZGeoEl *elg0 = new TPZGeoElQ2d(nodeindexes,1,*firstmesh);
 
    firstmesh->BuildConnectivity();
 

@@ -2,7 +2,8 @@
 #include "pzelct2d.h"
 #include "pzelcq2d.h"
 #include "pzerror.h"
-#include "pzelgt2d.h"
+//#include "pzelgt2d.h"
+#include "pzgeoel.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
@@ -281,7 +282,9 @@ TPZCompMesh *TPZCompElT2d::CreateMesh() {
    nodeindexes[1] = 1;
    nodeindexes[2] = 2;
     //elementos geometricos
-   TPZGeoEl *elg0 = new TPZGeoElT2d(nodeindexes,1,*firstmesh);
+   int index;
+   TPZGeoEl *elg0 = firstmesh->CreateGeoElement(ETriangle,nodeindexes,1,index);
+   //   TPZGeoEl *elg0 = new TPZGeoElT2d(nodeindexes,1,*firstmesh);
    nodeindexes[0] = 0;
    nodeindexes[1] = 2;
    nodeindexes[2] = 3;

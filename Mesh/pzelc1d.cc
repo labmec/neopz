@@ -3,7 +3,7 @@
 //METHODS DEFINITION FOR CLASS ELEM1D
 
 #include "pzelc1d.h"
-#include "pzelg1d.h"
+#include "pzgeoel.h"
 #include "pzquad.h"
 #include "pzconnect.h"
 #include "pzcmesh.h"
