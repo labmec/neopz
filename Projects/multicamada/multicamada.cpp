@@ -144,12 +144,16 @@ int main(){
   char outfilename[256];
   for(esfor=0; esfor<8;esfor++) {
     cout << "force (0,...,7) " << esfor << endl;
-    sprintf(outfilename,"%s%d.out",rootname[esfor],problem);
+    sprintf(outfilename,"/home/pos/fortiago/rfsouza/%s%d.out",rootname[esfor],problem);
     ofstream out;
     out.open(outfilename);
     out.flush();
     TPZMatOrthotropic *orto;
-  
+
+    if (problem == 2) {
+      nelx = 1;
+      nely = 1;
+    }
     multcam = new TPZMulticamadaOrthotropic(zmin,dx,dy,nelx,nely);
     switch(esfor) {
     case 0:
@@ -235,8 +239,11 @@ int main(){
       multcam->ComputeSolution(orto,out,niter);
       break;
     case 2:
+
+      multcam->SetCorrect(1.0);
+      //      niter *= 1;
       Elast = 100.0; // if(0){
-      eppx = Elast*1000.;
+      eppx = Elast*10.;
       eppy = Elast;
       eppz = Elast;
       vxy = nu;
