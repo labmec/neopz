@@ -49,7 +49,7 @@ REAL TPZDiffusionConsLaw::DeltaOtimo(){
   return delta;
 }
 
-void TPZDiffusionConsLaw::Divergence(TPZVec<REAL> &dphi,TPZVec<REAL> &diverg){
+void TPZDiffusionConsLaw::Divergence(TPZVec<REAL> &dphi,TPZFMatrix &diverg){
 
   char *type = fArtificialDiffusion;
   fArtificialDiffusion = "LS";
@@ -57,8 +57,9 @@ void TPZDiffusionConsLaw::Divergence(TPZVec<REAL> &dphi,TPZVec<REAL> &diverg){
   fArtificialDiffusion = type;
 }
 
-void TPZDiffusionConsLaw::PointOperator(TPZVec<REAL> &dphi,TPZVec<REAL> &diff_term){
+void TPZDiffusionConsLaw::PointOperator(TPZVec<REAL> &dphi,TPZFMatrix &diff_term){
 
+  diff_term.Zero();
   int size = dphi.NElements();
   int nstate = 2+fDimension;
   if(size != 3){
@@ -67,16 +68,15 @@ void TPZDiffusionConsLaw::PointOperator(TPZVec<REAL> &dphi,TPZVec<REAL> &diff_te
   }
   TPZFMatrix Tx(nstate,nstate),Ty(nstate,nstate),Tz(nstate,nstate);
   TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
-  diff_term.Resize(nstate);
+  diff_term.Redim(nstate,nstate);
   Tau(Tx,Ty,Tz);
   Tx.Transpose(&Trx);
   Ty.Transpose(&Try);
   Tz.Transpose(&Trz);
   int i,j;
   for(i=0;i<nstate;i++){
-    diff_term[i] = 0.0;
     for(j=0;j<nstate;j++){  // Tx¹ * d/dx  + Ty¹ * d/dy + Tz¹ * d/dz
-      diff_term[i] += Trx(i,j)*dphi[0] + Try(i,j)*dphi[1] + Trz(i,j)*dphi[2];
+      diff_term(i,j) = Trx(i,j)*dphi[0] + Try(i,j)*dphi[1] + Trz(i,j)*dphi[2];
     }
   }
 }

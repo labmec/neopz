@@ -90,12 +90,12 @@ class TPZDiffusionConsLaw {
    */
   static void JacobFlux(TPZVec<REAL> U,TPZFMatrix &A,TPZFMatrix &B,TPZFMatrix &C);
 
-  void Divergence(TPZVec<REAL> &dphi,TPZVec<REAL> &diverg);
+  void Divergence(TPZVec<REAL> &dphi,TPZFMatrix &diverg);
 
   /**
    * operation product point in the diffusion term 
    */
-  void PointOperator(TPZVec<REAL> &dphi,TPZVec<REAL> &diff_term);
+  void PointOperator(TPZVec<REAL> &dphi,TPZFMatrix &diff_term);
 
   void Tau(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz);
   
