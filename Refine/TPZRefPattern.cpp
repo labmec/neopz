@@ -124,8 +124,8 @@ void TPZRefPattern::ComputePartition(){
     }
   }
   /**saida do arquivo de dados da particao*/
-  ofstream out("partition.out");
-  fFatherSides.Print(*fMesh,out);
+//  ofstream out("partition.out");
+//  fFatherSides.Print(*fMesh,out);
   /**extraindo sub/side quando o side é repetido dentro da particão do lado*/
   int init2;
   sizeinit = fFatherSides.fInitSide.NElements()-1;
@@ -162,16 +162,16 @@ void TPZRefPattern::ComputePartition(){
   fFatherSides.fInitSide = newinit;
   fFatherSides.fPartitionSubSide = newpartition;
   NSideSubElements();/**preenche fNSubSideFather com o número de elementos associados a cada lado do pai*/
-  out << "\n\n               *** Particao enxuta ***\n\n";
-  fFatherSides.Print(*fMesh,out);
-  out.flush();
-  out.close();
-  cout << "\nTPZRefPattern::ComputePartition arquivo contendo a particao dos lados do pai: partition.out\n";
-  ofstream out1("fathersides.out");
-  Print1(*fMesh,out1);
-  out1.flush();
-  out1.close();
-  cout << "\nTPZRefPattern::ComputePartition arquivo contendo o lado do pai associado ao lado do filho: fathersides.out\n";
+//  out << "\n\n               *** Particao enxuta ***\n\n";
+//  fFatherSides.Print(*fMesh,out);
+//  out.flush();
+//  out.close();
+//  cout << "\nTPZRefPattern::ComputePartition arquivo contendo a particao dos lados do pai: partition.out\n";
+//  ofstream out1("fathersides.out");
+//  Print1(*fMesh,out1);
+//  out1.flush();
+//  out1.close();
+//  cout << "\nTPZRefPattern::ComputePartition arquivo contendo o lado do pai associado ao lado do filho: fathersides.out\n";
 }
 
 void TPZRefPattern::TPZPartitionFatherSides::Print(TPZGeoMesh &gmesh,ostream &out){
@@ -257,11 +257,11 @@ void TPZRefPattern::ComputeTransforms(){
     }
   }
   fTransforms.fInitSonSides[isub] = initside;/**posição final em fSideFather*/
-  ofstream out("transformacoes.out");
-  fTransforms.Print(*fMesh,out);
-  out.flush();
-  out.close();
-  cout << "\nTPZRefPattern::ComputeTransforms lados do pai asssociados aos subs, fathersides.out\n";
+//  ofstream out("transformacoes.out");
+//  fTransforms.Print(*fMesh,out);
+//  out.flush();
+//  out.close();
+//  cout << "\nTPZRefPattern::ComputeTransforms lados do pai asssociados aos subs, fathersides.out\n";
 }
 
 void TPZRefPattern::TPZSideTransform::Print(TPZGeoMesh &gmesh,ostream &out){
@@ -573,13 +573,13 @@ void TPZRefPattern::DefinitionOfSizePartition(){
   }
   fFatherSides.fPartitionSubSide.Resize(maxsize);
   /**PARA TESTES*/
-  ofstream out("dimofpartition.out");
-  out << "Valores de fFatherSides.fInitSide[sd]\n\n";
-  for(int sd=0;sd<nsides;sd++){
-    out << "sd : fInitSide[sd] = " << sd << " : " << fFatherSides.fInitSide[sd] << endl;
-  }
-  out << "Tamanho de fPartitionSubSide =  " << maxsize; 
-  cout << "\nTPZRefPattern::DefinitionOfSizePartition arquivo da particao: dimofpartition.out\n";
+//  ofstream out("dimofpartition.out");
+//  out << "Valores de fFatherSides.fInitSide[sd]\n\n";
+//  for(int sd=0;sd<nsides;sd++){
+//    out << "sd : fInitSide[sd] = " << sd << " : " << fFatherSides.fInitSide[sd] << endl;
+//  }
+//  out << "Tamanho de fPartitionSubSide =  " << maxsize; 
+//  cout << "\nTPZRefPattern::DefinitionOfSizePartition arquivo da particao: dimofpartition.out\n";
 }
 
 TPZGeoEl *TPZRefPattern::Element(int iel){
@@ -740,7 +740,7 @@ void TPZRefPattern::CreateMidSideNodes (TPZGeoEl * gel, int side, TPZVec<int> &n
   TPZManVector<int> sideindices(0);
   while(neighbour.Element() && neighbour != gelside) {
     //if(!neighbour.HasSubElement()) {
-    if(neighbour.HasSubElement()) {      
+    if(neighbour.HasSubElement() && neighbour.Element()->NSideSubElements2(neighbour.Side()) > 1) {      
       neighbour.Element()->MidSideNodeIndices(neighbour.Side(),sideindices);
       break;
     }
