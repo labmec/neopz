@@ -8,7 +8,7 @@
 //#pragma segment UTIL
 //***** number of integration rules in PZINTVEC
 
-#define NUMINT_RULES    23
+#define NUMINT_RULES    38
 #define NUMINT_RULEST   19
 #define NUMINT_RULEST3D  8
 #define NUMINT_RULESP3D  8
@@ -38,10 +38,10 @@ TPZIntRule::TPZIntRule(int precision){
     fWeight = NULL;
     return;
   }
-  int intpoints[] = {1,1,2,3,4,5,6,7,8,9,10,12,12};
+  int intpoints[] = {1,1,2,3,4,5,6,7,8,9,10,12,12,20,20,20,20,20,20,20,20};
   int numpoints = (precision+1) >> 1;
   if(!(precision%2)) numpoints++;
-  if(numpoints > 12) exit(-1);
+  if(numpoints > 20) exit(-1);
   fNumInt = (short) intpoints[numpoints];
   fLocation = new REAL[fNumInt];
   fWeight = new REAL[fNumInt];
@@ -221,7 +221,40 @@ TPZIntRule::TPZIntRule(int precision){
     fWeight[11] =    0.0471753363;
     fNumInt=12;
     break;
+  case 20: {
+  	static REAL xg[]={
+                     0.076526521133497,
+                     0.227785851141645,
+                     0.373706088715420,
+                     0.510867001950827,
+                     0.636053680726515,
+                     0.746331906460151,
+                     0.839116971822219,
+                     0.912234428251326,
+                     0.963971927277914,
+                     0.993128599185095};
+	static REAL wg[]={
+                    0.152753387130726,
+                    0.149172986472604,
+                    0.142096109318382,
+                    0.131688638449177,
+                    0.118194531961518,
+                    0.101930119817233,
+                    0.083276741576629,
+                    0.062672048333051,
+                    0.040601429767854,
+                    0.017614007139151};
+	int ip;
+	for(ip=0; ip<10; ip++) {
+		fLocation[2*ip] = xg[ip];
+		fWeight[2*ip] = wg[ip];
+		fLocation[2*ip+1] = -xg[ip];
+		fWeight[2*ip+1] = wg[ip];
 
+	}
+
+  }
+    break;
   default:
     PZError << "TPZIntRule1D creation : invalid number of integration points "
       " specified\n";
