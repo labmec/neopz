@@ -1,3 +1,7 @@
+// -*- c++ -*-
+
+//$Id: pzbndcond.h,v 1.7 2004-04-02 16:01:30 tiago Exp $
+
 //HEADER FILE FOR CLASS BNDCOND
 
 #ifndef BNDCONDHPP
@@ -140,9 +144,15 @@ protected:
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 				   TPZFMatrix &ek,TPZFMatrix &ef);
   
+  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+				   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
+
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
-}
+    //NOTHING TO BE DONE HERE
+  }
 
 };
 

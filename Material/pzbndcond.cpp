@@ -61,6 +61,7 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 				     TPZFMatrix &ek,TPZFMatrix &ef) {
+
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
   if(!mat) return;
   if(phiL.Rows() == 0) {
@@ -74,3 +75,27 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
     return;
   }
 }
+
+void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+			 TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+			 TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+			 TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
+
+   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
+
+   if(!mat) return;
+
+   if(phiL.Rows() == 0) {
+      TPZManVector<REAL,3> nor(normal.NElements(),0.);
+      for(int i=0; i<nor.NElements(); i++) nor[i] = -normal[i];
+      mat->ContributeBCInterface(x,solR,dsolR,weight,nor,phiR,dphiR,ek,ef,*this, RightPOrder, faceSize ); 
+      return;
+   }
+
+   if(phiR.Rows() == 0) {
+      mat->ContributeBCInterface(x,solL,dsolL,weight,normal,phiL,dphiL,ek,ef,*this, LeftPOrder, faceSize);
+      return;
+   }
+
+}
+
