@@ -1,11 +1,11 @@
-//$Id: main.cc,v 1.3 2003-11-27 12:10:26 phil Exp $
+//$Id: main.cc,v 1.4 2003-12-01 14:53:55 tiago Exp $
 /**
  * Galerkin descontinuo: visita do professor Igor.
  * 24/11/2003
  */
 
 #include "pzvec.h"
-#include "pzadmchunk.h"
+
 #include "pzcmesh.h"
 
 #include "pzdebug.h"
@@ -16,7 +16,7 @@
 #include "pzgnode.h"
 #include "pzgeoelside.h"
 
-#include "pzintel.h"
+//#include "pzintel.h"
 #include "pzcompel.h"
 #include "TPZCompElDisc.h"
 
@@ -37,6 +37,8 @@
 static REAL PI;
 
 int gPrintLevel = 0;
+
+int gDivide[6];
 
 /*void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
   disp[0] = -2.0 * PI * PI * sin( PI * x[0]) * sin(PI * x[1]) ;
@@ -88,28 +90,110 @@ TPZCompMesh *CreateMesh();
 
 int main(){
 
+  int p, h;
+  char filename[20];
+  char filedx[20];
+  cout << "\nOrdem p" << endl;
+
+  cin >> p;
+
+  cout << "\nRefinamento" << endl;
+
+  cin >> h;
+
+  cout << "\nArquivo" << endl;
+
+  cin >> filename;
+
+  cout << "\nArquivoDX" << endl;
+
+  cin >> filedx;
+
+  if (h == 0) {
+    gDivide[0] = 0;
+    gDivide[1] = 0;
+    gDivide[2] = 0;
+    gDivide[3] = 0;
+    gDivide[4] = 0;
+    gDivide[5] = 0;
+  }
+  if (h == 1) {
+    gDivide[0] = 1;
+    gDivide[1] = 0;
+    gDivide[2] = 0;
+    gDivide[3] = 0;
+    gDivide[4] = 0;
+    gDivide[5] = 0;
+  } 
+  if (h == 2) {
+    gDivide[0] = 1;
+    gDivide[1] = 1;
+    gDivide[2] = 0;
+    gDivide[3] = 0;
+    gDivide[4] = 0;
+    gDivide[5] = 0;
+  }  
+  if (h == 3) {
+    gDivide[0] = 1;
+    gDivide[1] = 1;
+    gDivide[2] = 1;
+    gDivide[3] = 0;
+    gDivide[4] = 0;
+    gDivide[5] = 0;
+  }
+  if (h == 4) {
+    gDivide[0] = 1;
+    gDivide[1] = 1;
+    gDivide[2] = 1;
+    gDivide[3] = 1;
+    gDivide[4] = 0;
+    gDivide[5] = 0;
+  }
+  if (h == 5) {
+    gDivide[0] = 1;
+    gDivide[1] = 1;
+    gDivide[2] = 1;
+    gDivide[3] = 1;
+    gDivide[4] = 1;
+    gDivide[5] = 0;
+  }
+  if (h == 6) {
+    gDivide[0] = 1;
+    gDivide[1] = 1;
+    gDivide[2] = 1;
+    gDivide[3] = 1;
+    gDivide[4] = 1;
+    gDivide[5] = 1;
+  }
+
+
   PI = 4.*atan(1.);
 
+  ofstream out(filename), outdx(filedx);
+
   TPZCompEl::gOrder = 1;
-  TPZCompElDisc::gDegree = 6;
+  TPZCompElDisc::gDegree = p;
+
   gDebug = 0;
 
   TPZCompMesh *cmesh = CreateMesh();
 
   TPZGeoMesh *gmesh = cmesh->Reference();
 
-  ofstream out("test.dat");
+
   //  gmesh->Print(out);
   //  cmesh->Print(out);
 
   TPZAnalysis an(cmesh);
-
   TPZFStructMatrix full(cmesh);
+ 
   an.SetStructuralMatrix(full);
 
   TPZStepSolver step;
+
   step.SetDirect(ELU);
   an.SetSolver(step);
+
 
   /*
   an.Assemble();
@@ -125,13 +209,13 @@ int main(){
   */
   an.Run();
 
-  an.Print( "Nosso primeiro teste",out);
+  // an.Print( "Nosso primeiro teste",out);
 
   TPZVec<char *> scalnames(1);
   TPZVec<char *> vecnames(1);
   scalnames[0] = "Solution";
   vecnames[0] = "Derivate";
-  an.DefineGraphMesh(2,scalnames,vecnames,"poisson.dx");
+  an.DefineGraphMesh(2,scalnames,vecnames,filedx);
 
   an.PostProcess(4);
   an.SetExact(ExactSolution);
@@ -199,14 +283,45 @@ TPZCompMesh *CreateMesh() {
 
     
   for(int i = 0; i < nelem; i++){
-    TPZVec<TPZGeoEl *> children, netos, bisnetos;
-    elvec[i]->Divide(children);
-    for(int j = 0; j < children.NElements(); j++)
-      children[j]->Divide(netos);
-	   //        for(int k = 0; k < netos.NElements(); k++)
-	  //      	netos[k]->Divide(bisnetos); 
-  } 
-  
+    TPZVec<TPZGeoEl *> children, netos, bisnetos, tata1, tata2, tata3;
+    cout << "\ngDivide[0] = \n" << gDivide[0];
+    if(gDivide[0] == 1)
+      {
+      elvec[i]->Divide(children);
+      cout <<  "\n Primeira divisao \n" ;
+      }
+    if (gDivide[1] == 1)
+      {
+      for(int j = 0; j < children.NElements(); j++)
+	children[j]->Divide(netos);
+      cout <<  "\n Segunda divisao \n" ;
+      }
+    if(gDivide[2] == 1) 
+      {
+      for(int k = 0; k < netos.NElements(); k++)
+	netos[k]->Divide(bisnetos); 
+      cout <<  "\n Terceira divisao \n" ;
+      }
+    if(gDivide[3] == 1) 
+      {
+      for(int k = 0; k < bisnetos.NElements(); k++)
+	bisnetos[k]->Divide(tata1); 
+      cout <<  "\n Quarta divisao \n" ;
+      }
+    if(gDivide[4] == 1) 
+      {
+      for(int k = 0; k < tata1.NElements(); k++)
+	tata1[k]->Divide(tata2); 
+      cout <<  "\n Quinta divisao \n" ;
+      }
+    if(gDivide[5] == 1) 
+      {
+      for(int k = 0; k < tata2.NElements(); k++)
+	tata2[k]->Divide(tata3); 
+      cout <<  "\n Sexta divisao \n" ;
+      }
+
+  }  
   
   TPZGeoElBC gbc;
 
