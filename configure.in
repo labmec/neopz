@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.15 2003-10-07 19:38:20 cesar Exp $
+dnl $Id: configure.in,v 1.16 2003-11-27 12:19:27 igor Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -309,7 +309,6 @@ dnl                              CONGRATULATIONS!
 dnl ----------------------------------------------------------------------------
 
 AC_OUTPUT([ Makefile PZ.mk PZ_user.mk \
-dnl --| PZ subtree |--
 	Util/Makefile \
 	Matrix/Makefile \
 	Cosys/Makefile \
@@ -329,7 +328,6 @@ dnl --| PZ subtree |--
 	Common/Makefile \
 	LinearSolvers/Makefile \
 	lib/Makefile \
-dnl --| Projects subtree |--
 	Projects/Makefile \
         Projects/DiffusionTest/Makefile \
 	Projects/adaptivity/Makefile \
@@ -353,18 +351,12 @@ dnl --| Projects subtree |--
 	Projects/testshape/Makefile \
 	Projects/viga3d/Makefile \
 	Projects/descontinuo/Makefile \
+	Projects/Igor/Makefile \
         Projects/PoissonFAD/Makefile \
 	Projects/HyperElasticityFAD/Makefile \
 	Projects/ShapeFAD/Makefile \
-#	Projects/Jacobi_Base/Makefile \
-	Projects/Error/Makefile \
 	Projects/Adapt_MultThread/Makefile \
-	Projects/Curso_PZ/Makefile \
-	Projects/Curso_PZ/Class_1/Makefile \
-	Projects/Curso_PZ/Class_2/Makefile \
         Projects/ConsLaw/Makefile \
-	Projects/Curso_PZ/Class_3/Makefile \
-	Projects/Curso_PZ/Class_4/Makefile \
 ])
 
 PZ_BYEBYE
