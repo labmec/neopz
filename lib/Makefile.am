@@ -163,6 +163,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Material/TPZEulerConsLaw.o \
 	../Material/TPZLinearConvection.o \
 	../Material/tpzmultcamada.o \
+	../Material/pzbctension.o \
 	../Material/TPZMulticamadaOrtho.o \
 	../Material/TPZPlacaOrthotropic.o \
 	../Material/TPZConservationLaw.o \
