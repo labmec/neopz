@@ -1,7 +1,7 @@
 //HEADER FILE FOR CLASS ELBAS
 
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.10 2003-11-10 16:12:04 tiago Exp $
+// $Id: pzcompel.h,v 1.11 2003-12-01 14:51:53 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -352,7 +352,7 @@ public:
    * @param estimate (output) estimated error based on the implemented criterium
    */
   virtual void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-			     REAL &true_error,REAL &L2_error,TPZBlock *flux,REAL &estimate);
+			     TPZVec<REAL> &errors,TPZBlock *flux);
 
   /**
    * Calculates the solution - sol - for the variable var

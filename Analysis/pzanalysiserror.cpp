@@ -1,3 +1,5 @@
+//$Id: pzanalysiserror.cpp,v 1.3 2003-12-01 14:49:23 tiago Exp $
+
 // -*- c++ -*-
 #include "pzanalysiserror.h"
 #include "pzcmesh.h"
@@ -23,7 +25,8 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmi
    cout << "\n\nIteration  1\n";
    out << "\n   Iteration  1\n";
    Run(out);//solução malha inicial
-   REAL exactnorm=0.0, true_error=0.0 ,FEM_Norm=0.0;
+   TPZManVector<REAL,3> errors(3);
+   errors.Fill(0.0);
    TPZVec<REAL> flux(0);
    fNIterations--;
    while(iter++ < fNIterations) {
@@ -31,12 +34,25 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmi
 	  CurrentEtaAdmissible = pow(fEtaAdmissible,sqrt(iter*1./(fNIterations*1.)));//error admissivel corrigido
       // Print data
       PlotLocal(iter,CurrentEtaAdmissible,out);
-      Mesh()->EvaluateError(fExact,true_error,FEM_Norm,exactnorm);
-      out << " - Error  Energy Norm :  " << true_error << endl;
-      out << " - FE Sol Energy Norm :  " << FEM_Norm << endl;
-      out << " - Ex Sol Energy Norm :  " << exactnorm << endl;
+      //if more norms than 3 are available, the pzvec is resized in the material error method
+      Mesh()->EvaluateError(fExact,errors);
+      if (errors.NElements() < 3) {
+	PZError << endl << "TPZAnalysisError::hp_Adaptive_Mesh_Design - At least 3 norms are expected." << endl;
+	exit (-1);
+      }
+      out << " - Error  Energy Norm :  " << errors[0] << endl;
+      out << " - FE Sol Energy Norm :  " << errors[1] << endl;
+      out << " - Ex Sol Energy Norm :  " << errors[2] << endl;
+
+      for(int ier = 3; ier < errors.NElements(); ier++)
+	out << "Other norms : " << errors[ier] << endl;
+
       out << " - Eta Admissible     :  " << CurrentEtaAdmissible << endl;
-      out << " - Eta Reached        :  " << true_error/exactnorm << endl;
+      //      out << " - Eta Reached        :  " << true_error/exactnorm << endl;
+      out << " - Eta Reached        :  " << errors[0]/errors[2] << endl;
+
+#warning Philippe, não entendo nada!!!!! //<!>
+
       out << " - Number of D.O.F.   :  " << fCompMesh->NEquations() << endl;
       out.flush();	  
 	  HPAdapt(CurrentEtaAdmissible,out);//processa os restantes elementos ; (nadmerror)
@@ -53,13 +69,32 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmi
       out << "\n   Iteration " << (iter+1) << endl;
       Run(out);
    }
+
+#warning Philippe, nao parece igual acima ?? //<!>
+
+#warning Olhar aqui //<!>
+   errors.Resize(3);
+   errors.Fill(0.0);
+
    PlotLocal(iter,CurrentEtaAdmissible,out);
-   Mesh()->EvaluateError(fExact,true_error,FEM_Norm,exactnorm);
-   out << " - Error  Energy Norm :  " << true_error << endl;
-   out << " - FE Sol Energy Norm :  " << FEM_Norm << endl;
-   out << " - Ex Sol Energy Norm :  " << exactnorm << endl;
+
+   Mesh()->EvaluateError(fExact,errors);
+
+   if (errors.NElements() < 3) {
+     PZError << endl << "TPZAnalysisError::hp_Adaptive_Mesh_Design - At least 3 norms are expected." << endl;
+     exit (-1);
+   }
+
+   out << " - Error  Energy Norm :  " << errors[0] << endl;
+   out << " - FE Sol Energy Norm :  " << errors[1] << endl;
+   out << " - Ex Sol Energy Norm :  " << errors[2] << endl;
+
+   for(int ier = 3; ier < errors.NElements(); ier++)
+     out << "Other norms : " << errors[ier] << endl;
+
    out << " - Eta Admissible     :  " << CurrentEtaAdmissible << endl;
-   out << " - Eta Reached        :  " << true_error/exactnorm << endl;
+   //   out << " - Eta Reached        :  " << true_error/exactnorm << endl; <!>
+   out << " - Eta Reached        :  " << errors[0]/errors[2] << endl;
    out << " - Number of D.O.F.   :  " << fCompMesh->NEquations() << endl;
    out.flush();	 
 }
@@ -478,8 +513,13 @@ void TPZAnalysisError::MathematicaPlot() {
 }
 void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, ostream &out) {
 
-   REAL true_error = 0.,  exactnorm = 0., FEM_Norm = 0.;
-   REAL true_errorSum=0., FEM_NormSum=0., exactnormSum=0.;
+#warning Philippe, tambem nao entendo aqui //<!>
+
+   TPZManVector<REAL,3> elerror(3);
+   elerror.Fill(0.);
+   TPZManVector<REAL,3> errorSum(3);
+   errorSum.Fill(0.0);
+
    TPZBlock *flux = 0;
    int elcounter=0;
    int numel = Mesh()->ElementVec().NElements();
@@ -491,12 +531,14 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, ostream &out) {
    for(el=0;el< numel;el++) {
    	TPZCompEl *elptr = Mesh()->ElementVec()[el];
 	if(elptr && !(elptr->Material()->Id() < 0)) {
-		elptr->EvaluateError(fExact,true_error,FEM_Norm,flux,exactnorm);
-		true_errorSum += true_error*true_error; // erro
-		FEM_NormSum += FEM_Norm*FEM_Norm;       // sol aprox
-		exactnormSum += exactnorm*exactnorm;    // sol exata
-		fElErrors[elcounter] = true_error;
-		(Mesh()->ElementSolution())(el,0) = true_error;
+		elptr->EvaluateError(fExact,elerror, flux);
+		int nerrors = elerror.NElements();
+		errorSum.Resize(nerrors, 0.);
+		for(int ii = 0; ii < nerrors; ii++)
+		  errorSum[ii] += elerror[ii]*elerror[ii];
+
+		fElErrors[elcounter] = elerror[0];
+		(Mesh()->ElementSolution())(el,0) = elerror[0];
 		fElIndexes[elcounter++] = el;
 	} else {
 	   	  (Mesh()->ElementSolution())(el,0) = 0.;
@@ -504,9 +546,12 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, ostream &out) {
    }
    fElErrors.Resize(elcounter);
    fElIndexes.Resize(elcounter);
-   fTotalError = sqrt(true_errorSum);
-   Mesh()->EvaluateError(NullFunction,true_error,FEM_Norm,exactnorm);
-   fAdmissibleError = CurrentEtaAdmissible*sqrt(true_error*true_error + fTotalError*fTotalError) / sqrt(1.*elcounter);
+   fTotalError = sqrt(errorSum[0]);
+   Mesh()->EvaluateError(NullFunction,elerror);
+   //   fAdmissibleError = CurrentEtaAdmissible*sqrt(true_error*true_error + fTotalError*fTotalError) / sqrt(1.*elcounter);
+   //<!>pra compilar
+#warning Phil, ver isso urgente. Tiago
+   fAdmissibleError = CurrentEtaAdmissible*sqrt(elerror[0]*elerror[0] + fTotalError*fTotalError) / sqrt(1.*elcounter);
 }
 
 void TPZAnalysisError::ExpandConnected(TPZStack<TPZCompElSide> &singel){

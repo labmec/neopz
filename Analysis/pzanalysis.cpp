@@ -1,3 +1,5 @@
+//$Id: pzanalysis.cpp,v 1.12 2003-12-01 14:49:23 tiago Exp $
+
 // -*- c++ -*-
 #include "pzanalysis.h"
 #include "pzcmesh.h"
@@ -154,28 +156,42 @@ TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out ){
   int neq = fCompMesh->NEquations();
   TPZVec<REAL> ux((int) neq);
   TPZVec<REAL> sigx((int) neq);
-  TPZVec<REAL> values(3,0.);
+  TPZManVector<REAL,3> values(3,0.);
   fCompMesh->LoadSolution(fSolution);
   //	SetExact(&Exact);
   TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
-  double true_error=0.,L2_error=0.,estimate=0.;
+  TPZManVector<REAL,3> errors(3);
+  errors.Fill(0.0);
   int nel = elvec.NElements();
   for(int i=0;i<nel;i++) {
     TPZCompEl *el = (TPZCompEl *) elvec[i];
     if(el) {
-      el->EvaluateError(fExact,true_error,L2_error,0,estimate);
-      values[0]+=true_error;
-      values[1]+=L2_error;
-      values[2]+=estimate;
+      el->EvaluateError(fExact, errors, 0);
+      int nerrors = errors.NElements();
+      values.Resize(nerrors, 0.);
+      for(int ier = 0; ier < nerrors; ier++)
+	values[ier] += errors[ier];
     }
   }
 
-  out<<endl<<"############"<<endl;
-  out<<endl<<"true_error="<<values[0]<<endl;
-  out<<endl<<"L2_error="<<values[1]<<endl;
-  out<<endl<<"estimate="<<values[2]<<endl;
+int nerrors = errors.NElements();
 
-  return;
+if (nerrors < 3) {
+  PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
+  out<<endl<<"############"<<endl;
+  for(int ier = 0; ier < nerrors; ier++)
+    out << endl << "error " << ier << "  = " << values[ier];
+}
+else{
+  out << endl << "############" << endl;
+  out << endl << "true_error="  << values[0] << endl;
+  out << endl << "L2_error="    << values[1] << endl;
+  out << endl << "estimate="    <<values[2]  <<endl;
+  for(int ier = 3; ier < nerrors; ier++)
+    out << endl << "other norms = " << values[ier] << endl;
+}
+
+return;
 }
 
 void TPZAnalysis::PostProcessTable( TPZFMatrix &,ostream & )//pos,out

@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cc,v 1.19 2003-11-27 12:06:36 phil Exp $
+//$Id: pzcmesh.cc,v 1.20 2003-12-01 14:51:53 tiago Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1243,33 +1243,32 @@ void TPZCompMesh::ConnectSolution(ostream & out) {
 
 void TPZCompMesh::EvaluateError(
        void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-       REAL &true_errorSum,REAL &L2_errorSum,REAL &estimateSum) {
+       TPZVec<REAL> &errorSum) {
 
-	L2_errorSum = 0.;
-   true_errorSum = 0.;
-   estimateSum = 0.;
-   REAL true_error = 0.;
-   REAL estimate = 0.;
-   REAL L2_error = 0.;
-   TPZBlock *flux = 0;
-   TPZCompEl *cel;
+  errorSum.Resize(3);
+  errorSum.Fill(0.);
+
+  TPZManVector<REAL,3> true_error(3);
+  true_error.Fill(0.);
+
+  TPZBlock *flux = 0;
+  TPZCompEl *cel;
+
    //soma de erros sobre os elementos
    for(int el=0;el< fElementVec.NElements();el++) {
       cel = fElementVec[el];
-      if(!cel || !cel->IsInterpolated() || cel->Material()->Id() < 0) continue;
-		cel->EvaluateError(fp,true_error,L2_error,flux,estimate);
-      if(fabs(true_error) > 100. || fabs(L2_error) > 100. || fabs(estimate) > 100.) {
-      	int key;
-         cout << "\n Error overflow \n";
-      	cin >> key;
-      }
-      true_errorSum += true_error*true_error;
-      L2_errorSum += L2_error*L2_error;
-      estimateSum += estimate*estimate;
+      if(!cel  || cel->Material()->Id() < 0) continue;
+		cel->EvaluateError(fp,true_error,flux);
+
+      int nerrors = true_error.NElements();
+      errorSum.Resize(nerrors,0.);
+      for(int ii = 0; ii < nerrors; ii++)      
+	errorSum[ii] += true_error[ii]*true_error[ii];
    }
-   true_errorSum = sqrt(true_errorSum);
-   L2_errorSum = sqrt(L2_errorSum);
-   estimateSum = sqrt(estimateSum);
+
+   int nerrors = errorSum.NElements();
+   for(int ii = 0; ii < nerrors; ii++)      
+     errorSum[ii] = sqrt(errorSum[ii]);
 }
 
 void TPZCompMesh::AdjustBoundaryElements() {

@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.10 2003-11-24 15:25:23 erick Exp $
+//$Id: pzcompel.cpp,v 1.11 2003-12-01 14:51:53 tiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -604,7 +604,7 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &efmat) {
 }
 
 void TPZCompEl::EvaluateError(void (* /*fp*/)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-			      REAL &/*true_error*/,REAL &/*0L2_error*/,TPZBlock * /*flux*/,REAL &/*estimate*/) {
+			      TPZVec<REAL> &/*errors*/,TPZBlock * /*flux*/) {
   cout << "TPZCompEl::EvaluateError is called." << endl;
 }
 

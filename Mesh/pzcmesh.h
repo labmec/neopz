@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.13 2003-11-14 21:20:10 cedric Exp $
+//$Id: pzcmesh.h,v 1.14 2003-12-01 14:51:53 tiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -505,7 +505,7 @@ public:
    * @param estimate ????
    */
   void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-                                 REAL &true_error,REAL &L2_error,REAL &estimate);
+                                 TPZVec<REAL> &errorSum);
   //@}
 
 
