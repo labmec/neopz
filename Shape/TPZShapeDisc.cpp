@@ -11,32 +11,31 @@ TPZShapeDisc::TPZShapeDisc(){
 
 }
 
-void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
+void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, int n){
 
   if(degree < 0){
     PZError << "TPZShapeDisc::Polynomial the degree of the polynomial cannot be minus, aborting\n";
     exit(-1);
   }
   phi.Redim(degree+1,1);
-  dphi.Redim(1,degree+1);
+  dphi.Redim(n,degree+1);
   //grau zero ou constante
-  phi.Put(0,0,1.0);
-  dphi.Put(0,0, 0.0);
+  phi(0,0) = 1.0;
   if(degree == 0) return;
   //grau 1
   REAL val = (x-x0)/C;
-  REAL deriv = 1./C;
-  phi.Put(1,0, val);
-  dphi.Put(0,1, deriv);
+  phi(1,0) = val;
+  dphi(0,1) = 1./C;
   //grau maior que 1
   int p;
   degree++;
   for(p = 2;p < degree; p++) {
-    REAL q = (REAL) p;
-    val = pow((x-x0)/C,q);
-    phi.Put(p,0, val);
-    deriv = q*pow((x-x0),q-1.)/pow(C,q);
-    dphi.Put(0,p, deriv);
+    phi(p,0) = phi(p-1,0)*val;
+    int ideriv;
+    dphi(0,p) = dphi(0,p-1)*val+phi(p-1,0)/C;
+    for(ideriv=2; ideriv<=n; ideriv++) {
+      dphi(ideriv-1,p) = val*dphi(ideriv-1,p-1)+(ideriv/C)*dphi(ideriv-2,p-1);
+    }
   }
 }
 
@@ -57,10 +56,10 @@ void  TPZShapeDisc::Shape1D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZ
   //suponha a componente não nula sendo a primeira
   REAL x0 = X0[0];
   REAL x = X[0];
-  Polynomial(C,x0,x,degree,phi,dphi);
+  Polynomial(C,x0,x,degree,phi,dphi,1);
 }
 
-void  TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
+void  TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
 
   REAL x0 = X0[0];
   REAL y0 = X0[1];
@@ -71,59 +70,42 @@ void  TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZ
   Polynomial(C,x0,x,degree,phix,dphix);
   Polynomial(C,y0,y,degree,phiy,dphiy);
   
-  int i,j,num = degree+1;
-  int nshape = num*(num+1)/2;
+  int i,j,counter=0,num = degree+1;
+  
+  int nshape = NShapeF(degree,2,type);
 //  int count=num,ind=0;
-  int k,l;
   phi.Redim(nshape,1);
-  dphi.Redim(2,nshape);
+  dphi.Redim(6,nshape);
   phi.Zero();
   dphi.Zero();
 
   //valor da função
-  k = 0;
-  l = 0;
   for(i=0;i<num;i++){
     for(j=0;j<num;j++){
-      if(i+j > degree) break;
-      if(l == num){
-	k++;
-	l = 0;
-      }
-      phi(num*k + l++,0) = phix(i,0)*phiy(j,0);
+      if(i+j > degree && type == EOrdemTotal) break;
+      phi(counter,0) = phix(i,0)*phiy(j,0);
+      dphi(0,counter) = dphix(0,i)*phiy(j,0);
+      dphi(1,counter) = phix(i,0)*dphiy(0,j);
+      counter++;
     }
   }
+  if(counter != nshape) {
+    PZError << "TPZShapeDisc::Shape2D wrong shape count\n";
+  }
+  REAL phi0,dphi0[2];
+  phi0 = phi(0);
+  dphi0[0] = dphi(0,0);
+  dphi0[1] = dphi(1,0);
+  phi(0) = phi(nshape-1);
+  dphi(0,0) = dphi(0,nshape-1);
+  dphi(1,0) = dphi(1,nshape-1);
 
-  //derivada com respeito a x
-  k = 0;
-  l = 0;
-  for(i=0;i<num;i++){
-    for(j=0;j<num;j++){
-      if(i+j > degree) break;
-      if(l == num){
-	k++;
-	l = 0;
-      }
-      dphi(0,num*k + l++) = dphix(0,i)*phiy(j,0);
-    }
-  }
-
-  //derivada com respeito a y
-  k = 0;
-  l =  0;
-  for(i=0;i<num;i++){
-    for(j=0;j<num;j++){
-      if(i+j > degree) break;
-      if(l == num){
-	k++;
-	l = 0;
-      }
-      dphi(1,num*k + l++) = phix(i,0)*dphiy(0,j);
-    }
-  }
+  phi(nshape-1) = phi0;
+  dphi(0,nshape-1) = dphi0[0];
+  dphi(1,nshape-1) = dphi0[1];
 }
 
-void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
+void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
 
   REAL x0 = X0[0];
   REAL y0 = X0[1];
@@ -137,7 +119,7 @@ void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZ
   Polynomial(C,y0,y,degree,phiy,dphiy);
   Polynomial(C,z0,z,degree,phiz,dphiz);
   
-  int i,j,k,nshape = 0,num=degree+1;
+  int i,j,k,nshape = 0,num=degree+1, counter=0;
   for(i=0;i<num;i++) nshape += (i+1)*(i+2)/2;
 //  int count=num,ind=0;
   phi.Redim(nshape,1);
@@ -146,82 +128,86 @@ void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZ
   dphi.Zero();
 
   //function value
-  int l=0,m=0,n=0;
   for(i=0;i<num;i++){
     for(j=0;j<num;j++){
-      if(i+j > degree) break;
+      if(i+j > degree && type == EOrdemTotal) break;
       for(k=0;k<num;k++){
-	if(i+j+k > degree) break;
-	if(n == num){
-	  m++;
-	  n = 0;
-	  if(m==num){
-	    l++;
-	    m = 0;
-	  }	  
-	}
-	phi( num * (num*l + m) + n++ ,0) = phix(i,0)*phiy(j,0)*phiz(k,0);
+	if(i+j+k > degree && type == EOrdemTotal) break;
+	phi(counter,0) = phix(i,0)*phiy(j,0)*phiz(k,0);
+	dphi(0, counter) = dphix(0,i)*phiy(j,0)*phiz(k,0);
+	dphi(1, counter ) = phix(i,0)*dphiy(0,j)*phiz(k,0);
+	dphi(2, counter ) = phix(i,0)*phiy(j,0)*dphiz(0,k);
+	counter++;
       }
     }
   }
 
-  //derivada com respeito a x
-  l=0,m=0,n=0;
+}
+
+
+void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
+
+  REAL x0 = X0[0];
+  REAL y0 = X0[1];
+  REAL x = X[0];
+  REAL y = X[1];
+
+  TPZFNMatrix<30> phix(degree+1,1),phiy(degree+1,1),dphix(3,degree+1),dphiy(3,degree+1);
+  Polynomial(C,x0,x,degree,phix,dphix,3);
+  Polynomial(C,y0,y,degree,phiy,dphiy,3);
+  
+  int i,j,counter=0,num = degree+1;
+  
+  int nshape = NShapeF(degree,2,type);
+//  int count=num,ind=0;
+  phi.Redim(nshape,1);
+  dphi.Redim(5,nshape);
+  phi.Zero();
+  dphi.Zero();
+
+  //valor da função
   for(i=0;i<num;i++){
     for(j=0;j<num;j++){
-      if(i+j > degree) break;
-      for(k=0;k<num;k++){
-	if(i+j+k > degree) break;
-	if(n == num){
-	  m++;
-	  n = 0;
-	  if(m==num){
-	    l++;
-	    m = 0;
-	  }	  
-	}
-	dphi(0, num * (num*l + m) + n++ ) = dphix(0,i)*phiy(j,0)*phiz(k,0);
-      }
+      if(i+j > degree && type == EOrdemTotal) break;
+      phi(counter,0) = phix(i,0)*phiy(j,0);
+      dphi(0,counter) = dphix(0,i)*phiy(j,0);
+      dphi(1,counter) = phix(i,0)*dphiy(0,j);
+      dphi(2,counter) = dphix(1,i)*phiy(j,0)+phix(i,0)*dphiy(1,j); // Laplaciano
+      dphi(3,counter) = dphix(2,i)*phiy(j,0)+dphix(0,i)*dphiy(1,j); // D/Dx Laplaciano
+      dphi(4,counter) = dphix(1,i)*dphiy(0,j)+phix(i,0)*dphiy(2,j); // D/Dy Laplaciano
+      counter++;
     }
   }
-
-  //derivada com respeito a y
-  l=0,m=0,n=0;
-  for(i=0;i<num;i++){
-    for(j=0;j<num;j++){
-      if(i+j > degree) break;
-      for(k=0;k<num;k++){
-	if(i+j+k > degree) break;
-	if(n == num){
-	  m++;
-	  n = 0;
-	  if(m==num){
-	    l++;
-	    m = 0;
-	  }	  
-	}
-	dphi(1, num * (num*l + m) + n++ ) = phix(i,0)*dphiy(0,j)*phiz(k,0);
-      }
-    }
+  if(counter != nshape) {
+    PZError << "TPZShapeDisc::Shape2D wrong shape count\n";
   }
+  REAL phi0,dphi0[5];
+  phi0 = phi(0);
+  for(i=0; i<5; i++) dphi0[i] = dphi(i,0);
+  phi(0) = phi(nshape-1);
+  for(i=0; i<5; i++) dphi(i,0) = dphi(i,nshape-1);
 
-  //derivada com respeito a z
-  l=0,m=0,n=0;
-  for(i=0;i<num;i++){
-    for(j=0;j<num;j++){
-      if(i+j > degree) break;
-      for(k=0;k<num;k++){
-	if(i+j+k > degree) break;
-	if(n == num){
-	  m++;
-	  n = 0;
-	  if(m==num){
-	    l++;
-	    m = 0;
-	  }	  
-	}
-	dphi(2, num * (num*l + m) + n++ ) = phix(i,0)*phiy(j,0)*dphiz(0,k);
-      }
-    }
-  } 
+  phi(nshape-1) = phi0;
+  for(i=0; i<5; i++) dphi(i,nshape-1) = dphi0[i];
+}
+
+int  TPZShapeDisc::NShapeF(int degree, int dimension, MShapeType type) {
+  int sum =0,i;
+  switch(dimension) {
+  case 1:
+    return degree+1;
+    break;
+  case 2:
+    if(type == ETensorial) return (degree+1)*(degree+1);
+    else return (degree+1)*(degree+2)/2;
+    break;
+  case 3:
+    if(type == ETensorial) return (degree+1)*(degree+1)*(degree+1);
+    for(i=0;i<(degree+1);i++) sum += (i+1)*(i+2)/2;
+    return sum;
+    break;
+  default:
+      PZError << "TPZShapeDisc::NShapeF case does not exists\n";
+      return -1;
+  }
 }
