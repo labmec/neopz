@@ -3,7 +3,7 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzchunk.h,v 1.3 2003-10-10 20:30:04 cesar Exp $
+// $Id: pzchunk.h,v 1.4 2003-10-14 13:37:40 cesar Exp $
 
 #ifndef PZCHUNK_H
 #define PZCHUNK_H
@@ -140,8 +140,8 @@ void TPZChunkVector<T,EXP>::Resize(const int newsize) {
    int i;
    int nchunks = fVec.NElements();
 
-   int chunksneeded = newsize >> EXP;
-   if (chunksneeded == nchunks-1) return;
+   int chunksneeded = ((newsize-1) >> EXP)+1;
+   if (chunksneeded == nchunks) return;
 
    //int chunksneeded = ((newsize-1)/sizechunk)+1;
 
