@@ -12,7 +12,7 @@ static int subeldata[1][1][2] =
 	{{0}}
 };
 
-static int nsubeldata[1] = {0};
+static int nsubeldata[1] = {1};
 
 
 void TPZRefPoint::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
