@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.cc,v 1.6 2003-11-19 20:15:16 cedric Exp $
+//$Id: pzflowcmesh.cc,v 1.7 2003-11-24 15:58:30 erick Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
@@ -125,6 +125,16 @@ void TPZFlowCompMesh::SetCFL(REAL CFL)
     }
 }
 
+void TPZFlowCompMesh::ScaleCFL(REAL scale)
+{
+    int i, NumFluid = fFluidMaterial.NElements();
+    for(i = 0; i < NumFluid; i++)
+    {
+       fFluidMaterial[i]->SetCFL(fFluidMaterial[i]->CFL()*scale);
+    }
+}
+
+
 void TPZFlowCompMesh::SetContributionTime(TPZContributeTime time)
 {
    int i, NumFluid;
@@ -152,4 +162,14 @@ void TPZFlowCompMesh::AutoBuild()
    CollectFluidMaterials();
 }
 
+
+TPZMaterial * TPZFlowCompMesh::GetFlowMaterial(int i)
+{
+   return fFluidMaterial[i];
+}
+
+int TPZFlowCompMesh::NFlowMaterials()
+{
+   return fFluidMaterial.NElements();
+}
 

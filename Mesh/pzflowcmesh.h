@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.h,v 1.6 2003-11-19 20:15:16 cedric Exp $
+//$Id: pzflowcmesh.h,v 1.7 2003-11-24 15:58:30 erick Exp $
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -50,6 +50,12 @@ public:
   void SetCFL(REAL CFL);
 
   /**
+   * Scales the CFL of all materials
+   *
+   */
+  void ScaleCFL(REAL scale);
+
+  /**
    * Should be called after all materials have been
    * added to the mesh. This method collects all
    * fluid materials and stores a pointer to them
@@ -77,6 +83,18 @@ public:
    * In this reimplementation, also calls CollectFluidMaterials;
    */
   virtual void AutoBuild();
+
+  /**
+   * Returns the ith flow material in the mesh
+   *
+   */
+  TPZMaterial * GetFlowMaterial(int i);
+
+  /**
+   * Returns the number of Flow materials.
+   */
+  int NFlowMaterials();
+
 
 protected:
 
