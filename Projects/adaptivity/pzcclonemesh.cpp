@@ -743,14 +743,14 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
       break;
     case 3:
       for(ieq = 0; ieq < locmatsize; ieq++) {
-	locdphix(0,ieq) = jacinvfine(0,0)*locdphi(0,ieq) + jacinvfine(0,1)*locdphi(1,ieq) + jacinvfine(0,2)*locdphi(2,ieq);
-	locdphix(1,ieq) = jacinvfine(1,0)*locdphi(0,ieq) + jacinvfine(1,1)*locdphi(1,ieq) + jacinvfine(1,2)*locdphi(2,ieq);
-	locdphix(2,ieq) = jacinvfine(2,0)*locdphi(0,ieq) + jacinvfine(2,1)*locdphi(1,ieq) + jacinvfine(2,2)*locdphi(2,ieq);
+	locdphix(0,ieq) = jacinvfine(0,0)*locdphi(0,ieq) + jacinvfine(1,0)*locdphi(1,ieq) + jacinvfine(2,0)*locdphi(2,ieq);
+	locdphix(1,ieq) = jacinvfine(0,1)*locdphi(0,ieq) + jacinvfine(1,1)*locdphi(1,ieq) + jacinvfine(2,1)*locdphi(2,ieq);
+	locdphix(2,ieq) = jacinvfine(0,2)*locdphi(0,ieq) + jacinvfine(1,2)*locdphi(1,ieq) + jacinvfine(2,2)*locdphi(2,ieq);
       }
       for(ieq = 0; ieq < cormatsize; ieq++) {
-	cordphix(0,ieq) = jacinvcoarse(0,0)*cordphi(0,ieq) + jacinvcoarse(0,1)*cordphi(1,ieq) + jacinvcoarse(0,2)*cordphi(2,ieq);
-	cordphix(1,ieq) = jacinvcoarse(1,0)*cordphi(0,ieq) + jacinvcoarse(1,1)*cordphi(1,ieq) + jacinvcoarse(1,2)*cordphi(2,ieq);
-	cordphix(2,ieq) = jacinvcoarse(2,0)*cordphi(0,ieq) + jacinvcoarse(2,1)*cordphi(1,ieq) + jacinvcoarse(2,2)*cordphi(2,ieq);
+	cordphix(0,ieq) = jacinvcoarse(0,0)*cordphi(0,ieq) + jacinvcoarse(1,0)*cordphi(1,ieq) + jacinvcoarse(2,0)*cordphi(2,ieq);
+	cordphix(1,ieq) = jacinvcoarse(0,1)*cordphi(0,ieq) + jacinvcoarse(1,1)*cordphi(1,ieq) + jacinvcoarse(2,1)*cordphi(2,ieq);
+	cordphix(2,ieq) = jacinvcoarse(0,2)*cordphi(0,ieq) + jacinvcoarse(1,2)*cordphi(1,ieq) + jacinvcoarse(2,2)*cordphi(2,ieq);
 	REAL tmp[3];
 	tmp[0] = cordphix(0,ieq)*axesinner(0,0)+cordphix(1,ieq)*axesinner(0,1)+cordphix(2,ieq)*axesinner(0,2);
 	tmp[1] = cordphix(0,ieq)*axesinner(1,0)+cordphix(1,ieq)*axesinner(1,1)+cordphix(2,ieq)*axesinner(1,2);
