@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.13 2004-04-02 16:02:26 tiago Exp $
+//$Id: main.cpp,v 1.14 2005-01-14 16:47:15 tiago Exp $
 
 /**
  * Galerkin descontinuo: visita do professor Igor.
@@ -11,7 +11,7 @@
 //DEBUGM nao pergunta parametros h e p, nem nome dos arquivos
 #define DIFUSAO_EXP
 //#define DESCONTINUIDADE
-#define DEBUGM
+//#define DEBUGM
 
 
 #include "pzvec.h"
@@ -39,13 +39,19 @@
 #include "TPZFrontNonSym.h"
 #include "pzbdstrmatrix.h"
 #include "pzblockdiag.h"
+#include "TPZSpStructMatrix.h"
+#include "TPZCopySolve.h"
 
 
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"    		
 #include "pzonedref.h"
 
+
+#include "pzbndcond.h"
 #include "pzpoisson3d.h"
+
+#include "pzvisualmatrix.h"
 
 #include <time.h>
 #include <stdio.h>
@@ -237,8 +243,8 @@ int main(){
 
   TPZCompMesh *cmesh;
   if (gMeshType == 1) //Quadrado
-//    cmesh = CreateMesh();
-     cmesh = SimpleMesh();
+    cmesh = CreateMesh();
+//     cmesh = SimpleMesh();
   if (gMeshType == 2) //Triangulo
     //    cmesh = CreateMesh2();
     cmesh = CreateMesh3();
@@ -249,11 +255,27 @@ int main(){
 
   //METODOS DE RESOLUCAO: ITERATIVO OU DIRETO
 
-  // #define ITER_SOLVER
-#define DIRECT_SOLVER
+#define ITER_SOLVER
+//_PRECOND
+//#define DIRECT_SOLVER
 
 #ifdef ITER_SOLVER
-  TPZFStructMatrix full(cmesh);
+
+  cout << "ITER_SOLVER" << endl;  
+  TPZSpStructMatrix full(cmesh);
+  an.SetStructuralMatrix(full);  
+  TPZCopySolve precond( full.Create()  );
+  TPZStepSolver step;
+  step.ShareMatrix( precond );  
+  step.SetGMRES( 2000000, 30, precond, 1.e-13, 0 ); 
+  //step.SetCG( 2000000, precond, 1e-13, 0);
+  an.SetSolver(step);
+
+#endif
+
+#ifdef ITER_SOLVER_PRECOND
+  cout << "ITER_SOLVER_PRECOND" << endl;
+  TPZSpStructMatrix full(cmesh);
   an.SetStructuralMatrix(full);
   
   TPZBlockDiagonalStructMatrix strblock(cmesh);
@@ -261,51 +283,36 @@ int main(){
   strblock.AssembleBlockDiagonal(*block);
   
   TPZStepSolver step, precond(block);
-  block->Print("Bloco DIAGONAL, DEVLOO", out);
-  
   precond.SetDirect(ELU);
 
-  step.SetGMRES( 2000, 10, precond, 0.0000000001, 0); 
+  step.SetGMRES( 2000000, 30, precond, 1.e-13, 0); 
+  an.SetSolver(step);
 
 #endif
 
 #ifdef DIRECT_SOLVER
-//  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
-  TPZFStructMatrix full(cmesh);  
+
+  cout << "DIRECT_SOLVER" << endl;
+  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
+//  full.SetNumberOfThreads(3);
+//  TPZFStructMatrix full(cmesh);  
   an.SetStructuralMatrix(full);
   TPZStepSolver step;
   step.SetDirect(ELU);
+  an.SetSolver(step);
 #endif
 
-  an.SetSolver(step);
-/*  TPZFMatrix fillin;
-//  cmesh->ComputeFillIn(20,fillin);
-//  fillin.Print("Fillin of the computable mesh");
-*/
+{  
+  TPZFMatrix fillin;
+  cmesh->ComputeFillIn(50,fillin);
+  //fillin.Print("Fillin of the computable mesh");
+  VisualMatrix(fillin , filedx);
+}
 
-/*    
-  an.Assemble();
-  an.Solver().Matrix()->Print("Global stiffness",out);
-  an.Rhs().Print("Right hand side",out);
-*/
-  /*
-
-  TPZFMatrix mysol(8,1,0.),myres(8,1,0.);
-  mysol(1,0) = 1.;
-  mysol(3,0) = 0.5;
-  mysol(5,0) = 1.;
-  mysol(7) = 1.5;
-  an.Solver().Matrix()->Multiply(mysol,myres);
-
-  myres.Print("residuo",out);
-  */
   an.Run();
 
-  //  cout << "\nNumero de equacoes: " << an.Solution().Rows() << endl;
-
-  //an.Print( "Nosso primeiro teste",out);
-
-  TPZVec<char *> scalnames(1);
+/**** Aqui faz DX ****/
+/*  TPZVec<char *> scalnames(1);
   TPZVec<char *> vecnames(1);
   scalnames[0] = "Solution";
   vecnames[0] = "Derivate";
@@ -316,11 +323,12 @@ int main(){
 
   if (gMeshType == 2)
     an.PostProcess(0);
-
+*/
 #ifdef DIFUSAO_EXP
   an.SetExact(ExactSolution);
   TPZVec<REAL> pos;
   an.PostProcess(pos,out);
+  out << "\nNumero de equacoes: " << an.Solution().Rows() << endl;  
 #endif
   
   delete cmesh;
@@ -586,7 +594,7 @@ TPZCompMesh *CreateMesh() {
   TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc); 
   //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
   
   cmesh->AutoBuild();
@@ -881,8 +889,8 @@ TPZCompMesh *CreateMeshPhil() {
   mat->SetParameters(0.,1.,convdir);
   int nstate = 1;
   TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
-  TPZBndCond *bc[2];
-  
+  TPZBndCond *bc[2]; 
+    
   val2(0,0) = 1.;
   bc[0] = mat->CreateBC(-1,0,val1,val2);
 
@@ -891,7 +899,8 @@ TPZCompMesh *CreateMeshPhil() {
   
   cmesh->InsertMaterialObject(mat);
   int i;
-  for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
+  for(i=0; i<2; i++) 
+    cmesh->InsertMaterialObject(bc[i]);
 
   
   TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
