@@ -1,5 +1,5 @@
 /** @file pzstring.cc */
-// $Id: pzstring.cpp,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+// $Id: pzstring.cpp,v 1.2 2003-09-26 18:30:26 erick Exp $
 
 #include "pzstring.h"
 
@@ -9,7 +9,7 @@ TPZString::TPZString()
 {
    // NOTHING TO DO HERE!
 }
-
+/*
 TPZString::TPZString(const char * source)
 {
    int len=strlen(source);
@@ -21,39 +21,52 @@ TPZString::TPZString(const char * source)
    // ended string
    fStore[len]='\0';
 }
+*/
+TPZString::TPZString(char const * source)
+{
+   int len=strlen(source);
+   Resize(len+1);
+   strcpy(fStore, source);
 
-inline TPZString::TPZString(const int size)
+   // although the TPZStack class already stores the length, the null
+   // character is necessary to export string as a null character
+   // ended string
+   fStore[len]='\0';
+}
+
+
+TPZString::TPZString(const int size)
 {
    Resize(size);
 }
 
-inline TPZString::TPZString(const char chr)
+TPZString::TPZString(const char chr)
 {
    Resize(2);
    fStore[0]=chr;
    fStore[1]='\0';
 }
 
-inline TPZString TPZString::operator+(const char * increment)const
+TPZString TPZString::operator+(const char * increment)const
 {
    TPZString newstring(*this);
    newstring.Append(increment);
    return newstring;
 }
 
-inline TPZString TPZString::operator+(const TPZString & increment)const
+TPZString TPZString::operator+(const TPZString & increment)const
 {
    TPZString newstring(*this);
    newstring.Append(increment);
    return newstring;
 }
 
-inline void TPZString::operator+=(const char increment)
+void TPZString::operator+=(const char increment)
 {
    this->Append(increment);
 }
 
-inline void TPZString::operator+=(const char * increment)
+void TPZString::operator+=(const char * increment)
 {
    this->Append(increment);
 }
@@ -67,12 +80,12 @@ inline void TPZString::operator+=(const char * increment)
 }
 */
 
-inline TPZString::operator const char *()const
+TPZString::operator const char *()const
 {
    return Str();
 }
 
-inline const char* TPZString::Str()const
+const char* TPZString::Str()const
 {
    if(fNElements>0)
    {
@@ -82,7 +95,7 @@ inline const char* TPZString::Str()const
    return NULL;
 }
 
-inline int TPZString::Length()const
+int TPZString::Length()const
 {
    if(fNElements==0)return 0;
    return strlen(fStore);
@@ -138,12 +151,12 @@ TPZString TPZString::SubStr(const int start,const int end)const
    return newstring;
 }
 
-inline void TPZString::Empty()
+void TPZString::Empty()
 {
    Resize(0);
 }
 
-inline void TPZString::Optimize()
+void TPZString::Optimize()
 {
    int len = Length();
 

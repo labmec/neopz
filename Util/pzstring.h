@@ -2,7 +2,7 @@
  * @file pzstring.h
  * @brief String implementation.
  */
-// $Id: pzstring.h,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+// $Id: pzstring.h,v 1.2 2003-09-26 18:30:26 erick Exp $
 
 #ifndef PZSTRING_H
 #define PZSTRING_H
@@ -17,17 +17,19 @@ class TPZString: public TPZStack< char >
    public:
 
       /** Default Constructor. */
-      inline TPZString();
+      TPZString();
 
       /** Constructs a TPZString object based on a null char ended string. */
-      inline TPZString(const char * source);
+//      inline TPZString(const char * source);
+      /** Constructs a TPZString object based on a null char ended string. */
+      TPZString(char const * source);
 
       /** Initializes the TPZString object with a predefined size. */
-      inline TPZString(const int size);
+      TPZString(const int size);
 
       /** Single char constructor. */
-      inline TPZString(const char chr);
-	
+      TPZString(const char chr);
+
       /** Destructor. */
       ~TPZString(){}
 
@@ -56,7 +58,7 @@ class TPZString: public TPZStack< char >
       /**
        *  operator =. Resizes if necessary.
        */
-      inline void operator=(const char * source)
+      void operator=(const char * source)
       {
 	 int len = strlen(source);
 
@@ -82,18 +84,18 @@ class TPZString: public TPZStack< char >
        * Explicitly convertes a TPZString into a const null ended
        * char string .
        */
-      inline const char * Str() const;
+      const char * Str() const;
 
       /**
        * Implicit conversion
        */
-      inline operator const char *() const;
+      operator const char *() const;
 
       /**
        * Similar to strlen(string). Also returns the number of
-       * non-null characters. 
+       * non-null characters.
        */
-      inline int Length() const;
+      int Length() const;
 
       /**
        * Returns a subset string.
