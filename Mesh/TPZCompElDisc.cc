@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.25 2003-11-05 16:02:21 tiago Exp $
+//$Id: TPZCompElDisc.cc,v 1.26 2003-11-10 16:15:07 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -861,16 +861,17 @@ void TPZCompElDisc::AccumulateIntegrationRule(int degree, TPZStack<REAL> &point,
 
 void TPZCompElDisc::CenterPoint(TPZVec<REAL> &center){
 
-  if(Reference() || Type() == EDiscontinuous){
+  //  if(Reference() || Type() == EDiscontinuous){
     fReference->CenterPoint(fReference->NSides()-1,center);
-    return;
-  } else {//aglomerado
+    //  return;
+    //  } 
+  //else {//aglomerado
 //     TPZStack<TPZCompEl *> elvec;
 //     dynamic_cast<TPZAgglomerateElement *>(this)->ListOfDiscEl(elvec);
 //     TPZGeoEl *ref = elvec[0]->Reference();
 //     ref->CenterPoint(ref->NSides()-1,center);
-    PZError << "TPZCompElDisc::CenterPoint center points not exists!\n";
-  }
+//    PZError << "TPZCompElDisc::CenterPoint center points not exists!\n";
+//  }
 }
 
 REAL TPZCompElDisc::LesserEdgeOfEl(){

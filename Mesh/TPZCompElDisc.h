@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.14 2003-11-05 16:02:21 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.15 2003-11-10 16:15:07 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -50,11 +50,6 @@ class TPZCompElDisc : public TPZCompEl{	// header file for the computational ele
   int fConnectIndex;
 
   /**
-   * it keeps the interior point coordinations of the element 
-   */
-  TPZVec<REAL> fCenterPoint;
-
-  /**
    * Normalizing constant for shape functions 
    */
   REAL fConstC;
@@ -65,6 +60,11 @@ class TPZCompElDisc : public TPZCompEl{	// header file for the computational ele
   TPZMaterial *fMaterial;
 
 protected:
+
+  /**
+   * it keeps the interior point coordinations of the element 
+   */
+  TPZVec<REAL> fCenterPoint;
 
   /**
    * it creates new conect that it associates the degrees of freedom of the
@@ -207,7 +207,7 @@ protected:
 
   REAL CenterPoint(int index) {return fCenterPoint[index];}
 
-  void CenterPoint(TPZVec<REAL> &center);
+  virtual void CenterPoint(TPZVec<REAL> &center);
   
   void SetCenterPoint(int i,REAL x){fCenterPoint[i] = x;}
 
@@ -220,6 +220,11 @@ protected:
   virtual int IsInterpolated() {return 1;}
 
   REAL SizeOfElement();
+
+  /** 
+   * Returns the volume of the geometric element associated.
+   */
+  virtual  REAL VolumeOfEl() { return Reference()->Volume(); }
 
   /**
    * Creates corresponding graphical element(s) if the dimension matches
