@@ -310,6 +310,15 @@ void TPZFrontMatrix<store, front>::ReOpen() {
 	fStorage.ReOpen();
 }
 
+template<class store, class front>
+int TPZFrontMatrix<store, front>::Zero() {
+	fStorage.Zero();
+  fNumElConnected = fNumElConnectedBackup;
+	fLastDecomposed = -1;
+  fFront.Reset(fNumEq);
+  return 0;
+}
+
 class TPZStackEqnStorage;
 class TPZFileEqnStorage;
 class TPZFrontSym;

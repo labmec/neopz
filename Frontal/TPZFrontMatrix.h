@@ -41,6 +41,12 @@ public:
 	void FinishWriting();
 	/**Reopen the binary file*/
 	void ReOpen();
+
+  /**
+   * reinitialize the structure of the frontal matrix
+   
+   */
+   virtual int Zero();
     /** Allocates data for the FrontMatrix */
 	void AllocData();
 
@@ -140,6 +146,12 @@ protected:
 
     /** Contains the number of elements which still need to contribute to a given equation */
     TPZVec <int> fNumElConnected;
+
+    /** Contains the number of elements which still need to contribute to a given equation
+     * This backup copy is needed to be able to reinitialize the matrix through the
+     * Zero() method
+    */
+    TPZVec <int> fNumElConnectedBackup;
 
     /**
      * @link aggregationByValue

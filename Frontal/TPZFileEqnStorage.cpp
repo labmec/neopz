@@ -361,6 +361,45 @@ TPZFileEqnStorage::TPZFileEqnStorage()
   
 }
 
+void TPZFileEqnStorage::Zero()
+{
+  if(fIOStream) FinishWriting();
+  remove(fFileName);
+
+  strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
+#ifdef DOS
+     _mktemp(filenamestorage);
+#else
+     mkstemp(filenamestorage);
+#endif
+     cout << "Temporary file name " << filenamestorage << endl;
+     cout.flush();
+
+  fCurBlockPosition = -1;
+	fNumBlocks=0;
+	fCurrentBlock=0;
+	fNumHeaders=20;
+//	SetBlockSize(10);
+	//fBlockPos.Resize(fNumHeaders);
+
+
+	strcpy(fFileName,filenamestorage);
+
+	fIOStream = fopen(fFileName,"wb"); //open for writing
+    	/**
+    	 *Writes NumHeaders and NumBlocks information in
+    	 *the two initial positions on fIOStream
+    	 */
+    	int zero = 0;
+    	fwrite(&fNumHeaders,sizeof(int),1,fIOStream);
+    	//cout << ftell(fIOStream) << endl;
+    	fwrite(&zero,sizeof(int),1,fIOStream);
+    	//cout << ftell(fIOStream) << endl;
+    	//fCurBlockPosition = ftell(fIOStream);
+
+
+}
+
 void TPZFileEqnStorage::ReOpen()
 {
 	fIOStream = fopen(fFileName,"rb"); //open for reading

@@ -48,6 +48,11 @@ TPZStackEqnStorage::TPZStackEqnStorage()
 {
 }
 
+void TPZStackEqnStorage::Zero()
+{
+  fEqnStack.Resize(0);
+}
+
 TPZStackEqnStorage::~TPZStackEqnStorage()
 {
 }

@@ -15,8 +15,15 @@
 class TPZStackEqnStorage {
 public:
 
+     /**
+      * method to make this class "template compatible" with the file equation storage
+      */
      void ReOpen();
 
+     /**
+     *  Reinitialize the object
+     */
+     void Zero();
     /**
      * It closes the opened binary file. 
      */

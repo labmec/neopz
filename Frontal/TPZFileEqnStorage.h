@@ -19,6 +19,11 @@ class TPZFileEqnStorage {
 public:
      /**Reopens an binary file with its current fFileName*/
      void ReOpen();
+
+     /**
+      * Reinitialize the object
+      */
+      void Zero();
     /** Method used for binary input/output */
 	void ReadBlockPositions();
     /** Method used for binary input/output */
