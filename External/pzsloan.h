@@ -3,8 +3,10 @@
 
 #include "pzrenumbering.h"
 //#include "sloan\\sloan.h"
-#include "sloan.h"
 
+#ifdef USING_SLOAN
+
+#include "sloan.h"
 
 
 class TPZSloan : TPZRenumbering {
@@ -56,5 +58,7 @@ class TPZSloan : TPZRenumbering {
      }
 
 };
+
+#endif
 
 #endif

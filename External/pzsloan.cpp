@@ -3,6 +3,8 @@
 #include <fstream>
 using namespace std;
 
+#ifdef USING_SLOAN
+
 TPZSloan::TPZSloan(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes),
 	fNodeWeights(0), fElementGraph(0), fElementGraphIndex(0) 
 {
@@ -173,3 +175,5 @@ void TPZSloan::SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex){
 void TPZSloan::SetNodeWeights(TPZVec<int> &weights){
 	fNodeWeights = weights;
 }
+
+#endif
