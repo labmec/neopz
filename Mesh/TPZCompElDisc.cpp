@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.53 2004-04-15 15:00:52 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.54 2004-04-22 13:14:21 phil Exp $
 
 // -*- c++ -*- 
 
@@ -123,12 +123,13 @@ void TPZCompElDisc::CreateInterfaces(){
   //é maior em tamanho que o interface associado
   //caso AdjustBoundaryElement não for aplicado
   //a malha é criada consistentemente
-  int nsides = fReference->NSides();
+  TPZGeoEl *ref = Reference();
+  int nsides = ref->NSides();
   int InterfaceDimension = fMaterial->Dimension() - 1;
   int side;
   nsides--;//last face
   for(side=nsides;side>=0;side--){
-    if(fReference->SideDimension(side) != InterfaceDimension) continue;
+    if(ref->SideDimension(side) != InterfaceDimension) continue;
     TPZCompElSide thisside(this,side);
     if(ExistsInterface(thisside.Reference())) {
       cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
@@ -153,8 +154,9 @@ void TPZCompElDisc::CreateInterfaces(){
   }
 }
 
-void TPZCompElDisc::CreateInterface(int side){
-
+void TPZCompElDisc::CreateInterface(int side)
+{
+  TPZGeoEl *ref = Reference();
   TPZCompElSide thisside(this,side);
   TPZStack<TPZCompElSide> list;
   list.Resize(0);
@@ -184,7 +186,7 @@ void TPZCompElDisc::CreateInterface(int side){
     }
 
 
-    TPZGeoEl *gel = fReference->CreateBCGeoEl(side,matid);
+    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
     //isto acertou as vizinhan¢as da interface geométrica com o atual
     int index;
     TPZCompElDisc *list0 = dynamic_cast<TPZCompElDisc *>(list[0].Element());
@@ -206,7 +208,7 @@ void TPZCompElDisc::CreateInterface(int side){
     int matid2 = lower.Element()->Material()->Id();
     int matid = (matid1 < matid2) ? matid1 : matid2;
     //existem esquerdo e direito: this e lower
-    TPZGeoEl *gel = fReference->CreateBCGeoEl(side,matid);
+    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
     int index;
     TPZCompElDisc *lowcel = dynamic_cast<TPZCompElDisc *>(lower.Element());
     if(Dimension() > lowcel->Dimension()){
@@ -219,19 +221,21 @@ void TPZCompElDisc::CreateInterface(int side){
   }
 }
 
-REAL TPZCompElDisc::NormalizeConst(){
+REAL TPZCompElDisc::NormalizeConst()
+{
+  TPZGeoEl *ref = Reference();
   //maior distancia entre o ponto interior e os vértices do elemento
-  int nnodes = fReference->NNodes(),i;
+  int nnodes = ref->NNodes(),i;
   if(nnodes == 1) return 1.0;//elemento ponto
   REAL maxdist,dist;
-  int inode = fReference->NodeIndex(0);//primeiro nó do elemento
-  TPZGeoNode node = fReference->Mesh()->NodeVec()[inode];
+  int inode = ref->NodeIndex(0);//primeiro nó do elemento
+  TPZGeoNode node = ref->Mesh()->NodeVec()[inode];
   maxdist = pow(node.Coord(0)-fCenterPoint[0],2.)+pow(node.Coord(1)-fCenterPoint[1],2.);
   maxdist += pow(node.Coord(2)-fCenterPoint[2],2.);
   maxdist = sqrt(maxdist);
   for(i=1;i<nnodes;i++){
-    inode = fReference->NodeIndex(i);//nós sub-seguintes
-    node = fReference->Mesh()->NodeVec()[inode];
+    inode = ref->NodeIndex(i);//nós sub-seguintes
+    node = ref->Mesh()->NodeVec()[inode];
     dist = pow(node.Coord(0)-fCenterPoint[0],2.)+pow(node.Coord(1)-fCenterPoint[1],2.);
     dist += pow(node.Coord(2)-fCenterPoint[2],2.);
     dist = sqrt(dist);
@@ -302,8 +306,9 @@ int TPZCompElDisc::CreateMidSideConnect(){
   if(!Material())
     PZError << "\nTPZCompElDisc::CreateMidSideConnect Material nulo\n";
 
+  TPZGeoEl *ref = Reference();
   TPZStack<TPZCompElSide> list;
-  int nsides = fReference->NSides();
+  int nsides = ref->NSides();
   int dimgrid = fMaterial->Dimension();
   int dim = Dimension();
   int existsconnect = 0;
@@ -372,6 +377,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     cout << "TPZCompElDisc::CalcStiff : no material for this element\n";
     return;
   }
+  TPZGeoEl *ref = Reference();
   int ncon = NConnects();
   int dim = Dimension();
   int nstate = fMaterial->NStateVariables();
@@ -412,8 +418,8 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
   for(ip=0;ip<npoints;ip++){
     intrule->Point(ip,intpoint,weight);
-    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
-    fReference->X(intpoint, x);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->X(intpoint, x);
     weight *= fabs(detjac);
     Shape(x,phix,dphix);
     axes.Identity();
@@ -444,6 +450,7 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
     cout << "TPZCompElDisc::CalcStiff : no material for this element\n";
     return;
   }
+  TPZGeoEl *ref = Reference();
   int ncon = NConnects();
   int dim = Dimension();
   int nstate = fMaterial->NStateVariables();
@@ -479,8 +486,8 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
 
   for(ip=0;ip<npoints;ip++){
     intrule->Point(ip,intpoint,weight);
-    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
-    fReference->X(intpoint, x);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->X(intpoint, x);
     weight *= fabs(detjac);
     Shape(x,phix,dphix);
     axes.Identity();
@@ -504,24 +511,26 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
   }
 }
 
-REAL TPZCompElDisc::SizeOfElement(){
+REAL TPZCompElDisc::SizeOfElement()
+{
+  TPZGeoEl *ref = Reference();
 
-  int dim = fReference->Dimension();
-  int side = fReference->NSides()-1;
-  if(dim == 2) fReference->SideArea(side);
+  int dim = ref->Dimension();
+  int side = ref->NSides()-1;
+  if(dim == 2) ref->SideArea(side);
   if(!dim || dim > 2){
     PZError << "TPZCompElDisc::SizeOfElement case not permited\n";
     return 0.;
   }
   if(dim == 1){
-    TPZGeoNode node0 = Mesh()->Reference()->NodeVec()[fReference->NodeIndex(0)];
-    TPZGeoNode node1 = Mesh()->Reference()->NodeVec()[fReference->NodeIndex(1)];
+    TPZGeoNode node0 = Mesh()->Reference()->NodeVec()[ref->NodeIndex(0)];
+    TPZGeoNode node1 = Mesh()->Reference()->NodeVec()[ref->NodeIndex(1)];
     TPZVec<REAL> no0(3),no1(3);
     for(int i=0;i<3;i++){
       no0[i] = node0.Coord(i);
       no1[i] = node1.Coord(i);
     }
-    return fReference->Distance(no0,no1);
+    return ref->Distance(no0,no1);
   }
   PZError << "TPZCompElDisc::SizeOfElement this in case that it is not contemplated\n";
   return 0.;
@@ -529,7 +538,7 @@ REAL TPZCompElDisc::SizeOfElement(){
 
 void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int degree){
 
-  if (fMesh->ElementVec()[index] != this) {
+  if (Mesh()->ElementVec()[index] != this) {
     PZError << "TPZInterpolatedElement::Divide index error";
     subindex.Resize(0);
     return;
@@ -538,7 +547,7 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int degree){
     PZError << "TPZInterpolatedElement::Divide element interface cannot be divided!\n";
     exit(-1);
   }
-
+  TPZGeoEl *ref = Reference();
   RemoveInterfaces();
 
   if(0){//TESTE
@@ -551,29 +560,29 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int degree){
   }//TESTE
 
   //divide o elemento geométrico
-  int nsubs = fReference->NSubElements();
+  int nsubs = ref->NSubElements();
   subindex.Resize(nsubs);
   TPZManVector<TPZGeoEl *> geosubs(nsubs);
-  fReference->Divide(geosubs);
+  ref->Divide(geosubs);
   if(!geosubs.NElements()) {
     subindex.Resize(0);
     return;
   }
 
-  fReference->ResetReference();
+  ref->ResetReference();
   TPZCompElDisc *discel;
   int i,deg;
   if(degree) deg = degree;
   else deg = Degree();
   for (i=0;i<nsubs;i++){
     new TPZCompElDisc(*Mesh(),geosubs[i],subindex[i]);
-    discel = (TPZCompElDisc *) fMesh->ElementVec()[subindex[i]];
+    discel = (TPZCompElDisc *) Mesh()->ElementVec()[subindex[i]];
     discel->SetDegree(deg);
   }
 
   Mesh()->ExpandSolution();
   for(i=0; i<nsubs; i++) {
-    discel = (TPZCompElDisc *) fMesh->ElementVec()[subindex[i]];
+    discel = (TPZCompElDisc *) Mesh()->ElementVec()[subindex[i]];
     if(discel->Dimension() < fMaterial->Dimension()) continue;//elemento BC
     discel->InterpolateSolution(*this);
   }
@@ -583,8 +592,9 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int degree){
 void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
   // accumulates the transfer coefficients between the current element and the
   // coarse element into the transfer matrix, using the transformation t
+  TPZGeoEl *ref = Reference();
   TPZTransform t(Dimension());
-  Reference()->BuildTransform2(fReference->NSides()-1,coarsel.Reference(),t);
+  Reference()->BuildTransform2(ref->NSides()-1,coarsel.Reference(),t);
 
   int locmatsize = NShapeF();
   int cormatsize = coarsel.NShapeF();
@@ -776,6 +786,7 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) 
     return;
   }
 
+  TPZGeoEl *ref = Reference();
   int numdof = fMaterial->NStateVariables();
   TPZFNMatrix<220> phi(nshape,1);
   TPZFNMatrix<660> dphi(dim,nshape);
@@ -787,9 +798,9 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) 
   TPZFMatrix jacinv(dim,dim,jacinvstore,10);
   TPZManVector<REAL> x(3);
   //REAL detjac;
-  //fReference->Jacobian(qsi,jacobian,axes,detjac,jacinv);//(calcula axes)
+  //ref->Jacobian(qsi,jacobian,axes,detjac,jacinv);//(calcula axes)
   if(var >= 0){
-    fReference->X(qsi,x);
+    ref->X(qsi,x);
   } else if(var < 0){
     //neste caso 0 ponto qsi está no elemento deformado
     var *= -1;//recuperando var
@@ -840,9 +851,11 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &x, TPZVec<REAL> &uh){
 
 
 
-void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) {
+void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) 
+{
+  TPZGeoEl *ref = Reference();
   int mat = Material()->Id();
-  int nsides = fReference->NSides();
+  int nsides = ref->NSides();
 
   if(dimension == 2 && mat > 0){
     if(nsides == 9){
@@ -864,7 +877,7 @@ void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) 
 
 int TPZCompElDisc::NSides(){
 
-  return fReference->NSides();
+  return Reference()->NSides();
 }
 
 int TPZCompElDisc::NInterfaces(){
@@ -931,13 +944,15 @@ void TPZCompElDisc::AccumulateIntegrationRule(int degree, TPZStack<REAL> &point,
     
     weight.Push(wt * fabs(detjac));
   }
+  delete rule;
 }
 
 
 void TPZCompElDisc::CenterPoint(TPZVec<REAL> &center){
 
-  if(Reference() || Type() == EDiscontinuous){
-    fReference->CenterPoint(fReference->NSides()-1,center);
+  TPZGeoEl *ref = Reference();
+  if(ref || Type() == EDiscontinuous){
+    ref->CenterPoint(ref->NSides()-1,center);
     return;
   } else {//aglomerado
 //     TPZStack<TPZCompEl *> elvec;
@@ -966,6 +981,7 @@ void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &v
   // Adjust the order of the integration rule
   int nsides = Reference()->NSides();
   TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(nsides-1,20);
+  TPZGeoEl *ref = Reference();
   int dim = Dimension();
 
   int ndof = fMaterial->NStateVariables();
@@ -992,8 +1008,8 @@ void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &v
   for(int nint=0; nint<intrule->NPoints(); nint++) {
 
     intrule->Point(nint,intpoint,weight);
-    fReference->Jacobian( intpoint , jacobian, axes, detjac , jacinv);
-    fReference->X( intpoint , x);
+    ref->Jacobian( intpoint , jacobian, axes, detjac , jacinv);
+    ref->X( intpoint , x);
     Shape(x,phi,dphix);
 
     //it is possible to have more than first derivative, as Laplacian and its derivatives.
@@ -1078,7 +1094,7 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
 
   int_point.Fill(0.,0);
   REAL jac_det = 1.;
-  fReference->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
+  ref->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
   REAL multiplier = 1./jac_det;
 
   int numintpoints = intrule->NPoints();
@@ -1088,8 +1104,8 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
   for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
 
     intrule->Point(int_ind,int_point,weight);
-    fReference->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
-    fReference->X(int_point, x);
+    ref->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
+    ref->X(int_point, x);
     Shape(int_point,locphi,locdphi);
     weight *= jac_det;
     corphi.Zero();
@@ -1135,6 +1151,7 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
   transfer.SetBlockMatrix(locblockseq,globblockvec[0],small);
 
   SetDegree(locdeg);
+  delete intrule;
 }
 
 void TPZCompElDisc::AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) {

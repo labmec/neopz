@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.35 2004-04-06 17:32:56 erick Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.36 2004-04-22 13:14:21 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -22,7 +22,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 
   fReference = geo;
   geo->SetReference(this);
-  int materialid = fReference->MaterialId();
+  int materialid = geo->MaterialId();
   //  if(materialid<0){
   //    PZError << "TPZInterfaceElement::TPZInterfaceElement the interface element is not a BC condition\n";
   //  }
@@ -61,7 +61,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 
   fReference = geo;
   geo->SetReference(this);
-  int materialid = fReference->MaterialId();
+  int materialid = geo->MaterialId();
   //  if(materialid<0){
   //    PZError << "TPZInterfaceElement::TPZInterfaceElement the interface element is not a BC condition\n";
   //  }
@@ -290,8 +290,9 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
   int pl = left->Degree();
   int pr = right->Degree();
   int p = (pl > pr) ? pl : pr;
-  int face = fReference->NSides()-1;
-  TPZIntPoints *intrule = fReference->CreateSideIntegrationRule(face,2*p);//integra u(n)*fi
+  TPZGeoEl *ref = Reference();
+  int face = ref->NSides()-1;
+  TPZIntPoints *intrule = ref->CreateSideIntegrationRule(face,2*p);//integra u(n)*fi
   int npoints = intrule->NPoints();
   int ip;
   //  TPZManVector<REAL,3> point(3);
@@ -299,9 +300,9 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
 
   for(ip=0;ip<npoints;ip++){
     intrule->Point(ip,intpoint,weight);
-    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
     weight *= fabs(detjac);
-    fReference->X(intpoint, x);
+    ref->X(intpoint, x);
     //solu¢ão da itera¢ão anterior
     if(fConnectL){
       left->Shape(x,phixl,dphixl);
@@ -414,8 +415,9 @@ void TPZInterfaceElement::CalcResidualStandard(TPZElementMatrix &ef){
   int pl = left->Degree();
   int pr = right->Degree();
   int p = (pl > pr) ? pl : pr;
-  int face = fReference->NSides()-1;
-  TPZIntPoints *intrule = fReference->CreateSideIntegrationRule(face,2*p);//integra u(n)*fi
+  TPZGeoEl *ref = Reference();
+  int face = ref->NSides()-1;
+  TPZIntPoints *intrule = ref->CreateSideIntegrationRule(face,2*p);//integra u(n)*fi
   int npoints = intrule->NPoints();
   int ip;
   //  TPZManVector<REAL,3> point(3);
@@ -423,9 +425,9 @@ void TPZInterfaceElement::CalcResidualStandard(TPZElementMatrix &ef){
 
   for(ip=0;ip<npoints;ip++){
     intrule->Point(ip,intpoint,weight);
-    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
     weight *= fabs(detjac);
-    fReference->X(intpoint, x);
+    ref->X(intpoint, x);
     //solu¢ão da itera¢ão anterior
     if(fConnectL){
       left->Shape(x,phixl,dphixl);
@@ -535,8 +537,9 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
   int pl = left->Degree();
   int pr = right->Degree();
   int p = (pl > pr) ? pl : pr;
-  int face = fReference->NSides()-1;
-  TPZIntPoints *intrule = fReference->CreateSideIntegrationRule(face,2*p);//integra u(n)*fi
+  TPZGeoEl *ref = Reference();
+  int face = ref->NSides()-1;
+  TPZIntPoints *intrule = ref->CreateSideIntegrationRule(face,2*p);//integra u(n)*fi
   int npoints = intrule->NPoints();
   int ip;
   TPZVec<REAL> point(3,0.),normal(3,0.);
@@ -544,9 +547,9 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
 
   for(ip=0;ip<npoints;ip++){
     intrule->Point(ip,intpoint,weight);
-    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
     weight *= fabs(detjac);
-    fReference->X(intpoint, x);
+    ref->X(intpoint, x);
     left->Shape(x,phixl,dphixl);
     right->Shape(x,phixr,dphixr);
     //solu¢ão da itera¢ão anterior
@@ -606,7 +609,8 @@ void TPZInterfaceElement::GetTransformsLeftAndRight(TPZTransform &tl,TPZTransfor
   TPZGeoEl *refr = fRightEl->Reference();
   TPZGeoElSide leftside;
   TPZGeoElSide rightside;
-  int i,face = fReference->NSides()-1;
+  TPZGeoEl *ref = Reference();
+  int i,face = ref->NSides()-1;
 
   TPZStack<TPZCompElSide> list;
   list.Resize(0);
@@ -621,7 +625,7 @@ void TPZInterfaceElement::GetTransformsLeftAndRight(TPZTransform &tl,TPZTransfor
     if(geoside.Element() == refr) rightside = geoside;
   }
   //o elemento interface não tem pai
-  TPZGeoElSide thisgeoside(fReference,face);
+  TPZGeoElSide thisgeoside(ref,face);
   TPZCompElSide lower;
   if(!rightside.Exists() && leftside.Exists()){
     lower =  leftside.Reference().LowerLevelElementList(0);
@@ -691,7 +695,7 @@ int TPZInterfaceElement::ConnectIndex(int i) {
 void TPZInterfaceElement::Print(ostream &out){
 
   out << "\nInterface element : \n";
-  //out << "\tId of the geometric reference : " << fReference->Id() << endl;
+  //out << "\tId of the geometric reference : " << Reference()->Id() << endl;
   out << "\tGeometric reference of the left element of id : ";
   if(fLeftEl){
     if(fLeftEl->Type() == EAgglomerate) out << "EAgglomerate index " << LeftElement()->Index() << endl;
@@ -708,7 +712,7 @@ void TPZInterfaceElement::Print(ostream &out){
     out << "Null" << endl;
     cout << "TPZInterfaceElement::Print null right element\n\n";
   }
-  out << "\tMaterial id : " << fReference->MaterialId() << endl;
+  out << "\tMaterial id : " << Reference()->MaterialId() << endl;
   
   out << "\tNormal a interface : ";
   out << "(" << fNormal[0] << "," << fNormal[1] << "," << fNormal[2] << ")\n";
@@ -843,8 +847,9 @@ void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
 
 void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal /*,int leftside*/){
 
-  //  int dim = fReference->Dimension();
-  int face = fReference->NSides()-1;
+  //  int dim = Reference()->Dimension();
+  TPZGeoEl *ref = Reference();
+  int face = ref->NSides()-1;
   //face: lado do elemento bidimensional ou aresta 
   //do unidimensional ou canto do ponto
   normal.Resize(3,0.);
@@ -873,7 +878,7 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal /*,int leftside*/){
     normal[2] = 0.;
     break;
   case 1:
-    fReference->Jacobian(param,jacobian,axes,detjac,jacinv);
+    ref->Jacobian(param,jacobian,axes,detjac,jacinv);
     for(i=0;i<3;i++) rib[i] = axes(0,i);//dire¢ão da aresta
     VetorialProd(rib,vec,result);
     VetorialProd(result,rib,normal);
@@ -887,8 +892,8 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal /*,int leftside*/){
     
     break;
   case 2:
-    fReference->CenterPoint(face,param);//ponto da face
-    fReference->Jacobian(param,jacobian,axes,detjac,jacinv);
+    ref->CenterPoint(face,param);//ponto da face
+    ref->Jacobian(param,jacobian,axes,detjac,jacinv);
     for(i=0;i<3;i++) normal[i] = axes(2,i);
     break;
   default:

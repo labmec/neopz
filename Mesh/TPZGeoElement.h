@@ -1,7 +1,7 @@
 
 // -*- c++ -*-
 
-// $Id: TPZGeoElement.h,v 1.10 2003-12-12 19:59:20 phil Exp $
+// $Id: TPZGeoElement.h,v 1.11 2004-04-22 13:13:52 phil Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
@@ -19,7 +19,7 @@ class TPZStack;
 template <class TShape, class TGeo, class TRef>
 class TPZGeoElement : public TPZGeoElRefLess<TShape,TGeo> {
 
-  TPZGeoEl *fSubEl[TRef::NSubEl];
+  int fSubEl[TRef::NSubEl];
 //int fNodeIndexes[TGeo::NNodes];
 //TPZGeoElSide fNeighbours[TShape::NSides];
 public:
@@ -45,7 +45,7 @@ public:
 
 
   /** return 1 if the element has subelements along side*/
-  int HasSubElement() {return fSubEl[0]!=0;}
+  int HasSubElement() {return fSubEl[0]!=-1;}
 
   /** 
    * returns a pointer to the neighbour and the neighbourside 

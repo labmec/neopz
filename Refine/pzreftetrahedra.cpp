@@ -219,6 +219,7 @@ void TPZRefTetrahedra::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 	  TPZGeoEl *t3sub = geo->Mesh()->CreateGeoElement(ETetraedro,cornerindexes,matid,index);
 	  geo->SetSubElement(i,t3sub);
 	  t3sub->SetFather(geo);
+	  t3sub->SetFather(geo->Index());
 	  SubElVec[i] = t3sub;
 	}
 	for (;i<6;i++){
@@ -228,6 +229,7 @@ void TPZRefTetrahedra::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 	  TPZGeoEl *pi3sub = geo->Mesh()->CreateGeoElement(EPiramide,cornerindexes,matid,index);
 	  geo->SetSubElement(i,pi3sub);
 	  pi3sub->SetFather(geo);
+	  pi3sub->SetFather(geo->Index());
 	  SubElVec[i] = pi3sub;
 	}
 	for(i=0;i<NSubEl;i++) {//conectividades entre os filhos : viz interna

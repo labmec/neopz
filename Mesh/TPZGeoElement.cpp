@@ -54,7 +54,7 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int mati
   
 //  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
   int i;
-  for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = 0;
+  for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo, class TRef>
@@ -69,7 +69,7 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int mati
   
 //  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
   int i;
-  for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = 0;
+  for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo, class TRef>
@@ -84,59 +84,13 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(int id,TPZVec<int> &nodeindexes,i
 //
 //  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindexes[i];
   int i;
-  for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = 0;
+  for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }
 
-/*
-template< class TShape, class TGeo, class TRef >
-TPZGeoElement< TShape, TGeo, TRef >::TPZGeoElement(
-   int* nodeindices, int matind, TPZGeoMesh& mesh ) :
-   TPZGeoElRefLess<TShape,TGeo>( matind, mesh )
-{
-   // BEWARE! We do not test the number of elements here, cause we are
-   // passing a pointer to some memory portion!
-  
-  for( int i = 0; i < TGeo::NNodes; i++ )
-  {
-     fNodeIndexes[ i ] = *nodeindices++ - 1;
-  }
-
-  for( int i = 0; i < TGeo::NNodes; i++ )
-  {
-     fSubEl[ i ] = 0;
-  }
-}
-*/
-
-/*
-template< class TShape, class TGeo, class TRef >
-TPZGeoElement< TShape, TGeo, TRef >::TPZGeoElement(
-   int* nodeindices, int matind, TPZGeoMesh& mesh, int& index ) :
-   TPZGeoElRefLess<TShape,TGeo>( matind, mesh, index )
-{
-   // BEWARE! We do not test the number of elements here, cause we are
-   // passing a pointer to some memory portion!
-  
-  for( int i = 0; i < TGeo::NNodes; i++ )
-  {
-     fNodeIndexes[ i ] = *nodeindices++ - 1;
-  }
-
-  for( int i = 0; i < TRef::NSubEl; i++ )
-  {
-     fSubEl[ i ] = 0;
-  }
-}
-*/
 template< class TShape, class TGeo, class TRef >
 void TPZGeoElement< TShape, TGeo, TRef >::Initialize(TPZVec<int> &nodeindices, int matind, TPZGeoMesh& mesh, int& index ) {
   
-//  for( int i = 0; i < TGeo::NNodes; i++ )
-//  {
-//     fNodeIndexes[ i ] = nodeindices[i];
-//  }
-//
-  TPZGeoElRefLess<TShape,TGeo>::Initialize(nodeindices,matind,mesh,index);
+TPZGeoElRefLess<TShape,TGeo>::Initialize(nodeindices,matind,mesh,index);
   for( int i = 0; i < TRef::NSubEl; i++ ){
      fSubEl[ i ] = 0;
   }
@@ -149,32 +103,6 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement() {
   cin >> no;
 }
 
-//template<class TShape, class TGeo, class TRef>
-//int 
-//TPZGeoElement<TShape,TGeo,TRef>::NodeIndex(int node) {
-//  if(node<0 || node>7) return -1;
-//  return fNodeIndexes[node];
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//int
-//TPZGeoElement<TShape,TGeo,TRef>::SideNodeIndex(int side,int node) {
-//  if(side<0 || side>(TShape::NSides - 1) || node<0) {
-//    PZError << "TPZGeoElement::SideNodeIndex. Bad parameter side.\n";
-//    return -1;
-//  }
-//  return fNodeIndexes[TShape::SideNodeLocId(side,node)];
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//int
-//TPZGeoElement<TShape,TGeo,TRef>::SideNodeLocIndex(int side,int node) {
-//  if(side<0 || side>(TShape::NSides - 1) || node<0) {
-//    PZError << "TPZGeoElement::SideNodeIndex. Bad parameter side.\n";
-//    return -1;
-//  }
-//  return TShape::SideNodeLocId(side,node);
-//}
 
 template<class TShape, class TGeo, class TRef>
 void 
@@ -185,38 +113,10 @@ TPZGeoElement<TShape,TGeo,TRef>::SetSubElement(int id, TPZGeoEl *el){
 	    << id << endl;
     return;
   }
-  fSubEl[id] = el;
+  fSubEl[id] = el->Index();
   return;
 }
 
-//template<class TShape, class TGeo, class TRef>
-//TPZIntPoints *TPZGeoElement<TShape,TGeo,TRef>::CreateSideIntegrationRule(int side, int order){
-//	return TGeo::CreateSideIntegrationRule(side,order);
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//int
-//TPZGeoElement<TShape,TGeo,TRef>::NNodes() {
-//	return TGeo::NNodes;
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//int
-//TPZGeoElement<TShape,TGeo,TRef>::NCornerNodes(){
-//	return TGeo::NNodes;
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//int
-//TPZGeoElement<TShape,TGeo,TRef>::NSides(){
-//	return TGeo::NSides;
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//int
-//TPZGeoElement<TShape,TGeo,TRef>::SideNodeLocId(int side, int node){
-//	return TShape::SideNodeLocId(side,node);
-//}
 
 template<class TShape, class TGeo, class TRef>
 REAL
@@ -224,11 +124,6 @@ TPZGeoElement<TShape,TGeo,TRef>::RefElVolume(){
 	return TShape::RefElVolume();
 }
 
-//template<class TShape, class TGeo, class TRef>
-//int
-//TPZGeoElement<TShape,TGeo,TRef>::NSideNodes(int side){
-//	return TShape::NSideNodes(side);
-//}
 
 template<class TShape, class TGeo, class TRef>
 void
@@ -236,11 +131,6 @@ TPZGeoElement<TShape,TGeo,TRef>::MidSideNodeIndex(int side,int &index){
 	TRef::MidSideNodeIndex(this,side,index);
 }
 
-//template<class TShape, class TGeo, class TRef>
-//int
-//TPZGeoElement<TShape,TGeo,TRef>::SideIsUndefined(int side){
-//	return (fNeighbours[side].Side() == -1);
-//}
 
 template<class TShape, class TGeo, class TRef>
 int
@@ -248,11 +138,6 @@ TPZGeoElement<TShape,TGeo,TRef>::NSubElements(){
 	return TRef::NSubEl;
 }
 
-//template<class TShape, class TGeo, class TRef>
-//int
-//TPZGeoElement<TShape,TGeo,TRef>::NSideSubElements(int side){
-//	return TRef::NSideSubElements(side);
-//}
 
 template<class TShape, class TGeo, class TRef>
 int
@@ -260,28 +145,6 @@ TPZGeoElement<TShape,TGeo,TRef>::NSideSubElements2(int side){
 	return TRef::NSideSubElements(side);
 }
 
-//template<class TShape, class TGeo, class TRef>
-//TPZGeoEl *
-//TPZGeoElement<TShape,TGeo,TRef>::CreateBCGeoEl(int side, int bc){
-//  return TGeo::CreateBCGeoEl(this,side,bc);
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//void
-//TPZGeoElement<TShape,TGeo,TRef>::SetNodeIndex(int i,int nodeindex){
-//
-//  if(i<0 || i>(TGeo::NNodes - 1)){
-//    cout << "TPZGeoElement::SetNodeIndex index error i = " << i << endl;
-//    return;
-//  }
-//  fNodeIndexes[i] = nodeindex;
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//TPZTransform
-//TPZGeoElement<TShape,TGeo,TRef>::SideToSideTransform(int sidefrom,int sideto){
-//  return TShape::SideToSideTransform(sidefrom,sideto);
-//}
 
 template<class TShape, class TGeo, class TRef>
 TPZGeoEl *
@@ -289,7 +152,8 @@ TPZGeoElement<TShape,TGeo,TRef>::SubElement(int is){
   if(is<0 || is>(TRef::NSubEl - 1)){
     cout << "TPZGeoElement::SubElement index error is= " << is << endl;;
   }
-  return fSubEl[is];
+  if(fSubEl[is] == -1) return 0;
+  return Mesh()->ElementVec()[fSubEl[is]];
 }
 
 template<class TShape, class TGeo, class TRef>
@@ -300,100 +164,6 @@ TPZGeoElement<TShape,TGeo,TRef>::SideSubElement(int side,int position){
   return subs[position];
 }
 
-//template<class TShape, class TGeo, class TRef>
-//int
-//TPZGeoElement<TShape,TGeo,TRef>::SideDimension(int side){
-//  return TShape::SideDimension(side);
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//int
-//TPZGeoElement<TShape,TGeo,TRef>::Dimension(){
-//  return TShape::Dimension;
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//TPZGeoElSide
-//TPZGeoElement<TShape,TGeo,TRef>::HigherDimensionSides(int side,int targetdimension){
-//	cout << "TPZGeoElement::HigherDimensionSides nao deve ser usado\n";
-//	return TPZGeoElSide();
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//void
-//TPZGeoElement<TShape,TGeo,TRef>::AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides){
-//  TPZStack<int> highsides;
-//  TShape::HigherDimensionSides(side,highsides);
-//  int i,size = highsides.NElements();
-//  for(i=0;i<size;i++) {
-//    if(SideDimension(highsides[i]) == targetdimension) {
-//      elsides.Push(TPZGeoElSide(this,highsides[i]));
-//    }
-//  }
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//void
-//TPZGeoElement<TShape,TGeo,TRef>::LowerDimensionSides(int side,TPZStack<int> &smallsides){
-//	int nsidecon = TShape::NSideConnects(side);
-//	int is;
-//	for(is=0; is<nsidecon-1; is++)
-//	  smallsides.Push(TShape::SideConnectLocId(side,is));
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//void
-//TPZGeoElement<TShape,TGeo,TRef>::BuildTransform(int side, TPZGeoEl *father,TPZTransform &t){
-//	BuildTransform2(side,father,t);
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//void
-//TPZGeoElement<TShape,TGeo,TRef>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
-//  TPZFMatrix nodes(3,TGeo::NNodes);
-//  TPZGeoNode *np;
-//  int i,j;
-//  for(i=0;i<TGeo::NNodes;i++) {
-//    np = NodePtr(i);
-//    for(j=0;j<3;j++) {
-//      nodes(j,i) = np->Coord(j);
-//    }
-//  }
-//  TGeo::Jacobian(nodes,coordinate,jac,axes,detjac,jacinv);
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//void
-//TPZGeoElement<TShape,TGeo,TRef>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result){
-//  TPZFMatrix nodes(3,TGeo::NNodes);
-//  TPZGeoNode *np;
-//  int i,j;
-//  for(i=0;i<TGeo::NNodes;i++) {
-//    np = NodePtr(i);
-//    for(j=0;j<3;j++) {
-//      nodes(j,i) = np->Coord(j);
-//    }
-//  }
-//  TGeo::X(nodes,coordinate,result);
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//TPZTransform
-//TPZGeoElement<TShape,TGeo,TRef>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform &t){//Augusto:09/01/01
-//
-//  if(side<0 || side>(TShape::NSides-1) || !fFather){
-//    PZError << "TPZGeoElement::BuildTransform2 side out of range or father null\n";
-//    return TPZTransform(0,0);
-//  }
-//  TPZGeoElSide fathloc = Father2(side);
-//  int son = WhichSubel();
-//  TPZTransform trans=fFather->GetTransform(side,son);
-//  trans = trans.Multiply(t);
-//  if(fathloc.Element() == father) return trans;
-//  trans = fFather->BuildTransform2(fathloc.Side(),father,trans);
-//  return trans;
-//}
-//
 
 template<class TShape, class TGeo, class TRef>
 TPZTransform
@@ -402,22 +172,6 @@ TPZGeoElement<TShape,TGeo,TRef>::GetTransform(int side,int son){
 	return TRef::GetTransform(side,son);
 }
 
-//template<class TShape, class TGeo, class TRef>
-//void
-//TPZGeoElement<TShape,TGeo,TRef>::CenterPoint(int side, TPZVec<REAL> &cent){
-//
-//  TShape::CenterPoint(side,cent);
-//}
-
-//template<class TShape, class TGeo, class TRef>
-//TPZGeoElSide
-//TPZGeoElement<TShape,TGeo,TRef>::Father2(int side){//cout << " Father2 teste Cedric: 08/05/2003\n";
-//  if(!fFather) return TPZGeoElSide();
-//  int son = WhichSubel();
-//  if(son<0) return TPZGeoElSide();
-//  int fathsid = fFather->FatherSide(side,son);
-//  return TPZGeoElSide(fFather,fathsid);
-//}
 
 
 

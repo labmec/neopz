@@ -36,7 +36,7 @@ template <class TShape, class TGeo>
 
 class TPZGeoElRefPattern : public TPZGeoElRefLess<TShape,TGeo>  {
 
-    TPZVec<TPZGeoEl *> fSubEl;
+    TPZVec<int> fSubEl;
     TPZRefPattern *fRefPattern;
   
 public: 
@@ -48,7 +48,7 @@ public:
   void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index,TPZRefPattern *refpat);
 
   /** return 1 if the element has subelements along side*/
-  int HasSubElement() {return fSubEl[0]!=0;}
+  int HasSubElement() {return fSubEl.NElements() && fSubEl[0]!=-1;}
 
   void SetSubElement(int id, TPZGeoEl *el);
 
@@ -98,7 +98,7 @@ public:
 template<class TShape, class TGeo>
 TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern():TPZGeoElRefLess<TShape,TGeo>(){
   fSubEl.Resize(1);
-  fSubEl[0] = 0;
+  fSubEl[0] = -1;
   fRefPattern = 0;
 }
 
@@ -114,7 +114,7 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int
   if (!refpat){
     fRefPattern = 0;
     fSubEl.Resize(1);
-    fSubEl[0] = 0;
+    fSubEl[0] = -1;
     PZError << "TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern : NULL refinement pattern given" << endl;
     return;
   }
@@ -123,7 +123,7 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int
   int i;
   int nsubel = refpat->NSubElements();
   fSubEl.Resize(nsubel);
-  for(i=0;i<nsubel;i++) fSubEl[i] = 0;
+  for(i=0;i<nsubel;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo>
@@ -132,7 +132,7 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int
   if (!refpat){
     fRefPattern = 0;
     fSubEl.Resize(1);
-    fSubEl [0] = 0;
+    fSubEl [0] = -1;
     PZError << "TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern : NULL refinement pattern given" << endl;
     return;
   }
@@ -140,7 +140,7 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int
   int i;
   int nsubel = refpat->NSubElements();
   fSubEl.Resize(nsubel);
-  for(i=0;i<nsubel;i++) fSubEl[i] = 0;
+  for(i=0;i<nsubel;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo>
@@ -149,7 +149,7 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(int id,TPZVec<int> &nodeinde
   if (!refpat){
     fRefPattern = 0;
     fSubEl.Resize(1);
-    fSubEl[0] = 0;
+    fSubEl[0] = -1;
    // PZError << "TPZGeoElRefPattern<TShape,TGeo>::Initialize : NULL refinement pattern given" << endl;
     return;
   }
@@ -157,7 +157,7 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(int id,TPZVec<int> &nodeinde
   int i;
   int nsubel = refpat->NSubElements();
   fSubEl.Resize(nsubel);
-  for(i=0;i<nsubel;i++) fSubEl[i] = 0;
+  for(i=0;i<nsubel;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo>
@@ -166,7 +166,7 @@ void TPZGeoElRefPattern<TShape,TGeo>::Initialize(TPZVec<int> &nodeindices, int m
   if (!refpat){
     fRefPattern = 0;
     fSubEl.Resize(1);
-    fSubEl [0] = 0;
+    fSubEl [0] = -1;
  //   PZError << "TPZGeoElRefPattern<TShape,TGeo>::Initialize : NULL refinement pattern given" << endl;
     return;
   }
@@ -174,7 +174,7 @@ void TPZGeoElRefPattern<TShape,TGeo>::Initialize(TPZVec<int> &nodeindices, int m
   int i;
   int nsubel = refpat->NSubElements();
   fSubEl.Resize(nsubel);
-  for(i=0;i<nsubel;i++) fSubEl[i] = 0;
+  for(i=0;i<nsubel;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo>
@@ -184,7 +184,7 @@ void TPZGeoElRefPattern<TShape,TGeo>::SetSubElement(int id, TPZGeoEl *el){
     PZError << "TPZGeoElRefPattern::Trying do define subelement :" << id << endl;
     return;
   }
-  fSubEl[id] = el;
+  fSubEl[id] = el->Index();
   return;
 }
 
@@ -277,7 +277,7 @@ TPZGeoEl * TPZGeoElRefPattern<TShape,TGeo>::SubElement(int is){
   if(is<0 || is>nsubel){
     cout << "TPZGeoElRefPattern::SubElement index error is= " << is << endl;;
   }
-  return fSubEl[is];
+  return (fSubEl[is] == -1) ? 0 : Mesh()->ElementVec()[fSubEl[is]];
 }
 
 template<class TShape, class TGeo>
@@ -288,12 +288,12 @@ TPZGeoElSide TPZGeoElRefPattern<TShape,TGeo>::SideSubElement(int side,int positi
 //  return subs[position];
   int sub, sideout;
   fRefPattern->SideSubElement(side,position,sub,sideout);
-  if (!fSubEl[sub]) {
+  if (fSubEl[sub] == -1) {
     PZError << "TPZGeoElRefPattern<TShape,TGeo>::SideSubElement : Error subelement not found for side "
             << side << " position " << position << endl;
     return TPZGeoElSide();
   }
-  return TPZGeoElSide (fSubEl[sub],sideout);
+  return TPZGeoElSide (SubElement(sub),sideout);
 }
 
 template<class TShape, class TGeo>
@@ -390,6 +390,7 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
   for(sub=0;sub<NSubEl;sub++) {
     SubElVec[sub] = SubElement(sub);
     SubElVec[sub]->SetFather(this);
+    SubElVec[sub]->SetFather(this->fIndex);
   }
 
   Mesh()->Print(cout);
@@ -486,7 +487,7 @@ void TPZGeoElRefPattern<TShape,TGeo>::SetRefPattern (TPZRefPattern *refpat){
   int i;
   int nsubel = refpat->NSubElements();
   fSubEl.Resize(nsubel);
-  for(i=0;i<nsubel;i++) fSubEl[i] = 0;
+  for(i=0;i<nsubel;i++) fSubEl[i] = -1;
 }
 
 #endif

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.15 2004-04-02 13:13:50 phil Exp $
+// $Id: pzelctemp.cpp,v 1.16 2004-04-22 13:14:20 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -53,11 +53,11 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,
 
 template<class TGEO, class TSHAPE>
 TPZIntelGen<TGEO,TSHAPE>::~TPZIntelGen(){
-  if(fReference) {
-    if(fReference->Reference()) {
+  if(Reference()) {
+    if(Reference()->Reference()) {
       RemoveSideRestraintsII(EDelete);
     }
-    fReference->ResetReference();
+    Reference()->ResetReference();
   }
 }
 
@@ -225,9 +225,10 @@ void TPZIntelGen<TGEO,TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TP
   int nn = TSHAPE::NSideNodes(side);
   TPZManVector<int,27> id(nn),order(nc-nn);
   int n,c;
+  TPZGeoEl *ref = Reference();
   for (n=0;n<nn;n++){
     int nodloc = TSHAPE::SideNodeLocId(side,n);
-    id [n] = fReference->NodePtr(nodloc)->Id();
+    id [n] = ref->NodePtr(nodloc)->Id();
   }
   for (c=nn;c<nc;c++){
     int conloc = TSHAPE::SideConnectLocId(side,c);
@@ -241,8 +242,9 @@ void TPZIntelGen<TGEO,TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatr
   TPZManVector<int,TSHAPE::NNodes> id(TSHAPE::NNodes,0);
   TPZManVector<int, TSHAPE::NSides-TSHAPE::NNodes> ord(TSHAPE::NSides-TSHAPE::NNodes,0);
   int i;
+  TPZGeoEl *ref = Reference();
   for(i=0; i<TSHAPE::NNodes; i++) {
-    id[i] = fReference->NodePtr(i)->Id();
+    id[i] = ref->NodePtr(i)->Id();
   }
   for(i=0; i<TSHAPE::NSides-TSHAPE::NNodes; i++) {
     ord[i] = SideOrder(i+TSHAPE::NNodes);

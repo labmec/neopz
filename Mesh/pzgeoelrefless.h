@@ -32,7 +32,7 @@ class TPZStack;
   
 template <class TShape, class TGeo>
 class TPZGeoElRefLess : public TPZGeoEl  {
-  TPZGeoEl *fSubElement;
+//  int fSubElement;
 protected:
   int fNodeIndexes[TGeo::NNodes];
   TPZGeoElSide fNeighbours[TShape::NSides];
@@ -52,7 +52,7 @@ public:
   static int main_refless();
   
   /** divides the element and puts the resulting elements in the vector */
-  virtual void Divide(TPZVec < TPZGeoEl * > & pv);
+  virtual void Divide(TPZVec < TPZGeoEl * > & pv) = 0;
 
   /** return 1 if the element has subelements along side */
   //virtual int HasSubElement();

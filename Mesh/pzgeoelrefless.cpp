@@ -54,7 +54,7 @@ TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess():TPZGeoEl(){
   int i;
   for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = -1;
   for(i=0;i<TShape::NSides;i++)fNeighbours[i] = TPZGeoElSide();
-  fSubElement = 0;
+//  fSubElement = -1;
 }
 
 template<class TShape, class TGeo>
@@ -62,7 +62,7 @@ TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess(TPZGeoElRefLess  &gel):TPZGeoEl(ge
   int i;
   for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = gel.fNodeIndexes[i];
   for(i=0;i<TShape::NSides;i++)fNeighbours[i].SetConnectivity(gel.fNeighbours[i]);
-  fSubElement = 0;
+//  fSubElement = -1;
 }
 
 template<class TShape, class TGeo>
@@ -70,12 +70,15 @@ TPZGeoElRefLess<TShape,TGeo>::~TPZGeoElRefLess(){
 //  TPZGeoEl::~TPZGeoEl();
 }
 /** divides the element and puts the resulting elements in the vector */
-template<class TShape, class TGeo>
-void TPZGeoElRefLess<TShape,TGeo>::Divide(TPZVec < TPZGeoEl * > & pv){
-  pv.Resize (1);
-  fSubElement = new TPZGeoElRefLess(*this);
-  fSubElement->SetFather(this);
-}
+//template<class TShape, class TGeo>
+//void TPZGeoElRefLess<TShape,TGeo>::Divide(TPZVec < TPZGeoEl * > & pv){
+//  pv.Resize (1);
+//  TPZGeoEl *subel;
+//  subel = new TPZGeoElRefLess(*this);
+//  fSubElement = subel->Index();
+//  subel->SetFather(this);
+//  subel->SetFather(fIndex);
+//}
 
 /** return 1 if the element has subelements along side */
 //template<class TShape, class TGeo>
@@ -94,7 +97,6 @@ TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess(TPZVec<int> &nodeindices,int matin
   }
 
   for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
-//  for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = 0;
   for(i=0;i<TShape::NSides;i++)fNeighbours[i] = TPZGeoElSide();
 }
 
@@ -109,7 +111,6 @@ TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess(TPZVec<int> &nodeindices,int matin
   }
 
   for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
-//  for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = 0;
   for(i=0;i<TShape::NSides;i++)fNeighbours[i] = TPZGeoElSide();
 }
 
@@ -123,7 +124,6 @@ TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess(int id,TPZVec<int> &nodeindexes,in
   }
 
   for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindexes[i];
-//  for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = 0;
   for(i=0;i<TShape::NSides;i++)fNeighbours[i] = TPZGeoElSide();
 }
 
@@ -174,14 +174,6 @@ TPZGeoElRefLess<TShape,TGeo>::SetSubElement(int id, TPZGeoEl *el){
     PZError << "TPZGeoElRefLess<TShape,TGeo>::SetSubElement - Fodeu!\n";
   else PZError << "TPZGeoElRefLess<TShape,TGeo>::SetSubElement - Por enquanto eu no faco nada!\n";
   return;
-/*  if (id<0 || id >(TRef::NSubEl - 1)){
-    PZError << "TPZGeoElRefLess::Trying do define subelement :"
-	    << id << endl;
-    return;
-  }
-  fSubEl[id] = el;
-  return;
-*/
 }
 
 template<class TShape, class TGeo>
@@ -401,17 +393,20 @@ TPZGeoElRefLess<TShape,TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result){
 
 template<class TShape, class TGeo>
 TPZTransform
-TPZGeoElRefLess<TShape,TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform &t){//Augusto:09/01/01
-  if(side<0 || side>(TShape::NSides-1) || !fFather){
+TPZGeoElRefLess<TShape,TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform &t)
+{
+  //Augusto:09/01/01
+  TPZGeoEl *myfather = Father();
+  if(side<0 || side>(TShape::NSides-1) || !myfather){
     PZError << "TPZGeoElRefLess::BuildTransform2 side out of range or father null\n";
     return TPZTransform(0,0);
   }
   TPZGeoElSide fathloc = Father2(side);
   int son = WhichSubel();
-  TPZTransform trans=fFather->GetTransform(side,son);
+  TPZTransform trans=myfather->GetTransform(side,son);
   trans = trans.Multiply(t);
   if(fathloc.Element() == father) return trans;
-  trans = fFather->BuildTransform2(fathloc.Side(),father,trans);
+  trans = myfather->BuildTransform2(fathloc.Side(),father,trans);
   return trans;
 }
 
@@ -447,12 +442,15 @@ TPZGeoElRefLess<TShape,TGeo>::CenterPoint(int side, TPZVec<REAL> &cent){
 
 template<class TShape, class TGeo>
 TPZGeoElSide
-TPZGeoElRefLess<TShape,TGeo>::Father2(int side){//cout << " Father2 teste Cedric: 08/05/2003\n";
-  if(!fFather) return TPZGeoElSide();
+TPZGeoElRefLess<TShape,TGeo>::Father2(int side)
+{
+  //cout << " Father2 teste Cedric: 08/05/2003\n";
+  TPZGeoEl *father = Father();
+  if(!father) return TPZGeoElSide();
   int son = WhichSubel();
   if(son<0) return TPZGeoElSide();
-  int fathsid = fFather->FatherSide(side,son);
-  return TPZGeoElSide(fFather,fathsid);
+  int fathsid = father->FatherSide(side,son);
+  return TPZGeoElSide(father,fathsid);
 }
 
 template<class TShape, class TGeo>
@@ -472,14 +470,14 @@ template class TPZGeoElRefLess<TPZShapePiram,TPZGeoPyramid>;
 template class TPZGeoElRefLess<TPZShapePoint,TPZGeoPoint>;
 
 int main_refless(){
-TPZGeoElRefLess <TPZShapeCube,TPZGeoCube> el1;
-TPZGeoElRefLess <TPZShapeLinear,TPZGeoLinear> el2;
-TPZGeoElRefLess <TPZShapeQuad,TPZGeoQuad> el3;
-TPZGeoElRefLess <TPZShapeTriang,TPZGeoTriangle> el4;
-TPZGeoElRefLess <TPZShapePrism,TPZGeoPrism> el5;
-TPZGeoElRefLess <TPZShapeTetra,TPZGeoTetrahedra> el6;
-TPZGeoElRefLess <TPZShapePiram,TPZGeoPyramid> el7;
-TPZGeoElRefLess <TPZShapePoint,TPZGeoPoint> el8;
+//TPZGeoElRefLess <TPZShapeCube,TPZGeoCube> el1;
+//TPZGeoElRefLess <TPZShapeLinear,TPZGeoLinear> el2;
+//TPZGeoElRefLess <TPZShapeQuad,TPZGeoQuad> el3;
+//TPZGeoElRefLess <TPZShapeTriang,TPZGeoTriangle> el4;
+//TPZGeoElRefLess <TPZShapePrism,TPZGeoPrism> el5;
+//TPZGeoElRefLess <TPZShapeTetra,TPZGeoTetrahedra> el6;
+//TPZGeoElRefLess <TPZShapePiram,TPZGeoPyramid> el7;
+//TPZGeoElRefLess <TPZShapePoint,TPZGeoPoint> el8;
 
 return 0;
 }

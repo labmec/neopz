@@ -83,6 +83,7 @@ void TPZRefPattern::ReadPattern(){
     if(el>0){
       father->SetSubElement(el-1,subel);
       subel->SetFather(father);
+      subel->SetFather(father->Index());
     }
   }
 }

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.26 2004-04-05 14:09:35 phil Exp $
+// $Id: pzintel.cpp,v 1.27 2004-04-22 13:14:20 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -69,7 +69,7 @@ int TPZInterpolatedElement::NSideShapeF(int side) {
 
 
 int TPZInterpolatedElement::MidSideConnectLocId(int side) {
-  int il = 1 + NConnects() - (fReference->NSides());
+  int il = 1 + NConnects() - (Reference()->NSides());
   int nodloc = SideConnectLocId(NSideConnects(side)-il,side);
   return nodloc;
 }
@@ -80,7 +80,7 @@ int TPZInterpolatedElement::SideConnectIndex(int connect, int side) {
 }
 
 TPZConnect *TPZInterpolatedElement::SideConnect(int connect,int side) {
-  if(side<0 || connect<0 || side>fReference->NSides()) {
+  if(side<0 || connect<0 || side>Reference()->NSides()) {
     PZError << "TPZIntEl::SideConnect has bad first or second parameter.\n";
     return 0;
   }
@@ -361,6 +361,7 @@ void TPZInterpolatedElement::UpdateNeighbourSideOrder(int side, TPZVec<TPZCompEl
 void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform &t, TPZTransfer &transfer){
   // accumulates the transfer coefficients between the current element and the
   // coarse element into the transfer matrix, using the transformation t
+  TPZGeoEl *ref = Reference();
   int locnod = NConnects();
   int cornod = coarsel.NConnects();
   int locmatsize = NShapeF();
@@ -466,7 +467,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
   TPZManVector<REAL> x(3);
   int_point.Fill(0.,0);
   REAL jac_det = 1.;
-  fReference->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
+  ref->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
   REAL multiplier = 1./jac_det;
 
   int numintpoints = intrule.NPoints();
@@ -476,8 +477,8 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
   for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
 
     intrule.Point(int_ind,int_point,weight);
-    fReference->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
-    fReference->X(int_point, x);
+    ref->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
+    ref->X(int_point, x);
     Shape(int_point,locphi,locdphi);
     weight *= jac_det;
     t.Apply(int_point,coarse_int_point);
@@ -882,7 +883,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 }
 
 void TPZInterpolatedElement::CheckConstraintConsistency() {
-  int nc = fReference->NSides();
+  int nc = Reference()->NSides();
   //  int a;
   for(int c=0; c<nc; c++) CheckConstraintConsistency(c);
 }
@@ -905,7 +906,7 @@ int TPZInterpolatedElement::CheckElementConsistency(){
     }
 
   }
-  for (iside = 0; iside<(fReference->NSides()-1); iside++){
+  for (iside = 0; iside<(Reference()->NSides()-1); iside++){
     TPZCompElSide celside(this,iside);
     int dimsmall = celside.Reference().Dimension();
 
@@ -949,6 +950,7 @@ int TPZInterpolatedElement::CheckElementConsistency(){
         }
       }
     }
+    delete sirule;
   }
   return 1;
 }
@@ -1193,10 +1195,11 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
   // accumulates the transfer coefficients between the current element and the
   // coarse element into the transfer matrix, using the transformation t
   TPZTransform t(Dimension());
+  TPZGeoEl *ref = Reference();
 
   //Cedric 16/03/99
   //  Reference()->BuildTransform(NConnects(),coarsel.Reference(),t);
-  t = Reference()->BuildTransform2(fReference->NSides()-1,coarsel.Reference(),t);
+  t = Reference()->BuildTransform2(ref->NSides()-1,coarsel.Reference(),t);
 
   int locnod = NConnects();
   int cornod = coarsel.NConnects();
@@ -1382,13 +1385,14 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
     intrule.SetOrder(order);
   }
   int intrulepoints = intrule.NPoints();
+  TPZGeoEl *ref = Reference();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
 
     intrule.Point(int_ind,intpoint,weight);
 
-    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 
-    fReference->X(intpoint, x);
+    ref->X(intpoint, x);
 
     weight *= fabs(detjac);
 
@@ -1489,16 +1493,16 @@ void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix 
   TPZVec<REAL> flux(num_flux,1);
   TPZVec<REAL> intpoint(dim);
   double weight = 0.;
-
+  TPZGeoEl *ref = Reference();
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
 
     intrule.Point(int_ind,intpoint,weight);
 
-    fReference->Jacobian( intpoint , jacobian, axes , detjac , jacinv);
+    ref->Jacobian( intpoint , jacobian, axes , detjac , jacinv);
 
     weight *= fabs(detjac);
 
-    fReference->X( intpoint , x);
+    ref->X( intpoint , x);
 
     Shape(intpoint,phi,dphi);
     int ieq;
@@ -1559,11 +1563,12 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
     sub.Resize(0);
     return;
   }
-  int nsubelements = fReference->NSubElements();
+  TPZGeoEl *ref = Reference();
+  int nsubelements = ref->NSubElements();
   sub.Resize(nsubelements);
 
   TPZManVector<TPZGeoEl *> pv(nsubelements);
-  fReference->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional é dividido
+  ref->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional é dividido
   if(!pv.NElements()) {
     sub.Resize(0);
     PZError << "TPZInterpolatedElement::Divide subelements error";
@@ -1584,7 +1589,7 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
   fMesh->ElementVec()[index] = 0; //Cesar 2003-11-19
   Reference()->ResetReference();
 
-  TPZGeoEl *ref;
+  TPZGeoEl *cref;
   TPZInterpolatedElement *cel;
 
 #ifdef HUGE_DEBUG    
@@ -1596,11 +1601,11 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
   }
 #endif  
   
-  int ncon = fReference->NSides();
+  int ncon = ref->NSides();
   TPZInterpolatedElement::gOrder = PreferredSideOrder(ncon-1);
   for (i=0;i<nsubelements;i++)	{
-    ref = pv[i];//ponteiro para subelemento i
-    ref->CreateCompEl(*fMesh,sub[i]);
+    cref = pv[i];//ponteiro para subelemento i
+    cref->CreateCompEl(*fMesh,sub[i]);
 //    cel = (TPZInterpolatedElement *) fMesh->ElementVec()[sub[i]];
 //    cel->CheckConstraintConsistency();
 //    if(chk.CheckConnectOrderConsistency() != -1) {
@@ -1646,14 +1651,15 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname) {
   TPZCompEl *otherelement = Reference()->Reference();
 
   TPZIntPoints &intrule = GetIntegrationRule();
+  TPZGeoEl *ref = Reference();
   //GetIntegrationRule().NPoints()
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
     //GetIntegrationRule().Point(int_ind,intpoint,weight);
     intrule.Point(int_ind,intpoint,weight);
 
-    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 
-    //fReference->X(intpoint, x);
+    //ref->X(intpoint, x);
     weight *= fabs(detjac);
     sol.Fill(0.);
     Solution(intpoint,var,sol);
@@ -1690,6 +1696,7 @@ void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REA
     Print(PZError);
     return;
   }
+  TPZGeoEl *ref = Reference();
 
   int numdof = fMaterial->NStateVariables();
   REAL phistore[220],dphistore[660],dphixstore[660];
@@ -1705,9 +1712,9 @@ void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REA
   TPZManVector<REAL> x(3);
   REAL detjac;
   int ieq;
-  fReference->Jacobian(qsi,jacobian,axes,detjac,jacinv);
+  ref->Jacobian(qsi,jacobian,axes,detjac,jacinv);
   Shape(qsi,phi,dphi);
-  fReference->X(qsi,x);
+  ref->X(qsi,x);
   switch(dim) {
   case 0:
     //dphix.Redim(1,1);
@@ -1860,13 +1867,14 @@ void TPZInterpolatedElement::EvaluateError(
   TPZBlock &block = Mesh()->Block();
   TPZFMatrix jacinv(dim,dim);
   int ieq;
+  TPZGeoEl *ref = Reference();
 
   for(int nint=0; nint<GetIntegrationRule().NPoints(); nint++) {
 
     GetIntegrationRule().Point(nint,intpoint,weight);
-    fReference->Jacobian( intpoint , jacobian, axes, detjac , jacinv);
+    ref->Jacobian( intpoint , jacobian, axes, detjac , jacinv);
     Shape(intpoint,phi,dphi);
-    fReference->X( intpoint , x);
+    ref->X( intpoint , x);
     weight *= fabs(detjac);
     switch(dim) {
     case 0:
@@ -1965,16 +1973,18 @@ void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
   TPZManVector<REAL,3> intpoint(dim);
   REAL weight = 0.;
 
-  REAL dsolstore[90];
+//  REAL dsolstore[90];
   TPZFNMatrix<20> dsol(dim,numdof);
 
   TPZIntPoints &intrule = GetIntegrationRule();
+  TPZGeoEl *ref = Reference();
+
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
     intrule.Point(int_ind,intpoint,weight);
 
-    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 
-    fReference->X(intpoint, x);
+    ref->X(intpoint, x);
 
     weight *= fabs(detjac);
 
@@ -2079,13 +2089,15 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
 
   
   TPZIntPoints &intrule = GetIntegrationRule();
+  TPZGeoEl *ref = Reference();
+
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
 
     intrule.Point(int_ind,intpoint,weight);
 
-    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 
-    fReference->X(intpoint, x);
+    ref->X(intpoint, x);
 
     weight *= fabs(detjac);
 
@@ -2215,9 +2227,11 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
   TPZVec<REAL> intpoint(dim,0.);
   double weight = 0., meanvalue = 0.;
   REAL area = 0.;
+  TPZGeoEl *ref = Reference();
+
   for(i=0;i<GetIntegrationRule().NPoints();i++){
     GetIntegrationRule().Point(i,intpoint,weight);
-    fReference->Jacobian(intpoint,jacobian,axes,detjac,jacinv);
+    ref->Jacobian(intpoint,jacobian,axes,detjac,jacinv);
 
     /** Compute the solution value at point integration*/
     Solution(intpoint,var,sol);
@@ -2262,11 +2276,12 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
   TPZVec<REAL> x(3,0.);
   TPZVec<REAL> intpoint(dim,0.);
   double weight = 0.;
+  TPZGeoEl *ref = Reference();
 
   for(int int_ind = 0; int_ind < GetIntegrationRule().NPoints(); ++int_ind){
     GetIntegrationRule().Point(int_ind,intpoint,weight);
-    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
-    fReference->X(intpoint, x);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->X(intpoint, x);
     weight *= fabs(detjac);
     Shape(intpoint,phi,dphi);
 
@@ -2376,9 +2391,9 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
 
     intrule.Point(int_ind,intpoint,weight);
 
-    fReference->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 
-    fReference->X(intpoint, x);
+    ref->X(intpoint, x);
 
     weight *= fabs(detjac);
 

@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.13 2004-03-01 21:55:15 cesar Exp $
+//$Id: pzgeoel.h,v 1.14 2004-04-22 13:14:20 phil Exp $
 
 // -*- c++ -*-
 
@@ -52,6 +52,12 @@ class TPZGeoEl { 	// header file for the element class
 
   /**the element from which the element is a subelement*/
   TPZGeoEl *fFather;
+  /** index of the element from which the element is a subelement*/
+  int fFatherIndex;
+  /**
+  index of the element in the element vector
+  */
+  int fIndex;
   /**3x3 unit matrix to be copied to the axes if the geometric element
      does not have a particular orientation*/
   static TPZFMatrix gGlobalAxes;
@@ -113,6 +119,7 @@ public:
     fMatId = 0;
     fReference = 0;
     fFather = 0;
+    fFatherIndex = -1;
   }
 
   virtual void Initialize(int materialindex, TPZGeoMesh &mesh, int &index);
@@ -209,7 +216,10 @@ virtual int Type() =0;
   virtual int NSideSubElements2(int side) = 0;
 
   /**return a pointer to the father*/
-  TPZGeoEl *Father() { return fFather; }
+  TPZGeoEl *Father() 
+  { 
+    return (fFatherIndex == -1) ? 0 : Mesh()->ElementVec()[fFatherIndex]; 
+  }
 
   //@}
 
@@ -301,7 +311,16 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
 //		    int onlyinterpolated);
 
   /**Sets the father element*/
-  void SetFather(TPZGeoEl *father);
+  void SetFather(TPZGeoEl *father)
+  {
+    fFather = father;
+  }
+  
+  /**Sets the father element index*/
+  void SetFather(int fatherindex)
+  {
+    fFatherIndex = -1;
+  }
 
   /**returns a pointer to the subelement is*/
   virtual TPZGeoEl *SubElement(int is) = 0;
@@ -432,6 +451,15 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 
   /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
   virtual void SetRefPattern(TPZRefPattern *);
+
+    /*!
+        \fn TPZGeoEl::Index()
+    return the index of the element within the elementvector of the mesh
+     */
+    int Index()
+    {
+        return fIndex;
+    }
 
  protected:
 //  REAL fMesure;

@@ -58,8 +58,9 @@ TPZGeoEl::TPZGeoEl(const TPZGeoEl &el) {
   fMatId = el.fMatId;
   fReference = 0;
   fFather = el.fFather;
-  int index = fMesh->ElementVec().AllocateNewElement();
-  fMesh->ElementVec()[index] = this;
+  fFatherIndex = el.fFatherIndex;
+  int fIndex = fMesh->ElementVec().AllocateNewElement();
+  fMesh->ElementVec()[fIndex] = this;
 }
 
 
@@ -69,7 +70,9 @@ TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh, int &index) {
   fMatId = materialid;
   fReference = 0;
   fFather = 0;
+  fFatherIndex = -1;
   index = fMesh->ElementVec().AllocateNewElement();
+  fIndex = index;
   fMesh->ElementVec()[index] = this;
 //	fMesure = 0.;
 }
@@ -79,7 +82,9 @@ TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh) {
   fMatId = materialid;
   fReference = 0;
   fFather = 0;
+  fFatherIndex = -1;
   int index = fMesh->ElementVec().AllocateNewElement();
+  fIndex = index;
   fMesh->ElementVec()[index] = this;
 //	fMesure = 0.;
 }
@@ -209,8 +214,8 @@ void TPZGeoEl::Print(ostream & out) {
   out << "\nNumber of sides    " << NSides() << endl;
   if (fMatId < 0) out << "boundary condition " << fMatId << endl;
   else out << "Material id        " << fMatId << endl;
-  if (!fFather) out << "no father\n";
-  else out << "Father id          " << fFather->Id() << endl;
+  if (!Father()) out << "no father\n";
+  else out << "Father id          " << Father()->Id() << endl;
   if (!SubElement(0)) out << "no subelements";
   else {
     out << "Subelements ids     ";
@@ -260,10 +265,6 @@ TPZGeoNode *TPZGeoEl::MiddleSideNode(int side) {
 
 
 
-void TPZGeoEl::SetFather(TPZGeoEl *father) {
-  fFather = father;
-}
-
 //TPZGeoElSide TPZGeoEl::Father(int /*side*/) {
 //  PZError << "TPZGeoEl::Father should never be called\n";
 //  return TPZGeoElSide();
@@ -271,10 +272,10 @@ void TPZGeoEl::SetFather(TPZGeoEl *father) {
 
 int TPZGeoEl::Level() {
   int level = 0;
-  TPZGeoEl *father = fFather;
+  TPZGeoEl *father = Father();
   while(father) {
     level++;
-    father = father->fFather;
+    father = father->Father();
   }
   return level;
 }
@@ -360,18 +361,19 @@ void TPZGeoEl::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dime
 
 int TPZGeoEl::WhichSubel(){
 
-	if(!fFather) {
-		PZError << "TPZGeoEl::WhichSubel called with null element\n";
-		return -1;
-	}
-	int son;
-	int nsub = fFather->NSubElements();
-	for(son=0;son<nsub;son++) if(fFather->SubElement(son) == this) break;
-	if(son > (nsub-1)){
-		PZError << "TPZGeoEl::WhichSubel son not exist\n";
-		return -1;
-	}
-	return son;
+  if(!fFatherIndex == -1) {
+    PZError << "TPZGeoEl::WhichSubel called with null element\n";
+      return -1;
+  }
+  int son;
+  TPZGeoEl *father = Father();
+  int nsub = father->NSubElements();
+  for(son=0;son<nsub;son++) if(father->SubElement(son) == this) break;
+  if(son > (nsub-1)){
+    PZError << "TPZGeoEl::WhichSubel son not exist\n";
+    return -1;
+  }
+  return son;
 }
 
 int TPZGeoEl::WhichSide(TPZVec<REAL> &pt){

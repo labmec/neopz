@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.14 2004-04-05 20:23:13 longhin Exp $
+//$Id: pzgmesh.cpp,v 1.15 2004-04-22 13:14:20 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -154,7 +154,7 @@ void TPZGeoMesh::RestoreReference(TPZCompMesh *cmesh) {
 //		the current version will only work for a grid with only one level
 void TPZGeoMesh::GetBoundaryElements(int NodFrom, int NodTo,TPZStack<TPZGeoEl *> &ElementVec,TPZStack<int> &Sides) {
   // Find a first element whose first node on the side is NodFrom
-  TPZGeoEl *def = 0;
+//  TPZGeoEl *def = 0;
   //TPZAVLMap<int,TPZGeoEl *> elmap(def);
   map<int,TPZGeoEl *> elmap;
   int i,nelements=NElements();

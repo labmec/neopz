@@ -7,39 +7,12 @@
 #include "pzgmesh.h"
 
 
-
-static int NumInNeigh = 0;
-static int InNeigh[1][1][1] = {
-	{{0}}
-};
-
-static int CornerSons[1][1] = {
-	{0}
-};
-
-static int MidSideNodes[1][1]  = {
-	{0}
-};
-
-static REAL MidCoord[1][1] = { 
-	{0.} 
-};
-
-static int subeldata[1][1][1] =
+static int subeldata[1][1][2] =
 {
 	{{0}}
 };
 
 static int nsubeldata[1] = {0};
-
-static REAL buildt[1][1][1][1] = {//por colunas
-/*S0*/
-	{{{0.}}}
-};
-
-static int fatherside[1][1] = {
-	{0}
-};
 
 
 void TPZRefPoint::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
@@ -71,6 +44,7 @@ void TPZRefPoint::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
   for(sub=0;sub<NSubEl;sub++) {
     SubElVec[sub] = geo->SubElement(sub);
     SubElVec[sub]->SetFather(geo);
+    SubElVec[sub]->SetFather(geo->Index());
   }
   geo->SetSubElementConnectivities();
 }
