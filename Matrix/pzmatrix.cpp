@@ -317,12 +317,17 @@ void TPZMatrix::Print(const char *name, ostream& out,const MatrixOutputFormat fo
    	   for ( int col = 0; col < Cols(); col++ ) {
          	REAL val = Get (row, col);
 		sprintf(number, "%16.16lf", val);
-         	out << number << ", ";
+		out << number;
+         	if(col < Cols()-1)
+		  out << ", ";
+		if((col+1) % 6 == 0)out << endl;
 	      }
-	 out << "\b\b },";
-	   }
+	 out << " }";
+	 if(row < Rows()-1)
+	    out << ",";
+	 }
 
-     out << "\b }\n";
+     out << " }\n";
 
      delete[] number;
    }
