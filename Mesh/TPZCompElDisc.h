@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.24 2004-01-20 20:41:41 phil Exp $
+//$Id: TPZCompElDisc.h,v 1.25 2004-01-22 17:09:56 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -83,8 +83,11 @@ protected:
   static int gInterfaceDimension;
 
   static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
+
   /**return the geometric element to which this element references*/
   TPZGeoEl *Reference() const { return fReference;}
+
+  /**set the geometric element to which this element references*/
   void SetReference(TPZGeoEl *ref) {fReference = ref;}
 
   /**
