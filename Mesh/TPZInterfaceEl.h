@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.20 2004-01-23 19:13:07 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.21 2004-02-04 20:30:24 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -55,17 +55,24 @@ class TPZInterfaceElement : public TPZCompEl {
 
   //construtor do descontínuo
   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
-  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElDisc *left,TPZCompElDisc *right,int leftside);
+  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElDisc *left,TPZCompElDisc *right/*,int leftside*/);
   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, int &index);
   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index);
 
+  /** 
+   * For CloneInterface usage. Normal is not recomputed, but copied.
+   */
+  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElDisc *left,TPZCompElDisc *right, TPZVec<REAL> normal);
+
   ~TPZInterfaceElement(){};
 
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
-    return new TPZInterfaceElement(mesh, *this);
+    return new TPZInterfaceElement(mesh, *this); 
   }
-  TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,int &index) const;
+
+  TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,int &index, TPZCompElDisc * left, TPZCompElDisc * right) const;
+
   //TPZCompEl * CloneInterface(TPZCompMesh &aggmesh, TPZVec<int> &destindex,int &index) const;
 
   /**return the geometric element to which this element references*/
@@ -175,7 +182,7 @@ class TPZInterfaceElement : public TPZCompEl {
   static int ExistInterfaces(TPZCompElSide &comp);
 
   //it returns the normal one to the face from element
-  void NormalToFace(TPZVec<REAL> &normal,int leftside);
+  void NormalToFace(TPZVec<REAL> &normal/*,int leftside*/);
 
   static int FreeInterface(TPZCompMesh &cmesh);
 

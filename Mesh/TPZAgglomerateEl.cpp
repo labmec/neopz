@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.26 2004-01-23 19:11:29 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.27 2004-02-04 20:30:24 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -22,6 +22,7 @@
 #include "pztrigraphd.h"
 #include "pztrigraph.h"
 #include "pzgraphel.h"
+#include "pzerror.h"
 
 TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh) : 
   TPZCompElDisc(aggcmesh,index) {
@@ -296,9 +297,10 @@ int TPZAgglomerateElement::CreateMidSideConnect(){
 
   TPZStack<TPZCompElSide> list;
   int dim = Dimension();
+  int InterfaceDimension = this->Material()->Dimension() - 1;
 //   int existsconnect = 0;
 
-  if(dim == gInterfaceDimension){
+  if(dim == InterfaceDimension){
     // o atual é um elemento BC
     SetConnectIndex(0, -1);
     SetDegree(-1);//=> nshape = 0
@@ -316,8 +318,7 @@ int TPZAgglomerateElement::CreateMidSideConnect(){
 }
 
 int TPZAgglomerateElement::Dimension() const {
-  //  return (gInterfaceDimension + 1);//?!
-  return this->SubElement(0)->Dimension();
+  return this->Material()->Dimension();
 }
 
 void TPZAgglomerateElement::Print(ostream &out) {
@@ -837,6 +838,9 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
   //finemesh->fMaterials eh copiado para aggmesh
   finemesh->CopyMaterials(aggmesh);
 
+  TPZVec<int> IdElNewMesh(accumlist.NElements());
+  IdElNewMesh.Fill(-1);
+
   //criando agrupamentos iniciais
   for(i=0;i<numaggl;i++){
     int k = 0;
@@ -853,6 +857,7 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
     nummat = finemesh->ElementVec()[k]->Material()->Id();
     //criando elemento de index/id i e inserindo na malha aggmesh
     new TPZAgglomerateElement(nummat,index,*aggmesh,finemesh);
+    IdElNewMesh[k] = index;
   }
 
   //inicializando os aglomerados e clonando elementos BC
@@ -874,9 +879,11 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
         //incorporando o index do sub-elemento
         //o elemento de index i vai para o pai father = accumlist[i]
         TPZAgglomerateElement::AddSubElementIndex(aggmesh,i,father);
+	IdElNewMesh[i] = father;
       } else if(eldim == surfacedim){
         //clonando o elemento descontínuo BC, o clone existira na malha aglomerada
-        dynamic_cast<TPZCompElDisc *>(cel)->Clone2(*aggmesh,index);
+        TPZCompEl * AggCell = dynamic_cast<TPZCompElDisc *>(cel)->Clone2(*aggmesh,index);
+	IdElNewMesh[i] = AggCell->Index();
       }
     }
   }
@@ -900,8 +907,27 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
       int index;
       //interfaces com esquerdo e direito iguais não são clonadas
       if(accumlist[indleft] == accumlist[indright]) continue;
+
       //clonando o elemento interface: a interface existirá na malha aglomerada
-      interf->CloneInterface(*aggmesh,index);   
+      //leftel and rightel
+      int leftid = interf->LeftElement()->Index();
+      leftid = IdElNewMesh[leftid];
+#ifdef DEBUG
+      if (leftid == -1)
+	PZError <<  "\nLeftid cannot be -1." << endl;
+#endif
+      TPZCompElDisc * leftagg = dynamic_cast<TPZCompElDisc*> (aggmesh->ElementVec()[leftid]) ;
+
+      int rightid = interf->RightElement()->Index();
+      rightid = IdElNewMesh[rightid];
+#ifdef DEBUG
+      if (rightid == -1)
+	PZError <<  "\nRightid cannot be -1." << endl;
+#endif
+      TPZCompElDisc * rightagg = dynamic_cast<TPZCompElDisc*> (aggmesh->ElementVec()[rightid]) ;
+
+      interf->CloneInterface(*aggmesh,index, leftagg, rightagg);   
+    
     }
   }
 

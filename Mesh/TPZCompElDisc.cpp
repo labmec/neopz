@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.44 2004-01-23 19:12:25 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.45 2004-02-04 20:30:24 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -45,7 +45,6 @@
 #include <stdio.h>
 
 int TPZCompElDisc::gDegree = 0;
-int TPZCompElDisc::gInterfaceDimension = 2;//default
 
 //construtor do elemento aglomerado
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
@@ -120,10 +119,11 @@ void TPZCompElDisc::CreateInterfaces(){
   //caso AdjustBoundaryElement não for aplicado
   //a malha é criada consistentemente
   int nsides = fReference->NSides();
+  int InterfaceDimension = fMaterial->Dimension() - 1;
   int side;
   nsides--;//last face
   for(side=nsides;side>=0;side--){
-    if(fReference->SideDimension(side) != gInterfaceDimension) continue;
+    if(fReference->SideDimension(side) != InterfaceDimension) continue;
     TPZCompElSide thisside(this,side);
     if(ExistsInterface(thisside.Reference())) {
       cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
@@ -139,7 +139,7 @@ void TPZCompElDisc::CreateInterfaces(){
       int ns = highlist.NElements();
       int is;
       for(is=0; is<ns; is++) {//existem pequenos ligados ao lado atual 
-	if(highlist[is].Reference().Dimension() != gInterfaceDimension) continue;
+	if(highlist[is].Reference().Dimension() != InterfaceDimension) continue;
 	TPZCompElDisc *del = dynamic_cast<TPZCompElDisc *> (highlist[is].Element());
 	if(!del) continue;
 	del->CreateInterface(highlist[is].Side());
@@ -186,10 +186,10 @@ void TPZCompElDisc::CreateInterface(int side){
     if(Dimension() > list0->Dimension()){
       //o de volume é o direito caso um deles seja BC
       //a normal aponta para fora do contorno
-      new TPZInterfaceElement(*fMesh,gel,index,this,list0,side);
+      new TPZInterfaceElement(*fMesh,gel,index,this,list0/*,side*/);
     } else {
       //caso contrário ou caso ambos sejam de volume 
-      new TPZInterfaceElement(*fMesh,gel,index,list0,this,list[0].Side());
+      new TPZInterfaceElement(*fMesh,gel,index,list0,this/*,list[0].Side()*/);
     }
     return;
   }
@@ -206,9 +206,9 @@ void TPZCompElDisc::CreateInterface(int side){
     TPZCompElDisc *lowcel = dynamic_cast<TPZCompElDisc *>(lower.Element());
     if(Dimension() > lowcel->Dimension()){
       //para que o elemento esquerdo seja de volume
-      new TPZInterfaceElement(*fMesh,gel,index,this,lowcel,side);
+      new TPZInterfaceElement(*fMesh,gel,index,this,lowcel/*,side*/);
     } else {
-      new TPZInterfaceElement(*fMesh,gel,index,lowcel,this,lower.Side());
+      new TPZInterfaceElement(*fMesh,gel,index,lowcel,this/*,lower.Side()*/);
     }
     return;
   }
@@ -290,8 +290,8 @@ int TPZCompElDisc::CreateMidSideConnect(){
 
   TPZStack<TPZCompElSide> list;
   int nsides = fReference->NSides();
-  int dimgrid = 1+gInterfaceDimension;
-  int dim = Dimension();//fReference->Dimension();//change 09/10/2003
+  int dimgrid = fMaterial->Dimension();
+  int dim = Dimension();
   int existsconnect = 0;
 
   if(dimgrid == dim){
@@ -310,7 +310,7 @@ int TPZCompElDisc::CreateMidSideConnect(){
     }   
   }
   
-  if(dim == gInterfaceDimension){
+  if(dim == dimgrid - 1){ //dimgrid - 1 = interface dimension
     // o atual é um elemento BC
     fConnectIndex = -1;//=> return NshapeF() = 0
     fDegree = -1;
@@ -704,11 +704,12 @@ int TPZCompElDisc::ExistsInterface(TPZGeoElSide geosd){
 void TPZCompElDisc::RemoveInterfaces(){
 
   int nsides = Reference()->NSides();
+  int InterfaceDimension = fMaterial->Dimension();
   int is;
   TPZStack<TPZCompElSide> list,equal;
   for(is=0;is<nsides;is++){
     TPZCompElSide thisside(this,is);
-    if(thisside.Reference().Dimension() != gInterfaceDimension) continue;
+    if(thisside.Reference().Dimension() != InterfaceDimension) continue;
     // procurar na lista de elementos iguais
     list.Resize(0);// o lado atual é uma face
     //thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
@@ -722,7 +723,7 @@ void TPZCompElDisc::RemoveInterfaces(){
     for(i=0;i<size;i++){// percorre os elementos menores
       if(!list[i].Element()) continue;
       TPZGeoElSide geolist = list[i].Reference();//TESTE
-      if(geolist.Dimension() != gInterfaceDimension) continue;
+      if(geolist.Dimension() != InterfaceDimension) continue;
       equal.Resize(0);// para cada elemento menor e' preciso verificar a dimensao,
       list[i].EqualLevelElementList(equal,0,0);//montar a lista de elementos iguais (todos)
       equal.Push(list[i]);//não é incorporado no método anterior

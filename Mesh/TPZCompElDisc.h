@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.25 2004-01-22 17:09:56 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.26 2004-02-04 20:30:24 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -79,8 +79,6 @@ protected:
   virtual int CreateMidSideConnect();
 
  public:
-
-  static int gInterfaceDimension;
 
   static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
 

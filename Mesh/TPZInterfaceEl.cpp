@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.28 2004-01-22 17:10:31 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.29 2004-02-04 20:30:24 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -11,9 +11,11 @@
 #include "pzconslaw.h"
 #include "pzbndcond.h"
 
-//construtor para o elemento descontinuo
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
-					 TPZCompElDisc *left,TPZCompElDisc *right,int leftside) 
+/**
+ * Para CloneInterface.
+ * A normal é clonada, e não recalculada.
+ */
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElDisc *left,TPZCompElDisc *right, TPZVec<REAL> normal)
   : TPZCompEl(mesh,index), fNormal(3,0.) {
 
   fReference = geo;
@@ -35,7 +37,39 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
     right ->Connect(icon).IncrementElConnected();
   }
 
-  NormalToFace(fNormal,leftside);
+  for (int i = 0; i < fNormal.NElements(); i++)
+    fNormal[i] = normal[i];
+  //NormalToFace(fNormal/*,leftside*/);
+}
+
+
+
+
+//construtor para o elemento descontinuo
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
+					 TPZCompElDisc *left,TPZCompElDisc *right/*,int leftside*/) 
+  : TPZCompEl(mesh,index), fNormal(3,0.) {
+
+  fReference = geo;
+  geo->SetReference(this);
+  int materialid = fReference->MaterialId();
+  //  if(materialid<0){
+  //    PZError << "TPZInterfaceElement::TPZInterfaceElement the interface element is not a BC condition\n";
+  //  }
+  //poderia eliminar esta variável e carrega-la do elemento de volume associado
+  fMaterial = mesh.FindMaterial(materialid);
+  fLeftEl = left;
+  fRightEl = right;
+  int icon;
+  for(icon = 0; icon < left->NConnects(); icon++){
+    left ->Connect(icon).IncrementElConnected();
+  }
+
+  for(icon = 0; icon < right->NConnects(); icon++){
+    right ->Connect(icon).IncrementElConnected();
+  }
+
+  NormalToFace(fNormal/*,leftside*/);
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy)
@@ -116,8 +150,10 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
 
 }
 
-TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index) const {
-  return new TPZInterfaceElement(aggmesh, *this, index);
+TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index, TPZCompElDisc *left, TPZCompElDisc *right) const {
+  //  return new TPZInterfaceElement(aggmesh, *this, index);
+  //<!>O certo eh esse, mas ate o Phil voltar:  return new TPZInterfaceElement(aggmesh, this->Reference(), index, left, right);
+  return new TPZInterfaceElement(aggmesh, this->Reference(), index, left, right, this->fNormal);
 }
 
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
@@ -396,23 +432,26 @@ int TPZInterfaceElement::main(TPZCompMesh &cmesh){
   // esta funcão testa o correto desempenho do algoritmo que cria e 
   // deleta elementos de interface numa malha sujeita a refinamento h
 
-  // gInterfaceDimension é a dimensão do elemento de interface
-  // verifica-se para cada lado de dimensão gInterfaceDimension do
+  // InterfaceDimension é a dimensão do elemento de interface
+  // verifica-se para cada lado de dimensão InterfaceDimension do
   // elemento que existe um elemento interface e que este é único
 
   int iel,iside,nel = cmesh.NElements();
+
+  int InterfaceDimension;
 
   for(iel=0;iel<nel;iel++){
     TPZCompEl *cel = cmesh.ElementVec()[iel];
     if(!cel) continue;
     TPZGeoEl *geo = cel->Reference();
+    InterfaceDimension = cel->Material()->Dimension() -1;
     if(!geo){
       PZError << "TPZInterfaceElement::main computational element with null reference\n";
       exit(-1);
     }
     int nsides = geo->NSides();;
     for(iside=0;iside<nsides;iside++){
-      if(geo->SideDimension(iside) != TPZCompElDisc::gInterfaceDimension) continue;
+      if(geo->SideDimension(iside) != InterfaceDimension) continue;
       TPZCompElSide compside(cel,iside);
       if(ExistInterfaces(compside)){
 	continue;
@@ -510,7 +549,8 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
 }
 
 void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
-void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
+
+void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal /*,int leftside*/){
 
   //  int dim = fReference->Dimension();
   int face = fReference->NSides()-1;
@@ -533,7 +573,9 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
   fRightEl->Reference()->X(centright,xvolright);
   for(i=0;i<3;i++) vec[i] = xvolright[i]-xvolleft[i];//não deve ser nulo
 
-  switch(TPZCompElDisc::gInterfaceDimension){
+  int InterfaceDimension =  fLeftEl->Material()->Dimension() - 1;
+
+  switch(InterfaceDimension){
   case 0:
     normal[0] = 1.0;// a normal sempre apontará na dire¢ão positiva do eixo
     normal[1] = 0.;
