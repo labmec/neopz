@@ -23,6 +23,35 @@ TPZStepSolver::TPZStepSolver(const TPZStepSolver & copy) : TPZMatrixSolver(copy)
 TPZStepSolver::~TPZStepSolver() {
   if(fPrecond) delete fPrecond;
 }
+  /**
+  This method will reset the matrix associated with the solver
+  This is useful when the matrix needs to be recomputed in a non linear problem
+  */
+void TPZStepSolver::ResetMatrix()
+{
+  TPZMatrixSolver::ResetMatrix();
+}
+  
+  /**
+  This method gives a preconditioner to share a matrix with the referring solver object
+  */
+void TPZStepSolver::SetMatrix(TPZMatrixSolver *solver)
+{
+  switch(fSolver)
+  {
+    case ECG:
+    case EDirect:
+    case EGMRES:
+    case EJacobi:
+    case ESOR:
+    case ESSOR:
+      ShareMatrix(*solver);
+      break;
+    default:
+      ;    
+  }
+}
+  
 
 void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual){
   if(!Matrix()) {

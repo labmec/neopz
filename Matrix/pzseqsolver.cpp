@@ -50,3 +50,31 @@ void TPZSequenceSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatri
     }
     if(residual) *residual = fScratch;
 }
+
+  
+  /**
+  This method will reset the matrix associated with the solver
+  This is useful when the matrix needs to be recomputed in a non linear problem
+  */
+void TPZSequenceSolver::ResetMatrix()
+{
+    int nums = fSolvers.NElements();
+    int s;
+    for(s=0; s<nums; s++) {
+        fSolvers[s]->ResetMatrix();
+    }
+    TPZMatrixSolver::ResetMatrix();
+}
+  
+  /**
+  This method gives a preconditioner to share a matrix with the referring solver object
+  */
+void TPZSequenceSolver::SetMatrix(TPZMatrixSolver *solver)
+{
+    int nums = fSolvers.NElements();
+    int s;
+    for(s=0; s<nums; s++) {
+        fSolvers[s]->SetMatrix(solver);
+    }
+    ShareMatrix(*solver);
+}

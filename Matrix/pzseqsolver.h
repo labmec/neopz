@@ -25,8 +25,22 @@ public:
   TPZSequenceSolver(const TPZSequenceSolver & copy);
   
   void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
-  
+
+  /**
+  This method will reinitialize the solver object, including the solution procedure
+  */  
   void ResetSolver();
+  
+  /**
+  This method will reset the matrix associated with the solver
+  This is useful when the matrix needs to be recomputed in a non linear problem
+  */
+  virtual void ResetMatrix();
+  
+  /**
+  This method gives a preconditioner to share a matrix with the referring solver object
+  */
+  virtual void SetMatrix(TPZMatrixSolver *solver);
   
   void AppendSolver(TPZMatrixSolver & solve);
   
