@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.cc,v 1.7 2003-11-24 15:58:30 erick Exp $
+//$Id: pzflowcmesh.cc,v 1.8 2003-12-18 20:05:41 erick Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
@@ -173,3 +173,12 @@ int TPZFlowCompMesh::NFlowMaterials()
    return fFluidMaterial.NElements();
 }
 
+void TPZFlowCompMesh::SetResidualType(TPZResidualType type)
+{
+   int i, NumFluid;
+   NumFluid = fFluidMaterial.NElements();
+   for(i = 0; i < NumFluid; i++)
+   {
+      fFluidMaterial[i]->SetResidualType(type);
+   }
+}

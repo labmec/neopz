@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.h,v 1.7 2003-11-24 15:58:30 erick Exp $
+//$Id: pzflowcmesh.h,v 1.8 2003-12-18 20:05:41 erick Exp $
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -71,6 +71,11 @@ public:
     * or explicitly.
     */
   void SetContributionTime(TPZContributeTime time);
+
+  /**
+   * Sets the kind of residual to be computed
+   */
+  void SetResidualType(TPZResidualType type);
 
    /**
     * Sets the forcing funtion for all fluid materials in the mesh.
