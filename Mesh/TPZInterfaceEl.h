@@ -1,3 +1,5 @@
+//$Id: TPZInterfaceEl.h,v 1.10 2003-10-17 15:18:25 cedric Exp $
+
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
 
@@ -86,10 +88,7 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   void Normal(TPZVec<REAL> &normal);
 
-  /**
-   * it returns the normal one to the face from the element
-   */
-  void SetNormal(TPZVec<REAL> &normal);
+/*   void SetNormal(TPZVec<REAL> &normal); */
 
   /**
    * it returns the number from connectivities of the element 
@@ -160,7 +159,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * reproduz na malha aglomerada aggmesh uma copia da interface da malha fina
    */
-  void CloneInterface(TPZCompMesh *aggmesh,int left,int right);
+  void CloneInterface(TPZCompMesh *aggmesh);
 
   static int main(TPZCompMesh &cmesh);
 
