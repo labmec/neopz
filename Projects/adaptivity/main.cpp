@@ -152,11 +152,13 @@ int main(){
 
       an.Run();
       //an.Rhs().Print();
-      //an.Solution().Print();
-      
-      if (r==nref -1) 
+      an.Solution().Print();
+
+	  an.Run();
+
+      if (r==nref -1)
 	an.PostProcess(0,dim);
-      
+
       REAL valerror =0.;
       REAL valtruerror=0.;
       TPZVec<REAL> ervec,truervec,effect;
@@ -165,7 +167,7 @@ int main(){
 
       TPZAdaptMesh adapt;
       adapt.SetCompMesh (cmesh);
-      
+
       cout << "\n\n\n\nEntering Auto Adaptive Methods... step " << r << "\n\n\n\n";
 
       //if(r==4) gPrintLevel = 1;
@@ -894,7 +896,7 @@ TPZCompMesh *Create3DMesh() {
    
   cmesh->InsertMaterialObject(mat);
   for(i=0; i<4; i++) cmesh->InsertMaterialObject(bc[i]);
-  
+
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
@@ -1176,7 +1178,7 @@ TPZCompMesh * CreateTestMesh() {
     }
     switch(nel) {
     case 0:
-      gelvec[nel]=new TPZGeoElC3d(nodeindex,matid,*gmesh);
+//      gelvec[nel]=new TPZGeoElC3d(nodeindex,matid,*gmesh);
       break;
     case 1:
        gelvec[nel]=new TPZGeoElPi3d(nodeindex,matid,*gmesh);
@@ -1185,7 +1187,7 @@ TPZCompMesh * CreateTestMesh() {
        gelvec[nel]=new TPZGeoElT3d(nodeindex,matid,*gmesh);
       break;
     case 3:
-       gelvec[nel]=new TPZGeoElPr3d(nodeindex,matid,*gmesh);
+//       gelvec[nel]=new TPZGeoElPr3d(nodeindex,matid,*gmesh);
       break;
     case 4:
       //      gelvec[nel]=new TPZGeoEl1d(nodeindex,2,*gmesh);
@@ -1210,15 +1212,15 @@ TPZCompMesh * CreateTestMesh() {
   TPZGeoElBC gbc;
 
   // bc -1 -> Dirichlet
-  TPZGeoElBC gbc1(gelvec[0],20,-1,*gmesh);
+//  TPZGeoElBC gbc1(gelvec[0],20,-1,*gmesh);
   TPZGeoElBC gbc11(gelvec[1],14,-1,*gmesh);
-  TPZGeoElBC gbc12(gelvec[3],15,-1,*gmesh);
+//  TPZGeoElBC gbc12(gelvec[3],15,-1,*gmesh);
 
 
 
   // bc -2 -> Neumann at the right x==1
-  TPZGeoElBC gbc2(gelvec[0],25,-2,*gmesh);
-  TPZGeoElBC gbc21(gelvec[3],19,-2,*gmesh);
+//  TPZGeoElBC gbc2(gelvec[0],25,-2,*gmesh);
+//  TPZGeoElBC gbc21(gelvec[3],19,-2,*gmesh);
   TPZGeoElBC gbc22(gelvec[2],10,-2,*gmesh);
 
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
@@ -1274,13 +1276,13 @@ void Exact(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
   	REAL theta = atan2(x[1],x[0]);
   	REAL rexp = pow(r,onethird);
   	sol[0] = rexp*sin(onethird*(theta+PI/2));
-  	dsol(0,0) = onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp); 
+  	dsol(0,0) = onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp);
   	dsol(1,0) = onethird*cos(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 
 void ExactSimple3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
 	sol[0] = x[2];
-  	dsol(0,0) = 0.; 
+  	dsol(0,0) = 0.;
   	dsol(1,0) = 0.;
 	dsol(2,0) = 1.;
 }
@@ -1310,7 +1312,7 @@ void Neumann5(TPZVec<REAL> &x, TPZVec<REAL> &f) {
   	REAL r = sqrt(x[0]*x[0]+x[1]*x[1]);
   	REAL theta = atan2(x[1],x[0]);
   	REAL rexp = pow(r,onethird);
-  	f[0] = -onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp); 
+  	f[0] = -onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 
 int MaxLevel(TPZCompMesh *mesh) {
