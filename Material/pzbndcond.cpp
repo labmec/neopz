@@ -127,8 +127,7 @@ int TPZBndCond::ClassId() const
 
 void TPZBndCond::Write(TPZStream &buf, int withclassid)
 {
-   TPZSaveable::Write(buf,withclassid);
-   TPZMaterial::Write(buf, 0);
+   TPZMaterial::Write(buf, withclassid);
    buf.Write(&fType, 1);
    fBCVal1.Write(buf, 0);
    fBCVal2.Write(buf, 0);
@@ -138,7 +137,6 @@ void TPZBndCond::Write(TPZStream &buf, int withclassid)
 
 void TPZBndCond::Read(TPZStream &buf, void *context)
 {
-   TPZSaveable::Read(buf, context);
    TPZMaterial::Read(buf, context);
    buf.Read(&fType, 1);
    fBCVal1.Read(buf, 0);
