@@ -1,8 +1,9 @@
-//$Id: TPZAgglomerateEl.cc,v 1.11 2003-11-05 16:02:21 tiago Exp $
+//$Id: TPZAgglomerateEl.cc,v 1.12 2003-11-05 19:14:52 cedric Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
 #include "TPZEulerConsLaw.h"
+#include "TPZConservationLaw.h"
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
@@ -472,12 +473,17 @@ void TPZAgglomerateElement::CreateMaterialCopy(TPZCompMesh &aggcmesh){
     TPZMaterial *mat = fMotherMesh->MaterialVec()[i];
     if(!mat) continue;
     if(mat->Id() > 0){
-      if( !strcmp(mat->Name(),"TPZEulerConsLaw") ){
-	TPZEulerConsLaw *euler = dynamic_cast<TPZEulerConsLaw *>(mat);
-	mat = euler->NewMaterial();//mat = new TPZEulerConsLaw(*euler);//copia
+//       if( !strcmp(mat->Name(),"TPZEulerConsLaw") ){
+// 	TPZEulerConsLaw *euler = dynamic_cast<TPZEulerConsLaw *>(mat);
+// 	mat = euler->NewMaterial();//mat = new TPZEulerConsLaw(*euler);//copia
+// 	aggcmesh.InsertMaterialObject(mat);
+//       }
+      TPZConservationLaw * consmat = dynamic_cast<TPZConservationLaw *>(mat);
+      if ( consmat ){
+	mat = consmat->NewMaterial();//mat = new TPZEulerConsLaw(*euler);//copia
 	aggcmesh.InsertMaterialObject(mat);
       } else {
-	PZError << "TPZCompElDisc::CreateAgglomerateMesh material not defined, implement now (Tiago)!\n";
+	PZError << "TPZAgglomerateElement::CreateMaterialCopy material not defined, implement now (Tiago)!\n";
       }
     }
   }
