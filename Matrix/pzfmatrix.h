@@ -68,7 +68,7 @@ class TPZFMatrix : public TPZMatrix {
      @param rows Initial number of rows
      @param cols Number of columns
   */
-  TPZFMatrix (const int rows ,const int columns = 1) : TPZMatrix(rows,columns), fElem(0),fGiven(0),fSize(0) {
+  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,columns), fElem(0),fGiven(0),fSize(0) {
   	if(rows*columns) fElem = new REAL[rows*columns];
   }
   //@{
@@ -261,11 +261,44 @@ public:
     TPZFMatrix::operator=(val);
   }
 
+  TPZFMatrix &operator=(const TPZFMatrix &copy) {
+    return TPZFMatrix::operator=(copy);
+  }
+  TPZFNMatrix<N> &operator=(const TPZFNMatrix<N> &copy) {
+    TPZFMatrix::operator=(copy);
+    return *this;
+  }
+
 };
 
 REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B);
 
 REAL Norm(const TPZFMatrix &A);
+
+
+
+
+inline TPZFMatrix::TPZFMatrix(const int rows,const int cols,REAL * buf,const int sz)
+  : TPZMatrix( rows, cols ), fElem(buf),fGiven(buf),fSize(sz) {
+    int size = rows * cols;
+    if(size > sz) {
+      fElem=new REAL[size];
+#ifndef NODEBUG
+      if ( fElem == NULL && size) Error( "Constructor <memory allocation error>." );
+#endif
+    }
+  }
+
+inline TPZFMatrix::TPZFMatrix(const int rows,const int cols,const REAL & val )
+  : TPZMatrix( rows, cols ), fElem(0), fGiven(0), fSize(0) {
+	 int size = rows * cols;
+	 if(!size) return;
+	 fElem=new REAL[size];
+#ifdef DEBUG
+	 if ( fElem == NULL && size) Error( "Constructor <memory allocation error>." );
+#endif
+	 for(int i=0;i<size;i++) fElem[i] = val;
+}
 
 /**************/
 /*** PutVal ***/
@@ -274,6 +307,14 @@ inline int TPZFMatrix::PutVal(const int row, const int col,const REAL & value ) 
   return( 1 );
 }
 
+/******************/
+/*** Destructor ***/
+
+inline TPZFMatrix::~TPZFMatrix () {
+  if(fElem && fElem != fGiven) delete[]( fElem );
+  fElem = 0;
+  fSize = 0;
+}
 
 
 /**************/

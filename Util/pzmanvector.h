@@ -4,7 +4,7 @@
  * @file pzmanvector.h
  * @brief Free store vector implementation.
  */
-// $Id: pzmanvector.h,v 1.3 2003-02-26 13:04:22 cantao Exp $
+// $Id: pzmanvector.h,v 1.4 2004-04-04 05:46:54 phil Exp $
 
 #ifndef PZMANVECTOR_H
 #define PZMANVECTOR_H
@@ -439,10 +439,10 @@ void TPZManVector< T, NumExtAlloc >::Resize(const int newsize)
       PZError.flush ();
       return;
    }
+#endif
 	
    if (newsize == fNElements)
       return;
-#endif
 
    if (newsize <= fNAlloc)
    {
@@ -450,17 +450,17 @@ void TPZManVector< T, NumExtAlloc >::Resize(const int newsize)
    }
    else if (newsize <= NumExtAlloc)
    {  // that is, fExtAlloc != fStore
-      for (int i = 0; i < fNElements; i++)
-      {
-	 fExtAlloc[i] = fStore[i];
-      }
+     if(fStore != fExtAlloc) {
+       for (int i = 0; i < fNElements; i++)
+	 {
+	   fExtAlloc[i] = fStore[i];
+	 }
+       delete [] fStore;
+       fStore     = fExtAlloc;
+     }
 
-      if(fStore!=fExtAlloc)
-	delete [] fStore;
-
-      fStore     = fExtAlloc;
-      fNElements = newsize;
-      fNAlloc    = NumExtAlloc;
+     fNElements = newsize;
+     fNAlloc    = NumExtAlloc;
    }
    else
    {  // the size is larger than the allocated memory, then fNElements

@@ -3,7 +3,7 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzchunk.h,v 1.5 2004-04-02 13:12:42 phil Exp $
+// $Id: pzchunk.h,v 1.6 2004-04-04 05:46:54 phil Exp $
 
 #ifndef PZCHUNK_H
 #define PZCHUNK_H
@@ -187,7 +187,7 @@ int TPZChunkVector<T,EXP>::FindObject(T *obj) {
 
 // Return a reference to the ith element of the vector
 template< class T, int EXP >
-T &TPZChunkVector<T,EXP>::operator[](const int nelem) const {
+inline T &TPZChunkVector<T,EXP>::operator[](const int nelem) const {
 #ifndef NODEBUG
    if(nelem<0 || nelem >= NElements()) {
       PZError << "TPZChunkVector::operator[]. "
