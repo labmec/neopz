@@ -14,7 +14,7 @@
 #include "pzelgc3d.h"
 #include "pzquad.h"
 #include "pzvec.h"
-//#include "pzvecc.h"
+#include "pzeltype.h"
 
 #include <fstream>
 
@@ -201,7 +201,7 @@ void TPZRefPattern::Print1(TPZGeoMesh &gmesh,ostream &out){
   out << "TPZRefPattern::TPZSideTransform::Print lado do pai associados aos lados dos sub-elementos\n\n";
   int iside,isub;
 //  int nnod = Element(0)->NNodes();
-  int nsubs = Element(0)->NSubElements();
+  int nsubs = NSubElements(); // so dava certo pq era igual ao uniforme
   out << "Refinement Pattern id " << fRefineType << " named " << fName << endl;
   for(isub=0;isub<nsubs;isub++){
     TPZGeoEl *sub = Element(isub+1);
@@ -324,6 +324,7 @@ void TPZRefPattern::SideNodes(int side, TPZVec<int> &vecnodes){
   side -= nnod;
 
 #ifdef HUGE_DEBUG
+if (gDebug == 2){
   cout << "************" << endl;
   cout << fFatherSides.fInitSide << endl;
   cout << "************" << endl;
@@ -337,6 +338,7 @@ void TPZRefPattern::SideNodes(int side, TPZVec<int> &vecnodes){
       fFatherSides.fPartitionSubSide[i].Element()->Print(cout);
     else cout <<  "No associated element " << endl;
   }
+}
 #endif  
     
   int pos = fFatherSides.fInitSide[side];
@@ -427,13 +429,14 @@ void TPZRefPattern::NSideSubElements(){
   fFatherSides.fNSubSideFather.Resize(nsdfat); 
   for(int side=0;side<nsdfat;side++){/**percorre-se os lados do pai*/
     if(side<nnod){/**os cantos não fazem parte da particão*/
-      TPZGeoElSide fat(Element(0),side),neigh;/**elemento pai e seu vizinho*/
+    /*
+      TPZGeoElSide fat(Element(0),side),neigh;//elemento pai e seu vizinho
       if(!fat.Element()){
         PZError <<  "TPZRefPattern::NSideSubElements null father\n"; 
-        exit(-1);/**radicalizou*/
+        exit(-1);//radicalizou
       }
       neigh = fat.Neighbour();
-      //isso  um crime... pq conta aqui en no conta para os outros lados ??? int count = 1;/**o pai está contado*/
+      //isso  um crime... pq conta aqui en no conta para os outros lados ??? int count = 1;//o pai está contado
       int count = 0;
       while(neigh.Element() && neigh.Element()!=fat.Element()){
         neigh = neigh.Neighbour(); 
@@ -441,9 +444,10 @@ void TPZRefPattern::NSideSubElements(){
       }
       if(!neigh.Element()){
         PZError <<  "TPZRefPattern::NSideSubElements null neighbour\n"; 
-        exit(-1);/**terrorismo, extremismo*/
+        exit(-1);///terrorismo, extremismo
       }   
-      fFatherSides.fNSubSideFather[side] = count;
+      fFatherSides.fNSubSideFather[side] = count; */
+      fFatherSides.fNSubSideFather[side] = 1;
       continue;
     }
     /**arestas, faces e interior: side > nnod*/
@@ -481,33 +485,41 @@ void TPZRefPattern::MeshPrint(){
 }
 
 TPZGeoEl *TPZRefPattern::CreateGeoEl(int ntype, int mat,TPZVec<int> &nodes,TPZGeoMesh *gmesh){
+  int index = -1;
   switch(ntype) {//tipo de elemento
+    case 1:
+      return gmesh->CreateGeoElement(EPoint,nodes,mat,index);
     case 2://unidimensional ; elg1d =
-      return new TPZGeoEl1d(nodes,mat,*gmesh);
+      return gmesh->CreateGeoElement(EOned,nodes,mat,index);
+      //return new TPZGeoEl1d(nodes,mat,*gmesh);
       //return;
     case 3://triângulo ; elgt2d =
-      return new TPZGeoElT2d(nodes,mat,*gmesh);
+      return gmesh->CreateGeoElement(ETriangle,nodes,mat,index);
+      //return new TPZGeoElT2d(nodes,mat,*gmesh);
       //return;
     case 4://quadrilátero ; elgq2d
-      return new TPZGeoElQ2d(nodes,mat,*gmesh);
+      return gmesh->CreateGeoElement(EQuadrilateral,nodes,mat,index);
       //return;
     case 7://tetraedro ; elgt3d =
-      return new TPZGeoElT3d(nodes,mat,*gmesh);
+      return gmesh->CreateGeoElement(ETetraedro,nodes,mat,index);    
+      //return new TPZGeoElT3d(nodes,mat,*gmesh);
       //return;
     case 5://pirâmide ; elgpi3d =
-      return new TPZGeoElPi3d(nodes,mat,*gmesh);
+      return gmesh->CreateGeoElement(EPiramide,nodes,mat,index);
+      //return new TPZGeoElPi3d(nodes,mat,*gmesh);
       //return;
     case 6://prisma ; elgpi3d =
-      return new TPZGeoElPr3d(nodes,mat,*gmesh);
+      return gmesh->CreateGeoElement(EPrisma,nodes,mat,index);
+      //return new TPZGeoElPr3d(nodes,mat,*gmesh);
       //return;
     case 8://cubo ; elgc3d =
-      return new TPZGeoElC3d(nodes,mat,*gmesh);
+      return gmesh->CreateGeoElement(ECube,nodes,mat,index);
+      //return new TPZGeoElC3d(nodes,mat,*gmesh);
       //return;
     default:
-      for(int i=0;i<1;i++)
-        PZError << "\nTPZRefPattern::CreateGeoEl -> Elemento nao conhecido\n";
-        PZError << "\nGood Bye::Program Aborted\n";
-        exit(1);
+        PZError << "\nTPZRefPattern::CreateGeoEl -> Elemento nao conhecido "
+                << ntype << endl << "Good Bye::Program Aborted" << endl;
+        exit(-1);
   }
   PZError <<  "\nTPZRefPattern::CreateGeoEl ntype error, ntype = " << ntype << endl;
   PZError << "\nAborted program\n";
