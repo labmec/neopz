@@ -113,7 +113,7 @@ double yl(double x)
    return yc(x) - yt(x)*cos(atan(dyc(x)));
 }
 
-  REAL NearestParameter(TPZVec<REAL> &pt, int &upperlower);
+  REAL NearestParameter(TPZVec<REAL> &pt, int &upperlower, int maxPt);
 
  public:
 
@@ -140,10 +140,10 @@ double yla(double x)
    return fX0[1]+yl(x)*cos(fAngle) - (xl(x)-fCord/2.) * sin(fAngle);
 }
 
-  void ProjectPoint(TPZVec<REAL> &pt) 
+  void ProjectPoint(TPZVec<REAL> &pt, int maxPt = 1000)
   {
     int uplow;
-    REAL par = NearestParameter(pt,uplow);
+    REAL par = NearestParameter(pt,uplow, maxPt);
     if(uplow == 0) {
       pt[0] = xla(par);
       pt[1] = yla(par);

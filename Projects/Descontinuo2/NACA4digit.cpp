@@ -22,13 +22,13 @@
 #include "pzstepsolver.h"
 #include "pzblock.h"
 
-REAL TPZNACAXXXX::NearestParameter(TPZVec<REAL> &pt, int &uplow) {
+REAL TPZNACAXXXX::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt) {
 
   REAL distminlow = 20.*fCord;
   REAL distminup = 20.*fCord;
   REAL distlow,distup;
   REAL ptl[2],ptu[2];
-  int ip,maxp=1000;
+  int ip,maxp=maxPt;
   REAL par,parlow,parup;
   for(ip=0; ip<=maxp; ip++) {
     par = ip*fCord/maxp;
@@ -100,7 +100,7 @@ double PI = 3.14159265359;
 
 
 
-int l, m, n, k;
+int l, m, n, p, k;
 
 
 double Spg(double a0, double q, int N)
@@ -118,49 +118,12 @@ double xpg(double q, int n, int N)
 
 void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int nSubdiv)
 {
-/*
- cout << "\nNumber of Points along NACA\n";
- cin >> m;
- */
 
  m = nSubdiv;
-/*
- cout << "\nNumber of Points at the input BC\n";
- cin >> l;
- cout << "\nNumber of Elements between NACA and BC\n";
- cin >> n;
- cout << "\nqm\n";
- cin >> q;
- cout << "\nqn\n";
- cin >> qn;
 
-n = m / 4;
-l = m / 2;
-q  = pow(4., 1./(double)m);
-qn = pow(2., 1./(double)n);
-
-
- cout << "P" << P(1224) << endl;
- cout << "M" << M(1224,7.) << endl;
- cout << "TT" << TT(1224,7.) << endl;
-
- cout << "xu" << xu(6.05, 1224, 7) << endl;
- cout << "yu" << yu(6.05, 1224, 7) << endl;
- cout << "xl" << xl(6.05, 1224, 7) << endl;
- cout << "yl" << yl(6.05, 1224, 7) << endl;
-
-*/
-/*
  n = 5 * m / 9 * (int) pow(scale, .6);
  l = m / 3;
- k = n / 2 + 1;*/
-
- q  = pow(5.6 * scale, 1./(double)m);
- qn = pow(2.6 * scale, 1./(double)n);
-
- n = 5 * m / 9 * (int) pow(scale, .6) * 4 / 3;
- l = m / 3;
- k = n / 2 + 1;
+ p = m / 4;
 
  q  = pow(5.6 * .25 * scale, 1./(double)m);
  qn = pow(2.6 * 2. * scale, 1./(double)n);
@@ -169,23 +132,10 @@ qn = pow(2., 1./(double)n);
 
    TPZVec<REAL> coord(3), coordBC(3), coordNACA(3);
    elms.Resize(m*n*2);
-   pt.Resize(2 * m + n * (2*m+1) + /*exit elements*/ (2*n+1)*k);
+   pt.Resize(2 * m + n * (2*m+1) + /*exit elements*/ p*(2*l + 1) + (2*(l+p) - 1)*(n-l) );
 
    cout << "\nNumber of Points: "<< pt.NElements();
 
-//    TPZManVector<REAL> x0(3,0.);
-//    x0[0] = entrance;
-//    x0[1] = height/2.;
-//    REAL angle = 0.;
-//    TPZNACAXXXX profile(cord,FourDigits,angle,x0);
-
-/*   double angle;
-   cout << "\nAirfoil angle [degrees]\n";
-
-   cin >> angle;
-
-   angle *= PI/180.;
-*/
    // defining points on the surface of the airfoil
    // i: airfoil index;
    // j: radial index
@@ -193,23 +143,28 @@ qn = pow(2., 1./(double)n);
    for(i = 1; i < m; i++)
       {
          double x = xpg(q, i, m);
-	 coord[0] = profile.xua(x * cord); // xua(x * cord, FourDigits, cord, 0./*angle*/) + entrance;
-	 coord[1] = profile.yua(x * cord); // yua(x * cord, FourDigits, cord, 0./*angle*/) + height/2.;
+	 coord[0] = profile.xua(x * cord);
+	 coord[1] = profile.yua(x * cord);
 	 coord[2] = 0.;
 	 pt[i] = coord;
 
-	 coord[0] = profile.xla(x * cord); // xla(x * cord, FourDigits, cord, 0./*angle*/) + entrance;
-	 coord[1] = profile.yla(x * cord); // yla(x * cord, FourDigits, cord, 0./*angle*/) + height/2.;
+	 coord[0] = profile.xla(x * cord);
+	 coord[1] = profile.yla(x * cord);
 	 coord[2] = 0.;
 	 pt[2*m -i] = coord;
+
+
+	 cout << "\ndeltax" << pt[i][0] - pt[2*m-i][0];
+         cout << "\ndeltay" << pt[i][1] + pt[2*m-i][1] - height;
+
       }
-   coord[0] = profile.xua(0.); // xua(0., FourDigits, cord, 0./*angle*/) + entrance;///*xu(0., FourDigits, cord) +*/ entrance + ;
-   coord[1] = profile.yua(0. * cord); // yua(0. * cord, FourDigits, cord, 0./*angle*/) + height/2.;///*yu(0., FourDigits, cord) +*/ height/2.;
+   coord[0] = profile.xua(0.);
+   coord[1] = profile.yua(0. * cord);
    coord[2] = 0.;
    pt[0] = coord;
 
-   coord[0] = profile.xla(1. * cord); // xla(1. * cord, FourDigits, cord, 0./*angle*/) + entrance;//cord + /*xu(1., FourDigits, cord) +*/ entrance;
-   coord[1] = profile.yla(1. * cord); // yla(1. * cord, FourDigits, cord, 0./*angle*/) + height/2.;///*yu(1., FourDigits, cord) +*/ height/2.;
+   coord[0] = profile.xla(1. * cord);
+   coord[1] = height/2.;
    coord[2] = 0.;
    pt[m] = coord;
 
@@ -283,64 +238,175 @@ qn = pow(2., 1./(double)n);
       // resolving other points
       for(i = 1; i < m; i++)
       {
-      // upper points
-      coordNACA = pt[i];
-      indexPt2 = indexPt + i;
-      coordBC   = pt[index + i];// BC upper point
-      coord[0] = ratio * coordBC[0] + (1.-ratio) * coordNACA[0];
-      coord[1] = ratio * coordBC[1] + (1.-ratio) * coordNACA[1];
-      coord[2] = ratio * coordBC[2] + (1.-ratio) * coordNACA[2];
-      pt[indexPt2] = coord;
+         // upper points
+         coordNACA = pt[i];
+         indexPt2 = indexPt + i;
+         coordBC   = pt[index + i];// BC upper point
+         coord[0] = ratio * coordBC[0] + (1.-ratio) * coordNACA[0];
+         coord[1] = ratio * coordBC[1] + (1.-ratio) * coordNACA[1];
+         coord[2] = ratio * coordBC[2] + (1.-ratio) * coordNACA[2];
+         pt[indexPt2] = coord;
 
-      // bottom points
-      coordNACA = pt[2*m-i];
-      indexPt2 = indexPt+2*m+1-i;
-      coordBC   = pt[index+2*m+1-i];// BC bottom point
-      coord[0] = ratio * coordBC[0] + (1.-ratio) * coordNACA[0];
-      coord[1] = ratio * coordBC[1] + (1.-ratio) * coordNACA[1];
-      coord[2] = ratio * coordBC[2] + (1.-ratio) * coordNACA[2];
-      pt[indexPt2] = coord;
+         // bottom points
+         coordNACA = pt[2*m-i];
+         indexPt2 = indexPt+2*m+1-i;
+         coordBC   = pt[index+2*m+1-i];// BC bottom point
+         coord[0] = ratio * coordBC[0] + (1.-ratio) * coordNACA[0];
+         coord[1] = ratio * coordBC[1] + (1.-ratio) * coordNACA[1];
+         coord[2] = ratio * coordBC[2] + (1.-ratio) * coordNACA[2];
+         pt[indexPt2] = coord;
 
       }
 
    }
 
+   //Creating Exit points with fewer elements
+
    // Creating exit points
-   indexPt = 2 * m + n * (2*m+1); // first exit point index
+   int firstExitPt = 2*m + (2 * m + 1) * n; // first exit point index
    // resolving ponts closer to NACA
-   for(i = 1; i <= k; i++)
+   for(i = 1; i <= p; i++)
    {
+
+      double ratio = xpg(sqrt(qn), i, p);
+
       // center point
       index = m; // index of existent point
-      indexPt2 = indexPt + n + (2*n+1)*(i-1) ;
-      coord[0] = entrance + cord + exitlength * xpg(sqrt(qn), i, k);
+      indexPt = firstExitPt + (2*l+1) * (i-1);
+      coord[0] = pt[index][0] + /*entrance + cord +*/ exitlength / 8. * ratio;
       coord[1] = pt[index][1];
       coord[2] = 0.;
-      pt[indexPt2] = coord;
-      for(j = 1; j <= n; j++)
+      pt[indexPt] = coord;
+
+      for(j = 1; j <= l; j++)
       {
          //upper points
          index = j * (2 * m + 1) + m - 1; // index of existent point
-         indexPt2 = indexPt + n - j + (2*n+1)*(i-1);
-         coord[0] = entrance + cord + exitlength * xpg(sqrt(qn), i, k);
-         coord[1] = pt[index][1];
+         indexPt2 = indexPt + j;
+         coord[0] = entrance + cord + exitlength / 8. * ratio;
+	 coord[1] = pt[index][1];// - extraheight * ratio * xpg(sqrt(qn), j, n);
          coord[2] = 0.;
          pt[indexPt2] = coord;
 
          // bottom points
          index = j * (2 * m + 1) + m; // index of existent point
-         indexPt2 = indexPt + n + j + (2*n+1)*(i-1);
-         coord[0] = entrance + cord + exitlength * xpg(sqrt(qn), i, k);
-         coord[1] = pt[index][1];
+         indexPt2 = indexPt + l + j;
+         coord[0] = entrance + cord + exitlength / 8. * ratio;
+         coord[1] = pt[index][1];// + extraheight * ratio * xpg(sqrt(qn), j, n);
          coord[2] = 0.;
          pt[indexPt2] = coord;
       }
    }
 
+   // creating outer upper and lower exit points
+   int firstExitPt2 = 2*m + (2 * m + 1) * n + p * (l*2+1); // first exit point index of this series
+   int outerCenterExitPt = firstExitPt2 + (2*(l+p)-1) * (n-l - 1);
+
+   // center point
+   indexPt2 = firstExitPt2 + (2*(l + p)-1)*(n-l-1);
+   coord[0] = entrance + cord + exitlength;
+   coord[1] = height / 2.;
+   coord[2] = 0.;
+   pt[indexPt2] = coord;
+   // vertical exit face
+   for(j = 1; j <= l; j++)
+   {
+      double ratio = xpg(qn, j, l);
+      //upper points
+      indexPt2 = outerCenterExitPt + j;
+      coord[0] = entrance + cord + exitlength;
+      coord[1] = height / 2. * (1. + ratio);
+      coord[2] = 0.;
+      pt[indexPt2] = coord;
+
+      // bottom points
+      indexPt2 = outerCenterExitPt + l + p - 1 + j;
+      coord[0] = entrance + cord + exitlength;
+      coord[1] = height / 2. * (1. - ratio);
+      coord[2] = 0.;
+      pt[indexPt2] = coord;
+   }
+   // upper/lower angled exit faces
+   for(j = 1; j < p; j++)
+   {
+      double ratio = xpg(qn, p-j, p);
+      //upper points
+      indexPt = m + (2 * m + 1) * n - 1; // first exit point index//2*m + (2 * m + 1) * n + (2*l+1) * (p-j);
+      indexPt2 = outerCenterExitPt + l;
+
+      coord[0] = pt[indexPt2][0] * ratio + pt[indexPt][0] * (1.-ratio);
+      coord[1] = pt[indexPt2][1] * ratio + pt[indexPt][1] * (1.-ratio);
+      coord[2] = pt[indexPt2][2] * ratio + pt[indexPt][2] * (1.-ratio);
+      pt[indexPt2 + j] = coord;
+
+      // bottom points
+      indexPt = m + (2 * m + 1) * n; // first exit point index;
+      indexPt2 = outerCenterExitPt + 2*l + p - 1;
+
+      coord[0] = pt[indexPt2][0] * ratio + pt[indexPt][0] * (1.-ratio);
+      coord[1] = pt[indexPt2][1] * ratio + pt[indexPt][1] * (1.-ratio);
+      coord[2] = pt[indexPt2][2] * ratio + pt[indexPt][2] * (1.-ratio);
+      pt[indexPt2 + j] = coord;
+   }
+
+   // creating intermediate points
+   for(i = 1; i < n - l; i++)
+   {
+      double ratio = xpg(/*sqrt(qn)*/qn, i, n - l);
+      //centered points
+      index = firstExitPt2 + (i - 1) * (2 * (l+p) - 1);
+      indexPt = firstExitPt2 - (2 * l + 1);
+      indexPt2 = outerCenterExitPt;
+      coord[0] = pt[indexPt2][0] * ratio + pt[indexPt][0] * (1-ratio);
+      coord[1] = pt[indexPt2][1] * ratio + pt[indexPt][1] * (1-ratio);
+      coord[2] = pt[indexPt2][2] * ratio + pt[indexPt][2] * (1-ratio);
+      pt[index] = coord;
+
+      // upper and lower points
+      for(j = 1; j <= l; j++)
+      {
+         // upper points
+         indexPt = firstExitPt2 - (2 * l + 1) + j;
+	 indexPt2 = outerCenterExitPt + j;
+         coord[0] = pt[indexPt2][0] * ratio + pt[indexPt][0] * (1-ratio);
+         coord[1] = pt[indexPt2][1] * ratio + pt[indexPt][1] * (1-ratio);
+         coord[2] = pt[indexPt2][2] * ratio + pt[indexPt][2] * (1-ratio);
+         pt[index + j] = coord;
+
+	 // lower points
+	 indexPt = firstExitPt2 - l + j - 1;
+	 indexPt2 = outerCenterExitPt + l + p - 1 + j;
+         coord[0] = pt[indexPt2][0] * ratio + pt[indexPt][0] * (1-ratio);
+         coord[1] = pt[indexPt2][1] * ratio + pt[indexPt][1] * (1-ratio);
+         coord[2] = pt[indexPt2][2] * ratio + pt[indexPt][2] * (1-ratio);
+	 pt[index + l + p - 1 + j] = coord;
+      }
+      for(j = 1; j < p; j++)
+      {
+         // upper points
+         indexPt = 2*m + (m*2 + 1) * n + (p-j-1) * (2* l + 1) + l;
+	 indexPt2 = outerCenterExitPt + j + l;
+         coord[0] = pt[indexPt2][0] * ratio + pt[indexPt][0] * (1-ratio);
+         coord[1] = pt[indexPt2][1] * ratio + pt[indexPt][1] * (1-ratio);
+         coord[2] = pt[indexPt2][2] * ratio + pt[indexPt][2] * (1-ratio);
+         pt[index + j + l] = coord;
+
+	 // lower points
+	 indexPt = 2*m + (m*2 + 1) * n + (p-j) * (2* l + 1) - 1;
+	 indexPt2 = outerCenterExitPt + 2*l + p - 1 + j;
+         coord[0] = pt[indexPt2][0] * ratio + pt[indexPt][0] * (1-ratio);
+         coord[1] = pt[indexPt2][1] * ratio + pt[indexPt][1] * (1-ratio);
+         coord[2] = pt[indexPt2][2] * ratio + pt[indexPt][2] * (1-ratio);
+	 pt[index + 2*l + p - 1 + j] = coord;
+      }
+   }
+
+   //////////
+
    // definig elements
    // quadrilateral data
    TPZVec< int > nodes(4);
-   elms.Resize(m * n * 2 + 2 * n * k);
+   elms.Resize(m * n * 2 + p * l * 2 + (l+p) * (n-l) * 2);
 
    cout << "\nNumber of Elements: "<< elms.NElements() << endl;
 
@@ -413,52 +479,207 @@ qn = pow(2., 1./(double)n);
       }
    }
 
+   index = 2 * m * n;
    // exit elements
-   indexPt = 2 * m + n * (2*m+1); // first exit point index
-   // elements closer to NACA
-   index = 2*m * n + n - 1;
+   // indexing exit elements closer to NACA
+   // upper element
    nodes[0] = m;
-   nodes[1] = indexPt + n;
-   nodes[2] = nodes[1] - 1;
-   nodes[3] = nodes[0] + 2*m;
+   nodes[1] = firstExitPt;
+   nodes[2] = firstExitPt + 1;
+   nodes[3] = 3 * m;
    elms[index] = nodes;
-
-   index = 2*m * n + n;
-   nodes[0] = 3 * m + 1;
-   nodes[1] = indexPt + n + 1;
-   nodes[2] = nodes[1] - 1;
+   index++;
+   //lower element
+   nodes[0] = 3*m+1;
+   nodes[1] = firstExitPt + l + 1;
+   nodes[2] = firstExitPt;
    nodes[3] = m;
    elms[index] = nodes;
-   for(i = 1; i < n; i++)
+   index++;
+   for(i = 1; i < l; i++)
    {
-      // upper elements
-      index = 2 * m * n + n - i - 1;
-      nodes[0] = 3*m + (i-1) * (2*m+1);
-      nodes[1] = indexPt + n - i;
-      nodes[2] = nodes[1] - 1;
-      nodes[3] = nodes[0] + 2 * m + 1;
+      // upper element
+      nodes[0] = m + (m*2+1)*i -1;
+      nodes[1] = firstExitPt + i;
+      nodes[2] = nodes[1] + 1;
+      nodes[3] = nodes[0] + m*2+1;
       elms[index] = nodes;
-
-      // bottom elements
-      index = 2 * m * n + n + i;
-      nodes[0] = 3*m + i * (2*m+1) + 1;
-      //nodes[0] = 3*m + (i-1) * (2*m+1) + 1;
-      nodes[1] = indexPt + n + i + 1;
+      index++;
+      // lower element
+      nodes[3] = nodes[0] + 1;
+      nodes[0] = nodes[0] + 2*m + 2;
+      nodes[1] = firstExitPt + l + 1 + i;
       nodes[2] = nodes[1] - 1;
-      nodes[3] = nodes[0] - (2*m + 1);
       elms[index] = nodes;
+      index++;
    }
-   // other elements
-   for(i = 0; i < 2 * n; i++)
-      for(j = 1; j < k; j++)
+   // elements at right of the above
+   for(i = 1; i < p; i++)
+   {
+      // centered elements
+      indexPt = firstExitPt + (2*l+1)*(i-1); // centered point of such row
+      // upper elements
+      nodes[0] = indexPt;
+      nodes[1] = nodes[0] + (2*l+1);
+      nodes[2] = nodes[1] + 1;
+      nodes[3] = nodes[0] + 1;
+      elms[index] = nodes;
+      index++;
+      // lower elements
+      nodes[0] = indexPt + l + 1;
+      nodes[1] = nodes[0] + (2*l+1);
+      nodes[2] = indexPt + (2*l+1);
+      nodes[3] = indexPt;
+      elms[index] = nodes;
+      index++;
+      // other elements
+      for(j = 1; j < l; j++)
       {
-         index = 2*m*n + j*2*n + i;
-	 nodes[0] = indexPt + (2*n+1) * (j-1) + i + 1;
-	 nodes[1] = nodes[0] + (2*n+1);
+         // upper elements
+         nodes[0] = indexPt + j;
+	 nodes[1] = nodes[0] + (2*l+1);
+	 nodes[2] = nodes[1] + 1;
+	 nodes[3] = nodes[0] + 1;
+         elms[index] = nodes;
+         index++;
+	 // lower elements
+         nodes[0] = indexPt + l + j + 1;
+	 nodes[1] = nodes[0] + (2*l+1);
 	 nodes[2] = nodes[1] - 1;
 	 nodes[3] = nodes[0] - 1;
-	 elms[index] = nodes;
+         elms[index] = nodes;
+         index++;
       }
+   }
+
+   int indexEl = 2*m*n + 2*l*p; // index should be such ->test purposes
+   // indexig rightmost elements
+   // resolving exception points (first row)
+   //firstExitPt2 = firstExitPt + p * (2*l+1);
+   // centered points
+   // upper point
+   index = indexEl + l + p - 1;
+   nodes[0] = firstExitPt2 - (2*l+1);
+   nodes[1] = firstExitPt2;
+   nodes[2] = nodes[1] + 1;
+   nodes[3] = nodes[0] + 1;
+   elms[index] = nodes;
+   // lower point
+   index ++;
+   nodes[3] = nodes[0];
+   nodes[0] += l + 1;
+   nodes[1] = firstExitPt2 + l+p;
+   nodes[2] = firstExitPt2;
+   elms[index] = nodes;
+   // other elements (yet vertical)
+   for(j = 1; j < l; j++)
+   {
+      // upper elements
+      index = indexEl + l + p - 1 - j;
+      nodes[0] = firstExitPt2 - (2*l+1) + j;
+      nodes[1] = firstExitPt2 + j;
+      nodes[2] = nodes[1] + 1;
+      nodes[3] = nodes[0] + 1;
+      elms[index] = nodes;
+      // lower elements
+      index = indexEl + l + p + j;
+      nodes[0] = firstExitPt2 - l + j;
+      nodes[1] = firstExitPt2 + l + p + j;
+      nodes[2] = nodes[1] - 1;
+      nodes[3] = nodes[0] - 1;
+      elms[index] = nodes;
+   }
+   // indexing angled elements
+   //upper point
+   index = indexEl;
+   nodes[0] = m + (m*2+1)*l - 1;
+   nodes[1] = firstExitPt + l;
+   nodes[2] = firstExitPt2 + l + p -1;
+   nodes[3] = nodes[0] + 2 * m + 1;
+   elms[index] = nodes;
+   //lower point
+   index = indexEl + 2*(l+p) - 1;
+   nodes[0] = m + (m*2+1)*(l+1);
+   nodes[1] = firstExitPt2 + 2*(l+p-1);
+   nodes[2] = firstExitPt + 2*l;
+   nodes[3] = nodes[0] - (2 * m + 1);
+   elms[index] = nodes;
+   //other elements
+   for(j = 1; j < p; j++)
+   {
+      // upper points
+      index = indexEl + j;
+      nodes[0] = firstExitPt + (2*l+1) * (j-1) + l;
+      nodes[1] = nodes[0] + (2*l+1);
+      nodes[2] = firstExitPt2 + l + p - j - 1;
+      nodes[3] = nodes[2] + 1;
+      elms[index] = nodes;
+      // lower points
+      index = indexEl + 2*(l + p) - j - 1;
+      nodes[0] = firstExitPt + (2*l+1)*j + 2*l;
+      nodes[1] = nodes[0] - (2*l+1);
+      nodes[2] = firstExitPt2 + 2*(l+p) - j - 1;
+      nodes[3] = nodes[2] - 1;
+      elms[index] = nodes;
+   }
+
+   // creating elements of right parenthesis -> )
+   // at the rightmost boundary.
+   for(i = 1; i < n-l; i++)
+   {
+      indexEl = m*n*2 + 2*l*p + 2*(p+l)*i;
+      // centered elements
+      // upper elements
+      index = indexEl + l + p -1;
+      nodes[0] = firstExitPt2 + (2*(l+p) -1)*(i-1) + 1;
+      nodes[1] = nodes[0] - 1;
+      nodes[2] = nodes[1] + (l+p)*2 - 1;;
+      nodes[3] = nodes[2] + 1;
+      elms[index] = nodes;
+      // lower elements
+      index = indexEl + l + p;
+      nodes[0] = firstExitPt2 + (2*(l+p) -1)*(i-1);
+      nodes[1] = nodes[0] + (l+p);
+      nodes[2] = nodes[1] + (l+p)*2 - 1;
+      nodes[3] = nodes[2] - (l+p);
+      elms[index] = nodes;
+
+      //leftmost elements
+      // upper elements
+      index = indexEl;
+      nodes[0] = m + (m*2 +1)*(i+l) - 1;
+      nodes[1] = firstExitPt2 + (l+p) - 1 + (2*(l+p) -1)*(i-1);
+      nodes[2] = nodes[1] + (2*(l+p) -1);
+      nodes[3] = nodes[0] + (m*2 +1);
+      elms[index] = nodes;
+      // lower elements
+      index = indexEl + (2*(l+p) -1);
+      nodes[0] = firstExitPt2 + (l+p-1)*2 + (2*(l+p) -1)*(i-1);
+      nodes[1] = m + (m*2 +1)*(i+l);
+      nodes[2] = nodes[1] + (m*2 +1);
+      nodes[3] = nodes[0] + (2*(l+p) -1);
+      elms[index] = nodes;
+
+      //other elements
+      for(j = 0; j < l + p - 2; j++)
+      {
+         // upper elements
+         index = indexEl + j + 1;
+	 nodes[0] = firstExitPt2 + (l+p) - 1 - j + (2*(l+p) -1)*(i-1);
+	 nodes[1] = nodes[0] - 1;
+	 nodes[2] = nodes[1] + (2*(l+p) -1);
+	 nodes[3] = nodes[0] + (2*(l+p) -1);
+         elms[index] = nodes;
+	 // lower elements
+         index = indexEl + (l+p) * 2 - 2 - j;
+	 nodes[0] = firstExitPt2 + (l+p)*2 - 3 - j + (2*(l+p) -1)*(i-1);
+	 nodes[1] = nodes[0] + 1;
+	 nodes[2] = nodes[1] + (2*(l+p) -1);
+	 nodes[3] = nodes[0] + (2*(l+p) -1);
+         elms[index] = nodes;
+      }
+
+   }
 }
 
 TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & nodes,
@@ -498,7 +719,7 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
 	 gEls[i]->Divide(firstDiv);
 	 pt[0] = firstDiv[0]->NodePtr(1)->Coord(0);
 	 pt[1] = firstDiv[0]->NodePtr(1)->Coord(1);
-	 profile.ProjectPoint(pt);
+	 profile.ProjectPoint(pt, 4*m + 1);
 	 firstDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
 	 firstDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
 
@@ -506,7 +727,7 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
 	   firstDiv[j]->Divide(secondDiv);
 	   pt[0] = secondDiv[0]->NodePtr(1)->Coord(0);
 	   pt[1] = secondDiv[0]->NodePtr(1)->Coord(1);
-	   profile.ProjectPoint(pt);
+	   profile.ProjectPoint(pt, 8*m + 1);
 	   secondDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
 	   secondDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
 	   
@@ -514,7 +735,7 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
        }
    }
 
-   if(nSubdiv > 1)PZError << "CreateOneElGeoMesh unsupported number of subdivisions";
+  // if(nSubdiv > 1)PZError << "CreateOneElGeoMesh unsupported number of subdivisions";
 
    return gmesh;
 }
@@ -604,7 +825,7 @@ TPZFlowCompMesh *
    {
       TPZGeoElBC((TPZGeoEl *)gElem[i],4,-1,*gmesh);
    }
-   bc = mat->CreateBC(-1,5,val1,val2);
+   bc = mat->CreateBC(-1,/*11*/5,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
    double angle;
@@ -630,21 +851,20 @@ TPZFlowCompMesh *
    bc = mat->CreateBC(-2,10,val1,val2); // inflow
    cmesh->InsertMaterialObject(bc);
 
+
+   // Material was -3 - not directional
+   // Apparently nothing changed...
    // upper and lower extern NACA BC faces: inflow/outflow
    for( i = (n-1)*2*m + l; i < n*2*m - l; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-3,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-2,*gmesh);
    }
+
+   int lastElement = 2*(m*n + p*n + (n-l) * l);
    // exit upper and bottom faces:  inflow/outflow
-   for(i = 0; i < k; i++)
+   for(i = 0; i < 2*(p+l); i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+i*n*2],6,-3,*gmesh);
-      TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(i+1)*n*2-1],4,-3,*gmesh);
-   }
-   // rightmost exit face: inflow/outflow (Exit)
-   for(i = 0; i < 2*n; i++)
-   {
-      TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(k-1)*n*2+i],5,-3,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[lastElement-i-1],6,-3,*gmesh);
    }
 
    bc = mat->CreateBC(-3,9,val1,val2); // inflow/outflow
