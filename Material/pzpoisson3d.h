@@ -1,9 +1,9 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.8 2004-02-05 16:12:42 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.9 2004-05-21 13:34:22 erick Exp $
 
-#ifndef MATPOISSON3DHPP
-#define MATPOISSON3DHPP
+#ifndef MATPOISSON3DH
+#define MATPOISSON3DH
 
 #include <iostream>
 #include "pzdiscgal.h"
