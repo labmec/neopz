@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.31 2004-04-05 19:31:51 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.32 2004-04-14 13:46:45 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -969,23 +969,22 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
 
 
       //if the stored inner radius is bigger than the computed one, the computed one takes its place, because of we are computing the INNER radius.
+      //only Agglomerate must be used here. CompElDisc have Reference()->ElementRadius()
       TPZAgglomerateElement *LeftAgg = dynamic_cast <TPZAgglomerateElement*> (LeftEl);
-#ifdef DEBUG
-      if (!LeftAgg)
-	 PZError << "TPZAgglomerateElemnet::CreateAgglomerateMesh - LeftElemet must be a TPZAgglomerateElement " << endl;
-#endif
-      if ( LeftDistance < LeftAgg->InnerRadius2() )
-	 LeftAgg->SetInnerRadius(LeftDistance);
-      LeftAgg ->SetNInterfaces(LeftEl->NInterfaces() + 1);
+
+      if (LeftAgg){
+	 if ( LeftDistance < LeftAgg->InnerRadius2() )
+	    LeftAgg->SetInnerRadius(LeftDistance);
+	 LeftAgg ->SetNInterfaces(LeftAgg->NInterfaces() + 1);
+      }
 
       TPZAgglomerateElement *RightAgg = dynamic_cast <TPZAgglomerateElement*> (RightEl);
-#ifdef DEBUG
-      if (!RightAgg)
-	 PZError << "TPZAgglomerateElemnet::CreateAgglomerateMesh - RightElemet must be a TPZAgglomerateElement " << endl;
-#endif
-      if ( RightDistance < RightAgg->InnerRadius2() )
-	 RightAgg->SetInnerRadius(RightDistance);
-      RightAgg->SetNInterfaces(RightAgg->NInterfaces() + 1);
+
+      if (RightAgg){
+	 if ( RightDistance < RightAgg->InnerRadius2() )
+	    RightAgg->SetInnerRadius(RightDistance);
+	 RightAgg->SetNInterfaces(RightAgg->NInterfaces() + 1);
+      }
       
 
     }//end of if
