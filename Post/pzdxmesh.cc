@@ -346,6 +346,17 @@ void TPZDXGraphMesh::Close(){
     (*fOutFile) << "member \"" << fVecNames[n] << "\" value \"" << fVecNames[n] << '\"' << endl;
   }
   (*fOutFile) << "end\n";
+  fNumCases = 0;
+  fNumConnectObjects[0] = 1;
+  fNumConnectObjects[1] = 1;
+  fNumConnectObjects[2] = 1;
+  fNormalObject = 0;
+  fTimes.Resize(0);
+  fFirstFieldValues[0].Resize(0);
+  fFirstFieldValues[1].Resize(0);
+  fFirstFieldValues[2].Resize(0);
+  fNextDataField = 1;
+
 }
 
 

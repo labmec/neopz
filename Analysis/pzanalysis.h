@@ -160,7 +160,7 @@ class TPZAnalysis {
   virtual void Run(ostream &out = cout);
   // calls the appropriate sequence of methods to build a
   // solution or a time stepping sequence
-  virtual void DefineGraphMesh(int dimension, TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, char *plotfile);
+  virtual void DefineGraphMesh(int dimension, TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, const char *plotfile);
   /**
    * defines the postprocessing parameters for the graphical grid
    **/

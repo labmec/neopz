@@ -215,7 +215,7 @@ void TPZAnalysis::Run(ostream &out){
 	Solve();
 }
 
-void TPZAnalysis::DefineGraphMesh(int dim, TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, char *plotfile) {
+void TPZAnalysis::DefineGraphMesh(int dim, TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, const char *plotfile) {
 
   int dim1 = dim-1;
   TPZMaterial *mat;
