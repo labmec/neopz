@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.18 2003-12-15 13:28:38 tiago Exp $
+dnl $Id: configure.in,v 1.19 2004-01-14 12:36:17 cantao Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -122,7 +122,7 @@ case "${comp_mode}" in
 	dnl -fno-math-errno -funsafe-math-optimizations -fno-trapping-math \
 	dnl -mfpmath=sse
 
-        MODE_OPTIONS="-DNODEBUG -DNOTDEBUG -w -s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fexpensive-optimizations -fmove-all-movables -funroll-loops -ffast-math -fregmove -falign-functions -falign-jumps -falign-loops -malign-double -finline-limit=3000 -fshort-enums -fforce-addr -fdefault-inline -foptimize-sibling-calls -pipe"
+        MODE_OPTIONS="-DNOTDEBUG -DNODEBUG -w -s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -fexpensive-optimizations -fmove-all-movables -finline-limit=1000 -fdefault-inline -ftemplate-depth-60 -pipe"
         ;;
       *)
         AC_MSG_ERROR(unsupported compiler.)
@@ -356,8 +356,6 @@ dnl --| Projects subtree |--
         Projects/PoissonFAD/Makefile \
 	Projects/HyperElasticityFAD/Makefile \
 	Projects/ShapeFAD/Makefile \
-#	Projects/Jacobi_Base/Makefile \
-	Projects/Error/Makefile \
 	Projects/Adapt_MultThread/Makefile \
         Projects/ConsLaw/Makefile \
 	Projects/Igor/Makefile
