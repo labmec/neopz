@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.34 2004-04-06 14:55:43 erick Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.35 2004-04-06 17:32:56 erick Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -336,11 +336,10 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
 	iv++;
       }
     }
-  delete intrule;
-}
     mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,ek.fMat,ef.fMat);
   }
-
+  delete intrule;
+}
 
 void TPZInterfaceElement::CalcResidualStandard(TPZElementMatrix &ef){
 
