@@ -13,8 +13,8 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = main.cc pzadaptmesh.cc pzcclonemesh.cc pzgclonemesh.cc
+main_SOURCES = placa.cc
 
-main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
+main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 
 ## --| NeoPZ |------------------------------------------------------------------
