@@ -110,7 +110,7 @@ material_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzmaterial.a
 
-libpzmaterial_a_SOURCES = eulerdif.cc 	pzbndcond.cc 	pzelasmat.cc 	pzmat1dlin.cc 	pzmat2dlin.cc 	pzmaterial.cc 	pzmathyperelastic.cc 	pzmatorthotropic.cc 	pzmatplaca2.cc 	pzmatplaca.cc 	pzmattest3d.cc 	pzmattest.cc 	pzmultplaca.cc 	pzplaca.cc 	pzpoisson3d.cc 	TPZEuler.cc 	TPZEulerConsLaw.cc 	TPZDiffusionConsLaw.cc 	TPZLinearConvection.cc 	tpzmultcamada.cc 	pzbctension.cc 	TPZMulticamadaOrtho.cc 	TPZPlacaOrthotropic.cc 	TPZConservationLaw.cc 	TPZConsLawTest.cc 	pzartdiff.cc 	swelling.cc         pzconslaw.cc         pzeulerconslaw.cc 	pzartdiff.cc 
+libpzmaterial_a_SOURCES = eulerdif.cc 	pzbndcond.cc 	pzelasmat.cc 	pzmat1dlin.cc 	pzmat2dlin.cc 	pzmaterial.cc 	pzmathyperelastic.cc 	pzmatorthotropic.cc 	pzmatplaca2.cc 	pzmatplaca.cc 	pzmattest3d.cc 	pzmattest.cc 	pzmultplaca.cc 	pzplaca.cc 	pzpoisson3d.cc 	TPZEuler.cc 	TPZEulerConsLaw.cc 	TPZDiffusionConsLaw.cc 	TPZLinearConvection.cc 	tpzmultcamada.cc 	TPZMulticamadaOrtho.cc 	TPZPlacaOrthotropic.cc 	TPZConservationLaw.cc 	TPZConsLawTest.cc 	pzartdiff.cc 	swelling.cc         pzconslaw.cc         pzeulerconslaw.cc 	pzartdiff.cc 	pzbctension.cc
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
@@ -127,9 +127,9 @@ pzmat1dlin.o pzmat2dlin.o pzmaterial.o pzmathyperelastic.o \
 pzmatorthotropic.o pzmatplaca2.o pzmatplaca.o pzmattest3d.o pzmattest.o \
 pzmultplaca.o pzplaca.o pzpoisson3d.o TPZEuler.o TPZEulerConsLaw.o \
 TPZDiffusionConsLaw.o TPZLinearConvection.o tpzmultcamada.o \
-pzbctension.o TPZMulticamadaOrtho.o TPZPlacaOrthotropic.o \
-TPZConservationLaw.o TPZConsLawTest.o pzartdiff.o swelling.o \
-pzconslaw.o pzeulerconslaw.o pzartdiff.o
+TPZMulticamadaOrtho.o TPZPlacaOrthotropic.o TPZConservationLaw.o \
+TPZConsLawTest.o pzartdiff.o swelling.o pzconslaw.o pzeulerconslaw.o \
+pzartdiff.o pzbctension.o
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)

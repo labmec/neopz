@@ -25,7 +25,6 @@ class TPZMulticamadaOrthotropic {
   /**malha computacional: elementos computacionais correspondentes*/
    TPZCompMesh            *fCompMesh;
   /**Vetor de placas*/
-  //TPZVec<TPZPlacaOrthotropic *>  fPlacaOrth;
    TPZStack<TPZPlacaOrthotropic> fPlacaOrth;
   /**
    * fZ: altura máxima (camada mais longe do plano XY)
@@ -88,5 +87,8 @@ class TPZMulticamadaOrthotropic {
     fNX[2] = NX;
   }
 
+  TPZGeoMesh *GeoMesh(){return fGeoMesh;}
+
+  TPZCompMesh *CompMesh(){return fCompMesh;}
 };
 #endif

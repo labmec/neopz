@@ -10,6 +10,7 @@ TPZPlacaOrthotropic::TPZPlacaOrthotropic(TPZGeoEl *gel,REAL zmin, REAL zmax ){
   fH = zmax-zmin;
   fZMin = zmin;
   fZMax = zmax;
+  fTensorVar = -1;
   fIntel = dynamic_cast<TPZInterpolatedElement *>(gel->Reference());
   if(fIntel) {
     fTensorVar = fIntel->Material()->VariableIndex("Tensor");
@@ -95,22 +96,6 @@ REAL TPZPlacaOrthotropic::Force(TPZVec<REAL> &normal, TPZVec<REAL> &direction){
   return force;
 }
 
-
-// TPZPlacaOrthotropic::CriaNos(int num, TPZGeomesh &geomesh, double list[20][3]){
-//   geomesh.NodeVec().Resize(num);
-//   TPZVec<REAL> coord(3);
-//   int i;
-//   for (i=0; i<num; i++){
-//     coord[0] = list[i][0];
-//     coord[1] = list[i][1];
-//     coord[2] = list[i][2];
-//     geomesh.NodeVec()[i].Initialize(coord, geomesh);
-//   }
-// }
-
-//  orto = new TPZMatOrthotropic(1, naxes, 69.e06, 69.e06, 69.e06, 0.33, 0.33, 0.33, 5.15378e06, 5.15378e06, 5.15378e06) ;
-//  TPZMaterial *orto2 = new TPZMatOrthotropic(1, naxes, 69.e06, 69.e06, 69.e06, 0.33, 0.33, 0.33, 5.15378e06, 5.15378e06, 5.15378e06) ;
-
 void TPZPlacaOrthotropic::Print(){
 
   fIntel->Print();
@@ -126,4 +111,8 @@ void TPZPlacaOrthotropic::Print(){
   
 void TPZPlacaOrthotropic::IdentifyCompEl() {
   fIntel = dynamic_cast<TPZInterpolatedElement *>(fGeoEl->Reference());
+  if(fIntel) {
+    fTensorVar = fIntel->Material()->VariableIndex("Tensor");
+  }
+
 }

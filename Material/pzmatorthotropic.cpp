@@ -242,7 +242,7 @@ int TPZMatOrthotropic::VariableIndex(char *name){
    if(!strcmp("GlobDisplac",name))       return  6;
    if(!strcmp("FiberDisplac",name))      return  7;
    if(!strcmp("Tension",name))           return  8;
-   if(!strcmp("Tension9",name))          return  9;
+   if(!strcmp("Tensor",name))            return  9;
    cout << "TPZMatOrthotropic::VariableIndex Error\n";
    return -1;
 }

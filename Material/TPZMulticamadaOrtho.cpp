@@ -1,5 +1,5 @@
-#include "TPZPlacaOrthotropic.h"
 
+#include "TPZPlacaOrthotropic.h"
 #include "TPZMulticamadaOrtho.h"
 #include "pzmatorthotropic.h"
 #include "pzgmesh.h"
@@ -10,19 +10,6 @@
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
-// #include "pzelmat.h"
-// #include "pzbndcond.h"
-// #include "pzmatrix.h"
-// #include "pzfmatrix.h"
-// #include "pzerror"
-// #include "pztempmat.h"
-// #include "pzmanvector.h"
-// #include <math.h>
-// #include <fstream>
-// using namespace std;
-
-
-
 
 TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int nelx, int nely){
 
@@ -31,7 +18,7 @@ TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int
   fZMin  =  z;
   fZMax = z;
   fNelx = nelx;
-  if(! fNelx%2) fNelx++;
+  if(! fNelx%2) fNelx++;//se for par fica impar
   fNely = nely;
   if(! fNely%2) fNely++;
   fDx = dx/fNelx;
@@ -50,6 +37,7 @@ TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int
 
 
 void TPZMulticamadaOrthotropic::GenerateMesh(){
+
   fGeoMesh->BuildConnectivity();
   TPZCompEl::gOrder = 1;
   fCompMesh->AutoBuild();
@@ -76,8 +64,8 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMatOrthotropic *material, REAL 
   fZMax += height;
   for(ix=0; ix<= fNelx; ix++) {
     for(iy=0; iy<= fNely; iy++) {
-      coord[0] = ix*fDx-fDx*(fNelx+1)/2;
-      coord[1] = iy*fDy-fDy*(fNely+1)/2;
+      coord[0] = ix*fDx-fDx*(fNelx+1)/2.;
+      coord[1] = iy*fDy-fDy*(fNely+1)/2.;
       fGeoMesh->NodeVec()[nnodes+ix+iy*(fNelx+1)].Initialize(coord,*fGeoMesh);
     }
   }
@@ -128,16 +116,14 @@ void  TPZMulticamadaOrthotropic::Print(ostream &out){
   out << "TPZMulticamadaOrthotropic::Print\n";
   out << nplaca << endl;
   for (i=0; i<nplaca; i++){
-    //TPZMulticamadaOrthotropic *multcam;
     out << "placa : " << i << endl;
-    fPlacaOrth[i].Print();
-   //out << "quantidade de camadas :" << multcam->ZHight(placa); 
+    fPlacaOrth[i].Print(); 
   }
 }
   
 REAL TPZMulticamadaOrthotropic::Height(){
 
-  return fZMax - fZMin;
+  return (fZMax - fZMin);
 }
 
 int TPZMulticamadaOrthotropic::NPlacas(){
@@ -145,7 +131,6 @@ int TPZMulticamadaOrthotropic::NPlacas(){
 }
 
 void TPZMulticamadaOrthotropic::AnalyticTensor(TPZVec<REAL> &co, TPZFMatrix &tensor) {
-
 
   REAL z = co[2];
   REAL x = co[0];
@@ -230,13 +215,12 @@ void TPZMulticamadaOrthotropic::Tensor(TPZVec<REAL> &x, int placa, TPZFMatrix &t
 }
 
 void TPZMulticamadaOrthotropic::ComputeSolution(){
+
   TPZAnalysis an(fCompMesh);
   TPZSkylineStructMatrix skyl(fCompMesh);
   an.SetStructuralMatrix(skyl);
   TPZStepSolver solve;
   solve.SetDirect(ELDLt);
   an.SetSolver(solve);
-  //  fGeoMesh->BuildConnectivity();
-  //  fCompMesh->AutoBuild();
   an.Run();
 }

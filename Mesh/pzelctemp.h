@@ -1,4 +1,4 @@
-//$Id: pzelctemp.h,v 1.5 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzelctemp.h,v 1.6 2003-11-06 14:36:10 cedric Exp $
 
 // -*- c++ -*-
 #ifndef PZELCTEMPH
@@ -88,7 +88,7 @@ virtual ~TPZIntelGen();
 
   void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
 
-virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
+  //virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
 
   /** Jorge 09/06/2001
    * Returns the transformation which transform a point from the side to the interior of the element

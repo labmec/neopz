@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.8 2003-11-05 00:25:37 phil Exp $
+// $Id: pzelctemp.cpp,v 1.9 2003-11-06 14:36:10 cedric Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -239,10 +239,10 @@ void TPZIntelGen<TGEO,TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, in
   }
 }
 
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
+// template<class TGEO, class TSHAPE>
+// void TPZIntelGen<TGEO,TSHAPE>::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
 
-}
+// }
 
   /** Jorge 09/06/2001
    * Returns the transformation which transform a point from the side to the interior of the element
