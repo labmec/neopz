@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.40 2004-09-07 23:41:34 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.41 2005-02-04 17:55:31 paulo Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -301,6 +301,14 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
   TPZGeoEl *ref = Reference();
   int face = ref->NSides()-1;
   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(face,2*p);//integra u(n)*fi
+  if(fMaterial->HasForcingFunction())
+  {
+  	TPZManVector<int> order(3);
+	intrule->GetOrder(order);
+	int maxorder = intrule->GetMaxOrder();
+	order.Fill(maxorder);
+	intrule->SetOrder(order);
+  }
   int npoints = intrule->NPoints();
   int ip;
   //  TPZManVector<REAL,3> point(3);
@@ -560,6 +568,10 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
     ref->X(intpoint, x);
     left->Shape(x,phixl,dphixl);
     right->Shape(x,phixr,dphixr);
+    int nderivr = dphixr.Rows();
+    int nderivl = dphixl.Rows();
+    dsoll.Redim(nderivl,nstatel);
+    dsolr.Redim(nderivr,nstater);
     //solu¢ão da itera¢ão anterior
     soll.Fill(0.);
     dsoll.Zero();
@@ -571,7 +583,7 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
       int iv = 0,d;
       for(int jn=0; jn<dfvar; jn++) {
 	soll[iv%nstatel] += phixl(iv/nstatel,0)*MeshSol(pos+jn,0);
-	for(d=0; d<diml; d++)
+	for(d=0; d<nderivl; d++)
 	  dsoll(d,iv%nstatel) += dphixl(d,iv/nstatel)*MeshSol(pos+jn,0);
 	iv++;
       }
@@ -588,7 +600,7 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
       int iv = 0,d;
       for(int jn=0; jn<dfvar; jn++) {
 	solr[iv%nstater] += phixr(iv/nstater,0)*MeshSol(pos+jn,0);
-	for(d=0; d<dimr; d++)
+	for(d=0; d<nderivr; d++)
 	  dsolr(d,iv%nstater) += dphixr(d,iv/nstater)*MeshSol(pos+jn,0);
 	iv++;
       }
