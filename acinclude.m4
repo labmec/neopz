@@ -3,7 +3,7 @@ dnl acinclude.m4 for NeoPZ
 dnl
 dnl Process this file with GNU aclocal to produce a configure script.
 dnl
-dnl $Id: acinclude.m4,v 1.4 2004-02-03 13:09:59 longhin Exp $
+dnl $Id: acinclude.m4,v 1.5 2004-04-06 12:37:19 longhin Exp $
 dnl
 
 dnl
@@ -23,6 +23,8 @@ AC_DEFUN(PZ_GREETINGS,
 dnl
 dnl Checking g++ version
 dnl
+dnl AC_CHECK_TYPE (int, DEFAULT)
+
 AC_DEFUN(PZ_PROG_CXX,
 [
     AC_PROG_CXX
@@ -60,6 +62,11 @@ AC_DEFUN(PZ_PROG_AR,
     AC_MSG_RESULT($ARFLAGS)
     AC_SUBST(ARFLAGS)
 ])
+dnl
+dnl Get the size of the C types for encoding in the basic datatypes and for
+dnl the specific-sized integers
+dnl AC_DEFUN(gt_HEADER_INTTYPES_H)
+dnl
 
 dnl
 dnl Bye bye!
