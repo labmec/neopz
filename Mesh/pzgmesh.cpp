@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.16 2004-04-26 14:27:03 phil Exp $
+//$Id: pzgmesh.cpp,v 1.17 2004-06-17 06:26:21 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -302,12 +302,15 @@ void TPZGeoMesh::BuildConnectivity()
 	  {
 	    NeighNode[nod] = gel;
 	    SideNum[nod] = in;
-	    gel->SetSideDefined(in);
+	    if(gel->SideIsUndefined(in)) gel->SetSideDefined(in);
 	  } else
 	    {
 	      TPZGeoElSide neigh(NeighNode[nod],SideNum[nod]);
 	      TPZGeoElSide gelside(gel,in);
-	      neigh.SetConnectivity(gelside);
+              if(!neigh.NeighbourExists(gelside))
+              {
+                neigh.SetConnectivity(gelside);
+              }
 	    }
       }
     }
