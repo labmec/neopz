@@ -47,7 +47,7 @@ void TPZFYsmpMatrix::PutVal(const int row, const int col, double Value){
     if(!flag) cout << "TPZFYsmpMatrix::PutVal: Non existing position on sparse matrix: line = " << row << " column " << col << endl;
 }
 void TPZFYsmpMatrix::AddKel(TPZFMatrix & elmat, TPZVec<int> & destinationindex){
-    int i,j,k;
+    int i,j,k = 0;
     REAL value=0.;
     int ipos,jpos;
     for(i=0;i<elmat.Rows();i++){
@@ -59,22 +59,30 @@ void TPZFYsmpMatrix::AddKel(TPZFMatrix & elmat, TPZVec<int> & destinationindex){
             if(value){
                 //cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
                 int flag = 0;
-                for(k=fIA[ipos];k<fIA[ipos+1];k++){
-                    if(fJA[k]==jpos || fJA[k]==-1){
-                        //cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
-                        //cout << "k " << k << "   "<< jpos << "   " << value << endl;
-                        flag=1;
-                        if(fJA[k]==-1){
+		k++;
+		if(k >= fIA[ipos] && k < fIA[ipos+1] && fJA[k]==jpos)
+		{ // OK -> elements in sequence
+		   fA[k]+=value;
+		   flag = 1;
+		}else
+		{
+                   for(k=fIA[ipos];k<fIA[ipos+1];k++){
+                      if(fJA[k]==jpos || fJA[k]==-1){
+                         //cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
+                         //cout << "k " << k << "   "<< jpos << "   " << value << endl;
+                         flag=1;
+                         if(fJA[k]==-1){
                             fJA[k]=jpos;
                             fA[k]=value;
                            // cout << jpos << "   " << value << endl;
                             break;
-                        }else{
+                         }else{
                             fA[k]+=value;
                             break;
-                        }
-                    }
-                }
+                         }
+                      }
+                   }
+		}
                 if(!flag) cout << "TPZFYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << endl;         }
         }
     }
