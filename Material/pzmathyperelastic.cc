@@ -56,6 +56,30 @@ void TPZMatHyperElastic::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/
       fXf[1] = res[1];
       fXf[2] = res[2];
 	}
+#ifdef _AUTODIFF
+   TFad<9, TFad<9,REAL> > U;
+   ComputeEnergy(fLambda,fNu,dsol,U);
+   //   U2 = U*TFad<9,REAL>(weight);
+   //   cout <<  "Before multiplication\n" << U << endl;
+   //   cout <<  "weight  " << weight <<  "\nAfter multiplication\n" << U2 << endl;
+   int nshape = phi.Rows();
+   int ish,jsh, i,j;
+   for(ish=0; ish<nshape; ish++) {
+     for(i=0; i<3; i++) {
+       ef(ish*3+i) -= (U.val().d(i)*dphi(0,ish)+U.val().d(3+i)*dphi(1,ish)+U.val().d(6+i)*dphi(2,ish))*weight;
+       for(jsh=0; jsh<nshape; jsh++) {
+	 for(j=0; j<3; j++) {
+	   ek(ish*3+i,jsh*3+j) += (
+	     U.d(i).d(j  )*dphi(0,ish)*dphi(0,jsh)+U.d(i+3).d(j  )*dphi(1,ish)*dphi(0,jsh)+U.d(i+6).d(j  )*dphi(2,ish)*dphi(0,jsh)+
+	     U.d(i).d(j+3)*dphi(0,ish)*dphi(1,jsh)+U.d(i+3).d(j+3)*dphi(1,ish)*dphi(1,jsh)+U.d(i+6).d(j+3)*dphi(2,ish)*dphi(1,jsh)+
+	     U.d(i).d(j+6)*dphi(0,ish)*dphi(2,jsh)+U.d(i+3).d(j+6)*dphi(1,ish)*dphi(2,jsh)+U.d(i+6).d(j+6)*dphi(2,ish)*dphi(2,jsh)
+	     )*weight;
+	 }
+       }
+     }
+   }
+
+#else
    int i;
    REAL global[3][3][9];
    REAL ux,uy,uz,vx,vy,vz,wx,wy,wz;
@@ -302,6 +326,8 @@ void TPZMatHyperElastic::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/
 		  }
 	  }
   }
+
+#endif
 }
 /*for(idf=0; idf<3; idf++) {
    for(jdf=0; jdf<3; jdf++)
@@ -498,7 +524,11 @@ void TPZMatHyperElastic::ContributeEnergy(TPZVec<REAL> &x,
 	TPZVec<FADFADREAL> &sol, TPZVec<FADFADREAL> &dsol,
 	FADFADREAL &U, REAL weight)
 {
-     const int dim = 3;
+  //     const int dim = 3;
+  //  cout <<  "Solution gradient\n ";
+//  int i;
+  //  for(i=0; i<9; i++) cout  << dsol[i].val().val() <<  " ";
+  //  cout << endl;
      FADFADREAL J, TrC; // J = det(F); TrC = Trace(C)
 /*     int numder = dsol[0].size();
      FADFADREAL F[3][3], J, J2, TrC; // J = det(F); TrC = Trace(C)
@@ -600,6 +630,7 @@ void TPZMatHyperElastic::ContributeEnergy(TPZVec<REAL> &x,
      TrC += dsol[ith(1,2)] * dsol[ith(1,2)];
      TrC += DiagF2*DiagF2;
 
+     //     cout <<  "TrC\n" << TrC << endl;
      J = DiagF0          * DiagF1         * DiagF2;
      J += dsol[ith(0,1)] * dsol[ith(1,2)] * dsol[ith(2,0)];
      J += dsol[ith(0,2)] * dsol[ith(1,0)] * dsol[ith(2,1)];
@@ -607,10 +638,12 @@ void TPZMatHyperElastic::ContributeEnergy(TPZVec<REAL> &x,
      J -= dsol[ith(0,1)] * dsol[ith(1,0)] * DiagF2;
      J -= DiagF0         * dsol[ith(1,2)] * dsol[ith(2,1)]; //  J = det(F)
 
+     //     cout <<  "J\n " << J << endl;
      U += (J*J - FADREAL(1.)) * FADREAL(weight*fLambda/4.);
      U -= log( J ) * FADREAL(weight*(fLambda/2.+fNu));
      U += (TrC - FADREAL(3.)) * FADREAL(weight*fNu/2.);
 
+     //     cout << U << endl;
 }
 
 void TPZMatHyperElastic::ContributeBCEnergy(TPZVec<REAL> & x,
@@ -662,6 +695,35 @@ void TPZMatHyperElastic::ContributeBCEnergy(TPZVec<REAL> & x,
 	         FADREAL(weight / 2.);
 	  break;
 	}
+}
+
+void TPZMatHyperElastic::ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix &dsol, TFad<9,TFad<9,REAL> > &energy){
+  TFad<9,TFad<9,REAL> > tensor[3][3],J,TrC;
+  int i,j;
+  //  dsol.Print( "Solution gradient ");
+  for(i=0; i<3; i++) {
+    for(j=0; j<3; j++) {
+      tensor[i][j].val().val() = dsol(j,i);
+      tensor[i][j].fastAccessDx(j*3+i).val() = 1.;
+      tensor[i][j].val().fastAccessDx(j*3+i) = 1.;
+    }
+    tensor[i][i].val().val() += 1.;
+  }
+  TrC = tensor[0][0]*tensor[0][0]+tensor[0][1]*tensor[0][1]+tensor[0][2]*tensor[0][2]+tensor[1][0]*tensor[1][0]+tensor[1][1]*tensor[1][1]+tensor[1][2]*tensor[1][2]+
+    tensor[2][0]*tensor[2][0]+tensor[2][1]*tensor[2][1]+tensor[2][2]*tensor[2][2];
+
+  //  cout <<  "TrC\n " << TrC << endl;
+  J = tensor[0][0] * tensor[1][1] * tensor[2][2] + 
+    tensor[0][1] * tensor[1][2] * tensor[2][0] +
+    tensor[0][2] * tensor[1][0] * tensor[2][1] -
+    tensor[0][2] * tensor[1][1] * tensor[2][0] -
+    tensor[0][1] * tensor[1][0] * tensor[2][2] -
+    tensor[0][0] * tensor[1][2] * tensor[2][1]; //  J = det(F)
+  //  cout <<  "J\n " << J << endl;
+   energy = (J*J - TFad<9,REAL>(1.)) * TFad<9,REAL>(lambda/4.) -
+    log( J ) * TFad<9,REAL>((lambda/2.+mu)) +
+    (TrC - TFad<9,REAL>(3.)) * TFad<9,REAL>(mu/2.);
+ 
 }
 
 

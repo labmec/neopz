@@ -51,6 +51,8 @@ virtual void ContributeEnergy(TPZVec<REAL> &x,
 			      FADFADREAL &U,
 			      REAL weight);
 
+  static void ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix &dsol, TFad<9,TFad<9,REAL> > &energy);
+
 /** Compute contribution of BC to the Energy*/
 virtual void ContributeBCEnergy(TPZVec<REAL> & x,
 	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
