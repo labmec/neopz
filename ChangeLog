@@ -1,0 +1,27 @@
+2003-02-04  Renato F. Cantao  <cantao@ime.unicamp.br>
+
+	* acinclude.m4: echoed MeTiS and Sloan options.
+	* configure.in: added options to MeTiS and Sloan.
+
+2003-02-03  Renato F. Cantao  <cantao@ime.unicamp.br>
+
+	* Parallel: completely obliterated.
+	* Pre: obliterated pzmodulef{h,cc} and pzfesys2d.{h,cc}.
+	* Frontal: compiling ok.
+	* External: compiling ok.
+	* Analysis: compiling ok.
+	* Mesh: compiling ok.
+	* Mesh/elc1dgd.cc: killed.
+	* Mesh/pzelcglobloc.cc: terminated.
+	* Geom: compiling ok.
+	* Shape: compiling ok.
+	* Material: compiling ok. Removed beammat.{h,cc}.
+	* Multigrid: compiling ok.
+	* Cosys: compiling ok.
+	* Matrix: compiling ok.
+	* Util: compiling ok. Eliminated old versions of no longer used
+	files.
+	* configure.in: it started!
+	* acinclude.m4: first macros for NeoPZ configuration.
+	* PZ.mk.in: put first attempts of overall configuration.
+	* Makefile.am: not too much news here.

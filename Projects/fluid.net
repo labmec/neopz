@@ -1,0 +1,349 @@
+//
+// time: Tue Mar 28 11:11:16 1995
+//
+// version: 2.0.2 (format), 2.1.0 (DX)
+//
+// MODULE main
+// workspace: width = 1000, height = 1000
+// layout: snap = 0, width = 50, height = 50, align = UL
+//
+macro main(
+) -> (
+) {
+    // 
+    // node FileSelector[1]: x = 225, y = 43, inputs = 0, label = FileSelector
+    // output[1]: visible = 1, type = 32, value = "/a/rhodes/home/rhodes/teste/phil/fluid.general"
+    // output[2]: visible = 1, type = 32, value = "fluid.general"
+    //
+    // 
+    // node Import[2]: x = 125, y = 130, inputs = 6, label = Import
+    // input[3]: defaulting = 0, visible = 1, type = 32, value = "general"
+    //
+main_Import_2_out_1 = 
+    Import(
+        main_FileSelector_1_out_1,
+        main_Import_2_in_2,
+        main_Import_2_in_3,
+        main_Import_2_in_4,
+        main_Import_2_in_5,
+        main_Import_2_in_6
+    ) [instance: 2, cache: 1];
+    // 
+    // node AutoColor[4]: x = 91, y = 292, inputs = 10, label = AutoColor
+    //
+main_AutoColor_4_out_1,
+main_AutoColor_4_out_2 = 
+    AutoColor(
+        main_Import_2_out_1,
+        main_AutoColor_4_in_2,
+        main_AutoColor_4_in_3,
+        main_AutoColor_4_in_4,
+        main_AutoColor_4_in_5,
+        main_AutoColor_4_in_6,
+        main_AutoColor_4_in_7,
+        main_AutoColor_4_in_8,
+        main_AutoColor_4_in_9,
+        main_AutoColor_4_in_10
+    ) [instance: 4, cache: 1];
+    // 
+    // node RubberSheet[3]: x = 95, y = 380, inputs = 4, label = RubberSheet
+    //
+main_RubberSheet_3_out_1 = 
+    RubberSheet(
+        main_AutoColor_4_out_1,
+        main_RubberSheet_3_in_2,
+        main_RubberSheet_3_in_3,
+        main_RubberSheet_3_in_4
+    ) [instance: 3, cache: 1];
+    // 
+    // node ColorBar[2]: x = 277, y = 264, inputs = 12, label = ColorBar
+    // input[4]: defaulting = 0, visible = 0, type = 3, value = 1
+    // input[6]: defaulting = 0, visible = 0, type = 5, value = -0.2
+    // input[7]: defaulting = 0, visible = 0, type = 5, value = 1.2
+    // input[8]: defaulting = 0, visible = 1, type = 32, value = "beautiful"
+    //
+main_ColorBar_2_out_1 = 
+    ColorBar(
+        main_AutoColor_4_out_2,
+        main_ColorBar_2_in_2,
+        main_ColorBar_2_in_3,
+        main_ColorBar_2_in_4,
+        main_ColorBar_2_in_5,
+        main_ColorBar_2_in_6,
+        main_ColorBar_2_in_7,
+        main_ColorBar_2_in_8,
+        main_ColorBar_2_in_9,
+        main_ColorBar_2_in_10,
+        main_ColorBar_2_in_11,
+        main_ColorBar_2_in_12
+    ) [instance: 2, cache: 1];
+    // 
+    // node Collect[3]: x = 281, y = 390, inputs = 3, label = Collect
+    //
+main_Collect_3_out_1 = 
+    Collect(
+        main_RubberSheet_3_out_1,
+        main_ColorBar_2_out_1,
+        main_Collect_3_in_3
+    ) [instance: 3, cache: 1];
+    // 
+    // node Image[2]: x = 213, y = 439, inputs = 35, label = Image
+    // input[1]: defaulting = 0, visible = 0, type = 1, value = 2
+    // input[4]: defaulting = 0, visible = 0, type = 8, value = [49.5 49.5 7.00036]
+    // input[5]: defaulting = 0, visible = 0, type = 8, value = [49.5 49.5 360.109]
+    // input[6]: defaulting = 1, visible = 0, type = 5, value = 189.231
+    // input[7]: defaulting = 0, visible = 0, type = 1, value = 640
+    // input[8]: defaulting = 0, visible = 0, type = 5, value = 0.751
+    // input[9]: defaulting = 0, visible = 0, type = 8, value = [0 1 0]
+    // input[22]: defaulting = 0, visible = 0, type = 1, value = 1
+    // input[23]: defaulting = 0, visible = 0, type = 5, value = 30.0001
+    // input[24]: defaulting = 0, visible = 0, type = 1, value = 1
+    //
+    // depth: value = 8
+main_Image_2_out_1,
+main_Image_2_out_2 = 
+    Image(
+        main_Image_2_in_1,
+        main_Collect_3_out_1,
+        main_Image_2_in_3,
+        main_Image_2_in_4,
+        main_Image_2_in_5,
+        main_Image_2_in_6,
+        main_Image_2_in_7,
+        main_Image_2_in_8,
+        main_Image_2_in_9,
+        main_Image_2_in_10,
+        main_Image_2_in_11,
+        main_Image_2_in_12,
+        main_Image_2_in_13,
+        main_Image_2_in_14,
+        main_Image_2_in_15,
+        main_Image_2_in_16,
+        main_Image_2_in_17,
+        main_Image_2_in_18,
+        main_Image_2_in_19,
+        main_Image_2_in_20,
+        main_Image_2_in_21,
+        main_Image_2_in_22,
+        main_Image_2_in_23,
+        main_Image_2_in_24,
+        main_Image_2_in_25,
+        main_Image_2_in_26,
+        main_Image_2_in_27,
+        main_Image_2_in_28,
+        main_Image_2_in_29,
+        main_Image_2_in_30,
+        main_Image_2_in_31,
+        main_Image_2_in_32,
+        main_Image_2_in_33,
+        main_Image_2_in_34,
+        main_Image_2_in_35
+    ) [instance: 2, cache: 1];
+// network: end of macro body
+}
+main_FileSelector_1_out_1 = "/a/rhodes/home/rhodes/teste/phil/fluid.general";
+main_Import_2_in_2 = NULL;
+main_Import_2_in_3 = "general";
+main_Import_2_in_4 = NULL;
+main_Import_2_in_5 = NULL;
+main_Import_2_in_6 = NULL;
+main_Import_2_out_1 = NULL;
+main_AutoColor_4_in_2 = NULL;
+main_AutoColor_4_in_3 = NULL;
+main_AutoColor_4_in_4 = NULL;
+main_AutoColor_4_in_5 = NULL;
+main_AutoColor_4_in_6 = NULL;
+main_AutoColor_4_in_7 = NULL;
+main_AutoColor_4_in_8 = NULL;
+main_AutoColor_4_in_9 = NULL;
+main_AutoColor_4_in_10 = NULL;
+main_AutoColor_4_out_1 = NULL;
+main_AutoColor_4_out_2 = NULL;
+main_RubberSheet_3_in_2 = NULL;
+main_RubberSheet_3_in_3 = NULL;
+main_RubberSheet_3_in_4 = NULL;
+main_RubberSheet_3_out_1 = NULL;
+main_ColorBar_2_in_2 = NULL;
+main_ColorBar_2_in_3 = NULL;
+main_ColorBar_2_in_4 = 1;
+main_ColorBar_2_in_5 = NULL;
+main_ColorBar_2_in_6 = -0.2;
+main_ColorBar_2_in_7 = 1.2;
+main_ColorBar_2_in_8 = "beautiful";
+main_ColorBar_2_in_9 = NULL;
+main_ColorBar_2_in_10 = NULL;
+main_ColorBar_2_in_11 = NULL;
+main_ColorBar_2_in_12 = NULL;
+main_ColorBar_2_out_1 = NULL;
+main_Collect_3_in_3 = NULL;
+main_Collect_3_out_1 = NULL;
+macro Image(
+        useVector,
+        object,
+        where,
+        to,
+        from,
+        width,
+        resolution,
+        aspect,
+        up,
+        options,
+        AAenable = 1,
+        AAlabels,
+        AAticks,
+        AAcorners,
+        AAframe,
+        AAadjust,
+        AAcursor,
+        RECenable = 1,
+        RECfile,
+        throttle,
+        RECformat,
+        perspective,
+        viewAngle,
+        buttonState = 1,
+        buttonUpApprox = "none",
+        buttonDownApprox = "none",
+        buttonUpDensity = 1,
+        buttonDownDensity = 1,
+        renderMode = 1,
+        backgroundColor,
+        AAgrid,
+        AAcolors,
+        AAannotation,
+        AAlabelscale,
+        AAfont) -> (
+        object,
+        camera)
+{
+    autoCamera =
+        AutoCamera(
+            object,
+            "front",
+            object,
+            resolution,
+            aspect,
+            [0,1,0],
+            perspective,
+            viewAngle,
+            backgroundColor) [instance: 1];
+    realCamera =
+        Camera(
+            to,
+            from,
+            width,
+            resolution,
+            aspect,
+            up,
+            perspective,
+            viewAngle,
+            backgroundColor) [instance: 1];
+    camera = Switch(useVector, autoCamera, realCamera)[instance:1];
+    AAobject =
+        AutoAxes(
+            object,
+            camera,
+            AAlabels,
+            AAticks,
+            AAcorners,
+            AAframe,
+            AAadjust,
+            AAcursor,
+            AAgrid,
+            AAcolors,
+            AAannotation,
+            AAlabelscale,
+            AAfont) [instance: 1];
+    object = Switch(AAenable, object, AAobject)[instance:2];
+    SWapproximation_options =
+        Switch(
+            buttonState,
+            buttonUpApprox,
+            buttonDownApprox) [instance: 3];
+    SWdensity_options =
+        Switch(
+            buttonState,
+            buttonUpDensity,
+            buttonDownDensity) [instance: 4];
+    HWapproximation_options =
+        Format(
+            "%s,%s",
+            buttonDownApprox,
+            buttonUpApprox) [instance: 1];
+    HWdensity_options =
+        Format(
+            "%d,%d",
+            buttonDownDensity,
+            buttonUpDensity) [instance: 1];
+    approximation_options = Switch(renderMode,
+        SWapproximation_options, HWapproximation_options)[instance: 5];
+    density_options = Switch(renderMode,
+        SWdensity_options, HWdensity_options)[instance: 6];
+    renderModeString = Switch(renderMode,
+        "software", "hardware")[instance: 7];
+    annoted_object =
+        Options(
+            object,
+            "send boxes",
+            0,
+            "rendering approximation",
+            approximation_options,
+            "render every",
+            density_options,
+            "rendering mode",
+            renderModeString) [instance: 1];
+    NoRECobject, RECobject = Route(RECenable, annoted_object);
+    Display(
+        NoRECobject,
+        camera,
+        where,
+        throttle) [instance: 1];
+    image =
+        Render(
+            RECobject,
+            camera) [instance: 1];
+    Display(
+        image,
+        NULL,
+        where,
+        throttle) [instance: 2];
+    WriteImage(
+        image,
+        RECfile,
+        RECformat) [instance: 1];
+}
+main_Image_2_in_1 = 2;
+main_Image_2_in_4 = [49.5 49.5 7.00036];
+main_Image_2_in_5 = [49.5 49.5 360.109];
+main_Image_2_in_6 = NULL;
+main_Image_2_in_7 = 640;
+main_Image_2_in_8 = 0.751;
+main_Image_2_in_9 = [0 1 0];
+main_Image_2_in_10 = NULL;
+main_Image_2_in_11 = NULL;
+main_Image_2_in_12 = NULL;
+main_Image_2_in_13 = NULL;
+main_Image_2_in_14 = NULL;
+main_Image_2_in_15 = NULL;
+main_Image_2_in_16 = NULL;
+main_Image_2_in_17 = NULL;
+main_Image_2_in_19 = NULL;
+main_Image_2_in_20 = NULL;
+main_Image_2_in_21 = NULL;
+main_Image_2_in_22 = 1;
+main_Image_2_in_23 = 30.0001;
+main_Image_2_in_24 = 1;
+main_Image_2_in_25 = NULL;
+main_Image_2_in_26 = NULL;
+main_Image_2_in_27 = NULL;
+main_Image_2_in_28 = NULL;
+main_Image_2_in_29 = NULL;
+main_Image_2_in_30 = NULL;
+main_Image_2_in_31 = NULL;
+main_Image_2_in_32 = NULL;
+main_Image_2_in_33 = NULL;
+main_Image_2_in_34 = NULL;
+main_Image_2_in_35 = NULL;
+Executive("product version 2 1 0");
+$sync;
+main();

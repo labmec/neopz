@@ -1,0 +1,24 @@
+#
+# NeoPZ External makefile
+#
+# It will be processed by GNU automake to produce Makefile.in
+#
+# $Id#
+#
+
+DISTCLEANFILES = @PZ_DISTCLEANFILES@
+CLEANFILES     = @PZ_CLEANFILES@
+
+-include $(top_srcdir)/@PZ_MK@
+
+externaldir = $(prefix)/External
+
+external_HEADERS = $(wildcard *.h)
+
+noinst_LIBRARIES = libpzexternal.a
+
+libpzexternal_a_SOURCES = pzmetis.cc \
+	pzrenumbering.cc \
+	pzsloan.cc
+
+## --| NeoPZ |------------------------------------------------------------------

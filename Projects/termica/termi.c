@@ -1,0 +1,220 @@
+
+
+#include "pzfmatrix.h"
+#include "pzskylmat.h"
+#include "pzgmesh.h"
+#include "pzcmesh.h"
+#include "pzsolve.h"
+#include "pzelasmat.h"
+#include "pzbndcond.h"
+#include <stdlib.h>
+#include <iostream.h>
+#include "pzvec.h"
+
+#include "pzelgq2d.h"
+#include "pzelgt2d.h"
+#include "pzmat2dlin.h"
+#include "pzanalysis.h"
+#include "pzmetis.h"
+
+#include <stdio.h>
+#include <time.h>
+#include <math.h>
+#include "pzelct2d.h"
+//template<class T>
+//class TPZVec;
+//#define NOTDEBUG
+
+void InicializarMaterial(TPZCompMesh &cmesh);
+void LerMalha(char *arquivo,TPZGeoMesh &mesh);
+void UmElemento(TPZGeoMesh &malha);
+void forcingfunction(TPZVec<REAL> &ponto, TPZVec<REAL> &force);
+
+int main() {
+
+   //malha geometrica
+   TPZGeoMesh *malha = new TPZGeoMesh;
+   malha->SetName("Malha gerada por Paulo Lyra, nao tem garantia nemhuma");
+   
+
+   //UmElemento(*malha);
+   LerMalha("quad_st_800_1R_16X.gri",*malha);
+
+   //ordem de interpolacao
+   int ord;
+   cout << "Entre ordem 1,2,3,4,5 : ";
+   cin >> ord;
+   TPZCompEl::gOrder = ord;
+   //construção malha computacional
+   TPZVec<int> csub(0);
+   TPZManVector<TPZGeoEl *> pv(4);
+   int n1=1,level=0; 
+   cout << "\nDividir ate nivel ? ";
+   int resp;
+   cin >> resp;      
+   int nelc = malha->ElementVec().NElements();
+   int el;  
+
+   TPZGeoEl *cpel;
+   for(el=0;el<malha->ElementVec().NElements();el++) {
+     cpel = malha->ElementVec()[el];
+     if(cpel && cpel->Level() < resp)
+		cpel->Divide(pv);
+
+   }
+   //analysis
+   TPZCompMesh *malhacomp = new TPZCompMesh(malha);
+   InicializarMaterial(*malhacomp);
+   malhacomp->AutoBuild();
+   malhacomp->AdjustBoundaryElements();
+   malhacomp->InitializeBlock();
+
+
+   TPZAnalysis an(malhacomp);
+   int numeq = malhacomp->NEquations();
+   TPZVec<int> skyline;
+   malhacomp->Skyline(skyline);
+   TPZSkylMatrix *stiff = new TPZSkylMatrix(numeq,skyline);
+   an.SetMatrix(stiff);
+   
+   an.Solver().SetDirect(ECholesky);
+   malhacomp->SetName("Malha Computacional :  Connects e Elementos");
+   // Posprocessamento
+   an.Run();
+   TPZVec<char *> scalnames(1);
+   scalnames[0] = "state";
+
+   TPZVec<char *> vecnames(0);
+
+   char plotfile[] =  "termica.dx";
+   an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
+   an.PostProcess(1);
+   //   an.DefineGraphMesh(2, scalnames, vecnames, pltfile);
+   //   an.PostProcess(2);
+   delete malhacomp;
+   delete malha;
+   return 0;
+}
+
+void UmElemento(TPZGeoMesh &malha) {
+	double coordstore[4][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.}};
+	// criar um objeto tipo malha geometrica
+
+	// criar quatro nos
+	int i,j;
+	TPZVec<REAL> coord(3,0.);
+	for(i=0; i<4; i++) {
+		// initializar as coordenadas do no em um vetor
+		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
+
+		// identificar um espaço no vetor onde podemos armazenar
+		// este vetor
+		int nodeindex = malha.NodeVec ().AllocateNewElement ();
+
+		// initializar os dados do nó
+		malha.NodeVec ()[i].Initialize (i,coord,malha);
+	}
+
+	// criar um elemento
+
+	// initializar os indices dos nós
+	TPZVec<int> indices(4);
+	for(i=0; i<4; i++) indices[i] = i;
+
+	// O proprio construtor vai inserir o elemento na malha
+	TPZGeoEl *gel = new TPZGeoElQ2d(0,indices,1,malha);
+
+
+	malha.BuildConnectivity ();
+
+	// Associar o lado de um elemento com uma condicao de contorno
+	// Este objeto ira inserir-se automaticamente na malha
+	TPZGeoElBC(gel,4,-4,malha);
+}
+
+void forcingfunction(TPZVec<REAL> &p, TPZVec<REAL> &f) {
+  REAL x0=0.5,y0=0.2,r=0.005,eps=0.0001;
+
+  REAL dist2 = (p[0]-x0)*(p[0]-x0)+(p[1]-y0)*(p[1]-y0);
+  REAL A = exp(-dist2/eps);
+  REAL Bx2 = 4.*(p[0]-x0)*(p[0]-x0)/(eps*eps);
+  REAL By2 = 4.*(p[1]-y0)*(p[1]-y0)/(eps*eps);
+  REAL Bx = 2.*(p[0]-x0);
+  REAL By = 2.*(p[1]-y0);
+  if(dist2 < r*r) {
+    f[0] = A*Bx2-2.*A/eps+A*By2-2.*A/eps;
+  } else f[0] = 0.;
+}
+
+
+void LerMalha(char *nome, TPZGeoMesh &grid) {
+	ifstream infile(nome);
+
+	int linestoskip;
+	char buf[256];
+	infile >> linestoskip;
+	int i,j;
+	for(i=0; i<linestoskip;i++) infile.getline(buf,255);
+	infile.getline (buf,255);
+	infile.getline (buf,255);
+	int ntri,npoin,nbouf,nquad,nsidif;
+	infile >> ntri >> npoin >> nbouf >> nquad >> nsidif;
+	infile.getline (buf,255);
+	infile.getline(buf,255);
+
+	grid.NodeVec ().Resize(npoin+1);
+	TPZVec<int> nodeindices(4);
+	int mat, elid;
+	for(i=0;i<nquad;i++) {
+		infile >> elid;
+		for(j=0; j<4;j++) infile >> nodeindices[j];
+		infile >> mat;
+		new TPZGeoElQ2d(elid,nodeindices,mat,grid);
+	}
+	infile.getline(buf,255);
+	infile.getline(buf,255);
+
+	int nodeid,dum;
+	char c;
+	TPZVec<REAL> coord(3,0.);
+	for(i=0; i<npoin; i++) {
+		infile >> nodeid >> coord[0] >> coord[1] >> c >> dum;
+		grid.NodeVec ()[nodeid].Initialize (nodeid,coord,grid);
+	}
+	infile.getline (buf,255);
+	infile.getline (buf,255);
+
+	TPZVec<int> sideid(2,0);
+	for(i=0; i<nbouf; i++) {
+		infile >> sideid[0] >> sideid[1] >> elid >> dum >> mat;
+		TPZGeoEl *el = grid.ElementVec ()[elid-1];
+		int side = el->WhichSide (sideid);
+		TPZGeoElBC(el,side,-mat,grid);
+	}
+	grid.BuildConnectivity();
+
+	return;
+}
+
+void InicializarMaterial(TPZCompMesh &cmesh) {
+
+	TPZMat2dLin *meumat = new TPZMat2dLin(1);
+	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
+	meumat->SetMaterial (xk,xc,xf);
+	meumat->SetForcingFunction(forcingfunction);
+	cmesh.InsertMaterialObject(meumat);
+
+	// inserir a condicao de contorno
+	TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+	TPZMaterial *bnd = meumat->CreateBC (-4,0,val1,val2);
+	cmesh.InsertMaterialObject(bnd);
+	bnd = meumat->CreateBC (-3,0,val1,val2);
+	cmesh.InsertMaterialObject(bnd);
+	bnd = meumat->CreateBC (-2,0,val1,val2);
+	cmesh.InsertMaterialObject(bnd);
+	bnd = meumat->CreateBC (-1,0,val1,val2);
+	cmesh.InsertMaterialObject(bnd);
+
+
+}
+

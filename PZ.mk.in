@@ -1,0 +1,30 @@
+#
+# PZ.mk options makefile for NeoPZ.
+#
+# It will be processed by GNU automake to produce Makefile.in
+#
+# $Id: PZ.mk.in,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+#
+
+CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@
+INCLUDES = -I$(top_srcdir)/Util \
+	-I$(top_srcdir)/Common \
+	-I$(top_srcdir)/Mesh \
+	-I$(top_srcdir)/Geom \
+	-I$(top_srcdir)/Refine \
+	-I$(top_srcdir)/Shape \
+	-I$(top_srcdir)/StrMatrix \
+	-I$(top_srcdir)/Frontal \
+	-I$(top_srcdir)/Matrix \
+	-I$(top_srcdir)/LinearSolvers \
+	-I$(top_srcdir)/Analysis \
+	-I$(top_srcdir)/Integral \
+	-I$(top_srcdir)/Cosys \
+	-I$(top_srcdir)/Material \
+	-I$(top_srcdir)/Multigrid \
+	-I$(top_srcdir)/Post \
+	-I$(top_srcdir)/External \
+	-I$(top_srcdir)/External/sloan \
+	-I@METISDIR@/Lib
+
+## --| NeoPZ |------------------------------------------------------------------

@@ -1,0 +1,117 @@
+
+//
+// Author: MISAEL LUIS SANTANA MANDUJANO.
+//
+// File:   tsbndmat.hh
+//
+// Class:  TPZSBMatrix
+//
+// Obs.:   Esta classe gerencia matrizes do tipo Band simetrica.
+//
+// Versao: 04 / 1996.
+#ifndef TSBNDMATH
+#define TSBNDMATH
+
+
+
+#include "pzmatrix.h"
+
+#ifdef OOPARLIB
+
+#include "pzsaveable.h"
+#include "pzmatdefs.h"
+
+#endif
+
+class TPZFMatrix;
+
+
+
+/**
+TPZSBMatrix implements symmetric band matrices.
+*/
+class TPZSBMatrix : public TPZMatrix
+{
+ public:
+  TPZSBMatrix() : TPZMatrix(0,0) { fDiag = NULL; fBand = 0; }
+  TPZSBMatrix(const int dim,const int band );
+  TPZSBMatrix(const TPZSBMatrix &A ) : TPZMatrix(A.Dim(),A.Dim())  { Copy(A); }
+  ~TPZSBMatrix() { Clear(); }
+
+  int    PutVal(const int row,const int col,const REAL& element );
+  const REAL &GetVal(const int row,const int col ) const;
+
+  void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+	       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const;
+  // Computes z = beta * y + alpha * opt(this)*x
+  //          z and x cannot overlap in memory
+
+  void Print(const char *name = NULL, ostream &out = cout ,const MatrixOutputFormat form = EFormatted) const;
+  friend ostream & operator<<(ostream& out,const TPZSBMatrix &A);
+
+  // Operadores com matrizes SKY LINE.
+  TPZSBMatrix &operator= (const TPZSBMatrix &A );
+  TPZSBMatrix operator+  (const TPZSBMatrix &A ) const;
+  TPZSBMatrix operator-  (const TPZSBMatrix &A ) const;
+  TPZSBMatrix &operator+=(const TPZSBMatrix &A );
+  TPZSBMatrix &operator-=(const TPZSBMatrix &A );
+
+  TPZSBMatrix operator*  (const REAL v ) const;
+  TPZSBMatrix &operator*=(const REAL v );
+
+  TPZSBMatrix operator-() const { return operator*(-1.0); }
+
+  // Redimensiona a matriz, mas mantem seus elementos.
+  int Resize(const int newDim ,const int);
+
+  // Redimensiona a matriz e ZERA seus elementos.
+  int Redim(const int newDim) {return Redim(newDim,newDim);}
+  int Redim(const int newDim ,const int );
+
+  // Zera a matrix
+  int Zero();
+
+  int GetBand() const { return fBand; }
+  int   SetBand(const int newBand );
+
+
+  /*** Resolucao de sistemas ***/
+
+  int Decompose_Cholesky();  // Faz A = GGt.
+  int Decompose_LDLt    ();  // Faz A = LDLt.
+
+  int Subst_Forward  ( TPZFMatrix *b ) const;
+  int Subst_Backward ( TPZFMatrix *b ) const;
+  int Subst_LForward ( TPZFMatrix *b ) const;
+  int Subst_LBackward( TPZFMatrix *b ) const;
+  int Subst_Diag     ( TPZFMatrix *b ) const;
+
+#ifdef OOPARLIB
+
+  virtual long GetClassID() const        { return TSBMATRIX_ID; }
+  virtual int Unpack( TReceiveStorage *buf );
+  static TSaveable *Restore(TReceiveStorage *buf);
+  virtual int Pack( TSendStorage *buf ) const;
+  virtual char *ClassName() const   { return( "TPZSBMatrix"); }
+  virtual int DerivedFrom(const long Classid) const;
+  virtual int DerivedFrom(const char *classname) const; // a class with name classname
+
+#endif
+
+ private:
+
+  int  Size() const    { return( Dim() * (fBand + 1) ); }
+  int  PutZero();
+  int  Error(const char *msg1,const char* msg2="" ) const;
+  int  Clear();
+  void Copy (const TPZSBMatrix & );
+
+
+  REAL *fDiag;
+  int  fBand;
+};
+
+
+
+
+#endif

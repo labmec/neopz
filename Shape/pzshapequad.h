@@ -1,0 +1,200 @@
+#ifndef SHAPEQUADHPP
+#define SHAPEQUADHPP
+
+#include "pzfmatrix.h"
+#include "pzstack.h"
+#include "pztrnsform.h"
+
+/** 
+ *
+ * @brief Implements the shape functions of a quadrilateral (2D) element
+
+ * The quadrilateral shape functions are also used in 3D elements
+ * The range of the master element is -1,1
+ * @ingroup shape
+ */
+class TPZShapeQuad {
+
+ public:
+	 enum {NSides = 9, NNodes = 4, Dimension = 2};
+
+/**
+ * Computes the values of the shape functions and their derivatives for a quadrilateral element
+ * These values depend on the point, the order of interpolation and ids of the corner points
+ * The shapefunction computation uses the shape functions of the linear element for its implementation
+ * @param pt (input) point where the shape functions are computed
+ * @param id (input) indexes of the corner points which determine the orientation of the shape functions
+ * @param order (input) order of the side connects different from the corner connects (5 connects in this case)
+ * @param phi (output) values of the shape functions
+ * @param dphi (output) values of the derivatives of the shapefunctions
+
+ */
+  static void ShapeQuad(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
+			TPZFMatrix &phi,TPZFMatrix &dphi);
+
+/**
+ * Computes the corner shape functions for a quadrilateral element
+ * @param pt (input) point where the shape function is computed
+ * @param phi (output) value of the (4) shape functions
+ * @param dphi (output) value of the derivatives of the (4) shape functions holding the derivatives in a column
+ */
+  static void ShapeCornerQuad(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+
+/** 
+ * Compute the internal functions of the quadrilateral shape function at a point\n
+ * the internal shape functions are the shapefunctions before being multiplied by the corner
+ * shape functions\n
+ * Shape2dQuadInternal is basically a call to the orthogonal shapefunction with the transformation
+ * determined by the transformation index
+ * @param x coordinate of the point
+ * @param order maximum order of shape functions to be computed
+ * @param phi shapefunction values
+ * @param dphi values of the derivatives of the shape functions
+ * @param quad_transformation_index determines the transformation applied to the internal shape
+ * functions. This parameter is computed by the GetTransformId2dQ method
+ * @see GetTransformId2dQ
+ */
+  static void Shape2dQuadInternal(TPZVec<REAL> &x, int order,
+  						TPZFMatrix &phi,TPZFMatrix &dphi,int quad_transformation_index);
+
+/**
+ * Transform the derivatives of num shapefunctions in place for a quadrilateral
+ * @param transid identifier of the transformation of the quad element as obtained by the GetTransformId2dQ method
+ * @param num number of shapefunctions needed to transform
+ * @in matrix containing the values of the derivatives of the shapefunctions as a row vector
+ * the values of the derivatives contained in this matrix are modified upon return
+ */
+  static void TransformDerivative2dQ(int transid, int num, TPZFMatrix &in);
+
+/**
+ * Transform the coordinates of the point in the space of the quadrilateral
+ * master element based on the transformation id
+ * @param transid identifier of the transformation of the element as obtained by the GetTransformId2dQ method
+ * @param in coordinates of the variational parameter
+ * @param out coordinates of the transformed parameter
+ */
+  static void TransformPoint2dQ(int transid,TPZVec<REAL> &in,TPZVec<REAL> &out);
+
+/**
+ * Projects a point from the interior of the element to a rib
+ * @param rib rib index to which the point should be projected
+ * @param in coordinate of the point at the interior of the element
+ * @param out coordinate of the point on the rib
+ */
+  static void ProjectPoint2dQuadToRib(int rib, TPZVec<REAL> &in, REAL &out);
+
+/**
+ * Method which identifies the quadrilateral transformation based on the IDs
+ * of the corner nodes
+ * @param id indexes of the corner nodes
+ * @return index of the transformation of the point
+ */
+  static int GetTransformId2dQ(TPZVec<int> &id);
+
+/**
+ * Transforms the derivative of a shapefunction computed on the rib into the two dimensional derivative
+ * of the function with respect to the element. The parameter dphi should be dimensioned (2,num), at least
+ * @param rib rib index along which the shapefunction is defined
+ * @num number of shapefunction derivatives which need to be transformed
+ * @dphi values of the derivatives of the shapefunctions
+ */
+  static void TransformDerivativeFromRibToQuad(int rib,int num,TPZFMatrix &dphi);
+
+/**
+ * Returns the transformation which transform a point from the interior of the element to the side
+ * @param side side to which the point will be tranformed (0<=side<=8)
+ * @return TPZTransform object
+ * @see the class TPZTransform
+ */
+static TPZTransform TransformElementToSide(int side);
+
+/**
+ * Returns the transformation which transform a point from the side to the interior of the element
+ * @param side side from which the point will be tranformed (0<=side<=2)
+ * @return TPZTransform object
+ * @see the class TPZTransform
+ */
+static TPZTransform TransformSideToElement(int side);
+
+/** 
+ * Data structure which defines the quadrilateral transformations
+ */
+static REAL gTrans2dQ[8][2][2];
+/** 
+ * Data structure which defines the quadrilateral transformations
+ */
+static REAL gFaceTr2dQ[6][2][3];
+/** 
+ * Data structure which defines the quadrilateral transformations
+ */
+static REAL gRibTrans2dQ1d[4][2];
+
+/**
+ * Number of connects of the element (9)
+ * @return number of connects of the element
+ */
+static int NConnects();
+
+/**
+ * Number of shapefunctions of the connect associated with the side, considering the order
+ * of interpolation of the element
+ * @param side associated side
+ * @order vector of integers indicating the interpolation order of the element
+ * @return number of shape functions
+ */
+static int NConnectShapeF(int side, TPZVec<int> &order);
+
+/**
+ * Total number of shapefunctions, considering the order
+ * of interpolation of the element
+ * @order vector of integers indicating the interpolation order of the element
+ * @return number of shape functions
+ */
+static int NShapeF(TPZVec<int> &order);
+
+ /**
+  * returns the dimension of the side
+  */
+static int SideDimension(int side);
+ /**
+  * returns the transformation which takes a point from the side sidefrom ot
+  * the side sideto
+  * @param sidefrom side where the point resides
+  * @param sideto side whose closure contains sidefrom
+  */
+static TPZTransform SideToSideTransform(int sidefrom, int sideto);
+ /**
+  * returns all sides whose closure contains side
+  * @param side smaller dimension side
+  * @param high vector which will contain all sides whose closure contain sidefrom
+  */
+static void HigherDimensionSides(int side, TPZStack<int> &high);
+ /**
+  * return the number of nodes (not connectivities) associated with a side
+  */
+static int NSideNodes(int side);
+ /**
+  * returns the local node number of the node "node" along side "side"
+  */
+static int SideNodeLocId(int side, int node);
+ /**
+  * return the number of nodes (not connectivities) associated with a side
+  */
+static int NSideConnects(int side);
+ /**
+  * returns the local connect number of the connect "c" along side "side"
+  */
+static int SideConnectLocId(int side, int c);
+
+/**
+ * returns the barycentric coordinates in the master element space of the original element
+ */
+
+ static void CenterPoint(int side, TPZVec<REAL> &center);
+
+ /**volume of the master element*/
+static REAL RefElVolume(){return 0.;}
+
+
+};
+#endif

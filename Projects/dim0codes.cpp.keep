@@ -1,0 +1,68 @@
+void TPZGeoElSide::Dim0ConnectedCompElementList(TPZStack<TPZCompElSide> &elsidevec,int onlyinterpolated, int removeduplicates){
+// this part to be consistent with the behaviour of ConnectedElementList
+  TPZCompElSide father = Dim0LowerLevelCompElement(onlyinterpolated);
+  if(father.Exists()) elsidevec.Push(father);
+
+// Look for the highest level element which contains this side
+	TPZGeoElSide gel = *this, geltest = *this;
+   int nodeliststore[4];
+   int oldsize = elsidevec.NElements();
+   TPZManVector<int> nodelist(1,nodeliststore,4);
+   TPZGeoElSide subelstore[4];
+   TPZManVector<TPZGeoElSide> subel(0,subelstore,4);
+// look for the highest level element which is linked to this side
+   do {
+   	geltest = gel;
+// go as far as possible along the tree structure
+      while(gel.HasSubElement()) {
+         nodelist[0] = SideNodeIndex(0);
+         gel.GetSubElement(nodelist,subel);
+         gel = subel[0];
+      }
+      TPZGeoElSide gelneigh = gel.Neighbour();
+      if(!gelneigh.Exists()) continue;
+// at the end of the tree check is a neighbour has sub elements
+      while(gelneigh != gel && !gelneigh.HasSubElement()) gelneigh = gelneigh.Neighbour();
+      gel = gelneigh;
+   } while (gel != geltest);
+   while(gel.Exists()) {
+// put the equal level elements on the stack.
+// if gel is a direct neighbour of this, call EqualLevelElementList for this so as to
+// avoid putting this on the stack
+   	if(!gel.NeighbourExists(*this)) {
+	   	gel.EqualLevelCompElementList(elsidevec,onlyinterpolated,removeduplicates);
+      } else {
+      	EqualLevelCompElementList(elsidevec,onlyinterpolated,removeduplicates);
+      }
+// if removeduplicates is true, only one element needs to be put on the stack
+      if(removeduplicates && elsidevec.NElements() != oldsize) break;
+      gel = gel.Father();
+   }
+}
+
+//retorna o elem. computacional de nivel menor (elemento grande) ao qual estou restrito
+TPZCompElSide TPZGeoElSide::Dim0LowerLevelCompElement(int onlyinterpolated) {
+  TPZGeoElSide gel,gelfather;
+  TPZCompElSide ref;
+  if(Dimension() != 0) {
+  	PZError << "TPZGeoElSide::Dim0LowerLevelCompElement should be called for an\n"
+   	"element/side combination of dimension 0\n";
+   PZError << Element()->Id() << "/" << Side() << endl;
+   return TPZCompElSide();
+  }
+  gel = Neighbour();
+  gelfather = Father();
+  while(gelfather.Exists()) {
+    gel = gelfather;
+    gelfather = gelfather.Father();
+  }
+  int dimension = Dimension();
+  for(int dim=dimension+1; dim < 3; dim++) {                       //   !!!   ???
+    ref = HigherDimensionConnected(dim,onlyinterpolated);
+    if(ref.Exists() && (!onlyinterpolated || ref.Element()->IsInterpolated())) {             // (2)
+      return ref;
+    }
+  }
+  return TPZCompElSide();
+}
+

@@ -1,0 +1,46 @@
+Instruções gerais para uso do NeoPZ:
+
+1. Baixe o NeoPZ do CVS (se você está lendo isto, parabéns! Já
+   conseguiu!).
+
+2. Sendo desenvolvedor, você vai precisar atualizar alguns arquivos de
+   configuração. Para isso dê os comandos:
+
+   > aclocal
+   > automake
+   > autoconf
+
+3. Voilá! Você acaba de gerar um script chamado 'configure' que gerará
+   os makefile's automaticamente. Opções do configure:
+
+   --prefix -> com esta opção você diz aonde o NeoPZ será instalado;
+
+   --enable-metis -> use o MeTiS (por enquanto, use *sempre* esta opção);
+
+   --with-metis-dir -> para direcionar o compilador para o diretorio
+     onde o MeTiS está instalado. Recomendo que você use aquele que
+     vem com o CFDEmbraer;
+
+   --with-compilation-mode -> há três opções: devel, para compilação
+     com debug, profiling para compilação para perfilação e opt, para
+     modo turbo (usando os mais obscuros flags do g++).
+
+Exemplos:
+
+   ./configure --prefix=/home/pos/cantao/temp/PZ --enable-metis
+
+   Configura o NeoPZ para ser instalado no diretorio PZ do temp da
+   minha área, com MeTiS habilitado. (Neste caso assume-se que o MeTiS
+   está instalado em /usr/local/Metis-4.0)
+
+   ./configure --enable-metis --with-metis-dir=/home/pos/cantao/embraer/CFDEmbraer/Metis-4.0
+
+   Idem acima, assumindo que o MeTiS está instalado em
+   /home/pos/cantao/embraer/CFDEmbraer/Metis-4.0. O NeoPZ será
+   instalado em /usr/local.
+
+   ./configure --with-compilation-mode=opt
+
+   Tudo padrão, com opções de código otimizado.
+
+Futuramente esta dependência do MeTiS será realmente opcional!

@@ -1,0 +1,351 @@
+# Makefile.in generated automatically by automake 1.4-p6 from Makefile.am
+
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+#
+# NeoPZ lib makefile
+#
+# It will be processed by GNU automake to produce Makefile.in
+#
+# $Id#
+#
+
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+DESTDIR =
+
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+build_alias = @build_alias@
+build_triplet = @build@
+host_alias = @host_alias@
+host_triplet = @host@
+target_alias = @target_alias@
+target_triplet = @target@
+AR = @AR@
+ARCH_INCLUDES = @ARCH_INCLUDES@
+ARFLAGS = @ARFLAGS@
+CC = @CC@
+COMPILATION_MODE = @COMPILATION_MODE@
+CXX = @CXX@
+MAKEINFO = @MAKEINFO@
+METISDIR = @METISDIR@
+MODE_OPTIONS = @MODE_OPTIONS@
+PACKAGE = @PACKAGE@
+PZ_CLEANFILES = @PZ_CLEANFILES@
+PZ_CXXFLAGS = @PZ_CXXFLAGS@
+PZ_DISTCLEANFILES = @PZ_DISTCLEANFILES@
+PZ_MK = @PZ_MK@
+PZ_REV = @PZ_REV@
+PZ_VERSION = @PZ_VERSION@
+RANLIB = @RANLIB@
+USING_METIS = @USING_METIS@
+USING_SLOAN = @USING_SLOAN@
+VERSION = @VERSION@
+
+DISTCLEANFILES = @PZ_DISTCLEANFILES@
+CLEANFILES = @PZ_CLEANFILES@
+
+lib_LIBRARIES = libpz.a
+
+libpz_a_SOURCES = 
+
+libpz_a_LIBADD = ../Util/pzmap.o 	../Util/pzadmchunkgen.o 	../Util/pzavlmap.o 	../Util/pzchunkgen.o 	../Util/pzavlmapgen.o 	../Util/pzstackgen.o 	../Util/pzmanvectorgen.o 	../Util/pzstring.o 	../Util/pzvecgen.o 	../Util/pzvecmesh.o 	../Refine/pzrefpoint.o 	../Refine/pzrefprism.o 	../Refine/pzrefpyram.o 	../Refine/pzrefquad.o 	../Refine/pzreftetrahedra.o 	../Refine/pzreftriangle.o 	../Refine/TPZRefCube.o 	../Refine/TPZRefLinear.o 	../Mesh/pzcmesh.o 	../Mesh/pzcompel.o 	../Mesh/pzconnect.o 	../Mesh/pzelc1d.o 	../Mesh/pzcheckgeom.o 	../Mesh/pzcheckmesh.o 	../Mesh/pzcheckrestraint.o 	../Mesh/pzelcc3d.o 	../Mesh/pzelcpi3d.o 	../Mesh/pzelcpoint.o 	../Mesh/pzelcpr3d.o 	../Mesh/pzelcq2d.o 	../Mesh/pzelct2d.o 	../Mesh/pzelct3d.o 	../Mesh/pzelg1d.o 	../Mesh/pzelgc3d.o 	../Mesh/pzelgpi3d.o 	../Mesh/pzelgpoint.o 	../Mesh/pzelgpr3d.o 	../Mesh/pzelgq2d.o 	../Mesh/pzelgt2d.o 	../Mesh/pzelgt3d.o 	../Mesh/pzelmat.o 	../Mesh/pzgeoelbc.o 	../Mesh/pzgeoel.o 	../Mesh/pzgeoelside.o 	../Mesh/pzgmesh.o 	../Mesh/pzgnode.o 	../Mesh/pzintel.o 	../Mesh/pzstackmesh.o 	../Mesh/pzsubcmesh.o 	../Mesh/pzvecmesh.o 	../Mesh/TPZCompElDisc.o 	../Mesh/TPZInterfaceEl.o 	../Shape/pzshapecube.o 	../Shape/pzshapelinear.o 	../Shape/pzshapepiram.o 	../Shape/pzshapeprism.o 	../Shape/pzshapequad.o 	../Shape/pzshapetriang.o 	../Shape/pzshapetetra.o 	../Shape/TPZShapeDisc.o 	../Matrix/pzlink.o 	../Matrix/pzblock.o 	../Matrix/pzblockdiag.o 	../Matrix/pzbndmat.o 	../Matrix/pzespmat.o 	../Matrix/pzfmatrix.o 	../Matrix/pzmatred.o 	../Matrix/pzmatrix.o 	../Matrix/pzsbndmat.o 	../Matrix/pzseqsolver.o 	../Matrix/pzsespmat.o 	../Matrix/pzsfulmat.o 	../Matrix/pzshtmat.o 	../Matrix/pzskylmat.o 	../Matrix/pzskylmatpar.o 	../Matrix/pzsolve.o 	../Matrix/pzstencil.o 	../Matrix/pzstepsolver.o 	../Matrix/pzsysmp.o 	../Matrix/pztempmat.o 	../Matrix/pzworkpool.o 	../Matrix/pzysmp.o 	../Geom/pzgeopoint.o 	../Geom/pzgeoprism.o 	../Geom/pzgeopyramid.o 	../Geom/pzgeoquad.o 	../Geom/pzgeotetrahedra.o 	../Geom/pzgeotriangle.o 	../Geom/TPZGeoCube.o 	../Geom/TPZGeoElement.o 	../Geom/TPZGeoLinear.o 	../StrMatrix/pzbdstrmatrix.o 	../StrMatrix/pzbstrmatrix.o 	../StrMatrix/pzfstrmatrix.o 	../StrMatrix/pzsbstrmatrix.o 	../StrMatrix/pzskylstrmatrix.o 	../StrMatrix/pzstrmatrix.o 	../StrMatrix/TPBSpStructMatrix.o 	../StrMatrix/TPZFrontStructMatrix.o 	../StrMatrix/TPZParFrontStructMatrix.o 	../StrMatrix/TPZParSkylineStructMatrix.o 	../StrMatrix/TPZSpStructMatrix.o 	../Frontal/pzvecfrontal.o 	../Frontal/tpzeqnarray.o 	../Frontal/TPZFileEqnStorage.o 	../Frontal/TPZFront.o 	../Frontal/TPZFrontMatrix.o 	../Frontal/TPZFrontNonSym.o 	../Frontal/TPZFrontSym.o 	../Frontal/TPZParFrontMatrix.o 	../Frontal/TPZStackEqnStorage.o 	../Analysis/pzanalysis.o 	../Analysis/pzanalysiserror.o 	../Analysis/pzmganalysis.o 	../Analysis/pznonlinanalysis.o 	../Analysis/pzonedref.o 	../Analysis/pzsmanal.o 	../Analysis/pzsmfrontalanal.o 	../Cosys/pzcartsys.o 	../Cosys/pzcosys.o 	../Cosys/pzcylinsys.o 	../Cosys/pzelgq2dcyl.o 	../Cosys/pzesfersys.o 	../Integral/pzquad.o 	../Material/eulerdif.o 	../Material/pzbndcond.o 	../Material/pzelasmat.o 	../Material/pzmat1dlin.o 	../Material/pzmat2dlin.o 	../Material/pzmaterial.o 	../Material/pzmathyperelastic.o 	../Material/pzmatorthotropic.o 	../Material/pzmatplaca2.o 	../Material/pzmatplaca.o 	../Material/pzmattest3d.o 	../Material/pzmattest.o 	../Material/pzmultplaca.o 	../Material/pzplaca.o 	../Material/pzpoisson3d.o 	../Material/TPZEuler.o 	../Material/TPZLinearConvection.o 	../Material/tpzmultcamada.o 	../Material/TPZMulticamadaOrtho.o 	../Material/TPZPlacaOrthotropic.o 	../Post/pzdxmesh.o 	../Post/pzgraphel1d.o 	../Post/pzgraphel1dd.o 	../Post/pzgraphel.o 	../Post/pzgraphelq2d.o 	../Post/pzgraphelq2dd.o 	../Post/pzgraphelq3dd.o 	../Post/pzgraphmesh.o 	../Post/pzgraphnode.o 	../Post/pzmvmesh.o 	../Post/pztrigraph.o 	../Post/pztrigraphd.o 	../Post/pzv3dmesh.o 	../Multigrid/pzmgsolver.o 	../Multigrid/pztransfer.o 	../Multigrid/pztrnsform.o 	../External/pzmetis.o 	../External/pzrenumbering.o 	../External/pzsloan.o 	../Pre/pzgengrid.o 	../Pre/pzpargrid.o 
+
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_CLEAN_FILES = 
+LIBRARIES =  $(lib_LIBRARIES)
+
+
+DEFS = @DEFS@ -I. -I$(srcdir) 
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+libpz_a_DEPENDENCIES =  ../Util/pzmap.o ../Util/pzadmchunkgen.o \
+../Util/pzavlmap.o ../Util/pzchunkgen.o ../Util/pzavlmapgen.o \
+../Util/pzstackgen.o ../Util/pzmanvectorgen.o ../Util/pzstring.o \
+../Util/pzvecgen.o ../Util/pzvecmesh.o ../Refine/pzrefpoint.o \
+../Refine/pzrefprism.o ../Refine/pzrefpyram.o ../Refine/pzrefquad.o \
+../Refine/pzreftetrahedra.o ../Refine/pzreftriangle.o \
+../Refine/TPZRefCube.o ../Refine/TPZRefLinear.o ../Mesh/pzcmesh.o \
+../Mesh/pzcompel.o ../Mesh/pzconnect.o ../Mesh/pzelc1d.o \
+../Mesh/pzcheckgeom.o ../Mesh/pzcheckmesh.o ../Mesh/pzcheckrestraint.o \
+../Mesh/pzelcc3d.o ../Mesh/pzelcpi3d.o ../Mesh/pzelcpoint.o \
+../Mesh/pzelcpr3d.o ../Mesh/pzelcq2d.o ../Mesh/pzelct2d.o \
+../Mesh/pzelct3d.o ../Mesh/pzelg1d.o ../Mesh/pzelgc3d.o \
+../Mesh/pzelgpi3d.o ../Mesh/pzelgpoint.o ../Mesh/pzelgpr3d.o \
+../Mesh/pzelgq2d.o ../Mesh/pzelgt2d.o ../Mesh/pzelgt3d.o \
+../Mesh/pzelmat.o ../Mesh/pzgeoelbc.o ../Mesh/pzgeoel.o \
+../Mesh/pzgeoelside.o ../Mesh/pzgmesh.o ../Mesh/pzgnode.o \
+../Mesh/pzintel.o ../Mesh/pzstackmesh.o ../Mesh/pzsubcmesh.o \
+../Mesh/pzvecmesh.o ../Mesh/TPZCompElDisc.o ../Mesh/TPZInterfaceEl.o \
+../Shape/pzshapecube.o ../Shape/pzshapelinear.o ../Shape/pzshapepiram.o \
+../Shape/pzshapeprism.o ../Shape/pzshapequad.o ../Shape/pzshapetriang.o \
+../Shape/pzshapetetra.o ../Shape/TPZShapeDisc.o ../Matrix/pzlink.o \
+../Matrix/pzblock.o ../Matrix/pzblockdiag.o ../Matrix/pzbndmat.o \
+../Matrix/pzespmat.o ../Matrix/pzfmatrix.o ../Matrix/pzmatred.o \
+../Matrix/pzmatrix.o ../Matrix/pzsbndmat.o ../Matrix/pzseqsolver.o \
+../Matrix/pzsespmat.o ../Matrix/pzsfulmat.o ../Matrix/pzshtmat.o \
+../Matrix/pzskylmat.o ../Matrix/pzskylmatpar.o ../Matrix/pzsolve.o \
+../Matrix/pzstencil.o ../Matrix/pzstepsolver.o ../Matrix/pzsysmp.o \
+../Matrix/pztempmat.o ../Matrix/pzworkpool.o ../Matrix/pzysmp.o \
+../Geom/pzgeopoint.o ../Geom/pzgeoprism.o ../Geom/pzgeopyramid.o \
+../Geom/pzgeoquad.o ../Geom/pzgeotetrahedra.o ../Geom/pzgeotriangle.o \
+../Geom/TPZGeoCube.o ../Geom/TPZGeoElement.o ../Geom/TPZGeoLinear.o \
+../StrMatrix/pzbdstrmatrix.o ../StrMatrix/pzbstrmatrix.o \
+../StrMatrix/pzfstrmatrix.o ../StrMatrix/pzsbstrmatrix.o \
+../StrMatrix/pzskylstrmatrix.o ../StrMatrix/pzstrmatrix.o \
+../StrMatrix/TPBSpStructMatrix.o ../StrMatrix/TPZFrontStructMatrix.o \
+../StrMatrix/TPZParFrontStructMatrix.o \
+../StrMatrix/TPZParSkylineStructMatrix.o \
+../StrMatrix/TPZSpStructMatrix.o ../Frontal/pzvecfrontal.o \
+../Frontal/tpzeqnarray.o ../Frontal/TPZFileEqnStorage.o \
+../Frontal/TPZFront.o ../Frontal/TPZFrontMatrix.o \
+../Frontal/TPZFrontNonSym.o ../Frontal/TPZFrontSym.o \
+../Frontal/TPZParFrontMatrix.o ../Frontal/TPZStackEqnStorage.o \
+../Analysis/pzanalysis.o ../Analysis/pzanalysiserror.o \
+../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o \
+../Analysis/pzonedref.o ../Analysis/pzsmanal.o \
+../Analysis/pzsmfrontalanal.o ../Cosys/pzcartsys.o ../Cosys/pzcosys.o \
+../Cosys/pzcylinsys.o ../Cosys/pzelgq2dcyl.o ../Cosys/pzesfersys.o \
+../Integral/pzquad.o ../Material/eulerdif.o ../Material/pzbndcond.o \
+../Material/pzelasmat.o ../Material/pzmat1dlin.o \
+../Material/pzmat2dlin.o ../Material/pzmaterial.o \
+../Material/pzmathyperelastic.o ../Material/pzmatorthotropic.o \
+../Material/pzmatplaca2.o ../Material/pzmatplaca.o \
+../Material/pzmattest3d.o ../Material/pzmattest.o \
+../Material/pzmultplaca.o ../Material/pzplaca.o \
+../Material/pzpoisson3d.o ../Material/TPZEuler.o \
+../Material/TPZLinearConvection.o ../Material/tpzmultcamada.o \
+../Material/TPZMulticamadaOrtho.o ../Material/TPZPlacaOrthotropic.o \
+../Post/pzdxmesh.o ../Post/pzgraphel1d.o ../Post/pzgraphel1dd.o \
+../Post/pzgraphel.o ../Post/pzgraphelq2d.o ../Post/pzgraphelq2dd.o \
+../Post/pzgraphelq3dd.o ../Post/pzgraphmesh.o ../Post/pzgraphnode.o \
+../Post/pzmvmesh.o ../Post/pztrigraph.o ../Post/pztrigraphd.o \
+../Post/pzv3dmesh.o ../Multigrid/pzmgsolver.o ../Multigrid/pztransfer.o \
+../Multigrid/pztrnsform.o ../External/pzmetis.o \
+../External/pzrenumbering.o ../External/pzsloan.o ../Pre/pzgengrid.o \
+../Pre/pzpargrid.o
+libpz_a_OBJECTS = 
+DIST_COMMON =  Makefile.am Makefile.in
+
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+TAR = gtar
+GZIP_ENV = --best
+SOURCES = $(libpz_a_SOURCES)
+OBJECTS = $(libpz_a_OBJECTS)
+
+all: all-redirect
+.SUFFIXES:
+.SUFFIXES: .S .c .o .s
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu lib/Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+
+mostlyclean-libLIBRARIES:
+
+clean-libLIBRARIES:
+	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+
+distclean-libLIBRARIES:
+
+maintainer-clean-libLIBRARIES:
+
+install-libLIBRARIES: $(lib_LIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
+	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(libdir)/$$p; \
+	done
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+libpz.a: $(libpz_a_OBJECTS) $(libpz_a_DEPENDENCIES)
+	-rm -f libpz.a
+	$(AR) cru libpz.a $(libpz_a_OBJECTS) $(libpz_a_LIBADD)
+	$(RANLIB) libpz.a
+tags: TAGS
+TAGS:
+
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+
+subdir = lib
+
+distdir: $(DISTFILES)
+	here=`cd $(top_builddir) && pwd`; \
+	top_distdir=`cd $(top_distdir) && pwd`; \
+	distdir=`cd $(distdir) && pwd`; \
+	cd $(top_srcdir) \
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu lib/Makefile
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+info-am:
+info: info-am
+dvi-am:
+dvi: dvi-am
+check-am: all-am
+check: check-am
+installcheck-am:
+installcheck: installcheck-am
+install-exec-am: install-libLIBRARIES
+install-exec: install-exec-am
+
+install-data-am:
+install-data: install-data-am
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-am
+uninstall-am: uninstall-libLIBRARIES
+uninstall: uninstall-am
+all-am: Makefile $(LIBRARIES)
+all-redirect: all-am
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs:
+	$(mkinstalldirs)  $(DESTDIR)$(libdir)
+
+
+mostlyclean-generic:
+
+clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
+
+maintainer-clean-generic:
+mostlyclean-am:  mostlyclean-libLIBRARIES mostlyclean-compile \
+		mostlyclean-generic
+
+mostlyclean: mostlyclean-am
+
+clean-am:  clean-libLIBRARIES clean-compile clean-generic mostlyclean-am
+
+clean: clean-am
+
+distclean-am:  distclean-libLIBRARIES distclean-compile \
+		distclean-generic clean-am
+
+distclean: distclean-am
+
+maintainer-clean-am:  maintainer-clean-libLIBRARIES \
+		maintainer-clean-compile maintainer-clean-generic \
+		distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-am
+
+.PHONY: mostlyclean-libLIBRARIES distclean-libLIBRARIES \
+clean-libLIBRARIES maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
+install-libLIBRARIES mostlyclean-compile distclean-compile \
+clean-compile maintainer-clean-compile tags distdir info-am info dvi-am \
+dvi check check-am installcheck-am installcheck install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+
+
+-include $(top_srcdir)/@PZ_MK@
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

@@ -1,0 +1,222 @@
+void TPZInterpolatedElement::EvaluateError(void (* fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZMatrix &deriv),
+                  					            REAL &true_error,REAL &L2_error,TPZVec<REAL> &fluxTPZBlock * flux,REAL &estimate) {
+
+  true_error=0.;
+  L2_error=0.;
+  estimate=0.;
+  cout << "TPZInterpolatedElement::EvaluateError needs to be implemented!\n";
+
+  	if(fMaterial == NULL){
+	   PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
+		Print(PZError);
+		return;
+	}
+
+	int ndof = fMaterial->NStateVariables();
+	int num_flux = fMaterial->NFluxes();
+	int dim = Dimension();
+
+   int  neq = 0;
+   for(int inod=0;inod<NConnects();inod++) {
+   	TPZConnect df = Connect(inod);
+		int ndof = df.NDof(*Mesh());
+   	neq += ndof*NConnectShapeF(inod);
+   }
+	TPZVec<REAL> sol(neq,0.);
+	int in;
+	/*for(in=0; in<;neq in++) {
+        TPZConnect df = Connect(in);
+        int ndof = df.NDof(*Mesh());
+        for(int jn = 0; jn<ndof; jn++) sol[j++] = 0;
+	}
+
+	TPZFMatrix phi(NShapeF(),1);
+	TPZFMatrix dphi(dim,NShapeF());
+	TPZFMatrix dphix(dim,NShapeF());
+	TPZFMatrix axes(3,3,0.);
+	/*long id[2];
+	id[0] = ConnectIndex(0);
+	id[1] = ConnectIndex(1);
+
+
+	TPZFMatrix jacobian(dim,dim);
+   TPZFMatrix jacinv(dim,dim);
+   REAL detjac;
+	TPZVec<REAL> x(3,0.);
+	TPZVec<REAL> u_exact(ndof,0.);
+	TPZFMatrix du_exact(dim,ndof);
+	TPZVec<REAL> intpoint(dim,0.);
+	TPZVec<REAL> values(3,0.);
+	double weight=0.;
+   int ieq;
+	int numinterval = 15;
+	for (int interv=0; interv<numinterval; interv++) {
+	for(int nint=0; nint<GetIntegrationRule().NPoints(); nint++) {
+
+        GetIntegrationRule().Point(nint,intpoint,weight);
+
+        //intpoint[0] = (intpoint[0]+1.)/numinterval + (-1.+interv*2./numinterval);
+
+        fReference->Jacobian( intpoint , jacobian, axes);
+
+        //weight *= jacobian(0,0)/numinterval;
+        switch(dim) {
+        case 1:
+          detjac = jacobian(0,0);
+          break;
+        case 2:
+          detjac = jacobian(0,0)*jacobian(1,1)-jacobian(0,1)*jacobian(1,0);
+          break;
+        case 3:
+          PZError << "pzintel.c Please implement the 3D jacobian and its inverse\n";
+          PZError.flush();
+          break;
+        default:
+          PZError << "pzintel.c dimension = " << dim << endl;
+          PZError.flush();
+        }
+        Shape(intpoint,phi,dphi);
+        fReference->X( intpoint , x);
+        switch(dim) {
+        case 1:
+          dphix = dphi*(1./detjac);
+          break;
+        case 2:
+            jacinv(0,0) = +jacobian(1,1)/detjac;
+            jacinv(1,1) = +jacobian(0,0)/detjac;
+            jacinv(0,1) = -jacobian(0,1)/detjac;
+            jacinv(1,0) = -jacobian(1,0)/detjac;
+            for(ieq = 0; ieq < NShapeF(); ieq++) {
+               dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
+               dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
+            }
+            break;
+        case 3:
+        default:
+          PZError << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
+          PZError.flush();
+        }
+
+        weight *= fabs(detjac);
+
+        //fReference->Shape1d(intpoint[0],NConnects(),phi,dphi);
+
+        dphix = dphi*(1./jacobian(0,0));
+        TPZVec<REAL> u(ndof,0.);
+        TPZFMatrix dudx(ndof,1,0.);
+        TPZVec<REAL> flux_el(num_flux,0.);
+        flux.Resize(neq);
+        fMaterial->Flux(x, u, dudx, axes, flux);
+        for(int in=0; in< NConnects(); in++) {
+                TPZConnect nodp = Connect(in);
+                int numvar = nodp.NDof(*Mesh());
+                long ibl = nodp.SequenceNumber();
+                TPZFMatrix submat(num_flux,1);
+                if(&flux) {
+                   for(int ifl=0;ifl<numvar;ifl++) {
+                       submat(ifl%ndof,0) = flux[ibl];//flux((int) ibl,0,ifl,0);
+                   }
+           		}
+
+             //acumula o resultado da integral
+             TPZMaterial *matp = (TPZMaterial *) fMaterial;
+             matp->Flux(x,u,dudx,axes,flux_el);
+
+             for(int idf=0; idf < ndof; idf++) {
+                     u[idf] += phi(in,0)*sol[in*ndof+idf];
+                     dudx(idf,1) += dphix(0,in)*sol[in*ndof+idf];
+                }
+
+               if(fp) {
+                     fp(x,u_exact,du_exact);
+                     TPZMaterial *matp = (TPZMaterial *) fMaterial;
+                     matp->Errors(x,u,dudx,axes,flux_el,u_exact,du_exact,values);
+                     true_error += values[0]*weight;
+                     L2_error += values[1]*weight;
+                     estimate += values[2]*weight;
+               }
+        }
+   }
+   return;
+}
+
+
+void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
+
+  int nshape = NShapeF();
+  int dim = Dimension();
+  int ncon = NConnects();
+  TPZBlock &block = fMesh->Block();
+
+  if(fMaterial == NULL){
+    PZError << "TPZIntEl::Solution : no Material for this element\n";
+    Print(PZError);
+    return;
+  }
+
+  int numdof = fMaterial->NStateVariables();
+  TPZFMatrix phi(nshape,1);
+  TPZFMatrix dphi(dim,nshape),dphix(dim,nshape);
+  TPZVec<REAL> u(numdof);
+  TPZFMatrix du(dim,numdof,0.);
+  TPZFMatrix axes(3,3,0.);
+  TPZFMatrix jacobian(dim,dim);
+  TPZFMatrix jacinv(dim,dim);
+  TPZVec<REAL> x(3);
+  REAL detjac;
+  int ieq;
+  fReference->Jacobian(qsi,jacobian,axes);
+  switch(dim) {
+  case 1:
+    detjac = jacobian(0,0);
+    break;
+  case 2:
+    detjac = jacobian(0,0)*jacobian(1,1)-jacobian(0,1)*jacobian(1,0);
+    break;
+  case 3:
+    PZError << "pzintel.c Please implement the 3D jacobian and its inverse\n";
+    PZError.flush();
+    break;
+  default:
+    PZError << "pzintel.c dimension = " << dim << endl;
+    PZError.flush();
+  }
+  Shape(qsi,phi,dphi);
+  fReference->X(qsi,x);
+  switch(dim) {
+  case 1:
+    dphix = dphi*(1./detjac);
+    break;
+  case 2:
+		jacinv(0,0) = +jacobian(1,1)/detjac;
+		jacinv(1,1) = +jacobian(0,0)/detjac;
+		jacinv(0,1) = -jacobian(0,1)/detjac;
+		jacinv(1,0) = -jacobian(1,0)/detjac;
+		for(ieq = 0; ieq < nshape; ieq++) {
+			dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
+			dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
+		}
+      break;
+  case 3:
+  default:
+    PZError << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
+    PZError.flush();
+  }
+
+  int iv=0,in,jn,d;
+  TPZConnect *df;
+  u.Fill(0.);
+  du.Zero();
+  for(in=0; in<ncon; in++) {
+    df = &Connect(in);
+    int dfseq = df->SequenceNumber();
+    int dfvar = block.Size(dfseq);
+    for(jn=0; jn<dfvar; jn++) {
+      u[iv%numdof] += phi(iv/numdof,0)*block(dfseq,0,jn,0);
+      for(d=0; d<dim; d++)
+			du(d,iv%numdof) += dphix(d,iv/numdof)*block(dfseq,0,jn,0);
+      	iv++;
+    }
+  }
+  fMaterial->Solution(u,du,axes,var,sol);
+}

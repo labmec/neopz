@@ -1,0 +1,37 @@
+#
+# PZ_user.mk options makefile for NeoPZ.
+#
+# It will be processed by GNU automake to produce Makefile.in
+#
+# $Id: PZ_user.mk.in,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+#
+
+PZ_INCLUDES = -I@prefix@/Util \
+	-I@prefix@/Common \
+	-I@prefix@/Mesh \
+	-I@prefix@/Geom \
+	-I@prefix@/Refine \
+	-I@prefix@/Shape \
+	-I@prefix@/StrMatrix \
+	-I@prefix@/Frontal \
+	-I@prefix@/Matrix \
+	-I@prefix@/LinearSolvers \
+	-I@prefix@/Analysis \
+	-I@prefix@/Integral \
+	-I@prefix@/Cosys \
+	-I@prefix@/Material \
+	-I@prefix@/Multigrid \
+	-I@prefix@/Post \
+	-I@prefix@/External \
+	-I@prefix@/External/sloan \
+	-I@METISDIR@/Lib
+
+if METIS
+   PZ_LIB = -L@prefix@/lib -L@METISDIR@/Lib -lpz -lmetis
+else
+   PZ_LIB = -L@prefix@/lib -lpz
+endif
+
+PZ_CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@
+
+## --| NeoPZ |------------------------------------------------------------------
