@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cc,v 1.13 2003-12-18 20:05:11 erick Exp $
+//$Id: pzeulerconslaw.cc,v 1.14 2003-12-30 09:37:56 phil Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -550,7 +550,7 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
          for(jshape = 0; jshape < nshape; jshape++)
 	    for(i = 0; i < nstate; i++)
 	    {
-	    j = i
+	      j = i;
 	       /*for(j = 0; j < nstate; j++)*/
 	          ek(ishape * nstate + i,jshape * nstate + j) +=
 		     (dphi(0,ishape)*dphi(0,jshape)+
