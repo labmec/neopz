@@ -22,6 +22,7 @@ libpzmesh_a_SOURCES = pzelctemp.cc \
 	pzcheckmesh.cc \
 	pzcheckrestraint.cc \
 	pzcmesh.cc \
+        pzflowcmesh.cc \
 	pzcompel.cc \
 	pzconnect.cc \
 	pzelc1d.cc \

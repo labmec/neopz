@@ -1,7 +1,7 @@
 #include "pzcompel.h"
 #include "pzgeoel.h"
-#include "TPZConservationLaw.h"
-
+#include "pzconslaw.h"
+#include "pzerror.h"
 
 #ifndef TPZFLOWCOMPMESH_H
 #define TPZFLOWCOMPMESH_H
@@ -54,6 +54,15 @@ public:
    * in the vector fFluidMaterial.
    */
   void CollectFluidMaterials();
+
+   /**
+    * Informs the time at which
+    * the current solution in the computational
+    * mesh belongs, so that the materials can
+    * choose whether to contribute implicitly
+    * or explicitly.
+    */
+  void SetContributionTime(TPZContributeTime time);
 
 protected:
 
