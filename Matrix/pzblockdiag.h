@@ -89,6 +89,11 @@ class TPZBlockDiagonal : public TPZMatrix
         // decomposta com LU
 virtual int Substitution( TPZFMatrix * B ) const;
 
+   /**
+   * Updates the values of the matrix based on the values of the matrix
+   */
+   virtual void UpdateFrom(TPZMatrix *mat);
+  
   /**
    * method which checks the working of the class
    */

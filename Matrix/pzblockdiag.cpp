@@ -566,3 +566,26 @@ void TPZBlockDiagonal::Print(char *msg, ostream &out) {
     }
   }
 }
+
+   /**
+   * Updates the values of the matrix based on the values of the matrix
+   */
+void TPZBlockDiagonal::UpdateFrom(TPZMatrix *mat)
+{
+  if(!mat) 
+  {
+    cout << __FUNCTION__ << " called with zero argument\n";
+    return;
+  }
+  this->fDecomposed = ENoDecompose;
+  int nblock = fBlockSize.NElements();
+  int b,bsize,pos,firsteq = 0;
+  for(b=0; b<nblock; b++) {
+    bsize = fBlockSize[b];
+//    int r,c;
+    pos = fBlockPos[b];
+    TPZFMatrix block(bsize,bsize,&fStorage[pos],bsize*bsize);
+    mat->GetSub(firsteq,firsteq,bsize,bsize,block);
+    firsteq += bsize;
+  }
+}

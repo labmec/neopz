@@ -16,7 +16,7 @@ TPZSparseBlockDiagonal::TPZSparseBlockDiagonal()
 {
 }
 
-TPZSparseBlockDiagonal::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows, int cols)
+TPZSparseBlockDiagonal::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows) : fBlock(blockgraph), fBlockIndex(blockgraphindex)
 {
   int numbl = blockgraphindex.NElements()-1;
   fBlockSize.Resize(numbl);
@@ -27,7 +27,46 @@ TPZSparseBlockDiagonal::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<i
   }
   Initialize(fBlockSize);
   fRow = rows;
-  fCol = cols;
+  fCol = rows;
+}
+
+TPZSparseBlockDiagonal::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows, int color, TPZVec<int> &colors)
+{
+  int numbl = blockgraphindex.NElements()-1;
+  fBlockSize.Resize(numbl);
+  int ibl,iblcount,graphsize = 0;
+  for(ibl=0, iblcount=0; ibl<numbl; ibl++)
+  {
+    if(colors[ibl]==color) 
+    {
+      fBlockSize[iblcount++] = blockgraphindex[ibl+1]-blockgraphindex[ibl];
+      graphsize += fBlockSize[iblcount-1];
+    }
+  }
+  fBlock.Resize(graphsize);
+  fBlockIndex.Resize(iblcount+1);
+  fBlockIndex[0] = 0;
+  for(ibl=0, iblcount=0; ibl<numbl; ibl++)
+  {
+    if(colors[ibl]==color) 
+    {
+      int first = blockgraphindex[ibl];
+      int last = blockgraphindex[ibl+1];
+      int firstcp = fBlockIndex[iblcount];
+      fBlockIndex[iblcount+1] = firstcp+fBlockSize[iblcount];
+//      int lastcp = fBlockIndex[iblcount+1];
+      int ieq,ieqcp;
+      for(ieq=first,ieqcp=firstcp; ieq<last; ieq++,ieqcp++)
+      {
+        fBlock[ieqcp] = blockgraph[ieq];
+      }
+      iblcount++;
+    }
+  }
+  fBlockSize.Resize(iblcount);
+  Initialize(fBlockSize);
+  fRow = rows;
+  fCol = rows;
 }
 
 
@@ -36,7 +75,7 @@ TPZSparseBlockDiagonal::~TPZSparseBlockDiagonal()
 {
 }
 
-static REAL gZero = 0.;
+//static REAL gZero = 0.;
 
 const REAL& TPZSparseBlockDiagonal::Get(const int row, const int col) const
 {
@@ -69,6 +108,7 @@ int TPZSparseBlockDiagonal::Put(const int row, const int col, const REAL& value)
   if(cblock != rblock) return -1;
   int pos = rblockindex + cblockindex*fBlockSize[rblock];
   fStorage[fBlockPos[rblock]+pos] = value;
+  return 0;
 }
 
 int TPZSparseBlockDiagonal::PutVal(const int row, const int col, const REAL& value)
@@ -80,6 +120,7 @@ int TPZSparseBlockDiagonal::PutVal(const int row, const int col, const REAL& val
   if(cblock != rblock) return -1;
   int pos = rblockindex + cblockindex*fBlockSize[rblock];
   fStorage[fBlockPos[rblock]+pos] = value;
+  return 0;
 }
 
 REAL& TPZSparseBlockDiagonal::operator ( )(const int row, const int col)
@@ -95,7 +136,13 @@ REAL& TPZSparseBlockDiagonal::operator ( )(const int row, const int col)
 
 int TPZSparseBlockDiagonal::Substitution(TPZFMatrix* B) const
 {
-    return TPZBlockDiagonal::Substitution(B);
+  TPZFNMatrix<1000> BG(B->Rows(),B->Cols());
+  Gather(*B,BG,1);
+  int result = TPZBlockDiagonal::Substitution(&BG);
+  B->Zero();
+  Scatter(BG,*B,1);
+  return result;
+  
 }
 
 REAL& TPZSparseBlockDiagonal::s(const int row, const int col)
@@ -143,12 +190,13 @@ void TPZSparseBlockDiagonal::GetBlock(int i, TPZFMatrix& block)
 
 void TPZSparseBlockDiagonal::MultAdd(const TPZFMatrix& x, const TPZFMatrix& y, TPZFMatrix& z, const REAL alpha, const REAL beta, const int opt, const int stride) const
 {
-  TPZFNMatrix<1000000> xsc(0,0),ysc(0,0),zsc(0,0);
+  TPZFNMatrix<1000000> xsc(0,0),ysc(0,0,0.),zsc(0,0);
   xsc.Resize(fBlock.NElements(),x.Cols());
+  z.Zero();
   if(beta != 0.) ysc.Resize(fBlock.NElements(),y.Cols());
   zsc.Resize(fBlock.NElements(),z.Cols());
-  int fRowKeep = fRow;
-  int fColKeep = fCol;
+//  int fRowKeep = fRow;
+//  int fColKeep = fCol;
 //  fRow = fBlock.NElements();
 //  fCol = fBlock.NElements();
   Gather(x,xsc,stride);
@@ -195,7 +243,7 @@ void TPZSparseBlockDiagonal::Scatter(const TPZFMatrix &in, TPZFMatrix &out, int 
     int ieq,ic;
     for(ic=0; ic<nc; ic++)
     {
-      for(ieq=0; ieq<neq; ieq++) out(fBlock[ieq]*stride,ic) = in.GetVal(ieq,ic);
+      for(ieq=0; ieq<neq; ieq++) out(fBlock[ieq]*stride,ic) += in.GetVal(ieq,ic);
     }
 }
 
@@ -213,3 +261,30 @@ void TPZSparseBlockDiagonal::Gather(const TPZFMatrix &in, TPZFMatrix &out, int s
       for(ieq=0; ieq<neq; ieq++) out(ieq,ic) = in.GetVal(fBlock[ieq]*stride,ic);
     }
 }
+
+   /**
+   * Updates the values of the matrix based on the values of the matrix
+   */
+void TPZSparseBlockDiagonal::UpdateFrom(TPZMatrix *mat)
+{
+  if(!mat) 
+  {
+    cout << __FUNCTION__ << " called with zero argument\n";
+    return;
+  }
+  this->fDecomposed = ENoDecompose;
+  int nblock = fBlockSize.NElements();
+  int b,bsize,pos;
+  TPZManVector<int,1000> indices;
+  for(b=0; b<nblock; b++) {
+    bsize = fBlockSize[b];
+    indices.Resize(bsize);
+    int r;
+    pos = fBlockPos[b];
+    for(r=0; r<bsize; r++) indices[r] = fBlock[fBlockIndex[b]+r]; 
+    TPZFMatrix block(bsize,bsize,&fStorage[pos],bsize*bsize);
+    mat->GetSub(indices,block);
+  }
+
+}
+  

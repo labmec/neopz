@@ -23,7 +23,9 @@ class TPZSparseBlockDiagonal : public TPZBlockDiagonal
 {
 public:
     TPZSparseBlockDiagonal();
-    TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows, int cols);
+    TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows);
+    
+    TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows, int color, TPZVec<int> &colors);
 
     ~TPZSparseBlockDiagonal();
 
@@ -41,6 +43,12 @@ public:
     void MultAdd(const TPZFMatrix& x, const TPZFMatrix& y, TPZFMatrix& z, const REAL alpha, const REAL beta, const int opt, const int stride) const;
     void FindBlockIndex(int glob, int &block, int &blockind) const;
 
+   /**
+   * Updates the values of the matrix based on the values of the matrix
+   */
+   virtual void UpdateFrom(TPZMatrix *mat);
+  
+    
 protected:
 /**
 Equation numbers for each block
