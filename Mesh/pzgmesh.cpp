@@ -427,3 +427,68 @@ int TPZGeoMesh::NodeIndex(TPZGeoNode *nod){
 	}
 	return i;
 }
+
+#include "TPZGeoElement.h"
+#include "TPZGeoCube.h"
+#include "pzshapecube.h"
+#include "TPZRefCube.h"
+#include "pzshapelinear.h"
+#include "TPZGeoLinear.h"
+#include "TPZRefLinear.h"
+#include "pzrefquad.h"
+#include "pzshapequad.h"
+#include "pzgeoquad.h"
+#include "pzshapetriang.h"
+#include "pzreftriangle.h"
+#include "pzgeotriangle.h"
+#include "pzshapeprism.h"
+#include "pzrefprism.h"
+#include "pzgeoprism.h"
+#include "pzshapetetra.h"
+#include "pzreftetrahedra.h"
+#include "pzgeotetrahedra.h"
+#include "pzshapepiram.h"
+#include "pzrefpyram.h"
+#include "pzgeopyramid.h"
+#include "pzgeopoint.h"
+#include "pzrefpoint.h"
+
+TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,TPZVec<int> &nodeindexes,int matid,int &index){
+
+  switch(type){
+  case 0://point
+    return new TPZGeoElement<TPZShapeLinear,TPZGeoPoint,TPZRefPoint>(nodeindexes,matid,*this,index);
+    //return 0;
+  case 1://line
+    return new TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>(nodeindexes,matid,*this,index);
+  case 2://triangle
+    return new TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>(nodeindexes,matid,*this,index);
+  case 3://quadrilatera
+    return  new TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>(nodeindexes,matid,*this,index);
+  case 4://tetraedra
+    return new TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>(nodeindexes,matid,*this,index);
+  case 5:
+    return new TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>(nodeindexes,matid,*this,index);
+  case 6:
+    return new TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>(nodeindexes,matid,*this,index);
+  case 7:
+    return new TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>(nodeindexes,matid,*this,index);
+  default:
+    PZError << "TPZGeoMesh::CreateGeoElement type element not exists: type = " << type << endl;
+    return NULL;
+  }
+  return NULL;
+}
+
+void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){ 
+  if(index < 0 || gel != fElementVec[index]){ 
+    index = ElementIndex(gel);
+    if(index < 0) {
+      PZError << "TPZGeoMesh::DeleteElement index error\n"; 
+      return; 
+    }
+  } 
+  if(gel) delete gel; 
+  fElementVec[index] = NULL; 
+  fElementVec.SetFree(index); 
+} 

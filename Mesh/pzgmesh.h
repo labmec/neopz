@@ -24,6 +24,7 @@ contained within the TPZGeoMesh.
 #include <string.h>
 
 #include "pzreal.h"
+#include "pzeltype.h"
 #include "pzgnode.h"
 #include "pzbndcond.h"
 #include "pzcmesh.h"
@@ -143,7 +144,21 @@ virtual  void Print(ostream & out = cout);
    /**Returns the index of the given node into the fNodeVec*/
   int NodeIndex(TPZGeoNode * nod);//Cesar 2002-05-02
 
+  /**
+   * Generic method for creating a geometric element. Putting this method centrally facilitates
+   * the modification of the element type all through the code
+   * @param type element topology
+   * @param cornerindexes indexes of the corner nodes of the element
+   * @param index index of the element in the vector of element pointers
+   */
+  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes,int matid,int &index);
 
+  /**
+   * Centralized method to delete elements
+   * @param gel pointer to the element to be deleted
+   * @param index index of the element
+   */
+  void DeleteElement(TPZGeoEl *gel, int index = -1);
 
  private:
 
