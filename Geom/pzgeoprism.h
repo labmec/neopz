@@ -21,7 +21,7 @@ public:
   /**
    * return the type of the element as specified in file pzeltype.h
    */
-  static MElementType Type() { return EPoint;}
+  static MElementType Type() { return EPrisma;}
 
   /** implementation of two-dimensional bilinear interpolation*/
 static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
