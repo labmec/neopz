@@ -37,6 +37,9 @@
 #include "pzbdstrmatrix.h"
 #include "pzrenumbering.h"
 #include "pzvisualmatrix.h"
+#include "pzsave.h"
+#include "TPZCompElDisc.h"
+#include "TPZInterfaceEl.h"
 
 
 int gDebug;
@@ -49,13 +52,45 @@ void InitialGuess(TPZVec<REAL> &x,TPZVec<REAL> &result){
    result.Fill(0.);
 }
 
-int main()
+// saveable test
+int main1()
 {
+   RegisterMeshClasses();
+   RegisterMatrixClasses();
+   RegisterMaterialClasses();
+
+   TPZEulerConsLaw2 euler(3, 10, 1.5, 3, SUPG_AD), * peuler2;
+   euler.SetTimeDiscr(Implicit_TD, ApproxImplicit_TD, None_TD);
+
+   {
+      TPZFileStream fstr;
+      fstr.OpenWrite("dump.dat");
+      euler.Write(fstr,1);
+   }
+
+
+   {
+      TPZFileStream fstr;
+      fstr.OpenRead("dump.dat");
+      TPZSaveable *sv = TPZSaveable::Restore(fstr,NULL);
+      peuler2 = dynamic_cast<TPZEulerConsLaw2*>(sv);
+   }
+
+   return 0;
+}
+
+int run(istream & input, ostream & output)
+{
+
+   RegisterMeshClasses();
+   RegisterMatrixClasses();
+   RegisterMaterialClasses();
+
    gDebug = 0;
 
    //Creating the computational and geometric meshes.
 
-   TPZString filename, file;
+   TPZString filename, file, startFileName;
    int ProblemType;
    int temp;
    char number[32];
@@ -70,14 +105,15 @@ int main()
    int p = 0;
    int nSubdiv = 0;
    TPZFlowCompMesh * cmesh;
+   TPZGeoMesh * gmesh;
 
-   cout << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n\t5: RadialShock\n\t6: NACA\n";
+   output << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n\t5: RadialShock\n\t6: NACA\n\t7: From File\n";
 
-   cin >> ProblemType;
+   input >> ProblemType;
 
-   cout << "\nDiffusion type:\n\t0: None\n\t1: LS\n\t2: SUPG\n\t3: Bornhaus\n\t4: Transposed LS\n";
+   output << "\nDiffusion type:\n\t0: None\n\t1: LS\n\t2: SUPG\n\t3: Bornhaus\n\t4: Transposed LS\n";
 
-   cin >> temp;
+   input >> temp;
 
    if(temp == 0)
    {
@@ -105,10 +141,10 @@ int main()
 	 break;
       }
 
-      cout << "\nDiffusion Time Discr:\n\t0: ApproxImplicit\n\t1: Implicit\n\t2: Explicit\n";
+      output << "\nDiffusion Time Discr:\n\t0: ApproxImplicit\n\t1: Implicit\n\t2: Explicit\n";
 
 
-      cin >> temp;
+      input >> temp;
 
       switch(temp)
       {
@@ -126,15 +162,15 @@ int main()
          break;
       }
 
-      cout << "\nDelta\n";
-      cin >> delta;
+      output << "\nDelta\n";
+      input >> delta;
       sprintf(number, "%lf_", delta);
       filename += number;
    }
 
-   cout << "\nVolume convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n";
+   output << "\nVolume convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n";
 
-   cin >> temp;
+   input >> temp;
 
    switch(temp)
    {
@@ -153,9 +189,9 @@ int main()
    }
 
 
-   cout << "\nFace convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n";
+   output << "\nFace convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n";
 
-   cin >> temp;
+   input >> temp;
 
    switch(temp)
    {
@@ -173,28 +209,32 @@ int main()
       break;
    }
 
-   cout << "\nCFL\n";
-   cin >> CFL;
+   output << "\nCFL\n";
+   input >> CFL;
    sprintf(number, "CFL%lf_", CFL);
    filename += number;
 
-   cout << "\nEvolute CFL? 0:[no] 1:[yes] 2:[super]\n";
-   cin >> EvolCFL;
+   output << "\nEvolute CFL? 0:[no] 1:[yes] 2:[super]\n";
+   input >> EvolCFL;
    if(EvolCFL == 1)
    {
       filename += "EvolCFL_";
    }
 
 
-   cout << "\nInterpolation degree\n";
-   cin >> p;
-   sprintf(number, "P%d_", p);
-   filename += number;
+   if(ProblemType!=7)
+   {
+      output << "\nInterpolation degree\n";
+      input >> p;
+      sprintf(number, "P%d_", p);
+      filename += number;
 
-   cout << "\nNumber of Subdivisions\n";
-   cin >> nSubdiv;
-   sprintf(number, "N%d", nSubdiv);
-   filename += number;
+      output << "\nNumber of Subdivisions\n";
+      input >> nSubdiv;
+      sprintf(number, "N%d", nSubdiv);
+      filename += number;
+   }
+
 
    switch(ProblemType)
    {
@@ -239,23 +279,70 @@ int main()
          NACACompMesh(CFL, delta, p, nSubdiv, DiffType,
 	            Diff_TD, ConvVol_TD, ConvFace_TD);
       break;
+
+      case 7:
+      {
+         file = "FromFile_";
+
+         output << "\nEnter filename to restart from [without extension]:\n";
+	 char inputChar[1024];
+         input >> inputChar;
+	 startFileName = inputChar;
+
+	 TPZMaterial * pmat;
+	 TPZEulerConsLaw2 * pEuler;
+
+	 startFileName += ".pzf";
+	 TPZFileStream fstr;
+         fstr.OpenRead(startFileName.Str());
+         TPZSaveable *sv = TPZSaveable::Restore(fstr,NULL);
+	 gmesh = dynamic_cast<TPZGeoMesh *>(sv);
+	 sv = TPZSaveable::Restore(fstr, gmesh);
+         cmesh = dynamic_cast<TPZFlowCompMesh *>(sv);
+         cmesh->SetCFL(CFL);
+	 pmat = cmesh->GetFlowMaterial(0);
+	 pEuler = dynamic_cast<TPZEulerConsLaw2 *>(pmat);
+	 pEuler->SetTimeDiscr
+	            (Diff_TD,
+                     ConvVol_TD,
+		     ConvFace_TD);
+	 pEuler->ArtDiff().SetArtDiffType(DiffType);
+	 pEuler->ArtDiff().SetDelta(delta);
+
+
+	 output << "Interpolation Degree:\n";
+	 input >> p;
+	 sprintf(number, "P%d_", p);
+	 filename += number;
+	 filename += startFileName;
+
+	 int i_el, nEl = cmesh->NElements();
+	 TPZCompElDisc * pCEl;
+	 TPZCompEl * pEl;
+	 TPZInterfaceElement * pIEl;
+         for(i_el = 0; i_el < nEl; i_el++)
+	 {
+	    pEl = cmesh->ElementVec()[i_el];
+	    pCEl = dynamic_cast<TPZCompElDisc *>(pEl);
+	    pIEl = dynamic_cast<TPZInterfaceElement *>(pEl);
+	    if(!pIEl && pCEl)pCEl -> SetDegree(p);
+	    pEl->Reference()->SetReference(pEl); // building cross references
+	 }
+         cmesh->ExpandSolution2();
+
+      }
+      break;
    }
    file += filename;
 
-   cout << "\nMaxIter\n";
-   cin >> MaxIter;
+   output << "\nMaxIter\n";
+   input >> MaxIter;
 
 
 // Creating the analysis object
 
    ofstream anFile("analysis.out");
-   TPZManVector<REAL,3> normal(3,0.);
-   normal[0] = 1.;
-   normal[1] = 1.e-5;
-   ResequenceByGeometry(cmesh,normal);
-   TPZFMatrix fillin(100,100);
-   cmesh->ComputeFillIn(100,fillin);
-   VisualMatrix(fillin,"matrix.dx");
+
    TPZEulerAnalysis An(cmesh, anFile);
    An.SetEvolCFL(EvolCFL);
 
@@ -275,6 +362,7 @@ int main()
    TPZStepSolver Solver;
    Solver.SetDirect(ELU);// ECholesky -> simétrica e positiva definida
    Solver.SetMatrix(mat);
+
    An.SetSolver(Solver);
    }
 //
@@ -315,9 +403,9 @@ int main()
 //
 
 
-
 */
-/*
+
+
    { // GMRES with block preconditioning
    TPZSpStructMatrix StrMatrix(cmesh);
       //TPZFStructMatrix StrMatrix(cmesh);
@@ -349,8 +437,8 @@ int main()
 
    //Main Solver
    TPZStepSolver Solver;
-   Solver.SetGMRES(1000,
-		300,
+   Solver.SetGMRES(3000,
+		3000,
 		Pre,
 		1e-9,
 		0);
@@ -359,7 +447,7 @@ int main()
    An.SetBlockDiagonalPrecond(block);
    }
 //
-*/
+
 
 /*
    { // SSOR
@@ -381,7 +469,14 @@ int main()
    An.SetSolver(Solver);
    }
 //*/
-
+/*
+   TPZManVector<REAL,3> normal(3,0.);
+   normal[0] = 1.;
+   normal[1] = 1.e-5;
+   ResequenceByGeometry(cmesh,normal);
+   TPZFMatrix fillin(100,100);
+   cmesh->ComputeFillIn(100,fillin);
+   VisualMatrix(fillin,"matrix.dx");
 
   TPZParFrontStructMatrix <TPZFrontNonSym> StrMatrix(cmesh);
   An.SetStructuralMatrix(StrMatrix);
@@ -396,13 +491,21 @@ int main()
   Solver.SetDirect(ELU);
   Solver.SetMatrix(mat);
   An.SetSolver(Solver);
-
-   cout << "Generating File:" << file.Str() << endl;
+*/
+   output << "Generating File:" << file.Str() << endl;
 
    ofstream * dxout = new ofstream((file+".dx" ).Str());
    ofstream *   out = new ofstream((file+".csv").Str());
 
+
    An.Run(* out, * dxout, max(0, p-1));
 
+   An.WriteCMesh((file+".pzf").Str());
+
    return 0;
+}
+
+int main()
+{
+   return run(cin, cout);
 }
