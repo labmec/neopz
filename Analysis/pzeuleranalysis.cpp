@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.25 2004-04-04 23:18:11 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.26 2004-04-06 13:08:08 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -231,6 +231,8 @@ void TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix * residual) {
 
 int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 {
+
+/*
    int i = 0;
    REAL res;// residual of linear invertion.
 
@@ -248,6 +250,37 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 //      cout << "\n      LinEpsilon:" << res;
       // Linearizes the system with the newest iterative solution
       Assemble();
+
+      epsilon = Norm(fRhs);
+      cout << "\n   NonLinEpsilon:" << epsilon;
+      i++;
+   }
+
+   numIter = i;
+
+   if(epsilon > fNewtonEps)return 0;
+   return 1;
+*/
+
+   int i = 0;
+   REAL res;// residual of linear invertion.
+
+//   Assemble(); // assembles the linear system.
+   // It is assumed that BufferLastStateAssemble(); was already called.
+   epsilon = fNewtonEps * 2.;// ensuring the loop will be
+   // performed at least once.
+
+   TPZFMatrix residual;
+
+   while(i < fNewtonMaxIter && epsilon > fNewtonEps)
+   {
+      // Linearizes the system with the newest iterative solution
+      Assemble();
+      //Solves the linearized system and updates the solution.
+      Solve(res, &residual);
+      //cout << "\n      LinEpsilon:" << res;
+
+      AssembleRhs();
 
       epsilon = Norm(fRhs);
       cout << "\n   NonLinEpsilon:" << epsilon;
@@ -323,12 +356,6 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
    // (last Sol, since Curr sol equals it)
    ComputeTimeStep();
 
-/*
-// The lines below initialize all the variables with Ones.
-   for(int j = 0; j < fpLastSol->Rows(); j++)
-   fpLastSol->operator()(j,0) = 1.;
-   fFlowCompMesh->LoadSolution(*fpLastSol);
-*/
    // Buffers the contribution of the last state
    BufferLastStateAssemble();
 
@@ -352,10 +379,6 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
 
       // resetting the forcing function for iterations greater than the 1st
       fFlowCompMesh->SetFlowforcingFunction(NULL);
-
-
-//      cout << "\nLast Solution\n" << *fpLastSol;
-//      cout << "\nCurrent Solution\n" << *fpCurrSol;
 
       // updates the history of state variable vectors
       UpdateHistory();
