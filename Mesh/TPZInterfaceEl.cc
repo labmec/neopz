@@ -31,7 +31,6 @@ void TPZInterfaceElement::VolumeEls(TPZCompEl &thirdel){
   /**A ORDEM DE DEFINICÃO DOS VÉRTICES DO ELEMENTO INTERFACE 
      DETERMINA QUEM SÃO OS ELEMENTOS ESQUERDO E DIREITO ASSOCIADOS*/
   REAL detjac;
-  int diminter = TPZCompElDisc::gInterfaceDimension;
   TPZVec<REAL> param(3),normal(3);
   TPZFMatrix jacobian(3,3),jacinv(3,3),axes(3,3);
   int face = fReference->NSides()-1;//face: lado do elemento bidimensional ou aresta do unidimensional
@@ -503,16 +502,12 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal){
     //aqui geoneigh é um elemento de volume
     //tem dimensão 1 a mais do que o elemento interface
   }
-
-  //
-
-  int diminter = TPZCompElDisc::gInterfaceDimension;
   TPZVec<REAL> param(3),cent(3),point(3,0.),result(3,0.),xint(3),xvol(3),vec(3),rib(3);
   TPZFMatrix jacobian(3,3),jacinv(3,3),axes(3,3);
   REAL detjac,normalize;
   int i;
 
-  switch(diminter){
+  switch(TPZCompElDisc::gInterfaceDimension){
   case 0:
     normal[0] = 1.0;// a normal sempre apontará na dire¢ão positiva do eixo
     break;
@@ -558,3 +553,7 @@ void TPZInterfaceElement::Normal(TPZVec<REAL> &normal){
 
   for(int i=0;i<3;i++) normal[i] = fNormal[i];
 }
+
+/**
+ *  ESTA ALTERA¢ÃO É SÓ PARA ATUALIZAR O PZREPOSITORY (CVS)
+ */
