@@ -1,3 +1,5 @@
+//$Id: TPZCompElDisc.h,v 1.12 2003-11-04 17:01:50 cedric Exp $
+
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,7 +80,7 @@ protected:
   static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
   /**return the geometric element to which this element references*/
   TPZGeoEl *Reference() const { return fReference;}
-
+  void SetReference(TPZGeoEl *ref) {fReference = ref;}
   /**
    * default degree of imterpolation
    */
@@ -88,13 +90,14 @@ protected:
   TPZCompElDisc(TPZCompMesh &mesh,int &index);//construtor do aglomerado
 
   TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy);
+  TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index);
 
   TPZCompElDisc *Clone(TPZCompMesh &mesh) const {
-/*    TPZCompElDisc * clone;
-    clone = new TPZCompElDisc(mesh,*this);
-    clone
-    return clone;
-    //*/return new TPZCompElDisc(mesh,*this);
+    return new TPZCompElDisc(mesh,*this);
+  }
+
+  TPZCompEl *Clone2(TPZCompMesh &mesh,int &index) const {
+    return new TPZCompElDisc(mesh,*this,index);
   }
 
   ~TPZCompElDisc() {
@@ -114,6 +117,9 @@ protected:
    * @param ef element right hand side
    */
   virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+  virtual void CalcResidual(TPZElementMatrix &ef);
+
 
   /**
    * value of the bases and derivatives of the element deformed in point X 
@@ -234,9 +240,14 @@ protected:
    */
   virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
 
-  static TPZCompMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);
+  static void CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh &aggmesh,TPZVec<int> &accumlist,int numaggl);
 
   virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
+  
+  int NSides();
+
+  REAL LesserEdgeOfEl();
+
 };
 
 inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index) {
