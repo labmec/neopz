@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cc,v 1.24 2003-12-02 12:37:58 tiago Exp $
+//$Id: TPZInterfaceEl.cc,v 1.25 2003-12-09 19:27:49 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -26,6 +26,15 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   fMaterial = mesh.FindMaterial(materialid);
   fLeftEl = left;
   fRightEl = right;
+  int icon;
+  for(icon = 0; icon < left->NConnects(); icon++){
+    left ->Connect(icon).IncrementElConnected();
+  }
+
+  for(icon = 0; icon < right->NConnects(); icon++){
+    right ->Connect(icon).IncrementElConnected();
+  }
+
   NormalToFace(fNormal,leftside);
 }
 
@@ -50,6 +59,15 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
     fMaterial = 0;
   }
   //  fMaterial = copy.fMaterial;
+
+  int icon;
+  for(icon = 0; icon < fLeftEl->NConnects(); icon++){
+    fLeftEl ->Connect(icon).IncrementElConnected();
+  }
+
+  for(icon = 0; icon < fRightEl->NConnects(); icon++){
+    fRightEl ->Connect(icon).IncrementElConnected();
+  }
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int &index) 
@@ -80,6 +98,15 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
     fMaterial = 0;
   }
   //  fMaterial = copy.fMaterial;
+  int icon;
+  for(icon = 0; icon < fLeftEl->NConnects(); icon++){
+    fLeftEl ->Connect(icon).IncrementElConnected();
+  }
+
+  for(icon = 0; icon < fRightEl->NConnects(); icon++){
+    fRightEl ->Connect(icon).IncrementElConnected();
+  }
+
 }
 
 TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index) const {
