@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.9 2004-05-21 13:33:15 erick Exp $
+//$Id: pzbndcond.h,v 1.10 2004-06-23 22:42:55 phil Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -17,6 +17,7 @@ using namespace std;
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
+#include "pzmaterialid.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
