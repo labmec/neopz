@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.16 2004-04-02 15:58:27 tiago Exp $
+//$Id: pzanalysis.cpp,v 1.17 2004-05-17 15:57:57 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -99,7 +99,12 @@ void TPZAnalysis::SetBlockNumber(){
 }
 
 void TPZAnalysis::Assemble() {
-	if(!fCompMesh || !fStructMatrix || !fSolver) return;
+	if(!fCompMesh || !fStructMatrix || !fSolver) 
+        {
+          cout << "TPZAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh << " fStructMatrix " << (void *) fStructMatrix <<
+          " fSolver " << (void *) fSolver << " at file " << __FILE__ << " line " << __LINE__ << endl;
+          return;
+        }
 
 	fRhs.Redim(fCompMesh->NEquations(),1);
 	fSolver->SetMatrix(0);
@@ -240,6 +245,11 @@ void TPZAnalysis::DefineGraphMesh(int dim, TPZVec<char *> &scalnames, TPZVec<cha
   int dim1 = dim-1;
   TPZMaterial *mat;
   int nmat,imat;
+  if(!fCompMesh)
+  {
+    cout << "TPZAnalysis::DefineGraphMesh fCompMesh is zero\n";
+    return;
+  }
   nmat = fCompMesh->MaterialVec().NElements();
   for(imat=0; imat<nmat; imat++) {
     mat = fCompMesh->MaterialVec()[imat];
