@@ -389,9 +389,10 @@ int TPZGeoEl::WhichSide(TPZVec<REAL> &pt){
 		for(d=0; d<dim; d++) {
 			dif += (pt[d]-pt2[d])*(pt[d]-pt2[d]);
 		}
-		dif = sqrt(dif/dim);
+		//dif = sqrt(dif/dim);
 		if(dif < tol) return is;
 	}
+  cout << "TPZGeoEl::WhichSide ERROR : side not found" << endl ;
 /*
   if(nums==3){//LINHA
     if((pt[0]<-1.-O) || (pt[0]>1.+O) || pt[1]<-O || pt[1]>O || pt[2]<-O || pt[2]>O) return -1;//está fora da linha
