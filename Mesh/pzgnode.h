@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.3 2004-04-02 13:14:59 phil Exp $
+//$Id: pzgnode.h,v 1.4 2004-04-02 17:10:20 tiago Exp $
 
 /**File : pzgnode.h
 
@@ -11,6 +11,7 @@ Header file for class TPZGeoNode. TPZGeoNode defines a geometrical node.
 
 #include <iostream>
 #include "pzreal.h"
+#include "pzerror.h"
 
 using namespace std;
 
