@@ -9,6 +9,7 @@ class TPZTransfe;
 class TPZInterpolatedElement;
 class TPZTransform;
 class TPZStepSolver;
+class TPZCompMesh;
 
 template<class T, class V>
 
@@ -46,6 +47,8 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    */
   TPZStack <TPZMatrixSolver *> fPrecondition;
 
+  clock_t fBegin,fInit;
+
  public:
   
   /**
@@ -81,13 +84,14 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    * coarcmesh : initial computational mesh
    * levelnumbertorefine: number of the levels to be refined
    * setdegree: degree of interpolation
+   * newmesh = 0 coarcmesh is refined other case new mesh is create
    */
-  static TPZCompMesh *UniformlyRefineMesh (TPZCompMesh *coarcmesh,int levelnumbertorefine,int setdegree);
+   static TPZCompMesh *UniformlyRefineMesh (TPZCompMesh *coarcmesh,int levelnumbertorefine,int setdegree,int newmesh = 0);
 
    /**
    * it generates a new mesh based on the agglomeration of elements of the fine mesh
    */
-  static TPZCompMesh *AgglomerateMesh(TPZCompMesh *finemesh,int levelnumbertorefine,int setdegree);
+  static TPZCompMesh *AgglomerateMesh(TPZCompMesh *finemesh,int levelnumbertogroup);
 
   /**
    * Loads the last two solutions and
@@ -95,12 +99,22 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    */
   void ComputeError (TPZVec<REAL> &error);
 
-  static void GetRefinedGeoEls(TPZGeoEl *geo,TPZStack<TPZGeoEl *> sub,int &levelnumbertorefine);
+  void SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat);
   
+  void ResetReference(TPZCompMesh *aggcmesh);
+
+  void SetReference(TPZCompMesh *aggcmesh);
+
+  void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat);
+
+  void CoutTime(clock_t &start,char *title);
+
+  void TwoGridAlgorithm(ostream &out);
+
   /**
    * Validation routines
    */
-  static int main ();
+  static int main();
 
 };
 #endif
