@@ -38,6 +38,10 @@ public:
   virtual void ResetMatrix();
   
   /**
+  * Updates the values of the preconditioner based on the values of the matrix
+  */
+  virtual void UpdateFrom(TPZMatrix *mat);
+  /**
   This method gives a preconditioner to share a matrix with the referring solver object
   */
 //  virtual void SetMatrix(TPZMatrixSolver *solver);

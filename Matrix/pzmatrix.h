@@ -310,6 +310,14 @@ public:
    * @name Inquire
    * Returns information of the current object
    */
+   
+   /**
+   * Updates the values of the matrix based on the values of the matrix
+   */
+   virtual void UpdateFrom(TPZMatrix *mat)
+   {
+     cout << "TPZMatrix::UdateFrom is not implemented\n";
+   }
   //@{
 
   /**
