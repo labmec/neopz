@@ -20,7 +20,11 @@ TPZFMatrix TPZSwelling::gState;
 TPZFMatrix TPZSwelling::gphi(1,1,1.);
 TPZFMatrix TPZSwelling::gdphi(3,1,0.34);
 
+#ifdef _AUTODIFF
+
 void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix &ek);
+
+#endif
 
 TPZSwelling::TPZSwelling(int matindex, REAL lambda, REAL shear, REAL alfa, REAL M, REAL Gamma, REAL Kperm, REAL DPlus, REAL DMinus,
 			 REAL rHinder, REAL Cfc, REAL Nf0, REAL NPlus0, REAL NMinus0) : 
@@ -696,6 +700,8 @@ void TPZSwelling::ExactSolution(TPZVec<REAL> &mu, REAL ksi, REAL pres, TPZVec<RE
 
 }
 
+#ifdef _AUTODIFF
+
 void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N) {
 
   // computes the analytic solution of N carrying the derivatives
@@ -728,3 +734,5 @@ void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N) {
   N[1] = N0Gamma*expc1*gVPlus;
   N[2] = N0Gamma*expc2*gVMinus;
 }
+
+#endif

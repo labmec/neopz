@@ -189,6 +189,8 @@ virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv ,TPZVec<REAL> &sol,TP
    cout << "TPZSwelling::ContributeBCEnergy is not implemented\n";
  }
 
+#endif
+
  private:
 
  void ExactSolution(TPZVec<REAL> &mu, REAL ksi, REAL pres, TPZVec<REAL> &N);
@@ -206,11 +208,14 @@ virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv ,TPZVec<REAL> &sol,TP
   */
  void ComputeInitialGuess(TPZVec<REAL> &mu, REAL J, REAL &pres, REAL &ksi, TPZVec<REAL> &N);
 
+#ifdef _AUTODIFF
  /**
   * Computes the mixing energy W and its first and second derivatives
   * This method has been superseded by the direct computation ExactSolution
   */
  void ComputeW(FADFADREAL &W, TPZVec<REAL> &N);
+
+#endif
 
 /**
  * Computes the value of the N coeficients in function of ksi and mus, iterative method, inverting the Hessian of W
@@ -218,18 +223,21 @@ virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv ,TPZVec<REAL> &sol,TP
  */
  void ComputeN(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REAL> &N);
 
+#ifdef _AUTODIFF
  /**
   * Computes N and its partial derivatives by directly inverting the analytic expressions
   * This method has been superseded by the direct computation ExactSolution
  */
  void ComputeN(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N);
 
+#endif
  /**
   * Computes the residual and tangent vector of the system of equations which determines N
   * This method has been superseded by the direct computation ExactSolution
  */
  void NResidual(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REAL> &N, TPZFMatrix &res, TPZFMatrix &tangent);
 
+#ifdef _AUTODIFF
  /**
   * This method computes the numerical approximation of N by the Newton method and its derivatives
   * with respect to the dependent variables
@@ -247,6 +255,7 @@ void NResidual(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N);
 
  static int main();
 
+#endif
  /**
   * Methods needed to perform convergence checks
   */
@@ -275,7 +284,7 @@ void NResidual(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N);
   */
 
  static TPZFMatrix gphi,gdphi;
-#endif
+
  
  public:
 
