@@ -135,6 +135,8 @@ class  TPZMaterial
 	 fForcingFunction = fp;
       }
 
+      int HasForcingFunction() {return (fForcingFunction != 0);}
+
       /**Compute the error due to the difference between the
 	 interpolated flux and the flux computed based on the
 	 derivative of the solution*/
@@ -187,9 +189,6 @@ class  TPZMaterial
 					   TPZVec<REAL> &normal,
 					   TPZFMatrix &ek, TPZFMatrix &ef);
 
-public:
-  /**Return 1 if forcing function is defined 0 elsewhere*/
-  int HasForcingFunction() {if (fForcingFunction) return  1; else return 0;}             
 };
 
 inline void TPZMaterial::ContributeOverInterface(
