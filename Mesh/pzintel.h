@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.11 2003-11-18 12:37:17 cesar Exp $
+//$Id: pzintel.h,v 1.12 2003-12-02 11:50:01 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -310,7 +310,7 @@ public:
    * @see TPZMaterial::Errors which computes the error contributions at an integration point
    */
   void EvaluateError(void (*fp)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),
-  		     REAL &true_error, REAL &L2_error, TPZBlock *flux, REAL &estimate);
+  		     TPZVec<REAL> &errors, TPZBlock *flux);
 
   /**
    * Post processing method which computes the solution for the var post processed variable. The var index is obtained
