@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cc,v 1.18 2003-11-24 18:59:18 cedric Exp $
+//$Id: pzcmesh.cc,v 1.19 2003-11-27 12:06:36 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -689,7 +689,7 @@ int TPZCompMesh::BandWidth() {
   for(i=0; i<nelem; i++) {
     connectlist.Resize(0);
     TPZCompEl *el = fElementVec[i];
-    if(!el || !(el->IsInterpolated())) continue;
+    if(!el) continue;
     el->BuildConnectList(connectlist);
     int nnod = connectlist.NElements();
     if(!nnod) continue;
