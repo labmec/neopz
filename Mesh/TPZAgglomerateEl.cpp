@@ -1,9 +1,10 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.19 2003-12-01 21:38:28 cedric Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.20 2003-12-02 12:37:58 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
 #include "TPZEulerConsLaw.h"
 #include "TPZConservationLaw.h"
+#include "pzdiscgal.h"
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
@@ -32,6 +33,10 @@ TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &
    * ponto já devia existir
    */
   fMotherMesh = finemesh;
+
+  //<!> Initialized as bignumber because I expect the radius will be lesser than that.
+  fInnerRadius = TPZMaterial::gBigNumber; 
+
   TPZMaterial *mater = Mesh()->FindMaterial(nummat);
   if(mater){
     SetMaterial(mater);
@@ -478,9 +483,9 @@ void TPZAgglomerateElement::CreateMaterialCopy(TPZCompMesh &aggcmesh){
 // 	mat = euler->NewMaterial();//mat = new TPZEulerConsLaw(*euler);//copia
 // 	aggcmesh.InsertMaterialObject(mat);
 //       }
-      TPZConservationLaw * consmat = dynamic_cast<TPZConservationLaw *>(mat);
+      TPZDiscontinuousGalerkin * consmat = dynamic_cast<TPZDiscontinuousGalerkin *>(mat);
       if ( consmat ){
-	mat = consmat->NewMaterial();//mat = new TPZEulerConsLaw(*euler);//copia
+	mat = consmat->NewMaterial();
 	aggcmesh.InsertMaterialObject(mat);
       } else {
 	PZError << "TPZAgglomerateElement::CreateMaterialCopy material not defined, implement now (Tiago)!\n";

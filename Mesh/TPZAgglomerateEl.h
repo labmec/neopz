@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.14 2003-12-01 20:37:03 cedric Exp $
+//$Id: TPZAgglomerateEl.h,v 1.15 2003-12-02 12:37:58 tiago Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -35,6 +35,8 @@ private:
    * do qual o atual foi obtido
    */
   TPZCompMesh *fMotherMesh;
+
+  REAL fInnerRadius;
 
 public:
 

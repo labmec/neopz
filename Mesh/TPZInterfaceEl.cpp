@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.23 2003-11-25 17:24:22 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.24 2003-12-02 12:37:58 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -539,8 +539,6 @@ void TPZInterfaceElement::Normal(TPZVec<REAL> &normal) {
   for(int i=0;i<3;i++) normal[i] = fNormal[i];
 }
 
-/**
- *  ESTA ALTERA¢ÃO É SÓ PARA ATUALIZAR O PZREPOSITORY (CVS)
- */
 void TPZInterfaceElement::EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-  REAL &true_error,REAL &L2_error,TPZBlock * /*flux */,REAL &estimate) {}
+  TPZVec<REAL> &errors, TPZBlock * /*flux */) {}
+

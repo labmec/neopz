@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.36 2003-12-01 21:17:21 cedric Exp $
+//$Id: TPZCompElDisc.cc,v 1.37 2003-12-02 12:37:58 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -1062,12 +1062,12 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *agg
 }
 
 
-void TPZCompElDisc::EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-				  REAL &true_error,REAL &L2_error,TPZBlock * /*flux */,REAL &estimate) {
+void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
+				    TPZVec<REAL> &errors,TPZBlock * /*flux */) {
 
-  true_error=0.;
-  L2_error=0.;
-  estimate=0.;
+  int NErrors = this->Material()->NEvalErrors();
+  errors.Resize(NErrors);
+  errors.Fill(0.);
   if(fMaterial == NULL){
     PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
     Print(PZError);
@@ -1091,7 +1091,8 @@ void TPZCompElDisc::EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val
   TPZManVector<REAL,3> x(3);//TPZVec<REAL> x(3,0.);
   TPZManVector<REAL,6> u_exact(ndof);
   TPZFNMatrix<90> du_exact(dim,ndof);
-  TPZManVector<REAL,3> intpoint(3),values(3);
+  TPZManVector<REAL,3> intpoint(3), values(NErrors);
+  values.Fill(0.0);
   REAL detjac,weight;
   TPZManVector<REAL,6> u(ndof);
   TPZFNMatrix<90> dudx(dim,ndof);
@@ -1127,17 +1128,16 @@ void TPZCompElDisc::EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val
     if(fp) {
       fp(x,u_exact,du_exact);
       matp->Errors(x,u,dudx,axes,flux_el,u_exact,du_exact,values);
-      true_error += values[0]*weight;
-      L2_error += values[1]*weight;
-      estimate += values[2]*weight;
+      for(int ier = 0; ier < NErrors; ier++)
+	errors[ier] += values[ier]*weight;
     }
   }//fim for : integration rule
    //Norma sobre o elemento
-  true_error = sqrt(true_error);
-  L2_error = sqrt(L2_error);
-  estimate = sqrt(estimate);
+  for(int ier = 0; ier < NErrors; ier++)
+    errors[ier] = sqrt(errors[ier]);
   delete intrule;
 }
+
 
 void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &transfer){
   // accumulates the transfer coefficients between the current element and the
