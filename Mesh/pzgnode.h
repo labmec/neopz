@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.2 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzgnode.h,v 1.3 2004-04-02 13:14:59 phil Exp $
 
 /**File : pzgnode.h
 
@@ -59,6 +59,15 @@ class TPZGeoNode {
   void Print(ostream & out = cout);
 };
 
+inline REAL TPZGeoNode::Coord(int i) {
+#ifndef NODEBUG
+  if(i > 2 || i < 0) {
+    PZError << "Not exist (TPZGeoNode) coordinate " << i << endl;
+    return 1.e12;
+  }
+#endif
+  return fCoord[i];
+}
 
 /**TPZGeoNodeBC
 

@@ -1,4 +1,4 @@
-//$Id: pzgnode.cpp,v 1.2 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzgnode.cpp,v 1.3 2004-04-02 13:14:59 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -42,13 +42,6 @@ void TPZGeoNode::Initialize(int id,TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
   for(;i<3;i++) fCoord[i]=0.;
 }
 
-REAL TPZGeoNode::Coord(int i) {
-  if(i > 2 || i < 0) {
-    PZError << "Not exist (TPZGeoNode) coordinate " << i << endl;
-    return 1.e12;
-  }
-  return fCoord[i];
-}
 
 void TPZGeoNode::SetCoord(double *x,int dim) {
   if(dim > 3 || dim < 1) {
