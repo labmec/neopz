@@ -29,7 +29,7 @@ int main(){
   RegisterMaterialClasses();
 	cout << "***********************************************************************\n";
 	cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-	cout << "PZ - Class 5 -->> Geometric Meshes and h refinment\n";
+	cout << "PZ - Class 5 -->> Writing and reading meshes on files\n";
 	cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	cout << "***********************************************************************\n\n";
 	cout << "Number of nodes: x direction and y direction:     ";
