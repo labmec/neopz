@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.46 2004-02-17 19:46:03 erick Exp $
+//$Id: TPZCompElDisc.cpp,v 1.47 2004-04-01 00:00:14 erick Exp $
 
 // -*- c++ -*- 
 
@@ -253,7 +253,7 @@ void TPZCompElDisc::Shape(TPZVec<REAL> X, TPZFMatrix &phi, TPZFMatrix &dphi) {
 	TPZShapeDisc::Shape2D(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);
       else
 	if(Dimension()==3)
-	  TPZShapeDisc::Shape3D(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);  
+	  TPZShapeDisc::Shape3D(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);
 }
 
 void TPZCompElDisc::Print(ostream &out) {
@@ -413,7 +413,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   TPZVec<REAL> x(3,0.);
   TPZVec<REAL> intpoint(dim,0.);
   REAL detjac,weight;
-  int integ = 2*Degree();
+  int integ = max(2*Degree() - 1,0);
   TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
   int npoints = intrule->NPoints(),ip;                                              //integra fi*fj
   TPZVec<REAL> sol(nstate,0.);
