@@ -116,6 +116,8 @@ void TPZArtDiff::ODotOperator(TPZVec<REAL> &dphi, TPZVec<TPZVec<T> > &TauDiv, TP
      for(i=0;i<neq;i++)Result[i] += TauDiv[k][i] * dphi[k];
 }
 
+#ifdef _AUTODIFF
+
 template <class T>
 void TPZArtDiff::Divergent(TPZFMatrix &dsol,
 			   TPZFMatrix & phi,
@@ -186,6 +188,7 @@ void TPZArtDiff::Divergent(TPZFMatrix &dsol,
    }
 }
 
+#endif // _AUTODIFF
 
 void TPZArtDiff::Divergent(TPZFMatrix &dsol,
 			   TPZFMatrix & dphi,
