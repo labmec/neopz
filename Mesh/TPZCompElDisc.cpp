@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.59 2004-06-17 06:25:12 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.60 2004-06-23 16:38:08 phil Exp $
 
 // -*- c++ -*- 
 
@@ -63,7 +63,8 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
-		TPZCompEl(mesh,copy), fCenterPoint(copy.fCenterPoint) {
+		TPZCompEl(mesh,copy) {
+  fCenterPoint = copy.fCenterPoint;
   fDegree = copy.fDegree;
   fShapefunctionType = copy.fShapefunctionType;
 //  fReference = copy.fReference;
@@ -77,7 +78,8 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index) :
-		TPZCompEl(mesh,copy,index), fCenterPoint(copy.fCenterPoint) {
+		TPZCompEl(mesh,copy,index)/*, fCenterPoint(copy.fCenterPoint)*/ {
+  fCenterPoint = copy.fCenterPoint;
   fDegree = copy.fDegree;
   fShapefunctionType = copy.fShapefunctionType;
 //  fReference = copy.fReference;
@@ -784,7 +786,7 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
     Reference()->X(int_point, x);
     Shape(x,locphi,locdphi);
     axes.Identity();
-#warning "Este codigo esta errado!!"
+//#warning "Este codigo esta errado!!"
 
     weight *= jac_det;
     t.Apply(int_point,coarse_int_point);
@@ -1308,7 +1310,7 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
 
 void TPZCompElDisc::AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) {
   TPZGeoEl *geo = Reference();
-#warning "Este metodo nao funciona para aglomerados contendo aglomerados"
+//#warning "Este metodo nao funciona para aglomerados contendo aglomerados"
   if(!geo) {
     PZError <<  "TPZCompElDisc::AccumulateVertices null reference\n";
     return;

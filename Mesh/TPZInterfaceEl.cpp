@@ -1,10 +1,10 @@
-//$Id: TPZInterfaceEl.cpp,v 1.38 2004-05-21 13:37:24 erick Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.39 2004-06-23 16:39:23 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
 #include "pzgeoelside.h"
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
+//#include "pzelgq2d.h"
+//#include "pzelgt2d.h"
 #include "pzquad.h"
 #include "pzmaterial.h"
 #include "TPZConservationLaw.h"
@@ -89,7 +89,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy)
-  : TPZCompEl(mesh,copy), fNormal(copy.fNormal), fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1) {
+  : TPZCompEl(mesh,copy) /*, fNormal(copy.fNormal)*/, fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1) {
   fLeftEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[copy.fLeftEl->Index()]);
   fRightEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[copy.fRightEl->Index()]);
 
@@ -105,6 +105,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 #endif
 
 //  fReference = copy.fReference;
+  fNormal = copy.fNormal;
   TPZMaterial *mat = copy.Material();
   if(mat) {
     int materialid = mat->Id();
@@ -132,10 +133,11 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int &index) 
-  : TPZCompEl(mesh,copy,index), fNormal(copy.fNormal), fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1) {
+  : TPZCompEl(mesh,copy,index)/*, fNormal(copy.fNormal)*/, fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1) {
 
   //ambos elementos esquerdo e direito já foram clonados e moram na malha aglomerada
   //o geometrico da malha fina aponta para o computacional da malha aglomerada
+  fNormal = copy.fNormal;
   TPZCompEl *left = copy.fLeftEl->Reference()->Reference();
   TPZCompEl *right = copy.fRightEl->Reference()->Reference();
   fLeftEl = dynamic_cast<TPZCompElDisc *>(left);

@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.33 2004-04-26 14:27:03 phil Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.34 2004-06-23 16:38:08 phil Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -372,7 +372,7 @@ void TPZAgglomerateElement::ListOfDiscEl(TPZStack<TPZCompEl *> &elvec){
   }
 }
 
-#warning "TPZAgglomerateElement::IndexesDiscSubEls is inconsistent"
+//#warning "TPZAgglomerateElement::IndexesDiscSubEls is inconsistent"
 void TPZAgglomerateElement::IndexesDiscSubEls(TPZStack<int> &elvec){
   //agrupa na lista todos os indexes dos elementos discontinuos 
   //agrupados no elemento aglomerado atual
