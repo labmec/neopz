@@ -1,24 +1,29 @@
 #include "pzeuleranalysis.h"
+#include "pzerror.h"
+#include "TPZCompElDisc.h"
 
-TPZEulerAnalysis::TPZEulerAnalysis():TPZAnalysis(), fFlowCompMesh(NULL),
-fSolution2(), fpCurrSol(NULL), fpLastSol(NULL), fpSolution(NULL)
+TPZEulerAnalysis::TPZEulerAnalysis():
+TPZAnalysis(), fFlowCompMesh(NULL),
+fSolution2(), fpCurrSol(NULL),
+fpLastSol(NULL), fpSolution(NULL),
+fLinSysEps(1e-10), fLinSysMaxIter(20),
+fNewtonEps(1e-9),  fNewtonMaxIter(10),
+fTimeIntEps(1e-8), fTimeIntMaxIter(100)
 {
 
 }
 
-TPZEulerAnalysis::TPZEulerAnalysis(TPZFlowCompMesh *mesh, std::ostream &out = cout):
-TPZAnalysis(mesh, out):fFlowCompMesh(mesh), fSolution2(), fpCurrSol(NULL), fpLastSol(NULL),
-fpSolution(NULL)
+TPZEulerAnalysis::TPZEulerAnalysis(TPZFlowCompMesh *mesh, std::ostream &out):
+TPZAnalysis(mesh, out), fFlowCompMesh(mesh),
+ fSolution2(), fpCurrSol(NULL), fpLastSol(NULL),
+fpSolution(NULL), fLinSysEps(1e-10), fLinSysMaxIter(20),
+fNewtonEps(1e-9),  fNewtonMaxIter(10),
+fTimeIntEps(1e-8), fTimeIntMaxIter(100)
 {
 
 }
 
 TPZEulerAnalysis::~TPZEulerAnalysis()
-{
-
-}
-
-virtual void TPZEulerAnalysis::Run(ostream &out = cout)
 {
 
 }
@@ -44,18 +49,19 @@ void TPZEulerAnalysis::SetLastState()
 
 void TPZEulerAnalysis::SetContributionTime(TPZContributeTime time)
 {
-   int i, NumFluid;
+   fFlowCompMesh->SetContributionTime(time);
+/*   int i, NumFluid;
    NumFluid = fFluidMaterial.NElements();
    for(i = 0; i < NumFluid; i++)
    {
       fFluidMaterial[i]->SetContributionTime(time);
-   }
+   }*/
 }
 
 void TPZEulerAnalysis::UpdateSolution(TPZFMatrix & deltaSol)
 {
-   (*fpCurrSol) = (*pfLastSol);
-   fpCurrSol->Add(1.0, deltaSol);
+   (*fpCurrSol) = (*fpLastSol);
+   (*fpCurrSol) += deltaSol;
 }
 
 void TPZEulerAnalysis::UpdateHistory()
@@ -82,7 +88,7 @@ void TPZEulerAnalysis::Assemble()
    fSolver->SetMatrix(0);
 
    // creates a matrix prepared for contribution
-   TPZMatrix * pTangentMatrix = StructMatrix->Create();
+   TPZMatrix * pTangentMatrix = fStructMatrix->Create();
 
    // Contributing referring to the last state (n index)
    SetLastState();
@@ -121,16 +127,18 @@ void TPZEulerAnalysis::Solve(REAL & res) {
 
 int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 {
-   int i = 0, maxIter = numIterl;
-   REAL res; // norm of residual of linear invertion.
-   REAL resNorm;// norm of residual of Euler
+   int i = 0;
+   REAL res;// residual of linear invertion.
 
-   *fpLastSol.Zero();
-   *fpCurrSol.Zero();
+// the lines below are to be performed by the external loop
+//   fpLastSol->Zero();
+//   fpCurrSol->Zero();
 
    Assemble(); // assembles the linear system.
+   epsilon = fNewtonEps * 2.;// ensuring the loop will be
+   // performed at least once.
 
-   while(i < maxIter && normRes > epsilon)
+   while(i < fNewtonMaxIter && epsilon > fNewtonEps)
    {
       //Solves the linearized system;
       Solve(res);
@@ -138,42 +146,79 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
       // Linearizes the system with the newest iterative solution
       Assemble();
 
-      normRes = Norm(fRhs);
+      epsilon = Norm(fRhs);
       i++;
    }
 
    fSolver->ResetMatrix(); // deletes the memory allocated
    // for the storage of the tangent matrix.
 
-   epsilon = normRes;
+   numIter = i;
 
-   if(i==maxIter)return 0;
-   maxIter = i;
+   if(epsilon > fNewtonEps)return 0;
    return 1;
 }
 
-void TPZEulerAnalysis::Run()
+void TPZEulerAnalysis::Run(ostream &out)
 {
+   // this analysis loop encloses several calls
+   // to Newton's linearizations, updating the
+   // time step.
+
+   out << "\nBeginning time integration";
+
    REAL epsilon_Newton, epsilon_Global;
    int numIter_Newton, numIter_Global;
+   REAL epsilon;
 
-???// Como calcular o resíduo para poder avaliar convergência quando deltaT é atualizado??? sem muito esforço computacional??
+   int i;
+   epsilon_Global = 2. * fTimeIntEps;
+
+   ComputeTimeStep();
+
+   while(i < fTimeIntMaxIter && epsilon_Global > fTimeIntEps)
+   {
+
+      RunNewton(epsilon_Newton, numIter_Newton);
+
+      // Computing the time step, verifying the convergency
+      // using the newest time step.
+      ComputeTimeStep();
+
+      fFlowCompMesh->Assemble(fRhs); // computing the residual only
+      epsilon = Norm(fRhs);
+
+      out << "\niter:" << i
+          << " eps=" << epsilon
+	  << " |NewtonEps=" << epsilon_Newton
+	  << " nIter=" << numIter_Newton;
+
+   }
+
+   out.flush();
 
 }
 
-void TPZEulerAnalysis::SetTimeStep()
+void TPZEulerAnalysis::ComputeTimeStep()
 {
-  TPZFlowCompMesh *fm  = dynamic_cast<TPZFlowCompMesh *>(fCompMesh);
-
-  if(!fm){
-     PZErr << "\nInvalid CompMesh type -> TPZFlowCompMesh expected\n";
-  }
-
-  REAL maxveloc = fm->MaxVelocityOfMesh();
-  REAL deltax = fm->LesserEdgeOfMesh();// deltax
-
-  TPZCompElDisc *disc;
-  int degree = disc->gDegree;
-  TPZConservationLaw2 *law = dynamic_cast<TPZConservationLaw2 *>(mat);
-  law->SetDeltaTime(maxveloc,deltax,degree);
+  fFlowCompMesh->ComputeTimeStep();
 }
+
+void TPZEulerAnalysis::SetLinSysCriteria(REAL epsilon, int maxIter)
+{
+   fLinSysEps     = epsilon;
+   fLinSysMaxIter = maxIter;
+}
+
+void TPZEulerAnalysis::SetNewtonCriteria(REAL epsilon, int maxIter)
+{
+   fNewtonEps     = epsilon;
+   fNewtonMaxIter = maxIter;
+}
+
+void TPZEulerAnalysis::SetTimeIntCriteria(REAL epsilon, int maxIter)
+{
+   fTimeIntEps     = epsilon;
+   fTimeIntMaxIter = maxIter;
+}
+

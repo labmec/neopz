@@ -8,78 +8,18 @@
 #include "pzmaterial.h"
 #include "pzconslaw.h"
 #include "pzstrmatrix.h"
+#include "pzsolve.h"
 
 #include <iostream>
 
-class TPZAnalysis :: TPZEulerAnalysis
+class TPZEulerAnalysis : public TPZAnalysis
 {
-#ifdef NOTDEFINED
-
-variables in the parent class
-    protected:
-  /**
-   * Geometric Mesh
-   */
-  TPZGeoMesh *fGeoMesh;
-  /**
-   * Computational mesh
-   */
-  TPZCompMesh *fCompMesh;
-  /**
-   * Graphical mesh
-   */
-  TPZGraphMesh *fGraphMesh[3];
-  /**
-   * Load vector ???
-   */
-  TPZFMatrix fRhs;
-  /**
-   * Solution vector
-   */
-  TPZFMatrix fSolution;
-  /**
-   * Type of solver to be applied
-   */
-  TPZMatrixSolver *fSolver;
-  /**
-   * Scalar variables names - to post process
-   */
-  TPZVec<char *> fScalarNames[3];
-  /**
-   * Vector variables names - to post process
-   */
-  TPZVec<char *> fVectorNames[3];
-  /**
-   * Step ???
-   */
-  int fStep;
-  /**
-   * Time ?? (time step ??)
-   */
-  REAL fTime;
-
-  /**
-   * Structural matrix
-   */
-  TPZStructMatrix * fStructMatrix;
-
-  struct TTablePostProcess {
-    TPZVec<int> fGeoElId;
-    TPZVec<TPZCompEl *> fCompElPtr;
-    int fDimension;
-    TPZVec<REAL> fLocations;
-    TPZVec<char *> fVariableNames;
-    ostream *fOutfile;
-    TTablePostProcess();
-    ~TTablePostProcess();
-  } fTable;
-#endif
 
 public:
 
    TPZEulerAnalysis();
 
-   TPZEulerAnalysis(TPZFlowCompMesh *mesh,std::ostream &out = cout)
+   TPZEulerAnalysis(TPZFlowCompMesh *mesh,std::ostream &out = cout);
 
    ~TPZEulerAnalysis();
 
@@ -103,6 +43,15 @@ public:
     *
     */
    void SetLastState();
+
+   /**
+    * Informs the Analysis class the time at which
+    * the current solution in the computational
+    * mesh belongs, so that the materials can
+    * choose whether to contribute implicitly
+    * or explicitly.
+    */
+   void SetContributionTime(TPZContributeTime time);
 
    /**
     * Adds deltaSol to the last solution and stores it as the current
@@ -154,9 +103,24 @@ public:
    int RunNewton(REAL & epsilon, int & numIter);
 
    /**
-    * Main Analysis routine
+    * Defines the time step for each material in the mesh
     */
-   virtual void Run();
+   void ComputeTimeStep();
+
+   /**
+    * Settings for the linear system solver
+    */
+   void SetLinSysCriteria(REAL epsilon, int maxIter);
+
+   /**
+    * Settings for the Newton's method.
+    */
+   void SetNewtonCriteria(REAL epsilon, int maxIter);
+
+   /**
+    * Settings for the time integration method.
+    */
+   void SetTimeIntCriteria(REAL epsilon, int maxIter);
 
 protected:
 
@@ -186,6 +150,19 @@ protected:
     */
    TPZFMatrix * fpCurrSol, * fpLastSol, * fpSolution;
 
+   /**
+    * Stop criteria for the Newton and time
+    * integration loops.
+    *
+    */
+   REAL fLinSysEps;
+   int fLinSysMaxIter;
+
+   REAL fNewtonEps;
+   int fNewtonMaxIter;
+
+   REAL fTimeIntEps;
+   int fTimeIntMaxIter;
 };
 
 #endif

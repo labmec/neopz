@@ -238,6 +238,13 @@ protected:
    * volume of a polytropic gas
    */
   REAL fGamma;
+
+  /**
+   * Variable indicating the context of the solution.
+   * If advanced, then the implicit terms are to be
+   * contributed. If last, then the explicit.
+   */
+  TPZContributeTime fContributionTime;
 };
 
 /*
@@ -296,5 +303,9 @@ inline int TPZConservationLaw2::NFluxes()
    return 1;
 }
 
+inline void TPZConservationLaw2::SetContributionTime(TPZContributeTime time)
+{
+   fContributionTime = time;
+}
 
 #endif

@@ -35,6 +35,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Refine/TPZRefCube.o \
 	../Refine/TPZRefLinear.o \
 	../Mesh/pzcmesh.o \
+        ../Mesh/pzflowcmesh.o \
 	../Mesh/pzcompel.o \
 	../Mesh/pzconnect.o \
 	../Mesh/pzelc1d.o \
@@ -135,6 +136,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Analysis/pzonedref.o \
 	../Analysis/pzsmanal.o \
 	../Analysis/pzsmfrontalanal.o \
+        ../Analysis/pzeuleranalysis.o \
 	../Cosys/pzcartsys.o \
 	../Cosys/pzcosys.o \
 	../Cosys/pzcylinsys.o \
