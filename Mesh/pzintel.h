@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $ Id: $
+//$Id: pzintel.h,v 1.8 2003-10-23 17:11:06 tiago Exp $
 #ifndef PZINTEL_H
 #define PZINTEL_H
 
@@ -76,6 +76,11 @@ public:
    * @return return the index of the material
    */
   int MaterialId() const;
+
+    /**
+   * Method for creating a copy of the element
+   */
+  virtual TPZCompEl * Clone(TPZCompMesh &mesh) const = 0;
 
   /**
    * Print the relevant data of the element to the output stream
