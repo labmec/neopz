@@ -2,6 +2,8 @@
 #include "pzerror.h"
 #include "pzreal.h"
 
+REAL TPZShapeLinear::fJacobiAlfa = 1.;
+REAL TPZShapeLinear::fJacobiBeta = 1.;
 static int nhighdimsides[3] = {1,1,0};
 
 static int highsides[3][1] = {
@@ -40,7 +42,100 @@ void TPZShapeLinear::Chebyshev(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
   }
 }
 
-void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix &, TPZFMatrix &) = TPZShapeLinear::Chebyshev/*(REAL ,int ,TPZFMatrix& ,TPZFMatrix& )*/;//Chebyshev;
+void TPZShapeLinear::Legendre(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
+  // Quadratic or higher shape functions
+  if (num <= 0) return;
+  phi.Put(0, 0, 1.0);
+  dphi.Put(0, 0, 0.0);
+  if (num == 1) return;
+//<!> Por que Phi sempre tem col = 0 e dphi sempre tem row = 0 ?
+  phi.Put(1, 0, x);
+  dphi.Put(0, 1, 1.0);
+  int ord;
+//Aqui fica diferente do Chebyshev
+REAL ord_real, value;
+  for (ord = 2; ord < num; ord++)
+    {
+      //casting int ord to REAL ord_real
+      ord_real = (REAL)ord;
+      //computing the ord_th function
+      value    = ( (2.0 * (ord_real - 1.0) + 1.0) * x * phi(ord - 1, 0) - (ord_real - 1.0) * phi(ord - 2 , 0) ) / (ord_real);
+      phi.Put(ord, 0, value);
+
+      //computing the ord_th function's derivative
+      value    = (2.0 * (ord_real - 1.0) + 1.0) * phi(ord - 1, 0) + dphi(0, ord - 2);
+      dphi.Put(0, ord, value);
+    }
+    int printing = 0;
+    if (printing){
+        cout << "Legendre" << endl;
+	for(ord = 0; ord < num; ord++)
+	{
+	  cout << "x = " << x << endl;
+	  cout << "phi(" << ord << ", 0) = " << phi(ord, 0) << endl;
+	  cout << "dphi(0, " << ord << " = " << dphi(0, ord) << endl;
+	  cout << endl;
+	}
+   }
+} //end of method
+
+
+void TPZShapeLinear::Jacobi(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
+
+
+  // Quadratic or higher shape functions
+  if (num <= 0) return;
+  phi.Put(0, 0, 1.0);
+  dphi.Put(0, 0, 0.0);
+  if (num == 1) return;
+
+  REAL value;
+
+  value = 0.5 * (fJacobiAlfa - fJacobiBeta + (fJacobiAlfa + fJacobiBeta + 2.) * x);
+  phi.Put(1, 0, value);
+  value = 0.5 * (fJacobiAlfa + fJacobiBeta + 2.);
+  dphi.Put(0, 1, value);
+  int ord;
+//Aqui fica diferente do Chebyshev
+  REAL ord_real, An[4], Bn[3];
+
+  for (ord = 2; ord < num; ord++)
+    {
+      //casting int ord to REAL ord_real
+      ord_real = (REAL)ord;
+      An[0] = 2. * (ord_real) * (ord_real + fJacobiAlfa + fJacobiBeta) * (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta);
+      An[1] = (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta + 1.0) * (fJacobiAlfa * fJacobiAlfa - fJacobiBeta * fJacobiBeta);
+      An[2] = (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta) * (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta + 1.0) * (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta + 2.0) ;
+      An[3] = 2. * ( ord_real - 1. + fJacobiAlfa ) * (ord_real -1.0 + fJacobiBeta) * (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta + 2.0);
+
+      Bn[0] = (2. * ord_real + fJacobiAlfa + fJacobiBeta ) * (1. - x * x);
+      Bn[1] = (ord_real) * (fJacobiAlfa - fJacobiBeta - (2. * (ord_real) + fJacobiAlfa + fJacobiBeta ) * x);
+      Bn[2] = 2. * (ord_real + fJacobiAlfa) * (ord_real + fJacobiBeta);
+
+      //computing the ord_th function
+      value    = (An[1] * An[1] + An[2] * x) * (phi(ord - 1, 0) ) - An[3] * phi(ord - 2, 0);
+      value    = value / An[0];
+      phi.Put(ord, 0, value);
+
+      //computing the ord_th function's derivative
+      value    = Bn[1] * phi(ord, 0) + Bn[2] * phi(ord - 1, 0);
+      value    = value / Bn[0];
+      dphi.Put(0, ord, value);
+    }
+    int printing = 0;
+    if (printing){
+   cout << "Jacobi" << endl;
+   for(ord = 0; ord < num; ord++)
+   {
+	cout << "x = " << x << endl;
+	cout << "phi(" << ord << ", 0) = " << phi(ord, 0) << endl;
+	cout << "dphi(0, " << ord << " = " << dphi(0, ord) << endl;
+	cout << endl;
+   }
+   }
+}
+
+void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix &, TPZFMatrix &) = TPZShapeLinear::Chebyshev;
 
 //  REAL TPZCompEl::gTrans1d[2] = {1.,-1.};
 

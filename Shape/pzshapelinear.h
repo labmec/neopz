@@ -10,7 +10,7 @@
 #include "fadType.h"
 #endif
 
-/** 
+/**
  *
  * @brief Implements the shape functions of a linear (1D) element
 
@@ -33,6 +33,8 @@ public:
  * @param dphi values of the derivatives of the shape functions
  */
 static void (*fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
+
+
 #ifdef _AUTODIFF
 /**
  *	pointer to function which returns num orthogonal functions at the point x
@@ -51,6 +53,21 @@ static void (*FADfOrthogonal)(FADREAL&,int ,TPZVec<FADREAL> &);
  * @param dphi values of the derivatives of the shape functions
  */
 static void Chebyshev(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
+
+/**
+ * Legendre orthogonal function, computes num orthogonal functions at the point x
+ * @param x coordinate of the point
+ * @param num number of shape functions to be computed
+ * @param phi shapefunction values
+ * @param dphi values of the derivatives of the shape functions
+ */
+static void Legendre(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
+
+static REAL fJacobiAlfa;
+static REAL fJacobiBeta;
+
+static void Jacobi(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
+
 #ifdef _AUTODIFF
 /**
  * Chebyshev orthogonal function, computes num orthogonal functions at the point x
