@@ -221,7 +221,10 @@ void TPZGeoEl::Print(ostream & out) {
   if (!SubElement(0)) out << "no subelements";
   else {
     out << "Subelements ids     ";
-    for (i = 0;i < NSubElements();i++) out << SubElement(i)->Id() << ' ' ;
+    for (i = 0;i < NSubElements();i++) {
+      if (!SubElement(i) ) continue;
+      out << SubElement(i)->Id() << ' ' ;
+    }
   }
   out << endl;
   for (i = 0;i < NSides();i++) {
@@ -753,7 +756,7 @@ int TPZGeoEl::main(TPZGeoEl *gel,int type){
 void TPZGeoEl::SetSubElementConnectivities() {
 
 //  this->Print(cout);
-  int side,el;
+  int side;//,el;
   for(side=0; side<NCornerNodes(); side++) {
     TPZGeoElSide thisside(this,side);
     TPZStack<TPZGeoElSide> subel;
