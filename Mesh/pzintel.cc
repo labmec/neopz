@@ -1283,19 +1283,19 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
     (ek.fConnect)[i] = ConnectIndex(i);
   }
   //suficiente para ordem 5 do cubo
-  REAL phistore[220],dphistore[660],dphixstore[660];
-  TPZFMatrix phi(nshape,1,phistore,220);
-  TPZFMatrix dphi(dim,nshape,dphistore,660),dphix(dim,nshape,dphixstore,660);
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
+  //  REAL phistore[220],dphistore[660],dphixstore[660];
+  TPZFNMatrix<220> phi(nshape,1);
+  TPZFNMatrix<660> dphi(dim,nshape),dphix(dim,nshape);
+  TPZFNMatrix<9> axes(3,3,0.);
+  TPZFNMatrix<9> jacobian(dim,dim);
+  TPZFNMatrix<9> jacinv(dim,dim);
   REAL detjac;
-  TPZVec<REAL> x(3,0.);
-  TPZVec<REAL> intpoint(dim,0.);
+  TPZManVector<REAL,3> x(3,0.);
+  TPZManVector<REAL,3> intpoint(dim,0.);
   REAL weight = 0.;
 
-  REAL dsolstore[90];
-  TPZFMatrix dsol(dim,numdof,dsolstore,90);
+  //  REAL dsolstore[90];
+  TPZFNMatrix<90> dsol(dim,numdof);
 
 
   TPZIntPoints &intrule = GetIntegrationRule();
@@ -1316,7 +1316,8 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
     case 0:
       break;
     case 1:
-      dphix = dphi*(1./detjac);
+      dphix = dphix;
+      dphix *= (1./detjac);
       break;
     case 2:
       for(ieq = 0; ieq < nshape; ieq++) {
