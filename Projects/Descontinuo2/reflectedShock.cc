@@ -239,11 +239,11 @@ TPZFlowCompMesh * RSCompMesh()
                                             0/*timeStep*/,
 					    gamma /*gamma*/,
 					    2 /* dim*/,
-					    LeastSquares_AD /*pzartdiff.h*/);
+					    /*SUPG_AD*/LeastSquares_AD /*pzartdiff.h*/);
 // Setting initial solution
    mat->SetForcingFunction(NULL);
    // Setting the time discretization method
-   mat->SetTimeDiscr(Implicit_TD/*Diff*/,
+   mat->SetTimeDiscr(None_TD/*Diff*/,
                      Implicit_TD/*ConvVol*/,
 		     Implicit_TD/*ConvFace*/);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff

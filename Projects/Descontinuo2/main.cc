@@ -58,8 +58,8 @@ int main()
    TPZMatrix * mat = StrMatrix.Create();
 
    An.SetLinSysCriteria(1e-10, 0);
-   An.SetNewtonCriteria(1e-9, 1);
-   An.SetTimeIntCriteria(1e-8,100);
+   An.SetNewtonCriteria(1e-10, 1);
+   An.SetTimeIntCriteria(1e-10,100);
 
    TPZStepSolver Solver;
    Solver.SetDirect(ELU);// ECholesky -> simétrica e positiva definida
