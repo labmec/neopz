@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.20 2004-04-06 14:55:43 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.21 2004-04-07 17:55:13 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -13,8 +13,11 @@
 
 #ifdef _AUTODIFF
    #include "fadType.h"
-#endif
 
+   //#define _TFAD
+   //#define _FAD
+   #define _TINYFAD
+#endif
 
 class TPZEulerConsLaw2  : public TPZConservationLaw2
 {

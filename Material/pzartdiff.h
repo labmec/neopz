@@ -10,9 +10,8 @@
 
 
 #ifdef _AUTODIFF
-#include "fadType.h"
+   #include "fadType.h"
 #endif
-
 
 /* Enumerate to define the possible types of
 artificial diffusion term*/

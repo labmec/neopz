@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.26 2004-04-06 14:55:43 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.27 2004-04-07 17:55:13 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -768,7 +768,16 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(TPZVec<REAL> &x,
 			TPZFMatrix &phiL,TPZFMatrix &dphiL,
 			TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc)
 {
+#ifdef _TFAD
    typedef TFad<2*(dim+2), REAL> TFADREALInterface;
+#endif
+#ifdef _FAD
+   typedef Fad<REAL> TFADREALInterface;
+#endif
+#ifdef _TINYFAD
+   typedef TinyFad<2*(dim+2), REAL> TFADREALInterface;
+#endif
+
 
    int nstate = NStateVariables();
    TPZVec<REAL> solR(nstate,0.);
@@ -1198,7 +1207,7 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
          ef(index,0) +=
 	    flux[i_state].val() * phiL(i_shape,0) * constant;
 	 for(j = 0; j < nDer; j++)
-	    ek(index, j) -= flux[i_state].fastAccessDx(j) *
+	    ek(index, j) -= flux[i_state].dx/*fastAccessDx*/(j) *
 	       phiL(i_shape,0) * constant;
       }
 
@@ -1212,7 +1221,7 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
          ef(index,0) -=
 	    flux[i_state].val() * phiR(i_shape,0) * constant;
 	 for(j = 0; j < nDer; j++)
-	    ek(index, j) += flux[i_state].fastAccessDx(j) *
+	    ek(index, j) += flux[i_state].dx/*fastAccessDx*/(j) *
 	       phiR(i_shape,0) * constant;
       }
 }
@@ -1252,8 +1261,15 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_dim(
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
 			TPZFMatrix &ek,TPZFMatrix &ef)
 {
-
+#ifdef _TFAD
    typedef TFad<2*(dim+2), REAL> TFADREALInterface;
+#endif
+#ifdef _FAD
+   typedef Fad<REAL> TFADREALInterface;
+#endif
+#ifdef _TINYFAD
+   typedef TinyFad<2*(dim+2), REAL> TFADREALInterface;
+#endif
 
    int nstate = NStateVariables(dim);
    TPZVec< TFADREALInterface > FADsolL(nstate),
@@ -1282,68 +1298,6 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
    REAL constant =  TimeStep() * weight; // - deltaT * weight
 
    Roe_Flux(FADsolL, FADsolR, normal, fGamma, FADflux);
-/*
-   REAL phiL_i_shape_constant,
-        phiR_i_shape_constant,
-	temp;
-
-   // Contribution referring to the left element
-   for(i_shape = 0; i_shape < nShapeL; i_shape ++)
-   {
-      phiL_i_shape_constant = phiL(i_shape,0) * constant;
-
-      for(i_state = 0; i_state < nState; i_state++)
-      {
-         int index = i_shape*nState + i_state;
-         ef(index,0) +=
-	    FADflux[i_state].val() * phiL_i_shape_constant;
-	 for(k = 0; k < nState; k++)
-	 {
-	    temp = FADflux[i_state].fastAccessDx(k) *
-	           phiL_i_shape_constant;
-	    for(j = 0; j < nShapeL; j++)
-	       ek(index, j * nState + k) -=
-	                       temp * phiL(j);
-
-	    temp = FADflux[i_state].fastAccessDx(k + nState) *
-	           phiL_i_shape_constant;
-
-	    for(j = 0; j < nShapeR; j++)
-	       ek(index, j*nState + k + nDerL) -=
-	                       temp * phiR(j);
-	  }
-      }
-   }
-   // Contribution referring to the right element
-   // REM: The contributions are negative in comparison
-   // to the left elements: opposed normals
-   for(i_shape = 0; i_shape < nShapeR; i_shape ++)
-   {
-      phiR_i_shape_constant = phiR(i_shape,0) * constant;
-
-      for(i_state = 0; i_state < nState; i_state++)
-      {
-         int index = (nShapeL + i_shape) * nState + i_state;
-         ef(index,0) -=
-	    FADflux[i_state].val() * phiR_i_shape_constant;
-	 for(k = 0; k < nState; k++)
-	 {
-	    temp = FADflux[i_state].fastAccessDx(k) *
-	           phiR_i_shape_constant;
-	    for(j = 0; j < nShapeL; j++)
-	       ek(index, j * nState + k) +=
-	                       temp * phiL(j);
-
-	    temp = FADflux[i_state].fastAccessDx(k + nState) *
-	           phiR_i_shape_constant;
-	    for(j = 0; j < nShapeR; j++)
-	       ek(index, j * nState + k + nDerL) +=
-	                       temp * phiR(j);
-	 }
-      }
-   }
-
-*/
 
    // Contribution referring to the left element
    for(i_shape = 0; i_shape < nShapeL; i_shape ++)
@@ -1356,13 +1310,13 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 	 {
 	    for(j = 0; j < nShapeL; j++)
 	       ek(index, j * nState + k) -=
-	                       FADflux[i_state].fastAccessDx(k) *
+	                       FADflux[i_state].dx/*fastAccessDx*/(k) *
 	                       phiL(j) * //df/dUl
 	                       phiL(i_shape,0) * //test function
 			       constant;
 	    for(j = 0; j < nShapeR; j++)
 	       ek(index, j*nState + k + nDerL) -=
-	                       FADflux[i_state].fastAccessDx(k + nState) *
+	                       FADflux[i_state]./*fastAccessDx*/dx(k + nState) *
 	                       phiR(j) * //df/dUl
 	                       phiL(i_shape,0) * //test function
 			       constant;
@@ -1382,13 +1336,13 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 	 {
 	    for(j = 0; j < nShapeL; j++)
 	       ek(index, j * nState + k) +=
-	                       FADflux[i_state].fastAccessDx(k) *
+	                       FADflux[i_state]./*fastAccessDx*/dx(k) *
 	                       phiL(j) * //df/dUl
 	                       phiR(i_shape,0) * //test function
 			       constant;
 	    for(j = 0; j < nShapeR; j++)
 	       ek(index, j * nState + k + nDerL) +=
-	                       FADflux[i_state].fastAccessDx(k + nState) *
+	                       FADflux[i_state].dx/*fastAccessDx*/(k + nState) *
 	                       phiR(j) * //df/dUl
 	                       phiR(i_shape,0) * //test function
 			       constant;

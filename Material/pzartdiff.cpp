@@ -5,11 +5,6 @@
 #include "pzreal.h"
 #include "pzeulerconslaw.h"
 
-/*REAL TPZArtDiff::fGamma = 1.4;
-REAL TPZArtDiff::fDelta = 1.0;
-REAL TPZArtDiff::fCFL = 0.0;*/
-//char *TPZArtDiff::fArtificialDiffusion = "LS";
-
 #define FASTESTDIFF
 
 TPZArtDiff::TPZArtDiff(TPZArtDiffType type, REAL gamma, REAL CFL, REAL delta):
@@ -184,7 +179,7 @@ void TPZArtDiff::Divergent(TPZFMatrix &dsol,
          for(j=0;j<nstate;j++)
             for(i=0;i<nstate; i++)
                dDiv->operator()(i,j+l*nstate) +=
-	                 ADiv[i].fastAccessDx(j) * phi(l,0);
+	                 ADiv[i]./*fastAccessDx*/dx(j) * phi(l,0);
    }
 }
 
@@ -531,8 +526,8 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix &jacinv, TPZVec<FADREAL> &s
           Tau[t](i,j).diff(0,30);
 	   for(l=0;l<30;l++)
 	   {
-              Ai[t](i,j).fastAccessDx(l)=0.;
-	      Tau[t](i,j).fastAccessDx(l)=0.;
+              Ai[t](i,j).dx/*fastAccessDx*/(l)=0.;
+	      Tau[t](i,j).dx/*fastAccessDx*/(l)=0.;
 	   }
 	}
   #endif
@@ -562,8 +557,15 @@ void TPZArtDiff::PrepareFastestDiff(TPZFMatrix &jacinv,
 		TPZVec<TPZVec<REAL> > & TauDiv,
 		TPZVec<TPZDiffMatrix<REAL> > & dTauDiv)
 {
-
-typedef TFad<dim+2, REAL> TFADREALdim;
+#ifdef _TFAD
+   typedef TFad<dim+2, REAL> TFADREALdim;
+#endif
+#ifdef _FAD
+   typedef Fad<REAL> TFADREALdim;
+#endif
+#ifdef _TINYFAD
+   typedef TinyFad<dim+2, REAL> TFADREALdim;
+#endif
 
   const int nstate = sol.NElements();
   const int nshape = phi.Rows();
@@ -631,7 +633,7 @@ typedef TFad<dim+2, REAL> TFADREALdim;
 	{
 	   for(l = 0; l < nshape; l++)
 	       dTauDiv[k](i,l * nstate + j) =
-	             FADTauDiv[k][i].fastAccessDx(j) * phi(l,0);
+	             FADTauDiv[k][i].dx/*fastAccessDx*/(j) * phi(l,0);
 	}
      }
 
@@ -729,13 +731,13 @@ void TPZArtDiff::ContributeImplDiff(int dim, TPZFMatrix &jacinv, TPZVec<FADREAL>
     for(l=0;l<nshape;l++)
        {
            for(k=0;k<dim;k++)
-               gradv[k] = dsol[k].fastAccessDx(/*k+*/l*nstate);// always retrieving this information from the first state variable...
+               gradv[k] = dsol[k].dx/*fastAccessDx*/(/*k+*/l*nstate);// always retrieving this information from the first state variable...
            ODotOperator(gradv, TauDiv, Diff);
 	   for(i=0;i<nstate;i++)
 	      {
 	      ef(i+l*nstate,0) += constant * Diff[i].val();
 	      for(j=0;j<neq;j++)
-	         ek(i+l*nstate, j) -= constant * Diff[i].fastAccessDx(j);
+	         ek(i+l*nstate, j) -= constant * Diff[i].dx/*fastAccessDx*/(j);
 	      }
        }
 }
