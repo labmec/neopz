@@ -118,13 +118,12 @@ void TPZCompCloneMesh::AutoBuild() {
 	  }
 	  TPZInterpolatedElement *orgintel = dynamic_cast<TPZInterpolatedElement *> (cel);
 	  TPZInterpolatedElement *clintel = dynamic_cast<TPZInterpolatedElement *> (clcel);
-	  for (j=0;j<cel->Reference()->NSides();j++){
-	    
-	    if (gDebug){
+
+	  if (gDebug){
+	    for (j=0;j<cel->Reference()->NSides();j++){
 	      cout << "TPZCompCloneMesh::AutoBuild :Computational Element Before  PRefine:\n " << endl;
 	      clcel->Print();
 	    }
-	    
 	  }
 	  int porder = orgintel->SideOrder(cel->Reference()->NSides()-1);
 	  clintel->PRefine(porder);
@@ -187,9 +186,12 @@ void TPZCompCloneMesh::AutoBuild() {
     int ndoforg 	= fCloneReference->ConnectVec()[i].NDof(*fCloneReference);
     int ndofclone 	= ConnectVec()[fMapConnects[i]].NDof(*this);
     if( ndoforg != ndofclone) {
+      int ord = fCloneReference->ConnectVec()[i].Order();
+      int ordclone = ConnectVec()[fMapConnects[i]].Order();
       //      Print(cout);
       cout << "Number of degree of freedom incompatible between clone and original mesh!\n";
       cout << "Clone connect id: " << i << "  Clone dof: " << ndofclone << "  Original dof: " << ndoforg << endl;
+      cout << "Clone order " << ordclone  << "  Original order " << ord <<  endl;
       continue;
     }
     for (j=0;j<ndoforg;j++){//clpos; j<(clpos + ndoforg); j++){
@@ -1345,8 +1347,10 @@ void TPZCompCloneMesh::CopyConnectStructure() {
       cint = dynamic_cast<TPZInterpolatedElement *> (cel);
       if(!cint) continue;
       int ncon = cel->NConnects();
+      int cornercon = cint->NCornerConnects();
       int ic;
-      for(ic=0; ic<ncon; ic++) {
+      //      for(ic=0; ic<ncon; ic++) {
+      for(ic=cornercon; ic<ncon; ic++) {
 	TPZCompElSide celside(cint,ic);
 	TPZGeoElSide gelside = celside.Reference();
 	if(gelside.Dimension() != dim) continue;
