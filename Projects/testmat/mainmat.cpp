@@ -24,16 +24,21 @@ int main() {
 	// definir a matriz que ira armazenar as funcoes de forma e derivadas
 	TPZFMatrix phi(16,1),dphi(2,16);
 
+	TPZFlopCounter::gCount.Print();
 	// calculo das funcoes de forma
-	TPZShapeQuad::ShapeQuad(pt,id,order,phi,dphi);
+	TPZShapeQuad::Shape(pt,id,order,phi,dphi);
 
+	TPZFlopCounter::gCount.Print();
 	// impressao das funcoes de forma
-	phi.Print("Shape function values");
-	dphi.Print("Shape function derivative values");
+	//	phi.Print("Shape function values");
+	//	dphi.Print("Shape function derivative values");
 
 	ExemploElasticidade(phi,dphi);
 
+	TPZFlopCounter::gCount.Print();
 	ExemploGenerico2D(phi,dphi);
+
+	TPZFlopCounter::gCount.Print();
 
 	return 0;
 
@@ -46,7 +51,7 @@ void ExemploElasticidade(TPZFMatrix &phi, TPZFMatrix &dphi) {
 	TPZElasticityMaterial matexemplo(1,1.e5,0.3,1.,1.);
 
 	// imprimir o conteudo do material
-	matexemplo.Print();
+	//	matexemplo.Print();
 
 	// Preparar os dados para calculo de contribuicao para matriz de rigidez
 
@@ -68,15 +73,16 @@ void ExemploElasticidade(TPZFMatrix &phi, TPZFMatrix &dphi) {
 	// uma matriz indicando os eixos correspondentes as derivadas da funcao
 	TPZFMatrix axes(3,3,0.);
 	for(i=0; i<3; i++) axes(i,i)=1.;
+	TPZFMatrix jacinv(axes);
 
 	// a matriz de rigidez e a matriz do vetor de carga
 	TPZFMatrix ek(nstate*nshape,nstate*nshape,0.),ef(nstate*nshape,1,0.);
 
-	matexemplo.Contribute (x,sol,dsol,1.,axes,phi,dphi,ek,ef);
+	matexemplo.Contribute (x,jacinv,sol,dsol,1.,axes,phi,dphi,ek,ef);
 
-	ek.Print("contribuicao para matriz de rigidez");
+	//	ek.Print("contribuicao para matriz de rigidez");
 
-	ef.Print("contribuicao para vetor de carga");
+	//	ef.Print("contribuicao para vetor de carga");
 
 }
 
@@ -94,7 +100,7 @@ void ExemploGenerico2D(TPZFMatrix &phi, TPZFMatrix &dphi) {
 	// a equacao e : u + du/dx + du/dy = 1
 
 	// imprimir o conteudo do material
-	matexemplo.Print();
+	//	matexemplo.Print();
 
 	// Preparar os dados para calculo de contribuicao para matriz de rigidez
 
@@ -116,14 +122,15 @@ void ExemploGenerico2D(TPZFMatrix &phi, TPZFMatrix &dphi) {
 	// uma matriz indicando os eixos correspondentes as derivadas da funcao
 	TPZFMatrix axes(3,3,0.);
 	for(i=0; i<3; i++) axes(i,i)=1.;
+	TPZFMatrix jacinv(axes);
 
 	// a matriz de rigidez e a matriz do vetor de carga
 	TPZFMatrix ek(nstate*nshape,nstate*nshape,0.),ef(nstate*nshape,1,0.);
 
-	matexemplo.Contribute (x,sol,dsol,1.,axes,phi,dphi,ek,ef);
+	matexemplo.Contribute (x,jacinv,sol,dsol,1.,axes,phi,dphi,ek,ef);
 
-	ek.Print("contribuicao para matriz de rigidez");
+	//	ek.Print("contribuicao para matriz de rigidez");
 
-	ef.Print("contribuicao para vetor de carga");
+	//	ef.Print("contribuicao para vetor de carga");
 
 }
