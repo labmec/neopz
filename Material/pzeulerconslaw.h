@@ -1,10 +1,11 @@
-//$Id: pzeulerconslaw.h,v 1.25 2004-05-25 14:04:52 phil Exp $
+//$Id: pzeulerconslaw.h,v 1.26 2004-06-03 06:38:24 phil Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
 
 #include <iostream>
 #include "pzmaterial.h"
+#include "tpzoutofrange.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 //#include "TPZConservationLaw.h"
@@ -190,7 +191,7 @@ void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, T
   template <class T>
   static void Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
            TPZVec<REAL> & normal, REAL gamma,
-	   TPZVec<T> & flux);
+	   TPZVec<T> & flux, int with_entropy_fix);
 
    /**
     * Sets the delta parameter inside the artifficial
@@ -222,7 +223,7 @@ public:
 		       T & flux_rhou,
 		       T & flux_rhov,
 		       T & flux_rhow,
-		       T & flux_rhoE);
+		       T & flux_rhoE, int with_entropy_fix);
 
   template <class T>
   static void Roe_Flux(const T & rho_f,
@@ -239,7 +240,7 @@ public:
 		       T &flux_rho,
 		       T &flux_rhou,
 		       T &flux_rhov,
-		       T &flux_rhoE);
+		       T &flux_rhoE, int with_entropy_fix);
 
 //------------------Differentiable variables setup
 
@@ -436,7 +437,7 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(
 			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ef);
+			TPZFMatrix &ef, int with_entropy_fix);
 
 #ifdef _AUTODIFF
 
@@ -444,7 +445,7 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(
 			TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ek,TPZFMatrix &ef);
+			TPZFMatrix &ek,TPZFMatrix &ef, int with_entropy_fix);
 
 
   void ContributeFastestImplConvFace(int dim,
@@ -452,7 +453,7 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(
 			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ek,TPZFMatrix &ef);
+			TPZFMatrix &ek,TPZFMatrix &ef, int with_entropy_fix);
 
 template <int dim>
   void ContributeFastestImplConvFace_dim(
@@ -460,14 +461,14 @@ template <int dim>
 			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ek,TPZFMatrix &ef);
+			TPZFMatrix &ek,TPZFMatrix &ef, int with_entropy_fix);
 
 template <class T>
   void ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 			TPZVec<T> &FADsolL,TPZVec<T> &FADsolR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ek,TPZFMatrix &ef);
+			TPZFMatrix &ek,TPZFMatrix &ef,int with_entropy_fix);
 
 #endif
 
@@ -624,10 +625,9 @@ inline void TPZEulerConsLaw2::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVe
   for(i=0;i<dim;i++)Ai[i].Redim(TPZEulerConsLaw2::NStateVariables(dim), TPZEulerConsLaw2::NStateVariables(dim));
 
   if(U[0] < 1.e-6) {
-    PZError << "\nTPZEulerConsLaw2::JacobFlux: Density almost null or negative, jacobian evaluation fails\n"
-       << "Density = " << U[0] << endl;
-       exit(-1);
-       return;
+    PZError << "TPZEulerConsLaw2::JacobFlux: Density negative "   << U[0] << endl;
+       TPZOutofRange obj;
+       throw(obj);
   }
 
   T    u,v,w,e;
@@ -832,9 +832,11 @@ template< class T >
 inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T> &U)
 {
   if(fabs(val(U[0])) < 1.e-6) {
-    PZError << "\nTPZEulerConsLaw2::Pressure> Density neares zero!\n\tImplicit method won't be accurate!!"
-         << "Density = " << U[0] << endl;
-    exit(-1);
+    PZError << "\nTPZEulerConsLaw2::Pressure> Density negative "
+         << U[0] << endl;
+    TPZOutofRange obj;
+    throw(obj);
+//    exit(-1);
   }
   // Pressão = (gam-1)*(E - ro*||(u,v,w)||²/2)
   // onde aqui ro_e = E (nota¢ão)
@@ -862,10 +864,10 @@ inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T>
     return;
   }
   if(val(press) < 0){
-    PZError << "TPZEulerConsLaw2::Pressure> Negative pressure: " << press << endl;
-    press = (gamma-1.)*U[nstate-1];
-    PZError << "TPZEulerConsLaw2::Pressure> Substitute pressure: (gama-1)*E = " << press << endl;
-    exit(-1);
+    T temp = (gamma-1.)*U[nstate-1];
+    PZError << "TPZEulerConsLaw2::Pressure> Negative pressure: " << press << " (gama-1)*E = " << temp << endl;
+    TPZOutofRange obj;
+    throw(obj);
   }
 }
 
@@ -885,7 +887,7 @@ void TPZEulerConsLaw2::Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> 
 //----------------Roe Flux
 
 template <class T>
-void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux)
+void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux, int with_entropy_fix)
 {
    // Normals outgoing from the BC elements into the
    // mesh elements -> all the normals are opposited to
@@ -898,7 +900,7 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
               solR[0], solR[1], solR[2], solR[3], solR[4],
 	      normal[0], normal[1], normal[2],
 	      gamma,
-	      flux[0], flux[1], flux[2], flux[3], flux[4]);
+	      flux[0], flux[1], flux[2], flux[3], flux[4],with_entropy_fix);
 
    }else if(nState == 4)
    {
@@ -906,7 +908,7 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
               solR[0], solR[1], solR[2], solR[3],
 	      normal[0], normal[1],
 	      gamma,
-	      flux[0], flux[1], flux[2], flux[3]);
+	      flux[0], flux[1], flux[2], flux[3], with_entropy_fix);
    }else if(nState == 3)
    {
       //using the 2D expression for 1d problem
@@ -918,7 +920,7 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
               solR[0], solR[1], auxR, solR[2],
 	      normal[0], 0,
 	      gamma,
-	      flux[0], flux[1], fluxaux, flux[2]);
+	      flux[0], flux[1], fluxaux, flux[2],with_entropy_fix);
    }else
    {
        PZError << "No flux on " << nState << " state variables.\n";
@@ -933,7 +935,7 @@ inline void TPZEulerConsLaw2::Roe_Flux(
 	       const T & rhoE_f, const T & rho_t, const T & rhou_t, const T & rhov_t, const T & rhow_t,
 	       const T & rhoE_t, const REAL nx, const REAL ny, const REAL nz, const REAL gam,
 	       T & flux_rho, T &flux_rhou, T &flux_rhov,
-	       T & flux_rhow, T &flux_rhoE){
+	       T & flux_rhow, T &flux_rhoE, int with_entropy_fix){
 
   T    alpha1,alpha2,alpha3,alpha4,alpha5,alpha;
   T    a1,a2,a3,a4,a5,b1,b2,b3,b4,b5;
@@ -1021,7 +1023,7 @@ inline void TPZEulerConsLaw2::Roe_Flux(
       * sqrt(gam * p_f * irho_f);
     lambda_t = u_t * nx + v_t * ny + w_t * nz + norme
       * sqrt(gam * p_t * irho_t);
-    if ((lambda_f < 0.) && (lambda_t > 0.)) {
+    if (with_entropy_fix && (lambda_f < 0.) && (lambda_t > 0.)) {
       eig_val3 = lambda_t * (eig_val3 - lambda_f) / (lambda_t - lambda_f);
     }
     //
@@ -1089,7 +1091,7 @@ inline void TPZEulerConsLaw2::Roe_Flux(
       * sqrt(gam * p_f * irho_f);
     lambda_t   = u_t * nx + v_t * ny + w_t * nz - norme
       * sqrt(gam * p_t * irho_t);
-    if ((lambda_f < 0.) && (lambda_t > 0.)) {
+    if (with_entropy_fix && (lambda_f < 0.) && (lambda_t > 0.)) {
       eig_val1 = lambda_f * (lambda_t - eig_val1) / (lambda_t - lambda_f);
     }
     //
@@ -1142,7 +1144,7 @@ template <class T>
 inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const T & rhov_f, const T & rhoE_f,
 				   const T & rho_t, const T & rhou_t, const T & rhov_t, const T & rhoE_t,
 				   const REAL nx, const REAL ny, const REAL gam,
-				   T & flux_rho, T & flux_rhou,T & flux_rhov, T & flux_rhoE){
+				   T & flux_rho, T & flux_rhou,T & flux_rhov, T & flux_rhoE, int with_entropy_fix){
 
   T    alpha1,alpha2,alpha3,alpha4,a1,a2,a3,a4,b1,b2,b3,b4,alpha;
   T    ep_t, ep_f, p_t, p_f;
@@ -1217,7 +1219,7 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
     lambda_f = u_f * nx + v_f * ny + norme * sqrt(gam * p_f / rho_f);
     lambda_t   = u_t * nx + v_t * ny + norme
       * sqrt(gam * p_t / rho_t);
-    if ((lambda_f < 0.) && (lambda_t > 0.)) {
+    if (with_entropy_fix && (lambda_f < 0.) && (lambda_t > 0.)) {
       eig_val3 = lambda_t * (eig_val3 - lambda_f) / (lambda_t - lambda_f);
     }
     //
@@ -1277,7 +1279,7 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
 				+ rhov_t * rhov_t) / rho_t);
     lambda_f = u_f * nx + v_f * ny - norme * sqrt(gam * p_f / rho_f);
     lambda_t   = u_t * nx + v_t * ny - norme * sqrt(gam * p_t / rho_t);
-    if ((lambda_f < 0.) && (lambda_t > 0.)) {
+    if (with_entropy_fix && (lambda_f < 0.) && (lambda_t > 0.)) {
       eig_val1 = lambda_f * (lambda_t - eig_val1) / (lambda_t - lambda_f);
     }
     //
@@ -1329,7 +1331,8 @@ void TPZEulerConsLaw2::cSpeed(TPZVec<T> & sol, REAL gamma, T & c)
    if(sol[0] < 1e-10)
    {
       PZError << "TPZEulerConsLaw2::cSpeed Too low or negative density\n";
-      exit(-1);
+      TPZOutofRange obj;
+      throw(obj);
    }
 
    int dim = sol.NElements() - 2;
@@ -1350,7 +1353,9 @@ inline void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
    if(sol[0] < 1e-10)
    {
       PZError << "TPZEulerConsLaw2::cSpeed Too low or negative density\n";
-      exit(-1);
+      TPZOutofRange obj;
+      throw(obj);
+//      exit(-1);
    }
 
    T temp;
@@ -1363,7 +1368,9 @@ inline void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
       if(temp < 1e-40)
       {
 	 PZError << "TPZEulerConsLaw2::uRes Zero Velocity\n";
-	 exit(-1);
+         TPZOutofRange obj;
+         throw(obj);
+//	 exit(-1);
       }
       us = sqrt(temp)/sol[0];
       break;
@@ -1372,7 +1379,9 @@ inline void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
       if(temp < 1e-40)
       {
 	 PZError << "TPZEulerConsLaw2::uRes Zero Velocity\n";
-	 exit(-1);
+         TPZOutofRange obj;
+         throw(obj);
+//	 exit(-1);
       }
       us = sqrt(temp)/sol[0];
       break;
