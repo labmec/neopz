@@ -308,6 +308,11 @@ private:
 @param side - Side along which the nodes will be identified/created
 @param newnodeindexes - return all midside node indexes for the element division. */
   void CreateMidSideNodes (TPZGeoEl *gel, int side, TPZVec<int> &newnodeindexes);
+  /** Returns the refinement pattern identifier */
+  string GetName();
+protected: // Protected attributes
+  /** Identifier for the refinement pattern */
+  string fName;
 };
 
 #endif
