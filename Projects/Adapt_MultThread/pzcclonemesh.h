@@ -1,3 +1,6 @@
+// -*- c++ -*-
+// $ Id: $
+
 //HEADER FILE FOR CLASS CLONEMESH
 
 #ifndef PZCCLONEMESHHPP
@@ -138,6 +141,11 @@ protected:
    */
   int IsFather(TPZGeoEl *el);
 
+  /**
+   * Copy the connect data structure of the connects
+   * Copy the size of the blocks and adjust the element sideorders
+   */
+  void CopyConnectStructure();
 
   /**
    * Analyse an element and return its best refinement hp / p.
