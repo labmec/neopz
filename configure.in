@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.23 2004-02-10 14:40:09 tiago Exp $
+dnl $Id: configure.in,v 1.24 2004-03-09 04:32:53 thiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -435,8 +435,7 @@ dnl                              CONGRATULATIONS!
 dnl ----------------------------------------------------------------------------
 
 AC_OUTPUT([ Makefile PZ.mk PZ_user.mk \
-dnl --| PZ subtree |--
-	Util/Makefile \
+	 Util/Makefile \
 	Matrix/Makefile \
 	Cosys/Makefile \
 	Multigrid/Makefile \
@@ -455,14 +454,12 @@ dnl --| PZ subtree |--
 	Common/Makefile \
 	LinearSolvers/Makefile \
 	lib/Makefile \
-dnl --| Projects subtree |--
+
 	Projects/Makefile \
         Projects/DiffusionTest/Makefile \
 	Projects/adaptivity/Makefile \
 	Projects/angletest/Makefile \
-	Projects/checkcont/Makefile \
 	Projects/checkconv/Makefile \
-	Projects/cycleref/Makefile \
 	Projects/cylin/Makefile \
 	Projects/materialhyperelastico/Makefile \
 	Projects/matrix/Makefile \
@@ -493,15 +490,11 @@ dnl --| Projects subtree |--
 	Projects/CursoPZ/Class_3/Makefile \
 	Projects/CursoPZ/Class_4/Makefile \
 	Projects/CursoPZ/Class_5/Makefile \
-	Projects/CursoPZ/FinalWorks/Makefile \
-	Projects/CursoPZ/FinalWorks/TiagoForti/Makefile \
-	Projects/CursoPZ/FinalWorks/ErickSlis/Makefile \
-	Projects/CursoPZ/FinalWorks/Longhin/Makefile \
-	Projects/CursoPZ/FinalWorks/CesarRylo/Makefile \
-	Projects/CursoPZ/FinalWorks/RGDamas/Makefile \
-
 
 ])
+
+
+
 
 PZ_BYEBYE
 
