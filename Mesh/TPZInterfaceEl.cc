@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cc,v 1.27 2004-01-05 17:45:25 cesar Exp $
+//$Id: TPZInterfaceEl.cc,v 1.28 2004-01-22 17:10:31 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -42,6 +42,8 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
   : TPZCompEl(mesh,copy), fNormal(copy.fNormal) {
   fLeftEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[copy.fLeftEl->Index()]);
   fRightEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[copy.fRightEl->Index()]);
+
+#ifdef DEBUG
   if(!fLeftEl || ! fRightEl) {
     cout << "Something wrong with clone of interface element\n";
     exit(-1);
@@ -50,6 +52,8 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
     cout << "The discontinuous elements should be cloned before the interface elements\n";
     exit(-1);
   }
+#endif
+
   fReference = copy.fReference;
   TPZMaterial *mat = copy.Material();
   if(mat) {
@@ -79,16 +83,19 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
   TPZCompEl *right = copy.fRightEl->Reference()->Reference();
   fLeftEl = dynamic_cast<TPZCompElDisc *>(left);
   fRightEl = dynamic_cast<TPZCompElDisc *>(right);
-
+  
+#ifdef DEBUG
   if(!fLeftEl || ! fRightEl) {
     cout << "TPZInterfaceElement::TPZInterfaceElement Something wrong with clone of interface element\n";
     exit(-1);
-  }
+  } 
   if(fLeftEl->Mesh() != &mesh || fRightEl->Mesh() != &mesh) {
     cout << "TPZInterfaceElement::TPZInterfaceElement The discontinuous elements should be cloned "
 	 << "before the interface elements\n";
     exit(-1);
   }
+#endif 
+
   fReference = copy.fReference;
   TPZMaterial *mat = copy.Material();
   if(mat) {
