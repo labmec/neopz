@@ -1,4 +1,4 @@
-//$Id: main.cc,v 1.6 2003-12-09 17:53:00 phil Exp $
+//$Id: main.cc,v 1.7 2003-12-15 12:49:25 phil Exp $
 /**
  * Galerkin descontinuo: visita do professor Igor.
  * 24/11/2003
@@ -101,7 +101,7 @@ int main(){
   cout << "\nRefinamento" << endl;
 
 //  cin >> h;
-  h = 3;
+  h = 1;
 
   cout << "\nArquivo" << endl;
 
@@ -228,7 +228,7 @@ int main(){
   vecnames[0] = "Derivate";
   an.DefineGraphMesh(2,scalnames,vecnames,filedx);
 
-  an.PostProcess(4);
+  an.PostProcess(0);
   an.SetExact(ExactSolution);
 
   TPZVec<REAL> pos;
@@ -269,10 +269,9 @@ int main(){
 TPZCompMesh *CreateMesh() {
   REAL co[9][2] = {{0.,0.},{0.,-1.},{1.,-1.},{1.,0.},{1.,1.},{0.,1.},{-1.,1.},{-1.,0.},{-1,-1}};
   int indices[4][4] = {{0,1,2,3},{0,3,4,5},{0,5,6,7},{0,7,8,1}};
-  TPZGeoEl *elvec[4];
+  TPZGeoEl *elvec[8];
   TPZGeoMesh *gmesh = new TPZGeoMesh();
   int nnode = 9;
-  int nelem = 4;
   int nod;
   for(nod=0; nod<nnode; nod++) {
     int nodind = gmesh->NodeVec().AllocateNewElement();
@@ -282,14 +281,47 @@ TPZCompMesh *CreateMesh() {
     gmesh->NodeVec()[nodind].Initialize(nod,coord,*gmesh);
   }
 
+// triangular mesh
+  int nelem = 8;
   int el;
-  for(el=0; el<nelem; el++) {
-    TPZManVector<int,4> nodind(4);
-    for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+  for(el=0; el<nelem/2; el++) {
+    TPZManVector<int,4> nodind(3);
     int index;
-    elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
+    
+    for(nod=0; nod<3; nod++) nodind[nod]=indices[el][(nod+1-el%2)%4];
+    elvec[2*el] = gmesh->CreateGeoElement(ETriangle,nodind,1,index);
+    for(nod=0; nod<3; nod++) nodind[nod]=indices[el][(nod+3-el%2)%4];
+    elvec[2*el+1] = gmesh->CreateGeoElement(ETriangle,nodind,1,index);
   }
+  TPZGeoElBC gbc1(elvec[0],3,-2,*gmesh); // bottom
+  TPZGeoElBC gbc2(elvec[0],4,-2,*gmesh); // right
+  TPZGeoElBC gbc3(elvec[2],4,-1,*gmesh); // right
+  TPZGeoElBC gbc4(elvec[3],3,-1,*gmesh); // top
+  TPZGeoElBC gbc5(elvec[4],3,-2,*gmesh); // top
+  TPZGeoElBC gbc6(elvec[4],4,-2,*gmesh); // left
+  TPZGeoElBC gbc7(elvec[6],4,-1,*gmesh); // left
+  TPZGeoElBC gbc8(elvec[7],3,-1,*gmesh); // bottom
 
+// quadrilateral mesh  
+//  int nelem = 4;
+//  int el;
+//  for(el=0; el<nelem; el++) {
+//    TPZManVector<int,4> nodind(3);
+//    for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+//    int index;
+//    elvec[el] = gmesh->CreateGeoElement(ETriangle,nodind,1,index);
+//  }
+//
+//  TPZGeoElBC gbc1(elvec[0],5,-2,*gmesh); // bottom
+//  TPZGeoElBC gbc2(elvec[0],6,-2,*gmesh); // right
+//  TPZGeoElBC gbc3(elvec[1],5,-1,*gmesh); // right
+//  TPZGeoElBC gbc4(elvec[1],6,-1,*gmesh); // top
+//  TPZGeoElBC gbc5(elvec[2],5,-2,*gmesh); // top
+//  TPZGeoElBC gbc6(elvec[2],6,-2,*gmesh); // left
+//  TPZGeoElBC gbc7(elvec[3],5,-1,*gmesh); // left
+//  TPZGeoElBC gbc8(elvec[3],6,-1,*gmesh); // bottom
+
+  
   gmesh->BuildConnectivity();
 
     
@@ -340,14 +372,6 @@ TPZCompMesh *CreateMesh() {
 */
 
   // bc -1 -> Dirichlet homogeneo
-  TPZGeoElBC gbc1(elvec[0],5,-2,*gmesh); // bottom
-  TPZGeoElBC gbc2(elvec[0],6,-2,*gmesh); // right
-  TPZGeoElBC gbc3(elvec[1],5,-1,*gmesh); // right
-  TPZGeoElBC gbc4(elvec[1],6,-1,*gmesh); // top
-  TPZGeoElBC gbc5(elvec[2],5,-2,*gmesh); // top
-  TPZGeoElBC gbc6(elvec[2],6,-2,*gmesh); // left
-  TPZGeoElBC gbc7(elvec[3],5,-1,*gmesh); // left
-  TPZGeoElBC gbc8(elvec[3],6,-1,*gmesh); // bottom
   
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   cmesh->SetDimModel(2);
@@ -376,7 +400,7 @@ TPZCompMesh *CreateMesh() {
   int i;
   for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
 
-  /*
+  
   TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
@@ -385,7 +409,7 @@ TPZCompMesh *CreateMesh() {
   TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
-  */
+  
   TPZCompElDisc::gInterfaceDimension = 1;
   
   cmesh->AutoBuild();
