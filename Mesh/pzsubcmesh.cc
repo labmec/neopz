@@ -49,7 +49,7 @@ int TPZSubCompMesh::main() {
 			coord[j] = coordstore[i%4][j];
 			coord[2] = i/4;
 		}
-   	int nodeindex = geo.NodeVec().AllocateNewElement();
+		//   	int nodeindex = geo.NodeVec().AllocateNewElement();
 	geo.NodeVec()[i].Initialize(i,coord,geo);
 	}
 	
@@ -63,8 +63,8 @@ int TPZSubCompMesh::main() {
 		for(j=0; j<8; j++) indices[j] = 4*i+j;
 		gel[i] = new TPZGeoElC3d(i,indices,1,geo);
 	}
-	TPZGeoElBC t3(gel[0],20,-1,geo); 	
-	TPZGeoElBC t4(gel[numel-1],25,-2,geo); 
+	//	TPZGeoElBC t3(gel[0],20,-1,geo); 	
+	//	TPZGeoElBC t4(gel[numel-1],25,-2,geo); 
 	geo.BuildConnectivity();
 
 	//Create the computacional mesh
@@ -459,7 +459,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 			for(j=0;j<stack.NElements(); j++){
 				int jlocind = stack[j];
 				if (jlocind == locind) continue;
-				TPZConnect &conj = father->ConnectVec()[fConnectIndex[fExternalLocIndex[jlocind]]];
+				//				TPZConnect &conj = father->ConnectVec()[fConnectIndex[fExternalLocIndex[jlocind]]];
 				if (listdepend->HasDepend(fConnectIndex[fExternalLocIndex[jlocind]])) break;
 			}
 			if (j == stack.NElements()) can=1;
@@ -582,12 +582,12 @@ int TPZSubCompMesh::IsAllowedElement(TPZCompMesh *mesh, int elindex){
 
 void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	if(!fAnalysis) this->SetAnalysis();
-	int i=0, j=0;
+	int i=0;
 	CleanUpUnconnectedNodes();
 	PermuteExternalConnects();
 	
 	TPZBlock &block = Mesh()->Block();
-	TPZFMatrix &MeshSol = Mesh()->Solution();
+	//	TPZFMatrix &MeshSol = Mesh()->Solution();
 	// clean ek and ef
 	if(!ek.fMat) ek.fMat = new TPZFMatrix();
 	if(!ef.fMat) ef.fMat = new TPZFMatrix();
@@ -658,7 +658,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 void TPZSubCompMesh::SetAnalysis(){
 	if(fAnalysis) delete fAnalysis;
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
-	int numint = NumInternalEquations();
+	//	int numint = NumInternalEquations();
 	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
 	fAnalysis->SetStructuralMatrix(fstr);
 	TPZStepSolver solver;
@@ -726,11 +726,11 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 }
 
 void TPZSubCompMesh::LoadSolution(){
-	int count = 0;
+  //	int count = 0;
 	int i=0;
 	int seqnumext;
 	int seqnumint;
-	int numinteq = NumInternalEquations();
+	//	int numinteq = NumInternalEquations();
 	int size;
 	TPZFMatrix &sol = Mesh()->Solution();
 
