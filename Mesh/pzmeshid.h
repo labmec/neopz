@@ -45,6 +45,7 @@ const int TPZINTELPYRAMID = 221;
 
 const int TPZSUBCOMPMESHID = 222;
 const int TPZCOMPMESHID = 223;
+const int TPZFLOWCOMPMESHID = 224;
 
 void RegisterMeshClasses();
 //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;

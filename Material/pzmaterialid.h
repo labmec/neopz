@@ -13,6 +13,10 @@
 #define PZMATERIALIDH
 
 const int TPZMAT2DLINID = 300;
+const int TPZCONSERVATIONLAW2ID = 301;
+const int TPZEULERCONSLAW2ID = 302;
+const int TPZARTDIFFID = 303;
+const int TPZBNDCONDID = 304;
 
 void RegisterMaterialClasses();
 

@@ -44,6 +44,7 @@
 #include "TPZInterfaceEl.h"
 #include "pzelctemp.h"
 #include "pzcmesh.h"
+#include "pzflowcmesh.h"
 #include "pzsubcmesh.h"
 
 
@@ -76,5 +77,5 @@ void RegisterMeshClasses() {
   TPZSaveable::Register(TPZSUBCOMPMESHID,Restore<TPZSubCompMesh>);
   TPZSaveable::Register(TPZCOMPMESHID,Restore<TPZCompMesh>);
 
-
+  TPZSaveable::Register(TPZFLOWCOMPMESHID,Restore<TPZFlowCompMesh>);
 }
