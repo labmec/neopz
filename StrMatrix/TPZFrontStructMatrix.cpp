@@ -233,11 +233,6 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix & stiffness, TPZFMatrix 
   TPZElementMatrix ek,ef;
   TPZManVector<int> destinationindex(0);
   TPZManVector<int> sourceindex(0);
-  REAL stor1[1000],stor2[1000],stor3[100],stor4[100];
-  ek.fMat = new TPZFMatrix(0,0,stor1,1000);
-  ek.fConstrMat = new TPZFMatrix(0,0,stor2,1000);
-  ef.fMat = new TPZFMatrix(0,0,stor3,100);
-  ef.fConstrMat = new TPZFMatrix(0,0,stor4,100);
 
   TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
   
@@ -269,7 +264,7 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix & stiffness, TPZFMatrix 
       //ek.fMat->Print("stiff has no constraint",test);
       //ef.fMat->Print("rhs has no constraint",test);
       //test.flush();
-      destinationindex.Resize(ek.fMat->Rows());
+      destinationindex.Resize(ek.fMat.Rows());
       int destindex = 0;
       int numnod = ek.NConnects();
       for(int in=0; in<numnod; in++) {
@@ -283,8 +278,8 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix & stiffness, TPZFMatrix 
          }
       }
       //ek.Print(*fMesh,cout);     
-      stiffness.AddKel(*ek.fMat,destinationindex);
-      rhs.AddFel(*ef.fMat,destinationindex);                 //  ??????????? Erro
+      stiffness.AddKel(ek.fMat,destinationindex);
+      rhs.AddFel(ef.fMat,destinationindex);                 //  ??????????? Erro
     }
     else {
       // the element has dependent nodes
@@ -297,8 +292,8 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix & stiffness, TPZFMatrix 
       //test << "sum of columns\n";
       int destindex = 0;
       int fullmatindex = 0;
-      destinationindex.Resize(ek.fConstrMat->Rows());
-      sourceindex.Resize(ek.fConstrMat->Rows());
+      destinationindex.Resize(ek.fConstrMat.Rows());
+      sourceindex.Resize(ek.fConstrMat.Rows());
       int numnod = ek.fConstrConnect.NElements();
       for(int in=0; in<numnod; in++) {
          int npindex = ek.fConstrConnect[in];
@@ -318,8 +313,8 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix & stiffness, TPZFMatrix 
       sourceindex.Resize(destindex);
       destinationindex.Resize(destindex);
       //ek.Print(*fMesh,cout);     
-      stiffness.AddKel(*ek.fConstrMat,sourceindex,destinationindex);
-      rhs.AddFel(*ef.fConstrMat,sourceindex,destinationindex);
+      stiffness.AddKel(ek.fConstrMat,sourceindex,destinationindex);
+      rhs.AddFel(ef.fConstrMat,sourceindex,destinationindex);
 /*
 if(ek.fConstrMat->Decompose_LU() != -1) {
     el->ApplyConstraints(ek,ef);
@@ -340,11 +335,6 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix & stiffness, TPZFMatrix & r
   int iel;
   int numel = 0, nelem = fMesh->NElements();
   TPZElementMatrix ek,ef;
-  REAL stor1[1000],stor2[1000],stor3[100],stor4[100];
-  ek.fMat = new TPZFMatrix(0,0,stor1,1000);
-  ek.fConstrMat = new TPZFMatrix(0,0,stor2,1000);
-  ef.fMat = new TPZFMatrix(0,0,stor3,100);
-  ef.fConstrMat = new TPZFMatrix(0,0,stor4,100);
 
   TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
   
@@ -392,7 +382,7 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
           //ek.fMat->Print("stiff has no constraint",test);
           //ef.fMat->Print("rhs has no constraint",test);
           //test.flush();
-          destinationindex.Resize(ek.fMat->Rows());
+          destinationindex.Resize(ek.fMat.Rows());
           int destindex = 0;
           int numnod = ek.NConnects();
           for(int in=0; in<numnod; in++) {
@@ -406,8 +396,8 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
                }
           }
           //ek.Print(*fMesh,cout);
-          stiffness.AddKel(*ek.fMat,destinationindex);
-          rhs.AddFel(*ef.fMat,destinationindex);                 //  ??????????? Erro
+          stiffness.AddKel(ek.fMat,destinationindex);
+          rhs.AddFel(ef.fMat,destinationindex);                 //  ??????????? Erro
      }
      else
      {
@@ -421,8 +411,8 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
           //test << "sum of columns\n";
           int destindex = 0;
           int fullmatindex = 0;
-          destinationindex.Resize(ek.fConstrMat->Rows());
-          sourceindex.Resize(ek.fConstrMat->Rows());
+          destinationindex.Resize(ek.fConstrMat.Rows());
+          sourceindex.Resize(ek.fConstrMat.Rows());
           int numnod = ek.fConstrConnect.NElements();
           for(int in=0; in<numnod; in++) {
                int npindex = ek.fConstrConnect[in];
@@ -444,8 +434,8 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
           sourceindex.Resize(destindex);
           destinationindex.Resize(destindex);
           //ek.Print(*fMesh,cout);     
-          stiffness.AddKel(*ek.fConstrMat,sourceindex,destinationindex);
-          rhs.AddFel(*ef.fConstrMat,sourceindex,destinationindex);
+          stiffness.AddKel(ek.fConstrMat,sourceindex,destinationindex);
+          rhs.AddFel(ef.fConstrMat,sourceindex,destinationindex);
      }
 }
 
