@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.9 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzgeoelside.h,v 1.10 2004-02-05 12:03:53 cesar Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -42,7 +42,7 @@ class TPZGeoElSide {
   TPZGeoEl *Element(){return fGeoEl;}
   int Side(){return fSide;}
   void SetSide(int side) { fSide = side; }
-  int Exists() const {return fGeoEl != 0;}
+  int Exists() const {return (fGeoEl != 0 && fSide > -1);}
   TPZGeoElSide Neighbour() const;//return neighbour of the side fSide
 
   /**
