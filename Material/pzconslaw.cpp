@@ -1,4 +1,4 @@
-//$Id: pzconslaw.cpp,v 1.3 2003-10-20 12:02:55 erick Exp $
+//$Id: pzconslaw.cpp,v 1.4 2003-10-21 18:12:11 erick Exp $
 
 #include "pzconslaw.h"
 #include "pzelmat.h"
@@ -48,6 +48,19 @@ void TPZConservationLaw2::Print(ostream &out)
 //   out << "\tDelta (diffusive term): " << fDelta << endl;
    out << "\tGamma: " << fGamma << endl;
    TPZMaterial::Print(out);
+
+
+   switch(fContributionTime)
+   {
+      case Advanced_CT:
+         out << "Advanced Contribution\n";
+         break;
+      case Last_CT:
+         out << "Last state Contribution\n";
+         break;
+      case None_CT:
+         out << "Contribution undefined\n";
+   }
 }
 
 // void TPZConservationLaw2::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*axes*/,int var,TPZVec<REAL> &Solout){

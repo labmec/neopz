@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.4 2003-10-20 12:02:55 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.5 2003-10-21 18:12:11 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -166,6 +166,13 @@ public :
            TPZVec<REAL> & normal, REAL gamma,
 	   TPZVec<T> & flux);
 
+   /**
+    * Sets the delta parameter inside the artifficial
+    * diffusion term.
+    *
+    */
+   void SetDelta(REAL delta);
+
 public:
   /**
    * Flux of Roe (MOUSE program)
@@ -270,29 +277,48 @@ public:
 
 //------------------internal contributions
 
-  void ContributeDiff(TPZVec<REAL> &x,
+  virtual void ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
-			TPZFMatrix &ek,TPZFMatrix &ef,
-			int approx);
+			TPZFMatrix &ef);
+
+  virtual void ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
+			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+			REAL weight,
+			TPZFMatrix &phi,TPZFMatrix &dphi,
+			TPZFMatrix &ek,TPZFMatrix &ef);
+
+//-------------------
+
+  void ContributeApproxImplDiff(TPZVec<REAL> &x,
+			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+			REAL weight,
+			TPZFMatrix &phi,TPZFMatrix &dphi,
+			TPZFMatrix &ek,TPZFMatrix &ef);
+
+  void ContributeExplDiff(TPZVec<REAL> &x,
+			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+			REAL weight,
+			TPZFMatrix &phi, TPZFMatrix &dphi,
+			TPZFMatrix &ef);
 
 #ifdef _AUTODIFF
-  void ContributeDiff(TPZVec<REAL> &x,
+  void ContributeImplDiff(TPZVec<REAL> &x,
 			TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
 			REAL weight,
 			TPZFMatrix &ek,TPZFMatrix &ef);
 #endif
 
-  void ContributeConvFace(TPZVec<REAL> &x,
+  void ContributeExplConvFace(TPZVec<REAL> &x,
 			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ek,TPZFMatrix &ef);
+			TPZFMatrix &ef);
 
 #ifdef _AUTODIFF
 
-  void ContributeConvFace(TPZVec<REAL> &x,
+  void ContributeImplConvFace(TPZVec<REAL> &x,
 			TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
@@ -300,30 +326,36 @@ public:
 
 #endif
 
-  void ContributeConvVol(TPZVec<REAL> &x,
+  void ContributeImplConvVol(TPZVec<REAL> &x,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
 			TPZFMatrix &ek,TPZFMatrix &ef);
 
+  void ContributeExplConvVol(TPZVec<REAL> &x,
+			TPZVec<REAL> &sol,
+			REAL weight,
+			TPZFMatrix &phi, TPZFMatrix &dphi,
+			TPZFMatrix &ef);
+
 #ifdef _AUTODIFF
-  void ContributeConvVol(TPZVec<REAL> &x,
+  void ContributeImplConvVol(TPZVec<REAL> &x,
 			TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
 			REAL weight,
 			TPZFMatrix &ek,TPZFMatrix &ef);
 #endif
 
-  void ContributeT1(TPZVec<REAL> &x,
+  void ContributeImplT1(TPZVec<REAL> &x,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
 			TPZFMatrix &ek,TPZFMatrix &ef);
 
-  void ContributeT2(TPZVec<REAL> &x,
-			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+  void ContributeExplT2(TPZVec<REAL> &x,
+			TPZVec<REAL> &sol,
 			REAL weight,
-			TPZFMatrix &phi,TPZFMatrix &dphi,
-			TPZFMatrix &ek,TPZFMatrix &ef);
+			TPZFMatrix &phi,
+			TPZFMatrix &ef);
 
 //--------------------
 

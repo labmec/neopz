@@ -35,7 +35,7 @@ class TPZArtDiff
 {
 public:
 
-   TPZArtDiff(TPZArtDiffType type, REAL gamma, REAL CFL = 0, REAL delta = 1.0);
+   TPZArtDiff(TPZArtDiffType type, REAL gamma, REAL CFL = 0., REAL delta = 0.);
 
    ~TPZArtDiff();
 
@@ -225,7 +225,7 @@ void PrepareFastDiff(int dim, TPZVec<FADREAL> &sol,
 //-----------------Contribute
 
   /**
-   * Contributes the diffusion term to the tangent matrix (ek) and residual vector (ef)
+   * Contributes the diffusion term to the tangent matrix (ek-approximated) and residual vector (ef)
    * @param dim [in] dimension
    * @param sol [in] solution of the dim+2 state functions
    * @param dsol [in] derivatives of U with respect to the dim dimensions
@@ -233,15 +233,30 @@ void PrepareFastDiff(int dim, TPZVec<FADREAL> &sol,
    * @param ef [out] Residual vector to contribute to
    * @param weight [in] Gaussian quadrature integration weight
    * @param timeStep [in]
-   * @param approxImplicit [in] parameter to infor whether the approximate implicit tangent
    * is to be computed and contributed to ek.
    */
-void ContributeDiff(int dim,
+void ContributeApproxImplDiff(int dim,
                            TPZVec<REAL> &sol, TPZFMatrix &dsol,
 			   TPZFMatrix &dphix,
 			   TPZFMatrix &ek, TPZFMatrix &ef,
-			   REAL weight, REAL timeStep,
-			   bool approxImplicit=true);
+			   REAL weight, REAL timeStep);
+
+  /**
+   * Contributes the diffusion term to the tangent matrix (ek-approximated) and residual vector (ef)
+   * @param dim [in] dimension
+   * @param sol [in] solution of the dim+2 state functions
+   * @param dsol [in] derivatives of U with respect to the dim dimensions
+   * @param ek [out] Tangent matrix to contribute to
+   * @param ef [out] Residual vector to contribute to
+   * @param weight [in] Gaussian quadrature integration weight
+   * @param timeStep [in]
+   * is to be computed and contributed to ek.
+   */
+void ContributeExplDiff(int dim,
+                           TPZVec<REAL> &sol, TPZFMatrix &dsol,
+			   TPZFMatrix &dphix,
+			   TPZFMatrix &ef,
+			   REAL weight, REAL timeStep);
 
 #ifdef _AUTODIFF
 
@@ -255,7 +270,7 @@ void ContributeDiff(int dim,
    * @param weight [in] Gaussian quadrature integration weight
    * @param timeStep [in]
    */
-void ContributeDiff(int dim,
+void ContributeImplDiff(int dim,
                            TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol,
 			   TPZFMatrix &ek, TPZFMatrix &ef,
 			   REAL weight, REAL timeStep);

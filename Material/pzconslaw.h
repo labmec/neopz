@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.5 2003-10-20 12:02:55 erick Exp $
+//$Id: pzconslaw.h,v 1.6 2003-10-21 18:12:11 erick Exp $
 
 #ifndef CONSERVATIONLAWHPP
 #define CONSERVATIONLAWHPP
@@ -20,7 +20,7 @@ enum TPZTimeDiscr
 enum TPZContributeTime
 {
    None_CT = -1,
-   Current_CT = 0,
+   Last_CT = 0,
    Advanced_CT = 1
 };
 

@@ -59,7 +59,6 @@ TPZString TPZArtDiff::DiffusionName()
 
 REAL TPZArtDiff::OptimalDelta()
 {
-
    //int degree = TPZCompElDisc::gDegree;
    REAL cfl = OptimalCFL(/*degree*/);
    REAL delta = ( (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10. );
@@ -68,7 +67,8 @@ REAL TPZArtDiff::OptimalDelta()
 
 REAL TPZArtDiff::Delta()
 {
-   return fDelta;
+   if(fDelta)return fDelta;
+   return OptimalDelta();
 }
 
 void TPZArtDiff::SetDelta(REAL delta)
@@ -532,16 +532,16 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZVec<FADREAL> &sol,
 
 //-----------------Contribute
 
-void TPZArtDiff::ContributeDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix &dsol,  TPZFMatrix &dphix, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight, REAL timeStep, bool approxImplicit)
+void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix &dsol,  TPZFMatrix &dphix, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight, REAL timeStep)
 {
-    REAL delta = fDelta;
+    REAL delta = Delta();
     REAL constant = weight * delta * timeStep;
 
     TPZVec<TPZVec<REAL> > TauDiv;
     TPZVec<TPZDiffMatrix<REAL> > * pTaudDiv = NULL;
     TPZVec<TPZDiffMatrix<REAL> > TaudDiv;
 
-    if(approxImplicit)pTaudDiv = & TaudDiv;
+    pTaudDiv = & TaudDiv;
 
     PrepareFastDiff(dim, sol, dsol, dphix, TauDiv, pTaudDiv);
 
@@ -553,30 +553,42 @@ void TPZArtDiff::ContributeDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix &dsol,  T
     REAL buff;
 
     // ODotProduct speeded up
-    if(approxImplicit)
-    {
-       for(l=0;l<nshape;l++)
-          for(i=0;i<nstate;i++)
-	     for(k=0;k<dim;k++)
-	        {
-	        buff = dphix(k,l) * constant;
-	        ef(i+l*nstate,0) += buff * TauDiv[k][i];
-                for(j=0;j<neq;j++)
-	           ek(i+l*nstate,j) += buff * TaudDiv[k](i,j);
-	        }
-     }else{
-       for(l=0;l<nshape;l++)
-          for(i=0;i<nstate;i++)
-	     for(k=0;k<dim;k++)
-	        ef(i+l*nstate,0) += dphix(k,l) * TauDiv[k][i] * constant;
-     }
+    for(l=0;l<nshape;l++)
+       for(i=0;i<nstate;i++)
+          for(k=0;k<dim;k++)
+	     {
+	     buff = dphix(k,l) * constant;
+	     ef(i+l*nstate,0) += buff * TauDiv[k][i];
+             for(j=0;j<neq;j++)
+	        ek(i+l*nstate,j) += buff * TaudDiv[k](i,j);
+	     }
+}
+
+void TPZArtDiff::ContributeExplDiff(int dim, TPZVec<REAL> &sol, TPZFMatrix &dsol,  TPZFMatrix &dphix, TPZFMatrix &ef, REAL weight, REAL timeStep)
+{
+    REAL delta = Delta();
+    REAL constant = weight * delta * timeStep;
+
+    TPZVec<TPZVec<REAL> > TauDiv;
+
+    PrepareFastDiff(dim, sol, dsol, dphix, TauDiv, NULL);
+
+    int i, k, l;
+    int nshape = dphix.Cols();
+    int nstate = dim + 2;
+
+    // ODotProduct speeded up
+    for(l=0;l<nshape;l++)
+       for(i=0;i<nstate;i++)
+	  for(k=0;k<dim;k++)
+	     ef(i+l*nstate,0) += dphix(k,l) * TauDiv[k][i] * constant;
 }
 
 #ifdef _AUTODIFF
 
-void TPZArtDiff::ContributeDiff(int dim, TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight,  REAL timeStep)
+void TPZArtDiff::ContributeImplDiff(int dim, TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol, TPZFMatrix &ek, TPZFMatrix &ef, REAL weight,  REAL timeStep)
 {
-    REAL delta = fDelta;
+    REAL delta = Delta();
     REAL constant = delta * weight * timeStep;
 
     TPZVec<TPZVec<FADREAL> > TauDiv;

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cc,v 1.4 2003-10-20 12:02:55 erick Exp $
+//$Id: pzeulerconslaw.cc,v 1.5 2003-10-21 18:12:11 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -121,6 +121,8 @@ void TPZEulerConsLaw2::Print(ostream &out) {
      default:
         cout << "No Face Convective term\n";
   }
+
+
 }
 
 int TPZEulerConsLaw2::VariableIndex(char *name) {
@@ -319,7 +321,10 @@ void TPZEulerConsLaw2::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 //   values[0]  = values[1]+values[2];
 }
 
-
+void TPZEulerConsLaw2::SetDelta(REAL delta)
+{
+   fArtDiff.SetDelta(delta);
+}
 
 /*
 
@@ -440,36 +445,91 @@ void TPZEulerConsLaw2::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,
          sol[i] = res[i];
    }
 
+   if(fContributionTime == Last_CT)
+   {
+       ContributeLast(x, jacinv,
+			sol, dsol,
+			weight,
+			phi, dphi,
+			ef);
+       return;
+   }
+
+   if(fContributionTime == Advanced_CT)
+   {
+       ContributeAdv(x, jacinv,
+			sol, dsol,
+			weight,
+			phi, dphi,
+			ek, ef);
+       return;
+   }
+
+   PZError << "TPZEulerConsLaw2::Contribute> Unhandled Contribution Time";
+}
+
+void TPZEulerConsLaw2::ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
+			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+			REAL weight,
+			TPZFMatrix &phi, TPZFMatrix &dphi,
+			TPZFMatrix &ef)
+{
+// contributing the explicit parcell of the residual to the
+// rhs.
+
+   // the parcell T2 is always explicit.
+   ContributeExplT2(x,sol,weight,phi,ef);
+
    // contributing volume-based quantities
+   // diffusive term
+   if (fDiff == Explicit_TD)
+         ContributeExplDiff(x,sol,dsol,weight,phi,dphi,ef);
+
+   // Volume Convective term
+   if (fConvVol == Explicit_TD)
+         ContributeExplConvVol(x, sol, weight, phi, dphi, ef);
+
+}
+
+
+void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
+			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+			REAL weight,
+			TPZFMatrix &phi, TPZFMatrix &dphi,
+			TPZFMatrix &ek, TPZFMatrix &ef)
+{
+// contributing the implicit parcell of the residual to the
+// rhs.
+
+   // the parcell T1 is always implicit.
+   ContributeImplT1(x,sol,dsol,weight,phi,dphi,ek,ef);
+
+   // contributing volume-based quantities
+   // diffusive term
    if (fDiff == Implicit_TD)
-      {
+   {
       // if diffusive term is implicit
       // then the FAD classes must be initialized
       #ifdef _AUTODIFF
          TPZVec<FADREAL> FADsol, FADdsol;
          PrepareFAD(sol, dsol, phi, dphi, FADsol, FADdsol);
-	    ContributeDiff(x,FADsol,FADdsol, weight, ek, ef);
+	    ContributeImplDiff(x,FADsol,FADdsol, weight, ek, ef);
       #else
-         cout << "TPZEulerConsLaw2::Contribute> Implicit diffusive contribution: _AUTODIFF directive not configured";
-         ContributeDiff(x,sol,dsol,weight,phi,dphi,ek,ef,1);
+         cout << "TPZEulerConsLaw2::Contribute> Implicit diffusive contribution: _AUTODIFF directive not configured -> Using an approximation to the tgMatrix";
+         ContributeApproxImplDiff(x,sol,dsol,weight,phi,dphi,ek,ef);
       #endif
-      }
+   }else
+   {
+      if (fDiff == ApproxImplicit_TD)
+         ContributeApproxImplDiff(x,sol,dsol,weight,phi,dphi,ek,ef);
+   }
 
-   if(fDiff == Explicit_TD)
-      ContributeDiff(x,sol,dsol,weight,phi,dphi,ek,ef,0);
-   if(fDiff == ApproxImplicit_TD)
-      ContributeDiff(x,sol,dsol,weight,phi,dphi,ek,ef,1);
-
-// The volume convective parcell is context sensitive
-   ContributeConvVol(x,sol,dsol,weight,phi,dphi,ek,ef);
-
-// T1 and T2 terms result from time discretization and
-// are time-fixed
-   ContributeT1(x,sol,dsol,weight,phi,dphi,ek,ef);
-
-   ContributeT2(x,sol,dsol,weight,phi,dphi,ek,ef);
+   // Volume convective term
+   if (fConvVol == Implicit_TD)
+         ContributeImplConvVol(x,sol,dsol,weight,phi,dphi,ek,ef);
 
 }
+
 
 void TPZEulerConsLaw2::ContributeInterface(
 		TPZVec<REAL> &x,
@@ -554,34 +614,45 @@ void TPZEulerConsLaw2::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &sol,REAL w
 
 //------------------internal contributions
 
-void TPZEulerConsLaw2::ContributeDiff(TPZVec<REAL> &x,
+void TPZEulerConsLaw2::ContributeApproxImplDiff(TPZVec<REAL> &x,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
-			TPZFMatrix &ek,TPZFMatrix &ef,
-			int approx)
+			TPZFMatrix &ek,TPZFMatrix &ef)
 {
-   fArtDiff.ContributeDiff(fDim, sol, dsol, dphi,
+   fArtDiff.ContributeApproxImplDiff(fDim, sol, dsol, dphi,
 			ek, ef, weight,
-			fTimeStep, approx);
+			fTimeStep);
 }
 
+void TPZEulerConsLaw2::ContributeExplDiff(TPZVec<REAL> &x,
+			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+			REAL weight,
+			TPZFMatrix &phi,TPZFMatrix &dphi,
+			TPZFMatrix &ef)
+{
+   fArtDiff.ContributeExplDiff(fDim, sol, dsol, dphi,
+			ef, weight,
+			fTimeStep);
+}
+
+
 #ifdef _AUTODIFF
-void TPZEulerConsLaw2::ContributeDiff(TPZVec<REAL> &x,
+void TPZEulerConsLaw2::ContributeImplDiff(TPZVec<REAL> &x,
 			TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
 			REAL weight,
 			TPZFMatrix &ek,TPZFMatrix &ef)
 {
-   fArtDiff.ContributeDiff(fDim, sol, dsol,
+   fArtDiff.ContributeImplDiff(fDim, sol, dsol,
 			ek, ef, weight, fTimeStep);
 }
 #endif
 
-void TPZEulerConsLaw2::ContributeConvFace(TPZVec<REAL> &x,
+void TPZEulerConsLaw2::ContributeExplConvFace(TPZVec<REAL> &x,
 			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &ek,TPZFMatrix &ef)
+			TPZFMatrix &ef)
 {
    int nState = NStateVariables();
    TPZVec<REAL > flux(nState,0.);
@@ -608,7 +679,7 @@ void TPZEulerConsLaw2::ContributeConvFace(TPZVec<REAL> &x,
 
 #ifdef _AUTODIFF
 
-void TPZEulerConsLaw2::ContributeConvFace(TPZVec<REAL> &x,
+void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
 			TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
@@ -652,7 +723,35 @@ void TPZEulerConsLaw2::ContributeConvFace(TPZVec<REAL> &x,
 
 #endif
 
-void TPZEulerConsLaw2::ContributeConvVol(TPZVec<REAL> &x,
+void TPZEulerConsLaw2::ContributeExplConvVol(TPZVec<REAL> &x,
+			TPZVec<REAL> &sol,
+			REAL weight,
+			TPZFMatrix &phi, TPZFMatrix &dphi,
+			TPZFMatrix &ef)
+{
+   TPZVec< TPZVec<REAL> > F(3);
+   Flux(sol, F[0], F[1], F[2]);
+   REAL constant = - TimeStep() * weight;
+
+   int i_state, i_shape, nShape = phi.Rows(), k;
+   int nState = NStateVariables();
+
+   for(i_shape=0; i_shape<nShape; i_shape++)
+      for(i_state = 0; i_state<nState; i_state++)
+      {
+         int index = i_state + i_shape * nState;
+         for(k=0; k<fDim; k++)
+         ef(index,0) += (F[k])[i_state] * dphi(k, i_shape) * constant;
+         // ef(index) += F<scalar>GradPhi
+      }
+
+   /*}else{
+      cout << "TPZEulerConsLaw2::ContributeConvVol> Unhandled time discretization";
+   }*/
+}
+
+
+void TPZEulerConsLaw2::ContributeImplConvVol(TPZVec<REAL> &x,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
@@ -662,56 +761,37 @@ void TPZEulerConsLaw2::ContributeConvVol(TPZVec<REAL> &x,
    Flux(sol, F[0], F[1], F[2]);
    REAL constant = - TimeStep() * weight;
 
-   if(fConvVol == Explicit_TD)
-   {
-      int i_state, i_shape, nShape = phi.Rows(), k;
-      int nState = NStateVariables();
+   TPZVec< TPZDiffMatrix<REAL> > Ai(3);
+   JacobFlux(sol, Ai);
+   int j_shape, j_state;
+   int i_state, i_shape, nShape = phi.Rows(), k;
+   int nState = NStateVariables();
 
-      for(i_shape=0; i_shape<nShape; i_shape++)
-         for(i_state = 0; i_state<nState; i_state++)
+   for(i_shape=0; i_shape<nShape; i_shape++)
+      for(i_state = 0; i_state<nState; i_state++)
+      {
+         int index = i_state + i_shape * nState;
+         for(k=0; k<fDim; k++)
          {
-            int index = i_state + i_shape * nState;
-            for(k=0; k<fDim; k++)
-	       ef(index,0) += (F[k])[i_state] * dphi(k, i_shape) * constant;
-	       // ef(index) += F<scalar>GradPhi
-         }
-   }else if(fConvVol == Implicit_TD)
-   {
-
-      TPZVec< TPZDiffMatrix<REAL> > Ai(3);
-      JacobFlux(sol, Ai);
-      int j_shape, j_state;
-      int i_state, i_shape, nShape = phi.Rows(), k;
-      int nState = NStateVariables();
-
-      for(i_shape=0; i_shape<nShape; i_shape++)
-         for(i_state = 0; i_state<nState; i_state++)
-         {
-            int index = i_state + i_shape * nState;
-            for(k=0; k<fDim; k++)
-            {
-               // ef(index) += F<scalar>GradPhi
-               ef(index,0) += (F[k])[i_state] * dphi(k, i_shape)
-	          * constant;
-               for(j_shape = 0; j_shape < nShape; j_shape++)
-                   for(j_state = 0; j_state < nState; j_state++)
-                      ek(index, j_state + j_shape * nState) +=
-                                   Ai[k](i_state, j_state) *
-                                   dphi(k, i_shape) *
-                                   phi(j_shape,0) *
-                                   constant;
+            // ef(index) += F<scalar>GradPhi
+            ef(index,0) += (F[k])[i_state] * dphi(k, i_shape)
+                                           * constant;
+            for(j_shape = 0; j_shape < nShape; j_shape++)
+                for(j_state = 0; j_state < nState; j_state++)
+                   ek(index, j_state + j_shape * nState) +=
+                                Ai[k](i_state, j_state) *
+                                dphi(k, i_shape) *
+                                phi(j_shape,0) *
+                                constant;
 			// dConvVol/dU* =
 			// dConvVol/dU * dU/dU*
 			// dConvVol/dU = Ai<scalar>GradPhi
 			// dU/dU* = phi(j)
-            }
          }
-   }else{
-      cout << "TPZEulerConsLaw2::ContributeConvVol> Unhandled time discretization";
-   }
+      }
 }
 
-void TPZEulerConsLaw2::ContributeT1(TPZVec<REAL> &x,
+void TPZEulerConsLaw2::ContributeImplT1(TPZVec<REAL> &x,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
@@ -738,11 +818,11 @@ void TPZEulerConsLaw2::ContributeT1(TPZVec<REAL> &x,
       }
 }
 
-void TPZEulerConsLaw2::ContributeT2(TPZVec<REAL> &x,
-			TPZVec<REAL> &sol,TPZFMatrix &dsol,
+void TPZEulerConsLaw2::ContributeExplT2(TPZVec<REAL> &x,
+			TPZVec<REAL> &sol,
 			REAL weight,
-			TPZFMatrix &phi,TPZFMatrix &dphi,
-			TPZFMatrix &ek,TPZFMatrix &ef)
+			TPZFMatrix &phi,
+			TPZFMatrix &ef)
 {
    int i_shape, i_state;
    int nState = NStateVariables();
