@@ -494,7 +494,7 @@ int TPZBlock::ClassId() const
 void TPZBlock::Write(TPZStream &buf, int withclassid)
 {
   TPZSaveable::Write(buf,withclassid);
-  WriteObjects<TNode>(buf,fBlock);
+  TPZSaveable::WriteObjects<TNode>(buf,fBlock);
   
 }
   
