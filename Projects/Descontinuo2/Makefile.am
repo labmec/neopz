@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = main.cc
+main_SOURCES = main.cpp
 
 main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 

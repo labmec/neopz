@@ -17,10 +17,10 @@ cosys_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzcosys.a
 
-libpzcosys_a_SOURCES = pzcartsys.cc \
-	pzcosys.cc \
-	pzcylinsys.cc \
-	pzelgq2dcyl.cc \
-	pzesfersys.cc 
+libpzcosys_a_SOURCES = pzcartsys.cpp \
+	pzcosys.cpp \
+	pzcylinsys.cpp \
+	pzelgq2dcyl.cpp \
+	pzesfersys.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

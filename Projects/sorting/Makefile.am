@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = sort
 
-sort_SOURCES = sort.cc
+sort_SOURCES = sort.cpp
 
 sort_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 

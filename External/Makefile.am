@@ -17,8 +17,8 @@ external_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzexternal.a
 
-libpzexternal_a_SOURCES = pzmetis.cc \
-	pzrenumbering.cc \
-	pzsloan.cc
+libpzexternal_a_SOURCES = pzmetis.cpp \
+	pzrenumbering.cpp \
+	pzsloan.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------

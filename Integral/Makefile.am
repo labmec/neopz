@@ -17,6 +17,6 @@ integral_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzintegral.a
 
-libpzintegral_a_SOURCES = pzquad.cc
+libpzintegral_a_SOURCES = pzquad.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------

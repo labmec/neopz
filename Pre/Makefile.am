@@ -17,6 +17,6 @@ pre_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzpre.a
 
-libpzpre_a_SOURCES = pzgengrid.cc pzpargrid.cc TPZGMSHReadMesh.cc  TPZExtendGridDimension.cc
+libpzpre_a_SOURCES = pzgengrid.cpp pzpargrid.cpp TPZGMSHReadMesh.cpp  TPZExtendGridDimension.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -17,16 +17,16 @@ strmatrix_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzstrmatrix.a
 
-libpzstrmatrix_a_SOURCES = pzbdstrmatrix.cc \
-	pzbstrmatrix.cc \
-	pzfstrmatrix.cc \
-	pzsbstrmatrix.cc \
-	pzskylstrmatrix.cc \
-	pzstrmatrix.cc \
-	TPBSpStructMatrix.cc \
-	TPZFrontStructMatrix.cc \
-	TPZParFrontStructMatrix.cc \
-	TPZParSkylineStructMatrix.cc \
-	TPZSpStructMatrix.cc
+libpzstrmatrix_a_SOURCES = pzbdstrmatrix.cpp \
+	pzbstrmatrix.cpp \
+	pzfstrmatrix.cpp \
+	pzsbstrmatrix.cpp \
+	pzskylstrmatrix.cpp \
+	pzstrmatrix.cpp \
+	TPBSpStructMatrix.cpp \
+	TPZFrontStructMatrix.cpp \
+	TPZParFrontStructMatrix.cpp \
+	TPZParSkylineStructMatrix.cpp \
+	TPZSpStructMatrix.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------

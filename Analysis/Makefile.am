@@ -17,13 +17,13 @@ analysis_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzanalysis.a
 
-libpzanalysis_a_SOURCES = pzanalysis.cc \
-		pzanalysiserror.cc \
-		pzmganalysis.cc \
-		pznonlinanalysis.cc \
-		pzonedref.cc \
-		pzsmanal.cc \
-		pzsmfrontalanal.cc \
-		pzeuleranalysis.cc 
+libpzanalysis_a_SOURCES = pzanalysis.cpp \
+		pzanalysiserror.cpp \
+		pzmganalysis.cpp \
+		pznonlinanalysis.cpp \
+		pzonedref.cpp \
+		pzsmanal.cpp \
+		pzsmfrontalanal.cpp \
+		pzeuleranalysis.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

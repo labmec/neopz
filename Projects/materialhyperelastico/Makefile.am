@@ -13,8 +13,8 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = testhyperelastic hyperelastic
 
-testhyperelastic_SOURCES = testhyperelastic.cc
-hyperelastic_SOURCES = hyperelastic.cc
+testhyperelastic_SOURCES = testhyperelastic.cpp
+hyperelastic_SOURCES = hyperelastic.cpp
 
 testhyperelastic_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 hyperelastic_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a

@@ -17,27 +17,27 @@ matrix_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzmatrix.a
 
-libpzmatrix_a_SOURCES = pzblock.cc \
-	pzblockdiag.cc \
-	pzbndmat.cc \
-	pzespmat.cc \
-	pzfmatrix.cc \
-	pzlink.cc \
-	pzmatred.cc \
-	pzmatrix.cc \
-	pzsbndmat.cc \
-	pzseqsolver.cc \
-	pzsespmat.cc \
-	pzsfulmat.cc \
-	pzshtmat.cc \
-	pzskylmat.cc \
-	pzskylmatpar.cc \
-	pzsolve.cc \
-	pzstencil.cc \
-	pzstepsolver.cc \
-	pzsysmp.cc \
-	pztempmat.cc \
-	pzworkpool.cc \
-	pzysmp.cc 
+libpzmatrix_a_SOURCES = pzblock.cpp \
+	pzblockdiag.cpp \
+	pzbndmat.cpp \
+	pzespmat.cpp \
+	pzfmatrix.cpp \
+	pzlink.cpp \
+	pzmatred.cpp \
+	pzmatrix.cpp \
+	pzsbndmat.cpp \
+	pzseqsolver.cpp \
+	pzsespmat.cpp \
+	pzsfulmat.cpp \
+	pzshtmat.cpp \
+	pzskylmat.cpp \
+	pzskylmatpar.cpp \
+	pzsolve.cpp \
+	pzstencil.cpp \
+	pzstepsolver.cpp \
+	pzsysmp.cpp \
+	pztempmat.cpp \
+	pzworkpool.cpp \
+	pzysmp.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = euler.cc
+main_SOURCES = euler.cpp
 
 main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 

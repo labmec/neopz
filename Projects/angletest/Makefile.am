@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = testeangular
 
-testeangular_SOURCES = testeangular.cc
+testeangular_SOURCES = testeangular.cpp
 
 testeangular_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 

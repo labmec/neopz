@@ -17,43 +17,43 @@ mesh_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzmesh.a
 
-libpzmesh_a_SOURCES = pzelctemp.cc \
-	pzcheckgeom.cc \
-	pzcheckmesh.cc \
-	pzcheckrestraint.cc \
-	pzcmesh.cc \
-        pzflowcmesh.cc \
-	pzcompel.cc \
-	pzconnect.cc \
-	pzelc1d.cc \
-	pzelcc3d.cc \
-	pzelcpi3d.cc \
-	pzelcpoint.cc \
-	pzelcpr3d.cc \
-	pzelcq2d.cc \
-	pzelct2d.cc \
-	pzelct3d.cc \
-	pzelg1d.cc \
-	pzelgc3d.cc \
-	pzelgpi3d.cc \
-	pzelgpoint.cc \
-	pzelgpr3d.cc \
-	pzelgq2d.cc \
-	pzelgt2d.cc \
-	pzelgt3d.cc \
-	pzelmat.cc \
-	pzgeoelbc.cc \
-	pzgeoel.cc \
-	pzgeoelside.cc \
-	pzgeoelrefless.cc \
-	pzgmesh.cc \
-	pzgnode.cc \
-	pzintel.cc \
-	pzstackmesh.cc \
-	pzsubcmesh.cc \
-	pzvecmesh.cc \
-	TPZCompElDisc.cc \
-	TPZInterfaceEl.cc \
-	TPZAgglomerateEl.cc
+libpzmesh_a_SOURCES = pzelctemp.cpp \
+	pzcheckgeom.cpp \
+	pzcheckmesh.cpp \
+	pzcheckrestraint.cpp \
+	pzcmesh.cpp \
+        pzflowcmesh.cpp \
+	pzcompel.cpp \
+	pzconnect.cpp \
+	pzelc1d.cpp \
+	pzelcc3d.cpp \
+	pzelcpi3d.cpp \
+	pzelcpoint.cpp \
+	pzelcpr3d.cpp \
+	pzelcq2d.cpp \
+	pzelct2d.cpp \
+	pzelct3d.cpp \
+	pzelg1d.cpp \
+	pzelgc3d.cpp \
+	pzelgpi3d.cpp \
+	pzelgpoint.cpp \
+	pzelgpr3d.cpp \
+	pzelgq2d.cpp \
+	pzelgt2d.cpp \
+	pzelgt3d.cpp \
+	pzelmat.cpp \
+	pzgeoelbc.cpp \
+	pzgeoel.cpp \
+	pzgeoelside.cpp \
+	pzgeoelrefless.cpp \
+	pzgmesh.cpp \
+	pzgnode.cpp \
+	pzintel.cpp \
+	pzstackmesh.cpp \
+	pzsubcmesh.cpp \
+	pzvecmesh.cpp \
+	TPZCompElDisc.cpp \
+	TPZInterfaceEl.cpp \
+	TPZAgglomerateEl.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = continue2
 
-continue2_SOURCES = continue2.cc
+continue2_SOURCES = continue2.cpp
 
 continue2_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 

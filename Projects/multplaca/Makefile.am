@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = jornadas
 
-jornadas_SOURCES = jornadas.cc
+jornadas_SOURCES = jornadas.cpp
 
 jornadas_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
 

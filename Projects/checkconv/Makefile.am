@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = convhyper.cc main.cc
+main_SOURCES = convhyper.cpp main.cpp
 
 main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 

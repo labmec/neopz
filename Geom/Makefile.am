@@ -17,14 +17,14 @@ geom_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzgeom.a
 
-libpzgeom_a_SOURCES = pzgeopoint.cc \
-	pzgeoprism.cc \
-	pzgeopyramid.cc \
-	pzgeoquad.cc \
-	pzgeotetrahedra.cc \
-	pzgeotriangle.cc \
-	TPZGeoCube.cc \
-	TPZGeoElement.cc \
-	TPZGeoLinear.cc 
+libpzgeom_a_SOURCES = pzgeopoint.cpp \
+	pzgeoprism.cpp \
+	pzgeopyramid.cpp \
+	pzgeoquad.cpp \
+	pzgeotetrahedra.cpp \
+	pzgeotriangle.cpp \
+	TPZGeoCube.cpp \
+	TPZGeoElement.cpp \
+	TPZGeoLinear.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -17,19 +17,19 @@ util_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzutil.a
 
-libpzutil_a_SOURCES = pzadmchunkgen.cc		\
-	pzavlmap.cc				\
-	pzavlmapgen.cc				\
-	pzchunkgen.cc				\
-	pzmanvectorgen.cc			\
-	pzmap.cc				\
-	pzstackgen.cc				\
-	pzstring.cc				\
-	pzvecgen.cc				\
-	pzvecmesh.cc				\
-	pzline.cc				\
-	pzplane.cc				\
-	pznumeric.cc				\
-	pzpolynomial.cc
+libpzutil_a_SOURCES = pzadmchunkgen.cpp		\
+	pzavlmap.cpp				\
+	pzavlmapgen.cpp				\
+	pzchunkgen.cpp				\
+	pzmanvectorgen.cpp			\
+	pzmap.cpp				\
+	pzstackgen.cpp				\
+	pzstring.cpp				\
+	pzvecgen.cpp				\
+	pzvecmesh.cpp				\
+	pzline.cpp				\
+	pzplane.cpp				\
+	pznumeric.cpp				\
+	pzpolynomial.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -17,8 +17,8 @@ multigrid_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzmultigrid.a
 
-libpzmultigrid_a_SOURCES = pzmgsolver.cc \
-	pztransfer.cc \
-	pztrnsform.cc 
+libpzmultigrid_a_SOURCES = pzmgsolver.cpp \
+	pztransfer.cpp \
+	pztrnsform.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

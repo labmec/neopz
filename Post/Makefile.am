@@ -17,18 +17,18 @@ post_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzpost.a
 
-libpzpost_a_SOURCES = pzdxmesh.cc \
-	pzgraphel1d.cc \
-	pzgraphel1dd.cc \
-	pzgraphel.cc \
-	pzgraphelq2d.cc \
-	pzgraphelq2dd.cc \
-	pzgraphelq3dd.cc \
-	pzgraphmesh.cc \
-	pzgraphnode.cc \
-	pzmvmesh.cc \
-	pztrigraph.cc \
-	pztrigraphd.cc \
-	pzv3dmesh.cc 
+libpzpost_a_SOURCES = pzdxmesh.cpp \
+	pzgraphel1d.cpp \
+	pzgraphel1dd.cpp \
+	pzgraphel.cpp \
+	pzgraphelq2d.cpp \
+	pzgraphelq2dd.cpp \
+	pzgraphelq3dd.cpp \
+	pzgraphmesh.cpp \
+	pzgraphnode.cpp \
+	pzmvmesh.cpp \
+	pztrigraph.cpp \
+	pztrigraphd.cpp \
+	pzv3dmesh.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

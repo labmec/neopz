@@ -13,11 +13,11 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = Adapt_MultThread
 
-Adapt_MultThread_SOURCES = main.cc pzadaptmesh.cc pzcclonemesh.cc pzgclonemesh.cc c0-simplequad.cc \
-		c01-lshape-quad.cc c02-lshape-triang.cc c03-lshape-quadtri.cc \
-		c04-simplehexa.cc c05-cornercube.cc c06-Tetra.cc c07-Prism.cc \
-		c08-Mixed.cc c09-Plate-Cedric.cc c10-Prism-Pref.cc c11-Piram-Tetra.cc \
-		c15-Exp-Hexa.cc
+Adapt_MultThread_SOURCES = main.cpp pzadaptmesh.cpp pzcclonemesh.cpp pzgclonemesh.cpp c0-simplequad.cpp \
+		c01-lshape-quad.cpp c02-lshape-triang.cpp c03-lshape-quadtri.cpp \
+		c04-simplehexa.cpp c05-cornercube.cpp c06-Tetra.cpp c07-Prism.cpp \
+		c08-Mixed.cpp c09-Plate-Cedric.cpp c10-Prism-Pref.cpp c11-Piram-Tetra.cpp \
+		c15-Exp-Hexa.cpp
 
 Adapt_MultThread_LDADD =  -lpthread $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a 
 

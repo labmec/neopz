@@ -17,14 +17,14 @@ refine_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzrefine.a
 
-libpzrefine_a_SOURCES = pzrefpoint.cc \
-	pzrefprism.cc \
-	pzrefpyram.cc \
-	pzrefquad.cc \
-	pzreftetrahedra.cc \
-	pzreftriangle.cc \
-	TPZRefCube.cc \
-	TPZRefLinear.cc \
-	TPZRefPattern.cc
+libpzrefine_a_SOURCES = pzrefpoint.cpp \
+	pzrefprism.cpp \
+	pzrefpyram.cpp \
+	pzrefquad.cpp \
+	pzreftetrahedra.cpp \
+	pzreftriangle.cpp \
+	TPZRefCube.cpp \
+	TPZRefLinear.cpp \
+	TPZRefPattern.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------

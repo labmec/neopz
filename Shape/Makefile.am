@@ -17,13 +17,13 @@ shape_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzshape.a
 
-libpzshape_a_SOURCES = pzshapecube.cc \
-	pzshapelinear.cc \
-	pzshapepiram.cc \
-	pzshapeprism.cc \
-	pzshapequad.cc \
-	pzshapetetra.cc \
-	pzshapetriang.cc \
-	TPZShapeDisc.cc 
+libpzshape_a_SOURCES = pzshapecube.cpp \
+	pzshapelinear.cpp \
+	pzshapepiram.cpp \
+	pzshapeprism.cpp \
+	pzshapequad.cpp \
+	pzshapetetra.cpp \
+	pzshapetriang.cpp \
+	TPZShapeDisc.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -17,37 +17,37 @@ material_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzmaterial.a
 
-libpzmaterial_a_SOURCES = eulerdif.cc \
-	pzbndcond.cc \
-	pzelasmat.cc \
-	pzmat1dlin.cc \
-	pzmat2dlin.cc \
-	pzmaterial.cc \
-	pzmathyperelastic.cc \
-	pzmatorthotropic.cc \
-	pzmatplaca2.cc \
-	pzmatplaca.cc \
-	pzmattest3d.cc \
-	pzmattest.cc \
-	pzmultplaca.cc \
-	pzplaca.cc \
-	pzpoisson3d.cc \
-	TPZEuler.cc \
-	TPZEulerConsLaw.cc \
-	TPZDiffusionConsLaw.cc \
-	TPZLinearConvection.cc \
-	tpzmultcamada.cc \
-	TPZMulticamadaOrtho.cc \
-	TPZPlacaOrthotropic.cc \
-	TPZConservationLaw.cc \
-	TPZConsLawTest.cc \
-	TPZFVHybrid.cc \
-	pzartdiff.cc \
-	swelling.cc \
-	pzconslaw.cc \
-	pzeulerconslaw.cc \
-	pzartdiff.cc \
-	pzbctension.cc \
+libpzmaterial_a_SOURCES = eulerdif.cpp \
+	pzbndcond.cpp \
+	pzelasmat.cpp \
+	pzmat1dlin.cpp \
+	pzmat2dlin.cpp \
+	pzmaterial.cpp \
+	pzmathyperelastic.cpp \
+	pzmatorthotropic.cpp \
+	pzmatplaca2.cpp \
+	pzmatplaca.cpp \
+	pzmattest3d.cpp \
+	pzmattest.cpp \
+	pzmultplaca.cpp \
+	pzplaca.cpp \
+	pzpoisson3d.cpp \
+	TPZEuler.cpp \
+	TPZEulerConsLaw.cpp \
+	TPZDiffusionConsLaw.cpp \
+	TPZLinearConvection.cpp \
+	tpzmultcamada.cpp \
+	TPZMulticamadaOrtho.cpp \
+	TPZPlacaOrthotropic.cpp \
+	TPZConservationLaw.cpp \
+	TPZConsLawTest.cpp \
+	TPZFVHybrid.cpp \
+	pzartdiff.cpp \
+	swelling.cpp \
+	pzconslaw.cpp \
+	pzeulerconslaw.cpp \
+	pzartdiff.cpp \
+	pzbctension.cpp \
 	pzbiharmonic.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -13,8 +13,8 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = placa.cc \
-		BCTest.cc
+main_SOURCES = placa.cpp \
+		BCTest.cpp
 
 main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 

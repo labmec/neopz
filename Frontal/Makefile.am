@@ -17,14 +17,14 @@ frontal_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzfrontal.a
 
-libpzfrontal_a_SOURCES = pzvecfrontal.cc \
-	tpzeqnarray.cc \
-	TPZFileEqnStorage.cc \
-	TPZFront.cc \
-	TPZFrontMatrix.cc \
-	TPZFrontNonSym.cc \
-	TPZFrontSym.cc \
-	TPZParFrontMatrix.cc \
-	TPZStackEqnStorage.cc 
+libpzfrontal_a_SOURCES = pzvecfrontal.cpp \
+	tpzeqnarray.cpp \
+	TPZFileEqnStorage.cpp \
+	TPZFront.cpp \
+	TPZFrontMatrix.cpp \
+	TPZFrontNonSym.cpp \
+	TPZFrontSym.cpp \
+	TPZParFrontMatrix.cpp \
+	TPZStackEqnStorage.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = geom
 
-geom_SOURCES = geom.cpp pzgbmesh.cc
+geom_SOURCES = geom.cpp pzgbmesh.cpp
 
 geom_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 
