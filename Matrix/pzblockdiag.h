@@ -83,11 +83,11 @@ class TPZBlockDiagonal : public TPZMatrix
   int GetSizeofBlock(int blockid) {return fBlockSize[blockid];}
 
   void Transpose(TPZMatrix *const T) const;
-  int       Decompose_LU();
+  virtual int Decompose_LU();
 
         // Faz o Backward e Forward substitutions para a matriz
         // decomposta com LU
-virtual int Substitution( TPZFMatrix * B ) const;
+  virtual int Substitution( TPZFMatrix * B ) const;
 
    /**
    * Updates the values of the matrix based on the values of the matrix
