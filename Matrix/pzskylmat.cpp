@@ -23,8 +23,12 @@ extern "C" {
 #endif
   const int templatedepth = 10;
 
-
-#include <sys/timeb.h>
+/**
+ * Commented out by Longhin
+ * Compilation problem under MaCOSX OS.
+ * Used by method TestSpeed which was also commented out.
+ */
+//#include <sys/timeb.h>
 
 #include "pzfmatrix.h"
 #include "pzskylmat.h"
@@ -1112,7 +1116,7 @@ void TPZSkylMatrix::DecomposeColumn2(int col, int prevcol){
   //cout.flush();
   
 }
-
+/*
 void TPZSkylMatrix::TestSpeed(int col, int prevcol){
 
   REAL *ptrprev;     //Pointer to prev column
@@ -1169,5 +1173,4 @@ void TPZSkylMatrix::TestSpeed(int col, int prevcol){
   cout << "Time elapsed in milliseconds " << dif << endl;
  
 }
-
- 
+*/

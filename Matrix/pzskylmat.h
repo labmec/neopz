@@ -120,7 +120,7 @@ class TPZSkylMatrix : public TPZMatrix
   int Subst_LBackward( TPZFMatrix *b ) const;
   int Subst_Diag     ( TPZFMatrix *b ) const;
 
-  void TestSpeed(int col, int prevcol);
+  //void TestSpeed(int col, int prevcol);
 
 #ifdef OOPARLIB
 
@@ -186,5 +186,3 @@ inline double TemplateSum<1>(const double *p1, const double *p2){
 
 
 #endif
-
-
