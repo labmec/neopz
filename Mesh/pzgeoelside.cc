@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cc,v 1.10 2003-11-17 18:08:10 phil Exp $
+//$Id: pzgeoelside.cc,v 1.11 2003-12-03 19:56:06 cesar Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -261,6 +261,7 @@ int TPZGeoElSide::NeighbourExists(const TPZGeoElSide &gel) const {
 }
 
 TPZCompElSide TPZGeoElSide::Reference() const {
+  if (!fGeoEl) return TPZCompElSide();
   TPZCompElSide compside(fGeoEl->Reference(),fSide);
   return compside;
 }
@@ -434,6 +435,10 @@ TPZCompElSide TPZGeoElSide::LowerLevelCompElementList2(int onlyinterpolated)
   if(!father.Exists()) return TPZCompElSide();
   TPZStack<TPZCompElSide> equal;
   father.EqualLevelCompElementList(equal,onlyinterpolated,1);
+
+  //2003-12-03
+  if (father.Reference().Exists())  equal.Push(father.Reference());
+  
   while(father.Exists() && equal.NElements() == 0) {
     neighbour = father.Neighbour();
     start = father;
@@ -444,6 +449,9 @@ TPZCompElSide TPZGeoElSide::LowerLevelCompElementList2(int onlyinterpolated)
       neighbour = neighbour.Neighbour();
     }
     father.EqualLevelCompElementList(equal,onlyinterpolated,1);
+    //2003-12-03
+    if (father.Reference().Exists())  equal.Push(father.Reference());
+
   }
   //  if(equal.NElements() && secondcase) {
   //    cout << "TPZGeoElSide::LowerLevelCompElementList second case " << secondcase << "\n";
