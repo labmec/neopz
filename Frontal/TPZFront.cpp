@@ -267,6 +267,8 @@ void TPZFront::Reset(int GlobalSize)
 	fLocal.Resize(GlobalSize);
 	fLocal.Fill(-1);
 	fMaxFront=0;
+        fExpandRatio = 200;
+        fWork = 0;
 }
 
 int TPZFront::NElements(){

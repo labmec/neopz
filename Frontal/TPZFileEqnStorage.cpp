@@ -375,6 +375,7 @@ void TPZFileEqnStorage::Zero()
      cout << "Temporary file name " << filenamestorage << endl;
      cout.flush();
 
+     fBlockPos.Resize(0);
   fCurBlockPosition = -1;
 	fNumBlocks=0;
 	fCurrentBlock=0;
