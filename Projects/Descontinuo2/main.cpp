@@ -307,6 +307,7 @@ int main()
 
 
 */
+
    { // GMRES with block preconditioning
    TPZSpStructMatrix StrMatrix(cmesh);
       //TPZFStructMatrix StrMatrix(cmesh);
@@ -384,8 +385,8 @@ int main()
   Solver.SetDirect(ELU);
   Solver.SetMatrix(mat);
   An.SetSolver(Solver);
-*/
 
+*/
    cout << "Generating File:" << file.Str() << endl;
 
    ofstream * dxout = new ofstream((file+".dx" ).Str());
