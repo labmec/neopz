@@ -4,6 +4,7 @@
 
 //#include "glib.h"
 #include <map>
+#include <vector>
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzadmchunk.h"
@@ -39,6 +40,14 @@ template<class T>
 static void WriteObjects(TPZStream &buf, TPZVec<T> &vec) 
 {
   int c,nc = vec.NElements();
+  buf.Write(&nc,1);
+  for(c=0; c<nc; c++) vec[c].Write(buf,0);
+}
+
+template<class T>
+static void WriteObjects(TPZStream &buf, vector<T> &vec) 
+{
+  int c,nc = vec.size();
   buf.Write(&nc,1);
   for(c=0; c<nc; c++) vec[c].Write(buf,0);
 }
@@ -129,6 +138,41 @@ static void ReadObjects(TPZStream &buf, TPZVec<int> &vec)
   if(nc) buf.Read(&vec[0],nc);
 }
 
+template<class T>
+static void ReadObjects(TPZStream &buf, std::vector<T> &vec, void *context) 
+{
+  int c,nc;
+  buf.Read(&nc,1);
+  vec.resize(nc);
+  for(c=0; c<nc; c++) 
+  {
+    vec[c].Read(buf,context);
+  }
+}
+
+static void ReadObjects(TPZStream &buf, vector<int> &vec) 
+{
+  int nc;
+  buf.Read(&nc,1);
+  vec.resize(nc);
+  if(nc) buf.Read(&vec[0],nc);
+}
+
+static void ReadObjects(TPZStream &buf, vector<REAL> &vec) 
+{
+  int nc;
+  buf.Read(&nc,1);
+  vec.resize(nc);
+  if(nc) buf.Read(&vec[0],nc);
+}
+
+static void ReadObjects(TPZStream &buf, TPZVec<REAL> &vec) 
+{
+  int nc;
+  buf.Read(&nc,1);
+  vec.Resize(nc);
+  if(nc) buf.Read(&vec[0],nc);
+}
 
 template<int N>
 static void ReadObjects(TPZStream &buf, TPZManVector<REAL,N> &vec) 
@@ -200,11 +244,18 @@ static void ReadObjectPointers(TPZStream &buf, TPZVec<T *> &vec, void *context)
     ReadObjects(buf,vec.fNFree);
   }
 
-static void WriteObjects(TPZStream &buf, TPZVec<double> &vec) 
+static void WriteObjects(TPZStream &buf, TPZVec<REAL> &vec) 
 {
   int nel = vec.NElements();
   buf.Write(&nel,1);
   if(nel) buf.Write(&vec[0],vec.NElements());
+}
+
+static void WriteObjects(TPZStream &buf, vector<REAL> &vec) 
+{
+  int nel = vec.size();
+  buf.Write(&nel,1);
+  if(nel) buf.Write(&vec[0],vec.size());
 }
 
 static void WriteObjects(TPZStream &buf, TPZVec<TPZFlopCounter> &vec) 
@@ -214,6 +265,13 @@ static void WriteObjects(TPZStream &buf, TPZVec<TPZFlopCounter> &vec)
   if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
+static void WriteObjects(TPZStream &buf, vector<TPZFlopCounter> &vec) 
+{
+  int nel = vec.size();
+  buf.Write(&nel,1);
+  if(nel) buf.Write(&vec[0],vec.size());
+}
+
 static void WriteObjects(TPZStream &buf, TPZVec<int> &vec) 
 {
   int nel = vec.NElements();
@@ -221,12 +279,25 @@ static void WriteObjects(TPZStream &buf, TPZVec<int> &vec)
   if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
+static void WriteObjects(TPZStream &buf, vector<int> &vec) 
+{
+  int nel = vec.size();
+  buf.Write(&nel,1);
+  if(nel) buf.Write(&vec[0],vec.size());
+}
 
 static void WriteObjects(TPZStream &buf, TPZVec<char> &vec) 
 {
   int nel = vec.NElements();
   buf.Write(&nel,1);
   if(nel) buf.Write(&vec[0],vec.NElements());
+}
+
+static void WriteObjects(TPZStream &buf, vector<char> &vec) 
+{
+  int nel = vec.size();
+  buf.Write(&nel,1);
+  if(nel) buf.Write(&vec[0],vec.size());
 }
 
 
