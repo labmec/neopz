@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.2 2003-03-26 13:14:05 cantao Exp $
+// $Id: pzvec.h,v 1.3 2003-04-02 13:44:23 cantao Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -93,18 +93,35 @@ class TPZVec {
       T& operator[]( const int index ) const
       {
 #ifdef DEBUG
-	 if( index < 0 || index >= fNElements )
-	 {
-	    PZError << "TPZVec::operator[] acessing element out of range.";
-	    PZError << "|" << endl;
-	    PZError << "+-> NElements = " << NElements() << endl;
-	    PZError << "|" << endl;
-	    PZError << "+-> Index = " << index << endl;
+         if( index < 0 || index >= fNElements )
+         {
+            PZError << "TPZVec::operator[] acessing element out of range.";
+            PZError << "|" << endl;
+            PZError << "+-> NElements = " << NElements() << endl;
+            PZError << "|" << endl;
+            PZError << "+-> Index = " << index << endl;
 
-	    exit( -1 );
-	 }
+            exit( -1 );
+         }
 #endif
-	 return fStore[ index ];
+         return fStore[ index ];
+      }
+
+      /// Extraction operator.
+      friend ostream& operator<<( ostream& Out, const TPZVec< T >& v )
+      {
+         streamsize width = Out.width();
+
+	 const char* sep = ( width == 0 ? " " : "" );
+
+         int size = v.NElements();
+
+         for( int ii = 0; ii < size; ii++ )
+         {
+            Out << setw( width ) << sep << v.fStore[ ii ];
+         }
+
+         return Out;
       }
 
       /** Casting operator.
@@ -169,12 +186,12 @@ class TPZVec {
 /* template <class T> */
 /* T &TPZVec<T>::operator[](const int index) const{ */
 /* #ifndef NODEBUG */
-/* 	  if(index <0 || index >= fNElements) { */
-/* 	    cout << "TPZVec acessing element out of range\n"; */
-/* 	    exit(-1); */
-/* 	  } */
+/*        if(index <0 || index >= fNElements) { */
+/*          cout << "TPZVec acessing element out of range\n"; */
+/*          exit(-1); */
+/*        } */
 /* #endif */
-/* 		return fStore[index]; */
+/*              return fStore[index]; */
 /* } */
 
 template< class T >
@@ -190,7 +207,7 @@ TPZVec<T>::TPZVec( const int size ) : fStore( 0 )
    if( size < 0 )
    {
       PZError << "TPZVec constructor. Bad parameter size, then size = 0."
-	      << endl;
+              << endl;
       PZError.flush();
       fNElements = 0;
       return;
@@ -214,7 +231,7 @@ TPZVec<T>::TPZVec( const int size, const T& copy ) : fStore( 0 )
    if( size < 0 )
    {
       PZError << "TPZVec constructor. Bad parameter size, then size = 0."
-	      << endl;
+              << endl;
       PZError.flush();
       fNElements = 0;
       return;
@@ -344,8 +361,8 @@ void TPZVec<T>::Fill(const T& copy, const int from, const int numelem){
 #ifndef NOTDEBUG
    if(numelem<0 && numelem != -1) {
       PZError << "TPZVec::Fill" << endl
-	      << "It's negative parameter numelem, then numelem = "
-	      << fNElements << endl;
+              << "It's negative parameter numelem, then numelem = "
+              << fNElements << endl;
 
       PZError.flush();
    }
