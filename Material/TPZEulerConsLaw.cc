@@ -67,16 +67,22 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
   TPZFMatrix DF1(nstate,nstate),DF2(nstate,nstate),DF3(nstate,nstate);
   diffusion.Tau(Tx,Ty,Tz);
-  Tx.Transpose(&Trx);
-  Ty.Transpose(&Try);
-  Tz.Transpose(&Trz);
+  if(1){
+    Tx.Transpose(&Trx);
+    Ty.Transpose(&Try);
+    Tz.Transpose(&Trz);
+  } else {
+    Trx = Tx;
+    Try = Ty;
+    Trz = Tz;
+  }
   diffusion.GradientOfTheFlow(DF1,DF2,DF3);
   REAL timestep = TimeStep();
   //REAL delta = diffusion.Delta();
   REAL delta = diffusion.DeltaOtimo(),Lpl,Hkp,Pkl;
   TPZFMatrix divF(nstate,1),prodpoint(nstate,nstate);
   TPZVec<REAL> sum1(nstate,0.),sum2(nstate,0.);
-  int diffright = 0,diffleft=1;
+
   for( int in = 0; in < phr; in++ ) {
     
     // w * Un
@@ -93,49 +99,31 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
     for(i=0;i<nstate;i++)
       ef(in * nstate + i, 0) += weight * (sum1[i] + timestep * sum2[i]);
 
-    if(diffright){// DIFUSÃO NA CARGA
-      // grad(w)
-      for(i=0;i<dim;i++) gradphi[i] = dphi(i,in);
-      // grad(w) @ T (point product)
-      diffusion.PointOperator(gradphi,prodpoint);
-      for(i=0;i<dim;i++) gradphi[i] = dsol(i,0);
-      diffusion.Divergence(gradphi,divF);
-      TPZVec<REAL> diff_term(nstate,0.);
-      for(i=0;i<nstate;i++) for(j=0;j<nstate;j++) diff_term[i] += prodpoint(i,j) * divF(j,0);
-      for(i=0;i<nstate;i++)
-	ef(in * nstate + i, 0) += weight * timestep * delta * diff_term[i];
-    }
-    
     //EK
     // w * Un+1 + (grad(w) @ T) * div F(Un+1)    
     for( int jn = 0; jn < phr; jn++ ) {
-
-      if(diffright){// DIFUSÃO NA CARGA
-	// w * Un+1 
-	for(i=0;i<nstate;i++)
-	  ek(nstate * in + i, nstate * jn + i) += weight * phi(in,0) * phi(jn,0);
-      }
       
-      if(diffleft){// DIFUSÃO NA MATRIZ
-	for(k=0;k<nstate;k++){
-	  for(l=0;l<nstate;l++){
+      // DIFUSÃO + w * Un+1
+      for(k=0;k<nstate;k++){
+	for(l=0;l<nstate;l++){
+	  
+	  Pkl = 0.0;
+	  for(p=0;p<nstate;p++){
 	    
-	    Pkl = 0.0;
-	    for(p=0;p<nstate;p++){
-	      
-	      if(dim>0) {Hkp  = dphi(0,jn)*Trx(k,p); Lpl  = dphi(0,in)*DF1(p,l);}
-	      if(dim>1) {Hkp += dphi(1,jn)*Try(k,p); Lpl += dphi(1,in)*DF2(p,l);}
-	      if(dim>2) {Hkp += dphi(2,jn)*Trz(k,p); Lpl += dphi(2,in)*DF3(p,l);}
-	      Pkl += Hkp * Lpl;
-	      
-	    }
-	    // Dt * delta * (grad(w) o T) * div F (nstatex1)
-	    ek(nstate  * in + k, nstate  * jn + l) += weight * timestep * delta * Pkl;
-	    // w * Un+1 (nstatex1)
-	    if(l == k) ek(nstate * in + k, nstate * jn + l) += weight * phi(in,0) * phi(jn,0);
+	    if(dim>0) {Hkp  = dphi(0,jn)*Trx(k,p); Lpl  = dphi(0,in)*DF1(p,l);}
+	    if(dim>1) {Hkp += dphi(1,jn)*Try(k,p); Lpl += dphi(1,in)*DF2(p,l);}
+	    if(dim>2) {Hkp += dphi(2,jn)*Trz(k,p); Lpl += dphi(2,in)*DF3(p,l);}
+	    Pkl += Hkp * Lpl;
+	    
 	  }
+
+	  // Dt * delta * (grad(w) o T) * div F (nstatex1)
+	  ek(nstate  * in + k, nstate  * jn + l) += weight * timestep * delta * Pkl;
+
+	  // w * Un+1 (nstatex1)
+	  if(l == k) ek(nstate * in + k, nstate * jn + l) += weight * phi(in,0) * phi(jn,0);
 	}
-      }//if diffleft
+      }
     }//jn
   }//in
 }
@@ -791,31 +779,23 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   //61 GRAUS 
   //-66.7169 GRAUS (-1.16443 RADIANOS)
 }
-//   case 0://Dirichlet
-//   case 1://Neumann
-//   case 2://Mista
-//     if(!phrl) bc->Contribute(x,jacinv,solL,dsolL,weight,axes,phiR,dphiR,ek,ef);
-//     if(!phrr) bc->Contribute(x,jacinv,solR,dsolR,weight,axes,phiL,dphiL,ek,ef);
 
-//     // LAX FRIEDRICHS: INCOMPLETO * INCOMPLETO * INCOMPLETO * INCOMPLETO
-//     //cout << "\nTPZEulerConsLaw::ContributeInterface flux not implemented, nstate = 3, dimension = 1\n";
-//     TPZVec<REAL> Fx(3),Fy(3),Fz(3);
-//     REAL alfa = 1;//alfa = Max{|f¹(s)| : min(u,v) <= s <= max(u,v)}
-//     TPZVec<REAL> medsol(3);
-//     for(int i=0;i<3;i++) medsol[i] = (solR[i]-solL[i])/2.0;//fabs?
-//     REAL veloc = fabs(solR[1] - solL[1])/2;//velocidade media
-//     REAL c = sqrt(fGamma*Pressure(medsol)/medsol[0]);
-//     alfa = veloc + c;//deve ser a máxima velocidade
-//     Flux(solL,Fx,Fz,Fz);
-//     Flux(solR,Fy,Fz,Fz);
-//     flux_Roe[0] = 0.5*( (solR[0] - solL[0])/alfa + Fy[0] + Fx[0] );
-//     flux_Roe[1] = 0.5*( (solR[1] - solL[1])/alfa + Fy[1] + Fx[1] );
-//     flux_Roe[2] = 0.5*( (solR[2] - solL[2])/alfa + Fy[2] + Fx[2] );
+//       if(diffright){// DIFUSÃO NA CARGA : 2
+// 	// w * Un+1 
+// 	for(i=0;i<nstate;i++)
+// 	  ek(nstate * in + i, nstate * jn + i) += weight * phi(in,0) * phi(jn,0);
+//       }
 
+//     if(diffright){// DIFUSÃO NA CARGA : 1
+//       // grad(w)
+//       for(i=0;i<dim;i++) gradphi[i] = dphi(i,in);
+//       // grad(w) @ T (point product)
+//       diffusion.PointOperator(gradphi,prodpoint);
+//       for(i=0;i<dim;i++) gradphi[i] = dsol(i,0);
+//       diffusion.Divergence(gradphi,divF);
+//       TPZVec<REAL> diff_term(nstate,0.);
+//       for(i=0;i<nstate;i++) for(j=0;j<nstate;j++) diff_term[i] += prodpoint(i,j) * divF(j,0);
+//       for(i=0;i<nstate;i++)
+// 	 ef(in * nstate + i, 0) += weight * timestep * delta * diff_term[i];
+//     }
 
-//   int max = phrl + phrr;//phrl > phrr ? phrl : phrr;
-//   for( int k = 0; k < max; k++ )
-//     for( int l = 0; l < max; l++ )
-//       for( int s = 0; s < nstate; s++ )
-// 	for( int t = 0; t < nstate; t++ )
-// 	  if(k != l) ek(k*nstate+s,l*nstate+t) = -0.0001;
