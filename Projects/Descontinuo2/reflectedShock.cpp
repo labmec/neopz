@@ -174,7 +174,8 @@ void RSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 TPZGeoMesh * CreateRSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
                            TPZVec< TPZVec< int > > & elms,
 			   MElementType ElType, int matId,
-			   TPZVec<TPZGeoEl *> & gEls)
+			   TPZVec<TPZGeoEl *> & gEls,
+			   int nSubdiv)
 {
    TPZGeoMesh * gmesh = new TPZGeoMesh;
 
@@ -194,10 +195,15 @@ TPZGeoMesh * CreateRSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // Constructing neighborhood
 
    gmesh->BuildConnectivity();
-/*
-   TPZVec< TPZGeoEl * > firstDivision;
-   for(i = 0; i < gEls.NElements();i++)gEls[i]->Divide(firstDivision);
-*/
+
+
+   if(nSubdiv == 1)
+   {
+      TPZVec< TPZGeoEl * > firstDivision;
+      for(i = 0; i < gEls.NElements();i++)gEls[i]->Divide(firstDivision);
+   }
+
+   if(nSubdiv > 1)PZError << "CreateRSGeoMesh unsupported number of subdivisions";
 
    return gmesh;
 }
@@ -206,9 +212,14 @@ TPZGeoMesh * CreateRSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // Creating all the geometric and computational meshes
 // for the reflected shock problem.
 
-TPZFlowCompMesh * RSCompMesh()
+TPZFlowCompMesh * RSCompMesh(REAL CFL, REAL delta,
+                 int degree, int nSubdiv,
+		 TPZArtDiffType DiffType,
+		 TPZTimeDiscr Diff_TD,
+		 TPZTimeDiscr ConvVol_TD,
+		 TPZTimeDiscr ConvFace_TD)
 {
-   TPZCompElDisc::gDegree = 4;
+   TPZCompElDisc::gDegree = degree;
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
@@ -230,7 +241,7 @@ TPZFlowCompMesh * RSCompMesh()
    RSMeshPoints(nodes, elms);
 
 // Creating the geometric mesh
-   TPZGeoMesh * gmesh = CreateRSGeoMesh(nodes, elms, EQuadrilateral, 1, gElem);
+   TPZGeoMesh * gmesh = CreateRSGeoMesh(nodes, elms, EQuadrilateral, 1, gElem, nSubdiv);
 
    TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
 
@@ -238,28 +249,28 @@ TPZFlowCompMesh * RSCompMesh()
    TPZEulerConsLaw2 * mat = new TPZEulerConsLaw2(1/*nummat*/,
                                             0/*timeStep*/,
 					    gamma /*gamma*/,
-					    2 /* dim*/,
-					    /*SUPG_AD*/LeastSquares_AD /*pzartdiff.h*/);
+					    dim /* dim*/,
+					    DiffType);
 // Setting initial solution
    mat->SetForcingFunction(NULL);
    // Setting the time discretization method
-   mat->SetTimeDiscr(None_TD/*Diff*/,
-                     Implicit_TD/*ConvVol*/,
-		     Implicit_TD/*ConvFace*/);
+   mat->SetTimeDiscr(Diff_TD,
+                     ConvVol_TD,
+		     ConvFace_TD);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
    // object computes the delta when it equals null.
 
-   mat->SetCFL(.5);
+   mat->SetCFL(CFL);
 
-
+/*
    REAL us = sqrt(2.6 * 2.6 + .51 * .51);
    REAL press = 1.52819;
    REAL cspeed = sqrt(1.4*press/1.7);
    REAL lambdaMax = us + cspeed;
 
-   cout << .22/(2/**lambdaMax*/);
-
-   mat->SetDelta(.22/(2/**lambdaMax*/));
+   cout << .22/(2);
+*/
+   mat->SetDelta(delta);
 
    cmesh -> InsertMaterialObject(mat);
 

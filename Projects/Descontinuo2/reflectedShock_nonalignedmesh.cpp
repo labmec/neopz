@@ -32,33 +32,33 @@ void RSNAMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
    pt.Resize(6);
    TPZVec<REAL> coord(3);
 
-   coord[0] = 0.;
-   coord[1] = 0.;
+   coord[0] = x1;
+   coord[1] = y1;
    coord[2] = 0.;
    pt[0] = coord;
 
    coord[0] = x2/2.;
-   coord[1] = 0.;
+   coord[1] = y1;
    coord[2] = 0.;
    pt[1] = coord;
 
    coord[0] = x2;
-   coord[1] = 0.;
+   coord[1] = y1;
    coord[2] = 0.;
    pt[2] = coord;
 
-   coord[0] = 0.;
-   coord[1] = 1.;
+   coord[0] = x1;
+   coord[1] = y2;
    coord[2] = 0.;
    pt[3] = coord;
 
    coord[0] = x2/2;
-   coord[1] = 1.;
+   coord[1] = y2;
    coord[2] = 0.;
    pt[4] = coord;
 
    coord[0] = x2;
-   coord[1] = 1.;
+   coord[1] = y2;
    coord[2] = 0.;
    pt[5] = coord;
 
@@ -85,7 +85,8 @@ void RSNAMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 TPZGeoMesh * CreateRSNAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
                            TPZVec< TPZVec< int > > & elms,
 			   MElementType ElType, int matId,
-			   TPZVec<TPZGeoEl *> & gEls)
+			   TPZVec<TPZGeoEl *> & gEls,
+			   int nSubdiv)
 {
    TPZGeoMesh * gmesh = new TPZGeoMesh;
 
@@ -106,13 +107,21 @@ TPZGeoMesh * CreateRSNAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
    gmesh->BuildConnectivity();
 
-   int j;
-   TPZVec< TPZGeoEl * > firstDivision;
-   for(i = 0; i < gEls.NElements();i++)
+   if(nSubdiv > 2)PZError << "CreateRSNAGeoMesh unsupported number of subdivisions";
+
+   if(nSubdiv > 0)
    {
-      gEls[i]->Divide(firstDivision);
-      TPZVec< TPZGeoEl * > secondDivision;
-      for(j = 0; j < firstDivision.NElements();j++)firstDivision[j]->Divide(secondDivision);
+      int j;
+      TPZVec< TPZGeoEl * > firstDivision;
+      if(nSubdiv > 1)
+      {
+         for(i = 0; i < gEls.NElements();i++)
+         {
+            gEls[i]->Divide(firstDivision);
+            TPZVec< TPZGeoEl * > secondDivision;
+            for(j = 0; j < firstDivision.NElements();j++)firstDivision[j]->Divide(secondDivision);
+	 }
+      }
    }
 
 
@@ -123,9 +132,14 @@ TPZGeoMesh * CreateRSNAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // Creating all the geometric and computational meshes
 // for the reflected shock problem.
 
-TPZFlowCompMesh * RSNACompMesh()
+TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
+                 int degree, int nSubdiv,
+		 TPZArtDiffType DiffType,
+		 TPZTimeDiscr Diff_TD,
+		 TPZTimeDiscr ConvVol_TD,
+		 TPZTimeDiscr ConvFace_TD)
 {
-   TPZCompElDisc::gDegree = 4;
+   TPZCompElDisc::gDegree = degree;
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
@@ -147,7 +161,7 @@ TPZFlowCompMesh * RSNACompMesh()
    RSNAMeshPoints(nodes, elms);
 
 // Creating the geometric mesh
-   TPZGeoMesh * gmesh = CreateRSNAGeoMesh(nodes, elms, EQuadrilateral, 1, gElem);
+   TPZGeoMesh * gmesh = CreateRSNAGeoMesh(nodes, elms, EQuadrilateral, 1, gElem, nSubdiv);
 
    TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
 
@@ -156,24 +170,24 @@ TPZFlowCompMesh * RSNACompMesh()
                                             0/*timeStep*/,
 					    gamma /*gamma*/,
 					    2 /* dim*/,
-					    SUPG_AD /*LeastSquares_AD /*pzartdiff.h*/);
+					    DiffType);
 // Setting initial solution
    mat->SetForcingFunction(NULL);
    // Setting the time discretization method
-   mat->SetTimeDiscr(Implicit_TD/*Diff*/,
-                     Implicit_TD/*ConvVol*/,
-		     Implicit_TD/*ConvFace*/);
+   mat->SetTimeDiscr(Diff_TD,
+                     ConvVol_TD,
+		     ConvFace_TD);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
    // object computes the delta when it equals null.
 
-   mat->SetCFL(.5);
+   mat->SetCFL(CFL);
 
-
+/*
    REAL us = sqrt(2.6 * 2.6 + .51 * .51);
    REAL press = 1.52819;
    REAL cspeed = sqrt(1.4*press/1.7);
    REAL lambdaMax = us + cspeed;
-
+*/
    cout << .22/(2/**lambdaMax*/);
 
    mat->SetDelta(.1);
