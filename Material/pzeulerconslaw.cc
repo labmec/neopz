@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cc,v 1.5 2003-10-21 18:12:11 erick Exp $
+//$Id: pzeulerconslaw.cc,v 1.6 2003-10-21 18:22:36 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -553,21 +553,21 @@ void TPZEulerConsLaw2::ContributeInterface(
 
 
    // contributing face-based quantities
-   if (fConvFace == Implicit_TD)
+   if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
       {
       // if face contribution is implicit,
       // then the FAD classes must be initialized
       #ifdef _AUTODIFF
          TPZVec<FADREAL> FADsolL, FADsolR;
          PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
-         ContributeConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
+         ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
       #else
       // forcint explicit contribution and issueing an warning
          cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
-         ContributeConvFace(x,solL,solR,weight,normal,phiL,phiR,ek,ef);
+         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
       #endif
       }else{
-         ContributeConvFace(x,solL,solR,weight,normal,phiL,phiR,ek,ef);
+         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
       }
 }
 
