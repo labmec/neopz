@@ -22,7 +22,7 @@
 #include "pzmetis.h"
 #include "tpznodesetcompute.h"
 #include "pzysmp.h"
-#include "TMBTimer.h"
+#include "TPZTimer.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -49,7 +49,7 @@ int main() {
   string filename("matriz260000.in");
   TPZFMatrix rhs,sol;
   
-  TMBMultiTimer timer(5);
+  TPZMultiTimer timer(5);
   cout << "Leitura\n";
   timer.processName(0) = "Leitura da matriz";
   timer.start(0);

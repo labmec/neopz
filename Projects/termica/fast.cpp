@@ -50,6 +50,8 @@ TPZFYsmpMatrix *ReadMatrix(const std::string &filename, TPZFMatrix &rhs)
   }
   TPZStack<int,1000> nodegraph,nodegraphindex;
   TPZStack<REAL,1000> avec;
+  nodegraph.Expand(10000000);
+  avec.Expand(10000000);
   nodegraphindex.Resize(neq+1,-1);
   nodegraphindex[0] = 0;
   
@@ -109,7 +111,7 @@ TPZFYsmpMatrix *ReadMatrix(const std::string &filename, TPZFMatrix &rhs)
   return result;
 }
 
-void TimeMultiply(TPZMatrix *mat, TMBMultiTimer &timer)
+void TimeMultiply(TPZMatrix *mat, TPZMultiTimer &timer)
 {
   TPZFMatrix sol(mat->Rows(),1),rhs(mat->Rows(),1),y;
   int ieq,neq = mat->Rows();
@@ -129,7 +131,7 @@ void TimeMultiply(TPZMatrix *mat, TMBMultiTimer &timer)
   return;
 }
 
-void SolveJacobi(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol,TMBMultiTimer &timer)
+void SolveJacobi(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol,TPZMultiTimer &timer)
 {
   TPZFMatrix sol(rhs.Rows(),1);
   TPZStepSolver prec(mat);
@@ -145,7 +147,7 @@ void SolveJacobi(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol,TMBMultiTimer &timer)
   return;
 }
 
-void SolveCG(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TMBMultiTimer &timer)
+void SolveCG(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TPZMultiTimer &timer)
 {
   TPZFMatrix sol(rhs.Rows(),1);
   TPZCopySolve prec(mat);
@@ -160,7 +162,7 @@ void SolveCG(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TMBMultiTimer &timer)
   return;
 }
 
-void SolveSSOR(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol,TMBMultiTimer &timer)
+void SolveSSOR(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol,TPZMultiTimer &timer)
 {
   TPZFMatrix sol(rhs.Rows(),1);
   TPZStepSolver prec(mat);

@@ -15,7 +15,7 @@
 
 #include <string>
 #include "pzreal.h"
-#include "TMBTimer.h"
+#include "TPZTimer.h"
 class TPZFYsmpMatrix;
 class TPZFMatrix;
 class TPZMatrix;
@@ -23,13 +23,13 @@ class TPZMatrix;
 // this function will read the matrix
 TPZFYsmpMatrix *ReadMatrix(const std::string &filename, TPZFMatrix &rhs);
 
-void TimeMultiply(TPZMatrix *mat, TMBMultiTimer &timer);
+void TimeMultiply(TPZMatrix *mat, TPZMultiTimer &timer);
 
-void SolveJacobi(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TMBMultiTimer &timer);
+void SolveJacobi(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TPZMultiTimer &timer);
 
-void SolveCG(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TMBMultiTimer &timer);
+void SolveCG(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TPZMultiTimer &timer);
 
-void SolveSSOR(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TMBMultiTimer &timer);
+void SolveSSOR(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TPZMultiTimer &timer);
 
 void Compare(TPZMatrix *first, TPZMatrix *second);
 
