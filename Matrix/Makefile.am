@@ -37,7 +37,6 @@ libpzmatrix_a_SOURCES = pzblock.cpp \
 	pzstepsolver.cpp \
 	pzsysmp.cpp \
 	pztempmat.cpp \
-	pzworkpool.cpp \
 	pzysmp.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

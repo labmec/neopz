@@ -88,11 +88,7 @@ int TPZWorkPool::FindSlot(void *Ptr) {
   long i, LoopSize = fStorage.NElements();
   long offset;
   for (i=0; i<LoopSize; i++){
-#ifdef __BOORLANDC__		
-    offset = (((char huge *)Ptr) - ((char huge *)fStorage[i]))/fUnitSize;
-#else
-    offset = (((char *)Ptr) - ((char *)fStorage[i]))/fUnitSize;
-#endif
+    offset = ((Ptr) - (fStorage[i]))/fUnitSize;
     if(offset >= 0 && offset < fNumAllocated) {
       fLastDeleted = i;
       return i;
