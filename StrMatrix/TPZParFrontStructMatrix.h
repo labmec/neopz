@@ -64,6 +64,9 @@ public:
           TPZFMatrix &rhs //! Load matrix
           );
      
+     
+     virtual void Assemble(TPZMatrix & mat, TPZFMatrix & rhs);
+
      /** Used only for testing */
      static int main();
      

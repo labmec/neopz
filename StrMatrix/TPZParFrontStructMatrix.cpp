@@ -183,7 +183,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
      cout.flush();
  */  
  //Alterado cond_broadcast para cond_signal
- //invertendo a sequência das chamadas  
+ //invertendo a sequï¿½cia das chamadas  
       pthread_cond_broadcast(&condassemble);
       pthread_mutex_unlock(&mutex_global_assemble);
     
@@ -275,9 +275,14 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
   return 0;
 }
 
-
 template<class front>
-TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
+void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & rhs)
+{
+  TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZFileEqnStorage, front> *>(&matref);
+  if(!mat)
+  {
+    cout << __PRETTY_FUNCTION__ << " we are in serious trouble : wrong type of matrix"<< endl;
+  }
   
      int nthreads;
      //cout << "Number of Threads " << endl;
@@ -296,8 +301,11 @@ TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
      //TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
      
      //TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
-     TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(this->fMesh->NEquations());
-	 // TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZParFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
+     
+     
+     
+     
+     //TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZParFrontMatrix<TPZStackEqnStorage, front>(this->fMesh->NEquations());
      this->GetNumElConnected(numelconnected);
      mat->SetNumElConnected(numelconnected);
      
@@ -350,7 +358,22 @@ TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
      delete res;
      fStiffness = 0;
      fRhs = 0;
+}
+
+
+template<class front>
+TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
+  
+      //TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
+     
+     //TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
+     
+     
+     TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(this->fMesh->NEquations());
+
+     Assemble(*mat,rhs);
      return mat;
+          
 }
 
 
@@ -372,17 +395,16 @@ int TPZParFrontStructMatrix<front>::main() {
 		// initializar as coordenadas do no em um vetor
 		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
 
-		// identificar um espaço no vetor onde podemos armazenar
+		// identificar um espaï¿½ no vetor onde podemos armazenar
 		// este vetor
 
-		// initializar os dados do nó
-		gmesh.NodeVec ()[i].Initialize (i,coord,gmesh);
+		// initializar os dados do nï¿½		gmesh.NodeVec ()[i].Initialize (i,coord,gmesh);
 	}
 	int el;
 	TPZGeoEl *gel;
 	for(el=0; el<1; el++) {
 	  
-	  // initializar os indices dos nós
+	  // initializar os indices dos nï¿½
 	  TPZVec<int> indices(4);
 	  for(i=0; i<4; i++) indices[i] = i;
 	  // O proprio construtor vai inserir o elemento na malha
@@ -431,7 +453,7 @@ int TPZParFrontStructMatrix<front>::main() {
 
 	TPZVec<int> numelconnected(cmesh.NEquations(),0);
 	int ic;
-	//cout << "Número de Equações -> " << cmesh.NEquations() << endl;
+	//cout << "Nmero de Equaï¿½es -> " << cmesh.NEquations() << endl;
 	//cout.flush();
 	
 	ofstream out("cmeshBlock_out.txt");

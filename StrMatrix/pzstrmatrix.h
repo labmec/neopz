@@ -25,6 +25,9 @@ public:
 
   virtual TPZStructMatrix * Clone();
   
+  /**
+  * Assemble the global system of equations into the matrix which has already been created
+  */
   virtual void Assemble(TPZMatrix & mat, TPZFMatrix & rhs);
   
 public:
