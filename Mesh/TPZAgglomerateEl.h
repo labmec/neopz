@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.5 2003-10-23 15:44:04 tiago Exp $
+//$Id: TPZAgglomerateEl.h,v 1.6 2003-11-04 16:55:23 cedric Exp $
 
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
@@ -56,7 +56,7 @@ public:
   /**
    * Type of the element 
    */  
-  MElementType Type(){return ENoType;}
+  MElementType Type(){return EAgglomerate;}
 
   /** retorna malha mae */
   TPZCompMesh *MotherMesh(){return fMotherMesh;}
@@ -71,10 +71,9 @@ public:
   REAL VolumeOfEl();
 
   /**
-   * Calcula a restrição da solução ou resíduo dos elementos aglomerados para o
-   * obtido por aglomeração - este último chamado de elemento pai
+   * Calcula o resíduo do elemento aglomerado
    */
-  void CalcResidual(TPZFMatrix &Rhs,TPZCompElDisc *el);
+  void CalcResidual(TPZElementMatrix &ef);
 
   /**
    * Monta a equação diferencial do modelo sobre o elemento definido por 
@@ -90,8 +89,12 @@ public:
    */
   TPZCompEl *FineElement(int index);
 
+  /**return the geometric element to which this element references*/
+  TPZGeoEl *CalculateReference();
+
   /**os geométricos agrupados apontam para o computacional*/
   void SetReference();
+  void SetReference2(int sub);
 
    /** 
     * retorna o sub-elemento número sub 
@@ -115,5 +118,40 @@ public:
    * it prints the features of the element 
    */
   virtual void Print(ostream & out = cout);
+
+  /**
+   * create copy of the materials tree
+   */
+  void CreateMaterialCopy(TPZCompMesh &aggcmesh);
+
+  void ListOfDiscEl(TPZStack<TPZCompEl *> &elvec);
+
+  void IndexesDiscSubEls(TPZStack<int> &elvec);
+
+  int NSides();
+
+  void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
+
+  void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
+
+  TPZGeoEl *FatherN(TPZGeoEl *sub,int n);
+
+  int NSubsOfLevels(TPZGeoEl *father,int nlevels);
+
+  int NSubCompEl(TPZGeoEl *father);
+
+  /**
+   * efetua agrupamentos de indexes de elementos computacionais sobre a malha fina 
+   * numaggl retorna o número de elementos obtidos por agrupamento 
+   * accumlist é a lista contendo os indexes dos elementos que deverão ser agrupados 
+   * o index indica a posicão dentro da lista de elementos computacionais
+   * accumlist[5] = 7 indica que o elemento computacional de index = 5 
+   * será agrupado para formar o elemento de index 7 
+   * finemesh é a malha fina cujos elementos serão agrupados 
+   * level indica o número de níveis que o agrupamento conterá 
+   * por exemplo, caso level = 2 elementos geométricos serão agrupados no elemento avô
+   * dim é a dimensão da malha de elementos de volume
+   */
+  static void ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int level,int &numaggl,int dim);
 };
 #endif
