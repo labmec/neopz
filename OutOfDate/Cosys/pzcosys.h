@@ -37,7 +37,7 @@ public:
   /**
    * Destructor - must be implemented at each child class 
    */
-  ~TPZCosys();
+virtual  ~TPZCosys();
   
   /**
    * Reset all coordinate system data 
