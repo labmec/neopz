@@ -803,9 +803,9 @@ void TPZCompElSide::ExpandConnected(TPZStack<TPZCompElSide> &expandvec,int onlyi
     for (int k=0;k<smallsides.NElements();k++) {
       compside = TPZCompElSide(Element(),smallsides[k]);
       compsidenext = compside.LowerLevelElementList(onlyinterpolated);
-      TPZGeoElSide smallgeoside = compside.Reference();
+      //      TPZGeoElSide smallgeoside = compside.Reference();
       while(compsidenext.Exists()) {
-         TPZGeoElSide geoside = compsidenext.Reference();//linha para teste
+	//         TPZGeoElSide geoside = compsidenext.Reference();//linha para teste
          if (compsidenext.Reference().NeighbourExists(this->Reference())) {
             TPZCompElSide lowid = LowerIdElementList(compside,onlyinterpolated);
             int l=0;
@@ -891,7 +891,7 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
   TPZStack <TPZGeoEl *> father;
   father.Push(ref);
   //		cout << ",2";
-  int count=0;
+  //  int count=0;
   while(ref->Father()){
 	  father.Push(ref->Father());
 	  ref = ref->Father();

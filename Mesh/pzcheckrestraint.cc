@@ -87,7 +87,7 @@ void TPZCheckRestraint::AddConnect(int connectindex) {
       return;
     }
     int firstl = fSmallPos[small];
-    int lastl = firstl+fSmallSize[small];
+    //    int lastl = firstl+fSmallSize[small];
     int firstc = fLargePos[large];
     int lastc = firstc+fLargeSize[large];
     int ic,il;
@@ -106,7 +106,7 @@ void TPZCheckRestraint::AddConnect(int connectindex) {
 void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectindex, TPZFMatrix &dependmatrix) {
   
   int small = SmallConnect(smallconnectindex);
-  TPZConnect &smallc = fMesh->ConnectVec()[smallconnectindex];
+  //  TPZConnect &smallc = fMesh->ConnectVec()[smallconnectindex];
   int large = LargeConnect(largeconnectindex);
   if(large != -1) {
     int firstl = fSmallPos[small];
@@ -116,13 +116,13 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
     int ic,il;
     if (firstc < 0 || lastc > fRestraint.Cols() || firstl < 0 || lastl > fRestraint.Rows()){
       cout << "TPZCheckRestraint::AddDependency : fRestraintMatrix dimension error\n";
-      int a;
+      //      int a;
       //      cin >> a;
       return;
     }
     if ((lastc - firstc) != dependmatrix.Cols() ||  (lastl-firstl) != dependmatrix.Rows()){
       cout << "TPZCheckRestraint::AddDependency : fRestraintMatrix dimension error\n";
-      int a;
+      //      int a;
       //  cin >> a;
       return;
     }
@@ -132,13 +132,13 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
 	int column = ic - firstc;
 	if (ic < 0 || ic >= fRestraint.Cols() || il < 0 || il >= fRestraint.Rows()){
 	  cout << "TPZCheckRestraint::AddDependency : fRestraintMatrix dimension error\n";
-	  int a;
+	  //	  int a;
 	  //  cin >> a;
 	  return;
 	}
 	if (line >= dependmatrix.Rows() || column >= dependmatrix.Cols()){
 	  cout << "TPZCheckRestraint::AddDependency : fRestraintMatrix dimension error\n";
-	  int a;
+	  //	  int a;
 	  //	  cin >> a;
 	  return;
 	}
@@ -258,7 +258,7 @@ void TPZCheckRestraint::Print(ostream &out){
 void TPZCheckRestraint::Diagnose() {
 
 
-  TPZGeoMesh *gmesh = fMesh->Reference();
+  //  TPZGeoMesh *gmesh = fMesh->Reference();
   TPZCheckGeom chkgeo;
   chkgeo.CheckSubFatherTransform(fSmall.Element()->Reference(),fSmall.Side());
   chkgeo.CheckRefinement(fSmall.Element()->Reference()->Father());

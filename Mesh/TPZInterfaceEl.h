@@ -22,12 +22,17 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * element the left of the normal a interface 
    */
-  TPZCompElDisc *fLeftEl;
+  TPZCompElDisc *fLeftEl;//este podia ser um TPZCompElSide
 
   /**
    * element the right of the normal a interface 
    */
-  TPZCompElDisc *fRightEl;
+  TPZCompElDisc *fRightEl;//este podia ser um TPZCompElSide
+
+  /**
+   * Normal to the face element
+   */
+  TPZVec<REAL> fNormal;
 
   /**
    * Geometric element to which this element refers
@@ -37,7 +42,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * Material object of this element
    */
-  TPZMaterial *fMaterial;
+  TPZMaterial *fMaterial;//this variable can be gotten of the element of associated volume
 
  public:
 

@@ -68,8 +68,7 @@ class TPZGeoElSide {
 
   void SetConnectivity(const TPZGeoElSide &neighbour) const;
 
-  // CHECK THIS! This method wasn't previously defined!
-  void RemoveConnectivity() {};
+  void RemoveConnectivity();
 
 static void BuildConnectivities(TPZVec<TPZGeoElSide> &elvec, TPZVec<TPZGeoElSide> &neighvec);
 
