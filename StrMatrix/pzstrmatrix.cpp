@@ -33,10 +33,10 @@ TPZStructMatrix *TPZStructMatrix::Clone() {
   return 0;
 }
 
-ofstream out("MATRIZES.out");
+//ofstream out("MATRIZES.out");
 void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
 
-  out << "Assembly process initiated\n";
+//  out << "Assembly process initiated\n";
   int iel;
   //int numel = 0;
   int nelem = fMesh->NElements();
@@ -70,10 +70,10 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
 #endif
 //     if( nelem < 34 || (nelem > 33 && iel < 33) ){
 //       out << "Element id : " << el->Reference()->Id() << endl;
-       el->Print(out);
+/*       el->Print(out);
        ek.fMat->Print("MATRIZ EK",out);
        ef.fMat->Print("VETOR  EF",out);
-       out.flush();
+       out.flush();*/
 //     }
     //    if(!(numel%20)) cout << endl << numel;
     //    cout << '*';
