@@ -19,16 +19,20 @@ int main()
   TPZVec<TPZDiffMatrix<REAL> > Ai, Tau;
   TPZVec<TPZVec<REAL> > TauDiv;
   TPZVec<TPZDiffMatrix<REAL> > TaudDiv;
-  char ArtDiff[32]="LS";
+  /*char ArtDiff[32]="LS";*/
+  TPZArtDiffType artDiffType = LeastSquares_AD;
   TPZFMatrix dsol(dim,nstate);
   TPZFMatrix dphi(dim,nphi);
   TPZVec<REAL> phi(nphi);
   TPZVec<REAL> sol(nstate);
 
+
   TPZVec<FADREAL> FADsol(nstate);
   TPZVec<FADREAL> FADdsol(nstate*dim);
   TPZVec<TPZVec<FADREAL> > FADTauDiv;
   // generating data
+
+  TPZArtDiff ArtDiff(artDiffType, 1.4);
 
   //solution
   sol[0]=2.;
@@ -68,9 +72,12 @@ int main()
 	for(j=0;j<nphi;j++)FADsol[i].fastAccessDx(i+j*nstate)=phi[j];
      }
 
-  cout << "\n\nFADsol\n" << FADsol;
+/*  FADREAL teste;
+  for(i=0;i<FADsol.NElements();i++)teste+=FADsol[i];
+  cout << "\n\nFADsol\n" << teste;
 
   cout << "\n\nphi\n" << phi;
+*/
 
   //FADdSol
   for(k=0;k<dim;k++)
@@ -82,13 +89,29 @@ int main()
 	    for(j=0;j<nphi;j++)
 	    	    FADdsol[k+i*dim].fastAccessDx(i+j*nstate)=dphi(k,j);
 	}
+/*
+	cout << "\n\nFADdsol\n";
+teste=0;
+for(i=0;i<FADdsol.NElements();i+=3)teste+=FADdsol[i];
 
-cout << "\n\nFADdsol\n" << FADdsol;
+cout << teste << endl;
+
+teste=0;
+for(i=1;i<FADdsol.NElements();i+=3)teste+=FADdsol[i];
+
+cout << teste << endl;
+
+teste=0;
+for(i=2;i<FADdsol.NElements();i+=3)teste+=FADdsol[i];
+
+cout << teste << endl;
+
+//cout << "\n\nFADdsol\n" << FADdsol;
 
 cout << "\n\ndphi\n" << dphi;
-
-  TPZArtDiff::PrepareFastDiff(dim ,ArtDiff, sol, dsol, dphi, TauDiv, &TaudDiv);
-  TPZArtDiff::PrepareFastDiff(dim ,ArtDiff, FADsol, FADdsol, FADTauDiv);
+*/
+  ArtDiff.PrepareFastDiff(dim, sol, dsol, dphi, TauDiv, &TaudDiv);
+  ArtDiff.PrepareFastDiff(dim, FADsol, FADdsol, FADTauDiv);
 
 
   cout << "\n\nFADTauDiv\n" << FADTauDiv;
