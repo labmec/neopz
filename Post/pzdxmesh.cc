@@ -1,3 +1,4 @@
+//$Id: pzdxmesh.cc,v 1.4 2003-10-23 17:45:02 tiago Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -19,7 +20,7 @@ TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial *m
   SetNames(scalarnames,vecnames);
 	fNextDataField = 1;
 	fStyle = EDXStyle;
-	int index = 0;
+	//	int index = 0;
 	TPZCompEl *ce = FindFirstInterpolatedElement(cmesh,dimension);
 	fElementType = "noname";
 	if(ce) {
@@ -138,7 +139,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
     }
   }
   fNumCases = numcases;
-  long zero = 0;
+  //  long zero = 0;
   fNextDataField = object;
   //fFirstFieldValues[0] = new TPZVec<int>(numcases,zero);
   //fFirstFieldValues[1] = new TPZVec<int>(numcases,zero);
@@ -308,7 +309,7 @@ void TPZDXGraphMesh::Close(){
   int numscal = fScalarNames.NElements();
   int numvec = fVecNames.NElements();
   int ist;
-  TPZStack<int> *FV = &fFirstFieldValues[dim1];
+  //  TPZStack<int> *FV = &fFirstFieldValues[dim1];
   TPZStack<int> &FVR = fFirstFieldValues[dim1];
   cout << "DxMesh finalizing\n";
   //cout << " fTimes = " << (*fTimes)[0] << ' ' << (*fTimes)[1] << endl;
