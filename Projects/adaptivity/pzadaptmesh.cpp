@@ -52,23 +52,21 @@ void TPZAdaptMesh::CleanUp(){
   int i;
   for (i=0;i<fCloneMesh.NElements();i++){
     TPZGeoCloneMesh *gmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMesh[i]->Reference());
-    //Cesar June 30th 2003 -- 
-    // The baoundary elements are not used to create clone meshes
-#ifndef CLONEBCTOO
-    if (gmesh && gmesh->GetMeshReferenceElement()->MaterialId() < 0) continue;
-#endif
-    //end Cesar
     gmesh->ResetReference();
-    fFineCloneMesh[i]->LoadReferences();
-    RemoveCloneBC(fFineCloneMesh[i]);
-    DeleteElements(fFineCloneMesh[i]);
-    delete fFineCloneMesh[i];
+    //Cesar July 2003 ->
+    //If some reference element is not used to analyse error its fine clone mesh is not created!
+    if (fFineCloneMesh[i]){
+      fFineCloneMesh[i]->LoadReferences();
+      RemoveCloneBC(fFineCloneMesh[i]);
+      DeleteElements(fFineCloneMesh[i]);
+      delete fFineCloneMesh[i];
+    }
+    //<-
     fCloneMesh[i]->LoadReferences();
     RemoveCloneBC(fCloneMesh[i]);
     DeleteElements(fCloneMesh[i]);
     delete fCloneMesh[i];
     delete gmesh;
-    //    continue;
   }
   fCloneMesh.Resize(0);
   fFineCloneMesh.Resize(0);
@@ -93,11 +91,11 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
 
   for (cliter=0;cliter<nelmesh;cliter++)  fElementError[cliter] = 0.;
 
-  //int nelem = fElementError.NElements();
+  //Used to evaluate the error when the true solution is provided======
   TPZVec<int> perm(nelmesh,0);
-  REAL minerror;
-
-
+  TPZVec<REAL> auxerrorvec(nelmesh,0.);
+  REAL minerror = 0.;
+  //===================================================================
 
   //gets the geometric reference elements that will generate the patch
   GetReferenceElements();
@@ -105,24 +103,16 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
   if (use_trueerror && f){
     for (i=0;i<fReference->ElementVec().NElements();i++){
       TPZInterpolatedElement *el = dynamic_cast<TPZInterpolatedElement *> (fReference->ElementVec()[i]);
-      if (el) {
-	ervec[i] = UseTrueError (el , f);
-	fElementError[i] = ervec[i];
-	truerror += ervec[i];
-	error = truerror;
-      }
-      else{
-	ervec[i] = 0.;
-	fElementError[i] = 0.;
-      }
+      if (el) 
+	auxerrorvec[i] = UseTrueError (el , f);
+      else
+	auxerrorvec[i] = 0.;
     }
-    minerror = SortMinError(fElementError,perm,0.65);
+    minerror = SortMinError(auxerrorvec,perm,0.65);
   } 
-  //  else {
-  //  int ngrp = fGeoRef.NElements();
 
   //Generates the patch -
-  BuildReferencePatch(/*minerror,perm[i]*/);
+  BuildReferencePatch();
 
   //Creates the patch clones;
   fReference->ComputeNodElCon();
@@ -138,86 +128,84 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
   int ncl = fCloneMesh.NElements();
   fFineCloneMesh.Resize(ncl);
 
-
   //Creates an uniformly refined mesh and evaluates the error
   for (cliter = 0; cliter<ncl; cliter++){
     //Análise dos Clones
-    //    if(cliter == 24 && gPrintLevel ==1) gPrintLevel =2;
-    //       TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMesh[cliter]->Reference());
+    TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMesh[cliter]->Reference());
     //       if (gcmesh && gcmesh->GetMeshReferenceElement()->MaterialId() < 0) continue;
+    if (gcmesh->ReferenceElement(0)->MaterialId() <  0 || (use_trueerror && f && !HasTrueError(cliter,minerror,auxerrorvec))){
+      fFineCloneMesh[cliter] = 0;
+      continue;
+    }
     fFineCloneMesh [cliter] = fCloneMesh[cliter]->UniformlyRefineMesh();
     {
       ofstream out("output.txt");
       fCloneMesh[cliter]->Print(out);
       out.close();
     }
-
-    fCloneMesh[cliter]->MeshError(fFineCloneMesh[cliter],fElementError,f,truervec);  
-    //    fCloneMesh[cliter]->MeshError(fCloneMesh[cliter],fElementError,f,truervec);  
+    fCloneMesh[cliter]->MeshError(fFineCloneMesh[cliter],fElementError,f,truervec);
   }
 
+  //Ordena o vetor de erros
 
-//Ordena o vetor de erros
-
-for(i=0; i<nelmesh; i++) {
-  perm[i] = i;
-  ervec[i]=fElementError[i];
-}
-Sort(fElementError,perm);
-  
-//  REAL totalerror = 0.;
-//  REAL totaltruerror = 0.;
-//somatório dos componentes do vetor de erro
-for(i=0; i<nelmesh; i++) error += fElementError[i];
-
-REAL ninetyfivepercent,auxerror = 0.;
-for(i=0;i<nelmesh;i++){
-  auxerror += fElementError[perm[i]];
-  if (auxerror >= 0.65*error){
-    ninetyfivepercent = fElementError[perm[i]];
-    break;
-  }
-}
-
-if(f) {
-  for(i=0; i<nelmesh; i++){
-    truerror += truervec[i];
-  }
-}
-  
-//inicializa effect com o tamanho de trueeerror
-effect.Resize(truervec.NElements());
-effect.Fill(0.);
-if(f) {
   for(i=0; i<nelmesh; i++) {
-    if(truervec[i] >= 1.e-4*truerror && truervec[i] >= 5e-20 ) {
-      effect[i] = ervec[i]/truervec[i];
-    }
-    else {
-      effect[i]=0.;
-      truervec[i]=0.;
+    perm[i] = i;
+    ervec[i]=fElementError[i];
+  }
+  Sort(fElementError,perm);
+  
+  //  REAL totalerror = 0.;
+  //  REAL totaltruerror = 0.;
+  //somatório dos componentes do vetor de erro
+  for(i=0; i<nelmesh; i++) error += fElementError[i];
+  
+  REAL ninetyfivepercent,auxerror = 0.;
+  for(i=0;i<nelmesh;i++){
+    auxerror += fElementError[perm[i]];
+    if (auxerror >= 0.65*error){
+      ninetyfivepercent = fElementError[perm[i]];
+      break;
     }
   }
-}
-//  int nstate = fCloneMesh[0]->MaterialVec()[0]->NStateVariables();
   
-TPZStack <TPZGeoEl*> gelstack;
-TPZStack <int> porder;
-    
-//Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
-for (i=0;i<fCloneMesh.NElements();i++){
-  //     TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMesh[i]->Reference());
-  //     if (gcmesh && gcmesh->GetMeshReferenceElement()->MaterialId() < 0) continue;
-  fCloneMesh[i]->ApplyRefPattern(ninetyfivepercent,fElementError,fFineCloneMesh[i],gelstack,porder);
-}
+  if(f) {
+    for(i=0; i<nelmesh; i++){
+      truerror += truervec[i];
+    }
+  }
   
-/*   int igeo,ngeoel = gelstack.NElements(); */
-/*   for (igeo =0; igeo<ngeoel; igeo++){ */
-/*     gelstack[igeo]->Print(); */
-/*   } */
-
-TPZCompMesh * adapted =   CreateCompMesh(fReference,gelstack,porder);
-return adapted;
+  //inicializa effect com o tamanho de trueeerror
+  effect.Resize(truervec.NElements());
+  effect.Fill(0.);
+  if(f) {
+    for(i=0; i<nelmesh; i++) {
+      if(truervec[i] >= 1.e-4*truerror && truervec[i] >= 5e-20 ) {
+	effect[i] = ervec[i]/truervec[i];
+      }
+      else {
+	effect[i]=0.;
+	truervec[i]=0.;
+      }
+    }
+  }
+  //  int nstate = fCloneMesh[0]->MaterialVec()[0]->NStateVariables();
+  
+  TPZStack <TPZGeoEl*> gelstack;
+  TPZStack <int> porder;
+  
+  //Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
+  for (i=0;i<fCloneMesh.NElements();i++){
+    if (! fFineCloneMesh[i]) continue;
+    fCloneMesh[i]->ApplyRefPattern(ninetyfivepercent,fElementError,fFineCloneMesh[i],gelstack,porder);
+  }
+  
+  /*   int igeo,ngeoel = gelstack.NElements(); */
+  /*   for (igeo =0; igeo<ngeoel; igeo++){ */
+  /*     gelstack[igeo]->Print(); */
+  /*   } */
+  
+  TPZCompMesh * adapted =   CreateCompMesh(fReference,gelstack,porder);
+  return adapted;
 }
 
 
@@ -487,6 +475,8 @@ TPZInterpolatedElement * TPZAdaptMesh::LargeElement(TPZInterpolatedElement *cint
 
 REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse, 
 				    void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv)){
+  if (coarse->Material()->Id() < 0) return 0.0;
+
   int cornod = coarse->NConnects();
   int cormatsize = coarse->NShapeF();
   REAL error = 0.;
@@ -519,13 +509,14 @@ REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse,
     maxorder = interpolation[dim] < maxorder ? maxorder : interpolation[dim];
   }
   for(dim=0; dim<dimension; dim++) {
-    //order[dim] = 20;//Cedric
-    order[dim] = maxorder;
+    order[dim] = 20;//Cedric
+    //order[dim] = maxorder;
   }
   intrule.SetOrder(order);
 
   REAL corphistore[50]={0.},cordphistore[150]={0.};
   TPZFMatrix corphi(cormatsize,1,corphistore,50);
+
   TPZFMatrix cordphi(dimension,cormatsize,cordphistore,150), cordphix(dimension,cormatsize);
   // derivative of the shape function
   // in the master domain
@@ -543,11 +534,11 @@ REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse,
   TPZVec<REAL> truesol(numdof);
   TPZFMatrix truedsol(dimension,numdof);
   for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
-
-    coarse->Shape(coarse_int_point,corphi,cordphi);
-    coarse->Reference()->Jacobian( coarse_int_point,jaccoarse,axescoarse, jacdetcoarse, jacinvcoarse);
-    coarse->Reference()->X(coarse_int_point,xcoarse);
+    intrule.Point(int_ind,coarse_int_point,weight);
+    coarse->Reference()->Jacobian( coarse_int_point, jaccoarse , axescoarse, jacdetcoarse, jacinvcoarse);
+    coarse->Reference()->X(coarse_int_point, xcoarse);
     if(f) f(xcoarse,truesol,truedsol);
+    coarse->Shape(coarse_int_point,corphi,cordphi);
     
     weight *= fabs(jacdetcoarse);
     cordphix.Zero();
@@ -640,4 +631,19 @@ REAL TPZAdaptMesh::SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL per
     }
   }
   return ninetyfivepercent;
+}
+
+int TPZAdaptMesh::HasTrueError(int clindex, REAL &minerror, TPZVec<REAL> &ervec){
+   
+  TPZGeoCloneMesh *gmesh = dynamic_cast<TPZGeoCloneMesh *> (fCloneMesh[clindex]->Reference());
+  int nref = gmesh->NReference();
+  int i;
+  for (i=0;i<nref;i++){
+    TPZGeoEl *gel = gmesh->ReferenceElement(i);
+    TPZCompEl *cel = gel->Reference();
+    if (!cel) continue;
+    int celindex = cel->Index();
+    if (ervec[celindex] >= minerror) return 1;
+  }
+  return 0;
 }

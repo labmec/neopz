@@ -1257,10 +1257,14 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
     ef.fBlock->Set(i,NConnectShapeF(i)*numdof);
   }
 
+  int printing = 0;
+
   if( !ek.fMat || !ef.fMat || !ek.fBlock || !ef.fBlock){
-    cout << "TPZInterpolatedElement.calc_stiff : not enough storage for local stifness"
-      " matrix \n";
-    Print(cout);
+    if (printing){
+      cout << "TPZInterpolatedElement.calc_stiff : not enough storage for local stifness"
+	   << " matrix \n";
+      Print(cout);
+    }
     if(ek.fMat)   delete ek.fMat;
     if(ek.fBlock) delete ek.fBlock;
     if(ef.fMat)   delete ef.fMat;

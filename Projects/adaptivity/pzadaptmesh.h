@@ -106,8 +106,15 @@ class TPZAdaptMesh {
    */
   TPZCompMesh* CreateCompMesh (TPZCompMesh *mesh,TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
 
-  
-  
+  /**
+   * Verifies if one clone, specified by its index, must be analysed \
+   * This method only be called when the true solution is available and the \
+   * option usetrueerror in void  GetAdaptedMesh is seted to 1.
+   * @param clindex index of the clone to be verified
+   * @param minerror minimum error to the clone be analysed
+   * @param ervec vector containing the treu error 
+   */
+  int TPZAdaptMesh::HasTrueError(int clindex, REAL &minerror, TPZVec<REAL> &ervec);
 
 
  private:   
