@@ -282,6 +282,9 @@ void TPZArtDiff::ComputeTau(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec
      case Bornhaus_AD:
         Bornhaus(dim, jacinv, sol, Ai, Tau);
      break;
+     case TrnLeastSquares_AD:
+        LST(dim, sol, Ai, Tau);
+     break;
      default:
      PZError << "Unknown artificial diffision term (" << fArtDiffType << ")";
   }
@@ -320,6 +323,15 @@ void TPZArtDiff::SUPG(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, 
 
 template <class T>
 void TPZArtDiff::LS(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
+  int i;
+  for(i = 0; i < dim; i++)
+  {
+     Ai[i].Transpose(Tau[i]);
+  }
+}
+
+template <class T>
+void TPZArtDiff::LST(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau){
   int i;
   for(i = 0; i < dim; i++)
   {

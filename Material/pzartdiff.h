@@ -21,7 +21,8 @@ enum TPZArtDiffType
   None_AD = -1,
   LeastSquares_AD = 1,
   Bornhaus_AD,
-  SUPG_AD
+  SUPG_AD,
+  TrnLeastSquares_AD
 };
 
 /**
@@ -204,6 +205,9 @@ private:
 
   template <class T>
   void LS(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
+
+  template <class T>
+  void LST(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
 
   template <class T>
   void Bornhaus(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
