@@ -17,7 +17,7 @@
 
 
 void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
-  if(abs(pt[0])<1.e-10 && abs(pt[1])<1.e-10 && pt[2]==1.) {
+  if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
     //para testes com transformações geometricas-->>Que  o que faz o RefPattern!!
     //(0,0,1) nunca é um ponto de integração
      phi(0,0)  = 0.;
