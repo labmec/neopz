@@ -77,7 +77,7 @@ public:
     /**
    * Checks if current matrix value is symmetric
    */  
-  virtual int VerifySymmetry() const;  
+  virtual int VerifySymmetry(REAL tol = 1.e-13) const;  
 
   /**
      Put values with bounds checking if DEBUG variable is defined.

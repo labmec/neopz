@@ -970,14 +970,14 @@ void TPZMatrix::GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const
     
 }
 
-int TPZMatrix::VerifySymmetry() const{
+int TPZMatrix::VerifySymmetry(REAL tol) const{
   int nrows = this->Rows();
   int ncols = this->Cols();
   if (nrows != ncols) return 0;
   
   for( int i = 0; i < nrows; i++){
     for(int j = 0; j <= i; j++){
-      if ( fabs( this->Get(i,j) - this->Get(j,i) ) > 1.e-13 ) {
+      if ( fabs( this->Get(i,j) - this->Get(j,i) ) > tol ) {
         cout << "Elemento: " << i << ", " << j << "  -> " << fabs(this->Get(i,j) - this->Get(j,i) ) << "/" <<
         this->Get(i,j) << endl;
 	return 0;       
