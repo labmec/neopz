@@ -40,6 +40,7 @@
 #include "pzsave.h"
 #include "TPZCompElDisc.h"
 #include "TPZInterfaceEl.h"
+#include "tpzoutofrange.h"
 
 
 int gDebug;
@@ -414,7 +415,7 @@ int run(istream & input, ostream & output)
    TPZMatrix * mat = StrMatrix.Create();
 
    An.SetLinSysCriteria(1e-8, 100);
-   An.SetNewtonCriteria(1e-8, 4);
+   An.SetNewtonCriteria(1e-8, 200);
    An.SetTimeIntCriteria(1e-8,MaxIter);
 
    //Preconditioner
@@ -507,5 +508,14 @@ int run(istream & input, ostream & output)
 
 int main()
 {
-   return run(cin, cout);
+  //TPZOutofRange obj;
+   try
+   {
+      run(cin, cout);
+   } catch(TPZOutofRange obj)
+   {
+      cout << "main programa nao terminou normalmente\n";
+      return -1;
+   }
+   return 0;
 }
