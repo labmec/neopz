@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.29 2004-04-26 13:06:27 phil Exp $
+//$Id: TPZCompElDisc.h,v 1.30 2004-05-21 19:08:50 cantao Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -79,6 +79,8 @@ protected:
   virtual int CreateMidSideConnect();
 
  public:
+
+  int GetMaterial( const TPZGeoElSide& gside );
 
   static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
 
@@ -232,6 +234,8 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   int  NShapeF();
 
   void CreateInterfaces();
+
+  void CreateInterfaces( TPZMaterial* mat );
 
   void CreateInterface(int side);
 

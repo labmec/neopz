@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.56 2004-05-21 13:36:10 erick Exp $
+//$Id: TPZCompElDisc.cpp,v 1.57 2004-05-21 19:08:50 cantao Exp $
 
 // -*- c++ -*- 
 
@@ -37,6 +37,7 @@
 #include "pztrigraph.h"
 #include "pzgraphel.h"
 #include "pzmeshid.h"
+#include "pzcompel.h"
 //#include "TPZFlowCMesh.h"
 
 #include "time.h"
@@ -121,7 +122,138 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
   ref->X(csi,fCenterPoint);
   fConstC = NormalizeConst();
   //criando os elementos interface
+//   int matid = ref->MaterialId();
+//   TPZMaterial *mat = mesh.FindMaterial(matid);
+//   CreateInterfaces( mat );
   CreateInterfaces();
+}
+
+int TPZCompElDisc::GetMaterial( const TPZGeoElSide& gside )
+{
+   TPZStack< TPZCompElSide > list;
+
+   TPZCompElSide cside = gside.Reference();
+
+   cside.EqualLevelElementList( list, 0, 1 );
+
+   TPZCompElSide cside2 = cside.LowerLevelElementList( 1 );
+
+   if( cside2.Exists() ) list.Push( cside2 );
+
+   TPZGeoElSide father     = gside;
+   TPZGeoElSide nextFather = father.Father2();
+
+   while( nextFather.Element() )
+   {
+      father = nextFather;
+      nextFather = father.Father2();
+   }
+
+   int count = 0;
+
+   TPZGeoElSide neighbour = father.Neighbour();
+
+   while( neighbour != father )
+   {
+      neighbour = neighbour.Neighbour();
+
+      count++;
+   }
+
+   if( count > 1 )
+   {
+      // BINGO!
+
+      neighbour = father.Neighbour();
+
+      while( neighbour != father &&
+	     neighbour.Element()->Dimension() == father.Element()->Dimension() )
+      {
+	 neighbour = neighbour.Neighbour();
+      }
+
+      if( neighbour == father )
+      {
+	 cout << "Houston, we have a problem!" << endl;
+	 cout << __FILE__ << " at " << __LINE__ << endl;
+      }
+      else
+      {
+	 return neighbour.Element()->MaterialId();
+      }
+   }
+
+   int matid0 = gside.Element()->MaterialId();
+   int matid1 = list[0].Reference().Element()->MaterialId();
+
+   if( matid0 != matid1 )
+   {
+      // Insert here the convenient material (from TPZGeoMesh).
+
+      if( Reference()->Dimension() < list[0].Reference().Element()->Dimension() )
+      {
+	 return matid0;
+      }
+      else if( Reference()->Dimension() >
+	       list[0].Reference().Element()->Dimension() )
+      {
+	 return matid1;
+      }
+      else
+      {
+	 return Mesh()->Reference()->InterfaceMaterial( matid0, matid1 );
+      }
+   }
+
+   return Material()->Id();
+}
+
+
+void TPZCompElDisc::CreateInterfaces( TPZMaterial* mat ){
+  //não verifica-se caso o elemento de contorno
+  //é maior em tamanho que o interface associado
+  //caso AdjustBoundaryElement não for aplicado
+  //a malha é criada consistentemente
+  TPZGeoEl *ref = Reference();
+  int nsides = ref->NSides();
+  int InterfaceDimension = fMaterial->Dimension() - 1;
+  int side;
+  nsides--;//last face
+  for(side=nsides;side>=0;side--){
+    if(ref->SideDimension(side) != InterfaceDimension) continue;
+    TPZCompElSide thisside(this,side);
+    if(ExistsInterface(thisside.Reference())) {
+//       cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
+
+      if( mat )
+      {
+	 thisside.Element()->SetMaterial( mat );
+      }
+      else
+      {
+	 cout << "TPZCompElDisc::CreateInterfaces: trying to set an"
+	      << "already existent interface!"<< endl;
+      }
+
+      continue;
+    }
+    TPZStack<TPZCompElSide> highlist;
+    thisside.HigherLevelElementList(highlist,0,1);
+    //a interface se cria uma vez só: quando existem ambos 
+    //elementos esquerdo e direito (computacionais)
+    if(!highlist.NElements()) {
+      CreateInterface(side);//só tem iguais ou grande => pode criar a interface
+    } else {
+      int ns = highlist.NElements();
+      int is;
+      for(is=0; is<ns; is++) {//existem pequenos ligados ao lado atual 
+	if(highlist[is].Reference().Dimension() != InterfaceDimension) continue;
+	TPZCompElDisc *del = dynamic_cast<TPZCompElDisc *> (highlist[is].Element());
+	if(!del) continue;
+	del->CreateInterface(highlist[is].Side());
+      }
+    }
+  }
 }
 
 void TPZCompElDisc::CreateInterfaces(){
@@ -179,17 +311,19 @@ void TPZCompElDisc::CreateInterface(int side)
 //Antes (comentado acima) a interface tinha o material de menor id entre esquerdo e direito
 //Agora, a interface tem o material do elemento de menor dimensão (i.e. condicao de contorno)
 //Seria interessante testar se o material do contorno eh filho do TPZBndCond, mas traria problemas ao cfdk.
-    int matid;
-    int thisdim = this->Dimension();
-    int neighbourdim = list[0].Element()->Dimension();
-    if (thisdim == neighbourdim) 
-      matid = this->Material()->Id();
-    else {
-      if (thisdim < neighbourdim)
-	matid = this->Material()->Id();
-      else
-	matid = list[0].Element()->Material()->Id();
-    }
+
+     int matid = GetMaterial( thisside.Reference() );
+     int thisdim = this->Dimension();
+     int neighbourdim = list[0].Element()->Dimension();
+
+//     if (thisdim == neighbourdim) 
+//       matid = this->Material()->Id();
+//     else {
+//       if (thisdim < neighbourdim)
+// 	matid = this->Material()->Id();
+//       else
+// 	matid = list[0].Element()->Material()->Id();
+//     }
 
 
     TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
