@@ -1,4 +1,4 @@
-//$Id: pzconslaw.cpp,v 1.7 2004-02-12 18:46:27 erick Exp $
+//$Id: pzconslaw.cpp,v 1.8 2004-02-26 22:48:09 erick Exp $
 
 #include "pzconslaw.h"
 #include "pzelmat.h"
@@ -15,7 +15,10 @@ TPZConservationLaw2::TPZConservationLaw2(int nummat,REAL timeStep,int dim) :
 fDim(dim),
 fTimeStep(0),
 fCFL(0),
-fGamma(1.4)
+fGamma(1.4),
+fContributionTime(Last_CT),
+fResidualType(Flux_RT)
+
 {
    fTimeStep = timeStep;
    if(timeStep < 0 || timeStep > 1)

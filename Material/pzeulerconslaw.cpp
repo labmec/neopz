@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.21 2004-02-12 18:46:27 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.22 2004-02-26 22:48:09 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -138,13 +138,14 @@ int TPZEulerConsLaw2::VariableIndex(char *name) {
   if( !strcmp(name,"pressure") )     return 4;//p
   if( !strcmp(name,"solution") )     return 5;//(ro,u,v,w,E)
   if( !strcmp(name,"normvelocity") ) return 6;//sqrt(u²+v²+w²)
+  if( !strcmp(name,"Mach") )         return 7;//sqrt(u²+v²+w²)/c
   cout << "TPZEulerConsLaw2::VariableIndex not defined\n";
   return TPZMaterial::VariableIndex(name);
 }
 
 int TPZEulerConsLaw2::NSolutionVariables(int var){
 
-  if(var == 1 || var == 3 || var == 4 || var == 6) return 1;
+  if(var == 1 || var == 3 || var == 4 || var == 6 || var == 7) return 1;
   if(var == 2) return Dimension();
   if(var == 5) return NStateVariables();
 
@@ -196,6 +197,15 @@ void TPZEulerConsLaw2::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &a
     REAL veloc = 0.0;
     for(int i=1;i<nstate-1;i++) veloc += Sol[i]*Sol[i];//velocity vector
     Solout[0] = sqrt(veloc/ro2);
+    return;
+  } else if(var == 7) {
+    int nstate = NStateVariables();
+    Solout.Resize(1);
+    REAL cspeed;
+    REAL us;
+    TPZEulerConsLaw2::cSpeed(Sol, fGamma, cspeed);
+    TPZEulerConsLaw2::uRes(Sol, us);
+    Solout[0] = us / cspeed;
     return;
   } else {
     //cout << "TPZEulerConsLaw2::Solution variable in the base class\n";
@@ -702,6 +712,8 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
 
   int nstate = NStateVariables();
   T vpn=0.;
+  T us, c;
+  REAL Mach, temp;
   int i;
 
   switch (bc.Type()){
@@ -719,6 +731,40 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
     break;
   case 6://não refletivas (campo distante)
     for(i=0;i<nstate;i++) solR[i] = solL[i];
+    break;
+  case 7:// INLET
+    Mach = bc.Val2().operator()(1,0);
+    solR[0] = bc.Val2().operator()(0,0);//solL[0];
+    solR[nstate-1] = bc.Val2().operator()(nstate - 1,0);
+
+    temp = Mach * Mach * fGamma * (fGamma - 1);
+    us = sqrt(2 * temp * solR[nstate-1] /
+              ( solR[0] * (2 + temp)) );
+
+    for(i=1;i<nstate-1;i++) solR[i] = - us * normal[i-1];
+    break;
+  case 8:// OUTLET
+    Mach = bc.Val2().operator()(1,0);
+    if(bc.Val2().operator()(0,0) == 0.)
+    {
+      solR[0] = solL[0];
+    }else
+    {
+      solR[0] = bc.Val2().operator()(0,0);//solL[0];
+    }
+    if(bc.Val2().operator()(nstate - 1,0) == 0.)
+    {
+      solR[nstate - 1] = solL[nstate - 1];
+    }else
+    {
+        solR[nstate-1] = bc.Val2().operator()(nstate - 1,0);
+    }
+
+    temp = Mach * Mach * fGamma * (fGamma - 1);
+    us = sqrt(2 * temp * solR[nstate-1] /
+              ( solR[0] * (2 + temp)) );
+
+    for(i=1;i<nstate-1;i++) solR[i] = us * normal[i-1];
     break;
   default:
     for(i=0;i<nstate;i++) solR[i] = 0.;
