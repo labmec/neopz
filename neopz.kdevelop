@@ -14,7 +14,7 @@
   </general>
   <kdevautoproject>
     <general>
-      <activetarget>External/libpzexternal.a</activetarget>
+      <activetarget>Projects/termica/main</activetarget>
       <useconfiguration>debug</useconfiguration>
     </general>
     <run>
@@ -32,13 +32,22 @@
     <configurations>
       <optimized>
         <builddir>optimized</builddir>
-        <ccompiler>GccOptions</ccompiler>
-        <cxxcompiler>GppOptions</cxxcompiler>
-        <f77compiler>G77Options</f77compiler>
-        <cxxflags>-O2 -g0</cxxflags>
+        <ccompiler>kdevgccoptions</ccompiler>
+        <cxxcompiler>kdevgppoptions</cxxcompiler>
+        <f77compiler>kdevpgf77options</f77compiler>
+        <cxxflags>-funroll-all-loops </cxxflags>
+        <configargs>--enable-atlas=yes --with-atlas-dir=/usr/local/ATLAS/lib/ATHLONS --with-compilation_mode=opt</configargs>
+        <topsourcedir/>
+        <cppflags/>
+        <ldflags/>
+        <ccompilerbinary/>
+        <cxxcompilerbinary/>
+        <f77compilerbinary/>
+        <cflags/>
+        <f77flags/>
       </optimized>
       <debug>
-        <configargs>--enable-debug=full </configargs>
+        <configargs>--enable-atlas=yes --with-atlas-dir=/usr/local/ATLAS/lib/ATHLONS</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
@@ -69,11 +78,27 @@
         <cxxflags/>
         <f77flags/>
       </testing>
+      <usingsse>
+        <configargs>--enable-atlas=yes --with-atlas-dir=/usr/local/ATLAS/lib/ATHLON --with-compilation_mode=opt</configargs>
+        <builddir>usingsse</builddir>
+        <topsourcedir/>
+        <cppflags/>
+        <ldflags/>
+        <ccompiler>kdevgccoptions</ccompiler>
+        <cxxcompiler>kdevgppoptions</cxxcompiler>
+        <f77compiler>kdevpgf77options</f77compiler>
+        <ccompilerbinary/>
+        <cxxcompilerbinary/>
+        <f77compilerbinary/>
+        <cflags/>
+        <cxxflags>-funroll-all-loops -mfpmath=sse</cxxflags>
+        <f77flags/>
+      </usingsse>
     </configurations>
     <make>
       <envvars/>
       <abortonerror>true</abortonerror>
-      <numberofjobs>1</numberofjobs>
+      <numberofjobs>4</numberofjobs>
       <dontact>false</dontact>
       <makebin/>
     </make>
