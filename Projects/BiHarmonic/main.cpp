@@ -77,16 +77,15 @@ void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
                4.*Pi*Pi*sin(Pi*x[0])*sin(Pi*x[0])*sin(Pi*x[1])*sin(Pi*x[1]);	  
 }
 
-void Dirichlet1(TPZVec<REAL> &x, TPZVec<REAL> &f) {
-  f[0] = 0.;
+void CC1(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+  f[0] = 0.;  // Cond. de Cont. de Dirichlet
+  f[1] = 0.;  // Cond. de Cont. de Neumann
 }
 
-void Neumann1(TPZVec<REAL> &x, TPZVec<REAL> &f) {
-  f[0] = 0.;//x[1]*(-1. + x[1]);
-}
 
-void Neumann2(TPZVec<REAL> &x, TPZVec<REAL> &f) {
-  f[0] = 0.;//x[0]*(-1. + x[0]);
+void CC2(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+  f[0] = 0.; //x[0]*(-1. + x[0]);
+  f[1] = 0.;
 }
 
 int main2(){
@@ -109,7 +108,7 @@ int main2(){
 
 int main(){
   
-  int ordem_interp=3;
+  int ordem_interp=2;
 
   //  cin >> ordem_interp;
 
@@ -305,8 +304,8 @@ TPZCompMesh * CreateMesh(int type, int resolution, int porder){
 
 
 
-  TPZGeoElBC elbc1(geoel[0],4,-3,*geomalha);
-  TPZGeoElBC elbc2(geoel[0],5,-3,*geomalha);
+  TPZGeoElBC elbc1(geoel[0],4,-2,*geomalha);
+  TPZGeoElBC elbc2(geoel[0],5,-2,*geomalha);
  
   TPZGeoElBC elbc3(geoel[0],6,-3,*geomalha);
   TPZGeoElBC elbc4(geoel[0],7,-3,*geomalha);
@@ -329,7 +328,7 @@ TPZCompMesh * CreateMesh(int type, int resolution, int porder){
 
   TPZBndCond *cond_front[3];
 
-  TPZFMatrix val1(1,1,0.), val2(1,1,0.);
+  TPZFMatrix val1(1,1,0.), val2(2,1,0.);
 
   //  cond_front[0] = mater->CreateBC(-1, 0, val1, val2);
   cond_front[1] = mater->CreateBC(-2, 0, val1, val2);
@@ -337,9 +336,9 @@ TPZCompMesh * CreateMesh(int type, int resolution, int porder){
 
   //  cond_front[0]->SetForcingFunction(Dirichlet1);             
 
-  cond_front[1]->SetForcingFunctionVal1(Neumann1);
+  cond_front[1]->SetForcingFunction(CC1);
  
-  cond_front[2]->SetForcingFunctionVal1(Neumann2);
+  cond_front[2]->SetForcingFunction(CC2);
 
 
 

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzbiharmonic.h,v 1.2 2003-12-01 14:50:19 tiago Exp $
+//$Id: pzbiharmonic.h,v 1.3 2004-03-31 21:10:44 tiago Exp $
 
 #ifndef  TPZBIHARMONICHPP
 #define TPZBIHARMONICHPP
@@ -11,23 +11,27 @@
 /**
  * This class implements discontinuous Galerkin formulation for the bi-harmonic equation.
  * @since Nov 27, 2003
- * @author Igor Mozolevski 
+ * @author Igor Mozolevski e Paulo Bosing
  */
 class TPZBiharmonic : public TPZDiscontinuousGalerkin {
 
- private:
-  REAL  fXf, fXk;
-
+private:
+  REAL  fXf;
+  
   //Problem dimention
-    
-  public :
+  
+public :
 
- static REAL gLambda1, gLambda2, gSigma, gL_alpha, gM_alpha, gL_betta, gM_betta;
+  static REAL gLambda1, gLambda2, gSigma, gL_alpha, gM_alpha, gL_betta, gM_betta;
+
+  static int gPorder;
+
+  static REAL gHRef;
 
   /**
    * Inicialisation of biharmonic material
    */
- TPZBiharmonic(int nummat, REAL xfin,REAL xkin);
+  TPZBiharmonic(int nummat, REAL f);
   
   virtual ~TPZBiharmonic();
  
@@ -35,10 +39,9 @@ class TPZBiharmonic : public TPZDiscontinuousGalerkin {
    * Returns the number of norm errors. Default is 3: energy, L2,  H1, semi-norm H2 and H2.
    */
   virtual int NEvalErrors() {return 5;}
-  
-  void SetMaterial(REAL &xfin,REAL &xkin){
+
+  void SetMaterial(REAL &xfin){
     fXf = xfin;
-    fXk =xkin;
   }
   
   int Dimension() { return 2;}
@@ -65,22 +68,30 @@ class TPZBiharmonic : public TPZDiscontinuousGalerkin {
   
   virtual int NFluxes(){ return 0;}
   
- virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+  virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+
   
   /**compute the value of the flux function to be used by ZZ error estimator*/
   virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
+
   
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
+
 
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 				   TPZFMatrix &ek,TPZFMatrix &ef);
   
+  /**
+   * gklgfkljf
+   * Va1 from TPZBndCond  means ff
+   *
+   */
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-			    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+				     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
 };
 
