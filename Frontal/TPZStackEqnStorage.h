@@ -4,7 +4,7 @@
 #define TPZSTACKEQNSTORAGE_H
 //#include "TPZFrontMatrix.h"
 
-using namespace std;
+//using namespace std;
 #include "tpzeqnarray.h"
 #include <pzstack.h>
 /** Responsible for storing arrays of equations (mostly in a decomposed form)
