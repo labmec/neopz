@@ -101,7 +101,7 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
 
   void SetReference(TPZCompMesh *aggcmesh);
 
-  void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat);
+  void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat,int niter=0);
 
   void CoutTime(clock_t &start,char *title);
 
@@ -109,5 +109,18 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
 
   void CalcResidual(TPZMatrix &sol,TPZFMatrix &res,TPZAnalysis &an,char *decompose);
 
+/*   void IterativeProcess(TPZAnalysis &an,REAL tol,int numiter, */
+/* 			TPZMaterial *mat,int marcha,int resolution); */
+
+  
+ protected:
+
+  void (*fFunction)(TPZMaterial *mat,TPZCompMesh *cmesh);
+
+ public:
+
+  void SetAnalysisFunction(void (*fp)(TPZMaterial *mat,TPZCompMesh *cmesh)){
+    fFunction = fp;
+  }
 };
 #endif

@@ -70,9 +70,8 @@
 #include "TPZCompElDisc.h"
 #include "TPZShapeDisc.h"
 #include "TPZInterfaceEl.h"
-#include "TPZIterativeAnalysis.h"
+//#include "TPZIterativeAnalysis.h"
 #include "TPZExtendGridDimension.h"
-#include "TPZIterativeAnalysis.h"
 //#include "TPZFlowCMesh.h"
 #include "pzreal.h"
 #include "TPZNLMultGridAnalysis.h"
@@ -130,6 +129,7 @@ static double hexaedro[8][3] = { {0.,0.,0.},{4.1,0.,0.},{4.1,1.,0.},{0.,1.,0.},
 void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl);
 void SetDeltaTime(TPZMaterial *mat,REAL deltaT);
 void CriacaoDeNos(int nnodes,double lista[20][3]);
+void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh);
 TPZMaterial *NoveCubos(int grau);
 TPZMaterial *NoveQuadrilateros(int grau);
 TPZMaterial *ProblemaQ2D1El(int grau);
@@ -162,7 +162,7 @@ static int grau = 0;
 static int tipo;
 static int problem=0;
 //static REAL pi = 2.0*asin(1.0);
-//static REAL CFL=-1.0;
+static REAL CFL=-1.0;
 static REAL gama = 1.4;
 
 //#define NOTDEBUG
@@ -173,7 +173,7 @@ void G_Function(TPZVec<REAL> &x,TPZVec<REAL> &result);
 
 int main() {
 
-    gmesh->SetName("\n\t\t\t* * * MALHA GEOMÈTRICA INICIAL * * *\n\n");
+  gmesh->SetName("\n\t\t\t* * * MALHA GEOMÈTRICA INICIAL * * *\n\n");
   cmesh->SetName("\n\t\t\t* * * MALHA COMPUTACIONAL INICIAL * * *\n\n");
   ofstream outgm("mesh.out");
 
@@ -224,11 +224,18 @@ int main() {
     gmesh->Print(outgm);
     cmesh->Print(outgm);
     outgm.flush();
-  }  
+  }
 
-  SetDeltaTime(mat,0.001);
+  if(0) NivelDivide(cmesh);
 
-  if(1){
+  cout << "\nmain:: entre CFL (si nulo sera calculado) -> \n";
+  cin >> CFL;
+  //CFL = 0.1;
+  TPZDiffusionConsLaw::fCFL = CFL;
+  cout << "main:: delta (si nulo sera calculado) -> 0.0\n";
+
+
+  if(0){
     cout << "\nmain::Ajuste no contorno e imprime malhas\n";
     cmesh->AdjustBoundaryElements();
     if(1){
@@ -243,6 +250,7 @@ int main() {
   if(1){
     cmesh->SetDimModel(2);
     TPZNonLinMultGridAnalysis mgnlan(cmesh);
+    mgnlan.SetAnalysisFunction(SetDeltaTime);
     mgnlan.TwoGridAlgorithm(outgm,numat);
     ContagemDeElementos(mat);
   }
@@ -1976,7 +1984,7 @@ TPZMaterial *Quadrado(int grau){
   TPZVec<int> nodes;
   nodes.Resize(4);
   TPZGeoEl *elem;
-  int i,index;
+  int index;
   nodes[0] = 0;
   nodes[1] = 1;
   nodes[2] = 2;
@@ -1989,8 +1997,8 @@ TPZMaterial *Quadrado(int grau){
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
-  int nummat = 1;
-  int dim = 2;
+  //  int nummat = 1;
+  //  int dim = 2;
   TPZMaterial *mat;// = new TPZMatHybrid(nummat,dim);
   mat->SetForcingFunction(Forcing);
   cmesh->InsertMaterialObject(mat);
@@ -2011,3 +2019,31 @@ TPZMaterial *Quadrado(int grau){
   return mat;
 }
 
+void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh){
+
+  TPZVec<REAL> x(3,0.0),sol;
+  int i,nstate = mat->NStateVariables();
+  cout << "main::SetDeltaTime ENTRE PONTO NO DOMINIO\n";
+  x[0] = 2.0;
+  x[1] = 0.5;
+  Function(x,sol);
+  REAL prod = 0.0,maxveloc;
+  for(i=1;i<nstate-1;i++) prod += sol[i]*sol[i];//(u²+v²+w²)*ro²
+  REAL dens2 = sol[0]*sol[0];
+  maxveloc = sqrt(prod/dens2);//velocidade
+  TPZEulerConsLaw *law = dynamic_cast<TPZEulerConsLaw *>(mat);//TPZEulerConsLaw *law = (TPZEulerConsLaw *)(mat);
+  REAL press = law->Pressure(sol);
+  if(press < 0) cout << "main::SetDeltaTime pressao negativa, toma valor absoluto para calculo do som\n";
+  REAL sound = sqrt(gama*press/sol[0]);
+  maxveloc += sound;
+  //REAL deltax = cmesh->DeltaX();
+  REAL deltax = cmesh->LesserEdgeOfMesh();
+  //REAL deltax = cmesh->MaximumRadiusOfMesh();
+  REAL deltaT = CFL*deltax/maxveloc;
+  cout << "main::SetDeltaTime : " << deltaT << endl;
+  law->SetTimeStep(deltaT);
+  int continua;
+  cout <<  "\n -> ";
+  cin >> continua;
+
+}
