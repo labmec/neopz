@@ -3,12 +3,13 @@
  * @file pzvec_extra.h
  * @brief Extra utilities for TPZVec.
  */
-// $Id: pzvec_extras.h,v 1.5 2003-05-05 15:09:37 phil Exp $
+// $Id: pzvec_extras.h,v 1.6 2003-05-22 12:31:19 erick Exp $
 
 #ifndef PZVEC_EXTRAS_H
 #define PZVEC_EXTRAS_H
 
 #include <bits/stl_algo.h>
+#include "pzstack.h"
 
 /**
  * Performs a saxpy operation: x <- x + s * y.
