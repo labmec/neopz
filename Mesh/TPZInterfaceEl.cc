@@ -7,6 +7,7 @@
 #include "pzquad.h"
 #include "pzmaterial.h"
 #include "TPZConservationLaw.h"
+#include "pzconslaw.h"
 #include "pzbndcond.h"
 
 //construtor para o elemento descontinuo

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: TPZCompElDisc.cc,v 1.21 2003-10-24 00:07:15 erick Exp $
+//$Id: TPZCompElDisc.cc,v 1.22 2003-10-24 00:15:04 erick Exp $
 
 #include "pzelmat.h"
 #include "pzelgc3d.h"
@@ -25,6 +25,7 @@
 #include "TPZCompElDisc.h"
 #include "TPZInterfaceEl.h"
 #include "TPZConservationLaw.h"
+#include "pzconslaw.h"
 #include "pzgraphel.h"
 #include "pzgraphelq2dd.h"
 #include "pzgraphelq3dd.h"
