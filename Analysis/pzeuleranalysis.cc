@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cc,v 1.6 2003-10-24 00:01:01 erick Exp $
+//$Id: pzeuleranalysis.cc,v 1.7 2003-10-24 19:03:10 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -40,7 +40,7 @@ void TPZEulerAnalysis::SetAdvancedState()
 void TPZEulerAnalysis::SetLastState()
 {
    fpSolution = fpLastSol;
-   SetContributionTime(Advanced_CT);
+   SetContributionTime(Last_CT);
    fCompMesh->LoadSolution(*fpSolution);
 }
 
@@ -140,23 +140,23 @@ void TPZEulerAnalysis::Assemble()
    fStructMatrix->Assemble(*pTangentMatrix, fRhs);
 
    // Contributing referring to the last state (n index)
-   fRhs.Add(fRhsLast, fRhsLast);
+   fRhs+=/*.Add(fRhsLast, fRhsLast)*/ fRhsLast;
 }
 
 
-void TPZEulerAnalysis::Assemble(TPZFMatrix & rhs)
+void TPZEulerAnalysis::AssembleRhs()
 {
    if(!fCompMesh) return;
 
    // redimensions and zeroes Rhs
-   rhs.Redim(fCompMesh->NEquations(),1);
+   fRhs.Redim(fCompMesh->NEquations(),1);
 
    // Contributing referring to the advanced state
    // (n+1 index)
-   fFlowCompMesh->Assemble(rhs);
+   fFlowCompMesh->Assemble(fRhs);
 
    // Contributing referring to the last state (n index)
-   rhs.Add(fRhsLast, fRhsLast);
+   fRhs+=/*.Add(fRhsLast, */fRhsLast/*)*/;
 }
 
 void TPZEulerAnalysis::Solve(REAL & res) {
@@ -203,7 +203,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
       i++;
    }
 
-   // updates the hstory of state variable vectors
+   // updates the history of state variable vectors
    UpdateHistory();
 
    numIter = i;
@@ -266,7 +266,7 @@ void TPZEulerAnalysis::Run(ostream &out)
       // using the newest time step.
       ComputeTimeStep();
 
-      Assemble(fRhs); // computing the residual only
+      AssembleRhs(); // computing the residual only
       epsilon = Norm(fRhs);
 
       out << "\niter:" << i

@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.5 2003-10-21 18:10:58 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.6 2003-10-24 19:03:10 erick Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -95,7 +95,7 @@ public:
     * BufferLastStateAssemble or UpdateHistory
     * must be called first.
     */
-   virtual void Assemble(TPZFMatrix & rhs);
+   virtual void AssembleRhs();
 
    /**
     * Solves an assembled stiffness matrix.
