@@ -49,8 +49,14 @@ public:
           Resizes fData element of Front
           @param newsize New size of fData
           */
-private:    
+	int Work(){
+	return fWork;
+	}
 
+protected:
+	int fWork;
+private:    
+	
     /**
      * Sets the global equation as freed, allowing the space \n
      * used by this equation to be used \n

@@ -113,7 +113,7 @@ public:
 
 
 private:    
-
+	
     /**
      * Decomposes ieq equation and add the result to EqnArray 
      */

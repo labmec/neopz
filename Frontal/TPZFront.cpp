@@ -142,6 +142,7 @@ TPZFront::TPZFront(){
      fExpandRatio = 200;
 	fFront = 0;
 	fMaxFront=0;
+	fWork = 0;
 }
 
 
@@ -156,6 +157,7 @@ TPZFront::TPZFront(int GlobalSize)
 	fLocal.Resize(GlobalSize);
 	int i;
 	for(i=0;i<GlobalSize;i++) fLocal[i]=-1;
+	fWork = 0;
 }
 
 TPZFront::~TPZFront(){
@@ -280,4 +282,3 @@ int TPZFront::NFree()
 	}
 	return free_eq;
 }
-

@@ -36,7 +36,7 @@ protected:
      */
      front fFront;
 public:
- 
+ 	int Work();
 	/**Finishes writing of a binary file and closes it*/
 	void FinishWriting();
 	/**Reopen the binary file*/

@@ -16,7 +16,10 @@
 using namespace std;
 
 //void TPZFrontMatrix::AddConnectsToBiTree(){}
-
+template<class store, class front>
+int TPZFrontMatrix<store, front>::Work(){
+	return fFront.Work();
+}
 template<class store, class front>
 void TPZFrontMatrix<store, front>::EquationsToDecompose(TPZVec<int> &destinationindex, int &lower_eq, int &upper_eq)
 {
