@@ -4,6 +4,10 @@
 #include <fstream>
 #include <string>
 #include "pzmanvector.h"
+#include "pzreal.h"
+
+//class TPZFlopCounter;
+
 using namespace std;
 
 

@@ -223,7 +223,7 @@ inline TPZFlopCounter operator-(double val1, const TPZFlopCounter &val2)
 inline TPZFlopCounter acos(const TPZFlopCounter &orig)
 {
   TPZFlopCounter result;
-  result.fVal = acos(orig.fVal);
+  result.fVal = ::acos(orig.fVal);
   TPZFlopCounter::gCount.fCount[EAcos]++;
   return result;
 }
@@ -231,7 +231,7 @@ inline TPZFlopCounter acos(const TPZFlopCounter &orig)
 inline TPZFlopCounter asin(const TPZFlopCounter &orig)
 {
   TPZFlopCounter result;
-  result.fVal = asin(orig.fVal);
+  result.fVal = ::asin(orig.fVal);
   TPZFlopCounter::gCount.fCount[EAsin]++;
   return result;
 }
@@ -239,7 +239,7 @@ inline TPZFlopCounter asin(const TPZFlopCounter &orig)
 inline TPZFlopCounter cos(const TPZFlopCounter &orig)
 {
   TPZFlopCounter result;
-  result.fVal = cos(orig.fVal);
+  result.fVal = ::cos(orig.fVal);
   TPZFlopCounter::gCount.fCount[ECos]++;
   return result;
 }
@@ -247,7 +247,7 @@ inline TPZFlopCounter cos(const TPZFlopCounter &orig)
 inline TPZFlopCounter sin(const TPZFlopCounter &orig)
 {
   TPZFlopCounter result;
-  result.fVal = sin(orig.fVal);
+  result.fVal = ::sin(orig.fVal);
   TPZFlopCounter::gCount.fCount[ESin]++;
   return result;
 }
@@ -255,7 +255,7 @@ inline TPZFlopCounter sin(const TPZFlopCounter &orig)
 inline TPZFlopCounter atan(const TPZFlopCounter &orig)
 {
   TPZFlopCounter result;
-  result.fVal = atan(orig.fVal);
+  result.fVal = ::atan(orig.fVal);
   TPZFlopCounter::gCount.fCount[EAtan]++;
   return result;
 }
@@ -263,7 +263,7 @@ inline TPZFlopCounter atan(const TPZFlopCounter &orig)
 inline TPZFlopCounter atan2(const TPZFlopCounter &val1,const TPZFlopCounter &val2)
 {
   TPZFlopCounter result;
-  result.fVal = atan2(val1.fVal,val2.fVal);
+  result.fVal = ::atan2(val1.fVal,val2.fVal);
   TPZFlopCounter::gCount.fCount[EAtan]++;
   return result;
 }
@@ -271,7 +271,7 @@ inline TPZFlopCounter atan2(const TPZFlopCounter &val1,const TPZFlopCounter &val
 inline TPZFlopCounter exp(const TPZFlopCounter &orig)
 {
   TPZFlopCounter result;
-  result.fVal = exp(orig.fVal);
+  result.fVal = ::exp(orig.fVal);
   TPZFlopCounter::gCount.fCount[EExp]++;
   return result;
 }
@@ -279,7 +279,7 @@ inline TPZFlopCounter exp(const TPZFlopCounter &orig)
 inline TPZFlopCounter log(const TPZFlopCounter &orig)
 {
   TPZFlopCounter result;
-  result.fVal = log(orig.fVal);
+  result.fVal = ::log(orig.fVal);
   TPZFlopCounter::gCount.fCount[ELog]++;
   return result;
 }
@@ -287,7 +287,7 @@ inline TPZFlopCounter log(const TPZFlopCounter &orig)
 inline TPZFlopCounter log10(const TPZFlopCounter &orig)
 {
   TPZFlopCounter result;
-  result.fVal = log10(orig.fVal);
+  result.fVal = ::log10(orig.fVal);
   TPZFlopCounter::gCount.fCount[ELog]++;
   return result;
 }
