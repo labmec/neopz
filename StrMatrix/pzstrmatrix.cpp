@@ -145,7 +145,7 @@ if(ek.fConstrMat->Decompose_LU() != -1) {
     }
   }//fim for iel
 //
-  int neq = rhs.Rows();
+//  int neq = rhs.Rows();
 /*  if(nelem < 34 && neq < 100){
     stiffness.Print("TPZStructMatrix::Assemble GLOBAL MATRIX (after Assemble)",out);
     rhs.Print("TPZStructMatrix::Assemble GLOBAL LOAD (after Assemble)",out);
