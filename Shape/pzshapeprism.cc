@@ -1,4 +1,4 @@
-// $Id: pzshapeprism.cc,v 1.3 2003-10-06 01:32:07 phil Exp $
+// $Id: pzshapeprism.cc,v 1.4 2003-11-25 17:59:45 cesar Exp $
 #include "pzshapeprism.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -352,7 +352,7 @@ void TPZShapePrism::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
   //volume shapes
   REAL store1[20],store2[60];
   int ord=0;
-  ord = NConnectShapeF(20,order[20]-NNodes);
+  ord = NConnectShapeF(20,order[20-NNodes]);
   TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);
   phin.Zero();
   dphin.Zero();

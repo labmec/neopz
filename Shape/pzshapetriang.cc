@@ -1,4 +1,4 @@
-// $Id: pzshapetriang.cc,v 1.3 2003-10-06 01:32:07 phil Exp $
+// $Id: pzshapetriang.cc,v 1.4 2003-11-25 17:59:45 cesar Exp $
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -88,7 +88,7 @@ void TPZShapeTriang::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &
 void TPZShapeTriang::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
 			    TPZFMatrix &phi,TPZFMatrix &dphi) {
   ShapeCorner(pt,phi,dphi);
-  if (order[0] < 2 && order[1] < 2 && order[2] < 2) return;
+  if (order[0] < 2 && order[1] < 2 && order[2] < 2 && order[3] < 3) return;
   REAL out;
   int shape = 3;
   for (int rib = 0; rib < 3; rib++) {
