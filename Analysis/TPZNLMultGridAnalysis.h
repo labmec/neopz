@@ -96,15 +96,15 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    */
   static TPZCompMesh *AgglomerateMesh(TPZCompMesh *finemesh,int levelnumbertogroup);
 
-  void SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,ofstream &dxout,int marcha = 0);
+  void SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,int marcha = 0,ostream &dxout = cout);
 
-  void SmoothingSolution2(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,ofstream &dxout,int marcha);
+  void SmoothingSolution2(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,int marcha,ostream &dxout = cout);
   
   void ResetReference(TPZCompMesh *aggcmesh);
 
   void SetReference(TPZCompMesh *aggcmesh);
 
-  void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat,int niter=0);
+  void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat);
 
   void CoutTime(clock_t &start,char *title);
 

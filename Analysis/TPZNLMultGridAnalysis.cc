@@ -791,8 +791,8 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   REAL gridtol = 0.01;
   int coarneq = fMeshes[1]->NEquations();
   int fineneq = fMeshes[2]->NEquations();
-  TPZFMatrix finesol(fineneq,1,0.),finesol2(fineneq,1),fineres(fineneq,1);
-  TPZFMatrix coarsesol(coarneq,1,0.),coarseres(coarneq,1),rhs(coarneq,1),frhsk;
+  TPZFMatrix finesol(fineneq,1,0.),fineres(fineneq,1),finesol0,projfinesol;
+  TPZFMatrix coarsesol(coarneq,1,0.),projfineres(coarneq,1),rhs(coarneq,1),frhsk;
   TPZFMatrix finesolkeep,coarsesolkeep;
   int mgmaxiter = 100,mgiter = 0;
   TPZVec<char *> scalar(1),vector(0);
@@ -804,61 +804,68 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   geomesh->ResetReference();
   fMeshes[2]->LoadReferences();
   TPZDXGraphMesh finegraph(fMeshes[2],finedim,finemat,scalar,vector);
-  ResetReference(fMeshes[1]);//retira referências para criar coarsegraph consistente  
-  TPZDXGraphMesh coarsegraph(fMeshes[1],coarsedim,coarsemat,scalar,vector);
-  SetReference(fMeshes[1]);
   ofstream *finedx = new ofstream("FineSmoothing.dx");
   finegraph.SetOutFile(*finedx);
   finegraph.SetResolution(0);
   finegraph.DrawMesh(finedim);
+  ResetReference(fMeshes[1]);//retira referências para criar coarsegraph consistente  
+  TPZDXGraphMesh coarsegraph(fMeshes[1],coarsedim,coarsemat,scalar,vector);
+  SetReference(fMeshes[1]);//recupera as referências
   ofstream *coarsedx = new ofstream("CoarseSmoothing.dx");
+  //geomesh->ResetReference();
+  //fMeshes[1]->LoadReferences();
   coarsegraph.SetOutFile(*coarsedx);
   coarsegraph.SetResolution(0);
   coarsegraph.DrawMesh(coarsedim);
-  REAL time,skm1 = 1.0,skm1inv;
+  REAL time,skm1 = 1.0;
+  REAL skm1inv = 1.0/skm1;
   int draw = 0;
+  cout << "TwoGridAlgorithm número máximo de iterações : ";
+  cin >> mgmaxiter;
 
-  while( errsol > gridtol || mgiter++ < mgmaxiter){
+  while( errsol > gridtol && mgiter < mgmaxiter){
 
     cout << "\nTwoGridAlgorithm: iteracão número = " << mgiter << "\n\n";
     time = (REAL)mgiter;
-    finesolkeep = finesol;
+    geomesh->ResetReference();
+    fMeshes[2]->LoadReferences();
+    finesolkeep = finesol;//= 0 ou guarda a solução a seguir da iteração anterior
     SmoothingSolution(sol_tol,preiter,finemat,finean,premarcha);// PASSO 1
     finesol = finean.Solution();
     {
       finegraph.DrawSolution(draw,time);
-      finesolkeep = finesol - finesolkeep;
-      erro = Norm(finesolkeep);
+      erro = Norm(finesol - finesolkeep);
       cout << "TwoGridAlgorithm: ||finesol(i) - finesol(i-1)|| = " << erro << endl;
     }
-    fineres = finean.Rhs();// PASSO 2
-    transfer.TransferResidual(fineres,coarseres);// PASSO 3
-    fMeshes[1]->ProjectSolution(coarsesol);
-    CalcResidual(finesol,finean,"LDLt",rhs);
-    frhsk = skm1 * coarseres;
-    coarsean.SetResidual(frhsk);// PASSO 4
-    fMeshes[1]->LoadSolution(coarseres);// PASSO 4    
-    fMeshes[1]->LoadSolution(coarsesol);
+    transfer.TransferResidual(finean.Rhs(),projfineres);// PASSO 2
+    fMeshes[1]->ProjectSolution(projfinesol);// PASSO 3
+    fMeshes[1]->LoadSolution(projfinesol);
+    coarsean.Assemble();
+    CalcResidual(projfinesol,coarsean,"LDLt",rhs);//rhs = Stiffcoar * projfinesol
+    projfineres *= skm1;
+    frhsk = rhs + projfineres;// PASSO 4
+    frhsk = frhsk - coarsean.Rhs();// = Stiffcoar * projfinesol0 + projfineres - fRhscoar
+    coarsean.SetResidual(frhsk);
     geomesh->ResetReference();
     fMeshes[1]->LoadReferences();
-    coarsesolkeep = coarsesol;
+    coarsesolkeep = coarsesol;// = 0 ou solução do passo a segir na iteração anterior
     SmoothingSolution(sol_tol,positer,coarsemat,coarsean,posmarcha);// PASSO 5
-    coarsesol = coarsean.Solution() - coarsesol;
-    transfer.TransferSolution(coarsesol,finesol);//transfer.TransferSolution(coarsesol,finesol2);
-    skm1inv = 1.0/skm1;
-    finesol *= skm1inv;
-    finesol = finesolkeep + finesol;
-    fMeshes[2]->LoadSolution(finesol);// PASSO 6
+    coarsesol = coarsean.Solution();
+    transfer.TransferSolution(coarsesol-projfinesol,finesol0);
+    finesol0 *= skm1inv;
+    finesol0 = finesol + finesol0;
+    fMeshes[2]->LoadSolution(finesol0);// PASSO 6
     {
-      coarsegraph.DrawSolution(draw++,time);
-      coarsesolkeep = coarsesol - coarsesolkeep;
-      erro = Norm(coarsesolkeep);
+      coarsegraph.DrawSolution(draw,time);
+      draw++;
+      erro = Norm(coarsesol - coarsesolkeep);
       cout << "||coarsesol(i) - coarsesol(i-1)|| = " << erro << endl;
       normsolfine = Norm(finesol);
       normsolcoar = Norm(coarsesol);
       errsol = fabs(normsolcoar - normsolfine);
       cout << "| ||finesol(i)|| - ||coarsesol(i)|| | = " << errsol << endl;
     }
+    mgiter++;
   }
 }
 
