@@ -2367,7 +2367,7 @@ TPZIntTetra3D::TPZIntTetra3D(int OrdK){
 //**************************************
 TPZIntRuleT3D* TPZIntRuleList::GetRuleT3D(int precision) {
 
-  if (precision > intavailT3D) {
+  if (precision >= intavailT3D) {
     PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision << endl;
     precision = intavailT3D-1;
     PZError << "\nERROR(TPZIntRuleList::getrule)-> precision gotten = " << precision << endl;
