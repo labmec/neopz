@@ -192,6 +192,11 @@ void TPZCompCloneMesh::AutoBuild() {
       fSolutionBlock (clseqnum,0,j,0) = fCloneReference->Block()(orgseqnum,0,j,0);
     }
   }
+  int printing=0;
+  if(printing) {
+    ofstream out("clonesolution.txt");
+    fSolution.Print("Solution of the clone",out);
+  }
 }
 
 /*
@@ -300,8 +305,8 @@ void TPZCompCloneMesh::CreateCloneBC(){
       TPZCompElSide orgside(origel,j);
       TPZCompElSide cllarge = side.LowerLevelElementList(1);
       TPZCompElSide large = orgside.LowerLevelElementList(1);
-      int constraints =  fCloneReference->ConnectVec()[orgconid].HasDependency();
-      int orgconstraints = ConnectVec()[clconid].HasDependency();
+      //      int constraints =  fCloneReference->ConnectVec()[orgconid].HasDependency();
+      //     int orgconstraints = ConnectVec()[clconid].HasDependency();
       if (orgelcon > clelcon || cllarge.Exists() != large.Exists()){
 	bcelsides.Push(geoside);
       }
@@ -369,7 +374,6 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
   cmesh->LoadReferences();
   TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
   nelem = elementvec.NElements();
-  
   
   TPZStack<TPZCompEl *> copyel;
   for(el=0; el<nelem; el++) {
@@ -439,6 +443,8 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
     int is;
     for (is=0;is<nsubel;is++){
       int elord = bcporderstack[i]+1;
+      int maxp = TPZOneDRef::gMaxP;
+      elord = elord > maxp ? maxp : elord;
       TPZCompEl::gOrder = elord;// > 5 ? 5 : elord;
       int indexsub;
       bcsubgel[is]->CreateCompEl(*cmesh,indexsub);
@@ -467,42 +473,51 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
   if(diagnostic) {
     ofstream test("test.txt",ios::app);
     Print(test);
+    Solution().Print("coarse mesh solution",test);
     fine->Reference()->Print(test);
     fine->Print(test);
+    fine->Solution().Print("fine mesh solution", test);
   }
   
   
   int computesolution = 1;
   //  fine->Solution().Print();
-/*   if(computesolution) { */
-/*     TPZSkylineStructMatrix clfstr(fine); */
-/*     TPZAnalysis clfan(fine); */
-/*     TPZStepSolver cldirect; */
-/*     cldirect.SetDirect(ELDLt); */
-/*     clfan.SetStructuralMatrix(clfstr); */
-/*     clfan.SetSolver(cldirect); */
-/*     clfan.Run(); */
-/*   } */
   if(computesolution) {
     TPZSkylineStructMatrix clfstr(fine);
     TPZAnalysis clfan(fine);
-    TPZStepSolver jacobi;
-    TPZStepSolver cg;
-    
+    TPZStepSolver cldirect;
+    cldirect.SetDirect(ELDLt);
     clfan.SetStructuralMatrix(clfstr);
-    clfan.SetSolver(cg);
-    clfan.Assemble();
-    jacobi.ShareMatrix(clfan.Solver());
-    jacobi.SetJacobi(1,0,0);
-    cg.ShareMatrix(clfan.Solver());
-    cg.SetCG(5,jacobi,1E-6,1);
-    clfan.SetSolver(cg);
-    clfan.Solve();
+    clfan.SetSolver(cldirect);
+    clfan.Run();
 
+    int printing=0;
+    if(printing) {
+      clfan.Solution().Print();
+    }
   }
+/*   if(computesolution) { */
+/*     TPZSkylineStructMatrix clfstr(fine); */
+/*     TPZAnalysis clfan(fine); */
+/*     TPZStepSolver jacobi; */
+/*     TPZStepSolver cg; */
+/*     clfan.SetStructuralMatrix(clfstr); */
+/*     clfan.SetSolver(cg); */
+/*     clfan.Assemble(); */
+/*     jacobi.ShareMatrix(clfan.Solver()); */
+/*     jacobi.SetJacobi(1,0,0); */
+/*     cg.ShareMatrix(clfan.Solver()); */
+/*     cg.SetCG(5,jacobi,1E-6,1); */
+/*     clfan.SetSolver(cg); */
+/*     clfan.Solve(); */
+/*     int printing=0; */
+/*     if(printing) { */
+/*       clfan.Solution().Print(); */
+/*     } */
+/*   } */
   //  clfan.Rhs().Print();
   //  cout << "Solution of the fine mesh\n";
-  // clfan.Solution().Print();
+  //   clfan.Solution().Print();
 
   Reference()->ResetReference();
   LoadReferences();
@@ -511,7 +526,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
   TPZAdmChunkVector<TPZCompEl *> &elementvec = fine->ElementVec();
   int numel = elementvec.NElements();
   int el;
-  TPZGeoCloneMesh *gclmesh = dynamic_cast<TPZGeoCloneMesh *> (Reference());
+  //  TPZGeoCloneMesh *gclmesh = dynamic_cast<TPZGeoCloneMesh *> (Reference());
   /*   fine->SetName("Malha Fina"); */
   /*   fine->Print(); */
   /*   fine->Reference()->Print(); */
@@ -662,7 +677,7 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
   REAL jacdetcoarse;
   int numintpoints = intrule.NPoints();
   REAL weight;
-  int lin,ljn,cjn;
+  //  int lin,ljn,cjn;
   int i,j,k;
   
   TPZVec<REAL> truesol(numdof);
@@ -810,7 +825,7 @@ void TPZCompCloneMesh::ApplyRefPattern(REAL minerror, TPZVec<REAL> &ervec, TPZCo
   /*   TPZStack<TPZGeoEl *> gelstack; */
   /*   TPZStack<int> porders; */
   
-  int test = gclmesh->NReference();
+  //  int test = gclmesh->NReference();
 
   for (i=0;i<NElements();i++){
     /*     TPZGeoEl *clgel =  gclmesh->ReferenceElement(i); */
@@ -822,7 +837,7 @@ void TPZCompCloneMesh::ApplyRefPattern(REAL minerror, TPZVec<REAL> &ervec, TPZCo
     TPZCompEl *cel = ElementVec()[i];
     TPZGeoEl *gel = cel->Reference();
 
-    //if elemento de referencia ...
+    //if the element is a reference element ...
     if (!IsFather(gel)) continue;
     int anelindex = cel->Index();
     if (anelindex < 0 || anelindex >=  NElements()) {
@@ -888,6 +903,8 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
   int nsides = gel->NSides();
   int side;
   
+  int maxp = TPZOneDRef::gMaxP;
+
   //Calcula o número de arestas
   for(side=0; side<nsides; side++) if(gel->SideDimension(side) == 1) n1dsides++;
   
@@ -900,7 +917,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     int sidedimension = gel->SideDimension(side);
     if(sidedimension != 1) continue;
     //obtém a ordem do elemento
-    int level = gel->Level();
+    //    int level = gel->Level();
     TPZStack<TPZCompElSide> subelsides;
     TPZStack<TPZCompElSide> auxsubelsides;
     TPZGeoElSide gelside(gel,side);
@@ -922,16 +939,10 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
 	subelsides.Push(auxsubelsides[i]);
       }
     }
-    
-    /*     int mrd = 0; */
-    /*     for (mrd =0; mrd< subelsides.NElements(); mrd ++){ */
-    /*       subelsides[mrd].Element()->Print(cout); */
-    /*     } */
-    
-    
-    if(subelsides.NElements() != 2 || subelsides[0].Reference().Element()->Father() != gel || subelsides[1].Reference().Element()->Father() != gel ) {
+    if(subelsides.NElements() != 2 || 
+       subelsides[0].Reference().Element()->Father() != gel ||
+       subelsides[1].Reference().Element()->Father() != gel ) {
       cout << "A one dimensional side with more than one subelement or inconsistent mesh\n";
-      
       subelsides.Resize(0);
       cint->Reference()->Print(cout);
       int is;
@@ -940,14 +951,13 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
 	cint->Reference()->SubElement(is)->Print(cout);
       }
       gelside.HigherLevelCompElementList2(subelsides,1,1);
-      
       //      gelside.SmallConnect(level+1,subelsides,1);
       continue;
     }
 		
     TPZGeoElSide gels1 = subelsides[0].Reference();
     TPZGeoElSide gels2 = subelsides[1].Reference();
-    //verifica a ordem dos nós na aresta
+    //verifica a ordem dos nós do centro da  aresta
     if(gels1.SideNodeIndex(1) != gels2.SideNodeIndex(0)) {
       TPZCompElSide temp = subelsides[0];
       subelsides[0]=subelsides[1];
@@ -958,7 +968,8 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     
     if(gels1.SideNodeIndex(1) != gels2.SideNodeIndex(0)) {
       cout << "Unexpected situation\n";
-      cout << gels1.SideNodeIndex(0) << ' ' << gels1.SideNodeIndex(1) << ' ' << gels2.SideNodeIndex(0) << ' ' << gels2.SideNodeIndex(1) <<endl;
+      cout << gels1.SideNodeIndex(0) << ' ' << gels1.SideNodeIndex(1) << ' '
+	   << gels2.SideNodeIndex(0) << ' ' << gels2.SideNodeIndex(1) <<endl;
       cout << "Element Analysed: " << cint->Index() << endl;
       cint->Reference()->Print();
       int is;
@@ -1009,6 +1020,9 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     TPZFMatrix U(dof,1);
     int p1 = c1->SideOrder(s1);
     int p2 = c2->SideOrder(s2);
+    //    p1 = p1 > maxp ? maxp : p1;
+    //   p2 = p2 > maxp ? maxp : p2;
+
     gDeduce << "side = " << side << " order = " << p1 << ' ' << p2 << endl;
     int c,counter=0;
     for(c=0; c<5; c++) {
@@ -1020,9 +1034,8 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     }
     int hp1, hp2;
     REAL hperror;
-    
-    //Para cada aresta é calculado o menor erro através
-    //do cálculo do refinamento unidimensional
+
+    //Para cada aresta é calculado o menor erro através do cálculo do refinamento unidimensional
     REAL error = f.BestPattern(U,id,p1,p2,hp1, hp2, hperror,delx);
     //define o refinamento para o elemento??
     TPZRefPattern optimal = {id[0],id[1],id[2],p1,p2,hp1,hp2,hperror,error};
@@ -1188,7 +1201,7 @@ void TPZCompCloneMesh::DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,
 void TPZCompCloneMesh::AdaptElements(TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders) {
   
   //Idenifica o vetor de elementos computacionais de mesh
-  TPZAdmChunkVector<TPZCompEl *> &elementvec = ElementVec();
+  //  TPZAdmChunkVector<TPZCompEl *> &elementvec = ElementVec();
   
   int el,nelem = gelstack.NElements();
 

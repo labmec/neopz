@@ -19,12 +19,12 @@ TPZAdaptMesh::TPZAdaptMesh(){
   fElementError.Resize(0);
   fCloneMesh.Resize(0);
   fFineCloneMesh.Resize(0);
+  fMaxP = 10;
 }
 
 TPZAdaptMesh::~TPZAdaptMesh(){
   CleanUp();
 }
-
 
 void TPZAdaptMesh::SetCompMesh(TPZCompMesh * mesh){
   if(!mesh){
@@ -36,6 +36,16 @@ void TPZAdaptMesh::SetCompMesh(TPZCompMesh * mesh){
   fReference = mesh;
   int nel = fReference->ElementVec().NElements();
   fElementError.Resize(nel);
+}
+
+void TPZAdaptMesh::SetMaxP(int maxp){
+  if (maxp < 1) {
+    cout << "TPZAdaptMesh::Error : SetMaxP - maximum p order must be greter than 0... trying to set maximum p to " 
+	 << maxp << endl;
+    return;
+  }
+  fMaxP = maxp;
+  TPZOneDRef::gMaxP = fMaxP;
 }
 
 void TPZAdaptMesh::CleanUp(){
@@ -65,8 +75,8 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
 					   TPZVec<REAL> &effect){
   //gets the geometric reference elements that will generate the patch
   GetReferenceElements();
-  int ngrp = fGeoRef.NElements();
-  int i,j;
+  //  int ngrp = fGeoRef.NElements();
+  int i;
 
   //Generates the patch
   BuildReferencePatch();
@@ -104,14 +114,14 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     //Análise dos Clones
     //    if(cliter == 24 && gPrintLevel ==1) gPrintLevel =2;
     fFineCloneMesh [cliter] = fCloneMesh[cliter]->UniformlyRefineMesh();
-	{
-		ofstream out("output.txt");
-		fCloneMesh[cliter]->Print(out);
-		out.close();
-	}
+    {
+      ofstream out("output.txt");
+      fCloneMesh[cliter]->Print(out);
+      out.close();
+    }
 
     fCloneMesh[cliter]->MeshError(fFineCloneMesh[cliter],fElementError,f,truervec);  
-//    fCloneMesh[cliter]->MeshError(fCloneMesh[cliter],fElementError,f,truervec);  
+    //    fCloneMesh[cliter]->MeshError(fCloneMesh[cliter],fElementError,f,truervec);  
   }
 
   //Ordena o vetor de erros
@@ -122,7 +132,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
     ervec[i]=fElementError[i];
   }
   Sort(fElementError,perm);
-
+  
   //  REAL totalerror = 0.;
   //  REAL totaltruerror = 0.;
   //somatório dos componentes do vetor de erro
@@ -142,7 +152,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
       truerror += truervec[i];
     }
   }
-
+  
   //inicializa effect com o tamanho de trueeerror
   effect.Resize(truervec.NElements());
   effect.Fill(0.);
@@ -156,22 +166,17 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
 	truervec[i]=0.;
       }
     }
-
-  /*   for (i=0;i<fCloneMesh.NElements();i++){   //////?????????? */
-/*       fCloneMesh[i]->SetElementSolution(2,effect); */
-/*     } */
   }
-
-  int nstate = fCloneMesh[0]->MaterialVec()[0]->NStateVariables();
-
+  //  int nstate = fCloneMesh[0]->MaterialVec()[0]->NStateVariables();
+  
   TPZStack <TPZGeoEl*> gelstack;
   TPZStack <int> porder;
-
+    
   //Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
   for (i=0;i<fCloneMesh.NElements();i++){
     fCloneMesh[i]->ApplyRefPattern(ninetyfivepercent,fElementError,fFineCloneMesh[i],gelstack,porder);
   }
-
+  
 /*   int igeo,ngeoel = gelstack.NElements(); */
 /*   for (igeo =0; igeo<ngeoel; igeo++){ */
 /*     gelstack[igeo]->Print(); */
@@ -220,7 +225,7 @@ void TPZAdaptMesh::BuildReferencePatch(){
     tmpcmesh->GetElementPatch(n2elgraph,n2elgraphid,elgraph,elgraphindex,i,patchelindex);
     for (j=0; j<patchelindex.NElements(); j++){
       TPZGeoEl *gel = tmpcmesh->ElementVec()[patchelindex[j]]->Reference();
-      int count = 0;
+      //      int count = 0;
       if(gel) fPatch.Push(gel);
     }
     int sum = fPatch.NElements();
@@ -238,7 +243,7 @@ void TPZAdaptMesh::CreateClones(){
   
   TPZStack<TPZGeoEl*> patch;
   
-  int clid,elid,k;
+  int clid,elid;
   for (clid=0; clid<fPatchIndex.NElements()-1;clid++){
     TPZGeoCloneMesh *geoclone = new TPZGeoCloneMesh(geomesh);
     TPZStack<TPZGeoEl*> patch;
@@ -247,12 +252,12 @@ void TPZAdaptMesh::CreateClones(){
     }
     geoclone->SetElements(patch,fGeoRef[clid]);
     TPZVec<TPZGeoEl *> sub;
-    int ngcel = geoclone->ElementVec().NElements();
-	int printing = 0;
-	if(printing) {
-		ofstream out("test.txt",ios::app);
-		geoclone->Print(out);
-	}
+    //    int ngcel = geoclone->ElementVec().NElements();
+    int printing = 0;
+    if(printing) {
+      ofstream out("test.txt",ios::app);
+      geoclone->Print(out);
+    }
     TPZCompCloneMesh *clonecompmesh = new TPZCompCloneMesh(geoclone,fReference);
     clonecompmesh->AutoBuild();
     fCloneMesh.Push(clonecompmesh);    
@@ -339,7 +344,7 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                   
   }
 
         //Idenifica o vetor de elementos computacionais de mesh
-  TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh->ElementVec();
+  //  TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh->ElementVec();
 
   int el,nelem = gelstack.NElements();
   //  cmesh->SetName("Antes PRefine");
@@ -379,58 +384,57 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                   
 
 void TPZAdaptMesh::RemoveCloneBC(TPZCompMesh *mesh)
 {
-	int nelem = mesh->NElements();
-	int iel;
-	for(iel=0; iel<nelem; iel++) {
-		TPZCompEl *cel = mesh->ElementVec()[iel];
-		if(!cel) continue;
-		int matid = cel->Material()->Id();
-		if(matid == -1000) delete cel;
-	}
-
+  int nelem = mesh->NElements();
+  int iel;
+  for(iel=0; iel<nelem; iel++) {
+    TPZCompEl *cel = mesh->ElementVec()[iel];
+    if(!cel) continue;
+    int matid = cel->Material()->Id();
+    if(matid == -1000) delete cel;
+  }
 }
 
 void TPZAdaptMesh::DeleteElements(TPZCompMesh *mesh)
 {
-	int nelem = mesh->NElements();
-	int iel;
-	for(iel=0; iel<nelem; iel++) {
-		TPZCompEl *cel = mesh->ElementVec()[iel];
-		if(!cel) continue;
-		TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
-		if(!cint) continue;
-		while(cint->HasDependency()) {
-			TPZInterpolatedElement *large = LargeElement(cint);
-			TPZInterpolatedElement *nextlarge = LargeElement(large);
-			while(nextlarge != large) {
-				large = nextlarge;
-				nextlarge = LargeElement(large);
-			}
-			large->RemoveSideRestraintsII(TPZInterpolatedElement::EDelete);
-			delete large;
-		}
-		cint->RemoveSideRestraintsII(TPZInterpolatedElement::EDelete);
-		delete cint;
-	}
+  int nelem = mesh->NElements();
+  int iel;
+  for(iel=0; iel<nelem; iel++) {
+    TPZCompEl *cel = mesh->ElementVec()[iel];
+    if(!cel) continue;
+    TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
+    if(!cint) continue;
+    while(cint->HasDependency()) {
+      TPZInterpolatedElement *large = LargeElement(cint);
+      TPZInterpolatedElement *nextlarge = LargeElement(large);
+      while(nextlarge != large) {
+	large = nextlarge;
+	nextlarge = LargeElement(large);
+      }
+      large->RemoveSideRestraintsII(TPZInterpolatedElement::EDelete);
+      delete large;
+    }
+    cint->RemoveSideRestraintsII(TPZInterpolatedElement::EDelete);
+    delete cint;
+  }
 }
 
 TPZInterpolatedElement * TPZAdaptMesh::LargeElement(TPZInterpolatedElement *cint)
 {
-	int nc = cint->NConnects();
-	int side;
-	TPZInterpolatedElement *result = cint;
-	for(side=0; side<nc; side++) {
-		if(cint->Connect(side).HasDependency()) {
-			TPZCompElSide cintside(cint,side);
-			TPZCompElSide large = cintside.LowerLevelElementList(1);
-			if(!large.Exists()) {
-				cout << "TPZAdaptMesh::DeleteElements I dont understand\n";
-				large = cintside.LowerLevelElementList(1);
+  int nc = cint->NConnects();
+  int side;
+  TPZInterpolatedElement *result = cint;
+  for(side=0; side<nc; side++) {
+    if(cint->Connect(side).HasDependency()) {
+      TPZCompElSide cintside(cint,side);
+      TPZCompElSide large = cintside.LowerLevelElementList(1);
+      if(!large.Exists()) {
+	cout << "TPZAdaptMesh::DeleteElements I dont understand\n";
+	large = cintside.LowerLevelElementList(1);
 				return cint;
-			}
-			result = dynamic_cast<TPZInterpolatedElement *> (large.Element());
-			break;
-		}
-	}
-	return result;
+      }
+      result = dynamic_cast<TPZInterpolatedElement *> (large.Element());
+      break;
+    }
+  }
+  return result;
 }

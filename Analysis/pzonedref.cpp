@@ -4,18 +4,28 @@
 #include "pzvec.h"
 #include "pzshapelinear.h"
 
-const int maxp = 10;
 ofstream TPZOneDRef::fLogFile("onedref.txt");
 
-TPZOneDRef::TPZOneDRef(int nstate) : fMS1S1(maxp+1,maxp+1,0.) ,fMS1B(maxp+1,maxp+1,0.)  ,fMS2B(maxp+1,maxp+1,0.) ,fMBB(maxp+1,maxp+1,0.) ,fKS1S1(maxp+1,maxp+1,0.) ,fKS1B(maxp+1,maxp+1,0.) ,fKS2B(maxp+1,maxp+1,0.) ,fKBB(maxp+1,maxp+1,0.), fM(maxp+1,maxp+1,0.), fRhs1(11,nstate), fRhs2(11,nstate), fRhsb(11,nstate), fNState(nstate)
-// , fDest1(11), fDest2(11), fNodes1(11), fNodes2(11) 
-{
+int TPZOneDRef::gMaxP = 10;
 
+TPZOneDRef::TPZOneDRef(int nstate) : fMS1S1(gMaxP+1,gMaxP+1,0.),
+				     fMS1B(gMaxP+1,gMaxP+1,0.),
+				     fMS2B(gMaxP+1,gMaxP+1,0.),
+				     fMBB(gMaxP+1,gMaxP+1,0.),
+				     fKS1S1(gMaxP+1,gMaxP+1,0.),
+				     fKS1B(gMaxP+1,gMaxP+1,0.),
+				     fKS2B(gMaxP+1,gMaxP+1,0.),
+				     fKBB(gMaxP+1,gMaxP+1,0.),
+				     fM(gMaxP+1,gMaxP+1,0.),
+				     fRhs1(gMaxP+1,nstate),
+				     fRhs2(gMaxP+1,nstate),
+				     fRhsb(gMaxP+1,nstate),
+				     fNState(nstate)  /* , fDest1(11), fDest2(11), fNodes1(11), fNodes2(11)*/ {
+  fTryP = 1;
   IntegrateMatrices();
 }
 
-void TPZOneDRef::IntegrateMatrices() {
-
+void TPZOneDRef::IntegrateMatrices(){
   TPZInt1d integr(20);
   TPZVec<int> ids(2);
   ids[0] = 0;
@@ -25,26 +35,20 @@ void TPZOneDRef::IntegrateMatrices() {
   t2.Mult()(0,0) = 0.5;
   t1.Sum()(0,0) = -0.5;
   t2.Sum()(0,0) = 0.5;
-  TPZFMatrix phis(maxp+1,1),dphis(1,maxp+1),phib1(maxp+1,1),dphib1(1,maxp+1),phib2(maxp+1,1),dphib2(1,maxp+1);
+  TPZFMatrix phis(gMaxP+1,1),dphis(1,gMaxP+1),phib1(gMaxP+1,1),dphib1(1,gMaxP+1),phib2(gMaxP+1,1),dphib2(1,gMaxP+1);
   int ip;
   REAL weight;
   TPZVec<REAL> pos(1),posbig1(1),posbig2(1);
   for(ip=0; ip<integr.NPoints(); ip++) {
     integr.Point(ip,pos,weight);
-    TPZShapeLinear::Shape1d(pos[0],10,phis,dphis,ids);
+    TPZShapeLinear::Shape1d(pos[0],/*10*/gMaxP,phis,dphis,ids);
     t1.Apply(pos,posbig1);
     t2.Apply(pos,posbig2);
-    TPZShapeLinear::Shape1d(posbig1[0],10,phib1,dphib1,ids);
-    TPZShapeLinear::Shape1d(posbig2[0],10,phib2,dphib2,ids);
-
-    int i;
-//     for(i=0; i<maxp+1; i++) {
-//       dphis(0,i) *= 2.;
-//     }
-
-    int j;
-    for(i=0; i<maxp+1; i++) {
-      for(j=0; j<maxp+1; j++) {
+    TPZShapeLinear::Shape1d(posbig1[0],/*10*/gMaxP,phib1,dphib1,ids);
+    TPZShapeLinear::Shape1d(posbig2[0],/*10*/gMaxP,phib2,dphib2,ids);
+    int i,j;
+    for(i=0; i<gMaxP+1; i++) {
+      for(j=0; j<gMaxP+1; j++) {
 	fMS1S1(i,j) += weight*phis(i,0)*phis(j,0);
 	fMS1B(i,j) += weight*phis(i,0)*phib1(j,0);
 	fMS2B(i,j) += weight*phis(i,0)*phib2(j,0);
@@ -59,9 +63,7 @@ void TPZOneDRef::IntegrateMatrices() {
 }
 
 void TPZOneDRef::TransformU(TPZFMatrix &U, TPZVec<int> &id, int p1, int p2) {
-
   int i,st;
-
   if(id[0] > id[1]) {
     for(st=0; st<fNState; st++) {
       for(i=1; i<p1-1;i+=2) U((i+1)*fNState+st,0) = -U((i+1)*fNState+st,0);
@@ -76,33 +78,33 @@ void TPZOneDRef::TransformU(TPZFMatrix &U, TPZVec<int> &id, int p1, int p2) {
 
 void TPZOneDRef::LoadU(TPZFMatrix &U, int p1, int p2, REAL delx) {
 
-  if(U.Rows() != (p1+p2+1)*fNState) {
-    cout << "TPZOneDRef inconsistent input data\n";
-    return;
-  }
-  fDelx = delx;
-  fp1 = p1;
-  fp2 = p2;
-  fpb = fp2 + fp1 - 2;
-  if(fpb > maxp){
-    // Cesar 2003-01-09++++++
-    fp1 = (int)(((float)maxp / (float)fpb) * p1);
-    fp2 = (int)(((float)maxp / (float)fpb) * p2);
-    // -------------
-    fpb = maxp;
-  }
-    
-  fU.Redim(2*fpb-1,fNState);
-
-
+  //Cesar 2003-02-20 
+  // Moved to BestPattern (public interface used)====
+//   if(U.Rows() != (p1+p2+1)*fNState) {
+//     cout << "TPZOneDRef inconsistent input data\n";
+//     return;
+//   }
+//   fDelx = delx;
+  //=================================================
+  //   fp1 = p1;
+  //   fp2 = p2;
+  //   fpb = fp2 + fp1 - 2;
+  //   if(fpb > gMaxP){
+  //     // Cesar 2003-01-09++++++
+  //     fp1 = (int)(((float)gMaxP / (float)fpb) * p1);
+  //     fp2 = (int)(((float)gMaxP / (float)fpb) * p2);
+  //     // -------------
+  //     fpb = gMaxP;
+  //   }
+  // fU.Redim(2*fpb-1,fNState);
+  //==================================================
   int i,j;
   for(i=0; i<fpb+1; i++) {
     for(j=0; j<fpb+1; j++) {
-//       fM(i,j) = 0.5*fDelx*fMS1S1(i,j)+2./fDelx*fKS1S1(i,j);
+      //       fM(i,j) = 0.5*fDelx*fMS1S1(i,j)+2./fDelx*fKS1S1(i,j);
       fM(i,j) = 2./fDelx*fKS1S1(i,j);
     }
   }
-
   //  fM.Print("M Matrix");
   int st;
   //Cesar 2003-01-09 só alterei o loop de p1 -> fp1 e p2 ->fp2
@@ -115,12 +117,12 @@ void TPZOneDRef::LoadU(TPZFMatrix &U, int p1, int p2, REAL delx) {
   fRhs1.Zero();
   fRhs2.Zero();
   fRhsb.Zero();
-  TPZFMatrix uloc(maxp+1,1,0.);
+  TPZFMatrix uloc(gMaxP+1,1,0.);
   for(st=0; st<fNState; st++) {
     uloc.Zero();
     uloc(1,0) = fU(fpb-1,st);
     for(i=0; i<p1-1; i++) uloc(i+2,0) = fU(i,st);
-
+    
     //  uloc.Print("uloc for first element");
     for(j=0; j<fpb+1; j++) {
       for(i=0; i<fpb-1; i++) {
@@ -152,15 +154,14 @@ void TPZOneDRef::LoadU(TPZFMatrix &U, int p1, int p2, REAL delx) {
       }
     }
   }
-
+  
   // Compute the stiffness for computing the energy error
   BuildStiffness(fpb,fpb,fStiffU);
-
+  
   //  Print("After loading the solution");
 }
 
 REAL TPZOneDRef::Error(int p1, int p2) {
-
   TPZFMatrix stiff;
   BuildStiffness(p1,p2,stiff);
   TPZFMatrix rhs(p1+p2-1,fNState,0.);
@@ -175,12 +176,12 @@ REAL TPZOneDRef::Error(int p1, int p2) {
     rhs(p1-1,st) += fRhs1(fpb-1,st);
   }
   //  rhs.Print("right hand side for error computation");
-
+  
   TPZFMatrix u(fU);
   stiff.SolveDirect(rhs,ELDLt);
-
+  
   //  rhs.Print("solution from error computation");
-
+  
   for(st=0; st<fNState; st++) {
     for(i=0; i<p1-1; i++) u(i,st) -= rhs(i,st);
     for(i=0; i<p2; i++) u(i+fpb-1,st) -= rhs(i+p1-1,st);
@@ -194,13 +195,12 @@ REAL TPZOneDRef::Error(int p1, int p2) {
     }
   }
   return error;
-
 }
 
 void TPZOneDRef::BuildStiffness(int p1, int p2, TPZFMatrix &stiff){
 
   stiff.Redim(p1+p2-1,p1+p2-1);
-
+  
   int i,j;
   for(i=0; i< p1-1; i++) {
     stiff(p1-1,i) = fM(1,i+2);
@@ -257,7 +257,6 @@ REAL TPZOneDRef::Error(int pb) {
   MS1S1.SolveDirect(u1,ELDLt);
 
   //  u1.Print("Solution for the left element");
-
   TPZFMatrix u2(pb,fNState,0.),MS2S2(pb,pb);
   for(j=0; j<pb-1; j++) {
     for(st=0; st<fNState; st++) {
@@ -299,8 +298,102 @@ REAL TPZOneDRef::Error(int pb) {
   return error;
 }
 
-int TPZOneDRef::main() {
+REAL TPZOneDRef::BestPattern(TPZFMatrix &U, TPZVec<int> &id, int &p1, int &p2, int &hp1, int &hp2, REAL & hperror, REAL delx) {
+  if(p1<2 && p2<2) {
+    cout << "TPZOneDRef called with wrong parameters\n";
+    return -1.;
+  }
+  //Cesar 2003-02-20
+  //====================================================
+  if(U.Rows() != (p1+p2+1)*fNState) {
+    cout << "TPZOneDRef inconsistent input data\n";
+    return -1.;
+  }
+  fDelx = delx;
+  fp1 = p1;
+  fp2 = p2;
+  fpb = fp2 + fp1 - 2;
+  if(fpb > gMaxP){
+    // Cesar 2003-01-09++++++
+    fp1 = (int)(((float)gMaxP / (float)fpb) * p1);
+    fp2 = (int)(((float)gMaxP / (float)fpb) * p2);
+    // -------------
+    fpb = gMaxP;
+    fTryP = 0;
+  }
+  fU.Redim(2*fpb-1,fNState);
+  TransformU(U,id,fp1,fp2);
+  LoadU(U,fp1,fp2,delx);
+  TransformU(U,id,fp1,fp2);
+  //=======================================================
 
+  // numdof indicates the number of degrees of freedom permitted by the refinement pattern
+  //int numdof = p1 < p2 ? p2 : p1;
+  int numdof = fp1 < fp2 ? fp2 : fp1;
+  numdof--;
+  int pl1 = 1, pl2 = numdof+1-pl1;
+  if(pl2 > gMaxP) pl2 = gMaxP;
+  int bestp1,bestp2;
+  REAL besterror;
+  bestp1 = pl1;
+  bestp2 = pl2;
+  besterror = Error(pl1,pl2);
+  int maxpl1 = numdof+1;
+  //  if(maxpl1 > maxp+1) maxpl1 = gMaxP+1;
+  fLogFile  << "p1 = " << pl1 << " p2 = " << pl2 << " error = " << besterror << endl;
+  int pl1try;
+//   cout << "maxpl1 = " << maxpl1 << endl;
+  for(pl1try=2; pl1try<maxpl1; pl1try++) {
+    pl1 = pl1try;
+    pl2 = numdof-pl1try+1;
+    if(pl2 > gMaxP) pl2 = gMaxP;
+    if(pl1 > gMaxP) pl1 = gMaxP;
+    
+    REAL error = Error(pl1,pl2);
+    if(error < besterror) {
+      bestp1 = pl1;
+      bestp2 = pl2;
+      besterror = error;
+    }
+    fLogFile << "p1 = " << pl1 << " p2 = " << pl2 << " error = " << error << endl;
+  }
+  hp1 = bestp1;
+  hp2 = bestp2;
+  hperror = besterror;
+
+  // Verifies the only p refinement. 
+  if (fTryP){
+    REAL error = Error(fp1);
+    if(error < besterror) {
+      //bestp1 = p1;
+      bestp1 = fp1;
+      bestp2 = -1;
+      besterror = error;
+    }
+    fLogFile  << "pb = " << fp1 << " error = " << error << endl;
+  }
+  fLogFile << " p1 = " << fp1 << " p2 = " << fp2 << " bestp1 = " << bestp1 << " bestp2 = " << bestp2 << " error = " << besterror << endl;
+  p1 = bestp1;
+  p2 = bestp2;
+  return besterror;
+}
+
+void TPZOneDRef::BuildIndexVectors(int p1, int p2, int pb) {
+  //???
+}
+
+void TPZOneDRef::Print(char *msg, ostream &out) {
+  out << "TPZOneDRef output for object \"";
+  if(msg) out << msg;
+  out << "\"" << endl;
+  fU.Print("Solution U",out);
+  fRhs1.Print("Rhs1",out);
+  fRhs2.Print("Rhs2",out);
+  fRhsb.Print("Rhsb",out);
+  fStiffU.Print("fStiffU",out);
+}
+
+int TPZOneDRef::main() {
   int nstate = 2;
   cout << "input number of state variables ";
   cin >> nstate;
@@ -368,77 +461,5 @@ int TPZOneDRef::main() {
       }
     }
   }
-  
   return 0;
-}
-
-REAL TPZOneDRef::BestPattern(TPZFMatrix &U, TPZVec<int> &id, int &p1, int &p2, int &hp1, int &hp2, REAL & hperror, REAL delx) {
-  if(p1 <2 && p2 <2) {
-    cout << "TPZOneDRef called with wrong parameters\n";
-    return -1.;
-  }
-  TransformU(U,id,p1,p2);
-  LoadU(U,p1,p2,delx);
-  TransformU(U,id,p1,p2);
-  // numdof indicates the number of degrees of freedom permitted by the refinement pattern
-  int numdof = p1 < p2 ? p2 : p1;
-  numdof--;
-  int pl1 = 1, pl2 = numdof+1-pl1;
-  if(pl2 > maxp) pl2 = maxp;
-  int bestp1,bestp2;
-  REAL besterror;
-  bestp1 = pl1;
-  bestp2 = pl2;
-  besterror = Error(pl1,pl2);
-  int maxpl1 = numdof+1;
-  //  if(maxpl1 > maxp+1) maxpl1 = maxp+1;
-  fLogFile  << "p1 = " << pl1 << " p2 = " << pl2 << " error = " << besterror << endl;
-  int pl1try;
-//   cout << "maxpl1 = " << maxpl1 << endl;
-   for(pl1try=2; pl1try<maxpl1; pl1try++) {
-     pl1 = pl1try;
-     pl2 = numdof-pl1try+1;
-     if(pl2 > maxp) pl2 = maxp;
-     if(pl1 > maxp) pl1 = maxp;
-
-     REAL error = Error(pl1,pl2);
-     if(error < besterror) {
-       bestp1 = pl1;
-       bestp2 = pl2;
-       besterror = error;
-     }
-     fLogFile << "p1 = " << pl1 << " p2 = " << pl2 << " error = " << error << endl;
-   }
-   hp1 = bestp1;
-   hp2 = bestp2;
-   hperror = besterror;
-   REAL error = Error(p1);
-   if(error < besterror) {
-     bestp1 = p1;
-     bestp2 = -1;
-     besterror = error;
-   }
-   fLogFile  << "pb = " << p1 << " error = " << error << endl;
-   fLogFile << " p1 = " << p1 << " p2 = " << p2 << " bestp1 = " << bestp1 << " bestp2 = " << bestp2 << " error = " << besterror << endl;
-   p1 = bestp1;
-   p2 = bestp2;
-   return besterror;
-}
-
-void TPZOneDRef::BuildIndexVectors(int p1, int p2, int pb) {
-
-}
-
-void TPZOneDRef::Print(char *msg, ostream &out) {
-
-  out << "TPZOneDRef output for object \"";
-  if(msg) out << msg;
-  out << "\"" << endl;
-  fU.Print("Solution U",out);
-  fRhs1.Print("Rhs1",out);
-  fRhs2.Print("Rhs2",out);
-  fRhsb.Print("Rhsb",out);
-
-  fStiffU.Print("fStiffU",out);
-
 }

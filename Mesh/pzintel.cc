@@ -1681,10 +1681,10 @@ void TPZInterpolatedElement::Print(ostream &out) {
 void TPZInterpolatedElement::PRefine(int side, int order) {
   SetPreferredSideOrder(side,order);
   IdentifySideOrder(side);
-  if (side == NConnects()-1){
-    int trueorder = SideOrder(side);
-    SetIntegrationRule(2*trueorder+2);
-  }
+//   if (side == NConnects()-1){
+//     int trueorder = SideOrder(side);
+//     SetIntegrationRule(2*trueorder+2);
+//   }
 }
 
 void TPZInterpolatedElement::PRefine(int order) {

@@ -111,6 +111,11 @@ class TPZCompCloneMesh : public TPZCompMesh {
 
   /**
    * Returns hp pattern of reference elements
+   * @param minerror Minimum error for the element be analysed
+   * @param error Vector containing all elements error
+   * @param finee Uniformly refined mesh
+   * @param gelstack Geometric elements stack. This stack will include the h / hp refined elements
+   * @param porder p order of the elements contained in gelstack
    */
   void ApplyRefPattern(REAL minerror, TPZVec<REAL> &error, TPZCompMesh *finee, 
 		       TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> &porder);
@@ -134,10 +139,18 @@ protected:
   int IsFather(TPZGeoEl *el);
 
 
+  /**
+   * Analyse an element and return its best refinement hp / p.
+   * @param f One dimensional refined structure.
+   * @param cint Element to be analysed
+   * @param subels Will return the subelements in case of h refinement
+   * @param porders Refinement order for each linear side of the element
+   */
   void AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *cint,
 		       TPZStack<TPZGeoEl *> &subels, TPZStack<int> &porders);
 
   void AdaptElements (TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
+
 
   void TPZCompCloneMesh::DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,	
 					  TPZVec<int> &cornerids,

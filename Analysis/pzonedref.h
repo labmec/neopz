@@ -112,6 +112,8 @@ class TPZOneDRef {
    */
   void Print(char *msg = 0, std::ostream &out = cout);
 
+  static int gMaxP;
+
   /**
    * Validation routines
    */
@@ -123,11 +125,11 @@ class TPZOneDRef {
    * the function must start at smaller id ant end at greater id
    */
   void TransformU(TPZFMatrix &U, TPZVec<int> &id, int p1, int p2);
+
   /**
    * Integrate Matrices
    */
   void IntegrateMatrices();
-
 
   /**
    * Load and transform small elements solution
@@ -159,6 +161,12 @@ class TPZOneDRef {
    * Generates de stiffness matrix using p1 and p2 order
    */
   void BuildStiffness(int p1, int p2, TPZFMatrix &stiff);
+
+  /**
+   * Flag to activate the p refinement. By default is set to true
+   * If the maximum p order is verified then this flag is set to false 
+   */
+  int fTryP;
 
 };
 

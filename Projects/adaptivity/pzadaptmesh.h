@@ -32,6 +32,11 @@ class TPZAdaptMesh {
    * Defines the computational reference mesh
    */
   void SetCompMesh(TPZCompMesh * mesh);
+
+  /**
+   * Defines the maximum p order of an element
+   */
+  void SetMaxP(int maxp);
   
   /**
    * Public interface to get the optmally refined mesh 
@@ -48,6 +53,11 @@ class TPZAdaptMesh {
 			       void (*f)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 			       TPZVec<REAL> &truervec, 
 			       TPZVec<REAL> &effect);
+
+  /**
+   * ??
+   */
+  static void DeleteElements(TPZCompMesh *mesh);
 
  protected:
   
@@ -86,10 +96,11 @@ class TPZAdaptMesh {
    */
   TPZCompMesh* CreateCompMesh (TPZCompMesh *mesh,TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
   
- public:
-	 static void DeleteElements(TPZCompMesh *mesh);
  private:   
-	 static TPZInterpolatedElement * LargeElement(TPZInterpolatedElement *cint);
+  
+  
+  static TPZInterpolatedElement * LargeElement(TPZInterpolatedElement *cint);
+  
   /**
    * Computational reference mesh
    */
@@ -125,6 +136,15 @@ class TPZAdaptMesh {
    */
   TPZStack <TPZCompMesh *> fFineCloneMesh;
   
+  /** 
+   * Delete temporary clone meshes from memory
+   */
   void CleanUp();
+
+  /**
+   * Maximum p order of an element
+   */
+  int fMaxP;
+  
 };
 #endif //TPZADAPTMESH_H
