@@ -707,28 +707,97 @@ void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) 
   }
 }
 
+#include "TPZAgglomerateEl.h"
 void TPZCompElDisc::AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight){
 
-  int el,i,npoints;
+  int nsubs = dynamic_cast<TPZAgglomerateElement *>(this)->NIndexes(),el,i,npoints;
   TPZVec<REAL> pt(3),x(3,0.0);
   TPZFMatrix jacobian(3,3),jacinv(3,3),axes(3,3);
   REAL detjac,wt;
+  
+  for(el=0;el<nsubs;el++){
+    TPZGeoEl *subgel = Reference();
+    if(!subgel) PZError << "TPZCompElDisc::AccumulateIntegrationRule data error, null geometric reference\n";
+    TPZIntPoints *rule = subgel->CreateSideIntegrationRule(subgel->NSides()-1,degree);
+    npoints = rule->NPoints();
 
-  TPZGeoEl *subgel = Reference();
-  TPZIntPoints *rule = subgel->CreateSideIntegrationRule(subgel->NSides()-1,degree);
-  npoints = rule->NPoints();
+    for(i=0;i<npoints;i++){
 
-  for(i=0;i<npoints;i++){
+      rule->Point(i,pt,wt);
+      subgel->Jacobian(pt,jacobian,axes,detjac,jacinv);
+      subgel->X(pt, x);
 
-    rule->Point(i,pt,wt);
-    subgel->Jacobian(pt,jacobian,axes,detjac,jacinv);
-    subgel->X(pt, x);
-
-    point.Push(x[0]);
-    point.Push(x[1]);
-    point.Push(x[2]);
+      point.Push(x[0]);
+      point.Push(x[1]);
+      point.Push(x[2]);
     
-    weight.Push(wt * fabs(detjac));
+      weight.Push(wt * fabs(detjac));
+    }
   }
+}
+
+TPZCompMesh *TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl){
+
+  /** a posi¢ão K de accumlist indica o index K do elemento computacional que será acumulado,
+   * o inteiro guardado nessa posi¢ão indica o elemento ao qual será 
+   * aglomerado, assim si accumlist[8] = 4 então o elemento computacional
+   * de index 8 será agrupado para formar o elemento 4
+   * na nova malha todos são aglomerados
+   * todo elemento deve ter associado um agrupamento pudendo ser um único elemento
+   * (no precisa ter pai para ser aglomerado/agrupado)
+   * se accumlist[n] = -1 => o elemento é interface ou um que não será aglomerado,
+   * pode ser um elemento que é equivalente àquele que será obtido por aglomera¢ão
+   * (por exemplo: elemento pai dos aglomerados)
+   * vários elementos podem ser aglomerados sem por isso ter um pai geométrico
+   * condi¢ão : a reunião dos geométricos dos aglomerados deve ser iagual ao domínio todo
+   */
+  int nlist = accumlist.NElements();
+  if(numaggl < 1 || nlist < 2){
+    PZError << "TPZCompMesh::ComputeMesh number agglomerate elements out of range\n";
+    return NULL;
+  }
+  TPZCompMesh *aggmesh = new TPZCompMesh(finemesh->Reference());
+  int i,index,nel = finemesh->NElements();
+  //criando os agrupamentos vazios
+  for(i=0;i<numaggl;i++)  new TPZAgglomerateElement(index,*aggmesh,finemesh); 
+
+  //  int mat = -1;
+  for(i=0;i<nel;i++){
+    TPZCompEl *cel = finemesh->ElementVec()[i];
+    if(!cel) continue;
+    int father = accumlist[i];
+    int type = cel->Type();
+    if( (type == 15 || type == 17) && father > -1 ){//elemento aglomerado ou descontínuo
+//       if(mat == -1){
+// 	mat = finemesh->ElementVec()[i]->Reference()->MaterialId();
+//       }
+      //incorporando o index do sub-elemento
+      TPZAgglomerateElement::AddSubElementIndex(aggmesh,i,father);
+    } else if(cel->Type() == 16){//elemento interface
+      TPZInterfaceElement *interf = dynamic_cast<TPZInterfaceElement *>(cel);
+      int indleft = interf->LeftElement()->Index();
+      int indright = interf->RightElement()->Index();
+      int fatleft = accumlist[indleft];
+      int fatright = accumlist[indright];
+      if(fatleft == -1 || fatright == -1){
+	PZError << "TPZCompElDisc::CreateAgglomerateMesh data error: element "
+		<< "without associated agglomeration\n";
+	return NULL;
+      }
+      //mesmo pai: interface interior a grupo de elementos
+      if(fatleft == fatright) continue;
+      interf->CloneInterface(aggmesh,fatleft,fatright);
+    }
+  }
+  nel = aggmesh->ElementVec().NElements();
+  //inizializando elementos aglomerados
+  for(i=0;i<nel;i++){
+    TPZCompEl *cel = aggmesh->ElementVec()[i];
+    if(cel->Type() == 17){//só aglomerado
+      TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
+      agg->InitializeElement();//mat
+    }
+  }
+  return aggmesh;
 }
 

@@ -43,7 +43,7 @@ public:
   TPZAgglomerateElement(int &index,TPZCompMesh &cmesh,TPZCompMesh *finemesh);
 
   /** inicializa os dados caracteristicos do elemento aglomerado */
-  void InitializeElement(int mat);
+  void InitializeElement();
 
   /** adiciona index do sub-elemento*/
   static void AddSubElementIndex(TPZCompMesh *cmesh,int subel,int destind);
@@ -98,7 +98,9 @@ public:
 
    REAL NormalizeConst();
 
-  static TPZCompMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);
+   int CreateMidSideConnect();
+
+   void Print(ostream &out);
 
 };
 #endif
