@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.10 2004-02-05 16:11:13 tiago Exp $
+//$Id: main.cpp,v 1.11 2004-02-05 16:40:08 tiago Exp $
 /**
  * Galerkin descontinuo: visita do professor Igor.
  * 24/11/2003
@@ -126,7 +126,7 @@ int main(){
 
 #ifdef DEBUGM
   p = 6;
-  h = 0;
+  h = 1;
 #endif
 
   cout << "\nQuadrado = 1; Triang = 2" << endl;
@@ -385,12 +385,6 @@ TPZCompMesh *CreateMesh() {
 
   gmesh->BuildConnectivity();
 
-
-  //<!>
-  TPZVec<TPZGeoEl *> filho;
-  elvec[0]->Divide(filho);
-
-    
   for(int i = 0; i < nelem; i++){
     TPZVec<TPZGeoEl *> children, netos, bisnetos, tata1, tata2, tata3;
     //    cout << "\ngDivide[0] = \n" << gDivide[0];
@@ -513,8 +507,8 @@ TPZCompMesh *CreateMesh() {
   //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
   
   cmesh->AutoBuild();
-  cmesh->AdjustBoundaryElements();
-  cmesh->CleanUpUnconnectedNodes();
+  //  cmesh->AdjustBoundaryElements();
+  //  cmesh->CleanUpUnconnectedNodes();
   //  cmesh->ExpandSolution();
   
   return cmesh;
