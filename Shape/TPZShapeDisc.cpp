@@ -263,7 +263,7 @@ void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degr
   int nshape = NShapeF(degree,2,type);
 //  int count=num,ind=0;
   phi.Redim(nshape,1);
-  dphi.Redim(5,nshape);
+  dphi.Redim(8,nshape);
   phi.Zero();
   dphi.Zero();
 
@@ -272,25 +272,28 @@ void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degr
     for(j=0;j<num;j++){
       if(i+j > degree && type == EOrdemTotal) break;
       phi(counter,0) = phix(i,0)*phiy(j,0);
-      dphi(0,counter) = dphix(0,i)*phiy(j,0);
-      dphi(1,counter) = phix(i,0)*dphiy(0,j);
-      dphi(2,counter) = dphix(1,i)*phiy(j,0)+phix(i,0)*dphiy(1,j); // Laplaciano
-      dphi(3,counter) = dphix(2,i)*phiy(j,0)+dphix(0,i)*dphiy(1,j); // D/Dx Laplaciano
-      dphi(4,counter) = dphix(1,i)*dphiy(0,j)+phix(i,0)*dphiy(2,j); // D/Dy Laplaciano
+      dphi(0,counter) = dphix(0,i)* phiy(j,0); // dx 
+      dphi(1,counter) =  phix(i,0)*dphiy(0,j); // dy
+      dphi(2,counter) = dphix(1,i)* phiy(j,0)+ phix(i,0)*dphiy(1,j); // Laplaciano
+      dphi(3,counter) = dphix(2,i)* phiy(j,0)+dphix(0,i)*dphiy(1,j); // D/Dx Laplaciano
+      dphi(4,counter) = dphix(1,i)*dphiy(0,j)+ phix(i,0)*dphiy(2,j); // D/Dy Laplaciano
+      dphi(5,counter) = dphix(1,i)* phiy(j,0);   // dxx 
+      dphi(6,counter) =  phix(i,0)*dphiy(1,j);   // dyy 
+      dphi(7,counter) = dphix(0,i)*dphiy(0,j);   // dxy 
       counter++;
     }
   }
   if(counter != nshape) {
     PZError << "TPZShapeDisc::Shape2D wrong shape count\n";
   }
-  REAL phi0,dphi0[5];
+  REAL phi0,dphi0[8];
   phi0 = phi(0);
-  for(i=0; i<5; i++) dphi0[i] = dphi(i,0);
+  for(i=0; i<8; i++) dphi0[i] = dphi(i,0);
   phi(0) = phi(nshape-1);
-  for(i=0; i<5; i++) dphi(i,0) = dphi(i,nshape-1);
+  for(i=0; i<8; i++) dphi(i,0) = dphi(i,nshape-1);
 
   phi(nshape-1) = phi0;
-  for(i=0; i<5; i++) dphi(i,nshape-1) = dphi0[i];
+  for(i=0; i<8; i++) dphi(i,nshape-1) = dphi0[i];
 }
 
 int  TPZShapeDisc::NShapeF(int degree, int dimension, MShapeType type) {
