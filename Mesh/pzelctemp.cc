@@ -1,13 +1,16 @@
 // -*- c++ -*-
 
 #include "pzelctemp.h"
+#include "pzquad.h"
+#include "pzgeoel.h"
 
 //template<class TGEO, class TSHAPE>
 //class TPZIntelGen : public TPZInterpolatedElement {
 
 
 template<class TGEO, class TSHAPE>
-TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) {
+TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
+  TPZInterpolatedElement(mesh,gel,index) {
   int i;
   for(i=0;i<TSHAPE::NSides-TSHAPE::NNodes;i++) {
     //    fSideOrder[i] = gOrder;
@@ -15,7 +18,7 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &ind
   }
   for(i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
   //  RemoveSideRestraintsII(EInsert);
-  ref->SetReference(this);
+  gel->SetReference(this);
   for(i=0;i<TSHAPE::NNodes;i++) {
     fConnectIndexes[i] = CreateMidSideConnect(i);
     mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
@@ -90,12 +93,12 @@ void TPZIntelGen<TGEO,TSHAPE>::SetIntegrationRule(int ord) {
 
 template<class TGEO, class TSHAPE>
 int TPZIntelGen<TGEO,TSHAPE>::NSideConnects(int side){
-  return TSHAPE::NSideConnects();
+  return TSHAPE::NSideConnects(side);
 }
 
 template<class TGEO, class TSHAPE>
 int TPZIntelGen<TGEO,TSHAPE>::SideConnectLocId(int node, int side) {
-  return TSHAPE::SideConnectlocId(side,node);
+  return TSHAPE::SideConnectLocId(side,node);
 }
 
 /**Sets the interpolation order for the interior of the element*/
@@ -119,7 +122,7 @@ template<class TGEO, class TSHAPE>
 int TPZIntelGen<TGEO,TSHAPE>::PreferredSideOrder(int side) {
   if(side < TSHAPE::NNodes) return 0;
   if(side<TSHAPE::NSides) {
-	  int order =fPreferredSideOrder[side-TSHAPE::NNodes];
+	  int order =fPreferredSideOrder;
 	  return AdjustPreferredSideOrder(side,order);
   }
   PZError << "TPZIntelgen::PreferredSideOrder called for side = " << side << "\n";
@@ -143,7 +146,7 @@ void TPZIntelGen<TGEO,TSHAPE>::SetSideOrder(int side, int order) {
     return;
   }
   if(side>= TSHAPE::NNodes) {
-    if(fConnectIndex[side] == -1) return;
+    if(fConnectIndexes[side] == -1) return;
     TPZConnect &c = Connect(side);
     c.SetOrder(order);
     int seqnum = c.SequenceNumber();
@@ -161,7 +164,7 @@ void TPZIntelGen<TGEO,TSHAPE>::SetSideOrder(int side, int order) {
 template<class TGEO, class TSHAPE>
 int TPZIntelGen<TGEO,TSHAPE>::SideOrder(int side) {
   if(side < TSHAPE::NNodes || side >= TSHAPE::NSides) return 0;
-  if(fConnectIndex[side] == -1) return -1;
+  if(fConnectIndexes[side] == -1) return -1;
   TPZConnect &c = Connect(side);
   return c.Order();  
 }
@@ -202,7 +205,7 @@ void TPZIntelGen<TGEO,TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatr
 template<class TGEO, class TSHAPE>
 void TPZIntelGen<TGEO,TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == TSHAPE::Dimension && Material()->Id() > 0) {
-    new typename TGEO::GraphElType(this,&grmesh);
+    new typename TGEO::GraphElType(this,&grafgrid);
   }
 }
 
@@ -218,3 +221,44 @@ template<class TGEO, class TSHAPE>
 TPZTransform TPZIntelGen<TGEO,TSHAPE>::TransformSideToElement(int side){
   return TSHAPE::TransformSideToElement(side);
 }
+
+#include "TPZGeoCube.h"
+#include "pzshapecube.h"
+#include "TPZRefCube.h"
+#include "pzshapelinear.h"
+#include "TPZGeoLinear.h"
+#include "TPZRefLinear.h"
+#include "pzrefquad.h"
+#include "pzshapequad.h"
+#include "pzgeoquad.h"
+#include "pzshapetriang.h"
+#include "pzreftriangle.h"
+#include "pzgeotriangle.h"
+#include "pzshapeprism.h"
+#include "pzrefprism.h"
+#include "pzgeoprism.h"
+#include "pzshapetetra.h"
+#include "pzreftetrahedra.h"
+#include "pzgeotetrahedra.h"
+#include "pzshapepiram.h"
+#include "pzrefpyram.h"
+#include "pzgeopyramid.h"
+#include "pzrefpoint.h"
+#include "pzgeopoint.h"
+#include "pzshapepoint.h"
+#include "pzgraphelq2dd.h"
+#include "pzgraphel1dd.h"
+#include "pztrigraphd.h"
+
+void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+  phi(0,0) = 1.;
+}
+
+void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+  if(dimension == 0) cout << "A point element has no graphical representation\n";
+}
+
+template class TPZIntelGen<TPZGeoPoint,TPZShapePoint>;
+template class TPZIntelGen<TPZGeoLinear, TPZShapeLinear>;
+template class TPZIntelGen<TPZGeoQuad,TPZShapeQuad>;
+template class TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>;

@@ -1,3 +1,4 @@
+// $Id: pzshapetetra.cpp,v 1.3 2003-10-06 01:32:07 phil Exp $
 #include "pzshapetetra.h"
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
@@ -352,18 +353,18 @@ void TPZShapeTetra::ProjectPoint3dTetraToFace(int face, TPZVec<REAL> &in, TPZVec
   outval[1] = gFaceTrans3dTetra2d[face][1][0]*in[0]+gFaceTrans3dTetra2d[face][1][1]*in[1]+gFaceTrans3dTetra2d[face][1][2]*in[2]+gFaceSum3dTetra2d[face][1];
 }
 
-int TPZShapeTetra::NConnectShapeF(int side, TPZVec<int> &order) {
+int TPZShapeTetra::NConnectShapeF(int side, int order) {
    if(side<4) return 1;//0 a 3
-   int s = side-4;
-   if(side<10) return order[s]-1;//4 a 9
+   //   int s = side-4;
+   if(side<10) return order-1;//4 a 9
    if(side<14) {//10 a 13
    	int sum = 0;
-      for(int i=0;i<order[s]-1;i++) sum += i;
+      for(int i=0;i<order-1;i++) sum += i;
    	return sum;
    }
    if(side==14) {
    	int totsum = 0,sum;
-      for(int i=1;i<order[s]-2;i++) {
+      for(int i=1;i<order-2;i++) {
          sum = i*(i+1) / 2;
          totsum += sum;
       }
@@ -374,14 +375,13 @@ int TPZShapeTetra::NConnectShapeF(int side, TPZVec<int> &order) {
 }
 
 int TPZShapeTetra::NShapeF(TPZVec<int> &order) {
-  int nn = NConnects();
-  int in,res=0;
-  for(in=0;in<nn;in++) res += NConnectShapeF(in,order);
+  int in,res=NNodes;
+  for(in=NNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NNodes]);
   return res;
 }
 
 int TPZShapeTetra::NConnects() {
-	return 15;
+	return NSides;
 }
 
 TPZTransform TPZShapeTetra::TransformElementToSide(int side){

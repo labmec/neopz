@@ -17,7 +17,8 @@ mesh_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzmesh.a
 
-libpzmesh_a_SOURCES = pzcheckgeom.cc \
+libpzmesh_a_SOURCES = pzelctemp.cc \
+	pzcheckgeom.cc \
 	pzcheckmesh.cc \
 	pzcheckrestraint.cc \
 	pzcmesh.cc \

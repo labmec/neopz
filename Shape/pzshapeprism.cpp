@@ -1,3 +1,4 @@
+// $Id: pzshapeprism.cpp,v 1.3 2003-10-06 01:32:07 phil Exp $
 #include "pzshapeprism.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -351,7 +352,7 @@ void TPZShapePrism::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
   //volume shapes
   REAL store1[20],store2[60];
   int ord=0;
-  ord = NConnectShapeF(20,order);
+  ord = NConnectShapeF(20,order[20]-NNodes);
   TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);
   phin.Zero();
   dphin.Zero();
@@ -456,18 +457,18 @@ void TPZShapePrism::TransformPoint3dPrismaFace(int transid, int face, TPZVec<REA
   else                    TPZShapeQuad::TransformPoint2dQ(transid,in,out);
 }
 
-int TPZShapePrism::NConnectShapeF(int side, TPZVec<int> &order) {
+int TPZShapePrism::NConnectShapeF(int side, int order) {
    if(side<6) return 1;//0 a 4
-   int s = side-6;//s = 0 a 14 ou side = 6 a 20
-   if(side<15) return (order[s]-1);//6 a 14
+   //   int s = side-6;//s = 0 a 14 ou side = 6 a 20
+   if(side<15) return (order-1);//6 a 14
    if(side==15 || side==19) {
-      return ((order[s]-2)*(order[s]-1)/2);
+      return ((order-2)*(order-1)/2);
    }
    if(side>15 && side<19) {//16,17,18
-      return ((order[s]-1)*(order[s]-1));
+      return ((order-1)*(order-1));
    }
    if(side==20) {
-      return ((order[s]-2)*(order[s]-1)*(order[s]-1)/2);
+      return ((order-2)*(order-1)*(order-1)/2);
    }
    PZError << "TPZShapePrism::NConnectShapeF, bad parameter side " << side << endl;
    return 0;
@@ -478,9 +479,8 @@ int TPZShapePrism::NConnects() {
 }
 
 int TPZShapePrism::NShapeF(TPZVec<int> &order) {
-  int nn = NConnects();
-  int in,res=0;
-  for(in=0;in<nn;in++) res += NConnectShapeF(in,order);
+  int in,res=NNodes;
+  for(in=NNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NNodes]);
   return res;
 }
 

@@ -448,24 +448,22 @@ void TPZShapeCube::ProjectPoint3dCubeFace(int face, TPZVec<REAL> &in, TPZVec<REA
   out[1] = gFaceTrans3dCube2d[face][1][0]*in[0]+gFaceTrans3dCube2d[face][1][1]*in[1]+gFaceTrans3dCube2d[face][1][2]*in[2];
 }
 
-int TPZShapeCube::NConnectShapeF(int side, TPZVec<int> &order){
+int TPZShapeCube::NConnectShapeF(int side, int order){
    if(side<8) return 1;//0 a 4
-   int s = side-8;//s = 0 a 14 ou side = 6 a 20
-   if(side<18) return (order[s]-1);//6 a 14
+   if(side<18) return (order-1);//6 a 14
    if(side<26) {
-      return ((order[s]-1)*(order[s]-1));
+      return ((order-1)*(order-1));
    }
    if(side==26) {
-      return ((order[s]-1)*(order[s]-1)*(order[s]-1)/2);
+      return ((order-1)*(order-1)*(order-1)/2);
    }
    PZError << "TPZShapeCube::NConnectShapeF, bad parameter side " << side << endl;
    return 0;
 }
 
 int TPZShapeCube::NShapeF(TPZVec<int> &order) {
-  int nn = NConnects();
-  int in,res=0;
-  for(in=0;in<nn;in++) res += NConnectShapeF(in,order);
+  int in,res=NNodes;
+  for(in=NNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NNodes]);
   return res;
 }
 

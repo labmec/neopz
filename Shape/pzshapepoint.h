@@ -90,12 +90,33 @@ public:
     TPZTransform result(0,0);
     return result;
   }
+/**
+ * Returns the transformation which transform a point from the side to the interior of the element
+ * @param side side from which the point will be tranformed (0<=side<=2)
+ * @return TPZTransform object
+ * @see the class TPZTransform
+ */
+  static TPZTransform TransformSideToElement(int side) {
+    TPZTransform result(0,0);
+    return result;
+  }
+
  /**
   * returns the dimension of the side
   */
   static int SideDimension(int side) {
     return 0;
   }
+
+  /**
+ * Number of shapefunctions of the connect associated with the side, considering the order
+ * of interpolation of the element
+ * @param side associated side
+ * @order vector of integers indicating the interpolation order of the element
+ * @return number of shape functions
+ */
+  static int NConnectShapeF(int side, int order) { return 1;}
+
 
 };
 

@@ -1,3 +1,4 @@
+// $Id: pzshapequad.cpp,v 1.5 2003-10-06 01:32:07 phil Exp $
 #include "pzshapequad.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -253,21 +254,20 @@ void TPZShapeQuad::TransformDerivativeFromRibToQuad(int rib,int num,TPZFMatrix &
   }
 }
 
-int TPZShapeQuad::NConnectShapeF(int side, TPZVec<int> &order) {
+int TPZShapeQuad::NConnectShapeF(int side, int order) {
    if(side<4) return 1;//0 a 4
-   int s = side-4;//s = 0 a 14 ou side = 6 a 20
-   if(side<8) return (order[s]-1);//6 a 14
+   //   int s = side-4;//s = 0 a 14 ou side = 6 a 20
+   if(side<8) return (order-1);//6 a 14
    if(side==8) {
-      return ((order[s]-1)*(order[s]-1));
+      return ((order-1)*(order-1));
    }
    PZError << "TPZShapeQuad::NConnectShapeF, bad parameter side " << side << endl;
    return 0;
 }
 
 int TPZShapeQuad::NShapeF(TPZVec<int> &order) {
-  int nn = NConnects();
-  int in,res=0;
-  for(in=0;in<nn;in++) res += NConnectShapeF(in,order);
+  int in,res=NNodes;
+  for(in=NNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NNodes]);
   return res;
 }
 int TPZShapeQuad::NConnects() {

@@ -1,3 +1,4 @@
+// $ Id: $
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
 #include "pzerror.h"
@@ -220,17 +221,16 @@ int TPZShapeLinear::GetTransformId1d(TPZVec<int> &id) {
   else               return 0;
 }
 
-int TPZShapeLinear::NConnectShapeF(int side, TPZVec<int> &order) {
+int TPZShapeLinear::NConnectShapeF(int side, int order) {
    if(side<2) return 1;//0 a 4
-   if(side<3) return (order[0]-1);//6 a 14
+   if(side<3) return (order-1);//6 a 14
    PZError << "TPZShapeLinear::NConnectShapeF, bad parameter side " << side << endl;
    return 0;
 }
 
 int TPZShapeLinear::NShapeF(TPZVec<int> &order) {
-  int nn = NConnects();
-  int in,res=0;
-  for(in=0;in<nn;in++) res += NConnectShapeF(in,order);
+  int in,res=NNodes;
+  for(in=NNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NNodes]);
   return res;
 }
 

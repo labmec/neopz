@@ -1,3 +1,4 @@
+// $Id: pzshapetriang.cpp,v 1.3 2003-10-06 01:32:07 phil Exp $
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -232,7 +233,7 @@ void TPZShapeTriang::TransformDerivative2dT(int transid, int num, TPZFMatrix &in
   }
 }
 
-int TPZShapeTriang::NConnectShapeF(int side, TPZVec<int> &order) {
+int TPZShapeTriang::NConnectShapeF(int side, int order) {
   switch(side) {
   case 0:
   case 1:
@@ -241,9 +242,9 @@ int TPZShapeTriang::NConnectShapeF(int side, TPZVec<int> &order) {
   case 3:
   case 4:
   case 5:
-    return order[side-3]-1;
+    return order-1;
   case 6:
-    return (order[3]-2) < 0 ? 0 : ((order[3]-2)*(order[3]-1))/2;
+    return (order-2) < 0 ? 0 : ((order-2)*(order-1))/2;
   default:
     PZError << "TPZShapeTriang::NConnectShapeF, bad parameter iconnect " << side << endl;
     return 0;
@@ -251,14 +252,13 @@ int TPZShapeTriang::NConnectShapeF(int side, TPZVec<int> &order) {
 }
 
 int TPZShapeTriang::NShapeF(TPZVec<int> &order) {
-  int nn = NConnects();
-  int in,res=0;
-  for(in=0;in<nn;in++) res += NConnectShapeF(in,order);
+  int in,res=NNodes;
+  for(in=NNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NNodes]);
   return res;
 }
 
 int TPZShapeTriang::NConnects() {
-	return 7;
+	return NSides;
 }
 
 TPZTransform TPZShapeTriang::TransformElementToSide(int side){

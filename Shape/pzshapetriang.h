@@ -1,4 +1,5 @@
 // -*- c++ -*-
+// $ Id: $
 #ifndef SHAPETRIANGHPP
 #define SHAPETRIANGHPP
 
@@ -142,7 +143,7 @@ static int NConnects();
  * @order vector of integers indicating the interpolation order of the element
  * @return number of shape functions
  */
-static int NConnectShapeF(int side, TPZVec<int> &order);
+static int NConnectShapeF(int side, int order);
 
 /**
  * Total number of shapefunctions, considering the order

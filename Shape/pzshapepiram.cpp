@@ -1,3 +1,4 @@
+// $Id: pzshapepiram.cpp,v 1.3 2003-10-06 01:32:07 phil Exp $
 #include "pzshapepiram.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -470,19 +471,19 @@ void TPZShapePiram::TransformPoint3dPiramFace(int transid, int face, TPZVec<REAL
   else       TPZShapeTriang::TransformPoint2dT(transid,in,out);//outras 14 a 17
 }
 
-int TPZShapePiram::NConnectShapeF(int side, TPZVec<int> &order) {
+int TPZShapePiram::NConnectShapeF(int side, int order) {
    if(side<5) return 1;//0 a 4
-   int s = side-5;//s = 0 a 14 ou side = 6 a 20
-   if(side<13) return (order[s]-1);//6 a 14
+   //   int s = side-5;//s = 0 a 14 ou side = 6 a 20
+   if(side<13) return (order-1);//6 a 14
    if(side==13) {
-      return ((order[s]-1)*(order[s]-1));
+      return ((order-1)*(order-1));
    }
    if(side<18) {//16,17,18
-      return ((order[s]-2)*(order[s]-1)/2);
+      return ((order-2)*(order-1)/2);
    }
    if(side==18) {
    	int totsum = 0,sum;
-      for(int i=1;i<order[s]-1;i++) {
+      for(int i=1;i<order-1;i++) {
          sum = i*(i+1) / 2;
          totsum += sum;
       }
@@ -493,9 +494,8 @@ int TPZShapePiram::NConnectShapeF(int side, TPZVec<int> &order) {
 }
 
 int TPZShapePiram::NShapeF(TPZVec<int> &order) {
-  int nn = NConnects();
-  int in,res=0;
-  for(in=0;in<nn;in++) res += NConnectShapeF(in,order);
+  int in,res=NNodes;
+  for(in=NNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NNodes]);
   return res;
 }
 

@@ -22,6 +22,10 @@ class TPZConnect {
   int		fSequenceNumber;
   /**Number of element connected*/
   int		fNElConnected;
+  /**
+   * Interpolation order of the associated shape functions
+   */
+  int fOrder;
 
  public:
   /**Structure to reference dependency*/
@@ -57,6 +61,20 @@ class TPZConnect {
   /**Set the sequence number for the global system of equations of the connect
      object. If the argument i==-1 this means that the node is out of use*/
   void SetSequenceNumber(int i) {fSequenceNumber = i;}
+
+  /**
+   * Set the order of the shapefunction associated with the connect
+   */
+  void SetOrder(int order) {
+    fOrder = order;
+  }
+
+  /**
+   * Access function to return the order associated with the connect
+   */
+  int Order() {
+    return fOrder;
+  }
 
   /**Print the information for the connect element. The mesh
      argument allows the object to identify the number of variables

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-
+// $Id: pzshapecube.h,v 1.4 2003-10-06 01:32:07 phil Exp $
 #ifndef SHAPECUBEHPP
 #define SHAPECUBEHPP
 
@@ -234,7 +234,7 @@ static int NConnects();
  * @param order vector of integers indicating the interpolation order of the element
  * @return number of shape functions
  */
-static int NConnectShapeF(int side, TPZVec<int> &order);
+static int NConnectShapeF(int side, int order);
 
 /**
  * Total number of shapefunctions, considering the order

@@ -219,7 +219,7 @@ class TPZInt1d : public TPZIntPoints{
   int fOrdKsi;
   TPZIntRule *fIntP;
  public:
-  TPZInt1d(int OrdK);
+  TPZInt1d(int OrdK = 0);
   virtual int NPoints();
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
   virtual void SetOrder(TPZVec<int> &ord);
@@ -253,7 +253,7 @@ class TPZIntQuad : public TPZIntPoints{
   TPZIntRule *fIntKsi;
   TPZIntRule *fIntEta;
  public:
-  TPZIntQuad(int OrdK, int OrdE);
+  TPZIntQuad(int OrdK = 2, int OrdE = 2);
   virtual void SetOrder(TPZVec<int> &ord);
   virtual int NPoints();
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
@@ -298,7 +298,7 @@ class  TPZIntRuleT3D  {
   REAL	*fLocationZeta;	// location of the integration point Eta
   REAL	*fWeight;		// weight of the integration point
 
-  TPZIntRuleT3D(int i);
+  TPZIntRuleT3D(int i = 2);
   ~TPZIntRuleT3D();
 
  public:
@@ -324,7 +324,7 @@ class  TPZIntRuleP3D  {
   REAL	*fLocationZeta;	// location of the integration point Eta
   REAL	*fWeight;		// weight of the integration point
 
-  TPZIntRuleP3D(int i);
+  TPZIntRuleP3D(int i = 2);
   ~TPZIntRuleP3D();
 
  public:

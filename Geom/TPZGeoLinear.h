@@ -1,3 +1,5 @@
+// -*- c++ -*-
+// $ Id: $
 //HEADER FILE FOR CLASS TPZGeoCube
 
 #ifndef TPZGEOLINEARH
@@ -10,6 +12,8 @@
 class TPZFMatrix;
 class TPZGeoEl;
 class TPZIntPoints;
+class TPZInt1d;
+class TPZGraphEl1dd;
 
 class TPZGeoLinear {
 
@@ -33,6 +37,11 @@ static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 static TPZIntPoints *CreateSideIntegrationRule(int side, int order);
 
 static int NSubElements();
+
+ typedef TPZInt1d IntruleType;
+ typedef TPZGraphEl1dd GraphElType;
+
+
 };
 #endif
 

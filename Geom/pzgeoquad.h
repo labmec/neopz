@@ -1,3 +1,7 @@
+// -*- c++ -*-
+
+// $ Id: $
+
 // TPZGeoQuad.h: interface for the TPZGeoQuad class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -11,7 +15,8 @@
 class TPZFMatrix;
 class TPZGeoEl;
 class TPZIntPoints;
-
+class TPZIntQuad;
+class TPZGraphElQ2dd;
 class TPZGeoQuad  
 {
 public:
@@ -46,7 +51,8 @@ static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
    */
 static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
 
-
+  typedef TPZIntQuad IntruleType;
+  typedef TPZGraphElQ2dd GraphElType;
 };
 
 #endif 

@@ -13,6 +13,7 @@ TPZConnect::TPZConnect() {
   fSequenceNumber = 0;
   fDependList = 0;
   fNElConnected = 0;
+  fOrder = -1;
 }
 
 TPZConnect::~TPZConnect() {
