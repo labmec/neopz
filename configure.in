@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+dnl $Id: configure.in,v 1.2 2003-02-05 14:04:18 cantao Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -119,7 +119,7 @@ case "${comp_mode}" in
 	dnl -fno-math-errno -funsafe-math-optimizations -fno-trapping-math \
 	dnl -mfpmath=sse
 
-        MODE_OPTIONS="-s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fexpensive-optimizations -fmove-all-movables -funroll-loops -ffast-math -fregmove -falign-functions -falign-jumps -falign-loops -malign-double -finline-limit=3000 -fshort-enums -fforce-addr -fdefault-inline -foptimize-sibling-calls -pipe -fno-rtti"
+        MODE_OPTIONS="-w -s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fexpensive-optimizations -fmove-all-movables -funroll-loops -ffast-math -fregmove -falign-functions -falign-jumps -falign-loops -malign-double -finline-limit=3000 -fshort-enums -fforce-addr -fdefault-inline -foptimize-sibling-calls -pipe -fno-rtti"
         ;;
       *)
         AC_MSG_ERROR(unsupported compiler.)
@@ -175,7 +175,7 @@ dnl MeTiS location
 AC_ARG_WITH(metis-dir,
   [  --with-metis-dir=DIR    Root of MeTiS instalation [/usr/local/Metis-4.0]],
   [metis_dir=$withval],
-  [metis_dir=${metis_dir="/usr/local/Metis-4.0"}])
+  [metis_dir=${metis_dir="/usr/local"}])
 
 case "${metis_enabled}" in
   yes)

@@ -1568,7 +1568,7 @@ case "${comp_mode}" in
                                         
 	
 			
-        MODE_OPTIONS="-s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fexpensive-optimizations -fmove-all-movables -funroll-loops -ffast-math -fregmove -falign-functions -falign-jumps -falign-loops -malign-double -finline-limit=3000 -fshort-enums -fforce-addr -fdefault-inline -foptimize-sibling-calls -pipe -fno-rtti"
+        MODE_OPTIONS="-w -s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fexpensive-optimizations -fmove-all-movables -funroll-loops -ffast-math -fregmove -falign-functions -falign-jumps -falign-loops -malign-double -finline-limit=3000 -fshort-enums -fforce-addr -fdefault-inline -foptimize-sibling-calls -pipe -fno-rtti"
         ;;
       *)
         { echo "configure: error: unsupported compiler." 1>&2; exit 1; }
@@ -1631,7 +1631,7 @@ if test "${with_metis_dir+set}" = set; then
   withval="$with_metis_dir"
   metis_dir=$withval
 else
-  metis_dir=${metis_dir="/usr/local/Metis-4.0"}
+  metis_dir=${metis_dir="/usr/local"}
 fi
 
 
