@@ -134,7 +134,6 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Analysis/pzonedref.o \
 	../Analysis/pzsmanal.o \
 	../Analysis/pzsmfrontalanal.o \
-	../Analysis/TPZIterativeAnalysis.o \
 	../Cosys/pzcartsys.o \
 	../Cosys/pzcosys.o \
 	../Cosys/pzcylinsys.o \

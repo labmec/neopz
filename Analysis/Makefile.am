@@ -23,7 +23,6 @@ libpzanalysis_a_SOURCES = pzanalysis.cc \
 		pznonlinanalysis.cc \
 		pzonedref.cc \
 		pzsmanal.cc \
-		pzsmfrontalanal.cc \
-		TPZIterativeAnalysis.cc
+		pzsmfrontalanal.cc
 
 ## --| NeoPZ |------------------------------------------------------------------

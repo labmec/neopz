@@ -14,7 +14,8 @@ CLEANFILES     = @PZ_CLEANFILES@
 bin_PROGRAMS = main
 
 main_SOURCES = wingnaca0012.cc \
-	TPZFlowCMesh.cc
+	TPZFlowCMesh.cc \
+	TPZIterativeAnalysis.cc
 
 main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 
