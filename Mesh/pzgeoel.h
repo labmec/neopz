@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.15 2004-04-26 14:27:03 phil Exp $
+//$Id: pzgeoel.h,v 1.16 2004-06-17 06:26:41 phil Exp $
 
 // -*- c++ -*-
 
@@ -319,12 +319,14 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
   void SetFather(TPZGeoEl *father)
   {
     fFather = father;
+    fFatherIndex = father->Index();
   }
   
   /**Sets the father element index*/
   void SetFather(int fatherindex)
   {
     fFatherIndex = fatherindex;
+    if(Mesh()) fFather = Mesh()->ElementVec()[fatherindex];
   }
 
   /**returns a pointer to the subelement is*/
