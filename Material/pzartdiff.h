@@ -973,27 +973,27 @@ void TPZArtDiff::ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, 
       twoCK = c * k * 2.;
 
       Mat.Redim(nstate,nstate);
-      Mat(0,0) = l1;
-      Mat(0,1) = aaS[0] * sol[0] * ldiff / twoCK;
-      Mat(0,2) = aaS[1] * sol[0] * ldiff / twoCK;
-      Mat(0,3) = aaS[2] * sol[0] * ldiff / twoCK;
-      Mat(0,4) = lstar / ( c2 * 2. );
-      Mat(1,1) = aaS[0] * aaS[0] * lstar / (k2 * 2.) + l1;
-      Mat(1,2) = aaS[0] * aaS[1] * lstar / (k2 * 2.);
-      Mat(1,3) = aaS[0] * aaS[2] * lstar / (k2 * 2.);
-      Mat(1,4) = aaS[0] / twoCK / sol[0] * ldiff;
-      Mat(2,1) = Mat(1,2);
-      Mat(2,2) = aaS[1] * aaS[1] * lstar / (k2 * 2.) + l1;
-      Mat(2,3) = aaS[1] * aaS[2] * lstar / (k2 * 2.);
-      Mat(2,4) = aaS[1] / twoCK / sol[0] * ldiff;
-      Mat(3,1) = Mat(1,3);
-      Mat(3,2) = Mat(2,3);
-      Mat(3,3) = aaS[2] * aaS[2] * lstar / (k2 * 2.) + l1;
-      Mat(3,4) = aaS[2] / twoCK / sol[0] * ldiff;
-      Mat(4,1) = aaS[0] * c * sol[0] * ldiff / (k * 2.);
-      Mat(4,2) = aaS[1] * c * sol[0] * ldiff / (k * 2.);
-      Mat(4,3) = aaS[2] * c * sol[0] * ldiff / (k * 2.);
-      Mat(4,4) = lstar/2. + l1;
+      Mat(0,0) += l1;
+      Mat(0,1) += aaS[0] * sol[0] * ldiff / twoCK;
+      Mat(0,2) += aaS[1] * sol[0] * ldiff / twoCK;
+      Mat(0,3) += aaS[2] * sol[0] * ldiff / twoCK;
+      Mat(0,4) += lstar / ( c2 * 2. );
+      Mat(1,1) += aaS[0] * aaS[0] * lstar / (k2 * 2.) + l1;
+      Mat(1,2) += aaS[0] * aaS[1] * lstar / (k2 * 2.);
+      Mat(1,3) += aaS[0] * aaS[2] * lstar / (k2 * 2.);
+      Mat(1,4) += aaS[0] / twoCK / sol[0] * ldiff;
+      Mat(2,1) += aaS[0] * aaS[1] * lstar / (k2 * 2.);
+      Mat(2,2) += aaS[1] * aaS[1] * lstar / (k2 * 2.) + l1;
+      Mat(2,3) += aaS[1] * aaS[2] * lstar / (k2 * 2.);
+      Mat(2,4) += aaS[1] / twoCK / sol[0] * ldiff;
+      Mat(3,1) += aaS[0] * aaS[2] * lstar / (k2 * 2.);
+      Mat(3,2) += aaS[1] * aaS[2] * lstar / (k2 * 2.);
+      Mat(3,3) += aaS[2] * aaS[2] * lstar / (k2 * 2.) + l1;
+      Mat(3,4) += aaS[2] / twoCK / sol[0] * ldiff;
+      Mat(4,1) += aaS[0] * c * sol[0] * ldiff / (k * 2.);
+      Mat(4,2) += aaS[1] * c * sol[0] * ldiff / (k * 2.);
+      Mat(4,3) += aaS[2] * c * sol[0] * ldiff / (k * 2.);
+      Mat(4,4) += lstar/2. + l1;
 
       break;
       default:
