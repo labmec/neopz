@@ -45,7 +45,7 @@ void TPZGeoTetrahedra::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatr
 	}
 	if(param.NElements() != 3 || param[0] < 0. || param[0] > 1. ||
 		param[1] < 0. || param[1] > 1. || param[2] < 0. || param[2] > 1.) {
-		PZError << "TPZGeoElT3d.jacobian. param out of range : "
+		PZError << "TPZGeoTetrahedra.jacobian. param out of range : "
 			" param.NElements() = " << param.NElements() <<
 			"\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
 		return;
@@ -149,7 +149,7 @@ TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 
 TPZIntPoints * TPZGeoTetrahedra::CreateSideIntegrationRule(int side, int order){
 	if(side<0 || side>15) {
-		PZError << "TPZCompElT3d::CreateSideIntegrationRule. bad side number.\n";
+		PZError << "TPZGeoTetrahedra::CreateSideIntegrationRule. bad side number.\n";
    		return 0;
 	}
 	//SideOrder corrige sides de 4 a 14 para 0 a 10

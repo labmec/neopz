@@ -134,7 +134,7 @@ TPZGeoEl *TPZGeoTriangle::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 
 TPZIntPoints * TPZGeoTriangle::CreateSideIntegrationRule(int side, int order){
 	if(side < 0 || side>6) {
-		PZError << "TPZGeoElT2d::CreateSideIntegrationRule wrong side " << side << endl;
+		PZError << "TPZGeoTriangle::CreateSideIntegrationRule wrong side " << side << endl;
 		return 0;
 	}
 	if(side<3) return new TPZInt1Point();

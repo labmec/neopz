@@ -58,15 +58,15 @@ void TPZGeoPyramid::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix 
 
 #ifdef DEBUG
 	if (nnodes != 5) {
-		PZError <<	"TPZGeoElPi3d.jacobian only implemented for"
-					" 5 nodes, NumberOfNodes = " << nnodes << "\n";
+	  PZError <<	"TPZGeoPyramid.jacobian only implemented for"
+	    " 5 nodes, NumberOfNodes = " << nnodes << "\n";
 	}
 	if(param.NElements() != 3 || param[0] < -1. || param[0] > 1. ||
-		param[1] < -1. || param[1] > 1. || param[2] < 0. || param[2] > 1.) {
-		PZError << "TPZGeoElPi3d.jacobian. param out of range : "
-					" param.NElements() = " << param.NElements() <<
-					"\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
-		return;
+	   param[1] < -1. || param[1] > 1. || param[2] < 0. || param[2] > 1.) {
+	  PZError << "TPZGeoPyramid.jacobian. param out of range : "
+	    " param.NElements() = " << param.NElements() <<
+	    "\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
+	  return;
 	}
 #endif
 
@@ -129,7 +129,7 @@ TPZGeoEl *TPZGeoPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	}
 
    if(side==18) {
-		cout << "TPZGeoElPi3d::CreateBCCompEl with side = 18 not implemented\n";
+		cout << "TPZGeoPyramid::CreateBCCompEl with side = 18 not implemented\n";
 		return 0;
    }
    

@@ -57,12 +57,12 @@ void TPZGeoPrism::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &j
 
 #ifdef DEBUG
   if (nnodes != 6) {
-    PZError << "TPZGeoElPr3d.jacobian only implemented for"
+    PZError << "TPZGeoPrism.jacobian only implemented for"
       " 6 nodes, NumberOfNodes = " << nnodes << "\n";
   }
-  if(param.NElements() != 3 || param[0] < 0. || param[0] > 1. ||
+  if( param[0] < 0. || param[0] > 1. || param.NElements() != 3 ||
      param[1] < 0. || param[1] > 1. || param[2] < -1. || param[2] > 1.) {
-    PZError << "TPZGeoElPr3d.jacobian. param out of range : "
+    PZError << "TPZGeoPrism::jacobian. param out of range : "
       " param.NElements() = " << param.NElements() <<
       "\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
     return;
@@ -123,12 +123,12 @@ void TPZGeoPrism::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result)
 TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
   TPZGeoEl *result = 0;
 	if(side<0 || side>20) {
-		cout << "TPZGeoElPr3d::CreateBCCompEl bad side = " << side << " not implemented\n";		
+		cout << "TPZGeoPrism::CreateBCCompEl bad side = " << side << " not implemented\n";		
 		return result;
 	}
 
 	if(side==20) {
-		cout << "TPZGeoElPr3d::CreateBCCompEl with side = 20 not implemented\n";
+		cout << "TPZGeoPrism::CreateBCCompEl with side = 20 not implemented\n";
 		return result;
 	}
 
@@ -145,8 +145,10 @@ TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		nodes[0] = orig->SideNodeIndex(side,0);//(TPZCompElPr3d::SideNodes[s][0]);
 		nodes[1] = orig->SideNodeIndex(side,1);//NodeIndex(TPZCompElPr3d::SideNodes[s][1]);
 		TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
-		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,0)));//(TPZGeoElSide(this,TPZCompElPr3d::SideNodes[s][0]));
-		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,1)));//(TPZGeoElSide(this,TPZCompElPr3d::SideNodes[s][1]));
+		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,0)));
+		//(TPZGeoElSide(this,TPZCompElPr3d::SideNodes[s][0]));
+		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,1)));
+		//(TPZGeoElSide(this,TPZCompElPr3d::SideNodes[s][1]));
 		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));//(TPZGeoElSide(this,side));
 		result = gel;//->CreateCompEl(cmesh,index);
 	} 
@@ -177,7 +179,7 @@ TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 			result = gelt;
 		}
 	} else {
-	  PZError << "TPZGeoElPr3d::CreateBCGeoEl. Side = " << side << endl;
+	  PZError << "TPZGeoPrism::CreateBCGeoEl. Side = " << side << endl;
 	return 0;
 	}
 	//	cout << "\n\nBoundary element " << bc << "  created for prism side " << side << endl;
@@ -191,7 +193,7 @@ TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 
 TPZIntPoints * TPZGeoPrism::CreateSideIntegrationRule(int side, int order){
 	if(side<0 || side>20) {
-		PZError << "TPZCompElPr3d::CreateSideIntegrationRule. bad side number.\n";
+		PZError << "TPZGeoPrism::CreateSideIntegrationRule. bad side number.\n";
 		return 0;
 	}
 	//SideOrder corrige sides de 5 a 18 para 0 a 13

@@ -40,12 +40,12 @@ void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &ja
   int nnodes = NNodes;
 #ifdef DEBUG
   if (nnodes != 4) {
-    PZError << "TPZGeoElQ2d.jacobian only implemented for"
+    PZError << "TPZGeoQuad.jacobian only implemented for"
       " 4, 8 or 9 nodes, NumberOfNodes = " << nnodes << "\n";
   }
   if( param[0] < -1. || param[0] > 1. ||  //param.NElements() != 3 ||
      param[1] < -1. || param[1] > 1.) {
-    PZError << "TPZGeoElQ2d.jacobian. param out of range : "
+    PZError << "TPZGeoQuad.jacobian. param out of range : "
       " param.NElements() = " << param.NElements() <<
       "\nparam[0] = " << param[0] << " param[1] = " << param[1] << "\n";
     return;
@@ -117,48 +117,47 @@ void TPZGeoQuad::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
 }
 
 TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
-	if(side==8) {//8
-		TPZManVector<int> nodes(4);
-		int i; 
-		for (i=0;i<4;i++) {
-			nodes[i] = orig->SideNodeIndex(side,i);
-		}
-		//TPZGeoElQ2d *gel = CreateGeoEl(nodes,bc,*Mesh());
-		TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
-		int iside;
-		for (iside = 0; iside <8; iside++){
-			TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,iside)));
-		}	    
-		TPZGeoElSide(gel,8).SetConnectivity(TPZGeoElSide(orig,side));
-		return gel;
-	}
-	else if(side>-1 && side<4) {//side = 0,1,2,3
-		TPZManVector<int> nodeindexes(1);
-		TPZGeoElPoint *gel;
-		nodeindexes[0] = orig->SideNodeIndex(side,0);
-		gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
-		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
-		return gel;
-	}
-	else if(side>3 && side<8) {
-		TPZManVector<int> nodes(2);
-		nodes[0] = orig->SideNodeIndex(side,0);
-		nodes[1] = orig->SideNodeIndex(side,1);
-		TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
-		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,0)));//Cesar2003-01-05->TPZShapeLinear::Side...
-		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,1)));//Cesar2003-01-05->TPZShapeLinear::Side...
-		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
-		return gel;
-	}
-	else PZError << "TPZGeoQuad::CreateBCCompEl has no bc.\n";
-	return 0;
+  if(side==8) {//8
+    TPZManVector<int> nodes(4);
+    int i; 
+    for (i=0;i<4;i++) {
+      nodes[i] = orig->SideNodeIndex(side,i);
+    }
+    TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
+    int iside;
+    for (iside = 0; iside <8; iside++){
+      TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,iside)));
+    }	    
+    TPZGeoElSide(gel,8).SetConnectivity(TPZGeoElSide(orig,side));
+    return gel;
+  }
+  else if(side>-1 && side<4) {//side = 0,1,2,3
+    TPZManVector<int> nodeindexes(1);
+    TPZGeoElPoint *gel;
+    nodeindexes[0] = orig->SideNodeIndex(side,0);
+    gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
+    TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
+    return gel;
+  }
+  else if(side>3 && side<8) {
+    TPZManVector<int> nodes(2);
+    nodes[0] = orig->SideNodeIndex(side,0);
+    nodes[1] = orig->SideNodeIndex(side,1);
+    TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
+    TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,0)));
+    TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,1)));
+    TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
+    return gel;
+  }
+  else PZError << "TPZGeoQuad::CreateBCCompEl has no bc.\n";
+  return 0;
 }
 
 
 TPZIntPoints * TPZGeoQuad::CreateSideIntegrationRule(int side, int order){
   if(side<0 || side>8) {
-	PZError << "TPZGeoElQ2d::CreateSideIntegrationRule wrong side " << side << endl;
-	return 0;
+    PZError << "TPZGeoQuad::CreateSideIntegrationRule wrong side " << side << endl;
+    return 0;
   }
   if(side<4) return new TPZInt1Point();
   if(side<8) return new TPZInt1d(order);
