@@ -387,7 +387,7 @@ inline int TPZFMatrix::Redim(const int newRows,const int newCols) {
   } else if(newsize == 0) {
     fElem = NULL;
   } else {
-    fElem = new( REAL[ newsize ] );
+    fElem = new REAL[ newsize ] ;
   }
 #ifndef NODEBUG
   if (newsize && fElem == NULL )

@@ -978,7 +978,8 @@ int TPZMatrix::VerifySymmetry() const{
   for( int i = 0; i < nrows; i++){
     for(int j = 0; j <= i; j++){
       if ( fabs( this->Get(i,j) - this->Get(j,i) ) > 1.e-13 ) {
-        cout << "Elemento: " << i << ", " << j << "  -> " << fabs(this->Get(i,j) - this->Get(j,i) ) << endl;
+        cout << "Elemento: " << i << ", " << j << "  -> " << fabs(this->Get(i,j) - this->Get(j,i) ) << "/" <<
+        this->Get(i,j) << endl;
 	return 0;       
       }
     }  
