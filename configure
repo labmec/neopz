@@ -1518,6 +1518,9 @@ case "$target" in
   i*86-*-linux-*)
     ARCH_INCLUDES=
     ;;
+  i*86-*-cygwin*)
+    ARCH_INCLUDES=
+    ;;
   *)
     { echo "configure: error: cannot determine system architecture." 1>&2; exit 1; }
     ;;
@@ -1541,7 +1544,7 @@ case "${comp_mode}" in
     COMPILATION_MODE="Development compilation mode."
     case "$CXX" in
       c++ | g++)
-        MODE_OPTIONS="-Wall -ggdb3 -pipe -fno-default-inline -fno-inline"
+        MODE_OPTIONS="-DDEBUG -Wall -ggdb3 -pipe -fno-default-inline -fno-inline"
         ;;
       *)
         { echo "configure: error: unsupported compiler." 1>&2; exit 1; }
@@ -1553,7 +1556,7 @@ case "${comp_mode}" in
     COMPILATION_MODE="Profiling compilation mode."
     case "$CXX" in
       c++ | g++)
-        MODE_OPTIONS="-Wall -ggdb3 -pg -pipe"
+        MODE_OPTIONS="-DNODEBUG -DNOTDEBUG -Wall -ggdb3 -pg -pipe"
         ;;
       *)
         { echo "configure: error: unsupported compiler." 1>&2; exit 1; }
@@ -1568,7 +1571,7 @@ case "${comp_mode}" in
                                         
 	
 			
-        MODE_OPTIONS="-w -s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fexpensive-optimizations -fmove-all-movables -funroll-loops -ffast-math -fregmove -falign-functions -falign-jumps -falign-loops -malign-double -finline-limit=3000 -fshort-enums -fforce-addr -fdefault-inline -foptimize-sibling-calls -pipe"
+        MODE_OPTIONS="-DNODEBUG -DNOTDEBUG -w -s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fexpensive-optimizations -fmove-all-movables -funroll-loops -ffast-math -fregmove -falign-functions -falign-jumps -falign-loops -malign-double -finline-limit=3000 -fshort-enums -fforce-addr -fdefault-inline -foptimize-sibling-calls -pipe"
         ;;
       *)
         { echo "configure: error: unsupported compiler." 1>&2; exit 1; }

@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.4 2003-02-12 16:15:43 cantao Exp $
+dnl $Id: configure.in,v 1.5 2003-03-21 14:39:37 cantao Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -57,6 +57,9 @@ case "$target" in
   i*86-*-linux-*)
     ARCH_INCLUDES=
     ;;
+  i*86-*-cygwin*)
+    ARCH_INCLUDES=
+    ;;
   *)
     AC_MSG_ERROR(cannot determine system architecture.)
     ;;
@@ -83,7 +86,7 @@ case "${comp_mode}" in
     COMPILATION_MODE="Development compilation mode."
     case "$CXX" in
       c++ | g++)
-        MODE_OPTIONS="-Wall -ggdb3 -pipe -fno-default-inline -fno-inline"
+        MODE_OPTIONS="-DDEBUG -Wall -ggdb3 -pipe -fno-default-inline -fno-inline"
         ;;
       *)
         AC_MSG_ERROR(unsupported compiler.)
@@ -95,7 +98,7 @@ case "${comp_mode}" in
     COMPILATION_MODE="Profiling compilation mode."
     case "$CXX" in
       c++ | g++)
-        MODE_OPTIONS="-Wall -ggdb3 -pg -pipe"
+        MODE_OPTIONS="-DNODEBUG -DNOTDEBUG -Wall -ggdb3 -pg -pipe"
         ;;
       *)
         AC_MSG_ERROR(unsupported compiler.)
@@ -119,7 +122,7 @@ case "${comp_mode}" in
 	dnl -fno-math-errno -funsafe-math-optimizations -fno-trapping-math \
 	dnl -mfpmath=sse
 
-        MODE_OPTIONS="-w -s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fexpensive-optimizations -fmove-all-movables -funroll-loops -ffast-math -fregmove -falign-functions -falign-jumps -falign-loops -malign-double -finline-limit=3000 -fshort-enums -fforce-addr -fdefault-inline -foptimize-sibling-calls -pipe"
+        MODE_OPTIONS="-DNODEBUG -DNOTDEBUG -w -s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fexpensive-optimizations -fmove-all-movables -funroll-loops -ffast-math -fregmove -falign-functions -falign-jumps -falign-loops -malign-double -finline-limit=3000 -fshort-enums -fforce-addr -fdefault-inline -foptimize-sibling-calls -pipe"
         ;;
       *)
         AC_MSG_ERROR(unsupported compiler.)
