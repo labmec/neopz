@@ -174,7 +174,7 @@ TPZFlowCompMesh *
    TPZFMatrix val1(4,4), val2(4,1);
    REAL ro = 1.7,
 	u = 5.5,
-	v = 3.3,
+	v = 0,//3.3,
 	p = 2.,
 	vel2 = u*u + v*v;
 
@@ -224,7 +224,7 @@ TPZFlowCompMesh *
 
       REAL ro = 2.0,
 	   u = 5.7,
-	   v = 3.5,
+	   v = 0,//3.5,
 	   p = 2.8,
 	   vel2 = u*u + v*v;
       Solution(blockOffset  ,0) = ro;

@@ -21,7 +21,7 @@
 #include "pzstepsolver.h"
 #include "pzblock.h"
 
-const int nEl = 2;
+const int nEl = 1;
 
 // Creates a mesh for the simple shock problem
 
@@ -190,22 +190,14 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
    }
    bc = mat->CreateBC(-1,5,val1,val2);
    cmesh->InsertMaterialObject(bc);
-/*
-   //CC ARESTA DIREITA : OUTFLOW
-   val1.Zero();
-   val2.Zero();
-   TPZGeoElBC((TPZGeoEl *)gElem[3],5,-2,*gmesh);
-   TPZGeoElBC((TPZGeoEl *)gElem[6],5,-2,*gmesh);
-   bc = mat->CreateBC(-2,4,val1,val2);
-   cmesh->InsertMaterialObject(bc);
-*/
+   
    //CC ARESTA DIREITA : DIRICHLET
    val1.Zero();
    val2.Zero();
-   val2(0,0) = rhor;
-   val2(1,0) = rhour;
-   val2(2,0) = rhovr;
-   val2(3,0) = rhoer;
+   val2(0,0) = rhol;
+   val2(1,0) = rhoul;
+   val2(2,0) = rhovl;
+   val2(3,0) = rhoel;
 //   TPZGeoElBC((TPZGeoEl *)gElem[0],5,-2,*gmesh);
    TPZGeoElBC((TPZGeoEl *)gElem[nEl-1],5,-2,*gmesh);
    bc = mat->CreateBC(-2,3,val1,val2);

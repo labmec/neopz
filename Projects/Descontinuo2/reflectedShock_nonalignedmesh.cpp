@@ -113,11 +113,11 @@ TPZGeoMesh * CreateRSNAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
    {
       int j;
       TPZVec< TPZGeoEl * > firstDivision;
-      if(nSubdiv > 1)
+      for(i = 0; i < gEls.NElements(); i++)
       {
-         for(i = 0; i < gEls.NElements();i++)
+         gEls[i]->Divide(firstDivision);
+         if(nSubdiv > 1)
          {
-            gEls[i]->Divide(firstDivision);
             TPZVec< TPZGeoEl * > secondDivision;
             for(j = 0; j < firstDivision.NElements();j++)firstDivision[j]->Divide(secondDivision);
 	 }

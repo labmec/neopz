@@ -233,8 +233,8 @@ int main()
 
    TPZMatrix * mat = StrMatrix.Create();
 
-   An.SetLinSysCriteria(1e-10, 0);
-   An.SetNewtonCriteria(1e-10, 100);
+   An.SetLinSysCriteria(1e-10, 10);
+   An.SetNewtonCriteria(1e-10, 10);
    An.SetTimeIntCriteria(1e-10, MaxIter);
 
    TPZStepSolver Solver;
@@ -252,7 +252,7 @@ int main()
    TPZMatrix * mat = StrMatrix.Create();
 
    An.SetLinSysCriteria(1e-10, 100);
-   An.SetNewtonCriteria(1e-9, 7);
+   An.SetNewtonCriteria(1e-9, 20);
    An.SetTimeIntCriteria(1e-8,MaxIter);
 
    //Preconditioner
@@ -264,7 +264,7 @@ int main()
 
    //Main Solver
    TPZStepSolver Solver;
-   Solver.SetGMRES(100,
+   Solver.SetGMRES(20,
 		10,
 		Pre,
 		1e-9,

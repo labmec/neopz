@@ -21,7 +21,7 @@
 #include "pzstepsolver.h"
 #include "pzblock.h"
 
-const int nSTEl = 2 * 5;
+const int nSTEl = 2 * 1;
 
 // Creates a mesh for the simple shock problem
 
@@ -32,7 +32,7 @@ void STMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
    REAL sinA = sin(alpha);
 
    REAL y1=0,
-	y2=.1;
+	y2=.5;
 
    pt.Resize(2*nSTEl + 2);
    TPZVec<REAL> coord(3);
@@ -169,14 +169,14 @@ TPZFlowCompMesh * STCompMesh(REAL CFL, REAL delta,
    TPZBndCond * bc;
 
    REAL rhol  = 1.,
-        ul = 1.e-10,
-	vl = 1.e-10,
+        ul = 1.e-8,
+	vl = 1.e-8,
 	pl = 1.;
    REAL rhoel = pl/(gamma - 1.) + rhol * (ul * ul + vl * vl);
 
    REAL rhor  = 3.,
-        ur = 1.e-10,
-	vr = 1.e-10,
+        ur = 1.e-8,
+	vr = 1.e-8,
 	pr = 3.;
    REAL rhoer = pr/(gamma - 1.) + rhor * (ur * ur + vr * vr);
 
