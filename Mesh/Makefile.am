@@ -50,6 +50,7 @@ libpzmesh_a_SOURCES = pzcheckgeom.cc \
 	pzsubcmesh.cc \
 	pzvecmesh.cc \
 	TPZCompElDisc.cc \
-	TPZInterfaceEl.cc
+	TPZInterfaceEl.cc \
+	TPZAgglomerateEl.cc
 
 ## --| NeoPZ |------------------------------------------------------------------
