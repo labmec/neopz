@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.41 2003-12-09 17:52:09 phil Exp $
+//$Id: TPZCompElDisc.cc,v 1.42 2004-01-14 15:26:37 cantao Exp $
 
 // -*- c++ -*- 
 
@@ -128,7 +128,6 @@ void TPZCompElDisc::CreateInterfaces(){
     if(ExistsInterface(thisside.Reference())) {
       int stop;
       cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
-      cin >> stop;
       continue;
     }
     TPZStack<TPZCompElSide> highlist;
