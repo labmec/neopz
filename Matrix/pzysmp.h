@@ -67,6 +67,8 @@ class TPZFYsmpMatrix : public TPZMatrix {
 
   void Multiply(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res);    
 
+  virtual int Zero();
+
 
  private:
 

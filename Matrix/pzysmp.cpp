@@ -287,3 +287,12 @@ void TPZFYsmpMatrix::SolveSOR( int &numiterations, const TPZFMatrix &rhs, TPZFMa
   numiterations = iteration;
   if(residual) Residual(x,rhs,*residual);
 }
+
+int TPZFYsmpMatrix::Zero()
+{
+   int size = fIA[fRow] * sizeof(REAL);
+   int diagSize = min(fRow, fCol) * sizeof(REAL);
+   memset(fA,'\0',size);
+   memset(fDiag,'\0', diagSize);
+   return 1;
+}
