@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.cpp,v 1.12 2004-06-08 06:21:16 phil Exp $
+//$Id: pzflowcmesh.cpp,v 1.13 2004-06-15 19:09:47 erick Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
@@ -109,7 +109,7 @@ void TPZFlowCompMesh::CollectFluidMaterials()
 }
 
 
-void TPZFlowCompMesh::ComputeTimeStep()
+REAL TPZFlowCompMesh::ComputeTimeStep()
 {
     REAL maxVel = MaxVelocityOfMesh();
     REAL deltax = LesserEdgeOfMesh();
@@ -117,11 +117,15 @@ void TPZFlowCompMesh::ComputeTimeStep()
     TPZCompElDisc *disc;
     int degree = disc->gDegree;
 
+    double meanTimeStep = 0.;
+
     int i, NumFluid = fFluidMaterial.NElements();
     for(i = 0; i < NumFluid; i++)
     {
-       fFluidMaterial[i]->SetTimeStep(maxVel, deltax, degree);
+       meanTimeStep += fFluidMaterial[i]->SetTimeStep(maxVel, deltax, degree);
     }
+
+    return meanTimeStep / (double)NumFluid;
 }
 
 #define MAXCFL 1.e6

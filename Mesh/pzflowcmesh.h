@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.h,v 1.11 2004-05-25 12:58:56 erick Exp $
+//$Id: pzflowcmesh.h,v 1.12 2004-06-15 19:09:48 erick Exp $
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -43,7 +43,7 @@ public:
    * User must call CollectFluidMaterials and
    * SetCFL first.
    */
-  void ComputeTimeStep();
+  REAL ComputeTimeStep();
 
   /**
    * Informs all materials the CFL number.
