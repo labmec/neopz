@@ -365,11 +365,12 @@ TPZGeoElRefLess<TShape,TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTrans
 template<class TShape, class TGeo>
 void
 TPZGeoElRefLess<TShape,TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
-  TPZFMatrix nodes(3,TGeo::NNodes);
+  TPZFNMatrix<3*TGeo::NNodes> nodes(3,TGeo::NNodes);
   TPZGeoNode *np;
+  TPZAdmChunkVector<TPZGeoNode> &nodevec = Mesh()->NodeVec();
   int i,j;
   for(i=0;i<TGeo::NNodes;i++) {
-    np = NodePtr(i);
+    np = &nodevec[fNodeIndexes[i]];
     for(j=0;j<3;j++) {
       nodes(j,i) = np->Coord(j);
     }
@@ -380,11 +381,12 @@ TPZGeoElRefLess<TShape,TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,
 template<class TShape, class TGeo>
 void
 TPZGeoElRefLess<TShape,TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result){
-  TPZFMatrix nodes(3,TGeo::NNodes);
+  TPZFNMatrix<3*TGeo::NNodes> nodes(3,TGeo::NNodes);
   TPZGeoNode *np;
+  TPZAdmChunkVector<TPZGeoNode> &nodevec = Mesh()->NodeVec();
   int i,j;
   for(i=0;i<TGeo::NNodes;i++) {
-    np = NodePtr(i);
+    np = &nodevec[fNodeIndexes[i]];
     for(j=0;j<3;j++) {
       nodes(j,i) = np->Coord(j);
     }
