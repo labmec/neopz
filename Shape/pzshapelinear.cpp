@@ -211,22 +211,30 @@ void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix &, TPZFMatrix &) = TPZ
 
 void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi) {
   //	num = number of functions to compute
+#ifndef NODEBUG
   if ( order[0] < 0 ) {
     PZError << "Compelbas::shape --> Invalid dimension for arguments: order = " << order[0]
 	    << " phi.Rows = " << (int) phi.Rows() << " dphi.Cols = " << (int) dphi.Cols() << "\n";
     return;
   }
-  if(phi.Rows() < order[0]+1) phi.Resize(order[0], phi.Cols());
-  if(dphi.Cols() < order[0]+1) dphi.Resize(dphi.Rows(),order[0]);
+  if(phi.Rows() < order[0]+1) {
+    PZError << "TPZShapeLinear::shape --> Invalid dimension for argument phi " << endl;
+    phi.Resize(order[0], phi.Cols());
+  }
+  if(dphi.Cols() < order[0]+1) {
+    PZError << "TPZShapeLinear::shape --> Invalid dimension for argument dphi " << endl;
+    dphi.Resize(dphi.Rows(),order[0]);
+  }
+#endif
 
   if ( order[0] == 0) {
     phi(0,0) = 1.;
     dphi(0,0) = 0.;
   } else if (order[0] == 1) {		// Linear shape functions
-    phi.Put(0,0, (1-x[0])/2.);
-    phi.Put(1,0, (1+x[0])/2.);
-    dphi.Put(0,0, -0.5);
-    dphi.Put(0,1, 0.5);
+    phi(0,0) = (1-x[0])/2.;
+    phi(1,0) = (1+x[0])/2.;
+    dphi(0,0) = -0.5;
+    dphi(0,1)= 0.5;
     return;
   }
 

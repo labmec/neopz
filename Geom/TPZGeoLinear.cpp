@@ -7,21 +7,6 @@
 #include "pzgeoel.h"
 
 
-void TPZGeoLinear::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
-
-  int numnodes = NNodes;
-  REAL spacephi[9], spacedphi[18];
-  TPZFMatrix phi(numnodes,1,spacephi,9),dphi(1,numnodes,spacedphi,18);
-  Shape/*1d*/(loc/*[0]*/,/*numnodes,*/phi,dphi);
-  int in;
-  for(in=0; in<3; in++) result[in] = 0.;
-  for(in = 0; in < numnodes; in++) {
-    int ic;
-    for(ic=0; ic<3 ; ic++) {
-      result[ic] += coord(ic,in)*phi(in,0);
-    }
-  }
-}
 
 void TPZGeoLinear::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 	REAL x = pt[0];
@@ -31,37 +16,6 @@ void TPZGeoLinear::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
     dphi(0,1) = 0.5;
 }
 
-void TPZGeoLinear::Jacobian(TPZFMatrix coord,TPZVec<REAL> &param,TPZFMatrix &jacobian,
-							TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
-
-
-  REAL spacephi[9], spacedphi[18];
-  TPZFMatrix phi(NNodes,1,spacephi,9),dphi(1,NNodes,spacedphi,18);
-  Shape(param,phi,dphi);
-
-  int ic;
-  TPZVec<REAL> v1(3,0.);
-  REAL mod1 = 0;
-
-  for(int i=0; i < NNodes; i++) {
-    for(ic = 0; ic < 3; ic++) {
-      v1[ic] += coord(ic,i)*dphi(0,i);
-    }
-  }
-
-  for(ic=0; ic<3; ic++) {
-    mod1 += v1[ic]*v1[ic];
-  }
-  mod1 = sqrt(mod1);
-  jacobian(0,0) = mod1;
-  detjac = mod1;
-  jacinv(0,0) = 1./detjac;
-
-  axes.Zero();
-  for(ic=0; ic<3; ic++) {
-	  axes(0,ic) = v1[ic]/mod1;
-  }
-}
 
 TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
   if(side==2) {

@@ -80,6 +80,12 @@ void  TPZShapeDisc::Shape1D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZ
 
 void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
 
+  if(degree == 0) {
+    phi(0,0) = 1.;
+    dphi(0,0) = 0.;
+    dphi(1,0) = 0.;
+    return;
+  }
   REAL x0 = X0[0];
   REAL y0 = X0[1];
   REAL x = X[0];
