@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cc,v 1.15 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzcmesh.cc,v 1.16 2003-11-06 19:11:33 cesar Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1635,6 +1635,8 @@ TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) : fReference(copy.fReference),
 						    fConnectVec(copy.fConnectVec), fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
 						    fSolution(copy.fSolution), fBlock(copy.fBlock), fElementSolution(copy.fElementSolution)
 {
+  fBlock.SetMatrix(&fSolution);
+  fSolutionBlock.SetMatrix(&fSolution);
   copy.CopyMaterials(this);
   int nel = fElementVec.NElements();
   int iel;
