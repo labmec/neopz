@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.14 2004-10-06 19:22:57 phil Exp $
+//$Id: pzgmesh.h,v 1.15 2004-11-24 17:53:50 cesar Exp $
 
 /**File : pzgmes.h
 
@@ -105,6 +105,8 @@ virtual void Write(TPZStream &buf, int withclassid);
   int NNodes() {return fNodeVec.NElements();}
   /**Number of elements of the mesh*/
   int NElements() {return fElementVec.NElements();}
+  
+  int ReallyNEl() {return (fElementVec.NElements() - fElementVec.NFreeElements()) ; }
 
   void SetName(char *name);
   string &Name() { return fName; }
@@ -209,6 +211,7 @@ virtual  void Print(ostream & out = cout);
 protected: // Protected attributes
   /** Maps all refinement pattern objects in the mesh */
   map<int,map<string,TPZRefPattern *> > fRefPatterns;
+  
 public:
   void InsertRefPattern(TPZRefPattern *refpat);
   TPZRefPattern * GetRefPattern(int eltype, string name);
