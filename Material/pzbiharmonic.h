@@ -1,4 +1,5 @@
-//$Id: pzbiharmonic.h,v 1.1 2003-11-27 16:02:51 igor Exp $
+// -*- c++ -*-
+//$Id: pzbiharmonic.h,v 1.2 2003-12-01 14:50:19 tiago Exp $
 
 #ifndef  TPZBIHARMONICHPP
 #define TPZBIHARMONICHPP
@@ -15,25 +16,32 @@
 class TPZBiharmonic : public TPZDiscontinuousGalerkin {
 
  private:
-  TPZFMatrix fXf, fXk;
+  REAL  fXf, fXk;
 
   //Problem dimention
-  int fDim;
-  
+    
   public :
 
  static REAL gLambda1, gLambda2, gSigma, gL_alpha, gM_alpha, gL_betta, gM_betta;
 
- TPZBiharmonic(int nummat, int dim);
+  /**
+   * Inicialisation of biharmonic material
+   */
+ TPZBiharmonic(int nummat, REAL xfin,REAL xkin);
   
   virtual ~TPZBiharmonic();
-  //  dimension of f and k is one!!!!  
-  void SetMaterial(TPZFMatrix &xfin,TPZFMatrix  &xkin){
+ 
+  /**
+   * Returns the number of norm errors. Default is 3: energy, L2,  H1, semi-norm H2 and H2.
+   */
+  virtual int NEvalErrors() {return 5;}
+  
+  void SetMaterial(REAL &xfin,REAL &xkin){
     fXf = xfin;
     fXk =xkin;
   }
   
-  int Dimension() { return fDim;}
+  int Dimension() { return 2;}
 
   // Returns one because of scalar problem 
   int NStateVariables(){
@@ -55,8 +63,7 @@ class TPZBiharmonic : public TPZDiscontinuousGalerkin {
   
   virtual int NSolutionVariables(int var);
   
-  //<!> ????  
-virtual int NFluxes(){ return 3;}
+  virtual int NFluxes(){ return 0;}
   
  virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
   

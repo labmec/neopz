@@ -1,4 +1,4 @@
-//$Id: pzbiharmonic.cpp,v 1.1 2003-11-27 16:02:39 igor Exp $
+//$Id: pzbiharmonic.cpp,v 1.2 2003-12-01 14:50:19 tiago Exp $
 
 #include "pzbiharmonic.h"
 #include "pzelmat.h"
@@ -16,7 +16,7 @@ REAL TPZBiharmonic::gM_alpha   =  3.0;
 REAL TPZBiharmonic::gL_betta     =  4.0;
 REAL TPZBiharmonic::gM_betta    =  1.0;
 
-TPZBiharmonic::TPZBiharmonic(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(1,1,0.), fXk(1,1,0.), fDim(dim) {
+TPZBiharmonic::TPZBiharmonic(int nummat,REAL xfin, REAL xkin) : TPZDiscontinuousGalerkin(nummat), fXf(xfin), fXk(xkin) {
 }
 
 TPZBiharmonic::~TPZBiharmonic() {
@@ -26,10 +26,7 @@ void TPZBiharmonic::Print(ostream &out) {
   out << "name of material : " << Name() << "\n";
   out << "properties : \n";
   TPZMaterial::Print(out);
-
-  fXf.Print ("Matrix fxf", out ) ;
-
-  fXk.Print ("Matrix fxk", out ) ;         
+        
 }
 
 void TPZBiharmonic::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &  dsol ,REAL weight,TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
@@ -39,13 +36,13 @@ void TPZBiharmonic::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &
   if(fForcingFunction) {            // phi(in, 0) = phi_in
     TPZManVector<REAL> res(1);
     fForcingFunction(x,res);       // dphi(i,j) = dphi_j/dxi
-    fXf(0,0) = res[0];
+    fXf = res[0];
   }
   //Equação de Poisson
   for( int in = 0; in < phr; in++ ) {
-    ef(in, 0) +=  weight * fXf(0,0)*phi(in,0);
+    ef(in, 0) +=  weight * fXf*phi(in,0);
     for( int jn = 0; jn < phr; jn++ ) { 
-      ek(in,jn) +=fXk(0,0)* weight * ( dphi(fDim,in) * dphi(fDim,jn) );
+      ek(in,jn) +=fXk* weight * ( dphi(2,in) * dphi(2,jn) );
     }
   }
 }
@@ -98,7 +95,7 @@ int TPZBiharmonic::NSolutionVariables(int var){
 
   if(var == 0) return 6;
   if(var == 1) return 1;
-  if(var == 2) return fDim;
+  if(var == 2) return 2;
   if(var == 10) return 1;
   return TPZMaterial::NSolutionVariables(var);
   //  cout << "TPZBiharmonic::NSolutionVariables Error\n";
@@ -110,7 +107,7 @@ void TPZBiharmonic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*ax
   if(var == 0 || var == 1) Solout[0] = Sol[0];//function
   if(var == 2) {
     int id;
-    for(id=0 ; id<fDim; id++) {
+    for(id=0 ; id<2; id++) {
       Solout[id] = DSol(id,0);//derivate
     }
   }
@@ -124,21 +121,26 @@ void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 			       TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
 			       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
 
-  TPZVec<REAL> sol(1),dsol(3,0.);
+  TPZVec<REAL> sol(1),dsol(5,0.);
   Solution(u,dudx,axes,1,sol);
   Solution(u,dudx,axes,2,dsol);
-  REAL dx[3] = {0.};
-  int id,jd;
-  for(id=0; id<fDim; id++) for(jd=0; jd<3; jd++) dx[jd] += dsol[id]*axes(id,jd);
-  //values[1] : eror em norma L2
+    //values[1] : error em norma L2
   values[1]  = (sol[0] - u_exact[0])*(sol[0] - u_exact[0]);
-  //values[2] : erro em semi norma H1
-  values[2] = 0.;
-  for(id=0; id<fDim; id++) {
-    values[2]  += (dx[id] - du_exact(id,0))*(dx[id] - du_exact(id,0));
+ 
+ //values[3] : erro em semi norma H1
+  values[3] = 0.;
+  for(int id=0; id<2; id++) {
+    values[3]  += (dsol[id] - du_exact(id,0))*(dsol[id] - du_exact(id,0));
   }
-  //values[0] : erro em norma H1 <=> norma Energia
-  values[0]  = values[1]+values[2];
+  //values[0] : erro em semi norma Laplace = energia
+     values[0]  += (dsol[2] - du_exact(2,0))*(dsol[2] - du_exact(2,0));
+  
+  //values[2] : erro em norma H1
+  values[2]  = values[1]+values[3];
+
+  //values[4] : erro em norma H2 
+  values[4]  = values[2]+values[0];
+
 }
 
 
@@ -152,12 +154,12 @@ void TPZBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVe
   int il,jl,ir,jr,id;
   for(il=0; il<nrowl; il++) {
     REAL dphiLinormal = 0.;
-    for(id=0; id<fDim; id++) {
+    for(id=0; id<2; id++) {
       dphiLinormal += dphiL(id,il)*normal[id];
     }
     for(jl=0; jl<nrowl; jl++) {
       REAL dphiLjnormal = 0.;
-      for(id=0; id<fDim; id++) {
+      for(id=0; id<2; id++) {
 	dphiLjnormal += dphiL(id,jl)*normal[id];
       }
       ek(il,jl) += weight*(
@@ -167,12 +169,12 @@ void TPZBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVe
   }
   for(ir=0; ir<nrowr; ir++) {
     REAL dphiRinormal = 0.;
-    for(id=0; id<fDim; id++) {
+    for(id=0; id<2; id++) {
       dphiRinormal += dphiR(id,ir)*normal[id];
     }
     for(jr=0; jr<nrowr; jr++) {
       REAL dphiRjnormal = 0.;
-      for(id=0; id<fDim; id++) {
+      for(id=0; id<2; id++) {
 	dphiRjnormal += dphiR(id,jr)*normal[id];
       }
       ek(ir+nrowl,jr+nrowl) += weight*(
@@ -182,12 +184,12 @@ void TPZBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVe
   }
   for(il=0; il<nrowl; il++) {
     REAL dphiLinormal = 0.;
-    for(id=0; id<fDim; id++) {
+    for(id=0; id<2; id++) {
       dphiLinormal += dphiL(id,il)*normal[id];
     }
     for(jr=0; jr<nrowr; jr++) {
       REAL dphiRjnormal = 0.;
-      for(id=0; id<fDim; id++) {
+      for(id=0; id<2; id++) {
 	dphiRjnormal += dphiR(id,jr)*normal[id];
       }
       ek(il,jr+nrowl) += weight*(
@@ -197,12 +199,12 @@ void TPZBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVe
   }
   for(ir=0; ir<nrowr; ir++) {
     REAL dphiRinormal = 0.;
-    for(id=0; id<fDim; id++) {
+    for(id=0; id<2; id++) {
       dphiRinormal += dphiR(id,ir)*normal[id];
     }
     for(jl=0; jl<nrowl; jl++) {
       REAL dphiLjnormal = 0.;
-      for(id=0; id<fDim; id++) {
+      for(id=0; id<2; id++) {
 	dphiLjnormal += dphiL(id,jl)*normal[id];
       }
       ek(ir+nrowl,jl) += weight*(
@@ -222,13 +224,13 @@ void TPZBiharmonic::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TP
   case 0: // DIRICHLET
     for(il=0; il<nrowl; il++) {
       REAL dphiLinormal = 0.;
-      for(id=0; id<fDim; id++) {
+      for(id=0; id<2; id++) {
 	dphiLinormal += dphiL(id,il)*normal[id];
       }
       ef(il,0) += weight*dphiLinormal*bc.Val2()(0,0);
       for(jl=0; jl<nrowl; jl++) {
 	REAL dphiLjnormal = 0.;
-	for(id=0; id<fDim; id++) {
+	for(id=0; id<2; id++) {
 	  dphiLjnormal += dphiL(id,jl)*normal[id];
 	}
 	ek(il,jl) += weight*(dphiLinormal*phiL(jl,0)-dphiLjnormal*phiL(il,0));
