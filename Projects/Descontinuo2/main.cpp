@@ -315,7 +315,7 @@ int main()
    TPZMatrix * mat = StrMatrix.Create();
 
    An.SetLinSysCriteria(1e-8, 100);
-   An.SetNewtonCriteria(1e-8, 8);
+   An.SetNewtonCriteria(1e-8, 4);
    An.SetTimeIntCriteria(1e-8,MaxIter);
 
    //Preconditioner

@@ -23,15 +23,18 @@
 // creates an one-quadrilateral element mesh
 
 // This file generates a mesh for the NACA airfoils
-double entrance = 4.,
-             exitlength = 4.,
+double scale = 4.;
+double entrance = 4. * scale,
+             exitlength = 4. * scale,
 	     cord = 5.,
-	     height = 10.,
+	     height = 10. * scale,
 	     q = 1.5,
 	     qn = 1.5;
 /*const int m = 6,
           n = 2,
 	  l = 2;*/
+
+double PI = 3.14159265359;
 
 int l, m, n, k;
 
@@ -135,12 +138,37 @@ double yl(double x, int digits, double c)
    return yc(x, c, PP, MM) - yt(x, TTT, c)*cos(atan(dyc(x, c, PP, MM)));
 }
 
-
-
-void NACAPoints(int FourDigits, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
+// with attack angle
+// superior profile
+double xua(double x, int digits, double c, double angle)
 {
+   return (xu(x, digits, c)-c/2.)*cos(angle) + yu(x, digits, c) * sin(angle) + c/2.;
+}
+
+double yua(double x, int digits, double c, double angle)
+{
+   return yu(x, digits, c)*cos(angle) - (xu(x, digits, c)-c/2.) * sin(angle);
+}
+
+// inferior profile
+double xla(double x, int digits, double c, double angle)
+{
+   return (xl(x, digits, c)-c/2.)*cos(angle) + yl(x, digits, c) * sin(angle) + c/2.;
+}
+
+double yla(double x, int digits, double c, double angle)
+{
+   return yl(x, digits, c)*cos(angle) - (xl(x, digits, c)-c/2.) * sin(angle);
+}
+
+void NACAPoints(int FourDigits, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int nSubdiv)
+{
+/*
  cout << "\nNumber of Points along NACA\n";
  cin >> m;
+ */
+
+ m = nSubdiv;
 /*
  cout << "\nNumber of Points at the input BC\n";
  cin >> l;
@@ -167,21 +195,28 @@ qn = pow(2., 1./(double)n);
  cout << "yl" << yl(6.05, 1224, 7) << endl;
 
 */
- n = 5 * m / 9;
+ n = 5 * m / 9 * (int) sqrt(scale);
  l = m / 3;
  k = n / 2 + 1;
 
- q  = pow(5.6, 1/(double)m);
- qn = pow(2.6, 1/(double)n);
+ q  = pow(5.6 * scale, 1./(double)m);
+ qn = pow(2.6 * scale, 1./(double)n);
 
 
    int index, indexPt, indexPt2;
+   double angle;
 
    TPZVec<REAL> coord(3), coordBC(3), coordNACA(3);
    elms.Resize(m*n*2);
    pt.Resize(2 * m + n * (2*m+1) + /*exit elements*/ (2*n+1)*k);
 
    cout << "\nNumber of Points: "<< pt.NElements();
+
+   cout << "\nAirfoil angle [degrees]\n";
+
+   cin >> angle;
+
+   angle *= PI/180.;
 
    // defining points on the surface of the airfoil
    // i: airfoil index;
@@ -190,23 +225,23 @@ qn = pow(2., 1./(double)n);
    for(i = 1; i < m; i++)
       {
          double x = xpg(q, i, m);
-	 coord[0] = xu(x * cord, FourDigits, cord) + entrance;
-	 coord[1] = yu(x * cord, FourDigits, cord) + height/2.;
+	 coord[0] = xua(x * cord, FourDigits, cord, angle) + entrance;
+	 coord[1] = yua(x * cord, FourDigits, cord, angle) + height/2.;
 	 coord[2] = 0.;
 	 pt[i] = coord;
 
-	 coord[0] = xl(x * cord, FourDigits, cord) + entrance;
-	 coord[1] = yl(x * cord, FourDigits, cord) + height/2.;
+	 coord[0] = xla(x * cord, FourDigits, cord, angle) + entrance;
+	 coord[1] = yla(x * cord, FourDigits, cord, angle) + height/2.;
 	 coord[2] = 0.;
 	 pt[2*m -i] = coord;
       }
-   coord[0] = /*xu(0., FourDigits, cord) +*/ entrance;
-   coord[1] = /*yu(0., FourDigits, cord) +*/ height/2.;
+   coord[0] = xua(0., FourDigits, cord, angle) + entrance;///*xu(0., FourDigits, cord) +*/ entrance + ;
+   coord[1] = yua(0. * cord, FourDigits, cord, angle) + height/2.;///*yu(0., FourDigits, cord) +*/ height/2.;
    coord[2] = 0.;
    pt[0] = coord;
 
-   coord[0] = cord + /*xu(1., FourDigits, cord) +*/ entrance;
-   coord[1] = /*yu(1., FourDigits, cord) +*/ height/2.;
+   coord[0] = xla(1. * cord, FourDigits, cord, angle) + entrance;//cord + /*xu(1., FourDigits, cord) +*/ entrance;
+   coord[1] = yla(1. * cord, FourDigits, cord, angle) + height/2.;///*yu(1., FourDigits, cord) +*/ height/2.;
    coord[2] = 0.;
    pt[m] = coord;
 
@@ -481,7 +516,7 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // Constructing neighborhood
 
    gmesh->BuildConnectivity();
-
+/*
    if(nSubdiv == 1)
    {
 // Dividing elements to create a mesh of 4 elems.
@@ -491,7 +526,7 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
    }
 
    if(nSubdiv > 1)PZError << "CreateOneElGeoMesh unsupported number of subdivisions";
-
+*/
    return gmesh;
 }
 
@@ -510,6 +545,7 @@ TPZFlowCompMesh *
    TPZCompElDisc::gDegree = degree;
    REAL gamma = 1.4;
    int i;
+   double Mach;
 
 // Configuring the PZ to generate discontinuous elements
    TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
@@ -527,7 +563,7 @@ TPZFlowCompMesh *
    TPZVec< TPZVec< REAL > > nodes;
    TPZVec< TPZVec< int  > > elms;
    TPZVec< TPZGeoEl *> gElem;
-   NACAPoints(digits, nodes, elms);
+   NACAPoints(digits, nodes, elms, nSubdiv);
 
 // Creating the geometric mesh
    TPZGeoMesh * gmesh = CreateNACAGeoMesh(nodes, elms, EQuadrilateral, 1, gElem, nSubdiv);
@@ -575,49 +611,47 @@ TPZFlowCompMesh *
    bc = mat->CreateBC(-1,5,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
+   cout << "\nMach number\n";
+   cin >> Mach;
+
    // leftmost bc face: Inlet
    val1.Zero();
    val2.Zero();
    val2(0,0) = 1.;// rho
-   val2(1,0) = .8;// Mach
-   val2(3,0) = 15.;// pressure
+   val2(1,0) = Mach;// Mach
+   val2(3,0) = 2.;// pressure
    for( i = 0; i < l; i++)
    {
       TPZGeoElBC((TPZGeoEl *)gElem[(n-1)*2*m+i],6,-2,*gmesh);
       TPZGeoElBC((TPZGeoEl *)gElem[n*2*m-i-1]  ,6,-2,*gmesh);
    }
-   bc = mat->CreateBC(-2,7,val1,val2);
+   //bc = mat->CreateBC(-2,7,val1,val2);
+   bc = mat->CreateBC(-2,10,val1,val2); // inflow/outflow
    cmesh->InsertMaterialObject(bc);
 
    // upper and lower extern NACA BC faces
    // Wall
    for( i = (n-1)*2*m + l; i < n*2*m - l; i++)
    {
+      //TPZGeoElBC((TPZGeoEl *)gElem[i],6,-3,*gmesh);
       TPZGeoElBC((TPZGeoEl *)gElem[i],6,-3,*gmesh);
    }
    // exit upper and bottom faces: Wall
    for(i = 0; i < k; i++)
    {
+      /*TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+i*n*2],6,-3,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(i+1)*n*2-1],4,-3,*gmesh);*/
       TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+i*n*2],6,-3,*gmesh);
       TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(i+1)*n*2-1],4,-3,*gmesh);
-   }/*
-   // exit bottom face: Wall
-   for(i = 0; i < k; i++)
-   {
-      TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(i+1)*n*2-1],4,-3,*gmesh);
-   }*/
-   bc = mat->CreateBC(-3,5,val1,val2);
-   cmesh->InsertMaterialObject(bc);
-   /*bc = mat->CreateBC(-3,5,val1,val2);
-   cmesh->InsertMaterialObject(bc);*/
-
+   }
    // rightmost exit face: Exit
    for(i = 0; i < 2*n; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(k-1)*n*2+i],5,-4,*gmesh);
+      //TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(k-1)*n*2+i],5,-4,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[2*m*n+(k-1)*n*2+i],5,-3,*gmesh);
    }
 
-   bc = mat->CreateBC(-4,4,val1,val2);
+   bc = mat->CreateBC(-3,9,val1,val2); // inflow/outflow
    cmesh->InsertMaterialObject(bc);
 
    cmesh->AutoBuild();
@@ -649,14 +683,14 @@ TPZFlowCompMesh *
       int blockOffset = cmesh->Block().Position(j) + lastShapeFun;
 
       REAL rho = 1.0,
-	   u = 2.,
-	   v = 1e-8,
-	   p = 15.,
+           p = 2.,
+	   u = sqrt(1.4 * p / rho) * Mach,
+	   v = 0.,
 	   vel2 = u*u + v*v;
-      Solution(blockOffset  ,0) = 2.00855;//rho;
-      Solution(blockOffset+1,0) = 0.0187158;//rho * u;
-      Solution(blockOffset+2,0) = 0.;//rho * v;
-      Solution(blockOffset+3,0) = 35.22;//p/(gamma-1.0) + 0.5 * rho * vel2;
+      Solution(blockOffset  ,0) = rho;
+      Solution(blockOffset+1,0) = rho * u;
+      Solution(blockOffset+2,0) = rho * v;
+      Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * rho * vel2;
    }
 
    cmesh->LoadSolution(Solution);

@@ -1,5 +1,5 @@
 //
-// time: Fri Mar 26 19:25:50 2004
+// time: Tue Mar 30 15:21:22 2004
 //
 // version: 3.1.2 (format), 4.2.0 (DX)
 //
@@ -13,8 +13,8 @@ macro main(
 ) {
     // 
     // node FileSelector[1]: x = 396, y = 6, inputs = 0, label = FileSelector
-    // output[1]: visible = 1, type = 32, value = "/compile/erick/co15.03.2004/NeoPZ/Projects/Descontinuo2/NACA0012_M.8/NACA_BornhausImpl=1.000000_ImplConvVol_ImplConvFace_CFL2.000000_EvolCFL_P2_N0.dx"
-    // output[2]: visible = 1, type = 32, value = "NACA_BornhausImpl=1.000000_ImplConvVol_ImplConvFace_CFL2.000000_EvolCFL_P2_N0.dx"
+    // output[1]: visible = 1, type = 32, value = "/compile/erick/co15.03.2004/NeoPZ/Projects/Descontinuo2/NACA_NoDiff_ImplConvVol_ImplConvFace_CFL100.000000_EvolCFL_P0_N12.dx"
+    // output[2]: visible = 1, type = 32, value = "NACA_NoDiff_ImplConvVol_ImplConvFace_CFL100.000000_EvolCFL_P0_N12.dx"
     //
     // 
     // node Import[1]: x = 407, y = 81, inputs = 6, label = Import
@@ -41,12 +41,12 @@ main_Inquire_2_out_1 =
     // 
     // node Selector[1]: x = 626, y = 207, inputs = 7, label = Selector
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Selector_1"
-    // input[2]: defaulting = 0, visible = 0, type = 32, value = "normvelocity" 
-    // input[3]: defaulting = 0, visible = 0, type = 29, value = 2 
+    // input[2]: defaulting = 0, visible = 0, type = 32, value = "Mach" 
+    // input[3]: defaulting = 0, visible = 0, type = 29, value = 3 
     // input[4]: defaulting = 1, visible = 1, type = 16777248, value = {"density" "pressure" "normvelocity" "Mach" }
     // input[5]: defaulting = 1, visible = 0, type = 16777245, value = {0  1  2  3  }
-    // output[1]: visible = 1, type = 29, value = 2 
-    // output[2]: visible = 1, type = 32, value = "normvelocity" 
+    // output[1]: visible = 1, type = 29, value = 3 
+    // output[2]: visible = 1, type = 32, value = "Mach" 
     //
 main_Selector_1_out_1[cache: 2],
 main_Selector_1_out_2[cache: 2] = 
@@ -95,10 +95,10 @@ main_Compute_2_out_1 =
     // node Sequencer[1]: x = 384, y = 556, inputs = 7, label = Sequencer
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Sequencer_1"
     // input[4]: defaulting = 0, visible = 1, type = 1, value = 0
-    // input[5]: defaulting = 1, visible = 1, type = 1, value = 54
+    // input[5]: defaulting = 1, visible = 1, type = 1, value = 14
     // input[6]: defaulting = 1, visible = 0, type = 1, value = 1
-    // input[7]: defaulting = 0, visible = 0, type = 16777217, value = { 0 54 1 0 54 1 }
-    // vcr[1]: min = 0, max = 54, beg = 0, end = 54, cur = 1, inc = 1, loop = off, step = off, pal = off
+    // input[7]: defaulting = 0, visible = 0, type = 16777217, value = { 0 14 1 0 14 1 }
+    // vcr[1]: min = 0, max = 14, beg = 0, end = 14, cur = 0, inc = 1, loop = off, step = off, pal = off
     // window: position = (0.3887,0.1658), size = 0.2188x0.0733
     //
     main_Sequencer_1_in_3 = @frame;
@@ -190,26 +190,20 @@ main_Caption_1_out_1 =
     main_Caption_1_in_9
     ) [instance: 1, cache: 1];
     // 
-    // node ShowConnections[1]: x = 0, y = 321, inputs = 1, label = ShowConnections
+    // node Isosurface[1]: x = 383, y = 910, inputs = 6, label = Isosurface
+    // input[3]: defaulting = 0, visible = 1, type = 1, value = 40
     //
-main_ShowConnections_1_out_1 = 
-    ShowConnections(
-    main_Import_1_out_1
+main_Isosurface_1_out_1 = 
+    Isosurface(
+    main_Select_1_out_1,
+    main_Isosurface_1_in_2,
+    main_Isosurface_1_in_3,
+    main_Isosurface_1_in_4,
+    main_Isosurface_1_in_5,
+    main_Isosurface_1_in_6
     ) [instance: 1, cache: 1];
     // 
-    // node Color[2]: x = 26, y = 523, inputs = 5, label = Color
-    // input[2]: defaulting = 0, visible = 1, type = 32, value = "black"
-    //
-main_Color_2_out_1 = 
-    Color(
-    main_ShowConnections_1_out_1,
-    main_Color_2_in_2,
-    main_Color_2_in_3,
-    main_Color_2_in_4,
-    main_Color_2_in_5
-    ) [instance: 2, cache: 1];
-    // 
-    // node Select[3]: x = 256, y = 608, inputs = 3, label = Select
+    // node Select[3]: x = 255, y = 604, inputs = 3, label = Select
     //
 main_Select_3_out_1 = 
     Select(
@@ -266,23 +260,42 @@ main_Color_1_out_1 =
     //
 main_Collect_1_out_1 = 
     Collect(
-    main_Color_2_out_1,
-    main_Collect_1_in_2,
+    main_Collect_1_in_1,
+    main_Isosurface_1_out_1,
     main_ColorBar_1_out_1,
     main_Color_1_out_1,
     main_AutoColor_3_out_1
     ) [instance: 1, cache: 1];
     // 
+    // node ShowConnections[1]: x = 0, y = 321, inputs = 1, label = ShowConnections
+    //
+main_ShowConnections_1_out_1 = 
+    ShowConnections(
+    main_Import_1_out_1
+    ) [instance: 1, cache: 1];
+    // 
+    // node Color[2]: x = 26, y = 523, inputs = 5, label = Color
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "black"
+    //
+main_Color_2_out_1 = 
+    Color(
+    main_ShowConnections_1_out_1,
+    main_Color_2_in_2,
+    main_Color_2_in_3,
+    main_Color_2_in_4,
+    main_Color_2_in_5
+    ) [instance: 2, cache: 1];
+    // 
     // node Image[2]: x = 123, y = 953, inputs = 49, label = Image
     // input[1]: defaulting = 0, visible = 0, type = 67108863, value = "Image_2"
     // input[4]: defaulting = 0, visible = 0, type = 1, value = 1
-    // input[5]: defaulting = 0, visible = 0, type = 8, value = [6.5 5 -0.511775]
-    // input[6]: defaulting = 0, visible = 0, type = 8, value = [6.5 5 38.6556]
-    // input[7]: defaulting = 0, visible = 0, type = 5, value = 20.9897
+    // input[5]: defaulting = 0, visible = 0, type = 8, value = [18.5 20 -2.71429]
+    // input[6]: defaulting = 0, visible = 0, type = 8, value = [18.5 20 127.799]
+    // input[7]: defaulting = 0, visible = 0, type = 5, value = 69.9418
     // input[8]: defaulting = 0, visible = 0, type = 1, value = 810
     // input[9]: defaulting = 0, visible = 0, type = 5, value = 0.790741
     // input[10]: defaulting = 0, visible = 0, type = 8, value = [0 1 0]
-    // input[11]: defaulting = 1, visible = 0, type = 5, value = 30.0
+    // input[11]: defaulting = 0, visible = 0, type = 5, value = 30.0001
     // input[12]: defaulting = 0, visible = 0, type = 1, value = 0
     // input[14]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[15]: defaulting = 1, visible = 0, type = 32, value = "none"
@@ -292,9 +305,9 @@ main_Collect_1_out_1 =
     // input[19]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[22]: defaulting = 0, visible = 0, type = 32, value = "white"
     // input[29]: defaulting = 1, visible = 0, type = 3, value = 0
-    // input[41]: defaulting = 0, visible = 0, type = 32, value = "rotate"
+    // input[41]: defaulting = 0, visible = 0, type = 32, value = "panzoom"
     // depth: value = 24
-    // window: position = (0.2625,0.3000), size = 0.5150x0.5700
+    // window: position = (0.2575,0.3767), size = 0.5150x0.5700
     // internal caching: 1
     //
 main_Image_2_out_1,
@@ -358,7 +371,7 @@ main_Image_2_out_3 =
 // network: end of macro body
 CacheScene(main_Image_2_in_1, main_Image_2_out_1, main_Image_2_out_2);
 }
-main_FileSelector_1_out_1 = "/compile/erick/co15.03.2004/NeoPZ/Projects/Descontinuo2/NACA0012_M.8/NACA_BornhausImpl=1.000000_ImplConvVol_ImplConvFace_CFL2.000000_EvolCFL_P2_N0.dx";
+main_FileSelector_1_out_1 = "/compile/erick/co15.03.2004/NeoPZ/Projects/Descontinuo2/NACA_NoDiff_ImplConvVol_ImplConvFace_CFL100.000000_EvolCFL_P0_N12.dx";
 main_Import_1_in_2 = NULL;
 main_Import_1_in_3 = NULL;
 main_Import_1_in_4 = NULL;
@@ -369,13 +382,13 @@ main_Inquire_2_in_2 = "member names";
 main_Inquire_2_in_3 = NULL;
 main_Inquire_2_out_1 = NULL;
 main_Selector_1_in_1 = "Selector_1";
-main_Selector_1_in_2 = "normvelocity" ;
-main_Selector_1_in_3 = 2 ;
+main_Selector_1_in_2 = "Mach" ;
+main_Selector_1_in_3 = 3 ;
 main_Selector_1_in_5 = NULL;
 main_Selector_1_in_6 = NULL;
 main_Selector_1_in_7 = NULL;
-main_Selector_1_out_1 = 2 ;
-main_Selector_1_out_2 = "normvelocity" ;
+main_Selector_1_out_1 = 3 ;
+main_Selector_1_out_2 = "Mach" ;
 main_Select_2_in_3 = NULL;
 main_Select_2_out_1 = NULL;
 main_Inquire_1_in_2 = "member count";
@@ -389,12 +402,12 @@ main_Sequencer_1_in_2 = NULL;
 main_Sequencer_1_in_3 = NULL;
 main_Sequencer_1_in_4 = 0;
 main_Sequencer_1_in_6 = NULL;
-main_Sequencer_1_in_7 = { 0 54 1 0 54 1 };
+main_Sequencer_1_in_7 = { 0 14 1 0 14 1 };
 main_Sequencer_1_out_1 = NULL;
 
 @startframe = 0;
 @nextframe  = @startframe;
-@endframe   = 54;
+@endframe   = 14;
 @deltaframe = 1;
 main_Select_1_in_3 = NULL;
 main_Select_1_out_1 = NULL;
@@ -421,12 +434,12 @@ main_Caption_1_in_7 = "fixed";
 main_Caption_1_in_8 = NULL;
 main_Caption_1_in_9 = NULL;
 main_Caption_1_out_1 = NULL;
-main_ShowConnections_1_out_1 = NULL;
-main_Color_2_in_2 = "black";
-main_Color_2_in_3 = NULL;
-main_Color_2_in_4 = NULL;
-main_Color_2_in_5 = NULL;
-main_Color_2_out_1 = NULL;
+main_Isosurface_1_in_2 = NULL;
+main_Isosurface_1_in_3 = 40;
+main_Isosurface_1_in_4 = NULL;
+main_Isosurface_1_in_5 = NULL;
+main_Isosurface_1_in_6 = NULL;
+main_Isosurface_1_out_1 = NULL;
 main_Select_3_in_2 = NULL;
 main_Select_3_in_3 = NULL;
 main_Select_3_out_1 = NULL;
@@ -449,8 +462,13 @@ main_Color_1_in_3 = NULL;
 main_Color_1_in_4 = NULL;
 main_Color_1_in_5 = NULL;
 main_Color_1_out_1 = NULL;
-main_Collect_1_in_2 = NULL;
+main_Collect_1_in_1 = NULL;
 main_Collect_1_out_1 = NULL;
+main_ShowConnections_1_out_1 = NULL;
+main_Color_2_in_2 = "black";
+main_Color_2_in_3 = NULL;
+main_Color_2_in_4 = NULL;
+main_Color_2_in_5 = NULL;
 macro Image(
         id,
         object,
@@ -766,13 +784,13 @@ macro Image(
 main_Image_2_in_1 = "Image_2";
 main_Image_2_in_3 = "X24,,";
 main_Image_2_in_4 = 1;
-main_Image_2_in_5 = [6.5 5 -0.511775];
-main_Image_2_in_6 = [6.5 5 38.6556];
-main_Image_2_in_7 = 20.9897;
+main_Image_2_in_5 = [18.5 20 -2.71429];
+main_Image_2_in_6 = [18.5 20 127.799];
+main_Image_2_in_7 = 69.9418;
 main_Image_2_in_8 = 810;
 main_Image_2_in_9 = 0.790741;
 main_Image_2_in_10 = [0 1 0];
-main_Image_2_in_11 = NULL;
+main_Image_2_in_11 = 30.0001;
 main_Image_2_in_12 = 0;
 main_Image_2_in_13 = NULL;
 main_Image_2_in_14 = 1;
@@ -801,7 +819,7 @@ main_Image_2_in_37 = NULL;
 main_Image_2_in_38 = NULL;
 main_Image_2_in_39 = NULL;
 main_Image_2_in_40 = NULL;
-main_Image_2_in_41 = "rotate";
+main_Image_2_in_41 = "panzoom";
 main_Image_2_in_42 = NULL;
 main_Image_2_in_43 = NULL;
 main_Image_2_in_44 = NULL;
