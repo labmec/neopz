@@ -249,7 +249,8 @@ void TPZFrontMatrix<store, front>::main()
 template<class store, class front>
 void TPZFrontMatrix<store, front>::CheckCompress()
 {
-	if(fFront.NFree()>0) fFront.Compress();
+	int nfreerate = (int)(fFront.NFree() / fFront.NElements()) * 100;
+	if(nfreerate>20) fFront.Compress();
 }
 
 template<class store, class front>

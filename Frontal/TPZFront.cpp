@@ -269,7 +269,9 @@ void TPZFront::Reset(int GlobalSize)
 	fMaxFront=0;
 }
 
-
+int TPZFront::NElements(){
+	return fLocal.NElements();
+}
 int TPZFront::NFree()
 {
 	int i;

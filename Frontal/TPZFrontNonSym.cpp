@@ -149,7 +149,7 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 
 #ifdef USING_ATLAS
 	cblas_dcopy(fFront, &Element(0, ilocal), 1, &AuxVecCol[0], 1);
-	cblas_dcopy(fFront, &Element(ilocal, 0), fFront, &AuxVecRow[0], 1);
+	cblas_dcopy(fFront, &Element(ilocal, 0), fMaxFront, &AuxVecRow[0], 1);
 #else
 	for(i=0;i<fFront;i++){
 		AuxVecCol[i]=Element(i,ilocal);
@@ -228,7 +228,7 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 #ifdef USING_ATLAS
 	TPZVec<double> zero(fFront, 0.);
 	cblas_dcopy(fFront, &Element(0, ilocal), 1, &zero[0], 1);
-	cblas_dcopy(fFront, &Element(ilocal, 0), fFront, &zero[0], 1);
+	cblas_dcopy(fFront, &Element(ilocal, 0), fMaxFront, &zero[0], 1);
 #else
 	for(i=0;i<fFront;i++){
         Element(i,ilocal)=0.;

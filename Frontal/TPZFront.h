@@ -24,6 +24,7 @@ public:
 	static void main();
 
 #endif
+	int NElements();
     /** Simple destructor */
     virtual ~TPZFront();
     /** Simple constructor */
