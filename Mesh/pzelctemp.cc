@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cc,v 1.10 2003-11-18 12:37:17 cesar Exp $
+// $Id: pzelctemp.cc,v 1.11 2003-12-08 14:17:43 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -171,8 +171,8 @@ void TPZIntelGen<TGEO,TSHAPE>::SetPreferredSideOrder(int order) {
 /**sets the interpolation order of side to order*/
 template<class TGEO, class TSHAPE>
 void TPZIntelGen<TGEO,TSHAPE>::SetSideOrder(int side, int order) {
-  if(side<0 || side >= TSHAPE::NSides || order <1) {
-    PZError << "TPZIntelGen::SetSideOrder. Bad paramenter side.\n";
+  if(side<0 || side >= TSHAPE::NSides || (side >= TSHAPE::NNodes && order <1)) {
+    PZError << "TPZIntelGen::SetSideOrder. Bad paramenter side " << side << " order " << order << endl;
     return;
   }
   if(side>= TSHAPE::NNodes) {
