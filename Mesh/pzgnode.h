@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.5 2004-04-26 14:27:03 phil Exp $
+//$Id: pzgnode.h,v 1.6 2004-06-23 16:22:08 phil Exp $
 
 /**File : pzgnode.h
 
@@ -44,7 +44,7 @@ virtual  ~TPZGeoNode() { }
   /**
   return the id of the class (used for writing reading the object)
   */
-  virtual int ClassId() {
+  virtual int ClassId() const {
     return TPZGEONODEID;
   }
   
