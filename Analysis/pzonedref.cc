@@ -16,10 +16,10 @@ TPZOneDRef::TPZOneDRef(int nstate) : fMS1S1(gMaxP+1,gMaxP+1,0.),
 				     fKS1B(gMaxP+1,gMaxP+1,0.),
 				     fKS2B(gMaxP+1,gMaxP+1,0.),
 				     fKBB(gMaxP+1,gMaxP+1,0.),
-				     fM(gMaxP+1,gMaxP+1,0.),
 				     fRhs1(gMaxP+1,nstate),
 				     fRhs2(gMaxP+1,nstate),
 				     fRhsb(gMaxP+1,nstate),
+				     fM(gMaxP+1,gMaxP+1,0.),
 				     fNState(nstate)  /* , fDest1(11), fDest2(11), fNodes1(11), fNodes2(11)*/ {
   fTryP = 1;
   IntegrateMatrices();
@@ -39,13 +39,14 @@ void TPZOneDRef::IntegrateMatrices(){
   int ip;
   REAL weight;
   TPZVec<REAL> pos(1),posbig1(1),posbig2(1);
+  TPZManVector<int,1> maxvec(1,gMaxP);
   for(ip=0; ip<integr.NPoints(); ip++) {
     integr.Point(ip,pos,weight);
-    TPZShapeLinear::Shape1d(pos[0],/*10*/gMaxP,phis,dphis,ids);
+    TPZShapeLinear::Shape(pos,ids,maxvec,phis,dphis);
     t1.Apply(pos,posbig1);
     t2.Apply(pos,posbig2);
-    TPZShapeLinear::Shape1d(posbig1[0],/*10*/gMaxP,phib1,dphib1,ids);
-    TPZShapeLinear::Shape1d(posbig2[0],/*10*/gMaxP,phib2,dphib2,ids);
+    TPZShapeLinear::Shape(posbig1,ids,maxvec,phib1,dphib1);
+    TPZShapeLinear::Shape(posbig2,ids,maxvec,phib2,dphib2);
     int i,j;
     for(i=0; i<gMaxP+1; i++) {
       for(j=0; j<gMaxP+1; j++) {
