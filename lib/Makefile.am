@@ -70,6 +70,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Mesh/TPZCompElDisc.o \
 	../Mesh/TPZInterfaceEl.o \
 	../Mesh/TPZAgglomerateEl.o \
+	../Mesh/pzelctemp.o \
 	../Shape/pzshapecube.o \
 	../Shape/pzshapelinear.o \
 	../Shape/pzshapepiram.o \
