@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.16 2003-11-14 21:20:10 cedric Exp $
+//$Id: TPZCompElDisc.h,v 1.17 2003-11-20 18:25:38 cedric Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -244,7 +244,7 @@ protected:
    */
   virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
 
-  static void CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh &aggmesh,TPZVec<int> &accumlist,int numaggl);
+  static void CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *aggmesh,TPZVec<int> &accumlist,int numaggl);
 
   virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
 

@@ -1510,23 +1510,8 @@ TPZMaterial *NoveQuadrilateros(int grau){
   gmesh->BuildConnectivity();
   int nummat = 1;
   char *artdiff = "LS";
-  int nivel = 10;
-  REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
-  REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
-  REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
-  //calculando novos valores
-  delta_t = delta_x*cfl;
-  REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
-  gama = 1.4;
-  cout << "\nDominio [0,1]x[0,1]"
-       << "\nMax df/dx (desconhecido) = 1.0"
-       << "\nCFL = " << cfl
-       << "\ndelta otimo = " << delta
-       << "\nDelta x = " << delta_x
-       << "\ndelta t = " << delta_t
-       << "\ndiffusao = " << artdiff
-       << "\ndelta aproximado = " << delta << endl;
-
+  REAL delta_t = 0.0;//será calculado
+  gama = 1.4;//ar
   int dim = 2;
   TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
   mat->SetForcingFunction(Function);
@@ -1970,6 +1955,7 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
     newfat++;
   }
   if(newfat != numaggl) cout << "main::AgrupaList número de pais não confere\n";
+  if(!newfat && !numaggl) cout << "main::AgrupaList lista de elementos aglomerados vacia\n";
 }
 
 

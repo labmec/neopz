@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.29 2003-11-19 15:07:52 cedric Exp $
+//$Id: TPZCompElDisc.cpp,v 1.30 2003-11-20 18:25:38 cedric Exp $
 
 // -*- c++ -*- 
 
@@ -950,7 +950,7 @@ REAL TPZCompElDisc::LesserEdgeOfEl(){
 
 
 
-void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh &aggmesh,TPZVec<int> &accumlist,int numaggl){
+void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *aggmesh,TPZVec<int> &accumlist,int numaggl){
 
   /** 
    * somente são aglomerados elementos de volume
@@ -969,6 +969,7 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh &agg
   if(numaggl < 1 || nlist < 2){
     PZError << "TPZCompElDisc::CreateAgglomerateMesh number agglomerate elements"
 	    << " out of range\nMALHA AGGLOMERADA NÂO CRIADA\n";
+    if(aggmesh) delete aggmesh;
     return;
   }
   //TPZFlowCompMesh aggmesh(finemesh->Reference());
@@ -984,7 +985,7 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh &agg
     }
     nummat = finemesh->ElementVec()[k]->Material()->Id();
     //criando elemento de index/id i e inserindo na malha aggmesh
-    new TPZAgglomerateElement(nummat,index,aggmesh,finemesh);
+    new TPZAgglomerateElement(nummat,index,*aggmesh,finemesh);
   }
   //inicializando os aglomerados e clonando elementos BC
   int meshdim = finemesh->Dimension(),father,type,eldim;
@@ -999,14 +1000,15 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh &agg
       if(eldim == meshdim){
 	if(father == -1){
 	  PZError << "TPZCompElDisc::CreateAgglomerateMesh element null father\n";
+	  if(aggmesh) delete aggmesh;
 	  return;
 	}
 	//incorporando o index do sub-elemento
 	//o elemento de index i vai para o pai father = accumlist[i]
-	TPZAgglomerateElement::AddSubElementIndex(&aggmesh,i,father);
+	TPZAgglomerateElement::AddSubElementIndex(aggmesh,i,father);
       } else if(eldim == surfacedim){
 	//clonando o elemento descontínuo BC, o clone existira na malha aglomerada
-	dynamic_cast<TPZCompElDisc *>(cel)->Clone2(aggmesh,index);
+	dynamic_cast<TPZCompElDisc *>(cel)->Clone2(*aggmesh,index);
       }
     }
   }
@@ -1023,19 +1025,20 @@ void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh &agg
       if(accumlist[indleft] == -1 && accumlist[indright] == -1){
 	//no máximo um elemento pode ser BC
 	PZError << "TPZCompElDisc::CreateAgglomerateMesh data error\n";
+	if(aggmesh) delete aggmesh;
 	return;
       }
       int index;
       //se os geométricos apontam para o mesmo aglomerado não criar interface
       if(leftel->Reference()->Reference() == rightel->Reference()->Reference()) continue;
       //clonando o elemento interface: a interface existirá na malha aglomerada
-      interf->CloneInterface(aggmesh,index);
+      interf->CloneInterface(*aggmesh,index);
     }
   }
-  nel = aggmesh.ElementVec().NElements();
+  nel = aggmesh->ElementVec().NElements();
   //inizializando elementos aglomerados preenchendo os demais dados
   for(i=0;i<nel;i++){
-    TPZCompEl *cel = aggmesh.ElementVec()[i];
+    TPZCompEl *cel = aggmesh->ElementVec()[i];
     if(cel->Type() == EAgglomerate){//agglomerate element
       TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
       agg->InitializeElement();

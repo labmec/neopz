@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cc,v 1.16 2003-11-19 15:07:51 cedric Exp $
+//$Id: TPZAgglomerateEl.cc,v 1.17 2003-11-20 18:25:38 cedric Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -690,6 +690,7 @@ void TPZAgglomerateElement::ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &a
     newfat++;
   }
   if(newfat != numaggl) cout << "TPZAgglomerateElement::ListOfGroupings número de pais não confere\n";
+  if(!newfat && !numaggl) cout << "TPZAgglomerateElement::ListOfGroupings lista de elementos aglomerados vacia\n";
 }
 
 void TPZAgglomerateElement::Print(TPZStack<int> &listindex){

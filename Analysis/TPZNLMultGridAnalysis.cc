@@ -87,7 +87,7 @@ TPZCompMesh *TPZNonLinMultGridAnalysis::AgglomerateMesh(TPZCompMesh *finemesh,
   int numaggl,dim = 2;
   TPZAgglomerateElement::ListOfGroupings(finemesh,accumlist,levelnumbertogroup,numaggl,dim);
   TPZCompMesh *aggmesh = new TPZFlowCompMesh(finemesh->Reference());
-  TPZCompElDisc::CreateAgglomerateMesh(finemesh,*aggmesh,accumlist,numaggl);
+  TPZCompElDisc::CreateAgglomerateMesh(finemesh,aggmesh,accumlist,numaggl);
   return aggmesh;
 }
 
@@ -266,19 +266,22 @@ void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *
   law->SetDeltaTime(maxveloc,deltax,degree);
 }
 
-void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an) {
+void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,int marcha) {
 
-  ofstream out("ANALYSIS.out");
+
+  if(marcha){
+    SmoothingSolution2(tol,numiter,mat,an,marcha);
+    return;
+  }
   fInit = clock();
   cout << "PZAnalysis::SmoothingSolutionTest beginning of the iterative process," 
        << " general time 0\n";
-
-  //  int dim = mat->Dimension();
-  int iter = 0;//,draw=0;
+  int iter = 0;
   an.Solution().Zero();
   fBegin = clock();
   an.Run();
-  an.Print("\n\n* * * SOLUCAO PELO ANALYSIS  * * *\n\n",out);
+//   ofstream out("ANALYSIS.out");
+//   an.Print("\n\n* * * SOLUCAO PELO ANALYSIS  * * *\n\n",out);
   cout << "TPZNonLinMultGridAnalysis::SmoothingSolution iteration = " << ++iter << endl;
   CoutTime(fBegin,"TPZNonLinMultGridAnalysis:: Fim system solution first iteration");
   fBegin = clock();
@@ -309,6 +312,68 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
   }
   an.LoadSolution();
   CoutTime(fInit,"TPZNonLinMultGridAnalysis::SmoothingSolution general time of iterative process");
+}
+
+void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,int marcha) {
+
+  TPZVec<char *> scalar(1),vector(0);
+  scalar[0] = "pressure";
+  int dim = mat->Dimension();
+  TPZCompMesh *anmesh = an.Mesh();
+  ResetReference(anmesh);//retira referências para criar graph consistente
+  TPZDXGraphMesh graph(anmesh,dim,mat,scalar,vector);
+  SetReference(anmesh);//recupera as referências retiradas
+  ofstream *dxout = new ofstream("EulerConsLaw.dx");
+  cout << "\nTPZIterativeAnalysis::IterativeProcess out file : EulerConsLaw.dx\n";
+  graph.SetOutFile(*dxout);
+  int resolution = 0;
+  graph.SetResolution(resolution);
+  graph.DrawMesh(dim);
+  int iter = 0,draw=0;
+  fInit = clock();
+  cout << "PZAnalysis::SmoothingSolutionTest beginning of the iterative process," 
+       << " general time 0\n";
+  an.Solution().Zero();
+  fBegin = clock();
+  an.Run();
+  CoutTime(fBegin,"TPZNonLinMultGridAnalysis:: Fim system solution first iteration");
+  fBegin = clock();
+  an.LoadSolution();
+  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
+  law->SetTimeStep(0.001);// SetDeltaTime(fCompMesh,mat);//a primeira vez é calculada no main
+  REAL time = (REAL)iter;
+  graph.DrawSolution(draw++,time);
+  fBegin = clock();
+  mat->SetForcingFunction(0);
+  REAL normsol = Norm(Solution());
+
+  while(iter < numiter && normsol < tol) {
+    
+    fBegin = clock();
+    an.Solution().Zero();
+    an.Run();
+    CoutTime(fBegin,"TPZNonLinMultGridAnalysis:: Fim system solution actual iteration");
+    CoutTime(fInit,"TPZNonLinMultGridAnalysis:: accumulated time");
+    fBegin = clock();
+    an.LoadSolution();
+    law->SetTimeStep(0.001);// SetDeltaTime(fCompMesh,mat);
+    cout << "TPZNonLinMultGridAnalysis::SmoothingSolution iteracao = " << ++iter << endl;
+    normsol = Norm(Solution());
+    if( REAL(iter) / REAL(marcha) == draw || marcha == 1){
+      time = (REAL)iter;
+      graph.DrawSolution(draw++,time);
+      dxout->flush();
+    }
+  }
+  if(iter < numiter){
+    cout << "\nTPZNonLinMultGridAnalysis::SmoothingSolution the iterative process stopped"
+	 << " due the great norm of the solution, norm solution = " << normsol << endl;
+  }
+  an.LoadSolution();
+  CoutTime(fInit,"TPZNonLinMultGridAnalysis::SmoothingSolution general time of iterative process");
+  time = (REAL)iter;
+  graph.DrawSolution(draw++,time);
+  dxout->flush();
 }
 
 void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
@@ -363,21 +428,21 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
   REAL tol = 1.e15,delta,CFL;
   int numiter,marcha;
   cout << "\nNumero de iteracoes requerida ? : 10\n";
-  //cin >> numiter;
-  numiter = 10;
-  cout << "main:: Parametro marcha : 2\n";
-  //cin >> marcha;
-  marcha = 2;
+  cin >> numiter;
+  //numiter = 10;
+  cout << "main:: Parametro marcha (nulo não cria .dx): 2\n";
+  cin >> marcha;
+  //marcha = 2;
   cout << "main:: entre CFL (si nulo sera calculado) -> 0.1\n";
-  //cin >> CFL;
-  CFL = 0.1;
+  cin >> CFL;
+  //CFL = 0.1;
   TPZDiffusionConsLaw::fCFL = CFL;
   cout << "main:: entre delta (si nulo sera calculado) -> 0.0\n";
   //cin >> delta;
   delta = 0.0;
   TPZDiffusionConsLaw::fDelta= delta;
   TPZMaterial *mat = fMeshes[2]->FindMaterial(nummat);
-  SmoothingSolution(tol,numiter,mat,finean);
+  SmoothingSolution(tol,numiter,mat,finean,marcha);
   coarsean.Print("\n\n\t\t\t* * * ANALYSIS MALHA GROSSA * * *\n\n",out);
   finean.Print("\n\n\t\t\t* * * ANALYSIS MALHA FINA * * *\n\n",out);
   out.flush();

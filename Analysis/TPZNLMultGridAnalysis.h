@@ -93,7 +93,9 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    */
   static TPZCompMesh *AgglomerateMesh(TPZCompMesh *finemesh,int levelnumbertogroup);
 
-  void SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an);
+  void SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,int marcha = 0);
+
+  void SmoothingSolution2(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,int marcha);
   
   void ResetReference(TPZCompMesh *aggcmesh);
 
