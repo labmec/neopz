@@ -955,7 +955,10 @@ int TPZFMatrix::Decompose_LU(TPZVec<int> &index) {
     }
 //    cout << "Pivo = " << piv << endl;
     for (i=j+1;i<nRows;i++){
-      if (fabs(piv) < 1e-12) cout << "Fodeu..." << j << endl;
+      if (fabs(piv) < 1e-12) { 
+        cout << "Pivot < 1e-12. Probably matrix is singular." << endl;
+	exit(-1);      
+      }
       REAL aux = Get(i,j) / piv;
       PutVal(i,j,aux);
       //cout << "4_A[" << i << "," << j << "]= " << Get(i,j) << endl;
