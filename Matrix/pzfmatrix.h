@@ -244,17 +244,6 @@ inline TPZFMatrix::TPZFMatrix(const int rows,const int cols,REAL * buf,const int
     }
   }
 
-inline TPZFMatrix::TPZFMatrix(const int rows,const int cols,const REAL & val )
-  : TPZMatrix( rows, cols ), fElem(0), fGiven(0), fSize(0) {
-	 int size = rows * cols;
-	 if(!size) return;
-	 fElem=new REAL[size];
-#ifdef DEBUG
-	 if ( fElem == NULL && size) Error( "Constructor <memory allocation error>." );
-#endif
-	 for(int i=0;i<size;i++) fElem[i] = val;
-}
-
 /**
  * Non abstract class which implements full matrices with preallocated storage
  * @ingroup matrix
