@@ -538,10 +538,9 @@ TPZTransform TPZGeoElQ2d::SideToSideTransform(int sidefrom,int sideto) {
 	return TPZShapeQuad::SideToSideTransform(sidefrom,sideto);
 }
 
-TPZCompEl *TPZGeoElQ2d::CreateBCCompEl(int side,int bc,TPZCompMesh &cmesh) {
+TPZGeoEl *TPZGeoElQ2d::CreateBCGeoEl(int side,int bc) {
 	TPZGeoEl *gel = TPZGeoQuad::CreateBCGeoEl(this,side,bc);
-	int index;
-	return gel->CreateCompEl(cmesh,index);
+	return gel;
 }
 
 TPZGeoElSide TPZGeoElQ2d::Father2(int side){//Augusto:09/01/01

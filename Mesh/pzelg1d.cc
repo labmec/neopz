@@ -427,10 +427,9 @@ TPZGeoElSide TPZGeoEl1d::Father(int side) {
 }
 */
 
-TPZCompEl *TPZGeoEl1d::CreateBCCompEl(int side, int bc, TPZCompMesh &cmesh) {
+TPZGeoEl *TPZGeoEl1d::CreateBCGeoEl(int side, int bc) {
 	TPZGeoEl *gel = TPZGeoLinear::CreateBCGeoEl(this,side,bc);
-	int index;
-	return gel->CreateCompEl(cmesh,index);
+	return gel;
 }
 
 void TPZGeoEl1d::LowerDimensionSides(int side,TPZStack<int> &smallsides) {

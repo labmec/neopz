@@ -684,14 +684,14 @@ void TPZGeoElC3d::BuildTransform(int side,TPZGeoEl *father,TPZTransform &t) {
   if(locfather != father) locfather->BuildTransform(side,father,t);
 }
 */
+
 TPZTransform TPZGeoElC3d::SideToSideTransform(int sidefrom,int sideto) {
 	return TPZShapeCube::SideToSideTransform(sidefrom,sideto);
 }
 
-TPZCompEl *TPZGeoElC3d::CreateBCCompEl(int side,int bc,TPZCompMesh &cmesh) {
+TPZGeoEl *TPZGeoElC3d::CreateBCGeoEl(int side,int bc) {
 	TPZGeoEl *gel = TPZGeoCube::CreateBCGeoEl(this,side,bc);
-	int index;
-	return gel->CreateCompEl(cmesh,index);
+	return gel;
 }
 
 /*void TPZGeoElC3d::NodeFaceIds(TPZVec<int> &ids,int face) {

@@ -626,11 +626,11 @@ TPZTransform TPZGeoElT3d::SideToSideTransform(int sidefrom,int sideto) {
 	return TPZShapeTetra::SideToSideTransform(sidefrom,sideto);
 }
 
-TPZCompEl *TPZGeoElT3d::CreateBCCompEl(int side,int bc,TPZCompMesh &cmesh) {
+TPZGeoEl *TPZGeoElT3d::CreateBCGeoEl(int side,int bc) {
 	TPZGeoEl *gel = TPZGeoTetrahedra::CreateBCGeoEl(this,side,bc);
-	int index = -1;
-	return gel->CreateCompEl(cmesh,index);
+	return gel;
 }
+
 /*
 void TPZGeoElT3d::NodeFaceIds(TPZVec<int> &ids,int face) {
 

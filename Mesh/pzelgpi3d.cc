@@ -663,10 +663,9 @@ TPZTransform TPZGeoElPi3d::SideToSideTransform(int sidefrom,int sideto) {
 	return TPZShapePiram::SideToSideTransform(sidefrom,sideto);
 }
 
-TPZCompEl *TPZGeoElPi3d::CreateBCCompEl(int side,int bc,TPZCompMesh &cmesh) {
+TPZGeoEl *TPZGeoElPi3d::CreateBCGeoEl(int side,int bc) {
 	TPZGeoEl *gel = TPZGeoPyramid::CreateBCGeoEl(this,side,bc);
-	int index = -1;
-	return gel->CreateCompEl(cmesh,index);
+	return gel;
 }
 
 /*

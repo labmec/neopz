@@ -238,15 +238,14 @@ void TPZGeoElPoint::AllHigherDimensionSides(int side,int targetdimension,TPZStac
 
 //}
 
-TPZCompEl *TPZGeoElPoint::CreateBCCompEl(int side, int bc, TPZCompMesh &cmesh) {
+TPZGeoEl *TPZGeoElPoint::CreateBCGeoEl(int side, int bc) {
 
   if(side==0) {
     TPZManVector<int> nodes(1);
     nodes[0] = fNodeIndexes;
     TPZGeoElPoint *gel = CreateGeoEl(nodes,bc,*Mesh());
     TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(this,0));
-    int index;
-    return gel->CreateCompEl(cmesh,index);
+    return gel;
   }
   else PZError << "TPZGeoElPoint::CreateBCCompEl. Side = " << side << endl;
   return 0;

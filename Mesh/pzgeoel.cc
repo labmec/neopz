@@ -163,7 +163,7 @@ int TPZGeoEl::NeighbourExists(int side,const TPZGeoElSide &gel) {
 
 void TPZGeoEl::Print(ostream & out) {
   
-  out << "Element number     " << fId << endl;
+  out << "Element id         " << fId << endl;
 //  out << "Element level      " << Level() << endl;
   out << "Number of nodes    " << NNodes() << endl;
   out << "Corner nodes       " << NCornerNodes() << endl;
@@ -892,7 +892,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
   return t;
 }
 
-REAL TPZGeoEl::Distance(TPZVec<REAL> centel,TPZVec<REAL> centface){
+REAL TPZGeoEl::Distance(TPZVec<REAL> &centel,TPZVec<REAL> &centface){
 
   if(centel.NElements() != 3 || centface.NElements() != 3)
     PZError << "TPZGeoEl::Distance point dimension error\n";
@@ -927,7 +927,7 @@ REAL TPZGeoEl::ElementRadius(){
   return mindist;
 }
 
-REAL TPZGeoEl::TriangleArea(TPZVec<TPZGeoNode *> nodes){
+REAL TPZGeoEl::TriangleArea(TPZVec<TPZGeoNode *> &nodes){
 
   if(nodes.NElements() != 3 && nodes.NElements() != 4){
     PZError << "TPZGeoEl::AreaFromTheFaceT argument error size: nodes\n";
@@ -950,7 +950,7 @@ REAL TPZGeoEl::TriangleArea(TPZVec<TPZGeoNode *> nodes){
   return ( 0.5*sqrt(coord0*coord0+coord1*coord1+coord2*coord2) );
 }
 
-REAL TPZGeoEl::QuadArea(TPZVec<TPZGeoNode *> nodes){
+REAL TPZGeoEl::QuadArea(TPZVec<TPZGeoNode *> &nodes){
 
   if(nodes.NElements() != 4){
     PZError << "TPZGeoEl::AreaFromTheFaceQ argument error size: nodes\n";
@@ -1005,6 +1005,7 @@ REAL TPZGeoEl::SideArea(int side){
     else
       return ( TriangleArea(nodes) );
   }
+  return 0.;
 }
 
 
@@ -1056,3 +1057,18 @@ REAL TPZGeoEl::QuadArea(TPZVec<TPZGeoNode *> nodes){
   return (areat1+areat2);
 }
 */
+TPZCompEl *TPZGeoEl::CreateBCCompEl(int side,int bc,TPZCompMesh &cmesh) {
+	TPZGeoEl *gel = CreateBCGeoEl(side,bc);
+	int index;
+	return gel->CreateCompEl(cmesh,index);
+}
+
+
+void TPZGeoEl::RemoveConnectivities(){
+
+  int nsides = NSides(),side;
+  for(side=0;side<nsides;side++){
+    TPZGeoElSide thisside(this,side);
+    thisside.RemoveConnectivity();
+  }
+}

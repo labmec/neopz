@@ -45,8 +45,12 @@ class TPZInterfaceElement : public TPZCompEl {
   static TPZCompEl *CreateInterfaceTEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index);
 
   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
+  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl &thirdel);
   //  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoElT2d *geo,int &index);
   ~TPZInterfaceElement(){};
+
+  /**return the geometric element to which this element references*/
+  virtual TPZGeoEl *Reference() { return fReference;}
 
   TPZMaterial *Material() { return fMaterial;}
 
@@ -55,7 +59,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * it identifies the elements of left and right volume of the interface 
    */
-  void VolumeEls();
+  void VolumeEls(TPZCompEl &thirdel);
 
   /**
    * it returns the right element from the element interface 
@@ -107,12 +111,25 @@ class TPZInterfaceElement : public TPZCompEl {
    * param ek element matrix
    * param ef element right hand side
    */
-  void CalcStiffInterf(TPZFMatrix &jacob,TPZFMatrix &res);
+  void CalcStiff(TPZFMatrix &ek,TPZFMatrix &ef);
 
   /**
    * Print attributes of the object
    */
   void Print(ostream &out = cout);
+
+  /**
+   * it verifies the existence of interfaces associates
+   * with the side of an element
+   * case to interface should exist and exists only a returns 1
+   * case to interface should not exist and does not exist returns 1
+   * otherwise returns 0
+   */
+  static int ExistInterfaces(TPZCompElSide &comp);
+
+  static int FreeInterface(TPZCompMesh &cmesh);
+
+  static int main(TPZCompMesh &cmesh);
 
 };
 
@@ -125,7 +142,3 @@ inline TPZCompEl *TPZInterfaceElement::CreateInterfaceTEl(TPZGeoElT2d *geo, TPZC
 }
 #endif
 
-  /**
-   * it preserves index of connect associated to the element 
-   */
-  //int fConnectIndex;

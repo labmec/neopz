@@ -90,6 +90,9 @@ public:
   /**Destructor*/
   virtual ~TPZGeoEl() { }
 
+  /**it removes the connectivities of the element*/
+  void RemoveConnectivities();
+
 
   /** @name data access methods
    * methods which allow to access the internal data structure of the element
@@ -169,8 +172,10 @@ public:
 
   /**method which creates a computational boundary condition element
      based on the current geometric element, a side and a boundary condition number*/
-  virtual TPZCompEl *CreateBCCompEl(int side, int bc, TPZCompMesh &cmesh) = 0;
+  virtual TPZCompEl *CreateBCCompEl(int side, int bc, TPZCompMesh &cmesh);
 
+  /** method which creates a geometric element on the side of an existing element */
+  virtual TPZGeoEl *CreateBCGeoEl(int side, int bc) = 0;
 
   /**returns the side number which is connected to the SideNodes
      returns -1 if no side is found*/
@@ -369,14 +374,14 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
   virtual REAL SideArea(int side);
 
   /**return the área from a quadrilateral face*/
-  static  REAL QuadArea(TPZVec<TPZGeoNode *> nodes);
+  static  REAL QuadArea(TPZVec<TPZGeoNode *> &nodes);
 
   /**return the área from the triangular face*/
-  static REAL TriangleArea(TPZVec<TPZGeoNode *> nodes);
+  static REAL TriangleArea(TPZVec<TPZGeoNode *> &nodes);
 
   virtual REAL ElementRadius();//TPZGeoEl
 
-  static REAL Distance(TPZVec<REAL> centel,TPZVec<REAL> centface);
+  static REAL Distance(TPZVec<REAL> &centel,TPZVec<REAL> &centface);
 
  protected:
 //  REAL fMesure;
@@ -395,7 +400,11 @@ inline void TPZGeoEl::Divide(TPZVec<TPZGeoEl *> &) {
 
 inline TPZGeoElSide TPZGeoEl::HigherDimensionSides(int side,int targetdimension){//SÓ PARA TESTAR CONTINUIDADE - APAGAR DEPOIS
   cout << "TPZGeoEl::HigherDimensionSides is called." << endl;
+<<<<<<< pzgeoel.h
+  return TPZGeoElSide();
+=======
 
   return TPZGeoElSide();
+>>>>>>> 1.2
 }
 #endif

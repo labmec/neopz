@@ -26,6 +26,8 @@ class TPZGeoElPi3d;
 class TPZGeoElPr3d;
 class TPZGeoElT2d;
 class TPZGeoElQ2d;
+class TPZGeoEl1d;
+class TPZGeoElPoint;
 
 
 class TPZCompElDisc : public TPZCompEl{	// header file for the computational element class
@@ -76,13 +78,16 @@ protected:
 
  public:
 
+  static int gInterfaceDimension;
+
   static TPZCompEl *CreateC3Disc(TPZGeoElC3d *geo, TPZCompMesh &mesh, int &index);
   static TPZCompEl *CreateT3Disc(TPZGeoElT3d *geo, TPZCompMesh &mesh, int &index);
   static TPZCompEl *CreatePi3Disc(TPZGeoElPi3d *geo, TPZCompMesh &mesh, int &index);
   static TPZCompEl *CreatePr3Disc(TPZGeoElPr3d *geo, TPZCompMesh &mesh, int &index);
   static TPZCompEl *CreateT2Disc(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index);
   static TPZCompEl *CreateQ2Disc(TPZGeoElQ2d *geo, TPZCompMesh &mesh, int &index);
-
+  static TPZCompEl *Create1dDisc(TPZGeoEl1d *geo, TPZCompMesh &mesh, int &index);
+  static TPZCompEl *CreatePointDisc(TPZGeoElPoint *geo, TPZCompMesh &mesh, int &index);
   /**return the geometric element to which this element references*/
   virtual TPZGeoEl *Reference() { return fReference;}
 
@@ -92,12 +97,6 @@ protected:
   static int gDegree;
 
    TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index);
-/*    TPZCompElDisc(TPZCompMesh &mesh,TPZGeoElC3d *ref,int &index); */
-/*    TPZCompElDisc(TPZCompMesh &mesh,TPZGeoElT3d *ref,int &index); */
-/*    TPZCompElDisc(TPZCompMesh &mesh,TPZGeoElPi3d *ref,int &index); */
-/*    TPZCompElDisc(TPZCompMesh &mesh,TPZGeoElPr3d *ref,int &index); */
-/*    TPZCompElDisc(TPZCompMesh &mesh,TPZGeoElT2d *ref,int &index); */
-/*    TPZCompElDisc(TPZCompMesh &mesh,TPZGeoElQ2d *ref,int &index); */
   ~TPZCompElDisc() {
       if(Reference()) {
          Reference()->ResetReference();
@@ -191,11 +190,25 @@ protected:
    */
   int  NShapeF();
 
-  void CreateInterface();
+  void ItConstructsInterface(TPZCompElSide &gside);
+
+  void CreateInterfaces();
+
+  void CreateInterface(int side);
 
   void RemoveInterfaces();
 
+  void RemoveInterface(int side);
+
   int ExistsInterface(TPZCompElSide cpsd);
+
+  /**declare the element as interpolated or not.
+   * You may not redefine this method, because a lot of "unsafe" casts depend
+   * on the result of this method\n
+   * Wherever possible, use dynamic_cast instead of this method
+   * @return 0 if the element is not interpolated
+   */
+  virtual int IsInterpolated() {return 1;}
   
 };
 
@@ -224,9 +237,10 @@ inline TPZCompEl *TPZCompElDisc::CreateQ2Disc(TPZGeoElQ2d *geo, TPZCompMesh &mes
 inline TPZCompEl *TPZCompElDisc::CreateT2Disc(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index) {
   return new TPZCompElDisc(mesh,(TPZGeoEl *)geo,index);
 }
-
+inline TPZCompEl *TPZCompElDisc::Create1dDisc(TPZGeoEl1d *geo, TPZCompMesh &mesh, int &index) {
+  return new TPZCompElDisc(mesh,(TPZGeoEl *)geo,index);
+}
+inline TPZCompEl *TPZCompElDisc::CreatePointDisc(TPZGeoElPoint *geo, TPZCompMesh &mesh, int &index) {
+  return new TPZCompElDisc(mesh,(TPZGeoEl *)geo,index);
+}
 #endif
-  /**
-   * pointer for the geometric element associate 
-   */
-//  TPZGeoEl *fGeoEl;
