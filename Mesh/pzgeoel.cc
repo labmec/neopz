@@ -18,6 +18,7 @@ Contains the methods definition for (abstract) base class TPZGeoEl.
 #include "pzquad.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
+//#include "pzgeoelside.h"
 //#include "pzshapetetra.h"
 //#include "pzshapecube.h"
 //#include "pzshapepiram.h"
@@ -991,75 +992,23 @@ REAL TPZGeoEl::SideArea(int side){
     cout << "TPZGeoEl::SideArea not implemented for side = " << side << endl;
 
   if(SideDimension(side) == 2){
-     int nsidenodes = NSideNodes(side);
-    TPZVec<TPZGeoNode *> nodes(nsidenodes);
+    TPZVec<TPZGeoNode *> nodes(3);
     int i;
     
-    for(i=0;i<nsidenodes;i++)
+    for(i=0;i<3;i++)
       nodes[i] = &Mesh()->NodeVec()[  SideNodeIndex(side,i) ];
 
-    if(nsidenodes == 4) {
+    if(NSides() != 15  && SideNodeIndex(side,3) > -1){//15: tetraedro manda mensagem com node = 3 (tirar a mensagem)
+      nodes.Resize(4);
+      nodes[3] = &Mesh()->NodeVec()[ SideNodeIndex(side,3) ];
       return ( QuadArea(nodes) );
     }
-    else if (nsidenodes == 3) {
+    else
       return ( TriangleArea(nodes) );
-    }
-    else {
-       cout << "Programa esta errado\n";
-    }
   }
   return 0.;
 }
 
-
-
-/*
-REAL TPZGeoEl::QuadArea(TPZVec<TPZGeoNode *> nodes){
-
-  if(nodes.NElements() != 4){
-    PZError << "TPZGeoEl::AreaFromTheFaceQ argument error size: nodes\n";
-    nodes.Resize(0);
-    return 0.;
-  }
-//
-//  REAL cb0 = nodes[2]->Coord(0) - nodes[1]->Coord(0);
-//  REAL cb1 = nodes[2]->Coord(1) - nodes[1]->Coord(1);
-//  REAL cb2 = nodes[2]->Coord(2) - nodes[1]->Coord(2);
-//  REAL ab0 = nodes[0]->Coord(0) - nodes[1]->Coord(0);
-//  REAL ab1 = nodes[0]->Coord(1) - nodes[1]->Coord(1);
-//  REAL ab2 = nodes[0]->Coord(2) - nodes[1]->Coord(2);
-  //produto vetorial
-//  REAL coord0 = cb1*ab2-ab1*cb2;
-//  REAL coord1 = ab0*cb2-cb0*ab2;
-//  REAL coord2 = cb0*ab1-ab0*cb1;
-
-//  REAL areat1 = 0.5*sqrt(coord0*coord0+coord1*coord1+coord2*coord2);
-
-  REAL areat1 = TriangleArea(nodes);// * * * TESTAR ESTA LINHA * * * (FUNCIONA!!)
-
-  nodes[1] = nodes[0];
-
-  nodes[0] = nodes[2];
-  nodes[2] = nodes[1];//antigo node0
-  nodes[1] = nodes[3];
-
-  cb0 = nodes[2]->Coord(0) - nodes[1]->Coord(0);
-  cb1 = nodes[2]->Coord(1) - nodes[1]->Coord(1);
-  cb2 = nodes[2]->Coord(2) - nodes[1]->Coord(2);
-  ab0 = nodes[0]->Coord(0) - nodes[1]->Coord(0);
-  ab1 = nodes[0]->Coord(1) - nodes[1]->Coord(1);
-  ab2 = nodes[0]->Coord(2) - nodes[1]->Coord(2);
-
-  //produto vetorial
-  coord0 = cb1*ab2-ab1*cb2;
-  coord1 = ab0*cb2-cb0*ab2;
-  coord2 = cb0*ab1-ab0*cb1;
-
-  REAL areat2 = 0.5*sqrt(coord0*coord0+coord1*coord1+coord2*coord2);
-
-  return (areat1+areat2);
-}
-*/
 TPZCompEl *TPZGeoEl::CreateBCCompEl(int side,int bc,TPZCompMesh &cmesh) {
 	TPZGeoEl *gel = CreateBCGeoEl(side,bc);
 	int index;
