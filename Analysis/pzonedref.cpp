@@ -1,4 +1,4 @@
-// $Id: pzonedref.cpp,v 1.4 2003-10-02 14:32:48 tiago Exp $
+// $Id: pzonedref.cpp,v 1.5 2004-03-13 17:23:10 cesar Exp $
 
 #include "pzonedref.h"
 #include "pzquad.h"
@@ -165,6 +165,12 @@ void TPZOneDRef::LoadU(TPZFMatrix &U, int p1, int p2, REAL delx) {
 }
 
 REAL TPZOneDRef::Error(int p1, int p2) {
+  if (p1 == 0 || p2== 0){
+    PZError << "TPZOneDRef::Error ERROR trying to set p1 = " << p1 << " p2 = " << p2 << endl;
+    PZError << "The null value will be set equal 1" << endl;
+    p1 = p1==0 ? 1 : p1;
+    p2 = p2==0 ? 1 : p2;  
+  }
   TPZFMatrix stiff;
   BuildStiffness(p1,p2,stiff);
   TPZFMatrix rhs(p1+p2-1,fNState,0.);
@@ -193,7 +199,7 @@ REAL TPZOneDRef::Error(int p1, int p2) {
   for(st=0; st<fNState; st++) {
     for(i=0; i<fpb+fpb-1; i++) {
       for(j=0; j<fpb+fpb-1; j++) {
-	error += u(i,st)*fStiffU(i,j)*u(j,st);
+        error += u(i,st)*fStiffU(i,j)*u(j,st);
       }
     }
   }
@@ -249,7 +255,7 @@ REAL TPZOneDRef::Error(int pb) {
   for(i=0; i<pb; i++) {
     for(j=0; j<pb-1; j++) {
       for(st=0; st<fNState; st++) {
-	u1(i,st) += fMS1B(i+1,j+2)*rhsb(j,st);
+        u1(i,st) += fMS1B(i+1,j+2)*rhsb(j,st);
       }
     }
     for(j=0; j<pb; j++) {
@@ -269,7 +275,7 @@ REAL TPZOneDRef::Error(int pb) {
   for(i=1; i<pb; i++) {
     for(j=0; j<pb-1; j++) {
       for(st=0; st<fNState; st++) {
-	u2(i,st) += fMS2B(i+1,j+2)*rhsb(j,st);
+        u2(i,st) += fMS2B(i+1,j+2)*rhsb(j,st);
       }
     }
     for(j=1; j<pb; j++) {
@@ -294,7 +300,7 @@ REAL TPZOneDRef::Error(int pb) {
   for(st=0; st<fNState; st++) {
     for(i=0; i<fpb+fpb-1; i++) {
       for(j=0; j<fpb+fpb-1; j++) {
-	error += u(i,st)*fStiffU(i,j)*u(j,st);
+        error += u(i,st)*fStiffU(i,j)*u(j,st);
       }
     }
   }
@@ -338,12 +344,22 @@ REAL TPZOneDRef::BestPattern(TPZFMatrix &U, TPZVec<int> &id, int &p1, int &p2, i
   if(pl2 > gMaxP) pl2 = gMaxP;
   int bestp1,bestp2;
   REAL besterror;
+
+  //Cesar 2004-13-03-->>>
+  pl1 = pl1==0 ? 1 : pl1;
+  pl2 = pl2==0 ? 1 : pl2;  
+  //<<<---
+  
   bestp1 = pl1;
   bestp2 = pl2;
   besterror = Error(pl1,pl2);
   int maxpl1 = numdof+1;
   //  if(maxpl1 > maxp+1) maxpl1 = gMaxP+1;
+  
+#ifdef LOG_P_FILE  
   fLogFile  << "p1 = " << pl1 << " p2 = " << pl2 << " error = " << besterror << endl;
+#endif
+
   int pl1try;
 //   cout << "maxpl1 = " << maxpl1 << endl;
   for(pl1try=2; pl1try<maxpl1; pl1try++) {
