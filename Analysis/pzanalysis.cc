@@ -19,7 +19,7 @@
 #include "pzstepsolver.h"
 
 #include "pzmetis.h"
-#include "pzsloan.h"
+//#include "pzsloan.h"
 
 #include "pzmaterial.h"
 

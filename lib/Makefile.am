@@ -179,7 +179,6 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Multigrid/pztrnsform.o \
 	../External/pzmetis.o \
 	../External/pzrenumbering.o \
-	../External/pzsloan.o \
 	../Pre/pzgengrid.o \
 	../Pre/pzpargrid.o 
 
