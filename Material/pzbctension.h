@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzbctension.h,v 1.5 2003-11-06 18:09:14 cedric Exp $
+// $Id: pzbctension.h,v 1.6 2003-11-07 00:40:34 phil Exp $
 
 #ifndef BCTENSIONHPP
 #define BCTENSIONHPP
@@ -22,6 +22,7 @@ class TPZBCTension : public TPZBndCond {
 
   TPZMulticamadaOrthotropic *fMultCam;
   int fCamada;
+  REAL fSign;
 
   private:
 
@@ -31,7 +32,7 @@ class TPZBCTension : public TPZBndCond {
     
     ~TPZBCTension(){}
 
-  TPZBCTension(TPZMaterial *material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2, TPZMulticamadaOrthotropic *mult, int camada);
+  TPZBCTension(TPZMaterial *material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada);
 
 
 
@@ -45,9 +46,9 @@ class TPZBCTension : public TPZBndCond {
     int typekeep = fType;
     if(fType == 4) {
       TPZManVector<REAL,3> normal(3);
-      normal[0] = axes(0,1)*axes(1,2)-axes(0,2)*axes(1,1);
-      normal[1] = axes(0,2)*axes(1,0)-axes(0,0)*axes(1,2);
-      normal[2] = axes(0,0)*axes(1,1)-axes(0,1)*axes(1,0);
+      normal[0] = fSign*(axes(0,1)*axes(1,2)-axes(0,2)*axes(1,1));
+      normal[1] = fSign*(axes(0,2)*axes(1,0)-axes(0,0)*axes(1,2));
+      normal[2] = fSign*(axes(0,0)*axes(1,1)-axes(0,1)*axes(1,0));
       TPZFNMatrix<9> tensor(3,3);
       fMultCam->Tensor(x,fCamada,tensor);
       int i,j;

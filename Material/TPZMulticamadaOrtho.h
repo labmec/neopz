@@ -1,3 +1,6 @@
+// -*- c++ -*-
+
+// $Id: TPZMulticamadaOrtho.h,v 1.8 2003-11-07 00:40:34 phil Exp $
 #ifndef MULTICAMADAORTH
 #define MULTICAMADAORTH
 
@@ -85,6 +88,31 @@ class TPZMulticamadaOrthotropic {
   void SetNX(REAL NX) {
     fNX[0] = NX;
     fNX[2] = NX;
+  }
+
+  void SetMY(REAL MX) { 
+    fMY[0] = MX;
+    fMY[2] = MX;
+  }
+
+  void SetNXY(REAL NX) {
+    fNXY[0] = NX;
+    fNXY[2] = NX;
+  }
+
+  void SetMXY(REAL MXY) {
+    fMXY[0] = MXY;
+    fMXY[2] = MXY;
+  }
+
+  void SetQX(REAL QX) {
+    fQX[0] = QX;
+    fQX[2] = QX;
+  }
+
+  void SetQY(REAL QY) {
+    fQY[0] = QY;
+    fQY[2] = QY;
   }
 
   TPZGeoMesh *GeoMesh(){return fGeoMesh;}

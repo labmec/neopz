@@ -28,8 +28,8 @@ TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int
   TPZManVector<REAL,3> coord(3,fZMax);
   for(ix=0; ix<= nelx; ix++) {
     for(iy=0; iy<= nely; iy++) {
-      coord[0] = ix*fDx-fDx*(nelx+1.)/2.;
-      coord[1] = iy*fDy-fDy*(nely+1.)/2.;
+      coord[0] = ix*fDx-dx/2.;
+      coord[1] = iy*fDy-dy/2.;
       fGeoMesh->NodeVec()[ix+iy*(nelx+1)].Initialize(coord,*fGeoMesh);
     }
   }
@@ -39,7 +39,7 @@ TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int
 void TPZMulticamadaOrthotropic::GenerateMesh(){
 
   fGeoMesh->BuildConnectivity();
-  TPZCompEl::gOrder = 1;
+  TPZCompEl::gOrder = 3;
   fCompMesh->AutoBuild();
   int nplaca = fPlacaOrth.NElements();
   int ip;
@@ -53,7 +53,13 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMatOrthotropic *material, REAL 
 
   fCompMesh->InsertMaterialObject(material);
   TPZFNMatrix<9> val1(3,3,0.),val2(3,1,0.);
-  TPZBCTension *bc = new TPZBCTension(material,-material->Id(),4,val1,val2, this,fPlacaOrth.NElements());
+  TPZBCTension *bc = new TPZBCTension(material,-material->Id()*4,4,val1,val2, 1., this,fPlacaOrth.NElements());
+  fCompMesh->InsertMaterialObject(bc);
+  bc = new TPZBCTension(material,-material->Id()*4-1,4,val1,val2, 1., this,fPlacaOrth.NElements());
+  fCompMesh->InsertMaterialObject(bc);
+  bc = new TPZBCTension(material,-material->Id()*4-2,4,val1,val2, -1., this,fPlacaOrth.NElements());
+  fCompMesh->InsertMaterialObject(bc);
+  bc = new TPZBCTension(material,-material->Id()*4-3,4,val1,val2, -1.,this,fPlacaOrth.NElements());
   fCompMesh->InsertMaterialObject(bc);
 
   //  fPlacaOrth.Push(placa);
@@ -64,8 +70,8 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMatOrthotropic *material, REAL 
   fZMax += height;
   for(ix=0; ix<= fNelx; ix++) {
     for(iy=0; iy<= fNely; iy++) {
-      coord[0] = ix*fDx-fDx*(fNelx+1)/2.;
-      coord[1] = iy*fDy-fDy*(fNely+1)/2.;
+      coord[0] = ix*fDx-fDx*fNelx/2.;
+      coord[1] = iy*fDy-fDy*fNely/2.;
       fGeoMesh->NodeVec()[nnodes+ix+iy*(fNelx+1)].Initialize(coord,*fGeoMesh);
     }
   }
@@ -82,10 +88,10 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMatOrthotropic *material, REAL 
       for(i=0; i<4; i++) nodeindexes[i+4] = nodeindexes[i]+(fNelx+1)*(fNely+1);
       int index;
       TPZGeoEl *gel = fGeoMesh->CreateGeoElement (ECube, nodeindexes, material->Id(), index);
-      TPZGeoElBC gbc1(gel,21,-material->Id(),*fGeoMesh);
-      TPZGeoElBC gbc2(gel,22,-material->Id(),*fGeoMesh);
-      TPZGeoElBC gbc3(gel,23,-material->Id(),*fGeoMesh);
-      TPZGeoElBC gbc4(gel,24,-material->Id(),*fGeoMesh);
+      if(ely == 0) TPZGeoElBC gbc1(gel,21,-material->Id()*4,*fGeoMesh);
+      if(elx == fNelx-1) TPZGeoElBC gbc2(gel,22,-material->Id()*4-1,*fGeoMesh);
+      if(ely == fNely-1) TPZGeoElBC gbc3(gel,23,-material->Id()*4-2,*fGeoMesh);
+      if(elx == 0) TPZGeoElBC gbc4(gel,24,-material->Id()*4-3,*fGeoMesh);
       int nplaca = fPlacaOrth.NElements();
       if(nplaca == 0 && elx == 0 && ely == 0) {
 	TPZBndCond *bc2 = new TPZBndCond(material,-100,0,val1,val2);
