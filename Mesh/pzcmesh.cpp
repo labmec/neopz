@@ -24,7 +24,6 @@
 
 #include "pzmetis.h"
 
-
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
   fMaterialVec(0), fConnectVec(0),fSolution(0,1),
   fBCConnectVec(0) {
@@ -1636,44 +1635,6 @@ void TPZCompMesh::CopyMaterials(TPZCompMesh *mesh){
     mat->Clone(mesh->MaterialVec());
   }
 
-}
-
-REAL TPZCompMesh::MaxVelocityOfMesh(int nstate,REAL gamma){
-
-  int nel = ElementVec().NElements(),i;
-  TPZManVector<REAL> density(1),sol(nstate),velocity(1);
-  REAL maxvel = 0.0,veloc,sound,press;
-  TPZVec<REAL> param(3,0.);
-  for(i=0;i<nel;i++){
-    TPZCompEl *com = ElementVec()[i];
-    if(!com) continue;
-    TPZMaterial *mat = com->Material();
-    TPZGeoEl *geo = com->Reference();
-    if(!mat || !geo){
-      cout << "TPZCompMesh::MaxVelocityOfMesh ERROR: null material or element\n";
-      continue;
-    }
-    int dim = mat->Dimension();
-    int dimel = geo->Dimension();
-    if(dimel != dim) continue;
-    geo->CenterPoint(geo->NSides()-1,param);//com->Solution(sol,j+100,sol2);
-    com->Solution(param,1,density);
-    if(density[0] < 0.0){
-      cout << "TPZCompMesh::MaxVelocityOfMesh minus density\n";
-    }
-    com->Solution(param,6,velocity);
-    com->Solution(param,5,sol);
-    //TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
-    //press = law->Pressure(sol);
-    press = mat->Pressure(sol);
-    if(press < 0.0){
-      cout << "TPZCompMesh::MaxVelocityOfMesh minus pressure\n";
-    }
-    sound = sqrt(gamma*press/density[0]);
-    veloc = velocity[0] + sound;
-    if(veloc > maxvel) maxvel = veloc;
-  }
-  return maxvel;
 }
 
 REAL TPZCompMesh::DeltaX(){

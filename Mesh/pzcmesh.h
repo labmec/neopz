@@ -93,6 +93,7 @@ protected:
 
 
 public:
+
   /**
    * Constructor from geometrical mesh
    * @param gr pointer to geometrical reference mesh
@@ -503,15 +504,12 @@ public:
    */
   void CopyMaterials(TPZCompMesh *mesh);
 
-  REAL MaxVelocityOfMesh(int nstate,REAL gamma);
-
   REAL DeltaX();
 
   REAL MaximumRadiusOfMesh();
 
   REAL LesserEdgeOfMesh();
 
-  void SetDeltaTime(TPZMaterial *mat);
 };
 
 
