@@ -6,6 +6,7 @@
 #include "ShockTube2d.cpp"
 #include "SubsonicRadialShock.cpp"
 #include "NACA4digit.cpp"
+#include "sphere3D.cpp"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
@@ -185,7 +186,7 @@ int run(istream & input, ostream & output)
    TPZFlowCompMesh * cmesh;
    TPZGeoMesh * gmesh;
 
-   output << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n\t5: RadialShock\n\t6: NACA\n\t7: GenerateNACAProfile\n\t8: From File\n";
+   output << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n\t5: RadialShock\n\t6: NACA\n\t7: GenerateNACAProfile\n\t8: From File\n\t9: Sphere3D\n";
 
    input >> ProblemType;
 
@@ -305,7 +306,7 @@ int run(istream & input, ostream & output)
 
    }
 
-   if(ProblemType<7)
+   if(ProblemType<7 || ProblemType > 8)
    {
       output << "\nInterpolation degree\n";
       input >> p;
@@ -431,6 +432,12 @@ int run(istream & input, ostream & output)
 	 }
 
       }
+      break;
+      case 9:
+      file = "Sph3D_";
+      cmesh =
+         SphereCompMesh(CFL, delta, p, nSubdiv, DiffType,
+	            Diff_TD, ConvVol_TD, ConvFace_TD);
       break;
    }
    file += filename;
