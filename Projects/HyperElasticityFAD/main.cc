@@ -19,32 +19,155 @@
 #include "pzcheckgeom.h"
 #include <time.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "pzmathyperelastic.h"
 #include "pzelgc3d.h"
+#include "fadType.h"
+#include "pzskylmat.h"
+#include "pzelmat.h"
 
 TPZCompMesh *CreateMesh();
-
+int mainFull();
+void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh & Mesh);
+TPZCompMesh *CreateMesh();
+TPZMatrix * CreateAssemble(TPZFMatrix &rhs, int method, TPZCompMesh & Mesh);
 
 void error(char * err)
 {
   PZError << "FADERROR: " << err << endl;
 };
 
-int main(){
 
+int main()
+{
+
+return mainFull();
+
+ const int numShape  = 10, ndof = 3;
+ const int dim = 3;
+
+
+//void TPZMatHyperElastic::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &dsol,REAL weight,
+//			  TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+ TPZFMatrix phi(numShape,1), dphi(dim,numShape), dsol(dim, ndof, 0.);
+ TPZFMatrix ek(numShape * ndof, numShape * ndof, 0.), ef(numShape * ndof, 1, 0.),ekFAD(numShape * ndof, numShape * ndof, 0.), efFAD(numShape * ndof, 1, 0.);
+ TPZVec<REAL> x(3,0.), sol(3,0.);
+ TPZFMatrix axes(3,3,0.),jacinv(3,3,0.);
+ REAL weight = 1.;
+ int id, idf, ishape, i;
+
+ for(ishape = 0; ishape < numShape; ishape++) {
+ 	phi(ishape,0) = (random()%100)/41.;
+	for(id = 0; id<dim; id++) {
+	 	dphi(id,ishape) = (random()%100)/41.;
+	}
+ }
+
+ TPZVec<REAL> u(numShape * ndof);
+ for(i = 0; i<numShape*ndof; i++) {
+ 	u[i] = (random()%100)/41.;
+ }
+
+ for(id = 0; id < dim; id++)
+ {
+     for(idf = 0; idf< ndof; idf++)
+     {
+          for(ishape = 0; ishape < numShape; ishape ++)
+	  {
+	       dsol(id, idf) += dphi(id, ishape) * u[idf + ishape* ndof];
+	  }
+     }
+ }
+ TPZMatHyperElastic hyp(1, 1.e4, 0.2);
+ hyp.Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphi,ek,ef);
+
+////////////////
+
+  TPZVec<FADFADREAL> solFAD(ndof);
+  TPZVec<FADFADREAL> dsolFAD(ndof * dim);// x, y and z data aligned
+
+  FADREAL defaultFAD(ndof*numShape, 0., 0.);
+  if(defaultFAD.dx(0)==1.)PZError << "\nError: FAD doesn't have default constructor for parameters: (number of derivatives, default value, default derivative value) !";
+  FADFADREAL defaultFADFAD(ndof*numShape, defaultFAD, defaultFAD);
+
+  FADFADREAL U(defaultFADFAD); // Zeroed Energy Value -> ready for contribution
+
+  solFAD.Fill(defaultFADFAD);
+  dsolFAD.Fill(defaultFADFAD);
+
+TPZVec<REAL> in;
+
+    for(ishape=0; ishape<numShape; ishape++) {
+
+      for(idf=0; idf<ndof; idf++) {
+
+	solFAD[idf].val().val() += u[idf + ndof * ishape] * phi(ishape,0);
+	solFAD[idf].val().fastAccessDx(idf+ishape*ndof) += phi(ishape,0);
+	solFAD[idf].fastAccessDx(idf+ishape*ndof).val() += phi(ishape,0);
+	for(id=0; id<dim; id++)
+	{
+
+	   dsolFAD[id+(idf)*dim].val().val() += u[idf + ishape*ndof] * dphi(id, ishape);
+	   dsolFAD[id+(idf)*dim].val().fastAccessDx(idf+ishape*ndof) += dphi(id, ishape);
+	   dsolFAD[id+(idf)*dim].fastAccessDx(idf+ishape*ndof).val() += dphi(id, ishape);
+	}
+      }
+    }
+/*
+    cout << "\nCalcEnergy sol\n" << sol;
+    cout << "\nCalcEnergy dsol\n" << dsol;
+    cout << "\nCalcEnergy phi\n" << phi;
+    cout << "\nCalcEnergy dphix\n" << dphix;
+*/
+
+    hyp.ContributeEnergy(x,solFAD,dsolFAD,U,weight);
+
+
+  TPZInterpolatedElement::FADToMatrix(U, ekFAD, efFAD);
+///////////////
+
+ ek.Print("Stiffness matrix");
+ ef.Print("Right hand side");
+ ekFAD.Print("FAD Stiffness matrix");
+ efFAD.Print("FAD Right hand side");
+ ek -= ekFAD;
+ ef -= efFAD;
+ ek.Print("Stiffness matrix");
+ ef.Print("Right hand side");
+ REAL dif = Norm(ek);
+ cout << "Difference in norm " << dif << endl;
+  return 0;
+}
+
+int mainFull(){
+
+TPZCompEl::gOrder = 2;
   TPZCompMesh *cmesh = CreateMesh();
-
+	int nsol = cmesh->Solution().Rows();
+	int is;
+	for(is=0; is<nsol; is++) {
+		cmesh->Solution()(is,0) = (random()%100)/41.;
+	}
       TPZAnalysis an (cmesh);
       TPZSkylineStructMatrix strskyl(cmesh);
-      an.SetStructuralMatrix(strskyl);
+      TPZFMatrix rhs(24,1,0.);
+      TPZMatrix *stiff1 = CreateAssemble(rhs,1, *cmesh);
+      TPZMatrix *stiff2 = CreateAssemble(rhs,0, *cmesh);
+      TPZFMatrix one(*stiff1);
+      TPZFMatrix two(*stiff2);
+      one -= two;
+      one.Print("difference");
+      REAL norm = Norm(one);
+      cout << "Norm of difference " << norm << endl;
+//      an.SetStructuralMatrix(strskyl);
 
-      TPZStepSolver direct;
-      direct.SetDirect(ECholesky);
-      an.SetSolver(direct);
+//      TPZStepSolver direct;
+//      direct.SetDirect(ECholesky);
+//      an.SetSolver(direct);
 
-      an.Run();
-      an.Rhs().Print();
-      an.Solution().Print();
+//      an.Run();
+//      an.Rhs().Print();
+//      an.Solution().Print();
   TPZMatrixSolver::Diagnose();
   return 0;
 }
@@ -133,8 +256,8 @@ TPZCompMesh *CreateMesh(){
   bnd = meumat->CreateBC (-2,1,val1,val2);
   comp->InsertMaterialObject(bnd);
 
-  comp->Reference()->Print();
-  comp->Print(cout);
+  //comp->Reference()->Print();
+  //comp->Print(cout);
 
   // Ajuste da estrutura de dados computacional
   comp->AutoBuild();
@@ -142,8 +265,126 @@ TPZCompMesh *CreateMesh(){
 
   comp->AdjustBoundaryElements();
   comp->CleanUpUnconnectedNodes();
-    comp->Print(cout);
+    //comp->Print(cout);
     comp->SetName("Malha Computacional Original");
     return comp;
 }
+
+TPZMatrix * CreateAssemble(TPZFMatrix &rhs, int method, TPZCompMesh & Mesh){
+    int neq = Mesh.NEquations();
+    TPZVec<int> skyline;
+    Mesh.Skyline(skyline);
+    TPZSkylMatrix *stiff = new TPZSkylMatrix(neq,skyline);
+    rhs.Redim(neq,1);
+    Assemble(*stiff,rhs,method, Mesh);
+    return stiff;
+}
+
+
+void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh & Mesh){
+
+  int iel;
+  //int numel = 0;
+  int nelem = Mesh.NElements();
+  TPZElementMatrix ek,ef;
+  TPZManVector<int> destinationindex(0);
+  TPZManVector<int> sourceindex(0);
+  REAL stor1[1000],stor2[1000],stor3[100],stor4[100];
+  ek.fMat = new TPZFMatrix(0,0,stor1,1000);
+  ek.fConstrMat = new TPZFMatrix(0,0,stor2,1000);
+  ef.fMat = new TPZFMatrix(0,0,stor3,100);
+  ef.fConstrMat = new TPZFMatrix(0,0,stor4,100);
+
+  TPZAdmChunkVector<TPZCompEl *> &elementvec = Mesh.ElementVec();
+
+  for(iel=0; iel < nelem; iel++) {
+    TPZCompEl *el = elementvec[iel];
+    if(!el) continue;
+    //	  int dim = el->NumNodes();
+  if(method == 0) {
+    el->CalcStiff(ek,ef);
+  } else {
+    TPZInterpolatedElement * pIntel = NULL;
+    pIntel = dynamic_cast<TPZInterpolatedElement *>(el);
+    if(pIntel)
+    {
+       pIntel->CalcEnergy(ek,ef);
+    }else
+    {
+       el->CalcStiff(ek,ef);
+    }
+   }
+
+    if(!el->HasDependency()) {
+      //ek.fMat->Print("stiff has no constraint",test);
+      //ef.fMat->Print("rhs has no constraint",test);
+      //test.flush();
+      destinationindex.Resize(ek.fMat->Rows());
+      int destindex = 0;
+      int numnod = ek.NConnects();
+      for(int in=0; in<numnod; in++) {
+         int npindex = ek.ConnectIndex(in);
+         TPZConnect &np = Mesh.ConnectVec()[npindex];
+         int blocknumber = np.SequenceNumber();
+         int firsteq = Mesh.Block().Position(blocknumber);
+         int ndf = Mesh.Block().Size(blocknumber);
+	 //	 if (numnod == 27){
+	 //   cout << "First equation " << firsteq <<"\t ndf " << ndf << endl;
+	 //	 }
+         for(int idf=0; idf<ndf; idf++) {
+           destinationindex[destindex++] = firsteq+idf;
+         }
+      }
+      stiffness.AddKel(*ek.fMat,destinationindex);
+      rhs.AddFel(*ef.fMat,destinationindex);
+    } else {
+      // the element has dependent nodes
+      el->ApplyConstraints(ek,ef);
+      //ek.fMat->Print("stif no constraint",test);
+      //ek.fConstrMat->Print("stif constrained",test);
+      //ef.fMat->Print("rhs no constraint",test);
+      //ef.fConstrMat->Print("rhs constrained",test);
+      //test.flush();
+      //test << "sum of columns\n";
+      int destindex = 0;
+      int fullmatindex = 0;
+      destinationindex.Resize(ek.fConstrMat->Rows());
+      sourceindex.Resize(ek.fConstrMat->Rows());
+      int numnod = ek.fConstrConnect.NElements();
+      for(int in=0; in<numnod; in++) {
+         int npindex = ek.fConstrConnect[in];
+         TPZConnect &np = Mesh.ConnectVec()[npindex];
+         int blocknumber = np.SequenceNumber();
+         int firsteq = Mesh.Block().Position(blocknumber);
+         int ndf = Mesh.Block().Size(blocknumber);
+         if(np.HasDependency()) {
+           fullmatindex += ndf;
+           continue;
+         }
+         for(int idf=0; idf<ndf; idf++) {
+           sourceindex[destindex] = fullmatindex++;
+           destinationindex[destindex++] = firsteq+idf;
+         }
+      }
+      sourceindex.Resize(destindex);
+      destinationindex.Resize(destindex);
+      stiffness.AddKel(*ek.fConstrMat,sourceindex,destinationindex);
+      rhs.AddFel(*ef.fConstrMat,sourceindex,destinationindex);
+/*
+if(ek.fConstrMat->Decompose_LU() != -1) {
+    el->ApplyConstraints(ek,ef);
+    ek.Print(*this,check);
+    check.flush();
+}
+*/
+    }
+  }//fim for iel
+//
+  int neq = rhs.Rows();
+/*  if(nelem < 34 && neq < 100){
+    stiffness.Print("TPZStructMatrix::Assemble GLOBAL MATRIX (after Assemble)",out);
+    rhs.Print("TPZStructMatrix::Assemble GLOBAL LOAD (after Assemble)",out);
+  }*/
+}
+
 
