@@ -151,7 +151,7 @@ virtual  void Print(ostream & out = cout);
    * @param cornerindexes indexes of the corner nodes of the element
    * @param index index of the element in the vector of element pointers
    */
-  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes,int matid,int &index);
+virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes,int matid,int &index);
 
   /**
    * Generic method for creating a geometric element.
@@ -168,9 +168,10 @@ virtual  void Print(ostream & out = cout);
    *
    * @param index Index of the element in the vector of element pointers.
    */
-  TPZGeoEl* CreateGeoElement( MElementType type, int* cornerindexes,
-			      int matid, int& index );
+//  TPZGeoEl* CreateGeoElement( MElementType type, int* cornerindexes,
+//			      int matid, int& index );
 
+//  virtual void DeleteElement(int gelindex);
   /**
    * Centralized method to delete elements
    * @param gel pointer to the element to be deleted

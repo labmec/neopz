@@ -415,7 +415,8 @@ int TPZGeoMesh::ElementIndex(TPZGeoEl *gel){
 		if (ElementVec()[i] == gel) break;
 		i++;
 	}
-	return i;
+	if(i<numel) return i;
+	else return -1;
 }
 
 int TPZGeoMesh::NodeIndex(TPZGeoNode *nod){
@@ -452,6 +453,7 @@ int TPZGeoMesh::NodeIndex(TPZGeoNode *nod){
 #include "pzgeopyramid.h"
 #include "pzgeopoint.h"
 #include "pzrefpoint.h"
+#include "pzshapepoint.h"
 
 TPZGeoEl *TPZGeoMesh::CreateGeoElement(
    MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
@@ -459,7 +461,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(
    switch( type )
    {
       case 0://point
-	 return new TPZGeoElement< TPZShapeLinear, TPZGeoPoint, TPZRefPoint>(
+	 return new TPZGeoElement< TPZShapePoint, TPZGeoPoint, TPZRefPoint>(
 	    nodeindexes, matid, *this, index );
 
       case 1://line
@@ -502,6 +504,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(
    return NULL;
 }
 
+/*
 TPZGeoEl* TPZGeoMesh::CreateGeoElement( MElementType type, int* nodeindexes,
 					int matid, int& index )
 {
@@ -563,3 +566,4 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){
   fElementVec[index] = NULL; 
   fElementVec.SetFree(index); 
 } 
+*/

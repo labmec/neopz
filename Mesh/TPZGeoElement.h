@@ -1,4 +1,8 @@
 
+// -*- c++ -*-
+
+// $Id: TPZGeoElement.h,v 1.8 2003-10-05 00:25:12 phil Exp $
+
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
 
@@ -28,8 +32,9 @@ public:
   TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
   TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
 
-  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh );
-  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh, int& index );
+  void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
+  //  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh );
+  //  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh, int& index );
 
   ~TPZGeoElement(){};
 

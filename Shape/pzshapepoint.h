@@ -35,6 +35,68 @@ public:
     if(side == 0) Shape(pt,id,order,phi,dphi);
   }
 
+  /**
+   * returns the local node number of the node "node" along side "side"
+   */
+  static int SideNodeLocId(int side, int node) {
+    return 0;
+  }
+
+ /**volume of the master element*/
+  static REAL RefElVolume(){
+    return 0.;
+  }
+
+ /**
+  * return the number of nodes (not connectivities) associated with a side
+  */
+  static int NSideNodes(int side) {
+    return 1;
+  }
+ /**
+  * returns all sides whose closure contains side
+  * @param side smaller dimension side
+  * @param high vector which will contain all sides whose closure contain sidefrom
+  */
+  static void HigherDimensionSides(int side, TPZStack<int> &high) {
+  }
+
+ /**
+  * return the number of nodes (not connectivities) associated with a side
+  */
+  static int NSideConnects(int side) {
+    return 1;
+  }
+ /**
+  * returns the local connect number of the connect "c" along side "side"
+  */
+  static int SideConnectLocId(int side, int c) {
+    return 0;
+  }
+ /**
+  * returns the barycentric coordinates in the master element space of the original element
+  */
+
+  static void CenterPoint(int side, TPZVec<REAL> &center) {
+  }
+
+ /**
+  * returns the transformation which takes a point from the side sidefrom ot
+  * the side sideto
+  * @param sidefrom side where the point resides
+  * @param sideto side whose closure contains sidefrom
+  */
+  static TPZTransform SideToSideTransform(int sidefrom, int sideto) {
+    TPZTransform result(0,0);
+    return result;
+  }
+ /**
+  * returns the dimension of the side
+  */
+  static int SideDimension(int side) {
+    return 0;
+  }
+
 };
 
 

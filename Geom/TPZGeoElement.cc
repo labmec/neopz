@@ -30,6 +30,7 @@
 #include "pzgeopyramid.h"
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
+#include "pzshapepoint.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 #include "TPZGeoElement.h"
@@ -66,7 +67,7 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int mati
   }
   
   for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
-  for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = 0;
+  for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = 0;
 }
 
 template<class TShape, class TGeo, class TRef>
@@ -80,9 +81,10 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(int id,TPZVec<int> &nodeindexes,i
   }
   
   for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindexes[i];
-  for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = 0;
+  for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = 0;
 }
 
+/*
 template< class TShape, class TGeo, class TRef >
 TPZGeoElement< TShape, TGeo, TRef >::TPZGeoElement(
    int* nodeindices, int matind, TPZGeoMesh& mesh ) :
@@ -101,7 +103,9 @@ TPZGeoElement< TShape, TGeo, TRef >::TPZGeoElement(
      fSubEl[ i ] = 0;
   }
 }
+*/
 
+/*
 template< class TShape, class TGeo, class TRef >
 TPZGeoElement< TShape, TGeo, TRef >::TPZGeoElement(
    int* nodeindices, int matind, TPZGeoMesh& mesh, int& index ) :
@@ -115,7 +119,21 @@ TPZGeoElement< TShape, TGeo, TRef >::TPZGeoElement(
      fNodeIndexes[ i ] = *nodeindices++ - 1;
   }
 
+  for( int i = 0; i < TRef::NSubEl; i++ )
+  {
+     fSubEl[ i ] = 0;
+  }
+}
+*/
+template< class TShape, class TGeo, class TRef >
+void TPZGeoElement< TShape, TGeo, TRef >::Initialize(TPZVec<int> &nodeindices, int matind, TPZGeoMesh& mesh, int& index ) {
+  
   for( int i = 0; i < TGeo::NNodes; i++ )
+  {
+     fNodeIndexes[ i ] = nodeindices[i];
+  }
+
+  for( int i = 0; i < TRef::NSubEl; i++ )
   {
      fSubEl[ i ] = 0;
   }
@@ -386,7 +404,7 @@ template<class TShape, class TGeo, class TRef>
 void
 TPZGeoElement<TShape,TGeo,TRef>::CenterPoint(int side, TPZVec<REAL> &cent){
 
-	return TShape::CenterPoint(side,cent);
+  TShape::CenterPoint(side,cent);
 }
 
 template<class TShape, class TGeo, class TRef>
@@ -422,7 +440,7 @@ template class TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>;
 template class TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>;
 template class TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>;
 template class TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>;
-template class TPZGeoElement<TPZShapeLinear,TPZGeoPoint,TPZRefPoint>;
+template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
 
 int newteste(){
 TPZGeoElement <TPZShapeCube,TPZGeoCube,TPZRefCube> el1;
@@ -432,7 +450,7 @@ TPZGeoElement <TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle> el4;
 TPZGeoElement <TPZShapePrism,TPZGeoPrism,TPZRefPrism> el5;
 TPZGeoElement <TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra> el6;
 TPZGeoElement <TPZShapePiram,TPZGeoPyramid,TPZRefPyramid> el7;
-TPZGeoElement <TPZShapeLinear,TPZGeoPoint,TPZRefPoint> el8;
+TPZGeoElement <TPZShapePoint,TPZGeoPoint,TPZRefPoint> el8;
 
 return 0;
 }
@@ -473,7 +491,7 @@ static TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 
 
 
-TPZCompEl *(*TPZGeoElement<TPZShapeLinear,TPZGeoPoint,TPZRefPoint>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
+TPZCompEl *(*TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
 TPZCompEl *(*TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
 TPZCompEl *(*TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;
 TPZCompEl *(*TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
