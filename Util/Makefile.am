@@ -26,7 +26,10 @@ libpzutil_a_SOURCES = pzadmchunkgen.cc		\
 	pzstackgen.cc				\
 	pzstring.cc				\
 	pzvecgen.cc				\
-	pzvecmesh.cc 
-
+	pzvecmesh.cc				\
+	pzline.cc				\
+	pzplane.cc				\
+	pznumeric.cc				\
+	pzpolynomial.cc
 
 ## --| NeoPZ |------------------------------------------------------------------
