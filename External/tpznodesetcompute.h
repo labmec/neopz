@@ -15,6 +15,7 @@
 #include "pzstack.h"
 #include <set>
 
+class TPZBlock;
 /**
 This class will compute the cardinality of a nodegraph, identifying nodes as vertices, lines, faces or volumes
 It will also compress the nodegraph for nodes with identical connectivity graph
@@ -33,14 +34,34 @@ public:
     */
     void AnalyseGraph();
     
+    /**
+    * Build the graph which groups the equations of each node
+    */
     void BuildNodeGraph(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex);
     
+    /**
+    * build the graph which builds the equations linked to vertices
+    */
     void BuildVertexGraph(TPZStack<int> &blockgraph, TPZVec<int> &blockgraphindex);
     
+    /**
+    * Build the  graph which groups the equations grouped by elements
+    */
     void BuildElementGraph(TPZStack<int> &blockgraph, TPZStack<int> &blockgraphindex);
 
 void BuildNodeSet(int node, std::set<int> &nodeset);
 
+  /**
+  * Expand the graph acording to the block structure
+  */
+  static void ExpandGraph(TPZVec<int> &graph, TPZVec<int> &graphindex, TPZBlock &block,
+    TPZVec<int> &expgraph, TPZVec<int> &expgraphindex);
+  /**
+  * Color the graph into mutually independent blocks
+  */
+  static int ColorGraph(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq,
+    TPZVec<int> &colors);
+    
 void Print(std::ostream &file) const;
 
 static void Print(std::ostream &file, const TPZVec<int> &graphindex, const TPZVec<int> &graph);

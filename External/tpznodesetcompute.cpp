@@ -11,6 +11,7 @@
 //
 #include "tpznodesetcompute.h"
 #include "pzstack.h"
+#include "pzblock.h"
 #include <set>
 #include <map>
 #include <fstream>
@@ -364,4 +365,88 @@ void TPZNodesetCompute::Print(std::ostream &file, const std::set<int> &nodeset, 
   std::set<int>::const_iterator it;
   for(it=nodeset.begin(); it!=nodeset.end(); it++) file << *it << ' ';
   file << std::endl;
+}
+
+  /**
+  * Expand the graph acording to the block structure
+  */
+void TPZNodesetCompute::ExpandGraph(TPZVec<int> &graph, TPZVec<int> &graphindex, TPZBlock &block,
+    TPZVec<int> &expgraph, TPZVec<int> &expgraphindex)
+{
+  int expgraphsize = 0;
+  int nbl = graph.NElements();
+  expgraphindex.Resize(graphindex.NElements());
+  int ibl;
+  for(ibl=0; ibl<nbl; ibl++)
+  {
+    expgraphsize += block.Size(graph[ibl]);
+  }
+  expgraph.Resize(expgraphsize);
+  int counter = 0;
+  int numblocks = graphindex.NElements()-1;
+  expgraphindex[0] = counter;
+  int blcounter = 0;
+  for(ibl=0; ibl < numblocks; ibl++)
+  {
+    int first = graphindex[ibl];
+    int last = graphindex[ibl+1];
+    int ieq;
+    for(ieq = first; ieq<last; ieq++)
+    {
+      int blsize =  block.Size(graph[ieq]);
+      int pos = block.Position(graph[ieq]);
+      int b;
+      for(b=0; b<blsize; b++)
+      {
+        expgraph[counter++] =  pos+b;
+      }
+    }
+    if(expgraphindex[blcounter] != counter) expgraphindex[++blcounter] = counter;
+  }
+  expgraphindex.Resize(blcounter+1);
+}
+
+  /**
+  * Color the graph into mutually independent blocks
+  */
+int TPZNodesetCompute::ColorGraph(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq,
+    TPZVec<int> &colors)
+{
+  TPZVec<int> eqcolor(neq);
+  int color = 0;
+  bool hasuncolored = true;
+  int nblocks = graphindex.NElements()-1;
+  colors.Resize(nblocks);
+  colors.Fill(-1);
+  while(hasuncolored)
+  {
+    hasuncolored = false;
+    eqcolor.Fill(-1);
+    int ibl;
+    for(ibl=0; ibl<nblocks; ibl++)
+    {
+      if(colors[ibl] != -1) continue;
+      int first = graphindex[ibl];
+      int last = graphindex[ibl+1];
+      int ieq;
+      for(ieq=first; ieq<last; ieq++)    
+      {
+        if(eqcolor[graph[ieq]] == color) break;
+      }
+      if(ieq != last)
+      {
+        hasuncolored = true;
+      }
+      else
+      {
+        colors[ibl] = color;
+        for(ieq=first; ieq<last; ieq++)    
+        {
+          eqcolor[graph[ieq]] = color;
+        }
+      }
+    }
+    color++;
+  }
+  return color;
 }
