@@ -310,17 +310,21 @@ void TPZMatrix::Print(const char *name, ostream& out,const MatrixOutputFormat fo
       out << "-1 -1 0.\n";
    } else if( form == EMathematicaInput)
    {
+   char * number = new char[32];
      out << name << "\n{ ";
 	 for ( int row = 0; row < Rows(); row++) {
 	 out << "\n{ ";
    	   for ( int col = 0; col < Cols(); col++ ) {
          	REAL val = Get (row, col);
-         	out << val << ", ";
+		sprintf(number, "%16.16lf", val);
+         	out << number << ", ";
 	      }
 	 out << "\b\b },";
 	   }
 
      out << "\b }\n";
+
+     delete[] number;
    }
 
 }
