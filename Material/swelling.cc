@@ -29,6 +29,7 @@ void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix &ek);
 TPZSwelling::TPZSwelling(int matindex, REAL lambda, REAL shear, REAL alfa, REAL M, REAL Gamma, REAL Kperm, REAL DPlus, REAL DMinus,
 			 REAL rHinder, REAL Cfc, REAL Nf0, REAL NPlus0, REAL NMinus0) : 
   TPZMaterial(matindex) {
+ fComputationMode = 0;
  fLambda = lambda;
  fShear = shear;
  fAlfa = alfa;
@@ -59,6 +60,7 @@ void TPZSwelling::Print(ostream &out) {
   TPZMaterial::Print(out);
   out << "name of material : " << Name() << "\n";
   out << "properties : \n";
+  out << "Computation mode : " << fComputationMode << endl;
   out << "Compression modulus " << fLambda << endl;
   out << "Shear modulus " << fShear << endl;
   out << "Biot coupling coeficient " <<  fAlfa << endl;
@@ -73,6 +75,8 @@ void TPZSwelling::Print(ostream &out) {
   out << "Initial fluid volume fraction " << fNf0 << endl;
   out << "Initial cation volume fraction " << fNPlus0 << endl;
   out << "Initial anion volume fraction " << fNMinus0 << endl;
+  out << "Weight factor for time integration of ionic conservation law " << fTheta << endl;
+  out << "Timestep " << fDelt << endl;
   out << "Faraday constant " << gFaraday << endl;
   out << "Molar volume cation " <<gVPlus << endl;
   out << "Molar volume anions " << gVMinus << endl;
@@ -220,6 +224,11 @@ void TPZSwelling::ContributeResidual(TPZVec<REAL> & x,
 				     TPZVec<FADREAL> &RES,
 				     REAL weight){
   const int nstate = 8;
+
+  if(fComputationMode == 0) {
+    ContributePrevResidual(x,sol,dsol,phi,dphi,RES,weight);
+    return;
+  }
   int numeq = sol[0].size();
   FADREAL defaultFAD(numeq, 0., 0.);
   FADFADREAL defaultFADFAD(numeq, defaultFAD, defaultFAD);
@@ -322,7 +331,117 @@ void TPZSwelling::ContributeResidual(TPZVec<REAL> & x,
       RES[ishape*nstate+4+ieq] += (N[ieq]*phi(ishape,0)*weight);
       REAL KGradPhi = 0.;
       for(jeq=0; jeq<3; jeq++) {
-	KGradPhi += dphi(jeq,ishape)*fKperm(ieq,jeq)*fTheta*weight;
+        KGradPhi += dphi(jeq,ishape)*fKperm(ieq,jeq)*fTheta*fDelt*weight;
+      }
+      // Add the contribution of the difusion of the constituents
+      RES[ishape*nstate+4+ieq] += KGradPhi*dsol[ieq+3*(4+ieq)];
+    }
+  }
+}
+
+void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
+				     TPZVec<FADREAL> & sol,
+				     TPZVec<FADREAL> &dsol,
+				     TPZFMatrix &phi,
+				     TPZFMatrix &dphi,
+				     TPZVec<FADREAL> &RES,
+				     REAL weight){
+  const int nstate = 8;
+
+  if(fComputationMode != 0) {
+    cout << "TPZSwelling::ContributePrevResidual should not be called\n";
+    return;
+  }
+  int numeq = sol[0].size();
+  FADREAL defaultFAD(numeq, 0., 0.);
+  FADFADREAL defaultFADFAD(numeq, defaultFAD, defaultFAD);
+  FADFADREAL deform(defaultFADFAD);
+  TPZManVector<FADFADREAL> dsolFADFAD(9,defaultFADFAD);
+
+  // extend the gradient of the solution to a variable which contains second derivatives
+  int ieq,der;
+  for(der=0; der<9; der++) {
+    dsolFADFAD[der].val().val() = dsol[der].val();
+    for(ieq=0; ieq<numeq; ieq++) {
+      dsolFADFAD[der].val().fastAccessDx(ieq) = dsol[der].fastAccessDx(ieq);
+      dsolFADFAD[der].fastAccessDx(ieq).val() = dsol[der].fastAccessDx(ieq);
+    }
+  }
+  // The first derivative of the deform variable contains the residual vector
+  // The second derivative contains the tangent matrix
+
+  int jeq;
+
+  //return;
+  //  cout << "dsol " << dsol;
+
+  // compute the gradient of the map induced by the displacement of the element
+  // include the derivative of the map with respect to the solution
+  REAL GradMap[3][3];
+  GradMap[0][0] = dsol[0].val()+1.;
+  GradMap[0][1] = dsol[1].val();
+  GradMap[0][2] = dsol[2].val();
+  GradMap[1][0] = dsol[3].val();
+  GradMap[1][1] = dsol[4].val()+1.;
+  GradMap[1][2] = dsol[5].val();
+  GradMap[2][0] = dsol[6].val();
+  GradMap[2][1] = dsol[7].val();
+  GradMap[2][2] = dsol[8].val()+1.;
+
+  // compute the determinant of the map
+  // this computation will carry the derivative w.r.t the solution
+  REAL J = GradMap[0][0] * GradMap[1][1] * GradMap[2][2] +
+    GradMap[0][1] * GradMap[1][2] * GradMap[2][0] +
+    GradMap[0][2] * GradMap[1][0] * GradMap[2][1] -
+    GradMap[0][2] * GradMap[1][1] * GradMap[2][0] -
+    GradMap[0][1] * GradMap[1][0] * GradMap[2][2] -
+    GradMap[0][0] * GradMap[1][2] * GradMap[2][1]; //  J = det(F)
+
+  // compute the inverse of the map, including its derivatives
+/*
+  REAL GradMapInv[3][3];
+  for(ieq=0; ieq<3; ieq++) {
+    int ieqp = (ieq+1)%3;
+    int ieqpp = (ieq+2)%3;
+    for(jeq=0; jeq<3; jeq++) {
+      int jeqp = (jeq+1)%3;
+      int jeqpp = (jeq+2)%3;
+      GradMapInv[ieq][jeq] = (GradMap[ieqp][jeqp]*GradMap[ieqpp][jeqpp]-GradMap[ieqpp][jeqp]*GradMap[ieqp][jeqpp])/J;
+      //      cout << ieq << ' ' << jeq << endl << ieqp << ' ' << jeqp << '+' << ieqpp << ' ' <<  jeqpp << endl
+      //	   << ieqpp << ' ' << jeqp << '-' << ieqp << ' ' << jeqpp <<  endl << GradMapInv[ieq][jeq];
+    }
+  }
+*/
+  // compute the Lagrangian volume fractions in function of mu, pres and ksi
+  TPZVec<REAL> N(3);
+  ComputeN(sol,N);
+
+  // uncomment to observe that the numerical procedure gives the same result as the analytic procedure
+  /*
+  TPZVec<REAL> N2(3);
+  NResidual(sol,N2);
+
+  for(ieq=0; ieq<3; ieq++) {
+    N2[ieq] -= N[ieq];
+  }
+
+  cout << "the difference between both approaches\n" << N2;
+  */
+
+  int ishape,nshape = phi.Rows();
+  for(ishape=0; ishape<nshape; ishape++) {
+    // Add the contribution of the rate of change of the volume to the mass balance of the mixture equation
+    RES[ishape*nstate+3] -= J*(phi(ishape,0)*weight);
+    // Add the contribution of the Lagrange volume fractions to the mass balance of the mixture equation
+    RES[ishape*nstate+3] += (N[0]+N[1]+N[2])*(phi(ishape,0)*weight);
+    // Add the contribution to electro neutrality equation
+    RES[ishape*nstate+7] += (N[1]/gVPlus-N[2]/gVMinus)*(phi(ishape,0)*gFaraday*weight);
+    for(ieq=0; ieq<3; ieq++) {
+      // Add the contribution to the mass balance of the constituents
+      RES[ishape*nstate+4+ieq] += (N[ieq]*phi(ishape,0)*weight);
+      REAL KGradPhi = 0.;
+      for(jeq=0; jeq<3; jeq++) {
+        KGradPhi += dphi(jeq,ishape)*fKperm(ieq,jeq)*(1.-fTheta)*fDelt*weight;
       }
       // Add the contribution of the difusion of the constituents
       RES[ishape*nstate+4+ieq] += KGradPhi*dsol[ieq+3*(4+ieq)];
@@ -730,6 +849,39 @@ void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N) {
   FADREAL fac2 = (-mu0+pres)/(gRGas*gTemp*fGamma);
   N[0] = pow(fac2/(expc1+expc2),1./(fGamma-1));
   FADREAL N0Gamma = pow(N[0],fGamma);
+
+  N[1] = N0Gamma*expc1*gVPlus;
+  N[2] = N0Gamma*expc2*gVMinus;
+}
+
+void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<REAL> &N) {
+
+  // computes the analytic solution of N carrying the derivatives
+
+  REAL &pres = sol[3].val();
+  REAL &mu0 = sol[4].val();
+  REAL &mu1 = sol[5].val();
+  REAL &mu2 = sol[6].val();
+  REAL &ksi = sol[7].val();
+  /*
+  REAL test[3];
+  test[0] = pres-mu[0]-gRGas*gTemp*fGamma*(N[1]/(N[0]*gVPlus)+N[2]/(N[0]*gVMinus));
+  test[1] = pres-mu[1]+gFaraday*ksi/gVPlus+gRGas*gTemp*log(N[1]/(pow(N[0],fGamma)*gVPlus))/gVPlus;
+  test[2] = pres-mu[2]-gFaraday*ksi/gVMinus+gRGas*gTemp*log(N[2]/(pow(N[0],fGamma)*gVMinus))/gVMinus;
+  */
+
+  REAL expc1,expc2;
+  expc1 = exp((mu1-gFaraday*ksi/gVPlus - pres)*gVPlus/(gRGas*gTemp));
+
+  expc2 = exp((mu2+gFaraday*ksi/gVMinus - pres)*gVMinus/(gRGas*gTemp));
+
+  //  REAL test1 = pow(N[0],fGamma)*exp(c1)*gVPlus - N[1];
+  //  REAL test2 = pow(N[0],fGamma)*exp(c2)*gVMinus - N[2];
+
+
+  REAL fac2 = (-mu0+pres)/(gRGas*gTemp*fGamma);
+  N[0] = pow(fac2/(expc1+expc2),1./(fGamma-1));
+  REAL N0Gamma = pow(N[0],fGamma);
 
   N[1] = N0Gamma*expc1*gVPlus;
   N[2] = N0Gamma*expc2*gVMinus;

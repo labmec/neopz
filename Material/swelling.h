@@ -15,6 +15,12 @@
 class TPZSwelling : public TPZMaterial {
 
   /**
+   * computation mode :
+   * 0->residual wrt to time n
+   * 1->residual and tangent wrt to time n+1
+   */
+  int fComputationMode;
+  /**
    * hydraulic permeability [mm^4 / (Ns)]
    */
   TPZFMatrix fKperm;
@@ -147,6 +153,19 @@ virtual void Print(ostream & out);
 
 char *Name() { return "TPZSwelling"; }
 
+void SetComputationMode(int mode) {
+  switch(mode) {
+    case 0:
+      fComputationMode = mode;
+    break;
+    case 1:
+      fComputationMode = mode;
+    break;
+    default:
+      cout << "ComputationMode illegal mode = " << mode << endl;
+  }
+}
+
 /**
  * This method computes the contribution to the residual vector and tangent matrix the traditional way
  * THIS METHOD IS NOT IMPLEMENTED!!!
@@ -179,6 +198,17 @@ virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv ,TPZVec<REAL> &sol,TP
 				 TPZVec<FADREAL> &RES,
 				 REAL weight);
  
+/**
+ * Computes the residual vector at an integration point and its tangent matrix by automatic differentiation
+ */
+ virtual void ContributePrevResidual(TPZVec<REAL> & x,
+				 TPZVec<FADREAL> & sol,
+				 TPZVec<FADREAL> &dsol,
+				 TPZFMatrix &phi,
+				 TPZFMatrix &dphi,
+				 TPZVec<FADREAL> &RES,
+				 REAL weight);
+
 
  /** 
   * Compute contribution of BC to the Energy
@@ -229,6 +259,12 @@ virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv ,TPZVec<REAL> &sol,TP
   * This method has been superseded by the direct computation ExactSolution
  */
  void ComputeN(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N);
+
+ /**
+  * Computes N and its partial derivatives by directly inverting the analytic expressions
+  * This method has been superseded by the direct computation ExactSolution
+ */
+ void ComputeN(TPZVec<FADREAL> &sol, TPZVec<REAL> &N);
 
 #endif
  /**
