@@ -61,7 +61,7 @@ libpz_a_LIBADD = ../External/pzsloan.o ../Util/TPZTimer.o \
 	../Material/TPZLinearConvection.o ../Material/tpzmultcamada.o ../Material/pzbctension.o \
 	../Material/TPZMulticamadaOrtho.o ../Material/TPZPlacaOrthotropic.o ../Material/TPZConservationLaw.o \
 	../Material/TPZDiffusionConsLaw.o ../Material/pzconslaw.o ../Material/pzartdiff.o \
-	../Material/pzeulerconslaw.o ../Material/pzbiharmonic.o ../Material/pzmaterialid.o \
+	../Material/pzeulerconslaw.o ../Material/pzbiharmonic.o ../Material/pznonlinbiharmonic.o ../Material/pzmaterialid.o \
 	../Material/tpzoutofrange.o ../Post/pzdxmesh.o ../Post/pzgraphel1d.o ../Post/pzgraphel1dd.o \
 	../Post/pzgraphel.o ../Post/pzgraphelq2d.o ../Post/pzgraphelq2dd.o ../Post/pzgraphelq3dd.o \
 	../Post/pzgraphmesh.o ../Post/pzgraphnode.o ../Post/pzmvmesh.o ../Post/pztrigraph.o \
