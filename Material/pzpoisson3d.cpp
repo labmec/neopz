@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.10 2005-01-28 16:48:37 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.11 2005-02-02 17:03:11 cesar Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -109,7 +109,7 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
       }
     }
   }
-    if ( !ek.VerifySymmetry() ) cout << "MATRIZ NAO SIMETRICA" << endl;
+    if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "MATRIZ NAO SIMETRICA" << endl;
 }
 
 
@@ -144,7 +144,7 @@ void TPZMatPoisson3d::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REA
       }
     }
   }
-    if ( !ek.VerifySymmetry() ) cout << "MATRIZ NAO SIMETRICA" << endl;
+    if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "MATRIZ NAO SIMETRICA" << endl;
 }
 
 /** returns the variable index associated with the name*/
@@ -386,7 +386,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     }
   }
   
-  if ( !ek.VerifySymmetry() ) cout << "MATRIZ NAO SIMETRICA" << endl;
+  if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "MATRIZ NAO SIMETRICA" << endl;
 }
 
 void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
@@ -439,7 +439,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
     PZError << "TPZMatPoisson3d::Wrong boundary condition type\n";
     break;
   }
-    if ( !ek.VerifySymmetry() ) cout << "MATRIZ NAO SIMETRICA" << endl;
+    if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "MATRIZ NAO SIMETRICA" << endl;
 }
 
 void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
