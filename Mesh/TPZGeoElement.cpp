@@ -204,12 +204,13 @@ TPZGeoElement<TShape,TGeo,TRef>::Write(TPZStream &buf, int withclassid) {
   buf.Write(fSubEl,TRef::NSubEl);
 }
 
+/*
 template<class TShape, class TGeo, class TRef>
 int
 TPZGeoElement<TShape,TGeo,TRef>::ClassId() const {
   return -1;
 }
-
+*/
 template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
 template class TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>;
 template class TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>;
