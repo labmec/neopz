@@ -891,6 +891,137 @@ int TPZFMatrix::Substitution( TPZFMatrix *B ) const {
 #endif
 }
 
+int TPZFMatrix::Decompose_LU(TPZVec<int> &index) {
+
+ if (fDecomposed) return 0;
+ 
+ if ( this->Rows() != this->Cols() ) {
+    cout << "TPZFPivotMatrix::DecomposeLU ERRO : A Matriz não é quadrada" << endl;
+    return 0;
+  }
+  
+  int i,j,k;
+  REAL sum = 0.;
+  int nRows = this->Rows();
+  int nCols = this->Cols();
+  
+  index.Resize(nRows);
+  //inicializo o vetor de índices para o caso de pivotamento  
+  for (i=0;i<nRows;i++) index[i] = i;
+  
+  //LU
+  for (j=0;j<nCols;j++){
+   // cout << "line..." << j << endl;
+    for (i=0;i<=j;i++){
+      sum = 0.;
+      for (k=0;k<i;k++){
+        sum += Get(i,k) * Get(k,j);
+      }
+      REAL aux = Get(i,j);
+      PutVal(i,j,(aux - sum));
+      //cout << "0_A[" << i << "," << j << "]= " << Get(i,j) << endl;
+    }
+    //Print(cout);
+    REAL piv = Get(j,j);
+  //  cout << "Pivo 1 =" << piv << endl;
+    int row = j;
+    for (i=j+1;i<nRows;i++){
+      sum = 0.;
+      for (k=0;k<(j);k++){
+        sum += Get(i,k) * Get(k,j);
+      }
+      REAL aux = Get(i,j);
+      PutVal(i,j,(aux - sum));
+      //cout << "1_A[" << i << "," << j << "]= " << Get(i,j) << endl;
+      
+      if (fabs(Get(i,j)) > fabs(piv)){
+        piv = Get(i,j);
+      //  cout << "Pivo 2 =" << piv << endl;
+        row = i;
+      }
+    }
+//    Print(cout);
+    if (row > j){
+      for (k=0;k<nCols;k++){
+        REAL aux = Get(j,k);
+        PutVal(j,k,Get(row,k));
+        //cout << "2_A[" << j << "," << k << "]= " << Get(j,k) << endl;
+        PutVal(row,k,aux);
+        //cout << "3_A[" << row << "," << k << "]= " << Get(row,k) << endl;
+      }
+      k = index[j];
+      index[j] = index[row];
+      index[row] = k;
+    }
+//    cout << "Pivo = " << piv << endl;
+    for (i=j+1;i<nRows;i++){
+      if (fabs(piv) < 1e-12) cout << "Fodeu..." << j << endl;
+      REAL aux = Get(i,j) / piv;
+      PutVal(i,j,aux);
+      //cout << "4_A[" << i << "," << j << "]= " << Get(i,j) << endl;
+    }
+    //Print(cout);
+  }    
+  fDecomposed = ELUPivot;
+}
+
+int TPZFMatrix::Substitution( TPZFMatrix *B, TPZVec<int> &index ) const{
+  
+  if(!B){
+    PZError << __PRETTY_FUNCTION__ << "TPZFMatrix *B eh nulo" << endl;
+    return 0;
+  }
+  
+  TPZFMatrix &b = *B;
+  
+  if (!fDecomposed){
+    PZError <<  __PRETTY_FUNCTION__ << "Matriz não decomposta" << endl;
+    return 0;
+  }
+  
+  if (fDecomposed != ELUPivot){
+    PZError << __PRETTY_FUNCTION__ << "\nfDecomposed != ELUPivot" << endl;
+  }
+  
+  int nRows = this->Rows();
+  
+  if (index.NElements() != nRows || b.Rows() != nRows)
+  {
+    cout << "TMatrix::Substituicao ERRO : vetores com dimensões incompativeis:\n"
+         << "this->fIndex = " << index.NElements() << "  b = " << b.Rows() << endl;
+    return 0;
+  }
+
+  int i,j;
+  REAL sum = 0;
+
+  TPZVec<REAL> v(nRows);
+
+  
+  for (i=0;i<nRows;i++)
+  {
+    v[i] = b[index[i]];
+  }
+  
+  //Ly=b
+  for (i=0;i<nRows;i++)
+  {
+    sum = 0.;
+    for (j=0;j<(i);j++) sum += Get(i,j) * v[j];
+    v[i] -= sum;
+  }
+  
+  //Ux=y
+  for (i=(nRows-1);i>-1;i--)
+  {
+    sum = 0.;
+    for (j=(i+1);j<nRows;j++) sum += Get(i,j) * v[j];
+    v[i] = (v[i] - sum) / Get(i,i);
+  }
+  
+  for (i=0;i<nRows;i++) b[i] = v[i];
+}
+
 REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B) {
 	int size = (A.Rows())*A.Cols();
 	REAL result = 0.;

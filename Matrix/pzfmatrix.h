@@ -94,7 +94,7 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
      Simple destructor
   */
   virtual  ~TPZFMatrix();
-
+  
   int PutVal(const int row,const int col,const REAL & value );
   const REAL &GetVal(const int row,const int col ) const;
   
@@ -210,8 +210,18 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
 
   /*** Solve some systems ***/
 
-  int Decompose_LU();
-  int Substitution( TPZFMatrix *B ) const;
+  virtual int Decompose_LU();
+  virtual int Substitution( TPZFMatrix *B ) const;
+  
+  /** Decomposicao LU com pivoteamento.
+   * @author Edimar Cesar Rylo
+   */
+  virtual int Decompose_LU(TPZVec<int> &index);
+  
+  /** Substituicao LU com pivoteamento.
+   * @author Edimar Cesar Rylo
+   */
+  virtual int Substitution( TPZFMatrix *B, TPZVec<int> &index ) const;
 
 
   //routines to send and receive messages
