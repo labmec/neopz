@@ -4,7 +4,7 @@
  * @file pzmanvector.h
  * @brief Free store vector implementation.
  */
-// $Id: pzmanvector.h,v 1.2 2003-02-26 12:28:49 cantao Exp $
+// $Id: pzmanvector.h,v 1.3 2003-02-26 13:04:22 cantao Exp $
 
 #ifndef PZMANVECTOR_H
 #define PZMANVECTOR_H
@@ -33,19 +33,6 @@ template < class T, int NumExtAlloc = 100 >
 class TPZManVector : public TPZVec< T >
 {
    public:
-   // ATTENTION!!!
-   // THIS CONSTRUCTOR NEEDS SOME FUCKING ATTENTION!
-   // RETHINK THIS, FOR CHRIST SAKE!
-
-   /* Now the fine print... we have a serious design problem
-    * here. Class TPZManVector was designed with an external fixed
-    * storage. Now, this new version has this storage inside. With the
-    * old version, user could declare TPZManVector<...> v; with no
-    * size arguments. *But*, this breaks the brand new CFD code!
-    *
-    * We need to come back here later!
-    */
-
       /**
        * Creates a vector of a given size.
        *
@@ -53,7 +40,7 @@ class TPZManVector : public TPZVec< T >
        *
        * @param size Size of the new vector.
        */
-      TPZManVector( const int size = NumExtAlloc );
+      TPZManVector( const int size = 0 );
 
       /**
        * Creates a vector of a given size, filling it.
@@ -168,7 +155,7 @@ class TPZManVector : public TPZVec< T >
 //--| IMPLEMENTATION |----------------------------------------------------------
 
 template< class T, int NumExtAlloc >
-TPZManVector< T, NumExtAlloc >::TPZManVector( const int size = 0 ) :
+TPZManVector< T, NumExtAlloc >::TPZManVector( const int size ) :
    TPZVec<T>( 0 ) // There is always some static allocation.
 {
    /* If the size requested fits inside the size already provided
