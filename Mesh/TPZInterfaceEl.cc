@@ -1,4 +1,4 @@
-// $Id: TPZInterfaceEl.cc,v 1.13 2003-10-01 20:58:13 tiago Exp $
+// $Id: TPZInterfaceEl.cc,v 1.14 2003-10-01 21:07:15 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -7,8 +7,7 @@
 #include "pzelgt2d.h"
 #include "pzquad.h"
 #include "pzmaterial.h"
-//#include "TPZConservationLaw.h"
-#include "TPZEulerConsLaw.h"
+#include "TPZConservationLaw.h"
 #include "pzbndcond.h"
 
 //construtor para o elemento descontinuo
@@ -40,11 +39,12 @@ void TPZInterfaceElement::CloneInterface(TPZCompMesh *aggmesh,int left,int right
   if(!mater){
     //cria copia de material da malha fina    
     mater = Mesh()->FindMaterial(matid);
-    if( !strcmp(mater->Name(),"TPZEulerConsLaw") ){
-      TPZEulerConsLaw *euler = dynamic_cast<TPZEulerConsLaw *>(mater);
-      mater = new TPZEulerConsLaw(*euler);
-    }
-    aggmesh->InsertMaterialObject(mater);
+    mater->Clone(aggmesh->MaterialVec());
+//    if( !strcmp(mater->Name(),"TPZEulerConsLaw") ){
+//      TPZEulerConsLaw *euler = dynamic_cast<TPZEulerConsLaw *>(mater);
+//      mater = new TPZEulerConsLaw(*euler);
+//    }
+//    aggmesh->InsertMaterialObject(mater);
   }
   int leftside = -1,index;
   TPZGeoEl *gel = Reference();
