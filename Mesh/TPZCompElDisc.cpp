@@ -75,12 +75,12 @@ void TPZCompElDisc::CreateInterfaces(){
   for(side=nsides;side>=0;side--){
     if(fReference->SideDimension(side) != gInterfaceDimension) continue;
     TPZCompElSide thisside(this,side);
-    if(ExistsInterface(thisside.Reference())) {
-      int stop;
-      cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
-      cin >> stop;
-      continue;
-    }
+//     if(ExistsInterface(thisside)) {
+//       int stop;
+//       cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
+//       cin >> stop;
+//       continue;
+//     }
     TPZStack<TPZCompElSide> highlist;
     thisside.HigherLevelElementList(highlist,0,1);
     //a interface se cria uma vez só: quando existem ambos 
