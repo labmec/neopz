@@ -3,7 +3,7 @@
  * @file pzvec_extra.h
  * @brief Extra utilities for TPZVec.
  */
-// $Id: pzvec_extras.h,v 1.7 2003-06-11 13:17:57 cantao Exp $
+// $Id: pzvec_extras.h,v 1.8 2004-04-16 17:51:29 tiago Exp $
 
 #ifndef PZVEC_EXTRAS_H
 #define PZVEC_EXTRAS_H
@@ -113,7 +113,7 @@ T Min( TPZVec< T >& v )
 {
    int nel = v.NElements();
 
-   int m = v[ 0 ];
+   T m = v[ 0 ];
 
    for( int ii = 1; ii < nel; ii++ )
    {
@@ -128,7 +128,7 @@ T Max( TPZVec< T >& v )
 {
    int nel = v.NElements();
 
-   int m = v[ 0 ];
+   T m = v[ 0 ];
 
    for( int ii = 1; ii < nel; ii++ )
    {
@@ -147,7 +147,7 @@ void Intersect(const TPZVec< T > &one, const TPZVec< T > &two, TPZStack< T, N > 
 	firstc = 0;
 	secondc = 0;
 	while(firstc < nfirst && secondc < nsecond) {
-		while(firstc < nfirst && one[firstc] < two[secondc]) 
+		while(firstc < nfirst && one[firstc] < two[secondc])
 		{
 			firstc++;
 		}
@@ -163,7 +163,7 @@ void Intersect(const TPZVec< T > &one, const TPZVec< T > &two, TPZStack< T, N > 
 			secondc++;
 		}
 	}
-			
+
 }
 
 template< class T, int N >
