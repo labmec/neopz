@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.11 2004-02-12 00:18:43 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.12 2004-02-13 15:08:30 erick Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -13,6 +13,7 @@
 #include "pzsolve.h"
 #include "pzdxmesh.h"
 #include "pzstepsolver.h"
+#include "pzblockdiag.h"
 
 #include <iostream>
 
@@ -160,6 +161,11 @@ public:
     */
    TPZDXGraphMesh * PrepareDXMesh(ofstream &dxout);
 
+   /**
+    * Informs a block diagonal to be used as preconditioning
+    */
+   void SetBlockDiagonalPrecond(TPZBlockDiagonal * blockDiag);
+
 protected:
 
    /**
@@ -215,7 +221,10 @@ protected:
     */
    int fEvolCFL;
 
-
+   /**
+    * Preconditioner
+    */
+   TPZBlockDiagonal * fpBlockDiag;
 };
 
 #endif

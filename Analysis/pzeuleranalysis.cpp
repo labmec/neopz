@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.20 2004-02-12 20:50:35 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.21 2004-02-13 15:08:30 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -13,7 +13,7 @@ fpLastSol(NULL), fpSolution(NULL),
 fLinSysEps(1e-10), fLinSysMaxIter(20),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
 fTimeIntEps(1e-8), fTimeIntMaxIter(100),
-fEvolCFL(0)
+fEvolCFL(0), fpBlockDiag(NULL)
 {
 
 }
@@ -24,7 +24,7 @@ fSolution2(), fRhsLast(), fpCurrSol(NULL), fpLastSol(NULL),
 fpSolution(NULL), fLinSysEps(1e-10), fLinSysMaxIter(20),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
 fTimeIntEps(1e-8), fTimeIntMaxIter(100),
-fEvolCFL(0)
+fEvolCFL(0), fpBlockDiag(NULL)
 {
 
 }
@@ -158,6 +158,13 @@ void TPZEulerAnalysis::Assemble()
   // Contributing referring to the advanced state
   // (n+1 index)
    fStructMatrix->Assemble(*pTangentMatrix, fRhs);
+
+   if(fpBlockDiag)
+   {
+      fpBlockDiag->Zero();
+      //fpBlockDiag->SetIsDecomposed(0); // Zero already makes it
+      fpBlockDiag->BuildFromMatrix(*pTangentMatrix);
+   }
 
    // Contributing referring to the last state (n index)
    fRhs+=/*.Add(fRhsLast, fRhsLast)*/ fRhsLast;
@@ -410,4 +417,9 @@ void TPZEulerAnalysis::SetTimeIntCriteria(REAL epsilon, int maxIter)
 void TPZEulerAnalysis::SetEvolCFL(int EvolCFL)
 {
    fEvolCFL = EvolCFL;
+}
+
+void TPZEulerAnalysis::SetBlockDiagonalPrecond(TPZBlockDiagonal * blockDiag)
+{
+   fpBlockDiag = blockDiag;
 }
