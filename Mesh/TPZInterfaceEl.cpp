@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.26 2003-12-16 11:23:29 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.27 2004-01-05 17:45:25 cesar Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -211,7 +211,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   int npoints = intrule->NPoints();
   int ip;
   TPZVec<REAL> point(3,0.),normal(3,0.);
-  TPZBndCond *bcleft = 0,*bcright=0;
+//  TPZBndCond *bcleft = 0,*bcright=0;
 
   for(ip=0;ip<npoints;ip++){
     intrule->Point(ip,intpoint,weight);
