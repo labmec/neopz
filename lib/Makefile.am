@@ -15,7 +15,8 @@ lib_LIBRARIES = libpz.a
 
 libpz_a_SOURCES =
 
-libpz_a_LIBADD = ../Util/pzmap.o \
+libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
+	../Util/pzmap.o \
 	../Util/pzadmchunkgen.o \
 	../Util/pzavlmap.o \
 	../Util/pzchunkgen.o \
