@@ -1,0 +1,374 @@
+#LyX 1.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 220
+\textclass slides
+\begin_preamble
+% Uncomment to print out only slides and overlays
+%
+%\onlyslides{\slides}
+
+% Uncomment to print out only notes
+%
+%\onlynotes{\notes}
+\end_preamble
+\language english
+\inputencoding default
+\fontscheme default
+\graphics dvips
+\paperfontsize default
+\spacing single 
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Slide
+
+
+\size small 
+Modelo de Placas
+\layout Standard
+
+
+\size small 
+O estudo de placas proposto obedece às hipóteses de 
+\emph on 
+Reissner-Mindllin 
+\emph default 
+tais como:
+\layout Enumerate
+
+
+\size small 
+
+\begin_inset Formula $\sigma _{33}=0$
+\end_inset 
+
+
+\layout Enumerate
+
+
+\size small 
+
+\begin_inset Formula $u_{\alpha }(x,y,z)=-z\theta _{\alpha }(x,y)$
+\end_inset 
+
+
+\layout Enumerate
+
+
+\size small 
+
+\begin_inset Formula $u_{3}(x,y,z)=w(x,y)$
+\end_inset 
+
+
+\layout Standard
+
+
+\size small 
+adotando-se também a lei de regime elástico linear (sendo válidas as leis
+ de 
+\emph on 
+Hooke
+\emph default 
+ ), sendo os parâmetros elásticos da placa constituídos por 
+\layout Enumerate
+
+
+\size small 
+módulos de elasticidade longitudinal 
+\begin_inset Formula $E_{1}$
+\end_inset 
+
+ e 
+\begin_inset Formula $E_{2}$
+\end_inset 
+
+
+\layout Enumerate
+
+
+\size small 
+coeficientes de Poisson 
+\begin_inset Formula $\nu _{1}$
+\end_inset 
+
+ e 
+\begin_inset Formula $\nu _{2}$
+\end_inset 
+
+
+\layout Enumerate
+
+
+\size small 
+módulos de elasticidade transversal 
+\begin_inset Formula $G_{12}$
+\end_inset 
+
+, 
+\begin_inset Formula $G_{13}$
+\end_inset 
+
+, 
+\begin_inset Formula $G_{23}$
+\end_inset 
+
+
+\layout Standard
+
+
+\size small 
+impondo-se ainda a condição de ortotropia 
+\begin_inset Formula $E_{1}\nu _{2}=E_{2}\nu _{1}$
+\end_inset 
+
+
+\layout Slide
+
+
+\size small 
+Rotação constante e igual para todas as camadas
+\layout Standard
+
+
+\size small 
+Os deslocamentos fundamentais admitidos numa dada seção transversal são
+\layout Enumerate
+
+
+\size small 
+
+\begin_inset Formula $Translações$
+\end_inset 
+
+: 
+\begin_inset Formula $u(x,y)$
+\end_inset 
+
+, 
+\begin_inset Formula $v(x,y)$
+\end_inset 
+
+, 
+\begin_inset Formula $w(x,y)$
+\end_inset 
+
+
+\layout Enumerate
+
+
+\size small 
+
+\begin_inset Formula $Rotações$
+\end_inset 
+
+: 
+\begin_inset Formula $\theta _{x}(x,y)$
+\end_inset 
+
+, 
+\begin_inset Formula $\theta _{y}(x,y)$
+\end_inset 
+
+, 
+\begin_inset Formula $\theta _{z}(x,y)$
+\end_inset 
+
+
+\layout Standard
+
+
+\size small 
+onde admite-se que as rotações 
+\begin_inset Formula $\theta _{x}(x,y)\, \, e\, \, \theta _{y}(x,y)$
+\end_inset 
+
+, mais a translação 
+\begin_inset Formula $w(x,y)$
+\end_inset 
+
+ são constantes ao longo da espessura da placa, para todas as camadas 
+\layout Slide
+
+
+\size small 
+Rotação Constante e Placa disposta Horizontalmente em relação ao sistema
+ Global
+\layout Standard
+
+
+\size small 
+Adota-se na superfície média da camada um sistema de eixos
+\begin_inset Formula $e_{1},\, e_{2},\, e_{3}$
+\end_inset 
+
+ cujas direções correspondem às de ortotropia do material e um outro sistema
+ denominado local (SRL), composto pelos eixos 
+\begin_inset Formula $Oxyz$
+\end_inset 
+
+, sendo que os eixos 
+\begin_inset Formula $x$
+\end_inset 
+
+ e 
+\begin_inset Formula $e_{1}$
+\end_inset 
+
+ são paralelos.
+ No plano de referência são definidos outros dois sistemas de eixos, chamados
+ de SRN (formado pelos eixos 
+\begin_inset Formula $n_{1},\, n_{2},\, n_{3}$
+\end_inset 
+
+), e outro denominado SRG (dado pelos eixos 
+\begin_inset Formula $Ox_{r}y_{r}z_{r}$
+\end_inset 
+
+), com o eixo 
+\begin_inset Formula $z_{r}$
+\end_inset 
+
+ vertical, orientado para cima, coincidindo com 
+\begin_inset Formula $z$
+\end_inset 
+
+.
+\layout Standard
+
+
+\lang portuges
+
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\lang portuges
+
+\begin_inset Formula $\mid $
+\end_inset 
+
+
+\begin_inset Graphics FormatVersion 1
+	filename figuras/sisplaca.ps
+	display color
+	size_type 1
+	width 60text%
+	rotateOrigin leftBaseline
+	lyxsize_type 1
+	lyxwidth 357pt
+	lyxheight 297pt
+\end_inset 
+
+
+\layout Caption
+
+
+\lang portuges
+Sistema de coordenadas para um elemento de barra
+\begin_inset LatexCommand \label{sistema cood placa}
+
+\end_inset 
+
+
+\end_inset 
+
+
+\layout Slide
+
+\layout Standard
+
+
+\size small 
+Test slide.
+\layout InvisibleText
+
+\layout Standard
+
+
+\size small 
+Text visible only in an overlay.
+\layout VisibleText
+
+\layout Standard
+
+
+\size small 
+Text visible in the
+\layout Overlay
+
+\layout Standard
+
+
+\size small 
+Test overlay.
+\layout VisibleText
+
+\layout Standard
+
+
+\size small 
+Text visible only in an overlay.
+\layout InvisibleText
+
+\layout Standard
+
+
+\size small 
+Text visible in the main slide.
+\layout VisibleText
+
+\layout Note
+
+\layout Standard
+
+
+\size small 
+Test note.
+\layout Standard
+
+
+\size small 
+A time marker: 
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+settime{60}
+\end_inset 
+
+
+\layout Standard
+
+
+\size small 
+Don't talk more than 
+\begin_inset ERT
+status Collapsed
+
+\layout Standard
+
+\backslash 
+addtime{200}
+\end_inset 
+
+.
+\the_end
