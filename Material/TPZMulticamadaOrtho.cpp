@@ -398,6 +398,19 @@ void TPZMulticamadaOrthotropic::PrintTensors(ostream &out) {
   out << endl << endl;
 }
 
+void TPZMulticamadaOrthotropic::PrintTensors(ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout) {
+
+  out << "Output for the tensors at the center of the plates\n\n";
+  int nplaca = fPlacaOrth.NElements();
+  int ip;
+  for(ip=0; ip< nplaca; ip++) {
+    out << "Tensor para placa " << ip << endl;
+    fPlacaOrth[ip].PrintTensors(out,tensorin,tensorout);
+    out << endl;
+  }
+  out << endl << endl;
+}
+
 void TPZMulticamadaOrthotropic::PrintCenterForces(ostream &out) {
 
   out << "Integrated force and moment values and their numerically computed derivatives " << endl << endl;

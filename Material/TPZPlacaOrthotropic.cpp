@@ -120,6 +120,36 @@ void TPZPlacaOrthotropic::IdentifyCompEl() {
 
 }
 
+REAL TensionNorm(TPZFMatrix &tension,int dimrow,int dimcol);
+void TPZPlacaOrthotropic::PrintTensors(ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout) {
+
+  TPZInt1d rule(8);
+  int np = rule.NPoints();
+  TPZFMatrix TensorOut(np,9),DiffTension(np,9);
+  TPZManVector<REAL,3> pos(1,0.), ksi(3,0.), x(3,0.);
+  TPZFNMatrix<9> tensor(3,3,0.);
+  int ip,i,j;
+  for(ip = 0; ip<np; ip++) {
+    REAL weight;
+    rule.Point(ip,pos,weight);
+    ksi[2] = pos[0];
+    fGeoEl->X(ksi,x);
+    Tensor(ksi,tensor);
+    out << "Tensor at pos " << pos[0] << " x " << x << endl;
+    for(i=0; i<3; i++) for(j=0; j<3; j++) tensorout(ip,3*i+j) = tensor(i,j);
+    for(j=0; j<9; j++) DiffTension(ip,j) = tensorout(ip,j) - tensorin(ip,j);
+  }
+  out << " tensor(n) - tensor(n-1) = " << endl;
+  for(i=0; i<np; i++){
+    for(j=0; j<9; j++){
+      out <<  DiffTension(i,j) << " ";
+    }
+    out << endl;
+  }
+  REAL normat = TensionNorm(DiffTension,np,9);
+  out << "Norma of tensor out - tensor in = " << normat << endl;
+}
+
 void TPZPlacaOrthotropic::PrintTensors(ostream &out) {
   TPZInt1d rule(8);
   int np = rule.NPoints();
@@ -132,17 +162,29 @@ void TPZPlacaOrthotropic::PrintTensors(ostream &out) {
     ksi[2] = pos[0];
     fGeoEl->X(ksi,x);
     Tensor(ksi,tensor);
-    out << "Tensor at pos " << pos[0] << " x " << x << endl;
+    out << "Tensor at pos " << pos[0] << " x " << x << " ";
     int i,j;
     for(i=0; i<3; i++) {
       for(j=0; j<3; j++){
-	out << tensor(i,j) << " " ;
+	REAL tension = tensor(i,j);
+	if(fabs(tension) < 1.e-10) out << 0 << " , ";
+	else out << tension << " , ";
       }
-      out << endl;
+      //out << endl;
     }
     out << endl;
+//     REAL normat = TensionNorm(tensor,3,3);
+//     out << "Norma do tensor " << normat << endl;
+//     cout << "Norma do tensor " << normat << endl;
   }
+}
 
+REAL TensionNorm(TPZFMatrix &tension,int dimrow,int dimcol) {
+
+  int i,j;
+  REAL val = 0.0;
+  for(i=0;i<dimrow;i++) for(j=0;j<dimcol;j++) val += tension(i,j)*tension(i,j);
+  return sqrt(val);
 }
 
 REAL TPZPlacaOrthotropic::GradMoment(REAL zref, TPZVec<REAL> &graddir, TPZVec<REAL> &normal, TPZVec<REAL> &direction){

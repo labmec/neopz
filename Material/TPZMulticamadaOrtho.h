@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZMulticamadaOrtho.h,v 1.9 2003-11-10 01:00:33 phil Exp $
+// $Id: TPZMulticamadaOrtho.h,v 1.10 2003-11-11 20:52:48 cedric Exp $
 #ifndef MULTICAMADAORTH
 #define MULTICAMADAORTH
 
@@ -133,6 +133,8 @@ class TPZMulticamadaOrthotropic {
   TPZCompMesh *CompMesh(){return fCompMesh;}
 
   void PrintTensors(ostream &out);
+
+  void PrintTensors(ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout);
 
   void PrintCenterForces(ostream &out);
 };
