@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelc1d.cc,v 1.7 2003-10-22 20:32:33 tiago Exp $
+// $Id: pzelc1d.cc,v 1.8 2003-11-04 18:37:59 cedric Exp $
 //METHODS DEFINITION FOR CLASS ELEM1D
 
 #include "pzelc1d.h"
@@ -93,7 +93,7 @@ void TPZCompEl1d::SetConnectIndex(int i,int connectindex) {
   }
 }
 
-int TPZCompEl1d::ConnectIndex(int i) const {
+int TPZCompEl1d::ConnectIndex(int i) {
   if(i>=0 && i<3) return fConnectIndexes[i];
 
   PZError << "TPZCompEl1d::ConnectIndex. Bad parameter i = " << i << " .\n";
@@ -101,18 +101,18 @@ int TPZCompEl1d::ConnectIndex(int i) const {
   return -1;
 }
 
-int TPZCompEl1d::NSideConnects(int i) const {
+int TPZCompEl1d::NSideConnects(int i) {
 	return TPZShapeLinear::NSideConnects(i);
 }
 
-int TPZCompEl1d::NConnectShapeF(int iconnect) const {
+int TPZCompEl1d::NConnectShapeF(int iconnect) {
   if(iconnect == 1 || iconnect == 0) return 1;
   if(iconnect == 2) return fSideOrder-1;
   PZError << "TPZCompEl1d::NConnectShapeF, bad parameter iconnect " << iconnect << endl;
   return 0;
 }
 
-int TPZCompEl1d::SideConnectLocId(int c,int side) const {
+int TPZCompEl1d::SideConnectLocId(int c,int side) {
 	return TPZShapeLinear::SideConnectLocId(side,c);
 }
 
@@ -128,12 +128,12 @@ void TPZCompEl1d::SetInterpolationOrder(TPZVec<int> &ord) {
   fPreferredSideOrder = ord[0];
 }
 
-void TPZCompEl1d::GetInterpolationOrder(TPZVec<int> &ord) const {
+void TPZCompEl1d::GetInterpolationOrder(TPZVec<int> &ord) {
 	ord.Resize(1);
 	ord[0] = fSideOrder;
 }
 
-int TPZCompEl1d::PreferredSideOrder(int side) const {
+int TPZCompEl1d::PreferredSideOrder(int side) {
   if(side == 0 || side == 1) return 0;
   if(side == 2) return fPreferredSideOrder;
   return -1;
@@ -167,7 +167,7 @@ void TPZCompEl1d::SetSideOrder(int side, int order) {
    	PZError << "TPZCompEl1d::SetSideOrder side = " << side << " order = " << order << endl;
 }
 
-int TPZCompEl1d::SideOrder(int side) const {
+int TPZCompEl1d::SideOrder(int side) {
   if(side == 0 || side == 1) return 0;
   if(side == 2) return fSideOrder;
   return -1;

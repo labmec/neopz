@@ -1,7 +1,7 @@
 //HEADER FILE FOR CLASS ELBAS
 
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.6 2003-10-22 20:32:33 tiago Exp $
+// $Id: pzcompel.h,v 1.7 2003-11-04 18:37:58 cedric Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -83,6 +83,11 @@ public:
    * put a copy of the element in the referred mesh
    */
   TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy);
+
+  /**
+   * copy of the element in the new mesh whit alocated index
+   */
+  TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index); 
 
   /**
    * Default interpolation order

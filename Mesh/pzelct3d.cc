@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzelct3d.cc,v 1.6 2003-10-22 20:32:33 tiago Exp $
+// $ Id: $
 #include "pzelct3d.h"
 //#include "pzelgt3d.h"
 #include "pzgeoel.h"
@@ -101,7 +101,7 @@ void TPZCompElT3d::Shape(TPZVec<REAL> &x, TPZFMatrix &phi, TPZFMatrix &dphi) {
   TPZShapeTetra::Shape(x,id,ord,phi,dphi);
 }
 
-int TPZCompElT3d::NConnectShapeF(int side) const {
+int TPZCompElT3d::NConnectShapeF(int side) {
    if(side<4) return 1;//0 a 3
    int s = side-4;
    if(side<10) return fSideOrder[s]-1;//4 a 9
@@ -122,15 +122,15 @@ int TPZCompElT3d::NConnectShapeF(int side) const {
    return 0;
 }
 
-int TPZCompElT3d::NSideConnects(int side) const {
+int TPZCompElT3d::NSideConnects(int side) {
 	return TPZShapeTetra::NSideConnects(side);
 }
 
-int TPZCompElT3d::SideConnectLocId(int node, int side) const {
+int TPZCompElT3d::SideConnectLocId(int node, int side) {
 	return TPZShapeTetra::SideConnectLocId(side,node);
 }
 
-int TPZCompElT3d::SideOrder(int side) const {
+int TPZCompElT3d::SideOrder(int side) {
 	//0 <= side <= 15
   if(side<4 || side>15) return 0;//cantos ou side ruim
   return fSideOrder[side-4];//ordens dos lados e faces
@@ -252,7 +252,7 @@ void TPZCompElT3d::SetConnectIndex(int i,int connectindex) {
   }
 }
 
-int TPZCompElT3d::ConnectIndex(int i) const {
+int TPZCompElT3d::ConnectIndex(int i) {
 	if(i<0 || i>15) {
    	PZError << "TCompElT2d::ConnectIndex. Bad parameter i.\n";
       return -1;
@@ -266,7 +266,7 @@ void TPZCompElT3d::SetInterpolationOrder(TPZVec<int> &ord) {
   for(int i=0;i<11;i++) fPreferredSideOrder[i] = ord[i];
 }
 
-void TPZCompElT3d::GetInterpolationOrder(TPZVec<int> &ord) const {
+void TPZCompElT3d::GetInterpolationOrder(TPZVec<int> &ord) {
   ord.Resize(11);
   for(int i=0;i<11;i++) ord[i] = fSideOrder[i];
 }
@@ -288,7 +288,7 @@ TPZIntPoints *TPZCompElT3d::CreateSideIntegrationRule(int side) {
    return new TPZInt1d(0);//TPZInt1Point(1)
 }
 
-int TPZCompElT3d::PreferredSideOrder(int side) const {
+int TPZCompElT3d::PreferredSideOrder(int side) {
    if(side>-1 && side<4) return 0;//cantos
    if(side<15) {
 	   int order = fPreferredSideOrder[side-4];//lados,faces e centro (ou interior)

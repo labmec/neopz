@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.6 2003-10-22 20:32:33 tiago Exp $
+//$Id: pzcompel.cpp,v 1.7 2003-11-04 18:37:58 cedric Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -110,6 +110,13 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, int &index) {
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy) {
   fMesh = &mesh;
   int index = copy.fIndex;
+  if(index >= 0) mesh.ElementVec()[index] = this;
+  fIndex = index;
+}
+
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index) {
+  fMesh = &mesh;
+  index = mesh.ElementVec().AllocateNewElement();
   if(index >= 0) mesh.ElementVec()[index] = this;
   fIndex = index;
 }
@@ -999,3 +1006,5 @@ REAL TPZCompEl::LesserEdgeOfEl(){
   }
   return mindist;
 }
+
+

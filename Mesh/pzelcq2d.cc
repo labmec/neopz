@@ -1,5 +1,3 @@
-//$Id: pzelcq2d.cc,v 1.7 2003-10-22 20:32:33 tiago Exp $
-
 // -*- c++ -*-
 #include "pzelcq2d.h"
 #include "pzfmatrix.h"
@@ -90,7 +88,7 @@ void TPZCompElQ2d::SetConnectIndex(int i,int connectindex) {
   }
 }
 
-int TPZCompElQ2d::ConnectIndex(int i) const {
+int TPZCompElQ2d::ConnectIndex(int i) {
 	if(i>8 || i<0) {
    	PZError << "TCompElT2d::ConnectIndex. Bad parameter i.\n";
       return -1;
@@ -98,7 +96,7 @@ int TPZCompElQ2d::ConnectIndex(int i) const {
    return fConnectIndexes[i];
 }
 
-int TPZCompElQ2d::NConnectShapeF(int side) const {
+int TPZCompElQ2d::NConnectShapeF(int side) {
   switch(side) {
   case 0:
   case 1:
@@ -118,12 +116,12 @@ int TPZCompElQ2d::NConnectShapeF(int side) const {
   }
 }
 
-int TPZCompElQ2d::NSideConnects(int side) const {
+int TPZCompElQ2d::NSideConnects(int side) {
 	return TPZShapeQuad::NSideConnects(side);
 }
 
 /**It do not verify the values of the c*/
-int TPZCompElQ2d::SideConnectLocId(int c,int side) const {
+int TPZCompElQ2d::SideConnectLocId(int c,int side) {
 	return TPZShapeQuad::SideConnectLocId(side,c);
 }
 
@@ -133,7 +131,7 @@ void TPZCompElQ2d::SetInterpolationOrder(TPZVec<int> &ord) {
   for(int i=0;i<5;i++) fPreferredSideOrder[i] = ord[i];
 }
 
-void TPZCompElQ2d::GetInterpolationOrder(TPZVec<int> &ord) const {
+void TPZCompElQ2d::GetInterpolationOrder(TPZVec<int> &ord) {
   ord.Resize(5);
   for(int i=0;i<5;i++) ord[i] = fSideOrder[i];
 }
@@ -145,7 +143,7 @@ TPZIntPoints *TPZCompElQ2d::CreateSideIntegrationRule(int side) {  // or TPZInt.
    return new TPZIntQuad(2*fSideOrder[4],2*fSideOrder[4]);
 }
 
-int TPZCompElQ2d::PreferredSideOrder(int side) const {
+int TPZCompElQ2d::PreferredSideOrder(int side) {
   if(side<4) return 0;
   if(side<9) {
 	  int order =fPreferredSideOrder[side-4];
@@ -185,7 +183,7 @@ void TPZCompElQ2d::SetSideOrder(int side, int order) {
 	}
 }
 
-int TPZCompElQ2d::SideOrder(int side) const {
+int TPZCompElQ2d::SideOrder(int side) {
   if(side<4 || side>8) return 0;
   return fSideOrder[side-4];
 }

@@ -1,5 +1,3 @@
-//$Id: pzcmesh.cpp,v 1.13 2003-10-22 20:32:33 tiago Exp $
-
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
 #include "pzerror.h"
@@ -17,7 +15,6 @@
 #include "pzblock.h"
 #include "pzelmat.h"
 #include "TPZCompElDisc.h"
-//#include "TPZEulerConsLaw.h"
 #include "pztrnsform.h"
 #include "pztransfer.h"
 #include "pzavlmap.h"
@@ -1736,14 +1733,14 @@ void TPZCompMesh::CopyMaterials(TPZCompMesh *mesh) const {
 REAL TPZCompMesh::DeltaX(){
 
   int nel = ElementVec().NElements(),i,j;
-  if(nel == 0) cout << "\nTPZCompMesh::DeltaX nenhum elemento computacional foi criado\n";
+  if(nel == 0) cout << "\nTPZCompMesh::DeltaX no elements\n";
   REAL maxdist = 0.0,dist=0.0;
   TPZVec<REAL> point0(3),point1(3);
   TPZGeoNode *node0,*node1;
   for(i=0;i<nel;i++){
     TPZCompEl *com = ElementVec()[i];
     if(!com) continue;
-    if(com->Type()==16 || com->Material()->Id() < 0) continue;
+    if(com->Type() == EInterface || com->Material()->Id() < 0) continue;
     node0 = com->Reference()->NodePtr(0);
     node1 = com->Reference()->NodePtr(1);
     for(j=0;j<3;j++){
@@ -1759,13 +1756,13 @@ REAL TPZCompMesh::DeltaX(){
 REAL TPZCompMesh::MaximumRadiusOfMesh(){
 
   int nel = ElementVec().NElements(),i;
-  if(nel == 0) cout << "\nTPZCompMesh::MaximumRadiusOfMesh malha vazia\n";
+  if(nel == 0) cout << "\nTPZCompMesh::MaximumRadiusOfMesh no elements\n";
   REAL maxdist = 0.0,dist=0.0;
   TPZVec<REAL> point0(3),point1(3);
   for(i=0;i<nel;i++){
     TPZCompEl *com = ElementVec()[i];
     if(!com) continue;
-    if(com->Type()==16 || com->Material()->Id() < 0) continue;
+    if(com->Type() == EInterface || com->Material()->Id() < 0) continue;
     dist = com->MaximumRadiusOfEl();
     if(dist > maxdist) maxdist = dist;
   }
@@ -1775,13 +1772,15 @@ REAL TPZCompMesh::MaximumRadiusOfMesh(){
 REAL TPZCompMesh::LesserEdgeOfMesh(){
 
   int nel = ElementVec().NElements(),i;
-  if(nel == 0) cout << "\nTPZCompMesh::MaximumRadiusOfMesh malha vazia\n";
+  if(nel == 0) cout << "\nTPZCompMesh::MaximumRadiusOfMesh no elements\n";
   REAL mindist =10000.0,dist=0.0;
   for(i=0;i<nel;i++){
     TPZCompEl *com = ElementVec()[i];
     if(!com) continue;
-    if(com->Type()==16 || com->Material()->Id() < 0) continue;
-    dist = com->LesserEdgeOfEl();
+    int type = com->Type();
+    if( type == EInterface || com->Material()->Id() < 0 ) continue;
+    if(type == EAgglomerate) dist = dynamic_cast<TPZCompElDisc *>(com)->LesserEdgeOfEl();
+    else dist = com->LesserEdgeOfEl();
     if(dist < mindist) mindist = dist;
   }
   return mindist;

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.5 2003-10-22 20:32:33 tiago Exp $
+// $Id: pzelctemp.cpp,v 1.6 2003-11-04 18:37:59 cedric Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -79,7 +79,7 @@ void TPZIntelGen<TGEO,TSHAPE>::SetConnectIndex(int i, int connectindex){
 }
 
 template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::NConnectShapeF(int connect) const {
+int TPZIntelGen<TGEO,TSHAPE>::NConnectShapeF(int connect){
   if(connect < TSHAPE::NNodes) return 1;
   int order = SideOrder(connect);
   if(order < 0) return 0;
@@ -104,12 +104,12 @@ void TPZIntelGen<TGEO,TSHAPE>::SetIntegrationRule(int ord) {
 //}
 
 template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::NSideConnects(int side) const{
+int TPZIntelGen<TGEO,TSHAPE>::NSideConnects(int side){
   return TSHAPE::NSideConnects(side);
 }
 
 template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::SideConnectLocId(int node, int side) const {
+int TPZIntelGen<TGEO,TSHAPE>::SideConnectLocId(int node, int side) {
   return TSHAPE::SideConnectLocId(side,node);
 }
 
@@ -121,7 +121,7 @@ void TPZIntelGen<TGEO,TSHAPE>::SetInterpolationOrder(int order) {
 
 /**Identifies the interpolation order on the interior of the element*/
 template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) const {
+void TPZIntelGen<TGEO,TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
   ord.Resize(TSHAPE::NSides-TSHAPE::NNodes);
   int i;
   for(i=0; i<TSHAPE::NSides-TSHAPE::NNodes; i++) {
@@ -131,7 +131,7 @@ void TPZIntelGen<TGEO,TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) const {
 
 /**return the preferred order of the polynomial along side iside*/
 template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::PreferredSideOrder(int side) const {
+int TPZIntelGen<TGEO,TSHAPE>::PreferredSideOrder(int side) {
   if(side < TSHAPE::NNodes) return 0;
   if(side<TSHAPE::NSides) {
 	  int order =fPreferredSideOrder;
@@ -143,7 +143,7 @@ int TPZIntelGen<TGEO,TSHAPE>::PreferredSideOrder(int side) const {
 }
 
 template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::ConnectIndex(int con) const {
+int TPZIntelGen<TGEO,TSHAPE>::ConnectIndex(int con) {
 
 #ifndef NDEBUG
   if(con<0 || con>= TSHAPE::NSides) {
@@ -191,7 +191,7 @@ void TPZIntelGen<TGEO,TSHAPE>::SetSideOrder(int side, int order) {
 
 /**returns the actual interpolation order of the polynomial along the side*/
 template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::SideOrder(int side) const {
+int TPZIntelGen<TGEO,TSHAPE>::SideOrder(int side) {
   if(side < TSHAPE::NNodes || side >= TSHAPE::NSides) return 0;
   if(fConnectIndexes[side] == -1) return -1;
   TPZConnect &c = Connect(side);

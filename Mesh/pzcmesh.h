@@ -1,4 +1,4 @@
-//$Id: pzcmesh.h,v 1.9 2003-10-22 20:32:33 tiago Exp $
+//$Id: pzcmesh.h,v 1.10 2003-11-04 18:37:58 cedric Exp $
 
 //HEADER FILE FOR CLASS MESH
 
@@ -144,7 +144,7 @@ public:
   void SetName(char *nm);
 
   /**set de dimension of the domain of the problem*/
-  void SetModel(int dim){fDimModel = dim;}
+  void SetDimModel(int dim){fDimModel = dim;}
 
   /**return the dimension of the simulation*/
   int Dimension(){return fDimModel;}
