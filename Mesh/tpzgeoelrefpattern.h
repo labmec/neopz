@@ -58,6 +58,9 @@ public:
   /**returns the midside node index along a side of the element*/
   void MidSideNodeIndex(int side,int &index);
 
+  /**returns the midside node indices along a side of the element*/
+  void MidSideNodeIndices(int side,TPZVec<int> &indices);
+
   /**
    * return the number of subelements of the element independent of the
    * fact hether the element has already been refined or not
