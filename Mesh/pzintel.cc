@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cc,v 1.16 2003-11-25 18:13:56 cesar Exp $
+// $Id: pzintel.cc,v 1.17 2003-11-26 17:01:30 cesar Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1216,7 +1216,7 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
   TPZFMatrix loclocmat(locmatsize,locmatsize,0.);
   TPZFMatrix projectmat(locmatsize,nvar,0.);
 
-  TPZVec<int> prevorder(dimension),order(dimension);
+  TPZVec<int> prevorder(dimension);
   TPZIntPoints &intrule = GetIntegrationRule();
   intrule.GetOrder(prevorder);
 
@@ -1243,11 +1243,12 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
   for(dim=1;dim<nel;dim++) maxorder = (interpolation[dim] > maxorder) ? interpolation[dim] : maxorder;
 
   // Cesar 2003-11-25 -->> To avoid integration warnings...
-  maxorder = (maxorder > intrule.GetMaxOrder() ) ? intrule.GetMaxOrder() : maxorder;
+  maxorder = (2*maxorder > intrule.GetMaxOrder() ) ? intrule.GetMaxOrder() : 2*maxorder;
 
-  for(dim=0; dim<dimension; dim++) {
-    order[dim] = maxorder*2;
-  }
+//  for(dim=0; dim<dimension; dim++) {
+//    order[dim] = maxorder*2;
+//  }
+  TPZVec<int> order(dimension,maxorder);
   intrule.SetOrder(order);
 
   TPZFMatrix locphi(locmatsize,1);
