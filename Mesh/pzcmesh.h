@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.17 2004-04-26 13:33:55 phil Exp $
+//$Id: pzcmesh.h,v 1.18 2004-04-26 20:58:12 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -37,7 +37,7 @@ class TPZStream;
 //-----------------------------------------------------------------------------
 // class structure
 //-----------------------------------------------------------------------------
-class TPZCompMesh : public TPZSaveable {
+class TPZCompMesh : public virtual TPZSaveable {
 
 protected:
   /**

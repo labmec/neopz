@@ -1,7 +1,7 @@
 //HEADER FILE FOR CLASS ELBAS
 
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.12 2004-04-26 13:33:55 phil Exp $
+// $Id: pzcompel.h,v 1.13 2004-04-26 20:58:12 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -52,7 +52,7 @@ class TPZTransfer;
 
  * @ingroup CompElement
  */
-class TPZCompEl : public TPZSaveable {
+class TPZCompEl : public virtual TPZSaveable {
 
 protected:
 

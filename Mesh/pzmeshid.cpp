@@ -73,7 +73,7 @@ void RegisterMeshClasses() {
   TPZSaveable::Register(TPZINTELTETRAID,Restore<TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra> >);
   TPZSaveable::Register(TPZINTELPRISMID,Restore<TPZIntelGen<TPZGeoPrism,TPZShapePrism> >);
   TPZSaveable::Register(TPZINTELPYRAMID,Restore<TPZIntelGen<TPZGeoPyramid,TPZShapePiram> >);
-//  TPZSaveable::Register(TPZSUBCOMPMESHID,Restore<TPZSubCompMesh>);
+  TPZSaveable::Register(TPZSUBCOMPMESHID,Restore<TPZSubCompMesh>);
   TPZSaveable::Register(TPZCOMPMESHID,Restore<TPZCompMesh>);
 
 
