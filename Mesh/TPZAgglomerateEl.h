@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.18 2003-12-22 17:52:06 tiago Exp $
+//$Id: TPZAgglomerateEl.h,v 1.19 2004-01-20 20:41:40 phil Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -7,6 +7,8 @@
 #include "pzeltype.h"
 #include "TPZCompElDisc.h"
 #include <iostream>
+#include <map>
+#include <set>
 
 class TPZGeoEl;
 class TPZCompEl;
@@ -94,6 +96,9 @@ public:
   /** acumula a lista de regras de integra¢ão no elemento deformado*/
   virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
 
+  /** accumulate the vertices of the agglomerated elements */
+  virtual void AccumulateVertices(TPZStack<TPZGeoNode *> &nodes);
+
   /** calcula o ponto centro de massa dos elementos aglomerados */
   void CenterPoint();
 
@@ -120,15 +125,24 @@ public:
 
   /**
    * retorna o elemento computacional da malha fina de índice index
-   */
+   * Desnecessario porque identico a SubElement
+  
   TPZCompEl *FineElement(int index);
+  */
 
   /**return the geometric element to which this element references*/
   TPZGeoEl *CalculateReference();
 
-  /**os geométricos agrupados apontam para o computacional*/
-  void SetReference();
-  void SetReference2(int sub);
+//  /**os geométricos agrupados apontam para o computacional*/
+//  void SetReference();
+//  void SetReference2(int sub);
+
+  /** \brief Computes a measure of the element
+   * Computes the maximum distance in x,y and z and then returns the minimum of
+   * these three measures
+   */
+virtual REAL LesserEdgeOfEl();
+
 
    /** 
     * retorna o sub-elemento número sub 
@@ -156,7 +170,7 @@ public:
   /**
    * create copy of the materials tree
    */
-  void CreateMaterialCopy(TPZCompMesh &aggcmesh);
+//  void CreateMaterialCopy(TPZCompMesh &aggcmesh);
 
   void ListOfDiscEl(TPZStack<TPZCompEl *> &elvec);
 
@@ -169,22 +183,27 @@ public:
 
   void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 
-  void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
+//  void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
 
-  TPZGeoEl *FatherN(TPZGeoEl *sub,int n);
+//  TPZGeoEl *FatherN(TPZGeoEl *sub,int n);
 
-  int NSubsOfLevels(TPZGeoEl *father,int nlevels);
+//  int NSubsOfLevels(TPZGeoEl *father,int nlevels);
 
-  int NSubCompEl(TPZGeoEl *father);
+//  int NSubCompEl(TPZGeoEl *father);
 
   static void ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int nivel,int &numaggl,int dim);
 
-  void FineSolution(TPZVec<REAL> &x,TPZCompElDisc *disc,TPZVec<REAL> &uh);
-  void FineSolution(TPZVec<REAL> &x,TPZVec<REAL> &uh);
+//  void FineSolution(TPZVec<REAL> &x,TPZCompElDisc *disc,TPZVec<REAL> &uh);
 
   void Print(TPZStack<int> &listindex);
 
   void ProjectSolution(TPZFMatrix &projectsol);
-  void ProjectSolution2(TPZFMatrix &projectsol);
+//  void ProjectSolution2(TPZFMatrix &projectsol);
+
+
+  static void CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *aggmesh,TPZVec<int> &accumlist,int numaggl);
+
+  static void ComputeNeighbours(TPZCompMesh *mesh, map<TPZCompElDisc *,set<TPZCompElDisc *> > &neighbours);
+
 };
 #endif

@@ -1078,3 +1078,8 @@ void TPZGeoEl::InitializeNeighbours(){
   }
 }
 
+void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<int> &indices) {
+  indices.Resize(1);
+  MidSideNodeIndex(side,indices[0]);
+  if(indices[0] == -1) indices.Resize(0);
+}

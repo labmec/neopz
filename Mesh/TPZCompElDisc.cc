@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.42 2004-01-14 15:26:37 cantao Exp $
+//$Id: TPZCompElDisc.cc,v 1.43 2004-01-20 20:41:41 phil Exp $
 
 // -*- c++ -*- 
 
@@ -817,6 +817,30 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) 
   fMaterial->Solution(u,du,axes,var,sol);
 }
 
+void TPZCompElDisc::Solution(TPZVec<REAL> &x, TPZVec<REAL> &uh){
+
+  TPZCompMesh *finemesh = Mesh();
+  TPZBlock &fineblock = finemesh->Block();
+  int nstate = Material()->NStateVariables();
+  TPZFMatrix &FineMeshSol = finemesh->Solution();
+  int matsize = NShapeF(),dim = Dimension();
+  TPZFMatrix phix(matsize,1,0.);
+  TPZFMatrix dphix(dim,matsize,0.);
+  Shape(x,phix,dphix);
+  TPZConnect *df = &Connect(0);
+  int dfseq = df->SequenceNumber();
+  int dfvar = fineblock.Size(dfseq);
+  int pos   = fineblock.Position(dfseq);
+  int iv = 0,d;
+  uh.Fill(0.);
+  for(d=0; d<dfvar; d++) {
+    uh[iv%nstate] += phix(iv/nstate,0)*FineMeshSol(pos+d,0);
+    iv++;
+  }
+}
+
+
+
 void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) {
   int mat = Material()->Id();
   int nsides = fReference->NSides();
@@ -883,7 +907,7 @@ int TPZCompElDisc::NInterfaces(){
     }
 }
 
-#include "TPZAgglomerateEl.h"
+//#include "TPZAgglomerateEl.h"
 void TPZCompElDisc::AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight){
 
   int i,npoints;
@@ -925,273 +949,7 @@ void TPZCompElDisc::CenterPoint(TPZVec<REAL> &center){
   }
 }
 
-REAL TPZCompElDisc::LesserEdgeOfEl(){
 
-  if(!this) cout << "TPZCompMesh::LesserEdgeOfEl null element";
-
-  if(Type() == EDiscontinuous || Reference()) return TPZCompEl::LesserEdgeOfEl();
-
-  TPZAgglomerateElement *This = dynamic_cast<TPZAgglomerateElement *>(this);
-  TPZStack<int> elvec;
-  This->IndexesDiscSubEls(elvec);
-  int size = elvec.NElements();
-
-  int i,j,k,l,nvertices;
-  REAL mindist = 100000.0,dist=0.0;
-  TPZVec<REAL> point0(3),point1(3);
-  TPZGeoNode *node0,*node1;
-  if(1){
-    //procura-se a maior distancia entre dois nodos do conjunto de elementos
-    //em cada direção X, Y ou Z, retorna-se a menor dessas 3 distancias
-    TPZStack<TPZGeoNode *> nodes;
-    for(i=0;i<size;i++){
-      //juntando os nodos do grupo
-      TPZCompEl *comp = This->MotherMesh()->ElementVec()[elvec[i]];
-      TPZGeoEl *geo = comp->Reference();
-      if(!geo) PZError <<  "TPZAgglomerateElement::Solution null reference\n";
-      nvertices = geo->NNodes();
-      for(l=0;l<nvertices;l++) nodes.Push( geo->NodePtr(l) );
-    }
-    nvertices = nodes.NElements();
-    REAL maxX=-1.,maxY=-1.,maxZ=-1.;
-    REAL distX,distY,distZ;
-    for(l=0;l<nvertices;l++){
-      for(j=l+1;j<nvertices;j++){
-	node0 = nodes[l];
-	node1 = nodes[j];
-	distX = fabs(nodes[l]->Coord(0) - nodes[j]->Coord(0));
-	distY = fabs(nodes[l]->Coord(1) - nodes[j]->Coord(1));
-	distZ = fabs(nodes[l]->Coord(2) - nodes[j]->Coord(2));
-	if(distX > maxX) maxX = distX;
-	if(distY > maxY) maxY = distY;
-	if(distZ > maxZ) maxZ = distZ;
-      }
-    }
-    if(maxX < 1.e-8 && maxY < 1.e-8  && maxZ < 1.e-8)
-      PZError << "TPZCompElDisc::LesserEdgeOfEl degenerate element\n";
-    if(maxX < 1.e-8) maxX = 1000000.0;
-    if(maxY < 1.e-8) maxY = 1000000.0;
-    if(maxZ < 1.e-8) maxZ = 1000000.0;
-    maxX = maxX < maxY ? maxX : maxY;
-    maxX = maxX < maxZ ? maxX : maxZ;
-    return maxX;
-  }
-  if(0){
-  //procurando a menor distancia entre dois nodos de qualquer um dos sub-elementos???!!!
-    for(i=0;i<size;i++){
-      TPZCompEl *comp = This->MotherMesh()->ElementVec()[elvec[i]];
-      TPZGeoEl *geo = comp->Reference();
-      if(!geo) PZError <<  "TPZAgglomerateElement::Solution null reference\n";
-      int nvertices = geo->NNodes();
-      for(l=0;l<nvertices;l++){
-	for(j=l+1;j<nvertices;j++){
-	  node0 = geo->NodePtr(l);
-	  node1 = geo->NodePtr(j);
-	  for(k=0;k<3;k++){
-	    point0[k] = node0->Coord(k);
-	    point1[k] = node1->Coord(k);
-	  }
-	  dist = TPZGeoEl::Distance(point0,point1);
-	  if(dist < mindist) mindist = dist;
-	}
-      }
-    }
-  }
-  return mindist;
-}
-
-
-
-void TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *aggmesh,TPZVec<int> &accumlist,int numaggl){
-
-  /**
-   * somente são aglomerados elementos de volume
-   * elementos de interface não são aglomerados, cada interface deve conhecer
-   * o elemento aglomerado esquerdo ou direito
-   * elementos fantasmas ou BC não são aglomerados, a cada elemento BC
-   * corresponde um elemento interface de igual tamanho ou nível
-   * todo elemento interface e todo elemento BC deve ser clonada para a malha aglomerada
-   * todo elemento de volume deve ter associado um agrupamento pudendo ser um único elemento
-   * a posi¢ão K de accumlist indica o index K do elemento computacional que será acumulado,
-   * o inteiro guardado nessa posi¢ão indica o elemento ao qual será
-   * aglomerado, assim si accumlist[8] = 4 então o elemento computacional
-   * de index 8 será agrupado para formar o elemento aglomerado de index 4
-   */
-  int nlist = accumlist.NElements();
-  if(numaggl < 1 || nlist < 2){
-    PZError << "TPZCompElDisc::CreateAgglomerateMesh number agglomerate elements"
-	    << " out of range\nMALHA AGGLOMERADA NÂO CRIADA\n";
-    aggmesh = new TPZCompMesh(*finemesh);
-    return;
-  }
-  //TPZFlowCompMesh aggmesh(finemesh->Reference());
-  int index,nel = finemesh->NElements(),nummat,size = accumlist.NElements(),i;
-  //criando agrupamentos iniciais
-  for(i=0;i<numaggl;i++){
-    int k = 0;
-    //o elemento de index k tal que accumlist[k] == i vai aglomerar no elemento de index/id i
-    while( accumlist[k] != i && k < size) k++;
-    if(k == size){
-      PZError << "TPZCompElDisc::CreateAgglomerateMesh material not found\n";
-      exit(-1);
-    }
-    nummat = finemesh->ElementVec()[k]->Material()->Id();
-    //criando elemento de index/id i e inserindo na malha aggmesh
-    new TPZAgglomerateElement(nummat,index,*aggmesh,finemesh);
-  }
-  //inicializando os aglomerados e clonando elementos BC
-  int meshdim = finemesh->Dimension(),father,type,eldim;
-  int surfacedim = meshdim-1;
-  for(i=0;i<nel;i++){
-    TPZCompEl *cel = finemesh->ElementVec()[i];
-    if(!cel) continue;
-    father = accumlist[i];
-    type = cel->Type();
-    eldim = cel->Dimension();
-    if(type == EDiscontinuous || type == EAgglomerate){//elemento descontínuo de volume ou aglomerado
-      if(eldim == meshdim){
-	if(father == -1){
-	  PZError << "TPZCompElDisc::CreateAgglomerateMesh element null father\n";
-	  if(aggmesh) delete aggmesh;
-	  return;
-	}
-	//incorporando o index do sub-elemento
-	//o elemento de index i vai para o pai father = accumlist[i]
-	TPZAgglomerateElement::AddSubElementIndex(aggmesh,i,father);
-      } else if(eldim == surfacedim){
-	//clonando o elemento descontínuo BC, o clone existira na malha aglomerada
-	dynamic_cast<TPZCompElDisc *>(cel)->Clone2(*aggmesh,index);
-      }
-    }
-  }
-  //agora os geométricos apontam para os respectivos aglomerados
-  //computacionais recuperaram as referências com TPZCompMesh::LoadReferences()
-  for(i=0;i<nel;i++){
-    TPZCompEl *cel = finemesh->ElementVec()[i];
-    if(!cel) continue;
-    if(cel->Type() == EInterface){//elemento interface
-      TPZInterfaceElement *interf = dynamic_cast<TPZInterfaceElement *>(cel);
-      TPZCompEl *leftel = interf->LeftElement(),*rightel = interf->RightElement();
-      int indleft = leftel->Index();
-      int indright = rightel->Index();
-      if(accumlist[indleft] == -1 && accumlist[indright] == -1){
-	//no máximo um elemento pode ser BC
-	PZError << "TPZCompElDisc::CreateAgglomerateMesh data error\n";
-	if(aggmesh) delete aggmesh;
-	return;
-      }
-      int index;
-      //se os geométricos apontam para o mesmo aglomerado não criar interface
-      if(leftel->Reference()->Reference() == rightel->Reference()->Reference()) continue;
-      //clonando o elemento interface: a interface existirá na malha aglomerada
-      interf->CloneInterface(*aggmesh,index);
-    }
-  }
-  nel = aggmesh->ElementVec().NElements();
-  //inizializando elementos aglomerados preenchendo os demais dados
-  for(i=0;i<nel;i++){
-    TPZCompEl *cel = aggmesh->ElementVec()[i];
-    if(cel->Type() == EAgglomerate){//agglomerate element
-      TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
-      agg->InitializeElement();
-      //it is set up as zero. It will be computed below.
-      agg->SetNInterfaces(0);
-    }
-  }
-  int dim = aggmesh->Dimension();
-  //<!>Loop over all elements to compute for each interface the distance between interface's center point to volume's center point.
-  //The lessest distance is adopted as the element's inner radius (fInnerRadius).
-  //It is also computed, the number of interfaces of an agglomerate element (fNFaces).
-  for(i = 0; i < nel; i++){
-    TPZCompEl *cel = aggmesh->ElementVec()[i];
-    if(cel->Type() == EInterface){
-      TPZInterfaceElement * interface = dynamic_cast<TPZInterfaceElement * > (cel);
-      TPZCompElDisc * LeftEl  = interface -> LeftElement();
-      TPZCompElDisc * RightEl = interface -> RightElement();
-
-/*<!>      if ( (LeftEl->Index() == 0) || (RightEl->Index() == 0) ) {
-	cout << "pare";
-      }*/
-
-      TPZManVector<REAL, 3> InterfaceCenter(3), RefInterfaceCenter(3), LeftCenter(3), RightCenter(3);
-      REAL LeftDistance = 0., RightDistance = 0.;
-      interface->Reference()->CenterPoint(interface->Reference()->NSides() - 1, RefInterfaceCenter);
-      interface->Reference()->X(RefInterfaceCenter, InterfaceCenter);
-      //<!> It is admited the center point is already calculated
-      LeftCenter = LeftEl -> fCenterPoint;
-      RightCenter = RightEl -> fCenterPoint;
-      for (int isum = 0; isum < dim; isum++)
-	{
-	  LeftDistance  += (LeftCenter[isum] - InterfaceCenter[isum]) * (LeftCenter[isum] - InterfaceCenter[isum]);
-	  RightDistance += (RightCenter[isum] - InterfaceCenter[isum]) * (RightCenter[isum] - InterfaceCenter[isum]);
-	}
-
-      LeftDistance  = sqrt(LeftDistance);
-      RightDistance = sqrt(RightDistance);
-
-      //Once computed distance from interface center to element center, we try the distance from interface nodes to element center.
-      int facennodes = interface->Reference()->NNodes();
-      for(int inode = 0; inode < facennodes; inode++) {
-	REAL left = 0., right = 0.;
-	//Getting the node coordinate
-	TPZGeoNode * Node = interface->Reference()->NodePtr(inode);	  
-	REAL nodecoord;
-	for (int isum = 0; isum < dim; isum++){
-	  nodecoord = Node->Coord(isum);
-	  left  += (LeftCenter[isum] - nodecoord) * (LeftCenter[isum] - nodecoord);
-	  right += (RightCenter[isum] - nodecoord) * (RightCenter[isum] - nodecoord);
-	}	
-	left  = sqrt(left);
-	right = sqrt(right);
-	if(left < LeftDistance)
-	  LeftDistance = left;
-	if(right < RightDistance)
-	  RightDistance = right;
-      }
-
-      int nsides = interface->Reference()->NSides();
-      for (int irib = facennodes; irib < nsides - 1; irib++){
-	REAL left = 0., right = 0.;
-	//Getting the node coordinate
-	interface->Reference()->CenterPoint(irib, RefInterfaceCenter);
-	interface->Reference()->X(RefInterfaceCenter, InterfaceCenter);	
-
-      for (int isum = 0; isum < dim; isum++)
-	{
-	  left  += (LeftCenter[isum] - InterfaceCenter[isum]) * (LeftCenter[isum] - InterfaceCenter[isum]);
-	  right += (RightCenter[isum] - InterfaceCenter[isum]) * (RightCenter[isum] - InterfaceCenter[isum]);
-	}
-	left  = sqrt(left);
-	right = sqrt(right);
-	if(left < LeftDistance)
-	  LeftDistance = left;
-	if(right < RightDistance)
-	  RightDistance = right;	
-      }
-
-
-      //<!>I think if it is not agglomerate, i.e. it is a CompElDisc, the InnerRadius is not stored, but computed
-      //each time it is required.
-      //if the stored inner radius is bigger than the computed one, the computed one takes its place, because of we are computing the INNER radius.
-      if(LeftEl->Type()  == EAgglomerate){
-	if (LeftDistance  < LeftEl->InnerRadius()) 
-	  LeftEl->SetInnerRadius(LeftDistance);
-
-	LeftEl ->SetNInterfaces(LeftEl->NInterfaces() + 1);
-      }
-
-      if(RightEl->Type() == EAgglomerate){
-	if (RightDistance < RightEl->InnerRadius()) 
-	  RightEl->SetInnerRadius(RightDistance);
-
-	RightEl->SetNInterfaces(RightEl->NInterfaces()+ 1);
-      }
-
-    }//end of if
-
-  }//end of loop over elements
-
-}//end of method
 
 void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 				    TPZVec<REAL> &errors,TPZBlock * /*flux */) {
@@ -1373,3 +1131,14 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
   SetDegree(locdeg);
 }
 
+void TPZCompElDisc::AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) {
+  TPZGeoEl *geo = Reference();
+#warning "Este metodo nao funciona para aglomerados contendo aglomerados"
+  if(!geo) {
+    PZError <<  "TPZCompElDisc::AccumulateVertices null reference\n";
+    return;
+  }
+  int nvertices = geo->NNodes();
+  int l;
+  for(l=0;l<nvertices;l++) nodes.Push( geo->NodePtr(l) );
+}

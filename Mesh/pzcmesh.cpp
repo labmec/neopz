@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.24 2004-01-05 18:01:40 cesar Exp $
+//$Id: pzcmesh.cpp,v 1.25 2004-01-20 20:41:40 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -886,7 +886,8 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
     int size = aggel->NIndexes(),i;
     for(i=0;i<size;i++){
       //TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(fElementVec[elvec[i]]);
-      TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(aggel->FineElement(i));
+//      TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(aggel->FineElement(i));
+      TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(aggel->SubElement(i));
       if(!disc){
 	PZError << "TPZCompMesh::BuildTransferMatrixDesc index with null" 
 		<< " elemento\n";

@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.11 2003-12-12 19:59:20 phil Exp $
+//$Id: pzgeoel.h,v 1.12 2004-01-20 20:41:40 phil Exp $
 
 // -*- c++ -*-
 
@@ -176,6 +176,12 @@ virtual int Type() =0;
 
   /**returns the midside node index along a side of the element*/
   virtual void MidSideNodeIndex(int side,int &index) = 0;
+
+  /**returns the midside node indices along a side of the element
+  THIS METHOD SHOULD SUBSTITUTE MidSideNodeIndex in the future as it is ready
+  for Refinement patterns whereas the former is not
+  */
+  virtual void MidSideNodeIndices(int side,TPZVec<int> &indices);
 
   /**returns the index of the nodenum node of side*/
   virtual int SideNodeIndex(int side,int nodenum) = 0;

@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.23 2003-12-02 21:05:58 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.24 2004-01-20 20:41:41 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -33,7 +33,7 @@ class TPZGeoEl1d;
 class TPZGeoElPoint;
 
 
-class TPZCompElDisc : public TPZCompEl{	// header file for the computational element class
+class TPZCompElDisc : public TPZCompEl{
 
   /**
    * Geometric element to which this element refers
@@ -263,6 +263,11 @@ protected:
   void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 
   /**
+  * \brief Computes the solution in function of a point in cartesian space
+  */
+  void Solution(TPZVec<REAL> &x,TPZVec<REAL> &uh);
+
+  /**
    * Calculates the solution - sol - for the variable var
    * at point qsi, where qsi is expressed in terms of the
    * master element coordinates
@@ -272,13 +277,12 @@ protected:
    */
   virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
 
-  static void CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompMesh *aggmesh,TPZVec<int> &accumlist,int numaggl);
-
   virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
 
-  int NSides();
+  /** accumulate the vertices of the agglomerated elements */
+  virtual void AccumulateVertices(TPZStack<TPZGeoNode *> &nodes);
 
-  REAL LesserEdgeOfEl();
+  int NSides();
 
   void CalcResidual(TPZElementMatrix &ef);
 
