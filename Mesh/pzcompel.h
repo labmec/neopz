@@ -1,7 +1,7 @@
 //HEADER FILE FOR CLASS ELBAS
 
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.9 2003-11-05 16:02:21 tiago Exp $
+// $Id: pzcompel.h,v 1.10 2003-11-10 16:12:04 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -93,6 +93,15 @@ public:
    * Default interpolation order
    */
   static int gOrder;
+
+  /** 
+   * Returns the volume of the geometric element associated.
+   */
+  virtual  REAL VolumeOfEl()
+ {
+  PZError << "TPZCompEl does not have a reference to the geometric mesh. This method must be re-implemented by child classes." << endl;
+  return 0.;
+ }
 
   /**
    * Loads the geometric element referece
