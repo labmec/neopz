@@ -1,7 +1,7 @@
 
 // -*- c++ -*-
 
-// $Id: TPZGeoElement.h,v 1.8 2003-10-05 00:25:12 phil Exp $
+// $Id: TPZGeoElement.h,v 1.9 2003-11-07 16:23:18 cedric Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
@@ -178,9 +178,6 @@ public:
    */
   virtual void CenterPoint(int side, TPZVec<REAL> &masscent);
 
-  //===========================novos métodos================================
-  //Cedric: 08/05/2003
-
   virtual TPZGeoElSide Father2(int side);
 
   virtual int FatherSide(int side, int son) {
@@ -188,9 +185,10 @@ public:
   }
 
   /**divides the element and puts the resulting elements in the vector*/
-  virtual void Divide(TPZVec<TPZGeoEl *> &pv);//Cedric: 08/05/2003
+  virtual void Divide(TPZVec<TPZGeoEl *> &pv);
 
   virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
+
 };
 
 template<class TShape, class TGeo, class TRef>
@@ -206,5 +204,4 @@ void TPZGeoElement<TShape,TGeo,TRef>::SetCreateFunction(TPZCompEl *(*f)(TPZGeoEl
 }
 
 #endif 
-
 
