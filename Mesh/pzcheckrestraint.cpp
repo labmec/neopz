@@ -233,7 +233,30 @@ void TPZCheckRestraint::Print(ostream &out){
   out << "Large side: " <<fLarge.Side() << endl;
   fRestraint.Print("Restraint Matrix",out);
 
-  
+  out <<  "hierarqui of elements ";
+  fSmall.Reference().Element()->Print(out);
+  TPZGeoElSide smallgeo = fSmall.Reference();
+  TPZGeoElSide largegeo = fLarge.Reference();
+  while(smallgeo.Exists() && !smallgeo.NeighbourExists(largegeo))
+    {
+      out <<  "Small element side =  " << smallgeo.Side() << endl;
+      out <<  "Small geometric element printout \n";
+      smallgeo.Element()->Print();
+      smallgeo = smallgeo.Element()->Father2(smallgeo.Side());
+    }
+  if(!smallgeo.Exists()) 
+    {
+      out <<  "TPZCheckRestraint::Print inconsistent datastructure\n";
+    } else {
+      out <<  "Small element side =  " << smallgeo.Side() << endl;
+      out <<  "Small geometric element printout \n";
+      smallgeo.Element()->Print();
+    }
+  out <<  "Large element side =  " << largegeo.Side() << endl;
+  out <<  "Large geometric element printout \n";
+  largegeo.Element()->Print();
+
+ 
   //fSmallSize;
   //fSmallPos;
   //	TPZVec<int> fLargeSize,fLargePos;
