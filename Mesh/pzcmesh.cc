@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cc,v 1.23 2003-12-09 18:39:52 phil Exp $
+//$Id: pzcmesh.cc,v 1.24 2004-01-05 18:01:40 cesar Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -197,6 +197,10 @@ void TPZCompMesh::AutoBuild() {
     TPZGeoEl *gel = elvec[i];
     if(!gel) continue;
     if(!gel->HasSubElement()) {
+      int printing = 0;
+      if (printing) {
+	gel->Print(cout);
+      }
       gel->CreateCompEl(*this,index);
     }
   }
