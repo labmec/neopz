@@ -1,3 +1,4 @@
+//$Id: TPZInterfaceEl.cpp,v 1.21 2003-11-04 17:06:55 cedric Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -51,24 +52,23 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
   //  fMaterial = copy.fMaterial;
 }
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index)
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int &index) 
   : TPZCompEl(mesh,index), fNormal(copy.fNormal) {
 
-  TPZCompElDisc *left = copy.fLeftEl;
-  int leftindex = left->Index();
-  int leftindexnew = destindex[leftindex];
-  fLeftEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[leftindexnew]);
-  TPZCompElDisc *right = copy.fRightEl;
-  int rightindex = right->Index();
-  int rightindexnew = destindex[rightindex];
-  fRightEl = dynamic_cast<TPZCompElDisc *>(mesh.ElementVec()[rightindexnew]);
+  //ambos elementos esquerdo e direito já foram clonados e moram na malha aglomerada
+  //o geometrico da malha fina aponta para o computacional da malha aglomerada
+  TPZCompEl *left = copy.fLeftEl->Reference()->Reference();
+  TPZCompEl *right = copy.fRightEl->Reference()->Reference();
+  fLeftEl = dynamic_cast<TPZCompElDisc *>(left);
+  fRightEl = dynamic_cast<TPZCompElDisc *>(right);
 
   if(!fLeftEl || ! fRightEl) {
-    cout << "Something wrong with clone of interface element\n";
+    cout << "TPZInterfaceElement::TPZInterfaceElement Something wrong with clone of interface element\n";
     exit(-1);
   }
   if(fLeftEl->Mesh() != &mesh || fRightEl->Mesh() != &mesh) {
-    cout << "The discontinuous elements should be cloned before the interface elements\n";
+    cout << "TPZInterfaceElement::TPZInterfaceElement The discontinuous elements should be cloned "
+	 << "before the interface elements\n";
     exit(-1);
   }
   fReference = copy.fReference;
@@ -82,18 +82,18 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
   //  fMaterial = copy.fMaterial;
 }
 
-TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh, TPZVec<int> &destindex,int &index) const {
-  return new TPZInterfaceElement(aggmesh, *this, destindex,index);
+TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index) const {
+  return new TPZInterfaceElement(aggmesh, *this, index);
 }
 
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
-
 
 #ifdef _AUTODIFF
   TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
 #else
   TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>(fMaterial);
 #endif
+
   if(!mat || !strcmp("no_name",mat->Name())){
     PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
     return;
@@ -284,7 +284,7 @@ void TPZInterfaceElement::GetTransformsLeftAndRight(TPZTransform &tl,TPZTransfor
   tr = t2r;
 }
 
-int TPZInterfaceElement::NConnects() const{ 
+int TPZInterfaceElement::NConnects() const {
 
   if(!fLeftEl && !fRightEl) return 0;
   if(!fLeftEl || !fRightEl) return 1;
@@ -315,17 +315,19 @@ int TPZInterfaceElement::ConnectIndex(int i) const {
 void TPZInterfaceElement::Print(ostream &out){
 
   out << "\nInterface element : \n";
-  out << "\tId of the geometric reference : " << fReference->Id() << endl;
+  //out << "\tId of the geometric reference : " << fReference->Id() << endl;
   out << "\tGeometric reference of the left element of id : ";
   if(fLeftEl){
-    out <<  fLeftEl->Reference()->Id() << endl;
+    if(fLeftEl->Type() == EAgglomerate) out << "EAgglomerate index " << LeftElement()->Index() << endl;
+    else out <<  fLeftEl->Reference()->Id() << endl;
   } else {
     out << "Null" << endl;
     cout << "TPZInterfaceElement::Print null left element\n\n";
   }
   out << "\tGeometric reference of the right element of id : ";
   if(fRightEl){
-    out << fRightEl->Reference()->Id() << endl;
+    if(fRightEl->Type() == EAgglomerate) out << "EAgglomerate index " << RightElement()->Index() << endl;
+    else out << fRightEl->Reference()->Id() << endl;
   } else {
     out << "Null" << endl;
     cout << "TPZInterfaceElement::Print null right element\n\n";
@@ -417,13 +419,13 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
   }
   TPZGeoElSide  neigh = geo.Neighbour();
   int exists = 0;
-  if(comp.Element()->Type() == 16) exists++;//o próprio é interface
+  if(comp.Element()->Type() == EInterface) exists++;//o próprio é interface
   
   while(neigh.Element() && neigh.Element() != geo.Element()){
     TPZCompElSide comp = neigh.Reference();
     neigh = neigh.Neighbour();
     if(!comp.Element()) continue;
-    if(comp.Element()->Type() == 16) exists++;
+    if(comp.Element()->Type() == EInterface) exists++;
   }
   if(exists != 1) return 0;
   return 1;//existe uma única interface
@@ -435,7 +437,7 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
   for(iel=0;iel<nel;iel++){
     TPZCompEl *cel = cmesh.ElementVec()[iel];
     if(!cel) continue;
-    if(cel->Type() != 16) continue;//interessa só interfaces
+    if(cel->Type() != EInterface) continue;//interessa só interfaces
     TPZGeoEl *gel = cel->Reference();
     if(!gel){
       PZError << "TPZInterfaceElement::FreeInterface computational element with null reference\n";
@@ -450,7 +452,7 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
       TPZCompElSide comp = neigh.Reference();
       neigh = neigh.Neighbour();
       if(!comp.Element()) continue;
-      if(comp.Element()->Type() != 16) exists++;
+      if(comp.Element()->Type() != EInterface) exists++;
     }
     //só pode haver 1 ou 2 elementos de volume associados a um el. interface
     if(exists < 1 || exists > 2) return 0;
@@ -498,7 +500,7 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
     for(i=0;i<3;i++) normal[i] = normal[i]/normalize;
     break;
   case 2:
-    fReference->CenterPoint(face,param);//ponto da face  
+    fReference->CenterPoint(face,param);//ponto da face
     fReference->Jacobian(param,jacobian,axes,detjac,jacinv);
     for(i=0;i<3;i++) normal[i] = axes(2,i);
     break;
