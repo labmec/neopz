@@ -11,11 +11,12 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 -include $(top_srcdir)/@PZ_MK@
 
+savedir = $(prefix)/Save
+
+save_HEADERS = $(wildcard *.h)
+
 noinst_LIBRARIES = libSave.a
 
-libSave_a_SOURCES = \
-	pzsave.cpp \
-	pzfilebuffer.cpp \
-	pzbfilestream.cpp
+libSave_a_SOURCES = pzsave.cpp 	pzfilebuffer.cpp pzbfilestream.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
