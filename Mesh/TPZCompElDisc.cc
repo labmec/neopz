@@ -320,7 +320,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     (ef.fConnect)[i] = ConnectIndex(i);
     (ek.fConnect)[i] = ConnectIndex(i);
   }
-  if(ncon==0) return;
+  if(ncon==0) return;//elemento CC no passa
   TPZFMatrix phix(nshape,1),dphix(dim,nshape);
   TPZFMatrix axes(3,3,0.);
   TPZFMatrix jacobian(dim,dim);

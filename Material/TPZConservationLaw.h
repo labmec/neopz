@@ -50,7 +50,10 @@ class TPZConservationLaw  : public TPZMaterial {
   virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
 			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
   
-  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,TPZFMatrix &ef);
+  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+				   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond *bc);
   
   virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
 			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
@@ -74,7 +77,7 @@ class TPZConservationLaw  : public TPZMaterial {
 
 inline void TPZConservationLaw::ContributeInterface(TPZVec<REAL> &,TPZVec<REAL> &,TPZVec<REAL> &,TPZFMatrix &,
 						    TPZFMatrix &,REAL ,TPZVec<REAL> &,TPZFMatrix &,TPZFMatrix &,
-						    TPZFMatrix &,TPZFMatrix &,TPZFMatrix &,TPZFMatrix &){
+						    TPZFMatrix &,TPZFMatrix &,TPZFMatrix &,TPZFMatrix &,TPZBndCond *){
   PZError << "TPZConservationLaw::ContributeInterface it would never have to be called\n";
 }
 

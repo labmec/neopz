@@ -443,10 +443,11 @@ void TPZAnalysis::SetSolver(TPZMatrixSolver &solver){
 
 void CoutTime(clock_t &start,char *title);
 void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat);
+static clock_t begin,init;
 void TPZAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha,int resolution) {
 
   cout << "PZAnalysis::IterativeProcessTest beginning of the iterative process, general time 0\n";
-  clock_t begin,init;
+  //clock_t begin,init;
   TPZVec<char *> scalar(1),vector(0);
   scalar[0] = "pressure";
   //scalar[1] = "density";
@@ -509,7 +510,7 @@ void TPZAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TPZMaterial
 void TPZAnalysis::IterativeProcessTest(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha,int resolution) {
 
   cout << "PZAnalysis::IterativeProcessTest beginning of the iterative process, general time 0\n";
-  clock_t begin,init;
+  //clock_t begin,init;
   TPZVec<char *> scalar(1),vector(0);
   scalar[0] = "Solution";
   cout << "TPZAnalysis::IterativeProcess solution required : " << scalar[0] << endl;
