@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.35 2003-11-28 19:48:36 cedric Exp $
+//$Id: TPZCompElDisc.cpp,v 1.36 2003-12-01 21:17:21 cedric Exp $
 
 // -*- c++ -*- 
 
@@ -750,12 +750,13 @@ void TPZCompElDisc::RemoveInterface(int side) {
   gmesh->ElementVec().SetFree(index);// Chame SetFree do vetor de elementos da malha geometrica para o index
 }
 
+
 void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
-  //#ifdef _AUTODIFF
-  //  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
-  //#else
-  //  TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>(fMaterial);
-  //#endif
+#ifdef _AUTODIFF
+  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
+#else
+  TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>(fMaterial);
+#endif
 
   if(var >= 100) {
     TPZCompEl::Solution(qsi,var,sol);
@@ -784,14 +785,19 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) 
   TPZManVector<REAL> u(numdof);
   TPZFMatrix du(dim,numdof,0.);
   TPZFMatrix axes(3,3,0.);
-  axes.Identity();
   REAL jacstore[10],jacinvstore[10];
   TPZFMatrix jacobian(dim,dim,jacstore,10);
   TPZFMatrix jacinv(dim,dim,jacinvstore,10);
   TPZManVector<REAL> x(3);
   //REAL detjac;
   //fReference->Jacobian(qsi,jacobian,axes,detjac,jacinv);//(calcula axes)
-  fReference->X(qsi,x);//não necesário nessa aplicaço
+  if(var >= 0){
+    fReference->X(qsi,x);
+  } else if(var < 0){
+    //neste caso 0 ponto qsi está no elemento deformado
+    var *= -1;//recuperando var
+    for(int i=0;i<3;i++) x[i] = qsi[i];
+  }
   Shape(x,phi,dphi);
   int iv=0,in,jn,d;
   TPZConnect *df;
@@ -805,12 +811,12 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) 
     for(jn=0; jn<dfvar; jn++) {
       u[iv%numdof] += phi(iv/numdof,0)*Sol(pos+jn,0);
       for(d=0; d<dim; d++){
-	du(d,iv%numdof) += dphi(d,iv/numdof)*Sol(pos+jn,0);
+	du(d,iv%numdof) += dphix(d,iv/numdof)*Sol(pos+jn,0);
       }
       iv++;
     }
   }
-  fMaterial->Solution(u,du,axes,var,sol);
+  mat->Solution(u,du,axes,var,sol);
 }
 
 void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) {
@@ -1195,9 +1201,6 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
     cordphi.Zero();
     coarsel.Shape(int_point,corphi,cordphi);
 
-    //coarsel.ExpandShapeFunctions(connectlistcoarse,
-    //dependencyordercoarse,corblocksize,corphi,cordphi);
-
     for(lin=0; lin<locnshape; lin++) {
       for(ljn=0; ljn<locnshape; ljn++) {
 	loclocmat(lin,ljn) += weight*locphi(lin,0)*locphi(ljn,0)*multiplier;
@@ -1209,6 +1212,7 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
     jacobian.Zero();
   }
   loclocmat.SolveDirect(loccormat,ELDLt);
+
 
   int locblockseq = Connect(0).SequenceNumber();
   TPZStack<int> globblockvec;
@@ -1225,23 +1229,16 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
     globblockvec.Push(corblockseq);
     numnonzero++;
   }
-
   if(!numnonzero)
     PZError << "TPZCompElDisc::BuilTransferMatrix error II\n";
-
   if(transfer.HasRowDefinition(locblockseq))
     PZError << "TPZCompElDisc::BuilTransferMatrix error III\n";
-
   transfer.AddBlockNumbers(locblockseq,globblockvec);
-
   if(cornshape == 0 || locnshape == 0)
     PZError << "TPZCompElDisc::BuilTransferMatrix error IV\n";
-
   loccormat.GetSub(0,0,locnshape,cornshape,small);
   transfer.SetBlockMatrix(locblockseq,globblockvec[0],small);
 
   SetDegree(locdeg);
 }
-
-
 

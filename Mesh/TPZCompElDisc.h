@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.19 2003-11-25 17:35:00 phil Exp $
+//$Id: TPZCompElDisc.h,v 1.20 2003-12-01 21:17:21 cedric Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -262,8 +262,8 @@ protected:
 
   void BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &transfer);
 
-void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-		   REAL &true_error,REAL &L2_error,TPZBlock * /*flux */,REAL &estimate);
+  void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
+		     REAL &true_error,REAL &L2_error,TPZBlock * /*flux */,REAL &estimate);
 
 };
 
