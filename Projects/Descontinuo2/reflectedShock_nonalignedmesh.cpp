@@ -190,7 +190,7 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
 */
    cout << .22/(2/**lambdaMax*/);
 
-   mat->SetDelta(.1);
+   mat->SetDelta(delta);
 
    cmesh -> InsertMaterialObject(mat);
 
