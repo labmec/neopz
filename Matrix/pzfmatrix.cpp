@@ -25,6 +25,7 @@
 #include "pzvec.h"
 #include "pzerror.h"
 
+
 #ifdef USING_ATLAS
 extern "C"{
      #include <cblas.h>
@@ -805,11 +806,48 @@ int TPZFMatrix::Decompose_LU() {
 }
 
 
-
 /****************/
 /*** Substitution ***/
 
 int TPZFMatrix::Substitution( TPZFMatrix *B ) const {
+
+#ifndef DEBUG
+  if(fDecomposed != ELU) {
+    Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
+  }
+  int rowb = B->Rows();
+  int colb = B->Cols();
+  int row = Rows();
+  if ( rowb != Rows() ) Error( "SubstitutionLU <incompatible dimensions>" );
+
+
+  int i,j;
+  for ( i = 0; i < rowb; i++ ) {
+    for ( int col = 0; col < colb; col++ )
+      for (j = 0; j < i; j++ )
+        //B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
+	PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col) - GETVAL(this, row, i, j) * GETVAL(B, rowb, j, col));
+  }
+
+  for (int col=0; col<colb; col++){
+    for ( i = rowb-1; i >= 0; i-- ) {
+      for (j = i+1; j < rowb ; j++ )
+        //B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
+	PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col) - GETVAL(this, row, i, j) * GETVAL(B, rowb, j, col));
+      if ( IsZero( GETVAL(this, row, i, i)/*GetVal(i, i)*/ ) ) {
+        if (fabs(GETVAL(this, row, i, i)/*GetVal(i, i)*/) > 0.){
+          if (fabs(GETVAL(B, rowb, i, col) - GETVAL(this, row, i, i)/*B->GetVal(i, col) - GetVal(i, i)*/) > 1e-12){
+            Error( "BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
+          }
+        }else  Error( "BackSub(SubstitutionLU) <Matrix is singular" );
+      }
+      PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col)/GETVAL(this, row, i, i));
+      //B->PutVal( i, col, B->GetVal( i, col) / GetVal(i, i) );
+    }
+  }
+  return( 1 );
+
+#else
 
   if(fDecomposed != ELU) {
     Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
@@ -817,15 +855,15 @@ int TPZFMatrix::Substitution( TPZFMatrix *B ) const {
   int rowb = B->Rows();
   int colb = B->Cols();
   if ( rowb != Rows() ) Error( "SubstitutionLU <incompatible dimensions>" );
-  
-  
+
+
   int i,j;
   for ( i = 0; i < rowb; i++ ) {
     for ( int col = 0; col < colb; col++ )
       for (j = 0; j < i; j++ )
         B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
   }
-  
+
   for (int col=0; col<colb; col++){
     for ( i = rowb-1; i >= 0; i-- ) {
       for (j = i+1; j < rowb ; j++ )
@@ -835,12 +873,14 @@ int TPZFMatrix::Substitution( TPZFMatrix *B ) const {
           if (fabs(B->GetVal(i, col) - GetVal(i, i)) > 1e-12){
             Error( "BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
           }
-        }else  Error( "BackSub(SubstitutionLU) <Matrix is singular" ); 
+        }else  Error( "BackSub(SubstitutionLU) <Matrix is singular" );
       }
       B->PutVal( i, col, B->GetVal( i, col) / GetVal(i, i) );
     }
   }
   return( 1 );
+
+#endif
 }
 
 REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B) {
