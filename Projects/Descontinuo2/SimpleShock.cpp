@@ -124,8 +124,8 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
 
    int dim = 2;
-   int interfdim = dim -1;
-   TPZCompElDisc::gInterfaceDimension = interfdim;
+//   int interfdim = dim -1;
+//   TPZCompElDisc::gInterfaceDimension = interfdim;
 
 
 // Retrieving the point coordinates and element references

@@ -32,6 +32,8 @@
 #include "TPBSpStructMatrix.h"
 #include "pzstring.h"
 
+int gDebug;
+
 void error(char *) {}
 
 void InitialGuess(TPZVec<REAL> &x,TPZVec<REAL> &result){
@@ -42,6 +44,8 @@ void InitialGuess(TPZVec<REAL> &x,TPZVec<REAL> &result){
 
 int main()
 {
+   gDebug = 0;
+
    //Creating the computational and geometric meshes.
 
    TPZString filename, file;
@@ -270,7 +274,7 @@ int main()
    //Main Solver
    TPZStepSolver Solver;
    Solver.SetGMRES(10000,
-		500,
+		1000,
 		Pre,
 		1e-9,
 		0);
