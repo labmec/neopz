@@ -18,7 +18,7 @@ class TPZMat2dLin : public TPZMaterial{
   TPZFMatrix    fKxx, fKxy, fKyx, fKyy, fKx0, fK0x, fKy0, fK0y, fK00, fXf;
   public :
 
-    TPZMat2dLin(int num) : TPZMaterial(num), fKxx(), fKxy(),
+    TPZMat2dLin(int num = 0) : TPZMaterial(num), fKxx(), fKxy(),
      fKyx() , fKyy(), fKx0(), fK0x(), fKy0(), fK0y(), fK00(), fXf() {
     }
 
@@ -84,6 +84,22 @@ class TPZMat2dLin : public TPZMaterial{
   virtual TPZMaterial *NewMaterial();
 
 TPZBndCond *OutflowFlux(int bc);
+
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+  virtual int ClassId() const;
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
+
+
 };
 
 #endif

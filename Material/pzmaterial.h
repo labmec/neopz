@@ -14,6 +14,7 @@
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pzadmchunk.h"
+#include "pzsave.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
@@ -24,7 +25,7 @@ using namespace std;
 class TPZBndCond;
 class TPZMaterial;
 
-class  TPZMaterial
+class  TPZMaterial : public TPZSaveable
 {
       int fId;
 
@@ -189,6 +190,17 @@ class  TPZMaterial
 					   TPZVec<REAL> &normal,
 					   TPZFMatrix &ek, TPZFMatrix &ef);
 
+
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
+
 };
 
 inline void TPZMaterial::ContributeOverInterface(
@@ -199,6 +211,8 @@ inline void TPZMaterial::ContributeOverInterface(
 {
    cout << "TPZMaterial::ContributeOverInterface is called.\n";
 }
+
+
 
 #endif
 

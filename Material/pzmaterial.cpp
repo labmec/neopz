@@ -103,3 +103,22 @@ void TPZMaterial::ContributeBCEnergy(TPZVec<REAL> & x,
 }
 
 #endif
+
+  /**
+  Save the element data to a stream
+  */
+void TPZMaterial::Write(TPZStream &buf, int withclassid)
+{
+  TPZSaveable::Write(buf,withclassid);
+  buf.Write(&fId,1);
+}
+  
+  /**
+  Read the element data from a stream
+  */
+void TPZMaterial::Read(TPZStream &buf, void *context)
+{
+  TPZSaveable::Read(buf,context);
+  buf.Read(&fId,1);
+}
+

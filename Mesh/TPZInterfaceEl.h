@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.24 2004-04-06 14:55:43 erick Exp $
+//$Id: TPZInterfaceEl.h,v 1.25 2004-04-26 13:06:27 phil Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -49,7 +49,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * Geometric element to which this element refers
    */
-  TPZGeoEl *fReference;
+//  TPZGeoEl *fReference;
 
   /**
    * Material object of this element
@@ -69,6 +69,7 @@ class TPZInterfaceElement : public TPZCompEl {
   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, int &index);
   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index);
+  TPZInterfaceElement();
 
   /** 
    * For CloneInterface usage. Normal is not recomputed, but copied.
@@ -86,7 +87,7 @@ class TPZInterfaceElement : public TPZCompEl {
   //TPZCompEl * CloneInterface(TPZCompMesh &aggmesh, TPZVec<int> &destindex,int &index) const;
 
   /**return the geometric element to which this element references*/
-  virtual TPZGeoEl *Reference() const { return fReference;}
+//  virtual TPZGeoEl *Reference() const { return fReference;}
 
   TPZMaterial *Material() const { return fMaterial;}
 
@@ -245,6 +246,20 @@ class TPZInterfaceElement : public TPZCompEl {
 
   void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 		     TPZVec<REAL> &errors, TPZBlock * /*flux */);
+
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+  virtual int ClassId() const;
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
 
 };
 

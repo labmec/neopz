@@ -23,22 +23,13 @@
 #include "pzmatrix.h"
 #include "pzmanvector.h"
 #include "pzreal.h"
-
-#ifdef OOPARLIB
-
-#include "pzsaveable.h"
-#include "pzmatdefs.h"
-
-#endif
+#include "pzsave.h"
 
 /**
  * Implements block matrices
  * @ingroup matrix
  */
-class TPZBlock
-#ifdef OOPARLIB
-: public TSaveable
-#endif
+class TPZBlock : public TPZSaveable
 {
  public:
   /**
@@ -209,15 +200,20 @@ class TPZBlock
   */
   int Dim() const {return fBlock.NElements() ? fBlock[fBlock.NElements()-1].pos+fBlock[fBlock.NElements()-1].dim : 0; }
 
-#ifdef OOPARLIB
-  virtual long GetClassID() const        { return TBLOCK_ID; }
-  virtual int Unpack( TReceiveStorage *buf );
-  static TSaveable *Restore(TReceiveStorage *buf);
-  virtual int Pack( TSendStorage *buf ) const;
-  virtual char *ClassName() const   { return( "TPZBlock" ); }
-  virtual int DerivedFrom(const long Classid) const;
-  virtual int DerivedFrom(const char *classname) const; // a class with name classname
-#endif
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+  virtual int ClassId() const;
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
+
 
  private:
 
@@ -236,6 +232,8 @@ class TPZBlock
       pos=0;
       dim=0;
     }
+    void Read(TPZStream &buf, void *context);
+    void Write(TPZStream &buf, void *context);
   };
 
   /**

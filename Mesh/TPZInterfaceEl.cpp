@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.36 2004-04-22 13:14:21 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.37 2004-04-26 13:06:27 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -18,9 +18,9 @@ int TPZInterfaceElement::gCalcStiff = 1;
  * A normal é clonada, e não recalculada.
  */
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElDisc *left,TPZCompElDisc *right, TPZVec<REAL> normal)
-  : TPZCompEl(mesh,index), fNormal(3,0.), fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1) {
+  : TPZCompEl(mesh,geo,index), fNormal(3,0.), fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1) {
 
-  fReference = geo;
+//  fReference = geo;
   geo->SetReference(this);
   int materialid = geo->MaterialId();
   //  if(materialid<0){
@@ -57,9 +57,9 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 //construtor para o elemento descontinuo
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
 					 TPZCompElDisc *left,TPZCompElDisc *right/*,int leftside*/) 
-  : TPZCompEl(mesh,index), fNormal(3,0.) , fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1){
+  : TPZCompEl(mesh,geo,index), fNormal(3,0.) , fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1){
 
-  fReference = geo;
+//  fReference = geo;
   geo->SetReference(this);
   int materialid = geo->MaterialId();
   //  if(materialid<0){
@@ -104,7 +104,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
   }
 #endif
 
-  fReference = copy.fReference;
+//  fReference = copy.fReference;
   TPZMaterial *mat = copy.Material();
   if(mat) {
     int materialid = mat->Id();
@@ -132,7 +132,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int &index) 
-  : TPZCompEl(mesh,index), fNormal(copy.fNormal), fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1) {
+  : TPZCompEl(mesh,copy,index), fNormal(copy.fNormal), fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1) {
 
   //ambos elementos esquerdo e direito já foram clonados e moram na malha aglomerada
   //o geometrico da malha fina aponta para o computacional da malha aglomerada
@@ -153,7 +153,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
   }
 #endif 
 
-  fReference = copy.fReference;
+//  fReference = copy.fReference;
   TPZMaterial *mat = copy.Material();
   if(mat) {
     int materialid = mat->Id();
@@ -184,6 +184,12 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index,
   //  return new TPZInterfaceElement(aggmesh, *this, index);
   //<!>O certo eh esse, mas ate o Phil voltar:  return new TPZInterfaceElement(aggmesh, this->Reference(), index, left, right);
   return new TPZInterfaceElement(aggmesh, this->Reference(), index, left, right, this->fNormal);
+}
+
+TPZInterfaceElement::TPZInterfaceElement() : TPZCompEl(), fLeftEl(0), fRightEl(0),
+  fNormal(3,0.), fConnectL(0), fConnectR(0), fConnectIndexL(-1), fConnectIndexR(-1),
+  fMaterial(0)
+{
 }
 
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
@@ -923,4 +929,50 @@ void TPZInterfaceElement::Normal(TPZVec<REAL> &normal) {
 
 void TPZInterfaceElement::EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
   TPZVec<REAL> &errors, TPZBlock * /*flux */) {}
+
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+int TPZInterfaceElement::ClassId() const
+{
+  return TPZINTERFACEELEMENTID;
+}
+  /**
+  Save the element data to a stream
+  */
+void TPZInterfaceElement::Write(TPZStream &buf, int withclassid)
+{
+  TPZCompEl::Write(buf,withclassid);
+  buf.Write(&fConnectIndexL,1);
+  buf.Write(&fConnectIndexR,1);
+  int leftelindex = fLeftEl->Index();
+  int rightelindex = fRightEl->Index();
+  int matid = fMaterial->Id();
+  buf.Write(&leftelindex,1);
+  buf.Write(&rightelindex,1);
+  buf.Write(&matid,1);
+  WriteObjects(buf,fNormal);
+}
+  
+  /**
+  Read the element data from a stream
+  */
+void TPZInterfaceElement::Read(TPZStream &buf, void *context)
+{
+  TPZCompEl::Read(buf,context);
+  buf.Read(&fConnectIndexL,1);
+  buf.Read(&fConnectIndexR,1);
+  int leftelindex;
+  int rightelindex;
+  int matid;
+  buf.Read(&leftelindex,1);
+  buf.Read(&rightelindex,1);
+  buf.Read(&matid,1);
+  fMaterial = Mesh()->FindMaterial(matid);
+  fLeftEl = dynamic_cast<TPZCompElDisc *> (Mesh()->ElementVec()[leftelindex]);
+  fRightEl = dynamic_cast<TPZCompElDisc *> (Mesh()->ElementVec()[rightelindex]);
+  fConnectL = &(Mesh()->ConnectVec()[fConnectIndexL]);
+  fConnectR = &(Mesh()->ConnectVec()[fConnectIndexR]);
+  ReadObjects(buf,fNormal);
+}
 

@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include "pzerror.h"
 #include "pzblock.h"
+#include "pzmatrixid.h"
+#include "pzstream.h"
 
 REAL TPZBlock::gZero = 0;//Cedric
 
@@ -466,45 +468,44 @@ TPZBlock::Error(const char *msg ) const
   // pzerror.Show();
   exit( 1 );
 }
-
-#ifdef OOPARLIB
-
-int TPZBlock::Unpack (TReceiveStorage *buf ){
-  TSaveable::Unpack(buf);
-  //  fBlock= new TNode [fMaxBlocks];
-  //  buf->UpkInt((int *)fBlock,2*fMaxBlocks);
-  //  TSaveable *sav = buf->Restore();
-  //  if(!sav->DerivedFrom("TPZMatrix")) exit(-1);
-  //  fpMatrix = (TPZMatrix *) sav;
-  return 1;
+    
+void TPZBlock::TNode::Read(TPZStream &buf, void *context) 
+{
+  buf.Read(&dim,1);
+  buf.Read(&pos,1);
+}
+  
+void TPZBlock::TNode::Write(TPZStream &buf, void *context)
+{
+  buf.Write(&dim,1);
+  buf.Write(&pos,1);
 }
 
-
-TSaveable *TPZBlock::Restore(TReceiveStorage *buf) {
-  TPZBlock *m = new TPZBlock(0,0,0);
-  m->Unpack(buf);
-  return m;
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+int TPZBlock::ClassId() const
+{
+  return TPZBLOCKID;
 }
-
-int TPZBlock::Pack( TSendStorage *buf ) const {
-  TSaveable::Pack(buf);
-  //  buf->PkInt( (int *) fBlock,2*fMaxBlocks);
-  fpMatrix->Pack(buf);
-  return 1;
+  /**
+  Save the element data to a stream
+  */
+void TPZBlock::Write(TPZStream &buf, int withclassid)
+{
+  TPZSaveable::Write(buf,withclassid);
+  WriteObjects<TNode>(buf,fBlock);
+  
 }
-
-
-int TPZBlock::DerivedFrom(const long Classid) const {
-  if(Classid == GetClassID()) return 1;
-  return TSaveable::DerivedFrom(Classid);
+  
+  /**
+  Read the element data from a stream
+  */
+void TPZBlock::Read(TPZStream &buf, void *context)
+{
+  fpMatrix = (TPZMatrix *) context;
+  TPZSaveable::Read(buf,context);
+  ReadObjects<TNode>(buf,fBlock,context);
 }
-
-int TPZBlock::DerivedFrom(const char *classname) const {
-
-  if(!strcmp(ClassName(),classname)) return 1;
-  return TSaveable::DerivedFrom(classname);
-}
-
-#endif
 
 

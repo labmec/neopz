@@ -37,6 +37,8 @@
 //#include "TPZRefPattern.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
+#include "pzstream.h"
+#include "pzmeshid.h"
 //#include "pzstack.h"
 
 //template<class TShape, class TGeo, class TRef>
@@ -97,10 +99,9 @@ TPZGeoElRefLess<TShape,TGeo>::Initialize(nodeindices,matind,mesh,index);
 }
 
 template<class TShape, class TGeo, class TRef>
-TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement() {
-  int no;
-  cout << "TPZGeoElement::TPZGeoElement constructor not implemented yet -> ";
-  cin >> no;
+TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement() : TPZGeoElRefLess<TShape,TGeo>() {
+  int i;
+  for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = -1;
 }
 
 
@@ -189,78 +190,65 @@ TPZGeoElement<TShape,TGeo,TRef>::GetSubElements2(int side, TPZStack<TPZGeoElSide
   TRef::GetSubElements(this,side,subel);
 }
 
-template class TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>;
+template<class TShape, class TGeo, class TRef>
+void
+TPZGeoElement<TShape,TGeo,TRef>::Read(TPZStream &buf, void *context) {
+  TPZGeoElRefLess<TShape,TGeo>::Read(buf,context);
+  buf.Read(fSubEl,TRef::NSubEl);
+}
+
+template<class TShape, class TGeo, class TRef>
+void
+TPZGeoElement<TShape,TGeo,TRef>::Write(TPZStream &buf, int withclassid) {
+  TPZGeoElRefLess<TShape,TGeo>::Write(buf,withclassid);
+  buf.Write(fSubEl,TRef::NSubEl);
+}
+
+template<class TShape, class TGeo, class TRef>
+int
+TPZGeoElement<TShape,TGeo,TRef>::ClassId() const {
+  return -1;
+}
+
+template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
 template class TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>;
-template class TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>;
 template class TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>;
+template class TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>;
+template class TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>;
 template class TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>;
 template class TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>;
 template class TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>;
-template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
-/*
-int newteste(){
-TPZGeoElement <TPZShapeCube,TPZGeoCube,TPZRefCube> el1;
-TPZGeoElement <TPZShapeLinear,TPZGeoLinear,TPZRefLinear> el2;
-TPZGeoElement <TPZShapeQuad,TPZGeoQuad,TPZRefQuad> el3;
-TPZGeoElement <TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle> el4;
-TPZGeoElement <TPZShapePrism,TPZGeoPrism,TPZRefPrism> el5;
-TPZGeoElement <TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra> el6;
-TPZGeoElement <TPZShapePiram,TPZGeoPyramid,TPZRefPyramid> el7;
-TPZGeoElement <TPZShapePoint,TPZGeoPoint,TPZRefPoint> el8;
-
-return 0;
-}
-  
-#include "pzelcpoint.h"
-#include "pzelcq2d.h"
-#include "pzelc1d.h"
-#include "pzelct2d.h"
-#include "pzelcc3d.h"
-#include "pzelct3d.h"
-#include "pzelcpr3d.h"
-#include "pzelcpi3d.h"
-#include "pzelctemp.h"
-
-static TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZGeoPoint,TPZShapePoint>(mesh,gel,index);
-  //  return new TPZCompElPoint(mesh,gel,index);
-}
-static TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZGeoLinear,TPZShapeLinear>(mesh,gel,index);
-  //  return new TPZCompEl1d(mesh,gel,index);
-}
-static TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-//  return new TPZIntelGen<TPZGeoQuad,TPZShapeQuad>(mesh,gel,index);
-    return new TPZCompElQ2d(mesh,gel,index);
-}
-static TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>(mesh,gel,index);
-  //  return new TPZCompElT2d(mesh,gel,index);
-}
-static TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZGeoCube,TPZShapeCube>(mesh,gel,index);
-  //  return new TPZCompElC3d(mesh,gel,index);
-}
-static TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZGeoPrism,TPZShapePrism>(mesh,gel,index);
-  //  return new TPZCompElPr3d(mesh,gel,index);
-}
-static TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZGeoPyramid,TPZShapePiram>(mesh,gel,index);
-  //  return new TPZCompElPi3d(mesh,gel,index);
-}
-static TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>(mesh,gel,index);
-  //  return new TPZCompElT3d(mesh,gel,index);
-}
 
 
-TPZCompEl *(*TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
-TPZCompEl *(*TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
-TPZCompEl *(*TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;
-TPZCompEl *(*TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
-TPZCompEl *(*TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateCubeEl;
-TPZCompEl *(*TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePrismEl;
-TPZCompEl *(*TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;
-TPZCompEl *(*TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePyramEl;
-  */
+int
+TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>::ClassId() const {
+  return TPZFGEOELEMENTPOINTID;
+}
+int
+TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::ClassId() const {
+  return TPZFGEOELEMENTLINEARID;
+}
+int
+TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::ClassId() const {
+  return TPZFGEOELEMENTQUADID;
+}
+int
+TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::ClassId() const {
+  return TPZFGEOELEMENTRIANGLEID;
+}
+int
+TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::ClassId() const {
+  return TPZFGEOELEMENTCUBEID;
+}
+int
+TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::ClassId() const {
+  return TPZFGEOELEMENTPRISMID;
+}
+int
+TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::ClassId() const {
+  return TPZFGEOELEMENTTETRAID;
+}
+int
+TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::ClassId() const {
+  return TPZFGEOELEMENTPYRAMID;
+}

@@ -7,6 +7,8 @@
 #include <math.h>
 #include "pzvec.h"
 #include "pzerror.h"
+#include "pzstream.h"
+#include "pzmaterialid.h"
 
 
 void TPZMat2dLin::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &,REAL weight,
@@ -224,3 +226,48 @@ TPZBndCond *TPZMat2dLin::OutflowFlux(int bc){
 	TPZFMatrix val1(nstate,nstate),val2(nstate,1);
 	return TPZMaterial::CreateBC(bc,3,val1,val2);
 }
+
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+int TPZMat2dLin::ClassId() const
+{
+  return TPZMAT2DLINID;
+}
+  /**
+  Save the element data to a stream
+  */
+void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
+{
+  TPZSaveable::Write(buf,withclassid);
+  fKxx.Write(buf,0);
+  fKxy.Write(buf,0);
+  fKyx.Write(buf,0);
+  fKyy.Write(buf,0);
+  fKx0.Write(buf,0);
+  fK0x.Write(buf,0);
+  fKy0.Write(buf,0);
+  fK0y.Write(buf,0);
+  fK00.Write(buf,0);
+  fXf.Write(buf,0);
+
+}
+  
+  /**
+  Read the element data from a stream
+  */
+void TPZMat2dLin::Read(TPZStream &buf, void *context)
+{
+  TPZSaveable::Read(buf,context);
+  fKxx.Read(buf,0);
+  fKxy.Read(buf,0);
+  fKyx.Read(buf,0);
+  fKyy.Read(buf,0);
+  fKx0.Read(buf,0);
+  fK0x.Read(buf,0);
+  fKy0.Read(buf,0);
+  fK0y.Read(buf,0);
+  fK00.Read(buf,0);
+  fXf.Read(buf,0);
+}
+

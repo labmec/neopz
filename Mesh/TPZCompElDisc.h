@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.28 2004-04-15 15:00:52 phil Exp $
+//$Id: TPZCompElDisc.h,v 1.29 2004-04-26 13:06:27 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -38,7 +38,7 @@ class TPZCompElDisc : public TPZCompEl{
   /**
    * Geometric element to which this element refers
    */
-  TPZGeoEl *fReference;
+//  TPZGeoEl *fReference;
 
   /**
    * Interpolation order of the discontinous element 
@@ -83,10 +83,10 @@ protected:
   static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
 
   /**return the geometric element to which this element references*/
-  TPZGeoEl *Reference() const { return fReference;}
+//  TPZGeoEl *Reference() const { return fReference;}
 
   /**set the geometric element to which this element references*/
-  void SetReference(TPZGeoEl *ref) {fReference = ref;}
+//  void SetReference(TPZGeoEl *ref) {fReference = ref;}
 
   /**
    * Sets the orthogonal function which will be used throughout the program.
@@ -122,6 +122,8 @@ protected:
    * default degree of imterpolation
    */
   static int gDegree;
+  
+  TPZCompElDisc();
 
   TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index);//original
   TPZCompElDisc(TPZCompMesh &mesh,int &index);//construtor do aglomerado
@@ -129,18 +131,15 @@ protected:
   TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy);
   TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index);
 
-  TPZCompEl *Clone(TPZCompMesh &mesh) const {
+virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
     return new TPZCompElDisc(mesh,*this);
   }
 
-  TPZCompEl *Clone2(TPZCompMesh &mesh,int &index) const {
+virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
     return new TPZCompElDisc(mesh,*this,index);
   }
 
   ~TPZCompElDisc() {
-      if(Reference()) {
-         Reference()->ResetReference();
-      }
    }
 
   /**
@@ -299,6 +298,21 @@ protected:
 
   void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 		     TPZVec< REAL> &errors, TPZBlock * /*flux */ );
+  
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+  virtual int ClassId() const;
+  /**
+  Save the element data to a stream
+  */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+  */
+  virtual void Read(TPZStream &buf, void *context);
+
 
 };
 

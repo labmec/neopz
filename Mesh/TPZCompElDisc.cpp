@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.54 2004-04-22 13:14:21 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.55 2004-04-26 13:06:27 phil Exp $
 
 // -*- c++ -*- 
 
@@ -36,6 +36,7 @@
 #include "pztrigraphd.h"
 #include "pztrigraph.h"
 #include "pzgraphel.h"
+#include "pzmeshid.h"
 //#include "TPZFlowCMesh.h"
 
 #include "time.h"
@@ -46,11 +47,16 @@
 
 int TPZCompElDisc::gDegree = 0;
 
+TPZCompElDisc::TPZCompElDisc() : TPZCompEl(), fCenterPoint(3,0.)
+{
+  fDegree = -1;
+  fMaterial = NULL;
+  fShapefunctionType = TPZShapeDisc::ETensorial;
+}
 //construtor do elemento aglomerado
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
-		TPZCompEl(mesh,index), fCenterPoint(3) {
+		TPZCompEl(mesh,0,index), fCenterPoint(3) {
   fDegree = gDegree;
-  fReference = NULL;
   fMaterial = NULL;
   fShapefunctionType = TPZShapeDisc::EOrdemTotal;
 }
@@ -59,7 +65,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
 		TPZCompEl(mesh,copy), fCenterPoint(copy.fCenterPoint) {
   fDegree = copy.fDegree;
   fShapefunctionType = copy.fShapefunctionType;
-  fReference = copy.fReference;
+//  fReference = copy.fReference;
   TPZMaterial *mat = copy.Material();
   if(mat) {
     int materialid = mat->Id();
@@ -73,9 +79,9 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
 		TPZCompEl(mesh,copy,index), fCenterPoint(copy.fCenterPoint) {
   fDegree = copy.fDegree;
   fShapefunctionType = copy.fShapefunctionType;
-  fReference = copy.fReference;
+//  fReference = copy.fReference;
   //criando nova malha computacional
-  fReference->SetReference(this);
+  Reference()->SetReference(this);
   TPZMaterial *mat = copy.Material();
   if(mat) {
     int materialid = mat->Id();
@@ -90,7 +96,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
 
 //construtor do elemento descontínuo
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
-		TPZCompEl(mesh,index), fCenterPoint(3) {
+		TPZCompEl(mesh,ref,index), fCenterPoint(3) {
   fDegree = gDegree;
   fShapefunctionType = TPZShapeDisc::EOrdemTotal;
   switch(ref->Type()) {
@@ -104,7 +110,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
     TPZShapeDisc::ETensorial;
 #endif
   }
-  fReference = ref;
+//  fReference = ref;
   ref->SetReference(this);
   //fMesh = &mesh;
   int materialid = ref->MaterialId();
@@ -272,8 +278,8 @@ void TPZCompElDisc::Shape(TPZVec<REAL> X, TPZFMatrix &phi, TPZFMatrix &dphi) {
 void TPZCompElDisc::Print(ostream &out) {
 
   out << "\nDiscontinous element : \n";
-  //out << "\tGeometric reference id : " << fReference->Id() << endl
-  out << "\tMaterial id : " << fReference->MaterialId() << endl
+  if(Reference()) out << "\tGeometric reference index : " << Reference()->Index() << endl;
+  out << "\tMaterial id : " << Reference()->MaterialId() << endl
       << "\tDegrau of interpolation : " <<  fDegree << endl
       << "\tConnect index : " << fConnectIndex << endl
       << "\tNormalizing constant : " << fConstC << endl
@@ -1176,3 +1182,46 @@ void TPZCompElDisc::SetDegree(int degree) {
   Mesh()->Block().Set(seqnum,NShapeF()*nvar);
   fDegree = degree;
 }
+
+  /**
+  * returns the unique identifier for reading/writing objects to streams
+  */
+int TPZCompElDisc::ClassId() const
+{
+  return TPZCOMPELDISCID;
+}
+  /**
+  Save the element data to a stream
+  */
+void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
+{
+  TPZCompEl::Write(buf,withclassid);
+  WriteObjects(buf,fCenterPoint);
+  buf.Write(&fConnectIndex,1);
+  buf.Write(&fConstC,1);
+  buf.Write(&fDegree,1);
+  int matid = fMaterial->Id();
+  buf.Write(&matid,1);
+  int shapetype = fShapefunctionType;
+  buf.Write(&shapetype,1);
+  
+}
+  
+  /**
+  Read the element data from a stream
+  */
+ void TPZCompElDisc::Read(TPZStream &buf, void *context)
+ {
+  TPZCompEl::Read(buf,context);
+  ReadObjects<3>(buf,fCenterPoint);
+  buf.Read(&fConnectIndex,1);
+  buf.Read(&fConstC,1);
+  buf.Read(&fDegree,1);
+  int matid;
+  buf.Read(&matid,1);
+  fMaterial = Mesh()->FindMaterial(matid);
+  int shapetype;
+  buf.Write(&shapetype,1);
+  fShapefunctionType = (TPZShapeDisc::MShapeType) shapetype;
+ }
+
