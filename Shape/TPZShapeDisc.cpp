@@ -96,7 +96,7 @@ void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZF
   fOrthogonal(C,x0,x,degree,phix,dphix);
   fOrthogonal(C,y0,y,degree,phiy,dphiy);
 
-  int i, j, k, counter=0, num = degree+1;
+  int i, j, ix, iy, counter=0, num = degree+1;
 
   int nshape = NShapeF(degree,2,type);
 //  int count=num,ind=0;
@@ -104,40 +104,69 @@ void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZF
   dphi.Redim(2,nshape);
   phi.Zero();
   dphi.Zero();
-/*
-  //valor da função
-  for(i=0;i<num;i++){
-    for(j=0;j<num;j++){
-      if(i+j > degree && type == EOrdemTotal) break;
-      phi(counter,0) = phix(i,0)*phiy(j,0);
-      dphi(0,counter) = dphix(0,i)*phiy(j,0);
-      dphi(1,counter) = phix(i,0)*dphiy(0,j);
+
+  if(type==EOrdemTotal)
+  {
+  //mounts the shape function according to the max order:
+  //  ____
+  // |///
+  // |//
+  // |/
+
+    for(i = 0; i <= degree; i++)
+    {
+       for(j = 0; j <= i; j++)
+       {
+          // notice that ix+iy is always constant for given i
+          ix = j;
+	  iy = i - j;
+          phi(counter,0) = phix(ix,0)*phiy(iy,0);
+          dphi(0,counter) = dphix(0,ix)*phiy(iy,0);
+          dphi(1,counter) = phix(ix,0)*dphiy(0,iy);
+          counter++;
+       }
+    }
+  }else{
+  // mounts the shape functions according to each
+  // direction order
+  // The functions are assembled in this sequence:
+  // x functions, y functions, max xy
+  // (horizontal, vertical lines and the 0 in the graph)
+  // _____
+  // |0|||
+  // |-0||
+  // |--0|
+  // |---0
+    // type == ETensorial
+    for(i=0;i<num;i++)
+    {
+      for(j=0;j<i;j++)
+      {
+         ix = j;
+	 iy = i;
+         phi(counter,0) = phix(ix,0)*phiy(iy,0);
+         dphi(0,counter) = dphix(0,ix)*phiy(iy,0);
+         dphi(1,counter) = phix(ix,0)*dphiy(0,iy);
+	 counter++;
+      }
+      for(j=0;j<i;j++)
+      {
+         ix = i;
+	 iy = j;
+         phi(counter,0) = phix(ix,0)*phiy(iy,0);
+         dphi(0,counter) = dphix(0,ix)*phiy(iy,0);
+         dphi(1,counter) = phix(ix,0)*dphiy(0,iy);
+	 counter++;
+      }
+
+      ix = i;
+      iy = i;
+      phi(counter,0) = phix(ix,0)*phiy(iy,0);
+      dphi(0,counter) = dphix(0,ix)*phiy(iy,0);
+      dphi(1,counter) = phix(ix,0)*dphiy(0,iy);
       counter++;
     }
   }
-  */
-
-  //valor da função
-  // k: degree loop
-  for(k = 0; k < num; k++)
-     for(i=0;i<num;i++)
-     {
-        for(j=0;j<num;j++)
-	{
-           if(( type == ETensorial
-	         ||
-	        (i+j <= k && type == EOrdemTotal))
-		&&
-               (i+j == k)
-	   )
-	   {
-              phi(counter,0) = phix(i,0)*phiy(j,0);
-              dphi(0,counter) = dphix(0,i)*phiy(j,0);
-              dphi(1,counter) = phix(i,0)*dphiy(0,j);
-              counter++;
-	   }
-        }
-     }
 
   if(counter != nshape) {
     PZError << "TPZShapeDisc::Shape2D wrong shape count\n";
