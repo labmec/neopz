@@ -991,19 +991,22 @@ REAL TPZGeoEl::SideArea(int side){
     cout << "TPZGeoEl::SideArea not implemented for side = " << side << endl;
 
   if(SideDimension(side) == 2){
-    TPZVec<TPZGeoNode *> nodes(3);
+     int nsidenodes = NSideNodes(side);
+    TPZVec<TPZGeoNode *> nodes(nsidenodes);
     int i;
     
-    for(i=0;i<3;i++)
+    for(i=0;i<nsidenodes;i++)
       nodes[i] = &Mesh()->NodeVec()[  SideNodeIndex(side,i) ];
 
-    if(NSides() != 15  && SideNodeIndex(side,3) > -1){//15: tetraedro manda mensagem com node = 3 (tirar a mensagem)
-      nodes.Resize(4);
-      nodes[3] = &Mesh()->NodeVec()[ SideNodeIndex(side,3) ];
+    if(nsidenodes == 4) {
       return ( QuadArea(nodes) );
     }
-    else
+    else if (nsidenodes == 3) {
       return ( TriangleArea(nodes) );
+    }
+    else {
+       cout << "Programa esta errado\n";
+    }
   }
   return 0.;
 }

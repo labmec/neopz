@@ -17,15 +17,16 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   VolumeEls(thirdel);//identifica elementos esquerdo e direito conectados
 }
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index) 
-  : TPZCompEl(mesh,index){
+// TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index) 
+//   : TPZCompEl(mesh,index){
 
-  fReference = geo;
-  geo->SetReference(this);
-  fLeftEl = NULL;
-  fRightEl = NULL;
-  //VolumeEls();//identifica elementos esquerdo e direito conectados
-}
+//   fReference = geo;
+//   geo->SetReference(this);
+//   fLeftEl = NULL;
+//   fRightEl = NULL;
+//   PZError << "TPZInterfaceElement construtor errado\n";
+//   //VolumeEls();//identifica elementos esquerdo e direito conectados
+// }
 
 void TPZInterfaceElement::VolumeEls(TPZCompEl &thirdel){
 

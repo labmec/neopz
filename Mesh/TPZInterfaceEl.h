@@ -41,10 +41,10 @@ class TPZInterfaceElement : public TPZCompEl {
 
  public:
 
-  static TPZCompEl *CreateInterfaceQEl(TPZGeoElQ2d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreateInterfaceTEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index);
+//  static TPZCompEl *CreateInterfaceQEl(TPZGeoElQ2d *geo, TPZCompMesh &mesh, int &index);
+//  static TPZCompEl *CreateInterfaceTEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index);
 
-  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
+//  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl &thirdel);
   //  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoElT2d *geo,int &index);
   ~TPZInterfaceElement(){};
@@ -144,12 +144,12 @@ class TPZInterfaceElement : public TPZCompEl {
 
 };
 
-inline TPZCompEl *TPZInterfaceElement::CreateInterfaceQEl(TPZGeoElQ2d *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZInterfaceElement(mesh,(TPZGeoEl *) geo,index);
-}
-//Acessar com -> TPZGeoElXXd::SetCreateFunction(createInterfaceEl);
-inline TPZCompEl *TPZInterfaceElement::CreateInterfaceTEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZInterfaceElement(mesh,(TPZGeoEl *) geo,index);
-}
+/* inline TPZCompEl *TPZInterfaceElement::CreateInterfaceQEl(TPZGeoElQ2d *geo, TPZCompMesh &mesh, int &index) { */
+/*   return new TPZInterfaceElement(mesh,(TPZGeoEl *) geo,index); */
+/* } */
+/* //Acessar com -> TPZGeoElXXd::SetCreateFunction(createInterfaceEl); */
+/* inline TPZCompEl *TPZInterfaceElement::CreateInterfaceTEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index) { */
+/*   return new TPZInterfaceElement(mesh,(TPZGeoEl *) geo,index); */
+/* } */
 #endif
 
