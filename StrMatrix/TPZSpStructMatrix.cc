@@ -36,9 +36,9 @@ TPZMatrix * TPZSpStructMatrix::CreateAssemble(TPZFMatrix &rhs){
     }
     TPZMatrix *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
     rhs.Redim(neq,1);
-    stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
+    //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     Assemble(*stiff,rhs);
-    stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
+    //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     return stiff;
 }
 TPZMatrix * TPZSpStructMatrix::Create(){

@@ -503,13 +503,15 @@ public:
    */
   void CopyMaterials(TPZCompMesh *mesh);
 
-  REAL MaxVelocityOfMesh(int nstate);
+  REAL MaxVelocityOfMesh(int nstate,REAL gamma);
 
   REAL DeltaX();
 
   REAL MaximumRadiusOfMesh();
 
   REAL LesserEdgeOfMesh();
+
+  void SetDeltaTime(TPZMaterial *mat);
 };
 
 

@@ -70,24 +70,11 @@ protected:
    */
   virtual int CreateMidSideConnect();
 
-  /**
-   * it returns the normal to the face from the element 
-   */
-  //  virtual void NormalVector(int side,TPZVec<REAL> &int_point,
-  //		    TPZVec<REAL> &normal,TPZFMatrix &axes, TPZFMatrix &norm_r3);
-
  public:
 
   static int gInterfaceDimension;
 
-  static TPZCompEl *CreateC3Disc(TPZGeoElC3d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreateT3Disc(TPZGeoElT3d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreatePi3Disc(TPZGeoElPi3d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreatePr3Disc(TPZGeoElPr3d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreateT2Disc(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreateQ2Disc(TPZGeoElQ2d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *Create1dDisc(TPZGeoEl1d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreatePointDisc(TPZGeoElPoint *geo, TPZCompMesh &mesh, int &index);
+  static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
   /**return the geometric element to which this element references*/
   virtual TPZGeoEl *Reference() { return fReference;}
 
@@ -231,30 +218,10 @@ protected:
   virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
 };
 
-inline TPZCompEl *TPZCompElDisc::CreateC3Disc(TPZGeoElC3d *geo, TPZCompMesh &mesh, int &index) {
+inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index) {
   //  TPZGeoEl *cop = geo;
-  return new TPZCompElDisc(mesh,(TPZGeoEl *) geo,index);
+  return new TPZCompElDisc(mesh,geo,index);
 }
-inline TPZCompEl *TPZCompElDisc::CreateT3Disc(TPZGeoElT3d *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZCompElDisc(mesh,(TPZGeoEl *) geo,index);
-}
-inline TPZCompEl *TPZCompElDisc::CreatePi3Disc(TPZGeoElPi3d *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZCompElDisc(mesh,(TPZGeoEl *) geo,index);
-}
-inline TPZCompEl *TPZCompElDisc::CreatePr3Disc(TPZGeoElPr3d *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZCompElDisc(mesh,(TPZGeoEl *) geo,index);
-}
-inline TPZCompEl *TPZCompElDisc::CreateQ2Disc(TPZGeoElQ2d *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZCompElDisc(mesh,(TPZGeoEl *) geo,index);
-}
-inline TPZCompEl *TPZCompElDisc::CreateT2Disc(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZCompElDisc(mesh,(TPZGeoEl *)geo,index);
-}
-inline TPZCompEl *TPZCompElDisc::Create1dDisc(TPZGeoEl1d *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZCompElDisc(mesh,(TPZGeoEl *)geo,index);
-}
-inline TPZCompEl *TPZCompElDisc::CreatePointDisc(TPZGeoElPoint *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZCompElDisc(mesh,(TPZGeoEl *)geo,index);
-}
-//Acessar com -> TPZGeoElXXd::SetCreateFunction(createCompXXDisc);
+//Exemplo do quadrilátero: 
+//acessar com -> TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 #endif

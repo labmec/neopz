@@ -55,7 +55,7 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
     //	  int dim = el->NumNodes();
     el->CalcStiff(ek,ef);
     if( nelem < 34 || (nelem > 33 && iel < 33) ){
-      out << "Elemento : " << el->Reference()->Id() << endl;
+      out << "Element id : " << el->Reference()->Id() << endl;
       ek.fMat->Print("MATRIZ EK",out);
       ef.fMat->Print("VETOR  EF",out);
     }
@@ -85,7 +85,7 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
          }
       }
       stiffness.AddKel(*ek.fMat,destinationindex);
-      rhs.AddFel(*ef.fMat,destinationindex);                 //  ??????????? Erro
+      rhs.AddFel(*ef.fMat,destinationindex);
     } else {
       // the element has dependent nodes
       el->ApplyConstraints(ek,ef);
@@ -131,8 +131,8 @@ if(ek.fConstrMat->Decompose_LU() != -1) {
 //
   int neq = rhs.Rows();
   if(nelem < 34 && neq < 100){
-    stiffness.Print("TPZStructMatrix::Assemble MATRIZ GLOBAL (depois de Assemble)",out);
-    rhs.Print("TPZStructMatrix::Assemble CARGA GLOBAL (depois de Assemble)",out);
+    stiffness.Print("TPZStructMatrix::Assemble GLOBAL MATRIX (after Assemble)",out);
+    rhs.Print("TPZStructMatrix::Assemble GLOBAL LOAD (after Assemble)",out);
   }
 }
 

@@ -58,7 +58,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
 
   virtual REAL Gamma(){return fGamma;}
 
-  //void SetTimeStep(REAL timestep){fTimeStep = timestep;}
+  virtual void SetDeltaTime(REAL maxveloc,REAL deltax,int degree);
 
   /**
    * tensor of the three-dimensional flux of Euler 

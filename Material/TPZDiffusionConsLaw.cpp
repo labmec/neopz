@@ -5,7 +5,7 @@
 #include "pzreal.h"
 
 REAL TPZDiffusionConsLaw::fGamma = 1.4;
-REAL TPZDiffusionConsLaw::fDelta = 1.0;
+REAL TPZDiffusionConsLaw::fDelta = -1.0;
 REAL TPZDiffusionConsLaw::fCFL = 0.0;
 char *TPZDiffusionConsLaw::fArtificialDiffusion = "LS";
 

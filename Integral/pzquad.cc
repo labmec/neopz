@@ -9,9 +9,9 @@
 //***** number of integration rules in PZINTVEC
 
 #define NUMINT_RULES 	23
-#define NUMINT_RULEST   19   //Cesar 11/02/2003
-#define NUMINT_RULEST3D  8   //Cedric 23/05/98
-#define NUMINT_RULESP3D  8   //Cedric 07/09/98
+#define NUMINT_RULEST   19
+#define NUMINT_RULEST3D  8
+#define NUMINT_RULESP3D  8
 
 TPZIntRuleList  gIntRuleList;
 //***************************************
@@ -2094,7 +2094,7 @@ TPZIntRuleList::TPZIntRuleList(){
 	//				PZError.show();
       }
     }
-    for(i = 1; i<=intavailT3D; ++i) { // Cedric 23/05/98
+    for(i = 1; i<=intavailT3D; ++i) {
       intlistT3D[i-1] = new TPZIntRuleT3D(i);
       if(intlistT3D[i-1] == NULL) {
 	PZError << "TPZIntRuleList error: some integration rules"
@@ -2367,14 +2367,18 @@ TPZIntTetra3D::TPZIntTetra3D(int OrdK){
 //**************************************
 TPZIntRuleT3D* TPZIntRuleList::GetRuleT3D(int precision) {
 
-  // <<<<<>>>>>
-  if (precision < 1 || precision > intavailT3D) {
+  if (precision > intavailT3D) {
     PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision << endl;
-    precision = intavailT3D;
+    precision = intavailT3D-1;
+    PZError << "\nERROR(TPZIntRuleList::getrule)-> precision gotten = " << precision << endl;
+  }
+  if (precision < 0) {
+    PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision << endl;
+    precision = 0;
     PZError << "\nERROR(TPZIntRuleList::getrule)-> precision gotten = " << precision << endl;
   }
 
-  return intlistT3D[precision-1];
+  return intlistT3D[precision];
 }
 //------------------------------------------------------------------------------
 void TPZIntTetra3D::SetOrder(TPZVec<int> &ord){

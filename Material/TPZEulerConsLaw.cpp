@@ -29,10 +29,10 @@ void TPZEulerConsLaw::Print(ostream &out) {
   out << "\nName of material : " << Name() << "\n";
   out << "Properties : \n";
   out << "Gamma : " << fGamma << endl;
-  out << "Delta : " << TPZDiffusionConsLaw::fDelta << endl;
   if(TPZDiffusionConsLaw::fCFL) out << "CFL  : " << TPZDiffusionConsLaw::fCFL << endl;
   else  out << "CFL  : 1/(2p+1) "  << endl;
-  out << "Delta otimo : " << diff->DeltaOtimo() << endl;
+  if(TPZDiffusionConsLaw::fDelta > 0) out << "Delta : " << TPZDiffusionConsLaw::fDelta << endl;
+  else out << "Delta otimo : " << diff->DeltaOtimo() << endl;
   out << "Time step : " << TimeStep() << endl;
   out << "Difusao artificial : " << fArtificialDiffusion << endl;
   out << "Dimensao do problema : " << Dimension() << endl;
@@ -599,8 +599,21 @@ void TPZEulerConsLaw::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZV
   }
 }
 
+void TPZEulerConsLaw::SetDeltaTime(REAL maxveloc,REAL deltax,int degree){
+
+  REAL CFL = 1./((2.0*(REAL)degree) + 1.0);
+  TPZDiffusionConsLaw *diff;
+  if(diff->fCFL) CFL = diff->fCFL;//o primeiro valor não nulo é mantido
+  REAL deltaT = CFL*deltax/maxveloc;
+  cout << "TPZCompMesh::Delta Time : " << deltaT << endl;
+  SetTimeStep(deltaT);
+}
+
 void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL &increment){
   //Problema teste choque refletido estacionário de três estados constantes 
+  //OS VALORES ENCONTRADOS SÃO:
+  //61 GRAUS 
+  //-66.7169 GRAUS (-1.16443 RADIANOS)
   //região R1
   REAL r1M = 2.9;//Mach
   REAL r1ro = 1.0;
@@ -753,3 +766,11 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
 //     flux_Roe[0] = 0.5*( (solR[0] - solL[0])/alfa + Fy[0] + Fx[0] );
 //     flux_Roe[1] = 0.5*( (solR[1] - solL[1])/alfa + Fy[1] + Fx[1] );
 //     flux_Roe[2] = 0.5*( (solR[2] - solL[2])/alfa + Fy[2] + Fx[2] );
+
+
+//   int max = phrl + phrr;//phrl > phrr ? phrl : phrr;
+//   for( int k = 0; k < max; k++ )
+//     for( int l = 0; l < max; l++ )
+//       for( int s = 0; s < nstate; s++ )
+// 	for( int t = 0; t < nstate; t++ )
+// 	  if(k != l) ek(k*nstate+s,l*nstate+t) = -0.0001;

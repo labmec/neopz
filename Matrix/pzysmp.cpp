@@ -223,13 +223,13 @@ void TPZFYsmpMatrix::Print(const char *title, ostream &out ,const MatrixOutputFo
     out << "\tIA\tJA\tA\n"
 	<< "\t--\t--\t-\n";
     for(i=0; i<=Rows(); i++) {
-      cout << i      << '\t'
+      out << i      << '\t'
 	   << fIA[i] << '\t'
 	   << fJA[i] << '\t'
 	   << fA[i]  << '\n';
     }
     for(i=Rows(); i<fIA[Rows()]; i++) {
-      cout << i      << "\t\t"
+      out << i      << "\t\t"
 	   << fJA[i] << '\t'
 	   << fA[i]  << '\n';
     }

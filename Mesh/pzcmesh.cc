@@ -15,7 +15,7 @@
 #include "pzblock.h"
 #include "pzelmat.h"
 #include "TPZCompElDisc.h"
-#include "TPZEulerConsLaw.h"
+//#include "TPZEulerConsLaw.h"
 #include "pztrnsform.h"
 #include "pztransfer.h"
 #include "pzavlmap.h"
@@ -189,7 +189,7 @@ void TPZCompMesh::AutoBuild() {
   TPZCompEl *cel;
   TPZAdmChunkVector<TPZGeoElBC> &elbcvec = Reference()->BCElementVec();
   nelem = elbcvec.NElements();
-  // InitializeBlock();   // Jorge 20/06/99  
+  // InitializeBlock();
   for(i=0; i<nelem; i++) {
     if(!elbcvec[i].fBCElement) { 
       cel = elbcvec[i].fElement->CreateBCCompEl(elbcvec[i].fSide,elbcvec[i].fId,*this);
@@ -344,8 +344,8 @@ void TPZCompMesh::ComputeNodElCon() {
   nelem = NElements();
   for(i=0; i<nelem; i++) {
     TPZCompEl *el = fElementVec[i];
-    if(!el || !el->IsInterpolated()) continue;  //Jorge 06/07/2001
-//    if(!el) continue;  //Jorge 06/07/2001
+    if(!el || !el->IsInterpolated()) continue;
+//    if(!el) continue;
     nodelist.Resize(0);
     el->BuildConnectList(nodelist);
     numnod = nodelist.NElements();
@@ -662,7 +662,7 @@ int TPZCompMesh::NEquations() {
   return neq;
 }
 
-/** Jorge 6/7/2001 : Este metodo nao e apropriado para aproximantes descontinuas */
+/** Este metodo nao e apropriado para aproximantes descontinuas */
 int TPZCompMesh::BandWidth() {
   
   int bw = 0;
@@ -787,7 +787,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
     TPZInterpolatedElement *locel = 0;
     if(fElementVec[i] && fElementVec[i]->IsInterpolated())
       locel = (TPZInterpolatedElement *) fElementVec[i];
-    if(!locel || !locel->IsInterpolated()) continue;   //Jorge 6/7/2001
+    if(!locel || !locel->IsInterpolated()) continue;
     if(locel->Dimension() != dim) continue;
     TPZGeoEl *locgel = locel->Reference();
     TPZGeoEl *coarsegel = locgel;
@@ -1029,7 +1029,7 @@ void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index) {
 
   for(i=0; i<nelem; i++) {
     el = (TPZInterpolatedElement *)fElementVec[elements[i]];
-    if(el->CanToHaveInterface()) el->DeleteInterfaces();    // Jorge 23/3/2000
+    if(el->CanToHaveInterface()) el->DeleteInterfaces();
 //
     el->RemoveSideRestraintsII(TPZInterpolatedElement::EDelete);
     el->Reference()->ResetReference();
@@ -1638,7 +1638,7 @@ void TPZCompMesh::CopyMaterials(TPZCompMesh *mesh){
 
 }
 
-REAL TPZCompMesh::MaxVelocityOfMesh(int nstate){
+REAL TPZCompMesh::MaxVelocityOfMesh(int nstate,REAL gamma){
 
   int nel = ElementVec().NElements(),i;
   TPZManVector<REAL> density(1),sol(nstate),velocity(1);
@@ -1663,12 +1663,13 @@ REAL TPZCompMesh::MaxVelocityOfMesh(int nstate){
     }
     com->Solution(param,6,velocity);
     com->Solution(param,5,sol);
-    TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
-    press = law->Pressure(sol);
+    //TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
+    //press = law->Pressure(sol);
+    press = mat->Pressure(sol);
     if(press < 0.0){
       cout << "TPZCompMesh::MaxVelocityOfMesh minus pressure\n";
     }
-    sound = sqrt(law->Gamma()*press/density[0]);
+    sound = sqrt(gamma*press/density[0]);
     veloc = velocity[0] + sound;
     if(veloc > maxvel) maxvel = veloc;
   }
@@ -1728,3 +1729,4 @@ REAL TPZCompMesh::LesserEdgeOfMesh(){
   }
   return mindist;
 }
+

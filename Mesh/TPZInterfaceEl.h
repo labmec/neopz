@@ -121,15 +121,7 @@ class TPZInterfaceElement : public TPZCompEl {
    * Wherever possible, use dynamic_cast instead of this method
    * @return 0 if the element is not interpolated
    */
-  //ERIC ERIC ERIC ERIC ERIC ERIC
-  //ERIC aqui você no seu trabalho deve retornar 1
-  //agora o default é a classe base TPZCompEl que retorna nulo quando a 
-  //classe derivada não o define como é o caso aqui
-  //Isto pemitira contribuir o cálculo da interface 
-  //para a matriz de 'massa' ou matriz do sistema
-  //além de contabilizar no bloco da matriz
-
-  //virtual int IsInterpolated() {return 0;}
+  virtual int IsInterpolated() {return 1;}
 
   /**
    * it returns the shapes number of the element 

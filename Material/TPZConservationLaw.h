@@ -41,13 +41,15 @@ class TPZConservationLaw  : public TPZMaterial {
 
   //virtual void SetIntegDegree(int degree) = 0;
   
-  void SetDelta(REAL delta){fDelta = delta;}
+  virtual void SetDelta(REAL delta){fDelta = delta;}
+
+  virtual void SetDeltaTime(REAL maxveloc,REAL deltax,int degree);
   
   REAL Delta();
 
-  void SetTimeStep(REAL timestep){fTimeStep = timestep;}
+  virtual void SetTimeStep(REAL timestep){fTimeStep = timestep;}
 
-  REAL TimeStep(){return fTimeStep;}
+  virtual REAL TimeStep(){return fTimeStep;}
 
   int Dimension() { return fDim;}
   
@@ -93,6 +95,10 @@ inline void TPZConservationLaw::ContributeInterface(TPZVec<REAL> &,TPZVec<REAL> 
 
 inline void TPZConservationLaw::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
   PZError << "TPZConservationLaw::Solution it would never have to be called\n";
+}
+
+inline void TPZConservationLaw::SetDeltaTime(REAL maxveloc,REAL deltax,int degree){
+  PZError << "TPZConservationLaw::SetDeltaTime it would never have to be called\n";
 }
 
 inline REAL TPZConservationLaw::Pressure(TPZVec<REAL> &U) {

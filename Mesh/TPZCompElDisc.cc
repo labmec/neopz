@@ -429,21 +429,23 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int degree){
     discel->SetDegree(deg);
   }
 
-  static int key = 1,nao=0;
-  if(key){
-    cout << "TPZCompElDisc::Divide Debug ExpandSolution ? ";
-    cin >> nao;
-    key = 0;
-  }
-  if(nao){
-    Mesh()->ExpandSolution();
-    for(i=0; i<nsubs; i++) {
-      discel = (TPZCompElDisc *) fMesh->ElementVec()[subindex[i]];
-      discel->InterpolateSolution(*this);
-    }
+  Mesh()->ExpandSolution();
+  for(i=0; i<nsubs; i++) {
+    discel = (TPZCompElDisc *) fMesh->ElementVec()[subindex[i]];
+    if(discel->Dimension() < fMaterial->Dimension()) continue;//elemento BC
+    discel->InterpolateSolution(*this);
   }
   delete this;
 }
+
+//   static int key = 1,nao=0;
+//   if(key){
+//     cout << "TPZCompElDisc::Divide Debug ExpandSolution ? ";
+//     cin >> nao;
+//     key = 0;
+//   }
+//   if(nao){
+//}
 
 void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
   // accumulates the transfer coefficients between the current element and the
