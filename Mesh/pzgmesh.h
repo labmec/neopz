@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.8 2004-02-10 20:20:13 cesar Exp $
+//$Id: pzgmesh.h,v 1.9 2004-02-19 16:44:20 cesar Exp $
 
 /**File : pzgmes.h
 
@@ -221,6 +221,8 @@ protected: // Protected attributes
 public:
   void InsertRefPattern(TPZRefPattern *refpat);
   TPZRefPattern * GetRefPattern(int eltype, string name);
+  /** Verifies if the side based refinement pattern exists. If the refinement pattern doesn't exists return a Null refinement Pattern. */
+  TPZRefPattern * GetRefPattern (TPZGeoEl *gel, int side);
 };
 
 inline int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial){

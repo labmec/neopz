@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.10 2004-02-10 20:18:48 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.11 2004-02-19 16:44:20 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -618,3 +618,43 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){
   fElementVec.SetFree(index); 
 } 
 */
+/** Verifies if the side based refinement pattern exists. If the refinement pattern doesn't exists return a Null refinement Pattern. */
+TPZRefPattern * TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side){
+  int type = gel->Type();
+  //construct the named for the refinement pattern.
+  string name = "SIDE_";
+  TPZGeoElSide gelside (gel,side);
+  int dimension = gelside.Dimension();
+  switch (dimension){
+    case (0) :{
+      name += "NODE_";
+      break;
+    }
+    case (1) :{
+      name += "RIB_";
+      break;
+    }
+    case (2) :{
+      name += "FACE_";
+      break;
+    }
+    case (3) :{
+      name += "VOLUME_";
+      break;
+    }
+    default :{
+      name += "RIB_";
+      break;
+    }
+  }
+  int size = 2;
+  if (side/10 == 0){
+    name += "0" ;
+    size = 1;
+  }
+  char aux[size];
+  sprintf(aux,"%d",side);
+  name += aux;
+
+  return GetRefPattern(type,name);
+}
