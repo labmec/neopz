@@ -5,6 +5,7 @@
 #include "SimpleShock.cpp"
 #include "ShockTube2d.cpp"
 #include "SubsonicRadialShock.cpp"
+#include "NACA4digit.cpp"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
@@ -67,7 +68,7 @@ int main()
    int nSubdiv = 0;
    TPZFlowCompMesh * cmesh;
 
-   cout << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n\t5: RadialShock\n";
+   cout << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n\t5: RadialShock\n\t6: NACA\n";
 
    cin >> ProblemType;
 
@@ -228,6 +229,11 @@ int main()
       file = "SRS_";
       cmesh =
          SRSCompMesh(CFL, delta, p, nSubdiv, DiffType,
+	            Diff_TD, ConvVol_TD, ConvFace_TD);
+      case 6:
+      file = "NACA_";
+      cmesh =
+         NACACompMesh(CFL, delta, p, nSubdiv, DiffType,
 	            Diff_TD, ConvVol_TD, ConvFace_TD);
       break;
    }

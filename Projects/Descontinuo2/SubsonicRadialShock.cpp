@@ -22,8 +22,8 @@
 #include "pzblock.h"
 // creates an one-quadrilateral element mesh
 
-const int n = 2;
-const int m = 4;
+const int nn = 2;
+const int mm = 4;
 const REAL pi = 3.14159265359;
 
 void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
@@ -31,20 +31,20 @@ void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
    REAL ri = 1.8,
         ro = 5.,
 	deltar = ro - ri,
-	alpha = pi / (2. * n)/8.,
+	alpha = pi / (2. * nn)/8.,
 	alphai,
 	r;
 
-   pt.Resize((m+1)*(n+1));
+   pt.Resize((mm+1)*(nn+1));
    TPZVec<REAL> coord(3);
 
    // defining points
    int i, j, index;
-   for(j = 0; j < m+1; j++)
-      for(i = 0; i < n+1; i++)
+   for(j = 0; j < mm+1; j++)
+      for(i = 0; i < nn+1; i++)
          {
-            index = i + j * (n + 1);
-            r = ri + deltar/m*j;
+            index = i + j * (nn + 1);
+            r = ri + deltar/mm*j;
 	    alphai = alpha * i;
 	    coord[0] = r * cos(alphai);
 	    coord[1] = r * sin(alphai);
@@ -55,14 +55,14 @@ void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
    // definig elements
    // quadrilateral data
    TPZVec< int > nodes(4);
-   elms.Resize(m * n);
+   elms.Resize(mm * nn);
 
-   for(j = 0; j < m; j++)
-      for(i = 0; i < n; i++)
+   for(j = 0; j < mm; j++)
+      for(i = 0; i < nn; i++)
          {
-            index = i + j * n;
-	    nodes[0] = i + j * (n+1);
-	    nodes[1] = i + (j + 1) * (n+1);
+            index = i + j * nn;
+	    nodes[0] = i + j * (nn+1);
+	    nodes[1] = i + (j + 1) * (nn+1);
 	    nodes[2] = nodes[1] + 1;
 	    nodes[3] = nodes[0] + 1;
 	    elms[index] = nodes;
@@ -180,15 +180,14 @@ TPZFlowCompMesh *
    //aresta superior: Parede
    val1.Zero();
    val2.Zero();
-   for( i = 0; i < m; i++)
+   for( i = 0; i < mm; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[n * (i + 1) - 1],6,-1,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[nn * (i + 1) - 1],6,-1,*gmesh);
    }
-
    //aresta inferior: Parede
-   for( i = 0; i < m; i++)
+   for( i = 0; i < mm; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[n * i],4,-1,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[nn * i],4,-1,*gmesh);
    }
 
    bc = mat->CreateBC(-1,5,val1,val2);
@@ -200,7 +199,7 @@ TPZFlowCompMesh *
    val2(0,0) = 1. /*rho*/;
    val2(1,0) = .7919128627912566 /*Mach*/;
    val2(3,0) = 5.; //rhoE
-   for( i = 0; i < n; i++)
+   for( i = 0; i < nn; i++)
    {
       TPZGeoElBC((TPZGeoEl *)gElem[i],7,-2,*gmesh);
    }
@@ -214,9 +213,9 @@ TPZFlowCompMesh *
    val2(0,0) = 1.3158190229242444;//0;//.139006621;
    val2(1,0) = .2050900094073414 /*Mach*/;
    val2(3,0) = 6.319340316405589;//.1;//0;//5.;
-   for( i = 0; i < n; i++)
+   for( i = 0; i < nn; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[i + (m - 1) * n],5,-3,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[i + (mm - 1) * nn],5,-3,*gmesh);
    }
 
    bc = mat->CreateBC(-3,8,val1,val2);
