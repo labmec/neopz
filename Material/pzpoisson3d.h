@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.5 2003-12-05 16:59:55 phil Exp $
+//$Id: pzpoisson3d.h,v 1.6 2003-12-08 14:17:14 phil Exp $
 
 #ifndef MATPOISSON3DHPP
 #define MATPOISSON3DHPP
@@ -41,6 +41,8 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
   int Dimension() { return fDim;}
 
   int NStateVariables();
+
+  void SetParameters(REAL diff, REAL conv, TPZVec<REAL> &convdir);
   
   virtual void Print(ostream & out);
   

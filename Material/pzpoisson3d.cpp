@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.5 2003-12-05 16:59:40 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.6 2003-12-08 14:17:14 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -20,6 +20,13 @@ TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin
   fConvDir[0] =1.;
   fConvDir[1] =0.;
   fConvDir[2] =0.;
+}
+
+void TPZMatPoisson3d::SetParameters(REAL diff, REAL conv, TPZVec<REAL> &convdir) {
+  fK = diff,
+  fC = conv;
+  int d;
+  for(d=0; d<fDim; d++) fConvDir[d] = convdir[d];
 }
 
 TPZMatPoisson3d::~TPZMatPoisson3d() {
@@ -51,23 +58,33 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   REAL delx = 0.;
   REAL ConvDirAx[3] = {0.};
   if(fC) {
+    int di,dj;
+    delx = 0.;
+    for(di=0; di<fDim; di++) {
+      for(dj=0; dj<fDim; dj++) {
+        delx = (delx<fabs(jacinv(di,dj))) ? fabs(jacinv(di,dj)) : delx;
+      }
+    }
+    delx = 2./delx;
+      
+    
     switch(fDim) {
       case 1:
-        delx = jacinv(0,0);
+//        delx = jacinv(0,0);
         ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
         break;
       case 2:
-        delx = jacinv(0,0)*jacinv(1,1)-jacinv(1,0)*jacinv(0,1);
+//        delx = jacinv(0,0)*jacinv(1,1)-jacinv(1,0)*jacinv(0,1);
         ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
         ConvDirAx[1] = axes(1,0)*fConvDir[0]+axes(1,1)*fConvDir[1]+axes(1,2)*fConvDir[2];
         break;
       case 3:
-        delx = jacinv(0,0)*jacinv(1,1)*jacinv(2,2)+
-          jacinv(0,1)*jacinv(1,2)*jacinv(2,0)+
-          jacinv(1,0)*jacinv(2,1)*jacinv(0,2)-
-          jacinv(2,0)*jacinv(1,1)*jacinv(0,2)-
-          jacinv(1,0)*jacinv(0,1)*jacinv(2,2)-
-          jacinv(2,1)*jacinv(2,1)*jacinv(0,0);
+//        delx = jacinv(0,0)*jacinv(1,1)*jacinv(2,2)+
+//          jacinv(0,1)*jacinv(1,2)*jacinv(2,0)+
+//          jacinv(1,0)*jacinv(2,1)*jacinv(0,2)-
+//          jacinv(2,0)*jacinv(1,1)*jacinv(0,2)-
+//          jacinv(1,0)*jacinv(0,1)*jacinv(2,2)-
+//          jacinv(2,1)*jacinv(2,1)*jacinv(0,0);
         ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
         ConvDirAx[1] = axes(1,0)*fConvDir[0]+axes(1,1)*fConvDir[1]+axes(1,2)*fConvDir[2];
         ConvDirAx[2] = axes(2,0)*fConvDir[0]+axes(2,1)*fConvDir[1]+axes(2,2)*fConvDir[2];
@@ -88,7 +105,7 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
         ek(in,jn) += weight * (
           fK * ( dphi(kd,in) * dphi(kd,jn) ) -
           fC * ( ConvDirAx[kd]* dphi(kd,in) * phi(jn) )+
-          delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
+          0.5 * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
           );
       }
     }
@@ -362,22 +379,36 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
   cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
   int il,jl,nrowl,id;
   nrowl = phiL.Rows();
+  REAL ConvNormal = 0.;
+  for(id=0; id<fDim; id++) ConvNormal = fConvDir[id]*normal[id];
   switch(bc.Type()) {
   case 0: // DIRICHLET
     for(il=0; il<nrowl; il++) {
       REAL dphiLinormal = 0.;
       for(id=0; id<fDim; id++) {
-	dphiLinormal += dphiL(id,il)*normal[id];
+        dphiLinormal += dphiL(id,il)*normal[id];
       }
       ef(il,0) += weight*dphiLinormal*bc.Val2()(0,0);
       for(jl=0; jl<nrowl; jl++) {
-	REAL dphiLjnormal = 0.;
-	for(id=0; id<fDim; id++) {
-	  dphiLjnormal += dphiL(id,jl)*normal[id];
-	}
-	ek(il,jl) += weight*(dphiLinormal*phiL(jl,0)-dphiLjnormal*phiL(il,0));
+        REAL dphiLjnormal = 0.;
+        for(id=0; id<fDim; id++) {
+          dphiLjnormal += dphiL(id,jl)*normal[id];
+        }
+        ek(il,jl) += weight*fK*(dphiLinormal*phiL(jl,0)-dphiLjnormal*phiL(il,0));
       }
     }
+    if(ConvNormal > 0.) {
+      for(il=0; il<nrowl; il++) {
+        for(jl=0; jl<nrowl; jl++) {
+          ek(il,jl) += weight * fC * ConvNormal * phiL(il)*phiL(jl);
+        }
+      }
+    } else {
+      for(il=0; il<nrowl; il++) {
+        ef(il,0) -= weight * fC * ConvNormal * bc.Val2()(0,0) * phiL(il);
+      }
+    }
+      
     break;
   case 1: // Neumann
     for(il=0; il<nrowl; il++) {
