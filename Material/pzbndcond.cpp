@@ -120,18 +120,17 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 			 TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 			 TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
 
-  if(fForcingFunction) {
-    TPZManVector<REAL> result(fBCVal2.Rows());
-    fForcingFunction(x,result);
-    int i;
-    for(i=0; i<fBCVal2.Rows(); i++) {
-      fBCVal2(i,0) = result[i];
-      }
-  }				     			 
-			 
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
 
    if(!mat) return;
+   if(fForcingFunction) {
+      TPZManVector<REAL> result(fBCVal2.Rows());
+      fForcingFunction(x,result);
+      int i;
+      for(i=0; i<fBCVal2.Rows(); i++) {
+	fBCVal2(i,0) = result[i];
+      }
+   }
 
    if(phiL.Rows() == 0) {
       TPZManVector<REAL,3> nor(normal.NElements(),0.);
