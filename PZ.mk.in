@@ -3,7 +3,7 @@
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
-# $Id: PZ.mk.in,v 1.8 2004-06-23 22:42:17 phil Exp $
+# $Id: PZ.mk.in,v 1.9 2005-01-21 12:11:56 phil Exp $
 #
 
 CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@ @USING_FAD@ @USING_ATLAS@ @USING_BLAS@
@@ -37,7 +37,7 @@ INCLUDES = -I$(top_srcdir)/Util \
         @ATLASINCLUDE@ \
         @BLASINCLUDE@
 
-PZ_LIBDIR = -L@prefix@/lib @METISLIBDIR@ @ATLASLIBDIR@ 
+PZ_LIBDIR = -L$(top_builddir)/lib @METISLIBDIR@ @ATLASLIBDIR@ 
 
 PZ_LIB = -lpz @METISLIB@ @ATLASLIB@
 
