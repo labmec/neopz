@@ -77,7 +77,7 @@ class TPZBlock
      Sets number of blocks on diagonal matrix
      @param num_of_blocks Number of blocks
   */
-  int SetNBlocks(const int num_of_blocks );//SetNumBlocks( nel )?????;
+  int SetNBlocks(const int num_of_blocks );
 
   // Modifica as dimensoes de um bloco existente ou cria um novo
   // bloco caso nao existir bloco com o indice fornecido.
@@ -116,7 +116,6 @@ class TPZBlock
   */
   int Verify() const;
 
-  //Misael  29/10/95
   REAL & operator()(const int block_row,const int block_col,const int r,const int c );
 
   // Le e escreve um elemento na matriz, fazendo verificacoes.

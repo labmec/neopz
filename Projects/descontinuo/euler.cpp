@@ -33,6 +33,7 @@
 #include "pztempmat.h"
 #include "pzcompel.h"
 #include "pzanalysis.h"
+#include "pzfstrmatrix.h"
 #include "pzskylstrmatrix.h"
 #include "pzskylmat.h"
 #include "pzstepsolver.h"
@@ -68,6 +69,9 @@
 #include "TPZShapeDisc.h"
 #include "TPZInterfaceEl.h"
 #include "TPZIterativeAnalysis.h"
+#include "TPZExtendGridDimension.h"
+#include "TPZFlowCMesh.h"
+#include "TPZIterativeAnalysis.h"
 #include "TPZFlowCMesh.h"
 #include "pzreal.h"
 //#include "TPZJacobMat.h"
@@ -83,9 +87,6 @@
 #include <string.h>
 using namespace std;
 //                        c = sqrt(gama*p/ro)  velocidade do som
-
-
-//#define NOTDEBUG
 
 static REAL p1=0.7,p2=0.902026,p3=1.80405,p4=2.96598,p5=3.2,p6=4.12791,p7=0.22;
 
@@ -121,6 +122,7 @@ static double hexaedro[8][3] = { {0.,0.,0.},{4.1,0.,0.},{4.1,1.,0.},{0.,1.,0.},
 //static TPZRefPattern hexaedro2("hexaedro2.in");
 //static TPZRefPattern quad4("quadrilatero4.in");//quadrilatero mestre 4 sub-elementos*/
 //static TPZRefPattern linha2("linha2.in");//aresta mestre 2 sub-elementos*/
+void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl);
 void SetDeltaTime(TPZMaterial *mat,int nstate);
 void CriacaoDeNos(int nnodes,double lista[20][3]);
 TPZMaterial *NoveCubos(int grau);
@@ -148,13 +150,17 @@ void CoutTime(clock_t &start);
 
 static TPZGeoMesh *gmesh = new TPZGeoMesh;
 static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh);
-static TPZVec<REAL> x0(3,0.);
+//static TPZVec<REAL> x0(3,0.);
 static int grau = 0;
 static int nivel = 0,tipo;
 static int problem=0;
-static REAL pi = 2.0*asin(1.0);
+//static REAL pi = 2.0*asin(1.0);
 static REAL CFL=-1.0;
 static REAL gama = 1.4;
+
+
+//#define NOTDEBUG
+#define CEDRICDEBUG
 
 int main() {
 
@@ -170,11 +176,12 @@ int main() {
        << "\t[6: NoveCubos]\n"
        << "\t\t\t";
 
-  cin >> tipo;
-  //tipo = 2;
+  //cin >> tipo;
+  tipo = 3;
   problem = tipo;
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
-  cin >> grau;
+  //cin >> grau;
+  grau = 0;
   TPZCompElDisc::gDegree = grau;
   //TPZMaterial *mat;
   TPZConservationLaw *mat;
@@ -209,16 +216,21 @@ int main() {
 
   int numiter,marcha;
   cout << "\nNumero de iteracoes requerida ? : ";
-  cin >> numiter;
-  //numiter = 1000;
+  //cin >> numiter;
+  numiter = 100;
   cout << "main:: Parametro marcha : \n";
-  cin >> marcha;
-  //marcha = 99;
+  //cin >> marcha;
+  marcha = 10;
   if(1){
-    cout << "main::SetDeltaTime entre CFL (si nulo sera calculado) -> ";
-    cin >> CFL;
-    //CFL = 0.2;
+    cout << "main:: entre CFL (si nulo sera calculado) -> ";
+    //cin >> CFL;
+    CFL = 0.0;
     TPZDiffusionConsLaw::fCFL = CFL;
+    cout << "main:: entre delta (si nulo sera calculado) -> ";
+    REAL delta;
+    //cin >> delta;
+    delta = 0.0;
+    TPZDiffusionConsLaw::fDelta= delta;
   }
 
   if(1){
@@ -245,22 +257,37 @@ int main() {
   if(1){
     cout << "\nmain::Ajuste no contorno e imprime malhas\n";
     cmesh->AdjustBoundaryElements();
-    if(0){
+    if(1){
       gmesh->Print(outgm);
       cmesh->Print(outgm);
       outgm.flush();
     }
   }
-
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  TPZVec<int> accumlist;
+  int nivel,numaggl;
+  cout << "main::Entre nivel da nova malha : ";
+  cin >> nivel;
+  AgrupaList(accumlist,nivel,numaggl);
+  int index;
+  TPZCompElDisc disc(*cmesh,index);
+  TPZCompMesh *cmesh2 = disc.CreateAgglomerateMesh(cmesh,accumlist,numaggl);
+  if(cmesh2) cmesh2->Print(outgm);
+  cout << "\n\nmain:: FIM DO PROGRAMA\n\n";
+  return 0;
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  //com matriz não simétrica e ELU 2D e 3D convergen
   if(1){
     TPZIterativeAnalysis an(cmesh,outgm);
     if(1){//Analysis
       cout << "\nmain::Resolve o sistema\n";
-      TPZSkylineStructMatrix stiff(cmesh);
+      //TPZSkylineStructMatrix stiff(cmesh);//para formula¢ão LS : matriz simétrica
+      TPZFStructMatrix stiff(cmesh);//não simétrica
       an.SetStructuralMatrix(stiff);
       an.Solution().Zero();
-      TPZStepSolver solver;
-      solver.SetDirect(ELDLt);//ELU, ECholesky
+      TPZStepSolver solver;// ECholesky -> simétrica e positiva definida
+      solver.SetDirect(ELU);//    ELU -> matriz não singular
+      //solver.SetDirect(ELDLt);//  ELDLt -> só simétrica
       an.SetSolver(solver);
       if(1){
 	REAL tol;
@@ -1481,13 +1508,17 @@ TPZMaterial *FluxConst2D(int grau){
 
   CriacaoDeNos(4,quadrilatero);
   //elemento de volume
+  int index;
   TPZVec<int> nodes;
   nodes.Resize(4);
   nodes[0] = 0;
   nodes[1] = 1;
   nodes[2] = 2;
   nodes[3] = 3;
-  TPZGeoElQ2d *elgq2d = new TPZGeoElQ2d(nodes,1,*gmesh);
+  TPZGeoEl *elgq2d = gmesh->CreateGeoElement(EQuadrilateral,nodes,1,index);
+  //construtor descontínuo
+  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
@@ -1569,15 +1600,17 @@ TPZMaterial *NoveQuadrilateros(int grau){
   nodes.Resize(4);
   TPZVec<TPZGeoEl *> elem(9);
   elem.Resize(9);
-  int i;
+  int i,index;
   for(i=0;i<9;i++){
     nodes[0] = INCID[i][0];
     nodes[1] = INCID[i][1];
     nodes[2] = INCID[i][2];
     nodes[3] = INCID[i][3];
-    elem[i] = new TPZGeoElQ2d(nodes,1,*gmesh);
+    elem[i] = gmesh->CreateGeoElement(EQuadrilateral,nodes,1,index);
   }
-
+  //construtor descontínuo
+  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -1974,36 +2007,53 @@ void SequenceDivide2(){
   }
 }
 
+void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
+  //todo elemento deve ser agrupado nem que for para ele mesmo
+  cout << "\n\nmain::AgrupaList para malha 2D\n\n";
+  int nel = cmesh->NElements(),i;
+  //não todo index é sub-elemento
+  accumlist.Resize(nel,-1);
+  for(i=0;i<nel;i++){
+    TPZCompEl *cel = cmesh->ElementVec()[i];
+    if(!cel) continue;
+    TPZGeoEl *gel = cel->Reference();
+    //agrupando elementos computacionais
+    if(cel->Type() == 16) continue;//pula interface: fica -1 na lista
+    TPZGeoEl *father = gel->Father();
+    if(!father) continue;
+    if(Nivel(father) != nivel) continue;
+    int fatid = father->Id();
+    accumlist[i] = fatid;
+  }
+  int j;
+  //contagem dos elementos
+  numaggl = 0;
+  //interface tem entrada -1 em list
+  TPZVec<int> list(nel,-1);
+  for(i=0;i<nel;i++){
+    int fat = accumlist[i];
+    int num = list[i];
+    if(fat > -1 && num == -1){
+      list[i] = numaggl;
+      for(j=i+1;j<nel;j++){
+	int fat2 = accumlist[j];
+	if(fat2 == fat)
+	  list[j] = numaggl;
+      }
+      numaggl++;
+    }
+  }
+  accumlist = list;//for(i=0;i<nel;i++) cout << list[i] << "\n";
+}
 
 
-// 	if(1){
-// 	  TPZVec<char *> scalar(1),vector(0);
-// 	  scalar[0] = "pressure";
-// 	  int dim = mat->Dimension();
-// 	  TPZDXGraphMesh graph(cmesh,dim,mat,scalar,vector);
-// 	  ofstream *dx = new ofstream("ConsLawFinal.dx");
-// 	  cout << "\nmain::out file : ConsLawFinal.dx\n";
-// 	  graph.SetOutFile(*dx);
-// 	  graph.SetResolution(0);
-// 	  graph.DrawMesh(dim);
-// 	  //an.LoadSolution();
-// 	  cout << "\nmain::Divisao manual\n";
-// 	  Divisao(cmesh);
-// 	  cmesh->AdjustBoundaryElements();
-// 	  if(1){
-// 	    cout << "\nmain::Imprime malhas depois de divide manual\n";
-// 	    gmesh->Print(outgm);
-// 	    cmesh->Print(outgm);
-// 	    outgm.flush();
-// 	  }
-// 	  an.Solution().Zero();
-// 	  an.SetBlockNumber();
-// 	  an.Run();
-// 	  //an.LoadSolution();
-// 	  an.SetDeltaTime(cmesh,mat);
-// 	  REAL time = mat->TimeStep();
-// 	  graph.DrawSolution(0,time);
-// 	  dx->flush();
-// 	  //dx->close();
-// 	  //if(dx) delete dxout;
-// 	}
+//   TPZVec<int> list2(accumlist);
+//   for(i=0;i<nel;i++){
+//     for(j=i+1;j<nel;j++){
+//       if(list2[i] > list2[j]){
+// 	int aux = list2[i];
+// 	list2[i] = list2[j];
+// 	list2[j] = aux;
+//       }
+//     }    
+//   }

@@ -6,10 +6,13 @@
 #include "pzelgt2d.h"
 #include "pzquad.h"
 #include "pzmaterial.h"
-#include "TPZConservationLaw.h"
+//#include "TPZConservationLaw.h"
+#include "TPZEulerConsLaw.h"
 #include "pzbndcond.h"
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl &thirdel) 
+//construtor para o elemento descontinuo
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
+					 TPZCompElDisc *left,TPZCompElDisc *right,int leftside) 
   : TPZCompEl(mesh,index), fNormal(3,0.) {
 
   fReference = geo;
@@ -20,78 +23,36 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   }
   //poderia eliminar esta variável e carrega-la do elemento de volume associado
   fMaterial = mesh.FindMaterial(materialid);
-  fLeftEl = NULL;
-  fRightEl = NULL;
-  NormalToFace(fNormal);
-  VolumeEls(thirdel);//identifica elementos esquerdo e direito conectados
+  if(!fMaterial) PZError << "TPZInterfaceElement::TPZInterfaceElement material not found\n";
+  fLeftEl = left;
+  fRightEl = right;
+  if(leftside > -1) NormalToFace(fNormal,leftside);
 }
 
-void TPZInterfaceElement::VolumeEls(TPZCompEl &thirdel){
+void TPZInterfaceElement::CloneInterface(TPZCompMesh *aggmesh,int left,int right) {
 
-  /**A ORDEM DE DEFINICÃO DOS VÉRTICES DO ELEMENTO INTERFACE 
-     DETERMINA QUEM SÃO OS ELEMENTOS ESQUERDO E DIREITO ASSOCIADOS*/
-  REAL detjac;
-  TPZVec<REAL> param(3),normal(3);
-  TPZFMatrix jacobian(3,3),jacinv(3,3),axes(3,3);
-  int face = fReference->NSides()-1;//face: lado do elemento bidimensional ou aresta do unidimensional
-  //cada face tem no máximo 3 elementos ligados, um de interface + esquerdo e direito
-  //se a face é de fronteira um dos elementos é de contorno
-  //pelos menos 1 é de volume
-  fReference->CenterPoint(face,param);//ponto da face  
-  fReference->Jacobian(param,jacobian,axes,detjac,jacinv);//normal: 3a linha de axes
-  TPZStack<TPZCompElSide> list;
-  list.Resize(0);
-  //a próxima linha não retorna um el. interface
-  TPZCompElSide(this,face).EqualLevelElementList(list,0,0);
-  TPZGeoElSide gs;// = list[0].Reference();
-  int i,size = list.NElements(),dim = fReference->Dimension();
-  for(i=0;i<size;i++){
-    TPZCompElSide neigh = list[i];
-    if(neigh.Element() == &thirdel) continue;
-    gs = neigh.Reference();//o elemento computacional sempre deve ter uma referência
-    TPZGeoEl *geoneigh = gs.Element();//dim: dimensão do atual
-    if(geoneigh->Dimension() > dim) break;//elemento de volume deve existir
+  TPZCompElDisc *leftcel = dynamic_cast<TPZCompElDisc *>(aggmesh->ElementVec()[left]);
+  TPZCompElDisc *rightcel = dynamic_cast<TPZCompElDisc *>(aggmesh->ElementVec()[right]);
+  //copiando ou transferindo o material
+  int matid = Material()->Id();
+  TPZMaterial *mater = aggmesh->FindMaterial(matid);
+  if(!mater){
+    //cria copia de material da malha fina    
+    mater = Mesh()->FindMaterial(matid);
+    if( !strcmp(mater->Name(),"TPZEulerConsLaw") ){
+      TPZEulerConsLaw *euler = dynamic_cast<TPZEulerConsLaw *>(mater);
+      mater = new TPZEulerConsLaw(*euler);
+    }
+    aggmesh->InsertMaterialObject(mater);
   }
-//if(!gs.Exists())
-//  PZError << "TPZInterfaceElement::VolumeEls neighbor does not exist, inconsistency of data\n";
-  TPZGeoEl *neigh = gs.Element(),*neigh2;
-  //  int dim = fReference->Dimension();//dimensão do atual que é 2D
-  neigh2 = thirdel.Reference();
-  //os elementos esquerdo e direito são elementos descontínuos de volume ou BC
-  
-  if(neigh->Dimension() < neigh2->Dimension()){
-    //vec != 0 si o ponto x1 está fora do elemento interface
-    TPZGeoEl *neighkeep = neigh2;//el. de vol.
-    neigh2 = neigh;
-    neigh = neighkeep;//el. BC
-  }  
-  if(neigh == fReference || neigh2 == fReference){
-    cout << "TPZInterfaceElement::VolumeEls error data (nao acha comp. de volume no ciclo: impossivel)\n";
-    exit(-1);
-  }
-  TPZVec<REAL> x0(3);
-  fReference->X(param,x0);//ponto da interface
-  param.Resize(2);
-  //elemento de volume associado
-  TPZVec<REAL> x1;
-  TPZCompElDisc *neighdisc = (TPZCompElDisc *) neigh->Reference();//vizinho da atual interface
-  //aqui neighdisc for¢osamente existe
-  if (neighdisc){
-    neighdisc->InternalPoint(x1);//ponto interior ao volume
-    TPZVec<REAL> vec(3);
-    for(i=0;i<3;i++) vec[i] = x1[i]-x0[i];//não deve ser nulo
-    REAL prod = vec[0]*fNormal[0]+vec[1]*fNormal[1]+vec[2]*fNormal[2];//se prod = 0 os vetores são paralelos (superpostos)
-    if(prod < 0)//ângulo maior que 90
-      fLeftEl = neighdisc;//a normal aponta para o elemento direito
-    else
-      fRightEl = neighdisc;//a normal a interface aponta para o elemento de volume
-    //segundo elemento de volume associado
-    neighdisc = (TPZCompElDisc *) neigh2->Reference();
-    if(!fLeftEl) fLeftEl = neighdisc;
-    else fRightEl = neighdisc;
-  }
-  if(!fLeftEl || !fRightEl)
-    PZError << "TPZInterfaceElement::VolumeEls not identified left or right element\n";
+  int leftside = -1,index;
+  TPZGeoEl *gel = Reference();
+  //criando a interface na nova malha aglomerada
+  TPZInterfaceElement *interf = new TPZInterfaceElement(*aggmesh,gel,index,leftcel,rightcel,leftside);
+  //copiando a normal
+  TPZVec<REAL> normal(3);
+  Normal(normal);
+  interf->SetNormal(normal);
 }
 
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
@@ -320,16 +281,22 @@ void TPZInterfaceElement::Print(ostream &out){
 
   out << "\nInterface element : \n";
   out << "\tId of the geometric reference : " << fReference->Id() << endl;
-  out << "\tGeometric reference of the left element of id : ";
   if(fLeftEl){
-    out <<  fLeftEl->Reference()->Id() << endl;
+    if(fLeftEl->Type() == 17) out << "\tElement index of the left element : "<< fLeftEl->Index() << endl;
+    else {
+      out << "\tGeometric reference of the left element of id : ";
+      out <<  fLeftEl->Reference()->Id() << endl;
+    }
   } else {
     out << "Null" << endl;
     cout << "TPZInterfaceElement::Print null left element\n\n";
   }
-  out << "\tGeometric reference of the right element of id : ";
   if(fRightEl){
-    out << fRightEl->Reference()->Id() << endl;
+    if(fRightEl->Type() == 17) out << "\tElement index of the right element : "<< fRightEl->Index() << endl;
+    else {
+      out << "\tGeometric reference of the right element of id : ";
+      out << fRightEl->Reference()->Id() << endl;
+    }
   } else {
     out << "Null" << endl;
     cout << "TPZInterfaceElement::Print null right element\n\n";
@@ -463,37 +430,17 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
 }
 
 void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
-void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal){
+void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
 
-  int dim = fReference->Dimension();
+  //  int dim = fReference->Dimension();
   int face = fReference->NSides()-1;
   //face: lado do elemento bidimensional ou aresta 
   //do unidimensional ou canto do ponto
-  TPZGeoEl *geoneigh;
   normal.Resize(3,0.);
+  TPZCompElSide neigh(fLeftEl,leftside);
+  TPZGeoElSide neighside = neigh.Reference();
+  TPZGeoEl *geoneigh = neighside.Element();
 
-  if(dim > -1 && dim < 2){
-    TPZStack<TPZCompElSide> list;
-    list.Resize(0);  
-    TPZCompElSide(this,face).EqualLevelElementList(list,0,0);
-    if(!list.NElements()){
-      PZError << "TPZInterfaceElement::NormalToFace empty list, error\n";
-      exit(-1);
-    }
-    int i,size = list.NElements();
-    for(i=0;i<size;i++){
-      TPZCompElSide neigh = list[i];
-      TPZGeoElSide neighside = neigh.Reference();
-      geoneigh = neighside.Element();//dim: dimensão do atual
-      if(geoneigh->Dimension() > dim) break;//elemento de volume deve existir
-    }
-    if(geoneigh->Dimension() == dim){
-      PZError << "TPZInterfaceElement::NormalToFace wrong structure of data\n";
-      //pelo menos um dos elemento deve ser de volume: ciclo: vol->this->(vol or bc)->vol
-    }
-    //aqui geoneigh é um elemento de volume
-    //tem dimensão 1 a mais do que o elemento interface
-  }
   TPZVec<REAL> param(3),cent(3),point(3,0.),result(3,0.),xint(3),xvol(3),vec(3),rib(3);
   TPZFMatrix jacobian(3,3),jacinv(3,3),axes(3,3);
   REAL detjac,normalize;
@@ -546,6 +493,27 @@ void TPZInterfaceElement::Normal(TPZVec<REAL> &normal){
   for(int i=0;i<3;i++) normal[i] = fNormal[i];
 }
 
+void TPZInterfaceElement::SetNormal(TPZVec<REAL> &normal){
+
+  for(int i=0;i<3;i++) fNormal[i] = normal[i];
+}
+
 /**
  *  ESTA ALTERA¢ÃO É SÓ PARA ATUALIZAR O PZREPOSITORY (CVS)
  */
+  //achando o lado do vizinho esquerdo
+//   int side = fReference->NSides()-1;
+//   TPZGeoElSide refside(fReference,side);
+//   TPZGeoElSide neigh = refside.Neighbour();
+//   TPZGeoEl *gel = neigh.Element();
+//   while(gel && neigh != refside){
+//     TPZCompEl *cel = gel->Reference();
+//     if(cel && cel == LeftElement()) break;
+//     neigh = neigh.Neighbour();
+//     gel = neigh.Element();
+//   }
+//   if(!gel || neigh == refside){
+//     PZError << "TPZInterfaceElement::CloneInterface left element not found\n";
+//     exit(-1);
+//   }
+//  int leftside = neigh.Side(),index;

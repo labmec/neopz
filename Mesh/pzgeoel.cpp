@@ -1005,18 +1005,11 @@ REAL TPZGeoEl::SideArea(int side){
 
     int nsn = NSideNodes(side);
 
-    //    TPZVec<TPZGeoNode *> nodes(3);
     TPZVec<TPZGeoNode *> nodes(nsn);
     int i;
     
     for(i=0;i</*3*/nsn;i++)
       nodes[i] = &Mesh()->NodeVec()[  SideNodeIndex(side,i) ];
-
-//     if(NSides() != 15  && SideNodeIndex(side,3) > -1){
-//       nodes.Resize(4);
-//       nodes[3] = &Mesh()->NodeVec()[ SideNodeIndex(side,3) ];
-//       return ( QuadArea(nodes) );
-//     }
     if (nsn==4)
       return ( QuadArea(nodes) );
     else

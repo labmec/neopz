@@ -48,11 +48,12 @@ class TPZInterfaceElement : public TPZCompEl {
 
   static TPZCompEl *CreateInterfaceQEl(TPZGeoElQ2d *geo, TPZCompMesh &mesh, int &index);
   static TPZCompEl *CreateInterfaceTEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreateInterface1dEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreateInterfacePointEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index);
+  static TPZCompEl *CreateInterface1dEl(TPZGeoEl1d *geo, TPZCompMesh &mesh, int &index);
+  static TPZCompEl *CreateInterfacePointEl(TPZGeoElPoint *geo, TPZCompMesh &mesh, int &index);
 
+  //construtor do descontínuo
   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
-  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl &thirdel);
+  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElDisc *left,TPZCompElDisc *right,int leftside);
 
   ~TPZInterfaceElement(){};
 
@@ -86,6 +87,11 @@ class TPZInterfaceElement : public TPZCompEl {
   void Normal(TPZVec<REAL> &normal);
 
   /**
+   * it returns the normal one to the face from the element
+   */
+  void SetNormal(TPZVec<REAL> &normal);
+
+  /**
    * it returns the number from connectivities of the element 
    */
   int NConnects();
@@ -110,18 +116,13 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   MElementType Type() { return EInterfaceDisc; }
 
-   /**
-   * it returns the associated conectivity to the element 
-   */
-  //int ConnectIndex(int i){return fConnectIndex;}
-
   /**declare the element as interpolated or not.
    * You may not redefine this method, because a lot of "unsafe" casts depend
    * on the result of this method\n
    * Wherever possible, use dynamic_cast instead of this method
    * @return 0 if the element is not interpolated
    */
-  virtual int IsInterpolated() {return 1;}
+  virtual int IsInterpolated() {return 0;}
 
   /**
    * it returns the shapes number of the element 
@@ -152,9 +153,14 @@ class TPZInterfaceElement : public TPZCompEl {
   static int ExistInterfaces(TPZCompElSide &comp);
 
   //it returns the normal one to the face from element
-  void NormalToFace(TPZVec<REAL> &normal);
+  void NormalToFace(TPZVec<REAL> &normal,int leftside);
 
   static int FreeInterface(TPZCompMesh &cmesh);
+
+  /**
+   * reproduz na malha aglomerada aggmesh uma copia da interface da malha fina
+   */
+  void CloneInterface(TPZCompMesh *aggmesh,int left,int right);
 
   static int main(TPZCompMesh &cmesh);
 
@@ -166,10 +172,10 @@ inline TPZCompEl *TPZInterfaceElement::CreateInterfaceQEl(TPZGeoElQ2d *geo, TPZC
 inline TPZCompEl *TPZInterfaceElement::CreateInterfaceTEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index) {
   return new TPZInterfaceElement(mesh,(TPZGeoEl *) geo,index);
 }
-inline TPZCompEl *TPZInterfaceElement::CreateInterface1dEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index) {
+inline TPZCompEl *TPZInterfaceElement::CreateInterface1dEl(TPZGeoEl1d *geo, TPZCompMesh &mesh, int &index) {
   return new TPZInterfaceElement(mesh,(TPZGeoEl *) geo,index);
 }
-inline TPZCompEl *TPZInterfaceElement::CreateInterfacePointEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index) {
+inline TPZCompEl *TPZInterfaceElement::CreateInterfacePointEl(TPZGeoElPoint *geo, TPZCompMesh &mesh, int &index) {
   return new TPZInterfaceElement(mesh,(TPZGeoEl *) geo,index);
 }
 //Acessar com -> TPZGeoElXXd::SetCreateFunction(createInterfaceXXEl);

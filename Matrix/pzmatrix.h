@@ -230,7 +230,7 @@ public:
   }
 
   /** Zeroes the matrix */
-  virtual int Zero(){ 
+  virtual int Zero(){
     cout << "WARNING! TPZMatrix::Zero is called\n";
     return 0; }
 

@@ -76,14 +76,15 @@ protected:
 
   static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
   /**return the geometric element to which this element references*/
-  virtual TPZGeoEl *Reference() { return fReference;}
+  TPZGeoEl *Reference() { return fReference;}
 
   /**
    * default degree of imterpolation
    */
   static int gDegree;
 
-   TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index);
+  TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index);//original
+  TPZCompElDisc(TPZCompMesh &mesh,int &index);//construtor do aglomerado
   ~TPZCompElDisc() {
       if(Reference()) {
          Reference()->ResetReference();
@@ -110,7 +111,7 @@ protected:
   /**
    * Type of the element 
    */
-  MElementType Type() { return EDiscontinous; }
+  virtual MElementType Type() {return EDiscontinous;}
 
   /**
    * it returns the material object 
@@ -125,7 +126,9 @@ protected:
   /**
    * it returns the constant that normalizes the bases of the element 
    */
-  double ConstC(){return fConstC;}
+  REAL ConstC(){return fConstC;}
+
+  void SetConstC(REAL c){fConstC = c;}
 
   /**
    */
@@ -169,15 +172,13 @@ protected:
   /**
    * it returns the connect index from the element 
    */
-  int ConnectIndex(int side);
+  int ConnectIndex(int side=0);
   void  SetConnectIndex(int /*inode*/, int index) {fConnectIndex = index;}
 
   /**
    * it returns the shapes number of the element 
    */
   int  NShapeF();
-
-  void ItConstructsInterface(TPZCompElSide &gside);
 
   void CreateInterfaces();
 
@@ -187,7 +188,11 @@ protected:
 
   void RemoveInterface(int side);
 
-  int ExistsInterface(TPZCompElSide cpsd);
+  int ExistsInterface(TPZGeoElSide geosd);
+
+  REAL CenterPoint(int index) {return fCenterPoint[index];}
+  
+  void SetCenterPoint(int i,REAL x){fCenterPoint[i] = x;}
 
   /**declare the element as interpolated or not.
    * You may not redefine this method, because a lot of "unsafe" casts depend
@@ -216,6 +221,10 @@ protected:
    * @param sol vetor for the solution
    */
   virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
+
+  static TPZCompMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);
+
+  virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
 };
 
 inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index) {

@@ -41,12 +41,21 @@
 int TPZCompElDisc::gDegree = 0;
 int TPZCompElDisc::gInterfaceDimension = 2;//default
 
+//construtor do elemento aglomerado
+TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
+		TPZCompEl(mesh,index), fCenterPoint(3) {
+  fDegree = gDegree;
+  fReference = NULL;
+  fMaterial = NULL;
+}
+
+//construtor do elemento descontínuo
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 		TPZCompEl(mesh,index), fCenterPoint(3) {
   fDegree = gDegree;
   fReference = ref;
   ref->SetReference(this);
-  fMesh = &mesh;
+  //fMesh = &mesh;
   int materialid = ref->MaterialId();
   fMaterial = mesh.FindMaterial(materialid);
   CreateMidSideConnect();
@@ -66,7 +75,7 @@ void TPZCompElDisc::CreateInterfaces(){
   for(side=nsides;side>=0;side--){
     if(fReference->SideDimension(side) != gInterfaceDimension) continue;
     TPZCompElSide thisside(this,side);
-    if(ExistsInterface(thisside)) {
+    if(ExistsInterface(thisside.Reference())) {
       int stop;
       cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
       cin >> stop;
@@ -109,17 +118,31 @@ void TPZCompElDisc::CreateInterface(int side){
     TPZGeoEl *gel = fReference->CreateBCGeoEl(side,matid);
     //isto acertou as vizinhanas da interface geométrica com o atual
     int index;
-    new TPZInterfaceElement(*fMesh,gel,index,*this);
+    TPZCompElDisc *list0 = dynamic_cast<TPZCompElDisc *>(list[0].Element());
+    if(Dimension() > list0->Dimension()){
+      //o de volume é o direito caso um deles seja BC
+      //a normal aponta para fora do contorno
+      new TPZInterfaceElement(*fMesh,gel,index,this,list0,side);
+    } else {
+      //caso contrário ou caso ambos sejam de volume 
+      new TPZInterfaceElement(*fMesh,gel,index,list0,this,list[0].Side());
+    }
     return;
   }
   //aqui não existe igual: só pode existir lower 
-  //(pois isto foi verificado no CreateInterfaces())
+  //(pois isso foi verificado no CreateInterfaces())
   TPZCompElSide lower = thisside.LowerLevelElementList(0);
   if(lower.Exists()){
     //existem esquerdo e direito: this e lower
     TPZGeoEl *gel = fReference->CreateBCGeoEl(side,fMaterial->Id());
     int index;
-    new TPZInterfaceElement(*fMesh,gel,index,*lower.Element());
+    TPZCompElDisc *lowcel = dynamic_cast<TPZCompElDisc *>(lower.Element());
+    if(Dimension() > lowcel->Dimension()){
+      //para que o elemento esquerdo seja de volume
+      new TPZInterfaceElement(*fMesh,gel,index,this,lowcel,side);
+    } else {
+      new TPZInterfaceElement(*fMesh,gel,index,lowcel,this,lower.Side());
+    }
     return;
   }
 }
@@ -163,9 +186,11 @@ void TPZCompElDisc::Shape(TPZVec<REAL> X, TPZFMatrix &phi, TPZFMatrix &dphi) {
 
 void TPZCompElDisc::Print(ostream &out) {
 
-  out << "\nDiscontinous element : \n";
-  out << "\tGeometric reference id : " << fReference->Id() << endl
-      << "\tMaterial id : " << fReference->MaterialId() << endl
+  if(Type() == 15){//descontínuo
+    out << "\nDiscontinous element : \n";
+    out << "\tGeometric reference id : " << fReference->Id() << endl;
+  }
+  out << "\tMaterial id : " << Material()->Id() << endl
       << "\tDegrau of interpolation : " <<  fDegree << endl
       << "\tConnect index : " << fConnectIndex << endl
       << "\tNormalizing constant : " << fConstC << endl
@@ -438,15 +463,6 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int degree){
   delete this;
 }
 
-//   static int key = 1,nao=0;
-//   if(key){
-//     cout << "TPZCompElDisc::Divide Debug ExpandSolution ? ";
-//     cin >> nao;
-//     key = 0;
-//   }
-//   if(nao){
-//}
-
 void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
   // accumulates the transfer coefficients between the current element and the
   // coarse element into the transfer matrix, using the transformation t
@@ -537,9 +553,8 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
   
 }
 
-int TPZCompElDisc::ExistsInterface(TPZCompElSide compsd){
+int TPZCompElDisc::ExistsInterface(TPZGeoElSide geosd){
 
-  TPZGeoElSide geosd = compsd.Reference();
   TPZGeoElSide  neighside = geosd.Neighbour();
   while(neighside.Element() && neighside.Element() != geosd.Element()){
     TPZCompElSide neighcompside = neighside.Reference();
@@ -690,5 +705,99 @@ void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) 
   if(dimension == 1 && mat > 0){
     new TPZGraphEl1dd(this,&grmesh);
   }
+}
+
+#include "TPZAgglomerateEl.h"
+void TPZCompElDisc::AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight){
+
+  int nsubs = dynamic_cast<TPZAgglomerateElement *>(this)->NIndexes(),el,i,npoints;
+  TPZVec<REAL> pt(3),x(3,0.0);
+  TPZFMatrix jacobian(3,3),jacinv(3,3),axes(3,3);
+  REAL detjac,wt;
+  
+  for(el=0;el<nsubs;el++){
+    TPZGeoEl *subgel = Reference();
+    if(!subgel) PZError << "TPZCompElDisc::AccumulateIntegrationRule data error, null geometric reference\n";
+    TPZIntPoints *rule = subgel->CreateSideIntegrationRule(subgel->NSides()-1,degree);
+    npoints = rule->NPoints();
+
+    for(i=0;i<npoints;i++){
+
+      rule->Point(i,pt,wt);
+      subgel->Jacobian(pt,jacobian,axes,detjac,jacinv);
+      subgel->X(pt, x);
+
+      point.Push(x[0]);
+      point.Push(x[1]);
+      point.Push(x[2]);
+    
+      weight.Push(wt * fabs(detjac));
+    }
+  }
+}
+
+TPZCompMesh *TPZCompElDisc::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl){
+
+  /** a posi¢ão K de accumlist indica o index K do elemento computacional que será acumulado,
+   * o inteiro guardado nessa posi¢ão indica o elemento ao qual será 
+   * aglomerado, assim si accumlist[8] = 4 então o elemento computacional
+   * de index 8 será agrupado para formar o elemento 4
+   * na nova malha todos são aglomerados
+   * todo elemento deve ter associado um agrupamento pudendo ser um único elemento
+   * (no precisa ter pai para ser aglomerado/agrupado)
+   * se accumlist[n] = -1 => o elemento é interface ou um que não será aglomerado,
+   * pode ser um elemento que é equivalente àquele que será obtido por aglomera¢ão
+   * (por exemplo: elemento pai dos aglomerados)
+   * vários elementos podem ser aglomerados sem por isso ter um pai geométrico
+   * condi¢ão : a reunião dos geométricos dos aglomerados deve ser iagual ao domínio todo
+   */
+  int nlist = accumlist.NElements();
+  if(numaggl < 1 || nlist < 2){
+    PZError << "TPZCompMesh::ComputeMesh number agglomerate elements out of range\n";
+    return NULL;
+  }
+  TPZCompMesh *aggmesh = new TPZCompMesh(finemesh->Reference());
+  int i,index,nel = finemesh->NElements();
+  //criando os agrupamentos vazios
+  for(i=0;i<numaggl;i++)  new TPZAgglomerateElement(index,*aggmesh,finemesh); 
+
+  //  int mat = -1;
+  for(i=0;i<nel;i++){
+    TPZCompEl *cel = finemesh->ElementVec()[i];
+    if(!cel) continue;
+    int father = accumlist[i];
+    int type = cel->Type();
+    if( (type == 15 || type == 17) && father > -1 ){//elemento aglomerado ou descontínuo
+//       if(mat == -1){
+// 	mat = finemesh->ElementVec()[i]->Reference()->MaterialId();
+//       }
+      //incorporando o index do sub-elemento
+      TPZAgglomerateElement::AddSubElementIndex(aggmesh,i,father);
+    } else if(cel->Type() == 16){//elemento interface
+      TPZInterfaceElement *interf = dynamic_cast<TPZInterfaceElement *>(cel);
+      int indleft = interf->LeftElement()->Index();
+      int indright = interf->RightElement()->Index();
+      int fatleft = accumlist[indleft];
+      int fatright = accumlist[indright];
+      if(fatleft == -1 || fatright == -1){
+	PZError << "TPZCompElDisc::CreateAgglomerateMesh data error: element "
+		<< "without associated agglomeration\n";
+	return NULL;
+      }
+      //mesmo pai: interface interior a grupo de elementos
+      if(fatleft == fatright) continue;
+      interf->CloneInterface(aggmesh,fatleft,fatright);
+    }
+  }
+  nel = aggmesh->ElementVec().NElements();
+  //inizializando elementos aglomerados
+  for(i=0;i<nel;i++){
+    TPZCompEl *cel = aggmesh->ElementVec()[i];
+    if(cel->Type() == 17){//só aglomerado
+      TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
+      agg->InitializeElement();//mat
+    }
+  }
+  return aggmesh;
 }
 

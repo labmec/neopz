@@ -39,7 +39,7 @@ class TPZFMatrix;
 class TPZSkylMatrix : public TPZMatrix
 {
  public:
-  TPZSkylMatrix() : TPZMatrix(0,0),fStorage(0),fElem(0) { }
+  TPZSkylMatrix() : TPZMatrix(0,0),fElem(0),fStorage(0) { }
   TPZSkylMatrix(const int dim);
   /**
      Construct a skyline matrix of dimension dim

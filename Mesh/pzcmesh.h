@@ -510,6 +510,12 @@ public:
 
   REAL LesserEdgeOfMesh();
 
+  /** cria uma malha obtida por aglomera¢ão de elementos,
+   * accumlist relaciona a lista de elementos da malha fina que 
+   * serão acumulados
+   */
+  TPZCompMesh *ComputeMesh(TPZVec<int> &accumlist,int numaggl);
+
 };
 
 
