@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.25 2004-01-22 17:59:29 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.26 2004-01-23 19:11:29 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -60,7 +60,7 @@ void TPZAgglomerateElement::AddSubElementIndex(TPZCompMesh *aggcmesh,int subel,i
   agg->fIndexes.Push(subel);
   //a partir daqui os sub-elementos conhecem o aglomerado
   //depois a malha fina recupera as referências originais
-//  agg->SetReference2(agg->NIndexes()-1);
+  //  agg->SetReference2(agg->NIndexes()-1);
 }
 
 void TPZAgglomerateElement::InitializeElement() {
@@ -68,14 +68,8 @@ void TPZAgglomerateElement::InitializeElement() {
   int indsize = NIndexes();
   //verificar se os materiais dos sub-elementos são iguais
   int i,maxdeg = -1,mat,mat2;//bc degree
-//  mat = FineElement(0)->Reference()->MaterialId();
-//  This wouldnt work on aglomerating a mesh of agglomerated elements  
-//  mat = FineElement(0)->Material()->Id();
   mat = SubElement(0)->Material()->Id();
   for(i=1;i<indsize;i++){
-//    mat2 = FineElement(i)->Reference()->MaterialId();
-//  This wouldnt work on aglomerating a mesh of agglomerated elements
-//    mat2 = FineElement(i)->Material()->Id();
     mat2 = SubElement(i)->Material()->Id();
     if(mat2 != mat){
       for(int k=0;k<10;k++)
@@ -266,7 +260,7 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 }
 
 
-TPZCompEl *TPZAgglomerateElement::SubElement(int sub){
+TPZCompEl *TPZAgglomerateElement::SubElement(int sub) const{
 
   int nsubs = NIndexes();
 
@@ -322,7 +316,8 @@ int TPZAgglomerateElement::CreateMidSideConnect(){
 }
 
 int TPZAgglomerateElement::Dimension() const {
-  return (gInterfaceDimension + 1);//?!
+  //  return (gInterfaceDimension + 1);//?!
+  return this->SubElement(0)->Dimension();
 }
 
 void TPZAgglomerateElement::Print(ostream &out) {

@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.19 2004-01-20 20:41:40 phil Exp $
+//$Id: TPZAgglomerateEl.h,v 1.20 2004-01-23 19:11:38 tiago Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -66,8 +66,31 @@ public:
 
   /**
    * Returns the inner radius value.
+   * Inner radius mut be set with SetInnerRadius.
    */
-  REAL InnerRadius() {return fInnerRadius;}
+  REAL InnerRadius2() {return fInnerRadius;}
+
+  /**
+   * Returns the inner radius value.
+   * Inner radius is the sub-element's radius average.
+   */
+  REAL InnerRadius(){
+    int nsubel = this->NIndexes();
+    REAL value = 0.;
+    TPZCompElDisc * disc;
+    for (int i = 0; i < nsubel; i++){
+      disc = dynamic_cast<TPZCompElDisc *>(this->SubElement(i) );
+#ifdef DEBUG
+      if (!disc) {
+	PZError << "TPZAgglomerateElement::InnerRadius FineElement must be a TPZCompElDisc" << endl;
+	exit (-1);
+      }
+#endif
+      value += disc->InnerRadius();
+    }
+    value = value / nsubel;
+    return value;  
+  }
 
   /**
    * Set element's number of interfaces.
@@ -121,7 +144,7 @@ public:
   void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
   /** retorna o número de sub-elementos aglomerados */
-  int NIndexes(){return fIndexes.NElements();}
+  int NIndexes() const {return fIndexes.NElements();}
 
   /**
    * retorna o elemento computacional da malha fina de índice index
@@ -134,8 +157,33 @@ public:
   TPZGeoEl *CalculateReference();
 
 //  /**os geométricos agrupados apontam para o computacional*/
-//  void SetReference();
-//  void SetReference2(int sub);
+/*  void SetReference(){
+    int nindex = NIndexes(),i;
+    for(i=0;i<nindex;i++){
+      TPZCompEl *cel = SubElement(i);
+      int type = cel->Type();
+      //caso comp é aglomerado: chamada recursiva
+      if(type == EAgglomerate){//aglomerado
+	SetReference();
+      } else if(type == EDiscontinuous){//descontínuo
+	//o geométrico agrupado apontará para o atual computacional
+	cel->Reference()->SetReference(this);
+      }
+    }
+  }
+
+  void SetReference2(int sub){
+
+  TPZCompEl *cel = SubElement(sub);
+  int type = cel->Type();
+  //caso comp é aglomerado: chamada recursiva
+  if(type == EAgglomerate){//aglomerado
+    dynamic_cast<TPZAgglomerateElement *>(cel)->SetReference();
+  } else if(type == EDiscontinuous){//descontínuo
+    //o geométrico agrupado apontará para o atual computacional
+    cel->Reference()->SetReference(this);
+  }
+} */
 
   /** \brief Computes a measure of the element
    * Computes the maximum distance in x,y and z and then returns the minimum of
@@ -147,7 +195,7 @@ virtual REAL LesserEdgeOfEl();
    /** 
     * retorna o sub-elemento número sub 
     */
-   TPZCompEl *SubElement(int sub);
+   TPZCompEl *SubElement(int sub) const;
 
    REAL NormalizeConst();
 
