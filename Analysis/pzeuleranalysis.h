@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.15 2004-06-03 06:37:20 phil Exp $
+//$Id: pzeuleranalysis.h,v 1.16 2004-06-15 18:49:48 erick Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -75,8 +75,12 @@ public:
     * Adds deltaSol to the last solution and stores it as the current
     * Solution, preparing it to contribute again.
     * Also updates the CompMesh soution.
+    *
+    * @param deltaSol [in] result of previous call to Solve.
+    * @param epsilon [out] norm of resultant fRhs.
+    *
     */
-   void UpdateSolution(TPZFMatrix & deltaSol);
+   void UpdateSolAndRhs(TPZFMatrix & deltaSol, REAL & epsilon);
 
    /**
     * After a call to UpdateSolution, this method
@@ -124,11 +128,12 @@ public:
     * Not to be misunderstood as a global
     * solver, because it performs only part
     * of one linear iteration.
-    @param res residual of the linear system solution
-    @param residual pointer to a temporary matrix storage
-    @return 1 if everything fine, 0 otherwise (no better solution found)
+    * @param res [out] residual of the linear system solution
+    * @param residual [in] pointer to a temporary matrix storage
+    * @param delSol [out] returns the delta Solution vector.
+    * @return 1 if everything fine, 0 otherwise (no better solution found)
     */
-   int Solve(REAL & res, TPZFMatrix * residual);
+   int Solve(REAL & res, TPZFMatrix * residual, TPZFMatrix & delSol);
 
    /**
     * Implements the Newton's method.
@@ -149,7 +154,7 @@ public:
    /**
     * Defines the time step for each material in the mesh
     */
-   void ComputeTimeStep();
+   REAL ComputeTimeStep();
 
    /**
     * Settings for the linear system solver
@@ -186,6 +191,21 @@ public:
    int LineSearch(REAL &residual, TPZFMatrix &sol0, TPZFMatrix &dir);
     void CompareRhs();
 
+   /**
+    * Evaluates the CFL control based on the newest residual norm
+    * (epsilon) and last residual norm (lastEpsilon). Scales are
+    * also applied to timeStep
+    *
+    * @param lastEpsilon [in/out] norm of the last flux vector
+    * it is set to epsilon after CFL update.
+    * @param epsilon [in] norm of the current flux vector.
+    * @param epsilon_Newton [in] residual of the nonlinear invertion.
+    * @param timeStep [in/out] parameter to accumulate the same
+    * scales.
+    *
+    */
+   void CFLControl(REAL & lastEpsilon, REAL & epsilon, REAL & epsilon_Newton, REAL & timeStep);
+
 protected:
 
    /**
@@ -199,27 +219,11 @@ protected:
    TPZFlowCompMesh * fFlowCompMesh;
 
    /**
-    * Matrix to hols a second solution vector.
-    * In the Euler residual, this second vector
-    * implements the history of solutions for the
-    * Euler residual.
-    */
-   TPZFMatrix fSolution2;
-
-   /**
     * Vector to hold the contribution of last state
     * to the rhs.
     */
 
    TPZFMatrix fRhsLast;
-
-   /**
-    * These two pointers to solutions switches
-    * among the stored vectors, so that the
-    * history can be made without unnecessary
-    * copy operations.
-    */
-   TPZFMatrix * fpCurrSol, * fpLastSol, * fpSolution;
 
    /**
     * Stop criteria for the Newton and time
