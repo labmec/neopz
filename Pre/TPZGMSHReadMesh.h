@@ -16,11 +16,11 @@
 class TPZGeoMesh;
 class TPZGeoEl;
 class TPZGeoElSide;
-using namespace std;
 #include "pzstack.h"
 #include <fstream>
 /*************/
 
+using namespace std;
 class TPZGMSHReadMesh {
 
   /**
