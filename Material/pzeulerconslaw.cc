@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cc,v 1.6 2003-10-21 18:22:36 erick Exp $
+//$Id: pzeulerconslaw.cc,v 1.7 2003-10-24 00:02:56 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -415,10 +415,10 @@ void TPZEulerConsLaw2::PrepareInterfaceFAD(
          FADsolL[i_state].fastAccessDx(index)=phiL(i_shape,0);
          FADsolR[i_state].fastAccessDx(index)=phiL(i_shape,0);
       }
-   for(i_shape = nShapeL; i_shape < nShapeL + nShapeR; i_shape++)
+   for(i_shape = 0/*nShapeL*/; i_shape < /*nShapeL +*/ nShapeR; i_shape++)
       for(i_state = 0; i_state < nState; i_state++)
       {
-         int index = i_state + i_shape * nState;
+         int index = i_state + (i_shape + nShapeL) * nState;
          FADsolL[i_state].fastAccessDx(index)=phiR(i_shape,0);
          FADsolR[i_state].fastAccessDx(index)=phiR(i_shape,0);
       }

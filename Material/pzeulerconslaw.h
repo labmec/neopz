@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.5 2003-10-21 18:12:11 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.6 2003-10-24 00:02:56 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -463,15 +463,15 @@ template <class T>
 inline void TPZEulerConsLaw2::JacobFlux(TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai)
 {//OK
 
+  Ai.Resize(fDim);
+  int i;
+  for(i=0;i<fDim;i++)Ai[i].Redim(NStateVariables(), NStateVariables());
+  
   if(U[0] < 1.e-6) {
     PZError << "\nTPZArtDiff::JacobFlux: Density almost null or negative, jacobian evaluation fails\n"
        << "Density = " << U[0] << endl;
        return;
   }
-
-  Ai.Resize(fDim);
-  int i;
-  for(i=0;i<fDim;i++)Ai[i].Redim(NStateVariables(), NStateVariables());
 
   T    u,v,w,e;
   REAL gamma1 = fGamma-1.;
