@@ -94,6 +94,7 @@ static void WriteObjectPointers(TPZStream &buf, TPZVec<T *> &vec)
   static void WriteObjectPointers(TPZStream &buf, TPZChunkVector<T *,EXP> &vec)
   {
     int c,m1=-1,nc = vec.NElements();
+    buf.Write(&nc,1);
     for(c=0; c<nc; c++) 
     {
       T *ptr = vec[c];
