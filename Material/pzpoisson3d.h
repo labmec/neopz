@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.6 2003-12-08 14:17:14 phil Exp $
+//$Id: pzpoisson3d.h,v 1.7 2004-01-12 15:58:42 tiago Exp $
 
 #ifndef MATPOISSON3DHPP
 #define MATPOISSON3DHPP
@@ -31,12 +31,26 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
   public :
 
 //  static int problema;
-  
+
   static REAL gAlfa;
-  
+
   TPZMatPoisson3d(int nummat, int dim);
-  
+
   virtual ~TPZMatPoisson3d();
+
+  TPZMatPoisson3d(TPZMatPoisson3d &copy) : TPZDiscontinuousGalerkin(copy){
+    fXf  = copy.fXf;
+    fDim = copy.fDim;
+    fK   = copy.fK;
+    fC   = copy.fC;
+    for (int i = 0; i < 3; i++)
+      fConvDir[i] = copy.fConvDir[i];
+
+  }
+
+  virtual TPZMaterial *NewMaterial(){
+    return new TPZMatPoisson3d(*this);
+  }
     
   int Dimension() { return fDim;}
 
