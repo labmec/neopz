@@ -55,19 +55,19 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
     TPZCompEl *el = elementvec[iel];
     if(!el) continue;
     //	  int dim = el->NumNodes();
-#ifndef _AUTODIFF
+//#ifndef _AUTODIFF
     el->CalcStiff(ek,ef);
-#else
-    TPZInterpolatedElement * pIntel = NULL;
-    pIntel = dynamic_cast<TPZInterpolatedElement *>(el);
-    if(pIntel)
-    {
-       pIntel->CalcEnergy(ek,ef);
-    }else
-    {
-       el->CalcStiff(ek,ef);
-    }
-#endif
+//#else
+//    TPZInterpolatedElement * pIntel = NULL;
+//    pIntel = dynamic_cast<TPZInterpolatedElement *>(el);
+//    if(pIntel)
+//    {
+//       pIntel->CalcEnergy(ek,ef);
+//    }else
+//    {
+//       el->CalcStiff(ek,ef);
+//    }
+//#endif
 //     if( nelem < 34 || (nelem > 33 && iel < 33) ){
 //       out << "Element id : " << el->Reference()->Id() << endl;
 /*       el->Print(out);
