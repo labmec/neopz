@@ -35,6 +35,8 @@ Contains the methods definition for (abstract) base class TPZGeoEl.
 #include <stdio.h>
 #include <stdlib.h>
 
+class TPZRefPattern;
+
 TPZFMatrix TPZGeoEl::gGlobalAxes;
 
 /**Constructor and destructor*/
@@ -746,16 +748,19 @@ int TPZGeoEl::main(TPZGeoEl *gel,int type){
 /**Initializes the external connectivities of the subelements*/
 void TPZGeoEl::SetSubElementConnectivities() {
 
-  int side;
+  this->Print(cout);
+  int side,el;
   for(side=0; side<NCornerNodes(); side++) {
-	TPZGeoElSide thisside(this,side);
-	TPZStack<TPZGeoElSide> subel;
-	this->GetSubElements2(side,subel);
-	if(subel.NElements() != 1) {
-		cout << "TPZGeoEl::SetSubElementConnectivities wrong data\n";
-	} else {
-		subel[0].SetConnectivity(thisside);
-	}
+    TPZGeoElSide thisside(this,side);
+    TPZStack<TPZGeoElSide> subel;
+    this->GetSubElements2(side,subel);
+    //Isso ocorre com padroes de refinamento direcional... Cesar 23-02-2004
+    //if(subel.NElements() != 1) {
+    //  cout << "TPZGeoEl::SetSubElementConnectivities wrong data\n";
+    //} else {
+    //for (el=0;el<subel.NElements();el++)
+      if(!subel[0].NeighbourExists(subel[0])) subel[0].SetConnectivity(thisside);
+    //}
   }
   for(side=NCornerNodes(); side<NSides(); side++) {
 	  TPZGeoElSide thisside(this,side);
@@ -765,7 +770,9 @@ void TPZGeoEl::SetSubElementConnectivities() {
 			  TPZStack<TPZGeoElSide> elvec,neighvec;
 			  GetSubElements2(side,elvec);
 			  neighbour.GetSubElements2(neighvec);
-			  TPZGeoElSide::BuildConnectivities(elvec,neighvec);
+        // The currently divided element may have only one element as a son. In this case, the son is already
+        // neighbour of the father
+			  if(elvec.NElements() > 1) TPZGeoElSide::BuildConnectivities(elvec,neighvec);
 			  break;
 		  }
 		  neighbour = neighbour.Neighbour();
@@ -1083,4 +1090,9 @@ void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<int> &indices) {
   indices.Resize(1);
   MidSideNodeIndex(side,indices[0]);
   if(indices[0] == -1) indices.Resize(0);
+}
+
+/** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
+void TPZGeoEl::SetRefPattern(TPZRefPattern *){
+  PZError << "TPZGeoEl::SetRefPattern ERROR : Should not be called in TPZGeoEl" << endl;
 }

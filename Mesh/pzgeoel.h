@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.12 2004-01-20 20:41:40 phil Exp $
+//$Id: pzgeoel.h,v 1.13 2004-03-01 21:55:15 cesar Exp $
 
 // -*- c++ -*-
 
@@ -23,6 +23,7 @@ class TPZGeoMesh;
 class TPZCompElSide;
 class TPZGeoElSide;
 class TPZIntPoints;
+class TPZRefPattern;
 
 template<class T>
 class TPZVec;
@@ -428,6 +429,9 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
   virtual REAL ElementRadius();//TPZGeoEl
 
   static REAL Distance(TPZVec<REAL> &centel,TPZVec<REAL> &centface);
+
+  /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
+  virtual void SetRefPattern(TPZRefPattern *);
 
  protected:
 //  REAL fMesure;
