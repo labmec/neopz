@@ -68,6 +68,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Mesh/pzvecmesh.o \
 	../Mesh/TPZCompElDisc.o \
 	../Mesh/TPZInterfaceEl.o \
+	../Mesh/TPZAgglomerateEl.o \
 	../Shape/pzshapecube.o \
 	../Shape/pzshapelinear.o \
 	../Shape/pzshapepiram.o \
@@ -186,6 +187,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../External/pzrenumbering.o \
 	../Pre/pzgengrid.o \
 	../Pre/pzpargrid.o \
-	../Pre/TPZGMSHReadMesh.o
+	../Pre/TPZGMSHReadMesh.o \
+	../Pre/TPZExtendGridDimension.o
 
 ## --| NeoPZ |------------------------------------------------------------------
