@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cc,v 1.40 2003-12-04 18:11:10 tiago Exp $
+//$Id: TPZCompElDisc.cc,v 1.41 2003-12-09 17:52:09 phil Exp $
 
 // -*- c++ -*- 
 
@@ -233,7 +233,7 @@ void TPZCompElDisc::Shape(TPZVec<REAL> X, TPZFMatrix &phi, TPZFMatrix &dphi) {
       TPZShapeDisc::Shape1D(fConstC,fCenterPoint,X,fDegree,phi,dphi);
     else
       if(Dimension()==2)
-	TPZShapeDisc::Shape2DFull(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);
+	TPZShapeDisc::Shape2D(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);
       else
 	if(Dimension()==3)
 	  TPZShapeDisc::Shape3D(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);  
@@ -752,11 +752,11 @@ void TPZCompElDisc::RemoveInterface(int side) {
 
 
 void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
-#ifdef _AUTODIFF
-  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
-#else
-  TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>(fMaterial);
-#endif
+  //#ifdef _AUTODIFF
+  //  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
+  //#else
+  //  TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>(fMaterial);
+  //#endif
 
   if(var >= 100) {
     TPZCompEl::Solution(qsi,var,sol);
@@ -779,9 +779,8 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) 
   }
 
   int numdof = fMaterial->NStateVariables();
-  REAL phistore[220],dphistore[660],dphixstore[660];
-  TPZFMatrix phi(nshape,1,phistore,220);
-  TPZFMatrix dphi(dim,nshape,dphistore,660),dphix(dim,nshape,dphixstore,660);
+  TPZFNMatrix<220> phi(nshape,1);
+  TPZFNMatrix<660> dphi(dim,nshape);
   TPZManVector<REAL> u(numdof);
   TPZFMatrix du(dim,numdof,0.);
   TPZFMatrix axes(3,3,0.);
@@ -811,12 +810,12 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) 
     for(jn=0; jn<dfvar; jn++) {
       u[iv%numdof] += phi(iv/numdof,0)*Sol(pos+jn,0);
       for(d=0; d<dim; d++){
-	du(d,iv%numdof) += dphix(d,iv/numdof)*Sol(pos+jn,0);
+	du(d,iv%numdof) += dphi(d,iv/numdof)*Sol(pos+jn,0);
       }
       iv++;
     }
   }
-  mat->Solution(u,du,axes,var,sol);
+  fMaterial->Solution(u,du,axes,var,sol);
 }
 
 void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) {
