@@ -303,4 +303,8 @@ void TPZGeoElPoint::CenterPoint(int side, TPZVec<REAL> &masscent){
     PZError << "TPZGeoElPoint::CenterPoint error side = " << side << endl;
     return;
   }
+
+  masscent[0] = 0;//NodePtr(0)->Coord(0);
+  masscent[1] = 0;//NodePtr(0)->Coord(1);
+  masscent[2] = 0;//NodePtr(0)->Coord(2);
 }

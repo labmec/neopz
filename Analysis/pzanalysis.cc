@@ -586,7 +586,7 @@ void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat){
   int degree = disc->gDegree;
   REAL CFL = 1./((2.0*(REAL)degree) + 1.0);
   TPZDiffusionConsLaw *diff;
-  //  if(!degree) CFL = diff->fCFL;
+  if(!degree) CFL = diff->fCFL;
 
   dynamic_cast<TPZConservationLaw *>(mat)->SetTimeStep(CFL*deltax/maxveloc);
 }

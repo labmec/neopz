@@ -777,7 +777,6 @@ TPZTransform TPZGeoElT3d::GetTransform(int side,int son) {
 }
 
 void TPZGeoElT3d::CenterPoint(int side, TPZVec<REAL> &masscent){
-
   TPZShapeTetra::CenterPoint(side,masscent);
 }
 

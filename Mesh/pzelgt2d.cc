@@ -669,7 +669,6 @@ TPZTransform TPZGeoElT2d::GetTransform(int side,int son) {
 }
 
 void TPZGeoElT2d::CenterPoint(int side, TPZVec<REAL> &masscent){
-
   TPZShapeTriang::CenterPoint(side,masscent);
 }
 
