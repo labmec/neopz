@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.14 2004-02-09 12:57:15 phil Exp $
+// $Id: pzelctemp.cpp,v 1.15 2004-04-02 13:13:50 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -74,7 +74,7 @@ MElementType TPZIntelGen<TGEO,TSHAPE>::Type() {
 
 template<class TGEO, class TSHAPE>
 void TPZIntelGen<TGEO,TSHAPE>::SetConnectIndex(int i, int connectindex){
-#ifndef NDEBUG
+#ifndef NODEBUG
   if(i<0 || i>= TSHAPE::NSides) {
     cout << " TPZIntelGen<TGEO,TSHAPE>::SetConnectIndex index " << i <<
       " out of range\n";
@@ -151,7 +151,7 @@ int TPZIntelGen<TGEO,TSHAPE>::PreferredSideOrder(int side) {
 template<class TGEO, class TSHAPE>
 int TPZIntelGen<TGEO,TSHAPE>::ConnectIndex(int con) {
 
-#ifndef NDEBUG
+#ifndef NODEBUG
   if(con<0 || con>= TSHAPE::NSides) {
     cout << "TPZIntelgen::ConnectIndex wrong parameter con " << con << 
       " NSides " << TSHAPE::NSides << endl;

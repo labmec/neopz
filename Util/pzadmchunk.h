@@ -2,7 +2,7 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzadmchunk.h,v 1.2 2003-10-10 20:30:04 cesar Exp $
+// $Id: pzadmchunk.h,v 1.3 2004-04-02 13:12:42 phil Exp $
 
 #ifndef PZADMCHUNK_H
 #define PZADMCHUNK_H
@@ -174,7 +174,7 @@ int TPZAdmChunkVector<T,EXP>::AllocateNewElement() {
 // Indicate an element as free
 template< class T,int EXP >
 void TPZAdmChunkVector<T,EXP>::SetFree(int index) {
-#ifndef NDEBUG
+#ifndef NODEBUG
    if(index<0) {
       PZError << "TPZAdmChunkVector::SetFree. Bad parameter index." << endl;
       PZError.flush();
@@ -195,7 +195,7 @@ void TPZAdmChunkVector<T,EXP>::SetFree(int index) {
 // If type=0 never compact, (type=1 let to compact now),(type=2  let to compact always)
 template< class T, int EXP >
 void TPZAdmChunkVector<T,EXP>::CompactDataStructure(int type) {
-#ifndef NDEBUG
+#ifndef NODEBUG
    if(type<0) {
       PZError << "TPZAdmChunkVector::CompactDataStructure. Bad parameter type."
 	      << endl;
@@ -255,7 +255,7 @@ TPZAdmChunkVector<T,EXP> & TPZAdmChunkVector<T,EXP>::operator=(
 
 template< class T, int EXP >
 void TPZAdmChunkVector<T,EXP>::Resize(const int newsize) {
-#ifndef NDEBUG
+#ifndef NODEBUG
    if(newsize<0) {
       PZError << "TPZAdmChunkVector::Resize. Bad parameter newsize." << endl;
       PZError.flush();
