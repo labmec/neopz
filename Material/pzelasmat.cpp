@@ -10,10 +10,26 @@
 #include <fstream>
 using namespace std;
 
+TPZElasticityMaterial::TPZElasticityMaterial() : TPZMaterial(0) {
+  fE	= -1.;  // Young modulus
+  fnu	= -1.;   // poisson coefficient
+  ff[0]	= 0.; // X component of the body force
+  ff[1]	= 0.; // Y component of the body force
+  ff[2] = 0.; // Z component of the body force - not used for this class
+  fEover1MinNu2 = -1.;  //G = E/2(1-nu);
+  fEover21PlusNu = -1.;//E/(1-nu)
+
+  //Added by Cesar 2001/03/16
+  fPreStressXX = 0.;  //Prestress in the x direction
+  fPreStressYY = 0.;  //Prestress in the y direction
+  fPreStressXY = 0.;  //Prestress in the z direction
+  fPlaneStress = -1;
+}
+
 TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZMaterial(num) {
 
   fE	= E;  // Young modulus
-  fnu	= nu;   // poisson coefficient 
+  fnu	= nu;   // poisson coefficient
   ff[0]	= fx; // X component of the body force
   ff[1]	= fy; // Y component of the body force
   ff[2] = 0.; // Z component of the body force - not used for this class
@@ -22,9 +38,9 @@ TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, 
 
   //Added by Cesar 2001/03/16
   fPreStressXX = 0.;  //Prestress in the x direction
-  fPreStressYY = 0.;  //Prestress in the y direction 
-  fPreStressXY = 0.;  //Prestress in the z direction 
-  fPlainStress = plainstress;
+  fPreStressYY = 0.;  //Prestress in the y direction
+  fPreStressXY = 0.;  //Prestress in the z direction
+  fPlaneStress = plainstress;
 }
 
 TPZElasticityMaterial::~TPZElasticityMaterial() {
@@ -40,17 +56,17 @@ void TPZElasticityMaterial::Print(ostream &out) {
   out << "\tE   = " << fE   << endl;
   out << "\tnu   = " << fnu   << endl;
   out << "\tF   = " << ff[0] << ' ' << ff[1]   << endl;
-  out << "\t PreStress: \n" 
-      << "Sigma xx = \t" << fPreStressXX << "\t" 
+  out << "\t PreStress: \n"
+      << "Sigma xx = \t" << fPreStressXX << "\t"
       << "Sigma yy = \t" << fPreStressYY << "\t"
       << "Sigma xy = \t" << fPreStressXY << endl;
 }
 
 //Added by Cesar 2001/03/16
-void TPZElasticityMaterial::SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy){ 
-  fPreStressXX = Sigxx; 
-  fPreStressYY = Sigyy; 
-  fPreStressXY = Sigxy; 
+void TPZElasticityMaterial::SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy){
+  fPreStressXX = Sigxx;
+  fPreStressYY = Sigyy;
+  fPreStressXY = Sigxy;
 }
 
 void TPZElasticityMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &,REAL weight,
@@ -102,14 +118,14 @@ void TPZElasticityMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL>
 
     //    cout << "ef(" << 2*in << "," << 0 << ")=" << ef(2*in,0) << endl;
     //    cout << "ef(" << 2*in+1 << "," << 0 << ")=" << ef(2*in+1,0) << endl;
-    
-    
+
+
     for( int jn = 0; jn < phr; jn++ ) {
       du(0,1) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);
       du(1,1) = dphi(0,jn)*axes(0,1)+dphi(1,jn)*axes(1,1);
 
 
-      if (fPlainStress != 1){
+      if (fPlaneStress != 1){
 	/**
 	 * Plain Strain State
 	 */
@@ -181,11 +197,11 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol
       }
     }
     break;
-    
+
   case 1 :			// Neumann condition
     for(in = 0 ; in < phi.Rows(); in++) {           // componentes da tração normal ao contorno
       ef(2*in,0) += v2[0] * phi(in,0) * weight;   // tração em x  (ou pressão)
-      ef(2*in+1,0) += v2[1] * phi(in,0) * weight; // tração em y (ou pressão) , nula se não há
+      ef(2*in+1,0) += v2[1] * phi(in,0) * weight; // tração em y (ou pressão) , nula se não h
     }      // ou deslocamento nulo  v2 = 0
     break;
 
@@ -246,7 +262,7 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
     return 1;
   case 7:
     return 6;
-  case 9: 
+  case 9:
     return 3;
   default:
     return TPZMaterial::NSolutionVariables(var);
@@ -308,13 +324,13 @@ void TPZElasticityMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatr
     epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
     SigX = fEover1MinNu2*(epsx+fnu*epsy)+fPreStressXX;
     SigY = fEover1MinNu2*(fnu*epsx+epsy)+fPreStressYY;
-    
+
     //numvar = 1;
-    Solout[0] = SigX+SigY;	
+    Solout[0] = SigX+SigY;
     Tau = fE*epsxy/(1.+fnu)+fPreStressXY;
     if(var == 1) {
       Solout[0] = SigX+SigY;
-      return;                      
+      return;
     }
     if(var == 8) {
       Solout[0] = Tau;
@@ -427,7 +443,7 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 }
 
 
-TPZElasticityMaterial::TPZElasticityMaterial(TPZElasticityMaterial &copy) : 
+TPZElasticityMaterial::TPZElasticityMaterial(TPZElasticityMaterial &copy) :
   TPZMaterial(copy),
   fE(copy.fE),
   fnu(copy.fnu),
@@ -440,6 +456,46 @@ TPZElasticityMaterial::TPZElasticityMaterial(TPZElasticityMaterial &copy) :
   ff[0]=copy.ff[0];
   ff[1]=copy.ff[1];
   ff[2]=copy.ff[2];
-  fPlainStress = copy.fPlainStress;
+  fPlaneStress = copy.fPlaneStress;
+}
+
+
+int TPZElasticityMaterial::ClassId() const
+{
+  return TPZELASTICITYMATERIALID;
+}
+
+template class TPZRestoreClass<TPZElasticityMaterial,TPZELASTICITYMATERIALID>;
+
+void TPZElasticityMaterial::Read(TPZStream &buf, void *context)
+{
+  TPZMaterial::Read(buf,context);
+  buf.Read(&fE,1);
+  buf.Read(&fnu,1);
+  buf.Read(&fEover21PlusNu,1);
+  buf.Read(&fEover1MinNu2,1);
+  buf.Read(&fPreStressXX,1);
+  buf.Read(&fPreStressYY,1);
+  buf.Read(&fPreStressXY,1);
+
+  buf.Read(ff,3);
+  buf.Read(&fPlaneStress,1);
+
+}
+
+void TPZElasticityMaterial::Write(TPZStream &buf, int withclassid)
+{
+  TPZMaterial::Write(buf,withclassid);
+  buf.Write(&fE,1);
+  buf.Write(&fnu,1);
+  buf.Write(&fEover21PlusNu,1);
+  buf.Write(&fEover1MinNu2,1);
+  buf.Write(&fPreStressXX,1);
+  buf.Write(&fPreStressYY,1);
+  buf.Write(&fPreStressXY,1);
+
+  buf.Write(ff,3);
+  buf.Write(&fPlaneStress,1);
+  
 }
 

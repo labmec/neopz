@@ -9,6 +9,8 @@ using namespace std;
 class TPZElasticityMaterial : public TPZMaterial {
 
 public :
+
+  TPZElasticityMaterial();
   /**Creates an elastic material with:
             elasticity modulus  =   E
            poisson coefficient  =   nu
@@ -92,6 +94,12 @@ public :
   /**SetPresStress Tensor*/
   void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy);
 
+  virtual int ClassId() const;
+
+  virtual void Read(TPZStream &buf, void *context);
+
+  virtual void Write(TPZStream &buf, int withclassid);
+
 
 
 private:
@@ -120,7 +128,7 @@ private:
   REAL fPreStressXY;
 
   /** Uses plain stress*/
-  int fPlainStress;
+  int fPlaneStress;
 };
 
 #endif
