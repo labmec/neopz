@@ -1,10 +1,11 @@
-#include "TPZConsLawTest.h"
+#include "TPZConservationLaw.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include <math.h>
+#include <stdlib.h>
 
 
 TPZConservationLaw::TPZConservationLaw(int nummat,REAL delta_t,int dim) : 
