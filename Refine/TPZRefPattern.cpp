@@ -56,6 +56,7 @@ TPZRefPattern::TPZRefPattern(TPZGeoMesh *GMesh): fSubElRefPattern(0),fBCRefPatte
   fRefineType = -1;  
   fName = "";
   fMesh = GMesh;
+  fNSubEl = GMesh->NElements() - 1;
   fMesh->BuildConnectivity();/**conectividades entre sub-elementos*/
   ComputeTransforms();/**calcula as transformações entre filhos e pai*/
   ComputePartition();/**efetua a partição do elemento pai de acordo com os lados dos sub-elementos*/
