@@ -817,25 +817,33 @@ int TPZFMatrix::Decompose_LU() {
   
   ptrpivot=&fElem[0];
   for (  k = 0; k < min ; k++ )
-    {
-      if ( IsZero( *ptrpivot ) )
-	Error( "DecomposeLU <matrix is singular>" );
-      pik=ptrpivot;
-      for ( i = k+1; i < rows; i++ )
-	{
-	  pik+=1;
-	  nn = (*pik)/(*ptrpivot);
-	  (*pik)=nn;
-	  pkj=&fElem[k*cols+k];
-	  pij=&fElem[k*cols+i];
-	  for ( j = k+1; j < Cols(); j++ )
-	    {
-	      pkj+=cols;pij+=cols;
-	      (*pij)-=nn*(*pkj);
-	    }
-	}
-      ptrpivot+=Rows()+1;
+  {
+    if ( IsZero( *ptrpivot ) ){
+      //Power plus...
+      if (fabs(*ptrpivot) > 0){
+        for (j=k+1;j<rows;j++){
+          if (fabs(*(ptrpivot + j - k) - *(ptrpivot)) > 1e-12)
+            Error( "DecomposeLU <matrix is singular> even after Power Plus..." );
+        }
+      }
+      else Error( "DecomposeLU <matrix is singular>" );
     }
+    pik=ptrpivot;
+    for ( i = k+1; i < rows; i++ )
+    {
+      pik+=1;
+      nn = (*pik)/(*ptrpivot);
+      (*pik)=nn;
+      pkj=&fElem[k*cols+k];
+      pij=&fElem[k*cols+i];
+      for ( j = k+1; j < Cols(); j++ )
+      {
+        pkj+=cols;pij+=cols;
+        (*pij)-=nn*(*pkj);
+      }
+    }
+    ptrpivot+=Rows()+1;
+  }
   
   fDecomposed=1;
   return 1; 
@@ -856,20 +864,24 @@ int TPZFMatrix::Substitution( TPZFMatrix *B ) const {
   if ( rowb != Rows() ) Error( "SubstitutionLU <incompatible dimensions>" );
   
   
-  int i;
+  int i,j;
   for ( i = 0; i < rowb; i++ ) {
     for ( int col = 0; col < colb; col++ )
-      for ( int j = 0; j < i; j++ )
-	B->PutVal( i, col, B->GetVal(i, col) -
-		   GetVal(i, j) * B->GetVal(j, col) );
+      for (j = 0; j < i; j++ )
+        B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
   }
   
   for (int col=0; col<colb; col++){
     for ( i = rowb-1; i >= 0; i-- ) {
-      for ( int j = i+1; j < rowb ; j++ )
-	B->PutVal( i, col, B->GetVal(i, col) -
-		   GetVal(i, j) * B->GetVal(j, col) );
-      if ( IsZero( GetVal(i, i) ) )    Error( "BackSub(SubstitutionLU) <Matrix is singular" );
+      for (j = i+1; j < rowb ; j++ )
+        B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
+      if ( IsZero( GetVal(i, i) ) ) {
+        if (fabs(GetVal(i, i)) > 0.){
+          if (fabs(B->GetVal(i, col) - GetVal(i, i)) > 1e-12){
+            Error( "BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
+          }
+        }else  Error( "BackSub(SubstitutionLU) <Matrix is singular" ); 
+      }
       B->PutVal( i, col, B->GetVal( i, col) / GetVal(i, i) );
     }
   }
@@ -910,13 +922,13 @@ TPZTempFMatrix operator*(const REAL value, const TPZFMatrix &A ) {
 /*** Error ***/
 
 int TPZFMatrix::Error(const char *msg1,const char *msg2 ) const {
-	 cout << "TPZFMatrix::" << msg1;
-    if(msg2) cout << msg2;
-    cout << ".\n";
-    int temp;//para testes
-    cin >> temp;//para testes
-	 //exit( 1 );//para testes
-	 return 0;
+  cout << "TPZFMatrix::" << msg1;
+  if(msg2) cout << msg2;
+  cout << ".\n";
+  int temp;//para testes
+  cin >> temp;//para testes
+  //exit( 1 );//para testes
+  return 0;
 }
 
 
