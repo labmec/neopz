@@ -75,7 +75,7 @@ void  TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZ
   int nshape = NShapeF(degree,2,type);
 //  int count=num,ind=0;
   phi.Redim(nshape,1);
-  dphi.Redim(6,nshape);
+  dphi.Redim(2,nshape);
   phi.Zero();
   dphi.Zero();
 
