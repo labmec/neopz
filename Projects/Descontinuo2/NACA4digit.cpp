@@ -1,4 +1,5 @@
 
+#include "NACA4digit.h"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
@@ -20,6 +21,66 @@
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzblock.h"
+
+REAL TPZNACAXXXX::NearestParameter(TPZVec<REAL> &pt, int &uplow) {
+
+  REAL distminlow = 20.*fCord;
+  REAL distminup = 20.*fCord;
+  REAL distlow,distup;
+  REAL ptl[2],ptu[2];
+  int ip,maxp=100;
+  REAL par,parlow,parup;
+  for(ip=0; ip<=maxp; ip++) {
+    par = ip*fCord/maxp;
+    ptu[0] = xua(par);
+    ptu[1] = yua(par);
+    ptl[0] = xla(par);
+    ptl[1] = yla(par);
+    distlow = (ptl[0]-pt[0])*(ptl[0]-pt[0])+(ptl[1]-pt[1])*(ptl[1]-pt[1]);
+    distup = (ptu[0]-pt[0])*(ptu[0]-pt[0])+(ptu[1]-pt[1])*(ptu[1]-pt[1]);
+    if(distlow < distminlow) parlow = par;
+    if(distup < distminup) parup = par;
+    distminlow = distminlow < distlow ? distminlow : distlow;
+    distminup = distminup < distup ? distminup : distup;
+  }
+  REAL delpar = 0.1/maxp;
+  if(distminlow < distminup) {
+    uplow = 0;
+    REAL distprev = distminlow;
+    par = parlow;
+    while(fabs(delpar) > 0.001/maxp) {
+      ptl[0] = xla(par+delpar);
+      ptl[1] = yla(par+delpar);
+      distlow = (ptl[0]-pt[0])*(ptl[0]-pt[0])+(ptl[1]-pt[1])*(ptl[1]-pt[1]);
+      if(distlow < distprev) {
+	par += delpar;
+	distprev = distlow;
+      } else if (delpar > 0.) {
+	delpar *= -1.;
+      } else {
+	delpar *= -0.1;
+      }
+    }
+  } else {
+    uplow = 1;
+    REAL distprev = distminup;
+    par = parup;
+    while(fabs(delpar) > 0.001/maxp) {
+      ptu[0] = xua(par+delpar);
+      ptu[1] = yua(par+delpar);
+      distup = (ptu[0]-pt[0])*(ptu[0]-pt[0])+(ptu[1]-pt[1])*(ptu[1]-pt[1]);
+      if(distup < distprev) {
+	par += delpar;
+	distprev = distup;
+      } else if (delpar > 0.) {
+	delpar *= -1.;
+      } else {
+	delpar *= -0.1;
+      }
+    }
+  }
+  return par;
+}
 // creates an one-quadrilateral element mesh
 
 // This file generates a mesh for the NACA airfoils
@@ -37,9 +98,10 @@ double entrance = /*4.*/ 5. * scale,
 
 double PI = 3.14159265359;
 
+
+
 int l, m, n, k;
 
-const int digits = 0012;
 
 double Spg(double a0, double q, int N)
 {
@@ -52,117 +114,9 @@ double xpg(double q, int n, int N)
    return Spg(1., q, n-1)/Spg(1., q, N-1);
 }
 
-double P(int digits)
-{
-   int aux = digits/100;
-   aux -= ((int)(aux/10))*10;
-   return (double)aux/10.;
-}
 
-double M(int digits, double cord)
-{
-   int aux = digits/1000;
-   return (double)aux/100.*cord;
-}
 
-double TT(int digits, double cord)
-{
-   int aux = digits - ((int)(digits/100))*100;
-   return (double)aux/100.*cord;
-}
-
-// Mean line for the wing
-double yc(double x, double c, double P, double M)
-{
-   if(x/c<P)
-   {
-      return M/P/P*(2.*P*x/c-x*x/c/c);
-   }else
-   {
-      return M/(1.-P)/(1.-P)*(1.-2.*P+2.*P*x/c-x*x/c/c);
-   }
-}
-
-double dyc(double x, double c, double P, double M)
-{
-   if(x/c<P)
-   {
-      return 2.*M/P/P*(P-x/c)/c;
-   }else
-   {
-      return 2.*M/(1.-P)/(1.-P)*(P-x/c)/c;
-   }
-}
-
-// thickness
-double yt(double x, double TT, double c)
-{
-   double aux = x/c;
-   const double a0 = 1.4845,
-                a1 = -.6300,
-		a2 = -1.7580,
-		a3 = 1.4215,
-		a4 = -.5075;
-
-   return TT * (a0*sqrt(aux)+
-                 a1*aux+
-		 a2*aux*aux+
-		 a3*aux*aux*aux+
-		 a4*aux*aux*aux*aux);
-}
-
-// superior profile
-double xu(double x, int digits, double c)
-{
-   return x-yt(x, TT(digits,c), c)*sin(atan(dyc(x, c, P(digits), M(digits,c))));
-}
-
-double yu(double x, int digits, double c)
-{
-   double MM = M(digits,c);
-   double PP = P(digits);
-   double TTT = TT(digits,c);
-   return yc(x, c, PP, MM) + yt(x, TTT, c)*cos(atan(dyc(x, c, PP, MM)));
-}
-
-// inferior profile
-double xl(double x, int digits, double c)
-{
-   return x+yt(x, TT(digits,c), c)*sin(atan(dyc(x, c, P(digits), M(digits,c))));
-}
-
-double yl(double x, int digits, double c)
-{
-   double MM = M(digits,c);
-   double PP = P(digits);
-   double TTT = TT(digits,c);
-   return yc(x, c, PP, MM) - yt(x, TTT, c)*cos(atan(dyc(x, c, PP, MM)));
-}
-
-// with attack angle
-// superior profile
-double xua(double x, int digits, double c, double angle)
-{
-   return (xu(x, digits, c)-c/2.)*cos(angle) + yu(x, digits, c) * sin(angle) + c/2.;
-}
-
-double yua(double x, int digits, double c, double angle)
-{
-   return yu(x, digits, c)*cos(angle) - (xu(x, digits, c)-c/2.) * sin(angle);
-}
-
-// inferior profile
-double xla(double x, int digits, double c, double angle)
-{
-   return (xl(x, digits, c)-c/2.)*cos(angle) + yl(x, digits, c) * sin(angle) + c/2.;
-}
-
-double yla(double x, int digits, double c, double angle)
-{
-   return yl(x, digits, c)*cos(angle) - (xl(x, digits, c)-c/2.) * sin(angle);
-}
-
-void NACAPoints(int FourDigits, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int nSubdiv)
+void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int nSubdiv)
 {
 /*
  cout << "\nNumber of Points along NACA\n";
@@ -219,6 +173,12 @@ qn = pow(2., 1./(double)n);
 
    cout << "\nNumber of Points: "<< pt.NElements();
 
+//    TPZManVector<REAL> x0(3,0.);
+//    x0[0] = entrance;
+//    x0[1] = height/2.;
+//    REAL angle = 0.;
+//    TPZNACAXXXX profile(cord,FourDigits,angle,x0);
+
 /*   double angle;
    cout << "\nAirfoil angle [degrees]\n";
 
@@ -233,23 +193,23 @@ qn = pow(2., 1./(double)n);
    for(i = 1; i < m; i++)
       {
          double x = xpg(q, i, m);
-	 coord[0] = xua(x * cord, FourDigits, cord, 0./*angle*/) + entrance;
-	 coord[1] = yua(x * cord, FourDigits, cord, 0./*angle*/) + height/2.;
+	 coord[0] = profile.xua(x * cord); // xua(x * cord, FourDigits, cord, 0./*angle*/) + entrance;
+	 coord[1] = profile.yua(x * cord); // yua(x * cord, FourDigits, cord, 0./*angle*/) + height/2.;
 	 coord[2] = 0.;
 	 pt[i] = coord;
 
-	 coord[0] = xla(x * cord, FourDigits, cord, 0./*angle*/) + entrance;
-	 coord[1] = yla(x * cord, FourDigits, cord, 0./*angle*/) + height/2.;
+	 coord[0] = profile.xla(x * cord); // xla(x * cord, FourDigits, cord, 0./*angle*/) + entrance;
+	 coord[1] = profile.yla(x * cord); // yla(x * cord, FourDigits, cord, 0./*angle*/) + height/2.;
 	 coord[2] = 0.;
 	 pt[2*m -i] = coord;
       }
-   coord[0] = xua(0., FourDigits, cord, 0./*angle*/) + entrance;///*xu(0., FourDigits, cord) +*/ entrance + ;
-   coord[1] = yua(0. * cord, FourDigits, cord, 0./*angle*/) + height/2.;///*yu(0., FourDigits, cord) +*/ height/2.;
+   coord[0] = profile.xua(0.); // xua(0., FourDigits, cord, 0./*angle*/) + entrance;///*xu(0., FourDigits, cord) +*/ entrance + ;
+   coord[1] = profile.yua(0. * cord); // yua(0. * cord, FourDigits, cord, 0./*angle*/) + height/2.;///*yu(0., FourDigits, cord) +*/ height/2.;
    coord[2] = 0.;
    pt[0] = coord;
 
-   coord[0] = xla(1. * cord, FourDigits, cord, 0./*angle*/) + entrance;//cord + /*xu(1., FourDigits, cord) +*/ entrance;
-   coord[1] = yla(1. * cord, FourDigits, cord, 0./*angle*/) + height/2.;///*yu(1., FourDigits, cord) +*/ height/2.;
+   coord[0] = profile.xla(1. * cord); // xla(1. * cord, FourDigits, cord, 0./*angle*/) + entrance;//cord + /*xu(1., FourDigits, cord) +*/ entrance;
+   coord[1] = profile.yla(1. * cord); // yla(1. * cord, FourDigits, cord, 0./*angle*/) + height/2.;///*yu(1., FourDigits, cord) +*/ height/2.;
    coord[2] = 0.;
    pt[m] = coord;
 
@@ -501,7 +461,7 @@ qn = pow(2., 1./(double)n);
       }
 }
 
-TPZGeoMesh * CreateNACAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
+TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & nodes,
                            TPZVec< TPZVec< int > > & elms,
 			   MElementType ElType, int matId,
 			   TPZVec<TPZGeoEl *> & gEls,
@@ -511,7 +471,9 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 
    gEls.Resize(elms.NElements());
    gmesh->NodeVec().Resize(nodes.NElements());
-   int i;   for(i = 0; i < nodes.NElements(); i++)
+   int i,j;
+
+   for(i = 0; i < nodes.NElements(); i++)
    {
       gmesh->NodeVec()[i].Initialize(nodes[i],*gmesh);
    }
@@ -524,17 +486,36 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // Constructing neighborhood
 
    gmesh->BuildConnectivity();
-/*
-   if(nSubdiv == 1)
-   {
-// Dividing elements to create a mesh of 4 elems.
+   
 
-     TPZVec< TPZGeoEl * > firstDivision;
-     gEls[0]->Divide(firstDivision);
+
+   {// Dividing elements to create a mesh of 4 elems around NACA surface
+
+     TPZVec<TPZGeoEl * > firstDiv, secondDiv;
+     TPZManVector<REAL, 3> pt(3,0.);
+     for(i = 0; i < 2*m; i++)
+       {
+	 gEls[i]->Divide(firstDiv);
+	 pt[0] = firstDiv[0]->NodePtr(1)->Coord(0);
+	 pt[1] = firstDiv[0]->NodePtr(1)->Coord(1);
+	 profile.ProjectPoint(pt);
+	 firstDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
+	 firstDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
+
+         for(j = 0; j < 2; j++) {
+	   firstDiv[j]->Divide(secondDiv);
+	   pt[0] = secondDiv[0]->NodePtr(1)->Coord(0);
+	   pt[1] = secondDiv[0]->NodePtr(1)->Coord(1);
+	   profile.ProjectPoint(pt);
+	   secondDiv[0]->NodePtr(1)->SetCoord(0,pt[0]);
+	   secondDiv[0]->NodePtr(1)->SetCoord(1,pt[1]);
+	   
+	 }
+       }
    }
 
    if(nSubdiv > 1)PZError << "CreateOneElGeoMesh unsupported number of subdivisions";
-*/
+
    return gmesh;
 }
 
@@ -571,10 +552,17 @@ TPZFlowCompMesh *
    TPZVec< TPZVec< REAL > > nodes;
    TPZVec< TPZVec< int  > > elms;
    TPZVec< TPZGeoEl *> gElem;
-   NACAPoints(digits, nodes, elms, nSubdiv);
+   const int digits = 0012;
+   TPZManVector<REAL> x0(3,0.);
+   x0[0] = entrance;
+   x0[1] = height/2.;
+   REAL profangle = 0.;
+   TPZNACAXXXX profile(cord,digits,profangle,x0);
+
+   NACAPoints(profile, nodes, elms, nSubdiv);
 
 // Creating the geometric mesh
-   TPZGeoMesh * gmesh = CreateNACAGeoMesh(nodes, elms, EQuadrilateral, 1, gElem, nSubdiv);
+   TPZGeoMesh * gmesh = CreateNACAGeoMesh(profile, nodes, elms, EQuadrilateral, 1, gElem, nSubdiv);
 
    TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
 

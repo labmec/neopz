@@ -35,6 +35,9 @@
 #include "pzstring.h"
 #include "pzblockdiag.h"
 #include "pzbdstrmatrix.h"
+#include "pzrenumbering.h"
+#include "pzvisualmatrix.h"
+
 
 int gDebug;
 
@@ -246,6 +249,13 @@ int main()
 // Creating the analysis object
 
    ofstream anFile("analysis.out");
+   TPZManVector<REAL,3> normal(3,0.);
+   normal[0] = 1.;
+   normal[1] = 1.e-5;
+   ResequenceByGeometry(cmesh,normal);
+   TPZFMatrix fillin(100,100);
+   cmesh->ComputeFillIn(100,fillin);
+   VisualMatrix(fillin,"matrix.dx");
    TPZEulerAnalysis An(cmesh, anFile);
    An.SetEvolCFL(EvolCFL);
 
