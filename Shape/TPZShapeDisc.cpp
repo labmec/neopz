@@ -224,6 +224,21 @@ void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZ
     }
   }
 
+  REAL phi0,dphi0[3];
+  phi0 = phi(0);
+  dphi0[0] = dphi(0,0);
+  dphi0[1] = dphi(1,0);
+  dphi0[2] = dphi(2,0);
+  phi(0) = phi(nshape-1);
+  dphi(0,0) = dphi(0,nshape-1);
+  dphi(1,0) = dphi(1,nshape-1);
+  dphi(2,0) = dphi(2,nshape-1);
+
+  phi(nshape-1) = phi0;
+  dphi(0,nshape-1) = dphi0[0];
+  dphi(1,nshape-1) = dphi0[1];
+  dphi(2,nshape-1) = dphi0[2];
+
 }
 
 

@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.60 2004-06-23 16:38:08 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.61 2004-06-27 00:35:30 erick Exp $
 
 // -*- c++ -*- 
 
@@ -107,11 +107,11 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
   case ECube:
   case EPrisma:
     fShapefunctionType =
-//#ifdef _AUTODIFF
-//    TPZShapeDisc::EOrdemTotal;
-//#else
+#ifdef _AUTODIFF
+    TPZShapeDisc::EOrdemTotal;
+#else
     TPZShapeDisc::ETensorial;
-//#endif
+#endif
   }
 //  fReference = ref;
   ref->SetReference(this);
