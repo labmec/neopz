@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.15 2004-11-24 17:53:50 cesar Exp $
+//$Id: pzgmesh.h,v 1.16 2005-02-04 16:57:53 cesar Exp $
 
 /**File : pzgmes.h
 
@@ -54,7 +54,7 @@ template <class TShape, class TGeo> class TPZGeoElRefPattern;
 class  TPZGeoMesh : public TPZSaveable {
 
   /** TPZGeoMesh name for model identification*/
-  string fName;
+  std::string fName;
   /** Computational mesh associated*/
   TPZCompMesh 	*fReference;
 

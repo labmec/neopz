@@ -47,6 +47,9 @@ const int TPZSUBCOMPMESHID = 222;
 const int TPZCOMPMESHID = 223;
 const int TPZFLOWCOMPMESHID = 224;
 
+const int TPZGEOCLONEMESHID = 225;
+const int TPZCOMPCLONEMESHID = 226;
+
 void RegisterMeshClasses();
 //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
 //template class TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>;
