@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.6 2003-11-04 16:55:23 cedric Exp $
+//$Id: TPZAgglomerateEl.h,v 1.7 2003-11-04 18:42:48 cedric Exp $
 
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
@@ -112,7 +112,7 @@ public:
   /**
    * it returns dimension from the elements
    */
-  int Dimension() const;
+  int Dimension() const {return (gInterfaceDimension + 1);}
 
   /**
    * it prints the features of the element 
