@@ -81,11 +81,24 @@ public:
    */
   void ShapePhi1d(double x,int num,TPZFMatrix &phi);
 
-  /**constructor : Id is the number of the element materialindex is the material index
-     of the element mesh is a pointer to the mesh to which the element belongs*/
+  /**constructor : 
+   * @param Id is the number of the element 
+   * @param materialindex is the material index
+   * @param mesh is a pointer to the mesh to which the element belongs
+   */
   TPZGeoEl(int id,int materialindex,TPZGeoMesh &mesh);
-  /**This constructor used gElementMaxId plus one to fId*/
+  /**This constructor generates a unique Id
+   * @param materialindex is the material index
+   * @param mesh is a pointer to the mesh to which the element belongs
+   */
   TPZGeoEl(int materialindex,TPZGeoMesh &mesh);
+
+  /**This constructor generates a unique Id
+   * @param materialindex is the material index
+   * @param mesh is a pointer to the mesh to which the element belongs
+   * @param index index of the new element in the element vector
+   */
+  TPZGeoEl(int materialindex,TPZGeoMesh &mesh,int &index);
   TPZGeoEl() {}
   /**Destructor*/
   virtual ~TPZGeoEl() { }
@@ -126,6 +139,13 @@ public:
   /**return a pointer to the element referenced by the geometric element*/
   TPZCompEl *Reference() { return fReference; }
 
+  /**
+   * returns the element type acording to pzeltype.h
+   */
+virtual int Type() {
+    cout << "ElementType should never be called\n";
+    return -1;
+  }
   /**return the number of connectivities of the element*/
   virtual int NSides() = 0;
 
