@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.30 2004-09-07 23:41:34 phil Exp $
+// $Id: pzintel.cpp,v 1.31 2004-10-06 19:24:04 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -21,6 +21,19 @@
 #include "pzdebug.h"
 
 #include "pzcheckmesh.h"
+
+#ifdef _AUTODIFF
+#include "fadType.h"
+#endif
+
+#ifdef _AUTODIFF
+  /**
+   * This method fills the matrix ek and load vector ef
+   * with the data in the FADFADREAL U second and first derivatives.
+   *
+   */
+static void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
+#endif
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int &index) :
   TPZCompEl(mesh,reference,index) {

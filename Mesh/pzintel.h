@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.14 2004-09-07 23:41:34 phil Exp $
+//$Id: pzintel.h,v 1.15 2004-10-06 19:24:04 phil Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -8,7 +8,6 @@ struct TPZElementMatrix;
 
 class TPZIntPoints;
 class TPZBlockDiagonal;
-
 
 /**
  * @brief Class TPZInterpolatedElement implemments computational element based on an interpolation space
@@ -548,14 +547,6 @@ private:
 
 public:
 
-#ifdef _AUTODIFF
-  /**
-   * This method fills the matrix ek and load vector ef
-   * with the data in the FADFADREAL U second and first derivatives.
-   *
-   */
- static void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
-#endif
 
 
   /** 
