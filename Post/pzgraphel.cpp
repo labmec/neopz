@@ -51,7 +51,7 @@ TPZGraphEl::~TPZGraphEl(void)
 {
 }
 
-double TPZGraphEl::QsiEta(int i, int imax)
+REAL TPZGraphEl::QsiEta(int i, int imax)
 {
 	return(-1.0+(i*2.0/imax));
 }

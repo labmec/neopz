@@ -174,7 +174,7 @@ void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,TPZFMatrix &dudx,TP
   }
 
   for (idf=0; idf<r; idf++) {
-    double dif = flux[idf]-flux_el[idf];
+    REAL dif = flux[idf]-flux_el[idf];
     if(fabs(fXk(idf,idf)) >= 1.e-10)
       { //Erico cout<<endl<<fXk(idf,idf)<<endl;
 	values[2] += dif*dif/sqrt(fabs( fXk(idf,idf) ));

@@ -33,7 +33,7 @@ public:
   			  TPZFMatrix &axes, TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
 
 
-    virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,double weight,
+    virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
     			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
     /** print out the data associated with the material*/

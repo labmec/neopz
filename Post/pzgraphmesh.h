@@ -39,7 +39,7 @@ public:
   virtual void DrawConnectivity(MElementType type);
   virtual void DrawSolution(TPZBlock &Sol);
   virtual void DrawSolution(char * var = 0);
-  virtual void DrawSolution(int step, double time);
+  virtual void DrawSolution(int step, REAL time);
   TPZDrawStyle Style();
   void SetOutFile(ostream &out);
   void SetResolution(int res){ fResolution = res; SequenceNodes();}

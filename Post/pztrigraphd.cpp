@@ -59,7 +59,7 @@ long TPZGraphElTd::EqNum(TPZVec<int> &co){
 	return neq;
 }
 
-double TPZGraphElTd::QsiEta(int i, int imax){
+REAL TPZGraphElTd::QsiEta(int i, int imax){
 	return (1.*i)/imax;
 }
 

@@ -39,7 +39,7 @@ void TPZEulerConsLaw::Print(ostream &out) {
   out << "\nName of material : " << Name() << "\n";
   out << "Properties : \n";
   out << "Gamma : " << fGamma << endl;
-  if(TPZDiffusionConsLaw::fCFL) out << "CFL  : " << TPZDiffusionConsLaw::fCFL << endl;
+  if(TPZDiffusionConsLaw::fCFL != 0.) out << "CFL  : " << TPZDiffusionConsLaw::fCFL << endl;
   else  out << "CFL  : 1/(2p+1) "  << endl;
   if(TPZDiffusionConsLaw::fDelta > 0) out << "Delta : " << TPZDiffusionConsLaw::fDelta << endl;
   else out << "Delta otimo : " << diff->DeltaOtimo() << endl;
@@ -86,7 +86,7 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   diffusion.GradientOfTheFlow(DF1,DF2,DF3);
   REAL timestep = TimeStep();
   REAL delta = diffusion.Delta(),Lpl,Hkp,Pkl;
-  if(!fDelta) delta = diffusion.DeltaOtimo();
+  if(fDelta != 0.) delta = diffusion.DeltaOtimo();
   TPZFMatrix divF(nstate,1),prodpoint(nstate,nstate);
   TPZVec<REAL> sum1(nstate,0.),sum2(nstate,0.);
 
@@ -517,7 +517,7 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   diffusion.GradientOfTheFlow(DF1,DF2,DF3);
   REAL timestep = TimeStep();
   REAL delta = diffusion.Delta();
-  if(!fDelta) delta = diffusion.DeltaOtimo();
+  if(fDelta!= 0.) delta = diffusion.DeltaOtimo();
   TPZFMatrix divF(nstate,1),prodpoint(nstate,nstate);
   TPZVec<REAL> sum1(nstate,0.),sum2(nstate,0.);
 
@@ -714,8 +714,8 @@ void TPZEulerConsLaw::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZV
 void TPZEulerConsLaw::SetDeltaTime(REAL maxveloc,REAL deltax,int degree){
 
   REAL CFL = 1./((2.0*(REAL)degree) + 1.0);
-  TPZDiffusionConsLaw *diff;
-  if(diff->fCFL) CFL = diff->fCFL;//o primeiro valor não nulo é mantido
+//  TPZDiffusionConsLaw *diff;
+//  if(diff->fCFL) CFL = diff->fCFL;//o primeiro valor não nulo é mantido
   REAL deltaT = CFL*deltax/maxveloc;
   cout << "TPZCompMesh::Delta Time : " << deltaT << endl;
   SetTimeStep(deltaT);

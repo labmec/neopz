@@ -31,7 +31,7 @@ TPZMatPlaca2::TPZMatPlaca2(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
    fB00(6,6,0.), fXF(xf)
 {
   REAL Small , k, mi;
-  Small = E1*1.E-5;
+  Small = E1*REAL(1.E-5);
   k = 5./6.; // coeficiente de cisalhamento
   mi = 1.0/(-1.0 + ni1 * ni2);
 
@@ -216,7 +216,7 @@ placatest.flush();
 
 
   int idf,jdf,i,j;
-  double contrib[3];
+  REAL contrib[3];
   for(i=0;i<3;i++) {
 	  contrib[i]=0.;
 	  for(j=0;j<3;j++) {

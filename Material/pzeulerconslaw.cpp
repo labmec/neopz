@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.36 2004-06-29 00:22:21 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.37 2004-09-07 23:41:33 phil Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -162,12 +162,12 @@ int TPZEulerConsLaw2::NSolutionVariables(int var){
   return 0;
 }
 
-double TPZEulerConsLaw2::DeltaX(double detJac)
+REAL TPZEulerConsLaw2::DeltaX(REAL detJac)
 {
-   return 2 * pow(fabs(detJac), 1./((double) fDim));
+   return REAL(2.) * pow(fabs(detJac), REAL(1./((double) fDim)));
 }
 
-double TPZEulerConsLaw2::Det(TPZFMatrix & Mat)
+REAL TPZEulerConsLaw2::Det(TPZFMatrix & Mat)
 {
    switch(Mat.Rows())
    {
@@ -276,7 +276,7 @@ void TPZEulerConsLaw2::PrepareFAD(
    int nDer = nState * nShape;
 
    // initializing the differentiable variables
-   FADREAL defaultFAD(nDer, 0., 0.);
+   FADREAL defaultFAD(nDer, REAL(0.), REAL(0.));
    if(defaultFAD.dx(0)==1.)PZError << "\nError: FAD doesn't have default constructor for parameters: (number of derivatives, default value, default derivative value) !";
    FADsol.Resize(nState);
    FADsol.Fill(defaultFAD);
@@ -317,7 +317,7 @@ void TPZEulerConsLaw2::PrepareInterfaceFAD(
    int nDerR = nState * nShapeR;
 
    // initializing the differentiable variables
-   FADREAL defaultFAD(nDerL + nDerR, 0., 0.);
+   FADREAL defaultFAD(nDerL + nDerR, REAL(0.), REAL(0.));
    if(defaultFAD.dx(0)==1.)PZError << "\nError: FAD doesn't have default constructor for parameters: (number of derivatives, default value, default derivative value) !";
    FADsolL.Resize(nState);
    FADsolL.Fill(defaultFAD);
@@ -860,7 +860,7 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
   entropyFix = 1;
 
   int nstate = NStateVariables();
-  T vpn=0.;
+  T vpn=REAL(0.);
   T us, un, c;
   REAL Mach, temp;
   int i;
@@ -947,7 +947,7 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
     usinf = /*bc.Val2()(1,0)*/ Mach * cinf;
     uninf = un / us * usinf;
 
-    if(un < 0.)// Inflow
+    if(un < REAL(0.))// Inflow
     {
 //if(normal[0]>0.) cout << "\ndirection error\n ";
 
@@ -1089,7 +1089,7 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
     usinf = /*bc.Val2()(1,0)*/ Mach * cinf;
     uninf = un / us * usinf;
 
-    if(un < 0.)// Inflow
+    if(un < REAL(0.))// Inflow
     {
        if(/*us>c*/ Mach >= 1.)
        {//supersonic
@@ -1198,7 +1198,7 @@ void TPZEulerConsLaw2::ContributeApproxImplDiff(TPZVec<REAL> &x,
 			TPZFMatrix &ek,TPZFMatrix &ef)
 {
    // computing the determinant of the jacobian
-   double deltaX = DeltaX(1./Det(jacinv));
+   REAL deltaX = DeltaX(1./Det(jacinv));
 
    fArtDiff.ContributeApproxImplDiff(fDim, jacinv, sol, dsol, dphi,
 			ek, ef, weight,
@@ -1219,7 +1219,7 @@ void TPZEulerConsLaw2::ContributeExplDiff(TPZVec<REAL> &x,
 			TPZFMatrix &ef)
 {
    // computing the determinant of the jacobian
-   double deltaX = DeltaX(1./Det(jacinv));
+   REAL deltaX = DeltaX(1./Det(jacinv));
 
    fArtDiff.ContributeExplDiff(fDim, jacinv, sol, dsol, dphi,
 			ef, weight,
@@ -1241,7 +1241,7 @@ void TPZEulerConsLaw2::ContributeImplDiff(TPZVec<REAL> &x,
 			TPZFMatrix &ek,TPZFMatrix &ef)
 {
    // computing the determinant of the jacobian
-   double deltaX = DeltaX(1./Det(jacinv));
+   REAL deltaX = DeltaX(1./Det(jacinv));
 
    fArtDiff.ContributeImplDiff(fDim, jacinv, sol, dsol,
 			ek, ef, weight,
@@ -1258,7 +1258,7 @@ void TPZEulerConsLaw2::ContributeImplDiff(TPZVec<REAL> &x,
 void TPZEulerConsLaw2::ContributeFastestImplDiff(int dim, TPZVec<REAL> &x, TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &phi, TPZFMatrix &dphi, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
 {
    // computing the determinant of the jacobian
-   double deltaX = DeltaX(1./Det(jacinv));
+   REAL deltaX = DeltaX(1./Det(jacinv));
 
       fArtDiff.ContributeFastestImplDiff(dim, jacinv, sol, dsol, phi, dphi,
 			ek, ef, weight,
@@ -1318,7 +1318,7 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
 			int entropyFix)
 {
    int nState = NStateVariables();
-   TPZVec<FADREAL > flux(nState,0.);
+   TPZVec<FADREAL > flux(nState,REAL(0.));
    Roe_Flux(solL, solR, normal, fGamma, flux, entropyFix);
    
    // Testing whether Roe_Flux<REAL> gives the same result as Roe_Flux<FADREAL>

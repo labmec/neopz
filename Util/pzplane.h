@@ -36,16 +36,16 @@ class TPZPlane {
   TPZPlane();
   ~TPZPlane();
   /** Dado três pontos calcula a equação do plano que os contém. */
-  int SetPlane(const TPZVec<double> &p1, const TPZVec<double> &p2, const TPZVec<double> &p3);
+  int SetPlane(const TPZVec<REAL> &p1, const TPZVec<REAL> &p2, const TPZVec<REAL> &p3);
   /** Verifica se o ponto[3] pertence ao plano. Se pertencer retorna 1, caso contrário 0.*/
-  bool Belongs(const TPZVec<double> &ponto);
+  bool Belongs(const TPZVec<REAL> &ponto);
   /** Verifica se o plano coincide com plano formado pelos três pontos passados. Se pertencer retorna 1, caso contrário 0. */
-  bool Belongs(const TPZVec<double> &ponto1, const TPZVec<double> &ponto2, const TPZVec<double> &ponto3);
+  bool Belongs(const TPZVec<REAL> &ponto1, const TPZVec<REAL> &ponto2, const TPZVec<REAL> &ponto3);
   
  private:
   
   /** Coeficientes da equação do plano: fCoef[0]*x + fCoef[1]*y + fCoef[2]*z + fCoef[3] = 0. */
-  TPZVec<double> fCoef;
+  TPZVec<REAL> fCoef;
 
 };
 

@@ -154,7 +154,7 @@ void TPZElasticityMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL>
   //     for (int w=0; w<phr; w++) { cout << ef(w,0)<< endl;}
 }
 
-void TPZElasticityMaterial::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,double weight,
+void TPZElasticityMaterial::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
 					 TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
   //	const REAL LITTLENUMB = 1.e-6;

@@ -22,7 +22,7 @@ void TPZFYsmpMatrix::Multiply(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res){
     int i,j,k;
     if (B.Rows()!=Rows()) return;
     int rows = Rows();
-    double aux=0.;
+    REAL aux=0.;
     for(i=0;i<rows;i++){
         for(j=0;j<rows;j++){
             for(k=0;k<rows;k++){
@@ -34,7 +34,7 @@ void TPZFYsmpMatrix::Multiply(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res){
 	}
     }
 }
-void TPZFYsmpMatrix::PutVal(const int row, const int col, double Value){
+void TPZFYsmpMatrix::PutVal(const int row, const int col, REAL Value){
     int k;
     int flag=0;
     for(k=fIA[row];k<fIA[row+1];k++){
@@ -56,7 +56,7 @@ void TPZFYsmpMatrix::AddKel(TPZFMatrix & elmat, TPZVec<int> & destinationindex){
             jpos=destinationindex[j];
             value=elmat.GetVal(i,j);
             //cout << "j= " << j << endl;
-            if(value){
+            if(value != 0.){
                 //cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
                 int flag = 0;
 		k++;
@@ -268,7 +268,7 @@ void TPZFYsmpMatrix::Print(const char *title, ostream &out ,const MatrixOutputFo
 void TPZFYsmpMatrix::ComputeDiagonal() {
   if(fDiag) return;
   int rows = Rows();
-  fDiag = new double [rows];
+  fDiag = new REAL [rows];
   for(int ir=0; ir<rows; ir++) {
     fDiag[ir] = GetVal(ir,ir);
   }

@@ -24,7 +24,7 @@
 
 REAL TPZNumeric::Norma(const TPZVec<REAL> &vetor){
   const int size = vetor.NElements();
-  return sqrt(inner_product(&vetor[0], &vetor[size], &vetor[size], 0.0));
+  return sqrt(inner_product(&vetor[0], &vetor[size], &vetor[size], REAL(0.0)));
 }
 void TPZNumeric::NormalizeVetor3(TPZVec<REAL> &vetor){
   int i;

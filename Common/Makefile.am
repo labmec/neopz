@@ -15,4 +15,9 @@ commondir = $(prefix)/Common
 
 common_HEADERS = $(wildcard *.h)
 
+noinst_LIBRARIES = libCommon.a
+
+libCommon_a_SOURCES = pzreal.cpp
+
+
 ## --| NeoPZ |------------------------------------------------------------------

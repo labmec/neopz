@@ -887,7 +887,7 @@ int TPZFMatrix::Substitution( TPZFMatrix *B ) const {
 
 REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B) {
 	int size = (A.Rows())*A.Cols();
-	double result = 0.;
+	REAL result = 0.;
 #ifdef USING_ATLAS
 	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
 	return result;
@@ -899,7 +899,10 @@ REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B) {
 #else
 	const REAL *fpA = &A.g(0,0), *fpB = &B.g(0,0);
 	const REAL *fpLast = fpA+size;
-	while(fpA < fpLast) result += *fpA++ * *fpB++;
+	while(fpA < fpLast) 
+        {
+          result += (*fpA++ * *fpB++); 
+        }
 	return result;
 #endif
 }

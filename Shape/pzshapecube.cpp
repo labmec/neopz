@@ -960,12 +960,12 @@ void TPZShapeCube::ShapeCornerCube(TPZVec<FADREAL> &pt, TPZVec<FADREAL> &phi)
 {
       FADREAL x[2], y[2], z[2];
 
-      x[0]  = (1.-pt[0])/2.;
-      x[1]  = (1.+pt[0])/2.;
-      y[0]  = (1.-pt[1])/2.;
-      y[1]  = (1.+pt[1])/2.;
-      z[0]  = (1.-pt[2])/2.;
-      z[1]  = (1.+pt[2])/2.;
+      x[0]  = (REAL(1.)-pt[0])/REAL(2.);
+      x[1]  = (REAL(1.)+pt[0])/REAL(2.);
+      y[0]  = (REAL(1.)-pt[1])/REAL(2.);
+      y[1]  = (REAL(1.)+pt[1])/REAL(2.);
+      z[0]  = (REAL(1.)-pt[2])/REAL(2.);
+      z[1]  = (REAL(1.)+pt[2])/REAL(2.);
 
       phi[0]  = x[0]*y[0]*z[0];
       phi[1]  = x[1]*y[0]*z[0];

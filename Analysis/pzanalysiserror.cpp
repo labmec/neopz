@@ -1,4 +1,4 @@
-//$Id: pzanalysiserror.cpp,v 1.4 2003-12-02 17:09:16 phil Exp $
+//$Id: pzanalysiserror.cpp,v 1.5 2004-09-07 23:41:32 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysiserror.h"
@@ -130,7 +130,8 @@ void TPZAnalysisError::ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL si
 	REAL hn = 1./pow(csi,1./singularity_strength);
 	REAL Q=2.;
 	REAL NcReal = log( 1.+(1./hn - 1.)*(Q - 1.) )/log(Q);
-	int Nc = (int) floor(NcReal+0.5);
+	int Nc = 0;
+        while(REAL(Nc) < (NcReal+0.5)) Nc++;
 	int minporder = 2;
 
 	TPZStack<TPZCompElSide> ElToRefine;
@@ -336,7 +337,8 @@ arq << "CurrentEtaAdmissible "  << CurrentEtaAdmissible << endl;
       if (iter == MaxIter)
           PZError << "\n - Newton's Method Failed at Element = " << elem->Reference()->Id() << endl;
       if(pFn < 1.) pFn = 1.;
-      int pNew = (int) floor(pFn + 0.5);  // get the integer
+      int pNew = 0.;//(int) floor(pFn + 0.5);  // get the integer
+      while(REAL(pNew) < (pFn+0.5)) pNew++;
       TPZVec<REAL> x(3),cs(2,0.);
       elem->Reference()->X(cs,x);
 

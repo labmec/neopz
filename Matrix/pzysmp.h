@@ -41,7 +41,7 @@ class TPZFYsmpMatrix : public TPZMatrix {
   // Get the matrix entry at (row,col) without bound checking
 
 
-  void PutVal(const int row, const int col, double Value);
+  void PutVal(const int row, const int col, REAL Value);
 
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 )const;

@@ -171,14 +171,14 @@ class TPZSkylMatrix : public TPZMatrix
 };
 
 template<int N>
-inline double TemplateSum(const REAL *p1, const REAL *p2){
+inline REAL TemplateSum(const REAL *p1, const REAL *p2){
   return *p1* *p2 + TemplateSum<N-1>(p1+1,p2+1);
 
 }
 
 
 template<>
-inline double TemplateSum<1>(const double *p1, const double *p2){
+inline REAL TemplateSum<1>(const REAL *p1, const REAL *p2){
   return *p1 * *p2;
 }
 

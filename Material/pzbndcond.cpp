@@ -34,8 +34,9 @@ void TPZBndCond::Clone(TPZAdmChunkVector<TPZMaterial *> &matvec) {
   matvec[vecpos] = newmat;
 }
 
-#ifdef _AUTODIFF
+//#ifdef _AUTODIFF
 
+/*
 void TPZBndCond::ContributeEnergy(TPZVec<REAL> &x,
 	TPZVec<FADFADREAL> &sol, TPZVec<FADFADREAL> &dsol,
 	FADFADREAL &U, REAL weight)
@@ -55,8 +56,8 @@ void TPZBndCond::ContributeEnergy(TPZVec<REAL> &x,
   
 
 }
-
-#endif
+*/
+//#endif
 
 void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,

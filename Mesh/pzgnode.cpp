@@ -1,4 +1,4 @@
-//$Id: pzgnode.cpp,v 1.3 2004-04-02 13:14:59 phil Exp $
+//$Id: pzgnode.cpp,v 1.4 2004-09-07 23:41:34 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -43,7 +43,7 @@ void TPZGeoNode::Initialize(int id,TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
 }
 
 
-void TPZGeoNode::SetCoord(double *x,int dim) {
+void TPZGeoNode::SetCoord(REAL *x,int dim) {
   if(dim > 3 || dim < 1) {
     PZError << "TPZGeoNode::SetCoord with bad parameter dim." << endl;
     return;
@@ -53,7 +53,7 @@ void TPZGeoNode::SetCoord(double *x,int dim) {
   for(;i<3;i++) fCoord[i] = 0.;
 }
 
-void TPZGeoNode::SetCoord(int i,double coord) {
+void TPZGeoNode::SetCoord(int i,REAL coord) {
   if(i > 2 || i < 0) {
     PZError << "TPZGeoNode::SetCoord with bad parameter i-th coordinate." << endl;
     return;

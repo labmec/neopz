@@ -16,9 +16,9 @@
 #include "pzadmchunk.h"
 #include "pzsave.h"
 
-#ifdef _AUTODIFF
-#include "fadType.h"
-#endif
+//#ifdef _AUTODIFF
+//#include "fadType.h"
+//#endif
 
 using namespace std;
 
@@ -100,16 +100,16 @@ class  TPZMaterial : public TPZSaveable
 			      TPZFMatrix &phi, TPZFMatrix &dphi,
 			      TPZFMatrix &ek, TPZFMatrix &ef) = 0;
 
-#ifdef _AUTODIFF
+//#ifdef _AUTODIFF
 
       /**Compute contribution to the energy at an integration point*/
-      virtual void ContributeEnergy(TPZVec<REAL> &x,
-			      TPZVec<FADFADREAL> &sol,
-			      TPZVec<FADFADREAL> &dsol,
-			      FADFADREAL &U,
-			      REAL weight);
+//      virtual void ContributeEnergy(TPZVec<REAL> &x,
+//			      TPZVec<FADFADREAL> &sol,
+//			      TPZVec<FADFADREAL> &dsol,
+//			      FADFADREAL &U,
+//			      REAL weight);
 
-#endif
+//#endif
 
 
       /** Compute contribution to the stiffness matrix and right hand
@@ -119,14 +119,14 @@ class  TPZMaterial : public TPZSaveable
 				TPZFMatrix &phi, TPZFMatrix &ek,
 				TPZFMatrix &ef, TPZBndCond &bc) = 0;
 
-#ifdef _AUTODIFF
+//#ifdef _AUTODIFF
 
       /** Compute contribution of BC to the Energy*/
-      virtual void ContributeBCEnergy(TPZVec<REAL> & x,
-	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
-	REAL weight, TPZBndCond &bc);
+//      virtual void ContributeBCEnergy(TPZVec<REAL> & x,
+//	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
+//	REAL weight, TPZBndCond &bc);
 
-#endif
+//#endif
       /**Set a procedure as source function for the material.  loc
 	 corresponds to the coordinate of the point where the source
 	 function is applied*/
@@ -175,7 +175,7 @@ class  TPZMaterial : public TPZSaveable
       virtual int FluxType() { return 2; }
 
       /** Factor to diffussive term*/
-      virtual int IdBC(double *x) { return 5; }
+//      virtual int IdBC(REAL *x) { return 5; }
 
       /**Compute the contribution to stiffness matrix and load vector
 	 of the fluxes over the interface between two computational

@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.cpp,v 1.13 2004-06-15 19:09:47 erick Exp $
+//$Id: pzflowcmesh.cpp,v 1.14 2004-09-07 23:41:34 phil Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
@@ -117,7 +117,7 @@ REAL TPZFlowCompMesh::ComputeTimeStep()
     TPZCompElDisc *disc;
     int degree = disc->gDegree;
 
-    double meanTimeStep = 0.;
+    REAL meanTimeStep = 0.;
 
     int i, NumFluid = fFluidMaterial.NElements();
     for(i = 0; i < NumFluid; i++)
@@ -239,7 +239,7 @@ void TPZFlowCompMesh::ExpandSolution2()
          int position = fSolutionBlock.Position(ibl);
 	 int lastStatePos = position + size - nstate;
          int ieq;
-	 double temp;
+	 REAL temp;
          for(ieq=0; ieq<nstate; ieq++) {
             temp = fSolution(position+ieq,ic);
             fSolution(position+ieq,ic) = fSolution(lastStatePos+ieq,ic);
@@ -256,7 +256,7 @@ void TPZFlowCompMesh::ExpandSolution2()
          int position = fSolutionBlock.Position(ibl);
 	 int lastStatePos = position + size - nstate;
          int ieq;
-	 double temp;
+	 REAL temp;
          for(ieq=0; ieq<nstate; ieq++) {
             temp = fSolution(position+ieq,ic);
             fSolution(position+ieq,ic) = fSolution(lastStatePos+ieq,ic);

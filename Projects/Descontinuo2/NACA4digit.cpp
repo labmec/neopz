@@ -159,7 +159,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
    int i, j;
    for(i = 1; i < m; i++)
       {
-         double x = xtrig(i, m + 1);//xpg(q, i, m);
+         REAL x = xtrig(i, m + 1);//xpg(q, i, m);
 	 coord[0] = profile.xua(x * cord);
 	 coord[1] = profile.yua(x * cord);
 	 coord[2] = 0.;
@@ -220,7 +220,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
    for(j = 1; j < n; j++)
    {
       //creating division rule
-      double ratio = xpg(qn, j, n);
+      REAL ratio = xpg(qn, j, n);
 
       // resolving entrance centered point
       index = n * ((2*m)+1) - 1; // index of BC point
@@ -282,7 +282,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
    for(i = 1; i <= p; i++)
    {
 
-      double ratio = xpg(sqrt(qn), i, p);
+      REAL ratio = xpg(sqrt(qn), i, p);
 
       // center point
       index = m; // index of existent point
@@ -325,7 +325,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
    // vertical exit face
    for(j = 1; j <= l; j++)
    {
-      double ratio = xpg(pow(4., 1./l), j, l);
+      REAL ratio = xpg(pow(4., 1./l), j, l);
       //upper points
       indexPt2 = outerCenterExitPt + j;
       coord[0] = entrance + cord + exitlength;
@@ -343,7 +343,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
    // upper/lower angled exit faces
    for(j = 1; j < p; j++)
    {
-      double ratio = xpg(qn, p-j, p);
+      REAL ratio = xpg(qn, p-j, p);
       //upper points
       indexPt = m + (2 * m + 1) * n - 1; // first exit point index//2*m + (2 * m + 1) * n + (2*l+1) * (p-j);
       indexPt2 = outerCenterExitPt + l;
@@ -366,7 +366,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
    // creating intermediate points
    for(i = 1; i < n - l; i++)
    {
-      double ratio = xpg(/*sqrt(qn)*/qn, i, n - l);
+      REAL ratio = xpg(/*sqrt(qn)*/qn, i, n - l);
       //centered points
       index = firstExitPt2 + (i - 1) * (2 * (l+p) - 1);
       indexPt = firstExitPt2 - (2 * l + 1);
@@ -876,7 +876,7 @@ TPZFlowCompMesh *
    TPZCompElDisc::gDegree = degree;
    REAL gamma = 1.4;
    int i;
-   double Mach;
+   REAL Mach;
 
 // Configuring the PZ to generate discontinuous elements
    TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
@@ -948,7 +948,7 @@ TPZFlowCompMesh *
    bc = mat->CreateBC(-1,/*11*/5,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
-   double angle = 0.;
+   REAL angle = 0.;
 
    cout << "\nMach number\n";
    cin >> Mach;

@@ -405,7 +405,7 @@ void TPZMatHyperElastic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix 
    I(0,0)=1.0;
    I(1,1)=1.0;
    I(2,2)=1.0;
-   TPZFMatrix sigmaF = (fNu/J*B+(fLambda*0.5*(J*J-1.0)-fNu)/J*I);
+   TPZFMatrix sigmaF = (fNu/J*B+(fLambda*REAL(0.5)*(J*J-1.0)-fNu)/J*I);
    REAL trsigma = sigmaF(0,0)+ sigmaF(1,1)+ sigmaF(2,2);
    S = sigmaF - (trsigma/3.0)*I;
    int i,j;
@@ -448,7 +448,7 @@ void TPZMatHyperElastic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 
 
 
-void TPZMatHyperElastic::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,double weight,
+void TPZMatHyperElastic::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
 			    TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
 	if(bc.Material() != this){

@@ -268,7 +268,7 @@ TPZSSpMatrix::Decompose_LDLt()
 	    row_k->Next() )
 	{
 	  node_k.elem *= GetVal( node_k.col, node_k.col );
-	  if ( node_k.elem )
+	  if ( node_k.elem!=REAL(0.0) )
 	    row_aux.Append( node_k );
 	}
 

@@ -40,7 +40,7 @@ void TPZTransfer::Print(const char *name,ostream &out,const MatrixOutputFormat f
     int icbcounter;
     for(icbcounter=0; icbcounter < numcolbl; icbcounter++) {
       int icb = fColumnBlockNumber[colpos+icbcounter];
-      double *locval = &fDoubleValues[fColumnBlockPosition[colpos+icbcounter]];
+      REAL *locval = &fDoubleValues[fColumnBlockPosition[colpos+icbcounter]];
       if(form == EFormatted) {
 	out << "column block counter : " << icbcounter <<
 	  " column block number " << icb << endl;

@@ -206,6 +206,13 @@ static void WriteObjects(TPZStream &buf, TPZVec<double> &vec)
   if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
+static void WriteObjects(TPZStream &buf, TPZVec<TPZFlopCounter> &vec) 
+{
+  int nel = vec.NElements();
+  buf.Write(&nel,1);
+  if(nel) buf.Write(&vec[0],vec.NElements());
+}
+
 static void WriteObjects(TPZStream &buf, TPZVec<int> &vec) 
 {
   int nel = vec.NElements();
@@ -295,7 +302,7 @@ static TPZSaveable *Restore(TPZStream &buf, void *context);
 private:
   
   int fNum[10];
-  double fDNum[20];
+  REAL fDNum[20];
   char fStr[20];
 
 };

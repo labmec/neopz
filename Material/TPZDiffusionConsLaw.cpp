@@ -40,7 +40,7 @@ void TPZDiffusionConsLaw::GradientOfTheFlow(TPZFMatrix &DF1,TPZFMatrix &DF2,TPZF
 
 REAL TPZDiffusionConsLaw::CFL(int degree){
 
-  if(fCFL) return fCFL;
+  if(fCFL != 0.) return fCFL;
   return (1.0/(2.0*(REAL)degree+1.0));
 } 
 
@@ -495,7 +495,7 @@ void TPZDiffusionConsLaw::Roe_Flux(
     // A Entropic modification
     //
     p_t = gam1 * (rhoE_t - 0.5 * (rhou_t * rhou_t +
-				  + rhov_t * rhov_t + rhow_t * rhow_t) * irho_t);        
+				  rhov_t * rhov_t + rhow_t * rhow_t) * irho_t);        
     lambda_f = u_f * nx + v_f * ny + w_f * nz - norme 
       * sqrt(gam * p_f * irho_f);
     lambda_t   = u_t * nx + v_t * ny + w_t * nz - norme
@@ -672,8 +672,8 @@ void TPZDiffusionConsLaw::Roe_Flux(REAL rho_f, REAL rhou_f, REAL rhov_f, REAL rh
   }
   //
   if(eig_val2 > 0.0) {
-    p_f = gam1 * (rhoE_f - 0.5 * (rhou_f * rhou_f +
-				  + rhov_f * rhov_f) / rho_f);
+    p_f = gam1 * (rhoE_f - REAL(0.5) * (rhou_f * rhou_f +
+				   rhov_f * rhov_f) / rho_f);
     ep_f = rhoE_f + p_f;
     rhouv_f = rhou_f * v_f;
     flux_rho  = rhou_f * nx + rhov_f * ny;
@@ -683,8 +683,8 @@ void TPZDiffusionConsLaw::Roe_Flux(REAL rho_f, REAL rhou_f, REAL rhov_f, REAL rh
     //
     // A Entropic modification
     //
-    p_t = gam1 * (rhoE_t - 0.5 * (rhou_t * rhou_t +
-				+ rhov_t * rhov_t) / rho_t);        
+    p_t = gam1 * (rhoE_t - REAL(0.5) * (rhou_t * rhou_t +
+				 rhov_t * rhov_t) / rho_t);        
     lambda_f = u_f * nx + v_f * ny - norme * sqrt(gam * p_f / rho_f);
     lambda_t   = u_t * nx + v_t * ny - norme * sqrt(gam * p_t / rho_t);
     if ((lambda_f < 0.) && (lambda_t > 0.)) {

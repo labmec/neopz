@@ -43,7 +43,7 @@ int TPZEuler::VariableIndex(char *name) {
 void TPZEuler::Print(ostream & out) {
     TPZMaterial::Print(out);
 }
-void TPZEuler::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,double weight,
+void TPZEuler::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
 			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,
 			    TPZFMatrix &ef,TPZBndCond &bc) {
   

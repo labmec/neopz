@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.13 2004-04-26 14:27:03 phil Exp $
+//$Id: pzintel.h,v 1.14 2004-09-07 23:41:34 phil Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -247,7 +247,7 @@ public:
    * @param ek element matrix
    * @param ef element right hand side
    */
-  virtual void CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &ef);
+//  virtual void CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
 #endif
 

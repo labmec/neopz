@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.29 2004-04-26 14:27:03 phil Exp $
+// $Id: pzintel.cpp,v 1.30 2004-09-07 23:41:34 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1498,7 +1498,7 @@ void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix 
   TPZFMatrix dsol(dim,numdof);
   TPZVec<REAL> flux(num_flux,1);
   TPZVec<REAL> intpoint(dim);
-  double weight = 0.;
+  REAL weight = 0.;
   TPZGeoEl *ref = Reference();
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
 
@@ -2231,7 +2231,7 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
   TPZFMatrix jacinv(dim,dim);
   REAL detjac;
   TPZVec<REAL> intpoint(dim,0.);
-  double weight = 0., meanvalue = 0.;
+  REAL weight = 0., meanvalue = 0.;
   REAL area = 0.;
   TPZGeoEl *ref = Reference();
 
@@ -2281,7 +2281,7 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
   REAL detjac;
   TPZVec<REAL> x(3,0.);
   TPZVec<REAL> intpoint(dim,0.);
-  double weight = 0.;
+  REAL weight = 0.;
   TPZGeoEl *ref = Reference();
 
   for(int int_ind = 0; int_ind < GetIntegrationRule().NPoints(); ++int_ind){
@@ -2332,7 +2332,7 @@ int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
 }
 
 
-#ifdef _AUTODIFF
+#ifdef _AUTODIFF2
 
 /**calculate the element Energy*/
 void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &ef) {

@@ -22,9 +22,24 @@ class TPZStream {
   
   virtual void Write(string *p, int size=1) = 0;
 
+  void Write(TPZFlopCounter *p, int size=1) 
+  {
+    int i;
+    for(i=0; i<size; i++) Write(&(p[i].fVal),1);
+  }
+
   virtual void Read(int *p, int size=1)=0;
 
   virtual void Read(double *p, int size=1)=0;
+
+  void Read(TPZFlopCounter *p, int size=1)
+  {
+    int i;
+    for(i=0; i<size; i++)
+    {
+      Read(&(p[i].fVal),1);
+    }
+  }
 
   virtual void Read(char *p, int size=1)=0;
 

@@ -15,7 +15,7 @@ lib_LIBRARIES = libpz.a
 
 libpz_a_SOURCES =
 
-libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
+libpz_a_LIBADD = ../Common/pzreal.o \
 	../Util/pzmap.o \
 	../Util/pzadmchunkgen.o \
 	../Util/pzchunkgen.o \
@@ -24,7 +24,6 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Util/pzmanvectorgen.o \
 	../Util/pzstring.o \
 	../Util/pzvecgen.o \
-	../Util/pzvecmesh.o \
 	../Refine/pzrefpoint.o \
 	../Refine/pzrefprism.o \
 	../Refine/pzrefpyram.o \

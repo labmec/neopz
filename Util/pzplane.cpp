@@ -37,7 +37,7 @@ int TPZPlane::SetPlane(const TPZVec<REAL> &p1, const TPZVec<REAL> &p2,const TPZV
     desloc2[i] = p2[i]-p3[i];
   }  
   TPZNumeric::ProdVetorial(desloc1, desloc2, aux);
-  REAL norm = inner_product(&aux[0], &aux[3], &aux[0], 0.0);
+  REAL norm = inner_product(&aux[0], &aux[3], &aux[0], REAL(0.0));
   if(norm <= 1e-10){
     cerr << "TPZPlane::SetPlane - Erro: Pontos alinhados não é possível determinar um único plano\n";
     return 0;
@@ -126,8 +126,8 @@ bool TPZPlane::Belongs(const TPZVec<REAL> &ponto1, const TPZVec<REAL> &ponto2, c
     /**verificando se os pontos estão alinhados */
     //criando vetores de deslocalmentos entre pontos
     for(i=0; i<3; i++){
-      aux1[i]=100*(ponto1[i]-ponto2[i]);
-      aux2[i]=100*(ponto2[i]-ponto3[i]);
+      aux1[i]=100.*(ponto1[i]-ponto2[i]);
+      aux2[i]=100.*(ponto2[i]-ponto3[i]);
     }
     //verificando se os vetores de deslocamentos tem a mesma direção
     aux=0;    

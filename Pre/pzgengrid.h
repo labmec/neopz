@@ -48,7 +48,7 @@ virtual void SetElementType(int type);
 
    void CreateSuperElements(TPZCompMesh &malha,int length);
 
-	double Distance(TPZVec<REAL> &x1,TPZVec<REAL> &x2);
+	REAL Distance(TPZVec<REAL> &x1,TPZVec<REAL> &x2);
 
 
 

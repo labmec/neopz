@@ -187,8 +187,8 @@ void TPZGeoElQ2dCyl::Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatri
 	}
   
 	detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
-	jacinv(0,0) = +jacobian(1,1)/detjac;
-	jacinv(1,1) = +jacobian(0,0)/detjac;
+	jacinv(0,0) = jacobian(1,1)/detjac;
+	jacinv(1,1) = jacobian(0,0)/detjac;
 	jacinv(0,1) = -jacobian(0,1)/detjac;
 	jacinv(1,0) = -jacobian(1,0)/detjac;
 

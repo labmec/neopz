@@ -108,7 +108,7 @@ void TPZSwelling::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,i
 
 
 
-void TPZSwelling::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,double weight,
+void TPZSwelling::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
 			       TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
   if(bc.Material() != this){
@@ -185,7 +185,7 @@ void TPZSwelling::ContributeElastEnergy(TPZVec<FADFADREAL> &dsol,
 {
   FADFADREAL J, TrC; // J = det(F); TrC = Trace(C)
   int numeq = dsol[0].size();
-  FADREAL defaultFAD(numeq, 0., 0.);
+  FADREAL defaultFAD(numeq, REAL(0.), REAL(0.));
   FADFADREAL defaultFADFAD(numeq, defaultFAD, defaultFAD);
   TPZManVector<FADFADREAL,9> GradMap(9);
   int iel;
@@ -230,7 +230,7 @@ void TPZSwelling::ContributeResidual(TPZVec<REAL> & x,
     return;
   }
   int numeq = sol[0].size();
-  FADREAL defaultFAD(numeq, 0., 0.);
+  FADREAL defaultFAD(numeq, REAL(0.), REAL(0.));
   FADFADREAL defaultFADFAD(numeq, defaultFAD, defaultFAD);
   FADFADREAL deform(defaultFADFAD);
   TPZManVector<FADFADREAL> dsolFADFAD(9,defaultFADFAD);
@@ -262,15 +262,15 @@ void TPZSwelling::ContributeResidual(TPZVec<REAL> & x,
   // compute the gradient of the map induced by the displacement of the element
   // include the derivative of the map with respect to the solution
   FADREAL GradMap[3][3];
-  GradMap[0][0] = dsol[0]+1.;
+  GradMap[0][0] = dsol[0]+REAL(1.);
   GradMap[0][1] = dsol[1];
   GradMap[0][2] = dsol[2];
   GradMap[1][0] = dsol[3];
-  GradMap[1][1] = dsol[4]+1.;
+  GradMap[1][1] = dsol[4]+REAL(1.);
   GradMap[1][2] = dsol[5];
   GradMap[2][0] = dsol[6];
   GradMap[2][1] = dsol[7];
-  GradMap[2][2] = dsol[8]+1.;
+  GradMap[2][2] = dsol[8]+REAL(1.);
 
   // compute the determinant of the map
   // this computation will carry the derivative w.r.t the solution
@@ -353,7 +353,7 @@ void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
     return;
   }
   int numeq = sol[0].size();
-  FADREAL defaultFAD(numeq, 0., 0.);
+  FADREAL defaultFAD(numeq, REAL(0.), REAL(0.));
   FADFADREAL defaultFADFAD(numeq, defaultFAD, defaultFAD);
   FADFADREAL deform(defaultFADFAD);
   TPZManVector<FADFADREAL> dsolFADFAD(9,defaultFADFAD);
@@ -452,7 +452,7 @@ void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
 
 
 void TPZSwelling::ComputeW(FADFADREAL &W, TPZVec<REAL> &N) {
-  FADREAL defaultFAD(3,0.,0.);
+  FADREAL defaultFAD(3,REAL(0.),REAL(0.));
   FADFADREAL defaultFADFAD(3,defaultFAD,defaultFAD);
   W = defaultFADFAD;
   FADFADREAL NFAD[3] = {defaultFADFAD,defaultFADFAD,defaultFADFAD};
@@ -493,7 +493,7 @@ void TPZSwelling::ComputeN(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REA
 
 void TPZSwelling::NResidual(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REAL> &N, TPZFMatrix &res, TPZFMatrix &tangent) {
 
-  FADREAL defaultFAD(3,0.,0.);
+  FADREAL defaultFAD(3,REAL(0.),REAL(0.));
   FADFADREAL defaultFADFAD(3,defaultFAD,defaultFAD),W;
   W = defaultFADFAD;
 
@@ -618,7 +618,7 @@ int TPZSwelling::main() {
   for(ieq=0; ieq<3; ieq++) {
     dphi(ieq,0) = 0.34;
   }
-  FADREAL defaultFAD(8,0.,0.);
+  FADREAL defaultFAD(8,REAL(0.),REAL(0.));
   TPZVec<FADREAL> sol(8,defaultFAD),dsol(24,defaultFAD);
   TPZVec<REAL> x(3,1.);
   REAL weight = 0.33;
@@ -700,7 +700,7 @@ void TPZSwelling::LoadState(TPZFMatrix &state) {
 void TPZSwelling::ComputeTangent(TPZFMatrix &tangent,TPZVec<REAL> &coefs, int cases) {
   tangent.Redim(11,11);
   int ieq,jeq,d;
-  FADREAL defaultFAD(8,0.,0.);
+  FADREAL defaultFAD(8,REAL(0.),REAL(0.));
   TPZVec<FADREAL> sol(8,defaultFAD),dsol(24,defaultFAD);
   TPZVec<REAL> x(3,1.);
   REAL weight = 0.33;
@@ -721,7 +721,7 @@ void TPZSwelling::ComputeTangent(TPZFMatrix &tangent,TPZVec<REAL> &coefs, int ca
   }
   TPZVec<REAL> N(3,0.);
   for(ieq=0; ieq<3; ieq++) N[ieq] = gState(8+ieq,0);
-  FADREAL defwFAD(3,0.,0.);
+  FADREAL defwFAD(3,REAL(0.),REAL(0.));
   FADFADREAL defwFADFAD(3,defwFAD,defwFAD);
   FADFADREAL W(defwFADFAD);
   ComputeW(W,N);
@@ -734,7 +734,7 @@ void TPZSwelling::ComputeTangent(TPZFMatrix &tangent,TPZVec<REAL> &coefs, int ca
 void TPZSwelling::Residual(TPZFMatrix &res, int cases) {
   res.Redim(11,1);
   int ieq,d;
-  FADREAL defaultFAD(8,0.,0.);
+  FADREAL defaultFAD(8,REAL(0.),REAL(0.));
   TPZVec<FADREAL> sol(8,defaultFAD),dsol(24,defaultFAD);
   TPZVec<REAL> x(3,1.);
   REAL weight = 0.33;
@@ -753,7 +753,7 @@ void TPZSwelling::Residual(TPZFMatrix &res, int cases) {
   }
   TPZVec<REAL> N(3,0.);
   for(ieq=0; ieq<3; ieq++) N[ieq] = gState(8+ieq,0);
-  FADREAL defwFAD(3,0.,0.);
+  FADREAL defwFAD(3,REAL(0.),REAL(0.));
   FADFADREAL defwFADFAD(3,defwFAD,defwFAD);
   FADFADREAL W(defwFADFAD);
   ComputeW(W,N);
@@ -768,7 +768,7 @@ void TPZSwelling::ComputeInitialGuess(TPZVec<REAL> &mu, REAL J, REAL &pres, REAL
 
   pres = 0.;
   REAL expcontr = exp((gVPlus*(mu[1]-gMuRef[1]-pres)+gVMinus*(mu[2]-gMuRef[2]-pres))/(gRGas*gTemp));
-  REAL expcontr2 = expcontr*4.;
+  REAL expcontr2 = expcontr*REAL(4.);
   REAL sqrtval = sqrt(fCfc*fCfc+expcontr2);
   REAL cplus = (-fCfc + sqrtval)/2.;
   REAL cmin = (fCfc+sqrtval)/2.;
@@ -779,7 +779,7 @@ void TPZSwelling::ComputeInitialGuess(TPZVec<REAL> &mu, REAL J, REAL &pres, REAL
     cout.precision(12);
     cout << "pres " << pres << " cplus " << cplus << " cmin " << cmin << " expcontr " << expcontr << endl;
     REAL expcontr = exp((gVPlus*(mu[1]-gMuRef[1]-pres)+gVMinus*(mu[2]-gMuRef[2]-pres))/(gRGas*gTemp));
-    REAL expcontr2 = expcontr*4.;
+    REAL expcontr2 = expcontr*REAL(4.);
     sqrtval = sqrt(fCfc*fCfc+expcontr2);
     cplus = (-fCfc + sqrtval)/2.;
     cmin = (fCfc+sqrtval)/2.;

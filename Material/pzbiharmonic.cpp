@@ -1,4 +1,4 @@
-//$Id: pzbiharmonic.cpp,v 1.4 2004-04-02 15:59:32 tiago Exp $
+//$Id: pzbiharmonic.cpp,v 1.5 2004-09-07 23:41:33 phil Exp $
 
 #include "pzbiharmonic.h"
 #include "pzelmat.h"
@@ -191,7 +191,7 @@ void TPZBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVe
       }
  
      ek(il,jl) += weight*0.5*(
-			      +dphiLinormal*phiL(jl,0) - dphiLjnormal*phiL(il,0)
+			      dphiLinormal*phiL(jl,0) - dphiLjnormal*phiL(il,0)
 			   //   0.5*dphiLinormal*phiL(jl,0)-0.5*dphiLjnormal*phiL(il,0)
 			   );
     }
@@ -239,7 +239,7 @@ void TPZBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVe
 	dphiLjnormal += dphiL(3+id,jl)*normal[id];
       }
       ek(ir+nrowl,jl) += weight*0.5*(
-				     +dphiRinormal*phiL(jl,0) + dphiLjnormal*phiR(ir,0)	 
+				     dphiRinormal*phiL(jl,0) + dphiLjnormal*phiR(ir,0)	 
 				 //+0.5*dphiRinormal*phiL(jl)+0.5*dphiLjnormal*phiR(ir)
 			   );
     }
@@ -258,7 +258,7 @@ void TPZBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVe
       }
  
      ek(il,jl) += weight*0.5*(
-			      + dphiLinormal*dphiL(2,jl) - dphiLjnormal*dphiL(2,il)
+			       dphiLinormal*dphiL(2,jl) - dphiLjnormal*dphiL(2,il)
 			   );
     }
   }
@@ -288,7 +288,7 @@ void TPZBiharmonic::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVe
 	dphiRjnormal += dphiR(id,jr)*normal[id];
       }
       ek(il,jr+nrowl) += weight*0.5*(
-			             + dphiLinormal*dphiR(2,jr) + dphiRjnormal*dphiL(2,il)
+			             dphiLinormal*dphiR(2,jr) + dphiRjnormal*dphiL(2,il)
 			   );
     }
   }
@@ -486,7 +486,7 @@ void TPZBiharmonic::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TP
       dphiLinormal += dphiL(id,il)*normal[id];
     }
     // Termos de Neuwmann     -      em Val2()(1,0) 
-    ef(il,0) += + weight*bc.Val2()(1,0)*dphiL(2,il)  
+    ef(il,0) +=  weight*bc.Val2()(1,0)*dphiL(2,il)  
                 + betta * weight*bc.Val2()(1,0)*dphiLinormal ;
     for(jl=0; jl<nrowl; jl++) {
       REAL dphiLjnormal = 0.;

@@ -29,7 +29,7 @@ TPZPlaca2::TPZPlaca2(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
               Bn10(6,6,0.),B0n1(6,6,0.),Bn20(6,6,0.),B0n2(6,6,0.),B000(6,6,0.);
 //   TPZFMatrix fRmat(6,6),fRmatT(6,6);
    REAL Small , k, mi;
-   Small = E1*1.E-5;
+   Small = E1*REAL(1.E-5);
    k = 5./6.; // coeficiente de cisalhamento
    mi = 1.0/(-1.0 + ni1 * ni2);
 

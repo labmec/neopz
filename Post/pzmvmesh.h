@@ -18,7 +18,7 @@ virtual void DrawMesh(int numcases);
 
 virtual void DrawNodes();
 virtual void DrawConnectivity();
-virtual void DrawSolution(int step, double time,
+virtual void DrawSolution(int step, REAL time,
 						TPZVec<char *> &scalarnames, TPZVec<char *> &vectornames);
 virtual void DrawSolution(TPZBlock &Sol);
 virtual void DrawSolution(char *var = 0);

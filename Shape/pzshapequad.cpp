@@ -1,4 +1,4 @@
-// $Id: pzshapequad.cpp,v 1.5 2003-10-06 01:32:07 phil Exp $
+// $Id: pzshapequad.cpp,v 1.6 2004-09-07 23:41:35 phil Exp $
 #include "pzshapequad.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -199,7 +199,7 @@ void TPZShapeQuad::ShapeInternal(TPZVec<REAL> &x, int order,
 void TPZShapeQuad::TransformDerivative2dQ(int transid, int num, TPZFMatrix &in) {
 
   for(int i=0;i<num;i++) {
-    double aux[2];
+    REAL aux[2];
     aux[0] = in(0,i);
     aux[1] = in(1,i);
     in(0,i) = gTrans2dQ[transid][0][0]*aux[0]+gTrans2dQ[transid][1][0]*aux[1];

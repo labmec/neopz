@@ -35,7 +35,7 @@ void TPZMVGraphMesh::DrawMesh(int numcases) {
   	DrawConnectivity();
 }
 
-void TPZMVGraphMesh::DrawSolution(int step, double time,
+void TPZMVGraphMesh::DrawSolution(int step, REAL time,
 						TPZVec<char *> &scalarnames, TPZVec<char *> &vectornames){
 
 	fNumSteps++;

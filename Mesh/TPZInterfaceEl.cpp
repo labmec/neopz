@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.39 2004-06-23 16:39:23 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.40 2004-09-07 23:41:34 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -893,7 +893,7 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal /*,int leftside*/){
     //normalizando a normal
     normalize = 0.;
     for(i=0;i<3;i++) normalize += normal[i]*normal[i];
-    if(!normalize)
+    if(normalize == 0.0)
       PZError << "TPZInterfaceElement::NormalToFace null normal vetor\n";
     normalize = sqrt(normalize);
     for(i=0;i<3;i++) normal[i] = normal[i]/normalize;

@@ -15,6 +15,7 @@
 #define TPZLINE_H
 //#include "TPZMetodos.h"
 #include "pzvec.h"
+#include "pzreal.h"
 #include <cmath>
 
 using namespace std;
@@ -25,25 +26,25 @@ public:
 	~TPZLine();
 
 	/** Armazena um ponto da reta e sua direção. */
-	void SetLine(const TPZVec<double> &point, const TPZVec<double> &dir);
+	void SetLine(const TPZVec<REAL> &point, const TPZVec<REAL> &dir);
 
 	/** Verifica se o ponto pertence a reta. */
-	bool Belongs(const TPZVec<double> &point);
+	bool Belongs(const TPZVec<REAL> &point);
 
 	/** Fornece a tolerância do cálculo, armazenando em tol. */
-	double GetTolerance();
+	REAL GetTolerance();
 
 	/** Especifica a tolerância para os cálculos */
-	void SetTolerance(const double &tol);
+	void SetTolerance(const REAL &tol);
 
 private:
 	/** um ponto qualquer da reta. */
-	TPZVec<double> fPoint;
+	TPZVec<REAL> fPoint;
 
 	/** Direção da reta. */
-	TPZVec<double> fDirection;
+	TPZVec<REAL> fDirection;
 
 	/** Tolerância para os cálculos */
-	double fTolerance;
+	REAL fTolerance;
 };
 #endif

@@ -86,23 +86,23 @@ void TPZMaterial::Clone(TPZAdmChunkVector<TPZMaterial *> &matvec) {
    matvec[vecpos] = newmat;
 }
 
-#ifdef _AUTODIFF
+//#ifdef _AUTODIFF
 
-void TPZMaterial::ContributeEnergy(TPZVec<REAL> &x,
-	TPZVec<FADFADREAL> &sol, TPZVec<FADFADREAL> &dsol,
-	FADFADREAL &U, REAL weight)
-{
-	PZError << "\nEnergy Contribution not implemented\n";
-}
+//void TPZMaterial::ContributeEnergy(TPZVec<REAL> &x,
+//	TPZVec<FADFADREAL> &sol, TPZVec<FADFADREAL> &dsol,
+//	FADFADREAL &U, REAL weight)
+//{
+//	PZError << "\nEnergy Contribution not implemented\n";
+//}
 
-void TPZMaterial::ContributeBCEnergy(TPZVec<REAL> & x,
-	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
-	REAL weight, TPZBndCond &bc)
-{
-	PZError << "\nBC Energy Contribution not implemented\n";
-}
+//void TPZMaterial::ContributeBCEnergy(TPZVec<REAL> & x,
+//	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
+//	REAL weight, TPZBndCond &bc)
+//{
+//	PZError << "\nBC Energy Contribution not implemented\n";
+//}
 
-#endif
+//#endif
 
   /**
   Save the element data to a stream

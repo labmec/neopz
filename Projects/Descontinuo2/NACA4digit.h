@@ -7,7 +7,7 @@
 #include "pzvec.h"
 
 class TPZNACAXXXX {
-  double fCord;
+  REAL fCord;
   int fFourDigits;
   REAL fAngle;
   REAL fX0[3];
@@ -31,27 +31,27 @@ public:
 
  private:
 
-  double P()
+  REAL P()
   {
     int aux = fFourDigits/100;
     aux -= ((int)(aux/10))*10;
-    return (double)aux/10.;
+    return (REAL)(aux/10.);
 }
 
-double M()
+REAL M()
 {
    int aux = fFourDigits/1000;
-   return (double)aux/100.*fCord;
+   return (REAL)(aux/100.)*fCord;
 }
 
-double TT()
+REAL TT()
 {
    int aux = fFourDigits - ((int)(fFourDigits/100))*100;
-   return (double)aux/100.*fCord;
+   return (REAL)(aux/100.)*fCord;
 }
 
 // Mean line for the wing
-double yc(double x)
+REAL yc(REAL x)
 {
    if(x/fCord<fP)
    {
@@ -62,7 +62,7 @@ double yc(double x)
    }
 }
 
-double dyc(double x)
+REAL dyc(REAL x)
 {
    if(x/fCord<fP)
    {
@@ -74,10 +74,10 @@ double dyc(double x)
 }
 
 // thickness
-double yt(double x)
+REAL yt(REAL x)
 {
-   double aux = x/fCord;
-   const double a0 = 1.4845,
+   REAL aux = x/fCord;
+   const REAL a0 = 1.4845,
                 a1 = -.6300,
 		a2 = -1.7580,
 		a3 = 1.4215,
@@ -91,24 +91,24 @@ double yt(double x)
 }
 
 // superior profile
-double xu(double x)
+REAL xu(REAL x)
 {
    return x-yt(x)*sin(atan(dyc(x)));
 }
 
-double yu(double x)
+REAL yu(REAL x)
 {
    return yc(x) + yt(x)*cos(atan(dyc(x)));
 }
 
 
 // inferior profile
-double xl(double x)
+REAL xl(REAL x)
 {
    return x+yt(x)*sin(atan(dyc(x)));
 }
 
-double yl(double x)
+REAL yl(REAL x)
 {
    return yc(x) - yt(x)*cos(atan(dyc(x)));
 }
@@ -119,23 +119,23 @@ double yl(double x)
 
 // with attack angle
 // superior profile
-double xua(double x)
+REAL xua(REAL x)
 {
    return fX0[0]+(xu(x)-fCord/2.)*cos(fAngle) + yu(x) * sin(fAngle) + fCord/2.;
 }
 
-double yua(double x)
+REAL yua(REAL x)
 {
    return fX0[1]+yu(x)*cos(fAngle) - (xu(x)-fCord/2.) * sin(fAngle);
 }
 
 // inferior profile
-double xla(double x)
+REAL xla(REAL x)
 {
    return fX0[0]+(xl(x)-fCord/2.)*cos(fAngle) + yl(x) * sin(fAngle) + fCord/2.;
 }
 
-double yla(double x)
+REAL yla(REAL x)
 {
    return fX0[1]+yl(x)*cos(fAngle) - (xl(x)-fCord/2.) * sin(fAngle);
 }

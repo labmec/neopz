@@ -843,7 +843,7 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
   for(i=0; i<dim; i++) ksi[i] += residual(i,0);
   X(ksi,X0);
   for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
-  double error = Norm(DelX);
+  REAL error = Norm(DelX);
   if(error > 1.0E-4) {
 	  cout << "ComputeXInverse did not compute the inverse correctly\n";
   }

@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.34 2004-06-17 23:19:37 erick Exp $
+//$Id: pzeuleranalysis.cpp,v 1.35 2004-09-07 23:41:32 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -257,7 +257,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 
    int i = 0;
    REAL res;// residual of linear invertion.
-   epsilon = fNewtonEps * 2.;// ensuring the loop will be
+   epsilon = fNewtonEps * REAL(2.);// ensuring the loop will be
    // performed at least once.
 
    TPZFMatrix residual;
@@ -367,7 +367,7 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
    {
       if(i%numIterDX==0)
       {
-         graph->DrawSolution((int) AccumTime, i);
+         graph->DrawSolution(i,AccumTime);
 	 graph->Out()->flush();
          // increases the accumulated time and
          AccumTime += nextTimeStep;
@@ -415,7 +415,7 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
    fSolver->ResetMatrix(); // deletes the memory allocated
    // for the storage of the tangent matrix.
 
-   graph->DrawSolution((int) AccumTime, i);
+   graph->DrawSolution(i,AccumTime);
    graph->Out()->flush();
 
    delete graph;

@@ -21,7 +21,7 @@ TPZLinearConvection::TPZLinearConvection(int id, TPZVec<REAL>& conv) : TPZMateri
     fConvect[1] = conv[1];
 }
 
-void TPZLinearConvection::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,double weight,
+void TPZLinearConvection::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
 			    TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
   if(bc.Material() != this){

@@ -89,8 +89,8 @@ GMRES(const Operator &A, Vector &x, const Vector &b,
   Vector *v = new Vector[m+1];
 
   while (j <= max_iter) {
-	 v[0] = r * (1.0 / beta);    // ??? r / beta
-	 s = 0.0;
+	 v[0] = r * (REAL(1.0) / beta);    // ??? r / beta
+	 s = REAL(0.0);
 	 s(0) = beta;
 
 	 for (i = 0; i < m && j <= max_iter; i++, j++) {
@@ -104,7 +104,7 @@ GMRES(const Operator &A, Vector &x, const Vector &b,
 		}
 		H(i+1, i) = Norm(w);
 		v[i+1] = w;
-		v[i+1] *= 1.0/H(i+1,i);
+		v[i+1] *= REAL(1.0)/H(i+1,i);
 //		v[i+1] = w * (1.0 / H(i+1, i)); // ??? w / H(i+1, i)
 
 		for (k = 0; k < i; k++)
@@ -152,11 +152,11 @@ void GeneratePlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn)
     sn = 0.0;
   } else if (abs(dy) > abs(dx)) {
 	 Real temp = dx / dy;
-	 sn = 1.0 / sqrt( 1.0 + temp*temp );
+	 sn = REAL(1.0) / sqrt( REAL(1.0) + temp*temp );
 	 cs = temp * sn;
   } else {
 	 Real temp = dy / dx;
-	 cs = 1.0 / sqrt( 1.0 + temp*temp );
+	 cs = REAL(1.0) / sqrt( REAL(1.0) + temp*temp );
 	 sn = temp * cs;
   }
 }

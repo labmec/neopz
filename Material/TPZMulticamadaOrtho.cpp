@@ -105,8 +105,8 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMatOrthotropic *material, REAL 
   fZMax += height;
   for(ix=0; ix<= fNelx; ix++) {
     for(iy=0; iy<= fNely; iy++) {
-      coord[0] = ix*fDx-fDx*fNelx/2.;
-      coord[1] = iy*fDy-fDy*fNely/2.;
+      coord[0] = ix*fDx-fDx*REAL(fNelx/2.);
+      coord[1] = iy*fDy-fDy*REAL(fNely/2.);
       fGeoMesh->NodeVec()[nnodes+ix+iy*(fNelx+1)].Initialize(coord,*fGeoMesh);
     }
   }
@@ -186,13 +186,13 @@ void TPZMulticamadaOrthotropic::AnalyticTensor(TPZVec<REAL> &co, TPZFMatrix &ten
   tensor(1,1) += (fNY[2]+fLinearY*fdNYdY[2]*y)/height;
   tensor(1,0) += (fNXY[2]+fLinearX*fdNXYdX[2]*x+fLinearY*fdNXYdY[2]*y)/height;
   tensor(0,1) = tensor(1,0);
-  tensor(0,0) += 12.*(fMX[2]+x*fLinearX*fdMXdX[2])*zrel/(height3);
-  tensor(1,1) += 12.*(fMY[2]+y*fLinearY*fdMYdY[2])*zrel/height3;
-  tensor(0,1) += 12.*(fMXY[2]+fLinearX*x*fdMXYdX[2]+fLinearY*y*fdMXYdY[2])*zrel/height3;
+  tensor(0,0) += REAL(12.)*(fMX[2]+(x*REAL(fLinearX)*fdMXdX[2]))*zrel/(height3);
+  tensor(1,1) += 12.*(fMY[2]+y*REAL(fLinearY)*fdMYdY[2])*zrel/height3;
+  tensor(0,1) += 12.*(fMXY[2]+REAL(fLinearX)*x*fdMXYdX[2]+REAL(fLinearY)*y*fdMXYdY[2])*zrel/height3;
   tensor(1,0) = tensor(0,1);
-  tensor(0,2) += -6.*(fQX[2]+fLinearX*x*fdQXdX[2])*(zrel*zrel-height*height/4.)/height3;
+  tensor(0,2) += -6.*(fQX[2]+REAL(fLinearX)*x*fdQXdX[2])*(zrel*zrel-height*height/4.)/height3;
   tensor(2,0) = tensor(0,2);
-  tensor(1,2) += -6.*(fQY[2]+fLinearY*y*fdQYdY[2])*(zrel*zrel-height*height/4.)/height3;
+  tensor(1,2) += -6.*(fQY[2]+REAL(fLinearY)*y*fdQYdY[2])*(zrel*zrel-height*height/4.)/height3;
   tensor(2,1)  = tensor(1,2);
 
 }

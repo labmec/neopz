@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.10 2004-06-23 22:42:55 phil Exp $
+//$Id: pzbndcond.h,v 1.11 2004-09-07 23:41:33 phil Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -19,9 +19,9 @@ using namespace std;
 #include "pzfmatrix.h"
 #include "pzmaterialid.h"
 
-#ifdef _AUTODIFF
-#include "fadType.h"
-#endif
+//#ifdef _AUTODIFF
+//#include "fadType.h"
+//#endif
 
 template <class T, int N>
 class TPZManVector;
@@ -122,15 +122,15 @@ public :
   }
 
 
-#ifdef _AUTODIFF
+//#ifdef _AUTODIFF
 
-  void ContributeEnergy(TPZVec<REAL> &x,
-			      TPZVec<FADFADREAL> &sol,
-			      TPZVec<FADFADREAL> &dsol,
-			      FADFADREAL &U,
-			      REAL weight);
+//  void ContributeEnergy(TPZVec<REAL> &x,
+//			      TPZVec<FADFADREAL> &sol,
+//			      TPZVec<FADFADREAL> &dsol,
+//			      FADFADREAL &U,
+//			      REAL weight);
 
-#endif
+//#endif
 
 
   void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,TPZFMatrix &axes,

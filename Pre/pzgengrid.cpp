@@ -131,7 +131,7 @@ void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
 	}
 cout << "Coord i = " << i << " ix = " << ix << " iy = " << iy << " layer = " << ilayer << endl;
 cout.flush();
-   double coorold[2];
+   REAL coorold[2];
    coorold[0] = fX0[0]+fDelx[0]*ix;
    coorold[1] = fX0[1]+fDelx[1]*iy;
 	coor[0] = fX0[0]+(coorold[0]-fX0[0])*cos(Rot);
@@ -306,9 +306,9 @@ int TPZGenGrid::SuperElemId(int iel,int jel){
   return ( iel*fNumBlocks[0]+jel );
 }
 
-double
+REAL
 TPZGenGrid::Distance(TPZVec<REAL> &x1,TPZVec<REAL> &x2){
-	double l1,l2;
+	REAL l1,l2;
 	l1=x1[0]-x2[0];
 	l2=x1[1]-x2[1];
 	return( sqrt(l1*l1+l2*l2) );

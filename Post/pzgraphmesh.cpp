@@ -165,7 +165,7 @@ void TPZGraphMesh::DrawSolution(TPZBlock &/*bl*/)
 {
 }
 
-void TPZGraphMesh::DrawSolution(int /*step*/, double /*time*/){
+void TPZGraphMesh::DrawSolution(int /*step*/, REAL /*time*/){
   cout << "TPZGraphMesh::DrawSolution called\n";
 }
 

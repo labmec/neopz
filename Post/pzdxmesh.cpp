@@ -1,4 +1,4 @@
-//$Id: pzdxmesh.cpp,v 1.6 2004-03-03 18:01:02 rgdamas Exp $
+//$Id: pzdxmesh.cpp,v 1.7 2004-09-07 23:41:34 phil Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -149,7 +149,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
   //fTimes = new TPZVec<REAL>(numcases,0.);
 }
 
-void TPZDXGraphMesh::DrawSolution(int step, double time){//0,
+void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
   //								  TPZVec<char *> &scalarnames, TPZVec<char *> &vectornames) {
 	
   TPZMaterial *matp = Material();

@@ -46,7 +46,7 @@
 
 int gDebug;
 
-void error(char *) {}
+//void error(char *) {}
 
 void InitialGuess(TPZVec<REAL> &x,TPZVec<REAL> &result){
 // makes nothing

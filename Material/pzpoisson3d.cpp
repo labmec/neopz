@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.8 2004-06-23 16:29:00 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.9 2004-09-07 23:41:33 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -57,7 +57,7 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   }
   REAL delx = 0.;
   REAL ConvDirAx[3] = {0.};
-  if(fC) {
+  if(fC != 0.0) {
     int di,dj;
     delx = 0.;
     for(di=0; di<fDim; di++) {

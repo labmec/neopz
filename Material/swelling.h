@@ -175,7 +175,7 @@ virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv ,TPZVec<REAL> &sol,TP
   cout << "TPZSwelling::Contribute not implemented\n";
 }
  
- virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,double weight,
+ virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
 			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
 

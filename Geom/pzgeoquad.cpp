@@ -92,8 +92,8 @@ void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &ja
     axes(1,i) = V2til[i]/V2tilNorm;
   }
   detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
-  jacinv(0,0) = +jacobian(1,1)/detjac;
-  jacinv(1,1) = +jacobian(0,0)/detjac;
+  jacinv(0,0) = jacobian(1,1)/detjac;
+  jacinv(1,1) = jacobian(0,0)/detjac;
   jacinv(0,1) = -jacobian(0,1)/detjac;
   jacinv(1,0) = -jacobian(1,0)/detjac;
 

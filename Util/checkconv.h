@@ -34,7 +34,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 
    for(i=0; i<numrows; i++) {
 
-     double randnum = (rand()&1000)/999.;
+     REAL randnum = (rand()&1000)/999.;
 
       incval(i,0) = range(i,0)*randnum;
 
@@ -68,9 +68,9 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 
       int interval;
 
-      double difnorm[10] = {0.};
+      REAL difnorm[10] = {0.};
 
-//	  double resnorm[10] ={0.};
+//	  REAL resnorm[10] ={0.};
 
       for(interval = 1; interval < 10; interval++) {
 
@@ -98,7 +98,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 
 //		 resnorm[interval] = Norm(residual);
 
-         residual = residual - EstimateRes*(interval/10.);
+         residual = residual - EstimateRes*(REAL(interval/10.));
 
 	 //	 residual.Print("residual adaptado");
          difnorm[interval] = Norm(residual);
@@ -112,7 +112,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 
       for(interval = 2; interval<10; interval++) {
 
-         if(fabs(difnorm[interval]) < 1.e-12 || fabs(difnorm[interval-1]) <1.e-12) {
+	if(fabs(difnorm[interval]) < REAL(1.e-12) || fabs(difnorm[interval-1]) <REAL(1.e-12)) {
 
 	   cout << "residual too small\n";
 

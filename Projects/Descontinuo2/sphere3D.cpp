@@ -50,7 +50,7 @@ void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int
    //        \_ 7____6 |
    //                  |
    //                [\|/]
-   //                 /\
+   //                 / 
    // the points 1, 2 and 3 represents the projections of vectors
    // [0,0,-1], [0,1,0], [0,0,1]
    // Point 4 is the projection of alpha*[1]+beta*[3] onto the sphere

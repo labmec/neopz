@@ -296,7 +296,7 @@ void TPZFileEqnStorage::main()
 	for(i=0;i<Loop_Limit;i++){
 		EqnArray.BeginEquation(i);
 		for(j=i;j<Loop_Limit;j++){
-			aux = DecMat(i,j);
+//			aux = DecMat(i,j);
 			EqnArray.AddTerm(j,DecMat(i,j));
 		}
 		EqnArray.EndEquation();

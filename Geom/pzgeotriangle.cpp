@@ -33,7 +33,7 @@ void TPZGeoTriangle::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix
 	Shape(param,phi,dphi);
 
 	TPZVec<REAL> V1(3,0.),V2(3,0.),V2til(3,0.),V3(3,0.);
-	double V1Norm=0.,V1V2=0.,V2tilNorm=0.;
+	REAL V1Norm=0.,V1V2=0.,V2tilNorm=0.;
 //	TPZGeoNode *np;
 
 	for(i=0;i<3;i++) {
@@ -62,8 +62,8 @@ void TPZGeoTriangle::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix
 		axes(1,i) = V2til[i]/V2tilNorm;
 	}
 	detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
-	jacinv(0,0) = +jacobian(1,1)/detjac;
-	jacinv(1,1) = +jacobian(0,0)/detjac;
+	jacinv(0,0) = jacobian(1,1)/detjac;
+	jacinv(1,1) = jacobian(0,0)/detjac;
 	jacinv(0,1) = -jacobian(0,1)/detjac;
 	jacinv(1,0) = -jacobian(1,0)/detjac;
 

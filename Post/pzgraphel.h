@@ -67,7 +67,7 @@ virtual void NextIJ(int connect, TPZVec<int> &co, int incr) = 0;
 protected :   
 	int fId;
 
-virtual double QsiEta(int i, int imax);
+virtual REAL QsiEta(int i, int imax);
 
 };
 

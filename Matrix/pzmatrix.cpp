@@ -627,7 +627,7 @@ void TPZMatrix::SolveSOR(int & numiterations, const TPZFMatrix &F,
 void TPZMatrix::SolveSSOR(int &numiterations, const TPZFMatrix &F,
 			TPZFMatrix &result, TPZFMatrix *residual, TPZFMatrix &scratch, const REAL overrelax,
 			REAL &tol,const int FromCurrent) const{
-	REAL res = tol*2.+1.;
+	REAL res = (tol*REAL(2.))+REAL(1.);
 	int i, one = 1;
    int fromcurrent = FromCurrent;
 	for(i=0; i<numiterations && res > tol; i++) {
@@ -777,7 +777,7 @@ int TPZMatrix::Decompose_Cholesky() {
 	 if ( Rows()!=Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );
 	 //return 0;
 
-	 REAL dim=Dim();
+	 int dim=Dim();
 	 for (int i=0 ; i<dim; i++) {
 		  for(int k=0; k<i; k++) {             //elementos da diagonal
 				 PutVal( i,i,GetVal(i,i)-GetVal(i,k)*GetVal(i,k) );

@@ -82,7 +82,7 @@ public:
     * Prefer to use fDelta = 1.
     * @param Sol [in] solution
     */
-   REAL Delta(double deltaX, TPZVec<REAL> & sol);
+   REAL Delta(REAL deltaX, TPZVec<REAL> & sol);
 
    /**
     * Sets the value for delta
@@ -338,7 +338,7 @@ void ContributeApproxImplDiff(int dim,
 			   TPZFMatrix &dphix,
 			   TPZFMatrix &ek, TPZFMatrix &ef,
 			   REAL weight, REAL timeStep,
-			   double deltaX);
+			   REAL deltaX);
 
   /**
    * Contributes the diffusion term to the tangent matrix (ek-approximated) and residual vector (ef)
@@ -358,7 +358,7 @@ void ContributeExplDiff(int dim,
 			   TPZFMatrix &dphix,
 			   TPZFMatrix &ef,
 			   REAL weight, REAL timeStep,
-			   double deltaX);
+			   REAL deltaX);
 
 #ifdef _AUTODIFF
 
@@ -379,7 +379,7 @@ void ContributeImplDiff(int dim,
                            TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol,
 			   TPZFMatrix &ek, TPZFMatrix &ef,
 			   REAL weight, REAL timeStep,
-			   double deltaX);
+			   REAL deltaX);
 
   /**
    * Contributes the diffusion term to the tangent matrix (ek) and residual vector (ef) with FAD template classes
@@ -403,14 +403,14 @@ void ContributeFastestImplDiff_dim(
 			  TPZFMatrix &phi, TPZFMatrix &dphi,
 			  TPZFMatrix &ek, TPZFMatrix &ef,
 			  REAL weight, REAL timeStep,
-			  double deltaX);
+			  REAL deltaX);
 
 void ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv,
 			  TPZVec<REAL> &sol, TPZFMatrix &dsol,
 			  TPZFMatrix &phi, TPZFMatrix &dphi,
 			  TPZFMatrix &ek, TPZFMatrix &ef,
 			  REAL weight, REAL timeStep,
-			  double deltaX);
+			  REAL deltaX);
 
 #endif
 
@@ -721,44 +721,44 @@ void TPZArtDiff::EigenSystemSUPG(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZ
    switch (dim)
    {
       case (2):
-      s = sqrt(c2 + us2 * 16.);
+	s = sqrt(c2 + us2 * REAL(16.));
 
       X.Redim(nstate,nstate);
       X(0,0) = 1.;
-      X(0,2) = 4. * sol[0] * us / c2;
+      X(0,2) = REAL(4.) * sol[0] * us / c2;
       X(0,3) = X(0,2);
       X(1,2) = - s/c -1.;
       X(1,3) =   s/c -1.;
       X(2,1) = 1.;
-      X(3,2) = 4. * sol[0] * us;
+      X(3,2) = REAL(4.) * sol[0] * us;
       X(3,3) = X(3,2);
 
       Xi.Redim(nstate,nstate);
       Xi(0,0) = 1.;
-      Xi(0,3) = - 1. / c2;
+      Xi(0,3) = REAL(- 1.) / c2;
       Xi(1,2) = 1.;
-      Xi(2,1) = - c / (2. * s);
-      Xi(2,3) = (s-c)/(8. * sol[0] * s * us);
+      Xi(2,1) = - c / (REAL(2.) * s);
+      Xi(2,3) = (s-c)/(REAL(8.) * sol[0] * s * us);
       Xi(3,1) = -Xi(2,1);
-      Xi(3,3) = (s+c)/(8. * sol[0] * s * us);
+      Xi(3,3) = (s+c)/(REAL(8.) * sol[0] * s * us);
 
       Lambda.Redim(nstate,nstate);
-      Lambda(0,0) = 1./us;
-      Lambda(1,1) = 1./sqrt(us2 + c2);
-      Lambda(2,2) = 1./sqrt(us2 + 1.5 * c2 - .5 * c * s);
-      Lambda(3,3) = 1./sqrt(us2 + 1.5 * c2 + .5 * c * s);
+      Lambda(0,0) = REAL(1.)/us;
+      Lambda(1,1) = REAL(1.)/sqrt(us2 + c2);
+      Lambda(2,2) = REAL(1.)/sqrt(us2 + REAL(1.5) * c2 - REAL(.5) * c * s);
+      Lambda(3,3) = 1./sqrt(us2 + REAL(1.5) * c2 + REAL(.5) * c * s);
 
       break;
       case(3):
 
-      s = sqrt(c2 + us2 * 4.);
+	s = sqrt(c2 + us2 * REAL(4.));
 
       X.Redim(nstate,nstate);
       X(0,0) = 1.;
-      X(0,3) = 1. / c2;
+      X(0,3) = REAL(1.) / c2;
       X(0,4) = X(0,3);
-      X(1,3) = (-s-c)/(2. * rho_c_us);
-      X(1,4) = ( s-c)/(2. * rho_c_us);
+      X(1,3) = (-s-c)/(REAL(2.) * rho_c_us);
+      X(1,4) = ( s-c)/(REAL(2.) * rho_c_us);
       X(2,2) = 1.;
       X(3,1) = 1.;
       X(4,3) = 1.;
@@ -767,20 +767,20 @@ void TPZArtDiff::EigenSystemSUPG(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZ
 
       Xi.Redim(nstate,nstate);
       Xi(0,0) = 1.;
-      Xi(0,4) = - 1. / c2;
+      Xi(0,4) = REAL(- 1.) / c2;
       Xi(1,3) = 1.;
       Xi(2,2) = 1.;
       Xi(3,1) = - rho_c_us / s;
-      Xi(3,4) = .5 - c / (2. * s);
+      Xi(3,4) = REAL(.5) - c / (REAL(2.) * s);
       Xi(4,1) = -Xi(3,1);
-      Xi(4,4) = .5 + c / (2. * s);
+      Xi(4,4) = REAL(.5) + c / (REAL(2.) * s);
 
       Lambda.Redim(nstate,nstate);
-      Lambda(0,0) = 1./us;
-      Lambda(1,1) = 1./sqrt(us2 + c2);
+      Lambda(0,0) = REAL(1.)/us;
+      Lambda(1,1) = REAL(1.)/sqrt(us2 + c2);
       Lambda(2,2) = Lambda(1,1);
-      Lambda(3,3) = 1./sqrt(us2 + 2. * c2 - c * s);
-      Lambda(4,4) = 1./sqrt(us2 + 2. * c2 + c * s);
+      Lambda(3,3) = REAL(1.)/sqrt(us2 + REAL(2.) * c2 - c * s);
+      Lambda(4,4) = REAL(1.)/sqrt(us2 + REAL(2.) * c2 + c * s);
       break;
 
       default:
@@ -812,7 +812,7 @@ void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma,
 
       Y.Redim(nstate,nstate);
       Y(0,1) = 1.;
-      Y(0,2) = 1. / c2;
+      Y(0,2) = REAL(1.) / c2;
       Y(0,3) = Y(0,2);
       Y(1,0) = -aaS[1] ;/// aaS[0];
       Y(1,2) = -aaS[0] / (k * rho_c);
@@ -827,9 +827,9 @@ void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma,
       Yi(0,1) = - /*aaS[0] * */aaS[1] / k2;
       Yi(0,2) =   /*aaS[0] * */aaS[0] / k2;
       Yi(1,0) = 1.;
-      Yi(1,3) = -1. / c2;
-      Yi(2,1) = - aaS[0] * rho_c / (2. * k);
-      Yi(2,2) = - aaS[1] * rho_c / (2. * k);
+      Yi(1,3) = REAL(-1.) / c2;
+      Yi(2,1) = - aaS[0] * rho_c / (REAL(2.) * k);
+      Yi(2,2) = - aaS[1] * rho_c / (REAL(2.) * k);
       Yi(2,3) = .5;
       Yi(3,1) = -Yi(2,1);
       Yi(3,2) = -Yi(2,2);
@@ -855,7 +855,7 @@ void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma,
 
       Y.Redim(nstate,nstate);
       Y(0,2) = 1.;
-      Y(0,3) = 1. / c2;
+      Y(0,3) = REAL(1.) / c2;
       Y(0,4) = Y(0,3);
       Y(1,0) = -aaS[2]/aaS[0];
       Y(1,1) = -aaS[1]/aaS[0];
@@ -878,10 +878,10 @@ void TPZArtDiff::EigenSystemBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma,
       Yi(1,2) =  (aaS[0] * aaS[0] + aaS[2] * aaS[2]) / k2;
       Yi(1,3) =  Yi(0,2);
       Yi(2,0) = 1.;
-      Yi(2,4) = -1. / c2;
-      Yi(3,1) = - aaS[0] * rho_c / (2. * k);
-      Yi(3,2) = - aaS[1] * rho_c / (2. * k);
-      Yi(3,3) = - aaS[2] * rho_c / (2. * k);
+      Yi(2,4) = REAL(-1.) / c2;
+      Yi(3,1) = - aaS[0] * rho_c / (REAL(2.) * k);
+      Yi(3,2) = - aaS[1] * rho_c / (REAL(2.) * k);
+      Yi(3,3) = - aaS[2] * rho_c / (REAL(2.) * k);
       Yi(3,4) = .5;
       Yi(4,1) = - Yi(3,1);
       Yi(4,2) = - Yi(3,2);
@@ -929,7 +929,7 @@ void TPZArtDiff::ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, 
       case (2):
       k2 = aaS[0]*aaS[0] + aaS[1]*aaS[1];
       k = sqrt(k2);
-      twoCK = c * T(k * 2.);
+      twoCK = c * T(k * REAL(2.));
 
       l1 = aaS[0] * us;
       if(val(l1) < 0.)l1 = -l1;
@@ -939,20 +939,20 @@ void TPZArtDiff::ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, 
       if(val(l4) < 0.)l4 = -l4;
 
       temp1 = (l4 - l3) * sol[0] / twoCK;
-      temp2 = l3 + l4 - 2.*l1;
+      temp2 = l3 + l4 - REAL(2.)*l1;
       Mat(0,0) += l1;
       Mat(0,1) += aaS[0] * temp1;
       Mat(0,2) += aaS[1] * temp1;
-      Mat(0,3) += temp2 / (2. * c2);
-      Mat(1,1) += (aaS[1]*aaS[1] * l1 + aaS[0]*aaS[0] * (l3+l4) *.5)/k2;
-      Mat(1,2) += aaS[0]*aaS[1] * temp2/(2. * k2);
-      Mat(1,3) += aaS[0]*(l4-l3)/(c * k * sol[0] * 2.);
-      Mat(2,1) += aaS[0]*aaS[1] * temp2/(2. * k2);
-      Mat(2,2) += (aaS[0]*aaS[0] * l1 + aaS[1]*aaS[1] * (l3+l4) *.5)/k2;
-      Mat(2,3) += aaS[1]*(l4-l3)/(c * k * sol[0] * 2.);
+      Mat(0,3) += temp2 / (REAL(2.) * c2);
+      Mat(1,1) += (aaS[1]*aaS[1] * l1 + aaS[0]*aaS[0] * (l3+l4) *REAL(.5))/k2;
+      Mat(1,2) += aaS[0]*aaS[1] * temp2/(REAL(2.) * k2);
+      Mat(1,3) += aaS[0]*(l4-l3)/(c * k * sol[0] * REAL(2.));
+      Mat(2,1) += aaS[0]*aaS[1] * temp2/(REAL(2.) * k2);
+      Mat(2,2) += (aaS[0]*aaS[0] * l1 + aaS[1]*aaS[1] * (l3+l4) *REAL(.5))/k2;
+      Mat(2,3) += aaS[1]*(l4-l3)/(c * k * sol[0] * REAL(2.));
       Mat(3,1) += aaS[0] * c2 * temp1;
       Mat(3,2) += aaS[1] * c2 * temp1;
-      Mat(3,3) += (l3 + l4)/2.;
+      Mat(3,3) += (l3 + l4)/REAL(2.);
 
 
       break;
@@ -969,32 +969,32 @@ void TPZArtDiff::ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, 
 
       lsum = l5 + l4;
       ldiff= l5 - l4;
-      lstar = lsum - 2.*l1;
+      lstar = lsum - REAL(2.)*l1;
 
-      twoCK = c * k * 2.;
+      twoCK = c * k * REAL(2.);
 
       Mat.Redim(nstate,nstate);
       Mat(0,0) += l1;
       Mat(0,1) += aaS[0] * sol[0] * ldiff / twoCK;
       Mat(0,2) += aaS[1] * sol[0] * ldiff / twoCK;
       Mat(0,3) += aaS[2] * sol[0] * ldiff / twoCK;
-      Mat(0,4) += lstar / ( c2 * 2. );
-      Mat(1,1) += aaS[0] * aaS[0] * lstar / (k2 * 2.) + l1;
-      Mat(1,2) += aaS[0] * aaS[1] * lstar / (k2 * 2.);
-      Mat(1,3) += aaS[0] * aaS[2] * lstar / (k2 * 2.);
+      Mat(0,4) += lstar / ( c2 * REAL(2.) );
+      Mat(1,1) += aaS[0] * aaS[0] * lstar / (k2 * REAL(2.)) + l1;
+      Mat(1,2) += aaS[0] * aaS[1] * lstar / (k2 * REAL(2.));
+      Mat(1,3) += aaS[0] * aaS[2] * lstar / (k2 * REAL(2.));
       Mat(1,4) += aaS[0] / twoCK / sol[0] * ldiff;
-      Mat(2,1) += aaS[0] * aaS[1] * lstar / (k2 * 2.);
-      Mat(2,2) += aaS[1] * aaS[1] * lstar / (k2 * 2.) + l1;
-      Mat(2,3) += aaS[1] * aaS[2] * lstar / (k2 * 2.);
+      Mat(2,1) += aaS[0] * aaS[1] * lstar / (k2 * REAL(2.));
+      Mat(2,2) += aaS[1] * aaS[1] * lstar / (k2 * REAL(2.)) + l1;
+      Mat(2,3) += aaS[1] * aaS[2] * lstar / (k2 * REAL(2.));
       Mat(2,4) += aaS[1] / twoCK / sol[0] * ldiff;
-      Mat(3,1) += aaS[0] * aaS[2] * lstar / (k2 * 2.);
-      Mat(3,2) += aaS[1] * aaS[2] * lstar / (k2 * 2.);
-      Mat(3,3) += aaS[2] * aaS[2] * lstar / (k2 * 2.) + l1;
+      Mat(3,1) += aaS[0] * aaS[2] * lstar / (k2 * REAL(2.));
+      Mat(3,2) += aaS[1] * aaS[2] * lstar / (k2 * REAL(2.));
+      Mat(3,3) += aaS[2] * aaS[2] * lstar / (k2 * REAL(2.)) + l1;
       Mat(3,4) += aaS[2] / twoCK / sol[0] * ldiff;
-      Mat(4,1) += aaS[0] * c * sol[0] * ldiff / (k * 2.);
-      Mat(4,2) += aaS[1] * c * sol[0] * ldiff / (k * 2.);
-      Mat(4,3) += aaS[2] * c * sol[0] * ldiff / (k * 2.);
-      Mat(4,4) += lstar/2. + l1;
+      Mat(4,1) += aaS[0] * c * sol[0] * ldiff / (k * REAL(2.));
+      Mat(4,2) += aaS[1] * c * sol[0] * ldiff / (k * REAL(2.));
+      Mat(4,3) += aaS[2] * c * sol[0] * ldiff / (k * REAL(2.));
+      Mat(4,4) += lstar/REAL(2.) + l1;
 
       break;
       default:

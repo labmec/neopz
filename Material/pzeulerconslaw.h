@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.29 2004-06-15 18:51:03 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.30 2004-09-07 23:41:33 phil Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -75,13 +75,13 @@ public :
    * (it assumes that each element is parametrized tensorially
    * with functions varying from -1 to 1)
    */
-  double DeltaX(double detJac);
+  REAL DeltaX(REAL detJac);
 
   /**
    * Computes the determinant of a 2d or 3d matrix.
    * Used by recompute the element size
    */
-  double Det(TPZFMatrix & Mat);
+  REAL Det(TPZFMatrix & Mat);
 
   /**
    * termodynamic pressure determined by the law of an ideal gas
@@ -639,7 +639,7 @@ inline void TPZEulerConsLaw2::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVe
   int i;
   for(i=0;i<dim;i++)Ai[i].Redim(TPZEulerConsLaw2::NStateVariables(dim), TPZEulerConsLaw2::NStateVariables(dim));
 
-  if(U[0] < 1.e-6) {
+  if(U[0] < REAL(1.e-6)) {
     PZError << "TPZEulerConsLaw2::JacobFlux: Density negative "   << U[0] << endl;
        TPZOutofRange obj;
        throw(obj);
@@ -862,17 +862,17 @@ inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T>
   if(nstate == 5){
     //U = (U0,U1,U2,U3,U4) = (ro , ro u , ro v , ro w , ro e)
     T rho_velocity = ( U[1]*U[1] + U[2]*U[2] + U[3]*U[3] )/U[0];
-    press = ((gamma-1.)*( U[4] - 0.5 * rho_velocity ));
+    press = ((gamma-1.)*( U[4] - REAL(0.5) * rho_velocity ));
   } else
   if(nstate == 4){
     //U = (U0,U1,U2,U3,U4) = (ro , ro u , ro v , ro e)
     T rho_velocity = ( U[1]*U[1] + U[2]*U[2] )/U[0];
-    press = ((gamma-1.)*( U[3] - 0.5 * rho_velocity ));
+    press = ((gamma-1.)*( U[3] - REAL(0.5) * rho_velocity ));
   } else
   if(nstate == 3){
     //U = (U0,U1,U2,U3,U4) = (ro , ro u , ro e)
     T rho_velocity = ( U[1]*U[1] )/U[0];
-    press = ((gamma-1.)*( U[2] - 0.5 * rho_velocity ));
+    press = ((gamma-1.)*( U[2] - REAL(0.5) * rho_velocity ));
   } else {
     cout << "\nTPZEulerConsLaw2::Pressure> Unknown case - returning zero\n";
     press = 0.0;
@@ -927,9 +927,9 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
    }else if(nState == 3)
    {
       //using the 2D expression for 1d problem
-      T auxL = 0.,
-        auxR = 0.,
-        fluxaux = 0.;
+     T auxL = REAL(0.),
+       auxR = REAL(0.),
+       fluxaux = REAL(0.);
 	auxL = flux[0];
       Roe_Flux(solL[0], solL[1], auxL, solL[2],
               solR[0], solR[1], auxR, solR[2],
@@ -968,8 +968,8 @@ inline void TPZEulerConsLaw2::Roe_Flux(
   flux_rhoE = 0;
 
   REAL gam1 = gam - 1.0;
-  T    irho_f = 1.0/rho_f;
-  T    irho_t = 1.0/rho_t;
+  T    irho_f = REAL(1.0)/rho_f;
+  T    irho_t = REAL(1.0)/rho_t;
 
   //
   //.. Compute the ROE Averages
@@ -978,7 +978,7 @@ inline void TPZEulerConsLaw2::Roe_Flux(
   T    coef1 = sqrt(rho_f);
   T    coef2 = sqrt(rho_t);
   T    somme_coef = coef1 + coef2;
-  T    isomme_coef = 1.0/somme_coef;
+  T    isomme_coef = REAL(1.0)/somme_coef;
   T    u_f = rhou_f*irho_f;
   T    v_f = rhov_f*irho_f;
   T    w_f = rhow_f*irho_f;
@@ -998,10 +998,10 @@ inline void TPZEulerConsLaw2::Roe_Flux(
   //.. Compute Speed of sound
   T    scal = u_ave * nx + v_ave * ny + w_ave * nz;
   T    norme = sqrt(nx * nx + ny * ny + nz * nz);
-  T    inorme = 1.0/norme;
+  T    inorme = REAL(1.0)/norme;
   T    u2pv2pw2 = u_ave * u_ave + v_ave * v_ave + w_ave * w_ave;
-  T    c_speed = gam1 * (h_ave - 0.5 * u2pv2pw2);
-  if(c_speed < 1e-6) c_speed = 1e-6;// <!> zeroes the derivatives?   // avoid division by 0 if critical
+  T    c_speed = gam1 * (h_ave - REAL(0.5) * u2pv2pw2);
+  if(c_speed < REAL(1e-6)) c_speed = 1e-6;// <!> zeroes the derivatives?   // avoid division by 0 if critical
   c_speed = sqrt(c_speed);
   T    c_speed2 = c_speed * norme;
   //
@@ -1017,8 +1017,8 @@ inline void TPZEulerConsLaw2::Roe_Flux(
   //.... phi(Wl,Wr) = F(Wl) + A-(Wroe)(Wr - Wl)
   //.... phi(Wl,Wr) = F(Wr) - A+(Wroe)(Wr - Wl)
   //
-  if(eig_val2 <= 0.0) {
-    p_t = gam1 * (rhoE_t - 0.5 * (rhou_t * rhou_t +
+  if(eig_val2 <= REAL(0.0)) {
+    p_t = gam1 * (rhoE_t - REAL(0.5) * (rhou_t * rhou_t +
 				  rhov_t * rhov_t + rhow_t * rhow_t) * irho_t);
     ep_t = rhoE_t + p_t;
     rhouv_t = rhou_t * v_t;
@@ -1032,17 +1032,17 @@ inline void TPZEulerConsLaw2::Roe_Flux(
     //
     //.... A Entropic modification
     //
-    p_f = gam1 * (rhoE_f - 0.5 * (rhou_f * rhou_f + rhov_f * rhov_f
+    p_f = gam1 * (rhoE_f - REAL(0.5) * (rhou_f * rhou_f + rhov_f * rhov_f
 				  + rhow_f * rhow_f) * irho_f);
     lambda_f = u_f * nx + v_f * ny + w_f * nz + norme
       * sqrt(gam * p_f * irho_f);
     lambda_t = u_t * nx + v_t * ny + w_t * nz + norme
       * sqrt(gam * p_t * irho_t);
-    if (entropyFix && (lambda_f < 0.) && (lambda_t > 0.)) {
+    if (entropyFix && (lambda_f < REAL(0.)) && (lambda_t > REAL(0.))) {
       eig_val3 = lambda_t * (eig_val3 - lambda_f) / (lambda_t - lambda_f);
     }
     //
-    if (eig_val3 > 0.0) {
+    if (eig_val3 > REAL(0.0)) {
       //.. In this case A+ is obtained by multiplying the last
       //.. colomne of T-1 with the last row of T with eig_val3                //Cedric
       delta_rho  = rho_t - rho_f;                                             //right - left
@@ -1055,20 +1055,20 @@ inline void TPZEulerConsLaw2::Roe_Flux(
       hnx = nx * inorme;
       hny = ny * inorme;
       hnz = nz * inorme;
-      usc = 1.0/c_speed;
+      usc = REAL(1.0)/c_speed;
       tempo11 = gam1 * usc;
       //.. Last columne of the matrix T-1
       a1 = usc;
       a2 = u_ave * usc + hnx;
       a3 = v_ave * usc + hny;
       a4 = w_ave * usc + hnz;
-      a5 = 0.5 * u2pv2pw2 * usc + 2.5 * c_speed + scal;
+      a5 = REAL(0.5) * u2pv2pw2 * usc + REAL(2.5) * c_speed + scal;
       //.. Last row of the matrix T * eig_val3
-      b1 = 0.5 * (0.5 * tempo11 * u2pv2pw2 - scal);
-      b2 = 0.5 * (hnx - tempo11 * u_ave);
-      b3 = 0.5 * (hny - tempo11 * v_ave);
-      b4 = 0.5 * (hnz - tempo11 * w_ave);
-      b5 = 0.5 * tempo11;
+      b1 = REAL(0.5) * (REAL(0.5) * tempo11 * u2pv2pw2 - scal);
+      b2 = REAL(0.5) * (hnx - tempo11 * u_ave);
+      b3 = REAL(0.5) * (hny - tempo11 * v_ave);
+      b4 = REAL(0.5) * (hnz - tempo11 * w_ave);
+      b5 = REAL(0.5) * tempo11;
       //
       alpha1 = b1 * delta_rho;
       alpha2 = b2 * delta_rhou;
@@ -1085,8 +1085,8 @@ inline void TPZEulerConsLaw2::Roe_Flux(
     }
   }
   //
-  if(eig_val2 > 0.0) {
-    p_f = gam1 * (rhoE_f - 0.5 * (rhou_f * rhou_f +
+  if(eig_val2 > REAL(0.0)) {
+    p_f = gam1 * (rhoE_f - REAL(0.5) * (rhou_f * rhou_f +
 				  rhov_f * rhov_f + rhow_f * rhow_f) * irho_f);
     ep_f = rhoE_f + p_f;
     rhouv_f = rhou_f * v_f;
@@ -1100,17 +1100,17 @@ inline void TPZEulerConsLaw2::Roe_Flux(
     //
     // A Entropic modification
     //
-    p_t = gam1 * (rhoE_t - 0.5 * (rhou_t * rhou_t +
-				  + rhov_t * rhov_t + rhow_t * rhow_t) * irho_t);
+    p_t = gam1 * (rhoE_t - REAL(0.5) * (rhou_t * rhou_t +
+				  rhov_t * rhov_t + rhow_t * rhow_t) * irho_t);
     lambda_f = u_f * nx + v_f * ny + w_f * nz - norme
       * sqrt(gam * p_f * irho_f);
     lambda_t   = u_t * nx + v_t * ny + w_t * nz - norme
       * sqrt(gam * p_t * irho_t);
-    if (entropyFix && (lambda_f < 0.) && (lambda_t > 0.)) {
+    if (entropyFix && (lambda_f < REAL(0.)) && (lambda_t > REAL(0.))) {
       eig_val1 = lambda_f * (lambda_t - eig_val1) / (lambda_t - lambda_f);
     }
     //
-    if (eig_val1 < 0.0) {
+    if (eig_val1 < REAL(0.0)) {
       //.. In this case A+ is obtained by multiplying the first
       //.. columne of T-1 with the first row of T with eig_val1
       delta_rho  = rho_t - rho_f;
@@ -1123,20 +1123,20 @@ inline void TPZEulerConsLaw2::Roe_Flux(
       hnx = nx * inorme;
       hny = ny * inorme;
       hnz = nz * inorme;
-      usc = 1.0/c_speed;
+      usc = REAL(1.0)/c_speed;
       tempo11 = gam1 * usc;
       //.. First colomne of the matrix T-1
       a1 = usc;
       a2 = u_ave * usc - hnx;
       a3 = v_ave * usc - hny;
       a4 = w_ave * usc - hnz;
-      a5 = 0.5 * u2pv2pw2 * usc + 2.5 * c_speed - scal;
+      a5 = REAL(0.5) * u2pv2pw2 * usc + REAL(2.5) * c_speed - scal;
       //.. First row of the matrix T * eig_val1
-      b1 = 0.5 * (0.5 * tempo11 * u2pv2pw2 + scal);
-      b2 = -0.5 * (hnx + tempo11 * u_ave);
-      b3 = -0.5 * (hny + tempo11 * v_ave);
-      b4 = -0.5 * (hnz + tempo11 * w_ave);
-      b5 = 0.5 * tempo11;
+      b1 = REAL(0.5) * (REAL(0.5) * tempo11 * u2pv2pw2 + scal);
+      b2 = -REAL(0.5) * (hnx + tempo11 * u_ave);
+      b3 = -REAL(0.5) * (hny + tempo11 * v_ave);
+      b4 = -REAL(0.5) * (hnz + tempo11 * w_ave);
+      b5 = REAL(0.5) * tempo11;
       //
       alpha1 = b1 * delta_rho;
       alpha2 = b2 * delta_rhou;
@@ -1174,7 +1174,7 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
   flux_rhov = 0;
   flux_rhoE = 0;
 
-  REAL gam1 = gam - 1.0;
+  REAL gam1 = gam - REAL(1.0);
   //REAL gam2 = gam * (gam - 1.0);
   //REAL igam = 1.0 / (gam - 1.0);
 
@@ -1187,10 +1187,10 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
   T    somme_coef = coef1 + coef2;
   T    u_f = rhou_f/rho_f;
   T    v_f = rhov_f/rho_f;
-  T    h_f = (gam * rhoE_f/rho_f) -  (u_f * u_f + v_f * v_f) * (gam1 / 2.0);
+  T    h_f = (gam * rhoE_f/rho_f) -  (u_f * u_f + v_f * v_f) * (gam1 / REAL(2.0));
   T    u_t = rhou_t/rho_t;
   T    v_t = rhov_t/rho_t;
-  T    h_t = (gam * rhoE_t/rho_t) -  (u_t * u_t + v_t * v_t) * (gam1 / 2.0);
+  T    h_t = (gam * rhoE_t/rho_t) -  (u_t * u_t + v_t * v_t) * (gam1 / REAL(2.0));
 
   //.... averages
   //REAL rho_ave = coef1 * coef2;
@@ -1202,8 +1202,8 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
   T    scal = u_ave * nx + v_ave * ny;
   REAL norme = sqrt(nx * nx + ny * ny);
   T    u2pv2 = u_ave * u_ave + v_ave * v_ave;
-  T    c_speed = gam1 * (h_ave - 0.5 * u2pv2);
-  if(c_speed < 1e-6) c_speed = 1e-6;    // avoid division by 0 if critical
+  T    c_speed = gam1 * (h_ave - REAL(0.5) * u2pv2);
+  if(c_speed < REAL(1e-6)) c_speed = REAL(1e-6);    // avoid division by 0 if critical
   c_speed = sqrt(c_speed);
   T    c_speed2 = c_speed * norme;
   //
@@ -1219,8 +1219,8 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
   //.... phi(Wl,Wr) = F(Wl) + A-(Wroe)(Wr - Wl)
   //.... phi(Wl,Wr) = F(Wr) - A+(Wroe)(Wr - Wl)
   //
-  if(eig_val2 <= 0.0) {
-    p_t = gam1 * (rhoE_t - 0.5 * (rhou_t * rhou_t + rhov_t * rhov_t) / rho_t);
+  if(eig_val2 <= REAL(0.0)) {
+    p_t = gam1 * (rhoE_t - REAL(0.5) * (rhou_t * rhou_t + rhov_t * rhov_t) / rho_t);
     ep_t = rhoE_t + p_t;
     rhouv_t = rhou_t * v_t;
     flux_rho  = rhou_t * nx + rhov_t * ny;
@@ -1230,15 +1230,15 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
     //
     //.... A Entropic modification
     //
-    p_f = gam1 * (rhoE_f - 0.5 * (rhou_f * rhou_f + rhov_f * rhov_f) / rho_f);
+    p_f = gam1 * (rhoE_f - REAL(0.5) * (rhou_f * rhou_f + rhov_f * rhov_f) / rho_f);
     lambda_f = u_f * nx + v_f * ny + norme * sqrt(gam * p_f / rho_f);
     lambda_t   = u_t * nx + v_t * ny + norme
       * sqrt(gam * p_t / rho_t);
-    if (entropyFix && (lambda_f < 0.) && (lambda_t > 0.)) {
+    if (entropyFix && (lambda_f < REAL(0.)) && (lambda_t > REAL(0.))) {
       eig_val3 = lambda_t * (eig_val3 - lambda_f) / (lambda_t - lambda_f);
     }
     //
-    if (eig_val3 > 0.0) {
+    if (eig_val3 > REAL(0.0)) {
       //.. In this case A+ is obtained by multiplying the last
       //.. colomne of T-1 with the last row of T with eig_val3
       delta_rho  = rho_t - rho_f;
@@ -1249,18 +1249,18 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
       scal = scal / norme;
       hnx = nx / norme;
       hny = ny / norme;
-      usc = 1.0/c_speed;
+      usc = REAL(1.0)/c_speed;
       tempo11 = gam1 * usc;
       //.. Last columne of the matrix T-1
       a1 = usc;
       a2 = u_ave * usc + hnx;
       a3 = v_ave * usc + hny;
-      a4 = 0.5 * u2pv2 * usc + 2.5 * c_speed + scal;
+      a4 = REAL(0.5) * u2pv2 * usc + REAL(2.5) * c_speed + scal;
       //.. Last row of the matrix T * eig_val3
-      b1 = 0.5 * eig_val3 * (0.5 * tempo11 * u2pv2 - scal);
-      b2 = 0.5 * eig_val3 * (hnx - tempo11 * u_ave);
-      b3 = 0.5 * eig_val3 * (hny - tempo11 * v_ave);
-      b4 = 0.5 * eig_val3 * tempo11;
+      b1 = REAL(0.5) * eig_val3 * (REAL(0.5) * tempo11 * u2pv2 - scal);
+      b2 = REAL(0.5) * eig_val3 * (hnx - tempo11 * u_ave);
+      b3 = REAL(0.5) * eig_val3 * (hny - tempo11 * v_ave);
+      b4 = REAL(0.5) * eig_val3 * tempo11;
       //
       alpha1 = a1 * b1 * delta_rho;
       alpha2 = a1 * b2 * delta_rhou;
@@ -1278,9 +1278,9 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
     }
   }
   //
-  if(eig_val2 > 0.0) {
-    p_f = gam1 * (rhoE_f - 0.5 * (rhou_f * rhou_f +
-				  + rhov_f * rhov_f) / rho_f);
+  if(eig_val2 > REAL(0.0)) {
+    p_f = gam1 * (rhoE_f - REAL(0.5) * (rhou_f * rhou_f +
+				  rhov_f * rhov_f) / rho_f);
     ep_f = rhoE_f + p_f;
     rhouv_f = rhou_f * v_f;
     flux_rho  = rhou_f * nx + rhov_f * ny;
@@ -1290,15 +1290,15 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
     //
     // A Entropic modification
     //
-    p_t = gam1 * (rhoE_t - 0.5 * (rhou_t * rhou_t +
-				+ rhov_t * rhov_t) / rho_t);
+    p_t = gam1 * (rhoE_t - REAL(0.5) * (rhou_t * rhou_t +
+				rhov_t * rhov_t) / rho_t);
     lambda_f = u_f * nx + v_f * ny - norme * sqrt(gam * p_f / rho_f);
     lambda_t   = u_t * nx + v_t * ny - norme * sqrt(gam * p_t / rho_t);
-    if (entropyFix && (lambda_f < 0.) && (lambda_t > 0.)) {
+    if (entropyFix && (lambda_f < REAL(0.)) && (lambda_t > REAL(0.))) {
       eig_val1 = lambda_f * (lambda_t - eig_val1) / (lambda_t - lambda_f);
     }
     //
-    if (eig_val1 < 0.0) {
+    if (eig_val1 < REAL(0.0)) {
       //.. In this case A+ is obtained by multiplying the first
       //.. columne of T-1 with the first row of T with eig_val1
       delta_rho  = rho_t - rho_f;
@@ -1309,18 +1309,18 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
       scal = scal / norme;
       hnx = nx / norme;
       hny = ny / norme;
-      usc = 1.0/c_speed;
+      usc = REAL(1.0)/c_speed;
       tempo11 = gam1 * usc;
       //.. First colomne of the matrix T-1
       a1 = usc;
       a2 = u_ave * usc - hnx;
       a3 = v_ave * usc - hny;
-      a4 = 0.5 * u2pv2 * usc + 2.5 * c_speed - scal;
+      a4 = REAL(0.5) * u2pv2 * usc + REAL(2.5) * c_speed - scal;
       //.. First row of the matrix T * eig_val1
-      b1 = 0.5 * eig_val1 * (0.5 * tempo11 * u2pv2 + scal);
-      b2 = -0.5 * eig_val1 * (hnx + tempo11 * u_ave);
-      b3 = -0.5 * eig_val1 * (hny + tempo11 * v_ave);
-      b4 = 0.5 * eig_val1 * tempo11;
+      b1 = REAL(0.5) * eig_val1 * (REAL(0.5) * tempo11 * u2pv2 + scal);
+      b2 = -REAL(0.5) * eig_val1 * (hnx + tempo11 * u_ave);
+      b3 = -REAL(0.5) * eig_val1 * (hny + tempo11 * v_ave);
+      b4 = REAL(0.5) * eig_val1 * tempo11;
       //
       alpha1 = a1 * b1 * delta_rho;
       alpha2 = a1 * b2 * delta_rhou;
@@ -1343,7 +1343,7 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
 template <class T>
 void TPZEulerConsLaw2::cSpeed(TPZVec<T> & sol, REAL gamma, T & c)
 {
-   if(sol[0] < 1e-10)
+  if(sol[0] < REAL(1e-10))
    {
       PZError << "TPZEulerConsLaw2::cSpeed Too low or negative density\n";
       TPZOutofRange obj;
@@ -1355,7 +1355,7 @@ void TPZEulerConsLaw2::cSpeed(TPZVec<T> & sol, REAL gamma, T & c)
    TPZEulerConsLaw2::Pressure(gamma, dim, press, sol);
    temp = gamma * press;
 
-   if(temp < 1e-10) // too low or negative
+   if(temp < REAL(1e-10)) // too low or negative
    {
       PZError << "TPZEulerConsLaw2::cSpeed Too low or negative numerator\n";
    }
@@ -1365,7 +1365,7 @@ void TPZEulerConsLaw2::cSpeed(TPZVec<T> & sol, REAL gamma, T & c)
 template <class T>
 inline void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
 {
-   if(sol[0] < 1e-10)
+  if(sol[0] < REAL(1e-10))
    {
       PZError << "TPZEulerConsLaw2::cSpeed Too low or negative density\n";
       TPZOutofRange obj;
@@ -1380,7 +1380,7 @@ inline void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
       us = sol[1]/sol[0];
       case(4):
       temp = sol[1]*sol[1] + sol[2]*sol[2];
-      if(temp < 1e-40)
+      if(temp < REAL(1e-40))
       {
 	 PZError << "TPZEulerConsLaw2::uRes Zero Velocity\n";
          TPZOutofRange obj;
@@ -1391,7 +1391,7 @@ inline void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
       break;
       case(5):
       temp = sol[1]*sol[1] + sol[2]*sol[2] + sol[3]*sol[3];
-      if(temp < 1e-40)
+      if(temp < REAL(1e-40))
       {
 	 PZError << "TPZEulerConsLaw2::uRes Zero Velocity\n";
          TPZOutofRange obj;

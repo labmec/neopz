@@ -482,19 +482,19 @@ void TPZMatOrthotropic::Normalize(TPZFMatrix &naxes){
   int i;
   /**normalizando os eixos*/
   REAL norm2 = naxes(0,0)*naxes(0,0)+naxes(0,1)*naxes(0,1)+naxes(0,2)*naxes(0,2);
-  if(!norm2){PZError << "TPZMatOrthotropic::Normalize: Eixo nulo nao e valido (eixo 1)\n"; exit(-1);}
+  if(norm2 == 0.){PZError << "TPZMatOrthotropic::Normalize: Eixo nulo nao e valido (eixo 1)\n"; exit(-1);}
   for(i=0;i<3;i++) naxes(0,i) /= sqrt(norm2);
   norm2 = naxes(1,0)*naxes(1,0)+naxes(1,1)*naxes(1,1)+naxes(1,2)*naxes(1,2);
-  if(!norm2){PZError << "TPZMatOrthotropic::Normalize: Eixo nulo nao e valido (eixo 2)\n"; exit(-1);}
+  if(norm2 == 0.){PZError << "TPZMatOrthotropic::Normalize: Eixo nulo nao e valido (eixo 2)\n"; exit(-1);}
   for(i=0;i<3;i++) naxes(1,i) /= sqrt(norm2);
   norm2 = naxes(2,0)*naxes(2,0)+naxes(2,1)*naxes(2,1)+naxes(2,2)*naxes(2,2);
-  if(norm2) for(i=0;i<3;i++) naxes(2,i) /= sqrt(norm2);
+  if(norm2 != 0.) for(i=0;i<3;i++) naxes(2,i) /= sqrt(norm2);
   /**verificando a ortogonalidade dos dois primeiros eixos pelo produto vetorial*/
   REAL componente_K =  naxes(0,0)*naxes(1,1) - naxes(0,1)*naxes(1,0);
   REAL componente_J = -naxes(0,0)*naxes(1,2) + naxes(0,2)*naxes(1,0);
   REAL componente_I =  naxes(0,1)*naxes(1,2) - naxes(0,2)*naxes(1,1);
   /**primeiro teste*/
-  if(!componente_I && !componente_J && !componente_K){
+  if(componente_I == 0. && componente_J == 0. && componente_K == 0.){
     PZError << "TPZMatOrthotropic::Normalize: Os dois primeiros eixos nao devem ser paralelos\n";
     PZError << "Programa abortado\n";
     exit(-1);
