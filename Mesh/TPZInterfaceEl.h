@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.h,v 1.17 2003-11-05 16:02:21 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.18 2003-11-25 17:24:22 phil Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -181,6 +181,9 @@ class TPZInterfaceElement : public TPZCompEl {
   void CloneInterface(TPZCompMesh *aggmesh);
 
   static int main(TPZCompMesh &cmesh);
+
+void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
+		   REAL &true_error,REAL &L2_error,TPZBlock * /*flux */,REAL &estimate);
 
 };
 

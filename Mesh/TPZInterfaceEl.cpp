@@ -1,4 +1,4 @@
-//$Id: TPZInterfaceEl.cpp,v 1.22 2003-11-04 20:16:46 cedric Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.23 2003-11-25 17:24:22 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -19,9 +19,9 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   fReference = geo;
   geo->SetReference(this);
   int materialid = fReference->MaterialId();
-  if(materialid<0){
-    PZError << "TPZInterfaceElement::TPZInterfaceElement the interface element is not a BC condition\n";
-  }
+  //  if(materialid<0){
+  //    PZError << "TPZInterfaceElement::TPZInterfaceElement the interface element is not a BC condition\n";
+  //  }
   //poderia eliminar esta variável e carrega-la do elemento de volume associado
   fMaterial = mesh.FindMaterial(materialid);
   fLeftEl = left;
@@ -88,12 +88,13 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index)
 
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
-#ifdef _AUTODIFF
-  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
-#else
-  TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>(fMaterial);
-#endif
+  //#ifdef _AUTODIFF
+  //  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
+  //#else
+  //  TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>(fMaterial);
+  //#endif
 
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
   if(!mat || !strcmp("no_name",mat->Name())){
     PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
     return;
@@ -104,6 +105,8 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     PZError << "TPZInterfaceElement::CalcStiff null material\n";
     return;
   }
+  //  cout << "TPZInterfaceElement::CalcStiff normal" << fNormal << "left " << left->Reference()->Id() << " right " << right->Reference()->Id() << endl;
+
   int nshapel = left->NShapeF();
   int nshaper = right->NShapeF();
   TPZBlock &block = Mesh()->Block();
@@ -195,11 +198,12 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	  dsoll(d,iv%nstatel) += dphixl(d,iv/nstatel)*MeshSol(pos+jn,0);
 	iv++;
       }
-    } else {
-      bcleft = dynamic_cast<TPZBndCond *> (left->Material());
-      if(!bcleft) PZError << "TPZInterfaceElement::CalcStiff material does not exists\n";
-      mat->ComputeSolLeft(solr,soll,fNormal,bcleft);
-    }
+    } 
+    //    else {
+    //      bcleft = dynamic_cast<TPZBndCond *> (left->Material());
+    //      if(!bcleft) PZError << "TPZInterfaceElement::CalcStiff material does not exists\n";
+    //      mat->ComputeSolLeft(solr,soll,fNormal,bcleft);
+    //    }
     //solu¢ão da itera¢ão anterior
     solr.Fill(0.);
     dsolr.Zero();
@@ -215,11 +219,12 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	  dsolr(d,iv%nstater) += dphixr(d,iv/nstater)*MeshSol(pos+jn,0);
 	iv++;
       }
-    } else {
-      bcright = dynamic_cast<TPZBndCond *> (right->Material());
-      if(!bcright) PZError << "TPZInterfaceElement::CalcStiff material does not exists\n";
-      mat->ComputeSolRight(solr,soll,fNormal,bcright);
-    }
+    } 
+    //    else {
+    //      bcright = dynamic_cast<TPZBndCond *> (right->Material());
+    //      if(!bcright) PZError << "TPZInterfaceElement::CalcStiff material does not exists\n";
+    //      mat->ComputeSolRight(solr,soll,fNormal,bcright);
+    //    }
     mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,*ek.fMat,*ef.fMat);
   }
 }
@@ -468,36 +473,41 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
   //face: lado do elemento bidimensional ou aresta 
   //do unidimensional ou canto do ponto
   normal.Resize(3,0.);
-  TPZCompElSide neigh(fLeftEl,leftside);
-  TPZGeoElSide neighside = neigh.Reference();
-  TPZGeoEl *geoneigh = neighside.Element();
+  normal.Fill(0.);
+  int faceleft,faceright;
 
-  TPZVec<REAL> param(3),cent(3),point(3,0.),result(3,0.),xint(3),xvol(3),vec(3),rib(3);
+  TPZVec<REAL> param(3),centleft(3),centright(3),point(3,0.),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
   TPZFMatrix jacobian(3,3),jacinv(3,3),axes(3,3);
   REAL detjac,normalize;
   int i;
 
+  faceleft = fLeftEl->Reference()->NSides()-1;//lado interior do elemento esquerdo
+  faceright = fRightEl->Reference()->NSides()-1; // lado interior do element direito
+  fLeftEl->Reference()->CenterPoint(faceleft,centleft);//ponto centro do elemento de volume
+  fRightEl->Reference()->CenterPoint(faceright,centright);
+  fLeftEl->Reference()->X(centleft,xvolleft);
+  fRightEl->Reference()->X(centright,xvolright);
+  for(i=0;i<3;i++) vec[i] = xvolright[i]-xvolleft[i];//não deve ser nulo
+
   switch(TPZCompElDisc::gInterfaceDimension){
   case 0:
     normal[0] = 1.0;// a normal sempre apontará na dire¢ão positiva do eixo
+    normal[1] = 0.;
+    normal[2] = 0.;
     break;
   case 1:
-    fReference->CenterPoint(face,param);//ponto interior da interface
-    fReference->X(param,xint);
     fReference->Jacobian(param,jacobian,axes,detjac,jacinv);
-    face = geoneigh->NSides()-1;//lado interior
-    geoneigh->CenterPoint(face,cent);//ponto centro do elemento de volume
-    geoneigh->X(cent,xvol);
-    for(i=0;i<3;i++) vec[i] = xvol[i]-xint[i];//não deve ser nulo
     for(i=0;i<3;i++) rib[i] = axes(0,i);//dire¢ão da aresta
     VetorialProd(rib,vec,result);
     VetorialProd(result,rib,normal);
     //normalizando a normal
-    for(i=0;i<3;i++) vec[i] = 0.;
-    normalize = fReference->Distance(normal,vec);
+    normalize = 0.;
+    for(i=0;i<3;i++) normalize += normal[i]*normal[i];
     if(!normalize)
       PZError << "TPZInterfaceElement::NormalToFace null normal vetor\n";
+    normalize = sqrt(normalize);
     for(i=0;i<3;i++) normal[i] = normal[i]/normalize;
+    
     break;
   case 2:
     fReference->CenterPoint(face,param);//ponto da face
@@ -508,6 +518,11 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal,int leftside){
     PZError << "TPZInterfaceElement::NormalToFace in case that not treated\n";
     normal.Resize(0);
     return;
+  }
+  normalize = 0.;
+  for(i=0; i<3; i++) normalize += normal[i]*vec[i];
+  if(normalize < 0.) {
+    for(i=0; i<3; i++) normal[i] = -normal[i];
   }
 }
 
@@ -527,3 +542,5 @@ void TPZInterfaceElement::Normal(TPZVec<REAL> &normal) {
 /**
  *  ESTA ALTERA¢ÃO É SÓ PARA ATUALIZAR O PZREPOSITORY (CVS)
  */
+void TPZInterfaceElement::EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
+  REAL &true_error,REAL &L2_error,TPZBlock * /*flux */,REAL &estimate) {}
