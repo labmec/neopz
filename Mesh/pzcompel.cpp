@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.15 2005-02-28 22:08:50 phil Exp $
+//$Id: pzcompel.cpp,v 1.16 2005-03-03 21:53:58 tiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -31,6 +31,8 @@
 #include "pztransfer.h"
 #include "pztrnsform.h"
 #include "pzquad.h"
+
+#include "TPZInterfaceEl.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -1036,4 +1038,84 @@ void TPZCompEl::Read(TPZStream &buf, void *context)
 void TPZCompEl::SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,
 								TPZFMatrix & phi,TPZFMatrix & dphi)) {
 	pzshape::TPZShapeLinear::fOrthogonal = orthogonal;
+}
+
+TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
+{
+   TPZInterfaceElement * newcreatedinterface = NULL;
+
+  TPZGeoEl *ref = Reference();
+  if(!ref) return newcreatedinterface;
+
+  TPZCompElSide thisside(this,side);
+  TPZStack<TPZCompElSide> list;
+  list.Resize(0);
+  thisside.EqualLevelElementList(list,0,1);//retorna distinto ao atual ou nulo
+  int size = list.NElements();
+  //espera-se ter os elementos computacionais esquerdo e direito 
+  //já criados antes de criar o elemento interface
+  if(size){
+
+     //Interface has the same material of the neighbour with lesser dimension.
+     //It makes the interface has the same material of boundary conditions (TPZCompElDisc with interface dimension)
+     int matid;
+     int thisdim = this->Dimension();
+     int neighbourdim = list[0].Element()->Dimension();
+     if (thisdim == neighbourdim) matid = this->Material()->Id();
+     else 
+     {
+	if (thisdim < neighbourdim) matid = this->Material()->Id();
+	else matid = list[0].Element()->Material()->Id();
+     }
+
+
+    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
+    //isto acertou as vizinhan¢as da interface geométrica com o atual
+    int index;
+    TPZCompEl *list0 = dynamic_cast<TPZCompEl *>(list[0].Element());
+
+    if(Dimension() > list0->Dimension()){
+       //o de volume é o direito caso um deles seja BC
+       //a normal aponta para fora do contorno
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,this,list0/*,side*/);
+    } else {
+       //caso contrário ou caso ambos sejam de volume 
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,list0,this/*,list[0].Side()*/);
+    }
+    return newcreatedinterface;
+  }
+
+
+//If there is no equal level element, we try the lower elements.
+//Higher elements will not be considered by this method. In that case the interface must be created by the neighbour.
+  TPZCompElSide lower = thisside.LowerLevelElementList(0);
+  if(lower.Exists()){
+
+     //Interface has the same material of the neighbour with lesser dimension.
+     //It makes the interface has the same material of boundary conditions (TPZCompElDisc with interface dimension)
+     int matid;
+     int thisdim = this->Dimension();
+     int neighbourdim = lower.Element()->Dimension();
+     if (thisdim == neighbourdim) matid = this->Material()->Id();
+     else 
+     {
+	if (thisdim < neighbourdim) matid = this->Material()->Id();
+	else matid = lower.Element()->Material()->Id();
+     }
+
+    //existem esquerdo e direito: this e lower
+    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
+    int index;
+    TPZCompEl *lowcel = dynamic_cast<TPZCompEl *>(lower.Element());
+
+    if(Dimension() > lowcel->Dimension()){
+       //para que o elemento esquerdo seja de volume
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,this,lowcel/*,side*/);
+    } else {
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcel,this/*,lower.Side()*/);
+    }
+    return newcreatedinterface;
+  }
+
+  return newcreatedinterface;
 }

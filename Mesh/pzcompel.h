@@ -1,7 +1,5 @@
-//HEADER FILE FOR CLASS ELBAS
-
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.15 2005-02-28 22:08:50 phil Exp $
+// $Id: pzcompel.h,v 1.16 2005-03-03 21:53:58 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -23,6 +21,7 @@ struct TPZElementMatrix;
 class TPZCompMesh;
 class TPZBndCond;
 class TPZInterpolatedElement;
+class TPZInterfaceElement;
 class TPZConnect;
 class TPZMaterial;
 class TPZGeoEl;
@@ -459,6 +458,12 @@ public:
   Read the element data from a stream
   */
   virtual void Read(TPZStream &buf, void *context);
+
+  /** Create an interface between this and the neighbour by side side.
+   * Returns the interface created.
+   */
+  TPZInterfaceElement * CreateInterface(int side);
+
 };
 
 
@@ -515,6 +520,11 @@ public:
    * Gives a pointer to the reference computational element
    */
   TPZCompEl *Element() const {return fEl;}
+
+  /**
+   *  Set computational element pointer.
+   */
+  void SetElement(TPZCompEl* el){ fEl = el;}
 
   /**
    * Return the side index

@@ -1,11 +1,12 @@
-//$Id: TPZInterfaceEl.h,v 1.26 2005-02-28 22:08:52 phil Exp $
+// -*- c++ -*-
+
+//$Id: TPZInterfaceEl.h,v 1.27 2005-03-03 21:53:59 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
 
 
 #include "pzcompel.h"
-#include "TPZCompElDisc.h"
 #include "pzgeoel.h"
 #include "pzcmesh.h"
 #include "pzfmatrix.h"
@@ -16,6 +17,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <iostream>
+class TPZCompElDisc;
 
 /// This class computes the contribution over an interface between two discontinuous elements
 /**
@@ -23,15 +25,17 @@
 */
 class TPZInterfaceElement : public TPZCompEl {
 
+   private :
+
   /**
-   * element the left of the normal a interface 
+   * Element the left of the normal a interface 
    */
-  TPZCompElDisc *fLeftEl;//este podia ser um TPZCompElSide
+  TPZCompElSide fLeftElSide;
 
   /**
    * element the right of the normal a interface 
    */
-  TPZCompElDisc *fRightEl;//este podia ser um TPZCompElSide
+  TPZCompElSide fRightElSide;
 
   /**
    * Normal to the face element
@@ -41,12 +45,12 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * Keep track of the connects of the element
    */
-    TPZConnect *fConnectL, *fConnectR;
+  //TPZVec<TPZConnect *> fConnectL, fConnectR;
 
-  /**
+ /**
    * Keep track of the connect indexes
    */
-  int fConnectIndexL, fConnectIndexR;
+//  int fConnectIndexL[NL], fConnectIndexR[NR];
 
   /**
    * Geometric element to which this element refers
@@ -58,25 +62,48 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   TPZMaterial *fMaterial;//this variable can be gotten of the element of associated volume
 
+  void IncrementElConnected();
+
+ /**
+  * Extract connects from element el.
+  */
+  void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int> &connectindex);
+
  public:
-
-  static TPZCompEl *CreateInterfaceQEl(TPZGeoElQ2d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreateInterfaceTEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreateInterface1dEl(TPZGeoEl1d *geo, TPZCompMesh &mesh, int &index);
-  static TPZCompEl *CreateInterfacePointEl(TPZGeoElPoint *geo, TPZCompMesh &mesh, int &index);
-
-  //construtor do descontínuo
-  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
-  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElDisc *left,TPZCompElDisc *right/*,int leftside*/);
-  TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
-  TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, int &index);
-  TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index);
-  TPZInterfaceElement();
 
   /** 
    * For CloneInterface usage. Normal is not recomputed, but copied.
+   * Only for disconitnuous neighbours.
    */
-  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElDisc *left,TPZCompElDisc *right, TPZVec<REAL> normal);
+  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right, const TPZVec<REAL> & normal);
+
+  /**
+   * Construtor para o elemento descontinuo.
+   */
+  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right);
+
+  /**
+   * Copy constructor.
+   */
+  TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
+
+  /**
+   *
+   */
+  TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, int &index);
+
+  /**
+   * Empty constructor.
+   */   
+  TPZInterfaceElement();
+
+  /** Constuctor to continuous and/or discontinuous neighbours.
+   */
+  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right, int leftside, int rightside);
+
+
+//   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
+//   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index);
 
   ~TPZInterfaceElement(){};
 
@@ -85,11 +112,6 @@ class TPZInterfaceElement : public TPZCompEl {
   }
 
   TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,int &index, TPZCompElDisc * left, TPZCompElDisc * right) const;
-
-  //TPZCompEl * CloneInterface(TPZCompMesh &aggmesh, TPZVec<int> &destindex,int &index) const;
-
-  /**return the geometric element to which this element references*/
-//  virtual TPZGeoEl *Reference() const { return fReference;}
 
   TPZMaterial *Material() const { return fMaterial;}
 
@@ -105,22 +127,24 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * it returns the right element from the element interface 
    */
-  TPZCompElDisc *RightElement() {return fRightEl;}
+  TPZCompEl *RightElement() {return fRightElSide.Element();}
 
-      void SetRightElement( TPZCompElDisc* el )
-      {
-	 fRightEl = el;
-      }
+  void SetRightElement( TPZCompEl* el, int side = -1 ){
+     //if(side == -1) is a discontinuous element
+     fRightElSide.SetElement(el);
+     fRightElSide.SetSide(side);     
+  }
 
   /**
    * it returns the left element from the element interface 
    */
-  TPZCompElDisc *LeftElement() {return fLeftEl;}
+  TPZCompEl *LeftElement() {return fLeftElSide.Element();}
 
-      void SetLeftElement( TPZCompElDisc* el )
-      {
-	 fLeftEl = el;
-      }
+  void SetLeftElement( TPZCompEl* el, int side = -1 ){
+     //if(side == -1) is a discontinuous element
+     fLeftElSide.SetElement(el);
+     fLeftElSide.SetSide(side);
+  }
 
   /**
    * it returns the normal one to the face from the element
@@ -135,6 +159,16 @@ class TPZInterfaceElement : public TPZCompEl {
   int NConnects();
 
   /**
+   * it returns the number from connectivities of the element related to right neighbour
+   */
+  int NRightConnects();
+
+  /**
+   * it returns the number from connectivities of the element related to left neighbour
+   */
+  int NLeftConnects();
+
+  /**
    * Its return the connects of the left and right element associates
    */
   int ConnectIndex(int i);
@@ -142,16 +176,15 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * This function should not be called
    */
+#warning This function should not be called
   void SetConnectIndex(int node, int index);
 
   /**
    * it returns the dimension from the element interface
    */
   int Dimension() const {
-    //return TPZCompElDisc::gInterfaceDimension;
-    //Não concordo com a linha acima. Pira
-    return this->Reference()->Dimension();
-}
+     return this->Reference()->Dimension();
+  }
 
   /**
    * Type of the element 
@@ -211,14 +244,27 @@ class TPZInterfaceElement : public TPZCompEl {
   void CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
   /**
+   * CalcStiff for meshes who combine continuous and discontinuous
+   * elements. It was not necessary to separate this implementation
+   * from Standard and Penalty implementations.
+   * @param ek element matrix
+   * @param ef element right hand side
+   * @since March 01, 2005
+   */
+  void CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatrix &ef);      
+
+  /**
    * gCalcStiff = 1 means standard CalcStiff
    * gCalcStiff = 2 means CalcStiff with penalty
+   * gCalcStiff = 3 means the mesh has continuous and discontinuous elements combined
    */
   static int gCalcStiff;
 
   static void SetCalcStiffStandard(){ TPZInterfaceElement::gCalcStiff = 1; }
 
   static void SetCalcStiffPenalty(){ TPZInterfaceElement::gCalcStiff = 2; }
+
+  static void SetCalcStiffContDisc(){ TPZInterfaceElement::gCalcStiff = 3; }
 
   /**
    * Print attributes of the object
@@ -265,18 +311,6 @@ class TPZInterfaceElement : public TPZCompEl {
 
 };
 
-inline TPZCompEl *TPZInterfaceElement::CreateInterfaceQEl(TPZGeoElQ2d *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZInterfaceElement(mesh,(TPZGeoEl *) geo,index);
-}
-inline TPZCompEl *TPZInterfaceElement::CreateInterfaceTEl(TPZGeoElT2d *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZInterfaceElement(mesh,(TPZGeoEl *) geo,index);
-}
-inline TPZCompEl *TPZInterfaceElement::CreateInterface1dEl(TPZGeoEl1d *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZInterfaceElement(mesh,(TPZGeoEl *) geo,index);
-}
-inline TPZCompEl *TPZInterfaceElement::CreateInterfacePointEl(TPZGeoElPoint *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZInterfaceElement(mesh,(TPZGeoEl *) geo,index);
-}
 //Acessar com -> TPZGeoElXXd::SetCreateFunction(createInterfaceXXEl);
 #endif
 

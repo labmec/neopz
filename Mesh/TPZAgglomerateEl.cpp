@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.34 2004-06-23 16:38:08 phil Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.35 2005-03-03 21:53:58 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -944,8 +944,8 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 
     if (interface) {
 
-      TPZCompElDisc * LeftEl  = interface -> LeftElement();
-      TPZCompElDisc * RightEl = interface -> RightElement();
+       TPZCompElDisc * LeftEl   = dynamic_cast<TPZCompElDisc*>( interface -> LeftElement()  );
+       TPZCompElDisc * RightEl  = dynamic_cast<TPZCompElDisc*>( interface -> RightElement() );
 
       TPZManVector<REAL, 3> InterfaceCenter(3), RefInterfaceCenter(3), LeftCenter(3), RightCenter(3);
 
@@ -1010,8 +1010,8 @@ void TPZAgglomerateElement::ComputeNeighbours(TPZCompMesh *mesh, map<TPZCompElDi
     TPZCompEl *cel = mesh->ElementVec()[iel];
     TPZInterfaceElement *inter = dynamic_cast<TPZInterfaceElement *>(cel);
     if(!inter) continue;
-    TPZCompElDisc * LeftEl  = inter->LeftElement();
-    TPZCompElDisc * RightEl = inter->RightElement();
+    TPZCompElDisc * LeftEl  =  dynamic_cast<TPZCompElDisc*>( inter->LeftElement() );
+    TPZCompElDisc * RightEl =  dynamic_cast<TPZCompElDisc*>( inter->RightElement());
     if(LeftEl->Dimension() == RightEl->Dimension()) {
       neighbour[LeftEl].insert(RightEl);
       neighbour[RightEl].insert(LeftEl);

@@ -1,4 +1,6 @@
-//$Id: TPZCompElDisc.h,v 1.34 2005-02-28 22:08:52 phil Exp $
+// -*- c++ -*- 
+
+//$Id: TPZCompElDisc.h,v 1.35 2005-03-03 21:53:59 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -239,9 +241,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
 
   void CreateInterfaces();
 
-  void CreateInterfaces( TPZMaterial* mat );
-
-  void CreateInterface(int side);
+      
 
   void RemoveInterfaces();
 

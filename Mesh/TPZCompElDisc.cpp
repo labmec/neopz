@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.65 2005-03-01 14:08:40 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.66 2005-03-03 21:53:58 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -159,73 +159,6 @@ void TPZCompElDisc::CreateInterfaces(){
 	del->CreateInterface(highlist[is].Side());
       }
     }
-  }
-}
-
-void TPZCompElDisc::CreateInterface(int side)
-{
-  TPZGeoEl *ref = Reference();
-  TPZCompElSide thisside(this,side);
-  TPZStack<TPZCompElSide> list;
-  list.Resize(0);
-  thisside.EqualLevelElementList(list,0,1);//retorna distinto ao atual ou nulo
-  int size = list.NElements();
-  //espera-se ter os elementos computacionais esquerdo e direito 
-  //já criados antes de criar o elemento interface
-  if(size){
-    //neste caso existem ambos: esquerdo e direito, this e list[0], e são vizinhos
-/*    int matid1 = fMaterial->Id();
-    int matid2 = list[0].Element()->Material()->Id(); 
-    int matid = (matid1 < matid2) ? matid1 : matid2; */
-    
-//Antes (comentado acima) a interface tinha o material de menor id entre esquerdo e direito
-//Agora, a interface tem o material do elemento de menor dimensão (i.e. condicao de contorno)
-//Seria interessante testar se o material do contorno eh filho do TPZBndCond, mas traria problemas ao cfdk.
-    int matid;
-    int thisdim = this->Dimension();
-    int neighbourdim = list[0].Element()->Dimension();
-    if (thisdim == neighbourdim) 
-      matid = this->Material()->Id();
-    else {
-      if (thisdim < neighbourdim)
-	matid = this->Material()->Id();
-      else
-	matid = list[0].Element()->Material()->Id();
-    }
-
-
-    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
-    //isto acertou as vizinhan¢as da interface geométrica com o atual
-    int index;
-    TPZCompElDisc *list0 = dynamic_cast<TPZCompElDisc *>(list[0].Element());
-    if(Dimension() > list0->Dimension()){
-      //o de volume é o direito caso um deles seja BC
-      //a normal aponta para fora do contorno
-      new TPZInterfaceElement(*fMesh,gel,index,this,list0/*,side*/);
-    } else {
-      //caso contrário ou caso ambos sejam de volume 
-      new TPZInterfaceElement(*fMesh,gel,index,list0,this/*,list[0].Side()*/);
-    }
-    return;
-  }
-  //aqui não existe igual: só pode existir lower 
-  //(pois isso foi verificado no CreateInterfaces())
-  TPZCompElSide lower = thisside.LowerLevelElementList(0);
-  if(lower.Exists()){
-    int matid1 = fMaterial->Id();
-    int matid2 = lower.Element()->Material()->Id();
-    int matid = (matid1 < matid2) ? matid1 : matid2;
-    //existem esquerdo e direito: this e lower
-    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
-    int index;
-    TPZCompElDisc *lowcel = dynamic_cast<TPZCompElDisc *>(lower.Element());
-    if(Dimension() > lowcel->Dimension()){
-      //para que o elemento esquerdo seja de volume
-      new TPZInterfaceElement(*fMesh,gel,index,this,lowcel/*,side*/);
-    } else {
-      new TPZInterfaceElement(*fMesh,gel,index,lowcel,this/*,lower.Side()*/);
-    }
-    return;
   }
 }
 
