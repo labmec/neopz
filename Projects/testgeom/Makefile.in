@@ -104,11 +104,11 @@ VERSION = @VERSION@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES = @PZ_CLEANFILES@
 
-bin_PROGRAMS = main
+bin_PROGRAMS = geom
 
-main_SOURCES = main.cc pzadaptmesh.cc pzcclonemesh.cc pzgclonemesh.cc
+geom_SOURCES = geom.cpp pzgbmesh.cc
 
-main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
+geom_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 PROGRAMS =  $(bin_PROGRAMS)
@@ -118,9 +118,9 @@ DEFS = @DEFS@ -I. -I$(srcdir)
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-main_OBJECTS =  main.o pzadaptmesh.o pzcclonemesh.o pzgclonemesh.o
-main_DEPENDENCIES =  $(top_srcdir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
-main_LDFLAGS = 
+geom_OBJECTS =  geom.o pzgbmesh.o
+geom_DEPENDENCIES =  $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
+geom_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
@@ -132,14 +132,13 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/main.P .deps/pzadaptmesh.P .deps/pzcclonemesh.P \
-.deps/pzgclonemesh.P
-SOURCES = $(main_SOURCES)
-OBJECTS = $(main_OBJECTS)
+DEP_FILES =  .deps/geom.P .deps/pzgbmesh.P
+SOURCES = $(geom_SOURCES)
+OBJECTS = $(geom_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cc .o .s
+.SUFFIXES: .S .c .cc .cpp .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu Projects/testgeom/Makefile
 
@@ -189,10 +188,12 @@ distclean-compile:
 
 maintainer-clean-compile:
 
-main: $(main_OBJECTS) $(main_DEPENDENCIES)
-	@rm -f main
-	$(CXXLINK) $(main_LDFLAGS) $(main_OBJECTS) $(main_LDADD) $(LIBS)
+geom: $(geom_OBJECTS) $(geom_DEPENDENCIES)
+	@rm -f geom
+	$(CXXLINK) $(geom_LDFLAGS) $(geom_OBJECTS) $(geom_LDADD) $(LIBS)
 .cc.o:
+	$(CXXCOMPILE) -c $<
+.cpp.o:
 	$(CXXCOMPILE) -c $<
 
 tags: TAGS
@@ -287,6 +288,25 @@ maintainer-clean-depend:
 	rm .deps/$(*F).pp
 
 %.lo: %.cc
+	@echo '$(LTCXXCOMPILE) -c $<'; \
+	$(LTCXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
+	  < .deps/$(*F).pp > .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm -f .deps/$(*F).pp
+
+%.o: %.cpp
+	@echo '$(CXXCOMPILE) -c $<'; \
+	$(CXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-cp .deps/$(*F).pp .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm .deps/$(*F).pp
+
+%.lo: %.cpp
 	@echo '$(LTCXXCOMPILE) -c $<'; \
 	$(LTCXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
 	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
