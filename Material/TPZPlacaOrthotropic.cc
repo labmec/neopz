@@ -124,3 +124,6 @@ void TPZPlacaOrthotropic::Print(){
 //caso chamemos a funcão Print com o objeto placa2, ao invés de placa->Print, o This é o objeto placa2.
   
   
+void TPZPlacaOrthotropic::IdentifyCompEl() {
+  fIntel = dynamic_cast<TPZInterpolatedElement *>(fGeoEl->Reference());
+}

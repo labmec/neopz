@@ -42,6 +42,12 @@ class TPZPlacaOrthotropic {
   
   REAL Height(){return fH;}
 
+  REAL ZMin() { return fZMin;}
+
+  REAL ZMax() { return fZMax;}
+
+  void IdentifyCompEl();
+
   void Print();
 
   TPZInterpolatedElement *ComputEl() {return fIntel;}

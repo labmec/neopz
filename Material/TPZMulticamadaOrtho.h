@@ -38,6 +38,9 @@ class TPZMulticamadaOrthotropic {
   int fNelx, fNely;
   REAL fZMin, fZMax;
   //  double fQuantPlacas;
+  REAL fMX[3],fMY[3],fMXY[3],fQX[3],fQY[3],fNX[3],fNY[3],fNXY[3];
+
+
 
  public:
   /**construtor*/
@@ -58,6 +61,30 @@ class TPZMulticamadaOrthotropic {
   TPZVec<TPZPlacaOrthotropic> &RPlacaOrtho(){return fPlacaOrth;}
   /*criando método para contar quant de placas*/
   int NPlacas();
+  /**
+   * Compute a tension state corresponding to the difference between the target state
+   * and tension state loaded in the solution
+   */
+  void AnalyticTensor(TPZVec<REAL> &co, TPZFMatrix &tensor);
+
+  /**
+   * Tensor which needs to be applied at the given coordinate
+   */
+  void Tensor(TPZVec<REAL> &x, int placa, TPZFMatrix &tensor);
+  /**
+   * Computes the global efforts of the finite element solution
+   */
+  void ComputeCenterForces();
+
+  void ComputeSolution();
+
+  void SetMX(REAL MX) { 
+    fMX[0] = MX;
+  }
+
+  void SetNX(REAL NX) {
+    fNX[0] = NX;
+  }
 
 };
 #endif

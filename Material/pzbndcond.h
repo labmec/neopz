@@ -26,7 +26,7 @@ class TPZManVector;
 class TPZBndCond : public TPZMaterial {
 
   friend class TPZMaterial;
-
+protected:
   int 		fType;		              // boundary condition type
   TPZFMatrix	fBCVal1;            // first value of boundary condition
   TPZFMatrix	fBCVal2;            // second value of boundary condition
