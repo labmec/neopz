@@ -1,11 +1,14 @@
+// -*- c++ -*-
 /**
  * @file pzvec_extra.h
  * @brief Extra utilities for TPZVec.
  */
-// $Id: pzvec_extras.h,v 1.3 2003-03-26 13:14:50 cantao Exp $
+// $Id: pzvec_extras.h,v 1.4 2003-04-02 13:43:58 cantao Exp $
 
 #ifndef PZVEC_EXTRAS_H
 #define PZVEC_EXTRAS_H
+
+#include <bits/stl_algo.h>
 
 /**
  * Performs a saxpy operation: x <- x + s * y.
@@ -92,18 +95,16 @@ double sdot(TPZVec< T1 > & x, TPZVec< T1 > & y)
    return sum;
 }
 
+//--| SORTING |-----------------------------------------------------------------
+
+template< class T >
+TPZVec< T >& Sort( TPZVec< T >& v )
+{
+   std::sort( static_cast< T* >( v ), v + v.NElements() );
+
+   return v;
+}
 
 #endif //PZVEC_EXTRAS_H
+
 //--| PZ |----------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
