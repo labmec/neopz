@@ -20,7 +20,7 @@ int main(){
         REAL weight = 0.;
         REAL integral = 0.;
 
-	//=====Regra 1D=====================================
+	//=====1D Rule=====================================
 	TPZInt1d ordem1d (p);
         int npoints = ordem1d.NPoints();
 
@@ -29,7 +29,7 @@ int main(){
         	ordem1d.Point(it,point,weight);
                 integral += weight * Funcao(point,i,j,k,p);
         }
-	//=====Final Regra 1D================================
+	//=====End of 1D Rule================================
 
         cout << "Integral = " << integral << endl;
         return 0;
@@ -44,18 +44,21 @@ REAL Funcao(TPZVec<REAL> &pt, int i, int j, int k, int p){
         REAL y = 0.;
         REAL z = 0.;
 
-	//Para tratar com 1D e 2D tb.
+	//To treat 1D and 2D
         int dim = pt.NElements();
         if (dim > 2) z = pt[2];
+        else z = 1.;
         if (dim > 1) y = pt[1];
+        else y = 1.;
         x = pt[0];
 
-        //Atenção --> A função foi alterada aqui para que 1D e 2D tenham resultados diferentes de zero!
+   //Atenção --> A função foi alterada aqui para que 1D e 2D tenham resultados diferentes de zero!
+        
 	for (r=0;r<=i;r++){
 		for(s=0;s<=j;s++){
-        		for (t=0;t<=k;t++){
+    	for (t=0;t<=k;t++){
 				result +=  Alfa(r,s,t,p) * (pow (x,r) + pow (y,s) + pow (z,t));
-   			}
+   		}
 		}
 	}
 	return result;
