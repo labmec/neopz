@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.6 2003-10-24 00:02:56 erick Exp $
+//$Id: pzeulerconslaw.h,v 1.7 2003-10-24 19:03:34 erick Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -711,20 +711,21 @@ template <class T>
 void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux)
 {
    int nState = solL.NElements();
-   if(nState=4)
-   {
-      Roe_Flux(solL[0], solL[1], solL[2], solL[3],
-              solR[0], solR[1], solR[2], solR[3],
-	      normal[0], normal[1],
-	      gamma,
-	      flux[0], flux[1], flux[2], flux[3]);
-   }else if(nState==4)
+   if(nState == 5)
    {
       Roe_Flux(solL[0], solL[1], solL[2], solL[3], solL[4],
               solR[0], solR[1], solR[2], solR[3], solR[4],
 	      normal[0], normal[1], normal[2],
 	      gamma,
 	      flux[0], flux[1], flux[2], flux[3], flux[4]);
+
+   }else if(nState == 4)
+   {
+      Roe_Flux(solL[0], solL[1], solL[2], solL[3],
+              solR[0], solR[1], solR[2], solR[3],
+	      normal[0], normal[1],
+	      gamma,
+	      flux[0], flux[1], flux[2], flux[3]);
    }else if(nState == 3)
    {
       //using the 2D expression for 1d problem
