@@ -55,13 +55,18 @@ void TPZRefPoint::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
   int np[1];
   np[0] = geo->NodeIndex(0);
   // creating new subelements
-  TPZManVector<int>  cornerindexes(1);
-  cornerindexes[0] = np[0];
-  int index;//CreateGeoElement(0,cornerindexes,matid,index);
-  TPZGeoElement<TPZShapeLinear,TPZGeoPoint,TPZRefPoint> *p0sub = 
-    dynamic_cast<TPZGeoElement<TPZShapeLinear,TPZGeoPoint,TPZRefPoint> *>(geo->Mesh()->CreateGeoElement(0,cornerindexes,matid,index));
-  //new TPZGeoElement<TPZShapeLinear,TPZGeoPoint,TPZRefPoint>(cornerindexes,matid,*geo->Mesh());
-  geo->SetSubElement(0 , p0sub);
+	TPZGeoEl *pt0d = geo;
+	//for(i=0;i<TPZShapeLinear::NNodes;i++) {
+		TPZManVector<int>  cornerindexes(1/*TPZShapeLinear::NNodes*/);
+		cornerindexes[0]=np[0];
+		//for(int j=0;j<TPZShapeLinear::NNodes;j++) 
+		//	cornerindexes[j] = np[CornerSons[i][j]];
+		int index;
+		TPZGeoEl *npt = geo->Mesh()->CreateGeoElement(EPoint,cornerindexes,matid,index);
+		//		TPZGeoElPoint *npt = new TPZGeoElPoint(cornerindexes,matid,*geo->Mesh());
+		pt0d->SetSubElement(/*i*/0 , npt);
+	//}
+
   SubElVec.Resize(NSubEl);
   for(sub=0;sub<NSubEl;sub++) {
     SubElVec[sub] = geo->SubElement(sub);

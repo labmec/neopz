@@ -329,13 +329,11 @@ void TPZRefCube::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
   }
   // creating new subelements
   for(i=0;i<TPZShapeCube::NNodes;i++) {
-	  TPZManVector<int>cornerindexes(TPZShapeCube::NNodes);
-	  for(int j=0;j<TPZShapeCube::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-	  TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube> *c3sub = 
-	    dynamic_cast<TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube> *>(geo->Mesh()->CreateGeoElement(7,cornerindexes,matid,index));
-	    //CreateGeoElement(7,cornerindexes,index);
-	    //new TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>(cornerindexes,matid,*geo->Mesh());
-	  geo->SetSubElement(i , c3sub);
+    TPZManVector<int>cornerindexes(TPZShapeCube::NNodes);
+    for(int j=0;j<TPZShapeCube::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
+    int index;
+    TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(ECube,cornerindexes,matid,index);
+    geo->SetSubElement(i , subel);
   }
 
   SubElVec.Resize(NSubEl);

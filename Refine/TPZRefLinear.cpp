@@ -67,11 +67,9 @@ void TPZRefLinear::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
   for(i=0;i<TPZShapeLinear::NNodes;i++) {
     TPZManVector<int> cornerindexes(TPZShapeLinear::NNodes);
     for(int j=0;j<TPZShapeLinear::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-    int ondex;//CreateGeoElement(1,cornerindexes,matid,index);
-    TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear> *l1sub = 
-      dynamic_cast<TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear> *>(geo->Mesh()->CreateGeoElement(1,cornerindexes,matid,index));
-    //new TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>(cornerindexes,matid,*geo->Mesh());
-    geo->SetSubElement(i , l1sub);
+    int index;
+    TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EOned,cornerindexes,matid,index);
+    geo->SetSubElement(i , subel);
   }
 
   SubElVec.Resize(NSubEl);

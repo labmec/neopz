@@ -120,11 +120,9 @@ void TPZRefTriangle::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 	for(i=0;i<NSubEl;i++) {
 		TPZManVector<int> cornerindexes(TPZShapeTriang::NNodes);
 		for(int j=0;j<TPZShapeTriang::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-		TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle> *t2sub = 
-		  dynamic_cast<TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle> *>(geo->Mesh()->CreateGeoElement(2,cornerindexes,matid,index));
-		  //CreateGeoElement(2,cornerindexes,matid,index);
-		  //new TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>(cornerindexes,matid,*geo->Mesh());
-		geo->SetSubElement(i , t2sub);
+		int index;
+		TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(ETriangle,cornerindexes,matid,index);
+		geo->SetSubElement(i ,subel);
 	}
 
 	SubElVec.Resize(NSubEl);

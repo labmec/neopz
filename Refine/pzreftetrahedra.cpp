@@ -5,7 +5,6 @@
 #include "pzgeotetrahedra.h"
 #include "pzshapetetra.h"
 #include "pzgeoelside.h"
-#include "TPZGeoElement.h"
 #include "pzgeoel.h"
 #include "pzgmesh.h"
 
@@ -23,10 +22,10 @@ static int subeldata[15][11][2] = {//TAMANHO DISTINTO
 /*07*/{{0,7},{0,3},{3,7}},
 /*08*/{{1,8},{1,3},{3,8}},
 /*09*/{{2,9},{2,3},{3,9}},
-/*10*/{{0,10},{1,10},{2,10},{5,15},{0,5},{1,6},{2,4}},
-/*11*/{{0,11},{1,11},{3,11},{4,14},{0,8},{1,7},{3,4}},
-/*12*/{{1,12},{2,12},{3,12},{5,17},{1,9},{2,8},{3,5}},
-/*13*/{{0,13},{2,13},{3,13},{4,16},{0,9},{2,7},{3,6}},
+/*10*/{{0,5},{1,6},{2,4},{0,10},{1,10},{2,10},{5,15}},
+/*11*/{{0,8},{1,7},{3,4},{0,11},{1,11},{3,11},{4,14}},
+/*12*/{{1,9},{2,8},{3,5},{1,12},{2,12},{3,12},{5,17}},
+/*13*/{{0,9},{2,7},{3,6},{0,13},{2,13},{3,13},{4,16}},
 /*14*/{{0,14},{1,14},{2,14},{3,14},{4,18},{5,18},{4,13},{0,12},{1,13},{2,11},{3,10}}
 };
 
@@ -217,10 +216,7 @@ void TPZRefTetrahedra::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 	for (i=0;i<4;i++){
 	  TPZManVector<int> cornerindexes(TPZShapeTetra::NNodes);
 	  for(int j=0;j<TPZShapeTetra::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-	  TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra> *t3sub = 
-	    dynamic_cast<TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra> *>(geo->Mesh()->CreateGeoElement(4,cornerindexes,matid,index));
-	    //CreateGeoElement(4,cornerindexes,matid,index);
-	    //new TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>(cornerindexes,matid,*geo->Mesh());
+	  TPZGeoEl *t3sub = geo->Mesh()->CreateGeoElement(ETetraedro,cornerindexes,matid,index);
 	  geo->SetSubElement(i,t3sub);
 	  t3sub->SetFather(geo);
 	  SubElVec[i] = t3sub;
@@ -229,10 +225,7 @@ void TPZRefTetrahedra::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 	  TPZManVector<int> cornerindexes(TPZShapePiram::NNodes);
 	  for(int j=0;j<TPZShapePiram::NNodes;j++) 
 	    cornerindexes[j] = np[CornerSons[i][j]];
-	  TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid> *pi3sub = 
-	    dynamic_cast<TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid> *>(geo->Mesh()->CreateGeoElement(5,cornerindexes,matid,index));
-	    //CreateGeoElement(5,cornerindexes,matid,index);
-	  //new TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>(cornerindexes,matid,*geo->Mesh());
+	  TPZGeoEl *pi3sub = geo->Mesh()->CreateGeoElement(EPiramide,cornerindexes,matid,index);
 	  geo->SetSubElement(i,pi3sub);
 	  pi3sub->SetFather(geo);
 	  SubElVec[i] = pi3sub;
@@ -360,11 +353,11 @@ static int fatherside[6][19] = {
 /*05*/{8,4,6,9,5,11,10,13,12,12,10,10,12,14,14,10,14,12,14},
 };
 
-static int fatherside2[4][19] = {//tetraedro com pai pirâmide
-/*06*/{9,5,13,10,14,13,18,14,14,18,18,14,18,18,18,-1,-1,-1,-1},
-/*07*/{6,10,11,13,15,15,15,13,18,18,15,18,18,18,18,-1,-1,-1,-1},
-/*08*/{12,13,7,11,18,13,16,16,18,16,18,18,18,16,18,-1,-1,-1,-1},
-/*09*/{13,9,12,8,18,17,18,13,17,17,18,18,17,18,18,-1,-1,-1,-1} };
+// static int fatherside2[4][19] = {//tetraedro com pai pirâmide
+// /*06*/{9,5,13,10,14,13,18,14,14,18,18,14,18,18,18,-1,-1,-1,-1},
+// /*07*/{6,10,11,13,15,15,15,13,18,18,15,18,18,18,18,-1,-1,-1,-1},
+// /*08*/{12,13,7,11,18,13,16,16,18,16,18,18,18,16,18,-1,-1,-1,-1},
+// /*09*/{13,9,12,8,18,17,18,13,17,17,18,18,17,18,18,-1,-1,-1,-1} };
 
 int TPZRefTetrahedra::FatherSide(int side,int whichsubel){
 

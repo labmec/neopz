@@ -5,16 +5,11 @@
 #ifndef TPZREFPYRAMIDH
 #define TPZREFPYRAMIDH
 
-#include "pzvec.h"
+#include "pzreal.h"
 #include "pzstack.h"
-
 class TPZGeoEl;
 class TPZGeoElSide;
 class TPZTransform;
-/* template<class T> */
-/* class TPZVec; */
-/* template<class T, int N> */
-/* class TPZStack; */
 
 class TPZRefPyramid{
 
