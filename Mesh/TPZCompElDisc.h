@@ -222,8 +222,6 @@ protected:
    */
   virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
 
-  static TPZCompMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);
-
   virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
 };
 
