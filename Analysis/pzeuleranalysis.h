@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.4 2003-10-20 12:02:38 erick Exp $
+//$Id: pzeuleranalysis.h,v 1.5 2003-10-21 18:10:58 erick Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -58,7 +58,7 @@ public:
    /**
     * Adds deltaSol to the last solution and stores it as the current
     * Solution, preparing it to contribute again.
-    *
+    * Also updates the CompMesh soution.
     */
    void UpdateSolution(TPZFMatrix & deltaSol);
 
@@ -76,9 +76,26 @@ public:
    void UpdateHistory();
 
    /**
-    *Assemble the stiffness matrix
+    * Buffers the assemblage of the rhs with
+    * respect to the last state.
+    * Sets the current solution in the mesh
+    * when finished.
+    */
+   void BufferLastStateAssemble();
+
+   /**
+    * Assembles the stiffness matrix
+    * BufferLastStateAssemble or UpdateHistory
+    * must be called first.
     **/
-   virtual  void Assemble();
+   virtual void Assemble();
+
+   /**
+    * Assembles the right hand side vector.
+    * BufferLastStateAssemble or UpdateHistory
+    * must be called first.
+    */
+   virtual void Assemble(TPZFMatrix & rhs);
 
    /**
     * Solves an assembled stiffness matrix.
@@ -143,6 +160,13 @@ protected:
     * Euler residual.
     */
    TPZFMatrix fSolution2;
+
+   /**
+    * Vector to hold the contribution of last state
+    * to the rhs.
+    */
+
+   TPZFMatrix fRhsLast;
 
    /**
     * These two pointers to solutions switches

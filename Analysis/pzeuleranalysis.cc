@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cc,v 1.4 2003-10-20 12:02:38 erick Exp $
+//$Id: pzeuleranalysis.cc,v 1.5 2003-10-21 18:10:58 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -6,7 +6,7 @@
 
 TPZEulerAnalysis::TPZEulerAnalysis():
 TPZAnalysis(), fFlowCompMesh(NULL),
-fSolution2(), fpCurrSol(NULL),
+fSolution2(), fRhsLast(), fpCurrSol(NULL),
 fpLastSol(NULL), fpSolution(NULL),
 fLinSysEps(1e-10), fLinSysMaxIter(20),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
@@ -17,7 +17,7 @@ fTimeIntEps(1e-8), fTimeIntMaxIter(100)
 
 TPZEulerAnalysis::TPZEulerAnalysis(TPZFlowCompMesh *mesh, std::ostream &out):
 TPZAnalysis(mesh, out), fFlowCompMesh(mesh),
- fSolution2(), fpCurrSol(NULL), fpLastSol(NULL),
+fSolution2(), fRhsLast(), fpCurrSol(NULL), fpLastSol(NULL),
 fpSolution(NULL), fLinSysEps(1e-10), fLinSysMaxIter(20),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
 fTimeIntEps(1e-8), fTimeIntMaxIter(100)
@@ -27,7 +27,6 @@ fTimeIntEps(1e-8), fTimeIntMaxIter(100)
 
 TPZEulerAnalysis::~TPZEulerAnalysis()
 {
-
 }
 
 void RunNewton(REAL & epsilon, int & numIter)
@@ -45,25 +44,20 @@ void TPZEulerAnalysis::SetAdvancedState()
 void TPZEulerAnalysis::SetLastState()
 {
    fpSolution = fpLastSol;
-   SetContributionTime(Current_CT);
+   SetContributionTime(Advanced_CT);
    fCompMesh->LoadSolution(*fpSolution);
 }
 
 void TPZEulerAnalysis::SetContributionTime(TPZContributeTime time)
 {
    fFlowCompMesh->SetContributionTime(time);
-/*   int i, NumFluid;
-   NumFluid = fFluidMaterial.NElements();
-   for(i = 0; i < NumFluid; i++)
-   {
-      fFluidMaterial[i]->SetContributionTime(time);
-   }*/
 }
 
 void TPZEulerAnalysis::UpdateSolution(TPZFMatrix & deltaSol)
 {
-   (*fpCurrSol) = (*fpLastSol);
    (*fpCurrSol) += deltaSol;
+
+   fCompMesh->LoadSolution(*fpCurrSol);
 }
 
 void TPZEulerAnalysis::UpdateHistory()
@@ -75,35 +69,81 @@ void TPZEulerAnalysis::UpdateHistory()
    fpCurrSol = fpLastSol;
    fpLastSol = pBuff;
 
+#ifdef RESTART_ZEROED
+   //Zeroeing the newest iterative solution
+   fpCurrSol.Zero();
+#else
+   // copying the laststate to the current state, as
+   // a first approximation to Wn+1
+   // Notice that this manner of computing the history
+   // did not needed the pointer swap. Anyway, this
+   // structure will be kept to allow a Zero as the
+   // first guess of initial solution without a great
+   // effort.
+   (*fpCurrSol) = (*fpLastSol);
+#endif
    // The Current Solution does not have any valid data
    // UpdateSolution must be called afterwards.
+
+   // buffering the contribution to the RHS
+   BufferLastStateAssemble();
+}
+
+void TPZEulerAnalysis::BufferLastStateAssemble()
+{
+   fRhsLast.Zero();
+   fRhsLast.Redim(fCompMesh->NEquations(),1);
+   SetLastState();
+   fFlowCompMesh->Assemble(fRhsLast);
+   SetAdvancedState();
 }
 
 void TPZEulerAnalysis::Assemble()
 {
    if(!fCompMesh || !fStructMatrix || !fSolver) return;
 
+   // retrieving the matrix stored in the Solver,
+   // attempting to reuse it.
+   TPZMatrix * pTangentMatrix = fSolver->Matrix();
+
+   // verifies if the matrix really exists
+   if(!pTangentMatrix)
+   {
+      // creates a matrix prepared for contribution
+      pTangentMatrix = fStructMatrix->Create();
+
+      // attaches the matrix to a solver.
+      fSolver->SetMatrix(pTangentMatrix);
+   }else{
+
+      pTangentMatrix->Zero();
+   }
+
    // redimensions and zeroes Rhs
    fRhs.Redim(fCompMesh->NEquations(),1);
 
-   // resets the solver matrix
-   fSolver->SetMatrix(0);
-
-   // creates a matrix prepared for contribution
-   TPZMatrix * pTangentMatrix = fStructMatrix->Create();
+   // Contributing referring to the advanced state
+   // (n+1 index)
+   fStructMatrix->Assemble(*pTangentMatrix, fRhs);
 
    // Contributing referring to the last state (n index)
-   SetLastState();
-   fStructMatrix->Assemble(*pTangentMatrix, fRhs);
+   fRhs.Add(fRhsLast, fRhsLast);
+}
+
+
+void TPZEulerAnalysis::Assemble(TPZFMatrix & rhs)
+{
+   if(!fCompMesh) return;
+
+   // redimensions and zeroes Rhs
+   rhs.Redim(fCompMesh->NEquations(),1);
 
    // Contributing referring to the advanced state
    // (n+1 index)
-   SetAdvancedState();
-   fStructMatrix->Assemble(*pTangentMatrix, fRhs);
-   //fSolver->SetMatrix(fStructMatrix->CreateAssemble(fRhs));
+   fFlowCompMesh->Assemble(rhs);
 
-   // attaches the matrix to a solver.
-   fSolver->SetMatrix(pTangentMatrix);
+   // Contributing referring to the last state (n index)
+   rhs.Add(fRhsLast, fRhsLast);
 }
 
 void TPZEulerAnalysis::Solve(REAL & res) {
@@ -123,8 +163,8 @@ void TPZEulerAnalysis::Solve(REAL & res) {
    //fSolution += delu;
    UpdateSolution(delu);
 
-   //fCompMesh->LoadSolution(fSolution);
-   res = Norm(residual); // pzfmatrix.h
+   //fCompMesh->LoadSolution(*fpSolution);
+   res = Norm(residual);
 }
 
 int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
@@ -132,17 +172,14 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
    int i = 0;
    REAL res;// residual of linear invertion.
 
-// the lines below are to be performed by the external loop
-//   fpLastSol->Zero();
-//   fpCurrSol->Zero();
-
    Assemble(); // assembles the linear system.
+   // It is assumed that BufferLastStateAssemble(); was already called.
    epsilon = fNewtonEps * 2.;// ensuring the loop will be
    // performed at least once.
 
    while(i < fNewtonMaxIter && epsilon > fNewtonEps)
    {
-      //Solves the linearized system;
+      //Solves the linearized system and updates the solution.
       Solve(res);
 
       // Linearizes the system with the newest iterative solution
@@ -152,8 +189,8 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
       i++;
    }
 
-   fSolver->ResetMatrix(); // deletes the memory allocated
-   // for the storage of the tangent matrix.
+   // updates the hstory of state variable vectors
+   UpdateHistory();
 
    numIter = i;
 
@@ -170,35 +207,53 @@ void TPZEulerAnalysis::Run(ostream &out)
    out << "\nBeginning time integration";
 
    REAL epsilon_Newton, epsilon_Global;
-   int numIter_Newton, numIter_Global;
+   int numIter_Newton/*, numIter_Global*/;
    REAL epsilon;
 
    int i;
    epsilon_Global = 2. * fTimeIntEps;
 
+
+   // copying the solution from the mesh into the sol vector.
+   (*fpLastSol) = fFlowCompMesh->Solution();
+
+#ifdef RESTART_ZEROED
+   fpLastSol->Zero();
+#else
+   // the history must be rebuilt -> a current state does not exist yet.
+   (*fpCurrSol) = (*fpLastSol); // deltaState = 0;
+#endif
+
+   // Buffers the contribution of the last state
+   BufferLastStateAssemble();
+
+   // evaluates the time step based on the solution
+   // (last Sol, since Curr sol equals it)
    ComputeTimeStep();
 
    while(i < fTimeIntMaxIter && epsilon_Global > fTimeIntEps)
    {
-
+      // Solves the nonlinear system, updates the solution,
+      // history and last state assemble buffer.
       RunNewton(epsilon_Newton, numIter_Newton);
 
       // Computing the time step, verifying the convergency
       // using the newest time step.
       ComputeTimeStep();
 
-      fFlowCompMesh->Assemble(fRhs); // computing the residual only
+      Assemble(fRhs); // computing the residual only
       epsilon = Norm(fRhs);
 
       out << "\niter:" << i
           << " eps=" << epsilon
 	  << " |NewtonEps=" << epsilon_Newton
 	  << " nIter=" << numIter_Newton;
-
    }
 
    out.flush();
 
+   fSolver->ResetMatrix(); // deletes the memory allocated
+   // for the storage of the tangent matrix.
 }
 
 void TPZEulerAnalysis::ComputeTimeStep()
