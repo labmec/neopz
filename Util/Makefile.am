@@ -18,7 +18,6 @@ util_HEADERS = $(wildcard *.h)
 noinst_LIBRARIES = libpzutil.a
 
 libpzutil_a_SOURCES = pzadmchunkgen.cpp		\
-	pzavlmap.cpp				\
 	pzavlmapgen.cpp				\
 	pzchunkgen.cpp				\
 	pzmanvectorgen.cpp			\
