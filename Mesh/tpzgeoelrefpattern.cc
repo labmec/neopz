@@ -46,6 +46,7 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern():TPZGeoElRefLess<TShape,TGe
 
 template<class TShape, class TGeo>
 TPZGeoElRefPattern<TShape,TGeo>::~TPZGeoElRefPattern(){
+#warning "Acredito que os objetos deste tipo devem ser administrados pela malha"
   if (fRefPattern) delete fRefPattern;
 }
 
@@ -151,24 +152,28 @@ void TPZGeoElRefPattern<TShape,TGeo>::MidSideNodeIndex(int side,int &index){
     int nsubel = NSideSubElements(side);
     TPZStack <TPZGeoElSide> subels;
     GetSubElements2(side,subels);
+    // Nao sei porque deve se fazer esta execao
     if (nsubel == 1) {
       subels[0].Element()->MidSideNodeIndex(subels[0].Side(),index);
       return;
     }
     TPZStack <int> msnindex;
-    int subnodeindex = subels[0].SideNodeIndex(subels[0].Side());
-    msnindex.Push(subnodeindex);
-    for (i=1;i<nsubel;i++){
-      subnodeindex = subels[i].SideNodeIndex(subels[i].Side());
-      for (j=0;j<msnindex.NElements();j++){
-        if (subnodeindex != msnindex[j]){
-          cout << "TPZGeoElRefPattern<TShape,TGeo>::MidSideNodeIndex element with more than one midsidenodeindex..." << endl;
-          msnindex.Push(subnodeindex);
-        }
-      }
+    // este sidenodeindex pode nao existir. Normalmente o numero de nos de um elemento e igual
+    // NNodes. Quer dizer se o lado e maior igual NNodes, este metodo nao devolvera nada
+
+    int subnodeindex;
+    for (i=0;i<nsubel;i++){
+      if(subels[i].Side() >= subels[i].Element()->NCornerNodes()) continue;
+      subnodeindex = subels[i].SideNodeIndex(0);
+      msnindex.Push(subnodeindex);
+    }
+    if(msnindex.NElements() > 1) {
+      cout << "TPZGeoElRefPattern<TShape,TGeo>::MidSideNodeIndex element with more than one midsidenodeindex..." << endl;
     }
     if (msnindex.NElements() == 1) index = msnindex[0];
-    else {
+    else if(msnindex.NElements() == 0) {
+      index = -1;
+    } else {
       TPZVec<REAL> centerpt(Dimension(),0.);
       TPZVec<REAL> auxpt(Dimension(),0.);      
       CenterPoint(side,auxpt);
@@ -256,6 +261,14 @@ TPZGeoElRefPattern<TShape,TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide
     return;
   }
   fRefPattern->SidePartition(subel,side);
+  int size = subel.NElements();
+  int el;
+  for(el=0; el<size; el++) {
+    TPZGeoEl *gelref = subel[el].Element();
+    int subelindex = gelref->Id()-1;
+    TPZGeoEl *mysub = SubElement(subelindex);
+    subel[el] = TPZGeoElSide(mysub,subel[el].Side());
+  }
 }
 
 
@@ -271,20 +284,23 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
   }
   int index,k,j,sub,matid=MaterialId();
 
-  const int totalnodes = fRefPattern->Mesh()->NodeVec().NElements();  
-  int np[totalnodes];
+  int totalnodes = fRefPattern->Mesh()->NodeVec().NElements();  
+  TPZManVector<int> np(totalnodes);
   int nnodes = NNodes();
 
   for(j=0;j<nnodes;j++) {
     np[j] = NodeIndex(j);
   }
-  TPZVec<int> newnodeindexes;
-  fRefPattern->CreateMidSideNodes (Mesh(),this, newnodeindexes);
+  fRefPattern->CreateNewNodes (this, np);
 //  cout << "NewNodeIndexes : " << newnodeindexes << endl;
 
-  for (j=0;j<newnodeindexes.NElements();j++){
-    np[j+nnodes]= newnodeindexes[j];
-  }
+
+  // I dont think the previous part will work...
+  // It should be better structured. One method which is not present within
+  // the geometric element is returning the set of nodes present at the
+  // interior of a side.
+  // I suggest : MidsideNodeIndices(int side, TPZVec<int> &indices)
+  // Its default behaviour can be to insert a single node.
 
   // creating new subelements
   for(i=0;i<NSubEl;i++) {
@@ -347,6 +363,28 @@ template<class TShape, class TGeo> int TPZGeoElRefPattern<TShape,TGeo>::FatherSi
   return fRefPattern->FatherSide(side,son);
 
 }
+
+template<class TShape, class TGeo> 
+void TPZGeoElRefPattern<TShape,TGeo>::MidSideNodeIndices(int side,TPZVec<int> &indices){
+  if(!HasSubElement() || !fRefPattern || side < NCornerNodes()) {
+    indices.Resize(0);
+    return;
+  }
+  TPZManVector<TPZGeoElSide> gelsides;
+  fRefPattern->SidePartition(gelsides,side);
+  int nsub = gelsides.NElements();
+  indices.Resize(nsub);
+  int is;
+  int counter = 0;
+  for(is=0; is<nsub; is++) {
+    if(gelsides[is].Side() >= gelsides[is].Element()->NCornerNodes()) continue;
+    TPZGeoEl *subel = SubElement(gelsides[is].Element()->Id()-1);
+    indices[counter] = subel->NodeIndex(gelsides[is].Side());
+    counter++;
+  }
+  indices.Resize(counter);  
+}
+
 
 template class TPZGeoElRefPattern<TPZShapeCube,TPZGeoCube>;
 template class TPZGeoElRefPattern<TPZShapeLinear,TPZGeoLinear>;
