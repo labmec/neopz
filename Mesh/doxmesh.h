@@ -9,12 +9,12 @@
  * for keeping track of the topology of the mesh
  */
 
-/** @defgroup CompMesh Comutational mesh classes
+/** @defgroup CompMesh Computational mesh classes
  * @ingroup interpolation
  * The computational mesh classes are responsible for the organise mesh data structure
  */
 
-/** @defgroup CompElement  Comutational element classes
+/** @defgroup CompElement  Computational element classes
  * @ingroup interpolation
  * The computational element classes are responsible for the organise element data structure
  */
