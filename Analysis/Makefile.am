@@ -18,11 +18,12 @@ analysis_HEADERS = $(wildcard *.h)
 noinst_LIBRARIES = libpzanalysis.a
 
 libpzanalysis_a_SOURCES = pzanalysis.cc \
-	pzanalysiserror.cc \
-	pzmganalysis.cc \
-	pznonlinanalysis.cc \
-	pzonedref.cc \
-	pzsmanal.cc \
-	pzsmfrontalanal.cc
+		pzanalysiserror.cc \
+		pzmganalysis.cc \
+		pznonlinanalysis.cc \
+		pzonedref.cc \
+		pzsmanal.cc \
+		pzsmfrontalanal.cc \
+		TPZIterativeAnalysis.cc
 
 ## --| NeoPZ |------------------------------------------------------------------

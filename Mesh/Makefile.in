@@ -110,7 +110,7 @@ mesh_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzmesh.a
 
-libpzmesh_a_SOURCES = pzcheckgeom.cc 	pzcheckmesh.cc 	pzcheckrestraint.cc 	pzcmesh.cc 	pzcompel.cc 	pzconnect.cc 	pzelc1d.cc 	pzelcc3d.cc 	pzelcpi3d.cc 	pzelcpoint.cc 	pzelcpr3d.cc 	pzelcq2d.cc 	pzelct2d.cc 	pzelct3d.cc 	pzelg1d.cc 	pzelgc3d.cc 	pzelgpi3d.cc 	pzelgpoint.cc 	pzelgpr3d.cc 	pzelgq2d.cc 	pzelgt2d.cc 	pzelgt3d.cc 	pzelmat.cc 	pzgeoelbc.cc 	pzgeoel.cc 	pzgeoelside.cc 	pzgmesh.cc 	pzgnode.cc 	pzintel.cc 	pzstackmesh.cc 	pzsubcmesh.cc 	pzvecmesh.cc 	TPZCompElDisc.cc 	TPZInterfaceEl.cc
+libpzmesh_a_SOURCES = pzcheckgeom.cc 	pzcheckmesh.cc 	pzcheckrestraint.cc 	pzcmesh.cc 	pzcompel.cc 	pzconnect.cc 	pzelc1d.cc 	pzelcc3d.cc 	pzelcpi3d.cc 	pzelcpoint.cc 	pzelcpr3d.cc 	pzelcq2d.cc 	pzelct2d.cc 	pzelct3d.cc 	pzelg1d.cc 	pzelgc3d.cc 	pzelgpi3d.cc 	pzelgpoint.cc 	pzelgpr3d.cc 	pzelgq2d.cc 	pzelgt2d.cc 	pzelgt3d.cc 	pzelmat.cc 	pzgeoelbc.cc 	pzgeoel.cc 	pzgeoelside.cc 	pzgmesh.cc 	pzgnode.cc 	pzintel.cc 	pzstackmesh.cc 	pzsubcmesh.cc 	pzvecmesh.cc 	TPZCompElDisc.cc 	TPZInterfaceEl.cc TPZFlowCMesh.cc
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
@@ -128,7 +128,7 @@ pzelcpoint.o pzelcpr3d.o pzelcq2d.o pzelct2d.o pzelct3d.o pzelg1d.o \
 pzelgc3d.o pzelgpi3d.o pzelgpoint.o pzelgpr3d.o pzelgq2d.o pzelgt2d.o \
 pzelgt3d.o pzelmat.o pzgeoelbc.o pzgeoel.o pzgeoelside.o pzgmesh.o \
 pzgnode.o pzintel.o pzstackmesh.o pzsubcmesh.o pzvecmesh.o \
-TPZCompElDisc.o TPZInterfaceEl.o
+TPZCompElDisc.o TPZInterfaceEl.o TPZFlowCMesh.o
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
@@ -151,7 +151,7 @@ DEP_FILES =  .deps/TPZCompElDisc.P .deps/TPZInterfaceEl.P \
 .deps/pzelgq2d.P .deps/pzelgt2d.P .deps/pzelgt3d.P .deps/pzelmat.P \
 .deps/pzgeoel.P .deps/pzgeoelbc.P .deps/pzgeoelside.P .deps/pzgmesh.P \
 .deps/pzgnode.P .deps/pzintel.P .deps/pzstackmesh.P .deps/pzsubcmesh.P \
-.deps/pzvecmesh.P
+.deps/pzvecmesh.P .deps/TPZFlowCMesh.P
 SOURCES = $(libpzmesh_a_SOURCES)
 OBJECTS = $(libpzmesh_a_OBJECTS)
 

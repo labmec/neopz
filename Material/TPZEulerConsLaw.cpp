@@ -563,6 +563,9 @@ void TPZEulerConsLaw::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVe
     soll[0] = solr[0];
     soll[nstate-1] = solr[nstate-1];
     break;
+  case 6://não refletivas (campo distante)
+    for(i=0;i<nstate;i++) soll[i] = solr[i];
+    break;
   default:
     PZError << "TPZEulerConsLaw::ContributeInterface Boundary Condition Type Not Exists\n";
   }
@@ -593,6 +596,9 @@ void TPZEulerConsLaw::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZV
     for(i=1;i<nstate-1;i++) solr[i] = soll[i] - 2.0*vpn*normal[i-1];
     solr[0] = soll[0];
     solr[nstate-1] = soll[nstate-1];
+    break;
+  case 6://não refletivas (campo distante)
+    for(i=0;i<nstate;i++) solr[i] = soll[i];
     break;
   default:
     PZError << "TPZEulerConsLaw::ContributeInterface Boundary Condition Type Not Exists\n";

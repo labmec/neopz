@@ -5,9 +5,6 @@
 #include "pzgmesh.h"
 #include "pzfmatrix.h"
 #include "pzcompel.h"
-//#include "TPZConservationLaw.h"
-//#include "TPZDiffusionConsLaw.h"
-#include "TPZCompElDisc.h"
 #include "pzintel.h"
 #include "pzgeoel.h"
 #include "pzelmat.h"
@@ -17,17 +14,12 @@
 #include "pzv3dmesh.h"
 #include "pzdxmesh.h"
 #include "pzmvmesh.h"
-
 #include "pzsolve.h"
 #include "pzstepsolver.h"
-
 #include "pzmetis.h"
 //#include "pzsloan.h"
-
 #include "pzmaterial.h"
-
 #include "pzstrmatrix.h"
-
 #include <fstream>
 using namespace std;
 #include <string.h>
@@ -438,168 +430,3 @@ void TPZAnalysis::SetSolver(TPZMatrixSolver &solver){
     fSolver = (TPZMatrixSolver *) solver.Clone();
 }
 
-void CoutTime(clock_t &start,char *title);
-void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat);
-static clock_t begin,init;
-void TPZAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha,int resolution) {
-
-  cout << "PZAnalysis::IterativeProcessTest beginning of the iterative process, general time 0\n";
-  TPZVec<char *> scalar(1),vector(0);
-  scalar[0] = "pressure";
-  //scalar[1] = "density";
-  //scalar[2] = "normvelocity";
-  cout << "TPZAnalysis::IterativeProcess solution required : " << scalar[0] << endl;
-  //       << "\n" << scalar[1] << "\n" << scalar[2] << endl;
-  int dim = mat->Dimension();
-  TPZDXGraphMesh graph(Mesh(),dim,mat,scalar,vector);
-  ofstream *dxout = new ofstream("ConsLaw.dx");
-  cout << "\nTPZAnalysis::IterativeProcess out file : ConsLaw.dx\n";
-  graph.SetOutFile(*dxout);
-  graph.SetResolution(resolution);
-  graph.DrawMesh(dim);
-  int iter = 0,draw=0;
-  fSolution.Zero();
-  begin = clock();
-  Run();
-  cout << "TPZAnalysis::IterativeProcess iteracao = " << ++iter << endl;
-  CoutTime(begin,"TPZAnalysis:: Fim system solution first iteration");
-  begin = clock();
-  LoadSolution();
-  //CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
-  SetDeltaTime(fCompMesh,mat);
-  REAL time = mat->TimeStep();
-  begin = clock();
-  graph.DrawSolution(draw++,time);
-  dxout->flush();
-  //CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
-  mat->SetForcingFunction(0);
-  REAL normsol = Norm(fSolution);
-
-  while(iter < numiter && normsol < tol) {
-    
-    begin = clock();
-    fSolution.Zero();
-    Run();
-    CoutTime(begin,"TPZAnalysis:: Fim system solution actual iteration");
-    CoutTime(init,"TPZAnalysis:: accumulated time");
-    begin = clock();
-    LoadSolution();
-    //CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
-    SetDeltaTime(fCompMesh,mat);
-    if( REAL(iter) / REAL(marcha) == draw || marcha == 1){
-      begin = clock();
-      time = mat->TimeStep();
-      graph.DrawSolution(draw++,time);
-      dxout->flush();
-      //CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
-    }
-    cout << "TPZAnalysis::IterativeProcess iteracao = " << ++iter << endl;
-    normsol = Norm(fSolution);
-  }
-  out.flush();
-  dxout->flush();
-  if(iter < numiter){
-    cout << "\nTPZAnalysis::IterativeProcess the iterative process stopped due the great norm "
-	 << "of the solution, norm solution = " << normsol << endl;
-    time = mat->TimeStep();
-    graph.DrawSolution(draw++,time);
-    dxout->flush();
-  }
-  CoutTime(init,"TPZAnalysis:: general time of iterative process");
-}
-
-void TPZAnalysis::IterativeProcessTest(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha,int resolution) {
-
-  cout << "PZAnalysis::IterativeProcessTest beginning of the iterative process, general time 0\n";
-  TPZVec<char *> scalar(1),vector(0);
-  scalar[0] = "Solution";
-  cout << "TPZAnalysis::IterativeProcess solution required : " << scalar[0] << endl;
-  int dim = mat->Dimension();
-  TPZDXGraphMesh graph(Mesh(),dim,mat,scalar,vector);
-  ofstream *dxout = new ofstream("ConsLaw.dx");
-  cout << "\nTPZAnalysis::IterativeProcess out file : ConsLaw.dx\n";
-  graph.SetOutFile(*dxout);
-  graph.SetResolution(resolution);
-  graph.DrawMesh(dim);
-  int iter = 0,draw=0;
-  fSolution.Zero();
-  begin = clock();
-  Run();
-  cout << "TPZAnalysis::IterativeProcess iteracao = " << ++iter << endl;
-  CoutTime(begin,"TPZAnalysis:: Fim system solution first iteration");
-  begin = clock();
-  LoadSolution();
-  //CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
-  begin = clock();
-  REAL time = mat->TimeStep();
-  graph.DrawSolution(draw++,time);
-  dxout->flush();
-  //CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
-  mat->SetForcingFunction(0);
-  REAL normsol = Norm(fSolution);
-
-  while(iter < numiter && normsol < tol) {
-    
-    begin = clock();
-    fSolution.Zero();
-    Run();
-    CoutTime(begin,"TPZAnalysis:: Fim system solution actual iteration");
-    CoutTime(init,"TPZAnalysis:: accumulated time");
-    begin = clock();
-    LoadSolution();
-    //CoutTime(begin,"TPZAnalysis:: Fim Load Solution");
-    if( REAL(iter) / REAL(marcha) == draw || marcha == 1){
-      begin = clock();
-      time = mat->TimeStep();
-      graph.DrawSolution(draw++,time);
-      dxout->flush();
-      //CoutTime(begin,"TPZAnalysis:: Fim Draw Solution");
-    }
-    cout << "TPZAnalysis::IterativeProcess iteracao = " << ++iter << endl;
-    normsol = Norm(fSolution);
-  }
-  out.flush();
-  dxout->flush();
-  if(iter < numiter){
-    cout << "\nTPZAnalysis::IterativeProcess the iterative process stopped due the great norm "
-	 << "of the solution, norm solution = " << normsol << endl;
-    time = mat->TimeStep();
-    graph.DrawSolution(draw++,time);
-    dxout->flush();
-  }
-  CoutTime(init,"TPZAnalysis:: general time of iterative process");
-}
-
-void CoutTime(clock_t &start,char *title){
-    clock_t end = clock();
-    cout << title <<  endl;
-    clock_t segundos = ((end - start)/CLOCKS_PER_SEC);
-    cout << segundos << " segundos" << endl;
-    cout << segundos/60.0 << " minutos" << endl << endl;
-}
-
-void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat){
-
-  REAL maxveloc = CompMesh->MaxVelocityOfMesh(mat->NStateVariables(),1.4);
-  REAL deltax = CompMesh->LesserEdgeOfMesh();//REAL deltax = CompMesh->DeltaX();//REAL deltax = CompMesh->MaximumRadiusOfEl();
-  TPZCompElDisc *disc;
-  int degree = disc->gDegree;
-  mat->SetDeltaTime(maxveloc,deltax,degree);
-}
-
-/*
-  int sizesol = fSolution.Rows();
-
-  if(0 && sizesol < 1000 && iter < 20){
-    out << "TPZAnalysis::IterativeProcess iteracao = " << iter 
-	<< " : norma da solucao ||Solution||: " << Norm(fSolution) << endl;
-    Print("FEM SOLUTION ",out);
-  }
-*/
-/*
-    if(0 && sizesol < 1000 && iter < 20){
-      out << "TPZAnalysis::IterativeProcess iteracao = " << iter 
-	  << " : norma da solucao ||Solution||: " << Norm(fSolution) << endl;
-      Print("FEM SOLUTION ",out);
-    }
-*/

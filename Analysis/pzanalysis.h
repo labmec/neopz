@@ -203,10 +203,6 @@ class TPZAnalysis {
   void SetSolver(TPZMatrixSolver &solver);
 
   void SetStructuralMatrix(TPZStructMatrix &strmatrix);
-
-  void IterativeProcess(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha=1,int resolution=0);
-
-  void IterativeProcessTest(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha,int resolution=0);
 };
 
 

@@ -134,6 +134,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Analysis/pzonedref.o \
 	../Analysis/pzsmanal.o \
 	../Analysis/pzsmfrontalanal.o \
+	../Analysis/TPZIterativeAnalysis.o \
 	../Cosys/pzcartsys.o \
 	../Cosys/pzcosys.o \
 	../Cosys/pzcylinsys.o \
@@ -182,6 +183,8 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../External/pzmetis.o \
 	../External/pzrenumbering.o \
 	../Pre/pzgengrid.o \
-	../Pre/pzpargrid.o 
+	../Pre/pzpargrid.o \
+	../Mesh/TPZFlowCMesh.o \
+	../Pre/TPZGMSHReadMesh.o
 
 ## --| NeoPZ |------------------------------------------------------------------
