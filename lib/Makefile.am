@@ -73,6 +73,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Mesh/TPZAgglomerateEl.o \
 	../Mesh/pzelctemp.o \
 	../Mesh/tpzgeoelrefpattern.o \
+        ../Mesh/pzmeshid.o \
 	../Shape/pzshapecube.o \
 	../Shape/pzshapelinear.o \
 	../Shape/pzshapepiram.o \
@@ -102,6 +103,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Matrix/pzsysmp.o \
 	../Matrix/pztempmat.o \
 	../Matrix/pzysmp.o \
+        ../Matrix/pzmatrixid.o \
 	../Geom/pzgeopoint.o \
 	../Geom/pzgeoprism.o \
 	../Geom/pzgeopyramid.o \
@@ -173,6 +175,7 @@ libpz_a_LIBADD = @METISDIR@/lib/libmetis.a \
 	../Material/pzeulerconslaw.o \
 	../Material/pzartdiff.o \
 	../Material/pzbiharmonic.o \
+        ../Material/pzmaterialid.o \
 	../Post/pzdxmesh.o \
 	../Post/pzgraphel1d.o \
 	../Post/pzgraphel1dd.o \
