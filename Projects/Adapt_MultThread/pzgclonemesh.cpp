@@ -34,7 +34,14 @@ TPZGeoCloneMesh::TPZGeoCloneMesh(TPZGeoMesh *ref) : TPZGeoMesh()/*, fMapNodes(ze
   fGeoReference = ref;
   fGeoElRef = 0; //will be setted in SetElements method!
 }
-	
+
+
+TPZGeoCloneMesh::TPZGeoCloneMesh() : TPZGeoMesh(){
+  fGeoReference = 0;
+  fGeoElRef = 0; //will be setted in SetElements method!
+}
+
+
 void TPZGeoCloneMesh::SetElements(TPZStack <TPZGeoEl *> &patch, TPZGeoEl *ref){
 
   int i;
@@ -56,8 +63,8 @@ void TPZGeoCloneMesh::SetElements(TPZStack <TPZGeoEl *> &patch, TPZGeoEl *ref){
       TPZGeoEl *gel = patch[i];
       TPZGeoEl *father = gel->Father();
       while(father) {
-	gel = father;
-	father = gel->Father();
+        gel = father;
+        father = gel->Father();
       }
       //      cout << "\nElemento a ser clonado:\n";
       //      gel->Print(cout);
@@ -82,23 +89,23 @@ void TPZGeoCloneMesh::AddBoundaryConditionElements(TPZGeoEl *eltoadd){
     if (!neighbour.Element()) continue;
     while(neighbour != elside) {
       if(neighbour.Element() && neighbour.Element()->MaterialId() < 0 &&
-		  neighbour.Side() == neighbour.Element()->NSides() - 1 &&
-		  neighbour.Element()->Reference()) {
-	TPZGeoEl *gel = neighbour.Element();
-	if (HasElement(gel)) {
-	  neighbour = neighbour.Neighbour();
-	  continue;
-	}
-	fPatchReferenceElements.Push(gel);
-	TPZGeoEl *father = gel->Father();
-	while(father) {
-	  gel = father;
-	  father = gel->Father();
-	}
-	CloneElement(gel);
-	// verificar se neighbour.Element ja esta no map
-	TPZGeoEl *localpatch = fMapElements[neighbour.Element()];
-	fPatchElements.Push(localpatch);
+            neighbour.Side() == neighbour.Element()->NSides() - 1 &&
+            neighbour.Element()->Reference()) {
+        TPZGeoEl *gel = neighbour.Element();
+        if (HasElement(gel)) {
+          neighbour = neighbour.Neighbour();
+          continue;
+        }
+        fPatchReferenceElements.Push(gel);
+        TPZGeoEl *father = gel->Father();
+        while(father) {
+          gel = father;
+          father = gel->Father();
+        }
+        CloneElement(gel);
+        // verificar se neighbour.Element ja esta no map
+        TPZGeoEl *localpatch = fMapElements[neighbour.Element()];
+        fPatchElements.Push(localpatch);
       }
       neighbour = neighbour.Neighbour();
     }
@@ -148,10 +155,13 @@ int  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
   
   //fill the map
   fMapElements[orgel] = el;
-  if(elindex >= fReferenceElement.NElements()) {
-    fReferenceElement.Resize(elindex+1,0);
+  //if(elindex >= fReferenceElement.NElements()) {
+  if(elindex >= fReferenceElementIndex.NElements()) {
+    //fReferenceElement.Resize(elindex+1,0);
+    fReferenceElementIndex.Resize(elindex+1,0);
   }	
-  fReferenceElement[elindex] = orgel;
+  //fReferenceElement[elindex] = orgel;
+  fReferenceElementIndex[elindex] = orgel->Index();
   //fill the neighbours
   for (i=0;i<orgel->NSides();i++){
     TPZGeoElSide neig = orgel->Neighbour(i);
@@ -205,6 +215,7 @@ int TPZGeoCloneMesh::IsPatchReferenceElement(TPZGeoEl *refpatch){
   }
   return 0;
 }
+
 int TPZGeoCloneMesh::IsPatchElement(TPZGeoEl *refpatch){
   int iel, nel = fPatchElements.NElements();
   for (iel = 0; iel < nel; iel++) {
@@ -325,9 +336,18 @@ TPZGeoEl* TPZGeoCloneMesh::InitializeClone(TPZGeoEl *org){
 }
 
 TPZGeoEl* TPZGeoCloneMesh::ReferenceElement(int i) {
-  int nref = fReferenceElement.NElements();
+  int nref = fReferenceElementIndex.NElements();
   if (i < 0 || i >= nref) return 0;
-  else  return fReferenceElement[i];
+  else  return fGeoReference->ElementVec()[fReferenceElementIndex[i]];
+}
+  
+int TPZGeoCloneMesh::ReferenceElementIndex(int i) {
+//  int nref = fReferenceElement.NElements();
+//  if (i < 0 || i >= nref) return 0;
+//  else  return fReferenceElement[i];
+  int nref = fReferenceElementIndex.NElements();
+  if (i < 0 || i >= nref) return 0;
+  else  return fReferenceElementIndex[i];
 }
 
 void TPZGeoCloneMesh::Print (ostream & out) {
@@ -369,8 +389,11 @@ void TPZGeoCloneMesh::Print (ostream & out) {
     out << "\n";
     out << "Reference Element:";
     int refind = Index(ElementVec()[i]);
-    if (refind < 0 || refind >= fReferenceElement.NElements()){continue;}
-    if(fReferenceElement[refind]) out<< fReferenceElement[refind]->Id();//->Print(out);
+    //if (refind < 0 || refind >= fReferenceElement.NElements()){continue;}
+    //if(fReferenceElement[refind]) out<< fReferenceElement[refind]->Id();//->Print(out);
+    if (refind < 0 || refind >= fReferenceElementIndex.NElements()){continue;}
+    TPZGeoEl *ref = ReferenceElement(refind);
+    if(ref) out<< ref->Id();//->Print(out);
     out <<"\n-----------------------------------------------------\n\n";
   }
 }
@@ -569,4 +592,124 @@ int TPZGeoCloneMesh::main(){
   	return (0);
 
 }
+
+int TPZGeoCloneMesh::ClassId() const {
+  return TPZGEOCLONEMESHID;
+}
+
+void TPZGeoCloneMesh::Read(TPZStream &buf, void *context)
+{
+  TPZGeoMesh::Read(buf,context);
+
+  int i;
+  int first  = -1;
+  int second = -1;
+  int szmap = -1;
+ 
+  /** Maps node id from cloned mesh to the mesh*/
+  buf.Read (&szmap,1);
+  for (i=0;i<szmap;i++){
+    buf.Read (&first,1);
+    buf.Read (&second,1);
+    fMapNodes[first] = second;
+  }
+  
+  /** Maps element pointers from mesh to the cloned mesh*/
+  //std::map<TPZGeoEl *,TPZGeoEl *> fMapElements;
+ // buf.Read (&szmap,1);
+ // for (i=0;i<szmap;i++){
+ //   buf.Read (&first,1);
+ //   buf.Read (&second,1);
+ //   fMapNodes[first] = second;
+ // }
+
+
+  /** Maps element id from cloned mesh to mesh */
+  TPZSaveable::ReadObjects(buf,fReferenceElementIndex);
+  
+
+  /** Elements corresponding to the patch */
+  //TPZStack<TPZGeoEl *> fPatchReferenceElements;
+  //  TPZStack<TPZGeoEl *> fPatchElements;
+
+  /**
+   * Geometric Element Reference to get the clone mesh patch
+   */
+  //TPZGeoEl* fGeoElRef;    
+
+
+	  
+//  buf.Read(&fName,1);
+//  ReadObjects(buf,fNodeVec,this);
+//  ReadObjectPointers(buf,fElementVec,this);
+//  ReadObjects(buf,this->fBCElementVec,this);
+//  buf.Read(&fNodeMaxId,1);
+//  buf.Read(&fElementMaxId,1);
+//  int ninterfacemaps;
+//  buf.Read(&ninterfacemaps,1);
+//  int c;
+//  for(c=0; c< ninterfacemaps; c++)
+//  {
+//    int vals[3];
+//    buf.Read(vals,3);
+//    fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
+//    }
+//    BuildConnectivity();
+}
+
+void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
+{
+  TPZGeoMesh::Write(buf,withclassid);
+
+  int i;
+  int first  = -1;
+  int second = -1;
+  int szmap = -1;
+
+  /** Maps node id from cloned mesh to the mesh*/
+  szmap = fMapNodes.size();
+  buf.Write (&szmap,1);
+  std::map<int,int>::iterator mapIt;
+  for (mapIt=fMapNodes.begin();mapIt!=fMapNodes.end();mapIt++){
+    first = (*mapIt).first;
+    second = (*mapIt).second;
+    buf.Write (&first,1);
+    buf.Write (&second,1);
+  }
+
+  /** Maps element pointers from mesh to the cloned mesh*/
+  //std::map<TPZGeoEl *,TPZGeoEl *> fMapElements;
+  //buf.Read (&szmap,1);
+  //for (i=0;i<szmap;i++){
+   // buf.Read (&first,1);
+   // buf.Read (&second,1);
+    //fMapNodes[first] = second;
+  //}
+
+
+  /** Maps element id from cloned mesh to mesh */
+  TPZSaveable::WriteObjects(buf,fReferenceElementIndex);
+  
+//  TPZSaveable::Write(buf,withclassid);
+//  buf.Write(&fName,1);
+//  WriteObjects(buf,fNodeVec);
+//  WriteObjectPointers(buf,fElementVec);
+//  WriteObjects(buf,fBCElementVec);
+//  buf.Write(&fNodeMaxId,1);
+//  buf.Write(&fElementMaxId,1);
+//  int ninterfacemaps = fInterfaceMaterials.size();
+//  buf.Write(&ninterfacemaps,1);
+//  InterfaceMaterialsMap::iterator it = fInterfaceMaterials.begin();
+//  while(it != fInterfaceMaterials.end())
+//  {
+//    int vals[3];
+//    vals[0] = (it->first).first;
+//    vals[1] = (it->first).second;
+//    vals[2] = it->second;
+//    buf.Write(vals,3);
+//  }
+}
+
+template class
+TPZRestoreClass<TPZGeoCloneMesh,TPZGEOCLONEMESHID> ;
 

@@ -68,6 +68,11 @@ class TPZCompCloneMesh : public TPZCompMesh {
   };
 
   /**
+   * Empty constructor
+   */
+  TPZCompCloneMesh ();
+  
+  /**
    * Copy constructor
    */
   TPZCompCloneMesh (TPZCompCloneMesh &copy);
@@ -112,10 +117,11 @@ class TPZCompCloneMesh : public TPZCompMesh {
 
 
   REAL ElementError(TPZInterpolatedElement *fine, 
-		    TPZInterpolatedElement *coarse, 
-       		    TPZTransform &tr,
-		    void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),
-		    REAL &truerror);
+                    TPZInterpolatedElement *coarse, 
+                    TPZTransform &tr,
+                    void (*f)(TPZVec<REAL> &loc,
+                    TPZVec<REAL> &val, TPZFMatrix &deriv),
+                    REAL &truerror);
 
   /**
    * Returns hp pattern of reference elements
@@ -126,7 +132,23 @@ class TPZCompCloneMesh : public TPZCompMesh {
    * @param porder p order of the elements contained in gelstack
    */
   void ApplyRefPattern(REAL minerror, TPZVec<REAL> &error, TPZCompMesh *finee, 
-		       TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> &porder);
+                       TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> &porder);
+           
+  /**
+   * returns the unique identifier for reading/writing objects to streams
+   */
+  virtual int ClassId() const;
+  
+  /**
+   * Save the element data to a stream
+   */
+  virtual void Write(TPZStream &buf, int withclassid);
+
+  /**
+   *Read the element data from a stream
+   */
+  virtual void Read(TPZStream &buf, void *context);
+
 
 
 protected:
@@ -160,15 +182,15 @@ protected:
    * @param porders Refinement order for each linear side of the element
    */
   void AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *cint,
-		       TPZStack<TPZGeoEl *> &subels, TPZStack<int> &porders);
+                       TPZStack<TPZGeoEl *> &subels, TPZStack<int> &porders);
 
   void AdaptElements (TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
 
 
   void TPZCompCloneMesh::DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,	
-					  TPZVec<int> &cornerids,
-					  TPZVec<int> &porders,
-					  int originalp);
+                                          TPZVec<int> &cornerids,
+                                          TPZVec<int> &porders,
+                                          int originalp);
 
   void Sort(TPZVec<REAL> &vec, TPZVec<int> &perm);
 

@@ -14,6 +14,9 @@
 
 #include "pzmaterial.h"
 
+#include "pzsave.h"
+#include "pzbfilestream.h"
+
 //multithread -->>
 #include <pthread.h>
 #include <signal.h>
@@ -310,11 +313,53 @@ void * TPZAdaptMesh::MeshError(void *t){
     adapt->fFineCloneMesh[cliter] = 0;
   }
   else {
+    //Teste para tentar encaixar o oopar    
     adapt->fFineCloneMesh [cliter] = adapt->fCloneMesh[cliter]->UniformlyRefineMesh();
+         {
+           TPZBFileStream temp;
+           temp.OpenWrite("temp.bin");
+           //TPZGeoCloneMesh *gclmesh = dynamic_cast <TPZGeoCloneMesh *> (adapt->fCloneMesh[cliter]->Reference());
+           //gclmesh->Write(temp,1);
+           adapt->fCloneMesh[cliter]->Reference()->Write(temp,1);
+           adapt->fCloneMesh[cliter]->Write(temp,1);
+         }
+         TPZCompCloneMesh *locclone = 0;
+         TPZGeoCloneMesh *geolocclone = 0;
+         {
+           TPZBFileStream temp;
+           temp.OpenRead("temp.bin");
+           TPZSaveable *sav = TPZSaveable::Restore(temp,0);
+           geolocclone = dynamic_cast<TPZGeoCloneMesh *>(sav);
+           sav = TPZSaveable::Restore(temp,geolocclone);
+           locclone = dynamic_cast<TPZCompCloneMesh *>(sav);
+         }
+           
+         {
+           TPZBFileStream temp;
+           temp.OpenWrite("temp.bin");
+           adapt->fFineCloneMesh[cliter]->Reference()->Write(temp,1);
+           adapt->fFineCloneMesh[cliter]->Write(temp,1);
+         }
+         TPZCompMesh *locfineclone = 0;
+         TPZGeoMesh *geolocfineclone = 0;
+         {
+           TPZBFileStream temp;
+           temp.OpenRead("temp.bin");
+           TPZSaveable *sav = TPZSaveable::Restore(temp,0);
+           geolocfineclone = dynamic_cast<TPZGeoMesh *>(sav);
+           sav = TPZSaveable::Restore(temp,geolocfineclone);
+           locfineclone = dynamic_cast<TPZCompMesh *>(sav);
+         }
+         TPZVec<REAL> locerror(adapt->fElementError.NElements(),0.),
+           loctrueerror(adapt->fTrueErrorVec.NElements(),0.);
+         locclone->MeshError(locfineclone,locerror,
+                                                  adapt->fExact,
+                                                  loctrueerror);
+
     adapt->fCloneMesh[cliter]->MeshError(adapt->fFineCloneMesh[cliter],
-				       adapt->fElementError, 
-				       adapt->fExact, 
-				       adapt->fTrueErrorVec);
+                                         adapt->fElementError, 
+                                         adapt->fExact, 
+                                         adapt->fTrueErrorVec);                                         
   }
   pthread_mutex_lock(&adapt->fLock_clindex);
   fThreads_in_use --;

@@ -43,7 +43,8 @@ protected:
 	std::map<TPZGeoEl *,TPZGeoEl *> fMapElements;
 
 	/** Maps element id from cloned mesh to mesh */
-	TPZStack<TPZGeoEl *> fReferenceElement;
+	//TPZStack<TPZGeoEl *> fReferenceElement;
+  TPZStack <int>        fReferenceElementIndex ;
 
 	/** Elements corresponding to the patch */
 	TPZStack<TPZGeoEl *> fPatchReferenceElements;
@@ -53,7 +54,7 @@ protected:
 	 * Pointer to adapt mesh
 	 * Its necessary to get element error vec
 	 */
-	TPZAdaptMesh * fAdaptMesh;
+   //TPZAdaptMesh * fAdaptMesh;
 
 	/**
 	 * Geometric Element Reference to get the clone mesh patch
@@ -65,32 +66,38 @@ protected:
 	void AddBoundaryConditionElements(TPZGeoEl *eltoadd);
 
 public:
-  	/**Constructors and destructor*/
-  	TPZGeoCloneMesh(TPZGeoMesh *mesh);
+  
+  /**Constructors and destructor*/
+  TPZGeoCloneMesh();
+  
+  /**Constructors and destructor*/
+  TPZGeoCloneMesh(TPZGeoMesh *mesh);
 
-	/*Destructor*/
-	virtual ~TPZGeoCloneMesh();
+  /*Destructor*/
+  virtual ~TPZGeoCloneMesh();
 
-	/**
-	 * Defines the mesh elements
-	 * @param patch: elements to be cloned
-	 */
-	void SetElements(TPZStack<TPZGeoEl *> &patch, TPZGeoEl *ref);
+  /**
+   * Defines the mesh elements
+   * @param patch: elements to be cloned
+   */
+  void SetElements(TPZStack<TPZGeoEl *> &patch, TPZGeoEl *ref);
 
-	/**
-	 * Add Elements to structure
-	 */
-	void AddElement(TPZGeoEl *eltoadd);
+  /**
+   * Add Elements to structure
+   */
+  void AddElement(TPZGeoEl *eltoadd);
 
 	/**
 	 * Returns the reference element
 	 */
 	TPZGeoEl* ReferenceElement(int i);
+  int ReferenceElementIndex(int i);
 
 	/**
 	 * Only for debug purposes
 	 */
-	int NReference() {return fReferenceElement.NElements();}
+//	int NReference() {return fReferenceElement.NElements();}
+    int NReference() {return fReferenceElementIndex.NElements();}
 
 	/**
 	 * Print object data
@@ -108,6 +115,15 @@ public:
 	TPZGeoEl * GetMeshReferenceElement(){return fGeoElRef;}
 
 	int IsPatchSon(TPZGeoEl *gel);
+	
+	/**
+	 * For OOPAR purposes
+	 */
+	virtual int ClassId() const;
+
+	virtual void Read(TPZStream &buf, void *context);
+
+	virtual void Write(TPZStream &buf, int withclassid);
 
 	/**
 	 * Test and validation routines

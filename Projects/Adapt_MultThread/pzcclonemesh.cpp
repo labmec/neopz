@@ -32,6 +32,8 @@
 #include "pzanalysis.h"
 #include "pzdebug.h"
 #include "pzcheckmesh.h"
+#include "pzsave.h"
+#include "pzmeshid.h"
 
 template class TPZVec<TPZCompCloneMesh::TPZRefPattern>;
 
@@ -51,6 +53,11 @@ TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : T
   }
   //	Reference()->Print(cout);
 }
+
+TPZCompCloneMesh::TPZCompCloneMesh () : TPZCompMesh(),fCloneReference(){
+
+}
+
 
 TPZCompCloneMesh::~TPZCompCloneMesh() {
 }
@@ -142,15 +149,14 @@ void TPZCompCloneMesh::AutoBuild() {
 
   if(check.CheckConnectOrderConsistency() != -1) {
     cout << "TPZCompCloneMesh::AutoBuild The mesh is inconsistent before CreateCloneBC\n " << endl;
-
   }
+
   CleanUpUnconnectedNodes();
  
   CreateCloneBC();
   
   if(check.CheckConnectOrderConsistency() != -1) {
     cout << "TPZCompCloneMesh::AutoBuild The mesh is inconsistent after CreateCloneBC\n " << endl;
-
   }
   TPZCompEl *cel;
   TPZAdmChunkVector<TPZGeoElBC> &elbcvec = Reference()->BCElementVec();
@@ -325,7 +331,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
       //      int constraints =  fCloneReference->ConnectVec()[orgconid].HasDependency();
       //     int orgconstraints = ConnectVec()[clconid].HasDependency();
       if (orgelcon > clelcon || cllarge.Exists() != large.Exists()){
-	bcelsides.Push(geoside);
+        bcelsides.Push(geoside);
       }
     }
   }
@@ -357,7 +363,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
     chck.VerifyAllConnects();
     Reference()->Print(cout);
     this->Print(cout);
-  }		
+  }
   TPZStack <TPZGeoEl *> bcgelstack;
   TPZStack <int> bcporderstack;
   TPZStack<int> elementindex;
@@ -369,13 +375,13 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
     TPZInterpolatedElement *bcel =  dynamic_cast<TPZInterpolatedElement *>(ElementVec()[el]);
     if(bcel) {        
       if (bcel->Material()->Id() == -1000) {
-	bcgelstack.Push(bcel->Reference());
-	int nsides = bcel->NConnects();
-	int sideorder = bcel->SideOrder(nsides-1);
-	bcporderstack.Push(sideorder);
-	elementindex.Push(el);
-	elementpointers.Push(bcel);
-	ElementVec()[el] = 0;
+        bcgelstack.Push(bcel->Reference());
+        int nsides = bcel->NConnects();
+        int sideorder = bcel->SideOrder(nsides-1);
+        bcporderstack.Push(sideorder);
+        elementindex.Push(el);
+        elementpointers.Push(bcel);
+        ElementVec()[el] = 0;
       }
     }
   }
@@ -404,7 +410,6 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
   
   nelem = copyel.NElements();
   for(el=0; el<nelem; el++) {
-    
     TPZCompEl *cel = copyel[el];
     TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
     if(!cint) continue;
@@ -423,11 +428,11 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
       cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data After Divide\n";
       int idbg, indbg, neldbg = subelindex.NElements();
       for (idbg = 0; idbg<neldbg; idbg++){
-	cout << "\nElement : " << idbg << endl;
-	indbg = subelindex[idbg];
-	TPZCompEl *celdbg = elementvec[indbg];
-	if (celdbg) celdbg->Print(cout);
-	else cout << "SubElement not initialized!!\n";
+        cout << "\nElement : " << idbg << endl;
+        indbg = subelindex[idbg];
+        TPZCompEl *celdbg = elementvec[indbg];
+        if (celdbg) celdbg->Print(cout);
+        else cout << "SubElement not initialized!!\n";
       }
     }
     
@@ -437,14 +442,13 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
       intel->PRefine(porder+1);
       
       if(gPrintLevel == 2) {
-	TPZCheckMesh chk(cmesh,&cout);
-	chk.VerifyAllConnects();
+        TPZCheckMesh chk(cmesh,&cout);
+        chk.VerifyAllConnects();
       }
       if (gDebug){
-	cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data After PRefine\n";
-	intel->Print(cout);
+        cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data After PRefine\n";
+        intel->Print(cout);
       }
-      
     }
     cmesh->ExpandSolution();
   }
@@ -455,10 +459,8 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
   int i;
   for (i=0;i<nbc;i++){
     TPZGeoEl *bcgel =  bcgelstack[i];
-    
     TPZVec <TPZGeoEl *> bcsubgel;
     bcgel->Divide(bcsubgel);
-    
     int nsubel = bcsubgel.NElements();
     int is;
     for (is=0;is<nsubel;is++){
@@ -478,11 +480,11 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
 }
 
 void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
-				 TPZVec<REAL> &ervec, 
-				 void(*f)(TPZVec<REAL> &loc, 
-					  TPZVec<REAL> &val, 
-					  TPZFMatrix &deriv),
-				 TPZVec<REAL> &truervec){
+                                 TPZVec<REAL> &ervec, 
+                                 void(*f)(TPZVec<REAL> &loc, 
+                                 TPZVec<REAL> &val, 
+                                 TPZFMatrix &deriv),
+                                 TPZVec<REAL> &truervec){
   //Evaluates the solution f
   if (fine->Reference()->Reference() != fine){
     fine->Reference()->ResetReference();
@@ -519,25 +521,25 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
       clfan.Solution().Print();
     }
   }
-/*   if(computesolution) { */
-/*     TPZSkylineStructMatrix clfstr(fine); */
-/*     TPZAnalysis clfan(fine); */
-/*     TPZStepSolver jacobi; */
-/*     TPZStepSolver cg; */
-/*     clfan.SetStructuralMatrix(clfstr); */
-/*     clfan.SetSolver(cg); */
-/*     clfan.Assemble(); */
-/*     jacobi.ShareMatrix(clfan.Solver()); */
-/*     jacobi.SetJacobi(1,0,0); */
-/*     cg.ShareMatrix(clfan.Solver()); */
-/*     cg.SetCG(5,jacobi,1E-6,1); */
-/*     clfan.SetSolver(cg); */
-/*     clfan.Solve(); */
-/*     int printing=0; */
-/*     if(printing) { */
-/*       clfan.Solution().Print(); */
-/*     } */
-/*   } */
+//   if(computesolution) {
+//     TPZSkylineStructMatrix clfstr(fine);
+//     TPZAnalysis clfan(fine);
+//     TPZStepSolver jacobi;
+//     TPZStepSolver cg;
+//     clfan.SetStructuralMatrix(clfstr);
+//     clfan.SetSolver(cg);
+//     clfan.Assemble();
+//     jacobi.ShareMatrix(clfan.Solver());
+//     jacobi.SetJacobi(1,0,0);
+//     cg.ShareMatrix(clfan.Solver());
+//     cg.SetCG(5,jacobi,1E-6,1);
+//     clfan.SetSolver(cg);
+//     clfan.Solve();
+//     int printing=0;
+//     if(printing) {
+//       clfan.Solution().Print();
+//     }
+//   }
   //  clfan.Rhs().Print();
   //  cout << "Solution of the fine mesh\n";
   //   clfan.Solution().Print();
@@ -553,6 +555,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
   /*   fine->SetName("Malha Fina"); */
   /*   fine->Print(); */
   /*   fine->Reference()->Print(); */
+
   for(el=0; el<numel; el++) {
     cel = elementvec[el];
     if (!cel) continue;
@@ -599,14 +602,14 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
     ervec[index] += erro;
     if(erro > 1.0e-8 || truerror > 1.e-8) {//CEDRIC
       cout << "index: " << index << "  Erro somado: " << erro;
-	}
+    }
     if(f){
       if (truerror > 0)  truervec[index]  += truerror;
       if(erro > 1.0e-8 || truerror > 1.e-8) {//CEDRIC
-	  	cout << " erro real " << truerror;
-	  }
+      cout << " erro real " << truerror;
     }
-	if(erro > 1.0e-8 || truerror > 1.e-8) cout << endl;
+  }
+    if(erro > 1.0e-8 || truerror > 1.e-8) cout << endl;
   }
 }
 
@@ -725,8 +728,9 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
     if(dist > 1.e-6) cout << "TPZCompCloneMesh::ElementError transformation between fine and coarse is wrong\t dist = " << dist << endl;
     for(i=0; i<3; i++) {
       for(j=0; j<3; j++) {
-	axesinner(i,j) = 0.;
-	for(k=0; k<3; k++) axesinner(i,j) += axesfine(i,k)*axescoarse(j,k);
+        axesinner(i,j) = 0.;
+        for(k=0; k<3; k++)
+          axesinner(i,j) += axesfine(i,k)*axescoarse(j,k);
       }
     }
     
@@ -745,47 +749,49 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
       break;
     case 1:
       for(d=0; d<dimension; d++) {
-	for(ieq=0; ieq<locmatsize; ieq++) locdphix(d,ieq) = locdphi(d,ieq)*(1./jacdetfine);
-	for(ieq=0; ieq<cormatsize; ieq++) cordphix(d,ieq) = cordphi(d,ieq)*(axesinner(0,0)/jacdetcoarse);
+        for(ieq=0; ieq<locmatsize; ieq++)
+          locdphix(d,ieq) = locdphi(d,ieq)*(1./jacdetfine);
+        for(ieq=0; ieq<cormatsize; ieq++)
+          cordphix(d,ieq) = cordphi(d,ieq)*(axesinner(0,0)/jacdetcoarse);
       }
       break;
     case 2:
       for(ieq = 0; ieq < locmatsize; ieq++) {
-	locdphix(0,ieq) = jacinvfine(0,0)*locdphi(0,ieq) + jacinvfine(1,0)*locdphi(1,ieq);
-	locdphix(1,ieq) = jacinvfine(0,1)*locdphi(0,ieq) + jacinvfine(1,1)*locdphi(1,ieq);
-	REAL tmp[2];
-	tmp[0] = locdphix(0,ieq)*axesfine(0,0)+locdphix(1,ieq)*axesfine(1,0);
-	tmp[1] = locdphix(0,ieq)*axesfine(0,1)+locdphix(1,ieq)*axesfine(1,1);
-	locdphix(0,ieq) = tmp[0];
-	locdphix(1,ieq) = tmp[1];
+        locdphix(0,ieq) = jacinvfine(0,0)*locdphi(0,ieq) + jacinvfine(1,0)*locdphi(1,ieq);
+        locdphix(1,ieq) = jacinvfine(0,1)*locdphi(0,ieq) + jacinvfine(1,1)*locdphi(1,ieq);
+        REAL tmp[2];
+        tmp[0] = locdphix(0,ieq)*axesfine(0,0)+locdphix(1,ieq)*axesfine(1,0);
+        tmp[1] = locdphix(0,ieq)*axesfine(0,1)+locdphix(1,ieq)*axesfine(1,1);
+        locdphix(0,ieq) = tmp[0];
+        locdphix(1,ieq) = tmp[1];
       }
       for(ieq = 0; ieq < cormatsize; ieq++) {
-	cordphix(0,ieq) = jacinvcoarse(0,0)*cordphi(0,ieq) + jacinvcoarse(1,0)*cordphi(1,ieq);
-	cordphix(1,ieq) = jacinvcoarse(0,1)*cordphi(0,ieq) + jacinvcoarse(1,1)*cordphi(1,ieq);
-	REAL tmp[2];
-	tmp[0] = cordphix(0,ieq)*axescoarse(0,0)+cordphix(1,ieq)*axescoarse(1,0);
-	tmp[1] = cordphix(0,ieq)*axescoarse(0,1)+cordphix(1,ieq)*axescoarse(1,1);
-	cordphix(0,ieq) = tmp[0];
-	cordphix(1,ieq) = tmp[1];
+        cordphix(0,ieq) = jacinvcoarse(0,0)*cordphi(0,ieq) + jacinvcoarse(1,0)*cordphi(1,ieq);
+        cordphix(1,ieq) = jacinvcoarse(0,1)*cordphi(0,ieq) + jacinvcoarse(1,1)*cordphi(1,ieq);
+        REAL tmp[2];
+        tmp[0] = cordphix(0,ieq)*axescoarse(0,0)+cordphix(1,ieq)*axescoarse(1,0);
+        tmp[1] = cordphix(0,ieq)*axescoarse(0,1)+cordphix(1,ieq)*axescoarse(1,1);
+        cordphix(0,ieq) = tmp[0];
+        cordphix(1,ieq) = tmp[1];
       }
       break;
     case 3:
       for(ieq = 0; ieq < locmatsize; ieq++) {
-	locdphix(0,ieq) = jacinvfine(0,0)*locdphi(0,ieq) + jacinvfine(1,0)*locdphi(1,ieq) + jacinvfine(2,0)*locdphi(2,ieq);
-	locdphix(1,ieq) = jacinvfine(0,1)*locdphi(0,ieq) + jacinvfine(1,1)*locdphi(1,ieq) + jacinvfine(2,1)*locdphi(2,ieq);
-	locdphix(2,ieq) = jacinvfine(0,2)*locdphi(0,ieq) + jacinvfine(1,2)*locdphi(1,ieq) + jacinvfine(2,2)*locdphi(2,ieq);
+        locdphix(0,ieq) = jacinvfine(0,0)*locdphi(0,ieq) + jacinvfine(1,0)*locdphi(1,ieq) + jacinvfine(2,0)*locdphi(2,ieq);
+        locdphix(1,ieq) = jacinvfine(0,1)*locdphi(0,ieq) + jacinvfine(1,1)*locdphi(1,ieq) + jacinvfine(2,1)*locdphi(2,ieq);
+        locdphix(2,ieq) = jacinvfine(0,2)*locdphi(0,ieq) + jacinvfine(1,2)*locdphi(1,ieq) + jacinvfine(2,2)*locdphi(2,ieq);
       }
       for(ieq = 0; ieq < cormatsize; ieq++) {
-	cordphix(0,ieq) = jacinvcoarse(0,0)*cordphi(0,ieq) + jacinvcoarse(1,0)*cordphi(1,ieq) + jacinvcoarse(2,0)*cordphi(2,ieq);
-	cordphix(1,ieq) = jacinvcoarse(0,1)*cordphi(0,ieq) + jacinvcoarse(1,1)*cordphi(1,ieq) + jacinvcoarse(2,1)*cordphi(2,ieq);
-	cordphix(2,ieq) = jacinvcoarse(0,2)*cordphi(0,ieq) + jacinvcoarse(1,2)*cordphi(1,ieq) + jacinvcoarse(2,2)*cordphi(2,ieq);
-	REAL tmp[3];
-	tmp[0] = cordphix(0,ieq)*axesinner(0,0)+cordphix(1,ieq)*axesinner(0,1)+cordphix(2,ieq)*axesinner(0,2);
-	tmp[1] = cordphix(0,ieq)*axesinner(1,0)+cordphix(1,ieq)*axesinner(1,1)+cordphix(2,ieq)*axesinner(1,2);
-	tmp[2] = cordphix(0,ieq)*axesinner(2,0)+cordphix(1,ieq)*axesinner(2,1)+cordphix(2,ieq)*axesinner(2,2);
-	cordphix(0,ieq) = tmp[0];
-	cordphix(1,ieq) = tmp[1];
-	cordphix(2,ieq) = tmp[2];
+        cordphix(0,ieq) = jacinvcoarse(0,0)*cordphi(0,ieq) + jacinvcoarse(1,0)*cordphi(1,ieq) + jacinvcoarse(2,0)*cordphi(2,ieq);
+        cordphix(1,ieq) = jacinvcoarse(0,1)*cordphi(0,ieq) + jacinvcoarse(1,1)*cordphi(1,ieq) + jacinvcoarse(2,1)*cordphi(2,ieq);
+        cordphix(2,ieq) = jacinvcoarse(0,2)*cordphi(0,ieq) + jacinvcoarse(1,2)*cordphi(1,ieq) + jacinvcoarse(2,2)*cordphi(2,ieq);
+        REAL tmp[3];
+        tmp[0] = cordphix(0,ieq)*axesinner(0,0)+cordphix(1,ieq)*axesinner(0,1)+cordphix(2,ieq)*axesinner(0,2);
+        tmp[1] = cordphix(0,ieq)*axesinner(1,0)+cordphix(1,ieq)*axesinner(1,1)+cordphix(2,ieq)*axesinner(1,2);
+        tmp[2] = cordphix(0,ieq)*axesinner(2,0)+cordphix(1,ieq)*axesinner(2,1)+cordphix(2,ieq)*axesinner(2,2);
+        cordphix(0,ieq) = tmp[0];
+        cordphix(1,ieq) = tmp[1];
+        cordphix(2,ieq) = tmp[2];
       }
       break;
     default:
@@ -805,8 +811,8 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
       for(int jn=0; jn<dfvar; jn++) {
         locsol[iv%numdof] += locphi(iv/numdof,0)*locsolmesh(pos+jn,0);
         for(d=0; d<dim; d++)
-	  locdsol(d,iv%numdof) += locdphix(d,iv/numdof)*locsolmesh(pos+jn,0);
-	iv++;
+          locdsol(d,iv%numdof) += locdphix(d,iv/numdof)*locsolmesh(pos+jn,0);
+        iv++;
       }
     }
     corsol.Fill(0.);
@@ -821,7 +827,7 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
         corsol[iv%numdof] += corphi(iv/numdof,0)*corsolmesh(pos+jn,0);
         for(d=0; d<dim; d++)
           cordsol(d,iv%numdof) += cordphix(d,iv/numdof)*corsolmesh(pos+jn,0);
-	iv++;
+        iv++;
       }
     }
     int jn;
@@ -829,8 +835,8 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
       //       error += (locsol[jn]-corsol[jn])*(locsol[jn]-corsol[jn])*weight;
       //       if(f) truerror += (corsol[jn]-truesol[jn])*(corsol[jn]-truesol[jn])*weight;
       for(d=0; d<dim; d++) {
-	error += (locdsol(d,jn)-cordsol(d,jn))*(locdsol(d,jn)-cordsol(d,jn))*weight;
-	if(f) truerror += (cordsol(d,jn)-truedsol(d,jn))*(cordsol(d,jn)-truedsol(d,jn))*weight;
+        error += (locdsol(d,jn)-cordsol(d,jn))*(locdsol(d,jn)-cordsol(d,jn))*weight;
+        if(f) truerror += (cordsol(d,jn)-truedsol(d,jn))*(cordsol(d,jn)-truedsol(d,jn))*weight;
       }
     }
   }
@@ -1346,8 +1352,8 @@ TPZInterpolatedElement *TPZCompCloneMesh::GetOriginalElement(TPZCompEl *el) {
 }
 
 void TPZCompCloneMesh::CopyConnectStructure() {
-  int ncon = fConnectVec.NElements();
-  int icon;
+//  int ncon = fConnectVec.NElements();
+//  int icon;
   // Set the side order of each element in acordance
   // Verify the size of the blocks
   TPZCompEl *cel;
@@ -1394,6 +1400,7 @@ void TPZCompCloneMesh::CopyConnectStructure() {
   }
   ExpandSolution();
 }
+
 /** Verifies if the connects orders is equal to the element order */
 void TPZCompCloneMesh::CheckOrders(TPZCompMesh *mesh){
 	int nel = mesh->ElementVec().NElements();
@@ -1427,3 +1434,66 @@ void TPZCompCloneMesh::CheckOrders(TPZCompMesh *mesh){
 		if (printing) cintel->Print(cout);
 	}
 }
+
+int TPZCompCloneMesh::ClassId() const
+{
+  return TPZCOMPCLONEMESHID;
+}
+
+
+/**
+ *Save the element data to a stream
+ */
+void TPZCompCloneMesh::Write(TPZStream &buf, int withclassid) {
+
+  TPZCompMesh::Write(buf,withclassid);
+
+  /**
+   * Maps connect index from original mesh to cloned mesh
+   */
+  std::map<int,int>::iterator conMapIt;
+  int size;
+  int first;
+  int second;
+
+  size = fMapConnects.size();
+  buf.Write(&size,1);
+  for(conMapIt= fMapConnects.begin();conMapIt!=fMapConnects.end();conMapIt++){
+    first = (*conMapIt).first;
+    first = (*conMapIt).second;
+    buf.Write (&first,1);
+    buf.Write (&second,1);
+  }
+   
+  /**
+   * Maps connect index from cloned mesh to original mesh
+   */
+  TPZSaveable::WriteObjects (buf,fOriginalConnects);
+}
+
+  /**
+  Read the element data from a stream
+  */
+void TPZCompCloneMesh::Read(TPZStream &buf, void *context)
+{
+  TPZCompMesh::Read(buf,context);
+
+  int i;
+  int size;
+  int first;
+  int second;
+
+  buf.Read (&size,1);
+
+  for(i=0;i<size;i++){
+    buf.Read (&first ,1);
+    buf.Read (&second ,1);
+    fMapConnects[first] = second;
+  }
+
+  TPZSaveable::ReadObjects (buf,fOriginalConnects);
+
+}
+
+template class 
+TPZRestoreClass<TPZCompCloneMesh,TPZCOMPCLONEMESHID> ;
