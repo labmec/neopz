@@ -388,7 +388,7 @@ class TPZIntPrism3D  : public TPZIntPoints {
  public:
 
   TPZIntPrism3D(int OrdK = 2,int OrdL = 2);
-  ~TPZIntPrism3D();
+  virtual ~TPZIntPrism3D();
   void SetOrder(TPZVec<int> &ord) ;
   int NPoints();
   void Point(int ip, TPZVec<REAL> &pos, REAL &w);
@@ -408,7 +408,7 @@ class TPZInt1Point  : public TPZIntPoints {
  public:
 
   TPZInt1Point();
-  ~TPZInt1Point();
+  virtual ~TPZInt1Point();
   void SetOrder(TPZVec<int> &ord) ;
   int NPoints();
   void Point(int ip, TPZVec<REAL> &pos, REAL &w);
