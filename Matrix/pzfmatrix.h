@@ -47,7 +47,7 @@ class TPZFMatrix : public TPZMatrix {
   /**
    *Simple constructor
    */
-  TPZFMatrix () : TPZMatrix( 0, 0 ), fGiven(0) { fElem = NULL; fSize = 0;}
+  TPZFMatrix () : TPZMatrix( 0, 0 ), fElem(0),fGiven(0),fSize(0) {}
   /**
      Constructor with initialization parameters
      @param rows Initial number of rows
@@ -55,7 +55,7 @@ class TPZFMatrix : public TPZMatrix {
      @param buf Preallocated memory area which can be used by the matrix object
      @param size Size of the area pointed to by buf
   */
-  TPZFMatrix (const int rows ,const int columns = 1, REAL * buf = NULL,const int size = 0 );
+  TPZFMatrix (const int rows ,const int columns, REAL * buf,const int size);
   /**
      Constructor with initialization parameters
      @param rows Initial number of rows
@@ -63,6 +63,14 @@ class TPZFMatrix : public TPZMatrix {
      @param val Inital value fill all elements
   */
   TPZFMatrix (const int rows ,const int columns,const REAL & val );
+  /**
+     Constructor with initialization parameters
+     @param rows Initial number of rows
+     @param cols Number of columns
+  */
+  TPZFMatrix (const int rows ,const int columns = 1) : TPZMatrix(rows,columns), fElem(0),fGiven(0),fSize(0) {
+  	if(rows*columns) fElem = new REAL[rows*columns];
+  }
   //@{
   /**
      Copy constructor
