@@ -1,4 +1,4 @@
-//$Id: main.cc,v 1.2 2003-11-26 18:44:12 phil Exp $
+//$Id: main.cc,v 1.3 2003-11-27 12:10:26 phil Exp $
 /**
  * Galerkin descontinuo: visita do professor Igor.
  * 24/11/2003
@@ -38,15 +38,32 @@ static REAL PI;
 
 int gPrintLevel = 0;
 
-void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
-  disp[0] = -2.0 * PI * PI * sin( PI * x[0]) * sin(PI * x[1]);
+/*void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
+  disp[0] = -2.0 * PI * PI * sin( PI * x[0]) * sin(PI * x[1]) ;
 }
 void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   u[0] = sin(PI*x[0])*sin(PI*x[1]);
   deriv(0,0) = PI*cos(PI*x[0])*sin(PI*x[1]);
-  deriv(1,0) = PI*cos(PI*x[1])*sin(PI*x[0]);
+  deriv(1,0) = PI*cos(PI*x[1])*sin(PI*x[0]); 
+}*/
+
+void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
+  disp[0] = - exp(0.75 * (x[0] + x[1])) * (8. * (1. - x[1] * x[1]) + 12. * x[0] * (1. - x[1] * x[1]) -4.5 * (1. - x[0] * x[0])* (1. - x[1] * x[1] )+ 
+					  8. * (1. - x[0] * x[0]) + 12. * x[1] * (1. - x[0] * x[0]));
+}
+void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
+  u[0] = 4. * (1. - x[0] * x[0] ) * (1. - x[1] * x[1]) * exp(0.75 * (x[0] + x[1]));
+  deriv(0,0) = (-8. * x[0] * (1. - x[1] * x[1]) + 3. * (1. - x[0] * x[0] ) * (1. - x[1] * x[1]) ) * exp(0.75 * (x[0] + x[1]));
+  deriv(1,0) = (-8. * x[1] * (1. - x[0] * x[0]) + 3. * (1. - x[0] * x[0] ) * (1. - x[1] * x[1]) ) * exp(0.75 * (x[0] + x[1]));
 }
 
+void Dirichlet1(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+  f[0] = exp(-(x[0]*x[0]+1));
+}
+
+void Dirichlet2(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+  f[0] = exp(-(x[1]*x[1]+1));
+}
 
 /*void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
   disp[0] =  PI * PI * sin(PI * (x[1]+1.)/2.) / 4.;
@@ -182,8 +199,12 @@ TPZCompMesh *CreateMesh() {
 
     
   for(int i = 0; i < nelem; i++){
-    TPZVec<TPZGeoEl *> children;
+    TPZVec<TPZGeoEl *> children, netos, bisnetos;
     elvec[i]->Divide(children);
+    for(int j = 0; j < children.NElements(); j++)
+      children[j]->Divide(netos);
+	   //        for(int k = 0; k < netos.NElements(); k++)
+	  //      	netos[k]->Divide(bisnetos); 
   } 
   
   
@@ -198,12 +219,12 @@ TPZCompMesh *CreateMesh() {
 
   // bc -1 -> Dirichlet homogeneo
   TPZGeoElBC gbc1(elvec[0],5,-1,*gmesh); // bottom
-  TPZGeoElBC gbc2(elvec[0],6,-1,*gmesh); // right
-  TPZGeoElBC gbc3(elvec[1],5,-1,*gmesh); // right
+  TPZGeoElBC gbc2(elvec[0],6,-2,*gmesh); // right
+  TPZGeoElBC gbc3(elvec[1],5,-2,*gmesh); // right
   TPZGeoElBC gbc4(elvec[1],6,-1,*gmesh); // top
   TPZGeoElBC gbc5(elvec[2],5,-1,*gmesh); // top
-  TPZGeoElBC gbc6(elvec[2],6,-1,*gmesh); // left
-  TPZGeoElBC gbc7(elvec[3],5,-1,*gmesh); // left
+  TPZGeoElBC gbc6(elvec[2],6,-2,*gmesh); // left
+  TPZGeoElBC gbc7(elvec[3],5,-2,*gmesh); // left
   TPZGeoElBC gbc8(elvec[3],6,-1,*gmesh); // bottom
   
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
@@ -215,10 +236,14 @@ TPZCompMesh *CreateMesh() {
 
   int nstate = 1;
   TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
-  TPZBndCond *bc[1];
+  TPZBndCond *bc[2];
+  
+
   bc[0] = mat->CreateBC(-1,0,val1,val2);
-  val2(0,0) = 2.;
+  //  bc[0]->SetForcingFunction(Dirichlet1);
+
   bc[1] = mat->CreateBC(-2,0,val1,val2);
+  //  bc[1]->SetForcingFunction(Dirichlet2);
   
   cmesh->InsertMaterialObject(mat);
   int i;
