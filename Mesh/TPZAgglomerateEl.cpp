@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.23 2004-01-20 20:41:40 phil Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.24 2004-01-22 17:09:33 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -27,7 +27,7 @@ TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &
   TPZCompElDisc(aggcmesh,index) {
 
   /** 
-   * o algomerado aponta para nulo mais o elemento computacional 
+   * o algomerado aponta para nulo mas o elemento computacional 
    * que ele agrupa aponta para o geométrico original
    * a copia do material na nova malha (malha aglomerada) neste
    * ponto já devia existir
@@ -44,10 +44,6 @@ TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &
   if(mater){
     SetMaterial(mater);
   } else {
-    //cria copia dos materiais da malha fina
-//    CreateMaterialCopy(aggcmesh);
-//    mater = Mesh()->FindMaterial(nummat);
-//    SetMaterial(mater);
     PZError << "TPZAgglomerateElement::TPZAgglomerateElement material not found\n";
   }
   CreateMidSideConnect();
@@ -273,11 +269,14 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 TPZCompEl *TPZAgglomerateElement::SubElement(int sub){
 
   int nsubs = NIndexes();
+
+#ifdef DEBUG
   if(sub < 0  || sub > nsubs){
     PZError << "TPZAgglomerateElement::SubElement sub-element out of range\n";
     return NULL;
   }
- //  return Mesh()->ElementVec()[fIndexes[sub]];
+#endif
+
    return fMotherMesh->ElementVec()[fIndexes[sub]];
 }
 
@@ -819,13 +818,13 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
   /**
    * somente são aglomerados elementos de volume
    * elementos de interface não são aglomerados, cada interface deve conhecer
-   * o elemento aglomerado esquerdo ou direito
+   * o elemento aglomerado esquerdo e direito
    * elementos fantasmas ou BC não são aglomerados, a cada elemento BC
    * corresponde um elemento interface de igual tamanho ou nível
-   * todo elemento interface e todo elemento BC deve ser clonada para a malha aglomerada
-   * todo elemento de volume deve ter associado um agrupamento pudendo ser um único elemento
+   * todo elemento interface e todo elemento BC deve ser clonado para a malha aglomerada
+   * todo elemento de volume deve ter associado um agrupamento podendo ser um único elemento
    * a posi¢ão K de accumlist indica o index K do elemento computacional que será acumulado,
-   * o inteiro guardado nessa posi¢ão indica o elemento ao qual ser
+   * o inteiro guardado nessa posi¢ão indica o elemento ao qual sera
    * aglomerado, assim si accumlist[8] = 4 então o elemento computacional
    * de index 8 será agrupado para formar o elemento aglomerado de index 4
    */
@@ -838,19 +837,29 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
   }
   //TPZFlowCompMesh aggmesh(finemesh->Reference());
   int index,nel = finemesh->NElements(),nummat,size = accumlist.NElements(),i;
+
+  //copiando materiais para nova malha
+  //finemesh->fMaterials eh copiado para aggmesh
+  finemesh->CopyMaterials(aggmesh);
+
   //criando agrupamentos iniciais
   for(i=0;i<numaggl;i++){
     int k = 0;
     //o elemento de index k tal que accumlist[k] == i vai aglomerar no elemento de index/id i
     while( accumlist[k] != i && k < size) k++;
+
+#ifdef DEBUG
     if(k == size){
       PZError << "TPZCompElDisc::CreateAgglomerateMesh material not found\n";
       exit(-1);
     }
+#endif
+
     nummat = finemesh->ElementVec()[k]->Material()->Id();
     //criando elemento de index/id i e inserindo na malha aggmesh
     new TPZAgglomerateElement(nummat,index,*aggmesh,finemesh);
   }
+
   //inicializando os aglomerados e clonando elementos BC
   int meshdim = finemesh->Dimension(),father,type,eldim;
   int surfacedim = meshdim-1;
@@ -876,6 +885,7 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
       }
     }
   }
+
   //agora os geométricos apontam para os respectivos aglomerados
   //computacionais recuperaram as referências com TPZCompMesh::LoadReferences()
   for(i=0;i<nel;i++){
@@ -893,16 +903,15 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
         return;
       }
       int index;
-      //se os geométricos apontam para o mesmo aglomerado não criar interface
-      //if(leftel->Reference()->Reference() == rightel->Reference()->Reference()) continue;
-      // Melhor comparar os indices de destino: acumulando uma malha de elementos
-      // acumulados nao iria funcionar
+      //interfaces com esquerdo e direito iguais não são clonadas
       if(accumlist[indleft] == accumlist[indright]) continue;
       //clonando o elemento interface: a interface existirá na malha aglomerada
-      interf->CloneInterface(*aggmesh,index);
+      interf->CloneInterface(*aggmesh,index);   
     }
   }
+
   nel = aggmesh->ElementVec().NElements();
+
   //inizializando elementos aglomerados preenchendo os demais dados
   for(i=0;i<nel;i++){
     TPZCompEl *cel = aggmesh->ElementVec()[i];
@@ -913,6 +922,7 @@ void TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZCompM
       agg->SetNInterfaces(0);
     }
   }
+
   int dim = aggmesh->Dimension();
   //<!>Loop over all elements to compute for each interface the distance between interface's center point to volume's center point.
   //The lessest distance is adopted as the element's inner radius (fInnerRadius).
