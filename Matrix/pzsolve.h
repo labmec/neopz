@@ -40,6 +40,13 @@ class TPZSolver {
   This method gives a preconditioner to share a matrix with the referring solver object
   */
 //  virtual void SetMatrix(TPZMatrixSolver *solver);
+  /**
+  * Updates the values of the current matrix based on the values of the matrix
+  */
+  virtual void UpdateFrom(TPZMatrix *matrix)
+  {
+    cout << __FUNCTION__ << " called\n";
+  }
 
 };
 
@@ -76,6 +83,16 @@ class TPZMatrixSolver : public TPZSolver {
 virtual  void SetMatrix(TPZMatrix *Refmat);
 
   /**
+  * Updates the values of the current matrix based on the values of the matrix
+  */
+  virtual void UpdateFrom(TPZMatrix *matrix)
+  {
+    if(fReferenceMatrix == matrix && matrix)
+    {
+      if(this->fContainer->Matrix()) this->fContainer->Matrix()->UpdateFrom(matrix);
+    }
+  }
+  /**
      Resets current object
   */
   void ResetMatrix();
@@ -83,7 +100,10 @@ virtual  void SetMatrix(TPZMatrix *Refmat);
   /**
   This method gives a preconditioner to share a matrix with the referring solver object
   */
-//  virtual void SetMatrix(TPZMatrixSolver *solver);
+  virtual void SetReferenceMatrix(TPZMatrix *matrix)
+  {
+    fReferenceMatrix = matrix;
+  }
 
   /**
      Returns a pointer to TPZMatrix
@@ -143,6 +163,10 @@ virtual  void SetMatrix(TPZMatrix *Refmat);
   TPZContainer *fContainer;
   static int gnumcreated;
   static int gnumdeleted;
+  /**
+  * Reference matrix used to update the current matrix
+  */
+  TPZMatrix *fReferenceMatrix;
   //	TPZSolver *fPrecond;
 
   //misael

@@ -32,26 +32,6 @@ void TPZStepSolver::ResetMatrix()
   TPZMatrixSolver::ResetMatrix();
 }
   
-  /**
-  This method gives a preconditioner to share a matrix with the referring solver object
-  */
-/*void TPZStepSolver::SetMatrix(TPZMatrixSolver *solver)
-{
-  switch(fSolver)
-  {
-    case ECG:
-    case EDirect:
-    case EGMRES:
-    case EJacobi:
-    case ESOR:
-    case ESSOR:
-      ShareMatrix(*solver);
-      break;
-    default:
-      ;    
-  }
-}
-*/  
 
 void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual){
   if(!Matrix()) {

@@ -67,15 +67,15 @@ void TPZSequenceSolver::ResetMatrix()
 }
   
   /**
-  This method gives a preconditioner to share a matrix with the referring solver object
+  Updates the values of the preconditioner based on the values of the matrix
   */
-/*void TPZSequenceSolver::SetMatrix(TPZMatrixSolver *solver)
+void TPZSequenceSolver::UpdateFrom(TPZMatrix *matrix)
 {
     int nums = fSolvers.NElements();
     int s;
     for(s=0; s<nums; s++) {
-        fSolvers[s]->SetMatrix(solver);
+        fSolvers[s]->UpdateFrom(matrix);
     }
-    ShareMatrix(*solver);
+    TPZMatrixSolver::UpdateFrom(matrix);
 }
 */

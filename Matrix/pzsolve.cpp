@@ -9,11 +9,13 @@ TPZSolver::~TPZSolver() {}
 
 TPZMatrixSolver::TPZMatrixSolver(TPZMatrix *Refmat) : fScratch() {
 
+  fReferenceMatrix = 0;
   fContainer = new TPZContainer(Refmat);
   gnumcreated++;
 }
 //misael
 TPZMatrixSolver::TPZMatrixSolver(const TPZMatrixSolver &Source) : fScratch() {
+    fReferenceMatrix = Source.fReferenceMatrix;
     fContainer = Source.fContainer;
     fContainer->IncreaseRefCount();
     gnumcreated++;
