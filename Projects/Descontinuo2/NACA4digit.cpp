@@ -796,7 +796,7 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
 	   for(i = 0; i < min(2*(p-j+1),2*l); i++)
            {
 	     gEls[2*m*n+j*(l*2)+i]->Divide(firstDiv);
-             if(i < 2 && j < p /*- 1*/)
+             if(i < 2 && j < p )
 	       if(j < p/4)
 	       {
 	          for(ii = 0; ii < 2; ii++)

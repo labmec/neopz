@@ -68,7 +68,7 @@ TPZStack<TPZGeoEl *> bcStack;
   if (!cel) continue;
   TPZGeoEl * pGEl;
   pGEl = cel->Reference();
-  int matid = pGEl->MaterialId();
+  int matid = cel->Material()->Id();//pGEl->MaterialId();
   if (matid== bc_id){
     bcStack.Push(cel->Reference());
   }
