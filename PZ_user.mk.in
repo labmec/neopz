@@ -3,7 +3,7 @@
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
-# $Id: PZ_user.mk.in,v 1.2 2003-02-05 14:04:18 cantao Exp $
+# $Id: PZ_user.mk.in,v 1.3 2003-02-10 17:58:35 cantao Exp $
 #
 
 PZ_INCLUDES = -I@prefix@/Util \
@@ -24,13 +24,10 @@ PZ_INCLUDES = -I@prefix@/Util \
 	-I@prefix@/Post \
 	-I@prefix@/External \
 	-I@prefix@/External/sloan \
-	-I@METISDIR@/include
+	@METISINCLUDE@
 
-#if METIS
-   PZ_LIB = -L@prefix@/lib -L@METISDIR@/lib -lpz -lmetis
-#else
-#   PZ_LIB = -L@prefix@/lib -lpz
-#endif
+PZ_LIBDIR = -L@prefix@/lib @METISLIBDIR@
+PZ_LIB = -lpz @METISLIB@
 
 PZ_CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_SLOAN@
 

@@ -20,7 +20,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-metis=yes      Enables the use of MeTiS [default=no]"
 ac_help="$ac_help
-  --with-metis-dir=DIR    Root of MeTiS instalation [/usr/local/Metis-4.0]"
+  --with-metis-dir=DIR    Root of MeTiS instalation [/usr/local/metis]"
 ac_help="$ac_help
   --enable-sloan          Enables the use of Sloan"
 
@@ -1553,7 +1553,7 @@ case "${comp_mode}" in
     COMPILATION_MODE="Profiling compilation mode."
     case "$CXX" in
       c++ | g++)
-        MODE_OPTIONS="-Wall -time -ggdb3 -pg -pipe"
+        MODE_OPTIONS="-Wall -ggdb3 -pg -pipe"
         ;;
       *)
         { echo "configure: error: unsupported compiler." 1>&2; exit 1; }
@@ -1568,7 +1568,7 @@ case "${comp_mode}" in
                                         
 	
 			
-        MODE_OPTIONS="-w -s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fexpensive-optimizations -fmove-all-movables -funroll-loops -ffast-math -fregmove -falign-functions -falign-jumps -falign-loops -malign-double -finline-limit=3000 -fshort-enums -fforce-addr -fdefault-inline -foptimize-sibling-calls -pipe -fno-rtti"
+        MODE_OPTIONS="-w -s -O2 -march=`uname -m` -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fexpensive-optimizations -fmove-all-movables -funroll-loops -ffast-math -fregmove -falign-functions -falign-jumps -falign-loops -malign-double -finline-limit=3000 -fshort-enums -fforce-addr -fdefault-inline -foptimize-sibling-calls -pipe"
         ;;
       *)
         { echo "configure: error: unsupported compiler." 1>&2; exit 1; }
@@ -1595,7 +1595,7 @@ if test "${enable_metis+set}" = set; then
   enableval="$enable_metis"
   metis_enabled=$enableval
 else
-  metis_enabled="no"
+  metis_enabled="yes"
 fi
 
 
@@ -1631,21 +1631,30 @@ if test "${with_metis_dir+set}" = set; then
   withval="$with_metis_dir"
   metis_dir=$withval
 else
-  metis_dir=${metis_dir="/usr/local"}
+  metis_dir=${metis_dir="/usr/local/metis"}
 fi
 
 
 case "${metis_enabled}" in
   yes)
     METISDIR=$metis_dir
+    METISINCLUDE="-I$METISDIR/include"
+    METISLIBDIR="-L$METISDIR/lib"
+    METISLIB="-lmetis"
   ;;
   no)
     METISDIR=""
+    METISINCLUDE=""
+    METISLIBDIR=""
+    METISLIB=""
   ;;
   *)
     { echo "configure: error: bad value ${metis_enabled} for --enable-metis" 1>&2; exit 1; }
   ;;
 esac
+
+
+
 
 
 
@@ -1895,6 +1904,9 @@ s%@METIS_TRUE@%$METIS_TRUE%g
 s%@METIS_FALSE@%$METIS_FALSE%g
 s%@USING_METIS@%$USING_METIS%g
 s%@METISDIR@%$METISDIR%g
+s%@METISINCLUDE@%$METISINCLUDE%g
+s%@METISLIBDIR@%$METISLIBDIR%g
+s%@METISLIB@%$METISLIB%g
 s%@USING_SLOAN@%$USING_SLOAN%g
 s%@PZ_DISTCLEANFILES@%$PZ_DISTCLEANFILES%g
 s%@PZ_CLEANFILES@%$PZ_CLEANFILES%g
