@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.10 2004-03-01 21:54:19 cesar Exp $
+//$Id: pzgmesh.h,v 1.11 2004-03-19 19:17:18 cantao Exp $
 
 /**File : pzgmes.h
 
@@ -48,6 +48,7 @@ class TPZVec;
 template<class T,class TT>
 class TPZAVLMap;
 
+template <class TShape, class TGeo> class TPZGeoElRefPattern;
 
 class  TPZGeoMesh {
 
