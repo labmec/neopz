@@ -24,7 +24,7 @@ void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,T
    //grau 1
    REAL val = (x-x0)/C;
    phi(1,0) = val;
-   dphi(0,1) = 1./C;
+   dphi(0,1) = 1./C; 
    //grau maior que 1
    int p;
    degree++;
@@ -56,7 +56,7 @@ void TPZShapeDisc::Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TP
 } //end of method
 
 
-void  TPZShapeDisc::Shape0D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
+void  TPZShapeDisc::Shape0D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
 
   if(degree < 0){
     PZError << "TPZShapeDisc::Polynomial the degree of the polynomial cannot be minus, aborting\n";
@@ -64,13 +64,13 @@ void  TPZShapeDisc::Shape0D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZ
   }
   int cap = degree+1;
   phi.Redim(cap,1);
-  for(int i=0;i<cap;i++) phi.PutVal(i,0,1.0);//fun¢ão unitária
-  dphi.Redim(0,0);//não existe a derivada em um ponto: dimensão nula
+  for(int i=0;i<cap;i++) phi.PutVal(i,0,1.0);//funï¿½ unitï¿½ia
+  dphi.Redim(0,0);//nï¿½ existe a derivada em um ponto: dimensï¿½ nula
 } 
 
-void  TPZShapeDisc::Shape1D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
+void  TPZShapeDisc::Shape1D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
 
-  //suponha a componente não nula sendo a primeira
+  //suponha a componente nï¿½ nula sendo a primeira
   REAL x0 = X0[0];
   REAL x = X[0];
 
@@ -78,7 +78,7 @@ void  TPZShapeDisc::Shape1D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZ
 
 }
 
-void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
+void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
 
   if(degree == 0) {
     phi(0,0) = 1.;
@@ -184,7 +184,7 @@ void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZF
   dphi(1,nshape-1) = dphi0[1];
 }
 
-void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
+void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
 
   REAL x0 = X0[0];
   REAL y0 = X0[1];
@@ -242,7 +242,7 @@ void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZ
 }
 
 
-void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
+void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
 
   REAL x0 = X0[0];
   REAL y0 = X0[1];
@@ -264,7 +264,7 @@ void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> X0,TPZVec<REAL> X,int degree
   phi.Zero();
   dphi.Zero();
 
-  //valor da função
+  //valor da funï¿½o
   for(i=0;i<num;i++){
     for(j=0;j<num;j++){
       if(i+j > degree && type == EOrdemTotal) break;

@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.61 2004-06-27 00:35:30 erick Exp $
+//$Id: TPZCompElDisc.cpp,v 1.62 2005-01-28 16:58:44 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -90,14 +90,14 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
     int materialid = mat->Id();
     fMaterial = mesh.FindMaterial(materialid);
   } else {
-    fMaterial = 0;//não deveria acontecer
+    fMaterial = 0;//nï¿½ deveria acontecer
   }
   fConstC = copy.fConstC;
   CreateMidSideConnect();
   //as interfaces foram clonadas
 }
 
-//construtor do elemento descontínuo
+//construtor do elemento descontï¿½uo
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 		TPZCompEl(mesh,ref,index), fCenterPoint(3) {
   fDegree = gDegree;
@@ -212,10 +212,10 @@ int TPZCompElDisc::GetMaterial( const TPZGeoElSide& gside )
 
 
 void TPZCompElDisc::CreateInterfaces( TPZMaterial* mat ){
-  //não verifica-se caso o elemento de contorno
-  //é maior em tamanho que o interface associado
-  //caso AdjustBoundaryElement não for aplicado
-  //a malha é criada consistentemente
+  //nï¿½ verifica-se caso o elemento de contorno
+  //ï¿½maior em tamanho que o interface associado
+  //caso AdjustBoundaryElement nï¿½ for aplicado
+  //a malha ï¿½criada consistentemente
   TPZGeoEl *ref = Reference();
   int nsides = ref->NSides();
   int InterfaceDimension = fMaterial->Dimension() - 1;
@@ -241,10 +241,10 @@ void TPZCompElDisc::CreateInterfaces( TPZMaterial* mat ){
     }
     TPZStack<TPZCompElSide> highlist;
     thisside.HigherLevelElementList(highlist,0,1);
-    //a interface se cria uma vez só: quando existem ambos 
+    //a interface se cria uma vez sï¿½ quando existem ambos 
     //elementos esquerdo e direito (computacionais)
     if(!highlist.NElements()) {
-      CreateInterface(side);//só tem iguais ou grande => pode criar a interface
+      CreateInterface(side);//sï¿½tem iguais ou grande => pode criar a interface
     } else {
       int ns = highlist.NElements();
       int is;
@@ -259,10 +259,10 @@ void TPZCompElDisc::CreateInterfaces( TPZMaterial* mat ){
 }
 
 void TPZCompElDisc::CreateInterfaces(){
-  //não verifica-se caso o elemento de contorno
-  //é maior em tamanho que o interface associado
-  //caso AdjustBoundaryElement não for aplicado
-  //a malha é criada consistentemente
+  //nï¿½ verifica-se caso o elemento de contorno
+  //ï¿½maior em tamanho que o interface associado
+  //caso AdjustBoundaryElement nï¿½ for aplicado
+  //a malha ï¿½criada consistentemente
   TPZGeoEl *ref = Reference();
   int nsides = ref->NSides();
   int InterfaceDimension = fMaterial->Dimension() - 1;
@@ -277,10 +277,10 @@ void TPZCompElDisc::CreateInterfaces(){
     }
     TPZStack<TPZCompElSide> highlist;
     thisside.HigherLevelElementList(highlist,0,1);
-    //a interface se cria uma vez só: quando existem ambos 
+    //a interface se cria uma vez sï¿½ quando existem ambos 
     //elementos esquerdo e direito (computacionais)
     if(!highlist.NElements()) {
-      CreateInterface(side);//só tem iguais ou grande => pode criar a interface
+      CreateInterface(side);//sï¿½tem iguais ou grande => pode criar a interface
     } else {
       int ns = highlist.NElements();
       int is;
@@ -303,15 +303,15 @@ void TPZCompElDisc::CreateInterface(int side)
   thisside.EqualLevelElementList(list,0,1);//retorna distinto ao atual ou nulo
   int size = list.NElements();
   //espera-se ter os elementos computacionais esquerdo e direito 
-  //já criados antes de criar o elemento interface
+  //jï¿½criados antes de criar o elemento interface
   if(size){
-    //neste caso existem ambos: esquerdo e direito, this e list[0], e são vizinhos
+    //neste caso existem ambos: esquerdo e direito, this e list[0], e sï¿½ vizinhos
 /*    int matid1 = fMaterial->Id();
     int matid2 = list[0].Element()->Material()->Id(); 
     int matid = (matid1 < matid2) ? matid1 : matid2; */
     
 //Antes (comentado acima) a interface tinha o material de menor id entre esquerdo e direito
-//Agora, a interface tem o material do elemento de menor dimensão (i.e. condicao de contorno)
+//Agora, a interface tem o material do elemento de menor dimensï¿½ (i.e. condicao de contorno)
 //Seria interessante testar se o material do contorno eh filho do TPZBndCond, mas traria problemas ao cfdk.
 
      int matid = GetMaterial( thisside.Reference() );
@@ -329,7 +329,7 @@ void TPZCompElDisc::CreateInterface(int side)
 
 
     TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
-    //isto acertou as vizinhan¢as da interface geométrica com o atual
+    //isto acertou as vizinhanas da interface geomï¿½rica com o atual
     int index;
     TPZCompElDisc *list0 = dynamic_cast<TPZCompElDisc *>(list[0].Element());
     if(!list0)
@@ -337,16 +337,16 @@ void TPZCompElDisc::CreateInterface(int side)
       list[0].Element()->Print(cout);
     }
     if(Dimension() > list0->Dimension()){
-      //o de volume é o direito caso um deles seja BC
+      //o de volume ï¿½o direito caso um deles seja BC
       //a normal aponta para fora do contorno
       new TPZInterfaceElement(*fMesh,gel,index,this,list0/*,side*/);
     } else {
-      //caso contrário ou caso ambos sejam de volume 
+      //caso contrï¿½io ou caso ambos sejam de volume 
       new TPZInterfaceElement(*fMesh,gel,index,list0,this/*,list[0].Side()*/);
     }
     return;
   }
-  //aqui não existe igual: só pode existir lower 
+  //aqui nï¿½ existe igual: sï¿½pode existir lower 
   //(pois isso foi verificado no CreateInterfaces())
   TPZCompElSide lower = thisside.LowerLevelElementList(0);
   if(lower.Exists()){
@@ -370,17 +370,17 @@ void TPZCompElDisc::CreateInterface(int side)
 REAL TPZCompElDisc::NormalizeConst()
 {
   TPZGeoEl *ref = Reference();
-  //maior distancia entre o ponto interior e os vértices do elemento
+  //maior distancia entre o ponto interior e os vï¿½tices do elemento
   int nnodes = ref->NNodes(),i;
   if(nnodes == 1) return 1.0;//elemento ponto
   REAL maxdist,dist;
-  int inode = ref->NodeIndex(0);//primeiro nó do elemento
+  int inode = ref->NodeIndex(0);//primeiro nï¿½do elemento
   TPZGeoNode node = ref->Mesh()->NodeVec()[inode];
   maxdist = pow(node.Coord(0)-fCenterPoint[0],2.)+pow(node.Coord(1)-fCenterPoint[1],2.);
   maxdist += pow(node.Coord(2)-fCenterPoint[2],2.);
   maxdist = sqrt(maxdist);
   for(i=1;i<nnodes;i++){
-    inode = ref->NodeIndex(i);//nós sub-seguintes
+    inode = ref->NodeIndex(i);//nï¿½ sub-seguintes
     node = ref->Mesh()->NodeVec()[inode];
     dist = pow(node.Coord(0)-fCenterPoint[0],2.)+pow(node.Coord(1)-fCenterPoint[1],2.);
     dist += pow(node.Coord(2)-fCenterPoint[2],2.);
@@ -390,7 +390,7 @@ REAL TPZCompElDisc::NormalizeConst()
   return maxdist;  
 }
 
-void TPZCompElDisc::Shape(TPZVec<REAL> X, TPZFMatrix &phi, TPZFMatrix &dphi) {
+void TPZCompElDisc::Shape(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi) {
 
   if(fDegree < 0) return;
 
@@ -442,13 +442,13 @@ int TPZCompElDisc::NConnects(){
 }
 
 int TPZCompElDisc::CreateMidSideConnect(){
-  // primeiro são criados os elementos de volume depois os elementos BC associados aos seus lados
-  // num estágio inicial o elemento BC é acoplado ao elemento ELV de volume de tal forma 
-  // que ambos são vizinhos
-  // o elemento BC não pode ser dividido se o elemento ELV associado não for dividido primeiro
-  // caso o elemento ELV é dividido, então o elemento BC associado deveria ser dividido
+  // primeiro sï¿½ criados os elementos de volume depois os elementos BC associados aos seus lados
+  // num estï¿½io inicial o elemento BC ï¿½acoplado ao elemento ELV de volume de tal forma 
+  // que ambos sï¿½ vizinhos
+  // o elemento BC nï¿½ pode ser dividido se o elemento ELV associado nï¿½ for dividido primeiro
+  // caso o elemento ELV ï¿½dividido, entï¿½ o elemento BC associado deveria ser dividido
   // tambem para manter a CC consistente com a malha
-  // caso ELV é dividido e BC não é então ELV é LowerLevelElement do elemento BC
+  // caso ELV ï¿½dividido e BC nï¿½ ï¿½entï¿½ ELV ï¿½LowerLevelElement do elemento BC
   if(!Material())
     PZError << "\nTPZCompElDisc::CreateMidSideConnect Material nulo\n";
 
@@ -460,7 +460,7 @@ int TPZCompElDisc::CreateMidSideConnect(){
   int existsconnect = 0;
 
   if(dimgrid == dim){
-    //este é um elemento de volume
+    //este ï¿½um elemento de volume
     //procura-se elemento superposto
     TPZCompElSide(this,nsides-1).EqualLevelElementList(list,0,0);
     int size = list.NElements(),i;
@@ -476,15 +476,15 @@ int TPZCompElDisc::CreateMidSideConnect(){
   }
   
   if(dim == dimgrid - 1){ //dimgrid - 1 = interface dimension
-    // o atual é um elemento BC
+    // o atual ï¿½um elemento BC
     fConnectIndex = -1;//=> return NshapeF() = 0
     fDegree = -1;
     return fConnectIndex;
   }
 
   if(!existsconnect){
-    //o atual é um elemento de volume e
-    //não achou-se um elemento superposto
+    //o atual ï¿½um elemento de volume e
+    //nï¿½ achou-se um elemento superposto
     int nvar = Material()->NStateVariables();
     int newnodeindex = Mesh()->AllocateNewConnect();
     SetConnectIndex(0,newnodeindex);
@@ -536,7 +536,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
   ek.fMat.Redim(numeq,numeq);
   ef.fMat.Redim(numeq,1);
-  if(ncon){//pode serr no máximo ncon = 1
+  if(ncon){//pode serr no mï¿½imo ncon = 1
     ek.fBlock.SetNBlocks(ncon);
     ef.fBlock.SetNBlocks(ncon); 
     ek.fBlock.Set(0,NShapeF()*nstate);
@@ -569,7 +569,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     weight *= fabs(detjac);
     Shape(x,phix,dphix);
     axes.Identity();
-    //solu¢ão da itera¢ão anterior
+    //soluï¿½ da iteraï¿½ anterior
     sol.Fill(0.);
     dsol.Redim(dphix.Rows(),nstate);
     dsol.Zero();
@@ -608,7 +608,7 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
   // clean ef
 
   ef.fMat.Redim(numeq,1);
-  if(ncon){//pode serr no máximo ncon = 1
+  if(ncon){//pode serr no mï¿½imo ncon = 1
     ef.fBlock.SetNBlocks(ncon); 
     ef.fBlock.Set(0,NShapeF()*nstate);
   }
@@ -637,7 +637,7 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
     weight *= fabs(detjac);
     Shape(x,phix,dphix);
     axes.Identity();
-    //solu¢ão da itera¢ão anterior
+    //soluï¿½ da iteraï¿½ anterior
     sol.Fill(0.);
     dsol.Zero();
     for(int in=0; in<ncon; in++) {
@@ -705,7 +705,7 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int degree){
     return;//TESTE
   }//TESTE
 
-  //divide o elemento geométrico
+  //divide o elemento geomï¿½rico
   int nsubs = ref->NSubElements();
   subindex.Resize(nsubs);
   TPZManVector<TPZGeoEl *> geosubs(nsubs);
@@ -855,7 +855,7 @@ void TPZCompElDisc::RemoveInterfaces(){
     TPZCompElSide thisside(this,is);
     if(thisside.Reference().Dimension() != InterfaceDimension) continue;
     // procurar na lista de elementos iguais
-    list.Resize(0);// o lado atual é uma face
+    list.Resize(0);// o lado atual ï¿½uma face
     //thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
     RemoveInterface(is);// chame remove interface do elemento atual (para o side atual)
     thisside.HigherLevelElementList(list,0,0);// procurar na lista de elementos menores (todos)
@@ -870,12 +870,12 @@ void TPZCompElDisc::RemoveInterfaces(){
       if(geolist.Dimension() != InterfaceDimension) continue;
       equal.Resize(0);// para cada elemento menor e' preciso verificar a dimensao,
       list[i].EqualLevelElementList(equal,0,0);//montar a lista de elementos iguais (todos)
-      equal.Push(list[i]);//não é incorporado no método anterior
+      equal.Push(list[i]);//nï¿½ ï¿½incorporado no mï¿½odo anterior
       int neq = equal.NElements(),k=-1;
-      while(++k < neq) if(equal[k].Element()->Type() != EInterface) break;//procurando elemento descontínuo cujo
-      if(!neq || k == neq){                               //lado faz parte da parti¢ão do lado side do this
+      while(++k < neq) if(equal[k].Element()->Type() != EInterface) break;//procurando elemento descontï¿½uo cujo
+      if(!neq || k == neq){                               //lado faz parte da partiï¿½ do lado side do this
 	PZError << "TPZCompElDisc::RemoveInterfaces inconsistency of data";
-	exit(-1);//elemento descontínuo não achado: ERRO
+	exit(-1);//elemento descontï¿½uo nï¿½ achado: ERRO
       }// chame removeinterface do elemento descontinuo menor
       ((TPZCompElDisc *)equal[k].Element())->RemoveInterface(equal[k].Side());
     }
@@ -956,7 +956,7 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) 
   if(var >= 0){
     ref->X(qsi,x);
   } else if(var < 0){
-    //neste caso 0 ponto qsi está no elemento deformado
+    //neste caso 0 ponto qsi estï¿½no elemento deformado
     var *= -1;//recuperando var
     for(int i=0;i<3;i++) x[i] = qsi[i];
   }
@@ -1189,7 +1189,7 @@ void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &v
 	iv++;
       }
     }//solucao calculculada no sistema local : elementos 2d
-    //contribuções dos erros
+    //contribuï¿½es dos erros
     if(fp) {
       fp(x,u_exact,du_exact);
       matp->Errors(x,u,dudx,axes,flux_el,u_exact,du_exact,values);

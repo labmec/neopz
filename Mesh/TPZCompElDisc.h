@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.h,v 1.32 2004-06-28 20:53:15 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.33 2005-01-28 16:58:44 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -160,7 +160,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   /**
    * value of the bases and derivatives of the element deformed in point X 
    */
-  void Shape(TPZVec<REAL> X, TPZFMatrix &phi, TPZFMatrix &dphi);
+  void Shape(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
 
   /**
    * Type of the element 
@@ -324,6 +324,6 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
 inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index) {
   return new TPZCompElDisc(mesh,geo,index);
 }
-//Exemplo do quadrilátero: 
+//Exemplo do quadrilï¿½ero: 
 //acessar com -> TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 #endif
