@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzelcpi3d.cc,v 1.9 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzelcpi3d.cc,v 1.10 2003-11-06 19:15:19 cesar Exp $
 #include "pzelcpi3d.h"
 #include "pzelct3d.h"
 //#include "pzelgt3d.h"
@@ -328,25 +328,23 @@ void TPZCompElPi3d::SetSideOrder(int side, int order) {
 /*     cout << "TPZCompElPi3d::SetSideOrder called for uninitialized connect\n"; */
 /*     return; */
 /*   } */
-	if(side<0 || side>18 || order<1) {
-	    PZError << "TPZCompElPi3d::SetSideOrder. Bad paramenter side.\n";
-		return;
-	}
-  if(side>4) {
-    fSideOrder[side-5] = order;
-    if(fConnectIndexes[side] !=-1) { 
-      TPZConnect &c = Connect(side);
-      c.SetOrder(order);
-      int seqnum = c.SequenceNumber();
-      int nvar = 1;
-      TPZMaterial *mat = Material();
-      if(mat) nvar = mat->NStateVariables();
-      Mesh()->Block().Set(seqnum,NConnectShapeF(side)*nvar);
-/*       if (side == NConnects()-1){ */
-/* 	TPZVec<int> ord(3,2*order+2); */
-/* 	fIntRule.SetOrder(ord); */
-/*       } */
-    }
+  if(side<0 || side>18 || order<1) {
+    PZError << "TPZCompElPi3d::SetSideOrder. Bad paramenter side.\n";
+    return;
+  }
+  if(side>4) fSideOrder[side-5] = order;
+  if(fConnectIndexes[side] !=-1) { 
+    TPZConnect &c = Connect(side);
+    c.SetOrder(order);
+    int seqnum = c.SequenceNumber();
+    int nvar = 1;
+    TPZMaterial *mat = Material();
+    if(mat) nvar = mat->NStateVariables();
+    Mesh()->Block().Set(seqnum,NConnectShapeF(side)*nvar);
+    /*       if (side == NConnects()-1){ */
+    /* 	TPZVec<int> ord(3,2*order+2); */
+    /* 	fIntRule.SetOrder(ord); */
+    /*       } */
   }
   int s;
   int maxorder = 0;

@@ -1,4 +1,4 @@
-//$Id: pzelcq2d.cc,v 1.9 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzelcq2d.cc,v 1.10 2003-11-06 19:15:19 cesar Exp $
 
 // -*- c++ -*-
 #include "pzelcq2d.h"
@@ -165,24 +165,24 @@ void TPZCompElQ2d::SetSideOrder(int side, int order) {
 /*     cout << "TPZCompElQ2d::SetSideOrder called for uninitialized connect\n"; */
 /*     return; */
 /*   } */
-	if(side<0 || side>8) PZError << "TPZCompElQ2d::SetSideOrder. Bad paramenter side.\n";
-	if(side>3) {
-		if(order<1) return;
-	  fSideOrder[side-4] = order;
-	  if(fConnectIndexes[side] != -1) {
-	    TPZConnect &c = Connect(side);
-	    c.SetOrder(order);
-	    int seqnum = c.SequenceNumber();
-	    int nvar = 1;
-	    TPZMaterial *mat = Material();
-	    if(mat) nvar = mat->NStateVariables();
-	    Mesh()->Block().Set(seqnum,NConnectShapeF(side)*nvar);
-	    if (side == NConnects()-1){
-	      TPZVec<int> ord(2,2*order+2);
-	      fIntRule.SetOrder(ord);
-	    }
-	  }
-	}
+  if(side<0 || side>8 || order < 1){
+    PZError << "TPZCompElQ2d::SetSideOrder. Bad paramenter side.\n" << side << " order = " << order << endl;
+    return;
+  }
+  if(side>3) fSideOrder[side-4] = order;
+  if(fConnectIndexes[side] != -1) {
+    TPZConnect &c = Connect(side);
+    c.SetOrder(order);
+    int seqnum = c.SequenceNumber();
+    int nvar = 1;
+    TPZMaterial *mat = Material();
+    if(mat) nvar = mat->NStateVariables();
+    Mesh()->Block().Set(seqnum,NConnectShapeF(side)*nvar);
+    if (side == NConnects()-1){
+      TPZVec<int> ord(2,2*order+2);
+      fIntRule.SetOrder(ord);
+    }
+  }
 }
 
 int TPZCompElQ2d::SideOrder(int side) {

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelc1d.cc,v 1.9 2003-11-04 20:03:06 cedric Exp $
+// $Id: pzelc1d.cc,v 1.10 2003-11-06 19:15:19 cesar Exp $
 //METHODS DEFINITION FOR CLASS ELEM1D
 
 #include "pzelc1d.h"
@@ -149,22 +149,25 @@ void TPZCompEl1d::SetSideOrder(int side, int order) {
   //cout << "TPZCompEl1d::SetSideOrder called for uninitialized connect\n";
   //  return;
   //}
-   if(side == 2) {
-	   if(order < 1) return;
-      fSideOrder = order;
-       if(fConnectIndexes[side] !=-1) {
-	 TPZConnect &c = Connect(side);
-	 c.SetOrder(order);
-	 int seqnum = c.SequenceNumber();
-	 int nvar = 1;
-	 TPZMaterial *mat = Material();
-	 if(mat) nvar = mat->NStateVariables();
-	 Mesh()->Block().Set(seqnum,NConnectShapeF(side)*nvar);
-	 TPZVec <int> ord(1,2*order+2);
-	 fIntRule.SetOrder(ord);
-       }
-   } else if(order)
-   	PZError << "TPZCompEl1d::SetSideOrder side = " << side << " order = " << order << endl;
+   if(side == 2)      fSideOrder = order;
+   if(order < 1){
+     PZError << "TPZCompEl1d::SetSideOrder side = " << side << " order = " << order << endl;
+     return;
+   }
+   
+   if(fConnectIndexes[side] !=-1) {
+     TPZConnect &c = Connect(side);
+     c.SetOrder(order);
+     int seqnum = c.SequenceNumber();
+     int nvar = 1;
+     TPZMaterial *mat = Material();
+     if(mat) nvar = mat->NStateVariables();
+     Mesh()->Block().Set(seqnum,NConnectShapeF(side)*nvar);
+     TPZVec <int> ord(1,2*order+2);
+     fIntRule.SetOrder(ord);
+   }
+   //}else if(order)
+   //   	PZError << "TPZCompEl1d::SetSideOrder side = " << side << " order = " << order << endl;
 }
 
 int TPZCompEl1d::SideOrder(int side) {

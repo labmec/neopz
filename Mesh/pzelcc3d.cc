@@ -1,4 +1,4 @@
-//$Id: pzelcc3d.cc,v 1.7 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzelcc3d.cc,v 1.8 2003-11-06 19:15:19 cesar Exp $
 
 // -*- c++ -*-
 #include "pzelcc3d.h"
@@ -324,8 +324,7 @@ void TPZCompElC3d::SetSideOrder(int side, int order) {
 	  return;
 	}
 
-  if(side>7) {
-    fSideOrder[side-8] = order;
+  if(side>7)  fSideOrder[side-8] = order;
     if(fConnectIndexes[side] != -1){
       TPZConnect &c = Connect(side);
       c.SetOrder(order);
@@ -339,7 +338,6 @@ void TPZCompElC3d::SetSideOrder(int side, int order) {
 	fIntRule.SetOrder(ord);
       }
     }
-  }
   cout.flush();
 }
 
