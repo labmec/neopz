@@ -154,6 +154,24 @@ virtual  void Print(ostream & out = cout);
   TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes,int matid,int &index);
 
   /**
+   * Generic method for creating a geometric element.
+   *
+   * Putting this method centrally facilitates the modification of the
+   * element type all through the code.
+   *
+   * @param type Element topology.
+   *
+   * @param ptr Pointer to a contiguous memory portion containing the
+   * incidence of that element.
+   *
+   * @param matid Material ID.
+   *
+   * @param index Index of the element in the vector of element pointers.
+   */
+  TPZGeoEl* CreateGeoElement( MElementType type, int* cornerindexes,
+			      int matid, int& index );
+
+  /**
    * Centralized method to delete elements
    * @param gel pointer to the element to be deleted
    * @param index index of the element
