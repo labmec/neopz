@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.14 2003-09-26 19:16:13 erick Exp $
+dnl $Id: configure.in,v 1.15 2003-10-07 19:38:20 cesar Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -356,13 +356,15 @@ dnl --| Projects subtree |--
         Projects/PoissonFAD/Makefile \
 	Projects/HyperElasticityFAD/Makefile \
 	Projects/ShapeFAD/Makefile \
-	Projects/Jacobi_Base/Makefile \
+#	Projects/Jacobi_Base/Makefile \
 	Projects/Error/Makefile \
 	Projects/Adapt_MultThread/Makefile \
 	Projects/Curso_PZ/Makefile \
 	Projects/Curso_PZ/Class_1/Makefile \
 	Projects/Curso_PZ/Class_2/Makefile \
         Projects/ConsLaw/Makefile \
+	Projects/Curso_PZ/Class_3/Makefile \
+	Projects/Curso_PZ/Class_4/Makefile \
 ])
 
 PZ_BYEBYE
