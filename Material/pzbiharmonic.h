@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzbiharmonic.h,v 1.5 2005-02-04 12:14:25 paulo Exp $
+//$Id: pzbiharmonic.h,v 1.6 2005-03-08 13:08:00 paulo Exp $
 
 #ifndef  TPZBIHARMONICHPP
 #define TPZBIHARMONICHPP
@@ -34,7 +34,7 @@ public :
   /**
    * Returns the number of norm errors. Default is 3: energy, L2,  H1, semi-norm H2 and H2.
    */
-  virtual int NEvalErrors() {return 5;}
+  virtual int NEvalErrors() {return 8;}
 
   void SetMaterial(REAL &xfin){
     fXf = xfin;

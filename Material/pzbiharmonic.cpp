@@ -1,4 +1,4 @@
-//$Id: pzbiharmonic.cpp,v 1.6 2005-02-04 12:14:25 paulo Exp $
+//$Id: pzbiharmonic.cpp,v 1.7 2005-03-08 13:07:45 paulo Exp $
 
 #include "pzbiharmonic.h"
 #include "pzelmat.h"
@@ -103,8 +103,7 @@ void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix &dudx
 			   TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
 			   TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,
 			   TPZVec<REAL> &values) {
-
-  TPZVec<REAL> sol(1), dsol(5,0.);
+  TPZVec<REAL> sol(1), dsol(8,0.);
   Solution(u,dudx,axes,1,sol);
   Solution(u,dudx,axes,2,dsol);
     //values[1] : error em norma L2
@@ -120,10 +119,14 @@ void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix &dudx
 
   //values[0] : erro em norma H1
   values[0]  = values[1]+values[2];
-
+  // dxx
+  values[5] = (dsol[5] - du_exact(5,0))*(dsol[5] - du_exact(5,0));
+  // dyy
+  values[6] = (dsol[6] - du_exact(6,0))*(dsol[6] - du_exact(6,0));
+  // dxy
+  values[7] = (dsol[7] - du_exact(7,0))*(dsol[7] - du_exact(7,0));
   //values[4] : erro em norma H2
-  values[4]  = values[3]+values[0];
-
+  values[4]  = values[5]+values[6]+values[7]+values[0];
 }
 
 
