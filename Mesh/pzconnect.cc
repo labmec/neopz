@@ -1,4 +1,4 @@
-//$Id: pzconnect.cc,v 1.5 2003-11-06 19:14:35 cesar Exp $
+//$Id: pzconnect.cc,v 1.6 2003-11-11 18:46:23 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -170,7 +170,7 @@ TPZConnect::TPZDepend::TPZDepend(int dependindex,TPZFMatrix &depmat,int ipos,int
 
 TPZConnect::TPZDepend::TPZDepend(const TPZDepend &copy) : fDepConnectIndex(copy.fDepConnectIndex),
 							  fDepMatrix(copy.fDepMatrix), fNext(0) {
-  if(copy.fNext) fNext = new TPZDepend(*fNext);
+  if(copy.fNext) fNext = new TPZDepend(*copy.fNext);
 }
 
 TPZConnect::TPZDepend::~TPZDepend() {
