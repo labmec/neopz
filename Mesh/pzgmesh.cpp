@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.18 2004-06-23 15:57:29 phil Exp $
+//$Id: pzgmesh.cpp,v 1.19 2004-11-24 17:50:44 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -45,8 +45,10 @@ void TPZGeoMesh::CleanUp() {
   int i, nel = fElementVec.NElements();
   for(i=0; i<nel; i++) {
     TPZGeoEl *el = fElementVec[i];
-    if(el) delete el;
-    fElementVec[i] = 0;
+    if(el) {
+      delete el;
+      fElementVec[i] = 0;
+    }
   }
   fElementVec.Resize(0);
   fElementVec.CompactDataStructure(1);
@@ -64,7 +66,6 @@ void TPZGeoMesh::CleanUp() {
   map< int,map<string,TPZRefPattern *> >::iterator  iter;
   for (iter = first; iter != last; iter++){
     map<string,TPZRefPattern *> &map_el = (*iter).second;
-
     map<string,TPZRefPattern *>::iterator name_first = map_el.begin();
     map<string,TPZRefPattern *>::iterator name_last = map_el.end();
     map<string,TPZRefPattern *>::iterator name_iter;    
@@ -73,6 +74,7 @@ void TPZGeoMesh::CleanUp() {
       delete refpat;
     }
   }
+  fRefPatterns.clear();
 }
 
 void TPZGeoMesh::SetName (char *nm) {
@@ -88,7 +90,7 @@ void TPZGeoMesh::Print (ostream & out) {
   out << "\n\t\t GEOMETRIC TPZGeoMesh INFORMATIONS:\n\n";
   out << "TITLE-> " << fName << "\n\n";
   out << "number of nodes               = " << fNodeVec.NElements() << "\n";
-  out << "number of elements            = " << fElementVec.NElements() << "\n";
+  out << "number of elements            = " << fElementVec.NElements()-fElementVec.NFreeElements() << "\n";
 
   out << "\n\tGeometric Node Information:\n\n";
   int i;
@@ -445,6 +447,9 @@ TPZGeoEl *TPZGeoMesh::FindElement(int elid) {
 
 int TPZGeoMesh::ElementIndex(TPZGeoEl *gel){
 	int i=0;
+        int index = gel->Index();
+        if (ElementVec()[index] == gel) return index;
+         
 	int numel = ElementVec().NElements();
 	while ( i < numel ) {
 		if (ElementVec()[i] == gel) break;
