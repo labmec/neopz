@@ -21,10 +21,14 @@
 #include "pzanalysis.h"
 #include "pzmetis.h"
 #include "tpznodesetcompute.h"
+#include "pzysmp.h"
+#include "TMBTimer.h"
 
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+
+#include "fast.h"
 //#include "pzelct2d.h"
 //template<class T>
 //class TPZVec;
@@ -36,7 +40,55 @@ void UmElemento(TPZGeoMesh &malha);
 void forcingfunction(TPZVec<REAL> &ponto, TPZVec<REAL> &force);
 
 int main() {
+  
+  
+//  string filename("CursoAltoDes.in");
+//  string filename("matriz1089.in");
+//  string filename("matriz12.in");
+//  string filename("matriz16000.in");
+  string filename("matriz260000.in");
+  TPZFMatrix rhs,sol;
+  
+  TMBMultiTimer timer(5);
+  cout << "Leitura\n";
+  timer.processName(0) = "Leitura da matriz";
+  timer.start(0);
+  TPZFYsmpMatrix *faster = ReadMatrix(filename,rhs);
+  timer.stop(0);
+  
+  cout << "Multiplicacao Numero de termos " << faster->NumTerms() << "\n";
+  TimeMultiply(faster,timer);
+  
+  cout << "Jacobi\n";
+  SolveJacobi(faster, rhs, 1.e-8,timer);
+  
+  cout << "SSor\n";
+  SolveSSOR(faster,rhs,1.e-8,timer);
+  
+  cout << "CG\n";
+  SolveCG(faster,rhs,1.e-8,timer);
+  
+  cout << timer;
+/*
+  TPZFMatrix test(*faster);
+  
+  cputime = SolveJacobi(&test,rhs,1.e-8);
+  
+  cout << "Tempo para Jacobi "<< cputime << endl;
 
+  cputime = SolveSSOR(&test,rhs,1.e-8);
+  
+  cout << "Tempo para SSOR "<< cputime << endl;
+
+  cputime = SolveCG(&test,rhs,1.e-8);
+  
+  cout << "Tempo para CG "<< cputime << endl;
+*/
+  
+//  TPZStepSolver stepsolve(faster);
+
+  return 0;
+  
   std::ofstream file("graphtest.txt");
    //malha geometrica
    TPZGeoMesh *malha = new TPZGeoMesh;
