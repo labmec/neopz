@@ -106,7 +106,8 @@ CLEANFILES = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = placa.cc
+main_SOURCES = placa.cc 		BCTest.cc
+
 
 main_LDADD = $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -118,7 +119,7 @@ DEFS = @DEFS@ -I. -I$(srcdir)
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-main_OBJECTS =  placa.o
+main_OBJECTS =  placa.o BCTest.o
 main_DEPENDENCIES =  $(top_srcdir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 main_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
@@ -132,7 +133,7 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/placa.P
+DEP_FILES =  .deps/BCTest.P .deps/placa.P
 SOURCES = $(main_SOURCES)
 OBJECTS = $(main_OBJECTS)
 
