@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.48 2004-04-02 15:55:42 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.49 2004-04-02 17:35:25 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -255,7 +255,7 @@ void TPZCompElDisc::Shape(TPZVec<REAL> X, TPZFMatrix &phi, TPZFMatrix &dphi) {
   }
 
   if(Dimension()==2){
-     TPZShapeDisc::Shape2DFull(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);
+     TPZShapeDisc::Shape2D(fConstC,fCenterPoint,X,fDegree,phi,dphi,fShapefunctionType);
   }
 
   if(Dimension()==3){
