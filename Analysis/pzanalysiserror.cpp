@@ -1,4 +1,4 @@
-//$Id: pzanalysiserror.cpp,v 1.7 2005-02-28 22:07:24 phil Exp $
+//$Id: pzanalysiserror.cpp,v 1.8 2005-04-19 18:40:13 tiago Exp $
 
 // -*- c++ -*-
 #include "pzanalysiserror.h"
@@ -152,7 +152,7 @@ void TPZAnalysisError::ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL si
 		/** Cast the element to an interpolated element if possible*/
 		TPZCompEl *cel = curelside.Element();
 		TPZInterpolatedElement *cintel = 0;
-		if(cel->IsInterpolated()) cintel = (TPZInterpolatedElement *) cel;
+		cintel = dynamic_cast<TPZInterpolatedElement *> (cel);
 		/** If the element is not interpolated, nothing to do */
 		if(!cintel) continue;
 		/** Set the interpolation order of the current element to curporder*/

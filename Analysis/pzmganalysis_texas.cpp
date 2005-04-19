@@ -256,8 +256,9 @@ void TPZMGAnalysis::MeshError(TPZCompMesh *fine, TPZCompMesh *coarse, TPZVec<REA
   int el;
   for(el=0; el<numel; el++) {
     cel = elementvec[el];
-    if(!cel || !cel->IsInterpolated()) continue;
-    TPZInterpolatedElement *cint = (TPZInterpolatedElement *) cel;
+    if(!cel) continue;
+    TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
+    if(!cint) continue;
     int ncon = cint->NConnects();
     TPZGeoElSide gelside(cint->Reference(),ncon-1);
     if(gelside.Dimension() != dim) continue;
@@ -572,11 +573,11 @@ TPZCompMesh  *TPZMGAnalysis::UniformlyRefineMesh(TPZCompMesh *mesh) {
   for(el=0; el<nelem; el++) {
     TPZCompEl *cel = elementvec[el];
     if(!cel) continue;
-    if(!cel->IsInterpolated()) {
+    TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);    
+    if(!cint) {
       cout << "TPZMGAnalysis::UniformlyRefineMesh encountered a non interpolated element\n";
       continue;
     }
-    TPZInterpolatedElement *cint = (TPZInterpolatedElement *) cel;
     int ncon = cint->NConnects();
     int porder = cint->PreferredSideOrder(ncon-1);
 
