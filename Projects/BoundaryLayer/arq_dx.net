@@ -1,5 +1,5 @@
 //
-// time: Fri Feb  4 17:33:39 2005
+// time: Tue Mar 22 17:37:24 2005
 //
 // version: 3.2.0 (format), 4.3.2 (DX)
 //
@@ -13,8 +13,8 @@ macro main(
 ) {
     // 
     // node FileSelector[1]: x = 74, y = 75, inputs = 0, label = FileSelector
-    // output[1]: visible = 1, type = 32, value = "/home/pos/fortiago/Mestrado/NeoPZ/Projects/BoundaryLayer/baumann_p1_h4.dx"
-    // output[2]: visible = 1, type = 32, value = "baumann_p1_h4.dx"
+    // output[1]: visible = 1, type = 32, value = "/home/pos/fortiago/Mestrado/NeoPZ/Projects/BoundaryLayer/ContDisc/baumann_p1_h3.dx"
+    // output[2]: visible = 1, type = 32, value = "baumann_p1_h3.dx"
     //
     // 
     // node Import[1]: x = 268, y = 137, inputs = 6, label = Import
@@ -100,11 +100,11 @@ main_Collect_1_out_1 =
     // input[1]: defaulting = 0, visible = 0, type = 67108863, value = "Image_1"
     // input[4]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[5]: defaulting = 0, visible = 0, type = 8, value = [0.5 0.5 -0.071278]
-    // input[6]: defaulting = 0, visible = 0, type = 8, value = [-2.5091 1.59001 -1.85577]
-    // input[7]: defaulting = 1, visible = 0, type = 5, value = 1.9637
-    // input[8]: defaulting = 0, visible = 0, type = 1, value = 1258
-    // input[9]: defaulting = 0, visible = 0, type = 5, value = 0.731
-    // input[10]: defaulting = 0, visible = 0, type = 8, value = [0.51127 0.00444872 -0.859409]
+    // input[6]: defaulting = 0, visible = 0, type = 8, value = [0.182719 2.826 -2.88479]
+    // input[7]: defaulting = 1, visible = 0, type = 5, value = 1.96367
+    // input[8]: defaulting = 0, visible = 0, type = 1, value = 1256
+    // input[9]: defaulting = 0, visible = 0, type = 5, value = 0.703
+    // input[10]: defaulting = 0, visible = 0, type = 8, value = [0.22293 -0.73883 -0.63595]
     // input[11]: defaulting = 0, visible = 0, type = 5, value = 30.0
     // input[12]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[14]: defaulting = 0, visible = 0, type = 1, value = 1
@@ -120,7 +120,7 @@ main_Collect_1_out_1 =
     // input[39]: defaulting = 0, visible = 0, type = 5, value = 0.4
     // input[41]: defaulting = 0, visible = 0, type = 32, value = "rotate"
     // depth: value = 24
-    // window: position = (0.0000,0.0000), size = 0.9938x0.9385
+    // window: position = (0.0000,0.0312), size = 0.9922x0.9023
     // internal caching: 1
     //
 main_Image_1_out_1,
@@ -180,7 +180,7 @@ main_Image_1_out_3 =
 // network: end of macro body
 CacheScene(main_Image_1_in_1, main_Image_1_out_1, main_Image_1_out_2);
 }
-main_FileSelector_1_out_1 = "/home/pos/fortiago/Mestrado/NeoPZ/Projects/BoundaryLayer/baumann_p1_h4.dx";
+main_FileSelector_1_out_1 = "/home/pos/fortiago/Mestrado/NeoPZ/Projects/BoundaryLayer/ContDisc/baumann_p1_h3.dx";
 main_Import_1_in_2 = NULL;
 main_Import_1_in_3 = NULL;
 main_Import_1_in_4 = NULL;
@@ -538,11 +538,11 @@ main_Image_1_in_1 = "Image_1";
 main_Image_1_in_3 = "X24,,";
 main_Image_1_in_4 = 1;
 main_Image_1_in_5 = [0.5 0.5 -0.071278];
-main_Image_1_in_6 = [-2.5091 1.59001 -1.85577];
+main_Image_1_in_6 = [0.182719 2.826 -2.88479];
 main_Image_1_in_7 = NULL;
-main_Image_1_in_8 = 1258;
-main_Image_1_in_9 = 0.731;
-main_Image_1_in_10 = [0.51127 0.00444872 -0.859409];
+main_Image_1_in_8 = 1256;
+main_Image_1_in_9 = 0.703;
+main_Image_1_in_10 = [0.22293 -0.73883 -0.63595];
 main_Image_1_in_11 = 30.0;
 main_Image_1_in_12 = 1;
 main_Image_1_in_13 = NULL;

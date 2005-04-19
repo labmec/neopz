@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.15 2005-01-21 18:16:07 tiago Exp $
+//$Id: main.cpp,v 1.16 2005-04-19 19:03:07 tiago Exp $
 
 /**
  * Galerkin descontinuo: visita do professor Igor.
@@ -12,7 +12,6 @@
 #define DIFUSAO_EXP
 //#define DESCONTINUIDADE
 //#define DEBUGM
-
 
 #include "pzvec.h"
 
@@ -58,6 +57,7 @@
 #include <time.h>
 #include <stdio.h>
 
+
 static REAL PI, gDif;
 
 static int gMeshType;
@@ -74,6 +74,7 @@ void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   deriv(0,0) = PI*cos(PI*x[0])*sin(PI*x[1]);
   deriv(1,0) = PI*cos(PI*x[1])*sin(PI*x[0]); 
 }**/
+
 
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
   disp[0] = - exp(0.75 * (x[0] + x[1])) * (8. * (1. - x[1] * x[1]) + 12. * x[0] * (1. - x[1] * x[1]) -4.5 * (1. - x[0] * x[0])* (1. - x[1] * x[1] )+
@@ -112,6 +113,7 @@ void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   deriv(1,0) = 1.;
 }*/
 
+
 //1 quadrado
 TPZCompMesh * SimpleMesh();
 
@@ -128,7 +130,10 @@ TPZCompMesh *CreateMeshPhil();
  
 
 ////////////////////////////////////////////////////////////////////////////////
-
+#include "pzgeoel.h"
+using namespace pzgeom;
+using namespace pzshape;
+using namespace pzrefine;
 
 int mainqvale(){
    
@@ -606,13 +611,13 @@ TPZCompMesh *CreateMesh() {
 #endif
 
   
-  TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc); 
+//   TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+//   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+//   TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+//   TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+//   TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+//   TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+//   TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc); 
   //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
   
   cmesh->AutoBuild();
@@ -1105,18 +1110,18 @@ TPZCompMesh *CreateMesh3() {
 
 int main(){
 
-for(int tiagop = 6; tiagop < 9; tiagop++){
+for(int tiagop = 1; tiagop < 4 ; tiagop++){
    
-  for( int tiagoh = 0; tiagoh < 4; tiagoh++){
+  for( int tiagoh = 0; tiagoh < 3; tiagoh++){
 
   int p, h;
   p = tiagop;
   h = tiagoh;
   
   char filename[20];
-  sprintf(filename,"dg_p%d_h%d.dat",p,h);
+  sprintf(filename,"ef_p%d_h%d.dat",p,h);
   char filedx[20];
-  sprintf(filedx,"dg_p%d_h%d.dx",p,h);
+  sprintf(filedx,"ef_p%d_h%d.dx",p,h);
   
  //cout << "\nQuadrado = 1; Triang = 2" << endl;
   gMeshType = 1;
@@ -1197,13 +1202,15 @@ for(int tiagop = 6; tiagop < 9; tiagop++){
 
 
   cout << "DIRECT_SOLVER" << endl;
-  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
+//  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
+
+  TPZBandStructMatrix /*TPZSkylineStructMatrix*/ full(cmesh);
   
 //  full.SetNumberOfThreads(3);
 //  TPZFStructMatrix full(cmesh);  
   an.SetStructuralMatrix(full);
   TPZStepSolver step;
-  step.SetDirect(ELU);
+  step.SetDirect(/*ECholesky*/ ELU);
   an.SetSolver(step);
 
 {  
