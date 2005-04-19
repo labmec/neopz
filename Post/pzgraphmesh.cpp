@@ -28,7 +28,7 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial *mat)
   nel = gelvec.NElements();
   for(i=0;i<nel;i++) {
     ge = gelvec[i];
-    if(!ge || !ge->Reference() || ge->Reference()->Type() == EInterface || !ge->Reference()->IsInterpolated()) continue;
+    if(!ge || !ge->Reference() || ge->Reference()->Type() == EInterface ) continue;
 //     TPZCompEl *celtype = ge->Reference();
 //     if(celtype->Type() == EAgglomerate){
 //       TPZStack<TPZCompEl *> discvec;

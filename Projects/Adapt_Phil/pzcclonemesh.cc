@@ -600,8 +600,9 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
     //    orgeomesh->ResetReference();
     //    aux->LoadReferences();
     
-    if(!cel || !cel->IsInterpolated()) continue;
-    TPZInterpolatedElement *cint = (TPZInterpolatedElement *) cel;
+    if (!cel) continue;
+    TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);    
+    if(!cint) continue;
     int ncon = cint->NConnects();
     TPZGeoElSide gelside(cint->Reference(),ncon-1);
     if(gelside.Dimension() != dim) continue;

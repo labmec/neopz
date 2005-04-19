@@ -235,11 +235,7 @@ void TPZInterpolatedElement::UpdateNeighbourSideOrder(int side, TPZVec<TPZCompEl
   int il;
   int cap = elvec.NElements();
   for(il=0; il<cap; il++) {
-    if(elvec[il].IsInterpolated()) {
-      neighbour = (TPZInterpolatedElement *) elvec[il].Element();
-    } else {
-      neighbour = 0;
-    }
+    neighbour = dynamic_cast<TPZInterpolatedElement *> ( elvec[il].Element() );
     if(!neighbour) continue;
     neighbourside = elvec[il].Side();
     int neighord = neighbour->SideOrder(neighbourside);
