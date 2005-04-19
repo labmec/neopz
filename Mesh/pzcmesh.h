@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.21 2005-02-28 22:08:50 phil Exp $
+//$Id: pzcmesh.h,v 1.22 2005-04-19 18:45:00 tiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -453,6 +453,23 @@ public:
    * Creates the computational elements, and the degree of freedom nodes
    */
   virtual void AutoBuild();
+
+//   /**
+//    * Enumerate to help AutoBuildContDisc() to be nice.
+//    */
+//   enum MCreationType{ ENone = 0, EContinuousEl = 1, EDiscontinuousEl = 2};
+
+  /**
+   * Creates the computational elements, and the degree of freedom nodes
+   * Elements created may be TPZInterpolatedElement or TPZCompElDisc.
+   * indices contains the type of the element. Element type are given by the enumerate MCreationType.
+   */
+  virtual void AutoBuildContDisc(TPZVec<TPZGeoEl*> &continuous, TPZVec<TPZGeoEl*> &discontinuous);
+
+  virtual void AutoBuildContDisc(TPZVec<TPZMaterial*> &continuous, TPZVec<TPZMaterial*> &discontinuous);
+
+  void SetAllCreateFunctionsDiscontinuous();
+  void SetAllCreateFunctionsContinuous();
 
   /**
    * Will build the list of element boundary conditions build the list of connect boundary conditions.
