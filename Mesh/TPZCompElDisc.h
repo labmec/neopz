@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.35 2005-03-03 21:53:59 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.36 2005-04-19 21:05:40 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -254,14 +254,6 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   virtual void CenterPoint(TPZVec<REAL> &center);
   
   void SetCenterPoint(int i,REAL x){fCenterPoint[i] = x;}
-
-  /**declare the element as interpolated or not.
-   * You may not redefine this method, because a lot of "unsafe" casts depend
-   * on the result of this method\n
-   * Wherever possible, use dynamic_cast instead of this method
-   * @return 0 if the element is not interpolated
-   */
-  virtual int IsInterpolated() {return 1;}
 
   REAL SizeOfElement();
 

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.27 2005-03-03 21:53:59 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.28 2005-04-19 21:05:41 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -69,6 +69,11 @@ class TPZInterfaceElement : public TPZCompEl {
   */
   void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int> &connectindex);
 
+  /** 
+   * Compute shape functions to an interpolated element. Used in case one neighbour is TPZInterpolatedElement.
+   */
+  void ComputeShape(TPZInterpolatedElement* intel, TPZFMatrix &phix, TPZFMatrix &dphix, TPZVec<REAL> &IntPoint );
+
  public:
 
   /** 
@@ -81,6 +86,10 @@ class TPZInterfaceElement : public TPZCompEl {
    * Construtor para o elemento descontinuo.
    */
   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right);
+
+  /** Constuctor to continuous and/or discontinuous neighbours.
+   */
+  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right, int leftside, int rightside);
 
   /**
    * Copy constructor.
@@ -96,11 +105,6 @@ class TPZInterfaceElement : public TPZCompEl {
    * Empty constructor.
    */   
   TPZInterfaceElement();
-
-  /** Constuctor to continuous and/or discontinuous neighbours.
-   */
-  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right, int leftside, int rightside);
-
 
 //   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
 //   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index);
@@ -176,7 +180,6 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * This function should not be called
    */
-#warning This function should not be called
   void SetConnectIndex(int node, int index);
 
   /**
@@ -191,14 +194,6 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   MElementType Type() { return EInterface; }
 
-  /**declare the element as interpolated or not.
-   * You may not redefine this method, because a lot of "unsafe" casts depend
-   * on the result of this method\n
-   * Wherever possible, use dynamic_cast instead of this method
-   * @return 0 if the element is not interpolated
-   */
-  virtual int IsInterpolated() {return 0;}
-
   /**
    * it returns the shapes number of the element 
    * the associated space of interpolation is gotten 
@@ -206,6 +201,14 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   int  NShapeF() {return 0;}
 
+  /**
+   * Loads the solution within the internal data structure of the element
+   * Is used to initialize the solution of connect objects with dependency
+   * Is also used to load the solution within SuperElements*/
+  virtual void LoadSolution(){
+    //NOTHING TO BE DONE HERE
+  }
+  
   /**
    * CalcStiff computes the element stiffness matrix and right hand side
    * @param ek element matrix

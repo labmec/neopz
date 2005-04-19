@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.13 2005-02-28 22:08:52 phil Exp $
+//$Id: pzgeoelside.h,v 1.14 2005-04-19 21:05:13 tiago Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -43,11 +43,19 @@ class TPZGeoElSide {
 
   TPZGeoElSide(){ fGeoEl = 0; fSide  = -1;}
   //TPZGeoElSide(const TPZGeoElSide &gelside);
+
   TPZGeoElSide(TPZGeoEl *gel,int side){  fGeoEl = gel; fSide  = side;}
+
   TPZGeoEl *Element()const{return fGeoEl;}
+
+  void SetElement(TPZGeoEl* geoel){ fGeoEl = geoel; }
+
   int Side() const {return fSide;}
+
   void SetSide(int side) { fSide = side; }
+
   int Exists() const {return (fGeoEl != 0 && fSide > -1);}
+
   TPZGeoElSide Neighbour() const;//return neighbour of the side fSide
 
   /**
@@ -102,7 +110,7 @@ static void BuildConnectivities(TPZVec<TPZGeoElSide> &elvec, TPZVec<TPZGeoElSide
 
   /**returns a pointer to computational element referenced by a geometric
    element which is a son along side and has higher level than level
-   if onlyinterpolated != 0 only elements which return IsInterpolated() != 0 will be put on the stack*/
+   if onlyinterpolated = 1 only elements TPZInterpolatedElement will be put on the stack*/
 //  void SmallConnect(int level,TPZStack<TPZCompElSide> &elsidevec, int onlyinterpolated);
 
   /**search elements of high dimension connected to the actual element*/
@@ -142,33 +150,33 @@ static void BuildConnectivities(TPZVec<TPZGeoElSide> &elvec, TPZVec<TPZGeoElSide
   int NeighbourExists(const TPZGeoElSide &neighbour) const;
 
   /**Pushes all connected computational elements which have higher dimension than the current element/side
-     if onlyinterpolated == 1 only elements which return IsInterpolated()== 1 will be put on the stack
+     if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
      if removeduplicates == 1 no elements which are direct neighbours will be put on the stack
   */
 void HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec, int onlyinterpolated);
 
 
   /**Returns all connected computational elements which have same dimension and level higher to the current element
-     if onlyinterpolated == 1 only elements which return IsInterpolated()== 1 will be put on the stack
+     if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
      if removeduplicates == 1 no elements which are direct neighbours will be put on the stack*/
   //void HigherLevelCompElementList(TPZStack<TPZCompElSide> &elsidevec, int onlyinterpolated, int removeduplicates);
   /**Returns all connected computational elements which have level higher to the current element
-     if onlyinterpolated == 1 only elements which return IsInterpolated()== 1 will be put on the stack
+     if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
      if removeduplicates == 1 no elements which are direct neighbours will be put on the stack*/
   void HigherLevelCompElementList2(TPZStack<TPZCompElSide> &elsidevec, int onlyinterpolated, int removeduplicates);
   /**Returns all connected computational elements to the current element
-     if onlyinterpolated == 1 only elements which return IsInterpolated()== 1 will be put on the stack
+     if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
      if removeduplicates == 1 no elements which are direct neighbours will be put on the stack*/
   void ConnectedCompElementList(TPZStack<TPZCompElSide> &elsidevec,int onlyinterpolated, int removeduplicates);
   /**Returns all connected computational elements which have equal level to the current element
      This method will not put this on the stack
-     if onlyinterpolated == 1 only elements which return IsInterpolated()== 1 will be put on the stack
+     if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
      if removeduplicates == 1 no elements which are direct neighbours will be put on the stack*/
   void EqualLevelCompElementList(TPZStack<TPZCompElSide> &elsidevec,	int onlyinterpolated, int removeduplicates);
   //void Dim0EqualLevelCompElementList(TPZStack<TPZCompElSide> &elsidevec,int onlyinterpolated, int removeduplicates);
 
   /**Returns all connected computational elements which have level lower to the current element
-     if onlyinterpolated == 1 only elements which return IsInterpolated()== 1 will be put on the stack
+     if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
      This method will only return element/sides of dimension > 0*/
   //TPZCompElSide LowerLevelCompElementList(int onlyinterpolated);
   /**Retorna o elem. computacional de nivel menor (elemento grande) ao qual estou restrito*/

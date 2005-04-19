@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.19 2005-03-09 23:23:10 phil Exp $
+//$Id: pzgeoel.h,v 1.20 2005-04-19 21:04:40 tiago Exp $
 
 // -*- c++ -*-
 
@@ -314,7 +314,7 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
 
   /**returns a pointer to computational element referenced by a geometric
      element which is a son along side and has higher level than level
-     if onlyinterpolated != 0 only elements which return IsInterpolated() != 0 will be put on the stack*/
+     if onlyinterpolated = 1 only elements TPZInterpolatedElement will be put on the stack*/
   //void SmallConnect(int side,int level,TPZStack<TPZCompElSide> &elvec,
 //		    int onlyinterpolated);
 

@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.15 2004-10-06 19:24:04 phil Exp $
+//$Id: pzintel.h,v 1.16 2005-04-19 21:05:25 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -94,14 +94,6 @@ public:
 
   /**return the geometric element to which this element references*/
 //  virtual TPZGeoEl *Reference() const { return fReference;}
-
-  /**declare the element as interpolated or not.
-   * You may not redefine this method, because a lot of "unsafe" casts depend
-   * on the result of this method\n
-   * Wherever possible, use dynamic_cast instead of this method
-   * @return 0 if the element is not interpolated
-   */
-  virtual int IsInterpolated() {return 1;}
 
   /**returns the number of shapefunctions associated with a connect*/
   virtual int NConnectShapeF(int inod) = 0;

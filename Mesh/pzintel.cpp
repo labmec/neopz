@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.34 2005-03-11 20:51:06 cesar Exp $
+// $Id: pzintel.cpp,v 1.35 2005-04-19 21:05:25 tiago Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -399,11 +399,7 @@ void TPZInterpolatedElement::UpdateNeighbourSideOrder(int side, TPZVec<TPZCompEl
   int il;
   int cap = elvec.NElements();
   for(il=0; il<cap; il++) {
-    if(elvec[il].IsInterpolated()) {
-      neighbour = (TPZInterpolatedElement *) elvec[il].Element();
-    } else {
-      neighbour = 0;
-    }
+    neighbour = dynamic_cast<TPZInterpolatedElement *> ( elvec[il].Element() );
     if(!neighbour) continue;
     neighbourside = elvec[il].Side();
     int neighord = neighbour->SideOrder(neighbourside);
@@ -618,7 +614,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
   TPZStack<TPZCompElSide> elvec;
   TPZCompElSide thisside(this,side);
   if(side < NCornerConnects()) {
-    thisside.EqualLevelElementList(elvec,0,0);
+    thisside.EqualLevelElementList(elvec,1,0);
     int nel = elvec.NElements();                // (1)
     if(nel && elvec[nel-1].Reference().Dimension() == thisside.Reference().Dimension()){
       newnodeindex =  elvec[nel-1].ConnectIndex();
@@ -638,7 +634,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
       TPZCompElSide father = thisside.LowerLevelElementList(1);
       if(father.Exists()) {
         int side_neig = father.Side();
-        TPZInterpolatedElement *cel = (TPZInterpolatedElement *) father.Element();
+        TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *>( father.Element() );
         newnod.SetOrder(cel->SideOrder(side_neig));
         RestrainSide(side,cel,side_neig);
       }
@@ -654,8 +650,8 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
   int nelem = elvec.NElements();
   // find an element in the list which is interpolated
   if(nelem) {
-    cel = (TPZInterpolatedElement *) elvec[0].Element();
-    side_neig = elvec[0].Side();
+     cel = dynamic_cast<TPZInterpolatedElement *> ( elvec[0].Element() );
+     side_neig = elvec[0].Side();
   }
   int newnodecreated = 0;
   if(cel) {

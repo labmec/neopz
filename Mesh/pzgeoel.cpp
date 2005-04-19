@@ -1100,7 +1100,6 @@ TPZCompEl *TPZGeoEl::CreateBCCompEl(int side,int bc,TPZCompMesh &cmesh) {
 	return gel->CreateCompEl(cmesh,index);
 }
 
-
 void TPZGeoEl::RemoveConnectivities(){
 
   int nsides = NSides(),side;

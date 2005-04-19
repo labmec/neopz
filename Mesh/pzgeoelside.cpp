@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.15 2005-02-28 22:08:52 phil Exp $
+//$Id: pzgeoelside.cpp,v 1.16 2005-04-19 21:05:13 tiago Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -13,6 +13,13 @@
 #include "pzintel.h"
 
 using namespace pzshape;
+
+#include <log4cxx/logger.h>
+#include <sstream>
+using namespace log4cxx;
+
+static LoggerPtr Log(Logger::getLogger("pz.mesh.tpzgeoelside"));
+
 
 void TPZGeoElSide::RemoveConnectivity(){
 
@@ -176,6 +183,16 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 
 
 TPZTransform TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
+
+#ifdef DEBUG
+   if(!NeighbourExists(neighbour))
+   {
+      stringstream sout;
+      sout << __PRETTY_FUNCTION__ << "Neighbour does not exist : expect trouble";
+      LOG4CXX_ERROR(logger,sout.str());
+      return;
+   }
+#endif
   int sidedimension = Dimension();
   TPZTransform tside(sidedimension);//transformação local
   switch (sidedimension) {
@@ -288,40 +305,57 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform &t)	{
 	  PZError << "TPZGeoElSide::SideTransform3 I dont understand\n";
 	  return;
   }
-  if(father.NeighbourExists(neighbour)) {
-    t = NeighbourSideTransform(neighbour).Multiply(t);
-    return;
-  }
+  while(father.Exists())
+  {
+    if(father.NeighbourExists(neighbour)) {
+       TPZTransform Temp =  father.NeighbourSideTransform(neighbour);
+//       t =  NeighbourSideTransform(neighbour).Multiply(t);
+       t =  Temp.Multiply(t);
+       return;
+    } else {
+      TPZGeoElSide nextfather = father.StrictFather();
+      if(nextfather.Exists())
+      {
+        t = father.Element()->BuildTransform2(father.Side(),nextfather.Element(),t);
+      }
+      father = nextfather;
+    }
+  }  
   TPZGeoElSide start,neighbourwithfather,neighfather;
   start = *this;
   neighbourwithfather = *this;
   do {
-    neighfather = neighbourwithfather.Father2();
+    neighfather = neighbourwithfather.StrictFather();
     if(!neighfather.Exists()) neighbourwithfather = neighbourwithfather.Neighbour();
   } while(!neighfather.Exists() && neighbourwithfather.Exists() && neighbourwithfather != start);
   int secondcase = 0;
 
   //  TPZGeoElSide nextfather = father.Father2();
-  while(neighfather.Exists()) {
-    if(neighbourwithfather != start) secondcase++;
-    if(neighbourwithfather != start) t = start.NeighbourSideTransform(neighbourwithfather).Multiply(t);
-    //father.Element()->BuildTransform(Side(),nextfather.Element(),t);
-    t = neighbourwithfather.Element()->BuildTransform2(neighbourwithfather.Side(),neighfather.Element(),t);//Cedric 01/10/99 e  e 30/04/00
-    start = neighfather;
-    if(start.NeighbourExists(neighbour)) {
-      t = start.NeighbourSideTransform(neighbour).Multiply(t);
-      //      if(secondcase) {
-      //	cout << "TPZGeoElSide:SideTranform3 secondcase = " << secondcase << "\n";
-      //      }
-      return;
+  if(neighfather.Exists()) {
+    if(neighbourwithfather != start) 
+    {
+      secondcase++;
+      t = start.NeighbourSideTransform(neighbourwithfather).Multiply(t);
     }
-    neighbourwithfather = start;
-    do {
-      neighfather = neighbourwithfather.Father2();
-      if(!neighfather.Exists()) neighbourwithfather = neighbourwithfather.Neighbour();
-    } while(!neighfather.Exists() && neighbourwithfather.Exists() && neighbourwithfather != start);
-    //    nextfather = father.Father2();
-  }
+    neighbourwithfather.SideTransform3(neighbour,t);
+    
+//     //father.Element()->BuildTransform(Side(),nextfather.Element(),t);
+//     t = neighbourwithfather.Element()->BuildTransform2(neighbourwithfather.Side(),neighfather.Element(),t);//Cedric 01/10/99 e  e 30/04/00
+//     start = neighfather;
+//     if(start.NeighbourExists(neighbour)) {
+//       t = start.NeighbourSideTransform(neighbour).Multiply(t);
+//       //      if(secondcase) {
+//       //	cout << "TPZGeoElSide:SideTranform3 secondcase = " << secondcase << "\n";
+//       //      }
+//       return;
+//     }
+//     neighbourwithfather = start;
+//     do {
+//       neighfather = neighbourwithfather.Father2();
+//       if(!neighfather.Exists()) neighbourwithfather = neighbourwithfather.Neighbour();
+//     } while(!neighfather.Exists() && neighbourwithfather.Exists() && neighbourwithfather != start);
+//     //    nextfather = father.Father2();
+   }
 
   PZError << "TPZGeoElSide:SideTranform3 did not find the neighbour\n";
   return;
@@ -352,7 +386,7 @@ void TPZGeoElSide::EqualLevelCompElementList(TPZStack<TPZCompElSide> &elsidevec,
 
   while(neighbour.Element() != this->Element()) {
     ref = neighbour.Reference();
-    if(ref.Element() && ref.Element() != Reference().Element() && (!onlyinterpolated || ref.Element()->IsInterpolated())) {
+    if(ref.Element() && ref.Element() != Reference().Element() && (!onlyinterpolated || dynamic_cast<TPZInterpolatedElement*>(ref.Element()) )) {
       elsidevec.Push(ref);
       if(removeduplicates) return;
     }
@@ -630,7 +664,7 @@ void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZG
   }
 }
 
-ostream &operator << (ostream & out,const TPZGeoElSide &geoside){
+std::ostream &operator << (std::ostream & out,const TPZGeoElSide &geoside){
  out << "TPZGeoElSide : side = " << geoside.Side() << endl ;
  geoside.Element()->Print(out);
  return out;

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.17 2005-03-11 20:51:39 cesar Exp $
+// $Id: pzcompel.h,v 1.18 2005-04-19 21:03:08 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -151,12 +151,6 @@ public:
   //   * the types are listed in parameter : ENoType, EOned, ETriangle, EQuadrilateral, ESubstructure*/
   virtual MElementType Type();
 
-  /**
-   * Declare the element as interpolated or not.
-   * You may not redefine this method, because a lot of "unsafe" casts depend
-   * on the result of this method
-   */
-  virtual int IsInterpolated() {return 0;}
   virtual int IsInterface() { return 0; }
 
   /**
@@ -550,7 +544,7 @@ public:
   /**
    * Returns all connected elements which have level higher to the current element
    * @param elsidevec side elements vector
-   * @param onlyinterpolated if onlyinterpolated == 1 only elements which return IsInterpolated()== 1 will be put on the stack
+   * @param onlyinterpolated if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
    * @param removeduplicates if removeduplicates == 1 no elements which are direct neighbours will be put on the stack
    */
   void HigherLevelElementList(TPZStack<TPZCompElSide> &elsidevec, int onlyinterpolated, int removeduplicates);
@@ -558,14 +552,14 @@ public:
   /**
    * pushes all element/sides which have higher dimension than the current element/side
    * @param elsidevec side elements vector where elements/side will be put
-   * @param onlyinterpolated if onlyinterpolated == 1 only elements which return IsInterpolated()== 1 will be put on the stack
+   * @param onlyinterpolated if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
    * @param removeduplicates if removeduplicates == 1 no elements which are direct neighbours will be put on the stack
    */
   void HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec, int onlyinterpolated, int removeduplicates);
   /**
    * Returns all connected elements to the current element
    * @param elsidevec side elements vector
-   * @param onlyinterpolated if onlyinterpolated == 1 only elements which return IsInterpolated()== 1 will be put on the stack
+   * @param onlyinterpolated if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
    * @param removeduplicates if removeduplicates == 1 no elements which are direct neighbours will be put on the stack
    */
   void ConnectedElementList(TPZStack<TPZCompElSide> &elsidevec,int onlyinterpolated, int removeduplicates);
@@ -574,14 +568,14 @@ public:
    * Returns all connected elements which have equal level to the current element
    * This method will not put this on the stack
    * @param elsidevec side elements vector
-   * @param onlyinterpolated  if onlyinterpolated == 1 only elements which return IsInterpolated()== 1 will be put on the stack
+   * @param onlyinterpolated  if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
    * @param removeduplicates  if removeduplicates == 1 no elements which are direct neighbours will be put on the stack
    */
   void EqualLevelElementList(TPZStack<TPZCompElSide> &elsidevec, int onlyinterpolated, int removeduplicates);
 
   /**
    * Returns all connected elements which have level lower to the current element
-   * @param onlyinterpolated if onlyinterpolated == 1 only elements which return IsInterpolated()== 1 will be put on the stack
+   * @param onlyinterpolated if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
     // if removeduplicates == 1 no elements which are direct neighbours will be put on the stack
   */
   TPZCompElSide LowerLevelElementList(int onlyinterpolated);
@@ -619,13 +613,6 @@ public:
   TPZCompElSide LowerIdElementList(TPZCompElSide &expandvec,int onlyinterpolated);
 
   //inline////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Declare the element as interpolated or not.
-   * You may not redefine this method, because a lot of "unsafe" casts depend
-   * on the result of this method
-   */
-  int IsInterpolated() {return fEl->IsInterpolated();}
 
   /**
    * Return the index of the middle side connect alon fSide
