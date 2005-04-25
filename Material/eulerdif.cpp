@@ -2,6 +2,7 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzreal.h"
+using namespace std;
 
 REAL TEulerDiffusivity::fGamma = 1.4;
 

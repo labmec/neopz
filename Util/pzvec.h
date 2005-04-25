@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.7 2005-01-14 22:29:59 phil Exp $
+// $Id: pzvec.h,v 1.8 2005-04-25 02:55:52 phil Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -17,7 +17,6 @@
 #include <iomanip>
 #include <cstdlib>
 
-using namespace std;
 
 /**
  * @ingroup util
@@ -96,10 +95,10 @@ class TPZVec {
          if( index < 0 || index >= fNElements )
          {
             PZError << __PRETTY_FUNCTION__ << " acessing element out of range.";
-            PZError << "|" << endl;
-            PZError << "+-> NElements = " << NElements() << endl;
-            PZError << "|" << endl;
-            PZError << "+-> Index = " << index << endl;
+            PZError << "|" << std::endl;
+            PZError << "+-> NElements = " << NElements() << std::endl;
+            PZError << "|" << std::endl;
+            PZError << "+-> Index = " << index << std::endl;
             DebugStop();
             exit( -1 );
          }
@@ -109,9 +108,9 @@ class TPZVec {
 
       /// Extraction operator.
 #ifndef DOS
-      friend ostream& operator<<( ostream& Out, const TPZVec< T >& v )
+      friend std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
       {
-         streamsize width = Out.width();
+         std::streamsize width = Out.width();
 
 	 const char* sep = ( width == 0 ? " " : "" );
 
@@ -119,7 +118,7 @@ class TPZVec {
 
          for( int ii = 0; ii < size; ii++ )
          {
-            Out << setw( width ) << sep << v.fStore[ ii ];
+            Out << std::setw( width ) << sep << v.fStore[ ii ];
          }
 
          return Out;
@@ -168,7 +167,7 @@ class TPZVec {
        * output stream. This method will not print the objects
        * themselves!
        */
-      void Print(ostream &out);
+      void Print(std::ostream &out);
 
    protected:
       /**
@@ -208,7 +207,7 @@ TPZVec<T>::TPZVec( const int size ) : fStore( 0 )
    if( size < 0 )
    {
       PZError << "TPZVec constructor. Bad parameter size, then size = 0."
-              << endl;
+              << std::endl;
       PZError.flush();
       fNElements = 0;
       return;
@@ -232,7 +231,7 @@ TPZVec<T>::TPZVec( const int size, const T& copy ) : fStore( 0 )
    if( size < 0 )
    {
       PZError << "TPZVec constructor. Bad parameter size, then size = 0."
-              << endl;
+              << std::endl;
       PZError.flush();
       fNElements = 0;
       return;
@@ -306,7 +305,7 @@ template< class T >
 void TPZVec<T>::Resize(const int newsize,const T& object){
 #ifndef NOTDEBUG
    if(newsize<0) {
-      PZError << "TPZVec::Resize. Bad parameter newsize." << endl;
+      PZError << "TPZVec::Resize. Bad parameter newsize." << std::endl;
       PZError.flush();
       return;
    }
@@ -332,7 +331,7 @@ template< class T >
 void TPZVec<T>::Resize(const int newsize){
 #ifndef NOTDEBUG
    if(newsize<0) {
-      PZError << "TPZVec::Resize. Bad parameter newsize." << endl;
+      PZError << "TPZVec::Resize. Bad parameter newsize." << std::endl;
       PZError.flush();
       return;
    }
@@ -361,9 +360,9 @@ template< class T >
 void TPZVec<T>::Fill(const T& copy, const int from, const int numelem){
 #ifndef NOTDEBUG
    if(numelem<0 && numelem != -1) {
-      PZError << "TPZVec::Fill" << endl
+      PZError << "TPZVec::Fill" << std::endl
               << "It's negative parameter numelem, then numelem = "
-              << fNElements << endl;
+              << fNElements << std::endl;
 
       PZError.flush();
    }
@@ -380,9 +379,9 @@ void TPZVec<T>::Fill(const T& copy, const int from, const int numelem){
 }
 
 template< class T >
-inline void TPZVec<T>::Print(ostream &out)
+inline void TPZVec<T>::Print(std::ostream &out)
 {
-   out << endl << "Number of elements = " << fNElements;
+   out << std::endl << "Number of elements = " << fNElements;
 
    //   for(int i=0;i<fNElements;i++)
    //   out << setw( 14 ) << setprecision( 6 ) << fStore[i];

@@ -2,7 +2,6 @@
 #define ELASMATHPP
 
 #include <iostream>
-using namespace std;
 
 #include "pzmaterial.h"
 
@@ -39,7 +38,7 @@ public :
  virtual  int NStateVariables();
 
   /**Print the material data*/
-  virtual void Print(ostream & out = cout);
+  virtual void Print(std::ostream & out = std::cout);
 
   /**Returns the material name*/
   char *Name() { return "TPZElasticityMaterial"; }

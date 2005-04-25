@@ -3,7 +3,7 @@
  * @file pzvec_extra.h
  * @brief Extra utilities for TPZVec.
  */
-// $Id: pzvec_extras.h,v 1.10 2004-04-22 11:03:51 cantao Exp $
+// $Id: pzvec_extras.h,v 1.11 2005-04-25 02:55:52 phil Exp $
 
 #ifndef PZVEC_EXTRAS_H
 #define PZVEC_EXTRAS_H
@@ -11,7 +11,6 @@
 #include <algorithm>
 #include "pzstack.h"
 
-using namespace std;
 
 /**
  * Performs a saxpy operation: x <- x + s * y.
@@ -26,9 +25,9 @@ void saxpy( TPZVec< T1 >& x, const TPZVec< T2 >& y, Scalar s )
 
 #ifdef DEBUG
    if( size != y.NElements() ) {
-      PZError << "SAXPY error!" << endl
+      PZError << "SAXPY error!" << std::endl
 	      << "Vectors with different sizes #x = " << size
-	      << ", #y = " << y.NElements() << endl;
+	      << ", #y = " << y.NElements() << std::endl;
 
       PZError.flush();
    }
@@ -82,9 +81,9 @@ double sdot(TPZVec< T1 > & x, TPZVec< T1 > & y)
 
 #ifndef NOTDEBUG
    if( size != y.NElements() ) {
-      PZError << "SDOT error!" << endl
+      PZError << "SDOT error!" << std::endl
 	      << "Vectors with different sizes #x = " << size
-	      << ", #y = " << y.NElements() << endl;
+	      << ", #y = " << y.NElements() << std::endl;
 
       PZError.flush();
    }

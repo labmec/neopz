@@ -1,6 +1,7 @@
 #include "includes.h"
 #include "pzbndcond.h"
 
+using namespace std;
 static TPZCompMesh *CreatePyramTetraMesh();
 
 //**************************************

@@ -1,4 +1,4 @@
-//$Id: pzanalysiserror.cpp,v 1.8 2005-04-19 18:40:13 tiago Exp $
+//$Id: pzanalysiserror.cpp,v 1.9 2005-04-25 02:50:40 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysiserror.h"
@@ -13,6 +13,7 @@
 #include "pzskylstrmatrix.h"
 #include "pzmaterial.h"
 
+using namespace std;
 TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,ostream &out) : TPZAnalysis(mesh,out),fElIndexes(0),fElErrors(0),
 	fSingular(),fTotalError(0.),fAdmissibleError(0.0),fEtaAdmissible(0.05),fNIterations(4) {}
 
@@ -22,10 +23,10 @@ void TPZAnalysisError::SetAdaptivityParameters(REAL EtaAdmissible, int NIteratio
 }
 ofstream arq("Param.dat");
 void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmissible) {
-   int iter = 0;//iteração atual
+   int iter = 0;//iteraï¿½o atual
    cout << "\n\nIteration  1\n";
    out << "\n   Iteration  1\n";
-   Run(out);//solução malha inicial
+   Run(out);//soluï¿½o malha inicial
    TPZManVector<REAL,3> errors(3);
    errors.Fill(0.0);
    TPZVec<REAL> flux(0);
@@ -52,7 +53,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmi
       //      out << " - Eta Reached        :  " << true_error/exactnorm << endl;
       out << " - Eta Reached        :  " << errors[0]/errors[2] << endl;
 
-#warning Philippe, não entendo nada!!!!! //<!>
+#warning Philippe, nï¿½ entendo nada!!!!! //<!>
 #warning De fato Thiago, voce tem razao
 
       out << " - Number of D.O.F.   :  " << fCompMesh->NEquations() << endl;
@@ -216,7 +217,7 @@ void TPZAnalysisError::ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL si
       indexlist.Push(intel->Index());
       //os elemento viz devem ter ordens menores a cel quanto mais longe de point
       TPZInterpolatedElement *neighkeep,*neigh;
-      //feito só para o caso 1d , extender para o caso geral
+      //feito sï¿½para o caso 1d , extender para o caso geral
       int dim = intel->Dimension();
       if(dim != 1) {
       	cout << "TPZAnalysisError::Step3 not dimension implemented , dimension = " << intellist[el]->Dimension() << endl;

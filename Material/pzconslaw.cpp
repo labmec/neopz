@@ -1,4 +1,4 @@
-//$Id: pzconslaw.cpp,v 1.9 2004-05-21 13:33:15 erick Exp $
+//$Id: pzconslaw.cpp,v 1.10 2005-04-25 02:52:50 phil Exp $
 
 #include "pzconslaw.h"
 #include "pzelmat.h"
@@ -8,6 +8,7 @@
 #include "pzerror.h"
 #include <math.h>
 #include <stdlib.h>
+using namespace std;
 
 
 TPZConservationLaw2::TPZConservationLaw2(int nummat,REAL timeStep,int dim) :

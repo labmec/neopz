@@ -24,6 +24,8 @@ Method definition for class TPZGeoCloneMesh.*/
 //#include "pzelgt3d.h"
 #include "pzelasmat.h"
 
+using namespace std;
+
 static int zero=0;
 static TPZGeoEl *zeropoint = 0;
 

@@ -4,7 +4,6 @@
 #include <cmath>
 #include "pzvec.h"
 #include "pznumeric.h"
-using namespace std;
 class TPZPolynomial {
 public:
     /** Construtor da classe. */

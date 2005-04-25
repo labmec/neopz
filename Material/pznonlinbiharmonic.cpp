@@ -1,4 +1,4 @@
-//$Id: pznonlinbiharmonic.cpp,v 1.2 2005-03-08 13:10:19 paulo Exp $
+//$Id: pznonlinbiharmonic.cpp,v 1.3 2005-04-25 02:52:50 phil Exp $
 
 #include "pznonlinbiharmonic.h"
 #include "pzelmat.h"
@@ -20,6 +20,8 @@ REAL TPZNonLinBiharmonic::g_teta = 0.5; // Parametro da parte advectiva.
 REAL TPZNonLinBiharmonic::Re = 50.0; // 
 int TPZNonLinBiharmonic::NorP = 1; // Constante. Se for 1, entao Metodo de Newton
                                    //            Se for 0, entao Metodo de Picard
+
+using namespace std;
 
 TPZNonLinBiharmonic::TPZNonLinBiharmonic(int nummat, REAL f) : TPZDiscontinuousGalerkin(nummat),
 						   fXf(f){}

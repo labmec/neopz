@@ -8,6 +8,7 @@
 #include "pzadmchunk.h"
 #include <math.h>
 
+using namespace std;
 int TPZMaterialTest3D::eq3 = -1;//Cedric : para testes no programa main 3dmaterial.c
 
 TPZMaterialTest3D::TPZMaterialTest3D(int nummat) : TPZMaterial(nummat) {

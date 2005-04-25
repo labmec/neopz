@@ -7,6 +7,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+using namespace std;
 
 TPZConservationLaw::TPZConservationLaw(int nummat,REAL delta_t,int dim) : 
                                                       TPZMaterial(nummat), fDim(dim) {

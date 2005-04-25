@@ -64,7 +64,7 @@ class TPZConservationLaw  : public TPZMaterial {
   
   int NStateVariables();
   
-  virtual void Print(ostream & out);
+  virtual void Print(std::ostream & out);
   
   char *Name() { return "TPZConservationLaw"; }
   

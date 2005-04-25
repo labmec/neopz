@@ -5,6 +5,7 @@
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include <math.h>
+using namespace std;
 
 
 TPZConsLawTest::TPZConsLawTest(int nummat, TPZVec<REAL> B,int artdiff,REAL delta_t,int dim,REAL delta,int test) : TPZConservationLaw(nummat,delta_t,dim), fXf(1,1,0.), fB(dim)  {

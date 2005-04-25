@@ -1,6 +1,7 @@
 #include "includes.h"
 #include "pzbndcond.h"
 
+using namespace std;
 static TPZCompMesh *Create3DExpMesh();
 static void Exact3DExp(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 static void ForcingFunction3DExp (TPZVec<REAL> &x,TPZVec<REAL> &sol);

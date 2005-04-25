@@ -3,6 +3,7 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzreal.h"
+using namespace std;
 
 REAL TPZDiffusionConsLaw::fGamma = 1.4;
 REAL TPZDiffusionConsLaw::fDelta = -1.0;

@@ -6,6 +6,8 @@
 #include "pztempmat.h"
 #include "pzmaterial.h"
 
+using namespace std;
+
 TPZPlacaOrthotropic::TPZPlacaOrthotropic(TPZGeoEl *gel,REAL zmin, REAL zmax ){ 
 
   fGeoEl = gel;

@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.17 2005-02-28 22:08:18 phil Exp $
+//$Id: pzconslaw.h,v 1.18 2005-04-25 02:52:50 phil Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -142,7 +142,7 @@ public:
    *
    * @param out [in]
    */
-  virtual void Print(ostream & out);
+  virtual void Print(std::ostream & out);
 
   /**
    * Returns the material name
@@ -275,7 +275,7 @@ inline void TPZConservationLaw2::SetCFL(REAL CFL)
 {
    //if(CFL > 1e3) CFL = 1e3;
    fCFL = CFL;
-   cout << "CFL:"<<CFL << endl;
+   std::cout << "CFL:"<<CFL << std::endl;
 }
 
 inline void TPZConservationLaw2::SetGamma(int gamma)

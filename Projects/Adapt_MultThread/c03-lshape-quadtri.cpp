@@ -12,6 +12,8 @@
 //#include "pzplaca.h"
 #include "pzmat2dlin.h"
 
+using namespace std;
+
 static TPZCompMesh *CreatePlanMesh();
 
 //*************************************

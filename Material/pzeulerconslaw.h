@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.31 2005-02-28 22:08:18 phil Exp $
+//$Id: pzeulerconslaw.h,v 1.32 2005-04-25 02:52:50 phil Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -111,7 +111,7 @@ public :
   /**
    * See declaration in base class
    */
-  virtual void Print(ostream & out);
+  virtual void Print(std::ostream & out);
 
   /**
    * See declaration in base class
@@ -640,7 +640,7 @@ inline void TPZEulerConsLaw2::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVe
   for(i=0;i<dim;i++)Ai[i].Redim(TPZEulerConsLaw2::NStateVariables(dim), TPZEulerConsLaw2::NStateVariables(dim));
 
   if(U[0] < REAL(1.e-6)) {
-    PZError << "TPZEulerConsLaw2::JacobFlux: Density negative "   << U[0] << endl;
+    PZError << "TPZEulerConsLaw2::JacobFlux: Density negative "   << U[0] << std::endl;
        TPZOutofRange obj;
        throw(obj);
   }
@@ -848,7 +848,7 @@ inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T>
 {
   if(fabs(val(U[0])) < 1.e-6) {
     PZError << "\nTPZEulerConsLaw2::Pressure> Density negative "
-         << U[0] << endl;
+         << U[0] << std::endl;
     TPZOutofRange obj;
     throw(obj);
 //    exit(-1);
@@ -874,13 +874,13 @@ inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T>
     T rho_velocity = ( U[1]*U[1] )/U[0];
     press = ((gamma-1.)*( U[2] - REAL(0.5) * rho_velocity ));
   } else {
-    cout << "\nTPZEulerConsLaw2::Pressure> Unknown case - returning zero\n";
+    std::cout << "\nTPZEulerConsLaw2::Pressure> Unknown case - returning zero\n";
     press = 0.0;
     return;
   }
   if(val(press) < 0){
     T temp = (gamma-1.)*U[nstate-1];
-    PZError << "TPZEulerConsLaw2::Pressure> Negative pressure: " << press << " (gama-1)*E = " << temp << endl;
+    PZError << "TPZEulerConsLaw2::Pressure> Negative pressure: " << press << " (gama-1)*E = " << temp << std::endl;
     TPZOutofRange obj;
     throw(obj);
   }

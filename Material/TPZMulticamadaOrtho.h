@@ -1,11 +1,10 @@
 // -*- c++ -*-
 
-// $Id: TPZMulticamadaOrtho.h,v 1.13 2004-02-11 13:30:23 tiago Exp $
+// $Id: TPZMulticamadaOrtho.h,v 1.14 2005-04-25 02:52:51 phil Exp $
 #ifndef MULTICAMADAORTH
 #define MULTICAMADAORTH
 
 #include <iostream>
-using namespace std;
 #include "pzvec.h"
 #include "pzstack.h"
 #include "TPZPlacaOrthotropic.h"
@@ -66,7 +65,7 @@ class TPZMulticamadaOrthotropic {
   void GenerateMesh();
   /**cria o conjunto de placas multicamada*/
   //  static int main();
-  void Print(ostream &out = cout);
+  void Print(std::ostream &out = std::cout);
   /*criando método para retornar a altura da multicamada*/
   REAL Height();
   /*criando método para retornar fPlacaOrth*/
@@ -88,9 +87,9 @@ class TPZMulticamadaOrthotropic {
    */
   void ComputeCenterForces();
 
-  void ComputeSolution(ostream &out = cout,int print = 0);
+  void ComputeSolution(std::ostream &out = std::cout,int print = 0);
 
-  void ComputeSolution(TPZMaterial *mat,ofstream &out,int numiter);
+  void ComputeSolution(TPZMaterial *mat,std::ofstream &out,int numiter);
 
   void SetMX(REAL MX) { 
     fMX[0] = MX;
@@ -149,10 +148,10 @@ class TPZMulticamadaOrthotropic {
 
   REAL CorrectFactor(){return fCorrect;}
 
-  void PrintTensors(ostream &out);
+  void PrintTensors(std::ostream &out);
 
-  void PrintTensors(ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout);
+  void PrintTensors(std::ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout);
 
-  void PrintCenterForces(ostream &out);
+  void PrintCenterForces(std::ostream &out);
 };
 #endif

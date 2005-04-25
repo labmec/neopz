@@ -149,7 +149,7 @@ virtual ~TPZSwelling();
   */
  int NStateVariables() { return 8;}
 
-virtual void Print(ostream & out);
+virtual void Print(std::ostream & out);
 
 char *Name() { return "TPZSwelling"; }
 
@@ -162,7 +162,7 @@ void SetComputationMode(int mode) {
       fComputationMode = mode;
     break;
     default:
-      cout << "ComputationMode illegal mode = " << mode << endl;
+      std::cout << "ComputationMode illegal mode = " << mode << std::endl;
   }
 }
 
@@ -172,7 +172,7 @@ void SetComputationMode(int mode) {
  */
 virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv ,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
 			TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef){
-  cout << "TPZSwelling::Contribute not implemented\n";
+  std::cout << "TPZSwelling::Contribute not implemented\n";
 }
  
  virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
@@ -216,7 +216,7 @@ virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv ,TPZVec<REAL> &sol,TP
  virtual void ContributeBCEnergy(TPZVec<REAL> & x,
 				 TPZVec<FADFADREAL> & sol, FADFADREAL &U,
 				 REAL weight, TPZBndCond &bc) {
-   cout << "TPZSwelling::ContributeBCEnergy is not implemented\n";
+   std::cout << "TPZSwelling::ContributeBCEnergy is not implemented\n";
  }
 
 #endif

@@ -9,6 +9,7 @@
 //#include "pzmatrix.h"
 
 #include <math.h>
+using namespace std;
 
 void TPZMat1dLin::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
 			      TPZVec<REAL> &sol, TPZFMatrix &dsol,

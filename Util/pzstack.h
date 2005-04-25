@@ -2,7 +2,7 @@
  * @file pzstack.h
  * @brief A simple stack.
  */
-// $Id: pzstack.h,v 1.3 2004-11-24 18:01:47 cesar Exp $
+// $Id: pzstack.h,v 1.4 2005-04-25 02:55:51 phil Exp $
 
 #ifndef PZSTACK_H
 #define PZSTACK_H
@@ -12,7 +12,6 @@
 #include "pzerror.h"
 #include "pzmanvector.h"
 
-using namespace std;
 
 /**
  * @ingroup util
@@ -89,7 +88,7 @@ T TPZStack<T, NumExtAlloc>::Pop() {
    this->fNElements--;
    if(this->fNElements <0){
       this->fNElements = 0;
-      PZError << "TPZStack popping beyond the stack object" << endl;
+      PZError << "TPZStack popping beyond the stack object" << std::endl;
       PZError.flush();
       T temp;
       return temp;
@@ -100,7 +99,7 @@ T TPZStack<T, NumExtAlloc>::Pop() {
 template <class T, int NumExtAlloc >
 T & TPZStack<T, NumExtAlloc>::Peek() const {
    if(this->NElements() <= 0) {
-      PZError << "TPZStack peek beyond the stack object" << endl;
+      PZError << "TPZStack peek beyond the stack object" << std::endl;
       PZError.flush();
       exit(-1);
    }

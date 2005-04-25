@@ -5,6 +5,7 @@
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include <math.h>
+using namespace std;
 
 TPZMaterialTest::TPZMaterialTest(int nummat, REAL alfa, REAL x0) : TPZMaterial(nummat), fXf(1,1,0.) {
 

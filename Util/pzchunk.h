@@ -3,7 +3,7 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzchunk.h,v 1.6 2004-04-04 05:46:54 phil Exp $
+// $Id: pzchunk.h,v 1.7 2005-04-25 02:55:51 phil Exp $
 
 #ifndef PZCHUNK_H
 #define PZCHUNK_H
@@ -11,7 +11,6 @@
 #include "pzmanvector.h"
 #include "pzerror.h"
 
-using namespace std;
 
 /** Default number of elements which will be allocated in the chunk vector. */
 const int DEFAULTNUMBEROFCHUNKS = 100;
@@ -130,7 +129,7 @@ template< class T ,int EXP>
 void TPZChunkVector<T,EXP>::Resize(const int newsize) {
 #ifndef NODEBUG
    if(newsize<0) {
-      PZError << "TPZChunkVector::Resize. Bad parameter newsize." << endl;
+      PZError << "TPZChunkVector::Resize. Bad parameter newsize." << std::endl;
       PZError.flush();
       return;
    }
@@ -192,7 +191,7 @@ inline T &TPZChunkVector<T,EXP>::operator[](const int nelem) const {
    if(nelem<0 || nelem >= NElements()) {
       PZError << "TPZChunkVector::operator[]. "
 	      << "Bad parameter nelem." << nelem << " NElements "
-	      << NElements() << endl;
+	      << NElements() << std::endl;
       PZError.flush();
       exit (-1);
       return fVec[0][0];

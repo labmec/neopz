@@ -6,7 +6,6 @@
 
 #include <fstream>
 
-using namespace std;
 
 #include "pztempmat.h"
 
@@ -40,7 +39,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 
    }
 
-   ofstream log("conv.log");
+   std::ofstream log("conv.log");
 
    int icase;
 
@@ -106,28 +105,28 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 
       }
 
-      cout << "icase = " << icase << endl;
+      std::cout << "icase = " << icase << std::endl;
 
-      log << "icase = " << icase << endl;
+      log << "icase = " << icase << std::endl;
 
       for(interval = 2; interval<10; interval++) {
 
 	if(fabs(difnorm[interval]) < REAL(1.e-12) || fabs(difnorm[interval-1]) <REAL(1.e-12)) {
 
-	   cout << "residual too small\n";
+	   std::cout << "residual too small\n";
 
            log << "residual too small\n";
 
 	   break;
 
 	 }
-         cout << (log10(difnorm[interval])-log10(difnorm[interval-1]))/
+         std::cout << (log10(difnorm[interval])-log10(difnorm[interval-1]))/
 
-                 (log10((float)interval)-log10(interval-1.0)) << endl;
+                 (log10((float)interval)-log10(interval-1.0)) << std::endl;
 
          log << (log10(difnorm[interval])-log10(difnorm[interval-1]))/
 
-                (log10((float)interval)-log10(interval-1.0)) << endl;
+                (log10((float)interval)-log10(interval-1.0)) << std::endl;
 
       }
 

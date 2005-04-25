@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <numeric>
 
+using namespace std;
 
 REAL TPZNumeric::Norma(const TPZVec<REAL> &vetor){
   const int size = vetor.NElements();

@@ -28,6 +28,8 @@
 
 #include "pzonedref.h"
 
+using namespace std;
+
 class TPZTransfer;
 static ofstream deduce("deduce.txt");
 

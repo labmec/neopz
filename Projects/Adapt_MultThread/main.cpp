@@ -14,6 +14,7 @@
 #include "c11-Piram-Tetra.cpp"
 #include "c15-Exp-Hexa.cpp"
 
+using namespace std;
 #define HUGE_DEBUG
 
 int gDebug = 0;

@@ -102,7 +102,7 @@ public:
 	/**
 	 * Print object data
 	 */
-	void Print (ostream & out);
+	void Print (std::ostream & out);
 
 	/**
 	 * Return the index of an element

@@ -3,7 +3,6 @@
 
 #include <iostream>
 
-using namespace std;
 
 #include "pzfmatrix.h"
 #include "pzmaterial.h"
@@ -29,7 +28,7 @@ class TPZMat1dLin : public TPZMaterial{
 
   int Dimension() { return 1;}
 
-  void Print(ostream & out);
+  void Print(std::ostream & out);
 
   void SetMaterial(TPZFMatrix &xkin,TPZFMatrix &xcin,TPZFMatrix &xbin,TPZFMatrix &xfin){
     fXk = xkin;

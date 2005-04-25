@@ -35,6 +35,8 @@
 #include "pzsave.h"
 #include "pzmeshid.h"
 
+using namespace std;
+
 template class TPZVec<TPZCompCloneMesh::TPZRefPattern>;
 
 static ofstream gDeduce("deduce.txt");

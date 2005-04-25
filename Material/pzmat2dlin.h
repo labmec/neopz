@@ -2,7 +2,6 @@
 #define MAT2DLINHPP
 
 #include <iostream>
-using namespace std;
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
 //#include "pzreal.h"
@@ -33,7 +32,7 @@ class TPZMat2dLin : public TPZMaterial{
 
   int Dimension() { return 2; }
 
-  void Print(ostream & out = cout);
+  void Print(std::ostream & out = std::cout);
 
   void SetMaterial(TPZFMatrix &xkin,TPZFMatrix &xcin,TPZFMatrix &xfin){
 	  int r = xkin.Rows();

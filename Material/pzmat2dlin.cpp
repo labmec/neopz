@@ -10,6 +10,7 @@
 #include "pzstream.h"
 #include "pzmaterialid.h"
 
+using namespace std;
 
 void TPZMat2dLin::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &,REAL weight,
 			     TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {

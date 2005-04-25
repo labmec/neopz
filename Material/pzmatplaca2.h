@@ -36,7 +36,7 @@ class TPZMatPlaca2 : public TPZMaterial{
 
   int Dimension() { return 2; }
 
-  void Print(ostream & out);
+  void Print(std::ostream & out);
 
   virtual char *Name() { return "TPZMatPlaca2"; }
 
@@ -96,7 +96,7 @@ class TPZPlaca2 : public TPZMaterial{
 
   int Dimension() { return 2; }
 
-  void Print(ostream & out);
+  void Print(std::ostream & out);
 
   virtual char *Name() { return "TPZPlaca2"; }
 

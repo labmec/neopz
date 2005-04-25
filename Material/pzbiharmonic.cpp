@@ -1,4 +1,4 @@
-//$Id: pzbiharmonic.cpp,v 1.7 2005-03-08 13:07:45 paulo Exp $
+//$Id: pzbiharmonic.cpp,v 1.8 2005-04-25 02:52:49 phil Exp $
 
 #include "pzbiharmonic.h"
 #include "pzelmat.h"
@@ -16,6 +16,7 @@ REAL TPZBiharmonic::gL_alpha = 6.0; //		  [0, 6]
 REAL TPZBiharmonic::gM_alpha = 3.0; //            IGUAL
 REAL TPZBiharmonic::gL_betta = 4.0; //            [-2, 4]
 REAL TPZBiharmonic::gM_betta = 1.0; //            IGUAL
+using namespace std;
 
 
 TPZBiharmonic::TPZBiharmonic(int nummat, REAL f) : TPZDiscontinuousGalerkin(nummat),

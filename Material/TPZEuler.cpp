@@ -3,6 +3,7 @@
 #include "pzerror.h"
 #include "pzbndcond.h"
 
+using namespace std;
 TEulerDiffusivity TPZEuler::gEul;
 
 void TPZEuler::SetData(istream &data) {

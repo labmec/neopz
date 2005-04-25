@@ -220,7 +220,7 @@ public:
   void LoadSolution(TPZFMatrix &sol);
 
 
-  void Print(ostream &out);
+  void Print(std::ostream &out);
   /** Verifies if the connects orders is equal to the element order */
   void CheckOrders(TPZCompMesh *mesh);
 };

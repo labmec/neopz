@@ -2,7 +2,7 @@
  * @file pzavlmap.h
  * @brief Balanced AVL tree.
  */
-// $Id: pzavlmap.h,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
+// $Id: pzavlmap.h,v 1.2 2005-04-25 02:55:51 phil Exp $
 
 #ifndef PZAVLMAP_H
 #define PZAVLMAP_H
@@ -10,7 +10,6 @@
 #include "pzpix.h"
 #include "pzerror.h"
 
-using namespace std;
 
 // Constants & inlines for maintaining balance & thread status in tree nodes.
 

@@ -6,6 +6,8 @@
 #include "pzerror.h"
 #include <math.h>
 
+using namespace std;
+
 TPZMatHybrid::TPZMatHybrid(int nummat) : TPZMaterial(nummat), fXf(1,1,0.) {
 
    fNumMat = nummat;//material id

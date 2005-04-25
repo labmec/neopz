@@ -14,6 +14,7 @@
 //#include "pzmattest3d.h"
 //#include "pzmatplaca2.h"
 
+using namespace std;
 static TPZCompMesh * CreateSillyMesh();
 
 //*************************************

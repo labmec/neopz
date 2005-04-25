@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pznonlinbiharmonic.h,v 1.2 2005-03-08 13:10:47 paulo Exp $
+//$Id: pznonlinbiharmonic.h,v 1.3 2005-04-25 02:52:50 phil Exp $
 
 #ifndef TPZNONLINBIHARMONICHPP
 #define TPZNONLINBIHARMONICHPP
@@ -49,7 +49,7 @@ public :
     return 1;
   };
   
-  virtual void Print(ostream & out);
+  virtual void Print(std::ostream & out);
   
   char *Name() { return "TPZBiharmonic"; }
   

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.12 2005-02-28 22:08:18 phil Exp $
+//$Id: pzbndcond.h,v 1.13 2005-04-25 02:52:50 phil Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -10,7 +10,6 @@
 
 #include <iostream>
 
-using namespace std;
 
 #include "pzreal.h"
 #include "pzdiscgal.h"
@@ -92,7 +91,7 @@ public :
     flux.Fill(0.);
   }
 
-  void Print(ostream & out = cout) {
+  void Print(std::ostream & out = std::cout) {
     out << " Boundary condition number = " << Id() << "\n";
     out << " boundary condition type = " << fType << "\n";
     out << " val1 = \n"; fBCVal1.Print("fBCVal1",out);

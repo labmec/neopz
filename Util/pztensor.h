@@ -3,7 +3,6 @@
 #include "TPZMetodos.h"
 //#include "/home/pos/rgdamas/pzrepository/matrix/pzmatrix.h"
 
-using namespace std;
 
 class TPZTensor: public TPZMetodos{
  public:

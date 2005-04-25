@@ -3,7 +3,7 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzadmchunk.h,v 1.5 2004-11-24 17:58:30 cesar Exp $
+// $Id: pzadmchunk.h,v 1.6 2005-04-25 02:55:51 phil Exp $
 
 #ifndef PZADMCHUNK_H
 #define PZADMCHUNK_H
@@ -181,7 +181,7 @@ template< class T,int EXP >
 void TPZAdmChunkVector<T,EXP>::SetFree(int index) {
 #ifndef NODEBUG
    if(index<0) {
-      PZError << "TPZAdmChunkVector::SetFree. Bad parameter index." << endl;
+      PZError << "TPZAdmChunkVector::SetFree. Bad parameter index." << std::endl;
       PZError.flush();
       return;
    }
@@ -203,7 +203,7 @@ void TPZAdmChunkVector<T,EXP>::CompactDataStructure(int type) {
 #ifndef NODEBUG
    if(type<0) {
       PZError << "TPZAdmChunkVector::CompactDataStructure. Bad parameter type."
-	      << endl;
+	      << std::endl;
       PZError.flush();
 
       return;
@@ -262,7 +262,7 @@ template< class T, int EXP >
 void TPZAdmChunkVector<T,EXP>::Resize(const int newsize) {
 #ifndef NODEBUG
    if(newsize<0) {
-      PZError << "TPZAdmChunkVector::Resize. Bad parameter newsize." << endl;
+      PZError << "TPZAdmChunkVector::Resize. Bad parameter newsize." << std::endl;
       PZError.flush();
       return;
    }

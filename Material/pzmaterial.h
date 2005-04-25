@@ -20,7 +20,6 @@
 //#include "fadType.h"
 //#endif
 
-using namespace std;
 
 class TPZBndCond;
 class TPZMaterial;
@@ -75,7 +74,7 @@ class  TPZMaterial : public TPZSaveable
       virtual int NFluxes() {return 0;}
 
       /** print out the data associated with the material*/
-      virtual void Print(ostream &out = std::cout);
+      virtual void Print(std::ostream &out = std::cout);
 
       /**returns the variable index associated with the name*/
       virtual int VariableIndex(char *name);
@@ -152,8 +151,8 @@ class  TPZMaterial : public TPZSaveable
 			  TPZFMatrix &axes, TPZVec<REAL> &flux,
 			  TPZVec<REAL> &uexact, TPZFMatrix &duexact,
 			  TPZVec<REAL> &val){
-	PZError << __PRETTY_FUNCTION__ << endl;
-	PZError << "Method not implemented! Error comparison not available. Please, implement it." << endl;
+	PZError << __PRETTY_FUNCTION__ << std::endl;
+	PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
       }
 
       /**
@@ -165,7 +164,7 @@ class  TPZMaterial : public TPZSaveable
       virtual TPZMaterial *NewMaterial();
 
       /**Read data of the material from a istream (file data)*/
-      virtual void SetData(istream &data);
+      virtual void SetData(std::istream &data);
 
       /**Compute contribution to the stiffness matrix and right hand
        * side at an integration point*/
@@ -219,7 +218,7 @@ inline void TPZMaterial::ContributeOverInterface(
    TPZFMatrix &/*phileft*/, TPZFMatrix &/*phiright*/, TPZVec<REAL> &/*normal*/,
    TPZFMatrix &/*ek*/, TPZFMatrix &/*ef*/)
 {
-   cout << "TPZMaterial::ContributeOverInterface is called.\n";
+   std::cout << "TPZMaterial::ContributeOverInterface is called.\n";
 }
 
 

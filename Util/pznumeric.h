@@ -23,7 +23,6 @@
   *@author Renato Gomes Damas
   */
 #include "pzvec.h"
-using namespace std;
 
 class TPZNumeric {
 

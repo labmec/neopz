@@ -11,6 +11,8 @@
 #include <numeric>
 #include <assert.h>
 
+using namespace std;
+
 TPZLine::TPZLine():fPoint(3, 0.0), fDirection(3,1.0){
   fTolerance = 0.0001;
 }

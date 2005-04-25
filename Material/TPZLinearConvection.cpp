@@ -4,6 +4,8 @@
 #include "pzbndcond.h"
 #include "pzerror.h"
 
+using namespace std;
+
 void TPZLinearConvection::Contribute(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix &dsol, REAL weight,
   			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
     TPZFMatrix daxesdksi(3,3,0.);

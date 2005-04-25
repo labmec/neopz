@@ -9,7 +9,7 @@
  *
  * @author Cantao!
  */
-// $Id: TPZTimer.h,v 1.2 2005-03-29 18:28:53 cesar Exp $
+// $Id: TPZTimer.h,v 1.3 2005-04-25 02:55:52 phil Exp $
 
 #ifndef TPZTIMER_H
 #define TPZTIMER_H
@@ -18,7 +18,6 @@
 #include <vector>
 #include <iostream>
 
-using namespace std;
 
 //--| resuse.{h,c} from GNU time |----------------------------------------------
 
@@ -99,16 +98,16 @@ class TPZTimer
        *  timer. This name will be printed when the extraction
        *  operator is called.
        */
-      TPZTimer( string pn );
+      TPZTimer( std::string pn );
 
       /// Destructor.
       ~TPZTimer();
 
       /// Gets the process name (for reporting purposes).
-      string& processName();
+      std::string& processName();
 
       /// Gets the process name (for reporting purposes).
-      const string& processName() const;
+      const std::string& processName() const;
 
       /// Turns the timer on.
       void start();
@@ -123,7 +122,7 @@ class TPZTimer
       double seconds() const;
 
       /// Prints the time nicely formated.
-      friend ostream& operator<<( ostream& Out, const TPZTimer& t );
+      friend std::ostream& operator<<( std::ostream& Out, const TPZTimer& t );
 
    private:
       PZResourceUsage resources;
@@ -132,7 +131,7 @@ class TPZTimer
       double AccumSec;
 
       /// Name of the process being timed.
-      string ProcessName;
+      std::string ProcessName;
 };
 
 //--| TPZMultiTimer |-----------------------------------------------------------
@@ -163,10 +162,10 @@ class TPZMultiTimer
       const TPZTimer& getTimer( int i ) const;
 
       /// Gets the process name (for reporting purposes).
-      string& processName( int i );
+      std::string& processName( int i );
 
       /// Gets the process name (for reporting purposes).
-      const string& processName( int i ) const;
+      const std::string& processName( int i ) const;
 
       /// Turns the timer on.
       void start( int i );
@@ -190,11 +189,11 @@ class TPZMultiTimer
       double seconds( int i ) const;
 
       /// Prints the time nicely formated.
-      friend ostream& operator<<( ostream& Out, const TPZMultiTimer& t );
+      friend std::ostream& operator<<( std::ostream& Out, const TPZMultiTimer& t );
 
    private:
       /// Vector of timers.
-      vector< TPZTimer > timers;
+      std::vector< TPZTimer > timers;
 };
 
 //--| IMPLEMENTATION :: TPZTimer |----------------------------------------------
@@ -205,7 +204,7 @@ inline TPZTimer::TPZTimer() : AccumSec( 0.0 ), ProcessName( "" ) {}
 
 // Default constructor.
 
-inline TPZTimer::TPZTimer( string pn ) : AccumSec( 0.0 ), ProcessName( pn ) {}
+inline TPZTimer::TPZTimer( std::string pn ) : AccumSec( 0.0 ), ProcessName( pn ) {}
 
 // Destructor.
 
@@ -213,14 +212,14 @@ inline TPZTimer::~TPZTimer() {}
 
 // Gets the process name (for reporting purposes).
 
-inline string& TPZTimer::processName()
+inline std::string& TPZTimer::processName()
 {
    return ProcessName;
 }
 
 // Gets the process name (for reporting purposes).
 
-inline const string& TPZTimer::processName() const
+inline const std::string& TPZTimer::processName() const
 {
    return ProcessName;
 }
@@ -245,7 +244,7 @@ inline double TPZTimer::seconds() const
 
 inline TPZMultiTimer::TPZMultiTimer( int nT ) : timers()
 {
-   timers = vector< TPZTimer >( nT );
+   timers = std::vector< TPZTimer >( nT );
 }
 
 // Destructor.
@@ -278,14 +277,14 @@ inline const TPZTimer& TPZMultiTimer::getTimer( int i ) const
 
 // Gets the process name (for reporting purposes).
 
-inline string& TPZMultiTimer::processName( int i )
+inline std::string& TPZMultiTimer::processName( int i )
 {
    return timers[ i ].processName();
 }
 
 // Gets the process name (for reporting purposes).
 
-inline const string& TPZMultiTimer::processName( int i ) const
+inline const std::string& TPZMultiTimer::processName( int i ) const
 {
    return timers[ i ].processName();
 }

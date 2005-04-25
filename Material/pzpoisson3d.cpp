@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.12 2005-02-04 11:34:18 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.13 2005-04-25 02:52:50 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -10,6 +10,7 @@
 #include "pzerror.h"
 #include <math.h>
 
+using namespace std;
 REAL TPZMatPoisson3d::gAlfa = 0.5;
 
 TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim) {

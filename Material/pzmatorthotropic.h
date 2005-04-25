@@ -32,7 +32,7 @@ int Dimension() { return 3;}
 
 int NStateVariables();
 
-virtual void Print(ostream & out);
+virtual void Print(std::ostream & out);
 
 char *Name() { return "TPZMatOrthotropic"; }
 

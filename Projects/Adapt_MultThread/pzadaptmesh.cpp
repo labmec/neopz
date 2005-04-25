@@ -21,6 +21,8 @@
 #include <pthread.h>
 #include <signal.h>
 
+using namespace std;
+
 int TPZAdaptMesh::fThreads_in_use = 0;
 int TPZAdaptMesh::fNClones_to_Analyse = 0;
 pthread_cond_t TPZAdaptMesh::fSignal_free = PTHREAD_COND_INITIALIZER;

@@ -7,6 +7,7 @@
 #include "pzvec.h"
 #include "pzerror.h"
 
+using namespace std;
 
 TPZPlaca::TPZPlaca(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
                    REAL ni1 , REAL ni2 , REAL G12 , REAL G13 ,

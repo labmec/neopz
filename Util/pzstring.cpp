@@ -1,9 +1,10 @@
 /** @file pzstring.cc */
-// $Id: pzstring.cpp,v 1.5 2004-01-14 12:21:01 rgdamas Exp $
+// $Id: pzstring.cpp,v 1.6 2005-04-25 02:55:52 phil Exp $
 
 #include "pzstring.h"
 
 #include <stdio.h>
+using namespace std;
 
 TPZString::TPZString()
 {

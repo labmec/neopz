@@ -7,6 +7,7 @@
 #include "pzreal.h"
 #include "pzadmchunk.h"
 
+using namespace std;
 REAL TPZMaterial::gBigNumber = 1.e12;
 
 TPZMaterial::TPZMaterial(int id) {

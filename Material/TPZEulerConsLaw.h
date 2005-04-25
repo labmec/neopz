@@ -77,7 +77,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
 
   int NStateVariables();
   
-  virtual void Print(ostream & out);
+  virtual void Print(std::ostream & out);
   
   char *Name() { return "TPZEulerConsLaw"; }
   

@@ -27,7 +27,6 @@
 Verifica também se determinado elemento pertence ao plano
   *@author Renato Gomes Damas
   */
-using namespace std;
 
 class TPZPlane {
 

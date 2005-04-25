@@ -8,6 +8,7 @@
 #include "pzreal.h"
 #include <math.h>
 
+using namespace std;
 TPZEulerConsLaw::~TPZEulerConsLaw(){
 
 }

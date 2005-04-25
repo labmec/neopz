@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.13 2005-02-04 17:54:48 paulo Exp $
+//$Id: pzpoisson3d.h,v 1.14 2005-04-25 02:52:50 phil Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -94,7 +94,7 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
     fXf = flux;
   }
   
-  virtual void Print(ostream & out);
+  virtual void Print(std::ostream & out);
   
   char *Name() { return "TPZMatPoisson3d"; }
   

@@ -12,6 +12,8 @@
 #include "pzskylstrmatrix.h"
 #include "pzdxmesh.h"
 
+using namespace std;
+
 TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int nelx, int nely, REAL Correct) : fDirx(3,0.), fDiry(3,0.) {
 
   fCorrect = Correct;

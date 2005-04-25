@@ -22,13 +22,21 @@ This class generates all permutations of n values
 class TPZPermutation{
 public:
     TPZPermutation(int n);
+    
+    TPZPermutation(const TPZPermutation &copy);
 
     ~TPZPermutation();
+    
+    TPZPermutation &operator=(const TPZPermutation &copy);
     
     /// Applies the current permutation on the vector in and produces the vector out
     void Permute(const TPZVec<int> &in, TPZVec<int> &out) const;
     
     void operator++();
+    
+    void operator++(int) { operator++();}
+    
+    bool IsFirst();
 
 protected:
   /// Variable which represents a counter for the permutations

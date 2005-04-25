@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: TPZPlacaOrthotropic.h,v 1.7 2003-11-12 19:41:02 cedric Exp $
+// $Id: TPZPlacaOrthotropic.h,v 1.8 2005-04-25 02:52:51 phil Exp $
 #ifndef PLACAORTHOTROPIC
 #define PLACAORTHOTROPIC
 #include "pzvec.h"
@@ -64,9 +64,9 @@ class TPZPlacaOrthotropic {
    */
   void GradTensor(TPZVec<REAL> &graddir, TPZVec<REAL> &ksi,  TPZFMatrix &gradtensor);
 
-  void PrintTensors(ostream &out);
+  void PrintTensors(std::ostream &out);
 
-  void PrintTensors(ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout);
+  void PrintTensors(std::ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout);
   
   REAL Height(){return fH;}
 

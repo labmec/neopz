@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzbctension.h,v 1.7 2005-02-28 22:08:18 phil Exp $
+// $Id: pzbctension.h,v 1.8 2005-04-25 02:52:49 phil Exp $
 
 #ifndef BCTENSIONHPP
 #define BCTENSIONHPP
@@ -8,7 +8,6 @@
 #include "TPZPlacaOrthotropic.h"
 #include "TPZMulticamadaOrtho.h"
 
-using namespace std;
 
 template <class T, int N>
 class TPZManVector;

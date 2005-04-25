@@ -17,6 +17,16 @@ TPZPermutation::TPZPermutation(int n) : fCounter(n,0), fOrder(n,-1)
   for(i=0; i<n; i++) fOrder[i] = i;
 }
 
+TPZPermutation::TPZPermutation(const TPZPermutation &copy) : fCounter(copy.fCounter), fOrder(copy.fOrder)
+{
+}
+
+TPZPermutation &TPZPermutation::operator=(const TPZPermutation &copy)
+{
+  fCounter = copy.fCounter;
+  fOrder = copy.fOrder;
+  return *this;
+}
 
 TPZPermutation::~TPZPermutation()
 {
@@ -49,3 +59,10 @@ void TPZPermutation::operator++()
   }
 }
 
+bool TPZPermutation::IsFirst()
+{
+  int nel = fCounter.NElements();
+  int in;
+  for(in=0; in<nel; in++) if(fCounter[in] != 0) return false;
+  return true;
+}

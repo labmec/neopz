@@ -18,7 +18,6 @@
 #include "pzreal.h"
 #include <cmath>
 
-using namespace std;
 /** @author Renato Gomes Damas */
 class TPZLine {
 public:
