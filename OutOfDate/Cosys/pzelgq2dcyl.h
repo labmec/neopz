@@ -31,7 +31,7 @@ public:
   void X(TPZVec<REAL> & loc,TPZVec<REAL> &result);
   void NormalVector(int side,TPZVec<REAL> &param,TPZVec<REAL> &normal,TPZFMatrix &axes,TPZFMatrix &jac1d);
   void VerifyTheta();
-  void Print(ostream & out);
+  void Print(std::ostream & out);
 };
 
 #endif

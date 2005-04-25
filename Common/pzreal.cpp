@@ -38,7 +38,6 @@ void TPZCounter::Print(std::ostream &out) const
       out << names[i] << " " << fCount[i] << endl;
     }
 }
-
 std::ostream &operator<<(std::ostream &out,const TPZCounter &count)
 {
   int i;
@@ -48,6 +47,7 @@ std::ostream &operator<<(std::ostream &out,const TPZCounter &count)
     }
   return out;
 }
+
 void DebugStop()
 {
   std::cout << "Your chance to put a breakpoint at " << __FILE__ << __FUNCTION__ << "\n";

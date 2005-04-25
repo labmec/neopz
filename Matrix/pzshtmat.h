@@ -5,7 +5,6 @@
 #define SHTMATRIXHPP
 
 #include <iostream>
-using namespace std;
 
 /// generic class which holds a matrix of objects
 template <class TObj>
@@ -31,7 +30,7 @@ class TPZGenMatrix {
 
   ~TPZGenMatrix();
 
-  void Print (const char *mess,ostream & out = cout) const;
+  void Print (const char *mess,std::ostream & out = std::cout) const;
 
   int Rows() const {return fRows;}
 

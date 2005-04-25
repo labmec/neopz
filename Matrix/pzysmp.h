@@ -80,7 +80,7 @@ public:
   virtual void SetData( int *IA, int *JA, REAL *A );
   // Pass the data to the class.
 
-  virtual void Print(const char *title, ostream &out = cout , const MatrixOutputFormat form = EFormatted) const;
+  virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const;
   // Print the matrix along with a identification title
 
   /**

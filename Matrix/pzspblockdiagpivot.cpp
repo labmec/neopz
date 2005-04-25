@@ -11,6 +11,7 @@
 //
 #include "pzspblockdiagpivot.h"
 #include "pzfmatrix.h" 
+using namespace std;
 
 TPZSpBlockDiagPivot::TPZSpBlockDiagPivot()
  : TPZSparseBlockDiagonal(), fPivotIndices()

@@ -22,6 +22,7 @@
 
 #include "pzstencil.h"
 #include "pzfmatrix.h"
+using namespace std;
 
 // ****************************************************************************
 // 

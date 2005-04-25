@@ -22,7 +22,6 @@ extern "C"{
 #include <stdio.h>
 #include <fstream>
 
-using namespace std;
 
 #include <pzmatrix.h>
 #include <pzstack.h>
@@ -141,8 +140,8 @@ public:
      /**
       * It prints TPZFront data 
       */
-     void Print(const char *name, ostream& out=cout);
-     void PrintGlobal(const char *name, ostream& out = cout);
+     void Print(const char *name, std::ostream& out=std::cout);
+     void PrintGlobal(const char *name, std::ostream& out = std::cout);
 
      /**Returns decomposition type*/
      DecomposeType GetDecomposeType() const;

@@ -52,7 +52,7 @@ public:
   /**
    * Prints graph
    */   
-  void Print(TPZVec<int> &grapho, TPZVec<int> &graphoindex, const char *name = 0, ostream &out = cout);
+  void Print(TPZVec<int> &grapho, TPZVec<int> &graphoindex, const char *name = 0, std::ostream &out = std::cout);
 
 protected:
   /**

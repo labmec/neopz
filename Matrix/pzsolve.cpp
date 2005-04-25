@@ -1,6 +1,7 @@
 #include "pzsolve.h"
 
 #include <stdlib.h>
+using namespace std;
 
   /**
      Destructor

@@ -3,9 +3,8 @@
 
 #include <iostream>
 
-using namespace std;
 
-#define TPZostream ostream
+#define TPZostream std::ostream
 
 #endif
 

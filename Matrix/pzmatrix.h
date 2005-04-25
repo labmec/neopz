@@ -184,13 +184,13 @@ public:
 
   //@{
   /**Input operation*/
-  virtual void Input(istream & in = cin );
+  virtual void Input(std::istream & in = std::cin );
 
   /**Input operation*/
-  friend istream & operator>>(istream& in,TPZMatrix & A);
+  friend std::istream & operator>>(std::istream& in,TPZMatrix & A);
 
   /** It prints the matrix data in a MatrixFormat Rows X Cols */
-  virtual void Print(const char *name = 0, ostream &out = cout ,const MatrixOutputFormat form = EFormatted) const;
+  virtual void Print(const char *name = 0, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
 
   /**Returns number of rows */
   int Rows() const;
@@ -228,7 +228,7 @@ public:
 
   /** Zeroes the matrix */
   virtual int Zero(){
-    cout << "WARNING! TPZMatrix::Zero is called\n";
+    std::cout << "WARNING! TPZMatrix::Zero is called\n";
     return 0; }
 
   //@}
@@ -321,7 +321,7 @@ public:
    */
    virtual void UpdateFrom(TPZMatrix */* mat*/)
    {
-     cout << "TPZMatrix::UdateFrom is not implemented\n";
+     std::cout << "TPZMatrix::UdateFrom is not implemented\n";
    }
   //@{
 
@@ -632,7 +632,7 @@ inline  TPZMatrix (const int row,const int col )
 };
 
 
-ostream & operator<<(ostream& out, const TPZMatrix & A);
+std::ostream & operator<<(std::ostream& out, const TPZMatrix & A);
 
 /******** Inline ********/
 
@@ -694,7 +694,7 @@ inline REAL &TPZMatrix::operator()(const int row, const int col) {
 
 inline REAL &TPZMatrix::s(const int row, const int col) {
          // verificando se o elemento a inserir esta dentro da matriz
-	cout << "TPZMatrix::s not implemented\n";
+	std::cout << "TPZMatrix::s not implemented\n";
 	return gZero;
 }
 

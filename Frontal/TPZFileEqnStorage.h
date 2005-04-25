@@ -62,7 +62,7 @@ public:
      */
     void Print(
           const char *name //!File name to print to
-          , ostream& out //!ofstream object name
+          , std::ostream& out //!ofstream object name
           ); 
     /** Resets data */
     void Reset();

@@ -16,6 +16,7 @@
 
 #include "pzmatrix.h"
 
+using namespace std;
 class TPZFMatrix;
 
 /**

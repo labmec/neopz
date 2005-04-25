@@ -16,6 +16,8 @@ void cblas_dcopy(const int N, const double *X, const int incX,
                  double *Y, const int incY);
 #endif
 
+using namespace std;
+
 DecomposeType TPZFrontNonSym::GetDecomposeType() const{
 	return fDecomposeType;
 }

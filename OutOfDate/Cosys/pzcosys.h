@@ -71,7 +71,7 @@ virtual  ~TPZCosys();
    * Print system coordinate data to especified file   "out " 
    * @param out device to print
    */
-  void Print(ostream& out = cout);
+  void Print(std::ostream& out = std::cout);
 
   /**
    * Return in the parameter norm the normal vector to the vectors vec1 and vec2 

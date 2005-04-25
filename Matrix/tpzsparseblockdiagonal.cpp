@@ -11,6 +11,7 @@
 //
 #include "tpzsparseblockdiagonal.h"
 #include "pzfmatrix.h"
+using namespace std;
 
 TPZSparseBlockDiagonal::TPZSparseBlockDiagonal()
 {
@@ -156,7 +157,7 @@ REAL& TPZSparseBlockDiagonal::s(const int row, const int col)
   return fStorage[fBlockPos[rblock]+pos];
 }
 
-void TPZSparseBlockDiagonal::Print(char* message, ostream& out)
+void TPZSparseBlockDiagonal::Print(char* message, std::ostream& out)
 {
     TPZBlockDiagonal::Print(message, out);
     out << "Equations for each block " << endl;

@@ -2,7 +2,6 @@
 #define TPZTEMPFMATRIX
 
 #include <iostream>
-using namespace std;
 #include "pzfmatrix.h"
 #include "pzreal.h"
 

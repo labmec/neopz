@@ -1,5 +1,6 @@
 #include "pzelgq2dcyl.h"
 #include "pzgmesh.h"
+using namespace std;
 
 const REAL PI=3.1415926536;
  /**Constructors. Parameters: id - element id, nodeindexes - vector containing node indexes,

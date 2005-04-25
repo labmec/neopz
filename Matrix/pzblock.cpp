@@ -17,6 +17,7 @@
 #include "pzmatrixid.h"
 #include "pzstream.h"
 
+using namespace std;
 REAL TPZBlock::gZero = 0;//Cedric
 
 

@@ -2,7 +2,7 @@
 #define PZERRORH
 
 #include <iostream>
-#define PZError cout
+#define PZError std::cout
 
 void DebugStop();
 

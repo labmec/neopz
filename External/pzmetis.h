@@ -5,7 +5,6 @@
 
 #include "pzrenumbering.h"
 #include <iostream>
-using namespace std;
 
 
 class TPZMetis : public TPZRenumbering {
@@ -39,8 +38,8 @@ public:
 scheme of the metis package*/
   TPZMetis(int NElements, int NNodes);
   virtual ~TPZMetis() {}
-  void Print(ostream &out);
-  void Print(ostream &out,char * title);
+  void Print(std::ostream &out);
+  void Print(std::ostream &out,char * title);
 };
 
 #endif //TPZMETIS_H

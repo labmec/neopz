@@ -18,7 +18,6 @@
 #ifndef TPZEQNARRAY_H
 #define TPZEQNARRAY_H
 
-//using namespace std;
 
 #include <pzmatrix.h>
 #include <pzstack.h>
@@ -107,7 +106,7 @@ public:
     /**
      * It prints all terms stored in TPZEqnArray 
      */
-    void Print(const char * name, ostream & out);
+    void Print(const char * name, std::ostream & out);
 
     /**
      * Writes to a file in binary mode.

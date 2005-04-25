@@ -163,10 +163,10 @@ class TPZBlock : public TPZSaveable
      @param title Title on printed output device
      @param out Output device
   */
-  int  PrintBlock(const int block_row,const int block_col,const char *title = "",TPZostream &out = cout ) const;
+  int  PrintBlock(const int block_row,const int block_col,const char *title = "",TPZostream &out = std::cout ) const;
 
   //Imprime todos os blocos da matriz
-  void Print(const char *title = "",TPZostream &out = cout,TPZMatrix *mat=NULL);
+  void Print(const char *title = "",TPZostream &out = std::cout,TPZMatrix *mat=NULL);
 
   void PrintSolution(const char *title, TPZostream &out);
 

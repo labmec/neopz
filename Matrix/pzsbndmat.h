@@ -46,8 +46,8 @@ class TPZSBMatrix : public TPZMatrix
   // Computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
 
-  void Print(const char *name = NULL, ostream &out = cout ,const MatrixOutputFormat form = EFormatted) const;
-  friend ostream & operator<<(ostream& out,const TPZSBMatrix &A);
+  void Print(const char *name = NULL, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
+  friend std::ostream & operator<<(std::ostream& out,const TPZSBMatrix &A);
 
   // Operadores com matrizes SKY LINE.
   TPZSBMatrix &operator= (const TPZSBMatrix &A );

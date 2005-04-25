@@ -58,7 +58,7 @@ public:
     /** Static main for testing */
 	static void main();
     /** Prints a FrontMatrix object */
-	void Print(const char * name, ostream & out);
+	void Print(const char * name, std::ostream & out);
     /** Simple Destructor */
     ~TPZFrontMatrix();
     /** Simple Constructor */

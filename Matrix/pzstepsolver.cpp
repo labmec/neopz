@@ -2,6 +2,7 @@
 
 #include "pzstepsolver.h"
 #include <stdlib.h>
+using namespace std;
 
 TPZStepSolver::TPZStepSolver(TPZMatrix *refmat) : TPZMatrixSolver(refmat) {
   fPrecond = 0;

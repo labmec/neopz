@@ -4,7 +4,6 @@
 #define TPZSTACKEQNSTORAGE_H
 //#include "TPZFrontMatrix.h"
 
-//using namespace std;
 #include "tpzeqnarray.h"
 #include <pzstack.h>
 /** Responsible for storing arrays of equations (mostly in a decomposed form)
@@ -52,7 +51,7 @@ public:
      */
     void Print(
         const char *name //!file title to print to
-        , ostream& out   //!object type file
+        , std::ostream& out   //!object type file
         );
     /**Resets data structure */
     void Reset();

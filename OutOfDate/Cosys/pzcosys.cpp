@@ -3,6 +3,7 @@
 #include "pzcosys.h"
 #include "pzcartsys.h"
 #include "pzvec.h"
+using namespace std;
 
 //***************************************
 //***************************************

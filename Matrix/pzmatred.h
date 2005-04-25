@@ -110,7 +110,7 @@ class TPZMatRed :public TPZMatrix {
 
 
 
-  void Print(const char *name = NULL, ostream &out = cout,const MatrixOutputFormat = EFormatted ) const;
+  void Print(const char *name = NULL, std::ostream &out = std::cout,const MatrixOutputFormat = EFormatted ) const;
 
   int Substitution(TPZFMatrix *right_side) const;
 

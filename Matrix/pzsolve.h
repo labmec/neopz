@@ -45,7 +45,7 @@ class TPZSolver {
   */
   virtual void UpdateFrom(TPZMatrix *matrix)
   {
-    cout << __FUNCTION__ << " called\n";
+    std::cout << __FUNCTION__ << " called\n";
   }
 
 };
@@ -119,9 +119,9 @@ virtual  void SetMatrix(TPZMatrix *Refmat);
      Produces some diagnoses of current object
      @param out Output device
   */
-  static void Diagnose(ostream &out = cout) {
+  static void Diagnose(std::ostream &out = std::cout) {
     out << "TPZMatrixSolver::Diagnose\nnumber of objects created " << gnumcreated << 
-      "\nnumber of objects deleted " << gnumdeleted << endl;
+      "\nnumber of objects deleted " << gnumdeleted << std::endl;
     TPZContainer::Diagnose(out);
   }
 
@@ -155,7 +155,7 @@ virtual  void SetMatrix(TPZMatrix *Refmat);
     void DecreaseRefCount();
     TPZMatrix *Matrix();
     void SetMatrix(TPZMatrix *mat);
-    static void Diagnose(ostream &out = cout);
+    static void Diagnose(std::ostream &out = std::cout);
   };
   /**
      Container classes

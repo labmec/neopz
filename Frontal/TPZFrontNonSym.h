@@ -15,7 +15,6 @@ class TPZEqnArray;
 //#include <stdio.h>
 //#include <stdlib.h>
 #include <fstream>
-using namespace std;
 #include "TPZStackEqnStorage.h"
 #include "TPZFileEqnStorage.h"
 
@@ -148,11 +147,11 @@ public:
      * It prints TPZFront data 
      */
 #ifndef WIN32
-     void Print(const char *name, ostream& out);
-     void PrintGlobal(const char *name, ostream& out);
+     void Print(const char *name, std::ostream& out);
+     void PrintGlobal(const char *name, std::ostream& out);
 #else
-     void Print(const char *name, ostream& out);
-     void PrintGlobal(const char *name, ostream& out);
+     void Print(const char *name, std::ostream& out);
+     void PrintGlobal(const char *name, std::ostream& out);
 #endif
      /**Returns decomposition type. \n Default LU*/
      DecomposeType GetDecomposeType() const;

@@ -16,7 +16,6 @@
 
 
 #include <iostream>
-using namespace std;
 #include "pzmatrix.h"
 #include "pzvec.h"
 
@@ -140,7 +139,7 @@ public:
      @param message Message to be printed
      @param out Output device
   */
-  virtual void Print(char *message, ostream &out = cout);
+  virtual void Print(char *message, std::ostream &out = std::cout);
 
   int NumberofBlocks() {return fBlockSize.NElements();}
 

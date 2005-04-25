@@ -36,7 +36,7 @@ public:
     REAL& operator ( )(const int row, const int col);
     virtual int Substitution(TPZFMatrix* B) const;
     virtual REAL& s(const int row, const int col);
-    virtual void Print(char* message, ostream& out);
+    virtual void Print(char* message, std::ostream& out);
     void AddBlock(int i, TPZFMatrix& block);
     void BuildFromMatrix(TPZMatrix& matrix);
     void GetBlock(int i, TPZFMatrix& block);

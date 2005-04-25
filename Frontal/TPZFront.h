@@ -75,7 +75,7 @@ private:
 public:
 	/** Extracts the so far condensed matrix */
 virtual	void ExtractFrontMatrix(TPZFMatrix &front) {
-	cout << "TPZFront ExtractFrontMatrix should never be called\n";
+	std::cout << "TPZFront ExtractFrontMatrix should never be called\n";
 }
     /** Returns the number of free equations */
 	int NFree();
@@ -85,8 +85,8 @@ virtual	void ExtractFrontMatrix(TPZFMatrix &front) {
     /**
      * It prints TPZFront data 
      */
-     void Print(const char *name, ostream& out);
-     void PrintGlobal(const char *name, ostream& out = cout);
+     void Print(const char *name, std::ostream& out);
+     void PrintGlobal(const char *name, std::ostream& out = std::cout);
 
 
 

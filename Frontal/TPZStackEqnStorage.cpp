@@ -6,6 +6,8 @@
 #include <pzreal.h>
 #include <stdio.h>
 
+using namespace std;
+
 void TPZStackEqnStorage::SetBlockSize(){}
 
 void TPZStackEqnStorage::ReOpen(){}

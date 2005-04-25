@@ -43,7 +43,7 @@ class TPZStencilMatrix : public TPZMatrix {
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
 
-  virtual void Print(const char *title, ostream &out = cout ,const MatrixOutputFormat form = EFormatted) const;
+  virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
   // Print the matrix along with a identification title
 
   void SolveSOR( int &numiterations,const TPZFMatrix &rhs, TPZFMatrix &x,

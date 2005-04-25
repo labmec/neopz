@@ -4,6 +4,7 @@
 
 #include "pzshtmat.h"
 //#include "pzerror.h"
+using namespace std;
 
 template <class TObj>
 TPZGenMatrix<TObj>::TPZGenMatrix(){
