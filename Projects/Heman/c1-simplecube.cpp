@@ -8,8 +8,9 @@
 
 #include "pzpoisson3d.h"
 #include "pzmat2dlin.h"
+#include "pzbndcond.h"
 
-
+using namespace std;
 static TPZCompMesh * CreateCubeMesh();
 
 //*************************************

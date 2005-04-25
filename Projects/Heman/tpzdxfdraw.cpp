@@ -13,6 +13,8 @@
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 
+using namespace std;
+
 namespace pz_dxf {
 
 TPZDXFDraw::TPZDXFDraw(std::string &file,TPZGeoMesh *gmesh) : fDXFFile(file.c_str())

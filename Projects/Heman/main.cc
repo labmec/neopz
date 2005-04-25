@@ -86,7 +86,7 @@ void siderecog (TPZGeoMesh *Gmesh, int indice_elemento){
 
   // Para reconhecer o lado dividido ao meio, basta trabalharmos com o primeiro elemento da malha (pai).
   TPZGeoEl *elemento = Gmesh->ElementVec()[0];
-  // Acima é gerado o GelEl do elemento pai .
+  // Acima ï¿½gerado o GelEl do elemento pai .
   
   int nnodes = elemento->NNodes();
   int nsides = elemento->NSides();
@@ -103,7 +103,7 @@ void siderecog (TPZGeoMesh *Gmesh, int indice_elemento){
   int nomedioindex = nnodes ;
   TPZGeoNode *nomedio = &(Gmesh->NodeVec()[nomedioindex]);
 
-  // No loop abaixo testamos todos os sides, e naqueles que são veificados como sendo arestas, fazemos o teste de alinhamento dos pontos .
+  // No loop abaixo testamos todos os sides, e naqueles que sï¿½ veificados como sendo arestas, fazemos o teste de alinhamento dos pontos .
 
   for (int controle=0;controle<nsides;controle++){
     dimensao = elemento->SideDimension(controle);
@@ -119,10 +119,10 @@ void siderecog (TPZGeoMesh *Gmesh, int indice_elemento){
         nomediocoord[i] = nomedio->Coord(i);
       }
       // Calcularemos o determinante da matriz contendo as coordenadas de 
-      // três pontos para checar alinhamento (os dois extremos do lado e o nó médio)
+      // trï¿½ pontos para checar alinhamento (os dois extremos do lado e o nï¿½mï¿½io)
       detcheck = ((nomediocoord[1]*no1coord[2])+(nomediocoord[2]*no2coord[1])+(no1coord[1]*no2coord[2])-(no1coord[2]*no2coord[1])-(nomediocoord[2]*no1coord[1])-(nomediocoord[1]*no2coord[2]))*((nomediocoord[1]*no1coord[2])+(nomediocoord[2]*no2coord[1])+(no1coord[1]*no2coord[2])-(no1coord[2]*no2coord[1])-(nomediocoord[2]*no1coord[1])-(nomediocoord[1]*no2coord[2]))+((nomediocoord[2]*no1coord[0])+(nomediocoord[0]*no2coord[2])+(no1coord[2]*no2coord[0])-(no1coord[0]*no2coord[2])-(nomediocoord[0]*no1coord[2])-(nomediocoord[2]*no2coord[0]))*((nomediocoord[2]*no1coord[0])+(nomediocoord[0]*no2coord[2])+(no1coord[2]*no2coord[0])-(no1coord[0]*no2coord[2])-(nomediocoord[0]*no1coord[2])-(nomediocoord[2]*no2coord[0]))+((nomediocoord[0]*no1coord[1])+(nomediocoord[1]*no2coord[0])+(no1coord[0]*no2coord[1])-(no1coord[1]*no2coord[0])-(nomediocoord[1]*no1coord[0])-(nomediocoord[0]*no2coord[1]))*((nomediocoord[0]*no1coord[1])+(nomediocoord[1]*no2coord[0])+(no1coord[0]*no2coord[1])-(no1coord[1]*no2coord[0])-(nomediocoord[1]*no1coord[0])-(nomediocoord[0]*no2coord[1]));
   
-      // Caso o alinhamento seja verificado, guardamos algumas referências abaixo.
+      // Caso o alinhamento seja verificado, guardamos algumas referï¿½cias abaixo.
       if (fabs(detcheck)<smallnumber){
         ladodividido = lado;
         ribsideindex = controle;
@@ -142,7 +142,7 @@ void siderecog (TPZGeoMesh *Gmesh, int indice_elemento){
   cout << endl;
   cout << endl;
   cout << "Existem " << considesnumber << " lados conectados ao RibSide." << endl;
-  cout << "Estes lados são os sides de índice :" << endl;
+  cout << "Estes lados sï¿½ os sides de ï¿½dice :" << endl;
   for (int p=0;p<considesnumber;p++){
     cout << neighbourindex[p] << endl;
   }
@@ -210,8 +210,8 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
     }
   }   
  
-  /* Observação: No STACK são retornados os lados a serem refinados mas com a numeração local de cada lado em relação ao elemento (não a numeração global) */
-  // Abaixo serão criados os RefPatterns e associados ao set no mapa.
+  /* Observaï¿½o: No STACK sï¿½ retornados os lados a serem refinados mas com a numeraï¿½o local de cada lado em relaï¿½o ao elemento (nï¿½ a numeraï¿½o global) */
+  // Abaixo serï¿½ criados os RefPatterns e associados ao set no mapa.
  
   if (ncornernodes==3)
   {
@@ -222,7 +222,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       
       //malha 2 triangulos
       const int nelem = 2;
-      //número de nós 
+      //nmero de nï¿½ 
       const int ntotal_coord = 4;
       TPZVec<REAL> new_node_coord(ntotal_coord,0.);
       
@@ -281,7 +281,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       indicesfather [1]= 1;
       indicesfather [2]= 2;
       TPZGeoEl *father = Wmesh->CreateGeoElement(ETriangle,indicesfather,1,index);
-      // criação dos elementos
+      // criaï¿½o dos elementos
       TPZGeoEl *gel[nelem];
     
       for(i=0;i<nelem;i++) {  
@@ -306,12 +306,14 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
           gel[i]->SetFather(father);
           break;
         default:
-          cout << "Erro : elemento não implementado" << endl;
+          cout << "Erro : elemento nï¿½ implementado" << endl;
         }
       }
       
       Wmesh->Print(cout);
-      TPZRefPattern  *patt = new TPZRefPattern(Wmesh) ;
+      TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      delete Wmesh;
+      Wmesh = 0;
 /*      cout << "Refinement pattern data:\n";
       cout << "NNodes = " << patt->NNodes() << endl;
       cout << "NSubel = " << patt->NSubElements() << endl;
@@ -375,7 +377,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
 
       //malha 2 elementos
       const int nelem = 2;
-      //número de nós 
+      //nmero de nï¿½ 
       const int ntotal_coord = 5;
       TPZVec<REAL> new_node_coord(ntotal_coord,0.);
      
@@ -435,7 +437,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       }
      
       int Connect[nelem][4] = { {3,4,snlocid_comum, -1},
-	                        {3,4,snlocid_dif_menor,snlocid_dif_maior} };
+	                        {3,4,snlocid_dif_maior,snlocid_dif_menor} };
       int nConnect[nelem] = {3,4};
   
       // criar um objeto tipo malha geometrica
@@ -457,7 +459,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       indicesfather [1]= 1;
       indicesfather [2]= 2;
       TPZGeoEl *father = Wmesh->CreateGeoElement(ETriangle,indicesfather,1,index);
-      // criação dos elementos
+      // criaï¿½o dos elementos
       TPZGeoEl *gel[nelem];
 
       for(i=0;i<nelem;i++) {  
@@ -480,7 +482,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
           gel[i]->SetFather(father);
           break;
         default:
-          cout << "Erro : elemento não implementado" << endl;
+          cout << "Erro : elemento nï¿½ implementado" << endl;
         }
       }
  
@@ -488,11 +490,13 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       Wmesh->Print(cout);
        
      
-      TPZRefPattern  *patt = new TPZRefPattern(Wmesh) ;
+      TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      delete Wmesh;
+      Wmesh = 0;
   /*     cout << patt->NNodes() << endl;
       cout << patt->NSubElements() << endl;
       cout << endl;*/
-      // TPZGeoMesh, string Nome, int código
+      // TPZGeoMesh, string Nome, int cï¿½igo
       //patt->Print1(Wmesh, cout);
       Gmesh->InsertRefPattern(patt);
       //MyMap[lados] = patt ;             
@@ -510,7 +514,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       
       //malha 3 triangulos
       const int nelem = 3;
-      //número de nós 
+      //nmero de nï¿½ 
       const int ntotal_coord = 5;
       TPZVec<REAL> new_node_coord(ntotal_coord,0.);
       
@@ -579,7 +583,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       indicesfather [3]= 3;
       TPZGeoEl *father = Wmesh->CreateGeoElement(EQuadrilateral,indicesfather,1,index);
       
-      // criação dos elementos
+      // criaï¿½o dos elementos
       TPZGeoEl *gel[nelem];
   
       for(i=0;i<nelem;i++) {  
@@ -602,17 +606,19 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
           gel[i]->SetFather(father);
           break;
         default:
-          cout << "Erro : elemento não implementado" << endl;
+          cout << "Erro : elemento nï¿½ implementado" << endl;
         }
       }
                     
       Wmesh->Print(cout);
         
-      TPZRefPattern  *patt = new TPZRefPattern(Wmesh) ;
+      TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      delete Wmesh;
+      Wmesh = 0;
 /*      cout << patt->NNodes() << endl;
       cout << patt->NSubElements() << endl;
       cout << endl;*/
-      // TPZGeoMesh, string Nome, int código
+      // TPZGeoMesh, string Nome, int cï¿½igo
       //patt->Print1(Wmesh, cout);
       Gmesh->InsertRefPattern(patt);
       //MyMap[lados] = patt ;
@@ -625,9 +631,9 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
     {
       if((refinesides[refinesides.NElements()-1])-(refinesides[refinesides.NElements()-2]))
       {
-        //Neste caso temos que os lados marcados são opostos.
+        //Neste caso temos que os lados marcados sï¿½ opostos.
         int permut ;
-        //As condições abaixo garantem que o permut será calculado com o lado marcado de maior índice.
+        //As condiï¿½es abaixo garantem que o permut serï¿½calculado com o lado marcado de maior ï¿½dice.
         if (refinesides[refinesides.NElements()-1]>refinesides[refinesides.NElements()-2])
         {
           permut = (refinesides[refinesides.NElements()-1]) - 4 ;
@@ -637,7 +643,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
           permut = (refinesides[refinesides.NElements()-2]) - 4 ;
         } 
         const int nelem = 2;
-        //número de nós 
+        //nmero de nï¿½ 
         const int ntotal_coord = 6;
         TPZVec<REAL> new_node_coord(ntotal_coord,0.);
       
@@ -704,7 +710,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
         //cout << "Created Father Element: " << endl;
         //father->Print(cout);
         //TPZRefPattern *father_patt (this);
-        // criação dos elementos
+        // criaï¿½o dos elementos
         TPZGeoEl *gel[nelem];
         for(i=0;i<nelem;i++) {  
           TPZVec<int> indices(nConnect[i]);
@@ -724,7 +730,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
             gel[i]->SetFather(father);
             break;
           default:
-            cout << "Erro : elemento não implementado" << endl;
+            cout << "Erro : elemento nï¿½ implementado" << endl;
           }
   //          cout << "Created son element: " << i << endl;
   //          gel[i]->Print(cout);
@@ -733,13 +739,16 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
         //father->SetSubElementConnectivities();
         //Wmesh->BuildConnectivity();
         Wmesh->Print(cout);
-        TPZRefPattern  *patt = new TPZRefPattern(Wmesh) ;
+        TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+        delete Wmesh;
+        Wmesh = 0;
 /*        cout << patt->NNodes() << endl;
         cout << patt->NSubElements() << endl;
         cout << endl;*/
-        // TPZGeoMesh, string Nome, int código
+        // TPZGeoMesh, string Nome, int cï¿½igo
         //patt->Print1(Wmesh, cout);
-        Gmesh->InsertRefPattern(patt);
+        patt->InsertPermuted(*Gmesh);
+//        Gmesh->InsertRefPattern(patt);
         //MyMap[lados] = patt ;
         elemento->SetRefPattern(patt);
         TPZVec <TPZGeoEl*> ElVec ;
@@ -747,7 +756,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       }
       else
       {
-        //Já neste caso iremos trabalhar com lados marcados consecutivos.
+        //Jï¿½neste caso iremos trabalhar com lados marcados consecutivos.
         int maior, menor;
         
         if ((refinesides[refinesides.NElements()-1])>(refinesides[refinesides.NElements()-2]))
@@ -805,9 +814,9 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
           }
         }
         
-        //malha 4 triângulos
+        //malha 4 triï¿½gulos
         const int nelem = 4;
-        //número de nós 
+        //nmero de nï¿½ 
         const int ntotal_coord = 6;
         TPZVec<REAL> new_node_coord(ntotal_coord,0.);
       
@@ -908,7 +917,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
         indicesfather [2]= 2;
         indicesfather [3]= 3;
         TPZGeoEl *father = Wmesh->CreateGeoElement(EQuadrilateral,indicesfather,1,index,1);
-        // criação dos elementos
+        // criaï¿½o dos elementos
         TPZGeoEl *gel[nelem];
   
         for(i=0;i<nelem;i++) {  
@@ -931,17 +940,19 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
             gel[i]->SetFather(father);
             break;
           default:
-            cout << "Erro : elemento não implementado" << endl;
+            cout << "Erro : elemento nï¿½ implementado" << endl;
           }
         }
         
         Wmesh->Print(cout);
         
-        TPZRefPattern  *patt = new TPZRefPattern(Wmesh) ;
+        TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+        delete Wmesh;
+        Wmesh = 0;
 //         cout << patt->NNodes() << endl;
 //         cout << patt->NSubElements() << endl;
 //         cout << endl;
-        // TPZGeoMesh, string Nome, int código
+        // TPZGeoMesh, string Nome, int cï¿½igo
         //patt->Print1(Wmesh, cout);
         Gmesh->InsertRefPattern(patt);
         //MyMap[lados] = patt ;
@@ -971,7 +982,7 @@ int main ()
   //dxfdraw(Gmesh);  
   //dxfdrawsep(Gmesh);
 
-  //Teste da função de reconhecimento de lados
+  //Teste da funï¿½o de reconhecimento de lados
   //siderecog(Gmesh);
   //Fim do teste
  
