@@ -1,10 +1,12 @@
-// $Id: pzonedref.cpp,v 1.6 2005-02-28 22:07:24 phil Exp $
+// $Id: pzonedref.cpp,v 1.7 2005-04-25 01:56:15 phil Exp $
 
 #include "pzonedref.h"
 #include "pzquad.h"
 #include "pztrnsform.h"
 #include "pzvec.h"
 #include "pzshapelinear.h"
+
+using namespace std;
 
 ofstream TPZOneDRef::fLogFile("onedref.txt");
 

@@ -6,7 +6,6 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include <iostream>
-using namespace std;
 class TPZCompMesh;
 class TPZFMatrix;
 
@@ -14,13 +13,13 @@ class TPZNonLinearAnalysis : public TPZAnalysis {
 
 public:
 
-TPZNonLinearAnalysis(TPZCompMesh *mesh,ostream &out);
+TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out);
 
 TPZNonLinearAnalysis();
 
 virtual ~TPZNonLinearAnalysis(void);
 
-void IterativeProcess(ostream &out,REAL tol,int numiter);
+void IterativeProcess(std::ostream &out,REAL tol,int numiter);
 
 REAL SolutionNorm();
 

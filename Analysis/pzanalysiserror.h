@@ -5,7 +5,6 @@
 
 #include <fstream>
 #include <iostream>
-using namespace std;
 
 #include "pzanalysis.h"
 #include "pzstack.h"
@@ -29,7 +28,7 @@ class TPZAnalysisError : public TPZAnalysis {
 public :
    /**Object constructors*/
 	//TPZAnalysisError(TPZAnalysis &an);
-   TPZAnalysisError(TPZCompMesh *mesh,ostream &out);
+   TPZAnalysisError(TPZCompMesh *mesh,std::ostream &out);
    /**Delete objects*/
    ~TPZAnalysisError() {};
 
@@ -37,7 +36,7 @@ public :
    void SetAdaptivityParameters(REAL EtaAdmissible, int NIterations);
 
    /**Run the algorithm of the fast hp adaptive finite element mesh design*/
-   void hp_Adaptive_Mesh_Design(ostream &out,REAL &EtaAdmissible);
+   void hp_Adaptive_Mesh_Design(std::ostream &out,REAL &EtaAdmissible);
 
    /**Search the element whith contain this point*/
    void GetSingularElements(TPZStack<TPZCompElSide> &listel);
@@ -49,7 +48,7 @@ public :
    void ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL singularity_order = 0.9);
 
    /**Run one iteration of HP adaptivity*/
-   void HPAdapt(REAL CurrentEtaAdmissible, ostream &out);
+   void HPAdapt(REAL CurrentEtaAdmissible, std::ostream &out);
 
    /**Return the maximal local error of the elements of the mesh*/
    REAL MaximLocalError();
@@ -64,11 +63,11 @@ public :
    for any element in the grid
    Is called from HPAdapt()
    */
-   void EvaluateError(REAL CurrentEtaAdmissible, ostream &out);
+   void EvaluateError(REAL CurrentEtaAdmissible, std::ostream &out);
 
    /**Postprocess the intermediate solutions*/
 private:
-	void PlotLocal(int iter, REAL CurrentEtaAdmissible, ostream &out);
+	void PlotLocal(int iter, REAL CurrentEtaAdmissible, std::ostream &out);
 
 	void ExpandConnected(TPZStack<TPZCompElSide> &singel);
 

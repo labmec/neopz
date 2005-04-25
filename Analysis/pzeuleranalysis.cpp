@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.35 2004-09-07 23:41:32 phil Exp $
+//$Id: pzeuleranalysis.cpp,v 1.36 2005-04-25 01:56:15 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -8,6 +8,8 @@
 #include "tpzoutofrange.h"
 #include "pztempmat.h"
 #include <time.h>
+
+using namespace std;
 
 TPZEulerAnalysis::TPZEulerAnalysis():
 TPZAnalysis(), fFlowCompMesh(NULL),

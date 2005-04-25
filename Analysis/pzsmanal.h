@@ -35,7 +35,7 @@ public:
   /**
     *Run: assemble the stiffness matrix
 	**/
-	void Run(ostream &out);
+	void Run(std::ostream &out);
 
   /**
     *CondensedSolution: returns the condensed stiffness

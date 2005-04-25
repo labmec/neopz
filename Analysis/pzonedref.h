@@ -3,7 +3,6 @@
 
 #include "pzfmatrix.h"
 #include <fstream>
-using namespace std;
 
 /**
  * Class TPZOneDRef implements one dimensional
@@ -14,7 +13,7 @@ class TPZOneDRef {
   /**
    * External log file
    */
-  static ofstream fLogFile;
+  static std::ofstream fLogFile;
 
   /**
    * \f[fMS_{1}S_{1}=\int _{\widetilde{\Omega _{1}}}\psi _{s_{i}.}.\psi _{s_{j}.}.d\widetilde{\Omega }_{1}\f]
@@ -110,7 +109,7 @@ class TPZOneDRef {
   /**
    * Print oject data
    */
-  void Print(char *msg = 0, std::ostream &out = cout);
+  void Print(char *msg = 0, std::ostream &out = std::cout);
 
   static int gMaxP;
 

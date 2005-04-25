@@ -15,7 +15,6 @@ class TPZMaterial;
 #include "pzadmchunk.h"
 #include <iostream>
 
-using namespace std;
 
 #include "pzfmatrix.h"
 /**
@@ -92,7 +91,7 @@ public:
     int fDimension;
     TPZVec<REAL> fLocations;
     TPZVec<char *> fVariableNames;
-    ostream *fOutfile;
+    std::ostream *fOutfile;
     TTablePostProcess();
     ~TTablePostProcess();
   } fTable;
@@ -107,7 +106,7 @@ public:
   /**
    *Create an TPZAnalysis object from one mesh pointer
    */
-  TPZAnalysis(TPZCompMesh *mesh,std::ostream &out = cout);
+  TPZAnalysis(TPZCompMesh *mesh,std::ostream &out = std::cout);
 
 	/**
 	 * Set the computational mesh of the analysis.
@@ -187,11 +186,11 @@ TPZMatrixSolver *BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex
 
 public:
   void ShowShape( TPZVec<char *> &scalnames, TPZVec<char *> &vecnames,//1o : TPZConnect* nod,
-		  char *plotfile, ostream &out=cout);
+		  char *plotfile, std::ostream &out=std::cout);
 
   void LoadShape(double dx,double dy, int numelem,TPZConnect* nod);
 
-  virtual void Run(ostream &out = cout);
+  virtual void Run(std::ostream &out = std::cout);
   // calls the appropriate sequence of methods to build a
   // solution or a time stepping sequence
   virtual void DefineGraphMesh(int dimension, TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, const char *plotfile);
@@ -222,11 +221,11 @@ public:
 
   void SetExact(void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix &deriv));
 
-  void PostProcess(TPZVec<REAL> &loc, ostream &out = cout);
+  void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
 
-  void PostProcessTable(  TPZFMatrix &pos,ostream &out= cout );
+  void PostProcessTable(  TPZFMatrix &pos,std::ostream &out= std::cout );
 
-  void Print( char *name , ostream &out );
+  void Print( char *name , std::ostream &out );
 
   //misael
   TPZMatrixSolver & Solver();

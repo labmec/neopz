@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.17 2005-02-28 22:07:24 phil Exp $
+//$Id: pzeuleranalysis.h,v 1.18 2005-04-25 01:56:15 phil Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -31,7 +31,7 @@ public:
 
    TPZEulerAnalysis();
 
-   TPZEulerAnalysis(TPZFlowCompMesh *mesh,std::ostream &out = cout);
+   TPZEulerAnalysis(TPZFlowCompMesh *mesh,std::ostream &out = std::cout);
 
    ~TPZEulerAnalysis();
 
@@ -44,7 +44,7 @@ public:
    /**
     * see declaration in the base class.
     */
-   virtual void Run(ostream &out, ofstream & dxout, int dxRes);
+   virtual void Run(std::ostream &out, std::ofstream & dxout, int dxRes);
 
    /**
     * Sets the solution vector to be the one
@@ -180,7 +180,7 @@ public:
    /**
     * Prepares the DX graph mesh
     */
-   TPZDXGraphMesh * PrepareDXMesh(ofstream &dxout, int dxRes);
+   TPZDXGraphMesh * PrepareDXMesh(std::ofstream &dxout, int dxRes);
 
    /**
     * Informs a block diagonal to be used as preconditioning
