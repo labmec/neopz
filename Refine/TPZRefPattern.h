@@ -5,13 +5,16 @@
 #include "pzgmesh.h"
 #include <iostream>
 #include <string>
+#include <map>
+#include <list>
+#include "tpzpermutation.h"
+#include "pztrnsform.h"
 
 class TPZGeoNode;
 class TPZCompMesh;
 class TPZGeoElBC;
 class TPZGeoEl;
 class TPZGeoElSide;
-class TPZTransform;
 
 /* template <class T> */
 /* class TPZVec; */
@@ -53,46 +56,35 @@ public:
      * Constructor whose argument is the name of the file with the definition
      * of the refinement standard
      */
-    TPZRefPattern(const string &filename);
+    TPZRefPattern(const std::string &filename);
     
     /**Copy constructor*/
     TPZRefPattern (const TPZRefPattern &copy);
-
+    
+    /**
+     * Create a copy of the TPZRefPattern applying the permutation on the first element
+     */
+    TPZRefPattern (const TPZRefPattern &copy,const TPZPermutation &permute);
     /**
      * Creates an TPZRefPattern from a given mesh
      */
-    TPZRefPattern(TPZGeoMesh *GMesh);
+    TPZRefPattern(TPZGeoMesh &GMesh);
     
     /**
      * Destructor of the object
      */
-    ~TPZRefPattern(){if(fMesh) delete fMesh;}
+    ~TPZRefPattern(){}
 
     /**
      * It returns the mesh of refinement pattern
      */
-    TPZGeoMesh *Mesh() {return fMesh;}
-
-    /**
-     * It returns the refinement type
-     */
-    int Type() {return fRefineType;}
+    //TPZGeoMesh *Mesh() {return fMesh;}
 
     /**
      * It effects the reading of the archive that defines the refinement standard
      */
     void ReadPattern();
 
-    /**
-     * It create geometric elements
-     * @param ntype type of the element to be created. It equals to corner nodes except for \
-     tetrahedra whose type is 7
-     * @param mat material identifier
-     @ @param nddes vector with incident nodes
-     * @param gmesh pointer to geometric mesh where the element will be created
-     * @param el element index
-     */
-     TPZGeoEl *CreateGeoEl(int ntype,int mat,TPZVec<int> &nodes,TPZGeoMesh *gmesh, int el=0);
     
     /**
      * It calculates the hashings between the sides of the son and the father 
@@ -165,7 +157,7 @@ public:
      * It prints the features of the standard of geometric refinement.
      */
     void MeshPrint();
-    void Print1(TPZGeoMesh &gmesh,ostream &out = cout);/////////////////////////???????????????????
+    void Print1(TPZGeoMesh &gmesh,std::ostream &out = std::cout);/////////////////////////???????????????????
 
     /**
      * It accumulates the number of sides of son 0 until son ison.
@@ -234,7 +226,7 @@ public:
         /**
          * It prints the properties of the structure
          */
-        void Print(TPZGeoMesh &gmesh,ostream &out = cout);        
+        void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);        
     };
 
     /**
@@ -265,7 +257,7 @@ public:
         /**
          * It prints the properties of the structure
          */
-        void Print(TPZGeoMesh &gmesh,ostream &out = cout);
+        void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);
     };
 
 
@@ -274,17 +266,12 @@ private:
     /**
      * Associated geometric mesh to the standard of current refinement 
      */
-    TPZGeoMesh *fMesh;
+    TPZGeoMesh fMesh;
 
     /**
      * Name of the file that defines the refinement standard
      */
-    string fFileRefPatt;
-
-    /**
-     * Indice or type of the current refinement 
-     */
-    int fRefineType;
+    std::string fFileRefPatt;
 
     /**
      * Partition of the element for objects sub-element-sides 
@@ -297,25 +284,20 @@ private:
      */    
     TPZSideTransform fTransforms;
 
-    /**refinamento para os sub-elementos associados ao refinamento atual*/
-    TPZVec<TPZRefPattern *> fSubElRefPattern;
 
     /**refinamento para elementos de contorno associados ao refinamento atual*/
-    TPZVec<TPZRefPattern *> fBCRefPattern;
+    TPZVec<TPZRefPattern *> fSideRefPattern;
     
     /**This should be available before the mesh initialization*/
     int fNSubEl;
 
  public:
-    /**refinamento do contorno do element*/
-    void SetBCRefPattern(TPZRefPattern *patt,int side){fBCRefPattern[side] = patt;}
-    void ResizeBCPattern(int size){fBCRefPattern.Resize(size);}
-    TPZRefPattern *BCRefPattern(int side){return fBCRefPattern[side];}
-    /**refinamento dos sub-elementos*/
-    void SetSubElRefPattern(TPZRefPattern *patt,int sub){fSubElRefPattern[sub] = patt;}
-    void ResizeSubElPattern(int size){fSubElRefPattern.Resize(size);}
-    TPZRefPattern *SubElRefPattern(int sub){return fSubElRefPattern[sub];}
-    int NSubElPatt(){return fSubElRefPattern.NElements();}
+    TPZRefPattern *SideRefPattern(int side){return fSideRefPattern[side];}
+    
+    /**
+     * Find the side refinement pattern corresponding to the parameter transformation
+     */
+    TPZRefPattern *SideRefPattern(int side, TPZTransform &trans);
   /** This method is used to create / identify the nodes of the refined elements.
    * The method verify if the nodes are already created by the self element or by some neighbour.
 @param gel - pointer to the element which are being divided
@@ -327,11 +309,81 @@ private:
 @param newnodeindexes - return all midside node indexes for the element division. */
   void CreateMidSideNodes (TPZGeoEl *gel, int side, TPZVec<int> &newnodeindexes);
   /** Returns the refinement pattern identifier */
-  string GetName();
-    int operator==(const TPZRefPattern &compare) const;
+  std::string GetName();
+  
+  int operator==(const TPZRefPattern &compare) const;
+
+protected:    
+    /**
+    *  Automatically generate all permuted numberings for the element type
+    */
+    void GeneratePermuted(TPZGeoEl *gel);
+    
+    /**
+     * Copy the mesh structure applying the permutation on the nodenumbers of the first element
+     */
+     void CopyMesh(const TPZGeoMesh &gmesh, const TPZPermutation &permute);
+
+    /**
+     * Copy the mesh structure applying the permutation on the nodenumbers of the first element
+     */
+     void CopyMesh(const TPZGeoMesh &gmesh);
+
+public:
+    /**
+     *  Generate all permuted partitions and insert them in the mesh
+     */
+     void InsertPermuted(TPZGeoMesh &gmesh);
+        /**
+    * Generate a string which may represent the refinement pattern
+    */
+    std::string GenericName();
+    
+    /**
+    * Generate the refinement patterns associated with the sides of the father element
+    */
+    void GenerateSideRefPatterns(TPZGeoMesh &gmesh);
+    
+    /**
+     * Find the refinement pattern corresponding to the give transformation
+     */
+     TPZRefPattern *FindRefPattern(TPZTransform &trans);
 protected: // Protected attributes
   /** Identifier for the refinement pattern */
-  string fName;
+  std::string fName;
+  
+struct TPZRefPatternPermute
+{
+  // permutation of the nodes
+  TPZPermutation fPermute;
+  // transformation to the nodes
+  TPZTransform fTransform;
+
+  TPZRefPatternPermute(): fPermute(0) {}  
+  TPZRefPatternPermute(const TPZRefPatternPermute &copy) : fPermute(copy.fPermute), fTransform(copy.fTransform)
+  {}
+  
+  TPZRefPatternPermute &operator=(const TPZRefPatternPermute &copy)
+  {
+    fPermute = copy.fPermute;
+    fTransform = copy.fTransform;
+    return *this;
+  }
+};
+  
+  /** map of all valid permutations */
+static std::map<MElementType, std::list<TPZRefPatternPermute> > fPermutations;
+
+  /**
+   * vector of refinement patterns for each permutation of the master element
+   */
+   std::vector<TPZRefPattern *> fPermutedRefPatterns;
+  
+  /**
+   *  build a geometric mesh associated with the side of the refinement pattern
+   */
+  void BuildSideMesh(int side, TPZGeoMesh &gmesh);
+  
 };
 
 #endif
