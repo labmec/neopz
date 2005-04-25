@@ -227,7 +227,7 @@ TPZGeoElRefLess<TShape,TGeo>::MidSideNodeIndex(int side,int &index){
     PZError << "TPZGeoElRefLess<TShape,TGeo>::MidSideNodeIndex. Bad parameter side = " << side << endl;
     return;
   }
-  if(side<NNodes()) {//o nó medio do lado 0 é o 0 etc.
+  if(side<NNodes()) {//o nï¿½medio do lado 0 ï¿½o 0 etc.
     index = NodeIndex(side);
     return;
   }
@@ -488,35 +488,35 @@ TPZGeoElRefLess<TShape,TGeo>::Write(TPZStream &buf, int withclassid){
 using namespace pzgeom;
 using namespace pzshape;
 
-static TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoPoint,TPZShapePoint>(mesh,gel,index);
   //  return new TPZCompElPoint(mesh,gel,index);
 }
-static TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoLinear,TPZShapeLinear>(mesh,gel,index);
   //  return new TPZCompEl1d(mesh,gel,index);
 }
-static TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoQuad,TPZShapeQuad>(mesh,gel,index);
 //    return new TPZCompElQ2d(mesh,gel,index);
 }
-static TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>(mesh,gel,index);
   //  return new TPZCompElT2d(mesh,gel,index);
 }
-static TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoCube,TPZShapeCube>(mesh,gel,index);
   //  return new TPZCompElC3d(mesh,gel,index);
 }
-static TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoPrism,TPZShapePrism>(mesh,gel,index);
   //  return new TPZCompElPr3d(mesh,gel,index);
 }
-static TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoPyramid,TPZShapePiram>(mesh,gel,index);
   //  return new TPZCompElPi3d(mesh,gel,index);
 }
-static TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>(mesh,gel,index);
   //  return new TPZCompElT3d(mesh,gel,index);
 }

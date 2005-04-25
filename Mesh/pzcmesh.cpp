@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.36 2005-04-25 02:31:46 phil Exp $
+//$Id: pzcmesh.cpp,v 1.37 2005-04-25 03:25:53 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1151,7 +1151,7 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
   TPZMaterial *mat = 0;
   for(i=0; i<nmat; i++) {
     mat = fMaterialVec[i];
-    if(mat) break;//o primeiro material é o de volume - supostamente
+    if(mat) break;//o primeiro material ï¿½o de volume - supostamente
   }
   if(!mat) {
     PZError << "TPZCompMesh::BuildTransferMatrixDesc no material object found\n";
@@ -1159,12 +1159,12 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
   }
   int nvar = mat->NStateVariables();
   int dim = mat->Dimension();
-  //o seguinte é igual ao número de conects da malha
+  //o seguinte ï¿½igual ao nmero de conects da malha
   int ncon = NIndependentConnects(),coarncon = transfermesh.NIndependentConnects();
   transfer.SetBlocks(localblock,transferblock,nvar,ncon,coarncon);
-  Reference()->ResetReference();//geométricos apontam para nulo
+  Reference()->ResetReference();//geomï¿½ricos apontam para nulo
   transfermesh.LoadReferences();
-  //geométricos apontam para computacionais da malha atual
+  //geomï¿½ricos apontam para computacionais da malha atual
   TPZAgglomerateElement *aggel = 0;
   TPZAdmChunkVector<TPZCompEl *> &elvec = transfermesh.ElementVec();
   int nelem = elvec.NElements();
@@ -1180,7 +1180,7 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
     }
     aggel = dynamic_cast<TPZAgglomerateElement *>(comp);
     //TPZStack<int> elvec;
-    //retorna todos os descontínuos aglomerados por aggel
+    //retorna todos os descontï¿½uos aglomerados por aggel
     //aggel->IndexesDiscSubEls(elvec);
     //int size = elvec.NElements(),i;
     int size = aggel->NIndexes(),i;
@@ -1697,12 +1697,12 @@ void TPZCompMesh::hp_Adaptive_Mesh_Design(void (*fExact)(TPZVec<REAL> &point,TPZ
    int index;
 	int Q = 2;//valor dado > 1 na procura de hn para elementos proximos ao ponto singular
    int Nc = 4;//number of layers
-   int iter = 0;//iteração atual
-   REAL tol = .05;//tolerancia na aproximação do nova ordem do elemento
-   int maxiter = 20;//maximo numero de iterações do algoritmo do ponto fixo
-   REAL w = 0.3;//fator de relaxação
+   int iter = 0;//iteraï¿½o atual
+   REAL tol = .05;//tolerancia na aproximaï¿½o do nova ordem do elemento
+   int maxiter = 20;//maximo numero de iteraï¿½es do algoritmo do ponto fixo
+   REAL w = 0.3;//fator de relaxaï¿½o
    cout << "\n\nStep  0\n";
-	an.Run(out);//solução malha inicial
+	an.Run(out);//soluï¿½o malha inicial
    Print(out);
    Reference()->Print(out);
    an.Print("FEM SOLUTION ",out);
@@ -1802,7 +1802,7 @@ void TPZCompMesh::Step3(TPZCompEl *cel,TPZVec<REAL> &point,int Q,int Nc,TPZStack
       indexlist.Push(intel->Index());
       //os elemento viz devem ter ordens menores a cel quanto mais longe de point
       TPZInterpolatedElement *neighkeep,*neigh;
-      //feito só para o caso 1d , extender para o caso geral
+      //feito sï¿½para o caso 1d , extender para o caso geral
       int dim = intel->Dimension();
       if(dim != 1) {
       	cout << "TPZCompMesh::Step3 not dimension implemented , dimension = " << cel->Dimension() << endl;
@@ -1846,7 +1846,7 @@ void TPZCompMesh::Step4(
 
 	for(int iel=0;iel<NElements();iel++) {
       int count = 0;
-      //descartando os elemento próximos ao ponto singular processados com Step3(..)
+      //descartando os elemento prï¿½imos ao ponto singular processados com Step3(..)
       while(count < nlist) if(iel == indexlist[count++]) break;
       if(count == nlist) continue;
       fElementVec[iel]->EvaluateError(fExact,H1_error,L2_error,flux,estimate);
@@ -1940,7 +1940,7 @@ void TPZCompMesh::GetRefPatches(TPZStack<TPZGeoEl *> &grpatch){
 			TPZGeoEl *gel = fElementVec[i]->Reference();
 			if (gel)
 			 //gel = fElementVec[i]->Reference();
-			  //	cout << "Iniciando procura do elemento de referência do elemento " << fElementVec[i]->Index() << endl;
+			  //	cout << "Iniciando procura do elemento de referï¿½cia do elemento " << fElementVec[i]->Index() << endl;
 			gel = fElementVec[i]->GetRefElPatch();
 		//	gel->Print();
 			if (gel){
@@ -1997,7 +1997,7 @@ void  TPZCompMesh::GetNodeToElGraph(TPZVec<int> &nodtoelgraph, TPZVec<int> &nodt
   renum.SetElementGraph(elgraph,elgraphindex);
   renum.NodeToElGraph(elgraph,elgraphindex,nodtoelgraph, nodtoelgraphindex);	
 /*   TPZRenumbering *re = &renum; */
-/*   re->Print(nodtoelgraph, nodtoelgraphindex , "Grapho de nós para elementos "); */
+/*   re->Print(nodtoelgraph, nodtoelgraphindex , "Grapho de nï¿½ para elementos "); */
 
 
 }
@@ -2257,7 +2257,7 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix &projectsol) {
   TPZMaterial *mat = 0;
   for(i=0; i<nmat; i++) {
     mat = fMaterialVec[i];
-    if(mat) break;//o primeiro material é o de volume - supostamente
+    if(mat) break;//o primeiro material ï¿½o de volume - supostamente
   }
   if(!mat) {
     PZError << "TPZCompMesh::BuildTransferMatrixDesc2 no material object found\n";
@@ -2265,9 +2265,9 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix &projectsol) {
   }
   //int nvar = mat->NStateVariables();
   int dim = mat->Dimension();
-  Reference()->ResetReference();//geométricos apontam para nulo
+  Reference()->ResetReference();//geomï¿½ricos apontam para nulo
   LoadReferences();
-  //geométricos apontam para computacionais da malha atual
+  //geomï¿½ricos apontam para computacionais da malha atual
   TPZAgglomerateElement *aggel = 0;
   TPZAdmChunkVector<TPZCompEl *> &elvec = ElementVec();
   int nelem = elvec.NElements();
@@ -2329,7 +2329,32 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 }
 
 #include "TPZGeoElement.h"
-#include "pzgeoelrefless.cpp"
+#include "pzgeoelrefless.h"
+#include "TPZGeoCube.h"
+#include "pzshapecube.h"
+#include "TPZRefCube.h"
+#include "pzshapelinear.h"
+#include "TPZGeoLinear.h"
+#include "TPZRefLinear.h"
+#include "pzrefquad.h"
+#include "pzshapequad.h"
+#include "pzgeoquad.h"
+#include "pzshapetriang.h"
+#include "pzreftriangle.h"
+#include "pzgeotriangle.h"
+#include "pzshapeprism.h"
+#include "pzrefprism.h"
+#include "pzgeoprism.h"
+#include "pzshapetetra.h"
+#include "pzreftetrahedra.h"
+#include "pzgeotetrahedra.h"
+#include "pzshapepiram.h"
+#include "pzrefpyram.h"
+#include "pzgeopyramid.h"
+#include "pzrefpoint.h"
+#include "pzgeopoint.h"
+#include "pzshapepoint.h"
+
 void TPZCompMesh::SetAllCreateFunctionsDiscontinuous(){
 
    TPZGeoElement<pzshape::TPZShapePoint,  pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction(TPZCompElDisc::CreateDisc);
