@@ -15,6 +15,7 @@
 #include "pzshapetetra.h"
 
 using namespace pzshape;
+using namespace std;
 
 using namespace pzshape;
 

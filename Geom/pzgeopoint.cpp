@@ -7,6 +7,8 @@
 #include "pzstack.h"
 #include "pzgeoel.h"
 
+using namespace std;
+
 namespace pzgeom {
 
 void TPZGeoPoint::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){

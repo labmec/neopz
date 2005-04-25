@@ -7,6 +7,7 @@
 #include "pzquad.h"
 
 using namespace pzshape;
+using namespace std;
 
 namespace pzgeom {
 

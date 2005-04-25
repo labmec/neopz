@@ -10,6 +10,9 @@
 #include "pzeltype.h"
 #include "pzfmatrix.h"
 
+#include <string>
+
+
 class TPZFMatrix;
 class TPZGeoEl;
 class TPZIntPoints;
@@ -26,7 +29,27 @@ public:
   /**
    * return the type of the element as specified in file pzeltype.h
    */
-  static MElementType Type() { return EOned;}
+static MElementType Type() { return EOned;}
+
+/**
+  * return the type of the element as specified in file pzeltype.h
+  */
+static MElementType Type(int side) {
+  switch(side) {
+    case 0:
+    case 1:
+      return EPoint;
+    case 2:
+      return EOned;
+    default:
+      return ENoType;
+  }
+}
+
+/**
+ * returns the type name of the element
+ */
+static std::string TypeName() { return "Linear";} 
 
 static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 

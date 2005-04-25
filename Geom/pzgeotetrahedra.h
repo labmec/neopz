@@ -11,6 +11,10 @@
 #include "pzvec.h"
 #include "pzeltype.h"
 
+
+#include <string>
+
+
 class TPZFMatrix;
 class TPZGeoEl;
 class TPZIntPoints;
@@ -29,6 +33,34 @@ public:
    * return the type of the element as specified in file pzeltype.h
    */
   static MElementType Type() { return ETetraedro;}
+
+
+/**
+ * return the type of the element as specified in file pzeltype.h
+ */
+static MElementType Type(int side) {
+  switch(side) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+      return EPoint;
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+      return ETriangle;
+    case 8:
+      return ETetraedro;
+    default:
+      return ENoType;
+  }
+}
+
+/**
+ * returns the type name of the element
+ */
+static std::string TypeName() { return "Tetra";} 
 
 	/** implementation of two-dimensional bilinear interpolation*/
 	static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);

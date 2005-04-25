@@ -14,6 +14,7 @@
 #include "pzshapeprism.h"
 
 using namespace pzshape;
+using namespace std;
 
 namespace pzgeom {
 

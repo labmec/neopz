@@ -14,6 +14,9 @@ class TPZIntPoints;
 class TPZInt1Point;
 class TPZGraphEl1dd;
 
+#include <string>
+
+
 /// groups all classes which model the geometry
 /**
 * Objects of this class implement the mapping between the master element
@@ -32,7 +35,26 @@ public:
   /**
    * return the type of the element as specified in file pzeltype.h
    */
-  static MElementType Type() { return EPoint;}
+static MElementType Type() { return EPoint;}
+
+
+/**
+  * return the type of the element as specified in file pzeltype.h
+  */
+static MElementType Type(int side) {
+  switch(side) {
+    case 0:
+      return EPoint;
+    default:
+      return ENoType;
+  }
+}
+
+
+/**
+ * returns the type name of the element
+ */
+static std::string TypeName() { return "Point";} 
 
 	static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 

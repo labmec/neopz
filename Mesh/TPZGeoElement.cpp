@@ -40,6 +40,7 @@
 #include "pzstream.h"
 #include "pzmeshid.h"
 //#include "pzstack.h"
+using namespace std;
 
 //template<class TShape, class TGeo, class TRef>
 //int TPZGeoElement<TShape,TGeo,TRef>::fTest;

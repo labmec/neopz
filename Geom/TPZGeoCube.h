@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: TPZGeoCube.h,v 1.4 2005-02-28 22:08:04 phil Exp $
+// $Id: TPZGeoCube.h,v 1.5 2005-04-25 02:07:50 phil Exp $
 
 //HEADER FILE FOR CLASS TPZGeoCube
 
@@ -9,6 +9,9 @@
 
 #include "pzvec.h"
 #include "pzeltype.h"
+
+#include <string>
+
 
 class TPZFMatrix;
 class TPZGeoEl;
@@ -27,7 +30,54 @@ public:
   /**
    * return the type of the element as specified in file pzeltype.h
    */
-  static MElementType Type() { return ECube;}
+static MElementType Type() { return ECube;}
+
+/**
+ * return the type of the element as specified in file pzeltype.h
+ */
+static MElementType Type(int side) {
+  switch(side) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+      return EPoint;
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+    case 18:
+    case 19:        
+      return EOned;
+    case 20:
+    case 21:
+    case 22:
+    case 23:
+    case 24:
+    case 25:
+      return EQuadrilateral;
+    case 26:
+      return ECube;
+    default:
+      return ENoType;
+  }
+}
+
+
+/**
+ * returns the type name of the element
+ */
+static std::string TypeName() { return "Hexa";} 
 
 static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 

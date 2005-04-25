@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeopyramid.h,v 1.4 2005-02-28 22:08:04 phil Exp $
+// $Id: pzgeopyramid.h,v 1.5 2005-04-25 02:07:50 phil Exp $
 
 // TPZGeoPiramid.h: interface for the TPZGeoQuad class.
 //
@@ -28,7 +28,46 @@ public:
   /**
    * return the type of the element as specified in file pzeltype.h
    */
-  static MElementType Type() { return EPiramide;}
+static MElementType Type() { return EPiramide;}
+
+/**
+  * return the type of the element as specified in file pzeltype.h
+  */
+static MElementType Type(int side) {
+  switch(side) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+      return EPoint;
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+      return EOned;
+    case 13:
+      return EQuadrilateral;
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+      return ETriangle;
+    case 18:
+      return EPiramide;
+    default:
+      return ENoType;
+  }
+}
+
+/**
+ * returns the type name of the element
+ */
+static std::string TypeName() { return "Pyramid";} 
 
 	/** implementation of two-dimensional bilinear interpolation*/
 	static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);

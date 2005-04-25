@@ -7,6 +7,7 @@
 #include "pzgeoel.h"
 
 using namespace pzshape;
+using namespace std;
 
 namespace pzgeom {
 

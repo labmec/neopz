@@ -12,6 +12,7 @@
 #include "pzshapequad.h"
 
 using namespace pzshape;
+using namespace std;
 
 namespace pzgeom {
 
