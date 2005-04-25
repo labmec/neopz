@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.28 2005-04-19 21:05:41 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.29 2005-04-25 02:31:49 phil Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -272,7 +272,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * Print attributes of the object
    */
-  void Print(ostream &out = cout);
+  void Print(std::ostream &out = std::cout);
 
   /**
    * it verifies the existence of interfaces associates

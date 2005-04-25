@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.8 2005-02-28 22:08:52 phil Exp $
+//$Id: pzgnode.h,v 1.9 2005-04-25 02:31:49 phil Exp $
 
 /**File : pzgnode.h
 
@@ -16,7 +16,6 @@ Header file for class TPZGeoNode. TPZGeoNode defines a geometrical node.
 #include "pzstream.h"
 #include "pzmeshid.h"
 
-using namespace std;
 
 template<class T>
 class TPZVec;
@@ -44,7 +43,7 @@ class TPZGeoNode : public TPZSaveable {
   /**Constructor to new node */
   TPZGeoNode();
   /**Constructor copy*/
-  TPZGeoNode(TPZGeoNode &node);
+  TPZGeoNode(const TPZGeoNode &node);
   /**Destructor*/
 virtual  ~TPZGeoNode() { }
   
@@ -74,7 +73,7 @@ virtual  ~TPZGeoNode() { }
   }
 
   /**Return the identity of the current node*/
-  int Id() { return fId; }
+  int Id() const { return fId; }
 
   void SetNodeId(int id) { fId = id;}
 
@@ -84,23 +83,25 @@ virtual  ~TPZGeoNode() { }
      is unique for the mesh*/
   void Initialize(int id,TPZVec<REAL> &coord,TPZGeoMesh &mesh);
 
+  /**Initialize the node with data from a node from a different mesh */
+  void Initialize(const TPZGeoNode &node, TPZGeoMesh &mesh);  
   /**Return i-th coordinate of the current node*/
-  REAL Coord(int i);
+  REAL Coord(int i) const;
 
   /**Set all coordinates into the current node. It gets the dim values from x */
   void SetCoord(REAL *x,int dim = 3);
   /**Set the i-th coordinate for current node*/
   void SetCoord(int i,REAL coord);
 
-  void Print(ostream & out = cout);
+  void Print(std::ostream & out = std::cout);
 };
 
 template class TPZRestoreClass<TPZGeoNode,TPZGEONODEID>;
 
-inline REAL TPZGeoNode::Coord(int i) {
+inline REAL TPZGeoNode::Coord(int i) const {
 #ifndef NODEBUG
   if(i > 2 || i < 0) {
-    PZError << "Not exist (TPZGeoNode) coordinate " << i << endl;
+    PZError << "Not exist (TPZGeoNode) coordinate " << i << std::endl;
     return 1.e12;
   }
 #endif

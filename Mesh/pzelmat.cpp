@@ -1,8 +1,10 @@
-//$Id: pzelmat.cpp,v 1.3 2004-04-05 14:09:35 phil Exp $
+//$Id: pzelmat.cpp,v 1.4 2005-04-25 02:31:48 phil Exp $
 
 #include "pzelmat.h"
 #include "pzfmatrix.h"
 #include "pzcmesh.h"
+
+using namespace std;
 
 void TPZElementMatrix::SetMatrixSize(short NumBli, short NumBlj,
 				     short BlSizei, short BlSizej) {

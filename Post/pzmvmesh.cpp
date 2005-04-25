@@ -3,6 +3,7 @@
 #include "pzmaterial.h"
 #include "pzgraphnode.h"
 #include "pzgraphel.h"
+using namespace std;
 
 TPZMVGraphMesh::TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial *mat) : TPZGraphMesh(cmesh, dimension, mat) {
 	fNumCases = 0;

@@ -1,4 +1,4 @@
-//$Id: pzdxmesh.cpp,v 1.7 2004-09-07 23:41:34 phil Exp $
+//$Id: pzdxmesh.cpp,v 1.8 2005-04-25 02:33:58 phil Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -10,6 +10,7 @@
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
 #include "pzgeoel.h"
+using namespace std;
 
 // 		if(ce->NConnects() == 3) fElementType = "lines";
 // 		if(ce->NConnects() == 7) fElementType = "triangles";

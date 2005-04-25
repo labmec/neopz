@@ -5,6 +5,8 @@
 #include "pzcmesh.h"
 #include "pzsubcmesh.h"
 
+using namespace std;
+
 TPZMatrix * TPZFStructMatrix::CreateAssemble(TPZFMatrix &rhs){
     int neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {

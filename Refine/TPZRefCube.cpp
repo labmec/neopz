@@ -6,6 +6,7 @@
 #include "pzgeoel.h"
 
 using namespace pzshape;
+using namespace std;
 
 namespace pzrefine {
 static int nsubeldata[27] = {1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3,3,3,3,3,9,9,9,9,9,9,26};

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.18 2005-04-19 21:03:08 tiago Exp $
+// $Id: pzcompel.h,v 1.19 2005-04-25 02:31:46 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -13,7 +13,6 @@
 #include "pzgeoel.h"
 #include "pzsave.h"
 
-using namespace std;
 
 class TPZBlockDiagonal;
 
@@ -271,7 +270,7 @@ public:
    * Prints element data
    * @param out indicates the device where the data will be printed
    */
-  virtual void Print(std::ostream & out = cout);
+  virtual void Print(std::ostream & out = std::cout);
 
   /**
    * Output device operator 
@@ -602,7 +601,7 @@ public:
    * Find the list element/side of the current element restrict nodes and elements
    * @param onlyinterpolated if ==1 only elements derived from TPZInterpolated will be put on the stack
    */
-   // acha uma lista elemento/lado de elementos e nós restritos ao atual elemento*/
+   // acha uma lista elemento/lado de elementos e nï¿½ restritos ao atual elemento*/
   void ExpandConnected(TPZStack<TPZCompElSide> &expandvec,int onlyinterpolated);
 
   /**
@@ -625,17 +624,17 @@ public:
 };
 
 inline void TPZCompEl::CreateGraphicalElement(TPZGraphMesh &, int) {
-  cout << "TPZCompEl::CreateGrafEl called\n";
+  std::cout << "TPZCompEl::CreateGrafEl called\n";
 }
 
 
 inline void TPZCompEl::CalcStiff(TPZElementMatrix &,TPZElementMatrix &){
-  cout << "TPZCompEl::CalcStiff(*,*) is called." << endl;
+  std::cout << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
 }
 
 
 inline void TPZCompEl::ProjectFlux(TPZElementMatrix &ek,TPZElementMatrix &ef) {
-  cout << "TPZCompEl::ProjectFlux is called." << endl;
+  std::cout << "TPZCompEl::ProjectFlux is called." << std::endl;
 }
 
 

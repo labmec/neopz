@@ -7,6 +7,7 @@
 #include "pzgmesh.h"
 
 using namespace pzshape;
+using namespace std;
 
 
 namespace pzrefine {

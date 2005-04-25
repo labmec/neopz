@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.36 2005-04-19 21:05:40 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.37 2005-04-25 02:31:49 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -9,7 +9,6 @@
 #define ELCOMPDISCHPP
 
 #include <iostream>
-using namespace std;
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzcompel.h"
@@ -106,14 +105,14 @@ protected:
   /**
    * Set the inner radius value.
    */
-  virtual void SetInnerRadius(REAL InnerRadius) {PZError << "TPZCompElDisc::SetInnerRadius - This method should never be called because the inner" << endl 
-							 << "radius is not stored in TPZCompElDisc. It is stored in TPZAgglomerateElement." << endl;}
+  virtual void SetInnerRadius(REAL InnerRadius) {PZError << "TPZCompElDisc::SetInnerRadius - This method should never be called because the inner" << std::endl 
+							 << "radius is not stored in TPZCompElDisc. It is stored in TPZAgglomerateElement." << std::endl;}
 
   /**
    * Set element's number of interfaces.
    */
-  virtual void SetNInterfaces(int nfaces) {PZError << "TPZCompElDisc::SetNFaces - This method should never be called because the number of interfaces" << endl 
-				      << "is not stored in TPZCompElDisc. It is only stored by TPZAgglomerateElement." << endl;}
+  virtual void SetNInterfaces(int nfaces) {PZError << "TPZCompElDisc::SetNFaces - This method should never be called because the number of interfaces" << std::endl 
+				      << "is not stored in TPZCompElDisc. It is only stored by TPZAgglomerateElement." << std::endl;}
 
   /**
    * Retunrs the number of interfaces.
@@ -199,7 +198,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   /**
    * it prints the features of the element 
    */
-  virtual void Print(ostream & out = cout);
+  virtual void Print(std::ostream & out = std::cout);
 
   /**
    * it returns the degree of interpolation of the element 

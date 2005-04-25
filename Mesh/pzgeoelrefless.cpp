@@ -48,6 +48,7 @@
 #include "pzvec.h"
 #include "pzmanvector.h"
 //#include "pzstack.h"
+using namespace std;
 
 template<class TShape, class TGeo>
 TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess():TPZGeoEl(){

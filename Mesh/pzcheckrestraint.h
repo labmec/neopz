@@ -1,4 +1,4 @@
-//$Id: pzcheckrestraint.h,v 1.3 2005-02-28 22:08:50 phil Exp $
+//$Id: pzcheckrestraint.h,v 1.4 2005-04-25 02:31:46 phil Exp $
 #ifndef PZCHECKRESTRAINTH
 #define PZCHECKRESTRAINTH
 
@@ -31,7 +31,7 @@ public:
 
 	void Diagnose();
 
-	void Print(ostream &out);
+	void Print(std::ostream &out);
 
 private:
 

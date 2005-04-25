@@ -4,7 +4,6 @@
 #include <pzvec.h>
 #include <fstream>
 
-using namespace std;
 
 void VisualMatrix(TPZFMatrix &matrix, char *outfilename);
 

@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.17 2005-02-28 22:08:52 phil Exp $
+//$Id: pzgmesh.h,v 1.18 2005-04-25 02:31:48 phil Exp $
 
 /**File : pzgmes.h
 
@@ -25,6 +25,7 @@ contained within the TPZGeoMesh.
 #include <iostream>
 #include <string>
 #include <map>
+#include <list>
 
 #include "pzsave.h"
 #include "pzreal.h"
@@ -78,7 +79,7 @@ class  TPZGeoMesh : public TPZSaveable {
   /**Maximum id used by all elements of this mesh*/
   int fElementMaxId;
 
-  typedef map<pair<int,int>, int> InterfaceMaterialsMap;
+  typedef std::map<std::pair<int,int>, int> InterfaceMaterialsMap;
   
   /**
   Datastructure which indicates the index of the interface material which needs to be created between two different materials @see AddInterfaceMaterial
@@ -111,18 +112,20 @@ virtual void Write(TPZStream &buf, int withclassid);
   int CreateUniqueElementId() { return ++fElementMaxId; }
 
   /**Number of nodes of the mesh*/
-  int NNodes() {return fNodeVec.NElements();}
+  int NNodes() const {return fNodeVec.NElements();}
   /**Number of elements of the mesh*/
-  int NElements() {return fElementVec.NElements();}
+  int NElements() const {return fElementVec.NElements();}
   
   int ReallyNEl() {return (fElementVec.NElements() - fElementVec.NFreeElements()) ; }
 
   void SetName(char *name);
-  string &Name() { return fName; }
+  std::string &Name() { return fName; }
 
   /**Methods for handling pzlists*/
   TPZAdmChunkVector<TPZGeoEl *> &ElementVec() { return fElementVec; }
   TPZAdmChunkVector<TPZGeoNode> &NodeVec() { return fNodeVec; }
+  const TPZAdmChunkVector<TPZGeoEl *> &ElementVec() const { return fElementVec; }
+  const TPZAdmChunkVector<TPZGeoNode> &NodeVec() const { return fNodeVec; }
   TPZAdmChunkVector<TPZGeoElBC> &BCElementVec() { return fBCElementVec; }
 //  TPZAdmChunkVector<TPZGeoNodeBC> &BCNodeVec() { return fBCNodeVec; }
   TPZAdmChunkVector<TPZCosys *> &CosysVec() { return fCosysVec; }
@@ -138,7 +141,7 @@ virtual void Write(TPZStream &buf, int withclassid);
   TPZCompMesh *Reference() const {return fReference;}
 
   /** Print the information of the grid to an ostream*/
-virtual  void Print(ostream & out = cout);
+virtual  void Print(std::ostream & out = std::cout);
 
   /**Returns the nearest node to the coordinate
      this method is VERY INEFICIENT*/
@@ -189,7 +192,7 @@ virtual  void Print(ostream & out = cout);
 
   /**
    * Add an interface material associated to left and right element materials.
-   * If pair<left, right> already exist, nothing is made and method returns 0.
+   * If std::pair<left, right> already exist, nothing is made and method returns 0.
    * If material is inserted in geomesh method returns 1.
    * @since Feb 05, 2004
    */
@@ -211,33 +214,43 @@ virtual  void Print(ostream & out = cout);
 
   /**Find all elements in elmap or neighbour of elements in elmap which contain a node*/
   //void BuildElementsAroundNode(int currentnode,TPZAVLMap<int,TPZGeoEl *> &elmap);
- void BuildElementsAroundNode(int currentnode,map<int,TPZGeoEl *> &elmap);
+ void BuildElementsAroundNode(int currentnode,std::map<int,TPZGeoEl *> &elmap);
 
   /**Method which works only for two dimensional topologies!
      Find, within elmap, the element which has currentnode as its first boundary side node*/
   //void FindElement(TPZAVLMap<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
- 	void FindElement(map<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
+ 	void FindElement(std::map<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
 protected: // Protected attributes
   /** Maps all refinement pattern objects in the mesh */
-  map<int,map<string,TPZRefPattern *> > fRefPatterns;
+  std::map<MElementType,std::list< TPZRefPattern *> > fRefPatterns;
   
 public:
+/** insert the refinement pattern in the list of availabe refinement patterns */
   void InsertRefPattern(TPZRefPattern *refpat);
-  TPZRefPattern * GetRefPattern(int eltype, string name);
+  
+  /** check whether the refinement pattern already exists */
+  TPZRefPattern *FindRefPattern(TPZRefPattern *refpat);
+  
+  TPZRefPattern * GetRefPattern(MElementType eltype, const std::string &name);
   /** Verifies if the side based refinement pattern exists. If the refinement pattern doesn't exists return a Null refinement Pattern. */
   TPZRefPattern * GetRefPattern (TPZGeoEl *gel, int side);
+  
+  std::list<TPZRefPattern *> &RefPatternList(MElementType eltype)
+  {
+    return fRefPatterns[eltype];
+  }
 };
 
 inline int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial){
-  pair<int, int> leftright(leftmaterial, rightmaterial);
-  pair<int, int> rightleft(rightmaterial, leftmaterial);
+  std::pair<int, int> leftright(leftmaterial, rightmaterial);
+  std::pair<int, int> rightleft(rightmaterial, leftmaterial);
   InterfaceMaterialsMap::iterator w, e;
   e = fInterfaceMaterials.end();
 
   w = fInterfaceMaterials.find(leftright);
-  if (w == e) { //pair leftright does not exist yet
+  if (w == e) { //std::pair leftright does not exist yet
     w = fInterfaceMaterials.find(rightleft);
-    if (w == e){ //pair rightleft does not exist too
+    if (w == e){ //std::pair rightleft does not exist too
       fInterfaceMaterials[leftright] = interfacematerial;
       return 1;
     }
@@ -246,8 +259,8 @@ inline int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial,
 }
 
 inline int TPZGeoMesh::InterfaceMaterial(int leftmaterial, int rightmaterial){
-  pair<int, int> leftright(leftmaterial, rightmaterial);
-  pair<int, int> rightleft(rightmaterial, leftmaterial);
+  std::pair<int, int> leftright(leftmaterial, rightmaterial);
+  std::pair<int, int> rightleft(rightmaterial, leftmaterial);
   InterfaceMaterialsMap::iterator w, e;
   e = fInterfaceMaterials.end();
   w = fInterfaceMaterials.find(leftright);
@@ -258,7 +271,7 @@ inline int TPZGeoMesh::InterfaceMaterial(int leftmaterial, int rightmaterial){
   if (w != e)
     return w->second;
 
-  PZError << "\nTPZGeoMesh::InterfaceMaterial - Interface material not found " << endl;
+  PZError << "\nTPZGeoMesh::InterfaceMaterial - Interface material not found " << std::endl;
   return -9999;
 }
 

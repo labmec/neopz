@@ -8,7 +8,6 @@
 
 //class TPZFlopCounter;
 
-using namespace std;
 
 
 /// this class defines the interface for saving and reading data
@@ -28,9 +27,9 @@ class TPZStream {
 
   virtual void Write(const char *p, int size=1)=0;
   
-  virtual void Write(string *p, int size=1) = 0;
+  virtual void Write(std::string *p, int size=1) = 0;
 
-  void Write(TPZFlopCounter *p, int size=1) 
+  void Write(std::TPZFlopCounter *p, int size=1) 
   {
     int i;
     for(i=0; i<size; i++) Write(&(p[i].fVal),1);
@@ -40,7 +39,7 @@ class TPZStream {
 
   virtual void Read(double *p, int size=1)=0;
 
-  void Read(TPZFlopCounter *p, int size=1)
+  void Read(std::TPZFlopCounter *p, int size=1)
   {
     int i;
     for(i=0; i<size; i++)
@@ -51,15 +50,15 @@ class TPZStream {
 
   virtual void Read(char *p, int size=1)=0;
 
-  virtual void Read(string *p, int size=1) = 0;
+  virtual void Read(std::string *p, int size=1) = 0;
 
 };
 
 /// This class implements reading from and writing to an ascii file
 class TPZFileStream : public TPZStream {
 
-  ofstream fo;
-  ifstream fi;
+  std::ofstream fo;
+  std::ifstream fi;
 
  public:
 
@@ -67,11 +66,11 @@ class TPZFileStream : public TPZStream {
 
   virtual ~TPZFileStream();
 
-  void OpenWrite(const string &filename) {
+  void OpenWrite(const std::string &filename) {
     fo.open(filename.c_str());
   }
 
-  void OpenRead(const string &filename) {
+  void OpenRead(const std::string &filename) {
     fi.open(filename.c_str());
   }
 
@@ -87,15 +86,15 @@ class TPZFileStream : public TPZStream {
     Writes<char>(p,size);
   }
 
-  virtual void Write(string *p, int size) {
-    Writes<string>(p,size);
+  virtual void Write(std::string *p, int size) {
+    Writes<std::string>(p,size);
   }
   
   template<class T>
     void  Writes(const T *p, int size) 
   {
     int c;
-    for(c=0; c<size; c++) fo << p[c] << endl;
+    for(c=0; c<size; c++) fo << p[c] << std::endl;
   }
   
   
@@ -111,7 +110,7 @@ class TPZFileStream : public TPZStream {
     Reads<char>(p,size);
   }
 
-  virtual void Read(string *p, int size) {
+  virtual void Read(std::string *p, int size) {
     int c;
     char buf[2560];
     for(c=0; c<size; c++) 

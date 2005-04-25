@@ -22,6 +22,7 @@
 #include "pzbndcond.h"
 #include "pzmetis.h"
 
+using namespace std;
 
 int TPBSpStructMatrix::main() {
      

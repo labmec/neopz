@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.66 2005-03-03 21:53:58 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.67 2005-04-25 02:31:49 phil Exp $
 
 // -*- c++ -*- 
 
@@ -17,17 +17,14 @@
 #include "pzcmesh.h"
 #include "pzerror.h"
 #include "pzconnect.h"
-#include "pzshapequad.h"
 #include "pzmaterial.h"
 #include "pzbndcond.h"
-#include "pzmat1dlin.h"
 #include "pztempmat.h"
 #include "pzmanvector.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
 #include "TPZInterfaceEl.h"
 #include "TPZConservationLaw.h"
-#include "TPZEulerConsLaw.h"
 #include "pzgraphel.h"
 #include "pzgraphelq2dd.h"
 #include "pzgraphelq3dd.h"
@@ -46,6 +43,7 @@
 #include <stdio.h>
 
 using namespace pzshape;
+using namespace std;
 
 int TPZCompElDisc::gDegree = 0;
 
@@ -102,15 +100,18 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
   fDegree = gDegree;
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
   switch(ref->Type()) {
-  case EQuadrilateral:
-  case ECube:
-  case EPrisma:
-    fShapefunctionType =
+    case EQuadrilateral:
+    case ECube:
+    case EPrisma:
+      fShapefunctionType =
 #ifdef _AUTODIFF
-    pzshape::TPZShapeDisc::EOrdemTotal;
+      pzshape::TPZShapeDisc::EOrdemTotal;
 #else
-    pzshape::TPZShapeDisc::ETensorial;
+      pzshape::TPZShapeDisc::ETensorial;
 #endif
+      break;
+    default:
+      break;
   }
 //  fReference = ref;
   ref->SetReference(this);

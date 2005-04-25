@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.35 2005-04-19 18:44:53 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.36 2005-04-25 02:31:46 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -28,6 +28,8 @@
 #include "pzmetis.h"
 #include "pzstream.h"
 #include <map>
+
+using namespace std;
 
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
   fConnectVec(0),fMaterialVec(0),

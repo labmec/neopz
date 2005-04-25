@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.8 2005-02-28 22:08:52 phil Exp $
+//$Id: pzsubcmesh.h,v 1.9 2005-04-25 02:31:49 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -79,7 +79,7 @@ public:
   virtual ~TPZSubCompMesh();
 
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
-    cout << "TPZSubCompMesh::Clone should be implemented\n";
+    std::cout << "TPZSubCompMesh::Clone should be implemented\n";
     return 0;
   }
 
@@ -201,7 +201,7 @@ public:
    * This method use the virtual method from Computacional Mesh class.
    * @param out indicates the device where the data will be printed
    */
-  void Prints(ostream &out = cout);
+  void Prints(std::ostream &out = std::cout);
 
   /**
    * @name Element

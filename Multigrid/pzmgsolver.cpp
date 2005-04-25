@@ -2,6 +2,7 @@
 
 #include "pzmgsolver.h"
 #include "pztransfer.h"
+using namespace std;
 
 
 TPZMGSolver::TPZMGSolver(TPZTransfer *trf,const  TPZMatrixSolver &sol, int nvar, TPZMatrix *refmat) : TPZMatrixSolver(refmat),fStep(trf) {

@@ -25,7 +25,6 @@ extern "C" {
 }
 */
 
-using namespace std;
 
 
 /// this class implements the interface to a binary file
@@ -50,11 +49,11 @@ class TPZBFileStream : public TPZStream
     if(ifd) fclose(ifd);
   }
 
-  void OpenWrite(const string &filename) {
+  void OpenWrite(const std::string &filename) {
     ofd = fopen(filename.c_str(),"wb" );
   }
 
-  void OpenRead(const string &filename) {
+  void OpenRead(const std::string &filename) {
     ifd = fopen(filename.c_str(), "rb");
   }
 
@@ -70,7 +69,7 @@ class TPZBFileStream : public TPZStream
     Writes<char>(p,size);
   }
 
-  virtual void Write(string *p, int size) {
+  virtual void Write(std::string *p, int size) {
     int c;
     for(c=0; c<size; c++) 
     {
@@ -99,7 +98,7 @@ class TPZBFileStream : public TPZStream
     Reads<char>(p,size);
   }
   
-  virtual void Read(string *p, int size) 
+  virtual void Read(std::string *p, int size) 
   {
     char buf[1000];
     int c;

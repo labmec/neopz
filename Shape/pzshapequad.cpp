@@ -1,4 +1,4 @@
-// $Id: pzshapequad.cpp,v 1.7 2005-02-28 22:11:26 phil Exp $
+// $Id: pzshapequad.cpp,v 1.8 2005-04-25 02:42:19 phil Exp $
 #include "pzshapequad.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -6,6 +6,7 @@
 #include "pzmanvector.h"
 #include "pzerror.h"
 #include "pzreal.h"
+using namespace std;
 
 namespace pzshape {
 

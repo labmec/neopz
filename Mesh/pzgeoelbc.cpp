@@ -1,4 +1,4 @@
-//$Id: pzgeoelbc.cpp,v 1.3 2004-04-26 14:27:03 phil Exp $
+//$Id: pzgeoelbc.cpp,v 1.4 2005-04-25 02:31:48 phil Exp $
 
 #include "pzgeoelbc.h"
 #include "pzgeoel.h"
@@ -7,6 +7,7 @@
 #include "pzmeshid.h"
 #include "pzstream.h"
 
+using namespace std;
 
 TPZGeoElBC::TPZGeoElBC() {
     fElement = 0;

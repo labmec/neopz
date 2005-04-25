@@ -1,5 +1,6 @@
 #include "pzgraphnode.h"
 #include "pzgraphel.h"
+using namespace std;
 
 TPZGraphNode::TPZGraphNode(TPZConnect *cn, TPZGraphMesh *gm)
 {

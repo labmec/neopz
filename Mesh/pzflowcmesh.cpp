@@ -1,9 +1,11 @@
-//$Id: pzflowcmesh.cpp,v 1.14 2004-09-07 23:41:34 phil Exp $
+//$Id: pzflowcmesh.cpp,v 1.15 2005-04-25 02:31:48 phil Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
 #include "TPZConservationLaw.h"
 //#include "TPZInterfaceEl.h"
+
+using namespace std;
 
 TPZFlowCompMesh::TPZFlowCompMesh(TPZGeoMesh* gr) : TPZCompMesh(gr) {
 

@@ -5,7 +5,6 @@
 #include <iostream>
 #include "pzanalysis.h"
 #include "pzreal.h"
-using namespace std;
 class TPZCompMesh;
 class TPZCompEl;
 class TPZMaterial;

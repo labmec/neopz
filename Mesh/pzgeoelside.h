@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.14 2005-04-19 21:05:13 tiago Exp $
+//$Id: pzgeoelside.h,v 1.15 2005-04-25 02:31:48 phil Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -190,7 +190,7 @@ void HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec, int onlyinte
 
 };
 
-ostream  &operator << (ostream & out,const TPZGeoElSide &geoside);
+std::ostream  &operator << (std::ostream & out,const TPZGeoElSide &geoside);
 
 #include "pzgeoel.h"
 
@@ -202,7 +202,7 @@ inline void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
 #ifndef NDEBUG
   if(! Exists() || ! this->Neighbour().Exists()) 
     {
-      cout << "TPZGeoElSide AllNeighbours inconsistent\n";
+      std::cout << "TPZGeoElSide AllNeighbours inconsistent\n";
       return;
     }
 #endif

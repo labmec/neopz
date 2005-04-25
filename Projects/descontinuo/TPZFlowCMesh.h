@@ -6,7 +6,6 @@ class TPZMaterial;
 class TPZGeoMesh;
 #include <iostream>
 #include "pzcmesh.h"
-using namespace std;
 /*******************/
 class TPZFlowCompMesh1 : public TPZCompMesh {
 

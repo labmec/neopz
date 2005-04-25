@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.16 2005-04-19 21:05:13 tiago Exp $
+//$Id: pzgeoelside.cpp,v 1.17 2005-04-25 02:31:48 phil Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -13,6 +13,7 @@
 #include "pzintel.h"
 
 using namespace pzshape;
+using namespace std;
 
 #include <log4cxx/logger.h>
 #include <sstream>
@@ -46,6 +47,8 @@ void TPZGeoElSide::RemoveConnectivity(){
   }
 }
 
+using namespace std;
+
 void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const {
   
   if(!Exists()) return;
@@ -70,10 +73,10 @@ void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const {
     // It would be convenient to check the consistency of both loops
     // insert the connectivity between two independent loops
     if(NeighbourExists(neighbour) || neighbour.NeighbourExists(*this)) {
-      cout << "This element side : " << fSide << endl;
-      this->Element()->Print(cout);
-      cout << "\nNeighbour side :"   << neighbour.Side() << endl;
-      neighbour.Element()->Print(cout);
+      std::cout << "This element side : " << fSide << std::endl;
+      this->Element()->Print(std::cout);
+      cout << "\nNeighbour side :"   << neighbour.Side() << std::endl;
+      neighbour.Element()->Print(std::cout);
       PZError << "TPZGeoElSide::SetConnectivity Fourth untreated case, wrong data structure\n";
     } else {
       SetNeighbour(neighneigh);
@@ -194,7 +197,7 @@ TPZTransform TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
    }
 #endif
   int sidedimension = Dimension();
-  TPZTransform tside(sidedimension);//transformação local
+  TPZTransform tside(sidedimension);//transformaï¿½o local
   switch (sidedimension) {
   case 0://canto para canto viz
 
@@ -246,13 +249,13 @@ TPZTransform TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
       for(i=0;i<3;i++) idfrom[i] = Element()->SideNodeIndex(Side(),i);
 //	   if(Element()->NSides() > 9) {//elementos 3D
 //         Element()->NodeFaceIds(idfrom,Side());
-//      } else {//triângulos
+//      } else {//triï¿½gulos
 //         for(i=0;i<3;i++) idfrom[i] = Element()->SideNodeIndex(Side(),i);
 //      }
       for(i=0;i<3;i++) idto[i] = neighbour.Element()->SideNodeIndex(neighbour.Side(),i);
 //      if(neighbour.Element()->NSides() > 9) {//elementos 3D
 //         neighbour.Element()->NodeFaceIds(idto,neighbour.Side());
-//      } else {//triângulos
+//      } else {//triï¿½gulos
 //         for(i=0;i<3;i++) idto[i] = neighbour.Element()->NodeIndex(i);
 //      }
   		int transid = Element()->GetTransformId2dT(idfrom,idto);
@@ -264,7 +267,7 @@ TPZTransform TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
       tside.Sum()(0,0) = TPZShapeTriang::gVet2dT[transid][0];
       tside.Sum()(1,0) = TPZShapeTriang::gVet2dT[transid][1];
     } else {
-     	PZError << "TPZGeoElSide::NeighbourSideTransform : elemento desconhecido" << endl;
+     	PZError << "TPZGeoElSide::NeighbourSideTransform : elemento desconhecido" << std::endl;
     }
     break;
   }
@@ -429,7 +432,7 @@ void TPZGeoElSide::SetNeighbour(const TPZGeoElSide &neighbour) const {
 TPZTransform TPZGeoElSide::SideToSideTransform(TPZGeoElSide &higherdimensionside){
     if(fGeoEl != higherdimensionside.fGeoEl) {
       PZError << "TPZGeoElSide::SideToSideTransform inconsistent id1 = " << fGeoEl->Id() << 
-	" id2 = " << higherdimensionside.fGeoEl->Id() << endl;
+	" id2 = " << higherdimensionside.fGeoEl->Id() << std::endl;
     }
     return fGeoEl->SideToSideTransform(fSide,higherdimensionside.fSide);
 }
@@ -588,9 +591,9 @@ int TPZGeoElSide::NSubElements2()
 
 void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZGeoElSide> &neighvec){
 /**
-   os vetores trazem a particão do lado comum a  
-   dois vizinhos segundo os seus proprios padrões de
-   refinamento, a divisão é identica para este lado comum*///cout << "Sao iguais: acertar as vizinhancas!!!\n";
+   os vetores trazem a particï¿½ do lado comum a  
+   dois vizinhos segundo os seus proprios padrï¿½s de
+   refinamento, a divisï¿½ ï¿½identica para este lado comum*///cout << "Sao iguais: acertar as vizinhancas!!!\n";
   int size = sidevec.NElements();
   int neighsize = neighvec.NElements();
   if(size!=neighsize || !size){
@@ -610,7 +613,7 @@ void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZG
       neighsidedim = neighsubside.Dimension();
 	  TPZGeoEl *elneigh = neighsubside.Element();
       if(neighsidedim != sidedim) continue;
-      //if(temp.Neighbour().Element()) continue;//?????? MELHORAR ESTA LINHA: pode ser viz. do irmão
+      //if(temp.Neighbour().Element()) continue;//?????? MELHORAR ESTA LINHA: pode ser viz. do irmï¿½
       int in[4],face,i,j,num;
       int im[4],neighface;      
       switch(sidedim){
@@ -665,7 +668,7 @@ void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZG
 }
 
 std::ostream &operator << (std::ostream & out,const TPZGeoElSide &geoside){
- out << "TPZGeoElSide : side = " << geoside.Side() << endl ;
+ out << "TPZGeoElSide : side = " << geoside.Side() << std::endl ;
  geoside.Element()->Print(out);
  return out;
 }

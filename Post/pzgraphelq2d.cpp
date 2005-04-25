@@ -2,6 +2,7 @@
 #include "pzgraphmesh.h"
 #include "pzcompel.h"
 #include "pzgeoel.h"
+using namespace std;
 
 TPZGraphElQ2d::TPZGraphElQ2d(TPZCompEl *cel, TPZGraphMesh *gmesh) : TPZGraphEl(cel,gmesh,fConnects)
 {

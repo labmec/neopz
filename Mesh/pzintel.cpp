@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.35 2005-04-19 21:05:25 tiago Exp $
+// $Id: pzintel.cpp,v 1.36 2005-04-25 02:31:49 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -43,6 +43,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
    */
 static void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
 #endif
+
+using namespace std;
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int &index) :
   TPZCompEl(mesh,reference,index) {

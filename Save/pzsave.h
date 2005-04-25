@@ -13,7 +13,6 @@
 
 const int TPZSAVEABLEID = -1;
 
-using namespace std;
 
 class TPZStream;
 class TPZSaveable;
@@ -24,8 +23,8 @@ typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,void *);
 /// This class defines the interface to save and restore objects from TPZStream objects
 class TPZSaveable {
 
-static map<int,TPZRestore_t> &Map() {
-static map<int,TPZRestore_t> gMap;
+static std::map<int,TPZRestore_t> &Map() {
+static std::map<int,TPZRestore_t> gMap;
    return gMap;
 }
 
@@ -46,7 +45,7 @@ static void WriteObjects(TPZStream &buf, TPZVec<T> &vec)
 }
 
 template<class T>
-static void WriteObjects(TPZStream &buf, vector<T> &vec) 
+static void WriteObjects(TPZStream &buf, std::vector<T> &vec) 
 {
   int c,nc = vec.size();
   buf.Write(&nc,1);
@@ -152,7 +151,7 @@ static void ReadObjects(TPZStream &buf, std::vector<T> &vec, void *context)
   }
 }
 
-static void ReadObjects(TPZStream &buf, vector<int> &vec) 
+static void ReadObjects(TPZStream &buf, std::vector<int> &vec) 
 {
   int nc;
   buf.Read(&nc,1);
@@ -160,7 +159,7 @@ static void ReadObjects(TPZStream &buf, vector<int> &vec)
   if(nc) buf.Read(&vec[0],nc);
 }
 
-static void ReadObjects(TPZStream &buf, vector<REAL> &vec) 
+static void ReadObjects(TPZStream &buf, std::vector<REAL> &vec) 
 {
   int nc;
   buf.Read(&nc,1);
@@ -253,21 +252,21 @@ static void WriteObjects(TPZStream &buf, TPZVec<REAL> &vec)
   if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
-static void WriteObjects(TPZStream &buf, vector<REAL> &vec) 
+static void WriteObjects(TPZStream &buf, std::vector<REAL> &vec) 
 {
   int nel = vec.size();
   buf.Write(&nel,1);
   if(nel) buf.Write(&vec[0],vec.size());
 }
 
-static void WriteObjects(TPZStream &buf, TPZVec<TPZFlopCounter> &vec) 
+static void WriteObjects(TPZStream &buf, TPZVec<std::TPZFlopCounter> &vec) 
 {
   int nel = vec.NElements();
   buf.Write(&nel,1);
   if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
-static void WriteObjects(TPZStream &buf, vector<TPZFlopCounter> &vec) 
+static void WriteObjects(TPZStream &buf, std::vector<std::TPZFlopCounter> &vec) 
 {
   int nel = vec.size();
   buf.Write(&nel,1);
@@ -281,7 +280,7 @@ static void WriteObjects(TPZStream &buf, TPZVec<int> &vec)
   if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
-static void WriteObjects(TPZStream &buf, vector<int> &vec) 
+static void WriteObjects(TPZStream &buf, std::vector<int> &vec) 
 {
   int nel = vec.size();
   buf.Write(&nel,1);
@@ -295,7 +294,7 @@ static void WriteObjects(TPZStream &buf, TPZVec<char> &vec)
   if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
-static void WriteObjects(TPZStream &buf, vector<char> &vec) 
+static void WriteObjects(TPZStream &buf, std::vector<char> &vec) 
 {
   int nel = vec.size();
   buf.Write(&nel,1);

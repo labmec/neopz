@@ -105,9 +105,24 @@ public:
   /**
    * returns the type of the element acording to the definition in pzeltype.h
    */
-   virtual  int Type() {
+   virtual  MElementType Type() {
      return TGeo::Type();
    }
+   
+  /**
+   * returns the type of the element acording to the definition in pzeltype.h
+   */
+   virtual  MElementType Type(int side) {
+     return TGeo::Type(side);
+   }
+   
+   /**
+    * return the type of the element as a string
+    */
+    virtual std::string TypeName()
+    {
+      return TGeo::TypeName();
+    }
    
   /**return the number of nodes of the element*/
   virtual  int NNodes();

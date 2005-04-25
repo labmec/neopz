@@ -3,6 +3,7 @@
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 
+using namespace std;
 
 TPZExtendGridDimension::TPZExtendGridDimension(char *geofile,REAL thickness) : fFineFileMesh(geofile){
 

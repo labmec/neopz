@@ -3,7 +3,6 @@
 
 #include <iostream>
 
-using namespace std;
 
 #include <string.h>
 #include "pzconnect.h"
@@ -37,7 +36,7 @@ public:
 
 	long FirstPoint();
 
-	void Print(ostream &out);
+	void Print(std::ostream &out);
 
 protected:
 	TPZConnect *fConnect;

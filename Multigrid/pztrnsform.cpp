@@ -1,5 +1,6 @@
 #include "pztrnsform.h"
 #include "pzvec.h"
+using namespace std;
 
 TPZTransform::TPZTransform(int dim) :
   fMult(dim,dim,fStore,9), fSum(dim,1,fStore+9,3) {

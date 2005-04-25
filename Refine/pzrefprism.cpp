@@ -7,6 +7,7 @@
 #include "pzgeoelside.h"
 
 using namespace pzshape;
+using namespace std;
 
 namespace pzrefine {
 

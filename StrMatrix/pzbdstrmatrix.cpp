@@ -14,6 +14,7 @@
 
 #include "pzelcq2d.h"
 
+using namespace std;
 void TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal(TPZBlockDiagonal & block){
 
   TPZVec<int> blocksizes;

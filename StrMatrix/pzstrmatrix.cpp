@@ -16,6 +16,8 @@
 #include "pzgnode.h"
 //#include "pzmat2dlin.h"
 
+using namespace std;
+
 TPZStructMatrix::~TPZStructMatrix() {}
 
 TPZMatrix *TPZStructMatrix::CreateAssemble(TPZFMatrix &rhs) {

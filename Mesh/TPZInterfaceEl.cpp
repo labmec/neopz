@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.44 2005-04-19 21:05:41 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.45 2005-04-25 02:31:49 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -14,6 +14,7 @@
 #include "pzintel.h"
 
 int TPZInterfaceElement::gCalcStiff = 1;
+using namespace std;
 
 void TPZInterfaceElement::IncrementElConnected(){
    const int ncon = this->NConnects();
@@ -25,7 +26,7 @@ void TPZInterfaceElement::IncrementElConnected(){
 
 /**
  * Para CloneInterface.
- * A normal é clonada, e não recalculada.
+ * A normal ï¿½clonada, e nï¿½ recalculada.
  */
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right, const TPZVec<REAL> & normal)
    : TPZCompEl(mesh,geo,index), fNormal(3,0.) {
@@ -33,7 +34,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   geo->SetReference(this);
   int materialid = geo->MaterialId();
 
-  //poderia eliminar esta variável e carrega-la do elemento de volume associado
+  //poderia eliminar esta variï¿½el e carrega-la do elemento de volume associado
   fMaterial = mesh.FindMaterial(materialid);
   fLeftElSide.SetElement(left);
   fRightElSide.SetElement(right);
@@ -57,7 +58,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   geo->SetReference(this);
   int materialid = geo->MaterialId();
 
-  //poderia eliminar esta variável e carrega-la do elemento de volume associado
+  //poderia eliminar esta variï¿½el e carrega-la do elemento de volume associado
   fMaterial = mesh.FindMaterial(materialid);
   fLeftElSide.SetElement(left);
   fRightElSide.SetElement(right);
@@ -77,7 +78,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
   geo->SetReference(this);
   int materialid = geo->MaterialId();
 
-  //poderia eliminar esta variável e carrega-la do elemento de volume associado
+  //poderia eliminar esta variï¿½el e carrega-la do elemento de volume associado
   fMaterial = mesh.FindMaterial(materialid);
   fLeftElSide.SetElement(left);
   fRightElSide.SetElement(right);
@@ -126,7 +127,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int &index) 
   : TPZCompEl(mesh,copy,index) {
 
-  //ambos elementos esquerdo e direito já foram clonados e moram na malha aglomerada
+  //ambos elementos esquerdo e direito jï¿½foram clonados e moram na malha aglomerada
   //o geometrico da malha fina aponta para o computacional da malha aglomerada
   fNormal = copy.fNormal;
 
@@ -316,7 +317,7 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
     ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
     weight *= fabs(detjac);
     ref->X(intpoint, x);
-    //solu¢ão da itera¢ão anterior
+    //soluï¿½ da iteraï¿½ anterior
     if(fConnectL){
       left->Shape(x,phixl,dphixl);
       soll.Fill(0.);
@@ -333,7 +334,7 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
 	iv++;
       }
     }
-    //solu¢ão da itera¢ão anterior
+    //soluï¿½ da iteraï¿½ anterior
     if(fConnectR){
       right->Shape(x,phixr,dphixr);
       solr.Fill(0.);
@@ -456,7 +457,7 @@ void TPZInterfaceElement::CalcResidualStandard(TPZElementMatrix &ef){
     ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
     weight *= fabs(detjac);
     ref->X(intpoint, x);
-    //solu¢ão da itera¢ão anterior
+    //soluï¿½ da iteraï¿½ anterior
     if(fConnectL){
       left->Shape(x,phixl,dphixl);
       soll.Fill(0.);
@@ -473,7 +474,7 @@ void TPZInterfaceElement::CalcResidualStandard(TPZElementMatrix &ef){
 	iv++;
       }
     }
-    //solu¢ão da itera¢ão anterior
+    //soluï¿½ da iteraï¿½ anterior
     if(fConnectR){
       right->Shape(x,phixr,dphixr);
       solr.Fill(0.);
@@ -529,7 +530,7 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
   int neq = neql + neqr;
   ek.fMat.Redim(neq,neq);
   ef.fMat.Redim(neq,1);
-  if(ncon){//no máximo ncon = 1
+  if(ncon){//no mï¿½imo ncon = 1
     int ic = 0;
     ek.fBlock.SetNBlocks(ncon);
     ef.fBlock.SetNBlocks(ncon);
@@ -584,7 +585,7 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
     int nderivl = dphixl.Rows();
     dsoll.Redim(nderivl,nstatel);
     dsolr.Redim(nderivr,nstater);
-    //solu¢ão da itera¢ão anterior
+    //soluï¿½ da iteraï¿½ anterior
     soll.Fill(0.);
     dsoll.Zero();
     if(left->NConnects()){
@@ -601,7 +602,7 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
       }
     } 
 
-    //solu¢ão da itera¢ão anterior
+    //soluï¿½ da iteraï¿½ anterior
     solr.Fill(0.);
     dsolr.Zero();
     if(right->NConnects()){
@@ -661,7 +662,7 @@ void TPZInterfaceElement::GetTransformsLeftAndRight(TPZTransform &tl,TPZTransfor
     if(geoside.Element() == refl) leftside = geoside;
     if(geoside.Element() == refr) rightside = geoside;
   }
-  //o elemento interface não tem pai
+  //o elemento interface nï¿½ tem pai
   TPZGeoElSide thisgeoside(ref,face);
   TPZCompElSide lower;
   if(!rightside.Exists() && leftside.Exists()){
@@ -693,7 +694,7 @@ void TPZInterfaceElement::GetTransformsLeftAndRight(TPZTransform &tl,TPZTransfor
     int dummy;
     cin >> dummy;
   }
-  //aqui left e right são vizinhos
+  //aqui left e right sï¿½ vizinhos
   TPZTransform t2l(leftside.Dimension()),t2r(rightside.Dimension());
   thisgeoside.SideTransform3(leftside,t2l);
   thisgeoside.SideTransform3(rightside,t2r);
@@ -770,12 +771,12 @@ void TPZInterfaceElement::Print(ostream &out){
  }
 
 int TPZInterfaceElement::main(TPZCompMesh &cmesh){
-  // esta funcão testa o correto desempenho do algoritmo que cria e 
+  // esta funcï¿½ testa o correto desempenho do algoritmo que cria e 
   // deleta elementos de interface numa malha sujeita a refinamento h
 
-  // InterfaceDimension é a dimensão do elemento de interface
-  // verifica-se para cada lado de dimensão InterfaceDimension do
-  // elemento que existe um elemento interface e que este é único
+  // InterfaceDimension ï¿½a dimensï¿½ do elemento de interface
+  // verifica-se para cada lado de dimensï¿½ InterfaceDimension do
+  // elemento que existe um elemento interface e que este ï¿½nico
 
   int iel,iside,nel = cmesh.NElements();
 
@@ -821,7 +822,7 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
   int cap = list.NElements();
 
   if(cap){
-    //caso existem elementos pequenos não deve existir
+    //caso existem elementos pequenos nï¿½ deve existir
     //interface associada ao lado atual, o lado atual 
     //deve apontar para elemento computacional nulo
     TPZGeoElSide geo = comp.Reference(),neigh;
@@ -833,13 +834,13 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
       }
       neigh = neigh.Neighbour();
     }
-    //caso o vizinho não existe todo bem
-    //caso existe não pode ter referência computacional
+    //caso o vizinho nï¿½ existe todo bem
+    //caso existe nï¿½ pode ter referï¿½cia computacional
     return 1;//sem problemas
   }
   
   //neste estagio o lado atual enxerga um elemento vizinho ou
-  //está comtido no lado de um elemento maior, portanto deve 
+  //estï¿½comtido no lado de um elemento maior, portanto deve 
   //ter associado um elemento interface
   TPZGeoElSide geo = comp.Reference();
   if(!geo.Exists()){
@@ -848,7 +849,7 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
   }
   TPZGeoElSide  neigh = geo.Neighbour();
   int exists = 0;
-  if(comp.Element()->Type() == EInterface) exists++;//o próprio é interface
+  if(comp.Element()->Type() == EInterface) exists++;//o prï¿½rio ï¿½interface
   
   while(neigh.Element() && neigh.Element() != geo.Element()){
     TPZCompElSide comp = neigh.Reference();
@@ -857,7 +858,7 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
     if(comp.Element()->Type() == EInterface) exists++;
   }
   if(exists != 1) return 0;
-  return 1;//existe uma única interface
+  return 1;//existe uma nica interface
 }
 
 int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
@@ -866,7 +867,7 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
   for(iel=0;iel<nel;iel++){
     TPZCompEl *cel = cmesh.ElementVec()[iel];
     if(!cel) continue;
-    if(cel->Type() != EInterface) continue;//interessa só interfaces
+    if(cel->Type() != EInterface) continue;//interessa sï¿½interfaces
     TPZGeoEl *gel = cel->Reference();
     if(!gel){
       PZError << "TPZInterfaceElement::FreeInterface computational element with null reference\n";
@@ -883,7 +884,7 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
       if(!comp.Element()) continue;
       if(comp.Element()->Type() != EInterface) exists++;
     }
-    //só pode haver 1 ou 2 elementos de volume associados a um el. interface
+    //sï¿½pode haver 1 ou 2 elementos de volume associados a um el. interface
     if(exists < 1 || exists > 2) return 0;
   }
   return 1;
@@ -916,19 +917,19 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal /*,int leftside*/){
   fRightEl->Reference()->CenterPoint(faceright,centright);
   fLeftEl->Reference()->X(centleft,xvolleft);
   fRightEl->Reference()->X(centright,xvolright);
-  for(i=0;i<3;i++) vec[i] = xvolright[i]-xvolleft[i];//não deve ser nulo
+  for(i=0;i<3;i++) vec[i] = xvolright[i]-xvolleft[i];//nï¿½ deve ser nulo
 
   int InterfaceDimension =  fLeftEl->Material()->Dimension() - 1;
 
   switch(InterfaceDimension){
   case 0:
-     normal[0] = 1.0;// a normal sempre apontará na dire¢ão positiva do eixo
+     normal[0] = 1.0;// a normal sempre apontarï¿½na direï¿½ positiva do eixo
      normal[1] = 0.;
      normal[2] = 0.;
    break;
   case 1:
     ref->Jacobian(param,jacobian,axes,detjac,jacinv);
-    for(i=0;i<3;i++) rib[i] = axes(0,i);//dire¢ão da aresta
+    for(i=0;i<3;i++) rib[i] = axes(0,i);//direï¿½ da aresta
     VetorialProd(rib,vec,result);
     VetorialProd(result,rib,normal);
     //normalizando a normal
@@ -1294,7 +1295,7 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
 
 
 
-      //solu¢ão da iteracao anterior - Left
+      //soluï¿½ da iteracao anterior - Left
       int n = ConnectL.NElements();
       for( int i = 0; i < n; i++ ) {
 	 soll.Fill(0.);
@@ -1312,7 +1313,7 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
 	 }
       }
 
-      //solu¢ão da iteracao anterior - Right
+      //soluï¿½ da iteracao anterior - Right
       n = ConnectR.NElements();
       for( int i = 0; i < n; i++ ){
 	 solr.Fill(0.);

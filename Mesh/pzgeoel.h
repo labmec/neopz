@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.20 2005-04-19 21:04:40 tiago Exp $
+//$Id: pzgeoel.h,v 1.21 2005-04-25 02:31:48 phil Exp $
 
 // -*- c++ -*-
 
@@ -7,7 +7,6 @@
 
 #include <iostream>
 
-using namespace std;
 
 #include "pzsave.h"
 #include "pzerror.h"
@@ -172,11 +171,19 @@ public:
   /**
    * returns the element type acording to pzeltype.h
    */
-virtual int Type() =0;
-// {
-//    cout << "ElementType should never be called\n";
-//    return -1;
-//  }
+virtual MElementType Type() =0;
+  /**
+   * returns the element type of a side acording to pzeltype.h
+   */
+virtual MElementType Type(int side) =0;
+   /**
+    * return the type of the element as a string
+    */
+    virtual std::string TypeName()
+ {
+    std::cout << "ElementType should never be called\n";
+    return "Notype";
+  }
   /**return the number of connectivities of the element*/
   virtual int NSides() = 0;
 
@@ -265,7 +272,7 @@ virtual int Type() =0;
   virtual void SetNeighbour(int side,const TPZGeoElSide &neighbour) = 0;
 
   /**Print all relevant data of the element to cout*/
-  virtual  void Print(ostream & out = cout);
+  virtual  void Print(std::ostream & out = std::cout);
 
   /**Make the current element reference to the computational element*/
   void SetReference(TPZCompEl *elp) { fReference = elp; }
@@ -280,7 +287,7 @@ virtual int Type() =0;
   void ResetReference() { fReference = NULL; }
 
   /**equivalent to Print*/
-  friend ostream& operator<<(ostream &s,TPZGeoEl &el);
+  friend std::ostream& operator<<(std::ostream &s,TPZGeoEl &el);
 
   /**divides the element and puts the resulting elements in the vector*/
   virtual void Divide(TPZVec<TPZGeoEl *> &pv);
@@ -490,7 +497,7 @@ inline void TPZGeoEl::Divide(TPZVec<TPZGeoEl *> &) {
   PZError << "TPZGeoEl::Divide is called.\n";
 }
 //inline void TPZGeoEl::NodeFaceIds(TPZVec<int> &ids,int face) {
-//	cout << "TPZGeoEl::NodeFaceIds is called." << endl;
+//	cout << "TPZGeoEl::NodeFaceIds is called." << std::endl;
 //}
 
 
@@ -500,7 +507,7 @@ inline void TPZGeoEl::Divide(TPZVec<TPZGeoEl *> &) {
 #include "pzgeoelbc.h"
 
 inline TPZGeoElSide TPZGeoEl::HigherDimensionSides(int side,int targetdimension){//S�PARA TESTAR CONTINUIDADE - APAGAR DEPOIS
-  cout << "TPZGeoEl::HigherDimensionSides is called." << endl;
+  std::cout << "TPZGeoEl::HigherDimensionSides is called." << std::endl;
   return TPZGeoElSide();
 }
 #endif

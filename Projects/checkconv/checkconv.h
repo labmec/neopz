@@ -5,7 +5,6 @@
 #include <cmath>
 #include "pztempmat.h"
 
-using namespace std;
 
 template <class TConv>
 void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<REAL> &coefs){

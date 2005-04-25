@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.9 2004-10-06 19:23:31 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.10 2005-04-25 02:31:49 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -38,7 +38,7 @@ int TPZSubCompMesh::main() {
 	TPZGeoMesh geo;
 
 	//Define the output file name
-	ofstream output("output.dat");\
+	std::ofstream output("output.dat");\
 
 	//Set the basic coordinate nodes
 	double coordstore[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};
@@ -141,23 +141,23 @@ int TPZSubCompMesh::main() {
 //	int a=1;
 	/*int m1, m2;
 	while (a != 0){
-		cout << "mesh 1 e 2\n";
+		std::cout << "mesh 1 e 2\n";
 		cin >> m1 >> m2;
 
 		for (int i=0; i<11; i++){
 			if (&mesh == sub[m1]->CommonMesh(sub[m2])){
-				cout << 10 << "\n";
+				std::cout << 10 << "\n";
 				break;
 			}
 			if (sub[i] == sub[m1]->CommonMesh(sub[m2])){
-				cout << i << "\n";
+				std::cout << i << "\n";
 				break;
 			}
 			else {
-				cout << sub[i] << "\t" << sub[m1]->CommonMesh(sub[m2]) << "\n";
+				std::cout << sub[i] << "\t" << sub[m1]->CommonMesh(sub[m2]) << "\n";
 			}
 		}
-		cout << "Digite 0 para sair \n";
+		std::cout << "Digite 0 para sair \n";
 		cin >> a;
 	}  */
 //	sub[4]->TransferElementFrom(&mesh,0);//gel[0]->Index());
@@ -361,7 +361,7 @@ void TPZSubCompMesh::MakeExternal(int local){
 		}
 	} else {
 		if(fConnectVec[local].FirstDepend() ) {
-			cout << "TPZSubCompMesh iconsistent data structure !";
+			std::cout << "TPZSubCompMesh iconsistent data structure !";
 		}
 	}
 }
@@ -396,7 +396,7 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 	}
 }
 
-void TPZSubCompMesh::Prints(ostream &out){
+void TPZSubCompMesh::Prints(std::ostream &out){
 	out << "Sub Mesh" << (void *) this;	
 	TPZCompMesh::Print(out);
 	out.flush();
@@ -404,7 +404,7 @@ void TPZSubCompMesh::Prints(ostream &out){
 	for (i=0; i<fConnectVec.NElements(); i++){
 		out << "Node[" << i <<"]\t" << fExternalLocIndex[i];
 		if (fExternalLocIndex[i] != -1) out << "Index in father mesh:\t" << fConnectIndex[fExternalLocIndex[i]];
-		out << endl;
+		out << std::endl;
 	}
 }
 		
@@ -415,7 +415,7 @@ void TPZSubCompMesh::MakeInternal(int local){
 	TPZCompMesh *father = FatherMesh();
 	int superind = fConnectIndex[fExternalLocIndex[local]];
 	if(father && RootMesh(local) != father) {
-		cout << "ERROR";
+		std::cout << "ERROR";
 	}
 	TPZConnect::TPZDepend *listdepend = father->ConnectVec()[superind].FirstDepend();
 	while(listdepend) {
@@ -486,7 +486,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 	}
 	//TPZCompMesh::Print();
 	//father->Print();
-	//cout.flush();
+	//std::cout.flush();
 }
 
 void TPZSubCompMesh::SetConnectIndex(int inode, int index){
@@ -496,20 +496,20 @@ void TPZSubCompMesh::SetConnectIndex(int inode, int index){
 int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
 	if(mesh == this) return elindex;
 		if (! IsAllowedElement(mesh,elindex)) { 
-		cout <<"TPZSubCompMesh::TransferElementFrom ERROR: trying to transfer an element not allowed" << endl;	
+		std::cout <<"TPZSubCompMesh::TransferElementFrom ERROR: trying to transfer an element not allowed" << std::endl;	
 		return -1;
 	}
 	if (mesh != FatherMesh()){
 		elindex = FatherMesh()->TransferElementFrom(mesh,elindex);
 	}
 	if (CommonMesh(mesh) != mesh){
-		cout <<"TPZSubCompMesh::TransferElementFrom ERROR: mesh is not supermesh" << endl;
+		std::cout <<"TPZSubCompMesh::TransferElementFrom ERROR: mesh is not supermesh" << std::endl;
 		return -1;
 	}
 	TPZCompMesh *father = FatherMesh();
 	TPZCompEl *cel = father->ElementVec()[elindex];
 	if (!cel) {
-		cout <<"TPZSubCompMesh::TransferElementFrom ERROR: element not existing" << endl;
+		std::cout <<"TPZSubCompMesh::TransferElementFrom ERROR: element not existing" << std::endl;
 		return -1;
 	}
 	int i,ncon = cel->NConnects();
@@ -530,7 +530,7 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
 int TPZSubCompMesh::TransferElementTo(TPZCompMesh *mesh, int elindex){
 	TPZCompMesh *common = CommonMesh(mesh);
 	if ( common!= mesh){
-		cout <<"TPZSubCompMesh::TransferElementTo ERROR: mesh is not supermesh" << endl;
+		std::cout <<"TPZSubCompMesh::TransferElementTo ERROR: mesh is not supermesh" << std::endl;
 		return -1;
 	}
 	if(mesh == this) return elindex;
@@ -542,12 +542,12 @@ int TPZSubCompMesh::TransferElementTo(TPZCompMesh *mesh, int elindex){
 
 	TPZCompMesh *father = FatherMesh();
 	if(elindex >= ElementVec().NElements()){
-		cout <<"TPZSubCompMesh::TransferElementTo ERROR: not possible transfer non existing element" << endl;
+		std::cout <<"TPZSubCompMesh::TransferElementTo ERROR: not possible transfer non existing element" << std::endl;
 		return -1;
 	}
 	TPZCompEl *cel = ElementVec()[elindex];
 	if (!cel) {
-		cout <<"TPZSubCompMesh::TransferElementTo ERROR: not possible transfer null element" << endl;
+		std::cout <<"TPZSubCompMesh::TransferElementTo ERROR: not possible transfer null element" << std::endl;
 		return -1;
 	}
 	int i,ncon = cel->NConnects();
@@ -635,10 +635,10 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		Assemble (ek.fMat,ef.fMat);
 	}
 	else{
-		fAnalysis->Run(cout);
+		fAnalysis->Run(std::cout);
 		fAnalysis->CondensedSolution(ek.fMat,ef.fMat);
 //		ek.fMat->Print("ek reduzido");
-//		cout.flush();
+//		std::cout.flush();
 	}
 	//ek.fMat->Print();
 }
@@ -662,9 +662,9 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 
 	int i=0, numinternal=0;
 	int nconnects = fConnectVec.NElements();
-//cout << "fExternalLocIndex\n";
-//for(i=0; i<nconnects; i++) cout << fExternalLocIndex[i] << ' ';
-//cout << endl;
+//std::cout << "fExternalLocIndex\n";
+//for(i=0; i<nconnects; i++) std::cout << fExternalLocIndex[i] << ' ';
+//std::cout << std::endl;
 	for(i=0;i<nconnects; i++){
 		if (fExternalLocIndex[i]==-1){
 			// which are not free and which are not constrained
@@ -708,7 +708,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 		}
 	}
 	//for (i=0;i<NConnects();i++){
-	//	cout << "Permute [" <<i <<"]\n";
+	//	std::cout << "Permute [" <<i <<"]\n";
 	//}
 	Permute(permute);
 }

@@ -11,6 +11,7 @@
 #include "pzmaterial.h"
 #include "TPZCompElDisc.h"
 #include "TPZAgglomerateEl.h"
+using namespace std;
 
 TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial *mat)
 {

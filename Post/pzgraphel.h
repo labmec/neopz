@@ -3,7 +3,6 @@
 
 
 #include <iostream>
-using namespace std;
 #include <string.h>
 #include "pzcompel.h"
 #include "pzgraphnode.h"
@@ -48,7 +47,7 @@ public:
   void DrawSolution(TPZGraphNode *n,int solind, TPZDrawStyle st);
   void DrawSolution(TPZGraphNode *n,TPZVec<int> &solind, TPZDrawStyle st);
 
-  void Print(ostream &out);
+  void Print(std::ostream &out);
 
   virtual long EqNum(TPZVec<int> &co) = 0;
 

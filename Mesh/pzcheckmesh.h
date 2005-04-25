@@ -1,4 +1,4 @@
-//$Id: pzcheckmesh.h,v 1.4 2005-02-28 22:08:50 phil Exp $
+//$Id: pzcheckmesh.h,v 1.5 2005-04-25 02:31:46 phil Exp $
 
 #ifndef PZGHECKMESHH
 #define PZCHECKMESHH
@@ -7,10 +7,9 @@
 #include "pzcompel.h"
 #include "pzcmesh.h"
 #include  <fstream>
-using namespace std;
 
 //class TPZCompMesh;
-//class ostream;
+//class std::ostream;
 //class TPZCompElSide;
 
 template <class T, int N>
@@ -22,22 +21,22 @@ class TPZCheckMesh {
 
  protected:
   TPZCompMesh *fMesh;
-  ostream *fOut;
+  std::ostream *fOut;
 
  public:
 	 int CheckConstraintDimension();
 	 int CheckElementShapeDimension();
 	 int CheckDimensions();
 
-  TPZCheckMesh(TPZCompMesh *mesh, ostream *out);
+  TPZCheckMesh(TPZCompMesh *mesh, std::ostream *out);
   /**
-   * This method will write a report to the ostream about all connects
+   * This method will write a report to the std::ostream about all connects
    * which potentially depend on the connect passed in the argument list
    */
   void DependencyReport(int connect);
 
   /**
-   * This method will write a report to the ostream about all connects
+   * This method will write a report to the std::ostream about all connects
    * which potentially depend on the connect indicated by the element/side
    * argument
    */

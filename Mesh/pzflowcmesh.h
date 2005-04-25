@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.h,v 1.13 2005-02-28 22:08:52 phil Exp $
+//$Id: pzflowcmesh.h,v 1.14 2005-04-25 02:31:48 phil Exp $
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -12,7 +12,6 @@ class TPZMaterial;
 class TPZGeoMesh;
 #include <iostream>
 #include "pzcmesh.h"
-//using namespace std;
 
 /// Computational mesh with additional data for CFD problems
 /**

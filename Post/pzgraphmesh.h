@@ -4,7 +4,6 @@
 
 
 #include <iostream>
-using namespace std;
 
 #include <string.h>
 #include "pzcompel.h"
@@ -39,7 +38,7 @@ public:
   int Res() {return fResolution;}
   void SetMaterial(TPZMaterial *mat) {fMaterial = mat;}
   virtual void SetCompMesh(TPZCompMesh *mesh, TPZMaterial *mat);
-  ostream *Out();
+  std::ostream *Out();
   virtual void DrawNodes();
   virtual void DrawMesh(int numcases);
   virtual void DrawConnectivity(MElementType type);
@@ -47,10 +46,10 @@ public:
   virtual void DrawSolution(char * var = 0);
   virtual void DrawSolution(int step, REAL time);
   TPZDrawStyle Style();
-  void SetOutFile(ostream &out);
+  void SetOutFile(std::ostream &out);
   void SetResolution(int res){ fResolution = res; SequenceNodes();}
 	
-  void Print(ostream &out);
+  void Print(std::ostream &out);
   void SetNames(TPZVec<char *>&scalarnames, TPZVec<char *>&vecnames);
 	
 protected:
@@ -61,7 +60,7 @@ protected:
   TPZAdmChunkVector<TPZGraphNode> fNodeMap;
   int fResolution;
   TPZDrawStyle fStyle;
-  ostream *fOutFile;
+  std::ostream *fOutFile;
   TPZVec<char *> fScalarNames, fVecNames;
   virtual void SequenceNodes();
 

@@ -48,7 +48,7 @@ virtual void SetBC(TPZGeoMesh *gr, int side, int bc);
 
 virtual void SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, int bc);
 
-virtual void Print( char *name = NULL, ostream &out = cout );
+virtual void Print( char *name = NULL, std::ostream &out = std::cout );
 
 virtual void SetElementType(int type);
 

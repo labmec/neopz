@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.9 2004-04-26 13:33:55 phil Exp $
+//$Id: pzconnect.cpp,v 1.10 2005-04-25 02:31:47 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -12,6 +12,7 @@
 #include "pzsave.h"
 #include "pzstream.h"
 
+using namespace std;
 
 TPZConnect::TPZConnect() {
   fSequenceNumber = 0;

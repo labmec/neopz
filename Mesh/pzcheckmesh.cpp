@@ -1,4 +1,4 @@
-//$Id: pzcheckmesh.cpp,v 1.5 2004-10-06 19:19:31 phil Exp $
+//$Id: pzcheckmesh.cpp,v 1.6 2005-04-25 02:31:46 phil Exp $
 
 // _*_ c++ _*_
 //#include <fstream>
@@ -13,7 +13,7 @@
 //#include "pzcmesh.h"
 //#include "pzcompel.h"
 
-
+using namespace std;
 
 
 TPZCheckMesh::TPZCheckMesh(TPZCompMesh *mesh, ostream *out) {

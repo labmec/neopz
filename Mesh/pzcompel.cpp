@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.18 2005-04-19 18:59:50 tiago Exp $
+//$Id: pzcompel.cpp,v 1.19 2005-04-25 02:31:46 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -38,6 +38,8 @@
 
 #include <math.h>
 #include <stdlib.h>
+
+using namespace std;
 
 // log4cxx
 #include <log4cxx/logger.h>
@@ -812,7 +814,7 @@ void TPZCompEl::CalcResidual(TPZElementMatrix &ef){
 TPZGeoEl * TPZCompEl::GetRefElPatch(){
   LOG4CXX_INFO(logger, "Entering GetRefElPatch");
   stringstream sout;
-  sout << "Obtendo elemento geométrico de referência " << Index() << endl;
+  sout << "Obtendo elemento geomï¿½rico de referï¿½cia " << Index() << endl;
   Print(sout);
   TPZGeoEl *ref = Reference();
   if (!ref) {
@@ -855,7 +857,7 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
 
 REAL TPZCompEl::MaximumRadiusOfEl(){
   LOG4CXX_INFO(logger, "Entering MaximumRadiusOfEl");
-  //O elemento deve ser a envoltura convexa dos seus vértices
+  //O elemento deve ser a envoltura convexa dos seus vï¿½tices
   if(!this) {
     LOG4CXX_ERROR(logger,"TPZCompMesh::MaximumRadiusOfEl() null element");
   }
@@ -957,7 +959,7 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
   thisside.EqualLevelElementList(list,0,1);//retorna distinto ao atual ou nulo
   int size = list.NElements();
   //espera-se ter os elementos computacionais esquerdo e direito 
-  //já criados antes de criar o elemento interface
+  //jï¿½criados antes de criar o elemento interface
   if(size){
     //Interface has the same material of the neighbour with lesser dimension.
     //It makes the interface has the same material of boundary conditions (TPZCompElDisc with interface dimension)
@@ -973,7 +975,7 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
     }
     
     TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
-    //isto acertou as vizinhan¢as da interface geométrica com o atual
+    //isto acertou as vizinhanas da interface geomï¿½rica com o atual
     int index;
 
 
@@ -991,11 +993,11 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
 
 
     if(Dimension() > list0->Dimension()){
-       //o de volume é o direito caso um deles seja BC
+       //o de volume ï¿½o direito caso um deles seja BC
        //a normal aponta para fora do contorno
        newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,this,list0, thisside, neighside);
     } else {
-       //caso contrário ou caso ambos sejam de volume 
+       //caso contrï¿½io ou caso ambos sejam de volume 
        newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,list0,this, neighside, thisside);
     }
     LOG4CXX_WARN(logger, "Exiting CreateInterface - NULL interface used");

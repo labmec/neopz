@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.22 2005-04-19 18:45:00 tiago Exp $
+//$Id: pzcmesh.h,v 1.23 2005-04-25 02:31:46 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -12,7 +12,6 @@
 #include "pzconnect.h"
 //#include "pzanalysis.h"
 //#include <iostream>
-//using namespace std;
 
 #include <set>
 #include <string>
@@ -298,13 +297,13 @@ public:
    * Prints mesh data
    * @param out indicates the device where the data will be printed
    */
-  void Print(ostream & out = cout);
+  void Print(std::ostream & out = std::cout);
 
   /**
    * Print the solution by connect index
    * @param out indicates the device where the data will be printed
    */
-   void ConnectSolution(ostream & out);
+   void ConnectSolution(std::ostream & out);
   //@}
 
   /**

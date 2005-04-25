@@ -1,4 +1,4 @@
-//$Id: pzgnode.cpp,v 1.4 2004-09-07 23:41:34 phil Exp $
+//$Id: pzgnode.cpp,v 1.5 2005-04-25 02:31:49 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -9,7 +9,7 @@
 #include "pzvec.h"
 #include "pzgmesh.h"
 
-
+using namespace std;
 TPZGeoNode::TPZGeoNode(int id,TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
   mesh.SetNodeIdUsed(id);
   fId = id;
@@ -22,7 +22,7 @@ TPZGeoNode::TPZGeoNode() {
   fId = -1;
   for(int i=0;i<3;i++) fCoord[i] = 0.;
 }
-TPZGeoNode::TPZGeoNode(TPZGeoNode &node) {
+TPZGeoNode::TPZGeoNode(const TPZGeoNode &node) {
   fId = node.Id();
   for(int i=0;i<3;i++) fCoord[i] = node.Coord(i);
 }
@@ -41,7 +41,12 @@ void TPZGeoNode::Initialize(int id,TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
   for(i=0;i<dim;i++) fCoord[i]=coord[i];
   for(;i<3;i++) fCoord[i]=0.;
 }
-
+void TPZGeoNode::Initialize(const TPZGeoNode &node,TPZGeoMesh &mesh) {
+  fId = node.fId;
+  mesh.SetNodeIdUsed(fId);
+  int i;
+  for(i=0;i<3;i++) fCoord[i]=node.fCoord[i];
+}
 
 void TPZGeoNode::SetCoord(REAL *x,int dim) {
   if(dim > 3 || dim < 1) {

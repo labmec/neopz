@@ -5,6 +5,7 @@
 #include "pzmanvector.h"
 #include "pzerror.h"
 #include "pzreal.h"
+using namespace std;
 
 namespace pzshape {
 

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.20 2005-02-28 22:08:51 phil Exp $
+// $Id: pzelctemp.cpp,v 1.21 2005-04-25 02:31:47 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -87,7 +87,7 @@ template<class TGEO, class TSHAPE>
 void TPZIntelGen<TGEO,TSHAPE>::SetConnectIndex(int i, int connectindex){
 #ifndef NODEBUG
   if(i<0 || i>= TSHAPE::NSides) {
-    cout << " TPZIntelGen<TGEO,TSHAPE>::SetConnectIndex index " << i <<
+    std::cout << " TPZIntelGen<TGEO,TSHAPE>::SetConnectIndex index " << i <<
       " out of range\n";
     return;
   }
@@ -164,8 +164,8 @@ int TPZIntelGen<TGEO,TSHAPE>::ConnectIndex(int con) {
 
 #ifndef NODEBUG
   if(con<0 || con>= TSHAPE::NSides) {
-    cout << "TPZIntelgen::ConnectIndex wrong parameter con " << con << 
-      " NSides " << TSHAPE::NSides << endl;
+    std::cout << "TPZIntelgen::ConnectIndex wrong parameter con " << con << 
+      " NSides " << TSHAPE::NSides << std::endl;
     return -1;
   }
 
@@ -188,7 +188,7 @@ void TPZIntelGen<TGEO,TSHAPE>::SetPreferredSideOrder(int order) {
 template<class TGEO, class TSHAPE>
 void TPZIntelGen<TGEO,TSHAPE>::SetSideOrder(int side, int order) {
   if(side<0 || side >= TSHAPE::NSides || (side >= TSHAPE::NNodes && order <1)) {
-    PZError << "TPZIntelGen::SetSideOrder. Bad paramenter side " << side << " order " << order << endl;
+    PZError << "TPZIntelGen::SetSideOrder. Bad paramenter side " << side << " order " << order << std::endl;
     return;
   }
   if(side>= TSHAPE::NNodes) {
@@ -284,7 +284,7 @@ TPZTransform TPZIntelGen<TGEO,TSHAPE>::TransformSideToElement(int side){
 template<class TGEO, class TSHAPE>
 int TPZIntelGen<TGEO,TSHAPE>::ClassId() const
 {
-  cout << "TPZIntelGen<TGEO,TSHAPE>::ClassId() type not specified at " << __FILE__ << ':' << __LINE__ << endl;
+  std::cout << "TPZIntelGen<TGEO,TSHAPE>::ClassId() type not specified at " << __FILE__ << ':' << __LINE__ << std::endl;
   return -1;
 }
 */
@@ -355,19 +355,19 @@ using namespace pzgeom;
 using namespace pzshape;
 
 void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-  if(dimension == 0) cout << "A point element has no graphical representation\n";
+  if(dimension == 0) std::cout << "A point element has no graphical representation\n";
 }
 
 void TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-  if(dimension == 3) cout << "A tetrahedra element has no graphical representation\n";
+  if(dimension == 3) std::cout << "A tetrahedra element has no graphical representation\n";
 }
 
 void TPZIntelGen<TPZGeoPrism,TPZShapePrism>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-  if(dimension == 3) cout << "A prism element has no graphical representation\n";
+  if(dimension == 3) std::cout << "A prism element has no graphical representation\n";
 }
 
 void TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-  if(dimension == 3) cout << "A pyramid element has no graphical representation\n";
+  if(dimension == 3) std::cout << "A pyramid element has no graphical representation\n";
 }
 #ifndef DOS
 

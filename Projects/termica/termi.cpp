@@ -50,6 +50,7 @@
 //class TPZVec;
 //#define NOTDEBUG
 
+using namespace std;
 //Método para inserção de materiais
 void InicializarMaterial(TPZCompMesh &cmesh);
 

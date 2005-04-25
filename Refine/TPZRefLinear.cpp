@@ -6,6 +6,7 @@
 #include "pzgmesh.h"
 
 using namespace pzshape;
+using namespace std;
 
 namespace pzrefine {
 static int InNeigh[2][1][3] = {

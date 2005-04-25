@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.16 2005-04-19 21:05:25 tiago Exp $
+//$Id: pzintel.h,v 1.17 2005-04-25 02:31:49 phil Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -90,7 +90,7 @@ public:
   /**
    * Print the relevant data of the element to the output stream
    */
-  virtual void Print(ostream &out = cout);
+  virtual void Print(std::ostream &out = std::cout);
 
   /**return the geometric element to which this element references*/
 //  virtual TPZGeoEl *Reference() const { return fReference;}
@@ -182,7 +182,7 @@ public:
   virtual void SetMaterial(TPZMaterial *mat) {fMaterial = mat;}
 
   virtual void SetIntegrationRule(int order) {
-    cout << "TPZInterpolatedElement::SetIntegrationRule called\n";
+    std::cout << "TPZInterpolatedElement::SetIntegrationRule called\n";
   }
   
   /**Sets the interpolation order for the interior of the element*/
@@ -559,12 +559,12 @@ public:
 };
 
 inline void TPZInterpolatedElement::SetConnectDiscontinuous(int /*i*/) {
-  cerr << "TPZInterpolatedElement::SetConnectDiscontinuous is called.\n";
+  std::cerr << "TPZInterpolatedElement::SetConnectDiscontinuous is called.\n";
 }
 inline void TPZInterpolatedElement::SetConnectContinuous(int /*i*/,TPZFMatrix &/*mat*/) {
 }
 inline void TPZInterpolatedElement::MakeConnectDiscontinuous(int icon) {
-  cerr << "TPZInterpolatedElement::MakeConnectDiscontinuous is called, Permission denied.\n";
+  std::cerr << "TPZInterpolatedElement::MakeConnectDiscontinuous is called, Permission denied.\n";
 }
 
 #endif

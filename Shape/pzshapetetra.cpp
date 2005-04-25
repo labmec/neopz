@@ -1,4 +1,4 @@
-// $Id: pzshapetetra.cpp,v 1.5 2005-02-28 22:11:26 phil Exp $
+// $Id: pzshapetetra.cpp,v 1.6 2005-04-25 02:42:19 phil Exp $
 #include "pzshapetetra.h"
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
@@ -6,6 +6,7 @@
 #include "pzmanvector.h"
 #include "pzerror.h"
 #include "pzreal.h"
+using namespace std;
 
 /// groups all classes dedicated to the computation of shape functions
 namespace pzshape {

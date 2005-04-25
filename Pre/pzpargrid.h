@@ -45,7 +45,7 @@ public:
 
 void SetBC(TPZGeoMesh &gr, int side, int bc);
 
-	void Print( char *name = NULL, ostream &out = cout );
+	void Print( char *name = NULL, std::ostream &out = std::cout );
 
 	void SetElementType(int type) {
 		fElementType = type;

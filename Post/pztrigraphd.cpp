@@ -1,4 +1,5 @@
 #include "pztrigraphd.h"
+using namespace std;
 
 TPZGraphElTd::TPZGraphElTd(TPZCompEl *c, TPZGraphMesh *g) : TPZGraphEl(c,g,fConnect){
 	

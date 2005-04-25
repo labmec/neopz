@@ -23,6 +23,7 @@
 #include "pzvec.h"
 #include "pzstack.h"
 
+using namespace std;
 
 TPZGenPartialGrid::TPZGenPartialGrid(TPZVec<int> &nx, TPZVec<int> &rangex, TPZVec<int> &rangey, TPZVec<REAL> &x0,TPZVec<REAL> &x1) : fX0(x0), fX1(x1),
 		fNx(nx), fDelx(2)

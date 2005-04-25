@@ -35,6 +35,8 @@ Contains the methods definition for (abstract) base class TPZGeoEl.
 #include <stdio.h>
 #include <stdlib.h>
 
+using namespace std;
+
 class TPZRefPattern;
 
 TPZFMatrix TPZGeoEl::gGlobalAxes;

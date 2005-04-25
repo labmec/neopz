@@ -1,10 +1,11 @@
-// $Id: pzshapetriang.cpp,v 1.5 2005-02-28 22:11:26 phil Exp $
+// $Id: pzshapetriang.cpp,v 1.6 2005-04-25 02:42:19 phil Exp $
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
 #include "pzmanvector.h"
 #include "pzerror.h"
 #include "pzreal.h"
+using namespace std;
 
 namespace pzshape {
 

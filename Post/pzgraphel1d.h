@@ -28,7 +28,7 @@ virtual int NElements();
 
 virtual void Connectivity(TPZDrawStyle st = EDXStyle);
 
-void Print(ostream &out);
+void Print(std::ostream &out);
 
 virtual long EqNum( TPZVec<int> &co);
 

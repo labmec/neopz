@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.23 2005-02-28 22:08:52 phil Exp $
+//$Id: TPZAgglomerateEl.h,v 1.24 2005-04-25 02:31:49 phil Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -17,7 +17,6 @@ class TPZGeoElSide;
 class TPZInterfaceElement;
 struct TPZElementMatrix;
 class TPZAgglomerateMesh;
-//using namespace std;
 
 /// Implements an agglomerated discontinuous element
 /**
@@ -86,7 +85,7 @@ public:
       disc = dynamic_cast<TPZCompElDisc *>(this->SubElement(i) );
 #ifdef DEBUG
       if (!disc) {
-	PZError << "TPZAgglomerateElement::InnerRadius FineElement must be a TPZCompElDisc" << endl;
+	PZError << "TPZAgglomerateElement::InnerRadius FineElement must be a TPZCompElDisc" << std::endl;
 	exit (-1);
       }
 #endif
@@ -217,7 +216,7 @@ virtual REAL LesserEdgeOfEl();
   /**
    * it prints the features of the element 
    */
-  virtual void Print(ostream & out = cout);
+  virtual void Print(std::ostream & out = std::cout);
 
   /**
    * create copy of the materials tree
@@ -255,7 +254,7 @@ virtual REAL LesserEdgeOfEl();
 
   static TPZAgglomerateMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);
 
-  static void ComputeNeighbours(TPZCompMesh *mesh, map<TPZCompElDisc *,set<TPZCompElDisc *> > &neighbours);
+  static void ComputeNeighbours(TPZCompMesh *mesh, std::map<TPZCompElDisc *,std::set<TPZCompElDisc *> > &neighbours);
   
   /**
   * returns the unique identifier for reading/writing objects to streams

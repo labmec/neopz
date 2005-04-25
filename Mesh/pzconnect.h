@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.7 2005-02-28 22:08:50 phil Exp $
+//$Id: pzconnect.h,v 1.8 2005-04-25 02:31:47 phil Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -10,7 +10,6 @@
 #include "pzstack.h"
 #include <iostream>
 
-using namespace std;
 
 class TPZBndCond;
 class TPZCompMesh;
@@ -97,7 +96,7 @@ class TPZConnect {
   /**Print the information for the connect element. The mesh
      argument allows the object to identify the number of variables
      associated with it and the solution*/
-  void Print(TPZCompMesh &mesh, ostream & out = cout);
+  void Print(TPZCompMesh &mesh, std::ostream & out = std::cout);
 
   /**Initialize with zero fNElConnected*/
   void ResetElConnected() { fNElConnected = 0; }
@@ -159,7 +158,7 @@ struct TPZConnectBC {
     fBC = bc;
   }
 
-  void Print(TPZCompMesh &mesh,ostream &out = cout);
+  void Print(TPZCompMesh &mesh,std::ostream &out = std::cout);
 
 };
 

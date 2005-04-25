@@ -1,6 +1,7 @@
 #include "pztransfer.h"
 #include "pzfmatrix.h"
 #include <stdlib.h>
+using namespace std;
 
 TPZTransfer::TPZTransfer() :
   fNStateVar(0),fRowBlock(),fColBlock(),fColPosition(0),fNumberofColumnBlocks(0),fColumnBlockPosition(0),

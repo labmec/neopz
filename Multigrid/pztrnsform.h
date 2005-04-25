@@ -40,7 +40,7 @@ class TPZTransform {
   /**Transforms the vector*/
   void Apply(TPZVec<REAL> &vectorin,TPZVec<REAL> &vectorout);
 
-  void PrintInputForm(ostream &out);
+  void PrintInputForm(std::ostream &out);
 
   int Compare(TPZTransform &t,REAL tol = 1.e-6);
 

@@ -1,4 +1,4 @@
-//$Id: pzgeoelbc.h,v 1.4 2005-02-28 22:08:52 phil Exp $
+//$Id: pzgeoelbc.h,v 1.5 2005-04-25 02:31:48 phil Exp $
 
 #ifndef PZGEOELBCH
 #define PZGEOELBCH
@@ -6,7 +6,6 @@
 #include <iostream>
 #include "pzsave.h"
 
-using namespace std;
 
 class TPZGeoMesh;
 class TPZGeoEl;
@@ -33,7 +32,7 @@ struct TPZGeoElBC : public TPZSaveable {
 
   TPZGeoElBC(TPZGeoElSide &elside,int id, TPZGeoMesh &mesh);
 
-  void Print(ostream &out = cout);
+  void Print(std::ostream &out = std::cout);
  
 virtual int ClassId() const;
 

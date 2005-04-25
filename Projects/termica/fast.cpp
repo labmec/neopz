@@ -22,6 +22,8 @@
 #include "pzstepsolver.h"
 #include "TPZCopySolve.h"
 
+using namespace std;
+
 void RunFast()
 {
   

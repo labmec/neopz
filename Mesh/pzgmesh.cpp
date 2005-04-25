@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.20 2005-02-28 22:08:52 phil Exp $
+//$Id: pzgmesh.cpp,v 1.21 2005-04-25 02:31:48 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -26,6 +26,7 @@ Method definition for class TPZGeoMesh.*/
 #include <TPZRefPattern.h>
 #include <tpzgeoelrefpattern.h>
 
+using namespace std;
 
 TPZGeoMesh::TPZGeoMesh() : fElementVec(0), fNodeVec(0), fCosysVec(0),
   fBCElementVec(0) {
@@ -61,16 +62,16 @@ void TPZGeoMesh::CleanUp() {
 //  fBCNodeVec.Resize(0);
 //  fBCNodeVec.CompactDataStructure(1);
 
-  map< int,map<string,TPZRefPattern *> >::iterator first = fRefPatterns.begin();
-  map< int,map<string,TPZRefPattern *> >::iterator last = fRefPatterns.end();
-  map< int,map<string,TPZRefPattern *> >::iterator  iter;
+  map< MElementType,list< TPZRefPattern *> >::iterator first = fRefPatterns.begin();
+  map< MElementType,list<TPZRefPattern *> >::iterator last = fRefPatterns.end();
+  map< MElementType,list<TPZRefPattern *> >::iterator  iter;
   for (iter = first; iter != last; iter++){
-    map<string,TPZRefPattern *> &map_el = (*iter).second;
-    map<string,TPZRefPattern *>::iterator name_first = map_el.begin();
-    map<string,TPZRefPattern *>::iterator name_last = map_el.end();
-    map<string,TPZRefPattern *>::iterator name_iter;    
+    list<TPZRefPattern *> &map_el = (*iter).second;
+    list<TPZRefPattern *>::iterator name_first = map_el.begin();
+    list<TPZRefPattern *>::iterator name_last = map_el.end();
+    list<TPZRefPattern *>::iterator name_iter;    
     for(name_iter = name_first; name_iter != name_last; name_iter++){
-      TPZRefPattern *refpat = (*name_iter).second;
+      TPZRefPattern *refpat = (*name_iter);
       delete refpat;
     }
   }
@@ -336,7 +337,7 @@ void TPZGeoMesh::BuildConnectivity()
 	      for(in=0; in<nneigh; in++) {
 		if(neighbours[in].Side() == -1) 
 		  {
-		    cout << "TPZGeoMesh::BuildConnectivity : Inconsistent mesh detected!\n";
+		    std::cout << "TPZGeoMesh::BuildConnectivity : Inconsistent mesh detected!\n";
 		    continue;
 		  }
 		gelside.SetConnectivity(neighbours[in]);
@@ -535,7 +536,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
                               nodeindexes, matid, *this, index );
     default:
       PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
-              << " type = " << type << endl;
+              << " type = " << type << std::endl;
     return NULL;
   } else {
     switch( type ){
@@ -565,38 +566,46 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
                                 nodeindexes, matid, *this, index, 0 );
       default:
         PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
-                << " type = " << type << endl;
+                << " type = " << type << std::endl;
       return NULL;
     }
   }
   return NULL;
 }
 
+/** check whether the refinement pattern already exists */
+TPZRefPattern *TPZGeoMesh::FindRefPattern(TPZRefPattern *refpat)
+{
+  if(!refpat) return 0;
+  MElementType eltype = refpat->Element(0)->Type();
+  std::list<TPZRefPattern *>::iterator it;
+  for(it=fRefPatterns[eltype].begin(); it != fRefPatterns[eltype].end(); it++)
+  {
+    if(*(*it) == *refpat) return (*it);
+  }
+  return 0;
+}
+  
+
 void TPZGeoMesh::InsertRefPattern(TPZRefPattern *refpat){
   if (!refpat) {
-    PZError << "TPZGeoMesh::InsertRefPattern ERROR : NULL refinement pattern! " << endl;
+    PZError << "TPZGeoMesh::InsertRefPattern ERROR : NULL refinement pattern! " << std::endl;
     return;
   }
-  int eltype = refpat->Element(0)->Type();
-  string name = refpat->GetName();
-  map<int,map<string,TPZRefPattern *> >::iterator eltype_iter = fRefPatterns.find(eltype);
-
-  if (eltype_iter == fRefPatterns.end()) {
-    fRefPatterns [eltype][name] = refpat;
-    return;
-  }
-  
-  map <string,TPZRefPattern *>::iterator name_iter = fRefPatterns[eltype].find(name);
-  if (name_iter != fRefPatterns[eltype].end()) return; // ja existe...
-  fRefPatterns [eltype][name] = refpat;
+  MElementType eltype = refpat->Element(0)->Type();
+  fRefPatterns[eltype].push_back(refpat);
 }
 
-TPZRefPattern * TPZGeoMesh::GetRefPattern(int eltype, string name){
+TPZRefPattern * TPZGeoMesh::GetRefPattern(MElementType eltype, const std::string &name){
   TPZRefPattern *refpat = 0;
-  map<int,map<string,TPZRefPattern *> >::iterator eltype_iter = fRefPatterns.find(eltype);
+  map<MElementType,list<TPZRefPattern *> >::iterator eltype_iter = fRefPatterns.find(eltype);
   if (eltype_iter == fRefPatterns.end()) return refpat;
-  map <string,TPZRefPattern *>::iterator name_iter = fRefPatterns[eltype].find(name);
-  if (name_iter != fRefPatterns[eltype].end()) refpat = fRefPatterns[eltype][name];
+  list <TPZRefPattern *>::iterator name_iter = fRefPatterns[eltype].begin();
+  while(name_iter != fRefPatterns[eltype].end())
+  {
+    if((*name_iter)->GetName() == name) return (*name_iter);
+    name_iter++;
+  }
   return refpat;
 
 }
@@ -666,7 +675,7 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){
 */
 /** Verifies if the side based refinement pattern exists. If the refinement pattern doesn't exists return a Null refinement Pattern. */
 TPZRefPattern * TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side){
-  int type = gel->Type();
+  MElementType type = gel->Type();
   //construct the named for the refinement pattern.
   string name = "SIDE_";
   TPZGeoElSide gelside (gel,side);
@@ -736,7 +745,7 @@ TPZRefPattern * TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side){
       break;
     }
     default:{
-      PZError << "TPZGeoMesh::GetRefPattern ERROR : Undefined element type " << type << endl;
+      PZError << "TPZGeoMesh::GetRefPattern ERROR : Undefined element type " << type << std::endl;
       return 0;
     }
   }

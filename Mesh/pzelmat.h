@@ -1,4 +1,4 @@
-//$Id: pzelmat.h,v 1.4 2005-02-28 22:08:52 phil Exp $
+//$Id: pzelmat.h,v 1.5 2005-04-25 02:31:48 phil Exp $
 
 #ifndef ELMATHPP
 #define ELMATHPP
@@ -52,7 +52,7 @@ struct TPZElementMatrix {
     return fConnect[i];
   }
 
-  void Print(TPZCompMesh &mesh, ostream &out);
+  void Print(TPZCompMesh &mesh, std::ostream &out);
 
   void SetMatrixSize(short NumBli, short NumBlj, short BlSizei, short BlSizej);
 
