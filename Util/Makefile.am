@@ -18,6 +18,6 @@ util_HEADERS = $(wildcard *.h)
 
 noinst_LIBRARIES = libpzutil.a
 
-libpzutil_a_SOURCES = pzmap.cpp pzstring.cpp pzline.cpp pzplane.cpp pznumeric.cpp pzpolynomial.cpp TPZTimer.cpp TPZTimer.h
+libpzutil_a_SOURCES = pzmap.cpp pzstring.cpp pzline.cpp pzplane.cpp pznumeric.cpp pzpolynomial.cpp TPZTimer.cpp tpzpermutation.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------

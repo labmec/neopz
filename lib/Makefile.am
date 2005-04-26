@@ -15,7 +15,7 @@ lib_LIBRARIES = libpz.a
 
 libpz_a_SOURCES =
 
-libpz_a_LIBADD = ../External/pzsloan.o ../Util/TPZTimer.o \
+libpz_a_LIBADD = ../External/pzsloan.o ../Util/TPZTimer.o ../Util/tpzpermutation.o\
 	../Matrix/tpzsparseblockdiagonal.o ../External/tpznodesetcompute.o ../Common/pzreal.o ../Util/pzmap.o \
 	../Util/pzstring.o ../Refine/pzrefpoint.o ../Refine/pzrefprism.o ../Refine/pzrefpyram.o ../Refine/pzrefquad.o \
 	../Refine/pzreftetrahedra.o ../Refine/pzreftriangle.o ../Refine/TPZRefCube.o \
