@@ -98,7 +98,7 @@ void TPZRefPattern::ReadPattern(){
       in >> nodes[incid];
     }
     int index;
-    TPZGeoEl *subel = fMesh.CreateGeoElement((MElementType) ntype,nodes,nummat,index);
+    TPZGeoEl *subel = fMesh.CreateGeoElement((MElementType) ntype,nodes,nummat,index,-1);
     if(el==0){
       father = subel;
       subel->SetRefPattern(this);
@@ -1013,6 +1013,7 @@ void TPZRefPattern::InsertPermuted(TPZGeoMesh &gmesh)
       refp->InsertPermuted(gmesh);
     }
   }
+  GenerateSideRefPatterns(gmesh);
 }
 
 void TPZRefPattern::CopyMesh(const TPZGeoMesh &gmesh,const TPZPermutation &permute)
@@ -1107,6 +1108,7 @@ void TPZRefPattern::GenerateSideRefPatterns(TPZGeoMesh &gmesh)
     if(NSideSubElements(is) == 1) continue;
     TPZRefPattern *sideref = new TPZRefPattern();
     BuildSideMesh(is, sideref->fMesh);
+    sideref->fNSubEl = sideref->fMesh.NElements()-1;
     sideref->ComputeTransforms();/**calcula as transforma�es entre filhos e pai*/
     sideref->ComputePartition();/**efetua a parti�o do elemento pai de acordo com os lados dos */
     sideref->fName = sideref->GenericName();
@@ -1131,7 +1133,6 @@ void TPZRefPattern::GenerateSideRefPatterns(TPZGeoMesh &gmesh)
    */
 void TPZRefPattern::BuildSideMesh(int side, TPZGeoMesh &gmesh)
 {
-  if(fSideRefPattern.NElements()) return;
   if(!fMesh.ElementVec().NElements()) return;
   TPZGeoEl *gel = fMesh.ElementVec()[0];
   TPZStack<int> allsides;
@@ -1167,7 +1168,7 @@ void TPZRefPattern::BuildSideMesh(int side, TPZGeoMesh &gmesh)
   }
   int matid = gel->MaterialId();
   int index;
-  TPZGeoEl *father = gmesh.CreateGeoElement(gel->Type(side),nodeindices,matid,index);
+  TPZGeoEl *father = gmesh.CreateGeoElement(gel->Type(side),nodeindices,matid,index,-1);
   int sidedim = father->Dimension();
   TPZStack<TPZGeoElSide> gelvec;
   SidePartition(gelvec, side);
@@ -1186,6 +1187,7 @@ void TPZRefPattern::BuildSideMesh(int side, TPZGeoMesh &gmesh)
     subel->SetFather(father);
   }
   gmesh.BuildConnectivity();
+//  gmesh.Print(std::cout);
 }
 
     /**
@@ -1221,4 +1223,55 @@ TPZRefPattern *TPZRefPattern::SideRefPattern(int side, TPZTransform &trans)
    }
    return 0;
  }
-    
+ 
+/**
+ * build a list of all refinement patterns compatible with the refinements of the neighbouring elements
+ */
+void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZRefPattern *> &refs)
+{
+  if(!gel) return;
+  refs.clear();
+  if(gel->HasSubElement()) 
+  {
+    refs.push_back(gel->GetRefPattern());
+    return;
+  }
+  // first we build the refinement patterns associated with the neighbours of the current element
+  int is,nsides,nnodes;
+  nsides = gel->NSides();
+  nnodes = gel->NNodes();
+  TPZManVector<TPZRefPattern *> SideRefPatterns(nsides,0);
+  for(is=nnodes; is<nsides; is++)
+  {
+    TPZGeoElSide gelside(gel,is);
+    TPZGeoElSide neigh = gelside.Neighbour();
+    while(neigh != gelside)
+    {
+      if(neigh.Element()->HasSubElement() && neigh.NSubElements2() > 1)
+      {
+        TPZRefPattern *refp = neigh.Element()->GetRefPattern();
+        if(refp)
+        {
+          TPZTransform trans = neigh.NeighbourSideTransform(gelside);
+          SideRefPatterns[is] = refp->SideRefPattern(is,trans);
+          break;
+        }
+      }
+      neigh=neigh.Neighbour();
+    }
+  }
+  // having the refinement patterns associated with the sides, look for compatible refinement patterns
+  std::list<TPZRefPattern *> reflist = gel->Mesh()->RefPatternList(gel->Type());
+  std::list<TPZRefPattern *>::iterator it;
+  for(it=reflist.begin(); it != reflist.end(); it++)
+  {
+    // compare the side refinement patterns
+    for(is=nnodes; is<nsides-1; is++) 
+    {
+      if(SideRefPatterns[is] && SideRefPatterns[is] != (*it)->SideRefPattern(is)) break;
+    }
+    // if all refinement patterns are equal
+    if(is == nsides-1) refs.push_back((*it));
+  }
+
+}

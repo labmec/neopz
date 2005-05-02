@@ -348,6 +348,17 @@ public:
      * Find the refinement pattern corresponding to the give transformation
      */
      TPZRefPattern *FindRefPattern(TPZTransform &trans);
+     
+     /**
+      * build a list of all refinement patterns compatible with the refinements of the neighbouring elements
+      */
+      static void GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZRefPattern *> &refs);
+      
+      /**
+       * verify whether the side refinement patterns are equal
+       */
+      bool IsCompatible(TPZVec<TPZRefPattern *> &siderefpatterns);
+      
 protected: // Protected attributes
   /** Identifier for the refinement pattern */
   std::string fName;
