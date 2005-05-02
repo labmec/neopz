@@ -40,11 +40,19 @@
 #include <dl_attributes.h>
 */
 #include <vector>
- 
+
+#include <log4cxx/logger.h>
+#include <log4cxx/basicconfigurator.h>
 
 using namespace std ;
 
 TPZGeoMesh *ReadGeoMesh(ifstream &arq);
+void TriangleRefine1(TPZGeoMesh *gmesh);
+void TriangleRefine2(TPZGeoMesh *gmesh);
+void QuadRefine(TPZGeoMesh *gmesh);
+TPZRefPattern *GetBestRefPattern(TPZVec<int> &sides, std::list<TPZRefPattern *> &patlist);
+
+void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids);
 
 
 void neighbourcheck (int ribsideindex , TPZGeoEl *elemento , TPZVec <int> &neighbourindex ){
@@ -174,6 +182,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       neigh = neigh.Neighbour();
     }
   }
+  // cornerindic agora e igual um se o no tem vizinho no contorno
   int is;
   for(is= elemento->NCornerNodes(); is<elemento->NSides(); is++)
   {
@@ -208,7 +217,8 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
         cout << endl;
       } 
     }
-  }   
+  }
+  // lados contem os lados que nao sao vertices que contem um vertex no contorno e que tem vizinho no contorno tambem
  
   /* Observa�o: No STACK s� retornados os lados a serem refinados mas com a numera�o local de cada lado em rela�o ao elemento (n� a numera�o global) */
   // Abaixo ser� criados os RefPatterns e associados ao set no mapa.
@@ -280,7 +290,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       indicesfather [0]= 0;
       indicesfather [1]= 1;
       indicesfather [2]= 2;
-      TPZGeoEl *father = Wmesh->CreateGeoElement(ETriangle,indicesfather,1,index);
+      TPZGeoEl *father = Wmesh->CreateGeoElement(ETriangle,indicesfather,1,index,-1);
       // cria�o dos elementos
       TPZGeoEl *gel[nelem];
     
@@ -458,7 +468,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       indicesfather [0]= 0;
       indicesfather [1]= 1;
       indicesfather [2]= 2;
-      TPZGeoEl *father = Wmesh->CreateGeoElement(ETriangle,indicesfather,1,index);
+      TPZGeoEl *father = Wmesh->CreateGeoElement(ETriangle,indicesfather,1,index,-1);
       // cria�o dos elementos
       TPZGeoEl *gel[nelem];
 
@@ -581,7 +591,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       indicesfather [1]= 1;
       indicesfather [2]= 2;
       indicesfather [3]= 3;
-      TPZGeoEl *father = Wmesh->CreateGeoElement(EQuadrilateral,indicesfather,1,index);
+      TPZGeoEl *father = Wmesh->CreateGeoElement(EQuadrilateral,indicesfather,1,index,-1);
       
       // cria�o dos elementos
       TPZGeoEl *gel[nelem];
@@ -706,7 +716,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
         indicesfather [1]= 1;
         indicesfather [2]= 2;
         indicesfather [3]= 3;
-        TPZGeoEl *father = Wmesh->CreateGeoElement(EQuadrilateral,indicesfather,1,index);
+        TPZGeoEl *father = Wmesh->CreateGeoElement(EQuadrilateral,indicesfather,1,index,-1);
         //cout << "Created Father Element: " << endl;
         //father->Print(cout);
         //TPZRefPattern *father_patt (this);
@@ -964,9 +974,21 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
   }
 }
 
-
 int main ()
 {
+  log4cxx::BasicConfigurator::configure();
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzcompel"));
+    logger->setLevel(log4cxx::Level::WARN);
+  }
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzcompelside"));
+    logger->setLevel(log4cxx::Level::WARN);
+  }
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
+    logger->setLevel(log4cxx::Level::WARN);
+  }
   TPZCompMesh *cmesh = CreateSillyMesh();
   TPZGeoMesh *Gmesh = cmesh->Reference();
   
@@ -986,6 +1008,11 @@ int main ()
   //siderecog(Gmesh);
   //Fim do teste
  
+  TriangleRefine1(Gmesh);
+  TriangleRefine2(Gmesh);
+  QuadRefine(Gmesh);
+  std::set<int> matids;
+  matids.insert(-1);
   
   int nelements = Gmesh->NElements();
   int el;  
@@ -994,10 +1021,11 @@ int main ()
   for (el=0; el<nelements; el++)
   {
     TPZGeoEl *elemento = Gmesh->ElementVec()[el];
-    if (elemento->MaterialId()>0)
-    {
-      linemarker (Gmesh, MyMap, elemento, refinesides); 
-    }
+    RefineDirectional(elemento,matids);
+//    if (elemento->MaterialId()>0)
+//    {
+//      linemarker (Gmesh, MyMap, elemento, refinesides); 
+//    }
   }
   //int nelement_stack = refinesides.NElements();
   //int elem;
@@ -1011,5 +1039,284 @@ int main ()
   return 0 ;
 }
 
+void CreateRefPatterns(TPZGeoMesh *gmesh)
+{
 
+}
 
+void TriangleRefine1(TPZGeoMesh *gmesh)
+{
+     //malha 2 triangulos
+      const int nelem = 2;
+      //nmero de n� 
+      const int ntotal_coord = 4;
+      TPZVec<REAL> new_node_coord(ntotal_coord,0.);
+      
+      REAL Total_Nodes_Coord[ntotal_coord][3] = { { 0.,0.,0.} , 
+                                                  { 1.,0.,0.} ,
+                                                  { 0.,1.,0.} , 
+                                                  {0.5,0.,0.}
+                                                };
+
+      int Connect[nelem][4] = { {1,2,3,-1},
+                                {0,3,2,-1} };
+      int nConnect[nelem] = {3,3};
+  
+      // criar um objeto tipo malha geometrica
+      TPZGeoMesh *Wmesh = new TPZGeoMesh();
+  
+      // criar nos
+      int i,j;
+      for(i=0; i<(ntotal_coord); i++) {
+        int nodind = Wmesh->NodeVec().AllocateNewElement();
+        TPZVec<REAL> coord(3);
+        for (j=0; j<3; j++) {
+          new_node_coord[j] = Total_Nodes_Coord[i][j];
+        }
+        Wmesh->NodeVec()[nodind] = TPZGeoNode(i,new_node_coord,*Wmesh);
+      }
+      
+      int index=0;
+              
+      TPZVec <int> indicesfather (3);
+      indicesfather [0]= 0;
+      indicesfather [1]= 1;
+      indicesfather [2]= 2;
+      TPZGeoEl *father = Wmesh->CreateGeoElement(ETriangle,indicesfather,1,index,-1);
+      // cria�o dos elementos
+      TPZGeoEl *gel[nelem];
+    
+      for(i=0;i<nelem;i++) {  
+        TPZVec<int> indices(nConnect[i]);
+        for(j=0;j<nConnect[i];j++) {
+          indices[j] = Connect[i][j];
+        }
+        int index;
+        cout << "Creating tria with cornernodes = " << indices << endl;
+        gel[i] = Wmesh->CreateGeoElement(ETriangle,indices,1,index,1);
+//        father->SetSubElement( i , gel[i]);      
+        gel[i]->SetFather(0);
+        gel[i]->SetFather(father);
+      }
+      
+      //Wmesh->Print(cout);
+      TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      delete Wmesh;
+      Wmesh = 0;
+/*      cout << "Refinement pattern data:\n";
+      cout << "NNodes = " << patt->NNodes() << endl;
+      cout << "NSubel = " << patt->NSubElements() << endl;
+      cout << endl;*/
+      patt->InsertPermuted(*gmesh);
+ 
+}
+
+void TriangleRefine2(TPZGeoMesh *gmesh)
+{
+     //malha 2 triangulos
+      const int nelem = 3;
+      //nmero de n� 
+      const int ntotal_coord = 5;
+      TPZVec<REAL> new_node_coord(ntotal_coord,0.);
+      
+      REAL Total_Nodes_Coord[ntotal_coord][3] = { { 0.,0.,0.} , 
+                                                  { 1.,0.,0.} ,
+                                                  { 0.,1.,0.} , 
+                                                  {0.5,0.,0.} ,
+                                                  {0.,0.5,0.} ,
+                                                };
+
+      int Connect[nelem][4] = { 
+            {0,1,2,-1},
+            {0,3,4,-1},
+            {3,1,2,4}
+      };
+      int nConnect[nelem] = {3,3,4};
+  
+      // criar um objeto tipo malha geometrica
+      TPZGeoMesh *Wmesh = new TPZGeoMesh();
+  
+      // criar nos
+      int i,j;
+      for(i=0; i<(ntotal_coord); i++) {
+        int nodind = Wmesh->NodeVec().AllocateNewElement();
+        TPZVec<REAL> coord(3);
+        for (j=0; j<3; j++) {
+          new_node_coord[j] = Total_Nodes_Coord[i][j];
+        }
+        Wmesh->NodeVec()[nodind] = TPZGeoNode(i,new_node_coord,*Wmesh);
+      }
+      
+      int index=0;
+      TPZGeoEl *gel[nelem];
+    
+      for(i=0;i<nelem;i++) {  
+        TPZVec<int> indices(nConnect[i]);
+        for(j=0;j<nConnect[i];j++) {
+          indices[j] = Connect[i][j];
+        }
+        int index;
+        if(nConnect[i] == 3)
+        {
+          cout << "Creating tria with cornernodes = " << indices << endl;
+          gel[i] = Wmesh->CreateGeoElement(ETriangle,indices,1,index,1);
+        } else
+        {
+          cout << "Creating tria with cornernodes = " << indices << endl;
+          gel[i] = Wmesh->CreateGeoElement(EQuadrilateral,indices,1,index,1);
+        }
+      }
+      
+      //Wmesh->Print(cout);
+      TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      delete Wmesh;
+      Wmesh = 0;
+      patt->InsertPermuted(*gmesh);
+ 
+}
+
+void QuadRefine(TPZGeoMesh *gmesh)
+{
+     //malha 2 triangulos
+      const int nelem = 3;
+      //nmero de n� 
+      const int ntotal_coord = 6;
+      TPZVec<REAL> new_node_coord(ntotal_coord,0.);
+      
+      REAL Total_Nodes_Coord[ntotal_coord][3] = { { 0.,0.,0.} , 
+                                                  { 1.,0.,0.} ,
+                                                  { 1.,1.,0.} ,
+                                                  { 0.,1.,0.} , 
+                                                  {0.5,0.,0.} ,
+                                                  {0.5,1.,0.} ,
+                                                };
+
+      int Connect[nelem][4] = { 
+            {0,1,2,3},
+            {0,4,5,3},
+            {4,1,2,5}
+      };
+      int nConnect[nelem] = {4,4,4};
+  
+      // criar um objeto tipo malha geometrica
+      TPZGeoMesh *Wmesh = new TPZGeoMesh();
+  
+      // criar nos
+      int i,j;
+      for(i=0; i<(ntotal_coord); i++) {
+        int nodind = Wmesh->NodeVec().AllocateNewElement();
+        TPZVec<REAL> coord(3);
+        for (j=0; j<3; j++) {
+          new_node_coord[j] = Total_Nodes_Coord[i][j];
+        }
+        Wmesh->NodeVec()[nodind] = TPZGeoNode(i,new_node_coord,*Wmesh);
+      }
+      
+      int index=0;
+      TPZGeoEl *gel[nelem];
+    
+      for(i=0;i<nelem;i++) {  
+        TPZVec<int> indices(nConnect[i]);
+        for(j=0;j<nConnect[i];j++) {
+          indices[j] = Connect[i][j];
+        }
+        int index;
+        if(nConnect[i] == 3)
+        {
+          cout << "Creating tria with cornernodes = " << indices << endl;
+          gel[i] = Wmesh->CreateGeoElement(ETriangle,indices,1,index,1);
+        } else
+        {
+          cout << "Creating tria with cornernodes = " << indices << endl;
+          gel[i] = Wmesh->CreateGeoElement(EQuadrilateral,indices,1,index,1);
+        }
+      }
+      
+      //Wmesh->Print(cout);
+      TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      delete Wmesh;
+      Wmesh = 0;
+      patt->InsertPermuted(*gmesh);
+ 
+}
+
+void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
+{
+  int matid = gel->MaterialId();
+  if(matids.count(matid)) return;
+  TPZVec<int> sidestorefine(gel->NSides(),0);
+  TPZVec<int> cornerstorefine(gel->NCornerNodes(),0);
+  // look for corners which are on the boundary
+  int in;
+  for(in=0; in<gel->NCornerNodes(); in++)
+  {
+    TPZGeoElSide gels(gel,in);
+    TPZGeoElSide neigh(gels.Neighbour());
+    while(gels != neigh)
+    {
+      if(matids.count(neigh.Element()->MaterialId()))
+      {
+        cornerstorefine[in] = 1;
+        break;
+      }
+      neigh = neigh.Neighbour();
+    }
+  }
+  // look for ribs which touch the boundary but which do no lay on the boundary
+  int is;
+  for(is=gel->NCornerNodes(); is<gel->NSides(); is++)
+  {
+    // we are only interested in ribs
+    if(gel->SideDimension(is) != 1) continue;
+    
+    // the side is a candidate if it contains a corner which is neighbour of the boundary condition
+    if(cornerstorefine[gel->SideNodeLocIndex(is,0)] || cornerstorefine[gel->SideNodeLocIndex(is,1)])
+    {
+      sidestorefine[is] = 1;
+      TPZGeoElSide gels(gel,is);
+      TPZGeoElSide neigh(gels.Neighbour());
+      while(neigh != gels)
+      {
+        // if this condition is true the rib lies on the boundary
+        if(matids.count(neigh.Element()->MaterialId()))
+        {
+          sidestorefine[is] = 0;
+          break;
+        }
+        neigh = neigh.Neighbour();
+      }
+    }    
+  }
+  TPZGeoMesh *gmesh = gel->Mesh();
+  std::list<TPZRefPattern *> patlist;
+  TPZRefPattern::GetCompatibleRefinementPatterns(gel, patlist);
+  TPZRefPattern *patt = GetBestRefPattern(sidestorefine,patlist);
+  if(patt) 
+  {
+    gel->SetRefPattern(patt);
+    TPZManVector<TPZGeoEl *> subel;
+    gel->Divide(subel);
+  }
+  else {
+    std::cout << "couldnt find a suitable refinement pattern\n";
+  }
+  return;
+}
+
+TPZRefPattern *GetBestRefPattern(TPZVec<int> &sides, std::list<TPZRefPattern *> &patlist)
+{
+  std::list<TPZRefPattern *>::iterator it;
+  for(it = patlist.begin(); it != patlist.end(); it++)
+  {
+    if(! (*it)) continue;
+    TPZGeoEl *gel = (*it)->Element(0);
+    int ncorners = gel->NCornerNodes();
+    int nsides = gel->NSides();
+    int is;
+    for(is = ncorners; is<nsides; is++)
+    {
+      if(sides[is] != (*it)->NSideNodes(is)) break;
+    }
+    if(is == nsides) return (*it);
+  }
+}
