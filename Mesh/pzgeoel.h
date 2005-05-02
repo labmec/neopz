@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.21 2005-04-25 02:31:48 phil Exp $
+//$Id: pzgeoel.h,v 1.22 2005-05-02 04:06:57 phil Exp $
 
 // -*- c++ -*-
 
@@ -473,6 +473,12 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 
   /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
   virtual void SetRefPattern(TPZRefPattern *);
+
+  /// return the refinement pattern associated with the element  
+  virtual TPZRefPattern *GetRefPattern()
+  {
+    return 0;
+  }
 
     /*!
         \fn TPZGeoEl::Index()

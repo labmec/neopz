@@ -97,6 +97,12 @@ public:
   
   /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
   virtual void SetRefPattern(TPZRefPattern *refpat );
+  
+  /// return the refinement pattern associated with the element  
+  virtual TPZRefPattern *GetRefPattern()
+  {
+    return fRefPattern;
+  }
 
 };
 
@@ -122,7 +128,7 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int
     fRefPattern = 0;
     fSubEl.Resize(1);
     fSubEl[0] = -1;
-    PZError << "TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern : NULL refinement pattern given" << std::endl;
+    //PZError << "TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern : NULL refinement pattern given" << std::endl;
     return;
   }
   this->Mesh()->InsertRefPattern(refpat);
@@ -140,7 +146,7 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int
     fRefPattern = 0;
     fSubEl.Resize(1);
     fSubEl [0] = -1;
-    PZError << "TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern : NULL refinement pattern given" << std::endl;
+    //PZError << "TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern : NULL refinement pattern given" << std::endl;
     return;
   }
   fRefPattern = refpat;
@@ -485,11 +491,11 @@ void TPZGeoElRefPattern<TShape,TGeo>::SetRefPattern (TPZRefPattern *refpat){
     return;
   }
 #endif
-  this->Mesh()->InsertRefPattern(refpat);
+//  this->Mesh()->InsertRefPattern(refpat);
   //para nao manter copias, caso exista uso o existente;
-  MElementType eltype = refpat->Element(0)->Type();
-  std::string refname = refpat->GetName();
-  refpat = this->Mesh()->GetRefPattern(eltype,refname);
+//  MElementType eltype = refpat->Element(0)->Type();
+//  std::string refname = refpat->GetName();
+//  refpat = this->Mesh()->GetRefPattern(eltype,refname);
   fRefPattern = refpat;
   int i;
   int nsubel = refpat->NSubElements();
