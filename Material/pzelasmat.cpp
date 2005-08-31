@@ -113,8 +113,8 @@ void TPZElasticityMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL>
     du(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);
     du(1,0) = dphi(0,in)*axes(0,1)+dphi(1,in)*axes(1,1);
 
-    ef(2*in, 0) += weight * (ff[0] * phi(in, 0)- du(0,0)*fPreStressXX - du(1,0)*fPreStressXY) ;  // direção x
-    ef(2*in+1, 0) += weight * (ff[1] * phi(in, 0)- du(0,0)*fPreStressYY - du(1,0)*fPreStressXY);// direção y <<<----
+    ef(2*in, 0) += weight * (ff[0] * phi(in, 0)- du(0,0)*fPreStressXX - du(1,0)*fPreStressXY) ;  // direï¿½o x
+    ef(2*in+1, 0) += weight * (ff[1] * phi(in, 0)- du(0,0)*fPreStressYY - du(1,0)*fPreStressXY);// direï¿½o y <<<----
 
     //    cout << "ef(" << 2*in << "," << 0 << ")=" << ef(2*in,0) << endl;
     //    cout << "ef(" << 2*in+1 << "," << 0 << ")=" << ef(2*in+1,0) << endl;
@@ -199,13 +199,13 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol
     break;
 
   case 1 :			// Neumann condition
-    for(in = 0 ; in < phi.Rows(); in++) {           // componentes da tração normal ao contorno
-      ef(2*in,0) += v2[0] * phi(in,0) * weight;   // tração em x  (ou pressão)
-      ef(2*in+1,0) += v2[1] * phi(in,0) * weight; // tração em y (ou pressão) , nula se não h
+    for(in = 0 ; in < phi.Rows(); in++) {           // componentes da traï¿½o normal ao contorno
+      ef(2*in,0) += v2[0] * phi(in,0) * weight;   // traï¿½o em x  (ou pressï¿½)
+      ef(2*in+1,0) += v2[1] * phi(in,0) * weight; // traï¿½o em y (ou pressï¿½) , nula se nï¿½ h
     }      // ou deslocamento nulo  v2 = 0
     break;
 
-  case 2 :		// condiçao mista
+  case 2 :		// condiï¿½o mista
     for(in = 0 ; in < phi.Rows(); in++) {
       ef(2*in, 0) += v2[0] * phi(in, 0) * weight;   // Neumann , Sigmaij
       ef(2*in+1, 0) += v2[1] * phi(in, 0) * weight; // Neumann
@@ -221,8 +221,8 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol
 	  phi(jn,0) * weight;
       }
     }   // este caso pode reproduzir o caso 0 quando o deslocamento
-  }      // é nulo introduzindo o BIGNUMBER pelos valores da condição
-}         // 1 Val1 : a leitura é 00 01 10 11
+  }      // ï¿½nulo introduzindo o BIGNUMBER pelos valores da condiï¿½o
+}         // 1 Val1 : a leitura ï¿½00 01 10 11
 
 /** returns the variable index associated with the name*/
 int TPZElasticityMaterial::VariableIndex(char *name){
@@ -274,12 +274,12 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
     on the finite element approximation*/
 void TPZElasticityMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 
-  ofstream nada("soluco.txt");
+//  ofstream nada("soluco.txt");
 
-  DSol.Print("DSol",nada,EFormatted);
-  nada << endl << "Sol" << endl;
-  Sol.Print(nada);
-  nada << endl << Sol[0] << "\t" << Sol[1] << endl << endl << endl;
+  //DSol.Print("DSol",nada,EFormatted);
+  //nada << endl << "Sol" << endl;
+  //Sol.Print(nada);
+  //nada << endl << Sol[0] << "\t" << Sol[1] << endl << endl << endl;
 
   REAL epsx;
   REAL epsy;
@@ -294,8 +294,8 @@ void TPZElasticityMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatr
   DSolxy[0][1] = DSol(0,1)*axes(0,0)+DSol(1,1)*axes(0,1);
   DSolxy[1][1] = DSol(0,1)*axes(0,1)+DSol(1,1)*axes(1,1);
   /*
-    ef(2*in, 0) += weight * (ff[0] * phi(in, 0)+ du(0,0)*fPreStressXX + du(1,0)*fPreStressXY) ;  // direção x
-    ef(2*in+1, 0) += weight * (ff[1] * phi(in, 0)+ du(0,0)*fPreStressYY + du(1,0)*fPreStressXY);// direção y <<<----
+    ef(2*in, 0) += weight * (ff[0] * phi(in, 0)+ du(0,0)*fPreStressXX + du(1,0)*fPreStressXY) ;  // direï¿½o x
+    ef(2*in+1, 0) += weight * (ff[1] * phi(in, 0)+ du(0,0)*fPreStressYY + du(1,0)*fPreStressXY);// direï¿½o y <<<----
   */
   switch(var) {
   case 0:
@@ -405,13 +405,13 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
   du(0,1) = dudx(0,1)*axes(0,0)+dudx(1,1)*axes(1,0);
   du(1,1) = dudx(0,1)*axes(0,1)+dudx(1,1)*axes(1,1);
 
-  //tensões aproximadas : uma forma
+  //tensï¿½s aproximadas : uma forma
   gamma = du(1,0)+du(0,1);
   sigma[0] = fEover1MinNu2*(du(0,0)+fnu*du(1,1));
   sigma[1] = fEover1MinNu2*(fnu*du(0,0)+du(1,1));
   sigma[2] = fE*0.5/(1.+fnu)*gamma;
 
-  //tensões aproximadas : outra forma
+  //tensï¿½s aproximadas : outra forma
   TPZVec<REAL> sol(1);
   Solution(u,du,axes,5,sol);
   sigma[0] = sol[0];
@@ -432,7 +432,7 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
   values[0] = fE*(sigx*sigx + sigy*sigy + 2*fnu*sigx*sigy)/(1-fnu*fnu);
   values[0] = (values[0] + .5*fE*sigxy*sigxy/(1+fnu));
 
-  //values[1] : erro em norma L2 em tensões
+  //values[1] : erro em norma L2 em tensï¿½s
   //values[1] = sigx*sigx + sigy*sigy + sigxy*sigxy;
 
   //values[1] : erro em norma L2 em deslocamentos
