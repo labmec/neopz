@@ -18,6 +18,47 @@ using namespace std;
 
 namespace pzgeom {
 
+MElementType TPZGeoPrism::Type()
+{
+  return EPrisma;
+}
+
+MElementType TPZGeoPrism::Type(int side)
+{
+  switch(side) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+      return EPoint;
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+      return EOned;
+    case 15:
+      return ETriangle;
+    case 16:
+    case 17:
+    case 18:
+      return EQuadrilateral;
+    case 19:
+      return ETriangle;
+    case 20:
+      return EPrisma;
+    default:
+      return ENoType;
+  }
+}
+
+
 void TPZGeoPrism::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
    
@@ -212,7 +253,7 @@ TPZIntPoints * TPZGeoPrism::CreateSideIntegrationRule(int side, int order){
 	if(side<20)  {//faces : 16 a 18
 		return new TPZIntQuad(order,order);
 	}
-	if(side==20) {//integração do elemento
+	if(side==20) {//integraï¿½o do elemento
 		return new TPZIntPrism3D(order,order);
 	}
 	return 0;

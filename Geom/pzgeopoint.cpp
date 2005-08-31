@@ -11,6 +11,21 @@ using namespace std;
 
 namespace pzgeom {
 
+MElementType TPZGeoPoint::Type()
+{
+  return EPoint;
+}
+
+MElementType TPZGeoPoint::Type(int side)
+{
+  switch(side) {
+    case 0:
+      return EPoint;
+    default:
+      return ENoType;
+  }
+}
+
 void TPZGeoPoint::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
   int i;
   for (i=0;i<3;i++){

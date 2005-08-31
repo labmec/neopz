@@ -11,6 +11,25 @@ using namespace std;
 
 namespace pzgeom {
 
+MElementType TPZGeoLinear::Type()
+{
+  return EOned;
+}
+
+MElementType TPZGeoLinear::Type(int side)
+{
+  switch(side) {
+    case 0:
+    case 1:
+      return EPoint;
+    case 2:
+      return EOned;
+    default:
+      return ENoType;
+  }
+}
+
+
 void TPZGeoLinear::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 	REAL x = pt[0];
     phi(0,0) = (1-x)/2.;

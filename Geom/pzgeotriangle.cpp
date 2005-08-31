@@ -16,6 +16,29 @@ using namespace std;
 
 namespace pzgeom {
 
+MElementType TPZGeoTriangle::Type()
+{
+  return ETriangle;
+}
+
+MElementType TPZGeoTriangle::Type(int side)
+{
+  switch(side) {
+    case 0:
+    case 1:
+    case 2:
+      return EPoint;
+    case 3:
+    case 4:
+    case 5:
+      return EOned;
+    case 6:
+      return ETriangle;
+    default:
+      return ENoType;
+  }
+}
+
 void TPZGeoTriangle::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
 	REAL x = param[0], y = param[1];
 	phi(0,0) = 1.-x-y;

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeopyramid.h,v 1.5 2005-04-25 02:07:50 phil Exp $
+// $Id: pzgeopyramid.h,v 1.6 2005-08-31 19:45:34 cesar Exp $
 
 // TPZGeoPiramid.h: interface for the TPZGeoQuad class.
 //
@@ -28,12 +28,12 @@ public:
   /**
    * return the type of the element as specified in file pzeltype.h
    */
-static MElementType Type() { return EPiramide;}
+static MElementType Type();// { return EPiramide;}
 
 /**
   * return the type of the element as specified in file pzeltype.h
   */
-static MElementType Type(int side) {
+static MElementType Type(int side);/* {
   switch(side) {
     case 0:
     case 1:
@@ -63,7 +63,7 @@ static MElementType Type(int side) {
       return ENoType;
   }
 }
-
+*/
 /**
  * returns the type name of the element
  */

@@ -15,6 +15,31 @@ using namespace pzshape;
 using namespace std;
 
 namespace pzgeom {
+  
+MElementType TPZGeoQuad::Type()
+{
+  return EQuadrilateral;
+}
+
+MElementType TPZGeoQuad::Type(int side)
+{
+  switch(side) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+      return EPoint;
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+      return EOned;
+    case 8:
+      return EQuadrilateral;
+    default:
+      return ENoType;
+  }
+}
 
 void TPZGeoQuad::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
 

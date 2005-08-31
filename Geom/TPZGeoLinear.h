@@ -29,12 +29,12 @@ public:
   /**
    * return the type of the element as specified in file pzeltype.h
    */
-static MElementType Type() { return EOned;}
+static MElementType Type() ;//{ return EOned;}
 
 /**
   * return the type of the element as specified in file pzeltype.h
   */
-static MElementType Type(int side) {
+static MElementType Type(int side);/* {
   switch(side) {
     case 0:
     case 1:
@@ -45,7 +45,7 @@ static MElementType Type(int side) {
       return ENoType;
   }
 }
-
+*/
 /**
  * returns the type name of the element
  */

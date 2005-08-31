@@ -21,6 +21,32 @@ using namespace pzshape;
 
 namespace pzgeom {
 
+MElementType TPZGeoTetrahedra::Type()
+{
+  return ETetraedro;
+}
+
+MElementType TPZGeoTetrahedra::Type(int side)
+{
+  switch(side) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+      return EPoint;
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+      return ETriangle;
+    case 8:
+      return ETetraedro;
+    default:
+      return ENoType;
+  }
+}
+
+
 void TPZGeoTetrahedra::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
   phi(0,0)  = 1-pt[0]-pt[1]-pt[2];
   phi(1,0)  = pt[0];
@@ -170,7 +196,7 @@ TPZIntPoints * TPZGeoTetrahedra::CreateSideIntegrationRule(int side, int order){
 	if(side<14)  {//faces : 10 a 13
    		return new TPZIntTriang(order);
 	}
-	if(side==14) {//integração do elemento
+	if(side==14) {//integraï¿½o do elemento
    		return new TPZIntTetra3D(order);
 	}
 	return 0;

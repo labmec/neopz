@@ -30,12 +30,12 @@ public:
   /**
    * return the type of the element as specified in file pzeltype.h
    */
-  static MElementType Type() { return ETriangle;}
+  static MElementType Type();// { return ETriangle;}
 
 /**
   * return the type of the element as specified in file pzeltype.h
   */
-static MElementType Type(int side) {
+static MElementType Type(int side) ;/*{
   switch(side) {
     case 0:
     case 1:
@@ -50,7 +50,7 @@ static MElementType Type(int side) {
     default:
       return ENoType;
   }
-}
+}*/
 
 /**
  * returns the type name of the element

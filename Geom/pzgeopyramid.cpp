@@ -20,10 +20,47 @@ using namespace std;
 
 namespace pzgeom {
 
+MElementType TPZGeoPyramid::Type()
+{
+  return EPiramide;
+}
+
+MElementType TPZGeoPyramid::Type(int side)
+{
+  switch(side) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+      return EPoint;
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+      return EOned;
+    case 13:
+      return EQuadrilateral;
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+      return ETriangle;
+    case 18:
+      return EPiramide;
+    default:
+      return ENoType;
+  }
+}
+
 void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
   if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
-    //para testes com transformações geometricas-->>Que  o que faz o RefPattern!!
-    //(0,0,1) nunca é um ponto de integração
+    //para testes com transformaï¿½es geometricas-->>Que  o que faz o RefPattern!!
+    //(0,0,1) nunca ï¿½um ponto de integraï¿½o
      phi(0,0)  = 0.;
      phi(1,0)  = 0.;
      phi(2,0)  = 0.;
@@ -221,7 +258,7 @@ TPZIntPoints * TPZGeoPyramid::CreateSideIntegrationRule(int side, int order){
 	if(side<18)  {//faces : 14 a 17
 		return new TPZIntTriang(order);
 	}
-	if(side==18) {//integração do elemento
+	if(side==18) {//integraï¿½o do elemento
 		return new TPZIntPyram3D(order);
 	}
 	return 0;
