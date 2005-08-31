@@ -1,4 +1,4 @@
-// $Id: pzonedref.cpp,v 1.7 2005-04-25 01:56:15 phil Exp $
+// $Id: pzonedref.cpp,v 1.8 2005-08-31 19:38:28 cesar Exp $
 
 #include "pzonedref.h"
 #include "pzquad.h"
@@ -8,7 +8,7 @@
 
 using namespace std;
 
-ofstream TPZOneDRef::fLogFile("onedref.txt");
+//ofstream TPZOneDRef::fLogFile("onedref.txt");
 
 int TPZOneDRef::gMaxP = 10;
 
@@ -112,7 +112,7 @@ void TPZOneDRef::LoadU(TPZFMatrix &U, int p1, int p2, REAL delx) {
   }
   //  fM.Print("M Matrix");
   int st;
-  //Cesar 2003-01-09 só alterei o loop de p1 -> fp1 e p2 ->fp2
+  //Cesar 2003-01-09 sï¿½alterei o loop de p1 -> fp1 e p2 ->fp2
   for(st=0; st<fNState; st++) {
     for(i=0; i< fp1-1; i++) fU(i,st) = U((i+1)*fNState+st,0);
     fU(fpb-1,st) = U(p1*fNState+st,0);
@@ -358,9 +358,9 @@ REAL TPZOneDRef::BestPattern(TPZFMatrix &U, TPZVec<int> &id, int &p1, int &p2, i
   int maxpl1 = numdof+1;
   //  if(maxpl1 > maxp+1) maxpl1 = gMaxP+1;
   
-#ifdef LOG_P_FILE  
-  fLogFile  << "p1 = " << pl1 << " p2 = " << pl2 << " error = " << besterror << endl;
-#endif
+//#ifdef LOG_P_FILE  
+//  fLogFile  << "p1 = " << pl1 << " p2 = " << pl2 << " error = " << besterror << endl;
+//#endif
 
   int pl1try;
 //   cout << "maxpl1 = " << maxpl1 << endl;
@@ -376,7 +376,7 @@ REAL TPZOneDRef::BestPattern(TPZFMatrix &U, TPZVec<int> &id, int &p1, int &p2, i
       bestp2 = pl2;
       besterror = error;
     }
-    fLogFile << "p1 = " << pl1 << " p2 = " << pl2 << " error = " << error << endl;
+//    fLogFile << "p1 = " << pl1 << " p2 = " << pl2 << " error = " << error << endl;
   }
   hp1 = bestp1;
   hp2 = bestp2;
@@ -391,9 +391,9 @@ REAL TPZOneDRef::BestPattern(TPZFMatrix &U, TPZVec<int> &id, int &p1, int &p2, i
       bestp2 = -1;
       besterror = error;
     }
-    fLogFile  << "pb = " << fp1 << " error = " << error << endl;
+    //fLogFile  << "pb = " << fp1 << " error = " << error << endl;
   }
-  fLogFile << " p1 = " << fp1 << " p2 = " << fp2 << " bestp1 = " << bestp1 << " bestp2 = " << bestp2 << " error = " << besterror << endl;
+  //fLogFile << " p1 = " << fp1 << " p2 = " << fp2 << " bestp1 = " << bestp1 << " bestp2 = " << bestp2 << " error = " << besterror << endl;
   p1 = bestp1;
   p2 = bestp2;
   return besterror;
