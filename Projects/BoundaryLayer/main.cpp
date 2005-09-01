@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.3 2005-04-19 19:02:29 tiago Exp $
+//$Id: main.cpp,v 1.4 2005-09-01 19:06:48 tiago Exp $
 
 /**
  * Galerkin descontinuo: problema de camada limite
@@ -54,6 +54,8 @@
 #include <stdio.h>
 
 #include "gmres.h"
+
+using namespace std;
 
 int main(){
 

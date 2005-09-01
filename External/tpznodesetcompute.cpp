@@ -16,7 +16,7 @@
 #include <map>
 #include <fstream>
 
-//static std::ofstream out("nodeset.txt");
+static std::ofstream out("nodeset.txt");
 
 TPZNodesetCompute::TPZNodesetCompute()
 {
@@ -209,8 +209,8 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int> &vertices, std::set< st
   if(!vertices.size()) return;
   std::set<int> elem;
   std::set<int>::iterator intit,diffit;
-  //out << __PRETTY_FUNCTION__ << " Original set of nodes ";
-  //Print(out,vertices,0);
+  out << __PRETTY_FUNCTION__ << " Original set of nodes ";
+  Print(out,vertices,0);
   for(intit = vertices.begin(); intit != vertices.end(); intit++)
   {
     std::set<int> locset,diffset,interset,unionset,loclocset;
@@ -223,8 +223,8 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int> &vertices, std::set< st
     // the influence zone of the vertex includes other vertices
     if(diffset.size())
     {
-      //out << "Difference after taking the intersection with " << *intit;
-      //Print(out,diffset," Difference set");
+      out << "Difference after taking the intersection with " << *intit;
+      Print(out,diffset," Difference set");
     // some unions need to be made before calling this method
       for(diffit=diffset.begin(); diffit!= diffset.end(); diffit++) 
       {
@@ -239,9 +239,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int> &vertices, std::set< st
       diffset.clear();
       // diffset will now contain only vertex nodes
       set_intersection(unionset.begin(),unionset.end(),vertices.begin(),vertices.end(),inserter(diffset,diffset.begin()));
-      //Print(out,diffset,"First set to be reanalised");
+      Print(out,diffset,"First set to be reanalised");
       set_intersection(vertices.begin(),vertices.end(),locset.begin(),locset.end(),inserter(interset,interset.begin()));
-      //Print(out,interset,"Second set to be reanalised");
+      Print(out,interset,"Second set to be reanalised");
       AnalyseForElements(diffset,elements);
       AnalyseForElements(interset,elements);
       return;
@@ -262,19 +262,19 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int> &vertices, std::set< st
   }
   if(vertices != elem)
   {
-    //out << "Discarding a vertex set as incomplete";
-    //Print(out,vertices,0);
+    out << "Discarding a vertex set as incomplete";
+    Print(out,vertices,0);
   }
   else if(elem.size())
   {
-    //Print(out,elem,"Inserted element");
+    Print(out,elem,"Inserted element");
     elements.insert(elem);
   }
 }
 
 void TPZNodesetCompute::BuildElementGraph(TPZStack<int> &blockgraph, TPZStack<int> &blockgraphindex)
 {
-  //out << __PRETTY_FUNCTION__ << " entering build element graph\n";
+  out << __PRETTY_FUNCTION__ << " entering build element graph\n";
   blockgraph.Resize(0);
   blockgraphindex.Resize(1);
   blockgraphindex[0] = 0;
@@ -285,10 +285,10 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int> &blockgraph, TPZStack<in
   {
     std::set< std::set<int> > elements;
     BuildNodeSet(in,nodeset);
-    //out << "Nodeset for " << in << ' ';
-    //Print(out,nodeset,"Nodeset");
+    out << "Nodeset for " << in << ' ';
+    Print(out,nodeset,"Nodeset");
     SubstractLowerNodes(in,nodeset);
-    //Print(out,nodeset,"LowerNodes result");
+    Print(out,nodeset,"LowerNodes result");
     AnalyseForElements(nodeset,elements);
     std::set< std::set<int> >::iterator itel;
     for(itel = elements.begin(); itel != elements.end(); itel++)
@@ -307,8 +307,8 @@ void TPZNodesetCompute::SubstractLowerNodes(int node, std::set<int> &nodeset)
 {
   std::set<int> lownode,lownodeset,unionset;
   std::set<int>::iterator it;
-  //out << __PRETTY_FUNCTION__;
-  //Print(out,nodeset," Incoming nodeset");
+  out << __PRETTY_FUNCTION__;
+  Print(out,nodeset," Incoming nodeset");
   for(it=nodeset.begin(); it != nodeset.end() && *it < node; it++)
   {
     BuildNodeSet(*it,lownodeset);
@@ -317,7 +317,7 @@ void TPZNodesetCompute::SubstractLowerNodes(int node, std::set<int> &nodeset)
   }
   set_difference(nodeset.begin(),nodeset.end(),unionset.begin(),unionset.end(),
     inserter(lownode,lownode.begin()));
-  //Print(out,lownode," What is left after substracting the influence of lower numbered nodes ");
+  Print(out,lownode," What is left after substracting the influence of lower numbered nodes ");
   unionset.clear();
   for(it=lownode.begin(); it!=lownode.end(); it++)
   {
@@ -328,7 +328,7 @@ void TPZNodesetCompute::SubstractLowerNodes(int node, std::set<int> &nodeset)
   lownode.clear();
   set_intersection(unionset.begin(),unionset.end(),nodeset.begin(),nodeset.end(),
     inserter(lownode,lownode.begin()));
-  //Print(out,lownode," Resulting lower nodeset");
+  Print(out,lownode," Resulting lower nodeset");
   nodeset = lownode;
 }
 

@@ -13,6 +13,8 @@
 #include <string>
 using namespace std;
 
+#ifndef ELLIPS
+
 TPZCounter TPZFlopCounter::gCount;
 
 static string names[] = {
@@ -48,7 +50,9 @@ std::ostream &operator<<(std::ostream &out,const TPZCounter &count)
   return out;
 }
 
+#endif
+
 void DebugStop()
 {
-  std::cout << "Your chance to put a breakpoint at " << __FILE__ << __FUNCTION__ << "\n";
+  std::cout << "Your chance to put a breakpoint at " << __FILE__ <<  "\n";
 }

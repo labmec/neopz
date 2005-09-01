@@ -52,7 +52,7 @@ void LerMalha(char *malha,TPZGeoMesh *geomesh,TPZCompMesh *& compmesh);
 void Divide(TPZCompMesh *compmesh);
 void AutomaticDivide(TPZCompMesh &cmesh,int maxlevel);
 TPZMaterial *mat;
-
+using namespace std;
 int main() {
 
    //malha geometrica

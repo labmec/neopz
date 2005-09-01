@@ -151,7 +151,10 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 		cout << endl;
 	}
 #endif
+	pthread_mutex_t Lock_clindex = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_lock(&Lock_clindex);
 	gegra_(&fNNodes, &fNElements, &inpn, &fElementGraph[1], &fElementGraphIndex[1], &iadj, &adj[0], &xadj[0], &nop);
+	pthread_mutex_unlock(&Lock_clindex);
 	//gegra_(&fNNodes, &fNElements, &inpn, npn, xnpn, &iadj, adj, xadj, &nop);
 #ifdef SLOANDEBUG	
 	cout << "node index vector ";
@@ -188,8 +191,10 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 	int new_profile=0;
 	perm.Resize(fNNodes+1);
 
-	
+	pthread_mutex_lock(&Lock_clindex);
 	label_(&fNNodes , &e2, &adj[0], &xadj[0], &perm[1], &iw[1], &old_profile, &new_profile);
+	pthread_mutex_unlock(&Lock_clindex);
+
 	//label_(&fNNodes , &e2, adj, xadj, NowPerm, iw, &old_profile, &new_profile);
 	cout << __PRETTY_FUNCTION__ << " oldprofile " << old_profile << " newprofile " << new_profile << endl;
 	TPZVec <int> aux(perm.NElements());

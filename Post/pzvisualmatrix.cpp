@@ -8,7 +8,6 @@ void VisualMatrix(TPZFMatrix & matrix, char *outfilename)
 	const int nelx = matrix.Cols();
 	const int nely = matrix.Rows();
 	const int neltotal = nelx * nely;
-	const int nnodes = (nelx + 1) * (nely + 1);
 	int i,j;
 	ofstream out(outfilename);
 	out << "# Graphical Visualization of Matrix." << endl;

@@ -13,17 +13,11 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 analysisdir = $(prefix)/Analysis
 
-analysis_HEADERS = $(wildcard *.h)
+analysisincdir = $(includedir)/Analysis
+analysisinc_HEADERS= $(top_srcdir)/Analysis/*.h
 
 noinst_LIBRARIES = libpzanalysis.a
 
-libpzanalysis_a_SOURCES = pzanalysis.cpp \
-		pzanalysiserror.cpp \
-		pzmganalysis.cpp \
-		pznonlinanalysis.cpp \
-		pzonedref.cpp \
-		pzsmanal.cpp \
-		pzsmfrontalanal.cpp \
-		pzeuleranalysis.cpp 
+libpzanalysis_a_SOURCES = pzanalysis.cpp pzanalysiserror.cpp pzmganalysis.cpp pznonlinanalysis.cpp pzonedref.cpp pzsmanal.cpp pzsmfrontalanal.cpp pzeuleranalysis.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

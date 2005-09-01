@@ -15,7 +15,7 @@ contained within the TPZGeoMesh.
 #define PZGEOCLONEMESHH
 
 #include "pzgmesh.h"
-#include "pzavlmap.h"
+//#include "pzavlmap.h"
 #include "pzadaptmesh.h"
 #include "pzstack.h"
 #ifndef WIN32

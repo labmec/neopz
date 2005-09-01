@@ -85,7 +85,7 @@ public:
      */
     void ReadPattern();
 
-    
+       
     /**
      * It calculates the hashings between the sides of the son and the father 
      */
@@ -190,6 +190,17 @@ public:
      * must the same be.
      */
     void TransformationTest();
+
+
+    /** Print the useful information of a Refinement Pattern in a log file
+     */
+    void Print();
+
+
+    /** Generate based in the Ref. Pattern a file with the necessary  
+     *  information about the Pattern mesh.
+     */
+    void CreateFile(std::ofstream &filename);
 
     /** 
      * It compares two hashings: in case that are equal returns 0,

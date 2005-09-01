@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.1 2005-04-19 19:15:23 tiago Exp $
+//$Id: meshes.cpp,v 1.2 2005-09-01 19:06:48 tiago Exp $
 
 #include "meshes.h"
 
@@ -79,8 +79,9 @@
  using namespace pzgeom;
  using namespace pzshape;
  using namespace pzrefine;
+ using namespace std;
 
-static REAL epsilon = 0.01;
+static REAL epsilon = 0.0000000000001;
 
 void OneContinuous(TPZGeoMesh *gmesh, std::set<TPZGeoEl*> &contset, std::set<TPZGeoEl*> &discset, int h, int continuousindex){
 
@@ -362,8 +363,20 @@ void ForcingFunction(TPZVec<REAL> &pto, TPZVec<REAL> &force){
   REAL y = pto[1];
   
   force.Resize(1);
-  force[0] = (-(-1.0 + exp(1.0/epsilon)) * epsilon * (-2.0+x+y)
-             +exp( (x+y-x*y)/epsilon ) * (-x + x*x + (-1+y)*y) ) / ( ( -1.0 + exp(1.0/epsilon) ) * epsilon);
+  REAL num = (1-x)*(1-x)-(1-x)-(1-y)+(1-y)*(1-y);
+  REAL den = epsilon*(1-exp(-1/epsilon))*exp((1-x)*(1-y)/epsilon);
+  force[0] = 2+(num/den)-x-y;
+
+#define LUISFILIPE
+#ifdef LUISFILIPE
+  REAL antigo = (-(-1.0 + exp(1.0/epsilon)) * epsilon * (-2.0+x+y)
+		 +exp( (x+y-x*y)/epsilon ) * (-x + x*x + (-1+y)*y) ) / ( ( -1.0 + exp(1.0/epsilon) ) * epsilon);
+//  if ( fabs(force[0] - antigo) > 1.e-10 ){
+    cout << "antigo = " << antigo << "  novo = " << force[0] << " x = " << x << " y = " << y << endl;
+//  }
+#endif
+
+  //*-1 pq o pzpoisson3d implementa +Epsilon Laplac(u) - div(beta*u) = force  
   force[0] *= -1.0;
 }
 

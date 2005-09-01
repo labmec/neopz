@@ -17,6 +17,12 @@
 #include <math.h>
 #include <iostream>
 
+#ifdef WIN32
+#define  __PRETTY_FUNCTION__ __FILE__
+#endif
+
+#ifndef ELLIPS
+
 extern int gPrintLevel;
 
 enum MOptype {ESum,EProd,EDiv,ESqrt,EPow,ECos,ESin,EAcos,EAsin,EAtan,EExp,ELog};
@@ -310,6 +316,8 @@ inline std::istream &operator>>(std::istream &out, const TPZFlopCounter &val)
 }
 
 }
+
+#endif
 /*
 typedef std::TPZFlopCounter REAL;
 typedef std::TPZFlopCounter* REALPtr;

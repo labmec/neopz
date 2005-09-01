@@ -41,8 +41,11 @@
 */
 #include <vector>
 
+#ifdef LOG4CXX
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
+#include <log4cxx/propertyconfigurator.h>
+#endif
 
 using namespace std ;
 
@@ -161,7 +164,7 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
   set<int> lados;
   int lados_nelements=0;
   
-  int nsides = elemento->NSides();
+//  int nsides = elemento->NSides();
   int ncornernodes = elemento->NCornerNodes();
   
   
@@ -322,6 +325,8 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       
       Wmesh->Print(cout);
       TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      std::ofstream teste("refpattern.txt");
+      patt->CreateFile(teste);
       delete Wmesh;
       Wmesh = 0;
 /*      cout << "Refinement pattern data:\n";
@@ -501,6 +506,8 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
        
      
       TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      std::ofstream teste("refpattern.txt");
+      patt->CreateFile(teste);
       delete Wmesh;
       Wmesh = 0;
   /*     cout << patt->NNodes() << endl;
@@ -623,6 +630,8 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
       Wmesh->Print(cout);
         
       TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      std::ofstream teste("refpattern.txt");
+      patt->CreateFile(teste);
       delete Wmesh;
       Wmesh = 0;
 /*      cout << patt->NNodes() << endl;
@@ -750,6 +759,8 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
         //Wmesh->BuildConnectivity();
         Wmesh->Print(cout);
         TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+	std::ofstream teste("refpattern.txt");
+	patt->CreateFile(teste);
         delete Wmesh;
         Wmesh = 0;
 /*        cout << patt->NNodes() << endl;
@@ -957,6 +968,8 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
         Wmesh->Print(cout);
         
         TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+	std::ofstream teste("refpattern.txt");
+	patt->CreateFile(teste);
         delete Wmesh;
         Wmesh = 0;
 //         cout << patt->NNodes() << endl;
@@ -976,7 +989,10 @@ void linemarker (TPZGeoMesh *Gmesh, map < set<int> , TPZRefPattern* > &MyMap, TP
 
 int main ()
 {
-  log4cxx::BasicConfigurator::configure();
+#ifdef LOG4CXX
+    log4cxx::PropertyConfigurator::configure("/home/ic/luis/NeoPZ/Util/config.h");
+
+    //  log4cxx::BasicConfigurator::configure();
   {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzcompel"));
     logger->setLevel(log4cxx::Level::WARN);
@@ -989,6 +1005,17 @@ int main ()
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
     logger->setLevel(log4cxx::Level::WARN);
   }
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
+    logger->setAdditivity(false);
+    logger->setLevel(log4cxx::Level::DEBUG);
+  }
+ {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
+    logger->setAdditivity(false);
+    logger->setLevel(log4cxx::Level::DEBUG);
+  }
+#endif
   TPZCompMesh *cmesh = CreateSillyMesh();
   TPZGeoMesh *Gmesh = cmesh->Reference();
   
@@ -1008,6 +1035,10 @@ int main ()
   //siderecog(Gmesh);
   //Fim do teste
  
+
+
+  
+
   TriangleRefine1(Gmesh);
   TriangleRefine2(Gmesh);
   QuadRefine(Gmesh);
@@ -1036,6 +1067,12 @@ int main ()
   }
   */
   //Gmesh->Print(cout);
+
+  string ref = "refpattern.txt" ;
+  /*TPZRefPattern *patt = */ new TPZRefPattern(ref) ;
+ 
+
+
   return 0 ;
 }
 
@@ -1101,6 +1138,9 @@ void TriangleRefine1(TPZGeoMesh *gmesh)
       
       //Wmesh->Print(cout);
       TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      std::ofstream teste("triangleref1.txt");
+      patt->CreateFile(teste);
+      patt->Print();
       delete Wmesh;
       Wmesh = 0;
 /*      cout << "Refinement pattern data:\n";
@@ -1147,7 +1187,7 @@ void TriangleRefine2(TPZGeoMesh *gmesh)
         Wmesh->NodeVec()[nodind] = TPZGeoNode(i,new_node_coord,*Wmesh);
       }
       
-      int index=0;
+//      int index=0;
       TPZGeoEl *gel[nelem];
     
       for(i=0;i<nelem;i++) {  
@@ -1169,6 +1209,8 @@ void TriangleRefine2(TPZGeoMesh *gmesh)
       
       //Wmesh->Print(cout);
       TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      std::ofstream teste("triangleref2.txt");
+      patt->CreateFile(teste);
       delete Wmesh;
       Wmesh = 0;
       patt->InsertPermuted(*gmesh);
@@ -1212,7 +1254,7 @@ void QuadRefine(TPZGeoMesh *gmesh)
         Wmesh->NodeVec()[nodind] = TPZGeoNode(i,new_node_coord,*Wmesh);
       }
       
-      int index=0;
+//      int index=0;
       TPZGeoEl *gel[nelem];
     
       for(i=0;i<nelem;i++) {  
@@ -1234,6 +1276,8 @@ void QuadRefine(TPZGeoMesh *gmesh)
       
       //Wmesh->Print(cout);
       TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
+      std::ofstream teste("quadref.txt");
+      patt->CreateFile(teste);
       delete Wmesh;
       Wmesh = 0;
       patt->InsertPermuted(*gmesh);
@@ -1287,7 +1331,7 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
       }
     }    
   }
-  TPZGeoMesh *gmesh = gel->Mesh();
+//  TPZGeoMesh *gmesh = gel->Mesh();
   std::list<TPZRefPattern *> patlist;
   TPZRefPattern::GetCompatibleRefinementPatterns(gel, patlist);
   TPZRefPattern *patt = GetBestRefPattern(sidestorefine,patlist);
@@ -1299,6 +1343,8 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
   }
   else {
     std::cout << "couldnt find a suitable refinement pattern\n";
+    // Here we will provide the necessary information to develop a new ref. patt.
+    
   }
   return;
 }
@@ -1319,4 +1365,5 @@ TPZRefPattern *GetBestRefPattern(TPZVec<int> &sides, std::list<TPZRefPattern *> 
     }
     if(is == nsides) return (*it);
   }
+  return 0;
 }

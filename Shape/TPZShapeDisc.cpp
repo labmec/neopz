@@ -41,6 +41,33 @@ void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,T
    }
 }
 
+void TPZShapeDisc::PolynomialWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n){
+   if(degree < 0){
+      PZError << "TPZShapeDisc::Polynomial the degree of the polynomial cannot be minus, aborting\n";
+      exit(-1);
+   }
+   phi.Redim(degree+1,1);
+   dphi.Redim(n,degree+1);
+   //grau zero ou constante
+   phi(0,0) = 1.0;
+   if(degree == 0) return;
+   //grau 1
+   REAL val = x;
+   phi(1,0) = val;
+   dphi(0,1) = 1.; 
+   //grau maior que 1
+   int p;
+   degree++;
+   for(p = 2;p < degree; p++) {
+      phi(p,0) = phi(p-1,0)*val;
+      int ideriv;
+      dphi(0,p) = dphi(0,p-1)*val + phi(p-1,0)* 1.0;
+      for(ideriv=2; ideriv<=n; ideriv++) {
+	 dphi(ideriv-1,p) = val*dphi(ideriv-1,p-1)+(ideriv)*dphi(ideriv-2,p-1);
+      }
+   }         
+}
+
 void TPZShapeDisc::Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n){
    
    x = (x - x0) / C;

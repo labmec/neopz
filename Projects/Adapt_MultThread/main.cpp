@@ -21,6 +21,7 @@ int gDebug = 0;
 int gPrintLevel = 0;
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp);
 static REAL angle = 0.2;
+int gDebug = 0;
 
 TPZCompMesh *ReadCase(int &nref, int &dim, int &opt);
 

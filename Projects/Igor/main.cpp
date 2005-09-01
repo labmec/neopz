@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.17 2005-04-19 20:36:26 tiago Exp $
+//$Id: main.cpp,v 1.18 2005-09-01 19:07:51 tiago Exp $
 
 /**
  * Galerkin descontinuo: visita do professor Igor.
@@ -87,6 +87,7 @@
  using namespace pzgeom;
  using namespace pzshape;
  using namespace pzrefine;
+ using namespace std;
 
 static REAL PI, gDif;
 

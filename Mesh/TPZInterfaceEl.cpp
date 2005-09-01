@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.45 2005-04-25 02:31:49 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.46 2005-09-01 19:04:46 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -172,7 +172,6 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index,
 
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
-   TPZInterfaceElement::gCalcStiff = 3;
    switch (TPZInterfaceElement::gCalcStiff)
    {
       case 1 :

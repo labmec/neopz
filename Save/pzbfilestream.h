@@ -58,15 +58,21 @@ class TPZBFileStream : public TPZStream
   }
 
   virtual void Write(int *p, int size) {
+#ifndef WIN32
     Writes<int>(p,size);
+#endif
   }
   
   virtual void Write(double *p, int size) {
+#ifndef WIN32
     Writes<double>(p,size);
+#endif
   }
 
   virtual void Write(const char *p, int size) {
+#ifndef WIN32
     Writes<char>(p,size);
+#endif
   }
 
   virtual void Write(std::string *p, int size) {
@@ -87,15 +93,21 @@ class TPZBFileStream : public TPZStream
 
   
   virtual void Read(int *p, int size) {
+#ifndef WIN32
     Reads<int>(p,size);
+#endif
   }
 
   virtual void Read(double *p, int size) {
+#ifndef WIN32
     Reads<double>(p,size);
+#endif
   }
 
   virtual void Read(char *p, int size) {
+#ifndef WIN32
     Reads<char>(p,size);
+#endif
   }
   
   virtual void Read(std::string *p, int size) 

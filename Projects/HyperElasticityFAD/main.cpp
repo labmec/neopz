@@ -40,18 +40,21 @@
 #include "fadType.h"
 #include "pzskylmat.h"
 #include "pzelmat.h"
+#include "pzbndcond.h"
 
 TPZCompMesh *CreateMesh();
 int mainFull();
 void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh & Mesh);
 TPZCompMesh *CreateMesh();
 TPZMatrix * CreateAssemble(TPZFMatrix &rhs, int method, TPZCompMesh & Mesh);
+void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
 
+/*
 void error(char * err)
 {
   PZError << "FADERROR: " << err << endl;
 };
-
+*/
 
 int main()
 {
@@ -138,7 +141,7 @@ TPZVec<REAL> in;
     hyp.ContributeEnergy(x,solFAD,dsolFAD,U,weight);
 
 
-  TPZInterpolatedElement::FADToMatrix(U, ekFAD, efFAD);
+FADToMatrix(U, ekFAD, efFAD);
 ///////////////
 
  ek.Print("Stiffness matrix");
@@ -305,21 +308,21 @@ void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh &
   TPZManVector<int> destinationindex(0);
   TPZManVector<int> sourceindex(0);
   REAL stor1[1000],stor2[1000],stor3[100],stor4[100];
-  ek.fMat = new TPZFMatrix(0,0,stor1,1000);
+/*  ek.fMat = new TPZFMatrix(0,0,stor1,1000);
   ek.fConstrMat = new TPZFMatrix(0,0,stor2,1000);
   ef.fMat = new TPZFMatrix(0,0,stor3,100);
   ef.fConstrMat = new TPZFMatrix(0,0,stor4,100);
-
+*/
   TPZAdmChunkVector<TPZCompEl *> &elementvec = Mesh.ElementVec();
 
   for(iel=0; iel < nelem; iel++) {
     TPZCompEl *el = elementvec[iel];
     if(!el) continue;
     //	  int dim = el->NumNodes();
-  if(method == 0) {
+//  if(method == 0) {
     el->CalcStiff(ek,ef);
-  } else {
-    TPZInterpolatedElement * pIntel = NULL;
+//  } else {
+/*    TPZInterpolatedElement * pIntel = NULL;
     pIntel = dynamic_cast<TPZInterpolatedElement *>(el);
     if(pIntel)
     {
@@ -329,12 +332,12 @@ void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh &
        el->CalcStiff(ek,ef);
     }
    }
-
+*/
     if(!el->HasDependency()) {
       //ek.fMat->Print("stiff has no constraint",test);
       //ef.fMat->Print("rhs has no constraint",test);
       //test.flush();
-      destinationindex.Resize(ek.fMat->Rows());
+      destinationindex.Resize(ek.fMat.Rows());
       int destindex = 0;
       int numnod = ek.NConnects();
       for(int in=0; in<numnod; in++) {
@@ -350,8 +353,8 @@ void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh &
            destinationindex[destindex++] = firsteq+idf;
          }
       }
-      stiffness.AddKel(*ek.fMat,destinationindex);
-      rhs.AddFel(*ef.fMat,destinationindex);
+      stiffness.AddKel(ek.fMat,destinationindex);
+      rhs.AddFel(ef.fMat,destinationindex);
     } else {
       // the element has dependent nodes
       el->ApplyConstraints(ek,ef);
@@ -363,8 +366,8 @@ void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh &
       //test << "sum of columns\n";
       int destindex = 0;
       int fullmatindex = 0;
-      destinationindex.Resize(ek.fConstrMat->Rows());
-      sourceindex.Resize(ek.fConstrMat->Rows());
+      destinationindex.Resize(ek.fConstrMat.Rows());
+      sourceindex.Resize(ek.fConstrMat.Rows());
       int numnod = ek.fConstrConnect.NElements();
       for(int in=0; in<numnod; in++) {
          int npindex = ek.fConstrConnect[in];
@@ -383,8 +386,8 @@ void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh &
       }
       sourceindex.Resize(destindex);
       destinationindex.Resize(destindex);
-      stiffness.AddKel(*ek.fConstrMat,sourceindex,destinationindex);
-      rhs.AddFel(*ef.fConstrMat,sourceindex,destinationindex);
+      stiffness.AddKel(ek.fConstrMat,sourceindex,destinationindex);
+      rhs.AddFel(ef.fConstrMat,sourceindex,destinationindex);
 /*
 if(ek.fConstrMat->Decompose_LU() != -1) {
     el->ApplyConstraints(ek,ef);
@@ -403,3 +406,26 @@ if(ek.fConstrMat->Decompose_LU() != -1) {
 }
 
 
+void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef)
+{
+  int efsz = ef.Rows();
+  int ekrows = ek.Rows();
+  int ekcols = ek.Cols();
+
+  int Ucols = U.size();
+  int Urows = U.val().size();
+
+
+  FADREAL * pBufferFAD;
+  int i,j;
+  for(j = 0; j < Urows; j++)
+  {
+     pBufferFAD = & U.fastAccessDx(j);
+     ef(j,0) = - pBufferFAD->val();
+     // U.val().fastAccessDx(i); must be the same as U.fastAccessDx(i).val();
+     for(i = 0; i < Ucols; i++)
+     {
+        ek(i,j) = pBufferFAD->fastAccessDx(i);
+     }
+  }
+}

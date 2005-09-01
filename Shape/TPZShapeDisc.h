@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZShapeDisc.h,v 1.7 2005-02-28 22:11:26 phil Exp $
+// $Id: TPZShapeDisc.h,v 1.8 2005-09-01 19:09:52 tiago Exp $
 #ifndef SHAPEDISCHPP
 #define SHAPEDISCHPP
 
@@ -34,6 +34,8 @@ public:
  * @param n:      number of derivatives to be computed
  */
 static void Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
+
+static void PolynomialWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
 
 static void Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
 

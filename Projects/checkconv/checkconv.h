@@ -5,7 +5,6 @@
 #include <cmath>
 #include "pztempmat.h"
 
-
 template <class TConv>
 void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<REAL> &coefs){
 
@@ -51,10 +50,11 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
            logfile << "residual too small\n";
 	   break;
 	 }
-         cout << (log10(difnorm[interval])-log10(difnorm[interval-1]))/
-                 (log10(interval)-log10(interval-1)) << endl;
-         logfile << (log10(difnorm[interval])-log10(difnorm[interval-1]))/
-	    (log10(interval)-log10(interval-1)) << endl;
+         REAL val = ( std::log10(difnorm[interval]) - std::log10(difnorm[interval-1]));
+         REAL intval = ( std::log10((REAL)interval) - std::log10((REAL)(interval-1)));
+         val = val / intval;
+         std::cout << val << std::endl;
+         logfile << val << std::endl;
       }
    }
    logfile.flush();

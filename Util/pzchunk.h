@@ -3,7 +3,7 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzchunk.h,v 1.7 2005-04-25 02:55:51 phil Exp $
+// $Id: pzchunk.h,v 1.8 2005-09-01 19:10:26 tiago Exp $
 
 #ifndef PZCHUNK_H
 #define PZCHUNK_H
@@ -235,7 +235,8 @@ TPZChunkVector<T,EXP> & TPZChunkVector<T,EXP>::operator=(const TPZChunkVector<T,
    //	 delete[] fVec[i];
    int prvsz = fVec.NElements();
    int sz = TCh.fVec.NElements();
-   for(int i=sz;i<prvsz;i++)
+   int i;
+   for(i=sz;i<prvsz;i++)
      if(fVec[i])
        delete[] fVec[i];
    
@@ -246,7 +247,7 @@ TPZChunkVector<T,EXP> & TPZChunkVector<T,EXP>::operator=(const TPZChunkVector<T,
 
    int nchunks = sz;
 
-   for(int i=0; i<nchunks; i++) {
+   for(i=0; i<nchunks; i++) {
       if(!TCh.fVec[i]) {
 	 fVec[i] = 0;
       } else {

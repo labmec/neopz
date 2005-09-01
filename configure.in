@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.39 2005-03-11 13:05:57 cesar Exp $
+dnl $Id: configure.in,v 1.40 2005-09-01 19:10:44 tiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -17,7 +17,7 @@ dnl Requires a recent version of autoconf
 AC_PREREQ(2.13)
 
 dnl Sets the default prefix instalation (/usr/local/pz)
-AC_PREFIX_DEFAULT(/usr/local/pz)
+AC_PREFIX_DEFAULT(/l/phil/NeoPZ)
 
 dnl PZ version stuff
 PZ_VERSION=2
@@ -116,7 +116,7 @@ dnl         MODE_OPTIONS="-DDEBUG -Wall -ggdb3 -pipe -fno-default-inline -fno-in
     COMPILATION_MODE="Profiling compilation mode."
     case "$CXX" in
       c++ | g++)
-        MODE_OPTIONS="-DNODEBUG -DNOTDEBUG -Wall -ggdb3 -pg -pipe"
+        MODE_OPTIONS="-DNODEBUG -DNOTDEBUG -Wall -O2 -fdefault-inline -pg -pipe"
         ;;
       *)
         AC_MSG_ERROR(unsupported compiler.)
@@ -222,6 +222,33 @@ AC_SUBST(METISLIBDIR)
 AC_SUBST(METISLIB)
 
 dnl ----------------------------------------------------------------------------
+dnl                              ENABLE MeTiS?
+dnl ----------------------------------------------------------------------------
+
+AC_ARG_ENABLE(log4cxx,
+  [  --enable-log4cxx=no Enables the use of Log4cxx [default=no]],
+  [log4cxx_enabled=$enableval],
+  [log4cxx_enabled="no"])
+
+case "${log4cxx_enabled}" in
+  yes)
+    echo "Enabling Log4cxx code."
+    USING_LOG4CXX="-DLOG4CXX"
+  ;;
+  no)
+    echo "Log4cxx not chosen."
+    USING_LOG4CXX=""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${log4cxx_enabled} for --enable-log4cxx)
+  ;;
+esac
+
+AM_CONDITIONAL( LOG4CXX, test x${log4cxx_enabled} = xyes )
+
+AC_SUBST(USING_LOG4CXX)
+
+dnl ----------------------------------------------------------------------------
 dnl                               LOG4CXX LOCATION
 dnl ----------------------------------------------------------------------------
 
@@ -231,10 +258,23 @@ AC_ARG_WITH(log4cxx-dir,
   [log4cxx_dir=$withval],
   [log4cxx_dir=${log4cxx_dir="/usr/local"}])
 
-LOG4CXXDIR=$log4cxx_dir
-LOG4CXXINCLUDE="-I$LOG4CXXDIR/include"
-LOG4CXXLIBDIR="-L$LOG4CXXDIR/lib"
-LOG4CXXLIB="-llog4cxx"
+case "${log4cxx_enabled}" in
+  yes)
+	LOG4CXXDIR=$log4cxx_dir
+	LOG4CXXINCLUDE="-I$LOG4CXXDIR/include"
+	LOG4CXXLIBDIR="-L$LOG4CXXDIR/lib"
+	LOG4CXXLIB="-llog4cxx"
+  ;;
+  no)
+	LOG4CXXDIR=""
+	LOG4CXXINCLUDE=""
+	LOG4CXXLIBDIR=""
+	LOG4CXXLIB=""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${log4cxx_enabled} for --enable-log4cxx)
+  ;;
+esac
 
 AC_SUBST(LOG4CXXDIR)
 AC_SUBST(LOG4CXXINCLUDE)
@@ -382,8 +422,8 @@ AC_SUBST(PZ_CLEANFILES)
 dnl ----------------------------------------------------------------------------
 dnl                              CONGRATULATIONS!
 dnl ----------------------------------------------------------------------------
-AC_OUTPUT([ Makefile PZ.mk PZ_user.mk Projects/AltoDes/Makefile Util/Makefile Matrix/Makefile Cosys/Makefile Multigrid/Makefile Material/Makefile Post/Makefile Shape/Makefile Integral/Makefile Geom/Makefile Mesh/Makefile Refine/Makefile External/Makefile External/sloan/Makefile Analysis/Makefile Frontal/Makefile StrMatrix/Makefile Pre/Makefile Common/Makefile LinearSolvers/Makefile Save/Makefile lib/Makefile Projects/Makefile Projects/adaptivity/Makefile Projects/Test_RefPattern/Makefile Projects/Adapt_MultThread/Makefile])
 
+AC_OUTPUT([ Makefile PZ.mk PZ_user.mk Projects/AltoDes/Makefile Util/Makefile Matrix/Makefile Cosys/Makefile Multigrid/Makefile Material/Makefile Post/Makefile Shape/Makefile Integral/Makefile Geom/Makefile Mesh/Makefile Refine/Makefile External/Makefile External/sloan/Makefile Analysis/Makefile Frontal/Makefile StrMatrix/Makefile Pre/Makefile Common/Makefile LinearSolvers/Makefile Save/Makefile lib/Makefile Projects/Makefile Projects/adaptivity/Makefile Projects/Test_RefPattern/Makefile Projects/Adapt_MultThread/Makefile Projects/Igor/Makefile Projects/BoundaryLayer/Makefile Projects/termica/Makefile Projects/NonLinBiharmonic/Makefile Projects/Heman/Makefile Projects/testgeom/Makefile Projects/checkconv/Makefile Projects/HyperElasticityFAD/Makefile Projects/ConsLaw/Makefile Projects/Descontinuo2/Makefile Projects/testshape/Makefile Projects/testmat/Makefile Projects/viga3d/Makefile Projects/PreCond/Makefile ])
 
 PZ_BYEBYE
 

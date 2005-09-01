@@ -25,6 +25,7 @@
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
 
+using namespace std;
 
 template<class T>
 TPZGeoEl *TPZGeoBMesh<T>::CreateGeoElement(MElementType type,TPZVec<int> &nodeindexes,int matid,int &index) {

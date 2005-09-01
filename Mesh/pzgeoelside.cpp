@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.17 2005-04-25 02:31:48 phil Exp $
+//$Id: pzgeoelside.cpp,v 1.18 2005-09-01 19:03:53 tiago Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -15,11 +15,12 @@
 using namespace pzshape;
 using namespace std;
 
-#include <log4cxx/logger.h>
+#include "pzlog.h"
 #include <sstream>
-using namespace log4cxx;
 
+#ifdef LOG4CXX
 static LoggerPtr Log(Logger::getLogger("pz.mesh.tpzgeoelside"));
+#endif
 
 
 void TPZGeoElSide::RemoveConnectivity(){
@@ -192,8 +193,9 @@ TPZTransform TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
    {
       stringstream sout;
       sout << __PRETTY_FUNCTION__ << "Neighbour does not exist : expect trouble";
-      LOG4CXX_ERROR(logger,sout.str());
-      return;
+      LOGPZ_ERROR(logger,sout.str());
+      TPZTransform toto;
+      return toto;
    }
 #endif
   int sidedimension = Dimension();

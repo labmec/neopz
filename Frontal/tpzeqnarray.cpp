@@ -25,7 +25,7 @@ void TPZEqnArray::SetSymmetric(){
 TPZEqnArray::~TPZEqnArray(){
    
 }
-TPZEqnArray::TPZEqnArray() : fIndex(), fEqValues(), fEqStart(), fEqNumber() {
+TPZEqnArray::TPZEqnArray() : fEqStart(), fEqNumber(), fEqValues(), fIndex() {
 	fEqStart.Push(0);
 	fNumEq=0;
 	fLastTerm=0;

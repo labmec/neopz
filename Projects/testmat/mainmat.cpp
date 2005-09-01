@@ -8,6 +8,8 @@
 void ExemploElasticidade(TPZFMatrix &phi, TPZFMatrix &dphi);
 void ExemploGenerico2D(TPZFMatrix &phi, TPZFMatrix &dphi);
 
+using namespace pzshape;
+
 int main() {
 
 	// definir um vetor que contem a ordem de interpolacao para cada lado

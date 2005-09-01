@@ -77,14 +77,14 @@ void TPZGenGrid::GenerateElements(TPZGeoMesh &grid) {
 	for(i=0; i<num_rectangles; i++) {
 		ElementConnectivity(i,nos);
 		if(fElementType == 0) {
-			TPZGeoElQ2d *newel = new TPZGeoElQ2d(i,nos,1,grid);
+			/* TPZGeoElQ2d *newel = */ new TPZGeoElQ2d(i,nos,1,grid);
 		} else if(fElementType == 1) {
-			TPZGeoElT2d *newel = new TPZGeoElT2d(2*i+1,nos,1,grid);
+			/* TPZGeoElT2d *newel = */ new TPZGeoElT2d(2*i+1,nos,1,grid);
 			nos[1] = nos[2];
 			nos[2] = nos[3];
-			newel = new TPZGeoElT2d(2*i+2,nos,1,grid);
+			/*newel = */ new TPZGeoElT2d(2*i+2,nos,1,grid);
 		} else if(fElementType == 2) {
-			TPZGeoElQ2d *newel = new TPZGeoElQ2d(i,nos,1,grid);
+			/* TPZGeoElQ2d *newel = */ new TPZGeoElQ2d(i,nos,1,grid);
       }
 	}
 	grid.BuildConnectivity();

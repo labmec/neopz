@@ -37,7 +37,7 @@ TPZMatrix * TPZSpStructMatrix::CreateAssemble(TPZFMatrix &rhs){
       return new TPZFYsmpMatrix(0,0);
     }
     TPZMatrix *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
-    TPZFYsmpMatrix *mat = dynamic_cast<TPZFYsmpMatrix *> (stiff);
+//    TPZFYsmpMatrix *mat = dynamic_cast<TPZFYsmpMatrix *> (stiff);
     rhs.Redim(neq,1);
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     Assemble(*stiff,rhs);
@@ -170,18 +170,17 @@ int TPZSpStructMatrix::main() {
        // initializar as coordenadas do no em um vetor
        for (j=0; j<3; j++) coord[j] = coordstore[i][j];
        
-       // identificar um espaço no vetor onde podemos armazenar
+       // identificar um espaï¿½ no vetor onde podemos armazenar
        // este vetor
-       int nodeindex = gmesh.NodeVec ().AllocateNewElement ();
+       gmesh.NodeVec ().AllocateNewElement ();
        
-       // initializar os dados do nó
-       gmesh.NodeVec ()[nodeindex].Initialize (i,coord,gmesh);
+       // initializar os dados do nï¿½       gmesh.NodeVec ()[nodeindex].Initialize (i,coord,gmesh);
      }
      int el;
      TPZGeoEl *gel;
      for(el=0; el<1; el++) {
        
-       // initializar os indices dos nós
+       // initializar os indices dos nï¿½
        TPZVec<int> indices(4);
        for(i=0; i<4; i++) indices[i] = i;
        // O proprio construtor vai inserir o elemento na malha
@@ -233,7 +232,7 @@ int TPZSpStructMatrix::main() {
 
      TPZVec<int> numelconnected(cmesh.NEquations(),0);
      //     int ic;
-     //cout << "Número de Equações -> " << cmesh.NEquations() << endl;
+     //cout << "Nmero de Equaï¿½es -> " << cmesh.NEquations() << endl;
      //cout.flush();
 	
      //     ofstream out("cmeshBlock_out.txt");

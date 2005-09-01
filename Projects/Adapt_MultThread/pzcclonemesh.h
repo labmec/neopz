@@ -12,8 +12,9 @@
 #ifndef WIN32
 #include <map>
 #else
-#include <map.h> 
+#include <map.h>
 #endif
+
 
 class TPZCompEl;
 class TPZGeoEl;
@@ -49,7 +50,8 @@ class TPZCompCloneMesh : public TPZCompMesh {
   /**
    * Maps connect index from original mesh to cloned mesh
    */
-  std::map<int,int> fMapConnects;
+  map <int,int> fMapConnects;
+  //TPZAVLMap <int,int> fMapConnects;
   
   /**
    * Maps connect index from cloned mesh to original mesh
@@ -118,11 +120,10 @@ class TPZCompCloneMesh : public TPZCompMesh {
 
 
   REAL ElementError(TPZInterpolatedElement *fine, 
-                    TPZInterpolatedElement *coarse, 
-                    TPZTransform &tr,
-                    void (*f)(TPZVec<REAL> &loc,
-                    TPZVec<REAL> &val, TPZFMatrix &deriv),
-                    REAL &truerror);
+		    TPZInterpolatedElement *coarse, 
+       		    TPZTransform &tr,
+		    void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),
+		    REAL &truerror);
 
   /**
    * Returns hp pattern of reference elements
@@ -134,6 +135,9 @@ class TPZCompCloneMesh : public TPZCompMesh {
    */
   void ApplyRefPattern(REAL minerror, TPZVec<REAL> &error, TPZCompMesh *finee, 
                        TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> &porder);
+
+void ComputeRefPattern(TPZCompMesh *fine, TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> &porders);
+
            
   /**
    * returns the unique identifier for reading/writing objects to streams
@@ -162,13 +166,13 @@ protected:
    * Creates the Dirichlet Boundary Condition along the patch sides
    */
   void CreateCloneBC();
-
+public:
   /**
    * Verifies if the given element is son of the Geometric Reference Element
    * @param el - element to analyse
    */
   int IsFather(TPZGeoEl *el);
-
+protected:
   /**
    * Copy the connect data structure of the connects
    * Copy the size of the blocks and adjust the element sideorders
@@ -183,7 +187,7 @@ protected:
    * @param porders Refinement order for each linear side of the element
    */
   void AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *cint,
-                       TPZStack<TPZGeoEl *> &subels, TPZStack<int> &porders);
+		       TPZStack<TPZGeoEl *> &subels, TPZStack<int> &porders);
 
   void AdaptElements (TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
 

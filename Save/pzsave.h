@@ -5,6 +5,11 @@
 //#include "glib.h"
 #include <map>
 #include <vector>
+
+#ifdef WIN32
+#pragma warning (disable:4786)
+#endif
+
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzadmchunk.h"
@@ -23,10 +28,12 @@ typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,void *);
 /// This class defines the interface to save and restore objects from TPZStream objects
 class TPZSaveable {
 
+#ifndef ELLIPS
 static std::map<int,TPZRestore_t> &Map() {
 static std::map<int,TPZRestore_t> gMap;
    return gMap;
 }
+#endif
 
 public:
 
@@ -259,6 +266,7 @@ static void WriteObjects(TPZStream &buf, std::vector<REAL> &vec)
   if(nel) buf.Write(&vec[0],vec.size());
 }
 
+#ifndef ELLIPS
 static void WriteObjects(TPZStream &buf, TPZVec<std::TPZFlopCounter> &vec) 
 {
   int nel = vec.NElements();
@@ -272,6 +280,7 @@ static void WriteObjects(TPZStream &buf, std::vector<std::TPZFlopCounter> &vec)
   buf.Write(&nel,1);
   if(nel) buf.Write(&vec[0],vec.size());
 }
+#endif
 
 static void WriteObjects(TPZStream &buf, TPZVec<int> &vec) 
 {
@@ -318,6 +327,7 @@ TPZSaveable *Restore(TPZStream &buf, void *context) {
   return ptr;
 }
 
+#ifndef ELLIPS
 /// this class implements an interface to register a class id and a restore function
 /**
 A declaration of the type "template class<classname, classid> put in .cpp file does the trick
@@ -355,5 +365,8 @@ inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, void *context) {
   return 0;
 }
 
+
 template class TPZRestoreClass<TPZSaveable, -1>;
+#endif
+
 #endif //PZSAVEH

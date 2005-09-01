@@ -25,8 +25,8 @@
 
 using namespace std;
 
-TPZGenPartialGrid::TPZGenPartialGrid(TPZVec<int> &nx, TPZVec<int> &rangex, TPZVec<int> &rangey, TPZVec<REAL> &x0,TPZVec<REAL> &x1) : fX0(x0), fX1(x1),
-		fNx(nx), fDelx(2)
+TPZGenPartialGrid::TPZGenPartialGrid(TPZVec<int> &nx, TPZVec<int> &rangex, TPZVec<int> &rangey, TPZVec<REAL> &x0,TPZVec<REAL> &x1) : fNx(nx), fX0(x0), fX1(x1),
+		fDelx(2)
 {
 	fDelx[0] = (x1[0]-x0[0])/(nx[0]);
 	fDelx[1] = (x1[1]-x0[1])/(nx[1]);
@@ -79,12 +79,12 @@ TPZGenPartialGrid::Read (TPZGeoMesh &grid) {
       	index = ElementIndex(i,j);
 			ElementConnectivity(index,nos);
 			if(fElementType == 0) {
-				TPZGeoElQ2d *newel = new TPZGeoElQ2d(nos,1,grid);
+				/* TPZGeoElQ2d *newel = */ new TPZGeoElQ2d(nos,1,grid);
 			} else {
-				TPZGeoElT2d *newel = new TPZGeoElT2d(nos,1,grid);
+				/* TPZGeoElT2d *newel = */ new TPZGeoElT2d(nos,1,grid);
 				nos[1] = nos[2];
 				nos[2] = nos[3];
-				newel = new TPZGeoElT2d(nos,1,grid);
+				/* newel = */ new TPZGeoElT2d(nos,1,grid);
 			}
 		}
    }

@@ -82,10 +82,10 @@ TPZFYsmpMatrix *ReadMatrix(const std::string &filename, TPZFMatrix &rhs)
       numelcon[nod]++;
     }    
   }
-  TPZStack<int,1000> nodegraph,nodegraphindex;
-  TPZStack<REAL,1000> avec;
-  nodegraph.Expand(10000000);
-  avec.Expand(10000000);
+  TPZStack<int,100000> nodegraph,nodegraphindex;
+  TPZStack<REAL,100000> avec;
+  nodegraph.Expand(1000000);
+  avec.Expand(1000000);
   nodegraphindex.Resize(neq+1,-1);
   nodegraphindex[0] = 0;
   

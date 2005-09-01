@@ -45,7 +45,7 @@ class TPZSolver {
   */
   virtual void UpdateFrom(TPZMatrix *matrix)
   {
-    std::cout << __FUNCTION__ << " called\n";
+    std::cout << __PRETTY_FUNCTION__ << " called\n";
   }
 
 };

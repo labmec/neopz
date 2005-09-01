@@ -109,12 +109,12 @@ void TPZMetis::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm){
 	}
 	int nod;
 	for(nod = numelnodegraph; nod>0; nod--) nodegraph[nod] = nodegraph[nod-1];
-//	int numflag = 0;
-//	int options = 0;
 	perm.Resize(fNNodes);
 	inverseperm.Resize(fNNodes);
 	for(nod=0;nod<fNNodes;nod++) {perm[nod] = inverseperm[nod] = nod;}
 #ifdef USING_METIS
+	int numflag = 0;
+	int options = 0;
 	METIS_NodeND(&fNNodes,&nodegraphindex[0],&nodegraph[1],&numflag,&options,&perm[0],&inverseperm[0]);
 #endif
 }	

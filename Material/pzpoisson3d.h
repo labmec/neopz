@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.14 2005-04-25 02:52:50 phil Exp $
+//$Id: pzpoisson3d.h,v 1.15 2005-09-01 19:02:18 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -40,8 +40,14 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
    * Non-symmetrical formulation - Baumann's formulation - has coefficient = +1.
    */
   REAL fSymmetry;
-  
-  public :
+
+public:
+
+  /** Constant multiplyer of penalty term, when required.
+   * Penalty terms are not used always. It's used when TPZInterfaceElement::CalcStiffPenalty 
+   * is set.
+   */
+  REAL fPenaltyConstant;
 
   /** Usado em InterfaceErrors */
   static REAL gAlfa;
@@ -142,6 +148,14 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
   
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
 			    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+			    
+  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+				   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
+				   
+  virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+				     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize);
 
   void InterfaceErrors(TPZVec<REAL> &/*x*/,
 		       TPZVec<REAL> &leftu, TPZFMatrix &leftdudx, /* TPZFMatrix &leftaxes,*/ 

@@ -1,9 +1,9 @@
 /**
  * @param type: 1 = quadrados; 2 = triangulos
- * @param resolution: número de refinamentos uniformes
+ * @param resolution: nmero de refinamentos uniformes
  * @param porder: ordem de interpolacao
  * @since  Fev 01, 2005
- * @author Paulo Rafael Bösing
+ * @author Paulo Rafael Bï¿½ing
  */
 #include <iostream>
 #include <time.h>
@@ -63,6 +63,7 @@
 using namespace pzshape;
 using namespace pzrefine;
 using namespace pzgeom;
+using namespace std;
 static REAL Pi, lbd, Re;
 
 TPZCompMesh * CreateMesh(int , int , int );
@@ -270,11 +271,11 @@ TPZCompElDisc * FindElement(TPZCompMesh *malhacomp, TPZVec<REAL> &pont,TPZVec<RE
 void AnalyseElementSolutionClass6(TPZCompElDisc *intel,TPZVec<REAL> &pont_ksi)
 {
   cout<<endl<<"   ---------"<<pont_ksi<<endl;
-  int dim = intel->Reference()->Dimension();
+  //int dim = intel->Reference()->Dimension();
 
    int variable;
   TPZMaterial *mat = intel->Material();
-  char varname[] = "Solution";
+//  char varname[] = "Solution";
 //  char varname[] = "Derivate";
   variable = mat->VariableIndex("Solution");
   if(variable == -1)
@@ -708,8 +709,8 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
   malha->SetDimModel(2); 
 
   TPZNonLinBiharmonic *mater;
-  mater = new TPZNonLinBiharmonic(1,0.);  // segundo par. é a f(x)
-                                   // primeiro par. é o material
+  mater = new TPZNonLinBiharmonic(1,0.);  // segundo par. ï¿½a f(x)
+                                   // primeiro par. ï¿½o material
 
   mater->SetForcingFunction(Forcing1);
   malha->InsertMaterialObject(mater);
@@ -746,7 +747,7 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
 
 //                                             // 1 cond. fronteira (negativo)
 //                                             // 2 Dirichlet
-//                                             // 3 Caso as condicoes sáo mistas
+//                                             // 3 Caso as condicoes sï¿½ mistas
 //                                             // 4 Dirichlet ou Newmann
 //   // Se a cond. de front. for uma funcao , ver TPZMaterial::fForcingFunction para BndCond::Contribute
   // cond_front[0]->SetForcingFunction(Dirichlet1);             Tem algun problema.
@@ -761,7 +762,7 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
 */
 
   
-  // Para usar elementos descontinuos. Caso for subtraido, será elementos continuos. 
+  // Para usar elementos descontinuos. Caso for subtraido, serï¿½elementos continuos. 
    TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
    TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
    TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);

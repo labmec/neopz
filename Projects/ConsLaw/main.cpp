@@ -6,13 +6,14 @@
 #include "pzeulerconslaw.h"
 #include "stdlib.h"
 #include "pztempmat.h"
+#include "fadType.h"
 
 int gDebug;
 
-void error(char * teste)
-{
-
-}
+// void error(char * teste)
+// {
+// 
+// }
 
 void Flatten(TPZFMatrix & coeff,
 	     TPZFMatrix &phi,

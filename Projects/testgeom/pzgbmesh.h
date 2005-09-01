@@ -5,30 +5,36 @@
 #include "pzgmesh.h"
 #include "TPZGeoElement.h"
 
+namespace pzshape {
 class TPZShapePoint;
-class TPZGeoPoint;
-class TPZRefPoint;
 class TPZShapeLinear;
-class TPZGeoLinear;
-class TPZRefLinear;
 class TPZShapeQuad;
-class TPZGeoQuad;
-class TPZRefQuad;
 class TPZShapeTriang;
-class TPZGeoTriangle;
-class TPZRefTriangle;
 class TPZShapeCube;
-class TPZGeoCube;
-class TPZRefCube;
 class TPZShapePrism;
-class TPZGeoPrism;
-class TPZRefPrism;
 class TPZShapeTetra;
-class TPZGeoTetrahedra;
-class TPZRefTetrahedra;
 class TPZShapePiram;
+}
+namespace pzgeom {
+class TPZGeoPoint;
+class TPZGeoLinear;
+class TPZGeoQuad;
+class TPZGeoTriangle;
+class TPZGeoCube;
+class TPZGeoPrism;
+class TPZGeoTetrahedra;
 class TPZGeoPyramid;
+}
+namespace pzrefine {
+class TPZRefPoint;
+class TPZRefLinear;
+class TPZRefQuad;
+class TPZRefTriangle;
+class TPZRefCube;
+class TPZRefPrism;
+class TPZRefTetrahedra;
 class TPZRefPyramid;
+}
 
 class TPZGeoEl;
 //template<class TShape, class TGeo, class TRef>
@@ -39,14 +45,14 @@ class GeoElTypes {
 
  public:
 
-  typedef TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint> GPointType;
-  typedef TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear> GLinearType;
-  typedef TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad> GQuadType;
-  typedef TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle> GTriangleType;
-  typedef TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube> GHexahedronType;
-  typedef TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism> GPrismType;
-  typedef TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra> GTetrahedronType;
-  typedef TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid> GPyramidType;
+  typedef TPZGeoElement<pzshape::TPZShapePoint,pzgeom::TPZGeoPoint,pzrefine::TPZRefPoint> GPointType;
+  typedef TPZGeoElement<pzshape::TPZShapeLinear,pzgeom::TPZGeoLinear,pzrefine::TPZRefLinear> GLinearType;
+  typedef TPZGeoElement<pzshape::TPZShapeQuad,pzgeom::TPZGeoQuad,pzrefine::TPZRefQuad> GQuadType;
+  typedef TPZGeoElement<pzshape::TPZShapeTriang,pzgeom::TPZGeoTriangle,pzrefine::TPZRefTriangle> GTriangleType;
+  typedef TPZGeoElement<pzshape::TPZShapeCube,pzgeom::TPZGeoCube,pzrefine::TPZRefCube> GHexahedronType;
+  typedef TPZGeoElement<pzshape::TPZShapePrism,pzgeom::TPZGeoPrism,pzrefine::TPZRefPrism> GPrismType;
+  typedef TPZGeoElement<pzshape::TPZShapeTetra,pzgeom::TPZGeoTetrahedra,pzrefine::TPZRefTetrahedra> GTetrahedronType;
+  typedef TPZGeoElement<pzshape::TPZShapePiram,pzgeom::TPZGeoPyramid,pzrefine::TPZRefPyramid> GPyramidType;
 
 };
 

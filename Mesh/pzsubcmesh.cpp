@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.10 2005-04-25 02:31:49 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.11 2005-09-01 19:04:35 tiago Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -27,7 +27,14 @@
 const int numel=1;
 
 static REAL angle = 0.2;
-void Forcing(TPZVec<REAL> &x, TPZVec<REAL> &disp);
+
+static void Forcing(TPZVec<REAL> &x, TPZVec<REAL> &disp){
+	disp[0] = -(x[1]-0.5)*sin(angle)+(x[0]-0.5)*cos(angle)-(x[0]-0.5);
+	disp[1] = (x[1]-0.5)*cos(angle)+(x[0]-0.5)*sin(angle)-(x[1]-0.5);
+	disp[2] = 0.;
+}
+
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -739,13 +746,6 @@ void TPZSubCompMesh::LoadSolution(){
 	}
 	if(fAnalysis) fAnalysis->LoadSolution(fSolution);
 	TPZCompMesh::LoadSolution(fSolution);
-}
-
-
-void Forcing(TPZVec<REAL> &x, TPZVec<REAL> &disp){
-	disp[0] = -(x[1]-0.5)*sin(angle)+(x[0]-0.5)*cos(angle)-(x[0]-0.5);
-	disp[1] = (x[1]-0.5)*cos(angle)+(x[0]-0.5)*sin(angle)-(x[1]-0.5);
-	disp[2] = 0.;
 }
 
 

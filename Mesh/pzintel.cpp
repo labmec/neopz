@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.36 2005-04-25 02:31:49 phil Exp $
+// $Id: pzintel.cpp,v 1.37 2005-09-01 19:04:05 tiago Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -22,14 +22,12 @@
 
 #include "pzcheckmesh.h"
 
+#include "pzlog.h"
 
-// log4cxx
-#include <log4cxx/logger.h>
-
-using namespace log4cxx;
-using namespace log4cxx::helpers;
-
+#ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
+#endif
+
 
 #ifdef _AUTODIFF
 #include "fadType.h"
@@ -44,20 +42,21 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
 static void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
 #endif
 
+#include <sstream>
 using namespace std;
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int &index) :
   TPZCompEl(mesh,reference,index) {
-  LOG4CXX_INFO(logger, "Entering constructor (TPZCompMesh &mesh, TPZGeoEl *reference, int &index).");
+  LOGPZ_INFO(logger, "Entering constructor (TPZCompMesh &mesh, TPZGeoEl *reference, int &index).");
 //  fReference = reference;
   int materialid = reference->MaterialId();
   fMaterial = mesh.FindMaterial(materialid);
-  LOG4CXX_INFO(logger, "Exiting constructor (TPZCompMesh &mesh, TPZGeoEl *reference, int &index).");
+  LOGPZ_INFO(logger, "Exiting constructor (TPZCompMesh &mesh, TPZGeoEl *reference, int &index).");
 }
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy) :
   TPZCompEl(mesh,copy) {
-  LOG4CXX_INFO(logger, "Entering constructor (TPZCompMesh &mesh, const TPZInterpolatedElement &copy).");
+  LOGPZ_INFO(logger, "Entering constructor (TPZCompMesh &mesh, const TPZInterpolatedElement &copy).");
 //  fReference = copy.fReference;
   TPZMaterial *mat = copy.Material();
   if(mat) {
@@ -66,79 +65,79 @@ TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInter
   } else {
     fMaterial = 0;
   }
-  LOG4CXX_INFO(logger, "Exiting constructor (TPZCompMesh &mesh, const TPZInterpolatedElement &copy).");
+  LOGPZ_INFO(logger, "Exiting constructor (TPZCompMesh &mesh, const TPZInterpolatedElement &copy).");
 }
 
 TPZInterpolatedElement::TPZInterpolatedElement() :
   TPZCompEl() {
-  LOG4CXX_INFO(logger, "Entering empty constructor.");
+  LOGPZ_INFO(logger, "Entering empty constructor.");
 //  fReference = reference;
   fMaterial = 0;
-  LOG4CXX_INFO(logger, "Exiting empty constructor.");
+  LOGPZ_INFO(logger, "Exiting empty constructor.");
 }
 
 TPZInterpolatedElement::~TPZInterpolatedElement() {
-  LOG4CXX_INFO(logger, "Destructor.");
+  LOGPZ_INFO(logger, "Destructor.");
 }
 
 int TPZInterpolatedElement::MaterialId() const {
-  LOG4CXX_INFO(logger, "Entering MaterialId.");
+  LOGPZ_INFO(logger, "Entering MaterialId.");
   if(!fMaterial) {
-    LOG4CXX_ERROR(logger, "This element has no material return -999.");
+    LOGPZ_ERROR(logger, "This element has no material return -999.");
     return -999;
   }
-  LOG4CXX_INFO(logger, "Exiting MaterialId.");
+  LOGPZ_INFO(logger, "Exiting MaterialId.");
   return fMaterial->Id();
 }
 
 int TPZInterpolatedElement::NShapeF() {
-  LOG4CXX_INFO(logger, "Entering NShapeF.");
+  LOGPZ_INFO(logger, "Entering NShapeF.");
   int nn = NConnects();
   int in,res=0;
   for(in=0;in<nn;in++) res += NConnectShapeF(in);
-  LOG4CXX_INFO(logger, "Exiting NShapeF.");
+  LOGPZ_INFO(logger, "Exiting NShapeF.");
   return res;
 }
 
 int TPZInterpolatedElement::NSideShapeF(int side) {
-  LOG4CXX_INFO(logger, "Entering NSideShapeF.");
+  LOGPZ_INFO(logger, "Entering NSideShapeF.");
   int ns = NSideConnects(side);
   int in,res=0;
   for(in=0;in<ns;in++) res+= NConnectShapeF(SideConnectLocId(in,side));
-  LOG4CXX_INFO(logger, "Exiting NSideShapeF.");
+  LOGPZ_INFO(logger, "Exiting NSideShapeF.");
   return res;
 }
 
 int TPZInterpolatedElement::MidSideConnectLocId(int side) {
-  LOG4CXX_INFO(logger, "Entering MidSideConnectLocId.");
+  LOGPZ_INFO(logger, "Entering MidSideConnectLocId.");
   int il = 1 + NConnects() - (Reference()->NSides());
   int nodloc = SideConnectLocId(NSideConnects(side)-il,side);
-  LOG4CXX_INFO(logger, "Exiting MidSideConnectLocId.");
+  LOGPZ_INFO(logger, "Exiting MidSideConnectLocId.");
   return nodloc;
 }
 
 int TPZInterpolatedElement::SideConnectIndex(int connect, int side) {
-  LOG4CXX_INFO(logger, "Entering SideConnectIndex.");
-  LOG4CXX_INFO(logger, "Exiting SideConnectIndex.");
+  LOGPZ_INFO(logger, "Entering SideConnectIndex.");
+  LOGPZ_INFO(logger, "Exiting SideConnectIndex.");
   return ConnectIndex(SideConnectLocId(connect,side));
 }
 
 TPZConnect *TPZInterpolatedElement::SideConnect(int connect,int side) {
-  LOG4CXX_INFO(logger, "Entering SideConnect.");
+  LOGPZ_INFO(logger, "Entering SideConnect.");
   if(side<0 || connect<0 || side>Reference()->NSides()) {
-    LOG4CXX_ERROR(logger, "Exiting SideConnect - has bad first or second parameter.");
+    LOGPZ_ERROR(logger, "Exiting SideConnect - has bad first or second parameter.");
     return 0;
   }
-  LOG4CXX_INFO(logger, "Exiting SideConnect.");
+  LOGPZ_INFO(logger, "Exiting SideConnect.");
   return &(fMesh->ConnectVec()[SideConnectIndex(connect,side)]);
 }
 
 void TPZInterpolatedElement::ForceSideOrder(int side, int order){
-  LOG4CXX_INFO(logger, "Entering ForceSideOrder.");
+  LOGPZ_INFO(logger, "Entering ForceSideOrder.");
   TPZCompElSide thisside(this,side);
   TPZCompElSide large = thisside.LowerLevelElementList(1);
   if(large.Exists()) {
-    LOG4CXX_INFO(logger, "Exiting ForceSideOrder - large exists.");
+    LOGPZ_INFO(logger, "Exiting ForceSideOrder - large exists.");
     return;
   }
   int sideorder = SideOrder(side);
@@ -222,11 +221,11 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order){
       }
     }
   }
-  LOG4CXX_INFO(logger, "Exiting ForceSideOrder.");
+  LOGPZ_INFO(logger, "Exiting ForceSideOrder.");
 }
 
 void TPZInterpolatedElement::IdentifySideOrder(int side){
-  LOG4CXX_INFO(logger, "Entering IdentifySideOrder.");
+  LOGPZ_INFO(logger, "Entering IdentifySideOrder.");
   TPZCompElSide thisside(this,side);
   TPZCompElSide large = thisside.LowerLevelElementList(1);
   int sideorder = SideOrder(side);
@@ -268,7 +267,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
     // There is no larger element connected to the side
     // identify the new side order by comparing the orders of the equal level elements
     if(Connect(side).HasDependency()) {
-      LOG4CXX_WARN(logger, "TPZInterpolatedElement SetSideOrder fodeu");
+      LOGPZ_WARN(logger, "TPZInterpolatedElement SetSideOrder fodeu");
       large = thisside.LowerLevelElementList(1);
     }
     neworder = ComputeSideOrder(elvec);
@@ -363,11 +362,11 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
       }
     }
   }
-  LOG4CXX_INFO(logger, "Exiting IdentifySideOrder.");
+  LOGPZ_INFO(logger, "Exiting IdentifySideOrder.");
 }
 
 void TPZInterpolatedElement::RecomputeRestraints(int side) {
-  LOG4CXX_INFO(logger, "Entering RecomputeRestraints.");
+  LOGPZ_INFO(logger, "Entering RecomputeRestraints.");
   TPZStack<TPZCompElSide> elvec;
   elvec.Resize(0);
   TPZCompElSide thisside(this,side);
@@ -390,11 +389,11 @@ void TPZInterpolatedElement::RecomputeRestraints(int side) {
       small->RestrainSide(smallside,this,side);
     }
   }
-  LOG4CXX_INFO(logger, "Exiting RecomputeRestraints.");
+  LOGPZ_INFO(logger, "Exiting RecomputeRestraints.");
 }
 
 void TPZInterpolatedElement::UpdateNeighbourSideOrder(int side, TPZVec<TPZCompElSide> &elvec) {
-  LOG4CXX_INFO(logger, "Entering UpdateNeighbourSideOrder.");
+  LOGPZ_INFO(logger, "Entering UpdateNeighbourSideOrder.");
   int orside = SideOrder(side);
   int neighbourside;
   TPZInterpolatedElement *neighbour;
@@ -407,11 +406,11 @@ void TPZInterpolatedElement::UpdateNeighbourSideOrder(int side, TPZVec<TPZCompEl
     int neighord = neighbour->SideOrder(neighbourside);
     if(orside != neighord) neighbour->IdentifySideOrder(neighbourside);
   }
-  LOG4CXX_INFO(logger, "Exiting UpdateNeighbourSideOrder.");
+  LOGPZ_INFO(logger, "Exiting UpdateNeighbourSideOrder.");
 }
 
 void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform &t, TPZTransfer &transfer){
-  LOG4CXX_INFO(logger, "Entering BuildTransferMatrix.");
+  LOGPZ_INFO(logger, "Entering BuildTransferMatrix.");
   // accumulates the transfer coefficients between the current element and the
   // coarse element into the transfer matrix, using the transformation t
   TPZGeoEl *ref = Reference();
@@ -438,7 +437,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
     stringstream sout;
     sout << "Exiting BuildTransferMatrix - compute the transfer matrix coarse " 
          << coarsemaxorder << " me " << myminorder << endl;
-    LOG4CXX_ERROR(logger,sout.str());
+    LOGPZ_ERROR(logger,sout.str());
     return;
   }
   TPZStack<int> connectlistcoarse,dependencyordercoarse, corblocksize;
@@ -599,11 +598,11 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
     }
   }
   intrule.SetOrder(prevorder);
-  LOG4CXX_INFO(logger, "Exiting BuildTransferMatrix.");
+  LOGPZ_INFO(logger, "Exiting BuildTransferMatrix.");
 }
 
 int TPZInterpolatedElement::CreateMidSideConnect(int side) {
-  LOG4CXX_INFO(logger, "Entering CreateMidSideConnect.");
+  LOGPZ_INFO(logger, "Entering CreateMidSideConnect.");
   TPZCompMesh *cmesh = Mesh();
   TPZMaterial *mat = Material();
   int nvar = 1;
@@ -625,7 +624,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
       newnodeindex = cmesh->AllocateNewConnect();
       TPZConnect &newnod = cmesh->ConnectVec()[newnodeindex];
       if(newnod.HasDependency()) {
-        LOG4CXX_DEBUG(logger, "CreateMidSideConnect, new node has dependency");
+        LOGPZ_DEBUG(logger, "CreateMidSideConnect, new node has dependency");
         newnod.Print(*cmesh);
       }
       int seqnum = newnod.SequenceNumber();
@@ -641,7 +640,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
         RestrainSide(side,cel,side_neig);
       }
     }
-    LOG4CXX_INFO(logger, "Exiting CreateMidSideConnect - side < number of corners.");
+    LOGPZ_INFO(logger, "Exiting CreateMidSideConnect - side < number of corners.");
     return newnodeindex;
   }
 
@@ -709,7 +708,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
     if(Connect(side).HasDependency()) {
       stringstream sout;
       sout << "TPZInterpolatedElement fodeu side " << side << endl;
-      LOG4CXX_WARN(logger,sout.str());
+      LOGPZ_WARN(logger,sout.str());
       father = thisside.LowerLevelElementList(1);
     }
     elvec.Resize(0);
@@ -757,14 +756,14 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
       }
     }
   }
-  LOG4CXX_INFO(logger, "Exiting CreateMidSideConnect.");
+  LOGPZ_INFO(logger, "Exiting CreateMidSideConnect.");
   return newnodeindex;
 }
 
 void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) {
-  LOG4CXX_INFO(logger, "Entering RestrainSide.");
+  LOGPZ_INFO(logger, "Entering RestrainSide.");
   if(!IsConnectContinuous(side)) {
-    LOG4CXX_WARN(logger, "Exiting RestrainSide - connect not continuous.");
+    LOGPZ_WARN(logger, "Exiting RestrainSide - connect not continuous.");
     return;
   }
   TPZCompElSide thisside(this,side);
@@ -773,13 +772,13 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
   TPZGeoElSide locallargeref = locallarge.Reference();
   TPZGeoElSide largecompsideref = largecompside.Reference();
   if(!locallarge.Exists() || !locallargeref.NeighbourExists(largecompsideref)) {
-    LOG4CXX_ERROR(logger, "Exiting RestrainSide called for a wrong large element");
+    LOGPZ_ERROR(logger, "Exiting RestrainSide called for a wrong large element");
     return;
   }
   TPZInterpolatedElement *cel = 0;
   if(locallarge.Exists()) cel = (TPZInterpolatedElement *) locallarge.Element();
   if(!cel) {
-    LOG4CXX_INFO(logger, "Exiting RestrainSide - null computational element.");
+    LOGPZ_INFO(logger, "Exiting RestrainSide - null computational element.");
     return;
 /*  } else if(cel->Reference()->Level() < large->Reference()->Level()) {
     cout << "TPZInterpolatedElement::RestrainSide, I don't understand cel is larger\n";
@@ -797,14 +796,14 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
   }
   TPZConnect &myconnect = Connect(side);
   if(myconnect.HasDependency() && locallargeref.Dimension() > 0) {
-    LOG4CXX_WARN(logger, "RestrainSide - unnecessary call to restrainside");
+    LOGPZ_WARN(logger, "RestrainSide - unnecessary call to restrainside");
   }
   if (cel->ConnectIndex(locallarge.Side()) == -1){
-    LOG4CXX_ERROR(logger, "Exiting RestrainSide - Side of large element not initialized");
+    LOGPZ_ERROR(logger, "Exiting RestrainSide - Side of large element not initialized");
     return;
   }
   if(locallargeref.Dimension() == 0) {
-    LOG4CXX_INFO(logger, "Exiting RestrainSide - dimension of large element is 0");
+    LOGPZ_INFO(logger, "Exiting RestrainSide - dimension of large element is 0");
     return;
   }
   TPZGeoElSide thisgeoside(Reference(),side);
@@ -813,7 +812,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
   thisgeoside.SideTransform3(largeside,t);
   TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(side,SideOrder(side)*2);
   if(!intrule) {
-    LOG4CXX_WARN(logger, "Exiting RestrainSide - cannot create side integration rule");
+    LOGPZ_WARN(logger, "Exiting RestrainSide - cannot create side integration rule");
     return;
   }
   int numint = intrule->NPoints();
@@ -890,7 +889,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
   }
 
   if (! ndepend){
-    //  cout << "Caso esquisito!!! Chame o Boss que vc receberá um prêmio\n";
+    //  cout << "Caso esquisito!!! Chame o Boss que vc receberï¿½um prï¿½io\n";
     for(jn = 0; jn<numsidenodes_large; jn++) {
       int jnodindex = large->SideConnectIndex(jn,neighbourside);
       inod.AddDependency(inodindex,jnodindex,MSL,MBlocksmall.Position(in),MBlocklarge.Position(jn),
@@ -915,7 +914,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     sout << "Exiting - Restraint matrix side incompatibility: MSL (rows,cols): ( " << rmsl 
          << " , " << cmsl << " )" << " RestraintMatrix (rows,cols): (" << rtest << " , "  << ctest << " )\n"
          << "press any key to continue";
-    LOG4CXX_ERROR(logger,sout.str());
+    LOGPZ_ERROR(logger,sout.str());
     int a;
     cin >> a;
     return;
@@ -942,7 +941,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         }
       }
     }
-    LOG4CXX_ERROR(logger,sout.str());
+    LOGPZ_ERROR(logger,sout.str());
 //     int a;
 //     gDebug = 1;
 //     cin >> a;
@@ -957,24 +956,24 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 //     gDebug = 1;
 //     cin >> a; 
     test.Diagnose();
-    LOG4CXX_ERROR(logger,sout.str());
+    LOGPZ_ERROR(logger,sout.str());
     TPZCheckRestraint test2(thisside,largecompside);
   }
 #endif  
-  LOG4CXX_INFO(logger,"Exiting RestrainSide.");
+  LOGPZ_INFO(logger,"Exiting RestrainSide.");
 }
 
 void TPZInterpolatedElement::CheckConstraintConsistency() {
-  LOG4CXX_INFO(logger, "Entering CheckConstraintConsistency.");
+  LOGPZ_INFO(logger, "Entering CheckConstraintConsistency.");
   int nc = Reference()->NSides();
   //  int a;
   for(int c=0; c<nc; c++) CheckConstraintConsistency(c);
-  LOG4CXX_INFO(logger, "Exiting CheckConstraintConsistency.");
+  LOGPZ_INFO(logger, "Exiting CheckConstraintConsistency.");
 }
 
 
 int TPZInterpolatedElement::CheckElementConsistency(){
-  LOG4CXX_INFO(logger, "Entering CheckElementConsistency.");
+  LOGPZ_INFO(logger, "Entering CheckElementConsistency.");
   int dimel = Dimension();
   int iside;
   int a;
@@ -984,11 +983,11 @@ int TPZInterpolatedElement::CheckElementConsistency(){
   for(iside=0; iside<NConnects(); iside++) {
     int nshape = NConnectShapeF(iside);
     if(Connect(iside).CheckDependency(nshape, Mesh(), nstate) == -1){
-      LOG4CXX_WARN(logger, "CheckElementConsistency detected inconsistency 1");
+      LOGPZ_WARN(logger, "CheckElementConsistency detected inconsistency 1");
       return 0;
     }
     if(Connect(iside).NDof(*Mesh()) != nshape*nstate) {
-      LOG4CXX_WARN(logger, "CheckElementConsistency detected inconsistency 2");
+      LOGPZ_WARN(logger, "CheckElementConsistency detected inconsistency 2");
       return 0;
     }
   }
@@ -1003,7 +1002,7 @@ int TPZInterpolatedElement::CheckElementConsistency(){
       sout << "TPZInterpolatedElement::CheckConstraintConsistency : dismall >= dimel: " 
            << dimsmall << " >= " <<  dimel << endl
            << "press any key to continue";
-      LOG4CXX_INFO(logger,sout.str());
+      LOGPZ_INFO(logger,sout.str());
       cin >> a;
       delete sirule;
       return 0;
@@ -1036,7 +1035,7 @@ int TPZInterpolatedElement::CheckElementConsistency(){
           SideShapeFunction(sidel,ptl,phil,dphil);
           int check = CompareShapeF(iside,sidel,phis,dphis,phil,dphil,transform);
           if (!check) {
-            LOG4CXX_INFO(logger, "Exiting CheckElementConsistency - don't compare shapefunctions.");
+            LOGPZ_INFO(logger, "Exiting CheckElementConsistency - don't compare shapefunctions.");
             delete sirule;
             return check;
           }
@@ -1045,12 +1044,12 @@ int TPZInterpolatedElement::CheckElementConsistency(){
     }
     delete sirule;
   }
-  LOG4CXX_INFO(logger, "Exiting CheckElementConsistency.");
+  LOGPZ_INFO(logger, "Exiting CheckElementConsistency.");
   return 1;
 }
 
 int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix &phis, TPZFMatrix &dphis, TPZFMatrix &phil, TPZFMatrix &dphil, TPZTransform &transform){
-  LOG4CXX_INFO(logger, "Entering CompareShapeF.");
+  LOGPZ_INFO(logger, "Entering CompareShapeF.");
   int ncons = NSideConnects(sides);
   int nconl = NSideConnects(sidel);
   TPZVec<int> posl(nconl+1), poss(ncons+1);
@@ -1093,14 +1092,14 @@ int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix &phis
   if(diff >= 1.e-6) {
     stringstream sout;
     sout << "TPZInterpolatedElement::CompareShapeF sides " << sides << " sidel " << sidel << " do not compare diff " << diff << endl;
-    LOG4CXX_ERROR(logger, sout.str());
+    LOGPZ_ERROR(logger, sout.str());
   }
-  LOG4CXX_INFO(logger, "Exiting CompareShapeF.");
+  LOGPZ_INFO(logger, "Exiting CompareShapeF.");
   return 1;
 }
 
 void TPZInterpolatedElement::CheckConstraintConsistency(int side) {
-  LOG4CXX_INFO(logger, "Entering CheckConstraintConsistency.");
+  LOGPZ_INFO(logger, "Entering CheckConstraintConsistency.");
   TPZCompElSide thisside(this,side);
   TPZCompElSide large = thisside.LowerLevelElementList(1);
   if(large.Exists()) {
@@ -1120,7 +1119,7 @@ void TPZInterpolatedElement::CheckConstraintConsistency(int side) {
         sout << "Dependency inconsistency";
         thiscon.Print(*Mesh(),sout);
         largel->Print(sout);
-        LOG4CXX_ERROR(logger, sout.str());
+        LOGPZ_ERROR(logger, sout.str());
       }
       dep = dep->fNext;
     }
@@ -1131,21 +1130,21 @@ void TPZInterpolatedElement::CheckConstraintConsistency(int side) {
       large = thisside.LowerLevelElementList(1);
       sout << "Dependency inconsistency\n";
       thiscon.Print(*Mesh(),sout);
-      LOG4CXX_ERROR(logger, sout.str());
+      LOGPZ_ERROR(logger, sout.str());
     }
   }
-  LOG4CXX_INFO(logger,"Exiting CheckConstraintConsistency.");
+  LOGPZ_INFO(logger,"Exiting CheckConstraintConsistency.");
 }
 
 void TPZInterpolatedElement::RemoveSideRestraintWithRespectTo(int side,
                                                               const TPZCompElSide & neighbour) {
-  LOG4CXX_INFO(logger,"Entering RemoveSideRestraintWithRespectTo.");
+  LOGPZ_INFO(logger,"Entering RemoveSideRestraintWithRespectTo.");
   TPZCompElSide thisside(this,side);
   //  TPZGeoElSide thisgeoside = thisside.Reference();
   //  TPZGeoElSide largegeoside = neighbour.Reference();
   TPZCompElSide largeset = thisside.LowerLevelElementList(1);
   if(!largeset.Exists()) {
-    LOG4CXX_WARN(logger,"Exiting RemoveSideRestraintWithRespectTo inconsistent 1");
+    LOGPZ_WARN(logger,"Exiting RemoveSideRestraintWithRespectTo inconsistent 1");
     return;
   }
 //  int smallfatherlevel = largeset.Element()->Reference()->Level();
@@ -1158,7 +1157,7 @@ void TPZInterpolatedElement::RemoveSideRestraintWithRespectTo(int side,
   TPZInterpolatedElement *smallfather = (TPZInterpolatedElement *) largeset.Element();
   int smallfatherside = largeset.Side();
   if(!neighbour.Reference().NeighbourExists(largeset.Reference())) {
-    LOG4CXX_WARN(logger,"Exiting RemoveSideRestraintWithRespectTo inconsistent 3");
+    LOGPZ_WARN(logger,"Exiting RemoveSideRestraintWithRespectTo inconsistent 3");
   }
   int js;
   int nsfather = smallfather->NSideConnects(smallfatherside);
@@ -1175,16 +1174,16 @@ void TPZInterpolatedElement::RemoveSideRestraintWithRespectTo(int side,
     if(dim1 || dim2) {
       stringstream sout;
       sout << "TPZInterpolatedElement::RemoveSideRestraintWithRespectTo fishy " << dfiindex;
-      LOG4CXX_ERROR(logger,sout.str());
+      LOGPZ_ERROR(logger,sout.str());
     }
   }
-  LOG4CXX_INFO(logger,"Exiting RemoveSideRestraintWithRespectTo.");
+  LOGPZ_INFO(logger,"Exiting RemoveSideRestraintWithRespectTo.");
 }
 
 void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
-  LOG4CXX_ERROR(logger,"Entering RemoveSideRestraintsII.");
+  LOGPZ_ERROR(logger,"Entering RemoveSideRestraintsII.");
   if(mode == EInsert) {//modo insercao
-    LOG4CXX_WARN(logger,"Exiting RemoveSideRestraintsII with mode insert should not be called");
+    LOGPZ_WARN(logger,"Exiting RemoveSideRestraintsII with mode insert should not be called");
     return;
   }
   TPZCompElSide large;//elemento grande
@@ -1220,7 +1219,7 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
   TPZCompEl *refloaded = Reference()->Reference();
   Reference()->ResetReference();
   for(side = 0; side < numsides; side++) {
-    if(mode == EDelete) {//modo remoção
+    if(mode == EDelete) {//modo remoï¿½o
       TPZCompElSide thisside(this,side);
       elemset.Resize(0);
       thisside.EqualLevelElementList(elemset,1,0);//iguais
@@ -1231,7 +1230,7 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
       int nsmall = smallset.NElements();
       large = thisside.LowerLevelElementList(1);
       if(nelem && !large.Exists()) {//iguais e nao grande
-        //se existem iguais só deve-se recalcular a ordem de todos os iguais que restaram
+        //se existem iguais sï¿½deve-se recalcular a ordem de todos os iguais que restaram
         /* 	int oldorder = SideOrder(side); */
         /* 	int order = ComputeSideOrder(elemset); */
         /* 	if(order != oldorder) { */
@@ -1280,14 +1279,14 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
     }//fim mode EDelete
   }//fim for
   Reference()->SetReference(refloaded);
-  LOG4CXX_INFO(logger,"Exiting RemoveSideRestraintsII.");
+  LOGPZ_INFO(logger,"Exiting RemoveSideRestraintsII.");
 }//fim todos
 
 int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
-  LOG4CXX_INFO(logger,"Entering ComputeSideOrder.");
+  LOGPZ_INFO(logger,"Entering ComputeSideOrder.");
   int nelem = smallset.NElements();
   if(!nelem) {
-    LOG4CXX_ERROR(logger,"Exiting ComputeSideOrder called for empty list, -1 returned");
+    LOGPZ_ERROR(logger,"Exiting ComputeSideOrder called for empty list, -1 returned");
     return -1;
   }
   TPZInterpolatedElement *cel = (TPZInterpolatedElement *) smallset[0].Element();
@@ -1298,12 +1297,12 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
     int celorder = cel->PreferredSideOrder(smallset[iel].Side());
     minorder = minorder < celorder ? minorder : celorder;
   }
-  LOG4CXX_INFO(logger,"Exiting ComputeSideOrder.");
+  LOGPZ_INFO(logger,"Exiting ComputeSideOrder.");
   return minorder;
 }
 
 void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel){
-  LOG4CXX_INFO(logger,"Entering InterpolateSolution.");
+  LOGPZ_INFO(logger,"Entering InterpolateSolution.");
   // accumulates the transfer coefficients between the current element and the
   // coarse element into the transfer matrix, using the transformation t
   TPZTransform t(Dimension());
@@ -1320,7 +1319,7 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
   int nvar = fMaterial->NStateVariables();
   int dimension = Dimension();
   if (!dimension) {
-    LOG4CXX_WARN(logger,"Exiting InterpolateSolution - trying to interpolate a node solution ");
+    LOGPZ_WARN(logger,"Exiting InterpolateSolution - trying to interpolate a node solution ");
     return ;
   }
 
@@ -1346,7 +1345,7 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
     for (ccc = 0; ccc < interpolation.NElements(); ccc++)
       sout << "  " << interpolation[ccc];
     sout << "  }" << endl;
-    LOG4CXX_DEBUG(logger,sout.str());
+    LOGPZ_DEBUG(logger,sout.str());
   } 
 
   // compute the interpolation order of the shapefunctions squared
@@ -1419,16 +1418,16 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
     jacobian.Zero();
   }
 
-  {
-    stringstream sout;
-    int matiter;
-    for (matiter = 0; matiter < loclocmat.Cols();matiter++)
-      sout << loclocmat(25,matiter) << "\t";
-    sout << endl;
-    projectmat.Print("projecmat",sout);
-    loclocmat.Print("loclocmat",sout);
-    LOG4CXX_DEBUG(logger,sout.str());
-  }
+//   {
+//     stringstream sout;
+//     int matiter;
+//     for (matiter = 0; matiter < loclocmat.Cols();matiter++)
+//       sout << loclocmat(25,matiter) << "\t";
+//     sout << endl;
+//     projectmat.Print("projecmat",sout);
+//     loclocmat.Print("loclocmat",sout);
+//     LOGPZ_DEBUG(logger,sout.str());
+//   }
 
   loclocmat.SolveDirect(projectmat,ELU);
   // identify the non-zero blocks for each row
@@ -1444,16 +1443,16 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
     }
   }
   intrule.SetOrder(prevorder);
-  LOG4CXX_INFO(logger,"Exiting InterpolateSolution.");
+  LOGPZ_INFO(logger,"Exiting InterpolateSolution.");
 }
 
 /**calculate the element stiffness matrix*/
 void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) {
-  LOG4CXX_INFO(logger,"Entering CalcStiff.");
+  LOGPZ_INFO(logger,"Entering CalcStiff.");
   int i;
 
   if(fMaterial == NULL){
-    LOG4CXX_ERROR(logger,"Exiting CalcStiff: no material for this element");
+    LOGPZ_ERROR(logger,"Exiting CalcStiff: no material for this element");
     return;
   }
   int numdof = fMaterial->NStateVariables();
@@ -1540,7 +1539,7 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
     default:
       stringstream sout;
       sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
-      LOG4CXX_ERROR(logger,sout.str());
+      LOGPZ_ERROR(logger,sout.str());
       //PZError.flush();
     }
     int iv=0,d;
@@ -1564,23 +1563,23 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
       stringstream sout;
       sout << "\nCalcStiff sol\n" << sol;
       sout << "\nCalcStiff dsol\n" << dsol;
-      LOG4CXX_DEBUG(logger,sout.str());
+      LOGPZ_DEBUG(logger,sout.str());
     }
     fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ek.fMat,ef.fMat);
 //    ek.Print(*this->fMesh,cout);
 //    ef.Print(*this->fMesh,cout);
   }
-  LOG4CXX_INFO(logger,"Exiting CalcStiff.");
+  LOGPZ_INFO(logger,"Exiting CalcStiff.");
 }
 
 void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
-  LOG4CXX_INFO(logger,"Entering ProjectFlux.");
+  LOGPZ_INFO(logger,"Entering ProjectFlux.");
   
   if(fMaterial == NULL){
     stringstream sout;
     sout << "Exiting ProjectFlux: no material for this element\n";
     Print(sout);
-    LOG4CXX_ERROR(logger,sout.str());
+    LOGPZ_ERROR(logger,sout.str());
     return;
   }
 
@@ -1653,7 +1652,7 @@ void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix 
     default:
       stringstream sout;
       sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
-      LOG4CXX_WARN(logger,sout.str());
+      LOGPZ_WARN(logger,sout.str());
     }
 
     int iv=0,in,jn,d;
@@ -1678,15 +1677,15 @@ void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix 
       }
     }
   }
-  LOG4CXX_INFO(logger,"Exiting ProjectFlux.");
+  LOGPZ_INFO(logger,"Exiting ProjectFlux.");
 }
 
 
 /**Implement the refinement of an interpolated element*/
 void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolatesolution) {
-  LOG4CXX_INFO(logger,"Entering Divide.");
+  LOGPZ_INFO(logger,"Entering Divide.");
   if (fMesh->ElementVec()[index] != this) {
-    LOG4CXX_ERROR(logger,"Exiting Divide: index error");
+    LOGPZ_ERROR(logger,"Exiting Divide: index error");
     sub.Resize(0);
     return;
   }
@@ -1695,10 +1694,10 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
   sub.Resize(nsubelements);
 
   TPZManVector<TPZGeoEl *> pv(nsubelements);
-  ref->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional é dividido
+  ref->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional ï¿½dividido
   if(!pv.NElements()) {
     sub.Resize(0);
-    LOG4CXX_ERROR(logger,"Exiting Divide: no subelements acquired");
+    LOGPZ_ERROR(logger,"Exiting Divide: no subelements acquired");
     return;
   }
 
@@ -1709,8 +1708,8 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
     stringstream sout;
     TPZCheckMesh chk(Mesh(),&sout);
     if(chk.CheckConnectOrderConsistency() != -1) {
-       LOG4CXX_WARN(logger,"CheckConnectOrderConsistency failed");
-       LOG4CXX_WARN(logger,sout.str());
+       LOGPZ_WARN(logger,"CheckConnectOrderConsistency failed");
+       LOGPZ_WARN(logger,sout.str());
     }
   }
 #endif  
@@ -1728,8 +1727,8 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
     stringstream sout;
     TPZCheckMesh chk(Mesh(),&sout);
     if(chk.CheckConnectOrderConsistency() != -1) {
-      LOG4CXX_WARN(logger,"CheckConnectOrderConsistency failed after RemoveSideRestraintsII");
-      LOG4CXX_WARN(logger,sout.str());
+      LOGPZ_WARN(logger,"CheckConnectOrderConsistency failed after RemoveSideRestraintsII");
+      LOGPZ_WARN(logger,sout.str());
     }
   }
 #endif  
@@ -1752,7 +1751,7 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
     for(i=0; i<nsubelements; i++) {
       cel = dynamic_cast<TPZInterpolatedElement *> (fMesh->ElementVec()[sub[i]]);
       if (!cel) {
-        LOG4CXX_WARN(logger,"Divide interpolate cast error");
+        LOGPZ_WARN(logger,"Divide interpolate cast error");
         continue;
       }
       cel->CheckConstraintConsistency();
@@ -1763,11 +1762,11 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
   // we assume that the calling program will delete the element from
   // the data structure
   delete this;// deve ser relegado para o Refine
-  LOG4CXX_INFO(logger,"Exiting Divide.");
+  LOGPZ_INFO(logger,"Exiting Divide.");
 }
 
 REAL TPZInterpolatedElement::CompareElement(int var, char *matname) {
-  LOG4CXX_INFO(logger,"Entering CompareElement.");
+  LOGPZ_INFO(logger,"Entering CompareElement.");
   if (strcmp(matname,Material()->Name())) return(0.);
   REAL error=0.;
   int dim = Dimension();
@@ -1805,16 +1804,16 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname) {
       error += (sol[i]-othersol[i])*(sol[i]-othersol[i]);
     }
   }
-  LOG4CXX_INFO(logger,"Exiting CompareElement.");
+  LOGPZ_INFO(logger,"Exiting CompareElement.");
   return error;
 }
 
 void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
-  LOG4CXX_INFO(logger,"Entering Solution.");
+  LOGPZ_INFO(logger,"Entering Solution.");
 
   if(var >= 100) {
     TPZCompEl::Solution(qsi,var,sol);
-    LOG4CXX_INFO(logger,"Exiting Solution for var > 100.");
+    LOGPZ_INFO(logger,"Exiting Solution for var > 100.");
     return;
   }
   int nshape = NShapeF();
@@ -1822,14 +1821,14 @@ void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REA
   int ncon = NConnects();
   if(var == 99) {
     sol[0] = SideOrder(ncon-1);
-    LOG4CXX_INFO(logger,"Exiting Solution for var 99.");
+    LOGPZ_INFO(logger,"Exiting Solution for var 99.");
     return;
   }
   TPZBlock &block = fMesh->Block();
   TPZFMatrix &Sol = fMesh->Solution();
 
   if(fMaterial == NULL){
-    LOG4CXX_ERROR(logger,"Exiting Solution: no Material for this element");
+    LOGPZ_ERROR(logger,"Exiting Solution: no Material for this element");
     return;
   }
   TPZGeoEl *ref = Reference();
@@ -1876,7 +1875,7 @@ void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REA
   default:
     stringstream sout;
     sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse";
-    LOG4CXX_WARN(logger,sout.str());
+    LOGPZ_WARN(logger,sout.str());
   }
 
   int iv=0,in,jn,d;
@@ -1897,7 +1896,7 @@ void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REA
     }
   }
   fMaterial->Solution(u,du,axes,var,sol);
-  LOG4CXX_INFO(logger,"Exiting Solution");
+  LOGPZ_INFO(logger,"Exiting Solution");
 }
 
 void TPZInterpolatedElement::Print(std::ostream &out) {
@@ -1930,7 +1929,7 @@ void TPZInterpolatedElement::Print(std::ostream &out) {
 }
 
 void TPZInterpolatedElement::PRefine(int order) {
-  LOG4CXX_INFO(logger,"Entering PRefine.");
+  LOGPZ_INFO(logger,"Entering PRefine.");
   SetPreferredSideOrder(order);
   int side;
   for(side=0; side<NConnects(); side++) {
@@ -1940,7 +1939,7 @@ void TPZInterpolatedElement::PRefine(int order) {
 //     int trueorder = SideOrder(side);
 //     SetIntegrationRule(2*trueorder+2);
 //   }
-  LOG4CXX_INFO(logger,"Exiting PRefine.");
+  LOGPZ_INFO(logger,"Exiting PRefine.");
 }
 
 
@@ -1950,17 +1949,17 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
                                                 TPZFMatrix &deriv),
                                            TPZVec<REAL> &errors,
                                            TPZBlock * /*flux */) {
-  LOG4CXX_INFO(logger,"Entering EvaluateError.");
+  LOGPZ_INFO(logger,"Entering EvaluateError.");
   int NErrors = this->Material()->NEvalErrors();
   errors.Resize(NErrors);
   errors.Fill(0.0);
 
   if(fMaterial == NULL){
-    LOG4CXX_ERROR(logger,"Exiting EvaluateError: no material for this element");
+    LOGPZ_ERROR(logger,"Exiting EvaluateError: no material for this element");
     return;
   }
   if(fMaterial->Id() < 0) {
-    LOG4CXX_INFO(logger,"Exiting EvaluateError - null error - boundary condition material.");
+    LOGPZ_INFO(logger,"Exiting EvaluateError - null error - boundary condition material.");
     return;
   }
   // Adjust the order of the integration rule
@@ -2045,7 +2044,7 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
     default:
       stringstream sout;
       sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
-      LOG4CXX_WARN(logger,sout.str());
+      LOGPZ_WARN(logger,sout.str());
     }
     int iv=0,in,jn,d;
     TPZConnect *df;
@@ -2062,7 +2061,7 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
         iv++;
       }
     }//solucao calculculada no sistema local : elementos 2d
-    //contribuções dos erros
+    //contribuï¿½es dos erros
     if(fp) {
       fp(x,u_exact,du_exact);
       matp->Errors(x,u,dudx,axes,flux_el,u_exact,du_exact,values);
@@ -2075,14 +2074,14 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
     errors[ier] = sqrt(errors[ier]);
 
   intrule.SetOrder(prevorder);
-  LOG4CXX_INFO(logger,"Exiting EvaluateError.");
+  LOGPZ_INFO(logger,"Exiting EvaluateError.");
 }
 void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
-  LOG4CXX_INFO(logger,"Entering CalcResidual.");
+  LOGPZ_INFO(logger,"Entering CalcResidual.");
   int i;
 
   if(fMaterial == NULL){
-    LOG4CXX_ERROR(logger,"Exiting CalcResidual: no material for this element");
+    LOGPZ_ERROR(logger,"Exiting CalcResidual: no material for this element");
     return;
   }
   int numdof = fMaterial->NStateVariables();
@@ -2159,7 +2158,7 @@ void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
     default:
       stringstream sout;
       sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
-      LOG4CXX_WARN(logger,sout.str());
+      LOGPZ_WARN(logger,sout.str());
     }
     int iv=0,d;
 
@@ -2179,15 +2178,15 @@ void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
     }
     fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ef.fMat);
   }
-  LOG4CXX_INFO(logger,"Exiting CalcResidual.");
+  LOGPZ_INFO(logger,"Exiting CalcResidual.");
 }
 
 void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & blockdiag) {
-  LOG4CXX_INFO(logger,"Entering CalcBlockDiagonal.");
+  LOGPZ_INFO(logger,"Entering CalcBlockDiagonal.");
   int i;
   
   if(fMaterial == NULL){
-    LOG4CXX_ERROR(logger,"Entering CalcBlockDiagonal: no material for this element");
+    LOGPZ_ERROR(logger,"Entering CalcBlockDiagonal: no material for this element");
     return;
   }
   int ncon = NConnects();
@@ -2277,7 +2276,7 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
     default:
       stringstream sout;
       sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
-      LOG4CXX_WARN(logger,sout.str());
+      LOGPZ_WARN(logger,sout.str());
     }
     int iv=0,d;
     
@@ -2322,11 +2321,11 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
       blockdiag.AddBlock(b,ekl);
     }
   }
-  LOG4CXX_INFO(logger,"Exiting CalcBlockDiagonal.");
+  LOGPZ_INFO(logger,"Exiting CalcBlockDiagonal.");
 }
 
 void TPZInterpolatedElement::ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix &phi, TPZFMatrix &dphix) {
-  LOG4CXX_INFO(logger,"Entering ExpandShapeFunctions.");
+  LOGPZ_INFO(logger,"Entering ExpandShapeFunctions.");
   int numblocks =  connectlist.NElements();
   TPZCompMesh &mesh = *Mesh();
   int nhandled=0;
@@ -2345,35 +2344,35 @@ void TPZInterpolatedElement::ExpandShapeFunctions(TPZVec<int> &connectlist, TPZV
       current_order++;
     }
   }
-  LOG4CXX_INFO(logger,"Exiting ExpandShapeFunctions.");
+  LOGPZ_INFO(logger,"Exiting ExpandShapeFunctions.");
 }
 
 /** Jorge 19/05/99 */
 void TPZInterpolatedElement::MakeConnectContinuous(int icon) {
-  LOG4CXX_INFO(logger,"Entering MakeConnectContinuous.");
+  LOGPZ_INFO(logger,"Entering MakeConnectContinuous.");
   TPZStack<TPZCompElSide> elvec;
   TPZCompElSide thisside(this,icon);
   thisside.EqualLevelElementList(elvec,0,0);
   /**Asking if exist neighbour that it can not to be discontinuous*/
   if(elvec.NElements() && ((TPZInterpolatedElement *)(elvec[0].Element()))->CanBeDiscontinuous()) {
     ((TPZInterpolatedElement *)elvec[0].Element())->MakeConnectContinuous(elvec[0].Side());
-    LOG4CXX_INFO(logger,"Exiting MakeConnectContinuous -> can be continuous.");
+    LOGPZ_INFO(logger,"Exiting MakeConnectContinuous -> can be continuous.");
     return;
   }
-  LOG4CXX_INFO(logger,"Exiting MakeConnectContinuous -> can't be continuous.");
+  LOGPZ_INFO(logger,"Exiting MakeConnectContinuous -> can't be continuous.");
 }
 
 REAL TPZInterpolatedElement::MeanSolution(int var) {
-  LOG4CXX_INFO(logger,"Entering MeanSolution.");
+  LOGPZ_INFO(logger,"Entering MeanSolution.");
   int dim = Dimension(), nvars;
   if(!fMaterial) {
-    LOG4CXX_INFO(logger,"Exiting MeanSolution: null material");
+    LOGPZ_INFO(logger,"Exiting MeanSolution: null material");
     return 0.;
   }
 
   nvars = fMaterial->NSolutionVariables(var);
   if(nvars!=1) {
-    LOG4CXX_ERROR(logger,"Exiting MeanSolution: is not implemented to nvars != 1.");
+    LOGPZ_ERROR(logger,"Exiting MeanSolution: is not implemented to nvars != 1.");
     return 0.;
   }
   TPZManVector<REAL> sol(nvars,0.);
@@ -2397,16 +2396,16 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
     area += weight*fabs(detjac);
     meanvalue += (weight*fabs(detjac)*sol[0]);   //  meanvalue += (weight*fabs(detjac)*sol[j]);
   }
-  LOG4CXX_INFO(logger,"Exiting MeanSolution.");
+  LOGPZ_INFO(logger,"Exiting MeanSolution.");
   return (meanvalue/area);
 }
 
 /**Compute the contribution to stiffness matrix and load vector on the element*/
 void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
-  LOG4CXX_INFO(logger,"Entering CalcIntegral.");
+  LOGPZ_INFO(logger,"Entering CalcIntegral.");
   int i;
   if(fMaterial == NULL) {
-    LOG4CXX_INFO(logger,"Exiting CalcIntegral.");
+    LOGPZ_INFO(logger,"Exiting CalcIntegral.");
     return;
   }
 
@@ -2467,19 +2466,19 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
       for(l=0;l<numdof;l++)
         (ef.fMat)(in*numdof+l,0) += weight*phi(in,0)*sol[l];
   }
-  LOG4CXX_INFO(logger,"Exiting CalcIntegral.");
+  LOGPZ_INFO(logger,"Exiting CalcIntegral.");
 }
 
 int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
-  LOG4CXX_INFO(logger,"Entering AdjustPreferredSideOrder.");
+  LOGPZ_INFO(logger,"Entering AdjustPreferredSideOrder.");
   TPZGeoEl *gel = Reference();
   if(!gel) {
-    LOG4CXX_ERROR(logger,"Exiting AdjustPreferredSideOrder: null reference element.");
+    LOGPZ_ERROR(logger,"Exiting AdjustPreferredSideOrder: null reference element.");
     return order;
   }
   int dim = gel->SideDimension(side);
   if(dim != 2) {
-    LOG4CXX_INFO(logger,"Exiting AdjustPreferredSideOrder: dimension != 2");
+    LOGPZ_INFO(logger,"Exiting AdjustPreferredSideOrder: dimension != 2");
     return order;
   }
   TPZStack<int> elsides;
@@ -2494,7 +2493,7 @@ int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
     int sorder = SideOrder(s);
     maxorder = maxorder < sorder ? sorder : maxorder;
   }
-  LOG4CXX_INFO(logger,"Exiting AdjustPreferredSideOrder.");
+  LOGPZ_INFO(logger,"Exiting AdjustPreferredSideOrder.");
   return maxorder;
 }
 
@@ -2503,11 +2502,11 @@ int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
 
 /**calculate the element Energy*/
 void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &ef) {
-  LOG4CXX_INFO(logger,"Entering CalcEnergy.");
+  LOGPZ_INFO(logger,"Entering CalcEnergy.");
   int i;
 
   if(fMaterial == NULL){
-    LOG4CXX_INFO(logger,"Exiting CalcEnergy: no material for this element");
+    LOGPZ_INFO(logger,"Exiting CalcEnergy: no material for this element");
     return;
   }
   
@@ -2554,7 +2553,7 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
 
   FADREAL defaultFAD(numeq, 0., 0.);
   if(defaultFAD.dx(0)==1.){
-    LOG4CXX_ERROR(logger,"FAD doesn't have default constructor for parameters: (number of derivatives, default value, default derivative value) !");
+    LOGPZ_ERROR(logger,"FAD doesn't have default constructor for parameters: (number of derivatives, default value, default derivative value) !");
     return;
   }
   FADFADREAL defaultFADFAD(numeq, defaultFAD, defaultFAD);
@@ -2598,7 +2597,7 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
     default:
       stringstream sout;
       sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
-      LOG4CXX_WARN(logger,sout.str());
+      LOGPZ_WARN(logger,sout.str());
     }
     int iv=0,d;
 
@@ -2637,12 +2636,12 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
   }
 
   FADToMatrix(U, ek.fMat, ef.fMat);
-  LOG4CXX_INFO(logger,"Exiting CalcEnergy.");
+  LOGPZ_INFO(logger,"Exiting CalcEnergy.");
 }
 
 void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef)
 {
-  LOG4CXX_INFO(logger,"Entering FADToMatrix.");
+  LOGPZ_INFO(logger,"Entering FADToMatrix.");
   int efsz = ef.Rows();
   int ekrows = ek.Rows();
   int ekcols = ek.Cols();
@@ -2651,10 +2650,10 @@ void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMat
   int Urows = U.val().size();
 
   if(efsz != Urows){
-    LOG4CXX_WARN(logger,"Energy Fad type and ef vectors are of different sizes");
+    LOGPZ_WARN(logger,"Energy Fad type and ef vectors are of different sizes");
   }
   if(ekrows != Urows || ekcols != Ucols){
-    LOG4CXX_WARN(logger,"Energy Fad type and ek matrix are of different sizes");
+    LOGPZ_WARN(logger,"Energy Fad type and ek matrix are of different sizes");
   }
 
   FADREAL * pBufferFAD;
@@ -2677,11 +2676,11 @@ void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMat
   */
 void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid)
 {
-  LOG4CXX_INFO(logger,"Entering Write.");
+  LOGPZ_INFO(logger,"Entering Write.");
   TPZCompEl::Write(buf,withclassid);
   int matid = fMaterial->Id();
   buf.Write(&matid,1);
-  LOG4CXX_INFO(logger,"Exiting Write.");
+  LOGPZ_INFO(logger,"Exiting Write.");
 }
   
   /**
@@ -2689,10 +2688,10 @@ void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid)
   */
 void TPZInterpolatedElement::Read(TPZStream &buf, void *context)
 {
-  LOG4CXX_INFO(logger,"Entering Read.");
+  LOGPZ_INFO(logger,"Entering Read.");
   TPZCompEl::Read(buf,context);
   int matid;
   buf.Read(&matid,1);
   fMaterial = Mesh()->FindMaterial(matid);
-  LOG4CXX_INFO(logger,"Exiting Read.");
+  LOGPZ_INFO(logger,"Exiting Read.");
 }

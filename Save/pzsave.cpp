@@ -3,6 +3,12 @@
 
 #include <iostream>
 #include <fstream>
+
+#ifdef WIN32
+#pragma warning (disable:4786)
+#endif
+
+
 using namespace std;
 
 
@@ -28,6 +34,7 @@ void TPZSaveable::Read(TPZStream &buf, void *context)
 
 void TPZSaveable::Register(int classid, TPZRestore_t fun) 
 {
+#ifndef ELLIPS
   map<int,TPZRestore_t>::iterator it;
  it = Map().find(classid);
   if(it != Map().end()) 
@@ -36,9 +43,11 @@ void TPZSaveable::Register(int classid, TPZRestore_t fun)
     return;
   }
   Map()[classid] = fun;
+#endif
 }
 
 TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
+#ifndef ELLIPS
   int classid;
   buf.Read(&classid,1);
   map<int,TPZRestore_t>::iterator it;
@@ -50,4 +59,7 @@ TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
   }
   TPZRestore_t fun= it->second;
   return (*fun)(buf,context);
+#else
+  return 0;
+#endif
 }

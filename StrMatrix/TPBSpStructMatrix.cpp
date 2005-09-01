@@ -40,18 +40,18 @@ int TPBSpStructMatrix::main() {
        // initializar as coordenadas do no em um vetor
        for (j=0; j<3; j++) coord[j] = coordstore[i][j];
        
-       // identificar um espaço no vetor onde podemos armazenar
+       // identificar um espaï¿½ no vetor onde podemos armazenar
        // este vetor
-       int nodeindex = gmesh.NodeVec ().AllocateNewElement ();
+       gmesh.NodeVec ().AllocateNewElement ();
        
-       // initializar os dados do nó
+       // initializar os dados do nï¿½
        gmesh.NodeVec ()[i].Initialize (i,coord,gmesh);
      }
      int el;
      TPZGeoEl *gel;
      for(el=0; el<1; el++) {
        
-       // initializar os indices dos nós
+       // initializar os indices dos nï¿½
        TPZVec<int> indices(4);
        for(i=0; i<4; i++) indices[i] = i;
        // O proprio construtor vai inserir o elemento na malha
@@ -101,7 +101,7 @@ int TPBSpStructMatrix::main() {
 
      TPZVec<int> numelconnected(cmesh.NEquations(),0);
      int ic;
-     //cout << "Número de Equações -> " << cmesh.NEquations() << endl;
+     //cout << "Nmero de Equaï¿½es -> " << cmesh.NEquations() << endl;
      //cout.flush();
 	
      ofstream out("cmeshBlock_out.txt");
@@ -235,7 +235,7 @@ TPZMatrix * TPBSpStructMatrix::Create(){
     */
     TPZStack<int> elgraph;
     TPZVec<int> elgraphindex;
-    int nnodes = 0;
+//    int nnodes = 0;
     fMesh->ComputeElGraph(elgraph,elgraphindex);
     /**Creates a element graph*/
     TPZMetis metis(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());

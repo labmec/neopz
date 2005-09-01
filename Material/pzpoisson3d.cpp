@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.13 2005-04-25 02:52:50 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.14 2005-09-01 19:02:08 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -19,6 +19,7 @@ TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin
   fConvDir[0] = 1.;
   fConvDir[1] = 0.;
   fConvDir[2] = 0.;
+  fPenaltyConstant = 1.;
   this->SetNonSymmetric();
 }
 
@@ -42,6 +43,7 @@ void TPZMatPoisson3d::Print(ostream &out) {
   out << "Convection coeficient fC " << fC << endl;
   out << "Convection direction " << fConvDir[0] << ' ' << fConvDir[1] << ' ' <<  fConvDir[2] << endl;
   out << "Forcing vector fXf " << fXf << endl;
+  out << "Penalty constant " << fPenaltyConstant << endl;
   out << "Base Class properties : \n";
   TPZMaterial::Print(out);
 }
@@ -97,15 +99,17 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   //Equacao de Poisson
   for( int in = 0; in < phr; in++ ) {
     int kd;
-    ef(in, 0) += - weight * fXf*phi(in,0);
     REAL dphiic = 0;
     for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
+    ef(in, 0) += - weight * ( fXf*phi(in,0) 
+			      + 0.5*delx*fC*dphiic*fXf
+			      );
     for( int jn = 0; jn < phr; jn++ ) {
       for(kd=0; kd<fDim; kd++) {
         ek(in,jn) += weight * (
-          fK * ( dphi(kd,in) * dphi(kd,jn) ) -
-          fC * ( ConvDirAx[kd]* dphi(kd,in) * phi(jn) )+
-          0.5 * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
+          +fK * ( dphi(kd,in) * dphi(kd,jn) ) 
+          -fC * ( ConvDirAx[kd]* dphi(kd,in) * phi(jn) )
+	  +0.5 * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
           );
       }
     }
@@ -287,10 +291,84 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 
 #endif
 
+/** Termos de penalidade. */
 void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-                        TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-                        TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                        TPZFMatrix &ek,TPZFMatrix &ef){
+                                          TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+                                          TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                          TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
+
+  this->ContributeInterface( x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef );
+  
+  int nrowl = phiL.Rows();
+  int nrowr = phiR.Rows();
+  int il,jl,ir,jr;
+//penalty = <A p^2>/h 
+  const REAL penalty = fPenaltyConstant * (0.5 * (fK*LeftPOrder*LeftPOrder + fK*RightPOrder*RightPOrder)) / faceSize;
+  
+  // 1) left i / left j
+  for(il=0; il<nrowl; il++) {
+    for(jl=0; jl<nrowl; jl++) {
+      ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
+    }
+  }
+  
+  // 2) right i / right j
+  for(ir=0; ir<nrowr; ir++) {
+    for(jr=0; jr<nrowr; jr++) {
+      ek(ir+nrowl,jr+nrowl) += weight * penalty * phiR(ir,0) * phiR(jr,0);
+    }
+  }
+  
+  // 3) left i / right j
+  for(il=0; il<nrowl; il++) {
+    for(jr=0; jr<nrowr; jr++) {
+      ek(il,jr+nrowl) += -1.0 * weight * penalty * phiR(jr,0) * phiL(il,0);
+    }
+  }
+  
+  // 4) right i / left j
+  for(ir=0; ir<nrowr; ir++) {
+    for(jl=0; jl<nrowl; jl++) {
+      ek(ir+nrowl,jl) += -1.0 * weight *  penalty * phiL(jl,0) * phiR(ir,0);
+    }
+  }
+  
+}
+
+/** Termos de p\ Projects/Makefileenalidade. */
+void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+                                            TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
+  
+  this->ContributeBCInterface( x, solL, dsolL, weight, normal, phiL, dphiL, ek, ef, bc);
+
+  int il,jl,nrowl;
+  nrowl = phiL.Rows(); 
+  const REAL penalty = fPenaltyConstant * fK * POrder * POrder / faceSize; //Ap^2/h
+   
+  switch(bc.Type()) {
+  case 0: // DIRICHLET  
+    for(il=0; il<nrowl; il++) {
+      ef(il,0) += weight * penalty * phiL(il,0) * bc.Val2()(0,0);
+      for(jl=0; jl<nrowl; jl++) {
+        ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
+      }
+    }
+     
+    break;
+  case 1: // Neumann
+    //nothing to be done
+    break;
+  default:
+    PZError << "TPZMatPoisson3d::Wrong boundary condition type\n";
+    break;
+  }    
+  
+}
+
+void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+                                          TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+                                          TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                          TPZFMatrix &ek,TPZFMatrix &ef){
 
   int nrowl = phiL.Rows();
   int nrowr = phiR.Rows();

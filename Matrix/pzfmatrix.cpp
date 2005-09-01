@@ -967,6 +967,7 @@ int TPZFMatrix::Decompose_LU(TPZVec<int> &index) {
     //Print(cout);
   }    
   fDecomposed = ELUPivot;
+  return 1;
 }
 
 int TPZFMatrix::Substitution( TPZFMatrix *B, TPZVec<int> &index ) const{
@@ -1024,6 +1025,7 @@ int TPZFMatrix::Substitution( TPZFMatrix *B, TPZVec<int> &index ) const{
   }
   
   for (i=0;i<nRows;i++) b[i] = v[i];
+  return 1;
 }
 
 REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B) {

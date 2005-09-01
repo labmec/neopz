@@ -43,6 +43,7 @@ TPZMatrix * TPZSparseBlockDiagonalStructMatrix::Create()
   // this preconditioner type should be created by the analysis class
   // it is too complicated to require the user to coordinate this within
   // the current class structure....
+  return 0;
 }
 
 
@@ -53,5 +54,5 @@ TPZMatrix * TPZSparseBlockDiagonalStructMatrix::Create()
  */
 int TPZSparseBlockDiagonalStructMatrix::NumColors()
 {
-    /// @todo implement me
+    return 0;
 }
