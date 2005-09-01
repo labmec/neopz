@@ -14,7 +14,9 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 savedir = $(prefix)/Save
 
-save_HEADERS = $(wildcard *.h)
+saveincdir = $(includedir)/Save
+saveinc_HEADERS= $(top_srcdir)/Save/*.h
+
 
 noinst_LIBRARIES = libSave.a
 

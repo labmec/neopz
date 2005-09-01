@@ -3,41 +3,41 @@
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
-# $Id: PZ_user.mk.in,v 1.10 2005-03-11 13:06:39 cesar Exp $
+# $Id: PZ_user.mk.in,v 1.11 2005-09-01 19:47:58 tiago Exp $
 #
 
-PZ_INCLUDES = -I@prefix@/Util \
-	-I@prefix@/Common \
-	-I@prefix@/Mesh \
-	-I@prefix@/Geom \
-	-I@prefix@/Refine \
-	-I@prefix@/Shape \
-	-I@prefix@/StrMatrix \
-	-I@prefix@/Frontal \
-	-I@prefix@/Matrix \
-	-I@prefix@/LinearSolvers \
-	-I@prefix@/Analysis \
-	-I@prefix@/Integral \
-	-I@prefix@/Cosys \
-	-I@prefix@/Material \
-	-I@prefix@/Multigrid \
-	-I@prefix@/Post \
-	-I@prefix@/Pre \
-	-I@prefix@/External \
-	-I@prefix@/External/sloan \
-	-I@prefix@/Save \
+PZ_INCLUDES = -I@prefix@/include/Util \
+	-I@prefix@/include/Common \
+	-I@prefix@/include/Mesh \
+	-I@prefix@/include/Geom \
+	-I@prefix@/include/Refine \
+	-I@prefix@/include/Shape \
+	-I@prefix@/include/StrMatrix \
+	-I@prefix@/include/Frontal \
+	-I@prefix@/include/Matrix \
+	-I@prefix@/include/LinearSolvers \
+	-I@prefix@/include/Analysis \
+	-I@prefix@/include/Integral \
+	-I@prefix@/include/Cosys \
+	-I@prefix@/include/Material \
+	-I@prefix@/include/Multigrid \
+	-I@prefix@/include/Post \
+	-I@prefix@/include/Pre \
+	-I@prefix@/include/External \
+	-I@prefix@/include/External/sloan \
+	-I@prefix@/include/Save \
 	@METISINCLUDE@ \
 	@FADINCLUDE@ \
 	@FADINCLUDE_FAD@ \
 	@FADINCLUDE_TFAD@ \
 	@FADINCLUDE_TFADET@ \
 	@ATLASINCLUDE@ \
-  @LOG4CXXINCLUDE
+  	@LOG4CXXINCLUDE@
 
 PZ_LIBDIR = -L@prefix@/lib @METISLIBDIR@ @ATLASLIBDIR@ @LOG4CXXLIBDIR@
 
 PZ_LIB = -lpz @METISLIB@ @ATLASLIB@ @LOG4CXXLIB@
 
-PZ_CXXFLAGS = @USING_METIS@ @USING_FAD@ @USING_ATLAS@
+PZ_CXXFLAGS = @USING_METIS@ @USING_FAD@ @USING_ATLAS@ @USING_LOG4CXX@
 
 ## --| NeoPZ |------------------------------------------------------------------
