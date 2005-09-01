@@ -13,8 +13,6 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = main.cpp pzadaptmesh.cpp pzcclonemesh.cpp pzgclonemesh.cpp
-
-main_LDADD = $(top_builddir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
+main_SOURCES = viga3d.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------

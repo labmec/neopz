@@ -14,7 +14,8 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 utildir = $(prefix)/Util
 
-util_HEADERS = $(wildcard *.h)
+utilincdir = $(includedir)/Util
+utilinc_HEADERS= $(top_srcdir)/Util/*.h
 
 noinst_LIBRARIES = libpzutil.a
 

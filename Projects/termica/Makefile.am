@@ -11,12 +11,9 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 -include $(top_builddir)/@PZ_MK@
 
-bin_PROGRAMS = main
+bin_PROGRAMS = main 
 
 
-
-main_LDADD = $(top_builddir)/lib/libpz.a \
-	@LIBATLAS@ -lpthread 
 
 ## --| NeoPZ |------------------------------------------------------------------
 

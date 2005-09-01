@@ -15,8 +15,5 @@ bin_PROGRAMS = main
 
 main_SOURCES = main.cpp 
 
-main_LDFLAGS = @LOG4CXXLIBDIR@
-
-main_LDADD = $(top_builddir)/lib/libpz.a -lpthread  @LOG4CXXLIB@
 
 ## --| NeoPZ |------------------------------------------------------------------

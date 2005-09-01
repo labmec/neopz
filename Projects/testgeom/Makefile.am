@@ -11,10 +11,9 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 -include $(top_builddir)/@PZ_MK@
 
-bin_PROGRAMS = geom
+bin_PROGRAMS = main
 
-geom_SOURCES = geom.cpp pzgbmesh.cpp
+main_SOURCES = pzgbmesh.cpp geom.cpp 
 
-geom_LDADD = $(top_builddir)/lib/libpz.a @METISDIR@/lib/libmetis.a
 
 ## --| NeoPZ |------------------------------------------------------------------
