@@ -13,18 +13,12 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 frontaldir = $(prefix)/Frontal
 
-frontal_HEADERS = $(wildcard *.h)
+frontalincdir = $(includedir)/Frontal
+frontalinc_HEADERS= $(top_srcdir)/Frontal/*.h
+
 
 noinst_LIBRARIES = libpzfrontal.a
 
-libpzfrontal_a_SOURCES = pzvecfrontal.cpp \
-	tpzeqnarray.cpp \
-	TPZFileEqnStorage.cpp \
-	TPZFront.cpp \
-	TPZFrontMatrix.cpp \
-	TPZFrontNonSym.cpp \
-	TPZFrontSym.cpp \
-	TPZParFrontMatrix.cpp \
-	TPZStackEqnStorage.cpp 
+libpzfrontal_a_SOURCES = pzvecfrontal.cpp tpzeqnarray.cpp TPZFileEqnStorage.cpp TPZFront.cpp TPZFrontMatrix.cpp TPZFrontNonSym.cpp TPZFrontSym.cpp TPZParFrontMatrix.cpp TPZStackEqnStorage.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -13,11 +13,13 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 externaldir = $(prefix)/External
 
-external_HEADERS = $(wildcard *.h)
+externalincdir = $(includedir)/External
+externalinc_HEADERS= $(top_srcdir)/External/*.h
+
 
 noinst_LIBRARIES = libpzexternal.a
 
-libpzexternal_a_SOURCES = pzmetis.cpp 	pzrenumbering.cpp 	pzsloan.cpp tpznodesetcompute.cpp
+libpzexternal_a_SOURCES = pzmetis.cpp pzrenumbering.cpp pzsloan.cpp tpznodesetcompute.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
 SUBDIRS = sloan

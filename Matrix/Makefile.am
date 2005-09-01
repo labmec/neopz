@@ -13,16 +13,12 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 matrixdir = $(prefix)/Matrix
 
-matrix_HEADERS = $(wildcard *.h)
+matrixincdir = $(includedir)/Matrix
+matrixinc_HEADERS= $(top_srcdir)/Matrix/*.h
 
 noinst_LIBRARIES = libpzmatrix.a
 
-libpzmatrix_a_SOURCES = pzblockdiag.cpp 	pzbndmat.cpp 	pzespmat.cpp \
-		pzfmatrix.cpp 	pzlink.cpp 	pzmatred.cpp 	pzmatrix.cpp 	pzsbndmat.cpp 	pzseqsolver.cpp \
-		pzsespmat.cpp 	pzsfulmat.cpp 	pzshtmat.cpp 	pzskylmat.cpp 	pzskylmatpar.cpp \
-		pzsolve.cpp 	pzstencil.cpp	pzblock.cpp 	pzstepsolver.cpp 	pzsysmp.cpp \
-		pztempmat.cpp 	pzysmp.cpp pzmatrixid.cpp tpzsparseblockdiagonal.cpp \
-	pzspblockdiagpivot.cpp
+libpzmatrix_a_SOURCES = pzblockdiag.cpp pzbndmat.cpp pzespmat.cpp pzfmatrix.cpp pzlink.cpp pzmatred.cpp pzmatrix.cpp pzsbndmat.cpp pzseqsolver.cpp pzsespmat.cpp pzsfulmat.cpp pzshtmat.cpp pzskylmat.cpp pzskylmatpar.cpp pzsolve.cpp pzstencil.cpp pzblock.cpp pzstepsolver.cpp pzsysmp.cpp pztempmat.cpp pzysmp.cpp pzmatrixid.cpp tpzsparseblockdiagonal.cpp pzspblockdiagpivot.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
 noinst_HEADERS = pzspblockdiagpivot.h

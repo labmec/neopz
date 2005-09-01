@@ -13,7 +13,9 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 integraldir = $(prefix)/Integral
 
-integral_HEADERS = $(wildcard *.h)
+integralincdir = $(includedir)/Integral
+integralinc_HEADERS= $(top_srcdir)/Integral/*.h
+
 
 noinst_LIBRARIES = libpzintegral.a
 

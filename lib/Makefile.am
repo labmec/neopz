@@ -50,7 +50,7 @@ libpz_a_LIBADD = ../External/pzsloan.o ../Util/TPZTimer.o ../Util/tpzpermutation
 	../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o ../Analysis/pzonedref.o \
 	../Analysis/pzsmanal.o ../Analysis/pzsmfrontalanal.o ../Analysis/pzeuleranalysis.o \
 	../Cosys/pzcartsys.o ../Cosys/pzcosys.o ../Cosys/pzcylinsys.o ../Cosys/pzelgq2dcyl.o \
-	../Cosys/pzesfersys.o ../Integral/pzquad.o ../Material/eulerdif.o ../Material/pzbndcond.o \
+	../Cosys/pzesfersys.o ../Integral/pzquad.o ../Material/pzincnskeps.o ../Material/eulerdif.o ../Material/pzbndcond.o \
 	../Material/pzelasmat.o ../Material/pzmat1dlin.o ../Material/pzmat2dlin.o \
 	../Material/pzmaterial.o ../Material/tpzoutofrange.o ../Material/pzmathyperelastic.o \
 	../Material/pzmatorthotropic.o ../Material/pzmatplaca2.o ../Material/pzmatplaca.o \
@@ -60,7 +60,7 @@ libpz_a_LIBADD = ../External/pzsloan.o ../Util/TPZTimer.o ../Util/tpzpermutation
 	../Material/TPZMulticamadaOrtho.o ../Material/TPZPlacaOrthotropic.o ../Material/TPZConservationLaw.o \
 	../Material/TPZDiffusionConsLaw.o ../Material/pzconslaw.o ../Material/pzartdiff.o \
 	../Material/pzeulerconslaw.o ../Material/pzbiharmonic.o ../Material/pznonlinbiharmonic.o ../Material/pzmaterialid.o \
-	../Material/tpzoutofrange.o ../Post/pzdxmesh.o ../Post/pzgraphel1d.o ../Post/pzgraphel1dd.o \
+	../Material/tpzoutofrange.o ../Material/pzelast3d.o ../Post/pzdxmesh.o ../Post/pzgraphel1d.o ../Post/pzgraphel1dd.o \
 	../Post/pzgraphel.o ../Post/pzgraphelq2d.o ../Post/pzgraphelq2dd.o ../Post/pzgraphelq3dd.o \
 	../Post/pzgraphmesh.o ../Post/pzgraphnode.o ../Post/pzmvmesh.o ../Post/pztrigraph.o \
 	../Post/pztrigraphd.o ../Post/pzv3dmesh.o ../Post/pzvisualmatrix.o ../Multigrid/pzmgsolver.o \

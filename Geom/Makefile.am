@@ -13,19 +13,13 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 geomdir = $(prefix)/Geom
 
-geom_HEADERS = $(wildcard *.h)
+geomincdir = $(includedir)/Geom
+geominc_HEADERS= $(top_srcdir)/Geom/*.h
+
 
 noinst_LIBRARIES = libpzgeom.a
 
-libpzgeom_a_SOURCES = pzgeopoint.cpp \
-	pzgeoprism.cpp \
-	pzgeopyramid.cpp \
-	pzgeoquad.cpp \
-	pzgeotetrahedra.cpp \
-	pzgeotriangle.cpp \
-	TPZGeoCube.cpp \
-	TPZGeoElement.cpp \
-	TPZGeoLinear.cpp 
+libpzgeom_a_SOURCES = pzgeopoint.cpp pzgeoprism.cpp pzgeopyramid.cpp pzgeoquad.cpp pzgeotetrahedra.cpp pzgeotriangle.cpp 	TPZGeoCube.cpp TPZGeoElement.cpp TPZGeoLinear.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------
 

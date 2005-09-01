@@ -13,7 +13,8 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 commondir = $(prefix)/Common
 
-common_HEADERS = $(wildcard *.h)
+commonincdir = $(includedir)/Common
+commoninc_HEADERS= $(top_srcdir)/Common/*.h
 
 noinst_LIBRARIES = libCommon.a
 

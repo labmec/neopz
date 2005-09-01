@@ -12,8 +12,8 @@ CLEANFILES     = @PZ_CLEANFILES@
 -include $(top_builddir)/@PZ_MK@
 
 meshdir = $(prefix)/Mesh
-
-mesh_HEADERS = $(wildcard *.h)
+meshincdir = $(includedir)/Mesh
+meshinc_HEADERS= $(top_srcdir)/Mesh/*.h
 
 noinst_LIBRARIES = libpzmesh.a
 

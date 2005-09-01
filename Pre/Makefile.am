@@ -13,7 +13,9 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 predir = $(prefix)/Pre
 
-pre_HEADERS = $(wildcard *.h)
+preincdir = $(includedir)/Pre
+preinc_HEADERS= $(top_srcdir)/Pre/*.h
+
 
 noinst_LIBRARIES = libpzpre.a
 

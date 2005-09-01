@@ -13,12 +13,11 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 multigriddir = $(prefix)/Multigrid
 
-multigrid_HEADERS = $(wildcard *.h)
+multigridincdir = $(includedir)/Multigrid
+multigridinc_HEADERS= $(top_srcdir)/Multigrid/*.h
 
 noinst_LIBRARIES = libpzmultigrid.a
 
-libpzmultigrid_a_SOURCES = pzmgsolver.cpp \
-	pztransfer.cpp \
-	pztrnsform.cpp 
+libpzmultigrid_a_SOURCES = pzmgsolver.cpp pztransfer.cpp pztrnsform.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------
