@@ -114,7 +114,7 @@ class TPZSSpMatrix : public TPZMatrix
   REAL ProdEsc( TPZLink<TPZSpMatrix::TPZNode> *row_i,
 		TPZLink<TPZSpMatrix::TPZNode> *row_j, int k );
 
-  int Error(const char *msg1,const char *msg2="" ) const;
+//static int Error(const char *msg1,const char *msg2="" );
 
 
   TPZSpMatrix fMat;

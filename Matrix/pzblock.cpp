@@ -17,6 +17,12 @@
 #include "pzmatrixid.h"
 #include "pzstream.h"
 
+#include <sstream>
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzblock"));
+#endif
+
 using namespace std;
 REAL TPZBlock::gZero = 0;//Cedric
 
@@ -171,7 +177,7 @@ TPZBlock::SetAll( TPZVec<int> & dimensions )
   for(i=0;i<nel;i++) total_dim += dimensions[i];
   if ( total_dim != fpMatrix->Rows() ||
        total_dim > fpMatrix->Rows() )
-    Error("SetAll <new block dimensions not compatible whit matrix dimension>");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"SetAll <new block dimensions not compatible whit matrix dimension>");
 
   int pos=0;
 
@@ -235,17 +241,17 @@ TPZBlock::Get(const int bRow,const int bCol,const int r,const int c ) const
   int row(r),col(c);
   int MaxBlocks = fBlock.NElements();
   if ( (bRow >= MaxBlocks) || (bCol >= MaxBlocks) )
-    Error( "Get <block index out of range>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Get <block index out of range>" );
 
   int rowDim = fBlock[bRow].dim;
   int colDim = fBlock[bCol].dim;
 
 
   if ( !rowDim || !colDim )
-    Error( "Get <inexistent block>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Get <inexistent block>" );
 
   if ( (row >= rowDim) || (col >= colDim) )
-    Error( "Get <elemente is out of the block>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Get <elemente is out of the block>" );
 
   row += fBlock[bRow].pos;
   col += fBlock[bCol].pos;
@@ -263,16 +269,16 @@ TPZBlock::Put(const int bRow,const int bCol,const int r,const int c,
   int MaxBlocks = fBlock.NElements();
   int row(r),col(c);
   if ( (bRow >= MaxBlocks) || (bCol >= MaxBlocks) )
-    Error( "Put <block index out of range>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Put <block index out of range>" );
 
   int rowDim = fBlock[bRow].dim;
   int colDim = fBlock[bCol].dim;
 
   if ( !rowDim || !colDim )
-    Error( "Put <inexistent block>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Put <inexistent block>" );
 
   if ( (row >= rowDim) || (col >= colDim) )
-    Error( "Put <elemente is out of the block>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Put <elemente is out of the block>" );
 
   row += fBlock[bRow].pos;
   col += fBlock[bCol].pos;
@@ -377,7 +383,7 @@ TPZBlock::InsertBlock(const int block_row,const int block_col,
 
   if ( ((target_row + rowDim) > target.Rows()) ||
        ((target_col + colDim) > target.Cols()) ) {
-    Error( "GetSub <the sub-matrix is too big>" ) ;
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "GetSub <the sub-matrix is too big>" ) ;
     return ( 0 );
   }
 
@@ -462,14 +468,16 @@ TPZBlock::PrintSolution(const char *title, TPZostream &out) {
 
 /*************/
 /*** Error ***/
-void
-TPZBlock::Error(const char *msg ) const
+/*int
+TPZBlock::Error(const char *msg )
 {
-  cout << "TPZBlock::" << msg << ".\n";
+  ostringstream out;
+  out << "TPZBlock::" << msg << ".\n";
   // pzerror.Show();
+  LOGPZ_ERROR (logger, out.str().c_str());
   exit( 1 );
 }
-    
+*/  
 void TPZBlock::TNode::Read(TPZStream &buf, void *context) 
 {
   buf.Read(&dim,1);

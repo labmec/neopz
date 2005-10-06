@@ -102,7 +102,7 @@ class TPZSBMatrix : public TPZMatrix
 
   int  Size() const    { return( Dim() * (fBand + 1) ); }
   int  PutZero();
-  int  Error(const char *msg1,const char* msg2="" ) const;
+  //static int  Error(const char *msg1,const char* msg2="" ) ;
   int  Clear();
   void Copy (const TPZSBMatrix & );
 

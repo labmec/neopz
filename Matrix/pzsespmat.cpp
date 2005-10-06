@@ -1,4 +1,4 @@
-
+//
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -21,6 +21,11 @@
 #include "pzsespmat.h" 
 //#include "pzerror.h"
 
+#include <sstream>
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzsspmatrix"));
+#endif
 
 #define IsZero( a )  (  ((a) < 1.e-10)  &&  ((a) > -1.e-10)  )
 #define Max( a, b )  ( (a) > (b) ? (a) : (b) )
@@ -72,7 +77,7 @@ TPZSSpMatrix
 TPZSSpMatrix::operator+(const TPZSSpMatrix &A ) const
 {
   if ( Dim() != A.Dim() )
-    Error( "Operator+ (TPZSSpMatrix&) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator+ (TPZSSpMatrix&) <incompatible dimensions>" );
   TPZSSpMatrix res( *this );
   res.fMat.fAdd( &A.fMat );
   return( res );
@@ -87,7 +92,7 @@ TPZSSpMatrix
 TPZSSpMatrix::operator-(const TPZSSpMatrix &A ) const
 {
   if ( Dim() != A.Dim() )
-    Error( "Operator-( TPZSSpMatrix& ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator-( TPZSSpMatrix& ) <incompatible dimensions>" );
 
   TPZSSpMatrix res( *this );
   res.fMat.fSub( &A.fMat );
@@ -103,7 +108,7 @@ TPZSSpMatrix &
 TPZSSpMatrix::operator+=(const TPZSSpMatrix &A )
 {
   if ( Dim() != A.Dim() )
-    Error( "operator+( TPZSSpMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "operator+( TPZSSpMatrix ) <incompatible dimensions>" );
 
   fMat.fAdd( &A.fMat );
   fDecomposed = 0;
@@ -119,7 +124,7 @@ TPZSSpMatrix &
 TPZSSpMatrix::operator-=(const TPZSSpMatrix &A )
 {
   if ( Dim() != A.Dim() )
-    Error( "operator+( TPZSSpMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "operator+( TPZSSpMatrix ) <incompatible dimensions>" );
 
   fMat.fSub( &A.fMat );
   fDecomposed = 0;
@@ -179,7 +184,7 @@ int
 TPZSSpMatrix::Decompose_Cholesky()
 {
 
-  if ( fDecomposed && fDecomposed != ECholesky)  Error( "Decompose_Cholesky <Matrix already Decomposed with different algorithm>" );
+  if ( fDecomposed && fDecomposed != ECholesky)  TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed with different algorithm>" );
   else if(fDecomposed) return 0;
 
 
@@ -203,11 +208,11 @@ TPZSSpMatrix::Decompose_Cholesky()
       node_k.elem -= sum;
       if ( (node_k.col != k) || (node_k.elem < 1.e-10) )
 	return( 0 );
-      //	Error( "Cholesky_Decomposition ",
+      //	TPZMatrix::Error(__PRETTY_FUNCTION__, "Cholesky_Decomposition ",
       //	       "<matrix is not positive definite>" );
       if ( node_k.elem < 1.e-10 )
 	return( 0 );
-      //	Error( "Cholesky_Decomposition <sqrt of negative number>");
+      //	TPZMatrix::Error(__PRETTY_FUNCTION__, "Cholesky_Decomposition <sqrt of negative number>");
       REAL pivot = node_k.elem = sqrt( node_k.elem );
       row_k->Update( node_k );
 
@@ -251,7 +256,7 @@ TPZSSpMatrix::Decompose_Cholesky()
 int
 TPZSSpMatrix::Decompose_LDLt()
 {
-  if (  fDecomposed && fDecomposed != ELDLt)  Error( "Decompose_LDLt <Matrix already Decomposed with different method>" );
+  if (  fDecomposed && fDecomposed != ELDLt)  TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different method>" );
   else if(fDecomposed) return 0;
 
   TPZSpMatrix::TPZNode node_k;
@@ -288,7 +293,7 @@ TPZSSpMatrix::Decompose_LDLt()
 	  node_k.col  = k;
 	  node_k.elem = -sum;
 	  if ( IsZero( node_k.elem ) )
-	    Error( "LDLt_Decomposition <diag element is zero>" );
+	    TPZMatrix::Error(__PRETTY_FUNCTION__, "LDLt_Decomposition <diag element is zero>" );
 	  row_k->Insert( node_k );
 	}
       else
@@ -296,7 +301,7 @@ TPZSSpMatrix::Decompose_LDLt()
 	  // O elemento antigo A(k,k) nao e' ZERO...
 	  node_k.elem -= sum;
 	  if ( IsZero( node_k.elem ) )
-	    Error( "LDLt_Decomposition <diag element is zero>" );
+	    TPZMatrix::Error(__PRETTY_FUNCTION__, "LDLt_Decomposition <diag element is zero>" );
 	  row_k->Update( node_k );
 	}
       REAL pivot = node_k.elem;
@@ -443,14 +448,16 @@ TPZSSpMatrix::Subst_Diag( TPZFMatrix *B ) const
 
 /*************/
 /*** Error ***/
-int
-TPZSSpMatrix::Error(const char *msg1,const char *msg2 ) const
+/*int
+TPZSSpMatrix::Error(const char *msg1,const char *msg2 ) 
 {
-  cout << "TPZSSpMatrix::" << msg1 << msg2 << ".\n";
+  ostringstream out;
+  out << "TPZSSpMatrix::" << msg1 << msg2 << ".\n";
   //pzerror.show();
+  LOGPZ_ERROR (logger, out.str().c_str());
   exit( 1 );
   return 0;
-}
+}*/
 
 
 

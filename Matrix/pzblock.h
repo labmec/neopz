@@ -217,7 +217,7 @@ class TPZBlock : public TPZSaveable
 
  private:
 
-  void Error(const char *msg ) const;  //, char *msg2
+//static int Error(const char *msg );  //, char *msg2
 
   /**
      @struct TNode

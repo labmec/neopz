@@ -20,6 +20,12 @@
 //#include "pzerror.h"
 #include <stdlib.h>
 
+#include <sstream>
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzblockdiagonal"));
+#endif
+
 #define IsZero( a )   ( (a) < 1.e-10 && (a) > -1.e-10 )
 #define Max( a, b )   ( (a) > (b) ? (a) : (b) )
 #define Min( a, b )   ( (a) < (b) ? (a) : (b) )
@@ -261,7 +267,7 @@ TPZBlockDiagonal::Get(const int row,const int col ) const
 {
 //  cout << "TPZBlockDiagonal::Get should never be called\n";
   if ( (row >= Dim()) || (col >= Dim()) )
-    Error( "TPZBlockDiagonal::Get <indices out of band matrix range>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZBlockDiagonal::Get <indices out of band matrix range>" );
 
   return( GetVal( row, col ) );
 }
@@ -347,9 +353,9 @@ void TPZBlockDiagonal::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatr
   //          z and x cannot overlap in memory
 
   if ((!opt && Cols()*stride != x.Rows()) || Rows()*stride != x.Rows())
-    Error( "TPZBlockDiagonal::MultAdd <matrixs with incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZBlockDiagonal::MultAdd <matrixs with incompatible dimensions>" );
   if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
-    Error ("TPZBlockDiagonal::MultAdd incompatible dimensions\n");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZBlockDiagonal::MultAdd incompatible dimensions\n");
   }
 
   PrepareZ(y,z,beta,opt,stride);
@@ -441,7 +447,7 @@ TPZBlockDiagonal::Decompose_LU()
   if (  fDecomposed && fDecomposed == ELU) {
     return ELU;
   } else if(fDecomposed) {
-    Error("TPZBlockDiagonal::Decompose_LU is already decomposed with other scheme");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZBlockDiagonal::Decompose_LU is already decomposed with other scheme");
   }
 
   int b,nb,pos,bsize;
@@ -461,7 +467,7 @@ int
 TPZBlockDiagonal::Substitution( TPZFMatrix *B) const
 {
   if(fDecomposed != ELU) {
-    Error("TPZBlockDiagonal::Decompose_LU is decomposed with other scheme");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZBlockDiagonal::Decompose_LU is decomposed with other scheme");
   }
 
   int b,nb,pos,bsize,eq=0;
@@ -473,10 +479,10 @@ TPZBlockDiagonal::Substitution( TPZFMatrix *B) const
       pos = fBlockPos[b];
       bsize = fBlockSize[b];
       if(!bsize) continue;
-      TPZFMatrix temp(bsize,bsize,&fStorage[pos],bsize*bsize);
-      temp.SetIsDecomposed(ELU);
+//      TPZFMatrix temp(bsize,bsize,&fStorage[pos],bsize*bsize);
+//      temp.SetIsDecomposed(ELU);
       TPZFMatrix BTemp(bsize,1,&(B->operator()(eq,c)),bsize);
-      temp.Substitution(&BTemp);
+      TPZFMatrix::Substitution(fStorage,bsize,&BTemp);
       eq+= bsize;
     }
   }
@@ -491,14 +497,16 @@ TPZBlockDiagonal::Substitution( TPZFMatrix *B) const
 /*************/
 /*** Error ***/
 
-int
-TPZBlockDiagonal::Error(const char *msg1,const char *msg2 ) const
+/*int
+TPZBlockDiagonal::Error(const char *msg1,const char *msg2 ) 
 {
-  cout << "TPZBlockDiagonal::" << msg1 << msg2 << ".\n";
+  ostringstream out;
+  out << "TPZBlockDiagonal::" << msg1 << msg2 << ".\n";
+  LOGPZ_ERROR (logger, out.str().c_str());
   // pzerror.Show();
   //exit( 1 );
   return 0;
-}
+}*/
 
 
 

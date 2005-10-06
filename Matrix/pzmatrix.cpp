@@ -23,12 +23,19 @@
 #include <stdlib.h>
 #include <math.h>
 #include <memory.h>
+#include <sstream>
 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pztempmat.h"
 #include "pzsolve.h"
 #include "pzvec.h"
+
+#include <sstream>
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatrix"));
+#endif
 
 
 #define Min( a, b )    ( (a) < (b) ? (a) : (b) )
@@ -312,7 +319,7 @@ void TPZMatrix::Print(const char *name, ostream& out,const MatrixOutputFormat fo
       out << "-1 -1 0.\n";
    } else if( form == EMathematicaInput)
    {
-   char * number = new char[32];
+   char number[32];
      out << name << "\n{ ";
 	 for ( int row = 0; row < Rows(); row++) {
 	 out << "\n{ ";
@@ -331,7 +338,6 @@ void TPZMatrix::Print(const char *name, ostream& out,const MatrixOutputFormat fo
 
      out << " }\n";
 
-     delete[] number;
    }
 
 }
@@ -927,10 +933,12 @@ int TPZMatrix::Subst_Diag( TPZFMatrix *B ) const {
 
 /*************/
 /*** Error ***/
-int TPZMatrix::Error(const char *msg ,const char *msg2) const {
-    cout << "TPZMatrix::" << msg;
-    if(msg2) cout << msg2;
+int TPZMatrix::Error(const char *msg ,const char *msg2) {
+    ostringstream out;
+    out << "TPZMatrix::" << msg;
+    if(msg2) out << msg2;
     cout << ".\n";
+    LOGPZ_ERROR (logger, out.str().c_str());
 //    exit( 1 );
     return 0;
 }

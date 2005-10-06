@@ -20,6 +20,12 @@
 #include "pzsfulmat.h"
 //#include "pzerror.h"
 
+#include <sstream>
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzsfmatrix"));
+#endif
+
 
 #define Min(a, b)    ( (a) < (b) ? (a) : (b) )
 #define IsZero( a )  ( (a) < 1.e-10 && (a) > -1.e-10 )
@@ -36,7 +42,7 @@ TPZSFMatrix::TPZSFMatrix(const int dim )
   fElem = new( REAL[ Size() ] );
 
   if ( fElem == NULL )
-    Error( "Constructor <memory allocation error>." );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
 
   // Zera a Matriz.
   Zero();
@@ -52,7 +58,7 @@ TPZSFMatrix::TPZSFMatrix (const TPZSFMatrix & A)
 {
   fElem = new( REAL[Size()] );
   if ( fElem == NULL )
-    Error( "Constructor <memory allocation error>." );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
 
   // Copia a matriz
   REAL *src = A.fElem;
@@ -73,7 +79,7 @@ TPZSFMatrix::TPZSFMatrix(const  TPZMatrix &A )
   fElem = new( REAL[Size()] );
 
   if ( fElem == NULL )
-    Error( "Constructor <memory allocation error>." );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
 
   // Copia a matriz
   REAL *dst = fElem;
@@ -109,7 +115,7 @@ TPZSFMatrix::operator=(const TPZSFMatrix &A )
 	delete( fElem );
       fElem = new( REAL[ A.Size() ] );
       if ( fElem == NULL )
-	Error( "Operator= <memory allocation error>." );
+	TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator= <memory allocation error>." );
     }
 
   fRow = fCol =  A.Dim();
@@ -135,7 +141,7 @@ TPZSFMatrix
 TPZSFMatrix::operator+(const TPZSFMatrix &A ) const
 {
   if ( A.Dim() != Dim() )
-    Error( "Operator+ <matrixs with different dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator+ <matrixs with different dimensions>" );
 
   TPZSFMatrix res( Dim() );
   REAL *pm  = fElem;
@@ -158,7 +164,7 @@ TPZSFMatrix
 TPZSFMatrix::operator-(const TPZSFMatrix &A ) const
 {
   if ( A.Dim() != Dim() )
-    Error( "Operator- <matrixs with different dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator- <matrixs with different dimensions>" );
 
   TPZSFMatrix res( Dim() );
   REAL *pm  = fElem;
@@ -181,7 +187,7 @@ TPZSFMatrix &
 TPZSFMatrix::operator+=(const TPZSFMatrix &A )
 {
   if ( A.Dim() != Dim() )
-    Error( "Operator+= <matrixs with different dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator+= <matrixs with different dimensions>" );
 
   REAL *src = A.fElem;
   REAL *dst = fElem;
@@ -202,7 +208,7 @@ TPZSFMatrix &
 TPZSFMatrix::operator-=(const TPZSFMatrix &A )
 {
   if ( A.Dim() != Dim() )
-    Error( "Operator-= <matrixs with different dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Operator-= <matrixs with different dimensions>" );
 
   REAL *src = A.fElem;
   REAL *dst = fElem;
@@ -259,7 +265,7 @@ TPZSFMatrix
 TPZSFMatrix::operator+(const TPZMatrix &A ) const
 {
   if ( Dim() != A.Dim() )
-    Error( "Operator+ <matrixs with incoompatible dimensions" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Operator+ <matrixs with incoompatible dimensions" );
 
   TPZSFMatrix res( Dim() );
   REAL *pm = fElem;
@@ -280,7 +286,7 @@ TPZSFMatrix
 TPZSFMatrix::operator-( const TPZMatrix &A ) const
 {
   if ( Dim() != A.Dim() )
-    Error( "Operator- <matrixs with incoompatible dimensions" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Operator- <matrixs with incoompatible dimensions" );
 
   TPZSFMatrix res( Dim() );
   REAL *pm = fElem;
@@ -301,7 +307,7 @@ TPZSFMatrix &
 TPZSFMatrix::operator+=(const TPZMatrix &A )
 {
   if ( Dim() != A.Dim() )
-    Error( "Operator+= (TPZMatrix &) <different dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Operator+= (TPZMatrix &) <different dimensions>" );
 
   REAL *pm = fElem;
   for ( int c = 0; c < Dim(); c++ )
@@ -321,7 +327,7 @@ TPZSFMatrix &
 TPZSFMatrix::operator-=(const TPZMatrix &A )
 {
   if ( Dim() != A.Dim() )
-    Error( "Operator-= (TPZMatrix &) <different dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Operator-= (TPZMatrix &) <different dimensions>" );
 
   REAL *pm = fElem;
   for ( int c = 0; c < Dim(); c++ )
@@ -436,7 +442,7 @@ TPZSFMatrix::Resize( int newDim , int )
   int oldSize = Size();
   REAL *newElem = new( REAL[newSize] );
   if ( newElem == NULL )
-    return Error( "Resize <memory allocation error>." );
+    return TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
 
   int minSize  = Min( newSize, oldSize );
   REAL *src = fElem;
@@ -509,7 +515,7 @@ TPZSFMatrix::Zero()
 int
 TPZSFMatrix::Decompose_Cholesky()
 {
-  if (  fDecomposed )  Error( "Decompose_Cholesky <Matrix already Decomposed>" );
+  if (  fDecomposed )  TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
   REAL *ptr_k = fElem;
   for ( int k = 0; k < Dim(); k++, ptr_k += k  )
     {
@@ -613,7 +619,7 @@ TPZSFMatrix::Decompose_LDLt()
 	  }
   */
   if (  fDecomposed && fDecomposed != ELDLt)
-    Error( "Decompose_LDLt <Matrix already Decomposed with a different scheme>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Decompose_LDLt <Matrix already Decomposed with a different scheme>" );
   else if ( fDecomposed ) return 0;
 
   int j,k,l;
@@ -634,7 +640,7 @@ TPZSFMatrix::Decompose_LDLt()
 	    PutVal(l,j, GetVal(l,j)-GetVal(k,k)*GetVal(j,k)*GetVal(l,k) );
 	}
 
-      if ( IsZero(GetVal(j,j)) ) Error( "Decompose_LDLt <Zero on diagonal>" );
+      if ( IsZero(GetVal(j,j)) )TPZMatrix::Error(__PRETTY_FUNCTION__,"Decompose_LDLt <Zero on diagonal>" );
 
       for( l=j+1; l<Dim();l++) PutVal( l,j,GetVal(l,j)/GetVal(j,j) ) ;
 
@@ -657,7 +663,7 @@ TPZSFMatrix::Subst_Forward( TPZFMatrix *B ) const
     return( 0 );
 
   if ( B->IsSimetric() )
-    Error( "Subst_Forward <the matrix result can not be simetric>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Subst_Forward <the matrix result can not be simetric>" );
 
   REAL *ptr_k = fElem;
   for ( int k = 0; k < Dim(); k++ )
@@ -693,7 +699,7 @@ TPZSFMatrix::Subst_Backward( TPZFMatrix *B ) const
     return( 0 );
 
   if ( B->IsSimetric() )
-    Error( "Subst_Backward <the matrix result can not be simetric>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Subst_Backward <the matrix result can not be simetric>" );
 
   REAL *ptr_k = &fElem[ Size()-1 ];
   for ( int k = Dim()-1; k >= 0; k--, ptr_k-- )
@@ -729,7 +735,7 @@ TPZSFMatrix::Subst_LForward( TPZFMatrix *B ) const
     return( 0 );
 
   if ( B->IsSimetric() )
-    Error( "Subst_LForward <the matrix result can not be simetric>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Subst_LForward <the matrix result can not be simetric>" );
 
   REAL *ptr_k = fElem;
   for ( int k = 0; k < Dim(); k++, ptr_k += k )
@@ -762,7 +768,7 @@ TPZSFMatrix::Subst_LBackward( TPZFMatrix *B ) const
     return( 0 );
 
   if ( B->IsSimetric() )
-    Error( "Subst_LBackward <the matrix result can not be simetric>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Subst_LBackward <the matrix result can not be simetric>" );
 
   REAL *ptr_k = &fElem[ Size()-1 ];
   for ( int k = Dim()-1; k >= 0; k--, ptr_k-- )
@@ -816,14 +822,16 @@ TPZSFMatrix::Subst_Diag( TPZFMatrix *B ) const
 /*************/
 /*** Error ***/
 
-int
-TPZSFMatrix::Error(const char *msg1,const char *msg2 ) const
+/*int
+TPZSFMatrix::Error(const char *msg1,const char *msg2 )
 {
-  cout << "TPZSFMatrix::" << msg1 << msg2 << ".\n";
+  ostringstream out;  
+  out << "TPZSFMatrix::" << msg1 << msg2 << ".\n";
   //pzerror.Show();
+  LOGPZ_ERROR (logger, out.str().c_str());
   exit( 1 );
   return 0;
-}
+}*/
 
 
 

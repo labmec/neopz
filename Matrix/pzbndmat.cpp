@@ -20,6 +20,12 @@
 //#include "pzerror.h"
 #include <stdlib.h>
 
+#include <sstream>
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfbmatrix"));
+#endif
+
 #define IsZero( a )   ( (a) < 1.e-10 && (a) > -1.e-10 )
 #define Max( a, b )   ( (a) > (b) ? (a) : (b) )
 #define Min( a, b )   ( (a) < (b) ? (a) : (b) )
@@ -50,7 +56,7 @@ TPZFBMatrix::TPZFBMatrix( int dim, int band_width )
   size  = dim * (2*fBand + 1);
   if(size) {
     fElem = new( REAL[ size ] );
-    if ( fElem == NULL ) Error( "Constructor <memory allocation error>." );
+    if ( fElem == NULL ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
   } else {
     fElem = NULL;
   }
@@ -76,7 +82,7 @@ TPZFBMatrix::TPZFBMatrix (const TPZFBMatrix & A)
   fElem = new( REAL[ size ] );
 
   if ( fElem == NULL )
-    Error( "Constructor <memory allocation error>." );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
 
   // Copia a matriz
   REAL *src = A.fElem;
@@ -123,7 +129,7 @@ const REAL&
 TPZFBMatrix::Get(const int row,const int col ) const
 {
   if ( (row >= Dim()) || (col >= Dim()) )
-    Error( "Get <indices out of band matrix range>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Get <indices out of band matrix range>" );
 
   return( GetVal( row, col ) );
 }
@@ -148,7 +154,7 @@ TPZFBMatrix::operator=(const TPZFBMatrix & A )
   if(oldsize != size && size) fElem = new( REAL[size] );
   else if(size == 0) fElem = 0;
   if ( size && fElem == NULL )
-    Error( "Operator= <memory allocation error>." );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator= <memory allocation error>." );
 
   fRow  = A.fRow;
   fCol  = A.fCol;
@@ -173,7 +179,7 @@ TPZFBMatrix
 TPZFBMatrix::operator+(const TPZFBMatrix & A ) const
 {
   if ( A.Dim() != Dim() )
-    Error( "Operator+ <matrixs with different dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator+ <matrixs with different dimensions>" );
 
   int newBand, minBand;
   int inc_pa, inc_pm, inc_pr;
@@ -219,7 +225,7 @@ TPZFBMatrix
 TPZFBMatrix::operator-(const TPZFBMatrix & A ) const
 {
   if ( A.Dim() != Dim() )
-    Error( "Operator- <matrixs with different dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator- <matrixs with different dimensions>" );
 
   int newBand, minBand;
   int inc_pa, inc_pm, inc_pr;
@@ -270,7 +276,7 @@ TPZFBMatrix &
 TPZFBMatrix::operator+=(const TPZFBMatrix & A )
 {
   if ( A.Dim() != Dim() )
-    Error( "Operator+ <matrixs with different dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator+ <matrixs with different dimensions>" );
 
   int newBand, minBand;
   int inc_pa, inc_pm;
@@ -315,7 +321,7 @@ TPZFBMatrix &
 TPZFBMatrix::operator-=(const TPZFBMatrix & A )
 {
   if ( A.Dim() != Dim() )
-    Error( "Operator- <matrixs with different dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator- <matrixs with different dimensions>" );
 
   int newBand, minBand;
   int inc_pa, inc_pm;
@@ -366,9 +372,9 @@ void TPZFBMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
   // Computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
   if ((!opt && Cols()*stride != x.Rows()) || Rows()*stride != x.Rows())
-    Error( "TPZFBMatrix::MultAdd <matrixs with incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZFBMatrix::MultAdd <matrixs with incompatible dimensions>" );
   if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
-    Error ("TPZFBMatrix::MultAdd incompatible dimensions\n");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::MultAdd incompatible dimensions\n");
   }
   PrepareZ(y,z,beta,opt,stride);
   int rows = Rows();
@@ -467,10 +473,10 @@ int
 TPZFBMatrix::Resize(const int newRows,const int newCols)
 {
   if ( newRows != newCols )
-    Error( "Resize <Band matrix must be NxN>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
 
   if ( !fBand )
-    Error( "Bandwith = NULL" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Bandwith = NULL" );
 
 
   if ( newRows == Dim() )
@@ -479,7 +485,7 @@ TPZFBMatrix::Resize(const int newRows,const int newCols)
   int bandSize = 2 * fBand + 1;
   REAL *newElem = new( REAL[ newRows * bandSize ] );
   if ( !newElem )
-    return Error( "Resize <memory allocation error>." );
+    return TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
 
   int minDim = ( Dim() < newRows ? Dim() : newRows );
   REAL *src = fElem;
@@ -512,16 +518,16 @@ int
 TPZFBMatrix::Redim(const int newRows,const int newCols )
 {
   if ( newRows != newCols )
-    Error( "Resize <Band matrix must be NxN>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
 
-  //  if ( !fBand ) Error( "Bandwith = NULL" );
+  //  if ( !fBand ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Bandwith = NULL" );
 
   if ( fElem  )  delete []fElem;
 
   int size = newRows * (2 * fBand + 1);
   if(size) {
     fElem = new( REAL[ size ] );
-    if ( fElem == NULL ) Error( "Resize <memory allocation error>." );
+    if ( fElem == NULL ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
   } else {
     fElem = NULL;
   }
@@ -560,12 +566,12 @@ int
 TPZFBMatrix::SetBand( int newBand )
 {
   if ( newBand >= Dim() )
-    Error( "SetBand <the band must be lower than the matrix dimension " );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "SetBand <the band must be lower than the matrix dimension " );
 
   int newSize = Dim() * (2 * newBand + 1);
   REAL *newElem = new( REAL[ newSize ] );
   if ( newElem == NULL )
-    return Error( "Resize <memory allocation error>." );
+    return TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
 
   REAL *dst = newElem;
   REAL *src = fElem;
@@ -614,7 +620,7 @@ TPZFBMatrix::Decompose_LU()
   if (  fDecomposed && fDecomposed == ELU) {
     return ELU;
   } else if(fDecomposed) {
-    Error("TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
   }
   int rows = Rows();
   int  min = rows - 1;
@@ -627,7 +633,7 @@ TPZFBMatrix::Decompose_LU()
       REAL *iPtr = fElem+fBand*(2*k+1)+k;
       REAL pivot = *iPtr;
       if ( pivot == 0.0 )
-	Error( "Decompose_LU <matrix is singular>" );
+	TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LU <matrix is singular>" );
 
       REAL *jFirstPtr = fElem+fBand*(2*k+3)+k+1;
       imax = k+fBand+1;
@@ -659,7 +665,7 @@ int TPZFBMatrix::Substitution( TPZFMatrix *B ) const{
     int colb = B->Cols();
 	REAL *BfElem = &(B->operator ()(0,0));
     if ( rowb != Rows() )
-    Error( "SubstitutionLU <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "SubstitutionLU <incompatible dimensions>" );
 	 int i;
     for ( i = 0; i < rowb; i++ ) {
         for ( int col = 0; col < colb; col++ ) {
@@ -694,7 +700,7 @@ int TPZFBMatrix::Substitution( TPZFMatrix *B ) const{
 //                    GetVal(i, j) * B->GetVal(j, col) );
 //            }
             if ( IsZero( GetVal(i, i) ) ) {
-                    Error( "BackSub( SubstitutionLU ) <Matrix is singular" );
+                    TPZMatrix::Error(__PRETTY_FUNCTION__, "BackSub( SubstitutionLU ) <Matrix is singular" );
             }
             B->PutVal( i, col, B->GetVal( i, col) / GetVal(i, i) );
 		  }
@@ -707,16 +713,18 @@ int TPZFBMatrix::Substitution( TPZFMatrix *B ) const{
 
 /*************/
 /*** Error ***/
-
+/*
 int
-TPZFBMatrix::Error(const char *msg1,const char *msg2 ) const
+TPZFBMatrix::Error(const char *msg1,const char *msg2 ) 
 {
-  cout << "TPZFBMatrix::" << msg1 << msg2 << ".\n";
+  ostringstream out;
+  out << "TPZFBMatrix::" << msg1 << msg2 << ".\n";
+  LOGPZ_ERROR (logger, out.str().c_str());
   // pzerror.Show();
   exit( 1 );
   return 0;
 }
-
+*/
 
 
 /*************/

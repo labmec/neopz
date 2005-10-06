@@ -34,6 +34,12 @@ extern "C" {
 #include "pzskylmat.h"
 //#include "pzerror.h"
 
+#include <sstream>
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylmatrix"));
+#endif
+
 
 #define IsZero( a )  (  ((a) < 1.e-20)  &&  ((a) > -1.e-20)  )
 //#define IsZero( a )  (  (a == 0.) )
@@ -119,7 +125,8 @@ TPZSkylMatrix::operator()(const int r, const int c) {
   // Indice do vetor coluna.
   int index = col - row;
   if ( index >= Size(col) ) {
-    Error("TPZSkylMatrix::operator()","Index out of range");
+    //Error("TPZSkylMatrix::operator()","Index out of range");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Index out of range");
     exit(-1);
   }
   return fElem[col][index];
@@ -154,8 +161,7 @@ TPZSkylMatrix::PutVal(const int r,const int c,const REAL & value )
   if ( index >= Size(col) && !IsZero(value)) {
 	cout << "TPZSkylMatrix::PutVal Size" << Size(col);
 	cout.flush();
-
-    Error("TPZSkylMatrix::PutVal","Index out of range");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Index out of range");
   } else if(index >= Size(col)) return 1;
   fElem[col][index] = value;
   //  delete[]newVet;
@@ -168,11 +174,11 @@ void TPZSkylMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix 
   // Computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
   if ((!opt && Cols()*stride != x.Rows()) || Rows()*stride != x.Rows())
-    Error( "TPZSkylMatrix::MultAdd <matrixs with incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__," <matrixs with incompatible dimensions>" );
   if(z.Rows() != x.Rows() || z.Cols() != x.Cols()) z.Redim(x.Rows(),x.Cols());
   if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
     cout << "x.Cols = " << x.Cols() << " y.Cols()"<< y.Cols() << " z.Cols() " << z.Cols() << " x.Rows() " << x.Rows() << " y.Rows() "<< y.Rows() << " z.Rows() "<< z.Rows() << endl;
-    Error ("TPZSkylMatrix::MultAdd incompatible dimensions\n");
+    TPZMatrix::Error(__PRETTY_FUNCTION__," incompatible dimensions\n");
   }
   PrepareZ(y,z,beta,opt,stride);
   int rows = Rows();
@@ -367,7 +373,7 @@ TPZSkylMatrix
 TPZSkylMatrix::operator+(const TPZSkylMatrix &A) const
 {
   if ( Dim() != A.Dim() )
-    Error( "operator+( TPZSkylMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"<incompatible dimensions>" );
 
   TPZVec<int> skylinesize(Dim());
   ComputeMaxSkyline(*this,A,skylinesize);
@@ -421,7 +427,7 @@ TPZSkylMatrix
 TPZSkylMatrix::operator-(const TPZSkylMatrix &A ) const
 {
   if ( Dim() != A.Dim() )
-    Error( "operator-( TPZSkylMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "operator-( TPZSkylMatrix ) <incompatible dimensions>" );
 
   TPZVec<int> skylinesize(Dim());
   ComputeMaxSkyline(*this,A,skylinesize);
@@ -458,7 +464,7 @@ TPZSkylMatrix &
 TPZSkylMatrix::operator+=(const TPZSkylMatrix &A )
 {
   if ( Dim() != A.Dim() )
-    Error( "operator+=( TPZSkylMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"operator+=( TPZSkylMatrix ) <incompatible dimensions>" );
 
   TPZSkylMatrix res((*this)+A);
   *this = res;
@@ -474,7 +480,7 @@ TPZSkylMatrix &
 TPZSkylMatrix::operator-=(const TPZSkylMatrix &A )
 {
   if ( Dim() != A.Dim() )
-    Error( "operator-=( TPZSkylMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"operator-=( TPZSkylMatrix ) <incompatible dimensions>" );
 
   TPZSkylMatrix res(*this-A);
   *this = res;
@@ -606,7 +612,7 @@ int
 TPZSkylMatrix::Decompose_Cholesky()
 {
   if(fDecomposed == ECholesky) return 1;
-  if (  fDecomposed )  Error( "Decompose_Cholesky <Matrix already Decomposed>" );
+  if (  fDecomposed )  TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
 
   REAL pivot;
   int dimension = Dim();
@@ -680,7 +686,7 @@ TPZSkylMatrix::Decompose_LDLt()
 
   if( fDecomposed == ELDLt) return 1;
   if (  fDecomposed )
-    Error( "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
 
   // Third try
   REAL *elj,*ell;
@@ -734,7 +740,7 @@ int
 TPZSkylMatrix::Subst_Forward( TPZFMatrix *B ) const
 {
   if ( (B->Rows() != Dim()) || fDecomposed != ECholesky)
-    Error("TPZSkylMatrix::Subst_Forward not decomposed with cholesky");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Forward not decomposed with cholesky");
 
   int dimension=Dim();
   for ( int k = 0; k < dimension; k++ )
@@ -772,7 +778,7 @@ TPZSkylMatrix::Subst_Backward( TPZFMatrix *B ) const
   //	return TSimMatrix::Subst_Backward(B);
 
   if ( (B->Rows() != Dim()) || fDecomposed != ECholesky)
-    Error("TPZSkylMatrix::Subst_Backward not decomposed with cholesky");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Backward not decomposed with cholesky");
 
   int Dimension = Dim();
   if(!Dimension) return 1;	// nothing to do
@@ -862,7 +868,7 @@ TPZSkylMatrix::Subst_LBackward( TPZFMatrix *B ) const
   //	return TSimMatrix::Subst_Backward(B);
 
   if ( (B->Rows() != Dim()) || !fDecomposed || fDecomposed == ECholesky)
-    Error("TPZSkylMatrix::Subst_LBackward not decomposed properly");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_LBackward not decomposed properly");
 
   int Dimension = Dim();
   for ( int k = Dimension-1; k > 0; k-- ) {
@@ -906,15 +912,17 @@ TPZSkylMatrix::Zero()
 
 /*************/
 /*** Error ***/
-int
-TPZSkylMatrix::Error(const char *msg1,const char* msg2 ) const
+/*int
+TPZSkylMatrix::Error(const char *msg1,const char* msg2 )
 {
-  cout << "TPZSkylMatrix::" << msg1 << msg2 << ".\n";
+  ostringstream out;
+  out << "TPZSkylMatrix::" << msg1 << msg2 << ".\n";
   //pzerror.Show();
+  LOGPZ_ERROR (logger, out.str().c_str());
   exit( 1 );
   return 0;
 }
-
+*/
 
 
 /*************/

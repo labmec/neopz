@@ -597,12 +597,15 @@ protected:
 inline  TPZMatrix (const int row,const int col )
   { fRow = row; fCol = col;fDefPositive=0; fDecomposed = 0;}
 
+public:
   /**
    * Returns error messages
    * @param msg First message.
    * @param msg2 Second message.
    */
-  virtual int Error(const char *msg ,const char *msg2 = 0) const;
+  static int Error(const char *msg ,const char *msg2 = 0);
+
+protected:  
   /**
    * It clears data structure.
    */

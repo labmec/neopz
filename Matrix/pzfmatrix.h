@@ -35,7 +35,7 @@
 #define GETVAL(MAT,rows,row,col) MAT->fElem[((unsigned)col)*rows+row]
 #define PUTVAL(MAT,rows,row,col,val) MAT->fElem[((unsigned)col)*rows+row]=val
 
-
+#define SELECTEL(ptr,rows,row,col) ptr[col*rows+row]
 
 
 /******************************/
@@ -113,9 +113,13 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
    * @param destinantion Destine index on current matrix
    */
   void AddFel(TPZFMatrix &rhs,TPZVec<int> &source, TPZVec<int> &destination);
+  
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const;
  
+static void MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 );
+
   //@{
   /**
      Generic operator with REAL type
@@ -210,6 +214,10 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
   /*** Solve some systems ***/
 
   virtual int Decompose_LU();
+  
+  static int Substitution(const REAL *ptr, int rows, TPZFMatrix *B);
+  
+  
   virtual int Substitution( TPZFMatrix *B ) const;
   
   /** Decomposicao LU com pivoteamento.
@@ -222,6 +230,13 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
    */
   virtual int Substitution( TPZFMatrix *B, TPZVec<int> &index ) const;
 
+  /** Substituicao LU com pivoteamento. versao statica
+   * @author Edimar Cesar Rylo - Philippe Devloo
+   */
+  static int Substitution(const REAL *ptr, int rows,  TPZFMatrix *B, TPZVec<int> &index );
+
+  
+  
 
   //routines to send and receive messages
 
@@ -229,11 +244,14 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
   virtual void Read( TPZStream &buf, void *context );
   virtual void Write(TPZStream &buf, int withclassid );
 
-  operator REAL*() const { return fElem; }
+  operator const REAL*() const { return fElem; }
+  
+  static void PrintStatic(const REAL *ptr, int rows, int cols, const char *name, std::ostream& out,const MatrixOutputFormat form);
+
 
  private:
 
-  int Error(const char *msg1,const char *msg2=0 ) const;
+static int Error(const char *msg1,const char *msg2=0 );
   int Clear();
 
   REAL *fElem;

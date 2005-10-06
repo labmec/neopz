@@ -25,6 +25,12 @@
 #include "pzvec.h"
 #include "pzerror.h"
 
+#include <sstream>
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
+#endif
+
 
 #ifdef USING_ATLAS
 extern "C"{
@@ -241,6 +247,82 @@ TPZTempFMatrix TPZFMatrix::operator-(const TPZFMatrix &A ) const {
 
 	 while(pr < prlast) *pr++ = (*pm++) - (*pa++);
 	 return( res );
+}
+void TPZFMatrix::MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+		       const REAL alpha,const REAL beta ,const int opt ,const int stride)
+{
+  if ((!opt && cols*stride != x.Rows()) || (opt && rows*stride != x.Rows())) {
+    Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+    return;
+  }
+  if(beta != 0. && ((!opt && rows*stride != y.Rows()) || (opt && cols*stride != y.Rows()) || y.Cols() != x.Cols())) {
+    Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+    return;
+  }
+  if(!opt) {
+    if(z.Cols() != x.Cols() || z.Rows() != rows*stride) {
+      z.Redim(rows*stride,x.Cols());
+    }
+  } else {
+    if(z.Cols() != x.Cols() || z.Rows() != cols*stride) {
+      z.Redim(cols*stride,x.Cols());
+    }
+  }
+  unsigned numeq = opt ? cols : rows;
+  long xcols = x.Cols();
+  int ic, c;
+  if(!(rows*cols)) return;
+  for (ic = 0; ic < xcols; ic++) {
+    REAL *zp = &z(0,ic), *zlast = zp+numeq*stride;
+    if(beta != 0.) {
+      const REAL *yp = &y.g(0,ic);
+      if(beta != 1. || (&z != &y && stride != 1)) {
+	while(zp < zlast) {
+	  *zp = beta * (*yp);
+	  zp += stride;
+	  yp += stride;
+	}
+      } else if(&z != &y) {
+	memcpy(zp,yp,numeq*sizeof(REAL));
+      }
+    } else {
+      while(zp != zlast) {
+	*zp = 0.;
+	zp += stride;
+      }
+    }
+  }
+
+
+  for (ic = 0; ic < xcols; ic++) {
+    if(!opt) {
+      for ( c = 0; c<cols; c++) {
+	REAL * zp = &z(0,ic), *zlast = zp+rows*stride;
+	const REAL * fp = ptr +rows*c;
+	const REAL * xp = &x.g(c*stride,ic);
+	while(zp < zlast) {
+	  *zp += alpha* *fp++ * *xp;
+	  zp += stride;
+	}
+      }
+    } else {
+      const REAL * fp = ptr;
+      REAL *zp = &z(0,ic);
+      for (c = 0; c<cols; c++) {
+	REAL val = 0.;
+	// bug correction philippe 5/2/97
+	//					 REAL * xp = &x(0,ic), xlast = xp + numeq*stride;
+	const REAL *xp = &x.g(0,ic);
+	const REAL *xlast = xp + rows*stride;
+	while(xp < xlast) {
+	  val += *fp++ * *xp;
+	  xp += stride;
+	}
+	*zp += alpha *val;
+	zp += stride;
+      }
+    }
+  }
 }
 
 void TPZFMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
@@ -814,6 +896,37 @@ int TPZFMatrix::Decompose_LU() {
   return 1; 
 }
 
+int TPZFMatrix::Substitution(const REAL *ptr, int rows, TPZFMatrix *B)
+{
+  int rowb = B->Rows();
+  int colb = B->Cols();
+  if ( rowb != rows ) Error( "static::SubstitutionLU <incompatible dimensions>" );
+  int i,j;
+  for ( i = 0; i < rowb; i++ ) {
+    for ( int col = 0; col < colb; col++ )
+      for (j = 0; j < i; j++ )
+        //B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
+	PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, j) * GETVAL(B, rowb, j, col));
+  }
+
+  for (int col=0; col<colb; col++){
+    for ( i = rowb-1; i >= 0; i-- ) {
+      for (j = i+1; j < rowb ; j++ )
+        //B->PutVal( i, col, B->GetVal(i, col) - GetVal(i, j) * B->GetVal(j, col) );
+	PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, j) * GETVAL(B, rowb, j, col));
+      if ( IsZero( SELECTEL(ptr, rows, i, i)/*GetVal(i, i)*/ ) ) {
+        if (fabs(SELECTEL(ptr, rows, i, i)/*GetVal(i, i)*/) > 0.){
+          if (fabs(GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, i)/*B->GetVal(i, col) - GetVal(i, i)*/) > 1e-12){
+            Error( "static::BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
+          }
+        }else  Error( "static::BackSub(SubstitutionLU) <Matrix is singular" );
+      }
+      PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col)/SELECTEL(ptr, rows, i, i));
+      //B->PutVal( i, col, B->GetVal( i, col) / GetVal(i, i) );
+    }
+  }
+  return( 1 );
+}
 
 /****************/
 /*** Substitution ***/
@@ -1024,9 +1137,62 @@ int TPZFMatrix::Substitution( TPZFMatrix *B, TPZVec<int> &index ) const{
     v[i] = (v[i] - sum) / Get(i,i);
   }
   
-  for (i=0;i<nRows;i++) b[i] = v[i];
+  for (i=0;i<nRows;i++) b(i) = v[i];
   return 1;
 }
+
+
+int TPZFMatrix::Substitution(const REAL *ptr, int rows, TPZFMatrix *B, TPZVec<int> &index )
+{
+  
+  if(!B){
+    PZError << __PRETTY_FUNCTION__ << "TPZFMatrix *B eh nulo" << endl;
+    return 0;
+  }
+  
+  TPZFMatrix &b = *B;
+  
+  
+  
+  if (index.NElements() != rows || b.Rows() != rows)
+  {
+    cout << "TMatrix::Substituicao ERRO : vetores com dimensões incompativeis:\n"
+         << "this->fIndex = " << index.NElements() << "  b = " << b.Rows() << endl;
+    return 0;
+  }
+
+  int i,j;
+  REAL sum = 0;
+
+  TPZVec<REAL> v(rows);
+
+  
+  for (i=0;i<rows;i++)
+  {
+    v[i] = b[index[i]];
+  }
+  
+  //Ly=b
+  for (i=0;i<rows;i++)
+  {
+    sum = 0.;
+    for (j=0;j<(i);j++) sum += SELECTEL(ptr,rows,i,j) * v[j];
+    v[i] -= sum;
+  }
+  
+  //Ux=y
+  for (i=(rows-1);i>-1;i--)
+  {
+    sum = 0.;
+    for (j=(i+1);j<rows;j++) sum += SELECTEL(ptr,rows,i,j) * v[j];
+    v[i] = (v[i] - sum) / SELECTEL(ptr,rows,i,i);
+  }
+  
+  for (i=0;i<rows;i++) b(i) = v[i];
+  return 1;
+}
+
+
 
 REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B) {
 	int size = (A.Rows())*A.Cols();
@@ -1074,12 +1240,14 @@ TPZTempFMatrix operator*(const REAL value, const TPZFMatrix &A ) {
 /*************/
 /*** Error ***/
 
-int TPZFMatrix::Error(const char *msg1,const char *msg2 ) const {
-  cout << "TPZFMatrix::" << msg1;
+int TPZFMatrix::Error(const char *msg1,const char *msg2 ) {
+  ostringstream out;
+  out << "TPZFMatrix::" << msg1;
   if(msg2) cout << msg2;
-  cout << ".\n";
-  int temp;//para testes
-  cin >> temp;//para testes
+  out << ".\n";
+  LOGPZ_ERROR (logger, out.str().c_str());
+ // int temp;//para testes
+ // cin >> temp;//para testes
   //exit( 1 );//para testes
   return 0;
 }
@@ -1108,5 +1276,57 @@ void TPZFMatrix::Read( TPZStream &buf, void *context ){
 void TPZFMatrix::Write( TPZStream &buf, int withclassid ) {
   TPZMatrix::Write(buf,withclassid);
   buf.Write(fElem,fRow*fCol);
+}
+
+void TPZFMatrix::PrintStatic(const REAL *ptr, int rows, int cols, const char *name, ostream& out,const MatrixOutputFormat form){
+
+//  out.width( 8 );
+//  out.precision( 4 );
+
+	if(form == EFormatted) {
+	   out << "Writing matrix '";
+	   if(name) out << name;
+   	out << "' (" << rows << " x " << cols << "):\n";
+
+	   for ( int row = 0; row < rows; row++) {
+   	   out << "\t";
+      	for ( int col = 0; col < cols; col++ ) {
+         	out << SELECTEL(ptr,rows, row, col) << "  ";
+	      }
+   	   out << "\n";
+	   }
+    	out << "\n";
+   } else if (form == EInputFormat) {
+   	out << rows << " " << cols << endl;
+	   for ( int row = 0; row < rows; row++) {
+   	   for ( int col = 0; col < cols; col++ ) {
+         	REAL val = SELECTEL(ptr,rows,row, col);
+         	if(val != 0.) out << row << ' ' << col << ' ' << val << endl;
+	      }
+	   }
+      out << "-1 -1 0.\n";
+   } else if( form == EMathematicaInput)
+   {
+   char number[32];
+     out << name << "\n{ ";
+	 for ( int row = 0; row < rows; row++) {
+	 out << "\n{ ";
+   	   for ( int col = 0; col < cols; col++ ) {
+         	REAL val = SELECTEL(ptr,rows,row, col);
+		sprintf(number, "%16.16lf", val);
+		out << number;
+         	if(col < cols-1)
+		  out << ", ";
+		if((col+1) % 6 == 0)out << endl;
+	      }
+	 out << " }";
+	 if(row < rows-1)
+	    out << ",";
+	 }
+
+     out << " }\n";
+
+   }
+
 }
 

@@ -147,7 +147,7 @@ class TPZSkylMatrix : public TPZMatrix
 
   // Aloca uma nova coluna. 'fDiag[col].pElem' deve ser NULL.
 
-  int  Error(const char *msg1,const char* msg2="" ) const;
+//static int  Error(const char *msg1,const char* msg2="" );
   int  Clear();
   void Copy (const TPZSkylMatrix & );
   int Size(const int column) const {return fElem[column+1]-fElem[column];}

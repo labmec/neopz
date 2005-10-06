@@ -22,6 +22,12 @@
 #include "stdlib.h"
 #include "pzlink.h"
 
+#include <sstream>
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzspmatrix"));
+#endif
+
 #define IsZero( a )  (  ((a) < 1.e-10)  &&  ((a) > -1.e-10)  )
 #define Max( a, b )  ( (a) > (b) ? (a) : (b) )
 #define Min( a, b )  ( (a) < (b) ? (a) : (b) )
@@ -49,7 +55,7 @@ TPZSpMatrix::TPZSpMatrix(const int rows,const int cols )
 {
   fElem = new TPZLink<TPZNode>[ rows ] ;
   if ( fElem == NULL )
-    Error( "TPZSpMatrix( dim ) <Error creating Matrix>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZSpMatrix( dim ) <Error creating Matrix>" );
 #ifdef WORKPOOL
   for(int i=0; i<rows; i++) fElem[i].SetWorkPool(&fWp);
 #endif
@@ -73,7 +79,7 @@ int
 TPZSpMatrix::Put(const int row,const int col,const REAL & value )
 {
   if ( (row >= Rows()) || (col >= Cols()) || row <0 || col<0)
-    Error( "Put <indices out of band matrix range>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Put <indices out of band matrix range>" );
 
   return( PutVal( row, col, value ) );
 }
@@ -87,7 +93,7 @@ const REAL &
 TPZSpMatrix::Get(const int row,const int col ) const
 {
   if ( (row >= Rows()) || (col >= Cols()) || row<0 || col<0)
-    Error( "Get <indices out of band matrix range>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Get <indices out of band matrix range>" );
 
   return( GetVal( row, col ) );
 }
@@ -196,7 +202,7 @@ TPZSpMatrix::operator+(const TPZSpMatrix &A ) const
 {
   TPZSpMatrix res( *this );
   if ( ! res.fAdd( &A ) )
-    Error( "Operator+ (TPZSpMatrix&) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator+ (TPZSpMatrix&) <incompatible dimensions>" );
 
   return( res );
 }
@@ -211,7 +217,7 @@ TPZSpMatrix::operator-(const TPZSpMatrix &A ) const
 {
   TPZSpMatrix res( *this );
   if ( ! res.fSub( &A ) )
-    Error( "Operator+( TPZSpMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator+( TPZSpMatrix ) <incompatible dimensions>" );
 
   return( res );
 }
@@ -226,7 +232,7 @@ TPZSpMatrix
 TPZSpMatrix::operator*( TPZSpMatrix &A )
 {
   if ( Cols() != A.Rows() )
-	 Error( "operator*( TPZSpMatrix ) <incompatible dimensions>" );
+	 TPZMatrix::Error(__PRETTY_FUNCTION__, "operator*( TPZSpMatrix ) <incompatible dimensions>" );
 
   TPZSpMatrix res( Rows(), A.Cols() );
   for ( int row = 0; row < Rows(); row++ )
@@ -251,7 +257,7 @@ TPZSpMatrix &
 TPZSpMatrix::operator+=(const TPZSpMatrix &A )
 {
   if ( ! fAdd( &A ) )
-    Error( "operator+( TPZSpMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "operator+( TPZSpMatrix ) <incompatible dimensions>" );
   return( *this );
 }
 
@@ -264,7 +270,7 @@ TPZSpMatrix &
 TPZSpMatrix::operator-=(const TPZSpMatrix &A )
 {
   if ( ! fSub( &A ) )
-    Error( "operator-( TPZSpMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "operator-( TPZSpMatrix ) <incompatible dimensions>" );
   return( *this );
 }
 
@@ -357,7 +363,7 @@ int
 TPZSpMatrix::Resize(const int newRows,const int newCols )
 {
   //  if ( newRows != newCols )
-  //	 Error( "Resize <rows and cols must be equals>" );
+  //	 TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <rows and cols must be equals>" );
 
   if ( newRows == Rows() )
     return( 1 );
@@ -671,14 +677,16 @@ TPZSpMatrix::fMult(const REAL value )
 
 /*************/
 /*** Error ***/
-int
-TPZSpMatrix::Error(const char *msg1,const char *msg2 ) const
+/*int
+TPZSpMatrix::Error(const char *msg1,const char *msg2 ) 
 {
-  cout << "TPZSpMatrix::" << msg1 << msg2 << ".\n";
+  ostringstream out;
+  out << "TPZSpMatrix::" << msg1 << msg2 << ".\n";
+  LOGPZ_ERROR (logger, out.str().c_str());
   //pzerror.Show();
   exit( 1 );
   return 0;
-}
+}*/
 
 
 
@@ -740,9 +748,9 @@ TPZSpMatrix::ProdEsc( TPZLink<TPZNode> *row_i, TPZLink<TPZNode> *row_j,
 void TPZSpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 			  const REAL alpha,const REAL beta,const int opt,const int stride) const {
   if ((!opt && Cols()*stride != x.Rows()) || Rows()*stride != x.Rows())
-    Error( "TPZSpMatrix::MultAdd <matrixs with incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZSpMatrix::MultAdd <matrixs with incompatible dimensions>" );
   if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
-    Error ("TPZSpMatrix::MultAdd incompatible dimensions\n");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZSpMatrix::MultAdd incompatible dimensions\n");
   }
   int rows = Rows();
   int xcols = x.Cols();

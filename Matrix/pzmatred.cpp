@@ -20,6 +20,12 @@ using namespace std;
 #include "pzmatred.h"
 #include "pzfmatrix.h"
 
+#include <sstream>
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatred"));
+#endif
+
 //REAL TPZMatrix::gZero = 0.;
 
 //ofstream out("saida");
@@ -51,7 +57,7 @@ TPZMatRed::TPZMatRed () : TPZMatrix( 0, 0 )
 
 TPZMatRed::TPZMatRed( int dim, int dim00 ):TPZMatrix( dim,dim ){
 
-  if(dim<dim00) Error("dim k00> dim");
+  if(dim<dim00) TPZMatrix::Error(__PRETTY_FUNCTION__,"dim k00> dim");
   fDim0=dim00;
   fDim1=dim-dim00;
   fDecomposeType=ENoDecompose;
@@ -307,7 +313,7 @@ int TPZMatRed::Substitution(TPZFMatrix *B) const{
 	switch(fDecomposeType) {
 		case ENoDecompose:
 			default:
-				Error( "TPZMatRed::Substitution called without initialized solver\n");
+				TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZMatRed::Substitution called without initialized solver\n");
 				return 0;
 
 		case ELU:
@@ -323,7 +329,7 @@ int TPZMatRed::Substitution(TPZFMatrix *B) const{
 }
 
 int TPZMatRed::Redim(int dim, int dim00){
-	if(dim<dim00) Error("dim k00> dim");
+	if(dim<dim00) TPZMatrix::Error(__PRETTY_FUNCTION__,"dim k00> dim");
 	if(fK00) fK00->Redim(dim00,dim00);
 	if(fK01) delete fK01;
 	if(fK10) delete fK10;
@@ -369,11 +375,12 @@ int TPZMatRed::Zero(){
 /*************/
 /*** Error ***/
 
-int
-TPZMatRed::Error(const char *msg ,const char *msg2) const
+/*int
+TPZMatRed::Error(const char *msg ,const char *msg2)
 {
-  cout << "TPZMatRed::" << msg << msg2 << ".\n";
-
+  ostringstream out;
+  out << "TPZMatRed::" << msg << msg2 << ".\n";
+  LOGPZ_ERROR (logger, out.str().c_str());
   exit( 1 );
   return 0;
-}
+}*/

@@ -122,7 +122,7 @@ class TPZMatRed :public TPZMatrix {
 
  private:
 
-  int Error(const char *msg ,const char *msg2 = "") const;
+//static int Error(const char *msg ,const char *msg2 = "");
 
   /**
    * If fK00 is simetric, only part of the matrix is accessible to external

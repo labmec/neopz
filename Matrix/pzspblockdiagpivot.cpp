@@ -85,11 +85,11 @@ int TPZSpBlockDiagPivot::Substitution2( TPZFMatrix *B) const
     eq = 0;
     int pivotindex = 0;
     for(b=0;b<nb; b++) {
-      const int pos = fBlockPos[b];
+//      const int pos = fBlockPos[b];
       const int bsize = fBlockSize[b];
       if(!bsize) continue;
-      TPZFMatrix temp(bsize,bsize,&fStorage[pos],bsize*bsize);
-      temp.SetIsDecomposed(ELUPivot);
+//      TPZFMatrix temp(bsize,bsize,&fStorage[pos],bsize*bsize);
+//      temp.SetIsDecomposed(ELUPivot);
       TPZFMatrix BTemp(bsize,1,&(B->operator()(eq,c)),bsize);
       pivot.Resize(bsize);
 //      memcpy(&pivot[0],&fPivotIndices[pivotindex],bsize*sizeof(int));
@@ -97,7 +97,8 @@ int TPZSpBlockDiagPivot::Substitution2( TPZFMatrix *B) const
         pivot[id] = this->fPivotIndices[pivotindex+id];
       }
       pivotindex += bsize;
-      temp.Substitution(&BTemp, pivot);
+      TPZFMatrix::Substitution(fStorage,bsize,&BTemp);
+//      temp.Substitution(&BTemp, pivot);
       eq+= bsize;
     }
   }

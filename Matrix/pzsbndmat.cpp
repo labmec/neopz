@@ -19,6 +19,11 @@
 #include "pzsbndmat.h"
 //#include "pzerror.h" 
 
+#include <sstream>
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzsbmatrix"));
+#endif
 
 #define IsZero( a )  (  ((a) < 1.e-10)  &&  ((a) > -1.e-10)  )
 #define Max( a, b )  ( (a) > (b) ? (a) : (b) )
@@ -43,7 +48,7 @@ TPZSBMatrix::TPZSBMatrix( int dim, int band )
   fBand = ( band > (dim - 1) ? (dim - 1) : band );
   fDiag = new( REAL[Size()] );
   if ( fDiag == NULL )
-    Error( "TPZSBMatrix( dim ) <Error creating Matrix>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZSBMatrix( dim ) <Error creating Matrix>" );
 
   Zero();
 }
@@ -164,7 +169,7 @@ TPZSBMatrix
 TPZSBMatrix::operator+(const TPZSBMatrix &A ) const
 {
   if ( Dim() != A.Dim() )
-    Error( "operator+( TPZSBMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"operator+( TPZSBMatrix ) <incompatible dimensions>" );
 
   // Define os ponteiros e tamanhos para os elementos da maior e da
   //  menor banda.
@@ -212,7 +217,7 @@ TPZSBMatrix
 TPZSBMatrix::operator-(const TPZSBMatrix &A ) const
 {
   if ( Dim() != A.Dim() )
-    Error( "operator-( TPZSBMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "operator-( TPZSBMatrix ) <incompatible dimensions>" );
 
   // Define o tamanho e os elementos das colunas das 2 matrizes.
   int  sizeThis  = fBand + 1;
@@ -249,7 +254,7 @@ TPZSBMatrix &
 TPZSBMatrix::operator+=(const TPZSBMatrix &A )
 {
   if ( Dim() != A.Dim() )
-    Error( "operator+=( TPZSBMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "operator+=( TPZSBMatrix ) <incompatible dimensions>" );
 
   // No caso de as bandas serem iguais (ou se "tornarem" iguais).
   if ( fBand <= A.fBand )
@@ -288,7 +293,7 @@ TPZSBMatrix &
 TPZSBMatrix::operator-=(const TPZSBMatrix &A )
 {
   if ( Dim() != A.Dim() )
-    Error( "operator-=( TPZSBMatrix ) <incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "operator-=( TPZSBMatrix ) <incompatible dimensions>" );
 
   // No caso de as bandas serem iguais (ou se "tornarem" iguais)
   if ( fBand <= A.fBand )
@@ -323,9 +328,9 @@ void TPZSBMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
   // Computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
   if ((!opt && Cols()*stride != x.Rows()) || Rows()*stride != x.Rows())
-    Error( "TPZSBMatrix::MultAdd <matrixs with incompatible dimensions>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZSBMatrix::MultAdd <matrixs with incompatible dimensions>" );
   if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
-    Error ("TPZSBMatrix::MultAdd incompatible dimensions\n");
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZSBMatrix::MultAdd incompatible dimensions\n");
   }
   PrepareZ(y,z,beta,opt,stride);
   int rows = Rows();
@@ -463,7 +468,7 @@ TPZSBMatrix::Redim(const int newDim ,const int)
 	delete( fDiag );
       fDiag = new( REAL[Size()] );
       if ( fDiag == NULL )
-	Error( "Resize <memory allocation error>" );
+	TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>" );
     }
 
   REAL *dst = fDiag;
@@ -548,7 +553,7 @@ TPZSBMatrix::SetBand(const int newBand )
 int
 TPZSBMatrix::Decompose_Cholesky()
 {
-  if (  fDecomposed )  Error( "Decompose_Cholesky <Matrix already Decomposed>" );
+  if (  fDecomposed )  TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
   int size = fBand + 1; // Tamanho da banda.
   int next = fBand + 1; // O quanto se soma para "andar" na diagonal.
   REAL *row_k   = fDiag;
@@ -612,7 +617,7 @@ int
 TPZSBMatrix::Decompose_LDLt()
 {
 
-  if (  fDecomposed )  Error( "Decompose_LDLt <Matrix already Decomposed>" );
+  if (  fDecomposed )  TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed>" );
 
   int j,k,l, begin,end;
   REAL sum;
@@ -649,7 +654,7 @@ TPZSBMatrix::Decompose_LDLt()
 	    }
 	}
 
-      if ( IsZero(GetVal(j,j)) ) Error( "Decompose_LDLt <Zero on diagonal>" );
+      if ( IsZero(GetVal(j,j)) ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Zero on diagonal>" );
       end  = Min( int(j + fBand )+1, Dim() );
       //cout<<"end="<<end<<"\n";
       for( l=j+1; l<end;l++)
@@ -676,7 +681,7 @@ int
 TPZSBMatrix::Subst_Forward( TPZFMatrix *B ) const
 {
   if ( (B->Rows() != Dim()) || !fDecomposed )
-    Error("Subst_Forward-> uncompatible matrices") ;
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
 
   int size = fBand + 1;
   REAL *row_k = fDiag;
@@ -702,7 +707,7 @@ int
 TPZSBMatrix::Subst_Backward( TPZFMatrix *B ) const
 {
   if ( (B->Rows() != Dim()) || !fDecomposed )
-    Error("Subst_Forward-> uncompatible matrices") ;
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
   /*  int i,j,k;
 
       for(k=0; k<B->Cols() ; k++){
@@ -710,7 +715,7 @@ TPZSBMatrix::Subst_Backward( TPZFMatrix *B ) const
       short jmax;
       jmax=( i+fBand>Rows()-1 )? Rows()-1 : i+fBand;
       for(j=jmax ; j>i ; j--) B->operator()(i,k)-=B->GetVal(j,k)*GetVal(i,j);
-      if (  IsZero(GetVal(i,i)) ) Error("Suubst_Backward->diagonal element = zero");
+      if (  IsZero(GetVal(i,i)) ) TPZMatrix::Error(__PRETTY_FUNCTION__,"Suubst_Backward->diagonal element = zero");
       B->operator()(i,k)/=GetVal(i,i);
 
       }
@@ -757,7 +762,7 @@ int
 TPZSBMatrix::Subst_LForward( TPZFMatrix *B ) const
 {
   if ( (B->Rows() != Dim()) || !fDecomposed )
-    Error("Subst_LForward-> uncompatible matrices") ;
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Subst_LForward-> uncompatible matrices") ;
 
   int size = fBand + 1;
   REAL *row_k = fDiag;
@@ -795,7 +800,7 @@ TPZSBMatrix::Subst_Diag( TPZFMatrix *B ) const
 {
 
   if ( (B->Rows() != Dim()) || !fDecomposed )
-    Error("Subst_Diag-> uncompatible matrices") ;
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Subst_Diag-> uncompatible matrices") ;
 
 
   int size = fBand + 1;
@@ -811,7 +816,7 @@ int //misael 19/10/96
 TPZSBMatrix::Subst_LBackward( TPZFMatrix *B ) const
 {
   if ( (B->Rows() != Dim()) || !fDecomposed )
-    Error("Subst_LBackward-> uncompatible matrices") ;
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Subst_LBackward-> uncompatible matrices") ;
 
   int k,j,i,jmax,stepcol=fBand+2;
 
@@ -839,14 +844,16 @@ TPZSBMatrix::Subst_LBackward( TPZFMatrix *B ) const
 
 /*************/
 /*** Error ***/
-int
-TPZSBMatrix::Error(const char *msg1,const char* msg2 ) const
+/*int
+TPZSBMatrix::Error(const char *msg1,const char* msg2 ) 
 {
-  cout << "TPZSBMatrix::" << msg1 << msg2 << ".\n";
+  ostringstream out;
+  out << "TPZSBMatrix::" << msg1 << msg2 << ".\n";
   //pzerror.show();
+  LOGPZ_ERROR (logger, out.str().c_str());
   exit( 1 );
   return 1;
-}
+}*/
 
 
 
@@ -879,7 +886,7 @@ TPZSBMatrix::Copy(const TPZSBMatrix &A )
   fDefPositive = A.fDefPositive;
 
   if ( fDiag == NULL )
-    Error( "Copy( TPZSBMatrix ) <memory allocation error>" );
+    TPZMatrix::Error(__PRETTY_FUNCTION__,"Copy( TPZSBMatrix ) <memory allocation error>" );
 
   REAL *dst = fDiag;
   REAL *src = A.fDiag;

@@ -101,7 +101,7 @@ class TPZBlockDiagonal : public TPZMatrix
  private:
 
 
-  int Error(const char *msg1,const char *msg2="" ) const;
+//static int Error(const char *msg1,const char *msg2="" );
   int Clear();
 public:
   /**
