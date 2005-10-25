@@ -378,6 +378,16 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
   fRefPattern->CreateNewNodes (this, np);
   std::cout << "NewNodeIndexes : " << np << std::endl;
 
+  // map the nodes of the indices of the refinement pattern father element to the node indices
+  std::map<int, int> nodemap;
+  for(i=0; i<nnodes; i++)
+  {
+    nodemap[fRefPattern->Element(0)->NodeIndex(i)]=i;
+  }
+  for(;i<totalnodes;i++)
+  {
+    nodemap[i]=i;
+  }
 
   // I dont think the previous part will work...
   // It should be better structured. One method which is not present within
@@ -392,7 +402,8 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
     TPZManVector<int> cornerindexes(subcorner);
     for(j=0;j<subcorner;j++) {
       int cornerid = fRefPattern->Element(i+1)->NodeIndex(j);
-      cornerindexes[j] = np[cornerid];
+      int mappedid = nodemap[cornerid];
+      cornerindexes[j] = np[mappedid];
     }
     std::cout << "Subel corner " << cornerindexes << std::endl;
     TPZGeoEl *subel = this->Mesh()->CreateGeoElement((MElementType)fRefPattern->Element(i+1)->Type(),cornerindexes,matid,index,1);
@@ -406,7 +417,7 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
     SubElVec[sub]->SetFather(this->fIndex);
   }
 
-  this->Mesh()->Print(std::cout);
+//  this->Mesh()->Print(std::cout);
 
 //  fRefPattern->Mesh()->Print(std::cout);
   
@@ -445,7 +456,7 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
     }
   }
 
-  this->Print(std::cout);
+//  this->Print(std::cout);
   for (i=0;i<NSubEl;i++){
     TPZGeoEl *subel = SubElement(i);
     if (subel) std::cout << "Subel " << i << " OK " << std::endl ; //subel->Print(std::cout);
