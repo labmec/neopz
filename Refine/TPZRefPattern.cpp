@@ -61,7 +61,7 @@ TPZRefPattern::TPZRefPattern(const string &file ) : fSideRefPattern(0) {
   fFileRefPatt = file;/**arquivo contendo o padr� de refinamento*/
   ReadPattern();/**l�o arquivo contendo o refinamento e cria a malha fMesh*/
   fMesh.BuildConnectivity();/**conectividades entre sub-elementos*/
-  fMesh.Print(); /**Printing mesh info to check */
+//  fMesh.Print(); /**Printing mesh info to check */
   ComputeTransforms();/**calcula as transforma�es entre filhos e pai*/
   ComputePartition();/**efetua a parti�o do elemento pai de acordo com os lados dos sub-elementos*/
 }
@@ -84,64 +84,64 @@ void TPZRefPattern::Print(){
   static LoggerPtr logger(Logger::getLogger("pz.mesh.refpattern"));
 #endif
 
-  std::ostringstream buf;
+ // std::ostringstream buf;
 
   int nnewnodes=0;
   //cout << endl;
-  buf << std::endl;
-  buf << "=================" << std::endl;
-  buf <<"PRINTING REFINEMENT PATTERN / Name : "<< fName <<  std::endl;
-  buf << std::endl;
+  std::cout << std::endl;
+  std::cout << "=================" << std::endl;
+  std::cout <<"PRINTING REFINEMENT PATTERN / Name : "<< fName <<  std::endl;
+  std::cout << std::endl;
   int nnodes = fMesh.NNodes() ;
-  buf << "=================" << std::endl;
-  buf << "Number of nodes: " << nnodes << std::endl ;
+  std::cout << "=================" << std::endl;
+  std::cout << "Number of nodes: " << nnodes << std::endl ;
   int nel = fMesh.NElements();
-  buf << "Number of elements: " << nel << std::endl;
+  std::cout << "Number of elements: " << nel << std::endl;
   //cout << "Refinement Type: " << fRefineType << endl;
-  buf << "________________" << std::endl;
-  buf << "Element Node Indexes" << std::endl;
+  std::cout << "________________" << std::endl;
+  std::cout << "Element Node Indexes" << std::endl;
   for (int i=0 ; i<nel ; i++){
     if (i==0){
-      buf << "Master element nodes: "  ;
+      std::cout << "Master element nodes: "  ;
     }
     else{
-      buf << "Element: " << i << " Nodes: " ;
+      std::cout << "Element: " << i << " Nodes: " ;
     }
     
     for (int k=0 ; k<fMesh.ElementVec()[i]->NNodes() ; k++){
-      buf << fMesh.ElementVec()[i]->NodeIndex(k) << "  ";
+      std::cout << fMesh.ElementVec()[i]->NodeIndex(k) << "  ";
     }
-    buf << std::endl;
+    std::cout << std::endl;
   }
-  buf << std::endl;
-  buf << "________________" << std::endl;
-  buf << "Number of new nodes per side ";
+  std::cout << std::endl;
+  std::cout << "________________" << std::endl;
+  std::cout << "Number of new nodes per side ";
   for (int i=0 ; i<1 ; i++){
     //    cout << "Element: " << i << endl;
     for (int j=0 ; j<fMesh.ElementVec()[i]->NSides() ; j++){
       if (fMesh.ElementVec()[0]->SideDimension(j)==1){
-	nnewnodes = NSideNodes(j);
-	
-	buf << j << ":" << nnewnodes << " ";
+        nnewnodes = NSideNodes(j);
+        std::cout << j << ":" << nnewnodes << " ";
       }
     }
-    buf << std::endl;
+    std::cout << std::endl;
   }
-  buf << std::endl;
-  buf << "________________" << std::endl;
-  buf << "Nodes coordinates " << std::endl;
+  std::cout << std::endl;
+  std::cout << "________________" << std::endl;
+  std::cout << "Nodes coordinates " << std::endl;
   for (int i=0 ; i<nnodes ; i++){
-    buf << "Node: " << i << " Coordinates:   " << fMesh.NodeVec()[i].Coord(0) << "   "  << fMesh.NodeVec()[i].Coord(1)  << "   "  << fMesh.NodeVec()[i].Coord(2) << std::endl;
+    std::cout << "Node: " << i << " Coordinates:   " << fMesh.NodeVec()[i].Coord(0) << "   "  << fMesh.NodeVec()[i].Coord(1)  << "   "  << fMesh.NodeVec()[i].Coord(2) << std::endl;
   }
-  buf << std::endl;
-  buf << std::endl;
-  buf << "=================" << std::endl;
-  buf << "End of RefPattern Printing." << std::endl ;
-  buf << "=================" << std::endl;
-  buf << std::endl;
-  buf << std::endl;
-  buf << std::endl;
-  LOGPZ_DEBUG(logger, buf.str());
+  std::cout << std::endl;
+  std::cout << std::endl;
+  std::cout << "=================" << std::endl;
+  std::cout << "End of RefPattern Printing." << std::endl ;
+  std::cout << "=================" << std::endl;
+  std::cout << std::endl;
+  std::cout << std::endl;
+  std::cout << std::endl;
+  //LOGPZ_DEBUG(logger, buf.str());
+  
 
 }
 
@@ -536,7 +536,7 @@ if (gDebug == 2){
     }
 //    subs.Element()->Print(cout);
     int sd = subs.Side();
-    if(sd < nnod){
+    if(sd < subs.Element()->NNodes()){
       TPZGeoEl *el = subs.Element();
       int node = el->NodeIndex(sd);
       //vecnodes[par-pos] = sd;/**cada n�aparece uma nica ves na partic� do lado*/
@@ -1120,6 +1120,7 @@ void TPZRefPattern::GeneratePermuted(TPZGeoEl *gel)
     }
     if(valid)
     {
+      cout << " element type " << gel->Type() << " nodesperm " << nodesperm << endl;
       TPZRefPatternPermute candidate;
       candidate.fPermute = permute;
       candidate.fTransform = gel->ComputeParamTrans(gelp,gel->NSides()-1,gel->NSides()-1);
@@ -1155,6 +1156,7 @@ void TPZRefPattern::InsertPermuted(TPZGeoMesh &gmesh)
     }
     else
     {
+      refp->Print();
       gmesh.InsertRefPattern(refp);
       fPermutedRefPatterns[counter] = refp;
       refp->InsertPermuted(gmesh);
