@@ -9,7 +9,8 @@ DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES     = @PZ_CLEANFILES@
 -include $(top_builddir)/@PZ_MK@
 bin_PROGRAMS =  HeMan
-HeMan_SOURCES =  c0-simplequad.cpp c1-simplecube.cpp main.cc 
+HeMan_SOURCES = c0-simplequad.cpp c1-simplecube.cpp main.cc MeshReader.cpp \
+	Quad_1_Rib_Marked.cpp Quad_2_Rib_Ad_Marked.cpp
 
 ## tpzdxfdraw.cpp
 
