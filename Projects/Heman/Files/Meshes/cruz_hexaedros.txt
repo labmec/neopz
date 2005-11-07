@@ -1,0 +1,56 @@
+: Nmero de n�
+: N�: ID  - ( x , y , z)
+: Nmero de Elementos
+: Elementos: Id - Tipo - Material Id - Conectividades
+: tipo: 0 - point
+:       1 - line
+:       2 - triangle
+:       3 - quadrilateral
+:       4 - tetrahedre
+:       5 - pyramid
+:       6 - prism
+:       7 - hexahedre
+: Nmero de Materiais
+: Materiais: Id - properties (E nu, prestress x, prestress y)
+: Nmero de BCs:
+: BC: id - matid - element/side 
+: Nos
+24
+0   0.    0.  0.
+1   1.    0.  0.
+2   2.    0.  0.
+3   3.    0.  0.
+4   0.    1.  0.
+5   1.    1.  0.
+6   2.    1.  0.
+7   3.    1.  0.
+8   0.    0.  1.
+9   1.    0.  1.
+10   2.    0.  1.
+11   3.    0.  1.
+12   0.    1.  1.
+13   1.    1.  1.
+14   2.    1.  1.
+15   3.    1.  1.
+16   1.    0.  2.
+17   2.    0.  2.
+18   1.    1.  2.
+19   2.    1.  2.
+20   1.    0.  -1.
+21   2.    0.  -1.
+22   1.    1.  -1.
+23   2.    1.  -1.
+: Elementos
+5
+0 7 1 0 1 5 4 8 9 13 12
+1 7 1 1 2 6 5 9 10 14 13
+2 7 1 2 3 7 6 10 11 15 14
+3 7 1 9 10 14 13 16 17 19 18
+4 7 1 20 21 23 22 1 2 6 5
+: Materiais
+1
+1  1.e6  0.2 0.  0.
+: BCs
+2
+0  -1 2 22
+1  -1 2 20
