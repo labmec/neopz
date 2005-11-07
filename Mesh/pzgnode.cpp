@@ -1,4 +1,4 @@
-//$Id: pzgnode.cpp,v 1.5 2005-04-25 02:31:49 phil Exp $
+//$Id: pzgnode.cpp,v 1.6 2005-11-07 18:51:23 cesar Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -73,4 +73,13 @@ void TPZGeoNode::Print(ostream & out) {
   out << "\n";
 }
 
+  /**
+  return the id of the class (used for writing reading the object)
+  */
+int TPZGeoNode::ClassId() const
+{
+  return TPZGEONODEID;
+}
 
+
+template class TPZRestoreClass<TPZGeoNode,TPZGEONODEID>;

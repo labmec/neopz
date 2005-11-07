@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.9 2005-04-25 02:31:49 phil Exp $
+//$Id: pzgnode.h,v 1.10 2005-11-07 18:51:11 cesar Exp $
 
 /**File : pzgnode.h
 
@@ -50,10 +50,7 @@ virtual  ~TPZGeoNode() { }
   /**
   return the id of the class (used for writing reading the object)
   */
-  virtual int ClassId() const {
-    return TPZGEONODEID;
-  }
-  
+  virtual int ClassId() const;
   /**
   Read the object from disk
   */
@@ -96,7 +93,6 @@ virtual  ~TPZGeoNode() { }
   void Print(std::ostream & out = std::cout);
 };
 
-template class TPZRestoreClass<TPZGeoNode,TPZGEONODEID>;
 
 inline REAL TPZGeoNode::Coord(int i) const {
 #ifndef NODEBUG
