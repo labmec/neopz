@@ -53,7 +53,7 @@ using namespace pzshape;
 
 
 void RegisterMeshClasses() {
-  TPZSaveable::Register(TPZGEONODEID,Restore<TPZGeoNode>);
+//  TPZSaveable::Register(TPZGEONODEID,Restore<TPZGeoNode>);
   TPZSaveable::Register(TPZFGEOELEMENTPOINTID,Restore<TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint> >);
   TPZSaveable::Register(TPZFGEOELEMENTLINEARID,Restore<TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear> >);
   TPZSaveable::Register(TPZFGEOELEMENTRIANGLEID,Restore<TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle> >);
