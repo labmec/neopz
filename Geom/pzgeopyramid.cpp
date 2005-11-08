@@ -66,11 +66,24 @@ void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
      phi(2,0)  = 0.;
      phi(3,0)  = 0.;
      phi(4,0)  = 1.;
-     for(int i=0;i<5;i++) {
-        dphi(0,i) = 0.;
-        dphi(1,i) = 0.;
-        dphi(2,i) = 0.;
-     }
+     dphi(0,0)  = -0.25;
+     dphi(1,0)  = -0.25;
+     dphi(2,0)  = -0.25;
+     dphi(0,1)  = 0.25;
+     dphi(1,1)  = -0.25;
+     dphi(2,1)  = -0.25;
+     dphi(0,2)  = 0.25;
+     dphi(1,2)  = 0.25;
+     dphi(2,2)  = -0.25;
+     dphi(0,3)  = -0.25;
+     dphi(1,3)  = 0.25;
+     dphi(2,3)  = -0.25;
+     dphi(0,4)  = 0;
+     dphi(1,4)  = 0;
+     dphi(2,4)  = 1.;
+
+ 
+
      return;
   }
   

@@ -130,8 +130,8 @@ void TPZGeoCube::Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jaco
     PZError << "TPZGeoCube.jacobian only implemented for"
       " 8 nodes, NumberOfNodes = " << NNodes << "\n";
   }
-  if(param.NElements() != 3 || param[0] < -1. || param[0] > 1. ||
-     param[1] < -1. || param[1] > 1. || param[2] < -1. || param[2] > 1.) {
+  if(param.NElements() != 3 || param[0] < -1.001 || param[0] > 1.001 ||
+     param[1] < -1.001 || param[1] > 1.001 || param[2] < -1.001 || param[2] > 1.001) {
     PZError << "TPZGeoCube.jacobian. param out of range : "
       " param.NElements() = " << param.NElements() <<
       "\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
