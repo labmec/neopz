@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.21 2005-04-25 02:31:47 phil Exp $
+// $Id: pzelctemp.cpp,v 1.22 2005-11-23 17:13:40 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -354,18 +354,19 @@ void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::Shape(TPZVec<REAL> &pt, TPZFMatrix 
 using namespace pzgeom;
 using namespace pzshape;
 
+template<>
 void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 0) std::cout << "A point element has no graphical representation\n";
 }
-
+template<>
 void TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 3) std::cout << "A tetrahedra element has no graphical representation\n";
 }
-
+template<>
 void TPZIntelGen<TPZGeoPrism,TPZShapePrism>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 3) std::cout << "A prism element has no graphical representation\n";
 }
-
+template<>
 void TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 3) std::cout << "A pyramid element has no graphical representation\n";
 }
@@ -379,24 +380,25 @@ void TPZIntelGen<TGEO,TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, in
 }
 
 #else
-
+template<>
 void TPZIntelGen<TPZGeoLinear,TPZShapeLinear>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == TPZShapeLinear::Dimension && Material()->Id() > 0) {
     new typename TPZGeoLinear::GraphElType(this,&grafgrid);
   }
 }
+template<>
 void TPZIntelGen<TPZGeoQuad,TPZShapeQuad>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == TPZShapeQuad::Dimension && Material()->Id() > 0) {
     new typename TPZGeoQuad::GraphElType(this,&grafgrid);
   }
 }
-
+template<>
 void TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == TPZShapeTriang::Dimension && Material()->Id() > 0) {
     new typename TPZGeoTriangle::GraphElType(this,&grafgrid);
   }
 }
-
+template<>
 void TPZIntelGen<TPZGeoCube,TPZShapeCube>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == TPZShapeCube::Dimension && Material()->Id() > 0) {
     new typename TPZGeoCube::GraphElType(this,&grafgrid);
@@ -404,36 +406,42 @@ void TPZIntelGen<TPZGeoCube,TPZShapeCube>::CreateGraphicalElement(TPZGraphMesh &
 }
 
 #endif
-
+template<>
 int TPZIntelGen<TPZGeoPoint,TPZShapePoint>::ClassId() const
 {
   return TPZINTELPOINTID;
 }
+template<>
 int TPZIntelGen<TPZGeoLinear,TPZShapeLinear>::ClassId() const
 {
   return TPZINTELLINEARID;
 }
+template<>
 int TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>::ClassId() const
 {
   return TPZINTELTRIANGLEID;
 }
+template<>
 int TPZIntelGen<TPZGeoQuad,TPZShapeQuad>::ClassId() const
 {
   return TPZINTELQUADID;
 }
+template<>
 int TPZIntelGen<TPZGeoCube,TPZShapeCube>::ClassId() const
 {
   return TPZINTELCUBEID;
 }
-
+template<>
 int TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::ClassId() const
 {
   return TPZINTELTETRAID;
 }
+template<>
 int TPZIntelGen<TPZGeoPrism,TPZShapePrism>::ClassId() const
 {
   return TPZINTELPRISMID;
 }
+template<>
 int TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::ClassId() const
 {
   return TPZINTELPYRAMID;
