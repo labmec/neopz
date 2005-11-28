@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.4 2005-09-01 19:06:48 tiago Exp $
+//$Id: main.cpp,v 1.5 2005-11-28 19:51:59 tiago Exp $
 
 /**
  * Galerkin descontinuo: problema de camada limite
@@ -61,7 +61,7 @@ int main(){
 
 
 int nmaxeq = 5000;//numero maximo de equacoes do problema
-for(int pp = 1; pp < 9; pp++){
+for(int pp = 2; pp < 9; pp++){
  for(int hh = 0; hh < 8; hh++){
 
 //  TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
@@ -70,7 +70,6 @@ for(int pp = 1; pp < 9; pp++){
   p = pp;
   h = hh;
   TPZCompEl::gOrder = p;
-  TPZCompElDisc::gDegree = p;
 
   TPZCompMesh *cmesh;
 //  cmesh = DiscontinuousOnBoundaryLayer(h); 
@@ -85,8 +84,8 @@ for(int pp = 1; pp < 9; pp++){
 #ifdef direct
 
 // Melhor caso para GEM e elementos finitos. Melhor metodo direto
-    TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
-    //TPZFStructMatrix full(cmesh);
+  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
+  //  TPZFStructMatrix full(cmesh);
     an.SetStructuralMatrix(full);
     TPZStepSolver step;
     step.SetDirect( ELU /*ECholesky*/ /*ELDLt*/ );

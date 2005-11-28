@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.68 2005-11-28 13:21:18 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.69 2005-11-28 19:49:10 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -95,7 +95,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
   }
   fConstC = copy.fConstC;
   CreateMidSideConnect();
-  this->Connect(0).SetOrder(TPZCompEl::gOrder);
+  this->SetDegree( TPZCompEl::gOrder );
   //as interfaces foram clonadas
 }
 
@@ -123,7 +123,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
   int materialid = ref->MaterialId();
   fMaterial = mesh.FindMaterial(materialid);
   CreateMidSideConnect();
-  this->Connect(0).SetOrder(TPZCompEl::gOrder);
+  this->SetDegree( TPZCompEl::gOrder );
   ref->CenterPoint(ref->NSides()-1,fCenterPoint);
   TPZVec<REAL> csi(fCenterPoint);
   ref->X(csi,fCenterPoint);
@@ -1159,6 +1159,7 @@ void TPZCompElDisc::AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) {
 }
 
 void TPZCompElDisc::SetDegree(int degree) {
+  if (fConnectIndex < 0) return;
   TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
   c.SetOrder(degree);
   int seqnum = c.SequenceNumber();

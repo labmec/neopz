@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.38 2005-11-28 13:21:18 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.39 2005-11-28 19:49:11 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -188,7 +188,10 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   /**
    * it returns the degree of interpolation of the element 
    */
-  virtual int Degree() {return this->Connect(0).Order() ;}
+  virtual int Degree(){
+    if (fConnectIndex < 0) return -1;
+    return this->Connect(0).Order() ;
+  }
 
   /**
    * it assigns the degree of the element 

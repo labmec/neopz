@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.3 2005-11-28 13:45:45 tiago Exp $
+//$Id: meshes.cpp,v 1.4 2005-11-28 19:51:59 tiago Exp $
 
 #include "meshes.h"
 
@@ -367,7 +367,7 @@ void ForcingFunction(TPZVec<REAL> &pto, TPZVec<REAL> &force){
   REAL den = epsilon*(1-exp(-1/epsilon))*exp((1-x)*(1-y)/epsilon);
   force[0] = 2+(num/den)-x-y;
 
-#define LUISFILIPE
+  //#define LUISFILIPE
 #ifdef LUISFILIPE
   REAL antigo = (-(-1.0 + exp(1.0/epsilon)) * epsilon * (-2.0+x+y)
 		 +exp( (x+y-x*y)/epsilon ) * (-x + x*x + (-1+y)*y) ) / ( ( -1.0 + exp(1.0/epsilon) ) * epsilon);
@@ -389,9 +389,9 @@ void ExactSolution(TPZVec<REAL> &pto, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   
   u[0] = ( exp(-1.0/epsilon) -exp( (-1.0+x) * (1.0-y) / epsilon ) ) / ( 1.0 - exp( -1.0/epsilon) ) + x + (1.0-x)*y;
   
-  deriv[0] = ( exp((x+y-x*y)/epsilon) + epsilon - exp(1.0/epsilon) * epsilon) * (-1.0 + y) / ( (-1.0+exp(1.0/epsilon))*epsilon );
+  deriv(0,0) = ( exp((x+y-x*y)/epsilon) + epsilon - exp(1.0/epsilon) * epsilon) * (-1.0 + y) / ( (-1.0+exp(1.0/epsilon))*epsilon );
   
-  deriv[1] = ( exp((x+y-x*y)/epsilon) + epsilon - exp(1.0/epsilon) * epsilon) * (-1.0 + x) / ( (-1.0+exp(1.0/epsilon))*epsilon );
+  deriv(1,0) = ( exp((x+y-x*y)/epsilon) + epsilon - exp(1.0/epsilon) * epsilon) * (-1.0 + x) / ( (-1.0+exp(1.0/epsilon))*epsilon );
   
 }
 
@@ -508,8 +508,10 @@ TPZCompMesh *CreateMesh(int h) {
   return cmesh;
 }
 
-
+#include "TPZInterfaceEl.h"
 TPZCompMesh *CreateMeshContDisc(int h) {
+
+  TPZInterfaceElement:: SetCalcStiffContDisc();
 
   REAL co[9][2] = {{0.5,0.5},{0.5,0.},{1.,0.},{1.,0.5},{1.,1.},{0.5,1.},{0.,1.},{0.,0.5},{0.,0.}};
   int indices[4][4] = {{1,2,3,0},{0,3,4,5},{7,0,5,6},{8,1,0,7}};
@@ -553,7 +555,7 @@ TPZCompMesh *CreateMeshContDisc(int h) {
   TPZGeoElBC gbc8(elvec[3],4,-1,*gmesh); // bottom
 
   OneContinuous(gmesh, contset, discset, h, 3);  
-//  OneDiscontinuous(gmesh, contset, discset, h);  
+  //OneDiscontinuous(gmesh, contset, discset, h);  
 
   {
      int ncont = contset.size();
@@ -606,20 +608,11 @@ TPZCompMesh *CreateMeshContDisc(int h) {
   cmesh->InsertMaterialObject(mat);
   for(int ii = 0; ii < 3; ii++) cmesh->InsertMaterialObject(bc[ii]);
 
-  
-  TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc); 
-
   cmesh->AutoBuildContDisc(continuous, discontinuous);
 
   cmesh->AdjustBoundaryElements();
-  //  cmesh->CleanUpUnconnectedNodes();
-  //  cmesh->ExpandSolution();
+  cmesh->CleanUpUnconnectedNodes();
+  cmesh->ExpandSolution();
   
   return cmesh;
 }
