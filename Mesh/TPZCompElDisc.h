@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.37 2005-04-25 02:31:49 phil Exp $
+//$Id: TPZCompElDisc.h,v 1.38 2005-11-28 13:21:18 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -38,16 +38,6 @@ class TPZGeoElPoint;
 @ingroup CompElement
 */
 class TPZCompElDisc : public TPZCompEl{
-
-  /**
-   * Geometric element to which this element refers
-   */
-//  TPZGeoEl *fReference;
-
-  /**
-   * Interpolation order of the discontinous element 
-   */
-  int fDegree;
 
   /**
    * Shape function type used by the element
@@ -124,11 +114,6 @@ protected:
    */
   virtual REAL InnerRadius() {return this->Reference()->ElementRadius();}
 
-  /**
-   * default degree of imterpolation
-   */
-  static int gDegree;
-  
   TPZCompElDisc();
 
   TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index);//original
@@ -203,7 +188,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   /**
    * it returns the degree of interpolation of the element 
    */
-  virtual int Degree() {return fDegree;}
+  virtual int Degree() {return this->Connect(0).Order() ;}
 
   /**
    * it assigns the degree of the element 
