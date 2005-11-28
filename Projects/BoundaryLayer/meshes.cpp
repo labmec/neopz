@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.2 2005-09-01 19:06:48 tiago Exp $
+//$Id: meshes.cpp,v 1.3 2005-11-28 13:45:45 tiago Exp $
 
 #include "meshes.h"
 
@@ -376,7 +376,7 @@ void ForcingFunction(TPZVec<REAL> &pto, TPZVec<REAL> &force){
 //  }
 #endif
 
-  //*-1 pq o pzpoisson3d implementa +Epsilon Laplac(u) - div(beta*u) = force  
+  //*-1 pq o pzpoisson3d implementa -Epsilon Laplac(u) + div(beta*u) = -force  
   force[0] *= -1.0;
 }
 
