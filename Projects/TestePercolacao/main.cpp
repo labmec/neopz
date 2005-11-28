@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.1 2005-11-28 13:49:47 tiago Exp $
+//$Id: main.cpp,v 1.2 2005-11-28 17:16:42 tiago Exp $
 
 /**
  * Percolation of water from the fracture into the porous media.
@@ -84,7 +84,7 @@ using namespace pzrefine;
 using namespace std;
  
 int main(){   
-    
+
   TPZCompMesh * cmesh = CreateMesh_TriangularDomain_ComoPhilippeQuer(3, 30, 6);// CreateMeshSingularity(1, 2,  2);
   std::cout << "Numero de elementos = " << cmesh->ElementVec().NElements() << std::endl;
   std::cout << "Numero de equacoes  = " << cmesh->NEquations() << std::endl;
@@ -107,7 +107,7 @@ int main(){
 
 #define FRONTAL
 #ifdef FRONTAL  
-  /*TPZParFrontStructMatrix <TPZFrontSym> */ TPZFStructMatrix full(cmesh);
+  TPZParFrontStructMatrix <TPZFrontSym> /* TPZFStructMatrix */ full(cmesh);
   an.SetStructuralMatrix(full);
   TPZStepSolver step;
   step.SetDirect(ECholesky/*ELU*/);
