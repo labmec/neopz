@@ -1,3 +1,7 @@
+// -*- c++ -*-
+
+//$Id: pzelast3d.h,v 1.2 2005-11-28 13:42:06 tiago Exp $
+
 #ifndef PZELAST3D
 #define PZELAST3D
 
@@ -14,6 +18,8 @@
 class TPZElasticity3D : public TPZMaterial {
 
 public :
+
+enum SOLUTIONVARS{ENone = -1, EDisplacement = 0, EDisplacementX, EDisplacementY, EDisplacementZ, EPrincipalStress, EPrincipalStrain,                           EVonMisesStress, EStress, EStrain};
 
 /** Class constructor.
  * @param nummat - material ID.
@@ -38,6 +44,11 @@ int NStateVariables(){ return 3;}
 /** Print material report.
  */
 virtual void Print(std::ostream & out);
+
+/** Direction to post process stress and strain.
+ *  Result of post processing is (Stress.Direction) or (Strain.Direction)
+ */
+void SetPostProcessingDirection(TPZVec<REAL> &Direction);
 
 /** Material name.
  */
@@ -104,7 +115,16 @@ REAL fPoisson;
   
 /** External forces.
  */  
-TPZVec<REAL> fForce;
+TPZManVector<REAL,3> fForce;
+
+/** Direction to compute stress and strain.
+ */
+TPZManVector<REAL,3> fPostProcessDirection;
+
+void ComputeStressVector(TPZFMatrix &Stress, TPZFMatrix &DSol);
+void ComputeStrainVector(TPZFMatrix &Stress, TPZFMatrix &DSol);
+void ComputeStrainTensor(TPZFMatrix &Stress, TPZFMatrix &DSol);
+void ApplyDirection(TPZFMatrix &StrVec, TPZVec<REAL> &Out);
 
 };
 
