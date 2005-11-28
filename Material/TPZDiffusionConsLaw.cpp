@@ -51,7 +51,7 @@ REAL TPZDiffusionConsLaw::Delta(){
 
 REAL TPZDiffusionConsLaw::DeltaOtimo(){
 
-  int degree = TPZCompElDisc::gDegree;
+  int degree = TPZCompEl::gOrder;
   REAL cfl = CFL(degree);
   REAL delta = ( (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10. );
   return delta;

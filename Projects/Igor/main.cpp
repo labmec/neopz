@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.18 2005-09-01 19:07:51 tiago Exp $
+//$Id: main.cpp,v 1.19 2005-11-28 14:17:28 tiago Exp $
 
 /**
  * Galerkin descontinuo: visita do professor Igor.
@@ -274,7 +274,6 @@ int mainqvale(){
   ofstream out(filename);
 
   TPZCompEl::gOrder = p;
-  TPZCompElDisc::gDegree = p;
 
 //  gDebug = 0;
 
@@ -1221,7 +1220,6 @@ for(int tiagop = 1; tiagop < 4 ; tiagop++){
   ofstream out(filename);
 
   TPZCompEl::gOrder = p;
-  TPZCompElDisc::gDegree = p;
 
   TPZCompMesh *cmesh;
   cmesh = CreateMesh();

@@ -93,7 +93,7 @@ public:
     * Returns the best value for CFL based on the
     * interpolation degree
     */
-   REAL OptimalCFL(int degree = TPZCompElDisc::gDegree);
+   REAL OptimalCFL(int degree = TPZCompEl::gOrder);
 
      /**
   Save the element data to a stream
