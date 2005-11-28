@@ -571,7 +571,7 @@ void SolveIterative_GMRES(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMe
 
 TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
 
-  TPZCompElDisc::gDegree = p_ordem;
+  TPZCompEl::gOrder = p_ordem;
 
   TPZGeoMesh *geomalha = new TPZGeoMesh;
 
