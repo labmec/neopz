@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.cpp,v 1.15 2005-04-25 02:31:48 phil Exp $
+//$Id: pzflowcmesh.cpp,v 1.16 2005-11-28 14:09:22 tiago Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
@@ -117,7 +117,7 @@ REAL TPZFlowCompMesh::ComputeTimeStep()
     REAL deltax = LesserEdgeOfMesh();
 
     TPZCompElDisc *disc;
-    int degree = disc->gDegree;
+    int degree = disc->Degree();
 
     REAL meanTimeStep = 0.;
 
