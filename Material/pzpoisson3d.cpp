@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.14 2005-09-01 19:02:08 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.15 2005-11-29 14:01:59 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -164,6 +164,11 @@ int TPZMatPoisson3d::VariableIndex(char *name){
   if(!strcmp("Displacement6",name))   return  0;
   if(!strcmp("Solution",name))        return  1;
   if(!strcmp("Derivate",name))        return  2;
+  if(!strcmp("KDuDx",name))           return  3;
+  if(!strcmp("KDuDy",name))           return  4;
+  if(!strcmp("KDuDz",name))           return  5;
+  if(!strcmp("NormKDu",name))         return  6;
+  if(!strcmp("MinusKGradU",name))     return  7;
   if(!strcmp("POrder",name))          return 10;
   cout << "TPZMatPoisson3d::VariableIndex Error\n";
   return -1;
@@ -174,6 +179,8 @@ int TPZMatPoisson3d::NSolutionVariables(int var){
   if(var == 0) return 6;
   if(var == 1) return 1;
   if(var == 2) return fDim;
+  if ((var == 3) || (var == 4) || (var == 5) || (var == 6)) return 1;
+  if (var == 7) return fDim;
   if(var == 10) return 1;
   return TPZMaterial::NSolutionVariables(var);
   //  cout << "TPZMatPoisson3d::NSolutionVariables Error\n";
@@ -188,8 +195,33 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*
     for(id=0 ; id<fDim; id++) {
       Solout[id] = DSol(id,0);//derivate
     }
-  }
-}
+  }//var == 2
+  if (var == 3){ //KDuDx
+    Solout[0] = DSol(0,0) * this->fK;
+  }//var ==3
+  if (var == 4){ //KDuDy
+    Solout[0] = DSol(1,0) * this->fK;
+  }//var == 4 
+  if (var == 5){ //KDuDz
+    Solout[0] = DSol(2,0) * this->fK;
+  }//var == 5
+  if (var == 6){ //NormKDu
+    int id;
+    REAL val = 0.;
+    for(id=0 ; id<fDim; id++) {
+      val += (DSol(id,0) * this->fK) * (DSol(id,0) * this->fK);
+    }
+    Solout[0] = sqrt(val);
+  }//var == 6
+  if (var == 7){ //MinusKGradU
+    int id;
+    REAL val = 0.;
+    for(id=0 ; id<fDim; id++) {
+      Solout[id] = -1. * this->fK * DSol(id,0);
+    }
+    Solout[0] = sqrt(val);
+  }//var == 7  
+}//method
 
 void TPZMatPoisson3d::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
   //Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)

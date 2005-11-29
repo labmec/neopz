@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.15 2005-09-01 19:02:18 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.16 2005-11-29 14:01:59 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -15,7 +15,7 @@
 #include "fadType.h"
 #endif
 
-
+// -fK Laplac(u) + fC * div(fConvDir*u) = - fXf
 class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
  
   protected :
