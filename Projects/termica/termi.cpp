@@ -14,6 +14,7 @@
 //Materiais
 #include "pzelasmat.h"
 #include "pzmat2dlin.h"
+#include "pzpoisson3d.h"
 #include "pzbndcond.h"
 
 //Matrizes de armazenamento e estruturais
@@ -59,6 +60,7 @@ void LerMalha(char *arquivo,TPZGeoMesh &mesh);
 
 //M�odo para a cria�o de um elemento
 void UmElemento(TPZGeoMesh &malha);
+void UmElemento3D(TPZGeoMesh &malha);
 
 //Inser�o de uma condi�o de contorno dada por uma fun�o
 void forcingfunction(TPZVec<REAL> &ponto, TPZVec<REAL> &force);
@@ -72,15 +74,15 @@ int main() {
   malha->SetName("Malha geometrica Curso Floripa");
    
   //Cria e insere um elemento na malha geom�rica criada acima
-  UmElemento(*malha);
+  UmElemento3D(*malha);
   
   // Os elementos da malha original podem ser refinados
   TPZVec<int> csub(0);
   TPZManVector<TPZGeoEl *> pv(4);  //vetor auxiliar que receber�os subelementos 
 //  int n1=1,level=0;   
   cout << "\nDividir ate nivel ? ";
-  int resp = 3;
-  cin >> resp;      
+  int resp = 1;
+//  cin >> resp;      
   
 //  int nelc = malha->ElementVec().NElements(); //nmero de elementos da malha
   int el;  //iterador
@@ -96,9 +98,9 @@ int main() {
   }
   
   //solicita ao usu�io uma ordem p de interpolacao padr� para a malha
-  int ord = 4;
+  int ord = 1;
   cout << "Entre ordem 1,2,3,4,5 : ";
-  cin >> ord;
+//  cin >> ord;
   
   //Define a ordem p de cria�o de todo elemento computacional como sendo ord
   TPZCompEl::gOrder = ord;
@@ -147,7 +149,7 @@ int main() {
    
   //Escolha do padr� de armazenamento. O par�etro de entrada �a malha computacional
   //TPZSkylineStructMatrix strmat(malhacomp);
-  TPZParSkylineStructMatrix strmat(malhacomp);       //skyline em paralelo (multthread)
+  TPZSkylineStructMatrix strmat(malhacomp);       //skyline em paralelo (multthread)
   //TPZParFrontStructMatrix<TPZFrontSym> strmat(malhacomp);
   
   //Define-se o padr� de armazenamento para a an�ise
@@ -155,19 +157,25 @@ int main() {
   
   //Cria�o e defini�o do solver 
   TPZStepSolver step;
-  step.SetDirect(ECholesky);   
-  
+//  step.SetDirect(ECholesky);   
   //Define-se o solver para a an�ise
   an.SetSolver(step);
-  /*
-  TPZMatrixSolver *precond = an.BuildPreconditioner(TPZAnalysis::EElement,false);
-  step.SetCG(100,*precond,1.e-10,0);
+  
+//  an.Assemble();
+  //TPZMatrixSolver *precond = an.BuildPreconditioner(TPZAnalysis::EBlockJacobi,false);
+  TPZStepSolver jac;
+  jac.SetJacobi(1,0.,0);
+  jac.ShareMatrix(step);
+  step.SetCG(10000,jac,1.e-10,0);
   an.SetSolver(step);
-  delete precond;
-  */
+//  delete precond;
+  
   //Processamento
   cout << "Number of equations " << malhacomp->NEquations() << endl;
   an.Run();
+
+  std::ofstream out("output.txt");
+  an.Solution().Print("Solution obtained",out);
 
   // Posprocessamento
   TPZVec<char *> scalnames(1);
@@ -199,6 +207,7 @@ void UmElemento(TPZGeoMesh &malha) {
   // criar os quatro n� geom�ricos
   int i,j;                              //iteradores
   TPZVec<REAL> coord(3,0.);             //vetor auxiliar para armazenar uma coordenada
+  malha.NodeVec().Resize(4);
   
   for(i=0; i<4; i++) {                  //loop sobre o nmero de n� da malha
     
@@ -255,9 +264,80 @@ void UmElemento(TPZGeoMesh &malha) {
   TPZGeoElBC(gel,4,-4,malha);
 }
 
+void UmElemento3D(TPZGeoMesh &malha) {
+  //Para efeito de teste ser�criado um elemento quadrilateral de
+  //comprimento 1, com as seguintes coordenadas (x,y,z)
+  // - canto inferior esquerdo: (0,0,0);
+  // - canto inferior direito : (0,1,0);
+  // - canto superior direito : (1,1,0);
+  // - canto superior esquerdo: (0,1,0);  
+  double coordstore[8][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.},
+	{0.,0.,1.},{1.,0.,1.},{1.,1.,1.},{0.,1.,1.}};
+
+  // criar os quatro n� geom�ricos
+  int i,j;                              //iteradores
+  TPZVec<REAL> coord(3,0.);             //vetor auxiliar para armazenar uma coordenada
+  malha.NodeVec().Resize(8);
+  
+  for(i=0; i<8; i++) {                  //loop sobre o nmero de n� da malha
+    
+    // inicializar as coordenadas do no em um vetor do tipo pz
+    for (j=0; j<3; j++) coord[j] = coordstore[i][j]; 
+    // identificar um espa� no vetor da malha geom�rica 
+    // onde podemos armazenar o objeto n�a criar
+//    int nodeindex = malha.NodeVec ().AllocateNewElement ();
+
+    // criar um n�geom�rico e inser�lo na posi�o 
+    // alocada no vetor de n� da malha geom�rica
+    malha.NodeVec ()[i].Initialize (i,coord,malha);
+  
+  }
+
+  // Cria�o de um elemento geom�rico
+  // inicializar os �dices dos n� do elemento
+  TPZVec<int> indices(8);
+  for(i=0; i<8; i++) indices[i] = i; //loop sobre o nmero de n� do elemento
+  //no caso s�h�quatro n� e eles foram criados na ordem correta para o
+  //elemento em quest�. A ordem dos n� deve seguir um padr� pr�estabelecido
+  
+  // O pr�rio construtor vai inserir o elemento na malha
+  // os par�etros de cria�o do elemento s� os seguintes:
+  // 1) Tipo geom�rico do elemento
+  // - EPoint            element 0D - type point        -  associated index 0
+  // - EOned             element 1D - type oned         -  associated index 1
+  // - ETriangle         element 2D - type triangle     -  associated index 2
+  // - EQuadrilateral    element 2D - type quad         -  associated index 3
+  // - ETetraedro        element 3D - type tetraedro    -  associated index 4
+  // - EPiramide         element 3D - type piramide     -  associated index 5
+  // - EPrisma           element 3D - type prisma       -  associated index 6
+  // - ECube             element 3D - type cube         -  associated index 7
+  // 2) Vetor de conectividades dos elementos (o nmero de n� deve ser 
+  //    compat�el com o nmero de n� do tipo do elemento
+  // 3) �dice do material que ser�associado ao elemento
+  // 4) Vari�el onde ser�retornado o �dice do elemento criado no vetor
+  //    de elementos da malha geom�rica
+  // TPZGeoEl *gel = new TPZGeoElQ2d(0,indices,1,malha);  //forma antiga.
+  int index;
+  TPZGeoEl *gel = malha.CreateGeoElement(ECube,indices,1,index);
+
+  //Gerar as estruturas de dados de conectividade e vizinhan�
+  malha.BuildConnectivity ();
+
+  // Identificar onde ser� inseridas condi�es de contorno.
+  // Uma condi�o de contorno �aplicada a um lado (parte do contorno) 
+  // de um elemento. Este objeto ir�inserir-se automaticamente na malha
+  // Os par�etros s� os seguintes:
+  // 1) elemento onde ser�aplicada a condi�o de contorno
+  // 2) lado do elemento onde ser�inserida a condi�o de contorno
+  // 3) identificador da condi�o de contorno
+  // 4) refer�cia para a malha geom�rica.
+  TPZGeoElBC(gel,21,-4,malha);
+}
+
 
 void forcingfunction(TPZVec<REAL> &p, TPZVec<REAL> &f) {
-  REAL x0=0.5,y0=0.2,r=0.005,eps=0.0001;
+//  REAL x0=0.5,y0=0.2,r=0.005,eps=0.0001;
+  REAL x0=0.5,y0=0.4,r=0.2,eps=0.1;
 
   REAL dist2 = (p[0]-x0)*(p[0]-x0)+(p[1]-y0)*(p[1]-y0);
   REAL A = exp(-dist2/eps);
@@ -331,7 +411,14 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   // na cria�o dos elementos geom�ricos.
   // No restante, o material define a equa�o diferencial a ser
   // resolvida...
-  TPZMat2dLin *meumat = new TPZMat2dLin(1);
+
+  int dim = cmesh.Reference()->ElementVec()[0]->Dimension();
+  TPZMat2dLin *meumat = new TPZMat2dLin(2);
+  TPZMatPoisson3d *poismat = new TPZMatPoisson3d(1,dim);
+  TPZVec<REAL> convdir(3,0.);
+  poismat->SetParameters(1.,0.,convdir);
+  poismat->SetInternalFlux(1.);
+  //poismat->SetForcingFunction(forcingfunction);
   
   //Cada material tem par�etros de inicializa�o pr�rios, assim
   //deve-se consultar a documenta�o para verificar como definir os
@@ -339,11 +426,15 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   //e uma fun�o de c�culo tamb� �fornecida
   TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
   meumat->SetMaterial (xk,xc,xf);
-  meumat->SetForcingFunction(forcingfunction);
+//  meumat->SetForcingFunction(forcingfunction);
   
   //Ap� a cria�o do material este dever ser inserido na estrutura
   //de dados da malha computacional
   cmesh.InsertMaterialObject(meumat);
+  cmesh.InsertMaterialObject(poismat);
+
+//  TPZMaterial *atual = meumat;
+  TPZMaterial *atual = poismat;
 
   // inserir as condi�es de contorno
   // Uma condi�o de contorno pode ser dada por duas matrizes
@@ -360,18 +451,18 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   // 1) Identificador da condi�o de contorno (lembre-se que uma BC �como um material)
   // 2) O Tipo da BC : Dirichlet, Neumann ou Mista 
   // 3) Os valores da BC
-  TPZMaterial *bnd = meumat->CreateBC (-4,0,val1,val2);
+  TPZMaterial *bnd = atual->CreateBC (-4,0,val1,val2);
   
   //Da mesma forma que para os materiais, ap� sua cria�o �necess�io
   //a sua inser�o na estrutura de dados da malha computacional 
   cmesh.InsertMaterialObject(bnd);
   
   //cria�o e inser�o de outras BC's
-  bnd = meumat->CreateBC (-3,0,val1,val2);
+  bnd = atual->CreateBC (-3,0,val1,val2);
   cmesh.InsertMaterialObject(bnd);
-  bnd = meumat->CreateBC (-2,0,val1,val2);
+  bnd = atual->CreateBC (-2,0,val1,val2);
   cmesh.InsertMaterialObject(bnd);
-  bnd = meumat->CreateBC (-1,0,val1,val2);
+  bnd = atual->CreateBC (-1,0,val1,val2);
   cmesh.InsertMaterialObject(bnd);
 }
 
