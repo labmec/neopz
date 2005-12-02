@@ -6,6 +6,7 @@
 #include "pzerror.h"
 #include "pzstack.h"
 #include <map>
+#include <set>
 using namespace std;
 
 void TPZRenumbering::NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &nodtoelgraph, TPZVec<int> &nodtoelgraphindex){
@@ -79,29 +80,31 @@ void TPZRenumbering::ConvertGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphinde
     		int firstel = nodtoelgraphindex[nod];
     		int lastel = nodtoelgraphindex[nod+1];
     		int firstnode = nodegraphindex[nod];
+        std::set<int> nodecon;
     		for(el=firstel; el<lastel; el++) {
       			int gel = nodtoelgraph[el];
       			int firstelnode = elgraphindex[gel];
       			int lastelnode = elgraphindex[gel+1];
-      			int elnode;
-      			for(elnode=firstelnode; elnode<lastelnode; elnode++) {
-				int gelnode = elgraph[elnode];
-				int gn = firstnode;
-				if(gelnode == nod) continue;
-				while(gn < nextfreeindex && nodegraph[gn] != gelnode) gn++;
-				if(gn == nextfreeindex) {
-	  				if(nextfreeindex == nodegraphsize) {
-	    					nodegraph.Resize(nodegraphsize+nodegraphincrement);
-	    					nodegraphsize += nodegraphincrement;
-	  				}
-	  				nodegraph[gn] = gelnode;
-	  				nextfreeindex++;
-				}
-      			}
-    		}
+            nodecon.insert(&elgraph[firstelnode],&elgraph[(lastelnode-1)]+1);
+//      			int elnode;
+//      			for(elnode=firstelnode; elnode<lastelnode; elnode++) {
+//				int gelnode = elgraph[elnode];
+//				int gn = firstnode;
+//				if(gelnode == nod) continue;
+//				while(gn < nextfreeindex && nodegraph[gn] != gelnode) gn++;
+//				if(gn == nextfreeindex) {
+//	  				if(nextfreeindex == nodegraphsize) {
+//	    					nodegraph.Resize(nodegraphsize+nodegraphincrement);
+//	    					nodegraphsize += nodegraphincrement;
+//        }
+			  }
+        nodecon.erase(nod);
+        while(nextfreeindex+nodecon.size() >= nodegraph.NElements()) nodegraph.Resize(nodegraph.NElements()+nodegraphincrement);
+        std::set<int>::iterator it;
+        for(it = nodecon.begin(); it!= nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
     		nodegraphindex[nod+1] = nextfreeindex;
   	}
-	//	Print(nodegraph,nodegraphindex,"Node to Node graph");
+		//Print(nodegraph,nodegraphindex,"Node to Node graph");
 }
 
 
