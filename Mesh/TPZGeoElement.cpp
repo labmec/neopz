@@ -226,35 +226,42 @@ template class TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>;
 template class TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>;
 template class TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>;
 
-
+template<>
 int
 TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>::ClassId() const {
   return TPZFGEOELEMENTPOINTID;
 }
+template<>
 int
 TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::ClassId() const {
   return TPZFGEOELEMENTLINEARID;
 }
+template<>
 int
 TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::ClassId() const {
   return TPZFGEOELEMENTQUADID;
 }
+template<>
 int
 TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::ClassId() const {
   return TPZFGEOELEMENTRIANGLEID;
 }
+template<>
 int
 TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::ClassId() const {
   return TPZFGEOELEMENTCUBEID;
 }
+template<>
 int
 TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::ClassId() const {
   return TPZFGEOELEMENTPRISMID;
 }
+template<>
 int
 TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::ClassId() const {
   return TPZFGEOELEMENTTETRAID;
 }
+template<>
 int
 TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::ClassId() const {
   return TPZFGEOELEMENTPYRAMID;
