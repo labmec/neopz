@@ -1,4 +1,4 @@
-//$Id: PreCond.cpp,v 1.1 2005-11-29 14:19:22 tiago Exp $
+//$Id: PreCond.cpp,v 1.2 2005-12-05 18:20:42 tiago Exp $
 
 /**
  * This project test some preconditioners for 3D elastic problems.
@@ -91,6 +91,7 @@ int main2(){
   
   std::cout << "\n\nF\n";
   F.Print("F", std::cout);
+  return 0;
 }
 #include "pzshapelinear.h"
 using namespace pzshape;
@@ -100,9 +101,9 @@ TPZMaterial::gBigNumber= 1.e6;
 //TPZCompEl::fOrthogonal = TPZCompEl::Chebyshev;
 //TPZShapeLinear::fOrthogonal = TPZCompEl::Chebyshev;
 
-  int nmaxeq = 5000;//numero maximo de equacoes do problema
+  int nmaxeq = 500000;//numero maximo de equacoes do problema
   int h, p;
-  for(p = 1; p < 2; p++){
+  for(p = 2; p < 3; p++){
     for(h =4; h < 5; h++){
       TPZCompEl::gOrder = p;
 
@@ -112,19 +113,25 @@ TPZMaterial::gBigNumber= 1.e6;
 
       TPZAnalysis an(cmesh);
 
+      cout << "Analysis created" << endl;
       //Escolha do metodo de resolucao do sistema linear
 
       //metodo direto: foi escolhido o metodo frontal
 //#define direct 
 #ifdef direct
+
       // Melhor caso para GEM e elementos finitos. Melhor metodo direto
-      TPZParFrontStructMatrix <TPZFrontNonSym> Matrix(cmesh);
+      /*TPZParFrontStructMatrix <TPZFrontNonSym>*/ TPZSkylineStructMatrix Matrix(cmesh);
 
       an.SetStructuralMatrix(Matrix);
       TPZStepSolver step;
       step.SetDirect( ECholesky );
+      
+      TPZCounter before (TPZFlopCounter::gCount);
       an.SetSolver(step);
 #endif
+
+
 
 
 #define iter
@@ -134,37 +141,40 @@ TPZMaterial::gBigNumber= 1.e6;
       TPZSkylineStructMatrix Matrix(cmesh); //Matriz skyline SimetricaTimesBetaPlusZ
       //TPZSBandStructMatrix Matrix(cmesh); //Matriz Banda Simetrica
 
+      cout << "before SetStructuralMatrix\n";
       an.SetStructuralMatrix(Matrix);  
+      cout << "before step constructor\n";
       TPZStepSolver step( Matrix.Create() );
       an.SetSolver(step);
   
+      cout << "matrix created" << endl;
       REAL tol = 1.e-10;
      
       //Com precondicionador
       //TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EBlockJacobi , false);
       // Sem pre-condicionador 
-      TPZCopySolve * precond = new TPZCopySolve( Matrix.Create() );  step.ShareMatrix( *precond );  
+      //TPZCopySolve * precond = new TPZCopySolve( Matrix.Create() );  step.ShareMatrix( *precond );  
       //Precondicionador jacobi
       //TPZStepSolver * precond = new TPZStepSolver( Matrix.Create() ); step.ShareMatrix( *precond ); precond->SetJacobi(1, 0.0, 0);
       //TPZStepSolver * precond = new TPZStepSolver( Matrix.Create() ); step.ShareMatrix( *precond ); precond->SetSOR(1, 0.0, 0);
       //TPZStepSolver * precond = new TPZStepSolver( Matrix.Create() ); step.ShareMatrix( *precond ); precond->SetSSOR(1,1., 0.0, 0);
+      TPZStepSolver jac;
+      jac.SetJacobi(1,0.,0);
+      jac.ShareMatrix(step);
 
       TPZCounter before (TPZFlopCounter::gCount);
       
       
-      //step.SetGMRES( 2000, 2000, *precond, tol, 0 ); 
+      //step.SetGMRES( 2000, 2000, jac, tol, 0 ); 
       //step.SetGMRES(  an.Mesh()->NEquations() + 2,  an.Mesh()->NEquations() + 1, *precond, tol, 0 ); 
       //step.CGown(&A, &x, &b, &max_iter, Real &tol)
       //step.SetCGown(1000, *precond, tol, 0);
-      TPZStepSolver jac;
-      jac.SetJacobi(1,0.,0);
-      jac.ShareMatrix(step);
-      step.SetCG(100000, *precond, tol, 0);
+      step.SetCG(100000, jac, tol, 0);
       //step.SetCG( an.Mesh()->NEquations() + 2, *precond, tol,0);
 
       an.SetSolver(step);
       
-      delete precond;
+      //delete precond;
 #endif
 
       //Isso nao serve pra nada. Eh so pra evitar de tentar resolver problemas muito grandes. 
@@ -254,15 +264,15 @@ TPZCompMesh * CreateSimpleMesh(int h){
       REAL E = 205000.;
       REAL poisson = 0.3;
       REAL G = 79000.;
-      TPZMatOrthotropic* mat = new TPZMatOrthotropic(1, axes, E, E, E, poisson, poisson, poisson, G, G, G);
-      TPZFMatrix bodyforces(3,1,0.0);
-      bodyforces(2,0) = 0.08;
-      mat->SetMaterial(bodyforces);
+//       TPZMatOrthotropic* mat = new TPZMatOrthotropic(1, axes, E, E, E, poisson, poisson, poisson, G, G, G);
+//       TPZFMatrix bodyforces(3,1,0.0);
+//       bodyforces(2,0) = 0.08;
+//       mat->SetMaterial(bodyforces);
 
-//       TPZMatPoisson3d *mat = new TPZMatPoisson3d(1, 3);
-//       TPZVec<REAL> dir(3, 0.);
-//       mat->SetParameters(1., 0., dir);  
-//       mat->SetInternalFlux(9.8);
+        TPZMatPoisson3d *mat = new TPZMatPoisson3d(1, 3);
+        TPZVec<REAL> dir(3, 0.);
+        mat->SetParameters(1., 0., dir);  
+        mat->SetInternalFlux(1.0);
 
   int nstate = mat->NStateVariables();
   TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
