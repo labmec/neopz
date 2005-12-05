@@ -135,6 +135,11 @@ inline TPZFlopCounter operator-() const
   return result;
 }
 
+inline TPZFlopCounter operator+() const
+{
+  return *this;
+}
+
 inline bool operator<(const TPZFlopCounter &sec) const
 {
   return (fVal < sec.fVal);
@@ -217,6 +222,15 @@ inline TPZFlopCounter operator/(double val1, const TPZFlopCounter &val2)
 }
 
 inline TPZFlopCounter operator+(double val1, const TPZFlopCounter &val2)
+{
+  TPZFlopCounter result;
+  result = TPZFlopCounter(val1)+val2;
+//  TPZFlopCounter::gCount.fCount[EProd]++;
+  return result;
+  
+}
+
+inline TPZFlopCounter operator+(const TPZFlopCounter &val2, double val1 )
 {
   TPZFlopCounter result;
   result = TPZFlopCounter(val1)+val2;
@@ -318,13 +332,14 @@ inline std::istream &operator>>(std::istream &out, const TPZFlopCounter &val)
 }
 
 #endif
-/*
-typedef std::TPZFlopCounter REAL;
-typedef std::TPZFlopCounter* REALPtr;
-*/
 
+#ifdef contar
+typedef std::TPZFlopCounter REAL;
+//typedef std::TPZFlopCounter* REALPtr;
+#else
 /// This is the type of floating point number PZ will use
 typedef double REAL;
 //typedef double *REALPtr;
+#endif
 
 #endif
