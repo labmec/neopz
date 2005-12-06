@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.13 2005-04-25 02:52:50 phil Exp $
+//$Id: pzbndcond.h,v 1.14 2005-12-06 13:36:33 tiago Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -37,6 +37,9 @@ protected:
   TPZFMatrix	fBCVal1;            // first value of boundary condition
   TPZFMatrix	fBCVal2;            // second value of boundary condition
   TPZMaterial	*fMaterial;	        // pointer to material which created bc
+  
+  /** Function to allow fBCVal1 to be variable */
+  void (*fVal1Function)(TPZVec<REAL> &loc, TPZFMatrix &result);
 
 public :
 
@@ -64,6 +67,11 @@ public :
   TPZBndCond(TPZBndCond &copy, TPZMaterial *ref) : TPZDiscontinuousGalerkin(copy), fType(copy.fType),
 						   fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref) {}
  
+
+  void SetVal1Function(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix &result)){
+    fVal1Function = fp;
+  }                                                   
+                                                   
   void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
 
   /**returns the integrable dimension of the material*/
@@ -100,6 +108,7 @@ public :
 
   void Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &sol,TPZFMatrix &dsol, REAL
 	weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+    
     if(fForcingFunction) {
       TPZManVector<REAL> result(fBCVal2.Rows());
       fForcingFunction(x,result);
@@ -108,6 +117,11 @@ public :
 	fBCVal2(i,0) = result[i];
       }
     }
+    
+    if( this->fVal1Function ) {
+      this->fVal1Function( x, fBCVal1 );
+    }//if    
+    
     //clone meshes required analysis
     int typetmp = fType;
     if (fType == 50){
@@ -118,6 +132,7 @@ public :
 	    }
 	    fType = 2;
     }
+    
     fMaterial->ContributeBC(x,sol,weight,axes,phi,ek,ef,*this);
     fType = typetmp;
   }
