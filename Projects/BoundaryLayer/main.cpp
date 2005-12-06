@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.5 2005-11-28 19:51:59 tiago Exp $
+//$Id: main.cpp,v 1.6 2005-12-06 13:40:36 tiago Exp $
 
 /**
  * Galerkin descontinuo: problema de camada limite
@@ -54,8 +54,36 @@
 #include <stdio.h>
 
 #include "gmres.h"
-
+#include "TPZTimer.h"
 using namespace std;
+
+int main22(){
+
+  TPZCompEl::gOrder = 0;
+
+  TPZCompMesh *cmesh;
+//  cmesh = DiscontinuousOnBoundaryLayer(h); 
+//  cmesh = CreateMeshContDisc(h); 
+  cmesh = CreateMesh(8);
+  TPZGeoMesh * gmesh = cmesh->Reference();
+  std::cout << "Malha criada - NElements = " << cmesh->NElements() << " - NEquations() = " << cmesh->NEquations() << "\n";
+  std::cout.flush();
+  
+  TPZTimer geo_time, comp_time;
+  comp_time.start();
+  delete cmesh;
+  comp_time.stop();
+  std::cout << "Comp:\n" << comp_time;
+  std::cout.flush();
+  
+  geo_time.start();
+  delete gmesh;  
+  geo_time.stop();
+  
+  std::cout << "\n\nGeo:\n" << geo_time << "\n";
+  std::cout.flush();
+  
+}
 
 int main(){
 
