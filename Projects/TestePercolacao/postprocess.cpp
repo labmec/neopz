@@ -1,4 +1,4 @@
-//$Id: postprocess.cpp,v 1.1 2005-11-28 13:49:47 tiago Exp $
+//$Id: postprocess.cpp,v 1.2 2005-12-06 13:37:24 tiago Exp $
 
 #include "meshes.h"
 
@@ -66,7 +66,7 @@ void ComputeNormalFlux(std::ofstream &file, TPZCompMesh &cmesh, const int matid/
     for(int j = 0; j < n; j++){
         TPZCompEl * neig = stack[j].Element();
         int side = stack[j].Side();
-        TPZIntPoints * intrule = neig->Reference()->CreateSideIntegrationRule( side, 10);
+        TPZIntPoints * intrule = neig->Reference()->CreateSideIntegrationRule( side, 20); 
         
         TPZManVector<REAL,3> normal(2);
         normal[0] = 0.;

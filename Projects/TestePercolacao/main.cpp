@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.2 2005-11-28 17:16:42 tiago Exp $
+//$Id: main.cpp,v 1.3 2005-12-06 13:37:24 tiago Exp $
 
 /**
  * Percolation of water from the fracture into the porous media.
@@ -72,6 +72,7 @@
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
 #include "pzshapepoint.h"
+#include "pzskylstrmatrix.h"
 
 #include <time.h>
 #include <stdio.h>
@@ -83,9 +84,51 @@ using namespace pzshape;
 using namespace pzrefine;
 using namespace std;
  
+int main22(){
+  
+  {
+  REAL L = 1.;
+  const int n = 100;
+  std::ofstream file("KRebocoVal1.txt");
+  TPZVec<REAL> x(2, 0.0);
+  TPZFMatrix result(1,1,0.);
+  file << "{ ";
+  for(int i = 0; i <= n; i++){
+    if (i == 80){
+      std::cout << "Para ai, tiago";
+    }
+    x[0] = i * (L / n);
+    KRebocoVal1(x, result);
+    file << "{ " << x[0] << ", " << result(0,0) << " }";    
+    if (i != n) file << ", ";
+  }
+  file << " }; ";
+  }
+  
+  {
+  REAL L = 1.;
+  const int n = 100;
+  std::ofstream file("KRebocoVal2.txt");
+  TPZVec<REAL> x(2, 0.0);
+  TPZVec<REAL> result(1,0.);
+  file << "{ ";
+  for(int i = 0; i <= n; i++){
+    if (i == 80){
+      std::cout << "Para ai, tiago";
+    }
+    x[0] = i * (L / n);
+    KRebocoVal2(x, result);
+    file << "{ " << x[0] << ", " << result[0] << " }";    
+    if (i != n) file << ", ";
+  }
+  file << " }; ";
+  }  
+  
+}
+
 int main(){   
 
-  TPZCompMesh * cmesh = CreateMesh_TriangularDomain_ComoPhilippeQuer(3, 30, 6);// CreateMeshSingularity(1, 2,  2);
+  TPZCompMesh * cmesh = CreateMesh_ComoPhilippeQuer_Adimensional_Sem_Simetria(1,1,2);//(5, 30, 4);//(5,25,2);
   std::cout << "Numero de elementos = " << cmesh->ElementVec().NElements() << std::endl;
   std::cout << "Numero de equacoes  = " << cmesh->NEquations() << std::endl;
   TPZGeoMesh *gmesh = cmesh->Reference();
@@ -107,13 +150,15 @@ int main(){
 
 #define FRONTAL
 #ifdef FRONTAL  
-  TPZParFrontStructMatrix <TPZFrontSym> /* TPZFStructMatrix */ full(cmesh);
+  TPZParFrontStructMatrix <TPZFrontNonSym> /*TPZFStructMatrix*/  /*TPZSkylineStructMatrix*/ full(cmesh);
   an.SetStructuralMatrix(full);
   TPZStepSolver step;
-  step.SetDirect(ECholesky/*ELU*/);
+   step.SetDirect(/*ECholesky*/ELU);
   an.SetSolver(step);
 #endif
+  std::cout << "\nCalling an.Run()\n";
   an.Run();
+  std::cout << "Problem solved\nStarting post-processing\n";
   
    std::ofstream FluxFile("resultado/flux.txt");
    ComputeNormalFlux(FluxFile, *cmesh, -1);
@@ -123,7 +168,7 @@ int main(){
 std::cout << "\nFEITO\n";
 std::cout.flush();
 /**** Aqui faz DX ****/
-  const int Resolution = 4;
+  const int Resolution = 0;
   {
   TPZVec<char *> scalnames(1);
   TPZVec<char *> vecnames(0);
