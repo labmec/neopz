@@ -15,6 +15,7 @@
 #include "pzelasmat.h"
 #include "pzmat2dlin.h"
 #include "pzpoisson3d.h"
+#include "pzelast3d.h"
 #include "pzbndcond.h"
 
 //Matrizes de armazenamento e estruturais
@@ -81,7 +82,7 @@ int main() {
   TPZManVector<TPZGeoEl *> pv(4);  //vetor auxiliar que receber�os subelementos 
 //  int n1=1,level=0;   
   cout << "\nDividir ate nivel ? ";
-  int resp = 1;
+  int resp = 0;
 //  cin >> resp;      
   
 //  int nelc = malha->ElementVec().NElements(); //nmero de elementos da malha
@@ -169,12 +170,14 @@ int main() {
   step.SetCG(10000,jac,1.e-10,0);
   an.SetSolver(step);
 //  delete precond;
+  std::ofstream out("output.txt");
+  an.Assemble();
+  an.Rhs().Print("Right hand side",out);
   
   //Processamento
   cout << "Number of equations " << malhacomp->NEquations() << endl;
   an.Run();
 
-  std::ofstream out("output.txt");
   an.Solution().Print("Solution obtained",out);
 
   // Posprocessamento
@@ -331,7 +334,12 @@ void UmElemento3D(TPZGeoMesh &malha) {
   // 2) lado do elemento onde ser�inserida a condi�o de contorno
   // 3) identificador da condi�o de contorno
   // 4) refer�cia para a malha geom�rica.
-  TPZGeoElBC(gel,21,-4,malha);
+  TPZGeoElBC(gel,0,-1,malha);
+  TPZGeoElBC(gel,1,-2,malha);
+  TPZGeoElBC(gel,2,-3,malha);
+  TPZGeoElBC(gel,24,-4,malha);
+  TPZGeoElBC(gel,22,-5,malha);
+
 }
 
 
@@ -414,7 +422,9 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
 
   int dim = cmesh.Reference()->ElementVec()[0]->Dimension();
   TPZMat2dLin *meumat = new TPZMat2dLin(2);
-  TPZMatPoisson3d *poismat = new TPZMatPoisson3d(1,dim);
+  TPZMatPoisson3d *poismat = new TPZMatPoisson3d(3,dim);
+  TPZVec<REAL> force(3,0.);
+  TPZElasticity3D *elasmat = new TPZElasticity3D(1,1000.,0.,force);
   TPZVec<REAL> convdir(3,0.);
   poismat->SetParameters(1.,0.,convdir);
   poismat->SetInternalFlux(1.);
@@ -432,9 +442,11 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   //de dados da malha computacional
   cmesh.InsertMaterialObject(meumat);
   cmesh.InsertMaterialObject(poismat);
+  cmesh.InsertMaterialObject(elasmat);
 
 //  TPZMaterial *atual = meumat;
-  TPZMaterial *atual = poismat;
+//  TPZMaterial *atual = poismat;
+  TPZMaterial *atual = elasmat;
 
   // inserir as condi�es de contorno
   // Uma condi�o de contorno pode ser dada por duas matrizes
@@ -445,24 +457,49 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   //  - 0 = Dirichlet
   //  - 1 = Neumann
   //  - 2 = Mista
-  TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+  int nstate = atual->NStateVariables();
+  TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
   
   //Os par�etros necess�ios �cria�o de uma condi�o de contorno s�:
   // 1) Identificador da condi�o de contorno (lembre-se que uma BC �como um material)
   // 2) O Tipo da BC : Dirichlet, Neumann ou Mista 
   // 3) Os valores da BC
-  TPZMaterial *bnd = atual->CreateBC (-4,0,val1,val2);
+
+  if(nstate == 3)
+  {
+    val2(1,0) = -1.;
+  }
+  TPZMaterial *bnd = atual->CreateBC (-4,1,val1,val2);
+  cmesh.InsertMaterialObject(bnd);
+  if(nstate == 3)
+  {
+    val2(1,0) = 1.;
+  }
+  bnd = atual->CreateBC (-5,1,val1,val2);
+  val2.Zero();
   
   //Da mesma forma que para os materiais, ap� sua cria�o �necess�io
   //a sua inser�o na estrutura de dados da malha computacional 
   cmesh.InsertMaterialObject(bnd);
   
   //cria�o e inser�o de outras BC's
-  bnd = atual->CreateBC (-3,0,val1,val2);
-  cmesh.InsertMaterialObject(bnd);
-  bnd = atual->CreateBC (-2,0,val1,val2);
-  cmesh.InsertMaterialObject(bnd);
   bnd = atual->CreateBC (-1,0,val1,val2);
+  cmesh.InsertMaterialObject(bnd);
+
+  if(nstate == 3)
+  {
+    val1(1,1) = 1000.;
+    val1(2,2) = 1000.;
+  }
+  bnd = atual->CreateBC (-3,2,val1,val2);
+  cmesh.InsertMaterialObject(bnd);
+  val1.Zero();
+  val2.Zero();
+  if(nstate == 3)
+  {
+    val1(2,2) = 1000.;
+  }
+  bnd = atual->CreateBC (-2,2,val1,val2);
   cmesh.InsertMaterialObject(bnd);
 }
 
