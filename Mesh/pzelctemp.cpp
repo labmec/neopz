@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.22 2005-11-23 17:13:40 phil Exp $
+// $Id: pzelctemp.cpp,v 1.23 2005-12-09 03:17:02 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -33,7 +33,7 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &ind
   }
 
   int sideorder = SideOrder(TSHAPE::NSides-1);  
-  sideorder = 2*sideorder + 2;
+  sideorder = 2*sideorder;
   if (sideorder > fIntRule.GetMaxOrder()) sideorder = fIntRule.GetMaxOrder();
   //  TPZManVector<int,3> order(3,2*sideorder+2);
   TPZManVector<int,3> order(3,sideorder);
