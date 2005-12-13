@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.1 2005-12-13 11:47:28 tiago Exp $
+//$Id: main.cpp,v 1.2 2005-12-13 19:09:08 tiago Exp $
 
 /**
  * Validation test of TPZElasticity3D material
@@ -85,7 +85,7 @@ using namespace std;
 int main(){
    
 //   TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
-  TPZCompMesh * cmesh = VigaEngastada(1, 5);
+  TPZCompMesh * cmesh = /*VigaEngastada*/BarraTracionada(1, 2);
   TPZGeoMesh *gmesh = cmesh->Reference();
  
   TPZAnalysis an(cmesh);
