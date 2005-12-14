@@ -1,4 +1,4 @@
-//$Id: pzelast3d.cpp,v 1.3 2005-12-09 03:16:27 phil Exp $
+//$Id: pzelast3d.cpp,v 1.4 2005-12-14 12:32:46 tiago Exp $
 
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -51,7 +51,7 @@ void TPZElasticity3D::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   TPZFNMatrix<9> Deriv(3,3);
   const REAL E  = this->fE;
   const REAL nu = this->fPoisson;
-  const REAL C1 = E / (4.+4.*nu);
+  const REAL C1 = E / (2.+ 2.*nu);
   const REAL C2 = E * nu / (-1. + nu + 2.*nu*nu);
   const REAL C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu);
   
