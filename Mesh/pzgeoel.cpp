@@ -243,6 +243,7 @@ void TPZGeoEl::Print(ostream & out) {
     }
   }
   out << "Reference element : " << fReference << endl;
+  if (this->Reference()) out << "Reference element index : " << this->Reference()->Index() << endl;
 }
 
 ostream &operator<<(ostream &out,TPZGeoEl & el) {
