@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.39 2005-11-28 19:49:11 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.40 2005-12-19 11:58:14 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -137,7 +137,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   /**
    * Divide the computational element
    */
-  void Divide(int index,TPZVec<int> &subs,int degree = 0);
+  void Divide(int index, TPZVec<int> &subindex, int interpolate = 0);
 
   /**
    * CalcStiff computes the element stiffness matrix and right hand side
@@ -229,10 +229,6 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   void CreateInterfaces();
 
       
-
-  void RemoveInterfaces();
-
-  void RemoveInterface(int side);
 
   int ExistsInterface(TPZGeoElSide geosd);
 
