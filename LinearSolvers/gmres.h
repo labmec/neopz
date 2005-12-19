@@ -115,12 +115,14 @@ GMRES(const Operator &A, Vector &x, const Vector &b,
 		ApplyPlaneRotation(s(i), s(i+1), cs(i), sn(i));
 
 		if ((resid = abs(s(i+1)) / normb) < tol) {
+//                  std::cout << "iter " << j << " - " << resid << std::endl;
 		  Update(x, i, H, s, v);
 		  tol = resid;
 		  max_iter = j;
 		  delete [] v;
 		  return 0;
 		}
+//                std::cout << "iter " << j << " - " << resid << std::endl;
 	 }
 	 Update(x, m - 1, H, s, v);
 	 A.MultAdd(x,b,r,-1.,1.);
@@ -128,6 +130,7 @@ GMRES(const Operator &A, Vector &x, const Vector &b,
 //	 r = M.solve(b - A * x);
 	 beta = Norm(r);
 	 if ((resid = beta / normb) < tol) {
+//                std::cout << "iter " << j << " - " << resid << std::endl;
 		tol = resid;
 		max_iter = j;
 		delete [] v;
@@ -136,6 +139,7 @@ GMRES(const Operator &A, Vector &x, const Vector &b,
   }
 
   tol = resid;
+//  std::cout << "iter " << j << " - " << resid << std::endl;
   delete [] v;
   return 1;
 }
