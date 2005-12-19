@@ -24,6 +24,7 @@
 #include <math.h>
 #include <memory.h>
 #include <sstream>
+#include <set>
 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
@@ -35,6 +36,10 @@
 #include "pzlog.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatrix"));
+#endif
+
+#ifdef DEBUG
+#define DEBUG2
 #endif
 
 
@@ -1012,3 +1017,230 @@ bool TPZMatrix::CompareValues(TPZMatrix &M, REAL tol){
    
   return true;
 }
+
+bool TPZMatrix::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
+  
+#ifdef DEBUG2  
+  if (this->Rows() != this->Cols()){
+    PZError << __PRETTY_FUNCTION__ << " - Jacobi method of computing eigenvalues requires a symmetric square matrix. this->Rows = " << this->Rows() << " - this->Cols() = " << this->Cols() << endl;
+    return false;  
+  }
+  
+  if (this->VerifySymmetry(1.e-8) == false){
+    PZError << __PRETTY_FUNCTION__ << " - Jacobi method of computing eigenvalues requires a symmetric square matrix. This matrix is not symmetric." << endl;
+    return false;  
+  }  
+#endif
+  
+  int iter = 0;
+  REAL res = 2. * tol;
+  const int size = this->Rows();
+  int i, j;
+  int p, q;
+  REAL maxval, theta, cost, sint, aux, aux2, Spp, Sqq, Spq;
+  while (iter < numiterations){
+    /** First of all find the max value off diagonal */
+    maxval = 0.;
+    for(i = 0; i < size; i++){
+      for(j = 0; j < i; j++) {
+        if( fabs(this->operator ( )(i,j) ) > maxval ) {
+          p = i;
+          q = j;
+          maxval = fabs( this->operator ( )(i,j) );
+        }//if
+      }//for j
+    }//for i
+    
+//    cout << "iter: " << iter << " - " << maxval << endl;    
+    
+    /** Check if max value off diagonal is lesser than required tolerance */
+    res = maxval;
+    if (res < tol) break;
+//     {
+//       tol = res;
+//       numiterations = iter;
+//       return true;
+//     }//if
+    
+    /** Compute angle of rotation */
+    theta = 0.5 * atan(2. * this->operator ( )(p,q) / (this->operator ( )(q,q) - this->operator ( )(p,p) ) );
+    cost = cos(theta);
+    sint = sin(theta);
+        
+    /** Apply rotation */
+    for(i = 0; i < size; i++){
+      if (i != p && i != q){
+      
+        aux = this->operator ( )(i,p) * cost - this->operator ( )(i,q) * sint;
+        aux2 = this->operator ( )(i,p) * sint + this->operator ( )(i,q) * cost;
+        
+        this->operator ( )(i,p) = aux;
+        this->operator ( )(p,i) = aux;        
+        
+        this->operator ( )(i,q) = aux2;
+        this->operator ( )(q,i) = aux2;        
+        
+      }//if
+    }//for i
+
+    Spp = this->operator ( )(p,p) * cost * cost -2. * this->operator ( )(p,q) * sint * cost + this->operator ( )(q,q) * sint * sint;
+    Sqq = this->operator ( )(p,p) * sint * sint +2. * this->operator ( )(p,q) * sint * cost + this->operator ( )(q,q) * cost * cost;
+    Spq = ( this->operator ( )(p,p) - this->operator ( )(q,q) ) * cost * sint + this->operator ( )(p,q)*( cost*cost - sint*sint );
+    
+    this->operator ( )(p,p) = Spp;
+    this->operator ( )(q,q) = Sqq;
+    this->operator ( )(p,q) = Spq;    
+    this->operator ( )(q,p) = Spq;    
+    
+    iter++;
+  }//while
+  
+  /** Sorting */
+  if (Sort){
+  
+    multiset< REAL > myset;
+    for(i = 0; i < size; i++) myset.insert( this->operator ( )(i,i) );
+
+#ifdef DEBUG2        
+    if (myset.size() != size) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;  
+#endif
+    
+    Sort->Resize(size);
+    multiset< REAL >::iterator w, e = myset.end();
+    for(i = size - 1, w = myset.begin(); w != e; w++, i--){
+      Sort->operator [ ](i) = *w;
+    }//for
+    
+  }//if (Sort)
+  
+  
+  if (res < tol){
+    tol = res;
+    numiterations = iter; 
+    return true;
+  }
+  
+  tol = res;
+  numiterations = iter;
+  return false;
+      
+}//method
+
+bool TPZMatrix::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<REAL> & Eigenvalues, TPZFMatrix & Eigenvectors) const{
+  
+#ifdef DEBUG2  
+  if (this->Rows() != this->Cols()){
+    PZError << __PRETTY_FUNCTION__ << " - Jacobi method of computing eigensystem requires a symmetric square matrix. this->Rows = " << this->Rows() << " - this->Cols() = " << this->Cols() << endl;
+    return false;  
+  }
+  
+  if (this->VerifySymmetry(1.e-8) == false){
+    PZError << __PRETTY_FUNCTION__ << " - Jacobi method of computing eigensystem requires a symmetric square matrix. This matrix is not symmetric." << endl;
+    return false;  
+  }  
+#endif  
+
+  /** Making a copy of this */
+  TPZFNMatrix<9> Matrix(3,3); //fast constructor in case of this is a stress or strain tensor.
+  const int size = this->Rows();
+  int i, j;
+  Matrix.Resize(size,size);
+  for(i = 0; i < size; i++) for(j = 0; j < size; j++) Matrix(i,j) = this->Get(i,j);
+    
+  /** Compute Eigenvalues */  
+  bool result = Matrix.SolveEigenvaluesJacobi(numiterations, tol, &Eigenvalues);
+  if (result == false) return false;
+  
+  /** Resizing Eigenvectors */
+  Eigenvectors.Resize(size, size);  
+  
+  /** Creating an auxiliar matrix to compute eigenvectors */
+  TPZFNMatrix<3> AuxVector(3,1);
+  
+  for(int eigen = 0; eigen < size; eigen++){
+    /** Restoring original matrix */
+    for(i = 0; i < size; i++) for(j = 0; j < size; j++) Matrix(i,j) = this->Get(i,j);
+    
+    /** Making (this - Eigenvalue Identity) */
+    for(i = 0; i < size; i++) Matrix(i,i) = Matrix(i,i) - Eigenvalues[eigen];
+    
+    /** Applying condition of Eigenvector[eigen] = 1 */
+      /** Zeroing row eigen */
+    for(i = 0; i < size; i++){
+      Matrix(eigen,i) = 0.;
+    }//for i
+    Matrix(eigen,eigen) = 1.;
+    
+    AuxVector.Resize(size, 1);
+    AuxVector.Zero();
+    AuxVector(eigen, 0) = 1.;
+    
+//     cout << "\nVetor " << eigen << endl;
+// {
+//     stringstream mess;
+//     mess << "Matrix " << eigen;
+//     Matrix.Print(mess.str().c_str(), cout, EMathematicaInput);
+// }
+// {
+//     stringstream mess;
+//     mess << "F " << eigen;
+//     AuxVector.Print(mess.str().c_str(), cout, EMathematicaInput);
+// }
+
+    Matrix.SetIsDecomposed(ENoDecompose);
+    Matrix.SolveDirect(AuxVector, ELU);
+    
+// {
+//     stringstream mess;
+//     mess << "X " << eigen;
+//     AuxVector.Print(mess.str().c_str(), cout, EMathematicaInput);
+// }    
+    
+    /** Normalizing Eigenvec */
+    REAL norm = 0.;
+    for(i = 0; i < size; i++) norm += AuxVector(i,0) * AuxVector(i,0);
+    norm = sqrt(norm);
+    for(i = 0; i < size; i++) AuxVector(i,0) = AuxVector(i,0)/norm;
+    
+#ifdef DEBUG2
+     norm = 0.;
+     for(i = 0; i < size; i++) norm += AuxVector(i,0) * AuxVector(i,0);
+     if (fabs(norm - 1.) > 1.e-10){
+       PZError << __PRETTY_FUNCTION__ << endl;
+     }
+#endif
+
+  /** Copy values from AuxVector to Eigenvectors */
+    for(i = 0; i < size; i++) Eigenvectors(eigen,i) = AuxVector(i,0);
+    
+  }//for eigen
+  
+  return true;
+
+}//method
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

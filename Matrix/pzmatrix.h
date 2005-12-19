@@ -457,6 +457,25 @@ public:
 		       const TPZFMatrix & F, TPZFMatrix & result,
 		       TPZFMatrix * residual, REAL & tol,
 		       const int FromCurrent = 0) const;
+  
+  /** Transforms this matrix in a diagonal matrix, where the diagonal values are its eigenvalues.
+   * This method is efficient only for small matrices.
+   * @param numinterations The number of interations for the process.
+   * @param tol The tolerance value.
+   * @param Sort diagonal values from big to small
+   * @param return true if tolerance is achieved or false otherwise.
+   */                                         
+   virtual bool SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort = 0);
+
+  /** Compute Eigenvalues and Eigenvectors of this matrix.
+   * This method is efficient only for small matrices.
+   * @param numinterations The number of interations for the process.
+   * @param tol The tolerance value.
+   * @param Eigenvalues ordered from big to small
+   * @param Eigenvectors: each row represent one eigenvector. It is in same order of eigenvalues.
+   * @param return true if tolerance is achieved or false otherwise.
+   */                                               
+   virtual bool SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<REAL> & Eigenvalues, TPZFMatrix & Eigenvectors) const;
 
   /**
    * Solves the linear system using Direct methods\n
