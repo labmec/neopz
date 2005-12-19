@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.19 2005-04-25 02:31:46 phil Exp $
+// $Id: pzcompel.h,v 1.20 2005-12-19 11:56:57 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -113,6 +113,12 @@ public:
    * Default interpolation order
    */
   static int gOrder;
+
+  /** Remove interfaces connected to this element */  
+  void RemoveInterfaces();
+
+  /** Remove interface that is neighbour from side side */
+  void RemoveInterface(int side);
 
   /** 
    * Returns the volume of the geometric element associated.

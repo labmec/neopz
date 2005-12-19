@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.20 2005-09-01 19:03:23 tiago Exp $
+//$Id: pzcompel.cpp,v 1.21 2005-12-19 11:56:57 tiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -978,9 +978,6 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
     //isto acertou as vizinhanas da interface geom�rica com o atual
     int index;
 
-
-
-
     TPZCompEl *list0 = list[0].Element();
     int list0side = list[0].Side();
     TPZCompElDisc * thisdisc  = dynamic_cast<TPZCompElDisc*>(this);
@@ -1047,6 +1044,77 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
   }
   LOGPZ_INFO(logger, "Exiting CreateInterface");
   return newcreatedinterface;
+}
+
+
+void TPZCompEl::RemoveInterfaces(){
+
+  int nsides = Reference()->NSides();
+  if (!this->Material()){
+    std::stringstream mess;
+    mess << __PRETTY_FUNCTION__ << " - this->Material() == NULL, I can't RemoveInterfaces()";
+    PZError << mess.str() << std::endl;
+    LOGPZ_ERROR(logger, mess.str());
+    return;  
+  }
+  int InterfaceDimension = this->Material()->Dimension() - 1;
+  int is;
+  TPZStack<TPZCompElSide> list,equal;
+  for(is=0;is<nsides;is++){
+    TPZCompElSide thisside(this,is);
+    if(thisside.Reference().Dimension() != InterfaceDimension) continue;
+    // procurar na lista de elementos iguais
+    list.Resize(0);// o lado atual �uma face
+    //thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
+    RemoveInterface(is);// chame remove interface do elemento atual (para o side atual)
+    thisside.HigherLevelElementList(list,0,0);// procurar na lista de elementos menores (todos)
+    int size = list.NElements(),i;            // 'isto pode incluir elementos interfaces'
+    //tirando os elementos de interface da lista
+    for(i=0;i<size;i++){
+      if(list[i].Element()->Type() == EInterface) list[i] = TPZCompElSide();//tirando interface
+    }
+    for(i=0;i<size;i++){// percorre os elementos menores
+      if(!list[i].Element()) continue;
+      TPZGeoElSide geolist = list[i].Reference();//TESTE
+      if(geolist.Dimension() != InterfaceDimension) continue;
+      equal.Resize(0);// para cada elemento menor e' preciso verificar a dimensao,
+      list[i].EqualLevelElementList(equal,0,0);//montar a lista de elementos iguais (todos)
+      equal.Push(list[i]);//n� �incorporado no m�odo anterior
+      int neq = equal.NElements(),k=-1;
+      while(++k < neq) if(equal[k].Element()->Type() != EInterface) break;//procurando elemento descont�uo cujo
+      if(!neq || k == neq){                               //lado faz parte da parti� do lado side do this
+	PZError << __PRETTY_FUNCTION__ << " - inconsistency of data";
+	exit(-1);//elemento descont�uo n� achado: ERRO
+      }// chame removeinterface do elemento menor
+
+      equal[k].Element()->RemoveInterface(equal[k].Side());
+    }
+  }
+
+}
+
+void TPZCompEl::RemoveInterface(int side) {
+  
+  TPZStack<TPZCompElSide> list;
+  list.Resize(0);
+  TPZCompElSide thisside(this,side);
+  thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
+  int size = list.NElements(),i=-1;
+  while(++i < size) if(list[i].Element()->Type() == EInterface) break;// procura aquele que e derivado de TPZInterfaceEl
+  if(!size || i == size){
+    return;// nada a ser feito
+  }
+  // aqui existe a interface
+  TPZCompEl *cel = list[i].Element();
+  TPZGeoEl *gel = cel->Reference();
+  gel->RemoveConnectivities();// deleta o elemento das vizinhancas
+  TPZGeoMesh *gmesh = Mesh()->Reference();
+  int index = gmesh->ElementIndex(gel);// identifica o index do elemento
+  gmesh->ElementVec()[index] = NULL;
+  delete cel;
+  delete gel;// deleta o elemento
+  gmesh->ElementVec().SetFree(index);// Chame SetFree do vetor de elementos da malha geometrica para o index
+
 }
 
 
