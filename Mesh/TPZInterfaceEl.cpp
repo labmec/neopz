@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.46 2005-09-01 19:04:46 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.47 2005-12-19 12:00:27 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -15,6 +15,41 @@
 
 int TPZInterfaceElement::gCalcStiff = 1;
 using namespace std;
+
+void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right){
+
+  TPZCompEl * cel = left.Element();
+  if(cel){  
+    
+    TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);    
+    if (!intel && !disc){
+      PZError << __PRETTY_FUNCTION__ << " - Left element is not a TPZInterpolatedElement or TPZCompElDisc.\n";        
+    }  
+  
+    this->fLeftElSide.SetElement( left.Element() );
+    this->fLeftElSide.SetSide( left.Side() );
+  }
+  else{  
+    PZError << __PRETTY_FUNCTION__ << " - Left element is null.\n";    
+  }
+  
+  cel = right.Element();
+  if (cel){
+    
+    TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);    
+    if (!intel && !disc){
+      PZError << __PRETTY_FUNCTION__ << " - Right element is not a TPZInterpolatedElement or TPZCompElDisc.\n";        
+    }  
+  
+    this->fRightElSide.SetElement( right.Element() ); 
+    this->fRightElSide.SetSide( right.Side() );
+  }
+  else{
+    PZError << __PRETTY_FUNCTION__ << " - Right element is null.\n";    
+  }  
+}//method
 
 void TPZInterfaceElement::IncrementElConnected(){
    const int ncon = this->NConnects();
@@ -36,10 +71,10 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 
   //poderia eliminar esta vari�el e carrega-la do elemento de volume associado
   fMaterial = mesh.FindMaterial(materialid);
-  fLeftElSide.SetElement(left);
-  fRightElSide.SetElement(right);
-  fLeftElSide.SetSide(-1);
-  fRightElSide.SetSide(-1);
+  
+  TPZCompElSide leftside(left, -1);
+  TPZCompElSide rightside(right, -1);
+  this->SetLeftRightElements(leftside, rightside);
 
   for (int i = 0; i < fNormal.NElements(); i++)
     fNormal[i] = normal[i];
@@ -60,10 +95,10 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 
   //poderia eliminar esta vari�el e carrega-la do elemento de volume associado
   fMaterial = mesh.FindMaterial(materialid);
-  fLeftElSide.SetElement(left);
-  fRightElSide.SetElement(right);
-  fLeftElSide.SetSide(-1);
-  fRightElSide.SetSide(-1);
+  
+  TPZCompElSide leftside(left, -1);
+  TPZCompElSide rightside(right, -1);
+  this->SetLeftRightElements(leftside, rightside);
 
   this->NormalToFace(fNormal);
 
@@ -80,10 +115,9 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 
   //poderia eliminar esta vari�el e carrega-la do elemento de volume associado
   fMaterial = mesh.FindMaterial(materialid);
-  fLeftElSide.SetElement(left);
-  fRightElSide.SetElement(right);
-  fLeftElSide.SetSide(leftside);
-  fRightElSide.SetSide(rightside);
+  TPZCompElSide leftCompElside(left, leftside);
+  TPZCompElSide rightCompElside(right, rightside);
+  this->SetLeftRightElements(leftCompElside, rightCompElside);
 
   this->NormalToFace(fNormal);
 

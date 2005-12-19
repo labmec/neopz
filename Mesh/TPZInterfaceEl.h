@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.29 2005-04-25 02:31:49 phil Exp $
+//$Id: TPZInterfaceEl.h,v 1.30 2005-12-19 12:00:27 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -109,7 +109,9 @@ class TPZInterfaceElement : public TPZCompEl {
 //   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
 //   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index);
 
-  ~TPZInterfaceElement(){};
+  ~TPZInterfaceElement(){ if(Reference())Reference()->ResetReference();};
+  
+  void SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right);
 
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
     return new TPZInterfaceElement(mesh, *this); 
@@ -133,22 +135,10 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   TPZCompEl *RightElement() {return fRightElSide.Element();}
 
-  void SetRightElement( TPZCompEl* el, int side = -1 ){
-     //if(side == -1) is a discontinuous element
-     fRightElSide.SetElement(el);
-     fRightElSide.SetSide(side);     
-  }
-
   /**
    * it returns the left element from the element interface 
    */
   TPZCompEl *LeftElement() {return fLeftElSide.Element();}
-
-  void SetLeftElement( TPZCompEl* el, int side = -1 ){
-     //if(side == -1) is a discontinuous element
-     fLeftElSide.SetElement(el);
-     fLeftElSide.SetSide(side);
-  }
 
   /**
    * it returns the normal one to the face from the element
