@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.37 2005-09-01 19:04:05 tiago Exp $
+// $Id: pzintel.cpp,v 1.38 2005-12-19 12:05:33 tiago Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -21,6 +21,7 @@
 #include "pzdebug.h"
 
 #include "pzcheckmesh.h"
+#include "TPZCompElDisc.h"
 
 #include "pzlog.h"
 
@@ -1446,6 +1447,152 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
   LOGPZ_INFO(logger,"Exiting InterpolateSolution.");
 }
 
+void TPZInterpolatedElement::InterpolateSolution(TPZCompElDisc &coarsel){
+  LOGPZ_INFO(logger,"Entering InterpolateSolution.");
+  // accumulates the transfer coefficients between the current element and the
+  // coarse element into the transfer matrix, using the transformation t
+  TPZTransform t(Dimension());
+  TPZGeoEl *ref = Reference();
+
+  //Cedric 16/03/99
+  //  Reference()->BuildTransform(NConnects(),coarsel.Reference(),t);
+  t = Reference()->BuildTransform2(ref->NSides()-1,coarsel.Reference(),t);
+
+  int locnod = NConnects();
+  int cornod = coarsel.NConnects();
+  int locmatsize = NShapeF();
+  int cormatsize = coarsel.NShapeF();
+  int nvar = fMaterial->NStateVariables();
+  int dimension = Dimension();
+  if (!dimension) {
+    LOGPZ_WARN(logger,"Exiting InterpolateSolution - trying to interpolate a node solution ");
+    return ;
+  }
+
+  TPZFMatrix loclocmat(locmatsize,locmatsize,0.);
+  TPZFMatrix projectmat(locmatsize,nvar,0.);
+
+  TPZVec<int> prevorder(dimension);
+  TPZIntPoints &intrule = GetIntegrationRule();
+  intrule.GetOrder(prevorder);
+
+  TPZVec<int> interpolation(dimension);
+  GetInterpolationOrder(interpolation);
+  {
+    stringstream sout;
+    sout << "locnod = " << locnod << endl;
+    sout << "coarnod = " << cornod << endl;
+    sout << "local n shape f " << locmatsize << endl;
+    sout << "cormatsize " << cormatsize << endl;
+    sout << "nvar" << nvar << endl;
+    sout << "dimension " << dimension << endl;
+    int ccc;
+    sout << "interpolation={";
+    for (ccc = 0; ccc < interpolation.NElements(); ccc++)
+      sout << "  " << interpolation[ccc];
+    sout << "  }" << endl;
+    LOGPZ_DEBUG(logger,sout.str());
+  } 
+
+  // compute the interpolation order of the shapefunctions squared
+  int nel = interpolation.NElements();
+  int dim,maxorder = interpolation[0];
+  for(dim=1;dim<nel;dim++) maxorder = (interpolation[dim] > maxorder) ? interpolation[dim] : maxorder;
+
+  // Cesar 2003-11-25 -->> To avoid integration warnings...
+  maxorder = (2*maxorder > intrule.GetMaxOrder() ) ? intrule.GetMaxOrder() : 2*maxorder;
+  TPZVec<int> order(dimension,maxorder);
+/*  for(dim=0; dim<dimension; dim++) {
+    order[dim] = maxorder*2;
+  }
+*/
+  intrule.SetOrder(order);
+
+  TPZFMatrix locphi(locmatsize,1);
+  TPZFMatrix locdphi(dimension,locmatsize);	// derivative of the shape function
+  // in the master domain
+
+  TPZFMatrix corphi(cormatsize,1);
+  TPZFMatrix cordphi(dimension,cormatsize);	// derivative of the shape function
+  // in the master domain
+
+  TPZVec<REAL> int_point(dimension),coarse_int_point(dimension);
+  TPZFMatrix jacobian(dimension,dimension),jacinv(dimension,dimension);
+  TPZFMatrix axes(3,3,0.);
+  REAL zero = 0.;
+  TPZVec<REAL> x(3,zero);
+  TPZVec<REAL> u(nvar);
+
+  int numintpoints = intrule.NPoints();
+  REAL weight;
+  int lin,ljn,cjn;
+  TPZConnect *df;
+  TPZBlock &coarseblock = coarsel.Mesh()->Block();
+
+  for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
+    intrule.Point(int_ind,int_point,weight);
+    REAL jac_det = 1.;
+    Reference()->Jacobian( int_point, jacobian, axes , jac_det, jacinv);
+    //Reference()->X(int_point, x); // Porque isso aqui ??
+    Shape(int_point,locphi,locdphi);
+    weight *= jac_det;
+    t.Apply(int_point,coarse_int_point);
+    coarsel.Shape(coarse_int_point,corphi,cordphi);
+    u.Fill(0.);
+    int iv = 0;
+    for(lin=0; lin<cornod; lin++) {
+      df = &coarsel.Connect(lin);
+      int dfseq = df->SequenceNumber();
+
+      int dfvar = coarseblock.Size(dfseq);
+      /** Discontinuos elements have only one connect */
+      int nconshapef = coarsel.NShapeF();
+      dfvar = dfvar < nconshapef*nvar ? dfvar : nconshapef;
+      for(ljn=0; ljn<dfvar; ljn++) {
+        u[iv%nvar] += corphi(iv/nvar,0)*coarseblock(dfseq,0,ljn,0);
+        iv++;
+      }
+      if(dfvar < nconshapef*nvar) iv += nconshapef*nvar- dfvar;
+    }
+    for(lin=0; lin<locmatsize; lin++) {
+      for(ljn=0; ljn<locmatsize; ljn++) {
+        loclocmat(lin,ljn) += weight*locphi(lin,0)*locphi(ljn,0);
+      }
+      for(cjn=0; cjn<nvar; cjn++) {
+        projectmat(lin,cjn) += weight*locphi(lin,0)*u[cjn];
+      }
+    }
+    jacobian.Zero();
+  }
+
+//   {
+//     stringstream sout;
+//     int matiter;
+//     for (matiter = 0; matiter < loclocmat.Cols();matiter++)
+//       sout << loclocmat(25,matiter) << "\t";
+//     sout << endl;
+//     projectmat.Print("projecmat",sout);
+//     loclocmat.Print("loclocmat",sout);
+//     LOGPZ_DEBUG(logger,sout.str());
+//   }
+
+  loclocmat.SolveDirect(projectmat,ELU);
+  // identify the non-zero blocks for each row
+  TPZBlock &fineblock = Mesh()->Block();
+  int iv=0,in;
+  for(in=0; in<locnod; in++) {
+    df = &Connect(in);
+    int dfseq = df->SequenceNumber();
+    int dfvar = fineblock.Size(dfseq);
+    for(ljn=0; ljn<dfvar; ljn++) {
+      fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
+      iv++;
+    }
+  }
+  intrule.SetOrder(prevorder);
+  LOGPZ_INFO(logger,"Exiting InterpolateSolution.");
+}
+
 /**calculate the element stiffness matrix*/
 void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) {
   LOGPZ_INFO(logger,"Entering CalcStiff.");
@@ -1683,6 +1830,10 @@ void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix 
 
 /**Implement the refinement of an interpolated element*/
 void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolatesolution) {
+
+  //necessary to allow continuous and discontinuous elements in same simulation
+  this->RemoveInterfaces();
+
   LOGPZ_INFO(logger,"Entering Divide.");
   if (fMesh->ElementVec()[index] != this) {
     LOGPZ_ERROR(logger,"Exiting Divide: index error");

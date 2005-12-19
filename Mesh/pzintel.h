@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.17 2005-04-25 02:31:49 phil Exp $
+//$Id: pzintel.h,v 1.18 2005-12-19 12:05:33 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -8,6 +8,7 @@ struct TPZElementMatrix;
 
 class TPZIntPoints;
 class TPZBlockDiagonal;
+class TPZCompElDisc;
 
 /**
  * @brief Class TPZInterpolatedElement implemments computational element based on an interpolation space
@@ -424,6 +425,8 @@ public:
   /**interpolates the solution into the degrees of freedom nodes from the degrees
      of freedom nodes from the coarse element*/
   virtual void InterpolateSolution(TPZInterpolatedElement &coarse);
+  
+  virtual void InterpolateSolution(TPZCompElDisc &coarsel);
 
 
   /**
