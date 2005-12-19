@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzelast3d.h,v 1.2 2005-11-28 13:42:06 tiago Exp $
+//$Id: pzelast3d.h,v 1.3 2005-12-19 11:24:06 tiago Exp $
 
 #ifndef PZELAST3D
 #define PZELAST3D
@@ -19,7 +19,9 @@ class TPZElasticity3D : public TPZMaterial {
 
 public :
 
-enum SOLUTIONVARS{ENone = -1, EDisplacement = 0, EDisplacementX, EDisplacementY, EDisplacementZ, EPrincipalStress, EPrincipalStrain,                           EVonMisesStress, EStress, EStrain};
+enum SOLUTIONVARS{ENone = -1, EDisplacement = 0, EDisplacementX, EDisplacementY, EDisplacementZ,
+                              EPrincipalStress, EPrincipalStrain, EPrincipalDirection1, EPrincipalDirection2, EPrincipalDirection3, 
+                              EVonMisesStress, EStress, EStrain};
 
 /** Class constructor.
  * @param nummat - material ID.
@@ -48,7 +50,15 @@ virtual void Print(std::ostream & out);
 /** Direction to post process stress and strain.
  *  Result of post processing is (Stress.Direction) or (Strain.Direction)
  */
-void SetPostProcessingDirection(TPZVec<REAL> &Direction);
+void SetPostProcessingDirection(TPZVec<REAL> &Direction){
+  if (Direction.NElements() != 3){
+    PZError << __PRETTY_FUNCTION__ << " - ERROR!\n";
+  }
+  this->fPostProcessDirection.Resize(3);
+  for(int i = 0; i < 3; i++) this->fPostProcessDirection[i] = Direction[i];
+}
+
+void SetYieldingStress(REAL fy){ this->fFy = fy; }
 
 /** Material name.
  */
@@ -121,10 +131,18 @@ TPZManVector<REAL,3> fForce;
  */
 TPZManVector<REAL,3> fPostProcessDirection;
 
+/** Yeilding stress
+ */
+REAL fFy;
+
 void ComputeStressVector(TPZFMatrix &Stress, TPZFMatrix &DSol);
-void ComputeStrainVector(TPZFMatrix &Stress, TPZFMatrix &DSol);
-void ComputeStrainTensor(TPZFMatrix &Stress, TPZFMatrix &DSol);
+void ComputeStrainVector(TPZFMatrix &Strain, TPZFMatrix &DSol);
+void ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &DSol);
+void ComputeStrainTensor(TPZFMatrix &Strain, TPZFMatrix &DSol);
 void ApplyDirection(TPZFMatrix &StrVec, TPZVec<REAL> &Out);
+void PrincipalDirection(TPZFMatrix &DSol, TPZVec< REAL > &Solout, int direction);
+
+static REAL gTolerance;
 
 };
 

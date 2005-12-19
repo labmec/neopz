@@ -1,4 +1,4 @@
-//$Id: pzelast3d.cpp,v 1.4 2005-12-14 12:32:46 tiago Exp $
+//$Id: pzelast3d.cpp,v 1.5 2005-12-19 11:24:06 tiago Exp $
 
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -9,6 +9,8 @@
 #include "pzmanvector.h"
 #include <math.h>
 #include <fstream>
+
+REAL TPZElasticity3D::gTolerance = 1.e-11;
 
 TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force) : TPZMaterial(nummat){
   this->fE = E;
@@ -23,6 +25,7 @@ TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> 
   this->fPostProcessDirection.Resize(3);
   this->fPostProcessDirection.Fill(0.);
   this->fPostProcessDirection[0] = 1.;
+  this->SetYieldingStress(1.);
 }//method
 
 TPZElasticity3D::~TPZElasticity3D(){}
@@ -178,15 +181,18 @@ int TPZElasticity3D::VariableIndex(char *name){
 }
 
 int TPZElasticity3D::NSolutionVariables(int var){
-  if(var == TPZElasticity3D::EDisplacement)    return 3;
-  if(var == TPZElasticity3D::EDisplacementX)   return 1;
-  if(var == TPZElasticity3D::EDisplacementY)   return 1;
-  if(var == TPZElasticity3D::EDisplacementZ)   return 1;
-  if(var == TPZElasticity3D::EPrincipalStress) return 3;
-  if(var == TPZElasticity3D::EPrincipalStrain) return 3;
-  if(var == TPZElasticity3D::EVonMisesStress)  return 1;  
-  if(var == TPZElasticity3D::EStress)          return 3;  
-  if(var == TPZElasticity3D::EStrain)          return 3;  
+  if(var == TPZElasticity3D::EDisplacement)        return 3;
+  if(var == TPZElasticity3D::EDisplacementX)       return 1;
+  if(var == TPZElasticity3D::EDisplacementY)       return 1;
+  if(var == TPZElasticity3D::EDisplacementZ)       return 1;
+  if(var == TPZElasticity3D::EPrincipalStress)     return 3;
+  if(var == TPZElasticity3D::EPrincipalStrain)     return 3;
+  if(var == TPZElasticity3D::EPrincipalDirection1) return 3;
+  if(var == TPZElasticity3D::EPrincipalDirection2) return 3;
+  if(var == TPZElasticity3D::EPrincipalDirection3) return 3;
+  if(var == TPZElasticity3D::EVonMisesStress)      return 1;  
+  if(var == TPZElasticity3D::EStress)              return 3;  
+  if(var == TPZElasticity3D::EStrain)              return 3;  
   PZError << "TPZElasticity3D::NSolutionVariables Error\n";
   return -1;
 }
@@ -220,17 +226,62 @@ void TPZElasticity3D::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
   }//TPZElasticity3D::EDisplacementZ  
   
   if(var == TPZElasticity3D::EPrincipalStress){
-   
+    TPZFNMatrix<9> StressTensor(3,3);
+    this->ComputeStressTensor(StressTensor, DSol);
+    int numiterations = 1000;
+    REAL tol = TPZElasticity3D::gTolerance;
+    bool result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &Solout);
+#ifdef DEBUG        
+    if (result == false){
+      PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
+    }
+#endif
   }//TPZElasticity3D::EPrincipalStress
 
   
   if(var == TPZElasticity3D::EPrincipalStrain){
-  
+    TPZFNMatrix<9> StrainTensor(3,3);
+    this->ComputeStrainTensor(StrainTensor, DSol);
+    int numiterations = 1000;
+    REAL tol = TPZElasticity3D::gTolerance;
+    bool result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &Solout);
+#ifdef DEBUG    
+    if (result == false){
+      PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
+    }
+#endif
   }//TPZElasticity3D::EPrincipalStrain
 
+  if(var == TPZElasticity3D::EPrincipalDirection1){
+    this->PrincipalDirection(DSol, Solout, 0);    
+  }//TPZElasticity3D::EPrincipalDirection1
+  
+  if(var == TPZElasticity3D::EPrincipalDirection2){
+    this->PrincipalDirection(DSol, Solout, 1);    
+  }//TPZElasticity3D::EPrincipalDirection2
+  
+  if(var == TPZElasticity3D::EPrincipalDirection3){
+    this->PrincipalDirection(DSol, Solout, 2);    
+  }//TPZElasticity3D::EPrincipalDirection3    
   
   if(var == TPZElasticity3D::EVonMisesStress){
+    TPZManVector<REAL,3> PrincipalStress(3);
+    TPZFNMatrix<9> StressTensor(3,3);
+    this->ComputeStressTensor(StressTensor, DSol);
+    int numiterations = 1000;
+    REAL tol = TPZElasticity3D::gTolerance;
+    bool result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStress);
+#ifdef DEBUG        
+    if (result == false){
+      PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
+    }
+#endif    
     
+    Solout.Resize(1);
+    Solout[0] = ( PrincipalStress[0] - PrincipalStress[1] ) * ( PrincipalStress[0] - PrincipalStress[1] ) 
+              + ( PrincipalStress[1] - PrincipalStress[2] ) * ( PrincipalStress[1] - PrincipalStress[2] )
+              + ( PrincipalStress[2] - PrincipalStress[0] ) * ( PrincipalStress[2] - PrincipalStress[0] );
+    Solout[0] = Solout[0] / (2. * this->fFy * this->fFy);    
   }//TPZElasticity3D::EVonMisesStress
   
   if(var == TPZElasticity3D::EStress){
@@ -252,7 +303,28 @@ void TPZElasticity3D::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
 void TPZElasticity3D::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx, 
                     TPZFMatrix &axes, TPZVec<REAL> &flux,
                     TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values){
-  #warning Implement me, Tiago                    
+  int i, j;
+   
+  /** L2 norm */
+  REAL L2 = 0.;
+  for(i = 0; i < 3; i++) L2 += (u[i] - u_exact[i]) * (u[i] - u_exact[i]);
+
+  /** H1 semi-norm */
+  REAL SemiH1 = 0.;
+  for(i = 0; i < 3; i++) for(j = 0; j < 3; j++) SemiH1 += (dudx(i,j) - du_exact(i,j)) * (dudx(i,j) - du_exact(i,j));
+
+  /** H1 norm */
+  REAL H1 = L2 + SemiH1;
+  
+  //values[1] : eror em norma L2
+  values[1]  = L2;
+  
+  //values[2] : erro em semi norma H1
+  values[2] = SemiH1;
+  
+  //values[0] : erro em norma H1 <=> norma Energia
+  values[0]  = H1;
+                          
 }
 
 void TPZElasticity3D::ComputeStrainTensor(TPZFMatrix &Strain, TPZFMatrix &DSol){
@@ -266,6 +338,22 @@ void TPZElasticity3D::ComputeStrainTensor(TPZFMatrix &Strain, TPZFMatrix &DSol){
   Strain(2,0) = Strain(0,2);
   Strain(2,1) = Strain(1,2);
   Strain(2,2) = DSol(2,2);
+}
+
+void TPZElasticity3D::ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &DSol){
+  TPZFNMatrix<6> Vec(6,1);
+  this->ComputeStressVector(Vec, DSol);
+  
+  Stress.Redim(3,3);
+  Stress(0,0) = Vec(0,0);
+  Stress(0,1) = Vec(3,0);
+  Stress(0,2) = Vec(4,0);
+  Stress(1,0) = Vec(3,0);
+  Stress(1,1) = Vec(1,0);
+  Stress(1,2) = Vec(5,0);
+  Stress(2,0) = Vec(4,0);
+  Stress(2,1) = Vec(5,0);
+  Stress(2,2) = Vec(2,0);
 }
 
 void TPZElasticity3D::ComputeStrainVector(TPZFMatrix &Strain, TPZFMatrix &DSol){
@@ -301,4 +389,25 @@ void TPZElasticity3D::ApplyDirection(TPZFMatrix &StrVec, TPZVec<REAL> &Out){
   Out[1] = Dir[1] * StrVec(1,0) + Dir[0] * StrVec(3,0) + Dir[2] * StrVec(5,0);
   Out[2] = Dir[2] * StrVec(2,0) + Dir[0] * StrVec(4,0) + Dir[1] * StrVec(5,0);
 }
+
+void TPZElasticity3D::PrincipalDirection(TPZFMatrix &DSol, TPZVec< REAL > &Solout, int direction){
+
+  TPZFNMatrix<9> StrainTensor(3,3);
+  TPZManVector<REAL,3> Eigenvalues;
+  TPZFNMatrix<9> Eigenvectors(3,3);
+
+  this->ComputeStrainTensor(StrainTensor, DSol);
+  int numiterations = 1000;
+  REAL tol = TPZElasticity3D::gTolerance;
+  bool result = StrainTensor.SolveEigensystemJacobi(numiterations, tol, Solout, Eigenvectors); //Solout is used to store Eigenvaleus, but its values will be replaced below
+#ifdef DEBUG        
+  if (result == false){
+    PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
+  }    
+#endif
+  Solout.Resize(3);
+  for(int i = 0; i < 3; i++) Solout[i] = Eigenvectors(direction,i);
+
+}
+
 
