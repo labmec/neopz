@@ -184,7 +184,7 @@ public:
   void LoadSolution(TPZFMatrix &sol);
 
 
-  void Print(ostream &out);
+  void Print(std::ostream &out);
 };
 
 #endif

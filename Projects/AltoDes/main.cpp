@@ -40,6 +40,8 @@
 
 #define CONVERGENCE_OUTPUT
 
+using namespace std;
+
 //#define Comentarios
 //#define BinFile
 int gDivide[6] = {0,0,0,0,0,0};

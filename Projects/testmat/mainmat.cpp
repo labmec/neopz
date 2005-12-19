@@ -4,11 +4,13 @@
 #include "pzshapequad.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
+#include "pzreal.h"
 
 void ExemploElasticidade(TPZFMatrix &phi, TPZFMatrix &dphi);
 void ExemploGenerico2D(TPZFMatrix &phi, TPZFMatrix &dphi);
 
 using namespace pzshape;
+using namespace std;
 
 int main() {
 

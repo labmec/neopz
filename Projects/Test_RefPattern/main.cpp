@@ -43,6 +43,8 @@
 //IO
 #include <iostream>
 using namespace std;
+using namespace pzshape;
+using namespace pzgeom;
 int gDebug = 0;
 void ExactSimple3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 

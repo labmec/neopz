@@ -27,6 +27,8 @@ Method definition for class TPZGeoCloneMesh.*/
 static int zero=0;
 static TPZGeoEl *zeropoint = 0;
 
+using namespace std;
+
 TPZGeoCloneMesh::TPZGeoCloneMesh(TPZGeoMesh *ref) : TPZGeoMesh(), fMapNodes(zero),fMapElements(zeropoint) {
   if (!ref) {
     cout << "TPZGeoCloneMesh::Error\n Reference mesh and reference element must not be NULL!\n";

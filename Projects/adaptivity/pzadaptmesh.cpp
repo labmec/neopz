@@ -10,6 +10,7 @@
 #include "pzintel.h"
 #include "pzquad.h"
 #include "pzonedref.h"
+#include "pzmaterial.h"
 
 TPZAdaptMesh::TPZAdaptMesh(){
   fReference = 0;

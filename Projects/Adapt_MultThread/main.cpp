@@ -17,7 +17,7 @@
 using namespace std;
 #define HUGE_DEBUG
 
-int gDebug = 0;
+//int gDebug = 0;
 int gPrintLevel = 0;
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp);
 static REAL angle = 0.2;

@@ -15,7 +15,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
      double randnum = (rand()&1000)/999.;
       incval(i,0) = range(i,0)*randnum;
    }
-   ofstream logfile("conv.log");
+   std::ofstream logfile("conv.log");
    int icase;
    int numcases = obj.NumCases();
    int ncoefs = coefs.NElements();
@@ -42,11 +42,11 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
          residual = residual - EstimateRes*(interval/10.);
          difnorm[interval] = Norm(residual);
       }
-      cout << "icase = " << icase << endl;
-      logfile << "icase = " << icase << endl;
+      std::cout << "icase = " << icase << std::endl;
+      logfile << "icase = " << icase << std::endl;
       for(interval = 2; interval<10; interval++) {
          if(fabs(difnorm[interval]) < 1.e-12 || fabs(difnorm[interval-1]) <1.e-12) {
-	   cout << "residual too small\n";
+	   std::cout << "residual too small\n";
            logfile << "residual too small\n";
 	   break;
 	 }

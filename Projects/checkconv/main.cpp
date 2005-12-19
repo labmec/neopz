@@ -15,15 +15,15 @@ int main() {
 //  randomize();
   int i;
   REAL coef;
-  cout << "\nCoeficiente ";
-  cin >>coef;
+  std::cout << "\nCoeficiente ";
+  std::cin >>coef;
   for(i=0; i<nn3; i++) {
     state(i,0) = coef*(rand()%100);
     range(i,0) = coef;
   }
   CheckConvergence<TPZConvHyper>(mat, state, range, coefs);
   int fim;
-  cout << "\n>Fim\n";
-  cin >> fim;
+  std::cout << "\n>Fim\n";
+  std::cin >> fim;
   return 0;
 }

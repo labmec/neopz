@@ -50,7 +50,7 @@ class TPZCompCloneMesh : public TPZCompMesh {
   /**
    * Maps connect index from original mesh to cloned mesh
    */
-  map <int,int> fMapConnects;
+  std::map <int,int> fMapConnects;
   //TPZAVLMap <int,int> fMapConnects;
   
   /**
