@@ -11,7 +11,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 -include $(top_builddir)/@PZ_MK@
 
-SUBDIRS = termica Igor BoundaryLayer NonLinBiharmonic
+SUBDIRS = Elasticity3D Test_Divide_Coarsen checkconv PreCond testmat Adapt_MultThread Igor termica Descontinuo2 TestePercolacao BoundaryLayer Heman NonLinBiharmonic
 
 #SUBDIRS = Adapt_MultThread CursoPZ Adapt_Phil
 #	adaptivity angletest checkcont checkconv cycleref cylin 
