@@ -1124,7 +1124,7 @@ void CycleRefinements(TPZCompMesh& cm, int numcycles, int minel, int maxel, ofst
 	  //out << "Coarsening "; for(i=0;i<4;i++) out << subindex[i] << "/" 
 	  //    << cm.ElementVec()[subindex[i]]->Reference()->Id() << " ";
 	  //out << endl;
-	  cm.CoarsenDisc(subindex,elindex);
+	  cm.Coarsen(subindex,elindex);
 	  agrupados++;
 	  //out << "Created " << elindex << "/" 
 	  //<< cm.ElementVec()[elindex]->Reference()->Id() << endl;
