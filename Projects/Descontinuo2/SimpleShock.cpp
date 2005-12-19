@@ -115,7 +115,7 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
 		 TPZTimeDiscr ConvVol_TD,
 		 TPZTimeDiscr ConvFace_TD)
 {
-   TPZCompElDisc::gDegree = degree;
+   TPZCompEl::gOrder = degree;
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
