@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.14 2005-12-06 13:36:33 tiago Exp $
+//$Id: pzbndcond.h,v 1.15 2005-12-19 18:03:14 tiago Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -44,20 +44,20 @@ protected:
 public :
 
   TPZBndCond(TPZBndCond & bc) : TPZDiscontinuousGalerkin(bc), fBCVal1(bc.fBCVal1),
-    fBCVal2(bc.fBCVal2){
+    fBCVal2(bc.fBCVal2), fVal1Function(NULL){
     fMaterial = bc.fMaterial;
     fType = bc.fType;
   }
 
 
   TPZBndCond() : TPZDiscontinuousGalerkin(0), fBCVal1(),
-    fBCVal2(){
+    fBCVal2(), fVal1Function(NULL){
   }
 
     ~TPZBndCond(){}
 
   TPZBndCond(TPZMaterial *material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2) :
-    TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2) {
+    TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2), fVal1Function(NULL) {
     //cria um novo material
     fMaterial = material;
     fType = type;
@@ -65,7 +65,7 @@ public :
   }
 
   TPZBndCond(TPZBndCond &copy, TPZMaterial *ref) : TPZDiscontinuousGalerkin(copy), fType(copy.fType),
-						   fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref) {}
+						   fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fVal1Function(copy.fVal1Function) {}
  
 
   void SetVal1Function(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix &result)){
