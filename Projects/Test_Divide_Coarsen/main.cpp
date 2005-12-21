@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.1 2005-12-19 12:37:00 tiago Exp $
+//$Id: main.cpp,v 1.2 2005-12-21 12:00:31 tiago Exp $
 
 /**
  * This program tests the methods TPZCompEl::Coarsen and TPZCompEl::Divide acting on TPZInterpolatedElement and acting on TPZCompElDisc
@@ -153,7 +153,7 @@ cmesh->SetAllCreateFunctionsDiscontinuous();
 //cmesh->AutoBuild();
 //   TPZInterfaceElement::SetCalcStiffContDisc();
   
-  if (1) {
+  if (0) {
     ofstream cmeshout("Original_cmesh.txt");
     cmesh->Print(cmeshout);
     ofstream gmeshout("Original_gmesh.txt");
@@ -213,7 +213,7 @@ cmesh->SetAllCreateFunctionsDiscontinuous();
   }//for j
 }//discontinuous
   
-  if (1) {
+  if (0) {
     ofstream cmeshout("Refined_cmesh.txt");
     cmesh->Print(cmeshout);
     ofstream gmeshout("Refined_gmesh.txt");
@@ -264,7 +264,7 @@ cmesh->SetAllCreateFunctionsDiscontinuous();
       if (cmesh->ElementVec()[iactual]) nactualel++;
     }  
   
-  if (1) {
+  if (0) {
     ofstream cmeshout("Coarsen_cmesh.txt");
     cmesh->Print(cmeshout);
     ofstream gmeshout("Coarsen_gmesh.txt");
@@ -385,12 +385,12 @@ TPZCompMesh * mesh(TIPO tipo, const int ndivision, const int ncoarsen){
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
   SetMaterial(*cmesh);
   
-//  cmesh->AutoBuildContDisc(continuous, discontinuous);
-cmesh->SetAllCreateFunctionsDiscontinuous();
-cmesh->AutoBuild();
+  cmesh->AutoBuildContDisc(continuous, discontinuous);
+// cmesh->SetAllCreateFunctionsDiscontinuous();
+// cmesh->AutoBuild();
 //   TPZInterfaceElement::SetCalcStiffContDisc();
   
-  if (1) {
+  if (0) {
     ofstream cmeshout("Original_cmesh.txt");
     cmesh->Print(cmeshout);
     ofstream gmeshout("Original_gmesh.txt");
@@ -450,7 +450,7 @@ cmesh->AutoBuild();
   }//for j
 }//discontinuous
   
-  if (1) {
+  if (0) {
     ofstream cmeshout("Refined_cmesh.txt");
     cmesh->Print(cmeshout);
     ofstream gmeshout("Refined_gmesh.txt");
@@ -464,14 +464,27 @@ cmesh->AutoBuild();
     /** counting number of non NULL elements */
     int nactualel = 0;
     for(int iactual = 0; iactual < n; iactual++){
-      if (cmesh->ElementVec()[iactual]) nactualel++;
+      if (cmesh->ElementVec()[iactual]){
+        if (cmesh->ElementVec()[iactual]->Reference()->Dimension() == 2) nactualel++;
+      }
     }
     
-    
+    TPZVec< TPZCompEl * > CopyElVec( cmesh->ElementVec().NElements() );
     for(int iel = 0; iel < n; iel++){
-      if (!cmesh->ElementVec()[iel]) continue;
-      TPZGeoEl * father = cmesh->ElementVec()[iel]->Reference()->Father();
+      TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement *>(cmesh->ElementVec()[iel]);
+      if (face) CopyElVec[iel] = NULL;
+      else CopyElVec[iel] = cmesh->ElementVec()[iel];
+    }
+
+        
+    for(int iel = 0; iel < n; iel++){
+      TPZCompEl * cel = CopyElVec[iel];
+      if (!cel) continue;      
+      MElementType tipoel = cel->Type();
+      int index = cel->Index();
+      TPZGeoEl * father = cel->Reference()->Father();
       if (!father) continue;
+      int ID = father->Id();
       int nsub = father->NSubElements();
       TPZManVector<int,4> subindices(nsub);
       bool CreateDiscontinuous = false;
@@ -481,11 +494,14 @@ cmesh->AutoBuild();
         TPZCompEl * cel = subel->Reference();
         if (!cel) continue;
         int index = cel->Index();
-        subindices[isub] = index;        
+        subindices[isub] = index;
         TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);
         if (disc) CreateDiscontinuous = true;
+             
       }//for isub
       int coarseindex = -1;      
+      
+      for(int isub = 0; isub < subindices.NElements(); isub++) CopyElVec[ subindices[isub] ] = NULL;
       cmesh->Coarsen(subindices, coarseindex, CreateDiscontinuous);
     }//for iel  
 
@@ -501,7 +517,7 @@ cmesh->AutoBuild();
       if (cmesh->ElementVec()[iactual]) nactualel++;
     }  
   
-  if (1) {
+  if (0) {
     ofstream cmeshout("Coarsen_cmesh.txt");
     cmesh->Print(cmeshout);
     ofstream gmeshout("Coarsen_gmesh.txt");
@@ -549,7 +565,7 @@ int nmaxeq = 5000;//numero maximo de equacoes do problema
 //  TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
 
 
-  TPZCompMesh * cmesh = mesh(Both/*Discontinuous*/, 3, 3); 
+  TPZCompMesh * cmesh = mesh(Both/*Discontinuous*/, 3, 1); 
     
   TPZGeoMesh *gmesh = cmesh->Reference();
 
@@ -591,7 +607,7 @@ int nmaxeq = 5000;//numero maximo de equacoes do problema
   char filedx[20];
   sprintf(filedx,"sol.dx"/*,p,h*/);  
 
-  if (1) {
+  if (0) {
     ofstream cmeshout("cmesh.txt");
     cmesh->Print(cmeshout);
     ofstream gmeshout("gmesh.txt");
