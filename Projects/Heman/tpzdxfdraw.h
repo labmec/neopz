@@ -24,7 +24,7 @@ namespace pz_dxf {
 /**
 Writes a geometric mesh into autocad dxf format.
 
-@author Edimar Cesar Rylo
+@author Luís Guilherme Mello Décourt
 */
 class TPZDXFDraw{
 

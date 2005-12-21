@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Edimar Cesar Rylo <cesar@labmec.fec.unicamp.br>, (C) 2004
+// Author: LuÃ­s Guilherme Mello DÃ©court <gdecourt@gmail.com>, (C) 2004
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -125,7 +125,7 @@ void TPZDXFDraw:: DXFDraw (){
     fDXFFile << ncorner << std::endl;
     int faces = 0 , nsides , controlsides = 0 , sidedim ;
   
-    // Identificando o número de faces do elemento.
+    // Identificando o nmero de faces do elemento.
   
     nsides = gel->NSides();
     for (controlsides=0 ; controlsides<nsides ; controlsides++){
@@ -135,7 +135,7 @@ void TPZDXFDraw:: DXFDraw (){
       }
     }
 
-    // Fim da identificação do número de faces.
+    // Fim da identificaï¿½o do nmero de faces.
     fDXFFile << "  72" << std::endl;
     fDXFFile << faces << std::endl;
   
@@ -166,10 +166,10 @@ void TPZDXFDraw:: DXFDraw (){
       fDXFFile << "192" << std::endl;
     }
   
-    // Definição do tipo de elemento e chamada de função construtora de faces
+    // Definiï¿½o do tipo de elemento e chamada de funï¿½o construtora de faces
     FaceMaker (faces , gel , el);
   
-    // Fim da construção de faces
+    // Fim da construï¿½o de faces
     fDXFFile << "  0" << std::endl;
     fDXFFile << "SEQEND" << std::endl;
   }
@@ -277,7 +277,7 @@ void TPZDXFDraw:: DXFDraw (){
 }
 
 
-/* Inicio da geração do arquivo DXF que gera imagens 
+/* Inicio da geraï¿½o do arquivo DXF que gera imagens 
    das componentes filhas reduzidas */
 
 void TPZDXFDraw::DXFDrawSep (){
@@ -306,12 +306,12 @@ void TPZDXFDraw::DXFDrawSep (){
       
     //ofstream fDXFFile(nome.c_str());
   
-    //Início da declaração de polyfacemesh
+    //Inï¿½io da declaraï¿½o de polyfacemesh
   
     meshindex=el;
     PolyFaceMesh (meshindex);
     
-    //Fim da declaração de polyfacemesh
+    //Fim da declaraï¿½o de polyfacemesh
     
     TPZGeoEl *gel = fMesh->ElementVec()[el];
     if (!gel) continue;
@@ -331,7 +331,7 @@ void TPZDXFDraw::DXFDrawSep (){
     fDXFFile << "  71" << std::endl;
     fDXFFile << ncorner << std::endl;
   
-    // Identificando o número de faces do elemento.
+    // Identificando o nmero de faces do elemento.
     
     int sidedim, faces=0;
     int nsides = gel->NSides();
@@ -343,7 +343,7 @@ void TPZDXFDraw::DXFDrawSep (){
       }
     }
   
-    // Fim da identificação do número de faces.
+    // Fim da identificaï¿½o do nmero de faces.
   
     fDXFFile << "  72" << std::endl;
     fDXFFile << faces << std::endl;
@@ -390,9 +390,9 @@ void TPZDXFDraw::DXFDrawSep (){
       fDXFFile << "  70" << std::endl;
       fDXFFile << "192" << std::endl;
     }
-    // Construção de faces
+    // Construï¿½o de faces
     FaceMaker (faces , gel , el);
-    // Fim da construção de faces
+    // Fim da construï¿½o de faces
     fDXFFile << "  0" << std::endl;
     fDXFFile << "SEQEND" << std::endl;
   }
