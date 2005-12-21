@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.23 2005-04-25 02:31:46 phil Exp $
+//$Id: pzcmesh.h,v 1.24 2005-12-21 11:55:13 tiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -463,9 +463,9 @@ public:
    * Elements created may be TPZInterpolatedElement or TPZCompElDisc.
    * indices contains the type of the element. Element type are given by the enumerate MCreationType.
    */
-  virtual void AutoBuildContDisc(TPZVec<TPZGeoEl*> &continuous, TPZVec<TPZGeoEl*> &discontinuous);
+  virtual void AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const TPZVec<TPZGeoEl*> &discontinuous);
 
-  virtual void AutoBuildContDisc(TPZVec<TPZMaterial*> &continuous, TPZVec<TPZMaterial*> &discontinuous);
+  virtual void AutoBuildContDisc(const TPZVec<TPZMaterial*> &continuous, const TPZVec<TPZMaterial*> &discontinuous);
 
   void SetAllCreateFunctionsDiscontinuous();
   void SetAllCreateFunctionsContinuous();
@@ -503,12 +503,14 @@ public:
 
   /**
    * Create a computational element father for the comp. elem. into elements
-   * @param elements vector of elements whose father will be created????
-   * @param index index for the father element????
+   * @param elements indices of subelements to be agrouped
+   * @param index of new coarse element
+   * @param CreateDiscontinuous = false indicates a TPZInterpolatedElement must be created. True indicates a TPZCompElDisc
    */
-  void Coarsen(TPZVec<int> &elements, int &index);
-
-  void CoarsenDisc(TPZVec<int> &elements, int &index);
+  void Coarsen(TPZVec<int> &elements, int &index, bool CreateDiscontinuous = false);
+  
+  /** Deletes all interfaces and rebuild them all */
+  void RemakeAllInterfaceElements();
 
   /**
    * Will refine the elements associated with a boundary condition till there are
