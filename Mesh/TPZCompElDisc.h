@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.40 2005-12-19 11:58:14 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.41 2005-12-21 11:57:10 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -225,12 +225,6 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
    * it returns the shapes number of the element 
    */
   int  NShapeF();
-
-  void CreateInterfaces();
-
-      
-
-  int ExistsInterface(TPZGeoElSide geosd);
 
   REAL CenterPoint(int index) {return fCenterPoint[index];}
 

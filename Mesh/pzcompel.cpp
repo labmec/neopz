@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.21 2005-12-19 11:56:57 tiago Exp $
+//$Id: pzcompel.cpp,v 1.22 2005-12-21 11:56:14 tiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -942,7 +942,59 @@ void TPZCompEl::SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,
   LOGPZ_INFO(logger, "Exiting SetOrthogonalFunction");
 }
 
-TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
+void TPZCompEl::CreateInterfaces(bool BetweenContinuous){
+
+  TPZCompElDisc * thisdisc = dynamic_cast<TPZCompElDisc *>(this);
+  TPZInterpolatedElement * thisintel = dynamic_cast<TPZInterpolatedElement *>(this);
+  if (!thisdisc && !thisintel) return; //interfaces are created only by TPZInterpolatedElement and TPZCompElDisc
+
+  //n� verifica-se caso o elemento de contorno
+  //�maior em tamanho que o interface associado
+  //caso AdjustBoundaryElement n� for aplicado
+  //a malha �criada consistentemente
+  TPZGeoEl *ref = Reference();
+  int nsides = ref->NSides();
+  int InterfaceDimension = this->Material()->Dimension() - 1;
+  int side;
+  nsides--;//last face
+  for(side=nsides;side>=0;side--){
+    if(ref->SideDimension(side) != InterfaceDimension) continue;
+    TPZCompElSide thisside(this,side);
+    if(this->ExistsInterface(thisside.Reference())) {
+//      cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
+      continue;
+    }
+    TPZStack<TPZCompElSide> highlist;
+    thisside.HigherLevelElementList(highlist,0,1);
+    //a interface se cria uma vez s� quando existem ambos 
+    //elementos esquerdo e direito (computacionais)
+    if(!highlist.NElements()) {
+      this->CreateInterface(side, BetweenContinuous);//s�tem iguais ou grande => pode criar a interface
+    } else {
+      int ns = highlist.NElements();
+      int is;
+      for(is=0; is<ns; is++) {//existem pequenos ligados ao lado atual 
+        const int higheldim = highlist[is].Reference().Dimension();
+	if(higheldim != InterfaceDimension) continue;
+// 	TPZCompElDisc *del = dynamic_cast<TPZCompElDisc *> (highlist[is].Element());
+// 	if(!del) continue;
+
+	TPZCompEl *del = highlist[is].Element();
+	if(!del) continue;
+        
+        TPZCompElSide delside( del, highlist[is].Side() );
+        if ( del->ExistsInterface(delside.Reference()) ) {
+//          cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
+        }
+        else{
+	  del->CreateInterface(highlist[is].Side(), BetweenContinuous);
+        }
+      }
+    }
+  }
+}
+
+TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuous)
 {
   LOGPZ_INFO(logger, "Entering CreateInterface");
   TPZInterfaceElement * newcreatedinterface = NULL;
@@ -974,8 +1026,7 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
       else matid = list[0].Element()->Material()->Id();
     }
     
-    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
-    //isto acertou as vizinhanas da interface geom�rica com o atual
+
     int index;
 
     TPZCompEl *list0 = list[0].Element();
@@ -987,7 +1038,13 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
     int neighside = - 1;//discontinuous elements
     if (!neighdisc) neighside = list0side;
 
-
+    if (BetweenContinuous == false){
+      //It means at least one element must be discontinuous
+      if (!thisdisc && !neighdisc) return NULL;
+    }
+    
+    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual    
+    
 
     if(Dimension() > list0->Dimension()){
        //o de volume �o direito caso um deles seja BC
@@ -1018,12 +1075,7 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
       else matid = lower.Element()->Material()->Id();
      }
 
-    //existem esquerdo e direito: this e lower
-    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
-    int index;
-
-
-
+ 
     TPZCompEl *lowcel = lower.Element();
     int lowside = lower.Side();
     TPZCompElDisc * thisdisc  = dynamic_cast<TPZCompElDisc*>(this);
@@ -1031,7 +1083,17 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
     int thisside = -1;//discontinuous elements
     if (!thisdisc) thisside = side;
     int neighside = - 1;//discontinuous elements
-    if (!neighdisc) neighside = lowside;
+    if (!neighdisc) neighside = lowside;    
+    
+    if (BetweenContinuous == false){
+      //It means at least one element must be discontinuous
+      if (!thisdisc && !neighdisc) return NULL;
+    }    
+         
+    //existem esquerdo e direito: this e lower
+    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
+    int index;
+
 
     if(Dimension() > lowcel->Dimension()){
        //para que o elemento esquerdo seja de volume
@@ -1046,6 +1108,18 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side)
   return newcreatedinterface;
 }
 
+int TPZCompEl::ExistsInterface(TPZGeoElSide geosd){
+
+  TPZGeoElSide  neighside = geosd.Neighbour();
+  while(neighside.Element() && neighside.Element() != geosd.Element()){
+    TPZCompElSide neighcompside = neighside.Reference();
+    neighside = neighside.Neighbour();
+    if(!neighcompside.Element()) continue;
+    if(neighcompside.Element()->Type() == EInterface) 
+      return 1;
+  }
+  return 0;
+}
 
 void TPZCompEl::RemoveInterfaces(){
 

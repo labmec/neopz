@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.20 2005-12-19 11:56:57 tiago Exp $
+// $Id: pzcompel.h,v 1.21 2005-12-21 11:56:14 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -113,12 +113,6 @@ public:
    * Default interpolation order
    */
   static int gOrder;
-
-  /** Remove interfaces connected to this element */  
-  void RemoveInterfaces();
-
-  /** Remove interface that is neighbour from side side */
-  void RemoveInterface(int side);
 
   /** 
    * Returns the volume of the geometric element associated.
@@ -458,10 +452,27 @@ public:
   */
   virtual void Read(TPZStream &buf, void *context);
 
+  /** Create interfaces between this and its neighbours.
+   * Param BetweenContinuous allows to create interface between two elements that are not TPZCompElDisc. 
+   * If param is false, it is necessary to have at least one TPZCompElDisc.
+   */    
+  void CreateInterfaces(bool BetweenContinuous = false);
+
   /** Create an interface between this and the neighbour by side side.
+   * @param side : side where interface must be created
+   * @param BetweenContinuous allows to create interface between two elements that are not TPZCompElDisc. If param is false, it is necessary to have at least one TPZCompElDisc.
    * Returns the interface created.
    */
-  TPZInterfaceElement * CreateInterface(int side);
+  TPZInterfaceElement * CreateInterface(int side, bool BetweenContinuous = false);
+
+  /** Verify existence of interface */  
+  int ExistsInterface(TPZGeoElSide geosd);
+  
+  /** Remove interfaces connected to this element */  
+  void RemoveInterfaces();
+
+  /** Remove interface which is neighbour from side side */
+  void RemoveInterface(int side);  
 
 };
 

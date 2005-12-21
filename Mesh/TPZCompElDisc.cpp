@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.70 2005-12-19 11:58:14 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.71 2005-12-21 11:57:10 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -130,50 +130,6 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
   fConstC = NormalizeConst();
   //criando os elementos interface
   CreateInterfaces();
-}
-
-void TPZCompElDisc::CreateInterfaces(){
-  //n� verifica-se caso o elemento de contorno
-  //�maior em tamanho que o interface associado
-  //caso AdjustBoundaryElement n� for aplicado
-  //a malha �criada consistentemente
-  TPZGeoEl *ref = Reference();
-  int nsides = ref->NSides();
-  int InterfaceDimension = fMaterial->Dimension() - 1;
-  int side;
-  nsides--;//last face
-  for(side=nsides;side>=0;side--){
-    if(ref->SideDimension(side) != InterfaceDimension) continue;
-    TPZCompElSide thisside(this,side);
-    if(ExistsInterface(thisside.Reference())) {
-//      cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
-      continue;
-    }
-    TPZStack<TPZCompElSide> highlist;
-    thisside.HigherLevelElementList(highlist,0,1);
-    //a interface se cria uma vez s� quando existem ambos 
-    //elementos esquerdo e direito (computacionais)
-    if(!highlist.NElements()) {
-      CreateInterface(side);//s�tem iguais ou grande => pode criar a interface
-    } else {
-      int ns = highlist.NElements();
-      int is;
-      for(is=0; is<ns; is++) {//existem pequenos ligados ao lado atual 
-        const int higheldim = highlist[is].Reference().Dimension();
-	if(higheldim != InterfaceDimension) continue;
-	TPZCompElDisc *del = dynamic_cast<TPZCompElDisc *> (highlist[is].Element());
-	if(!del) continue;
-        
-        TPZCompElSide delside( del, highlist[is].Side() );
-        if ( del->ExistsInterface(delside.Reference()) ) {
-//          cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
-        }
-        else{
-	  del->CreateInterface(highlist[is].Side());
-        }
-      }
-    }
-  }
 }
 
 REAL TPZCompElDisc::NormalizeConst()
@@ -685,19 +641,6 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
     iv++;
   }
   delete intrule;  
-}
-
-int TPZCompElDisc::ExistsInterface(TPZGeoElSide geosd){
-
-  TPZGeoElSide  neighside = geosd.Neighbour();
-  while(neighside.Element() && neighside.Element() != geosd.Element()){
-    TPZCompElSide neighcompside = neighside.Reference();
-    neighside = neighside.Neighbour();
-    if(!neighcompside.Element()) continue;
-    if(neighcompside.Element()->Type() == EInterface) 
-      return 1;
-  }
-  return 0;
 }
 
 void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
