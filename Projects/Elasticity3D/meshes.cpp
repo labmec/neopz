@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.2 2005-12-19 12:19:36 tiago Exp $
+//$Id: meshes.cpp,v 1.3 2006-01-09 13:56:10 tiago Exp $
 
 #include "meshes.h"
 
@@ -137,6 +137,7 @@ TPZCompMesh *BarraTracionadaGirada(int h, int p){
   const REAL Poisson= 0.0;
 
   MElementType tipovolume;
+#define CUBO
 #ifdef CUBO    
   tipovolume = ECube;
   REAL co[8][3] = {{0.,1.92711,1.13412},    {0.,-0.248971, -2.22216},    {0., -1.92711, -1.13412 },    {0., 0.248971, 2.22216 }, 
@@ -146,7 +147,7 @@ TPZCompMesh *BarraTracionadaGirada(int h, int p){
   int nnodesperel = 8;
 #endif
 
-#define PRISMA
+//#define PRISMA
 #ifdef PRISMA
   tipovolume = EPrisma;
   REAL co[6][3] = {{0.,1.92711,1.13412},    {0.,-0.248971, -2.22216},    {0., -1.92711, -1.13412 },
@@ -207,14 +208,17 @@ TPZCompMesh *BarraTracionadaGirada(int h, int p){
 #endif
   
   gmesh->BuildConnectivity();
-  
+
+#define GeoRefine
+#ifdef GeoRefine    
   TPZVec<TPZGeoEl*> filhos;
   for(int i = 0; i < h; i++){
     int n = gmesh->NElements();
     for(int j = 0; j < n; j++){
       if (gmesh->ElementVec()[j]->Dimension() == 3) gmesh->ElementVec()[j]->Divide(filhos);
     }
-  }    
+  }
+#endif
   
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   cmesh->SetDimModel(3);
@@ -238,8 +242,26 @@ TPZCompMesh *BarraTracionadaGirada(int h, int p){
   cmesh->SetAllCreateFunctionsContinuous();
   
   cmesh->AutoBuild();
-//   cmesh->AdjustBoundaryElements();
-//   cmesh->CleanUpUnconnectedNodes();
+  
+//#define CompRefine
+#ifdef CompRefine
+  //Refinamento uniforme
+  for(int i = 0; i < h; i++){
+    int n = cmesh->ElementVec().NElements();
+    TPZManVector<int> filhos;
+    for(int j = 0; j < n; j++){
+      TPZCompEl * cel = cmesh->ElementVec()[j];
+      if (!cel) continue;
+      if (cel->Dimension() == 3){
+        cel->Divide(cel->Index(), filhos);
+      }//if
+    }//for j
+  }//uniforme
+  cmesh->ExpandSolution();
+#endif  
+  
+  cmesh->AdjustBoundaryElements();
+  cmesh->CleanUpUnconnectedNodes();
 //   cmesh->ExpandSolution();
 
   return cmesh;
@@ -248,7 +270,7 @@ TPZCompMesh *BarraTracionadaGirada(int h, int p){
 TPZCompMesh * VigaEngastada(int h, int p){
   SetPOrder(p);
 
-  const REAL Length = 10.;
+  const REAL Length = 1.;
   const REAL Base   = 0.2;
   const REAL Height = 0.5; 
   const REAL STRESS = 100.;
@@ -335,7 +357,7 @@ TPZCompMesh * VigaEngastada(int h, int p){
 }
 
 void MomentoExtremidade(TPZVec<REAL> &pto, TPZVec<REAL> &force){
-  if ( fabs(pto[0] - 10.) > 1.e-8 ) std::cout << "\nTA TUDO ERRADO!!\n";
+  if ( fabs(pto[0] - 1.) > 1.e-8 ) std::cout << "\nTA TUDO ERRADO!!\n";
   REAL Y = pto[1];
   force.Resize(3);
   force.Fill(0.);
