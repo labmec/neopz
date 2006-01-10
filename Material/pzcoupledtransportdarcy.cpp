@@ -1,0 +1,151 @@
+// -*- c++ -*-
+
+//$Id: pzcoupledtransportdarcy.cpp,v 1.1 2006-01-10 19:37:51 tiago Exp $
+
+#include "pzcoupledtransportdarcy.h"
+#include "pzcoupledtransportdarcyBC.h"
+#include "pzelmat.h"
+#include "pzbndcond.h"
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
+#include "pzerror.h"
+#include "pzmanvector.h"
+#include <math.h>
+
+using namespace std;
+int TPZCoupledTransportDarcy::gCurrentEq = 0;
+
+void TPZCoupledTransportDarcy::SetCurrentMaterial(const int i){
+  if (i == 0 || i == 1) TPZCoupledTransportDarcy::gCurrentEq = i;
+  else PZError << "Error! - " << __PRETTY_FUNCTION__ << endl;
+}
+
+int TPZCoupledTransportDarcy::CurrentEquation(){ return TPZCoupledTransportDarcy::gCurrentEq; }
+
+TPZCoupledTransportDarcy::TPZCoupledTransportDarcy(int nummat, int nummat0, int nummat1, int dim) : 
+  TPZDiscontinuousGalerkin(nummat), fAlpha(1.) {
+  this->fMaterials[0] = new TPZMatPoisson3d(nummat0, dim);
+  this->fMaterials[1] = new TPZMatPoisson3d(nummat1, dim);
+}
+
+void TPZCoupledTransportDarcy::SetAlpha(REAL alpha){
+  this->fAlpha = alpha;
+}
+
+TPZCoupledTransportDarcy::~TPZCoupledTransportDarcy() {
+  if (this->fMaterials[0]){
+    delete this->fMaterials[0];
+    this->fMaterials[0] = NULL;
+  }
+  if (this->fMaterials[1]){
+    delete this->fMaterials[1];
+    this->fMaterials[1] = NULL;
+  }
+}
+
+int TPZCoupledTransportDarcy::NStateVariables() {
+  this->GetCurrentMaterial()->NStateVariables();
+}
+
+void TPZCoupledTransportDarcy::Print(ostream &out) {
+  out << "name of material : " << Name() << "\n";
+  out << "Base Class properties : \n";
+  TPZMaterial::Print(out);
+}
+
+ofstream Betafile("beta.txt");
+void TPZCoupledTransportDarcy::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,
+                                          TPZFMatrix &  dsol ,REAL weight,TPZFMatrix &axes,
+                                          TPZFMatrix &phi,TPZFMatrix &dphi,
+                                          TPZFMatrix &ek,TPZFMatrix &ef) {
+  if (TPZCoupledTransportDarcy::CurrentEquation() == 1){
+    //It is necessary to set Beta1 = alpha * (-K0 Grad[p] )
+    REAL K, C;
+    const int dim = this->Dimension();
+    TPZManVector<REAL, 3> dir(dim);
+    this->GetMaterial(0)->GetParameters(K, C, dir);
+    const REAL K0 = K;
+    this->GetMaterial(1)->GetParameters(K, C, dir);    
+    
+    int i;
+    for(i = 0; i < dim; i++){
+      dir[i] = dsol(i,0);
+      dir[i] *= -1. * K0 * this->fAlpha;
+    }
+
+    /*************/
+    REAL betaX = -x[1]/3.;
+    REAL betaY = -x[0]/3.;
+    dir[0] = betaX;
+    dir[1] = betaY;
+    
+    Betafile << x[0] << "\t" << x[1] << "\t" << betaX  << "\t" << betaY << endl;
+    /*************/
+    
+    this->GetMaterial(1)->SetParameters(K, 1., dir);
+  }
+  
+  this->GetCurrentMaterial()->Contribute(x, jacinv, sol, dsol, weight, axes, phi, dphi, ek, ef);
+}
+
+
+void TPZCoupledTransportDarcy::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
+				            TPZFMatrix &axes,TPZFMatrix &phi,
+                                            TPZFMatrix &ek,TPZFMatrix &ef,
+                                            TPZBndCond &bc) {
+  this->GetCurrentMaterial()->ContributeBC(x, sol, weight, axes, phi, ek, ef, bc);
+}
+
+/** returns the variable index associated with the name*/
+int TPZCoupledTransportDarcy::VariableIndex(char *name){
+  this->GetCurrentMaterial()->VariableIndex(name);
+}
+
+int TPZCoupledTransportDarcy::NSolutionVariables(int var){
+  this->GetCurrentMaterial()->NSolutionVariables(var);
+}
+
+void TPZCoupledTransportDarcy::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,
+                                        int var,TPZVec<REAL> &Solout){
+  this->GetCurrentMaterial()->Solution(Sol, DSol, axes, var, Solout);
+}//method
+
+void TPZCoupledTransportDarcy::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
+  //Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
+}
+
+void TPZCoupledTransportDarcy::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
+			       TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
+			       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
+  this->GetCurrentMaterial()->Errors(x, u, dudx, axes, flux, u_exact, du_exact, values);
+}
+
+/** Termos de penalidade. */
+void TPZCoupledTransportDarcy::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+                                          TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+                                          TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                          TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
+  this->GetCurrentMaterial()->ContributeInterface( x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef, LeftPOrder, RightPOrder, faceSize);
+}
+
+/** Termos de penalidade. */
+void TPZCoupledTransportDarcy::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+                                            TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
+  this->GetCurrentMaterial()->ContributeBCInterface( x, solL, dsolL, weight, normal, phiL, dphiL, ek, ef, bc, POrder, faceSize);
+}
+
+void TPZCoupledTransportDarcy::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+                                          TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+                                          TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                          TPZFMatrix &ek,TPZFMatrix &ef){
+  this->GetCurrentMaterial()->ContributeInterface( x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef);
+}
+
+void TPZCoupledTransportDarcy::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+					    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+  this->GetCurrentMaterial()->ContributeBCInterface( x, solL, dsolL, weight, normal, phiL, dphiL, ek, ef, bc);
+}
+
+TPZCoupledTransportDarcyBC * TPZCoupledTransportDarcy::CreateBC(int id){
+  return new TPZCoupledTransportDarcyBC(this, id);
+}

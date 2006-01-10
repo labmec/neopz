@@ -69,6 +69,7 @@ libpz_a_LIBADD = ../External/pzsloan.o ../Util/TPZTimer.o ../Util/tpzpermutation
 	../Pre/TPZExtendGridDimension.o ../Save/pzsave.o ../Save/pzfilebuffer.o ../External/sloan/diamtr.o \
 	../External/sloan/gegra.o ../External/sloan/iorele.o ../External/sloan/isorti.o \
 	../External/sloan/label.o ../External/sloan/number.o ../External/sloan/profi1.o \
-	../External/sloan/rootls.o ../External/sloan/vsrtp1.o
+	../External/sloan/rootls.o ../External/sloan/vsrtp1.o \
+	../Material/pzcoupledtransportdarcy.o ../Material/pzcoupledtransportdarcyBC.o
 
 ## --| NeoPZ |------------------------------------------------------------------

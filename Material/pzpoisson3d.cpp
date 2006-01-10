@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.15 2005-11-29 14:01:59 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.16 2006-01-10 19:38:40 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -24,10 +24,17 @@ TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin
 }
 
 void TPZMatPoisson3d::SetParameters(REAL diff, REAL conv, TPZVec<REAL> &convdir) {
-  fK = diff,
+  fK = diff;
   fC = conv;
   int d;
   for(d=0; d<fDim; d++) fConvDir[d] = convdir[d];
+}
+
+void TPZMatPoisson3d::GetParameters(REAL &diff, REAL &conv, TPZVec<REAL> &convdir) {
+  diff = fK;
+  conv = fC;
+  int d;
+  for(d=0; d<fDim; d++) convdir[d] = fConvDir[d];
 }
 
 TPZMatPoisson3d::~TPZMatPoisson3d() {

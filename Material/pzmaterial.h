@@ -142,7 +142,7 @@ class  TPZMaterial : public TPZSaveable
 	 fForcingFunction = fp;
       }
 
-      int HasForcingFunction() {return (fForcingFunction != 0);}
+      virtual int HasForcingFunction() {return (fForcingFunction != 0);}
 
       /**Compute the error due to the difference between the
 	 interpolated flux and the flux computed based on the

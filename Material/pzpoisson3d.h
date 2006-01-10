@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.16 2005-11-29 14:01:59 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.17 2006-01-10 19:38:40 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -51,7 +51,7 @@ public:
 
   /** Usado em InterfaceErrors */
   static REAL gAlfa;
-
+  
   TPZMatPoisson3d(int nummat, int dim);
 
   virtual ~TPZMatPoisson3d();
@@ -94,6 +94,8 @@ public:
   int NStateVariables();
 
   void SetParameters(REAL diff, REAL conv, TPZVec<REAL> &convdir);
+  
+  void GetParameters(REAL &diff, REAL &conv, TPZVec<REAL> &convdir);
 
   void SetInternalFlux(REAL flux)
   {
