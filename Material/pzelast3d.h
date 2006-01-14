@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzelast3d.h,v 1.3 2005-12-19 11:24:06 tiago Exp $
+//$Id: pzelast3d.h,v 1.4 2006-01-14 19:55:32 tiago Exp $
 
 #ifndef PZELAST3D
 #define PZELAST3D
@@ -21,7 +21,7 @@ public :
 
 enum SOLUTIONVARS{ENone = -1, EDisplacement = 0, EDisplacementX, EDisplacementY, EDisplacementZ,
                               EPrincipalStress, EPrincipalStrain, EPrincipalDirection1, EPrincipalDirection2, EPrincipalDirection3, 
-                              EVonMisesStress, EStress, EStrain};
+                              EVonMisesStress, EStress, EStrain, EStrain1, EStress1};
 
 /** Class constructor.
  * @param nummat - material ID.
