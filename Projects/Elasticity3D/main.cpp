@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.5 2006-01-14 20:00:50 tiago Exp $
+//$Id: main.cpp,v 1.6 2006-01-14 20:02:07 tiago Exp $
 
 /**
  * Validation test of TPZElasticity3D material
@@ -77,7 +77,6 @@
 #include <time.h>
 #include <stdio.h>
 #include "meshes.h"
-#include "TPZTimer.h"
 
 using namespace pzgeom;
 using namespace pzshape;
@@ -85,6 +84,52 @@ using namespace pzrefine;
 using namespace std;
 
 #include <set>
+int main22(){
+
+  TPZFMatrix mat(3,3);
+  mat(0,0) = 1999.; mat(0,1) = 2.; mat(0,2) = 3.;
+  mat(1,0) = 2.; mat(1,1) = 4.; mat(1,2) = 5.;
+  mat(2,0) = 3.; mat(2,1) = 5.; mat(2,2) = 6.;
+  mat.Print("Matriz original", cout, EMathematicaInput);
+
+/*  int nn;
+  cin >> nn;  
+  const int n = nn;//50;
+  TPZFMatrix mat(n,n);
+  for(int i = 0; i < n; i++)
+    for(int j = 0; j <= i; j++){
+      mat(i,j) = exp(i*j*0.0001)*(i+1)*(j+1);
+      mat(j,i) = exp(i*j*0.0001)*(i+1)*(j+1);
+    }    
+   mat.Print("Matriz original", cout, EMathematicaInput);   */   
+  
+
+  
+  int niter = 100000;
+  REAL tol = 1.e-200;
+  TPZVec< REAL > Sort;
+//   mat.SolveEigenvaluesJacobi(niter, tol, &Sort);
+//   cout << "Sort:\n";
+//   cout << "NElements = " << Sort.NElements() << endl;
+//   for(int i = 0; i < Sort.NElements(); i++) cout << Sort[i] << endl;
+// 
+//   cout << "\nniter = " << niter << " - res = " << tol << endl;
+//   mat.Print("Matriz decomposta", cout, EMathematicaInput);
+  
+  
+  TPZFMatrix EigenVec;
+  mat.SolveEigensystemJacobi(niter, tol, Sort, EigenVec);
+  cout << "AutoValores:" << endl;
+  for(int i = 0; i < Sort.NElements(); i++) cout << Sort[i] << endl;
+  
+  cout << "AutoVetores:" << endl;
+  for(int i = 0; i < EigenVec.Rows(); i++){
+    for(int j = 0; j < EigenVec.Cols(); j++) cout << EigenVec(i,j) << " , ";
+    cout << " fim" << endl;
+  }
+  
+  
+}
 
 int main(){
    
@@ -97,16 +142,16 @@ int main(){
  
   TPZAnalysis an(cmesh);
 
-//#define direct  
+#define direct  
 #ifdef direct
   TPZFrontStructMatrix <TPZFrontSym> /*TPZSkylineStructMatrix*/ /*TPZFStructMatrix*/ full(cmesh);
   an.SetStructuralMatrix(full);
   TPZStepSolver step;
-  step.SetDirect(ECholesky);
+  step.SetDirect(ECholesky/*ELU*/);
   an.SetSolver(step);
 #endif
   
-#define iter;
+//#define iter;
 #ifdef iter
   cout << "ITER_SOLVER" << endl;  
   /*TPZFStructMatrix*/ TPZSkylineStructMatrix full(cmesh);
@@ -126,7 +171,6 @@ int main(){
      an.SetSolver(step);
 #endif  
   
-  an.Run();
   std::cout << "Numero de equacoes = " << an.Mesh()->NEquations() << std::endl;
   std::cout.flush();
   an.Run();
