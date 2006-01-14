@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.4 2006-01-09 13:56:10 tiago Exp $
+//$Id: main.cpp,v 1.5 2006-01-14 20:00:50 tiago Exp $
 
 /**
  * Validation test of TPZElasticity3D material
@@ -88,17 +88,18 @@ using namespace std;
 
 int main(){
    
-//   TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
-  TPZShapeLinear::fOrthogonal = TPZShapeLinear::Chebyshev;
+  TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
+  TPZShapeLinear::fOrthogonal = TPZShapeLinear::Jacobi;
   
-  TPZCompMesh * cmesh = BarraTracionadaGirada(2, 2);
+  TPZCompMesh * cmesh = /*BarraTracionadaNeumann*/BarraTracionada/*Girada*//*VigaEngastada*//*VigaEngastadaForcaVolume*/(1, 3);
+  
   TPZGeoMesh *gmesh = cmesh->Reference();
  
   TPZAnalysis an(cmesh);
 
 //#define direct  
 #ifdef direct
-  /*TPZFrontStructMatrix <TPZFrontSym> */TPZSkylineStructMatrix full(cmesh);
+  TPZFrontStructMatrix <TPZFrontSym> /*TPZSkylineStructMatrix*/ /*TPZFStructMatrix*/ full(cmesh);
   an.SetStructuralMatrix(full);
   TPZStepSolver step;
   step.SetDirect(ECholesky);
@@ -108,24 +109,19 @@ int main(){
 #define iter;
 #ifdef iter
   cout << "ITER_SOLVER" << endl;  
-  TPZSkylineStructMatrix /*TPZFStructMatrix*/ full(cmesh);
+  /*TPZFStructMatrix*/ TPZSkylineStructMatrix full(cmesh);
   an.SetStructuralMatrix(full);  
   TPZStepSolver step( full.Create() );
   an.SetSolver(step);  
-  REAL tol = 1.e-8;
+  REAL tol = 1.e-14;
+  TPZStepSolver precond( full.Create() );
+  REAL precondtol = 1.E-20;
+  precond.SetSSOR( 1, 1., precondtol, 0);     
+//  precond.SetJacobi(1, precondtol, 0);
+  step.ShareMatrix( precond );  
+  step.SetCG( 20000, precond, tol, 0 );
+  cout << "SSOR/JACOBI PRECOND" << endl;
 
-#define Precond
-#ifdef Precond
-      TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EElement , false);
-      step.SetCG( 2000, *precond, tol, 0 );
-      delete precond;
-#else
-// Sem pre-condicionador 
-     TPZCopySolve precond( full.Create() );
-     step.ShareMatrix( precond );  
-     step.SetCG( 2000, precond, tol, 0 );
-     cout << "SEM PRECOND" << endl;
-#endif
 
      an.SetSolver(step);
 #endif  
@@ -133,7 +129,18 @@ int main(){
   an.Run();
   std::cout << "Numero de equacoes = " << an.Mesh()->NEquations() << std::endl;
   std::cout.flush();
-   
+  an.Run();
+
+/**** Aqui faz DX ****/
+  TPZVec<char *> scalnames(1);
+  TPZVec<char *> vecnames(1);
+  scalnames[0] = "Strain1";
+  vecnames[0] = "PrincipalStrain";
+  std::stringstream filedx;
+  filedx << "result.dx";
+  an.DefineGraphMesh(3,scalnames,vecnames,&(filedx.str()[0]));
+  an.PostProcess(0);
+  
   delete cmesh;
   delete gmesh;
   return 0;
