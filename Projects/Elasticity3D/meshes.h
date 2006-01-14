@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: meshes.h,v 1.2 2005-12-19 12:19:36 tiago Exp $
+//$Id: meshes.h,v 1.3 2006-01-14 20:02:32 tiago Exp $
 
 class TPZCompMesh;
 #include "pzvec.h"
@@ -8,6 +8,9 @@ class TPZCompMesh;
 /** Barra tracionada - Validado
  */
 TPZCompMesh * BarraTracionada(int h, int p); 
+
+/** Barra tracionada sem Dirichlet, apenas Neumann */
+TPZCompMesh * BarraTracionadaNeumann(int h, int p); 
 
 /** Barra tracionada girada de 10 graus em torno do eixo x.
  * int cubo = 1 faz um cubo - Validado

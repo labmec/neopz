@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.1 2006-01-10 19:40:31 tiago Exp $
+//$Id: main.cpp,v 1.2 2006-01-14 20:03:42 tiago Exp $
 
 /**
  * Percolation of water from the fracture into the porous media.
@@ -129,7 +129,7 @@ int main22(){
 
 int main(){   
   TPZMaterial::gBigNumber= 1.e12;
-  TPZCompMesh * cmesh = CreateSimpleMeshWithExactSolution(0,2);
+  TPZCompMesh * cmesh = CheckBetaNonConstant/*CreateSimpleMeshWithExactSolution*/(4,2);
   std::cout << "Numero de elementos = " << cmesh->ElementVec().NElements() << std::endl;
   std::cout << "Numero de equacoes  = " << cmesh->NEquations() << std::endl;
   TPZGeoMesh *gmesh = cmesh->Reference();
@@ -172,7 +172,8 @@ int main(){
   TPZCoupledTransportDarcy::SetCurrentMaterial(0);
   std::cout << "\nCalling an.Run() for FirstEq\n";
   an.Run();
-  an.SetExact(ExactSol_p);
+//   an.SetExact(ExactSol_p);
+  an.SetExact(SolExata);
   TPZVec<REAL> pos;
   an.PostProcess(pos,std::cout);
   std::cout << "Problem solved\n";
@@ -189,6 +190,8 @@ int main(){
   an.PostProcess(4);  
   }      
 
+  return 1;
+  
   TPZCoupledTransportDarcy::SetCurrentMaterial(1);
   std::cout << "\nCalling an.Run() for SecondEq\n";
     an.Solution().Zero();

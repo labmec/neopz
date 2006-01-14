@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.1 2006-01-10 19:40:31 tiago Exp $
+//$Id: meshes.cpp,v 1.2 2006-01-14 20:03:42 tiago Exp $
 
 #include "meshes.h"
 
@@ -860,3 +860,96 @@ void Forcing2(TPZVec<REAL> &pt, TPZVec<REAL> &force){
   force[0] = -1. * val;
 }
 
+
+
+
+TPZCompMesh * CheckBetaNonConstant(int h, int p){
+  
+  TPZCompEl::gOrder = p;
+
+  REAL co[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};
+  int indices[1][4] = {{0,1,2,3}};
+  TPZGeoEl *elvec[1];
+  TPZGeoMesh *gmesh = new TPZGeoMesh();
+  int nnode = 4;
+  int nelem = 1;
+  int nod;
+  for(nod=0; nod<nnode; nod++) {
+    int nodind = gmesh->NodeVec().AllocateNewElement();
+    TPZManVector<REAL,2> coord(2);
+    coord[0] = co[nod][0];
+    coord[1] = co[nod][1];
+    gmesh->NodeVec()[nodind].Initialize(nod,coord,*gmesh);
+  }
+
+  int el;
+  for(el=0; el<nelem; el++) {
+    TPZManVector<int,4> nodind(4);
+    for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+    int index;
+    elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
+  }
+
+  gmesh->BuildConnectivity();
+  
+  TPZGeoElBC gbc1(elvec[0],4,-1,*gmesh); // bottom
+  TPZGeoElBC gbc2(elvec[0],5,-1,*gmesh); // right
+  TPZGeoElBC gbc3(elvec[0],6,-1,*gmesh); // right
+  TPZGeoElBC gbc4(elvec[0],7,-1,*gmesh); // top
+  
+  //Refinamento uniforme
+  for(int ref = 0; ref < h; ref++){
+    TPZManVector<TPZGeoEl *> filhos;
+    int n = gmesh->NElements();    
+    for(int i = 0; i < n; i++){
+      TPZGeoEl * gel = gmesh->ElementVec()[i];
+      if (gel->Dimension() == 2) gel->Divide(filhos);
+    }//for i
+  }//ref
+
+  
+  TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+  cmesh->SetDimModel(2);
+  
+  TPZMatPoisson3d * mat = new TPZMatPoisson3d(1,2);
+
+  TPZManVector<REAL,2> convdir(2,0.);
+  mat->SetParameters(1., 0., convdir);
+  mat->SetForcingFunction(Force);
+  
+  int nstate = 1;
+  TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
+  TPZBndCond *bc;  
+  val2.Zero();
+  TPZBndCond * BC = mat->CreateBC(-1, 0, val1, val2);
+  cmesh->InsertMaterialObject(mat);
+  cmesh->InsertMaterialObject(BC);
+
+  cmesh->SetAllCreateFunctionsContinuous();  
+  cmesh->AutoBuild();
+  cmesh->AdjustBoundaryElements();
+  cmesh->CleanUpUnconnectedNodes();
+  cmesh->ExpandSolution();
+  
+  return cmesh;
+}
+void SolExata(TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix &deriv){
+    REAL x = pt[0]; REAL y = pt[1];
+    const REAL Pi = 4. * atan(1.);
+    sol.Resize(1);
+    sol[0] = sin(Pi*x)*sin(Pi*y);
+    deriv.Resize(2,1);
+    deriv(0,0) = Pi * cos(Pi*x) * sin(Pi*y);
+    deriv(1,0) = Pi * cos(Pi*y) * sin(Pi*x);
+}
+
+void Force(TPZVec<REAL> &pt, TPZVec<REAL> &force){
+  REAL x = pt[0];
+  REAL y = pt[1];
+  force.Resize(1);
+  const REAL Pi = 4. * atan(1.);
+  REAL val = 2.*Pi*Pi*sin(Pi*x)*sin(Pi*y)
+             -Pi*Pi*cos(Pi*x)*sin(Pi*x)*sin(Pi*y)
+             -Pi*Pi*cos(Pi*y)*sin(Pi*x)*sin(Pi*y);
+  force[0] = -1. * val;
+}

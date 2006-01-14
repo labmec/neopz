@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: meshes.h,v 1.1 2006-01-10 19:40:31 tiago Exp $
+//$Id: meshes.h,v 1.2 2006-01-14 20:03:42 tiago Exp $
 
 class TPZCompMesh;
 class TPZFMatrix;
@@ -32,3 +32,7 @@ void ExactSol_u(TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix &deriv);
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &force);
 void Forcing2(TPZVec<REAL> &x, TPZVec<REAL> &force);
 void Dirichlet1(TPZVec<REAL> &pt, TPZVec<REAL> &force);
+
+TPZCompMesh * CheckBetaNonConstant(int h, int p);
+void SolExata(TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix &deriv);
+void Force(TPZVec<REAL> &pt, TPZVec<REAL> &force);
