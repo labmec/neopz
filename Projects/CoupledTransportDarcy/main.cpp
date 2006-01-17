@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.2 2006-01-14 20:03:42 tiago Exp $
+//$Id: main.cpp,v 1.3 2006-01-17 11:28:53 tiago Exp $
 
 /**
  * Percolation of water from the fracture into the porous media.
@@ -129,7 +129,7 @@ int main22(){
 
 int main(){   
   TPZMaterial::gBigNumber= 1.e12;
-  TPZCompMesh * cmesh = CheckBetaNonConstant/*CreateSimpleMeshWithExactSolution*/(4,2);
+  TPZCompMesh * cmesh = /*CheckBetaNonConstant*/CreateSimpleMeshWithExactSolution(4,4);
   std::cout << "Numero de elementos = " << cmesh->ElementVec().NElements() << std::endl;
   std::cout << "Numero de equacoes  = " << cmesh->NEquations() << std::endl;
   TPZGeoMesh *gmesh = cmesh->Reference();
@@ -162,7 +162,7 @@ int main(){
 
 #define DIRECT
 #ifdef DIRECT  
-  /*TPZParFrontStructMatrix*//*TPZFrontStructMatrix <TPZFrontNonSym>*/TPZFStructMatrix full(cmesh);
+  /*TPZParFrontStructMatrix*/TPZFrontStructMatrix <TPZFrontNonSym> /*TPZFStructMatrix*/ full(cmesh);
   an.SetStructuralMatrix(full);
   TPZStepSolver step;
    step.SetDirect(ELU);
@@ -172,8 +172,8 @@ int main(){
   TPZCoupledTransportDarcy::SetCurrentMaterial(0);
   std::cout << "\nCalling an.Run() for FirstEq\n";
   an.Run();
-//   an.SetExact(ExactSol_p);
-  an.SetExact(SolExata);
+  an.SetExact(ExactSol_p);
+//  an.SetExact(SolExata);
   TPZVec<REAL> pos;
   an.PostProcess(pos,std::cout);
   std::cout << "Problem solved\n";
@@ -187,14 +187,13 @@ int main(){
   filedx << "1stEq_";
   filedx << "Solution.dx";
   an.DefineGraphMesh(2,scalnames,vecnames,&(filedx.str()[0]));
-  an.PostProcess(4);  
+  an.PostProcess(1);  
   }      
 
-  return 1;
-  
+ 
   TPZCoupledTransportDarcy::SetCurrentMaterial(1);
   std::cout << "\nCalling an.Run() for SecondEq\n";
-    an.Solution().Zero();
+  an.Solution().Zero();
   an.Assemble();
   an.Solution().Zero();
   an.Solve();
@@ -211,7 +210,7 @@ int main(){
   filedx << "2ndEq_";
   filedx << "Solution.dx";
   an.DefineGraphMesh(2,scalnames,vecnames,&(filedx.str()[0]));
-  an.PostProcess(4);  
+  an.PostProcess(1);  
   }    
     
   delete cmesh;

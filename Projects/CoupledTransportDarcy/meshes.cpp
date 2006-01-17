@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.2 2006-01-14 20:03:42 tiago Exp $
+//$Id: meshes.cpp,v 1.3 2006-01-17 11:28:53 tiago Exp $
 
 #include "meshes.h"
 
@@ -776,7 +776,7 @@ TPZCompMesh * CreateSimpleMeshWithExactSolution(int h, int p){
   TPZCoupledTransportDarcyBC * BC = mat->CreateBC(-1);
   
   bc = FirstEq->CreateBC(-2, 0,val1,val2);
-  bc->SetForcingFunction(Dirichlet1);
+//  bc->SetForcingFunction(Dirichlet1);
   BC->SetMaterial(0, bc);
   
   val2(0,0) = 1.;
@@ -804,10 +804,10 @@ void ExactSol_p(TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix &deriv){
   deriv(0,0) = (-1.+x)*(-1.+y)*y+x*(-1.+y)*y;
   deriv(1,0) = (-1.+x)*x*(-1.+y)+(-1.+x)*x*y;
   
-  /************/
-  sol[0] = x*y;
-  deriv(0,0) = y;
-  deriv(1,0) = x;  
+//   /************/
+//   sol[0] = x*y;
+//   deriv(0,0) = y;
+//   deriv(1,0) = x;  
 }
 
 void ExactSol_u(TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix &deriv){
@@ -819,21 +819,21 @@ void ExactSol_u(TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix &deriv){
   deriv(0,0) = (-1.+x)*(-1.+y)*y+x*(-1.+y)*y;
   deriv(1,0) = (-1.+x)*x*(-1.+y)+(-1.+x)*x*y;
   
-  /*********/
-  REAL val = x*y*(x - 1.)*(y - 1.) + 1.;
-  sol[0] = val;
-  val = (-1.+x)*(-1.+y)*y+(-1.+y)*x*y;
-  deriv(0,0) = val;
-  val = (-1.+x)*(-1.+y)*x+(-1.+x)*x*y;
-  deriv(1,0) = val;  
+//   /*********/
+//   REAL val = x*y*(x - 1.)*(y - 1.) + 1.;
+//   sol[0] = val;
+//   val = (-1.+x)*(-1.+y)*y+(-1.+y)*x*y;
+//   deriv(0,0) = val;
+//   val = (-1.+x)*(-1.+y)*x+(-1.+x)*x*y;
+//   deriv(1,0) = val;  
 }
 
-void Dirichlet1(TPZVec<REAL> &pt, TPZVec<REAL> &force){
-  REAL x = pt[0];
-  REAL y = pt[1];
-  force.Resize(1);
-  force[0] = x*y;
-}
+// void Dirichlet1(TPZVec<REAL> &pt, TPZVec<REAL> &force){
+//   REAL x = pt[0];
+//   REAL y = pt[1];
+//   force.Resize(1);
+//   force[0] = x*y;
+// }
   
 void Forcing1(TPZVec<REAL> &pt, TPZVec<REAL> &force){
   REAL x = pt[0];
@@ -842,22 +842,23 @@ void Forcing1(TPZVec<REAL> &pt, TPZVec<REAL> &force){
   force[0] = -2.*(-1.+x)*x-2.*(-1.+y)*y;
   force[0] *= -1.;
 
-  /**************/  
-  force[0] = 0.;
+//   /**************/  
+//   force[0] = 0.;
 }
 
 void Forcing2(TPZVec<REAL> &pt, TPZVec<REAL> &force){
   REAL x = pt[0];
   REAL y = pt[1];
   force.Resize(1);
-  force[0] = 0.5*(-2.*(-1.+x)*x-2.*(-1.+y)*y) 
-             -(1./3.)*((-1.+x)*(-1.+y)*y+x*(-1.+y)*y) * ((-1.+x)*(-1.+y)*y+x*(-1.+y)*y);
+  force[0] = x-x*x+y-y*y+(1./3.)*(-1.*(-1.+x)*(-1.+x)*x*x*(1.-2.*y)*(1.-2.*y)
+  -(1.-2.*x)*(1.-2.*x)*(-1.+y)*(-1.+y)*y*y);
   force[0] *= -1.;
   
-  /**************/
-  REAL val = 1./2.*(-2.*(-1.+x)*x-2.*(-1.+y)*y)
-            -1./3.*y*((-1.+x)*(-1.+y)*y+x*(-1.+y)*y);
-  force[0] = -1. * val;
+  
+//   /**************/
+//   REAL val = 1./2.*(-2.*(-1.+x)*x-2.*(-1.+y)*y)
+//             -1./3.*y*((-1.+x)*(-1.+y)*y+x*(-1.+y)*y);
+//   force[0] = -1. * val;
 }
 
 
@@ -928,8 +929,8 @@ TPZCompMesh * CheckBetaNonConstant(int h, int p){
   cmesh->SetAllCreateFunctionsContinuous();  
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
-  cmesh->CleanUpUnconnectedNodes();
-  cmesh->ExpandSolution();
+//   cmesh->CleanUpUnconnectedNodes();
+//   cmesh->ExpandSolution();
   
   return cmesh;
 }
@@ -943,13 +944,15 @@ void SolExata(TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix &deriv){
     deriv(1,0) = Pi * cos(Pi*y) * sin(Pi*x);
 }
 
+std::ofstream forcefile("force.txt");
 void Force(TPZVec<REAL> &pt, TPZVec<REAL> &force){
   REAL x = pt[0];
   REAL y = pt[1];
   force.Resize(1);
   const REAL Pi = 4. * atan(1.);
   REAL val = 2.*Pi*Pi*sin(Pi*x)*sin(Pi*y)
-             -Pi*Pi*cos(Pi*x)*sin(Pi*x)*sin(Pi*y)
-             -Pi*Pi*cos(Pi*y)*sin(Pi*x)*sin(Pi*y);
+             +Pi*x*cos(Pi*x)*sin(Pi*y)
+             +Pi*y*cos(Pi*y)*sin(Pi*x);
   force[0] = -1. * val;
+  forcefile << std::setprecision(15) << x << "\t" << std::setprecision(15) << y << "\t" << std::setprecision(15) << val << std::endl;
 }

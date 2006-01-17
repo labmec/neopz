@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcy.h,v 1.1 2006-01-10 19:37:51 tiago Exp $
+//$Id: pzcoupledtransportdarcy.h,v 1.2 2006-01-17 11:27:44 tiago Exp $
 
 #ifndef MATCOUPLEDTRANSPDARCY
 #define MATCOUPLEDTRANSPDARCY
@@ -38,6 +38,9 @@ class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {
   TPZMatPoisson3d * fMaterials[2];
   
   static int gCurrentEq;
+  
+  void UpdateConvectionDir(TPZFMatrix &dsol);
+  void UpdateConvectionDirInterface(TPZFMatrix &dsolL, TPZFMatrix &dsolR);
   
 public:
 
