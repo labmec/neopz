@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcy.h,v 1.2 2006-01-17 11:27:44 tiago Exp $
+//$Id: pzcoupledtransportdarcy.h,v 1.3 2006-01-18 15:14:54 tiago Exp $
 
 #ifndef MATCOUPLEDTRANSPDARCY
 #define MATCOUPLEDTRANSPDARCY
@@ -39,9 +39,6 @@ class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {
   
   static int gCurrentEq;
   
-  void UpdateConvectionDir(TPZFMatrix &dsol);
-  void UpdateConvectionDirInterface(TPZFMatrix &dsolL, TPZFMatrix &dsolR);
-  
 public:
 
   virtual TPZBndCond *CreateBC(int id, int typ, TPZFMatrix &val1,TPZFMatrix &val2){
@@ -53,6 +50,10 @@ public:
   static void SetCurrentMaterial(const int i);
   
   static int CurrentEquation();
+  
+  void UpdateConvectionDir(TPZFMatrix &dsol);
+  
+  void UpdateConvectionDirInterface(TPZFMatrix &dsolL, TPZFMatrix &dsolR);  
   
   virtual int HasForcingFunction() {return this->GetCurrentMaterial()->HasForcingFunction();}
   

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcyBC.h,v 1.1 2006-01-10 19:37:51 tiago Exp $
+//$Id: pzcoupledtransportdarcyBC.h,v 1.2 2006-01-18 15:14:54 tiago Exp $
 
 #ifndef MATCOUPLEDTRANSPDARCYBC
 #define MATCOUPLEDTRANSPDARCYBC
@@ -28,6 +28,9 @@ protected:
     PZError << "Error! - "  << __PRETTY_FUNCTION__ << std::endl;
     exit (-1);
   }
+  
+  void UpdateConvectionDir(TPZFMatrix &dsol);
+  void UpdateConvectionDirInterface(TPZFMatrix &dsolL, TPZFMatrix &dsolR, TPZFMatrix &phiL, TPZFMatrix &phiR);
   
 public :
 
