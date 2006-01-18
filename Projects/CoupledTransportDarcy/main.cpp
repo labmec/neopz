@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.3 2006-01-17 11:28:53 tiago Exp $
+//$Id: main.cpp,v 1.4 2006-01-18 15:22:12 tiago Exp $
 
 /**
  * Percolation of water from the fracture into the porous media.
@@ -77,8 +77,8 @@
 #include <time.h>
 #include <stdio.h>
 #include "meshes.h"
-#include "postprocess.h"
 #include "pzcoupledtransportdarcy.h"
+#include "TPZTimer.h"
 
 using namespace pzgeom;
 using namespace pzshape;
@@ -86,50 +86,38 @@ using namespace pzrefine;
 using namespace std;
  
 int main22(){
-  
-  {
-  REAL L = 1.;
-  const int n = 100;
-  std::ofstream file("KRebocoVal1.txt");
-  TPZVec<REAL> x(2, 0.0);
-  TPZFMatrix result(1,1,0.);
-  file << "{ ";
-  for(int i = 0; i <= n; i++){
-    if (i == 80){
-      std::cout << "Para ai, tiago";
-    }
-    x[0] = i * (L / n);
-    KRebocoVal1(x, result);
-    file << "{ " << x[0] << ", " << result(0,0) << " }";    
-    if (i != n) file << ", ";
+  TPZFMatrix A(4,4), B(4,4), C(4,4);
+  A(0,0) = 1.;
+  A(0,1) = 2.;
+  A(1,0) = 3.;
+  A(1,1) = 4.;
+  A(2,2) = 3.;
+  A(3,3) = 4.;
+   
+  int p;
+  for(p = 0; p < 3; p++){
+    B = A;  B.SetIsDecomposed(ENoDecompose);
+    cout << "p = " << p << " - " << B.ConditionNumber(p, 200000, 1.e-14) << endl;
+    B = A;  B.SetIsDecomposed(ENoDecompose);
+    B.Inverse(C);   B = A;  B.SetIsDecomposed(ENoDecompose);
+    cout << B.MatrixNorm(p) << "  " << C.MatrixNorm(p, 200000, 1.e-14) << endl;
   }
-  file << " }; ";
-  }
-  
-  {
-  REAL L = 1.;
-  const int n = 100;
-  std::ofstream file("KRebocoVal2.txt");
-  TPZVec<REAL> x(2, 0.0);
-  TPZVec<REAL> result(1,0.);
-  file << "{ ";
-  for(int i = 0; i <= n; i++){
-    if (i == 80){
-      std::cout << "Para ai, tiago";
-    }
-    x[0] = i * (L / n);
-    KRebocoVal2(x, result);
-    file << "{ " << x[0] << ", " << result[0] << " }";    
-    if (i != n) file << ", ";
-  }
-  file << " }; ";
-  }  
-  
-}
+}//main
 
 int main(){   
+
+  int h, p;
+  cout << "h p\n";
+  cin >> h;
+  cin >> p;
+
+  TPZShapeLinear::fOrthogonal = TPZShapeLinear::Jacobi;
+  TPZTimer WholeTime;
+  WholeTime.start();
+
   TPZMaterial::gBigNumber= 1.e12;
-  TPZCompMesh * cmesh = /*CheckBetaNonConstant*/CreateSimpleMeshWithExactSolution(4,4);
+  cout << "h = " << h << " - p = " << p << endl;
+  TPZCompMesh * cmesh = /*CheckBetaNonConstant*/CreateSimpleMeshWithExactSolution2(h,p);
   std::cout << "Numero de elementos = " << cmesh->ElementVec().NElements() << std::endl;
   std::cout << "Numero de equacoes  = " << cmesh->NEquations() << std::endl;
   TPZGeoMesh *gmesh = cmesh->Reference();
@@ -139,41 +127,49 @@ int main(){
 //#define ITER_SOLVER
 #ifdef ITER_SOLVER
   cout << "ITER_SOLVER" << endl;  
-  TPZSpStructMatrix full(cmesh);
+  /*TPZFStructMatrix*/ /*TPZSpStructMatrix*/ TPZBandStructMatrix full(cmesh);
   an.SetStructuralMatrix(full);  
   TPZStepSolver step( full.Create() );
   an.SetSolver(step);  
-
-#define Precond
-#ifdef Precond
-      TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EElement , false);
-      step.SetGMRES( 2000000, 30, *precond, 1.e-15, 0 ); 
-      delete precond;
-#else
-// Sem pre-condicionador 
-     TPZCopySolve precond( full.Create() );
-     step.ShareMatrix( precond );  
-     step.SetGMRES( 2000000, 30, precond, 1.e-15, 0 ); 
-     cout << "SEM PRECOND" << endl;
-#endif  
-  
+  REAL tol = 1.e-11;
+  /*TPZStepSolver*/ TPZCopySolve precond( full.Create() );
+  REAL precondtol = 1.E-20;
+//  precond.SetSSOR( 1, 1., precondtol, 0);     
+//  precond.SetJacobi(1, precondtol, 0);
+  step.ShareMatrix( precond );  
+  step.SetGMRES( 20000, 30, precond, 1.e-11, 0 ); 
+  cout << "SSOR/JACOBI PRECOND" << endl;
   an.SetSolver(step);
-#endif
+#endif  
 
 #define DIRECT
 #ifdef DIRECT  
-  /*TPZParFrontStructMatrix*/TPZFrontStructMatrix <TPZFrontNonSym> /*TPZFStructMatrix*/ full(cmesh);
+  /*TPZParFrontStructMatrix*/TPZFrontStructMatrix <TPZFrontNonSym>/*TPZFStructMatrix*//*TPZBandStructMatrix*/ full(cmesh);
+  full.Create();
   an.SetStructuralMatrix(full);
   TPZStepSolver step;
    step.SetDirect(ELU);
   an.SetSolver(step);
 #endif
 
+  std::cout << "Numero de equacoes = " << an.Mesh()->NEquations() << std::endl;
+
   TPZCoupledTransportDarcy::SetCurrentMaterial(0);
   std::cout << "\nCalling an.Run() for FirstEq\n";
-  an.Run();
-  an.SetExact(ExactSol_p);
-//  an.SetExact(SolExata);
+  an.Assemble();
+  for(int ii = 0; ii < 0*3; ii++)
+  {
+    TPZMatrix * fmat = step.Matrix();
+    ofstream matrizfile("matriz.txt");
+    fmat->Print("", matrizfile,EMathematicaInput);
+    matrizfile.flush();
+    int n = fmat->Rows();
+    TPZFMatrix cp(n,n);
+    for(int i = 0; i < n; i++) for(int j = 0; j < n; j++) cp(i,j) = fmat->Get(i,j);
+    cout << " CN[" << ii << "] = " << cp.ConditionNumber(ii, 20000, 1e-10) << endl;
+  }  
+  an.Solve();
+  an.SetExact(ExactSol_p); //  an.SetExact(SolExata);
   TPZVec<REAL> pos;
   an.PostProcess(pos,std::cout);
   std::cout << "Problem solved\n";
@@ -187,17 +183,16 @@ int main(){
   filedx << "1stEq_";
   filedx << "Solution.dx";
   an.DefineGraphMesh(2,scalnames,vecnames,&(filedx.str()[0]));
-  an.PostProcess(1);  
+  an.PostProcess(p);  
   }      
 
- 
   TPZCoupledTransportDarcy::SetCurrentMaterial(1);
   std::cout << "\nCalling an.Run() for SecondEq\n";
   an.Solution().Zero();
   an.Assemble();
   an.Solution().Zero();
   an.Solve();
-  an.SetExact(ExactSol_u);
+  /*an.SetExact(ExactSol_u);*/ an.SetExact(ExactSol_u2);
   an.PostProcess(pos,std::cout);  
   std::cout << "Problem solved\n";  
    
@@ -210,9 +205,15 @@ int main(){
   filedx << "2ndEq_";
   filedx << "Solution.dx";
   an.DefineGraphMesh(2,scalnames,vecnames,&(filedx.str()[0]));
-  an.PostProcess(1);  
+  an.PostProcess(p);  
   }    
     
+  WholeTime.stop();
+  cout.flush();
+  std::cout << "Numero de equacoes = " << an.Mesh()->NEquations() << std::endl;
+  cout << WholeTime << endl;
+  cout << "Banda = " << cmesh->BandWidth() << endl;
+  
   delete cmesh;
   delete gmesh;
   return 0; 

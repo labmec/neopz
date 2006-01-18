@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = main.cpp meshes.cpp postprocess.cpp
+main_SOURCES = main.cpp meshes.cpp
 
 
 ## --| NeoPZ |------------------------------------------------------------------
