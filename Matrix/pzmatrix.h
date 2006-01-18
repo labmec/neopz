@@ -175,6 +175,39 @@ public:
    * It makes *T the transpose of current matrix.
    */ 
   virtual void Transpose(TPZMatrix *const T) const;
+
+  /**
+   * It makes Inv = Inverse[this].
+   */  
+  int Inverse(TPZFMatrix &Inv);
+  
+  /** 
+   * Computes the matrix norm of this
+   * It is available p-norm = 1, 2 and infinity.
+   * p=1 is the maximum absolute column sum norm
+   * p=2 is the spectral norm wich is the square root of the maximum eigenvalue of Tranpose[this].this
+   * p=infinity is the maximum absolute row sum norm - p infinity is implemented with p = 0
+   * These operations are defined on the website of the Mathematica software:
+   * http://mathworld.wolfram.com/MatrixNorm.html
+   * Be careful when choosing 2-norm. It has a high computational cost.
+   * @param numiter is used by 2-norm calculation in the SolveEigenvaluesJacobi method required to compute the maximum eigenvalue
+   * @param tol - same of numiter
+   */
+  REAL MatrixNorm(int p, int numiter = 2000000, REAL tol = 1.e-10) const;
+  
+  /** 
+   * Computes the matrix condition number of this
+   * It is available p-norm = 1, 2 and infinity.
+   * p=1 is the maximum absolute column sum norm
+   * p=2 is the spectral norm wich is the square root of the maximum eigenvalue of Tranpose[this].this
+   * p=infinity is the maximum absolute row sum norm - p infinity is implemented with p = 0
+   * These operations are defined on the website of the Mathematica software:
+   * http://mathworld.wolfram.com/MatrixNorm.html
+   * All norms require the computation of the inverse matrix. 
+   * It has a high computational cost and a high memory requirement.
+   */
+  REAL ConditionNumber(int p, int numiter = 2000000, REAL tol = 1.e-10);  
+  
   //@}
 
   /**

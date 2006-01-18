@@ -651,6 +651,7 @@ void TPZMatrix::SolveSSOR(int &numiterations, const TPZFMatrix &F,
 		res = tol;
       fromcurrent = 1;
 		SolveSOR(one,F,result,residual,scratch,overrelax,res,fromcurrent,-1);
+//                cout << "SSOR iter = " << i <<  " res = " << res << endl;
 	}
 	numiterations = i;
 	tol = res;
@@ -1219,11 +1220,100 @@ bool TPZMatrix::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<RE
 
 }//method
 
+REAL TPZMatrix::MatrixNorm(int p, int numiter, REAL tol) const{
+  const int n = this->Rows();
+  if (!n) return 0.;
+  if (n != this->Cols()){
+    PZError << __PRETTY_FUNCTION__
+            << " - matrix must be square - Rows() = " 
+            << this->Rows() << " - Cols() = " 
+            << this->Cols() << std::endl;
+  }
+  switch(p){
+    case 0:{
+      REAL max = 0.;
+      int i, j;
+      for(i = 0; i < n; i++){
+        REAL sum = 0.;
+        for(j = 0; j < n; j++) sum += fabs( this->Get(i,j) );
+        if (sum > max) max = sum;
+      }
+      return max;
+    }
+    case 1:{
+      REAL max = 0.;
+      int i, j;
+      for(i = 0; i < n; i++){
+        REAL sum = 0.;
+        for(j = 0; j < n; j++) sum += fabs( this->Get(j,i) );
+        if (sum > max) max = sum;
+      }
+      return max;    
+    }
+    case 2:{
+      TPZFMatrix transp(n,n);
+      int i, j, k;
+      //TRANSPOSE
+      for(i = 0; i < n; i++) for(j = 0; j < n; j++) transp(i,j) = this->Get(j,i);
+      //MULTIPLY transp = transp.this
+      TPZVec<REAL> ROW(n);
+      for(i = 0; i < n; i++){
+        for(j = 0; j < n; j++) ROW[j] = transp(i,j);
+        for(j = 0; j < n; j++){
+          REAL sum = 0.;
+          for(k = 0; k < n; k++){
+            sum += ROW[k] * this->Get(k,j);
+          }//for k
+          transp(i,j) = sum;
+        }//for j
+      }//for i
+      
+      TPZVec<REAL> EigenVal;
+      bool result = transp.SolveEigenvaluesJacobi(numiter, tol, &EigenVal);
+      if (result == false) PZError << __PRETTY_FUNCTION__ 
+                                   << " - it was not possible to find Eigenvalues. Iterations = " 
+                                   << numiter << " - error found = " << tol << std::endl;
+      return sqrt(EigenVal[0]);
+    }//case 2
+    default:{
+      PZError << __PRETTY_FUNCTION__ << " p = " << p << " is not a correct option" << std::endl;
+    }
+  }//switch
+}//method
 
+int TPZMatrix::Inverse(TPZFMatrix &Inv){
+  const int n = this->Rows();
+  if (!n) return 0;
+  if (n != this->Cols()){
+    PZError << __PRETTY_FUNCTION__
+            << " - matrix must be square - Rows() = " 
+            << this->Rows() << " - Cols() = " 
+            << this->Cols() << std::endl;
+    return 0;
+  }
 
+  Inv.Redim(n,n);
+  Inv.Zero();
+  int i;
+  for(i = 0; i < n; i++) Inv(i,i) = 1.;
+  
+  const int issimetric = this->IsSimetric();
+  if (issimetric)  return this->SolveDirect(Inv, ELDLt);
+  if (!issimetric) return this->SolveDirect(Inv, ELU);
+}//method
 
-
-
+REAL TPZMatrix::ConditionNumber(int p, int numiter, REAL tol){
+  int localnumiter = numiter;
+  REAL localtol = tol;
+  TPZFMatrix Inv;
+  REAL thisnorm = this->MatrixNorm(p, localnumiter, localtol);
+  if (!this->Inverse(Inv)){
+    PZError << __PRETTY_FUNCTION__ << " - it was not possible to compute the inverse matrix." << std:: endl;
+    return 0.;
+  }
+  REAL invnorm = Inv.MatrixNorm(p, numiter, tol);
+  return thisnorm * invnorm;
+}
 
 
 
