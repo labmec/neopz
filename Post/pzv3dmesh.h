@@ -12,6 +12,10 @@ public:
 
 	TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial *mat);
   TPZV3DGraphMesh(TPZCompMesh *cmesh,int dim,TPZV3DGraphMesh *graph,TPZMaterial *mat = 0);
+  
+        virtual ~TPZV3DGraphMesh()
+        {
+        }
 
 virtual void DrawMesh(int numcases);
 	// Draw the nodal coordinates and the connectivity
