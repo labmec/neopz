@@ -1,4 +1,4 @@
-//$Id: PreCond.cpp,v 1.2 2005-12-05 18:20:42 tiago Exp $
+//$Id: PreCond.cpp,v 1.3 2006-01-23 16:51:10 phil Exp $
 
 /**
  * This project test some preconditioners for 3D elastic problems.
@@ -42,8 +42,10 @@
 #include "pzadmchunk.h"
 
 #include "pzbndcond.h"
-
+#include "pzelast3d.h"
+#include "pzblockdiag.h"
 #include "pzvisualmatrix.h"
+#include "cg.h"
 
 #include <time.h>
 #include <stdio.h>
@@ -101,10 +103,11 @@ TPZMaterial::gBigNumber= 1.e6;
 //TPZCompEl::fOrthogonal = TPZCompEl::Chebyshev;
 //TPZShapeLinear::fOrthogonal = TPZCompEl::Chebyshev;
 
+//  TPZBlockDiagonal::main();
   int nmaxeq = 500000;//numero maximo de equacoes do problema
   int h, p;
   for(p = 2; p < 3; p++){
-    for(h =4; h < 5; h++){
+    for(h =2; h < 3; h++){
       TPZCompEl::gOrder = p;
 
       TPZCompMesh *cmesh;
@@ -151,7 +154,9 @@ TPZMaterial::gBigNumber= 1.e6;
       REAL tol = 1.e-10;
      
       //Com precondicionador
-      //TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EBlockJacobi , false);
+      //TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EBlockJacobi , true);
+      TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EElement , true);
+//      TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::ENodeCentered , false);
       // Sem pre-condicionador 
       //TPZCopySolve * precond = new TPZCopySolve( Matrix.Create() );  step.ShareMatrix( *precond );  
       //Precondicionador jacobi
@@ -159,7 +164,8 @@ TPZMaterial::gBigNumber= 1.e6;
       //TPZStepSolver * precond = new TPZStepSolver( Matrix.Create() ); step.ShareMatrix( *precond ); precond->SetSOR(1, 0.0, 0);
       //TPZStepSolver * precond = new TPZStepSolver( Matrix.Create() ); step.ShareMatrix( *precond ); precond->SetSSOR(1,1., 0.0, 0);
       TPZStepSolver jac;
-      jac.SetJacobi(1,0.,0);
+      jac.SetSSOR(1,1.1,0.,0);
+//      jac.SetJacobi(1,0.,0);
       jac.ShareMatrix(step);
 
       TPZCounter before (TPZFlopCounter::gCount);
@@ -168,13 +174,13 @@ TPZMaterial::gBigNumber= 1.e6;
       //step.SetGMRES( 2000, 2000, jac, tol, 0 ); 
       //step.SetGMRES(  an.Mesh()->NEquations() + 2,  an.Mesh()->NEquations() + 1, *precond, tol, 0 ); 
       //step.CGown(&A, &x, &b, &max_iter, Real &tol)
-      //step.SetCGown(1000, *precond, tol, 0);
-      step.SetCG(100000, jac, tol, 0);
+      step.SetCG(200, *precond, tol, 0);
+      //step.SetCG(100, jac, tol, 0);
       //step.SetCG( an.Mesh()->NEquations() + 2, *precond, tol,0);
 
       an.SetSolver(step);
       
-      //delete precond;
+      delete precond;
 #endif
 
       //Isso nao serve pra nada. Eh so pra evitar de tentar resolver problemas muito grandes. 
@@ -185,7 +191,7 @@ TPZMaterial::gBigNumber= 1.e6;
 	delete cmesh;
 	delete gmesh;
 	break;
-      } 
+      }
 
       //Resolve o problema
       cout << "p = " << p << " h = " << h << endl;
@@ -263,16 +269,19 @@ TPZCompMesh * CreateSimpleMesh(int h){
       TPZFMatrix axes(3,3,0.0); axes(0,0) = 1.; axes(1,1) = 1., axes(2,2) = 1.;
       REAL E = 205000.;
       REAL poisson = 0.3;
-      REAL G = 79000.;
+//      REAL G = 79000.;
 //       TPZMatOrthotropic* mat = new TPZMatOrthotropic(1, axes, E, E, E, poisson, poisson, poisson, G, G, G);
 //       TPZFMatrix bodyforces(3,1,0.0);
 //       bodyforces(2,0) = 0.08;
 //       mat->SetMaterial(bodyforces);
 
-        TPZMatPoisson3d *mat = new TPZMatPoisson3d(1, 3);
-        TPZVec<REAL> dir(3, 0.);
-        mat->SetParameters(1., 0., dir);  
-        mat->SetInternalFlux(1.0);
+
+  TPZVec<REAL> force(3,1.);
+  TPZElasticity3D *mat = new TPZElasticity3D(1,E,poisson,force);
+//        TPZMatPoisson3d *mat = new TPZMatPoisson3d(1, 3);
+//        TPZVec<REAL> dir(3, 0.);
+//        mat->SetParameters(1., 0., dir);  
+//        mat->SetInternalFlux(1.0);
 
   int nstate = mat->NStateVariables();
   TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
