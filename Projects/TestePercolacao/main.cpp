@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.3 2005-12-06 13:37:24 tiago Exp $
+//$Id: main.cpp,v 1.4 2006-01-23 16:51:36 phil Exp $
 
 /**
  * Percolation of water from the fracture into the porous media.
@@ -123,7 +123,7 @@ int main22(){
   }
   file << " }; ";
   }  
-  
+  return 0;
 }
 
 int main(){   

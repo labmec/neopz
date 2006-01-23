@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.2 2005-12-21 12:00:31 tiago Exp $
+//$Id: main.cpp,v 1.3 2006-01-23 16:55:34 phil Exp $
 
 /**
  * This program tests the methods TPZCompEl::Coarsen and TPZCompEl::Divide acting on TPZInterpolatedElement and acting on TPZCompElDisc
@@ -480,11 +480,11 @@ TPZCompMesh * mesh(TIPO tipo, const int ndivision, const int ncoarsen){
     for(int iel = 0; iel < n; iel++){
       TPZCompEl * cel = CopyElVec[iel];
       if (!cel) continue;      
-      MElementType tipoel = cel->Type();
-      int index = cel->Index();
+//      MElementType tipoel = cel->Type();
+//      int index = cel->Index();
       TPZGeoEl * father = cel->Reference()->Father();
       if (!father) continue;
-      int ID = father->Id();
+//      int ID = father->Id();
       int nsub = father->NSubElements();
       TPZManVector<int,4> subindices(nsub);
       bool CreateDiscontinuous = false;

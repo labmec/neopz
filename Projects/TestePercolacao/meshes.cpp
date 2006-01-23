@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.2 2005-12-06 13:37:24 tiago Exp $
+//$Id: meshes.cpp,v 1.3 2006-01-23 16:51:54 phil Exp $
 
 #include "meshes.h"
 
@@ -49,7 +49,7 @@ void SetPOrder(int p){
 TPZCompMesh * CreateMesh_TriangularDomain_ComoPhilippeQuer(int h, int SingH, int p){
   REAL L = 1.;
   const int numero = 4;
-  const int nInf = pow(2,numero);
+  const int nInf = 2 << numero;
   std::cout << "\n\n**************************************" << std::endl;
   std::cout << "nInf = " << nInf << std::endl;
   std::cout << "**************************************\n\n" << std::endl;
@@ -231,7 +231,7 @@ TPZCompMesh * CreateMesh_TriangularDomain_ComoPhilippeQuer(int h, int SingH, int
 TPZCompMesh * CreateMesh_TriangularDomain_ComoPhilippeQuer_Adimensional(int h, int SingH, int p){
   REAL L = 1.;
   const int numero = 4;
-  const int nInf = pow(2,numero);
+  const int nInf = 2 << numero;
   std::cout << "\n\n**************************************" << std::endl;
   std::cout << "nInf = " << nInf << std::endl;
   std::cout << "**************************************\n\n" << std::endl;
@@ -412,7 +412,7 @@ TPZCompMesh * CreateMesh_TriangularDomain_ComoPhilippeQuer_Adimensional(int h, i
 TPZCompMesh * CreateMesh_ComoPhilippeQuer_Adimensional_Sem_Simetria(int h, int SingH, int p){
   REAL L = 1.;
   const int numero = 4;
-  const int nInf = pow(2,numero);
+  const int nInf = 2 << numero;
   std::cout << "\n\n**************************************" << std::endl;
   std::cout << "nInf = " << nInf << std::endl;
   std::cout << "**************************************\n\n" << std::endl;
