@@ -37,6 +37,10 @@ static std::map<int,TPZRestore_t> gMap;
 
 public:
 
+virtual ~TPZSaveable()
+{
+}
+
 virtual int ClassId() const ;
 
 virtual void Write(TPZStream &buf, int withclassid);
