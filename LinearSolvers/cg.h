@@ -18,6 +18,11 @@
 //      tol  --  the residual after the final iteration
 //
 //*****************************************************************
+//#define TEST
+
+#ifdef TEST
+#include <list> 
+#endif
 
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int
@@ -31,6 +36,14 @@ CG(const Matrix &A, Vector &x, const Vector &b,
   Real normb = Norm(b);
   Vector resbackup;
   Vector *res = residual;
+  
+#ifdef TEST
+  std::list< TPZFMatrix > plist,qlist;
+  std::list< TPZFMatrix >::iterator jt;
+  std::list< TPZFMatrix >::iterator kt;
+  Vector Au;
+#endif
+  
   if(!res) res = &resbackup;
   Vector &r = *res;
 //  Vector r = b - A*x;
@@ -61,28 +74,56 @@ CG(const Matrix &A, Vector &x, const Vector &b,
 		p.TimesBetaPlusZ(beta,z);
 //		p = z + beta * p;
 	 }
+#ifdef TEST
+	 
+	 plist.push_back(p);
+#endif	 
 
 //	 q = A*p;
 	 A.Multiply(p,q);
 	 alpha = rho / Dot(p, q);
 
+#ifdef TEST
+         qlist.push_back(q);
+#endif
+
 //	 x += alpha * p;
 //	 r -= alpha * q;
 	 x.ZAXPY(alpha,p);
 	 r.ZAXPY(-alpha,q);
+	 
+#ifdef TEST
+	 A.Multiply(x,Au);
+	 REAL energy = Dot(x,Au)/2.-Dot(x,b);
+#endif
 
 	 if ((resid = Norm(r) / normb) <= tol) {
 		tol = resid;
 		max_iter = i;
-		cout << "cg iter = " << i <<  " res = " << resid << endl;
+		std::cout << "cg iter = " << i <<  " res = " << resid << std::endl;
 		return 0;
 	 }
-// 	 cout << "cg iter = " << i <<  " res = " << resid << endl;
+ 	 std::cout << "cg iter = " << i <<  " res = " << resid /*<< " energy " << energy */ << std::endl;
+#ifdef TEST
+         std::cout << " energy " << energy << std::endl;
+ 	 TPZFMatrix inner(plist.size(),plist.size(),0.);
+ 	 {
+           int j,k;
+           for(j=0, jt = plist.begin(); jt != plist.end(); jt++,j++)
+           {
+              for(k=0, kt = qlist.begin(); kt != qlist.end(); kt++,k++)
+              {
+                inner(j,k) = Dot((*jt),(*kt));
+              }
+           }
+ 	 }
+ 	 inner.Print("Inner product of search directions");
+#endif
 	 rho_1 = rho;
   }
 
   tol = resid;
-  cout << "cg iter = " << i <<  " res = " << resid << endl;
+  std::cout << "cg iter = " << i <<  " res = " << resid << std::endl;
   return 1;
 }
 
