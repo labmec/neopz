@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.21 2005-04-25 02:31:48 phil Exp $
+//$Id: pzgmesh.cpp,v 1.22 2006-01-23 12:18:15 heman Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -86,6 +86,133 @@ void TPZGeoMesh::SetName (char *nm) {
 //  }
 }
 
+
+// void TPZGeoMesh::PatternSidesFile(std::ofstream &filename){
+// 
+//   int count=0;
+//   filename << std::endl;
+//   filename << std::endl;
+//   std::map< MElementType,list<TPZRefPattern *> >::iterator first = fRefPatterns.begin();
+//   std::map< MElementType,list<TPZRefPattern *> >::iterator last = fRefPatterns.end();
+//   std::map< MElementType,list<TPZRefPattern *> >::iterator iter;
+//   for (iter = first; iter != last; iter++){
+//     list<TPZRefPattern *> &map_el = (*iter).second;
+//     list<TPZRefPattern *>::iterator name_first = map_el.begin();
+//     list<TPZRefPattern *>::iterator name_last = map_el.end();
+//     list<TPZRefPattern *>::iterator name_iter;
+//     for(name_iter = name_first; name_iter != name_last; name_iter++){
+//       TPZRefPattern *refpat = (*name_iter);
+//       TPZGeoEl *elemento = refpat->Element(0);
+//       int nsides = elemento->NSides();
+//       TPZVec<int> indices;
+//       //TPZVec<int> selected(nsides,0);
+//       filename << "Novo Padrao" << std::endl;
+//       filename << "Tipo do elemento " << elemento->Type() << std::endl;
+//       filename << "Lados refinados " ;
+//       for (int p=0 ; p<nsides; p++){
+//         if (elemento->SideDimension(p)==1){
+//           int referencia = refpat->NSideNodes(p);
+//           //elemento->MidSideNodeIndices(p,indices);
+//           if (referencia!=0){
+//              //selected[p]=1;
+//             filename << p << " ";
+//           }
+//         }
+//       }
+//       //std::ofstream teste("refpatterns_geral.txt");
+//       //refpat->CreateFile(filename);
+//       count++;
+//       //delete refpat;
+//       filename << std::endl ;
+//     }
+//   }
+//   filename.seekp (0);
+//   filename << count ;
+//   /*filename << std::endl;*/
+// 
+// }
+
+void TPZGeoMesh::PatternSidesFile(std::ofstream &filename){
+
+  int count=0;
+  filename << std::endl;
+  filename << std::endl;
+  std::map< MElementType,list<TPZRefPattern *> >::iterator first = fRefPatterns.begin();
+  std::map< MElementType,list<TPZRefPattern *> >::iterator last = fRefPatterns.end();
+  std::map< MElementType,list<TPZRefPattern *> >::iterator iter;
+  for (iter = first; iter != last; iter++){
+    list<TPZRefPattern *> &map_el = (*iter).second;
+    list<TPZRefPattern *>::iterator name_first = map_el.begin();
+    list<TPZRefPattern *>::iterator name_last = map_el.end();
+    list<TPZRefPattern *>::iterator name_iter;
+    for(name_iter = name_first; name_iter != name_last; name_iter++){
+      TPZRefPattern *refpat = (*name_iter);
+      refpat->ShortPrint(filename);
+      count++;
+      filename << std::endl ;
+    }
+  }
+  //filename.seekp (0);
+  //filename << count ;
+  /*filename << std::endl;*/
+
+}
+  
+void TPZGeoMesh::PatternFileLoad(std::ifstream &file){
+  int i,k;
+  file >> k ;
+  std::vector<TPZRefPattern *> collect(k);
+  for(i=0; i<k; i++)
+  {
+    collect[i] = new TPZRefPattern();
+  }
+  for(i=0; i<k; i++){
+//    std::cout << i+1 << endl;
+    collect[i]->ReadPattern(file,collect);
+    InsertRefPattern(collect[i]);
+    //A->InsertPermuted(*this);
+  }
+}
+int TPZGeoMesh::NRefPatterns (){
+  //return fRefPatterns.size();
+  int count = 0;
+  std::map<MElementType,std::list< TPZRefPattern *> >::iterator it;
+  for (it=fRefPatterns.begin();it!=fRefPatterns.end();it++)
+  {
+    std::list<TPZRefPattern *>::iterator itlist;
+    for(itlist = (*it).second.begin(); itlist != (*it).second.end(); itlist++)
+    {
+      (*itlist)->SetId(count++);
+    }
+  }
+  return count;
+}
+
+
+void TPZGeoMesh::RefPatternFile(std::ofstream &filename){
+
+  int count=0;
+  filename << NRefPatterns() << std::endl ;
+  std::map< MElementType,list<TPZRefPattern *> >::iterator first = fRefPatterns.begin();
+  std::map< MElementType,list<TPZRefPattern *> >::iterator last = fRefPatterns.end();
+  std::map< MElementType,list<TPZRefPattern *> >::iterator iter;
+  for (iter = first; iter != last; iter++){
+    list<TPZRefPattern *> &map_el = (*iter).second;
+    list<TPZRefPattern *>::iterator name_first = map_el.begin();
+    list<TPZRefPattern *>::iterator name_last = map_el.end();
+    list<TPZRefPattern *>::iterator name_iter;
+    for(name_iter = name_first; name_iter != name_last; name_iter++){
+      TPZRefPattern *refpat = (*name_iter);
+      //std::ofstream teste("refpatterns_geral.txt");
+      refpat->WritePattern(filename);
+      count++;
+      //delete refpat;
+    }
+  }
+//  filename.seekp (0);
+//  filename << count ;
+  /*filename << std::endl*/;
+}
 
 void TPZGeoMesh::Print (ostream & out) {
   out << "\n\t\t GEOMETRIC TPZGeoMesh INFORMATIONS:\n\n";
@@ -577,12 +704,15 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
 TPZRefPattern *TPZGeoMesh::FindRefPattern(TPZRefPattern *refpat)
 {
   if(!refpat) return 0;
+//  cout << "Looking for "; refpat->ShortPrint(cout); cout << endl;
   MElementType eltype = refpat->Element(0)->Type();
   std::list<TPZRefPattern *>::iterator it;
   for(it=fRefPatterns[eltype].begin(); it != fRefPatterns[eltype].end(); it++)
   {
+//    std::cout << "Comparing with "; (*it)->ShortPrint(cout); cout << endl;
     if(*(*it) == *refpat) return (*it);
   }
+//  cout << "Not found\n";
   return 0;
 }
   
