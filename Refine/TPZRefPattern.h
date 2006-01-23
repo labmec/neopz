@@ -56,7 +56,9 @@ public:
      * Constructor whose argument is the name of the file with the definition
      * of the refinement standard
      */
-    TPZRefPattern(const std::string &filename);
+    TPZRefPattern(std::ifstream &file);
+
+    TPZRefPattern(std::string &file);
     
     /**Copy constructor*/
     TPZRefPattern (const TPZRefPattern &copy);
@@ -73,7 +75,9 @@ public:
     /**
      * Destructor of the object
      */
-    ~TPZRefPattern(){}
+    ~TPZRefPattern()
+    {
+    }
 
     /**
      * It returns the mesh of refinement pattern
@@ -83,9 +87,16 @@ public:
     /**
      * It effects the reading of the archive that defines the refinement standard
      */
-    void ReadPattern();
+    void ReadPattern(std::ifstream &in, std::vector<TPZRefPattern *> &collect);
 
-       
+    /**
+     * It effects the reading of the archive that defines the refinement standard
+     */
+    void ReadPattern(std::ifstream &in);
+    
+    void ReadPattern2();
+
+    
     /**
      * It calculates the hashings between the sides of the son and the father 
      */
@@ -158,6 +169,8 @@ public:
      */
     void MeshPrint();
     void Print1(TPZGeoMesh &gmesh,std::ostream &out = std::cout);/////////////////////////???????????????????
+    
+    void ShortPrint(std::ostream &out);
 
     /**
      * It accumulates the number of sides of son 0 until son ison.
@@ -197,10 +210,10 @@ public:
     void Print();
 
 
-    /** Generate based in the Ref. Pattern a file with the necessary  
-     *  information about the Pattern mesh.
+    /** Write out  the Refinement Pattern to a file with the necessary  
+     *  information to read it with ReadPattern.
      */
-    void CreateFile(std::ofstream &filename);
+    void WritePattern(std::ofstream &filename);
 
     /** 
      * It compares two hashings: in case that are equal returns 0,
@@ -301,6 +314,11 @@ private:
     
     /**This should be available before the mesh initialization*/
     int fNSubEl;
+    
+    /**
+     * Unique id given to the refpattern in order to read and write from disk
+     */
+     int fId;
 
  public:
     TPZRefPattern *SideRefPattern(int side){return fSideRefPattern[side];}
@@ -369,6 +387,22 @@ public:
        * verify whether the side refinement patterns are equal
        */
       bool IsCompatible(TPZVec<TPZRefPattern *> &siderefpatterns);
+      
+      /**
+       * return the id of the refinement pattern
+       */
+       int Id()
+       {
+          return fId;
+       }
+       
+       /**
+        * set the id of the refinement pattern
+        */
+        void SetId(int id)
+        {
+          fId = id;
+        }
       
 protected: // Protected attributes
   /** Identifier for the refinement pattern */

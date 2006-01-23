@@ -25,14 +25,13 @@ using namespace log4cxx::helpers;
 
 std::map<MElementType, std::list<TPZRefPattern::TPZRefPatternPermute> > TPZRefPattern::fPermutations;
 
-TPZRefPattern::TPZRefPattern() : fSideRefPattern(0) {
-  fFileRefPatt = '\0';
+TPZRefPattern::TPZRefPattern() : fSideRefPattern(0), fId(-50) {
   fSideRefPattern.Resize(0);
   fName = "";
   fNSubEl = 0;
 }
 
-TPZRefPattern::TPZRefPattern(const TPZRefPattern &copy) : fSideRefPattern(copy.fSideRefPattern) {
+TPZRefPattern::TPZRefPattern(const TPZRefPattern &copy) : fSideRefPattern(copy.fSideRefPattern) , fId(-50) {
   fFileRefPatt = copy.fFileRefPatt;
   fName = copy.fName;
   fNSubEl = copy.fNSubEl;
@@ -46,7 +45,7 @@ TPZRefPattern::TPZRefPattern(const TPZRefPattern &copy) : fSideRefPattern(copy.f
     /**
      * Create a copy of the TPZRefPattern applying the permutation on the first element
      */
-TPZRefPattern::TPZRefPattern (const TPZRefPattern &copy,const TPZPermutation &permute) : fSideRefPattern(copy.fSideRefPattern) {
+TPZRefPattern::TPZRefPattern (const TPZRefPattern &copy,const TPZPermutation &permute) : fSideRefPattern(copy.fSideRefPattern), fId(copy.fId) {
   fFileRefPatt = copy.fFileRefPatt;
   fNSubEl = copy.fNSubEl;
   CopyMesh(copy.fMesh,permute);
@@ -56,17 +55,23 @@ TPZRefPattern::TPZRefPattern (const TPZRefPattern &copy,const TPZPermutation &pe
   fName = GenericName();
 }
 
-TPZRefPattern::TPZRefPattern(const string &file ) : fSideRefPattern(0) {
-  fMesh.SetName("* * * Refinement Pattern * * *");
+
+TPZRefPattern::TPZRefPattern(std::string &file ) : fSideRefPattern(0), fId(-50) {
+  fMesh.SetName("***RefinementPattern***");
   fFileRefPatt = file;/**arquivo contendo o padr� de refinamento*/
-  ReadPattern();/**l�o arquivo contendo o refinamento e cria a malha fMesh*/
+  ReadPattern2();/**l�o arquivo contendo o refinamento e cria a malha fMesh*/
   fMesh.BuildConnectivity();/**conectividades entre sub-elementos*/
-//  fMesh.Print(); /**Printing mesh info to check */
+  //  fMesh.Print(); /**Printing mesh info to check */
   ComputeTransforms();/**calcula as transforma�es entre filhos e pai*/
   ComputePartition();/**efetua a parti�o do elemento pai de acordo com os lados dos sub-elementos*/
 }
 
-TPZRefPattern::TPZRefPattern(TPZGeoMesh &GMesh): fSideRefPattern(0){
+TPZRefPattern::TPZRefPattern(std::ifstream &file ) : fSideRefPattern(0), fId(-50) {
+  ReadPattern(file);
+}
+
+
+TPZRefPattern::TPZRefPattern(TPZGeoMesh &GMesh): fSideRefPattern(0), fId(-50) {
   fFileRefPatt = '\0';
   //fMesh = GMesh;
   CopyMesh(GMesh);
@@ -146,48 +151,144 @@ void TPZRefPattern::Print(){
 }
 
 
-void TPZRefPattern::CreateFile(std::ofstream &filename){
+void TPZRefPattern::WritePattern(std::ofstream &filename){
 
   //std::ofstream filename;
 
-  filename << fMesh.NNodes() << "         "  << fMesh.NElements() << std::endl ;
-  filename << std::endl;
-  filename << "810"  << "    Ref. Pattern Mesh" << std::endl;
+  filename << fMesh.NNodes() << ' '  << fMesh.NElements() << ' ' << fId <<  std::endl ;
+  filename << fName  << std::endl;
   //  filename << fName << "    Ref. Pattern Mesh" << std::endl;
-  filename << std::endl;
   for (int i=0; i<fMesh.NNodes() ; i++){
     for (int k=0; k<3; k++){
-      if ( (fMesh.NodeVec()[i].Coord(k) < 1) && (fMesh.NodeVec()[i].Coord(k) != 0)  ){
-	filename << fMesh.NodeVec()[i].Coord(k)  ;
-      }
-      else {
-	filename << fMesh.NodeVec()[i].Coord(k) << "." ;
-      }
-      filename << "  " ;
+	filename << fMesh.NodeVec()[i].Coord(k) << ' ';
     }
     filename << std::endl;
   }
-  filename << std::endl;
 
   for (int i =0; i<fMesh.NElements(); i++){
-    filename << fMesh.ElementVec()[i]->Type() << "    1      "  ;
-    //    filename << fMesh.ElementVec()[i]->NCornerNodes() << "    1     " ;
+    filename << fMesh.ElementVec()[i]->Type() << " " << fMesh.ElementVec()[i]->NCornerNodes() << " " ;
     for (int k=0; k<fMesh.ElementVec()[i]->NCornerNodes() ;k++){
       filename << fMesh.ElementVec()[i]->NodeIndex(k) << "  " ;
     }
     filename << std::endl;
   }
+  int nperm = fPermutedRefPatterns.size();
+  filename << nperm << ' ';
+  int el;
+  for(el=0; el<nperm; el++)
+  {
+    int ip;
+    filename << fPermutedRefPatterns[el]->Id() << ' ';
+  }
+  filename << std::endl;
+  TPZGeoEl *father = fMesh.ElementVec()[0];
+  int nsides = father->NSides();
+  int is;
+  for(is=0; is<nsides; is++)
+  {
+    if(fSideRefPattern[is])
+    {
+      filename << fSideRefPattern[is]->Id() << ' ';
+    } else
+    {
+      filename << -1 << ' ';
+    }
+  }
+  filename << std::endl;
+}
 
+void TPZRefPattern::ReadPattern(std::ifstream &in)
+{
+  //ifstream in(fFileRefPatt.data());
+  int nnodes,nelems,inode;
+  in >> nnodes >> nelems >> fId;
+  fNSubEl = nelems - 1;
+  getline(in,fName);
+  getline(in,fName);
+  TPZManVector<REAL,3> coord(3);
+  fMesh.NodeVec().Resize(nnodes);
+  //criac� dos objetos nodais
+  for(inode=0;inode<nnodes;inode++){
+    in >> coord[0];
+    in >> coord[1];
+    in >> coord[2];
+//    cout << coord << endl;
+    fMesh.NodeVec()[inode].Initialize(inode,coord,fMesh);
+  }
+  TPZGeoEl *father;
+  //criac� dos elementos geom�ricos que definem a partic�
+  int ntype,nummat,ncorners,incid,el;
+  for(el=0;el<nelems;el++) {/**os sub-elementos podem n� ter de uma mesma geometria*/
+    in >> ntype >> ncorners;
+    //ncorners = ntype;
+    //if(ntype == 7) ncorners = 4;/**tetraedro*/
+
+    MElementType etype = (MElementType) ntype;
+    TPZVec<int> nodes(ncorners);
+    for(incid=0;incid<ncorners;incid++){
+      in >> nodes[incid];
+    }
+    int index;
+
+    TPZGeoEl *subel = fMesh.CreateGeoElement(etype,nodes,nummat,index,-1);
+    if(el==0){
+      father = subel;
+      subel->SetRefPattern(this);
+      
+    }
+    if(el>0){
+      father->SetSubElement(el-1,subel);
+      subel->SetFather(father);
+      subel->SetFather(father->Index());
+    }
+  }
+  GeneratePermuted(father);
+  fMesh.BuildConnectivity();/**conectividades entre sub-elementos*/
+//  fMesh.Print(); /**Printing mesh info to check */
+  ComputeTransforms();/**calcula as transforma�es entre filhos e pai*/
+  ComputePartition();/**efetua a parti�o do elemento pai de acordo com os lados dos sub-elementos*/
+}
+
+void TPZRefPattern::ReadPattern(std::ifstream &in,std::vector<TPZRefPattern *> &collect){
+  ReadPattern(in);
+  int nperm;
+  in >> nperm;
+  this->fPermutedRefPatterns.resize(nperm);
+  int el;
+  for(el=0; el<nperm; el++)
+  {
+    int ip;
+    in >> ip;
+    fPermutedRefPatterns[el] = collect[ip];
+  }
+  TPZGeoEl *father = fMesh.ElementVec()[0];
+  int nsides = father->NSides();
+  fSideRefPattern.Resize(nsides,0);
+  fSideRefPattern[nsides-1] = this;
+  int is;
+  for(is=0; is<nsides; is++)
+  {
+     int ip;
+     in >> ip;
+     if(ip >= 0)
+     {
+      fSideRefPattern[is] = collect[ip];
+     } else 
+     {
+      fSideRefPattern[is] = 0;
+     }
+  }
 }
 
 
-void TPZRefPattern::ReadPattern(){
+void TPZRefPattern::ReadPattern2(){
   ifstream in(fFileRefPatt.data());
   int nnodes,nelems,inode,RefineType;
   in >> nnodes >> nelems;
   fNSubEl = nelems - 1;
   in >> RefineType;
   in >> fName;
+  cout << "Reading pattern " << fName << " from file " << fFileRefPatt << std::endl;
   TPZVec<REAL> coord(3);
   fMesh.NodeVec().Resize(nnodes);
   //criac� dos objetos nodais
@@ -195,7 +296,7 @@ void TPZRefPattern::ReadPattern(){
     in >> coord[0];
     in >> coord[1];
     in >> coord[2];
-    cout << coord << endl;
+//    cout << coord << endl;
     fMesh.NodeVec()[inode].Initialize(inode,coord,fMesh);
   }
   TPZGeoEl *father;
@@ -213,32 +314,32 @@ void TPZRefPattern::ReadPattern(){
     MElementType etype;
     switch (ntype){
       case (1) :
-	etype = EPoint;
-	break;
-    case (2) :
-      etype = EOned;
-      break;
-    case(3):
-      etype = ETriangle;
-      break;
-    case(4):
-      etype = EQuadrilateral;
-      break;
-    case(5) :
-      etype = EPiramide;
-      break;
-    case (6):
-      etype = EPrisma;
-      break;
-    case(7):
-      etype = ETetraedro;
-      break;
-    case (8):
-      etype = ECube;
-      break;
-    default:
-      std::cout << "ERROR : Undefined element type." << std::endl;
-      exit(-1);
+        etype = EPoint;
+        break;
+      case (2) :
+        etype = EOned;
+        break;
+      case(3):
+        etype = ETriangle;
+        break;
+      case(4):
+        etype = EQuadrilateral;
+        break;
+      case(5) :
+        etype = EPiramide;
+        break;
+      case (6):
+        etype = EPrisma;
+        break;
+      case(7):
+        etype = ETetraedro;
+        break;
+      case (8):
+        etype = ECube;
+        break;
+      default:
+        std::cout << "ERROR : Undefined element type." << std::endl;
+        exit(-1);
     }
    
 
@@ -255,6 +356,8 @@ void TPZRefPattern::ReadPattern(){
     }
   }
 }
+
+
 
 /** Preenche-se a estrutura elemento/lado com aqueles objetos que tem
  *  transforma�o associada.Calcula-se a transforma�o entre o lado
@@ -411,7 +514,7 @@ void TPZRefPattern::ComputeTransforms(){
   int isub,nsubs = NSubElements();/**total filhos*/
   /**preenchendo a estrutura TPZFatherSides*/
   int initside=0,cont=0,side,fatside;  
-  TPZVec<REAL> masscent(3,0.),xpoint(3,0.),fathparam(fath->Dimension(),0.);
+  TPZManVector<REAL,3> masscent(3,0.),xpoint(3,0.),fathparam(fath->Dimension(),0.);
   xpoint[0] = 0.;
   xpoint[1] = 0.;
   xpoint[2] = 0.; 
@@ -422,9 +525,12 @@ void TPZRefPattern::ComputeTransforms(){
   for(isub=0;isub<nsubs;isub++){
     fTransforms.fInitSonSides[isub] = initside;
     TPZGeoEl *son = Element(isub+1);/**o pai n� sabe quem s� os filhos*/
+    //cout << "Tipo de elemento :" << son->Type() << endl;
     int nsides = son->NSides();/**um dos elementos implementados no PZ*/
     //cout << "\n------------------------> ELemento de id = " << son->Id() << endl << endl;
     for(side=0;side<nsides;side++){/**cantos + arestas + faces, o interior n� �compartilhado*/
+      TPZGeoElSide elside (son,side);
+      //cout << "Tipo do elemento lado: " << elside.NSideNodes() << endl;
       son->CenterPoint(side,masscent);/**percorre todos os lados do elemento filho*/
       son->X(masscent,xpoint);
       fath->ComputeXInverse(xpoint,fathparam);
@@ -558,7 +664,7 @@ int TPZRefPattern::NSideNodes(int side){
     PZError << "TPZRefPattern::NSideNodes wrong side, side = " << side << endl;
     return -1;
   }
-  TPZVec<int> vec;
+  TPZManVector<int,10> vec;
   SideNodes(side,vec);  
   return ( vec.NElements() );
 }
@@ -1021,7 +1127,7 @@ int TPZRefPattern::operator==(const TPZRefPattern &compare) const
     std::set<int> nodeset;
     TPZGeoEl *igel = fMesh.ElementVec()[iel];
     int in, nnode = igel->NNodes();
-    for(in=0; in<nnode; in++) nodeset.insert(igel->NodeIndex(in));
+    for(in=0; in<nnode; in++) nodeset.insert(nodemap[igel->NodeIndex(in)]);
     int jel;
     for(jel=0; jel < nelem; jel++) 
     {
@@ -1037,7 +1143,32 @@ int TPZRefPattern::operator==(const TPZRefPattern &compare) const
         break;
       }
     }
-    if(jel == nelem) return 0;
+    if(jel == nelem) 
+    {
+    
+      cout << "node map\n";
+      for(in=0; in<nnodes; in++) cout << in << " -> " << nodemap[in] << " | ";
+      cout << endl;
+      int iel;
+      cout << "The mapped element node indices are\n";
+      for(iel = 0; iel<nelem; iel++)
+      {
+        TPZGeoEl *igel = fMesh.ElementVec()[iel];
+        int in, nnode = igel->NNodes();
+        for(in=0; in<nnode; in++) cout << nodemap[igel->NodeIndex(in)] << ' ';
+        cout << std::endl;
+      }
+      cout << "The compared element node indices are\n";
+      for(iel = 0; iel<nelem; iel++)
+      {
+        TPZGeoEl *igel = compare.fMesh.ElementVec()[iel];
+        int in, nnode = igel->NNodes();
+        for(in=0; in<nnode; in++) cout << igel->NodeIndex(in) << ' ';
+        cout << std::endl;
+      }
+      
+      return 0;
+    }
   }
   return 1;
 }
@@ -1156,9 +1287,11 @@ void TPZRefPattern::InsertPermuted(TPZGeoMesh &gmesh)
     }
     else
     {
-      refp->Print();
+      //refp->Print();
       gmesh.InsertRefPattern(refp);
       fPermutedRefPatterns[counter] = refp;
+      refp->ShortPrint(std::cout);
+      std::cout << std::endl;
       refp->InsertPermuted(gmesh);
     }
   }
@@ -1358,14 +1491,13 @@ TPZRefPattern *TPZRefPattern::SideRefPattern(int side, TPZTransform &trans)
    REAL tol = 1.e-6;
    if(!fMesh.ElementVec().NElements() || ! fMesh.ElementVec()[0]) return 0;
    MElementType type = fMesh.ElementVec()[0]->Type();
-   int nperm = fPermutations[type].size();
    int count;
    std::list<TPZRefPatternPermute> &permlist = fPermutations[type];
    std::list<TPZRefPatternPermute>::iterator it;
    for(it = permlist.begin(), count = 0; it != permlist.end(); it++,count++)
    {
      TPZRefPatternPermute &tmp = (*it);
-     if(tmp.fTransform.Compare(trans,tol))
+     if(!tmp.fTransform.Compare(trans,tol))
      {
        return fPermutedRefPatterns[count];
      }
@@ -1389,7 +1521,8 @@ void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZ
   int is,nsides,nnodes;
   nsides = gel->NSides();
   nnodes = gel->NNodes();
-  TPZManVector<TPZRefPattern *> SideRefPatterns(nsides,0);
+  TPZManVector<TPZRefPattern *,27> SideRefPatterns(nsides,0);
+  TPZManVector<int, 27> refsides(nsides,0);
   for(is=nnodes; is<nsides; is++)
   {
     TPZGeoElSide gelside(gel,is);
@@ -1398,17 +1531,41 @@ void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZ
     {
       if(neigh.Element()->HasSubElement() && neigh.NSubElements2() > 1)
       {
+        refsides[is] = 1;
         TPZRefPattern *refp = neigh.Element()->GetRefPattern();
         if(refp)
         {
+//          TPZTransform trans = gelside.NeighbourSideTransform(neigh);
           TPZTransform trans = neigh.NeighbourSideTransform(gelside);
-          SideRefPatterns[is] = refp->SideRefPattern(is,trans);
+          SideRefPatterns[is] = refp->SideRefPattern(neigh.Side(),trans);
           break;
         }
       }
       neigh=neigh.Neighbour();
     }
   }
+  /*
+  for(is = nnodes; is<nsides; is++)
+  {
+    if(gel->SideDimension(is) == 2)
+    {
+      if(SideRefPatterns[is])
+      {
+        cout << gel->TypeName() << " for side " << is << " local side ref ";
+        TPZStack<int> smallsides;
+        gel->LowerDimensionSides(is,smallsides);
+        int ils;
+        for(ils=0; ils<smallsides.NElements(); ils++)
+        {
+          if(refsides[smallsides[ils]]) cout << ils << ' ';
+        }
+        cout << endl << "Side ref pattern ";
+        
+        SideRefPatterns[is]->ShortPrint(cout); cout << endl;
+      }
+    }
+  }
+  */
   // having the refinement patterns associated with the sides, look for compatible refinement patterns
   std::list<TPZRefPattern *> reflist = gel->Mesh()->RefPatternList(gel->Type());
   std::list<TPZRefPattern *>::iterator it;
@@ -1417,10 +1574,30 @@ void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZ
     // compare the side refinement patterns
     for(is=nnodes; is<nsides-1; is++) 
     {
-      if(SideRefPatterns[is] && SideRefPatterns[is] != (*it)->SideRefPattern(is)) break;
+      TPZRefPattern *candidate = (*it)->SideRefPattern(is);
+      if(SideRefPatterns[is] && SideRefPatterns[is] != candidate) 
+      {
+        break;
+      }
     }
     // if all refinement patterns are equal
     if(is == nsides-1) refs.push_back((*it));
   }
 
+}
+
+void TPZRefPattern::ShortPrint(std::ostream &out)
+{
+      TPZGeoEl *elemento = Element(0);
+      int nsides = elemento->NSides();
+      TPZVec<int> indices;
+      //TPZVec<int> selected(nsides,0);
+      out << elemento->TypeName();
+      out << " Id " << fId << " Sides " ;
+      for (int p=0 ; p<nsides; p++){
+        if (elemento->SideDimension(p)==1 && NSideNodes(p))
+        {
+             out << p << " ";
+        }
+       }
 }
