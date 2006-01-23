@@ -187,8 +187,9 @@ void WriteElement (TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &ele
   switch (ncon)  {
   case (2) : {
     //rib
-    int ni = el->NodePtr(0)->Id();
-    int nf = el->NodePtr(1)->Id();
+    
+    int ni = el->NodeIndex(0);
+    int nf = el->NodeIndex(1);
     arq << ni << "\t" << nf << "\t"
         << ni << "\t" << nf << "\t"
         << ni << "\t" << nf << "\t"
@@ -197,9 +198,9 @@ void WriteElement (TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &ele
   }
   case (3) : {
     //triangle
-    int n0 = el->NodePtr(0)->Id();
-    int n1 = el->NodePtr(1)->Id();
-    int n2 = el->NodePtr(2)->Id();
+    int n0 = el->NodeIndex(0);
+    int n1 = el->NodeIndex(1);
+    int n2 = el->NodeIndex(2);
     arq << n0 << "\t" << n1 << "\t"
         << n2 << "\t" << n2 << "\t"
         << n0 << "\t" << n1 << "\t"
@@ -209,20 +210,20 @@ void WriteElement (TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &ele
   case (4) : {
     if (el->Dimension() == 2){
       //quad
-      int n0 = el->NodePtr(0)->Id();
-      int n1 = el->NodePtr(1)->Id();
-      int n2 = el->NodePtr(3)->Id();
-      int n3 = el->NodePtr(2)->Id();
+      int n0 = el->NodeIndex(0);
+      int n1 = el->NodeIndex(1);
+      int n2 = el->NodeIndex(3);
+      int n3 = el->NodeIndex(2);
       arq << n0 << "\t" << n1 << "\t"
           << n2 << "\t" << n3 << "\t"
           << n0 << "\t" << n1 << "\t"
           << n2 << "\t" << n3 << std::endl;
     }else{
       //tetrahedre
-      int n0 = el->NodePtr(0)->Id();
-      int n1 = el->NodePtr(1)->Id();
-      int n2 = el->NodePtr(2)->Id();
-      int n3 = el->NodePtr(3)->Id();
+      int n0 = el->NodeIndex(0);
+      int n1 = el->NodeIndex(1);
+      int n2 = el->NodeIndex(2);
+      int n3 = el->NodeIndex(3);
       arq << n0 << "\t" << n1 << "\t"
           << n2 << "\t" << n2 << "\t"
           << n3 << "\t" << n3 << "\t"
@@ -232,11 +233,11 @@ void WriteElement (TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &ele
   }
   case (5) : {
     //pyramid
-    int n0 = el->NodePtr(0)->Id();
-    int n1 = el->NodePtr(1)->Id();
-    int n2 = el->NodePtr(3)->Id();
-    int n3 = el->NodePtr(2)->Id();
-    int n4 = el->NodePtr(4)->Id();
+    int n0 = el->NodeIndex(0);
+    int n1 = el->NodeIndex(1);
+    int n2 = el->NodeIndex(3);
+    int n3 = el->NodeIndex(2);
+    int n4 = el->NodeIndex(4);
     arq << n0 << "\t" << n1 << "\t"
         << n2 << "\t" << n3 << "\t"
         << n4 << "\t" << n4 << "\t"
@@ -245,12 +246,12 @@ void WriteElement (TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &ele
   }
   case (6) : {
     //pyramid
-    int n0 = el->NodePtr(0)->Id();
-    int n1 = el->NodePtr(1)->Id();
-    int n2 = el->NodePtr(2)->Id();
-    int n3 = el->NodePtr(3)->Id();
-    int n4 = el->NodePtr(4)->Id();
-    int n5 = el->NodePtr(5)->Id();
+    int n0 = el->NodeIndex(0);
+    int n1 = el->NodeIndex(1);
+    int n2 = el->NodeIndex(2);
+    int n3 = el->NodeIndex(3);
+    int n4 = el->NodeIndex(4);
+    int n5 = el->NodeIndex(5);
     arq << n0 << "\t" << n1 << "\t"
         << n2 << "\t" << n2 << "\t"
         << n3 << "\t" << n4 << "\t"
@@ -258,14 +259,14 @@ void WriteElement (TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &ele
     break;
   }
   case (8) : {
-    int n0 = el->NodePtr(0)->Id();
-    int n1 = el->NodePtr(1)->Id();
-    int n2 = el->NodePtr(3)->Id();
-    int n3 = el->NodePtr(2)->Id();
-    int n4 = el->NodePtr(4)->Id();
-    int n5 = el->NodePtr(5)->Id();
-    int n6 = el->NodePtr(7)->Id();
-    int n7 = el->NodePtr(6)->Id();
+    int n0 = el->NodeIndex(0);
+    int n1 = el->NodeIndex(1);
+    int n2 = el->NodeIndex(3);
+    int n3 = el->NodeIndex(2);
+    int n4 = el->NodeIndex(4);
+    int n5 = el->NodeIndex(5);
+    int n6 = el->NodeIndex(7);
+    int n7 = el->NodeIndex(6);
     arq << n0 << "\t" << n1 << "\t"
         << n2 << "\t" << n3 << "\t"
         << n4 << "\t" << n5 << "\t"
@@ -279,7 +280,7 @@ void WriteElement (TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &ele
 }
 
 
-void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq){
+void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq, int matindex){
   arq << "object 1 class array type float rank 1 shape 3 items ";
   arq << mesh->NodeVec().NElements() << " data follows" << std::endl;
   int i;
@@ -291,21 +292,27 @@ void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq){
       << node->Coord(1) << "\t"
       << node->Coord(2) << std::endl;
   }
-  arq << "object 2 class array type integer rank 1 shape 8 items ";
-  arq << mesh->ElementVec().NElements() << " data follows" << std::endl;
-  TPZVec<int> elementtype(mesh->ElementVec().NElements(),0);
+  int numelements = 0;
   for (i=0;i<mesh->ElementVec().NElements();i++){
     TPZGeoEl *el = mesh->ElementVec()[i];
     if ( !el ) continue;
+    if(el->MaterialId() == matindex) numelements++;
+  }
+  arq << "object 2 class array type integer rank 1 shape 8 items ";
+  arq << numelements << " data follows" << std::endl;
+  TPZVec<int> elementtype(mesh->ElementVec().NElements(),0);
+  for (i=0;i<mesh->ElementVec().NElements();i++){
+    TPZGeoEl *el = mesh->ElementVec()[i];
+    if ( !el || el->MaterialId() != matindex) continue;
     WriteElement (el,i,arq,elementtype);
   }
   arq << "attribute \"element type\" string \"cubes\"" << std::endl
     << "attribute \"ref\" string \"positions\"" << std::endl;
   arq << "object 3 class array type integer rank 0 items ";
-  arq << mesh->ElementVec().NElements() << " data follows" << std::endl;
+  arq << numelements << " data follows" << std::endl;
   for (i=0;i<mesh->ElementVec().NElements();i++){
     TPZGeoEl *el = mesh->ElementVec()[i];
-    if ( !el ) continue;
+    if ( !el || el->MaterialId() != matindex) continue;
     arq << elementtype[i] << std::endl;
   }
   arq << "attribute \"dep\" string \"connections\"" << std::endl;

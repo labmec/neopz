@@ -33,7 +33,8 @@
 #include <set>
 #include <map>
 //#include "c0-simplequad.cpp" 
-#include "c0-simplequad.cpp"
+//#include "c0-simpleline.cpp"
+#include "c0-simpletetra.cpp"
 
 /*#include <dl_entities.h>
 #include <dl_dxf.h>
@@ -55,7 +56,7 @@ void TriangleRefine2(TPZGeoMesh *gmesh);
 void QuadRefine(TPZGeoMesh *gmesh);
 TPZRefPattern *GetBestRefPattern(TPZVec<int> &sides, std::list<TPZRefPattern *> &patlist);
 
-void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids);
+void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids, int destmatid);
 
 
 //#include "MeshReader.cpp"
@@ -65,14 +66,18 @@ void ReadElements (std::istream & file, int nelem, TPZGeoMesh & gMesh);
 void ReadMaterials (std::istream & file, int nmat, TPZCompMesh & cMesh);
 void ReadBCs (std::istream & file, int nmat, TPZCompMesh & cMesh);
 TPZCompMesh * ReadMesh(std::istream &file);
-void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq);
+void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq, int materialindex);
 void WriteElement (TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &elementtype);
 
 void QuadOneRibRefine(TPZGeoMesh *gmesh);
 void QuadTwoAdjacentRibRefine(TPZGeoMesh *gmesh);
 
+void InsertNewPattern(std::ifstream &arquivo, TPZGeoMesh &geomesh, std::ofstream &padroes);
 
 void LoadRefPattern(std::string &path);
+
+void  FilterBoundingBox(TPZGeoMesh *geomesh);
+
 
  struct coord{
    public:
@@ -82,10 +87,123 @@ void LoadRefPattern(std::string &path);
      coord():X(-9.),Y(-9.),Z(-9.){}
  };
 
+ void ReadGidMesh (std::ifstream &fonte, std::ofstream &saida){
+
+   int i;
+   double x;
+   int d;
+   int k;
+   for (i=0; i<55; i++){
+     fonte >> d;
+     saida << d-1 << "  " ;
+ 
+     for (k=0; k<3; k++){
+       fonte >> x ;
+       saida << x << "  ";
+     }
+     
+     saida << std::endl;     
+   }
+
+   for (i=0; i<107; i++){
+
+     fonte >> d;
+     saida << d-1 << "  1  ";
+
+     for (k=0; k<4; k++){
+       fonte >> x;
+       saida << x << "  ";
+     }
+     saida << std::endl;
+   }
+ }
+     
+ 
+
+void InsertNewPattern(std::ifstream &arquivo, TPZGeoMesh &geomesh, std::ofstream &padroes){
+   TPZRefPattern *pattern = new TPZRefPattern (arquivo);
+   pattern->InsertPermuted(geomesh);
+   geomesh.RefPatternFile(padroes);
+ }
+ 
+void ReadF17(TPZGeoMesh *geomesh)
+{
+// // Beggining of the work with the f17.
+// // Beggining of the work with the F17's mesh.
+// 
+//   // First step: nodes reading and initialization.
+  std::cout << "Inicio da leitura\n";
+  std::ifstream malha_nos ("yf17.xyz");
+
+//  double  x,y,z ;
+
+  TPZVec< REAL > nodes(3);
+  int i;
+  while(malha_nos) {
+    malha_nos >> nodes[0];
+    malha_nos >> nodes[1];
+    malha_nos >> nodes[2];
+    if(!malha_nos) continue;
+    int nodind = geomesh->NodeVec().AllocateNewElement();
+
+    geomesh->NodeVec()[nodind] = TPZGeoNode(i,nodes,*geomesh);
+  }
+
+  // Second step: Generation of the triangles.
+
+  std::ifstream malha_triangulos ("yf17.tri");
+  TPZVec<int> indices(3);
+  TPZGeoEl *gel;
+
+//  int k;
+  while (malha_triangulos){
+    malha_triangulos >> indices[0] ;
+    malha_triangulos >> indices[1] ;
+    malha_triangulos >> indices[2] ;
+    int index;
+    indices[0]--;
+    indices[1]--;
+    indices[2]--;
+    if(!malha_triangulos) continue;
+    gel = geomesh->CreateGeoElement(ETriangle,indices,-1,index,1);
+
+  }
+
+  // Third step: Generation of the thetra.
+
+  std::ifstream malha_tetraedros ("yf17.tet");
+  TPZVec<int> indices2(4);
+
+//  int p;
+  while (malha_tetraedros){
+    malha_tetraedros >> indices2[0] ;
+    malha_tetraedros >> indices2[1] ;
+    malha_tetraedros >> indices2[2] ;
+    malha_tetraedros >> indices2[3] ;
+    indices2[0]--;
+    indices2[1]--;
+    indices2[2]--;
+    indices2[3]--;
+    if(!malha_tetraedros) continue;
+    int index;
+    gel = geomesh->CreateGeoElement(ETetraedro,indices2,1,index,1);
+  }
+
+  // Fourth step: Building the mesh.
+
+  std::cout << "Antes de BuildConnectivity\n";
+  geomesh->BuildConnectivity();
+
+
+//   // End of work with the F17's mesh.
+// 
+//   // End of the work with f17.
+}
+
 int main ()
 {
 #ifdef LOG4CXX
-    log4cxx::PropertyConfigurator::configure("/home/ic/luis/NeoPZ/Util/config.h");
+ log4cxx::PropertyConfigurator::configure("/home/ic/luis/NeoPZ/Util/config.h");
 
     //  log4cxx::BasicConfigurator::configure();
   {
@@ -111,202 +229,66 @@ int main ()
     logger->setLevel(log4cxx::Level::DEBUG);
   }
 #endif
-
-// Beggining of the work with the f17.
-// Beggining of the work with the F17's mesh.
-
-  // First step: nodes reading and initialization.
   TPZGeoMesh *geomesh = new TPZGeoMesh();
-  std::ifstream malha_nos ("yf17.xyz");
 
-  double  x,y,z ;
+  std::string prefix = "/home/phil/Cesar/Heman/NeoPZ/Projects/Heman/Files/RefPatterns/";
+  std::string allfiles = prefix + "Patternlist";
+
+
+    std::cout << "Reading refinement patterns\n";
+    std::string allpatterns = prefix + "ListedPatterns10.txt";
+    std::ifstream fonte (allpatterns.c_str(),ios::in);
+    if(!fonte.fail())
+    {
+      geomesh->PatternFileLoad(fonte);
+    }
+    else
+    {
+      std::ifstream filelist(allfiles.c_str(),ios::in);
+      while(!filelist.fail())
+      {
+        std::string filename;
+        getline(filelist,filename);
+        std::string fullname = prefix+filename;
+        if(!filelist.fail())
+        {
+          TPZRefPattern *refp = new TPZRefPattern(fullname);
+          refp->InsertPermuted(*geomesh);
+        }
+      }
+      std::ofstream out(allpatterns.c_str());
+      geomesh->RefPatternFile(out);
+
+    }
+
+    std::ofstream shortlist("shortlist.txt");
+    geomesh->PatternSidesFile(shortlist);
    
-  TPZVec< REAL > nodes(3);
-  int i;
-  while(malha_nos) {
-    malha_nos >> nodes[0];
-    malha_nos >> nodes[1];
-    malha_nos >> nodes[2];
-    if(!malha_nos) continue;
-    int nodind = geomesh->NodeVec().AllocateNewElement();
-  
-    geomesh->NodeVec()[nodind] = TPZGeoNode(i,nodes,*geomesh);
-  }
-
-  // Second step: Generation of the triangles.
-
-  std::ifstream malha_triangulos ("yf17.tri");
-  TPZVec<int> indices(3);
-  TPZGeoEl *gel;
-
-  int k;
-  while (malha_triangulos){
-    malha_triangulos >> indices[0] ;
-    malha_triangulos >> indices[1] ;
-    malha_triangulos >> indices[2] ;
-    int index;
-    indices[0]--;
-    indices[1]--;
-    indices[2]--;
-    if(!malha_triangulos) continue;
-    gel = geomesh->CreateGeoElement(ETriangle,indices,-1,index,1);
-
-  }
-
-  // Third step: Generation of the thetra.
-
-  std::ifstream malha_tetraedros ("yf17.tet");
-  TPZVec<int> indices2(4);
-
-  int p;
-  while (malha_tetraedros){
-    malha_tetraedros >> indices2[0] ;
-    malha_tetraedros >> indices2[1] ;
-    malha_tetraedros >> indices2[2] ;
-    malha_tetraedros >> indices2[3] ;
-    indices2[0]--;
-    indices2[1]--;
-    indices2[2]--;
-    indices2[3]--;
-    if(!malha_tetraedros) continue;
-    int index;
-    gel = geomesh->CreateGeoElement(ETetraedro,indices2,1,index,1);
-  }
-  
-  // Fourth step: Building the mesh.
-
-  geomesh->BuildConnectivity();
-
-    
-  // End of work with the F17's mesh.
-  
-  // End of the work with f17. 
-
-
-
-
-  //ifstream arq ("Files/Meshes/cruz_hexaedros.txt");
-  //ifstream arq ("Files/Meshes/cubo_direcional_3faces.txt");
-  //TPZCompMesh *ccmesh = ReadMesh (arq);
-  // ccmesh->Reference()->Print(cout);
-  // ccmesh->Print(cout);
-
-  //TPZCompMesh *cmesh = CreateSillyMesh();
-  //TPZGeoMesh *Gmesh = ccmesh->Reference();
-
-  ofstream dx_arq ("yf17.dx");
-  WriteMesh(geomesh,dx_arq);
-
-//   Gmesh->Print(cout);
-//   TPZRefPattern * rpt = new TPZRefPattern ("Files/RefPatterns/Triang_Rib_Side_4_5.rpt");
-//   rpt->Print();
-//   rpt->InsertPermuted(*geomesh);
-//   
-//   Gmesh->Print(cout);
-//   cout << endl;
-
-//   const int nref = 23;
-//   TPZRefPattern *refpat [nref];
-// 
-//   //Line - just uniform refpattern
-//   std::cout << "\n\n\n\n\ninsert permuted : line " << std::endl;
-//   refpat[0] = new TPZRefPattern ("Files/RefPatterns/Line_Unif.rpt");
-// 
-// 
-//   //Triangle: uniform; one rib and two ribs refinement
-//   std::cout << "\n\n\n\n\ninsert permuted : tri unif " << std::endl;
-//   refpat[1] = new TPZRefPattern ("Files/RefPatterns/Triang_Unif.rpt");
-//   std::cout << "\n\n\n\n\ninsert permuted : tri 1 " << std::endl;
-//   refpat[2] = new TPZRefPattern ("Files/RefPatterns/Triang_Rib_Side_3.rpt");
-//   std::cout << "\n\n\n\n\ninsert permuted : tri 2 " << std::endl;
-//   refpat[3] = new TPZRefPattern ("Files/RefPatterns/Triang_Rib_Side_4_5.rpt");
-// 
-//   //Quadrilateral: uniform, one rib, two parallel ribs, two adjacent ribs and three ribs
-//   std::cout << "\n\n\n\n\ninsert permuted : quad unif " << std::endl;
-//   refpat[4] = new TPZRefPattern ("Files/RefPatterns/Quad_Unif.rpt");
-//   std::cout << "\n\n\n\n\ninsert permuted : quad 1 " << std::endl;
-//   refpat[5] = new TPZRefPattern ("Files/RefPatterns/Quad_Rib_Side_4.rpt");
-//   std::cout << "\n\n\n\n\ninsert permuted : quad 2 par " << std::endl;
-//   refpat[6] = new TPZRefPattern ("Files/RefPatterns/Quad_Rib_Side_4_6.rpt");
-//   std::cout << "\n\n\n\n\ninsert permuted : quad 2 adj " << std::endl;
-//   refpat[7] = new TPZRefPattern ("Files/RefPatterns/Quad_Rib_Side_4_5.rpt");
-//   std::cout << "\n\n\n\n\ninsert permuted : quad 3 " << std::endl;
-//   refpat[8] = new TPZRefPattern ("Files/RefPatterns/Quad_Rib_Side_4_5_6.rpt");
-// 
-//   //Hexaedros: Um, dois e três lados.
-//   refpat[9] = new TPZRefPattern ("Files/RefPatterns/cubo_direcional_3faces_cruz.txt");
-//   refpat[10] = new TPZRefPattern ("Files/RefPatterns/cubo_direcional_1.txt");
-//   refpat[11] = new TPZRefPattern ("Files/RefPatterns/cubo_direcional_2faces.txt");
-//   refpat[12] = new TPZRefPattern ("Files/RefPatterns/cubo_direcional_3faces.txt");
-//   refpat[13] = new TPZRefPattern ("Files/RefPatterns/Piram_1lado_base.txt");
-//   refpat[14] = new TPZRefPattern ("Files/RefPatterns/Piram_2lados_base.txt");
-//   refpat[15] = new TPZRefPattern ("Files/RefPatterns/Piram_2lados_lateral.txt");
-//   refpat[16] = new TPZRefPattern ("Files/RefPatterns/Piram_3lados_base.txt");
-//   refpat[17] = new TPZRefPattern ("Files/RefPatterns/Piram_3lados_lateral.txt");
-//   refpat[18] = new TPZRefPattern ("Files/RefPatterns/Tetra_1lado.txt");
-//   refpat[19] = new TPZRefPattern ("Files/RefPatterns/Tetra_2lados.txt");
-//   refpat[20] = new TPZRefPattern ("Files/RefPatterns/Tetra_2nodes_001.txt");
-//   refpat[21] = new TPZRefPattern ("Files/RefPatterns/Tetra_2nodes_002.txt");
-//   refpat[22] = new TPZRefPattern ("Files/RefPatterns/Tetra_2nodes_003.txt");
-// 
-// 
-//   for (int r=0;r<nref;r++)
-//   {
-//     std::cout << "insert permuted : " << r << std::endl;
-//     refpat[r]->InsertPermuted(*geomesh);
-//   }
-// 
-
-
-    std::ifstream fonte ("ListedPatterns2.txt");
-    geomesh->PatternFileLoad(fonte);
-
-   
-  //Gmesh->InsertRefPattern(refpat[10]);
-  //Gmesh->InsertRefPattern(refpat[11]);
-  //OBS: QUANDO INSIRO O PAT[10] PELO INSERTPERMUTED TENHO ERRO, MAS PELO INSERT
-  // REFPATTERN FUNCIONA! 
- 
-  
-  //TPZRefPattern *reftetra = new TPZRefPattern ("/home/pos/cesar/RefPattern/Hexa_Unif.rpt");
-  //TPZRefPattern *reftetra = new TPZRefPattern ("/home/pos/cesar/RefPattern/Hexa_Unif.rpt");
-  //TPZRefPattern *reftetra = new TPZRefPattern ("/home/ic/luis/Documents/ic/catalogacao/meuRefPattern/Hexaedro_5");
-  //TPZRefPattern *reftetra = new TPZRefPattern ("/home/pos/cesar/RefPattern/Piram_Rib_Side_7.rpt");
-  //TPZGeoMesh *Gmesh = reftetra->Mesh();
-  
-  //dxfdraw(Gmesh);  
-  //dxfdrawsep(Gmesh);
-
-  //Teste da fun�o de reconhecimento de lados
-  //siderecog(Gmesh);
-  //Fim do teste
-
-  //TriangleRefine1(Gmesh);
-  //TriangleRefine2(Gmesh);
-  //QuadRefine(Gmesh);
-  //QuadOneRibRefine(Gmesh);
-  //QuadTwoAdjacentRibRefine(Gmesh);
   {
-    std::ofstream arquivo ("NotListedPatterns.txt");
+    std::ofstream arquivo ("NotListedPatterns4.txt");
   }
   {
     std::ofstream padroes ("ListedPatterns.txt");
   }
   {
-    std::ofstream padroes_lados ("PatternsandSides.txt");
+    std::ofstream padroes_lados ("PatternsandSides3.txt");
   }
 
-//   std::ofstream padroes ("ListedPatterns2.txt");
-//   geomesh->RefPatternFile(padroes);
+  ReadF17(geomesh);
+  
+  FilterBoundingBox(geomesh);
 
-  //std::ofstream padroes_lados ("PatternsandSides.txt");
-  //geomesh->PatternSidesFile(padroes_lados);
+  ofstream dx_arq ("surface.dx");
+  WriteMesh(geomesh,dx_arq,-1);
 
   
   std::set<int> matids;
   matids.insert(-1);
   int count = 0;
-  for(i=0; i<10; i++)
+  int destmatid = 2;
+
+  int i;
+  for(i=0; i<1; i++)
   {
     int nelements = geomesh->NElements();
     int el;  
@@ -315,34 +297,47 @@ int main ()
     for (el=0; el<nelements; el++)
     {
       TPZGeoEl *elemento = geomesh->ElementVec()[el];
-      RefineDirectional(elemento,matids);
+      RefineDirectional(elemento,matids,destmatid);
     }
-    std::stringstream nome;
-    nome << count++ << "_cruz_ref.dx";
-    ofstream dx_arq_ref (nome.str().c_str());
-    WriteMesh(geomesh,dx_arq_ref);
+    {
+      std::stringstream nome;
+      nome << count << "_boundary_a.dx";
+      ofstream dx_arq_ref (nome.str().c_str());
+      WriteMesh(geomesh,dx_arq_ref,destmatid);
+    }
+    {
+      std::stringstream nome;
+      nome << count++ << "_boundary_ref.dx";
+      ofstream dx_arq_ref (nome.str().c_str());
+      WriteMesh(geomesh,dx_arq_ref,destmatid+1);
+    }
+    destmatid += 2;
   }
-  ofstream dx_arq_ref ("cruz_ref.dx");
-  WriteMesh(geomesh,dx_arq_ref);
+  destmatid--;
 
 
   //geomesh->Print(cout);
   //string ref = "refpattern.txt" ;
   /*TPZRefPattern *patt = */ //new TPZRefPattern(ref) ;
+
+//  geomesh->Print();
   return 0 ;
+
+  
 }
 
 
 
 
-void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
+void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
 {
   int matid = gel->MaterialId();
   if(matids.count(matid)) return;
-  TPZVec<int> sidestorefine(gel->NSides(),0);
-  TPZVec<int> cornerstorefine(gel->NSides(),0);
+  TPZManVector<int,27> sidestorefine(gel->NSides(),0);
+  TPZManVector<int,27> cornerstorefine(gel->NSides(),0);
   // look for corners which are on the boundary
   int in;
+  int numrefribs = 0;
   for(in=0; in<gel->NCornerNodes(); in++)
   {
     TPZGeoElSide gels(gel,in);
@@ -368,6 +363,7 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
     if(cornerstorefine[gel->SideNodeLocIndex(is,0)] || cornerstorefine[gel->SideNodeLocIndex(is,1)])
     {
       sidestorefine[is] = 1;
+      numrefribs++;
       TPZGeoElSide gels(gel,is);
       TPZGeoElSide neigh(gels.Neighbour());
       while(neigh != gels)
@@ -376,11 +372,16 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
         if(matids.count(neigh.Element()->MaterialId()))
         {
           sidestorefine[is] = 0;
+          numrefribs--;
           break;
         }
         neigh = neigh.Neighbour();
       }
     }    
+  }
+  if(!numrefribs)
+  {
+    return;
   }
 //  TPZGeoMesh *gmesh = gel->Mesh();
   std::list<TPZRefPattern *> patlist;
@@ -389,21 +390,29 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
   static int count = 1;
   if(patt) 
   {
+    gel->SetMaterialId(destmatid+1);
     gel->SetRefPattern(patt);
     TPZManVector<TPZGeoEl *> subel;
     gel->Divide(subel);
+    gel->SetMaterialId(destmatid);
     std::cout << "S";
   }
   else
   {
-    std::ofstream arquivo ("NotListedPatterns.txt",std::ios::app);
+    std::ofstream arquivo ("NotListedPatterns4.txt",std::ios::app);
     if(count++ == 1) std::cout << "couldnt find a suitable refinement pattern\n";
     std::cout << "*";
-    if(!count%100) std::cout << std::endl;
+    std::list<TPZRefPattern *>::iterator it;
+    arquivo << "Compatible refinement patterns\n";
+    for(it=patlist.begin(); it!=patlist.end(); it++)
+    {
+      (*it)->ShortPrint(arquivo); arquivo << (void*) (*it); arquivo << endl;
+    }
     arquivo << std::endl;
     arquivo << "Element Type :" << gel->Type() << std::endl;
     arquivo << "Sides selected for refinement :" << std::endl;
-    for (int i=0 ; i<gel->NSides() ; i++){
+    int i;
+    for (i=0 ; i<gel->NSides() ; i++){
       if(cornerstorefine[i] == 1)
       {
         arquivo << " " << i << " ";
@@ -412,7 +421,9 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
         arquivo << " " << i << " " ;
       }      
     }
+    gel->Print(arquivo);
     int in;
+    arquivo << std::endl;
     arquivo << "Neighbouring information \n";
     for(in=0; in<gel->NSides(); in++)
     {
@@ -425,14 +436,41 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
         if(matids.count(neigh.Element()->MaterialId()))
         {
           arquivo << neigh.Element()->Id() << "-l-" << neigh.Side() << " ";
+          if (neigh.Side() == 9 && gel->Type() == ETetraedro) {
+            arquivo << "Teje pego meliante..." << std::endl;
+            neigh.Element()->Print(arquivo);
+          }
         }
         neigh = neigh.Neighbour();
       }
       arquivo << std::endl;
     }
     arquivo << std::endl;
+
+    arquivo << "Element information : " << gel->Index() << std::endl;
+    arquivo << "Vizinhos dos lados marcados para refinamento:" << std::endl;
+    for (i=0 ; i<gel->NSides() ; i++){
+      if(cornerstorefine[i] == 1 || sidestorefine[i] == 1)
+      {
+        TPZGeoElSide gelside (gel,i);
+        TPZGeoElSide neigh = gelside.Neighbour();
+        while (neigh != gelside)
+        {
+          arquivo << "*********** my side = " << i << " neighside " << neigh.Side() << std::endl;
+          neigh.Element()->Print(arquivo);
+          neigh = neigh.Neighbour();
+        }
+      }
+    }
+    arquivo << std::endl << std::endl << std::endl << std::endl;
     // Here we will provide the necessary information to develop a new ref. patt.
   }
+  count++;
+  if(!(count%20)) 
+  {
+    std::cout << count << std::endl;
+  }
+
   return;
 }
 
@@ -455,3 +493,56 @@ TPZRefPattern *GetBestRefPattern(TPZVec<int> &sides, std::list<TPZRefPattern *> 
   return 0;
 }
 
+void FilterBoundingBox(TPZGeoMesh *geomesh)
+{
+  int no,nnode,idf;
+  nnode = geomesh->NodeVec().NElements();
+  TPZFNMatrix<6> xminmax(3,2,0.);
+  for(no=0; no<nnode; no++)
+  {
+    for(idf=0; idf<3; idf++)
+    {
+      if(geomesh->NodeVec()[no].Coord(idf) < xminmax(idf,0)) xminmax(idf,0) = geomesh->NodeVec()[no].Coord(idf);
+      if(geomesh->NodeVec()[no].Coord(idf) > xminmax(idf,1)) xminmax(idf,1) = geomesh->NodeVec()[no].Coord(idf);
+    }
+  }
+  int el,nelem;
+  nelem = geomesh->ElementVec().NElements();
+  for(el=0; el<nelem; el++)
+  {
+      TPZGeoEl *gel = geomesh->ElementVec()[el];
+      if(!geomesh->ElementVec()[el] || ! (geomesh->ElementVec()[el]->Type()== ETriangle) || gel->MaterialId() != -1) continue;
+      TPZFNMatrix<9> axes(3,3),jac(2,2),jacinv(2,2),xminmaxloc(3,2,0.);
+      for(no=0; no<gel->NNodes(); no++)
+      {
+        TPZGeoNode *gno = gel->NodePtr(no);
+        for(idf=0; idf<3; idf++)
+        {
+          if(no == 0) 
+          {
+            xminmaxloc(idf,0) = gno->Coord(idf);
+            xminmaxloc(idf,1) = gno->Coord(idf);
+          }
+          if(gno->Coord(idf) < xminmaxloc(idf,0)) xminmaxloc(idf,0) = gno->Coord(idf);
+          if(gno->Coord(idf) > xminmaxloc(idf,1)) xminmaxloc(idf,1) = gno->Coord(idf);
+        }
+      }
+      xminmaxloc -= xminmax;
+      REAL mindif = 1.;
+      for(no=0; no<2; no++) for(idf=0; idf<3; idf++) mindif = (mindif < fabs(xminmaxloc(idf,no)))? mindif : fabs(xminmaxloc(idf,no));
+      if(mindif < 0.001) 
+      {
+        REAL detjac;
+        TPZManVector<REAL,3> coor(2,0.3333);
+        gel->Jacobian(coor,jac,axes,detjac,jacinv);
+        if((fabs(axes(2,0))-1.) < 1.e-3 || (fabs(axes(2,1))-1.) < 1.e-3 || (fabs(axes(2,2))-1.) < 1.e-3)
+        {
+          gel->SetMaterialId(-4);
+        }
+        else
+        {
+          gel->SetMaterialId(-1);
+        }
+      }
+  }
+}
