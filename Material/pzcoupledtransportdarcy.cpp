@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcy.cpp,v 1.3 2006-01-18 15:14:54 tiago Exp $
+//$Id: pzcoupledtransportdarcy.cpp,v 1.4 2006-01-23 16:32:14 phil Exp $
 
 #include "pzcoupledtransportdarcy.h"
 #include "pzcoupledtransportdarcyBC.h"
@@ -44,7 +44,7 @@ TPZCoupledTransportDarcy::~TPZCoupledTransportDarcy() {
 }
 
 int TPZCoupledTransportDarcy::NStateVariables() {
-  this->GetCurrentMaterial()->NStateVariables();
+  return this->GetCurrentMaterial()->NStateVariables();
 }
 
 void TPZCoupledTransportDarcy::Print(ostream &out) {
@@ -71,16 +71,16 @@ void TPZCoupledTransportDarcy::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,RE
 
 /** returns the variable index associated with the name*/
 int TPZCoupledTransportDarcy::VariableIndex(char *name){
-  this->GetCurrentMaterial()->VariableIndex(name);
+  return this->GetCurrentMaterial()->VariableIndex(name);
 }
 
 int TPZCoupledTransportDarcy::NSolutionVariables(int var){
-  this->GetCurrentMaterial()->NSolutionVariables(var);
+  return this->GetCurrentMaterial()->NSolutionVariables(var);
 }
 
 void TPZCoupledTransportDarcy::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,
                                         int var,TPZVec<REAL> &Solout){
-  this->GetCurrentMaterial()->Solution(Sol, DSol, axes, var, Solout);
+  return this->GetCurrentMaterial()->Solution(Sol, DSol, axes, var, Solout);
 }//method
 
 void TPZCoupledTransportDarcy::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
