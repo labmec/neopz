@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.18 2005-04-25 02:31:48 phil Exp $
+//$Id: pzgmesh.h,v 1.19 2006-01-23 12:16:33 heman Exp $
 
 /**File : pzgmes.h
 
@@ -142,6 +142,14 @@ virtual void Write(TPZStream &buf, int withclassid);
 
   /** Print the information of the grid to an ostream*/
 virtual  void Print(std::ostream & out = std::cout);
+
+void TPZGeoMesh::PatternSidesFile(std::ofstream &filename);
+
+void TPZGeoMesh::PatternFileLoad(std::ifstream &filename);
+
+int TPZGeoMesh::NRefPatterns ();
+
+void TPZGeoMesh::RefPatternFile(std::ofstream &filename);
 
   /**Returns the nearest node to the coordinate
      this method is VERY INEFICIENT*/
