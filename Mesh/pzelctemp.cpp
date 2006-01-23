@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.23 2005-12-09 03:17:02 phil Exp $
+// $Id: pzelctemp.cpp,v 1.24 2006-01-23 12:23:57 heman Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -33,7 +33,7 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &ind
   }
 
   int sideorder = SideOrder(TSHAPE::NSides-1);  
-  sideorder = 2*sideorder;
+  sideorder = 2*sideorder + 2;
   if (sideorder > fIntRule.GetMaxOrder()) sideorder = fIntRule.GetMaxOrder();
   //  TPZManVector<int,3> order(3,2*sideorder+2);
   TPZManVector<int,3> order(3,sideorder);
@@ -358,14 +358,17 @@ template<>
 void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 0) std::cout << "A point element has no graphical representation\n";
 }
+
 template<>
 void TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 3) std::cout << "A tetrahedra element has no graphical representation\n";
 }
+
 template<>
 void TPZIntelGen<TPZGeoPrism,TPZShapePrism>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 3) std::cout << "A prism element has no graphical representation\n";
 }
+
 template<>
 void TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 3) std::cout << "A pyramid element has no graphical representation\n";
@@ -411,36 +414,43 @@ int TPZIntelGen<TPZGeoPoint,TPZShapePoint>::ClassId() const
 {
   return TPZINTELPOINTID;
 }
+
 template<>
 int TPZIntelGen<TPZGeoLinear,TPZShapeLinear>::ClassId() const
 {
   return TPZINTELLINEARID;
 }
+
 template<>
 int TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>::ClassId() const
 {
   return TPZINTELTRIANGLEID;
 }
+
 template<>
 int TPZIntelGen<TPZGeoQuad,TPZShapeQuad>::ClassId() const
 {
   return TPZINTELQUADID;
 }
+
 template<>
 int TPZIntelGen<TPZGeoCube,TPZShapeCube>::ClassId() const
 {
   return TPZINTELCUBEID;
 }
+
 template<>
 int TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::ClassId() const
 {
   return TPZINTELTETRAID;
 }
+
 template<>
 int TPZIntelGen<TPZGeoPrism,TPZShapePrism>::ClassId() const
 {
   return TPZINTELPRISMID;
 }
+
 template<>
 int TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::ClassId() const
 {
