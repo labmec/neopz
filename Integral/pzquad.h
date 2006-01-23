@@ -206,6 +206,9 @@ extern  TPZIntRuleList  gIntRuleList;
 
 class TPZIntPoints{
  public:
+  virtual ~TPZIntPoints()
+  {
+  }
   virtual int NPoints() = 0;
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) = 0;
   virtual void SetOrder(TPZVec<int> &ord) = 0;
@@ -223,6 +226,9 @@ class TPZInt1d : public TPZIntPoints{
   TPZIntRule *fIntP;
  public:
   TPZInt1d(int OrdK = 0);
+  virtual ~TPZInt1d()
+  {
+  }
   virtual int NPoints();
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
   virtual void SetOrder(TPZVec<int> &ord);
@@ -240,6 +246,9 @@ class TPZIntTriang : public TPZIntPoints{
   TPZIntRuleT *fIntKsi;
  public:
   TPZIntTriang(	int OrdK = 2);
+  virtual ~TPZIntTriang()
+  {
+  }
   virtual void SetOrder(TPZVec<int> &ord);
   virtual int  NPoints();
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
@@ -259,6 +268,9 @@ class TPZIntQuad : public TPZIntPoints{
   TPZIntRule *fIntEta;
  public:
   TPZIntQuad(int OrdK = 2, int OrdE = 2);
+  virtual ~TPZIntQuad()
+  {
+  }
   virtual void SetOrder(TPZVec<int> &ord);
   virtual int NPoints();
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
@@ -284,6 +296,9 @@ class TPZIntCube3D : public TPZIntPoints{
   TPZIntRule *fIntZeta;
  public:
   TPZIntCube3D(int OrdK = 2, int OrdE = 2, int OrdZ = 2);
+  virtual ~TPZIntCube3D()
+  {
+  }
   virtual void SetOrder(TPZVec<int> &ord);
   virtual int NPoints();
   virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
