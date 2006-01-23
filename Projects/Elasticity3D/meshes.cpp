@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.4 2006-01-14 20:02:32 tiago Exp $
+//$Id: meshes.cpp,v 1.5 2006-01-23 16:44:29 phil Exp $
 
 #include "meshes.h"
 
@@ -41,11 +41,11 @@ void SetPOrder(int p){
 TPZCompMesh *BarraTracionada(int h, int p){
   SetPOrder(p);
 
-  const REAL Length = 10.;
-  const REAL Base   = 0.3;
-  const REAL Height = 0.5; 
+  const REAL Length = 1.;
+  const REAL Base   = 1.;
+  const REAL Height = 1.; 
   const REAL STRESS = 100.;
-  const REAL EYoung = 205000.;
+  const REAL EYoung = 1000.;
   const REAL Poisson= 0.0;
   
   REAL co[8][3] = {{0.,0.,0.},    {0.,0., Base},    {0.,Height, Base},    {0., Height, 0.}, 
@@ -87,6 +87,13 @@ TPZCompMesh *BarraTracionada(int h, int p){
   bcincid[3] = 7;  
   gmesh->CreateGeoElement(EQuadrilateral,bcincid,-2,index);
   
+  bcincid.Resize(1);
+  bcincid[0]=0;
+  gmesh->CreateGeoElement(EPoint,bcincid,-3,index);
+  bcincid[0]=4;
+  gmesh->CreateGeoElement(EPoint,bcincid,-4,index);
+  bcincid[0]=7;
+  gmesh->CreateGeoElement(EPoint,bcincid,-5,index);
   gmesh->BuildConnectivity();
   
   TPZVec<TPZGeoEl*> filhos;
@@ -105,8 +112,8 @@ TPZCompMesh *BarraTracionada(int h, int p){
   TPZElasticity3D * mat = new TPZElasticity3D(1, EYoung, Poisson, NullForce);
 
   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
-  val2.Zero();
-  TPZBndCond * bcD = mat->CreateBC(-1, 0,val1,val2);
+  val2(0,0) = -STRESS;
+  TPZBndCond * bcD = mat->CreateBC(-1, 1,val1,val2);
   
   val2(0,0) = STRESS;
   TPZBndCond * bcN = mat->CreateBC(-2, 1,val1,val2);
@@ -114,7 +121,20 @@ TPZCompMesh *BarraTracionada(int h, int p){
   cmesh->InsertMaterialObject(mat);
   cmesh->InsertMaterialObject(bcD);
   cmesh->InsertMaterialObject(bcN);
-  
+  val2(0,0) = 0.;
+  TPZBndCond *bnd = mat->CreateBC (-3,0,val1,val2);
+  cmesh->InsertMaterialObject(bnd);
+
+  val1(1,1) = 1000.;
+  val1(2,2) = 1000.;
+  bnd = mat->CreateBC (-4,2,val1,val2);
+  cmesh->InsertMaterialObject(bnd);
+  val1.Zero();
+  val2.Zero();
+  val1(2,2) = 1000.;
+  bnd = mat->CreateBC (-5,2,val1,val2);
+  cmesh->InsertMaterialObject(bnd);
+
   //cmesh->SetAllCreateFunctionsDiscontinuous();
   cmesh->SetAllCreateFunctionsContinuous();
   
@@ -130,8 +150,8 @@ TPZCompMesh *BarraTracionadaGirada(int h, int p){
   SetPOrder(p);
 
   const REAL Length = 10.;
-  const REAL Base   = 0.3;
-  const REAL Height = 0.5; 
+//  const REAL Base   = 0.3;
+//  const REAL Height = 0.5; 
   const REAL STRESS = 100.;
   const REAL EYoung = 205000.;
   const REAL Poisson= 0.0;
@@ -273,7 +293,7 @@ TPZCompMesh * VigaEngastada(int h, int p){
   const REAL Length = 1.;
   const REAL Base   = 0.2;
   const REAL Height = 0.5; 
-  const REAL STRESS = 100.;
+//  const REAL STRESS = 100.;
   const REAL EYoung = 205000.;
   const REAL Poisson= 0.0;
   
@@ -372,7 +392,7 @@ TPZCompMesh * VigaEngastadaForcaVolume(int h, int p){
   const REAL Length = 10.;
   const REAL Base   = 0.2;
   const REAL Height = 0.5; 
-  const REAL STRESS = 100.;
+//  const REAL STRESS = 100.;
   const REAL EYoung = 205000.;
   const REAL Poisson= 0.0;
   
