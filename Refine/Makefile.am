@@ -15,7 +15,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 refinedir = $(prefix)/Refine
 
 refineincdir = $(includedir)/Refine
-refineinc_HEADERS= $(top_srcdir)/Refine/*.h
+refineinc_HEADERS= $(top_srcdir)/Refine/*.h $(top_srcdir)/Refine/RefPatterns/*
 
 
 noinst_LIBRARIES = libpzrefine.a
