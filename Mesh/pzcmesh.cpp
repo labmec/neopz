@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.39 2005-12-21 11:55:13 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.40 2006-01-23 16:35:12 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1438,7 +1438,7 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
   for(int i = 0; i < n; i++){
     TPZCompEl * cel = this->ElementVec()[i];
     if (!cel) continue;
-    MElementType type = cel->Type();
+//    MElementType type = cel->Type();
     TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(cel);
     if(face){
       PZError << __PRETTY_FUNCTION__ << " - At this point no TPZInterfaceElement may exist.\n";

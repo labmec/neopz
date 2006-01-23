@@ -1015,6 +1015,7 @@ REAL TPZGeoEl::ElementRadius(){
 	 return 0.;
 
    }//end of switch
+   return 0.;
 } //end of method
 
 REAL TPZGeoEl::TriangleArea(TPZVec<TPZGeoNode *> &nodes){

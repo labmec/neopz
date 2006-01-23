@@ -40,7 +40,7 @@ using namespace std;
 template class TPZVec<TPZCompCloneMesh::TPZRefPattern>;
 
 static ofstream gDeduce("deduce.txt");
-static int zero = 0;
+//static int zero = 0;
 
 TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : TPZCompMesh(gr)/*, fMapConnects(zero)*/{
   fCloneReference = cmesh;
@@ -342,7 +342,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
   int nbc = bcelsides.NElements();
   int ibc;
   for(ibc = 0; ibc<nbc; ibc++) {
-    TPZCompEl *celbc = bcelsides[ibc].Element()->CreateBCCompEl(bcelsides[ibc].Side(),-1000,*this);
+    bcelsides[ibc].Element()->CreateBCCompEl(bcelsides[ibc].Side(),-1000,*this);
   }
   TPZCompEl::gOrder = tmporder;
   //  AdjustBoundaryElements();
@@ -1079,9 +1079,9 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     
     //define o refinamento para o elemento
     TPZRefPattern optimal = {
-      id[0],id[1],id[2],
-      p1,p2,
-      hp1,hp2,
+      {id[0],id[1],id[2]},
+      {p1,p2},
+      {hp1,hp2},
       hperror,error
     };
     refpattern[n1dsides] = optimal;
@@ -1375,7 +1375,7 @@ void TPZCompCloneMesh::CopyConnectStructure() {
       cint = dynamic_cast<TPZInterpolatedElement *> (cel);
       if(!cint) continue;
       int ncon = cel->NConnects();
-      int cornercon = cint->NCornerConnects();
+//      int cornercon = cint->NCornerConnects();
       int ic;
       for(ic=0; ic<ncon; ic++) {
       //for(ic=cornercon; ic<ncon; ic++) {

@@ -27,8 +27,8 @@
 #include <fstream>
 
 using namespace std;
-TPZGenGrid::TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0,TPZVec<REAL> &x1, int numl, REAL rot) : fX0(x0), fX1(x1),
-		fNx(nx), fDelx(2), fNumLayers(numl), fRotAngle(rot)
+TPZGenGrid::TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0,TPZVec<REAL> &x1, int numl, REAL rot) : fNx(nx), fX0(x0), fX1(x1),
+		fDelx(2), fNumLayers(numl), fRotAngle(rot)
 {
 	fDelx[0] = (x1[0]-x0[0])/(nx[0]);
 	fDelx[1] = (x1[1]-x0[1])/(nx[1]);

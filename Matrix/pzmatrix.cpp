@@ -1103,7 +1103,7 @@ bool TPZMatrix::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<RE
     for(i = 0; i < size; i++) myset.insert( this->operator ( )(i,i) );
 
 #ifdef DEBUG2        
-    if (myset.size() != size) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;  
+    if ((int)myset.size() != size) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;  
 #endif
     
     Sort->Resize(size);
@@ -1279,6 +1279,7 @@ REAL TPZMatrix::MatrixNorm(int p, int numiter, REAL tol) const{
       PZError << __PRETTY_FUNCTION__ << " p = " << p << " is not a correct option" << std::endl;
     }
   }//switch
+  return 0.;
 }//method
 
 int TPZMatrix::Inverse(TPZFMatrix &Inv){
@@ -1300,6 +1301,7 @@ int TPZMatrix::Inverse(TPZFMatrix &Inv){
   const int issimetric = this->IsSimetric();
   if (issimetric)  return this->SolveDirect(Inv, ELDLt);
   if (!issimetric) return this->SolveDirect(Inv, ELU);
+  return 0;
 }//method
 
 REAL TPZMatrix::ConditionNumber(int p, int numiter, REAL tol){

@@ -1,4 +1,4 @@
-//$Id: pzelast3d.cpp,v 1.6 2006-01-14 19:55:32 tiago Exp $
+//$Id: pzelast3d.cpp,v 1.7 2006-01-23 16:32:50 phil Exp $
 
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -212,19 +212,19 @@ void TPZElasticity3D::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
   }//TPZElasticity3D::EDisplacement
   
   if(var == TPZElasticity3D::EDisplacementX){
-    int i;
+//    int i;
     Solout[0] = Sol[0];
     return;
   }//TPZElasticity3D::EDisplacementX
   
   if(var == TPZElasticity3D::EDisplacementY){
-    int i;
+//    int i;
     Solout[0] = Sol[1];
     return;
   }//TPZElasticity3D::EDisplacementY  
   
   if(var == TPZElasticity3D::EDisplacementZ){
-    int i;
+//    int i;
     Solout[0] = Sol[2];
     return;
   }//TPZElasticity3D::EDisplacementZ  

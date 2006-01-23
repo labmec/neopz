@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.6 2005-12-06 13:40:36 tiago Exp $
+//$Id: main.cpp,v 1.7 2006-01-23 16:42:36 phil Exp $
 
 /**
  * Galerkin descontinuo: problema de camada limite
@@ -82,7 +82,7 @@ int main22(){
   
   std::cout << "\n\nGeo:\n" << geo_time << "\n";
   std::cout.flush();
-  
+  return 0;
 }
 
 int main(){

@@ -74,12 +74,12 @@ void TPZRenumbering::ConvertGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphinde
 //	cout << "Passou por aqui0\n";
 	int nodegraphincrement = 100;
   	nodegraph.Resize(nodegraphincrement);       
-  	int nodegraphsize = nodegraph.NElements();
+//  	int nodegraphsize = nodegraph.NElements();
   	int nextfreeindex = 0;
   	for(nod=0; nod<fNNodes; nod++) {
     		int firstel = nodtoelgraphindex[nod];
     		int lastel = nodtoelgraphindex[nod+1];
-    		int firstnode = nodegraphindex[nod];
+//    		int firstnode = nodegraphindex[nod];
         std::set<int> nodecon;
     		for(el=firstel; el<lastel; el++) {
       			int gel = nodtoelgraph[el];
@@ -99,7 +99,7 @@ void TPZRenumbering::ConvertGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphinde
 //        }
 			  }
         nodecon.erase(nod);
-        while(nextfreeindex+nodecon.size() >= nodegraph.NElements()) nodegraph.Resize(nodegraph.NElements()+nodegraphincrement);
+        while(nextfreeindex+(int)nodecon.size() >= nodegraph.NElements()) nodegraph.Resize(nodegraph.NElements()+nodegraphincrement);
         std::set<int>::iterator it;
         for(it = nodecon.begin(); it!= nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
     		nodegraphindex[nod+1] = nextfreeindex;

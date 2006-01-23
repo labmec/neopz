@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.47 2005-12-19 12:00:27 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.48 2006-01-23 16:40:35 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -766,7 +766,8 @@ int TPZInterfaceElement::ConnectIndex(int i) {
 
    if(i < ncon){ //required connect is associated to right neighbour
       return fRightElSide.Element()->ConnectIndex(i-nleftcon);
-   }   
+   }
+   return -1;
 }
 
 void TPZInterfaceElement::Print(ostream &out){

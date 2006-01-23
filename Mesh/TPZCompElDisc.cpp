@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.71 2005-12-21 11:57:10 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.72 2006-01-23 16:39:59 phil Exp $
 
 // -*- c++ -*- 
 
@@ -542,7 +542,7 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
 
   TPZVec<int> prevorder(dimension),order(dimension);
   TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,2*Degree());
-  int i;
+//  int i;
 
   TPZFMatrix locphi(locmatsize,1);
   TPZFMatrix locdphi(dimension,locmatsize);	// derivative of the shape function

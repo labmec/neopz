@@ -26,8 +26,8 @@ Method definition for class TPZGeoCloneMesh.*/
 
 using namespace std;
 
-static int zero=0;
-static TPZGeoEl *zeropoint = 0;
+//static int zero=0;
+//static TPZGeoEl *zeropoint = 0;
 
 TPZGeoCloneMesh::TPZGeoCloneMesh(TPZGeoMesh *ref) : TPZGeoMesh()/*, fMapNodes(zero),fMapElements(zeropoint) */{
   if (!ref) {
@@ -149,7 +149,7 @@ int  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
     }
     el->SetNodeIndex(i,clonid);
   }
-  int orgid = orgel->Id();
+//  int orgid = orgel->Id();
   int elindex = Index(el);
 
   //  cout << "\nClonned element\n";
@@ -185,7 +185,7 @@ int  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
     int subel = orgel->NSubElements();
     for (j=0;j<subel;j++){
       TPZGeoEl *gelson = orgel->SubElement(j);
-      int subelindex = CloneElement(gelson);
+//      int subelindex = CloneElement(gelson);
       fMapElements[gelson]->SetFather(el);
       fMapElements[gelson]->SetFather(el->Index());
       el->SetSubElement(j,fMapElements[gelson]);
@@ -197,7 +197,7 @@ int  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
 }
 
 int TPZGeoCloneMesh::HasNode(int nodeindex){
-  TPZPix has;
+//  TPZPix has;
   std::map<int,int>::iterator it;
   it = fMapNodes.find(nodeindex);
   return (it==fMapNodes.end()) ? 0 : 1;
@@ -663,7 +663,7 @@ void TPZGeoCloneMesh::Write(TPZStream &buf, int withclassid)
 {
   TPZGeoMesh::Write(buf,withclassid);
 
-  int i;
+//  int i;
   int first  = -1;
   int second = -1;
   int szmap = -1;
