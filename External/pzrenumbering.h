@@ -10,6 +10,10 @@ for implementing node sequence numbering optimization*/
 class TPZRenumbering {
 public:
   TPZRenumbering(int NElements, int NNodes);
+  
+  virtual ~TPZRenumbering()
+  {
+  }
 
   /**
    * This method declares the element graph to the object
