@@ -482,7 +482,7 @@ TPZBlockDiagonal::Substitution( TPZFMatrix *B) const
 //      TPZFMatrix temp(bsize,bsize,&fStorage[pos],bsize*bsize);
 //      temp.SetIsDecomposed(ELU);
       TPZFMatrix BTemp(bsize,1,&(B->operator()(eq,c)),bsize);
-      TPZFMatrix::Substitution(fStorage,bsize,&BTemp);
+      TPZFMatrix::Substitution(fStorage+pos,bsize,&BTemp);
       eq+= bsize;
     }
   }
@@ -545,10 +545,12 @@ int TPZBlockDiagonal::main() {
   TPZBlockDiagonal bd2(bd1);
   ref.Print("original matrix");
   bd1.Solve_LU(&ref);
+  bd1.Solve_LU(&ref);
   ref.Print("after inverting the diagonal");
   TPZFMatrix ref2;
   bd2.Multiply(ref,ref2);
-  ref2.Print("restoring the original matrix");
+  bd2.Multiply(ref2,ref);
+  ref.Print("restoring the original matrix");
   return 1;
 
 }
