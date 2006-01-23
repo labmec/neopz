@@ -105,8 +105,9 @@ void TPZGeoPrism::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &j
     PZError << "TPZGeoPrism.jacobian only implemented for"
       " 6 nodes, NumberOfNodes = " << nnodes << "\n";
   }
-  if( param[0] < 0. || param[0] > 1. || param.NElements() != 3 ||
-     param[1] < 0. || param[1] > 1. || param[2] < -1. || param[2] > 1.) {
+  const REAL tol = 1.e-3;
+  if( param[0] < 0.-tol || param[0] > 1.+tol || param.NElements() != 3 ||
+     param[1] < 0.-tol || param[1] > 1.+tol || param[2] < -1.-tol || param[2] > 1.+tol) {
     PZError << "TPZGeoPrism::jacobian. param out of range : "
       " param.NElements() = " << param.NElements() <<
       "\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";

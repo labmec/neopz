@@ -38,8 +38,15 @@ MElementType TPZGeoTetrahedra::Type(int side)
     case 5:
     case 6:
     case 7:
-      return ETriangle;
     case 8:
+    case 9:
+      return EOned;
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+      return ETriangle;
+    case 14:
       return ETetraedro;
     default:
       return ENoType;
@@ -75,11 +82,13 @@ void TPZGeoTetrahedra::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatr
 		PZError << "TPZGeoTetrahedra.jacobian only implemented for"
 		" 4 nodes, NumberOfNodes = " << nnodes << "\n";
 	}
-	if(param.NElements() != 3 || param[0] < 0. || param[0] > 1. ||
-		param[1] < 0. || param[1] > 1. || param[2] < 0. || param[2] > 1.) {
+	if(param.NElements() != 3 || param[0] < -0.001 || param[0] > 1.001 ||
+                  param[1] < -0.001 || param[1] > 1.001 || param[2] < -0.001 || param[2] > 1.001 || (param[0]+param[1]+param[2]) > 1.001) {
 		PZError << "TPZGeoTetrahedra.jacobian. param out of range : "
 			" param.NElements() = " << param.NElements() <<
 			"\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
+                PZError << (param.NElements() != 3) << " " << (param[0] < -0.001) << " " << (param[0] > 1.001) << " " <<
+                    (param[1] < -0.001) << " " <<  (param[1] > 1.001) << " " <<  (param[2] < -0.001) << " " << (param[2] > 1.001) << " " << ((param[0]+param[1]+param[2]) > 1.001) << endl;
 		return;
 	}
 #endif

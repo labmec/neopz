@@ -131,8 +131,8 @@ void TPZGeoPyramid::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix 
 	  PZError <<	"TPZGeoPyramid.jacobian only implemented for"
 	    " 5 nodes, NumberOfNodes = " << nnodes << "\n";
 	}
-	if(param.NElements() != 3 || param[0] < -1. || param[0] > 1. ||
-	   param[1] < -1. || param[1] > 1. || param[2] < 0. || param[2] > 1.) {
+	if(param.NElements() != 3 || param[0] < -1.001 || param[0] > 1.001 ||
+	   param[1] < -1.001 || param[1] > 1.001 || param[2] < -0.001 || param[2] > 1.001) {
 	  PZError << "TPZGeoPyramid.jacobian. param out of range : "
 	    " param.NElements() = " << param.NElements() <<
 	    "\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
