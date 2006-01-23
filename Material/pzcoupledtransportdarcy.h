@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcy.h,v 1.3 2006-01-18 15:14:54 tiago Exp $
+//$Id: pzcoupledtransportdarcy.h,v 1.4 2006-01-23 16:32:31 phil Exp $
 
 #ifndef MATCOUPLEDTRANSPDARCY
 #define MATCOUPLEDTRANSPDARCY
@@ -43,6 +43,7 @@ public:
 
   virtual TPZBndCond *CreateBC(int id, int typ, TPZFMatrix &val1,TPZFMatrix &val2){
     PZError << "Error! - This method should not be called - " << __PRETTY_FUNCTION__ << std::endl;
+    return 0;
   }
 
   TPZCoupledTransportDarcyBC *CreateBC(int id);
@@ -101,7 +102,7 @@ public:
   }
     
   int Dimension() { 
-    this->GetCurrentMaterial()->Dimension();
+    return this->GetCurrentMaterial()->Dimension();
   }
 
   int NStateVariables();

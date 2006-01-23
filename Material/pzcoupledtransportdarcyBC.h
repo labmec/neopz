@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcyBC.h,v 1.2 2006-01-18 15:14:54 tiago Exp $
+//$Id: pzcoupledtransportdarcyBC.h,v 1.3 2006-01-23 16:31:33 phil Exp $
 
 #ifndef MATCOUPLEDTRANSPDARCYBC
 #define MATCOUPLEDTRANSPDARCYBC
@@ -63,7 +63,7 @@ public :
   
   /**returns the integrable dimension of the material*/
   int Dimension() { 
-    this->GetNonNullMaterial()->Dimension();
+    return this->GetNonNullMaterial()->Dimension();
   }
 
   virtual int NFluxes(){ return this->GetNonNullMaterial()->NFluxes(); }
