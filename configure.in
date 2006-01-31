@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.46 2006-01-23 12:52:15 cesar Exp $
+dnl $Id: configure.in,v 1.47 2006-01-31 17:42:11 cesar Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -12,6 +12,9 @@ dnl ----------------------------------------------------------------------------
 
 dnl Checking if we are in the CFD kernel source tree
 AC_INIT(PZ.mk.in)
+
+dnl Generates local machine configuration include
+AM_CONFIG_HEADER(config.h)
 
 dnl Requires a recent version of autoconf
 AC_PREREQ(2.13)
@@ -407,6 +410,61 @@ AC_SUBST(ATLASINCLUDE)
 AC_SUBST(ATLASLIBDIR)
 AC_SUBST(ATLASLIB)
 AC_SUBST(LIBATLAS)
+
+dnl ----------------------------------------------------------------------------
+dnl                              ENABLE REFPAT
+dnl ----------------------------------------------------------------------------
+
+AC_ARG_ENABLE(refpat,
+  [  --enable-refpat=no Enables the use of REFPAT [default=yes]],
+  [refpat_enabled=$enableval],
+  [refpat_enabled="yes"])
+
+case "${refpat_enabled}" in
+  yes)
+    echo "Enabling REFPAT code."
+    USING_REFPAT="-DUSING_REFPAT"
+  ;;
+  no)
+    echo "REFPAT not chosen."
+    USING_REFPAT=""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${refpat_enabled} for --enable-refpat)
+  ;;
+esac
+
+AM_CONDITIONAL( REFPAT, test x${refpat_enabled} = xyes )
+
+AC_SUBST(USING_REFPAT)
+
+dnl ----------------------------------------------------------------------------
+dnl                               REFPAT LOCATION
+dnl ----------------------------------------------------------------------------
+
+dnl REFPAT location
+AC_ARG_WITH(refpat-dir,
+  [  --with-refpat-dir=DIR    Root of REFPAT instalation [$top_srcdir]],
+  [refpat_dir=$withval],
+  [refpat_dir=${refpat_dir=[$srcdir/src/Files]}])
+
+case "${refpat_enabled}" in
+  yes)
+    REFPATDIR=$refpat_dir
+  ;;
+  no)
+    REFPATDIR=""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${refpat_enabled} for --enable-refpat)
+  ;;
+esac
+
+AC_SUBST(REFPATDIR)
+
+AC_DEFINE_UNQUOTED([REFPATTERNDIR],["[$refpat_dir]"],[Define toto the directory])
+AC_DEFINE_UNQUOTED([REFPATTERNINSTALLDIR],["[$prefix]/include/Refine/RefPattern"],[Define toto the directory])
+
 
 dnl ----------------------------------------------------------------------------
 dnl                                  CLEANING
