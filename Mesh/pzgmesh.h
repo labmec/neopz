@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.19 2006-01-23 12:16:33 heman Exp $
+//$Id: pzgmesh.h,v 1.20 2006-01-31 19:57:01 cesar Exp $
 
 /**File : pzgmes.h
 
@@ -150,6 +150,11 @@ void TPZGeoMesh::PatternFileLoad(std::ifstream &filename);
 int TPZGeoMesh::NRefPatterns ();
 
 void TPZGeoMesh::RefPatternFile(std::ofstream &filename);
+
+  /**
+   * Import a library of refinement patterns from the install directory
+   */
+  int ImportRefPattern();
 
   /**Returns the nearest node to the coordinate
      this method is VERY INEFICIENT*/
