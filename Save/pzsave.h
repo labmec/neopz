@@ -47,7 +47,6 @@ virtual void Write(TPZStream &buf, int withclassid);
 
 virtual void Read(TPZStream &buf, void *context);
 
-virtual ~TPZSaveable() { }
 template<class T>
 static void WriteObjects(TPZStream &buf, TPZVec<T> &vec) 
 {
