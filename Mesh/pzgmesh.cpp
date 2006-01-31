@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.22 2006-01-23 12:18:15 heman Exp $
+//$Id: pzgmesh.cpp,v 1.23 2006-01-31 19:56:35 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -6,6 +6,11 @@
 Method definition for class TPZGeoMesh.*/
 
 #include "pzgmesh.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "pzvec.h"
 //template class TPZVec<REAL>;
 #include "pzadmchunk.h"
@@ -25,6 +30,8 @@ Method definition for class TPZGeoMesh.*/
 #include "pzelgpi3d.h"
 #include <TPZRefPattern.h>
 #include <tpzgeoelrefpattern.h>
+
+#include <string>
 
 using namespace std;
 
@@ -880,6 +887,26 @@ TPZRefPattern * TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side){
     }
   }
   return GetRefPattern(type,name);
+}
+
+int TPZGeoMesh::ImportRefPattern(){
+  std::string StartingPath;
+  StartingPath = REFPATTERNDIR;
+  std::string FileTypes ("*");
+  std::string Command = std::string("ls -1 ") + StartingPath + std::string("/") + FileTypes;
+  //std::cout << "Generated command: " << Command.c_str() << std::endl;
+  FILE   *fp = popen(Command.c_str(), "r");
+  if (!fp) return -1;
+  char psBuffer[1024];
+  while( !feof( fp ) )
+  {
+    if( fgets(psBuffer, sizeof(psBuffer), fp ) != NULL )
+    {
+      if (psBuffer[strlen(psBuffer)-1] == '\n') psBuffer[strlen(psBuffer)-1] = 0;
+      std::cout << "HEMAN -->> TEM DE LER O ARQUIVO: " << psBuffer << std::endl;
+    }
+  }
+  pclose(fp);
 }
 
 int TPZGeoMesh::ClassId() const {
