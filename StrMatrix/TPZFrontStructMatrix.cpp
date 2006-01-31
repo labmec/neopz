@@ -343,7 +343,7 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix & stiffness, TPZFMatrix & r
   /**Rearange elements order*/
   TPZVec<int> elorder(fMesh->NEquations(),0);
 
-//  OrderElement();
+  OrderElement();
 
 
 
