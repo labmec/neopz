@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.16 2006-01-10 19:38:40 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.17 2006-02-01 18:34:08 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -13,7 +13,7 @@
 using namespace std;
 REAL TPZMatPoisson3d::gAlfa = 0.5;
 
-TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim) {
+TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(1.) {
   fK = 1.;
   fC = 0.;
   fConvDir[0] = 1.;
@@ -109,14 +109,14 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
     REAL dphiic = 0;
     for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
     ef(in, 0) += - weight * ( fXf*phi(in,0) 
-			      + 0.5*delx*fC*dphiic*fXf
+			      + 0.5*fSD*delx*fC*dphiic*fXf
 			      );
     for( int jn = 0; jn < phr; jn++ ) {
       for(kd=0; kd<fDim; kd++) {
         ek(in,jn) += weight * (
           +fK * ( dphi(kd,in) * dphi(kd,jn) ) 
           -fC * ( ConvDirAx[kd]* dphi(kd,in) * phi(jn) )
-	  +0.5 * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
+	  +0.5 * fSD * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
           );
       }
     }
@@ -383,6 +383,8 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
   int il,jl,nrowl;
   nrowl = phiL.Rows(); 
   const REAL penalty = fPenaltyConstant * fK * POrder * POrder / faceSize; //Ap^2/h
+  REAL outflow = 0.;
+  for(il=0; il<fDim; il++) outflow += fConvDir[il]*normal[il];
    
   switch(bc.Type()) {
   case 0: // DIRICHLET  
@@ -395,6 +397,16 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
      
     break;
   case 1: // Neumann
+    if(outflow > 0.)
+    {
+      for(il=0; il<nrowl; il++)
+      {
+        for(jl=0; jl<nrowl; jl++)
+        {
+          ek(il,jl) += weight * outflow * fC * phiL(il,0) * phiL(jl,0);
+        }
+      }
+    }
     //nothing to be done
     break;
   default:

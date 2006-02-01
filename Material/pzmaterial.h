@@ -54,7 +54,7 @@ class  TPZMaterial : public TPZSaveable
        *  Upon return vectorindex contains the index of the material
        *  object within the vector
        */
-      TPZMaterial(TPZMaterial &mat);
+      TPZMaterial(const TPZMaterial &mat);
 
       virtual ~TPZMaterial() {}
 

@@ -15,7 +15,7 @@ TPZMaterial::TPZMaterial(int id) {
    fForcingFunction = 0;
 }
 
-TPZMaterial::TPZMaterial(TPZMaterial &material) {
+TPZMaterial::TPZMaterial(const TPZMaterial &material) {
    fId = material.fId;
    fForcingFunction = material.fForcingFunction;
 }

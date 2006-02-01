@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.17 2006-01-10 19:38:40 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.18 2006-02-01 18:34:08 phil Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -40,6 +40,11 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
    * Non-symmetrical formulation - Baumann's formulation - has coefficient = +1.
    */
   REAL fSymmetry;
+  
+  /**
+   * multiplication value for the streamline diffusion term
+   */
+   REAL fSD;
 
 public:
 
@@ -56,13 +61,14 @@ public:
 
   virtual ~TPZMatPoisson3d();
 
-  TPZMatPoisson3d(TPZMatPoisson3d &copy) : TPZDiscontinuousGalerkin(copy){
+  TPZMatPoisson3d(const TPZMatPoisson3d &copy) : TPZDiscontinuousGalerkin(copy){
     fXf  = copy.fXf;
     fDim = copy.fDim;
     fK   = copy.fK;
     fC   = copy.fC;
     for (int i = 0; i < 3; i++) fConvDir[i] = copy.fConvDir[i];
     fSymmetry = copy.fSymmetry;
+    fSD = copy.fSD;
 
   }
   
@@ -100,6 +106,11 @@ public:
   void SetInternalFlux(REAL flux)
   {
     fXf = flux;
+  }
+  
+  void SetSD(REAL sd)
+  {
+    fSD = sd;
   }
   
   virtual void Print(std::ostream & out);
