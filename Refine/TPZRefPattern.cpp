@@ -1090,7 +1090,7 @@ int TPZRefPattern::operator==(const TPZRefPattern &compare) const
   TPZGeoEl *compfather = compare.fMesh.ElementVec()[0];
   if(father->Type() != compfather->Type()) return 0;
   int dim = father->Dimension();
-  int nsides = father->NSides();
+//  int nsides = father->NSides();
 //  TPZTransform t = father->ComputeParamTrans(compfather,nsides-1,nsides-1);
   std::map<int,int> nodemap;
   int in;
