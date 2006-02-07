@@ -79,15 +79,15 @@ class TPZFileStream : public TPZStream {
   }
 
   virtual void Write(int *p, int size) {
-//    Writes<int>(p,size);
+    Writes<int>(p,size);
   }
   
   virtual void Write(double *p, int size) {
-    //Writes<double>(p,size);
+    Writes<double>(p,size);
   }
 
   virtual void Write(const char *p, int size) {
-    //Writes<char>(p,size);
+    Writes<char>(p,size);
   }
 
   virtual void Write(std::string *p, int size) {
@@ -103,15 +103,15 @@ class TPZFileStream : public TPZStream {
   
   
   virtual void Read(int *p, int size) {
-//    Reads<int>(p,size);
+    Reads<int>(p,size);
   }
 
   virtual void Read(double *p, int size) {
-    //Reads<double>(p,size);
+    Reads<double>(p,size);
   }
 
   virtual void Read(char *p, int size) {
-    //Reads<char>(p,size);
+    Reads<char>(p,size);
   }
 
   virtual void Read(std::string *p, int size) {
