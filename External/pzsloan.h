@@ -2,11 +2,12 @@
 #define TPZSLOAN_H
 
 #include "pzrenumbering.h"
-//#include "sloan\\sloan.h"
 
-
+#ifndef BORLAND
 #include "sloan.h"
-
+#else
+#include "sloan\\sloan.h"
+#endif
 
 class TPZSloan : TPZRenumbering {
  public:
