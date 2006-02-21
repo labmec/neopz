@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.24 2005-04-25 02:31:49 phil Exp $
+//$Id: TPZAgglomerateEl.h,v 1.25 2006-02-21 14:49:56 cesar Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -9,6 +9,8 @@
 #include <iostream>
 #include <map>
 #include <set>
+
+#include <stdlib.h>
 
 class TPZGeoEl;
 class TPZCompEl;

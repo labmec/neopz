@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.23 2006-01-31 19:56:35 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.24 2006-02-21 14:48:57 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -32,6 +32,11 @@ Method definition for class TPZGeoMesh.*/
 #include <tpzgeoelrefpattern.h>
 
 #include <string>
+#ifdef BORLAND
+#include <io.h>
+#include <fcntl.h>
+#endif
+
 
 using namespace std;
 
@@ -701,10 +706,10 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
       default:
         PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
                 << " type = " << type << std::endl;
-      return NULL;
+        return NULL;
     }
   }
-  return NULL;
+  //return NULL;
 }
 
 /** check whether the refinement pattern already exists */
@@ -839,10 +844,10 @@ TPZRefPattern * TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side){
       break;
     }
   }
-  int size = 2;
+//  int size = 2;
   if (side/10 == 0){
     name += "0" ;
-    size = 1;
+//    size = 1;
   }
   char aux[256];
   sprintf(aux,"%d",side);
@@ -891,12 +896,23 @@ TPZRefPattern * TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side){
 
 int TPZGeoMesh::ImportRefPattern(){
   std::string StartingPath;
+#ifndef BORLAND
   StartingPath = REFPATTERNDIR;
+#else
+  StartingPath = "NeoPZ/Refine/RefPatterns";
+#endif
   std::string FileTypes ("*");
   std::string Command = std::string("ls -1 ") + StartingPath + std::string("/") + FileTypes;
   //std::cout << "Generated command: " << Command.c_str() << std::endl;
-  FILE   *fp = popen(Command.c_str(), "r");
+  FILE   *fp;
+#ifndef BORLAND
+  fp = popen(Command.c_str(), "r");
+#else
+  fp = (FILE *)open(Command.c_str(), O_RDONLY );
+#endif
+
   if (!fp) return -1;
+  int count = 0;
   char psBuffer[1024];
   while( !feof( fp ) )
   {
@@ -904,9 +920,15 @@ int TPZGeoMesh::ImportRefPattern(){
     {
       if (psBuffer[strlen(psBuffer)-1] == '\n') psBuffer[strlen(psBuffer)-1] = 0;
       std::cout << "HEMAN -->> TEM DE LER O ARQUIVO: " << psBuffer << std::endl;
+      count++;
     }
   }
+#ifndef BORLAND
   pclose(fp);
+#else
+  close((int)fp);
+#endif
+  return count;
 }
 
 int TPZGeoMesh::ClassId() const {

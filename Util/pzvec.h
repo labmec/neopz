@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.8 2005-04-25 02:55:52 phil Exp $
+// $Id: pzvec.h,v 1.9 2006-02-21 14:47:31 cesar Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -16,6 +16,8 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
+
+#include <stdlib.h>
 
 
 /**

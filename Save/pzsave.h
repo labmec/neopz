@@ -37,10 +37,6 @@ static std::map<int,TPZRestore_t> gMap;
 
 public:
 
-virtual ~TPZSaveable()
-{
-}
-
 virtual int ClassId() const ;
 
 virtual void Write(TPZStream &buf, int withclassid);
@@ -337,13 +333,16 @@ TPZSaveable *Restore(TPZStream &buf, void *context) {
 A declaration of the type "template class<classname, classid> put in .cpp file does the trick
 The static object which is "automatically" created calls the proper interface of the TPZSaveable class
 */
+#ifndef BORLAND
 template<class T, int N>
 class TPZRestoreClass {
 public:
 TPZRestoreClass()
 {
   std::string func_name = __PRETTY_FUNCTION__;
+#ifndef WIN32
   std::cout << func_name << std::endl;
+#endif
   TPZSaveable::Register(N,Restore);
 }
 
@@ -353,24 +352,22 @@ static TPZSaveable *Restore(TPZStream &buf, void *context) {
   ptr->Read(buf,context);
   return ptr;
 }
-
 private:
-static TPZRestoreClass gRestoreObject;
-
-
+   static TPZRestoreClass gRestoreObject;
 };
 
 template<class T, int N>
 TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
-
 
 template<>
 inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, void *context) {
   return 0;
 }
 
-
 template class TPZRestoreClass<TPZSaveable, -1>;
-#endif
+#endif //borland
+#endif //ellips
 
 #endif //PZSAVEH
+
+

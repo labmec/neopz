@@ -3,13 +3,15 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzchunk.h,v 1.8 2005-09-01 19:10:26 tiago Exp $
+// $Id: pzchunk.h,v 1.9 2006-02-21 14:47:01 cesar Exp $
 
 #ifndef PZCHUNK_H
 #define PZCHUNK_H
 
 #include "pzmanvector.h"
 #include "pzerror.h"
+
+#include <stdlib.h>
 
 
 /** Default number of elements which will be allocated in the chunk vector. */

@@ -1,4 +1,4 @@
-//$Id: pzgnode.cpp,v 1.6 2005-11-07 18:51:23 cesar Exp $
+//$Id: pzgnode.cpp,v 1.7 2006-02-21 14:49:13 cesar Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -81,5 +81,7 @@ int TPZGeoNode::ClassId() const
   return TPZGEONODEID;
 }
 
-
+#ifndef BORLAND
 template class TPZRestoreClass<TPZGeoNode,TPZGEONODEID>;
+#endif
+

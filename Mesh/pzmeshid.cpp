@@ -62,6 +62,7 @@ void RegisterMeshClasses() {
   TPZSaveable::Register(TPZFGEOELEMENTPRISMID,Restore<TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism> >);
   TPZSaveable::Register(TPZFGEOELEMENTTETRAID,Restore<TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra> >);
   TPZSaveable::Register(TPZFGEOELEMENTPYRAMID,Restore<TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid> >);
+
   TPZSaveable::Register(TPZGEOELBCID,Restore<TPZGeoElBC>);
   TPZSaveable::Register(TPZGEOMESHID,Restore<TPZGeoMesh>);
   
