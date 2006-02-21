@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.72 2006-01-23 16:39:59 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.73 2006-02-21 14:50:48 cesar Exp $
 
 // -*- c++ -*- 
 
@@ -1040,7 +1040,9 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
 
 void TPZCompElDisc::AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) {
   TPZGeoEl *geo = Reference();
-#warning "Este metodo nao funciona para aglomerados contendo aglomerados"
+
+//Code isn´t place to chat
+//#warning "Este metodo nao funciona para aglomerados contendo aglomerados"
   if(!geo) {
     PZError <<  "TPZCompElDisc::AccumulateVertices null reference\n";
     return;

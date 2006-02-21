@@ -1,4 +1,4 @@
-//$Id: pzanalysiserror.cpp,v 1.9 2005-04-25 02:50:40 phil Exp $
+//$Id: pzanalysiserror.cpp,v 1.10 2006-02-21 14:55:15 cesar Exp $
 
 // -*- c++ -*-
 #include "pzanalysiserror.h"
@@ -52,9 +52,9 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmi
       out << " - Eta Admissible     :  " << CurrentEtaAdmissible << endl;
       //      out << " - Eta Reached        :  " << true_error/exactnorm << endl;
       out << " - Eta Reached        :  " << errors[0]/errors[2] << endl;
-
-#warning Philippe, nï¿½ entendo nada!!!!! //<!>
-#warning De fato Thiago, voce tem razao
+//Code isn´t place to chat
+//#warning Philippe, nï¿½ entendo nada!!!!! //<!>
+//#warning De fato Thiago, voce tem razao
 
       out << " - Number of D.O.F.   :  " << fCompMesh->NEquations() << endl;
       out.flush();	  
@@ -72,10 +72,9 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmi
       out << "\n   Iteration " << (iter+1) << endl;
       Run(out);
    }
-
-#warning Philippe, nao parece igual acima ?? //<!>
-
-#warning Olhar aqui //<!>
+//Code isn´t place to chat
+//#warning Philippe, nao parece igual acima ?? //<!>
+//#warning Olhar aqui //<!>
    errors.Resize(3);
    errors.Fill(0.0);
 
@@ -517,8 +516,8 @@ void TPZAnalysisError::MathematicaPlot() {
    graph << "ListPlot[list, PlotJoined->True, PlotRange->All];" << endl;
 }
 void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, ostream &out) {
-
-#warning Philippe, tambem nao entendo aqui //<!>
+//Code isn´t place to chat
+//#warning Philippe, tambem nao entendo aqui //<!>
 
    TPZManVector<REAL,3> elerror(3);
    elerror.Fill(0.);
@@ -555,7 +554,8 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, ostream &out) {
    Mesh()->EvaluateError(NullFunction,elerror);
    //   fAdmissibleError = CurrentEtaAdmissible*sqrt(true_error*true_error + fTotalError*fTotalError) / sqrt(1.*elcounter);
    //<!>pra compilar
-#warning Phil, ver isso urgente. Tiago
+   //Code isn´t place to chat
+//#warning Phil, ver isso urgente. Tiago
    fAdmissibleError = CurrentEtaAdmissible*sqrt(elerror[0]*elerror[0] + fTotalError*fTotalError) / sqrt(1.*elcounter);
 }
 

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.48 2006-01-23 16:40:35 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.49 2006-02-21 14:51:00 cesar Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -1507,8 +1507,8 @@ void TPZInterfaceElement::ComputeShape(TPZInterpolatedElement* intel, TPZFMatrix
 	    PZError << "TPZInterface please implement the " << dim << "d Jacobian and inverse\n";
 	    PZError.flush();
       }
-
-#warning Falta aplicar AXES
+//Code isn´t place to chat
+//#warning Falta aplicar AXES
    }//intelL
 
 }
