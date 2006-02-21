@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.22 2005-02-10 14:16:42 tiago Exp $
+//$Id: pzanalysis.cpp,v 1.23 2006-02-21 14:56:15 cesar Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -29,8 +29,9 @@
 
 #include <fstream>
 using namespace std;
-#include <string.h>
+#include <string>
 #include <stdio.h>
+#include <stdlib.h>
 using namespace std;
 
 
@@ -93,11 +94,11 @@ void TPZAnalysis::SetBlockNumber(){
 	int nindep = fCompMesh->NIndependentConnects();
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 	int nel = elgraphindex.NElements()-1;
-	TPZSloan sloan(nel,nindep);
-	sloan.SetElementGraph(elgraph,elgraphindex);
+	//TPZSloan sloan(nel,nindep);
+	//sloan.SetElementGraph(elgraph,elgraphindex);
 //	TPZVec<int> perm,iperm;
-	sloan.Resequence(perm,iperm);
-	fCompMesh->Permute(perm);
+	//sloan.Resequence(perm,iperm);
+	//fCompMesh->Permute(perm);
 /*
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 
@@ -115,9 +116,9 @@ void TPZAnalysis::Assemble() {
           " fSolver " << (void *) fSolver << " at file " << __FILE__ << " line " << __LINE__ << endl;
           return;
         }
-
-	fRhs.Redim(fCompMesh->NEquations(),1);
-        if(fSolver->Matrix())
+        int sz = fCompMesh->NEquations();
+	fRhs.Redim(sz,1);
+        if(fSolver->Matrix() && fSolver->Matrix()->Rows()==sz)
         {
           fSolver->Matrix()->Zero();
           fStructMatrix->Assemble(*(fSolver->Matrix()),fRhs);
@@ -484,7 +485,11 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
 {
   if(!fSolver || !fSolver->Matrix())
   {
+#ifndef BORLAND
     cout << __FUNCTION__ << " called with uninitialized stiffness matrix\n";
+#else
+    cout << "TPZMatrixSolver *TPZAnalysis::BuildPreconditioner" << " called with uninitialized stiffness matrix\n";
+#endif
     
   }
   if(preconditioner == EJacobi)
