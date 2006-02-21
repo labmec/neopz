@@ -28,6 +28,10 @@
 
 #include <stdlib.h>
 
+#ifdef BORLAND
+#include <stdio.h>
+#endif
+
 /**
  * It is an equation array, generally in its decomposed form. \n
  * Would be saved and read from disk. \n

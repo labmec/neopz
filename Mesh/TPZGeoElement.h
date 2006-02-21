@@ -1,7 +1,7 @@
 
 // -*- c++ -*-
 
-// $Id: TPZGeoElement.h,v 1.13 2005-02-28 22:08:04 phil Exp $
+// $Id: TPZGeoElement.h,v 1.14 2006-02-21 14:53:46 cesar Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
@@ -41,9 +41,9 @@ public:
 
   virtual int ClassId() const;
   
-  void Read(TPZStream &str, void *context);
-  
-  void Write(TPZStream &str, int withclassid);
+  virtual void Read(TPZStream &str, void *context);
+
+  virtual void Write(TPZStream &str, int withclassid);
 
   /** return 1 if the element has subelements along side*/
   int HasSubElement() {return fSubEl[0]!=-1;}

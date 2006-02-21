@@ -12,13 +12,14 @@
 //
 
 
-#include <string.h>
-#include <math.h>
+#include <string>
+#include <math>
 #include "pzfmatrix.h"
 #include "pzblockdiag.h"
 
 //#include "pzerror.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <sstream>
 #include "pzlog.h"
@@ -585,7 +586,7 @@ void TPZBlockDiagonal::UpdateFrom(TPZMatrix *mat)
 {
   if(!mat) 
   {
-    cout << __FUNCTION__ << " called with zero argument\n";
+    cout << "TPZBlockDiagonal::UpdateFrom" << " called with zero argument\n";
     return;
   }
   this->fDecomposed = ENoDecompose;

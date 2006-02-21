@@ -1118,7 +1118,7 @@ int TPZFMatrix::Substitution( TPZFMatrix *B, TPZVec<int> &index ) const{
   
   for (i=0;i<nRows;i++)
   {
-    v[i] = b[index[i]];
+    v[i] = b(index[i]);
   }
   
   //Ly=b
@@ -1169,7 +1169,7 @@ int TPZFMatrix::Substitution(const REAL *ptr, int rows, TPZFMatrix *B, TPZVec<in
   
   for (i=0;i<rows;i++)
   {
-    v[i] = b[index[i]];
+    v[i] = b(index[i]);
   }
   
   //Ly=b

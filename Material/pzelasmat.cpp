@@ -465,7 +465,9 @@ int TPZElasticityMaterial::ClassId() const
   return TPZELASTICITYMATERIALID;
 }
 
+#ifndef BORLAND
 template class TPZRestoreClass<TPZElasticityMaterial,TPZELASTICITYMATERIALID>;
+#endif
 
 void TPZElasticityMaterial::Read(TPZStream &buf, void *context)
 {
