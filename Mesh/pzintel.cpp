@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.38 2005-12-19 12:05:33 tiago Exp $
+// $Id: pzintel.cpp,v 1.39 2006-03-04 15:35:06 tiago Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -154,7 +154,8 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order){
     elvec.Push(thisside);
     cap = elvec.NElements();
     for(il=0; il<cap; il++) {
-      equal = (TPZInterpolatedElement *) elvec[il].Element();
+      equal = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
+      if (!equal) continue;
       equalside = elvec[il].Side();
       if(equal->ConnectIndex(equalside) != -1) {
         equal->SetSideOrder(equalside,neworder);
@@ -183,7 +184,8 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order){
     for(dimension = 0; dimension < 4; dimension++) {
       for(il=0; il<cap; il++) {
         if(elvec[il].Reference().Dimension() != dimension) continue;
-        small = (TPZInterpolatedElement *) elvec[il].Element();
+        small = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
+        if (!small) continue;
         smallside = elvec[il].Side();
         // Identify Side Order is used because it will call itself recursively
         // for its smaller elements too.
@@ -203,6 +205,7 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order){
       TPZInterpolatedElement *el;
       int highside;
       el = dynamic_cast<TPZInterpolatedElement *> (highdim[il].Element());
+      if (!el) continue;
       highside = highdim[il].Side();
       int order, comporder;
       TPZStack<TPZCompElSide> equallist;
@@ -244,7 +247,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
     // There is a larger element
     // identify the order of the larger element and set the interpolation order
     // of the current element and all its neighbours of equal level to this order
-    TPZInterpolatedElement *largel = (TPZInterpolatedElement *) large.Element();
+    TPZInterpolatedElement *largel = dynamic_cast<TPZInterpolatedElement *> (large.Element());
     neworder = largel->SideOrder(large.Side());
     // We assume the datastructure of the elements is consistent in the sense
     // that if the current element has the same side order than the large
@@ -254,7 +257,8 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
       RemoveSideRestraintWithRespectTo(side,large);
       cap = elvec.NElements();
       for(il = 0; il<cap; il++) {
-        equal = (TPZInterpolatedElement *) elvec[il].Element();
+        equal = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
+        if (!equal) continue;
         equalside = elvec[il].Side();
         if(equal->ConnectIndex(equalside) != -1) {
           equal->SetSideOrder(equalside,neworder);
@@ -276,7 +280,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
     cap = elvec.NElements();
     il = 0;
     while(il<cap) {//SideOrder(int side)
-      equal = (TPZInterpolatedElement *) elvec[il].Element();
+      equal = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
       equalside = elvec[il].Side();
       int equalorder = equal->SideOrder(equalside);
       if(equalorder != neworder) {
@@ -286,7 +290,8 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
     }
     cap = elvec.NElements();
     for(il=0; il<cap; il++) {
-      equal = (TPZInterpolatedElement *) elvec[il].Element();
+      equal = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
+      if (!equal) continue;
       equalside = elvec[il].Side();
       if(equal->ConnectIndex(equalside) != -1) {
         equal->SetSideOrder(equalside,neworder);
@@ -324,7 +329,8 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
     for(dimension = 0; dimension < 4; dimension++) {
       for(il=0; il<cap; il++) {
         if(elvec[il].Reference().Dimension() != dimension) continue;
-        small = (TPZInterpolatedElement *) elvec[il].Element();
+        small = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
+        if (!small) continue;
         smallside = elvec[il].Side();
         // Identify Side Order is used because it will call itself recursively
         // for its smaller elements too.
@@ -344,6 +350,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
       TPZInterpolatedElement *el;
       int highside;
       el = dynamic_cast<TPZInterpolatedElement *> (highdim[il].Element());
+      if (!el) continue;
       highside = highdim[il].Side();
       int order, comporder;
       TPZStack<TPZCompElSide> equallist;
@@ -382,7 +389,8 @@ void TPZInterpolatedElement::RecomputeRestraints(int side) {
   for(dimension =0; dimension <4; dimension++) {
     for(il=0; il<cap; il++) {
       if(elvec[il].Reference().Dimension() != dimension) continue;
-      small = (TPZInterpolatedElement *) elvec[il].Element();
+      small = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
+      if (!small) continue;
       smallside = elvec[il].Side();
       // Identify Side Order is used because it will call itself recursively
       // for its smaller elements too.
@@ -637,8 +645,10 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
       if(father.Exists()) {
         int side_neig = father.Side();
         TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *>( father.Element() );
-        newnod.SetOrder(cel->SideOrder(side_neig));
-        RestrainSide(side,cel,side_neig);
+        if (cel){
+          newnod.SetOrder(cel->SideOrder(side_neig));
+          RestrainSide(side,cel,side_neig);
+        }
       }
     }
     LOGPZ_INFO(logger, "Exiting CreateMidSideConnect - side < number of corners.");
@@ -676,7 +686,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
     // IT IS ASSUMED THAT ALL NEIGHBOURING ELEMENTS AND SMALLER ELEMENTS CONNECTED
     // TO THIS SIDE HAVE CONSISTENT INTERPOLATION ORDERS
     side_neig = father.Side();
-    TPZInterpolatedElement *elfather = (TPZInterpolatedElement *) father.Element();
+    TPZInterpolatedElement *elfather = dynamic_cast<TPZInterpolatedElement *> (father.Element());
     int sideorder = elfather->SideOrder(side_neig);
     SetSideOrder(side,sideorder);
     RestrainSide(side,elfather,side_neig);
@@ -689,7 +699,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
     for(dim=0; dim<3; dim++) {
       for(il=0; il<cap; il++) {
         if(elvec[il].Reference().Dimension() != dim) continue;
-        cel = (TPZInterpolatedElement *) elvec[il].Element();
+        cel = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
         Reference()->ResetReference();
         cel->RemoveSideRestraintWithRespectTo(elvec[il].Side(),father);
         Reference()->SetReference(this);
@@ -699,7 +709,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
     }
   } else if(father.Exists() && ! newnodecreated){
     side_neig = father.Side();
-    TPZInterpolatedElement *elfather = (TPZInterpolatedElement *) father.Element();
+    TPZInterpolatedElement *elfather = dynamic_cast<TPZInterpolatedElement *> (father.Element());
     int sideorder = elfather->SideOrder(side_neig);
     SetSideOrder(side,sideorder);
   } else if(!father.Exists() && !newnodecreated){
@@ -716,13 +726,13 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
     thisside.EqualLevelElementList(elvec,1,0);
     int oldorder = -1;
     if(elvec.NElements()) {
-      TPZInterpolatedElement *cel = (TPZInterpolatedElement *) elvec[0].Element();
+      TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (elvec[0].Element());
       oldorder = cel->SideOrder(elvec[0].Side());
     }
     elvec.Push(thisside);
     int sideorder = ComputeSideOrder(elvec);
     if(sideorder != oldorder) {
-      TPZInterpolatedElement *cel = (TPZInterpolatedElement *) elvec[0].Element();
+      TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (elvec[0].Element());
       cel->IdentifySideOrder(elvec[0].Side());
     } else {
       SetSideOrder(side,sideorder);
@@ -742,7 +752,8 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
     for(dim=0; dim<3; dim++) {
       for(il=0; il<cap; il++) {
         if(elvec[il].Reference().Dimension() != dim) continue;
-        TPZInterpolatedElement *cel = (TPZInterpolatedElement *) elvec[il].Element();
+        TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
+        if (!cel) continue;
         // the restraint will only be applied if the first
         // element in Connect is equal to the current element
         int celsideorder = cel->SideOrder(elvec[il].Side());
@@ -777,7 +788,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     return;
   }
   TPZInterpolatedElement *cel = 0;
-  if(locallarge.Exists()) cel = (TPZInterpolatedElement *) locallarge.Element();
+  if(locallarge.Exists()) cel = dynamic_cast<TPZInterpolatedElement *> (locallarge.Element());
   if(!cel) {
     LOGPZ_INFO(logger, "Exiting RestrainSide - null computational element.");
     return;
@@ -1105,7 +1116,7 @@ void TPZInterpolatedElement::CheckConstraintConsistency(int side) {
   TPZCompElSide large = thisside.LowerLevelElementList(1);
   if(large.Exists()) {
     int largeside = large.Side();
-    TPZInterpolatedElement *largel = (TPZInterpolatedElement *) large.Element();
+    TPZInterpolatedElement *largel = dynamic_cast<TPZInterpolatedElement *> (large.Element());
     int nlargesideconnects = largel->NSideConnects(largeside);
     TPZConnect &thiscon = Connect(side);
     int jn;
@@ -1155,7 +1166,7 @@ void TPZInterpolatedElement::RemoveSideRestraintWithRespectTo(int side,
 //  } else if(smallfatherlevel < neighbour.Reference().Level() ) {
 //    PZError << "TPZInterpolatedElement::RemoveSideRestraintWithRespectTo inconsistent 2\n";
 //  }
-  TPZInterpolatedElement *smallfather = (TPZInterpolatedElement *) largeset.Element();
+  TPZInterpolatedElement *smallfather = dynamic_cast<TPZInterpolatedElement *> (largeset.Element());
   int smallfatherside = largeset.Side();
   if(!neighbour.Reference().NeighbourExists(largeset.Reference())) {
     LOGPZ_WARN(logger,"Exiting RemoveSideRestraintWithRespectTo inconsistent 3");
@@ -1210,8 +1221,8 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
   //	    thisside.ExpandConnected(smallset,1);
           nsmall = smallset.NElements();
           for(iel=0; iel<nsmall; iel++) {
-            TPZInterpolatedElement *cel = (TPZInterpolatedElement *) smallset[iel].Element();
-            cel->RemoveSideRestraintWithRespectTo(smallset[iel].Side(),thisside);
+            TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (smallset[iel].Element());
+            if (cel) cel->RemoveSideRestraintWithRespectTo(smallset[iel].Side(),thisside);
           }
         }//ab3
       }
@@ -1268,8 +1279,8 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
           for(dim=0; dim<4; dim++) {
             for(iel=0; iel<nsmall; iel++) {
               if(smallset[iel].Reference().Dimension() == dim) {
-                TPZInterpolatedElement *cel = (TPZInterpolatedElement *) smallset[iel].Element();
-                TPZInterpolatedElement *largel = (TPZInterpolatedElement *) large.Element();
+                TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (smallset[iel].Element());
+                TPZInterpolatedElement *largel = dynamic_cast<TPZInterpolatedElement *> (large.Element());
                 cel->RestrainSide(smallset[iel].Side(),largel,large.Side());
               }
             }
@@ -1290,11 +1301,11 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
     LOGPZ_ERROR(logger,"Exiting ComputeSideOrder called for empty list, -1 returned");
     return -1;
   }
-  TPZInterpolatedElement *cel = (TPZInterpolatedElement *) smallset[0].Element();
+  TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (smallset[0].Element());
   int minorder = cel->PreferredSideOrder(smallset[0].Side());
   int iel;
   for(iel=1; iel<nelem; iel++) {
-    cel = (TPZInterpolatedElement *) smallset[iel].Element();
+    cel = dynamic_cast<TPZInterpolatedElement *> (smallset[iel].Element());
     int celorder = cel->PreferredSideOrder(smallset[iel].Side());
     minorder = minorder < celorder ? minorder : celorder;
   }
@@ -1706,12 +1717,13 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
       }
     }
 
-    {
-      stringstream sout;
-      sout << "\nCalcStiff sol\n" << sol;
-      sout << "\nCalcStiff dsol\n" << dsol;
-      LOGPZ_DEBUG(logger,sout.str());
-    }
+//     {
+//       stringstream sout;
+//       sout << "\nCalcStiff sol\n" << sol;
+//       sout << "\nCalcStiff dsol\n" << dsol;
+//       LOGPZ_DEBUG(logger,sout.str());
+//     }
+    
     fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ek.fMat,ef.fMat);
 //    ek.Print(*this->fMesh,cout);
 //    ef.Print(*this->fMesh,cout);
@@ -2505,8 +2517,8 @@ void TPZInterpolatedElement::MakeConnectContinuous(int icon) {
   TPZCompElSide thisside(this,icon);
   thisside.EqualLevelElementList(elvec,0,0);
   /**Asking if exist neighbour that it can not to be discontinuous*/
-  if(elvec.NElements() && ((TPZInterpolatedElement *)(elvec[0].Element()))->CanBeDiscontinuous()) {
-    ((TPZInterpolatedElement *)elvec[0].Element())->MakeConnectContinuous(elvec[0].Side());
+  if(elvec.NElements() && (dynamic_cast<TPZInterpolatedElement *>(elvec[0].Element()))->CanBeDiscontinuous()) {
+    (dynamic_cast<TPZInterpolatedElement *>(elvec[0].Element()))->MakeConnectContinuous(elvec[0].Side());
     LOGPZ_INFO(logger,"Exiting MakeConnectContinuous -> can be continuous.");
     return;
   }
