@@ -19,6 +19,6 @@ preinc_HEADERS= $(top_srcdir)/Pre/*.h
 
 noinst_LIBRARIES = libpzpre.a
 
-libpzpre_a_SOURCES = pzgengrid.cpp pzpargrid.cpp TPZGMSHReadMesh.cpp  TPZExtendGridDimension.cpp
+libpzpre_a_SOURCES = pzgengrid.cpp pzpargrid.cpp TPZGMSHReadMesh.cpp  TPZExtendGridDimension.cpp pzreadtetgen.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
