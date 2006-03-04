@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.18 2006-02-01 18:34:08 phil Exp $
+//$Id: pzpoisson3d.h,v 1.19 2006-03-04 15:33:10 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -152,7 +152,7 @@ public:
   
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
+	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
 
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
@@ -176,6 +176,16 @@ public:
 		       TPZVec<REAL> &/*flux*/,
 		       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values, 
 		       TPZVec<REAL> normal, REAL elsize);
+                       
+  /** Compute interface jumps 
+   * values[1] = (solleft - solright)^2
+   * values[2] = (dsolleft - dsolright)^2
+   * values[0] = values[0] + values[1]
+   * @since Feb 14, 2006
+   */  
+  virtual void InterfaceJumps(TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
+                              TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
+                              TPZVec<REAL> &values);
 
   virtual int IsInterfaceConservative(){ return 1;}
 

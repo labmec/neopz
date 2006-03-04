@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.4 2005-11-28 19:51:59 tiago Exp $
+//$Id: meshes.cpp,v 1.5 2006-03-04 15:36:23 tiago Exp $
 
 #include "meshes.h"
 
@@ -81,7 +81,7 @@
  using namespace pzrefine;
  using namespace std;
 
-static REAL epsilon = 0.0000000000001;
+static REAL epsilon = 1.e-6;;
 
 void OneContinuous(TPZGeoMesh *gmesh, std::set<TPZGeoEl*> &contset, std::set<TPZGeoEl*> &discset, int h, int continuousindex){
 
@@ -289,8 +289,7 @@ TPZCompMesh * DiscontinuousOnBoundaryLayer(int h){
   std::set<TPZGeoEl*> contset, discset;
   TPZVec<TPZGeoEl*> continuous, discontinuous;
 
-  OneContinuous(gmesh, contset, discset, h, 3);//elemento 3 eh continuo
-//  OneDiscontinuous(gmesh, contset, discset, h);  
+  OneContinuous(gmesh, contset, discset, h, 3);//elemento 3 eh continuo - O elemento 3 eh o elemento grande na regiao suave do dominio
 
   {
      int ncont = contset.size();
@@ -387,26 +386,73 @@ void ExactSolution(TPZVec<REAL> &pto, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   u.Resize(1);
   deriv.Resize(2,1);
   
-  u[0] = ( exp(-1.0/epsilon) -exp( (-1.0+x) * (1.0-y) / epsilon ) ) / ( 1.0 - exp( -1.0/epsilon) ) + x + (1.0-x)*y;
+  REAL num = exp(-1./epsilon);
+  REAL den = 1. - exp(-1./epsilon);
+  u[0] = num/den;
   
-  deriv(0,0) = ( exp((x+y-x*y)/epsilon) + epsilon - exp(1.0/epsilon) * epsilon) * (-1.0 + y) / ( (-1.0+exp(1.0/epsilon))*epsilon );
+  num = -1. * exp( (-1.+x) * (1.-y) / epsilon );
+  den = 1. - exp(-1./epsilon);  
+  u[0] += num/den;
   
-  deriv(1,0) = ( exp((x+y-x*y)/epsilon) + epsilon - exp(1.0/epsilon) * epsilon) * (-1.0 + x) / ( (-1.0+exp(1.0/epsilon))*epsilon );
+  u[0] += x + y -x*y;
+  
+  REAL A = epsilon;
+  
+  num = - exp((-1. + x)*(1. - y)/A);
+  den = A*(1. - exp(-1./A));
+  
+  deriv(0,0) = 1. - num/den;
+  deriv(0,0) += - y;
+  
+  num = exp((-1. + x)*(1. - y)/A) * y;
+  den = A * (1. - exp(-1./A));
+    
+  deriv(0,0) += num/den;
+  
+  
+  deriv(1,0) = 1.;
+  num = - exp((-1. + x)*(1. - y)/A);
+  den = A * (1. - exp(-1./A));
+  deriv(1,0) += num/den;
+  deriv(1,0) += - x;
+  num = exp((-1 + x)*(1. - y)/A) * x;
+  den = A*(1. - exp(-1./A));
+  deriv(1,0) += num/den;
+  
+//  cout << pto << "\t" << u << "\t" << deriv << endl;
   
 }
 
 void Dirichlet_X_IgualA_0(TPZVec<REAL> &pto, TPZVec<REAL> &u) {
-//  REAL x = pto[0];
+  REAL x = pto[0];
   REAL y = pto[1];
   u.Resize(1);
-  u[0] = -(-1.0+exp(y/epsilon)+y-exp(1.0/epsilon)*y) / (-1.0 + exp(1.0/epsilon));
+  
+  REAL num = exp(-1./epsilon);
+  REAL den = 1. - exp(-1./epsilon);
+  u[0] = num/den;
+  
+  num = -1. * exp( (-1.+x) * (1.-y) / epsilon );
+  den = 1. - exp(-1./epsilon);  
+  u[0] += num/den;
+  
+  u[0] += x + y -x*y;
 }
 
 void Dirichlet_Y_IgualA_0(TPZVec<REAL> &pto, TPZVec<REAL> &u) {
   REAL x = pto[0];
-//  REAL y = pto[1];
+  REAL y = pto[1];
   u.Resize(1);
-  u[0] = -(-1.0+exp(x/epsilon)+x-exp(1.0/epsilon)*x) / (-1.0 + exp(1.0/epsilon));
+  
+  REAL num = exp(-1./epsilon);
+  REAL den = 1. - exp(-1./epsilon);
+  u[0] = num/den;
+  
+  num = -1. * exp( (-1.+x) * (1.-y) / epsilon );
+  den = 1. - exp(-1./epsilon);  
+  u[0] += num/den;
+  
+  u[0] += x + y -x*y;
 }
 
 
@@ -490,13 +536,13 @@ TPZCompMesh *CreateMesh(int h) {
   for(int ii = 0; ii < 3; ii++) cmesh->InsertMaterialObject(bc[ii]);
 
   
-   TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-   TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-   TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-   TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-   TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-   TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc); 
+  TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc); 
 
   
   cmesh->AutoBuild();
@@ -703,4 +749,209 @@ TPZCompMesh *CreateMesh2() {
   return cmesh;
 }
 
+
+/** Malha com refinamento na camada limite 14fev2006 **/
+TPZCompMesh * RefinedOnBoundLayer(int h, int ref_uniforme ){
+
+  REAL co[9][2] = {{0.9,0.9},{0.9,0.},{1.,0.},{1.,0.9},{1.,1.},{0.9,1.},{0.,1.},{0.,0.9},{0.,0.}};
+  int indices[4][4] = {{1,2,3,0},{0,3,4,5},{7,0,5,6},{8,1,0,7}};
+  TPZGeoEl *elvec[4];
+  TPZGeoMesh *gmesh = new TPZGeoMesh();
+  int nnode = 9;
+  int nelem = 4;
+  int nod;
+  for(nod=0; nod<nnode; nod++) {
+    int nodind = gmesh->NodeVec().AllocateNewElement();
+    TPZManVector<REAL,2> coord(2);
+    coord[0] = co[nod][0];
+    coord[1] = co[nod][1];
+    gmesh->NodeVec()[nodind].Initialize(nod,coord,*gmesh);
+  }
+
+  int el;
+  for(el=0; el<nelem; el++) {
+    TPZManVector<int,4> nodind(4);
+    for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+    int index;
+    elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
+  }
+  
+  //criando elementos de contorno da camada limite
+  TPZManVector<int,2> nodind(2);
+  int index;
+  nodind[0] = 2; nodind[1] = 3;
+  gmesh->CreateGeoElement(EOned, nodind, -3, index);
+  nodind[0] = 3; nodind[1] = 4;
+  gmesh->CreateGeoElement(EOned, nodind, -3, index);
+  nodind[0] = 4; nodind[1] = 5;
+  gmesh->CreateGeoElement(EOned, nodind, -3, index);
+  nodind[0] = 5; nodind[1] = 6;
+  gmesh->CreateGeoElement(EOned, nodind, -3, index);
+
+  gmesh->BuildConnectivity();
+  
+
+  TPZGeoElBC gbc1(elvec[0],4,-1,*gmesh); // bottom
+//  TPZGeoElBC gbc2(elvec[0],5,-3,*gmesh); // right
+//  TPZGeoElBC gbc3(elvec[1],5,-3,*gmesh); // right
+//  TPZGeoElBC gbc4(elvec[1],6,-3,*gmesh); // top
+//  TPZGeoElBC gbc5(elvec[2],6,-3,*gmesh); // top
+  TPZGeoElBC gbc6(elvec[2],7,-2,*gmesh); // left
+  TPZGeoElBC gbc7(elvec[3],7,-2,*gmesh); // left
+  TPZGeoElBC gbc8(elvec[3],4,-1,*gmesh); // bottom
+
+//FAZENDO CONTINUO DESCONTINUO
+
+  std::set<TPZGeoEl*> contset, discset;
+  TPZVec<TPZGeoEl*> continuous, discontinuous;
+
+  OneContinuousRefinementOnBoundLayer(gmesh, contset, discset, h, ref_uniforme, 3, -3);//elemento 3 eh continuo - O elemento 3 eh o elemento grande na regiao suave do dominio
+
+  {
+     int ncont = contset.size();
+     continuous.Resize( ncont );
+     continuous.Fill( NULL );
+     std::set<TPZGeoEl*>::iterator w, e;
+     w = contset.begin();
+     e = contset.end();
+     for( int i = 0; w != e; w++, i++){
+	continuous[i] = *w;
+     }
+     int ndisc = discset.size();
+     discontinuous.Resize( ndisc );
+     discontinuous.Fill( NULL );
+     w = discset.begin();
+     e = discset.end();
+     for( int i = 0; w != e; w++, i++){
+	discontinuous[i] = *w;
+     }
+  }
+
+  TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+  cmesh->SetDimModel(2);
+  
+  TPZMatPoisson3d *mat;
+  mat = new TPZMatPoisson3d(1, 2);
+  mat->SetForcingFunction(ForcingFunction);
+  mat->SetNonSymmetric();
+
+  TPZManVector<REAL,2> convdir(2,0.);
+  convdir[0] = 1.;
+  convdir[1] = 1.;
+
+  REAL beta = 1.0;
+  mat->SetParameters(epsilon, beta, convdir);
+  int nstate = 1;
+
+
+  TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
+  TPZBndCond *bc[3];
+  val2.Zero();
+  bc[0] = mat->CreateBC(-3, 0,val1,val2);
+
+  bc[1] = mat->CreateBC(-1, 0, val1, val2);
+  bc[1]->SetForcingFunction(Dirichlet_Y_IgualA_0);
+
+  bc[2] = mat->CreateBC(-2, 0, val1, val2);
+  bc[2]->SetForcingFunction(Dirichlet_X_IgualA_0);
+
+  cmesh->InsertMaterialObject(mat);
+  for(int ii = 0; ii < 3; ii++) cmesh->InsertMaterialObject(bc[ii]);
+
+  cmesh->AutoBuildContDisc(continuous, discontinuous);
+//cmesh->AutoBuild();
+  cmesh->AdjustBoundaryElements();
+  cmesh->CleanUpUnconnectedNodes();
+  cmesh->ExpandSolution();
+  
+  return cmesh;  
+
+}//RefinedOnBoundLayer
+
+/** Malha com refinamento na camada limite 14fev2006 **/
+void OneContinuousRefinementOnBoundLayer(TPZGeoMesh *gmesh, std::set<TPZGeoEl*> &contset, std::set<TPZGeoEl*> &discset, int h, int ref_uniforme, int continuousindex, int BLMaterialId){
+
+   contset.clear();
+   discset.clear();
+ 
+   TPZAdmChunkVector<TPZGeoEl *> &gelvec = gmesh->ElementVec();
+   int n = gelvec.NElements();
+
+   contset.insert(gelvec[continuousindex]);
+   for(int i = 0; i < n; i++ ){   
+      if (i == continuousindex ) continue;
+      discset.insert( gelvec[i] );
+   } 
+   
+  /** Refinamento uniforme */
+   TPZManVector<TPZGeoEl*> filhos;
+   for(int i = 0; i < ref_uniforme; i++){
+     int n = gmesh->NElements();
+     for(int j = 0; j < n; j++){
+       TPZGeoEl * gel = gmesh->ElementVec()[j];
+       if ( gel->HasSubElement()  ) continue;
+       if ( gel->Dimension() != 2 ) continue;
+       gel->Divide(filhos);
+       if (contset.count(gel)) {
+         int nsons = filhos.NElements();
+         for(int ison = 0; ison < nsons; ison++) 
+             contset.insert(filhos[ison]);
+         }
+
+       if (discset.count(gel)){
+         int nsons = filhos.NElements();
+         for(int ison = 0; ison < nsons; ison++) 
+             discset.insert(filhos[ison]);
+         }       
+       }
+   }   
+ 
+//   TPZManVector<TPZGeoEl*> filhos;
+   for(int i = 0; i < h; i++){
+
+      int n = gmesh->NElements();
+
+      for(int j = 0; j < n; j++){
+
+         TPZGeoEl * gel = gmesh->ElementVec()[j];
+         
+         if ( gel->HasSubElement()  ) continue;
+         if ( gel->Dimension() != 2 ) continue;
+         
+         int nsides = gel->NSides();
+         bool isneighbourtoBL = false;
+         for (int is = 0; is < nsides; is++){
+           TPZGeoElSide thisside(gel, is);
+           TPZGeoElSide neighbour = gel->Neighbour(is);
+           if(!neighbour.Exists()) continue;
+           while(neighbour != thisside) {
+             int matId = neighbour.Element()->MaterialId();
+             if (matId == BLMaterialId){
+               isneighbourtoBL = true;
+               break;
+             }
+             neighbour = neighbour.Neighbour();
+           }//while
+           if (isneighbourtoBL) break;
+         }//for is         
+
+         if (!isneighbourtoBL) continue;
+         
+         gel->Divide(filhos);
+
+         if (contset.count(gel)) {
+           int nsons = filhos.NElements();
+	   for(int ison = 0; ison < nsons; ison++) 
+	       contset.insert(filhos[ison]);
+	 }
+	
+	 if (discset.count(gel)){
+	    int nsons = filhos.NElements();
+	    for(int ison = 0; ison < nsons; ison++) 
+	       discset.insert(filhos[ison]);
+	 }
+	 
+      }
+   }
+}//OneContinuousRefinementOnBoundLayer
 

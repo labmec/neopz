@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.7 2006-01-23 16:42:36 phil Exp $
+//$Id: main.cpp,v 1.8 2006-03-04 15:36:23 tiago Exp $
 
 /**
  * Galerkin descontinuo: problema de camada limite
@@ -87,21 +87,24 @@ int main22(){
 
 int main(){
 
-
+ 
 int nmaxeq = 5000;//numero maximo de equacoes do problema
-for(int pp = 2; pp < 9; pp++){
- for(int hh = 0; hh < 8; hh++){
+for(int pp = 2; pp < 6; pp++){
+ for(int hh = 0; hh < 5; hh++){ 
 
-//  TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
+  TPZCompElDisc::SetOrthogonalFunction(pzshape::TPZShapeDisc::Legendre);
 
   int p, h;
   p = pp;
   h = hh;
   TPZCompEl::gOrder = p;
+  
+  const int ref_uniforme = 1;
 
   TPZCompMesh *cmesh;
 //  cmesh = DiscontinuousOnBoundaryLayer(h); 
-  cmesh = CreateMeshContDisc(h); 
+  cmesh = RefinedOnBoundLayer(h, ref_uniforme);
+//  cmesh = CreateMeshContDisc(h); 
 //  cmesh = CreateMesh(h);
     
   TPZGeoMesh *gmesh = cmesh->Reference();
@@ -112,7 +115,7 @@ for(int pp = 2; pp < 9; pp++){
 #ifdef direct
 
 // Melhor caso para GEM e elementos finitos. Melhor metodo direto
-  TPZParFrontStructMatrix <TPZFrontNonSym> full(cmesh);
+  TPZParFrontStructMatrix <TPZFrontNonSym> /*TPZFStructMatrix*/ full(cmesh);
   //  TPZFStructMatrix full(cmesh);
     an.SetStructuralMatrix(full);
     TPZStepSolver step;
@@ -124,7 +127,7 @@ for(int pp = 2; pp < 9; pp++){
 //#define iter // ACHO QUE A MATRIZ ESPARSA TEM DEFEITO
 #ifdef iter
   cout << "ITER_SOLVER" << endl;  
-  /*TPZFStructMatrix */TPZSpStructMatrix full(cmesh);
+  /*TPZFStructMatrix*/ TPZSpStructMatrix full(cmesh);
   an.SetStructuralMatrix(full);  
   TPZStepSolver step( full.Create() );
   an.SetSolver(step);
@@ -154,11 +157,13 @@ for(int pp = 2; pp < 9; pp++){
   char filename[20];
 //  sprintf(filename,"baumann_p%d_h%d.dat",p,h);
 //  sprintf(filename,"ef_p%d_h%d.dat",p,h);
-  sprintf(filename,"1cont_p%d_h%d.dat",p,h);
+//   sprintf(filename,"1cont_p%d_h%d.dat",p,h);
+  sprintf(filename,"erro.dat");
   char filedx[20];
 //  sprintf(filedx,"baumann_p%d_h%d.dx",p,h);
 //  sprintf(filedx,"ef_p%d_h%d.dx",p,h);
-  sprintf(filedx,"1cont_p%d_h%d.dx",p,h);
+//   sprintf(filedx,"1cont_p%d_h%d.dx",p,h);
+  sprintf(filedx,"sol.dx");
 
   
   
@@ -169,13 +174,13 @@ for(int pp = 2; pp < 9; pp++){
   VisualMatrix(fillin , filedx);
 }*/
 
-  ofstream cmeshout("cmesh.txt");
-  cmesh->Print(cmeshout);
-  ofstream gmeshout("gmesh.txt");
-  gmesh->Print(gmeshout);
+//    ofstream cmeshout("cmesh.txt");
+//    cmesh->Print(cmeshout);
+//    ofstream gmeshout("gmesh.txt");
+//    gmesh->Print(gmeshout);
 
   an.Run();
-
+   
 /**** Aqui faz DX ****/
   TPZVec<char *> scalnames(1);
   TPZVec<char *> vecnames(1);
@@ -193,7 +198,15 @@ for(int pp = 2; pp < 9; pp++){
   ofstream out(filename);
   an.PostProcess(pos,out);
   out << "\nNumero de equacoes: " << an.Solution().Rows() << endl;  
+
   
+  cmesh->ConvertDiscontinuous2Continuous(1.0, 1);
+  an.Run();
+  an.SetExact(ExactSolution);
+  ofstream out2("Saida2.txt");
+  an.PostProcess(pos,out2);
+  out << "\nNumero de equacoes: " << an.Solution().Rows() << endl;  
+    
   delete cmesh;
   delete gmesh;
 }

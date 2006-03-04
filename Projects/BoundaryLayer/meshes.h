@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: meshes.h,v 1.1 2005-04-19 19:15:23 tiago Exp $
+//$Id: meshes.h,v 1.2 2006-03-04 15:36:23 tiago Exp $
 
 #include "pzgmesh.h"
 #include "pzgeoel.h"
@@ -45,3 +45,7 @@ void Dirichlet_Y_IgualA_0(TPZVec<REAL> &pto, TPZVec<REAL> &u);
 void ExactSolution(TPZVec<REAL> &pto, TPZVec<REAL> &u, TPZFMatrix &deriv);
 
 
+/** Malha com refinamento na camada limite 14fev2006 **/
+TPZCompMesh * RefinedOnBoundLayer(int h, int ref_uniforme );
+/** Malha com refinamento na camada limite 14fev2006 **/
+void OneContinuousRefinementOnBoundLayer(TPZGeoMesh *gmesh, std::set<TPZGeoEl*> &contset, std::set<TPZGeoEl*> &discset, int h, int ref_uniforme, int continuousindex, int BLMaterialId);

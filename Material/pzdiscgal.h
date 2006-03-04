@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.h,v 1.6 2006-02-01 18:34:08 phil Exp $
+// $Id: pzdiscgal.h,v 1.7 2006-03-04 15:32:30 tiago Exp $
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 
@@ -80,6 +80,19 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
    * @since Feb 05, 2004
    */
   virtual int IsInterfaceConservative(){ return 0; }
+
+  /** Compute interface jumps 
+   * values[1] = (solleft - solright)^2
+   * values[2] = (dsolleft - dsolright)^2
+   * values[0] = values[1] + values[2]
+   * @since Feb 14, 2006
+   */  
+  virtual void InterfaceJumps(TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
+                         TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
+                         TPZVec<REAL> &values){
+    PZError << __PRETTY_FUNCTION__ << " - method not implemented in derived class" << std::endl;
+  }   
+  
 };
   
 #endif

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.17 2006-02-01 18:34:08 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.18 2006-03-04 15:33:10 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -109,14 +109,14 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
     REAL dphiic = 0;
     for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
     ef(in, 0) += - weight * ( fXf*phi(in,0) 
-			      + 0.5*fSD*delx*fC*dphiic*fXf
+//			      + 0.5*fSD*delx*fC*dphiic*fXf
 			      );
     for( int jn = 0; jn < phr; jn++ ) {
       for(kd=0; kd<fDim; kd++) {
         ek(in,jn) += weight * (
           +fK * ( dphi(kd,in) * dphi(kd,jn) ) 
           -fC * ( ConvDirAx[kd]* dphi(kd,in) * phi(jn) )
-	  +0.5 * fSD * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
+//	  +0.5 * fSD * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
           );
       }
     }
@@ -255,6 +255,17 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
   values[0]  = values[1]+values[2];
 }
 
+
+void TPZMatPoisson3d::InterfaceJumps(TPZVec<REAL> &leftu,  TPZVec<REAL> &leftNormalDeriv,
+                    TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
+                    TPZVec<REAL> &values){
+  values.Resize(3);
+  values[1]  = (leftu[0] - rightu[0]) * (leftu[0] - rightu[0]);
+
+  values[2] = (leftNormalDeriv[0] - rightNormalDeriv[0]) * (leftNormalDeriv[0] - rightNormalDeriv[0]);
+
+  values[0]  = values[1]+values[2];
+}//method
 
 #ifdef _AUTODIFF
 void TPZMatPoisson3d::ContributeEnergy(TPZVec<REAL> &x,
@@ -594,7 +605,6 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 #endif
   TPZManVector<REAL,3> Lsol(1), Ldsol(3,0.), Rsol(1), Rdsol(3,0.);
 
-  //<!> Phil, matei os eixos. So vai chamar InterfaceErrors um problema descontinuo
   TPZFMatrix fake_axes(fDim,fDim,0.);  
 
   Solution(leftu,leftdudx,fake_axes,1,Lsol);
