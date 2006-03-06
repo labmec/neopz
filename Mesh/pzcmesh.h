@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.24 2005-12-21 11:55:13 tiago Exp $
+//$Id: pzcmesh.h,v 1.25 2006-03-06 12:48:32 tiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -535,6 +535,18 @@ public:
    */
   void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
                                  TPZVec<REAL> &errorSum);
+                                 
+  /** This method compute the jump solution of interface and convert discontinuous elements with
+   * jump less than eps in continuous elements.
+   * It may be compared the following values to eps:
+   * int val = 1: (leftsol - rightsol)^2
+   * int val = 2: (DSolLeft - DSolRight)^2
+   * int val = 0: (leftsol - rightsol)^2 + (DSolLeft - DSolRight)^2
+   */
+  void ConvertDiscontinuous2Continuous(REAL eps, int val);
+  
+  void Discontinuous2Continuous(int disc_index, int &new_index);
+  
   //@}
 
 

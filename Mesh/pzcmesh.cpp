@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.40 2006-01-23 16:35:12 phil Exp $
+//$Id: pzcmesh.cpp,v 1.41 2006-03-06 12:48:32 tiago Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1422,6 +1422,34 @@ void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index, bool CreateDisconti
   
 }//method
 
+void TPZCompMesh::Discontinuous2Continuous(int disc_index, int &new_index) {
+
+  TPZCompEl *cel = fElementVec[disc_index];
+  if (!cel) {
+    new_index = -1;
+    return;
+  }//if
+  
+  TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cel);
+  if (!disc) {
+    new_index = -1;
+    return;
+  }//if  
+  
+  TPZGeoEl * ref = cel->Reference();
+  cel->RemoveInterfaces();
+  cel->Reference()->ResetReference();
+
+  this->SetAllCreateFunctionsContinuous();    
+  TPZCompEl * newcel = ref->CreateCompEl(*this,new_index);
+  TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement*>(newcel);
+  intel->InterpolateSolution(*disc);
+    
+  if (cel) delete cel;
+
+  
+}//method
+
 void TPZCompMesh::RemakeAllInterfaceElements(){
 
   int n = this->ElementVec().NElements();
@@ -2337,3 +2365,62 @@ void TPZCompMesh::SetAllCreateFunctionsContinuous(){
    TPZGeoElement<pzshape::TPZShapeCube,   pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateCubeEl);
 
 }
+
+void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int val){
+  const int nelements = this->NElements();
+  TPZVec<REAL> celJumps(nelements);
+  TPZVec<TPZCompEl*> AllCels(nelements);
+  celJumps.Fill(0.0);
+  TPZCompEl * cel;
+  TPZInterfaceElement * face;
+  TPZManVector<REAL> faceerror;
+  for(int i = 0; i < nelements; i++){
+    cel = this->ElementVec()[i];
+    AllCels[i] = cel;
+    if (!cel) continue;
+    face = dynamic_cast<TPZInterfaceElement *>(cel);
+    if (!face) continue;
+    face->EvaluateInterfaceJumps(faceerror);
+    const int leftel  = face->LeftElement()->Index();
+    const int rightel = face->RightElement()->Index();
+#ifdef DEBUG
+    if (this->ElementVec()[leftel]  != face->LeftElement() ) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;
+    if (this->ElementVec()[rightel] != face->RightElement()) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;
+#endif
+    celJumps[leftel] += faceerror[val];
+    celJumps[rightel] += faceerror[val];
+  }//for i
+  
+  for(int i = 0; i < nelements; i++){
+    if (!AllCels[i]) continue;
+    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(AllCels[i]);
+    if (!disc) continue;
+    const REAL celJumpError = celJumps[i];
+    if (celJumpError < eps){
+      int index;
+      this->Discontinuous2Continuous(i, index);
+    }//if
+  }//for i
+    
+}//method
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
