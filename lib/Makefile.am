@@ -65,11 +65,11 @@ libpz_a_LIBADD = ../External/pzsloan.o ../Util/TPZTimer.o ../Util/tpzpermutation
 	../Post/pzgraphmesh.o ../Post/pzgraphnode.o ../Post/pzmvmesh.o ../Post/pztrigraph.o \
 	../Post/pztrigraphd.o ../Post/pzv3dmesh.o ../Post/pzvisualmatrix.o ../Multigrid/pzmgsolver.o \
 	../Multigrid/pztransfer.o ../Multigrid/pztrnsform.o ../External/pzmetis.o \
-	../External/pzrenumbering.o ../Pre/pzgengrid.o ../Pre/pzpargrid.o ../Pre/TPZGMSHReadMesh.o \
+	../External/pzrenumbering.o ../Pre/pzgengrid.o ../Pre/pzpargrid.o ../Pre/TPZGMSHReadMesh.o ../Pre/pzreadtetgen.o \
 	../Pre/TPZExtendGridDimension.o ../Save/pzsave.o ../Save/pzfilebuffer.o ../External/sloan/diamtr.o \
 	../External/sloan/gegra.o ../External/sloan/iorele.o ../External/sloan/isorti.o \
 	../External/sloan/label.o ../External/sloan/number.o ../External/sloan/profi1.o \
 	../External/sloan/rootls.o ../External/sloan/vsrtp1.o \
-	../Material/pzcoupledtransportdarcy.o ../Material/pzcoupledtransportdarcyBC.o
+	../Material/pzcoupledtransportdarcy.o ../Material/pzcoupledtransportdarcyBC.o 
 
 ## --| NeoPZ |------------------------------------------------------------------

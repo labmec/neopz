@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.30 2005-12-19 12:00:27 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.31 2006-03-06 12:47:46 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -287,6 +287,8 @@ class TPZInterfaceElement : public TPZCompEl {
 
   void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 		     TPZVec<REAL> &errors, TPZBlock * /*flux */);
+                     
+  void EvaluateInterfaceJumps(TPZVec<REAL> &errors);
 
   /**
   * returns the unique identifier for reading/writing objects to streams
