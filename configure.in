@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.48 2006-03-04 15:38:05 tiago Exp $
+dnl $Id: configure.in,v 1.49 2006-03-07 20:32:28 cesar Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -444,7 +444,7 @@ dnl ----------------------------------------------------------------------------
 
 dnl REFPAT location
 AC_ARG_WITH(refpat-dir,
-  [  --with-refpat-dir=DIR    Root of REFPAT instalation [$top_srcdir]],
+  [  --with-refpat-dir=DIR    Root of REFPAT instalation [/usr/local/include/Refine/RefPattern]],
   [refpat_dir=$withval],
   [refpat_dir=${refpat_dir=[$srcdir/src/Files]}])
 
@@ -465,6 +465,12 @@ AC_SUBST(REFPATDIR)
 AC_DEFINE_UNQUOTED([REFPATTERNDIR],["[$refpat_dir]"],[Define toto the directory])
 AC_DEFINE_UNQUOTED([REFPATTERNINSTALLDIR],["[$prefix]/include/Refine/RefPattern"],[Define toto the directory])
 
+
+dnl ----------------------------------------------------------------------------
+dnl                               PZ directories
+dnl ----------------------------------------------------------------------------
+AC_DEFINE_UNQUOTED([PZSOURCEDIR],["[$srcdir]"],[Define the pz source directory])
+AC_DEFINE_UNQUOTED([PZINSTALLDIR],["[$prefix]"],[Define pz install directory])
 
 dnl ----------------------------------------------------------------------------
 dnl                                  CLEANING
