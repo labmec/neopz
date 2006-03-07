@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "pzgeoel.h"
 #include "pzgnode.h"
 
@@ -68,6 +72,7 @@ void ReadBCs (std::istream & file, int nmat, TPZCompMesh & cMesh);
 TPZCompMesh * ReadMesh(std::istream &file);
 void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq, int materialindex);
 void WriteElement (TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &elementtype);
+void WriteElementMesh(TPZGeoMesh *mesh,std::ofstream &arq, int matindex,int eltype);
 
 void QuadOneRibRefine(TPZGeoMesh *gmesh);
 void QuadTwoAdjacentRibRefine(TPZGeoMesh *gmesh);
@@ -117,14 +122,15 @@ void  FilterBoundingBox(TPZGeoMesh *geomesh);
      saida << std::endl;
    }
  }
-     
- 
 
-void InsertNewPattern(std::ifstream &arquivo, TPZGeoMesh &geomesh, std::ofstream &padroes){
+
+void InsertNewPattern(std::ifstream &arquivo, TPZGeoMesh &geomesh, std::ofstream &padroes)
+{
    TPZRefPattern *pattern = new TPZRefPattern (arquivo);
    pattern->InsertPermuted(geomesh);
    geomesh.RefPatternFile(padroes);
  }
+
  
 void ReadF17(TPZGeoMesh *geomesh)
 {
@@ -132,8 +138,23 @@ void ReadF17(TPZGeoMesh *geomesh)
 // // Beggining of the work with the F17's mesh.
 // 
 //   // First step: nodes reading and initialization.
-  std::cout << "Inicio da leitura\n";
-  std::ifstream malha_nos ("yf17.xyz");
+  std::string path;
+#ifdef HAVE_CONFIG_H
+  path = PZSOURCEDIR;
+  path += "/Projects/Heman/Files/Meshes/";
+#else
+  path = "";
+#endif
+
+  std::cout << "===============================================================\n"
+            << "Reading F17 mesh\n";
+
+            
+  std::string nodFile = path;
+  nodFile += "yf17.xyz";
+  std::cout << "\t\tInput file for nodes = " << nodFile.c_str()
+            << "\n\t\t\tprocessing nodes...\n";
+  std::ifstream malha_nos (nodFile.c_str());
 
 //  double  x,y,z ;
 
@@ -151,7 +172,11 @@ void ReadF17(TPZGeoMesh *geomesh)
 
   // Second step: Generation of the triangles.
 
-  std::ifstream malha_triangulos ("yf17.tri");
+  std::string triFile = path;
+  triFile += "yf17.tri";
+  std::cout << "\t\tInput file for faces = " << triFile.c_str()
+            << "\n\t\t\tprocessing faces...\n";
+  std::ifstream malha_triangulos (triFile.c_str());
   TPZVec<int> indices(3);
   TPZGeoEl *gel;
 
@@ -170,8 +195,11 @@ void ReadF17(TPZGeoMesh *geomesh)
   }
 
   // Third step: Generation of the thetra.
-
-  std::ifstream malha_tetraedros ("yf17.tet");
+  std::string tetraFile = path;
+  tetraFile += "yf17.tet";
+  std::cout << "\t\tInput file for volumes = " << tetraFile.c_str()
+            << "\n\t\t\tprocessing volumes...\n";
+  std::ifstream malha_tetraedros (tetraFile.c_str());
   TPZVec<int> indices2(4);
 
 //  int p;
@@ -191,19 +219,82 @@ void ReadF17(TPZGeoMesh *geomesh)
 
   // Fourth step: Building the mesh.
 
-  std::cout << "Antes de BuildConnectivity\n";
+  std::cout << "\n\tGenerating the connectivities and neighborhood information...\n";
   geomesh->BuildConnectivity();
-
-
+  std::cout << "F17 mesh read\n"
+            << "===============================================================\n";
 //   // End of work with the F17's mesh.
 // 
 //   // End of the work with f17.
 }
 
-int main ()
+void LoadRefPatternDataBase(TPZGeoMesh *geomesh)
 {
+  std::string path;
+#ifdef HAVE_CONFIG_H
+  path = PZSOURCEDIR;
+#else
+  path = "";
+#endif
+
+  std::string prefix = path;
+  prefix += "/Projects/Heman/Files/RefPatterns/";
+  std::string allfiles = prefix;// + "Patternlist";
+
+  std::string allpatterns = prefix + "ListedPatterns10.txt";
+  std::cout << "Reading refinement patterns: " << allpatterns.c_str() <<  std::endl;
+  std::ifstream fonte (allpatterns.c_str(),ios::in);
+  if(!fonte.fail())
+  {
+    geomesh->PatternFileLoad(fonte);
+  }
+  else
+  {
+    std::ifstream filelist(allfiles.c_str(),ios::in);
+    while(!filelist.fail())
+    {
+      std::string filename;
+      getline(filelist,filename);
+      std::string fullname = prefix+filename;
+      if(!filelist.fail())
+      {
+        TPZRefPattern *refp = new TPZRefPattern(fullname);
+        refp->InsertPermuted(*geomesh);
+      }
+    }
+    std::ofstream out(allpatterns.c_str());
+    geomesh->RefPatternFile(out);
+
+  }
+
+  std::ofstream shortlist("shortlist.txt");
+  geomesh->PatternSidesFile(shortlist);
+   
+  {
+    std::ofstream arquivo ("NotListedPatterns4.txt");
+  }
+  {
+    std::ofstream padroes ("ListedPatterns.txt");
+  }
+  {
+    std::ofstream padroes_lados ("PatternsandSides3.txt");
+  }
+}
+
+
+void InitializeLOG()
+{
+  std::string path;
+  std::string configfile;
+#ifdef HAVE_CONFIG_H
+  path = PZSOURCEDIR;
+#else
+  path = "";
+#endif
 #ifdef LOG4CXX
- log4cxx::PropertyConfigurator::configure("/home/ic/luis/NeoPZ/Util/config.h");
+  configfile = path;
+  configfile += "/Util/config.hi;
+  log4cxx::PropertyConfigurator::configure(configfile.c_str());
 
     //  log4cxx::BasicConfigurator::configure();
   {
@@ -229,66 +320,55 @@ int main ()
     logger->setLevel(log4cxx::Level::DEBUG);
   }
 #endif
-  TPZGeoMesh *geomesh = new TPZGeoMesh();
-
-  std::string prefix = "/home/phil/Cesar/Heman/NeoPZ/Projects/Heman/Files/RefPatterns/";
-  std::string allfiles = prefix + "Patternlist";
+}
 
 
-    std::cout << "Reading refinement patterns\n";
-    std::string allpatterns = prefix + "ListedPatterns10.txt";
-    std::ifstream fonte (allpatterns.c_str(),ios::in);
-    if(!fonte.fail())
-    {
-      geomesh->PatternFileLoad(fonte);
-    }
-    else
-    {
-      std::ifstream filelist(allfiles.c_str(),ios::in);
-      while(!filelist.fail())
-      {
-        std::string filename;
-        getline(filelist,filename);
-        std::string fullname = prefix+filename;
-        if(!filelist.fail())
-        {
-          TPZRefPattern *refp = new TPZRefPattern(fullname);
-          refp->InsertPermuted(*geomesh);
-        }
-      }
-      std::ofstream out(allpatterns.c_str());
-      geomesh->RefPatternFile(out);
+int main ()
+{
+  InitializeLOG();
+  
+  std::string file_path = PZSOURCEDIR;
+  file_path += "/Projects/Heman/Files/Meshes/placa_plana.txt";
+  std::ifstream file (file_path.c_str());
+  //TPZGeoMesh *geomesh = new TPZGeoMesh();
+  TPZCompMesh *compmesh = ReadMesh (file);
+  TPZGeoMesh *geomesh = compmesh->Reference();
+  geomesh->Print();
+  //ReadF17(geomesh);
+  
+  LoadRefPatternDataBase(geomesh);
 
-    }
+  file_path = PZSOURCEDIR;
+  file_path += "/Projects/Heman/Files/RefPatterns/Hexa_Half.rpt";
+  std::ifstream inparq (file_path.c_str());
+  std::string outfile = PZSOURCEDIR;
+  outfile += "/Projects/Heman/Files/RefPatterns/hexa_plus_tetra.rpt";
+  std::ofstream outarq (outfile.c_str());
+  InsertNewPattern(inparq, *geomesh, outarq);
+  
+  file_path = PZSOURCEDIR;
+  file_path += "/Projects/Heman/Files/RefPatterns/Hexa_2AdjRibs.rpt";
+  std::ifstream inparq2 (file_path.c_str());
+  InsertNewPattern(inparq2, *geomesh, outarq);
 
-    std::ofstream shortlist("shortlist.txt");
-    geomesh->PatternSidesFile(shortlist);
-   
-  {
-    std::ofstream arquivo ("NotListedPatterns4.txt");
-  }
-  {
-    std::ofstream padroes ("ListedPatterns.txt");
-  }
-  {
-    std::ofstream padroes_lados ("PatternsandSides3.txt");
-  }
+  file_path = PZSOURCEDIR;
+  file_path += "/Projects/Heman/Files/RefPatterns/Prism_2AdjRibs.rpt";
+  std::ifstream inparq3 (file_path.c_str());
+  InsertNewPattern(inparq3, *geomesh, outarq);
 
-  ReadF17(geomesh);
   
   FilterBoundingBox(geomesh);
 
   ofstream dx_arq ("surface.dx");
-  WriteMesh(geomesh,dx_arq,-1);
+  WriteMesh(geomesh,dx_arq,1);
 
-  
   std::set<int> matids;
   matids.insert(-1);
   int count = 0;
   int destmatid = 2;
 
   int i;
-  for(i=0; i<1; i++)
+  for(i=0; i<5; i++)
   {
     int nelements = geomesh->NElements();
     int el;  
@@ -307,26 +387,41 @@ int main ()
     }
     {
       std::stringstream nome;
-      nome << count++ << "_boundary_ref.dx";
+      nome << count++ << "_boundary_ref";
+      std::string elMesh = nome.str().c_str();
+      nome << ".dx";
       ofstream dx_arq_ref (nome.str().c_str());
       WriteMesh(geomesh,dx_arq_ref,destmatid+1);
+      
+      std::string aux = elMesh;
+      aux += "-tetra.dx";
+      std::ofstream dx_tetra_arq (aux.c_str());
+      WriteElementMesh(geomesh,dx_tetra_arq,destmatid+1,4);
+      
+      aux = elMesh;
+      aux += "-pyramid.dx";
+      std::ofstream dx_pyra_arq (aux.c_str());
+      WriteElementMesh(geomesh,dx_pyra_arq,destmatid+1,5);
+
+      aux = elMesh;
+      aux += "-prism.dx";
+      std::ofstream dx_prism_arq (aux.c_str());
+      WriteElementMesh(geomesh,dx_prism_arq,destmatid+1,6);
+
+      aux = elMesh;
+      aux += "-hexa.dx";
+      std::ofstream dx_hexa_arq (aux.c_str());
+      WriteElementMesh(geomesh,dx_hexa_arq,destmatid+1,7);
     }
     destmatid += 2;
   }
   destmatid--;
-
-
   //geomesh->Print(cout);
   //string ref = "refpattern.txt" ;
   /*TPZRefPattern *patt = */ //new TPZRefPattern(ref) ;
-
-//  geomesh->Print();
+  //geomesh->Print();
   return 0 ;
-
-  
 }
-
-
 
 
 void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
@@ -395,13 +490,13 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
     TPZManVector<TPZGeoEl *> subel;
     gel->Divide(subel);
     gel->SetMaterialId(destmatid);
-    std::cout << "S";
+    std::cout << "-";
   }
   else
   {
     std::ofstream arquivo ("NotListedPatterns4.txt",std::ios::app);
     if(count++ == 1) std::cout << "couldnt find a suitable refinement pattern\n";
-    std::cout << "*";
+    std::cout << "|";
     std::list<TPZRefPattern *>::iterator it;
     arquivo << "Compatible refinement patterns\n";
     for(it=patlist.begin(); it!=patlist.end(); it++)
