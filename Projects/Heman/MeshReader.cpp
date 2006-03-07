@@ -152,7 +152,6 @@ void ReadBCs (std::istream & file, int nmat, TPZCompMesh & cMesh)
 
 TPZCompMesh * ReadMesh(std::istream &file)
 {
-
   TPZGeoMesh *gmesh = new TPZGeoMesh;
   
   std::string numberOf;
@@ -295,7 +294,7 @@ void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq, int matindex){
   int numelements = 0;
   for (i=0;i<mesh->ElementVec().NElements();i++){
     TPZGeoEl *el = mesh->ElementVec()[i];
-    if ( !el ) continue;
+    if ( !el || el->Dimension() != 3) continue;
     if(el->MaterialId() == matindex) numelements++;
   }
   arq << "object 2 class array type integer rank 1 shape 8 items ";
@@ -303,7 +302,7 @@ void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq, int matindex){
   TPZVec<int> elementtype(mesh->ElementVec().NElements(),0);
   for (i=0;i<mesh->ElementVec().NElements();i++){
     TPZGeoEl *el = mesh->ElementVec()[i];
-    if ( !el || el->MaterialId() != matindex) continue;
+    if ( !el || el->MaterialId() != matindex || el->Dimension() != 3) continue;
     WriteElement (el,i,arq,elementtype);
   }
   arq << "attribute \"element type\" string \"cubes\"" << std::endl
@@ -312,7 +311,7 @@ void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq, int matindex){
   arq << numelements << " data follows" << std::endl;
   for (i=0;i<mesh->ElementVec().NElements();i++){
     TPZGeoEl *el = mesh->ElementVec()[i];
-    if ( !el || el->MaterialId() != matindex) continue;
+    if ( !el || el->MaterialId() != matindex || el->Dimension()!= 3) continue;
     arq << elementtype[i] << std::endl;
   }
   arq << "attribute \"dep\" string \"connections\"" << std::endl;
@@ -322,3 +321,44 @@ void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq, int matindex){
     << "component \"data\" value 3" << std::endl;
 }
 
+void WriteElementMesh(TPZGeoMesh *mesh,std::ofstream &arq, int matindex,int eltype){
+  arq << "object 1 class array type float rank 1 shape 3 items ";
+  arq << mesh->NodeVec().NElements() << " data follows" << std::endl;
+  int i;
+  //Print Nodes
+  for (i=0;i<mesh->NodeVec().NElements(); i++){
+    TPZGeoNode *node = &mesh->NodeVec()[i];
+    arq /*<< node->Id() << "\t"*/
+      << node->Coord(0) << "\t"
+      << node->Coord(1) << "\t"
+      << node->Coord(2) << std::endl;
+  }
+  int numelements = 0;
+  for (i=0;i<mesh->ElementVec().NElements();i++){
+    TPZGeoEl *el = mesh->ElementVec()[i];
+    if ( !el || el->Type() != eltype) continue;
+    if(el->MaterialId() == matindex) numelements++;
+  }
+  arq << "object 2 class array type integer rank 1 shape 8 items ";
+  arq << numelements << " data follows" << std::endl;
+  TPZVec<int> elementtype(mesh->ElementVec().NElements(),0);
+  for (i=0;i<mesh->ElementVec().NElements();i++){
+    TPZGeoEl *el = mesh->ElementVec()[i];
+    if ( !el || el->MaterialId() != matindex || el->Type() != eltype || el->HasSubElement()) continue;
+    WriteElement (el,i,arq,elementtype);
+  }
+  arq << "attribute \"element type\" string \"cubes\"" << std::endl
+    << "attribute \"ref\" string \"positions\"" << std::endl;
+  arq << "object 3 class array type integer rank 0 items ";
+  arq << numelements << " data follows" << std::endl;
+  for (i=0;i<mesh->ElementVec().NElements();i++){
+    TPZGeoEl *el = mesh->ElementVec()[i];
+    if ( !el || el->MaterialId() != matindex || el->Type() != eltype  || el->HasSubElement()) continue;
+    arq << elementtype[i] << std::endl;
+  }
+  arq << "attribute \"dep\" string \"connections\"" << std::endl;
+  arq << "object 4 class field" << std::endl
+    << "component \"positions\" value 1" << std::endl
+    << "component \"connections\" value 2" << std::endl
+    << "component \"data\" value 3" << std::endl;
+}
