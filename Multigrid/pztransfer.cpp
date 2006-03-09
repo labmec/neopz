@@ -182,7 +182,7 @@ void TPZTransfer::ExpandDoubleValueEntries(int num){
 
 
 void TPZTransfer::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha,const REAL beta,const int opt,const int stride) const {
+		       const REAL alpha,const REAL beta,const int opt,const int stride) {
   // multiplies the transfer matrix and puts the result in z
   if ((!opt && Cols()*stride != x.Rows()) || (opt && Rows()*stride != x.Rows()))
     Error( "TPZTransfer::MultAdd <matrices with incompatible dimensions>" );
@@ -290,7 +290,7 @@ void TPZTransfer::TransferResidual(const TPZFMatrix &fine, TPZFMatrix &coarse){
 }
 
 void TPZTransfer::Multiply(const TPZFMatrix &A, TPZFMatrix &B,const int opt,
-			   const int stride) const{
+			   const int stride) {
   if (opt==0 && Cols()*stride != A.Rows() || opt ==1 && Rows()*stride != A.Rows())
     Error( "TPZTransfer::Multiply incompatible dimensions" );
 
