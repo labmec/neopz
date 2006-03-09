@@ -19,3 +19,4 @@ HeMan_SOURCES = c0-simplequad.cpp c1-simplecube.cpp main.cc MeshReader.cpp \
 ## /home/ic/luis/Documents/dxflib-2.0.1.3-1.src/lib/libdxf.a
 
 ## --| NeoPZ |------------------------------------------------------------------
+HeMan_LDFLAGS = -all-static
