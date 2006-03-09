@@ -19,6 +19,7 @@ utilinc_HEADERS= $(top_srcdir)/Util/*.h
 
 noinst_LIBRARIES = libpzutil.a
 
-libpzutil_a_SOURCES = pzmap.cpp pzstring.cpp pzline.cpp pzplane.cpp pznumeric.cpp pzpolynomial.cpp TPZTimer.cpp tpzpermutation.cpp
+libpzutil_a_SOURCES = pzmap.cpp pzstring.cpp pzline.cpp pzplane.cpp \
+	pznumeric.cpp pzpolynomial.cpp TPZTimer.cpp tpzpermutation.cpp tpzautopointer.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
