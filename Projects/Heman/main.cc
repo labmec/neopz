@@ -293,8 +293,8 @@ void InitializeLOG()
 #endif
 #ifdef LOG4CXX
   configfile = path;
-  configfile += "/Util/config.hi;
-  log4cxx::PropertyConfigurator::configure(configfile.c_str());
+  configfile += "/Util/config.h";
+  log4cxx::PropertyConfigurator::configure(configfile);
 
     //  log4cxx::BasicConfigurator::configure();
   {
