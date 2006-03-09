@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.22 2005-12-21 11:56:14 tiago Exp $
+//$Id: pzcompel.cpp,v 1.23 2006-03-09 11:47:32 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -765,6 +765,21 @@ int TPZCompEl::Index() {
 /*   return i; */
   LOGPZ_INFO(logger, "Exiting Index");
   return fIndex;
+}
+
+void TPZCompEl::SetIndex(int index) {
+  LOGPZ_INFO(logger, "Entering SetIndex");
+  /*   int i=0; */
+  /*   int numel = fMesh->NElements(); */
+  /*   TPZAdmChunkVector<TPZCompEl *> &vec = fMesh->ElementVec(); */
+  /*   while ( i < numel ) { */
+  /*     if (vec[i] == this) break; */
+  /*     i++; */
+  /*   } */
+  /*   return i; */
+  fIndex = index;
+  LOGPZ_INFO(logger, "Exiting SetIndex");
+  return;
 }
 
 int TPZCompEl::NEquations(){

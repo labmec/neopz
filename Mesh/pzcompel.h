@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.21 2005-12-21 11:56:14 tiago Exp $
+// $Id: pzcompel.h,v 1.22 2006-03-09 11:47:32 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -193,6 +193,11 @@ public:
    * Return element index of the mesh fELementVec list
    */
   int Index();
+
+  /**
+   * Set element index of the mesh fELementVec list
+   */
+  void SetIndex(int index);
 
   /**
    * Return the index of the ith connectivity of the element
