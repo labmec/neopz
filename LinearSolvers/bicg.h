@@ -22,7 +22,7 @@
 
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int 
-BiCG(const Matrix &A, Vector &x, const Vector &b,
+BiCG( Matrix &A, Vector &x, const Vector &b,
      Preconditioner &M, int &max_iter, Real &tol)
 {
   Real resid;

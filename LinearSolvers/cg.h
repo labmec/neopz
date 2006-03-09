@@ -26,7 +26,7 @@
 
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int
-CG(const Matrix &A, Vector &x, const Vector &b,
+CG( Matrix &A, Vector &x, const Vector &b,
 	Preconditioner &M, Vector *residual, int &max_iter, Real &tol,const int FromCurrent)
 {
   Real resid;

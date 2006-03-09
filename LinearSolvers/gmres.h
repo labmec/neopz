@@ -50,7 +50,7 @@ abs(Real x)
 template < class Operator, class Vector, class Preconditioner,
            class Matrix, class Real >
 int 
-GMRES(const Operator &A, Vector &x, const Vector &b,
+GMRES( Operator &A, Vector &x, const Vector &b,
 		Preconditioner &M, Matrix &H, int &m, int &max_iter,
 		Real &tol, Vector *residual,const int FromCurrent)
 {
@@ -89,7 +89,7 @@ GMRES(const Operator &A, Vector &x, const Vector &b,
   Vector *v = new Vector[m+1];
 
   while (j <= max_iter) {
-	 v[0] = r * (REAL(1.0) / beta);    // ??? r / beta
+    v[0] = r * (REAL(1.0 / beta));    // ??? r / beta
 	 s = REAL(0.0);
 	 s(0) = beta;
 
