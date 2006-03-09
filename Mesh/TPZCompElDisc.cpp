@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.73 2006-02-21 14:50:48 cesar Exp $
+//$Id: TPZCompElDisc.cpp,v 1.74 2006-03-09 11:51:28 phil Exp $
 
 // -*- c++ -*- 
 
@@ -47,10 +47,15 @@
 #ifdef DEBUG
 #define DEBUG2 DEBUG
 #endif
+#endif
+
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompeldisc"));
 #endif
 
-#include "pzlog.h"
 
 using namespace pzshape;
 using namespace std;
