@@ -22,6 +22,7 @@ using namespace std;
 #include "pzysmp.h"
 #include "pzmetis.h"
 #include "pzbndcond.h"
+#include "TPZTimer.h"
 
 void UniformRefine(int num, TPZGeoMesh &m);
 
@@ -40,7 +41,11 @@ TPZMatrix * TPZSpStructMatrix::CreateAssemble(TPZFMatrix &rhs){
 //    TPZFYsmpMatrix *mat = dynamic_cast<TPZFYsmpMatrix *> (stiff);
     rhs.Redim(neq,1);
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
+    TPZTimer before("Assembly of a sparse matrix");
+    before.start();
     Assemble(*stiff,rhs);
+    before.stop();
+    std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     return stiff;
@@ -112,22 +117,27 @@ TPZMatrix * TPZSpStructMatrix::Create(){
 // 	EqCol[pos] = ieq;
 // 	EqValue[pos] = 0.;
 // 	pos++;
-        int colsize = fMesh->Block().Size(i);
-        int colpos = fMesh->Block().Position(i);
-        int jbleq;
-        for(jbleq=0; jbleq<colsize; jbleq++) {
-//             if(colpos+jbleq == ieq) continue;
-	    EqCol[pos] = colpos+jbleq;
-            EqValue[pos] = 0.;
-	    //            colpos++;
-            pos++;
-        }
-
+        int colsize,colpos,jbleq;
+        int diagonalinsert = 0;
         int icfirst = nodegraphindex[i];
         int iclast = nodegraphindex[i+1];
         int j;
         for(j=icfirst;j<iclast;j++) {
         	int col = nodegraph[j];
+        	if(!diagonalinsert && col > i)
+        	{
+                    diagonalinsert = 1;
+                    int colsize = fMesh->Block().Size(i);
+                    int colpos = fMesh->Block().Position(i);
+                    int jbleq;
+                    for(jbleq=0; jbleq<colsize; jbleq++) {
+            //             if(colpos+jbleq == ieq) continue;
+                        EqCol[pos] = colpos+jbleq;
+                        EqValue[pos] = 0.;
+                        //            colpos++;
+                        pos++;
+                    }
+        	}
         	colsize = fMesh->Block().Size(col);
         	colpos = fMesh->Block().Position(col);
         	for(jbleq=0; jbleq<colsize; jbleq++) {
@@ -136,6 +146,20 @@ TPZMatrix * TPZSpStructMatrix::Create(){
             	  colpos++;
             	  pos++;
           	}
+        }
+        if(!diagonalinsert)
+        {
+            diagonalinsert = 1;
+            int colsize = fMesh->Block().Size(i);
+            int colpos = fMesh->Block().Position(i);
+            int jbleq;
+            for(jbleq=0; jbleq<colsize; jbleq++) {
+    //             if(colpos+jbleq == ieq) continue;
+                EqCol[pos] = colpos+jbleq;
+                EqValue[pos] = 0.;
+                //            colpos++;
+                pos++;
+            }
         }
         ieq++;
       }
