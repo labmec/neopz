@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.9 2005-04-25 02:31:49 phil Exp $
+//$Id: pzsubcmesh.h,v 1.10 2006-03-09 11:50:29 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -201,7 +201,7 @@ public:
    * This method use the virtual method from Computacional Mesh class.
    * @param out indicates the device where the data will be printed
    */
-  void Prints(std::ostream &out = std::cout);
+  virtual void Print(std::ostream &out = std::cout);
 
   /**
    * @name Element
@@ -222,7 +222,7 @@ public:
   //	/**
   //     * Virtual Method! 
   //     */
-	virtual int AllocateNewConnect(int blocksize);
+	virtual int AllocateNewConnect(int blocksize, int order);
 
   //    /**
   //     * Gives the id node  of one local node in a neighbour mesh. 

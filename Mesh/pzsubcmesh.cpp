@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.11 2005-09-01 19:04:35 tiago Exp $
+//$Id: pzsubcmesh.cpp,v 1.12 2006-03-09 11:50:29 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -141,7 +141,7 @@ int TPZSubCompMesh::main() {
 	//mesh.Print(output);
 	sub[0]->LoadSolution();
 	sub[0]->SetName("sub[0]");
-	sub[0]->Prints(output);
+	sub[0]->Print(output);
 	output.flush();
 
 	
@@ -306,7 +306,7 @@ int TPZSubCompMesh::NodeIndex(int nolocal, TPZCompMesh *neighbour){
 	return neighbour->GetFromSuperMesh(rootindex,root);
 }
 
-int TPZSubCompMesh::AllocateNewConnect(int blocksize){
+int TPZSubCompMesh::AllocateNewConnect(int blocksize, int order){
 /*	int connectindex = fConnectIndex.AllocateNewElement();
 	int blocknum = fBlock.NBlocks();
 	fBlock.SetNBlocks(blocknum+1);
@@ -317,6 +317,7 @@ int TPZSubCompMesh::AllocateNewConnect(int blocksize){
 	int connectindex = TPZCompMesh::AllocateNewConnect();
 	int seqnum = fConnectVec[connectindex].SequenceNumber();
 	fBlock.Set(seqnum,blocksize);
+        fConnectVec[connectindex].SetOrder(order);
 	int i,oldsize = fExternalLocIndex.NElements();
 
 	if(oldsize <= connectindex) {
@@ -386,7 +387,8 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 	for(i=0; i<nc; i++) if(fConnectIndex[i] == superind) break;
 	if(i== nc) {
 		int blocksize=super->ConnectVec()[superind].NDof(*(TPZCompMesh *)super);
-		int gl = AllocateNewConnect(blocksize);
+                int order = super->ConnectVec()[superind].Order();
+		int gl = AllocateNewConnect(blocksize,order);
 		fConnectIndex.Resize(fConnectIndex.NElements()+1);
 		fConnectIndex[fConnectIndex.NElements()-1] = superind;
 		fExternalLocIndex[gl] = fConnectIndex.NElements()-1;
@@ -397,14 +399,17 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 			if(fExternalLocIndex[j] == i) return j;
 		}
 		int blocksize=super->ConnectVec()[superind].NDof(*(TPZCompMesh *)super);
-		j = AllocateNewConnect(blocksize);
+                int order = super->ConnectVec()[superind].Order();
+		j = AllocateNewConnect(blocksize,order);
 		fExternalLocIndex[j] = i;
 		return j;
 	}
 }
 
-void TPZSubCompMesh::Prints(std::ostream &out){
-	out << "Sub Mesh" << (void *) this;	
+void TPZSubCompMesh::Print(std::ostream &out){
+        
+	out << "Sub Mesh" << (void *) this;
+ TPZCompEl::Print(out);
 	TPZCompMesh::Print(out);
 	out.flush();
 	int i;
@@ -529,6 +534,7 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
 //	int blocksize=mesh->ConnectVec()[elindex].NDof((TPZCompMesh *)mesh);
 	int newelind = fElementVec.AllocateNewElement();
 	fElementVec[newelind] = cel;
+        cel->SetIndex(newelind);
 	father->ElementVec()[elindex] = 0;
 	father->ElementVec().SetFree(elindex);
 	return newelind;
@@ -568,6 +574,7 @@ int TPZSubCompMesh::TransferElementTo(TPZCompMesh *mesh, int elindex){
 	int newelind = father->ElementVec().AllocateNewElement();
 	father->ElementVec()[newelind] = cel;
 	cel->SetMesh(father);
+        cel->SetIndex(newelind);
 	ElementVec()[elindex] = 0;
 	ElementVec().SetFree(elindex);
 	return newelind;
