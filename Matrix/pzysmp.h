@@ -68,12 +68,16 @@ public:
   void PutVal(const int row, const int col, REAL Value);
 
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 )const;
+		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 );
                        
   virtual void MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 )const;
+		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 );
   
-  
+virtual int GetSub(const int sRow,const int sCol,const int rowSize,
+         const int colSize, TPZFMatrix & A ) const;
+
+void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
+
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
 
@@ -101,12 +105,12 @@ public:
    * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
    */
   virtual void SolveJacobi(int & numiterations, const TPZFMatrix & F, TPZFMatrix & result,
-			   TPZFMatrix * residual, TPZFMatrix & scratch, REAL & tol, const int FromCurrent = 0) const;
+			   TPZFMatrix * residual, TPZFMatrix & scratch, REAL & tol, const int FromCurrent = 0) ;
   
   void SolveSOR(int &numiterations, const TPZFMatrix &rhs, TPZFMatrix &x,
 		TPZFMatrix *residual, TPZFMatrix &scratch,
 		const REAL overrelax, REAL &tol,
-		const int FromCurrent = 0,const int direction = 1 ) const;    
+		const int FromCurrent = 0,const int direction = 1 ) ;    
 
   /**
        * Add a contribution of a stiffness matrix
@@ -122,11 +126,42 @@ public:
   void Multiply(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res);    
 
   virtual int Zero();
+  
+  /**
+   * @name Factorization
+   * Those member functions are related to matrices factorization
+   */
+  //@{
+  /**
+   * Decomposes the current matrix using LU decomposition.
+   */
+  virtual int Decompose_LU();
+
+  //@}
+  
+  /**
+   * @name Substitutions
+   * Substitutions forward and backward
+   */
+  //@{  
+  /**
+   * Computes Forward and Backward substitution for a "LU" decomposed matrix.
+   * @param B right hand side and result after all
+   */
+  virtual int Substitution( TPZFMatrix * B ) const;
+
+  //@}
 
 
  private:
 
   void ComputeDiagonal();
+  
+  /*
+  * Perform row update of the sparse matrix
+  */
+  void RowLUUpdate(int sourcerow, int destrow);
+  
 protected:
   int  *fIA;
   int  *fJA;

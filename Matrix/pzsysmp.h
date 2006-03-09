@@ -37,7 +37,7 @@ class TPZSYsmpMatrix : public TPZMatrix {
   // Get the matrix entry at (row,col) without bound checking
 
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const;
+		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) ;
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
 
@@ -50,7 +50,7 @@ class TPZSYsmpMatrix : public TPZMatrix {
   void SolveSOR(int &numiterations,const TPZFMatrix &rhs, TPZFMatrix &x,
 		TPZFMatrix *residual, TPZFMatrix &scratch,
 		const REAL overrelax, REAL &tol,
-		const int FromCurrent = 0,const int direction = 1 ) const;
+		const int FromCurrent = 0,const int direction = 1 ) ;
 
 
  private:

@@ -139,7 +139,7 @@ public:
    * @param opt Indicates if is Transpose or not
    * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
    */
-  virtual void Multiply(const TPZFMatrix & A,TPZFMatrix & res,const int opt = 0,const int stride = 1) const;
+  virtual void Multiply(const TPZFMatrix & A,TPZFMatrix & res,const int opt = 0,const int stride = 1) ;
   /**
    * It adds itself to TPZMatrix A putting the result in res
    * @param A TPZMatrix to added to current matrix
@@ -157,12 +157,12 @@ public:
    * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
    */
   virtual void MultAdd(const TPZFMatrix & x,const TPZFMatrix & y, TPZFMatrix & z,
-		       const REAL alpha=1., const REAL beta = 0., const int opt = 0, const int stride = 1 ) const;
+		       const REAL alpha=1., const REAL beta = 0., const int opt = 0, const int stride = 1 ) ;
 
   /**
    * Computes res = rhs - this * x 
    */
-  virtual void Residual(const TPZFMatrix & x,const TPZFMatrix & rhs, TPZFMatrix & res ) const;
+  virtual void Residual(const TPZFMatrix & x,const TPZFMatrix & rhs, TPZFMatrix & res ) ;
   /**
    * It substracts A from storing the result in result
    */
@@ -401,7 +401,7 @@ public:
    * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
    */
   virtual void SolveJacobi(int & numiterations, const TPZFMatrix & F, TPZFMatrix & result,
-			   TPZFMatrix * residual, TPZFMatrix & scratch, REAL & tol, const int FromCurrent = 0) const;
+			   TPZFMatrix * residual, TPZFMatrix & scratch, REAL & tol, const int FromCurrent = 0);
 
   /**
    * Solves the linear system using Successive Over Relaxation method (Gauss Seidel). \n
@@ -417,7 +417,7 @@ public:
    */
   virtual void SolveSOR(int & numiterations, const TPZFMatrix & F, TPZFMatrix & result,
 			TPZFMatrix * residual,TPZFMatrix & scratch,const REAL overrelax, REAL & tol,
-			const int FromCurrent = 0,const int direction = 1) const;
+			const int FromCurrent = 0,const int direction = 1) ;
   /**
    * Solves the linear system using Symmetric Successive Over Relaxation method (Gauss Seidel). \n
    * @param numinterations The number of interations for the process.
@@ -431,7 +431,7 @@ public:
    */
   virtual void SolveSSOR(int & numiterations,const TPZFMatrix & F, TPZFMatrix & result,
 			 TPZFMatrix * residual, TPZFMatrix & scratch, const REAL overrelax, REAL & tol,
-			 const int FromCurrent = 0) const;
+			 const int FromCurrent = 0) ;
 
   /**
    * Solves the linear system using Conjugate Gradient method. \n
@@ -445,7 +445,7 @@ public:
   virtual void SolveCG(int & numiterations, TPZSolver & preconditioner,
 		       const TPZFMatrix & F, TPZFMatrix & result,
 		       TPZFMatrix * residual, REAL & tol,
-		       const int FromCurrent = 0) const;
+		       const int FromCurrent = 0) ;
   /**
    * Solves the linear system using Bi-Conjugate Gradient method. \n
    * @param numinterations The number of interations for the process.
@@ -457,7 +457,7 @@ public:
    */
   virtual void SolveBICG(int & numiterations, TPZSolver & preconditioner,
 		       const TPZFMatrix & F, TPZFMatrix & result,
-		       REAL & tol) const;
+		       REAL & tol) ;
 
   /**
    * Solves the linear system using Generalized Minimal Residual (GMRES) method. \n
@@ -474,7 +474,7 @@ public:
   virtual void SolveGMRES(int & numiterations, TPZSolver & preconditioner,
 			  TPZFMatrix & H, int & numvectors,
 			  const TPZFMatrix & F, TPZFMatrix & result,
-			  TPZFMatrix * residual, REAL & tol,const int FromCurrent) const;
+			  TPZFMatrix * residual, REAL & tol,const int FromCurrent) ;
 
   /**
    * Solves the linear system using IR method. \n
@@ -489,7 +489,7 @@ public:
   virtual void SolveIR(int & numiterations, TPZSolver & preconditioner,
 		       const TPZFMatrix & F, TPZFMatrix & result,
 		       TPZFMatrix * residual, REAL & tol,
-		       const int FromCurrent = 0) const;
+		       const int FromCurrent = 0);
   
   /** Transforms this matrix in a diagonal matrix, where the diagonal values are its eigenvalues.
    * This method is efficient only for small matrices.
@@ -626,7 +626,7 @@ public:
   /**
   * Extract the block indicated by the indices from the matrix
   */
-    void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
+   virtual void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
     
   /**
    * Compare values of this to B, with a precision tolerance tol.
@@ -699,7 +699,7 @@ inline int TPZMatrix::Cols() const {
          return fCol;
 }
 
-inline void TPZMatrix::Residual(const TPZFMatrix & x,const TPZFMatrix & rhs, TPZFMatrix & res ) const {
+inline void TPZMatrix::Residual(const TPZFMatrix & x,const TPZFMatrix & rhs, TPZFMatrix & res )  {
          MultAdd( x, rhs, res, -1.0, 1.0 );
 }
 

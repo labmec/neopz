@@ -248,7 +248,7 @@ TPZTempFMatrix TPZFMatrix::operator-(const TPZFMatrix &A ) const {
 	 while(pr < prlast) *pr++ = (*pm++) - (*pa++);
 	 return( res );
 }
-void TPZFMatrix::MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+void TPZFMatrix::MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha,const REAL beta ,const int opt ,const int stride)
 {
   if ((!opt && cols*stride != x.Rows()) || (opt && rows*stride != x.Rows())) {
@@ -326,7 +326,7 @@ void TPZFMatrix::MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &
 }
 
 void TPZFMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-			 const REAL alpha,const REAL beta,const int opt,const int stride) const{
+			 const REAL alpha,const REAL beta,const int opt,const int stride) {
   if ((!opt && Cols()*stride != x.Rows()) || (opt && Rows()*stride != x.Rows())) {
     Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
     return;
@@ -406,7 +406,7 @@ void TPZFMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 /*******************************/
 /*** Operator*( TPZFMatrix & ) ***/
 
-TPZTempFMatrix TPZFMatrix::operator*(const TPZFMatrix &A )const {
+TPZTempFMatrix TPZFMatrix::operator*( TPZFMatrix &A ) {
 	 if ( Cols() != A.Rows() )
 		  Error( "Operator* <matrixs with incompatible dimensions>" );
 	 TPZTempFMatrix res;
@@ -559,7 +559,7 @@ TPZTempFMatrix TPZFMatrix::operator-(const TPZMatrix &A ) const {
 /******************/
 /*** Operator * ***/
 
-TPZTempFMatrix TPZFMatrix::operator*(const TPZMatrix &A ) const {
+TPZTempFMatrix TPZFMatrix::operator*( TPZMatrix &A )  {
 
 	 if ( Cols() != A.Rows() )
 		  Error( "Operator* (TPZMatrix &) <incompatible dimensions>" );

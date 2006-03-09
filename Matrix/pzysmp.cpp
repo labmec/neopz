@@ -1,5 +1,6 @@
 #include <memory.h>
-#include <string.h>
+#include <string>
+#include <map>
 #include <pthread.h>
 
 #include "pzysmp.h"
@@ -93,17 +94,99 @@ void TPZFYsmpMatrix::AddKelOld(TPZFMatrix & elmat, TPZVec < int > & destinationi
   int i=0;
   int j=0;
   int ilocal=0;
+//  int jlocal=0;
+  int nel = destinationindex.NElements();
+  std::multimap<int,int> mapindex;
+  std::multimap<int,int>::iterator hint = mapindex.begin();
+  for(i=0;i<nel;i++){
+    ilocal = destinationindex[i];
+    hint = mapindex.insert(hint,std::make_pair(ilocal,i));
+//    mapindex[ilocal] = i;
+  }
+  for(i=0;i<nel;i++){
+    ilocal = destinationindex[i];
+    int jfirst = fIA[ilocal];
+    int jlast = fIA[ilocal+1];
+    int *Aptr = &fJA[jfirst];
+    int *AptrLast = &fJA[jlast];
+    j=0;
+    std::multimap<int,int>::iterator itelmat = mapindex.begin();
+    while(j<nel && Aptr != AptrLast)
+    {
+      if(*Aptr == (*itelmat).first)
+      {
+        int jel = (*itelmat).second;
+        fA[jfirst] += elmat(i,jel);
+        itelmat++;
+        if(itelmat != mapindex.end() && (*itelmat).second != jel)
+        {
+          Aptr++;
+          jfirst++;
+        }
+        j++;
+      }
+      else if(*Aptr < (*itelmat).first)
+      {
+        Aptr++;
+        jfirst++;
+      }
+      else if(*Aptr > (*itelmat).second)
+      {
+        std::cout << __PRETTY_FUNCTION__ << " inconsistent\n";
+        int *iptr = &fJA[jfirst];
+        while(iptr < AptrLast) 
+        {
+          cout << *iptr << " ";
+          iptr++;
+        }
+        cout << endl;
+        std::multimap<int,int>::iterator itelmat2 = mapindex.begin();
+        for(;itelmat2 != mapindex.end(); itelmat2++)
+        {
+          cout << (*itelmat2).first << "/" << (*itelmat2).second << " ";
+        }
+        cout << endl;
+        
+      }
+    }
+    if(j!= nel)
+    {
+      std::cout << __PRETTY_FUNCTION__ << " inconsistent2 j = " << j << " nel " << nel << "\n";
+        int *iptr = &fJA[jfirst];
+        while(iptr < AptrLast) 
+        {
+          cout << *iptr << " ";
+          iptr++;
+        }
+        cout << endl;
+        std::multimap<int,int>::iterator itelmat2 = mapindex.begin();
+        for(;itelmat2 != mapindex.end(); itelmat2++)
+        {
+          cout << (*itelmat2).first << "/" << (*itelmat2).second << " ";
+        }
+        cout << endl;
+    }
+  }
+  
+}
+
+/*
+void TPZFYsmpMatrix::AddKelOld(TPZFMatrix & elmat, TPZVec < int > & destinationindex){
+  int i=0;
+  int j=0;
+  int ilocal=0;
   int jlocal=0;
   int nel = destinationindex.NElements();
   for(i=0;i<nel;i++){
     ilocal = destinationindex[i];
     for(j=0;j<nel;j++){
       jlocal = destinationindex[j];
-      //Element(ilocal,jlocal)+=elmat(i,j);
+      Element(ilocal,jlocal)+=elmat(i,j);
     }
   }
   
 }
+*/
 TPZFYsmpMatrix::TPZFYsmpMatrix(const int rows,const int cols ) : TPZMatrix(rows,cols) {
   // Constructs an empty TPZFYsmpMatrix
   //    fSolver = -1;
@@ -162,7 +245,7 @@ const REAL & TPZFYsmpMatrix::GetVal(const int row,const int col ) const {
 
 void TPZFYsmpMatrix::MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y,
 			     TPZFMatrix &z,
-			     const REAL alpha,const REAL beta,const int opt,const int stride ) const {
+			     const REAL alpha,const REAL beta,const int opt,const int stride )  {
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot share storage
   int  ir, ic, icol, xcols;
@@ -247,7 +330,7 @@ void TPZFYsmpMatrix::MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y,
 
 void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			     TPZFMatrix &z,
-			     const REAL alpha,const REAL beta,const int opt,const int stride ) const {
+			     const REAL alpha,const REAL beta,const int opt,const int stride )  {
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot share storage
   int  ic, xcols;
@@ -363,7 +446,7 @@ void TPZFYsmpMatrix::ComputeDiagonal() {
 void TPZFYsmpMatrix::SolveSOR( int &numiterations, const TPZFMatrix &rhs, TPZFMatrix &x,
 			       TPZFMatrix *residual, TPZFMatrix &/*scratch*/,
 			       const REAL overrelax, REAL &tol,
-			       const int FromCurrent,const int direction ) const {
+			       const int FromCurrent,const int direction ) {
 
   //    if(!fDiag) ComputeDiagonal();
   int irStart = 0,irLast = Rows(),irInc = 1;
@@ -420,7 +503,7 @@ int TPZFYsmpMatrix::Zero()
    * @param tol The tolerance value.
    * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
    */
-void TPZFYsmpMatrix::SolveJacobi(int & numiterations, const TPZFMatrix & F, TPZFMatrix & result,             TPZFMatrix * residual, TPZFMatrix & scratch, REAL & tol, const int FromCurrent) const
+void TPZFYsmpMatrix::SolveJacobi(int & numiterations, const TPZFMatrix & F, TPZFMatrix & result,             TPZFMatrix * residual, TPZFMatrix & scratch, REAL & tol, const int FromCurrent) 
 {
   if(!fDiag) {
     cout << "TPZSYsmpMatrix::Jacobi cannot be called without diagonal\n";
@@ -519,4 +602,186 @@ void *TPZFYsmpMatrix::ExecuteMT(void *entrydata)
     }
   }
   return 0;
+}
+static int  FindCol(int *colf, int *coll, int col)
+{
+  if(col == *colf) return 0;
+  int *begin = colf;
+  int *end = coll;
+  while (begin != end)
+  {
+    int dist = (end-begin)/2;
+    int *mid = begin+dist;
+    if(*mid == col) return (mid-colf);
+    else if(*mid > col) end=mid;
+    else begin = mid;
+  }
+  return -1;
+}
+
+int TPZFYsmpMatrix::GetSub(const int sRow,const int sCol,const int rowSize,
+         const int colSize, TPZFMatrix & A ) const {
+   int ir;
+   for(ir=0; ir<rowSize; ir++)
+   {
+      int row = sRow+ir;
+      int colfirst = fIA[row];
+      int collast = fIA[row+1];
+      int iacol = FindCol(fJA+colfirst,fJA+collast-1,sCol);
+      int ic;
+      for(ic=0; ic<colSize; ic++) A(ir,ic) = fA[iacol+colfirst];
+   }
+   return 0;
+}
+
+void TPZFYsmpMatrix::GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const
+{
+  std::map<int,int> indord;
+  int i,size = indices.NElements();
+  for(i=0; i<size; i++)
+  {
+    indord[indices[i]] = i;
+  }
+  std::map<int,int>::iterator itset,jtset;
+  for(itset = indord.begin(); itset != indord.end(); itset++)
+  {
+    int *jfirst = fJA+fIA[(*itset).first];
+    int *jlast = fJA+fIA[(*itset).first+1]-1;
+//    int row = (*itset).first;
+    for(jtset = indord.begin(); jtset != indord.end(); jtset++)
+    {
+      int col = FindCol(jfirst,jlast,(*jtset).first);
+      int dist = jfirst+col-fJA;
+      block((*itset).second,(*jtset).second) = fA[dist];
+      jfirst += col+1;
+    }
+  }
+}
+
+  /*
+  * Perform row update of the sparse matrix
+  */
+void TPZFYsmpMatrix::RowLUUpdate(int sourcerow, int destrow)
+{
+  int *sourcefirst = fJA+fIA[sourcerow];
+  int *sourcelast = fJA+fIA[sourcerow+1]-1;
+  int sourcecol = FindCol(sourcefirst,sourcelast,sourcerow);
+  if(sourcecol < 0)
+  {
+    cout << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " source not found\n";
+    return;
+  }
+  int sourcedist = sourcefirst+sourcecol-fJA;
+  int *destfirst = fJA+fIA[destrow];
+  int *destlast = fJA+fIA[destrow+1]-1;
+  int destcol = FindCol(destfirst,destlast,destrow);
+  int destdist = destfirst+destcol-fJA;
+  if(destcol < 0)
+  {
+    cout << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " destrow not found\n";
+    return;
+  }
+  if(fA[sourcedist] < 1.e-15)
+  {
+    cout << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " small pivot " << fA[sourcedist] << "\n";
+    return;
+  }
+  REAL mult = fA[destdist]/fA[sourcedist];
+  if(mult == 0.) return;
+  destdist++;
+  sourcedist++;
+  while(destdist < fIA[destrow+1] && sourcedist < fIA[sourcerow+1])
+  {
+    if(fJA[destdist] == fJA[sourcedist])
+    {
+      fA[destdist] -= fA[sourcedist]*mult;
+      destdist++;
+      sourcedist++;
+    }
+    else if(fJA[destdist] < fJA[sourcedist])
+    {
+      destdist++;
+    }
+    else
+    {
+      sourcedist++;
+    }
+  }
+  
+}
+
+  /**
+   * Decomposes the current matrix using LU decomposition.
+   */
+int TPZFYsmpMatrix::Decompose_LU()
+{
+  int row;
+  int neq = Rows();
+  for(row=1; row<neq; row++)
+  {
+//    int firstcol = fIA[row];
+    int lastcol = fIA[row+1];
+    int colind;
+    if(fJA[lastcol-1] < row) continue;
+    while(fJA[colind] < row)
+    {
+        RowLUUpdate(fJA[colind],row);
+        colind++;
+    }
+  }
+  fDecomposed=1;
+  return 1;
+}
+
+int TPZFYsmpMatrix::Substitution( TPZFMatrix *B ) const
+{
+  int row;
+  int bcol = B->Cols();
+  int col;
+  int neq = Rows();
+  
+  // forward substitution
+  for(row=0; row<neq; row++)
+  {
+    int firstrow = fIA[row];
+    int lastrow = fIA[row+1];
+    if(fJA[firstrow] > row || fJA[lastrow-1] < row)
+    {
+      cout << __PRETTY_FUNCTION__ << " " << __LINE__ << " inconsistent column information for row " << row << endl;
+      continue;
+    }
+    int rowcounter = firstrow;
+    while(fJA[rowcounter] < row)
+    {
+      for(col=0; col<bcol; col++)
+      {
+        (*B)(row,col) -= fA[rowcounter]*(*B)(fJA[rowcounter],col);
+      }
+    }
+    for(col=0; col<bcol; col++)
+    {
+      (*B)(row,col) /= fA[rowcounter];
+    }
+  }
+  // backward substitution
+  for(row = neq-1; row >= 0; row--)
+  {
+    int firstrow = fIA[row];
+    int lastrow = fIA[row+1];
+    int col = FindCol(fJA+firstrow,fJA+lastrow-1,row);
+    if(col < 0)
+    {
+      cout << __PRETTY_FUNCTION__ << " " << __LINE__ << " inconsistent column information for row " << row << endl;
+      continue;
+    }
+    int coldist = firstrow+col+1;
+    while(coldist < lastrow)
+    {
+      for(col=0; col<bcol; col++)
+      {
+        (*B)(row,col) -= fA[coldist]*(*B)(fJA[coldist],col);
+      }
+    }
+  }
+  return 1;
 }

@@ -74,7 +74,7 @@ class TPZSkylMatrix : public TPZMatrix
   REAL &operator()(const int row);
 
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha,const REAL beta ,const int opt = 0,const int stride = 1 ) const;
+		       const REAL alpha,const REAL beta ,const int opt = 0,const int stride = 1 ) ;
   // Operadores com matrizes SKY LINE.
   TPZSkylMatrix &operator= (const TPZSkylMatrix &A );
   //TPZSkylMatrix &operator= (TTempMat<TPZSkylMatrix> A);
@@ -108,7 +108,7 @@ class TPZSkylMatrix : public TPZMatrix
 
   virtual void SolveSOR(int &numiterations,const TPZFMatrix &F, TPZFMatrix &result,
 			TPZFMatrix *residual,TPZFMatrix &scratch,const REAL overrelax, REAL &tol,
-			const int FromCurrent = 0,const int direction = 1) const;
+			const int FromCurrent = 0,const int direction = 1) ;
 
 
   int Decompose_Cholesky();  // Faz A = GGt.

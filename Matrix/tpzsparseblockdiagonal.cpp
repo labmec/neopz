@@ -201,7 +201,7 @@ void TPZSparseBlockDiagonal::GetBlock(int i, TPZFMatrix& block)
     TPZBlockDiagonal::GetBlock(i, block);
 }
 
-void TPZSparseBlockDiagonal::MultAdd(const TPZFMatrix& x, const TPZFMatrix& y, TPZFMatrix& z, const REAL alpha, const REAL beta, const int opt, const int stride) const
+void TPZSparseBlockDiagonal::MultAdd(const TPZFMatrix& x, const TPZFMatrix& y, TPZFMatrix& z, const REAL alpha, const REAL beta, const int opt, const int stride) 
 {
   TPZFNMatrix<1000000> xsc(0,0),ysc(0,0,0.),zsc(0,0);
   xsc.Resize(fBlock.NElements(),x.Cols());

@@ -170,7 +170,7 @@ TPZSkylMatrix::PutVal(const int r,const int c,const REAL & value )
 }
 
 void TPZSkylMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-			    const REAL alpha,const REAL beta ,const int opt,const int stride ) const {
+			    const REAL alpha,const REAL beta ,const int opt,const int stride )  {
   // Computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
   if ((!opt && Cols()*stride != x.Rows()) || Rows()*stride != x.Rows())
@@ -211,7 +211,7 @@ void TPZSkylMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix 
 
 void TPZSkylMatrix::SolveSOR(int & numiterations,const TPZFMatrix &F,
 			     TPZFMatrix &result, TPZFMatrix *residual, TPZFMatrix &scratch,const REAL overrelax,
-			     REAL &tol,const int FromCurrent,const int direction) const {
+			     REAL &tol,const int FromCurrent,const int direction)  {
 
   if(residual == &F) {
     cout << "TPZMatrix::SolveSOR called with residual and F equal, no solution\n";

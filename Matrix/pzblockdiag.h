@@ -62,7 +62,7 @@ class TPZBlockDiagonal : public TPZMatrix
   const REAL &GetVal(const int row,const int col ) const;
 
   void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-	       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const;
+	       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) ;
   // Computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
 

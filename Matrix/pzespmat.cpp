@@ -746,7 +746,7 @@ TPZSpMatrix::ProdEsc( TPZLink<TPZNode> *row_i, TPZLink<TPZNode> *row_j,
 }
 
 void TPZSpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-			  const REAL alpha,const REAL beta,const int opt,const int stride) const {
+			  const REAL alpha,const REAL beta,const int opt,const int stride)  {
   if ((!opt && Cols()*stride != x.Rows()) || Rows()*stride != x.Rows())
     TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZSpMatrix::MultAdd <matrixs with incompatible dimensions>" );
   if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {

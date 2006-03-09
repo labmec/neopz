@@ -115,9 +115,9 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
   void AddFel(TPZFMatrix &rhs,TPZVec<int> &source, TPZVec<int> &destination);
   
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const;
+		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) ;
  
-static void MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 );
 
   //@{
@@ -140,7 +140,7 @@ static void MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,con
   TPZTempFMatrix operator+  (const TPZFMatrix &A ) const;
   //TPZTempFMatrix operator+ (TPZTempFMatrix A);
   TPZTempFMatrix operator-  (const TPZFMatrix &A ) const;
-  TPZTempFMatrix operator*  (const TPZFMatrix &A ) const;
+  TPZTempFMatrix operator*  ( TPZFMatrix &A ) ;
   TPZFMatrix &operator+=(const TPZFMatrix &A );
   //    TPZFMatrix &operator+=(TPZTempFMatrix A );
   TPZFMatrix &operator-=(const TPZFMatrix &A );
@@ -170,7 +170,7 @@ static void MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,con
   TPZFMatrix &operator= (const TPZMatrix &A );
   TPZTempFMatrix operator+  (const TPZMatrix &A ) const;
   TPZTempFMatrix operator-  (const TPZMatrix &A ) const;
-  TPZTempFMatrix operator*  (const TPZMatrix &A ) const;
+  TPZTempFMatrix operator*  ( TPZMatrix &A );
   TPZFMatrix &operator+=(const TPZMatrix &A );
   TPZFMatrix &operator-=(const TPZMatrix &A );
   //@}

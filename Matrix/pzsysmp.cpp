@@ -89,7 +89,7 @@ const REAL & TPZSYsmpMatrix::GetVal(const int r,const int c ) const {
 
 void TPZSYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			     TPZFMatrix &z,
-			     const REAL alpha,const REAL beta,const int opt,const int stride ) const {
+			     const REAL alpha,const REAL beta,const int opt,const int stride )  {
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot share storage
   int  ir, ic;
@@ -183,7 +183,7 @@ void TPZSYsmpMatrix::ComputeDiagonal() {
 void TPZSYsmpMatrix::SolveSOR( int &numiterations,const TPZFMatrix &rhs, TPZFMatrix &x,
 			       TPZFMatrix *residual, TPZFMatrix &scratch,
 			       const REAL overrelax, REAL &tol,
-			       const int FromCurrent,const int direction ) const {
+			       const int FromCurrent,const int direction )  {
 
   if(!fDiag) {
     cout << "TPZSYsmpMatrix::SolveSOR cannot be called without diagonal\n";

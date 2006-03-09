@@ -13,7 +13,7 @@
 
 
 #include <string>
-#include <math>
+#include <math.h>
 #include "pzfmatrix.h"
 #include "pzblockdiag.h"
 
@@ -349,7 +349,7 @@ TPZBlockDiagonal::GetVal(const int row,const int col ) const
 //
 
 void TPZBlockDiagonal::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-			  const REAL alpha,const REAL beta ,const int opt,const int stride ) const {
+			  const REAL alpha,const REAL beta ,const int opt,const int stride )  {
   // Computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
 

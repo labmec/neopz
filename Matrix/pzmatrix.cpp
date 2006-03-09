@@ -52,7 +52,7 @@ REAL TPZMatrix::gZero = 0.;
 
 /******************/
 /***  Multiply ***/
-void TPZMatrix::Multiply(const TPZFMatrix &A, TPZFMatrix&B,const int opt,const int stride) const{
+void TPZMatrix::Multiply(const TPZFMatrix &A, TPZFMatrix&B,const int opt,const int stride) {
   if (opt==0 && Cols()*stride != A.Rows() || opt ==1 && Rows()*stride != A.Rows())
     Error( "Multiply (TPZMatrix &,TPZMatrix&) <incompatible dimensions>" );
 //   if(opt == 0) {
@@ -121,7 +121,7 @@ TPZTempFMatrix operator-(const TPZMatrix &A, const TPZMatrix &B ) {
 /******************/
 /*** Operator * ***/
 
-TPZTempFMatrix operator*(const TPZMatrix &A, const TPZFMatrix &B ) {
+TPZTempFMatrix operator*( TPZMatrix &A, const TPZFMatrix &B ) {
 	TPZTempFMatrix temp;
     TPZFMatrix &res = temp.Object();
     res.Redim( A.Rows(), B.Cols() );
@@ -129,34 +129,42 @@ TPZTempFMatrix operator*(const TPZMatrix &A, const TPZFMatrix &B ) {
 	 return temp;
 }
 
-void TPZMatrix::PrepareZ(const TPZFMatrix &y, TPZFMatrix &z,const REAL beta,const int opt,const int stride) const{
-	 int numeq = (opt) ? Cols()*stride : Rows()*stride;
-	 int xcols = y.Cols();
-	 int ic;
-	 for (ic = 0; ic < xcols; ic++) {
-		  REAL *zp = &z(0,ic), *zlast = zp+numeq;
-		  if(beta != 0) {
-				const REAL *yp = &y.g(0,ic);
-				if(beta != 1. || (beta == 1. && stride != 1 && &z != &y)) {
-					 while(zp < zlast) {
-                	*zp = beta * (*yp);
-                  zp += stride;
-                  yp += stride;
-                }
-				} else if(&z != &y && stride == 1) {
-					 memcpy(zp,yp,numeq*sizeof(REAL));
-            }
-		  } else {
-				while(zp != zlast) {
-            	*zp = 0.;
-               zp += stride;
-            }
-		  }
-	 }
+void TPZMatrix::PrepareZ(const TPZFMatrix &y, TPZFMatrix &z,const REAL beta,const int opt,const int stride) const
+{
+  int numeq = (opt) ? Cols()*stride : Rows()*stride;
+  int xcols = y.Cols();
+  int ic;
+  for (ic = 0; ic < xcols; ic++) 
+  {
+    REAL *zp = &z(0,ic), *zlast = zp+numeq;
+    if(beta != 0) 
+    {
+      const REAL *yp = &y.g(0,ic);
+      if(beta != 1. || (beta == 1. && stride != 1 && &z != &y)) 
+      {
+        while(zp < zlast) 
+        {
+          *zp = beta * (*yp);
+          zp += stride;
+          yp += stride;
+        }
+      } else if(&z != &y && stride == 1) 
+      {
+        memcpy(zp,yp,numeq*sizeof(REAL));
+      }
+    } else 
+    {
+      while(zp != zlast) 
+      {
+        *zp = 0.;
+        zp += stride;
+      }
+    }
+  }
 }
 
 void TPZMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-								  const REAL alpha,const REAL beta,const int opt,const int stride) const{
+								  const REAL alpha,const REAL beta,const int opt,const int stride) {
 	 if ((!opt && Cols() != x.Rows()*stride) || Rows() != x.Rows()*stride)
 		  Error( "Operator* <matrixs with incompatible dimensions>" );
 	 if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
@@ -569,7 +577,7 @@ int TPZMatrix::SolveDirect( TPZFMatrix &B , DecomposeType dt) {
 }
 
 void TPZMatrix::SolveJacobi(int &numiterations,const TPZFMatrix &F, TPZFMatrix &result,
-				TPZFMatrix *residual, TPZFMatrix &scratch, REAL &tol,const int FromCurrent) const {
+				TPZFMatrix *residual, TPZFMatrix &scratch, REAL &tol,const int FromCurrent) {
 
 
 	if(FromCurrent) {
@@ -597,7 +605,7 @@ void TPZMatrix::SolveJacobi(int &numiterations,const TPZFMatrix &F, TPZFMatrix &
 
 void TPZMatrix::SolveSOR(int & numiterations, const TPZFMatrix &F,
 			TPZFMatrix &result, TPZFMatrix *residual, TPZFMatrix &/*scratch*/, const REAL overrelax,
-					REAL &tol,const int FromCurrent,const int direction) const{
+					REAL &tol,const int FromCurrent,const int direction) {
 
 	if(residual == &F) {
 		cout << "TPZMatrix::SolveSOR called with residual and F equal, no solution\n";
@@ -639,7 +647,7 @@ void TPZMatrix::SolveSOR(int & numiterations, const TPZFMatrix &F,
 
 void TPZMatrix::SolveSSOR(int &numiterations, const TPZFMatrix &F,
 			TPZFMatrix &result, TPZFMatrix *residual, TPZFMatrix &scratch, const REAL overrelax,
-			REAL &tol,const int FromCurrent) const{
+			REAL &tol,const int FromCurrent) {
 	REAL res = (tol*REAL(2.))+REAL(1.);
 	int i, one = 1;
    int fromcurrent = FromCurrent;
@@ -661,7 +669,7 @@ void TPZMatrix::SolveSSOR(int &numiterations, const TPZFMatrix &F,
 
 void TPZMatrix::SolveCG(int &numiterations, TPZSolver &preconditioner,
 			const	TPZFMatrix &F, TPZFMatrix &result,
-			TPZFMatrix *residual, REAL &tol, const int FromCurrent) const{
+			TPZFMatrix *residual, REAL &tol, const int FromCurrent) {
   CG(*this, result, F, preconditioner, residual, numiterations, tol, FromCurrent);
 }
 
@@ -670,7 +678,7 @@ void TPZMatrix::SolveCG(int &numiterations, TPZSolver &preconditioner,
 void TPZMatrix::SolveGMRES(int &numiterations, TPZSolver &preconditioner,
 						TPZFMatrix &H, int &numvectors,
 						const TPZFMatrix &F, TPZFMatrix &result,
-						TPZFMatrix *residual, REAL &tol,const int FromCurrent) const {
+						TPZFMatrix *residual, REAL &tol,const int FromCurrent)  {
 	GMRES(*this,result,F,preconditioner,H,numvectors,numiterations,tol,residual,FromCurrent);
 }
 
@@ -679,7 +687,7 @@ void TPZMatrix::SolveGMRES(int &numiterations, TPZSolver &preconditioner,
 void TPZMatrix::SolveBICG(int &numiterations, TPZSolver &preconditioner,
 						const TPZFMatrix &F,
 					        TPZFMatrix &result,
-						 REAL &tol) const {
+						 REAL &tol)  {
 	BiCG(*this,result,F,preconditioner,numiterations,tol);
 }
 
@@ -688,7 +696,7 @@ void TPZMatrix::SolveBICG(int &numiterations, TPZSolver &preconditioner,
 void TPZMatrix::SolveIR(int &numiterations, TPZSolver &preconditioner,
 													const TPZFMatrix &F, TPZFMatrix &result,
 													TPZFMatrix *residual, REAL &tol,
-													const int FromCurrent) const {
+													const int FromCurrent)  {
 	IR(*this,result,F,preconditioner,residual,numiterations,tol,FromCurrent);
 }
 

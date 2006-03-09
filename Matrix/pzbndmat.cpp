@@ -368,7 +368,7 @@ TPZFBMatrix::operator-=(const TPZFBMatrix & A )
 //
 
 void TPZFBMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-			  const REAL alpha,const REAL beta ,const int opt,const int stride ) const {
+			  const REAL alpha,const REAL beta ,const int opt,const int stride )  {
   // Computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
   if ((!opt && Cols()*stride != x.Rows()) || Rows()*stride != x.Rows())
