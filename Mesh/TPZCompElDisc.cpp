@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.74 2006-03-09 11:51:28 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.75 2006-03-09 22:09:53 cesar Exp $
 
 // -*- c++ -*- 
 
@@ -187,7 +187,7 @@ void TPZCompElDisc::Shape(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi) {
 
 }//method
 
-void TPZCompElDisc::Print(ostream &out) {
+void TPZCompElDisc::Print(std::ostream &out) {
 
   out << "\nDiscontinous element : \n";
   if(Reference()) out << "\tGeometric reference index : " << Reference()->Index() << endl;
