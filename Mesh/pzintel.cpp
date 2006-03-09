@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.39 2006-03-04 15:35:06 tiago Exp $
+// $Id: pzintel.cpp,v 1.40 2006-03-09 11:49:51 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -52,6 +52,10 @@ TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *refe
 //  fReference = reference;
   int materialid = reference->MaterialId();
   fMaterial = mesh.FindMaterial(materialid);
+  if(!fMaterial)
+  {
+    std::cout << "Material corresponding to " << materialid << " not found, expect trouble\n";
+  }
   LOGPZ_INFO(logger, "Exiting constructor (TPZCompMesh &mesh, TPZGeoEl *reference, int &index).");
 }
 
@@ -1610,6 +1614,7 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
   int i;
 
   if(fMaterial == NULL){
+    std::cout << "Exiting CalcStiff: no material for this element\n";
     LOGPZ_ERROR(logger,"Exiting CalcStiff: no material for this element");
     return;
   }
@@ -1659,6 +1664,7 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
     TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
     intrule.SetOrder(order);
   }
+
   int intrulepoints = intrule.NPoints();
   TPZGeoEl *ref = Reference();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
@@ -1793,7 +1799,7 @@ void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix 
     case 0:
       break;
     case 1:
-      dphix = dphi*(1./detjac);
+      dphix = dphi*REAL(1./detjac);
       break;
     case 2://Cedric
       for(ieq = 0; ieq < nshape; ieq++) {
@@ -2019,7 +2025,7 @@ void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REA
     //dphix(0,0) = dphi(0,0);
     break;
   case 1:
-    dphix = dphi*(1./detjac);
+    dphix = dphi*REAL(1./detjac);
     break;
   case 2:
     for(ieq = 0; ieq < nshape; ieq++) {

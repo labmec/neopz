@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.25 2006-02-07 16:41:28 phil Exp $
+// $Id: pzelctemp.cpp,v 1.26 2006-03-09 11:47:58 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -210,7 +210,12 @@ void TPZIntelGen<TGEO,TSHAPE>::SetSideOrder(int side, int order) {
 template<class TGEO, class TSHAPE>
 int TPZIntelGen<TGEO,TSHAPE>::SideOrder(int side) {
   if(side < TSHAPE::NNodes || side >= TSHAPE::NSides) return 0;
-  if(fConnectIndexes[side] == -1) return -1;
+  if(fConnectIndexes[side] == -1) 
+  {
+    std::cout << __PRETTY_FUNCTION__ << " side " << side << std::endl;
+    Print(cout);
+    return -1;
+  }
   TPZConnect &c = Connect(side);
   return c.Order();  
 }
