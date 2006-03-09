@@ -29,7 +29,7 @@ void removeComents (std::istream &file, std::string &numberOf)
     file.getline(buf,512);
     std::string aux (buf);
     int pos = aux.find (":");
-    if ((pos > -1 && pos < aux.size()) || !aux.size()) continue; //encontrou um comentário na linha
+    if ((pos > -1 && pos < (int)aux.size()) || !aux.size()) continue; //encontrou um comentário na linha
     numberOf = aux;
     break;
   }
@@ -105,7 +105,7 @@ void ReadElements (std::istream & file, int nelem, TPZGeoMesh & gMesh)
 void ReadMaterials (std::istream & file, int nmat, TPZCompMesh & cMesh)
 {
   int i;
-  int id,type, matid;
+  int id;
   double e, nu, px, py;
   for (i=0;i<nmat;i++)
   {
@@ -117,7 +117,7 @@ void ReadMaterials (std::istream & file, int nmat, TPZCompMesh & cMesh)
 
 void ReadBCs (std::istream & file, int nmat, TPZCompMesh & cMesh)
 {
-  int i,c;
+  int i;
   int id, type, elid, side;
   for (i=0;i<nmat;i++)
   {

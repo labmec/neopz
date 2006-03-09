@@ -177,7 +177,7 @@ void TPZRefPattern::WritePattern(std::ofstream &filename){
   int el;
   for(el=0; el<nperm; el++)
   {
-    int ip;
+//    int ip;
     filename << fPermutedRefPatterns[el]->Id() << ' ';
   }
   filename << std::endl;

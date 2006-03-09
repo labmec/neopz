@@ -4,7 +4,7 @@
  * @file pzmanvector.h
  * @brief Free store vector implementation.
  */
-// $Id: pzmanvector.h,v 1.7 2006-02-21 14:47:18 cesar Exp $
+// $Id: pzmanvector.h,v 1.8 2006-03-09 12:02:15 phil Exp $
 
 #ifndef PZMANVECTOR_H
 #define PZMANVECTOR_H
@@ -219,7 +219,7 @@ inline TPZManVector< T, NumExtAlloc >::TPZManVector(
     * statically, provides access to that space, by setting some
     * TPZVec data.
     */
-   if( size <= sizeof(fExtAlloc)/sizeof(T))
+   if( size <= (int) (sizeof(fExtAlloc)/sizeof(T)))
    {
       // Needed to make TPZVec::operator[] work properly.
       this->fStore     = fExtAlloc;

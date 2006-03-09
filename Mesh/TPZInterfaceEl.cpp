@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.50 2006-03-06 12:47:46 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.51 2006-03-09 11:51:46 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -1574,14 +1574,14 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
    TPZFMatrix &MeshSol = Mesh()->Solution();
    const int nstatel = left->Material()->NStateVariables();
    const int nstater = right->Material()->NStateVariables();
-   const int neql = nshapel * nstatel;
-   const int neqr = nshaper * nstater;
+//   const int neql = nshapel * nstatel;
+//   const int neqr = nshaper * nstater;
    const int dim = this->Dimension();
    const int diml = left->Dimension();
    const int dimr = right->Dimension();
-   const int ncon = ConnectL.NElements() + ConnectR.NElements();
+//   const int ncon = ConnectL.NElements() + ConnectR.NElements();
 
-   const int neq = neql + neqr;
+//   const int neq = neql + neqr;
 
    int ic = 0;
    {
@@ -1590,7 +1590,7 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
 	 int nshape = 0;
 	 if(discL) nshape = discL->NShapeF();
 	 if(intelL) nshape = intelL->NConnectShapeF(i);
-	 int con_neq = nstatel * nshape;
+//	 int con_neq = nstatel * nshape;
 	 ic++;
       }
    }
@@ -1601,7 +1601,7 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
 	 int nshape = 0;
 	 if(discR) nshape = discR->NShapeF();
 	 if(intelR) nshape = intelR->NConnectShapeF(i);
-	 int con_neq = nstater * nshape;
+//	 int con_neq = nstater * nshape;
 	 ic++;
       }
    }
