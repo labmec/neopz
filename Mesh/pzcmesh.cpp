@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.41 2006-03-06 12:48:32 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.42 2006-03-12 20:58:45 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -29,7 +29,14 @@
 #include "pzmetis.h"
 #include "pzstream.h"
 #include <map>
+#include <sstream>
+#include <set>
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompmesh"));
+#endif
 using namespace std;
 
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
@@ -609,6 +616,18 @@ void TPZCompMesh::LoadReferences() {
 void TPZCompMesh::CleanUpUnconnectedNodes() {
   ComputeNodElCon();
   int i, nelem = NConnects();
+  int ndepblocks = 0, nvalidblocks = 0, nremoved = 0;
+  for (i=0;i<nelem;i++) 
+  {
+    TPZConnect &no = fConnectVec[i];
+    int seq = no.SequenceNumber();
+    if(!no.NElConnected() && seq != -1)
+    {
+      nremoved++;
+    }
+    else if(!no.HasDependency()) nvalidblocks++;
+    else ndepblocks++;
+  }
   int need = 0;
   for (i=0;i<nelem;i++) {
     TPZConnect &no = fConnectVec[i];
@@ -617,57 +636,78 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
       PZError << "TPZCompMesh::CleanUpUnconnectedNodes node has dependency\n";
       continue;
     }
-    if (no.HasDependency()) break;
-  }
-  for (;i<nelem;i++) {
-    TPZConnect &no = fConnectVec[i];
-    if (!no.HasDependency() && no.SequenceNumber() != -1) need = 1;
+    if (!no.NElConnected() && no.SequenceNumber() != -1) 
+    {
+      need = 1;
+      break;
+    }
+    if (no.HasDependency() && no.SequenceNumber() < nvalidblocks) 
+    {
+      need = 1;
+      break;
+    } else if(!no.HasDependency() && no.SequenceNumber() >= nvalidblocks)
+    {
+      need = 1;
+      break;
+    }
   }
   int nblocks = fBlock.NBlocks();
-  TPZManVector<int> permute(nblocks);
-  for (i=0;i<nblocks;i++) permute[i] = i;
+  TPZManVector<int> permute(nblocks,-1), down(nblocks,0);
+  int idepblocks = 0, iremovedblocks= 0;
 
   if (need) {
-    for(i=nelem-1; i>=0; i--) {
+    for(i=0; i<nelem; i++) {
       TPZConnect &no = fConnectVec[i];
       if(no.SequenceNumber() == -1) continue;
-      if(no.HasDependency()) {
-	int seq = no.SequenceNumber();
-	for (int j=0;j<nblocks;j++) if (permute[j] > permute[seq]) permute[j]--;
-	permute[seq] = nblocks-1;
+      int seq = no.SequenceNumber();
+      if(no.NElConnected() == 0)
+      {
+        permute[seq] = nvalidblocks+ndepblocks+iremovedblocks;
+        down[seq] = 1;
+        fBlock.Set(seq,0);
+        no.SetSequenceNumber(-1);
+        fConnectVec.SetFree(i);
+        iremovedblocks++; 
+      }
+      else if(no.HasDependency()) {
+        permute[seq] = nvalidblocks+idepblocks;
+        down[seq] = 1;
+        idepblocks++;
+      } 
+    }
+    for(i=1; i<nblocks; i++) down[i] += down[i-1];
+    for(i=0; i<nblocks; i++)
+    {
+      if(permute[i] == -1)
+      {
+        permute[i] = i-down[i];
       }
     }
-
   }
-//  cout << "permute to put the dependent connects to the back." << endl;
-//  for (i=0;i<nblocks;i++) cout << permute[i] << " ";
-//  cout << endl;
-  int numfree = 0;
-  for(i=0; i<nelem; i++) {
-    TPZConnect &no = fConnectVec[i];
-    if(no.SequenceNumber() == -1) continue;
-    if(no.NElConnected() == 0) {
-		if(no.HasDependency()) {
-	      PZError << "TPZCompMesh::CleanUpUnconnectedNodes node has dependency\n";
-			continue;
-		}
-      int seq = no.SequenceNumber();
-      need = 1;
-      for (int j=0;j<nblocks;j++) if (permute[j] > permute[seq]) permute[j]--;
-      permute[seq] = nblocks-1;
-      fBlock.Set(seq,0);
-      no.SetSequenceNumber(-1);
-      fConnectVec.SetFree(i);
-      numfree++;
-    }
+#ifdef LOG4CXX
+  if(need)
+  {
+    std::stringstream sout;
+    sout << "permute to put the free connects to the back\n";
+    for (i=0;i<nblocks;i++) sout << permute[i] << ' ';
+    sout << "need = " << need << endl;
+    LOGPZ_DEBUG(logger,sout.str());
   }
-//  cout << "permute to put the free connects to the back\n";
-//  for (i=0;i<nblocks;i++) cout << permute[i] << ' ';
-//  cout << "need = " << need << endl;
+#endif
 
   if (need) {
+#ifdef DEBUG
+    std::set<int> check;
+    nelem = permute.NElements();
+    for(i=0; i<nelem; i++) check.insert(permute[i]);
+    if(check.size() != nelem)
+    {
+      cout << __PRETTY_FUNCTION__ << " The permutation vector is not a permutation!\n" << permute << endl;
+      exit(-1);
+    }
+#endif
     Permute(permute);
-    fBlock.SetNBlocks(nblocks-numfree);
+    fBlock.SetNBlocks(nblocks-nremoved);
   }
 }
 
