@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.40 2006-03-09 11:49:51 phil Exp $
+// $Id: pzintel.cpp,v 1.41 2006-03-13 11:51:52 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1197,7 +1197,7 @@ void TPZInterpolatedElement::RemoveSideRestraintWithRespectTo(int side,
 }
 
 void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
-  LOGPZ_ERROR(logger,"Entering RemoveSideRestraintsII.");
+  LOGPZ_DEBUG(logger,"Entering RemoveSideRestraintsII.");
   if(mode == EInsert) {//modo insercao
     LOGPZ_WARN(logger,"Exiting RemoveSideRestraintsII with mode insert should not be called");
     return;
