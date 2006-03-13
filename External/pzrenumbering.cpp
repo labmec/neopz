@@ -104,7 +104,7 @@ void TPZRenumbering::ConvertGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphinde
         for(it = nodecon.begin(); it!= nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
     		nodegraphindex[nod+1] = nextfreeindex;
   	}
-		//Print(nodegraph,nodegraphindex,"Node to Node graph");
+//        Print(nodegraph,nodegraphindex,"Node to Node graph");
 }
 
 

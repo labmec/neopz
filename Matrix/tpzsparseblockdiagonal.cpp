@@ -11,6 +11,13 @@
 //
 #include "tpzsparseblockdiagonal.h"
 #include "pzfmatrix.h"
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
+#endif
+
 using namespace std;
 
 TPZSparseBlockDiagonal::TPZSparseBlockDiagonal()

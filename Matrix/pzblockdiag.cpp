@@ -85,6 +85,13 @@ void TPZBlockDiagonal::GetBlock(int i, TPZFMatrix &block){
 }
 void TPZBlockDiagonal::Initialize(const TPZVec<int> &blocksize){
   int nblock = blocksize.NElements();
+#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    sout << "Número de blocos \t" << nblock;
+    LOGPZ_DEBUG(logger,sout.str());
+  }
+#endif
   //  ::cout << "Número de blocos \t" << nblock << "\n";
   fBlockSize = blocksize;
   fBlockPos.Resize(nblock+1,0); 
@@ -100,6 +107,13 @@ void TPZBlockDiagonal::Initialize(const TPZVec<int> &blocksize){
     neq += bsize;
     //    ::cout << "Número de equacões\t" << neq << "\n";
   }
+#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    sout << "Número de dados da Matriz diagonal\t" << ndata;
+    LOGPZ_DEBUG(logger,sout.str());
+  }
+#endif
   //  ::cout <<"Número de dados da Matriz diagonal\t" <<ndata <<"\n";
   fStorage.Fill(0.,0);
   fStorage.Resize(ndata,0.);

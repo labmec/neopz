@@ -35,6 +35,8 @@ TPZNodesetCompute::~TPZNodesetCompute()
     */
 void TPZNodesetCompute::AnalyseGraph()
 {
+  fMaxSeqNum = -1;
+  fMaxLevel = -1;
   int nnodes = fNodegraphindex.NElements()-1;
   fSeqNumber.Resize(nnodes);
   this->fLevel.Resize(nnodes);
@@ -65,45 +67,64 @@ void TPZNodesetCompute::AnalyseNode(int node, TPZVec< std::set<int> > &nodeset)
   {
     int othernode = *it;
     if(othernode == node) continue;
+    // build the data structure of the connected node
     if(! nodeset[othernode].size())
     {
       nodeset[othernode].insert(&fNodegraph[fNodegraphindex[othernode]],&fNodegraph[fNodegraphindex[othernode+1]]);
       nodeset[othernode].insert(othernode);
     }
+    // the other node is included in my connectivity
     bool inc = includes(nodeset[node].begin(),nodeset[node].end(),nodeset[othernode].begin(),nodeset[othernode].end());
+    // the other node has a different connectivity
     bool diff = nodeset[node] != nodeset[othernode];
     if( inc && diff) 
     {
+      // Analyse the connectivity graph of the other node
+      // Its graph is smaller than mine
       AnalyseNode(othernode,nodeset);
       minlevel = minlevel < fLevel[othernode]+1 ? fLevel[othernode]+1 : minlevel;
     }
     else if(!diff)
     {
+      // The graphs are equal. These nodes should be grouped
       equalnodes.Push(othernode);
     }
-    if(inc && fSeqNumber[othernode] != -1)
+    // the other node has been analysed (and is probably not equal...)
+    if(inc && diff && fSeqNumber[othernode] != -1)
     {
       minlevel = minlevel < fLevel[othernode]+1 ? fLevel[othernode]+1 : minlevel;
+    } else if(!diff && fSeqNumber[othernode] != -1)
+    {
+      // the level should be at least the level of the other node
+      minlevel = minlevel < fLevel[othernode] ? fLevel[othernode] : minlevel;
     }
   }
+  // assign a sequence number to the node
   fMaxSeqNum++;
   fSeqNumber[node] = fMaxSeqNum;
   fSeqCard.Push(1);
+  // the maximum level of the set of nodes
   fMaxLevel = fMaxLevel < minlevel ? minlevel : fMaxLevel;
+  // assign the level of the node
   fLevel[node] = minlevel;
+  
+  // memory clean up
   for(it = nodeset[node].begin(); it != nodeset[node].end(); it++)
   {
     int othernode = *it;
     if(fSeqNumber[othernode] != -1 && fLevel[othernode] <= minlevel) nodeset[othernode].clear();
   }
   nodeset[node].clear();
+  // initialize the datastructure of the nodes which have the same connectivity
   int neq = equalnodes.NElements();
   int ieq;
   for(ieq=0; ieq<neq; ieq++)
   {
     fSeqNumber[equalnodes[ieq]] = fMaxSeqNum;
     fLevel[equalnodes[ieq]] = minlevel;
+    // I think this is overkill : this nodeset should already be empty...
     nodeset[equalnodes[ieq]].clear();
+    // the number of nodes associated with this sequence number
     fSeqCard[fMaxSeqNum]++;
   }
 }
@@ -150,6 +171,7 @@ void TPZNodesetCompute::BuildVertexGraph(TPZStack<int> &blockgraph, TPZVec<int> 
     std::set<int> vertexset;
     std::set<int> included;
     std::set<int> notincluded;
+    // The set will contain the connectivity of the node
     BuildNodeSet(node,vertexset);
     included.insert((*it).first);
     std::set<int>::iterator versetit;
@@ -160,11 +182,13 @@ void TPZNodesetCompute::BuildVertexGraph(TPZStack<int> &blockgraph, TPZVec<int> 
       int seq = fSeqNumber[linkednode];
       
       // if the sequence number of the equation is already included in the nodeset of the vertex, put it in the blockgraph
+      // this node has equal connectivity with other node
       if(included.count(seq))
       {
         blockgraph.Push(linkednode);
       }
       // if the seq number is recognized as not to be included stop analysing
+      // this node has equal connectivity with other node
       else if(notincluded.count(seq))
       {
         continue;
