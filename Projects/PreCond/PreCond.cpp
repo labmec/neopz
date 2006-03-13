@@ -1,9 +1,22 @@
-//$Id: PreCond.cpp,v 1.3 2006-01-23 16:51:10 phil Exp $
+//$Id: PreCond.cpp,v 1.4 2006-03-13 11:51:22 phil Exp $
 
 /**
  * This project test some preconditioners for 3D elastic problems.
  * Aug 24, 2005
  */
+
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+#include <log4cxx/logger.h>
+#include <log4cxx/basicconfigurator.h>
+#include <log4cxx/propertyconfigurator.h>
+#endif
 
 
 #include "pzvec.h"
@@ -64,6 +77,47 @@ void PostProcessing(TPZAnalysis &an, char * filedx);
 void VisualMatrix(TPZCompMesh &cmesh, int resolution, char *filedx);
 void ReadMesh();
 
+void InitializeLOG()
+{
+  std::string path;
+  std::string configfile;
+#ifdef HAVE_CONFIG_H
+  path = PZSOURCEDIR;
+#else
+  path = "";
+#endif
+#ifdef LOG4CXX
+  configfile = path;
+  configfile += "/Util/log4cxx.cfg";
+  
+  log4cxx::PropertyConfigurator::configure(configfile);
+
+    //  log4cxx::BasicConfigurator::configure();
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzcompel"));
+    logger->setLevel(log4cxx::Level::WARN);
+  }
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzcompelside"));
+    logger->setLevel(log4cxx::Level::WARN);
+  }
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
+    logger->setLevel(log4cxx::Level::WARN);
+  }
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
+    logger->setAdditivity(false);
+    logger->setLevel(log4cxx::Level::DEBUG);
+  }
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
+    logger->setAdditivity(false);
+    logger->setLevel(log4cxx::Level::DEBUG);
+  }
+#endif
+}
+
 int main2(){
   const int neq = 5000;
   TPZFMatrix matrix(neq,neq,1.), F(neq, 1, 1.), result(neq, 1, 0.), residual(neq, 1, 0.), scratch(neq,1,0.);
@@ -98,6 +152,7 @@ int main2(){
 #include "pzshapelinear.h"
 using namespace pzshape;
 int main(){
+  InitializeLOG();
 TPZMaterial::gBigNumber= 1.e6;
 //TPZShapeLinear::fOrthogonal = TPZShapeLinear::Legendre;
 //TPZCompEl::fOrthogonal = TPZCompEl::Chebyshev;
