@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.23 2006-02-21 14:56:15 cesar Exp $
+//$Id: pzanalysis.cpp,v 1.24 2006-03-13 11:54:00 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -26,6 +26,14 @@
 #include "tpznodesetcompute.h"
 #include "tpzsparseblockdiagonal.h"
 #include "pzseqsolver.h"
+#include "pzbdstrmatrix.h"
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+
+static LoggerPtr logger(Logger::getLogger("pz.analysis"));
+#endif
 
 #include <fstream>
 using namespace std;
@@ -499,7 +507,7 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
   {
     TPZNodesetCompute nodeset;
     TPZStack<int> elementgraph,elementgraphindex;
-    fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
+//    fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
     int nindep = fCompMesh->NIndependentConnects();
     int neq = fCompMesh->NEquations();
     fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
@@ -529,12 +537,36 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
     TPZStack<int> expblockgraph,expblockgraphindex;
     
     nodeset.ExpandGraph(blockgraph,blockgraphindex,fCompMesh->Block(),expblockgraph,expblockgraphindex);
-    if(overlap)
+    if(overlap && !(preconditioner == EBlockJacobi))
     {
       TPZSparseBlockDiagonal *sp = new TPZSparseBlockDiagonal(expblockgraph,expblockgraphindex,neq);
       TPZStepSolver *step = new TPZStepSolver(sp);
       step->SetDirect(ELU);
       step->SetReferenceMatrix(fSolver->Matrix());
+      return step;
+    }
+    else if (overlap)
+    {
+      TPZBlockDiagonalStructMatrix blstr(fCompMesh);
+      TPZBlockDiagonal *sp = new TPZBlockDiagonal();
+      blstr.AssembleBlockDiagonal(*sp);
+//      std::ofstream out("Direct assembly");
+//      sp->Print("Directly assembled",out);
+/*      int numbl = sp->NumberofBlocks();
+      int ib,i,j;
+      for(ib=numbl-1; ib>=0; ib--)
+      {
+        for(i=0; i<3; i++)
+        {
+          for(j=0; j<3; j++)
+          {
+            if(i!=j) (*sp)(3*ib+i,3*ib+j) = 0.;
+          }
+        }
+      }
+*/
+      TPZStepSolver *step = new TPZStepSolver(sp);
+      step->SetDirect(ELU);
       return step;
     }
     else
@@ -552,12 +584,14 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
  */
 TPZMatrixSolver *TPZAnalysis::BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq, int numcolors, TPZVec<int> &colors)
 {
+//  std::ofstream out("sequence.txt");
   TPZVec<TPZMatrix *> blmat(numcolors);
   TPZVec<TPZStepSolver *> steps(numcolors);
   int c;
   for(c=0; c<numcolors; c++)
   {
     blmat[c] = new TPZSparseBlockDiagonal(graph,graphindex, neq, c, colors);
+//    blmat[c]->Print("Sparseblock matrix");
     steps[c] = new TPZStepSolver(blmat[c]);
     steps[c]->SetDirect(ELU);
     steps[c]->SetReferenceMatrix(fSolver->Matrix());
