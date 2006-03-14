@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.18 2006-03-04 15:33:10 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.19 2006-03-14 14:28:26 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -21,10 +21,12 @@ TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin
   fConvDir[2] = 0.;
   fPenaltyConstant = 1.;
   this->SetNonSymmetric();
+  this->SetRightK(fK);
 }
 
 void TPZMatPoisson3d::SetParameters(REAL diff, REAL conv, TPZVec<REAL> &convdir) {
   fK = diff;
+  this->SetRightK(fK);
   fC = conv;
   int d;
   for(d=0; d<fDim; d++) fConvDir[d] = convdir[d];
@@ -47,6 +49,7 @@ int TPZMatPoisson3d::NStateVariables() {
 void TPZMatPoisson3d::Print(ostream &out) {
   out << "name of material : " << Name() << "\n";
   out << "Laplace operator multiplier fK "<< fK << endl;
+  out << "Laplace operator multiplier fK of right neighbour " << this->fRightK << endl;
   out << "Convection coeficient fC " << fC << endl;
   out << "Convection direction " << fConvDir[0] << ' ' << fConvDir[1] << ' ' <<  fConvDir[2] << endl;
   out << "Forcing vector fXf " << fXf << endl;
@@ -349,11 +352,15 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
 
   this->ContributeInterface( x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef );
   
+  REAL leftK, rightK;
+  leftK  = this->fK;
+  rightK = this->GetRightK();
+  
   int nrowl = phiL.Rows();
   int nrowr = phiR.Rows();
   int il,jl,ir,jr;
 //penalty = <A p^2>/h 
-  const REAL penalty = fPenaltyConstant * (0.5 * (fK*LeftPOrder*LeftPOrder + fK*RightPOrder*RightPOrder)) / faceSize;
+  const REAL penalty = fPenaltyConstant * (0.5 * (leftK*LeftPOrder*LeftPOrder + rightK*RightPOrder*RightPOrder)) / faceSize;
   
   // 1) left i / left j
   for(il=0; il<nrowl; il++) {
@@ -465,8 +472,11 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
   
   
   //diffusion term
+  REAL leftK, rightK;
+  leftK  = this->fK;
+  rightK = this->GetRightK();
   
-  // 1)
+  // 1) phi_I_left, phi_J_left
   for(il=0; il<nrowl; il++) {
     REAL dphiLinormal = 0.;
     for(id=0; id<fDim; id++) {
@@ -477,13 +487,13 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
       for(id=0; id<fDim; id++) {
         dphiLjnormal += dphiL(id,jl)*normal[id];
       }
-      ek(il,jl) += weight*fK*(
+      ek(il,jl) += weight * leftK * (
         this->fSymmetry * 0.5*dphiLinormal*phiL(jl,0)-0.5*dphiLjnormal*phiL(il,0)
       );
     }
   }
   
-  // 2)
+  // 2) phi_I_right, phi_J_right
   for(ir=0; ir<nrowr; ir++) {
     REAL dphiRinormal = 0.;
     for(id=0; id<fDim; id++) {
@@ -494,13 +504,13 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
       for(id=0; id<fDim; id++) {
         dphiRjnormal += dphiR(id,jr)*normal[id];
       }
-      ek(ir+nrowl,jr+nrowl) += weight*fK*(
+      ek(ir+nrowl,jr+nrowl) += weight * rightK * (
         this->fSymmetry * (-0.5 * dphiRinormal * phiR(jr) ) + 0.5 * dphiRjnormal * phiR(ir)
       );
     }
   }
   
-  // 3)
+  // 3) phi_I_left, phi_J_right
   for(il=0; il<nrowl; il++) {
     REAL dphiLinormal = 0.;
     for(id=0; id<fDim; id++) {
@@ -511,13 +521,13 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
       for(id=0; id<fDim; id++) {
         dphiRjnormal += dphiR(id,jr)*normal[id];
       }
-      ek(il,jr+nrowl) += weight*fK*(
-        this->fSymmetry * (-0.5 * dphiLinormal * phiR(jr) ) - 0.5 * dphiRjnormal * phiL(il)
+      ek(il,jr+nrowl) += weight * (
+        this->fSymmetry * (-0.5 * dphiLinormal * leftK * phiR(jr) ) - 0.5 * dphiRjnormal * rightK * phiL(il)
       );
     }
   }
   
-  // 4)
+  // 4) phi_I_right, phi_J_left
   for(ir=0; ir<nrowr; ir++) {
     REAL dphiRinormal = 0.;
     for(id=0; id<fDim; id++) {
@@ -528,8 +538,8 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
       for(id=0; id<fDim; id++) {
         dphiLjnormal += dphiL(id,jl)*normal[id];
       }
-      ek(ir+nrowl,jl) += weight*fK*(
-        this->fSymmetry * 0.5 * dphiRinormal * phiL(jl) + 0.5 * dphiLjnormal * phiR(ir)
+      ek(ir+nrowl,jl) += weight * (
+        this->fSymmetry * 0.5 * dphiRinormal * rightK * phiL(jl) + 0.5 * dphiLjnormal * leftK * phiR(ir)
       );
     }
   }

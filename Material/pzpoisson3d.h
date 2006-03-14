@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.19 2006-03-04 15:33:10 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.20 2006-03-14 14:28:26 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -26,8 +26,14 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
   /** Problem dimension */
   int fDim;
   
-  /** Coeficient which multiplies the Laplacian operator */
+  /** Coeficient which multiplies the Laplacian operator. */
   REAL fK;
+  
+  /** Coeficient which multiplies the Laplacian operator associated to right neighbour element of the interface.
+   * The coefficient of left neighbour is fK.
+   * It is for use with discontinuous Galerkin method. Default value for fRightK is fK.
+   */
+  REAL fRightK;
   
   /** Variable which multiplies the convection term of the equation */
   REAL fC;
@@ -65,6 +71,7 @@ public:
     fXf  = copy.fXf;
     fDim = copy.fDim;
     fK   = copy.fK;
+    this->fRightK = copy.fRightK;
     fC   = copy.fC;
     for (int i = 0; i < 3; i++) fConvDir[i] = copy.fConvDir[i];
     fSymmetry = copy.fSymmetry;
@@ -111,6 +118,18 @@ public:
   void SetSD(REAL sd)
   {
     fSD = sd;
+  }
+  
+  /** Define fK of right neighbour element. It is used with discontinuous Galerkin
+   * on the computation of ContributeInterface methods.
+   * Attention that method SetParameters override the modifications of this method. Then call it after SetParameters
+   * and never before or it will have no effect.
+   */
+  void SetRightK(REAL rightK){
+    this->fRightK = rightK;
+  }
+  REAL GetRightK(){
+    return this->fRightK;    
   }
   
   virtual void Print(std::ostream & out);
