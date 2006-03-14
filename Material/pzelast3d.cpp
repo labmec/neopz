@@ -1,4 +1,4 @@
-//$Id: pzelast3d.cpp,v 1.7 2006-01-23 16:32:50 phil Exp $
+//$Id: pzelast3d.cpp,v 1.8 2006-03-14 14:29:00 tiago Exp $
 
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -145,7 +145,7 @@ void TPZElasticity3D::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight
       ef(3*in+2,0) += v2[2] * phi(in,0) * weight;
     }//in
     break;
-  case 2: // Neumann condition
+  case 2: // Mixed condition
     for(in = 0 ; in < phi.Rows(); in++) {
       ef(3*in+0,0) += v2[0] * phi(in,0) * weight;
       ef(3*in+1,0) += v2[1] * phi(in,0) * weight;
