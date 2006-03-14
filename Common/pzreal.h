@@ -324,7 +324,7 @@ inline std::ostream &operator<<(std::ostream &out, const TPZFlopCounter &val)
 {
   return out << val.fVal;
 }
-inline std::istream &operator>>(std::istream &out, const TPZFlopCounter &val)
+inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val)
 {
   return out >> val.fVal;
 }
