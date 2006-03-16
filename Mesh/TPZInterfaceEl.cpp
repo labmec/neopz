@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.51 2006-03-09 11:51:46 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.52 2006-03-16 01:50:12 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -1723,7 +1723,16 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
 	 this->ComputeShape(intelR, phixr, dphixr, RightIntPoint );
       }//intelR
 
-
+      //The following is necessary in case of interface of a Dirichlet boundary condition.
+      //The vectors with no position are those from the BC wich values are store in TPZBndCond
+      if (phixr.Rows() == 0){
+        solr.Resize(0);
+        dsolr.Resize(0,0);
+      }
+      if (phixl.Rows() == 0){
+        soll.Resize(0);
+        dsoll.Resize(0,0);
+      }
 
 
       //solution Left
@@ -1764,24 +1773,29 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
 
       TPZManVector<REAL> leftNormalDeriv(nstatel), rightNormalDeriv(nstater), normal;
       this->Normal(normal);
-      for(int iv = 0; iv < nstatel; iv++){
-        leftNormalDeriv[iv] = 0.;
-        for(int d = 0; d < diml; d++){
-          leftNormalDeriv[iv]  += dsoll(d,iv)* normal[d];
-        }
-      }
       
-      for(int iv = 0; iv < nstater; iv++){
-        rightNormalDeriv[iv] = 0.;
-        for(int d = 0; d < diml; d++){
-          rightNormalDeriv[iv] += dsolr(d,iv)* normal[d];
-        }
-      }      
+      if (soll.NElements()){
+        for(int iv = 0; iv < nstatel; iv++){
+          leftNormalDeriv[iv] = 0.;
+          for(int d = 0; d < diml; d++){
+            leftNormalDeriv[iv]  += dsoll(d,iv)* normal[d];
+          }//for d
+        }//for iv
+      }//if
+      
+      if (solr.NElements()){
+        for(int iv = 0; iv < nstater; iv++){
+          rightNormalDeriv[iv] = 0.;
+          for(int d = 0; d < diml; d++){
+            rightNormalDeriv[iv] += dsolr(d,iv)* normal[d];
+          }//for d
+        }  //for iv    
+      }//if
         
      
 
       TPZManVector<REAL> localerror(NErrors);
-      mat->InterfaceJumps(soll, leftNormalDeriv, solr, rightNormalDeriv, localerror);
+      mat->InterfaceJumps(x, soll, leftNormalDeriv, solr, rightNormalDeriv, localerror);
 
       for(int ier = 0; ier < NErrors; ier++)
 	errors[ier] += localerror[ier]*weight;
