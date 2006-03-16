@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.8 2006-03-16 01:56:04 tiago Exp $
+//$Id: main.cpp,v 1.9 2006-03-16 13:25:38 tiago Exp $
 
 /**
  * Validation test of TPZElasticity3D material
@@ -77,6 +77,7 @@
 #include <time.h>
 #include <stdio.h>
 #include "meshes.h"
+#include "meshesTetra.h"
 #include "TPZTimer.h"
 
 using namespace pzgeom;
@@ -99,7 +100,7 @@ int main(){
   cin >> p;
   cout << "h = " << h << " - p = " << p << endl;  
 
-  TPZCompMesh * cmesh = BarraTracionadaGirada/*BarraTracionadaNeumann*/(h, p);
+  TPZCompMesh * cmesh = VigaEngastadaTetra/*BarraTracionadaGirada*//*BarraTracionadaNeumann*/(h, p);
   TPZGeoMesh *gmesh = cmesh->Reference();
  
   TPZAnalysis an(cmesh);
@@ -125,7 +126,7 @@ int main(){
 #define Precond
 #ifdef Precond 
 
-  #define SSORPRECOND
+//  #define SSORPRECOND
   #ifdef SSORPRECOND
      TPZStepSolver precond( full.Create() );
      REAL precondtol = 1.E-20;
@@ -138,8 +139,8 @@ int main(){
   #else
 
       TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EBlockJacobi , false);
-      step.SetCG( 2000, *precond, tol, 0 );
-//      step.SetGMRES( 2000, 20, *precond, tol, 0);
+//      step.SetCG( 2000, *precond, tol, 0 );
+      step.SetGMRES( 2000, 20, *precond, tol, 0);
       delete precond;
   #endif
 
@@ -155,23 +156,25 @@ int main(){
 
      an.SetSolver(step);
 #endif  
-  
+  std::cout << "Numero de equacoes = " << an.Mesh()->NEquations() << std::endl;
   an.Run();
   std::cout << "Numero de equacoes = " << an.Mesh()->NEquations() << std::endl;
   cout << "h = " << h << " - p = " << p << endl;  
   std::cout.flush();
-  an.Run();
-
-/**** Aqui faz DX ****/
-  TPZVec<char *> scalnames(1);
-  TPZVec<char *> vecnames(1);
-  scalnames[0] = "Stress1";
-  vecnames[0] = "PrincipalStress";
-  std::stringstream filedx;
-  filedx << "result.dx";
-  an.DefineGraphMesh(3,scalnames,vecnames,&(filedx.str()[0]));
-  an.PostProcess(1);
   
+  ofstream sol("solutionvec.txt");
+  an.Solution().Print("solvec", sol);
+  
+/**** DX *****/
+  TPZVec<char*> scalnames(1);
+  TPZVec<char*> vecnames(0);
+  scalnames[0] = "DisplacementX";
+//  vecnames[0] = "PrincipalStrain";
+  std::stringstream filedx; 
+  filedx << "result.dx";
+  an.DefineGraphMesh(3, scalnames, vecnames, &(filedx.str()[0]));
+  an.PostProcess(0);
+   
   delete cmesh;
   delete gmesh;
   return 0;

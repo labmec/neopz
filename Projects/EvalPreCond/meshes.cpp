@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.1 2006-01-26 15:35:18 tiago Exp $
+//$Id: meshes.cpp,v 1.2 2006-03-16 13:26:01 tiago Exp $
 
 #include "meshes.h"
 
@@ -544,3 +544,85 @@ TPZCompMesh *BarraTracionadaNeumann(int h, int p){
 
   return cmesh;
 }
+
+#include "pzpoisson3d.h"
+TPZCompMesh * Small(int h, int p){
+
+  SetPOrder(p);
+  
+  REAL co[9][2] = {{0.5,0.5},{0.5,0.},{1.,0.},{1.,0.5},{1.,1.},{0.5,1.},{0.,1.},{0.,0.5},{0.,0.}};
+  int indices[4][4] = {{1,2,3,0},{0,3,4,5},{7,0,5,6},{8,1,0,7}};
+  TPZGeoEl *elvec[4];
+  TPZGeoMesh *gmesh = new TPZGeoMesh();
+  int nnode = 9;
+  int nelem = 4;
+  int nod;
+  for(nod=0; nod<nnode; nod++) {
+    int nodind = gmesh->NodeVec().AllocateNewElement();
+    TPZManVector<REAL,2> coord(2);
+    coord[0] = co[nod][0];
+    coord[1] = co[nod][1];
+    gmesh->NodeVec()[nodind].Initialize(nod,coord,*gmesh);
+  }
+
+  int el;
+  for(el=0; el<nelem; el++) {
+    TPZManVector<int,4> nodind(4);
+    for(nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+    int index;
+    elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
+  }
+
+  gmesh->BuildConnectivity();
+  
+  TPZVec<TPZGeoEl*> filhos;
+  for(int i = 0; i < h; i++){
+    int n = gmesh->NElements();
+    for(int j = 0; j < n; j++){
+      if (gmesh->ElementVec()[j]->Dimension() == 2) gmesh->ElementVec()[j]->Divide(filhos);
+    }
+  }      
+
+  TPZGeoElBC gbc1(elvec[0],4,-1,*gmesh); // bottom
+  TPZGeoElBC gbc2(elvec[0],5,-3,*gmesh); // right
+  TPZGeoElBC gbc3(elvec[1],5,-3,*gmesh); // right
+  TPZGeoElBC gbc4(elvec[1],6,-3,*gmesh); // top
+  TPZGeoElBC gbc5(elvec[2],6,-3,*gmesh); // top
+  TPZGeoElBC gbc6(elvec[2],7,-2,*gmesh); // left
+  TPZGeoElBC gbc7(elvec[3],7,-2,*gmesh); // left
+  TPZGeoElBC gbc8(elvec[3],4,-1,*gmesh); // bottom
+
+  TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+  cmesh->SetDimModel(2);
+
+  TPZMatPoisson3d *mat;
+  mat = new TPZMatPoisson3d(1, 2);
+
+  TPZManVector<REAL,2> convdir(2,0.);
+  convdir[0] = 1.;
+  convdir[1] = 1.;
+
+  REAL beta = 0.0;
+  mat->SetParameters(0.01, beta, convdir);
+  mat->SetInternalFlux(10.0);
+  int nstate = 1;
+  
+  TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
+  TPZBndCond *bc[3];
+  val2.Zero();
+  bc[0] = mat->CreateBC(-3, 0,val1,val2);
+  
+  bc[1] = mat->CreateBC(-1, 0, val1, val2);
+  
+  bc[2] = mat->CreateBC(-2, 0, val1, val2);
+  
+  cmesh->InsertMaterialObject(mat);
+  for(int ii = 0; ii < 3; ii++) cmesh->InsertMaterialObject(bc[ii]);
+
+  cmesh->AutoBuild();
+  cmesh->AdjustBoundaryElements();
+  //  cmesh->CleanUpUnconnectedNodes();
+  //  cmesh->ExpandSolution();
+  
+  return cmesh;
+}//Small

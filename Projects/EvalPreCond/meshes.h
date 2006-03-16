@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: meshes.h,v 1.1 2006-01-26 15:35:18 tiago Exp $
+//$Id: meshes.h,v 1.2 2006-03-16 13:26:01 tiago Exp $
 
 class TPZCompMesh;
 #include "pzvec.h"
@@ -27,7 +27,9 @@ void MomentoExtremidade(TPZVec<REAL> &pto, TPZVec<REAL> &force);
  */
 TPZCompMesh * VigaEngastadaForcaVolume(int h, int p);
 
-
+/** Very small 2D problem to check BuildPReconditioner
+ */
+TPZCompMesh * Small(int h, int p); 
  
 /** Viga bi-engastada
  */

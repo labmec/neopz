@@ -13,7 +13,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = main.cpp meshes.cpp
+main_SOURCES = main.cpp meshes.cpp performance.cpp tetgenmesh.cpp
 
 
 ## --| NeoPZ |------------------------------------------------------------------
