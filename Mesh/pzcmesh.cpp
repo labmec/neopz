@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.42 2006-03-12 20:58:45 phil Exp $
+//$Id: pzcmesh.cpp,v 1.43 2006-03-16 01:49:47 tiago Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -159,7 +159,8 @@ void TPZCompMesh::Print (ostream & out) {
     out << "Index " << i << ' ';
     el->Print(out);
     if(!el->Reference()) continue;
-    out << "\tReference Id = " << el->Reference()->Id() << endl;
+    out << "Reference Id = " << el->Reference()->Id() << endl;
+    out << endl;
   }
   out << "\n\tMaterial Information:\n\n";
   nelem = NMaterials();
@@ -1477,16 +1478,19 @@ void TPZCompMesh::Discontinuous2Continuous(int disc_index, int &new_index) {
   }//if  
   
   TPZGeoEl * ref = cel->Reference();
+  if (!cel) return;
   cel->RemoveInterfaces();
   cel->Reference()->ResetReference();
+  this->fElementVec[ cel->Index() ] = NULL;  
+  delete cel;  
 
   this->SetAllCreateFunctionsContinuous();    
   TPZCompEl * newcel = ref->CreateCompEl(*this,new_index);
   TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement*>(newcel);
-  intel->InterpolateSolution(*disc);
-    
-  if (cel) delete cel;
-
+  
+//  ExpandSolution();
+//  intel->InterpolateSolution(*disc);    
+//  delete cel;  
   
 }//method
 
@@ -2410,16 +2414,19 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int val){
   const int nelements = this->NElements();
   TPZVec<REAL> celJumps(nelements);
   TPZVec<TPZCompEl*> AllCels(nelements);
+  AllCels.Fill(NULL);
   celJumps.Fill(0.0);
   TPZCompEl * cel;
   TPZInterfaceElement * face;
   TPZManVector<REAL> faceerror;
   for(int i = 0; i < nelements; i++){
     cel = this->ElementVec()[i];
-    AllCels[i] = cel;
     if (!cel) continue;
     face = dynamic_cast<TPZInterfaceElement *>(cel);
-    if (!face) continue;
+    if (!face){
+     AllCels[i] = cel;
+     continue;
+    }
     face->EvaluateInterfaceJumps(faceerror);
     const int leftel  = face->LeftElement()->Index();
     const int rightel = face->RightElement()->Index();
@@ -2427,20 +2434,23 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int val){
     if (this->ElementVec()[leftel]  != face->LeftElement() ) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;
     if (this->ElementVec()[rightel] != face->RightElement()) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;
 #endif
-    celJumps[leftel] += faceerror[val];
-    celJumps[rightel] += faceerror[val];
+    celJumps[leftel] += faceerror[val]*faceerror[val];
+    celJumps[rightel] += faceerror[val]*faceerror[val];
   }//for i
   
   for(int i = 0; i < nelements; i++){
     if (!AllCels[i]) continue;
     TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(AllCels[i]);
     if (!disc) continue;
-    const REAL celJumpError = celJumps[i];
+    const REAL celJumpError = sqrt(celJumps[i]);
     if (celJumpError < eps){
       int index;
       this->Discontinuous2Continuous(i, index);
     }//if
   }//for i
+  
+  this->CleanUpUnconnectedNodes();
+  this->AdjustBoundaryElements();
     
 }//method
 

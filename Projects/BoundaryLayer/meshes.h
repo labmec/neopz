@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: meshes.h,v 1.2 2006-03-04 15:36:23 tiago Exp $
+//$Id: meshes.h,v 1.3 2006-03-16 01:51:39 tiago Exp $
 
 #include "pzgmesh.h"
 #include "pzgeoel.h"
@@ -49,3 +49,5 @@ void ExactSolution(TPZVec<REAL> &pto, TPZVec<REAL> &u, TPZFMatrix &deriv);
 TPZCompMesh * RefinedOnBoundLayer(int h, int ref_uniforme );
 /** Malha com refinamento na camada limite 14fev2006 **/
 void OneContinuousRefinementOnBoundLayer(TPZGeoMesh *gmesh, std::set<TPZGeoEl*> &contset, std::set<TPZGeoEl*> &discset, int h, int ref_uniforme, int continuousindex, int BLMaterialId);
+
+void ConvertAllDiscontinuous2Continuous(TPZCompMesh &cmesh);

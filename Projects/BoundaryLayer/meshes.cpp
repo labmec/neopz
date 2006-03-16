@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.5 2006-03-04 15:36:23 tiago Exp $
+//$Id: meshes.cpp,v 1.6 2006-03-16 01:51:39 tiago Exp $
 
 #include "meshes.h"
 
@@ -81,7 +81,7 @@
  using namespace pzrefine;
  using namespace std;
 
-static REAL epsilon = 1.e-6;;
+static REAL epsilon = 1.;//e-4;
 
 void OneContinuous(TPZGeoMesh *gmesh, std::set<TPZGeoEl*> &contset, std::set<TPZGeoEl*> &discset, int h, int continuousindex){
 
@@ -401,7 +401,7 @@ void ExactSolution(TPZVec<REAL> &pto, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   num = - exp((-1. + x)*(1. - y)/A);
   den = A*(1. - exp(-1./A));
   
-  deriv(0,0) = 1. - num/den;
+  deriv(0,0) = 1. + num/den;
   deriv(0,0) += - y;
   
   num = exp((-1. + x)*(1. - y)/A) * y;
@@ -415,7 +415,7 @@ void ExactSolution(TPZVec<REAL> &pto, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   den = A * (1. - exp(-1./A));
   deriv(1,0) += num/den;
   deriv(1,0) += - x;
-  num = exp((-1 + x)*(1. - y)/A) * x;
+  num = exp((-1. + x)*(1. - y)/A) * x;
   den = A*(1. - exp(-1./A));
   deriv(1,0) += num/den;
   
@@ -535,20 +535,13 @@ TPZCompMesh *CreateMesh(int h) {
   cmesh->InsertMaterialObject(mat);
   for(int ii = 0; ii < 3; ii++) cmesh->InsertMaterialObject(bc[ii]);
 
-  
-  TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc); 
-
+//  cmesh->SetAllCreateFunctionsContinuous();
+  cmesh->SetAllCreateFunctionsDiscontinuous();
   
   cmesh->AutoBuild();
 
   cmesh->AdjustBoundaryElements();
-  //  cmesh->CleanUpUnconnectedNodes();
+  cmesh->CleanUpUnconnectedNodes();
   //  cmesh->ExpandSolution();
   
   return cmesh;
@@ -954,4 +947,29 @@ void OneContinuousRefinementOnBoundLayer(TPZGeoMesh *gmesh, std::set<TPZGeoEl*> 
       }
    }
 }//OneContinuousRefinementOnBoundLayer
+
+void ConvertAllDiscontinuous2Continuous(TPZCompMesh &cmesh){
+  const int n = cmesh.ElementVec().NElements();
+  TPZVec<TPZCompEl *> AllCels(n, NULL);
+  for(int i = 0; i < n; i++){
+    if (dynamic_cast<TPZInterfaceElement *>(cmesh.ElementVec()[i])) continue;
+    AllCels[i] = cmesh.ElementVec()[i];
+  }
+  
+  for(int i = 0; i < n; i++){
+    if (!AllCels[i]) continue;
+    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(AllCels[i]);
+    if (!disc) continue;
+    TPZGeoEl * gel = disc->Reference();
+    disc->RemoveInterfaces();
+    const int index = disc->Index();
+    cmesh.ElementVec()[ index ] = NULL;
+    delete disc;
+    
+     cmesh.SetAllCreateFunctionsContinuous();    
+     int new_index;
+     TPZCompEl * newcel = gel->CreateCompEl(cmesh,new_index);    
+  }//for
+
+}
 

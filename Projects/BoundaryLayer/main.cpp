@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.8 2006-03-04 15:36:23 tiago Exp $
+//$Id: main.cpp,v 1.9 2006-03-16 01:51:19 tiago Exp $
 
 /**
  * Galerkin descontinuo: problema de camada limite
@@ -84,13 +84,12 @@ int main22(){
   std::cout.flush();
   return 0;
 }
-
+#include "pzquad.h"
 int main(){
 
- 
-int nmaxeq = 5000;//numero maximo de equacoes do problema
-for(int pp = 2; pp < 6; pp++){
- for(int hh = 0; hh < 5; hh++){ 
+int nmaxeq = 50000;//numero maximo de equacoes do problema
+for(int pp = 2; pp < 3; pp++){
+ for(int hh = 1; hh < 2; hh++){ 
 
   TPZCompElDisc::SetOrthogonalFunction(pzshape::TPZShapeDisc::Legendre);
 
@@ -103,9 +102,9 @@ for(int pp = 2; pp < 6; pp++){
 
   TPZCompMesh *cmesh;
 //  cmesh = DiscontinuousOnBoundaryLayer(h); 
-  cmesh = RefinedOnBoundLayer(h, ref_uniforme);
+//  cmesh = RefinedOnBoundLayer(h, ref_uniforme);
 //  cmesh = CreateMeshContDisc(h); 
-//  cmesh = CreateMesh(h);
+  cmesh = CreateMesh(h);
     
   TPZGeoMesh *gmesh = cmesh->Reference();
 
@@ -115,7 +114,7 @@ for(int pp = 2; pp < 6; pp++){
 #ifdef direct
 
 // Melhor caso para GEM e elementos finitos. Melhor metodo direto
-  TPZParFrontStructMatrix <TPZFrontNonSym> /*TPZFStructMatrix*/ full(cmesh);
+/*  TPZParFrontStructMatrix <TPZFrontNonSym>*/ /*TPZFStructMatrix*/ TPZBandStructMatrix full(cmesh);
   //  TPZFStructMatrix full(cmesh);
     an.SetStructuralMatrix(full);
     TPZStepSolver step;
@@ -127,7 +126,7 @@ for(int pp = 2; pp < 6; pp++){
 //#define iter // ACHO QUE A MATRIZ ESPARSA TEM DEFEITO
 #ifdef iter
   cout << "ITER_SOLVER" << endl;  
-  /*TPZFStructMatrix*/ TPZSpStructMatrix full(cmesh);
+  TPZFStructMatrix /*TPZSpStructMatrix*/ full(cmesh);
   an.SetStructuralMatrix(full);  
   TPZStepSolver step( full.Create() );
   an.SetSolver(step);
@@ -154,31 +153,18 @@ for(int pp = 2; pp < 6; pp++){
      delete gmesh;
      break;
    }
+   
   char filename[20];
 //  sprintf(filename,"baumann_p%d_h%d.dat",p,h);
 //  sprintf(filename,"ef_p%d_h%d.dat",p,h);
 //   sprintf(filename,"1cont_p%d_h%d.dat",p,h);
   sprintf(filename,"erro.dat");
   char filedx[20];
-//  sprintf(filedx,"baumann_p%d_h%d.dx",p,h);
+  sprintf(filedx,"baumann_p%d_h%d.dx",p,h);
 //  sprintf(filedx,"ef_p%d_h%d.dx",p,h);
 //   sprintf(filedx,"1cont_p%d_h%d.dx",p,h);
-  sprintf(filedx,"sol.dx");
-
+//  sprintf(filedx,"sol.dx");
   
-  
-/*{  
-  TPZFMatrix fillin;
-  cmesh->ComputeFillIn(50,fillin);
-  //fillin.Print("Fillin of the computable mesh");
-  VisualMatrix(fillin , filedx);
-}*/
-
-//    ofstream cmeshout("cmesh.txt");
-//    cmesh->Print(cmeshout);
-//    ofstream gmeshout("gmesh.txt");
-//    gmesh->Print(gmeshout);
-
   an.Run();
    
 /**** Aqui faz DX ****/
@@ -193,20 +179,47 @@ for(int pp = 2; pp < 6; pp++){
 //     an.PostProcess(0);
 
 
-  an.SetExact(ExactSolution);
+  an.SetExact(ExactSolution); 
   TPZVec<REAL> pos;
   ofstream out(filename);
   an.PostProcess(pos,out);
   out << "\nNumero de equacoes: " << an.Solution().Rows() << endl;  
 
   
-  cmesh->ConvertDiscontinuous2Continuous(1.0, 1);
-  an.Run();
-  an.SetExact(ExactSolution);
+  ofstream beforeg("beforegmesh.txt");
+  ofstream beforec("beforecmesh.txt");
+  cmesh->Print(beforec);
+  gmesh->Print(beforeg);
+  
+//  ConvertAllDiscontinuous2Continuous(*cmesh);
+  cmesh->ConvertDiscontinuous2Continuous(100.0, 1);
+  cmesh->CleanUpUnconnectedNodes();
+  cmesh->AdjustBoundaryElements();
+  
+  
+  ofstream afterg("aftergmesh.txt");
+  ofstream afterc("aftercmesh.txt");
+  cmesh->Print(afterc);
+  gmesh->Print(afterg);  
+  
+  {
+  
+  TPZAnalysis newan(cmesh);
+/*  TPZParFrontStructMatrix <TPZFrontNonSym>*/ /*TPZFStructMatrix*/ TPZBandStructMatrix full(cmesh);  
+  newan.SetStructuralMatrix(full);
+  TPZStepSolver step;
+  step.SetDirect( ELU /*ECholesky*/ /*ELDLt*/ );
+  newan.SetSolver(step);  
+  cout << "\nNumero de equacoes: " << cmesh->NEquations() << endl;  
+  newan.Run();
+  
+  newan.SetExact(ExactSolution);
   ofstream out2("Saida2.txt");
-  an.PostProcess(pos,out2);
-  out << "\nNumero de equacoes: " << an.Solution().Rows() << endl;  
-    
+  newan.PostProcess(pos,out2);
+  out2 << "\nNumero de equacoes: " << newan.Solution().Rows() << endl;  
+
+  }
+      
   delete cmesh;
   delete gmesh;
 }
