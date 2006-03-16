@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.6 2006-03-16 01:54:52 tiago Exp $
+//$Id: meshes.cpp,v 1.7 2006-03-16 13:52:44 tiago Exp $
 
 #include "meshes.h"
 
@@ -34,8 +34,6 @@
 #include "pzbndcond.h"
 #include "pzelast3d.h"
 
-using namespace std;
-
 void SetPOrder(int p){
   TPZCompEl::gOrder = p;
 }
@@ -49,101 +47,6 @@ TPZCompMesh *BarraTracionada(int h, int p){
   const REAL STRESS = 100.;
   const REAL EYoung = 1000.;
   const REAL Poisson= 0.0;
-  
-  REAL co[8][3] = {{0.,0.,0.},    {0.,0., Base},    {0.,Height, Base},    {0., Height, 0.}, 
-                   {Length,0.,0.},{Length,0., Base},{Length,Height, Base},{Length, Height, 0.}};
-  int indices[1][8] = {{0,1,2,3,4,5,6,7}};
-  TPZGeoEl *elvec[1];
-  TPZGeoMesh *gmesh = new TPZGeoMesh();
-  int nnode = 8;
-  int nelem = 1;
-  int nod;
-  for(nod=0; nod < nnode; nod++) {
-    int nodind = gmesh->NodeVec().AllocateNewElement();
-    TPZFMatrix coordM(3,1);
-    coordM(0,0) = co[nod][0];
-    coordM(1,0) = co[nod][1];
-    coordM(2,0) = co[nod][2];
-    Rotate(coordM);
-    TPZManVector<REAL,3> coord(3);
-    coord[0] = coordM(0,0); //co[nod][0];
-    coord[1] = coordM(1,0); //co[nod][1];
-    coord[2] = coordM(2,0); //co[nod][2];
-    gmesh->NodeVec()[nodind].Initialize(nod,coord,*gmesh);
-  }
-
-  int el;
-  for(el=0; el<nelem; el++) {
-    TPZManVector<int,8> nodind(8);
-    for(nod=0; nod < 8; nod++) nodind[nod]=indices[el][nod];
-    int index;
-    elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
-  }
-
-  int index;
-  TPZManVector<int,4> bcincid(4);
-  bcincid[0] = 0;
-  bcincid[1] = 1;
-  bcincid[2] = 2;
-  bcincid[3] = 3;
-  gmesh->CreateGeoElement(EQuadrilateral,bcincid,-1,index);
-  
-  bcincid[0] = 4;
-  bcincid[1] = 5;
-  bcincid[2] = 6;
-  bcincid[3] = 7;  
-  gmesh->CreateGeoElement(EQuadrilateral,bcincid,-2,index);
-  
-  gmesh->BuildConnectivity();
-  
-  TPZVec<TPZGeoEl*> filhos;
-  for(int i = 0; i < h; i++){
-    int n = gmesh->NElements();
-    for(int j = 0; j < n; j++){
-      if (gmesh->ElementVec()[j]->Dimension() == 3) gmesh->ElementVec()[j]->Divide(filhos);
-    }
-  }    
-  
-  TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-  cmesh->SetDimModel(3);
-  
-  TPZManVector<REAL,3> NullForce(3); 
-  NullForce.Fill(0.);
-  TPZElasticity3D * mat = new TPZElasticity3D(1, EYoung, Poisson, NullForce);
-
-  TPZFMatrix val1(3,3,0.),val2(3,1,0.);
-  val2.Zero();
-  TPZBndCond * bcD = mat->CreateBC(-1, 0,val1,val2);
-  
-  val2(0,0) = STRESS;
-  Rotate(val2);
-  val2.Print("STRESS", cout);
-  TPZBndCond * bcN = mat->CreateBC(-2, 1,val1,val2);
-  
-  cmesh->InsertMaterialObject(mat);
-  cmesh->InsertMaterialObject(bcD);
-  cmesh->InsertMaterialObject(bcN);
-  
-  //cmesh->SetAllCreateFunctionsDiscontinuous();
-  cmesh->SetAllCreateFunctionsContinuous();
-  
-  cmesh->AutoBuild();
-//   cmesh->AdjustBoundaryElements();
-//   cmesh->CleanUpUnconnectedNodes();
-//   cmesh->ExpandSolution();
-
-  return cmesh;
-}
-
-TPZCompMesh *BarraTracionadaNeumann(int h, int p){
-  SetPOrder(p);
-
-  const REAL Length = 1.;
-  const REAL Base   = 0.3;
-  const REAL Height = 0.5; 
-  const REAL STRESS = 100.;
-  const REAL EYoung = 205000.;
-  const REAL Poisson= 0.3;
   
   REAL co[8][3] = {{0.,0.,0.},    {0.,0., Base},    {0.,Height, Base},    {0., Height, 0.}, 
                    {Length,0.,0.},{Length,0., Base},{Length,Height, Base},{Length, Height, 0.}};
@@ -209,14 +112,11 @@ TPZCompMesh *BarraTracionadaNeumann(int h, int p){
   TPZElasticity3D * mat = new TPZElasticity3D(1, EYoung, Poisson, NullForce);
 
   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
-  val2(0,0) = -1.*STRESS;
+  val2(0,0) = -STRESS;
   TPZBndCond * bcD = mat->CreateBC(-1, 1,val1,val2);
   
   val2(0,0) = STRESS;
   TPZBndCond * bcN = mat->CreateBC(-2, 1,val1,val2);
-  TPZVec<REAL> direcao(3, 0.);
-  direcao[1] = 1.;
-  mat->SetPostProcessingDirection(direcao);
   
   cmesh->InsertMaterialObject(mat);
   cmesh->InsertMaterialObject(bcD);
@@ -395,10 +295,10 @@ TPZCompMesh * VigaEngastada(int h, int p){
   const REAL Height = 0.5; 
 //  const REAL STRESS = 100.;
   const REAL EYoung = 205000.;
-  const REAL Poisson= 0.3;
+  const REAL Poisson= 0.0;
   
-  REAL co[8][3] = {{0.,-Height/2.,0.},    {0.,-Height/2., Base},    {0.,Height/2., Base},    {0., Height/2., 0.}, 
-                   {Length,-Height/2.,0.},{Length,-Height/2., Base},{Length,Height/2., Base},{Length, Height/2., 0.}};
+  REAL co[8][3] = {{0.,0.,0.},    {0.,0., Base},    {0.,Height, Base},    {0., Height, 0.}, 
+                   {Length,0.,0.},{Length,0., Base},{Length,Height, Base},{Length, Height, 0.}};
   int indices[1][8] = {{0,1,2,3,4,5,6,7}};
   TPZGeoEl *elvec[1];
   TPZGeoMesh *gmesh = new TPZGeoMesh();
@@ -481,8 +381,9 @@ void MomentoExtremidade(TPZVec<REAL> &pto, TPZVec<REAL> &force){
   REAL Y = pto[1];
   force.Resize(3);
   force.Fill(0.);
+  REAL a = 240.;
   REAL H = 0.5;
-  force[0] = -1. * (-240. + 960. * (Y + H/2.));
+  force[0] = 2. * a * Y / H;
 }
 
 TPZCompMesh * VigaEngastadaForcaVolume(int h, int p){
@@ -493,7 +394,7 @@ TPZCompMesh * VigaEngastadaForcaVolume(int h, int p){
   const REAL Height = 0.5; 
 //  const REAL STRESS = 100.;
   const REAL EYoung = 205000.;
-  const REAL Poisson= 0.3;
+  const REAL Poisson= 0.0;
   
   REAL co[8][3] = {{0.,0.,0.},    {0.,0., Base},    {0.,Height, Base},    {0., Height, 0.}, 
                    {Length,0.,0.},{Length,0., Base},{Length,Height, Base},{Length, Height, 0.}};
@@ -550,7 +451,7 @@ TPZCompMesh * VigaEngastadaForcaVolume(int h, int p){
 //   TPZManVector<REAL,3> NullForce(3); 
 //   NullForce.Fill(0.);
   TPZManVector<REAL,3> gravity(3); 
-  gravity[0] = 0.; gravity[1] = 0.; gravity[2] = -78.e-06;
+  gravity[0] = 0.; gravity[1] = 0.; gravity[2] = -98.;
   TPZElasticity3D * mat = new TPZElasticity3D(1, EYoung, Poisson, /*NullForce*/gravity);
 
   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
@@ -574,36 +475,6 @@ TPZCompMesh * VigaEngastadaForcaVolume(int h, int p){
 
   return cmesh;
 }
-
-void Rotate(TPZFMatrix & pt){
-  const REAL Pi = 4.*atan(1.);
-  REAL a = 10.*Pi/180.;
-  REAL b = 30.*Pi/180.;
-  TPZFMatrix rot(3,3,0.);
-  rot(0,0) = cos(a)*cos(b);
-  rot(0,1) = sin(a);
-  rot(0,2) = cos(a)*sin(b);
-    
-  rot(1,0) = -cos(b)*sin(a);
-  rot(1,1) = cos(a);
-  rot(1,2) = -sin(a)*sin(b); 
-  
-  rot(2,0) = -sin(b);
-  rot(2,1) = 0.; 
-  rot(2,2) = cos(b);
-  
-  TPZFMatrix check, transp(3,3); 
-  for(int i = 0; i < 3; i++) for(int j = 0; j < 3; j++) transp(i,j) = rot(j,i);
-  rot.Multiply(transp, check);
-  for(int i = 0; i < 3; i++) for(int j = 0; j < 3; j++){
-    if (i == j) if ( fabs(check(i,j) - 1.) > 1.e-10 )  cout << "\nNao eh rotacao\n";
-    if (i != j) if ( fabs(check(i,j) - 0.) > 1.e-10 )  cout << "\nNao eh rotacao\n";
-  }
-  
-  TPZFMatrix temp; temp = pt;
-  rot.Multiply(temp, pt);
-
-}=======
 
 TPZCompMesh *BarraTracionadaNeumann(int h, int p){
   SetPOrder(p);
@@ -693,4 +564,3 @@ TPZCompMesh *BarraTracionadaNeumann(int h, int p){
 
   return cmesh;
 }
->>>>>>> 1.5
