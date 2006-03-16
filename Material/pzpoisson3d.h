@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.20 2006-03-14 14:28:26 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.21 2006-03-16 01:45:54 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -202,9 +202,19 @@ public:
    * values[0] = values[0] + values[1]
    * @since Feb 14, 2006
    */  
-  virtual void InterfaceJumps(TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
+  virtual void InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
                               TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
                               TPZVec<REAL> &values);
+                              
+  /** Compute interface jumps from element to Dirichlet boundary condition
+   * values[1] = (solleft - solright)^2
+   * values[2] = (dsolleft - dsolright)^2
+   * values[0] = values[0] + values[1]
+   * @since Mar 08, 2006
+   */  
+  virtual void BCInterfaceJumps(TPZVec<REAL> &leftu,
+                                TPZBndCond &bc,
+                                TPZVec<REAL> &values);                              
 
   virtual int IsInterfaceConservative(){ return 1;}
 

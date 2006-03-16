@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.19 2006-03-14 14:28:26 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.20 2006-03-16 01:45:54 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -237,11 +237,12 @@ void TPZMatPoisson3d::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatri
   //Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
 }
 
-void TPZMatPoisson3d::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
+//ofstream ErroFile("erro.txt");
+void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 			       TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
 			       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
 
-  TPZVec<REAL> sol(1),dsol(3,0.);
+  TPZManVector<REAL> sol(1),dsol(3,0.);
   Solution(u,dudx,axes,1,sol);
   Solution(u,dudx,axes,2,dsol);
   REAL dx[3] = {0.};
@@ -256,10 +257,12 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
   }
   //values[0] : erro em norma H1 <=> norma Energia
   values[0]  = values[1]+values[2];
+  
+//  ErroFile << x[0] << "  " << x[1] << "  " << u_exact[0] << "  " << sol[0] << "  " <<  du_exact(0,0) << "  " << dsol[0] << "  " << du_exact(1,0) << "  " << dsol[1] << endl;
 }
 
 
-void TPZMatPoisson3d::InterfaceJumps(TPZVec<REAL> &leftu,  TPZVec<REAL> &leftNormalDeriv,
+void TPZMatPoisson3d::InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu,  TPZVec<REAL> &leftNormalDeriv,
                     TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
                     TPZVec<REAL> &values){
   values.Resize(3);
@@ -268,6 +271,20 @@ void TPZMatPoisson3d::InterfaceJumps(TPZVec<REAL> &leftu,  TPZVec<REAL> &leftNor
   values[2] = (leftNormalDeriv[0] - rightNormalDeriv[0]) * (leftNormalDeriv[0] - rightNormalDeriv[0]);
 
   values[0]  = values[1]+values[2];
+}//method
+
+void TPZMatPoisson3d::BCInterfaceJumps(TPZVec<REAL> &leftu,
+                                       TPZBndCond &bc,
+                                       TPZVec<REAL> &values){
+  if(bc.Type() == 0){ //DIRICHLET
+    REAL f = bc.Val2()(0,0);
+    values.Resize(3);
+    values[1]  = (leftu[0] - f) * (leftu[0] - f);  
+    values[2] = 0.0; //it is zero because it is not possible 
+                     //to be computed since only u is restrained 
+                     //by Dirichlet BC in that formulation/implementation
+    values[0]  = values[1] + values[2];    
+  }//if                 
 }//method
 
 #ifdef _AUTODIFF
@@ -392,7 +409,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
   
 }
 
-/** Termos de p\ Projects/Makefileenalidade. */
+/** Termos de penalidade. */
 void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
                                             TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
   
