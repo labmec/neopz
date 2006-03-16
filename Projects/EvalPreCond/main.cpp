@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.2 2006-03-16 13:26:01 tiago Exp $
+//$Id: main.cpp,v 1.3 2006-03-16 14:16:06 tiago Exp $
 
 /**
  * Validation test of TPZElasticity3D material
@@ -102,7 +102,7 @@ int main(){
 
   InitializePZLOG();
 
-  const int numiter = 2;
+  const int numiter = 20000;
   const REAL tol = 1.e-10;
   const int SSOR_numiter = 10;
   const REAL SSOR_tol = 1.e-10;
