@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.15 2005-12-19 18:03:14 tiago Exp $
+//$Id: pzbndcond.h,v 1.16 2006-03-16 01:43:56 tiago Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -87,7 +87,7 @@ public :
   virtual int NEvalErrors() {return fMaterial->NEvalErrors();}
 
   int Type() { return fType; }
-
+  
   TPZFMatrix &Val1() { return fBCVal1; }
 
   TPZFMatrix &Val2() { return fBCVal2; }
@@ -180,6 +180,26 @@ public :
     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
     //NOTHING TO BE DONE HERE
   }
+  
+  /** Compute interface jumps 
+   * values[1] = (solleft - solright)^2
+   * values[2] = (dsolleft - dsolright)^2
+   * values[0] = values[1] + values[2]
+   * @since Feb 14, 2006
+   */  
+  virtual void InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
+                         TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
+                         TPZVec<REAL> &values);
+  
+  /** Compute interface jumps from element to Dirichlet boundary condition
+   * values[1] = (solleft - solright)^2
+   * values[2] = (dsolleft - dsolright)^2
+   * values[0] = values[1] + values[2]
+   * @since Feb 14, 2006
+   */  
+  virtual void BCInterfaceJumps(TPZVec<REAL> &leftu, TPZBndCond &bc, TPZVec<REAL> &values){
+    //NOTHING TO BE DONE HERE
+  }       
 
   /**
   * returns the unique identifier for reading/writing objects to streams

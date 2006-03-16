@@ -143,6 +143,34 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 
 }
 
+void TPZBndCond::InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
+                                TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
+                                TPZVec<REAL> &values){
+   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
+
+   if(!mat) return;
+   if(fForcingFunction) {
+      TPZManVector<REAL> result(fBCVal2.Rows());
+      fForcingFunction(x,result);
+      int i;
+      for(i=0; i<fBCVal2.Rows(); i++) {
+        fBCVal2(i,0) = result[i];
+      }
+   }
+
+   if(leftu.NElements() == 0) {
+      mat->BCInterfaceJumps(rightu, *this, values);
+      return;
+   }
+   
+   if(rightu.NElements() == 0) {
+      mat->BCInterfaceJumps(leftu, *this, values);
+      return;
+   }   
+   
+   std::cout << __PRETTY_FUNCTION__ << " - Huge problem. Both leftu and rightu contain elements. Wich one is the actual element neighbour to the Dirichlet boundary ?" << std::endl;
+
+}//InterfaceJumps
 
 int TPZBndCond::ClassId() const
 {
