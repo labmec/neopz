@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.4 2006-01-18 15:22:12 tiago Exp $
+//$Id: meshes.cpp,v 1.5 2006-03-16 01:53:09 tiago Exp $
 
 #include "meshes.h"
 
@@ -309,11 +309,11 @@ TPZCompMesh * CreateSimpleMeshWithExactSolution2(int h, int p){
   TPZMatPoisson3d * FirstEq  = mat->GetMaterial(0);
   TPZMatPoisson3d * SecondEq = mat->GetMaterial(1);
   FirstEq->SetInternalFlux(0.);
-  SecondEq->SetForcingFunction(Forcing22);
+  SecondEq->SetForcingFunction(Forcing22_eMenos6/*Forcing22*/);
 
   TPZManVector<REAL,2> convdir(2,0.);
   FirstEq->SetParameters(1., 0., convdir);
-  SecondEq->SetParameters(1./2., 0., convdir);
+  SecondEq->SetParameters(1.e-06/*1./2.*/, 0., convdir);
   mat->SetAlpha(1./3.);
   
   int nstate = 1;
@@ -361,5 +361,14 @@ void Forcing22(TPZVec<REAL> &pt, TPZVec<REAL> &force){
              +x*x*(8.-7.*y+y*y+2.*y*y*y)
              +x*(-6.-9.*y+7.*y*y+2.*y*y*y)
              );
+  force[0] = -1. * val;
+}
+
+void Forcing22_eMenos6(TPZVec<REAL> &pt, TPZVec<REAL> &force){
+  REAL x = pt[0];
+  REAL y = pt[1];
+  force.Resize(1);
+  REAL val = -exp(x)*x*(-2.-3.*y+3.*y*y+x*(2.-y+y*y))*1.e-06
+             -1./3.*exp(x)*(-(-1.+y)*y*y+x*(-1.+y)*y*y+x*x*x*(-1.+2.*y)+x*x*(1.-2.*y-y*y+y*y*y));
   force[0] = -1. * val;
 }

@@ -1,15 +1,17 @@
 // -*- c++ -*-
 
-//$Id: meshes.h,v 1.3 2006-01-14 20:02:32 tiago Exp $
+//$Id: meshes.h,v 1.4 2006-03-16 01:54:52 tiago Exp $
 
 class TPZCompMesh;
+class TPZFMatrix;
 #include "pzvec.h"
 
 /** Barra tracionada - Validado
  */
 TPZCompMesh * BarraTracionada(int h, int p); 
 
-/** Barra tracionada sem Dirichlet, apenas Neumann */
+/** Barra tracionada sem condicao Dirichlet - Validado
+ */
 TPZCompMesh * BarraTracionadaNeumann(int h, int p); 
 
 /** Barra tracionada girada de 10 graus em torno do eixo x.
@@ -27,18 +29,6 @@ void MomentoExtremidade(TPZVec<REAL> &pto, TPZVec<REAL> &force);
  */
 TPZCompMesh * VigaEngastadaForcaVolume(int h, int p);
 
-
- 
-/** Viga bi-engastada
- */
-// TPZCompMesh * VigaBiEngastada(int h, int p);
- 
-// /** Vigas em balanćo
-//  */
-// TPZCompMesh * VigasBalanco(int h, int p);
-//  
-// /** Bloco confinado
-//  */
-// TPZCompMesh * BlocoConfinado(int h, int p);
+void Rotate(TPZFMatrix & pt);
 
 void SetPOrder(int p);

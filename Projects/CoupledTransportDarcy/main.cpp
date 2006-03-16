@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.4 2006-01-18 15:22:12 tiago Exp $
+//$Id: main.cpp,v 1.5 2006-03-16 01:53:09 tiago Exp $
 
 /**
  * Percolation of water from the fracture into the porous media.
@@ -93,13 +93,13 @@ int main22(){
   A(1,1) = 4.;
   A(2,2) = 3.;
   A(3,3) = 4.;
-   
+  A.Print("",cout,EMathematicaInput); 
   int p;
   for(p = 0; p < 3; p++){
     B = A;  B.SetIsDecomposed(ENoDecompose);
     cout << "p = " << p << " - " << B.ConditionNumber(p, 200000, 1.e-14) << endl;
     B = A;  B.SetIsDecomposed(ENoDecompose);
-    B.Inverse(C);   B = A;  B.SetIsDecomposed(ENoDecompose);
+    B.Inverse(C); C.SetIsDecomposed(ENoDecompose); B = A; B.SetIsDecomposed(ENoDecompose);
     cout << B.MatrixNorm(p) << "  " << C.MatrixNorm(p, 200000, 1.e-14) << endl;
   }
 }//main
@@ -137,7 +137,7 @@ int main(){
 //  precond.SetSSOR( 1, 1., precondtol, 0);     
 //  precond.SetJacobi(1, precondtol, 0);
   step.ShareMatrix( precond );  
-  step.SetGMRES( 20000, 30, precond, 1.e-11, 0 ); 
+  step.SetGMRES( 20000, 30, precond, 1.e-16, 0 ); 
   cout << "SSOR/JACOBI PRECOND" << endl;
   an.SetSolver(step);
 #endif  
@@ -183,7 +183,7 @@ int main(){
   filedx << "1stEq_";
   filedx << "Solution.dx";
   an.DefineGraphMesh(2,scalnames,vecnames,&(filedx.str()[0]));
-  an.PostProcess(p);  
+  an.PostProcess(4);  
   }      
 
   TPZCoupledTransportDarcy::SetCurrentMaterial(1);
@@ -192,7 +192,7 @@ int main(){
   an.Assemble();
   an.Solution().Zero();
   an.Solve();
-  /*an.SetExact(ExactSol_u);*/ an.SetExact(ExactSol_u2);
+  an.SetExact(ExactSol_u2);
   an.PostProcess(pos,std::cout);  
   std::cout << "Problem solved\n";  
    
@@ -205,7 +205,7 @@ int main(){
   filedx << "2ndEq_";
   filedx << "Solution.dx";
   an.DefineGraphMesh(2,scalnames,vecnames,&(filedx.str()[0]));
-  an.PostProcess(p);  
+  an.PostProcess(4);  
   }    
     
   WholeTime.stop();

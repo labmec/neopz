@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: meshes.h,v 1.3 2006-01-18 15:22:12 tiago Exp $
+//$Id: meshes.h,v 1.4 2006-03-16 01:53:09 tiago Exp $
 
 class TPZCompMesh;
 class TPZFMatrix;
@@ -14,6 +14,8 @@ void SetPOrder(int p);
 TPZCompMesh * CreateSimpleMeshWithExactSolution2(int h, int p);
 void ExactSol_u2(TPZVec<REAL> &pt, TPZVec<REAL> &sol, TPZFMatrix &deriv);
 void Forcing22(TPZVec<REAL> &pt, TPZVec<REAL> &force);
+//Para rodar o problema acima com difusao da segunda equacao igual 1e-06:
+void Forcing22_eMenos6(TPZVec<REAL> &pt, TPZVec<REAL> &force);
 
 //Cria malha simple com solucao analitica polinomial para validar TPZCoupledTransportDarcy
 TPZCompMesh * CreateSimpleMeshWithExactSolution(int h, int p);

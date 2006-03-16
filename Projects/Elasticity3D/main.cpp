@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.7 2006-01-14 20:03:07 tiago Exp $
+//$Id: main.cpp,v 1.8 2006-03-16 01:56:04 tiago Exp $
 
 /**
  * Validation test of TPZElasticity3D material
@@ -160,7 +160,18 @@ int main(){
   std::cout << "Numero de equacoes = " << an.Mesh()->NEquations() << std::endl;
   cout << "h = " << h << " - p = " << p << endl;  
   std::cout.flush();
-   
+  an.Run();
+
+/**** Aqui faz DX ****/
+  TPZVec<char *> scalnames(1);
+  TPZVec<char *> vecnames(1);
+  scalnames[0] = "Stress1";
+  vecnames[0] = "PrincipalStress";
+  std::stringstream filedx;
+  filedx << "result.dx";
+  an.DefineGraphMesh(3,scalnames,vecnames,&(filedx.str()[0]));
+  an.PostProcess(1);
+  
   delete cmesh;
   delete gmesh;
   return 0;
