@@ -12,7 +12,14 @@
 
 #ifdef LOG4CXX
 
+#ifdef DEBUG
+  #define DEBUG2
+#endif
+
+#include <sstream>
 #include "log4cxx/logger.h"
+#include "log4cxx/basicconfigurator.h"
+#include <log4cxx/propertyconfigurator.h>
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 
@@ -34,4 +41,37 @@ using namespace log4cxx::helpers;
 
 
 #endif
+
+#include "config.h"
+
+inline void InitializePZLOG(std::string &configfile)
+{
+#ifdef LOG4CXX
+  log4cxx::PropertyConfigurator::configure(configfile);
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
+    logger->setAdditivity(false);
+    logger->setLevel(log4cxx::Level::DEBUG);
+  }
+ {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
+    logger->setAdditivity(false);
+    logger->setLevel(log4cxx::Level::DEBUG);
+  }
+#endif
+}
+
+inline void InitializePZLOG()
+{
+  std::string path;
+  std::string configfile;
+#ifdef HAVE_CONFIG_H
+  path = PZSOURCEDIR;
+#else
+  path = "";
+#endif
+  configfile = path;
+  configfile += "/Util/log4cxx.cfg";
+  InitializePZLOG(configfile);
+}
 
