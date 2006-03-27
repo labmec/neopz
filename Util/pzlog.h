@@ -9,6 +9,9 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
+#ifndef PZLOGH
+#define PZLOGH
+
 
 #ifdef LOG4CXX
 
@@ -65,3 +68,5 @@ inline void InitializePZLOG(std::string &configfile)
 }
 
 void InitializePZLOG();
+
+#endif
