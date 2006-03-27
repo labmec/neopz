@@ -42,7 +42,10 @@ using namespace log4cxx::helpers;
 
 #endif
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 inline void InitializePZLOG(std::string &configfile)
 {
@@ -61,17 +64,4 @@ inline void InitializePZLOG(std::string &configfile)
 #endif
 }
 
-inline void InitializePZLOG()
-{
-  std::string path;
-  std::string configfile;
-#ifdef HAVE_CONFIG_H
-  path = PZSOURCEDIR;
-#else
-  path = "";
-#endif
-  configfile = path;
-  configfile += "/Util/log4cxx.cfg";
-  InitializePZLOG(configfile);
-}
-
+void InitializePZLOG();
