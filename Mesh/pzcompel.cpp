@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.23 2006-03-09 11:47:32 phil Exp $
+//$Id: pzcompel.cpp,v 1.24 2006-04-03 20:18:14 tiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -116,62 +116,49 @@ void (*TPZShapeCube::fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & d
 */
 
 TPZCompEl::TPZCompEl() {
-  LOGPZ_INFO(logger, "Entering empty constructor.");
   fMesh = 0;
   fIndex = -1;
-  LOGPZ_INFO(logger, "Exiting empty constructor.");
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) {
-  LOGPZ_INFO(logger, "Entering constructor (TPZCompMesh &mesh, TPZGeoEl *ref, int &index).");
   fMesh = &mesh;
   index = mesh.ElementVec().AllocateNewElement();
   mesh.ElementVec()[index] = this;
   fIndex = index;
   fReference = ref;
   fReferenceIndex = (ref == 0) ? -1 : ref->Index();
-  LOGPZ_INFO(logger, "Exiting empty constructor (TPZCompMesh &mesh, TPZGeoEl *ref, int &index).");
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy) {
-  LOGPZ_INFO(logger, "Entering constructor (TPZCompMesh &mesh, const TPZCompEl &copy).");
   fMesh = &mesh;
   int index = copy.fIndex;
   if(index >= 0) mesh.ElementVec()[index] = this;
   fIndex = index;
   fReference = copy.Reference();
   fReferenceIndex = copy.fReferenceIndex;
-  LOGPZ_INFO(logger, "Exiting empty constructor (TPZCompMesh &mesh, const TPZCompEl &copy).");
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index) {
-  LOGPZ_INFO(logger, "Entering constructor (TPZCompMesh &mesh, const TPZCompEl &copy, int &index).");
   fMesh = &mesh;
   index = mesh.ElementVec().AllocateNewElement();
   if(index >= 0) mesh.ElementVec()[index] = this;
   fIndex = index;
   fReference = copy.fReference;
   fReferenceIndex = copy.fReferenceIndex;
-  LOGPZ_INFO(logger, "Exiting empty constructor (TPZCompMesh &mesh, const TPZCompEl &copy, int &index).");
 }
 
 TPZCompEl::~TPZCompEl() {
-  LOGPZ_INFO(logger, "Entering destructor.");
   int index = Index();
   fMesh->ElementVec()[index] = 0;
   fMesh->ElementVec().SetFree(index);
-  LOGPZ_INFO(logger, "Exiting destructor.");
 }
 
 MElementType TPZCompEl::Type() {
-  LOGPZ_INFO(logger, "Entering Type.");
   LOGPZ_WARN(logger, "Type unknown");
-  LOGPZ_INFO(logger, "Exiting Type.");
   return ENoType;
 }
 
 void TPZCompEl::LoadSolution() {
-  LOGPZ_INFO(logger, "Entering LoadSolution.");
   // an element without mesh is a free element
   if(!Mesh() || !HasDependency()) return;
   TPZStack<int> connectlist;
@@ -223,7 +210,6 @@ void TPZCompEl::LoadSolution() {
     }
     current_order--;
   }
-  LOGPZ_INFO(logger, "Exiting normally from LoadSolution.");
 }
 
 void TPZCompEl::SetMesh(TPZCompMesh *mesh) {
@@ -236,15 +222,12 @@ void TPZCompEl::SetMesh(TPZCompMesh *mesh) {
 }
 
 TPZCompMesh *TPZCompEl::Mesh() {
-  LOGPZ_INFO(logger, "Entering Mesh.");
   if(!fMesh) 
-    LOGPZ_ERROR(logger, "TPZCompEl.Mesh called for a uninitialized element.");
-  LOGPZ_INFO(logger, "Exiting Mesh.");
+    LOGPZ_WARN(logger, "TPZCompEl.Mesh called for a uninitialized element.");
   return fMesh;
 }
 
 TPZConnect &TPZCompEl::Connect(int i) {
-  LOGPZ_INFO(logger, "Entering Connect.");
 #ifndef NODEBUG
   if(fMesh) {
     int connectindex = ConnectIndex(i);
@@ -261,7 +244,6 @@ TPZConnect &TPZCompEl::Connect(int i) {
   LOGPZ_INFO(logger, "Exiting Connect.")
   return dummy;
 #else
-  LOGPZ_INFO(logger, "Exiting Connect.")
   return fMesh->ConnectVec()[ConnectIndex(i)];
 #endif
 }
@@ -278,14 +260,11 @@ void TPZCompEl::Print(std::ostream & out) {
 }
 
 std::ostream& operator<<(std::ostream &s,TPZCompEl & el){
-  LOGPZ_INFO(logger, "Entering operator <<.");
   el.Print(s);
-  LOGPZ_INFO(logger, "Exiting operator <<.");
   return s;
 }
 
 void TPZCompEl::PrintSolution(TPZVec<REAL> &point,char *varname,std::ostream &s) {
-  LOGPZ_INFO(logger, "Entering PrintSolution.");
   TPZGeoEl *georef = Reference();
   TPZMaterial *mat = Material();
   if(!georef || !mat) {
@@ -305,11 +284,9 @@ void TPZCompEl::PrintSolution(TPZVec<REAL> &point,char *varname,std::ostream &s)
   for(int i=0; i<sol.NElements(); i++) {
     s << sol[i] << '\t';
   }
-  LOGPZ_INFO(logger, "Exiting PrintSolution normally.");
 }
 
 void TPZCompEl::PrintCoordinate(TPZVec<REAL> &point,int CoordinateIndex,std::ostream &s) {
-  LOGPZ_INFO(logger, "Entering PrintCoordinate.");
   TPZGeoEl *georef = Reference();
   if(!georef) {
     LOGPZ_WARN(logger,"Exiting PrintCoordinate should not be called on an element which doesnt have a geometric reference");
@@ -319,11 +296,9 @@ void TPZCompEl::PrintCoordinate(TPZVec<REAL> &point,int CoordinateIndex,std::ost
   X.Fill(0.);
   georef->X(point,X);
   s << X[CoordinateIndex] << '\t';
-  LOGPZ_INFO(logger, "Exiting PrintCoordinate normally.");
 }
 
 void TPZCompEl::PrintTitle(char *varname,std::ostream &s) {
-  LOGPZ_INFO(logger, "Entering PrintTitle.");
   TPZMaterial *mat = Material();
   TPZGeoEl *georef = Reference();
   if(!georef || !mat) {
@@ -339,43 +314,38 @@ void TPZCompEl::PrintTitle(char *varname,std::ostream &s) {
     return;
   }
   for(int i=0; i<numvar; i++) s << varname << '_' << i << '\t';
-  LOGPZ_INFO(logger, "Exiting PrintTitle.");
 }
 
-void TPZCompEl::Chebyshev(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
-  LOGPZ_INFO(logger, "Entering Chebyshev");
-  // Quadratic or higher shape functions
-  if(num <= 0) {
-    LOGPZ_INFO(logger, "Exiting Chebyshev - num <= 0");
-    return;
-  }
-  phi.Put(0,0,1.0);
-  dphi.Put(0,0, 0.0);
-  if(num == 1) {
-    LOGPZ_INFO(logger, "Exiting Chebyshev num == 1");
-    return;
-  }
-  phi.Put(1,0, x);
-  dphi.Put(0,1, 1.0);
-  int ord;
-  for(ord = 2;ord<num;ord++) {
-    phi.Put(ord,0, 2.0*x*phi(ord-1,0) - phi(ord-2,0));
-    dphi.Put(0,ord, 2.0*x*dphi(0,ord-1) + 2.0*phi(ord-1,0) - dphi(0,ord-2));
-  }
-  LOGPZ_INFO(logger, "Exiting Chebyshev");
-}
+// void TPZCompEl::Chebyshev(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
+//   // Quadratic or higher shape functions
+//   if(num <= 0) {
+//     LOGPZ_INFO(logger, "Exiting Chebyshev - num <= 0");
+//     return;
+//   }
+//   phi.Put(0,0,1.0);
+//   dphi.Put(0,0, 0.0);
+//   if(num == 1) {
+//     LOGPZ_INFO(logger, "Exiting Chebyshev num == 1");
+//     return;
+//   }
+//   phi.Put(1,0, x);
+//   dphi.Put(0,1, 1.0);
+//   int ord;
+//   for(ord = 2;ord<num;ord++) {
+//     phi.Put(ord,0, 2.0*x*phi(ord-1,0) - phi(ord-2,0));
+//     dphi.Put(0,ord, 2.0*x*dphi(0,ord-1) + 2.0*phi(ord-1,0) - dphi(0,ord-2));
+//   }
+//   LOGPZ_INFO(logger, "Exiting Chebyshev");
+// }
 
 inline void TPZCompEl::Divide(int index, TPZVec<int> &subindex, int interpolate) {
-  LOGPZ_INFO(logger, "Entering Divide");
   subindex.Resize(0);
   LOGPZ_WARN(logger,"TPZCompEl::Divide called");
-  LOGPZ_INFO(logger, "Exiting Divide");
 }
 
 /**The TElementMatrix objects will be called ekmat and efmat respectively
 vector containing all nodes of the constrained element will be kept into fConstrNod*/
 void TPZCompEl::ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat) {
-  LOGPZ_INFO(logger, "Entering ApplyConstraints - ek ef");
   int totalnodes= ekmat.fConnect.NElements();
   ekmat.fConstrConnect.Resize(totalnodes);
   if(totalnodes) ekmat.fConstrConnect.Fill(0,0);
@@ -531,13 +501,11 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat
     } // end of loop over all nodes
     current_order++;
   } // end of while loop
-  LOGPZ_INFO(logger, "Exiting ApplyConstraints - ek ef");
 }
 
 /**The TElementMatrix objects will be called ekmat and efmat respectively
 vector containing all nodes of the constrained element will be kept into fConstrNod*/
 void TPZCompEl::ApplyConstraints(TPZElementMatrix &efmat) {
-  LOGPZ_INFO(logger, "Entering ApplyConstraints - ef");
   int totalnodes= efmat.fConnect.NElements();
   efmat.fConstrConnect.Resize(totalnodes);
   if(totalnodes) efmat.fConstrConnect.Fill(0,0);
@@ -668,14 +636,11 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &efmat) {
     } // end of loop over all nodes
     current_order++;
   } // end of while loop
-  LOGPZ_INFO(logger, "Exiting ApplyConstraints - ef");
 }
 
 void TPZCompEl::EvaluateError(void (* /*fp*/)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
                               TPZVec<REAL> &/*errors*/,TPZBlock * /*flux*/) {
-  LOGPZ_INFO(logger, "Entering EvaluateError");
   LOGPZ_WARN(logger, "EvaluateError is called.");
-  LOGPZ_INFO(logger, "Exiting EvaluateError");
 }
 
 void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZManVector<REAL> &sol){
@@ -694,7 +659,6 @@ void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZManVector<REAL> &sol){
 }
 
 void TPZCompEl::BuildConnectList(TPZStack<int> &connectlist) {
-  LOGPZ_INFO(logger, "Entering BuildConnectList");
   TPZConnect *dfn;
   int dfnindex;
   int nconnects = NConnects();
@@ -704,24 +668,20 @@ void TPZCompEl::BuildConnectList(TPZStack<int> &connectlist) {
     dfn = &Connect(in);
     dfn->AddToList(dfnindex,*Mesh(),connectlist);
   }
-  LOGPZ_INFO(logger, "Exiting BuildConnectList");  
 }
 
 int TPZCompEl::HasDependency() {
-  LOGPZ_INFO(logger, "Entering HasDependency");
   int nconnects = NConnects();
   int in;
   for(in=0; in<nconnects; in++) if(Connect(in).HasDependency()){
     LOGPZ_INFO(logger, "Exiting True HasDependency");
     return 1;
   }
-  LOGPZ_INFO(logger, "Exiting False HasDependency");
   return 0;
 }
 
 void TPZCompEl::BuildDependencyOrder(TPZVec<int> &connectlist,
                                      TPZVec<int> &DependenceOrder) {
-  LOGPZ_INFO(logger, "Entering BuildDependencyOrder");
   // nodelist (input) : vector which contains pointers to all nodes which
   // are in the dependency chain of the nodes of the element
   int totalnodes = connectlist.NElements();
@@ -750,22 +710,9 @@ void TPZCompEl::BuildDependencyOrder(TPZVec<int> &connectlist,
     }
     CurrentOrder++;
   }
-  LOGPZ_INFO(logger, "Exiting BuildDependencyOrder");
 }
 
-int TPZCompEl::Index() {
-  LOGPZ_INFO(logger, "Entering Index");
-/*   int i=0; */
-/*   int numel = fMesh->NElements(); */
-/*   TPZAdmChunkVector<TPZCompEl *> &vec = fMesh->ElementVec(); */
-/*   while ( i < numel ) { */
-/*     if (vec[i] == this) break; */
-/*     i++; */
-/*   } */
-/*   return i; */
-  LOGPZ_INFO(logger, "Exiting Index");
-  return fIndex;
-}
+
 
 void TPZCompEl::SetIndex(int index) {
   LOGPZ_INFO(logger, "Entering SetIndex");
@@ -812,18 +759,13 @@ REAL TPZCompEl::CompareElement(int var, char *matname){
 
 void TPZCompEl::LoadElementReference()
 {
-  LOGPZ_INFO(logger, "Entering LoadElementReference");
   TPZGeoEl *ref = Reference();
   if(ref) ref->SetReference(this);
-  LOGPZ_INFO(logger, "Exiting LoadElementReference");
 }
 
 void TPZCompEl::CalcResidual(TPZElementMatrix &ef){
-  LOGPZ_INFO(logger, "Entering CalcResidual");
   TPZElementMatrix ek;
   CalcStiff(ek,ef);
-//  cout << "TPZCompEl::CalcResidual(*) is called." << endl;
-  LOGPZ_INFO(logger, "Exiting CalcResidual");
 }
 
 TPZGeoEl * TPZCompEl::GetRefElPatch(){
@@ -871,7 +813,6 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
 }
 
 REAL TPZCompEl::MaximumRadiusOfEl(){
-  LOGPZ_INFO(logger, "Entering MaximumRadiusOfEl");
   //O elemento deve ser a envoltura convexa dos seus v�tices
   if(!this) {
     LOGPZ_ERROR(logger,"TPZCompMesh::MaximumRadiusOfEl() null element");
@@ -894,13 +835,11 @@ REAL TPZCompEl::MaximumRadiusOfEl(){
       if(dist > maxdist) maxdist = dist;
     }
   }
-  LOGPZ_INFO(logger, "Exiting MaximumRadiusOfEl");
   return maxdist;
 }
 
 REAL TPZCompEl::LesserEdgeOfEl(){
-  LOGPZ_INFO(logger, "Entering LesserEdgeOfEl");
-  
+ 
   if(!this) LOGPZ_INFO(logger,"TPZCompMesh::LesserEdgeOfEl null element");
 
   int i,j,k;
@@ -920,7 +859,7 @@ REAL TPZCompEl::LesserEdgeOfEl(){
       if(dist < mindist) mindist = dist;
     }
   }
-  LOGPZ_INFO(logger, "Exiting LesserEdgeOfEl");
+
   return mindist;
 }
 
@@ -963,10 +902,10 @@ void TPZCompEl::CreateInterfaces(bool BetweenContinuous){
   TPZInterpolatedElement * thisintel = dynamic_cast<TPZInterpolatedElement *>(this);
   if (!thisdisc && !thisintel) return; //interfaces are created only by TPZInterpolatedElement and TPZCompElDisc
 
-  //n� verifica-se caso o elemento de contorno
-  //�maior em tamanho que o interface associado
-  //caso AdjustBoundaryElement n� for aplicado
-  //a malha �criada consistentemente
+  //nao verifica-se caso o elemento de contorno
+  //eh maior em tamanho que o interface associado
+  //caso AdjustBoundaryElement nao for aplicado
+  //a malha eh criada consistentemente
   TPZGeoEl *ref = Reference();
   int nsides = ref->NSides();
   int InterfaceDimension = this->Material()->Dimension() - 1;
@@ -981,7 +920,7 @@ void TPZCompEl::CreateInterfaces(bool BetweenContinuous){
     }
     TPZStack<TPZCompElSide> highlist;
     thisside.HigherLevelElementList(highlist,0,1);
-    //a interface se cria uma vez s� quando existem ambos 
+    //a interface se cria uma vez so quando existem ambos 
     //elementos esquerdo e direito (computacionais)
     if(!highlist.NElements()) {
       this->CreateInterface(side, BetweenContinuous);//s�tem iguais ou grande => pode criar a interface
@@ -1011,12 +950,12 @@ void TPZCompEl::CreateInterfaces(bool BetweenContinuous){
 
 TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuous)
 {
-  LOGPZ_INFO(logger, "Entering CreateInterface");
+//  LOGPZ_INFO(logger, "Entering CreateInterface");
   TPZInterfaceElement * newcreatedinterface = NULL;
 
   TPZGeoEl *ref = Reference();
   if(!ref) {
-    LOGPZ_WARN(logger, "Exiting CreateInterface Null reference reached - NULL interface used");
+    LOGPZ_WARN(logger, "Exiting CreateInterface Null reference reached - NULL interface returned");
     return newcreatedinterface;
   }
 
@@ -1026,17 +965,18 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
   thisside.EqualLevelElementList(list,0,1);//retorna distinto ao atual ou nulo
   int size = list.NElements();
   //espera-se ter os elementos computacionais esquerdo e direito 
-  //j�criados antes de criar o elemento interface
+  //ja criados antes de criar o elemento interface
   if(size){
     //Interface has the same material of the neighbour with lesser dimension.
-    //It makes the interface has the same material of boundary conditions (TPZCompElDisc with interface dimension)
-    LOGPZ_DEBUG(logger, "There are size");
+    //It makes the interface have the same material of boundary conditions (TPZCompElDisc with interface dimension)
     int matid;
     int thisdim = this->Dimension();
     int neighbourdim = list[0].Element()->Dimension();
-    if (thisdim == neighbourdim) matid = this->Material()->Id();
-    else 
-    {
+    if (thisdim == neighbourdim){
+//      matid = this->Material()->Id();
+        matid = this->Mesh()->Reference()->InterfaceMaterial(this->Material()->Id(), list[0].Element()->Material()->Id() );
+    }
+    else { //one element is a boundary condition
       if (thisdim < neighbourdim) matid = this->Material()->Id();
       else matid = list[0].Element()->Material()->Id();
     }
@@ -1055,21 +995,22 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
 
     if (BetweenContinuous == false){
       //It means at least one element must be discontinuous
-      if (!thisdisc && !neighdisc) return NULL;
+      if (!thisdisc && !neighdisc){
+        return NULL;
+      }
     }
     
     TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual    
     
 
     if(Dimension() > list0->Dimension()){
-       //o de volume �o direito caso um deles seja BC
+       //o de volume eh o direito caso um deles seja BC
        //a normal aponta para fora do contorno
        newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,this,list0, thisside, neighside);
     } else {
-       //caso contr�io ou caso ambos sejam de volume 
+       //caso contrario ou caso ambos sejam de volume 
        newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,list0,this, neighside, thisside);
     }
-    LOGPZ_WARN(logger, "Exiting CreateInterface - NULL interface used");
     return newcreatedinterface;
   }
 
@@ -1077,18 +1018,20 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
 //Higher elements will not be considered by this method. In that case the interface must be created by the neighbour.
   TPZCompElSide lower = thisside.LowerLevelElementList(0);
   if(lower.Exists()){
-    LOGPZ_DEBUG(logger, "lower exists");
     //Interface has the same material of the neighbour with lesser dimension.
     //It makes the interface has the same material of boundary conditions (TPZCompElDisc with interface dimension)
     int matid;
     int thisdim = this->Dimension();
     int neighbourdim = lower.Element()->Dimension();
-    if (thisdim == neighbourdim) matid = this->Material()->Id();
-    else 
-    {
+    
+    if (thisdim == neighbourdim){
+//      matid = this->Material()->Id();
+        matid = this->Mesh()->Reference()->InterfaceMaterial(this->Material()->Id(), lower.Element()->Material()->Id() );
+    }
+    else { //one element is a boundary condition
       if (thisdim < neighbourdim) matid = this->Material()->Id();
       else matid = lower.Element()->Material()->Id();
-     }
+    }    
 
  
     TPZCompEl *lowcel = lower.Element();
@@ -1102,7 +1045,9 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
     
     if (BetweenContinuous == false){
       //It means at least one element must be discontinuous
-      if (!thisdisc && !neighdisc) return NULL;
+      if (!thisdisc && !neighdisc){
+        return NULL;
+      }
     }    
          
     //existem esquerdo e direito: this e lower
@@ -1116,10 +1061,8 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
     } else {
        newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcel,this,neighside,thisside);
     }
-    LOGPZ_INFO(logger, "Exiting CreateInterface");
     return newcreatedinterface;
   }
-  LOGPZ_INFO(logger, "Exiting CreateInterface");
   return newcreatedinterface;
 }
 
@@ -1160,7 +1103,11 @@ void TPZCompEl::RemoveInterfaces(){
     int size = list.NElements(),i;            // 'isto pode incluir elementos interfaces'
     //tirando os elementos de interface da lista
     for(i=0;i<size;i++){
-      if(list[i].Element()->Type() == EInterface) list[i] = TPZCompElSide();//tirando interface
+      if(list[i].Element()->Type() == EInterface) {
+        LOGPZ_DEBUG(logger, "Removing interface element from the list of higher level elements");
+        //This need to be done because otherwise list could be invalidated when an interface is removed.
+        list[i] = TPZCompElSide();//tirando interface
+      }
     }
     for(i=0;i<size;i++){// percorre os elementos menores
       if(!list[i].Element()) continue;
@@ -1172,8 +1119,8 @@ void TPZCompEl::RemoveInterfaces(){
       int neq = equal.NElements(),k=-1;
       while(++k < neq) if(equal[k].Element()->Type() != EInterface) break;//procurando elemento descont�uo cujo
       if(!neq || k == neq){                               //lado faz parte da parti� do lado side do this
-	PZError << __PRETTY_FUNCTION__ << " - inconsistency of data";
-	exit(-1);//elemento descont�uo n� achado: ERRO
+	      LOGPZ_FATAL(logger, " Inconsistency of data");
+	      exit(-1);//elemento descont�uo n� achado: ERRO
       }// chame removeinterface do elemento menor
 
       equal[k].Element()->RemoveInterface(equal[k].Side());

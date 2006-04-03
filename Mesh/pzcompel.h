@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.22 2006-03-09 11:47:32 phil Exp $
+// $Id: pzcompel.h,v 1.23 2006-04-03 20:18:14 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -659,5 +659,8 @@ inline void TPZCompEl::ProjectFlux(TPZElementMatrix &ek,TPZElementMatrix &ef) {
   std::cout << "TPZCompEl::ProjectFlux is called." << std::endl;
 }
 
+inline int TPZCompEl::Index() {
+  return fIndex;
+}
 
 #endif
