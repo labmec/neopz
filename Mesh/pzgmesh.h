@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.20 2006-01-31 19:57:01 cesar Exp $
+//$Id: pzgmesh.h,v 1.21 2006-04-03 20:41:18 tiago Exp $
 
 /**File : pzgmes.h
 
@@ -253,46 +253,5 @@ public:
     return fRefPatterns[eltype];
   }
 };
-
-inline int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial){
-  std::pair<int, int> leftright(leftmaterial, rightmaterial);
-  std::pair<int, int> rightleft(rightmaterial, leftmaterial);
-  InterfaceMaterialsMap::iterator w, e;
-  e = fInterfaceMaterials.end();
-
-  w = fInterfaceMaterials.find(leftright);
-  if (w == e) { //std::pair leftright does not exist yet
-    w = fInterfaceMaterials.find(rightleft);
-    if (w == e){ //std::pair rightleft does not exist too
-      fInterfaceMaterials[leftright] = interfacematerial;
-      return 1;
-    }
-  }
-  return 0;
-}
-
-inline int TPZGeoMesh::InterfaceMaterial(int leftmaterial, int rightmaterial){
-  std::pair<int, int> leftright(leftmaterial, rightmaterial);
-  std::pair<int, int> rightleft(rightmaterial, leftmaterial);
-  InterfaceMaterialsMap::iterator w, e;
-  e = fInterfaceMaterials.end();
-  w = fInterfaceMaterials.find(leftright);
-  if (w != e)
-    return w->second;
-
-  w = fInterfaceMaterials.find(rightleft);
-  if (w != e)
-    return w->second;
-
-  PZError << "\nTPZGeoMesh::InterfaceMaterial - Interface material not found " << std::endl;
-  return -9999;
-}
-
-inline void TPZGeoMesh::ClearInterfaceMaterialsMap(){
-  InterfaceMaterialsMap::iterator b, e;
-  b = fInterfaceMaterials.begin();
-  e = fInterfaceMaterials.end();
-  fInterfaceMaterials.erase(b, e);    
-}
 
 #endif

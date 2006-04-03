@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.24 2006-02-21 14:48:57 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.25 2006-04-03 20:41:09 tiago Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -30,6 +30,8 @@ Method definition for class TPZGeoMesh.*/
 #include "pzelgpi3d.h"
 #include <TPZRefPattern.h>
 #include <tpzgeoelrefpattern.h>
+
+#include <sstream>
 
 #include <string>
 #ifdef BORLAND
@@ -976,5 +978,48 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
     vals[2] = it->second;
     buf.Write(vals,3);
   }
+}
+
+int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial){
+  std::pair<int, int> leftright(leftmaterial, rightmaterial);
+  std::pair<int, int> rightleft(rightmaterial, leftmaterial);
+  InterfaceMaterialsMap::iterator w, e;
+  e = fInterfaceMaterials.end();
+
+  w = fInterfaceMaterials.find(leftright);
+  if (w == e) { //std::pair leftright does not exist yet
+    w = fInterfaceMaterials.find(rightleft);
+    if (w == e){ //std::pair rightleft does not exist too
+      fInterfaceMaterials[leftright] = interfacematerial;
+      return 1;
+    }
+  }
+  return 0;
+}
+
+int TPZGeoMesh::InterfaceMaterial(int leftmaterial, int rightmaterial){
+  std::pair<int, int> leftright(leftmaterial, rightmaterial);
+  InterfaceMaterialsMap::iterator w, e;
+  e = fInterfaceMaterials.end();
+  
+  //trying to find an interface material associated to left and right materials
+  w = fInterfaceMaterials.find(leftright);
+  if (w != e) return w->second;
+
+  //when left and right are equal and no exception case was inserted in interfacematerialmap return the same material of left and right
+  if (leftmaterial == rightmaterial) return leftmaterial;
+
+  //error message
+  std::stringstream mess;
+  mess << "\nTPZGeoMesh::InterfaceMaterial - Interface material not found ";
+  PZError << mess.str()  << std::endl;
+  return -9999;
+}
+
+void TPZGeoMesh::ClearInterfaceMaterialsMap(){
+  InterfaceMaterialsMap::iterator b, e;
+  b = fInterfaceMaterials.begin();
+  e = fInterfaceMaterials.end();
+  fInterfaceMaterials.erase(b, e);    
 }
 
