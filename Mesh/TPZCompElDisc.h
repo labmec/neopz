@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.41 2005-12-21 11:57:10 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.42 2006-04-03 20:42:00 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -131,7 +131,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   }
 
   ~TPZCompElDisc() {
-    if(Reference())Reference()->ResetReference();
+    if(Reference()->Reference() == this) Reference()->ResetReference();
    }
 
   /**

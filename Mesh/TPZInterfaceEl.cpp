@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.52 2006-03-16 01:50:12 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.53 2006-04-03 20:42:17 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -1292,7 +1292,7 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
 	 if (intelR){
 	    TPZManVector<REAL> FaceXPoint(3), RightXPoint(3);
 	    this->Reference()->X( intpoint, FaceXPoint);
-	    intelR->Reference()->X( LeftIntPoint, RightXPoint);
+	    intelR->Reference()->X( RightIntPoint, RightXPoint);
 	    int i, n = FaceXPoint.NElements();
 	    if (n != RightXPoint.NElements() ){
 	       PZError << __PRETTY_FUNCTION__ << endl
