@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.24 2006-04-03 20:18:14 tiago Exp $
+//$Id: pzcompel.cpp,v 1.25 2006-04-04 13:43:19 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -55,7 +55,6 @@ static LoggerPtr loggerSide(Logger::getLogger("pz.mesh.tpzcompelside"));
 #endif
 
 void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & blockdiag) {
-  LOGPZ_INFO(logger, "Entering CalcBlockDiagonal.");
   TPZElementMatrix ek,ef;
   int b;
   CalcStiff(ek,ef);
@@ -99,7 +98,6 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal &
       blockdiag.AddBlock(b,ekbl);
     }
   }
-  LOGPZ_INFO(logger, "Exiting CalcBlockDiagonal.");
 }
 
 int TPZCompEl::gOrder = 2;
@@ -213,12 +211,10 @@ void TPZCompEl::LoadSolution() {
 }
 
 void TPZCompEl::SetMesh(TPZCompMesh *mesh) {
-  LOGPZ_INFO(logger, "Entering SetMesh.");
   // The mesh can be null, indicating that the element is now unused
   if(!mesh)
     LOGPZ_ERROR(logger, "TPZCompEl.SetMesh called with zero pointer.");
   fMesh = mesh;
-  LOGPZ_INFO(logger, "Exiting SetMesh.");
 }
 
 TPZCompMesh *TPZCompEl::Mesh() {
@@ -241,7 +237,6 @@ TPZConnect &TPZCompEl::Connect(int i) {
     exit(-1);
   }
   static TPZConnect dummy;
-  LOGPZ_INFO(logger, "Exiting Connect.")
   return dummy;
 #else
   return fMesh->ConnectVec()[ConnectIndex(i)];
@@ -249,14 +244,12 @@ TPZConnect &TPZCompEl::Connect(int i) {
 }
 
 void TPZCompEl::Print(std::ostream & out) {
-  LOGPZ_INFO(logger, "Entering Print.");
   out << "output for a computable element\n";
   out << "Number of connects = " << NConnects() << " Node indexes : ";
   int nod;
   for(nod=0; nod< NConnects(); nod++)
     out << ConnectIndex(nod) <<  ' ' ;
   out << endl;
-  LOGPZ_INFO(logger, "Exiting Print.");
 }
 
 std::ostream& operator<<(std::ostream &s,TPZCompEl & el){
@@ -644,7 +637,6 @@ void TPZCompEl::EvaluateError(void (* /*fp*/)(TPZVec<REAL> &loc,TPZVec<REAL> &va
 }
 
 void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZManVector<REAL> &sol){
-  LOGPZ_INFO(logger, "Entering Solution");
   if(var >= 100) {
     int ind = Index();
     if(fMesh->ElementSolution().Cols() > var-100) {
@@ -655,7 +647,6 @@ void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZManVector<REAL> &sol){
   } else {
     sol.Resize(0);
   }
-  LOGPZ_INFO(logger, "Exiting Solution");
 }
 
 void TPZCompEl::BuildConnectList(TPZStack<int> &connectlist) {
@@ -715,7 +706,6 @@ void TPZCompEl::BuildDependencyOrder(TPZVec<int> &connectlist,
 
 
 void TPZCompEl::SetIndex(int index) {
-  LOGPZ_INFO(logger, "Entering SetIndex");
   /*   int i=0; */
   /*   int numel = fMesh->NElements(); */
   /*   TPZAdmChunkVector<TPZCompEl *> &vec = fMesh->ElementVec(); */
@@ -725,12 +715,10 @@ void TPZCompEl::SetIndex(int index) {
   /*   } */
   /*   return i; */
   fIndex = index;
-  LOGPZ_INFO(logger, "Exiting SetIndex");
   return;
 }
 
 int TPZCompEl::NEquations(){
-  LOGPZ_INFO(logger, "Entering NEquations");
   int i=0;
   int numeq=0;
   for (;i<NConnects(); i++){
@@ -739,15 +727,12 @@ int TPZCompEl::NEquations(){
     int seqnum = df.SequenceNumber();
     numeq += Mesh()->Block().Size(seqnum);
   }
-  LOGPZ_INFO(logger, "Exiting NEquations");
   return numeq;
 }
 
 REAL TPZCompEl::CompareElement(int var, char *matname){
 	cout << "TPZCompEl::CompareElement called!\n";
-	LOGPZ_INFO(logger, "Entering CompareElement");
 	LOGPZ_WARN(logger, "CompareElement called!");
-	LOGPZ_INFO(logger, "Exiting CompareElement");
 	return 0.;
 }
 
@@ -769,7 +754,6 @@ void TPZCompEl::CalcResidual(TPZElementMatrix &ef){
 }
 
 TPZGeoEl * TPZCompEl::GetRefElPatch(){
-  LOGPZ_INFO(logger, "Entering GetRefElPatch");
   std::stringstream sout;
   sout << "Obtendo elemento geom�rico de refer�cia " << Index() << endl;
   Print(sout);
@@ -869,11 +853,9 @@ REAL TPZCompEl::LesserEdgeOfEl(){
   */
 void TPZCompEl::Write(TPZStream &buf, int withclassid) 
 {
-  LOGPZ_INFO(logger, "Entering Write");
   TPZSaveable::Write(buf,withclassid);
   buf.Write(&fIndex,1);
   buf.Write(&fReferenceIndex,1);
-  LOGPZ_INFO(logger, "Exiting Write");
 }  
   
   /**
@@ -881,19 +863,15 @@ void TPZCompEl::Write(TPZStream &buf, int withclassid)
   */
 void TPZCompEl::Read(TPZStream &buf, void *context)
 {
-  LOGPZ_INFO(logger, "Entering Read");
   TPZSaveable::Read(buf,context);
   fMesh = (TPZCompMesh *) context;
   buf.Read(&fIndex,1);
   buf.Read(&fReferenceIndex,1);
-  LOGPZ_INFO(logger, "Exiting Read");
 }
 
 void TPZCompEl::SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,
                                       TPZFMatrix & phi,TPZFMatrix & dphi)) {
-  LOGPZ_INFO(logger, "Entering SetOrthogonalFunction");
   pzshape::TPZShapeLinear::fOrthogonal = orthogonal;
-  LOGPZ_INFO(logger, "Exiting SetOrthogonalFunction");
 }
 
 void TPZCompEl::CreateInterfaces(bool BetweenContinuous){
@@ -1161,75 +1139,60 @@ void TPZCompEl::RemoveInterface(int side) {
 //TPZCompElSide::~TPZCompElSide() {}
 
 TPZCompElSide::TPZCompElSide() {
-  LOGPZ_INFO(loggerSide, "Entering empty constructor");
   fEl = 0;
   fSide = -1;
   //  georeftest = 0;
-  LOGPZ_INFO(loggerSide, "Exiting empty constructor");
 }
 
 TPZCompElSide::TPZCompElSide(const TPZCompElSide &celside) {
-  LOGPZ_INFO(loggerSide, "Entering copy constructor");
   fEl = celside.fEl;
   fSide   = celside.fSide;
   //  georeftest = celside.georeftest;
-  LOGPZ_INFO(loggerSide, "Exiting copy constructor");
 }
 
 TPZCompElSide::TPZCompElSide(TPZCompEl *cel,int side) {
-  LOGPZ_INFO(loggerSide, "Entering cel,side constructor");
   fEl = cel;
   fSide   = side;
   //  if(cel) georeftest = cel->Reference();
   //  else georeftest = 0;
-  LOGPZ_INFO(loggerSide, "Exiting cel,side constructor");
 }
 
 TPZGeoElSide TPZCompElSide::Reference() const {
-  LOGPZ_INFO(loggerSide, "Entering Reference");
   if(!fEl) {
     LOGPZ_WARN(loggerSide, "Exiting Reference - non initialized side element reached");
     return TPZGeoElSide();
   }
   TPZGeoElSide sideel(fEl->Reference(),fSide);
-  LOGPZ_INFO(loggerSide, "Exiting Reference");
   return sideel;
 }
 
 void TPZCompElSide::SetSide(int side) {
-  LOGPZ_INFO(loggerSide, "Entering SetSide");
   fSide = side;
   Reference().SetSide(side);
-  LOGPZ_INFO(loggerSide, "Exiting SetSide");
 }
 
 void TPZCompElSide::HigherLevelElementList(TPZStack<TPZCompElSide> &elvec,
                                            int onlyinterpolated, int removeduplicates) {
-  LOGPZ_INFO(loggerSide, "Entering HigherLevelElementList");
   TPZGeoElSide georef = Reference();
   if(!georef.Element()) {
     LOGPZ_WARN(loggerSide, "Exiting HigherLevelElementList - null reference reached");
     return;
   }
-  LOGPZ_INFO(loggerSide, "Exiting HigherLevelElementList");
   georef.HigherLevelCompElementList2(elvec,onlyinterpolated,removeduplicates);
 }
 
 void TPZCompElSide::EqualLevelElementList(TPZStack<TPZCompElSide> &elsidevec,
                                           int onlyinterpolated, int removeduplicates) {
-  LOGPZ_INFO(loggerSide, "Entering EqualLevelElementList");
   TPZGeoElSide georef = Reference();
   if(!georef.Exists()) {
     LOGPZ_WARN(loggerSide, "Exiting EqualLevelElementList - null reference reached");
     return;
   }
-  LOGPZ_INFO(loggerSide, "Exiting EqualLevelElementList");
   georef.EqualLevelCompElementList(elsidevec,onlyinterpolated,removeduplicates);
 }
 
 void TPZCompElSide::HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec, 
                                                int onlyinterpolated, int removeduplicates) {
-  LOGPZ_INFO(loggerSide, "Entering HigherDimensionElementList");
   TPZGeoElSide georef = Reference();
   if(!georef.Exists()) {
     LOGPZ_INFO(loggerSide, "Entering HigherDimensionElementList - null reference reached");
@@ -1237,12 +1200,10 @@ void TPZCompElSide::HigherDimensionElementList(TPZStack<TPZCompElSide> &elsideve
   }
   georef.HigherDimensionElementList(elsidevec,onlyinterpolated);
   if(removeduplicates) RemoveDuplicates(elsidevec);
-  LOGPZ_INFO(loggerSide, "Exiting HigherDimensionElementList");
 }
 
 
 void TPZCompElSide::RemoveDuplicates(TPZStack<TPZCompElSide> &elvec) {
-  LOGPZ_INFO(loggerSide, "Entering RemoveDuplicates");
   RemoveConnectDuplicates(elvec);
   int i, nelem = elvec.NElements();
   for(i=0; i<nelem; i++) {
@@ -1262,33 +1223,27 @@ void TPZCompElSide::RemoveDuplicates(TPZStack<TPZCompElSide> &elvec) {
       }
     }
   }
-  LOGPZ_INFO(loggerSide, "Exiting RemoveDuplicates");
 }
 
 void TPZCompElSide::ConnectedElementList(TPZStack<TPZCompElSide> &ellist,
                                          int onlyinterpolated, int removeduplicates) {
-  LOGPZ_INFO(loggerSide, "Entering ConnectedElementList");
   TPZCompElSide father = LowerLevelElementList(onlyinterpolated);
   if(father.Exists()) ellist.Push(father);
   EqualLevelElementList(ellist,onlyinterpolated,removeduplicates);
   HigherLevelElementList(ellist,onlyinterpolated,removeduplicates);
-  LOGPZ_INFO(loggerSide, "Exiting ConnectedElementList");
 }
 
 //retorna o elem. de menor nivel ao qual estou restrito
 TPZCompElSide TPZCompElSide::LowerLevelElementList(int onlyinterpolated) {
-  LOGPZ_INFO(loggerSide, "Entering LowerLevelElementList");
   TPZGeoElSide georef = Reference();
   if(!georef.Exists()) {
     LOGPZ_WARN(loggerSide, "Exiting LowerLevelElementList - null reference reached");
     return TPZCompElSide();
   }
-  LOGPZ_INFO(loggerSide, "Exiting LowerLevelElementList");
   return georef.LowerLevelCompElementList2(onlyinterpolated);
 }
 
 void TPZCompElSide::ExpandConnected(TPZStack<TPZCompElSide> &expandvec,int onlyinterpolated) {
-  LOGPZ_INFO(loggerSide, "Entering ExpandConnected");
   //insidevec contem todos os elem. de maior nivel que dependem de mim,
   //obtidos com HigherLevelElementList(..)
   TPZGeoElSide georef = Reference();
@@ -1324,11 +1279,9 @@ void TPZCompElSide::ExpandConnected(TPZStack<TPZCompElSide> &expandvec,int onlyi
       }
     }
   }
-  LOGPZ_INFO(loggerSide, "Exiting ExpandConnected");
 }
 
 TPZCompElSide TPZCompElSide::LowerIdElementList(TPZCompElSide &expandvec,int onlyinterpolated) {
-  LOGPZ_INFO(loggerSide, "Entering LowerIdElementList");
   if(!expandvec.Element()) {
     LOGPZ_WARN(loggerSide, "Exiting LowerIdElementList - empty list");
     return TPZCompElSide();
@@ -1360,12 +1313,10 @@ TPZCompElSide TPZCompElSide::LowerIdElementList(TPZCompElSide &expandvec,int onl
 //     }
 //     neighbour = neighbour.Neighbour();
 //   }//for
-  LOGPZ_INFO(loggerSide, "Exiting LowerIdElementList");
   return lowidneigh.Reference();
 }
 
 void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
-  LOGPZ_INFO(loggerSide, "Entering RemoveConnectDuplicates");
   int i,k;
   int nelems = expandvec.NElements();
   TPZStack<TPZCompElSide> locexpand;
@@ -1389,6 +1340,5 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
   }
   for(i=0;i<nelems;i++)
   if(locexpand[i].Element()) expandvec.Push(locexpand[i]);
-  LOGPZ_INFO(loggerSide, "Exiting RemoveConnectDuplicates");
 }
 
