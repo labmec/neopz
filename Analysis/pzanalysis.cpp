@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.24 2006-03-13 11:54:00 phil Exp $
+//$Id: pzanalysis.cpp,v 1.25 2006-04-05 21:23:50 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -27,6 +27,7 @@
 #include "tpzsparseblockdiagonal.h"
 #include "pzseqsolver.h"
 #include "pzbdstrmatrix.h"
+
 
 #include "pzlog.h"
 
@@ -102,11 +103,10 @@ void TPZAnalysis::SetBlockNumber(){
 	int nindep = fCompMesh->NIndependentConnects();
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 	int nel = elgraphindex.NElements()-1;
-	//TPZSloan sloan(nel,nindep);
-	//sloan.SetElementGraph(elgraph,elgraphindex);
-//	TPZVec<int> perm,iperm;
-	//sloan.Resequence(perm,iperm);
-	//fCompMesh->Permute(perm);
+	TPZSloan sloan(nel,nindep);
+	sloan.SetElementGraph(elgraph,elgraphindex);
+	sloan.Resequence(perm,iperm);
+	fCompMesh->Permute(perm);
 /*
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 
@@ -537,6 +537,27 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
     TPZStack<int> expblockgraph,expblockgraphindex;
     
     nodeset.ExpandGraph(blockgraph,blockgraphindex,fCompMesh->Block(),expblockgraph,expblockgraphindex);
+#ifdef LOG4CXX
+#ifdef DEBUG2
+    std::map<int,int> blocksizes;
+    int i;
+    int totalsize;
+    for(i=0; i< expblockgraphindex.NElements()-1;i++)
+    {
+      int bls = expblockgraphindex[i+1]-expblockgraphindex[i];
+      blocksizes[bls]++;
+      totalsize += bls*bls;
+    }
+    std::map<int,int>::iterator it;
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " total size of allocation " << totalsize << std::endl;
+    for(it=blocksizes.begin(); it != blocksizes.end(); it++)
+    {
+      sout << "block size " << (*it).first << " number of blocks " << (*it).second << std::endl;
+    }
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+#endif
+#endif
     if(overlap && !(preconditioner == EBlockJacobi))
     {
       TPZSparseBlockDiagonal *sp = new TPZSparseBlockDiagonal(expblockgraph,expblockgraphindex,neq);
