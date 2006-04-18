@@ -19,7 +19,7 @@ libpz_a_LIBADD = ../External/pzsloan.o ../Util/TPZTimer.o ../Util/tpzpermutation
 	../Matrix/tpzsparseblockdiagonal.o ../External/tpznodesetcompute.o ../Common/pzreal.o ../Util/pzmap.o \
 	../Util/pzstring.o ../Util/pzlog.o ../Refine/pzrefpoint.o ../Refine/pzrefprism.o ../Refine/pzrefpyram.o ../Refine/pzrefquad.o \
 	../Refine/pzreftetrahedra.o ../Refine/pzreftriangle.o ../Refine/TPZRefCube.o \
-	../Refine/TPZRefLinear.o ../Refine/TPZRefPattern.o ../Mesh/pzcmesh.o ../Mesh/pzflowcmesh.o \
+	../Refine/TPZRefLinear.o ../Refine/TPZRefPattern.o ../Mesh/pzcmesh.o ../Mesh/pzflowcmesh.o ../Mesh/pzreferredcompel.o \
 	../Mesh/pzcompel.o ../Mesh/pzconnect.o ../Mesh/pzelc1d.o ../Mesh/pzcheckgeom.o \
 	../Mesh/pzcheckmesh.o ../Mesh/pzcheckrestraint.o ../Mesh/pzelcc3d.o ../Mesh/pzelcpi3d.o \
 	../Mesh/pzelcpoint.o ../Mesh/pzelcpr3d.o ../Mesh/pzelcq2d.o ../Mesh/pzelct2d.o \
