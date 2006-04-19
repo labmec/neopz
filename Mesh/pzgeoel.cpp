@@ -1149,6 +1149,7 @@ void TPZGeoEl::Read(TPZStream &buf, void *context) {
   buf.Read(&fId,1);
   buf.Read(&fIndex,1);
   buf.Read(&fFatherIndex,1);
+  buf.Read(&fMatId,1);
 }
 
 void TPZGeoEl::Write(TPZStream &buf, int withclassid) {
@@ -1156,4 +1157,5 @@ void TPZGeoEl::Write(TPZStream &buf, int withclassid) {
   buf.Write(&fId,1);
   buf.Write(&fIndex,1);
   buf.Write(&fFatherIndex,1);
+  buf.Write(&fMatId,1);
 }
