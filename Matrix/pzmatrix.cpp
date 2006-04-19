@@ -243,7 +243,7 @@ void TPZMatrix::Identity() {
 /*************/
 /*** Input ***/
 void
-TPZMatrix::Input(istream& in )
+TPZMatrix::Input(std::istream& in )
 {
 
 
@@ -284,7 +284,7 @@ TPZMatrix::Input(istream& in )
 /*******************/
 /*** Overload >> ***/
 
-istream & operator>>(istream& in,TPZMatrix &A)
+std::istream & operator>>(std::istream& in,TPZMatrix &A)
 {
 
   // Read a Matriz (RxC) with format:
@@ -303,7 +303,7 @@ istream & operator>>(istream& in,TPZMatrix &A)
 
 /*************/
 /*** Print ***/
-void TPZMatrix::Print(const char *name, ostream& out,const MatrixOutputFormat form) const{
+void TPZMatrix::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const{
 
 //  out.width( 8 );
 //  out.precision( 4 );
@@ -326,7 +326,7 @@ void TPZMatrix::Print(const char *name, ostream& out,const MatrixOutputFormat fo
 	   for ( int row = 0; row < Rows(); row++) {
    	   for ( int col = 0; col < Cols(); col++ ) {
          	REAL val = Get (row, col);
-         	if(val != 0.) out << row << ' ' << col << ' ' << val << endl;
+         	if(val != 0.) out << row << ' ' << col << ' ' << val << std::endl;
 	      }
 	   }
       out << "-1 -1 0.\n";
@@ -342,7 +342,7 @@ void TPZMatrix::Print(const char *name, ostream& out,const MatrixOutputFormat fo
 		out << number;
          	if(col < Cols()-1)
 		  out << ", ";
-		if((col+1) % 6 == 0)out << endl;
+		if((col+1) % 6 == 0)out << std::endl;
 	      }
 	 out << " }";
 	 if(row < Rows()-1)
@@ -358,7 +358,7 @@ void TPZMatrix::Print(const char *name, ostream& out,const MatrixOutputFormat fo
 
 /*******************/
 /*** Overload << ***/
-ostream &operator<<(ostream& out,const TPZMatrix &A) {
+std::ostream &operator<<(std::ostream& out,const TPZMatrix &A) {
     A.Print("operator << ",out);
     return  out;
 }

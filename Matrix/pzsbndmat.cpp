@@ -101,7 +101,7 @@ const REAL
 /*************/
 /*** Print ***/
 void
-TPZSBMatrix ::Print(const char *name, ostream& out,const MatrixOutputFormat form) const
+TPZSBMatrix ::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const
 {
   out.width( 8 );
   out.precision( 4 );
@@ -125,8 +125,8 @@ TPZSBMatrix ::Print(const char *name, ostream& out,const MatrixOutputFormat form
 
 /*******************/
 /*** Overload << ***/
-ostream&
-operator<<(ostream& out,TPZSBMatrix  &A)
+std::ostream&
+operator<<(std::ostream& out,TPZSBMatrix  &A)
 {
   out.width( 8 );
   out.precision( 4 );
