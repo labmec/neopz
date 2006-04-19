@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.43 2006-03-16 01:49:47 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.44 2006-04-19 14:52:35 cesar Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -126,15 +126,15 @@ void TPZCompMesh::SetName (const string &nm) {
   fName = nm;
 }
 
-void TPZCompMesh::Print (ostream & out) {
+void TPZCompMesh::Print (std::ostream & out) {
 
 	ComputeNodElCon();
   out << "\n\t\tCOMPUTABLE GRID INFORMATIONS:\n\n";
   out << "TITLE-> " << fName << "\n\n";
 
-  out << "number of connects            = " << NConnects() << endl;
-  out << "number of elements            = " << NElements() << endl;
-  out << "number of materials           = " << NMaterials() << endl;
+  out << "number of connects            = " << NConnects() << std::endl;
+  out << "number of elements            = " << NElements() << std::endl;
+  out << "number of materials           = " << NMaterials() << std::endl;
   //  out << "number of nodal bound cond    = " << NBCConnects() << endl;
 
   out << "\n\t Connect Information:\n\n";
@@ -144,7 +144,7 @@ void TPZCompMesh::Print (ostream & out) {
     	if(fConnectVec[i].HasDependency()) {
       	cout << "TPZCompMesh::Print inconsistency of connect\n";
          cout << "Index " << i << ' ';
-         fConnectVec[i].Print(*this,cout);
+         fConnectVec[i].Print(*this,std::cout);
       }
     	continue;
     }
@@ -159,8 +159,8 @@ void TPZCompMesh::Print (ostream & out) {
     out << "Index " << i << ' ';
     el->Print(out);
     if(!el->Reference()) continue;
-    out << "Reference Id = " << el->Reference()->Id() << endl;
-    out << endl;
+    out << "\tReference Id = " << el->Reference()->Id() << std::endl << std::endl;
+	
   }
   out << "\n\tMaterial Information:\n\n";
   nelem = NMaterials();
@@ -1563,7 +1563,7 @@ void TPZCompMesh::Permute(TPZVec<int> &permute) {
   }
 }
 
-void TPZCompMesh::ConnectSolution(ostream & out) {
+void TPZCompMesh::ConnectSolution(std::ostream & out) {
 
   out << "\n\t\tCONNECT INDEX SOLUTION:\n\n";
   int i;
@@ -1580,7 +1580,7 @@ void TPZCompMesh::ConnectSolution(ostream & out) {
         		int pos = Block().Position(seqnum);
            for(int j=0;j<Block().Size(seqnum);j++)
 	           	out << Solution()(pos+j,0) << "  ";
-			  	out << endl;
+			  	out << std::endl;
         }
   }
 }
@@ -2070,6 +2070,8 @@ TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) : fReference(copy.fReference),
     TPZCompEl *cel = fElementVec[iel];
     if(cel) cel->Clone(*this);
   }
+  fDimModel = copy.fDimModel;
+  fName = copy.fName;
 }
 
 TPZCompMesh* TPZCompMesh::Clone() const {
@@ -2329,7 +2331,7 @@ int TPZCompMesh::ClassId() const
 void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 {
   TPZSaveable::Write(buf,withclassid);
-  buf.Write(&fName,1);
+  //buf.Write(&fName,1);
   buf.Write(&fDimModel,1);
   TPZSaveable::WriteObjects<TPZConnect>(buf,fConnectVec);
   WriteObjectPointers<TPZMaterial>(buf,fMaterialVec);
@@ -2345,12 +2347,57 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
   */
 void TPZCompMesh::Read(TPZStream &buf, void *context)
 {
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " entering";
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+  }
   TPZSaveable::Read(buf,context);
+
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " after reading saveable";
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+  }
+
   this->fReference = (TPZGeoMesh *) context;
-  buf.Read(&fName,1);
+
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " after reading context";
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+  }
+
+  //buf.Read(&fName,1);
+
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " after reading the name";
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+  }
+
   buf.Read(&fDimModel,1);
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " after reading the dimension " << fDimModel;
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+  }
   ReadObjects<TPZConnect>(buf,fConnectVec,0);
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " after reading the connects";
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+  }
   ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,this);
+
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " after reading the material vector";
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+  }
+
+
   ReadObjectPointers<TPZCompEl>(buf,fElementVec,this);
   fSolution.Read(buf,0);
   fSolutionBlock.Read(buf,&fSolution);
