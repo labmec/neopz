@@ -1278,7 +1278,7 @@ void TPZFMatrix::Write( TPZStream &buf, int withclassid ) {
   buf.Write(fElem,fRow*fCol);
 }
 
-void TPZFMatrix::PrintStatic(const REAL *ptr, int rows, int cols, const char *name, ostream& out,const MatrixOutputFormat form){
+void TPZFMatrix::PrintStatic(const REAL *ptr, int rows, int cols, const char *name, std::ostream& out,const MatrixOutputFormat form){
 
 //  out.width( 8 );
 //  out.precision( 4 );
@@ -1301,7 +1301,7 @@ void TPZFMatrix::PrintStatic(const REAL *ptr, int rows, int cols, const char *na
 	   for ( int row = 0; row < rows; row++) {
    	   for ( int col = 0; col < cols; col++ ) {
          	REAL val = SELECTEL(ptr,rows,row, col);
-         	if(val != 0.) out << row << ' ' << col << ' ' << val << endl;
+         	if(val != 0.) out << row << ' ' << col << ' ' << val << std::endl;
 	      }
 	   }
       out << "-1 -1 0.\n";
@@ -1317,7 +1317,7 @@ void TPZFMatrix::PrintStatic(const REAL *ptr, int rows, int cols, const char *na
 		out << number;
          	if(col < cols-1)
 		  out << ", ";
-		if((col+1) % 6 == 0)out << endl;
+		if((col+1) % 6 == 0)out << std::endl;
 	      }
 	 out << " }";
 	 if(row < rows-1)

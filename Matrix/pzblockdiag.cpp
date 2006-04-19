@@ -570,25 +570,25 @@ int TPZBlockDiagonal::main() {
 
 }
 
-void TPZBlockDiagonal::Print(char *msg, ostream &out) {
+void TPZBlockDiagonal::Print(char *msg, std::ostream &out) {
 
   out << "TPZBlockDiagonal matrix ";
   if(msg) out << msg;
-  out  << endl;
+  out  << std::endl;
 
   int nblock = fBlockSize.NElements();
-  out << "Number of blocks " << nblock << endl; 
+  out << "Number of blocks " << nblock << std::endl; 
   int b,bsize,pos;
   for(b=0; b<nblock; b++) {
     bsize = fBlockSize[b];
-    out << "block number " << b << " size : " << bsize << endl;
+    out << "block number " << b << " size : " << bsize << std::endl;
     int r,c;
     pos = fBlockPos[b];
     for(c=0; c<bsize; c++) {
       for(r=0; r<bsize ; r++) {
 	out << fStorage[pos+r+bsize*c] << ' ';
       }
-      out << endl;
+      out << std::endl;
     }
   }
 }

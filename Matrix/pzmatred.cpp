@@ -282,7 +282,7 @@ TPZMatRed::UGlobal(const TPZFMatrix & U1, TPZFMatrix & result)
 }
 
 void
-TPZMatRed::Print(const char *name , ostream &out ,const MatrixOutputFormat form ) const
+TPZMatRed::Print(const char *name , std::ostream &out ,const MatrixOutputFormat form ) const
 {
 
 
