@@ -176,6 +176,9 @@ int TPZBndCond::ClassId() const
 {
    return TPZBNDCONDID;
 }
+#ifndef BORLAND
+template class TPZRestoreClass<TPZBndCond,TPZBNDCONDID>;
+#endif
 
 void TPZBndCond::Write(TPZStream &buf, int withclassid)
 {
