@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.42 2006-04-03 20:42:00 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.43 2006-04-28 14:40:32 cesar Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -54,6 +54,7 @@ class TPZCompElDisc : public TPZCompEl{
    */
   REAL fConstC;
 
+  protected:
   /**
    * Material object of this element
    */
