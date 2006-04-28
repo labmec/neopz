@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.44 2006-04-19 14:52:35 cesar Exp $
+//$Id: pzcmesh.cpp,v 1.45 2006-04-28 14:38:18 cesar Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -2331,6 +2331,7 @@ int TPZCompMesh::ClassId() const
 void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 {
   TPZSaveable::Write(buf,withclassid);
+  Reference()->Write(buf,1);
   //buf.Write(&fName,1);
   buf.Write(&fDimModel,1);
   TPZSaveable::WriteObjects<TPZConnect>(buf,fConnectVec);
@@ -2355,6 +2356,17 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
   }
   TPZSaveable::Read(buf,context);
 
+//   TPZGeoMesh *gmesh;
+//   TPZSaveable *obj = TPZSaveable::Restore(buf,0);
+//   gmesh = dynamic_cast<TPZGeoMesh *>(obj);
+//   context = gmesh;
+/*  {
+  std::stringstream sout;
+  sout << __PRETTY_FUNCTION__ << " calling load references";
+  LOGPZ_DEBUG(logger,sout.str().c_str());
+}*/
+
+
   {
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__ << " after reading saveable";
@@ -2362,7 +2374,8 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
   }
 
   this->fReference = (TPZGeoMesh *) context;
-
+  LoadReferences();
+  Reference()->RestoreReference(this);
   {
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__ << " after reading context";
