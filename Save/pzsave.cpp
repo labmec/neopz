@@ -8,6 +8,11 @@
 #pragma warning (disable:4786)
 #endif
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+  static LoggerPtr logger(Logger::getLogger("toto"));
+#endif
 
 using namespace std;
 
@@ -29,8 +34,7 @@ void TPZSaveable::Write(TPZStream &buf, int withclassid)
 }
 
 void TPZSaveable::Read(TPZStream &buf, void *context)
-{
-}
+{}
 
 void TPZSaveable::Register(int classid, TPZRestore_t fun) 
 {
@@ -55,7 +59,18 @@ TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
   if(it == Map().end()) 
   {
     cout << "TPZSaveable trying to restore unknown object " << classid << endl;
+    {
+      std::stringstream sout;
+      sout << __PRETTY_FUNCTION__ << " trying to restore unknown object " << classid;
+      LOGPZ_ERROR(logger,sout.str().c_str());
+    }
     return 0;
+  }
+  std::cout << __PRETTY_FUNCTION__ << " classid " << classid << std::endl;
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " restoring object " << classid;
+    LOGPZ_DEBUG(logger,sout.str().c_str());
   }
   TPZRestore_t fun= it->second;
   return (*fun)(buf,context);
