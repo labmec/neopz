@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.75 2006-03-09 22:09:53 cesar Exp $
+//$Id: TPZCompElDisc.cpp,v 1.76 2006-05-02 15:18:08 phil Exp $
 
 // -*- c++ -*- 
 
@@ -42,12 +42,6 @@
 #include "pzcompel.h"
 #include <math.h>
 #include <stdio.h>
-
-#ifdef LOG4CXX
-#ifdef DEBUG
-#define DEBUG2 DEBUG
-#endif
-#endif
 
 
 #include "pzlog.h"
