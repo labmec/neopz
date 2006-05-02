@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.45 2006-04-28 14:38:18 cesar Exp $
+//$Id: pzcmesh.cpp,v 1.46 2006-05-02 15:12:21 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -690,7 +690,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
   {
     std::stringstream sout;
     sout << "permute to put the free connects to the back\n";
-    for (i=0;i<nblocks;i++) sout << permute[i] << ' ';
+    if(nblocks < 50) for (i=0;i<nblocks;i++) sout << permute[i] << ' ';
     sout << "need = " << need << endl;
     LOGPZ_DEBUG(logger,sout.str());
   }
@@ -1629,28 +1629,46 @@ void TPZCompMesh::AdjustBoundaryElements() {
       if(!elp || !dynamic_cast<TPZInterpolatedElement*>(elp) ) continue;
 
       TPZMaterial *mat = elp->Material();
-      if(mat && mat->Id() >= 0) continue;
+      // this statement determines thata the element is associated with a boundary condition
+      TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
+      if(!bnd) continue;
+//      if(mat && mat->Id() >= 0) continue;
       int nsides = elp->Reference()->NSides();
       int is;
       int nc = elp->Reference()->NCornerNodes();
       for(is=nc; is<nsides; is++) {
 	TPZCompElSide elpside(elp,is);
+        // this should never be called
 	if(elp->Reference()->SideDimension(is) == 0) continue;
 	elvec.Resize(0);
+        // verify if there are smaller elements connected to this boundary element
 	elpside.HigherLevelElementList(elvec,0,0);
 	if(elvec.NElements()) {
+          // the first small element
 	  TPZGeoElSide fatherside = elvec[0].Reference();//el BC
+          // elp is the element we will eventually refine
 	  int face = elp->Reference()->NSides() - 1;
+          // this is the volume side of the element
 	  while(fatherside.Exists()) {
 	    if(elp->Reference()->NeighbourExists(face,fatherside)) break;
 	    fatherside = fatherside.Father2();
 	  }
+          // fatherside is a neighbour of the current element
+          // I wouldnt know when this test could fail
 	  if(fatherside.Exists()) {
+#ifdef LOG4CXX
+            {
+              std::stringstream sout;
+              sout << "Dividing element " << el << " of type " << elp->Reference()->TypeName();
+              LOGPZ_DEBUG(logger,sout.str().c_str());
+            }
+#endif
 	    Divide(el,subelindex,0);
 	    changed = 1;
 	    break;
 	  }
 	}
+        // we are working on the last side and nothing was divided
 	if(is == nsides-1) {
 	  TPZInterpolatedElement *elpint = dynamic_cast <TPZInterpolatedElement *> (elp);
 	  if(!elpint) continue;
@@ -1665,7 +1683,15 @@ void TPZCompMesh::AdjustBoundaryElements() {
 	    if(!eqel) continue;
 	    if(maxorder < eqel->PreferredSideOrder(eqside)) maxorder =  eqel->PreferredSideOrder(eqside);
 	  }
+          // set the order to the largest order of all connecting elements
 	  if(porder < maxorder) {
+#ifdef LOG4CXX
+            {
+              std::stringstream sout;
+              sout << "Refining element " << el << " to order " << maxorder;
+              LOGPZ_DEBUG(logger,sout.str().c_str());
+            }
+#endif
 	    elpint->PRefine(maxorder);
 	    changed = 1;
 	  }
