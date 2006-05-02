@@ -19,6 +19,7 @@ class TPZFMatrix;
 class TPZGeoEl;
 class TPZIntPoints;
 class TPZIntTetra3D;
+class TPZGraphElT3d;
 
 namespace pzgeom {
 
@@ -87,6 +88,7 @@ static std::string TypeName() { return "Tetra";}
 	static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
 
 	typedef TPZIntTetra3D IntruleType;
+        typedef TPZGraphElT3d GraphElType;
 };
 
 };
