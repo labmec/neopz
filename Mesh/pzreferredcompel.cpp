@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.1 2006-04-18 20:39:54 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.2 2006-05-02 15:34:02 phil Exp $
 
 #include "pzreferredcompel.h"
 #include "pzelctemp.h"
@@ -31,6 +31,7 @@
 #include "pzgeoel.h"
 #include "pzcmesh.h"
 
+#include "sstream"
 #include "pzlog.h"
 
 #ifdef LOG4CXX

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #ifdef WIN32
 #pragma warning (disable:4786)

@@ -12,7 +12,7 @@
 #ifndef PZLOGH
 #define PZLOGH
 
-
+#include <string>
 #ifdef LOG4CXX
 
 #ifdef DEBUG
