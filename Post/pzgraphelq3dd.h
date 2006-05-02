@@ -14,9 +14,9 @@
 
 class TPZGraphElQ3dd : public TPZGraphEl{
 public:
-	
+
 	TPZGraphElQ3dd(TPZCompEl *cel, TPZGraphMesh *gmesh);
-	
+
 	virtual ~TPZGraphElQ3dd(void);
 
 	virtual int NConnects(){ return 1;}

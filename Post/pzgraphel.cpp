@@ -53,9 +53,13 @@ TPZGraphEl::~TPZGraphEl(void)
 {
 }
 
-REAL TPZGraphEl::QsiEta(int i, int imax)
+void TPZGraphEl::QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta)
 {
-	return(-1.0+(i*2.0/imax));
+  int ind,nel=i.NElements();
+  for(ind=0; ind<nel; ind++)
+  {
+    qsieta[ind] = (-1.0+(i[ind]*2.0/imax));
+  }
 }
 
 
@@ -82,9 +86,7 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
 	int point=0;
 	TPZVec<REAL> qsi(3,0.),x(4,0.);
 	while(point < np) {
-		qsi[0] = QsiEta(co[0],imax);
-		qsi[1] = QsiEta(co[1],imax);
-		qsi[2] = QsiEta(co[2],imax);
+		QsiEta(co,imax,qsi);
 		fCompEl->Reference()->X(qsi,x);
 		if(st == EMVStyle || st == EV3DStyle) *fGraphMesh->Out() << ip++ << " ";
 		*fGraphMesh->Out() << x[0] << " " << x[1] << " " << x[2] << endl;
@@ -121,9 +123,7 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
   TPZManVector<REAL> sol(6,0.);
   long ip = n->FirstPoint();
   while(point < np) {
-    qsi[0] = QsiEta(co[0],imax);
-    qsi[1] = QsiEta(co[1],imax);
-    qsi[2] = QsiEta(co[2],imax);
+    QsiEta(co,imax,qsi);
     if(st == EMVStyle || st == EV3DStyle) *fGraphMesh->Out() << ip++ << " ";
     for(int is=0; is<numsol; is++) {
       fCompEl->Solution(qsi,solind[is],sol);

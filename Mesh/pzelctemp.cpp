@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.26 2006-03-09 11:47:58 phil Exp $
+// $Id: pzelctemp.cpp,v 1.27 2006-05-02 15:13:05 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -347,6 +347,7 @@ void TPZIntelGen<TGEO,TSHAPE>::Read(TPZStream &buf, void *context)
 #include "pzgeopoint.h"
 #include "pzshapepoint.h"
 #include "pzgraphelq2dd.h"
+#include "tpzgraphelt3d.h"
 #include "pzgraphel1dd.h"
 #include "pztrigraphd.h"
 #include "pzgraphelq3dd.h"
@@ -366,7 +367,10 @@ void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh
 
 template<>
 void TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-  if(dimension == 3) std::cout << "A tetrahedra element has no graphical representation\n";
+  if(dimension == 3) 
+  {
+    new TPZGeoTetrahedra::GraphElType(this,&grafgrid);
+  }
 }
 
 template<>

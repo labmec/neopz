@@ -65,8 +65,11 @@ virtual void NextIJ(int connect, TPZVec<int> &co, int incr) = 0;
 
 protected :   
 	int fId;
-
-virtual REAL QsiEta(int i, int imax);
+ /**
+  * This method maps the index of a point to parameter space as a function
+  * of the number of divisions
+  */
+ virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);
 
 };
 
