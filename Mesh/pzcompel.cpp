@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.25 2006-04-04 13:43:19 phil Exp $
+//$Id: pzcompel.cpp,v 1.26 2006-05-02 15:12:51 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -665,7 +665,7 @@ int TPZCompEl::HasDependency() {
   int nconnects = NConnects();
   int in;
   for(in=0; in<nconnects; in++) if(Connect(in).HasDependency()){
-    LOGPZ_INFO(logger, "Exiting True HasDependency");
+    //LOGPZ_INFO(logger, "Exiting True HasDependency");
     return 1;
   }
   return 0;
