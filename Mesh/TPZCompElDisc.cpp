@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.76 2006-05-02 15:18:08 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.77 2006-05-09 17:48:17 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -216,8 +216,10 @@ int TPZCompElDisc::CreateMidSideConnect(){
   // caso o elemento ELV �dividido, ent� o elemento BC associado deveria ser dividido
   // tambem para manter a CC consistente com a malha
   // caso ELV �dividido e BC n� �ent� ELV �LowerLevelElement do elemento BC
-  if(!Material())
+  if(!Material()){
     PZError << "\nTPZCompElDisc::CreateMidSideConnect Material nulo\n";
+    return -1;
+  }
 
   TPZGeoEl *ref = Reference();
   TPZStack<TPZCompElSide> list;

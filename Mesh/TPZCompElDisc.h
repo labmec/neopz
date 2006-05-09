@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.43 2006-04-28 14:40:32 cesar Exp $
+//$Id: TPZCompElDisc.h,v 1.44 2006-05-09 17:48:17 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -39,6 +39,8 @@ class TPZGeoElPoint;
 */
 class TPZCompElDisc : public TPZCompEl{
 
+protected:
+
   /**
    * Shape function type used by the element
    */
@@ -59,8 +61,6 @@ class TPZCompElDisc : public TPZCompEl{
    * Material object of this element
    */
   TPZMaterial *fMaterial;
-
-protected:
 
   /**
    * it keeps the interior point coordinations of the element 
