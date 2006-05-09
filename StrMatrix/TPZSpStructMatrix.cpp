@@ -24,6 +24,11 @@ using namespace std;
 #include "pzbndcond.h"
 #include "TPZTimer.h"
 
+#include "pzlog.h"
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
+#endif
+
 void UniformRefine(int num, TPZGeoMesh &m);
 
 const int eu=0;
@@ -32,6 +37,9 @@ TPZStructMatrix * TPZSpStructMatrix::Clone(){
     return new TPZSpStructMatrix(fMesh);
 }
 TPZMatrix * TPZSpStructMatrix::CreateAssemble(TPZFMatrix &rhs){
+  
+    LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble starting");
+
     int neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {
       cout << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
@@ -43,11 +51,13 @@ TPZMatrix * TPZSpStructMatrix::CreateAssemble(TPZFMatrix &rhs){
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     TPZTimer before("Assembly of a sparse matrix");
     before.start();
+    LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble calling Assemble()");
     Assemble(*stiff,rhs);
     before.stop();
     std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
+    LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble exiting");
     return stiff;
 }
 TPZMatrix * TPZSpStructMatrix::Create(){
