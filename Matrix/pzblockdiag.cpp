@@ -21,10 +21,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <sstream>
 #include "pzlog.h"
+#include <sstream>
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzblockdiagonal"));
+static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
 #endif
 
 #define IsZero( a )   ( (a) < 1.e-10 && (a) > -1.e-10 )
@@ -88,7 +88,7 @@ void TPZBlockDiagonal::Initialize(const TPZVec<int> &blocksize){
 #ifdef LOG4CXX
   {
     std::stringstream sout;
-    sout << "Número de blocos \t" << nblock;
+    sout << "Number of blocks \t" << nblock;
     LOGPZ_DEBUG(logger,sout.str());
   }
 #endif
@@ -107,14 +107,15 @@ void TPZBlockDiagonal::Initialize(const TPZVec<int> &blocksize){
     neq += bsize;
     //    ::cout << "Número de equacões\t" << neq << "\n";
   }
+  
 #ifdef LOG4CXX
   {
     std::stringstream sout;
-    sout << "Número de dados da Matriz diagonal\t" << ndata;
+    sout << "Calling fStorage.Resize(ndata,0.) with ndata = " << ndata;
     LOGPZ_DEBUG(logger,sout.str());
   }
-#endif
-  //  ::cout <<"Número de dados da Matriz diagonal\t" <<ndata <<"\n";
+#endif  
+  
   fStorage.Fill(0.,0);
   fStorage.Resize(ndata,0.);
   fDecomposed = 0;
@@ -459,6 +460,9 @@ TPZBlockDiagonal::Transpose (TPZMatrix *const T) const
 int
 TPZBlockDiagonal::Decompose_LU()
 {
+
+  LOGPZ_DEBUG(logger, "TPZBlockDiagonal::Decompose_LU");
+
   if (  fDecomposed && fDecomposed == ELU) {
     return ELU;
   } else if(fDecomposed) {
@@ -471,6 +475,13 @@ TPZBlockDiagonal::Decompose_LU()
     pos = fBlockPos[b];
     bsize = fBlockSize[b];
     if(!bsize) continue;
+    
+#ifdef DEBUG
+    std::stringstream mess;
+    mess << "TPZBlockDiagonal::Decompose_LU() - bsize = " << bsize << ", bsize*bsize = " << bsize*bsize;
+    LOGPZ_DEBUG(logger,mess.str());
+#endif
+    
     TPZFMatrix temp(bsize,bsize,&fStorage[pos],bsize*bsize);
     temp.Decompose_LU();
   }

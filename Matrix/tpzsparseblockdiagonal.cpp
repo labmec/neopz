@@ -13,9 +13,8 @@
 #include "pzfmatrix.h"
 
 #include "pzlog.h"
-
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
+static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
 #endif
 
 using namespace std;
@@ -40,6 +39,7 @@ TPZSparseBlockDiagonal::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<i
 
 TPZSparseBlockDiagonal::TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows, int color, TPZVec<int> &colors)
 {
+  LOGPZ_DEBUG(logger, "Constructor of TPZSparseBlockDiagonal");
   int numbl = blockgraphindex.NElements()-1;
   fBlockSize.Resize(numbl);
   int ibl,iblcount,graphsize = 0;
@@ -188,6 +188,7 @@ void TPZSparseBlockDiagonal::AddBlock(int i, TPZFMatrix& block)
 
 void TPZSparseBlockDiagonal::BuildFromMatrix(TPZMatrix& matrix)
 {
+  LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::BuildFromMatrix");
   TPZManVector<int> indices;
   TPZFNMatrix<10000> submat(0,0);
   int ibl,nbl = fBlockIndex.NElements()-1;
@@ -210,6 +211,7 @@ void TPZSparseBlockDiagonal::GetBlock(int i, TPZFMatrix& block)
 
 void TPZSparseBlockDiagonal::MultAdd(const TPZFMatrix& x, const TPZFMatrix& y, TPZFMatrix& z, const REAL alpha, const REAL beta, const int opt, const int stride) 
 {
+  LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::MultAdd");
   TPZFNMatrix<1000000> xsc(0,0),ysc(0,0,0.),zsc(0,0);
   xsc.Resize(fBlock.NElements(),x.Cols());
   z.Zero();
@@ -287,6 +289,7 @@ void TPZSparseBlockDiagonal::Gather(const TPZFMatrix &in, TPZFMatrix &out, int s
    */
 void TPZSparseBlockDiagonal::UpdateFrom(TPZMatrix *mat)
 {
+  LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::UpdateFrom");
   if(!mat) 
   {
     cout << __FUNCTION__ << " called with zero argument\n";
