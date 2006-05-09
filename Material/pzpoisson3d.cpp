@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.20 2006-03-16 01:45:54 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.21 2006-05-09 17:31:20 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -54,8 +54,9 @@ void TPZMatPoisson3d::Print(ostream &out) {
   out << "Convection direction " << fConvDir[0] << ' ' << fConvDir[1] << ' ' <<  fConvDir[2] << endl;
   out << "Forcing vector fXf " << fXf << endl;
   out << "Penalty constant " << fPenaltyConstant << endl;
-  out << "Base Class properties : \n";
+  out << "Base Class properties :";
   TPZMaterial::Print(out);
+  out << "\n";
 }
 
 void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &  dsol ,REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
