@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.25 2006-04-05 21:23:50 phil Exp $
+//$Id: pzanalysis.cpp,v 1.26 2006-05-30 17:41:50 tiago Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -302,6 +302,15 @@ void TPZAnalysis::DefineGraphMesh(int dim, TPZVec<char *> &scalnames, TPZVec<cha
   if(fGraphMesh[dim1]) {
     ofstream *plot = new ofstream(plotfile);
     fGraphMesh[dim1]->SetOutFile(*plot);
+  }
+}
+
+void TPZAnalysis::CloseGraphMesh(){
+  for(int i = 0; i < 3; i++){
+    if ( this->fGraphMesh[i] ){
+      delete this->fGraphMesh[i];
+      this->fGraphMesh[i] = NULL;
+    }
   }
 }
 

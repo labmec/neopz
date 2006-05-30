@@ -194,6 +194,9 @@ public:
   // calls the appropriate sequence of methods to build a
   // solution or a time stepping sequence
   virtual void DefineGraphMesh(int dimension, TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, const char *plotfile);
+  
+  virtual void CloseGraphMesh();
+  
   /**
    * defines the postprocessing parameters for the graphical grid
    **/
