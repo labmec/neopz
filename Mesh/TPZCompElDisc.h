@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.44 2006-05-09 17:48:17 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.45 2006-05-30 17:51:41 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -253,6 +253,24 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   */
   void Solution(TPZVec<REAL> &x,TPZVec<REAL> &uh);
 
+  /**
+   * Computes solution and its derivatives in the local coordinate qsi.
+   * @param qsi master element coordinate
+   * @param sol finite element solution
+   * @param dsol solution derivatives
+   */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+  
+ /**
+  * Computes solution and its derivatives in local coordinate qsi
+  * @param qsi master element coordinate
+  * @param phi matrix containing shape functions compute in qsi point
+  * @param dphix matrix containing the derivatives of shape functions with respect of global coordinates: D[phi,x], D[phi,y], D[phi,z]
+  * @param sol finite element solution
+  * @param dsol solution derivatives
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+  
   /**
    * Calculates the solution - sol - for the variable var
    * at point qsi, where qsi is expressed in terms of the

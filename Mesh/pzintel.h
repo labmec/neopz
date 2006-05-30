@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.18 2005-12-19 12:05:33 tiago Exp $
+//$Id: pzintel.h,v 1.19 2006-05-30 17:51:07 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -326,7 +326,25 @@ public:
    * @see TPZMaterial::NSolutionVariables
    * @see TPZMaterial::Solution
    */
-  void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
+  virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
+  
+  /**
+   * Computes solution and its derivatives in the local coordinate qsi.
+   * @param qsi master element coordinate
+   * @param sol finite element solution
+   * @param dsol solution derivatives
+   */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+  
+ /**
+  * Computes solution and its derivatives in local coordinate qsi
+  * @param qsi master element coordinate
+  * @param phi matrix containing shape functions compute in qsi point
+  * @param dphix matrix containing the derivatives of shape functions with respect of global coordinates: D[phi,x], D[phi,y], D[phi,z]
+  * @param sol finite element solution
+  * @param dsol solution derivatives
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
   /**
    * Compare the L2 norm of the difference between the ¨var¨ solution of the current element with 

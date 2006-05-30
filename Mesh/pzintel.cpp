@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.42 2006-05-02 15:15:23 phil Exp $
+// $Id: pzintel.cpp,v 1.43 2006-05-30 17:51:07 tiago Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1592,7 +1592,6 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
     (ek.fConnect)[i] = ConnectIndex(i);
   }
   //suficiente para ordem 5 do cubo
-  //  REAL phistore[220],dphistore[660],dphixstore[660];
   TPZFNMatrix<220> phi(nshape,1);
   TPZFNMatrix<660> dphi(dim,nshape),dphix(dim,nshape);
   TPZFNMatrix<9> axes(3,3,0.);
@@ -1607,7 +1606,7 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
   TPZFNMatrix<90> dsol(dim,numdof);
 
   TPZIntPoints &intrule = GetIntegrationRule();
-  if(fMaterial->HasForcingFunction()) {
+  if(this->Material()->HasForcingFunction()) {
     TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
     intrule.SetOrder(order);
   }
@@ -1617,14 +1616,9 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
 
     intrule.Point(int_ind,intpoint,weight);
-
     ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
-
-    ref->X(intpoint, x);
-
     weight *= fabs(detjac);
-
-    Shape(intpoint,phi,dphi);
+    this->Shape(intpoint,phi,dphi);
 
     int ieq;
     switch(dim) {
@@ -1651,36 +1645,19 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
       stringstream sout;
       sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
       LOGPZ_ERROR(logger,sout.str());
-      //PZError.flush();
-    }
-    int iv=0,d;
 
-    sol.Fill(0.);
-    dsol.Zero();
-    for(int in=0; in<ncon; in++) {
-      TPZConnect *df = &Connect(in);
-      int dfseq = df->SequenceNumber();
-      int dfvar = block.Size(dfseq);
-      int pos = block.Position(dfseq);
-      for(int jn=0; jn<dfvar; jn++) {
-        sol[iv%numdof] += phi(iv/numdof,0)*MeshSol(pos+jn,0);
-        for(d=0; d<dim; d++)
-          dsol(d,iv%numdof) += dphix(d,iv/numdof)*MeshSol(pos+jn,0);
-        iv++;
-      }
-    }
+    } //switch
 
-//     {
-//       stringstream sout;
-//       sout << "\nCalcStiff sol\n" << sol;
-//       sout << "\nCalcStiff dsol\n" << dsol;
-//       LOGPZ_DEBUG(logger,sout.str());
-//     }
+    if (this->Material()->NeedsSolutionToContribute()){
+      this->ComputeSolution(intpoint, phi, dphix, sol, dsol);
+    }
+    if (this->Material()->NeedsXCoord()){
+      ref->X(intpoint, x);
+    }
     
-    fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ek.fMat,ef.fMat);
-//    ek.Print(*this->fMesh,cout);
-//    ef.Print(*this->fMesh,cout);
-  }
+    this->Material()->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ek.fMat,ef.fMat);
+  
+  }//loop over integratin points
 }
 
 void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
@@ -1986,23 +1963,7 @@ void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REA
     LOGPZ_WARN(logger,sout.str());
   }
 
-  int iv=0,in,jn,d;
-  TPZConnect *df;
-  u.Fill(0.);
-  du.Zero();
-  for(in=0; in<ncon; in++) {
-    df = &Connect(in);
-    int dfseq = df->SequenceNumber();
-    int dfvar = block.Size(dfseq);
-    int pos = block.Position(dfseq);
-    for(jn=0; jn<dfvar; jn++) {
-      u[iv%numdof] += phi(iv/numdof,0)*Sol(pos+jn,0);
-      for(d=0; d<dim; d++){
-        du(d,iv%numdof) += dphix(d,iv/numdof)*Sol(pos+jn,0);
-      }
-      iv++;
-    }
-  }
+  this->ComputeSolution(qsi, phi, dphix, u, du);
   fMaterial->Solution(u,du,axes,var,sol);
 }
 
@@ -2150,22 +2111,10 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
       sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
       LOGPZ_WARN(logger,sout.str());
     }
-    int iv=0,in,jn,d;
-    TPZConnect *df;
-    u.Fill(0.);
-    dudx.Zero();
-    for(in=0; in<ncon; in++) {
-      df = &Connect(in);
-      int dfseq = df->SequenceNumber();
-      int dfvar = block.Size(dfseq);
-      for(jn=0; jn<dfvar; jn++) {
-        u[iv%ndof] += phi(iv/ndof,0)*block(dfseq,0,jn,0);
-        for(d=0; d<dim; d++)
-          dudx(d,iv%ndof) += dphix(d,iv/ndof)*block(dfseq,0,jn,0);
-        iv++;
-      }
-    }//solucao calculculada no sistema local : elementos 2d
-    //contribu�es dos erros
+
+    this->ComputeSolution(intpoint, phi, dphix, u, dudx);
+
+    //contribucao dos erros
     if(fp) {
       fp(x,u_exact,du_exact);
       matp->Errors(x,u,dudx,axes,flux_el,u_exact,du_exact,values);
@@ -2262,22 +2211,8 @@ void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
       sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
       LOGPZ_WARN(logger,sout.str());
     }
-    int iv=0,d;
 
-    sol.Fill(0.);
-    dsol.Zero();
-    for(int in=0; in<ncon; in++) {
-      TPZConnect *df = &Connect(in);
-      int dfseq = df->SequenceNumber();
-      int dfvar = block.Size(dfseq);
-      int pos = block.Position(dfseq);
-      for(int jn=0; jn<dfvar; jn++) {
-        sol[iv%numdof] += phi(iv/numdof,0)*MeshSol(pos+jn,0);
-        for(d=0; d<dim; d++)
-          dsol(d,iv%numdof) += dphix(d,iv/numdof)*MeshSol(pos+jn,0);
-        iv++;
-      }
-    }
+    this->ComputeSolution(intpoint, phi, dphix, sol, dsol);
     fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ef.fMat);
   }
 }
@@ -2378,22 +2313,9 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
       sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
       LOGPZ_WARN(logger,sout.str());
     }
-    int iv=0,d;
     
-    sol.Fill(0.);
-    dsol.Zero();
-    for(int in=0; in<ncon; in++) {
-      TPZConnect *df = &Connect(in);
-      int dfseq = df->SequenceNumber();
-      int dfvar = block.Size(dfseq);
-      int pos = block.Position(dfseq);
-      for(int jn=0; jn<dfvar; jn++) {
-        sol[iv%numdof] += phi(iv/numdof,0)*MeshSol(pos+jn,0);
-        for(d=0; d<dim; d++)
-          dsol(d,iv%numdof) += dphix(d,iv/numdof)*MeshSol(pos+jn,0);
-        iv++;
-      }
-    }
+    this->ComputeSolution(intpoint, phi, dphix, sol, dsol);
+    
     // Expand the values of the shape functions and their derivatives
     ExpandShapeFunctions(connectlist,dependencyorder,blocksizes,phi,dphix);
     // Make the contribution in small blocks
@@ -2779,3 +2701,80 @@ void TPZInterpolatedElement::Read(TPZStream &buf, void *context)
   buf.Read(&matid,1);
   fMaterial = Mesh()->FindMaterial(matid);
 }
+
+void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+
+  const int nshape = this->NShapeF();
+  TPZGeoEl * ref = this->Reference();
+  const int dim = ref->Dimension();
+
+  TPZFNMatrix<220> phi(nshape,1);
+  TPZFNMatrix<660> dphi(dim,nshape),dphix(dim,nshape);
+  TPZFNMatrix<9> axes(3,3,0.);
+  TPZFNMatrix<9> jacobian(dim,dim);
+  TPZFNMatrix<9> jacinv(dim,dim);
+  REAL detjac;
+  TPZManVector<REAL,3> intpoint(dim,0.);
+
+  ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+
+  this->Shape(intpoint,phi,dphi);
+
+  int ieq;
+  switch(dim) {
+  case 0:
+    break;
+  case 1:
+    dphix = dphi;
+    dphix *= (1./detjac);
+    break;
+  case 2:
+    for(ieq = 0; ieq < nshape; ieq++) {
+      dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
+      dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
+    }
+    break;
+  case 3:
+    for(ieq = 0; ieq < nshape; ieq++) {
+      dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
+      dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
+      dphix(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
+    }
+    break;
+  default:
+    stringstream sout;
+    sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
+    LOGPZ_ERROR(logger,sout.str());
+  }
+  
+  this->ComputeSolution(qsi, phi, dphix, sol, dsol);
+    
+}//method
+
+void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+    const int dim = this->Reference()->Dimension();
+    const int numdof = this->Material()->NStateVariables();
+    const int ncon = this->NConnects();
+    
+    sol.Resize(numdof);
+    sol.Fill(0.);
+    dsol.Redim(dim, numdof);
+    dsol.Zero();
+    
+    TPZBlock &block = Mesh()->Block();
+    TPZFMatrix &MeshSol = Mesh()->Solution();
+    int iv = 0, d;
+    for(int in=0; in<ncon; in++) {
+      TPZConnect *df = &this->Connect(in);
+      int dfseq = df->SequenceNumber();
+      int dfvar = block.Size(dfseq);
+      int pos = block.Position(dfseq);
+      for(int jn=0; jn<dfvar; jn++) {
+        sol[iv%numdof] += phi(iv/numdof,0)*MeshSol(pos+jn,0);
+        for(d=0; d<dim; d++){
+          dsol(d,iv%numdof) += dphix(d,iv/numdof)*MeshSol(pos+jn,0);
+        }
+        iv++;
+      }
+    }
+}//method
