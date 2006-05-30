@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzelast3d.h,v 1.4 2006-01-14 19:55:32 tiago Exp $
+//$Id: pzelast3d.h,v 1.5 2006-05-30 17:46:23 tiago Exp $
 
 #ifndef PZELAST3D
 #define PZELAST3D
@@ -11,8 +11,7 @@
 #include "pzvec.h"
 #include <vector>
 
-/** This class implements an isotropic elasticity material.
- *  Problem dimension is 1, 2 or 3.
+/** This class implements a 3D isotropic elasticity material.
  *  @since Aug 31, 2005.
  */
 class TPZElasticity3D : public TPZMaterial {
@@ -113,7 +112,7 @@ virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx,
  */
 virtual int NEvalErrors() {return 3;} 
 
-private :
+protected :
 
 /** Young's modulus.
  */  
@@ -135,9 +134,9 @@ TPZManVector<REAL,3> fPostProcessDirection;
  */
 REAL fFy;
 
-void ComputeStressVector(TPZFMatrix &Stress, TPZFMatrix &DSol);
+virtual void ComputeStressVector(TPZFMatrix &Stress, TPZFMatrix &DSol);
 void ComputeStrainVector(TPZFMatrix &Strain, TPZFMatrix &DSol);
-void ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &DSol);
+virtual void ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &DSol);
 void ComputeStrainTensor(TPZFMatrix &Strain, TPZFMatrix &DSol);
 void ApplyDirection(TPZFMatrix &StrVec, TPZVec<REAL> &Out);
 void PrincipalDirection(TPZFMatrix &DSol, TPZVec< REAL > &Solout, int direction);

@@ -1,4 +1,4 @@
-//$Id: pzelast3d.cpp,v 1.8 2006-03-14 14:29:00 tiago Exp $
+//$Id: pzelast3d.cpp,v 1.9 2006-05-30 17:46:23 tiago Exp $
 
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -413,7 +413,7 @@ void TPZElasticity3D::ComputeStressVector(TPZFMatrix &Stress, TPZFMatrix &DSol){
   REAL const3 = 4. * ( 1. + ni );
   Stress(3,0) = E * ( DSol(1,0) + DSol(0,1) ) / const3;
   Stress(4,0) = E * ( DSol(2,0) + DSol(0,2) ) / const3;
-  Stress(5,0) = E * ( DSol(3,0) + DSol(0,3) ) / const3;
+  Stress(5,0) = E * ( DSol(2,1) + DSol(1,2) ) / const3;
 }
 
 void TPZElasticity3D::ApplyDirection(TPZFMatrix &StrVec, TPZVec<REAL> &Out){
