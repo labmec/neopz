@@ -1,4 +1,4 @@
-//$Id: meshesTetra.cpp,v 1.1 2006-03-16 13:25:38 tiago Exp $
+//$Id: meshesTetra.cpp,v 1.2 2006-05-30 17:54:08 tiago Exp $
 
 #include "meshesTetra.h"
 
@@ -38,6 +38,7 @@ void SetInterpOrder(int p){
   TPZCompEl::gOrder = p;
 }
 
+#include "pzthermicelast3d.h"
 TPZCompMesh * VigaEngastadaTetra(int h, int p){
   SetInterpOrder(p);
 

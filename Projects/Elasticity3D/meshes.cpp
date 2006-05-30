@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.7 2006-03-16 13:52:44 tiago Exp $
+//$Id: meshes.cpp,v 1.8 2006-05-30 17:54:08 tiago Exp $
 
 #include "meshes.h"
 
@@ -33,6 +33,7 @@
 #include "TPZCompElDisc.h"
 #include "pzbndcond.h"
 #include "pzelast3d.h"
+#include "pzthermicelast3d.h"
 
 void SetPOrder(int p){
   TPZCompEl::gOrder = p;
@@ -41,11 +42,11 @@ void SetPOrder(int p){
 TPZCompMesh *BarraTracionada(int h, int p){
   SetPOrder(p);
 
-  const REAL Length = 1.;
-  const REAL Base   = 1.;
-  const REAL Height = 1.; 
+  const REAL Length = 10.;
+  const REAL Base   = 0.3;
+  const REAL Height = 0.5; 
   const REAL STRESS = 100.;
-  const REAL EYoung = 1000.;
+  const REAL EYoung = 205000.;
   const REAL Poisson= 0.0;
   
   REAL co[8][3] = {{0.,0.,0.},    {0.,0., Base},    {0.,Height, Base},    {0., Height, 0.}, 
@@ -109,7 +110,8 @@ TPZCompMesh *BarraTracionada(int h, int p){
   
   TPZManVector<REAL,3> NullForce(3); 
   NullForce.Fill(0.);
-  TPZElasticity3D * mat = new TPZElasticity3D(1, EYoung, Poisson, NullForce);
+  TPZThermicElast3D * mat = new TPZThermicElast3D(1, 1.2e-5, 0., EYoung, Poisson, NullForce);
+  mat->SetConstantTemperatureField(20.);
 
   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
   val2(0,0) = -STRESS;
@@ -136,7 +138,8 @@ TPZCompMesh *BarraTracionada(int h, int p){
   cmesh->InsertMaterialObject(bnd);
 
   //cmesh->SetAllCreateFunctionsDiscontinuous();
-  cmesh->SetAllCreateFunctionsContinuous();
+  //cmesh->SetAllCreateFunctionsContinuous();
+  cmesh->SetAllCreateFunctionsContinuousReferred();
   
   cmesh->AutoBuild();
 //   cmesh->AdjustBoundaryElements();

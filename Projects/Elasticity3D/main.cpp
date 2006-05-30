@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.9 2006-03-16 13:25:38 tiago Exp $
+//$Id: main.cpp,v 1.10 2006-05-30 17:54:08 tiago Exp $
 
 /**
  * Validation test of TPZElasticity3D material
@@ -100,12 +100,12 @@ int main(){
   cin >> p;
   cout << "h = " << h << " - p = " << p << endl;  
 
-  TPZCompMesh * cmesh = VigaEngastadaTetra/*BarraTracionadaGirada*//*BarraTracionadaNeumann*/(h, p);
+  TPZCompMesh * cmesh = /*VigaEngastadaTetra*/BarraTracionada/*Girada*//*BarraTracionadaNeumann*/(h, p);
   TPZGeoMesh *gmesh = cmesh->Reference();
- 
+
   TPZAnalysis an(cmesh);
 
-//#define direct  
+#define direct  
 #ifdef direct
   /*TPZFrontStructMatrix <TPZFrontSym> */TPZSkylineStructMatrix full(cmesh);
   an.SetStructuralMatrix(full);
@@ -114,14 +114,14 @@ int main(){
   an.SetSolver(step);
 #endif
   
-#define iter;
+//#define iter;
 #ifdef iter
   cout << "ITER_SOLVER" << endl;  
   /*TPZFStructMatrix*/ TPZSkylineStructMatrix full(cmesh);
   an.SetStructuralMatrix(full);  
   TPZStepSolver step( full.Create() );
   an.SetSolver(step);  
-  REAL tol = 1.e-8;
+  REAL tol = 1.e-11;
 
 #define Precond
 #ifdef Precond 
@@ -140,7 +140,7 @@ int main(){
 
       TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EBlockJacobi , false);
 //      step.SetCG( 2000, *precond, tol, 0 );
-      step.SetGMRES( 2000, 20, *precond, tol, 0);
+      step.SetGMRES( 20000, 20, *precond, tol, 0);
       delete precond;
   #endif
 
@@ -148,7 +148,7 @@ int main(){
 // Sem pre-condicionador 
      TPZCopySolve precond( full.Create() );
      step.ShareMatrix( precond );  
-     step.SetCG( 2000, precond, tol, 0 );
+     step.SetCG( 20000, precond, tol, 0 );
 //     step.SetGMRES( 2000, 20, precond, tol, 0);     
 //     step.SetSSOR( 18000, 1., tol, 0);
      cout << "SEM PRECOND" << endl;
@@ -166,10 +166,12 @@ int main(){
   an.Solution().Print("solvec", sol);
   
 /**** DX *****/
-  TPZVec<char*> scalnames(1);
-  TPZVec<char*> vecnames(0);
-  scalnames[0] = "DisplacementX";
-//  vecnames[0] = "PrincipalStrain";
+  TPZVec<char*> scalnames(0);
+  TPZVec<char*> vecnames(1);
+  //scalnames[0] = "DisplacementZ";
+  //vecnames[0] = "PrincipalStrain";
+  vecnames[0] = "PrincipalStress";
+  //vecnames[0] = "Displacement";
   std::stringstream filedx; 
   filedx << "result.dx";
   an.DefineGraphMesh(3, scalnames, vecnames, &(filedx.str()[0]));
