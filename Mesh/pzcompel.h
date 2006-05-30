@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.23 2006-04-03 20:18:14 tiago Exp $
+// $Id: pzcompel.h,v 1.24 2006-05-30 17:50:32 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -396,6 +396,24 @@ public:
    * @param sol vetor for the solution
    */
   virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
+  
+ /**
+  * Computes solution and its derivatives in the local coordinate qsi.
+  * @param qsi master element coordinate
+  * @param sol finite element solution
+  * @param dsol solution derivatives
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+  
+ /**
+  * Computes solution and its derivatives in local coordinate qsi
+  * @param qsi master element coordinate
+  * @param phi matrix containing shape functions compute in qsi point
+  * @param dphix matrix containing the derivatives of shape functions with respect of global coordinates: D[phi,x], D[phi,y], D[phi,z]
+  * @param sol finite element solution
+  * @param dsol solution derivatives
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
   /**
    * Builds the list of all connectivities related to the element including the
@@ -661,6 +679,14 @@ inline void TPZCompEl::ProjectFlux(TPZElementMatrix &ek,TPZElementMatrix &ef) {
 
 inline int TPZCompEl::Index() {
   return fIndex;
+}
+
+inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+  PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
+}
+
+inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+  PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
 }
 
 #endif

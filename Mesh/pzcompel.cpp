@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.26 2006-05-02 15:12:51 phil Exp $
+//$Id: pzcompel.cpp,v 1.27 2006-05-30 17:50:32 tiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -966,10 +966,8 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
     int list0side = list[0].Side();
     TPZCompElDisc * thisdisc  = dynamic_cast<TPZCompElDisc*>(this);
     TPZCompElDisc * neighdisc = dynamic_cast<TPZCompElDisc*>(list0);
-    int thisside = -1;//discontinuous elements
-    if (!thisdisc) thisside = side;
-    int neighside = - 1;//discontinuous elements
-    if (!neighdisc) neighside = list0side;
+    int thisside = side;
+    int neighside = list0side;
 
     if (BetweenContinuous == false){
       //It means at least one element must be discontinuous

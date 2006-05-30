@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.31 2006-03-06 12:47:46 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.32 2006-05-30 17:51:59 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -73,8 +73,10 @@ class TPZInterfaceElement : public TPZCompEl {
    * Compute shape functions to an interpolated element. Used in case one neighbour is TPZInterpolatedElement.
    */
   void ComputeShape(TPZInterpolatedElement* intel, TPZFMatrix &phix, TPZFMatrix &dphix, TPZVec<REAL> &IntPoint );
-
+  
  public:
+ 
+  enum CalcStiffOptions{ENone = -1, EStandard = 0, EPenalty, EContDisc};
 
   /** 
    * For CloneInterface usage. Normal is not recomputed, but copied.
@@ -253,12 +255,32 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   static int gCalcStiff;
 
-  static void SetCalcStiffStandard(){ TPZInterfaceElement::gCalcStiff = 1; }
+  static void SetCalcStiffStandard(){ TPZInterfaceElement::gCalcStiff = EStandard; }
 
-  static void SetCalcStiffPenalty(){ TPZInterfaceElement::gCalcStiff = 2; }
+  static void SetCalcStiffPenalty(){ TPZInterfaceElement::gCalcStiff = EPenalty; }
 
-  static void SetCalcStiffContDisc(){ TPZInterfaceElement::gCalcStiff = 3; }
-
+  static void SetCalcStiffContDisc(){ TPZInterfaceElement::gCalcStiff = EContDisc; }
+  
+ /**
+  * Computes solution and its derivatives in the local coordinate qsi.
+  * @param qsi master element coordinate
+  * @param sol finite element solution
+  * @param dsol solution derivatives
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+  
+ /**
+  * Computes solution and its derivatives in local coordinate qsi
+  * @param qsi master element coordinate
+  * @param phi matrix containing shape functions compute in qsi point
+  * @param dphix matrix containing the derivatives of shape functions with respect of global coordinates: D[phi,x], D[phi,y], D[phi,z]
+  * @param sol finite element solution
+  * @param dsol solution derivatives
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+  
+  void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
+  
   /**
    * Print attributes of the object
    */
