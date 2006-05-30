@@ -47,7 +47,7 @@ libpz_a_LIBADD = ../Post/tpzgraphelt3d.o ../External/pzsloan.o \
 	../StrMatrix/TPZParSkylineStructMatrix.o ../StrMatrix/TPZSpStructMatrix.o ../Frontal/pzvecfrontal.o \
 	../Frontal/tpzeqnarray.o ../Frontal/TPZFileEqnStorage.o ../Frontal/TPZFront.o \
 	../Frontal/TPZFrontMatrix.o ../Frontal/TPZFrontNonSym.o ../Frontal/TPZFrontSym.o \
-	../Frontal/TPZParFrontMatrix.o ../Frontal/TPZStackEqnStorage.o ../Analysis/pzanalysis.o \
+	../Frontal/TPZParFrontMatrix.o ../Frontal/TPZStackEqnStorage.o ../Analysis/pzanalysis.o \ 
 	../Analysis/pzanalysiserror.o ../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o \
 	../Analysis/pzonedref.o ../Analysis/pzsmanal.o ../Analysis/pzsmfrontalanal.o \
 	../Analysis/pzeuleranalysis.o ../Cosys/pzcartsys.o ../Cosys/pzcosys.o ../Cosys/pzcylinsys.o \
@@ -57,12 +57,12 @@ libpz_a_LIBADD = ../Post/tpzgraphelt3d.o ../External/pzsloan.o \
 	../Material/tpzoutofrange.o ../Material/pzmathyperelastic.o ../Material/pzmatorthotropic.o \
 	../Material/pzmatplaca2.o ../Material/pzmatplaca.o ../Material/pzmattest3d.o \
 	../Material/pzmattest.o ../Material/pzmultplaca.o ../Material/pzplaca.o \
-	../Material/pzpoisson3d.o ../Material/TPZEuler.o ../Material/TPZEulerConsLaw.o \
+	../Material/pzpoisson3d.o ../Material/pzpoisson3dreferred.o ../Material/TPZEuler.o ../Material/TPZEulerConsLaw.o \
 	../Material/TPZLinearConvection.o ../Material/tpzmultcamada.o ../Material/pzbctension.o \
 	../Material/TPZMulticamadaOrtho.o ../Material/TPZPlacaOrthotropic.o ../Material/TPZConservationLaw.o \
 	../Material/TPZDiffusionConsLaw.o ../Material/pzconslaw.o ../Material/pzartdiff.o \
-	../Material/pzeulerconslaw.o ../Material/pzbiharmonic.o ../Material/pznonlinbiharmonic.o \
-	../Material/pzmaterialid.o ../Material/tpzoutofrange.o ../Material/pzelast3d.o ../Post/pzdxmesh.o \
+	../Material/pzeulerconslaw.o ../Material/pzbiharmonic.o ../Material/pznonlinbiharmonic.o ../Material/pznlmat1d.o ../Material/pznlmat1drotatedengstrain.o \
+	../Material/pzmaterialid.o ../Material/tpzoutofrange.o ../Material/pzelast3d.o ../Material/pzthermicelast3d.o ../Post/pzdxmesh.o \
 	../Post/pzgraphel1d.o ../Post/pzgraphel1dd.o ../Post/pzgraphel.o ../Post/pzgraphelq2d.o \
 	../Post/pzgraphelq2dd.o ../Post/pzgraphelq3dd.o ../Post/pzgraphmesh.o ../Post/pzgraphnode.o \
 	../Post/pzmvmesh.o ../Post/pztrigraph.o ../Post/pztrigraphd.o ../Post/pzv3dmesh.o \
