@@ -1,8 +1,9 @@
-//$Id: main.cpp,v 1.5 2006-03-16 01:53:09 tiago Exp $
+//$Id: main.cpp,v 1.6 2006-05-30 17:52:44 tiago Exp $
 
 /**
  * Percolation of water from the fracture into the porous media.
- * September 16, 2005
+ * A property like temperature is convected in the water flow.
+ * January 10, 2006
  */
 
 #include <sstream>
@@ -85,26 +86,11 @@ using namespace pzshape;
 using namespace pzrefine;
 using namespace std;
  
-int main22(){
-  TPZFMatrix A(4,4), B(4,4), C(4,4);
-  A(0,0) = 1.;
-  A(0,1) = 2.;
-  A(1,0) = 3.;
-  A(1,1) = 4.;
-  A(2,2) = 3.;
-  A(3,3) = 4.;
-  A.Print("",cout,EMathematicaInput); 
-  int p;
-  for(p = 0; p < 3; p++){
-    B = A;  B.SetIsDecomposed(ENoDecompose);
-    cout << "p = " << p << " - " << B.ConditionNumber(p, 200000, 1.e-14) << endl;
-    B = A;  B.SetIsDecomposed(ENoDecompose);
-    B.Inverse(C); C.SetIsDecomposed(ENoDecompose); B = A; B.SetIsDecomposed(ENoDecompose);
-    cout << B.MatrixNorm(p) << "  " << C.MatrixNorm(p, 200000, 1.e-14) << endl;
-  }
-}//main
-
-int main(){   
+/** In this main procedure the coupling of equations is performed by the material TPZCoupledTransportDarcy
+ * which behaves like Darcy material in a first moment and then behaves like a transport material using the previous
+ * result of Darcy simulation as initial data.
+ */
+int mainTPZCoupledTransportDarcy(){   
 
   int h, p;
   cout << "h p\n";
@@ -219,3 +205,106 @@ int main(){
   return 0; 
 }
 
+/** In this main procedure the coupling of equations is performed by a new computational element type: TPZReferredCompEl
+ * which can handle solutions between different computational meshes.
+ */
+#include "meshesReferredCompEl.h"
+#include "pzdxmesh.h"
+int main(){   
+
+  int h, p;
+  cout << "h p\n";
+//   cin >> h;
+//   cin >> p;
+  h = 0; p = 2;
+
+  TPZShapeLinear::fOrthogonal = TPZShapeLinear::Jacobi;
+  TPZTimer WholeTime;
+  WholeTime.start();
+
+  TPZMaterial::gBigNumber= 1.e12;
+  cout << "h = " << h << " - p = " << p << endl;
+  
+  TPZVec< TPZCompMesh * > CompMeshes(2, NULL);
+  
+  CreateSimpleMeshesWithExactSolutionToReferredCompEl(CompMeshes, h, p);
+  TPZCompMesh * firstmesh  = CompMeshes[0];
+  TPZCompMesh * secondmesh = CompMeshes[1];
+  
+  std::cout << "Numero de elementos = " << CompMeshes[0]->ElementVec().NElements() << std::endl;
+  std::cout << "Numero de equacoes  = " << CompMeshes[0]->NEquations() << std::endl;
+  TPZGeoMesh *gmesh = CompMeshes[0]->Reference();
+ 
+  firstmesh->LoadReferences();
+  TPZAnalysis an(firstmesh);
+
+  /*TPZParFrontStructMatrix*/ /*TPZFrontStructMatrix*/ /*<TPZFrontNonSym>*/TPZFStructMatrix/*TPZBandStructMatrix*/ full(firstmesh);
+  full.Create();
+  an.SetStructuralMatrix(full);
+  TPZStepSolver step;
+  step.SetDirect(ELU);
+  an.SetSolver(step);
+
+  std::cout << "Numero de equacoes = " << an.Mesh()->NEquations() << std::endl;
+
+  std::cout << "\nCalling an.Run() for FirstEq\n";
+  an.Run();
+  an.SetExact(ExactSol_p);
+  TPZVec<REAL> pos;
+  an.PostProcess(pos,std::cout);
+  std::cout << "Problem solved\n";
+  
+  {
+    TPZVec<char *> scalnames(1);
+    TPZVec<char *> vecnames(0);
+    scalnames[0] = "Solution";
+  //  vecnames[0] = "Derivative";
+    std::stringstream filedx;
+    filedx << "1stEq_";
+    filedx << "Solution.dx";
+    an.DefineGraphMesh(2,scalnames,vecnames,&(filedx.str()[0]));
+    an.PostProcess(2);  
+    an.CloseGraphMesh();
+  }
+
+  std::cout << "\nCalling an.Run() for SecondEq\n";
+  //secondmesh->LoadReferences();
+  an.SetCompMesh(secondmesh);
+
+  /*TPZParFrontStructMatrix*/ /*TPZFrontStructMatrix*/ /*<TPZFrontNonSym>*/TPZFStructMatrix/*TPZBandStructMatrix*/ full2(secondmesh);
+  full2.Create();
+  an.SetStructuralMatrix(full2);
+  TPZStepSolver step2;
+  step2.SetDirect(ELU);
+  an.SetSolver(step2);
+
+  an.Solution().Zero();
+  an.Run();
+  an.SetExact(ExactSol_u);
+  an.PostProcess(pos,std::cout);  
+  std::cout << "Problem solved\n";  
+   
+  {
+    TPZVec<char *> scalnames(1);
+    TPZVec<char *> vecnames(0);
+    scalnames[0] = "Solution";
+  //  vecnames[0] = "Derivative";
+    std::stringstream filedx;
+    filedx << "2ndEq_";
+    filedx << "Solution.dx";
+    an.DefineGraphMesh(2,scalnames,vecnames,&(filedx.str()[0]));
+    an.PostProcess(2);  
+    an.CloseGraphMesh();
+  }    
+    
+  WholeTime.stop();
+  cout.flush();
+  std::cout << "Numero de equacoes = " << an.Mesh()->NEquations() << std::endl;
+  cout << WholeTime << endl;
+  cout << "Banda = " << firstmesh->BandWidth() << endl;
+  
+  delete firstmesh;
+  delete secondmesh;
+  delete gmesh;
+  return 0; 
+}

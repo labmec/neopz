@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.25 2006-03-06 12:48:32 tiago Exp $
+//$Id: pzcmesh.h,v 1.26 2006-05-30 17:49:11 tiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -327,6 +327,7 @@ public:
    */
   virtual void CleanUpUnconnectedNodes();
 
+
   /**
    * Computes the connectivity graph of the elements, as appropriate for the
    * TPZRenumbering class
@@ -469,6 +470,8 @@ public:
 
   void SetAllCreateFunctionsDiscontinuous();
   void SetAllCreateFunctionsContinuous();
+  void SetAllCreateFunctionsDiscontinuousReferred();
+  void SetAllCreateFunctionsContinuousReferred();
 
   /**
    * Will build the list of element boundary conditions build the list of connect boundary conditions.
@@ -543,9 +546,9 @@ public:
    * int val = 2: (DSolLeft - DSolRight)^2
    * int val = 0: (leftsol - rightsol)^2 + (DSolLeft - DSolRight)^2
    */
-  void ConvertDiscontinuous2Continuous(REAL eps, int val);
+  void ConvertDiscontinuous2Continuous(REAL eps, int val, bool InterfaceBetweenContinuous = false);
   
-  void Discontinuous2Continuous(int disc_index, int &new_index);
+  void Discontinuous2Continuous(int disc_index, int &new_index, bool InterfaceBetweenContinuous = false);
   
   //@}
 
