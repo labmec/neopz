@@ -7,6 +7,15 @@
 #include "pzreal.h"
 #include "pzadmchunk.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+  #ifdef DEBUG
+    #define DEBUG2
+  #endif
+  static LoggerPtr logger(Logger::getLogger("pz.material"));
+#endif
+
 using namespace std;
 REAL TPZMaterial::gBigNumber = 1.e12;
 

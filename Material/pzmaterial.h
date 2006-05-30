@@ -105,6 +105,22 @@ class  TPZMaterial : public TPZSaveable
 			      REAL weight,TPZFMatrix &axes,
 			      TPZFMatrix &phi, TPZFMatrix &dphi,
 			      TPZFMatrix &ek, TPZFMatrix &ef) = 0;
+            
+      /** Indicates if the material requires the solution to compute Contribute
+       * By default its value is true, but it can be set as false by derived material classes
+       * to increase the performance of method TPZCompEl::CalcStiff
+       */
+      virtual bool NeedsSolutionToContribute(){
+        return true;
+      }
+
+      /** Indicates if the material requires the global coordinate X to compute Contribute
+       * By default its value is true, but it can be set as false by derived material classes
+       * to increase the performance of method TPZCompEl::CalcStiff
+       */
+      virtual bool NeedsXCoord(){
+        return true;
+      }
 
 //#ifdef _AUTODIFF
 
