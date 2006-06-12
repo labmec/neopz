@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.26 2006-05-30 17:41:50 tiago Exp $
+//$Id: pzanalysis.cpp,v 1.27 2006-06-12 13:55:38 cesar Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -232,7 +232,7 @@ else{
 return;
 }
 
-void TPZAnalysis::PostProcessTable( TPZFMatrix &,ostream & )//pos,out
+void TPZAnalysis::PostProcessTable( TPZFMatrix &,std::ostream & )//pos,out
 {
 	TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
 	int nel = elvec.NElements();
@@ -263,7 +263,7 @@ void TPZAnalysis::LoadShape(double ,double , int ,TPZConnect* start){
 
 }
 
-void TPZAnalysis::Run(ostream &out){
+void TPZAnalysis::Run(std::ostream &out){
 
 	Assemble();
 	Solve();
