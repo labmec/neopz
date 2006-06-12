@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.24 2006-05-30 17:50:32 tiago Exp $
+// $Id: pzcompel.h,v 1.25 2006-06-12 14:09:31 cesar Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -661,7 +661,11 @@ public:
     else return -1;
   }
 
+  bool operator != (const TPZCompElSide &other);
+  bool operator == (const TPZCompElSide &other);
+
 };
+//  std::ostream & operator << (std::ostream &out,const TPZCompElSide &celside);
 
 inline void TPZCompEl::CreateGraphicalElement(TPZGraphMesh &, int) {
   std::cout << "TPZCompEl::CreateGrafEl called\n";
@@ -675,6 +679,24 @@ inline void TPZCompEl::CalcStiff(TPZElementMatrix &,TPZElementMatrix &){
 
 inline void TPZCompEl::ProjectFlux(TPZElementMatrix &ek,TPZElementMatrix &ef) {
   std::cout << "TPZCompEl::ProjectFlux is called." << std::endl;
+}
+
+inline bool TPZCompElSide::operator != (const TPZCompElSide &other)
+{
+  return (other.Element() != Element() || other.Side() != Side());
+}
+
+inline bool TPZCompElSide::operator == (const TPZCompElSide &other)
+{
+  return (other.Element() == Element() && other.Side() == Side());
+}
+
+inline std::ostream &operator << (std::ostream &out,const TPZCompElSide &celside)
+{
+  out << "Side = " << celside.Side()
+      << " element: " << celside.Element()->Index()
+      << std::endl;
+  return out;
 }
 
 inline int TPZCompEl::Index() {
