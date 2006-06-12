@@ -216,6 +216,8 @@ class  TPZMaterial : public TPZSaveable
 					   TPZFMatrix &ek, TPZFMatrix &ef);
 
 
+  virtual int ClassId() const;
+
   /**
   Save the element data to a stream
   */
