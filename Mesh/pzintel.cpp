@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.43 2006-05-30 17:51:07 tiago Exp $
+// $Id: pzintel.cpp,v 1.44 2006-07-06 15:55:23 tiago Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1569,9 +1569,6 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
   int ncon = NConnects();
   int dim = Dimension();
   int nshape = NShapeF();
-  TPZBlock &block = Mesh()->Block();
-  TPZFMatrix &MeshSol = Mesh()->Solution();
-  // clean ek and ef
 
   int numeq = nshape*numdof;
   ek.fMat.Redim(numeq,numeq);
@@ -1909,8 +1906,6 @@ void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REA
     LOGPZ_INFO(logger,"Exiting Solution for var 99.");
     return;
   }
-  TPZBlock &block = fMesh->Block();
-  TPZFMatrix &Sol = fMesh->Solution();
 
   if(fMaterial == NULL){
     LOGPZ_ERROR(logger,"Exiting Solution: no Material for this element");
@@ -2072,8 +2067,6 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
   TPZFMatrix dudx(dim,ndof,dudxstore,90);
   TPZManVector<REAL> flux_el(nflux);
   TPZMaterial *matp = (TPZMaterial *) fMaterial;
-  int ncon = NConnects();
-  TPZBlock &block = Mesh()->Block();
   TPZFMatrix jacinv(dim,dim);
   int ieq;
   TPZGeoEl *ref = Reference();
@@ -2139,9 +2132,6 @@ void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
   int ncon = NConnects();
   int dim = Dimension();
   int nshape = NShapeF();
-  TPZBlock &block = Mesh()->Block();
-  TPZFMatrix &MeshSol = Mesh()->Solution();
-  // clean ek and ef
 
   int numeq = nshape*numdof;
   ef.fMat.Redim(numeq,1);
@@ -2234,8 +2224,6 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
   BuildDependencyOrder(connectlist,dependencyorder);
   int dim = Dimension();
   int nshape = NShapeF();
-  TPZBlock &block = Mesh()->Block();
-  TPZFMatrix &MeshSol = Mesh()->Solution();
 
   int numblocks = connectlist.NElements();
   TPZVec<int> blocksizes(numblocks,0);
@@ -2714,11 +2702,10 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &so
   TPZFNMatrix<9> jacobian(dim,dim);
   TPZFNMatrix<9> jacinv(dim,dim);
   REAL detjac;
-  TPZManVector<REAL,3> intpoint(dim,0.);
 
-  ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+  ref->Jacobian( qsi, jacobian, axes, detjac , jacinv);
 
-  this->Shape(intpoint,phi,dphi);
+  this->Shape(qsi,phi,dphi);
 
   int ieq;
   switch(dim) {
