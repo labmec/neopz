@@ -224,7 +224,7 @@ public:
 
   void SetExact(void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix &deriv));
 
-  void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
+  virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
 
   void PostProcessTable(  TPZFMatrix &pos,std::ostream &out= std::cout );
 
