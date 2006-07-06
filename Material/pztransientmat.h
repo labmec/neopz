@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientmat.h,v 1.1 2006-06-02 17:03:59 tiago Exp $
+//$Id: pztransientmat.h,v 1.2 2006-07-06 15:57:40 tiago Exp $
 
 
 #ifndef TRANSIENTMATH
@@ -18,7 +18,7 @@
 template<class TBASEMAT>
 class TPZTransientMaterial : public TBASEMAT {
   public:
-
+  
   TPZTransientMaterial(int nummat, int dim, REAL TimeStep);
   
   ~TPZTransientMaterial();
@@ -48,6 +48,22 @@ class TPZTransientMaterial : public TBASEMAT {
    * Returns time step value.
    */
   REAL TimeStep();
+  
+  /** Indicates if the material requires the solution to compute Contribute
+   * By default its value is true, but it can be set as false by derived material classes
+   * to increase the performance of method TPZCompEl::CalcStiff
+   */
+  virtual bool NeedsSolutionToContribute(){
+    return true;
+  }
+
+  /** Indicates if the material requires the global coordinate X to compute Contribute
+   * By default its value is true, but it can be set as false by derived material classes
+   * to increase the performance of method TPZCompEl::CalcStiff
+   */
+  virtual bool NeedsXCoord(){
+    return (this->fStep != ELast);
+  }
   
   protected:
   

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.21 2006-05-09 17:31:20 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.22 2006-07-06 15:57:40 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -13,7 +13,7 @@
 using namespace std;
 REAL TPZMatPoisson3d::gAlfa = 0.5;
 
-TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(1.) {
+TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(0.) {
   fK = 1.;
   fC = 0.;
   fConvDir[0] = 1.;
@@ -113,14 +113,14 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
     REAL dphiic = 0;
     for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
     ef(in, 0) += - weight * ( fXf*phi(in,0) 
-//			      + 0.5*fSD*delx*fC*dphiic*fXf
+                              +0.5*fSD*delx*fC*dphiic*fXf
 			      );
     for( int jn = 0; jn < phr; jn++ ) {
       for(kd=0; kd<fDim; kd++) {
         ek(in,jn) += weight * (
           +fK * ( dphi(kd,in) * dphi(kd,jn) ) 
           -fC * ( ConvDirAx[kd]* dphi(kd,in) * phi(jn) )
-//	  +0.5 * fSD * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
+	        +0.5 * fSD * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
           );
       }
     }
@@ -134,7 +134,7 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
 
 
 void TPZMatPoisson3d::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
-				     TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+				     TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
   int phr = phi.Rows();
   short in,jn;
@@ -155,14 +155,40 @@ void TPZMatPoisson3d::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REA
       ef(in,0) += v2[0] * phi(in,0) * weight;
     }
     break;
-  case 2 :		// condi�o mista
+  case 2 :		// mixed condition
     for(in = 0 ; in < phi.Rows(); in++) {
       ef(in, 0) += v2[0] * phi(in, 0) * weight;
       for (jn = 0 ; jn < phi.Rows(); jn++) {
-	ek(in,jn) += bc.Val1()(0,0) * phi(in,0) *
-	  phi(jn,0) * weight;     // peso de contorno => integral de contorno
+	      ek(in,jn) += bc.Val1()(0,0) * phi(in,0) *
+	      phi(jn,0) * weight;     // peso de contorno => integral de contorno
       }
     }
+  case 3: // outflow condition
+    int id, il, jl;
+    REAL normal[3];
+    if (fDim == 1) PZError << __PRETTY_FUNCTION__ << " - ERROR! The normal vector is not available for 1D TPZInterpolatedElement\n";
+    if (fDim == 2){
+      normal[0] = axes(0,1);
+      normal[1] = axes(1,1);
+    }
+    if (fDim == 3){
+      normal[0] = axes(0,2);
+      normal[1] = axes(1,2);
+      normal[2] = axes(2,2);
+    }
+    REAL ConvNormal = 0.;    
+    for(id=0; id<fDim; id++) ConvNormal += fC*fConvDir[id]*normal[id];  
+    if(ConvNormal > 0.) {
+      for(il=0; il<phr; il++) {
+        for(jl=0; jl<phr; jl++) {
+          ek(il,jl) += weight * ConvNormal * phi(il)*phi(jl);
+        }
+      }
+    }
+    else{
+      if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition\n";    
+    }
+    break;
   }
   
   if (this->IsSymetric()) {//only 1.e-3 because of bignumbers.
@@ -420,8 +446,8 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
   nrowl = phiL.Rows(); 
   const REAL penalty = fPenaltyConstant * fK * POrder * POrder / faceSize; //Ap^2/h
   REAL outflow = 0.;
-  for(il=0; il<fDim; il++) outflow += fConvDir[il]*normal[il];
-   
+  for(il=0; il<fDim; il++) outflow += fC * fConvDir[il] * normal[il];
+
   switch(bc.Type()) {
   case 0: // DIRICHLET  
     for(il=0; il<nrowl; il++) {
@@ -439,7 +465,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
       {
         for(jl=0; jl<nrowl; jl++)
         {
-          ek(il,jl) += weight * outflow * fC * phiL(il,0) * phiL(jl,0);
+          ek(il,jl) += weight * outflow * phiL(il,0) * phiL(jl,0);
         }
       }
     }
@@ -463,27 +489,27 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
   
   //Convection term
   REAL ConvNormal = 0.;
-  for(id=0; id<fDim; id++) ConvNormal += fConvDir[id]*normal[id];
+  for(id=0; id<fDim; id++) ConvNormal += fC * fConvDir[id] * normal[id];
   if(ConvNormal > 0.) {
     for(il=0; il<nrowl; il++) {
       for(jl=0; jl<nrowl; jl++) {
-        ek(il,jl) += weight * fC * ConvNormal * phiL(il)*phiL(jl);
+        ek(il,jl) += weight * ConvNormal * phiL(il)*phiL(jl);
       }
     }
     for(ir=0; ir<nrowr; ir++) {
       for(jl=0; jl<nrowl; jl++) {
-        ek(ir+nrowl,jl) -= weight * fC * ConvNormal * phiR(ir) * phiL(jl);
+        ek(ir+nrowl,jl) -= weight * ConvNormal * phiR(ir) * phiL(jl);
       }
     }
   } else {
     for(ir=0; ir<nrowr; ir++) {
       for(jr=0; jr<nrowr; jr++) {
-        ek(ir+nrowl,jr+nrowl) -= weight * fC * ConvNormal * phiR(ir) * phiR(jr);
+        ek(ir+nrowl,jr+nrowl) -= weight * ConvNormal * phiR(ir) * phiR(jr);
       }
     }
     for(il=0; il<nrowl; il++) {
       for(jr=0; jr<nrowr; jr++) {
-        ek(il,jr+nrowl) += weight * fC * ConvNormal * phiL(il) * phiR(jr);
+        ek(il,jr+nrowl) += weight * ConvNormal * phiL(il) * phiR(jr);
       }
     }
   }
@@ -574,7 +600,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
   int il,jl,nrowl,id;
   nrowl = phiL.Rows();
   REAL ConvNormal = 0.;
-  for(id=0; id<fDim; id++) ConvNormal += fConvDir[id]*normal[id];
+  for(id=0; id<fDim; id++) ConvNormal += fC*fConvDir[id]*normal[id];
   switch(bc.Type()) {
   case 0: // DIRICHLET
     
@@ -598,23 +624,38 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
     if(ConvNormal > 0.) {
       for(il=0; il<nrowl; il++) {
         for(jl=0; jl<nrowl; jl++) {
-          ek(il,jl) += weight * fC * ConvNormal * phiL(il)*phiL(jl);
+          ek(il,jl) += weight * ConvNormal * phiL(il)*phiL(jl);
         }
       }
     } else {
       for(il=0; il<nrowl; il++) {
-        ef(il,0) -= weight * fC * ConvNormal * bc.Val2()(0,0) * phiL(il);
+        ef(il,0) -= weight * ConvNormal * bc.Val2()(0,0) * phiL(il);
       }
     }
       
     break;
+    
   case 1: // Neumann
     for(il=0; il<nrowl; il++) {
       ef(il,0) += weight*phiL(il,0)*bc.Val2()(0,0);
     }
     break;
+    
+  case 3: // outflow condition
+    if(ConvNormal > 0.) {
+      for(il=0; il<nrowl; il++) {
+        for(jl=0; jl<nrowl; jl++) {
+          ek(il,jl) += weight * ConvNormal * phiL(il)*phiL(jl);
+        }
+      }
+    }
+    else {
+      if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition\n";
+    }
+    break;
+    
   default:
-    PZError << "TPZMatPoisson3d::Wrong boundary condition type\n";
+    PZError << __PRETTY_FUNCTION__ << " - Wrong boundary condition type\n";
     break;
   }
     if (this->IsSymetric()){

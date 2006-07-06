@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3dreferred.h,v 1.1 2006-05-30 17:45:00 tiago Exp $
+//$Id: pzpoisson3dreferred.h,v 1.2 2006-07-06 15:57:40 tiago Exp $
 
 #ifndef MATPOISSON3DREFERREDH
 #define MATPOISSON3DREFERREDH
@@ -12,7 +12,7 @@
 /**
  * This class implements a version of TPZMatPoisson3d where the convection term is given at each integration point
  * from a previous calculation.
- * The convection term fC * fConvDir = fAlpha * grad(sol) where grad(sol) is the gradient of the previous solution.
+ * The convection term fC * fConvDir = - fAlpha * grad(sol) where grad(sol) is the gradient of the previous solution.
  */
 class TPZMatPoisson3dReferred : public TPZMatPoisson3d {
 
@@ -20,14 +20,16 @@ protected:
 
   REAL falpha;
   
-  void SetConvectionTerm(TPZFMatrix &dsol);
-  void TPZMatPoisson3dReferred::SetConvectionTerm(TPZFMatrix &dsolL, TPZFMatrix &dsolR);
+  void SetConvectionTerm(TPZFMatrix &dsol, TPZFMatrix &axes);
+  void SetConvectionTerm(TPZFMatrix &dsolL, TPZFMatrix &axesL, TPZFMatrix &dsolR, TPZFMatrix &axesR);
 
 public:
  
   TPZMatPoisson3dReferred(int nummat, int dim);
 
   virtual ~TPZMatPoisson3dReferred();
+  
+//  virtual int HasForcingFunction() {return true;}
 
   TPZMatPoisson3dReferred(const TPZMatPoisson3dReferred &copy) : TPZMatPoisson3d(copy){
     this->falpha = copy.falpha;

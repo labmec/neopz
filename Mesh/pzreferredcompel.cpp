@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.3 2006-05-30 17:51:24 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.4 2006-07-06 15:55:37 tiago Exp $
 
 #include "pzreferredcompel.h"
 #include "pzelctemp.h"
@@ -67,7 +67,7 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix
     PZError << mess.str() << std::endl;
   }
   TPZCompEl * othercel = ref->Reference();
-  MElementType tipo = othercel->Type();
+//  MElementType tipo = othercel->Type();
   if (!othercel){
     std::stringstream mess; mess << __PRETTY_FUNCTION__ << " ERROR";
     LOGPZ_ERROR(logger, mess.str());
@@ -75,7 +75,9 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix
   }  
 #endif
 
-  TCOMPEL::ComputeSolution(qsi, phi, dphix, u, du);
+  TPZManVector<REAL> ThisSol;
+  TPZFNMatrix<100> ThisDSol(10,10);
+  TCOMPEL::ComputeSolution(qsi, phi, dphix, ThisSol, ThisDSol);
   
   TPZManVector<REAL> OtherSol;
   TPZFNMatrix<100> OtherDSol(10,10);
@@ -83,26 +85,28 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix
   TPZCompEl * other = this->Reference()->Reference();
   other->ComputeSolution(qsi, OtherSol, OtherDSol);
 
-  TPZManVector<REAL> AllSol(u.NElements() + OtherSol.NElements());
-  for(int ii = 0; ii < u.NElements(); ii++){
-    AllSol[ii] = u[ii];
+//  TPZManVector<REAL> AllSol(u.NElements() + OtherSol.NElements());
+  u.Resize( ThisSol.NElements() + OtherSol.NElements() );
+  for(int ii = 0; ii < ThisSol.NElements(); ii++){
+    u[ii] = ThisSol[ii];
   }//for ii
-  int uNEl = u.NElements();  
+  int ThisNEl = ThisSol.NElements();  
   for(int ii = 0; ii < OtherSol.NElements(); ii++){
-    AllSol[ii+uNEl] = OtherSol[ii];
+    u[ii+ThisNEl] = OtherSol[ii];
   }//for ii
   
   const int dim = this->Reference()->Dimension();
-  TPZFNMatrix<100> AllDSol(dim, du.Cols() + OtherDSol.Cols());
+  //TPZFNMatrix<100> AllDSol(dim, du.Cols() + OtherDSol.Cols());
+  du.Redim(dim, ThisDSol.Cols() + OtherDSol.Cols());
   for(int ii = 0; ii < dim; ii++){
-    for(int jj = 0; jj < du.Cols(); jj++){
-      AllDSol(ii,jj) = du(ii,jj);
+    for(int jj = 0; jj < ThisDSol.Cols(); jj++){
+      du(ii,jj) = ThisDSol(ii,jj);
     }//for jj
   }//for ii
-  int duCols = du.Cols();
+  int ThisCols = ThisDSol.Cols();
   for(int ii = 0; ii < dim; ii++){
     for(int jj = 0; jj < OtherDSol.Cols(); jj++){
-      AllDSol(ii,duCols+jj) = OtherDSol(ii,jj);
+      du(ii,ThisCols+jj) = OtherDSol(ii,jj);
     }//for jj
   }//for ii
 

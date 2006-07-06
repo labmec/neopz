@@ -1,9 +1,8 @@
 // -*- c++ -*-
 
-//$Id: pztransientmat.cpp,v 1.1 2006-06-02 17:03:59 tiago Exp $
+//$Id: pztransientmat.cpp,v 1.2 2006-07-06 15:57:40 tiago Exp $
 
 #include "pztransientmat.h"
-#include "pzpoisson3d.h"
 
 template<class TBASEMAT>
 TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(int nummat, int dim, REAL TimeStep):TBASEMAT(nummat, dim){
@@ -79,5 +78,8 @@ void TPZTransientMaterial< TBASEMAT >::ContributeTangent(TPZFMatrix &phi, REAL w
   }//i
 }//method
 
-
+#include "pzpoisson3d.h"
 template class TPZTransientMaterial< TPZMatPoisson3d >;
+
+#include "pznonlinearpoisson3d.h"
+template class TPZTransientMaterial< TPZNonLinearPoisson3d >;
