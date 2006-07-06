@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.3 2006-01-23 16:51:54 phil Exp $
+//$Id: meshes.cpp,v 1.4 2006-07-06 15:49:24 tiago Exp $
 
 #include "meshes.h"
 
@@ -49,7 +49,7 @@ void SetPOrder(int p){
 TPZCompMesh * CreateMesh_TriangularDomain_ComoPhilippeQuer(int h, int SingH, int p){
   REAL L = 1.;
   const int numero = 4;
-  const int nInf = 2 << numero;
+  const int nInf = (int)pow(2,numero);
   std::cout << "\n\n**************************************" << std::endl;
   std::cout << "nInf = " << nInf << std::endl;
   std::cout << "**************************************\n\n" << std::endl;
@@ -231,7 +231,7 @@ TPZCompMesh * CreateMesh_TriangularDomain_ComoPhilippeQuer(int h, int SingH, int
 TPZCompMesh * CreateMesh_TriangularDomain_ComoPhilippeQuer_Adimensional(int h, int SingH, int p){
   REAL L = 1.;
   const int numero = 4;
-  const int nInf = 2 << numero;
+  const int nInf = (int)pow(2,numero);
   std::cout << "\n\n**************************************" << std::endl;
   std::cout << "nInf = " << nInf << std::endl;
   std::cout << "**************************************\n\n" << std::endl;
@@ -412,7 +412,8 @@ TPZCompMesh * CreateMesh_TriangularDomain_ComoPhilippeQuer_Adimensional(int h, i
 TPZCompMesh * CreateMesh_ComoPhilippeQuer_Adimensional_Sem_Simetria(int h, int SingH, int p){
   REAL L = 1.;
   const int numero = 4;
-  const int nInf = 2 << numero;
+  const int nInf = (int)pow(2,numero);
+  
   std::cout << "\n\n**************************************" << std::endl;
   std::cout << "nInf = " << nInf << std::endl;
   std::cout << "**************************************\n\n" << std::endl;
@@ -505,7 +506,7 @@ TPZCompMesh * CreateMesh_ComoPhilippeQuer_Adimensional_Sem_Simetria(int h, int S
 
   /** Condicao Dirichlet */
   //Dirichlet p = pfracture
-  //val2(0,0) = pfracture; bc[0] = mat->CreateBC(-1, 0,val1,val2);
+//   val2(0,0) = pfracture; bc[0] = mat->CreateBC(-1, 0,val1,val2);
     
   /** Condicao mista */
   val1(0,0) = KSUPORTE; val2(0,0) = pfracture * KSUPORTE; bc[0] = mat->CreateBC(-1, 2,val1,val2);
@@ -580,7 +581,7 @@ TPZCompMesh * CreateMesh_ComoPhilippeQuer_Adimensional_Sem_Simetria(int h, int S
   }//i
 
   cmesh->AdjustBoundaryElements();
-  cmesh->CleanUpUnconnectedNodes();
+//  cmesh->CleanUpUnconnectedNodes();
 
 //   std::ofstream cmeshfile("cmesh.txt");
 //   cmesh->Print(cmeshfile);
