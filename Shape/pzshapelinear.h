@@ -74,10 +74,10 @@ static void Legendre(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
  */
 static void Legendre(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi, int nderiv);
 
-static REAL fJacobiAlfa;
-static REAL fJacobiBeta;
-
-static void Jacobi(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
+// static REAL fJacobiAlfa;
+// static REAL fJacobiBeta;
+// 
+// static void Jacobi(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
 
 #ifdef _AUTODIFF
 /**
