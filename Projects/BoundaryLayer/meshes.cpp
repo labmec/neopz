@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.6 2006-03-16 01:51:39 tiago Exp $
+//$Id: meshes.cpp,v 1.7 2006-07-06 15:51:12 tiago Exp $
 
 #include "meshes.h"
 
@@ -456,7 +456,8 @@ void Dirichlet_Y_IgualA_0(TPZVec<REAL> &pto, TPZVec<REAL> &u) {
 }
 
 
-
+#include "pztransientmat.h"
+#include "pznonlinearpoisson3d.h"
 TPZCompMesh *CreateMesh(int h) {
 
   REAL co[9][2] = {{0.5,0.5},{0.5,0.},{1.,0.},{1.,0.5},{1.,1.},{0.5,1.},{0.,1.},{0.,0.5},{0.,0.}};
@@ -507,14 +508,14 @@ TPZCompMesh *CreateMesh(int h) {
   cmesh->SetDimModel(2);
   
   TPZMatPoisson3d *mat;
-  mat = new TPZMatPoisson3d(1, 2);
+  mat = new /*TPZMatPoisson3d(1,2);*/TPZTransientMaterial< TPZNonLinearPoisson3d >(1, 2, 0.2);
   mat->SetForcingFunction(ForcingFunction);
   mat->SetNonSymmetric();
   TPZManVector<REAL,2> convdir(2,0.);
   convdir[0] = 1.;
   convdir[1] = 1.;
 
-  REAL beta = 1.0;
+  REAL beta = 0.0;
   mat->SetParameters(epsilon, beta, convdir);
   int nstate = 1;
   
@@ -535,8 +536,8 @@ TPZCompMesh *CreateMesh(int h) {
   cmesh->InsertMaterialObject(mat);
   for(int ii = 0; ii < 3; ii++) cmesh->InsertMaterialObject(bc[ii]);
 
-//  cmesh->SetAllCreateFunctionsContinuous();
-  cmesh->SetAllCreateFunctionsDiscontinuous();
+//   cmesh->SetAllCreateFunctionsContinuous();
+ cmesh->SetAllCreateFunctionsDiscontinuous();
   
   cmesh->AutoBuild();
 

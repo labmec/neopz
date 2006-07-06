@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.9 2006-03-16 01:51:19 tiago Exp $
+//$Id: main.cpp,v 1.10 2006-07-06 15:51:12 tiago Exp $
 
 /**
  * Galerkin descontinuo: problema de camada limite
@@ -26,6 +26,7 @@
 #include "pzmatrix.h"
 
 #include "pzanalysis.h"
+#include "pztransientanalysis.h"
 #include "pzfstrmatrix.h"
 #include "pzskylstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
@@ -85,11 +86,11 @@ int main22(){
   return 0;
 }
 #include "pzquad.h"
-int main(){
+int main33(){
 
 int nmaxeq = 50000;//numero maximo de equacoes do problema
 for(int pp = 2; pp < 3; pp++){
- for(int hh = 1; hh < 2; hh++){ 
+ for(int hh = 1; hh < 2; hh++){
 
   TPZCompElDisc::SetOrthogonalFunction(pzshape::TPZShapeDisc::Legendre);
 
@@ -185,7 +186,6 @@ for(int pp = 2; pp < 3; pp++){
   an.PostProcess(pos,out);
   out << "\nNumero de equacoes: " << an.Solution().Rows() << endl;  
 
-  
   ofstream beforeg("beforegmesh.txt");
   ofstream beforec("beforecmesh.txt");
   cmesh->Print(beforec);
@@ -220,6 +220,83 @@ for(int pp = 2; pp < 3; pp++){
 
   }
       
+  delete cmesh;
+  delete gmesh;
+}
+}
+
+  return 0;
+}
+
+
+int main(){
+
+int nmaxeq = 50000;//numero maximo de equacoes do problema
+for(int pp = 2; pp < 3; pp++){
+ for(int hh = 0; hh < 1; hh++){
+
+  TPZCompElDisc::SetOrthogonalFunction(pzshape::TPZShapeDisc::Legendre);
+
+  int p, h;
+  p = pp;
+  h = hh;
+  TPZCompEl::gOrder = p;
+  
+  const int ref_uniforme = 1;
+
+  TPZCompMesh *cmesh;
+  cmesh = CreateMesh(h);
+    
+  TPZGeoMesh *gmesh = cmesh->Reference();
+
+//   TPZAnalysis an(cmesh);
+  TPZTransientAnalysis an(cmesh);
+  an.TimeStep() = 1.;
+  an.SetNewtonConvergence(100, 1e-14);
+  an.SetConvergence(1000, 1e-10);
+
+#define direct
+#ifdef direct
+
+// Melhor caso para GEM e elementos finitos. Melhor metodo direto
+/*  TPZParFrontStructMatrix <TPZFrontNonSym>*/ /*TPZFStructMatrix*/ TPZBandStructMatrix full(cmesh);
+  //  TPZFStructMatrix full(cmesh);
+    an.SetStructuralMatrix(full);
+    TPZStepSolver step;
+    step.SetDirect( ELU /*ECholesky*/ /*ELDLt*/ );
+    an.SetSolver(step);
+
+#endif
+
+  cout << "\nNumero de equacoes: " << an.Mesh()->NEquations() << endl;
+   if (an.Mesh()->NEquations() > nmaxeq) { 
+     cout << "skipping simulation...\n" << endl;
+     delete cmesh;
+     delete gmesh;
+     break;
+   }
+   
+  char filename[20];
+  sprintf(filename,"erro.dat");
+  char filedx[20];
+  sprintf(filedx,"sol.dx");
+  
+  an.Run();
+   
+/**** Aqui faz DX ****/
+  TPZVec<char *> scalnames(1);
+  TPZVec<char *> vecnames(1);
+  scalnames[0] = "Solution";
+  vecnames[0] = "Derivate";
+  an.DefineGraphMesh(2,scalnames,vecnames,filedx);
+  an.PostProcess(2);
+
+  an.SetExact(ExactSolution); 
+  TPZVec<REAL> pos;
+  ofstream out(filename);
+  an.PostProcess(pos,out);
+  out << "\nNumero de equacoes: " << an.Solution().Rows() << endl;  
+
   delete cmesh;
   delete gmesh;
 }
