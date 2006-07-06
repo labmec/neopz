@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.78 2006-05-30 17:51:40 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.79 2006-07-06 15:54:27 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -244,7 +244,7 @@ int TPZCompElDisc::CreateMidSideConnect(){
     }   
   }
   
-  if(dim == dimgrid - 1){ //dimgrid - 1 = interface dimension
+  if(dim != dimgrid/* - 1*/){ //dimgrid - 1 = interface dimension
     // o atual �um elemento BC
     fConnectIndex = -1;//=> return NshapeF() = 0
     return fConnectIndex;
