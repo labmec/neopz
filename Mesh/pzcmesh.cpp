@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.47 2006-05-30 17:48:52 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.48 2006-07-06 15:56:09 tiago Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -609,8 +609,8 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	{
 	  nremoved++;
 	}
-      else if(!no.HasDependency()) nvalidblocks++;
-      else ndepblocks++;
+      else if(!no.HasDependency() && no.NElConnected()) nvalidblocks++;
+      else if(no.HasDependency() && no.NElConnected()) ndepblocks++;
     }
   int need = 0;
   for (i=0;i<nelem;i++) {
@@ -737,6 +737,8 @@ void TPZCompMesh::Assemble(TPZMatrix &stiffness,TPZFMatrix &rhs) {
     TPZCompEl *el = fElementVec[iel];
     if(!el) continue;
     //		int dim = el->NumNodes();
+//     cout << iel << "\t\tof " << nelem << endl;
+//     cout.flush();
     el->CalcStiff(ek,ef);
     //ek.fMat->Print(out);
     //ef.fMat->Print();
