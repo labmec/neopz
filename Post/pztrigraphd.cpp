@@ -27,16 +27,16 @@ void TPZGraphElTd::Connectivity(TPZDrawStyle st){
 	ostream &out = *fGraphMesh->Out();
     long ip = fId;
 	if(st == EV3DStyle) ip++;
-//   long ip = (fId+1)*imax*imax;//Cedric 22/03/99
 	TPZVec<int> co0(3,0), co1(3,0), co2(3,0);
 	for(int j=0;j<imax;j++) {
 		for(int i=0;i<imax-j;i++) {
-//Não está faltando um if aqui?  //Cesar 26/09/2000			
 			if(st == EV3DStyle) out << ip++ << " 3 ";
 			if(st == EMVStyle) out << ip++ << " 1 1 1 ";
 			co0[0] = i; co0[1] = j;
 			co1[0] = i+1; co1[1] = j;
 			co2[0] = i; co2[1]=j+1;
+      out << EqNum(co0) << " " << EqNum(co1) << " " <<
+          EqNum(co2) << endl;
 			
 			if(i <imax-j-1) {
 				if(st == EV3DStyle) out << ip++ << " 3 ";
@@ -44,9 +44,9 @@ void TPZGraphElTd::Connectivity(TPZDrawStyle st){
 				co0[0] = i+1; co0[1] = j;
 				co1[0] = i+1; co1[1] = j+1;
 				co2[0] = i; co2[1]=j+1;
+        out << EqNum(co0) << " " << EqNum(co1) << " " <<
+          EqNum(co2) << endl;
 			}
-			out << EqNum(co0) << " " << EqNum(co1) << " " <<
-				  EqNum(co2) << endl;
 			
 		}
 	}
@@ -60,9 +60,11 @@ long TPZGraphElTd::EqNum(TPZVec<int> &co){
 	return neq;
 }
 
-REAL TPZGraphElTd::QsiEta(int i, int imax){
-	return (1.*i)/imax;
+void TPZGraphElTd::QsiEta(TPZVec<int> &co, int imax, TPZVec<REAL> &qsieta){
+  int i,ni = co.NElements();
+  for(i=0; i<ni; i++) qsieta[i] = (1.*co[i])/imax;
 }
+
 
 void TPZGraphElTd::FirstIJ(int no, TPZVec<int> &co, int &incr){
 	int i;

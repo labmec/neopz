@@ -27,7 +27,7 @@ virtual long EqNum(TPZVec<int> &co);
 
 protected :
 
-virtual REAL QsiEta(int i, int imax);
+virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);
 
 virtual void FirstIJ(int no, TPZVec<int> &co, int &incr);
 

@@ -1,4 +1,4 @@
-//$Id: pzdxmesh.cpp,v 1.8 2005-04-25 02:33:58 phil Exp $
+//$Id: pzdxmesh.cpp,v 1.9 2006-07-06 15:52:22 tiago Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -216,9 +216,12 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
       (*fOutFile) << "component \"connections\" value " << fElConnectivityObject[EQuadrilateral] << endl;
-      (*fOutFile) << "attribute \"name\" string \"" << (char *) fScalarNames[n]
-		  << step << (0) << "\"" << endl;
-      (*fOutFile) << "#" << endl;
+      (*fOutFile) << "attribute \"name\" string \"" << (char *) fScalarNames[n]; (*fOutFile).flush();
+		  (*fOutFile) << step; (*fOutFile).flush();
+      (*fOutFile) << (0); (*fOutFile).flush();
+      (*fOutFile) << "\""; (*fOutFile).flush();
+      (*fOutFile) << endl; (*fOutFile).flush();
+      (*fOutFile) << "#" << endl; (*fOutFile).flush();
       fNextDataField ++;
     }
     if(dim == 2 && NNodes() == 3) {

@@ -102,8 +102,9 @@ long TPZGraphElT::EqNum(TPZVec<int> &co){
 	return neq;
 }
 
-REAL TPZGraphElT::QsiEta(int i, int imax){
-	return (1.*i)/imax;
+void TPZGraphElT::QsiEta(TPZVec<int> &co, int imax, TPZVec<REAL> &qsieta){
+  int i,ni = co.NElements();
+  for(i=0; i<ni; i++) qsieta[i] = (1.*co[i])/imax;
 }
 
 void TPZGraphElT::FirstIJ(int no,TPZVec<int> &co, int &incr){

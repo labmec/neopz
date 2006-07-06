@@ -23,34 +23,26 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial *mat)
   fMaterial = mat;
   fCompMesh = cm;
   fDimension = dimension;
-  TPZGeoMesh *geomesh = fCompMesh->Reference();
-  TPZAdmChunkVector<TPZGeoEl *> &gelvec = geomesh->ElementVec();
-  TPZGeoEl *ge;
-  nel = gelvec.NElements();
-  for(i=0;i<nel;i++) {
-    ge = gelvec[i];
-    if(!ge || !ge->Reference() || ge->Reference()->Type() == EInterface ) continue;
-//     TPZCompEl *celtype = ge->Reference();
-//     if(celtype->Type() == EAgglomerate){
-//       TPZStack<TPZCompEl *> discvec;
-//       dynamic_cast<TPZAgglomerateElement *>(celtype)->ListOfDiscEl(discvec);
-//       int nd = discvec.NElements(),el;
-//       for(el=0;el<nd;el++)
-// 	discvec[el]->CreateGraphicalElement(*this, dimension);
-//     } else {
-      ge->Reference()->CreateGraphicalElement(*this, dimension);
-//     }
-  }
-/*
+//   TPZGeoMesh *geomesh = fCompMesh->Reference();
+//   TPZAdmChunkVector<TPZGeoEl *> &gelvec = geomesh->ElementVec();
+//   TPZGeoEl *ge;
+//   nel = gelvec.NElements();
+//   for(i=0;i<nel;i++) {
+//     ge = gelvec[i];
+//     if(!ge || !ge->Reference() || ge->Reference()->Type() == EInterface ) continue;
+//       ge->Reference()->CreateGraphicalElement(*this, dimension);
+//   }
+
   TPZAdmChunkVector<TPZCompEl *> &celvec = fCompMesh->ElementVec();
   TPZCompEl *ce;
   nel = celvec.NElements();
   for(i=0;i<nel;i++) {
     ce = (TPZCompEl *) celvec[i];
-    if(!ce || !ce->IsInterpolated()) continue;
+    if(!ce) continue;
+    if (ce->Dimension() != dimension) continue;
     ce->CreateGraphicalElement(*this, dimension);
   }
-*/
+
   fOutFile = 0;
   fScalarNames = 0;
   fVecNames = 0;
