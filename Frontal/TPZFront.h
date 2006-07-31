@@ -53,6 +53,11 @@ public:
 	int Work(){
 	return fWork;
 	}
+ 
+ int FrontSize()
+ { 
+   return fFront;
+ }
 
 protected:
 	int fWork;
