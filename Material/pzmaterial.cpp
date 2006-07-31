@@ -29,8 +29,8 @@ TPZMaterial::TPZMaterial(const TPZMaterial &material) {
    fForcingFunction = material.fForcingFunction;
 }
 
-void TPZMaterial::Print(ostream & out) {
-   out << endl << "Material Id = " << fId << endl;
+void TPZMaterial::Print(std::ostream & out) {
+  out << std::endl << "Material Id = " << fId << std::endl;
 }
 
 int TPZMaterial::VariableIndex(char *name) {
@@ -67,7 +67,7 @@ TPZBndCond *TPZMaterial::CreateBC(int id, int typ, TPZFMatrix &val1, TPZFMatrix 
    return new TPZBndCond(this,id,typ,val1,val2);
 }
 
-void TPZMaterial::SetData(istream &data) {
+void TPZMaterial::SetData(std::istream &data) {
    PZError << "TPZMaterial::SetData is called.\n";
    data >> fId;
 }
@@ -114,6 +114,12 @@ void TPZMaterial::Clone(TPZAdmChunkVector<TPZMaterial *> &matvec) {
 
 //#endif
 
+#define TPZMATERIALID 300
+int TPZMaterial::ClassId() const
+{
+  return TPZMATERIALID;
+}
+
   /**
   Save the element data to a stream
   */
@@ -131,4 +137,3 @@ void TPZMaterial::Read(TPZStream &buf, void *context)
   TPZSaveable::Read(buf,context);
   buf.Read(&fId,1);
 }
-
