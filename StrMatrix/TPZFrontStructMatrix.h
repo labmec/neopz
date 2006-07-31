@@ -18,7 +18,8 @@ struct TPZElementMatrix;
 class TPZMatrix;
 class TPZFMatrix;
 class TPZCompMesh;
-
+template<class A, class B>
+class TPZFrontMatrix;
 
 /**
  *Class responsible for a interface among Finite Element Package and Matrices package \n
@@ -36,6 +37,11 @@ protected:
       * performance
       */
      TPZVec<int> fElementOrder;
+     
+     /** Pointer to the front matrix which was created
+      * 
+      */
+     TPZFrontMatrix<TPZFileEqnStorage, front> *fFrontMatrix;
      /**
       * Returns a vector containing all elements connected to a degree of freedom.
       */

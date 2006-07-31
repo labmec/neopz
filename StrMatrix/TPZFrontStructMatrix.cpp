@@ -76,7 +76,8 @@ cout.flush();*/
 }
 
 template<class front>
-TPZFrontStructMatrix<front>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh) { 
+TPZFrontStructMatrix<front>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh),
+  fFrontMatrix(0) { 
 
 
   //TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym>(fMesh->NEquations());
@@ -206,6 +207,7 @@ TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
      //TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
      
      TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
+     fFrontMatrix = mat;
      GetNumElConnected(numelconnected);
      mat->SetNumElConnected(numelconnected);
      
@@ -347,7 +349,9 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix & stiffness, TPZFMatrix & r
 
 
 
-  
+  int numelmark = nelem/100;
+  if(numelmark < 20) numelmark = 20;
+  int numelmarkstar = numelmark/20;
 
   for(iel=0; iel < nelem; iel++) {
   
@@ -359,9 +363,11 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix & stiffness, TPZFMatrix & r
      //Builds elements stiffness matrix
      el->CalcStiff(ek,ef);
      AssembleElement(el, ek, ef, stiffness, rhs); 
-     cout << '*';
-     if(!(numel%20)) {
-        cout << " " << (100*iel/nelem) << "% Elements assembled " << endl;
+     if(!(iel%numelmarkstar)) cout << '*';
+     if(!(numel%numelmark)) {
+       cout << " " << (100*iel/nelem) << "% Elements assembled ";
+       if(fFrontMatrix) cout << " front width " << fFrontMatrix->GetFront().FrontSize();
+       cout << endl;
         cout.flush();
      }     
      numel++;
