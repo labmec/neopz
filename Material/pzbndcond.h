@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.16 2006-03-16 01:43:56 tiago Exp $
+//$Id: pzbndcond.h,v 1.17 2006-08-14 18:48:01 tiago Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -39,25 +39,25 @@ protected:
   TPZMaterial	*fMaterial;	        // pointer to material which created bc
   
   /** Function to allow fBCVal1 to be variable */
-  void (*fVal1Function)(TPZVec<REAL> &loc, TPZFMatrix &result);
+  void (*fValFunction)(TPZVec<REAL> &loc, TPZFMatrix &Val1, TPZVec<REAL> &Val2, int &BCType);
 
 public :
 
   TPZBndCond(TPZBndCond & bc) : TPZDiscontinuousGalerkin(bc), fBCVal1(bc.fBCVal1),
-    fBCVal2(bc.fBCVal2), fVal1Function(NULL){
+    fBCVal2(bc.fBCVal2), fValFunction(NULL){
     fMaterial = bc.fMaterial;
     fType = bc.fType;
   }
 
 
   TPZBndCond() : TPZDiscontinuousGalerkin(0), fBCVal1(),
-    fBCVal2(), fVal1Function(NULL){
+    fBCVal2(), fValFunction(NULL){
   }
 
     ~TPZBndCond(){}
 
   TPZBndCond(TPZMaterial *material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2) :
-    TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2), fVal1Function(NULL) {
+    TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
     //cria um novo material
     fMaterial = material;
     fType = type;
@@ -65,11 +65,11 @@ public :
   }
 
   TPZBndCond(TPZBndCond &copy, TPZMaterial *ref) : TPZDiscontinuousGalerkin(copy), fType(copy.fType),
-						   fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fVal1Function(copy.fVal1Function) {}
+						   fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {}
  
 
-  void SetVal1Function(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix &result)){
-    fVal1Function = fp;
+  void SetValFunction(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix &Val1, TPZVec<REAL> &Val2, int &BCType)){
+    fValFunction = fp;
   }                                                   
                                                    
   void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
@@ -118,8 +118,13 @@ public :
       }
     }
     
-    if( this->fVal1Function ) {
-      this->fVal1Function( x, fBCVal1 );
+    if( this->fValFunction ) {
+      TPZManVector<REAL> result(this->fBCVal2.Rows());
+      this->fValFunction( x, this->fBCVal1, result, this->fType );
+      int i;
+      for(i = 0; i < this->fBCVal2.Rows(); i++) {
+        this->fBCVal2(i,0) = result[i];
+      }
     }//if    
     
     //clone meshes required analysis
