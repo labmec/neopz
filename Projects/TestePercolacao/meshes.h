@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: meshes.h,v 1.2 2005-12-06 13:37:24 tiago Exp $
+//$Id: meshes.h,v 1.3 2006-08-18 13:34:43 tiago Exp $
 
 class TPZCompMesh;
 class TPZFMatrix;
@@ -23,3 +23,5 @@ void KRebocoVal1(TPZVec<REAL> &loc, TPZFMatrix &result);
 
 //Calcula valor Val2 do reboco (condicao mista)
 void KRebocoVal2(TPZVec<REAL> &loc, TPZVec<REAL> &result);
+
+void KRebocoVal1andVal2(TPZVec<REAL> &loc, TPZFMatrix &val1, TPZVec<REAL> &val2, int &type);

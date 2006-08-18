@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.4 2006-01-23 16:51:36 phil Exp $
+//$Id: main.cpp,v 1.5 2006-08-18 13:34:43 tiago Exp $
 
 /**
  * Percolation of water from the fracture into the porous media.
@@ -128,7 +128,7 @@ int main22(){
 
 int main(){   
 
-  TPZCompMesh * cmesh = CreateMesh_ComoPhilippeQuer_Adimensional_Sem_Simetria(1,1,2);//(5, 30, 4);//(5,25,2);
+  TPZCompMesh * cmesh = CreateMesh_ComoPhilippeQuer_Adimensional_Sem_Simetria(1,1,2);/*(5, 30, 4);*//*(5,25,2);*/
   std::cout << "Numero de elementos = " << cmesh->ElementVec().NElements() << std::endl;
   std::cout << "Numero de equacoes  = " << cmesh->NEquations() << std::endl;
   TPZGeoMesh *gmesh = cmesh->Reference();
@@ -168,7 +168,7 @@ int main(){
 std::cout << "\nFEITO\n";
 std::cout.flush();
 /**** Aqui faz DX ****/
-  const int Resolution = 0;
+  const int Resolution = 1;
   {
   TPZVec<char *> scalnames(1);
   TPZVec<char *> vecnames(0);

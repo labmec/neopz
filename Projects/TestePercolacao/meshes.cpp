@@ -1,4 +1,4 @@
-//$Id: meshes.cpp,v 1.4 2006-07-06 15:49:24 tiago Exp $
+//$Id: meshes.cpp,v 1.5 2006-08-18 13:34:43 tiago Exp $
 
 #include "meshes.h"
 
@@ -332,8 +332,8 @@ TPZCompMesh * CreateMesh_TriangularDomain_ComoPhilippeQuer_Adimensional(int h, i
     
   /** Condicao mista */
   val1(0,0) = KSUPORTE; val2(0,0) = pfracture * KSUPORTE; bc[0] = mat->CreateBC(-1, 2,val1,val2);
-  bc[0]->SetForcingFunction(KRebocoVal2);
-  bc[0]->SetVal1Function( KRebocoVal1 );
+//   bc[0]->SetForcingFunction(KRebocoVal2);
+  bc[0]->SetValFunction( KRebocoVal1andVal2 );
 
   /** Dirichlet nulo na simetria */
   val2(0,0) = 0.;
@@ -510,8 +510,8 @@ TPZCompMesh * CreateMesh_ComoPhilippeQuer_Adimensional_Sem_Simetria(int h, int S
     
   /** Condicao mista */
   val1(0,0) = KSUPORTE; val2(0,0) = pfracture * KSUPORTE; bc[0] = mat->CreateBC(-1, 2,val1,val2);
-  bc[0]->SetForcingFunction(KRebocoVal2);
-  bc[0]->SetVal1Function( KRebocoVal1 );
+//   bc[0]->SetForcingFunction(KRebocoVal2);
+  bc[0]->SetValFunction( KRebocoVal1andVal2 );
 
   /** Dirichlet nulo no ponto de producao */
   val2(0,0) = 0.;
@@ -588,6 +588,10 @@ TPZCompMesh * CreateMesh_ComoPhilippeQuer_Adimensional_Sem_Simetria(int h, int S
   return cmesh;
 }
 
+void KRebocoVal1andVal2(TPZVec<REAL> &loc, TPZFMatrix &val1, TPZVec<REAL> &val2, int &type){
+  KRebocoVal1(loc, val1);
+  KRebocoVal2(loc, val2);
+}
 
 void KRebocoVal1(TPZVec<REAL> &loc, TPZFMatrix &result){
   //Kreboco = Gamma * L / (3.29*10^-10 * (pfratura - pinf) )

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: meshesReferredCompEl.h,v 1.1 2006-06-29 12:28:13 tiago Exp $
+//$Id: meshesReferredCompEl.h,v 1.2 2006-08-18 13:35:28 tiago Exp $
 
 class TPZCompMesh;
 class TPZFMatrix;
@@ -16,8 +16,8 @@ void CreateSimpleMeshesWithExactSolutionToReferredCompEl(TPZVec< TPZCompMesh * >
 void CreateMesh_ComoPhilippeQuer_Adimensional_Sem_Simetria(TPZVec< TPZCompMesh * > & CompMeshes, int h, int SingH, int p);
 
 void KRebocoVal1(TPZVec<REAL> &loc, TPZFMatrix &result);
-
 void KRebocoVal2(TPZVec<REAL> &loc, TPZVec<REAL> &result);
+void KRebocoVal1andVal2(TPZVec<REAL> &loc, TPZFMatrix &val1, TPZVec<REAL> &val2, int &type);
 
 TPZCompMesh * TesteConvectivoPuro(int h, int SingH, int p);
 TPZCompMesh * TesteConvectivoPuro2(int h, int p);

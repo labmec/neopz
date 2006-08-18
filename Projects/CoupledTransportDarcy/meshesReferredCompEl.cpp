@@ -1,4 +1,4 @@
-//$Id: meshesReferredCompEl.cpp,v 1.1 2006-06-29 12:28:13 tiago Exp $
+//$Id: meshesReferredCompEl.cpp,v 1.2 2006-08-18 13:35:28 tiago Exp $
 
 #include "meshes.h"
 #include "meshesReferredCompEl.h"
@@ -289,8 +289,8 @@ void CreateMesh_ComoPhilippeQuer_Adimensional_Sem_Simetria(TPZVec< TPZCompMesh *
     
   /** Condicao mista */
   val1(0,0) = KSUPORTE; val2(0,0) = pfracture * KSUPORTE; bc[0] = mat->CreateBC(-1, 2,val1,val2);
-  bc[0]->SetForcingFunction(KRebocoVal2);
-  bc[0]->SetVal1Function( KRebocoVal1 );
+//   bc[0]->SetForcingFunction(KRebocoVal2);
+  bc[0]->SetValFunction( KRebocoVal1andVal2 );
 
   /** Dirichlet nulo no ponto de producao */
   val2(0,0) = 0.;
@@ -451,6 +451,11 @@ void KRebocoVal2(TPZVec<REAL> &loc, TPZVec<REAL> &result){
   KRebocoVal1(loc, val1);
   result.Resize(1);
   result[0] = val1(0,0) * 1.0;
+}
+
+void KRebocoVal1andVal2(TPZVec<REAL> &loc, TPZFMatrix &val1, TPZVec<REAL> &val2, int &type){
+  KRebocoVal1(loc, val1);
+  KRebocoVal2(loc, val2);
 }
 
 TPZCompMesh * TesteConvectivoPuro(int h, int SingH, int p){
