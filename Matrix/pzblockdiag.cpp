@@ -107,15 +107,14 @@ void TPZBlockDiagonal::Initialize(const TPZVec<int> &blocksize){
     neq += bsize;
     //    ::cout << "Número de equacões\t" << neq << "\n";
   }
-  
 #ifdef LOG4CXX
+  if(ndata > 10000000)
   {
     std::stringstream sout;
     sout << "Calling fStorage.Resize(ndata,0.) with ndata = " << ndata;
     LOGPZ_DEBUG(logger,sout.str());
   }
-#endif  
-  
+#endif
   fStorage.Fill(0.,0);
   fStorage.Resize(ndata,0.);
   fDecomposed = 0;
