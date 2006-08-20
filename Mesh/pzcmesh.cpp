@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.48 2006-07-06 15:56:09 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.49 2006-08-20 21:20:23 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -229,6 +229,7 @@ void TPZCompMesh::AutoBuild() {
       
     }
   }
+  std::set<int> matnotfound;
   int nbl = fBlock.NBlocks();
   if(neltocreate > nbl) fBlock.SetNBlocks(neltocreate);
   fBlock.SetNBlocks(nbl);
@@ -236,6 +237,13 @@ void TPZCompMesh::AutoBuild() {
     TPZGeoEl *gel = elvec[i];
     if(!gel) continue;
     if(!gel->HasSubElement()) {
+      int matid = gel->MaterialId();
+      TPZMaterial *mat = this->FindMaterial(matid);
+      if(!mat) 
+      {
+        matnotfound.insert(matid);
+        continue;
+      }
       int printing = 0;
       if (printing) {
 	      gel->Print(cout);
@@ -254,13 +262,30 @@ void TPZCompMesh::AutoBuild() {
   // InitializeBlock();
   for(i=0; i<nelem; i++) {
     if(!elbcvec[i].fBCElement) { 
-    
+      int matid = elbcvec[i].fId;
+      TPZMaterial *mat = this->FindMaterial(matid);
+      if(!mat) 
+      {
+        matnotfound.insert(matid);
+        continue;
+      }
+
       TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(elbcvec[i].fElement->Reference());
       if (face) continue;
       
       cel = elbcvec[i].fElement->CreateBCCompEl(elbcvec[i].fSide,elbcvec[i].fId,*this);
       if(cel) elbcvec[i].fBCElement = cel->Reference();
     }
+  }
+  if(matnotfound.size())
+  {
+    cout << __PRETTY_FUNCTION__ << " the following material ids were not found ";
+    std::set<int>::iterator it;
+    for(it=matnotfound.begin(); it != matnotfound.end(); it++)
+    {
+      cout << (*it) << " ";
+    }
+    cout << "\nThe corresponding elements were not created\n";
   }
   InitializeBlock();
 
