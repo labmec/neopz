@@ -14,9 +14,17 @@
 
 #include "pzelgq2d.h"
 #include "pzgnode.h"
+#include "TPZTimer.h"
 //#include "pzmat2dlin.h"
 
 using namespace std;
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.strmatrix.tpzstructmatrix"));
+#endif
+
 
 TPZStructMatrix::~TPZStructMatrix() {}
 
@@ -46,6 +54,8 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
   TPZManVector<int> destinationindex(0);
   TPZManVector<int> sourceindex(0);
 
+  TPZTimer calcstiff("Computing the stiffness matrices");
+  TPZTimer assemble("Assembling the stiffness matrices");
   TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
 
   for(iel=0; iel < nelem; iel++) {
@@ -53,7 +63,9 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
     if(!el) continue;
     //	  int dim = el->NumNodes();
 //#ifndef _AUTODIFF
+    calcstiff.start();
     el->CalcStiff(ek,ef);
+    calcstiff.stop();
 //#else
 //    TPZInterpolatedElement * pIntel = NULL;
 //    pIntel = dynamic_cast<TPZInterpolatedElement *>(el);
@@ -67,15 +79,16 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs){
 //#endif
 //     if( nelem < 34 || (nelem > 33 && iel < 33) ){
 //       out << "Element id : " << el->Reference()->Id() << endl;
-/*       el->Print(out);
-       ek.fMat->Print("MATRIZ EK",out);
-       ef.fMat->Print("VETOR  EF",out);
-       out.flush();*/
+//       el->Print(out);
+//       ek.fMat.Print("MATRIZ EK",out);
+//       ef.fMat.Print("VETOR  EF",out);
+//       out.flush();
 //     }
     //    if(!(numel%20)) cout << endl << numel;
     //    cout << '*';
     //    cout.flush();
     //    numel++;
+    assemble.start();
 
     if(!el->HasDependency()) {
       //ek.fMat->Print("stiff has no constraint",test);
@@ -140,7 +153,16 @@ if(ek.fConstrMat->Decompose_LU() != -1) {
 }
 */
     }
+    assemble.stop();
   }//fim for iel
+#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    sout << calcstiff.processName() << " " << calcstiff << std::endl;
+    sout << assemble.processName() << " " << assemble;
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+  }
+#endif
 //
 //  int neq = rhs.Rows();
 /*  if(nelem < 34 && neq < 100){
