@@ -50,7 +50,7 @@ using namespace log4cxx::helpers;
 #endif
 
 
-inline void InitializePZLOG(std::string &configfile)
+inline void InitializePZLOG(std::string &configfile) 
 {
 #ifdef LOG4CXX
   log4cxx::PropertyConfigurator::configure(configfile);
