@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.51 2006-08-18 13:37:24 tiago Exp $
+dnl $Id: configure.in,v 1.52 2006-08-24 14:03:45 tiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -487,7 +487,7 @@ dnl ----------------------------------------------------------------------------
 dnl                              CONGRATULATIONS!
 dnl ----------------------------------------------------------------------------
 
-AC_OUTPUT([ Makefile PZ.mk PZ_user.mk Projects/AltoDes/Makefile Util/Makefile Matrix/Makefile Cosys/Makefile Multigrid/Makefile Material/Makefile Post/Makefile Shape/Makefile Integral/Makefile Geom/Makefile Mesh/Makefile Refine/Makefile External/Makefile External/sloan/Makefile Analysis/Makefile Frontal/Makefile StrMatrix/Makefile Pre/Makefile Common/Makefile LinearSolvers/Makefile Save/Makefile lib/Makefile Projects/Makefile Projects/adaptivity/Makefile Projects/Test_RefPattern/Makefile Projects/Adapt_MultThread/Makefile Projects/Igor/Makefile Projects/TestePercolacao/Makefile Projects/BoundaryLayer/Makefile Projects/termica/Makefile Projects/NonLinBiharmonic/Makefile Projects/Heman/Makefile Projects/testgeom/Makefile Projects/checkconv/Makefile Projects/HyperElasticityFAD/Makefile Projects/ConsLaw/Makefile Projects/Descontinuo2/Makefile Projects/testshape/Makefile Projects/testmat/Makefile Projects/viga3d/Makefile Projects/CoupledTransportDarcy/Makefile Projects/EvalPreCond/Makefile Projects/ReadTetGen/Makefile Projects/Elasticity3D/Makefile Projects/TransientConvDiff/Makefile ])
+AC_OUTPUT([ Makefile PZ.mk PZ_user.mk Projects/AltoDes/Makefile Util/Makefile Matrix/Makefile Cosys/Makefile Multigrid/Makefile Material/Makefile Post/Makefile Shape/Makefile Integral/Makefile Geom/Makefile Mesh/Makefile Refine/Makefile External/Makefile External/sloan/Makefile Analysis/Makefile Frontal/Makefile StrMatrix/Makefile Pre/Makefile Common/Makefile LinearSolvers/Makefile Save/Makefile lib/Makefile Projects/Makefile Projects/adaptivity/Makefile Projects/Test_RefPattern/Makefile Projects/Adapt_MultThread/Makefile Projects/termica/Makefile Projects/NonLinBiharmonic/Makefile Projects/Heman/Makefile Projects/testgeom/Makefile Projects/checkconv/Makefile Projects/HyperElasticityFAD/Makefile Projects/ConsLaw/Makefile Projects/Descontinuo2/Makefile Projects/testshape/Makefile Projects/testmat/Makefile Projects/viga3d/Makefile Projects/ReadTetGen/Makefile ])
 
 PZ_BYEBYE
 
