@@ -19,6 +19,7 @@ const int TPZEULERCONSLAW2ID = 303;
 const int TPZARTDIFFID = 304;
 const int TPZBNDCONDID = 305;
 const int TPZELASTICITYMATERIALID = 306;
+const int TPZELASTICITY3DMATERIALID = 307;
 
 void RegisterMaterialClasses();
 
