@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzelast3d.h,v 1.5 2006-05-30 17:46:23 tiago Exp $
+//$Id: pzelast3d.h,v 1.6 2006-08-24 13:40:53 tiago Exp $
 
 #ifndef PZELAST3D
 #define PZELAST3D
@@ -29,10 +29,13 @@ enum SOLUTIONVARS{ENone = -1, EDisplacement = 0, EDisplacementX, EDisplacementY,
  * @param force - external forces
  */ 
 TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force);
+TPZElasticity3D();
 
 /** Class destructor.
  */
 virtual ~TPZElasticity3D();
+
+TPZElasticity3D(const TPZElasticity3D &cp);
 
 /** Returns material dimension.
  */
@@ -141,7 +144,21 @@ void ComputeStrainTensor(TPZFMatrix &Strain, TPZFMatrix &DSol);
 void ApplyDirection(TPZFMatrix &StrVec, TPZVec<REAL> &Out);
 void PrincipalDirection(TPZFMatrix &DSol, TPZVec< REAL > &Solout, int direction);
 
-static REAL gTolerance;
+  public:
+  /**
+  Save the element data to a stream
+   */
+  virtual void Write(TPZStream &buf, int withclassid);
+  
+  /**
+  Read the element data from a stream
+   */
+  virtual void Read(TPZStream &buf, void *context);
+  virtual int ClassId() const;
+  /**Creates a new material from the current object   ??*/
+  virtual TPZMaterial *NewMaterial() { return new TPZElasticity3D(*this);}
+
+  static REAL gTolerance;
 
 };
 

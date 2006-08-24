@@ -1,4 +1,4 @@
-//$Id: pzelast3d.cpp,v 1.9 2006-05-30 17:46:23 tiago Exp $
+//$Id: pzelast3d.cpp,v 1.10 2006-08-24 13:40:53 tiago Exp $
 
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -28,7 +28,15 @@ TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> 
   this->SetYieldingStress(1.);
 }//method
 
+TPZElasticity3D::TPZElasticity3D() : TPZMaterial(0),fE(0.), fPoisson(0.),fForce(3,0.),fPostProcessDirection(3,0.), 
+fFy(0.){}
+
 TPZElasticity3D::~TPZElasticity3D(){}
+
+TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),fForce(cp.fForce),fPostProcessDirection(cp.fPostProcessDirection), 
+fFy(cp.fFy)
+{
+}
 
 void TPZElasticity3D::Print(std::ostream & out){
   out << "\nTPZElasticity3D material:\n";
@@ -409,8 +417,8 @@ void TPZElasticity3D::ComputeStressVector(TPZFMatrix &Stress, TPZFMatrix &DSol){
   Stress(0,0) = E * ( DSol(0,0) * const1 - ( DSol(1,1) + DSol(2,2) ) * ni ) / const2;
   Stress(1,0) = E * ( DSol(1,1) * const1 - ( DSol(0,0) + DSol(2,2) ) * ni ) / const2;
   Stress(2,0) = E * ( DSol(2,2) * const1 - ( DSol(0,0) + DSol(1,1) ) * ni ) / const2;
-  
-  REAL const3 = 4. * ( 1. + ni );
+
+  REAL const3 = 2. * ( 1. + ni );
   Stress(3,0) = E * ( DSol(1,0) + DSol(0,1) ) / const3;
   Stress(4,0) = E * ( DSol(2,0) + DSol(0,2) ) / const3;
   Stress(5,0) = E * ( DSol(2,1) + DSol(1,2) ) / const3;
@@ -444,4 +452,39 @@ void TPZElasticity3D::PrincipalDirection(TPZFMatrix &DSol, TPZVec< REAL > &Solou
 
 }
 
+  /**
+  Save the element data to a stream
+   */
+void TPZElasticity3D::Write(TPZStream &buf, int withclassid)
+{
+  TPZMaterial::Write(buf,withclassid);
+  buf.Write(&fE,1);
+  buf.Write(&fForce[0],3);
+  buf.Write(&fFy,1);
+  buf.Write(&fPoisson,1);
+  buf.Write(&fPostProcessDirection[0],3);
+  
+}
+  
+  /**
+  Read the element data from a stream
+   */
+void TPZElasticity3D::Read(TPZStream &buf, void *context)
+{
+  TPZMaterial::Read(buf,context);
+  buf.Read(&fE,1);
+  fForce.Resize(3);
+  buf.Read(&fForce[0],3);
+  buf.Read(&fFy,1);
+  buf.Read(&fPoisson,1);
+  fPostProcessDirection.Resize(3);
+  buf.Read(&fPostProcessDirection[0],3);
+}
 
+int TPZElasticity3D::ClassId() const
+{
+  return TPZELASTICITY3DMATERIALID;
+}
+#ifndef BORLAND
+template class TPZRestoreClass<TPZElasticity3D,TPZELASTICITY3DMATERIALID>;
+#endif
