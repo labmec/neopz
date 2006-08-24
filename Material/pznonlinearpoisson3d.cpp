@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pznonlinearpoisson3d.cpp,v 1.1 2006-07-31 13:46:25 tiago Exp $
+//$Id: pznonlinearpoisson3d.cpp,v 1.2 2006-08-24 14:04:29 tiago Exp $
 
 #include "pznonlinearpoisson3d.h"
 #include "pzbndcond.h"
@@ -118,6 +118,12 @@ void TPZNonLinearPoisson3d::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL 
   break;
     
   case 3 : { // outflow condition
+  
+    if (this->IsReferred()){
+      PZError << "Error at " << __PRETTY_FUNCTION__
+              << " - the outflow boundary condition can not be implemented for referred elements derived from TPZInterpolatedElement\n";
+    }
+  
     int id, il, jl;
     REAL normal[3];
     if (fDim == 1) PZError << __PRETTY_FUNCTION__ << " - ERROR! The normal vector is not available for 1D TPZInterpolatedElement\n";
