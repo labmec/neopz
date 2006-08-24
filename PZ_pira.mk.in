@@ -1,0 +1,43 @@
+#
+# PZ_user.mk options makefile for NeoPZ.
+#
+# It will be processed by GNU automake to produce Makefile.in
+#
+# $Id: PZ_pira.mk.in,v 1.1 2006-08-24 19:26:46 tiago Exp $
+#
+
+PZ_INCLUDES = -I@prefix@/Util \
+	-I@prefix@/Common \
+	-I@prefix@/Mesh \
+	-I@prefix@/Geom \
+	-I@prefix@/Refine \
+	-I@prefix@/Shape \
+	-I@prefix@/StrMatrix \
+	-I@prefix@/Frontal \
+	-I@prefix@/Matrix \
+	-I@prefix@/LinearSolvers \
+	-I@prefix@/Analysis \
+	-I@prefix@/Integral \
+	-I@prefix@/Cosys \
+	-I@prefix@/Material \
+	-I@prefix@/Multigrid \
+	-I@prefix@/Post \
+	-I@prefix@/Pre \
+	-I@prefix@/External \
+	-I@prefix@/External/sloan \
+	-I@prefix@/Save \
+	@METISINCLUDE@ \
+	@FADINCLUDE@ \
+	@FADINCLUDE_FAD@ \
+	@FADINCLUDE_TFAD@ \
+	@FADINCLUDE_TFADET@ \
+	@ATLASINCLUDE@ \
+  	@LOG4CXXINCLUDE@
+
+PZ_LIBDIR = -L@prefix@/lib @METISLIBDIR@ @ATLASLIBDIR@ @LOG4CXXLIBDIR@
+
+PZ_LIB = -lpz @METISLIB@ @ATLASLIB@ @LOG4CXXLIB@
+
+PZ_CXXFLAGS = @PZ_CXXFLAGS@ @USING_METIS@ @USING_FAD@ @USING_ATLAS@ @USING_LOG4CXX@ -DPZ_INSTALL=@prefix@
+
+## --| NeoPZ |------------------------------------------------------------------
