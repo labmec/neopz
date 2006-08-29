@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.79 2006-07-06 15:54:27 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.80 2006-08-29 17:50:31 joao Exp $
 
 // -*- c++ -*- 
 
@@ -1034,7 +1034,7 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatr
     
   sol.Resize(nstate);
   sol.Fill(0.);
-  dsol.Redim(dim, nstate);
+  dsol.Redim(dphix.Rows(), nstate);
   dsol.Zero();
   
   int iv = 0, d;
