@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pznonlinearpoisson3d.cpp,v 1.2 2006-08-24 14:04:29 tiago Exp $
+//$Id: pznonlinearpoisson3d.cpp,v 1.3 2006-09-01 17:57:22 tiago Exp $
 
 #include "pznonlinearpoisson3d.h"
 #include "pzbndcond.h"
@@ -147,7 +147,7 @@ void TPZNonLinearPoisson3d::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL 
       }
     }
     else{
-      if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition\n";    
+      if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
     }  
   }
   break;
@@ -169,8 +169,7 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &so
                                           TPZFMatrix &ek,TPZFMatrix &ef){
 
   if (this->IsReferred()){
-//     this->SetConvectionTerm(dsolL, dsolR, axesL, axesR);
-    PZError << __PRETTY_FUNCTION__ << " - this method is not working properly. Expect huge problems or better than that abort your simullation.\n";
+    this->SetConvectionTermInterface(dsolL, dsolR);
   }
   
   int nrowl = phiL.Rows();
@@ -315,8 +314,7 @@ void TPZNonLinearPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &
               TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
   if (this->IsReferred()){
-//     this->SetConvectionTerm(dsolL, axesL);
-    PZError << __PRETTY_FUNCTION__ << " - this method is not working properly. Expect huge problems or better than that abort your simullation.\n";
+    this->SetConvectionTermInterface(dsolL, dsolL);
   }
   
   //  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
@@ -385,7 +383,9 @@ void TPZNonLinearPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &
       }
     }
     else {
-      if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition\n";
+      if (ConvNormal < 0.){
+        std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
+      }
     }
     break;    
     
