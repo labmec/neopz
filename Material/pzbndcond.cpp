@@ -73,6 +73,16 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 	fBCVal2(i,0) = result[i];
       }
   }
+  
+  if( this->fValFunction ) {
+    TPZManVector<REAL> result(this->fBCVal2.Rows());
+    this->fValFunction( x, this->fBCVal1, result, this->fType );
+    int i;
+    for(i = 0; i < this->fBCVal2.Rows(); i++) {
+      this->fBCVal2(i,0) = result[i];
+    }
+  }//if     
+  
   if(phiL.Rows() == 0) {
     TPZManVector<REAL,3> nor(normal.NElements(),0.);
     for(int i=0; i<nor.NElements(); i++) nor[i] = -normal[i];
@@ -100,6 +110,16 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 	fBCVal2(i,0) = result[i];
       }
   }
+  
+  if( this->fValFunction ) {
+    TPZManVector<REAL> result(this->fBCVal2.Rows());
+    this->fValFunction( x, this->fBCVal1, result, this->fType );
+    int i;
+    for(i = 0; i < this->fBCVal2.Rows(); i++) {
+      this->fBCVal2(i,0) = result[i];
+    }
+  }//if
+  
   if(phiL.Rows() == 0) {
     TPZManVector<REAL,3> nor(normal.NElements(),0.);
     for(int i=0; i<nor.NElements(); i++) nor[i] = -normal[i];
@@ -128,6 +148,15 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 	fBCVal2(i,0) = result[i];
       }
    }
+   
+  if( this->fValFunction ) {
+    TPZManVector<REAL> result(this->fBCVal2.Rows());
+    this->fValFunction( x, this->fBCVal1, result, this->fType );
+    int i;
+    for(i = 0; i < this->fBCVal2.Rows(); i++) {
+      this->fBCVal2(i,0) = result[i];
+    }
+  }//if
 
    if(phiL.Rows() == 0) {
       TPZManVector<REAL,3> nor(normal.NElements(),0.);
