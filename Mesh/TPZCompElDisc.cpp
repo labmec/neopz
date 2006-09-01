@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.80 2006-08-29 17:50:31 joao Exp $
+//$Id: TPZCompElDisc.cpp,v 1.81 2006-09-01 14:22:04 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -297,8 +297,6 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   int dim = Dimension();
   int nstate = fMaterial->NStateVariables();
   int nshape = NShapeF();
-  TPZBlock &block = Mesh()->Block();
-  TPZFMatrix &MeshSol = Mesh()->Solution();
   int numeq = nshape * nstate;
 
   ek.fMat.Redim(numeq,numeq);
@@ -366,8 +364,6 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
   int dim = Dimension();
   int nstate = fMaterial->NStateVariables();
   int nshape = NShapeF();
-  TPZBlock &block = Mesh()->Block();
-  TPZFMatrix &MeshSol = Mesh()->Solution();
   int numeq = nshape * nstate;
 
   // clean ef
@@ -631,13 +627,10 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) 
   }
   int nshape = NShapeF();
   int dim = Dimension();
-  int ncon = NConnects();
   if(var == 99) {
     sol[0] = Degree();
     return;
   }
-  TPZBlock &block = fMesh->Block();
-  TPZFMatrix &Sol = fMesh->Solution();
 
   if(fMaterial == NULL){
     PZError << "TPZIntEl::Solution : no Material for this element\n";
@@ -845,8 +838,6 @@ void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &v
   TPZFNMatrix<90> dudx(dim,ndof);
   TPZManVector<REAL,9> flux_el(nflux,0.);
   TPZMaterial *matp = fMaterial;
-  int ncon = NConnects();
-  TPZBlock &block = Mesh()->Block();
 
   for(int nint=0; nint<intrule->NPoints(); nint++) {
 
