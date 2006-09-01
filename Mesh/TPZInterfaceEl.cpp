@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.54 2006-05-30 17:51:59 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.55 2006-09-01 14:21:03 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -13,7 +13,7 @@
 #include "pzbndcond.h"
 #include "pzintel.h"
 
-int TPZInterfaceElement::gCalcStiff = EStandard;
+int TPZInterfaceElement::gCalcStiff = EContDisc;
 using namespace std;
 
 void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right){
@@ -116,6 +116,10 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
    
   geo->SetReference(this);
   int materialid = geo->MaterialId();
+  
+if (leftside == -1 || rightside == -1){
+  PZError << "Error at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " Side should not be -1\n";
+}
 
   //poderia eliminar esta vari�el e carrega-la do elemento de volume associado
   fMaterial = mesh.FindMaterial(materialid);
@@ -348,7 +352,9 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
   int ip;
 
   TPZTransform TransfLeft(dim), TransfRight(dim);
+  
   if (this->Material()->NeedsSolutionToContribute()){
+  
     if (fConnectL){
       int leftside = fLeftElSide.Side();
       if (leftside == -1) leftside = left->Reference()->NSides() - 1; //i.e. TPZCompElDisc or TPZAgglomerateElement
@@ -1245,7 +1251,7 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
    //integration points in left and right elements: making transformations to interpolated elements
    TPZTransform TransfLeft(dim), TransfRight(dim);
 
-   if (intelL){
+   {
 
       TPZGeoElSide thisgeoside(this->Reference(), this->Reference()->NSides()-1);
       TPZGeoElSide leftgeoside(left->Reference(), leftside);
@@ -1256,7 +1262,7 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
    }
 
 
-   if(intelR){
+   {
 
       TPZGeoElSide thisgeoside(this->Reference(), this->Reference()->NSides()-1);
       TPZGeoElSide rightgeoside(right->Reference(), rightside);
@@ -1275,17 +1281,17 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
       weight *= fabs(detjac);
       ref->X(intpoint, x);
 
-      if (intelL) TransfLeft.Apply( intpoint, LeftIntPoint );
-      if (intelR) TransfRight.Apply( intpoint, RightIntPoint );
+      TransfLeft.Apply( intpoint, LeftIntPoint );
+      TransfRight.Apply( intpoint, RightIntPoint );
 
 #ifdef DEBUG
       {
 	 const REAL tol = 1.e-10;
 
-	 if (intelL){
+	 {
 	    TPZManVector<REAL> FaceXPoint(3), LeftXPoint(3);
 	    this->Reference()->X( intpoint, FaceXPoint);
-	    intelL->Reference()->X( LeftIntPoint, LeftXPoint);
+	    /*intelL*/left->Reference()->X( LeftIntPoint, LeftXPoint);
 	    int i, n = FaceXPoint.NElements();
 	    if (n != LeftXPoint.NElements() ){
 	       PZError << __PRETTY_FUNCTION__ << endl
@@ -1300,10 +1306,10 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
 				    << "Face X point and LeftElement X point are not same." << endl;
 	 }
 
-	 if (intelR){
+	 {
 	    TPZManVector<REAL> FaceXPoint(3), RightXPoint(3);
 	    this->Reference()->X( intpoint, FaceXPoint);
-	    intelR->Reference()->X( RightIntPoint, RightXPoint);
+	    /*intelR*/right->Reference()->X( RightIntPoint, RightXPoint);
 	    int i, n = FaceXPoint.NElements();
 	    if (n != RightXPoint.NElements() ){
 	       PZError << __PRETTY_FUNCTION__ << endl

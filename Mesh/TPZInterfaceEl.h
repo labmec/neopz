@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.34 2006-08-16 16:57:18 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.35 2006-09-01 14:21:02 tiago Exp $
 //DUP
 
 #ifndef ELEMINTERFACEHH
@@ -78,7 +78,7 @@ class TPZInterfaceElement : public TPZCompEl {
   
  public:
  
-  enum CalcStiffOptions{ENone = -1, EStandard = 0, EPenalty, EContDisc};
+  enum CalcStiffOptions{ENone = -1, EStandard /*Deprecated*/ = 0, EPenalty, EContDisc};
 
   /** 
    * For CloneInterface usage. Normal is not recomputed, but copied.
