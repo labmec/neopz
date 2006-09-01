@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.22 2006-07-06 15:57:40 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.23 2006-09-01 14:28:19 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -186,7 +186,7 @@ void TPZMatPoisson3d::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REA
       }
     }
     else{
-      if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition\n";    
+      if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
     }
     break;
   }
@@ -650,7 +650,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
       }
     }
     else {
-      if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition\n";
+      if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
     }
     break;
     
