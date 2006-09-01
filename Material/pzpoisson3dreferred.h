@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3dreferred.h,v 1.2 2006-07-06 15:57:40 tiago Exp $
+//$Id: pzpoisson3dreferred.h,v 1.3 2006-09-01 14:26:33 tiago Exp $
 
 #ifndef MATPOISSON3DREFERREDH
 #define MATPOISSON3DREFERREDH
@@ -20,8 +20,15 @@ protected:
 
   REAL falpha;
   
+  /** SetConvectionTerm
+   */
   void SetConvectionTerm(TPZFMatrix &dsol, TPZFMatrix &axes);
-  void SetConvectionTerm(TPZFMatrix &dsolL, TPZFMatrix &axesL, TPZFMatrix &dsolR, TPZFMatrix &axesR);
+  
+  /** SeConvectionTerm for ContributeInterface methods
+   * It expect dsolL and dsolR to be dSol/dX, i.e. the derivatives 
+   * with respect to the global coordinates.
+   */
+  void SetConvectionTermInterface(TPZFMatrix &dsolL, TPZFMatrix &dsolR);
 
 public:
  

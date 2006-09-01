@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3dreferred.cpp,v 1.2 2006-07-06 15:57:40 tiago Exp $
+//$Id: pzpoisson3dreferred.cpp,v 1.3 2006-09-01 14:26:33 tiago Exp $
 
 #include "pzpoisson3dreferred.h"
 
@@ -45,8 +45,7 @@ void TPZMatPoisson3dReferred::SetConvectionTerm(TPZFMatrix &dsol, TPZFMatrix &ax
   this->fC = this->falpha;  
 }
 
-void TPZMatPoisson3dReferred::SetConvectionTerm(TPZFMatrix &dsolL, TPZFMatrix &axesL, TPZFMatrix &dsolR, TPZFMatrix &axesR){
-//tiago
+void TPZMatPoisson3dReferred::SetConvectionTermInterface(TPZFMatrix &dsolL, TPZFMatrix &dsolR){
   const int dim = this->Dimension();
   const int pos = 1; // first column stores current solution. second column stores previous solution which is requested here. Then pos = 1.
   for(int i = 0; i < dim; i++){
@@ -73,14 +72,12 @@ void TPZMatPoisson3dReferred::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &
                                                   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                                   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
                                                   TPZFMatrix &ek,TPZFMatrix &ef){
-  PZError << __PRETTY_FUNCTION__ << " - this method is not working properly. Expect huge problems or better than that abort your simullation.\n";
-//   this->SetConvectionTerm(dsolL, dsolR, axesL, axesR);
+  this->SetConvectionTerm(dsolL, dsolR);
   TPZMatPoisson3d::ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef);
 }
   
 void TPZMatPoisson3dReferred::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
                                                     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
-  PZError << __PRETTY_FUNCTION__ << " - this method is not working properly. Expect huge problems or better than that abort your simullation.\n";
-//   this->SetConvectionTerm(dsolL, axesL);
+  this->SetConvectionTerm(dsolL, dsolL);
   TPZMatPoisson3d::ContributeBCInterface(x, solL, dsolL, weight, normal, phiL, dphiL, ek, ef, bc);
 }
