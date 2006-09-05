@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.18 2005-04-25 02:52:50 phil Exp $
+//$Id: pzconslaw.h,v 1.19 2006-09-05 16:13:31 longhin Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -123,7 +123,7 @@ public:
   /**
    * Residual_RT for calculations and Flux_RT for convergence check.
    */
-  void TPZConservationLaw2::SetResidualType(TPZResidualType type);
+  void SetResidualType(TPZResidualType type);
 
   /**
    * Number of state variables according to the dimension

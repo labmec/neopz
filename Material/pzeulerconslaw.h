@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.32 2005-04-25 02:52:50 phil Exp $
+//$Id: pzeulerconslaw.h,v 1.33 2006-09-05 16:13:31 longhin Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -381,7 +381,7 @@ template <class T>
 
 //------------------internal contributions
 
-void TPZEulerConsLaw2::ContributeFastestBCInterface(int dim,
+void ContributeFastestBCInterface(int dim,
 			TPZVec<REAL> &x,
 			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
 			REAL weight, TPZVec<REAL> &normal,
@@ -389,7 +389,7 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface(int dim,
 			TPZFMatrix &ek,TPZFMatrix &ef, TPZBndCond &bc);
 
 template <int dim>
-void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(
+void ContributeFastestBCInterface_dim(
 			TPZVec<REAL> &x,
 			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
 			REAL weight, TPZVec<REAL> &normal,
@@ -553,7 +553,7 @@ protected:
    */
   TPZArtDiff fArtDiff;
 
-  //int fIntegrationDegree;//grau de integra¢ão da solu¢ão inicial:opcional
+  //int fIntegrationDegree;//grau de integraï¿½ da soluï¿½ inicial:opcional
 
   /**
    * variables indication whether the following terms are implicit
@@ -585,9 +585,9 @@ inline void TPZEulerConsLaw2::Flux(TPZVec<T> &U,TPZVec<T> &Fx,TPZVec<T> &Fy,TPZV
     exit(-1);
   }
 
-  Fx.Resize(5,0.0);//válido
+  Fx.Resize(5,0.0);//vï¿½ido
   Fy.Resize(5,0.0);//para
-  Fz.Resize(5,0.0);//R¹ , R² , R³
+  Fz.Resize(5,0.0);//R , R , R
 
   if(nstate == 5){
     Fx[0] = U[1];//ro u
@@ -853,8 +853,8 @@ inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T>
     throw(obj);
 //    exit(-1);
   }
-  // Pressão = (gam-1)*(E - ro*||(u,v,w)||²/2)
-  // onde aqui ro_e = E (nota¢ão)
+  // Pressï¿½ = (gam-1)*(E - ro*||(u,v,w)||/2)
+  // onde aqui ro_e = E (notaï¿½)
 
   int nstate = NStateVariables(dim);
   press = 0.0;

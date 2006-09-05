@@ -63,7 +63,7 @@ void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
  * In case that they are not normal or they are not linearly
  * independent calculates new axles based on the input data
  */
-void TPZMatOrthotropic::Normalize(TPZFMatrix &naxes);
+	void Normalize(TPZFMatrix &naxes);
 };
 
 #endif
