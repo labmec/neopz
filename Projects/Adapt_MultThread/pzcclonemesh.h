@@ -192,7 +192,7 @@ protected:
   void AdaptElements (TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
 
 
-  void TPZCompCloneMesh::DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,	
+  void DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,	
                                           TPZVec<int> &cornerids,
                                           TPZVec<int> &porders,
                                           int originalp);

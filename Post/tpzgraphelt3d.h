@@ -22,7 +22,7 @@ This class implements the graphical representation of a tetrahedra elemennt
 class TPZGraphElT3d : public TPZGraphElQ3dd
 {
 public:
-  TPZGraphElT3d::TPZGraphElT3d(TPZCompEl *cel, TPZGraphMesh *gmesh) : TPZGraphElQ3dd(cel,gmesh){
+  TPZGraphElT3d(TPZCompEl *cel, TPZGraphMesh *gmesh) : TPZGraphElQ3dd(cel,gmesh){
   }
 
 

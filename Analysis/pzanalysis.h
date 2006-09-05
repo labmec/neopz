@@ -111,7 +111,7 @@ public:
 	/**
 	 * Set the computational mesh of the analysis.
 	 **/
-  void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh);
+  void SetCompMesh(TPZCompMesh * mesh);
 
 	/**
    *Create an empty TPZAnalysis object 

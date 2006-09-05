@@ -47,20 +47,20 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--enable-metis=yes --with-metis-dir=/home/cluster/proj/proj076/phil/software</configargs>
+        <configargs>--prefix=/home/longhin/Projetos/PZInstall</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevpgf77options</f77compiler>
         <cxxflags>-O0 -g3 </cxxflags>
-        <topsourcedir></topsourcedir>
-        <cppflags></cppflags>
-        <ldflags></ldflags>
-        <ccompilerbinary></ccompilerbinary>
-        <cxxcompilerbinary></cxxcompilerbinary>
-        <f77compilerbinary></f77compilerbinary>
-        <cflags></cflags>
-        <f77flags></f77flags>
+        <topsourcedir/>
+        <cppflags/>
+        <ldflags/>
+        <ccompilerbinary/>
+        <cxxcompilerbinary/>
+        <f77compilerbinary/>
+        <cflags/>
+        <f77flags/>
         <envvars/>
       </debug>
       <testing>
@@ -99,9 +99,10 @@
     <make>
       <envvars/>
       <abortonerror>true</abortonerror>
-      <numberofjobs>4</numberofjobs>
+      <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin/>
+      <makebin></makebin>
+      <prio>0</prio>
     </make>
   </kdevautoproject>
   <kdevdebugger>
@@ -196,6 +197,19 @@
       <headerCompletionDelay>250</headerCompletionDelay>
     </codecompletion>
     <references/>
+    <creategettersetter>
+      <prefixGet></prefixGet>
+      <prefixSet>set</prefixSet>
+      <prefixVariable>m_,_</prefixVariable>
+      <parameterName>theValue</parameterName>
+      <inlineGet>true</inlineGet>
+      <inlineSet>true</inlineSet>
+    </creategettersetter>
+    <qt>
+      <used>false</used>
+      <version>3</version>
+      <root>/usr/lib/qt-3.3</root>
+    </qt>
   </kdevcppsupport>
   <kdevcvsservice>
     <recursivewhenupdate>true</recursivewhenupdate>

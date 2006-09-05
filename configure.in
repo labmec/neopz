@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.53 2006-08-24 19:27:03 tiago Exp $
+dnl $Id: configure.in,v 1.54 2006-09-05 16:15:44 longhin Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -78,6 +78,9 @@ case "$target" in
     ARCH_INCLUDES=
     ;;
   *-apple-*)
+    ARCH_INCLUDES=
+    ;;
+  powerpc*)
     ARCH_INCLUDES=
     ;;
  *)

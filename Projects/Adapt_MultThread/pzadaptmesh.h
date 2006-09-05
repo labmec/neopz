@@ -107,7 +107,7 @@ class TPZAdaptMesh {
    * Sorts the errvec returning the ordering indexes in perm param.
    * errpercent is the percentual of the error that must be considered in returning minimum error
    */
-  REAL TPZAdaptMesh::SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL errpercent);
+  REAL SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL errpercent);
 
   /**
    * Creates an adpted computational mesh based on original mesh and in a hp refinement pattern also
@@ -125,7 +125,7 @@ class TPZAdaptMesh {
    * @param minerror minimum error to the clone be analysed
    * @param ervec vector containing the treu error 
    */
-  int TPZAdaptMesh::HasTrueError(int clindex, REAL &minerror, TPZVec<REAL> &ervec);
+  int HasTrueError(int clindex, REAL &minerror, TPZVec<REAL> &ervec);
 
 
  private:   

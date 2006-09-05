@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.21 2006-04-03 20:41:18 tiago Exp $
+//$Id: pzgmesh.h,v 1.22 2006-09-05 16:16:07 longhin Exp $
 
 /**File : pzgmes.h
 
@@ -143,13 +143,13 @@ virtual void Write(TPZStream &buf, int withclassid);
   /** Print the information of the grid to an ostream*/
 virtual  void Print(std::ostream & out = std::cout);
 
-void TPZGeoMesh::PatternSidesFile(std::ofstream &filename);
+void PatternSidesFile(std::ofstream &filename);
 
-void TPZGeoMesh::PatternFileLoad(std::ifstream &filename);
+void PatternFileLoad(std::ifstream &filename);
 
-int TPZGeoMesh::NRefPatterns ();
+int NRefPatterns ();
 
-void TPZGeoMesh::RefPatternFile(std::ofstream &filename);
+void RefPatternFile(std::ofstream &filename);
 
   /**
    * Import a library of refinement patterns from the install directory
