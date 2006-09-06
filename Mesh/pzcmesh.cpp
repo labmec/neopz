@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.49 2006-08-20 21:20:23 phil Exp $
+//$Id: pzcmesh.cpp,v 1.50 2006-09-06 15:14:14 longhin Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -2408,15 +2408,15 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
   }
   TPZSaveable::Read(buf,context);
 
-  //   TPZGeoMesh *gmesh;
-  //   TPZSaveable *obj = TPZSaveable::Restore(buf,0);
-  //   gmesh = dynamic_cast<TPZGeoMesh *>(obj);
-  //   context = gmesh;
-  /*  {
+     TPZGeoMesh *gmesh;
+     TPZSaveable *obj = TPZSaveable::Restore(buf,0);
+     gmesh = dynamic_cast<TPZGeoMesh *>(obj);
+     context = gmesh;
+    {
       std::stringstream sout;
       sout << __PRETTY_FUNCTION__ << " calling load references";
       LOGPZ_DEBUG(logger,sout.str().c_str());
-      }*/
+      }
 
 
   {
