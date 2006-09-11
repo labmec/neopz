@@ -11,6 +11,7 @@
     <absoluteprojectpath>false</absoluteprojectpath>
     <description/>
     <secondaryLanguages/>
+    <versioncontrol>kdevcvsservice</versioncontrol>
   </general>
   <kdevautoproject>
     <general>
@@ -24,7 +25,7 @@
         <main/>
       </runarguments>
       <customdirectory>/</customdirectory>
-      <programargs/>
+      <programargs></programargs>
       <terminal>false</terminal>
       <autocompile>true</autocompile>
       <envvars/>
