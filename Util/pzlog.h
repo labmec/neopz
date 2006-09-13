@@ -13,13 +13,13 @@
 #define PZLOGH
 
 #include <string>
+#include <sstream>
 #ifdef LOG4CXX
 
 #ifdef DEBUG
   #define DEBUG2
 #endif
 
-#include <sstream>
 #include "log4cxx/logger.h"
 #include "log4cxx/basicconfigurator.h"
 #include <log4cxx/propertyconfigurator.h>
