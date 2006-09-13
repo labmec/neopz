@@ -238,6 +238,7 @@ int TPZElasticityMaterial::VariableIndex(char *name){
   if(!strcmp("sig_y",name))            return 6;
   if(!strcmp("tau_xy",name))           return 8;//Cedric
   if(!strcmp("Displacement6",name))    return 7;
+  if(!strcmp("Stress",name))           return 10;
 
   //   cout << "TPZElasticityMaterial::VariableIndex Error\n";
   return TPZMaterial::VariableIndex(name);
@@ -264,6 +265,8 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
     return 6;
   case 9:
     return 3;
+    case 10 : //Stress Tensor
+    return 3;
   default:
     return TPZMaterial::NSolutionVariables(var);
     return 0;
@@ -288,10 +291,10 @@ void TPZElasticityMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatr
   REAL SigY;
   REAL Tau,aux,Sig1,Sig2,angle,DSolxy[2][2];
   // dudx - dudy
-  DSolxy[0][0] = DSol(0,0)*axes(0,0)+DSol(1,0)*axes(0,1);
+  DSolxy[0][0] = DSol(0,0)*axes(0,0)+DSol(1,0)*axes(1,0);
   DSolxy[1][0] = DSol(0,0)*axes(0,1)+DSol(1,0)*axes(1,1);
   // dvdx - dvdy
-  DSolxy[0][1] = DSol(0,1)*axes(0,0)+DSol(1,1)*axes(0,1);
+  DSolxy[0][1] = DSol(0,1)*axes(0,0)+DSol(1,1)*axes(1,0);
   DSolxy[1][1] = DSol(0,1)*axes(0,1)+DSol(1,1)*axes(1,1);
   /*
     ef(2*in, 0) += weight * (ff[0] * phi(in, 0)+ du(0,0)*fPreStressXX + du(1,0)*fPreStressXY) ;  // dire�o x
@@ -319,11 +322,19 @@ void TPZElasticityMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatr
   case 5:
   case 6:
   case 8:
+  case 10:
     epsx = DSolxy[0][0];// du/dx
     epsy = DSolxy[1][1];// dv/dy
     epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
-    SigX = fEover1MinNu2*(epsx+fnu*epsy)+fPreStressXX;
-    SigY = fEover1MinNu2*(fnu*epsx+epsy)+fPreStressYY;
+    if (this->fPlaneStress){
+      SigX = fEover1MinNu2*(epsx+fnu*epsy)+fPreStressXX;
+      SigY = fEover1MinNu2*(fnu*epsx+epsy)+fPreStressYY;
+    }
+    else
+    {
+      SigX = fE/((1.-2.*fnu)*(1.+fnu))*((1.-fnu)*epsx+fnu*epsy)+fPreStressXX;
+      SigY = fE/((1.-2.*fnu)*(1.+fnu))*(fnu*epsx+(1.-fnu)*epsy)+fPreStressYY;
+    }
 
     //numvar = 1;
     Solout[0] = SigX+SigY;
@@ -368,6 +379,13 @@ void TPZElasticityMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatr
       REAL sigmax;
       sigmax = (fabs(Sig1) < fabs(Sig2))? fabs(Sig2) : fabs(Sig1);
       Solout[0] = sigmax;
+      return;
+    }
+    if (var ==10)
+    {
+      Solout[0] = SigX;
+      Solout[1] = SigY;
+      Solout[2] = Tau;
       return;
     }
     cout << "Very critical error TPZElasticityMaterial::Solution\n";
