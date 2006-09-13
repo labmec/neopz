@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.25 2006-06-12 14:09:31 cesar Exp $
+// $Id: pzcompel.h,v 1.26 2006-09-13 19:11:29 cesar Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -114,7 +114,7 @@ public:
    */
   static int gOrder;
 
-  /** 
+  /**
    * Returns the volume of the geometric element associated.
    */
   virtual  REAL VolumeOfEl()
@@ -403,7 +403,7 @@ public:
   * @param sol finite element solution
   * @param dsol solution derivatives
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
   
  /**
   * Computes solution and its derivatives in local coordinate qsi
@@ -703,7 +703,7 @@ inline int TPZCompEl::Index() {
   return fIndex;
 }
 
-inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
   PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
 }
 
