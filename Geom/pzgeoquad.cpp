@@ -76,7 +76,7 @@ void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &ja
     PZError << "TPZGeoQuad.jacobian. param out of range : "
       " param.NElements() = " << param.NElements() <<
       "\nparam[0] = " << param[0] << " param[1] = " << param[1] << "\n";
-    return;
+    //return;
   }
 #endif
   REAL spacephi[4];
