@@ -1,6 +1,7 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.4 2006-07-06 15:55:37 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.5 2006-09-13 19:18:25 cesar Exp $
+
 
 #include "pzreferredcompel.h"
 #include "pzelctemp.h"
@@ -31,14 +32,16 @@
 #include "pzgeoel.h"
 #include "pzcmesh.h"
 
-#include "sstream"
 #include "pzlog.h"
+
+
 
 #include "pztempmat.h"
 
 #ifdef DEBUG
   #define DEBUG2
 #endif
+
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
@@ -83,7 +86,9 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix
   TPZFNMatrix<100> OtherDSol(10,10);
   
   TPZCompEl * other = this->Reference()->Reference();
-  other->ComputeSolution(qsi, OtherSol, OtherDSol);
+  TPZFMatrix axes (3,3,0.);
+
+  other->ComputeSolution(qsi, OtherSol, OtherDSol,axes);
 
 //  TPZManVector<REAL> AllSol(u.NElements() + OtherSol.NElements());
   u.Resize( ThisSol.NElements() + OtherSol.NElements() );
