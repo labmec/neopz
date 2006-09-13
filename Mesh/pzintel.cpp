@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.44 2006-07-06 15:55:23 tiago Exp $
+// $Id: pzintel.cpp,v 1.45 2006-09-13 20:21:05 cesar Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -2690,7 +2690,7 @@ void TPZInterpolatedElement::Read(TPZStream &buf, void *context)
   fMaterial = Mesh()->FindMaterial(matid);
 }
 
-void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
 
   const int nshape = this->NShapeF();
   TPZGeoEl * ref = this->Reference();
@@ -2698,7 +2698,7 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &so
 
   TPZFNMatrix<220> phi(nshape,1);
   TPZFNMatrix<660> dphi(dim,nshape),dphix(dim,nshape);
-  TPZFNMatrix<9> axes(3,3,0.);
+//   TPZFNMatrix<9> axes(3,3,0.);
   TPZFNMatrix<9> jacobian(dim,dim);
   TPZFNMatrix<9> jacinv(dim,dim);
   REAL detjac;
