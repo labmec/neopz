@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.55 2006-09-01 14:21:03 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.56 2006-09-13 19:20:45 cesar Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -1821,11 +1821,12 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, 
 
   TPZManVector<REAL, 10> LeftSol;
   TPZFNMatrix<100> LeftDSol(10,10);
-  left->ComputeSolution( LeftIntPoint, LeftSol, LeftDSol );
+  TPZFMatrix axes (3,3,0.);
+  left->ComputeSolution( LeftIntPoint, LeftSol, LeftDSol , axes);
 
   TPZManVector<REAL, 10> RightSol;
   TPZFNMatrix<100> RightDSol(10,10);
-  left->ComputeSolution( RightIntPoint, RightSol, RightDSol );
+  left->ComputeSolution( RightIntPoint, RightSol, RightDSol , axes );
 
   if (left->NConnects() && right->NConnects()){//take average of both neighbours
     sol.Resize(LeftSol.NElements());

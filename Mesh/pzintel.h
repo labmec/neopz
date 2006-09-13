@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.19 2006-05-30 17:51:07 tiago Exp $
+//$Id: pzintel.h,v 1.20 2006-09-13 19:16:48 cesar Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -334,7 +334,7 @@ public:
    * @param sol finite element solution
    * @param dsol solution derivatives
    */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
   
  /**
   * Computes solution and its derivatives in local coordinate qsi

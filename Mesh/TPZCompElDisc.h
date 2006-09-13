@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.45 2006-05-30 17:51:41 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.46 2006-09-13 19:19:47 cesar Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinou Element
@@ -259,7 +259,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
    * @param sol finite element solution
    * @param dsol solution derivatives
    */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix & axes);
   
  /**
   * Computes solution and its derivatives in local coordinate qsi

@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.81 2006-09-01 14:22:04 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.82 2006-09-13 19:19:34 cesar Exp $
 
 // -*- c++ -*- 
 
@@ -1000,12 +1000,12 @@ void TPZCompElDisc::SetDegree(int degree) {
   Mesh()->Block().Set(seqnum,NShapeF()*nvar);
 }
 
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix & axes){
   TPZGeoEl * ref = this->Reference();
   const int nshape = this->NShapeF();
   const int dim = ref->Dimension();
   TPZFMatrix phix(nshape,1),dphix(dim,nshape);
-  TPZFMatrix axes(3,3,0.);
+  
   TPZFMatrix jacobian(dim,dim);
   TPZFMatrix jacinv(dim,dim);
   REAL detjac;
