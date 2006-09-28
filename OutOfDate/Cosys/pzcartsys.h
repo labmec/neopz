@@ -21,6 +21,11 @@ public:
   TPZCartsys();
   
   /**
+   * Copy constructor
+   */
+  TPZCartsys(const TPZCartsys & cp);
+  
+  /**
    * Create object from one reference object and new origin 
    * @param num coordinate system identificator
    * @param ref reference coordinate system
@@ -107,11 +112,35 @@ public:
    */
   void ToReference (TPZVec<REAL> &point) ;
 
+  /**
+   * Return de the value of one coordinate given in reference
+   * system in actual system
+   * @param x point to transfer from reference coordinate system
+   */
+  void RotateFromReference (TPZVec<REAL> &point);
+
+  /**
+   * Return de the value of one coordinate in
+   * reference coordinate system
+   * @param point point to transfer to reference coordinate system
+   */
+  void RotateToReference (TPZVec<REAL> &point) ;
+
+
+  /**
+   * Return the rotation matrix
+   */
+  TPZFMatrix &Rotation () {return fTr;}
+
+  void Print(std::ostream &out);
+    double RotationAngle();
+    void SetGlobal();
+
 protected:
   /**
    * Pointer to Reference Coordinate system
    */
-  TPZCosys *fReference;
+  //TPZCosys *fReference;
   
   /**
    * Rotation tensor -

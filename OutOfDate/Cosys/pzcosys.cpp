@@ -12,6 +12,12 @@ TPZCosys::TPZCosys() {
 	fReference = NULL;
 }
 
+TPZCosys::TPZCosys(const TPZCosys &cp)
+{
+  fNumber = cp.fNumber;
+  fReference = cp.fReference;
+}
+
 //***************************************
 //***************************************
 TPZCosys::TPZCosys(int num,  TPZCartsys* ref) {

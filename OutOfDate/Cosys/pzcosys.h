@@ -26,6 +26,12 @@ public:
   TPZCosys();
 
   /**
+   * Copy constructor
+   */
+  TPZCosys(const TPZCosys &cp);
+
+  
+  /**
    * Constructor-
    * Create one object from other (reference coordinate system) 
    * @param num index of the coordinate system

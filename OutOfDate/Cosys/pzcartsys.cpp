@@ -17,6 +17,14 @@ TPZCartsys::TPZCartsys():TPZCosys(),fOrigin(3,0.){
       fTr(i,j)=(i == j) ? 1.0 : 0.0;
 }
 
+TPZCartsys::TPZCartsys(const TPZCartsys & cp) :
+                             TPZCosys (cp),
+                             fOrigin (cp.fOrigin),
+                             fTr (cp.fTr)
+{
+  fReference = cp.fReference;
+}
+
 /**Constructor - 
  * create one object from a reference coordinate system
  * and a origin and euller angles
@@ -60,17 +68,29 @@ void TPZCartsys::GetAxes(TPZFMatrix &axes){
 
 void TPZCartsys::SetAxes(TPZVec<REAL> &x, TPZVec<REAL> &z){
 
-  x[0] -= fOrigin[0]; x[1] -= fOrigin[1]; x[2] -= fOrigin[2];
+  x[0] -= fOrigin[0];
+  x[1] -= fOrigin[1];
+  x[2] -= fOrigin[2];
   Normalise(x);
-  fTr(0,0) = x[0]; fTr(0,1) = x[1]; fTr(0,2) = x[2];
   
-  z[0] -= fOrigin[0]; z[1] -= fOrigin[1]; z[2] -= fOrigin[2];
+  fTr(0,0) = x[0];
+  fTr(0,1) = x[1];
+  fTr(0,2) = x[2];
+  
+  z[0] -= fOrigin[0];
+  z[1] -= fOrigin[1];
+  z[2] -= fOrigin[2];
   Normalise(z);
-  fTr(2,0) = z[0]; fTr(2,1) = z[1]; fTr(2,2) = z[2];
+  
+  fTr(2,0) = z[0];
+  fTr(2,1) = z[1];
+  fTr(2,2) = z[2];
   
   TPZVec<REAL> y(3,0.);
   GetNormal(z,x,y);
-  fTr(1,0) = y[0]; fTr(1,1) = y[1]; fTr(1,2) = y[2];
+  fTr(1,0) = y[0];
+  fTr(1,1) = y[1];
+  fTr(1,2) = y[2];
 }
 
 
@@ -104,29 +124,48 @@ void TPZCartsys::FromReference (TPZVec<REAL> &point) {
     point[1] -= fOrigin[1];
     point[2] -= fOrigin[2];
 
-    TPZVec<REAL> newp(3,0.);
-    newp[0] = fTr(0,0)*point[0] + fTr(1,0)*point[1] + fTr(2,0)*point[2];
-    newp[1] = fTr(0,1)*point[0] + fTr(1,1)*point[1] + fTr(2,1)*point[2];
-    newp[2] = fTr(0,2)*point[0] + fTr(1,2)*point[1] + fTr(2,2)*point[2];
-
-    point[0] = newp[0];
-    point[1] = newp[1];
-    point[2] = newp[2];
-  
-}
-
-
-void TPZCartsys::ToReference (TPZVec<REAL> &point) {
-  
-    TPZVec<REAL> newp(3,0.);
+    RotateFromReference(point);
+/*    TPZVec<REAL> newp(3,0.);
     newp[0] = fTr(0,0)*point[0] + fTr(0,1)*point[1] + fTr(0,2)*point[2];
     newp[1] = fTr(1,0)*point[0] + fTr(1,1)*point[1] + fTr(1,2)*point[2];
     newp[2] = fTr(2,0)*point[0] + fTr(2,1)*point[1] + fTr(2,2)*point[2];
 
-    point[0] = newp[0] + fOrigin[0];
-    point[1] = newp[1] + fOrigin[1];
-    point[2] = newp[2] + fOrigin[2];
-	if (!fReference) return;
+    point[0] = newp[0];
+    point[1] = newp[1];
+    point[2] = newp[2];*/
+  
+}
+
+void TPZCartsys::RotateFromReference (TPZVec<REAL> &point)
+{
+  TPZVec<REAL> newp(3,0.);
+  newp[0] = fTr(0,0)*point[0] + fTr(0,1)*point[1] + fTr(0,2)*point[2];
+  newp[1] = fTr(1,0)*point[0] + fTr(1,1)*point[1] + fTr(1,2)*point[2];
+  newp[2] = fTr(2,0)*point[0] + fTr(2,1)*point[1] + fTr(2,2)*point[2];
+  point[0] = newp[0];
+  point[1] = newp[1];
+  point[2] = newp[2];
+}
+
+
+void TPZCartsys::ToReference (TPZVec<REAL> &point)
+{
+  RotateToReference(point);
+  point[0] += fOrigin[0];
+  point[1] += fOrigin[1];
+  point[2] += fOrigin[2];
+}
+
+
+void TPZCartsys::RotateToReference (TPZVec<REAL> &point)
+{
+  TPZVec<REAL> newp(3,0.);
+  newp[0] = fTr(0,0)*point[0] + fTr(1,0)*point[1] + fTr(2,0)*point[2];
+  newp[1] = fTr(0,1)*point[0] + fTr(1,1)*point[1] + fTr(2,1)*point[2];
+  newp[2] = fTr(0,2)*point[0] + fTr(1,2)*point[1] + fTr(2,2)*point[2];
+  point[0] = newp[0];
+  point[1] = newp[1];
+  point[2] = newp[2];
 }
 
 
@@ -160,4 +199,37 @@ void TPZCartsys::GetNormal(TPZVec<REAL> &vec1, TPZVec<REAL> &vec2, TPZVec<REAL> 
 	norm[2] = vec1[0] * vec2[1] - vec2[0] * vec1[1];
 
 	Normalise(norm);
+}
+
+void TPZCartsys::Print(std::ostream &out)
+{
+  out << __PRETTY_FUNCTION__ << std::endl;
+  out << "\tOrigin of coordinate system...:\n\t\t"  << fOrigin << std::endl;
+  out << "\tAxes of coordinate system.....:\n";
+  out << fTr;
+  out << std::endl;
+}
+
+/*!
+    \fn TPZCartsys::RotationAngle()
+ */
+double TPZCartsys::RotationAngle()
+{
+  double rot = acos (fTr(0,0));
+  double aux_rot = asin (fTr(0,1));
+
+  if (aux_rot < 0.) rot = 2.*M_PI - rot;
+
+  return rot;
+}
+
+
+/*!
+    \fn TPZCartsys::SetGlobal()
+ */
+void TPZCartsys::SetGlobal()
+{
+  int i;
+  for (i=0;i<3;i++) fOrigin[i] = 0.;
+  fTr.Identity();
 }
