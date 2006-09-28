@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.27 2006-06-12 13:55:38 cesar Exp $
+//$Id: pzanalysis.cpp,v 1.28 2006-09-28 12:09:40 cesar Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -32,7 +32,6 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-
 static LoggerPtr logger(Logger::getLogger("pz.analysis"));
 #endif
 
@@ -117,30 +116,43 @@ void TPZAnalysis::SetBlockNumber(){
 */
 }
 
-void TPZAnalysis::Assemble() {
-	if(!fCompMesh || !fStructMatrix || !fSolver) 
-        {
-          cout << "TPZAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh << " fStructMatrix " << (void *) fStructMatrix <<
-          " fSolver " << (void *) fSolver << " at file " << __FILE__ << " line " << __LINE__ << endl;
-          return;
-        }
-        int sz = fCompMesh->NEquations();
-	fRhs.Redim(sz,1);
-        if(fSolver->Matrix() && fSolver->Matrix()->Rows()==sz)
-        {
-          fSolver->Matrix()->Zero();
-          fStructMatrix->Assemble(*(fSolver->Matrix()),fRhs);
-        }
-        else
-        {
-          TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
-          //mat->Print("Rigidez");
-          fSolver->SetMatrix(mat);
-          //aqui TPZFMatrix n� �nula
-        }
-        fSolver->UpdateFrom(fSolver->Matrix());
-        //fRhs.Print("Rhs");
-        //cout.flush();
+void TPZAnalysis::Assemble()
+{
+  if(!fCompMesh || !fStructMatrix || !fSolver)
+  {
+    std::stringstream sout;
+    sout << "TPZAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh
+         << " fStructMatrix " << (void *) fStructMatrix
+         << " fSolver " << (void *) fSolver;
+#ifndef WINDOWS
+    sout << " at file " << __FILE__ << " line " << __LINE__ ;
+#else
+    sout << " TPZAnalysis::Assemble() " ;
+#endif
+#ifdef LOG4CXX
+    LOGPZ_ERROR(logger,sout.str().c_str());
+#else
+    std::cout << sout.str().c_str() << std::endl;
+#endif
+    return;
+  }
+  int sz = fCompMesh->NEquations();
+  fRhs.Redim(sz,1);
+  if(fSolver->Matrix() && fSolver->Matrix()->Rows()==sz)
+  {
+    fSolver->Matrix()->Zero();
+    fStructMatrix->Assemble(*(fSolver->Matrix()),fRhs);
+  }
+  else
+  {
+    TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
+    //mat->Print("Rigidez");
+    fSolver->SetMatrix(mat);
+    //aqui TPZFMatrix n� �nula
+  }
+  fSolver->UpdateFrom(fSolver->Matrix());
+  //fRhs.Print("Rhs");
+  //cout.flush();
 }
 
 void TPZAnalysis::Solve() {
@@ -263,10 +275,10 @@ void TPZAnalysis::LoadShape(double ,double , int ,TPZConnect* start){
 
 }
 
-void TPZAnalysis::Run(std::ostream &out){
-
-	Assemble();
-	Solve();
+void TPZAnalysis::Run(std::ostream &out)
+{
+  Assemble();
+  Solve();
 }
 
 void TPZAnalysis::DefineGraphMesh(int dim, TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, const char *plotfile) {
