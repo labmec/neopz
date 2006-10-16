@@ -1330,3 +1330,8 @@ void TPZFMatrix::PrintStatic(const REAL *ptr, int rows, int cols, const char *na
 
 }
 
+int TPZFMatrix::ClassId() const   
+{ 
+  return TPZFMATRIXID; 
+}
+template class TPZRestoreClass< TPZFMatrix, TPZFMATRIXID>;

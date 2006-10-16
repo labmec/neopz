@@ -16,8 +16,8 @@
 void RegisterMatrixClasses() 
 {
 #ifndef ELLIPS
-  TPZSaveable::Register(TPZFMATRIXID,Restore<TPZFMatrix>);
-  TPZSaveable::Register(TPZBLOCKID,Restore<TPZBlock>);
+//   TPZSaveable::Register(TPZFMATRIXID,Restore<TPZFMatrix>);
+//   TPZSaveable::Register(TPZBLOCKID,Restore<TPZBlock>);
 #endif
 
 }

@@ -240,7 +240,8 @@ static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TP
 
   //routines to send and receive messages
 
-  virtual int ClassId() const   { return TPZFMATRIXID; }
+  virtual int ClassId() const;
+  
   virtual void Read( TPZStream &buf, void *context );
   virtual void Write(TPZStream &buf, int withclassid );
 

@@ -497,6 +497,8 @@ int TPZBlock::ClassId() const
 {
   return TPZBLOCKID;
 }
+template class TPZRestoreClass< TPZBlock, TPZBLOCKID>;
+
   /**
   Save the element data to a stream
   */
