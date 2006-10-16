@@ -14,6 +14,7 @@ class TPZGeoNode;
 class TPZCompMesh;
 class TPZGeoElBC;
 class TPZGeoEl;
+class TPZGeoElSideIndex;
 class TPZGeoElSide;
 
 /* template <class T> */
@@ -51,14 +52,14 @@ class TPZRefPattern {
 public:
 
     /**Empty constructor*/
-    TPZRefPattern();
+    TPZRefPattern(TPZGeoMesh * OwnerMesh);
     /**
      * Constructor whose argument is the name of the file with the definition
      * of the refinement standard
      */
-    TPZRefPattern(std::ifstream &file);
+    TPZRefPattern(TPZGeoMesh * OwnerMesh, std::ifstream &file);
 
-    TPZRefPattern(std::string &file);
+    TPZRefPattern(TPZGeoMesh * OwnerMesh, std::string &file);
     
     /**Copy constructor*/
     TPZRefPattern (const TPZRefPattern &copy);
@@ -70,7 +71,7 @@ public:
     /**
      * Creates an TPZRefPattern from a given mesh
      */
-    TPZRefPattern(TPZGeoMesh &GMesh);
+    TPZRefPattern(TPZGeoMesh * OwnerMesh, TPZGeoMesh &GMesh);
     
     /**
      * Destructor of the object
@@ -78,6 +79,9 @@ public:
     ~TPZRefPattern()
     {
     }
+    
+    void Read(TPZStream &buf);
+    void Write(TPZStream &buf);
 
     /**
      * It returns the mesh of refinement pattern
@@ -168,7 +172,7 @@ public:
      * It prints the features of the standard of geometric refinement.
      */
     void MeshPrint();
-    void Print1(TPZGeoMesh &gmesh,std::ostream &out = std::cout);/////////////////////////???????????????????
+    void Print1(/*TPZGeoMesh &gmesh,*/std::ostream &out = std::cout);/////////////////////////???????????????????
     
     void ShortPrint(std::ostream &out);
 
@@ -240,7 +244,7 @@ public:
          * the partition associated with a vertex corresponds to the on
          * elements to this node
          */
-        TPZVec<TPZGeoElSide> fPartitionSubSide;
+        TPZVec<TPZGeoElSideIndex> fPartitionSubSide;
 
         /**
          * Number of asociados distinct sub-elements to the side of the father
@@ -250,7 +254,10 @@ public:
         /**
          * It prints the properties of the structure
          */
-        void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);        
+        void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);  
+             
+        void Read(TPZStream &buf);
+        void Write(TPZStream &buf);
     };
 
     /**
@@ -282,15 +289,24 @@ public:
          * It prints the properties of the structure
          */
         void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);
+        
+        void Read(TPZStream &buf);
+        
+        void Write(TPZStream &buf);
     };
 
 
 private:
 
     /**
-     * Associated geometric mesh to the standard of current refinement 
+     * Geometric mesh which defines the topology of the current refinement pattern
      */
-    TPZGeoMesh fMesh;
+    TPZGeoMesh fInternalMesh;
+    
+    /**
+     * Geometric mesh which owns this refinement pattern 
+     */ 
+    TPZGeoMesh * fOwnerMesh;
 
     /**
      * Name of the file that defines the refinement standard
@@ -310,7 +326,7 @@ private:
 
 
     /**refinamento para elementos de contorno associados ao refinamento atual*/
-    TPZVec<TPZRefPattern *> fSideRefPattern;
+    TPZVec<int> fSideRefPattern;
     
     /**This should be available before the mesh initialization*/
     int fNSubEl;
@@ -321,7 +337,7 @@ private:
      int fId;
 
  public:
-    TPZRefPattern *SideRefPattern(int side){return fSideRefPattern[side];}
+    TPZRefPattern *SideRefPattern(int side);
     
     /**
      * Find the side refinement pattern corresponding to the parameter transformation
@@ -351,18 +367,21 @@ protected:
     /**
      * Copy the mesh structure applying the permutation on the nodenumbers of the first element
      */
-     void CopyMesh(const TPZGeoMesh &gmesh, const TPZPermutation &permute);
-
-    /**
-     * Copy the mesh structure applying the permutation on the nodenumbers of the first element
-     */
-     void CopyMesh(const TPZGeoMesh &gmesh);
+     void PermuteMesh(const TPZPermutation &permute);
+     
+     /** Find a refinement pattern in fOwnerMesh
+      * It searches for the refpattern of id id with the
+      * element type of the side side of the 
+      * geometric element this->fInternalMesh->ElementVec()[0]
+      * @since August 16, 2006
+      */
+     TPZRefPattern * FindRefPattern(int id, int side);
 
 public:
     /**
      *  Generate all permuted partitions and insert them in the mesh
      */
-     void InsertPermuted(TPZGeoMesh &gmesh);
+     void InsertPermuted(/*TPZGeoMesh &gmesh*/);
         /**
     * Generate a string which may represent the refinement pattern
     */
@@ -371,7 +390,7 @@ public:
     /**
     * Generate the refinement patterns associated with the sides of the father element
     */
-    void GenerateSideRefPatterns(TPZGeoMesh &gmesh);
+    void GenerateSideRefPatterns(/*TPZGeoMesh &gmesh*/);
     
     /**
      * Find the refinement pattern corresponding to the give transformation
@@ -425,20 +444,32 @@ struct TPZRefPatternPermute
     fTransform = copy.fTransform;
     return *this;
   }
+  
+  void Read(TPZStream &buf){
+    this->fPermute.Read(buf);
+    this->fTransform.Read(buf);
+  }
+  
+  void Write(TPZStream &buf){
+    this->fPermute.Write(buf);
+    this->fTransform.Write(buf);
+  }
+  
 };
   
   /** map of all valid permutations */
 static std::map<MElementType, std::list<TPZRefPatternPermute> > fPermutations;
 
   /**
-   * vector of refinement patterns for each permutation of the master element
+   * vector of refinement patterns for each permutation of the master element.
+   * The vector stores the id correspondent to the refinement pattern vector in fOwnerMesh
    */
-   std::vector<TPZRefPattern *> fPermutedRefPatterns;
+   std::vector<int> fPermutedRefPatterns;
   
   /**
    *  build a geometric mesh associated with the side of the refinement pattern
    */
-  void BuildSideMesh(int side, TPZGeoMesh &gmesh);
+  void BuildSideMesh(int side, TPZGeoMesh &SideInternalMesh);
   
 };
 
