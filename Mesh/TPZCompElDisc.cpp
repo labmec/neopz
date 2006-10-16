@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.82 2006-09-13 19:19:34 cesar Exp $
+//$Id: TPZCompElDisc.cpp,v 1.83 2006-10-16 18:34:23 tiago Exp $
 
 // -*- c++ -*- 
 
@@ -171,7 +171,7 @@ void TPZCompElDisc::Shape(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi) {
   }
 
   if(Dimension()==2){
-     TPZShapeDisc::Shape2D(fConstC,fCenterPoint,X,Degree,phi,dphi,fShapefunctionType);
+     TPZShapeDisc::Shape2D/*Full*/(fConstC,fCenterPoint,X,Degree,phi,dphi,fShapefunctionType);
   }
 
   if(Dimension()==3){
@@ -352,7 +352,6 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     this->Material()->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ek.fMat,ef.fMat);
   }
 }
-
 void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
 
   if(fMaterial == NULL){
@@ -466,7 +465,8 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
   deg = this->Degree();
 
   for (i=0;i<nsubs;i++){
-    new TPZCompElDisc(*Mesh(),geosubs[i],subindex[i]);
+    geosubs[i]->CreateCompEl(*Mesh(),subindex[i]);//aqui
+    //new TPZCompElDisc(*Mesh(),geosubs[i],subindex[i]);
     discel = dynamic_cast<TPZCompElDisc *> (Mesh()->ElementVec()[subindex[i]]);
     if (!discel){
       std::stringstream mess;
@@ -614,7 +614,7 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
   delete intrule;  
 }
 
-void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
+void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
   //#ifdef _AUTODIFF
   //  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
   //#else
@@ -978,7 +978,7 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
 void TPZCompElDisc::AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) {
   TPZGeoEl *geo = Reference();
 
-//Code isn´t place to chat
+//Code isnt place to chat
 //#warning "Este metodo nao funciona para aglomerados contendo aglomerados"
   if(!geo) {
     PZError <<  "TPZCompElDisc::AccumulateVertices null reference\n";
@@ -1017,7 +1017,7 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMa
 }//method
   
 void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol){
-  const int dim = this->Dimension();
+
   const int nstate = this->Material()->NStateVariables();
   const int ncon = this->NConnects();
   TPZBlock &block = Mesh()->Block();
@@ -1052,6 +1052,10 @@ int TPZCompElDisc::ClassId() const
 {
   return TPZCOMPELDISCID;
 }
+
+template class 
+    TPZRestoreClass< TPZCompElDisc, TPZCOMPELDISCID>;
+
   /**
   Save the element data to a stream
   */
@@ -1061,8 +1065,6 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
   WriteObjects(buf,fCenterPoint);
   buf.Write(&fConnectIndex,1);
   buf.Write(&fConstC,1);
-  int Degree = this->Degree();
-  buf.Write(&Degree,1);
   int matid = fMaterial->Id();
   buf.Write(&matid,1);
   int shapetype = fShapefunctionType;
@@ -1079,14 +1081,78 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
   ReadObjects<3>(buf,fCenterPoint);
   buf.Read(&fConnectIndex,1);
   buf.Read(&fConstC,1);
-  int Degree = 0;
-  buf.Read(&Degree,1);
-  this->SetDegree(Degree);
   int matid;
   buf.Read(&matid,1);
   fMaterial = Mesh()->FindMaterial(matid);
   int shapetype;
-  buf.Write(&shapetype,1);
+  buf.Read(&shapetype,1);
   fShapefunctionType = (TPZShapeDisc::MShapeType) shapetype;
  }
+
+void TPZCompElDisc::ComputeError(int errorid, TPZVec<REAL> &error){
+
+  if(fMaterial == NULL){
+    cout << "TPZCompElDisc::ComputeError : no material for this element\n";
+    return;
+  }
+
+  TPZVec<REAL> x(3,0.);
+  REAL weight;
+  int dim = Dimension();
+  TPZVec<REAL> intpoint(dim,0.);
+  int integ = max( 2 * Degree(), 0);
+  TPZIntPoints *intrule = 0;
+  intrule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
+  int nstate = fMaterial->NStateVariables();
+  int npoints = intrule->NPoints(), ip;
+
+  TPZManVector<REAL,220> sol(nstate,0.);
+  TPZFNMatrix<660> dsol(dim,nstate,0.);
+  TPZGeoEl * ref = this->Reference();
+  
+  TPZFMatrix axes(3,3,0.);
+  TPZFMatrix jacobian(dim,dim);
+  TPZFMatrix jacinv(dim,dim);
+  REAL detjac;
+
+  const int POrder = this->Degree();
+  const REAL faceSize = 2. * ref->ElementRadius();
+  error.Fill(0.);
+  for(ip=0;ip<npoints;ip++){
+    intrule->Point(ip,intpoint,weight);
+    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    ref->X(intpoint, x);
+    weight *= fabs(detjac);
+    this->ComputeSolution(intpoint, sol, dsol, axes);
+    this->Material()->ContributeErrors(x,sol, dsol,weight,error,POrder,faceSize, errorid);
+  }
+  delete intrule;
+}
+
+void TPZCompElDisc::Integrate(int variable, TPZVec<REAL> & value){
+  const int dim = this->Dimension();
+  REAL weight;
+  TPZFMatrix axes(3,3,0.);
+  TPZFMatrix jacobian(dim,dim);
+  TPZFMatrix jacinv(dim,dim);
+  REAL detjac;
+  TPZManVector<REAL, 3> intpoint(dim,0.);
+  const int varsize = this->Material()->NSolutionVariables(variable);
+  TPZManVector<REAL> sol(varsize);
+  
+  value.Resize(varsize);
+  value.Fill(0.);
+  int integ = max( 2 * this->Degree(), 0);
+  TPZIntPoints *intrule = this->Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
+  int npoints = intrule->NPoints(), ip, iv;
+  for(ip=0;ip<npoints;ip++){
+    intrule->Point(ip,intpoint,weight);
+    this->Reference()->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    sol.Fill(0.);
+    this->Solution(intpoint, variable, sol);
+    for(iv = 0; iv < varsize; iv++) value[iv] += sol[iv]*weight*fabs(detjac);
+  }
+  delete intrule;
+}
+
 

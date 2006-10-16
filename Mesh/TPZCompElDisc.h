@@ -1,9 +1,9 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.46 2006-09-13 19:19:47 cesar Exp $
+//$Id: TPZCompElDisc.h,v 1.47 2006-10-16 18:34:23 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
-// Discontinou Element
+// Discontinous Elements
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef ELCOMPDISCHPP
 #define ELCOMPDISCHPP
@@ -148,6 +148,16 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
   /**
+   * ComputeError computes the element error estimator 
+  */
+ void ComputeError(int errorid, TPZVec<REAL> &error);
+ 
+  /**
+   * Integrate a variable over the element.
+   */
+  virtual void Integrate(int variable, TPZVec<REAL> & value);
+
+  /**
    * value of the bases and derivatives of the element deformed in point X 
    */
   void Shape(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
@@ -279,7 +289,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
    * @param var variable name
    * @param sol vetor for the solution
    */
-  virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
+  virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 
   virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
 
