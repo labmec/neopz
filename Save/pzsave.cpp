@@ -68,11 +68,13 @@ TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
     return 0;
   }
 //  std::cout << __PRETTY_FUNCTION__ << " classid " << classid << std::endl;
+#ifdef LOG4CXX
   if(logger->isDebugEnabled()) {
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__ << " restoring object " << classid;
     LOGPZ_DEBUG(logger,sout.str().c_str());
   }
+#endif
   TPZRestore_t fun= it->second;
   return (*fun)(buf,context);
 #else
