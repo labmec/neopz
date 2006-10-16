@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.33 2006-09-05 16:13:31 longhin Exp $
+//$Id: pzeulerconslaw.h,v 1.34 2006-10-16 19:50:36 phil Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -10,6 +10,13 @@
 #include "pzvec.h"
 #include "pzconslaw.h"
 #include "pzartdiff.h"
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+extern LoggerPtr fluxroe;
+extern LoggerPtr fluxappr;
+#endif
 
 #ifdef _AUTODIFF
    #include "fadType.h"
@@ -208,6 +215,24 @@ void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, T
            TPZVec<REAL> & normal, REAL gamma,
 	   TPZVec<T> & flux, int entropyFix = 1);
 
+  /**
+   * This flux encapsulates the two and three dimensional fluxes
+   * acquired from the Mouse program
+   * This function is called Approx because it evaluates the derivative of the Roe Flux without
+   * using automatic differentiation
+   *
+   * @param solL [in]
+   * @param solR [in]
+   * @param normal [in]
+   * @param gamma [in]
+   * @param flux [in]
+   */
+  template <class T>
+      static void ApproxRoe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
+                           TPZVec<REAL> & normal, REAL gamma,
+                           TPZVec<T> & flux, int entropyFix = 1);
+  
+  
    /**
     * Sets the delta parameter inside the artifficial
     * diffusion term.
@@ -256,6 +281,46 @@ public:
 		       T &flux_rhou,
 		       T &flux_rhov,
 		       T &flux_rhoE, int entropyFix = 1);
+  /**
+   * Flux of Roe (MOUSE program)
+   */
+  template <class T>
+      static void ApproxRoe_Flux(const T & rho_f,
+                           const T & rhou_f,
+                           const T & rhov_f,
+                           const T & rhow_f,
+                           const T & rhoE_f,
+                           const T & rho_t,
+                           const T & rhou_t,
+                           const T & rhov_t,
+                           const T & rhow_t,
+                           const T & rhoE_t,
+                           const REAL nx,
+                           const REAL ny,
+                           const REAL nz,
+                           const REAL gam,
+                           T & flux_rho,
+                           T & flux_rhou,
+                           T & flux_rhov,
+                           T & flux_rhow,
+                           T & flux_rhoE, int entropyFix = 1);
+
+  template <class T>
+      static void ApproxRoe_Flux(const T & rho_f,
+                           const T & rhou_f,
+                           const T & rhov_f,
+                           const T & rhoE_f,
+                           const T & rho_t,
+                           const T & rhou_t,
+                           const T & rhov_t,
+                           const T & rhoE_t,
+                           const REAL nx,
+                           const REAL ny,
+                           const REAL gam,
+                           T &flux_rho,
+                           T &flux_rhou,
+                           T &flux_rhov,
+                           T &flux_rhoE, int entropyFix = 1);
 
 //------------------Differentiable variables setup
 
@@ -358,6 +423,14 @@ template <class T>
 			TPZFMatrix &ef);
 
   /**
+   * Interface contribution which depends on the size of the interface
+   */
+  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+                                   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+                                   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
+
+  /**
    * See declaration in base class
    */
 
@@ -396,7 +469,9 @@ void ContributeFastestBCInterface_dim(
 			TPZFMatrix &phiL,TPZFMatrix &dphiL,
 			TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
-
+  virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+                                     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize);
+  
   virtual void ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
@@ -454,7 +529,21 @@ void ContributeFastestBCInterface_dim(
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
 			TPZFMatrix &ef, int entropyFix = 1);
 
+void ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
+                        TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+                        REAL weight,TPZVec<REAL> &normal,
+                        TPZFMatrix &phiL,TPZFMatrix &phiR,
+                        TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix = 1
+                           );
+
 #ifdef _AUTODIFF
+
+void ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
+                                  TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
+                                  REAL weight,TPZVec<REAL> &normal,
+                                  TPZFMatrix &phiL,TPZFMatrix &phiR,
+                                  TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix = 1
+                                 );
 
   void ContributeImplConvFace(TPZVec<REAL> &x,
 			TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
@@ -538,9 +627,7 @@ template <class T>
   /**
   Class identificator
   */
-  int ClassId() const {
-     return TPZEULERCONSLAW2ID;
-  }
+  int ClassId() const;
 
 
 //--------------------
@@ -1198,11 +1285,15 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
   T    v_ave = (coef1 * v_f + coef2 * v_t) / somme_coef;
   T    h_ave = (coef1 * h_f + coef2 * h_t) / somme_coef;
   //
+//  cout << "Correct coef1 " << coef1 << "coef2 " << coef2 << "h_f " << h_f << "h_t " << h_t << endl;
+
   //.. Compute Speed of sound
   T    scal = u_ave * nx + v_ave * ny;
   REAL norme = sqrt(nx * nx + ny * ny);
   T    u2pv2 = u_ave * u_ave + v_ave * v_ave;
   T    c_speed = gam1 * (h_ave - REAL(0.5) * u2pv2);
+//  cout << "c_speed " << c_speed << endl << "h_ave " << h_ave << endl << "u2pv2 " << u2pv2 << endl;
+
   if(c_speed < REAL(1e-6)) c_speed = REAL(1e-6);    // avoid division by 0 if critical
   c_speed = sqrt(c_speed);
   T    c_speed2 = c_speed * norme;
@@ -1211,6 +1302,9 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
   T    eig_val1 = scal - c_speed2;
   T    eig_val2 = scal;
   T    eig_val3 = scal + c_speed2;
+//  cout << "Eigenvalues correct" << eig_val1 << endl << eig_val2 << endl <<
+//      eig_val3 << endl;
+
   //
   //.. Compute the ROE flux
   //.... In this part many tests upon the eigenvalues

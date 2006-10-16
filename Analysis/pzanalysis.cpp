@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.28 2006-09-28 12:09:40 cesar Exp $
+//$Id: pzanalysis.cpp,v 1.29 2006-10-16 19:52:02 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -161,15 +161,15 @@ void TPZAnalysis::Solve() {
 
 	TPZFMatrix residual(fRhs);
 	TPZFMatrix delu(numeq,1);
-	if(fSolution.Rows() != numeq) {
+/*	if(fSolution.Rows() != numeq) {
 	  fSolution.Redim(numeq,1);
 	} else {
 	  fSolver->Matrix()->Residual(fSolution,fRhs,residual);
-	}
+	}*/
 	//      REAL normres  = Norm(residual);
 	//	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
 	fSolver->Solve(residual, delu);
-	fSolution += delu;
+	fSolution = delu;
 	
 	fCompMesh->LoadSolution(fSolution);
 }

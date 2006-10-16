@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.19 2006-09-05 16:13:31 longhin Exp $
+//$Id: pzconslaw.h,v 1.20 2006-10-16 19:53:25 phil Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -275,7 +275,7 @@ inline void TPZConservationLaw2::SetCFL(REAL CFL)
 {
    //if(CFL > 1e3) CFL = 1e3;
    fCFL = CFL;
-   std::cout << "CFL:"<<CFL << std::endl;
+//   std::cout << "CFL:"<<CFL << std::endl;
 }
 
 inline void TPZConservationLaw2::SetGamma(int gamma)
