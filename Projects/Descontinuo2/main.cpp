@@ -42,6 +42,7 @@
 #include "TPZCompElDisc.h"
 #include "TPZInterfaceEl.h"
 #include "tpzoutofrange.h"
+#include "pzlog.h"
 
  using namespace pzgeom;
  using namespace pzshape;
@@ -634,6 +635,7 @@ int run(istream & input, ostream & output)
 
 int main()
 {
+  InitializePZLOG();
   //TPZOutofRange obj;
    try
    {
