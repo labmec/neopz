@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pznonlinearpoisson3d.cpp,v 1.3 2006-09-01 17:57:22 tiago Exp $
+//$Id: pznonlinearpoisson3d.cpp,v 1.4 2006-10-16 19:48:01 phil Exp $
 
 #include "pznonlinearpoisson3d.h"
 #include "pzbndcond.h"
@@ -9,6 +9,10 @@ using namespace std;
 
 TPZNonLinearPoisson3d::TPZNonLinearPoisson3d(int nummat, int dim):TPZMatPoisson3dReferred(nummat, dim){
   this->fIsReferred = true;
+}
+
+TPZNonLinearPoisson3d::TPZNonLinearPoisson3d(const TPZNonLinearPoisson3d &cp):TPZMatPoisson3dReferred(cp){
+  this->fIsReferred = cp.fIsReferred;
 }
 
 TPZNonLinearPoisson3d::~TPZNonLinearPoisson3d(){
@@ -312,7 +316,6 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &so
 
 void TPZNonLinearPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
               TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
-
   if (this->IsReferred()){
     this->SetConvectionTermInterface(dsolL, dsolL);
   }
