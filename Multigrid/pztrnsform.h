@@ -43,6 +43,10 @@ class TPZTransform {
   void PrintInputForm(std::ostream &out);
 
   int Compare(TPZTransform &t,REAL tol = 1.e-6);
+  
+  void Read(TPZStream &buf);
+    
+  void Write(TPZStream &buf);
 
 };
 

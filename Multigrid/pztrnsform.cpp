@@ -62,6 +62,22 @@ TPZTransform &TPZTransform::operator=(const TPZTransform &t) {
   return *this;
 }
 
+void TPZTransform::Read(TPZStream &buf){
+  buf.Read(&this->fRow, 1);
+  buf.Read(&this->fCol, 1);
+  this->fMult.Read(buf, NULL);
+  this->fSum.Read(buf, NULL);
+  buf.Read(&fStore[0], 12);
+}
+    
+void TPZTransform::Write(TPZStream &buf){
+  buf.Write(&this->fRow, 1);
+  buf.Write(&this->fCol, 1);
+  this->fMult.Write(buf, false);
+  this->fSum.Write(buf, false);
+  buf.Write(&fStore[0], 12);
+}
+
 void TPZTransform::SetMatrix(TPZFMatrix &mult, TPZFMatrix &sum) {
   fRow = mult.Rows();
   fCol = mult.Cols();
