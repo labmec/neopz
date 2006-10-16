@@ -12,8 +12,6 @@
 #include "pzsolve.h"
 #include "pzstepsolver.h"
 
-#include "pzelcq2d.h"
-
 using namespace std;
 void TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal(TPZBlockDiagonal & block){
 
@@ -102,33 +100,3 @@ TPZMatrix * TPZBlockDiagonalStructMatrix::Create(){
 }
 TPZBlockDiagonalStructMatrix::TPZBlockDiagonalStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {}
-
-int TPZBlockDiagonalStructMatrix::main() {
-  TPZCompMesh *cmesh = TPZCompElQ2d::CreateMesh();
-  TPZGeoMesh *gmesh = cmesh->Reference();
-  TPZBlockDiagonalStructMatrix blstr(cmesh);
-  TPZBlockDiagonal *bldiag = (TPZBlockDiagonal *) blstr.Create();
-  blstr.AssembleBlockDiagonal(*bldiag);
-  bldiag->Print("BlockDiagonal from assembly");
-  int neq = cmesh->NEquations();
-  TPZFMatrix *glob = new TPZFMatrix(neq,neq,0.);
-  TPZFMatrix rhs(neq,1,0.);
-  cmesh->Assemble(*glob,rhs);
-  //glob.Print("Global Matrix");
-  TPZBlockDiagonal *bldiag2 = (TPZBlockDiagonal *) blstr.Create();
-  bldiag2->BuildFromMatrix(*glob);
-  bldiag2->Print("block diagonal built from global matrix\n");
-  TPZStepSolver sol1(glob);
-  sol1.SetJacobi(1,0.,0);
-  //  TPZFMatrix *glob2 = new TPZFMatrix(*glob);
-  TPZStepSolver sol2(sol1);
-  sol2.SetCG(100,sol1,1.e-6,1);
-  TPZFMatrix solution;
-  sol2.Solve(rhs,solution);
-  solution.Print("solution of the iterative method");
-  delete cmesh;
-  delete gmesh;
-  delete bldiag;
-  delete bldiag2;
-  return 0;
-}

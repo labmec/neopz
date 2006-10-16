@@ -31,8 +31,6 @@ enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
   virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs);
 
   virtual TPZStructMatrix * Clone();    
-  
-  static int main();
 
 public:
 
