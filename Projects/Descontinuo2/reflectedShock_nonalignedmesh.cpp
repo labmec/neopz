@@ -166,6 +166,7 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
    TPZGeoMesh * gmesh = CreateRSNAGeoMesh(nodes, elms, EQuadrilateral, 1, gElem, nSubdiv);
 
    TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
+   cmesh->SetDimModel(2);
 
 // Creating the materials
    TPZEulerConsLaw2 * mat = new TPZEulerConsLaw2(1/*nummat*/,
