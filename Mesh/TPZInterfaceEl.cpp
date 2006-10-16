@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.56 2006-09-13 19:20:45 cesar Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.57 2006-10-16 14:53:37 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -238,10 +238,10 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 
    switch (TPZInterfaceElement::gCalcStiff)
    {
-      case 1 :
+      case EStandard :
 	 this->CalcResidualStandard(ef);
 	 break;
-
+     default:
 	 PZError << "TPZInterfaceElement::CalcStiff - CalcStiff method not implemented." << endl;
    }
 
