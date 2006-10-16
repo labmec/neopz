@@ -15,8 +15,6 @@
 
 #include "pzsmfrontalanal.h"
 
-#include "pzelgq2d.h"
-#include "pzelcq2d.h"
 #include "pzmat2dlin.h"
 
 #include "pzanalysis.h"
@@ -31,14 +29,22 @@ using namespace std;
 #include "pzelmat.h"
 #include "pzbndcond.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+
+static LoggerPtr logger(Logger::getLogger("pz.converge"));
+
+#endif
+
 
 void UniformRefine(int num, TPZGeoMesh &m);
 template <class front>
 void TPZFrontStructMatrix<front>::GetNumElConnected(TPZVec <int> &numelconnected){
 	int ic;
 	
-	cout << "Numero de Equacoes -> " << fMesh->NEquations() << endl;
-	cout.flush();
+//	cout << "Numero de Equacoes -> " << fMesh->NEquations() << endl;
+//	cout.flush();
 	
 	fMesh->ComputeNodElCon();
 ///////////////////////////////////////////////////////////////
@@ -76,9 +82,8 @@ cout.flush();*/
 }
 
 template<class front>
-TPZFrontStructMatrix<front>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh),
-  fFrontMatrix(0) { 
-
+TPZFrontStructMatrix<front>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh) { 
+  f_quiet = 0;
 
   //TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym>(fMesh->NEquations());
 	//TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(cmesh.NEquations());
@@ -112,7 +117,9 @@ TPZMatrix * TPZFrontStructMatrix<front>::Create(){
 template<class front>     
 TPZStructMatrix * TPZFrontStructMatrix<front>::Clone(){
      
-     return new TPZFrontStructMatrix<front>(fMesh);
+  TPZFrontStructMatrix<front>* result =  new TPZFrontStructMatrix<front>(fMesh);
+  result->SetQuiet(f_quiet);
+  return result;
 }
 template<class front>
 void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
@@ -207,7 +214,6 @@ TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
      //TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
      
      TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
-     fFrontMatrix = mat;
      GetNumElConnected(numelconnected);
      mat->SetNumElConnected(numelconnected);
      
@@ -257,10 +263,13 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix & stiffness, TPZFMatrix 
     el->CalcStiff(ek,ef);
       //ek.fMat->Print(out);
     //ef.fMat->Print();
-    if(!(numel%20)) cout << endl << numel;
-//    if(!(numel%20)) cout << endl; 
-    cout << '*';
-    cout.flush();
+    if(!f_quiet)
+    {
+        if(!(numel%20)) cout << endl << numel;
+    //    if(!(numel%20)) cout << endl; 
+        cout << '*';
+        cout.flush();
+    }
     numel++;
 
     if(!el->HasDependency()) {
@@ -328,7 +337,10 @@ if(ek.fConstrMat->Decompose_LU() != -1) {
     }
     
   }//fim for iel
-  cout << endl;
+  if(!f_quiet)
+  {
+    cout << endl;
+  }
 }
 
 
@@ -347,12 +359,6 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix & stiffness, TPZFMatrix & r
 
   OrderElement();
 
-
-
-  int numelmark = nelem/100;
-  if(numelmark < 20) numelmark = 20;
-  int numelmarkstar = numelmark/20;
-
   for(iel=0; iel < nelem; iel++) {
   
      if(fElementOrder[iel] < 0) continue;
@@ -363,13 +369,14 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix & stiffness, TPZFMatrix & r
      //Builds elements stiffness matrix
      el->CalcStiff(ek,ef);
      AssembleElement(el, ek, ef, stiffness, rhs); 
-     if(!(iel%numelmarkstar)) cout << '*';
-     if(!(numel%numelmark)) {
-       cout << " " << (100*iel/nelem) << "% Elements assembled ";
-       if(fFrontMatrix) cout << " front width " << fFrontMatrix->GetFront().FrontSize();
-       cout << endl;
-        cout.flush();
-     }     
+     if(!f_quiet)
+     {
+        cout << '*';
+        if(!(numel%20)) {
+            cout << " " << (100*iel/nelem) << "% Elements assembled " << endl;
+            cout.flush();
+        }
+     }
      numel++;
       
   }//fim for iel
@@ -446,6 +453,17 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
      }
 }
 
+
+
+/*!
+    \fn TPZFrontStructMatrix::SetQuiet(int quiet)
+ */
+template<class front>
+void TPZFrontStructMatrix<front>::SetQuiet(int quiet)
+{
+  this->f_quiet = quiet;
+}
+
 template<class front>
 int TPZFrontStructMatrix<front>::main() {
      int refine = 5;
@@ -476,7 +494,8 @@ int TPZFrontStructMatrix<front>::main() {
 	  TPZVec<int> indices(4);
 	  for(i=0; i<4; i++) indices[i] = i;
 	  // O proprio construtor vai inserir o elemento na malha
-	  gel = new TPZGeoElQ2d(el,indices,1,gmesh);
+    int index; 
+	  gel = gmesh.CreateGeoElement(EQuadrilateral, indices, 1, index);
 	}
 	gmesh.BuildConnectivity ();
 
@@ -540,7 +559,7 @@ int TPZFrontStructMatrix<front>::main() {
 		     numelconnected[ind] = temp;//cmesh.ConnectVec()[ic].NElConnected();
 		}
 	}
-//	cout << "nequations " << numelconnected.NElements();
+//	 << "nequations " << numelconnected.NElements();
 //	for(ic=0;ic<numelconnected.NElements(); ic++) cout << numelconnected[ic] <<' ';
 //	cout << endl;
 //	cout.flush();
