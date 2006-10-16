@@ -10,6 +10,7 @@
 //
 //
 #include "tpzpermutation.h"
+#include "pzsave.h"
 
 TPZPermutation::TPZPermutation(int n) : fCounter(n,0), fOrder(n,-1)
 {
@@ -30,6 +31,16 @@ TPZPermutation &TPZPermutation::operator=(const TPZPermutation &copy)
 
 TPZPermutation::~TPZPermutation()
 {
+}
+
+void TPZPermutation::Read(TPZStream &buf){
+  TPZSaveable::ReadObjects(buf, this->fCounter);
+  TPZSaveable::ReadObjects(buf, this->fOrder);
+}
+   
+void TPZPermutation::Write(TPZStream &buf){
+  TPZSaveable::WriteObjects(buf, this->fCounter);
+  TPZSaveable::WriteObjects(buf, this->fOrder);
 }
 
     /// Applies the current permutation on the vector in and produces the vector out

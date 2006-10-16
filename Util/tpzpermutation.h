@@ -13,6 +13,7 @@
 #define TPZPERMUTATION_H
 
 #include "pzmanvector.h"
+class TPZStream;
 
 /**
 This class generates all permutations of n values
@@ -37,6 +38,10 @@ public:
     void operator++(int) { operator++();}
     
     bool IsFirst();
+    
+    void Read(TPZStream &buf);
+    
+    void Write(TPZStream &buf);
 
 protected:
   /// Variable which represents a counter for the permutations
