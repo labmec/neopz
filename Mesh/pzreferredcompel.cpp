@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.5 2006-09-13 19:18:25 cesar Exp $
+// $Id: pzreferredcompel.cpp,v 1.6 2006-10-16 19:40:54 phil Exp $
 
 
 #include "pzreferredcompel.h"
@@ -37,6 +37,7 @@
 
 
 #include "pztempmat.h"
+#include "tpzcompmeshreferred.h"
 
 #ifdef DEBUG
   #define DEBUG2
@@ -62,36 +63,27 @@ TPZReferredCompEl<TCOMPEL>::~TPZReferredCompEl(){
 template< class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &u, TPZFMatrix &du){
 
-#ifdef DEBUG2
-  TPZGeoEl * ref = this->Reference();
-  if (!ref){
-    std::stringstream mess; mess << __PRETTY_FUNCTION__ << " ERROR";
-    LOGPZ_ERROR(logger, mess.str());
-    PZError << mess.str() << std::endl;
-  }
-  TPZCompEl * othercel = ref->Reference();
-//  MElementType tipo = othercel->Type();
-  if (!othercel){
-    std::stringstream mess; mess << __PRETTY_FUNCTION__ << " ERROR";
-    LOGPZ_ERROR(logger, mess.str());
-    PZError << mess.str() << std::endl;
-  }  
-#endif
+  TCOMPEL::ComputeSolution(qsi, phi, dphix, u, du);
 
-  TPZManVector<REAL> ThisSol;
-  TPZFNMatrix<100> ThisDSol(10,10);
-  TCOMPEL::ComputeSolution(qsi, phi, dphix, ThisSol, ThisDSol);
+  TPZCompMesh * cmesh = this->Mesh();
+  TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
+  if (!refmesh) return;
+  TPZCompEl * other = refmesh->ReferredEl( this->Index() );
+  if (!other) return;
+  
+  TPZManVector<REAL> ThisSol(u.NElements());
+  int i, j;
+  for(i = 0; i < u.NElements(); i++) ThisSol[i] = u[i];
+  TPZFNMatrix<100> ThisDSol(du.Rows(),du.Cols());
+  for(i = 0; i < du.Rows(); i++) for(j = 0; j < du.Cols(); j++) ThisDSol(i,j) = du(i,j);
   
   TPZManVector<REAL> OtherSol;
-  TPZFNMatrix<100> OtherDSol(10,10);
-  
-  TPZCompEl * other = this->Reference()->Reference();
-  TPZFMatrix axes (3,3,0.);
+  TPZFNMatrix<100> OtherDSol(dphix.Rows(),du.Cols());
+  TPZFNMatrix<9> otheraxes(3,3,0.);
+  other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
 
-  other->ComputeSolution(qsi, OtherSol, OtherDSol,axes);
-
-//  TPZManVector<REAL> AllSol(u.NElements() + OtherSol.NElements());
   u.Resize( ThisSol.NElements() + OtherSol.NElements() );
+  u.Fill(0.);
   for(int ii = 0; ii < ThisSol.NElements(); ii++){
     u[ii] = ThisSol[ii];
   }//for ii
@@ -100,9 +92,9 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix
     u[ii+ThisNEl] = OtherSol[ii];
   }//for ii
   
-  const int dim = this->Reference()->Dimension();
-  //TPZFNMatrix<100> AllDSol(dim, du.Cols() + OtherDSol.Cols());
+  const int dim = dphix.Rows();
   du.Redim(dim, ThisDSol.Cols() + OtherDSol.Cols());
+  du.Zero();
   for(int ii = 0; ii < dim; ii++){
     for(int jj = 0; jj < ThisDSol.Cols(); jj++){
       du(ii,jj) = ThisDSol(ii,jj);
