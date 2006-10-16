@@ -445,11 +445,12 @@ int TPZShapeLinear::NSideConnects(int i) {
 int TPZShapeLinear::SideConnectLocId(int side,int c) {
   switch(side) {
   case 0:
-    if(c != 0)
-      PZError << "TPZShapeLinear::SideConnectLocId, connect = " << c << endl;
-    return 0;
   case 1:
-    return 1;
+    if(c != 0)
+    {
+      PZError << "TPZShapeLinear::SideConnectLocId, connect = " << c << endl;
+    }
+    return side;
   case 2:
     return c;
   default:
