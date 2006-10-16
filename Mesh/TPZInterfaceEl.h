@@ -1,12 +1,9 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.35 2006-09-01 14:21:02 tiago Exp $
-//DUP
+//$Id: TPZInterfaceEl.h,v 1.36 2006-10-16 18:00:18 phil Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
-
-//I am invencible
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -89,7 +86,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * Construtor para o elemento descontinuo.
    */
-  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right);
+//  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right);
 
   /** Constuctor to continuous and/or discontinuous neighbours.
    */
@@ -113,7 +110,7 @@ class TPZInterfaceElement : public TPZCompEl {
 //   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
 //   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index);
 
-  ~TPZInterfaceElement(){ if(Reference())Reference()->ResetReference();};
+  ~TPZInterfaceElement();
   
   void SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right);
 
@@ -235,7 +232,7 @@ class TPZInterfaceElement : public TPZCompEl {
    * interface inner radius.
    * @param ek element matrix
    * @param ef element right hand side
-   * @author Paulo Bösing & Igor Mozolevski
+   * @author Paulo Bï¿½ing & Igor Mozolevski
    * @since April 01, 2004
    */
   void CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatrix &ef);
@@ -311,6 +308,16 @@ class TPZInterfaceElement : public TPZCompEl {
 
   void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 		     TPZVec<REAL> &errors, TPZBlock * /*flux */);
+
+  /**
+   * ComputeError computes the element error estimator 
+  */
+  virtual void ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec<REAL> &errorR);
+  
+  /**
+   * Integrate a variable over the element.
+   */
+   virtual void Integrate(int variable, TPZVec<REAL> & value);
                      
   void EvaluateInterfaceJumps(TPZVec<REAL> &errors);
 
