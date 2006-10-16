@@ -185,7 +185,7 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 #ifdef LOG4CXX
       LOGPZ_ERROR (logger, sout.str().c_str());
 #else
-      cout << sout.str().c_str() << endl;
+      std::cout << sout.str().c_str() << std::endl;
 #endif
       continue;
     }
@@ -266,7 +266,7 @@ int TPZReadMeshHR::GetNodeIndex(TPZGeoMesh *GMesh,int Id)
 #ifdef LOG4CXX
         LOGPZ_WARN (logger, sout.str().c_str());
 #else
-        cout << sout.str().c_str() << endl;
+        std::cout << sout.str().c_str() << std::endl;
 #endif
 
   return -1;
