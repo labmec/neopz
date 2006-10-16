@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzreadtetgen.cpp,v 1.1 2006-03-04 15:39:36 tiago Exp $
+//$Id: pzreadtetgen.cpp,v 1.2 2006-10-16 20:07:02 phil Exp $
 
 #include "pzreadtetgen.h"
 #include "pzgmesh.h"
@@ -145,6 +145,6 @@ bool TPZReadTetGen::ProcessTetra(std::string TetraFileName, TPZGeoMesh &gmesh, i
     gel = gmesh.CreateGeoElement(ETetraedro, nodind, mat, index);    
     
   }//for i
-  
+  return true;
   
 }//method
