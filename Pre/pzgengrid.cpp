@@ -18,9 +18,6 @@
 #include "pzgeoelbc.h"
 #include "pzconnect.h"
 
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
-
 #include "pzvec.h"
 #include "pzstack.h"
 

@@ -17,9 +17,6 @@
 #include "pzgeoel.h"
 #include "pzgeoelbc.h"
 
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
-
 #include "pzvec.h"
 #include "pzstack.h"
 
@@ -79,12 +76,14 @@ TPZGenPartialGrid::Read (TPZGeoMesh &grid) {
       	index = ElementIndex(i,j);
 			ElementConnectivity(index,nos);
 			if(fElementType == 0) {
-				/* TPZGeoElQ2d *newel = */ new TPZGeoElQ2d(nos,1,grid);
+        int index;   
+				grid.CreateGeoElement(EQuadrilateral,nos,1,index);
 			} else {
-				/* TPZGeoElT2d *newel = */ new TPZGeoElT2d(nos,1,grid);
+        int index;   
+				grid.CreateGeoElement(ETriangle,nos,1,index);
 				nos[1] = nos[2];
 				nos[2] = nos[3];
-				/* newel = */ new TPZGeoElT2d(nos,1,grid);
+				grid.CreateGeoElement(ETriangle,nos,1,index);
 			}
 		}
    }
