@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.50 2006-09-06 15:14:14 longhin Exp $
+//$Id: pzcmesh.cpp,v 1.51 2006-10-16 19:44:31 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -222,11 +222,7 @@ void TPZCompMesh::AutoBuild() {
     TPZGeoEl *gel = elvec[i];
     if(!gel) continue;
     if(!gel->HasSubElement()) {
-    
-      TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(gel->Reference());
-      if (face) continue;
-      neltocreate++;
-      
+      neltocreate++;      
     }
   }
   std::set<int> matnotfound;
@@ -249,44 +245,12 @@ void TPZCompMesh::AutoBuild() {
 	      gel->Print(cout);
       }
       
-      TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(gel->Reference());
-      if (face) continue;
-      gel->CreateCompEl(*this,index);
-      
-    }
-  }
-
-  TPZCompEl *cel;
-  TPZAdmChunkVector<TPZGeoElBC> &elbcvec = Reference()->BCElementVec();
-  nelem = elbcvec.NElements();
-  // InitializeBlock();
-  for(i=0; i<nelem; i++) {
-    if(!elbcvec[i].fBCElement) { 
-      int matid = elbcvec[i].fId;
-      TPZMaterial *mat = this->FindMaterial(matid);
-      if(!mat) 
-      {
-        matnotfound.insert(matid);
-        continue;
+      if(gel->NumInterfaces() == 0){
+        gel->CreateCompEl(*this,index);
       }
+    }
+  }
 
-      TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(elbcvec[i].fElement->Reference());
-      if (face) continue;
-      
-      cel = elbcvec[i].fElement->CreateBCCompEl(elbcvec[i].fSide,elbcvec[i].fId,*this);
-      if(cel) elbcvec[i].fBCElement = cel->Reference();
-    }
-  }
-  if(matnotfound.size())
-  {
-    cout << __PRETTY_FUNCTION__ << " the following material ids were not found ";
-    std::set<int>::iterator it;
-    for(it=matnotfound.begin(); it != matnotfound.end(); it++)
-    {
-      cout << (*it) << " ";
-    }
-    cout << "\nThe corresponding elements were not created\n";
-  }
   InitializeBlock();
 
 }
@@ -311,11 +275,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
     TPZGeoEl *gel = elvec[i];
     if(!gel) continue;
     if(!gel->HasSubElement()) {
-     
-      TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(gel->Reference());
-      if (face) continue;
       neltocreate++;
-       
     }
   }
    
@@ -334,11 +294,10 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
       if (printing) {
 	      gel->Print(cout);
       }
-  
-      TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(gel->Reference());
-      if (face) continue;
-      gel->CreateCompEl(*this,index);
-       
+
+      if(gel->NumInterfaces() == 0){
+        gel->CreateCompEl(*this,index);       
+      }
     }
   }
 
@@ -353,189 +312,48 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
       if (printing) {
 	      gel->Print(cout);
       }
-      
-      TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(gel->Reference());
-      if (face) continue;    
-      gel->CreateCompEl(*this,index);
-     
-    }
-  }  
-
-  //Create BC elements as continuous elements. If they have a discontinuous neighbour then 
-  // an interface will be created. If not, a continuous BC takes place.
-  this->SetAllCreateFunctionsContinuous();
-
-  TPZCompEl *cel;
-  TPZAdmChunkVector<TPZGeoElBC> &elbcvec = Reference()->BCElementVec();
-  nelem = elbcvec.NElements();
-
-  std::set<TPZGeoEl*> contset, discset;
-
-  {
-    int n = continuous.NElements();
-    for(int i = 0; i < n; i++) contset.insert( continuous[i] );
-
-    n = discontinuous.NElements();
-    for(int i = 0; i < n; i++) discset.insert( discontinuous[i] );
-  }
-
-  for(int i = 0; i < nelem; i++) {
-    if(!elbcvec[i].fBCElement) { 
-      TPZGeoEl *gel = elbcvec[i].fElement->CreateBCGeoEl( elbcvec[i].fSide,elbcvec[i].fId );
-      if (!gel) continue;
-
-      //if neighbour is a TPZCompElDisc, new TPZCompEl must also be discontinuous.
-      // because BC discontinuous elements has no connect associated to.
-      TPZGeoElSide side = gel->Neighbour( gel->NSides() -1 );
-      if ( !side.Element() ) continue;
-      
-      TPZGeoEl * neighbour_gel = side.Element();
-        
-      TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(gel->Reference());
-      if (face) continue;
-	 
-      if ( discset.count( neighbour_gel ) ){
-	      cel = TPZCompElDisc::CreateDisc(gel, *this, index);
-	      cel->CreateInterfaces();
-	      continue;
-      }//if disc
-	     
-      if ( contset.count( neighbour_gel ) ){
-        cel = gel->CreateCompEl(*this, index);
-        cel->CreateInterfaces();
-        continue;
-      }//if (intel)
-	 
+    
+      if(gel->NumInterfaces() == 0){
+        gel->CreateCompEl(*this,index);     
+      }
     }
   }
 
   this->InitializeBlock();
 }
 
-
-
-void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZMaterial*> &continuous, const TPZVec<TPZMaterial*> &discontinuous) {
+void TPZCompMesh::AutoBuild(std::set<int> &MaterialIDs){
 
   TPZInterfaceElement::SetCalcStiffContDisc();
-
-  std::map<int,int> MyMap;
-  const int ndisc = discontinuous.NElements();
-  const int ncont = continuous.NElements();
-  for(int i = 0; i < ndisc; i++){
-    int matid = discontinuous[i]->Id();
-    MyMap[matid] = 1;//1 = discontinuous
-  }
-  for(int i = 0; i < ncont; i++){
-    int matid = continuous[i]->Id();
-    MyMap[matid] = 2; //2 = continuous
-  }
-
-#ifdef DEBUG
-  {
-    std::set<int> MySet;
-    for(int i = 0; i < ndisc; i++){
-      int matid = discontinuous[i]->Id();
-      MySet.insert(matid);
-    }
-    for(int i = 0; i < ncont; i++){
-      int matid = continuous[i]->Id();
-      MySet.insert(matid);
-    }
-
-    //Testing if continuous and discontinuous has material(s) in common.
-    const int size = MySet.size();
-    const int given = continuous.NElements() + discontinuous.NElements();
-    if (given != size){
-      PZError << __PRETTY_FUNCTION__ << endl
-	      << "continuous and discontinuos TPZVec<TPZMaterial*> have elements in common." << endl
-	      << "It's not possible to create a material as continuous and discontinuous. You must choose." << endl;
-      exit (-1);
-    }
-      
-    //checking materials given are in mesh
-    int count = 0;
-    int nmeshmat = this->NMaterials();
-    for(int i = 0; i < nmeshmat; i++){
-      int matid = this->MaterialVec()[i]->Id();
-      count += MySet.count(matid);	 
-    }
-    if (count != given){
-      PZError << __PRETTY_FUNCTION__ << endl
-	      << "A given continuous or discontinuous material are not inserted in TPZCompMesh" << endl;
-      exit (-1);	 
-    }
-
-  }
-#endif
+  
+  std::set<TPZGeoEl*> gel2create;
+  std::set<TPZGeoEl*>::iterator it;
 
   TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
   int nelem = elvec.NElements();
 
-  int neltocreate = 0;
-  int index;
-  for(int i=0; i<nelem; i++) {
+  int index, i, matid;
+  for(i = 0; i < nelem; i++) {
     TPZGeoEl *gel = elvec[i];
     if(!gel) continue;
-    if(!gel->HasSubElement()) {
-      neltocreate++;
+    matid = gel->MaterialId();
+    std::set<int>::iterator found = MaterialIDs.find(matid);
+    if (found == MaterialIDs.end()) continue;
+    if(!gel->HasSubElement()) {    
+      gel2create.insert(gel);
     }
   }
-  int nbl = fBlock.NBlocks();
-  if(neltocreate > nbl) fBlock.SetNBlocks(neltocreate);
-  fBlock.SetNBlocks(nbl);
+   
+  int neltocreate = gel2create.size();
+//   fBlock.SetNBlocks( fBlock.NBlocks() + neltocreate );
 
-  //Creating elements
-  this->SetAllCreateFunctionsContinuous();
-  nelem = elvec.NElements();
-  for(int i = 0; i < nelem; i++){
-    TPZGeoEl *gel = elvec[i];
+  for(it = gel2create.begin(); it != gel2create.end(); it++){
+    TPZGeoEl *gel = *it;
     if(!gel) continue;
     if(!gel->HasSubElement()) {
-      int printing = 0;
-      if (printing) {
-	gel->Print(cout);
+      if(gel->NumInterfaces() == 0){
+        gel->CreateCompEl(*this,index);       
       }
-      int matid = gel->MaterialId();
-      if (MyMap[matid] == 1) {
-	TPZCompElDisc::CreateDisc(gel, *this, index); //i.e. discontinuous
-      }
-      else {
-	gel->CreateCompEl(*this,index); //i.e. continuous
-      }
-    }
-  }
- 
-  //Create BC elements as continuous elements. If they have a discontinuous neighbour then 
-  // an interface will be created. If not, a continuous BC takes place.
-  this->SetAllCreateFunctionsContinuous();
-  TPZCompEl *cel;
-  TPZAdmChunkVector<TPZGeoElBC> &elbcvec = Reference()->BCElementVec();
-  nelem = elbcvec.NElements();
-  // InitializeBlock();
-  for(int i = 0; i < nelem; i++) {
-    if(!elbcvec[i].fBCElement) { 
-
-      TPZGeoEl *gel = elbcvec[i].fElement->CreateBCGeoEl( elbcvec[i].fSide,elbcvec[i].fId );
-      if (!gel) continue;
-
-      //if neighbour is a TPZCompElDisc, new TPZCompEl must also be discontinuous.
-      // because BC discontinuous elements has no connect associated to.
-      TPZGeoElSide side = gel->Neighbour( gel->NSides() -1 );
-      if ( !side.Element() ) continue;
-
-      int matid = side.Element()->MaterialId();
-
-      if (MyMap[matid] == 1){//i.e. discontinuous
-	cel = TPZCompElDisc::CreateDisc(gel, *this, index);
-	if(cel) elbcvec[i].fBCElement = cel->Reference();	    
-	continue;
-      }//if disc
-      else{ //i.e. continuous
-	cel = gel->CreateCompEl(*this, index);
-	if(cel) elbcvec[i].fBCElement = cel->Reference();
-	continue;
-      }//if intel
-	 
     }
   }
 
@@ -709,7 +527,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
     std::set<int> check;
     nelem = permute.NElements();
     for(i=0; i<nelem; i++) check.insert(permute[i]);
-    if(check.size() != nelem)
+    if(static_cast<int>(check.size()) != nelem)
       {
 	cout << __PRETTY_FUNCTION__ << " The permutation vector is not a permutation!\n" << permute << endl;
 	exit(-1);
@@ -899,7 +717,6 @@ void TPZCompMesh::Assemble(TPZMatrix &stiffness,TPZFMatrix &rhs) {
   */
   cout << endl;
 }
-
 
 
 //ofstream check("check.dat");
@@ -2595,3 +2412,41 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int val, bool Interf
     
 }//method
 
+void TPZCompMesh::AssembleError(TPZFMatrix &estimator, int errorid){
+  int iel, i;
+  const int nelem = this->NElements();
+  TPZManVector<REAL> locerror(1), errorL(1), errorR(1);
+
+  estimator.Resize(nelem, 2);
+  estimator.Zero();
+  for(iel=0; iel < nelem; iel++) {
+    TPZCompEl *el = fElementVec[iel];
+    if (!el) continue;
+    TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(el);
+    if (face){
+      errorL.Fill(0.); errorR.Fill(0.);
+      face->ComputeError(errorid, errorL, errorR);
+      int n = errorL.NElements();
+      if (errorR.NElements() > n) n = errorR.NElements();
+      //if number of errors > 1 then resize matrix. 
+      //Method Resize keeps previous values and zero new values.
+      estimator.Resize(nelem, n);
+      for(i = 0; i < errorL.NElements(); i++){
+        estimator(face->LeftElement()->Index(),i) += fabs(errorL[i]);
+       }//for i
+     for(i = 0; i < errorR.NElements(); i++){
+        estimator(face->RightElement()->Index(),i) += fabs(errorR[i]);
+        }//for i
+      }//if
+    else{
+      locerror.Fill(0.);
+      el->ComputeError(errorid, locerror);
+      //if number of errors > 1 then resize matrix. 
+      //Method Resize keeps previous values and zero new values.
+      estimator.Resize(nelem, locerror.NElements());
+      for(i = 0; i < locerror.NElements(); i++){
+        estimator(iel, i) += fabs(locerror[i]);
+        }//for i
+      }//else
+  }
+}
