@@ -1,4 +1,4 @@
-//$Id: pzelast3d.cpp,v 1.10 2006-08-24 13:40:53 tiago Exp $
+//$Id: pzelast3d.cpp,v 1.11 2006-10-16 17:43:57 phil Exp $
 
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -122,7 +122,7 @@ void TPZElasticity3D::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
 
 void TPZElasticity3D::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
                           TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
-  const REAL BIGNUMBER  = 1.e18;
+  const REAL BIGNUMBER  = 1.e12;
 
   const int phr = phi.Rows();
   int in,jn,idf,jdf;
