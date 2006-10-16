@@ -40,6 +40,7 @@
 #include "pzvisualmatrix.h"
 #include "pzsave.h"
 #include "TPZCompElDisc.h"
+#include "pzintel.h"
 #include "TPZInterfaceEl.h"
 #include "tpzoutofrange.h"
 #include "pzlog.h"
@@ -47,6 +48,10 @@
  using namespace pzgeom;
  using namespace pzshape;
  using namespace pzrefine;
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.converge"));
+#endif
 
 int gDebug;
 
@@ -138,9 +143,9 @@ TPZStack<TPZGeoEl *> bcStack;
 // saveable test
 int main1()
 {
-   RegisterMeshClasses();
-   RegisterMatrixClasses();
-   RegisterMaterialClasses();
+//   RegisterMeshClasses();
+//   RegisterMatrixClasses();
+//   RegisterMaterialClasses();
 
    TPZEulerConsLaw2 euler(3, 10, 1.5, 3, SUPG_AD), * peuler2;
    euler.SetTimeDiscr(Implicit_TD, ApproxImplicit_TD, None_TD);
@@ -165,9 +170,9 @@ int main1()
 int run(istream & input, ostream & output)
 {
 
-   RegisterMeshClasses();
-   RegisterMatrixClasses();
-   RegisterMaterialClasses();
+//   RegisterMeshClasses();
+//   RegisterMatrixClasses();
+//   RegisterMaterialClasses();
 
    gDebug = 0;
 
@@ -227,6 +232,27 @@ int run(istream & input, ostream & output)
 	    filename += "TrnLeastSqr";
 	    break;
          }
+         
+         output << "\nInterpolation Space:\n\t0: Discontinuous\n\t1: Continuous\n";
+         
+         input >> temp;
+         
+         switch(temp)
+         {
+           case 0:
+             TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+             filename += "_disc";
+             break;
+           case 1:
+             TPZCompMesh::SetAllCreateFunctionsContinuous();
+             filename += "_cont";
+             break;
+           default:
+             output << "Wrong parameter, setting discontinuous\n";
+             TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+             filename += "_disc";
+             break;
+         }
 
          output << "\nDiffusion Time Discr:\n\t0: ApproxImplicit\n\t1: Implicit\n\t2: Explicit\n";
 
@@ -276,7 +302,7 @@ int run(istream & input, ostream & output)
       }
 
 
-      output << "\nFace convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n";
+      output << "\nFace convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n\t3: Approx Implicit\n";
 
       input >> temp;
 
@@ -294,6 +320,9 @@ int run(istream & input, ostream & output)
          ConvFace_TD = Explicit_TD;
          filename += "ExplConvFace_";
          break;
+        case 3:
+          ConvFace_TD = ApproxImplicit_TD;
+          filename += "ApproxImplConvFace_";
       }
 
       output << "\nCFL\n";
@@ -386,7 +415,9 @@ int run(istream & input, ostream & output)
          fstr.OpenRead(startFileName.Str());
          TPZSaveable *sv = TPZSaveable::Restore(fstr,NULL);
 	 gmesh = dynamic_cast<TPZGeoMesh *>(sv);
-	 sv = TPZSaveable::Restore(fstr, gmesh);
+          std::ofstream gout("geomesh.txt");
+          gmesh->Print(gout);
+          sv = TPZSaveable::Restore(fstr, gmesh);
          cmesh = dynamic_cast<TPZFlowCompMesh *>(sv);
          cmesh->SetCFL(CFL);
 	 pmat = cmesh->GetFlowMaterial(0);
@@ -449,18 +480,22 @@ int run(istream & input, ostream & output)
    // computing number of generated elements and faces
    int nEl = cmesh->NElements();
    int nfaces= 0, nelements = 0;
+   int numintel = 0;
    for(int i = 0; i < nEl; i++)
    {
       TPZCompElDisc * pCEl;
       TPZCompEl * pEl;
       TPZInterfaceElement * pIEl;
+      TPZInterpolatedElement *pIntel;
       pEl = cmesh->ElementVec()[i];
       pCEl = dynamic_cast<TPZCompElDisc *>(pEl);
       pIEl = dynamic_cast<TPZInterfaceElement *>(pEl);
+      pIntel = dynamic_cast<TPZInterpolatedElement *> (pEl);
       if(pCEl)nelements++;
       if(pIEl)nfaces++;
+      if(pIntel) numintel++;
    }
-   output << "Number of elements:" << nelements << " faces:" << nfaces << "\n";
+   output << "Number of disc elements:" << nelements << " faces:" << nfaces << " number of cont elements " << numintel << "\n";
 
 
    output << "\nMaxIter\n";
@@ -476,7 +511,7 @@ int run(istream & input, ostream & output)
 
 //Solver attributes
 
-/*
+   /*
    { // LU
    TPZFStructMatrix StrMatrix(cmesh);
    An.SetStructuralMatrix(StrMatrix);
@@ -532,8 +567,8 @@ int run(istream & input, ostream & output)
 
 
 */
-
-
+   /*
+   
    { // GMRES with block preconditioning
    TPZSpStructMatrix StrMatrix(cmesh);
       //TPZFStructMatrix StrMatrix(cmesh);
@@ -541,9 +576,23 @@ int run(istream & input, ostream & output)
 
    TPZMatrix * mat = StrMatrix.Create();
 
+   int numnewton = 4;
+   REAL NewtonTol = 1.e-8;
+#ifdef LOG4CXX
+   if(logger->isDebugEnabled())
+    {
+      std::stringstream sout;
+      sout << "Linear system criterium tol " << 1.e-8 << "\nMax number of GMRES iterations " << 100 << endl;
+      sout << "Newton criterium tol " << NewtonTol << "\nMax number of Newton iterations " << numnewton << endl;
+      sout << "Maximum number of steps " << MaxIter;
+      LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+  
+#endif   
    An.SetLinSysCriteria(1e-8, 100);
-   An.SetNewtonCriteria(1e-8, 4);
+   An.SetNewtonCriteria(NewtonTol, numnewton);
    An.SetTimeIntCriteria(1e-8,MaxIter);
+   An.ComputeTimeStep();
 
    //Preconditioner
    TPZStepSolver Pre;
@@ -558,6 +607,7 @@ int run(istream & input, ostream & output)
 //   blockDiag.BlockSizes(blocksizes);
 //   TPZBlockDiagonal * block = new TPZBlockDiagonal(blocksizes);
    TPZBlockDiagonal * block = new TPZBlockDiagonal();//blockDiag.Create();
+   
    strBlockDiag.AssembleBlockDiagonal(*block); // just to initialize structure
 
    Pre.SetMatrix(block);
@@ -565,8 +615,8 @@ int run(istream & input, ostream & output)
 
    //Main Solver
    TPZStepSolver Solver;
-   Solver.SetGMRES(3000,
-		3000,
+   Solver.SetGMRES(300,
+		20,
 		Pre,
 		1e-9,
 		0);
@@ -575,8 +625,8 @@ int run(istream & input, ostream & output)
    An.SetBlockDiagonalPrecond(block);
    }
 //
-
-
+   
+   */
 /*
    { // SSOR
    TPZFStructMatrix StrMatrix(cmesh);
@@ -597,29 +647,69 @@ int run(istream & input, ostream & output)
    An.SetSolver(Solver);
    }
 //*/
-/*
+   /*   
    TPZManVector<REAL,3> normal(3,0.);
    normal[0] = 1.;
    normal[1] = 1.e-5;
-   ResequenceByGeometry(cmesh,normal);
+ //  ResequenceByGeometry(cmesh,normal);
    TPZFMatrix fillin(100,100);
    cmesh->ComputeFillIn(100,fillin);
    VisualMatrix(fillin,"matrix.dx");
 
-  TPZParFrontStructMatrix <TPZFrontNonSym> StrMatrix(cmesh);
+  TPZFrontStructMatrix <TPZFrontNonSym> StrMatrix(cmesh);
+  StrMatrix.SetQuiet(1);
   An.SetStructuralMatrix(StrMatrix);
 
   TPZMatrix * mat = NULL;//StrMatrix.CreateAssemble(An.Rhs());
 
+  int numnewton = 4;
+  REAL NewtonTol = 1.e-8;
+#ifdef LOG4CXX
+   if(logger->isDebugEnabled())
+{
+  std::stringstream sout;
+  sout << "Linear system criterium tol " << 1.e-8 << "\nMax number of GMRES iterations " << 100 << endl;
+  sout << "Newton criterium tol " << NewtonTol << "\nMax number of Newton iterations " << numnewton << endl;
+  sout << "Maximum number of steps " << MaxIter;
+  LOGPZ_DEBUG(logger,sout.str().c_str());
+}
+  
+#endif   
    An.SetLinSysCriteria(1e-8, 100);
-   An.SetNewtonCriteria(1e-8, 4);
+   An.SetNewtonCriteria(NewtonTol, numnewton);
    An.SetTimeIntCriteria(1e-8,MaxIter);
 
   TPZStepSolver Solver;
   Solver.SetDirect(ELU);
-  Solver.SetMatrix(mat);
+  Solver.SetMatrix(ma2t);
   An.SetSolver(Solver);
-*/
+   */   
+   
+   REAL linsystol = 1.e-8;
+   int maxiter = 200;
+   int numvec = 200;
+   An.SetGMResBlock(linsystol,maxiter,numvec);
+   int numnewton = 4;
+   REAL NewtonTol = 1.e-8;
+#ifdef LOG4CXX
+   if(logger->isDebugEnabled())
+{
+  std::stringstream sout;
+  sout << "Linear system criterium tol " << linsystol << "\nMax number of GMRES iterations " << maxiter << endl;
+  sout << "Newton criterium tol " << NewtonTol << "\nMax number of Newton iterations " << numnewton << endl;
+  sout << "Maximum number of steps " << MaxIter;
+  LOGPZ_DEBUG(logger,sout.str().c_str());
+}
+  
+#endif   
+   An.SetLinSysCriteria(1e-8, 100);
+   An.SetNewtonCriteria(NewtonTol, numnewton);
+   An.SetTimeIntCriteria(1e-8,MaxIter);
+   
+   
+#ifdef LOG4CXX
+  LOGPZ_DEBUG(logger,file.Str());
+#endif
    output << "Generating File:" << file.Str() << endl;
 
    ofstream * dxout = new ofstream((file+".dx" ).Str());
@@ -635,7 +725,19 @@ int run(istream & input, ostream & output)
 
 int main()
 {
-  InitializePZLOG();
+  std::string path;
+  std::string configfile;
+#ifdef HAVE_CONFIG_H
+  path = PZSOURCEDIR;
+  path += "/Projects/Descontinuo2/";
+#else
+  path = "";
+#endif
+  configfile = path;
+  configfile += "log4cxx.cfg";
+  InitializePZLOG(configfile);
+  TPZInterfaceElement::SetCalcStiffPenalty();
+
   //TPZOutofRange obj;
    try
    {
@@ -645,5 +747,5 @@ int main()
       cout << "main programa nao terminou normalmente\n";
       return -1;
    }
-   return 0;
+  return 0;
 }
