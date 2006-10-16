@@ -12,7 +12,6 @@
 #include "pzcompel.h"
 #include "pzintel.h"
 
-#include "pzelgq2d.h"
 #include "pzgnode.h"
 #include "TPZTimer.h"
 //#include "pzmat2dlin.h"

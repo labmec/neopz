@@ -21,12 +21,8 @@ libpz_a_LIBADD = ../Post/tpzgraphelt3d.o ../External/pzsloan.o \
 	../Refine/pzrefpoint.o ../Refine/pzrefprism.o ../Refine/pzrefpyram.o ../Refine/pzrefquad.o \
 	../Refine/pzreftetrahedra.o ../Refine/pzreftriangle.o ../Refine/TPZRefCube.o \
 	../Refine/TPZRefLinear.o ../Refine/TPZRefPattern.o ../Mesh/pzcmesh.o ../Mesh/tpzcompmeshreferred.o ../Mesh/pzflowcmesh.o ../Mesh/pzreferredcompel.o \
-	../Mesh/pzcompel.o ../Mesh/pzconnect.o ../Mesh/pzelc1d.o ../Mesh/pzcheckgeom.o \
-	../Mesh/pzcheckmesh.o ../Mesh/pzcheckrestraint.o ../Mesh/pzelcc3d.o ../Mesh/pzelcpi3d.o \
-	../Mesh/pzelcpoint.o ../Mesh/pzelcpr3d.o ../Mesh/pzelcq2d.o ../Mesh/pzelct2d.o \
-	../Mesh/pzelct3d.o ../Mesh/pzelg1d.o ../Mesh/pzelgc3d.o ../Mesh/pzelgpi3d.o \
-	../Mesh/pzelgpoint.o ../Mesh/pzelgpr3d.o ../Mesh/pzelgq2d.o ../Mesh/pzelgt2d.o \
-	../Mesh/pzelgt3d.o ../Mesh/pzelmat.o ../Mesh/pzgeoelbc.o ../Mesh/pzgeoel.o \
+	../Mesh/pzcompel.o ../Mesh/pzconnect.o ../Mesh/pzcheckgeom.o \
+	../Mesh/pzcheckmesh.o ../Mesh/pzcheckrestraint.o ../Mesh/pzelmat.o ../Mesh/pzgeoelbc.o ../Mesh/pzgeoel.o \
 	../Mesh/pzgeoelside.o ../Mesh/pzgeoelrefless.o ../Mesh/pzgmesh.o ../Mesh/pzgnode.o \
 	../Mesh/pzintel.o ../Mesh/pzstackmesh.o ../Mesh/pzsubcmesh.o ../Mesh/pzvecmesh.o \
 	../Mesh/TPZCompElDisc.o ../Mesh/TPZInterfaceEl.o ../Mesh/TPZAgglomerateEl.o ../Mesh/pzelctemp.o \
@@ -51,8 +47,8 @@ libpz_a_LIBADD = ../Post/tpzgraphelt3d.o ../External/pzsloan.o \
 	../Analysis/pzanalysiserror.o ../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o \
 	../Analysis/pzonedref.o ../Analysis/pzsmanal.o ../Analysis/pzsmfrontalanal.o ../Analysis/pztransientanalysis.o \
 	../Analysis/pzeuleranalysis.o ../Cosys/pzcartsys.o ../Cosys/pzcosys.o ../Cosys/pzcylinsys.o \
-	../Cosys/pzelgq2dcyl.o ../Cosys/pzesfersys.o ../Integral/pzquad.o ../Material/pzincnskeps.o \
-	../Material/eulerdif.o ../Material/pzbndcond.o ../Material/pzelasmat.o ../Material/pznonlinearpoisson3d.o \
+	../Cosys/pzesfersys.o ../Integral/pzquad.o ../Material/pzincnskeps.o \
+	../Material/eulerdif.o ../Material/pzbndcond.o ../Material/pzelasmat.o ../Material/pznonlinearpoisson3d.o ../Material/pzburger.o \
 	../Material/pzmat1dlin.o ../Material/pzmat2dlin.o ../Material/pzmaterial.o \
 	../Material/tpzoutofrange.o ../Material/pzmathyperelastic.o ../Material/pzmatorthotropic.o \
 	../Material/pzmatplaca2.o ../Material/pzmatplaca.o ../Material/pzmattest3d.o \

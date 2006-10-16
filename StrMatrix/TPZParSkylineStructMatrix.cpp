@@ -8,8 +8,6 @@
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"
-#include "pzelgq2d.h"
-#include "pzelcq2d.h"
 #include "pzmat2dlin.h"
 #include "pzbndcond.h"
 
@@ -78,7 +76,8 @@ int TPZParSkylineStructMatrix::main() {
 	  TPZVec<int> indices(4);
 	  for(i=0; i<4; i++) indices[i] = i;
 	  // O proprio construtor vai inserir o elemento na malha
-	  gel = new TPZGeoElQ2d(el,indices,1,gmesh);
+    int index; 
+	  gel = gmesh.CreateGeoElement(EQuadrilateral, indices,1,index);
 	}
 	gmesh.BuildConnectivity ();
 
