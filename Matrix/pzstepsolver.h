@@ -65,6 +65,7 @@ virtual void UpdateFrom(TPZMatrix *matrix)
   }
   
     void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
+    void SetPreconditioner(TPZSolver &solve);
 
 private:  
     MSolver fSolver;
