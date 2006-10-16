@@ -4,6 +4,12 @@
 #include <stdlib.h>
 using namespace std;
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.converge"));
+#endif
+
 TPZStepSolver::TPZStepSolver(TPZMatrix *refmat) : TPZMatrixSolver(refmat) {
   fPrecond = 0;
   ResetSolver();
@@ -62,15 +68,34 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
   case ESOR:
     mat->SolveSOR(numiterations,F,result,residual,fScratch,fOverRelax,tol,fFromCurrent);
     break;
-  case ESSOR:
+    case ESSOR:
     mat->SolveSSOR(numiterations,F,result,residual,fScratch,fOverRelax,tol,fFromCurrent);
     break;
   case ECG:
     mat->SolveCG(numiterations,*fPrecond,F,result,residual,tol,fFromCurrent);
+#ifdef LOG4CXX
+    {
+      std::stringstream sout;
+      sout << "Number of CG iterations " << numiterations;
+      LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+#endif
     break;
   case EGMRES: {
     TPZFMatrix H(fNumVectors+1,fNumVectors+1,0.);
     mat->SolveGMRES(numiterations,*fPrecond,H,fNumVectors,F,result,residual,tol,fFromCurrent);
+    if(numiterations == fNumIterations || tol >= fTol)
+    {
+      std::cout << "GMRes tolerance was not achieved : numiter " << numiterations <<
+          " tol " << tol << endl;
+    }
+#ifdef LOG4CXX
+    {
+      std::stringstream sout;
+      sout << "Number of GMRES iterations " << numiterations;
+      LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+#endif
   }
     break;
   case EDirect:
@@ -147,4 +172,14 @@ void TPZStepSolver::SetSOR(const int numiterations,const REAL overrelax,const RE
 void TPZStepSolver::SetMultiply() {
   ResetSolver();
   fSolver = EMultiply;
+}
+
+
+/*!
+    \fn TPZStepSolver::SetPreconditioner(TPZSolver &solve);
+ */
+void TPZStepSolver::SetPreconditioner(TPZSolver &solve)
+{
+  if(fPrecond) delete fPrecond;
+  fPrecond = solve.Clone();
 }
