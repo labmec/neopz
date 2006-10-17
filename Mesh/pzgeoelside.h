@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.15 2005-04-25 02:31:48 phil Exp $
+//$Id: pzgeoelside.h,v 1.16 2006-10-17 00:57:54 phil Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -14,6 +14,48 @@ class TPZCompElSide;
 
 #include "pzvec.h"
 #include "pzstack.h"
+#include "pzgmesh.h"
+
+class TPZGeoElSide;
+
+class TPZGeoElSideIndex{
+ private:
+  int fGeoElIndex;
+  int fSide;
+
+ public:
+ 
+  virtual ~TPZGeoElSideIndex();
+  
+  TPZGeoElSideIndex();
+ 
+  TPZGeoElSideIndex(TPZGeoEl *gel,int side);
+  
+  TPZGeoElSideIndex(int gelindex,int side);
+  
+  TPZGeoElSideIndex(const TPZGeoElSide &side);
+  
+  TPZGeoElSideIndex(const TPZGeoElSideIndex &cp);
+  
+  virtual TPZGeoElSideIndex * Clone();
+  
+  TPZGeoElSideIndex &operator= (const TPZGeoElSideIndex &A );
+  
+  int Side() const;
+  
+  void SetSide(int side);
+  
+  TPZGeoEl *Element(TPZGeoMesh *mesh) const;
+  
+  void SetElement(TPZGeoEl* geoel);
+  
+  int ElementIndex() const;
+  
+  void SetElementIndex(int i);
+  
+  void Read(TPZStream &buf);
+  void Write(TPZStream &buf);
+};
 
 /// utility class which represents an element with its side
 /**
@@ -45,6 +87,11 @@ class TPZGeoElSide {
   //TPZGeoElSide(const TPZGeoElSide &gelside);
 
   TPZGeoElSide(TPZGeoEl *gel,int side){  fGeoEl = gel; fSide  = side;}
+  
+  TPZGeoElSide(const TPZGeoElSideIndex &index, TPZGeoMesh * mesh){
+    this->fSide = index.Side();
+    this->fGeoEl = index.Element(mesh);
+  }//end of method
 
   TPZGeoEl *Element()const{return fGeoEl;}
 
@@ -213,5 +260,100 @@ inline void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
       neigh = neigh.Neighbour();
     }
 }
+
+
+/** Implementing TPZGeoElSideIndex methods */
+
+  inline TPZGeoElSideIndex::~TPZGeoElSideIndex(){
+   //nothing to be done here
+  }
+  
+  inline TPZGeoElSideIndex::TPZGeoElSideIndex(){
+    this->fSide = -1;
+    this->fGeoElIndex = -1;
+  }
+ 
+  inline TPZGeoElSideIndex::TPZGeoElSideIndex(TPZGeoEl *gel,int side){  
+    if (gel) this->fGeoElIndex = gel->Index();
+    else this->fGeoElIndex = -1;
+    this->fSide = side;
+  }
+  
+  inline TPZGeoElSideIndex::TPZGeoElSideIndex(int gelindex,int side){  
+    this->fGeoElIndex = gelindex;
+    this->fSide = side;
+  }
+  
+  inline TPZGeoElSideIndex::TPZGeoElSideIndex(const TPZGeoElSide &side){
+    TPZGeoEl * gel = side.Element();
+    if (gel) this->fGeoElIndex = gel->Index();
+    else this->fGeoElIndex = -1;
+    this->fSide = side.Side();
+  }
+  
+  inline TPZGeoElSideIndex::TPZGeoElSideIndex(const TPZGeoElSideIndex &cp){
+    this->operator =(cp);
+  }
+  
+  inline TPZGeoElSideIndex * TPZGeoElSideIndex::Clone(){
+    return new TPZGeoElSideIndex(*this);
+  }
+  
+  inline TPZGeoElSideIndex & TPZGeoElSideIndex::operator= (const TPZGeoElSideIndex &A ){
+    this->fGeoElIndex = A.fGeoElIndex;
+    this->fSide = A.fSide;
+    return *this;
+  }
+  
+  inline int TPZGeoElSideIndex::Side() const{
+// #ifdef DEBUG
+//     if (this->fSide == -1 || this->fGeoElIndex == -1){
+//       PZError << "Error at " << __PRETTY_FUNCTION__ << " - TPZGeoElSideIndex not initialized is NULL\n";
+//     }
+// #endif
+    if (this->fSide == -1 || this->fGeoElIndex == -1){
+      return -1;
+    }
+    return this->fSide;
+  }
+  
+  inline void TPZGeoElSideIndex::SetSide(int side){
+    this->fSide = side;
+  }  
+  
+  inline TPZGeoEl *TPZGeoElSideIndex::Element(TPZGeoMesh *mesh) const{
+    if (this->fSide == -1 || this->fGeoElIndex == -1){
+      return NULL;
+    }
+    return mesh->ElementVec()[this->fGeoElIndex];
+  }
+  
+  inline void TPZGeoElSideIndex::SetElement(TPZGeoEl* geoel){
+    if (geoel) this->fGeoElIndex = geoel->Index();
+    else this->fGeoElIndex = -1;
+  }
+  
+  inline int TPZGeoElSideIndex::ElementIndex() const{
+    return this->fGeoElIndex;
+  }
+  
+  inline void TPZGeoElSideIndex::SetElementIndex(int i){
+    this->fGeoElIndex = i;
+  }
+  
+  inline void TPZGeoElSideIndex::Read(TPZStream &buf){
+    int side, index;
+    buf.Read(&side, 1);
+    buf.Read(&index, 1);
+    this->fSide = side;
+    this->fGeoElIndex = index;
+  }
+  
+  inline void TPZGeoElSideIndex::Write(TPZStream &buf){
+    int side = this->fSide;
+    int index = this->fGeoElIndex;
+    buf.Write(&side, 1);
+    buf.Write(&index, 1);
+  }
 
 #endif

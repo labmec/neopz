@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.19 2006-06-12 14:15:50 cesar Exp $
+//$Id: pzgeoelside.cpp,v 1.20 2006-10-17 00:57:54 phil Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -50,7 +50,7 @@ void TPZGeoElSide::RemoveConnectivity(){
 
 using namespace std;
 
-void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const {
+void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const{
   
   if(!Exists()) return;
   if(fSide >= fGeoEl->NSides()) {
@@ -343,6 +343,7 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform &t)	{
       t = start.NeighbourSideTransform(neighbourwithfather).Multiply(t);
     }
     neighbourwithfather.SideTransform3(neighbour,t);
+    return;
     
 //     //father.Element()->BuildTransform(Side(),nextfather.Element(),t);
 //     t = neighbourwithfather.Element()->BuildTransform2(neighbourwithfather.Side(),neighfather.Element(),t);//Cedric 01/10/99 e  e 30/04/00
