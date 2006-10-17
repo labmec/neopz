@@ -873,3 +873,9 @@ void TPZArtDiff::Read(TPZStream &buf, void *context)
    buf.Read(&fDelta, 1);
    buf.Read(&fCFL, 1);
 }
+
+int TPZArtDiff::ClassId() const {
+    return TPZARTDIFFID;
+}
+template class TPZRestoreClass<TPZArtDiff,TPZARTDIFFID>;
+

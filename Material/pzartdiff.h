@@ -108,10 +108,7 @@ public:
   /**
   Class identificator
   */
-  virtual int ClassId() const {
-     return TPZARTDIFFID;
-  }
-
+  virtual int ClassId() const;
 
    
    /**
