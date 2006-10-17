@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.12 2006-03-09 11:50:29 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.13 2006-10-17 00:51:56 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -8,7 +8,6 @@
 #include "pzgmesh.h"
 #include "pzcompel.h"
 #include "pzcmesh.h"
-#include "pzelgc3d.h"
 #include "pzelmat.h"
 #include "pzmathyperelastic.h"
 #include "pznonlinanalysis.h"
@@ -70,8 +69,9 @@ int TPZSubCompMesh::main() {
 	// Set the connectivities
 	for(i=0; i<numel; i++) {
 		// initialize node indexes
-		for(j=0; j<8; j++) indices[j] = 4*i+j;
-		gel[i] = new TPZGeoElC3d(i,indices,1,geo);
+		for(j=0; j<8; j++) indices[j] = 4*i+j; 
+    int index;  
+		gel[i] = geo.CreateGeoElement(ECube,indices,1, index);
 	}
 	//	TPZGeoElBC t3(gel[0],20,-1,geo); 	
 	//	TPZGeoElBC t4(gel[numel-1],25,-2,geo); 
@@ -822,6 +822,9 @@ int TPZSubCompMesh::ClassId() const
 {
   return TPZSUBCOMPMESHID;
 }
+template class 
+    TPZRestoreClass< TPZSubCompMesh, TPZSUBCOMPMESHID>;
+
   /**
   Save the element data to a stream
   */
