@@ -17,7 +17,7 @@
 
 #include "pzgeoelrefless.h"
 
-
+#include "pzintel.h"
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
@@ -59,10 +59,15 @@ TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess():TPZGeoEl(){
 }
 
 template<class TShape, class TGeo>
-TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess(TPZGeoElRefLess  &gel):TPZGeoEl(gel){
+TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess(const TPZGeoElRefLess<TShape,TGeo>  &gel):TPZGeoEl(gel){
   int i;
   for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = gel.fNodeIndexes[i];
-  for(i=0;i<TShape::NSides;i++)fNeighbours[i].SetConnectivity(gel.fNeighbours[i]);
+  for(i=0;i<TShape::NSides;i++){
+    TPZGeoElSide thisside(this->fNeighbours[i], this->Mesh());
+    TPZGeoElSide gelside(gel.fNeighbours[i], this->Mesh());
+    thisside.SetConnectivity(gelside);
+//     fNeighbours[i].SetConnectivity(gel.fNeighbours[i]);
+  }
 //  fSubElement = -1;
 }
 
@@ -462,27 +467,37 @@ TPZGeoElRefLess<TShape,TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &
 }
 
 template<class TShape, class TGeo>
-void
-TPZGeoElRefLess<TShape,TGeo>::Read(TPZStream &buf, void *context){
+void TPZGeoElRefLess<TShape,TGeo>::Read(TPZStream &buf, void *context){
   TPZGeoEl::Read(buf,context);
   buf.Read(fNodeIndexes,TGeo::NNodes);
-}
+  int i, n = TShape::NSides;
+  for(i = 0; i < n; i++){
+    this->fNeighbours[i].Read(buf);
+  }
+}//Read
 
 template<class TShape, class TGeo>
-void
-TPZGeoElRefLess<TShape,TGeo>::Write(TPZStream &buf, int withclassid){
+void TPZGeoElRefLess<TShape,TGeo>::Write(TPZStream &buf, int withclassid){
   TPZGeoEl::Write(buf,withclassid);
   buf.Write(fNodeIndexes,TGeo::NNodes);
+  int i, n = TShape::NSides;
+  for(i = 0; i < n; i++){
+    this->fNeighbours[i].Write(buf);
+  }
+}//Write
+
+template<class TShape, class TGeo>
+TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeoElRefLess &cp):TPZGeoEl(DestMesh, cp){
+  int i, n = TGeo::NNodes;
+  for(i = 0; i < n; i++){
+    this->fNodeIndexes[i] = cp.fNodeIndexes[i];
+  }
+  n = TShape::NSides;
+  for(i = 0; i < n; i++){
+    this->fNeighbours[i] = cp.fNeighbours[i];
+  }
 }
 
-#include "pzelcpoint.h"
-#include "pzelcq2d.h"
-#include "pzelc1d.h"
-#include "pzelct2d.h"
-#include "pzelcc3d.h"
-#include "pzelct3d.h"
-#include "pzelcpr3d.h"
-#include "pzelcpi3d.h"
 #include "pzelctemp.h"
 
 using namespace pzgeom;
@@ -490,35 +505,27 @@ using namespace pzshape;
 
 TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoPoint,TPZShapePoint>(mesh,gel,index);
-  //  return new TPZCompElPoint(mesh,gel,index);
 }
 TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoLinear,TPZShapeLinear>(mesh,gel,index);
-  //  return new TPZCompEl1d(mesh,gel,index);
 }
 TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoQuad,TPZShapeQuad>(mesh,gel,index);
-//    return new TPZCompElQ2d(mesh,gel,index);
 }
 TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>(mesh,gel,index);
-  //  return new TPZCompElT2d(mesh,gel,index);
 }
 TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoCube,TPZShapeCube>(mesh,gel,index);
-  //  return new TPZCompElC3d(mesh,gel,index);
 }
 TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoPrism,TPZShapePrism>(mesh,gel,index);
-  //  return new TPZCompElPr3d(mesh,gel,index);
 }
 TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoPyramid,TPZShapePiram>(mesh,gel,index);
-  //  return new TPZCompElPi3d(mesh,gel,index);
 }
 TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>(mesh,gel,index);
-  //  return new TPZCompElT3d(mesh,gel,index);
 }
 
 

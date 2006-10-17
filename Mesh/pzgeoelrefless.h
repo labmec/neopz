@@ -41,12 +41,18 @@ class TPZGeoElRefLess : public TPZGeoEl  {
 //  int fSubElement;
 protected:
   int fNodeIndexes[TGeo::NNodes];
-  TPZGeoElSide fNeighbours[TShape::NSides];
+  TPZGeoElSideIndex fNeighbours[TShape::NSides];
 public:
 
   ~TPZGeoElRefLess();
   TPZGeoElRefLess();
-  TPZGeoElRefLess(TPZGeoElRefLess &gel);
+  
+  /** Copy constructor */
+  TPZGeoElRefLess(const TPZGeoElRefLess &gel);
+  
+  /** Copy constructor with elements in different meshes */
+  TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeoElRefLess &cp);
+  
   TPZGeoElRefLess(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
   TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
   TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
@@ -77,7 +83,7 @@ public:
    * returns a pointer to the neighbour and the neighbourside
    * along side of the current element
    */
-   virtual  TPZGeoElSide Neighbour(int side) { return fNeighbours[side]; }
+   virtual  TPZGeoElSide Neighbour(int side) { return TPZGeoElSide(fNeighbours[side],this->Mesh()); }
 
    virtual  int NodeIndex(int node);
 
