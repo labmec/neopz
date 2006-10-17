@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.28 2006-09-01 14:24:24 tiago Exp $
+//$Id: pzcompel.cpp,v 1.29 2006-10-17 01:40:42 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -636,7 +636,7 @@ void TPZCompEl::EvaluateError(void (* /*fp*/)(TPZVec<REAL> &loc,TPZVec<REAL> &va
   LOGPZ_WARN(logger, "EvaluateError is called.");
 }
 
-void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZManVector<REAL> &sol){
+void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<REAL> &sol){
   if(var >= 100) {
     int ind = Index();
     if(fMesh->ElementSolution().Cols() > var-100) {
