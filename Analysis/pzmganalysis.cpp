@@ -22,8 +22,6 @@
 
 #include "pzquad.h"
 
-#include "pzelcq2d.h"
-#include "pzelct2d.h"
 #include "pzmat2dlin.h"
 
 #include "pzonedref.h"
@@ -117,58 +115,6 @@ TPZCompMesh *TPZMGAnalysis::PopMesh() {
   fSolution = *fSolutions[fSolutions.NElements()-1];
   return fMeshes.Pop();
 }
-
-
-int TPZMGAnalysis::main() {
-
-  TPZCompMesh *cmesh = TPZCompElQ2d::CreateMesh();
-  cmesh->CleanUpUnconnectedNodes();
-  cmesh->ExpandSolution();
-  ofstream out("output.txt");
-  TPZMGAnalysis mgan(cmesh);
-  TPZSkylineStructMatrix strskyl(cmesh);
-  mgan.SetStructuralMatrix(strskyl);
-  TPZStepSolver direct;
-  direct.SetDirect(ELDLt);
-  mgan.SetSolver(direct);
-  mgan.Run();
-  TPZCompMesh *cmesh2;
-  cmesh2 = mgan.UniformlyRefineMesh(cmesh,false);
-  mgan.AppendMesh(cmesh2);
-  mgan.Run();
-  cmesh2 = mgan.UniformlyRefineMesh(cmesh2,false);
-  mgan.AppendMesh(cmesh2);
-  mgan.Run();
-  cmesh2 = mgan.UniformlyRefineMesh(cmesh2,false);
-  mgan.AppendMesh(cmesh2);
-  mgan.Run();
-  // TPZMGAnalysis an(cmesh2);
-  //  TPZTransfer *trf = TPZMGAnalysis::BuildTransferMatrix(cmesh2,cmesh);
-  cmesh->Solution().Print("Coarse mesh solution",out);
-  cmesh2->Solution().Print("Fine mesh solution",out);
-
-  TPZTransfer trf;
-  cmesh2->BuildTransferMatrix(*cmesh,trf);
-  trf.Print("Transfer Matrix",out);
-  TPZFMatrix sol(cmesh->Solution());
-  TPZFMatrix sol2(cmesh2->NEquations(),1,0.);
-  trf.TransferSolution(sol,sol2);
-  cmesh2->LoadSolution(sol2);
-  cmesh->Reference()->Print(out);
-  cmesh->Print(out);
-  cmesh2->Print(out);
-  cmesh->Solution().Print("Coarse mesh solution after transfer",out);
-  cmesh2->Solution().Print("Fine mesh solution after transfer",out);
-
-  TPZVec<REAL> ervec,truervec;
-  TPZMGAnalysis::MeshError(cmesh2,cmesh,ervec,mgan.fExact,truervec);
-  int i;
-  cout << "TPZMGAnalysis the error between both meshes is equal to \n";
-  for(i=0; i<ervec.NElements(); i++) cout << ervec[i] << ' ';
-  cout << endl;
-  return 1;
-}
-
 
 void TPZMGAnalysis::MeshError(TPZCompMesh *fine, TPZCompMesh *coarse, TPZVec<REAL> &ervec,
 			      void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),TPZVec<REAL> &truervec){

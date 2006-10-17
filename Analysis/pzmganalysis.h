@@ -59,11 +59,6 @@ class TPZMGAnalysis : public TPZAnalysis {
   void ComputeError (TPZVec<REAL> &error);
   
   /**
-   * Validation routines
-   */
-  static int main ();
-  
-  /**
    * Proceeds the uniformly h-p refinement of mesh
    * @param mesh : input mesh which will be refined
    * @param withP : if true, increase the p-order
