@@ -51,6 +51,15 @@ const int TPZGEOCLONEMESHID = 225;
 const int TPZCOMPCLONEMESHID = 226;
 const int TPZPARCOMPCLONEMESHID = 227;
 
+const int TPZGEOELREFPATPOINTID = 228;
+const int TPZGEOELREFPATLINEARID = 229;
+const int TPZGEOELREFPATTRIANGLEID = 230;
+const int TPZGEOELREFPATQUADID = 231;
+const int TPZGEOELREFPATCUBEID = 232;
+const int TPZGEOELREFPATPRISMID = 233;
+const int TPZGEOELREFPATTETRAID = 234;
+const int TPZGEOELREFPATPYRAMID = 235;
+
 void RegisterMeshClasses();
 //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
 //template class TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>;
