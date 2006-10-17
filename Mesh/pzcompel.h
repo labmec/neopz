@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.26 2006-09-13 19:11:29 cesar Exp $
+// $Id: pzcompel.h,v 1.27 2006-10-17 01:40:21 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -114,7 +114,7 @@ public:
    */
   static int gOrder;
 
-  /**
+  /** 
    * Returns the volume of the geometric element associated.
    */
   virtual  REAL VolumeOfEl()
@@ -160,6 +160,7 @@ public:
   { 
     return (fReferenceIndex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex]; 
   }
+
   
   
   void SetReference(int referenceindex) 
@@ -388,6 +389,21 @@ public:
 			     TPZVec<REAL> &errors,TPZBlock *flux);
 
   /**
+   * ComputeError computes the element error estimator 
+  */
+  virtual void ComputeError(int errorid, TPZVec<REAL> &error){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
+  }
+  
+  /**
+   * Integrate a variable over the element.
+   */
+   virtual void Integrate(int variable, TPZVec<REAL> & value){
+    value.Fill(0.);
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
+   }
+
+  /**
    * Calculates the solution - sol - for the variable var
    * at point qsi, where qsi is expressed in terms of the
    * master element coordinates
@@ -395,7 +411,7 @@ public:
    * @param var variable name
    * @param sol vetor for the solution
    */
-  virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
+  virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
   
  /**
   * Computes solution and its derivatives in the local coordinate qsi.
