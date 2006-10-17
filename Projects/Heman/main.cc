@@ -7,7 +7,6 @@
 
 #include "pzintel.h"
 #include "pzcompel.h"
-#include "pzelcq2d.h"
 
 #include "pzfmatrix.h"
 #include "pzvec.h"
@@ -126,8 +125,8 @@ void  FilterBoundingBox(TPZGeoMesh *geomesh);
 
 void InsertNewPattern(std::ifstream &arquivo, TPZGeoMesh &geomesh, std::ofstream &padroes)
 {
-   TPZRefPattern *pattern = new TPZRefPattern (arquivo);
-   pattern->InsertPermuted(geomesh);
+   TPZRefPattern *pattern = new TPZRefPattern (&geomesh, arquivo);
+   pattern->InsertPermuted(/*geomesh*/);
    geomesh.RefPatternFile(padroes);
  }
 
@@ -258,8 +257,8 @@ void LoadRefPatternDataBase(TPZGeoMesh *geomesh)
       std::string fullname = prefix+filename;
       if(!filelist.fail())
       {
-        TPZRefPattern *refp = new TPZRefPattern(fullname);
-        refp->InsertPermuted(*geomesh);
+        TPZRefPattern *refp = new TPZRefPattern(geomesh, fullname);
+        refp->InsertPermuted(/**geomesh*/);
       }
     }
     std::ofstream out(allpatterns.c_str());
@@ -330,17 +329,17 @@ int main ()
   std::string file_path = PZSOURCEDIR;
   file_path += "/Projects/Heman/Files/Meshes/placa_plana.txt";
   std::ifstream file (file_path.c_str());
-  //TPZGeoMesh *geomesh = new TPZGeoMesh();
+  
   TPZCompMesh *compmesh = ReadMesh (file);
-  TPZGeoMesh *geomesh = compmesh->Reference();
-  geomesh->Print();
-  //ReadF17(geomesh);
+  TPZGeoMesh *geomesh = compmesh->Reference();  
+//   TPZGeoMesh *geomesh = new TPZGeoMesh();
+//   ReadF17(geomesh);
   
   LoadRefPatternDataBase(geomesh);
 
   file_path = PZSOURCEDIR;
   file_path += "/Projects/Heman/Files/RefPatterns/Hexa_Half.rpt";
-  std::ifstream inparq (file_path.c_str());
+  std::ifstream inparq (file_path.c_str());  
   std::string outfile = PZSOURCEDIR;
   outfile += "/Projects/Heman/Files/RefPatterns/hexa_plus_tetra.rpt";
   std::ofstream outarq (outfile.c_str());
@@ -358,7 +357,7 @@ int main ()
 
   
   FilterBoundingBox(geomesh);
-
+  
   ofstream dx_arq ("surface.dx");
   WriteMesh(geomesh,dx_arq,1);
 
