@@ -13,6 +13,8 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = main.cpp
+main_SOURCES = main.cpp $(top_builddir)/lib/libpz.a
+
+main_DEPENDENCIES = $(top_builddir)/lib/libpz.a
 
 ## --| NeoPZ |------------------------------------------------------------------
