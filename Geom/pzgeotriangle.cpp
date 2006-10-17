@@ -6,10 +6,8 @@
 #include "pzfmatrix.h"
 #include "pzgeoel.h"
 #include "pzquad.h"
-#include "pzelgpoint.h"
-//#include "pzelg1d.h"
-//#include "pzelgt2d.h"
 #include "pzshapetriang.h"
+
 
 using namespace pzshape;
 using namespace std;

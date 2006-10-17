@@ -7,6 +7,7 @@
 
 #include "pzvec.h"
 #include "pzeltype.h"
+#include "pzintel.h"
 
 class TPZFMatrix;
 class TPZGeoEl;
