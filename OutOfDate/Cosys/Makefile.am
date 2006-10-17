@@ -25,7 +25,7 @@ cosysinc_HEADERS= $(top_srcdir)/Cosys/*.h
 
 noinst_LIBRARIES = libpzcosys.a
 
-libpzcosys_a_SOURCES = pzcartsys.cpp pzcosys.cpp pzcylinsys.cpp pzelgq2dcyl.cpp pzesfersys.cpp 
+libpzcosys_a_SOURCES = pzcartsys.cpp pzcosys.cpp pzcylinsys.cpp pzesfersys.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------
 
