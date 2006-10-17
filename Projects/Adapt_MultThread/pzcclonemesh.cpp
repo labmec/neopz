@@ -160,26 +160,26 @@ void TPZCompCloneMesh::AutoBuild() {
   if(check.CheckConnectOrderConsistency() != -1) {
     cout << "TPZCompCloneMesh::AutoBuild The mesh is inconsistent after CreateCloneBC\n " << endl;
   }
-  TPZCompEl *cel;
-  TPZAdmChunkVector<TPZGeoElBC> &elbcvec = Reference()->BCElementVec();
-  nelem = elbcvec.NElements();
-
-  if (gDebug){
-    cout << "TPZCompCloneMesh::AutoBuild : After Clone BCs generation\n " << endl;
-  }
-  
-  for(i=0; i<nelem; i++) {
-    if(!elbcvec[i].fBCElement) { 
-      cel = elbcvec[i].fElement->CreateBCCompEl(elbcvec[i].fSide,elbcvec[i].fId,*this);
-      if(cel){
-        elbcvec[i].fBCElement = cel->Reference();
-        if (gDebug){
-          cout << "TPZCompCloneMesh::AutoBuild : BC Clone\n " << endl;
-          cel->Print(cout);
-        }
-      }
-    }
-  }
+//   TPZCompEl *cel;
+//   TPZAdmChunkVector<TPZGeoElBC> &elbcvec = Reference()->BCElementVec();
+//   nelem = elbcvec.NElements();
+// 
+//   if (gDebug){
+//     cout << "TPZCompCloneMesh::AutoBuild : After Clone BCs generation\n " << endl;
+//   }
+//   
+//   for(i=0; i<nelem; i++) {
+//     if(!elbcvec[i].fBCElement) { 
+//       cel = elbcvec[i].fElement->CreateBCCompEl(elbcvec[i].fSide,elbcvec[i].fId,*this);
+//       if(cel){
+//         elbcvec[i].fBCElement = cel->Reference();
+//         if (gDebug){
+//           cout << "TPZCompCloneMesh::AutoBuild : BC Clone\n " << endl;
+//           cel->Print(cout);
+//         }
+//       }
+//     }
+//   }
 
   // Adjust the sideorders of the elements and sizes of blocks to match the original mesh
   CopyConnectStructure();

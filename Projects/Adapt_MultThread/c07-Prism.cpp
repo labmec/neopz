@@ -50,7 +50,7 @@ TPZCompMesh *Create3DPrismMesh() {
   //  TPZStack<TPZGeoEl*> subel;
   //  elvec[0]->Divide(subel);
 
-  TPZGeoElBC gbc;
+//  TPZGeoElBC gbc;
 
   // bc -1 -> Neumann
   TPZGeoElBC gbc1(elvec[0],15,-1,*gmesh);

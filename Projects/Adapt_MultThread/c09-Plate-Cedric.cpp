@@ -57,7 +57,7 @@ TPZCompMesh *Create3DDiscMesh() {
   }
   
  
-  TPZGeoElBC gbc;
+//  TPZGeoElBC gbc;
   
   //Condicoes de Neumann
   // bc -1 -> Face inferior

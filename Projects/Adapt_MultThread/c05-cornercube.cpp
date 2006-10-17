@@ -65,7 +65,7 @@ TPZCompMesh *Create3DMesh() {
   //   	elvec[1]->Divide(sub);
   //   	elvec[2]->Divide(sub);
   
-  TPZGeoElBC gbc;
+//  TPZGeoElBC gbc;
 
   // bc -1 -> Dirichlet
   TPZGeoElBC gbc1(elvec[0],21,-1,*gmesh);

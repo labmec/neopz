@@ -99,7 +99,7 @@ TPZCompMesh * CreateTestMesh() {
   //   	elvec[1]->Divide(sub);
   //   	elvec[2]->Divide(sub);
 
-  TPZGeoElBC gbc;
+//  TPZGeoElBC gbc;
 
   // bc -1 -> Dirichlet
 //  TPZGeoElBC gbc1(gelvec[0],20,-1,*gmesh);

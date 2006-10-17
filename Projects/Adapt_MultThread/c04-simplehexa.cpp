@@ -55,7 +55,7 @@ TPZCompMesh *CreateSimple3DMesh() {
   //   	elvec[1]->Divide(sub);
   //   	elvec[2]->Divide(sub);
 
-  TPZGeoElBC gbc;
+//  TPZGeoElBC gbc;
 
   // bc -1 -> Dirichlet at the bottom face of the cube
   TPZGeoElBC gbc1(elvec[0],20,-1,*gmesh);
