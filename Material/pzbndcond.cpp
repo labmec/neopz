@@ -99,7 +99,6 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 				   TPZFMatrix &ef) {
-
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
   if(!mat) return;
   if(fForcingFunction) {
@@ -136,7 +135,6 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 			 TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 			 TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 			 TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
-
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
 
    if(!mat) return;
@@ -231,3 +229,49 @@ void TPZBndCond::Read(TPZStream &buf, void *context)
    fMaterial = pCM->FindMaterial(MatId);
 }
 
+void TPZBndCond::ContributeInterfaceErrors(TPZVec<REAL> &x,
+                                       TPZVec<REAL> &solL,
+                                       TPZVec<REAL> &solR,
+                                       TPZFMatrix &dsolL, 
+                                       TPZFMatrix &dsolR,
+                                       REAL weight,
+                                       TPZVec<REAL> &normal,
+                                       TPZVec<REAL> &nkL, 
+                                       TPZVec<REAL> &nkR,
+                                       int LeftPOrder, 
+                                       int RightPOrder, 
+                                       REAL faceSize,
+                                       int &errorid){
+
+   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
+   if(!mat) return;
+
+   if(fForcingFunction) {
+      TPZManVector<REAL> result(fBCVal2.Rows());
+      fForcingFunction(x,result);
+      int i;
+      for(i=0; i<fBCVal2.Rows(); i++) {
+        fBCVal2(i,0) = result[i];
+      }
+   }
+
+   int POrder;
+   TPZVec<REAL> sol;  
+   TPZFMatrix dsol;
+   TPZVec<REAL> nk;
+   if(solL.NElements() < solR.NElements()){
+      POrder=  RightPOrder;
+      sol = solR;  
+      dsol = dsolR;
+      nk= nkR;
+      for(int i=0; i<normal.NElements(); i++) normal[i] = -normal[i];
+   }
+   else {
+     POrder=  LeftPOrder;
+     sol = solL;
+     dsol = dsolL;
+     nk= nkL;
+   }
+ 
+   mat->ContributeInterfaceBCErrors(x,sol,dsol,weight,normal,nk,*this , POrder, faceSize, errorid);
+}

@@ -216,6 +216,44 @@ class  TPZMaterial : public TPZSaveable
 					   TPZFMatrix &ek, TPZFMatrix &ef);
 
 
+  virtual void ContributeErrors(TPZVec<REAL> &x,
+                              TPZVec<REAL> &sol,
+                              TPZFMatrix &dsol,
+                              REAL weight,
+                              TPZVec<REAL> &nk,
+                              int POrder,
+                              REAL Size,
+                              int &errorid){
+  PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
+}
+virtual void ContributeInterfaceErrors(TPZVec<REAL> &x,
+                                       TPZVec<REAL> &solL,
+                                       TPZVec<REAL> &solR,
+                                       TPZFMatrix &dsolL, 
+                                       TPZFMatrix &dsolR,
+                                       REAL weight,
+                                       TPZVec<REAL> &normal,
+                                       TPZVec<REAL> &nkL, 
+                                       TPZVec<REAL> &nkR,
+                                       int LeftPOrder, 
+                                       int RightPOrder, 
+                                       REAL faceSize,
+                                       int &errorid){
+PZError << "Method not implemented\n";
+}
+virtual void ContributeInterfaceBCErrors(TPZVec<REAL> &x,
+                                                              TPZVec<REAL> &sol,
+                                                              TPZFMatrix &dsol,
+                                                              REAL weight,
+                                                              TPZVec<REAL> &normal,
+                                                              TPZVec<REAL> &nk,
+                                                              TPZBndCond &bc,
+                                                              int POrder, 
+                                                              REAL faceSize,
+                                                              int &errorid){
+PZError << "Method not implemented\n";
+}
+
   virtual int ClassId() const;
 
   /**

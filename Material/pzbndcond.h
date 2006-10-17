@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.17 2006-08-14 18:48:01 tiago Exp $
+//$Id: pzbndcond.h,v 1.18 2006-10-17 01:50:49 phil Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -219,6 +219,44 @@ public :
   Read the element data from a stream
   */
   virtual void Read(TPZStream &buf, void *context);
+
+  void ContributeInterfaceErrors(TPZVec<REAL> &x,
+                                       TPZVec<REAL> &solL,
+                                       TPZVec<REAL> &solR,
+                                       TPZFMatrix &dsolL, 
+                                       TPZFMatrix &dsolR,
+                                       REAL weight,
+                                       TPZVec<REAL> &normal,
+                                       TPZVec<REAL> &nkL, 
+                                       TPZVec<REAL> &nkR,
+                                       int LeftPOrder, 
+                                       int RightPOrder, 
+                                       REAL faceSize,
+                                       int &errorid);
+
+  virtual void ContributeInterfaceBCErrors(TPZVec<REAL> &x,
+                                                              TPZVec<REAL> &sol,
+                                                              TPZFMatrix &dsol,
+                                                              REAL weight,
+                                                              TPZVec<REAL> &normal,
+                                                              TPZVec<REAL> &nk,
+                                                              TPZBndCond &bc,
+                                                              int POrder, 
+                                                              REAL faceSize,
+                                                              int &errorid){
+  //nothing to be done here
+}
+
+virtual void ContributeErrors(TPZVec<REAL> &x,
+                              TPZVec<REAL> &sol,
+                              TPZFMatrix &dsol,
+                              REAL weight,
+                              TPZVec<REAL> &nk,
+                              int POrder,
+                              REAL Size,
+                              int &errorid){
+  //nothing to be done here
+}
 
 };
 
