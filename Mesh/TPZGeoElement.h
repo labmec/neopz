@@ -1,7 +1,7 @@
 
 // -*- c++ -*-
 
-// $Id: TPZGeoElement.h,v 1.14 2006-02-21 14:53:46 cesar Exp $
+// $Id: TPZGeoElement.h,v 1.15 2006-10-17 01:53:26 phil Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
@@ -33,6 +33,9 @@ public:
   TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
   TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
 
+  /** Copy constructor */
+  TPZGeoElement(TPZGeoMesh &DestMesh, const TPZGeoElement &cp);
+  
   void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
   //  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh );
   //  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh, int& index );
@@ -44,6 +47,8 @@ public:
   virtual void Read(TPZStream &str, void *context);
 
   virtual void Write(TPZStream &str, int withclassid);
+  
+  virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
 
   /** return 1 if the element has subelements along side*/
   int HasSubElement() {return fSubEl[0]!=-1;}
