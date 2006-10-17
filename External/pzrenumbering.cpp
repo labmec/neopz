@@ -223,5 +223,6 @@ void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
     it++;
   }
   cmesh->Permute(Permute);
+  cmesh->CleanUpUnconnectedNodes();
 
 }
