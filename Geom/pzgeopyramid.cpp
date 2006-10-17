@@ -210,7 +210,8 @@ TPZGeoEl *TPZGeoPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		int index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 		//		gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
-		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
+    TPZGeoElSide origside(orig,side);
+		TPZGeoElSide(gel,0).SetConnectivity(origside);
 		return gel;
 	} 
 	else if (side > 4 && side < 13) {//side =5 a 12 : lados
