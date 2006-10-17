@@ -1,10 +1,11 @@
-//$Id: pzelctemp.h,v 1.8 2005-02-28 22:08:51 phil Exp $
+//$Id: pzelctemp.h,v 1.9 2006-10-17 01:39:44 phil Exp $
 
 // -*- c++ -*-
 #ifndef PZELCTEMPH
 #define PZELCTEMPH
 
 #include "pzintel.h"
+#include "pzquad.h"
 
 /// This class implements a "generic" computational element
 /**
@@ -15,8 +16,9 @@ template<class TGEO, class TSHAPE>
 class TPZIntelGen : public TPZInterpolatedElement {
 
   int fConnectIndexes[TSHAPE::NSides];
-  //  int fSideOrder[TSHAPE::NSides-TSHAPE::NNodes];
+  
   int fPreferredSideOrder;
+  
   typename TGEO::IntruleType fIntRule;
 
 public:

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.27 2006-05-02 15:13:05 phil Exp $
+// $Id: pzelctemp.cpp,v 1.28 2006-10-17 01:39:44 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -423,48 +423,65 @@ int TPZIntelGen<TPZGeoPoint,TPZShapePoint>::ClassId() const
 {
   return TPZINTELPOINTID;
 }
+template class 
+    TPZRestoreClass< TPZIntelGen<TPZGeoPoint,TPZShapePoint>, TPZINTELPOINTID>;
+
 
 template<>
 int TPZIntelGen<TPZGeoLinear,TPZShapeLinear>::ClassId() const
 {
   return TPZINTELLINEARID;
 }
+template class 
+    TPZRestoreClass< TPZIntelGen<TPZGeoLinear,TPZShapeLinear>, TPZINTELLINEARID>;
 
 template<>
 int TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>::ClassId() const
 {
   return TPZINTELTRIANGLEID;
 }
+template class 
+    TPZRestoreClass< TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>, TPZINTELTRIANGLEID>;
 
 template<>
 int TPZIntelGen<TPZGeoQuad,TPZShapeQuad>::ClassId() const
 {
   return TPZINTELQUADID;
 }
+template class 
+    TPZRestoreClass< TPZIntelGen<TPZGeoQuad,TPZShapeQuad>, TPZINTELQUADID>;
 
 template<>
 int TPZIntelGen<TPZGeoCube,TPZShapeCube>::ClassId() const
 {
   return TPZINTELCUBEID;
 }
+template class 
+    TPZRestoreClass< TPZIntelGen<TPZGeoCube,TPZShapeCube>, TPZINTELCUBEID>;
 
 template<>
 int TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::ClassId() const
 {
   return TPZINTELTETRAID;
 }
+template class 
+    TPZRestoreClass< TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>, TPZINTELTETRAID>;
 
 template<>
 int TPZIntelGen<TPZGeoPrism,TPZShapePrism>::ClassId() const
 {
   return TPZINTELPRISMID;
 }
+template class 
+    TPZRestoreClass< TPZIntelGen<TPZGeoPrism,TPZShapePrism>, TPZINTELPRISMID>;
 
 template<>
 int TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::ClassId() const
 {
   return TPZINTELPYRAMID;
 }
+template class 
+    TPZRestoreClass< TPZIntelGen<TPZGeoPyramid,TPZShapePiram>, TPZINTELPYRAMID>;
 
 
 template class TPZIntelGen<TPZGeoPoint,TPZShapePoint>;
