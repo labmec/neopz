@@ -1,8 +1,9 @@
-//$Id: pzflowcmesh.cpp,v 1.17 2006-04-05 20:28:33 phil Exp $
+//$Id: pzflowcmesh.cpp,v 1.18 2006-10-17 01:38:41 phil Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
 #include "TPZConservationLaw.h"
+#include "pzintel.h"
 //#include "TPZInterfaceEl.h"
 
 using namespace std;
@@ -26,12 +27,12 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
   // the non-interface elements.
 
   i = 0;
-  while(i<nel){
+  for(i=0;i<nel;i++){
 
     TPZCompEl *pElComp = ElementVec()[i];
     if(!pElComp)
     {
-       cout << "TPZFlowCompMesh::MaxVelocityOfMesh: No associated computation element.\n";
+//       cout << "TPZFlowCompMesh::MaxVelocityOfMesh: No associated computation element.\n";
        continue;
     }
 
@@ -44,18 +45,13 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
     dim = mat->Dimension();
     elDim = pElGeo->Dimension();
 
-    TPZCompElDisc *pElDisc = dynamic_cast<TPZCompElDisc *>(pElComp);
+//    TPZCompElDisc *pElDisc = dynamic_cast<TPZCompElDisc *>(pElComp);
 
-    if(elDim == dim && pElDisc){ // if the dimension of the material fits the
+    if(elDim == dim /*&& pElDisc*/){ // if the dimension of the material fits the
        // dimension of the element and if the element is discontinuous.
 
-#ifdef _AUTODIFF
        TPZConservationLaw2 *law = dynamic_cast<TPZConservationLaw2 *>(mat);
        if(!law)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh2 ERROR: non-fluid material.\n";
-#else
-       TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
-       if(!law)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh2 ERROR: non-fluid material.\n";
-#endif
        // number of state variables for this material.
        nstate = law->NStateVariables();
 
@@ -85,7 +81,6 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
     }else{
 
     }
-    i++;
   }
   return maxvel;
 
@@ -120,14 +115,25 @@ REAL TPZFlowCompMesh::ComputeTimeStep()
     int iel;
     REAL meanTimeStep = 0.;
     int numcontr = 0;
+
     for(iel=0; iel<nel; iel++)
     {
-      TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(fElementVec[iel]);
-      if(!disc) continue;
-      int degree = disc->Degree();
-      TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>( disc->Material());
+      TPZCompEl *cel = fElementVec[iel];
+      if(!cel)continue;
+      TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(cel);
+      int porder;
+      if(disc) 
+      {
+        porder = disc->Degree();
+      }
+      TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+      if(intel)
+      {
+        porder = intel->PreferredSideOrder(intel->Reference()->NSides()-1);
+      }
+      TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>( cel->Material());
       if(!mat) continue;
-      meanTimeStep += mat->SetTimeStep(maxVel, deltax, degree);
+      meanTimeStep += mat->SetTimeStep(maxVel, deltax, porder);
       numcontr++;
     }
 
@@ -152,6 +158,7 @@ void TPZFlowCompMesh::ScaleCFL(REAL scale)
     {
       REAL newCFL = fFluidMaterial[i]->CFL()*scale;
       if(newCFL > MAXCFL) newCFL = MAXCFL;
+      cout << "CFL = " << newCFL << endl;
       fFluidMaterial[i]->SetCFL(newCFL);
     }
 }
@@ -209,6 +216,8 @@ int TPZFlowCompMesh::ClassId() const
 {
    return TPZFLOWCOMPMESHID;
 }
+template class 
+    TPZRestoreClass< TPZFlowCompMesh, TPZFLOWCOMPMESHID>;
 
 void TPZFlowCompMesh::Write(TPZStream &buf, int withclassid)
 {
