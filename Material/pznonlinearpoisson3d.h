@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pznonlinearpoisson3d.h,v 1.1 2006-07-31 13:46:25 tiago Exp $
+//$Id: pznonlinearpoisson3d.h,v 1.2 2006-10-17 01:46:30 phil Exp $
 
 #ifndef MATNLPOISSON3DH
 #define MATNLPOISSON3DH
@@ -13,6 +13,8 @@ class TPZNonLinearPoisson3d : public TPZMatPoisson3dReferred {
  public:
 
   TPZNonLinearPoisson3d(int nummat, int dim);
+  
+  TPZNonLinearPoisson3d(const TPZNonLinearPoisson3d &cp);
   
   virtual ~TPZNonLinearPoisson3d();
   
