@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.10 2005-11-07 18:51:11 cesar Exp $
+//$Id: pzgnode.h,v 1.11 2006-10-17 00:54:50 phil Exp $
 
 /**File : pzgnode.h
 
@@ -103,33 +103,6 @@ inline REAL TPZGeoNode::Coord(int i) const {
 #endif
   return fCoord[i];
 }
-
-///TPZGeoNodeBc defines a boundary condition applied to a geometrical node
-/**
-\deprecated
-@ingroup geometry
-*/
-
-struct TPZGeoNodeBC {
-  TPZGeoNode	 	*fNode;
-  int			fBCId;
-  TPZGeoEl *fGeoEl;
-  int fGeoElSide;
-
-  TPZGeoNodeBC() {
-    fNode = 0;
-    fBCId = 0;
-    fGeoEl = 0;
-    fGeoElSide = -1;
-  }
-
-  TPZGeoNodeBC(TPZGeoNode *node,int bcid, TPZGeoEl *gel, int gelside) {
-    fNode = node;
-    fBCId = bcid;
-    fGeoEl = gel;
-    fGeoElSide = gelside;
-  }
-};
 
 #endif
 
