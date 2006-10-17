@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.37 2004-09-07 23:41:33 phil Exp $
+//$Id: pzeulerconslaw.cpp,v 1.38 2006-10-17 01:49:41 phil Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -14,10 +14,18 @@
 #include <pzsave.h>
 #include "pzerror.h"
 
-#define FASTEST_IMPLICIT
+//#define FASTEST_IMPLICIT
 
 //#define DIVTIMESTEP
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+
+LoggerPtr fluxroe(Logger::getLogger("pz.fluxroe"));
+LoggerPtr fluxappr(Logger::getLogger("pz.fluxappr"));
+
+#endif
 
 
 
@@ -101,38 +109,41 @@ void TPZEulerConsLaw2::Print(ostream &out) {
   switch(fDiff)
   {
      case(Explicit_TD):
-        cout << "Explicit Diffusive term\n";
+        out << "Explicit Diffusive term\n";
 	break;
      case(ApproxImplicit_TD):
-        cout << "ApproxImplicit Diffusive term\n";
+        out << "ApproxImplicit Diffusive term\n";
 	break;
      case(Implicit_TD):
-        cout << "Implicit Diffusive term\n";
+        out << "Implicit Diffusive term\n";
 	break;
      default:
-        cout << "No Diffusive term\n";
+        out << "No Diffusive term\n";
   }
 
   switch(fConvVol)
   {
      case(Explicit_TD):
-        cout << "Explicit Volume Convective term\n";
+        out << "Explicit Volume Convective term\n";
 	break;
      case(Implicit_TD):
-        cout << "Implicit Volume Convective term\n";
+        out << "Implicit Volume Convective term\n";
 	break;
      default:
-        cout << "No Volume Convective term\n";
+        out << "No Volume Convective term\n";
   }
 
   switch(fConvFace)
   {
      case(Explicit_TD):
-        cout << "Explicit Face Convective term\n";
+        out << "Explicit Face Convective term\n";
 	break;
      case(Implicit_TD):
-        cout << "Implicit Face Convective term\n";
+        out << "Implicit Face Convective term\n";
 	break;
+    case(ApproxImplicit_TD):
+      out << "Approximate Implicit Face Convective term\n";
+      break;
      default:
         cout << "No Face Convective term\n";
   }
@@ -584,6 +595,14 @@ void TPZEulerConsLaw2::ContributeInterface(
          TPZVec<FADREAL> FADsolL, FADsolR;
          PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
          ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
+#ifdef LOG4CXX
+          if(fluxroe->isDebugEnabled()) {
+            std::stringstream sout;
+            ek.Print("computed tangent matrix",sout);
+            ef.Print("computed rhs",sout);
+            LOGPZ_DEBUG(fluxroe,sout.str().c_str());
+          }
+#endif
 	 #endif
       #else
       // forcing explicit contribution and issueing an warning
@@ -591,11 +610,95 @@ void TPZEulerConsLaw2::ContributeInterface(
          ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
       #endif
       }
+      else if (fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
+      {
+#ifdef _AUTODIFF
+        REAL facesize = 0.;
+        TPZVec<FADREAL> FADsolL, FADsolR;
+        PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
+        ContributeApproxImplConvFace(x,facesize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
+#endif
+#ifdef LOG4CXX
+        if(fluxroe->isDebugEnabled()){
+          std::stringstream sout;
+          ek.Print("computed tangent matrix",sout);
+          ef.Print("computed rhs",sout);
+          LOGPZ_DEBUG(fluxroe,sout.str().c_str());
+        }
+#endif
+      }
+
 
    if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
    {
       ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
    }
+}
+
+void TPZEulerConsLaw2::ContributeInterface(
+    TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+    TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+    TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+    TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize)
+{
+#ifdef LOG4CXX
+    if(fluxroe->isDebugEnabled()){
+      std::stringstream sout;
+      sout << "solL " << solL << endl << "solR " << solR << endl;
+      LOGPZ_DEBUG(fluxroe,sout.str().c_str());
+      LOGPZ_DEBUG(fluxappr,sout.str().c_str());
+    }
+#endif
+   // contributing face-based quantities
+  if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
+  {
+      // if face contribution is implicit,
+      // then the FAD classes must be initialized
+#ifdef _AUTODIFF
+#ifdef FASTEST_IMPLICIT
+            ContributeFastestImplConvFace(fDim, x, solL, solR,
+                                          weight, normal, phiL, phiR, ek, ef);
+#else
+         TPZVec<FADREAL> FADsolL, FADsolR;
+         PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
+         ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
+#ifdef LOG4CXX
+        if(fluxroe->isDebugEnabled()){
+          std::stringstream sout;
+          ek.Print("computed tangent matrix",sout);
+          ef.Print("computed rhs",sout);
+          LOGPZ_DEBUG(fluxroe,sout.str().c_str());
+        }
+#endif
+#endif
+#else
+      // forcing explicit contribution and issueing an warning
+         cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
+//         ContributeApproxImplConvFace(x,faceSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
+         ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
+#endif
+  }
+  else if(fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
+  {
+#ifdef _AUTODIFF
+    TPZVec<FADREAL> FADsolL, FADsolR;
+    PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
+    ContributeApproxImplConvFace(x,faceSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
+#endif
+#ifdef LOG4CXX
+    if(fluxappr->isDebugEnabled()){
+      std::stringstream sout;
+      ek.Print("computed tangent matrix",sout);
+      ef.Print("computed rhs",sout);
+      LOGPZ_DEBUG(fluxappr,sout.str().c_str());
+    }
+#endif
+  }
+
+  if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
+  {
+    ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
+  }
 }
 
 
@@ -612,6 +715,8 @@ void TPZEulerConsLaw2::ContributeInterface(
    // contributing face-based quantities
    if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT
                      ||
+       fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT
+                      ||
       fConvFace == Explicit_TD && fContributionTime == Last_CT)
         {
            ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
@@ -658,6 +763,90 @@ void TPZEulerConsLaw2::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &sol,REAL w
   }
 }
 
+void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
+                                             TPZVec<REAL> &solL, TPZFMatrix &dsolL,
+                                             REAL weight, TPZVec<REAL> &normal,
+                                             TPZFMatrix &phiL,TPZFMatrix &dphiL,
+                                             TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize)
+{
+  int nstate = NStateVariables();
+  TPZVec<REAL> solR(nstate,0.);
+  TPZFMatrix dsolR(dsolL.Rows(), dsolL.Cols(),0.);
+  TPZFMatrix phiR(0,0), dphiR(0,0);
+  int entropyFix;
+
+   // contributing face-based quantities
+  if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
+  {
+      // if face contribution is implicit,
+      // then the FAD classes must be initialized
+#ifdef _AUTODIFF
+
+//          if(bc.Type() ==5 && fDim == 2)
+//           {
+//             int entropyFix2;
+//             TPZManVector<REAL,5 > flux(nstate,0.);
+//             ComputeGhostState(solL, solR, normal, bc, entropyFix2);
+//             Roe_Flux<REAL>(solL, solR, normal, fGamma, flux, entropyFix2);
+//             REAL norflux = flux[1]*normal[1]-flux[2]*normal[0];
+//             REAL err = fabs(flux[0])+fabs(norflux)+fabs(flux[3]);
+//             if(err > 1.e-5)
+//             {
+//               cout << "fluxo de parede errado 1 err " << err << endl;
+//             }
+//           }
+
+#ifdef FASTEST_IMPLICIT
+            ContributeFastestBCInterface(fDim, x, solL, dsolL,
+                                         weight, normal, phiL, phiR, ek, ef, bc);
+#else
+         TPZVec<FADREAL> FADsolL, FADsolR;
+         PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
+         ComputeGhostState(FADsolL, FADsolR, normal, bc, entropyFix);
+         ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef, entropyFix);
+#ifdef LOG4CXX
+        if(fluxroe->isDebugEnabled()){
+          std::stringstream sout;
+          ek.Print("computed tangent matrix",sout);
+          ef.Print("computed rhs",sout);
+          LOGPZ_DEBUG(fluxroe,sout.str().c_str());
+        }
+#endif
+#endif
+#else
+      // forcint explicit contribution and issueing an warning
+         cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
+//         ComputeGhostState(FADsolL, FADsolR, normal, bc, entropyFix);
+//         ContributeApproxImplConvFace(x,solL,solR,weight,normal,phiL,phiR,ek,ef,entropyFix);
+#endif
+  }
+  else if (fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
+  {
+#ifdef _AUTODIFF
+    TPZVec<FADREAL> FADsolL, FADsolR;
+    PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
+    ComputeGhostState(FADsolL, FADsolR, normal, bc, entropyFix);
+    ContributeApproxImplConvFace(x,faceSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef, entropyFix);
+#ifdef LOG4CXX
+    if(fluxappr->isDebugEnabled()){
+      std::stringstream sout;
+      ek.Print("computed tangent matrix",sout);
+      ef.Print("computed rhs",sout);
+      LOGPZ_DEBUG(fluxappr,sout.str().c_str());
+    }
+#endif
+#else
+//    ComputeGhostState(solL, solR, normal, bc, entropyFix);
+//    ContributeApproxImplConvFace(x,faceSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef, entropyFix);
+#endif
+  }
+
+  if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
+  {
+    ComputeGhostState(solL, solR, normal, bc, entropyFix);
+    ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef, entropyFix);
+  }
+}
 
 void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
 			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
@@ -677,7 +866,8 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
       // if face contribution is implicit,
       // then the FAD classes must be initialized
       #ifdef _AUTODIFF
-         if(bc.Type() ==5 && fDim == 2)
+#ifdef DEBUG
+/*         if(bc.Type() ==5 && fDim == 2)
          {
 	    int entropyFix2;
             TPZManVector<REAL,5 > flux(nstate,0.);
@@ -689,7 +879,8 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
             {
               cout << "fluxo de parede errado 1 err " << err << endl;
             }
-         }
+         }*/
+#endif
 
          #ifdef FASTEST_IMPLICIT
             ContributeFastestBCInterface(fDim, x, solL, dsolL,
@@ -699,13 +890,39 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
          PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
 	 ComputeGhostState(FADsolL, FADsolR, normal, bc, entropyFix);
          ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef, entropyFix);
-	 #endif
+#ifdef LOG4CXX
+        if(fluxroe->isDebugEnabled()){
+          std::stringstream sout;
+          ek.Print("computed tangent matrix",sout);
+          ef.Print("computed rhs",sout);
+          LOGPZ_DEBUG(fluxroe,sout.str().c_str());
+        }
+#endif
+#endif
       #else
       // forcint explicit contribution and issueing an warning
          cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
          ContributeExplConvFace(x,solL,solR,weight,normal,phiL,phiR,ef);
       #endif
       }
+      else if (fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
+      {
+#ifdef _AUTODIFF
+        TPZVec<FADREAL> FADsolL, FADsolR;
+        PrepareInterfaceFAD(solL, solR, phiL, phiR, FADsolL, FADsolR);
+        ComputeGhostState(FADsolL, FADsolR, normal, bc, entropyFix);
+        ContributeImplConvFace(x,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef, entropyFix);
+#endif
+#ifdef LOG4CXX
+        if(fluxappr->isDebugEnabled()){
+          std::stringstream sout;
+          ek.Print("computed tangent matrix",sout);
+          ef.Print("computed rhs",sout);
+          LOGPZ_DEBUG(fluxappr,sout.str().c_str());
+        }
+#endif
+      }
+
 
    if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
    {
@@ -729,6 +946,8 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
 
    if(fConvFace == Implicit_TD && fContributionTime == Advanced_CT
                   ||
+      fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT
+                    ||
       fConvFace == Explicit_TD && fContributionTime == Last_CT)
    {
          ComputeGhostState(solL, solR, normal, bc, entropyFix);
@@ -1310,6 +1529,183 @@ void TPZEulerConsLaw2::ContributeExplConvFace(TPZVec<REAL> &x,
 
 #ifdef _AUTODIFF
 
+void TPZEulerConsLaw2::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
+    TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
+    REAL weight,TPZVec<REAL> &normal,
+    TPZFMatrix &phiL,TPZFMatrix &phiR,
+    TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix)
+{
+  int nState = NStateVariables();
+  TPZVec<FADREAL > flux(nState,REAL(0.));
+  ApproxRoe_Flux(solL, solR, normal, fGamma, flux, entropyFix);
+   
+   // Testing whether Roe_Flux<REAL> gives the same result as Roe_Flux<FADREAL>
+   
+/*   TPZVec<REAL> solL2(nState,0.),solR2(nState,0.),flux2(nState,0.);
+  int i;
+  for(i=0; i<nState; i++)
+  {
+  solL2[i] = solL[i].val();
+  solR2[i] = solR[i].val();
+}
+  Roe_Flux(solL2, solR2, normal, fGamma, flux2,with_entropy_fix);
+  REAL diff = fabs(flux[0].val()-flux2[0])+fabs(flux[1].val()-flux2[1])+fabs(flux[2].val()-flux2[2]);
+  if(diff != 0.)
+  {
+  cout << "Roe<FADREAL> is different from Roe<REAL> diff " << diff << endl;
+}*/
+  int nShapeL = phiL.Rows(),
+  nShapeR = phiR.Rows(),
+  i_shape, i_state, j,
+  nDer = (nShapeL + nShapeR) * nState;
+
+
+#ifdef DIVTIMESTEP
+   REAL constant = weight; // weight
+#else
+   REAL constant = TimeStep() * weight; // deltaT * weight
+#endif
+
+   // Contribution referring to the left element
+   for(i_shape = 0; i_shape < nShapeL; i_shape ++)
+      for(i_state = 0; i_state < nState; i_state++)
+{
+  int index = i_shape*nState + i_state;
+  ef(index,0) +=
+      flux[i_state].val() * phiL(i_shape,0) * constant;
+  for(j = 0; j < nDer; j++)
+    ek(index, j) -= flux[i_state].dx/*fastAccessDx*/(j) *
+        phiL(i_shape,0) * constant;
+}
+
+   // Contribution referring to the right element
+   // REM: The contributions are negative in comparison
+   // to the left elements: opposed normals
+   for(i_shape = 0; i_shape < nShapeR; i_shape ++)
+     for(i_state = 0; i_state < nState; i_state++)
+{
+  int index = (nShapeL + i_shape)*nState + i_state;
+  ef(index,0) -=
+      flux[i_state].val() * phiR(i_shape,0) * constant;
+  for(j = 0; j < nDer; j++)
+    ek(index, j) += flux[i_state].dx/*fastAccessDx*/(j) *
+        phiR(i_shape,0) * constant;
+}
+
+}
+
+#endif
+
+void TPZEulerConsLaw2::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
+                                              TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+                                              REAL weight,TPZVec<REAL> &normal,
+                                              TPZFMatrix &phiL,TPZFMatrix &phiR,
+                                              TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix
+                                              )
+{
+  int nState = NStateVariables();
+  TPZManVector< TPZManVector<REAL,5> ,3> FL(3),FR(3);
+  TPZManVector< REAL,5> FN(nState,0.);
+  Flux(solL, FL[0], FL[1], FL[2]);
+  Flux(solR, FR[0], FR[1], FR[2]);
+  TPZFNMatrix<36> DFNL(nState,nState,0.),DFNR(nState,nState,0.);
+
+  TPZManVector<REAL,7 > fluxroe(nState,0.);
+  Roe_Flux(solL, solR, normal, fGamma, fluxroe,entropyFix);
+  TPZManVector< TPZDiffMatrix<REAL> ,3> AL(3),AR(3);
+  JacobFlux(fGamma, fDim, solL, AL);
+  JacobFlux(fGamma, fDim, solR, AR);
+
+  int nShapeL = phiL.Rows(),
+  nShapeR = phiR.Rows(),
+  i_shape, i_state, i, j_state, j_shape;
+//  nDer = (nShapeL + nShapeR) * nState;
+
+
+#ifdef DIVTIMESTEP
+   REAL constant = weight; // weight
+#else
+   REAL constant = TimeStep() * weight; // deltaT * weight
+#endif
+
+  for(i_state=0; i_state<nState; i_state++)
+  {
+    FN[i_state]= -(faceSize/constant)*(solR[i_state]-solL[i_state]);
+    DFNL(i_state,i_state) = (faceSize/constant);
+    DFNR(i_state,i_state) = -(faceSize/constant);
+    for(i=0; i<fDim; i++)
+    {
+      FN[i_state]+=0.5*normal[i]*(FL[i][i_state]+FR[i][i_state]);
+      for(j_state=0; j_state<nState; j_state++)
+      {
+        DFNL(i_state,j_state) +=0.5*normal[i]*(AL[i](i_state,j_state));
+        DFNR(i_state,j_state) +=0.5*normal[i]*(AR[i](i_state,j_state));
+      }
+    }
+  }
+   // Contribution referring to the left element
+   for(i_shape = 0; i_shape < nShapeL; i_shape ++)
+      for(i_state = 0; i_state < nState; i_state++)
+{
+  int index = i_shape*nState + i_state;
+  ef(index,0) +=
+      fluxroe[i_state] * phiL(i_shape,0) * constant;
+  for(j_shape = 0; j_shape < nShapeL; j_shape++)
+  {
+    
+    for(j_state = 0; j_state < nState; j_state++)
+    {
+      int jndex = j_shape*nState + j_state;
+      ek(index,jndex) -= DFNL(i_state,j_state) *phiL(i_shape,0) * phiL(j_shape,0) * constant;
+    }
+  }
+  for(j_shape = 0; j_shape < nShapeR; j_shape++)
+  {
+    
+    for(j_state = 0; j_state < nState; j_state++)
+    {
+      int jndex = (nShapeL+j_shape)*nState + j_state;
+      ek(index,jndex) -= DFNR(i_state,j_state) *phiL(i_shape,0) * phiR(j_shape,0) * constant;
+    }
+  }
+/*    ek(index, j) -= flux[i_state].dx(j) *
+        phiL(i_shape,0) * constant;*/
+}
+
+   // Contribution referring to the right element
+   // REM: The contributions are negative in comparison
+   // to the left elements: opposed normals
+   for(i_shape = 0; i_shape < nShapeR; i_shape ++)
+     for(i_state = 0; i_state < nState; i_state++)
+{
+  int index = (nShapeL + i_shape)*nState + i_state;
+  ef(index,0) -=
+      fluxroe[i_state] * phiR(i_shape,0) * constant;
+  for(j_shape = 0; j_shape < nShapeL; j_shape++)
+  {
+    
+    for(j_state = 0; j_state < nState; j_state++)
+    {
+      int jndex = j_shape*nState + j_state;
+      ek(index,jndex) += DFNL(i_state,j_state) *phiR(i_shape,0) * phiL(j_shape,0) * constant;
+    }
+  }
+  for(j_shape = 0; j_shape < nShapeR; j_shape++)
+  {
+    
+    for(j_state = 0; j_state < nState; j_state++)
+    {
+      int jndex = (nShapeL+j_shape)*nState + j_state;
+      ek(index,jndex) += DFNR(i_state,j_state) *phiR(i_shape,0) * phiR(j_shape,0) * constant;
+    }
+  }
+/*    ek(index, j) += flux[i_state].dx(j) *
+        phiR(i_shape,0) * constant;*/
+}
+}
+
+#ifdef _AUTODIFF
+
 void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
 			TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 			REAL weight,TPZVec<REAL> &normal,
@@ -1595,7 +1991,11 @@ void TPZEulerConsLaw2::ContributeExplT1(TPZVec<REAL> &x,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
 			TPZFMatrix &ef)
 {
-   if(TimeStep()==0.)return;
+   if(TimeStep()==0.)
+   {
+     std::cout << __PRETTY_FUNCTION__ << " Zero timestep bailing out\n";
+     return;
+   }
 
    int i_shape, ij_state;
    int nState = NStateVariables();
@@ -1624,7 +2024,11 @@ void TPZEulerConsLaw2::ContributeImplT1(TPZVec<REAL> &x,
 			TPZFMatrix &phi,TPZFMatrix &dphi,
 			TPZFMatrix &ek,TPZFMatrix &ef)
 {
-   if(TimeStep()==0.)return;
+   if(TimeStep()==0.)
+   {
+     std::cout << __PRETTY_FUNCTION__ << " Zero timestep bailing out\n";
+     return;
+   }
 
    int i_shape, ij_state, j_shape;
    int nState = NStateVariables();
@@ -1659,7 +2063,11 @@ void TPZEulerConsLaw2::ContributeExplT2(TPZVec<REAL> &x,
 			TPZFMatrix &phi,
 			TPZFMatrix &ef)
 {
-   if(TimeStep()==0.)return;
+   if(TimeStep()==0.)
+   {
+     std::cout << __PRETTY_FUNCTION__ << " Zero timestep bailing out\n";
+     return;
+   }
 
    int i_shape, i_state;
    int nState = NStateVariables();
@@ -1710,3 +2118,552 @@ void TPZEulerConsLaw2::Read(TPZStream &buf, void *context)
    fConvFace = static_cast<TPZTimeDiscr>(diff);
 }
 
+  /**
+ * This flux encapsulates the two and three dimensional fluxes
+ * acquired from the Mouse program
+ * This function is called Approx because it evaluates the derivative of the Roe Flux without
+ * using automatic differentiation
+ *
+ * @param solL [in]
+ * @param solR [in]
+ * @param normal [in]
+ * @param gamma [in]
+ * @param flux [in]
+   */
+template <class T>
+void TPZEulerConsLaw2::ApproxRoe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
+                                 TPZVec<REAL> & normal, REAL gamma,
+                                 TPZVec<T> & flux, int entropyFix)
+{
+   // Normals outgoing from the BC elements into the
+   // mesh elements -> all the normals are opposited to
+   // the common convention -> changing the left/right
+   // elements and normals.
+  int nState = solL.NElements();
+  if(nState == 5)
+  {
+    ApproxRoe_Flux<T>(solL[0], solL[1], solL[2], solL[3], solL[4],
+             solR[0], solR[1], solR[2], solR[3], solR[4],
+             normal[0], normal[1], normal[2],
+             gamma,
+             flux[0], flux[1], flux[2], flux[3], flux[4], entropyFix);
+
+  }else if(nState == 4)
+  {
+    ApproxRoe_Flux<T>(solL[0], solL[1], solL[2], solL[3],
+             solR[0], solR[1], solR[2], solR[3],
+             normal[0], normal[1],
+             gamma,
+             flux[0], flux[1], flux[2], flux[3], entropyFix);
+  }else if(nState == 3)
+  {
+      //using the 2D expression for 1d problem
+    T auxL = REAL(0.),
+    auxR = REAL(0.),
+    fluxaux = REAL(0.);
+    auxL = flux[0];
+    ApproxRoe_Flux<T>(solL[0], solL[1], auxL, solL[2],
+             solR[0], solR[1], auxR, solR[2],
+             normal[0], 0,
+             gamma,
+             flux[0], flux[1], fluxaux, flux[2], entropyFix);
+  }else
+  {
+    PZError << "No flux on " << nState << " state variables.\n";
+  }
+}
+
+#ifdef _AUTODIFF
+  /**
+ * Flux of Roe (MOUSE program)
+   */
+template <>
+void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
+                                 const FADREAL & rhou_f,
+                                 const FADREAL & rhov_f,
+                                 const FADREAL & rhow_f,
+                                 const FADREAL & rhoE_f,
+                                 const FADREAL & rho_t,
+                                 const FADREAL & rhou_t,
+                                 const FADREAL & rhov_t,
+                                 const FADREAL & rhow_t,
+                                 const FADREAL & rhoE_t,
+                                 const REAL nx,
+                                 const REAL ny,
+                                 const REAL nz,
+                                 const REAL gam,
+                                 FADREAL & flux_rho,
+                                 FADREAL & flux_rhou,
+                                 FADREAL & flux_rhov,
+                                 FADREAL & flux_rhow,
+                                 FADREAL & flux_rhoE, int entropyFix)
+{
+
+  typedef FADREAL T;
+//  REAL    alpha1,alpha2,alpha3,alpha4,alpha5,alpha;
+ REAL    a1,a2,a3,a4,a5,b1,b2,b3,b4,b5;
+// REAL    ep_t, ep_f, p_t, p_f;
+// REAL    rhouv_t, rhouv_f, rhouw_t, rhouw_f, rhovw_t, rhovw_f;
+// REAL    lambda_f, lambda_t;
+ T    delta_rho, delta_rhou, delta_rhov, delta_rhow, delta_rhoE;
+ REAL    hnx, hny, hnz;
+ REAL    tempo11, usc;
+
+  flux_rho = 0;
+  flux_rhou = 0;
+  flux_rhov = 0;
+  flux_rhow = 0;
+  flux_rhoE = 0;
+
+  REAL gam1 = gam - 1.0;
+  REAL    irho_f = REAL(1.0)/rho_f.val();
+  REAL    irho_t = REAL(1.0)/rho_t.val();
+
+  //
+  //.. Compute the ROE Averages
+  //
+  //.... some useful quantities
+  REAL    coef1 = sqrt(rho_f.val());
+  REAL    coef2 = sqrt(rho_t.val());
+  REAL    somme_coef = coef1 + coef2;
+  REAL    isomme_coef = REAL(1.0)/somme_coef;
+  REAL    u_f = rhou_f.val()*irho_f;
+  REAL    v_f = rhov_f.val()*irho_f;
+  REAL    w_f = rhow_f.val()*irho_f;
+  REAL    h_f = (gam * rhoE_f.val()*irho_f) - (.5*gam1) * (u_f * u_f + v_f * v_f + w_f * w_f);
+  REAL    u_t = rhou_t.val()*irho_t;
+  REAL    v_t = rhov_t.val()*irho_t;
+  REAL    w_t = rhow_t.val()*irho_t;
+  REAL    h_t = (gam * rhoE_t.val()*irho_t) - (.5*gam1) * (u_t * u_t + v_t * v_t + w_t * w_t);
+
+  //.... averages
+  //REAL rho_ave = coef1 * coef2;
+  REAL    u_ave = (coef1 * u_f + coef2 * u_t) * isomme_coef;
+  REAL    v_ave = (coef1 * v_f + coef2 * v_t) * isomme_coef;
+  REAL    w_ave = (coef1 * w_f + coef2 * w_t) * isomme_coef;
+  REAL    h_ave = (coef1 * h_f + coef2 * h_t) * isomme_coef;
+  //
+  //.. Compute Speed of sound
+  REAL    scal = u_ave * nx + v_ave * ny + w_ave * nz;
+  REAL    norme = sqrt(nx * nx + ny * ny + nz * nz);
+  REAL    inorme = REAL(1.0)/norme;
+  REAL    u2pv2pw2 = u_ave * u_ave + v_ave * v_ave + w_ave * w_ave;
+  REAL    c_speed = gam1 * (h_ave - REAL(0.5) * u2pv2pw2);
+  if(c_speed < REAL(1e-6)) c_speed = 1e-6;// <!> zeroes the derivatives?   // avoid division by 0 if critical
+  c_speed = sqrt(c_speed);
+  REAL    c_speed2 = c_speed * norme;
+  //
+  //.. Compute the eigenvalues of the Jacobian matrix
+  REAL    eig_val1 = scal - c_speed2;
+  REAL    eig_val2 = scal;
+  REAL    eig_val3 = scal + c_speed2;
+  //
+  //.. Compute the ROE flux
+  //.... In this part many tests upon the eigenvalues
+  //.... are done to simplify calculations
+  //.... Here we use the two formes of the ROE flux :
+  //.... phi(Wl,Wr) = F(Wl) + A-(Wroe)(Wr - Wl)
+  //.... phi(Wl,Wr) = F(Wr) - A+(Wroe)(Wr - Wl)
+  //
+  if(eig_val2 <= REAL(0.0)) {
+    T    irho_t = REAL(1.0)/rho_t;
+    T    u_t = rhou_t*irho_t;
+    T    v_t = rhov_t*irho_t;
+    T    w_t = rhow_t*irho_t;
+    T    h_t = (gam * rhoE_t*irho_t) - (.5*gam1) * (u_t * u_t + v_t * v_t + w_t * w_t);
+
+    T p_t,ep_t,rhouv_t,rhouw_t,rhovw_t;
+    REAL lambda_f,lambda_t;
+    p_t = gam1 * (rhoE_t - REAL(0.5) * (rhou_t * rhou_t +
+        rhov_t * rhov_t + rhow_t * rhow_t) * irho_t);
+    ep_t = rhoE_t + p_t;
+    rhouv_t = rhou_t * v_t;
+    rhouw_t = rhou_t * w_t;
+    rhovw_t = rhov_t * w_t;
+    flux_rho  = rhou_t * nx + rhov_t * ny + rhow_t * nz;
+    flux_rhou = (rhou_t * u_t + p_t) * nx + rhouv_t * ny + rhouw_t * nz;
+    flux_rhov = rhouv_t * nx + (rhov_t * v_t + p_t) * ny + rhovw_t * nz;
+    flux_rhow = rhouw_t * nx + rhovw_t * ny + (rhow_t * w_t + p_t) * nz;
+    flux_rhoE = ep_t * (u_t * nx + v_t * ny + w_t * nz);
+    //
+    //.... A Entropic modification
+    //
+    REAL p_f = gam1 * (rhoE_f.val() - REAL(0.5) * (rhou_f.val() * rhou_f.val() + rhov_f.val() * rhov_f.val()
+        + rhow_f.val() * rhow_f.val()) * irho_f);
+    lambda_f = u_f * nx + v_f * ny + w_f * nz + norme
+        * sqrt(gam * p_f * irho_f);
+    lambda_t = u_t.val() * nx + v_t.val() * ny + w_t.val() * nz + norme
+        * sqrt(gam * p_t.val() * irho_t.val());
+    if (entropyFix && (lambda_f < REAL(0.)) && (lambda_t > REAL(0.))) {
+      eig_val3 = lambda_t * (eig_val3 - lambda_f) / (lambda_t - lambda_f);
+    }
+    //
+    if (eig_val3 > REAL(0.0)) {
+      //.. In this case A+ is obtained by multiplying the last
+      //.. colomne of T-1 with the last row of T with eig_val3                //Cedric
+      T    alpha1,alpha2,alpha3,alpha4,alpha5,alpha;
+      delta_rho  = rho_t - rho_f;                                             //right - left
+      delta_rhou = rhou_t - rhou_f;                                           //**_t  - **_f
+      delta_rhov = rhov_t - rhov_f;
+      delta_rhow = rhow_t - rhow_f;
+      delta_rhoE = rhoE_t - rhoE_f;
+      //
+      scal = scal * inorme;
+      hnx = nx * inorme;
+      hny = ny * inorme;
+      hnz = nz * inorme;
+      usc = REAL(1.0)/c_speed;
+      tempo11 = gam1 * usc;
+      //.. Last columne of the matrix T-1
+      a1 = usc;
+      a2 = u_ave * usc + hnx;
+      a3 = v_ave * usc + hny;
+      a4 = w_ave * usc + hnz;
+      a5 = REAL(0.5) * u2pv2pw2 * usc + REAL(2.5) * c_speed + scal;
+      //.. Last row of the matrix T * eig_val3
+      b1 = REAL(0.5) * (REAL(0.5) * tempo11 * u2pv2pw2 - scal);
+      b2 = REAL(0.5) * (hnx - tempo11 * u_ave);
+      b3 = REAL(0.5) * (hny - tempo11 * v_ave);
+      b4 = REAL(0.5) * (hnz - tempo11 * w_ave);
+      b5 = REAL(0.5) * tempo11;
+      //
+      alpha1 = b1 * delta_rho;
+      alpha2 = b2 * delta_rhou;
+      alpha3 = b3 * delta_rhov;
+      alpha4 = b4 * delta_rhow;
+      alpha5 = b5 * delta_rhoE;
+      alpha  = eig_val3 * (alpha1 + alpha2 + alpha3 + alpha4 + alpha5);
+      //
+      flux_rho  -= a1 * alpha;
+      flux_rhou -= a2 * alpha;
+      flux_rhov -= a3 * alpha;
+      flux_rhow -= a4 * alpha;
+      flux_rhoE -= a5 * alpha;
+    }
+  }
+  //
+  if(eig_val2 > REAL(0.0)) {
+    T p_f,ep_f,rhouv_f,rhovw_f,rhouw_f;
+    T    irho_f = REAL(1.0)/rho_f.val();
+
+    T    u_f = rhou_f.val()*irho_f;
+    T    v_f = rhov_f.val()*irho_f;
+    T    w_f = rhow_f.val()*irho_f;
+    T    h_f = (gam * rhoE_f.val()*irho_f) - (.5*gam1) * (u_f * u_f + v_f * v_f + w_f * w_f);
+    p_f = gam1 * (rhoE_f - REAL(0.5) * (rhou_f * rhou_f +
+        rhov_f * rhov_f + rhow_f * rhow_f) * irho_f);
+    ep_f = rhoE_f + p_f;
+    rhouv_f = rhou_f * v_f;
+    rhouw_f = rhou_f * w_f;
+    rhovw_f = rhov_f * w_f;
+    flux_rho  = rhou_f * nx + rhov_f * ny + rhow_f * nz;
+    flux_rhou = (rhou_f * u_f + p_f) * nx + rhouv_f * ny + rhouw_f * nz;
+    flux_rhov = rhouv_f * nx + (rhov_f * v_f + p_f) * ny + rhovw_f * nz;
+    flux_rhow = rhouw_f * nx + rhovw_f * ny + (rhow_f * w_f + p_f) * nz;
+    flux_rhoE = ep_f * (u_f * nx + v_f * ny + w_f * nz);
+    //
+    // A Entropic modification
+    //
+    REAL p_t = gam1 * (rhoE_t.val() - REAL(0.5) * (rhou_t.val() * rhou_t.val() +
+        rhov_t.val() * rhov_t.val() + rhow_t.val() * rhow_t.val()) * irho_t);
+    REAL lambda_f = u_f.val() * nx + v_f.val() * ny + w_f.val() * nz - norme
+        * sqrt(gam * p_f.val() * irho_f.val());
+    REAL lambda_t   = u_t * nx + v_t * ny + w_t * nz - norme
+        * sqrt(gam * p_t * irho_t);
+    if (entropyFix && (lambda_f < REAL(0.)) && (lambda_t > REAL(0.))) {
+      eig_val1 = lambda_f * (lambda_t - eig_val1) / (lambda_t - lambda_f);
+    }
+    //
+    if (eig_val1 < REAL(0.0)) {
+      //.. In this case A+ is obtained by multiplying the first
+      //.. columne of T-1 with the first row of T with eig_val1
+      T    alpha1,alpha2,alpha3,alpha4,alpha5,alpha;
+      delta_rho  = rho_t - rho_f;
+      delta_rhou = rhou_t - rhou_f;
+      delta_rhov = rhov_t - rhov_f;
+      delta_rhow = rhow_t - rhow_f;
+      delta_rhoE = rhoE_t - rhoE_f;
+      //
+      scal = scal * inorme;
+      hnx = nx * inorme;
+      hny = ny * inorme;
+      hnz = nz * inorme;
+      usc = REAL(1.0)/c_speed;
+      tempo11 = gam1 * usc;
+      //.. First colomne of the matrix T-1
+      a1 = usc;
+      a2 = u_ave * usc - hnx;
+      a3 = v_ave * usc - hny;
+      a4 = w_ave * usc - hnz;
+      a5 = REAL(0.5) * u2pv2pw2 * usc + REAL(2.5) * c_speed - scal;
+      //.. First row of the matrix T * eig_val1
+      b1 = REAL(0.5) * (REAL(0.5) * tempo11 * u2pv2pw2 + scal);
+      b2 = -REAL(0.5) * (hnx + tempo11 * u_ave);
+      b3 = -REAL(0.5) * (hny + tempo11 * v_ave);
+      b4 = -REAL(0.5) * (hnz + tempo11 * w_ave);
+      b5 = REAL(0.5) * tempo11;
+      //
+      alpha1 = b1 * delta_rho;
+      alpha2 = b2 * delta_rhou;
+      alpha3 = b3 * delta_rhov;
+      alpha4 = b4 * delta_rhow;
+      alpha5 = b5 * delta_rhoE;
+      alpha  = eig_val1 * (alpha1 + alpha2 + alpha3 + alpha4 + alpha5);
+      //
+      flux_rho  += a1 * alpha;
+      flux_rhou += a2 * alpha;
+      flux_rhov += a3 * alpha;
+      flux_rhow += a4 * alpha;
+      flux_rhoE += a5 * alpha;
+    }
+  }
+}
+/*
+REAL operator() (const FADREAL &a)
+{
+  return a.val();
+}*/
+
+template <>
+void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
+                                 const FADREAL & rhou_f,
+                                 const FADREAL & rhov_f,
+                                 const FADREAL & rhoE_f,
+                                 const FADREAL & rho_t,
+                                 const FADREAL & rhou_t,
+                                 const FADREAL & rhov_t,
+                                 const FADREAL & rhoE_t,
+                                 const REAL nx,
+                                 const REAL ny,
+                                 const REAL gam,
+                                 FADREAL &flux_rho,
+                                 FADREAL &flux_rhou,
+                                 FADREAL &flux_rhov,
+                                 FADREAL &flux_rhoE, int entropyFix)
+{
+  typedef FADREAL T;
+  typedef REAL locREAL;
+  locREAL rho_fv, rhou_fv, rhov_fv, rhoE_fv, rho_tv, rhou_tv, rhov_tv, rhoE_tv;
+  
+  rho_fv = rho_f.val();
+  rhou_fv = rhou_f.val();
+  rhov_fv = rhov_f.val();
+  rhoE_fv = rhoE_f.val();
+  rho_tv = rho_t.val();
+  rhou_tv = rhou_t.val();
+  rhov_tv = rhov_t.val();
+  rhoE_tv = rhoE_t.val();
+  
+  
+//   rho_fv = rho_f;
+//   rhou_fv = rhou_f;
+//   rhov_fv = rhov_f;
+//   rhoE_fv = rhoE_f;
+//   rho_tv = rho_t;
+//   rhou_tv = rhou_t;
+//   rhov_tv = rhov_t;
+//   rhoE_tv = rhoE_t;
+
+  locREAL    c_speed2;
+  //
+  //.. Compute the eigenvalues of the Jacobian matrix
+  locREAL    eig_val1;
+  locREAL    eig_val2;
+  locREAL    eig_val3;
+  locREAL    u_fv = rhou_fv/rho_fv;
+  locREAL    v_fv = rhov_fv/rho_fv;
+  locREAL    u_tv = rhou_tv/rho_tv;
+  locREAL    v_tv = rhov_tv/rho_tv;
+  REAL gam1 = gam - REAL(1.0);
+  locREAL    p_tv = gam1 * (rhoE_tv - REAL(0.5) * (rhou_tv * rhou_tv + rhov_tv * rhov_tv) / rho_tv);
+  locREAL    p_fv = gam1 * (rhoE_fv - REAL(0.5) * (rhou_fv * rhou_fv + rhov_fv * rhov_fv) / rho_fv);  
+  REAL norme = sqrt(nx * nx + ny * ny);
+  locREAL scal,c_speed;
+  locREAL u_ave,v_ave,u2pv2;
+  {
+ 
+    flux_rho = 0;
+    flux_rhou = 0;
+    flux_rhov = 0;
+    flux_rhoE = 0;
+  
+    //REAL gam2 = gam * (gam - 1.0);
+    //REAL igam = 1.0 / (gam - 1.0);
+  
+    //
+    //.. Compute the ROE Averages
+    //
+    //.... some useful quantities
+    locREAL    coef1 = sqrt(rho_fv);
+    locREAL    coef2 = sqrt(rho_tv);
+    locREAL    somme_coef = coef1 + coef2;
+    locREAL    h_f = (gam * rhoE_fv/rho_fv) -  (u_fv * u_fv + v_fv * v_fv) * (gam1 / REAL(2.0));
+    locREAL    h_t = (gam * rhoE_tv/rho_tv) -  (u_tv * u_tv + v_tv * v_tv) * (gam1 / REAL(2.0));
+  
+    //.... averages
+    //REAL rho_ave = coef1 * coef2;
+//    cout << "Approx coef1 " << coef1 << "coef2 " << coef2 << "h_f " << h_f << "h_t " << h_t << endl;
+    u_ave = (coef1 * u_fv + coef2 * u_tv) / somme_coef;
+    v_ave = (coef1 * v_fv + coef2 * v_tv) / somme_coef;
+    locREAL    h_ave = (coef1 * h_f + coef2 * h_t) / somme_coef;
+    //
+    //.. Compute Speed of sound
+    scal = u_ave * nx + v_ave * ny;
+    u2pv2 = u_ave * u_ave + v_ave * v_ave;
+    c_speed = gam1 * (h_ave - REAL(0.5) * u2pv2);
+//    cout << "Approx c_speed " << c_speed << endl << "h_ave " << h_ave << endl << "u2pv2 " << u2pv2 << endl;
+    if(c_speed < REAL(1e-6)) c_speed = REAL(1e-6);    // avoid division by 0 if critical
+    c_speed = sqrt(c_speed);
+    c_speed2 = c_speed * norme;
+    //
+    //.. Compute the eigenvalues of the Jacobian matrix
+    eig_val1 = scal - c_speed2;
+    eig_val2 = scal;
+    eig_val3 = scal + c_speed2;
+//    cout << "Eigenvalues appox" << eig_val1 << endl << eig_val2 << endl << eig_val3 << endl;
+  }
+  //
+  //.. Compute the ROE flux
+  //.... In this part many tests upon the eigenvalues
+  //.... are done to simplify calculations
+  //.... Here we use the two formes of the ROE flux :
+  //.... phi(Wl,Wr) = F(Wl) + A-(Wroe)(Wr - Wl)
+  //.... phi(Wl,Wr) = F(Wr) - A+(Wroe)(Wr - Wl)
+  //
+  if(eig_val2 <= REAL(0.0)) {
+    T p_t,ep_t;
+    p_t = gam1 * (rhoE_t - REAL(0.5) * (rhou_t * rhou_t + rhov_t * rhov_t) / rho_t);
+    ep_t = rhoE_t + p_t;
+    T    u_t = rhou_t/rho_t;
+    T    v_t = rhov_t/rho_t;
+    T rhouv_t = rhou_t * v_t;
+    flux_rho  = rhou_t * nx + rhov_t * ny;
+    flux_rhou = (rhou_t * u_t + p_t) * nx + rhouv_t * ny;
+    flux_rhov = rhouv_t * nx + (rhov_t * v_t + p_t) * ny;
+    flux_rhoE = ep_t * (u_t * nx + v_t * ny);
+    //
+    //.... A Entropic modification
+    //
+    locREAL lambda_f = u_fv * nx + v_fv * ny + norme * sqrt(gam * p_fv / rho_fv);
+    locREAL lambda_t   = u_tv * nx + v_tv * ny + norme
+        * sqrt(gam * p_tv / rho_tv);
+    if (entropyFix && (lambda_f < REAL(0.)) && (lambda_t > REAL(0.))) {
+      eig_val3 = lambda_t * (eig_val3 - lambda_f) / (lambda_t - lambda_f);
+    }
+    //
+    if (eig_val3 > REAL(0.0)) {
+      //.. In this case A+ is obtained by multiplying the last
+      //.. colomne of T-1 with the last row of T with eig_val3
+      T    alpha1,alpha2,alpha3,alpha4,alpha;
+      locREAL a1,a2,a3,a4,b1,b2,b3,b4;
+      T    delta_rho, delta_rhou,delta_rhov, delta_rhoE;
+      delta_rho  = rho_t - rho_f;
+      delta_rhou = rhou_t - rhou_f;
+      delta_rhov = rhov_t - rhov_f;
+      delta_rhoE = rhoE_t - rhoE_f;
+      //
+      scal = scal / norme;
+      REAL hnx = nx / norme;
+      REAL hny = ny / norme;
+      locREAL usc = REAL(1.0)/c_speed;
+      locREAL tempo11 = gam1 * usc;
+      //.. Last columne of the matrix T-1
+      a1 = usc;
+      a2 = u_ave * usc + hnx;
+      a3 = v_ave * usc + hny;
+      a4 = REAL(0.5) * u2pv2 * usc + REAL(2.5) * c_speed + scal;
+      //.. Last row of the matrix T * eig_val3
+      b1 = REAL(0.5) * eig_val3 * (REAL(0.5) * tempo11 * u2pv2 - scal);
+      b2 = REAL(0.5) * eig_val3 * (hnx - tempo11 * u_ave);
+      b3 = REAL(0.5) * eig_val3 * (hny - tempo11 * v_ave);
+      b4 = REAL(0.5) * eig_val3 * tempo11;
+      //
+      alpha1 = a1 * b1 * delta_rho;
+      alpha2 = a1 * b2 * delta_rhou;
+      alpha3 = a1 * b3 * delta_rhov;
+      alpha4 = a1 * b4 * delta_rhoE;
+      alpha = alpha1 + alpha2 + alpha3 + alpha4;
+      //
+      flux_rho  -= alpha;
+      flux_rhou -= a2 * b1 * delta_rho + a2 * b2 * delta_rhou +
+          a2 * b3 * delta_rhov + a2 * b4 * delta_rhoE;
+      flux_rhov -= a3 * b1 * delta_rho + a3 * b2 * delta_rhou +
+          a3 * b3 * delta_rhov + a3 * b4 * delta_rhoE;
+      flux_rhoE -= a4 * b1 * delta_rho + a4 * b2 * delta_rhou +
+          a4 * b3 * delta_rhov + a4 * b4 * delta_rhoE;
+    }
+  }
+  //
+  if(eig_val2 > REAL(0.0)) {
+    T p_f,ep_f;
+    T    u_f = rhou_f/rho_f;
+    T    v_f = rhov_f/rho_f;
+    p_f = gam1 * (rhoE_f - REAL(0.5) * (rhou_f * rhou_f +
+        rhov_f * rhov_f) / rho_f);
+    ep_f = rhoE_f + p_f;
+    T rhouv_f = rhou_f * v_f;
+    flux_rho  = rhou_f * nx + rhov_f * ny;
+    flux_rhou = (rhou_f * u_f + p_f) * nx + rhouv_f * ny;
+    flux_rhov = rhouv_f * nx + (rhov_f * v_f + p_f) * ny;
+    flux_rhoE = ep_f * (u_f * nx + v_f * ny);
+    //
+    // A Entropic modification
+    //
+    locREAL lambda_f = u_fv * nx + v_fv * ny - norme * sqrt(gam * p_fv / rho_fv);
+    locREAL lambda_t   = u_tv * nx + v_tv * ny - norme * sqrt(gam * p_tv / rho_tv);
+    if (entropyFix && (lambda_f < REAL(0.)) && (lambda_t > REAL(0.))) {
+      eig_val1 = lambda_f * (lambda_t - eig_val1) / (lambda_t - lambda_f);
+    }
+    //
+    if (eig_val1 < REAL(0.0)) {
+      //.. In this case A+ is obtained by multiplying the first
+      //.. columne of T-1 with the first row of T with eig_val1
+      T    alpha1,alpha2,alpha3,alpha4,alpha;
+      locREAL a1,a2,a3,a4,b1,b2,b3,b4;
+      T    delta_rho, delta_rhou,delta_rhov, delta_rhoE;
+      delta_rho  = rho_t - rho_f;
+      delta_rhou = rhou_t - rhou_f;
+      delta_rhov = rhov_t - rhov_f;
+      delta_rhoE = rhoE_t - rhoE_f;
+      //
+      scal = scal / norme;
+      REAL hnx = nx / norme;
+      REAL hny = ny / norme;
+      locREAL usc = REAL(1.0)/c_speed;
+      locREAL tempo11 = gam1 * usc;
+      //.. First colomne of the matrix T-1
+      a1 = usc;
+      a2 = u_ave * usc - hnx;
+      a3 = v_ave * usc - hny;
+      a4 = REAL(0.5) * u2pv2 * usc + REAL(2.5) * c_speed - scal;
+      //.. First row of the matrix T * eig_val1
+      b1 = REAL(0.5) * eig_val1 * (REAL(0.5) * tempo11 * u2pv2 + scal);
+      b2 = -REAL(0.5) * eig_val1 * (hnx + tempo11 * u_ave);
+      b3 = -REAL(0.5) * eig_val1 * (hny + tempo11 * v_ave);
+      b4 = REAL(0.5) * eig_val1 * tempo11;
+      //
+      alpha1 = a1 * b1 * delta_rho;
+      alpha2 = a1 * b2 * delta_rhou;
+      alpha3 = a1 * b3 * delta_rhov;
+      alpha4 = a1 * b4 * delta_rhoE;
+      alpha = alpha1 + alpha2 + alpha3 + alpha4;
+      //
+      flux_rho  += alpha;
+      flux_rhou += a2 * b1 * delta_rho + a2 * b2 * delta_rhou +
+          a2 * b3 * delta_rhov + a2 * b4 * delta_rhoE;
+      flux_rhov += a3 * b1 * delta_rho + a3 * b2 * delta_rhou +
+          a3 * b3 * delta_rhov + a3 * b4 * delta_rhoE;
+      flux_rhoE += a4 * b1 * delta_rho + a4 * b2 * delta_rhou +
+          a4 * b3 * delta_rhov + a4 * b4 * delta_rhoE;
+    }
+  }
+}
+#endif
+  /**
+  Class identificator
+   */
+  int TPZEulerConsLaw2::ClassId() const {
+    return TPZEULERCONSLAW2ID;
+  }
+  template class 
+      TPZRestoreClass< TPZEulerConsLaw2, TPZEULERCONSLAW2ID>;
