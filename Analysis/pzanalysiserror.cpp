@@ -1,11 +1,10 @@
-//$Id: pzanalysiserror.cpp,v 1.10 2006-02-21 14:55:15 cesar Exp $
+//$Id: pzanalysiserror.cpp,v 1.11 2006-10-17 02:04:47 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysiserror.h"
 #include "pzcmesh.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
-#include "pzelgq2d.h"
 #include "pzskylmat.h"
 #include "pzsolve.h"
 #include "pzstepsolver.h"
