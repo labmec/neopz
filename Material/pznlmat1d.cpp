@@ -1,4 +1,4 @@
-//$Id: pznlmat1d.cpp,v 1.1 2006-05-30 17:44:43 tiago Exp $
+//$Id: pznlmat1d.cpp,v 1.2 2006-10-17 01:47:23 phil Exp $
 // -*- c++ -*-
 
 #include "pznlmat1d.h"
@@ -31,7 +31,7 @@ void TPZNLMat1d::Print(std::ostream &out)
 
 int TPZNLMat1d::VariableIndex(char *name)
 {
-  if (name == "Tensão") return 0.;
+  if (!strcmp(name,"Tensão")) return 0;
   else return -1;
 }
 
