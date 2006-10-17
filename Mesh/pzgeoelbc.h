@@ -1,4 +1,4 @@
-//$Id: pzgeoelbc.h,v 1.5 2005-04-25 02:31:48 phil Exp $
+//$Id: pzgeoelbc.h,v 1.6 2006-10-17 01:38:03 phil Exp $
 
 #ifndef PZGEOELBCH
 #define PZGEOELBCH
@@ -11,34 +11,30 @@ class TPZGeoMesh;
 class TPZGeoEl;
 class TPZGeoElSide;
 
-/*******       TPZGeoElBC       *******/
+/** Structure to help the construction of geometric elements along side of a given geometric element
+ */
+struct TPZGeoElBC {
 
-/// Associates an geometric element side with a boundary condition
-/**
-within the pz environment specific geometric elements represent the boundary conditions
-This class simplifies the creation of these boundary elements
-The constructor of the class automatically creates a copy of the object in the mesh object which is passed as parameter
-@ingroup geometry
-*/
-struct TPZGeoElBC : public TPZSaveable {
-  TPZGeoEl		*fElement;
-  TPZGeoEl		*fBCElement;
-  int			fSide;
-  int			fId;
+  private:
 
-  TPZGeoElBC();
+  /** Pointer to the geometric element created in the class constructor */
+  TPZGeoEl *fCreatedElement;
 
-  TPZGeoElBC(TPZGeoEl *el,int side,int id, TPZGeoMesh &mesh);
+  public:
+  
+  /** Creates a geometric element along side of el. 
+   *  The new geometric element is inserted in mesh and a pointer to it is stored here. 
+   */
+  TPZGeoElBC(TPZGeoEl *el,int side,int matid, TPZGeoMesh &mesh);
 
-  TPZGeoElBC(TPZGeoElSide &elside,int id, TPZGeoMesh &mesh);
-
-  void Print(std::ostream &out = std::cout);
+  /** Creates a geometric element along side of el. 
+   *  The new geometric element is inserted in mesh and a pointer to it is stored here. 
+   */
+  TPZGeoElBC(TPZGeoElSide &elside,int matid, TPZGeoMesh &mesh);
+  
+  /** Recovers pointer to the geometric element created */
+  TPZGeoEl * CreatedElement(){ return this->fCreatedElement; }
  
-virtual int ClassId() const;
-
-virtual void Write(TPZStream &buf, int withclassid);
-
-virtual void Read(TPZStream &buf, void *context); 
 };
 
 #endif
