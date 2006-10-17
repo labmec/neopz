@@ -405,14 +405,14 @@ TPZFlowCompMesh *
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
-   TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
-                ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-
-   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>
-                ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-
-   TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>
-                ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+//    TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
+//                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+// 
+//    TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>
+//                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+// 
+//    TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>
+//                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
 
    const int dim = 3;
 //   int interfdim = dim -1;

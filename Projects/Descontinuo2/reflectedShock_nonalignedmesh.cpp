@@ -20,6 +20,7 @@
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzblock.h"
+#include "pzintel.h"
 // Creates a mesh for the reflected shock problem
  using namespace pzgeom;
  using namespace pzshape;
@@ -145,11 +146,11 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
-   TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
-                ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-
-   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>
-                ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+//    TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
+//                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+// 
+//    TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>
+//                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
 
    int dim = 2;
 //   int interfdim = dim -1;
@@ -191,7 +192,7 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
    REAL cspeed = sqrt(1.4*press/1.7);
    REAL lambdaMax = us + cspeed;
 */
-   cout << .22/(2/**lambdaMax*/);
+//   cout << .22/(2/**lambdaMax*/);
 
    mat->SetDelta(delta);
 
@@ -253,7 +254,7 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
    cmesh->InsertMaterialObject(bc);
 
    cmesh->AutoBuild();
-//   cmesh->AdjustBoundaryElements();
+   cmesh->AdjustBoundaryElements();
 
 // printing meshes
 
@@ -271,8 +272,54 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
    int nVars = Solution.Rows();
    for(int k = 0; k < nVars; k++)Solution(k)=.1;
 
+   int nel = cmesh->NElements();
+   int iel;
+   for(iel=0; iel<nel; iel++)
+   {
+     TPZCompEl *cel = cmesh->ElementVec()[iel];
+     TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+     TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(cel);
+     if(intel)
+     {
+       int nnodes = intel->Reference()->NNodes();
+       int in;
+       for(in = 0; in<nnodes; in++)
+       {
+         int blnum = intel->SideConnect(0,in)->SequenceNumber();
+         int blockOffset = cmesh->Block().Position(blnum);
 
-   int j, NSolutionBlocks;
+         REAL ro = 1.7,
+         u = 2.9,
+         v = 0,
+         p = 2.714286,
+         vel2 = u*u + v*v;
+         Solution(blockOffset  ,0) = ro;
+         Solution(blockOffset+1,0) = ro * u;
+         Solution(blockOffset+2,0) = ro * v;
+         Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+       }
+     } else if(disc)
+     {
+       int conind = disc->ConnectIndex();
+       // skip boundary elements
+       if(conind < 0) continue;
+       int blnum = cmesh->ConnectVec()[conind].SequenceNumber();
+       int blpos = cmesh->Block().Position(blnum);
+       int blsize = cmesh->Block().Size(blnum);
+       int blockOffset = blpos+blsize-(dim+2);
+       REAL ro = 1.7,
+       u = 2.9,
+       v = 0,
+       p = 2.714286,
+       vel2 = u*u + v*v;
+       Solution(blockOffset  ,0) = ro;
+       Solution(blockOffset+1,0) = ro * u;
+       Solution(blockOffset+2,0) = ro * v;
+       Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
+     }
+   }
+
+/*   int j, NSolutionBlocks;
    //TPZBlock * pBlock = cmesh->Block();
    NSolutionBlocks = cmesh->Block().NBlocks();
    int nShape = Solution.Rows() / NSolutionBlocks / (dim + 2);
@@ -290,10 +337,8 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
       Solution(blockOffset+1,0) = ro * u;
       Solution(blockOffset+2,0) = ro * v;
       Solution(blockOffset+3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
-/*
-      for(int k = 4; k < 12; k++)Solution(blockOffset+k)=-1;*/
 
-   }
+   }*/
    cmesh->LoadSolution(Solution);
    return cmesh;
 }

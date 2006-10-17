@@ -128,11 +128,11 @@ TPZFlowCompMesh * STCompMesh(REAL CFL, REAL delta,
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
-   TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
-                ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-
-   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>
-                ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+//    TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
+//                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+// 
+//    TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>
+//                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
 
    int dim = 2;
 //   int interfdim = dim -1;
