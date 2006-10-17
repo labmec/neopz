@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.26 2006-05-30 17:49:11 tiago Exp $
+//$Id: pzcmesh.h,v 1.27 2006-10-17 01:41:58 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -12,7 +12,8 @@
 #include "pzconnect.h"
 //#include "pzanalysis.h"
 //#include <iostream>
-
+#include <map>
+#include <iostream>
 #include <set>
 #include <string>
 #include "pzreal.h"	// Added by ClassView
@@ -431,6 +432,13 @@ public:
   void Assemble(TPZMatrix &stiffness,TPZFMatrix &rhs);
 
   /**
+   * Assemble the vector with errors estimators
+   * @param estimator vector where will be assembled the errors
+   * @param errorid index for dual or wheeler estimator
+   */
+  void AssembleError(TPZFMatrix &estimator, int errorid);
+  
+  /**
    * Assemble only the right hand side
    * @param rhs vector where the load vector will be assembled
    */
@@ -444,7 +452,7 @@ public:
   void BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &transfer);
 
   /**
-   * Para elementos decontínuos
+   * Para elementos decontï¿½uos
    */
   void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer &transfer);
   void ProjectSolution(TPZFMatrix &projectsol);
@@ -465,13 +473,13 @@ public:
    * indices contains the type of the element. Element type are given by the enumerate MCreationType.
    */
   virtual void AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const TPZVec<TPZGeoEl*> &discontinuous);
+  
+  void AutoBuild(std::set<int> &MaterialIDs);
 
-  virtual void AutoBuildContDisc(const TPZVec<TPZMaterial*> &continuous, const TPZVec<TPZMaterial*> &discontinuous);
-
-  void SetAllCreateFunctionsDiscontinuous();
-  void SetAllCreateFunctionsContinuous();
-  void SetAllCreateFunctionsDiscontinuousReferred();
-  void SetAllCreateFunctionsContinuousReferred();
+static  void SetAllCreateFunctionsDiscontinuous();
+static  void SetAllCreateFunctionsContinuous();
+static  void SetAllCreateFunctionsDiscontinuousReferred();
+static  void SetAllCreateFunctionsContinuousReferred();
 
   /**
    * Will build the list of element boundary conditions build the list of connect boundary conditions.
@@ -569,9 +577,9 @@ public:
 
   REAL LesserEdgeOfMesh();
 
-  /** cria uma malha obtida por aglomera¢ão de elementos,
+  /** cria uma malha obtida por aglomeraï¿½ de elementos,
    * accumlist relaciona a lista de elementos da malha fina que 
-   * serão acumulados
+   * serï¿½ acumulados
    */
   TPZCompMesh *ComputeMesh(TPZVec<int> &accumlist,int numaggl);
   /** This method will fill the matrix passed as parameter with a representation of the fillin of the global stiffness matrix, based on the sequence number of the connects
