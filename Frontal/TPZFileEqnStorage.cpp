@@ -122,16 +122,16 @@ void TPZFileEqnStorage::Store(int ieq, int jeq, const char *name){
 
 void TPZFileEqnStorage::Forward(TPZFMatrix &f, DecomposeType dec) const
 {
-  cout << "Inside TPZFileEqnStorage::Forward" << endl;
-  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
+//  cout << "Inside TPZFileEqnStorage::Forward" << endl;
+//  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
  
   //if(!fIOStream) SetFileName(fFileName);
   TPZEqnArray REqnArray;
   int i;
   for(i=0;i<fBlockPos.NElements();i++) {
     if (fBlockPos[i]) {
-     if(!(i%10)) cout << "*";
-     if(!(i%100)) cout << i << endl;
+//     if(!(i%10)) cout << "*";
+//     if(!(i%100)) cout << i << endl;
 
       if(fseek(fIOStream,fBlockPos[i],SEEK_SET)){
           cout << "fseek fail on Element " << i << " Position " << fBlockPos[i] << endl;
@@ -156,15 +156,15 @@ void TPZFileEqnStorage::Forward(TPZFMatrix &f, DecomposeType dec) const
 }
 void TPZFileEqnStorage::Backward(TPZFMatrix &f, DecomposeType dec) const
 {
-  cout << "Inside TPZFileEqnStorage::Backward" << endl;
-  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
+//  cout << "Inside TPZFileEqnStorage::Backward" << endl;
+//  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
      
 	TPZEqnArray REqnArray;
 	int i;
 	for(i=fBlockPos.NElements()-1;i>=0;i--){
 		if (fBlockPos[i]) {
-		     if(!(i%10)) cout << "*";
-		     if(!(i%100)) cout << i << endl;
+//		     if(!(i%10)) cout << "*";
+//		     if(!(i%100)) cout << i << endl;
 			fseek(fIOStream,fBlockPos[i],SEEK_SET);
 			long int position;
 			fread(&position,sizeof(long int),1,fIOStream);
@@ -333,8 +333,8 @@ TPZFileEqnStorage::TPZFileEqnStorage()
 #else
      mkstemp(filenamestorage);
 #endif
-     cout << "Temporary file name " << filenamestorage << endl;
-     cout.flush();
+//     cout << "Temporary file name " << filenamestorage << endl;
+//     cout.flush();
      
      fCurBlockPosition = -1;
 	fNumBlocks=0;

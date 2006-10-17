@@ -43,17 +43,17 @@ void TPZFrontMatrix<store, front>::SetNumElConnected(TPZVec < int > &numelconnec
      fNumElConnected.Resize(numelconnected.NElements());
 	fNumElConnected=numelconnected;
 	fNumElConnectedBackup = fNumElConnected;
-	cout << "Storage Schema -> " << fStorage.GetStorage() << endl; 
-	cout << "Front Matrix Type -> " << fFront.GetMatrixType() << endl;
+//	cout << "Storage Schema -> " << fStorage.GetStorage() << endl; 
+//	cout << "Front Matrix Type -> " << fFront.GetMatrixType() << endl;
 	#ifdef BLAS
-     	cout << "Using BLAS" << endl;
+//     	cout << "Using BLAS" << endl;
      #endif
      #ifdef USING_ATLAS
-          cout << "Using ATLAS" << endl;     
+//          cout << "Using ATLAS" << endl;     
      #endif
 	#ifndef USING_BLAS
   #ifndef USING_ATLAS
-     	cout << "Not Using BLAS" << endl;
+//     	cout << "Not Using BLAS" << endl;
 	#endif
   #endif
 }
