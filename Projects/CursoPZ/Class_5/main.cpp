@@ -24,9 +24,9 @@ TPZGeoMesh * GetMesh(int nx,int ny);
 
 int main(){
   TPZSaveable::Register(TPZSAVEABLEID,Restore<TPZSaveable>);
-  RegisterMeshClasses();
-  RegisterMatrixClasses();
-  RegisterMaterialClasses();
+//  RegisterMeshClasses();
+//  RegisterMatrixClasses();
+//  RegisterMaterialClasses();
 	cout << "***********************************************************************\n";
 	cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	cout << "PZ - Class 5 -->> Writing and reading meshes on files\n";
