@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.25 2006-04-03 20:41:09 tiago Exp $
+//$Id: pzgmesh.cpp,v 1.26 2006-10-17 00:57:33 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -24,10 +24,6 @@ Method definition for class TPZGeoMesh.*/
 #include "pzmatrix.h"
 //#include "pzavlmap.h"
 
-#include "pzelgt2d.h"
-#include "pzelgq2d.h"
-#include "pzelgt3d.h"
-#include "pzelgpi3d.h"
 #include <TPZRefPattern.h>
 #include <tpzgeoelrefpattern.h>
 
@@ -42,13 +38,41 @@ Method definition for class TPZGeoMesh.*/
 
 using namespace std;
 
-TPZGeoMesh::TPZGeoMesh() : fElementVec(0), fNodeVec(0), fCosysVec(0),
-  fBCElementVec(0) {
+TPZGeoMesh::TPZGeoMesh() : fElementVec(0), fNodeVec(0){
 
 //  fName[0] = '\0';
   fReference = 0;
   fNodeMaxId = -1;
   fElementMaxId = -1;
+}
+
+TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp):
+              TPZSaveable(cp){
+  this->operator =(cp);
+}
+
+TPZGeoMesh & TPZGeoMesh::operator= (const TPZGeoMesh &cp ){
+  this->CleanUp();
+
+  this->fName = cp.fName;
+  int i, n = cp.fNodeVec.NElements();
+  this->fNodeVec.Resize( n );
+  for(i = 0; i < n; i++){
+    this->fNodeVec[i] = cp.fNodeVec[i];
+  }//for
+  n = cp.fElementVec.NElements();
+  this->fElementVec.Resize( n );
+  for(i = 0; i < n; i++){
+    this->fElementVec[i] = cp.fElementVec[i]->Clone(*this);
+  }
+  
+  this->fNodeMaxId = cp.fNodeMaxId;
+  this->fElementMaxId = cp.fElementMaxId;
+  this->fInterfaceMaterials = cp.fInterfaceMaterials;
+  this->fRefPatterns = cp.fRefPatterns;
+//  this->fCosysVec = cp.fCosysVec;  
+  this->fReference = NULL;
+  return *this;
 }
 
 TPZGeoMesh::~TPZGeoMesh() {
@@ -69,23 +93,19 @@ void TPZGeoMesh::CleanUp() {
   fElementVec.CompactDataStructure(1);
   fNodeVec.Resize(0);
   fNodeVec.CompactDataStructure(1);
-  fCosysVec.Resize(0);
-  fCosysVec.CompactDataStructure(1);
-  fBCElementVec.Resize(0);
-  fBCElementVec.CompactDataStructure(1);
-//  fBCNodeVec.Resize(0);
-//  fBCNodeVec.CompactDataStructure(1);
+//   fCosysVec.Resize(0);
+//   fCosysVec.CompactDataStructure(1);
 
-  map< MElementType,list< TPZRefPattern *> >::iterator first = fRefPatterns.begin();
-  map< MElementType,list<TPZRefPattern *> >::iterator last = fRefPatterns.end();
-  map< MElementType,list<TPZRefPattern *> >::iterator  iter;
+  std::map< MElementType, std::map<int, TPZRefPattern *> >::iterator first = fRefPatterns.begin(), 
+                                                                     last = fRefPatterns.end(), 
+                                                                     iter;
   for (iter = first; iter != last; iter++){
-    list<TPZRefPattern *> &map_el = (*iter).second;
-    list<TPZRefPattern *>::iterator name_first = map_el.begin();
-    list<TPZRefPattern *>::iterator name_last = map_el.end();
-    list<TPZRefPattern *>::iterator name_iter;    
+    map<int, TPZRefPattern *> &map_el = (*iter).second;
+    map<int, TPZRefPattern *>::iterator name_first = map_el.begin();
+    map<int, TPZRefPattern *>::iterator name_last = map_el.end();
+    map<int, TPZRefPattern *>::iterator name_iter;    
     for(name_iter = name_first; name_iter != name_last; name_iter++){
-      TPZRefPattern *refpat = (*name_iter);
+      TPZRefPattern *refpat = name_iter->second;
       delete refpat;
     }
   }
@@ -151,16 +171,16 @@ void TPZGeoMesh::PatternSidesFile(std::ofstream &filename){
   int count=0;
   filename << std::endl;
   filename << std::endl;
-  std::map< MElementType,list<TPZRefPattern *> >::iterator first = fRefPatterns.begin();
-  std::map< MElementType,list<TPZRefPattern *> >::iterator last = fRefPatterns.end();
-  std::map< MElementType,list<TPZRefPattern *> >::iterator iter;
+  std::map< MElementType, std::map<int, TPZRefPattern *> >::iterator first = fRefPatterns.begin(),
+                                                                     last = fRefPatterns.end(), 
+                                                                     iter;
   for (iter = first; iter != last; iter++){
-    list<TPZRefPattern *> &map_el = (*iter).second;
-    list<TPZRefPattern *>::iterator name_first = map_el.begin();
-    list<TPZRefPattern *>::iterator name_last = map_el.end();
-    list<TPZRefPattern *>::iterator name_iter;
+    std::map<int, TPZRefPattern *> &map_el = (*iter).second;
+    std::map<int, TPZRefPattern *>::iterator name_first = map_el.begin();
+    std::map<int, TPZRefPattern *>::iterator name_last = map_el.end();
+    std::map<int, TPZRefPattern *>::iterator name_iter;
     for(name_iter = name_first; name_iter != name_last; name_iter++){
-      TPZRefPattern *refpat = (*name_iter);
+      TPZRefPattern *refpat = name_iter->second;
       refpat->ShortPrint(filename);
       count++;
       filename << std::endl ;
@@ -178,26 +198,22 @@ void TPZGeoMesh::PatternFileLoad(std::ifstream &file){
   std::vector<TPZRefPattern *> collect(k);
   for(i=0; i<k; i++)
   {
-    collect[i] = new TPZRefPattern();
+    collect[i] = new TPZRefPattern(this);
   }
   for(i=0; i<k; i++){
 //    std::cout << i+1 << endl;
     collect[i]->ReadPattern(file,collect);
-    InsertRefPattern(collect[i]);
+    this->InsertRefPattern(collect[i]);
     //A->InsertPermuted(*this);
   }
 }
 int TPZGeoMesh::NRefPatterns (){
   //return fRefPatterns.size();
   int count = 0;
-  std::map<MElementType,std::list< TPZRefPattern *> >::iterator it;
+  std::map< MElementType, std::map<int, TPZRefPattern *> >::iterator it;
   for (it=fRefPatterns.begin();it!=fRefPatterns.end();it++)
   {
-    std::list<TPZRefPattern *>::iterator itlist;
-    for(itlist = (*it).second.begin(); itlist != (*it).second.end(); itlist++)
-    {
-      (*itlist)->SetId(count++);
-    }
+    count += (*it).second.size();
   }
   return count;
 }
@@ -207,16 +223,16 @@ void TPZGeoMesh::RefPatternFile(std::ofstream &filename){
 
   int count=0;
   filename << NRefPatterns() << std::endl ;
-  std::map< MElementType,list<TPZRefPattern *> >::iterator first = fRefPatterns.begin();
-  std::map< MElementType,list<TPZRefPattern *> >::iterator last = fRefPatterns.end();
-  std::map< MElementType,list<TPZRefPattern *> >::iterator iter;
+  std::map< MElementType, std::map<int, TPZRefPattern *> >::iterator first = fRefPatterns.begin(),
+                                                                     last = fRefPatterns.end(),
+                                                                     iter;
   for (iter = first; iter != last; iter++){
-    list<TPZRefPattern *> &map_el = (*iter).second;
-    list<TPZRefPattern *>::iterator name_first = map_el.begin();
-    list<TPZRefPattern *>::iterator name_last = map_el.end();
-    list<TPZRefPattern *>::iterator name_iter;
+    std::map<int, TPZRefPattern *> &map_el = (*iter).second;
+    std::map<int, TPZRefPattern *>::iterator name_first = map_el.begin();
+    std::map<int, TPZRefPattern *>::iterator name_last = map_el.end();
+    std::map<int, TPZRefPattern *>::iterator name_iter;
     for(name_iter = name_first; name_iter != name_last; name_iter++){
-      TPZRefPattern *refpat = (*name_iter);
+      TPZRefPattern *refpat = name_iter->second;
       //std::ofstream teste("refpatterns_geral.txt");
       refpat->WritePattern(filename);
       count++;
@@ -248,10 +264,35 @@ void TPZGeoMesh::Print (ostream & out) {
     out << "\n";
   }
 
-  out << "\nBoundary Element Information : \n\n";
-  for(i=0; i<fBCElementVec.NElements () ; i++) {
-	  fBCElementVec[i].Print (out);
+  out << "\nInterface materials : \n\n";
+  InterfaceMaterialsMap::iterator w, e = this->fInterfaceMaterials.end();
+  const int n = this->fInterfaceMaterials.size();
+  int l, r, m;
+  out << "number = " << n << "\n";
+  out << "left material / right material -> interface material\n";
+  for(w = this->fInterfaceMaterials.begin(); w != e; w++){
+    l = w->first.first;
+    r = w->first.second;
+    m = w->second;
+    out << l << " / " << r << " -> " << m << "\n";
   }
+  
+  out << "\nPrinting refinement patterns:\n";
+  std::map<MElementType,std::map< int, TPZRefPattern *> >::const_iterator itg, eg;
+  eg = this->fRefPatterns.end();
+  for(itg = this->fRefPatterns.begin(); itg != eg; itg++){
+    const std::map<int, TPZRefPattern *> & mymap = itg->second;
+    out << "Element type = " << itg->first << std::endl;
+    out << "Number of refinement patterns for this element type: " << mymap.size() << std::endl;
+    std::map<int, TPZRefPattern *>::const_iterator it, e;
+    e = mymap.end();
+    for(it = mymap.begin(); it != e; it++){
+      it->second->/*ShortPrint*/Print1(out);
+      out << "\n";
+    }//for it
+    out << "\n\n";
+  }//for itg
+  
 }
 
 void TPZGeoMesh::GetNodePtr(TPZVec<int> &nos,TPZVec<TPZGeoNode *> &nodep) {
@@ -720,11 +761,11 @@ TPZRefPattern *TPZGeoMesh::FindRefPattern(TPZRefPattern *refpat)
   if(!refpat) return 0;
 //  cout << "Looking for "; refpat->ShortPrint(cout); cout << endl;
   MElementType eltype = refpat->Element(0)->Type();
-  std::list<TPZRefPattern *>::iterator it;
+  std::map<int, TPZRefPattern *>::iterator it;
   for(it=fRefPatterns[eltype].begin(); it != fRefPatterns[eltype].end(); it++)
   {
 //    std::cout << "Comparing with "; (*it)->ShortPrint(cout); cout << endl;
-    if(*(*it) == *refpat) return (*it);
+    if(*it->second == *refpat) return it->second;
   }
 //  cout << "Not found\n";
   return 0;
@@ -737,17 +778,19 @@ void TPZGeoMesh::InsertRefPattern(TPZRefPattern *refpat){
     return;
   }
   MElementType eltype = refpat->Element(0)->Type();
-  fRefPatterns[eltype].push_back(refpat);
+  const int id = fRefPatterns[eltype].size();
+  refpat->SetId(id);
+  fRefPatterns[eltype][id] = refpat;
 }
 
 TPZRefPattern * TPZGeoMesh::GetRefPattern(MElementType eltype, const std::string &name){
-  TPZRefPattern *refpat = 0;
-  map<MElementType,list<TPZRefPattern *> >::iterator eltype_iter = fRefPatterns.find(eltype);
+  TPZRefPattern *refpat = NULL;
+  std::map< MElementType, std::map<int, TPZRefPattern *> >::iterator eltype_iter = fRefPatterns.find(eltype);
   if (eltype_iter == fRefPatterns.end()) return refpat;
-  list <TPZRefPattern *>::iterator name_iter = fRefPatterns[eltype].begin();
+  std::map<int, TPZRefPattern *>::iterator name_iter = fRefPatterns[eltype].begin();
   while(name_iter != fRefPatterns[eltype].end())
   {
-    if((*name_iter)->GetName() == name) return (*name_iter);
+    if(name_iter->second->GetName() == name) return name_iter->second;
     name_iter++;
   }
   return refpat;
@@ -937,25 +980,44 @@ int TPZGeoMesh::ClassId() const {
   return TPZGEOMESHID;
 }
 
+#ifndef BORLAND
+template class TPZRestoreClass<TPZGeoMesh,TPZGEOMESHID>;
+#endif
+
 void TPZGeoMesh::Read(TPZStream &buf, void *context)
 {
   TPZSaveable::Read(buf,context);
   buf.Read(&fName,1);
   ReadObjects(buf,fNodeVec,this);
   ReadObjectPointers(buf,fElementVec,this);
-  ReadObjects(buf,this->fBCElementVec,this);
   buf.Read(&fNodeMaxId,1);
   buf.Read(&fElementMaxId,1);
   int ninterfacemaps;
   buf.Read(&ninterfacemaps,1);
   int c;
-  for(c=0; c< ninterfacemaps; c++) 
-  {
+  for(c=0; c< ninterfacemaps; c++){
     int vals[3];
     buf.Read(vals,3);
     fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
-    }
-    BuildConnectivity();
+  }
+
+  //Reading TPZRefPattern's
+  this->fRefPatterns.clear();
+  int bigmapsize, iRef;
+  buf.Read(&bigmapsize, 1);
+  for(iRef = 0; iRef < bigmapsize; iRef++){
+    int intElementType;
+    buf.Read(&intElementType, 1);
+    MElementType MElType = static_cast<MElementType>(intElementType);
+    int smallmapsize, iMap;
+    buf.Read(&smallmapsize, 1);
+    for(iMap = 0; iMap < smallmapsize; iMap++){
+      TPZRefPattern * refp = new TPZRefPattern(this);
+      refp->Read(buf);
+      this->fRefPatterns[MElType][refp->Id()] = refp;
+    }//for
+  }//for
+  //Reading TPZRefPattern's 
 }
 
 void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
@@ -964,21 +1026,40 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
   buf.Write(&fName,1);
   WriteObjects(buf,fNodeVec);
   WriteObjectPointers(buf,fElementVec);
-  WriteObjects(buf,fBCElementVec);
   buf.Write(&fNodeMaxId,1);
   buf.Write(&fElementMaxId,1);
   int ninterfacemaps = fInterfaceMaterials.size();
   buf.Write(&ninterfacemaps,1);
   InterfaceMaterialsMap::iterator it = fInterfaceMaterials.begin();
-  while(it != fInterfaceMaterials.end())
-  {
+  for(; it != fInterfaceMaterials.end(); it++){
     int vals[3];
     vals[0] = (it->first).first;
     vals[1] = (it->first).second;
     vals[2] = it->second;
     buf.Write(vals,3);
   }
-}
+  
+  //Writing TPZRefPattern's
+  std::map< MElementType, std::map<int, TPZRefPattern *> >::iterator eRef,itRef;
+  int bigmapsize = fRefPatterns.size();
+  buf.Write(&bigmapsize, 1);
+  eRef = this->fRefPatterns.end();
+  for(itRef = this->fRefPatterns.begin(); itRef != eRef; itRef++){
+    int intElementType = static_cast<int>(itRef->first);
+    buf.Write(&intElementType, 1);
+    std::map<int, TPZRefPattern *>::iterator eMap, itMap;
+    std::map<int, TPZRefPattern *> &SmallMap = itRef->second;
+    int smallmapsize = SmallMap.size();
+    buf.Write(&smallmapsize, 1);
+    eMap = SmallMap.end();
+    for(itMap = SmallMap.begin(); itMap != eMap; itMap++){
+      TPZRefPattern * refp = itMap->second;
+      refp->Write(buf);
+    }//for
+  }//for
+  //Finishing writing TPZRefPattern's
+  
+}//method
 
 int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial){
   std::pair<int, int> leftright(leftmaterial, rightmaterial);
@@ -1023,3 +1104,17 @@ void TPZGeoMesh::ClearInterfaceMaterialsMap(){
   fInterfaceMaterials.erase(b, e);    
 }
 
+void TPZGeoMesh::ResetConnectivities(){
+  TPZGeoElSide side;
+  int iel;
+  const int nelem = this->NElements();
+  for(iel = 0; iel < nelem; iel++){
+    TPZGeoEl * gel = this->ElementVec()[iel];
+    if (!gel) continue;
+    const int nsides = gel->NSides();
+    int is;
+    for(is = 0; is < nsides; is++){
+      gel->SetNeighbour(is, side);
+    }
+  }
+}

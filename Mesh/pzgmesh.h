@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.22 2006-09-05 16:16:07 longhin Exp $
+//$Id: pzgmesh.h,v 1.23 2006-10-17 00:57:33 phil Exp $
 
 /**File : pzgmes.h
 
@@ -32,14 +32,12 @@ contained within the TPZGeoMesh.
 #include "pzeltype.h"
 #include "pzgnode.h"
 //#include "pzbndcond.h"
-#include "pzcmesh.h"
 #include "pzadmchunk.h"
 
 class TPZMaterial;
 class TPZGeoNode;
 struct TPZGeoNodeBC;
 class TPZGeoEl;
-struct TPZGeoElBC;
 class TPZCosys;
 class TPZMatrix;
 class TPZCompMesh;
@@ -67,12 +65,12 @@ class  TPZGeoMesh : public TPZSaveable {
 
   /** List of pointers to finite elements*/
   TPZAdmChunkVector<TPZGeoEl *> fElementVec;
+  
   /** List of pointers to nodes*/
   TPZAdmChunkVector<TPZGeoNode> fNodeVec;
+  
   /** List of pointers to reference systems*/
-  TPZAdmChunkVector<TPZCosys *> fCosysVec;
-  /** List of pointers to elements, boundary side and type*/
-  TPZAdmChunkVector<TPZGeoElBC> fBCElementVec;
+//  TPZAdmChunkVector<TPZCosys *> fCosysVec;
 
   /**Maximum id used by all nodes of this mesh*/
   int fNodeMaxId;
@@ -89,11 +87,26 @@ class  TPZGeoMesh : public TPZSaveable {
  public:
   /**Constructors and destructor*/
   TPZGeoMesh();
-  /*Destructor*/
+  
+  /** Copy constructor */
+  TPZGeoMesh(const TPZGeoMesh &cp);
+  
+   /**
+   * Operator of copy
+   */
+  TPZGeoMesh & operator= (const TPZGeoMesh &cp );
+  
+  /** Operator of copy */
+  
+  
+  /**Destructor*/
   virtual ~TPZGeoMesh();
 
   /**Deletes all items in the TPZGeoMesh*/
   void CleanUp();
+  
+  /** Reset all connectivities */
+  void ResetConnectivities();
   
 virtual int ClassId() const;
 
@@ -126,9 +139,8 @@ virtual void Write(TPZStream &buf, int withclassid);
   TPZAdmChunkVector<TPZGeoNode> &NodeVec() { return fNodeVec; }
   const TPZAdmChunkVector<TPZGeoEl *> &ElementVec() const { return fElementVec; }
   const TPZAdmChunkVector<TPZGeoNode> &NodeVec() const { return fNodeVec; }
-  TPZAdmChunkVector<TPZGeoElBC> &BCElementVec() { return fBCElementVec; }
-//  TPZAdmChunkVector<TPZGeoNodeBC> &BCNodeVec() { return fBCNodeVec; }
-  TPZAdmChunkVector<TPZCosys *> &CosysVec() { return fCosysVec; }
+
+//  TPZAdmChunkVector<TPZCosys *> &CosysVec() { return fCosysVec; }
 
   /**Resets all load references in elements and nodes*/
   void ResetReference();
@@ -234,8 +246,11 @@ void RefPatternFile(std::ofstream &filename);
   //void FindElement(TPZAVLMap<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
  	void FindElement(std::map<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
 protected: // Protected attributes
-  /** Maps all refinement pattern objects in the mesh */
-  std::map<MElementType,std::list< TPZRefPattern *> > fRefPatterns;
+
+  /** Maps all refinement pattern objects in the mesh
+   *  fRefPatterns[MElementType][Id] = (TPZRefPattern *)
+   */
+  std::map<MElementType,std::map< int, TPZRefPattern *> > fRefPatterns;
   
 public:
 /** insert the refinement pattern in the list of availabe refinement patterns */
@@ -248,7 +263,7 @@ public:
   /** Verifies if the side based refinement pattern exists. If the refinement pattern doesn't exists return a Null refinement Pattern. */
   TPZRefPattern * GetRefPattern (TPZGeoEl *gel, int side);
   
-  std::list<TPZRefPattern *> &RefPatternList(MElementType eltype)
+ const std::map<int, TPZRefPattern *> &RefPatternList(MElementType eltype)
   {
     return fRefPatterns[eltype];
   }
