@@ -1,4 +1,4 @@
-//$Id: pznlmat1drotatedengstrain.cpp,v 1.1 2006-05-30 17:44:43 tiago Exp $
+//$Id: pznlmat1drotatedengstrain.cpp,v 1.2 2006-10-17 01:46:58 phil Exp $
 // -*- c++ -*-
 
 #include "pznlmat1drotatedengstrain.h"
@@ -30,8 +30,8 @@ REAL TPZNLMat1dRotatedEngStrain::Eps( TPZVec<REAL> &sol,
   u2 = sol [2];
   w1 = sol [1];
   w2 = sol [3];
-  double u21 = u2 - u1;
-  double w21 = w2 - w1;
+//  double u21 = u2 - u1;
+//  double w21 = w2 - w1;
   double alpha0 = l/2.;
   double eps = ((1./4.)/alpha0)*((-x21*u1 + x21*u2 -z21*w1 +z21*w2));
   eps += (0.5/alpha0)*(u1*(u1-u2) + u2*(u2-u1) + w1*(w1-w2) + w2*(w2-w1));
