@@ -40,6 +40,7 @@ void TPZCompMeshReferred::LoadReferred(TPZCompMesh *mesh)
   {
     TPZCompEl *cel = fElementVec[iel];
     fReferredIndices[iel] = -1;
+    if (!cel) continue;
     TPZGeoEl *gel = cel->Reference();
     if(!gel)continue;
     TPZCompEl *cel2 = gel->Reference();
