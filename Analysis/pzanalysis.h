@@ -176,6 +176,9 @@ public:
   */
   TPZMatrixSolver *BuildPreconditioner(EPrecond preconditioner, bool overlap);
   
+  void SetTime(REAL time);
+  REAL GetTime();
+  
  private:
  
  /**
@@ -256,6 +259,14 @@ inline TPZMatrixSolver &
 
 TPZAnalysis::Solver(){
   return (*fSolver);
+}
+
+inline void TPZAnalysis::SetTime(REAL time){
+  this->fTime = time;
+}
+
+inline REAL TPZAnalysis::GetTime(){
+  return this->fTime;
 }
 
          
