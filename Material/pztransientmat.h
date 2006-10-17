@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientmat.h,v 1.2 2006-07-06 15:57:40 tiago Exp $
+//$Id: pztransientmat.h,v 1.3 2006-10-17 01:45:14 phil Exp $
 
 
 #ifndef TRANSIENTMATH
@@ -17,17 +17,34 @@
  */
 template<class TBASEMAT>
 class TPZTransientMaterial : public TBASEMAT {
+
   public:
   
   TPZTransientMaterial(int nummat, int dim, REAL TimeStep);
   
   ~TPZTransientMaterial();
   
+  TPZTransientMaterial(const TPZTransientMaterial &cp);
+  
+  /** Set integral scheme as an explicit Euler */
+  void SetExplicit();
+  
+  /** Set integral scheme as an implicit Euler */
+  void SetImplicit();
+  
   virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
                           TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
                           
   virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
                             TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+  
+  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+                                   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
+                                   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                   TPZFMatrix &ek,TPZFMatrix &ef);
+
+  virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
+                                     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
  /**
   * Set material to compute only Integral[- un/deltaT * v, Omega]
@@ -38,6 +55,16 @@ class TPZTransientMaterial : public TBASEMAT {
   * Set material to compute Integral[un+1/deltaT * v, Omega] + Bilinear Form = Linear Form 
   */
   void SetCurrentState();
+  
+  /**
+  * Set material to compute ek = Integral[phi_i phi_j, Omega]/deltaT
+  */
+  void SetMassMatrix();
+  
+  /**
+  * Set material to compute ef = Linear Form - Bilinear Form(u) = F -ku
+  */ 
+  void SetFluxOnly();
   
   /** 
    * Define time step DeltaT
@@ -67,7 +94,11 @@ class TPZTransientMaterial : public TBASEMAT {
   
   protected:
   
-  enum STEPS{ENone = -1, ELast = 0, ECurrent = 1};
+  enum ETemporalScheme{EImplicit = 1, EExplicit = 2};
+  
+  static int gTemporalIntegrator;
+  
+  enum STEPS{ENone = -1, ELast = 0, ECurrent = 1, EMassMatrix = 2, EFluxOnly = 3};
   
   STEPS fStep;
   
@@ -80,12 +111,26 @@ class TPZTransientMaterial : public TBASEMAT {
 
 template<class TBASEMAT>
 inline void TPZTransientMaterial< TBASEMAT >::SetLastState(){
+  this->SetImplicit();
   this->fStep = ELast;
 }
 
 template<class TBASEMAT>
 inline void TPZTransientMaterial< TBASEMAT >::SetCurrentState(){
+  this->SetImplicit();
   this->fStep = ECurrent;
+}
+
+template<class TBASEMAT>
+inline void TPZTransientMaterial< TBASEMAT >::SetMassMatrix(){
+  this->SetExplicit();
+  this->fStep = EMassMatrix;
+}
+
+template<class TBASEMAT>
+inline void TPZTransientMaterial< TBASEMAT >::SetFluxOnly(){
+  this->SetExplicit();
+  this->fStep = EFluxOnly;
 }
 
 template<class TBASEMAT>
