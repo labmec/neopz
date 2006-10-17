@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.22 2005-05-02 04:06:57 phil Exp $
+//$Id: pzgeoel.h,v 1.23 2006-10-17 01:37:27 phil Exp $
 
 // -*- c++ -*-
 
@@ -46,13 +46,11 @@ class TPZGeoEl : public TPZSaveable { 	// header file for the element class
   int		fId;
   /**material index*/
   int		fMatId;
-  /**pointer to the element currently loaded*/
-  TPZCompEl *fReference;
+  /** Reference to the element currently loaded. Pointer is given as this->Mesh()->Reference()->ElementVec()[fReference] */
+  TPZCompEl * fReference;
 
  protected:
 
-  /**the element from which the element is a subelement*/
-  TPZGeoEl *fFather;
   /** index of the element from which the element is a subelement*/
   int fFatherIndex;
   /**
@@ -62,9 +60,36 @@ class TPZGeoEl : public TPZSaveable { 	// header file for the element class
   /**3x3 unit matrix to be copied to the axes if the geometric element
      does not have a particular orientation*/
   static TPZFMatrix gGlobalAxes;
-
+  /**
+   * A counter to indicate how many interface elements are pointing to it
+   */
+   int fNumInterfaces;
+   
 public:
 
+  /**
+   * Return number of TPZInterfaceElement pointing to this.
+   */
+  int NumInterfaces(){
+    return this->fNumInterfaces;
+  }
+  
+  /** 
+   * Increment number of TPZInterfaceElement pointing to this.
+   */
+  int IncrementNumInterfaces(){
+    this->fNumInterfaces++;
+    return this->fNumInterfaces;
+  }
+  
+  /** 
+   * Decrement number of TPZInterfaceElement pointing to this.
+   */
+  int DecrementNumInterfaces(){
+    this->fNumInterfaces--;
+    return this->fNumInterfaces;
+  }  
+  
 	/**
 	* Creates an integration rule for the topology of the corresponding side
 	* and able to integrate a polynom of order exactly
@@ -113,14 +138,19 @@ public:
    * Copy constructor
    */
   TPZGeoEl(const TPZGeoEl &el) ;
+  
+  /**
+   * Copy constructor with elements in different meshes
+   */
+  TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp);
 
   TPZGeoEl() {
     fId = -1;
     fMesh = 0;
     fMatId = 0;
-    fReference = 0;
-    fFather = 0;
+    fReference = NULL;
     fFatherIndex = -1;
+    this->fNumInterfaces = 0;
   }
 
   virtual void Initialize(int materialindex, TPZGeoMesh &mesh, int &index);
@@ -129,8 +159,10 @@ public:
   
   virtual void Write(TPZStream &str, int withclassid);
   
+  virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const = 0;
+  
   /**Destructor*/
-  virtual ~TPZGeoEl(){};
+  virtual ~TPZGeoEl();
 
   /**it removes the connectivities of the element*/
   void RemoveConnectivities();
@@ -166,7 +198,7 @@ public:
   int MaterialId() { return fMatId; }
 
   /**return a pointer to the element referenced by the geometric element*/
-  TPZCompEl *Reference() const { return fReference; }
+  TPZCompEl *Reference() const;
 
   /**
    * returns the element type acording to pzeltype.h
@@ -275,7 +307,7 @@ virtual MElementType Type(int side) =0;
   virtual  void Print(std::ostream & out = std::cout);
 
   /**Make the current element reference to the computational element*/
-  void SetReference(TPZCompEl *elp) { fReference = elp; }
+  void SetReference(TPZCompEl *elp);
 
   /**Set the subelement of index i*/
   virtual void SetSubElement(int id, TPZGeoEl* gel) = 0;
@@ -284,7 +316,7 @@ virtual MElementType Type(int side) =0;
   virtual void SetSubElementConnectivities();
 
   /**reset the element referenced by the geometric element to NULL*/
-  void ResetReference() { fReference = NULL; }
+  void ResetReference() { this->fReference = NULL; }
 
   /**equivalent to Print*/
   friend std::ostream& operator<<(std::ostream &s,TPZGeoEl &el);
@@ -328,7 +360,6 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
   /**Sets the father element*/
   void SetFather(TPZGeoEl *father)
   {
-    fFather = father;
     fFatherIndex = father->Index();
   }
   
@@ -336,7 +367,6 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
   void SetFather(int fatherindex)
   {
     fFatherIndex = fatherindex;
-    if(Mesh()) fFather = Mesh()->ElementVec()[fatherindex];
   }
 
   /**returns a pointer to the subelement is*/
@@ -506,8 +536,13 @@ inline void TPZGeoEl::Divide(TPZVec<TPZGeoEl *> &) {
 //	cout << "TPZGeoEl::NodeFaceIds is called." << std::endl;
 //}
 
+inline void TPZGeoEl::SetReference(TPZCompEl * elp){
+  this->fReference = elp;
+}
 
-
+inline TPZCompEl *TPZGeoEl::Reference() const {
+  return this->fReference;
+}
 
 #include "pzgeoelside.h"
 #include "pzgeoelbc.h"
