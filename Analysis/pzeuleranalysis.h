@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.18 2005-04-25 01:56:15 phil Exp $
+//$Id: pzeuleranalysis.h,v 1.19 2006-10-17 02:03:31 phil Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -211,6 +211,9 @@ public:
     *
     */
    void CFLControl(REAL & lastEpsilon, REAL & epsilon, REAL & epsilon_Newton, REAL & timeStep);
+    void SetGMResFront(REAL tol, int numiter, int numvectors);
+    void SetFrontalSolver();
+    void SetGMResBlock(REAL tol, int numiter, int numvec);
 
 protected:
 
@@ -246,6 +249,7 @@ protected:
    int fTimeIntMaxIter;
 
 
+   
    /**
     * Indicates whether the CFL is to evolute or not.
     */
@@ -255,6 +259,17 @@ protected:
     * Preconditioner
     */
    TPZBlockDiagonal * fpBlockDiag;
+   
+   /**
+    * Total number of newton iterations during this run
+    */
+   int fTotalNewton;
+   
+   /**
+    * Indication if a frontal matrix is being used as a preconditioner
+    */
+   int fHasFrontalPreconditioner;
+   
 };
 
 #endif

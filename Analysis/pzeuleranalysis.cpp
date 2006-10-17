@@ -1,13 +1,24 @@
-//$Id: pzeuleranalysis.cpp,v 1.36 2005-04-25 01:56:15 phil Exp $
+//$Id: pzeuleranalysis.cpp,v 1.37 2006-10-17 02:03:31 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
 #include "TPZCompElDisc.h"
 #include "pzfstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
+#include "TPBSpStructMatrix.h"
+#include "pzbdstrmatrix.h"
+
 #include "tpzoutofrange.h"
 #include "pztempmat.h"
 #include <time.h>
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+
+static LoggerPtr logger(Logger::getLogger("pz.converge"));
+#endif
+
+
 
 using namespace std;
 
@@ -17,7 +28,7 @@ fRhsLast(),
 fLinSysEps(1e-10), fLinSysMaxIter(20),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
 fTimeIntEps(1e-8), fTimeIntMaxIter(100),
-fEvolCFL(0), fpBlockDiag(NULL)
+fEvolCFL(0), fpBlockDiag(NULL),fHasFrontalPreconditioner(0)
 {
 
 }
@@ -28,7 +39,7 @@ fRhsLast(),
 fLinSysEps(1e-10), fLinSysMaxIter(20),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
 fTimeIntEps(1e-8), fTimeIntMaxIter(100),
-fEvolCFL(0), fpBlockDiag(NULL)
+fEvolCFL(0), fpBlockDiag(NULL),fHasFrontalPreconditioner(0)
 {
 
 }
@@ -235,6 +246,7 @@ int TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix * residual, TPZFMatrix & delS
    if(residual)
    {   // verifying the inversion of the linear system
       residual->Redim(numeq,1);
+      /*
       fSolver->Matrix()->Residual(delSol, fRhs, *residual);
       res = Norm(*residual);
 
@@ -243,7 +255,9 @@ int TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix * residual, TPZFMatrix & delS
         cout << "Linear system invertion did not achieve expected tolerance:" << res << endl;
         cout.flush();
       }
+      */
    }
+      
    /*
    fSolver->Matrix()->Print("Matrix", eulerout, EMathematicaInput);
    delu.Print("delu", eulerout, EMathematicaInput);
@@ -264,12 +278,22 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 
    TPZFMatrix residual;
 //    REAL res1,res2 = 0.;
+   if(fHasFrontalPreconditioner)
+   {
+     TPZFrontStructMatrix <TPZFrontNonSym> StrMatrix(Mesh());
+     StrMatrix.SetQuiet(1);
+     TPZMatrix *front = StrMatrix.CreateAssemble(fRhs);
+     TPZStepSolver FrontSolver;
+     FrontSolver.SetDirect(ELU);
+     FrontSolver.SetMatrix(front);
+     TPZStepSolver *step = dynamic_cast<TPZStepSolver *>(fSolver);
+     step->SetPreconditioner(FrontSolver);
+   }
 
    while(i < fNewtonMaxIter && epsilon > fNewtonEps)
    {
       // Linearizes the system with the newest iterative solution
       Assemble();
-
       if(i==0)
       {
         epsilon = Norm(fRhs);
@@ -287,6 +311,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
       */
 
       //Solves the linearized system
+      fTotalNewton++;
       if(Solve(res, &residual, delSol) == 0) return 0;
 
       // Updates the solution, attempts to update Rhs (vector only) and
@@ -299,6 +324,13 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
       i++;
    }
 
+#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    sout << "Numero de iteracoes de Newton " << i;
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+  }
+#endif
    numIter = i;
 
    if(epsilon > fNewtonEps)return 0;
@@ -334,6 +366,7 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
    // to Newton's linearizations, updating the
    // time step.
 
+  this->fTotalNewton = 0;
    out << "\nBeginning time integration";
 
    time_t startTime_t = time(NULL);
@@ -397,6 +430,14 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
 
       CFLControl(lastEpsilon, epsilon, epsilon_Newton,  nextTimeStep);
 
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+      std::stringstream sout;
+      sout << "iteration " << i << "Du/Dt " << epsilon << " Total Newton " << fTotalNewton;
+      LOGPZ_DEBUG(logger,sout.str().c_str());
+    }    
+#endif
       // output
       {
          out << "\n" << i
@@ -413,6 +454,14 @@ void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
       }
       i++;
    }
+#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    sout << "Total number of newton iterations " << this->fTotalNewton;
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+    
+  }
+#endif
 
    fSolver->ResetMatrix(); // deletes the memory allocated
    // for the storage of the tangent matrix.
@@ -579,4 +628,83 @@ void TPZEulerAnalysis::CompareRhs()
     diff -= ef2.fMat;
     diffnorm = Norm(diff);
   }
+}
+
+
+/*!
+    \fn TPZEulerAnalysis::SetGMResFront(REAL tol, int numiter, int numvectors)
+ */
+void TPZEulerAnalysis::SetGMResFront(REAL tol, int numiter, int numvectors)
+{
+  TPZFrontStructMatrix <TPZFrontNonSym> strfront(Mesh());
+  strfront.SetQuiet(1);
+  TPZMatrix *front = strfront.CreateAssemble(fRhs);
+  
+  TPZStepSolver FrontSolver;
+  FrontSolver.SetDirect(ELU);
+  FrontSolver.SetMatrix(front);
+  
+  
+  TPZSpStructMatrix StrMatrix(Mesh());
+      //TPZFStructMatrix StrMatrix(cmesh);
+  SetStructuralMatrix(StrMatrix);
+
+  TPZMatrix * mat = StrMatrix.Create();
+  TPZStepSolver Solver;
+  Solver.SetGMRES(numiter,
+                  numvectors,
+                  FrontSolver,
+                  tol,
+                  0);
+  Solver.SetMatrix(mat);
+  SetSolver(Solver);
+  fHasFrontalPreconditioner = 0;
+
+}
+
+
+/*!
+    \fn TPZEulerAnalysis::SetFrontalSolver()
+ */
+void TPZEulerAnalysis::SetFrontalSolver()
+{
+  TPZFrontStructMatrix <TPZFrontNonSym> StrMatrix(Mesh());
+  StrMatrix.SetQuiet(1);
+//  TPZMatrix *front = StrMatrix.CreateAssemble(fRhs);
+  SetStructuralMatrix(StrMatrix);
+  TPZStepSolver FrontSolver;
+  FrontSolver.SetDirect(ELU);
+//  FrontSolver.SetMatrix(front);
+  SetSolver(FrontSolver);
+  fHasFrontalPreconditioner = 1;
+}
+
+
+/*!
+    \fn TPZEulerAnalysis::SetGMResBlock(REAL tol, int numiter, int numvec)
+ */
+void TPZEulerAnalysis::SetGMResBlock(REAL tol, int numiter, int numvec)
+{
+  TPZSpStructMatrix StrMatrix(Mesh());
+      //TPZFStructMatrix StrMatrix(cmesh);
+  SetStructuralMatrix(StrMatrix);
+
+  TPZMatrix * mat = StrMatrix.Create();
+  TPZBlockDiagonalStructMatrix strBlockDiag(Mesh());
+  TPZStepSolver Pre;
+  TPZBlockDiagonal * block = new TPZBlockDiagonal();//blockDiag.Create();
+  strBlockDiag.AssembleBlockDiagonal(*block); // just to initialize structure
+  Pre.SetMatrix(block);
+  Pre.SetDirect(ELU);
+  TPZStepSolver Solver;
+  Solver.SetGMRES(numiter,
+                  numvec,
+                  Pre,
+                  tol,
+                  0);
+  Solver.SetMatrix(mat);
+  SetSolver(Solver);
+  SetBlockDiagonalPrecond(block);
+  fHasFrontalPreconditioner = 0;
+
 }
