@@ -1,4 +1,4 @@
-//$Id: pzcheckgeom.cpp,v 1.2 2003-11-05 16:02:21 tiago Exp $
+//$Id: pzcheckgeom.cpp,v 1.3 2006-10-17 01:42:51 phil Exp $
 
 #include <fstream>
 using namespace std;
@@ -323,13 +323,6 @@ void PrintHighDimTransforms<TShape>(ostream &out) {
 #include "pzshapequad.h"
 #include "pzshapetetra.h"
 #include "pzshapetriang.h"
-#include "pzelg1d.h"
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
-#include "pzelgt3d.h"
-#include "pzelgpr3d.h"
-#include "pzelgpi3d.h"
-#include "pzelgc3d.h"
 
 
 //template void BuildHigherDimensionSides<TPZShapeLinear>(TPZStack<int> &highdim, int side);
@@ -417,27 +410,28 @@ void TPZCheckGeom::CreateMesh() {
 		for(in=0; in<numnos[nel]; in++) {
 			nodeindex[in] = nodind[nel][in];
 		}
+    int index;  
 		switch(nel) {
 		case 0:
-			new TPZGeoElC3d(nodeindex,matid,*fMesh);
+			fMesh->CreateGeoElement(ECube, nodeindex, matid, index);
 			break;
 		case 1:
-			new TPZGeoElPi3d(nodeindex,matid,*fMesh);
+			fMesh->CreateGeoElement(EPiramide, nodeindex,matid, index);
 			break;
 		case 2:
-			new TPZGeoElT3d(nodeindex,matid,*fMesh);
+			fMesh->CreateGeoElement(ETetraedro, nodeindex,matid, index);
 			break;
 		case 3:
-			new TPZGeoElPr3d(nodeindex,matid,*fMesh);
+			fMesh->CreateGeoElement(EPrisma, nodeindex,matid, index);
 			break;
 		case 4:
-			new TPZGeoEl1d(nodeindex,matid,*fMesh);
+			fMesh->CreateGeoElement(EOned, nodeindex,matid, index);
 			break;
 		case 5:
-			new TPZGeoElQ2d(nodeindex,matid,*fMesh);
+			fMesh->CreateGeoElement(EQuadrilateral, nodeindex,matid, index);
 			break;
 		case 6:
-			new TPZGeoElT2d(nodeindex,matid,*fMesh);
+			fMesh->CreateGeoElement(ETriangle, nodeindex,matid, index);
 			break;
 		default:
 			break;
