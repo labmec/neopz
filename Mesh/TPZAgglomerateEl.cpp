@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.36 2005-04-25 02:31:49 phil Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.37 2006-10-17 00:51:03 phil Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -1028,6 +1028,10 @@ int TPZAgglomerateElement::ClassId() const
 {
   return TPZAGGLOMERATEELID;
 }
+
+template class 
+    TPZRestoreClass< TPZAgglomerateElement, TPZAGGLOMERATEELID>;
+
   /**
   Save the element data to a stream
   */
