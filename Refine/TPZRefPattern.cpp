@@ -249,7 +249,7 @@ void TPZRefPattern::ReadPattern(std::ifstream &in)
   ComputePartition();/**efetua a parti�o do elemento pai de acordo com os lados dos sub-elementos*/
 }
 
-void TPZRefPattern::ReadPattern(std::ifstream &in,std::vector<TPZRefPattern *> &collect){
+void TPZRefPattern::ReadPattern(std::ifstream &in,std::vector< TPZAutoPointer<TPZRefPattern> > &collect){
   ReadPattern(in);
   int nperm;
   in >> nperm;
@@ -1325,12 +1325,11 @@ void TPZRefPattern::InsertPermuted(/*TPZGeoMesh &gmesh*/)
   int counter;
   for(it=permlist.begin(),counter=0; it != permlist.end(); it++,counter++)
   {
-    TPZRefPattern *refp = new TPZRefPattern(*this,(*it).fPermute);
-    TPZRefPattern *found = this->fOwnerMesh->FindRefPattern(refp);
-    if(found)
+    TPZAutoPointer<TPZRefPattern> refp(new TPZRefPattern(*this,(*it).fPermute));
+    TPZAutoPointer<TPZRefPattern> found = this->fOwnerMesh->FindRefPattern(refp);
+    if(found.operator ->() != NULL)
     {
       fPermutedRefPatterns[counter] = found->Id();
-      delete refp;
     }
     else
     {
@@ -1377,14 +1376,14 @@ void TPZRefPattern::GenerateSideRefPatterns(/*TPZGeoMesh &gmesh*/)
   {
     if(gel->SideDimension(is) == 0) continue;
     if(NSideSubElements(is) == 1) continue;
-    TPZRefPattern *sideref = new TPZRefPattern(this->fOwnerMesh);
+    TPZAutoPointer<TPZRefPattern> sideref(new TPZRefPattern(this->fOwnerMesh));
     BuildSideMesh(is, sideref->fInternalMesh);
     sideref->fNSubEl = sideref->fInternalMesh.NElements()-1;
     sideref->ComputeTransforms();/**calcula as transforma�es entre filhos e pai*/
     sideref->ComputePartition();/**efetua a parti�o do elemento pai de acordo com os lados dos */
     sideref->fName = sideref->GenericName();
-    TPZRefPattern *found = this->fOwnerMesh->FindRefPattern(sideref);
-    if(!found)
+    TPZAutoPointer<TPZRefPattern> found = this->fOwnerMesh->FindRefPattern(sideref);
+    if(!found.operator ->())
     {
       sideref->GenerateSideRefPatterns(/*gmesh*/);
       this->fOwnerMesh->InsertRefPattern(sideref);
@@ -1394,7 +1393,6 @@ void TPZRefPattern::GenerateSideRefPatterns(/*TPZGeoMesh &gmesh*/)
     else
     {
       fSideRefPattern[is] = found->Id();
-      delete sideref;
     }
   }
 }
@@ -1558,8 +1556,8 @@ void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZ
   }
   */
   // having the refinement patterns associated with the sides, look for compatible refinement patterns
-  std::map<int, TPZRefPattern *> reflist = gel->Mesh()->RefPatternList(gel->Type());
-  std::map<int, TPZRefPattern *>::iterator it;
+  std::map<int, TPZAutoPointer<TPZRefPattern> > reflist = gel->Mesh()->RefPatternList(gel->Type());
+  std::map<int, TPZAutoPointer<TPZRefPattern> >::iterator it;
   for(it=reflist.begin(); it != reflist.end(); it++)
   {
     // compare the side refinement patterns
@@ -1572,7 +1570,7 @@ void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZ
       }
     }
     // if all refinement patterns are equal
-    if(is == nsides-1) refs.push_back(it->second);
+    if(is == nsides-1) refs.push_back(it->second.operator->());
   }
 
 }
@@ -1600,9 +1598,9 @@ TPZRefPattern *TPZRefPattern::SideRefPattern(int side){
 
 TPZRefPattern * TPZRefPattern::FindRefPattern(int id, int side){
   TPZGeoEl * gel = this->fInternalMesh.ElementVec()[0];
-  const std::map<int, TPZRefPattern *> & mymap = this->fOwnerMesh->RefPatternList(gel->Type(side));
-  std::map<int, TPZRefPattern *>::const_iterator it = mymap.find(id);
-  if (it != mymap.end()) return it->second;
+  const std::map<int, TPZAutoPointer<TPZRefPattern> > & mymap = this->fOwnerMesh->RefPatternList(gel->Type(side));
+  std::map<int, TPZAutoPointer<TPZRefPattern> >::const_iterator it = mymap.find(id);
+  if (it != mymap.end()) return it->second.operator->();
   else return NULL;
 }
 

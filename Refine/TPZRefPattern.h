@@ -91,7 +91,7 @@ public:
     /**
      * It effects the reading of the archive that defines the refinement standard
      */
-    void ReadPattern(std::ifstream &in, std::vector<TPZRefPattern *> &collect);
+    void ReadPattern(std::ifstream &in, std::vector< TPZAutoPointer<TPZRefPattern> > &collect);
 
     /**
      * It effects the reading of the archive that defines the refinement standard
@@ -172,7 +172,7 @@ public:
      * It prints the features of the standard of geometric refinement.
      */
     void MeshPrint();
-    void Print1(/*TPZGeoMesh &gmesh,*/std::ostream &out = std::cout);/////////////////////////???????????????????
+    void Print1(/*TPZGeoMesh &gmesh,*/std::ostream &out = std::cout);
     
     void ShortPrint(std::ostream &out);
 

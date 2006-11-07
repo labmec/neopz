@@ -101,9 +101,9 @@ public:
   virtual TPZRefPattern *GetRefPattern()
   {
     if (this->fRefPatternIndex == -1) return NULL;
-    const std::map<int, TPZRefPattern *> & map = this->Mesh()->RefPatternList(this->Type());    
-    std::map<int, TPZRefPattern *>::const_iterator ref = map.find(this->fRefPatternIndex);
-    if (ref != map.end()) return ref->second;
+    const std::map<int, TPZAutoPointer<TPZRefPattern> > & map = this->Mesh()->RefPatternList(this->Type());    
+    std::map<int, TPZAutoPointer<TPZRefPattern> >::const_iterator ref = map.find(this->fRefPatternIndex);
+    if (ref != map.end()) return ref->second.operator->();
     else{
       PZError << "Error at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - The requested refinemet pattern does not exist in the geometric mesh\n";
       return NULL;

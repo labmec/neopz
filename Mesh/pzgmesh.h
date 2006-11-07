@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.23 2006-10-17 00:57:33 phil Exp $
+//$Id: pzgmesh.h,v 1.24 2006-11-07 12:36:07 tiago Exp $
 
 /**File : pzgmes.h
 
@@ -33,6 +33,7 @@ contained within the TPZGeoMesh.
 #include "pzgnode.h"
 //#include "pzbndcond.h"
 #include "pzadmchunk.h"
+#include "tpzautopointer.h"
 
 class TPZMaterial;
 class TPZGeoNode;
@@ -250,23 +251,21 @@ protected: // Protected attributes
   /** Maps all refinement pattern objects in the mesh
    *  fRefPatterns[MElementType][Id] = (TPZRefPattern *)
    */
-  std::map<MElementType,std::map< int, TPZRefPattern *> > fRefPatterns;
+  std::map<MElementType,std::map< int, TPZAutoPointer<TPZRefPattern> > > fRefPatterns;
   
 public:
 /** insert the refinement pattern in the list of availabe refinement patterns */
-  void InsertRefPattern(TPZRefPattern *refpat);
+  void InsertRefPattern(TPZAutoPointer<TPZRefPattern> & refpat);
   
   /** check whether the refinement pattern already exists */
-  TPZRefPattern *FindRefPattern(TPZRefPattern *refpat);
+  TPZAutoPointer<TPZRefPattern> FindRefPattern(TPZAutoPointer<TPZRefPattern> & refpat);
   
-  TPZRefPattern * GetRefPattern(MElementType eltype, const std::string &name);
+  TPZAutoPointer<TPZRefPattern> GetRefPattern(MElementType eltype, const std::string &name);
   /** Verifies if the side based refinement pattern exists. If the refinement pattern doesn't exists return a Null refinement Pattern. */
-  TPZRefPattern * GetRefPattern (TPZGeoEl *gel, int side);
+  TPZAutoPointer<TPZRefPattern> GetRefPattern (TPZGeoEl *gel, int side);
   
- const std::map<int, TPZRefPattern *> &RefPatternList(MElementType eltype)
-  {
-    return fRefPatterns[eltype];
-  }
+ const std::map<int, TPZAutoPointer<TPZRefPattern> > &RefPatternList(MElementType eltype);
+ 
 };
 
 #endif
