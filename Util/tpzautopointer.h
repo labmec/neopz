@@ -114,15 +114,24 @@ TPZAutoPointer &operator=(const TPZAutoPointer<T> &copy)
   return *this;
 }
 
+operator bool() const{
+  return (this->fRef->fPointer != 0);
+}
+
 T *operator->()
 {
   return fRef->fPointer;
 }
 
-const T *operator->() const
+T *operator->() const
 {
   return fRef->fPointer;
 }
+
+// const T *operator->() const
+// {
+//   return fRef->fPointer;
+// }
 
 };
 
