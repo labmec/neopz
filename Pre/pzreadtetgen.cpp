@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzreadtetgen.cpp,v 1.2 2006-10-16 20:07:02 phil Exp $
+//$Id: pzreadtetgen.cpp,v 1.3 2006-11-16 18:17:27 tiago Exp $
 
 #include "pzreadtetgen.h"
 #include "pzgmesh.h"
@@ -113,6 +113,7 @@ bool TPZReadTetGen::ProcessFaces(std::string FaceFileName,  TPZGeoMesh &gmesh, i
   for(int i = 0; i < nfaces; i++){
     FaceFile >> ID >> NO1 >> NO2 >> NO3;
     if (BoundMarker) FaceFile >> mat;
+    else mat = -1;
     nodind[0] = this->fNodeIndices[ NO1 ];
     nodind[1] = this->fNodeIndices[ NO2 ];
     nodind[2] = this->fNodeIndices[ NO3 ];
