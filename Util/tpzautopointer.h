@@ -128,10 +128,19 @@ T *operator->() const
   return fRef->fPointer;
 }
 
-// const T *operator->() const
-// {
-//   return fRef->fPointer;
-// }
+operator bool() {
+  return fRef->fPointer != 0;
+}
+
+int Count()
+{
+  return fRef->fCounter;
+}
+
+ const T *operator->() const
+ {
+   return fRef->fPointer;
+ }
 
 };
 
