@@ -137,10 +137,10 @@ int Count()
   return fRef->fCounter;
 }
 
- const T *operator->() const
- {
-   return fRef->fPointer;
- }
+//  const T *operator->() const
+//  {
+//    return fRef->fPointer;
+//  }
 
 };
 
