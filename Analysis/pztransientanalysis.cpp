@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientanalysis.cpp,v 1.3 2006-10-17 02:00:58 phil Exp $
+//$Id: pztransientanalysis.cpp,v 1.4 2006-12-06 19:05:39 tiago Exp $
 
 #include "pztransientanalysis.h"
 #include "pztransientmat.h"
@@ -319,6 +319,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::RunExplicit(std::ostream &out, bool F
     //now fSolution = deltaSol
     fSolution += prevsol;
     
+    this->LoadSolution();
     if (this->fSaveFrequency){
       if (!(this->fCurrentIter % fSaveFrequency)){
         this->PostProcess(this->fDXResolution);
