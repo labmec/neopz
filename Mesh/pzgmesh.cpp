@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.27 2006-11-07 12:36:07 tiago Exp $
+//$Id: pzgmesh.cpp,v 1.28 2006-12-06 19:02:04 tiago Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -1051,17 +1051,13 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 
 int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial){
   std::pair<int, int> leftright(leftmaterial, rightmaterial);
-  std::pair<int, int> rightleft(rightmaterial, leftmaterial);
   InterfaceMaterialsMap::iterator w, e;
   e = fInterfaceMaterials.end();
 
   w = fInterfaceMaterials.find(leftright);
   if (w == e) { //std::pair leftright does not exist yet
-    w = fInterfaceMaterials.find(rightleft);
-    if (w == e){ //std::pair rightleft does not exist too
       fInterfaceMaterials[leftright] = interfacematerial;
       return 1;
-    }
   }
   return 0;
 }
