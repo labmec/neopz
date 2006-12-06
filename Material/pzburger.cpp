@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzburger.cpp,v 1.2 2006-10-17 01:50:03 phil Exp $
+//$Id: pzburger.cpp,v 1.3 2006-12-06 19:21:03 tiago Exp $
 
 #include "pzburger.h"
 #include "pzbndcond.h"
@@ -484,16 +484,16 @@ void TPZBurger::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMa
     }
     else {
       if (ConvNormal < 0.){
-//        std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
-        #warning ISSO NAO DEVE IR PRO CVS
-      ConvNormal *= -1.;
-      for(il=0; il<nrowl; il++) {
-        for(jl=0; jl<nrowl; jl++) {
-          ek(il,jl) += weight * ConvNormal * phiL(il)*phiL(jl) * 2.*solL[0]/fSolRef;
-        }
-        ef(il,0) += -1. * weight * ConvNormal * phiL(il) * solL[0]*solL[0]/fSolRef;
-      }        
-      #warning ISSO NAO DEVE IR PRO CVS - ATE AQUI
+        std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
+//         #warning ISSO NAO DEVE IR PRO CVS
+//       ConvNormal *= -1.;
+//       for(il=0; il<nrowl; il++) {
+//         for(jl=0; jl<nrowl; jl++) {
+//           ek(il,jl) += weight * ConvNormal * phiL(il)*phiL(jl) * 2.*solL[0]/fSolRef;
+//         }
+//         ef(il,0) += -1. * weight * ConvNormal * phiL(il) * solL[0]*solL[0]/fSolRef;
+//       }        
+//       #warning ISSO NAO DEVE IR PRO CVS - ATE AQUI
       }
     }
     break;    
