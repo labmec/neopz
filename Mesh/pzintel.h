@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.20 2006-09-13 19:16:48 cesar Exp $
+//$Id: pzintel.h,v 1.21 2006-12-13 19:05:22 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -326,7 +326,7 @@ public:
    * @see TPZMaterial::NSolutionVariables
    * @see TPZMaterial::Solution
    */
-  virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
+  virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
   
   /**
    * Computes solution and its derivatives in the local coordinate qsi.

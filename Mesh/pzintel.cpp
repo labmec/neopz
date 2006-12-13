@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.45 2006-09-13 20:21:05 cesar Exp $
+// $Id: pzintel.cpp,v 1.46 2006-12-13 19:05:22 tiago Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1891,7 +1891,7 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname) {
   return error;
 }
 
-void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
+void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
 
   if(var >= 100) {
     TPZCompEl::Solution(qsi,var,sol);
