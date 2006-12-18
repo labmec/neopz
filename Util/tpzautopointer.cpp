@@ -11,5 +11,11 @@
 //
 #include "tpzautopointer.h"
 
+pthread_mutex_t gAutoPointerMutex = PTHREAD_MUTEX_INITIALIZER;
+// template < class T>
+// pthread_mutex_t TPZAutoPointer<T>::gAutoCounterMutex = PTHREAD_MUTEX_INITIALIZER;
 
+// pthread_mutex_t TPZAutoPointer<TPZSaveable>::gAutoCounterMutex = PTHREAD_MUTEX_INITIALIZER;
 
+// template class TPZAutoPointer<TPZSaveable>;
+//gAutoPointerMutex = PTHREAD_MUTEX_INITIALIZER;

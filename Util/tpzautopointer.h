@@ -12,17 +12,28 @@
 #ifndef TPZAUTOPOINTER_H
 #define TPZAUTOPOINTER_H
 
+#include <pthread.h>
+
 /**
 This class implements a reference counter mechanism to administer a dynamically allocated object
 
 @author Philippe R. B. Devloo
 */
+
+
+/**
+ * Increment and Decrement actions are mutexed by this mutex
+ */
+
+extern pthread_mutex_t gAutoPointerMutex;
+
 template<class T>
 class TPZAutoPointer{
 
 template<class T2>
 struct TPZReference
 {
+  
   T2 *fPointer;
   int fCounter;
   
@@ -49,7 +60,9 @@ struct TPZReference
    */
   void Increment()
   {
+    pthread_mutex_lock(&gAutoPointerMutex);
     fCounter++;
+    pthread_mutex_unlock(&gAutoPointerMutex);
   }
   /**
    * Decrease the counter
@@ -57,7 +70,9 @@ struct TPZReference
    */
   void Decrease()
   {
+    pthread_mutex_lock(&gAutoPointerMutex);
     fCounter--;
+    pthread_mutex_unlock(&gAutoPointerMutex);
     if(fCounter <= 0) 
     {
       delete this;
@@ -136,11 +151,10 @@ int Count()
 {
   return fRef->fCounter;
 }
-
-//  const T *operator->() const
-//  {
-//    return fRef->fPointer;
-//  }
+const int Count() const
+{
+  return fRef->fCounter;
+}
 
 };
 
