@@ -17,7 +17,7 @@ libpz_a_SOURCES =
 
 libpz_a_LIBADD = ../Post/tpzgraphelt3d.o ../External/pzsloan.o \
 	../Util/TPZTimer.o ../Util/tpzpermutation.o ../Matrix/tpzsparseblockdiagonal.o \
-	../External/tpznodesetcompute.o ../Common/pzreal.o ../Util/pzmap.o ../Util/pzstring.o ../Util/pzlog.o \
+	../External/tpznodesetcompute.o ../Common/pzreal.o ../Util/pzmap.o ../Util/pzstring.o ../Util/tpzautopointer.o ../Util/pzlog.o \
 	../Refine/pzrefpoint.o ../Refine/pzrefprism.o ../Refine/pzrefpyram.o ../Refine/pzrefquad.o \
 	../Refine/pzreftetrahedra.o ../Refine/pzreftriangle.o ../Refine/TPZRefCube.o \
 	../Refine/TPZRefLinear.o ../Refine/TPZRefPattern.o ../Mesh/pzcmesh.o ../Mesh/tpzcompmeshreferred.o ../Mesh/pzflowcmesh.o ../Mesh/pzreferredcompel.o \
@@ -45,30 +45,32 @@ libpz_a_LIBADD = ../Post/tpzgraphelt3d.o ../External/pzsloan.o \
 	../Frontal/TPZFrontMatrix.o ../Frontal/TPZFrontNonSym.o ../Frontal/TPZFrontSym.o \
 	../Frontal/TPZParFrontMatrix.o ../Frontal/TPZStackEqnStorage.o ../Analysis/pzanalysis.o \
 	../Analysis/pzanalysiserror.o ../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o \
-	../Analysis/pzonedref.o ../Analysis/pzsmanal.o ../Analysis/pzsmfrontalanal.o ../Analysis/pztransientanalysis.o \
-	../Analysis/pzeuleranalysis.o ../Cosys/pzcartsys.o ../Cosys/pzcosys.o ../Cosys/pzcylinsys.o \
-	../Cosys/pzesfersys.o ../Integral/pzquad.o ../Material/pzincnskeps.o \
-	../Material/eulerdif.o ../Material/pzbndcond.o ../Material/pzelasmat.o ../Material/pznonlinearpoisson3d.o ../Material/pzburger.o \
-	../Material/pzmat1dlin.o ../Material/pzmat2dlin.o ../Material/pzmaterial.o \
-	../Material/tpzoutofrange.o ../Material/pzmathyperelastic.o ../Material/pzmatorthotropic.o \
-	../Material/pzmatplaca2.o ../Material/pzmatplaca.o ../Material/pzmattest3d.o \
-	../Material/pzmattest.o ../Material/pzmultplaca.o ../Material/pzplaca.o \
-	../Material/pzpoisson3d.o ../Material/pzpoisson3dreferred.o ../Material/TPZEuler.o ../Material/TPZEulerConsLaw.o \
-	../Material/TPZLinearConvection.o ../Material/tpzmultcamada.o ../Material/pzbctension.o \
-	../Material/TPZMulticamadaOrtho.o ../Material/TPZPlacaOrthotropic.o ../Material/TPZConservationLaw.o \
-	../Material/TPZDiffusionConsLaw.o ../Material/pzconslaw.o ../Material/pzartdiff.o ../Material/pztransientmat.o \
-	../Material/pzeulerconslaw.o ../Material/pzbiharmonic.o ../Material/pznonlinbiharmonic.o ../Material/pznlmat1d.o ../Material/pznlmat1drotatedengstrain.o \
-	../Material/pzmaterialid.o ../Material/tpzoutofrange.o ../Material/pzelast3d.o ../Material/pzthermicelast3d.o ../Post/pzdxmesh.o \
-	../Post/pzgraphel1d.o ../Post/pzgraphel1dd.o ../Post/pzgraphel.o ../Post/pzgraphelq2d.o \
-	../Post/pzgraphelq2dd.o ../Post/pzgraphelq3dd.o ../Post/pzgraphmesh.o ../Post/pzgraphnode.o \
-	../Post/pzmvmesh.o ../Post/pztrigraph.o ../Post/pztrigraphd.o ../Post/pzv3dmesh.o \
-	../Post/pzvisualmatrix.o ../Multigrid/pzmgsolver.o ../Multigrid/pztransfer.o \
-	../Multigrid/pztrnsform.o ../External/pzmetis.o ../External/pzrenumbering.o ../Pre/pzgengrid.o \
-	../Pre/pzpargrid.o ../Pre/TPZGMSHReadMesh.o ../Pre/pzreadtetgen.o \
-	../Pre/TPZExtendGridDimension.o ../Save/pzsave.o ../Save/pzfilebuffer.o ../External/sloan/diamtr.o \
-	../External/sloan/gegra.o ../External/sloan/iorele.o ../External/sloan/isorti.o \
-	../External/sloan/label.o ../External/sloan/number.o ../External/sloan/profi1.o \
-	../External/sloan/rootls.o ../External/sloan/vsrtp1.o ../Material/pzcoupledtransportdarcy.o \
+	../Analysis/pzonedref.o ../Analysis/pzsmanal.o ../Analysis/pzsmfrontalanal.o \
+	../Analysis/pztransientanalysis.o ../Analysis/pzeuleranalysis.o ../Cosys/pzcartsys.o ../Cosys/pzcosys.o \
+	../Cosys/pzcylinsys.o ../Cosys/pzelgq2dcyl.o ../Cosys/pzesfersys.o ../Integral/pzquad.o \
+	../Material/pzincnskeps.o ../Material/eulerdif.o ../Material/pzbndcond.o ../Material/pzelasmat.o \
+	../Material/pznonlinearpoisson3d.o ../Material/pzmat1dlin.o ../Material/pzmat2dlin.o \
+	../Material/pzmaterial.o ../Material/tpzoutofrange.o ../Material/pzmathyperelastic.o \
+	../Material/pzmatorthotropic.o ../Material/pzmatplaca2.o ../Material/pzmatplaca.o \
+	../Material/pzmattest3d.o ../Material/pzmattest.o ../Material/pzmultplaca.o ../Material/pzplaca.o \
+	../Material/pzpoisson3d.o ../Material/pzpoisson3dreferred.o ../Material/TPZEuler.o \
+	../Material/TPZEulerConsLaw.o ../Material/TPZLinearConvection.o ../Material/tpzmultcamada.o \
+	../Material/pzbctension.o ../Material/TPZMulticamadaOrtho.o ../Material/TPZPlacaOrthotropic.o \
+	../Material/TPZConservationLaw.o ../Material/TPZDiffusionConsLaw.o ../Material/pzconslaw.o \
+	../Material/pzartdiff.o ../Material/pztransientmat.o ../Material/pzeulerconslaw.o \
+	../Material/pzbiharmonic.o ../Material/pznonlinbiharmonic.o ../Material/pznlmat1d.o \
+	../Material/pznlmat1drotatedengstrain.o ../Material/pzmaterialid.o ../Material/tpzoutofrange.o \
+	../Material/pzelast3d.o ../Material/pzthermicelast3d.o ../Post/pzdxmesh.o ../Post/pzgraphel1d.o \
+	../Post/pzgraphel1dd.o ../Post/pzgraphel.o ../Post/pzgraphelq2d.o ../Post/pzgraphelq2dd.o \
+	../Post/pzgraphelq3dd.o ../Post/pzgraphmesh.o ../Post/pzgraphnode.o ../Post/pzmvmesh.o \
+	../Post/pztrigraph.o ../Post/pztrigraphd.o ../Post/pzv3dmesh.o ../Post/pzvisualmatrix.o \
+	../Multigrid/pzmgsolver.o ../Multigrid/pztransfer.o ../Multigrid/pztrnsform.o \
+	../External/pzmetis.o ../External/pzrenumbering.o ../Pre/pzgengrid.o ../Pre/pzpargrid.o \
+	../Pre/TPZGMSHReadMesh.o ../Pre/pzreadtetgen.o ../Pre/TPZExtendGridDimension.o ../Save/pzsave.o \
+	../Save/pzfilebuffer.o ../External/sloan/diamtr.o ../External/sloan/gegra.o \
+	../External/sloan/iorele.o ../External/sloan/isorti.o ../External/sloan/label.o \
+	../External/sloan/number.o ../External/sloan/profi1.o ../External/sloan/rootls.o \
+	../External/sloan/vsrtp1.o ../Material/pzcoupledtransportdarcy.o \
 	../Material/pzcoupledtransportdarcyBC.o
 
 ## --| NeoPZ |------------------------------------------------------------------
