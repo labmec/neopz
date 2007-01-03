@@ -299,6 +299,10 @@ public:
    */
 inline TPZFNMatrix(int row, int col) : TPZFMatrix(row,col,fBuf,N) {}
 
+inline TPZFNMatrix() : TPZFMatrix()
+{
+}
+
   /*
    * Constructor which initializes the data
    * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col
