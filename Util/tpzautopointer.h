@@ -133,6 +133,11 @@ operator bool() const{
   return (this->fRef->fPointer != 0);
 }
 
+operator T&() 
+{
+  return *(fRef->fPointer);
+}
+
 T *operator->()
 {
   return fRef->fPointer;
