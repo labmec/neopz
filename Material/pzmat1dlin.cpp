@@ -58,7 +58,7 @@ void TPZMat1dLin::ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
 
 	// this method applies the boundary condition itype to ek and ef
 
-  if(bc.Material() != this){
+  if(bc.Material().operator ->() == this){
     PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
   }
 

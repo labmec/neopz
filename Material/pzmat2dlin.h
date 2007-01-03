@@ -82,7 +82,7 @@ class TPZMat2dLin : public TPZMaterial{
    */
   virtual TPZMaterial *NewMaterial();
 
-TPZBndCond *OutflowFlux(int bc);
+TPZBndCond *OutflowFlux(TPZAutoPointer<TPZMaterial> &reference, int bc);
 
   /**
   * returns the unique identifier for reading/writing objects to streams

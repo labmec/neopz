@@ -3,35 +3,24 @@
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
 
-void TPZBndCond::Clone(TPZAdmChunkVector<TPZMaterial *> &matvec) {
+void TPZBndCond::Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec) {
   int matid = Id();
-  int nmat = matvec.NElements();
-  int m;
 
-  TPZMaterial *refmaterial = Material();
-  TPZMaterial *newrefmaterial = 0;
+  TPZAutoPointer<TPZMaterial> refmaterial = Material();
+  TPZAutoPointer<TPZMaterial> newrefmaterial;
   int refmatid = 0;
   if(refmaterial) {
     refmaterial->Clone(matvec);
-    nmat = matvec.NElements();
     refmatid = refmaterial->Id();
-    for(m=0; m<nmat; m++) {
-      TPZMaterial *mat = matvec[m];
-      if(!mat) continue;
-      if(mat->Id() == refmatid) {
-	newrefmaterial = mat;
-	break;
-      }
-    }
+    newrefmaterial = matvec[refmatid];
   }
-  for(m=0; m<nmat; m++) {
-    TPZMaterial *mat = matvec[m];
-    if(!mat) continue;
-    if(mat->Id() == matid) return;
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+  matit = matvec.find(matid);
+  if(matit != matvec.end())
+  {
+    TPZAutoPointer<TPZMaterial> newmat = TPZAutoPointer<TPZMaterial>(new TPZBndCond(*this, newrefmaterial));
+    matvec[matid] = newmat;
   }
-  int vecpos = matvec.AllocateNewElement();
-  TPZMaterial *newmat = new TPZBndCond(*this, newrefmaterial);
-  matvec[vecpos] = newmat;
 }
 
 //#ifdef _AUTODIFF
@@ -63,7 +52,7 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 				     TPZFMatrix &ek,TPZFMatrix &ef) {
-  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
   if(!mat) return;
   if(fForcingFunction) {
       TPZManVector<REAL> result(fBCVal2.Rows());
@@ -99,7 +88,7 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 				   TPZFMatrix &ef) {
-  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
   if(!mat) return;
   if(fForcingFunction) {
       TPZManVector<REAL> result(fBCVal2.Rows());
@@ -135,7 +124,7 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 			 TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 			 TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
 			 TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
-   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
+   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial.operator ->());
 
    if(!mat) return;
    if(fForcingFunction) {
@@ -173,7 +162,7 @@ void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<R
 void TPZBndCond::InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
                                 TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
                                 TPZVec<REAL> &values){
-   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
+   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial.operator ->());
 
    if(!mat) return;
    if(fForcingFunction) {
@@ -243,7 +232,7 @@ void TPZBndCond::ContributeInterfaceErrors(TPZVec<REAL> &x,
                                        REAL faceSize,
                                        int &errorid){
 
-   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
+   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial.operator ->());
    if(!mat) return;
 
    if(fForcingFunction) {

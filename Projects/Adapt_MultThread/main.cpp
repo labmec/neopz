@@ -233,7 +233,6 @@ int main(){
       /*      } */
     }
   }
-  TPZMatrixSolver::Diagnose();
   CompareNeighbours(cmesh->Reference());
   delete cmesh;
   return 0;
@@ -468,12 +467,12 @@ TPZCompMesh *ReadKumar(char *filename) {
   	REAL E,nu;
   	nu = e1122/e1111;
   	E = e1212*(1+nu);
-
-  	TPZElasticityMaterial *mat = new TPZElasticityMaterial(3,E,nu,0.,0.);
+        TPZAutoPointer<TPZMaterial> mat;
+  	mat = new TPZElasticityMaterial(3,E,nu,0.,0.);
   	TPZFMatrix val1(2,2,0.),val2(2,1,0.);
-  	TPZBndCond *bc1 = mat->CreateBC(-1,0,val1,val2);
+        TPZAutoPointer<TPZMaterial> bc1 = mat->CreateBC(mat,-1,0,val1,val2);
   	val2(1,0) = -1.;
-  	TPZBndCond *bc2 = mat->CreateBC(-2,1,val1,val2);
+        TPZAutoPointer<TPZMaterial> bc2 = mat->CreateBC(mat,-2,1,val1,val2);
   	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   	cmesh->InsertMaterialObject(mat);
   	cmesh->InsertMaterialObject(bc1);

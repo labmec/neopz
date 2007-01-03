@@ -1,4 +1,4 @@
-//$Id: pzdxmesh.cpp,v 1.9 2006-07-06 15:52:22 tiago Exp $
+//$Id: pzdxmesh.cpp,v 1.10 2007-01-03 00:05:20 phil Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -17,7 +17,7 @@ using namespace std;
 // 		if(ce->NConnects() == 9) fElementType = "quads";
 // 		if(ce->NConnects() == 27) fElementType = "cubes";
 
-TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial *mat, TPZVec<char *> &scalarnames, TPZVec<char *> &vecnames) : TPZGraphMesh(cmesh,dimension,mat) {
+TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat, TPZVec<char *> &scalarnames, TPZVec<char *> &vecnames) : TPZGraphMesh(cmesh,dimension,mat) {
   SetNames(scalarnames,vecnames);
 	fNextDataField = 1;
 	fStyle = EDXStyle;
@@ -45,7 +45,7 @@ TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial *m
 	fNormalObject = 0;
 }
 
-TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZMaterial *mat) :
+TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat) :
   TPZGraphMesh(cmesh,dim,mat) {
   if(!mat) fMaterial = graph->fMaterial;
   fNextDataField = graph->fNextDataField;
@@ -153,7 +153,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
   //								  TPZVec<char *> &scalarnames, TPZVec<char *> &vectornames) {
 	
-  TPZMaterial *matp = Material();
+  TPZAutoPointer<TPZMaterial> matp = Material();
   int i,nel;
   if(!matp) return;
   int dim = matp->Dimension();
@@ -371,7 +371,7 @@ void TPZDXGraphMesh::DrawSolution(char * var)
 {
 	
     //int nmat = fCompMesh->MaterialVec().NElements();
-    TPZMaterial *matp = Material();
+    TPZAutoPointer<TPZMaterial> matp = Material();
     int i,varind;
     varind = matp->VariableIndex(var);
     TPZVec<int> vec(1);

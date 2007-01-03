@@ -110,7 +110,7 @@ void ReadMaterials (std::istream & file, int nmat, TPZCompMesh & cMesh)
   for (i=0;i<nmat;i++)
   {
     file >> id >> e >> nu >> px >> py;
-    TPZMaterial *mat = new TPZElasticityMaterial(id,e,nu,px,py);
+    TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(id,e,nu,px,py);
     cMesh.InsertMaterialObject(mat);
   }
 }
@@ -129,7 +129,7 @@ void ReadBCs (std::istream & file, int nmat, TPZCompMesh & cMesh)
       continue;
     }
     TPZGeoElBC heman_1(gel,side,type,*(cMesh.Reference()));
-    TPZMaterial *mat = cMesh.FindMaterial(gel->MaterialId());
+    TPZAutoPointer<TPZMaterial> mat = cMesh.FindMaterial(gel->MaterialId());
     if (!mat)
     {
       std::cout << "Não encontrei o material cujo id é " << gel->MaterialId() << std::endl;
@@ -138,13 +138,13 @@ void ReadBCs (std::istream & file, int nmat, TPZCompMesh & cMesh)
     if (type == -1)
     { // Dirichlet
       TPZFMatrix val1(3,3,0.),val2(3,1,0.);
-      TPZMaterial *bnd = mat->CreateBC (type,0,val1,val2);
+      TPZAutoPointer<TPZMaterial> bnd = mat->CreateBC (mat,type,0,val1,val2);
       cMesh.InsertMaterialObject(bnd);
     }
     else
     { // Neumann
       TPZFMatrix val1(3,3,0.),val2(3,1,1.);
-      TPZMaterial *bnd = mat->CreateBC (type,1,val1,val2);
+      TPZAutoPointer<TPZMaterial> bnd = mat->CreateBC (mat,type,1,val1,val2);
       cMesh.InsertMaterialObject(bnd);
     }
   }

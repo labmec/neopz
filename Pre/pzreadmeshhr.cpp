@@ -161,7 +161,7 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
   for (i=0;i<NMat;i++)
   {
     fInputFile >> id >> e >> nu >> px >> py;
-    TPZMaterial *mat = new TPZElasticityMaterial(id,e,nu,px,py,0);
+    TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(id,e,nu,px,py,0);
     CMesh.InsertMaterialObject(mat);
   }
 }
@@ -171,15 +171,11 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 {
   int i;
   int id, type;
-  for (i=0;i<NMat;i++)
+  if(!CMesh.MaterialVec().size())
   {
-    fInputFile >> id >> type;
-    TPZMaterial *mat = CMesh.MaterialVec()[0];//cMesh.FindMaterial(gel->MaterialId());
-    if (!mat)
-    {
-      std::stringstream sout;
+    std::stringstream sout;
 #ifndef WINDOWS
-      sout << __PRETTY_FUNCTION__;
+      sout << __PRETTY_FUNCTION__ << " no materials " << std::endl;
 #endif
       sout << "\tNão encontrei material na malha!";
 #ifdef LOG4CXX
@@ -187,15 +183,27 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 #else
       std::cout << sout.str().c_str() << std::endl;
 #endif
-      continue;
-    }
+    return;
+  }
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit = CMesh.MaterialVec().begin();
+  TPZAutoPointer<TPZMaterial> mat = matit->second;
+  if(!mat)
+  {
+    std::cout << " empty material " << std::endl;
+    return;
+  }
+  
+
+  for (i=0;i<NMat;i++)
+  {
+    fInputFile >> id >> type;
     TPZFMatrix val1(3,3,0.),val2(3,1,0.);
     fInputFile >> val1 (0,0) >> val1(0,1) >> val1(0,2)
         >> val1 (1,0) >> val1(1,1) >> val1(1,2)
         >> val1 (2,0) >> val1(2,1) >> val1(2,2);
     fInputFile >> val2(0,0) >> val2(1,0) >> val2(2,0);
-    TPZMaterial *bnd;
-    bnd = mat->CreateBC (id,type,val1,val2);
+    TPZAutoPointer<TPZMaterial> bnd;
+    bnd = mat->CreateBC (mat,id,type,val1,val2);
 /*    switch (type)
     {
       case (0) :
@@ -235,7 +243,7 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
   //val1(1,1) = 10000000000000.0;
   //val2(1,0) = 1.;
-  TPZBndCond *bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-100,1,val1,val2);
+  TPZAutoPointer<TPZMaterial> bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-100,1,val1,val2);
   CMesh.InsertMaterialObject(bndFrac);
 //    val2(1,0) = -1.;
   bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-101,1,val1,val2);

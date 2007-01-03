@@ -2102,17 +2102,6 @@ void TPZInterpolatedElement::ExpandShapeFunctions(TPZVec<int> &connectlist, TPZV
   }
 }
 
-/** Jorge 19/05/99 */
-void TPZInterpolatedElement::MakeConnectContinuous(int icon) {
-  TPZStack<TPZCompElSide> elvec;
-  TPZCompElSide thisside(this,icon);
-  thisside.EqualLevelElementList(elvec,0,0);
-  /**Asking if exist neighbour that it can not to be discontinuous*/
-  if(elvec.NElements() && ((TPZInterpolatedElement *)(elvec[0].Element()))->CanBeDiscontinuous()) {
-    ((TPZInterpolatedElement *)elvec[0].Element())->MakeConnectContinuous(elvec[0].Side());
-    return;
-  }
-}
 REAL TPZInterpolatedElement::MeanSolution(int var) {
   int dim = Dimension(), nvars;
   if(!fMaterial) return 0.;

@@ -461,7 +461,7 @@ int TPZGeoCloneMesh::main(){
 	
   	TPZCompMesh *comp = new TPZCompMesh(&geomesh);
  	// inserir os materiais
-  	TPZMaterial *meumat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
+        TPZAutoPointer<TPZMaterial> meumat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
   	comp->InsertMaterialObject(meumat);
   	// inserir a condicao de contorno
 //  	TPZFMatrix val1(3,3,0.),val2(3,1,0.);

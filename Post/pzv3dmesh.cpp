@@ -9,7 +9,7 @@
 #include <fstream>
 using namespace std;
 
-TPZV3DGraphMesh::TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial *mat) : TPZGraphMesh(cmesh,dimension,mat) {
+TPZV3DGraphMesh::TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat) : TPZGraphMesh(cmesh,dimension,mat) {
 	fMesh = cmesh;
 	fStyle = EV3DStyle;
 	fNumCases = 0;
@@ -19,7 +19,7 @@ TPZV3DGraphMesh::TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial 
 	for(int i=0; i<6; i++) fNumScal[i] = 0;
 }
 
-TPZV3DGraphMesh::TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZV3DGraphMesh *graph,TPZMaterial *mat) :
+TPZV3DGraphMesh::TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZV3DGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat) :
                  TPZGraphMesh(cmesh,dimension,mat) {
   if(!mat) fMaterial = graph->Material();
 	fMesh = cmesh;
@@ -95,7 +95,7 @@ void TPZV3DGraphMesh::DrawSolution(int step, REAL /*time*/,
    scalind.Fill(-1);
 	vecind.Fill(-1);
 
-	TPZMaterial *matp = Material();
+	TPZAutoPointer<TPZMaterial> matp = Material();
    if(!matp) {
    	cout << "TPZV3DGraphMesh::DrawSolution material not found" << endl;
       return;

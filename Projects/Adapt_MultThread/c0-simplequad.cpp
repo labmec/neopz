@@ -87,17 +87,17 @@ TPZCompMesh *CreateSillyMesh(){
   TPZCompMesh *comp = new TPZCompMesh(geomesh);
 
   // Criar e inserir os materiais na malha
-  TPZMaterial *mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
+  TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
   comp->InsertMaterialObject(mat);
  
-  TPZMaterial *meumat = mat;
+  TPZAutoPointer<TPZMaterial> meumat = mat;
 
   // Condições de contorno
   // Dirichlet
   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
-  TPZMaterial *bnd = meumat->CreateBC (-1,0,val1,val2);
+  TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
   comp->InsertMaterialObject(bnd);
-  bnd = meumat->CreateBC (-2,0,val1,val2);
+  bnd = meumat->CreateBC (meumat,-2,0,val1,val2);
 
   // bnd->SetForcingFunction(Forcing1);
   // comp->InsertMaterialObject(bnd);
@@ -105,7 +105,7 @@ TPZCompMesh *CreateSillyMesh(){
   // Neumann
   TPZFMatrix val3(3,3,1);
   val2(0,0)=1.;
-  bnd = meumat->CreateBC (-2,1,val1,val2);
+  bnd = meumat->CreateBC (meumat,-2,1,val1,val2);
   comp->InsertMaterialObject(bnd);
   
   // comp->Print(cout);

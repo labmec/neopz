@@ -1,4 +1,4 @@
-//$Id: pznlmat1d.cpp,v 1.2 2006-10-17 01:47:23 phil Exp $
+//$Id: pznlmat1d.cpp,v 1.3 2007-01-03 00:08:27 phil Exp $
 // -*- c++ -*-
 
 #include "pznlmat1d.h"
@@ -201,7 +201,7 @@ void TPZNLMat1d::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
   double eps = Eps(sol,axes,dphi);
   double sigma = eps * fE;
 
-  int i,j;
+  int i;
   double fqi = 0.;
   fqi += 2.*alpha0*fArea*sigma;
 

@@ -10,8 +10,8 @@ class TPZV3DGraphMesh : public TPZGraphMesh {
 
 public:
 
-	TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial *mat);
-  TPZV3DGraphMesh(TPZCompMesh *cmesh,int dim,TPZV3DGraphMesh *graph,TPZMaterial *mat = 0);
+	TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat);
+  TPZV3DGraphMesh(TPZCompMesh *cmesh,int dim,TPZV3DGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat);
   
         virtual ~TPZV3DGraphMesh()
         {

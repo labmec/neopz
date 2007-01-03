@@ -181,14 +181,17 @@ int main(){
     multcam->SetQY(1.);
     break;
     }
+    TPZAutoPointer<TPZMaterial> ortoptr;
 
     switch(problem) {
     case 0:
       orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-      multcam->AddPlacaOrtho(orto,0.2);
+      ortoptr = TPZAutoPointer<TPZMaterial>(orto);
+      multcam->AddPlacaOrtho(ortoptr,0.2);
       
       orto = new TPZMatOrthotropic(numat+1, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-      multcam->AddPlacaOrtho(orto,0.2);
+      ortoptr = TPZAutoPointer<TPZMaterial>(orto);
+      multcam->AddPlacaOrtho(ortoptr,0.2);
       multcam->GenerateMesh();
       out.flush();
 
@@ -208,7 +211,8 @@ int main(){
       gyz = Elast/(2.*(1.+nu));
       gzx = Elast/(2.*(1.+nu));
       orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-      multcam->AddPlacaOrtho(orto,0.01); // *mat, espessura
+      ortoptr = TPZAutoPointer<TPZMaterial>(orto);
+      multcam->AddPlacaOrtho(ortoptr,0.01); // *mat, espessura
       Elast = 100.0;
       eppx = Elast;
       eppy = Elast;
@@ -220,7 +224,8 @@ int main(){
       gyz = Elast/(2.*(1.+nu));
       gzx = Elast/(2.*(1.+nu));
       orto = new TPZMatOrthotropic(numat+1, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-      multcam->AddPlacaOrtho(orto,0.2);
+      ortoptr = TPZAutoPointer<TPZMaterial>(orto);
+      multcam->AddPlacaOrtho(ortoptr,0.2);
       Elast = 100000.0;
       eppx = Elast;
       eppy = Elast;
@@ -232,7 +237,8 @@ int main(){
       gyz = Elast/(2.*(1.+nu));
       gzx = Elast/(2.*(1.+nu));
       orto = new TPZMatOrthotropic(numat+2, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-      multcam->AddPlacaOrtho(orto,0.01);
+      ortoptr = TPZAutoPointer<TPZMaterial>(orto);
+      multcam->AddPlacaOrtho(ortoptr,0.01);
       multcam->GenerateMesh();
       out.flush();
       //   orto->Print(out);
@@ -257,31 +263,36 @@ int main(){
       naxes(0,1) = -naxes(0,0);
       naxes(1,1) = naxes(0,0);
       orto = new TPZMatOrthotropic(numat, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-      multcam->AddPlacaOrtho(orto,0.1);
+      ortoptr = TPZAutoPointer<TPZMaterial>(orto);
+      multcam->AddPlacaOrtho(ortoptr,0.1);
       naxes(0,0) = 1./sqrt(2.);
       naxes(1,0) = -naxes(0,0);
       naxes(0,1) = naxes(0,0);
       naxes(1,1) = naxes(0,0);
       orto = new TPZMatOrthotropic(numat+1, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-      multcam->AddPlacaOrtho(orto,0.1);
+      ortoptr = TPZAutoPointer<TPZMaterial>(orto);
+      multcam->AddPlacaOrtho(ortoptr,0.1);
       naxes(0,0) = 1./sqrt(2.);
       naxes(1,0) = naxes(0,0);
       naxes(0,1) = -naxes(0,0);
       naxes(1,1) = naxes(0,0);
       orto = new TPZMatOrthotropic(numat+2, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-      multcam->AddPlacaOrtho(orto,0.1);
+      ortoptr = TPZAutoPointer<TPZMaterial>(orto);
+      multcam->AddPlacaOrtho(ortoptr,0.1);
       naxes(0,0) = 1./sqrt(2.);
       naxes(1,0) = -naxes(0,0);
       naxes(0,1) = naxes(0,0);
       naxes(1,1) = naxes(0,0);
       orto = new TPZMatOrthotropic(numat+3, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-      multcam->AddPlacaOrtho(orto,0.1);
+      ortoptr = TPZAutoPointer<TPZMaterial>(orto);
+      multcam->AddPlacaOrtho(ortoptr,0.1);
       naxes(0,0) = 1./sqrt(2.);
       naxes(1,0) = naxes(0,0);
       naxes(0,1) = -naxes(0,0);
       naxes(1,1) = naxes(0,0);
       orto = new TPZMatOrthotropic(numat+4, naxes, eppx, eppy, eppz, vxy, vyz, vzx, gxy, gyz, gzx);
-      multcam->AddPlacaOrtho(orto,0.1);
+      ortoptr = TPZAutoPointer<TPZMaterial>(orto);
+      multcam->AddPlacaOrtho(ortoptr,0.1);
       multcam->GenerateMesh();
       out.flush();
       //   orto->Print(out);

@@ -83,23 +83,23 @@ TPZCompMesh *CreatePlanMesh() {
   cmesh->SetName ("Original Computational Mesh");
 
   // Criar e inserir os materiais na malha
-  TPZMaterial *mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
+  TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
   cmesh->InsertMaterialObject(mat);
  
-  TPZMaterial *meumat = mat;
+  TPZAutoPointer<TPZMaterial> meumat = mat;
 
   // Condições de contorno
   // Dirichlet
   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
-  TPZMaterial *bnd = meumat->CreateBC (-1,0,val1,val2);
+  TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
   cmesh->InsertMaterialObject(bnd);
 
-  bnd = meumat->CreateBC (-2,0,val1,val2);
+  bnd = meumat->CreateBC (meumat,-2,0,val1,val2);
   cmesh->InsertMaterialObject(bnd);
 
   // Neumann
   val2(0,0) = 1.;
-  bnd = meumat->CreateBC (-3,1,val1,val2);
+  bnd = meumat->CreateBC (meumat,-3,1,val1,val2);
   cmesh->InsertMaterialObject(bnd);
 
   cmesh->AutoBuild();

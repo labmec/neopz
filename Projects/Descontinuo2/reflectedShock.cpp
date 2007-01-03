@@ -248,21 +248,21 @@ TPZFlowCompMesh * RSCompMesh(REAL CFL, REAL delta,
    TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
 
 // Creating the materials
-   TPZEulerConsLaw2 * mat = new TPZEulerConsLaw2(1/*nummat*/,
+   TPZEulerConsLaw2 * matp = new TPZEulerConsLaw2(1/*nummat*/,
                                             0/*timeStep*/,
 					    gamma /*gamma*/,
 					    dim /* dim*/,
 					    DiffType);
 // Setting initial solution
-   mat->SetForcingFunction(NULL);
+   matp->SetForcingFunction(NULL);
    // Setting the time discretization method
-   mat->SetTimeDiscr(Diff_TD,
+   matp->SetTimeDiscr(Diff_TD,
                      ConvVol_TD,
 		     ConvFace_TD);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
    // object computes the delta when it equals null.
 
-   mat->SetCFL(CFL);
+   matp->SetCFL(CFL);
 
 /*
    REAL us = sqrt(2.6 * 2.6 + .51 * .51);
@@ -272,13 +272,15 @@ TPZFlowCompMesh * RSCompMesh(REAL CFL, REAL delta,
 
    cout << .22/(2);
 */
-   mat->SetDelta(delta);
+   matp->SetDelta(delta);
 
+   TPZAutoPointer<TPZMaterial> mat(matp);
+   
    cmesh -> InsertMaterialObject(mat);
 
 // Boundary conditions
 
-   TPZBndCond * bc;
+   TPZAutoPointer<TPZMaterial>  bc;
    TPZFMatrix val1(4,4), val2(4,1);
    REAL ro = 1.7,
 	u = 2.61934,
@@ -294,7 +296,7 @@ TPZFlowCompMesh * RSCompMesh(REAL CFL, REAL delta,
    TPZGeoElBC((TPZGeoEl *)gElem[1],4,-1,*gmesh);
    TPZGeoElBC((TPZGeoEl *)gElem[2],4,-1,*gmesh);
    TPZGeoElBC((TPZGeoEl *)gElem[3],4,-1,*gmesh);
-   bc = mat->CreateBC(-1,5,val1,val2);
+   bc = mat->CreateBC(mat,-1,5,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
    //CC ARESTA DIREITA : OUTFLOW
@@ -302,7 +304,7 @@ TPZFlowCompMesh * RSCompMesh(REAL CFL, REAL delta,
    val2.Zero();
    TPZGeoElBC((TPZGeoEl *)gElem[3],5,-2,*gmesh);
    TPZGeoElBC((TPZGeoEl *)gElem[6],5,-2,*gmesh);
-   bc = mat->CreateBC(-2,4,val1,val2);
+   bc = mat->CreateBC(mat,-2,4,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
    //CC ARESTA SUPERIOR : DIRICHLET
@@ -314,7 +316,7 @@ TPZFlowCompMesh * RSCompMesh(REAL CFL, REAL delta,
    val2(3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
    TPZGeoElBC((TPZGeoEl *)gElem[7],6,-3,*gmesh);
    TPZGeoElBC((TPZGeoEl *)gElem[8],6,-3,*gmesh);
-   bc = mat->CreateBC(-3,3,val1,val2);
+   bc = mat->CreateBC(mat,-3,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
 
@@ -332,7 +334,7 @@ TPZFlowCompMesh * RSCompMesh(REAL CFL, REAL delta,
    val2(3,0) = p/(gamma-1.0) +  0.5 * ro * vel2;
    TPZGeoElBC((TPZGeoEl *)gElem[0],7,-4,*gmesh);
    TPZGeoElBC((TPZGeoEl *)gElem[4],7,-4,*gmesh);
-   bc = mat->CreateBC(-4,3,val1,val2);
+   bc = mat->CreateBC(mat,-4,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
    cmesh->AutoBuild();

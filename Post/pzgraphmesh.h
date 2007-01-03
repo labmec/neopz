@@ -9,6 +9,8 @@
 #include "pzcompel.h"
 #include "pzadmchunk.h"
 #include "pzvec.h"
+#include "tpzautopointer.h"
+#include "pzmaterial.h"
 
 class TPZGraphNode;
 class TPZCompMesh;
@@ -26,7 +28,7 @@ They only exist in the output file.
 */
 class TPZGraphMesh{
 public:
-  TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial *mat);
+  TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZAutoPointer<TPZMaterial> mat);
   virtual ~TPZGraphMesh(void);
 	
   TPZGraphNode &FindNode(int side);
@@ -36,8 +38,8 @@ public:
   long NPoints();
   long NElements(MElementType type);
   int Res() {return fResolution;}
-  void SetMaterial(TPZMaterial *mat) {fMaterial = mat;}
-  virtual void SetCompMesh(TPZCompMesh *mesh, TPZMaterial *mat);
+  void SetMaterial(TPZAutoPointer<TPZMaterial> mat) {fMaterial = mat;}
+  virtual void SetCompMesh(TPZCompMesh *mesh, TPZAutoPointer<TPZMaterial> mat);
   std::ostream *Out();
   virtual void DrawNodes();
   virtual void DrawMesh(int numcases);
@@ -54,7 +56,7 @@ public:
 	
 protected:
   TPZCompMesh *fCompMesh;
-  TPZMaterial *fMaterial;
+  TPZAutoPointer<TPZMaterial> fMaterial;
   int fDimension;
   TPZAdmChunkVector<TPZGraphEl *> fElementList;
   TPZAdmChunkVector<TPZGraphNode> fNodeMap;
@@ -67,7 +69,7 @@ protected:
   TPZCompEl *FindFirstInterpolatedElement(TPZCompMesh *mesh,int dimension);
 	
 public:
-  virtual TPZMaterial *Material();
+  virtual TPZAutoPointer<TPZMaterial> Material();
   virtual TPZCompMesh *Mesh() { return fCompMesh;}
 };
 

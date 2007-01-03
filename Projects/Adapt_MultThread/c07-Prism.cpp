@@ -68,13 +68,13 @@ TPZCompMesh *Create3DPrismMesh() {
 
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
 
-  TPZMaterial *mat;
+  TPZAutoPointer<TPZMaterial> mat;
   //  if(nstate == 3) {
     //		mat = new TPZMatHyperElastic(1,2.,400);
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix mp (1,1,0.);
 
-    TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
+    TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator ->());
     TPZMaterialTest3D::eq3=1;
     mataux->SetMaterial(mp);
     /*  } else {
@@ -91,13 +91,13 @@ TPZCompMesh *Create3DPrismMesh() {
     mat = mat2d;
     }*/
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
-  TPZBndCond *bc[3];
-  bc[0] = mat->CreateBC(-3,0,val1,val2);
+  TPZAutoPointer<TPZMaterial> bc[3];
+  bc[0] = mat->CreateBC(mat,-3,0,val1,val2);
   int i;
   val2(0,0)=-1.;
-  bc[1] = mat->CreateBC(-2,1,val1,val2);
+  bc[1] = mat->CreateBC(mat,-2,1,val1,val2);
   val2(0,0)=1.;
-  bc[2] = mat->CreateBC(-1,1,val1,val2);
+  bc[2] = mat->CreateBC(mat,-1,1,val1,val2);
 
   cmesh->InsertMaterialObject(mat);
   for(i=0; i<3; i++) cmesh->InsertMaterialObject(bc[i]);

@@ -452,7 +452,7 @@ void TPZMatHyperElastic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 void TPZMatHyperElastic::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
 			    TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
-	if(bc.Material() != this){
+	if(bc.Material().operator ->() != this){
 		PZError << "TPZMatHyperElastic.ContributeBC : this material don't exists \n";
 	}
 

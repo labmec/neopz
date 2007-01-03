@@ -274,7 +274,8 @@ void AnalyseElementSolutionClass6(TPZCompElDisc *intel,TPZVec<REAL> &pont_ksi)
   //int dim = intel->Reference()->Dimension();
 
    int variable;
-  TPZMaterial *mat = intel->Material();
+  TPZAutoPointer<TPZMaterial> mat = intel->Material();
+  if(!mat) return;
 //  char varname[] = "Solution";
 //  char varname[] = "Derivate";
   variable = mat->VariableIndex("Solution");
@@ -427,7 +428,7 @@ void SolveLU(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMesh *geomalha,
   //cout << "Solve " << endl;
   //an.Solve();
 
-  TPZFBMatrix * bandmat = dynamic_cast<TPZFBMatrix*>(solv.Matrix());
+  TPZFBMatrix * bandmat = dynamic_cast<TPZFBMatrix*>(solv.Matrix().operator ->());
   if (bandmat){
     cout << endl << "Banda = " << bandmat->GetBand() << endl;
     cout << "No equacoes = " << malha->NEquations() << endl;
@@ -477,7 +478,7 @@ void SolveIterative(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMesh *ge
 
   //an.Solve();
 
-  TPZFBMatrix * bandmat = dynamic_cast<TPZFBMatrix*>(solv.Matrix());
+  TPZFBMatrix * bandmat = dynamic_cast<TPZFBMatrix*>(solv.Matrix().operator ->());
   if (bandmat){
     cout << endl << "Banda = " << bandmat->GetBand() << endl;
     cout << "No equacoes = " << malha->NEquations() << endl;
@@ -513,7 +514,7 @@ void SolveIterative_2(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMesh *
   an.IterativeProcess(iterproc,1e-10,50);
   cout << endl;
  
-  TPZFBMatrix * bandmat = dynamic_cast<TPZFBMatrix*>(solv.Matrix());
+  TPZFBMatrix * bandmat = dynamic_cast<TPZFBMatrix*>(solv.Matrix().operator ->());
   if (bandmat){
     cout << endl << "Banda = " << bandmat->GetBand() << endl;
     cout << "No equacoes = " << malha->NEquations() << endl;
@@ -708,7 +709,7 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
   TPZCompMesh * malha = new TPZCompMesh(geomalha);
   malha->SetDimModel(2); 
 
-  TPZNonLinBiharmonic *mater;
+  TPZAutoPointer<TPZMaterial> mater;
   mater = new TPZNonLinBiharmonic(1,0.);  // segundo par. �a f(x)
                                    // primeiro par. �o material
 
@@ -717,10 +718,10 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
 
  TPZFMatrix val1(1,1,0.), val2(2,1,0.);
   
- TPZMaterial *bnd1 = mater->CreateBC(-1,0, val1, val2);
- TPZMaterial *bnd2 = mater->CreateBC(-2,0, val1, val2);
- TPZMaterial *bnd3 = mater->CreateBC(-3,0, val1, val2);
- TPZMaterial *bnd4 = mater->CreateBC(-4,0, val1, val2);
+ TPZAutoPointer<TPZMaterial> bnd1 = mater->CreateBC(mater,-1,0, val1, val2);
+ TPZAutoPointer<TPZMaterial> bnd2 = mater->CreateBC(mater,-2,0, val1, val2);
+ TPZAutoPointer<TPZMaterial> bnd3 = mater->CreateBC(mater,-3,0, val1, val2);
+ TPZAutoPointer<TPZMaterial> bnd4 = mater->CreateBC(mater,-4,0, val1, val2);
  
  bnd1->SetForcingFunction(CC1);
  malha->InsertMaterialObject(bnd1);

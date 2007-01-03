@@ -63,8 +63,8 @@ void TPZMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &/*DSol*/,TPZFMatrix &/*
    } else Solout.Resize(0);
 }
 
-TPZBndCond *TPZMaterial::CreateBC(int id, int typ, TPZFMatrix &val1, TPZFMatrix &val2) {
-   return new TPZBndCond(this,id,typ,val1,val2);
+TPZBndCond *TPZMaterial::CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix &val1, TPZFMatrix &val2) {
+   return new TPZBndCond(reference,id,typ,val1,val2);
 }
 
 void TPZMaterial::SetData(std::istream &data) {
@@ -81,19 +81,14 @@ void TPZMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv, TPZVec<REAL> &s
    Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphi,ek,ef);
 }
 
-void TPZMaterial::Clone(TPZAdmChunkVector<TPZMaterial *> &matvec) {
+void TPZMaterial::Clone(std::map<int, TPZAutoPointer<TPZMaterial> >&matvec) {
    int matid = Id();
-   int nmat = matvec.NElements();
-   int m;
-   for(m=0; m<nmat; m++) {
-      TPZMaterial *mat = matvec[m];
-      if(!mat) continue;
-      if(mat->Id() == matid) return;
-   }
-   int vecpos = matvec.AllocateNewElement();
-   TPZMaterial *newmat = NewMaterial();
+   std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+   matit = matvec.find(matid);
+   if(matit != matvec.end()) return;
+   TPZAutoPointer<TPZMaterial> newmat = TPZAutoPointer<TPZMaterial>(NewMaterial());
    newmat->SetForcingFunction(TPZMaterial::fForcingFunction);
-   matvec[vecpos] = newmat;
+   matvec[matid] = newmat;
 }
 
 //#ifdef _AUTODIFF

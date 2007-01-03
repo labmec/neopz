@@ -44,16 +44,7 @@ static ofstream gDeduce("deduce.txt");
 
 TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : TPZCompMesh(gr)/*, fMapConnects(zero)*/{
   fCloneReference = cmesh;
-  int nmat = cmesh->MaterialVec().NElements();
-  int m;
-  //Cria um clone do vetor de materiais da malha mesh
-  for(m=0; m<nmat; m++) {
-    TPZMaterial *mat = cmesh->MaterialVec()[m];
-    if(!mat) continue;
-    //    mat->Print();
-    mat->Clone(MaterialVec());
-  }
-  //	Reference()->Print(cout);
+  cmesh->CopyMaterials(this);
 }
 
 TPZCompCloneMesh::TPZCompCloneMesh () : TPZCompMesh(),fCloneReference(){
@@ -285,7 +276,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
   int nstate = MaterialVec()[0]->NStateVariables();
   int dim = MaterialVec()[0]->Dimension();
   TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
-  TPZMaterial *bnd = MaterialVec()[0]->CreateBC (-1000,50,val1,val2);
+  TPZAutoPointer<TPZMaterial> bnd = MaterialVec()[0]->CreateBC (MaterialVec()[0],-1000,50,val1,val2);
   InsertMaterialObject(bnd);
   
   Reference()->ResetReference();
@@ -1340,11 +1331,10 @@ void TPZCompCloneMesh::Print (ostream & out) {
     out << "\tReference Id = " << el->Reference()->Id() << endl;
   }
   out << "\n\tMaterial Information:\n\n";
-  nelem = NMaterials();
-  for(i=0; i<nelem; i++) {
-    if(fMaterialVec[i] == 0) continue;
-    TPZMaterial *mt = fMaterialVec[i];
-    mt->Print(out);
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+  for(matit = MaterialVec().begin(); matit != MaterialVec().end(); matit++)
+  {
+    if(matit->second) matit->second->Print(out);
   }
 }
 

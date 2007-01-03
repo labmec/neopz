@@ -10,7 +10,8 @@ class TPZTransfer;
 class TPZMGSolver : public TPZMatrixSolver {
 public:
 
-  TPZMGSolver(TPZTransfer *trf,const TPZMatrixSolver &sol, int nvar, TPZMatrix *refmat = 0);
+  TPZMGSolver(TPZAutoPointer<TPZTransfer> trf,const TPZMatrixSolver &sol, int nvar, TPZAutoPointer<TPZMatrix> refmat);
+  TPZMGSolver(TPZAutoPointer<TPZTransfer> trf,const TPZMatrixSolver &sol, int nvar);
 
     TPZMGSolver(const TPZMGSolver & copy);
 
@@ -18,11 +19,11 @@ public:
 
     ~TPZMGSolver();
 
-    void SetTransferMatrix(TPZTransfer *Refmat);
+    void SetTransferMatrix(TPZAutoPointer<TPZTransfer> Refmat);
 
-    void ResetTranferMatrix();
+    void ResetTransferMatrix();
 
-    TPZTransfer * TransferMatrix() { return (TPZTransfer *) fStep.Matrix();}
+    TPZAutoPointer<TPZTransfer> TransferMatrix() { return fStep;}
 
     TPZSolver * Clone() const;
 
@@ -31,7 +32,7 @@ public:
 private:    
   TPZMatrixSolver * fCoarse;
   int fNVar;
-  TPZStepSolver fStep;
+  TPZAutoPointer<TPZTransfer> fStep;
   //    TPZMatrixSolver::TPZContainer *fTransfer;
 };
 #endif //TPZMGSOLVER_H

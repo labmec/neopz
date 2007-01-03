@@ -14,6 +14,7 @@
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pzadmchunk.h"
+#include "tpzautopointer.h"
 #include "pzsave.h"
 
 //#ifdef _AUTODIFF
@@ -95,7 +96,7 @@ class  TPZMaterial : public TPZSaveable
 			TPZVec<REAL> &flux) {}
 
       /**Create an object TPZBndCond derived of TPZMaterial*/
-      virtual TPZBndCond *CreateBC(int id, int typ, TPZFMatrix &val1,
+      virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix &val1,
 				   TPZFMatrix &val2);
 
       /**Compute contribution to the stiffness matrix and right hand
@@ -193,7 +194,7 @@ class  TPZMaterial : public TPZSaveable
        * Create a copy of the material object and put it in the vector
        * which is passed on
        */
-      virtual void Clone(TPZAdmChunkVector<TPZMaterial *> &matvec);
+      virtual void Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec);
 
       /**To return a numerical flux type to apply over the interfaces
        * of the elements*/

@@ -142,15 +142,15 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
    TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
 
 // Creating the materials
-   TPZEulerConsLaw2 * mat = new TPZEulerConsLaw2(1/*nummat*/,
+   TPZEulerConsLaw2 * matp = new TPZEulerConsLaw2(1/*nummat*/,
                                             0/*timeStep*/,
 					    gamma /*gamma*/,
 					    dim /* dim*/,
 					    DiffType);
 // Setting initial solution
-   mat->SetForcingFunction(NULL);
+   matp->SetForcingFunction(NULL);
    // Setting the time discretization method
-   mat->SetTimeDiscr(Diff_TD,
+   matp->SetTimeDiscr(Diff_TD,
                      ConvVol_TD,
 		     ConvFace_TD);
    //mat->SetDelta(0.1); // Not necessary, since the artDiff
@@ -162,14 +162,16 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
    REAL cspeed = sqrt(1.4*press/1.7);
    REAL lambdaMax = us + cspeed;
 */
-   mat->SetCFL(CFL);
-   mat->SetDelta(delta);
+   matp->SetCFL(CFL);
+   matp->SetDelta(delta);
+   
+   TPZAutoPointer<TPZMaterial> mat(matp);
 
    cmesh -> InsertMaterialObject(mat);
 
 // Boundary conditions
 
-   TPZBndCond * bc;
+   TPZAutoPointer<TPZMaterial>  bc;
    TPZFMatrix val1(4,4), val2(4,1);
    REAL rhol  = 1.,
         rhoul = 1.,
@@ -190,7 +192,7 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
       TPZGeoElBC((TPZGeoEl *)gElem[i],4,-1,*gmesh);
       TPZGeoElBC((TPZGeoEl *)gElem[i],6,-1,*gmesh);
    }
-   bc = mat->CreateBC(-1,5,val1,val2);
+   bc = mat->CreateBC(mat,-1,5,val1,val2);
    cmesh->InsertMaterialObject(bc);
    
    //CC ARESTA DIREITA : DIRICHLET
@@ -202,7 +204,7 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
    val2(3,0) = rhoel;
 //   TPZGeoElBC((TPZGeoEl *)gElem[0],5,-2,*gmesh);
    TPZGeoElBC((TPZGeoEl *)gElem[nEl-1],5,-2,*gmesh);
-   bc = mat->CreateBC(-2,3,val1,val2);
+   bc = mat->CreateBC(mat,-2,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
    //CC ARESTA ESQUERDA : DIRICHLET
@@ -214,7 +216,7 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
    val2(3,0) = rhoel;
    TPZGeoElBC((TPZGeoEl *)gElem[0],7,-3,*gmesh);
 //   TPZGeoElBC((TPZGeoEl *)gElem[1],7,-3,*gmesh);
-   bc = mat->CreateBC(-3,3,val1,val2);
+   bc = mat->CreateBC(mat,-3,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
 /*

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzbctension.h,v 1.8 2005-04-25 02:52:49 phil Exp $
+// $Id: pzbctension.h,v 1.9 2007-01-03 00:08:27 phil Exp $
 
 #ifndef BCTENSIONHPP
 #define BCTENSIONHPP
@@ -30,7 +30,7 @@ class TPZBCTension : public TPZBndCond {
     
     ~TPZBCTension(){}
 
-  TPZBCTension(TPZMaterial *material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada);
+  TPZBCTension(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada);
 
 
 

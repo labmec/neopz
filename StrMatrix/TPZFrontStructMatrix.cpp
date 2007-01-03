@@ -514,10 +514,11 @@ int TPZFrontStructMatrix<front>::main() {
 	TPZMat2dLin *meumat = new TPZMat2dLin(1);
 	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	meumat->SetMaterial (xk,xc,xf);
-	cmesh.InsertMaterialObject(meumat);
+        TPZAutoPointer<TPZMaterial> meumatptr(meumat);
+	cmesh.InsertMaterialObject(meumatptr);
 
 	TPZFMatrix val1(1,1,0.),val2(1,1,0.);
-	TPZMaterial *bnd = meumat->CreateBC (-4,0,val1,val2);
+	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumatptr,-4,0,val1,val2);
 	cmesh.InsertMaterialObject(bnd);
 
 	

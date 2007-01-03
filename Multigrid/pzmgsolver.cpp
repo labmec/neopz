@@ -5,7 +5,13 @@
 using namespace std;
 
 
-TPZMGSolver::TPZMGSolver(TPZTransfer *trf,const  TPZMatrixSolver &sol, int nvar, TPZMatrix *refmat) : TPZMatrixSolver(refmat),fStep(trf) {
+TPZMGSolver::TPZMGSolver(TPZAutoPointer<TPZTransfer> trf,const  TPZMatrixSolver &sol, int nvar, TPZAutoPointer<TPZMatrix> refmat) : TPZMatrixSolver(refmat),fStep(trf) {
+  fCoarse = (TPZMatrixSolver *) sol.Clone();
+  //  fTransfer = new TPZMatrixSolver::TPZContainer(trf);
+  fNVar = nvar;
+}
+
+TPZMGSolver::TPZMGSolver(TPZAutoPointer<TPZTransfer> trf,const  TPZMatrixSolver &sol, int nvar) : TPZMatrixSolver(),fStep(trf) {
   fCoarse = (TPZMatrixSolver *) sol.Clone();
   //  fTransfer = new TPZMatrixSolver::TPZContainer(trf);
   fNVar = nvar;
@@ -16,13 +22,13 @@ void TPZMGSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *res
     cout << "TPZMGSolver::Solve called without a matrix pointer\n";
     exit(-1);
   }
-  TPZMatrix *mat = Matrix();
+  TPZAutoPointer<TPZMatrix> mat = Matrix();
   if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
     result.Redim(mat->Rows(),F.Cols());
   }
 
   TPZFMatrix FCoarse,UCoarse;
-  TPZTransfer *tr = TransferMatrix();
+  TPZAutoPointer<TPZTransfer> tr = TransferMatrix();
   tr->TransferResidual(F,FCoarse);
   fCoarse->Solve(FCoarse,UCoarse);
   tr->TransferSolution(UCoarse,result);
@@ -35,7 +41,7 @@ TPZMGSolver::TPZMGSolver(const TPZMGSolver & copy): TPZMatrixSolver(copy), fStep
     //fTransfer = copy.fTransfer;
     //    fTransfer->IncreaseRefCount();
 }
-class TPZSolver;
+
 TPZSolver * TPZMGSolver::Clone() const {
     return new TPZMGSolver(*this);
 }
@@ -45,12 +51,13 @@ TPZMGSolver::~TPZMGSolver(){
     //    fTransfer->DecreaseRefCount();
 
 }
-void TPZMGSolver::ResetTranferMatrix(){
+void TPZMGSolver::ResetTransferMatrix(){
   //  fTransfer->SetMatrix(0);
-  fStep.ResetMatrix();
+  TPZAutoPointer<TPZTransfer> reset;
+  fStep = reset;
 }
-void TPZMGSolver::SetTransferMatrix(TPZTransfer *Refmat){
-  fStep.SetMatrix((TPZMatrix *)Refmat);
+void TPZMGSolver::SetTransferMatrix(TPZAutoPointer<TPZTransfer> Refmat){
+  fStep = Refmat;
   //    if(fTransfer->Matrix() == Refmat || !fTransfer->Matrix()) {
   //        fTransfer->SetMatrix(Refmat);
   //    } else {

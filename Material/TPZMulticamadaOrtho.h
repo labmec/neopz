@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZMulticamadaOrtho.h,v 1.14 2005-04-25 02:52:51 phil Exp $
+// $Id: TPZMulticamadaOrtho.h,v 1.15 2007-01-03 00:08:26 phil Exp $
 #ifndef MULTICAMADAORTH
 #define MULTICAMADAORTH
 
@@ -8,6 +8,7 @@
 #include "pzvec.h"
 #include "pzstack.h"
 #include "TPZPlacaOrthotropic.h"
+#include "tpzautopointer.h"
 
 class TPZGeoMesh;
 class TPZCompMesh;
@@ -60,7 +61,7 @@ class TPZMulticamadaOrthotropic {
   ~TPZMulticamadaOrthotropic(){}
 
   /**Adiciona placas ao conjunto*/
-  void AddPlacaOrtho(TPZMatOrthotropic *material, REAL height);
+  void AddPlacaOrtho(TPZAutoPointer<TPZMaterial> material, REAL height);
   /**gera a malha computacional do conjunto de placas*/
   void GenerateMesh();
   /**cria o conjunto de placas multicamada*/

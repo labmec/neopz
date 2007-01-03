@@ -55,18 +55,20 @@ TPZCompMesh *Create3DExpMesh() {
 
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
 
-  TPZMaterialTest3D *mat = new TPZMaterialTest3D(1);
+  TPZAutoPointer<TPZMaterial> mat;
+  TPZMaterialTest3D *mat3 = new TPZMaterialTest3D(1);
   TPZFMatrix mp (3,1,1.);
   TPZMaterialTest3D::eq3=1;
-  mat->SetMaterial(mp);
-  mat->SetForcingFunction(ForcingFunction3DExp);
+  mat3->SetMaterial(mp);
+  mat3->SetForcingFunction(ForcingFunction3DExp);
+  mat = mat3;
   cmesh->InsertMaterialObject(mat);
 
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
-  TPZBndCond *bc[6];
+  TPZAutoPointer<TPZMaterial> bc[6];
   int i;
   for (i=0;i<6;i++) {
-    bc[i] = mat->CreateBC(-(i+1),0,val1,val2);
+    bc[i] = mat->CreateBC(mat,-(i+1),0,val1,val2);
     cmesh->InsertMaterialObject(bc[i]);
   }
   cmesh->AutoBuild();

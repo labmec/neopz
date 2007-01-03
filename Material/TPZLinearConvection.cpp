@@ -26,7 +26,7 @@ TPZLinearConvection::TPZLinearConvection(int id, TPZVec<REAL>& conv) : TPZMateri
 void TPZLinearConvection::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
 			    TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
-  if(bc.Material() != this){
+  if(bc.Material().operator ->() != this){
     PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
   }
 

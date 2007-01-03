@@ -112,7 +112,7 @@ void TPZSwelling::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,i
 void TPZSwelling::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
 			       TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
-  if(bc.Material() != this){
+  if(bc.Material().operator ->() != this){
     PZError << "TPZMatHyperElastic.ContributeBC : this material don't exists \n";
   }
 

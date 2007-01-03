@@ -22,8 +22,8 @@ class TPZDXGraphMesh : public TPZGraphMesh {
 
 public:
 
-  TPZDXGraphMesh(TPZCompMesh *mesh, int dimension, TPZMaterial *mat, TPZVec<char *> &scalarnames, TPZVec<char *> &vecnames);
-  TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZMaterial *mat=0);
+  TPZDXGraphMesh(TPZCompMesh *mesh, int dimension, TPZAutoPointer<TPZMaterial> mat, TPZVec<char *> &scalarnames, TPZVec<char *> &vecnames);
+  TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat);
 
   virtual ~TPZDXGraphMesh();
 

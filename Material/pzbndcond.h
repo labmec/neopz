@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.18 2006-10-17 01:50:49 phil Exp $
+//$Id: pzbndcond.h,v 1.19 2007-01-03 00:08:27 phil Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -17,6 +17,7 @@
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
 #include "pzmaterialid.h"
+#include "tpzautopointer.h"
 
 //#ifdef _AUTODIFF
 //#include "fadType.h"
@@ -36,7 +37,7 @@ protected:
   int 		fType;		              // boundary condition type
   TPZFMatrix	fBCVal1;            // first value of boundary condition
   TPZFMatrix	fBCVal2;            // second value of boundary condition
-  TPZMaterial	*fMaterial;	        // pointer to material which created bc
+  TPZAutoPointer<TPZMaterial> fMaterial;	        // pointer to material which created bc
   
   /** Function to allow fBCVal1 to be variable */
   void (*fValFunction)(TPZVec<REAL> &loc, TPZFMatrix &Val1, TPZVec<REAL> &Val2, int &BCType);
@@ -56,7 +57,7 @@ public :
 
     ~TPZBndCond(){}
 
-  TPZBndCond(TPZMaterial *material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2) :
+  TPZBndCond(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2) :
     TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
     //cria um novo material
     fMaterial = material;
@@ -64,7 +65,7 @@ public :
 
   }
 
-  TPZBndCond(TPZBndCond &copy, TPZMaterial *ref) : TPZDiscontinuousGalerkin(copy), fType(copy.fType),
+  TPZBndCond(TPZBndCond &copy, TPZAutoPointer<TPZMaterial> ref) : TPZDiscontinuousGalerkin(copy), fType(copy.fType),
 						   fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {}
  
 
@@ -72,7 +73,7 @@ public :
     fValFunction = fp;
   }                                                   
                                                    
-  void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
+  void SetMaterial(TPZAutoPointer<TPZMaterial> mat) { fMaterial = mat;}
 
   /**returns the integrable dimension of the material*/
   int Dimension() { return fMaterial->Dimension(); }
@@ -92,7 +93,7 @@ public :
 
   TPZFMatrix &Val2() { return fBCVal2; }
 
-  TPZMaterial *Material() { return fMaterial; }
+  TPZAutoPointer<TPZMaterial> Material() { return fMaterial; }
 
   /**compute the value of the flux function to be used by ZZ error estimator*/
   void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux){
@@ -164,7 +165,7 @@ public :
     val.Fill(0.);
   }
 
-  virtual void Clone(TPZAdmChunkVector<TPZMaterial *> &matvec);
+  virtual void Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec);
 
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,

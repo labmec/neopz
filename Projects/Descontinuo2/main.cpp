@@ -407,7 +407,7 @@ int run(istream & input, ostream & output)
          input >> inputChar;
 	 startFileName = inputChar;
 
-	 TPZMaterial * pmat;
+	 TPZAutoPointer<TPZMaterial> pmat;
 	 TPZEulerConsLaw2 * pEuler;
 
 	 startFileName += ".pzf";
@@ -420,8 +420,8 @@ int run(istream & input, ostream & output)
           sv = TPZSaveable::Restore(fstr, gmesh);
          cmesh = dynamic_cast<TPZFlowCompMesh *>(sv);
          cmesh->SetCFL(CFL);
-	 pmat = cmesh->GetFlowMaterial(0);
-	 pEuler = dynamic_cast<TPZEulerConsLaw2 *>(pmat);
+	 pmat = cmesh->GetFlowMaterial();
+  pEuler = dynamic_cast<TPZEulerConsLaw2 *>(pmat.operator->());
 	 pEuler->SetTimeDiscr
 	            (Diff_TD,
                      ConvVol_TD,

@@ -86,18 +86,23 @@ void TPZMulticamadaOrthotropic::GenerateMesh(){
 }
 
 
-void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMatOrthotropic *material, REAL height){
+void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZAutoPointer<TPZMaterial> material, REAL height){
 
+  TPZAutoPointer<TPZMaterial> bcptr;
   fCompMesh->InsertMaterialObject(material);
   TPZFNMatrix<9> val1(3,3,0.),val2(3,1,0.);
   TPZBCTension *bc = new TPZBCTension(material,-material->Id()*4,4,val1,val2, 1., this,fPlacaOrth.NElements());
-  fCompMesh->InsertMaterialObject(bc);
+  bcptr = TPZAutoPointer<TPZMaterial>(bc);
+  fCompMesh->InsertMaterialObject(bcptr);
   bc = new TPZBCTension(material,-material->Id()*4-1,4,val1,val2, 1., this,fPlacaOrth.NElements());
-  fCompMesh->InsertMaterialObject(bc);
+  bcptr = TPZAutoPointer<TPZMaterial>(bc);
+  fCompMesh->InsertMaterialObject(bcptr);
   bc = new TPZBCTension(material,-material->Id()*4-2,4,val1,val2, -1., this,fPlacaOrth.NElements());
-  fCompMesh->InsertMaterialObject(bc);
+  bcptr = TPZAutoPointer<TPZMaterial>(bc);
+  fCompMesh->InsertMaterialObject(bcptr);
   bc = new TPZBCTension(material,-material->Id()*4-3,4,val1,val2, -1.,this,fPlacaOrth.NElements());
-  fCompMesh->InsertMaterialObject(bc);
+  bcptr = TPZAutoPointer<TPZMaterial>(bc);
+  fCompMesh->InsertMaterialObject(bcptr);
 
   //  fPlacaOrth.Push(placa);
   int nnodes = fGeoMesh->NodeVec().NElements();
@@ -132,18 +137,22 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMatOrthotropic *material, REAL 
       int nplaca = fPlacaOrth.NElements();
       if(nplaca == 0 && elx == 0 && ely == 0) {
 	TPZBndCond *bc2 = new TPZBndCond(material,-100,0,val1,val2);
-	fCompMesh->InsertMaterialObject(bc2);
+        bcptr = TPZAutoPointer<TPZMaterial>(bc2);
+        fCompMesh->InsertMaterialObject(bcptr);
 	TPZGeoElBC gbc5(gel,0,-100,*fGeoMesh);
 	val1(0,0) = 1.e12;
 	val1(2,2) = 1.e12;
 	TPZBndCond *bc3 = new TPZBndCond(material,-101,2,val1,val2);
-	fCompMesh->InsertMaterialObject(bc3);
+        bcptr = TPZAutoPointer<TPZMaterial>(bc3);
+        fCompMesh->InsertMaterialObject(bcptr);
 	TPZGeoElBC gbc6(gel,3,-101,*fGeoMesh);
 	val1.Zero();
 	val1(0,0) = 0.;
 	val1(2,2) = 1.e12;
 	TPZBndCond *bc4 = new TPZBndCond(material,-102,2,val1,val2);
-	fCompMesh->InsertMaterialObject(bc4);
+        bcptr = TPZAutoPointer<TPZMaterial>(bc4);
+	
+        fCompMesh->InsertMaterialObject(bcptr);
 	TPZGeoElBC gbc7(gel,2,-102,*fGeoMesh);
       }
       if(elx == fNelx/2 && ely == fNely/2) {

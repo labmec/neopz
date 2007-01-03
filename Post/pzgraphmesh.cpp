@@ -13,7 +13,7 @@
 #include "TPZAgglomerateEl.h"
 using namespace std;
 
-TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial *mat)
+TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZAutoPointer<TPZMaterial> mat)
 {
   int nel,i;
   fElementList.Resize(0);
@@ -220,11 +220,11 @@ void TPZGraphMesh::SetNames(TPZVec<char *>&scalarnames, TPZVec<char *>&vecnames)
 }
 
 
-TPZMaterial *TPZGraphMesh::Material() {
+TPZAutoPointer<TPZMaterial> TPZGraphMesh::Material() {
    return fMaterial;
 }
 
-void TPZGraphMesh::SetCompMesh(TPZCompMesh *mesh, TPZMaterial *mat){
+void TPZGraphMesh::SetCompMesh(TPZCompMesh *mesh, TPZAutoPointer<TPZMaterial> mat){
   if(fCompMesh == mesh && mat == fMaterial) return;
 	int i;
   fCompMesh = mesh;

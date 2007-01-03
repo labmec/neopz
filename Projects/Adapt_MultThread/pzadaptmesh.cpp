@@ -520,15 +520,7 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,             //malh
   gmesh->ResetReference();
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   TPZCheckMesh check(cmesh,&cout);
-  int nmat = mesh->MaterialVec().NElements();
-  int m;
-
-  //Cria um clone do vetor de materiais da malha mesh
-  for(m=0; m<nmat; m++) {
-    TPZMaterial *mat = mesh->MaterialVec()[m];
-    if(!mat) continue;
-    mat->Clone(cmesh->MaterialVec());
-  }
+  mesh->CopyMaterials(cmesh);
 
   //Idenifica o vetor de elementos computacionais de mesh
   //  TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh->ElementVec();

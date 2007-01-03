@@ -421,13 +421,13 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   // resolvida...
 
   int dim = cmesh.Reference()->ElementVec()[0]->Dimension();
-  TPZMat2dLin *meumat = new TPZMat2dLin(2);
-  TPZMatPoisson3d *poismat = new TPZMatPoisson3d(3,dim);
+  TPZMat2dLin *meumatp = new TPZMat2dLin(2);
+  TPZMatPoisson3d *poismatp = new TPZMatPoisson3d(3,dim);
   TPZVec<REAL> force(3,0.);
-  TPZElasticity3D *elasmat = new TPZElasticity3D(1,1000.,0.,force);
+  TPZElasticity3D *elasmatp = new TPZElasticity3D(1,1000.,0.,force);
   TPZVec<REAL> convdir(3,0.);
-  poismat->SetParameters(1.,0.,convdir);
-  poismat->SetInternalFlux(1.);
+  poismatp->SetParameters(1.,0.,convdir);
+  poismatp->SetInternalFlux(1.);
   //poismat->SetForcingFunction(forcingfunction);
   
   //Cada material tem par�etros de inicializa�o pr�rios, assim
@@ -435,18 +435,21 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   //par�etros. No caso em quest� o material requer tr� matrizes
   //e uma fun�o de c�culo tamb� �fornecida
   TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
-  meumat->SetMaterial (xk,xc,xf);
+  meumatp->SetMaterial (xk,xc,xf);
 //  meumat->SetForcingFunction(forcingfunction);
   
   //Ap� a cria�o do material este dever ser inserido na estrutura
   //de dados da malha computacional
+  TPZAutoPointer<TPZMaterial> meumat(meumatp);
+  TPZAutoPointer<TPZMaterial> poismat(poismatp);
+  TPZAutoPointer<TPZMaterial> elasmat(elasmatp);
   cmesh.InsertMaterialObject(meumat);
   cmesh.InsertMaterialObject(poismat);
   cmesh.InsertMaterialObject(elasmat);
 
 //  TPZMaterial *atual = meumat;
 //  TPZMaterial *atual = poismat;
-  TPZMaterial *atual = elasmat;
+  TPZAutoPointer<TPZMaterial> atual = elasmat;
 
   // inserir as condi�es de contorno
   // Uma condi�o de contorno pode ser dada por duas matrizes
@@ -469,13 +472,13 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   {
     val2(1,0) = -1.;
   }
-  TPZMaterial *bnd = atual->CreateBC (-4,1,val1,val2);
+  TPZAutoPointer<TPZMaterial> bnd = atual->CreateBC (atual,-4,1,val1,val2);
   cmesh.InsertMaterialObject(bnd);
   if(nstate == 3)
   {
     val2(1,0) = 1.;
   }
-  bnd = atual->CreateBC (-5,1,val1,val2);
+  bnd = atual->CreateBC (atual,-5,1,val1,val2);
   val2.Zero();
   
   //Da mesma forma que para os materiais, ap� sua cria�o �necess�io
@@ -483,7 +486,7 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   cmesh.InsertMaterialObject(bnd);
   
   //cria�o e inser�o de outras BC's
-  bnd = atual->CreateBC (-1,0,val1,val2);
+  bnd = atual->CreateBC (atual,-1,0,val1,val2);
   cmesh.InsertMaterialObject(bnd);
 
   if(nstate == 3)
@@ -491,7 +494,7 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
     val1(1,1) = 1000.;
     val1(2,2) = 1000.;
   }
-  bnd = atual->CreateBC (-3,2,val1,val2);
+  bnd = atual->CreateBC (atual,-3,2,val1,val2);
   cmesh.InsertMaterialObject(bnd);
   val1.Zero();
   val2.Zero();
@@ -499,7 +502,7 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   {
     val1(2,2) = 1000.;
   }
-  bnd = atual->CreateBC (-2,2,val1,val2);
+  bnd = atual->CreateBC (atual,-2,2,val1,val2);
   cmesh.InsertMaterialObject(bnd);
 }
 

@@ -98,10 +98,12 @@ TPZCompMesh *Create3DDiscMesh() {
   //gmesh->Print(MALHAG);
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   
-  TPZMaterialTest3D *mat = new TPZMaterialTest3D(1);
+  TPZMaterialTest3D *mat3D = new TPZMaterialTest3D(1);
   TPZFMatrix mp (3,1,0.);
   TPZMaterialTest3D::eq3=1;
-  mat->SetMaterial(mp);
+  mat3D->SetMaterial(mp);
+  TPZAutoPointer<TPZMaterial> mat(mat3D);
+  
   //  mat->SetForcingFunction(ForcingFunction3DExp);
 
   //CreateBC

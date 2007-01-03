@@ -11,8 +11,8 @@ class TPZMVGraphMesh : public TPZGraphMesh {
 
 public:
 
-TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial *mat);
-TPZMVGraphMesh(TPZCompMesh *cmesh,int dim,TPZMVGraphMesh *graph,TPZMaterial *mat=0);
+TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat);
+TPZMVGraphMesh(TPZCompMesh *cmesh,int dim,TPZMVGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat);
 
 virtual void DrawMesh(int numcases);
 

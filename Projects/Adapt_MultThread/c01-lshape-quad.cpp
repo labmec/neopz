@@ -112,7 +112,7 @@ TPZCompMesh *CreateMesh() {
   
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   
-  TPZMaterial *mat;
+  TPZAutoPointer<TPZMaterial> mat;
   if(nstate == 2) {
     mat = new TPZElasticityMaterial(1,2.,0.3,1.,1.);
   } else {
@@ -129,12 +129,12 @@ TPZCompMesh *CreateMesh() {
     mat = mat2d;
   }
   TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
-  TPZBndCond *bc[5];
-  bc[0] = mat->CreateBC(-1,0,val1,val2);
+  TPZAutoPointer<TPZMaterial>bc[5];
+  bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
   int i;
   if(nstate == 1) {
     for(i=1; i<6; i++) {
-      bc[i] = mat->CreateBC(-i-1,1,val1,val2);
+      bc[i] = mat->CreateBC(mat,-i-1,1,val1,val2);
     }
     bc[1]->SetForcingFunction(Neumann2);
     bc[2]->SetForcingFunction(Neumann3);
@@ -142,7 +142,7 @@ TPZCompMesh *CreateMesh() {
     bc[4]->SetForcingFunction(Neumann5);
   } else {
     for(i=1; i<6; i++) {
-      bc[i] = mat->CreateBC(-i-1,0,val1,val2);
+      bc[i] = mat->CreateBC(mat,-i-1,0,val1,val2);
     }
   }
   
