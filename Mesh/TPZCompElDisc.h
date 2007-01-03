@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: TPZCompElDisc.h,v 1.47 2006-10-16 18:34:23 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.48 2007-01-03 00:06:47 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -15,6 +15,8 @@
 #include "pzgeoel.h"
 #include "pzreal.h"
 #include "TPZShapeDisc.h"
+#include "tpzautopointer.h"
+#include "pzmaterial.h"
 
 struct TPZElementMatrix;
 class TPZFMatrix;
@@ -60,7 +62,7 @@ protected:
   /**
    * Material object of this element
    */
-  TPZMaterial *fMaterial;
+//  TPZAutoPointer<TPZMaterial> fMaterial;
 
   /**
    * it keeps the interior point coordinations of the element 
@@ -170,7 +172,10 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   /**
    * it returns the material object 
    */
-  virtual TPZMaterial *Material() const {return fMaterial;}
+  virtual TPZAutoPointer<TPZMaterial> Material() const 
+  {
+    return fMesh->FindMaterial(Reference()->MaterialId());
+  }
 
   /**
    *
@@ -189,7 +194,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   void InternalPoint(TPZVec<REAL> &point);
 
   /**set the material of the element*/
-  virtual void SetMaterial(TPZMaterial *mat) {fMaterial = mat;}
+//  virtual void SetMaterial(TPZAutoPointer<TPZMaterial> mat) {fMaterial = mat;}
 
   /**
    * it prints the features of the element 

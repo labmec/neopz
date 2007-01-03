@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.37 2006-10-17 00:51:03 phil Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.38 2007-01-03 00:06:47 phil Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -45,17 +45,12 @@ TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &
   //<!>It is set up as zero. It must be initialized after.
   fNFaces = 0;
 
-  TPZMaterial *mater = Mesh()->FindMaterial(nummat);
-  if(mater){
-    SetMaterial(mater);
-  } else {
-    PZError << "TPZAgglomerateElement::TPZAgglomerateElement material not found\n";
-  }
+  fMaterialId = nummat;
   CreateMidSideConnect();
 }
 
 TPZAgglomerateElement::TPZAgglomerateElement() : TPZCompElDisc(), fIndexes(),
-fMotherMesh(0),fInnerRadius(-1.),fNFaces(-1)
+fMotherMesh(0),fInnerRadius(-1.),fNFaces(-1),fMaterialId(999)
 {
 }
 
@@ -184,7 +179,7 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 
   if(Reference()) return TPZCompElDisc::CalcStiff(ek,ef);
 
-  if(Material() == NULL){
+  if(!Material()){
     cout << "TPZCompElDisc::CalcStiff : no material for this element\n";
     return;
   }

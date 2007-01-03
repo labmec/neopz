@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.83 2006-10-16 18:34:23 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.84 2007-01-03 00:06:47 phil Exp $
 
 // -*- c++ -*- 
 
@@ -56,13 +56,11 @@ using namespace std;
 
 TPZCompElDisc::TPZCompElDisc() : TPZCompEl(), fCenterPoint(3,0.)
 {
-  fMaterial = NULL;
   fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
 }
 //construtor do elemento aglomerado
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
 		TPZCompEl(mesh,0,index), fCenterPoint(3) {
-  fMaterial = NULL;
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
 }
 
@@ -70,13 +68,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
                              TPZCompEl(mesh,copy), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
 //  fReference = copy.fReference;
-  TPZMaterial *mat = copy.Material();
-  if(mat) {
-    int materialid = mat->Id();
-    fMaterial = mesh.FindMaterial(materialid);
-  } else {
-    fMaterial = 0;
-  }
+  TPZAutoPointer<TPZMaterial> mat = copy.Material();
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index) :
@@ -85,13 +77,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
 //  fReference = copy.fReference;
   //criando nova malha computacional
   Reference()->SetReference(this);
-  TPZMaterial *mat = copy.Material();
-  if(mat) {
-    int materialid = mat->Id();
-    fMaterial = mesh.FindMaterial(materialid);
-  } else {
-    fMaterial = 0;//n� deveria acontecer
-  }
+  TPZAutoPointer<TPZMaterial> mat = copy.Material();
   fConstC = copy.fConstC;
   CreateMidSideConnect();
   this->SetDegree( TPZCompEl::gOrder );
@@ -119,8 +105,6 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 //  fReference = ref;
   ref->SetReference(this);
   //fMesh = &mesh;
-  int materialid = ref->MaterialId();
-  fMaterial = mesh.FindMaterial(materialid);
   CreateMidSideConnect();
   this->SetDegree( TPZCompEl::gOrder );
   ref->CenterPoint(ref->NSides()-1,fCenterPoint);
@@ -216,7 +200,8 @@ int TPZCompElDisc::CreateMidSideConnect(){
   // caso o elemento ELV �dividido, ent� o elemento BC associado deveria ser dividido
   // tambem para manter a CC consistente com a malha
   // caso ELV �dividido e BC n� �ent� ELV �LowerLevelElement do elemento BC
-  if(!Material()){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
     PZError << "\nTPZCompElDisc::CreateMidSideConnect Material nulo\n";
     return -1;
   }
@@ -224,7 +209,7 @@ int TPZCompElDisc::CreateMidSideConnect(){
   TPZGeoEl *ref = Reference();
   TPZStack<TPZCompElSide> list;
   int nsides = ref->NSides();
-  int dimgrid = fMaterial->Dimension();
+  int dimgrid = material->Dimension();
   int dim = Dimension();
   int existsconnect = 0;
 
@@ -288,14 +273,15 @@ void TPZCompElDisc::InternalPoint(TPZVec<REAL> &point){
 
 void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
-  if(fMaterial == NULL){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
     cout << "TPZCompElDisc::CalcStiff : no material for this element\n";
     return;
   }
   TPZGeoEl *ref = Reference();
   int ncon = NConnects();
   int dim = Dimension();
-  int nstate = fMaterial->NStateVariables();
+  int nstate = material->NStateVariables();
   int nshape = NShapeF();
   int numeq = nshape * nstate;
 
@@ -324,7 +310,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   int integ = max( 2 * Degree(), 0);
   TPZIntPoints *intrule = 0;
   intrule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
-  if(fMaterial->HasForcingFunction())
+  if(material->HasForcingFunction())
   {
      int maxint = intrule->GetMaxOrder();
      TPZManVector<int> order(Reference()->Dimension());
@@ -353,15 +339,15 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   }
 }
 void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
-
-  if(fMaterial == NULL){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
     cout << "TPZCompElDisc::CalcStiff : no material for this element\n";
     return;
   }
   TPZGeoEl *ref = Reference();
   int ncon = NConnects();
   int dim = Dimension();
-  int nstate = fMaterial->NStateVariables();
+  int nstate = material->NStateVariables();
   int nshape = NShapeF();
   int numeq = nshape * nstate;
 
@@ -400,7 +386,7 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
 
     this->ComputeSolution(intpoint, phix, dphix, sol, dsol);
 
-    fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ef.fMat);
+    material->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ef.fMat);
   }
 }
 
@@ -487,7 +473,7 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
         LOGPZ_ERROR(logger, mess.str() );
         continue;
       }    
-      if(discel->Dimension() < fMaterial->Dimension()) continue;//elemento BC
+      if(discel->Dimension() < Material()->Dimension()) continue;//elemento BC
       discel->InterpolateSolution(*this);
     }
   }//if interpolate
@@ -498,6 +484,12 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
 void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
   // accumulates the transfer coefficients between the current element and the
   // coarse element into the transfer matrix, using the transformation t
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    std::cout << __PRETTY_FUNCTION__ << " No material " << std::endl;
+    return;
+  }
   TPZGeoEl *ref = Reference();
   TPZTransform t(Dimension());
   TPZGeoEl * coarseref = coarsel.Reference();
@@ -505,7 +497,7 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
 
   int locmatsize = NShapeF();
   int cormatsize = coarsel.NShapeF();
-  int nvar = fMaterial->NStateVariables();
+  int nvar = material->NStateVariables();
   int dimension = Dimension();
 
   TPZFMatrix loclocmat(locmatsize,locmatsize,0.);
@@ -632,14 +624,15 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
     return;
   }
 
-  if(fMaterial == NULL){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
     PZError << "TPZIntEl::Solution : no Material for this element\n";
     Print(PZError);
     return;
   }
 
   TPZGeoEl *ref = Reference();
-  int numdof = fMaterial->NStateVariables();
+  int numdof = material->NStateVariables();
   TPZFNMatrix<220> phi(nshape,1);
   TPZFNMatrix<660> dphi(dim,nshape);
   TPZManVector<REAL> u(numdof);
@@ -660,7 +653,7 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
   }
   Shape(x,phi,dphi);
   this->ComputeSolution(qsi, phi, dphi, u, du);
-  fMaterial->Solution(u,du,axes,var,sol);
+  material->Solution(u,du,axes,var,sol);
 }
 
 void TPZCompElDisc::Solution(TPZVec<REAL> &x, TPZVec<REAL> &uh){
@@ -807,7 +800,8 @@ void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &v
   int NErrors = this->Material()->NEvalErrors();
   errors.Resize(NErrors);
   errors.Fill(0.);
-  if(fMaterial == NULL){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
     PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
     Print(PZError);
     return;
@@ -820,8 +814,8 @@ void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &v
   TPZGeoEl *ref = Reference();
   int dim = Dimension();
 
-  int ndof = fMaterial->NStateVariables();
-  int nflux = fMaterial->NFluxes();
+  int ndof = material->NStateVariables();
+  int nflux = material->NFluxes();
   int nshape = NShapeF();
   //suficiente para ordem 5 do cubo
   TPZFNMatrix<220> phi(nshape,1);
@@ -837,7 +831,7 @@ void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &v
   TPZManVector<REAL,6> u(ndof);
   TPZFNMatrix<90> dudx(dim,ndof);
   TPZManVector<REAL,9> flux_el(nflux,0.);
-  TPZMaterial *matp = fMaterial;
+  TPZAutoPointer<TPZMaterial> matp = material;
 
   for(int nint=0; nint<intrule->NPoints(); nint++) {
 
@@ -995,7 +989,7 @@ void TPZCompElDisc::SetDegree(int degree) {
   c.SetOrder(degree);
   int seqnum = c.SequenceNumber();
   int nvar = 1;
-  TPZMaterial *mat = Material();
+  TPZAutoPointer<TPZMaterial> mat = Material();
   if(mat) nvar = mat->NStateVariables();
   Mesh()->Block().Set(seqnum,NShapeF()*nvar);
 }
@@ -1065,7 +1059,7 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
   WriteObjects(buf,fCenterPoint);
   buf.Write(&fConnectIndex,1);
   buf.Write(&fConstC,1);
-  int matid = fMaterial->Id();
+  int matid = Material()->Id();
   buf.Write(&matid,1);
   int shapetype = fShapefunctionType;
   buf.Write(&shapetype,1);
@@ -1083,7 +1077,7 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
   buf.Read(&fConstC,1);
   int matid;
   buf.Read(&matid,1);
-  fMaterial = Mesh()->FindMaterial(matid);
+//  fMaterial = Mesh()->FindMaterial(matid);
   int shapetype;
   buf.Read(&shapetype,1);
   fShapefunctionType = (TPZShapeDisc::MShapeType) shapetype;
@@ -1091,7 +1085,8 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
 
 void TPZCompElDisc::ComputeError(int errorid, TPZVec<REAL> &error){
 
-  if(fMaterial == NULL){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
     cout << "TPZCompElDisc::ComputeError : no material for this element\n";
     return;
   }
@@ -1103,7 +1098,7 @@ void TPZCompElDisc::ComputeError(int errorid, TPZVec<REAL> &error){
   int integ = max( 2 * Degree(), 0);
   TPZIntPoints *intrule = 0;
   intrule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
-  int nstate = fMaterial->NStateVariables();
+  int nstate = material->NStateVariables();
   int npoints = intrule->NPoints(), ip;
 
   TPZManVector<REAL,220> sol(nstate,0.);
@@ -1124,12 +1119,17 @@ void TPZCompElDisc::ComputeError(int errorid, TPZVec<REAL> &error){
     ref->X(intpoint, x);
     weight *= fabs(detjac);
     this->ComputeSolution(intpoint, sol, dsol, axes);
-    this->Material()->ContributeErrors(x,sol, dsol,weight,error,POrder,faceSize, errorid);
+    material->ContributeErrors(x,sol, dsol,weight,error,POrder,faceSize, errorid);
   }
   delete intrule;
 }
 
 void TPZCompElDisc::Integrate(int variable, TPZVec<REAL> & value){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
+    cout << "TPZCompElDisc::ComputeError : no material for this element\n";
+    return;
+  }
   const int dim = this->Dimension();
   REAL weight;
   TPZFMatrix axes(3,3,0.);
@@ -1137,7 +1137,7 @@ void TPZCompElDisc::Integrate(int variable, TPZVec<REAL> & value){
   TPZFMatrix jacinv(dim,dim);
   REAL detjac;
   TPZManVector<REAL, 3> intpoint(dim,0.);
-  const int varsize = this->Material()->NSolutionVariables(variable);
+  const int varsize = material->NSolutionVariables(variable);
   TPZManVector<REAL> sol(varsize);
   
   value.Resize(varsize);

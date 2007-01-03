@@ -32,6 +32,7 @@ void TPZCompMeshReferred::LoadReferred(TPZCompMesh *mesh)
 {
   fReferredIndices.resize(this->NElements());
   fReferred = mesh;
+  if(!mesh) return;
   TPZGeoMesh *gmesh = mesh->Reference();
   gmesh->ResetReference();
   mesh->LoadReferences();

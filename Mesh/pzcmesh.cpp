@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.51 2006-10-16 19:44:31 phil Exp $
+//$Id: pzcmesh.cpp,v 1.52 2007-01-03 00:06:47 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -40,7 +40,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompmesh"));
 using namespace std;
 
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
-					    fConnectVec(0),fMaterialVec(0),
+					    fConnectVec(0),fMaterialVec(),
 					    fSolution(0,1) {
   
   //Initializing class members
@@ -51,6 +51,7 @@ TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
   //fName[126] = '\0';
   if(gr) {
     SetName( gr->Name() );
+    gr->ResetReference();
     gr->SetReference(this);
   }
   fBlock.SetMatrix(&fSolution);
@@ -109,13 +110,7 @@ void TPZCompMesh::CleanUp() {
   fConnectVec.Resize(0);
   fConnectVec.CompactDataStructure(1);
   nelem = NMaterials();
-  for(i=0; i<nelem; i++) {
-    if(fMaterialVec[i]) delete fMaterialVec[i];
-  }
-  fMaterialVec.Resize(0);
-  fMaterialVec.CompactDataStructure(1);
-  //  fBCConnectVec.Resize(0);
-  //  fBCConnectVec.CompactDataStructure(1);
+  fMaterialVec.clear();
   
   fBlock.SetNBlocks(0);
   fSolutionBlock.SetNBlocks(0);
@@ -163,54 +158,31 @@ void TPZCompMesh::Print (std::ostream & out) {
 	
   }
   out << "\n\tMaterial Information:\n\n";
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator mit;
   nelem = NMaterials();
-  for(i=0; i<nelem; i++) {
-    if(fMaterialVec[i] == 0) continue;
-    TPZMaterial *mt = fMaterialVec[i];
-    mt->Print(out);
+  for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
+  
+    mit->second->Print(out);
   }
-  out << "\nNodal boundary conditions\n";
-  //  nelem = NBCConnects();
-  //  for(i=0; i<nelem; i++) {
-  //    if(!fBCConnectVec[i].fConnect) continue;
-  //    fBCConnectVec[i].Print(*this,out);
-  //  }
 }
 
 /**Insert a material object in the datastructure*/
-int TPZCompMesh::InsertMaterialObject(TPZMaterial *mat) {
+int TPZCompMesh::InsertMaterialObject(TPZAutoPointer<TPZMaterial> &mat) {
   if(!mat) return -1;
-  TPZMaterial *othermat;
-  int index;
-  othermat = FindMaterial(mat->Id());
-  if(!othermat) {
-    index = fMaterialVec.AllocateNewElement();
-    fMaterialVec[index] = mat;
-  } else {
-    int nelem= NMaterials();
-    for(index=0; index<nelem; index++) {
-      TPZMaterial *localmat = fMaterialVec[index];
-      if(!localmat) continue;
-      if(localmat == othermat) break;
-    }
-    if(index == nelem) {
-      PZError << "TPZCompMesh::InsertMaterialObject I don't understand\n";
-      index = fMaterialVec.AllocateNewElement();
-    }
-    if(othermat != mat) delete othermat;
-    fMaterialVec[index] = mat;
-  }
-  return index;
+  int matid = mat->Id();
+  fMaterialVec[matid] = mat;
+  return fMaterialVec.size();
 }
 
-TPZMaterial* TPZCompMesh::FindMaterial(int matid){	// find the material object with id matid
-  int i, nelem= NMaterials();
-  for(i=0; i<nelem; i++) {
-    TPZMaterial *mat = fMaterialVec[i];
-    if(!mat) continue;
-    if(mat->Id() == matid) return mat;
+TPZAutoPointer<TPZMaterial> TPZCompMesh::FindMaterial(int matid){	// find the material object with id matid
+  TPZAutoPointer<TPZMaterial> result;
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator mit;
+  mit = fMaterialVec.find(matid);
+  if(mit != fMaterialVec.end())
+  {
+    result = mit->second;
   }
-  return 0;
+  return result;
 }
 
 void TPZCompMesh::AutoBuild() {
@@ -234,7 +206,7 @@ void TPZCompMesh::AutoBuild() {
     if(!gel) continue;
     if(!gel->HasSubElement()) {
       int matid = gel->MaterialId();
-      TPZMaterial *mat = this->FindMaterial(matid);
+      TPZAutoPointer<TPZMaterial> mat = this->FindMaterial(matid);
       if(!mat) 
       {
         matnotfound.insert(matid);
@@ -344,7 +316,7 @@ void TPZCompMesh::AutoBuild(std::set<int> &MaterialIDs){
     }
   }
    
-  int neltocreate = gel2create.size();
+//  int neltocreate = gel2create.size();
 //   fBlock.SetNBlocks( fBlock.NBlocks() + neltocreate );
 
   for(it = gel2create.begin(); it != gel2create.end(); it++){
@@ -972,15 +944,12 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
   // adapt the block size of the blocks, dividing by the number of variables
   //  of the material
   int i, nmat = NMaterials();
-  TPZMaterial *mat = 0;
-  for(i=0; i<nmat; i++) {
-    mat = fMaterialVec[i];
-    if(mat) break;
-  }
-  if(!mat) {
+  if(!nmat) {
     PZError << "TPZCompMesh::BuildTransferMatrix, no material object found\n";
     return;
   }
+  TPZAutoPointer<TPZMaterial> mat;
+  mat = fMaterialVec.begin()->second;
   int nvar = mat->NStateVariables();
   int dim = mat->Dimension();
   
@@ -1031,15 +1000,12 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
   // adapt the block size of the blocks, dividing by the number of variables
   //  of the material
   int i, nmat = NMaterials();
-  TPZMaterial *mat = 0;
-  for(i=0; i<nmat; i++) {
-    mat = fMaterialVec[i];
-    if(mat) break;//o primeiro material �o de volume - supostamente
-  }
-  if(!mat) {
+  if(!nmat) {
     PZError << "TPZCompMesh::BuildTransferMatrixDesc no material object found\n";
     return;
   }
+  TPZAutoPointer<TPZMaterial> mat;
+  mat = fMaterialVec.begin()->second;
   int nvar = mat->NStateVariables();
   int dim = mat->Dimension();
   //o seguinte �igual ao nmero de conects da malha
@@ -1471,9 +1437,9 @@ void TPZCompMesh::AdjustBoundaryElements() {
 
       if(!elp || !dynamic_cast<TPZInterpolatedElement*>(elp) ) continue;
 
-      TPZMaterial *mat = elp->Material();
+      TPZAutoPointer<TPZMaterial> mat = elp->Material();
       // this statement determines thata the element is associated with a boundary condition
-      TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
+      TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat.operator ->());
       if(!bnd) continue;
       //      if(mat && mat->Id() >= 0) continue;
       int nsides = elp->Reference()->NSides();
@@ -2021,12 +1987,11 @@ TPZCompMesh* TPZCompMesh::Clone() const {
 */
 
 void TPZCompMesh::CopyMaterials(TPZCompMesh *mesh) const {
-  int nmat = fMaterialVec.NElements();
-  int m;
-  for(m=0; m<nmat; m++) {
-    TPZMaterial *mat = fMaterialVec[m];
-    if(!mat) continue;
-    mat->Clone(mesh->fMaterialVec);
+//  int nmat = fMaterialVec.size();
+  std::map<int, TPZAutoPointer<TPZMaterial> >::const_iterator mit;
+//  int m;
+  for(mit=fMaterialVec.begin(); mit!=fMaterialVec.end(); mit++) {
+    mit->second->Clone(mesh->fMaterialVec);
   }
 
 }
@@ -2155,15 +2120,11 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix &projectsol) {
   projectsol.Redim(neq,1);
   projectsol.Zero();
   int i, nmat = NMaterials();
-  TPZMaterial *mat = 0;
-  for(i=0; i<nmat; i++) {
-    mat = fMaterialVec[i];
-    if(mat) break;//o primeiro material �o de volume - supostamente
-  }
-  if(!mat) {
+  if(!nmat) {
     PZError << "TPZCompMesh::BuildTransferMatrixDesc2 no material object found\n";
     return;
   }
+  TPZAutoPointer<TPZMaterial> mat = fMaterialVec.begin()->second;
   //int nvar = mat->NStateVariables();
   int dim = mat->Dimension();
   Reference()->ResetReference();//geom�ricos apontam para nulo

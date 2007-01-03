@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.46 2006-12-13 19:05:22 tiago Exp $
+// $Id: pzintel.cpp,v 1.47 2007-01-03 00:06:47 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -49,41 +49,24 @@ using namespace std;
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int &index) :
   TPZCompEl(mesh,reference,index) {
 //  fReference = reference;
-  int materialid = reference->MaterialId();
-  fMaterial = mesh.FindMaterial(materialid);
-  if(!fMaterial)
-  {
-    std::cout << "Material corresponding to " << materialid << " not found, expect trouble\n";
-  }
 }
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy) :
   TPZCompEl(mesh,copy) {
 //  fReference = copy.fReference;
-  TPZMaterial *mat = copy.Material();
-  if(mat) {
-    int materialid = mat->Id();
-    fMaterial = mesh.FindMaterial(materialid);
-  } else {
-    fMaterial = 0;
-  }
 }
 
 TPZInterpolatedElement::TPZInterpolatedElement() :
   TPZCompEl() {
-//  fReference = reference;
-  fMaterial = 0;
 }
 
 TPZInterpolatedElement::~TPZInterpolatedElement() {
 }
 
 int TPZInterpolatedElement::MaterialId() const {
-  if(!fMaterial) {
-    LOGPZ_ERROR(logger, "This element has no material return -999.");
-    return -999;
-  }
-  return fMaterial->Id();
+  TPZAutoPointer<TPZMaterial> mat = Material();
+  if(mat) return mat->Id();
+  return -999;
 }
 
 int TPZInterpolatedElement::NShapeF() {
@@ -587,7 +570,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 
 int TPZInterpolatedElement::CreateMidSideConnect(int side) {
   TPZCompMesh *cmesh = Mesh();
-  TPZMaterial *mat = Material();
+  TPZAutoPointer<TPZMaterial> mat = Material();
   int nvar = 1;
   if(mat) nvar = mat->NStateVariables();
   int newnodeindex;
@@ -745,10 +728,6 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 }
 
 void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) {
-  if(!IsConnectContinuous(side)) {
-    LOGPZ_WARN(logger, "Exiting RestrainSide - connect not continuous.");
-    return;
-  }
   TPZCompElSide thisside(this,side);
   TPZCompElSide locallarge = thisside.LowerLevelElementList(1);
   TPZCompElSide largecompside(large,neighbourside);
@@ -1272,6 +1251,13 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
 void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel){
   // accumulates the transfer coefficients between the current element and the
   // coarse element into the transfer matrix, using the transformation t
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
+    return;
+  }
+  
   TPZTransform t(Dimension());
   TPZGeoEl *ref = Reference();
 
@@ -1283,7 +1269,7 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
   int cornod = coarsel.NConnects();
   int locmatsize = NShapeF();
   int cormatsize = coarsel.NShapeF();
-  int nvar = fMaterial->NStateVariables();
+  int nvar = material->NStateVariables();
   int dimension = Dimension();
   if (!dimension) {
     LOGPZ_WARN(logger,"Exiting InterpolateSolution - trying to interpolate a node solution ");
@@ -1415,6 +1401,13 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
 void TPZInterpolatedElement::InterpolateSolution(TPZCompElDisc &coarsel){
   // accumulates the transfer coefficients between the current element and the
   // coarse element into the transfer matrix, using the transformation t
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
+    LOGPZ_ERROR(logger,"InterpolateSolution no material");
+    return;
+  }
   TPZTransform t(Dimension());
   TPZGeoEl *ref = Reference();
 
@@ -1426,7 +1419,7 @@ void TPZInterpolatedElement::InterpolateSolution(TPZCompElDisc &coarsel){
   int cornod = coarsel.NConnects();
   int locmatsize = NShapeF();
   int cormatsize = coarsel.NShapeF();
-  int nvar = fMaterial->NStateVariables();
+  int nvar = material->NStateVariables();
   int dimension = Dimension();
   if (!dimension) {
     LOGPZ_WARN(logger,"Exiting InterpolateSolution - trying to interpolate a node solution ");
@@ -1560,12 +1553,13 @@ void TPZInterpolatedElement::InterpolateSolution(TPZCompElDisc &coarsel){
 void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) {
   int i;
 
-  if(fMaterial == NULL){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
     std::cout << "Exiting CalcStiff: no material for this element\n";
     LOGPZ_ERROR(logger,"Exiting CalcStiff: no material for this element");
     return;
   }
-  int numdof = fMaterial->NStateVariables();
+  int numdof = material->NStateVariables();
   int ncon = NConnects();
   int dim = Dimension();
   int nshape = NShapeF();
@@ -1659,7 +1653,8 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
 
 void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
   
-  if(fMaterial == NULL){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
     stringstream sout;
     sout << "Exiting ProjectFlux: no material for this element\n";
     Print(sout);
@@ -1667,8 +1662,8 @@ void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix 
     return;
   }
 
-  int numdof = fMaterial->NStateVariables();//misael
-  int num_flux = fMaterial->NFluxes();
+  int numdof = material->NStateVariables();//misael
+  int num_flux = material->NFluxes();
   int dim = Dimension();
   int nshape = NShapeF();
   int ncon = NConnects();
@@ -1751,7 +1746,7 @@ void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix 
         iv++;
       }
     }
-    fMaterial->Flux(x,sol,dsol,axes,flux);
+    material->Flux(x,sol,dsol,axes,flux);
     for(in=0; in<nshape; in++){
       for(int ifl=0; ifl<num_flux; ifl++){
         (ef.fMat)(in,ifl) += flux[ifl]*phi(in,0)*weight;
@@ -1850,11 +1845,19 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
   delete this;// deve ser relegado para o Refine
 }
 
-REAL TPZInterpolatedElement::CompareElement(int var, char *matname) {
-  if (strcmp(matname,Material()->Name())) return(0.);
+REAL TPZInterpolatedElement::CompareElement(int var, char *matname) 
+{
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
+    LOGPZ_ERROR(logger,"InterpolateSolution no material");
+    return 0.;
+  }
+  if (strcmp(matname,material->Name())) return(0.);
   REAL error=0.;
   int dim = Dimension();
-  int numdof = fMaterial->NSolutionVariables(var);
+  int numdof = material->NSolutionVariables(var);
   TPZFMatrix axes(3,3,0.);
   TPZFMatrix jacobian(dim,dim);
   TPZFMatrix jacinv(dim,dim);
@@ -1907,13 +1910,14 @@ void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &so
     return;
   }
 
-  if(fMaterial == NULL){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
     LOGPZ_ERROR(logger,"Exiting Solution: no Material for this element");
     return;
   }
   TPZGeoEl *ref = Reference();
 
-  int numdof = fMaterial->NStateVariables();
+  int numdof = material->NStateVariables();
   REAL phistore[220],dphistore[660],dphixstore[660];
   TPZFMatrix phi(nshape,1,phistore,220);
   TPZFMatrix dphi(dim,nshape,dphistore,660),dphix(dim,nshape,dphixstore,660);
@@ -1959,7 +1963,7 @@ void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &so
   }
 
   this->ComputeSolution(qsi, phi, dphix, u, du);
-  fMaterial->Solution(u,du,axes,var,sol);
+  material->Solution(u,du,axes,var,sol);
 }
 
 void TPZInterpolatedElement::Print(std::ostream &out) {
@@ -1971,10 +1975,14 @@ void TPZInterpolatedElement::Print(std::ostream &out) {
   out << "Side orders = ";
   for (nod=0; nod< NConnects(); nod++) out << SideOrder(nod) << ' ';
   out << endl;
-  if (fMaterial) {
-    out << "material id " << fMaterial->Id() << endl;
-  } else if(Reference()) {
-    Reference()->Print(out);
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    out << " no material " << std::endl;
+  }
+
+  if (material) {
+    out << "material id " << material->Id() << endl;
   }
   int id;
   TPZIntPoints &intrule = GetIntegrationRule();
@@ -2009,16 +2017,20 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
                                                 TPZVec<REAL> &val,
                                                 TPZFMatrix &deriv),
                                            TPZVec<REAL> &errors,
-                                           TPZBlock * /*flux */) {
-  int NErrors = this->Material()->NEvalErrors();
-  errors.Resize(NErrors);
-  errors.Fill(0.0);
-
-  if(fMaterial == NULL){
+                                           TPZBlock * /*flux */) 
+{
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
     LOGPZ_ERROR(logger,"Exiting EvaluateError: no material for this element");
     return;
   }
-  if(fMaterial->Id() < 0) {
+  int NErrors = material->NEvalErrors();
+  errors.Resize(NErrors);
+  errors.Fill(0.0);
+
+  if(dynamic_cast<TPZBndCond *>(material.operator ->())) {
     LOGPZ_INFO(logger,"Exiting EvaluateError - null error - boundary condition material.");
     return;
   }
@@ -2046,8 +2058,8 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
   intrule.SetOrder(order);
 
 
-  int ndof = fMaterial->NStateVariables();
-  int nflux = fMaterial->NFluxes();
+  int ndof = material->NStateVariables();
+  int nflux = material->NFluxes();
   int nshape = NShapeF();
   //suficiente para ordem 5 do cubo
   REAL phistore[220],dphistore[660],dphixstore[660];
@@ -2066,7 +2078,6 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
   REAL dudxstore[90];//,jacinvstore[9];
   TPZFMatrix dudx(dim,ndof,dudxstore,90);
   TPZManVector<REAL> flux_el(nflux);
-  TPZMaterial *matp = (TPZMaterial *) fMaterial;
   TPZFMatrix jacinv(dim,dim);
   int ieq;
   TPZGeoEl *ref = Reference();
@@ -2110,7 +2121,7 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
     //contribucao dos erros
     if(fp) {
       fp(x,u_exact,du_exact);
-      matp->Errors(x,u,dudx,axes,flux_el,u_exact,du_exact,values);
+      material->Errors(x,u,dudx,axes,flux_el,u_exact,du_exact,values);
       for(int ier = 0; ier < NErrors; ier++)
         errors[ier] += values[ier]*weight;
     }
@@ -2123,12 +2134,14 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
 }
 void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
   int i;
-
-  if(fMaterial == NULL){
-    LOGPZ_ERROR(logger,"Exiting CalcResidual: no material for this element");
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
+    LOGPZ_ERROR(logger,"InterpolateSolution no material");
     return;
   }
-  int numdof = fMaterial->NStateVariables();
+  int numdof = material->NStateVariables();
   int ncon = NConnects();
   int dim = Dimension();
   int nshape = NShapeF();
@@ -2203,20 +2216,23 @@ void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
     }
 
     this->ComputeSolution(intpoint, phi, dphix, sol, dsol);
-    fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ef.fMat);
+    material->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ef.fMat);
   }
 }
 
 void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & blockdiag) {
   int i;
-  
-  if(fMaterial == NULL){
-    LOGPZ_ERROR(logger,"Entering CalcBlockDiagonal: no material for this element");
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
+    LOGPZ_ERROR(logger,"CalcBlockDiagonal no material");
     return;
   }
+  
   int ncon = NConnects();
   TPZCompMesh &mesh = *Mesh();
-  int numdof = fMaterial->NStateVariables();
+  int numdof = material->NStateVariables();
   TPZVec<int> dependencyorder;
   connectlist.Resize(0);
   for(i=0; i<ncon; i++) connectlist.Push(ConnectIndex(i));
@@ -2327,7 +2343,7 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
       }
       eq += blsize;
       TPZFMatrix ekl(blsize*numdof,blsize*numdof,0.), efl(blsize*numdof,1,0.);
-      fMaterial->Contribute(x,jacinv,sol,dsol,weight,axes,phil,dphil,ekl,efl);
+      material->Contribute(x,jacinv,sol,dsol,weight,axes,phil,dphil,ekl,efl);
       blockdiag.AddBlock(b,ekl);
     }
   }
@@ -2354,27 +2370,18 @@ void TPZInterpolatedElement::ExpandShapeFunctions(TPZVec<int> &connectlist, TPZV
   }
 }
 
-/** Jorge 19/05/99 */
-void TPZInterpolatedElement::MakeConnectContinuous(int icon) {
-  TPZStack<TPZCompElSide> elvec;
-  TPZCompElSide thisside(this,icon);
-  thisside.EqualLevelElementList(elvec,0,0);
-  /**Asking if exist neighbour that it can not to be discontinuous*/
-  if(elvec.NElements() && (dynamic_cast<TPZInterpolatedElement *>(elvec[0].Element()))->CanBeDiscontinuous()) {
-    (dynamic_cast<TPZInterpolatedElement *>(elvec[0].Element()))->MakeConnectContinuous(elvec[0].Side());
-    LOGPZ_INFO(logger,"Exiting MakeConnectContinuous -> can be continuous.");
-    return;
-  }
-}
 
 REAL TPZInterpolatedElement::MeanSolution(int var) {
   int dim = Dimension(), nvars;
-  if(!fMaterial) {
-    LOGPZ_INFO(logger,"Exiting MeanSolution: null material");
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
+    LOGPZ_ERROR(logger,"Meansolution no material");
     return 0.;
   }
 
-  nvars = fMaterial->NSolutionVariables(var);
+  nvars = material->NSolutionVariables(var);
   if(nvars!=1) {
     LOGPZ_ERROR(logger,"Exiting MeanSolution: is not implemented to nvars != 1.");
     return 0.;
@@ -2406,12 +2413,15 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 /**Compute the contribution to stiffness matrix and load vector on the element*/
 void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
   int i;
-  if(fMaterial == NULL) {
-    LOGPZ_ERROR(logger,"Exiting CalcIntegral.");
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
+    LOGPZ_ERROR(logger,"CalcIntegral no material");
     return;
   }
 
-  int numdof = fMaterial->NStateVariables();
+  int numdof = material->NStateVariables();
   int ncon = NConnects();
   int dim = Dimension();
   int nshape = NShapeF();
@@ -2505,12 +2515,15 @@ int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
 void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &ef) {
   int i;
 
-  if(fMaterial == NULL){
-    LOGPZ_ERROR(logger,"Exiting CalcEnergy: no material for this element");
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
+    LOGPZ_ERROR(logger,"CalcEnergy no material");
     return;
   }
   
-  int numdof = fMaterial->NStateVariables();
+  int numdof = material->NStateVariables();
   int ncon = NConnects();
   int dim = Dimension();
   int nshape = NShapeF();
@@ -2632,7 +2645,7 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
       }
     }
 
-    fMaterial->ContributeEnergy(x,sol,dsol,U,weight);
+    material->ContributeEnergy(x,sol,dsol,U,weight);
   }
 
   FADToMatrix(U, ek.fMat, ef.fMat);
@@ -2675,8 +2688,6 @@ void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMat
 void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid)
 {
   TPZCompEl::Write(buf,withclassid);
-  int matid = fMaterial->Id();
-  buf.Write(&matid,1);
 }
   
   /**
@@ -2685,9 +2696,6 @@ void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid)
 void TPZInterpolatedElement::Read(TPZStream &buf, void *context)
 {
   TPZCompEl::Read(buf,context);
-  int matid;
-  buf.Read(&matid,1);
-  fMaterial = Mesh()->FindMaterial(matid);
 }
 
 void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.36 2006-10-16 18:00:18 phil Exp $
+//$Id: TPZInterfaceEl.h,v 1.37 2007-01-03 00:06:46 phil Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -59,7 +59,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * Material object of this element
    */
-  TPZMaterial *fMaterial;//this variable can be gotten of the element of associated volume
+  int fMaterialId;//this variable can be gotten of the element of associated volume
 
   void IncrementElConnected();
 
@@ -120,9 +120,12 @@ class TPZInterfaceElement : public TPZCompEl {
 
   TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,int &index, TPZCompElDisc * left, TPZCompElDisc * right) const;
 
-  TPZMaterial *Material() const { return fMaterial;}
+//  TPZAutoPointer<TPZMaterial> Material() const
+//  { 
+//    return TPZAutoPointer<TPZMaterial> (fMaterial);
+//  }
 
-  void SetMaterial(TPZMaterial *mat) { fMaterial = mat;}
+//  void SetMaterial(TPZAutoPointer<TPZMaterial> mat) { fMaterial = mat;}
 
   /**
    * it identifies the elements of left and right volume of the interface 

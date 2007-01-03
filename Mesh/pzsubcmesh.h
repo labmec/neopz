@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.10 2006-03-09 11:50:29 phil Exp $
+//$Id: pzsubcmesh.h,v 1.11 2007-01-03 00:06:47 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -229,15 +229,6 @@ public:
   //     */
 	int NodeIndex(int nolocal, TPZCompMesh *neighbour);
 
-  //    /**
-  //     * Virtual Method! See declaration in the TPZCompEl class. 
-  //     */
-	virtual void SetMaterial(TPZMaterial *mat);
-
-  //    /**
-  //     * Virtual Method! See declaration in TPZCompEl class. 
-  //     */
-	virtual TPZMaterial *Material() const;
 
   //    /**
   //     * Virtual Method! See declaration in TPZCompEl class. 

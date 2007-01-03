@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.25 2006-02-21 14:49:56 cesar Exp $
+//$Id: TPZAgglomerateEl.h,v 1.26 2007-01-03 00:06:47 phil Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -51,6 +51,11 @@ private:
    * Stores the number of interfaces of the element.
    */
   int fNFaces;
+  
+  /**
+   * Material id of the agglomerated element
+   */
+  int fMaterialId;
 
 public:
 
@@ -117,6 +122,15 @@ public:
    * Type of the element 
    */  
   MElementType Type(){return EAgglomerate;}
+  
+  /**
+   * Identify the material object associated with the element
+     */
+  virtual TPZAutoPointer<TPZMaterial> Material() const 
+  {
+    return fMesh->FindMaterial(fMaterialId);
+  }
+
 
   /** retorna malha mae */
   TPZCompMesh *MotherMesh(){return fMotherMesh;}

@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.24 2006-11-07 12:36:07 tiago Exp $
+//$Id: pzgmesh.h,v 1.25 2007-01-03 00:06:47 phil Exp $
 
 /**File : pzgmes.h
 
@@ -149,7 +149,11 @@ virtual void Write(TPZStream &buf, int withclassid);
      geometrical mesh previously*/
   void RestoreReference(TPZCompMesh *cmesh);
   /**Sets the reference of the geometric grid to ref*/
-  void SetReference(TPZCompMesh *ref) { fReference = ref;}
+  void SetReference(TPZCompMesh *ref) 
+  { 
+    if(fReference) ResetReference();
+    fReference = ref;
+  }
   /**Returns the currently loaded computational grid*/
   TPZCompMesh *Reference() const {return fReference;}
 

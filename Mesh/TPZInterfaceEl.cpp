@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.58 2006-10-16 19:39:40 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.59 2007-01-03 00:06:46 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -76,10 +76,6 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 
   geo->SetReference(this);
   geo->IncrementNumInterfaces();
-  int materialid = geo->MaterialId();
-
-  //poderia eliminar esta vari�el e carrega-la do elemento de volume associado
-  fMaterial = mesh.FindMaterial(materialid);
   
   TPZCompElSide leftside(left, -1); //Setting side = -1 because no more information is available. Expect trouble.
   TPZCompElSide rightside(right, -1); //Setting side = -1 because no more information is available. Expect trouble.
@@ -123,14 +119,12 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
    
   geo->SetReference(this);
   geo->IncrementNumInterfaces();
-  int materialid = geo->MaterialId();
   
 if (leftside == -1 || rightside == -1){
   PZError << "Error at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " Side should not be -1\n";
 }
 
   //poderia eliminar esta vari�el e carrega-la do elemento de volume associado
-  fMaterial = mesh.FindMaterial(materialid);
   TPZCompElSide leftCompElside(left, leftside);
   TPZCompElSide rightCompElside(right, rightside);
   this->SetLeftRightElements(leftCompElside, rightCompElside);
@@ -163,13 +157,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
    
    fNormal = copy.fNormal;
 
-   TPZMaterial *mat = copy.Material();
-   if(mat) {
-      int materialid = mat->Id();
-      fMaterial = mesh.FindMaterial(materialid);
-   } else {
-      fMaterial = 0;
-   }
+   TPZAutoPointer<TPZMaterial> mat = copy.Material();
 
    this->IncrementElConnected();
 
@@ -207,13 +195,6 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
   }
 #endif 
 
-  TPZMaterial *mat = copy.Material();
-  if(mat) {
-    int materialid = mat->Id();
-    fMaterial = mesh.FindMaterial(materialid);
-  } else {
-    fMaterial = 0;
-  }
 
   this->IncrementElConnected();
 
@@ -226,7 +207,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
 }
 
 TPZInterfaceElement::TPZInterfaceElement() : TPZCompEl(), fLeftElSide(), fRightElSide(),
-  fNormal(3,0.), fMaterial(0)
+  fNormal(3,0.)
 {
    //NOTHING TO BE DONE HERE
 }
@@ -274,7 +255,7 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
 
-  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
 #ifndef NODEBUG
   if(!mat || !strcmp("no_name",mat->Name())){
     PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
@@ -362,7 +343,7 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
   TPZGeoEl *ref = Reference();
   int face = ref->NSides()-1;
   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(face,2*p);//integra u(n)*fi
-  if(fMaterial->HasForcingFunction())
+  if(mat->HasForcingFunction())
   {
   	TPZManVector<int> order(3);
 	intrule->GetOrder(order);
@@ -431,7 +412,7 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
 void TPZInterfaceElement::CalcResidualStandard(TPZElementMatrix &ef){
 
 
-  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
 #ifndef NODEBUG
   if(!mat || !strcmp("no_name",mat->Name())){
     PZError << "TPZInterfaceElement::CalcResidual interface material null, do nothing\n";
@@ -577,7 +558,7 @@ void TPZInterfaceElement::CalcResidualStandard(TPZElementMatrix &ef){
 
 void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
-  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator->());
   if(!mat || !strcmp("no_name",mat->Name())){
     PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
     return;
@@ -1082,7 +1063,6 @@ void TPZInterfaceElement::Write(TPZStream &buf, int withclassid)
 	     << "Indices of neighbours are less than interface index:" << endl
 	     << "Left: " << leftelindex << ", Right: " << rightelindex << ", this: " << this->Index() << endl;
   }
-  int matid = fMaterial->Id();
 
   int leftside = fLeftElSide.Side();
   int rightside = fRightElSide.Side();
@@ -1091,7 +1071,6 @@ void TPZInterfaceElement::Write(TPZStream &buf, int withclassid)
   buf.Write(&leftside,1);
   buf.Write(&rightelindex,1);
   buf.Write(&rightside,1);
-  buf.Write(&matid,1);
   WriteObjects(buf,fNormal);
 }
   
@@ -1110,15 +1089,11 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
   int leftelindex;
   int rightelindex;
   int leftside, rightside;
-  int matid;
+//  int matid;
   buf.Read(&leftelindex,1);
   buf.Read(&leftside,1);
   buf.Read(&rightelindex,1);
   buf.Read(&rightside,1);
-  buf.Read(&matid,1);
-  fMaterial = Mesh()->FindMaterial(matid);
-  if(!fMaterial) PZError << "TPZInterfaceElement::Read - null material\n";
-
   this->fLeftElSide.SetElement ( Mesh()->ElementVec()[leftelindex]  );
   this->fRightElSide.SetElement( Mesh()->ElementVec()[rightelindex] );
   this->fLeftElSide.SetSide( leftside );
@@ -1130,7 +1105,7 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
 
-   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
 #ifndef NODEBUG
    if(!mat || !strcmp("no_name",mat->Name())){
       PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
@@ -1266,7 +1241,7 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
 
    TPZGeoEl *ref = Reference();
    TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p+1) );
-   if(fMaterial->HasForcingFunction()) {
+   if(mat->HasForcingFunction()) {
       TPZManVector<int> order(3);
       intrule->GetOrder(order);
       int maxorder = intrule->GetMaxOrder();
@@ -1530,7 +1505,7 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
    errors.Resize(NErrors);
    errors.Fill(0.0);
 
-   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
 #ifndef NODEBUG
    if(!mat || !strcmp("no_name",mat->Name())){
       PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
@@ -1891,7 +1866,7 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TP
 void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec<REAL> &errorR){
 
  
-   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
 #ifndef NODEBUG
    if(!mat || !strcmp("no_name",mat->Name())){
       PZError << "TPZInterfaceElement::ComputeError interface material null, do nothing\n";
@@ -1983,7 +1958,7 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
 
    TPZGeoEl *ref = Reference();
    TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p+1) );
-   if(fMaterial->HasForcingFunction()) {
+   if(mat->HasForcingFunction()) {
       TPZManVector<int> order(3);
       intrule->GetOrder(order);
       int maxorder = intrule->GetMaxOrder();

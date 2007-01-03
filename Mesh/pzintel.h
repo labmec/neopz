@@ -1,9 +1,10 @@
-//$Id: pzintel.h,v 1.21 2006-12-13 19:05:22 tiago Exp $
+//$Id: pzintel.h,v 1.22 2007-01-03 00:06:47 phil Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
 
 #include "pzcompel.h"
+#include "pzmaterial.h"
 struct TPZElementMatrix;
 
 class TPZIntPoints;
@@ -29,7 +30,7 @@ class TPZInterpolatedElement : public TPZCompEl {
   /**
    * Material object of this element
    */
-  TPZMaterial *fMaterial;
+//  TPZAutoPointer<TPZMaterial> fMaterial;
 
   /**
    * Updates the interpolation order of all neighbouring elements along side
@@ -141,7 +142,10 @@ public:
   virtual int NConnects() = 0;
 	
   /**identify the material object associated with the element*/
-  TPZMaterial *Material() const {return fMaterial;}
+//  TPZAutoPointer<TPZMaterial> Material() const 
+//  {
+//    return TPZAutoPointer<TPZMaterial> (fMaterial);
+//  }
 
 
   /**
@@ -180,7 +184,7 @@ public:
   virtual void SetConnectIndex(int i, int connectindex)=0;
 
   /**set the material of the element*/
-  virtual void SetMaterial(TPZMaterial *mat) {fMaterial = mat;}
+//  virtual void SetMaterial(TPZAutoPointer<TPZMaterial> mat) {fMaterial = mat;}
 
   virtual void SetIntegrationRule(int order) {
     std::cout << "TPZInterpolatedElement::SetIntegrationRule called\n";
@@ -503,45 +507,6 @@ virtual  int CheckElementConsistency();
   
   //@}
 
-  /**
-   * @name Discontinuous Galerkin Methods
-   * These methods query the element whether it can make a connect discontinuous or not
-   */
-
-  //@{
-
-  /**
-   * Method which indicates whether a given connect is continuous or not.\n
-   * For continuous elements this method always returns 1.\n
-   * If the derived class can to be discontinuous this
-   *  method need to be reimplemented.
-   */
-  virtual int IsConnectContinuous(const int icon) { return 1; }
-  /**
-   * Method which indicates whether a connect can be made discontinuous\n
-   * For standard elements, this method always returns 0
-   * By default the computational elements are continuous
-   */
-  virtual int CanBeDiscontinuous() { return 0; }
-
-  /** 
-   * Method to force the given connect to be discontinuous. This method will generate an
-   * error message if the current element does not support this feature 
-   * Set fConnectDisc[i] 1 to indicate the connect i is to be made discontinuous and
-   * set the correct positions to point to shape functions
-   * @param i index of the connect
-   */
-  virtual void SetConnectDiscontinuous(int i);
-
-  /**
-   * Method to make the connect continuous
-   * For traditional elements, this method does nothing
-   * @param i index of the connect
-   */
-  virtual void SetConnectContinuous(int i,TPZFMatrix &mat);
-
-
-  //@}
 
 private:
 
@@ -573,19 +538,7 @@ public:
   REAL MeanSolution(int var);
   /** Compute the integral over the finite element */
   void CalcIntegral(TPZElementMatrix &ef);
-  /** To make continuous or discontinuous a connect of the current element and neighbours*/
-  virtual void MakeConnectContinuous(int con);
-  virtual void MakeConnectDiscontinuous(int con);
 
 };
-
-inline void TPZInterpolatedElement::SetConnectDiscontinuous(int /*i*/) {
-  std::cerr << "TPZInterpolatedElement::SetConnectDiscontinuous is called.\n";
-}
-inline void TPZInterpolatedElement::SetConnectContinuous(int /*i*/,TPZFMatrix &/*mat*/) {
-}
-inline void TPZInterpolatedElement::MakeConnectDiscontinuous(int icon) {
-  std::cerr << "TPZInterpolatedElement::MakeConnectDiscontinuous is called, Permission denied.\n";
-}
 
 #endif

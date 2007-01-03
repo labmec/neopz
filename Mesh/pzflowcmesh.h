@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.h,v 1.14 2005-04-25 02:31:48 phil Exp $
+//$Id: pzflowcmesh.h,v 1.15 2007-01-03 00:06:47 phil Exp $
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
@@ -92,10 +92,10 @@ public:
   virtual void AutoBuild();
 
   /**
-   * Returns the ith flow material in the mesh
+   * Returns the first flow material in the mesh
    *
    */
-  TPZMaterial * GetFlowMaterial(int i);
+  TPZAutoPointer<TPZMaterial> GetFlowMaterial();
 
   /**
    * Returns the number of Flow materials.
@@ -130,7 +130,7 @@ protected:
     * materials that deserve special attention during
     * the contribution processes.
     */
-   TPZAdmChunkVector< TPZConservationLaw2 * > fFluidMaterial;
+  std::map<int, TPZAutoPointer< TPZMaterial> > fFluidMaterial;
    
 
 };

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.27 2006-10-17 01:41:58 phil Exp $
+//$Id: pzcmesh.h,v 1.28 2007-01-03 00:06:47 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -10,6 +10,7 @@
 #include "pzfmatrix.h"
 #include "pzblock.h"
 #include "pzconnect.h"
+#include "tpzautopointer.h"
 //#include "pzanalysis.h"
 //#include <iostream>
 #include <map>
@@ -65,9 +66,9 @@ protected:
   TPZAdmChunkVector<TPZConnect>			fConnectVec;
 
   /**
-   * List of pointers to materials
+   * Map of pointers to materials
    */
-  TPZAdmChunkVector<TPZMaterial *>		fMaterialVec;
+  std::map<int, TPZAutoPointer<TPZMaterial> >	fMaterialVec;
   
   /**
    * List of nodes with associated boundary conditions
@@ -190,7 +191,7 @@ public:
   /**
    * Number of materials
    */
-  int NMaterials() {return fMaterialVec.NElements();}
+  int NMaterials() {return fMaterialVec.size();}
 
   /**
    * Number of connects with boundary condition
@@ -216,7 +217,7 @@ public:
   /**
    * Return a reference to the material pointers vector
    */
-  TPZAdmChunkVector<TPZMaterial *>	&MaterialVec() { return fMaterialVec; }
+  std::map<int ,TPZAutoPointer<TPZMaterial> >	&MaterialVec() { return fMaterialVec; }
 
   /**
    * Return a reference to the vector of nodal boundary condition pointers
@@ -259,7 +260,7 @@ public:
    * Insert a material object in the datastructure
    @ @param mat pointer to the material 
    */
-  int InsertMaterialObject(TPZMaterial *mat);
+  int InsertMaterialObject(TPZAutoPointer<TPZMaterial> &mat);
 
   /**
    * Resequence the block object, remove unconnected connect objects
@@ -311,7 +312,7 @@ public:
    * Find the material with identity id
    * @param id material id to be found
    */
-  TPZMaterial* FindMaterial(int id);
+  TPZAutoPointer<TPZMaterial> FindMaterial(int id);
 
   /**
    * Map this grid in the geometric grid

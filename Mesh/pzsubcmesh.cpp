@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.13 2006-10-17 00:51:56 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.14 2007-01-03 00:06:47 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -81,7 +81,7 @@ int TPZSubCompMesh::main() {
 	TPZCompMesh mesh(&geo);
 
 	// Insert the materials
-	TPZMaterial *meumat = new TPZMatHyperElastic(1,1.e5,0.25);
+	TPZAutoPointer<TPZMaterial> meumat = new TPZMatHyperElastic(1,1.e5,0.25);
 	mesh.InsertMaterialObject(meumat);
 
 	int numeq;
@@ -89,9 +89,9 @@ int TPZSubCompMesh::main() {
 
 	// Insert the boundary conditions
 	TPZFMatrix val1(3,3,0.),val2(3,1,0.);
-	TPZMaterial *bnd = meumat->CreateBC (-1,0,val1,val2);
+	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
 	mesh.InsertMaterialObject(bnd);
-	bnd = meumat->CreateBC (-2,0,val1,val2);
+        bnd = TPZAutoPointer<TPZMaterial>(meumat->CreateBC (meumat,-2,0,val1,val2));
 	bnd->SetForcingFunction(Forcing);
 	mesh.InsertMaterialObject(bnd);
 
@@ -293,12 +293,9 @@ int TPZSubCompMesh::Dimension() const {
 	return -1;
 }
 
-TPZMaterial *TPZSubCompMesh::Material() const{
-	return 0;
-}
 
-void TPZSubCompMesh::SetMaterial(TPZMaterial *mat){
-}
+//void TPZSubCompMesh::SetMaterial(TPZAutoPointer<TPZMaterial> mat){
+//}
 
 int TPZSubCompMesh::NodeIndex(int nolocal, TPZCompMesh *neighbour){
 	TPZCompMesh *root = CommonMesh(neighbour);

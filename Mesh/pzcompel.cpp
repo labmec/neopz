@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.29 2006-10-17 01:40:42 phil Exp $
+//$Id: pzcompel.cpp,v 1.30 2007-01-03 00:06:47 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -123,7 +123,7 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) {
   index = mesh.ElementVec().AllocateNewElement();
   mesh.ElementVec()[index] = this;
   fIndex = index;
-  fReference = ref;
+//  fReference = ref;
   fReferenceIndex = (ref == 0) ? -1 : ref->Index();
 }
 
@@ -132,7 +132,7 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy) {
   int index = copy.fIndex;
   if(index >= 0) mesh.ElementVec()[index] = this;
   fIndex = index;
-  fReference = copy.Reference();
+//  fReference = copy.Reference();
   fReferenceIndex = copy.fReferenceIndex;
 }
 
@@ -141,7 +141,7 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index) {
   index = mesh.ElementVec().AllocateNewElement();
   if(index >= 0) mesh.ElementVec()[index] = this;
   fIndex = index;
-  fReference = copy.fReference;
+//  fReference = copy.fReference;
   fReferenceIndex = copy.fReferenceIndex;
 }
 
@@ -165,7 +165,7 @@ void TPZCompEl::LoadSolution() {
   totalconnects = connectlist.NElements();
   TPZManVector<int> dependenceorder(totalconnects);
   BuildDependencyOrder(connectlist,dependenceorder);
-  TPZMaterial *mat = Material();
+  TPZAutoPointer<TPZMaterial> mat = Material();
   if(!mat) {
     LOGPZ_WARN(logger, "Exiting LoadSolution because a null material was reached.");
     return;
@@ -259,7 +259,7 @@ std::ostream& operator<<(std::ostream &s,TPZCompEl & el){
 
 void TPZCompEl::PrintSolution(TPZVec<REAL> &point,char *varname,std::ostream &s) {
   TPZGeoEl *georef = Reference();
-  TPZMaterial *mat = Material();
+  TPZAutoPointer<TPZMaterial> mat = Material();
   if(!georef || !mat) {
     LOGPZ_WARN(logger, "Exiting PrintSolution should not be called for an element which doesnt have a geometric reference or material");
     Print();
@@ -292,7 +292,7 @@ void TPZCompEl::PrintCoordinate(TPZVec<REAL> &point,int CoordinateIndex,std::ost
 }
 
 void TPZCompEl::PrintTitle(char *varname,std::ostream &s) {
-  TPZMaterial *mat = Material();
+  TPZAutoPointer<TPZMaterial> mat = Material();
   TPZGeoEl *georef = Reference();
   if(!georef || !mat) {
     LOGPZ_WARN(logger,"Exiting PrintTitle should not be called for an element which doesnt have a material");
@@ -358,7 +358,7 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat
   // the number of state variables is the number of unknowns associated with
   // each shapefunction
   // numstate is best initialized during computation of the stiffness matrix
-  TPZMaterial *mat = Material();
+  TPZAutoPointer<TPZMaterial> mat = Material();
   int numstate = mat->NStateVariables();
 
   // initialize the block structure
@@ -518,7 +518,7 @@ void TPZCompEl::ApplyConstraints(TPZElementMatrix &efmat) {
   // the number of state variables is the number of unknowns associated with
   // each shapefunction
   // numstate is best initialized during computation of the stiffness matrix
-  TPZMaterial *mat = Material();
+  TPZAutoPointer<TPZMaterial> mat = Material();
   int numstate = mat->NStateVariables();
 
   // initialize the block structure

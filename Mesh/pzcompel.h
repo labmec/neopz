@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.27 2006-10-17 01:40:21 phil Exp $
+// $Id: pzcompel.h,v 1.28 2007-01-03 00:06:47 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -12,6 +12,7 @@
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 #include "pzsave.h"
+#include "pzmaterial.h"
 
 
 class TPZBlockDiagonal;
@@ -68,7 +69,7 @@ private:
   /**
   * Reference to geometric element
   */
-  TPZGeoEl *fReference;
+  //TPZGeoEl *fReference;
   /**
   * Index of reference element
   */
@@ -166,19 +167,19 @@ public:
   void SetReference(int referenceindex) 
   {
     fReferenceIndex = referenceindex;
-    fReference = (referenceindex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex];
+//    fReference = (referenceindex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex];
   }
   
-  void SetReference(TPZGeoEl *ref)
-  {
-    fReference = ref;
-    if(ref)
-    {
-     fReferenceIndex = ref->Index();
-    } else {
-      fReferenceIndex = -1;
-    }
-  }
+//   void SetReference(TPZGeoEl *ref)
+//   {
+//     fReference = ref;
+//     if(ref)
+//     {
+//      fReferenceIndex = ref->Index();
+//     } else {
+//       fReferenceIndex = -1;
+//     }
+//   }
 
   /**
    * Return the number of nodes of the element
@@ -220,13 +221,18 @@ public:
   /**
    * Identify the material object associated with the element
    */
-  virtual TPZMaterial *Material() const = 0;
+  virtual TPZAutoPointer<TPZMaterial> Material() const 
+  {
+    TPZAutoPointer<TPZMaterial> result;
+    if(fMesh && Reference()) result = fMesh->FindMaterial(Reference()->MaterialId());
+    return result;
+  }
 
   /**
    * Set the material associated with the object
    * @param mat new element material 
    */
-  virtual void SetMaterial(TPZMaterial *mat) = 0;
+//  virtual void SetMaterial(TPZAutoPointer<TPZMaterial> mat) = 0;
 
   /**
    * Returns the reference geometric element patch

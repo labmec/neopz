@@ -1,4 +1,4 @@
-//$Id: pzcheckrestraint.cpp,v 1.9 2005-04-25 02:31:46 phil Exp $
+//$Id: pzcheckrestraint.cpp,v 1.10 2007-01-03 00:06:47 phil Exp $
 
 #include "pzcheckrestraint.h"
 #include "pzintel.h"
@@ -37,9 +37,13 @@ TPZCheckRestraint::TPZCheckRestraint(TPZCompElSide small, TPZCompElSide large) {
   int largeside = fLarge.Side();
   fRestraint.Redim(smallsize,largesize);
   fMesh = smallel->Mesh();
-  int nmat = fMesh->MaterialVec().NElements();  
+  int nmat = fMesh->MaterialVec().size();  
   int nstate = 1;
-  if(nmat) nstate = fMesh->MaterialVec()[0]->NStateVariables();
+  if(nmat) 
+  {
+    std::map<int, TPZAutoPointer<TPZMaterial> >::iterator mit = fMesh->MaterialVec().begin();
+    nstate = mit->second->NStateVariables();
+  }
   fSmallSize.Resize(nsmallconnect);
   fSmallPos.Resize(nsmallconnect);
   fSmallConnect.Resize(nsmallconnect);

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.28 2006-10-17 01:39:44 phil Exp $
+// $Id: pzelctemp.cpp,v 1.29 2007-01-03 00:06:47 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -197,7 +197,7 @@ void TPZIntelGen<TGEO,TSHAPE>::SetSideOrder(int side, int order) {
     c.SetOrder(order);
     int seqnum = c.SequenceNumber();
     int nvar = 1;
-    TPZMaterial *mat = Material();
+    TPZAutoPointer<TPZMaterial> mat = Material();
     if(mat) nvar = mat->NStateVariables();
     Mesh()->Block().Set(seqnum,NConnectShapeF(side)*nvar);
     if(side == TSHAPE::NSides-1) {
