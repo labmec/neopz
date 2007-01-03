@@ -128,6 +128,12 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 	int nop = 0;
 	int inpn = nnodes_per_element * fNElements;
 	
+ if(!fNNodes || !fNElements)
+ {
+   std::cout << __PRETTY_FUNCTION__ << " called with fNNodes = " << fNNodes
+       << " and fNElements = " << fNElements << std::endl;
+   return;
+ }
 	//adjacency list generation
 	//ofstream sai("felementgraph.txt");
 	//fElementGraph.Print(sai);
