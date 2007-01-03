@@ -19,8 +19,8 @@ TPZCartsys::TPZCartsys():TPZCosys(),fOrigin(3,0.){
 
 TPZCartsys::TPZCartsys(const TPZCartsys & cp) :
                              TPZCosys (cp),
-                             fOrigin (cp.fOrigin),
-                             fTr (cp.fTr)
+                             fTr (cp.fTr),
+                             fOrigin (cp.fOrigin)
 {
   fReference = cp.fReference;
 }
