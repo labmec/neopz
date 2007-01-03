@@ -30,7 +30,7 @@ void TPZSequenceSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatri
     cout << "TPZSequenceSolver::Solve called without a matrix pointer\n";
     exit(-1);
   }
-  TPZMatrix *mat = Matrix();
+  TPZAutoPointer<TPZMatrix> mat = Matrix();
   if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
     result.Redim(mat->Rows(),F.Cols());
   }

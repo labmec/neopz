@@ -63,7 +63,9 @@ class TPZMatrixSolver : public TPZSolver {
      Constructor with initialization parameter
      @param RefMat Sets reference matrix to 0
   */
-  TPZMatrixSolver(TPZMatrix *Refmat = 0);
+  TPZMatrixSolver(TPZAutoPointer<TPZMatrix> Refmat);
+  
+  TPZMatrixSolver();
 
   /**
      Copy constructor
@@ -80,16 +82,16 @@ class TPZMatrixSolver : public TPZSolver {
      Sets a matrix to the current object
      @param RefMat Sets reference matrix to RefMat     
   */
-virtual  void SetMatrix(TPZMatrix *Refmat);
+virtual  void SetMatrix(TPZAutoPointer<TPZMatrix> Refmat);
 
   /**
   * Updates the values of the current matrix based on the values of the matrix
   */
-  virtual void UpdateFrom(TPZMatrix *matrix)
+  virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> matrix)
   {
     if(fReferenceMatrix == matrix && matrix)
     {
-      if(this->fContainer->Matrix()) this->fContainer->Matrix()->UpdateFrom(matrix);
+      if(this->fContainer) this->fContainer->UpdateFrom(matrix.operator->());
     }
   }
   /**
@@ -100,7 +102,7 @@ virtual  void SetMatrix(TPZMatrix *Refmat);
   /**
   This method gives a preconditioner to share a matrix with the referring solver object
   */
-  virtual void SetReferenceMatrix(TPZMatrix *matrix)
+  virtual void SetReferenceMatrix(TPZAutoPointer<TPZMatrix> matrix)
   {
     fReferenceMatrix = matrix;
   }
@@ -108,22 +110,13 @@ virtual  void SetMatrix(TPZMatrix *Refmat);
   /**
      Returns a pointer to TPZMatrix
   */
-  TPZMatrix *Matrix() { return fContainer->Matrix();}
+  TPZAutoPointer<TPZMatrix> Matrix() { return fContainer;}
 
   /**
      Shares the current matrix with another object of same type
      @param other Object that will share current matrix
   */
   void ShareMatrix(TPZMatrixSolver & other);
-  /**
-     Produces some diagnoses of current object
-     @param out Output device
-  */
-  static void Diagnose(std::ostream &out = std::cout) {
-    out << "TPZMatrixSolver::Diagnose\nnumber of objects created " << gnumcreated << 
-      "\nnumber of objects deleted " << gnumdeleted << std::endl;
-    TPZContainer::Diagnose(out);
-  }
 
  protected:
   /**
@@ -160,13 +153,11 @@ virtual  void SetMatrix(TPZMatrix *Refmat);
   /**
      Container classes
   */
-  TPZContainer *fContainer;
-  static int gnumcreated;
-  static int gnumdeleted;
+  TPZAutoPointer<TPZMatrix> fContainer;
   /**
   * Reference matrix used to update the current matrix
   */
-  TPZMatrix *fReferenceMatrix;
+  TPZAutoPointer<TPZMatrix> fReferenceMatrix;
   //	TPZSolver *fPrecond;
 
   //misael

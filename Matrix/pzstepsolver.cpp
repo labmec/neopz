@@ -45,7 +45,7 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
     cout << "TPZMatrixSolver::Solve called without a matrix pointer\n";
     exit(-1);
   }
-  TPZMatrix *mat = Matrix();
+  TPZAutoPointer<TPZMatrix> mat = Matrix();
   if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
     result.Redim(mat->Rows(),F.Cols());
   }
