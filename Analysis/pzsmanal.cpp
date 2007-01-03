@@ -31,7 +31,7 @@ void TPZSubMeshAnalysis::Assemble(){
 	fRhs.Redim(numeq,1);
 	fReducableStiff.Redim(numeq,numinternal);
 	fSolver->SetMatrix(fStructMatrix->Create());
-	fReducableStiff.SetK00(fSolver->Matrix());
+	fReducableStiff.SetK00(fSolver->Matrix().operator ->());
 	fReducableStiff.SetDecomposeType(ELDLt);
 	fMesh->Assemble(fReducableStiff,fRhs);
 	

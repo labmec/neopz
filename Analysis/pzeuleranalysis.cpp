@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.37 2006-10-17 02:03:31 phil Exp $
+//$Id: pzeuleranalysis.cpp,v 1.38 2007-01-03 00:15:14 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -176,7 +176,7 @@ void TPZEulerAnalysis::Assemble()
    // contributing referring to the last state
    fRhs = fRhsLast;
 
-   TPZMatrix * pTangentMatrix = fSolver->Matrix();
+   TPZAutoPointer<TPZMatrix>  pTangentMatrix = fSolver->Matrix();
 
    if(!pTangentMatrix || dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym> *>(fStructMatrix))
    {
@@ -197,14 +197,14 @@ void TPZEulerAnalysis::Assemble()
 
       // Contributing referring to the advanced state
       // (n+1 index)
-      fStructMatrix->Assemble(*pTangentMatrix, fRhs);
+      fStructMatrix->Assemble(pTangentMatrix, fRhs);
    }
 
    if(fpBlockDiag)
    {
       fpBlockDiag->Zero();
       //fpBlockDiag->SetIsDecomposed(0); // Zero already makes it
-      fpBlockDiag->BuildFromMatrix(*pTangentMatrix);
+      fpBlockDiag->BuildFromMatrix(pTangentMatrix);
    }
 
    /*
@@ -345,7 +345,8 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout, int dxRes)
   scalar[2] = "normvelocity";
   scalar[3] = "Mach";
 
-  TPZMaterial * mat = fFlowCompMesh->GetFlowMaterial(0);
+
+  TPZAutoPointer<TPZMaterial>  mat = fFlowCompMesh->GetFlowMaterial();
   int dim = mat->Dimension();
   //ResetReference(Mesh());//retira referências para criar graph consistente
   TPZDXGraphMesh * graph = new TPZDXGraphMesh (Mesh(),dim,mat,scalar,vector);

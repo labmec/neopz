@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.29 2006-10-16 19:52:02 phil Exp $
+//$Id: pzanalysis.cpp,v 1.30 2007-01-03 00:15:14 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -21,6 +21,7 @@
 #include "pzmetis.h"
 #include "pzsloan.h"
 #include "pzmaterial.h"
+#include "pzbndcond.h"
 #include "pzstrmatrix.h"
 
 #include "tpznodesetcompute.h"
@@ -141,7 +142,7 @@ void TPZAnalysis::Assemble()
   if(fSolver->Matrix() && fSolver->Matrix()->Rows()==sz)
   {
     fSolver->Matrix()->Zero();
-    fStructMatrix->Assemble(*(fSolver->Matrix()),fRhs);
+    fStructMatrix->Assemble(*(fSolver->Matrix().operator ->()),fRhs);
   }
   else
   {
@@ -284,29 +285,27 @@ void TPZAnalysis::Run(std::ostream &out)
 void TPZAnalysis::DefineGraphMesh(int dim, TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, const char *plotfile) {
 
   int dim1 = dim-1;
-  TPZMaterial *mat;
-  int nmat,imat;
   if(!fCompMesh)
   {
     cout << "TPZAnalysis::DefineGraphMesh fCompMesh is zero\n";
     return;
   }
-  nmat = fCompMesh->MaterialVec().NElements();
-  for(imat=0; imat<nmat; imat++) {
-    mat = fCompMesh->MaterialVec()[imat];
-    if(mat && mat->Id() >= 0 && mat->Dimension() == dim) break;
-    mat = 0;
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+  for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
+  {
+    TPZBndCond *bc = dynamic_cast<TPZBndCond *> (matit->second.operator->());
+    if(matit->second && !bc && matit->second->Dimension() == dim) break;
   }
   if(fGraphMesh[dim1]) delete fGraphMesh[dim1];
   fScalarNames[dim1] = scalnames;
   fVectorNames[dim1] = vecnames;
   //misael
   if(! ( strcmp( strrchr(plotfile,'.')+1,"plt") ) )	{
-    fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh,dim,mat) ;
+    fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh,dim,matit->second) ;
   }else if(!strcmp( strrchr(plotfile,'.')+1,"dx") ) {
-    fGraphMesh[dim1] = new TPZDXGraphMesh(fCompMesh,dim,mat,scalnames,vecnames) ;
+    fGraphMesh[dim1] = new TPZDXGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames) ;
   }else if(!strcmp( strrchr(plotfile,'.')+1,"pos") ) {
-    fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh,dim,mat);
+    fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh,dim,matit->second);
   } else {
     cout << "grafgrid was not created\n";
     fGraphMesh[dim1] = 0;
@@ -337,14 +336,13 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
   int dim1 = dimension-1;
   if(!fGraphMesh[dim1]) return;
   TPZMaterial *mat;
-  int nmat,imat;
-  nmat = fCompMesh->MaterialVec().NElements();
-  for(imat=0; imat<nmat; imat++) {
-    mat = fCompMesh->MaterialVec()[imat];
-    if(mat && mat->Id() >= 0 && mat->Dimension() == dimension) break;
-    mat = 0;
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+  for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
+  {
+    TPZBndCond *bc = dynamic_cast<TPZBndCond *>(matit->second.operator->());
+    if(matit->second && !bc && matit->second->Dimension() == dimension) break;
   }
-  if(!mat) return;
+  if(matit == fCompMesh->MaterialVec().end()) return;
   fGraphMesh[dim1]->SetCompMesh(fCompMesh,mat);
 
   fGraphMesh[dim1]->SetResolution(resolution);
@@ -364,15 +362,24 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps,
   
   TPZFMatrix residual(fRhs);
   int dim = HighestDimension();
-  TPZMaterial *mat;
-  int nmat,imat;
-  nmat = fCompMesh->MaterialVec().NElements();
-  for(imat=0; imat<nmat; imat++) {
-    mat = fCompMesh->MaterialVec()[imat];
-    if(mat && mat->Id() >= 0 && mat->Dimension() == dim) break;
-    mat = 0;
+  TPZAutoPointer<TPZMaterial> mat = 0;
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+  for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
+  {
+    TPZBndCond *bc = dynamic_cast<TPZBndCond *>(matit->second.operator->());
+    if(bc) continue;
+    if( matit->second->Dimension() == dim)
+    {
+      mat = matit->second;
+      break;
+    }
   }
-  
+  if(!mat) 
+  {
+    std::cout << __PRETTY_FUNCTION__ << " no material found " << std::endl;
+    LOGPZ_ERROR(logger, " no material found");
+    return;
+  }
   TPZDXGraphMesh gg(fCompMesh,dim,mat,scalnames,vecnames) ;
   // 		TPZV3DGrafGrid gg(fCompMesh) ;
   ofstream plot(plotfile);
@@ -397,12 +404,12 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps,
 }
 
 int TPZAnalysis::HighestDimension(){
-	TPZAdmChunkVector<TPZMaterial *> &matmap = fCompMesh->MaterialVec();
-   int nel = matmap.NElements();
-   int i,dim = 0;
-   for(i=0;i<nel;i++) {
-   	TPZMaterial *mat = (TPZMaterial *) matmap[i];
-      if(mat) dim = mat->Dimension() > dim ? mat->Dimension() : dim;
+  int dim = 0;
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+  for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
+  {
+    if(!matit->second) continue;
+    dim = matit->second->Dimension() > dim ? matit->second->Dimension() : dim;
    }
    return dim;
 }

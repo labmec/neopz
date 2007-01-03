@@ -438,13 +438,7 @@ TPZCompMesh  *TPZMGAnalysis::UniformlyRefineMesh(TPZCompMesh *mesh, bool withP) 
   }
   gmesh->ResetReference();
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-  int nmat = mesh->MaterialVec().NElements();
-  int m;
-  for(m=0; m<nmat; m++) {
-    TPZMaterial *mat = mesh->MaterialVec()[m];
-    if(!mat) continue;
-    mat->Clone(cmesh->MaterialVec());
-  }
+  mesh->CopyMaterials(cmesh);
   TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh->ElementVec();
   int el,nelem = elementvec.NElements();
   for(el=0; el<nelem; el++) {
