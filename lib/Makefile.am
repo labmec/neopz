@@ -17,23 +17,25 @@ libpz_a_SOURCES =
 
 libpz_a_LIBADD = ../Post/tpzgraphelt3d.o ../External/pzsloan.o \
 	../Util/TPZTimer.o ../Util/tpzpermutation.o ../Matrix/tpzsparseblockdiagonal.o \
-	../External/tpznodesetcompute.o ../Common/pzreal.o ../Util/pzmap.o ../Util/pzstring.o ../Util/tpzautopointer.o ../Util/pzlog.o \
-	../Refine/pzrefpoint.o ../Refine/pzrefprism.o ../Refine/pzrefpyram.o ../Refine/pzrefquad.o \
-	../Refine/pzreftetrahedra.o ../Refine/pzreftriangle.o ../Refine/TPZRefCube.o \
-	../Refine/TPZRefLinear.o ../Refine/TPZRefPattern.o ../Mesh/pzcmesh.o ../Mesh/tpzcompmeshreferred.o ../Mesh/pzflowcmesh.o ../Mesh/pzreferredcompel.o \
-	../Mesh/pzcompel.o ../Mesh/pzconnect.o ../Mesh/pzcheckgeom.o \
-	../Mesh/pzcheckmesh.o ../Mesh/pzcheckrestraint.o ../Mesh/pzelmat.o ../Mesh/pzgeoelbc.o ../Mesh/pzgeoel.o \
-	../Mesh/pzgeoelside.o ../Mesh/pzgeoelrefless.o ../Mesh/pzgmesh.o ../Mesh/pzgnode.o \
-	../Mesh/pzintel.o ../Mesh/pzstackmesh.o ../Mesh/pzsubcmesh.o ../Mesh/pzvecmesh.o \
-	../Mesh/TPZCompElDisc.o ../Mesh/TPZInterfaceEl.o ../Mesh/TPZAgglomerateEl.o ../Mesh/pzelctemp.o \
-	../Mesh/tpzgeoelrefpattern.o ../Mesh/pzmeshid.o ../Shape/pzshapecube.o ../Shape/pzshapelinear.o \
-	../Shape/pzshapepiram.o ../Shape/pzshapeprism.o ../Shape/pzshapequad.o ../Shape/pzshapetriang.o \
-	../Shape/pzshapetetra.o ../Shape/TPZShapeDisc.o ../Matrix/pzlink.o ../Matrix/pzblock.o \
-	../Matrix/pzblockdiag.o ../Matrix/pzbndmat.o ../Matrix/pzespmat.o ../Matrix/pzfmatrix.o \
-	../Matrix/pzmatred.o ../Matrix/pzmatrix.o ../Matrix/pzsbndmat.o ../Matrix/pzseqsolver.o \
-	../Matrix/pzsespmat.o ../Matrix/pzsfulmat.o ../Matrix/pzshtmat.o ../Matrix/pzskylmat.o \
-	../Matrix/pzskylmatpar.o ../Matrix/pzsolve.o ../Matrix/pzstencil.o ../Matrix/pzstepsolver.o \
-	../Matrix/pzsysmp.o ../Matrix/pztempmat.o ../Matrix/pzysmp.o ../Matrix/pzmatrixid.o \
+	../External/tpznodesetcompute.o ../Common/pzreal.o ../Util/pzmap.o ../Util/pzstring.o \
+	../Util/tpzautopointer.o ../Util/pzlog.o ../Refine/pzrefpoint.o ../Refine/pzrefprism.o \
+	../Refine/pzrefpyram.o ../Refine/pzrefquad.o ../Refine/pzreftetrahedra.o \
+	../Refine/pzreftriangle.o ../Refine/TPZRefCube.o ../Refine/TPZRefLinear.o \
+	../Refine/TPZRefPattern.o ../Mesh/pzcmesh.o ../Mesh/tpzcompmeshreferred.o ../Mesh/pzflowcmesh.o \
+	../Mesh/pzreferredcompel.o ../Mesh/pzcompel.o ../Mesh/pzconnect.o ../Mesh/pzcheckgeom.o \
+	../Mesh/pzcheckmesh.o ../Mesh/pzcheckrestraint.o ../Mesh/pzelmat.o ../Mesh/pzgeoelbc.o \
+	../Mesh/pzgeoel.o ../Mesh/pzgeoelside.o ../Mesh/pzgeoelrefless.o ../Mesh/pzgmesh.o \
+	../Mesh/pzgnode.o ../Mesh/pzintel.o ../Mesh/pzstackmesh.o ../Mesh/pzsubcmesh.o \
+	../Mesh/pzvecmesh.o ../Mesh/TPZCompElDisc.o ../Mesh/TPZInterfaceEl.o \
+	../Mesh/TPZAgglomerateEl.o ../Mesh/pzelctemp.o ../Mesh/tpzgeoelrefpattern.o ../Mesh/pzmeshid.o \
+	../Shape/pzshapecube.o ../Shape/pzshapelinear.o ../Shape/pzshapepiram.o \
+	../Shape/pzshapeprism.o ../Shape/pzshapequad.o ../Shape/pzshapetriang.o ../Shape/pzshapetetra.o \
+	../Shape/TPZShapeDisc.o ../Matrix/pzlink.o ../Matrix/pzblock.o ../Matrix/pzblockdiag.o \
+	../Matrix/pzbndmat.o ../Matrix/pzespmat.o ../Matrix/pzfmatrix.o ../Matrix/pzmatred.o \
+	../Matrix/pzmatrix.o ../Matrix/pzsbndmat.o ../Matrix/pzseqsolver.o ../Matrix/pzsespmat.o \
+	../Matrix/pzsfulmat.o ../Matrix/pzshtmat.o ../Matrix/pzskylmat.o ../Matrix/pzskylmatpar.o \
+	../Matrix/pzsolve.o ../Matrix/pzstencil.o ../Matrix/pzstepsolver.o ../Matrix/pzsysmp.o \
+	../Matrix/pztempmat.o ../Matrix/pzysmp.o ../Matrix/pzmatrixid.o \
 	../Matrix/pzspblockdiagpivot.o ../Geom/pzgeopoint.o ../Geom/pzgeoprism.o ../Geom/pzgeopyramid.o \
 	../Geom/pzgeoquad.o ../Geom/pzgeotetrahedra.o ../Geom/pzgeotriangle.o ../Geom/TPZGeoCube.o \
 	../Geom/TPZGeoElement.o ../Geom/TPZGeoLinear.o ../StrMatrix/pzbdstrmatrix.o \
@@ -47,8 +49,8 @@ libpz_a_LIBADD = ../Post/tpzgraphelt3d.o ../External/pzsloan.o \
 	../Analysis/pzanalysiserror.o ../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o \
 	../Analysis/pzonedref.o ../Analysis/pzsmanal.o ../Analysis/pzsmfrontalanal.o \
 	../Analysis/pztransientanalysis.o ../Analysis/pzeuleranalysis.o ../Cosys/pzcartsys.o ../Cosys/pzcosys.o \
-	../Cosys/pzcylinsys.o ../Cosys/pzelgq2dcyl.o ../Cosys/pzesfersys.o ../Integral/pzquad.o \
-	../Material/pzincnskeps.o ../Material/eulerdif.o ../Material/pzbndcond.o ../Material/pzelasmat.o \
+	../Cosys/pzcylinsys.o ../Cosys/pzesfersys.o ../Integral/pzquad.o ../Material/pzincnskeps.o \
+	../Material/eulerdif.o ../Material/pzbndcond.o ../Material/pzelasmat.o \
 	../Material/pznonlinearpoisson3d.o ../Material/pzmat1dlin.o ../Material/pzmat2dlin.o \
 	../Material/pzmaterial.o ../Material/tpzoutofrange.o ../Material/pzmathyperelastic.o \
 	../Material/pzmatorthotropic.o ../Material/pzmatplaca2.o ../Material/pzmatplaca.o \
