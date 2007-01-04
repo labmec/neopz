@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.59 2007-01-03 00:06:46 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.60 2007-01-04 12:31:08 erick Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -799,7 +799,7 @@ int TPZInterfaceElement::ConnectIndex(int i) {
    return -1;
 }
 
-void TPZInterfaceElement::Print(ostream &out){
+void TPZInterfaceElement::Print(std::ostream &out){
 
    TPZCompEl* fLeftEl  = this->LeftElement();
    TPZCompEl* fRightEl = this->RightElement();

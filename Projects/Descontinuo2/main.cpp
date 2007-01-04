@@ -64,7 +64,7 @@ void InitialGuess(TPZVec<REAL> &x,TPZVec<REAL> &result){
 }
 
 
-void GetSolutionGraph (int bc_id, ostream &arq, TPZFlowCompMesh *cmesh){
+void GetSolutionGraph (int bc_id, std::ostream &arq, TPZFlowCompMesh *cmesh){
 int nelem = cmesh->NElements();
 int i,j;
 TPZVec<int> mark (nelem,0);
@@ -167,7 +167,7 @@ int main1()
    return 0;
 }
 
-int run(istream & input, ostream & output)
+int run(std::istream & input, std::ostream & output)
 {
 
 //   RegisterMeshClasses();
