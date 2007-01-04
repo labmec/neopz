@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.21 2006-03-16 01:45:54 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.22 2007-01-04 12:29:24 erick Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -140,7 +140,7 @@ public:
 			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
 #ifdef _AUTODIFF
   /**Compute contribution to the energy at an integration point*/
-  void TPZMatPoisson3d::ContributeEnergy(TPZVec<REAL> &x,
+  void ContributeEnergy(TPZVec<REAL> &x,
 			      TPZVec<FADFADREAL> &sol,
 			      TPZVec<FADFADREAL> &dsol,
 			      FADFADREAL &U,

@@ -305,7 +305,7 @@ void PrepareFastDiff(int dim,
                  TPZVec<FADREAL> &dsol, TPZVec<TPZVec<FADREAL> > & TauDiv);
 
 template <int dim>
-void TPZArtDiff::PrepareFastestDiff(TPZFMatrix &jacinv,
+void PrepareFastestDiff(TPZFMatrix &jacinv,
 		TPZVec<REAL> &sol,
                 TPZFMatrix &dsol,
 		TPZFMatrix &phi,

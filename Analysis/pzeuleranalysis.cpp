@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.38 2007-01-03 00:15:14 phil Exp $
+//$Id: pzeuleranalysis.cpp,v 1.39 2007-01-04 12:27:34 erick Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -361,7 +361,7 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout, int dxRes)
   return graph;
 }
 
-void TPZEulerAnalysis::Run(ostream &out, ofstream & dxout, int dxRes)
+void TPZEulerAnalysis::Run(std::ostream &out, std::ofstream & dxout, int dxRes)
 {
    // this analysis loop encloses several calls
    // to Newton's linearizations, updating the

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.38 2006-10-17 01:49:41 phil Exp $
+//$Id: pzeulerconslaw.cpp,v 1.39 2007-01-04 12:29:24 erick Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -96,7 +96,7 @@ REAL TPZEulerConsLaw2::Pressure(TPZVec<REAL> &U)
    return press;
 }
 
-void TPZEulerConsLaw2::Print(ostream &out) {
+void TPZEulerConsLaw2::Print(std::ostream &out) {
 
   TPZMaterial::Print(out);
 
