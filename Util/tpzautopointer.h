@@ -70,10 +70,12 @@ struct TPZReference
    */
   void Decrease()
   {
+    int should_delete = 0;
     pthread_mutex_lock(&gAutoPointerMutex);
     fCounter--;
+    if(fCounter <= 0) should_delete = 1;
     pthread_mutex_unlock(&gAutoPointerMutex);
-    if(fCounter <= 0) 
+    if(should_delete) 
     {
       delete this;
     }
