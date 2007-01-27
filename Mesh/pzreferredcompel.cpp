@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.6 2006-10-16 19:40:54 phil Exp $
+// $Id: pzreferredcompel.cpp,v 1.7 2007-01-27 14:29:37 phil Exp $
 
 
 #include "pzreferredcompel.h"
@@ -61,9 +61,9 @@ TPZReferredCompEl<TCOMPEL>::~TPZReferredCompEl(){
 }//method
 
 template< class TCOMPEL >
-void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &u, TPZFMatrix &du){
+void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZFMatrix &axes, TPZVec<REAL> &u, TPZFMatrix &du){
 
-  TCOMPEL::ComputeSolution(qsi, phi, dphix, u, du);
+  TCOMPEL::ComputeSolution(qsi, phi, dphix, axes, u, du);
 
   TPZCompMesh * cmesh = this->Mesh();
   TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
@@ -71,43 +71,190 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix
   TPZCompEl * other = refmesh->ReferredEl( this->Index() );
   if (!other) return;
   
-  TPZManVector<REAL> ThisSol(u.NElements());
-  int i, j;
-  for(i = 0; i < u.NElements(); i++) ThisSol[i] = u[i];
-  TPZFNMatrix<100> ThisDSol(du.Rows(),du.Cols());
-  for(i = 0; i < du.Rows(); i++) for(j = 0; j < du.Cols(); j++) ThisDSol(i,j) = du(i,j);
+  TPZManVector<REAL> ThisSol(u);
+
+  TPZFNMatrix<100> ThisDSol(du);
   
   TPZManVector<REAL> OtherSol;
-  TPZFNMatrix<100> OtherDSol(dphix.Rows(),du.Cols());
+  TPZFNMatrix<100> OtherDSol,OtherDSol2;
   TPZFNMatrix<9> otheraxes(3,3,0.);
   other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
-
-  u.Resize( ThisSol.NElements() + OtherSol.NElements() );
-  u.Fill(0.);
-  for(int ii = 0; ii < ThisSol.NElements(); ii++){
-    u[ii] = ThisSol[ii];
-  }//for ii
-  int ThisNEl = ThisSol.NElements();  
-  for(int ii = 0; ii < OtherSol.NElements(); ii++){
-    u[ii+ThisNEl] = OtherSol[ii];
-  }//for ii
-  
-  const int dim = dphix.Rows();
-  du.Redim(dim, ThisDSol.Cols() + OtherDSol.Cols());
-  du.Zero();
-  for(int ii = 0; ii < dim; ii++){
-    for(int jj = 0; jj < ThisDSol.Cols(); jj++){
-      du(ii,jj) = ThisDSol(ii,jj);
-    }//for jj
-  }//for ii
-  int ThisCols = ThisDSol.Cols();
-  for(int ii = 0; ii < dim; ii++){
-    for(int jj = 0; jj < OtherDSol.Cols(); jj++){
-      du(ii,ThisCols+jj) = OtherDSol(ii,jj);
-    }//for jj
-  }//for ii
+  AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,axes);
+  Append(ThisSol,OtherSol,u);
+  Append(ThisDSol,OtherDSol2,du);
 
 }//method
+
+ /**
+ * Computes solution and its derivatives in the local coordinate qsi.
+ * @param qsi master element coordinate
+ * @param sol finite element solution
+ * @param dsol solution derivatives
+ * @param axes axes associated with the derivative of the solution
+  */
+template< class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, 
+                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes)
+{
+  TCOMPEL::ComputeSolution(qsi, sol, dsol, axes);
+
+  TPZCompMesh * cmesh = this->Mesh();
+  TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
+  if (!refmesh) return;
+  TPZCompEl * other = refmesh->ReferredEl( this->Index() );
+  if (!other) return;
+  
+  TPZManVector<REAL> ThisSol(sol);
+  TPZFNMatrix<100> ThisDSol(dsol);
+  
+  TPZManVector<REAL> OtherSol;
+  TPZFNMatrix<100> OtherDSol,OtherDSol2;
+  TPZFNMatrix<9> otheraxes(3,3,0.);
+  other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
+  if(sol.NElements()) 
+  {
+    AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,axes);
+  }
+  else if(OtherSol.NElements())
+  {
+    OtherDSol2 = OtherDSol;
+    axes = otheraxes;
+    
+  }
+  Append(ThisSol,OtherSol,sol);
+  Append(ThisDSol,OtherDSol2,dsol);
+}
+  
+ /**
+   * Computes solution and its derivatives in the local coordinate qsi.
+   * @param qsi master element coordinate of the interface element
+   * @param leftsol finite element solution
+   * @param dleftsol solution derivatives
+   * @param leftaxes axes associated with the left solution
+   * @param rightsol finite element solution
+   * @param drightsol solution derivatives
+   * @param rightaxes axes associated with the right solution
+  */
+template< class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, 
+                            TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                            TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                            TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
+{
+  ComputeSolution(qsi,sol,dsol,axes);
+  ComputeSolution(qsi,leftsol,dleftsol,axes,rightsol,drightsol,rightaxes);
+}
+ /**
+   * Computes solution and its derivatives in the local coordinate qsi.
+   * This method will function for both volumetric and interface elements
+   * @param qsi master element coordinate of the interface element
+   * @param sol finite element solution
+   * @param dsol solution derivatives
+   * @param axes axes associated with the derivative of the solution
+   * @param leftsol finite element solution
+   * @param dleftsol solution derivatives
+   * @param leftaxes axes associated with the left solution
+   * @param rightsol finite element solution
+   * @param drightsol solution derivatives
+   * @param rightaxes axes associated with the right solution
+  */
+template< class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, 
+                            TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                            TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
+{
+  TCOMPEL::ComputeSolution(qsi, leftsol, dleftsol, leftaxes,rightsol, drightsol, rightaxes);
+
+/*  TPZCompMesh * cmesh = this->Mesh();
+  TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
+  if (!refmesh) return;
+  TPZCompEl * other = refmesh->ReferredEl( this->Index() );
+  if (!other) return;
+  
+  TPZManVector<REAL> LSol(leftsol),RSol(rightsol);
+  TPZFNMatrix<100> LDSol(dleftsol),RDSol(drightsol);
+  
+  TPZManVector<REAL> OLSol,ORSol;
+  TPZFNMatrix<100> OLDSol,OLDSol2,ORDSol,ORDSol2;
+  TPZFNMatrix<9> OLaxes(3,3,0.),ORaxes(3,3,0.);
+  other->ComputeSolution(qsi, OLSol,OLDSol,OLaxes,ORSol,ORDSol,ORaxes);
+  if(leftsol.NElements()) 
+  {
+    AdjustSolutionDerivatives(OLDSol,OLaxes,OLDSol2,leftaxes);
+  }
+  else if(OLSol.NElements())
+  {
+    OLDSol2 = OLDSol;
+    leftaxes = OLaxes;
+    
+  }
+  Append(LSol,OLSol,leftsol);
+  Append(LDSol,OLDSol2,dleftsol);
+  if(rightsol.NElements()) 
+  {
+    AdjustSolutionDerivatives(ORDSol,ORaxes,ORDSol2,rightaxes);
+  }
+  else if(ORSol.NElements())
+  {
+    ORDSol2 = ORDSol;
+    rightaxes = ORaxes;
+    
+  }
+  Append(RSol,ORSol,rightsol);
+  Append(RDSol,ORDSol2,drightsol);*/
+  
+}
+
+
+/**
+ * Adjust the derivatives from one system of axes to the other
+ */
+void AdjustSolutionDerivatives(TPZFMatrix &dsolfrom, TPZFMatrix &axesfrom,
+                               TPZFMatrix &dsolto, TPZFMatrix &axesto)
+{
+  TPZFNMatrix<9> axesinner, axesfromlocal;
+  axesfrom.Transpose(&axesfromlocal);
+  axesto.Multiply(axesfromlocal,axesinner);
+  int nderiv = dsolfrom.Rows();
+  int nstate = dsolfrom.Cols();
+  dsolto.Resize(nderiv,nstate);
+  int id,jd,is;
+  for(is=0; is<nstate; is++)
+  {
+    TPZManVector<REAL> dval(nderiv,0.);
+    for(id=0; id<nderiv; id++)
+    {
+      for(jd=0; jd<nderiv; jd++)
+      {
+        dval[id] += dsolfrom(jd,is)*axesinner(id,jd);
+      }
+    }
+    for(id=0; id<nderiv; id++)
+    {
+      dsolto(id,is) = dval[id];
+    }
+  }
+}
+
+void Append(TPZVec<REAL> &u1, TPZVec<REAL> &u2, TPZVec<REAL> &u12)
+{
+  int nu1 = u1.NElements(),nu2 = u2.NElements();
+  u12.Resize(nu1+nu2);
+  int i;
+  for(i=0; i<nu1; i++) u12[i] = u1[i];
+  for(i=0; i<nu2; i++) u12[i+nu1] = u2[i];
+}
+  
+void Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12)
+{
+  int ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
+  int ru12 = ru1 < ru2 ? ru2 : ru1;
+  int cu12 = cu1+cu2;
+  u12.Redim(ru12,cu12);
+  int i,j;
+  for(i=0; i<ru1; i++) for(j=0; j<cu1; j++) u12(i,j) = u1(i,j);
+  for(i=0; i<ru2; i++) for(j=0; j<cu2; j++) u12(i,j+cu1) = u2(i,j);
+}
 
 using namespace pzshape;
 using namespace pzgeom;
