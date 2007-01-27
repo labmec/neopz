@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.84 2007-01-03 00:06:47 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.85 2007-01-27 14:28:08 phil Exp $
 
 // -*- c++ -*- 
 
@@ -276,6 +276,8 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   TPZAutoPointer<TPZMaterial> material = Material();
   if(!material){
     cout << "TPZCompElDisc::CalcStiff : no material for this element\n";
+    ek.Reset();
+    ef.Reset();
     return;
   }
   TPZGeoEl *ref = Reference();
@@ -331,17 +333,18 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     Shape(x,phix,dphix);
     axes.Identity();
 
-    if (this->Material()->NeedsSolutionToContribute()){
-      this->ComputeSolution(intpoint, phix, dphix, sol, dsol);
+    if (material->NeedsSolutionToContribute()){
+      this->ComputeSolution(intpoint, phix, dphix, axes, sol, dsol);
     }
 
-    this->Material()->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ek.fMat,ef.fMat);
+    material->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ek.fMat,ef.fMat);
   }
 }
 void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
   TPZAutoPointer<TPZMaterial> material = Material();
   if(!material){
     cout << "TPZCompElDisc::CalcStiff : no material for this element\n";
+    ef.Reset();
     return;
   }
   TPZGeoEl *ref = Reference();
@@ -384,7 +387,7 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
     Shape(x,phix,dphix);
     axes.Identity();
 
-    this->ComputeSolution(intpoint, phix, dphix, sol, dsol);
+    this->ComputeSolution(intpoint, phix, dphix, axes, sol, dsol);
 
     material->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ef.fMat);
   }
@@ -420,6 +423,12 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
   if (Mesh()->ElementVec()[index] != this) {
     PZError << "TPZInterpolatedElement::Divide index error";
     subindex.Resize(0);
+    return;
+  }
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material)
+  {
+    PZError << __PRETTY_FUNCTION__ << " no material\n";
     return;
   }
 
@@ -473,7 +482,7 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
         LOGPZ_ERROR(logger, mess.str() );
         continue;
       }    
-      if(discel->Dimension() < Material()->Dimension()) continue;//elemento BC
+      if(discel->Dimension() < material->Dimension()) continue;//elemento BC
       discel->InterpolateSolution(*this);
     }
   }//if interpolate
@@ -592,8 +601,8 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
   int dfvar = block.Size(dfseq);
 #ifdef DEBUG
 {
-  int aux1 = NShapeF() * this->Material()->NStateVariables();
-  int aux2 = this->Material()->NStateVariables();
+  int aux1 = NShapeF() * material->NStateVariables();
+  int aux2 = material->NStateVariables();
   if ((dfvar != aux1) || (nvar != aux2) ){
   LOGPZ_ERROR(logger, __PRETTY_FUNCTION__ );
   }
@@ -652,7 +661,7 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
     for(int i=0;i<3;i++) x[i] = qsi[i];
   }
   Shape(x,phi,dphi);
-  this->ComputeSolution(qsi, phi, dphi, u, du);
+  this->ComputeSolution(qsi, phi, dphi, axes, u, du);
   material->Solution(u,du,axes,var,sol);
 }
 
@@ -848,7 +857,7 @@ void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &v
     axes.Identity();
     weight *= fabs(detjac);
 
-    this->ComputeSolution(intpoint, phi, dphix, u, dudx);
+    this->ComputeSolution(intpoint, phi, dphix, axes, u, dudx);
 
     //contribu�es dos erros
     if(fp) {
@@ -1007,10 +1016,11 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMa
   ref->Jacobian( qsi, jacobian, axes, detjac , jacinv);
   ref->X(qsi, x);
   this->Shape(x,phix,dphix);
-  this->ComputeSolution(qsi, phix, dphix, sol, dsol);
+  this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
 }//method
   
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
+                                     TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
 
   const int nstate = this->Material()->NStateVariables();
   const int ncon = this->NConnects();
