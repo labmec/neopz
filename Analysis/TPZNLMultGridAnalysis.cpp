@@ -187,7 +187,7 @@ void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
     if(!cel) continue;
     if(cel->Type() == EInterface) continue;
     if(cel->Type() == EDiscontinuous) continue;
-    TPZMaterial *mat = cel->Material();
+    TPZAutoPointer<TPZMaterial> mat = cel->Material();
     if(!mat) PZError << "TPZNonLinMultGridAnalysis::ResetReference null material\n";
     if(mat->Id() < 0) continue;
     TPZGeoEl *gel = cel->Reference();
@@ -231,7 +231,7 @@ void TPZNonLinMultGridAnalysis::SetReference(TPZCompMesh *aggcmesh){
     if(!cel) continue;
     if(cel->Type() == EInterface) continue;
     if(cel->Type() == EDiscontinuous) continue;
-    TPZMaterial *mat = cel->Material();
+    TPZAutoPointer<TPZMaterial> mat = cel->Material();
     if(!mat) PZError << "TPZNonLinMultGridAnalysis::SetReference null material\n";
     if(mat->Id() < 0) continue;
     TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
