@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.38 2007-01-03 00:06:47 phil Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.39 2007-01-27 14:28:43 phil Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -181,6 +181,8 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 
   if(!Material()){
     cout << "TPZCompElDisc::CalcStiff : no material for this element\n";
+    ek.Reset();
+    ef.Reset();
     return;
   }
   int ncon = NConnects();
@@ -278,7 +280,10 @@ REAL TPZAgglomerateElement::NormalizeConst(){
 int TPZAgglomerateElement::CreateMidSideConnect(){
 
   if(!Material())
+  {
     PZError << "\nTPZCompElDisc::CreateMidSideConnect Material nulo\n";
+    exit(-1);
+  }
 
   TPZStack<TPZCompElSide> list;
   int dim = Dimension();
