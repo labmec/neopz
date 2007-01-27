@@ -28,7 +28,7 @@ MElementType TPZGeoPoint::Type(int side)
 
 void TPZGeoPoint::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
   int i;
-  for (i=0;i<3;i++){
+  for (i=0;i<coord.Rows();i++){
     result[i] = coord(i,0);
   }
 }

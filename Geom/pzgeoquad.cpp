@@ -85,6 +85,7 @@ void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &ja
   TPZFMatrix dphi(2,4,spacedphi,8);
   Shape(param,phi,dphi);
   int i,j;
+  int space = coord.Rows();
   for(i=0;i<2;i++)
     for(j=0;j<2;j++)
       jacobian(i,j)=0.;
@@ -94,7 +95,7 @@ void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &ja
   REAL V1Norm=0.,V1V2=0.,V2tilNorm=0.;
   for(i=0;i<nnodes;i++) {
     //np = NodePtr(i);
-    for(j=0;j<3;j++) {
+    for(j=0;j<space;j++) {
       //V1[j] += np->Coord(j)*dphi(0,i);
 		V1[j] += coord(j,i)*dphi(0,i);
       //V2[j] += np->Coord(j)*dphi(1,i);
@@ -135,9 +136,10 @@ void TPZGeoQuad::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
   int i,j;
   TPZFMatrix phi(4,1,spacephi,4);
   TPZFMatrix dphi(2,4,spacedphi,8);
+  int space = coord.Rows();
   Shape(loc,phi,dphi);
-  for(i=0;i<3;i++) {
-    result[i] = 0.0;
+  result.Fill(0.);
+  for(i=0;i<space;i++) {
     for(j=0;j<4;j++)
       //result[i] += phi(j,0)*NodePtr(j)->Coord(i);
 	  result[i] += phi(j,0)*coord(i,j);

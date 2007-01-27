@@ -59,11 +59,12 @@ void TPZGeoTriangle::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix
 
 	TPZVec<REAL> V1(3,0.),V2(3,0.),V2til(3,0.),V3(3,0.);
 	REAL V1Norm=0.,V1V2=0.,V2tilNorm=0.;
+ int space = coord.Rows();
 //	TPZGeoNode *np;
 
 	for(i=0;i<3;i++) {
 //		np = NodePtr(i);
-		for(j=0;j<3;j++) {
+		for(j=0;j<space;j++) {
 			V1[j] += coord(j,i)*dphi(0,i);
 			V2[j] += coord(j,i)*dphi(1,i);
 		}
@@ -104,9 +105,10 @@ void TPZGeoTriangle::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &resu
 	TPZFMatrix dphi(2,3,spacedphi,6);
 	//Shape(par,phi,dphi);
 	Shape(loc,phi,dphi);
+ int space = coord.Rows();
 
 	int i,j;
-	for(i=0;i<3;i++) {
+	for(i=0;i<space;i++) {
 		result[i] = 0.0;
 		for(j=0;j<3;j++)
 			//result[i] += phi(j,0)*NodePtr(j)->Coord(i);

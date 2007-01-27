@@ -82,9 +82,10 @@ inline void TPZGeoLinear::Jacobian(TPZFMatrix &coord,TPZVec<REAL> &param,TPZFMat
 
   //VERSAO FUNCIONAL
   int ic;
-  REAL v1[3];
+  REAL v1[3] = {0.};
+  int nrow = coord.Rows();
   REAL mod1 = 0.;
-  for(ic=0; ic<3; ic++) {
+  for(ic=0; ic<nrow; ic++) {
     v1[ic] = (coord(ic,1)-coord(ic,0))*0.5;
     mod1 += v1[ic]*v1[ic];
   }
@@ -131,7 +132,8 @@ inline void TPZGeoLinear::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &re
 
   int ic;
   REAL xi = loc[0];
-  for(ic=0; ic<3; ic++) result[ic] = coord(ic,0)*(1.-xi)*0.5+coord(ic,1)*(1.+xi)*0.5;
+  int nrow = coord.Rows();
+  for(ic=0; ic<nrow; ic++) result[ic] = coord(ic,0)*(1.-xi)*0.5+coord(ic,1)*(1.+xi)*0.5;
 
 //   TPZFNMatrix<9> phi(NNodes,1);
 //   TPZFNMatrix<18> dphi(1,NNodes);
