@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.25 2007-01-03 00:06:47 phil Exp $
+//$Id: pzgmesh.h,v 1.26 2007-01-27 14:30:49 phil Exp $
 
 /**File : pzgmes.h
 
@@ -269,6 +269,8 @@ public:
   TPZAutoPointer<TPZRefPattern> GetRefPattern (TPZGeoEl *gel, int side);
   
  const std::map<int, TPZAutoPointer<TPZRefPattern> > &RefPatternList(MElementType eltype);
+ 
+ void InitializeRefPatterns();
  
 };
 

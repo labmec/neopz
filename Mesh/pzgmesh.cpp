@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.28 2006-12-06 19:02:04 tiago Exp $
+//$Id: pzgmesh.cpp,v 1.29 2007-01-27 14:32:36 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -711,28 +711,28 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
     switch( type ){
       case 0://point
         return new TPZGeoElRefPattern<TPZShapePoint, TPZGeoPoint>(
-                                nodeindexes, matid, *this, index, 0 );
+                                nodeindexes, matid, *this, index);
       case 1://line
         return new TPZGeoElRefPattern<TPZShapeLinear, TPZGeoLinear>(
-                                nodeindexes, matid, *this, index, 0 );
+                                nodeindexes, matid, *this, index);
       case 2://triangle
         return new TPZGeoElRefPattern<TPZShapeTriang, TPZGeoTriangle>(
-                                nodeindexes, matid, *this, index, 0 );
+                                nodeindexes, matid, *this, index);
       case 3://quadrilatera
         return  new TPZGeoElRefPattern<TPZShapeQuad, TPZGeoQuad>(
-                                nodeindexes, matid, *this, index, 0 );
+                                nodeindexes, matid, *this, index);
       case 4://tetraedra
         return new TPZGeoElRefPattern<TPZShapeTetra, TPZGeoTetrahedra>(
-                                nodeindexes, matid, *this, index, 0 );
+                                nodeindexes, matid, *this, index);
       case 5://pyramid
         return new TPZGeoElRefPattern<TPZShapePiram, TPZGeoPyramid>(
-                                nodeindexes, matid, *this, index, 0 );
+                                nodeindexes, matid, *this, index);
       case 6://prism
         return new TPZGeoElRefPattern<TPZShapePrism, TPZGeoPrism>(
-                                nodeindexes, matid, *this, index, 0 );
+                                nodeindexes, matid, *this, index);
       case 7://cube
         return new TPZGeoElRefPattern<TPZShapeCube, TPZGeoCube>(
-                                nodeindexes, matid, *this, index, 0 );
+                                nodeindexes, matid, *this, index);
       default:
         PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
                 << " type = " << type << std::endl;
@@ -753,7 +753,7 @@ TPZAutoPointer<TPZRefPattern> TPZGeoMesh::FindRefPattern(TPZAutoPointer<TPZRefPa
   for(it=fRefPatterns[eltype].begin(); it != fRefPatterns[eltype].end(); it++)
   {
 //    std::cout << "Comparing with "; (*it)->ShortPrint(cout); cout << endl;
-    if(*(it->second.operator->()) == *(refpat.operator->())) return it->second;
+    if((it->second.operator->()) == (refpat.operator->())) return it->second;
   }
 //  cout << "Not found\n";
   return NULLRefPat;
@@ -1107,4 +1107,23 @@ const std::map<int, TPZAutoPointer<TPZRefPattern> > &TPZGeoMesh::RefPatternList(
   return fRefPatterns[eltype];
 }
 
+void TPZGeoMesh::InitializeRefPatterns()
+{
+  {
+    char buf[] = 
+        "3	3\n"
+        "202	UNIFORM_LINE\n"
+        "-1.	0.	0. "
+        "1.	0.	0. "
+        "0.	0.	0. "
+        "2	1		0	1 "
+        "2	1		0	2 "
+        "2	1		2	1 ";
+    std::istringstream str(buf);
+    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
+    if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
+    refpat->InsertPermuted();
+  }
+
+}
 
