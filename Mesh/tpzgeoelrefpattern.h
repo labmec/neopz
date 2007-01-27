@@ -43,15 +43,15 @@ template <class TShape, class TGeo>
 class TPZGeoElRefPattern : public TPZGeoElRefLess<TShape,TGeo>  {
 
     TPZVec<int> fSubEl;
-    int fRefPatternIndex;
+    TPZAutoPointer<TPZRefPattern> fRefPattern;
   
 public: 
   TPZGeoElRefPattern();
   ~TPZGeoElRefPattern();
-  TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh,TPZRefPattern *refpat);
-  TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,TPZRefPattern *refpat);
-  TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index,TPZRefPattern *refpat);
-  void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index,TPZRefPattern *refpat);
+  TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
+  TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
+  TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
+  void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index,TPZAutoPointer<TPZRefPattern> refpat);
 
   /** return 1 if the element has subelements along side*/
   int HasSubElement() {return fSubEl.NElements() && fSubEl[0]!=-1;}
@@ -95,19 +95,12 @@ public:
   virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
   
   /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
-  virtual void SetRefPattern(TPZRefPattern *refpat );
+  virtual void SetRefPattern(TPZAutoPointer<TPZRefPattern> refpat );
   
   /// return the refinement pattern associated with the element  
-  virtual TPZRefPattern *GetRefPattern()
+  virtual TPZAutoPointer<TPZRefPattern> GetRefPattern()
   {
-    if (this->fRefPatternIndex == -1) return NULL;
-    const std::map<int, TPZAutoPointer<TPZRefPattern> > & map = this->Mesh()->RefPatternList(this->Type());    
-    std::map<int, TPZAutoPointer<TPZRefPattern> >::const_iterator ref = map.find(this->fRefPatternIndex);
-    if (ref != map.end()) return ref->second.operator->();
-    else{
-      PZError << "Error at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - The requested refinemet pattern does not exist in the geometric mesh\n";
-      return NULL;
-    }
+    return fRefPattern;
   }
   
 virtual void Print(std::ostream & out);
@@ -129,7 +122,6 @@ template<class TShape, class TGeo>
 TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern():TPZGeoElRefLess<TShape,TGeo>(){
   fSubEl.Resize(1);
   fSubEl[0] = -1;
-  fRefPatternIndex = -1;
 }
 
 template<class TShape, class TGeo>
@@ -139,78 +131,34 @@ TPZGeoElRefPattern<TShape,TGeo>::~TPZGeoElRefPattern(){
 }
 
 template<class TShape, class TGeo>
-TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,TPZRefPattern *refpat) :
+TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) :
   TPZGeoElRefLess<TShape,TGeo>(nodeindices,matind,mesh) {
-  if (!refpat){
-    fRefPatternIndex = -1;
-    fSubEl.Resize(1);
-    fSubEl[0] = -1;
-    //PZError << "TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern : NULL refinement pattern given" << std::endl;
-    return;
-  }
-  this->Mesh()->InsertRefPattern(refpat);
-  fRefPatternIndex = refpat->Id();
-  int i;
-  int nsubel = refpat->NSubElements();
-  fSubEl.Resize(nsubel);
-  for(i=0;i<nsubel;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo>
-TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index,TPZRefPattern *refpat) :
+TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
   TPZGeoElRefLess<TShape,TGeo>(nodeindices,matind,mesh,index) {
-  if (!refpat){
-    fRefPatternIndex = -1;
-    fSubEl.Resize(1);
-    fSubEl [0] = -1;
-    //PZError << "TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern : NULL refinement pattern given" << std::endl;
-    return;
-  }
-  fRefPatternIndex = refpat->Id();
-  int i;
-  int nsubel = refpat->NSubElements();
-  fSubEl.Resize(nsubel);
-  for(i=0;i<nsubel;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo>
-TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh,TPZRefPattern *refpat) :
+TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh) :
   TPZGeoElRefLess<TShape,TGeo>(id,nodeindexes,matind,mesh) {
-  if (!refpat){
-    fRefPatternIndex = -1;
-    fSubEl.Resize(1);
-    fSubEl[0] = -1;
-   // PZError << "TPZGeoElRefPattern<TShape,TGeo>::Initialize : NULL refinement pattern given" << std::endl;
-    return;
-  }
-  fRefPatternIndex = refpat->Id();
-  int i;
-  int nsubel = refpat->NSubElements();
-  fSubEl.Resize(nsubel);
-  for(i=0;i<nsubel;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo>
-void TPZGeoElRefPattern<TShape,TGeo>::Initialize(TPZVec<int> &nodeindices, int matind, TPZGeoMesh& mesh, int& index,TPZRefPattern *refpat) {
+void TPZGeoElRefPattern<TShape,TGeo>::Initialize(TPZVec<int> &nodeindices, int matind, TPZGeoMesh& mesh, int& index, TPZAutoPointer<TPZRefPattern> refpat) {
   TPZGeoElRefLess<TShape,TGeo>::Initialize(nodeindices,matind,mesh,index);
-  if (!refpat){
-    fRefPatternIndex = -1;
-    fSubEl.Resize(1);
-    fSubEl [0] = -1;
- //   PZError << "TPZGeoElRefPattern<TShape,TGeo>::Initialize : NULL refinement pattern given" << std::endl;
-    return;
+  fRefPattern = refpat;
+  if(fRefPattern)
+  {
+    fSubEl.Resize(fRefPattern->NSubElements());
+    fSubEl.Fill(-1);
   }
-  fRefPatternIndex = refpat->Id();
-  int i;
-  int nsubel = refpat->NSubElements();
-  fSubEl.Resize(nsubel);
-  for(i=0;i<nsubel;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo>
 void TPZGeoElRefPattern<TShape,TGeo>::SetSubElement(int id, TPZGeoEl *el){
-  TPZRefPattern * refp = this->GetRefPattern();
-  if (!refp){
+  if (!fRefPattern){
     PZError << "Error at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - this->GetRefPattern() is NULL\n";
     return;
   }//if
@@ -295,19 +243,19 @@ void TPZGeoElRefPattern<TShape,TGeo>::MidSideNodeIndex(int side,int &index){
 
 template<class TShape, class TGeo>
 int TPZGeoElRefPattern<TShape,TGeo>::NSubElements(){
-  if (fRefPatternIndex == -1) return 0;
+  if (!fRefPattern) return 0;
   return this->GetRefPattern()->NSubElements();
 }
 
 template<class TShape, class TGeo>
 int TPZGeoElRefPattern<TShape,TGeo>::NSideSubElements2(int side){
-  if (fRefPatternIndex == -1) return 0;
+  if (!fRefPattern) return 0;
   return this->GetRefPattern()->NSideSubElements(side);
 }
 
 template<class TShape, class TGeo>
 TPZGeoEl * TPZGeoElRefPattern<TShape,TGeo>::SubElement(int is){
-  if (fRefPatternIndex == -1) return 0;
+  if (!fRefPattern) return 0;
   int nsubel = this->GetRefPattern()->NSubElements();
   if(is<0 || is>nsubel){
     std::cout << "TPZGeoElRefPattern::SubElement index error is= " << is << std::endl;
@@ -321,6 +269,8 @@ TPZGeoElSide TPZGeoElRefPattern<TShape,TGeo>::SideSubElement(int side,int positi
 //  
 //  TRef::GetSubElements(this,side,subs);
 //  return subs[position];
+  TPZGeoElSide tmp;
+  if(!fRefPattern) return tmp;
   int sub, sideout;
   this->GetRefPattern()->SideSubElement(side,position,sub,sideout);
   if (fSubEl[sub] == -1) {
@@ -334,6 +284,8 @@ TPZGeoElSide TPZGeoElRefPattern<TShape,TGeo>::SideSubElement(int side,int positi
 template<class TShape, class TGeo>
 TPZTransform TPZGeoElRefPattern<TShape,TGeo>::GetTransform(int side,int son){
 //  return TRef::GetTransform(side,son);
+  TPZTransform trf;
+  if(!fRefPattern) return trf;
   return this->GetRefPattern()->Transform(side,son);  
 }
 
@@ -343,6 +295,7 @@ TPZGeoElRefPattern<TShape,TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide
   //TRef::GetSubElements(this,side,subel);
 //  int i,nsidesubel;
 
+  if(!fRefPattern) return;
   //A classe TPZRefPattern nao esta contemplando os nos
   TPZGeoEl * reffather = this->GetRefPattern()->Element(0);
   if (side < reffather->NCornerNodes()){
@@ -376,7 +329,7 @@ TPZGeoElRefPattern<TShape,TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide
 template<class TShape, class TGeo>
 void
 TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
-  if (fRefPatternIndex == -1) {
+  if (!fRefPattern) {
     PZError << "TPZGeoElRefPattern<TShape,TGeo>::Divide ERROR : Undefined Refinement Pattern!" << std::endl;
     SubElVec.Resize(0);
     return;
@@ -490,13 +443,15 @@ TPZGeoElRefPattern<TShape,TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 }
 
 template<class TShape, class TGeo> int TPZGeoElRefPattern<TShape,TGeo>::FatherSide(int side, int son){
+  int res = -1;
+  if(!fRefPattern) return res;
   return this->GetRefPattern()->FatherSide(side,son);
 
 }
 
 template<class TShape, class TGeo> 
 void TPZGeoElRefPattern<TShape,TGeo>::MidSideNodeIndices(int side,TPZVec<int> &indices){
-  if(!HasSubElement() || fRefPatternIndex == -1 || side < this->NCornerNodes()) {
+  if(!fRefPattern || !HasSubElement() || side < this->NCornerNodes()) {
     indices.Resize(0);
     return;
   }
@@ -517,7 +472,7 @@ void TPZGeoElRefPattern<TShape,TGeo>::MidSideNodeIndices(int side,TPZVec<int> &i
 
 /** Defines the element refinement pattern  */
 template<class TShape, class TGeo> 
-void TPZGeoElRefPattern<TShape,TGeo>::SetRefPattern (TPZRefPattern *refpat){
+void TPZGeoElRefPattern<TShape,TGeo>::SetRefPattern (TPZAutoPointer<TPZRefPattern> refpat){
 #ifdef HUGE_DEBUG
   if (!refpat) {
     PZError << "Error trying to set a null refinement pattern objetct" << std::endl;
@@ -529,7 +484,7 @@ void TPZGeoElRefPattern<TShape,TGeo>::SetRefPattern (TPZRefPattern *refpat){
 //  MElementType eltype = refpat->Element(0)->Type();
 //  std::string refname = refpat->GetName();
 //  refpat = this->Mesh()->GetRefPattern(eltype,refname);
-  fRefPatternIndex = refpat->Id();
+  fRefPattern = refpat;
   int i;
   int nsubel = refpat->NSubElements();
   fSubEl.Resize(nsubel);
@@ -540,10 +495,10 @@ template<class TShape, class TGeo>
 void TPZGeoElRefPattern<TShape,TGeo>::Print(std::ostream & out)
 {
   TPZGeoElRefLess<TShape,TGeo>::Print(out);
-  TPZRefPattern * refp = this->GetRefPattern();
-  if(refp) 
+  
+  if(fRefPattern) 
   {
-    refp->ShortPrint(out);
+    fRefPattern->ShortPrint(out);
     out << std::endl;
   }
 }

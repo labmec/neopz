@@ -111,20 +111,31 @@ TPZRestoreClass< TPZGeoElRefPattern<TPZShapePoint,TPZGeoPoint>, TPZGEOELREFPATPO
 template <class TShape, class TGeo>
 void TPZGeoElRefPattern<TShape,TGeo>::Read(TPZStream &str, void *context){
   TPZGeoElRefLess<TShape,TGeo>::Read(str, context);
-  str.Read(&this->fRefPatternIndex, 1);
+  TPZGeoMesh *gmesh = (TPZGeoMesh *) context;
+  int refpatternindex;
+  str.Read(&refpatternindex, 1);
+  if(refpatternindex != -1)
+  {
+    const std::map<int, TPZAutoPointer<TPZRefPattern> > &RefPatternList = gmesh->RefPatternList(this->Type());
+    std::map<int, TPZAutoPointer<TPZRefPattern> >::const_iterator it;
+    it = RefPatternList.find(refpatternindex);
+    if(it != RefPatternList.end()) fRefPattern = it->second;
+  }
   TPZSaveable::ReadObjects(str, this->fSubEl);
 }
 
 template <class TShape, class TGeo>
 void TPZGeoElRefPattern<TShape,TGeo>::Write(TPZStream &str, int withclassid){
   TPZGeoElRefLess<TShape,TGeo>::Write(str, withclassid);
-  str.Write(&this->fRefPatternIndex, 1);
+  int refpatternindex = -1;
+  if(fRefPattern) refpatternindex = fRefPattern->Id();
+  str.Write(&refpatternindex, 1);
   TPZSaveable::WriteObjects(str, this->fSubEl);
 }
 
 template <class TShape, class TGeo>
-TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh, const TPZGeoElRefPattern<TShape,TGeo> &cp):TPZGeoElRefLess<TShape,TGeo>(DestMesh,cp){
-  this->fRefPatternIndex = cp.fRefPatternIndex;
+TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh, const TPZGeoElRefPattern<TShape,TGeo> &cp):TPZGeoElRefLess<TShape,TGeo>(DestMesh,cp),
+  fRefPattern(cp.fRefPattern) {
   this->fSubEl = cp.fSubEl;
 }
 
