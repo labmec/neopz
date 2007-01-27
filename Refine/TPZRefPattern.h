@@ -57,7 +57,7 @@ public:
      * Constructor whose argument is the name of the file with the definition
      * of the refinement standard
      */
-    TPZRefPattern(TPZGeoMesh * OwnerMesh, std::ifstream &file);
+    TPZRefPattern(TPZGeoMesh * OwnerMesh, std::istream &file);
 
     TPZRefPattern(TPZGeoMesh * OwnerMesh, std::string &file);
     
@@ -91,12 +91,12 @@ public:
     /**
      * It effects the reading of the archive that defines the refinement standard
      */
-    void ReadPattern(std::ifstream &in, std::vector< TPZAutoPointer<TPZRefPattern> > &collect);
+    void ReadPattern(std::istream &in, std::vector< TPZAutoPointer<TPZRefPattern> > &collect);
 
     /**
      * It effects the reading of the archive that defines the refinement standard
      */
-    void ReadPattern(std::ifstream &in);
+    void ReadPattern(std::istream &in);
     
     void ReadPattern2();
 
@@ -337,12 +337,12 @@ private:
      int fId;
 
  public:
-    TPZRefPattern *SideRefPattern(int side);
+    TPZAutoPointer<TPZRefPattern> SideRefPattern(int side);
     
     /**
      * Find the side refinement pattern corresponding to the parameter transformation
      */
-    TPZRefPattern *SideRefPattern(int side, TPZTransform &trans);
+    TPZAutoPointer<TPZRefPattern> SideRefPattern(int side, TPZTransform &trans);
   /** This method is used to create / identify the nodes of the refined elements.
    * The method verify if the nodes are already created by the self element or by some neighbour.
 @param gel - pointer to the element which are being divided
@@ -356,7 +356,7 @@ private:
   /** Returns the refinement pattern identifier */
   std::string GetName();
   
-  int operator==(const TPZRefPattern &compare) const;
+  int operator==(const TPZAutoPointer<TPZRefPattern> compare) const;
 
 protected:    
     /**
@@ -375,7 +375,7 @@ protected:
       * geometric element this->fInternalMesh->ElementVec()[0]
       * @since August 16, 2006
       */
-     TPZRefPattern * FindRefPattern(int id, int side);
+     TPZAutoPointer<TPZRefPattern>  FindRefPattern(int id, int side);
 
 public:
     /**
@@ -395,17 +395,17 @@ public:
     /**
      * Find the refinement pattern corresponding to the give transformation
      */
-     TPZRefPattern *FindRefPattern(TPZTransform &trans);
+     TPZAutoPointer<TPZRefPattern> FindRefPattern(TPZTransform &trans);
      
      /**
       * build a list of all refinement patterns compatible with the refinements of the neighbouring elements
       */
-      static void GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZRefPattern *> &refs);
+      static void GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZAutoPointer<TPZRefPattern> > &refs);
       
       /**
        * verify whether the side refinement patterns are equal
        */
-      bool IsCompatible(TPZVec<TPZRefPattern *> &siderefpatterns);
+      bool IsCompatible(TPZVec<TPZAutoPointer<TPZRefPattern> > &siderefpatterns);
       
       /**
        * return the id of the refinement pattern

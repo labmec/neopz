@@ -67,7 +67,7 @@ TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh, std::string &file ) : fSide
   ComputePartition();/**efetua a parti�o do elemento pai de acordo com os lados dos sub-elementos*/
 }
 
-TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh, std::ifstream &file ) : fSideRefPattern(0), fId(-50) {
+TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh, std::istream &file ) : fSideRefPattern(0), fId(-50) {
   this->fOwnerMesh = OwnerMesh;
   ReadPattern(file);
 }
@@ -197,7 +197,7 @@ void TPZRefPattern::WritePattern(std::ofstream &filename){
   filename << std::endl;
 }
 
-void TPZRefPattern::ReadPattern(std::ifstream &in)
+void TPZRefPattern::ReadPattern(std::istream &in)
 {
   //ifstream in(fFileRefPatt.data());
   int nnodes,nelems,inode;
@@ -249,7 +249,7 @@ void TPZRefPattern::ReadPattern(std::ifstream &in)
   ComputePartition();/**efetua a parti�o do elemento pai de acordo com os lados dos sub-elementos*/
 }
 
-void TPZRefPattern::ReadPattern(std::ifstream &in,std::vector< TPZAutoPointer<TPZRefPattern> > &collect){
+void TPZRefPattern::ReadPattern(std::istream &in,std::vector< TPZAutoPointer<TPZRefPattern> > &collect){
   ReadPattern(in);
   int nperm;
   in >> nperm;
@@ -1123,12 +1123,12 @@ string TPZRefPattern::GetName(){
 /*!
     \fn TPZRefPattern::operator==(const TPZRefPattern &compare)
  */
-int TPZRefPattern::operator==(const TPZRefPattern &compare) const
+int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
 {
   int nnodes = fInternalMesh.NNodes();
-  if(fInternalMesh.NNodes() != compare.fInternalMesh.NNodes() || fInternalMesh.NElements() != compare.fInternalMesh.NElements()) return 0;
+  if(fInternalMesh.NNodes() != compare->fInternalMesh.NNodes() || fInternalMesh.NElements() != compare->fInternalMesh.NElements()) return 0;
   TPZGeoEl *father = fInternalMesh.ElementVec()[0];
-  TPZGeoEl *compfather = compare.fInternalMesh.ElementVec()[0];
+  TPZGeoEl *compfather = compare->fInternalMesh.ElementVec()[0];
   if(father->Type() != compfather->Type()) return 0;
   int dim = father->Dimension();
 //  int nsides = father->NSides();
@@ -1148,7 +1148,7 @@ int TPZRefPattern::operator==(const TPZRefPattern &compare) const
     {
       REAL diff = 0.;
       int j;
-      for(j=0; j<3; j++) coordcompare[j] = compare.fInternalMesh.NodeVec()[jn].Coord(j);
+      for(j=0; j<3; j++) coordcompare[j] = compare->fInternalMesh.NodeVec()[jn].Coord(j);
       compfather->ComputeXInverse(coordcompare,compareparam);
       for(j=0 ; j<dim; j++) diff += (elparam[j]-compareparam[j])*(elparam[j]-compareparam[j]);
       diff = sqrt(diff);
@@ -1174,7 +1174,7 @@ int TPZRefPattern::operator==(const TPZRefPattern &compare) const
     {
       if(elementmap.find(jel) != elementmap.end()) continue;
       std::set<int> compnodeset;
-      TPZGeoEl *jgel = compare.fInternalMesh.ElementVec()[jel];
+      TPZGeoEl *jgel = compare->fInternalMesh.ElementVec()[jel];
       int jn, jnnode = jgel->NNodes();
       if(jnnode != nnode) continue;
       for(jn=0; jn<jnnode; jn++) compnodeset.insert(jgel->NodeIndex(jn));
@@ -1202,7 +1202,7 @@ int TPZRefPattern::operator==(const TPZRefPattern &compare) const
       cout << "The compared element node indices are\n";
       for(iel = 0; iel<nelem; iel++)
       {
-        TPZGeoEl *igel = compare.fInternalMesh.ElementVec()[iel];
+        TPZGeoEl *igel = compare->fInternalMesh.ElementVec()[iel];
         int in, nnode = igel->NNodes();
         for(in=0; in<nnode; in++) cout << igel->NodeIndex(in) << ' ';
         cout << std::endl;
@@ -1327,7 +1327,7 @@ void TPZRefPattern::InsertPermuted(/*TPZGeoMesh &gmesh*/)
   {
     TPZAutoPointer<TPZRefPattern> refp(new TPZRefPattern(*this,(*it).fPermute));
     TPZAutoPointer<TPZRefPattern> found = this->fOwnerMesh->FindRefPattern(refp);
-    if(found.operator ->() != NULL)
+    if(found)
     {
       fPermutedRefPatterns[counter] = found->Id();
     }
@@ -1462,18 +1462,19 @@ void TPZRefPattern::BuildSideMesh(int side, TPZGeoMesh &SideInternalMesh)
     /**
      * Find the side refinement pattern corresponding to the parameter transformation
      */
-TPZRefPattern *TPZRefPattern::SideRefPattern(int side, TPZTransform &trans)
+TPZAutoPointer<TPZRefPattern> TPZRefPattern::SideRefPattern(int side, TPZTransform &trans)
 {
   if(side >= fSideRefPattern.NElements()) return NULL;
-  TPZRefPattern *sideref = this->SideRefPattern(side);
-  if(!sideref) return NULL;
+  TPZAutoPointer<TPZRefPattern> sideref = this->SideRefPattern(side);
+  TPZAutoPointer<TPZRefPattern> zero;
+  if(!sideref) return zero;
   return sideref->FindRefPattern(trans);
 }
 
     /**
      * Find the refinement pattern corresponding to the give transformation
      */
- TPZRefPattern *TPZRefPattern::FindRefPattern(TPZTransform &trans)
+ TPZAutoPointer<TPZRefPattern> TPZRefPattern::FindRefPattern(TPZTransform &trans)
  {
    REAL tol = 1.e-6;
    if(!fInternalMesh.ElementVec().NElements() || ! fInternalMesh.ElementVec()[0]) return 0;
@@ -1497,7 +1498,7 @@ TPZRefPattern *TPZRefPattern::SideRefPattern(int side, TPZTransform &trans)
 /**
  * build a list of all refinement patterns compatible with the refinements of the neighbouring elements
  */
-void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZRefPattern *> &refs)
+void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZAutoPointer<TPZRefPattern> > &refs)
 {
   if(!gel) return;
   refs.clear();
@@ -1510,7 +1511,7 @@ void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZ
   int is,nsides,nnodes;
   nsides = gel->NSides();
   nnodes = gel->NNodes();
-  TPZManVector<TPZRefPattern *,27> SideRefPatterns(nsides,0);
+  TPZManVector<TPZAutoPointer<TPZRefPattern> ,27> SideRefPatterns(nsides,0);
   TPZManVector<int, 27> refsides(nsides,0);
   for(is=nnodes; is<nsides; is++)
   {
@@ -1521,7 +1522,7 @@ void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZ
       if(neigh.Element()->HasSubElement() && neigh.NSubElements2() > 1)
       {
         refsides[is] = 1;
-        TPZRefPattern *refp = neigh.Element()->GetRefPattern();
+        TPZAutoPointer<TPZRefPattern> refp = neigh.Element()->GetRefPattern();
         if(refp)
         {
 //          TPZTransform trans = gelside.NeighbourSideTransform(neigh);
@@ -1563,14 +1564,14 @@ void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZ
     // compare the side refinement patterns
     for(is=nnodes; is<nsides-1; is++) 
     {
-      TPZRefPattern *candidate = it->second->SideRefPattern(is);
+      TPZAutoPointer<TPZRefPattern> candidate = it->second->SideRefPattern(is);
       if(SideRefPatterns[is] && SideRefPatterns[is] != candidate) 
       {
         break;
       }
     }
     // if all refinement patterns are equal
-    if(is == nsides-1) refs.push_back(it->second.operator->());
+    if(is == nsides-1) refs.push_back(it->second);
   }
 
 }
@@ -1591,16 +1592,16 @@ void TPZRefPattern::ShortPrint(std::ostream &out)
        }
 }
 
-TPZRefPattern *TPZRefPattern::SideRefPattern(int side){
+TPZAutoPointer<TPZRefPattern> TPZRefPattern::SideRefPattern(int side){
   const int id = this->fSideRefPattern[side];
   return this->FindRefPattern(id, side);
 }
 
-TPZRefPattern * TPZRefPattern::FindRefPattern(int id, int side){
+TPZAutoPointer<TPZRefPattern>  TPZRefPattern::FindRefPattern(int id, int side){
   TPZGeoEl * gel = this->fInternalMesh.ElementVec()[0];
   const std::map<int, TPZAutoPointer<TPZRefPattern> > & mymap = this->fOwnerMesh->RefPatternList(gel->Type(side));
   std::map<int, TPZAutoPointer<TPZRefPattern> >::const_iterator it = mymap.find(id);
-  if (it != mymap.end()) return it->second.operator->();
+  if (it != mymap.end()) return it->second;
   else return NULL;
 }
 
