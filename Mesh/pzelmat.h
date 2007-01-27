@@ -1,4 +1,4 @@
-//$Id: pzelmat.h,v 1.5 2005-04-25 02:31:48 phil Exp $
+//$Id: pzelmat.h,v 1.6 2007-01-27 14:33:53 phil Exp $
 
 #ifndef ELMATHPP
 #define ELMATHPP
@@ -33,6 +33,17 @@ struct TPZElementMatrix {
   TPZFNMatrix<1000>		fConstrMat;
   /**block structure associated with fConstrMat*/
   TPZBlock		fConstrBlock;
+  
+  ///Reset the data structure
+  void Reset()
+  {
+    fConnect.Resize(0);
+    fMat.Resize(0,0);
+    fBlock.SetNBlocks(0);
+    fConstrConnect.Resize(0);
+    fConstrMat.Resize(0,0);
+    fConstrBlock.SetNBlocks(0);
+  }
 
   TPZElementMatrix() : fConnect(), fMat(0,0), fBlock(&fMat),  fConstrConnect(), fConstrMat(0,0), fConstrBlock(&fConstrMat)
     {
