@@ -74,7 +74,7 @@ int main(){
   TPZCompEl::gOrder = 1;
   int a = 1;
   TPZGeoEl *gel;
-  TPZRefPattern *unifquad;
+  TPZAutoPointer<TPZRefPattern> unifquad;
   if (a){
     
     // Crio um elemento sem padrão de refinamento -->> \

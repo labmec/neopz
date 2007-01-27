@@ -57,7 +57,7 @@ TPZGeoMesh *ReadGeoMesh(ifstream &arq);
 void TriangleRefine1(TPZGeoMesh *gmesh);
 void TriangleRefine2(TPZGeoMesh *gmesh);
 void QuadRefine(TPZGeoMesh *gmesh);
-TPZRefPattern *GetBestRefPattern(TPZVec<int> &sides, std::list<TPZRefPattern *> &patlist);
+TPZAutoPointer<TPZRefPattern> GetBestRefPattern(TPZVec<int> &sides, std::list<TPZAutoPointer<TPZRefPattern> > &patlist);
 
 void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids, int destmatid);
 
@@ -127,6 +127,7 @@ void InsertNewPattern(std::ifstream &arquivo, TPZGeoMesh &geomesh, std::ofstream
 {
    TPZRefPattern *pattern = new TPZRefPattern (&geomesh, arquivo);
    pattern->InsertPermuted(/*geomesh*/);
+   delete pattern;
    geomesh.RefPatternFile(padroes);
  }
 
@@ -259,6 +260,7 @@ void LoadRefPatternDataBase(TPZGeoMesh *geomesh)
       {
         TPZRefPattern *refp = new TPZRefPattern(geomesh, fullname);
         refp->InsertPermuted(/**geomesh*/);
+        delete refp;
       }
     }
     std::ofstream out(allpatterns.c_str());
@@ -478,9 +480,9 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
     return;
   }
 //  TPZGeoMesh *gmesh = gel->Mesh();
-  std::list<TPZRefPattern *> patlist;
+  std::list<TPZAutoPointer<TPZRefPattern> > patlist;
   TPZRefPattern::GetCompatibleRefinementPatterns(gel, patlist);
-  TPZRefPattern *patt = GetBestRefPattern(sidestorefine,patlist);
+  TPZAutoPointer<TPZRefPattern> patt = GetBestRefPattern(sidestorefine,patlist);
   static int count = 1;
   if(patt) 
   {
@@ -496,11 +498,11 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
     std::ofstream arquivo ("NotListedPatterns4.txt",std::ios::app);
     if(count++ == 1) std::cout << "couldnt find a suitable refinement pattern\n";
     std::cout << "|";
-    std::list<TPZRefPattern *>::iterator it;
+    std::list<TPZAutoPointer<TPZRefPattern> >::iterator it;
     arquivo << "Compatible refinement patterns\n";
     for(it=patlist.begin(); it!=patlist.end(); it++)
     {
-      (*it)->ShortPrint(arquivo); arquivo << (void*) (*it); arquivo << endl;
+      (*it)->ShortPrint(arquivo); arquivo << (void*) (it->operator->()); arquivo << endl;
     }
     arquivo << std::endl;
     arquivo << "Element Type :" << gel->Type() << std::endl;
@@ -568,9 +570,9 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
   return;
 }
 
-TPZRefPattern *GetBestRefPattern(TPZVec<int> &sides, std::list<TPZRefPattern *> &patlist)
+TPZAutoPointer<TPZRefPattern> GetBestRefPattern(TPZVec<int> &sides, std::list<TPZAutoPointer<TPZRefPattern> > &patlist)
 {
-  std::list<TPZRefPattern *>::iterator it;
+  std::list<TPZAutoPointer<TPZRefPattern> >::iterator it;
   for(it = patlist.begin(); it != patlist.end(); it++)
   {
     if(! (*it)) continue;
