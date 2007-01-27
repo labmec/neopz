@@ -19,6 +19,7 @@ Contains the methods definition for (abstract) base class TPZGeoEl.
 #include "pzquad.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
+#include "TPZRefPattern.h"
 //#include "pzgeoelside.h"
 //#include "pzshapetetra.h"
 //#include "pzshapecube.h"
@@ -1146,7 +1147,7 @@ void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<int> &indices) {
 }
 
 /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
-void TPZGeoEl::SetRefPattern(TPZRefPattern *){
+void TPZGeoEl::SetRefPattern(TPZAutoPointer<TPZRefPattern> ){
   PZError << "TPZGeoEl::SetRefPattern ERROR : Should not be called in TPZGeoEl" << endl;
 }
 
@@ -1178,3 +1179,9 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSaveable(cp){
   this->fNumInterfaces = 0;
 }
 
+  /// return the refinement pattern associated with the element  
+TPZAutoPointer<TPZRefPattern> TPZGeoEl::GetRefPattern()
+{
+  TPZAutoPointer<TPZRefPattern> result;
+  return result;
+}

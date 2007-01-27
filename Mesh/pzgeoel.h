@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.23 2006-10-17 01:37:27 phil Exp $
+//$Id: pzgeoel.h,v 1.24 2007-01-27 14:33:07 phil Exp $
 
 // -*- c++ -*-
 
@@ -364,7 +364,7 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
   }
   
   /**Sets the father element index*/
-  void SetFather(int fatherindex)
+  virtual void SetFather(int fatherindex)
   {
     fFatherIndex = fatherindex;
   }
@@ -502,13 +502,10 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
   static REAL Distance(TPZVec<REAL> &centel,TPZVec<REAL> &centface);
 
   /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
-  virtual void SetRefPattern(TPZRefPattern *);
+  virtual void SetRefPattern(TPZAutoPointer<TPZRefPattern> );
 
   /// return the refinement pattern associated with the element  
-  virtual TPZRefPattern *GetRefPattern()
-  {
-    return 0;
-  }
+  virtual TPZAutoPointer<TPZRefPattern> GetRefPattern();
 
     /*!
         \fn TPZGeoEl::Index()
