@@ -4,7 +4,7 @@
  * @file pzmanvector.h
  * @brief Free store vector implementation.
  */
-// $Id: pzmanvector.h,v 1.8 2006-03-09 12:02:15 phil Exp $
+// $Id: pzmanvector.h,v 1.9 2007-01-27 14:18:14 phil Exp $
 
 #ifndef PZMANVECTOR_H
 #define PZMANVECTOR_H
@@ -62,6 +62,8 @@ class TPZManVector : public TPZVec< T >
        */
       TPZManVector( const TPZManVector< T, NumExtAlloc >& copy );
 	 
+      TPZManVector(const TPZVec<T> & copy );
+
       /**
        * Assignment operator.
        *
@@ -239,6 +241,38 @@ inline TPZManVector< T, NumExtAlloc >::TPZManVector(
    {
       this->fStore[i] = copy.fStore[i];
    }
+}
+
+template< class T, int NumExtAlloc>
+inline TPZManVector< T, NumExtAlloc >::TPZManVector(
+        const TPZVec<T> & copy )
+{
+  const int size = copy.NElements();
+
+   /* If the size requested fits inside the size already provided
+  * statically, provides access to that space, by setting some
+  * TPZVec data.
+   */
+  if( size <= (int) (sizeof(fExtAlloc)/sizeof(T)))
+  {
+      // Needed to make TPZVec::operator[] work properly.
+    this->fStore     = fExtAlloc;
+    this->fNElements = size;
+      // No memory was allocated by the constructor.
+    fNAlloc    = 0;
+  }
+  else // The size requested is bigger than the size already provided.
+  {
+      // Executes the allocation that would be done by TPZVec<T>(size).
+    this->fStore     = new T[ size ];
+    this->fNElements = size;
+    fNAlloc    = size;
+  }
+
+  for( int i = 0; i < size; i++ )
+  {
+    this->fStore[i] = copy[i];
+  }
 }
 
 template< class T, int NumExtAlloc >
