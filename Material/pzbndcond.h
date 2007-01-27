@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.19 2007-01-03 00:08:27 phil Exp $
+//$Id: pzbndcond.h,v 1.20 2007-01-27 14:49:27 phil Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -170,20 +170,23 @@ public :
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                   TPZFMatrix &axesleft, TPZFMatrix &axesright,
 				   TPZFMatrix &ek,TPZFMatrix &ef);
 
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                   TPZFMatrix &axesleft, TPZFMatrix &axesright,
 				   TPZFMatrix &ef);
   
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                   TPZFMatrix &axesleft, TPZFMatrix &axesright,
 				   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
 
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &axesleft, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
     //NOTHING TO BE DONE HERE
   }
   

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3dreferred.h,v 1.3 2006-09-01 14:26:33 tiago Exp $
+//$Id: pzpoisson3dreferred.h,v 1.4 2007-01-27 14:49:27 phil Exp $
 
 #ifndef MATPOISSON3DREFERREDH
 #define MATPOISSON3DREFERREDH
@@ -42,7 +42,7 @@ public:
     this->falpha = copy.falpha;
   }
   
-  virtual TPZMaterial *NewMaterial(){
+  virtual TPZAutoPointer<TPZMaterial> NewMaterial(){
     return new TPZMatPoisson3dReferred(*this);
   }
   
@@ -67,20 +67,26 @@ public:
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-				   TPZFMatrix &ek,TPZFMatrix &ef);
+       TPZFMatrix &axesleft, TPZFMatrix &axesright,
+       TPZFMatrix &ek,TPZFMatrix &ef);
   
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-			    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+			    TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+       TPZFMatrix &axesleft,
+       TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 			    
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-				   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
+       TPZFMatrix &axesleft, TPZFMatrix &axesright,
+       TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
     std::cout << "Please, implement me - " << __PRETTY_FUNCTION__ << std::endl;        
   }
 				   
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-				     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
+				     TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+         TPZFMatrix &axesleft,
+         TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
     std::cout << "Please, implement me - " << __PRETTY_FUNCTION__ << std::endl;
   }    
              

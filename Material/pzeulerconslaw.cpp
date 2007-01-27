@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.39 2007-01-04 12:29:24 erick Exp $
+//$Id: pzeulerconslaw.cpp,v 1.40 2007-01-27 14:47:24 phil Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -579,7 +579,8 @@ void TPZEulerConsLaw2::ContributeInterface(
 		REAL weight, TPZVec<REAL> &normal,
 		TPZFMatrix &phiL,TPZFMatrix &phiR,
 		TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-		TPZFMatrix &ek,TPZFMatrix &ef)
+  TPZFMatrix &axesleft, TPZFMatrix &axesright,
+  TPZFMatrix &ek,TPZFMatrix &ef)
 {
 
    // contributing face-based quantities
@@ -639,6 +640,7 @@ void TPZEulerConsLaw2::ContributeInterface(
     TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
     TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
     TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+    TPZFMatrix &axesleft, TPZFMatrix &axesright,
     TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize)
 {
 #ifdef LOG4CXX
@@ -709,7 +711,8 @@ void TPZEulerConsLaw2::ContributeInterface(
 		REAL weight, TPZVec<REAL> &normal,
 		TPZFMatrix &phiL,TPZFMatrix &phiR,
 		TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-		TPZFMatrix &ef)
+  TPZFMatrix &axesleft, TPZFMatrix &axesright,
+  TPZFMatrix &ef)
 {
 
    // contributing face-based quantities
@@ -767,6 +770,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
                                              TPZVec<REAL> &solL, TPZFMatrix &dsolL,
                                              REAL weight, TPZVec<REAL> &normal,
                                              TPZFMatrix &phiL,TPZFMatrix &dphiL,
+                                             TPZFMatrix &axesleft,
                                              TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize)
 {
   int nstate = NStateVariables();
@@ -852,7 +856,8 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
 			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
 			REAL weight, TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &dphiL,
-			TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc)
+   TPZFMatrix &axesleft,
+   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc)
 {
    int nstate = NStateVariables();
    TPZVec<REAL> solR(nstate,0.);
@@ -936,7 +941,8 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZVec<REAL> &x,
 			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
 			REAL weight, TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &dphiL,
-			TPZFMatrix &ef,TPZBndCond &bc)
+   TPZFMatrix &axesleft,
+   TPZFMatrix &ef,TPZBndCond &bc)
 {
    int nstate = NStateVariables();
    TPZVec<REAL> solR(nstate,0.);

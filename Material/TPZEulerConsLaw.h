@@ -43,7 +43,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   TPZEulerConsLaw(TPZEulerConsLaw & copy);
 
   /**To create another material of the same type*/
-  virtual TPZMaterial *NewMaterial();
+  virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 
   ~TPZEulerConsLaw();
 

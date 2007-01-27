@@ -25,7 +25,7 @@ public :
   TPZElasticityMaterial(TPZElasticityMaterial &copy);
 
   /**Creates a new material from the current object   ??*/
-  virtual TPZMaterial *NewMaterial() { return new TPZElasticityMaterial(*this);}
+  virtual TPZAutoPointer<TPZMaterial> NewMaterial() { return new TPZElasticityMaterial(*this);}
 
   /**Destructor*/
   virtual ~TPZElasticityMaterial();

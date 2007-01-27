@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcyBC.h,v 1.3 2006-01-23 16:31:33 phil Exp $
+//$Id: pzcoupledtransportdarcyBC.h,v 1.4 2007-01-27 14:49:27 phil Exp $
 
 #ifndef MATCOUPLEDTRANSPDARCYBC
 #define MATCOUPLEDTRANSPDARCYBC
@@ -98,20 +98,25 @@ public :
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-				   TPZFMatrix &ek,TPZFMatrix &ef);
+       TPZFMatrix &axesleft, TPZFMatrix &axesright,
+       TPZFMatrix &ek,TPZFMatrix &ef);
 
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-				   TPZFMatrix &ef);
+       TPZFMatrix &axesleft, TPZFMatrix &axesright,
+       TPZFMatrix &ef);
   
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-				   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
+       TPZFMatrix &axesleft, TPZFMatrix &axesright,
+       TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
 
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+    TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+    TPZFMatrix &axesleft,
+    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
     //NOTHING TO BE DONE HERE
   }
 

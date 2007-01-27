@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.h,v 1.8 2006-03-16 01:43:56 tiago Exp $
+// $Id: pzdiscgal.h,v 1.9 2007-01-27 14:49:27 phil Exp $
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 
@@ -27,33 +27,63 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-				   TPZFMatrix &ek,TPZFMatrix &ef) = 0;
+       TPZFMatrix &axesleft, TPZFMatrix &axesright,
+       TPZFMatrix &ek,TPZFMatrix &ef) = 0;
 
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+       TPZFMatrix &axesleft, TPZFMatrix &axesright,
 				   TPZFMatrix &ef)
 				   {
 				      TPZFMatrix ek(ef.Rows(),ef.Rows(),0.);
 				      ContributeInterface(x, solL, solR, dsolL, dsolR,
 				                          weight, normal, phiL, phiR,
-							  dphiL, dphiR, ek, ef);
+							  dphiL, dphiR,axesleft,axesright, ek, ef);
 				   }
 
-  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
+virtual void ContributeInterface(TPZVec<REAL> &x,
+                                 TPZVec<REAL> &sol, TPZVec<REAL> &solL,TPZVec<REAL> &solR, 
+                                 TPZFMatrix &dsol, TPZFMatrix &dsolL, TPZFMatrix &dsolR,
+                                 REAL weight,TPZVec<REAL> &normal,
+                                 TPZFMatrix &phiL, TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                 TPZFMatrix &axes, TPZFMatrix &axesleft, TPZFMatrix &axesright,
+                                 TPZFMatrix &ek,TPZFMatrix &ef) 
+{
+  ContributeInterface(x,solL,solR,dsolL,dsolR,weight,normal,phiL,phiR,dphiL,dphiR,axesleft,axesright,ek,ef);
+}
+
+virtual void ContributeInterface(TPZVec<REAL> &x,
+                                 TPZVec<REAL> &sol, TPZVec<REAL> &solL,TPZVec<REAL> &solR, 
+                                 TPZFMatrix &dsol, TPZFMatrix &dsolL, TPZFMatrix &dsolR,
+                                 REAL weight,TPZVec<REAL> &normal,
+                                 TPZFMatrix &phiL, TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                 TPZFMatrix &axes, TPZFMatrix &axesleft, TPZFMatrix &axesright,
+                                 TPZFMatrix &ef) 
+{
+  TPZFMatrix ek(ef.Rows(),ef.Rows(),0.);
+  ContributeInterface(x,solL,solR,dsolL,dsolR,weight,normal,phiL,phiR,dphiL,dphiR,axesleft,axesright,ek,ef);
+}
+
+virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR, TPZFMatrix &axesleft,
+       TPZFMatrix &axesright,
 				   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
 
-   this->ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef);
+   this->ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft, axesright, ek, ef);
 
 }
   
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-			    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) = 0;
+			    TPZFMatrix &phiL,TPZFMatrix &dphiL,
+       TPZFMatrix &axesleft,
+       TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) = 0;
 
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-			    TPZFMatrix &phiL,TPZFMatrix &dphiL,TPZFMatrix &ef,TPZBndCond &bc)
+			    TPZFMatrix &phiL,TPZFMatrix &dphiL,
+       TPZFMatrix axesleft,
+       TPZFMatrix &ef,TPZBndCond &bc)
 			    {
                                 TPZFMatrix ek(ef.Rows(),ef.Rows(),0.);
 				ContributeBCInterface(x, solL,  dsolL, weight, normal,
@@ -61,7 +91,9 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 			    }
 
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-				     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
+				     TPZFMatrix &phiL,TPZFMatrix &dphiL,
+         TPZFMatrix &axesleft,
+         TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
 
      this->ContributeBCInterface(x, solL, dsolL, weight, normal, phiL, dphiL, ek, ef, bc);
 

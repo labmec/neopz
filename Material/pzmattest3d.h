@@ -47,7 +47,7 @@ virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
   
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
   
-  virtual TPZMaterial *NewMaterial();
+  virtual TPZAutoPointer<TPZMaterial> NewMaterial();
   
   //virtual void Clone(TPZAdmChunkVector<TPZMaterial *> &matvec);
   

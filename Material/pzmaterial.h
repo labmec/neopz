@@ -178,7 +178,7 @@ class  TPZMaterial : public TPZSaveable
       virtual int NEvalErrors() {return 3;}
 
       /**To create another material of the same type*/
-      virtual TPZMaterial *NewMaterial();
+      virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 
       /**Read data of the material from a istream (file data)*/
       virtual void SetData(std::istream &data);

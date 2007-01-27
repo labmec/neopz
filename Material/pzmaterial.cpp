@@ -72,7 +72,7 @@ void TPZMaterial::SetData(std::istream &data) {
    data >> fId;
 }
 
-TPZMaterial *TPZMaterial::NewMaterial() {
+TPZAutoPointer<TPZMaterial> TPZMaterial::NewMaterial() {
    PZError << "TPZMaterial::NewMaterial is called.\n";
    return 0;
 }
@@ -86,7 +86,7 @@ void TPZMaterial::Clone(std::map<int, TPZAutoPointer<TPZMaterial> >&matvec) {
    std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
    matit = matvec.find(matid);
    if(matit != matvec.end()) return;
-   TPZAutoPointer<TPZMaterial> newmat = TPZAutoPointer<TPZMaterial>(NewMaterial());
+   TPZAutoPointer<TPZMaterial> newmat = NewMaterial();
    newmat->SetForcingFunction(TPZMaterial::fForcingFunction);
    matvec[matid] = newmat;
 }

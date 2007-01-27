@@ -83,7 +83,7 @@ void TPZLinearConvection::SetData(istream &data) {
   PZError << "TPZMaterial::SetData is called.\n";
   data >> fConvect[0] >> fConvect[1];
 }
-TPZMaterial *TPZLinearConvection::NewMaterial() {
+TPZAutoPointer<TPZMaterial> TPZLinearConvection::NewMaterial() {
   TPZLinearConvection *result = new TPZLinearConvection(*this);
 
   return result;

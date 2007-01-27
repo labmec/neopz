@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzburger.cpp,v 1.3 2006-12-06 19:21:03 tiago Exp $
+//$Id: pzburger.cpp,v 1.4 2007-01-27 14:49:27 phil Exp $
 
 #include "pzburger.h"
 #include "pzbndcond.h"
@@ -25,7 +25,8 @@ TPZBurger::~TPZBurger(){
 }
 
 void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-                          TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef){
+                          TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,
+                          TPZFMatrix &ek,TPZFMatrix &ef){
   if (this->IsReferred()){
     this->SetConvectionTerm(dsol, axes);
   }
@@ -266,6 +267,7 @@ void TPZBurger::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
 void TPZBurger::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
                                           TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                           TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                          TPZFMatrix &axesleft, TPZFMatrix &axesright,
                                           TPZFMatrix &ek,TPZFMatrix &ef){
 
   if (this->IsReferred()){
@@ -411,7 +413,9 @@ void TPZBurger::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<RE
 }
 
 void TPZBurger::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-              TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+              TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+              TPZFMatrix &axesleft,
+              TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
   if (this->IsReferred()){
     this->SetConvectionTermInterface(dsolL, dsolL);

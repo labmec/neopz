@@ -25,7 +25,7 @@ class TPZConservationLaw  : public TPZMaterial {
   TPZConservationLaw(TPZConservationLaw &copy);
 
   /**To create another material of the same type*/
-  TPZMaterial *NewMaterial();
+  TPZAutoPointer<TPZMaterial> NewMaterial();
 
   ~TPZConservationLaw(){};
 

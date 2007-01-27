@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pznonlinearpoisson3d.cpp,v 1.4 2006-10-16 19:48:01 phil Exp $
+//$Id: pznonlinearpoisson3d.cpp,v 1.5 2007-01-27 14:49:27 phil Exp $
 
 #include "pznonlinearpoisson3d.h"
 #include "pzbndcond.h"
@@ -170,6 +170,7 @@ void TPZNonLinearPoisson3d::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL 
 void TPZNonLinearPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
                                           TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                           TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                          TPZFMatrix &axesleft, TPZFMatrix &axesright,
                                           TPZFMatrix &ek,TPZFMatrix &ef){
 
   if (this->IsReferred()){
@@ -315,7 +316,9 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &so
 }
 
 void TPZNonLinearPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-              TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+              TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+              TPZFMatrix &axesleft, 
+              TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
   if (this->IsReferred()){
     this->SetConvectionTermInterface(dsolL, dsolL);
   }

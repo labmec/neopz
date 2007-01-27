@@ -206,7 +206,7 @@ void TPZMaterialTest3D::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
   }
 */
 
-TPZMaterial * TPZMaterialTest3D::NewMaterial(){
+TPZAutoPointer<TPZMaterial>  TPZMaterialTest3D::NewMaterial(){
   int matid = Id();
   TPZMaterialTest3D *mat = new TPZMaterialTest3D(matid);
   mat->fXf = fXf;

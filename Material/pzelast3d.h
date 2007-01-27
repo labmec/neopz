@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzelast3d.h,v 1.6 2006-08-24 13:40:53 tiago Exp $
+//$Id: pzelast3d.h,v 1.7 2007-01-27 14:49:27 phil Exp $
 
 #ifndef PZELAST3D
 #define PZELAST3D
@@ -156,7 +156,7 @@ void PrincipalDirection(TPZFMatrix &DSol, TPZVec< REAL > &Solout, int direction)
   virtual void Read(TPZStream &buf, void *context);
   virtual int ClassId() const;
   /**Creates a new material from the current object   ??*/
-  virtual TPZMaterial *NewMaterial() { return new TPZElasticity3D(*this);}
+  virtual TPZAutoPointer<TPZMaterial> NewMaterial() { return new TPZElasticity3D(*this);}
 
   static REAL gTolerance;
 

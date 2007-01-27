@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientmat.h,v 1.3 2006-10-17 01:45:14 phil Exp $
+//$Id: pztransientmat.h,v 1.4 2007-01-27 14:49:27 phil Exp $
 
 
 #ifndef TRANSIENTMATH
@@ -41,10 +41,13 @@ class TPZTransientMaterial : public TBASEMAT {
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
                                    TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                    TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                   TPZFMatrix &axesleft, TPZFMatrix &axesright,
                                    TPZFMatrix &ek,TPZFMatrix &ef);
 
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-                                     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+                                     TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+                                     TPZFMatrix &axesleft,
+                                     TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
  /**
   * Set material to compute only Integral[- un/deltaT * v, Omega]

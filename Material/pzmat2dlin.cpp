@@ -196,7 +196,7 @@ void TPZMat2dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,TPZFMatrix &dudx,TP
   values[2] = 0.;
 }
 
-TPZMaterial *TPZMat2dLin::NewMaterial() {
+TPZAutoPointer<TPZMaterial> TPZMat2dLin::NewMaterial() {
   return new TPZMat2dLin(*this);
 }
 

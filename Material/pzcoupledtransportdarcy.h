@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcy.h,v 1.4 2006-01-23 16:32:31 phil Exp $
+//$Id: pzcoupledtransportdarcy.h,v 1.5 2007-01-27 14:49:27 phil Exp $
 
 #ifndef MATCOUPLEDTRANSPDARCY
 #define MATCOUPLEDTRANSPDARCY
@@ -35,6 +35,7 @@ class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {
   /** 
    * Two instances of TPZMatPoisson3d 
    */  
+  TPZAutoPointer<TPZMaterial> fMaterialRefs[2];
   TPZMatPoisson3d * fMaterials[2];
   
   static int gCurrentEq;
@@ -73,7 +74,7 @@ public:
     }
   }
   
-  TPZMatPoisson3d * GetMaterial(int eq){
+  TPZMatPoisson3d *GetMaterial(int eq){
 #ifdef DEBUG
   if (!this->fMaterials[0] || !this->fMaterials[1]){
       PZError << "Error! - " << __PRETTY_FUNCTION__ << std::endl;
@@ -93,11 +94,13 @@ public:
 
   TPZCoupledTransportDarcy(TPZCoupledTransportDarcy &copy) : TPZDiscontinuousGalerkin(copy), 
     fAlpha(copy.fAlpha){
-    this->fMaterials[0] = dynamic_cast<TPZMatPoisson3d*> (copy.fMaterials[0]->NewMaterial());
-    this->fMaterials[1] = dynamic_cast<TPZMatPoisson3d*> (copy.fMaterials[1]->NewMaterial());
+    this->fMaterialRefs[0] = copy.fMaterialRefs[0];
+    this->fMaterialRefs[1] = copy.fMaterialRefs[1];
+    fMaterials[0] = copy.fMaterials[0];
+    fMaterials[1] = copy.fMaterials[1];
   }
   
-  virtual TPZMaterial *NewMaterial(){
+  virtual TPZAutoPointer<TPZMaterial> NewMaterial(){
     return new TPZCoupledTransportDarcy(*this);
   }
     
@@ -137,18 +140,24 @@ public:
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-				   TPZFMatrix &ek,TPZFMatrix &ef);
+       TPZFMatrix &axesleft, TPZFMatrix &axesright,
+       TPZFMatrix &ek,TPZFMatrix &ef);
   
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-			    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+			    TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+       TPZFMatrix &axesleft,
+       TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 			    
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-				   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
+       TPZFMatrix &axesleft, TPZFMatrix &axesright,
+       TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
 				   
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-				     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize);
+				     TPZFMatrix &phiL,TPZFMatrix &dphiL,
+         TPZFMatrix &axesleft,
+         TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize);
 
   void InterfaceErrors(TPZVec<REAL> &/*x*/,
 		       TPZVec<REAL> &leftu, TPZFMatrix &leftdudx, /* TPZFMatrix &leftaxes,*/ 

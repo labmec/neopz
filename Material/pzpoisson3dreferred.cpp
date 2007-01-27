@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3dreferred.cpp,v 1.3 2006-09-01 14:26:33 tiago Exp $
+//$Id: pzpoisson3dreferred.cpp,v 1.4 2007-01-27 14:49:27 phil Exp $
 
 #include "pzpoisson3dreferred.h"
 
@@ -71,13 +71,17 @@ void TPZMatPoisson3dReferred::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REA
 void TPZMatPoisson3dReferred::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
                                                   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                                   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                                  TPZFMatrix &axesleft, TPZFMatrix &axesright,
                                                   TPZFMatrix &ek,TPZFMatrix &ef){
   this->SetConvectionTerm(dsolL, dsolR);
-  TPZMatPoisson3d::ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef);
+  TPZMatPoisson3d::ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft,
+                                       axesright, ek, ef);
 }
   
 void TPZMatPoisson3dReferred::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-                                                    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+                                                    TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+                                                    TPZFMatrix &axesleft,
+                                                    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
   this->SetConvectionTerm(dsolL, dsolL);
-  TPZMatPoisson3d::ContributeBCInterface(x, solL, dsolL, weight, normal, phiL, dphiL, ek, ef, bc);
+  TPZMatPoisson3d::ContributeBCInterface(x, solL, dsolL, weight, normal, phiL, dphiL, axesleft, ek, ef, bc);
 }

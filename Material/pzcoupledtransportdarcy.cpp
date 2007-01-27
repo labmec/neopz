@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcy.cpp,v 1.4 2006-01-23 16:32:14 phil Exp $
+//$Id: pzcoupledtransportdarcy.cpp,v 1.5 2007-01-27 14:49:27 phil Exp $
 
 #include "pzcoupledtransportdarcy.h"
 #include "pzcoupledtransportdarcyBC.h"
@@ -25,7 +25,9 @@ int TPZCoupledTransportDarcy::CurrentEquation(){ return TPZCoupledTransportDarcy
 TPZCoupledTransportDarcy::TPZCoupledTransportDarcy(int nummat, int nummat0, int nummat1, int dim) : 
   TPZDiscontinuousGalerkin(nummat), fAlpha(1.) {
   this->fMaterials[0] = new TPZMatPoisson3d(nummat0, dim);
+  fMaterialRefs[0] = fMaterials[0];
   this->fMaterials[1] = new TPZMatPoisson3d(nummat1, dim);
+  fMaterialRefs[1] = fMaterials[1];
 }
 
 void TPZCoupledTransportDarcy::SetAlpha(REAL alpha){
@@ -33,14 +35,6 @@ void TPZCoupledTransportDarcy::SetAlpha(REAL alpha){
 }
 
 TPZCoupledTransportDarcy::~TPZCoupledTransportDarcy() {
-  if (this->fMaterials[0]){
-    delete this->fMaterials[0];
-    this->fMaterials[0] = NULL;
-  }
-  if (this->fMaterials[1]){
-    delete this->fMaterials[1];
-    this->fMaterials[1] = NULL;
-  }
 }
 
 int TPZCoupledTransportDarcy::NStateVariables() {
@@ -97,30 +91,36 @@ void TPZCoupledTransportDarcy::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 void TPZCoupledTransportDarcy::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
                                           TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                           TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                          TPZFMatrix &axesleft, TPZFMatrix &axesright,
                                           TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
   this->UpdateConvectionDirInterface(dsolL, dsolR);
-  this->GetCurrentMaterial()->ContributeInterface( x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef, LeftPOrder, RightPOrder, faceSize);
+  this->GetCurrentMaterial()->ContributeInterface( x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft, axesright, ek, ef, LeftPOrder, RightPOrder, faceSize);
 }
 
 /** Termos de penalidade. */
 void TPZCoupledTransportDarcy::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-                                            TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
+                                            TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+                                            TPZFMatrix &axesleft,
+                                            TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
   this->UpdateConvectionDir(dsolL);                                            
-  this->GetCurrentMaterial()->ContributeBCInterface( x, solL, dsolL, weight, normal, phiL, dphiL, ek, ef, bc, POrder, faceSize);
+  this->GetCurrentMaterial()->ContributeBCInterface( x, solL, dsolL, weight, normal, phiL, dphiL, axesleft, ek, ef, bc, POrder, faceSize);
 }
 
 void TPZCoupledTransportDarcy::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
                                           TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                           TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                          TPZFMatrix &axesleft, TPZFMatrix &axesright,
                                           TPZFMatrix &ek,TPZFMatrix &ef){
   this->UpdateConvectionDirInterface(dsolL, dsolR);  
-  this->GetCurrentMaterial()->ContributeInterface( x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef);
+  this->GetCurrentMaterial()->ContributeInterface( x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft, axesright, ek, ef);
 }
 
 void TPZCoupledTransportDarcy::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-					    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+					    TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+         TPZFMatrix &axesleft,
+         TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
   this->UpdateConvectionDir(dsolL);                                          
-  this->GetCurrentMaterial()->ContributeBCInterface( x, solL, dsolL, weight, normal, phiL, dphiL, ek, ef, bc);
+  this->GetCurrentMaterial()->ContributeBCInterface( x, solL, dsolL, weight, normal, phiL, dphiL, axesleft, ek, ef, bc);
 }
 
 TPZCoupledTransportDarcyBC * TPZCoupledTransportDarcy::CreateBC(int id){

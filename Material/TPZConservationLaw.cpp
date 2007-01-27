@@ -30,7 +30,7 @@ TPZConservationLaw::TPZConservationLaw(TPZConservationLaw &copy) : TPZMaterial(c
   fDelta = copy.fDelta;
 }
 
-TPZMaterial *TPZConservationLaw::NewMaterial() {
+TPZAutoPointer<TPZMaterial> TPZConservationLaw::NewMaterial() {
    PZError << "TPZConservationLaw::::NewMaterial is called.\n";
    return 0;
 }

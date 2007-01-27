@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.20 2006-10-16 19:53:25 phil Exp $
+//$Id: pzconslaw.h,v 1.21 2007-01-27 14:49:27 phil Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -193,7 +193,8 @@ public:
 			REAL weight,TPZVec<REAL> &normal,
 			TPZFMatrix &phiL,TPZFMatrix &phiR,
 			TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-			TPZFMatrix &ek,TPZFMatrix &ef)=0;
+   TPZFMatrix &axesleft, TPZFMatrix &axesright,
+   TPZFMatrix &ek,TPZFMatrix &ef)=0;
   /**
    * Contributes to the residual vector the boundary conditions
    *

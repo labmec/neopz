@@ -80,7 +80,7 @@ class TPZMat2dLin : public TPZMaterial{
   /**
    * Create a copy of the material object
    */
-  virtual TPZMaterial *NewMaterial();
+  virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 
 TPZBndCond *OutflowFlux(TPZAutoPointer<TPZMaterial> &reference, int bc);
 

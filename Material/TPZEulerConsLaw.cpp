@@ -29,7 +29,7 @@ TPZEulerConsLaw::TPZEulerConsLaw(TPZEulerConsLaw & copy) : TPZConservationLaw(co
   fGamma = copy.fGamma;
 }
 
-TPZMaterial *TPZEulerConsLaw::NewMaterial(){
+TPZAutoPointer<TPZMaterial> TPZEulerConsLaw::NewMaterial(){
   TPZEulerConsLaw *result = new TPZEulerConsLaw(*this);
   return result;
 }

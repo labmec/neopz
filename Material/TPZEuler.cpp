@@ -10,7 +10,7 @@ void TPZEuler::SetData(istream &data) {
   TPZMaterial::SetData(data);
   data >> fDeltaT;
 }
-TPZMaterial *TPZEuler::NewMaterial() {
+TPZAutoPointer<TPZMaterial> TPZEuler::NewMaterial() {
   TPZEuler *result = new TPZEuler(*this);
 
   return result;

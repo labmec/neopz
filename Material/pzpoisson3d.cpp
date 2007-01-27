@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.23 2006-09-01 14:28:19 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.24 2007-01-27 14:49:27 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -392,9 +392,10 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
                                           TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                           TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                          TPZFMatrix &axesleft, TPZFMatrix &axesright,
                                           TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
 
-  this->ContributeInterface( x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef );
+  this->ContributeInterface( x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft, axesright, ek, ef );
   
   REAL leftK, rightK;
   leftK  = this->fK;
@@ -438,9 +439,11 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
 
 /** Termos de penalidade. */
 void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-                                            TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
+                                            TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+                                            TPZFMatrix &axesleft,
+                                            TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
   
-  this->ContributeBCInterface( x, solL, dsolL, weight, normal, phiL, dphiL, ek, ef, bc);
+  this->ContributeBCInterface( x, solL, dsolL, weight, normal, phiL, dphiL, axesleft, ek, ef, bc);
 
   int il,jl,nrowl;
   nrowl = phiL.Rows(); 
@@ -481,6 +484,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
 void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
                                           TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                           TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
+                                          TPZFMatrix &axesleft, TPZFMatrix &axesright,
                                           TPZFMatrix &ek,TPZFMatrix &ef){
 
   int nrowl = phiL.Rows();
@@ -594,7 +598,9 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
 }
 
 void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-					    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+                                            TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+                                            TPZFMatrix &axesleft,
+                                            TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
   //  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
   int il,jl,nrowl,id;

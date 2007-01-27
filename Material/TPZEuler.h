@@ -58,7 +58,7 @@ public:
     virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux) {}
 
     /**To create another material of the same type*/
-    virtual TPZMaterial *NewMaterial();
+    virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 
     /**Read data of the material from a istream (file data)*/
     virtual void SetData(std::istream &data);

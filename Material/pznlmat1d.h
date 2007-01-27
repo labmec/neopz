@@ -1,4 +1,4 @@
-//$Id: pznlmat1d.h,v 1.1 2006-05-30 17:44:43 tiago Exp $
+//$Id: pznlmat1d.h,v 1.2 2007-01-27 14:49:27 phil Exp $
 // -*- c++ -*-
 
 #ifndef TPZNLMAT1D_H
@@ -89,7 +89,7 @@ public:
   /**
     * To create another material of the same type
     */
-  virtual TPZMaterial *NewMaterial();
+  virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 
   /**
     * Read data of the material from a istream (file data)
