@@ -299,8 +299,13 @@ public:
    */
 inline TPZFNMatrix(int row, int col) : TPZFMatrix(row,col,fBuf,N) {}
 
-inline TPZFNMatrix() : TPZFMatrix()
+inline TPZFNMatrix() : TPZFMatrix(0,0,fBuf,N)
 {
+}
+
+inline TPZFNMatrix(const TPZFMatrix &copy) : TPZFMatrix(0,0,fBuf,N)
+{
+  *this = copy;
 }
 
   /*
