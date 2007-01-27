@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.28 2007-01-03 00:06:47 phil Exp $
+// $Id: pzcompel.h,v 1.29 2007-01-27 14:34:15 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -424,18 +424,55 @@ public:
   * @param qsi master element coordinate
   * @param sol finite element solution
   * @param dsol solution derivatives
+  * @param axes axes associated with the derivative of the solution
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
   
  /**
+   * Computes solution and its derivatives in the local coordinate qsi.
+   * @param qsi master element coordinate of the interface element
+   * @param leftsol finite element solution
+   * @param dleftsol solution derivatives
+   * @param leftaxes axes associated with the left solution
+   * @param rightsol finite element solution
+   * @param drightsol solution derivatives
+   * @param rightaxes axes associated with the right solution
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+ /**
+   * Computes solution and its derivatives in the local coordinate qsi.
+   * This method will function for both volumetric and interface elements
+   * @param qsi master element coordinate of the interface element
+   * @param sol finite element solution
+   * @param dsol solution derivatives
+   * @param axes axes associated with the derivative of the solution
+   * @param leftsol finite element solution
+   * @param dleftsol solution derivatives
+   * @param leftaxes axes associated with the left solution
+   * @param rightsol finite element solution
+   * @param drightsol solution derivatives
+   * @param rightaxes axes associated with the right solution
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+ 
+  
+  /**
   * Computes solution and its derivatives in local coordinate qsi
   * @param qsi master element coordinate
   * @param phi matrix containing shape functions compute in qsi point
-  * @param dphix matrix containing the derivatives of shape functions with respect of global coordinates: D[phi,x], D[phi,y], D[phi,z]
+  * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
+  * @param [in] axes indicating the direction of the derivatives
   * @param sol finite element solution
   * @param dsol solution derivatives
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
+                               TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
   /**
    * Builds the list of all connectivities related to the element including the
@@ -729,8 +766,47 @@ inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZ
   PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
 }
 
-inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZFMatrix &axes,  TPZVec<REAL> &sol, TPZFMatrix &dsol){
   PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
 }
+
+ /**
+ * Computes solution and its derivatives in the local coordinate qsi.
+ * @param qsi master element coordinate of the interface element
+ * @param leftsol finite element solution
+ * @param dleftsol solution derivatives
+ * @param leftaxes axes associated with the left solution
+ * @param rightsol finite element solution
+ * @param drightsol solution derivatives
+ * @param rightaxes axes associated with the right solution
+  */
+inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, 
+                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
+{
+  PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
+}
+ /**
+   * Computes solution and its derivatives in the local coordinate qsi.
+   * This method will function for both volumetric and interface elements
+   * @param qsi master element coordinate of the interface element
+   * @param sol finite element solution
+   * @param dsol solution derivatives
+   * @param axes axes associated with the derivative of the solution
+   * @param leftsol finite element solution
+   * @param dleftsol solution derivatives
+   * @param leftaxes axes associated with the left solution
+   * @param rightsol finite element solution
+   * @param drightsol solution derivatives
+   * @param rightaxes axes associated with the right solution
+  */
+inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, 
+                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
+{
+  PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
+}
+
 
 #endif

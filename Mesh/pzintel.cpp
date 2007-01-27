@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.47 2007-01-03 00:06:47 phil Exp $
+// $Id: pzintel.cpp,v 1.48 2007-01-27 14:30:05 phil Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1557,6 +1557,8 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
   if(!material){
     std::cout << "Exiting CalcStiff: no material for this element\n";
     LOGPZ_ERROR(logger,"Exiting CalcStiff: no material for this element");
+    ek.Reset();
+    ef.Reset();
     return;
   }
   int numdof = material->NStateVariables();
@@ -1597,7 +1599,7 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
   TPZFNMatrix<90> dsol(dim,numdof);
 
   TPZIntPoints &intrule = GetIntegrationRule();
-  if(this->Material()->HasForcingFunction()) {
+  if(material->HasForcingFunction()) {
     TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
     intrule.SetOrder(order);
   }
@@ -1639,14 +1641,14 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
 
     } //switch
 
-    if (this->Material()->NeedsSolutionToContribute()){
-      this->ComputeSolution(intpoint, phi, dphix, sol, dsol);
+    if (material->NeedsSolutionToContribute()){
+      this->ComputeSolution(intpoint, phi, dphix, axes, sol, dsol);
     }
-    if (this->Material()->NeedsXCoord()){
+    if (material->NeedsXCoord()){
       ref->X(intpoint, x);
     }
     
-    this->Material()->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ek.fMat,ef.fMat);
+    material->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ek.fMat,ef.fMat);
   
   }//loop over integratin points
 }
@@ -1659,6 +1661,8 @@ void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix 
     sout << "Exiting ProjectFlux: no material for this element\n";
     Print(sout);
     LOGPZ_ERROR(logger,sout.str());
+    ek.Reset();
+    ef.Reset();
     return;
   }
 
@@ -1962,7 +1966,7 @@ void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &so
     LOGPZ_WARN(logger,sout.str());
   }
 
-  this->ComputeSolution(qsi, phi, dphix, u, du);
+  this->ComputeSolution(qsi, phi, dphix, axes, u, du);
   material->Solution(u,du,axes,var,sol);
 }
 
@@ -2116,7 +2120,7 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
       LOGPZ_WARN(logger,sout.str());
     }
 
-    this->ComputeSolution(intpoint, phi, dphix, u, dudx);
+    this->ComputeSolution(intpoint, phi, dphix, axes, u, dudx);
 
     //contribucao dos erros
     if(fp) {
@@ -2138,7 +2142,8 @@ void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
   if(!material)
   {
     cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
-    LOGPZ_ERROR(logger,"InterpolateSolution no material");
+    LOGPZ_ERROR(logger,"CalcResidual no material");
+    ef.Reset();
     return;
   }
   int numdof = material->NStateVariables();
@@ -2215,7 +2220,7 @@ void TPZInterpolatedElement::CalcResidual(TPZElementMatrix &ef) {
       LOGPZ_WARN(logger,sout.str());
     }
 
-    this->ComputeSolution(intpoint, phi, dphix, sol, dsol);
+    this->ComputeSolution(intpoint, phi, dphix, axes, sol, dsol);
     material->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ef.fMat);
   }
 }
@@ -2318,7 +2323,7 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
       LOGPZ_WARN(logger,sout.str());
     }
     
-    this->ComputeSolution(intpoint, phi, dphix, sol, dsol);
+    this->ComputeSolution(intpoint, phi, dphix, axes, sol, dsol);
     
     // Expand the values of the shape functions and their derivatives
     ExpandShapeFunctions(connectlist,dependencyorder,blocksizes,phi,dphix);
@@ -2418,6 +2423,7 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
   {
     cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
     LOGPZ_ERROR(logger,"CalcIntegral no material");
+    ef.Reset();
     return;
   }
 
@@ -2520,6 +2526,7 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
   {
     cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
     LOGPZ_ERROR(logger,"CalcEnergy no material");
+    ef.Reset();
     return;
   }
   
@@ -2742,11 +2749,12 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &so
     LOGPZ_ERROR(logger,sout.str());
   }
   
-  this->ComputeSolution(qsi, phi, dphix, sol, dsol);
+  this->ComputeSolution(qsi, phi, dphix, axes, sol, dsol);
     
 }//method
 
-void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
+                                              TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
     const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();

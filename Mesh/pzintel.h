@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.22 2007-01-03 00:06:47 phil Exp $
+//$Id: pzintel.h,v 1.23 2007-01-27 14:30:05 phil Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -348,7 +348,45 @@ public:
   * @param sol finite element solution
   * @param dsol solution derivatives
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, 
+                               TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+
+ /**
+   * Computes solution and its derivatives in the local coordinate qsi.
+   * @param qsi master element coordinate of the interface element
+   * @param leftsol finite element solution
+   * @param dleftsol solution derivatives
+   * @param leftaxes axes associated with the left solution
+   * @param rightsol finite element solution
+   * @param drightsol solution derivatives
+   * @param rightaxes axes associated with the right solution
+  */
+virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+                              TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
+{
+  ComputeSolution(qsi,sol,dsol,axes);
+}
+ /**
+   * Computes solution and its derivatives in the local coordinate qsi.
+   * This method will function for both volumetric and interface elements
+   * @param qsi master element coordinate of the interface element
+   * @param sol finite element solution
+   * @param dsol solution derivatives
+   * @param axes axes associated with the derivative of the solution
+   * @param leftsol finite element solution
+   * @param dleftsol solution derivatives
+   * @param leftaxes axes associated with the left solution
+   * @param rightsol finite element solution
+   * @param drightsol solution derivatives
+   * @param rightaxes axes associated with the right solution
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
+{
+}
 
   /**
    * Compare the L2 norm of the difference between the ¨var¨ solution of the current element with 
