@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.30 2007-01-03 00:15:14 phil Exp $
+//$Id: pzanalysis.cpp,v 1.31 2007-01-27 14:41:34 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -49,31 +49,29 @@ void TPZAnalysis::SetStructuralMatrix(TPZStructMatrix &strmatrix){
     if(fStructMatrix) delete fStructMatrix;
     fStructMatrix = strmatrix.Clone();
 }
-TPZAnalysis::TPZAnalysis() : fRhs(), fSolution(), fTable() {
-	fCompMesh = 0;
-	fGeoMesh = 0;
-	fStructMatrix = 0;
+TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fTable() {
    fGraphMesh[0] = 0;
    fGraphMesh[1] = 0;
    fGraphMesh[2] = 0;
-   fSolver = 0;
 }
 
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh,std::ostream &out) :
-    fRhs(), fSolution(), fTable()
+    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fTable()
 {
-	this->SetCompMesh(mesh);
+  fGraphMesh[0] = 0;
+  fGraphMesh[1] = 0;
+  fGraphMesh[2] = 0;
+  this->SetCompMesh(mesh);
 }
 
 void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh) {
 	fCompMesh = mesh;
    fGeoMesh = mesh->Reference();
-   fStructMatrix = 0;
    fGraphMesh[0] = 0;
    fGraphMesh[1] = 0;
    fGraphMesh[2] = 0;
-   fSolver = 0;
+   if(fSolver) fSolver->ResetMatrix();
    SetBlockNumber();
    fStep = 0;
    fTime = 0.;
