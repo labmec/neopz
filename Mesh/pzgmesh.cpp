@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.31 2007-02-02 18:50:40 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.32 2007-02-02 19:11:17 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -1018,7 +1018,7 @@ int TPZGeoMesh::ImportRefPattern(){
       if (psBuffer[strlen(psBuffer)-1] == '\n') psBuffer[strlen(psBuffer)-1] = 0;
       std::cout << "Reading refinement patern file : " << psBuffer << std::endl;
       std::string filref (psBuffer);
-      TPZRefPattern *refpat = new TPZRefPattern( filref );
+      TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern( this,filref );
       this->InsertRefPattern(refpat);
       count++;
     }
