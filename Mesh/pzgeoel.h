@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.24 2007-01-27 14:33:07 phil Exp $
+//$Id: pzgeoel.h,v 1.25 2007-02-02 18:42:48 cesar Exp $
 
 // -*- c++ -*-
 
@@ -266,7 +266,9 @@ virtual MElementType Type(int side) =0;
     return (fFatherIndex == -1) ? 0 : Mesh()->ElementVec()[fFatherIndex]; 
   }
 
-  int FatherIndex() { return fFatherIndex; } 
+  int FatherIndex() { return fFatherIndex; }
+
+  
 
   //@}
 
@@ -371,6 +373,10 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
 
   /**returns a pointer to the subelement is*/
   virtual TPZGeoEl *SubElement(int is) = 0;
+
+  /** reset all subelements to NULL*/
+  virtual void ResetSubElements()=0;
+
 
   /**return a pointer and a side of the subelement of the element at the side
      and the indicated position. position = 0 indicate first subelement, ...*/

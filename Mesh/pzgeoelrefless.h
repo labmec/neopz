@@ -234,6 +234,8 @@ public:
 
   virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
 
+  virtual void ResetSubElements()=0;
+
 };
 
 template<class TShape, class TGeo>
