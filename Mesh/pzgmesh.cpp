@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.29 2007-01-27 14:32:36 phil Exp $
+//$Id: pzgmesh.cpp,v 1.30 2007-02-02 17:44:41 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -44,6 +44,7 @@ TPZGeoMesh::TPZGeoMesh() : fElementVec(0), fNodeVec(0){
   fReference = 0;
   fNodeMaxId = -1;
   fElementMaxId = -1;
+  InitializeRefPatterns();
 }
 
 TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp):
@@ -65,12 +66,12 @@ TPZGeoMesh & TPZGeoMesh::operator= (const TPZGeoMesh &cp ){
   for(i = 0; i < n; i++){
     this->fElementVec[i] = cp.fElementVec[i]->Clone(*this);
   }
-  
+
   this->fNodeMaxId = cp.fNodeMaxId;
   this->fElementMaxId = cp.fElementMaxId;
   this->fInterfaceMaterials = cp.fInterfaceMaterials;
   this->fRefPatterns = cp.fRefPatterns;
-//  this->fCosysVec = cp.fCosysVec;  
+//  this->fCosysVec = cp.fCosysVec;
   this->fReference = NULL;
   return *this;
 }
@@ -109,7 +110,7 @@ void TPZGeoMesh::SetName (char *nm) {
 
 
 // void TPZGeoMesh::PatternSidesFile(std::ofstream &filename){
-// 
+//
 //   int count=0;
 //   filename << std::endl;
 //   filename << std::endl;
@@ -150,7 +151,7 @@ void TPZGeoMesh::SetName (char *nm) {
 //   filename.seekp (0);
 //   filename << count ;
 //   /*filename << std::endl;*/
-// 
+//
 // }
 
 void TPZGeoMesh::PatternSidesFile(std::ofstream &filename){
@@ -159,7 +160,7 @@ void TPZGeoMesh::PatternSidesFile(std::ofstream &filename){
   filename << std::endl;
   filename << std::endl;
   std::map< MElementType, std::map<int, TPZAutoPointer<TPZRefPattern> > >::iterator first = fRefPatterns.begin(),
-                                                                     last = fRefPatterns.end(), 
+                                                                     last = fRefPatterns.end(),
                                                                      iter;
   for (iter = first; iter != last; iter++){
     std::map<int, TPZAutoPointer<TPZRefPattern> > &map_el = (*iter).second;
@@ -178,7 +179,7 @@ void TPZGeoMesh::PatternSidesFile(std::ofstream &filename){
   /*filename << std::endl;*/
 
 }
-  
+
 void TPZGeoMesh::PatternFileLoad(std::ifstream &file){
   int i,k;
   file >> k ;
@@ -263,7 +264,7 @@ void TPZGeoMesh::Print (ostream & out) {
     m = w->second;
     out << l << " / " << r << " -> " << m << "\n";
   }
-  
+
   out << "\nPrinting refinement patterns:\n";
   std::map<MElementType,std::map< int, TPZAutoPointer<TPZRefPattern> > >::const_iterator itg, eg;
   eg = this->fRefPatterns.end();
@@ -279,7 +280,7 @@ void TPZGeoMesh::Print (ostream & out) {
     }//for it
     out << "\n\n";
   }//for itg
-  
+
 }
 
 void TPZGeoMesh::GetNodePtr(TPZVec<int> &nos,TPZVec<TPZGeoNode *> &nodep) {
@@ -504,7 +505,7 @@ void TPZGeoMesh::BuildConnectivity()
 	      int nneigh = neighbours.NElements();
 	      int in;
 	      for(in=0; in<nneigh; in++) {
-		if(neighbours[in].Side() == -1) 
+		if(neighbours[in].Side() == -1)
 		  {
 		    std::cout << "TPZGeoMesh::BuildConnectivity : Inconsistent mesh detected!\n";
 		    continue;
@@ -619,7 +620,7 @@ int TPZGeoMesh::ElementIndex(TPZGeoEl *gel){
 	int i=0;
         int index = gel->Index();
         if (ElementVec()[index] == gel) return index;
-         
+
 	int numel = ElementVec().NElements();
 	while ( i < numel ) {
 		if (ElementVec()[i] == gel) break;
@@ -708,38 +709,91 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
               << " type = " << type << std::endl;
     return NULL;
   } else {
+    TPZAutoPointer<TPZRefPattern> ref = GetUniformPattern(type);
     switch( type ){
       case 0://point
-        return new TPZGeoElRefPattern<TPZShapePoint, TPZGeoPoint>(
-                                nodeindexes, matid, *this, index);
+      {
+        TPZGeoElRefPattern<TPZShapePoint, TPZGeoPoint> * gel =
+            new TPZGeoElRefPattern<TPZShapePoint, TPZGeoPoint> (nodeindexes, matid, *this, index);
+        return gel;
+      }
       case 1://line
-        return new TPZGeoElRefPattern<TPZShapeLinear, TPZGeoLinear>(
-                                nodeindexes, matid, *this, index);
+      {
+        TPZGeoElRefPattern < TPZShapeLinear, TPZGeoLinear > *gel =
+            new TPZGeoElRefPattern < TPZShapeLinear, TPZGeoLinear >
+                (nodeindexes, matid, *this, index);
+        gel->SetRefPattern (ref);
+        return gel;
+      }
       case 2://triangle
-        return new TPZGeoElRefPattern<TPZShapeTriang, TPZGeoTriangle>(
-                                nodeindexes, matid, *this, index);
+      {
+        TPZGeoElRefPattern < TPZShapeTriang, TPZGeoTriangle > *gel =
+            new TPZGeoElRefPattern < TPZShapeTriang, TPZGeoTriangle >
+                (nodeindexes, matid, *this, index);
+        gel->SetRefPattern (ref);
+        return gel;
+      }
       case 3://quadrilatera
-        return  new TPZGeoElRefPattern<TPZShapeQuad, TPZGeoQuad>(
-                                nodeindexes, matid, *this, index);
+      {
+        TPZGeoElRefPattern < TPZShapeQuad, TPZGeoQuad > * gel =
+            new TPZGeoElRefPattern < TPZShapeQuad, TPZGeoQuad >
+                (nodeindexes, matid, *this, index);
+        gel->SetRefPattern (ref);
+        return gel;
+      }
       case 4://tetraedra
-        return new TPZGeoElRefPattern<TPZShapeTetra, TPZGeoTetrahedra>(
-                                nodeindexes, matid, *this, index);
+      {
+        TPZGeoElRefPattern < TPZShapeTetra, TPZGeoTetrahedra > *gel =
+            new TPZGeoElRefPattern < TPZShapeTetra, TPZGeoTetrahedra >
+                (nodeindexes, matid, *this, index);
+        gel->SetRefPattern (ref);
+        return gel;
+      }
       case 5://pyramid
-        return new TPZGeoElRefPattern<TPZShapePiram, TPZGeoPyramid>(
-                                nodeindexes, matid, *this, index);
+      {
+        TPZGeoElRefPattern < TPZShapePiram, TPZGeoPyramid > *gel =
+            new TPZGeoElRefPattern < TPZShapePiram, TPZGeoPyramid >
+                (nodeindexes, matid, *this, index);
+        gel->SetRefPattern (ref);
+        return gel;
+      }
       case 6://prism
-        return new TPZGeoElRefPattern<TPZShapePrism, TPZGeoPrism>(
-                                nodeindexes, matid, *this, index);
+      {
+        TPZGeoElRefPattern < TPZShapePrism, TPZGeoPrism > *gel =
+            new TPZGeoElRefPattern < TPZShapePrism, TPZGeoPrism >
+                (nodeindexes, matid, *this, index);
+        gel->SetRefPattern (ref);
+        return gel;
+      }
       case 7://cube
-        return new TPZGeoElRefPattern<TPZShapeCube, TPZGeoCube>(
-                                nodeindexes, matid, *this, index);
+      {
+        TPZGeoElRefPattern < TPZShapeCube, TPZGeoCube > *gel =
+            new TPZGeoElRefPattern < TPZShapeCube, TPZGeoCube >
+                (nodeindexes, matid, *this, index);
+        gel->SetRefPattern (ref);
+        return gel;
+      }
       default:
+      {
         PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
                 << " type = " << type << std::endl;
         return NULL;
+      }
     }
   }
   //return NULL;
+}
+
+TPZAutoPointer<TPZRefPattern> TPZGeoMesh::GetUniformPattern(MElementType &type)
+{
+  if (!fRefPatterns[type].size())
+  {
+    TPZAutoPointer < TPZRefPattern > NULLrefpat;
+    return NULLrefpat;
+  }
+  std::map<int, TPZAutoPointer<TPZRefPattern> >::iterator refIt;
+  refIt = fRefPatterns[type].begin();
+  return refIt->second;
 }
 
 /** check whether the refinement pattern already exists */
@@ -758,7 +812,7 @@ TPZAutoPointer<TPZRefPattern> TPZGeoMesh::FindRefPattern(TPZAutoPointer<TPZRefPa
 //  cout << "Not found\n";
   return NULLRefPat;
 }
-  
+
 
 void TPZGeoMesh::InsertRefPattern(TPZAutoPointer<TPZRefPattern> &refpat){
   if (!refpat) {
@@ -771,18 +825,19 @@ void TPZGeoMesh::InsertRefPattern(TPZAutoPointer<TPZRefPattern> &refpat){
   fRefPatterns[eltype][id] = refpat;
 }
 
-TPZAutoPointer<TPZRefPattern> TPZGeoMesh::GetRefPattern(MElementType eltype, const std::string &name){
-  TPZAutoPointer<TPZRefPattern> NULLrefpat;
+TPZAutoPointer<TPZRefPattern> TPZGeoMesh::GetRefPattern(MElementType eltype, const std::string &name)
+{
+  TPZAutoPointer < TPZRefPattern > NULLrefpat;
   std::map< MElementType, std::map<int, TPZAutoPointer<TPZRefPattern> > >::iterator eltype_iter = fRefPatterns.find(eltype);
   if (eltype_iter == fRefPatterns.end()) return NULLrefpat;
   std::map<int, TPZAutoPointer<TPZRefPattern> >::iterator name_iter = fRefPatterns[eltype].begin();
+  NULLrefpat = name_iter->second;
   while(name_iter != fRefPatterns[eltype].end())
   {
     if(name_iter->second->GetName() == name) return name_iter->second;
     name_iter++;
   }
   return NULLrefpat;
-
 }
 
 /*
@@ -835,18 +890,18 @@ TPZGeoEl* TPZGeoMesh::CreateGeoElement( MElementType type, int* nodeindexes,
    return NULL;
 }
 
-void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){ 
-  if(index < 0 || gel != fElementVec[index]){ 
+void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){
+  if(index < 0 || gel != fElementVec[index]){
     index = ElementIndex(gel);
     if(index < 0) {
-      PZError << "TPZGeoMesh::DeleteElement index error\n"; 
-      return; 
+      PZError << "TPZGeoMesh::DeleteElement index error\n";
+      return;
     }
-  } 
-  if(gel) delete gel; 
-  fElementVec[index] = NULL; 
-  fElementVec.SetFree(index); 
-} 
+  }
+  if(gel) delete gel;
+  fElementVec[index] = NULL;
+  fElementVec.SetFree(index);
+}
 */
 /** Verifies if the side based refinement pattern exists. If the refinement pattern doesn't exists return a Null refinement Pattern. */
 TPZAutoPointer<TPZRefPattern> TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side){
@@ -1005,7 +1060,7 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
       this->fRefPatterns[MElType][refp->Id()] = refp;
     }//for
   }//for
-  //Reading TPZRefPattern's 
+  //Reading TPZRefPattern's
 }
 
 void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
@@ -1026,7 +1081,7 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
     vals[2] = it->second;
     buf.Write(vals,3);
   }
-  
+
   //Writing TPZRefPattern's
   std::map< MElementType, std::map<int, TPZAutoPointer<TPZRefPattern> > >::iterator eRef,itRef;
   int bigmapsize = fRefPatterns.size();
@@ -1046,7 +1101,6 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
     }//for
   }//for
   //Finishing writing TPZRefPattern's
-  
 }//method
 
 int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial){
@@ -1066,7 +1120,7 @@ int TPZGeoMesh::InterfaceMaterial(int leftmaterial, int rightmaterial){
   std::pair<int, int> leftright(leftmaterial, rightmaterial);
   InterfaceMaterialsMap::iterator w, e;
   e = fInterfaceMaterials.end();
-  
+
   //trying to find an interface material associated to left and right materials
   w = fInterfaceMaterials.find(leftright);
   if (w != e) return w->second;
@@ -1085,7 +1139,7 @@ void TPZGeoMesh::ClearInterfaceMaterialsMap(){
   InterfaceMaterialsMap::iterator b, e;
   b = fInterfaceMaterials.begin();
   e = fInterfaceMaterials.end();
-  fInterfaceMaterials.erase(b, e);    
+  fInterfaceMaterials.erase(b, e);
 }
 
 void TPZGeoMesh::ResetConnectivities(){
@@ -1109,8 +1163,9 @@ const std::map<int, TPZAutoPointer<TPZRefPattern> > &TPZGeoMesh::RefPatternList(
 
 void TPZGeoMesh::InitializeRefPatterns()
 {
+  //line
   {
-    char buf[] = 
+    char buf[] =
         "3	3\n"
         "202	UNIFORM_LINE\n"
         "-1.	0.	0. "
@@ -1124,6 +1179,195 @@ void TPZGeoMesh::InitializeRefPatterns()
     if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
     refpat->InsertPermuted();
   }
-
+  //triangle
+  {
+    char buf[] =
+        "6  5\n"
+        "399 UNIFORM_TRIANGLE\n"
+        "0.  0.  0. "
+        "1.  0.  0. "
+        "0.  1.  0. "
+        "0.5 0.  0. "
+        "0.5 0.5 0. "
+        "0.  0.5 0. "
+        "3 1   0 1 2 "
+        "3 1   0 3 5 "
+        "3 1   3 1 4 "
+        "3 1   5 4 2 "
+        "3 1   4 5 3 ";
+    std::istringstream str(buf);
+    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
+    if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
+    refpat->InsertPermuted();
+  }
+  //quadrilateral
+  {
+    char buf[] =
+        "9 5\n"
+        "499 UNIFORM_QUAD\n"
+        "-1. -1. 0. "
+        "1.  -1. 0. "
+        "1.  1.  0. "
+        "-1. 1.  0. "
+        "0. -1.  0. "
+        "1.  0.  0. "
+        "0.  1.  0. "
+        "-1. 0.  0. "
+        "0.  0.  0. "
+        "4 1   0 1 2 3 "
+        "4 1   0 4 8 7 "
+        "4 1   4 1 5 8 "
+        "4 1   8 5 2 6 "
+        "4 1   7 8 6 3 ";
+    std::istringstream str(buf);
+    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
+    if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
+    refpat->InsertPermuted();
+  }
+  //tetrahedre
+  {
+    char buf[] =
+        "10  7\n"
+        "799 UNIFORM_TRIANG\n"
+        "0.  0.  0. "
+        "1.  0.  0. "
+        "0.  1.  0. "
+        "0.  0.  1. "
+        "0.5 0.  0. "
+        "0.5 0.5 0. "
+        "0.  0.5 0. "
+        "0.  0.  0.5 "
+        "0.5 0.  0.5 "
+        "0.  0.5 0.5 "
+        "7 1   0 1 2 3 "
+        "7 1   0 4 6 7 "
+        "7 1   4 1 5 8 "
+        "7 1   6 5 2 9 "
+        "7 1   7 8 9 3 "
+        "5 1   4 8 9 6 7 "
+        "5 1   8 4 6 9 5 ";
+        std::istringstream str(buf);
+    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
+    if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
+    refpat->InsertPermuted();
+  }
+  //pyramid
+  {
+    char buf[] =
+        "14  11\n"
+        "599 UNIFORM_PYRAMID\n"
+        "-1. -1. 0. "
+        "1.  -1. 0. "
+        "1.  1.  0. "
+        "-1.  1.  0. "
+        "0.  0.  1. "
+        "0.  -1. 0. "
+        "1.  0.  0. "
+        "0.  1.  0. "
+        "-1.  0.  0. "
+        "-0.5  -0.5  0.5 "
+        "0.5 -0.5  0.5 "
+        "0.5 0.5 0.5 "
+        "-0.5  0.5 0.5 "
+        "0.  0.  0. "
+        "5 1   0 1 2 3 4 "
+        "5 1   0 5 13  8 9 "
+        "5 1   5 1 6 13  10 "
+        "5 1   13  6 2 7 11 "
+        "5 1   8 13  7 3 12 "
+        "5 1   9 10  11  12  4 "
+        "5 1   10  9 12  11  13 "
+        "7 1   9 5 13  10 "
+        "7 1   6 10  11  13 "
+        "7 1   12  13  7 11 "
+        "7 1   13  9 12  8 ";
+    std::istringstream str(buf);
+    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
+    if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
+    refpat->InsertPermuted();
+  }
+  //prism
+  {
+    char buf[] =
+        "18  9\n"
+        "699 UNIFORM_PRISM\n"
+        "0.  0.  -1. "
+        "1.  0.  -1. "
+        "0.  1.  -1. "
+        "0.  0.  1. "
+        "1.  0.  1. "
+        "0.  1.  1. "
+        "0.5 0.  -1. "
+        "0.5 0.5 -1. "
+        "0.  0.5 -1. "
+        "0.  0.  0. "
+        "1.  0.  0. "
+        "0.  1.  0. "
+        "0.5 0.  1. "
+        "0.5 0.5 1. "
+        "0.  0.5 1. "
+        "0.5 0.  0. "
+        "0.5 0.5 0. "
+        "0.  0.5 0. "
+        "6 1 0 1 2 3 4 5 "
+        "6 1 0 6 8 9 15  17 "
+        "6 1 6 1 7 15  10  16 "
+        "6 1 8 7 2 17  16  11 "
+        "6 1 17  16  15  8 7 6 "
+        "6 1 9 15  17  3 12  14 "
+        "6 1 15  10  16  12  4 13 "
+        "6 1 17  16  11  14  13  5 "
+        "6 1 14  13  12  17  16  15";
+    std::istringstream str(buf);
+    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
+    if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
+    refpat->InsertPermuted();
+  }
+  //hexahedre
+  {
+    char buf[] =
+        "27 9\n"
+        "899 HALF_HEXA\n"
+        "-1.0  -1.0  -1.0 "
+        "1.0 -1.0  -1.0 "
+        "1.0 1.0 -1.0 "
+        "-1.0  1.0 -1.0 "
+        "-1.0  -1.0  1.0 "
+        "1.0 -1.0  1.0 "
+        "1.0 1.0 1.0 "
+        "-1.0  1.0 1.0 "
+        "0.0 -1.0  -1.0 "
+        "1.0 0.0 -1.0 "
+        "0.0 1.0 -1.0 "
+        "-1.0  0.0 -1.0 "
+        "-1.0  -1.0  0.0 "
+        "1.0 -1.0  0.0 "
+        "1.0 1.0 0.0 "
+        "-1.0  1.0 0.0 "
+        "0.0 -1.0  1.0 "
+        "1.0 0.0 1.0 "
+        "0.0 1.0 1.0 "
+        "-1.0  0.0 1.0 "
+        "0.0 0.0 -1.0 "
+        "0.0 -1.0  0.0 "
+        "1.0 1.0 0.0 "
+        "0.0 1.0 0.0 "
+        "-1.0  0.0 0.0 "
+        "0.0 0.0 1.0 "
+        "0.0 0.0 0.0 "
+        "8 1   0 1 2 3 4 5 6 7 "
+        "8 1   0 8 20  11  12  21  26  24 "
+        "8 1   8 1 9 20  21  13  22  26 "
+        "8 1   20  9 2 10  26  22  14  23 "
+        "8 1   11  20  10  3 24  26  23  15 "
+        "8 1   12  21  26  24  4 16  25  19 "
+        "8 1   21  13  22  26  16  5 17  25 "
+        "8 1   26  22  14  23  25  17  6 18 "
+        "8 1   24  26  23  15  19  25  18  7 ";
+    std::istringstream str(buf);
+    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
+    if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
+    refpat->InsertPermuted();
+  }
 }
 
