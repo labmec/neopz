@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.30 2007-02-02 17:44:41 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.31 2007-02-02 18:50:40 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -889,7 +889,7 @@ TPZGeoEl* TPZGeoMesh::CreateGeoElement( MElementType type, int* nodeindexes,
 
    return NULL;
 }
-
+*/
 void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){
   if(index < 0 || gel != fElementVec[index]){
     index = ElementIndex(gel);
@@ -898,11 +898,20 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){
       return;
     }
   }
+  if (gel->HasSubElement())
+  {
+    for (int i=0;i<gel->NSubElements();i++)
+    {
+      TPZGeoEl* son = gel->SubElement(i);
+      DeleteElement(son,son->Index());
+    }
+  }
+  gel->RemoveConnectivities();
   if(gel) delete gel;
   fElementVec[index] = NULL;
   fElementVec.SetFree(index);
 }
-*/
+
 /** Verifies if the side based refinement pattern exists. If the refinement pattern doesn't exists return a Null refinement Pattern. */
 TPZAutoPointer<TPZRefPattern> TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side){
   MElementType type = gel->Type();
@@ -989,9 +998,9 @@ int TPZGeoMesh::ImportRefPattern(){
 #else
   StartingPath = "NeoPZ/Refine/RefPatterns";
 #endif
-  std::string FileTypes ("*");
+  std::string FileTypes ("*.rpt");
   std::string Command = std::string("ls -1 ") + StartingPath + std::string("/") + FileTypes;
-  //std::cout << "Generated command: " << Command.c_str() << std::endl;
+  std::cout << "Generated command: " << Command.c_str() << std::endl;
   FILE   *fp;
 #ifndef BORLAND
   fp = popen(Command.c_str(), "r");
@@ -1007,7 +1016,10 @@ int TPZGeoMesh::ImportRefPattern(){
     if( fgets(psBuffer, sizeof(psBuffer), fp ) != NULL )
     {
       if (psBuffer[strlen(psBuffer)-1] == '\n') psBuffer[strlen(psBuffer)-1] = 0;
-      std::cout << "HEMAN -->> TEM DE LER O ARQUIVO: " << psBuffer << std::endl;
+      std::cout << "Reading refinement patern file : " << psBuffer << std::endl;
+      std::string filref (psBuffer);
+      TPZRefPattern *refpat = new TPZRefPattern( filref );
+      this->InsertRefPattern(refpat);
       count++;
     }
   }
