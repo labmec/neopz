@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.20 2006-10-17 00:57:54 phil Exp $
+//$Id: pzgeoelside.cpp,v 1.21 2007-02-02 18:45:07 cesar Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -42,7 +42,7 @@ void TPZGeoElSide::RemoveConnectivity(){
   }
   if(neigh == *this){
     this->SetNeighbour(TPZGeoElSide());
-    neighpre.SetNeighbour(neighpos);
+    if (neighpre.Exists()) neighpre.SetNeighbour(neighpos);
   } else {
     PZError << "TPZGeoElSide::SetConnectivity neighbourhood cycle error";
   }
