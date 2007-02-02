@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.26 2007-01-27 14:30:49 phil Exp $
+//$Id: pzgmesh.h,v 1.27 2007-02-02 17:42:08 cesar Exp $
 
 /**File : pzgmes.h
 
@@ -66,10 +66,10 @@ class  TPZGeoMesh : public TPZSaveable {
 
   /** List of pointers to finite elements*/
   TPZAdmChunkVector<TPZGeoEl *> fElementVec;
-  
+
   /** List of pointers to nodes*/
   TPZAdmChunkVector<TPZGeoNode> fNodeVec;
-  
+
   /** List of pointers to reference systems*/
 //  TPZAdmChunkVector<TPZCosys *> fCosysVec;
 
@@ -79,7 +79,7 @@ class  TPZGeoMesh : public TPZSaveable {
   int fElementMaxId;
 
   typedef std::map<std::pair<int,int>, int> InterfaceMaterialsMap;
-  
+
   /**
   Datastructure which indicates the index of the interface material which needs to be created between two different materials @see AddInterfaceMaterial
   */
@@ -88,27 +88,27 @@ class  TPZGeoMesh : public TPZSaveable {
  public:
   /**Constructors and destructor*/
   TPZGeoMesh();
-  
+
   /** Copy constructor */
   TPZGeoMesh(const TPZGeoMesh &cp);
-  
+
    /**
    * Operator of copy
    */
   TPZGeoMesh & operator= (const TPZGeoMesh &cp );
-  
+
   /** Operator of copy */
-  
-  
+
+
   /**Destructor*/
   virtual ~TPZGeoMesh();
 
   /**Deletes all items in the TPZGeoMesh*/
   void CleanUp();
-  
+
   /** Reset all connectivities */
   void ResetConnectivities();
-  
+
 virtual int ClassId() const;
 
 virtual void Read(TPZStream &buf, void *context);
@@ -129,7 +129,7 @@ virtual void Write(TPZStream &buf, int withclassid);
   int NNodes() const {return fNodeVec.NElements();}
   /**Number of elements of the mesh*/
   int NElements() const {return fElementVec.NElements();}
-  
+
   int ReallyNEl() {return (fElementVec.NElements() - fElementVec.NFreeElements()) ; }
 
   void SetName(char *name);
@@ -149,8 +149,8 @@ virtual void Write(TPZStream &buf, int withclassid);
      geometrical mesh previously*/
   void RestoreReference(TPZCompMesh *cmesh);
   /**Sets the reference of the geometric grid to ref*/
-  void SetReference(TPZCompMesh *ref) 
-  { 
+  void SetReference(TPZCompMesh *ref)
+  {
     if(fReference) ResetReference();
     fReference = ref;
   }
@@ -198,7 +198,7 @@ void RefPatternFile(std::ofstream &filename);
 
   /**Returns the index of the given element into the fElementVec*/
   int ElementIndex(TPZGeoEl * gel); //Cesar 2002-05-02
-  
+
    /**Returns the index of the given node into the fNodeVec*/
   int NodeIndex(TPZGeoNode * nod);//Cesar 2002-05-02
 
@@ -250,28 +250,50 @@ void RefPatternFile(std::ofstream &filename);
      Find, within elmap, the element which has currentnode as its first boundary side node*/
   //void FindElement(TPZAVLMap<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
  	void FindElement(std::map<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
+
 protected: // Protected attributes
 
   /** Maps all refinement pattern objects in the mesh
    *  fRefPatterns[MElementType][Id] = (TPZRefPattern *)
    */
   std::map<MElementType,std::map< int, TPZAutoPointer<TPZRefPattern> > > fRefPatterns;
-  
+
 public:
-/** insert the refinement pattern in the list of availabe refinement patterns */
+  /**
+   * Insert the refinement pattern in the list of availabe refinement patterns
+   */
   void InsertRefPattern(TPZAutoPointer<TPZRefPattern> & refpat);
-  
-  /** check whether the refinement pattern already exists */
+
+  /**
+   * Check whether the refinement pattern already exists \
+   */
   TPZAutoPointer<TPZRefPattern> FindRefPattern(TPZAutoPointer<TPZRefPattern> & refpat);
-  
+
+  /**
+   *
+   */
   TPZAutoPointer<TPZRefPattern> GetRefPattern(MElementType eltype, const std::string &name);
-  /** Verifies if the side based refinement pattern exists. If the refinement pattern doesn't exists return a Null refinement Pattern. */
+
+  /**
+   * Verifies if the side based refinement pattern exists.
+   * If the refinement pattern doesn't exists return a Null refinement Pattern. \
+   */
   TPZAutoPointer<TPZRefPattern> GetRefPattern (TPZGeoEl *gel, int side);
-  
- const std::map<int, TPZAutoPointer<TPZRefPattern> > &RefPatternList(MElementType eltype);
- 
- void InitializeRefPatterns();
- 
+
+  /**
+   * Retrieves the uniform refinement pattern for given element type
+   */
+  TPZAutoPointer<TPZRefPattern> GetUniformPattern(MElementType &type);
+
+  /**
+   * Return the complete set of refinement patterns availabe
+   */
+  const std::map<int, TPZAutoPointer<TPZRefPattern> > &RefPatternList(MElementType eltype);
+
+  /**
+   * Initialize the uniform refinement patterns from hard coaded data
+   */
+  void InitializeRefPatterns();
 };
 
 #endif
