@@ -1,7 +1,7 @@
 
 // -*- c++ -*-
 
-// $Id: TPZGeoElement.h,v 1.15 2006-10-17 01:53:26 phil Exp $
+// $Id: TPZGeoElement.h,v 1.16 2007-02-02 18:30:54 cesar Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
@@ -97,6 +97,8 @@ public:
   virtual void Divide(TPZVec<TPZGeoEl *> &pv);
 
   virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
+
+  virtual void ResetSubElements();
 
 };
 

@@ -158,6 +158,22 @@ TPZGeoElement<TShape,TGeo,TRef>::SubElement(int is){
   return this->Mesh()->ElementVec()[fSubEl[is]];
 }
 
+
+/*!
+    \fn TPZGeoElement::ResetSubElements()
+ */
+template<class TShape, class TGeo, class TRef>
+void
+TPZGeoElement<TShape,TGeo,TRef>::ResetSubElements()
+{
+  int is;
+  for (is=0;is<NSubElements();is++)
+  {
+    fSubEl[is] = -1;
+  }
+}
+
+
 template<class TShape, class TGeo, class TRef>
 TPZGeoElSide
 TPZGeoElement<TShape,TGeo,TRef>::SideSubElement(int side,int position){
