@@ -103,7 +103,9 @@ public:
     return fRefPattern;
   }
   
-virtual void Print(std::ostream & out);
+  virtual void Print(std::ostream & out);
+
+  virtual void ResetSubElements();
 
   /** Saveable methods */
   virtual int ClassId() const;  
@@ -246,6 +248,21 @@ int TPZGeoElRefPattern<TShape,TGeo>::NSubElements(){
   if (!fRefPattern) return 0;
   return this->GetRefPattern()->NSubElements();
 }
+
+/*!
+    \fn TPZGeoElRefPattern::ResetSubElements()
+ */
+template<class TShape, class TGeo>
+void
+TPZGeoElRefPattern<TShape,TGeo>::ResetSubElements()
+{
+  int is;
+  for (is=0;is<NSubElements();is++)
+  {
+    fSubEl[is] = -1;
+  }
+}
+
 
 template<class TShape, class TGeo>
 int TPZGeoElRefPattern<TShape,TGeo>::NSideSubElements2(int side){
