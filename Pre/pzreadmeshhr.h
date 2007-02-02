@@ -1,8 +1,8 @@
 /*****************************************************************************
- * O conteúdo desse arquivo é de propriedade do LabMeC-DES-FEC-UNICAMP e do
+ * O contedo desse arquivo ï¿½de propriedade do LabMeC-DES-FEC-UNICAMP e do
  * CENPES-Petrobras. 
- * O uso de qualquer parte ou do todo está condicionado à expressa autorização
- * dos proprietários.
+ * O uso de qualquer parte ou do todo estï¿½condicionado ï¿½expressa autorizaï¿½o
+ * dos proprietï¿½ios.
  *****************************************************************************/
 #ifndef PZREADMESHHR_H
 #define PZREADMESHHR_H
@@ -38,6 +38,7 @@ public:
    * Read and return the mesh from a given file
    */
   virtual TPZCompMesh* ReadMesh();
+    TPZGeoMesh * readGeoMesh();
 
 
 protected:

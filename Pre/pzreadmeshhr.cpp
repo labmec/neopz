@@ -1,8 +1,8 @@
 /*****************************************************************************
- * O conteúdo desse arquivo é de propriedade do LabMeC-DES-FEC-UNICAMP e do
+ * O contedo desse arquivo ï¿½de propriedade do LabMeC-DES-FEC-UNICAMP e do
  * CENPES-Petrobras. 
- * O uso de qualquer parte ou do todo está condicionado à expressa autorização
- * dos proprietários.
+ * O uso de qualquer parte ou do todo estï¿½condicionado ï¿½expressa autorizaï¿½o
+ * dos proprietï¿½ios.
  *****************************************************************************/
 #include "pzreadmeshhr.h"
 
@@ -33,15 +33,8 @@ TPZReadMeshHR::~TPZReadMeshHR()
 
 TPZCompMesh* TPZReadMeshHR::ReadMesh()
 {
-  TPZGeoMesh *gmesh = new TPZGeoMesh;
   std::string numberOf;
-  removeComents (numberOf);
-  int nnos = atoi (numberOf.c_str());
-  ReadNodes (nnos, *gmesh);
-  removeComents (numberOf);
-  int nelem = atoi (numberOf.c_str());
-  ReadElements(nelem, *gmesh);
-  gmesh->BuildConnectivity();
+  TPZGeoMesh *gmesh = readGeoMesh();
   TPZCompMesh *cmesh = new TPZCompMesh (gmesh);
   removeComents (numberOf);
   int nmat = atoi (numberOf.c_str());
@@ -62,7 +55,7 @@ void TPZReadMeshHR::removeComents (std::string &NumberOf)
     fInputFile.getline(buf,512);
     std::string aux (buf);
     int pos = aux.find (":");
-    if ((pos > -1 && pos < (int)aux.size()) || !aux.size()) continue; //encontrou um comentário na linha
+    if ((pos > -1 && pos < (int)aux.size()) || !aux.size()) continue; //encontrou um comentï¿½io na linha
     NumberOf = aux;
     break;
   }
@@ -132,7 +125,7 @@ void TPZReadMeshHR::ReadElements (int NElem, TPZGeoMesh & GMesh)
 #ifndef WINDOWS
         sout << __PRETTY_FUNCTION__;
 #endif
-        sout << "Não sei que elemento " << type << " é esse indicado para o elemento " << id;
+        sout << "Nï¿½ sei que elemento " << type << " ï¿½esse indicado para o elemento " << id;
 #ifdef LOG4CXX
         LOGPZ_WARN (logger,sout.str().c_str());
 #else
@@ -177,7 +170,7 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 #ifndef WINDOWS
       sout << __PRETTY_FUNCTION__ << " no materials " << std::endl;
 #endif
-      sout << "\tNão encontrei material na malha!";
+      sout << "\tNï¿½ encontrei material na malha!";
 #ifdef LOG4CXX
       LOGPZ_ERROR (logger, sout.str().c_str());
 #else
@@ -227,7 +220,7 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 #ifndef WINDOWS
         sout << __PRETTY_FUNCTION__;
 #endif
-        sout << "\tBC tipo " << type << " não identificada!";
+        sout << "\tBC tipo " << type << " nï¿½ identificada!";
 #ifdef LOG4CXX
         LOGPZ_WARN (logger, sout.str().c_str());
 #else
@@ -270,7 +263,7 @@ int TPZReadMeshHR::GetNodeIndex(TPZGeoMesh *GMesh,int Id)
 #ifndef WINDOWS
         sout << __PRETTY_FUNCTION__;
 #endif
-        sout << " Nó " << Id << " não encontrado!";
+        sout << " Nï¿½" << Id << " nï¿½ encontrado!";
 #ifdef LOG4CXX
         LOGPZ_WARN (logger, sout.str().c_str());
 #else
@@ -278,4 +271,22 @@ int TPZReadMeshHR::GetNodeIndex(TPZGeoMesh *GMesh,int Id)
 #endif
 
   return -1;
+}
+
+
+/*!
+    \fn TPZReadMeshHR::readGeoMesh()
+ */
+TPZGeoMesh * TPZReadMeshHR::readGeoMesh()
+{
+  TPZGeoMesh *gmesh = new TPZGeoMesh;
+  std::string numberOf;
+  removeComents (numberOf);
+  int nnos = atoi (numberOf.c_str());
+  ReadNodes (nnos, *gmesh);
+  removeComents (numberOf);
+  int nelem = atoi (numberOf.c_str());
+  ReadElements(nelem, *gmesh);
+  gmesh->BuildConnectivity();
+  return gmesh;
 }
