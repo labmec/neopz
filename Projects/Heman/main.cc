@@ -35,7 +35,7 @@
 
 #include <set>
 #include <map>
-//#include "c0-simplequad.cpp" 
+//#include "c0-simplequad.cpp"
 //#include "c0-simpleline.cpp"
 #include "c0-simpletetra.cpp"
 
@@ -100,13 +100,13 @@ void  FilterBoundingBox(TPZGeoMesh *geomesh);
    for (i=0; i<55; i++){
      fonte >> d;
      saida << d-1 << "  " ;
- 
+
      for (k=0; k<3; k++){
        fonte >> x ;
        saida << x << "  ";
      }
-     
-     saida << std::endl;     
+
+     saida << std::endl;
    }
 
    for (i=0; i<107; i++){
@@ -131,12 +131,12 @@ void InsertNewPattern(std::ifstream &arquivo, TPZGeoMesh &geomesh, std::ofstream
    geomesh.RefPatternFile(padroes);
  }
 
- 
+
 void ReadF17(TPZGeoMesh *geomesh)
 {
 // // Beggining of the work with the f17.
 // // Beggining of the work with the F17's mesh.
-// 
+//
 //   // First step: nodes reading and initialization.
   std::string path;
 #ifdef HAVE_CONFIG_H
@@ -149,7 +149,7 @@ void ReadF17(TPZGeoMesh *geomesh)
   std::cout << "===============================================================\n"
             << "Reading F17 mesh\n";
 
-            
+
   std::string nodFile = path;
   nodFile += "yf17.xyz";
   std::cout << "\t\tInput file for nodes = " << nodFile.c_str()
@@ -224,7 +224,7 @@ void ReadF17(TPZGeoMesh *geomesh)
   std::cout << "F17 mesh read\n"
             << "===============================================================\n";
 //   // End of work with the F17's mesh.
-// 
+//
 //   // End of the work with f17.
 }
 
@@ -270,7 +270,7 @@ void LoadRefPatternDataBase(TPZGeoMesh *geomesh)
 
   std::ofstream shortlist("shortlist.txt");
   geomesh->PatternSidesFile(shortlist);
-   
+
   {
     std::ofstream arquivo ("NotListedPatterns4.txt");
   }
@@ -327,26 +327,26 @@ void InitializeLOG()
 int main ()
 {
   InitializeLOG();
-  
+
   std::string file_path = PZSOURCEDIR;
   file_path += "/Projects/Heman/Files/Meshes/placa_plana.txt";
   std::ifstream file (file_path.c_str());
-  
+
   TPZCompMesh *compmesh = ReadMesh (file);
-  TPZGeoMesh *geomesh = compmesh->Reference();  
+  TPZGeoMesh *geomesh = compmesh->Reference();
+  geomesh->InitializeRefPatterns();
 //   TPZGeoMesh *geomesh = new TPZGeoMesh();
 //   ReadF17(geomesh);
-  
   LoadRefPatternDataBase(geomesh);
 
   file_path = PZSOURCEDIR;
   file_path += "/Projects/Heman/Files/RefPatterns/Hexa_Half.rpt";
-  std::ifstream inparq (file_path.c_str());  
+  std::ifstream inparq (file_path.c_str());
   std::string outfile = PZSOURCEDIR;
   outfile += "/Projects/Heman/Files/RefPatterns/hexa_plus_tetra.rpt";
   std::ofstream outarq (outfile.c_str());
   InsertNewPattern(inparq, *geomesh, outarq);
-  
+
   file_path = PZSOURCEDIR;
   file_path += "/Projects/Heman/Files/RefPatterns/Hexa_2AdjRibs.rpt";
   std::ifstream inparq2 (file_path.c_str());
@@ -357,9 +357,9 @@ int main ()
   std::ifstream inparq3 (file_path.c_str());
   InsertNewPattern(inparq3, *geomesh, outarq);
 
-  
+
   FilterBoundingBox(geomesh);
-  
+
   ofstream dx_arq ("surface.dx");
   WriteMesh(geomesh,dx_arq,1);
 
@@ -372,7 +372,7 @@ int main ()
   for(i=0; i<5; i++)
   {
     int nelements = geomesh->NElements();
-    int el;  
+    int el;
     map<set<int>, TPZRefPattern*> MyMap;
     TPZStack<int> refinesides;
     for (el=0; el<nelements; el++)
@@ -393,12 +393,12 @@ int main ()
       nome << ".dx";
       ofstream dx_arq_ref (nome.str().c_str());
       WriteMesh(geomesh,dx_arq_ref,destmatid+1);
-      
+
       std::string aux = elMesh;
       aux += "-tetra.dx";
       std::ofstream dx_tetra_arq (aux.c_str());
       WriteElementMesh(geomesh,dx_tetra_arq,destmatid+1,4);
-      
+
       aux = elMesh;
       aux += "-pyramid.dx";
       std::ofstream dx_pyra_arq (aux.c_str());
@@ -454,7 +454,7 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
   {
     // we are only interested in ribs
     if(gel->SideDimension(is) != 1) continue;
-    
+
     // the side is a candidate if it contains a corner which is neighbour of the boundary condition
     if(cornerstorefine[gel->SideNodeLocIndex(is,0)] || cornerstorefine[gel->SideNodeLocIndex(is,1)])
     {
@@ -473,7 +473,7 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
         }
         neigh = neigh.Neighbour();
       }
-    }    
+    }
   }
   if(!numrefribs)
   {
@@ -484,7 +484,7 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
   TPZRefPattern::GetCompatibleRefinementPatterns(gel, patlist);
   TPZAutoPointer<TPZRefPattern> patt = GetBestRefPattern(sidestorefine,patlist);
   static int count = 1;
-  if(patt) 
+  if(patt)
   {
     gel->SetMaterialId(destmatid+1);
     gel->SetRefPattern(patt);
@@ -515,7 +515,7 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
       }
       if (sidestorefine[i] == 1) {
         arquivo << " " << i << " " ;
-      }      
+      }
     }
     gel->Print(arquivo);
     int in;
@@ -562,7 +562,7 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
     // Here we will provide the necessary information to develop a new ref. patt.
   }
   count++;
-  if(!(count%20)) 
+  if(!(count%20))
   {
     std::cout << count << std::endl;
   }
@@ -614,7 +614,7 @@ void FilterBoundingBox(TPZGeoMesh *geomesh)
         TPZGeoNode *gno = gel->NodePtr(no);
         for(idf=0; idf<3; idf++)
         {
-          if(no == 0) 
+          if(no == 0)
           {
             xminmaxloc(idf,0) = gno->Coord(idf);
             xminmaxloc(idf,1) = gno->Coord(idf);
@@ -626,7 +626,7 @@ void FilterBoundingBox(TPZGeoMesh *geomesh)
       xminmaxloc -= xminmax;
       REAL mindif = 1.;
       for(no=0; no<2; no++) for(idf=0; idf<3; idf++) mindif = (mindif < fabs(xminmaxloc(idf,no)))? mindif : fabs(xminmaxloc(idf,no));
-      if(mindif < 0.001) 
+      if(mindif < 0.001)
       {
         REAL detjac;
         TPZManVector<REAL,3> coor(2,0.3333);
