@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.32 2007-02-02 19:11:17 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.33 2007-02-06 17:43:11 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -44,7 +44,7 @@ TPZGeoMesh::TPZGeoMesh() : fElementVec(0), fNodeVec(0){
   fReference = 0;
   fNodeMaxId = -1;
   fElementMaxId = -1;
-  InitializeRefPatterns();
+//  InitializeRefPatterns();
 }
 
 TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp):
@@ -709,7 +709,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
               << " type = " << type << std::endl;
     return NULL;
   } else {
-    TPZAutoPointer<TPZRefPattern> ref = GetUniformPattern(type);
+    //TPZAutoPointer<TPZRefPattern> ref = GetUniformPattern(type);
     switch( type ){
       case 0://point
       {
@@ -722,7 +722,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
         TPZGeoElRefPattern < TPZShapeLinear, TPZGeoLinear > *gel =
             new TPZGeoElRefPattern < TPZShapeLinear, TPZGeoLinear >
                 (nodeindexes, matid, *this, index);
-        gel->SetRefPattern (ref);
+        //gel->SetRefPattern (ref);
         return gel;
       }
       case 2://triangle
@@ -730,7 +730,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
         TPZGeoElRefPattern < TPZShapeTriang, TPZGeoTriangle > *gel =
             new TPZGeoElRefPattern < TPZShapeTriang, TPZGeoTriangle >
                 (nodeindexes, matid, *this, index);
-        gel->SetRefPattern (ref);
+        //gel->SetRefPattern (ref);
         return gel;
       }
       case 3://quadrilatera
@@ -738,7 +738,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
         TPZGeoElRefPattern < TPZShapeQuad, TPZGeoQuad > * gel =
             new TPZGeoElRefPattern < TPZShapeQuad, TPZGeoQuad >
                 (nodeindexes, matid, *this, index);
-        gel->SetRefPattern (ref);
+        //gel->SetRefPattern (ref);
         return gel;
       }
       case 4://tetraedra
@@ -746,7 +746,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
         TPZGeoElRefPattern < TPZShapeTetra, TPZGeoTetrahedra > *gel =
             new TPZGeoElRefPattern < TPZShapeTetra, TPZGeoTetrahedra >
                 (nodeindexes, matid, *this, index);
-        gel->SetRefPattern (ref);
+        //gel->SetRefPattern (ref);
         return gel;
       }
       case 5://pyramid
@@ -754,7 +754,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
         TPZGeoElRefPattern < TPZShapePiram, TPZGeoPyramid > *gel =
             new TPZGeoElRefPattern < TPZShapePiram, TPZGeoPyramid >
                 (nodeindexes, matid, *this, index);
-        gel->SetRefPattern (ref);
+        //gel->SetRefPattern (ref);
         return gel;
       }
       case 6://prism
@@ -762,7 +762,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
         TPZGeoElRefPattern < TPZShapePrism, TPZGeoPrism > *gel =
             new TPZGeoElRefPattern < TPZShapePrism, TPZGeoPrism >
                 (nodeindexes, matid, *this, index);
-        gel->SetRefPattern (ref);
+        //gel->SetRefPattern (ref);
         return gel;
       }
       case 7://cube
@@ -770,7 +770,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
         TPZGeoElRefPattern < TPZShapeCube, TPZGeoCube > *gel =
             new TPZGeoElRefPattern < TPZShapeCube, TPZGeoCube >
                 (nodeindexes, matid, *this, index);
-        gel->SetRefPattern (ref);
+        //gel->SetRefPattern (ref);
         return gel;
       }
       default:
@@ -801,15 +801,17 @@ TPZAutoPointer<TPZRefPattern> TPZGeoMesh::FindRefPattern(TPZAutoPointer<TPZRefPa
 {
   TPZAutoPointer<TPZRefPattern> NULLRefPat;
   if(!(refpat) ) return NULLRefPat;
-//  cout << "Looking for "; refpat->ShortPrint(cout); cout << endl;
+  //cout << "Looking for "; refpat->ShortPrint(cout); cout << endl;
   MElementType eltype = refpat->Element(0)->Type();
   std::map<int, TPZAutoPointer<TPZRefPattern> >::iterator it;
   for(it=fRefPatterns[eltype].begin(); it != fRefPatterns[eltype].end(); it++)
   {
-//    std::cout << "Comparing with "; (*it)->ShortPrint(cout); cout << endl;
-    if((it->second.operator->()) == (refpat.operator->())) return it->second;
+    //std::cout << "Comparing with "; it->second.operator->()->ShortPrint(cout); cout << endl;
+   // std::cout << it->second.operator->() << std::endl;
+   // std::cout << refpat.operator->() << std::endl;
+    if( *(it->second.operator->()) == refpat ) return it->second;
   }
-//  cout << "Not found\n";
+  //cout << "Not found\n";
   return NULLRefPat;
 }
 
@@ -1183,9 +1185,9 @@ void TPZGeoMesh::InitializeRefPatterns()
         "-1.	0.	0. "
         "1.	0.	0. "
         "0.	0.	0. "
-        "2	1		0	1 "
-        "2	1		0	2 "
-        "2	1		2	1 ";
+        "1	2		0	1 "
+        "1	2		0	2 "
+        "1	2		2	1 ";
     std::istringstream str(buf);
     TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
     if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
@@ -1202,11 +1204,11 @@ void TPZGeoMesh::InitializeRefPatterns()
         "0.5 0.  0. "
         "0.5 0.5 0. "
         "0.  0.5 0. "
-        "3 1   0 1 2 "
-        "3 1   0 3 5 "
-        "3 1   3 1 4 "
-        "3 1   5 4 2 "
-        "3 1   4 5 3 ";
+        "2 3   0 1 2 "
+        "2 3   0 3 5 "
+        "2 3   3 1 4 "
+        "2 3   5 4 2 "
+        "2 3   4 5 3 ";
     std::istringstream str(buf);
     TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
     if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
@@ -1226,21 +1228,72 @@ void TPZGeoMesh::InitializeRefPatterns()
         "0.  1.  0. "
         "-1. 0.  0. "
         "0.  0.  0. "
-        "4 1   0 1 2 3 "
-        "4 1   0 4 8 7 "
-        "4 1   4 1 5 8 "
-        "4 1   8 5 2 6 "
-        "4 1   7 8 6 3 ";
+        "3 4   0 1 2 3 "
+        "3 4   0 4 8 7 "
+        "3 4   4 1 5 8 "
+        "3 4   8 5 2 6 "
+        "3 4   7 8 6 3 ";
     std::istringstream str(buf);
     TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
     if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
     refpat->InsertPermuted();
   }
+
+    //hexahedre
+  {
+    std::cout << "\n\ninserting hexahedre\n";
+    char buf[] =
+        "27 9\n"
+        "899 HALF_HEXA\n"
+        "-1.0 -1.0 -1.0 "
+        " 1.0 -1.0 -1.0 "
+        " 1.0  1.0 -1.0 "
+        "-1.0  1.0 -1.0 "
+        "-1.0 -1.0  1.0 "
+        " 1.0 -1.0  1.0 "
+        " 1.0  1.0  1.0 "
+        "-1.0  1.0  1.0 "
+        " 0.0 -1.0 -1.0 "
+        " 1.0  0.0 -1.0 "
+        " 0.0  1.0 -1.0 "
+        "-1.0  0.0 -1.0 "
+        "-1.0 -1.0  0.0 "
+        " 1.0 -1.0  0.0 "
+        " 1.0  1.0  0.0 "
+        "-1.0  1.0  0.0 "
+        " 0.0 -1.0  1.0 "
+        " 1.0  0.0  1.0 "
+        " 0.0  1.0  1.0 "
+        "-1.0  0.0  1.0 "
+        " 0.0  0.0 -1.0 "
+        " 0.0 -1.0  0.0 "
+        " 1.0  1.0  0.0 "
+        " 0.0  1.0  0.0 "
+        "-1.0  0.0  0.0 "
+        " 0.0  0.0  1.0 "
+        " 0.0  0.0  0.0 "
+        "7 8   0  1  2  3  4  5  6  7  "
+        "7 8   0  8  20 11 12 21 26 24 "
+        "7 8   8  1  9  20 21 13 22 26 "
+        "7 8   20 9  2  10 26 22 14 23 "
+        "7 8   11 20 10 3  24 26 23 15 "
+        "7 8   12 21 26 24 4  16 25 19 "
+        "7 8   21 13 22 26 16 5  17 25 "
+        "7 8   26 22 14 23 25 17 6  18 "
+        "7 8   24 26 23 15 19 25 18 7  ";
+    std::istringstream str(buf);
+    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
+    if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
+    refpat->InsertPermuted();
+  }
+
+
   //tetrahedre
   {
+    std::cout << "\n\ninserting tetrahedre\n";
     char buf[] =
         "10  7\n"
-        "799 UNIFORM_TRIANG\n"
+        "799 UNIFORM_TETRA\n"
         "0.  0.  0. "
         "1.  0.  0. "
         "0.  1.  0. "
@@ -1251,13 +1304,13 @@ void TPZGeoMesh::InitializeRefPatterns()
         "0.  0.  0.5 "
         "0.5 0.  0.5 "
         "0.  0.5 0.5 "
-        "7 1   0 1 2 3 "
-        "7 1   0 4 6 7 "
-        "7 1   4 1 5 8 "
-        "7 1   6 5 2 9 "
-        "7 1   7 8 9 3 "
-        "5 1   4 8 9 6 7 "
-        "5 1   8 4 6 9 5 ";
+        "4 4   0 1 2 3 "
+        "4 4   0 4 6 7 "
+        "4 4   4 1 5 8 "
+        "4 4   6 5 2 9 "
+        "4 4   7 8 9 3 "
+        "5 5   4 8 9 6 7 "
+        "5 5   8 4 6 9 5 ";
         std::istringstream str(buf);
     TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
     if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
@@ -1265,34 +1318,35 @@ void TPZGeoMesh::InitializeRefPatterns()
   }
   //pyramid
   {
+    std::cout << "\n\ninserting pyramid\n";
     char buf[] =
         "14  11\n"
         "599 UNIFORM_PYRAMID\n"
-        "-1. -1. 0. "
-        "1.  -1. 0. "
-        "1.  1.  0. "
-        "-1.  1.  0. "
-        "0.  0.  1. "
-        "0.  -1. 0. "
-        "1.  0.  0. "
-        "0.  1.  0. "
-        "-1.  0.  0. "
-        "-0.5  -0.5  0.5 "
-        "0.5 -0.5  0.5 "
-        "0.5 0.5 0.5 "
-        "-0.5  0.5 0.5 "
-        "0.  0.  0. "
-        "5 1   0 1 2 3 4 "
-        "5 1   0 5 13  8 9 "
-        "5 1   5 1 6 13  10 "
-        "5 1   13  6 2 7 11 "
-        "5 1   8 13  7 3 12 "
-        "5 1   9 10  11  12  4 "
-        "5 1   10  9 12  11  13 "
-        "7 1   9 5 13  10 "
-        "7 1   6 10  11  13 "
-        "7 1   12  13  7 11 "
-        "7 1   13  9 12  8 ";
+        "-1.0 -1.0  0.0 "
+         "1.0 -1.0  0.0 "
+         "1.0  1.0  0.0 "
+        "-1.0  1.0  0.0 "
+         "0.0  0.0  1.0 "
+         "0.5 -1.0  0.0 "
+         "1.0  0.0  0.0 "
+         "0.0  1.0  0.0 "
+        "-1.0  0.0  0.0 "
+        "-0.5 -0.5  0.5 "
+         "0.5 -0.5  0.5 "
+         "0.5  0.5  0.5 "
+        "-0.5  0.5  0.5 "
+         "0.0  0.0  0.0 "
+        "5 5   0  1  2  3  4 "
+        "5 5   0  5 13  8  9 "
+        "5 5   5  1  6  13 10 "
+        "5 5   13 6  2  7  11 "
+        "5 5   8  13 7  3  12 "
+        "5 5   9  10 11 12 4 "
+        "5 5   9  12 11 10 13 "
+        "4 4   9  5  13 10 "
+        "4 4   10 6  13 11 "
+        "4 4   11 7  12 13 "
+        "4 4    8 13 12 9 ";
     std::istringstream str(buf);
     TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
     if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
@@ -1300,6 +1354,7 @@ void TPZGeoMesh::InitializeRefPatterns()
   }
   //prism
   {
+    std::cout << "\n\ninserting prism\n";
     char buf[] =
         "18  9\n"
         "699 UNIFORM_PRISM\n"
@@ -1321,61 +1376,15 @@ void TPZGeoMesh::InitializeRefPatterns()
         "0.5 0.  0. "
         "0.5 0.5 0. "
         "0.  0.5 0. "
-        "6 1 0 1 2 3 4 5 "
-        "6 1 0 6 8 9 15  17 "
-        "6 1 6 1 7 15  10  16 "
-        "6 1 8 7 2 17  16  11 "
-        "6 1 17  16  15  8 7 6 "
-        "6 1 9 15  17  3 12  14 "
-        "6 1 15  10  16  12  4 13 "
-        "6 1 17  16  11  14  13  5 "
-        "6 1 14  13  12  17  16  15";
-    std::istringstream str(buf);
-    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
-    if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
-    refpat->InsertPermuted();
-  }
-  //hexahedre
-  {
-    char buf[] =
-        "27 9\n"
-        "899 HALF_HEXA\n"
-        "-1.0  -1.0  -1.0 "
-        "1.0 -1.0  -1.0 "
-        "1.0 1.0 -1.0 "
-        "-1.0  1.0 -1.0 "
-        "-1.0  -1.0  1.0 "
-        "1.0 -1.0  1.0 "
-        "1.0 1.0 1.0 "
-        "-1.0  1.0 1.0 "
-        "0.0 -1.0  -1.0 "
-        "1.0 0.0 -1.0 "
-        "0.0 1.0 -1.0 "
-        "-1.0  0.0 -1.0 "
-        "-1.0  -1.0  0.0 "
-        "1.0 -1.0  0.0 "
-        "1.0 1.0 0.0 "
-        "-1.0  1.0 0.0 "
-        "0.0 -1.0  1.0 "
-        "1.0 0.0 1.0 "
-        "0.0 1.0 1.0 "
-        "-1.0  0.0 1.0 "
-        "0.0 0.0 -1.0 "
-        "0.0 -1.0  0.0 "
-        "1.0 1.0 0.0 "
-        "0.0 1.0 0.0 "
-        "-1.0  0.0 0.0 "
-        "0.0 0.0 1.0 "
-        "0.0 0.0 0.0 "
-        "8 1   0 1 2 3 4 5 6 7 "
-        "8 1   0 8 20  11  12  21  26  24 "
-        "8 1   8 1 9 20  21  13  22  26 "
-        "8 1   20  9 2 10  26  22  14  23 "
-        "8 1   11  20  10  3 24  26  23  15 "
-        "8 1   12  21  26  24  4 16  25  19 "
-        "8 1   21  13  22  26  16  5 17  25 "
-        "8 1   26  22  14  23  25  17  6 18 "
-        "8 1   24  26  23  15  19  25  18  7 ";
+        "6 6 0 1 2 3 4 5 "
+        "6 6 0 6 8 9 15  17 "
+        "6 6 6 1 7 15  10  16 "
+        "6 6 8 7 2 17  16  11 "
+        "6 6 17  16  15  8 7 6 "
+        "6 6 9 15  17  3 12  14 "
+        "6 6 15  10  16  12  4 13 "
+        "6 6 17  16  11  14  13  5 "
+        "6 6 14  13  12  17  16  15";
     std::istringstream str(buf);
     TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(this,str);
     if(!FindRefPattern(refpat)) InsertRefPattern(refpat);
