@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.33 2007-02-06 17:43:11 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.34 2007-02-07 19:54:24 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -232,7 +232,7 @@ void TPZGeoMesh::RefPatternFile(std::ofstream &filename){
   /*filename << std::endl*/;
 }
 
-void TPZGeoMesh::Print (ostream & out) {
+void TPZGeoMesh::Print (ostream & out){
   out << "\n\t\t GEOMETRIC TPZGeoMesh INFORMATIONS:\n\n";
   out << "TITLE-> " << fName << "\n\n";
   out << "number of nodes               = " << fNodeVec.NElements() << "\n";
@@ -254,6 +254,7 @@ void TPZGeoMesh::Print (ostream & out) {
 
   out << "\nInterface materials : \n\n";
   InterfaceMaterialsMap::iterator w, e = this->fInterfaceMaterials.end();
+
   const int n = this->fInterfaceMaterials.size();
   int l, r, m;
   out << "number = " << n << "\n";
@@ -801,14 +802,14 @@ TPZAutoPointer<TPZRefPattern> TPZGeoMesh::FindRefPattern(TPZAutoPointer<TPZRefPa
 {
   TPZAutoPointer<TPZRefPattern> NULLRefPat;
   if(!(refpat) ) return NULLRefPat;
-  //cout << "Looking for "; refpat->ShortPrint(cout); cout << endl;
+//   cout << "Looking for "; refpat->ShortPrint(cout); cout << endl;
   MElementType eltype = refpat->Element(0)->Type();
   std::map<int, TPZAutoPointer<TPZRefPattern> >::iterator it;
   for(it=fRefPatterns[eltype].begin(); it != fRefPatterns[eltype].end(); it++)
   {
-    //std::cout << "Comparing with "; it->second.operator->()->ShortPrint(cout); cout << endl;
-   // std::cout << it->second.operator->() << std::endl;
-   // std::cout << refpat.operator->() << std::endl;
+//     std::cout << "Comparing with "; it->second.operator->()->ShortPrint(cout); cout << endl;
+//     std::cout << it->second.operator->() << std::endl;
+//     std::cout << refpat.operator->() << std::endl;
     if( *(it->second.operator->()) == refpat ) return it->second;
   }
   //cout << "Not found\n";
@@ -1267,7 +1268,7 @@ void TPZGeoMesh::InitializeRefPatterns()
         "-1.0  0.0  1.0 "
         " 0.0  0.0 -1.0 "
         " 0.0 -1.0  0.0 "
-        " 1.0  1.0  0.0 "
+        " 1.0  0.0  0.0 "
         " 0.0  1.0  0.0 "
         "-1.0  0.0  0.0 "
         " 0.0  0.0  1.0 "
