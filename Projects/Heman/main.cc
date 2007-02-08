@@ -4,6 +4,7 @@
 
 #include "pzgeoel.h"
 #include "pzgnode.h"
+#include "pzgmesh.h"
 
 #include "pzintel.h"
 #include "pzcompel.h"
@@ -324,40 +325,85 @@ void InitializeLOG()
 }
 
 
-int main ()
+TPZGeoMesh * choiceMesh(std::string &meshName)
 {
-  InitializeLOG();
+  TPZGeoMesh *geomesh;
+  int opt = -1;
+  cout << "Choose the mesh to be processed:\n"
+      << "\t1 - plane plate\n"
+      << "\t2 - yf17\n";
+  cin >> opt;
 
+  switch (opt)
+  {
+    case (1) :
+    {
+      std::string file_path = PZSOURCEDIR;
+      file_path += "/Projects/Heman/Files/Meshes/placa_plana.txt";
+      std::ifstream file (file_path.c_str());
+      TPZCompMesh *compmesh = ReadMesh (file);
+      geomesh = compmesh->Reference();
+      meshName = "placa_plana";
+      break;
+    }
+    case (2) :
+    {
+      ReadF17(geomesh);
+      meshName = "yf17";
+      break;
+    }
+    default:
+      cout << "\nOption: " << opt << " is not a valid choice!\n"
+          << "Exiting without process any mesh!\n";
+      exit (-1);
+      break;
+  }
+  return geomesh;
+}
+
+void LoadPatternDB(TPZGeoMesh *gMesh)
+{
+  cout << "\tinitialize uniform refinement patterns...\n";
+  gMesh->InitializeRefPatterns();
+
+  cout << "\tinitialize refinement patterns from file data base...\n";
+  LoadRefPatternDataBase(gMesh);
+  cout << "...0...\n";
   std::string file_path = PZSOURCEDIR;
-  file_path += "/Projects/Heman/Files/Meshes/placa_plana.txt";
-  std::ifstream file (file_path.c_str());
-
-  TPZCompMesh *compmesh = ReadMesh (file);
-  TPZGeoMesh *geomesh = compmesh->Reference();
-  geomesh->InitializeRefPatterns();
-//   TPZGeoMesh *geomesh = new TPZGeoMesh();
-//   ReadF17(geomesh);
-  LoadRefPatternDataBase(geomesh);
-
-  file_path = PZSOURCEDIR;
   file_path += "/Projects/Heman/Files/RefPatterns/Hexa_Half.rpt";
   std::ifstream inparq (file_path.c_str());
   std::string outfile = PZSOURCEDIR;
   outfile += "/Projects/Heman/Files/RefPatterns/hexa_plus_tetra.rpt";
   std::ofstream outarq (outfile.c_str());
-  InsertNewPattern(inparq, *geomesh, outarq);
+
+  cout << "...1...\n";
+  InsertNewPattern(inparq, *gMesh, outarq);
 
   file_path = PZSOURCEDIR;
   file_path += "/Projects/Heman/Files/RefPatterns/Hexa_2AdjRibs.rpt";
   std::ifstream inparq2 (file_path.c_str());
-  InsertNewPattern(inparq2, *geomesh, outarq);
+  cout << "...2...\n";
+  InsertNewPattern(inparq2, *gMesh, outarq);
 
   file_path = PZSOURCEDIR;
   file_path += "/Projects/Heman/Files/RefPatterns/Prism_2AdjRibs.rpt";
   std::ifstream inparq3 (file_path.c_str());
-  InsertNewPattern(inparq3, *geomesh, outarq);
+  cout << "...3...\n";
+  InsertNewPattern(inparq3, *gMesh, outarq);
+}
 
+int main ()
+{
+  cout << "Initilizing log system...\n";
+  InitializeLOG();
 
+  std::string meshname;
+  TPZGeoMesh *geomesh = choiceMesh(meshname);
+
+  cout << "Loading refinement patterns...\n";
+  LoadPatternDB(geomesh);
+
+  cout << "Filtering bounding box...\n";
   FilterBoundingBox(geomesh);
 
   ofstream dx_arq ("surface.dx");
@@ -368,47 +414,63 @@ int main ()
   int count = 0;
   int destmatid = 2;
 
+  int el, nref = -1;
+  cout << "number of refinement steps:\n";
+  cin >> nref;
+  cout << endl;
+
   int i;
-  for(i=0; i<5; i++)
+  for(i=0; i<nref; i++)
   {
     int nelements = geomesh->NElements();
-    int el;
-    map<set<int>, TPZRefPattern*> MyMap;
+    cout << "\tEntering refinement step: " << i << " number of elements = " << nelements << endl;
+    cout << "\tRefining...\n";
+
+    //map<set<int>, TPZRefPattern*> MyMap;
     TPZStack<int> refinesides;
     for (el=0; el<nelements; el++)
     {
+      cout << ".";
+      if (!(el+1)%40) cout << endl;
+      else cout.flush();
       TPZGeoEl *elemento = geomesh->ElementVec()[el];
       RefineDirectional(elemento,matids,destmatid);
     }
+    cout << "\nWriting dx files...\n";
     {
-      std::stringstream nome;
+      std::stringstream nome(meshname);
       nome << count << "_boundary_a.dx";
       ofstream dx_arq_ref (nome.str().c_str());
       WriteMesh(geomesh,dx_arq_ref,destmatid);
     }
     {
-      std::stringstream nome;
+      cout << "\tfor all boundaries\n";
+      std::stringstream nome(meshname);
       nome << count++ << "_boundary_ref";
       std::string elMesh = nome.str().c_str();
       nome << ".dx";
       ofstream dx_arq_ref (nome.str().c_str());
       WriteMesh(geomesh,dx_arq_ref,destmatid+1);
 
+      cout << "\tfor tetrahedres\n";
       std::string aux = elMesh;
       aux += "-tetra.dx";
       std::ofstream dx_tetra_arq (aux.c_str());
       WriteElementMesh(geomesh,dx_tetra_arq,destmatid+1,4);
 
+      cout << "\tfor pyramides\n";
       aux = elMesh;
       aux += "-pyramid.dx";
       std::ofstream dx_pyra_arq (aux.c_str());
       WriteElementMesh(geomesh,dx_pyra_arq,destmatid+1,5);
 
+      cout << "\tfor prims\n";
       aux = elMesh;
       aux += "-prism.dx";
       std::ofstream dx_prism_arq (aux.c_str());
       WriteElementMesh(geomesh,dx_prism_arq,destmatid+1,6);
 
+      cout << "\tfor hexahedres\n";
       aux = elMesh;
       aux += "-hexa.dx";
       std::ofstream dx_hexa_arq (aux.c_str());
@@ -416,6 +478,7 @@ int main ()
     }
     destmatid += 2;
   }
+  cout << "Finalizing...\n";
   destmatid--;
   //geomesh->Print(cout);
   //string ref = "refpattern.txt" ;
