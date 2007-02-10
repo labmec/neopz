@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.31 2007-01-27 14:41:34 phil Exp $
+//$Id: pzanalysis.cpp,v 1.32 2007-02-10 13:39:05 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -341,7 +341,7 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
     if(matit->second && !bc && matit->second->Dimension() == dimension) break;
   }
   if(matit == fCompMesh->MaterialVec().end()) return;
-  fGraphMesh[dim1]->SetCompMesh(fCompMesh,mat);
+  fGraphMesh[dim1]->SetCompMesh(fCompMesh,matit->second);
 
   fGraphMesh[dim1]->SetResolution(resolution);
   fGraphMesh[dim1]->DrawMesh(1);
