@@ -203,7 +203,8 @@ void TPZRefPattern::ReadPattern(std::istream &in)
   int nnodes,nelems,inode;
   in >> nnodes >> nelems >> fId;
   fNSubEl = nelems - 1;
-  getline(in,fName);
+  in >> fName;
+//  getline(in,fName);
 //  getline(in,fName);
   TPZManVector<REAL,3> coord(3);
   fInternalMesh.NodeVec().Resize(nnodes);
@@ -1127,10 +1128,16 @@ string TPZRefPattern::GetName(){
 int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
 {
   int nnodes = fInternalMesh.NNodes();
-  if(fInternalMesh.NNodes() != compare->fInternalMesh.NNodes() || fInternalMesh.NElements() != compare->fInternalMesh.NElements()) return 0;
+  if(fInternalMesh.NNodes() != compare->fInternalMesh.NNodes() || fInternalMesh.NElements() != compare->fInternalMesh.NElements())
+  {
+    return 0;
+  }
   TPZGeoEl *father = fInternalMesh.ElementVec()[0];
   TPZGeoEl *compfather = compare->fInternalMesh.ElementVec()[0];
-  if(father->Type() != compfather->Type()) return 0;
+  if(father->Type() != compfather->Type()) 
+  {
+    return 0;
+  }
   int dim = father->Dimension();
 //  int nsides = father->NSides();
 //  TPZTransform t = father->ComputeParamTrans(compfather,nsides-1,nsides-1);
@@ -1145,21 +1152,24 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
 //    t.Apply(elparam,compareparam);
 //    compfather->X(compareparam,coordcompare);
     int jn;
+    TPZManVector<REAL> diff(nnodes,0.);
     for(jn=0; jn<nnodes; jn++)
     {
-      REAL diff = 0.;
       int j;
       for(j=0; j<3; j++) coordcompare[j] = compare->fInternalMesh.NodeVec()[jn].Coord(j);
       compfather->ComputeXInverse(coordcompare,compareparam);
-      for(j=0 ; j<dim; j++) diff += (elparam[j]-compareparam[j])*(elparam[j]-compareparam[j]);
-      diff = sqrt(diff);
-      if(diff < 1.e-8)
+      for(j=0 ; j<dim; j++) diff[jn] += (elparam[j]-compareparam[j])*(elparam[j]-compareparam[j]);
+      diff[jn] = sqrt(diff[jn]);
+      if(diff[jn] < 1.e-8)
       {
         nodemap[in] = jn;
         break;
       }
     }
-    if(jn == nnodes) return 0;
+    if(jn == nnodes) 
+    {
+      return 0;
+    }
   }
   int nelem = fInternalMesh.NElements();
   int iel;
@@ -1185,10 +1195,11 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
         break;
       }
     }
+    
     if(jel == nelem)
     {
 
-      cout << "node map\n";
+/*      cout << "node map\n";
       for(in=0; in<nnodes; in++) cout << in << " -> " << nodemap[in] << " | ";
       cout << endl;
       int iel;
@@ -1207,8 +1218,8 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
         int in, nnode = igel->NNodes();
         for(in=0; in<nnode; in++) cout << igel->NodeIndex(in) << ' ';
         cout << std::endl;
-      }
-
+      }*/
+    
       return 0;
     }
   }
