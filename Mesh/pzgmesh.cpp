@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.34 2007-02-07 19:54:24 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.35 2007-02-10 13:38:27 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -1182,7 +1182,7 @@ void TPZGeoMesh::InitializeRefPatterns()
   {
     char buf[] =
         "3	3\n"
-        "202	UNIFORM_LINE\n"
+        "202	\nUNIFORM_LINE\n"
         "-1.	0.	0. "
         "1.	0.	0. "
         "0.	0.	0. "
@@ -1198,7 +1198,7 @@ void TPZGeoMesh::InitializeRefPatterns()
   {
     char buf[] =
         "6  5\n"
-        "399 UNIFORM_TRIANGLE\n"
+        "399 \nUNIFORM_TRIANGLE\n"
         "0.  0.  0. "
         "1.  0.  0. "
         "0.  1.  0. "
@@ -1219,7 +1219,7 @@ void TPZGeoMesh::InitializeRefPatterns()
   {
     char buf[] =
         "9 5\n"
-        "499 UNIFORM_QUAD\n"
+        "499 \nUNIFORM_QUAD\n"
         "-1. -1. 0. "
         "1.  -1. 0. "
         "1.  1.  0. "
@@ -1245,7 +1245,7 @@ void TPZGeoMesh::InitializeRefPatterns()
     std::cout << "\n\ninserting hexahedre\n";
     char buf[] =
         "27 9\n"
-        "899 HALF_HEXA\n"
+        "899 \nHALF_HEXA\n"
         "-1.0 -1.0 -1.0 "
         " 1.0 -1.0 -1.0 "
         " 1.0  1.0 -1.0 "
@@ -1294,7 +1294,7 @@ void TPZGeoMesh::InitializeRefPatterns()
     std::cout << "\n\ninserting tetrahedre\n";
     char buf[] =
         "10  7\n"
-        "799 UNIFORM_TETRA\n"
+        "799 \nUNIFORM_TETRA\n"
         "0.  0.  0. "
         "1.  0.  0. "
         "0.  1.  0. "
@@ -1322,13 +1322,13 @@ void TPZGeoMesh::InitializeRefPatterns()
     std::cout << "\n\ninserting pyramid\n";
     char buf[] =
         "14  11\n"
-        "599 UNIFORM_PYRAMID\n"
+        "599 \nUNIFORM_PYRAMID\n"
         "-1.0 -1.0  0.0 "
          "1.0 -1.0  0.0 "
          "1.0  1.0  0.0 "
         "-1.0  1.0  0.0 "
          "0.0  0.0  1.0 "
-         "0.5 -1.0  0.0 "
+         "0.0 -1.0  0.0 "
          "1.0  0.0  0.0 "
          "0.0  1.0  0.0 "
         "-1.0  0.0  0.0 "
@@ -1358,7 +1358,7 @@ void TPZGeoMesh::InitializeRefPatterns()
     std::cout << "\n\ninserting prism\n";
     char buf[] =
         "18  9\n"
-        "699 UNIFORM_PRISM\n"
+        "699 \nUNIFORM_PRISM\n"
         "0.  0.  -1. "
         "1.  0.  -1. "
         "0.  1.  -1. "
