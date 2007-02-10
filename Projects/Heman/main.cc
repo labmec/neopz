@@ -239,8 +239,8 @@ void LoadRefPatternDataBase(TPZGeoMesh *geomesh)
 #endif
 
   std::string prefix = path;
-  prefix += "/Projects/Heman/Files/RefPatterns/";
-  std::string allfiles = prefix;// + "Patternlist";
+  prefix += "/Refine/RefPatterns/";
+  std::string allfiles = prefix + "Patternlist";
 
   std::string allpatterns = prefix + "ListedPatterns10.txt";
   std::cout << "Reading refinement patterns: " << allpatterns.c_str() <<  std::endl;
@@ -295,7 +295,7 @@ void InitializeLOG()
 #endif
 #ifdef LOG4CXX
   configfile = path;
-  configfile += "/Util/config.h";
+  configfile += "/Util/log4cxx.cfg";
   log4cxx::PropertyConfigurator::configure(configfile);
 
     //  log4cxx::BasicConfigurator::configure();
@@ -348,6 +348,7 @@ TPZGeoMesh * choiceMesh(std::string &meshName)
     }
     case (2) :
     {
+      geomesh = new TPZGeoMesh;
       ReadF17(geomesh);
       meshName = "yf17";
       break;
@@ -368,7 +369,7 @@ void LoadPatternDB(TPZGeoMesh *gMesh)
 
   cout << "\tinitialize refinement patterns from file data base...\n";
   LoadRefPatternDataBase(gMesh);
-  cout << "...0...\n";
+/*  cout << "...0...\n";
   std::string file_path = PZSOURCEDIR;
   file_path += "/Projects/Heman/Files/RefPatterns/Hexa_Half.rpt";
   std::ifstream inparq (file_path.c_str());
@@ -389,7 +390,7 @@ void LoadPatternDB(TPZGeoMesh *gMesh)
   file_path += "/Projects/Heman/Files/RefPatterns/Prism_2AdjRibs.rpt";
   std::ifstream inparq3 (file_path.c_str());
   cout << "...3...\n";
-  InsertNewPattern(inparq3, *gMesh, outarq);
+  InsertNewPattern(inparq3, *gMesh, outarq);*/
 }
 
 int main ()
