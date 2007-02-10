@@ -39,7 +39,7 @@ public:
   long NElements(MElementType type);
   int Res() {return fResolution;}
   void SetMaterial(TPZAutoPointer<TPZMaterial> mat) {fMaterial = mat;}
-  virtual void SetCompMesh(TPZCompMesh *mesh, TPZAutoPointer<TPZMaterial> mat);
+  virtual void SetCompMesh(TPZCompMesh *mesh, TPZAutoPointer<TPZMaterial> &mat);
   std::ostream *Out();
   virtual void DrawNodes();
   virtual void DrawMesh(int numcases);

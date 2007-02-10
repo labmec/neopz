@@ -224,7 +224,7 @@ TPZAutoPointer<TPZMaterial> TPZGraphMesh::Material() {
    return fMaterial;
 }
 
-void TPZGraphMesh::SetCompMesh(TPZCompMesh *mesh, TPZAutoPointer<TPZMaterial> mat){
+void TPZGraphMesh::SetCompMesh(TPZCompMesh *mesh, TPZAutoPointer<TPZMaterial> &mat){
   if(fCompMesh == mesh && mat == fMaterial) return;
 	int i;
   fCompMesh = mesh;
