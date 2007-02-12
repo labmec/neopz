@@ -23,6 +23,7 @@
 
 #include "pzmaterial.h"
 #include "pzelasmat.h"
+#include "pzlog.h"
 
 #include <time.h>
 #include <stdio.h>
@@ -46,11 +47,11 @@
 */
 #include <vector>
 
-#ifdef LOG4CXX
-#include <log4cxx/logger.h>
-#include <log4cxx/basicconfigurator.h>
-#include <log4cxx/propertyconfigurator.h>
-#endif
+// #ifdef LOG4CXX
+// #include <log4cxx/logger.h>
+// #include <log4cxx/basicconfigurator.h>
+// #include <log4cxx/propertyconfigurator.h>
+// #endif
 
 using namespace std ;
 
@@ -247,7 +248,14 @@ void LoadRefPatternDataBase(TPZGeoMesh *geomesh)
   std::ifstream fonte (allpatterns.c_str(),ios::in);
   if(!fonte.fail())
   {
-    geomesh->PatternFileLoad(fonte);
+    try {
+      geomesh->PatternFileLoad(fonte);
+    }
+    catch (...)
+    {
+      std::cout << __PRETTY_FUNCTION__ << std::endl;
+      exit (-1);
+    }
   }
   else
   {
@@ -396,7 +404,7 @@ void LoadPatternDB(TPZGeoMesh *gMesh)
 int main ()
 {
   cout << "Initilizing log system...\n";
-  InitializeLOG();
+  InitializePZLOG();
 
   std::string meshname;
   TPZGeoMesh *geomesh = choiceMesh(meshname);
