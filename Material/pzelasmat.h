@@ -22,7 +22,7 @@ public :
   
   /**Copies the data of one TPZElasticityMaterial object to 
      another*/
-  TPZElasticityMaterial(TPZElasticityMaterial &copy);
+  TPZElasticityMaterial(const TPZElasticityMaterial &copy);
 
   /**Creates a new material from the current object   ??*/
   virtual TPZAutoPointer<TPZMaterial> NewMaterial() { return new TPZElasticityMaterial(*this);}

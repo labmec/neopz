@@ -461,7 +461,7 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 }
 
 
-TPZElasticityMaterial::TPZElasticityMaterial(TPZElasticityMaterial &copy) :
+TPZElasticityMaterial::TPZElasticityMaterial(const TPZElasticityMaterial &copy) :
   TPZMaterial(copy),
   fE(copy.fE),
   fnu(copy.fnu),
