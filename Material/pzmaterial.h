@@ -203,20 +203,6 @@ class  TPZMaterial : public TPZSaveable
       /** Factor to diffussive term*/
 //      virtual int IdBC(REAL *x) { return 5; }
 
-      /**Compute the contribution to stiffness matrix and load vector
-	 of the fluxes over the interface between two computational
-	 elements*/
-      virtual void ContributeOverInterface(TPZVec<REAL> &x,
-					   TPZVec<REAL> &leftsol,
-					   TPZVec<REAL> &rightsol,
-					   REAL weight, REAL area, int type,
-					   TPZFMatrix &axes,
-					   TPZFMatrix &phileft,
-					   TPZFMatrix &phiright,
-					   TPZVec<REAL> &normal,
-					   TPZFMatrix &ek, TPZFMatrix &ef);
-
-
   virtual void ContributeErrors(TPZVec<REAL> &x,
                               TPZVec<REAL> &sol,
                               TPZFMatrix &dsol,
@@ -269,14 +255,7 @@ PZError << "Method not implemented\n";
 
 };
 
-inline void TPZMaterial::ContributeOverInterface(
-   TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*leftsol*/, TPZVec<REAL> &/*rightsol*/,
-   REAL /*weight*/, REAL /*area*/, int /*type*/, TPZFMatrix &/*axes*/,
-   TPZFMatrix &/*phileft*/, TPZFMatrix &/*phiright*/, TPZVec<REAL> &/*normal*/,
-   TPZFMatrix &/*ek*/, TPZFMatrix &/*ef*/)
-{
-   std::cout << "TPZMaterial::ContributeOverInterface is called.\n";
-}
+
 
 
 
