@@ -394,6 +394,11 @@ private:
    static TPZRestoreClass gRestoreObject;
 };
 
+template<>
+inline TPZSaveable *TPZRestoreClass<TPZSaveable,-1>::Restore(TPZStream &buf, void *context)
+{
+  return 0;
+}
 template<class T, int N>
 TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
 
