@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.7 2007-01-27 14:29:37 phil Exp $
+// $Id: pzreferredcompel.cpp,v 1.8 2007-03-20 21:07:14 tiago Exp $
 
 
 #include "pzreferredcompel.h"
@@ -142,7 +142,7 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
                             TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
 {
   ComputeSolution(qsi,sol,dsol,axes);
-  ComputeSolution(qsi,leftsol,dleftsol,axes,rightsol,drightsol,rightaxes);
+  ComputeSolution(qsi,leftsol,dleftsol,leftaxes,rightsol,drightsol,rightaxes);
 }
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
