@@ -19,6 +19,11 @@
 using namespace std;
 REAL TPZMaterial::gBigNumber = 1.e12;
 
+TPZMaterial::TPZMaterial(){
+  this->fId = -666;
+  this->fForcingFunction = NULL;
+}
+
 TPZMaterial::TPZMaterial(int id) {
    fId = id;
    fForcingFunction = 0;
