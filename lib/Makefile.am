@@ -68,7 +68,8 @@ libpz_a_LIBADD = ../Post/tpzgraphelt3d.o ../External/pzsloan.o \
 	../Post/pztrigraph.o ../Post/pztrigraphd.o ../Post/pzv3dmesh.o ../Post/pzvisualmatrix.o \
 	../Multigrid/pzmgsolver.o ../Multigrid/pztransfer.o ../Multigrid/pztrnsform.o \
 	../External/pzmetis.o ../External/pzrenumbering.o ../Pre/pzgengrid.o ../Pre/pzpargrid.o \
-	../Pre/TPZGMSHReadMesh.o ../Pre/pzreadtetgen.o ../Pre/TPZExtendGridDimension.o ../Save/pzsave.o \
+	../Pre/TPZGMSHReadMesh.o ../Pre/pzreadtetgen.o ../Pre/TPZExtendGridDimension.o ../Pre/pzreadmesh.o \
+	../Pre/pzreadmeshhr.o ../Save/pzsave.o \
 	../Save/pzfilebuffer.o ../External/sloan/diamtr.o ../External/sloan/gegra.o \
 	../External/sloan/iorele.o ../External/sloan/isorti.o ../External/sloan/label.o \
 	../External/sloan/number.o ../External/sloan/profi1.o ../External/sloan/rootls.o \
