@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.35 2007-02-10 13:38:27 phil Exp $
+//$Id: pzgmesh.cpp,v 1.36 2007-03-20 21:14:35 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -33,6 +33,12 @@ Method definition for class TPZGeoMesh.*/
 #ifdef BORLAND
 #include <io.h>
 #include <fcntl.h>
+#endif
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeomesh"));
 #endif
 
 
@@ -345,12 +351,34 @@ void TPZGeoMesh::GetBoundaryElements(int NodFrom, int NodTo,TPZStack<TPZGeoEl *>
     // put all elements connected to currentnode in elmap, eliminate the elements
     //		from elmap which do not contain the node
     BuildElementsAroundNode(currentnode,elmap);
+#ifdef LOG4CXX
+    {
+      std::stringstream sout;
+      std::map<int, TPZGeoEl *>::iterator it;
+      sout << "Elements around node " << currentnode << " : ";
+      for(it=elmap.begin(); it!=elmap.end(); it++)
+      {
+        sout << it->second->Index() << "|";
+        int in;
+        for(in=0; in<it->second->NNodes(); in++)
+        {
+          sout << it->second->NodeIndex(in) << ":";
+        }
+        sout << " -- ";
+      }
+      LOGPZ_DEBUG(logger,sout.str());
+    }
+#endif
     // find, within elmap the element which has currentnode as its first boundary side
     //  	node
     FindElement(elmap, currentnode, candidate, candidateside);
     //	if the element found is already contained in the list, we have a circular list
     // if no element was found, the topology may not be two dimensional
-    if(!candidate) break;
+    if(!candidate) 
+    {
+      LOGPZ_WARN(logger,"GetBoundaryElements no adjacent element found");
+      break;
+    }
     int index = 0;
     int nelvec = ElementVec.NElements();
     while(index<nelvec && ElementVec[index] != candidate) index++;
@@ -395,7 +423,7 @@ void TPZGeoMesh::BuildElementsAroundNode(int currentnode,map<int,TPZGeoEl*> &elm
       int numnode = neigh.Element()->NNodes();
       for(i=0; i< numnode; i++) {
 	if(neigh.Element()->NodeIndex(i) == currentnode){
-	  if(elmap.find(neigh.Element()->Id())!=elmap.end()) {
+	  if(elmap.find(neigh.Element()->Id())==elmap.end()) {
 	    // this should be implemented as a stack, so that we dont have to
 	    // 	go through the list again each time
 	    elmap[neigh.Element()->Id()] = neigh.Element();
@@ -423,15 +451,27 @@ void TPZGeoMesh::FindElement(map<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl
     int ns = el->NSides();
     int is = el->NCornerNodes();
     for(; is < ns; is++) {
+      TPZGeoElSide thisside(el,is);
       TPZGeoElSide neigh = el->Neighbour(is);
       TPZGeoElSide father = el->Father2(is);
-      if(!neigh.Exists() && !father.Exists() && el->SideNodeIndex(is,0) == currentnode) {
+      if(neigh == thisside && !father.Exists() && el->SideNodeIndex(is,0) == currentnode) {
 	candidate = el;
 	candidateside = is;
 	return;
       }
     }
   }
+#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    sout << "No neighbour found for node " << currentnode << " elmap \n";
+    for(iel=elmap.begin(); iel!=elmap.end(); iel++)
+    {
+      iel->second->Print(sout);
+    }
+    LOGPZ_WARN(logger,sout.str());
+  }
+#endif
 }
 
 TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co) {
