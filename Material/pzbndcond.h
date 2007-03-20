@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.20 2007-01-27 14:49:27 phil Exp $
+//$Id: pzbndcond.h,v 1.21 2007-03-20 20:52:02 cesar Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -38,7 +38,7 @@ protected:
   TPZFMatrix	fBCVal1;            // first value of boundary condition
   TPZFMatrix	fBCVal2;            // second value of boundary condition
   TPZAutoPointer<TPZMaterial> fMaterial;	        // pointer to material which created bc
-  
+
   /** Function to allow fBCVal1 to be variable */
   void (*fValFunction)(TPZVec<REAL> &loc, TPZFMatrix &Val1, TPZVec<REAL> &Val2, int &BCType);
 
@@ -60,6 +60,10 @@ public :
   TPZBndCond(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2) :
     TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
     //cria um novo material
+      if(!material)
+      {
+        std::cout << __PRETTY_FUNCTION__ << " Creating boundary condition with NULL material" << std::endl;
+      }
     fMaterial = material;
     fType = type;
 
@@ -67,12 +71,12 @@ public :
 
   TPZBndCond(TPZBndCond &copy, TPZAutoPointer<TPZMaterial> ref) : TPZDiscontinuousGalerkin(copy), fType(copy.fType),
 						   fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {}
- 
+
 
   void SetValFunction(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix &Val1, TPZVec<REAL> &Val2, int &BCType)){
     fValFunction = fp;
-  }                                                   
-                                                   
+  }
+
   void SetMaterial(TPZAutoPointer<TPZMaterial> mat) { fMaterial = mat;}
 
   /**returns the integrable dimension of the material*/
@@ -88,7 +92,7 @@ public :
   virtual int NEvalErrors() {return fMaterial->NEvalErrors();}
 
   int Type() { return fType; }
-  
+
   TPZFMatrix &Val1() { return fBCVal1; }
 
   TPZFMatrix &Val2() { return fBCVal2; }
@@ -109,7 +113,7 @@ public :
 
   void Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &sol,TPZFMatrix &dsol, REAL
 	weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
-    
+
     if(fForcingFunction) {
       TPZManVector<REAL> result(fBCVal2.Rows());
       fForcingFunction(x,result);
@@ -118,7 +122,7 @@ public :
 	fBCVal2(i,0) = result[i];
       }
     }
-    
+
     if( this->fValFunction ) {
       TPZManVector<REAL> result(this->fBCVal2.Rows());
       this->fValFunction( x, this->fBCVal1, result, this->fType );
@@ -126,8 +130,8 @@ public :
       for(i = 0; i < this->fBCVal2.Rows(); i++) {
         this->fBCVal2(i,0) = result[i];
       }
-    }//if    
-    
+    }//if
+
     //clone meshes required analysis
     int typetmp = fType;
     if (fType == 50){
@@ -138,7 +142,7 @@ public :
 	    }
 	    fType = 2;
     }
-    
+
     fMaterial->ContributeBC(x,sol,weight,axes,phi,ek,ef,*this);
     fType = typetmp;
   }
@@ -178,7 +182,7 @@ public :
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
                                    TPZFMatrix &axesleft, TPZFMatrix &axesright,
 				   TPZFMatrix &ef);
-  
+
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
 				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
 				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
@@ -189,26 +193,26 @@ public :
     TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &axesleft, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
     //NOTHING TO BE DONE HERE
   }
-  
-  /** Compute interface jumps 
+
+  /** Compute interface jumps
    * values[1] = (solleft - solright)^2
    * values[2] = (dsolleft - dsolright)^2
    * values[0] = values[1] + values[2]
    * @since Feb 14, 2006
-   */  
+   */
   virtual void InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
                          TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
                          TPZVec<REAL> &values);
-  
+
   /** Compute interface jumps from element to Dirichlet boundary condition
    * values[1] = (solleft - solright)^2
    * values[2] = (dsolleft - dsolright)^2
    * values[0] = values[1] + values[2]
    * @since Feb 14, 2006
-   */  
+   */
   virtual void BCInterfaceJumps(TPZVec<REAL> &leftu, TPZBndCond &bc, TPZVec<REAL> &values){
     //NOTHING TO BE DONE HERE
-  }       
+  }
 
   /**
   * returns the unique identifier for reading/writing objects to streams
@@ -227,14 +231,14 @@ public :
   void ContributeInterfaceErrors(TPZVec<REAL> &x,
                                        TPZVec<REAL> &solL,
                                        TPZVec<REAL> &solR,
-                                       TPZFMatrix &dsolL, 
+                                       TPZFMatrix &dsolL,
                                        TPZFMatrix &dsolR,
                                        REAL weight,
                                        TPZVec<REAL> &normal,
-                                       TPZVec<REAL> &nkL, 
+                                       TPZVec<REAL> &nkL,
                                        TPZVec<REAL> &nkR,
-                                       int LeftPOrder, 
-                                       int RightPOrder, 
+                                       int LeftPOrder,
+                                       int RightPOrder,
                                        REAL faceSize,
                                        int &errorid);
 
@@ -245,7 +249,7 @@ public :
                                                               TPZVec<REAL> &normal,
                                                               TPZVec<REAL> &nk,
                                                               TPZBndCond &bc,
-                                                              int POrder, 
+                                                              int POrder,
                                                               REAL faceSize,
                                                               int &errorid){
   //nothing to be done here
