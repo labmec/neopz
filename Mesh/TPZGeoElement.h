@@ -1,7 +1,7 @@
 
 // -*- c++ -*-
 
-// $Id: TPZGeoElement.h,v 1.16 2007-02-02 18:30:54 cesar Exp $
+// $Id: TPZGeoElement.h,v 1.17 2007-03-21 17:45:52 cesar Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
@@ -35,7 +35,19 @@ public:
 
   /** Copy constructor */
   TPZGeoElement(TPZGeoMesh &DestMesh, const TPZGeoElement &cp);
-  
+
+  /**
+   * Clone constructor for patch meshes
+   * @param DestMesh destination patch mesh
+   * @param cp element to be copied
+   * @param gl2lcNdIdx map between the original node indexes and patch node indexes
+   * @param gl2lcElIdx map between the original element indexes and patch element index
+   */
+  TPZGeoElement ( TPZGeoMesh &DestMesh,
+                  const TPZGeoElement &cp,
+                  std::map<int,int> &gl2lcNdIdx,
+                  std::map<int,int> &gl2lcElIdx );
+
   void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
   //  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh );
   //  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh, int& index );
@@ -43,12 +55,19 @@ public:
   ~TPZGeoElement(){};
 
   virtual int ClassId() const;
-  
+
   virtual void Read(TPZStream &str, void *context);
 
   virtual void Write(TPZStream &str, int withclassid);
-  
+
   virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
+
+  /**
+   * @see class TPZGeoEl
+   */
+  virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
+                                  std::map<int,int> &gl2lcNdIdx,
+                                  std::map<int,int> &gl2lcElIdx) const;
 
   /** return 1 if the element has subelements along side*/
   int HasSubElement() {return fSubEl[0]!=-1;}
@@ -67,7 +86,7 @@ public:
 
   /**
    * return the number of subelements of the element independent of the
-   * fact hether the element has already been refined or not 
+   * fact hether the element has already been refined or not
    */
   int NSubElements();
 
@@ -103,5 +122,5 @@ public:
 };
 
 
-#endif 
+#endif
 

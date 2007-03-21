@@ -40,36 +40,41 @@
 #include "pzstream.h"
 #include "pzmeshid.h"
 //#include "pzstack.h"
+#include "pzlog.h"
 using namespace std;
 
 //template<class TShape, class TGeo, class TRef>
 //int TPZGeoElement<TShape,TGeo,TRef>::fTest;
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelement"));
+#endif
+
 
 template<class TShape, class TGeo, class TRef>
-TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) : 
+TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) :
   TPZGeoElRefLess<TShape,TGeo>(nodeindices,matind,mesh) {
-  
+
 //  int i,nnod = nodeindices.NElements();
 //  if(nnod!=TGeo::NNodes) {
 //    PZError << "TPZGeoElement<TShape,TGeo,TRef>::Constuctor, number of nodes : " << nnod << endl;
 //    return;
 //  }
-  
+
 //  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
   int i;
   for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo, class TRef>
-TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) : 
+TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
   TPZGeoElRefLess<TShape,TGeo>(nodeindices,matind,mesh,index) {
-  
+
 //  int i,nnod = nodeindices.NElements();
 //  if(nnod!=TGeo::NNodes) {
  //   PZError << "TPZGeoElement<TShape,TGeo,TRef>::Constuctor, number of nodes : " << nnod << endl;
   //  return;
  // }
-  
+
 //  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
   int i;
   for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
@@ -92,7 +97,7 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(int id,TPZVec<int> &nodeindexes,i
 
 template< class TShape, class TGeo, class TRef >
 void TPZGeoElement< TShape, TGeo, TRef >::Initialize(TPZVec<int> &nodeindices, int matind, TPZGeoMesh& mesh, int& index ) {
-  
+
 TPZGeoElRefLess<TShape,TGeo>::Initialize(nodeindices,matind,mesh,index);
   for( int i = 0; i < TRef::NSubEl; i++ ){
      fSubEl[ i ] = 0;
@@ -107,11 +112,11 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement() : TPZGeoElRefLess<TShape,TGeo>(
 
 
 template<class TShape, class TGeo, class TRef>
-void 
+void
 TPZGeoElement<TShape,TGeo,TRef>::SetSubElement(int id, TPZGeoEl *el){
 
   if (id<0 || id >(TRef::NSubEl - 1)){
-    PZError << "TPZGeoElement::Trying do define subelement :" 
+    PZError << "TPZGeoElement::Trying do define subelement :"
 	    << id << "Max Allowed = " << TRef::NSubEl - 1 << endl;
     return;
   }
@@ -226,6 +231,15 @@ TPZGeoEl * TPZGeoElement<TShape,TGeo,TRef>::Clone(TPZGeoMesh &DestMesh) const{
   return new TPZGeoElement<TShape,TGeo,TRef>(DestMesh, *this);
 }//Clone method
 
+
+template<class TShape, class TGeo, class TRef>
+TPZGeoEl * TPZGeoElement<TShape,TGeo,TRef>::ClonePatchEl(TPZGeoMesh &DestMesh,
+                                                         std::map<int,int> & gl2lcNdMap,
+                                                         std::map<int,int> & gl2lcElMap) const{
+  return new TPZGeoElement<TShape,TGeo,TRef>(DestMesh, *this, gl2lcNdMap, gl2lcElMap);
+}//Clone method
+
+
 template<class TShape, class TGeo, class TRef>
 TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZGeoMesh &DestMesh, const TPZGeoElement &cp):
   TPZGeoElRefLess<TShape,TGeo>(DestMesh, cp){
@@ -234,6 +248,36 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZGeoMesh &DestMesh, const TPZGe
     this->fSubEl[i] = cp.fSubEl[i];
   }
 }
+
+
+template<class TShape, class TGeo, class TRef>
+TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZGeoMesh &DestMesh,
+                                               const TPZGeoElement &cp,
+                                               std::map<int,int> &gl2lcNdMap,
+                                               std::map<int,int> &gl2lcElMap):
+                                               TPZGeoElRefLess<TShape,TGeo>(DestMesh, cp, gl2lcNdMap, gl2lcElMap)
+{
+  int i, n = TRef::NSubEl;
+  for(i = 0; i < n; i++)
+  {
+    if (cp.fSubEl[i] == -1)
+    {
+      this->fSubEl[i]=-1;
+      continue;
+    }
+    if (gl2lcElMap.find(cp.fSubEl[i]) == gl2lcElMap.end())
+    {
+      std::stringstream sout;
+      sout << "ERROR in - " << __PRETTY_FUNCTION__
+           << " subelement index is not in map from original to clone indexes! Son index = "
+           <<  fSubEl[i];
+      LOGPZ_ERROR(logger,sout.str().c_str());
+      exit(-1);
+    }
+    this->fSubEl[i] = gl2lcElMap[fSubEl[i]];
+  }
+}
+
 
 using namespace pzgeom;
 using namespace pzrefine;
@@ -255,56 +299,56 @@ template<>
 int TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>::ClassId() const {
   return TPZFGEOELEMENTPOINTID;
 }
-template class 
+template class
 TPZRestoreClass< TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>, TPZFGEOELEMENTPOINTID>;
 
 template<>
 int TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::ClassId() const {
   return TPZFGEOELEMENTLINEARID;
 }
-template class 
+template class
 TPZRestoreClass< TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>, TPZFGEOELEMENTLINEARID>;
 
 template<>
 int TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::ClassId() const {
   return TPZFGEOELEMENTQUADID;
 }
-template class 
+template class
 TPZRestoreClass< TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>, TPZFGEOELEMENTQUADID>;
 
 template<>
 int TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::ClassId() const {
   return TPZFGEOELEMENTRIANGLEID;
 }
-template class 
+template class
 TPZRestoreClass< TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>, TPZFGEOELEMENTRIANGLEID>;
 
 template<>
 int TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::ClassId() const {
   return TPZFGEOELEMENTCUBEID;
 }
-template class 
+template class
 TPZRestoreClass< TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>, TPZFGEOELEMENTCUBEID>;
 
 template<>
 int TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::ClassId() const {
   return TPZFGEOELEMENTPRISMID;
 }
-template class 
+template class
 TPZRestoreClass< TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>, TPZFGEOELEMENTPRISMID>;
 
 template<>
 int TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::ClassId() const {
   return TPZFGEOELEMENTTETRAID;
 }
-template class 
+template class
 TPZRestoreClass< TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>, TPZFGEOELEMENTTETRAID>;
 
 template<>
 int TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::ClassId() const {
   return TPZFGEOELEMENTPYRAMID;
 }
-template class 
+template class
 TPZRestoreClass< TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>, TPZFGEOELEMENTPYRAMID>;
 
 #else
