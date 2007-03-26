@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.30 2007-01-03 00:06:47 phil Exp $
+//$Id: pzcompel.cpp,v 1.31 2007-03-26 12:50:25 cesar Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -145,6 +145,24 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index) {
   fReferenceIndex = copy.fReferenceIndex;
 }
 
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int,int> &gl2lcElMap)
+{
+  fMesh = &mesh;
+  if (gl2lcElMap.find(copy.fIndex) == gl2lcElMap.end())
+  {
+    std::stringstream sout;
+    sout << "ERROR in - " << __PRETTY_FUNCTION__
+        << " original element index: " << copy.fIndex << " is not mapped!";
+    LOGPZ_ERROR (logger,sout.str().c_str());
+    exit(-1);
+  }
+  int index = gl2lcElMap[copy.fIndex];
+  if(index >= 0) mesh.ElementVec()[index] = this;
+  fIndex = index;
+//  fReference = copy.Reference();
+  fReferenceIndex = copy.fReferenceIndex;
+}
+
 TPZCompEl::~TPZCompEl() {
   int index = Index();
   fMesh->ElementVec()[index] = 0;
@@ -177,7 +195,7 @@ void TPZCompEl::LoadSolution() {
   int in;
   int iv,jv,idf;
   REAL coef;
-  for(in=0;in<totalconnects;in++) 
+  for(in=0;in<totalconnects;in++)
     maxdep = (maxdep < dependenceorder[in]) ? dependenceorder[in] : maxdep;
   int current_order = maxdep-1;
   while(current_order >= 0) {
@@ -218,7 +236,7 @@ void TPZCompEl::SetMesh(TPZCompMesh *mesh) {
 }
 
 TPZCompMesh *TPZCompEl::Mesh() {
-  if(!fMesh) 
+  if(!fMesh)
     LOGPZ_WARN(logger, "TPZCompEl.Mesh called for a uninitialized element.");
   return fMesh;
 }
@@ -823,7 +841,7 @@ REAL TPZCompEl::MaximumRadiusOfEl(){
 }
 
 REAL TPZCompEl::LesserEdgeOfEl(){
- 
+
   if(!this) LOGPZ_INFO(logger,"TPZCompMesh::LesserEdgeOfEl null element");
 
   int i,j,k;
@@ -851,13 +869,13 @@ REAL TPZCompEl::LesserEdgeOfEl(){
   /**
   Save the element data to a stream
   */
-void TPZCompEl::Write(TPZStream &buf, int withclassid) 
+void TPZCompEl::Write(TPZStream &buf, int withclassid)
 {
   TPZSaveable::Write(buf,withclassid);
   buf.Write(&fIndex,1);
   buf.Write(&fReferenceIndex,1);
-}  
-  
+}
+
   /**
   Read the element data from a stream
   */
@@ -898,14 +916,14 @@ void TPZCompEl::CreateInterfaces(bool BetweenContinuous){
     }
     TPZStack<TPZCompElSide> highlist;
     thisside.HigherLevelElementList(highlist,0,1);
-    //a interface se cria uma vez so quando existem ambos 
+    //a interface se cria uma vez so quando existem ambos
     //elementos esquerdo e direito (computacionais)
     if(!highlist.NElements()) {
       this->CreateInterface(side, BetweenContinuous);//s�tem iguais ou grande => pode criar a interface
     } else {
       int ns = highlist.NElements();
       int is;
-      for(is=0; is<ns; is++) {//existem pequenos ligados ao lado atual 
+      for(is=0; is<ns; is++) {//existem pequenos ligados ao lado atual
         const int higheldim = highlist[is].Reference().Dimension();
 	if(higheldim != InterfaceDimension) continue;
 // 	TPZCompElDisc *del = dynamic_cast<TPZCompElDisc *> (highlist[is].Element());
@@ -913,7 +931,7 @@ void TPZCompEl::CreateInterfaces(bool BetweenContinuous){
 
 	TPZCompEl *del = highlist[is].Element();
 	if(!del) continue;
-        
+
         TPZCompElSide delside( del, highlist[is].Side() );
         if ( del->ExistsInterface(delside.Reference()) ) {
 //          cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
@@ -942,7 +960,7 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
   list.Resize(0);
   thisside.EqualLevelElementList(list,0,1);//retorna distinto ao atual ou nulo
   int size = list.NElements();
-  //espera-se ter os elementos computacionais esquerdo e direito 
+  //espera-se ter os elementos computacionais esquerdo e direito
   //ja criados antes de criar o elemento interface
   if(size){
     //Interface has the same material of the neighbour with lesser dimension.
@@ -958,7 +976,7 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
       if (thisdim < neighbourdim) matid = this->Material()->Id();
       else matid = list[0].Element()->Material()->Id();
     }
-    
+
 
     int index;
 
@@ -975,16 +993,16 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
         return NULL;
       }
     }
-    
-    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual    
-    
+
+    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
+
 
     if(Dimension() > list0->Dimension()){
        //o de volume eh o direito caso um deles seja BC
        //a normal aponta para fora do contorno
        newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,this,list0, thisside, neighside);
     } else {
-       //caso contrario ou caso ambos sejam de volume 
+       //caso contrario ou caso ambos sejam de volume
        newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,list0,this, neighside, thisside);
     }
     return newcreatedinterface;
@@ -999,7 +1017,7 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
     int matid;
     int thisdim = this->Dimension();
     int neighbourdim = lower.Element()->Dimension();
-    
+
     if (thisdim == neighbourdim){
 //      matid = this->Material()->Id();
         matid = this->Mesh()->Reference()->InterfaceMaterial(this->Material()->Id(), lower.Element()->Material()->Id() );
@@ -1007,23 +1025,23 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
     else { //one element is a boundary condition
       if (thisdim < neighbourdim) matid = this->Material()->Id();
       else matid = lower.Element()->Material()->Id();
-    }    
+    }
 
- 
+
     TPZCompEl *lowcel = lower.Element();
     int lowside = lower.Side();
     TPZCompElDisc * thisdisc  = dynamic_cast<TPZCompElDisc*>(this);
     TPZCompElDisc * neighdisc = dynamic_cast<TPZCompElDisc*>(lowcel);
     int thisside = side;
     int neighside = lowside;
-    
+
     if (BetweenContinuous == false){
       //It means at least one element must be discontinuous
       if (!thisdisc && !neighdisc){
         return NULL;
       }
-    }    
-         
+    }
+
     //existem esquerdo e direito: this e lower
     TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
     int index;
@@ -1047,7 +1065,7 @@ int TPZCompEl::ExistsInterface(TPZGeoElSide geosd){
     TPZCompElSide neighcompside = neighside.Reference();
     neighside = neighside.Neighbour();
     if(!neighcompside.Element()) continue;
-    if(neighcompside.Element()->Type() == EInterface) 
+    if(neighcompside.Element()->Type() == EInterface)
       return 1;
   }
   return 0;
@@ -1061,7 +1079,7 @@ void TPZCompEl::RemoveInterfaces(){
     mess << __PRETTY_FUNCTION__ << " - this->Material() == NULL, I can't RemoveInterfaces()";
     PZError << mess.str() << std::endl;
     LOGPZ_ERROR(logger, mess.str());
-    return;  
+    return;
   }
   int InterfaceDimension = this->Material()->Dimension() - 1;
   int is;
@@ -1104,7 +1122,7 @@ void TPZCompEl::RemoveInterfaces(){
 }
 
 void TPZCompEl::RemoveInterface(int side) {
-  
+
   TPZStack<TPZCompElSide> list;
   list.Resize(0);
   TPZCompElSide thisside(this,side);
@@ -1187,7 +1205,7 @@ void TPZCompElSide::EqualLevelElementList(TPZStack<TPZCompElSide> &elsidevec,
   georef.EqualLevelCompElementList(elsidevec,onlyinterpolated,removeduplicates);
 }
 
-void TPZCompElSide::HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec, 
+void TPZCompElSide::HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec,
                                                int onlyinterpolated, int removeduplicates) {
   TPZGeoElSide georef = Reference();
   if(!georef.Exists()) {
@@ -1293,7 +1311,7 @@ TPZCompElSide TPZCompElSide::LowerIdElementList(TPZCompElSide &expandvec,int onl
   int lowid = gelside.Id();
   int in, nneigh = neighbourset.NElements()-1;
   while(in < nneigh) {
-    TPZCompEl *ref = neighbourset[in].Reference().Element();    
+    TPZCompEl *ref = neighbourset[in].Reference().Element();
     if(neighbourset[in].Id() < lowid && ref && (!onlyinterpolated || dynamic_cast<TPZInterpolatedElement*>(ref)    )) {
       lowidneigh = neighbourset[in];
       lowid = lowidneigh.Id();

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.29 2007-01-27 14:34:15 phil Exp $
+// $Id: pzcompel.h,v 1.30 2007-03-26 12:54:26 cesar Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -64,7 +64,7 @@ protected:
    * Element index into mesh element vector
    */
   int fIndex;
-  
+
 private:
   /**
   * Reference to geometric element
@@ -93,14 +93,32 @@ public:
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const = 0;
 
   /**
+   * Method for creating a copy of the element in a patch mesh
+   * Otherwise of the previous clone function, this method don't
+   * copy entire mesh. Therefore it needs to map the connect index
+   * from the both meshes - original and patch
+   * @param mesh Patch clone mesh
+   * @param gl2lcMap map the connects indexes from global element (original) to the local copy.
+     */
+  virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
+                                  std::map<int,int> & gl2lcConMap,
+                                  std::map<int,int> & gl2lcElMap) const = 0;
+
+
+  /**
    * put a copy of the element in the referred mesh
    */
   TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy);
 
   /**
+   * put a copy of the element in the patch mesh
+   */
+  TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int,int> &gl2lcElMap);
+
+  /**
    * copy of the element in the new mesh whit alocated index
    */
-  TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index); 
+  TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index);
 
   /**
    * Create a computational element within mesh
@@ -109,13 +127,13 @@ public:
    * @param index new elemen index
    */
   TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
-  
+
   /**
    * Default interpolation order
    */
   static int gOrder;
 
-  /** 
+  /**
    * Returns the volume of the geometric element associated.
    */
   virtual  REAL VolumeOfEl()
@@ -126,7 +144,7 @@ public:
 
   /**
    * Loads the geometric element referece
-   */    
+   */
   virtual void LoadElementReference();
 
   /**
@@ -157,19 +175,19 @@ public:
    * Return a pointer to the corresponding geometric element if such exists
    * return 0 otherwise
    */
-  TPZGeoEl *Reference() const 
-  { 
-    return (fReferenceIndex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex]; 
+  TPZGeoEl *Reference() const
+  {
+    return (fReferenceIndex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex];
   }
 
-  
-  
-  void SetReference(int referenceindex) 
+
+
+  void SetReference(int referenceindex)
   {
     fReferenceIndex = referenceindex;
 //    fReference = (referenceindex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex];
   }
-  
+
 //   void SetReference(TPZGeoEl *ref)
 //   {
 //     fReference = ref;
@@ -217,11 +235,11 @@ public:
    * Dimension of the element
    */
   virtual int Dimension() const = 0;
-	
+
   /**
    * Identify the material object associated with the element
    */
-  virtual TPZAutoPointer<TPZMaterial> Material() const 
+  virtual TPZAutoPointer<TPZMaterial> Material() const
   {
     TPZAutoPointer<TPZMaterial> result;
     if(fMesh && Reference()) result = fMesh->FindMaterial(Reference()->MaterialId());
@@ -230,7 +248,7 @@ public:
 
   /**
    * Set the material associated with the object
-   * @param mat new element material 
+   * @param mat new element material
    */
 //  virtual void SetMaterial(TPZAutoPointer<TPZMaterial> mat) = 0;
 
@@ -254,7 +272,7 @@ public:
    * @param dimension target dimension of the graphical element
    */
   virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension);
-	
+
   /**
    * Loads the solution within the internal data structure of the element
    * Is used to initialize the solution of connect objects with dependency
@@ -285,7 +303,7 @@ public:
   virtual void Print(std::ostream & out = std::cout);
 
   /**
-   * Output device operator 
+   * Output device operator
    * @param out indicates the device where the data will be printed
    * @param el element to print
    */
@@ -309,7 +327,7 @@ public:
   virtual void PrintCoordinate(TPZVec<REAL> &point,int CoordinateIndex,std::ostream &out);
 
   /**
-   * Prints the variables names associated with the element material 
+   * Prints the variables names associated with the element material
    * @param VarName pointer to variable parameter wha want to print
    * @param out indicates the device where the data will be printed
    */
@@ -338,7 +356,7 @@ public:
 
   /**
    * Compute the element right hand side
-   * @param ef element load vector(s) 
+   * @param ef element load vector(s)
    */
   virtual void CalcResidual(TPZElementMatrix &ef);
 
@@ -379,7 +397,7 @@ public:
   /**
    * Projects the flux function on the finite element space
    * @param ekmat element stiffness matrix
-   * @param efmat element loads matrix   
+   * @param efmat element loads matrix
    */
   virtual void ProjectFlux(TPZElementMatrix &ek,TPZElementMatrix &ef);
 
@@ -395,12 +413,12 @@ public:
 			     TPZVec<REAL> &errors,TPZBlock *flux);
 
   /**
-   * ComputeError computes the element error estimator 
+   * ComputeError computes the element error estimator
   */
   virtual void ComputeError(int errorid, TPZVec<REAL> &error){
     PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
   }
-  
+
   /**
    * Integrate a variable over the element.
    */
@@ -418,7 +436,7 @@ public:
    * @param sol vetor for the solution
    */
   virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
-  
+
  /**
   * Computes solution and its derivatives in the local coordinate qsi.
   * @param qsi master element coordinate
@@ -426,9 +444,9 @@ public:
   * @param dsol solution derivatives
   * @param axes axes associated with the derivative of the solution
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
-  
+
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * @param qsi master element coordinate of the interface element
@@ -439,7 +457,7 @@ public:
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
@@ -457,11 +475,11 @@ public:
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
- 
-  
+
+
   /**
   * Computes solution and its derivatives in local coordinate qsi
   * @param qsi master element coordinate
@@ -523,21 +541,21 @@ public:
   REAL MaximumRadiusOfEl();
 
   REAL LesserEdgeOfEl();
-  
+
   /**
   Save the element data to a stream
   */
   virtual void Write(TPZStream &buf, int withclassid);
-  
+
   /**
   Read the element data from a stream
   */
   virtual void Read(TPZStream &buf, void *context);
 
   /** Create interfaces between this and its neighbours.
-   * Param BetweenContinuous allows to create interface between two elements that are not TPZCompElDisc. 
+   * Param BetweenContinuous allows to create interface between two elements that are not TPZCompElDisc.
    * If param is false, it is necessary to have at least one TPZCompElDisc.
-   */    
+   */
   void CreateInterfaces(bool BetweenContinuous = false);
 
   /** Create an interface between this and the neighbour by side side.
@@ -547,14 +565,14 @@ public:
    */
   TPZInterfaceElement * CreateInterface(int side, bool BetweenContinuous = false);
 
-  /** Verify existence of interface */  
+  /** Verify existence of interface */
   int ExistsInterface(TPZGeoElSide geosd);
-  
-  /** Remove interfaces connected to this element */  
+
+  /** Remove interfaces connected to this element */
   void RemoveInterfaces();
 
   /** Remove interface which is neighbour from side side */
-  void RemoveInterface(int side);  
+  void RemoveInterface(int side);
 
 };
 
@@ -695,7 +713,7 @@ public:
    * @param expandvec vector of TPZCompElSide objects
    */
   static void RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec);
-  
+
   /**
    * Find the list element/side of the current element restrict nodes and elements
    * @param onlyinterpolated if ==1 only elements derived from TPZInterpolated will be put on the stack
@@ -780,7 +798,7 @@ inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFM
  * @param drightsol solution derivatives
  * @param rightaxes axes associated with the right solution
   */
-inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, 
+inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
@@ -801,7 +819,7 @@ inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi,
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, 
+inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
 {
