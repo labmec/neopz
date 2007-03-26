@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.23 2007-01-27 14:30:05 phil Exp $
+//$Id: pzintel.h,v 1.24 2007-03-26 13:02:31 cesar Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -62,18 +62,29 @@ public:
    * Constructor aimed at creating a copy of an interpolated element within a new mesh
    */
   TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy);
-  
+
+  /**
+   * Copy the given element into a new patch mesh
+   * @param mesh patch mesh
+   * @param copy element to be copied
+   * @param gl2lcElMap map the indexes of the orginal mesh to the pacht mesh
+   */
+  TPZInterpolatedElement ( TPZCompMesh &mesh,
+                           const TPZInterpolatedElement &copy,
+                           std::map<int,int> & gl2lcElMap);
+
+
   TPZInterpolatedElement();
   /**
    * destructor, does nothing
    */
   virtual ~TPZInterpolatedElement();
-  
+
   /**
   Save the element data to a stream
   */
   virtual void Write(TPZStream &buf, int withclassid);
-  
+
   /**
   Read the element data from a stream
   */
@@ -84,7 +95,7 @@ public:
    */
   //@{
 
-  /** 
+  /**
    * @return return the index of the material
    */
   int MaterialId() const;
@@ -102,7 +113,7 @@ public:
 
   /**returns the total number of shapefunctions*/
   int NShapeF();
-  
+
   /**returns the number of shape functions on a side*/
   int NSideShapeF(int side);
 
@@ -121,7 +132,7 @@ public:
    * @param is side which is being queried
    */
   virtual int MidSideConnectLocId(int is);
-  
+
   /**return the index of the c th connect object along side is*/
   int SideConnectIndex(int icon,int is);
 
@@ -140,9 +151,9 @@ public:
 
   /**return the number of connect objects of the element*/
   virtual int NConnects() = 0;
-	
+
   /**identify the material object associated with the element*/
-//  TPZAutoPointer<TPZMaterial> Material() const 
+//  TPZAutoPointer<TPZMaterial> Material() const
 //  {
 //    return TPZAutoPointer<TPZMaterial> (fMaterial);
 //  }
@@ -161,7 +172,7 @@ public:
      side iside*/
   virtual int PreferredSideOrder(int iside) = 0;
 
-  /** adjusts the preferredSideOrder for faces 
+  /** adjusts the preferredSideOrder for faces
    * @param side : side for which the order needs adjustment
    * @param order : original order which has to be compared with the sides
   */
@@ -189,7 +200,7 @@ public:
   virtual void SetIntegrationRule(int order) {
     std::cout << "TPZInterpolatedElement::SetIntegrationRule called\n";
   }
-  
+
   /**Sets the interpolation order for the interior of the element*/
   //  virtual void SetInterpolationOrder(TPZVec<int> &ord) = 0;
 
@@ -203,7 +214,7 @@ public:
   /**
    * Sets the interpolation order of side to order
    * This method only updates the datastructure of the element and
-   * updates the blocksize of the associated connect object 
+   * updates the blocksize of the associated connect object
    * @note DO NOT CALL THIS METHOD
    */
   virtual void SetSideOrder(int side, int order) = 0;
@@ -282,7 +293,7 @@ public:
    * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
    */
   virtual void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi) = 0;
-  
+
   /**compute the values of the shape function along the side*/
   virtual void SideShapeFunction(int side, TPZVec<REAL> &point, TPZFMatrix &phi, TPZFMatrix &dphi) = 0;
 
@@ -331,7 +342,7 @@ public:
    * @see TPZMaterial::Solution
    */
   virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
-  
+
   /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * @param qsi master element coordinate
@@ -339,7 +350,7 @@ public:
    * @param dsol solution derivatives
    */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
-  
+
  /**
   * Computes solution and its derivatives in local coordinate qsi
   * @param qsi master element coordinate
@@ -348,7 +359,7 @@ public:
   * @param sol finite element solution
   * @param dsol solution derivatives
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, 
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
                                TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
  /**
@@ -361,7 +372,7 @@ public:
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+virtual void ComputeSolution(TPZVec<REAL> &qsi,
                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
@@ -382,14 +393,14 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
 {
 }
 
   /**
-   * Compare the L2 norm of the difference between the ¨var¨ solution of the current element with 
+   * Compare the L2 norm of the difference between the ¨var¨ solution of the current element with
    * the ¨var¨ solution of the element which is pointed to by the geometric element
    * In order to use this method, call ResetReference on the geometric mesh to which the geometric reference element belongs
    * and call LoadReference on the mesh of the element with which to compare the solution
@@ -485,7 +496,7 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   /**interpolates the solution into the degrees of freedom nodes from the degrees
      of freedom nodes from the coarse element*/
   virtual void InterpolateSolution(TPZInterpolatedElement &coarse);
-  
+
   virtual void InterpolateSolution(TPZCompElDisc &coarsel);
 
 
@@ -542,7 +553,7 @@ virtual  int CheckElementConsistency();
    * @see the class TPZTransform
    */
   virtual TPZTransform TransformSideToElement(int side) = 0;
-  
+
   //@}
 
 
@@ -565,7 +576,7 @@ public:
 
 
 
-  /** 
+  /**
 	 * To enable to work with discontinuous element that can to have interface
 	 * elements*/
   virtual void SetInterface(int /*side*/, int /*index*/) { }

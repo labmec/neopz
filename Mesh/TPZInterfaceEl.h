@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.38 2007-01-27 14:45:57 phil Exp $
+//$Id: TPZInterfaceEl.h,v 1.39 2007-03-26 13:02:31 cesar Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -27,12 +27,12 @@ class TPZInterfaceElement : public TPZCompEl {
    private :
 
   /**
-   * Element the left of the normal a interface 
+   * Element the left of the normal a interface
    */
   TPZCompElSide fLeftElSide;
 
   /**
-   * element the right of the normal a interface 
+   * element the right of the normal a interface
    */
   TPZCompElSide fRightElSide;
 
@@ -68,17 +68,17 @@ class TPZInterfaceElement : public TPZCompEl {
   */
   void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int> &connectindex);
 
-  /** 
+  /**
    * Compute shape functions to an interpolated element. Used in case one neighbour is TPZInterpolatedElement.
    */
   void ComputeShape(TPZInterpolatedElement* intel, TPZFMatrix &phix, TPZFMatrix &dphix,
                     TPZFMatrix &axes, TPZVec<REAL> &IntPoint );
-  
+
  public:
- 
+
   enum CalcStiffOptions{ENone = -1, EStandard /*Deprecated*/ = 0, EPenalty, EContDisc,EReferred};
 
-  /** 
+  /**
    * For CloneInterface usage. Normal is not recomputed, but copied.
    * Only for disconitnuous neighbours.
    */
@@ -98,6 +98,19 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
 
+
+  /**
+   * Clone constructor to a patch mesh
+   * @param mesh reference to a clone mesh
+   * @param copy element to be copied
+   * @param gl2lcIdx map between global(original) and local (patch) connect indexes
+   */
+  TPZInterfaceElement(TPZCompMesh &mesh,
+                      const TPZInterfaceElement &copy,
+                      std::map<int,int> &gl2lcConIdx,
+                      std::map<int,int> &gl2lcElIdx);
+
+
   /**
    *
    */
@@ -105,43 +118,52 @@ class TPZInterfaceElement : public TPZCompEl {
 
   /**
    * Empty constructor.
-   */   
+   */
   TPZInterfaceElement();
 
 //   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
 //   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index);
 
   ~TPZInterfaceElement();
-  
+
   void SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right);
 
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
-    return new TPZInterfaceElement(mesh, *this); 
+    return new TPZInterfaceElement(mesh, *this);
   }
+
+  /**
+   * @see class TPZCompEl
+   */
+  virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int,int> &gl2lcConMap, std::map<int,int> &gl2lcElMap) const
+  {
+    return new TPZInterfaceElement(mesh, *this, gl2lcConMap,gl2lcElMap);
+  }
+
 
   TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,int &index, TPZCompElDisc * left, TPZCompElDisc * right) const;
 
 //  TPZAutoPointer<TPZMaterial> Material() const
-//  { 
+//  {
 //    return TPZAutoPointer<TPZMaterial> (fMaterial);
 //  }
 
 //  void SetMaterial(TPZAutoPointer<TPZMaterial> mat) { fMaterial = mat;}
 
   /**
-   * it identifies the elements of left and right volume of the interface 
+   * it identifies the elements of left and right volume of the interface
    */
   void VolumeEls(TPZCompEl &thirdel);
 
   void GetTransformsLeftAndRight(TPZTransform &tl,TPZTransform &tr);
 
   /**
-   * it returns the right element from the element interface 
+   * it returns the right element from the element interface
    */
   TPZCompEl *RightElement() {return fRightElSide.Element();}
 
   /**
-   * it returns the left element from the element interface 
+   * it returns the left element from the element interface
    */
   TPZCompEl *LeftElement() {return fLeftElSide.Element();}
 
@@ -153,7 +175,7 @@ class TPZInterfaceElement : public TPZCompEl {
 /*   void SetNormal(TPZVec<REAL> &normal); */
 
   /**
-   * it returns the number from connectivities of the element 
+   * it returns the number from connectivities of the element
    */
   int NConnects();
 
@@ -185,13 +207,13 @@ class TPZInterfaceElement : public TPZCompEl {
   }
 
   /**
-   * Type of the element 
+   * Type of the element
    */
   MElementType Type() { return EInterface; }
 
   /**
-   * it returns the shapes number of the element 
-   * the associated space of interpolation is gotten 
+   * it returns the shapes number of the element
+   * the associated space of interpolation is gotten
    * of the elements left and right
    */
   int  NShapeF() {return 0;}
@@ -203,7 +225,7 @@ class TPZInterfaceElement : public TPZCompEl {
   virtual void LoadSolution(){
     //NOTHING TO BE DONE HERE
   }
-  
+
   /**
    * CalcStiff computes the element stiffness matrix and right hand side
    * @param ek element matrix
@@ -232,7 +254,7 @@ class TPZInterfaceElement : public TPZCompEl {
   void CalcResidualStandard(TPZElementMatrix &ef);
 
   /**
-   * CalcStiff with penalty term based on left and right p order and 
+   * CalcStiff with penalty term based on left and right p order and
    * interface inner radius.
    * @param ek element matrix
    * @param ef element right hand side
@@ -249,18 +271,18 @@ class TPZInterfaceElement : public TPZCompEl {
    * @param ef element right hand side
    * @since March 01, 2005
    */
-  void CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatrix &ef);      
+  void CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
   /**
    * CalcStiff for meshes who combine continuous and discontinuous
-   * elements and use referred meshes. 
+   * elements and use referred meshes.
    * It was not necessary to separate this implementation
    * from Standard and Penalty implementations.
    * @param ek element matrix
    * @param ef element right hand side
    * @since March 01, 2005
    */
-  void CalcStiffReferred(TPZElementMatrix &ek, TPZElementMatrix &ef);      
+  void CalcStiffReferred(TPZElementMatrix &ek, TPZElementMatrix &ef);
   /**
    * gCalcStiff = 1 means standard CalcStiff
    * gCalcStiff = 2 means CalcStiff with penalty
@@ -274,9 +296,9 @@ class TPZInterfaceElement : public TPZCompEl {
   static void SetCalcStiffPenalty(){ TPZInterfaceElement::gCalcStiff = EPenalty; }
 
   static void SetCalcStiffContDisc(){ TPZInterfaceElement::gCalcStiff = EContDisc; }
-  
+
   static void SetCalcStiffReferred(){ TPZInterfaceElement::gCalcStiff = EReferred; }
-  
+
  /**
   * Computes solution and its derivatives in the local coordinate qsi.
   * @param [in] qsi master element coordinate
@@ -287,10 +309,10 @@ class TPZInterfaceElement : public TPZCompEl {
    * @param [out] leftaxes axes associated with the derivative of the left element
    * @param [out] rightaxes axes associated with the derivative of the right element
   */
-virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
-    
+
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * @param [in] qsi master element coordinate
@@ -304,7 +326,7 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * @param [out] leftaxes axes associated with the derivative of the left element
    * @param [out] rightaxes axes associated with the derivative of the right element
   */
-virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+virtual void ComputeSolution(TPZVec<REAL> &qsi,
                              TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
@@ -314,7 +336,7 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
 }
 
   void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
-  
+
   /**
    * Print attributes of the object
    */
@@ -345,15 +367,15 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
 		     TPZVec<REAL> &errors, TPZBlock * /*flux */);
 
   /**
-   * ComputeError computes the element error estimator 
+   * ComputeError computes the element error estimator
   */
   virtual void ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec<REAL> &errorR);
-  
+
   /**
    * Integrate a variable over the element.
    */
    virtual void Integrate(int variable, TPZVec<REAL> & value);
-                     
+
   void EvaluateInterfaceJumps(TPZVec<REAL> &errors);
 
   /**
@@ -364,7 +386,7 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   Save the element data to a stream
   */
   virtual void Write(TPZStream &buf, int withclassid);
-  
+
   /**
   Read the element data from a stream
   */

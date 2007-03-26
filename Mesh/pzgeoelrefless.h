@@ -46,27 +46,42 @@ public:
 
   ~TPZGeoElRefLess();
   TPZGeoElRefLess();
-  
+
   /** Copy constructor */
   TPZGeoElRefLess(const TPZGeoElRefLess &gel);
-  
+
   /** Copy constructor with elements in different meshes */
   TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeoElRefLess &cp);
-  
+
+  /**
+   * Copy constructor with elements in different meshes. The clone mesh is
+   * a patch mesh. Therefore there are the requirement to map the nodes
+   * between these meshses.
+   * @param DestMesh destination patch mesh
+   * @param cp element to be copied
+   * @param gl2lcNdMap map of the node indexes between original and clone mesh
+   * @param gl2lcElMap map of the element indexes between original and clone mesh
+   */
+  TPZGeoElRefLess(TPZGeoMesh &DestMesh,
+                  const TPZGeoElRefLess &cp,
+                  std::map<int,int> & gl2lcNdMap,
+                  std::map<int,int> & gl2lcElMap);
+
+
   TPZGeoElRefLess(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
   TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
   TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
 
   virtual void Read(TPZStream &str, void *context);
-  
+
   virtual void Write(TPZStream &str, int withclassid);
-  
+
   virtual void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
-  
+
   static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
 
   static int main_refless();
-  
+
   /** divides the element and puts the resulting elements in the vector */
   virtual void Divide(TPZVec < TPZGeoEl * > & pv) = 0;
 
@@ -114,14 +129,14 @@ public:
    virtual  MElementType Type() {
      return TGeo::Type();
    }
-   
+
   /**
    * returns the type of the element acording to the definition in pzeltype.h
    */
    virtual  MElementType Type(int side) {
      return TGeo::Type(side);
    }
-   
+
    /**
     * return the type of the element as a string
     */
@@ -129,7 +144,7 @@ public:
     {
       return TGeo::TypeName();
     }
-   
+
   /**return the number of nodes of the element*/
   virtual  int NNodes();
 

@@ -1,4 +1,4 @@
-//$Id: pzelctemp.h,v 1.9 2006-10-17 01:39:44 phil Exp $
+//$Id: pzelctemp.h,v 1.10 2007-03-26 13:02:30 cesar Exp $
 
 // -*- c++ -*-
 #ifndef PZELCTEMPH
@@ -16,9 +16,9 @@ template<class TGEO, class TSHAPE>
 class TPZIntelGen : public TPZInterpolatedElement {
 
   int fConnectIndexes[TSHAPE::NSides];
-  
+
   int fPreferredSideOrder;
-  
+
   typename TGEO::IntruleType fIntRule;
 
 public:
@@ -26,14 +26,36 @@ public:
   TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 
   TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,TSHAPE> &copy);
-  
+
+  /**
+   * used to generate patch mesh... generates a map of connect index from
+   * global mesh to clone mesh
+   */
+  TPZIntelGen(TPZCompMesh &mesh,
+              const TPZIntelGen<TGEO,TSHAPE> &copy,
+              std::map<int,int> & gl2lcConMap,
+              std::map<int,int> & gl2lcElMap);
+
   TPZIntelGen();
 
-virtual ~TPZIntelGen();
+  virtual ~TPZIntelGen();
 
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
     return new TPZIntelGen<TGEO, TSHAPE> (mesh, *this);
   }
+
+  /**
+   * Create a copy of the given element. The clone copy have the connect indexes
+   * mapped to the local clone connects by the given map
+   * @param mesh Patch clone mesh
+   * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
+   * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
+   */
+  virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int,int> & gl2lcConMap,std::map<int,int>&gl2lcElMap) const
+  {
+    return new TPZIntelGen<TGEO, TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
+  }
+
 
   virtual MElementType Type();
 
@@ -116,7 +138,7 @@ virtual ~TPZIntelGen();
   Save the element data to a stream
   */
   virtual void Write(TPZStream &buf, int withclassid);
-  
+
   /**
   Read the element data from a stream
   */

@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.25 2007-02-02 18:42:48 cesar Exp $
+//$Id: pzgeoel.h,v 1.26 2007-03-26 13:02:30 cesar Exp $
 
 // -*- c++ -*-
 
@@ -32,7 +32,7 @@ template<class T, int N>
 class TPZStack;
 
 /// defines the behaviour of all geometric elements
-/** 
+/**
  * TPZGeoEl is the common denominator for all geometric elements.
  * @ingroup geometry
  */
@@ -64,7 +64,7 @@ class TPZGeoEl : public TPZSaveable { 	// header file for the element class
    * A counter to indicate how many interface elements are pointing to it
    */
    int fNumInterfaces;
-   
+
 public:
 
   /**
@@ -73,23 +73,23 @@ public:
   int NumInterfaces(){
     return this->fNumInterfaces;
   }
-  
-  /** 
+
+  /**
    * Increment number of TPZInterfaceElement pointing to this.
    */
   int IncrementNumInterfaces(){
     this->fNumInterfaces++;
     return this->fNumInterfaces;
   }
-  
-  /** 
+
+  /**
    * Decrement number of TPZInterfaceElement pointing to this.
    */
   int DecrementNumInterfaces(){
     this->fNumInterfaces--;
     return this->fNumInterfaces;
-  }  
-  
+  }
+
 	/**
 	* Creates an integration rule for the topology of the corresponding side
 	* and able to integrate a polynom of order exactly
@@ -115,8 +115,8 @@ public:
    */
   void ShapePhi1d(double x,int num,TPZFMatrix &phi);
 
-  /**constructor : 
-   * @param Id is the number of the element 
+  /**constructor :
+   * @param Id is the number of the element
    * @param materialindex is the material index
    * @param mesh is a pointer to the mesh to which the element belongs
    */
@@ -138,11 +138,16 @@ public:
    * Copy constructor
    */
   TPZGeoEl(const TPZGeoEl &el) ;
-  
+
   /**
    * Copy constructor with elements in different meshes
    */
   TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp);
+
+  /**
+   * Copy constructor to a patch mesh
+   */
+  TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> &org2clnMap);
 
   TPZGeoEl() {
     fId = -1;
@@ -156,11 +161,24 @@ public:
   virtual void Initialize(int materialindex, TPZGeoMesh &mesh, int &index);
 
   virtual void Read(TPZStream &str, void *context);
-  
+
   virtual void Write(TPZStream &str, int withclassid);
-  
+
   virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const = 0;
-  
+
+  /**
+   * Creates a clone of this element into a new patch mesh.
+   * This method differs from the above by the patch mesh does not
+   * include all elements and nodes. Therefore, a map between node indexes
+   * in both meshes are required
+   * @param DestMesh destination patch mesh
+   * @param gl2lcNdIdx map between node indexes in original and patch mesh
+   * @param gl2lcElIdx map between element indexes in original and patch mesh
+   */
+  virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
+                                  std::map<int,int> &gl2lcNdIdx,
+                                  std::map<int,int> &gl2lcElIdx) const = 0;
+
   /**Destructor*/
   virtual ~TPZGeoEl();
 
@@ -238,7 +256,7 @@ virtual MElementType Type(int side) =0;
 
   /**returns the index of the nodenum node of side*/
   virtual int SideNodeIndex(int side,int nodenum) = 0;
-  
+
   /**returns the local index of a node on a side*/
   virtual int SideNodeLocIndex(int side, int nodenum) = 0;
 
@@ -261,14 +279,14 @@ virtual MElementType Type(int side) =0;
   virtual int NSideSubElements2(int side) = 0;
 
   /**return a pointer to the father*/
-  TPZGeoEl *Father() 
-  { 
-    return (fFatherIndex == -1) ? 0 : Mesh()->ElementVec()[fFatherIndex]; 
+  TPZGeoEl *Father()
+  {
+    return (fFatherIndex == -1) ? 0 : Mesh()->ElementVec()[fFatherIndex];
   }
 
   int FatherIndex() { return fFatherIndex; }
 
-  
+
 
   //@}
 
@@ -364,7 +382,7 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
   {
     fFatherIndex = father->Index();
   }
-  
+
   /**Sets the father element index*/
   virtual void SetFather(int fatherindex)
   {
@@ -417,7 +435,7 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
   //para testar continuidade
   int ElementExists(TPZGeoEl *elem,int id);
 
-  /** 
+  /**
    * @name reftopology
    * Methods which will implement the declaration of a refinemnt topology
    */
@@ -440,10 +458,10 @@ virtual TPZTransform BuildTransform2(int side, TPZGeoEl *father, TPZTransform &t
 
 
 	/**returns the side number which is connected to the point pt
-        * @param pt coordinates of the point in parameter space
-     * @return lowest dimension side which contains the point, -1 if no side is found
-     */
-     int WhichSide(TPZVec<REAL> &pt);
+   * @param pt coordinates of the point in parameter space
+   * @return lowest dimension side which contains the point, -1 if no side is found
+   */
+  int WhichSide(TPZVec<REAL> &pt);
 
   /**
    * It returns the coordinates from the center of the side of the element
@@ -472,11 +490,11 @@ void CheckSubelDataStructure();
      /*testa as transformacoes entre lados de pais e filhos*/
 /* int main(TPZGeoEl *gel,int type); */
   //@}
-	
+
   /**Jorge 17/7/99*/
   /** Return the measure of the geometrical element - Area */
 //  virtual REAL Mesure(int dim) { return fMesure; }
-	/** 
+	/**
 	 * Return into the center a especial point of the geometrical element
 	 * If 1-d => middle point,
 	 * If 2-d => barycenter, orthocenter, etc
@@ -510,7 +528,7 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
   /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
   virtual void SetRefPattern(TPZAutoPointer<TPZRefPattern> );
 
-  /// return the refinement pattern associated with the element  
+  /// return the refinement pattern associated with the element
   virtual TPZAutoPointer<TPZRefPattern> GetRefPattern();
 
     /*!

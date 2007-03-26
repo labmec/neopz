@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.11 2007-01-03 00:06:47 phil Exp $
+//$Id: pzsubcmesh.h,v 1.12 2007-03-26 13:02:31 cesar Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -28,7 +28,7 @@ class TPZAnalysis;
  * @ingroup CompMesh
  * @ingroup CompElement
  */
-class TPZSubCompMesh : 
+class TPZSubCompMesh :
 	public TPZCompMesh,
 	public TPZCompEl
 {
@@ -39,34 +39,34 @@ protected:
   TPZSubMeshFrontalAnalysis *fAnalysis;
 
   /**
-   * Pointer to external location index of the connection. 
-   * If the connection hasn't external location return the local id. 
+   * Pointer to external location index of the connection.
+   * If the connection hasn't external location return the local id.
    */
   TPZVec<int> fConnectIndex;
 
   /**
    * Indexes of the external connections.
-   * If the connection isn't external id is -1! 
+   * If the connection isn't external id is -1!
    */
   TPZVec<int> fExternalLocIndex;
 
 
 private:
   /**
-   * Transfer one element from a submesh to another mesh. 
+   * Transfer one element from a submesh to another mesh.
    */
   int TransferElementTo(TPZCompMesh * mesh, int elindex);
-  
+
   /**
-   * Transfer one element from a specified mesh to the current submesh. 
+   * Transfer one element from a specified mesh to the current submesh.
    */
   int TransferElementFrom(TPZCompMesh *mesh, int elindex);
-  
+
 
 public:
 	TPZAnalysis * GetAnalysis();
   /**
-   * Constructor. 
+   * Constructor.
    * @param mesh reference mesh
    * @param index reference mesh element index to transfer to submesh
    */
@@ -74,11 +74,19 @@ public:
   TPZSubCompMesh();
 
   /**
-   * Destructor. 
+   * Destructor.
    */
   virtual ~TPZSubCompMesh();
 
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+    std::cout << "TPZSubCompMesh::Clone should be implemented\n";
+    return 0;
+  }
+
+  virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
+                                  std::map<int,int> & gl2lcConMap,
+                                  std::map<int,int> & gl2lcElMap) const
+  {
     std::cout << "TPZSubCompMesh::Clone should be implemented\n";
     return 0;
   }
@@ -105,7 +113,7 @@ public:
    * @param var state variable number
    * @param matname pointer to material name
    **/
-  virtual REAL CompareElement(int var, char *matname);	
+  virtual REAL CompareElement(int var, char *matname);
 
   /**
    * Verifies the transfer possibility of the connection elindex from
@@ -120,24 +128,24 @@ public:
    * Methods derived from TPZCompMesh
    */
 
-  //@{	
+  //@{
   // ==== Virtual methods - Computacional Mesh derived ====
 
   /**
-   * Transfer one element form a submesh to another mesh. 
+   * Transfer one element form a submesh to another mesh.
    */
   virtual int TransferElement(TPZCompMesh *mesh, int elindex);
 
   /**
-   * Make all mesh connections internal mesh connections. 
+   * Make all mesh connections internal mesh connections.
    */
   virtual void MakeAllInternal();
 
-  /** 
+  /**
    * compute the number of internal equations
    */
   int NumInternalEquations();
-	
+
   /**
    * This method computes the skyline of the system of equations
    * @param skyline vector where the skyline will be computed
@@ -145,20 +153,20 @@ public:
   virtual void Skyline(TPZVec<int> &skyline);
 
   /**
-   * Returns the rootmesh who have the specified connection. 
+   * Returns the rootmesh who have the specified connection.
    * @param local connection local index
    */
   virtual TPZCompMesh * RootMesh(int local);
 
   /**
-   * Makes a specified connection a internal mesh connection. 
+   * Makes a specified connection a internal mesh connection.
    * @param local connection local number to be processed
    */
   virtual void MakeInternal(int local);
 
    /**
     * Put an local connection in the supermesh - Supermesh is one
-    * mesh who contains the analised submesh. 
+    * mesh who contains the analised submesh.
     * @param local local index of the element to be trasnfered
     * @param super pointer to the destination mesh
     */
@@ -166,26 +174,26 @@ public:
 
   /**
    * Get an external connection from the supermesh - Supermesh is one
-   * mesh who contains the analised submesh. 
+   * mesh who contains the analised submesh.
    * @param superind index of the element to be trasnfered
    * @param super pointer to the destination mesh
    */
   virtual int GetFromSuperMesh(int superind, TPZCompMesh *super);
 
   /**
-   * Changes an local internal connection to a external connection in the father mesh. 
+   * Changes an local internal connection to a external connection in the father mesh.
    * @param local makes the connect with index local an external node
    */
   void MakeExternal(int local);
 
   /**
-   * Gives the commom father mesh of the specified mesh and the current submesh. 
+   * Gives the commom father mesh of the specified mesh and the current submesh.
    * @param mesh pointer to other mesh whosw want to know the commom father mesh
    */
   virtual TPZCompMesh * CommonMesh (TPZCompMesh *mesh);
 
   /**
-   * Return the current submesh father mesh . 
+   * Return the current submesh father mesh .
    */
   virtual TPZCompMesh * FatherMesh();
   //@}
@@ -209,8 +217,8 @@ public:
    */
   //@{
   //  /**
-  //     * Changes the current node index -inode- to the specified node- index. 
-  //     * 
+  //     * Changes the current node index -inode- to the specified node- index.
+  //     *
   //     */
 	virtual void SetConnectIndex(int inode, int index);
 
@@ -218,40 +226,40 @@ public:
   //     * Calculates the submesh stiffness matrix
   //     */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
-    
+
   //	/**
-  //     * Virtual Method! 
+  //     * Virtual Method!
   //     */
 	virtual int AllocateNewConnect(int blocksize, int order);
 
   //    /**
-  //     * Gives the id node  of one local node in a neighbour mesh. 
+  //     * Gives the id node  of one local node in a neighbour mesh.
   //     */
 	int NodeIndex(int nolocal, TPZCompMesh *neighbour);
 
 
   //    /**
-  //     * Virtual Method! See declaration in TPZCompEl class. 
-  //     * The use of this method in submesh class return -1 == Error! 
+  //     * Virtual Method! See declaration in TPZCompEl class.
+  //     * The use of this method in submesh class return -1 == Error!
   //     */
 	virtual int Dimension() const;
 
   //    /**
-  //     * Returns the connection index i. 
+  //     * Returns the connection index i.
   //     */
 	virtual int ConnectIndex(int i);
 
   //    /**
-  //     * Returns the number of connections. 
+  //     * Returns the number of connections.
   //     */
 	virtual int NConnects();
-	
+
   //  /**
   //     * Load the father mesh solution to all submesh connects -
   //	 * (internal and external).
   //     */
 	virtual void LoadSolution();
-	
+
 	virtual void GetExternalConnectIndex (TPZVec<int> &extconn);
   //@}
   /**
@@ -262,7 +270,7 @@ public:
   Save the element data to a stream
   */
   virtual void Write(TPZStream &buf, int withclassid);
-  
+
   /**
   Read the element data from a stream
   */

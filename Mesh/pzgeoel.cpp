@@ -32,9 +32,14 @@ Contains the methods definition for (abstract) base class TPZGeoEl.
 //#include "pzelgpi3d.h"
 //#include "pzelgpr3d.h"
 //#include "pzelgc3d.h"
+#include "pzlog.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoel"));
+#endif
 
 using namespace std;
 
@@ -115,7 +120,7 @@ void TPZGeoEl::Shape1d(double x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
     PZError << "elcalc1d.shape, at this point only linear and quadratic elements\n";
     return;
   }
-  
+
   if(num == 2) {
     phi(0,0) = (1-x)/2.;
     phi(1,0) = (1+x)/2.;
@@ -136,7 +141,7 @@ void TPZGeoEl::ShapePhi1d(double x,int num,TPZFMatrix &phi) {
     PZError << "TPZGeoEl ShapePhi1d, at this point only linear and quadratic elements\n";
     return;
   }
-  
+
   if(num == 2) {
     phi(0,0) = (1-x)/2.;
     phi(1,0) = (1+x)/2.;
@@ -214,7 +219,7 @@ int TPZGeoEl::NeighbourExists(int side,const TPZGeoElSide &gel) {
 
 
 void TPZGeoEl::Print(ostream & out) {
-  
+
   out << "Element id         " << fId << endl;
 //  out << "Element level      " << Level() << endl;
   out << "Number of nodes    " << NNodes() << endl;
@@ -349,9 +354,9 @@ TPZGeoElSide TPZGeoEl::Father2(int /*side*/){//Augusto:09/01/01
 
 int TPZGeoEl::FatherSide(int side, int son){
   PZError << "TPZGeoEl::FatherSide should never be called\n";
-  return -1;	
+  return -1;
 }
-  
+
 TPZTransform TPZGeoEl::BuildTransform2(int /*side*/, TPZGeoEl * /*father*/, TPZTransform & /* tr */){//Augusto:09/01/01
   PZError << "TPZGeoEl::BuildTransform2 should never be called\n";
   return TPZTransform(0,0);
@@ -820,7 +825,7 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
 	  ksi.Resize(3,0.);
 	  REAL epsilon = 0.002;
 	  ofstream outp("JACOBIANO");
-	  for(int l=0;l<10;l++){	     
+	  for(int l=0;l<10;l++){
 		 ksi[0] = l*epsilon;
 	 	 ksi[1] = l*epsilon/2.0;
 		 outp << "ksi : " << ksi[0] << "  "	<< ksi[1] << endl;
@@ -845,7 +850,7 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
   if(dim==1){
          JX(0,0) = axest(0,0)*J(0,0);
          JX(1,0) = axest(1,0)*J(0,0);
-        JX(2,0) = axest(2,0)*J(0,0);        
+        JX(2,0) = axest(2,0)*J(0,0);
   } else {
        axest.Multiply(J,JX,0,1);
   }
@@ -909,7 +914,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
       hess(ik,ij) = hess(ij,ik);/**basta repassar sendo ik>ij*/
       if(ik==ij) {
       	hess(ij,dimss) = 2.*D2Edcidaij;
-        hess(dimss,ij) = hess(ij,dimss);        
+        hess(dimss,ij) = hess(ij,dimss);
       }
       if(ij==0 && ik==0) hess(dimss,dimss) = 2.*D2Edci2;
     }
@@ -943,7 +948,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
     }//final integral gradiente
     //resolução do sistema para cada variavel ifat do pai
     if(dimss) hess.SolveDirect(grad0,ELU);
-    for(int k=0;k<dimss;k++) A(ifat,k) = grad0(k,0);    
+    for(int k=0;k<dimss;k++) A(ifat,k) = grad0(k,0);
     sol(ifat,0) = grad0(dimss,0);
   }//fim sistema ifat
   delete intrule;
@@ -972,7 +977,7 @@ REAL TPZGeoEl::ElementRadius(){
       case 0:
 	 return 0.;
 	 break;
-	 
+
       case 1:
       case 2:{
 	 TPZManVector<REAL, 3> centel  (this->Dimension(), 0.);
@@ -1082,7 +1087,7 @@ REAL TPZGeoEl::Volume(){
 
 REAL TPZGeoEl::SideArea(int side){
 
-  if(side < 0 || side > NSides()-1) 
+  if(side < 0 || side > NSides()-1)
     PZError << "TPZGeoEl::AreaFromTheFace side error, side = " << side << endl;
 
   if(SideDimension(side) != 2)
@@ -1094,7 +1099,7 @@ REAL TPZGeoEl::SideArea(int side){
 
     TPZVec<TPZGeoNode *> nodes(nsn);
     int i;
-    
+
     for(i=0;i</*3*/nsn;i++)
       nodes[i] = &Mesh()->NodeVec()[  SideNodeIndex(side,i) ];
     if (nsn==4)
@@ -1179,7 +1184,45 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp):TPZSaveable(cp){
   this->fNumInterfaces = 0;
 }
 
-  /// return the refinement pattern associated with the element  
+TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> &org2clnMap):TPZSaveable(cp){
+  this->fMesh = &DestMesh;
+  this->fId = cp.fId;
+  this->fMatId = cp.fMatId;
+  this->fReference = cp.fReference;
+  if ( cp.fFatherIndex == -1) this->fFatherIndex = -1;
+  else if (org2clnMap.find(cp.fFatherIndex) == org2clnMap.end())
+  {
+    std::stringstream sout;
+    sout << "ERROR in - " << __PRETTY_FUNCTION__
+        << " original father element index: " << cp.fIndex << " is not mapped!";
+    LOGPZ_ERROR (logger,sout.str().c_str());
+    exit(-1);
+  }
+  else this->fFatherIndex = org2clnMap[cp.fFatherIndex];
+
+  if (org2clnMap.find(cp.fIndex) == org2clnMap.end())
+  {
+    std::stringstream sout;
+    sout << "ERROR in - " << __PRETTY_FUNCTION__
+         << " original element index: " << cp.fIndex << " is not mapped!";
+    LOGPZ_ERROR (logger,sout.str().c_str());
+    exit(-1);
+  }
+
+  std::map<int,int>::iterator it;
+  for (it=org2clnMap.begin();it!=org2clnMap.end();it++)
+  {
+    std::cout << it->first << "\t" << it->second << std::endl;
+  }
+
+
+  this->fIndex = org2clnMap[cp.fIndex];
+  this->fMesh->ElementVec()[this->fIndex] = this;
+  this->fNumInterfaces = 0;
+}
+
+
+  /// return the refinement pattern associated with the element
 TPZAutoPointer<TPZRefPattern> TPZGeoEl::GetRefPattern()
 {
   TPZAutoPointer<TPZRefPattern> result;

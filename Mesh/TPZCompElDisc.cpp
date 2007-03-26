@@ -1,6 +1,6 @@
-//$Id: TPZCompElDisc.cpp,v 1.85 2007-01-27 14:28:08 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.86 2007-03-26 13:02:31 cesar Exp $
 
-// -*- c++ -*- 
+// -*- c++ -*-
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -71,6 +71,18 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
 }
 
+
+TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
+                             const TPZCompElDisc &copy,
+                             std::map<int,int> &gl2lcConMap,
+                             std::map<int,int> &gl2lcElMap) : TPZCompEl(mesh,copy),
+                                                              fCenterPoint(copy.fCenterPoint)
+{
+  fShapefunctionType = copy.fShapefunctionType;
+  TPZAutoPointer<TPZMaterial> mat = copy.Material();
+  gl2lcElMap[copy.fIndex] = this->fIndex;
+}
+
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index) :
 		TPZCompEl(mesh,copy,index), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
@@ -135,7 +147,7 @@ REAL TPZCompElDisc::NormalizeConst()
     dist = sqrt(dist);
     if(maxdist < dist) maxdist = dist;
   }
-  return maxdist;  
+  return maxdist;
 }
 
 
@@ -187,14 +199,14 @@ int TPZCompElDisc::ConnectIndex(int side) {
 
 int TPZCompElDisc::NConnects(){
 
-  
+
   return (fConnectIndex !=-1);
 
 }
 
 int TPZCompElDisc::CreateMidSideConnect(){
   // primeiro s� criados os elementos de volume depois os elementos BC associados aos seus lados
-  // num est�io inicial o elemento BC �acoplado ao elemento ELV de volume de tal forma 
+  // num est�io inicial o elemento BC �acoplado ao elemento ELV de volume de tal forma
   // que ambos s� vizinhos
   // o elemento BC n� pode ser dividido se o elemento ELV associado n� for dividido primeiro
   // caso o elemento ELV �dividido, ent� o elemento BC associado deveria ser dividido
@@ -226,9 +238,9 @@ int TPZCompElDisc::CreateMidSideConnect(){
 	existsconnect = 1;
 	break;
       }
-    }   
+    }
   }
-  
+
   if(dim != dimgrid/* - 1*/){ //dimgrid - 1 = interface dimension
     // o atual �um elemento BC
     fConnectIndex = -1;//=> return NshapeF() = 0
@@ -291,7 +303,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   ef.fMat.Redim(numeq,1);
   if(ncon){
     ek.fBlock.SetNBlocks(ncon);
-    ef.fBlock.SetNBlocks(ncon); 
+    ef.fBlock.SetNBlocks(ncon);
     ek.fBlock.Set(0,NShapeF()*nstate);
     ef.fBlock.Set(0,NShapeF()*nstate);
   }
@@ -358,7 +370,7 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
 
   ef.fMat.Redim(numeq,1);
   if(ncon){//pode serr no m�imo ncon = 1
-    ef.fBlock.SetNBlocks(ncon); 
+    ef.fBlock.SetNBlocks(ncon);
     ef.fBlock.Set(0,NShapeF()*nstate);
   }
   ef.fConnect.Resize(ncon);
@@ -452,7 +464,7 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
     subindex.Resize(0);
     return;
   }
-  
+
   this->Mesh()->ElementVec()[index] = NULL;
   ref->ResetReference();
   TPZCompElDisc *discel;
@@ -481,12 +493,12 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
         mess << __PRETTY_FUNCTION__ << " - discel is NULL ";
         LOGPZ_ERROR(logger, mess.str() );
         continue;
-      }    
+      }
       if(discel->Dimension() < material->Dimension()) continue;//elemento BC
       discel->InterpolateSolution(*this);
     }
   }//if interpolate
-  
+
   delete this;
 }
 
@@ -567,15 +579,15 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
       LOGPZ_ERROR(logger, mess.str() );
     }
 #endif
-    
+
     coarsel.Shape(x,corphi,cordphi);
     //u eh a solucao no elemento maior
     u.Fill(0.);
     int iv = 0;
-    
+
     df = &coarsel.Connect(0);
     int dfseq = df->SequenceNumber();
-    
+
     int dfvar = block.Size(dfseq);
     for(ljn=0; ljn<dfvar; ljn++) {
       u[iv%nvar] += corphi(iv/nvar,0)*block(dfseq,0,ljn,0);
@@ -612,7 +624,7 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
     block(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
     iv++;
   }
-  delete intrule;  
+  delete intrule;
 }
 
 void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
@@ -652,7 +664,7 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
   TPZFMatrix jacobian(dim,dim,jacstore,10);
   TPZFMatrix jacinv(dim,dim,jacinvstore,10);
   TPZManVector<REAL> x(3);
-  
+
   if(var >= 0){
     ref->X(qsi,x);
   } else if(var < 0){
@@ -689,7 +701,7 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &x, TPZVec<REAL> &uh){
 
 
 
-void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) 
+void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
 {
   TPZGeoEl *ref = Reference();
   int mat = Material()->Id();
@@ -733,15 +745,15 @@ int TPZCompElDisc::NInterfaces(){
       break;
 
     case 9: //square
-      return 4;      
-      
+      return 4;
+
     case 15: // Tetrahedra.
       return 4;
       break;
-	
+
     case 19: // Prism.
       return 5;
-      break;	
+      break;
 
     case 21: // Pyramid.
       return 6;
@@ -764,7 +776,7 @@ void TPZCompElDisc::AccumulateIntegrationRule(int degree, TPZStack<REAL> &point,
   TPZVec<REAL> pt(3),x(3,0.0);
   TPZFMatrix jacobian(3,3),jacinv(3,3),axes(3,3);
   REAL detjac,wt;
-  
+
   TPZGeoEl *subgel = Reference();
   if(!subgel) PZError << "TPZCompElDisc::AccumulateIntegrationRule data error, null geometric reference\n";
   TPZIntPoints *rule = subgel->CreateSideIntegrationRule(subgel->NSides()-1,degree);
@@ -779,7 +791,7 @@ void TPZCompElDisc::AccumulateIntegrationRule(int degree, TPZStack<REAL> &point,
     point.Push(x[0]);
     point.Push(x[1]);
     point.Push(x[2]);
-    
+
     weight.Push(wt * fabs(detjac));
   }
   delete rule;
@@ -1008,7 +1020,7 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMa
   const int nshape = this->NShapeF();
   const int dim = ref->Dimension();
   TPZFMatrix phix(nshape,1),dphix(dim,nshape);
-  
+
   TPZFMatrix jacobian(dim,dim);
   TPZFMatrix jacinv(dim,dim);
   REAL detjac;
@@ -1018,7 +1030,7 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMa
   this->Shape(x,phix,dphix);
   this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
 }//method
-  
+
 void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
                                      TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
 
@@ -1026,18 +1038,18 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatr
   const int ncon = this->NConnects();
   TPZBlock &block = Mesh()->Block();
   TPZFMatrix &MeshSol = Mesh()->Solution();
-    
+
   sol.Resize(nstate);
   sol.Fill(0.);
   dsol.Redim(dphix.Rows(), nstate);
   dsol.Zero();
-  
+
   int iv = 0, d;
   for(int in=0; in<ncon; in++) {
     TPZConnect *df = &Connect(in);
     int dfseq = df->SequenceNumber();
     int dfvar = block.Size(dfseq);
-    int pos = block.Position(dfseq);    
+    int pos = block.Position(dfseq);
     for(int jn=0; jn<dfvar; jn++) {
       sol[iv%nstate] += phi(iv/nstate,0)*MeshSol(pos+jn,0);
       for(d=0; d<dphix.Rows(); d++){
@@ -1057,7 +1069,7 @@ int TPZCompElDisc::ClassId() const
   return TPZCOMPELDISCID;
 }
 
-template class 
+template class
     TPZRestoreClass< TPZCompElDisc, TPZCOMPELDISCID>;
 
   /**
@@ -1073,9 +1085,9 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
   buf.Write(&matid,1);
   int shapetype = fShapefunctionType;
   buf.Write(&shapetype,1);
-  
+
 }
-  
+
   /**
   Read the element data from a stream
   */
@@ -1114,7 +1126,7 @@ void TPZCompElDisc::ComputeError(int errorid, TPZVec<REAL> &error){
   TPZManVector<REAL,220> sol(nstate,0.);
   TPZFNMatrix<660> dsol(dim,nstate,0.);
   TPZGeoEl * ref = this->Reference();
-  
+
   TPZFMatrix axes(3,3,0.);
   TPZFMatrix jacobian(dim,dim);
   TPZFMatrix jacinv(dim,dim);
@@ -1149,7 +1161,7 @@ void TPZCompElDisc::Integrate(int variable, TPZVec<REAL> & value){
   TPZManVector<REAL, 3> intpoint(dim,0.);
   const int varsize = material->NSolutionVariables(variable);
   TPZManVector<REAL> sol(varsize);
-  
+
   value.Resize(varsize);
   value.Fill(0.);
   int integ = max( 2 * this->Degree(), 0);

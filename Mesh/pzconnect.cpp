@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.10 2005-04-25 02:31:47 phil Exp $
+//$Id: pzconnect.cpp,v 1.11 2007-03-26 13:02:30 cesar Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -11,6 +11,12 @@
 #include "pzbndcond.h"
 #include "pzsave.h"
 #include "pzstream.h"
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzconnect"));
+#endif
+
 
 using namespace std;
 
@@ -180,7 +186,7 @@ TPZConnect::TPZDepend::TPZDepend(int connectindex) : fDepConnectIndex(connectind
   fDepMatrix(),fNext(0)
 {
 }
- 
+
 TPZConnect::TPZDepend::~TPZDepend() {
   if(fNext) delete fNext;
 }
@@ -358,7 +364,7 @@ void TPZConnect::TPZDepend::Read(TPZStream &buf)
   /**
   Save the element data to a stream
   */
-void TPZConnect::Write(TPZStream &buf, int withclassid) 
+void TPZConnect::Write(TPZStream &buf, int withclassid)
 {
   buf.Write(&fSequenceNumber,1);
   buf.Write(&fNElConnected,1);
@@ -372,7 +378,7 @@ void TPZConnect::Write(TPZStream &buf, int withclassid)
     buf.Write(&min1,1);
   }
 }
-  
+
   /**
   Read the element data from a stream
   */
@@ -390,5 +396,48 @@ void TPZConnect::Read(TPZStream &buf, void *context)
   } else
   {
     fDependList = 0;
+  }
+}
+
+
+/*!
+    \fn TPZConnect::CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx)
+ */
+void TPZConnect::CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx)
+{
+  fOrder = orig.fOrder;
+  fSequenceNumber = orig.fSequenceNumber;
+  fNElConnected = orig.fNElConnected;
+  fDependList->CopyFrom(orig.fDependList,gl2lcIdx);
+}
+
+
+/*!
+    \fn TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<int,int>& gl2lcIdx)
+ */
+void TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<int,int>& gl2lcIdx)
+{
+  int loccondepIdx = -1;
+  int origdepconIdx = orig->fDepConnectIndex;
+  if (gl2lcIdx.find(origdepconIdx) != gl2lcIdx.end()) loccondepIdx = gl2lcIdx[origdepconIdx];
+  else
+  {
+    std::stringstream sout;
+    sout << "ERROR in : " << __PRETTY_FUNCTION__
+         << " trying to clone a dependency connect index: " << origdepconIdx
+         << " wich is not in mapped connect indexes!" ;
+    LOGPZ_ERROR(logger,sout.str().c_str());
+    return;
+  }
+  fDepConnectIndex = loccondepIdx;
+  fDepMatrix = orig->fDepMatrix;
+
+  if (orig->fNext)
+  {
+    fNext->CopyFrom(orig->fNext,gl2lcIdx);
+  }
+  else
+  {
+    fNext = 0;
   }
 }

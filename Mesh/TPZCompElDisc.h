@@ -1,6 +1,6 @@
-// -*- c++ -*- 
+// -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.49 2007-01-27 14:28:08 phil Exp $
+//$Id: TPZCompElDisc.h,v 1.50 2007-03-26 13:02:31 cesar Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -49,12 +49,12 @@ protected:
   pzshape::TPZShapeDisc::MShapeType fShapefunctionType;
 
   /**
-   * it preserves index of connect associated to the element 
+   * it preserves index of connect associated to the element
    */
   int fConnectIndex;
 
   /**
-   * Normalizing constant for shape functions 
+   * Normalizing constant for shape functions
    */
   REAL fConstC;
 
@@ -65,13 +65,13 @@ protected:
 //  TPZAutoPointer<TPZMaterial> fMaterial;
 
   /**
-   * it keeps the interior point coordinations of the element 
+   * it keeps the interior point coordinations of the element
    */
   TPZManVector<REAL,3> fCenterPoint;
 
   /**
    * it creates new conect that it associates the degrees of freedom of the
-   * element and returns its index 
+   * element and returns its index
    */
   virtual int CreateMidSideConnect();
 
@@ -98,13 +98,13 @@ protected:
   /**
    * Set the inner radius value.
    */
-  virtual void SetInnerRadius(REAL InnerRadius) {PZError << "TPZCompElDisc::SetInnerRadius - This method should never be called because the inner" << std::endl 
+  virtual void SetInnerRadius(REAL InnerRadius) {PZError << "TPZCompElDisc::SetInnerRadius - This method should never be called because the inner" << std::endl
 							 << "radius is not stored in TPZCompElDisc. It is stored in TPZAgglomerateElement." << std::endl;}
 
   /**
    * Set element's number of interfaces.
    */
-  virtual void SetNInterfaces(int nfaces) {PZError << "TPZCompElDisc::SetNFaces - This method should never be called because the number of interfaces" << std::endl 
+  virtual void SetNInterfaces(int nfaces) {PZError << "TPZCompElDisc::SetNFaces - This method should never be called because the number of interfaces" << std::endl
 				      << "is not stored in TPZCompElDisc. It is only stored by TPZAgglomerateElement." << std::endl;}
 
   /**
@@ -123,14 +123,38 @@ protected:
   TPZCompElDisc(TPZCompMesh &mesh,int &index);//construtor do aglomerado
 
   TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy);
+
+
+  /**
+   * Creates a clone of the given element in a pathc mesh
+   * @param mesh patch mesh
+   * @param copy element to be copied
+   * @param gl2lcConMap map between the connect indexes in original and patch mesh
+   * @param gl2lcElMap map between the element indexes in original an patch mesh
+   */
+  TPZCompElDisc(TPZCompMesh &mesh,
+                const TPZCompElDisc &copy,
+                std::map<int,int> &gl2lcConMap,
+                std::map<int,int> &gl2lcElMap);
+
+
   TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index);
 
-virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+  virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
     return new TPZCompElDisc(mesh,*this);
   }
 
-virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
+  virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
     return new TPZCompElDisc(mesh,*this,index);
+  }
+
+  /**
+   * @see class TPZCompEl
+   */
+  virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
+                                  std::map<int,int> & gl2lcConMap,
+                                  std::map<int,int> & gl2lcElMap) const {
+    return new TPZCompElDisc(mesh,*this,gl2lcConMap,gl2lcElMap);
   }
 
   ~TPZCompElDisc() {
@@ -150,29 +174,29 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
   /**
-   * ComputeError computes the element error estimator 
+   * ComputeError computes the element error estimator
   */
  void ComputeError(int errorid, TPZVec<REAL> &error);
- 
+
   /**
    * Integrate a variable over the element.
    */
   virtual void Integrate(int variable, TPZVec<REAL> & value);
 
   /**
-   * value of the bases and derivatives of the element deformed in point X 
+   * value of the bases and derivatives of the element deformed in point X
    */
   void Shape(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
 
   /**
-   * Type of the element 
+   * Type of the element
    */
   virtual MElementType Type() {return EDiscontinuous;}
 
   /**
-   * it returns the material object 
+   * it returns the material object
    */
-  virtual TPZAutoPointer<TPZMaterial> Material() const 
+  virtual TPZAutoPointer<TPZMaterial> Material() const
   {
     return fMesh->FindMaterial(Reference()->MaterialId());
   }
@@ -183,7 +207,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   void InterpolateSolution(TPZCompElDisc &coarsel);
 
   /**
-   * it returns the constant that normalizes the bases of the element 
+   * it returns the constant that normalizes the bases of the element
    */
   REAL ConstC(){return fConstC;}
 
@@ -197,12 +221,12 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
 //  virtual void SetMaterial(TPZAutoPointer<TPZMaterial> mat) {fMaterial = mat;}
 
   /**
-   * it prints the features of the element 
+   * it prints the features of the element
    */
   virtual void Print(std::ostream & out = std::cout);
 
   /**
-   * it returns the degree of interpolation of the element 
+   * it returns the degree of interpolation of the element
    */
   virtual int Degree(){
     if (fConnectIndex < 0) return -1;
@@ -210,14 +234,14 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   }
 
   /**
-   * it assigns the degree of the element 
+   * it assigns the degree of the element
    */
   virtual void SetDegree(int degree);// {fDegree = degree;}
 
   int NConnects();
 
   /**
-   * amount of vertices of the element 
+   * amount of vertices of the element
    */
   int NCornerConnects() { return Reference()->NNodes();}
 
@@ -227,30 +251,30 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   int Dimension() const { return Reference()->Dimension();}
 
   /**
-   * it calculates the normalizing constant of the bases of the element 
+   * it calculates the normalizing constant of the bases of the element
    */
   virtual REAL NormalizeConst();
 
   /**
-   * it returns the connect index from the element 
+   * it returns the connect index from the element
    */
   int ConnectIndex(int side = 0);
   void  SetConnectIndex(int /*inode*/, int index) {fConnectIndex = index;}
 
   /**
-   * it returns the shapes number of the element 
+   * it returns the shapes number of the element
    */
   int  NShapeF();
 
   REAL CenterPoint(int index) {return fCenterPoint[index];}
 
   virtual void CenterPoint(TPZVec<REAL> &center);
-  
+
   void SetCenterPoint(int i,REAL x){fCenterPoint[i] = x;}
 
   REAL SizeOfElement();
 
-  /** 
+  /**
    * Returns the volume of the geometric element associated.
    */
   virtual  REAL VolumeOfEl() { return Reference()->Volume(); }
@@ -275,7 +299,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
    * @param dsol solution derivatives
    */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix & axes);
-  
+
  /**
   * Computes solution and its derivatives in local coordinate qsi
   * @param qsi master element coordinate
@@ -284,9 +308,9 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
   * @param sol finite element solution
   * @param dsol solution derivatives
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, 
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
                                TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
-  
+
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * @param qsi master element coordinate of the interface element
@@ -297,7 +321,7 @@ virtual TPZCompEl *Clone(TPZCompMesh &mesh,int &index) const {
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+virtual void ComputeSolution(TPZVec<REAL> &qsi,
                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
@@ -318,7 +342,7 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+virtual void ComputeSolution(TPZVec<REAL> &qsi,
                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
 {
@@ -347,7 +371,7 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
 
   void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 		     TPZVec< REAL> &errors, TPZBlock * /*flux */ );
-  
+
   /**
   * returns the unique identifier for reading/writing objects to streams
   */
@@ -356,7 +380,7 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   Save the element data to a stream
   */
   virtual void Write(TPZStream &buf, int withclassid);
-  
+
   /**
   Read the element data from a stream
   */
@@ -368,6 +392,6 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
 inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index) {
   return new TPZCompElDisc(mesh,geo,index);
 }
-//Exemplo do quadril�ero: 
+//Exemplo do quadril�ero:
 //acessar com -> TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 #endif

@@ -48,7 +48,12 @@
 #include "pzvec.h"
 #include "pzmanvector.h"
 //#include "pzstack.h"
+#include "pzlog.h"
 using namespace std;
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
+#endif
+
 
 template<class TShape, class TGeo>
 TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess():TPZGeoEl(){
@@ -265,7 +270,7 @@ template<class TShape, class TGeo>
 int
 TPZGeoElRefLess<TShape,TGeo>::NSideSubElements2(int side){
   // return TRef::NSideSubElements(side);
-  return 0;   
+  return 0;
 }
 
 template<class TShape, class TGeo>
@@ -299,7 +304,7 @@ TPZGeoElRefLess<TShape,TGeo>::SubElement(int is){
 //  return fSubEl[is];
   return 0;
 }
-/* 
+/*
 template<class TShape, class TGeo>
 TPZGeoElSide
 TPZGeoElRefLess<TShape,TGeo>::SideSubElement(int side,int position){
@@ -497,6 +502,48 @@ TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeo
     this->fNeighbours[i] = cp.fNeighbours[i];
   }
 }
+
+
+template<class TShape, class TGeo>
+TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess(TPZGeoMesh &DestMesh,
+                                              const TPZGeoElRefLess &cp,
+                                              std::map<int,int> & gl2lcNdMap,
+                                              std::map<int,int> & gl2lcElMap ) :
+                                              TPZGeoEl(DestMesh, cp, gl2lcElMap)
+{
+  int i, n = TGeo::NNodes;
+  for(i = 0; i < n; i++)
+  {
+    if (gl2lcNdMap.find(cp.fNodeIndexes[i]) == gl2lcNdMap.end())
+    {
+      std::stringstream sout;
+      sout << "ERROR in - " << __PRETTY_FUNCTION__
+           << " trying to clone a node " << i << " index " << cp.fNodeIndexes[i]
+           << " wich is not mapped";
+      LOGPZ_ERROR(logger,sout.str().c_str());
+      exit(-1);
+    }
+    this->fNodeIndexes[i] = gl2lcNdMap [ cp.fNodeIndexes[i] ];
+  }
+  n = TShape::NSides;
+  for(i = 0; i < n; i++)
+  {
+    int neighIdx = cp.fNeighbours[i].ElementIndex();
+    int side = cp.fNeighbours[i].Side();
+    if (gl2lcElMap.find(neighIdx)==gl2lcElMap.end())
+    {
+      continue;
+      std::stringstream sout;
+      sout << "ERROR in - " << __PRETTY_FUNCTION__
+          << " trying to clone a neighbour " << i << " index " << neighIdx
+          << " wich is not mapped";
+      LOGPZ_ERROR(logger,sout.str().c_str());
+      exit(-1);
+    }
+    this->fNeighbours[i] = TPZGeoElSideIndex ( gl2lcElMap [ neighIdx ] , side );
+  }
+}
+
 
 #include "pzelctemp.h"
 

@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.8 2005-04-25 02:31:47 phil Exp $
+//$Id: pzconnect.h,v 1.9 2007-03-26 13:02:30 cesar Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -26,10 +26,16 @@ Objects of this class also contain the information necessary for constraints bet
 @ingroup interpolation
 */
 class TPZConnect {
-  /**Node block number*/
+  /**
+   * Node block number
+   */
   int		fSequenceNumber;
-  /**Number of element connected*/
+
+  /**
+   * Number of element connected
+   */
   int		fNElConnected;
+
   /**
    * Interpolation order of the associated shape functions
    */
@@ -37,7 +43,8 @@ class TPZConnect {
 
  public:
   /**Structure to reference dependency*/
-  struct TPZDepend {
+  struct TPZDepend
+  {
     int			fDepConnectIndex;
     TPZFMatrix	fDepMatrix;
     TPZDepend		*fNext;
@@ -52,6 +59,14 @@ class TPZConnect {
     TPZDepend *RemoveDepend(TPZDepend *Ptr);
     void Write(TPZStream &buf);
     void Read(TPZStream &buf);
+
+    /**
+     * Copy a depend data structure to a clone depend in
+     * a clone mesh
+     * @param orig original depend to be copied
+     * @param gl2lcIdx global to local indexes map
+     */
+    void CopyFrom(TPZDepend *orig , std::map<int,int>& gl2lcIdx);
   };
 
  private:
@@ -68,7 +83,7 @@ class TPZConnect {
   /**Number of degrees of freedom associated with the object
      It needs the mesh object to access this information*/
   int NDof(TPZCompMesh &mesh); /*Cedric 30/09/98 -  14:05*/
-  
+
   // Philippe In order to compute NDof, the Connect object needs to know the mesh
 
   /**Return the Sequence number of the connect object.
@@ -124,21 +139,28 @@ class TPZConnect {
   void SetDependenceOrder(int myindex, TPZCompMesh &mesh, int CurrentOrder,TPZVec<int> &connectlist,TPZVec<int> &DependenceOrder);
 
   void ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &blocksize, TPZFMatrix &phi, TPZFMatrix &dphi);
-  
+
   /**
   Save the element data to a stream
   */
-void Write(TPZStream &buf, int withclassid);
-  
+  void Write(TPZStream &buf, int withclassid);
+
   /**
   Read the element data from a stream
   */
-void Read(TPZStream &buf, void *context);
+  void Read(TPZStream &buf, void *context);
 
+  /**
+   * Copy a connect data structure from an original connect to a
+   * new connect mapping their indexes
+   * @param orig original connect to be copied
+   * @param gl2lcIdx global to local indexes map
+   */
+  void CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx);
 };
 
 
-/** 
+/**
 @brief Associate a degree of freedom node with a boundary condition
 such boundary condition can be dirichlet, point load or mixed boundary condition.
 \deprecated

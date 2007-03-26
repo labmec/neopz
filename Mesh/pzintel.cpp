@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.48 2007-01-27 14:30:05 phil Exp $
+// $Id: pzintel.cpp,v 1.49 2007-03-26 13:02:30 cesar Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -55,6 +55,14 @@ TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInter
   TPZCompEl(mesh,copy) {
 //  fReference = copy.fReference;
 }
+
+TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh,
+                                               const TPZInterpolatedElement &copy,
+                                               std::map<int,int> & gl2lcElMap) :
+                                               TPZCompEl(mesh,copy,gl2lcElMap)
+{
+}
+
 
 TPZInterpolatedElement::TPZInterpolatedElement() :
   TPZCompEl() {
@@ -403,7 +411,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
   }
   if(coarsemaxorder > myminorder) {
     stringstream sout;
-    sout << "Exiting BuildTransferMatrix - compute the transfer matrix coarse " 
+    sout << "Exiting BuildTransferMatrix - compute the transfer matrix coarse "
          << coarsemaxorder << " me " << myminorder << endl;
     LOGPZ_ERROR(logger,sout.str());
     return;
@@ -835,9 +843,9 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
       blocknorm(in,jn) = sqrt(blocknorm(in,jn));
     }
   }
-#ifdef HUGE_DEBUG  
+#ifdef HUGE_DEBUG
   CheckConstraintConsistency(side);
-#endif  
+#endif
   TPZConnect &inod = Connect(side);
   int inodindex = ConnectIndex(side);
   int ndepend = 0;
@@ -857,11 +865,11 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
       inod.AddDependency(inodindex,jnodindex,MSL,MBlocksmall.Position(in),MBlocklarge.Position(jn),
       MBlocksmall.Size(in),MBlocklarge.Size(jn));
       ndepend++;
-    }    
+    }
   }
   delete intrule;
-  
-#ifdef HUGE_DEBUG  
+
+#ifdef HUGE_DEBUG
   // a matriz frestraint deveria ser igual a MSL
   TPZCheckRestraint test(thisside,largecompside);
   //test.Print(cout);
@@ -870,10 +878,10 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
   int cmsl = MSL.Cols();
   int rtest = test.RestraintMatrix().Rows();
   int ctest = test.RestraintMatrix().Cols();
-  
+
   if (rtest!=rmsl || ctest!=cmsl){
     stringstream sout;
-    sout << "Exiting - Restraint matrix side incompatibility: MSL (rows,cols): ( " << rmsl 
+    sout << "Exiting - Restraint matrix side incompatibility: MSL (rows,cols): ( " << rmsl
          << " , " << cmsl << " )" << " RestraintMatrix (rows,cols): (" << rtest << " , "  << ctest << " )\n"
          << "press any key to continue";
     LOGPZ_ERROR(logger,sout.str());
@@ -881,7 +889,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     cin >> a;
     return;
   }
-  
+
   TPZFMatrix mslc (MSL);
   mslc -= test.RestraintMatrix();
 
@@ -908,7 +916,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 //     gDebug = 1;
 //     cin >> a;
   }
-      
+
   // verificar a norma de MSL
   if(test.CheckRestraint()) {
     stringstream sout
@@ -916,12 +924,12 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     test.Print(sout);
 //     int a;
 //     gDebug = 1;
-//     cin >> a; 
+//     cin >> a;
     test.Diagnose();
     LOGPZ_ERROR(logger,sout.str());
     TPZCheckRestraint test2(thisside,largecompside);
   }
-#endif  
+#endif
 }
 
 void TPZInterpolatedElement::CheckConstraintConsistency() {
@@ -957,7 +965,7 @@ int TPZInterpolatedElement::CheckElementConsistency(){
 
     if (dimsmall >= dimel){
       stringstream sout;
-      sout << "TPZInterpolatedElement::CheckConstraintConsistency : dismall >= dimel: " 
+      sout << "TPZInterpolatedElement::CheckConstraintConsistency : dismall >= dimel: "
            << dimsmall << " >= " <<  dimel << endl
            << "press any key to continue";
       LOGPZ_INFO(logger,sout.str());
@@ -972,7 +980,7 @@ int TPZInterpolatedElement::CheckElementConsistency(){
     for (idim = (dimsmall + 1); idim <= dimel; idim++){
       TPZStack <TPZGeoElSide> geoelsidevec;
       celside.Reference().Element()->AllHigherDimensionSides(iside,idim,geoelsidevec);
-      
+
       int nelhigh = geoelsidevec.NElements();
       int inh;
       for (inh = 0; inh < nelhigh; inh++){
@@ -1257,7 +1265,7 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
     cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
     return;
   }
-  
+
   TPZTransform t(Dimension());
   TPZGeoEl *ref = Reference();
 
@@ -1299,7 +1307,7 @@ void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel
       sout << "  " << interpolation[ccc];
     sout << "  }" << endl;
     LOGPZ_DEBUG(logger,sout.str());
-  } 
+  }
 
   // compute the interpolation order of the shapefunctions squared
   int nel = interpolation.NElements();
@@ -1449,7 +1457,7 @@ void TPZInterpolatedElement::InterpolateSolution(TPZCompElDisc &coarsel){
       sout << "  " << interpolation[ccc];
     sout << "  }" << endl;
     LOGPZ_DEBUG(logger,sout.str());
-  } 
+  }
 
   // compute the interpolation order of the shapefunctions squared
   int nel = interpolation.NElements();
@@ -1647,14 +1655,14 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
     if (material->NeedsXCoord()){
       ref->X(intpoint, x);
     }
-    
+
     material->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ek.fMat,ef.fMat);
-  
+
   }//loop over integratin points
 }
 
 void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
-  
+
   TPZAutoPointer<TPZMaterial> material = Material();
   if(!material){
     stringstream sout;
@@ -1788,7 +1796,7 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
 
   int i;
 
-#ifdef HUGE_DEBUG  
+#ifdef HUGE_DEBUG
   {
     stringstream sout;
     TPZCheckMesh chk(Mesh(),&sout);
@@ -1797,7 +1805,7 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
        LOGPZ_WARN(logger,sout.str());
     }
   }
-#endif  
+#endif
 
   RemoveSideRestraintsII(EDelete);//Cedric 25/03/99
 
@@ -1807,7 +1815,7 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
   TPZGeoEl *cref;
   TPZInterpolatedElement *cel;
 
-#ifdef HUGE_DEBUG    
+#ifdef HUGE_DEBUG
   if(NConnects() == 7) {
     stringstream sout;
     TPZCheckMesh chk(Mesh(),&sout);
@@ -1816,8 +1824,8 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
       LOGPZ_WARN(logger,sout.str());
     }
   }
-#endif  
-  
+#endif
+
   int ncon = ref->NSides();
   TPZInterpolatedElement::gOrder = PreferredSideOrder(ncon-1);
   for (i=0;i<nsubelements;i++) {
@@ -1849,7 +1857,7 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
   delete this;// deve ser relegado para o Refine
 }
 
-REAL TPZInterpolatedElement::CompareElement(int var, char *matname) 
+REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
 {
   TPZAutoPointer<TPZMaterial> material = Material();
   if(!material)
@@ -1997,7 +2005,7 @@ void TPZInterpolatedElement::Print(std::ostream &out) {
 
   int norders = prevorder.NElements();
   out << "Integration orders : \t";
-  for (id=0;id<norders;id++){    
+  for (id=0;id<norders;id++){
     out << prevorder[id] << "\t" ;
   }
   out << endl;
@@ -2021,7 +2029,7 @@ void TPZInterpolatedElement::EvaluateError(void (*fp)(
                                                 TPZVec<REAL> &val,
                                                 TPZFMatrix &deriv),
                                            TPZVec<REAL> &errors,
-                                           TPZBlock * /*flux */) 
+                                           TPZBlock * /*flux */)
 {
   TPZAutoPointer<TPZMaterial> material = Material();
   if(!material)
@@ -2234,7 +2242,7 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
     LOGPZ_ERROR(logger,"CalcBlockDiagonal no material");
     return;
   }
-  
+
   int ncon = NConnects();
   TPZCompMesh &mesh = *Mesh();
   int numdof = material->NStateVariables();
@@ -2276,7 +2284,7 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
   REAL dsolstore[90];
   TPZFMatrix dsol(dim,numdof,dsolstore,90);
 
-  
+
   TPZIntPoints &intrule = GetIntegrationRule();
   TPZGeoEl *ref = Reference();
 
@@ -2322,9 +2330,9 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
       sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
       LOGPZ_WARN(logger,sout.str());
     }
-    
+
     this->ComputeSolution(intpoint, phi, dphix, axes, sol, dsol);
-    
+
     // Expand the values of the shape functions and their derivatives
     ExpandShapeFunctions(connectlist,dependencyorder,blocksizes,phi,dphix);
     // Make the contribution in small blocks
@@ -2529,7 +2537,7 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
     ef.Reset();
     return;
   }
-  
+
   int numdof = material->NStateVariables();
   int ncon = NConnects();
   int dim = Dimension();
@@ -2696,7 +2704,7 @@ void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid)
 {
   TPZCompEl::Write(buf,withclassid);
 }
-  
+
   /**
   Read the element data from a stream
   */
@@ -2748,9 +2756,9 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &so
     sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
     LOGPZ_ERROR(logger,sout.str());
   }
-  
+
   this->ComputeSolution(qsi, phi, dphix, axes, sol, dsol);
-    
+
 }//method
 
 void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
@@ -2758,12 +2766,12 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi,
     const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
-    
+
     sol.Resize(numdof);
     sol.Fill(0.);
     dsol.Redim(dim, numdof);
     dsol.Zero();
-    
+
     TPZBlock &block = Mesh()->Block();
     TPZFMatrix &MeshSol = Mesh()->Solution();
     int iv = 0, d;

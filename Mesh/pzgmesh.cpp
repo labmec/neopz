@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.36 2007-03-20 21:14:35 phil Exp $
+//$Id: pzgmesh.cpp,v 1.37 2007-03-26 13:02:30 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -374,7 +374,7 @@ void TPZGeoMesh::GetBoundaryElements(int NodFrom, int NodTo,TPZStack<TPZGeoEl *>
     FindElement(elmap, currentnode, candidate, candidateside);
     //	if the element found is already contained in the list, we have a circular list
     // if no element was found, the topology may not be two dimensional
-    if(!candidate) 
+    if(!candidate)
     {
       LOGPZ_WARN(logger,"GetBoundaryElements no adjacent element found");
       break;
@@ -446,19 +446,38 @@ void TPZGeoMesh::FindElement(map<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl
   map<int , TPZGeoEl *>::iterator ielprev, iel = elmap.begin();
   while(iel!=elmap.end()) {
     TPZGeoEl *el = iel->second;//elmap.Contents(iel);
-	ielprev=iel;
+    ielprev=iel;
     iel++;//elmap.Next(iel);
     int ns = el->NSides();
     int is = el->NCornerNodes();
     for(; is < ns; is++) {
       TPZGeoElSide thisside(el,is);
+      if (thisside.Dimension() > 1) continue;
       TPZGeoElSide neigh = el->Neighbour(is);
       TPZGeoElSide father = el->Father2(is);
+#ifdef DEBUG2
+      std::stringstream sout;
+      sout << __PRETTY_FUNCTION__ << " for elidx " << el->Index() << std::endl;
+      sout << "\tthiside " << el->Index() << "/" << is << std::endl;
+      if (neigh.Element()) sout << "\tneighsd " << neigh.Element()->Index() << "/" << neigh.Side() << std::endl;
+      if (father.Element())sout << "\tfathers " << father.Element()->Index() << "/" << father.Side() << std::endl;
+#endif
       if(neigh == thisside && !father.Exists() && el->SideNodeIndex(is,0) == currentnode) {
-	candidate = el;
-	candidateside = is;
-	return;
+        candidate = el;
+        candidateside = is;
+#ifdef DEBUG2
+        sout << "\t\t\tNew Candidate found el/side = " << el << "/" << is << std::endl;
+        LOGPZ_DEBUG (logger,sout.str().c_str());
+#endif
+        return;
       }
+#ifdef DEBUG2
+      else
+      {
+        sout << "candidate doesn't match...";
+        LOGPZ_DEBUG(logger,sout.str().c_str());
+      }
+#endif
     }
   }
 #ifdef LOG4CXX

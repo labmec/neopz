@@ -1,11 +1,16 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.29 2007-01-03 00:06:47 phil Exp $
+// $Id: pzelctemp.cpp,v 1.30 2007-03-26 13:02:30 cesar Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
 #include "pzgeoel.h"
 #include "pzmaterial.h"
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzintelgen"));
+#endif
 
 //template<class TGEO, class TSHAPE>
 //class TPZIntelGen : public TPZInterpolatedElement {
@@ -32,14 +37,14 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &ind
     IdentifySideOrder(i);
   }
 
-  int sideorder = SideOrder(TSHAPE::NSides-1);  
+  int sideorder = SideOrder(TSHAPE::NSides-1);
   sideorder = 2*sideorder;
   if (sideorder > fIntRule.GetMaxOrder()) sideorder = fIntRule.GetMaxOrder();
   //  TPZManVector<int,3> order(3,2*sideorder+2);
   TPZManVector<int,3> order(3,sideorder);
   //TPZManVector<int,3> order(3,20);
   fIntRule.SetOrder(order);
-  
+
 }
 
 template<class TGEO, class TSHAPE>
@@ -51,6 +56,46 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,
     fConnectIndexes[i] = copy.fConnectIndexes[i];
   }
 }
+
+
+template<class TGEO, class TSHAPE>
+TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
+                                      const TPZIntelGen<TGEO,TSHAPE> &copy,
+                                      std::map<int,int> & gl2lcConMap,
+                                      std::map<int,int> & gl2lcElMap) :
+    TPZInterpolatedElement(mesh,copy,gl2lcElMap), fIntRule(copy.fIntRule)
+{
+  if (gl2lcElMap.find(copy.fIndex)!= gl2lcElMap.end())
+  {
+    std::stringstream sout;
+    sout << "ERROR in : " << __PRETTY_FUNCTION__
+        << " trying to clone an already cloned element index: " << copy.fIndex;
+    LOGPZ_ERROR(logger, sout.str().c_str());
+    exit(-1);
+  }
+
+  fPreferredSideOrder = copy.fPreferredSideOrder;
+  int i;
+  for(i=0;i<TSHAPE::NSides;i++)
+  {
+    int lcIdx = -1;
+    int glIdx = copy.fConnectIndexes[i];
+    if (gl2lcConMap.find(glIdx) != gl2lcConMap.end()) lcIdx = gl2lcConMap[glIdx];
+    else
+    {
+      std::stringstream sout;
+      sout << "ERROR in : " << __PRETTY_FUNCTION__
+          << " trying to clone the connect index: " << glIdx
+          << " wich is not in mapped connect indexes!";
+      LOGPZ_ERROR(logger, sout.str().c_str());
+      exit(-1);
+    }
+    fConnectIndexes[i] = lcIdx;
+    mesh.ConnectVec()[fConnectIndexes[i]].CopyFrom(fMesh->ConnectVec()[glIdx],gl2lcConMap);
+  }
+  gl2lcElMap[copy.fIndex] = this->Index();
+}
+
 
 template<class TGEO, class TSHAPE>
 TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen() :
@@ -156,7 +201,7 @@ int TPZIntelGen<TGEO,TSHAPE>::PreferredSideOrder(int side) {
   }
   PZError << "TPZIntelgen::PreferredSideOrder called for side = " << side << "\n";
   return 0;
-  
+
 }
 
 template<class TGEO, class TSHAPE>
@@ -164,7 +209,7 @@ int TPZIntelGen<TGEO,TSHAPE>::ConnectIndex(int con) {
 
 #ifndef NODEBUG
   if(con<0 || con>= TSHAPE::NSides) {
-    std::cout << "TPZIntelgen::ConnectIndex wrong parameter con " << con << 
+    std::cout << "TPZIntelgen::ConnectIndex wrong parameter con " << con <<
       " NSides " << TSHAPE::NSides << std::endl;
     return -1;
   }
@@ -210,21 +255,21 @@ void TPZIntelGen<TGEO,TSHAPE>::SetSideOrder(int side, int order) {
 template<class TGEO, class TSHAPE>
 int TPZIntelGen<TGEO,TSHAPE>::SideOrder(int side) {
   if(side < TSHAPE::NNodes || side >= TSHAPE::NSides) return 0;
-  if(fConnectIndexes[side] == -1) 
+  if(fConnectIndexes[side] == -1)
   {
     std::cout << __PRETTY_FUNCTION__ << " side " << side << std::endl;
     Print(cout);
     return -1;
   }
   TPZConnect &c = Connect(side);
-  return c.Order();  
+  return c.Order();
 }
 
 /**transform a point in the parameter space of the side into a point in the space
    of the master element*/
 //template<class TGEO, class TSHAPE>
 //void TPZIntelGen<TGEO,TSHAPE>::SideParameterToElement(int side,TPZVec<REAL> &par,TPZVec<REAL> &point) {
-  
+
 //}
 
 /**transform a point in the parameter space of the master element into a point in the
@@ -306,7 +351,7 @@ void TPZIntelGen<TGEO,TSHAPE>::Write(TPZStream &buf, int withclassid)
   buf.Write(fConnectIndexes,TSHAPE::NSides);
   buf.Write(&fPreferredSideOrder,1);
 }
-  
+
   /**
   Read the element data from a stream
   */
@@ -367,7 +412,7 @@ void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh
 
 template<>
 void TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-  if(dimension == 3) 
+  if(dimension == 3)
   {
     new TPZGeoTetrahedra::GraphElType(this,&grafgrid);
   }
@@ -423,7 +468,7 @@ int TPZIntelGen<TPZGeoPoint,TPZShapePoint>::ClassId() const
 {
   return TPZINTELPOINTID;
 }
-template class 
+template class
     TPZRestoreClass< TPZIntelGen<TPZGeoPoint,TPZShapePoint>, TPZINTELPOINTID>;
 
 
@@ -432,7 +477,7 @@ int TPZIntelGen<TPZGeoLinear,TPZShapeLinear>::ClassId() const
 {
   return TPZINTELLINEARID;
 }
-template class 
+template class
     TPZRestoreClass< TPZIntelGen<TPZGeoLinear,TPZShapeLinear>, TPZINTELLINEARID>;
 
 template<>
@@ -440,7 +485,7 @@ int TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>::ClassId() const
 {
   return TPZINTELTRIANGLEID;
 }
-template class 
+template class
     TPZRestoreClass< TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>, TPZINTELTRIANGLEID>;
 
 template<>
@@ -448,7 +493,7 @@ int TPZIntelGen<TPZGeoQuad,TPZShapeQuad>::ClassId() const
 {
   return TPZINTELQUADID;
 }
-template class 
+template class
     TPZRestoreClass< TPZIntelGen<TPZGeoQuad,TPZShapeQuad>, TPZINTELQUADID>;
 
 template<>
@@ -456,7 +501,7 @@ int TPZIntelGen<TPZGeoCube,TPZShapeCube>::ClassId() const
 {
   return TPZINTELCUBEID;
 }
-template class 
+template class
     TPZRestoreClass< TPZIntelGen<TPZGeoCube,TPZShapeCube>, TPZINTELCUBEID>;
 
 template<>
@@ -464,7 +509,7 @@ int TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::ClassId() const
 {
   return TPZINTELTETRAID;
 }
-template class 
+template class
     TPZRestoreClass< TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>, TPZINTELTETRAID>;
 
 template<>
@@ -472,7 +517,7 @@ int TPZIntelGen<TPZGeoPrism,TPZShapePrism>::ClassId() const
 {
   return TPZINTELPRISMID;
 }
-template class 
+template class
     TPZRestoreClass< TPZIntelGen<TPZGeoPrism,TPZShapePrism>, TPZINTELPRISMID>;
 
 template<>
@@ -480,7 +525,7 @@ int TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::ClassId() const
 {
   return TPZINTELPYRAMID;
 }
-template class 
+template class
     TPZRestoreClass< TPZIntelGen<TPZGeoPyramid,TPZShapePiram>, TPZINTELPYRAMID>;
 
 

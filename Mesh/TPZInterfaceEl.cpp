@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.61 2007-01-27 14:46:18 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.62 2007-03-26 13:02:31 cesar Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -14,42 +14,48 @@
 #include "pzintel.h"
 #include "pzlog.h"
 
+
 int TPZInterfaceElement::gCalcStiff = EContDisc;
 using namespace std;
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterfacelement"));
+#endif
+
 
 void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right){
 
   TPZCompEl * cel = left.Element();
-  if(cel){  
-    
+  if(cel){
+
     TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);    
+    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);
     if (!intel && !disc){
-      PZError << __PRETTY_FUNCTION__ << " - Left element is not a TPZInterpolatedElement or TPZCompElDisc.\n";        
-    }  
-  
+      PZError << __PRETTY_FUNCTION__ << " - Left element is not a TPZInterpolatedElement or TPZCompElDisc.\n";
+    }
+
     this->fLeftElSide.SetElement( left.Element() );
     this->fLeftElSide.SetSide( left.Side() );
   }
-  else{  
-    PZError << __PRETTY_FUNCTION__ << " - Left element is null.\n";    
+  else{
+    PZError << __PRETTY_FUNCTION__ << " - Left element is null.\n";
   }
-  
+
   cel = right.Element();
   if (cel){
-    
+
     TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);    
+    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);
     if (!intel && !disc){
-      PZError << __PRETTY_FUNCTION__ << " - Right element is not a TPZInterpolatedElement or TPZCompElDisc.\n";        
-    }  
-  
-    this->fRightElSide.SetElement( right.Element() ); 
+      PZError << __PRETTY_FUNCTION__ << " - Right element is not a TPZInterpolatedElement or TPZCompElDisc.\n";
+    }
+
+    this->fRightElSide.SetElement( right.Element() );
     this->fRightElSide.SetSide( right.Side() );
   }
   else{
-    PZError << __PRETTY_FUNCTION__ << " - Right element is null.\n";    
-  }  
+    PZError << __PRETTY_FUNCTION__ << " - Right element is null.\n";
+  }
 }//method
 
 void TPZInterfaceElement::IncrementElConnected(){
@@ -76,10 +82,10 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 
   geo->SetReference(this);
   geo->IncrementNumInterfaces();
-  
+
   TPZCompElSide leftside(left, -1); //Setting side = -1 because no more information is available. Expect trouble.
   TPZCompElSide rightside(right, -1); //Setting side = -1 because no more information is available. Expect trouble.
-  
+
   this->SetLeftRightElements(leftside, rightside);
 
   for (int i = 0; i < fNormal.NElements(); i++) fNormal[i] = normal[i];
@@ -92,23 +98,23 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 // TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
 //  					 TPZCompEl *left,TPZCompEl *right)
 //    : TPZCompEl(mesh,geo,index){
-//    
+//
 //    cout << __PRETTY_FUNCTION__ << __LINE__ << endl;
 // //    TPZManVector<REAL,3> NORMAL(3, 0.0);
 // //    TPZInterfaceElement::TPZInterfaceElement(mesh,geo,index,left,right,NORMAL);
-// 
+//
 //   geo->SetReference(this);
 //   int materialid = geo->MaterialId();
-// 
+//
 //   //poderia eliminar esta vari�el e carrega-la do elemento de volume associado
 //   fMaterial = mesh.FindMaterial(materialid);
-//   
-//   TPZCompElSide leftside(left, -1); 
+//
+//   TPZCompElSide leftside(left, -1);
 //   TPZCompElSide rightside(right, -1);
 //   this->SetLeftRightElements(leftside, rightside);
-// 
+//
 //   this->NormalToFace(fNormal);
-// 
+//
 //   this->IncrementElConnected();
 // }
 
@@ -116,10 +122,10 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
  					 TPZCompEl *left,TPZCompEl *right, int leftside, int rightside)
    : TPZCompEl(mesh,geo,index){
-   
+
   geo->SetReference(this);
   geo->IncrementNumInterfaces();
-  
+
 if (leftside == -1 || rightside == -1){
   PZError << "Error at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " Side should not be -1\n";
 }
@@ -140,10 +146,10 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 
    this->fLeftElSide.SetElement( mesh.ElementVec()[copy.fLeftElSide.Element()->Index()] );
    this->fLeftElSide.SetSide( copy.fLeftElSide.Side() );
-   
+
    this->fRightElSide.SetElement( mesh.ElementVec()[copy.fRightElSide.Element()->Index()] );
    this->fRightElSide.SetSide( copy.fRightElSide.Side() );
-   
+
 #ifdef DEBUG
    if( !fLeftElSide.Element() || ! fRightElSide.Element() ) {
       cout << "Something wrong with clone of interface element\n";
@@ -154,7 +160,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
       exit(-1);
    }
 #endif
-   
+
    fNormal = copy.fNormal;
 
    TPZAutoPointer<TPZMaterial> mat = copy.Material();
@@ -170,7 +176,58 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
    }
 }
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int &index) 
+
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
+                                         const TPZInterfaceElement &copy,
+                                         std::map<int,int> &gl2lcConIdx,
+                                         std::map<int,int> &gl2lcElIdx) : TPZCompEl(mesh,copy)
+{
+
+  int cplftIdx = copy.fLeftElSide.Element()->Index();
+  int cprgtIdx = copy.fRightElSide.Element()->Index();
+  if (gl2lcElIdx.find(cplftIdx) == gl2lcElIdx.end() || gl2lcElIdx.find(cprgtIdx) == gl2lcElIdx.end())
+  {
+    std::stringstream sout;
+    sout << "ERROR in " << __PRETTY_FUNCTION__
+         << " trying to generate an interface for discontinuous elements that are not cloned."
+         << " Right idx = " << cprgtIdx << " left index = " << cplftIdx;
+    LOGPZ_ERROR (logger,sout.str().c_str());
+    exit(-1);
+  }
+
+  this->fLeftElSide.SetElement( mesh.ElementVec()[gl2lcElIdx[cplftIdx]] );
+  this->fLeftElSide.SetSide( copy.fLeftElSide.Side() );
+
+  this->fRightElSide.SetElement( mesh.ElementVec()[gl2lcElIdx[cprgtIdx]] );
+  this->fRightElSide.SetSide( copy.fRightElSide.Side() );
+
+#ifdef DEBUG
+  if( !fLeftElSide.Element() || ! fRightElSide.Element() ) {
+    cout << "Something wrong with clone of interface element\n";
+    exit(-1);
+  }
+  if(fLeftElSide.Element()->Mesh() != &mesh || fRightElSide.Element()->Mesh() != &mesh) {
+    cout << "The discontinuous elements should be cloned before the interface elements\n";
+    exit(-1);
+  }
+#endif
+
+  fNormal = copy.fNormal;
+  TPZAutoPointer<TPZMaterial> mat = copy.Material();
+  this->IncrementElConnected();
+
+  if (this->Reference()){
+    this->Reference()->IncrementNumInterfaces();
+  }
+  else{
+    PZError << "ERROR at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - this->Reference() is NULL\n";
+    //exit(-1); //the geometric elements are generated latter...
+  }
+}
+
+
+
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int &index)
   : TPZCompEl(mesh,copy,index) {
 
   //ambos elementos esquerdo e direito j�foram clonados e moram na malha aglomerada
@@ -179,21 +236,21 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
 
   this->fLeftElSide.SetElement( mesh.ElementVec()[copy.fLeftElSide.Element()->Index()] );
   this->fLeftElSide.SetSide( copy.fLeftElSide.Side() );
-  
+
   this->fRightElSide.SetElement( mesh.ElementVec()[copy.fRightElSide.Element()->Index()] );
   this->fRightElSide.SetSide( copy.fRightElSide.Side() );
-  
+
 #ifdef DEBUG
   if( !fLeftElSide.Element() || ! fRightElSide.Element() ) {
     cout << "TPZInterfaceElement::TPZInterfaceElement Something wrong with clone of interface element\n";
     exit(-1);
-  } 
+  }
   if(fLeftElSide.Element()->Mesh() != &mesh || fRightElSide.Element()->Mesh() != &mesh) {
     cout << "TPZInterfaceElement::TPZInterfaceElement The discontinuous elements should be cloned "
 	 << "before the interface elements\n";
     exit(-1);
   }
-#endif 
+#endif
 
 
   this->IncrementElConnected();
@@ -232,7 +289,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	     break;
      case EReferred :
        CalcStiffReferred(ek,ef);
-       
+
     default:
 	   PZError << "TPZInterfaceElement::CalcStiff - CalcStiff method not implemented." << endl;
    }
@@ -246,7 +303,7 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
      case EStandard:
 	     this->CalcResidualStandard(ef);
 	     break;
-     
+
      default:
        TPZElementMatrix fake_ek;
        this->CalcStiff(fake_ek, ef);
@@ -293,7 +350,7 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
      fConnectR = &( right->Connect(0) );//Discontinuous elements has only 1 connect
   }
 
-  
+
 
   int nshapel = left->NShapeF();
   int nshaper = right->NShapeF();
@@ -363,9 +420,9 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
   TPZTransform TransfLeft(dim), TransfRight(dim);
   TPZFNMatrix<9> axesunitary(3,3,0.),axesleft(3,3,0.), axesright(3,3,0.);
   for(ic=0; ic<3; ic++) axesunitary(ic,ic) = 1.;
-  
+
   if (this->Material()->NeedsSolutionToContribute()){
-  
+
     if (fConnectL){
       int leftside = fLeftElSide.Side();
       if (leftside == -1) leftside = left->Reference()->NSides() - 1; //i.e. TPZCompElDisc or TPZAgglomerateElement
@@ -383,7 +440,7 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
       thisgeoside.SideTransform3( rightgeoside,TransfRight );
       TPZGeoElSide highdim( right->Reference(), right->Reference()->NSides()-1 );
       TransfRight = rightgeoside.SideToSideTransform(highdim).Multiply(TransfRight);
-   }   
+   }
   }//if NeedsSolution
 
   for(ip=0;ip<npoints;ip++){
@@ -391,16 +448,16 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
     ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
     weight *= fabs(detjac);
     ref->X(intpoint, x);
-    
+
     //solucao da iteracao anterior
     if(fConnectL){
       left->Shape(x,phixl,dphixl);
-      if (this->Material()->NeedsSolutionToContribute()){        
+      if (this->Material()->NeedsSolutionToContribute()){
         TPZManVector<REAL,3> LeftIntPoint(diml);
-        TransfLeft.Apply( intpoint, LeftIntPoint );        
+        TransfLeft.Apply( intpoint, LeftIntPoint );
         left->ComputeSolution( LeftIntPoint, phixl, dphixl, axesunitary, soll, dsoll );
       }
-    }//if fConnectL    
+    }//if fConnectL
     //solucao da iteracao anterior
     if(fConnectR){
       right->Shape(x,phixr,dphixr);
@@ -410,7 +467,7 @@ void TPZInterfaceElement::CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatr
         right->ComputeSolution( RightIntPoint, phixr, dphixr, axesunitary, solr, dsolr );
       }
     }//if (fConnectR)
-    
+
     mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,axesunitary,axesunitary,ek.fMat,ef.fMat);
   }
   delete intrule;
@@ -531,7 +588,7 @@ void TPZInterfaceElement::CalcResidualStandard(TPZElementMatrix &ef){
       thisgeoside.SideTransform3( rightgeoside,TransfRight );
       TPZGeoElSide highdim( right->Reference(), right->Reference()->NSides()-1 );
       TransfRight = rightgeoside.SideToSideTransform(highdim).Multiply(TransfRight);
-   }   
+   }
   }//if NeedsSolution
   TPZFNMatrix<9> axesunitary(3,3,0.);
   for(ic=0; ic<3; ic++) axesunitary(ic,ic) = 1.;
@@ -541,16 +598,16 @@ void TPZInterfaceElement::CalcResidualStandard(TPZElementMatrix &ef){
     ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
     weight *= fabs(detjac);
     ref->X(intpoint, x);
-    
+
     //solucao da iteracao anterior
     if(fConnectL){
       left->Shape(x,phixl,dphixl);
-      if (this->Material()->NeedsSolutionToContribute()){        
+      if (this->Material()->NeedsSolutionToContribute()){
         TPZManVector<REAL,3> LeftIntPoint(diml);
-        TransfLeft.Apply( intpoint, LeftIntPoint );        
+        TransfLeft.Apply( intpoint, LeftIntPoint );
         left->ComputeSolution( LeftIntPoint, phixl, dphixl, axesunitary, soll, dsoll );
       }
-    }//if fConnectL    
+    }//if fConnectL
     //solucao da iteracao anterior
     if(fConnectR){
       right->Shape(x,phixr,dphixr);
@@ -664,7 +721,7 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
       thisgeoside.SideTransform3( rightgeoside,TransfRight );
       TPZGeoElSide highdim( right->Reference(), right->Reference()->NSides()-1 );
       TransfRight = rightgeoside.SideToSideTransform(highdim).Multiply(TransfRight);
-   }   
+   }
   }//if NeedsSolution
   int ic;
   TPZFNMatrix<9> axesunitary(3,3,0.);
@@ -683,12 +740,12 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
     //solucao da iteracao anterior
     if(left->NConnects()){
       left->Shape(x,phixl,dphixl);
-      if (this->Material()->NeedsSolutionToContribute()){        
+      if (this->Material()->NeedsSolutionToContribute()){
         TPZManVector<REAL,3> LeftIntPoint(diml);
-        TransfLeft.Apply( intpoint, LeftIntPoint );        
+        TransfLeft.Apply( intpoint, LeftIntPoint );
         left->ComputeSolution( LeftIntPoint, phixl, dphixl, axesunitary, soll, dsoll );
       }
-    }//if fConnectL    
+    }//if fConnectL
     //solucao da iteracao anterior
     if(right->NConnects()){
       right->Shape(x,phixr,dphixr);
@@ -711,7 +768,7 @@ void TPZInterfaceElement::CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatri
     mat->ContributeInterface(x,soll,solr,dsoll,dsolr,weight,fNormal,phixl,phixr,dphixl,dphixr,axesunitary,axesunitary,ek.fMat,ef.fMat, left->Degree(), right->Degree(), faceSize);
 
   }
-  
+
 delete intrule;
 }
 
@@ -842,7 +899,7 @@ void TPZInterfaceElement::Print(std::ostream &out){
     cout << "TPZInterfaceElement::Print null right element\n\n";
   }
   out << "\tMaterial id : " << Reference()->MaterialId() << endl;
-  
+
   out << "\tNormal a interface : ";
   out << "(" << fNormal[0] << "," << fNormal[1] << "," << fNormal[2] << ")\n";
 
@@ -853,7 +910,7 @@ void TPZInterfaceElement::Print(std::ostream &out){
  }
 
 int TPZInterfaceElement::main(TPZCompMesh &cmesh){
-  // esta func� testa o correto desempenho do algoritmo que cria e 
+  // esta func� testa o correto desempenho do algoritmo que cria e
   // deleta elementos de interface numa malha sujeita a refinamento h
 
   // InterfaceDimension �a dimens� do elemento de interface
@@ -905,7 +962,7 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
 
   if(cap){
     //caso existem elementos pequenos n� deve existir
-    //interface associada ao lado atual, o lado atual 
+    //interface associada ao lado atual, o lado atual
     //deve apontar para elemento computacional nulo
     TPZGeoElSide geo = comp.Reference(),neigh;
     neigh = geo.Neighbour();
@@ -920,9 +977,9 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
     //caso existe n� pode ter refer�cia computacional
     return 1;//sem problemas
   }
-  
+
   //neste estagio o lado atual enxerga um elemento vizinho ou
-  //est�comtido no lado de um elemento maior, portanto deve 
+  //est�comtido no lado de um elemento maior, portanto deve
   //ter associado um elemento interface
   TPZGeoElSide geo = comp.Reference();
   if(!geo.Exists()){
@@ -932,7 +989,7 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
   TPZGeoElSide  neigh = geo.Neighbour();
   int exists = 0;
   if(comp.Element()->Type() == EInterface) exists++;//o pr�rio �interface
-  
+
   while(neigh.Element() && neigh.Element() != geo.Element()){
     TPZCompElSide comp = neigh.Reference();
     neigh = neigh.Neighbour();
@@ -980,7 +1037,7 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal /*,int leftside*/){
   //  int dim = Reference()->Dimension();
   TPZGeoEl *ref = Reference();
   int face = ref->NSides()-1;
-  //face: lado do elemento bidimensional ou aresta 
+  //face: lado do elemento bidimensional ou aresta
   //do unidimensional ou canto do ponto
   normal.Resize(3,0.);
   normal.Fill(0.);
@@ -1018,9 +1075,9 @@ void TPZInterfaceElement::NormalToFace(TPZVec<REAL> &normal /*,int leftside*/){
     if(normalize == 0.0)
       PZError << "TPZInterfaceElement::NormalToFace null normal vetor\n";
     normalize = sqrt(normalize);
-    for(i=0;i<3;i++) normal[i] = normal[i]/normalize;    
+    for(i=0;i<3;i++) normal[i] = normal[i]/normalize;
     break;
-  case 2: 
+  case 2:
     ref->CenterPoint(face,param);//ponto da face
     ref->Jacobian(param,jacobian,axes,detjac,jacinv);
     for(i=0;i<3;i++) normal[i] = axes(2,i);
@@ -1066,7 +1123,7 @@ int TPZInterfaceElement::ClassId() const
   return TPZINTERFACEELEMENTID;
 }
 
-template class 
+template class
     TPZRestoreClass< TPZInterfaceElement, TPZINTERFACEELEMENTID>;
 
   /**
@@ -1092,7 +1149,7 @@ void TPZInterfaceElement::Write(TPZStream &buf, int withclassid)
   buf.Write(&rightside,1);
   WriteObjects(buf,fNormal);
 }
-  
+
   /**
   Read the element data from a stream
   */
@@ -1140,8 +1197,8 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
    const int rightside = fRightElSide.Side();
    TPZCompEl * left = this->LeftElement();
    TPZCompEl * right = this->RightElement();
-  
-   discL = dynamic_cast<TPZCompElDisc*>( left );  
+
+   discL = dynamic_cast<TPZCompElDisc*>( left );
    intelL = dynamic_cast<TPZInterpolatedElement*>( left );
    discR = dynamic_cast<TPZCompElDisc*>( right );
    intelR = dynamic_cast<TPZInterpolatedElement*>( right );
@@ -1254,7 +1311,7 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
 	 if (order > pr) pr = order;
       }
    }
-   
+
    //Max interpolation order
    const int p = (pl > pr) ? pl : pr;
 
@@ -1293,8 +1350,8 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
       TPZGeoElSide highdim( right->Reference(), right->Reference()->NSides()-1 );
       TransfRight = rightgeoside.SideToSideTransform(highdim).Multiply(TransfRight);
    }
-   
-   
+
+
    //LOOP OVER INTEGRATION POINTS
    for(int ip = 0; ip < npoints; ip++){
 
@@ -1324,7 +1381,7 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
 	       erro += (LeftXPoint[i] - FaceXPoint[i])*(LeftXPoint[i] - FaceXPoint[i]);
 	    }
 	    erro = sqrt(erro);
-	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl 
+	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl
 				    << "Face X point and LeftElement X point are not same." << endl;
 	 }
 
@@ -1342,10 +1399,10 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
 	       erro += (RightXPoint[i] - FaceXPoint[i])*(RightXPoint[i] - FaceXPoint[i]);
 	    }
 	    erro = sqrt(erro);
-	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl 
+	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl
 				    << "Face X point and RightElement X point are not same." << endl;
 	 }
-	 
+
       }
 #endif
 
@@ -1353,19 +1410,19 @@ void TPZInterfaceElement::CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatr
       for(ic=0; ic<3; ic++) axesunitary(ic,ic) = 1.;
 
       //COMPUTING SHAPE FUNCTIONS - LEFT
-      if (discL) 
+      if (discL)
       {
         discL->Shape(x,phixl,dphixl);
         axesleft = axesunitary;
       }
 
-      if (intelL){  
+      if (intelL){
 	 this->ComputeShape(intelL, phixl, dphixl, axesleft, LeftIntPoint );
       }//intelL
 
 
       //COMPUTING SHAPE FUNCTIONS - RIGHT
-      if (discR) 
+      if (discR)
       {
         discR->Shape(x,phixr,dphixr);
         axesright = axesunitary;
@@ -1407,8 +1464,8 @@ void TPZInterfaceElement::CalcStiffReferred(TPZElementMatrix &ek, TPZElementMatr
    const int rightside = fRightElSide.Side();
    TPZCompEl * left = this->LeftElement();
    TPZCompEl * right = this->RightElement();
-  
-   discL = dynamic_cast<TPZCompElDisc*>( left );  
+
+   discL = dynamic_cast<TPZCompElDisc*>( left );
    intelL = dynamic_cast<TPZInterpolatedElement*>( left );
    discR = dynamic_cast<TPZCompElDisc*>( right );
    intelR = dynamic_cast<TPZInterpolatedElement*>( right );
@@ -1521,7 +1578,7 @@ void TPZInterfaceElement::CalcStiffReferred(TPZElementMatrix &ek, TPZElementMatr
        if (order > pr) pr = order;
      }
    }
-   
+
    //Max interpolation order
    const int p = (pl > pr) ? pl : pr;
 
@@ -1560,8 +1617,8 @@ void TPZInterfaceElement::CalcStiffReferred(TPZElementMatrix &ek, TPZElementMatr
      TPZGeoElSide highdim( right->Reference(), right->Reference()->NSides()-1 );
      TransfRight = rightgeoside.SideToSideTransform(highdim).Multiply(TransfRight);
    }
-   
-   
+
+
    //LOOP OVER INTEGRATION POINTS
    for(int ip = 0; ip < npoints; ip++){
 
@@ -1591,7 +1648,7 @@ void TPZInterfaceElement::CalcStiffReferred(TPZElementMatrix &ek, TPZElementMatr
                  erro += (LeftXPoint[i] - FaceXPoint[i])*(LeftXPoint[i] - FaceXPoint[i]);
                }
                erro = sqrt(erro);
-               if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl 
+               if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl
                      << "Face X point and LeftElement X point are not same." << endl;
   }
 
@@ -1609,10 +1666,10 @@ void TPZInterfaceElement::CalcStiffReferred(TPZElementMatrix &ek, TPZElementMatr
                  erro += (RightXPoint[i] - FaceXPoint[i])*(RightXPoint[i] - FaceXPoint[i]);
                }
                erro = sqrt(erro);
-               if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl 
+               if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl
                      << "Face X point and RightElement X point are not same." << endl;
   }
-	 
+
 }
 #endif
 
@@ -1620,19 +1677,19 @@ void TPZInterfaceElement::CalcStiffReferred(TPZElementMatrix &ek, TPZElementMatr
       for(ic=0; ic<3; ic++) axesunitary(ic,ic) = 1.;
 
       //COMPUTING SHAPE FUNCTIONS - LEFT
-      if (discL) 
+      if (discL)
       {
         discL->Shape(x,phixl,dphixl);
         axesleft = axesunitary;
       }
 
-      if (intelL){  
+      if (intelL){
         this->ComputeShape(intelL, phixl, dphixl, axesleft, LeftIntPoint );
       }//intelL
 
 
       //COMPUTING SHAPE FUNCTIONS - RIGHT
-      if (discR) 
+      if (discR)
       {
         discR->Shape(x,phixr,dphixr);
         axesright = axesunitary;
@@ -1657,7 +1714,7 @@ void TPZInterfaceElement::CalcStiffReferred(TPZElementMatrix &ek, TPZElementMatr
 void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int> &connectindex){
 
    TPZCompEl * el = elside.Element();
-    
+
    if(el){
       int ncon = el->NConnects();
       connects.Resize(ncon);
@@ -1670,23 +1727,23 @@ void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*>
 	 connectindex[i] = index;
 	 connects[i] = &(fMesh->ConnectVec()[ index ]);
       }//for
-      
+
    }
    else{   //if (!el)
       connects.Resize(0);
       connectindex.Resize(0);
    }
-   
+
 }//end of method
 
 void TPZInterfaceElement::ComputeShape(TPZInterpolatedElement* intel, TPZFMatrix &phix, TPZFMatrix &dphix, TPZFMatrix &axes, TPZVec<REAL> &IntPoint ) {
 
    //COMPUTING SHAPE FUNCTIONS TO INTERPOLATED NEIGHBOUR
 
-   if (intel){  
-      
+   if (intel){
+
       TPZFNMatrix<100> dphi( dphix.Rows(), dphix.Cols() );
-      
+
       intel->Shape( IntPoint, phix, dphi);
 
       const int dim    = intel->Dimension();
@@ -1695,7 +1752,7 @@ void TPZInterfaceElement::ComputeShape(TPZInterpolatedElement* intel, TPZFMatrix
       REAL detjac;
 
       intel->Reference()->Jacobian( IntPoint, jacobian, axes, detjac, jacinv );
-	    
+
       int ieq;
       switch(dim) {
 	 case 0:
@@ -1727,7 +1784,7 @@ void TPZInterfaceElement::ComputeShape(TPZInterpolatedElement* intel, TPZFMatrix
 
 void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
 
-   int NErrors = this->Material()->NEvalErrors();      
+   int NErrors = this->Material()->NEvalErrors();
    errors.Resize(NErrors);
    errors.Fill(0.0);
 
@@ -1745,8 +1802,8 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
    const int rightside = fRightElSide.Side();
    TPZCompEl * left = this->LeftElement();
    TPZCompEl * right = this->RightElement();
-  
-   discL = dynamic_cast<TPZCompElDisc*>( left );  
+
+   discL = dynamic_cast<TPZCompElDisc*>( left );
    intelL = dynamic_cast<TPZInterpolatedElement*>( left );
    discR = dynamic_cast<TPZCompElDisc*>( right );
    intelR = dynamic_cast<TPZInterpolatedElement*>( right );
@@ -1852,8 +1909,8 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
       TPZGeoElSide highdim( right->Reference(), right->Reference()->NSides()-1 );
       TransfRight = rightgeoside.SideToSideTransform(highdim).Multiply(TransfRight);
    }
-   
-   
+
+
    //LOOP OVER INTEGRATION POINTS
    for(int ip = 0; ip < npoints; ip++){
 
@@ -1883,7 +1940,7 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
 	       erro += (LeftXPoint[i] - FaceXPoint[i])*(LeftXPoint[i] - FaceXPoint[i]);
 	    }
 	    erro = sqrt(erro);
-	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl 
+	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl
 				    << "Face X point and LeftElement X point are not same." << endl;
 	 }
 
@@ -1901,10 +1958,10 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
 	       erro += (RightXPoint[i] - FaceXPoint[i])*(RightXPoint[i] - FaceXPoint[i]);
 	    }
 	    erro = sqrt(erro);
-	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl 
+	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl
 				    << "Face X point and RightElement X point are not same." << endl;
 	 }
-	 
+
       }
 #endif
 
@@ -1912,19 +1969,19 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
       for(ic=0; ic<3; ic++) axesunitary(ic,ic) = 1.;
 
       //COMPUTING SHAPE FUNCTIONS - LEFT
-      if (discL) 
+      if (discL)
       {
         discL->Shape(x,phixl,dphixl);
         axesleft = axesunitary;
       }
 
-      if (intelL){  
+      if (intelL){
 	 this->ComputeShape(intelL, phixl, dphixl ,axesleft, LeftIntPoint );
       }//intelL
 
 
       //COMPUTING SHAPE FUNCTIONS - RIGHT
-      if (discR) 
+      if (discR)
       {
         discR->Shape(x,phixr,dphixr);
         axesright = axesunitary;
@@ -1984,7 +2041,7 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
 
       TPZManVector<REAL> leftNormalDeriv(nstatel), rightNormalDeriv(nstater), normal;
       this->Normal(normal);
-      
+
       if (soll.NElements()){
         for(int iv = 0; iv < nstatel; iv++){
           leftNormalDeriv[iv] = 0.;
@@ -1993,17 +2050,17 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
           }//for d
         }//for iv
       }//if
-      
+
       if (solr.NElements()){
         for(int iv = 0; iv < nstater; iv++){
           rightNormalDeriv[iv] = 0.;
           for(int d = 0; d < diml; d++){
             rightNormalDeriv[iv] += dsolr(d,iv)* normal[d];
           }//for d
-        }  //for iv    
+        }  //for iv
       }//if
-        
-     
+
+
 
       TPZManVector<REAL> localerror(NErrors);
       mat->InterfaceJumps(x, soll, leftNormalDeriv, solr, rightNormalDeriv, localerror);
@@ -2016,8 +2073,8 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
    }//loop over integration points
 
    delete intrule;
-   
-     
+
+
    //Norma sobre o elemento
   for(int ier = 0; ier < NErrors; ier++)
     errors[ier] = sqrt(errors[ier]);
@@ -2032,7 +2089,7 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
  * @param dleftsol left solution derivatives
  * @param drightsol right solution derivatives
   */
-void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi, 
+void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
                                  TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                                  TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
 {
@@ -2053,7 +2110,7 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
     thisgeoside.SideTransform3( leftgeoside, TransfLeft );
     TPZGeoElSide highdim(left->Reference(), left->Reference()->NSides()-1);
     TransfLeft = leftgeoside.SideToSideTransform(highdim).Multiply(TransfLeft);
-    TransfLeft.Apply( qsi, LeftIntPoint );  
+    TransfLeft.Apply( qsi, LeftIntPoint );
   }
 
   if (right->NConnects()){
@@ -2117,11 +2174,11 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
     drightsol.Resize(0,0);
   }
 }//method
-  
+
 
 void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec<REAL> &errorR){
 
- 
+
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
    if(!mat || !strcmp("no_name",mat->Name())){
       PZError << "TPZInterfaceElement::ComputeError interface material null, do nothing\n";
@@ -2136,8 +2193,8 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
    const int rightside = fRightElSide.Side();
    TPZCompEl * left = this->LeftElement();
    TPZCompEl * right = this->RightElement();
-  
-   discL = dynamic_cast<TPZCompElDisc*>( left );  
+
+   discL = dynamic_cast<TPZCompElDisc*>( left );
    intelL = dynamic_cast<TPZInterpolatedElement*>( left );
    discR = dynamic_cast<TPZCompElDisc*>( right );
    intelR = dynamic_cast<TPZInterpolatedElement*>( right );
@@ -2204,7 +2261,7 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
 	 if (order > pr) pr = order;
       }
    }
-   
+
    //Max interpolation order
    const int p = (pl > pr) ? pl : pr;
 
@@ -2243,8 +2300,8 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
       TPZGeoElSide highdim( right->Reference(), right->Reference()->NSides()-1 );
       TransfRight = rightgeoside.SideToSideTransform(highdim).Multiply(TransfRight);
    }
-   
-   
+
+
    //LOOP OVER INTEGRATION POINTS
    for(int ip = 0; ip < npoints; ip++){
 
@@ -2274,7 +2331,7 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
 	       erro += (LeftXPoint[i] - FaceXPoint[i])*(LeftXPoint[i] - FaceXPoint[i]);
 	    }
 	    erro = sqrt(erro);
-	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl 
+	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl
 				    << "Face X point and LeftElement X point are not same." << endl;
 	 }
 
@@ -2292,10 +2349,10 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
 	       erro += (RightXPoint[i] - FaceXPoint[i])*(RightXPoint[i] - FaceXPoint[i]);
 	    }
 	    erro = sqrt(erro);
-	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl 
+	    if (erro > tol) PZError << __PRETTY_FUNCTION__ << endl
 				    << "Face X point and RightElement X point are not same." << endl;
 	 }
-	 
+
       }
 #endif
         // TPZGeoEl * ref = this->Reference();
@@ -2305,19 +2362,19 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
       int ic;
       for(ic=0; ic<3; ic++) axesunitary(ic,ic) = 1.;
       //COMPUTING SHAPE FUNCTIONS - LEFT
-      if (discL) 
+      if (discL)
       {
         discL->Shape(x,phixl,dphixl);
         axesleft = axesunitary;
       }
 
-      if (intelL){  
+      if (intelL){
 	 this->ComputeShape(intelL, phixl, dphixl, axesleft, LeftIntPoint );
       }//intelL
 
 
       //COMPUTING SHAPE FUNCTIONS - RIGHT
-      if (discR) 
+      if (discR)
       {
         discR->Shape(x,phixr,dphixr);
         axesright = axesunitary;
@@ -2332,7 +2389,7 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
     right->ComputeSolution( RightIntPoint,phixr, dphixr, axesright, solr, dsolr );
   }
 
-   
+
   this->Material()->ContributeInterfaceErrors(x,soll,solr,dsoll,dsolr,weight,fNormal,errorL,errorR,pl,pr,faceSize,errorid);
 
    }//loop over integration points
