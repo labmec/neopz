@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.32 2007-02-10 13:39:05 phil Exp $
+//$Id: pzanalysis.cpp,v 1.33 2007-04-02 20:54:25 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -333,7 +333,7 @@ void TPZAnalysis::PostProcess(int resolution) {
 void TPZAnalysis::PostProcess(int resolution, int dimension){
   int dim1 = dimension-1;
   if(!fGraphMesh[dim1]) return;
-  TPZMaterial *mat;
+//  TPZMaterial *mat;
   std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
   for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
   {
