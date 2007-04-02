@@ -24,7 +24,7 @@
 
 #include "pzintel.h"
 #include "pzcompel.h"
-#include "pzelcq2d.h"
+//#include "pzelcq2d.h"
 
 #include "pzmatrix.h"
 
