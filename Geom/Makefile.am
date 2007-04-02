@@ -23,3 +23,4 @@ libpzgeom_a_SOURCES = pzgeopoint.cpp pzgeoprism.cpp pzgeopyramid.cpp pzgeoquad.c
 
 ## --| NeoPZ |------------------------------------------------------------------
 
+noinst_HEADERS = TPZGeoElement.h.h
