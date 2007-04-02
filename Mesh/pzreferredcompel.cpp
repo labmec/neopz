@@ -1,12 +1,13 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.8 2007-03-20 21:07:14 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.9 2007-04-02 13:45:06 tiago Exp $
 
 
 #include "pzreferredcompel.h"
 #include "pzelctemp.h"
 #include "pzintel.h"
 #include "TPZCompElDisc.h"
+#include "TPZInterfaceEl.h"
 
 #include "pzquad.h"
 #include "TPZGeoElement.h"
@@ -259,6 +260,7 @@ void Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12)
 using namespace pzshape;
 using namespace pzgeom;
 
+template class TPZReferredCompEl< TPZInterfaceElement >;
 template class TPZReferredCompEl< TPZCompElDisc >;
 template class TPZReferredCompEl< TPZIntelGen<TPZGeoPoint,TPZShapePoint> >;
 template class TPZReferredCompEl< TPZIntelGen<TPZGeoLinear,TPZShapeLinear> >;
