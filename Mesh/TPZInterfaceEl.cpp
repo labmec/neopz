@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.62 2007-03-26 13:02:31 cesar Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.63 2007-04-02 13:47:19 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -54,8 +54,9 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
     this->fRightElSide.SetSide( right.Side() );
   }
   else{
-    PZError << __PRETTY_FUNCTION__ << " - Right element is null.\n";
-  }
+    PZError << __PRETTY_FUNCTION__ << " - Right element is null.\n";    
+  }  
+  this->NormalToFace(fNormal);
 }//method
 
 void TPZInterfaceElement::IncrementElConnected(){
@@ -140,6 +141,12 @@ if (leftside == -1 || rightside == -1){
   this->IncrementElConnected();
 }
 
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index)
+   : TPZCompEl(mesh,geo,index){
+  geo->SetReference(this);
+  geo->IncrementNumInterfaces();
+  this->IncrementElConnected();
+}
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy)
    : TPZCompEl(mesh,copy) {

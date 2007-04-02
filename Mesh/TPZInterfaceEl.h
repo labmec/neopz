@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.39 2007-03-26 13:02:31 cesar Exp $
+//$Id: TPZInterfaceEl.h,v 1.40 2007-04-02 13:47:19 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -121,7 +121,7 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   TPZInterfaceElement();
 
-//   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
+  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
 //   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index);
 
   ~TPZInterfaceElement();
@@ -334,6 +334,32 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   // usually interface elements have no associated solution
   return ComputeSolution(qsi,leftsol,dleftsol,leftaxes,rightsol,drightsol,rightaxes);
 }
+
+  /**
+  * Computes solution and its derivatives in local coordinate qsi
+  * @param qsi master element coordinate
+  * @param phi matrix containing shape functions compute in qsi point
+  * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
+  * @param [in] axes indicating the direction of the derivatives
+  * @param sol finite element solution
+  * @param dsol solution derivatives
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
+                               TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+    //NOTHING TO BE DONE HERE - Interface elements have no solution associated
+  }
+
+ /**
+  * Computes solution and its derivatives in the local coordinate qsi.
+  * @param qsi master element coordinate
+  * @param sol finite element solution
+  * @param dsol solution derivatives
+  * @param axes axes associated with the derivative of the solution
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
+    //NOTHING TO BE DONE HERE - Interface elements have no solution associated
+  }
 
   void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
 
