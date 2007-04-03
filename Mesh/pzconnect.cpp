@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.11 2007-03-26 13:02:30 cesar Exp $
+//$Id: pzconnect.cpp,v 1.12 2007-04-03 01:46:21 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -352,14 +352,6 @@ void TPZConnect::TPZDepend::Read(TPZStream &buf)
     fNext = 0;
   }
 }
-  /**Node block number*/
-  int		fSequenceNumber;
-  /**Number of element connected*/
-  int		fNElConnected;
-  /**
-   * Interpolation order of the associated shape functions
-   */
-  int fOrder;
 
   /**
   Save the element data to a stream
