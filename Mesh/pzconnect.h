@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.9 2007-03-26 13:02:30 cesar Exp $
+//$Id: pzconnect.h,v 1.10 2007-04-03 12:29:43 tiago Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -117,6 +117,8 @@ class TPZConnect {
   void ResetElConnected() { fNElConnected = 0; }
   /**Increment fNElConnected*/
   void IncrementElConnected() { fNElConnected++; }
+  /**Decrement fNElConnected*/
+  void DecrementElConnected() { fNElConnected--; }
   /**Return fNElConnected*/
   int NElConnected() { return fNElConnected; }
 
