@@ -13,6 +13,12 @@
 #include "pzgmesh.h"
 #include "pzcompel.h"
 
+void TPZCompMeshReferred::Print(std::ostream & out){
+  out << __PRETTY_FUNCTION__ << "\n";
+  TPZCompMesh::Print(out);
+  out << "ReferredMesh = " << this->ReferredMesh() << "\n";
+}//void
+
 TPZCompMeshReferred::TPZCompMeshReferred(TPZGeoMesh *gmesh)
  : TPZCompMesh(gmesh), fReferredIndices(0), fReferred(0)
 {

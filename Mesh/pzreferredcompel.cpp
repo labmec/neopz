@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.9 2007-04-02 13:45:06 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.10 2007-04-03 12:29:26 tiago Exp $
 
 
 #include "pzreferredcompel.h"
@@ -50,6 +50,21 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
 #endif
 
 using namespace std;
+
+template< class TCOMPEL>
+void TPZReferredCompEl<TCOMPEL>::Print(std::ostream & out){
+  out << "\n" << __PRETTY_FUNCTION__ << "\n";
+  TCOMPEL::Print(out);
+
+  TPZCompMesh * cmesh = this->Mesh();
+  TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
+  if (refmesh){
+    TPZCompEl * other = refmesh->ReferredEl( this->Index() );
+    out << "My ReferredEl = " << other << "\n";
+  }
+  else out << "My ReferredEl = " << 0 << "\n";
+  out << "end of " << __PRETTY_FUNCTION__ << "\n";
+}//void
 
 template<class TCOMPEL>
 TPZReferredCompEl<TCOMPEL>::TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index):TCOMPEL(mesh, gel,index){
