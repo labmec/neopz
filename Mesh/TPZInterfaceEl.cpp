@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.64 2007-04-03 12:30:26 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.65 2007-04-03 19:58:58 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -2425,4 +2425,60 @@ void TPZInterfaceElement::Integrate(int variable, TPZVec<REAL> & value){
   value.Resize(varsize);
   value.Fill(0.);
 }
+
+#include "pzreferredcompel.h"
+void TPZInterfaceElement::NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,
+                                            TPZFMatrix &ThisAxes){
+  TPZGeoEl * neighel = Neighbor.Element()->Reference();
+  const int dim = this->Dimension();
+  const int neighdim = neighel->Dimension();
+  TPZManVector<REAL> NeighIntPoint(neighdim);
+
+  TPZTransform Transf(dim);
+  TPZGeoElSide thisgeoside(this->Reference(), this->Reference()->NSides()-1);
+  TPZGeoElSide neighgeoside(neighel, Neighbor.Side());
+  thisgeoside.SideTransform3(neighgeoside, Transf);
+
+  TPZGeoElSide highdim(neighel, neighel->NSides()-1);
+  Transf = neighgeoside.SideToSideTransform(highdim).Multiply(Transf);
+  Transf.Apply( qsi, NeighIntPoint );
+
+  TPZFNMatrix<100> jac(neighdim,neighdim), jacinv(neighdim,neighdim), NeighborAxes(3,3,0.), localDsol;
+  REAL detjac;
+  neighel->Jacobian(NeighIntPoint, jac, NeighborAxes, detjac, jacinv);
+  Neighbor.Element()->ComputeSolution(NeighIntPoint, sol, localDsol, NeighborAxes);
+
+  jac.Redim(dim,dim); 
+  jacinv.Redim(dim,dim);
+  this->Reference()->Jacobian(qsi, jac, ThisAxes, detjac, jacinv);
+  AdjustSolutionDerivatives(localDsol, NeighborAxes, dsol, ThisAxes);
+}
+
+void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
+                                          TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+  this->ComputeSolution(qsi, sol, dsol, axes);
+}
+
+void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi, 
+                                          TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
+  TPZManVector<REAL> leftsol, rightsol;
+  TPZFNMatrix<100> leftDSol, rightDSol;
+  this->NeighbourSolution(this->fLeftElSide, qsi, leftsol, leftDSol, axes);
+  this->NeighbourSolution(this->fRightElSide, qsi, rightsol, rightDSol, axes);
+  Append(leftsol, rightsol, sol);
+  Append(leftDSol, rightDSol, dsol);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 

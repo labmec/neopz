@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.41 2007-04-03 12:30:26 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.42 2007-04-03 19:58:58 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -74,6 +74,10 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   void ComputeShape(TPZInterpolatedElement* intel, TPZFMatrix &phix, TPZFMatrix &dphix,
                     TPZFMatrix &axes, TPZVec<REAL> &IntPoint );
+
+  /** Compute solution at neighbor element in a given master coordinate qsi
+   */
+  void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &ThisAxes);
 
  public:
 
@@ -346,9 +350,7 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   * @param dsol solution derivatives
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                               TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
-    //NOTHING TO BE DONE HERE - Interface elements have no solution associated
-  }
+                               TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
  /**
   * Computes solution and its derivatives in the local coordinate qsi.
@@ -358,9 +360,7 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   * @param axes axes associated with the derivative of the solution
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, 
-                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
-    //NOTHING TO BE DONE HERE - Interface elements have no solution associated
-  }
+                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
 
   void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
 
