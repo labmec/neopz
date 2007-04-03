@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.40 2007-04-02 13:47:19 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.41 2007-04-03 12:30:26 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -61,6 +61,7 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   int fMaterialId;//this variable can be gotten of the element of associated volume
 
+  void DecreaseElConnected();
   void IncrementElConnected();
 
  /**

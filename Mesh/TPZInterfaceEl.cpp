@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.63 2007-04-02 13:47:19 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.64 2007-04-03 12:30:26 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -24,6 +24,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterfacelement"));
 
 
 void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right){
+
+  this->DecreaseElConnected();
 
   TPZCompEl * cel = left.Element();
   if(cel){
@@ -55,9 +57,19 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
   }
   else{
     PZError << __PRETTY_FUNCTION__ << " - Right element is null.\n";    
-  }  
+  }
   this->NormalToFace(fNormal);
+
+  this->IncrementElConnected();
 }//method
+
+void TPZInterfaceElement::DecreaseElConnected(){
+   const int ncon = this->NConnects();
+   for(int i = 0; i < ncon; i++){
+      int index = this->ConnectIndex(i);
+      fMesh->ConnectVec()[index].DecrementElConnected();
+   }
+}
 
 void TPZInterfaceElement::IncrementElConnected(){
    const int ncon = this->NConnects();
@@ -72,6 +84,7 @@ TPZInterfaceElement::~TPZInterfaceElement(){
     this->Reference()->DecrementNumInterfaces();
     this->Reference()->ResetReference();
   }
+  this->DecreaseElConnected();
 };
 
 /**
@@ -142,7 +155,7 @@ if (leftside == -1 || rightside == -1){
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index)
-   : TPZCompEl(mesh,geo,index){
+   : TPZCompEl(mesh,geo,index), fLeftElSide(), fRightElSide(){
   geo->SetReference(this);
   geo->IncrementNumInterfaces();
   this->IncrementElConnected();
@@ -853,11 +866,13 @@ int TPZInterfaceElement::NConnects() {
 
 int TPZInterfaceElement::NLeftConnects(){
    TPZCompEl * LeftEl  = fLeftElSide.Element();
+   if (!LeftEl) return 0;
    return LeftEl->NConnects();
 }
 
 int TPZInterfaceElement::NRightConnects(){
    TPZCompEl * RightEl = fRightElSide.Element();
+   if (!RightEl) return 0;
    return RightEl->NConnects();
 }
 
