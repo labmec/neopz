@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.10 2007-04-03 12:29:26 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.11 2007-04-04 19:37:17 tiago Exp $
 
 
 #include "pzreferredcompel.h"
@@ -140,7 +140,44 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
   Append(ThisSol,OtherSol,sol);
   Append(ThisDSol,OtherDSol2,dsol);
 }
-  
+
+template < >
+void TPZReferredCompEl< TPZInterfaceElement >::ComputeSolution(TPZVec<REAL> &qsi,
+                                                               TPZVec<REAL> &sol,
+                                                               TPZFMatrix &dsol,
+                                                               TPZFMatrix &axes)
+{
+  TPZManVector<REAL> LeftSol, RightSol;
+  TPZFNMatrix<100> LeftDSol, RightDSol;
+  this->NeighbourSolution(this->LeftElementSide(),  qsi, LeftSol,  LeftDSol,  axes);
+  this->NeighbourSolution(this->RightElementSide(), qsi, RightSol, RightDSol, axes);
+  Append(LeftSol, RightSol, sol);
+  Append(LeftDSol,RightDSol,dsol);
+
+  this->AppendOtherSolution(qsi, sol, dsol, axes);
+}
+
+template < class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
+                                                       TPZFMatrix &dsol, const TPZFMatrix &axes){
+  TPZCompMesh * cmesh = this->Mesh();
+  TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
+  if (!refmesh) return;
+  TPZCompEl * other = refmesh->ReferredEl( this->Index() );
+  if (!other) return;
+
+  TPZManVector<REAL> ThisSol(sol);
+  TPZFNMatrix<100> ThisDSol(dsol);
+
+  TPZManVector<REAL> OtherSol;
+  TPZFNMatrix<100> OtherDSol,OtherDSol2;
+  TPZFNMatrix<9> otheraxes(3,3,0.), myAxes(axes);
+  other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
+  AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,myAxes);
+  Append(ThisSol,OtherSol,sol);
+  Append(ThisDSol,OtherDSol2,dsol);
+}
+
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * @param qsi master element coordinate of the interface element
@@ -160,6 +197,22 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
   ComputeSolution(qsi,sol,dsol,axes);
   ComputeSolution(qsi,leftsol,dleftsol,leftaxes,rightsol,drightsol,rightaxes);
 }
+
+template< >
+void TPZReferredCompEl< TPZInterfaceElement >::ComputeSolution(TPZVec<REAL> &qsi, 
+                                                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                                                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                                                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+  //ComputeSolution(qsi,sol,dsol,axes);Interface has no solution associated to
+  this->ComputeSolution(qsi,leftsol,dleftsol,leftaxes,rightsol,drightsol,rightaxes);
+  const int dim = this->Dimension();
+  TPZFNMatrix<100> jac(dim,dim), jacinv(dim,dim), ThisAxes(3,3,0.);
+  REAL detjac;
+  this->Reference()->Jacobian(qsi, jac, ThisAxes, detjac, jacinv);
+  axes = ThisAxes;
+  this->AppendOtherSolution(qsi, sol, dsol, axes);
+}
+
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * This method will function for both volumetric and interface elements

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.65 2007-04-03 19:58:58 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.66 2007-04-04 19:37:17 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -308,7 +308,8 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	     this->CalcStiffContDisc(ek, ef);
 	     break;
      case EReferred :
-       CalcStiffReferred(ek,ef);
+             this->CalcStiffReferred(ek,ef);
+             break;
 
     default:
 	   PZError << "TPZInterfaceElement::CalcStiff - CalcStiff method not implemented." << endl;
@@ -2456,17 +2457,17 @@ void TPZInterfaceElement::NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REA
 
 void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
                                           TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
-  this->ComputeSolution(qsi, sol, dsol, axes);
+//  this->ComputeSolution(qsi, sol, dsol, axes);
 }
 
 void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi, 
                                           TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
-  TPZManVector<REAL> leftsol, rightsol;
-  TPZFNMatrix<100> leftDSol, rightDSol;
-  this->NeighbourSolution(this->fLeftElSide, qsi, leftsol, leftDSol, axes);
-  this->NeighbourSolution(this->fRightElSide, qsi, rightsol, rightDSol, axes);
-  Append(leftsol, rightsol, sol);
-  Append(leftDSol, rightDSol, dsol);
+//   TPZManVector<REAL> leftsol, rightsol;
+//   TPZFNMatrix<100> leftDSol, rightDSol;
+//   this->NeighbourSolution(this->fLeftElSide, qsi, leftsol, leftDSol, axes);
+//   this->NeighbourSolution(this->fRightElSide, qsi, rightsol, rightDSol, axes);
+//   Append(leftsol, rightsol, sol);
+//   Append(leftDSol, rightDSol, dsol);
 }
 
 

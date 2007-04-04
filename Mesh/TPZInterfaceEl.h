@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.42 2007-04-03 19:58:58 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.43 2007-04-04 19:37:17 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -75,7 +75,15 @@ class TPZInterfaceElement : public TPZCompEl {
   void ComputeShape(TPZInterpolatedElement* intel, TPZFMatrix &phix, TPZFMatrix &dphix,
                     TPZFMatrix &axes, TPZVec<REAL> &IntPoint );
 
-  /** Compute solution at neighbor element in a given master coordinate qsi
+ protected:
+
+  /** Compute solution at neighbour element in a given master coordinate qsi. It returns this element axes
+   * at which respect derivatives are computed.
+   * @param [in] Neighbor
+   * @param [in] qsi
+   * @param [out] sol
+   * @param [out] dsol
+   * @param [out] ThisAxes
    */
   void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &ThisAxes);
 
@@ -171,6 +179,9 @@ class TPZInterfaceElement : public TPZCompEl {
    * it returns the left element from the element interface
    */
   TPZCompEl *LeftElement() {return fLeftElSide.Element();}
+
+  TPZCompElSide &LeftElementSide(){ return this->fLeftElSide; }
+  TPZCompElSide &RightElementSide(){ return this->fRightElSide; }
 
   /**
    * it returns the normal one to the face from the element

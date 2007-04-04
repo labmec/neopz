@@ -1,4 +1,4 @@
-//$Id: pzreferredcompel.h,v 1.4 2007-04-03 12:29:26 tiago Exp $
+//$Id: pzreferredcompel.h,v 1.5 2007-04-04 19:37:17 tiago Exp $
 
 // -*- c++ -*-
 #ifndef PZSPECIAL
@@ -81,6 +81,15 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * @param out indicates the device where the data will be printed
    */
   virtual void Print(std::ostream & out = std::cout);
+
+  protected:
+
+  /**
+   * Append solution of the referred element. Derivatives are given
+   * with respect of parameter axes.
+   */
+  void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
+                           TPZFMatrix &dsol, const TPZFMatrix &axes);
 
 };
 
