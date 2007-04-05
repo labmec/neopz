@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.31 2007-03-26 12:50:25 cesar Exp $
+//$Id: pzcompel.cpp,v 1.32 2007-04-05 21:45:06 cesar Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -152,7 +152,10 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int,int>
   {
     std::stringstream sout;
     sout << "ERROR in - " << __PRETTY_FUNCTION__
-        << " original element index: " << copy.fIndex << " is not mapped!";
+        << " original element index: " << copy.fIndex << " is not mapped!\n"
+        << "Map content: ";
+    std::map<int,int>::iterator it;
+    for (it=gl2lcElMap.begin();it!=gl2lcElMap.end();it++) sout << " ( " << it->first << " | " << it->second << " ) ;";
     LOGPZ_ERROR (logger,sout.str().c_str());
     exit(-1);
   }
