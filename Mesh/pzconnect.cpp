@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.12 2007-04-03 01:46:21 phil Exp $
+//$Id: pzconnect.cpp,v 1.13 2007-04-05 21:47:51 cesar Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -353,9 +353,9 @@ void TPZConnect::TPZDepend::Read(TPZStream &buf)
   }
 }
 
-  /**
-  Save the element data to a stream
-  */
+/**
+Save the element data to a stream
+*/
 void TPZConnect::Write(TPZStream &buf, int withclassid)
 {
   buf.Write(&fSequenceNumber,1);
@@ -400,7 +400,7 @@ void TPZConnect::CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx)
   fOrder = orig.fOrder;
   fSequenceNumber = orig.fSequenceNumber;
   fNElConnected = orig.fNElConnected;
-  fDependList->CopyFrom(orig.fDependList,gl2lcIdx);
+  if (orig.fDependList) fDependList->CopyFrom(orig.fDependList,gl2lcIdx);
 }
 
 
