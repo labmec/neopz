@@ -491,17 +491,14 @@ TPZGeoElRefLess<TShape,TGeo>::TPZGeoElRefLess(TPZGeoMesh &DestMesh,
   n = TShape::NSides;
   for(i = 0; i < n; i++)
   {
-    int neighIdx = cp.fNeighbours[i].ElementIndex();
-    int side = cp.fNeighbours[i].Side();
-    if (gl2lcElMap.find(neighIdx)==gl2lcElMap.end())
+    TPZGeoElSide neigh (cp.fNeighbours[i],cp.Mesh());
+    int neighIdx = neigh.Element()->Index();
+    int side = neigh.Side();
+    while (gl2lcElMap.find(neighIdx)==gl2lcElMap.end())
     {
-      continue;
-      std::stringstream sout;
-      sout << "ERROR in - " << __PRETTY_FUNCTION__
-          << " trying to clone a neighbour " << i << " index " << neighIdx
-          << " wich is not mapped";
-      LOGPZ_ERROR(logger,sout.str().c_str());
-      exit(-1);
+      neigh = neigh.Neighbour();
+      neighIdx = neigh.Element()->Index();
+      side = neigh.Side();
     }
     this->fNeighbours[i] = TPZGeoElSideIndex ( gl2lcElMap [ neighIdx ] , side );
   }

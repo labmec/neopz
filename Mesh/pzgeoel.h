@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.26 2007-03-26 13:02:30 cesar Exp $
+//$Id: pzgeoel.h,v 1.27 2007-04-06 13:56:27 phil Exp $
 
 // -*- c++ -*-
 
@@ -191,7 +191,7 @@ public:
    */
   //@{
   /**return the mesh to which the element belongs*/
-  TPZGeoMesh *Mesh() { return fMesh;}
+  TPZGeoMesh *Mesh() const { return fMesh;}
 
   /**return the Id of the element*/
   int Id() { return fId; }
