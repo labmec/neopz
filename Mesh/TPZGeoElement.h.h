@@ -28,7 +28,7 @@ TPZGeoElement<TShape,TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int mati
 
 //  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
   int i;
-  for(i=0;i<TGeo::NNodes;i++) fSubEl[i] = -1;
+  for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }
 
 template<class TShape, class TGeo, class TRef>
