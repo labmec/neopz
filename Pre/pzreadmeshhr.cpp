@@ -1,6 +1,6 @@
 /*****************************************************************************
  * O contedo desse arquivo �de propriedade do LabMeC-DES-FEC-UNICAMP e do
- * CENPES-Petrobras. 
+ * CENPES-Petrobras.
  * O uso de qualquer parte ou do todo est�condicionado �expressa autoriza�o
  * dos propriet�ios.
  *****************************************************************************/
@@ -185,7 +185,7 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
     std::cout << " empty material " << std::endl;
     return;
   }
-  
+
 
   for (i=0;i<NMat;i++)
   {
@@ -232,15 +232,15 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
     CMesh.InsertMaterialObject(bnd);
   }
 
-  //Materiais da Fratura
-  TPZFMatrix val1(3,3,0.),val2(3,1,0.);
-  //val1(1,1) = 10000000000000.0;
-  //val2(1,0) = 1.;
-  TPZAutoPointer<TPZMaterial> bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-100,1,val1,val2);
-  CMesh.InsertMaterialObject(bndFrac);
-//    val2(1,0) = -1.;
-  bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-101,1,val1,val2);
-  CMesh.InsertMaterialObject(bndFrac);
+//   //Materiais da Fratura
+//   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+//   //val1(1,1) = 10000000000000.0;
+//   //val2(1,0) = 1.;
+//   TPZAutoPointer<TPZMaterial> bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-100,1,val1,val2);
+//   CMesh.InsertMaterialObject(bndFrac);
+// //    val2(1,0) = -1.;
+//   bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-101,1,val1,val2);
+//   CMesh.InsertMaterialObject(bndFrac);
 }
 
 
