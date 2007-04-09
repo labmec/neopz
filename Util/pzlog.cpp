@@ -1,7 +1,7 @@
 //
 // C++ Implementation: pzlog
 //
-// Description: 
+// Description:
 //
 //
 // Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2006
@@ -11,7 +11,8 @@
 //
 
 #include "pzlog.h"
-
+#include <sys/stat.h>
+#include <iostream>
 
 
 void InitializePZLOG()
@@ -26,6 +27,10 @@ void InitializePZLOG()
 #endif
   configfile = path;
   configfile += "log4cxx.cfg";
+
+  int res = mkdir ("LOG", S_IRWXU | S_IXGRP | S_IRGRP | S_IXOTH | S_IROTH);
+  if (res) std::cout << "Error in mkdir : " << res << std::endl;
+
   InitializePZLOG(configfile);
 }
 
