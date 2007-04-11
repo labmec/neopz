@@ -1,6 +1,7 @@
 //METHODS DEFINITION FOR CLASS TPZMaterial
 
 #include "pzmaterial.h"
+#include "pzmaterialdata.h"
 #include "pzerror.h"
 #include "pzvec.h"
 #include "pzbndcond.h"
@@ -32,6 +33,10 @@ TPZMaterial::TPZMaterial(int id) {
 TPZMaterial::TPZMaterial(const TPZMaterial &material) {
    fId = material.fId;
    fForcingFunction = material.fForcingFunction;
+}
+
+void TPZMaterial::FillMaterialDataRequirements(TPZMaterialData &data){
+  data.SetAllRequirements(true);
 }
 
 void TPZMaterial::Print(std::ostream & out) {

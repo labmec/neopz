@@ -24,6 +24,7 @@
 
 class TPZBndCond;
 class TPZMaterial;
+class TPZMaterialData;
 
 /// This abstract class defines the behaviour which each derived class needs to implement
 /**
@@ -63,6 +64,14 @@ class  TPZMaterial : public TPZSaveable
       TPZMaterial(const TPZMaterial &mat);
 
       virtual ~TPZMaterial() {}
+
+      /** Fill material data parameter with necessary requirements for the 
+       * Contribute method. Here, in base class, all requirements are considered
+       * as necessary. Each derived class may optimize performance by selecting
+       * only the necessary data.
+       * @since April 10, 2007
+       */
+      virtual void FillMaterialDataRequirements(TPZMaterialData &data);
 
       /** returns the name of the material*/
       virtual char *Name() { return "no_name"; }
@@ -111,7 +120,20 @@ class  TPZMaterial : public TPZSaveable
 			      REAL weight,TPZFMatrix &axes,
 			      TPZFMatrix &phi, TPZFMatrix &dphi,
 			      TPZFMatrix &ek, TPZFMatrix &ef) = 0;
-            
+
+      /**Compute contribution to the stiffness matrix and right hand
+       * side at an integration point*/
+      virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
+                              TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &axes,
+                              TPZVec<REAL> &normal,
+                              TPZVec<REAL> &LeftSol, TPZFMatrix &LeftDSol, TPZFMatrix &LeftAxes,
+                              TPZVec<REAL> &RightSol, TPZFMatrix &RightDSol,TPZFMatrix &RightAxes,
+                              REAL weight,
+                              TPZFMatrix &phi, TPZFMatrix &dphi,
+                              TPZFMatrix &ek, TPZFMatrix &ef){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
+      }
+
       /** Indicates if the material requires the solution to compute Contribute
        * By default its value is true, but it can be set as false by derived material classes
        * to increase the performance of method TPZCompEl::CalcStiff

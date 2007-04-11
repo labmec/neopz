@@ -50,7 +50,7 @@ libpz_a_LIBADD = ../Post/tpzgraphelt3d.o ../External/pzsloan.o \
 	../Analysis/pzonedref.o ../Analysis/pzsmanal.o ../Analysis/pzsmfrontalanal.o \
 	../Analysis/pztransientanalysis.o ../Analysis/pzeuleranalysis.o ../Cosys/pzcartsys.o ../Cosys/pzcosys.o \
 	../Cosys/pzcylinsys.o ../Cosys/pzesfersys.o ../Integral/pzquad.o ../Material/pzincnskeps.o \
-	../Material/eulerdif.o ../Material/pzbndcond.o ../Material/pzelasmat.o \
+	../Material/eulerdif.o ../Material/pzbndcond.o ../Material/pzelasmat.o ../Material/pzmaterialdata.o \
 	../Material/pznonlinearpoisson3d.o ../Material/pzmat1dlin.o ../Material/pzmat2dlin.o \
 	../Material/pzmaterial.o ../Material/tpzoutofrange.o ../Material/pzmathyperelastic.o \
 	../Material/pzmatorthotropic.o ../Material/pzmatplaca2.o ../Material/pzmatplaca.o \
