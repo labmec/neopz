@@ -1,4 +1,4 @@
-//$Id: pzreferredcompel.h,v 1.5 2007-04-04 19:37:17 tiago Exp $
+//$Id: pzreferredcompel.h,v 1.6 2007-04-11 14:27:35 tiago Exp $
 
 // -*- c++ -*-
 #ifndef PZSPECIAL
@@ -17,11 +17,15 @@ class TPZFMatrix;
 template<class TCOMPEL>
 class TPZReferredCompEl : public TCOMPEL {
   public:
-  
+
    TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 
   ~TPZReferredCompEl();
-  
+
+  /** Returns referred element of this
+   */
+  TPZCompEl * ReferredElement();
+
  /**
   * Computes solution and its derivatives in local coordinate qsi
   * @param qsi master element coordinate
@@ -32,7 +36,7 @@ class TPZReferredCompEl : public TCOMPEL {
   * @param dsol solution derivatives
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                               TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+                               const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
   
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
@@ -41,7 +45,7 @@ class TPZReferredCompEl : public TCOMPEL {
    * @param dsol solution derivatives
    * @param axes axes associated with the derivative of the solution
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
   
  /**
@@ -56,6 +60,7 @@ class TPZReferredCompEl : public TCOMPEL {
   */
 virtual void ComputeSolution(TPZVec<REAL> &qsi, 
                                TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                               TPZVec<REAL> &normal,
                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
  /**
@@ -72,9 +77,10 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-virtual void ComputeSolution(TPZVec<REAL> &qsi, 
-                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+// virtual void ComputeSolution(TPZVec<REAL> &qsi,
+//                              TPZVec<REAL> &normal,
+//                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+//                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 
   /**
    * Prints element data
@@ -85,20 +91,25 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   protected:
 
   /**
-   * Append solution of the referred element. Derivatives are given
-   * with respect of parameter axes.
+   * Append solution of the referred element.
    */
   void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
-                           TPZFMatrix &dsol, const TPZFMatrix &axes);
-
+                           TPZFMatrix &dsol,  TPZFMatrix &axes);
+  void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
+                           TPZFMatrix &dsol,  const TPZFMatrix &axes);
+  void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,
+                           TPZFMatrix &axes,
+                           TPZVec<REAL> &normal,
+                           TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol, TPZFMatrix &leftaxes,
+                           TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 };
 
 /**
  * Adjust the derivatives from one system of axes to the other
  */
 void AdjustSolutionDerivatives(TPZFMatrix &dsolfrom, TPZFMatrix &axesfrom,
-                               TPZFMatrix &dsolto, TPZFMatrix &axesto);
-                               
+                               TPZFMatrix &dsolto, const TPZFMatrix &axesto);
+
   TPZCompEl *CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
   TPZCompEl *CreateReferredPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
   TPZCompEl *CreateReferredLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
@@ -111,4 +122,5 @@ void AdjustSolutionDerivatives(TPZFMatrix &dsolfrom, TPZFMatrix &axesfrom,
 
   void Append(TPZVec<REAL> &u1, TPZVec<REAL> &u2, TPZVec<REAL> &u12);
   void Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12);
+  bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol = 1e-10);
 #endif

@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.24 2007-03-26 13:02:31 cesar Exp $
+//$Id: pzintel.h,v 1.25 2007-04-11 14:27:24 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -109,7 +109,7 @@ public:
 //  virtual TPZGeoEl *Reference() const { return fReference;}
 
   /**returns the number of shapefunctions associated with a connect*/
-  virtual int NConnectShapeF(int inod) = 0;
+//   virtual int NConnectShapeF(int inod) = 0;
 
   /**returns the total number of shapefunctions*/
   int NShapeF();
@@ -292,7 +292,7 @@ public:
    * @param phi vector of values of shapefunctions, dimension (numshape,1)
    * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
    */
-  virtual void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi) = 0;
+//   virtual void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi) = 0;
 
   /**compute the values of the shape function along the side*/
   virtual void SideShapeFunction(int side, TPZVec<REAL> &point, TPZFMatrix &phi, TPZFMatrix &dphi) = 0;
@@ -356,11 +356,12 @@ public:
   * @param qsi master element coordinate
   * @param phi matrix containing shape functions compute in qsi point
   * @param dphix matrix containing the derivatives of shape functions with respect of global coordinates: D[phi,x], D[phi,y], D[phi,z]
+  * @param [in] axes indicating the direction of the derivatives
   * @param sol finite element solution
   * @param dsol solution derivatives
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                               TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+                               const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
@@ -374,11 +375,10 @@ public:
   */
 virtual void ComputeSolution(TPZVec<REAL> &qsi,
                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                              TPZVec<REAL> &normal,
                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-{
-  ComputeSolution(qsi,sol,dsol,axes);
-}
+                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * This method will function for both volumetric and interface elements
@@ -393,11 +393,12 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-{
-}
+//   virtual void ComputeSolution(TPZVec<REAL> &qsi,
+//                                TPZVec<REAL> &normal,
+//                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+//                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
+// {
+// }
 
   /**
    * Compare the L2 norm of the difference between the ¨var¨ solution of the current element with

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.50 2007-03-26 13:02:31 cesar Exp $
+//$Id: TPZCompElDisc.h,v 1.51 2007-04-11 14:28:52 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -266,6 +266,11 @@ protected:
    */
   int  NShapeF();
 
+  /**returns the number of shapefunctions associated with a connect*/
+  virtual int NConnectShapeF(int inod){
+    return this->NShapeF();
+  }
+
   REAL CenterPoint(int index) {return fCenterPoint[index];}
 
   virtual void CenterPoint(TPZVec<REAL> &center);
@@ -309,7 +314,7 @@ protected:
   * @param dsol solution derivatives
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                               TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+                               const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
@@ -323,11 +328,10 @@ protected:
   */
 virtual void ComputeSolution(TPZVec<REAL> &qsi,
                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                              TPZVec<REAL> &normal,
                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-{
-  ComputeSolution(qsi,sol,dsol,axes);
-}
+                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * This method will function for both volumetric and interface elements
@@ -342,11 +346,12 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-{
-}
+// virtual void ComputeSolution(TPZVec<REAL> &qsi,
+//                              TPZVec<REAL> &normal,
+//                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+//                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
+// {
+// }
 
   /**
    * Calculates the solution - sol - for the variable var

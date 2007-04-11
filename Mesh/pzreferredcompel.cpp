@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.11 2007-04-04 19:37:17 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.12 2007-04-11 14:27:35 tiago Exp $
 
 
 #include "pzreferredcompel.h"
@@ -52,6 +52,15 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
 using namespace std;
 
 template< class TCOMPEL>
+TPZCompEl * TPZReferredCompEl<TCOMPEL>::ReferredElement(){
+  TPZCompMesh * cmesh = this->Mesh();
+  TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
+  if (!refmesh) return NULL;
+  TPZCompEl * other = refmesh->ReferredEl( this->Index() );
+  return other;
+}
+
+template< class TCOMPEL>
 void TPZReferredCompEl<TCOMPEL>::Print(std::ostream & out){
   out << "\n" << __PRETTY_FUNCTION__ << "\n";
   TCOMPEL::Print(out);
@@ -76,214 +85,141 @@ TPZReferredCompEl<TCOMPEL>::~TPZReferredCompEl(){
 
 }//method
 
-template< class TCOMPEL >
-void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZFMatrix &axes, TPZVec<REAL> &u, TPZFMatrix &du){
-
-  TCOMPEL::ComputeSolution(qsi, phi, dphix, axes, u, du);
-
-  TPZCompMesh * cmesh = this->Mesh();
-  TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
-  if (!refmesh) return;
-  TPZCompEl * other = refmesh->ReferredEl( this->Index() );
+template < class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
+                                                      TPZFMatrix &dsol, TPZFMatrix &axes){
+  TPZCompEl * other = this->ReferredElement();
   if (!other) return;
-  
-  TPZManVector<REAL> ThisSol(u);
 
-  TPZFNMatrix<100> ThisDSol(du);
-  
+  TPZManVector<REAL> ThisSol(sol);
+  TPZFNMatrix<100> ThisDSol(dsol);
+
+  TPZManVector<REAL> OtherSol;
+  TPZFNMatrix<100> OtherDSol,OtherDSol2;
+  TPZFNMatrix<9> otheraxes(3,3,0.);
+  other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
+  if(sol.NElements()){
+    AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,axes);
+  }
+  else if(OtherSol.NElements()){
+    OtherDSol2 = OtherDSol;
+    axes = otheraxes;
+  }
+  Append(ThisSol,OtherSol,sol);
+  Append(ThisDSol,OtherDSol2,dsol);
+}
+
+template < class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
+                                                      TPZFMatrix &dsol, const TPZFMatrix &axes){
+  TPZCompEl * other = this->ReferredElement();
+  if (!other) return;
+
+  TPZManVector<REAL> ThisSol(sol);
+  TPZFNMatrix<100> ThisDSol(dsol);
+
   TPZManVector<REAL> OtherSol;
   TPZFNMatrix<100> OtherDSol,OtherDSol2;
   TPZFNMatrix<9> otheraxes(3,3,0.);
   other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
   AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,axes);
-  Append(ThisSol,OtherSol,u);
-  Append(ThisDSol,OtherDSol2,du);
-
-}//method
-
- /**
- * Computes solution and its derivatives in the local coordinate qsi.
- * @param qsi master element coordinate
- * @param sol finite element solution
- * @param dsol solution derivatives
- * @param axes axes associated with the derivative of the solution
-  */
-template< class TCOMPEL >
-void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, 
-                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes)
-{
-  TCOMPEL::ComputeSolution(qsi, sol, dsol, axes);
-
-  TPZCompMesh * cmesh = this->Mesh();
-  TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
-  if (!refmesh) return;
-  TPZCompEl * other = refmesh->ReferredEl( this->Index() );
-  if (!other) return;
-  
-  TPZManVector<REAL> ThisSol(sol);
-  TPZFNMatrix<100> ThisDSol(dsol);
-  
-  TPZManVector<REAL> OtherSol;
-  TPZFNMatrix<100> OtherDSol,OtherDSol2;
-  TPZFNMatrix<9> otheraxes(3,3,0.);
-  other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
-  if(sol.NElements()) 
-  {
-    AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,axes);
-  }
-  else if(OtherSol.NElements())
-  {
-    OtherDSol2 = OtherDSol;
-    axes = otheraxes;
-    
-  }
   Append(ThisSol,OtherSol,sol);
   Append(ThisDSol,OtherDSol2,dsol);
-}
-
-template < >
-void TPZReferredCompEl< TPZInterfaceElement >::ComputeSolution(TPZVec<REAL> &qsi,
-                                                               TPZVec<REAL> &sol,
-                                                               TPZFMatrix &dsol,
-                                                               TPZFMatrix &axes)
-{
-  TPZManVector<REAL> LeftSol, RightSol;
-  TPZFNMatrix<100> LeftDSol, RightDSol;
-  this->NeighbourSolution(this->LeftElementSide(),  qsi, LeftSol,  LeftDSol,  axes);
-  this->NeighbourSolution(this->RightElementSide(), qsi, RightSol, RightDSol, axes);
-  Append(LeftSol, RightSol, sol);
-  Append(LeftDSol,RightDSol,dsol);
-
-  this->AppendOtherSolution(qsi, sol, dsol, axes);
 }
 
 template < class TCOMPEL >
-void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
-                                                       TPZFMatrix &dsol, const TPZFMatrix &axes){
-  TPZCompMesh * cmesh = this->Mesh();
-  TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
-  if (!refmesh) return;
-  TPZCompEl * other = refmesh->ReferredEl( this->Index() );
+void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
+                                                       TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                                                       TPZVec<REAL> &normal,
+                                                       TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol, TPZFMatrix &leftaxes,
+                                                       TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+  TPZCompEl * other = this->ReferredElement();
   if (!other) return;
 
-  TPZManVector<REAL> ThisSol(sol);
-  TPZFNMatrix<100> ThisDSol(dsol);
+  TPZManVector<REAL> ThisSol(sol), ThisLeftSol(leftsol), ThisRightSol(rightsol);
+  TPZFNMatrix<100> ThisDSol(dsol), ThisDLeftSol(dleftsol), ThisDRightSol(drightsol);
 
-  TPZManVector<REAL> OtherSol;
-  TPZFNMatrix<100> OtherDSol,OtherDSol2;
-  TPZFNMatrix<9> otheraxes(3,3,0.), myAxes(axes);
-  other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
-  AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,myAxes);
+  TPZManVector<REAL> OtherSol(0), OtherLeftSol(0), OtherRightSol(0), OtherNormal(0);
+  TPZFNMatrix<100> OtherDSol(0), OtherDSol2(0), OtherDLeftSol(0), OtherDLeftSol2(0), OtherDRightSol(0), OtherDRightSol2(0);
+  TPZFNMatrix<9> OtherAxes(3,3,0.), OtherLeftAxes(3,3,0.), OtherRightAxes(3,3,0.);
+  other->ComputeSolution(qsi, OtherSol, OtherDSol, OtherAxes, OtherNormal,
+                              OtherLeftSol,  OtherDLeftSol,  OtherLeftAxes,
+                              OtherRightSol, OtherDRightSol, OtherRightAxes);
+
+  if (OtherLeftSol.NElements() || OtherRightSol.NElements()){
+    if ( !AreEqual(normal,OtherNormal) ){
+      PZError << "\nFATAL ERROR at " << __PRETTY_FUNCTION__ << "\n";
+    }
+  }
+
+  if(sol.NElements()){
+    AdjustSolutionDerivatives(OtherDSol,OtherAxes,OtherDSol2,axes);
+  }
+  else if(OtherSol.NElements()){
+    OtherDSol2 = OtherDSol;
+    axes = OtherAxes;
+  }
+
+  if(leftsol.NElements()){
+    AdjustSolutionDerivatives(OtherDLeftSol,OtherLeftAxes,OtherDLeftSol2,leftaxes);
+  }
+  else if(OtherLeftSol.NElements()){
+    OtherDLeftSol2 = OtherDLeftSol;
+    leftaxes = OtherLeftAxes;
+  }
+
+  if(rightsol.NElements()){
+    AdjustSolutionDerivatives(OtherDRightSol,OtherRightAxes,OtherDRightSol2,rightaxes);
+  }
+  else if(OtherRightSol.NElements()){
+    OtherDRightSol2 = OtherDRightSol;
+    rightaxes = OtherRightAxes;
+  }
+
   Append(ThisSol,OtherSol,sol);
   Append(ThisDSol,OtherDSol2,dsol);
+  Append(ThisLeftSol, OtherLeftSol, leftsol);
+  Append(ThisDLeftSol, OtherDLeftSol, dleftsol);
+  Append(ThisRightSol, OtherRightSol, rightsol);
+  Append(ThisDRightSol, OtherDRightSol, drightsol);
 }
 
- /**
-   * Computes solution and its derivatives in the local coordinate qsi.
-   * @param qsi master element coordinate of the interface element
-   * @param leftsol finite element solution
-   * @param dleftsol solution derivatives
-   * @param leftaxes axes associated with the left solution
-   * @param rightsol finite element solution
-   * @param drightsol solution derivatives
-   * @param rightaxes axes associated with the right solution
-  */
 template< class TCOMPEL >
-void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, 
-                            TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
-                            TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                            TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-{
-  ComputeSolution(qsi,sol,dsol,axes);
-  ComputeSolution(qsi,leftsol,dleftsol,leftaxes,rightsol,drightsol,rightaxes);
-}
+void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
+                                                   TPZFMatrix &phi,
+                                                   TPZFMatrix &dphix,
+                                                   const TPZFMatrix &axes,
+                                                   TPZVec<REAL> &sol,
+                                                   TPZFMatrix &dsol){
+  TCOMPEL::ComputeSolution(qsi, phi, dphix, axes, sol, dsol);
+  this->AppendOtherSolution(qsi, sol, dsol, axes);
+}//method
 
-template< >
-void TPZReferredCompEl< TPZInterfaceElement >::ComputeSolution(TPZVec<REAL> &qsi, 
-                                                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
-                                                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                                                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
-  //ComputeSolution(qsi,sol,dsol,axes);Interface has no solution associated to
-  this->ComputeSolution(qsi,leftsol,dleftsol,leftaxes,rightsol,drightsol,rightaxes);
-  const int dim = this->Dimension();
-  TPZFNMatrix<100> jac(dim,dim), jacinv(dim,dim), ThisAxes(3,3,0.);
-  REAL detjac;
-  this->Reference()->Jacobian(qsi, jac, ThisAxes, detjac, jacinv);
-  axes = ThisAxes;
+template< class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
+                                                   TPZVec<REAL> &sol,
+                                                   TPZFMatrix &dsol,
+                                                   TPZFMatrix &axes){
+  TCOMPEL::ComputeSolution(qsi, sol, dsol, axes);
   this->AppendOtherSolution(qsi, sol, dsol, axes);
 }
 
- /**
-   * Computes solution and its derivatives in the local coordinate qsi.
-   * This method will function for both volumetric and interface elements
-   * @param qsi master element coordinate of the interface element
-   * @param sol finite element solution
-   * @param dsol solution derivatives
-   * @param axes axes associated with the derivative of the solution
-   * @param leftsol finite element solution
-   * @param dleftsol solution derivatives
-   * @param leftaxes axes associated with the left solution
-   * @param rightsol finite element solution
-   * @param drightsol solution derivatives
-   * @param rightaxes axes associated with the right solution
-  */
 template< class TCOMPEL >
-void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi, 
-                            TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                            TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-{
-  TCOMPEL::ComputeSolution(qsi, leftsol, dleftsol, leftaxes,rightsol, drightsol, rightaxes);
-
-/*  TPZCompMesh * cmesh = this->Mesh();
-  TPZCompMeshReferred * refmesh = dynamic_cast<TPZCompMeshReferred*>(cmesh);
-  if (!refmesh) return;
-  TPZCompEl * other = refmesh->ReferredEl( this->Index() );
-  if (!other) return;
-  
-  TPZManVector<REAL> LSol(leftsol),RSol(rightsol);
-  TPZFNMatrix<100> LDSol(dleftsol),RDSol(drightsol);
-  
-  TPZManVector<REAL> OLSol,ORSol;
-  TPZFNMatrix<100> OLDSol,OLDSol2,ORDSol,ORDSol2;
-  TPZFNMatrix<9> OLaxes(3,3,0.),ORaxes(3,3,0.);
-  other->ComputeSolution(qsi, OLSol,OLDSol,OLaxes,ORSol,ORDSol,ORaxes);
-  if(leftsol.NElements()) 
-  {
-    AdjustSolutionDerivatives(OLDSol,OLaxes,OLDSol2,leftaxes);
-  }
-  else if(OLSol.NElements())
-  {
-    OLDSol2 = OLDSol;
-    leftaxes = OLaxes;
-    
-  }
-  Append(LSol,OLSol,leftsol);
-  Append(LDSol,OLDSol2,dleftsol);
-  if(rightsol.NElements()) 
-  {
-    AdjustSolutionDerivatives(ORDSol,ORaxes,ORDSol2,rightaxes);
-  }
-  else if(ORSol.NElements())
-  {
-    ORDSol2 = ORDSol;
-    rightaxes = ORaxes;
-    
-  }
-  Append(RSol,ORSol,rightsol);
-  Append(RDSol,ORDSol2,drightsol);*/
-  
+void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
+                                                   TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                                                   TPZVec<REAL> &normal,
+                                                   TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol, TPZFMatrix &leftaxes,
+                                                   TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+  TCOMPEL::ComputeSolution(qsi, sol, dsol, axes, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
+  this->AppendOtherSolution(qsi, sol, dsol, axes, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
 }
 
-
-/**
- * Adjust the derivatives from one system of axes to the other
- */
 void AdjustSolutionDerivatives(TPZFMatrix &dsolfrom, TPZFMatrix &axesfrom,
-                               TPZFMatrix &dsolto, TPZFMatrix &axesto)
+                               TPZFMatrix &dsolto, const TPZFMatrix &axesto)
 {
   TPZFNMatrix<9> axesinner, axesfromlocal;
   axesfrom.Transpose(&axesfromlocal);
-  axesto.Multiply(axesfromlocal,axesinner);
+  axesto.ConstMultiply(axesfromlocal,axesinner);
   int nderiv = dsolfrom.Rows();
   int nstate = dsolfrom.Cols();
   dsolto.Resize(nderiv,nstate);
@@ -323,6 +259,16 @@ void Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12)
   int i,j;
   for(i=0; i<ru1; i++) for(j=0; j<cu1; j++) u12(i,j) = u1(i,j);
   for(i=0; i<ru2; i++) for(j=0; j<cu2; j++) u12(i,j+cu1) = u2(i,j);
+}
+
+bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol){
+  if (A.NElements() != B.NElements()) return false;
+  int i;
+  const int n = A.NElements();
+  for(i = 0; i < n; i++){
+    if ( fabs(A[i] - B[i]) > tol ) return false;
+  }
+  return true;
 }
 
 using namespace pzshape;

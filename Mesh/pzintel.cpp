@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.49 2007-03-26 13:02:30 cesar Exp $
+// $Id: pzintel.cpp,v 1.50 2007-04-11 14:27:24 tiago Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -2721,7 +2721,6 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &so
 
   TPZFNMatrix<220> phi(nshape,1);
   TPZFNMatrix<660> dphi(dim,nshape),dphix(dim,nshape);
-//   TPZFNMatrix<9> axes(3,3,0.);
   TPZFNMatrix<9> jacobian(dim,dim);
   TPZFNMatrix<9> jacinv(dim,dim);
   REAL detjac;
@@ -2762,7 +2761,7 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &so
 }//method
 
 void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                                              TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+                                              const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
     const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
@@ -2789,3 +2788,19 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi,
       }
     }
 }//method
+
+void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi,
+                                             TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                                             TPZVec<REAL> &normal,
+                                             TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                                             TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+  leftsol.Resize(0);
+  dleftsol.Resize(0,0);
+  leftaxes.Zero();
+  rightsol.Resize(0);
+  drightsol.Resize(0,0);
+  rightaxes.Zero();
+  normal.Resize(0);
+  this->ComputeSolution(qsi,sol,dsol,axes);
+}
+

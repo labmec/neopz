@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.86 2007-03-26 13:02:31 cesar Exp $
+//$Id: TPZCompElDisc.cpp,v 1.87 2007-04-11 14:28:52 tiago Exp $
 
 // -*- c++ -*-
 
@@ -1015,52 +1015,6 @@ void TPZCompElDisc::SetDegree(int degree) {
   Mesh()->Block().Set(seqnum,NShapeF()*nvar);
 }
 
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix & axes){
-  TPZGeoEl * ref = this->Reference();
-  const int nshape = this->NShapeF();
-  const int dim = ref->Dimension();
-  TPZFMatrix phix(nshape,1),dphix(dim,nshape);
-
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
-  REAL detjac;
-  TPZManVector<REAL,3> x(3,0.);
-  ref->Jacobian( qsi, jacobian, axes, detjac , jacinv);
-  ref->X(qsi, x);
-  this->Shape(x,phix,dphix);
-  this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
-}//method
-
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                                     TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
-
-  const int nstate = this->Material()->NStateVariables();
-  const int ncon = this->NConnects();
-  TPZBlock &block = Mesh()->Block();
-  TPZFMatrix &MeshSol = Mesh()->Solution();
-
-  sol.Resize(nstate);
-  sol.Fill(0.);
-  dsol.Redim(dphix.Rows(), nstate);
-  dsol.Zero();
-
-  int iv = 0, d;
-  for(int in=0; in<ncon; in++) {
-    TPZConnect *df = &Connect(in);
-    int dfseq = df->SequenceNumber();
-    int dfvar = block.Size(dfseq);
-    int pos = block.Position(dfseq);
-    for(int jn=0; jn<dfvar; jn++) {
-      sol[iv%nstate] += phi(iv/nstate,0)*MeshSol(pos+jn,0);
-      for(d=0; d<dphix.Rows(); d++){
-        dsol(d,iv%nstate) += dphix(d,iv/nstate)*MeshSol(pos+jn,0);
-      }
-      iv++;
-    }
-  }
-
-}//method
-
   /**
   * returns the unique identifier for reading/writing objects to streams
   */
@@ -1177,4 +1131,64 @@ void TPZCompElDisc::Integrate(int variable, TPZVec<REAL> & value){
   delete intrule;
 }
 
+void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi,
+                                    TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                                    TPZVec<REAL> &normal,
+                                    TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                                    TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+  leftsol.Resize(0);
+  dleftsol.Resize(0,0);
+  leftaxes.Zero();
+  rightsol.Resize(0);
+  drightsol.Resize(0,0);
+  rightaxes.Zero();
+  normal.Resize(0);
+  this->ComputeSolution(qsi,sol,dsol,axes);
+}
+
+void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix & axes){
+  TPZGeoEl * ref = this->Reference();
+  const int nshape = this->NShapeF();
+  const int dim = ref->Dimension();
+  TPZFMatrix phix(nshape,1),dphix(dim,nshape);
+
+  TPZFMatrix jacobian(dim,dim);
+  TPZFMatrix jacinv(dim,dim);
+  REAL detjac;
+  TPZManVector<REAL,3> x(3,0.);
+  ref->Jacobian( qsi, jacobian, axes, detjac , jacinv);
+  ref->X(qsi, x);
+  this->Shape(x,phix,dphix);
+  this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
+}//method
+
+void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
+                                    const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+
+  const int nstate = this->Material()->NStateVariables();
+  const int ncon = this->NConnects();
+  TPZBlock &block = Mesh()->Block();
+  TPZFMatrix &MeshSol = Mesh()->Solution();
+
+  sol.Resize(nstate);
+  sol.Fill(0.);
+  dsol.Redim(dphix.Rows(), nstate);
+  dsol.Zero();
+
+  int iv = 0, d;
+  for(int in=0; in<ncon; in++) {
+    TPZConnect *df = &Connect(in);
+    int dfseq = df->SequenceNumber();
+    int dfvar = block.Size(dfseq);
+    int pos = block.Position(dfseq);
+    for(int jn=0; jn<dfvar; jn++) {
+      sol[iv%nstate] += phi(iv/nstate,0)*MeshSol(pos+jn,0);
+      for(d=0; d<dphix.Rows(); d++){
+        dsol(d,iv%nstate) += dphix(d,iv/nstate)*MeshSol(pos+jn,0);
+      }
+      iv++;
+    }
+  }
+
+}//method
 
