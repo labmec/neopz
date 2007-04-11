@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.39 2007-01-27 14:28:43 phil Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.40 2007-04-11 14:28:30 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -901,23 +901,28 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
       //clonando o elemento interface: a interface existir�na malha aglomerada
       //leftel and rightel
       int leftid = interf->LeftElement()->Index();
+      int leftside = interf->LeftElementSide().Side();
       leftid = IdElNewMesh[leftid];
 #ifdef DEBUG
-      if (leftid == -1)
-	PZError <<  "\nLeftid cannot be -1." << endl;
+      if (leftid == -1){
+        PZError <<  "\nLeftid cannot be -1." << endl;
+      }
 #endif
       TPZCompElDisc * leftagg = dynamic_cast<TPZCompElDisc*> (aggmesh->ElementVec()[leftid]) ;
 
       int rightid = interf->RightElement()->Index();
+      int rightside = interf->RightElementSide().Side();
       rightid = IdElNewMesh[rightid];
 #ifdef DEBUG
-      if (rightid == -1)
-	PZError <<  "\nRightid cannot be -1." << endl;
+      if (rightid == -1){
+        PZError <<  "\nRightid cannot be -1." << endl;
+      }
 #endif
       TPZCompElDisc * rightagg = dynamic_cast<TPZCompElDisc*> (aggmesh->ElementVec()[rightid]) ;
 
-      interf->CloneInterface(*aggmesh,index, leftagg, rightagg);   
-    
+      TPZCompElSide leftcompelside(leftagg, leftside), rightcompelside(rightagg, rightside);
+      interf->CloneInterface(*aggmesh,index, /*leftagg*/leftcompelside, /*rightagg*/rightcompelside);
+
     }
   }
 

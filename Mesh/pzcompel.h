@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.30 2007-03-26 12:54:26 cesar Exp $
+// $Id: pzcompel.h,v 1.31 2007-04-11 14:30:27 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -459,6 +459,7 @@ public:
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                               TPZVec<REAL> &normal,
                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
  /**
@@ -475,9 +476,10 @@ public:
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+//   virtual void ComputeSolution(TPZVec<REAL> &qsi,
+//                                TPZVec<REAL> &normal,
+//                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+//                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 
 
   /**
@@ -490,7 +492,7 @@ public:
   * @param dsol solution derivatives
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                               TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+                               const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
   /**
    * Builds the list of all connectivities related to the element including the
@@ -573,6 +575,22 @@ public:
 
   /** Remove interface which is neighbour from side side */
   void RemoveInterface(int side);
+
+  /**returns the total number of shapefunctions*/
+  virtual int NShapeF(){
+    PZError << "\nPLEASE IMPLEMENT ME AT YOUR DERIVED CLASS: " << __PRETTY_FUNCTION__ << "\n";
+    return 0;
+  }
+
+  /**returns the number of shapefunctions associated with a connect*/
+  virtual int NConnectShapeF(int inod) = 0;
+
+  /**
+   * value of the bases and derivatives of the element deformed in point X
+   */
+  virtual void Shape(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
+    PZError << "\nPLEASE IMPLEMENT ME AT YOUR DERIVED CLASS: " << __PRETTY_FUNCTION__ << "\n";
+  }
 
 };
 
@@ -753,7 +771,6 @@ inline void TPZCompEl::CalcStiff(TPZElementMatrix &,TPZElementMatrix &){
   std::cout << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
 }
 
-
 inline void TPZCompEl::ProjectFlux(TPZElementMatrix &ek,TPZElementMatrix &ef) {
   std::cout << "TPZCompEl::ProjectFlux is called." << std::endl;
 }
@@ -784,7 +801,7 @@ inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZ
   PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
 }
 
-inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, TPZFMatrix &axes,  TPZVec<REAL> &sol, TPZFMatrix &dsol){
+inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, const TPZFMatrix &axes,  TPZVec<REAL> &sol, TPZFMatrix &dsol){
   PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
 }
 
@@ -800,6 +817,7 @@ inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFM
   */
 inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                               TPZVec<REAL> &normal,
                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
 {
@@ -819,12 +837,13 @@ inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi,
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi,
-                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-{
-  PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
-}
+// inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi,
+//                                TPZVec<REAL> &normal,
+//                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+//                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
+// {
+//   PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
+// }
 
 
 #endif

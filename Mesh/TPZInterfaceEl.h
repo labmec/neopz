@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.43 2007-04-04 19:37:17 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.44 2007-04-11 14:29:03 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -42,26 +42,16 @@ class TPZInterfaceElement : public TPZCompEl {
   TPZManVector<REAL,3> fNormal;
 
   /**
-   * Keep track of the connects of the element
-   */
-  //TPZVec<TPZConnect *> fConnectL, fConnectR;
-
- /**
-   * Keep track of the connect indexes
-   */
-//  int fConnectIndexL[NL], fConnectIndexR[NR];
-
-  /**
-   * Geometric element to which this element refers
-   */
-//  TPZGeoEl *fReference;
-
-  /**
    * Material object of this element
    */
-  int fMaterialId;//this variable can be gotten of the element of associated volume
+  int fMaterialId;
 
+  /** Informs the connect that this element is no longer connected to it.
+   */
   void DecreaseElConnected();
+
+  /** Informs the connect that this element is connected to it.
+   */
   void IncrementElConnected();
 
  /**
@@ -77,34 +67,43 @@ class TPZInterfaceElement : public TPZCompEl {
 
  protected:
 
-  /** Compute solution at neighbour element in a given master coordinate qsi. It returns this element axes
+  /** Compute solution at neighbour element in a given master coordinate qsi. It returns the axes
    * at which respect derivatives are computed.
    * @param [in] Neighbor
    * @param [in] qsi
    * @param [out] sol
    * @param [out] dsol
-   * @param [out] ThisAxes
+   * @param [out] NeighborAxes
    */
-  void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &ThisAxes);
+  void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &NeighborAxes);
+
+  /** Check consistency of mapped qsi performed by method TPZInterfaceElement::MapQsi by
+   * comparing the X coordinate of qsi and the correspondent NeighIntPoint.
+   * It return true if everything is ok or false otherwise.
+   */
+  bool CheckConsistencyOfMappedQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZVec<REAL>&NeighIntPoint);
+
+  void ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf);
+
+  /** Computes normal.
+   */
+  void ComputeNormal();
 
  public:
 
+  /**
+   * Maps qsi coordinate at this master element to qsi coordinate at neighbor master element.
+   * @param Neighbor [in] may be this->LeftElementSide() or this->RightElementSide()
+   * @param qsi [in] is the point at this element master
+   * @param NeighIntPoint [out] is the point at neighbor element master. X[qsi] is equal to X[NeighIntPoint]
+   */
+  void MapQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZVec<REAL> &NeighIntPoint);
+
   enum CalcStiffOptions{ENone = -1, EStandard /*Deprecated*/ = 0, EPenalty, EContDisc,EReferred};
-
-  /**
-   * For CloneInterface usage. Normal is not recomputed, but copied.
-   * Only for disconitnuous neighbours.
-   */
-  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right, const TPZVec<REAL> & normal);
-
-  /**
-   * Construtor para o elemento descontinuo.
-   */
-//  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right);
 
   /** Constuctor to continuous and/or discontinuous neighbours.
    */
-  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompEl *left,TPZCompEl *right, int leftside, int rightside);
+  TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);
 
   /**
    * Copy constructor.
@@ -134,13 +133,19 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   TPZInterfaceElement();
 
+  /** Default TPZCompEl constructor. SetLeftRightElements must be called
+   * before any computation.
+   */
   TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
-//   TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, TPZVec<int> &destindex,int &index);
 
+  /** Class destructor */
   ~TPZInterfaceElement();
 
+  /** Set neighbors.
+  */
   void SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right);
 
+  /** Makes a clone of this */
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
     return new TPZInterfaceElement(mesh, *this);
   }
@@ -153,22 +158,14 @@ class TPZInterfaceElement : public TPZCompEl {
     return new TPZInterfaceElement(mesh, *this, gl2lcConMap,gl2lcElMap);
   }
 
-
-  TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,int &index, TPZCompElDisc * left, TPZCompElDisc * right) const;
-
-//  TPZAutoPointer<TPZMaterial> Material() const
-//  {
-//    return TPZAutoPointer<TPZMaterial> (fMaterial);
-//  }
-
-//  void SetMaterial(TPZAutoPointer<TPZMaterial> mat) { fMaterial = mat;}
+  /** Method used in TPZAgglomerateElement::CreateAgglomerateMesh
+   */
+  TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,int &index, /*TPZCompElDisc **/TPZCompElSide & left, /*TPZCompElDisc **/ TPZCompElSide &right) const;
 
   /**
    * it identifies the elements of left and right volume of the interface
    */
   void VolumeEls(TPZCompEl &thirdel);
-
-  void GetTransformsLeftAndRight(TPZTransform &tl,TPZTransform &tr);
 
   /**
    * it returns the right element from the element interface
@@ -180,15 +177,20 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   TPZCompEl *LeftElement() {return fLeftElSide.Element();}
 
+  /**
+   * Returns left neighbor
+   */
   TPZCompElSide &LeftElementSide(){ return this->fLeftElSide; }
+
+  /**
+   * Returns right neighbor
+   */
   TPZCompElSide &RightElementSide(){ return this->fRightElSide; }
 
   /**
-   * it returns the normal one to the face from the element
+   * it returns the normal of this interface which goes from left to right neighbors
    */
   void Normal(TPZVec<REAL> &normal);
-
-/*   void SetNormal(TPZVec<REAL> &normal); */
 
   /**
    * it returns the number from connectivities of the element
@@ -233,6 +235,10 @@ class TPZInterfaceElement : public TPZCompEl {
    * of the elements left and right
    */
   int  NShapeF() {return 0;}
+
+  /** See base class
+   */
+  virtual int NConnectShapeF(int inod){ return 0; }
 
   /**
    * Loads the solution within the internal data structure of the element
@@ -325,9 +331,10 @@ class TPZInterfaceElement : public TPZCompEl {
    * @param [out] leftaxes axes associated with the derivative of the left element
    * @param [out] rightaxes axes associated with the derivative of the right element
   */
-virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+// virtual void ComputeSolution(TPZVec<REAL> &qsi,
+//                              TPZVec<REAL> &normal,
+//                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+//                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
@@ -344,12 +351,9 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   */
 virtual void ComputeSolution(TPZVec<REAL> &qsi,
                              TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
+                             TPZVec<REAL> &normal,
                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                             TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-{
-  // usually interface elements have no associated solution
-  return ComputeSolution(qsi,leftsol,dleftsol,leftaxes,rightsol,drightsol,rightaxes);
-}
+                             TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 
   /**
   * Computes solution and its derivatives in local coordinate qsi
@@ -361,7 +365,7 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   * @param dsol solution derivatives
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                               TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+                               const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
  /**
   * Computes solution and its derivatives in the local coordinate qsi.
@@ -388,9 +392,6 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * otherwise returns 0
    */
   static int ExistInterfaces(TPZCompElSide &comp);
-
-  //it returns the normal one to the face from element
-  void NormalToFace(TPZVec<REAL> &normal/*,int leftside*/);
 
   static int FreeInterface(TPZCompMesh &cmesh);
 
@@ -432,6 +433,5 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
 
 };
 
-//Acessar com -> TPZGeoElXXd::SetCreateFunction(createInterfaceXXEl);
 #endif
 

@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.32 2007-04-05 21:45:06 cesar Exp $
+//$Id: pzcompel.cpp,v 1.33 2007-04-11 14:30:27 tiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -1003,10 +1003,14 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
     if(Dimension() > list0->Dimension()){
        //o de volume eh o direito caso um deles seja BC
        //a normal aponta para fora do contorno
-       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,this,list0, thisside, neighside);
+       TPZCompElSide thiscompelside(this, thisside);
+       TPZCompElSide neighcompelside(list0, neighside);
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
     } else {
        //caso contrario ou caso ambos sejam de volume
-       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,list0,this, neighside, thisside);
+       TPZCompElSide thiscompelside(this, thisside);
+       TPZCompElSide neighcompelside(list0, neighside);
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,neighcompelside,thiscompelside);
     }
     return newcreatedinterface;
   }
@@ -1052,9 +1056,13 @@ TPZInterfaceElement * TPZCompEl::CreateInterface(int side, bool BetweenContinuou
 
     if(Dimension() > lowcel->Dimension()){
        //para que o elemento esquerdo seja de volume
-       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,this,lowcel,thisside,neighside);
+       TPZCompElSide thiscompelside(this, thisside);
+       TPZCompElSide lowcelcompelside(lowcel, neighside);
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,lowcelcompelside);
     } else {
-       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcel,this,neighside,thisside);
+       TPZCompElSide thiscompelside(this, thisside);
+       TPZCompElSide lowcelcompelside(lowcel, neighside);
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
     }
     return newcreatedinterface;
   }
@@ -1358,4 +1366,5 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
   for(i=0;i<nelems;i++)
   if(locexpand[i].Element()) expandvec.Push(locexpand[i]);
 }
+
 
