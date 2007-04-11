@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.12 2007-03-26 13:02:31 cesar Exp $
+//$Id: pzsubcmesh.h,v 1.13 2007-04-11 14:27:43 tiago Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -77,6 +77,10 @@ public:
    * Destructor.
    */
   virtual ~TPZSubCompMesh();
+  virtual int NConnectShapeF(int inod){
+    PZError << "\nPLEASE IMPLEMENT ME: " << __PRETTY_FUNCTION__ << "\n";
+    return 0;
+  }
 
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
     std::cout << "TPZSubCompMesh::Clone should be implemented\n";
