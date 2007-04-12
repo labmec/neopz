@@ -35,8 +35,14 @@ TPZMaterial::TPZMaterial(const TPZMaterial &material) {
    fForcingFunction = material.fForcingFunction;
 }
 
-void TPZMaterial::FillMaterialDataRequirements(TPZMaterialData &data){
+void TPZMaterial::FillDataRequirements(TPZMaterialData &data){
   data.SetAllRequirements(true);
+  data.fNeedsNeighborSol = false;
+}
+
+void TPZMaterial::FillDataRequirementsInterface(TPZMaterialData &data){
+  data.SetAllRequirements(true);
+  data.fNeedsSol = false;
 }
 
 void TPZMaterial::Print(std::ostream & out) {

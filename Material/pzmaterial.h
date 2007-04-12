@@ -71,7 +71,15 @@ class  TPZMaterial : public TPZSaveable
        * only the necessary data.
        * @since April 10, 2007
        */
-      virtual void FillMaterialDataRequirements(TPZMaterialData &data);
+      virtual void FillDataRequirements(TPZMaterialData &data);
+
+      /** Fill material data parameter with necessary requirements for the 
+       * ContributeInterface method. Here, in base class, all requirements are considered
+       * as necessary. Each derived class may optimize performance by selecting
+       * only the necessary data.
+       * @since April 10, 2007
+       */
+      virtual void FillDataRequirementsInterface(TPZMaterialData &data);
 
       /** returns the name of the material*/
       virtual char *Name() { return "no_name"; }
