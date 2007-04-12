@@ -1,11 +1,12 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.44 2007-04-11 14:29:03 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.45 2007-04-12 20:07:12 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
 
 #include "pzcompel.h"
+#include "pzinterpolationspace.h"
 #include "pzgeoel.h"
 #include "pzcmesh.h"
 #include "pzfmatrix.h"
@@ -41,11 +42,6 @@ class TPZInterfaceElement : public TPZCompEl {
    */
   TPZManVector<REAL,3> fNormal;
 
-  /**
-   * Material object of this element
-   */
-  int fMaterialId;
-
   /** Informs the connect that this element is no longer connected to it.
    */
   void DecreaseElConnected();
@@ -59,13 +55,18 @@ class TPZInterfaceElement : public TPZCompEl {
   */
   void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int> &connectindex);
 
-  /**
-   * Compute shape functions to an interpolated element. Used in case one neighbour is TPZInterpolatedElement.
-   */
-  void ComputeShape(TPZInterpolatedElement* intel, TPZFMatrix &phix, TPZFMatrix &dphix,
-                    TPZFMatrix &axes, TPZVec<REAL> &IntPoint );
-
  protected:
+
+  /** Initialize a material data and its attributes based on element dimension, number
+   * of state variables and material definitions
+   */
+  void InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *left, TPZInterpolationSpace *right);
+
+  /** Compute and fill data with requested attributes */
+  void ComputeRequiredData(TPZMaterialData &data,
+                           TPZInterpolationSpace *left, TPZInterpolationSpace *right,
+                           TPZVec<REAL> &qsi,
+                           TPZVec<REAL> &LeftIntPoint, TPZVec<REAL> &RightIntPoint);
 
   /** Compute solution at neighbour element in a given master coordinate qsi. It returns the axes
    * at which respect derivatives are computed.
@@ -230,17 +231,6 @@ class TPZInterfaceElement : public TPZCompEl {
   MElementType Type() { return EInterface; }
 
   /**
-   * it returns the shapes number of the element
-   * the associated space of interpolation is gotten
-   * of the elements left and right
-   */
-  int  NShapeF() {return 0;}
-
-  /** See base class
-   */
-  virtual int NConnectShapeF(int inod){ return 0; }
-
-  /**
    * Loads the solution within the internal data structure of the element
    * Is used to initialize the solution of connect objects with dependency
    * Is also used to load the solution within SuperElements*/
@@ -262,64 +252,14 @@ class TPZInterfaceElement : public TPZCompEl {
   virtual void CalcResidual(TPZElementMatrix &ef);
 
   /**
-   * Standard CalcStiff of interface element
-   * @param ek element matrix
-   * @param ef element right hand side
-   */
-  void CalcStiffStandard(TPZElementMatrix &ek, TPZElementMatrix &ef);
-
-  /**
-   * Standard CalcResidual of interface element
-   * @param ek element matrix
-   * @param ef element right hand side
-   */
-  void CalcResidualStandard(TPZElementMatrix &ef);
-
-  /**
-   * CalcStiff with penalty term based on left and right p order and
-   * interface inner radius.
-   * @param ek element matrix
-   * @param ef element right hand side
-   * @author Paulo B�ing & Igor Mozolevski
-   * @since April 01, 2004
-   */
-  void CalcStiffPenalty(TPZElementMatrix &ek, TPZElementMatrix &ef);
-
-  /**
-   * CalcStiff for meshes who combine continuous and discontinuous
-   * elements. It was not necessary to separate this implementation
-   * from Standard and Penalty implementations.
-   * @param ek element matrix
-   * @param ef element right hand side
-   * @since March 01, 2005
-   */
-  void CalcStiffContDisc(TPZElementMatrix &ek, TPZElementMatrix &ef);
-
-  /**
-   * CalcStiff for meshes who combine continuous and discontinuous
-   * elements and use referred meshes.
-   * It was not necessary to separate this implementation
-   * from Standard and Penalty implementations.
-   * @param ek element matrix
-   * @param ef element right hand side
-   * @since March 01, 2005
-   */
-  void CalcStiffReferred(TPZElementMatrix &ek, TPZElementMatrix &ef);
-  /**
-   * gCalcStiff = 1 means standard CalcStiff
-   * gCalcStiff = 2 means CalcStiff with penalty
-   * gCalcStiff = 3 means the mesh has continuous and discontinuous elements combined
-   * gCalcStiff = 4 means the mesh has referred meshes
+   * gCalcStiff = 1 means standard CalcStiff which handle continuous and discontinuous elements combined
+   * gCalcStiff = 2 means standard CalcStiff with penalty
    */
   static int gCalcStiff;
 
   static void SetCalcStiffStandard(){ TPZInterfaceElement::gCalcStiff = EStandard; }
 
   static void SetCalcStiffPenalty(){ TPZInterfaceElement::gCalcStiff = EPenalty; }
-
-  static void SetCalcStiffContDisc(){ TPZInterfaceElement::gCalcStiff = EContDisc; }
-
-  static void SetCalcStiffReferred(){ TPZInterfaceElement::gCalcStiff = EReferred; }
 
  /**
   * Computes solution and its derivatives in the local coordinate qsi.
@@ -331,29 +271,10 @@ class TPZInterfaceElement : public TPZCompEl {
    * @param [out] leftaxes axes associated with the derivative of the left element
    * @param [out] rightaxes axes associated with the derivative of the right element
   */
-// virtual void ComputeSolution(TPZVec<REAL> &qsi,
-//                              TPZVec<REAL> &normal,
-//                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-//                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
-
- /**
-   * Computes solution and its derivatives in the local coordinate qsi.
-   * @param [in] qsi master element coordinate
-   * @param [out] sol finite element solution at the interface element
-   * @param [out] leftsol left finite element solution
-   * @param [out] rightsol right finite element solution
-   * @param [out] dsol solution derivatives at the interface element
-   * @param [out] dleftsol left solution derivatives
-   * @param [out] drightsol right solution derivatives
-   * @param [out] axes axes associated with the derivative of the solution of the interface element
-   * @param [out] leftaxes axes associated with the derivative of the left element
-   * @param [out] rightaxes axes associated with the derivative of the right element
-  */
-virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                             TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
-                             TPZVec<REAL> &normal,
-                             TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                             TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
+                               TPZVec<REAL> &normal,
+                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 
   /**
   * Computes solution and its derivatives in local coordinate qsi
