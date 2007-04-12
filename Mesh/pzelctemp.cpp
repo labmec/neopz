@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.31 2007-04-12 00:54:11 phil Exp $
+// $Id: pzelctemp.cpp,v 1.32 2007-04-12 14:16:59 cesar Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -59,7 +59,7 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,
 
 
 template<class TGEO, class TSHAPE>
-TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
+cerviTPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
                                       const TPZIntelGen<TGEO,TSHAPE> &copy,
                                       std::map<int,int> & gl2lcConMap,
                                       std::map<int,int> & gl2lcElMap) :
@@ -88,10 +88,10 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
           << " trying to clone the connect index: " << glIdx
           << " wich is not in mapped connect indexes!";
       LOGPZ_ERROR(logger, sout.str().c_str());
-      exit(-1);
+      fConnectIndexes[i] = -1;
+      return;
     }
     fConnectIndexes[i] = lcIdx;
-    mesh.ConnectVec()[fConnectIndexes[i]].CopyFrom(copy.Mesh()->ConnectVec()[glIdx],gl2lcConMap);
   }
 //   gl2lcElMap[copy.fIndex] = this->Index();
 }
