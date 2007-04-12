@@ -1,11 +1,8 @@
-//$Id: pzmaterialdata.h,v 1.1 2007-04-11 14:26:23 tiago Exp $
+//$Id: pzmaterialdata.h,v 1.2 2007-04-12 20:01:13 tiago Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
 
-class TPZMaterial;
-class TPZCompEl;
-class TPZElementMatrix;
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
 
@@ -14,56 +11,36 @@ This class implements an interface between TPZCompEl::CalcStiff and TPZMaterial:
 
 @since April 10, 2007
 */
+
 class TPZMaterialData{
 
 public:
 
-  bool fNeedsSol, fNeedsX, fNeedsNeighborSol, fNeedsPOrder, fNeedsHSize;
+/** Flags indicating whether some attributes shall be computed or not */
+  bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize;
 
-private:
-
-  TPZManVector<REAL> sol, leftsol, rightsol;
-  TPZFNMatrix<100> dsol, leftdsol, rightdsol;
-  TPZManVector<REAL,3> X;
-  TPZFNMatrix<9> jacobian, jacinv, axes, leftaxes, rightaxes;
-  TPZFNMatrix<220> phi;
-  TPZFNMatrix<660> dphix;
+/** Attributes to be computed in CalcStiff */
+  TPZFNMatrix<100> phi, phil, phir;
+  TPZFNMatrix<100> dphix, dphixl, dphixr;
+  TPZFNMatrix<9> axes, axesleft, axesright;
+  TPZFNMatrix<9> jacobian, leftjac, rightjac;
+  TPZFNMatrix<9> jacinv, leftjacinv, rightjacinv;
   TPZManVector<REAL,3> normal;
+  TPZManVector<REAL,3> x;
+  int p, leftp, rightp;
+  TPZManVector<REAL,10> sol, soll, solr;
+  TPZFNMatrix<30> dsol, dsoll, dsolr;
+  REAL HSize;
+  REAL detjac, leftdetjac, rightdetjac;
 
-  REAL Hsize, leftHsize, rightHsize;
-  int POrder, leftPOrder, rightPOrder;
+/** Class constructor */
+  TPZMaterialData();
 
-private:
-
-  TPZFNMatrix<660> dphi;
-
-private:
-
-  TPZCompEl * fEl;
-
-  TPZMaterial * fMat;
-
-  void FillData(TPZVec<REAL> &qsi, REAL &weight);
-  int AveragePOrder(TPZCompEl * cel);
-
-public:
-
-  TPZMaterialData(TPZCompEl &cel, TPZMaterial &material);
-
+/** Class destructor */
   ~TPZMaterialData();
 
-  void Contribute(TPZVec<REAL> &qsi, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
-  void ContributeInterface(TPZVec<REAL> &qsi, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
-
-  void SetAllRequirements(bool set){
-    this->fNeedsSol = set;
-    this->fNeedsX = set;
-    this->fNeedsNeighborSol = set;
-    this->fNeedsPOrder = set;
-    this->fNeedsHSize = set;
-  }
-
-  void InitializeAttributes(TPZElementMatrix & ek, TPZElementMatrix & ef);
+/** Set all flags at once */
+  void SetAllRequirements(bool set);
 
 };
 
