@@ -1,4 +1,4 @@
-//$Id: pzreferredcompel.h,v 1.6 2007-04-11 14:27:35 tiago Exp $
+//$Id: pzreferredcompel.h,v 1.7 2007-04-12 13:19:08 tiago Exp $
 
 // -*- c++ -*-
 #ifndef PZSPECIAL
@@ -37,7 +37,7 @@ class TPZReferredCompEl : public TCOMPEL {
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
                                const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
-  
+
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * @param qsi master element coordinate
@@ -45,9 +45,9 @@ class TPZReferredCompEl : public TCOMPEL {
    * @param dsol solution derivatives
    * @param axes axes associated with the derivative of the solution
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
-  
+//   virtual void ComputeSolution(TPZVec<REAL> &qsi,
+//                                TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
+
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * @param qsi master element coordinate of the interface element

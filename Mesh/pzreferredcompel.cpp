@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.12 2007-04-11 14:27:35 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.13 2007-04-12 13:19:08 tiago Exp $
 
 
 #include "pzreferredcompel.h"
@@ -195,14 +195,14 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
   this->AppendOtherSolution(qsi, sol, dsol, axes);
 }//method
 
-template< class TCOMPEL >
-void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
-                                                   TPZVec<REAL> &sol,
-                                                   TPZFMatrix &dsol,
-                                                   TPZFMatrix &axes){
-  TCOMPEL::ComputeSolution(qsi, sol, dsol, axes);
-  this->AppendOtherSolution(qsi, sol, dsol, axes);
-}
+// template< class TCOMPEL >
+// void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
+//                                                    TPZVec<REAL> &sol,
+//                                                    TPZFMatrix &dsol,
+//                                                    TPZFMatrix &axes){
+//   TCOMPEL::ComputeSolution(qsi, sol, dsol, axes);
+//   this->AppendOtherSolution(qsi, sol, dsol, axes);
+// }
 
 template< class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
