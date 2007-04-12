@@ -17,12 +17,12 @@ meshinc_HEADERS= $(top_srcdir)/Mesh/*.h
 
 noinst_LIBRARIES = libpzmesh.a
 
-libpzmesh_a_SOURCES = pzcompel.cpp pzsubcmesh.cpp 	pzelctemp.cpp 	pzmeshid.cpp	 \
-	TPZCompElDisc.cpp 	TPZInterfaceEl.cpp 	TPZAgglomerateEl.cpp 	pzgmesh.cpp 	pzcheckgeom.cpp \
-		pzcheckmesh.cpp 	pzcheckrestraint.cpp 	pzcmesh.cpp	 tpzcompmeshreferred.cpp	 \
-	pzflowcmesh.cpp 	pzconnect.cpp	pzelmat.cpp 	pzgeoelbc.cpp 	pzgeoel.cpp 	pzgeoelside.cpp \
-		pzgeoelrefless.cpp 	pzgnode.cpp 	pzintel.cpp 	pzstackmesh.cpp 	pzvecmesh.cpp \
-		tpzgeoelrefpattern.cpp tpzagglomeratemesh.cpp pzreferredcompel.cpp tpzgeoelmapped.cpp
+libpzmesh_a_SOURCES = pzinterpolationspace.cpp pzcompel.cpp pzelctemp.cpp 	pzmeshid.cpp	 \
+		TPZCompElDisc.cpp 	TPZInterfaceEl.cpp 	TPZAgglomerateEl.cpp 	pzgmesh.cpp 	pzcheckgeom.cpp \
+			pzcheckmesh.cpp 	pzcheckrestraint.cpp 	pzcmesh.cpp	 tpzcompmeshreferred.cpp	 \
+		pzflowcmesh.cpp 	pzconnect.cpp	pzelmat.cpp 	pzgeoelbc.cpp 	pzgeoel.cpp 	pzgeoelside.cpp \
+			pzgeoelrefless.cpp 	pzgnode.cpp 	pzintel.cpp 	pzstackmesh.cpp 	pzvecmesh.cpp \
+			tpzgeoelrefpattern.cpp tpzagglomeratemesh.cpp pzreferredcompel.cpp tpzgeoelmapped.cpp pzsubcmesh.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
-noinst_HEADERS = tpzgeoelmapped.h pzgeoelrefless.h.h
+noinst_HEADERS = tpzgeoelmapped.h pzgeoelrefless.h.h pzinterpolationspace.h

@@ -26,7 +26,7 @@ libpz_a_LIBADD = ../Post/tpzgraphelt3d.o ../External/pzsloan.o \
 	../Mesh/pzcheckmesh.o ../Mesh/pzcheckrestraint.o ../Mesh/pzelmat.o ../Mesh/pzgeoelbc.o \
 	../Mesh/pzgeoel.o ../Mesh/pzgeoelside.o ../Mesh/pzgeoelrefless.o ../Mesh/pzgmesh.o \
 	../Mesh/pzgnode.o ../Mesh/pzintel.o ../Mesh/pzstackmesh.o ../Mesh/pzsubcmesh.o \
-	../Mesh/pzvecmesh.o ../Mesh/TPZCompElDisc.o ../Mesh/TPZInterfaceEl.o \
+	../Mesh/pzvecmesh.o ../Mesh/TPZCompElDisc.o ../Mesh/TPZInterfaceEl.o ../Mesh/pzinterpolationspace.o\
 	../Mesh/TPZAgglomerateEl.o ../Mesh/pzelctemp.o ../Mesh/tpzgeoelrefpattern.o ../Mesh/pzmeshid.o \
 	../Shape/pzshapecube.o ../Shape/pzshapelinear.o ../Shape/pzshapepiram.o \
 	../Shape/pzshapeprism.o ../Shape/pzshapequad.o ../Shape/pzshapetriang.o ../Shape/pzshapetetra.o \
