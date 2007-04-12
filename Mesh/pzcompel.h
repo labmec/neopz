@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.31 2007-04-11 14:30:27 tiago Exp $
+// $Id: pzcompel.h,v 1.32 2007-04-12 00:54:11 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -288,7 +288,7 @@ public:
   /**
    * Return a pointer to the grid of the element
    */
-  TPZCompMesh *Mesh();
+  TPZCompMesh *Mesh() const;
   //@}
 
   /**

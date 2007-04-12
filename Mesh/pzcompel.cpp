@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.33 2007-04-11 14:30:27 tiago Exp $
+//$Id: pzcompel.cpp,v 1.34 2007-04-12 00:54:11 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -238,7 +238,7 @@ void TPZCompEl::SetMesh(TPZCompMesh *mesh) {
   fMesh = mesh;
 }
 
-TPZCompMesh *TPZCompEl::Mesh() {
+TPZCompMesh *TPZCompEl::Mesh() const {
   if(!fMesh)
     LOGPZ_WARN(logger, "TPZCompEl.Mesh called for a uninitialized element.");
   return fMesh;

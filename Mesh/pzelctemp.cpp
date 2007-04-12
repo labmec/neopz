@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.30 2007-03-26 13:02:30 cesar Exp $
+// $Id: pzelctemp.cpp,v 1.31 2007-04-12 00:54:11 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -65,14 +65,14 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
                                       std::map<int,int> & gl2lcElMap) :
     TPZInterpolatedElement(mesh,copy,gl2lcElMap), fIntRule(copy.fIntRule)
 {
-  if (gl2lcElMap.find(copy.fIndex)!= gl2lcElMap.end())
-  {
-    std::stringstream sout;
-    sout << "ERROR in : " << __PRETTY_FUNCTION__
-        << " trying to clone an already cloned element index: " << copy.fIndex;
-    LOGPZ_ERROR(logger, sout.str().c_str());
-    exit(-1);
-  }
+//   if (gl2lcElMap.find(copy.fIndex)!= gl2lcElMap.end())
+//   {
+//     std::stringstream sout;
+//     sout << "ERROR in : " << __PRETTY_FUNCTION__
+//         << " trying to clone an already cloned element index: " << copy.fIndex;
+//     LOGPZ_ERROR(logger, sout.str().c_str());
+//     exit(-1);
+//   }
 
   fPreferredSideOrder = copy.fPreferredSideOrder;
   int i;
@@ -91,9 +91,9 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
       exit(-1);
     }
     fConnectIndexes[i] = lcIdx;
-    mesh.ConnectVec()[fConnectIndexes[i]].CopyFrom(fMesh->ConnectVec()[glIdx],gl2lcConMap);
+    mesh.ConnectVec()[fConnectIndexes[i]].CopyFrom(copy.Mesh()->ConnectVec()[glIdx],gl2lcConMap);
   }
-  gl2lcElMap[copy.fIndex] = this->Index();
+//   gl2lcElMap[copy.fIndex] = this->Index();
 }
 
 
