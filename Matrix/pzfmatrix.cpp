@@ -248,6 +248,52 @@ TPZTempFMatrix TPZFMatrix::operator-(const TPZFMatrix &A ) const {
 	 while(pr < prlast) *pr++ = (*pm++) - (*pa++);
 	 return( res );
 }
+
+void TPZFMatrix::ConstMultiply(const TPZFMatrix & x,TPZFMatrix & B,const int opt) const{
+  if (!opt){
+    if (this->Cols() != x.Rows()){
+      Error( "Error in TPZFMatrix::ConstMultiply() - matrices have wrong sizes to be multiplied" );
+      std::cout << "\nError in TPZFMatrix::ConstMultiply() - matrices have wrong sizes to be multiplied\n";
+    }
+    const int BRows = this->Rows();
+    const int BCols = x.Cols();
+    const int KSize = this->Cols();
+    REAL sum;
+    B.Resize(BRows, BCols);
+    int i, j, k;
+    for(i = 0; i < BRows; i++){
+      for(j = 0; j < BCols; j++){
+        sum = 0.;
+        for(k = 0; k < KSize; k++){
+          sum += this->g(i,k) * x.g(k,j);
+        }
+        B.s(i,j) = sum;
+      }//for j
+    }//for i
+  }
+  else{
+    if (this->Rows() != x.Rows()){
+      Error( "Error in TPZFMatrix::ConstMultiply() - matrices have wrong sizes to be multiplied" );
+      std::cout << "\nError in TPZFMatrix::ConstMultiply() - matrices have wrong sizes to be multiplied\n";
+    }
+    const int BRows = this->Cols();
+    const int BCols = x.Cols();
+    const int KSize = this->Rows();
+    REAL sum;
+    B.Resize(BRows, BCols);
+    int i, j, k;
+    for(i = 0; i < BRows; i++){
+      for(j = 0; j < BCols; j++){
+        sum = 0.;
+        for(k = 0; k < KSize; k++){
+          sum += this->g(k,i) * x.g(k,j);
+        }
+        B.s(i,j) = sum;
+      }//for j
+    }//for i
+  }
+}//void
+
 void TPZFMatrix::MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha,const REAL beta ,const int opt ,const int stride)
 {

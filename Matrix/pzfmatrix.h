@@ -113,7 +113,13 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
    * @param destinantion Destine index on current matrix
    */
   void AddFel(TPZFMatrix &rhs,TPZVec<int> &source, TPZVec<int> &destination);
-  
+
+  /**
+   * B = this * X
+   * If opt = 1 then B = Transpose[this] * X
+   */
+  void ConstMultiply(const TPZFMatrix & x,TPZFMatrix & B,const int opt = 0) const;
+
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) ;
  
