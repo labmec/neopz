@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.32 2007-04-12 14:16:59 cesar Exp $
+// $Id: pzelctemp.cpp,v 1.33 2007-04-12 20:11:08 tiago Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -59,7 +59,7 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,
 
 
 template<class TGEO, class TSHAPE>
-cerviTPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
+TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
                                       const TPZIntelGen<TGEO,TSHAPE> &copy,
                                       std::map<int,int> & gl2lcConMap,
                                       std::map<int,int> & gl2lcElMap) :
