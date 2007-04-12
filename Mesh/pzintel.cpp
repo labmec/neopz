@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.50 2007-04-11 14:27:24 tiago Exp $
+// $Id: pzintel.cpp,v 1.51 2007-04-12 20:04:01 tiago Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -47,25 +47,25 @@ static void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
 using namespace std;
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int &index) :
-  TPZCompEl(mesh,reference,index) {
+  TPZInterpolationSpace(mesh,reference,index) {
 //  fReference = reference;
 }
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy) :
-  TPZCompEl(mesh,copy) {
+  TPZInterpolationSpace(mesh,copy) {
 //  fReference = copy.fReference;
 }
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh,
                                                const TPZInterpolatedElement &copy,
                                                std::map<int,int> & gl2lcElMap) :
-                                               TPZCompEl(mesh,copy,gl2lcElMap)
+                                               TPZInterpolationSpace(mesh,copy,gl2lcElMap)
 {
 }
 
 
 TPZInterpolatedElement::TPZInterpolatedElement() :
-  TPZCompEl() {
+  TPZInterpolationSpace() {
 }
 
 TPZInterpolatedElement::~TPZInterpolatedElement() {
@@ -1613,49 +1613,14 @@ void TPZInterpolatedElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &e
   }
 
   int intrulepoints = intrule.NPoints();
-  TPZGeoEl *ref = Reference();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
 
     intrule.Point(int_ind,intpoint,weight);
-    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+    this->ComputeShape(intpoint, x, jacobian, axes, detjac, jacinv, phi, dphix);
     weight *= fabs(detjac);
-    this->Shape(intpoint,phi,dphi);
-
-    int ieq;
-    switch(dim) {
-    case 0:
-      break;
-    case 1:
-      dphix = dphi;
-      dphix *= (1./detjac);
-      break;
-    case 2:
-      for(ieq = 0; ieq < nshape; ieq++) {
-        dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
-        dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
-      }
-      break;
-    case 3:
-      for(ieq = 0; ieq < nshape; ieq++) {
-        dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
-        dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
-        dphix(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
-      }
-      break;
-    default:
-      stringstream sout;
-      sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
-      LOGPZ_ERROR(logger,sout.str());
-
-    } //switch
-
     if (material->NeedsSolutionToContribute()){
       this->ComputeSolution(intpoint, phi, dphix, axes, sol, dsol);
     }
-    if (material->NeedsXCoord()){
-      ref->X(intpoint, x);
-    }
-
     material->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ek.fMat,ef.fMat);
 
   }//loop over integratin points
@@ -2790,10 +2755,10 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi,
 }//method
 
 void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi,
-                                             TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
-                                             TPZVec<REAL> &normal,
-                                             TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                                             TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+                                    TPZVec<REAL> &normal,
+                                    TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                                    TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+  //TPZInterpolatedElement has no left/right elements. Only interface elements have it.
   leftsol.Resize(0);
   dleftsol.Resize(0,0);
   leftaxes.Zero();
@@ -2801,6 +2766,7 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi,
   drightsol.Resize(0,0);
   rightaxes.Zero();
   normal.Resize(0);
-  this->ComputeSolution(qsi,sol,dsol,axes);
-}
+}//method
+
+
 

@@ -1,9 +1,10 @@
-//$Id: pzintel.h,v 1.25 2007-04-11 14:27:24 tiago Exp $
+//$Id: pzintel.h,v 1.26 2007-04-12 20:04:01 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
 
 #include "pzcompel.h"
+#include "pzinterpolationspace.h"
 #include "pzmaterial.h"
 struct TPZElementMatrix;
 
@@ -19,18 +20,9 @@ class TPZCompElDisc;
  * this makes the adaptive process extremely general\n
  * @ingroup CompElement
  */
-class TPZInterpolatedElement : public TPZCompEl {
+class TPZInterpolatedElement : public TPZInterpolationSpace {
 
  protected:
-
-  /**
-   * Geometric element to which this element refers
-   */
-//  TPZGeoEl *fReference;
-  /**
-   * Material object of this element
-   */
-//  TPZAutoPointer<TPZMaterial> fMaterial;
 
   /**
    * Updates the interpolation order of all neighbouring elements along side
@@ -105,12 +97,6 @@ public:
    */
   virtual void Print(std::ostream &out = std::cout);
 
-  /**return the geometric element to which this element references*/
-//  virtual TPZGeoEl *Reference() const { return fReference;}
-
-  /**returns the number of shapefunctions associated with a connect*/
-//   virtual int NConnectShapeF(int inod) = 0;
-
   /**returns the total number of shapefunctions*/
   int NShapeF();
 
@@ -152,13 +138,6 @@ public:
   /**return the number of connect objects of the element*/
   virtual int NConnects() = 0;
 
-  /**identify the material object associated with the element*/
-//  TPZAutoPointer<TPZMaterial> Material() const
-//  {
-//    return TPZAutoPointer<TPZMaterial> (fMaterial);
-//  }
-
-
   /**
    * Identifies the interpolation order of all connects of the element different from the corner connects
    * Note there is a diference between the actual side order returned by this method
@@ -193,9 +172,6 @@ public:
    * Sets the node pointer of node i to nod
    */
   virtual void SetConnectIndex(int i, int connectindex)=0;
-
-  /**set the material of the element*/
-//  virtual void SetMaterial(TPZAutoPointer<TPZMaterial> mat) {fMaterial = mat;}
 
   virtual void SetIntegrationRule(int order) {
     std::cout << "TPZInterpolatedElement::SetIntegrationRule called\n";
@@ -286,14 +262,6 @@ public:
    */
 //  virtual TPZIntPoints *CreateSideIntegrationRule(int side) = 0;
 
-  /**computes the shape function set at the point x. This method uses the order of interpolation
-   * of the element along the sides to compute the number of shapefunctions
-   * @param x point in master element coordinates
-   * @param phi vector of values of shapefunctions, dimension (numshape,1)
-   * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
-   */
-//   virtual void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi) = 0;
-
   /**compute the values of the shape function along the side*/
   virtual void SideShapeFunction(int side, TPZVec<REAL> &point, TPZFMatrix &phi, TPZFMatrix &dphi) = 0;
 
@@ -365,22 +333,6 @@ public:
 
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
-   * @param qsi master element coordinate of the interface element
-   * @param leftsol finite element solution
-   * @param dleftsol solution derivatives
-   * @param leftaxes axes associated with the left solution
-   * @param rightsol finite element solution
-   * @param drightsol solution derivatives
-   * @param rightaxes axes associated with the right solution
-  */
-virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                              TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
-                              TPZVec<REAL> &normal,
-                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
-
- /**
-   * Computes solution and its derivatives in the local coordinate qsi.
    * This method will function for both volumetric and interface elements
    * @param qsi master element coordinate of the interface element
    * @param sol finite element solution
@@ -393,12 +345,10 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-//   virtual void ComputeSolution(TPZVec<REAL> &qsi,
-//                                TPZVec<REAL> &normal,
-//                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-//                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-// {
-// }
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
+                               TPZVec<REAL> &normal,
+                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 
   /**
    * Compare the L2 norm of the difference between the ¨var¨ solution of the current element with

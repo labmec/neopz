@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.87 2007-04-11 14:28:52 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.88 2007-04-12 20:04:49 tiago Exp $
 
 // -*- c++ -*-
 
@@ -42,7 +42,7 @@
 #include "pzcompel.h"
 #include <math.h>
 #include <stdio.h>
-
+#include "pzmaterialdata.h"
 
 #include "pzlog.h"
 
@@ -54,18 +54,18 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompeldisc"));
 using namespace pzshape;
 using namespace std;
 
-TPZCompElDisc::TPZCompElDisc() : TPZCompEl(), fCenterPoint(3,0.)
+TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fCenterPoint(3,0.)
 {
   fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
 }
 //construtor do elemento aglomerado
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
-		TPZCompEl(mesh,0,index), fCenterPoint(3) {
+		TPZInterpolationSpace(mesh,0,index), fCenterPoint(3) {
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
-                             TPZCompEl(mesh,copy), fCenterPoint(copy.fCenterPoint) {
+                             TPZInterpolationSpace(mesh,copy), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
 //  fReference = copy.fReference;
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
@@ -75,7 +75,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
                              const TPZCompElDisc &copy,
                              std::map<int,int> &gl2lcConMap,
-                             std::map<int,int> &gl2lcElMap) : TPZCompEl(mesh,copy),
+                             std::map<int,int> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy),
                                                               fCenterPoint(copy.fCenterPoint)
 {
   fShapefunctionType = copy.fShapefunctionType;
@@ -84,7 +84,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index) :
-		TPZCompEl(mesh,copy,index), fCenterPoint(copy.fCenterPoint) {
+		TPZInterpolationSpace(mesh,copy,index), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
 //  fReference = copy.fReference;
   //criando nova malha computacional
@@ -98,7 +98,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
 
 //construtor do elemento descont�uo
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
-		TPZCompEl(mesh,ref,index), fCenterPoint(3) {
+		TPZInterpolationSpace(mesh,ref,index), fCenterPoint(3) {
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
   switch(ref->Type()) {
     case EQuadrilateral:
@@ -150,8 +150,21 @@ REAL TPZCompElDisc::NormalizeConst()
   return maxdist;
 }
 
+void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv,
+                                 TPZFMatrix &phi, TPZFMatrix &dphix){
+  TPZGeoEl * ref = this->Reference();
+  if (!ref){
+    PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
+    return;
+  }//if
+  ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+  axes.Identity();//discontinuous shape does not use axes
+  TPZManVector<REAL,3> XYZ(3);
+  ref->X(intpoint, XYZ);
+  this->ShapeX(XYZ,phi,dphix);
+}
 
-void TPZCompElDisc::Shape(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi) {
+void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi) {
 
   const int Degree = this->Degree();
   if(Degree < 0) return;
@@ -264,8 +277,6 @@ int TPZCompElDisc::CreateMidSideConnect(){
 }
 
 int TPZCompElDisc::NShapeF(){
-
-
   if(fConnectIndex == -1) return 0;
   //deve ter pelo menos um connect
 
@@ -273,6 +284,15 @@ int TPZCompElDisc::NShapeF(){
   return TPZShapeDisc::NShapeF(this->Degree(),dim,fShapefunctionType);
 }
 
+int TPZCompElDisc::NConnectShapeF(int inod){
+#ifdef DEBUG
+  if (inod != 0){
+    PZError << "\nFATAL ERROR AT " << __PRETTY_FUNCTION__ 
+            << " - TPZCompElDisc has only one connect and inod = " << inod << "\n";
+  }
+#endif
+  return this->NShapeF();
+}
 
 void TPZCompElDisc::InternalPoint(TPZVec<REAL> &point){
   //ponto deformado
@@ -292,6 +312,8 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     ef.Reset();
     return;
   }
+  TPZMaterialData data;
+//  this->ComputeShap
   TPZGeoEl *ref = Reference();
   int ncon = NConnects();
   int dim = Dimension();
@@ -342,7 +364,7 @@ void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
     ref->X(intpoint, x);
     weight *= fabs(detjac);
-    Shape(x,phix,dphix);
+    ShapeX(x,phix,dphix);
     axes.Identity();
 
     if (material->NeedsSolutionToContribute()){
@@ -396,7 +418,7 @@ void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
     ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
     ref->X(intpoint, x);
     weight *= fabs(detjac);
-    Shape(x,phix,dphix);
+    ShapeX(x,phix,dphix);
     axes.Identity();
 
     this->ComputeSolution(intpoint, phix, dphix, axes, sol, dsol);
@@ -555,7 +577,7 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
     REAL jac_det = 1.;
     Reference()->Jacobian( int_point, jacobian , axes,jac_det,jacinv);
     Reference()->X(int_point, x);
-    Shape(x,locphi,locdphi);
+    ShapeX(x,locphi,locdphi);
     axes.Identity();
 
     weight *= jac_det;
@@ -580,7 +602,7 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
     }
 #endif
 
-    coarsel.Shape(x,corphi,cordphi);
+    coarsel.ShapeX(x,corphi,cordphi);
     //u eh a solucao no elemento maior
     u.Fill(0.);
     int iv = 0;
@@ -672,7 +694,7 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
     var *= -1;//recuperando var
     for(int i=0;i<3;i++) x[i] = qsi[i];
   }
-  Shape(x,phi,dphi);
+  ShapeX(x,phi,dphi);
   this->ComputeSolution(qsi, phi, dphi, axes, u, du);
   material->Solution(u,du,axes,var,sol);
 }
@@ -686,7 +708,7 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &x, TPZVec<REAL> &uh){
   int matsize = NShapeF(),dim = Dimension();
   TPZFMatrix phix(matsize,1,0.);
   TPZFMatrix dphix(dim,matsize,0.);
-  Shape(x,phix,dphix);
+  ShapeX(x,phix,dphix);
   TPZConnect *df = &Connect(0);
   int dfseq = df->SequenceNumber();
   int dfvar = fineblock.Size(dfseq);
@@ -859,7 +881,7 @@ void TPZCompElDisc::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &v
     intrule->Point(nint,intpoint,weight);
     ref->Jacobian( intpoint , jacobian, axes, detjac , jacinv);
     ref->X( intpoint , x);
-    Shape(x,phi,dphix);
+    ShapeX(x,phi,dphix);
 
     //it is possible to have more than first derivative, as Laplacian and its derivatives.
     int nderiv = dphix.Rows();
@@ -942,11 +964,11 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
     intrule->Point(int_ind,int_point,weight);
     ref->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
     ref->X(int_point, x);
-    Shape(int_point,locphi,locdphi);
+    ShapeX(int_point,locphi,locdphi);
     weight *= jac_det;
     corphi.Zero();
     cordphi.Zero();
-    coarsel.Shape(int_point,corphi,cordphi);
+    coarsel.ShapeX(int_point,corphi,cordphi);
 
     for(lin=0; lin<locnshape; lin++) {
       for(ljn=0; ljn<locnshape; ljn++) {
@@ -1131,21 +1153,6 @@ void TPZCompElDisc::Integrate(int variable, TPZVec<REAL> & value){
   delete intrule;
 }
 
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi,
-                                    TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
-                                    TPZVec<REAL> &normal,
-                                    TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                                    TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
-  leftsol.Resize(0);
-  dleftsol.Resize(0,0);
-  leftaxes.Zero();
-  rightsol.Resize(0);
-  drightsol.Resize(0,0);
-  rightaxes.Zero();
-  normal.Resize(0);
-  this->ComputeSolution(qsi,sol,dsol,axes);
-}
-
 void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix & axes){
   TPZGeoEl * ref = this->Reference();
   const int nshape = this->NShapeF();
@@ -1158,7 +1165,7 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMa
   TPZManVector<REAL,3> x(3,0.);
   ref->Jacobian( qsi, jacobian, axes, detjac , jacinv);
   ref->X(qsi, x);
-  this->Shape(x,phix,dphix);
+  this->ShapeX(x,phix,dphix);
   this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
 }//method
 
@@ -1190,5 +1197,19 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatr
     }
   }
 
+}//method
+
+void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi,
+                                    TPZVec<REAL> &normal,
+                                    TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                                    TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+  //TPZCompElDisc has no left/right elements. Only interface elements have it.
+  leftsol.Resize(0);
+  dleftsol.Resize(0,0);
+  leftaxes.Zero();
+  rightsol.Resize(0);
+  drightsol.Resize(0,0);
+  rightaxes.Zero();
+  normal.Resize(0);
 }//method
 

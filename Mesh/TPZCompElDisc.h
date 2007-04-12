@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.51 2007-04-11 14:28:52 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.52 2007-04-12 20:04:49 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -12,6 +12,7 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzcompel.h"
+#include "pzinterpolationspace.h"
 #include "pzgeoel.h"
 #include "pzreal.h"
 #include "TPZShapeDisc.h"
@@ -39,7 +40,7 @@ class TPZGeoElPoint;
 /**
 @ingroup CompElement
 */
-class TPZCompElDisc : public TPZCompEl{
+class TPZCompElDisc : public TPZInterpolationSpace{
 
 protected:
 
@@ -59,10 +60,6 @@ protected:
   REAL fConstC;
 
   protected:
-  /**
-   * Material object of this element
-   */
-//  TPZAutoPointer<TPZMaterial> fMaterial;
 
   /**
    * it keeps the interior point coordinations of the element
@@ -80,12 +77,6 @@ protected:
   int GetMaterial( const TPZGeoElSide& gside );
 
   static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
-
-  /**return the geometric element to which this element references*/
-//  TPZGeoEl *Reference() const { return fReference;}
-
-  /**set the geometric element to which this element references*/
-//  void SetReference(TPZGeoEl *ref) {fReference = ref;}
 
   /**
    * Sets the orthogonal function which will be used throughout the program.
@@ -111,11 +102,6 @@ protected:
    * Retunrs the number of interfaces.
    */
   virtual int NInterfaces();
-
-  /**
-   * Returns the inner radius value.
-   */
-  virtual REAL InnerRadius() {return this->Reference()->ElementRadius();}
 
   TPZCompElDisc();
 
@@ -186,20 +172,25 @@ protected:
   /**
    * value of the bases and derivatives of the element deformed in point X
    */
-  void Shape(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
+  virtual void ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
+
+  /**computes the shape function set at the point x. This method uses the order of interpolation
+   * of the element along the sides to compute the number of shapefunctions
+   * @param qsi point in master element coordinates
+   * @param phi vector of values of shapefunctions, dimension (numshape,1)
+   * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
+   */
+  virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi){ 
+    PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this method should never be called!\n";
+  }
+
+  virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv,
+                            TPZFMatrix &phi, TPZFMatrix &dphix);
 
   /**
    * Type of the element
    */
   virtual MElementType Type() {return EDiscontinuous;}
-
-  /**
-   * it returns the material object
-   */
-  virtual TPZAutoPointer<TPZMaterial> Material() const
-  {
-    return fMesh->FindMaterial(Reference()->MaterialId());
-  }
 
   /**
    *
@@ -216,9 +207,6 @@ protected:
   /**
    */
   void InternalPoint(TPZVec<REAL> &point);
-
-  /**set the material of the element*/
-//  virtual void SetMaterial(TPZAutoPointer<TPZMaterial> mat) {fMaterial = mat;}
 
   /**
    * it prints the features of the element
@@ -264,12 +252,10 @@ protected:
   /**
    * it returns the shapes number of the element
    */
-  int  NShapeF();
+  virtual int NShapeF();
 
   /**returns the number of shapefunctions associated with a connect*/
-  virtual int NConnectShapeF(int inod){
-    return this->NShapeF();
-  }
+  virtual int NConnectShapeF(int inod);
 
   REAL CenterPoint(int index) {return fCenterPoint[index];}
 
@@ -318,22 +304,6 @@ protected:
 
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
-   * @param qsi master element coordinate of the interface element
-   * @param leftsol finite element solution
-   * @param dleftsol solution derivatives
-   * @param leftaxes axes associated with the left solution
-   * @param rightsol finite element solution
-   * @param drightsol solution derivatives
-   * @param rightaxes axes associated with the right solution
-  */
-virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                              TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
-                              TPZVec<REAL> &normal,
-                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
-
- /**
-   * Computes solution and its derivatives in the local coordinate qsi.
    * This method will function for both volumetric and interface elements
    * @param qsi master element coordinate of the interface element
    * @param sol finite element solution
@@ -346,12 +316,10 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-// virtual void ComputeSolution(TPZVec<REAL> &qsi,
-//                              TPZVec<REAL> &normal,
-//                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-//                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-// {
-// }
+virtual void ComputeSolution(TPZVec<REAL> &qsi,
+                             TPZVec<REAL> &normal,
+                             TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                             TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 
   /**
    * Calculates the solution - sol - for the variable var
