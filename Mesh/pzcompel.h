@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.32 2007-04-12 00:54:11 phil Exp $
+// $Id: pzcompel.h,v 1.33 2007-04-12 20:03:18 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -445,23 +445,8 @@ public:
   * @param axes axes associated with the derivative of the solution
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
+                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes) = 0;
 
- /**
-   * Computes solution and its derivatives in the local coordinate qsi.
-   * @param qsi master element coordinate of the interface element
-   * @param leftsol finite element solution
-   * @param dleftsol solution derivatives
-   * @param leftaxes axes associated with the left solution
-   * @param rightsol finite element solution
-   * @param drightsol solution derivatives
-   * @param rightaxes axes associated with the right solution
-  */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
-                               TPZVec<REAL> &normal,
-                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * This method will function for both volumetric and interface elements
@@ -476,11 +461,10 @@ public:
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-//   virtual void ComputeSolution(TPZVec<REAL> &qsi,
-//                                TPZVec<REAL> &normal,
-//                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-//                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
-
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
+                               TPZVec<REAL> &normal,
+                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes) = 0;
 
   /**
   * Computes solution and its derivatives in local coordinate qsi
@@ -492,7 +476,7 @@ public:
   * @param dsol solution derivatives
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                               const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+                               const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol) = 0;
 
   /**
    * Builds the list of all connectivities related to the element including the
@@ -575,22 +559,6 @@ public:
 
   /** Remove interface which is neighbour from side side */
   void RemoveInterface(int side);
-
-  /**returns the total number of shapefunctions*/
-  virtual int NShapeF(){
-    PZError << "\nPLEASE IMPLEMENT ME AT YOUR DERIVED CLASS: " << __PRETTY_FUNCTION__ << "\n";
-    return 0;
-  }
-
-  /**returns the number of shapefunctions associated with a connect*/
-  virtual int NConnectShapeF(int inod) = 0;
-
-  /**
-   * value of the bases and derivatives of the element deformed in point X
-   */
-  virtual void Shape(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
-    PZError << "\nPLEASE IMPLEMENT ME AT YOUR DERIVED CLASS: " << __PRETTY_FUNCTION__ << "\n";
-  }
 
 };
 
@@ -796,54 +764,5 @@ inline std::ostream &operator << (std::ostream &out,const TPZCompElSide &celside
 inline int TPZCompEl::Index() {
   return fIndex;
 }
-
-inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
-  PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
-}
-
-inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, const TPZFMatrix &axes,  TPZVec<REAL> &sol, TPZFMatrix &dsol){
-  PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
-}
-
- /**
- * Computes solution and its derivatives in the local coordinate qsi.
- * @param qsi master element coordinate of the interface element
- * @param leftsol finite element solution
- * @param dleftsol solution derivatives
- * @param leftaxes axes associated with the left solution
- * @param rightsol finite element solution
- * @param drightsol solution derivatives
- * @param rightaxes axes associated with the right solution
-  */
-inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi,
-                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
-                               TPZVec<REAL> &normal,
-                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-{
-  PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
-}
- /**
-   * Computes solution and its derivatives in the local coordinate qsi.
-   * This method will function for both volumetric and interface elements
-   * @param qsi master element coordinate of the interface element
-   * @param sol finite element solution
-   * @param dsol solution derivatives
-   * @param axes axes associated with the derivative of the solution
-   * @param leftsol finite element solution
-   * @param dleftsol solution derivatives
-   * @param leftaxes axes associated with the left solution
-   * @param rightsol finite element solution
-   * @param drightsol solution derivatives
-   * @param rightaxes axes associated with the right solution
-  */
-// inline void TPZCompEl::ComputeSolution(TPZVec<REAL> &qsi,
-//                                TPZVec<REAL> &normal,
-//                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-//                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes)
-// {
-//   PZError << __PRETTY_FUNCTION__ << " - ERROR! This method must be implemented in derived classes\n";
-// }
-
 
 #endif

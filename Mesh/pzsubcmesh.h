@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.13 2007-04-11 14:27:43 tiago Exp $
+//$Id: pzsubcmesh.h,v 1.14 2007-04-12 20:04:28 tiago Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -265,6 +265,48 @@ public:
 	virtual void LoadSolution();
 
 	virtual void GetExternalConnectIndex (TPZVec<int> &extconn);
+
+ /**
+  * Computes solution and its derivatives in the local coordinate qsi.
+  * @param qsi master element coordinate
+  * @param sol finite element solution
+  * @param dsol solution derivatives
+  * @param axes axes associated with the derivative of the solution
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
+                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
+
+ /**
+   * Computes solution and its derivatives in the local coordinate qsi.
+   * This method will function for both volumetric and interface elements
+   * @param qsi master element coordinate of the interface element
+   * @param sol finite element solution
+   * @param dsol solution derivatives
+   * @param axes axes associated with the derivative of the solution
+   * @param leftsol finite element solution
+   * @param dleftsol solution derivatives
+   * @param leftaxes axes associated with the left solution
+   * @param rightsol finite element solution
+   * @param drightsol solution derivatives
+   * @param rightaxes axes associated with the right solution
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
+                               TPZVec<REAL> &normal,
+                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+
+  /**
+  * Computes solution and its derivatives in local coordinate qsi
+  * @param qsi master element coordinate
+  * @param phi matrix containing shape functions compute in qsi point
+  * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
+  * @param [in] axes indicating the direction of the derivatives
+  * @param sol finite element solution
+  * @param dsol solution derivatives
+  */
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
+                               const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+
   //@}
   /**
   * returns the unique identifier for reading/writing objects to streams

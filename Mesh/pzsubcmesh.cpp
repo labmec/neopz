@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.14 2007-01-03 00:06:47 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.15 2007-04-12 20:04:28 tiago Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -843,4 +843,21 @@ void TPZSubCompMesh::Read(TPZStream &buf, void *context)
   ReadObjects(buf,fConnectIndex);
   ReadObjects(buf,fExternalLocIndex);
 }
+
+void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
+  PZError << __PRETTY_FUNCTION__ << " - ERROR! This method is not implemented\n";
+}
+
+void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, 
+                                const TPZFMatrix &axes,  TPZVec<REAL> &sol, TPZFMatrix &dsol){
+  PZError << __PRETTY_FUNCTION__ << " - ERROR! This method is not implemented\n";
+}
+
+void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi,
+                                TPZVec<REAL> &normal,
+                                TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                                TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+  PZError << __PRETTY_FUNCTION__ << " - ERROR! This method is not implemented\n";
+}
+
 

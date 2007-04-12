@@ -1,4 +1,4 @@
-//$Id: pzreferredcompel.h,v 1.7 2007-04-12 13:19:08 tiago Exp $
+//$Id: pzreferredcompel.h,v 1.8 2007-04-12 20:04:15 tiago Exp $
 
 // -*- c++ -*-
 #ifndef PZSPECIAL
@@ -18,8 +18,10 @@ template<class TCOMPEL>
 class TPZReferredCompEl : public TCOMPEL {
   public:
 
+   /** Class constructor */
    TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 
+  /** Class destructor */
   ~TPZReferredCompEl();
 
   /** Returns referred element of this
@@ -40,31 +42,6 @@ class TPZReferredCompEl : public TCOMPEL {
 
  /**
    * Computes solution and its derivatives in the local coordinate qsi.
-   * @param qsi master element coordinate
-   * @param sol finite element solution
-   * @param dsol solution derivatives
-   * @param axes axes associated with the derivative of the solution
-  */
-//   virtual void ComputeSolution(TPZVec<REAL> &qsi,
-//                                TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
-
- /**
-   * Computes solution and its derivatives in the local coordinate qsi.
-   * @param qsi master element coordinate of the interface element
-   * @param leftsol finite element solution
-   * @param dleftsol solution derivatives
-   * @param leftaxes axes associated with the left solution
-   * @param rightsol finite element solution
-   * @param drightsol solution derivatives
-   * @param rightaxes axes associated with the right solution
-  */
-virtual void ComputeSolution(TPZVec<REAL> &qsi, 
-                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
-                               TPZVec<REAL> &normal,
-                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
- /**
-   * Computes solution and its derivatives in the local coordinate qsi.
    * This method will function for both volumetric and interface elements
    * @param qsi master element coordinate of the interface element
    * @param sol finite element solution
@@ -77,10 +54,10 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * @param drightsol solution derivatives
    * @param rightaxes axes associated with the right solution
   */
-// virtual void ComputeSolution(TPZVec<REAL> &qsi,
-//                              TPZVec<REAL> &normal,
-//                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-//                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+virtual void ComputeSolution(TPZVec<REAL> &qsi,
+                             TPZVec<REAL> &normal,
+                             TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+                             TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 
   /**
    * Prints element data
@@ -95,11 +72,17 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    */
   void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
                            TPZFMatrix &dsol,  TPZFMatrix &axes);
+
+  /**
+   * Append solution of the referred element.
+   */
   void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
                            TPZFMatrix &dsol,  const TPZFMatrix &axes);
-  void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,
-                           TPZFMatrix &axes,
-                           TPZVec<REAL> &normal,
+
+  /**
+   * Append solution of the referred element.
+   */
+  void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &normal,
                            TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol, TPZFMatrix &leftaxes,
                            TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 };

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.13 2007-04-12 13:19:08 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.14 2007-04-12 20:04:15 tiago Exp $
 
 
 #include "pzreferredcompel.h"
@@ -129,35 +129,26 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec
 
 template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
-                                                       TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
                                                        TPZVec<REAL> &normal,
                                                        TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol, TPZFMatrix &leftaxes,
                                                        TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
   TPZCompEl * other = this->ReferredElement();
   if (!other) return;
 
-  TPZManVector<REAL> ThisSol(sol), ThisLeftSol(leftsol), ThisRightSol(rightsol);
-  TPZFNMatrix<100> ThisDSol(dsol), ThisDLeftSol(dleftsol), ThisDRightSol(drightsol);
+  TPZManVector<REAL> ThisLeftSol(leftsol), ThisRightSol(rightsol);
+  TPZFNMatrix<100> ThisDLeftSol(dleftsol), ThisDRightSol(drightsol);
 
-  TPZManVector<REAL> OtherSol(0), OtherLeftSol(0), OtherRightSol(0), OtherNormal(0);
-  TPZFNMatrix<100> OtherDSol(0), OtherDSol2(0), OtherDLeftSol(0), OtherDLeftSol2(0), OtherDRightSol(0), OtherDRightSol2(0);
-  TPZFNMatrix<9> OtherAxes(3,3,0.), OtherLeftAxes(3,3,0.), OtherRightAxes(3,3,0.);
-  other->ComputeSolution(qsi, OtherSol, OtherDSol, OtherAxes, OtherNormal,
-                              OtherLeftSol,  OtherDLeftSol,  OtherLeftAxes,
-                              OtherRightSol, OtherDRightSol, OtherRightAxes);
+  TPZManVector<REAL> OtherLeftSol(0), OtherRightSol(0), OtherNormal(0);
+  TPZFNMatrix<100> OtherDSol2(0), OtherDLeftSol(0), OtherDLeftSol2(0), OtherDRightSol(0), OtherDRightSol2(0);
+  TPZFNMatrix<9> OtherLeftAxes(3,3,0.), OtherRightAxes(3,3,0.);
+  other->ComputeSolution(qsi, OtherNormal,
+                         OtherLeftSol,  OtherDLeftSol,  OtherLeftAxes,
+                         OtherRightSol, OtherDRightSol, OtherRightAxes);
 
   if (OtherLeftSol.NElements() || OtherRightSol.NElements()){
     if ( !AreEqual(normal,OtherNormal) ){
       PZError << "\nFATAL ERROR at " << __PRETTY_FUNCTION__ << "\n";
     }
-  }
-
-  if(sol.NElements()){
-    AdjustSolutionDerivatives(OtherDSol,OtherAxes,OtherDSol2,axes);
-  }
-  else if(OtherSol.NElements()){
-    OtherDSol2 = OtherDSol;
-    axes = OtherAxes;
   }
 
   if(leftsol.NElements()){
@@ -176,8 +167,6 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
     rightaxes = OtherRightAxes;
   }
 
-  Append(ThisSol,OtherSol,sol);
-  Append(ThisDSol,OtherDSol2,dsol);
   Append(ThisLeftSol, OtherLeftSol, leftsol);
   Append(ThisDLeftSol, OtherDLeftSol, dleftsol);
   Append(ThisRightSol, OtherRightSol, rightsol);
@@ -195,23 +184,14 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
   this->AppendOtherSolution(qsi, sol, dsol, axes);
 }//method
 
-// template< class TCOMPEL >
-// void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
-//                                                    TPZVec<REAL> &sol,
-//                                                    TPZFMatrix &dsol,
-//                                                    TPZFMatrix &axes){
-//   TCOMPEL::ComputeSolution(qsi, sol, dsol, axes);
-//   this->AppendOtherSolution(qsi, sol, dsol, axes);
-// }
 
 template< class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
-                                                   TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes,
                                                    TPZVec<REAL> &normal,
                                                    TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol, TPZFMatrix &leftaxes,
                                                    TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
-  TCOMPEL::ComputeSolution(qsi, sol, dsol, axes, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
-  this->AppendOtherSolution(qsi, sol, dsol, axes, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
+  TCOMPEL::ComputeSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
+  this->AppendOtherSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
 }
 
 void AdjustSolutionDerivatives(TPZFMatrix &dsolfrom, TPZFMatrix &axesfrom,
