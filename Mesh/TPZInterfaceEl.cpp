@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.68 2007-04-12 20:07:12 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.69 2007-04-13 19:22:39 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -616,6 +616,9 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
   TPZMaterialData data;
   this->Material()->FillDataRequirementsInterface(data);
+  const int dim = this->Dimension();
+  const int diml = left->Dimension();
+  const int dimr = right->Dimension();
   int nshapel = left ->NShapeF();
   int nshaper = right->NShapeF();
   const int nstatel = left->Material()->NStateVariables();
@@ -684,7 +687,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
    this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
    this->ComputeSideTransform(this->RightElementSide(), TransfRight);
 
-   TPZManVector<REAL,3> intpoint, LeftIntPoint, RightIntPoint;
+   TPZManVector<REAL,3> intpoint(dim), LeftIntPoint(diml), RightIntPoint(dimr);
    REAL weight;
    //LOOP OVER INTEGRATION POINTS
    for(int ip = 0; ip < npoints; ip++){
@@ -848,6 +851,10 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
   this->InitMaterialData(data,left,right);
   data.SetAllRequirements(true);
 
+  const int dim = this->Dimension();
+  const int diml = left->Dimension();
+  const int dimr = right->Dimension();
+
    //LOOKING FOR MAX INTERPOLATION ORDER
    data.leftp = left->MaxOrder();
    data.rightp = right->MaxOrder();
@@ -870,7 +877,7 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
    this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
    this->ComputeSideTransform(this->RightElementSide(), TransfRight);
 
-   TPZManVector<REAL,3> intpoint, LeftIntPoint, RightIntPoint;
+   TPZManVector<REAL,3> intpoint(dim), LeftIntPoint(diml), RightIntPoint(dimr);
    REAL weight;
    //LOOP OVER INTEGRATION POINTS
    for(int ip = 0; ip < npoints; ip++){
