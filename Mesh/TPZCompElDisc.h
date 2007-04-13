@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.52 2007-04-12 20:04:49 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.53 2007-04-13 13:54:12 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -18,6 +18,7 @@
 #include "TPZShapeDisc.h"
 #include "tpzautopointer.h"
 #include "pzmaterial.h"
+#include "pzquad.h"
 
 struct TPZElementMatrix;
 class TPZFMatrix;
@@ -43,6 +44,8 @@ class TPZGeoElPoint;
 class TPZCompElDisc : public TPZInterpolationSpace{
 
 protected:
+
+  TPZIntPoints * fIntRule;
 
   /**
    * Shape function type used by the element
@@ -145,19 +148,13 @@ protected:
 
   ~TPZCompElDisc() {
     if(Reference()->Reference() == this) Reference()->ResetReference();
+    if (this->fIntRule) delete this->fIntRule;
    }
 
   /**
    * Divide the computational element
    */
   void Divide(int index, TPZVec<int> &subindex, int interpolate = 0);
-
-  /**
-   * CalcStiff computes the element stiffness matrix and right hand side
-   * @param ek element matrix
-   * @param ef element right hand side
-   */
-  virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
   /**
    * ComputeError computes the element error estimator
@@ -186,6 +183,10 @@ protected:
 
   virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv,
                             TPZFMatrix &phi, TPZFMatrix &dphix);
+
+  /**returns a reference to an integration rule suitable for integrating
+     the interior of the element */
+  virtual TPZIntPoints &GetIntegrationRule();
 
   /**
    * Type of the element
@@ -337,8 +338,6 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   virtual void AccumulateVertices(TPZStack<TPZGeoNode *> &nodes);
 
   int NSides();
-
-  void CalcResidual(TPZElementMatrix &ef);
 
   void BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &transfer);
 

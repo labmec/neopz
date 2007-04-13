@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.1 2007-04-13 13:14:44 tiago Exp $
+//$Id: pzinterpolationspace.h,v 1.2 2007-04-13 13:54:12 tiago Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -81,7 +81,18 @@ public:
   void ComputeRequiredData(TPZMaterialData &data,
                            TPZVec<REAL> &qsi);
 
+  /**
+   * CalcStiff computes the element stiffness matrix and right hand side
+   * @param ek element matrix
+   * @param ef element right hand side
+   */
   virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+  /**
+   * CalcResidual only computes the element residual
+   * @param ef element residual
+   */
+  virtual void CalcResidual(TPZElementMatrix &ef);
 
   /**returns a reference to an integration rule suitable for integrating
      the interior of the element */

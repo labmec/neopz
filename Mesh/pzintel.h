@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.26 2007-04-12 20:04:01 tiago Exp $
+//$Id: pzintel.h,v 1.27 2007-04-13 13:54:12 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -209,13 +209,6 @@ public:
    */
   //@{
 
-  /**
-   * CalcStiff computes the element stiffness matrix and right hand side
-   * @param ek element matrix
-   * @param ef element right hand side
-   */
-  virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
-
 #ifdef _AUTODIFF
 
   /**
@@ -235,12 +228,6 @@ public:
 #endif
 
   /**
-   * CalcResidual only computes the element residual
-   * @param ef element residual
-   */
-  virtual void CalcResidual(TPZElementMatrix &ef);
-
-  /**
    * This method computes only the block diagonal entries of the element stiffness matrix
    * and puts the result in the block matrix which is passed as argument. The blocks in the block
    * matrix object correspond to the connect indices of connectlist
@@ -251,7 +238,7 @@ public:
 
   /**returns a reference to an integration rule suitable for integrating
      the interior of the element*/
-  virtual TPZIntPoints &GetIntegrationRule() = 0;
+//   virtual TPZIntPoints &GetIntegrationRule() = 0;
 
   /**
    * Allocates dynamically an integration rule adequate for the side

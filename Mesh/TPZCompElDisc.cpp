@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.88 2007-04-12 20:04:49 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.89 2007-04-13 13:54:12 tiago Exp $
 
 // -*- c++ -*-
 
@@ -57,11 +57,13 @@ using namespace std;
 TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fCenterPoint(3,0.)
 {
   fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
+  this->fIntRule = NULL;
 }
 //construtor do elemento aglomerado
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
 		TPZInterpolationSpace(mesh,0,index), fCenterPoint(3) {
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
+  this->fIntRule = NULL;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
@@ -69,6 +71,8 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
   fShapefunctionType = copy.fShapefunctionType;
 //  fReference = copy.fReference;
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
+  if (this->fIntRule) delete this->fIntRule;
+  if (copy.fIntRule) this->GetIntegrationRule();
 }
 
 
@@ -81,6 +85,8 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
   fShapefunctionType = copy.fShapefunctionType;
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
   gl2lcElMap[copy.fIndex] = this->fIndex;
+  if (this->fIntRule) delete this->fIntRule;
+  if (copy.fIntRule) this->GetIntegrationRule();
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index) :
@@ -94,12 +100,15 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
   CreateMidSideConnect();
   this->SetDegree( TPZCompEl::gOrder );
   //as interfaces foram clonadas
+  if (this->fIntRule) delete this->fIntRule;
+  if (copy.fIntRule) this->GetIntegrationRule();
 }
 
 //construtor do elemento descont�uo
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 		TPZInterpolationSpace(mesh,ref,index), fCenterPoint(3) {
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
+  this->fIntRule = NULL;
   switch(ref->Type()) {
     case EQuadrilateral:
     case ECube:
@@ -150,7 +159,9 @@ REAL TPZCompElDisc::NormalizeConst()
   return maxdist;
 }
 
-void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv,
+void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, 
+                                 TPZFMatrix &jacobian, TPZFMatrix &axes, 
+                                 REAL &detjac, TPZFMatrix &jacinv,
                                  TPZFMatrix &phi, TPZFMatrix &dphix){
   TPZGeoEl * ref = this->Reference();
   if (!ref){
@@ -300,131 +311,6 @@ void TPZCompElDisc::InternalPoint(TPZVec<REAL> &point){
   point[0] = fCenterPoint[0];
   point[1] = fCenterPoint[1];
   point[2] = fCenterPoint[2];
-}
-
-
-void TPZCompElDisc::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
-
-  TPZAutoPointer<TPZMaterial> material = Material();
-  if(!material){
-    cout << "TPZCompElDisc::CalcStiff : no material for this element\n";
-    ek.Reset();
-    ef.Reset();
-    return;
-  }
-  TPZMaterialData data;
-//  this->ComputeShap
-  TPZGeoEl *ref = Reference();
-  int ncon = NConnects();
-  int dim = Dimension();
-  int nstate = material->NStateVariables();
-  int nshape = NShapeF();
-  int numeq = nshape * nstate;
-
-  ek.fMat.Redim(numeq,numeq);
-  ef.fMat.Redim(numeq,1);
-  if(ncon){
-    ek.fBlock.SetNBlocks(ncon);
-    ef.fBlock.SetNBlocks(ncon);
-    ek.fBlock.Set(0,NShapeF()*nstate);
-    ef.fBlock.Set(0,NShapeF()*nstate);
-  }
-  ek.fConnect.Resize(ncon);
-  ef.fConnect.Resize(ncon);
-  for(int i=0;i<ncon;i++){
-    (ef.fConnect)[i] = ConnectIndex(i);
-    (ek.fConnect)[i] = ConnectIndex(i);
-  }
-  if(ncon==0) return;//elemento CC no passa
-  TPZFMatrix phix(nshape,1),dphix(dim,nshape);
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
-  TPZVec<REAL> x(3,0.);
-  TPZVec<REAL> intpoint(dim,0.);
-  REAL detjac,weight;
-  int integ = max( 2 * Degree(), 0);
-  TPZIntPoints *intrule = 0;
-  intrule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
-  if(material->HasForcingFunction())
-  {
-     int maxint = intrule->GetMaxOrder();
-     TPZManVector<int> order(Reference()->Dimension());
-     intrule->GetOrder(order);
-     order.Fill(maxint);
-     intrule->SetOrder(order);
-  }
-
-  int npoints = intrule->NPoints(), ip;
-  TPZManVector<REAL,220> sol(nstate,0.);
-  TPZFNMatrix<660> dsol(dim,nstate,0.);
-
-  for(ip=0;ip<npoints;ip++){
-    intrule->Point(ip,intpoint,weight);
-    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
-    ref->X(intpoint, x);
-    weight *= fabs(detjac);
-    ShapeX(x,phix,dphix);
-    axes.Identity();
-
-    if (material->NeedsSolutionToContribute()){
-      this->ComputeSolution(intpoint, phix, dphix, axes, sol, dsol);
-    }
-
-    material->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ek.fMat,ef.fMat);
-  }
-}
-void TPZCompElDisc::CalcResidual(TPZElementMatrix &ef){
-  TPZAutoPointer<TPZMaterial> material = Material();
-  if(!material){
-    cout << "TPZCompElDisc::CalcStiff : no material for this element\n";
-    ef.Reset();
-    return;
-  }
-  TPZGeoEl *ref = Reference();
-  int ncon = NConnects();
-  int dim = Dimension();
-  int nstate = material->NStateVariables();
-  int nshape = NShapeF();
-  int numeq = nshape * nstate;
-
-  // clean ef
-
-  ef.fMat.Redim(numeq,1);
-  if(ncon){//pode serr no m�imo ncon = 1
-    ef.fBlock.SetNBlocks(ncon);
-    ef.fBlock.Set(0,NShapeF()*nstate);
-  }
-  ef.fConnect.Resize(ncon);
-  for(int i=0;i<ncon;i++){
-    (ef.fConnect)[i] = ConnectIndex(i);
-  }
-  if(ncon==0) return;//elemento CC no passa
-  TPZFMatrix phix(nshape,1),dphix(dim,nshape);
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
-  TPZVec<REAL> x(3,0.);
-  TPZVec<REAL> intpoint(dim,0.);
-  REAL detjac,weight;
-  int integ = 2*Degree();
-  TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
-  int npoints = intrule->NPoints(),ip;                                              //integra fi*fj
-  TPZVec<REAL> sol(nstate,0.);
-  TPZFMatrix dsol(dim,nstate,0.);
-
-  for(ip=0;ip<npoints;ip++){
-    intrule->Point(ip,intpoint,weight);
-    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
-    ref->X(intpoint, x);
-    weight *= fabs(detjac);
-    ShapeX(x,phix,dphix);
-    axes.Identity();
-
-    this->ComputeSolution(intpoint, phix, dphix, axes, sol, dsol);
-
-    material->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ef.fMat);
-  }
 }
 
 REAL TPZCompElDisc::SizeOfElement()
@@ -1212,4 +1098,14 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi,
   rightaxes.Zero();
   normal.Resize(0);
 }//method
+
+TPZIntPoints &TPZCompElDisc::GetIntegrationRule(){
+  if (!this->fIntRule){
+    int integ = max( 2 * this->Degree()+1, 0);
+    this->fIntRule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
+  }
+  return *fIntRule;
+}
+
+
 

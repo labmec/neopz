@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.1 2007-04-13 13:14:44 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.2 2007-04-13 13:54:12 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -120,7 +120,7 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
   }//fNeedHSize
 }//void
 
-void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) {
+void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   int i;
 
   TPZAutoPointer<TPZMaterial> material = Material();
@@ -153,19 +153,13 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     (ef.fConnect)[i] = ConnectIndex(i);
     (ek.fConnect)[i] = ConnectIndex(i);
   }
-  //suficiente para ordem 5 do cubo
-  TPZFNMatrix<220> phi(nshape,1);
-  TPZFNMatrix<660> dphi(dim,nshape),dphix(dim,nshape);
-  TPZFNMatrix<9> axes(3,3,0.);
-  TPZFNMatrix<9> jacobian(dim,dim);
-  TPZFNMatrix<9> jacinv(dim,dim);
-  REAL detjac;
-  TPZManVector<REAL,3> x(3,0.);
+
+  TPZMaterialData data;
+  this->InitMaterialData(data);
+  data.p = this->MaxOrder();
+
   TPZManVector<REAL,3> intpoint(dim,0.);
   REAL weight = 0.;
-
-  //  REAL dsolstore[90];
-  TPZFNMatrix<90> dsol(dim,numdof);
 
   TPZIntPoints &intrule = GetIntegrationRule();
   if(material->HasForcingFunction()) {
@@ -175,15 +169,64 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 
   int intrulepoints = intrule.NPoints();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-
     intrule.Point(int_ind,intpoint,weight);
-    this->ComputeShape(intpoint, x, jacobian, axes, detjac, jacinv, phi, dphix);
-    weight *= fabs(detjac);
-    if (material->NeedsSolutionToContribute()){
-      this->ComputeSolution(intpoint, phi, dphix, axes, sol, dsol);
-    }
-    material->Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphix,ek.fMat,ef.fMat);
-
+    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    weight *= fabs(data.detjac);
+    this->ComputeRequiredData(data, intpoint);
+    material->Contribute(data.x,data.jacinv,data.sol,data.dsol,weight,data.axes,data.phi,data.dphix,ek.fMat,ef.fMat);
   }//loop over integratin points
-}
+
+}//CalcStiff
+
+void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
+  int i;
+
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+    ef.Reset();
+    return;
+  }
+  int numdof = material->NStateVariables();
+  int ncon = NConnects();
+  int dim = Dimension();
+  int nshape = NShapeF();
+
+  int numeq = nshape*numdof;
+  ef.fMat.Redim(numeq,1);
+  ef.fBlock.SetNBlocks(ncon);
+  TPZManVector<REAL> sol(numdof,0.);
+  for (i = 0; i < ncon ; i++)	{
+    ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
+  }
+
+  ef.fConnect.Resize(ncon);
+
+  for(i=0; i<ncon; ++i){
+    (ef.fConnect)[i] = ConnectIndex(i);
+  }
+
+  TPZMaterialData data;
+  this->InitMaterialData(data);
+  data.p = this->MaxOrder();
+
+  TPZManVector<REAL,3> intpoint(dim,0.);
+  REAL weight = 0.;
+
+  TPZIntPoints &intrule = GetIntegrationRule();
+  if(material->HasForcingFunction()) {
+    TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
+    intrule.SetOrder(order);
+  }
+
+  int intrulepoints = intrule.NPoints();
+  for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+    intrule.Point(int_ind,intpoint,weight);
+    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    weight *= fabs(data.detjac);
+    this->ComputeRequiredData(data, intpoint);
+    material->Contribute(data.x,data.jacinv,data.sol,data.dsol,weight,data.axes,data.phi,data.dphix,ef.fMat);
+  }//loop over integratin points
+
+}//CalcResidual
 
