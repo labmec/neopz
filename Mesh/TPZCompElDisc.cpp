@@ -1,4 +1,4 @@
-//$Id: TPZCompElDisc.cpp,v 1.89 2007-04-13 13:54:12 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.90 2007-04-13 18:25:27 tiago Exp $
 
 // -*- c++ -*-
 
@@ -59,7 +59,7 @@ TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fCenterPoint(3,0.)
   fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
   this->fIntRule = NULL;
 }
-//construtor do elemento aglomerado
+
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
 		TPZInterpolationSpace(mesh,0,index), fCenterPoint(3) {
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
@@ -69,12 +69,10 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
                              TPZInterpolationSpace(mesh,copy), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
-//  fReference = copy.fReference;
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
   if (this->fIntRule) delete this->fIntRule;
   if (copy.fIntRule) this->GetIntegrationRule();
 }
-
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
                              const TPZCompElDisc &copy,
@@ -90,9 +88,8 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index) :
-		TPZInterpolationSpace(mesh,copy,index), fCenterPoint(copy.fCenterPoint) {
+                             TPZInterpolationSpace(mesh,copy,index), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
-//  fReference = copy.fReference;
   //criando nova malha computacional
   Reference()->SetReference(this);
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
@@ -104,7 +101,6 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
   if (copy.fIntRule) this->GetIntegrationRule();
 }
 
-//construtor do elemento descont�uo
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 		TPZInterpolationSpace(mesh,ref,index), fCenterPoint(3) {
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
@@ -123,9 +119,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
     default:
       break;
   }
-//  fReference = ref;
   ref->SetReference(this);
-  //fMesh = &mesh;
   CreateMidSideConnect();
   this->SetDegree( TPZCompEl::gOrder );
   ref->CenterPoint(ref->NSides()-1,fCenterPoint);
@@ -217,15 +211,11 @@ void TPZCompElDisc::Print(std::ostream &out) {
 }
 
 int TPZCompElDisc::ConnectIndex(int side) {
-
   return fConnectIndex;
 }
 
 int TPZCompElDisc::NConnects(){
-
-
   return (fConnectIndex !=-1);
-
 }
 
 int TPZCompElDisc::CreateMidSideConnect(){
@@ -535,58 +525,7 @@ void TPZCompElDisc::InterpolateSolution(TPZCompElDisc &coarsel){
   delete intrule;
 }
 
-void TPZCompElDisc::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
-  //#ifdef _AUTODIFF
-  //  TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>(fMaterial);
-  //#else
-  //  TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>(fMaterial);
-  //#endif
-
-  if(var >= 100) {
-    TPZCompEl::Solution(qsi,var,sol);
-    return;
-  }
-  int nshape = NShapeF();
-  int dim = Dimension();
-  if(var == 99) {
-    sol[0] = Degree();
-    return;
-  }
-
-  TPZAutoPointer<TPZMaterial> material = Material();
-  if(!material){
-    PZError << "TPZIntEl::Solution : no Material for this element\n";
-    Print(PZError);
-    return;
-  }
-
-  TPZGeoEl *ref = Reference();
-  int numdof = material->NStateVariables();
-  TPZFNMatrix<220> phi(nshape,1);
-  TPZFNMatrix<660> dphi(dim,nshape);
-  TPZManVector<REAL> u(numdof);
-  TPZFMatrix du(dim,numdof,0.);
-  TPZFMatrix axes(3,3,0.);
-  axes.Identity();
-  REAL jacstore[10],jacinvstore[10];
-  TPZFMatrix jacobian(dim,dim,jacstore,10);
-  TPZFMatrix jacinv(dim,dim,jacinvstore,10);
-  TPZManVector<REAL> x(3);
-
-  if(var >= 0){
-    ref->X(qsi,x);
-  } else if(var < 0){
-    //neste caso 0 ponto qsi est�no elemento deformado
-    var *= -1;//recuperando var
-    for(int i=0;i<3;i++) x[i] = qsi[i];
-  }
-  ShapeX(x,phi,dphi);
-  this->ComputeSolution(qsi, phi, dphi, axes, u, du);
-  material->Solution(u,du,axes,var,sol);
-}
-
-void TPZCompElDisc::Solution(TPZVec<REAL> &x, TPZVec<REAL> &uh){
-
+void TPZCompElDisc::SolutionX(TPZVec<REAL> &x, TPZVec<REAL> &uh){
   TPZCompMesh *finemesh = Mesh();
   TPZBlock &fineblock = finemesh->Block();
   int nstate = Material()->NStateVariables();
@@ -606,8 +545,6 @@ void TPZCompElDisc::Solution(TPZVec<REAL> &x, TPZVec<REAL> &uh){
     iv++;
   }
 }
-
-
 
 void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
 {
@@ -1033,7 +970,7 @@ void TPZCompElDisc::Integrate(int variable, TPZVec<REAL> & value){
     intrule->Point(ip,intpoint,weight);
     this->Reference()->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
     sol.Fill(0.);
-    this->Solution(intpoint, variable, sol);
+    TPZInterpolationSpace::Solution(intpoint, variable, sol);
     for(iv = 0; iv < varsize; iv++) value[iv] += sol[iv]*weight*fabs(detjac);
   }
   delete intrule;

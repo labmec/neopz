@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.2 2007-04-13 13:54:12 tiago Exp $
+//$Id: pzinterpolationspace.h,v 1.3 2007-04-13 18:25:27 tiago Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -102,6 +102,18 @@ public:
    * Returns the inner radius value.
    */
   virtual REAL InnerRadius();
+
+  /**
+   * Post processing method which computes the solution for the var post processed variable. The var index is obtained
+   * by calling the TPZMaterial::VariableIndex method with a post processing name
+   * @param qsi coordinate of the point in master element space where the solution will be evaluated
+   * @param var variable which will be computed
+   * @param sol (output) solution computed at the given point
+   * @see TPZMaterial::VariableIndex
+   * @see TPZMaterial::NSolutionVariables
+   * @see TPZMaterial::Solution
+   */
+  virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 
 };
 

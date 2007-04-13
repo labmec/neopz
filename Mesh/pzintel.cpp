@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.52 2007-04-13 13:54:12 tiago Exp $
+// $Id: pzintel.cpp,v 1.53 2007-04-13 18:25:27 tiago Exp $
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -1800,78 +1800,6 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
     }
   }
   return error;
-}
-
-void TPZInterpolatedElement::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
-
-  if(var >= 100) {
-    TPZCompEl::Solution(qsi,var,sol);
-    LOGPZ_INFO(logger,"Exiting Solution for var > 100.");
-    return;
-  }
-  int nshape = NShapeF();
-  int dim = Dimension();
-  int ncon = NConnects();
-  if(var == 99) {
-    sol[0] = SideOrder(ncon-1);
-    LOGPZ_INFO(logger,"Exiting Solution for var 99.");
-    return;
-  }
-
-  TPZAutoPointer<TPZMaterial> material = Material();
-  if(!material){
-    LOGPZ_ERROR(logger,"Exiting Solution: no Material for this element");
-    return;
-  }
-  TPZGeoEl *ref = Reference();
-
-  int numdof = material->NStateVariables();
-  REAL phistore[220],dphistore[660],dphixstore[660];
-  TPZFMatrix phi(nshape,1,phistore,220);
-  TPZFMatrix dphi(dim,nshape,dphistore,660),dphix(dim,nshape,dphixstore,660);
-  TPZManVector<REAL> u(numdof);
-  TPZFMatrix du(dim,numdof,0.);
-  TPZFMatrix axes(3,3,0.);
-  REAL jacstore[10],jacinvstore[10];
-  TPZFMatrix jacobian(dim,dim,jacstore,10);
-  TPZFMatrix jacinv(dim,dim,jacinvstore,10);
-  //TPZVec<REAL> x(3);
-  TPZManVector<REAL> x(3);
-  REAL detjac;
-  int ieq;
-  ref->Jacobian(qsi,jacobian,axes,detjac,jacinv);
-  Shape(qsi,phi,dphi);
-  ref->X(qsi,x);
-  switch(dim) {
-  case 0:
-    //dphix.Redim(1,1);
-    //dphix(0,0) = dphi(0,0);
-    break;
-  case 1:
-    dphix = dphi*REAL(1./detjac);
-    break;
-  case 2:
-    for(ieq = 0; ieq < nshape; ieq++) {
-      dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
-      dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
-    }
-    break;
-  case 3:
-    for(ieq = 0; ieq < nshape; ieq++) {
-      dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
-      dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
-      dphix(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
-    }
-    break;
-
-  default:
-    stringstream sout;
-    sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse";
-    LOGPZ_WARN(logger,sout.str());
-  }
-
-  this->ComputeSolution(qsi, phi, dphix, axes, u, du);
-  material->Solution(u,du,axes,var,sol);
 }
 
 void TPZInterpolatedElement::Print(std::ostream &out) {

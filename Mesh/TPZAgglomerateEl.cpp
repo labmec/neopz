@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.40 2007-04-11 14:28:30 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.41 2007-04-13 18:25:27 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -227,7 +227,7 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     x[1] = points[3*ip+1];
     x[2] = points[3*ip+2];
     weight = weights[ip];
-    Shape(x,phix,dphix);
+    ShapeX(x,phix,dphix);
     //solu� da itera� anterior
     sol.Fill(0.);
     dsol.Zero();
@@ -688,8 +688,8 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix &projectsol){
     for(ip=0;ip<npoints;ip++){
       for(in=0; in<3; in++) x[in] = accintpoint[3*ip+in];
       weight = accweight[ip];
-      Shape(x,aggphix,aggdphix);
-      finedisc->Solution(x,uh);
+      ShapeX(x,aggphix,aggdphix);
+      finedisc->SolutionX(x,uh);
       //projetando a solu�o fina no elemento aglomerado
       //a soma dos detjac dos sub-elementos d�o detjac do grande
       //a geometria do grande �a soma das geometrias dos pequenos

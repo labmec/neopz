@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.53 2007-04-13 13:54:12 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.54 2007-04-13 18:25:27 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -282,7 +282,7 @@ protected:
   /**
   * \brief Computes the solution in function of a point in cartesian space
   */
-  void Solution(TPZVec<REAL> &x,TPZVec<REAL> &uh);
+  void SolutionX(TPZVec<REAL> &x,TPZVec<REAL> &uh);
 
   /**
    * Computes solution and its derivatives in the local coordinate qsi.
@@ -321,16 +321,6 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
                              TPZVec<REAL> &normal,
                              TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                              TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
-
-  /**
-   * Calculates the solution - sol - for the variable var
-   * at point qsi, where qsi is expressed in terms of the
-   * master element coordinates
-   * @param qsi master element coordinate
-   * @param var variable name
-   * @param sol vetor for the solution
-   */
-  virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 
   virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
 

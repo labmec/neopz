@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.2 2007-04-13 13:54:12 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.3 2007-04-13 18:25:27 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -229,4 +229,30 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
   }//loop over integratin points
 
 }//CalcResidual
+
+void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
+
+  if(var >= 100) {
+    TPZCompEl::Solution(qsi,var,sol);
+    return;
+  }
+  int dim = this->Dimension();
+  if(var == 99) {
+    sol[0] = this->MaxOrder();
+    return;
+  }
+
+  TPZAutoPointer<TPZMaterial> material = this->Material();
+  if(!material){
+    sol.Resize(0);
+    return;
+  }
+
+  int numdof = material->NStateVariables();
+  TPZManVector<REAL,10> u(numdof);
+  TPZFNMatrix<30> du(dim,numdof,0.);
+  TPZFNMatrix<9> axes(3,3,0.);
+  this->ComputeSolution(qsi, u, du, axes);
+  material->Solution(u,du,axes,var,sol);
+}
 
