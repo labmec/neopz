@@ -19,8 +19,10 @@ geominc_HEADERS= $(top_srcdir)/Geom/*.h
 
 noinst_LIBRARIES = libpzgeom.a
 
-libpzgeom_a_SOURCES = pzgeopoint.cpp pzgeoprism.cpp pzgeopyramid.cpp pzgeoquad.cpp pzgeotetrahedra.cpp pzgeotriangle.cpp 	TPZGeoCube.cpp TPZGeoElement.cpp TPZGeoLinear.cpp 
+libpzgeom_a_SOURCES = pzgeopoint.cpp pzgeoprism.cpp pzgeopyramid.cpp \
+	pzgeoquad.cpp pzgeotetrahedra.cpp pzgeotriangle.cpp 	TPZGeoCube.cpp TPZGeoElement.cpp \
+	TPZGeoLinear.cpp pznoderep.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
 
-noinst_HEADERS = TPZGeoElement.h.h
+noinst_HEADERS = TPZGeoElement.h.h pznoderep.h

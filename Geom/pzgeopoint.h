@@ -5,6 +5,7 @@
 #ifndef TPZGEOPOINTH
 #define TPZGEOPOINTH
 
+#include "pznoderep.h"
 #include "pzvec.h"
 #include "pzeltype.h"
 #include "pzintel.h"
@@ -14,6 +15,7 @@ class TPZGeoEl;
 class TPZIntPoints;
 class TPZInt1Point;
 class TPZGraphEl1dd;
+class TPZGeoMesh;
 
 #include <string>
 
@@ -28,10 +30,40 @@ class TPZGraphEl1dd;
 namespace pzgeom {
 
 /// implements the geometry of a point element
-class TPZGeoPoint {
+  class TPZGeoPoint : public TPZNodeRep<1> {
 
 public:
 	enum {NNodes = 1, NSides = 1};
+
+  /**
+  * Constructor with list of nodes
+   */
+ TPZGeoPoint(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+ {
+ }
+  
+  /**
+  * Empty constructor
+   */
+ TPZGeoPoint() : TPZNodeRep<NNodes>()
+ {
+ }
+  
+  /**
+  * Constructor with node map
+   */
+ TPZGeoPoint(const TPZGeoPoint &cp,
+                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+ {
+ }
+  
+  /**
+  * Copy constructor
+   */
+ TPZGeoPoint(const TPZGeoPoint &cp) : TPZNodeRep<NNodes>(cp)
+ {
+ }
+
 
   /**
    * return the type of the element as specified in file pzeltype.h

@@ -9,23 +9,57 @@
 
 #include "pzvec.h"
 #include "pzeltype.h"
+#include "pznoderep.h"
 
 #include <string>
+#include <map>
 
 class TPZFMatrix;
 class TPZGeoEl;
 class TPZIntPoints;
 class TPZGraphElTd;
 class TPZIntTriang;
+class TPZGeoMesh;
+
 
 namespace pzgeom {
 
 /// implements the geometry of a triangle element
-class TPZGeoTriangle  
+class TPZGeoTriangle : public TPZNodeRep<3> 
 {
 public:
 
-	enum {NNodes = 3, NSides = 7};
+  enum {NNodes = 3, NSides = 7};
+ 
+  
+  /**
+   * Constructor with list of nodes
+   */
+  TPZGeoTriangle(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+  {
+  }
+  
+  /**
+   * Empty constructor
+   */
+  TPZGeoTriangle() : TPZNodeRep<NNodes>()
+  {
+  }
+  
+  /**
+   * Constructor with node map
+   */
+  TPZGeoTriangle(const TPZGeoTriangle &cp,
+                 std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+  {
+  }
+  
+  /**
+   * Copy constructor
+   */
+  TPZGeoTriangle(const TPZGeoTriangle &cp) : TPZNodeRep<NNodes>(cp)
+  {
+  }
 
   /**
    * return the type of the element as specified in file pzeltype.h

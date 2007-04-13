@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: TPZGeoCube.h,v 1.6 2005-08-31 19:45:34 cesar Exp $
+// $Id: TPZGeoCube.h,v 1.7 2007-04-13 18:59:40 phil Exp $
 
 //HEADER FILE FOR CLASS TPZGeoCube
 
@@ -9,6 +9,7 @@
 
 #include "pzvec.h"
 #include "pzeltype.h"
+#include "pznoderep.h"
 
 #include <string>
 
@@ -18,14 +19,45 @@ class TPZGeoEl;
 class TPZIntPoints;
 class TPZIntCube3D;
 class TPZGraphElQ3dd;
+class TPZGeoMesh;
 
 namespace pzgeom {
 
 /// implements the geometry of hexahedra element
-class TPZGeoCube {
+  class TPZGeoCube : public TPZNodeRep<8> {
 
 public:
 	enum {NNodes = 8, NSides = 27};
+
+  /**
+  * Constructor with list of nodes
+   */
+ TPZGeoCube(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+ {
+ }
+  
+  /**
+  * Empty constructor
+   */
+ TPZGeoCube() : TPZNodeRep<NNodes>()
+ {
+ }
+  
+  /**
+  * Constructor with node map
+   */
+ TPZGeoCube(const TPZGeoCube &cp,
+                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+ {
+ }
+  
+  /**
+  * Copy constructor
+   */
+ TPZGeoCube(const TPZGeoCube &cp) : TPZNodeRep<NNodes>(cp)
+ {
+ }
+
 
   /**
    * return the type of the element as specified in file pzeltype.h

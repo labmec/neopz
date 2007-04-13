@@ -7,12 +7,14 @@
 #include "pzgeoel.h"
 #include "pzquad.h"
 #include "pzshapetriang.h"
+#include "pzgmesh.h"
 
 
 using namespace pzshape;
 using namespace std;
 
 namespace pzgeom {
+
 
 MElementType TPZGeoTriangle::Type()
 {

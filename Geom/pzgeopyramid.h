@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeopyramid.h,v 1.6 2005-08-31 19:45:34 cesar Exp $
+// $Id: pzgeopyramid.h,v 1.7 2007-04-13 18:59:40 phil Exp $
 
 // TPZGeoPiramid.h: interface for the TPZGeoQuad class.
 //
@@ -8,6 +8,7 @@
 #ifndef TPZGEOTETRAPIRAMIDH
 #define TPZGEOTETRAPIRAMIDH
 
+#include "pznoderep.h"
 #include "pzvec.h"
 #include "pzeltype.h"
 
@@ -15,15 +16,46 @@ class TPZFMatrix;
 class TPZGeoEl;
 class TPZIntPoints;
 class TPZIntPyram3D;
+class TPZGeoMesh;
 
 namespace pzgeom {
 
 /// implements the geometry of pyramid element
-class TPZGeoPyramid  
+class TPZGeoPyramid  : public TPZNodeRep<5>
 {
 public:
 
 	enum {NNodes = 5, NSides = 19};
+
+  /**
+  * Constructor with list of nodes
+   */
+ TPZGeoPyramid(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+ {
+ }
+  
+  /**
+  * Empty constructor
+   */
+ TPZGeoPyramid() : TPZNodeRep<NNodes>()
+ {
+ }
+  
+  /**
+  * Constructor with node map
+   */
+ TPZGeoPyramid(const TPZGeoPyramid &cp,
+                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+ {
+ }
+  
+  /**
+  * Copy constructor
+   */
+ TPZGeoPyramid(const TPZGeoPyramid &cp) : TPZNodeRep<NNodes>(cp)
+ {
+ }
+
 
   /**
    * return the type of the element as specified in file pzeltype.h

@@ -9,6 +9,7 @@
 #ifndef TPZGEOQUADH
 #define TPZGEOQUADH
 
+#include "pznoderep.h"
 #include "pzvec.h"
 #include "pzeltype.h"
 
@@ -20,15 +21,45 @@ class TPZGeoEl;
 class TPZIntPoints;
 class TPZIntQuad;
 class TPZGraphElQ2dd;
+class TPZGeoMesh;
 
 namespace pzgeom {
 
 /// implements the geometry of a quadrilateral element
-class TPZGeoQuad  
+class TPZGeoQuad  : public TPZNodeRep<4>
 {
 public:
 
 	enum {NNodes = 4, NSides = 9};
+  /**
+  * Constructor with list of nodes
+   */
+ TPZGeoQuad(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+ {
+ }
+  
+  /**
+  * Empty constructor
+   */
+ TPZGeoQuad() : TPZNodeRep<NNodes>()
+ {
+ }
+  
+  /**
+  * Constructor with node map
+   */
+ TPZGeoQuad(const TPZGeoQuad &cp,
+                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+ {
+ }
+  
+  /**
+  * Copy constructor
+   */
+ TPZGeoQuad(const TPZGeoQuad &cp) : TPZNodeRep<NNodes>(cp)
+ {
+ }
+
 
   /**
    * return the type of the element as specified in file pzeltype.h

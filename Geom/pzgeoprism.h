@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeoprism.h,v 1.8 2005-08-31 19:45:34 cesar Exp $
+// $Id: pzgeoprism.h,v 1.9 2007-04-13 18:59:40 phil Exp $
 
 // TPZGeoPrism.h: interface for the TPZGeoQuad class.
 //
@@ -8,6 +8,7 @@
 #ifndef TPZGEOPRISMH
 #define TPZGEOPRISMH
 
+#include "pznoderep.h"
 #include "pzvec.h"
 #include "pzeltype.h"
 
@@ -15,6 +16,7 @@ class TPZFMatrix;
 class TPZGeoEl;
 class TPZIntPoints;
 class TPZIntPrism3D;
+class TPZGeoMesh;
 
 #include <string>
 
@@ -22,11 +24,40 @@ class TPZIntPrism3D;
 namespace pzgeom {
 
 /// implements the geometry of a prism element
-class TPZGeoPrism  
+class TPZGeoPrism : public TPZNodeRep<6>  
 {
 public:
 
 	enum {NNodes = 6, NSides = 21};
+  /**
+  * Constructor with list of nodes
+   */
+ TPZGeoPrism(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+ {
+ }
+  
+  /**
+  * Empty constructor
+   */
+ TPZGeoPrism() : TPZNodeRep<NNodes>()
+ {
+ }
+  
+  /**
+  * Constructor with node map
+   */
+ TPZGeoPrism(const TPZGeoPrism &cp,
+                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+ {
+ }
+  
+  /**
+  * Copy constructor
+   */
+ TPZGeoPrism(const TPZGeoPrism &cp) : TPZNodeRep<NNodes>(cp)
+ {
+ }
+
 
   /**
    * return the type of the element as specified in file pzeltype.h

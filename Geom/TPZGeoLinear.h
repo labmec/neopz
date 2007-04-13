@@ -5,6 +5,7 @@
 #ifndef TPZGEOLINEARH
 #define TPZGEOLINEARH
 
+#include "pznoderep.h"
 
 #include "pzvec.h"
 #include "pzeltype.h"
@@ -18,13 +19,45 @@ class TPZGeoEl;
 class TPZIntPoints;
 class TPZInt1d;
 class TPZGraphEl1dd;
+class TPZGeoMesh;
+
 namespace pzgeom {
 
 /// implements the geometry of a one dimensional linear element
-class TPZGeoLinear {
+  class TPZGeoLinear : public TPZNodeRep<2> {
 
 public:
 	enum {NNodes = 2, NSides = 3};
+
+  /**
+  * Constructor with list of nodes
+   */
+ TPZGeoLinear(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+ {
+ }
+  
+  /**
+  * Empty constructor
+   */
+ TPZGeoLinear() : TPZNodeRep<NNodes>()
+ {
+ }
+  
+  /**
+  * Constructor with node map
+   */
+ TPZGeoLinear(const TPZGeoLinear &cp,
+                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+ {
+ }
+  
+  /**
+  * Copy constructor
+   */
+ TPZGeoLinear(const TPZGeoLinear &cp) : TPZNodeRep<NNodes>(cp)
+ {
+ }
+
 
   /**
    * return the type of the element as specified in file pzeltype.h

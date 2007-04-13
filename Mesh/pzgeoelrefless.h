@@ -40,7 +40,8 @@ template <class TShape, class TGeo>
 class TPZGeoElRefLess : public TPZGeoEl  {
 //  int fSubElement;
 protected:
-  int fNodeIndexes[TGeo::NNodes];
+  TGeo fGeo;
+//  int fNodeIndexes[TGeo::NNodes];
   TPZGeoElSideIndex fNeighbours[TShape::NSides];
 public:
 
