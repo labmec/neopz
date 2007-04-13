@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 
-TPZConservationLaw::TPZConservationLaw(int nummat,REAL delta_t,int dim) : 
+TPZConservationLaw::TPZConservationLaw(int nummat,REAL delta_t,int dim) :
                                                       TPZMaterial(nummat), fDim(dim) {
 
   fTimeStep = delta_t;
@@ -29,6 +29,11 @@ TPZConservationLaw::TPZConservationLaw(TPZConservationLaw &copy) : TPZMaterial(c
   fDelta = copy.fDelta;
 }
 
+
+TPZConservationLaw::~TPZDiscontinuousGalerkin()
+{
+}
+
 TPZAutoPointer<TPZMaterial> TPZConservationLaw::NewMaterial() {
    PZError << "TPZConservationLaw::::NewMaterial is called.\n";
    return 0;
@@ -40,27 +45,27 @@ int TPZConservationLaw::NStateVariables() {
 
 void TPZConservationLaw::Print(ostream &out) {
   out << "name of material : " << Name() << "\n";
-  out << "properties : \n";           
+  out << "properties : \n";
   TPZMaterial::Print(out);
 }
 
 void TPZConservationLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
 				TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
-  
+
   cout << "TPZConservationLaw::Contribute this metod does not have to be called\n";
-  
+
 }
 
 void TPZConservationLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
 				TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ef) {
-  
+
   cout << "TPZConservationLaw::Contribute this metod does not have to be called\n";
-  
+
 }
 
 void TPZConservationLaw::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
 				     TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
-  
+
   cout << "TPZConservationLaw::ContributeBC this metod does not have to be called\n";
 }
 
@@ -72,14 +77,14 @@ int TPZConservationLaw::VariableIndex(char *name){
 }
 
 int TPZConservationLaw::NSolutionVariables(int var){
-  
+
   if(var == 0 || var == 1 || var == 2) return 1;
   cout << "TPZConservationLaw::NSolutionVariables Error\n";
   return 0;
 }
 
 // void TPZConservationLaw::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*axes*/,int var,TPZVec<REAL> &Solout){
-  
+
 //   cout << "TPZConservationLaw::Solution nao deve ser chamada\n";
 
 // }
@@ -91,6 +96,6 @@ void TPZConservationLaw::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMa
 void TPZConservationLaw::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 			       TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
 			       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
-  
+
 
 }

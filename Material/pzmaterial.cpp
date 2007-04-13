@@ -30,6 +30,11 @@ TPZMaterial::TPZMaterial(int id) {
    fForcingFunction = 0;
 }
 
+TPZMaterial::~TPZMaterial()
+{
+}
+
+
 TPZMaterial::TPZMaterial(const TPZMaterial &material) {
    fId = material.fId;
    fForcingFunction = material.fForcingFunction;
@@ -139,7 +144,7 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid)
   TPZSaveable::Write(buf,withclassid);
   buf.Write(&fId,1);
 }
-  
+
   /**
   Read the element data from a stream
   */

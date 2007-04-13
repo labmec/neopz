@@ -63,9 +63,9 @@ class  TPZMaterial : public TPZSaveable
        */
       TPZMaterial(const TPZMaterial &mat);
 
-      virtual ~TPZMaterial() {}
+      virtual ~TPZMaterial();
 
-      /** Fill material data parameter with necessary requirements for the 
+      /** Fill material data parameter with necessary requirements for the
        * Contribute method. Here, in base class, all requirements are considered
        * as necessary. Each derived class may optimize performance by selecting
        * only the necessary data.
@@ -73,7 +73,7 @@ class  TPZMaterial : public TPZSaveable
        */
       virtual void FillDataRequirements(TPZMaterialData &data);
 
-      /** Fill material data parameter with necessary requirements for the 
+      /** Fill material data parameter with necessary requirements for the
        * ContributeInterface method. Here, in base class, all requirements are considered
        * as necessary. Each derived class may optimize performance by selecting
        * only the necessary data.
@@ -113,7 +113,7 @@ class  TPZMaterial : public TPZSaveable
 
       /**compute the value of the flux function to be used by ZZ error
        * estimator*/
-      virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, 
+      virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol,
 			TPZFMatrix &DSol, TPZFMatrix &axes,
 			TPZVec<REAL> &flux) {}
 
@@ -251,14 +251,14 @@ class  TPZMaterial : public TPZSaveable
 virtual void ContributeInterfaceErrors(TPZVec<REAL> &x,
                                        TPZVec<REAL> &solL,
                                        TPZVec<REAL> &solR,
-                                       TPZFMatrix &dsolL, 
+                                       TPZFMatrix &dsolL,
                                        TPZFMatrix &dsolR,
                                        REAL weight,
                                        TPZVec<REAL> &normal,
-                                       TPZVec<REAL> &nkL, 
+                                       TPZVec<REAL> &nkL,
                                        TPZVec<REAL> &nkR,
-                                       int LeftPOrder, 
-                                       int RightPOrder, 
+                                       int LeftPOrder,
+                                       int RightPOrder,
                                        REAL faceSize,
                                        int &errorid){
 PZError << "Method not implemented\n";
@@ -270,7 +270,7 @@ virtual void ContributeInterfaceBCErrors(TPZVec<REAL> &x,
                                                               TPZVec<REAL> &normal,
                                                               TPZVec<REAL> &nk,
                                                               TPZBndCond &bc,
-                                                              int POrder, 
+                                                              int POrder,
                                                               REAL faceSize,
                                                               int &errorid){
 PZError << "Method not implemented\n";
@@ -282,7 +282,7 @@ PZError << "Method not implemented\n";
   Save the element data to a stream
   */
   virtual void Write(TPZStream &buf, int withclassid);
-  
+
   /**
   Read the element data from a stream
   */
