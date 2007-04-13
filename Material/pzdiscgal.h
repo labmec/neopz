@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.h,v 1.11 2007-04-13 14:29:07 cesar Exp $
+// $Id: pzdiscgal.h,v 1.12 2007-04-13 15:04:19 tiago Exp $
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 
@@ -22,7 +22,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
   /**copy constructor*/
   TPZDiscontinuousGalerkin(const TPZDiscontinuousGalerkin &copy) : TPZMaterial(copy) {}
 
-  virtual  ~TPZDiscontinuousGalerkin();
+  virtual  ~TPZDiscontinuousGalerkin(){}
 
   char *Name() { return "TPZDiscontinuousGalerkin"; }
 
