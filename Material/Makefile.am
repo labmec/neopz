@@ -19,7 +19,7 @@ materialinc_HEADERS= $(top_srcdir)/Material/*.h
 
 noinst_LIBRARIES = libpzmaterial.a
 
-libpzmaterial_a_SOURCES = pzmaterialdata.cpp eulerdif.cpp pzbndcond.cpp pzelasmat.cpp \
+libpzmaterial_a_SOURCES = pzmaterialdata.cpp pzdiscgal.cpp eulerdif.cpp pzbndcond.cpp pzelasmat.cpp \
 	pzmat1dlin.cpp pzmat2dlin.cpp pzmaterial.cpp pzmathyperelastic.cpp \
 	pzmatorthotropic.cpp pzmatplaca2.cpp pzmatplaca.cpp pzmattest3d.cpp pzmattest.cpp \
 	pzmultplaca.cpp pzplaca.cpp pzpoisson3d.cpp TPZEuler.cpp TPZEulerConsLaw.cpp \
