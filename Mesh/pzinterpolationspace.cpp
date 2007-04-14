@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.3 2007-04-13 18:25:27 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.4 2007-04-14 03:24:51 phil Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -84,7 +84,7 @@ REAL TPZInterpolationSpace::InnerRadius(){
 }
 
 void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
-  this->Material()->FillDataRequirementsInterface(data);
+  this->Material()->FillDataRequirements(data);
   const int dim = this->Dimension();
   const int nshape = this->NShapeF();
   const int nstate = this->Material()->NStateVariables();
