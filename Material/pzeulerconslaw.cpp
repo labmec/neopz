@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.40 2007-01-27 14:47:24 phil Exp $
+//$Id: pzeulerconslaw.cpp,v 1.41 2007-04-14 03:25:29 phil Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -999,7 +999,7 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface(int dim,
 			TPZVec<REAL> &x,
 			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
 			REAL weight, TPZVec<REAL> &normal,
-			TPZFMatrix &phiL,TPZFMatrix &dphiL,
+			TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &axesleft,
 			TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc)
 {
 
@@ -1008,19 +1008,19 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface(int dim,
       case(1):
       ContributeFastestBCInterface_dim<1>(x, solL, dsolL,
                         weight, normal,
-			phiL, dphiL,
+			phiL, dphiL,axesleft,
 			ek, ef, bc);
       break;
       case(2):
       ContributeFastestBCInterface_dim<2>(x, solL, dsolL,
                         weight, normal,
-			phiL, dphiL,
+			phiL, dphiL,axesleft,
 			ek, ef, bc);
       break;
       case(3):
       ContributeFastestBCInterface_dim<3>(x, solL, dsolL,
                         weight, normal,
-			phiL, dphiL,
+			phiL, dphiL,axesleft,
 			ek, ef, bc);
       break;
       default:
@@ -1034,7 +1034,7 @@ template <int dim>
 void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(TPZVec<REAL> &x,
 			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
 			REAL weight, TPZVec<REAL> &normal,
-			TPZFMatrix &phiL,TPZFMatrix &dphiL,
+			TPZFMatrix &phiL,TPZFMatrix &dphiL,TPZFMatrix &axesleft,
 			TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc)
 {
 #ifdef _TFAD
