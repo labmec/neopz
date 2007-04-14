@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.cpp,v 1.24 2007-01-27 14:49:27 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.25 2007-04-14 03:25:48 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -325,7 +325,7 @@ void TPZMatPoisson3d::ContributeEnergy(TPZVec<REAL> &x,
 
       //Equa�o de Poisson
 
-      int i, eqs = dsol.NElements()/dim;
+//      int i, eqs = dsol.NElements()/dim;
       if(sol.NElements() != 1) PZError << "";
 
 //cout << "FADREAL init : \n" << FADREAL(weight * fXf(0,0));
