@@ -688,6 +688,7 @@ int run(std::istream & input, std::ostream & output)
    REAL linsystol = 1.e-8;
    int maxiter = 200;
    int numvec = 200;
+   An.ComputeTimeStep();
    An.SetGMResBlock(linsystol,maxiter,numvec);
    int numnewton = 4;
    REAL NewtonTol = 1.e-8;
@@ -735,7 +736,8 @@ int main()
 #endif
   configfile = path;
   configfile += "log4cxx.cfg";
-  InitializePZLOG(configfile);
+//   InitializePZLOG(configfile);
+  InitializePZLOG();
   TPZInterfaceElement::SetCalcStiffPenalty();
 
   //TPZOutofRange obj;
