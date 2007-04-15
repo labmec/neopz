@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.69 2007-04-13 19:22:39 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.70 2007-04-15 21:08:44 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -243,7 +243,7 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index,
 }
 
 void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
-  cout << "\nImplementar adequadamente: " << __PRETTY_FUNCTION__ << "\n";
+//  cout << "\nImplementar adequadamente: " << __PRETTY_FUNCTION__ << "\n";
   TPZElementMatrix fake_ek;
   this->CalcStiff(fake_ek, ef);
 }
