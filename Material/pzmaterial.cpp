@@ -97,6 +97,20 @@ TPZAutoPointer<TPZMaterial> TPZMaterial::NewMaterial() {
    PZError << "TPZMaterial::NewMaterial is called.\n";
    return 0;
 }
+
+void TPZMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+  this->Contribute(data.x, data.jacinv, data.sol, data.dsol, weight, data.axes, data.phi, data.dphix, ek, ef);
+}
+
+void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
+  this->ContributeBC(data.x, data.sol, weight, data.axes, data.phi, ek, ef, bc);
+}
+
+void TPZMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
+  TPZFMatrix fakeek(ef.Rows(), ef.Rows(), 0.);
+  this->Contribute(data, weight, fakeek, ef);
+}
+
 void TPZMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv, TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ef){
    TPZFMatrix ek(ef.Rows(),ef.Rows(),0.);
    Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphi,ek,ef);

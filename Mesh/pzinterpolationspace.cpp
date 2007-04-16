@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.5 2007-04-16 13:48:54 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.6 2007-04-16 20:26:10 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -161,7 +161,7 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     weight *= fabs(data.detjac);
     this->ComputeRequiredData(data, intpoint);
-    material->Contribute(data.x,data.jacinv,data.sol,data.dsol,weight,data.axes,data.phi,data.dphix,ek.fMat,ef.fMat);
+    material->Contribute(data,weight,ek.fMat,ef.fMat);
   }//loop over integratin points
 
 }//CalcStiff
@@ -197,7 +197,7 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
     this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     weight *= fabs(data.detjac);
     this->ComputeRequiredData(data, intpoint);
-    material->Contribute(data.x,data.jacinv,data.sol,data.dsol,weight,data.axes,data.phi,data.dphix,ef.fMat);
+    material->Contribute(data,weight,ef.fMat);
   }//loop over integratin points
 
 }//CalcResidual

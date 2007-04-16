@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.55 2007-04-16 13:50:00 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.56 2007-04-16 20:26:10 tiago Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -230,8 +230,6 @@ void TPZCompMesh::AutoBuild() {
 //#include "pzgeoelside.h"
 void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const TPZVec<TPZGeoEl*> &discontinuous) {
 
-  TPZInterfaceElement::SetCalcStiffStandard();
-
   TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
   int nelem = elvec.NElements();
 
@@ -296,8 +294,6 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 
 void TPZCompMesh::AutoBuild(std::set<int> &MaterialIDs){
 
-  TPZInterfaceElement::SetCalcStiffStandard();
-  
   std::set<TPZGeoEl*> gel2create;
   std::set<TPZGeoEl*>::iterator it;
 

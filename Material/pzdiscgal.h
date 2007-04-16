@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.h,v 1.13 2007-04-13 15:17:54 tiago Exp $
+// $Id: pzdiscgal.h,v 1.14 2007-04-16 20:27:36 tiago Exp $
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 
@@ -7,6 +7,8 @@
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
+
+class TPZMaterialData;
 
 
 /// This class defines the interface which material objects need to implement for discontinuous Galerkin formulations
@@ -26,50 +28,80 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 
   char *Name();
 
+  /**
+   * It computes a contribution to stiffness matrix and load vector at one integration point 
+   * @param data [in]
+   * @param weight [in]
+   * @param ek [out] is the stiffness matrix
+   * @param ef [out] is the load vector
+   * @since April 16, 2007
+   */
+  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+
+  /**
+   * It computes a contribution to residual vector at one integration point 
+   * @param data [in]
+   * @param weight [in]
+   * @param ef [out] is the load vector
+   * @since April 16, 2007
+   */
+  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+
+  /**
+   * It computes a contribution to stiffness matrix and load vector at one BC integration point 
+   * @param data [in]
+   * @param weight [in]
+   * @param ek [out] is the stiffness matrix
+   * @param ef [out] is the load vector
+   * @param bc [in] is the boundary condition object
+   * @since April 16, 2007
+   */
+  virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
+  /**
+   * It computes a contribution to residual vector at one BC integration point 
+   * @param data [in]
+   * @param weight [in]
+   * @param ef [out] is the load vector
+   * @param bc [in] is the boundary condition object
+   * @since April 16, 2007
+   */
+  virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc);
+
+///deprecated method
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
                                    TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                    TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
                                    TPZFMatrix &axesleft, TPZFMatrix &axesright,
                                    TPZFMatrix &ek,TPZFMatrix &ef) = 0;
 
+///deprecated method
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
                                    TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                    TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
                                    TPZFMatrix &axesleft, TPZFMatrix &axesright,
                                    TPZFMatrix &ef);
 
-virtual void ContributeInterface(TPZVec<REAL> &x,
-                                 TPZVec<REAL> &sol, TPZVec<REAL> &solL,TPZVec<REAL> &solR,
-                                 TPZFMatrix &dsol, TPZFMatrix &dsolL, TPZFMatrix &dsolR,
-                                 REAL weight,TPZVec<REAL> &normal,
-                                 TPZFMatrix &phiL, TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                 TPZFMatrix &axes, TPZFMatrix &axesleft, TPZFMatrix &axesright,
-                                 TPZFMatrix &ek,TPZFMatrix &ef);
-
-virtual void ContributeInterface(TPZVec<REAL> &x,
-                                 TPZVec<REAL> &sol, TPZVec<REAL> &solL,TPZVec<REAL> &solR,
-                                 TPZFMatrix &dsol, TPZFMatrix &dsolL, TPZFMatrix &dsolR,
-                                 REAL weight,TPZVec<REAL> &normal,
-                                 TPZFMatrix &phiL, TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                 TPZFMatrix &axes, TPZFMatrix &axesleft, TPZFMatrix &axesright,
-                                 TPZFMatrix &ef);
-
+///deprecated method
 virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
                                  TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                  TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR, TPZFMatrix &axesleft,
                                  TPZFMatrix &axesright,
                                  TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
 
+///deprecated method
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
                                      TPZFMatrix &phiL,TPZFMatrix &dphiL,
                                      TPZFMatrix &axesleft,
                                      TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) = 0;
 
+///deprecated method
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
                                      TPZFMatrix &phiL,TPZFMatrix &dphiL,
                                      TPZFMatrix axesleft,
                                      TPZFMatrix &ef,TPZBndCond &bc);
 
+///deprecated method
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
                                      TPZFMatrix &phiL,TPZFMatrix &dphiL,
                                      TPZFMatrix &axesleft,

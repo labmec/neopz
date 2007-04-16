@@ -121,42 +121,65 @@ class  TPZMaterial : public TPZSaveable
       virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix &val1,
 				   TPZFMatrix &val2);
 
-      /**Compute contribution to the stiffness matrix and right hand
-       * side at an integration point*/
-      virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-			      TPZVec<REAL> &sol, TPZFMatrix &dsol,
-			      REAL weight,TPZFMatrix &axes,
-			      TPZFMatrix &phi, TPZFMatrix &dphi,
-			      TPZFMatrix &ek, TPZFMatrix &ef) = 0;
+///Metodos Contribute
 
-      /**Compute contribution to the stiffness matrix and right hand
-       * side at an integration point*/
+      /**
+       * It computes a contribution to the stiffness matrix and load vector at one integration point.
+       * @param data[in] stores all input data
+       * @param weight[in] is the weight of the integration rule
+       * @param ek[out] is the stiffness matrix
+       * @param ef[out] is the load vector
+       * @since April 16, 2007
+       */
+      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+
+      /**
+       * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+       * @param data[in] stores all input data
+       * @param weight[in] is the weight of the integration rule
+       * @param ek[out] is the stiffness matrix
+       * @param ef[out] is the load vector
+       * @param bc[in] is the boundary condition material
+       * @since April 16, 2007
+       */
+      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
+
+      /**
+       * It computes a contribution to the residual vector at one integration point.
+       * @param data[in] stores all input data
+       * @param weight[in] is the weight of the integration rule
+       * @param ef[out] is the residual vector
+       * @since April 16, 2007
+       */
+      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+
+      /** Compute contribution to the stiffness matrix and right hand
+        * side at an integration point
+        * This method is deprecated
+        */
       virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                              TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &axes,
-                              TPZVec<REAL> &normal,
-                              TPZVec<REAL> &LeftSol, TPZFMatrix &LeftDSol, TPZFMatrix &LeftAxes,
-                              TPZVec<REAL> &RightSol, TPZFMatrix &RightDSol,TPZFMatrix &RightAxes,
-                              REAL weight,
+                              TPZVec<REAL> &sol, TPZFMatrix &dsol,
+                              REAL weight,TPZFMatrix &axes,
                               TPZFMatrix &phi, TPZFMatrix &dphi,
-                              TPZFMatrix &ek, TPZFMatrix &ef){
-        PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
-      }
+                              TPZFMatrix &ek, TPZFMatrix &ef) = 0;
 
-      /** Indicates if the material requires the solution to compute Contribute
-       * By default its value is true, but it can be set as false by derived material classes
-       * to increase the performance of method TPZCompEl::CalcStiff
-       */
-      virtual bool NeedsSolutionToContribute(){
-        return true;
-      }
+      /** Compute contribution to the stiffness matrix and right hand
+        * This method is deprecated
+        * side at an integration point
+        */
+      virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
+                              TPZVec<REAL> &sol, TPZFMatrix &dsol, REAL weight,
+                              TPZFMatrix &axes, TPZFMatrix &phi,
+                              TPZFMatrix &dphi, TPZFMatrix &ef);
 
-      /** Indicates if the material requires the global coordinate X to compute Contribute
-       * By default its value is true, but it can be set as false by derived material classes
-       * to increase the performance of method TPZCompEl::CalcStiff
-       */
-      virtual bool NeedsXCoord(){
-        return true;
-      }
+      /** Compute contribution to the stiffness matrix and right hand
+        * This method is deprecated
+        * side at the integration point of a boundary
+        */
+      virtual void ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
+                                REAL weight, TPZFMatrix &axes,
+                                TPZFMatrix &phi, TPZFMatrix &ek,
+                                TPZFMatrix &ef, TPZBndCond &bc) = 0;
 
 //#ifdef _AUTODIFF
 
@@ -169,13 +192,6 @@ class  TPZMaterial : public TPZSaveable
 
 //#endif
 
-
-      /** Compute contribution to the stiffness matrix and right hand
-       * side at the integration point of a boundary*/
-      virtual void ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
-				REAL weight, TPZFMatrix &axes,
-				TPZFMatrix &phi, TPZFMatrix &ek,
-				TPZFMatrix &ef, TPZBndCond &bc) = 0;
 
 //#ifdef _AUTODIFF
 
@@ -217,13 +233,6 @@ class  TPZMaterial : public TPZSaveable
 
       /**Read data of the material from a istream (file data)*/
       virtual void SetData(std::istream &data);
-
-      /**Compute contribution to the stiffness matrix and right hand
-       * side at an integration point*/
-      virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-			      TPZVec<REAL> &sol, TPZFMatrix &dsol, REAL weight,
-			      TPZFMatrix &axes, TPZFMatrix &phi,
-			      TPZFMatrix &dphi, TPZFMatrix &ef);
 
       /**
        * Create a copy of the material object and put it in the vector
