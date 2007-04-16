@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.54 2007-04-12 20:01:56 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.55 2007-04-16 13:50:00 tiago Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1227,7 +1227,7 @@ void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index, bool CreateDisconti
   }//if
   
   for(i=0; i<nelem; i++) {
-    TPZCompEl * cel = this->ElementVec()[elements[i]];
+    TPZInterpolationSpace * cel = dynamic_cast<TPZInterpolationSpace*>(this->ElementVec()[elements[i]]);
     if (!cel) continue;
     cel->RemoveInterfaces();
     TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement *>(cel);
@@ -1258,7 +1258,7 @@ void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index, bool CreateDisconti
 
 void TPZCompMesh::Discontinuous2Continuous(int disc_index, int &new_index, bool InterfaceBetweenContinuous) {
 
-  TPZCompEl *cel = fElementVec[disc_index];
+  TPZInterpolationSpace *cel = dynamic_cast<TPZInterpolationSpace*> (fElementVec[disc_index]);
   if (!cel) {
     new_index = -1;
     return;
