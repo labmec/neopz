@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.h,v 1.2 2007-04-12 20:01:13 tiago Exp $
+//$Id: pzmaterialdata.h,v 1.3 2007-04-16 13:50:14 tiago Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
@@ -20,8 +20,8 @@ public:
   bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize;
 
 /** Attributes to be computed in CalcStiff */
-  TPZFNMatrix<100> phi, phil, phir;
-  TPZFNMatrix<100> dphix, dphixl, dphixr;
+  TPZFNMatrix<220> phi, phil, phir;
+  TPZFNMatrix<660> dphix, dphixl, dphixr;
   TPZFNMatrix<9> axes, axesleft, axesright;
   TPZFNMatrix<9> jacobian, leftjac, rightjac;
   TPZFNMatrix<9> jacinv, leftjacinv, rightjacinv;
