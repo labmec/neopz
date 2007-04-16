@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.33 2007-04-12 20:03:18 tiago Exp $
+// $Id: pzcompel.h,v 1.34 2007-04-16 13:49:36 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -537,28 +537,6 @@ public:
   Read the element data from a stream
   */
   virtual void Read(TPZStream &buf, void *context);
-
-  /** Create interfaces between this and its neighbours.
-   * Param BetweenContinuous allows to create interface between two elements that are not TPZCompElDisc.
-   * If param is false, it is necessary to have at least one TPZCompElDisc.
-   */
-  void CreateInterfaces(bool BetweenContinuous = false);
-
-  /** Create an interface between this and the neighbour by side side.
-   * @param side : side where interface must be created
-   * @param BetweenContinuous allows to create interface between two elements that are not TPZCompElDisc. If param is false, it is necessary to have at least one TPZCompElDisc.
-   * Returns the interface created.
-   */
-  TPZInterfaceElement * CreateInterface(int side, bool BetweenContinuous = false);
-
-  /** Verify existence of interface */
-  int ExistsInterface(TPZGeoElSide geosd);
-
-  /** Remove interfaces connected to this element */
-  void RemoveInterfaces();
-
-  /** Remove interface which is neighbour from side side */
-  void RemoveInterface(int side);
 
 };
 
