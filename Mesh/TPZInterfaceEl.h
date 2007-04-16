@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.45 2007-04-12 20:07:12 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.46 2007-04-16 20:22:27 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -250,16 +250,6 @@ class TPZInterfaceElement : public TPZCompEl {
    * @param ef element residual
    */
   virtual void CalcResidual(TPZElementMatrix &ef);
-
-  /**
-   * gCalcStiff = 1 means standard CalcStiff which handle continuous and discontinuous elements combined
-   * gCalcStiff = 2 means standard CalcStiff with penalty
-   */
-  static int gCalcStiff;
-
-  static void SetCalcStiffStandard(){ TPZInterfaceElement::gCalcStiff = EStandard; }
-
-  static void SetCalcStiffPenalty(){ TPZInterfaceElement::gCalcStiff = EPenalty; }
 
  /**
   * Computes solution and its derivatives in the local coordinate qsi.

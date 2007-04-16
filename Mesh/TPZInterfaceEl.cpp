@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.72 2007-04-16 14:04:49 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.73 2007-04-16 20:22:27 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -16,7 +16,6 @@
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
 
-int TPZInterfaceElement::gCalcStiff = EStandard;
 using namespace std;
 
 #ifdef LOG4CXX
@@ -707,19 +706,8 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
       right->ComputeShape(RightIntPoint, data.x, data.rightjac, data.axesright, data.rightdetjac, data.rightjacinv, data.phir, data.dphixr);
 
       this->ComputeRequiredData(data, left, right, intpoint, LeftIntPoint, RightIntPoint);
+      mat->ContributeInterface(data, weight, ek.fMat, ef.fMat);
 
-      if (gCalcStiff == EPenalty){
-        mat->ContributeInterface(data.x,data.soll,data.solr,data.dsoll,data.dsolr,
-                                weight,data.normal,data.phil,data.phir,data.dphixl,data.dphixr,
-                                data.axesleft,data.axesright,
-                                ek.fMat,ef.fMat, data.leftp, data.rightp, data.HSize);
-      }
-      else{
-        mat->ContributeInterface(data.x,data.soll,data.solr,data.dsoll,data.dsolr,
-                                weight,data.normal,data.phil,data.phir,data.dphixl,data.dphixr,
-                                data.axesleft,data.axesright,
-                                ek.fMat,ef.fMat);
-      }
    }//loop over integration points
 
    delete intrule;
