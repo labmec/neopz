@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.55 2007-04-16 13:46:44 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.56 2007-04-16 14:19:50 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -152,11 +152,6 @@ protected:
    * Divide the computational element
    */
   void Divide(int index, TPZVec<int> &subindex, int interpolate = 0);
-
-  /**
-   * Integrate a variable over the element.
-   */
-  virtual void Integrate(int variable, TPZVec<REAL> & value);
 
   /**
    * value of the bases and derivatives of the element deformed in point X
