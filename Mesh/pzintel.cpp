@@ -1,6 +1,7 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.53 2007-04-13 18:25:27 tiago Exp $
+// $Id: pzintel.cpp,v 1.54 2007-04-16 13:49:06 tiago Exp $
+
 #include "pzintel.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
@@ -22,6 +23,7 @@
 
 #include "pzcheckmesh.h"
 #include "TPZCompElDisc.h"
+#include "pzmaterialdata.h"
 
 #include "pzlog.h"
 
@@ -1256,417 +1258,6 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
   return minorder;
 }
 
-void TPZInterpolatedElement::InterpolateSolution(TPZInterpolatedElement &coarsel){
-  // accumulates the transfer coefficients between the current element and the
-  // coarse element into the transfer matrix, using the transformation t
-  TPZAutoPointer<TPZMaterial> material = Material();
-  if(!material)
-  {
-    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
-    return;
-  }
-
-  TPZTransform t(Dimension());
-  TPZGeoEl *ref = Reference();
-
-  //Cedric 16/03/99
-  //  Reference()->BuildTransform(NConnects(),coarsel.Reference(),t);
-  t = Reference()->BuildTransform2(ref->NSides()-1,coarsel.Reference(),t);
-
-  int locnod = NConnects();
-  int cornod = coarsel.NConnects();
-  int locmatsize = NShapeF();
-  int cormatsize = coarsel.NShapeF();
-  int nvar = material->NStateVariables();
-  int dimension = Dimension();
-  if (!dimension) {
-    LOGPZ_WARN(logger,"Exiting InterpolateSolution - trying to interpolate a node solution ");
-    return ;
-  }
-
-  TPZFMatrix loclocmat(locmatsize,locmatsize,0.);
-  TPZFMatrix projectmat(locmatsize,nvar,0.);
-
-  TPZVec<int> prevorder(dimension);
-  TPZIntPoints &intrule = GetIntegrationRule();
-  intrule.GetOrder(prevorder);
-
-  TPZVec<int> interpolation(dimension);
-  GetInterpolationOrder(interpolation);
-  {
-    stringstream sout;
-    sout << "locnod = " << locnod << endl;
-    sout << "coarnod = " << cornod << endl;
-    sout << "local n shape f " << locmatsize << endl;
-    sout << "cormatsize " << cormatsize << endl;
-    sout << "nvar" << nvar << endl;
-    sout << "dimension " << dimension << endl;
-    int ccc;
-    sout << "interpolation={";
-    for (ccc = 0; ccc < interpolation.NElements(); ccc++)
-      sout << "  " << interpolation[ccc];
-    sout << "  }" << endl;
-    LOGPZ_DEBUG(logger,sout.str());
-  }
-
-  // compute the interpolation order of the shapefunctions squared
-  int nel = interpolation.NElements();
-  int dim,maxorder = interpolation[0];
-  for(dim=1;dim<nel;dim++) maxorder = (interpolation[dim] > maxorder) ? interpolation[dim] : maxorder;
-
-  // Cesar 2003-11-25 -->> To avoid integration warnings...
-  maxorder = (2*maxorder > intrule.GetMaxOrder() ) ? intrule.GetMaxOrder() : 2*maxorder;
-  TPZVec<int> order(dimension,maxorder);
-/*  for(dim=0; dim<dimension; dim++) {
-    order[dim] = maxorder*2;
-  }
-*/
-  intrule.SetOrder(order);
-
-  TPZFMatrix locphi(locmatsize,1);
-  TPZFMatrix locdphi(dimension,locmatsize);	// derivative of the shape function
-  // in the master domain
-
-  TPZFMatrix corphi(cormatsize,1);
-  TPZFMatrix cordphi(dimension,cormatsize);	// derivative of the shape function
-  // in the master domain
-
-  TPZVec<REAL> int_point(dimension),coarse_int_point(dimension);
-  TPZFMatrix jacobian(dimension,dimension),jacinv(dimension,dimension);
-  TPZFMatrix axes(3,3,0.);
-  REAL zero = 0.;
-  TPZVec<REAL> x(3,zero);
-  TPZVec<REAL> u(nvar);
-
-  int numintpoints = intrule.NPoints();
-  REAL weight;
-  int lin,ljn,cjn;
-  TPZConnect *df;
-  TPZBlock &coarseblock = coarsel.Mesh()->Block();
-
-  for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
-    intrule.Point(int_ind,int_point,weight);
-    REAL jac_det = 1.;
-    Reference()->Jacobian( int_point, jacobian, axes , jac_det, jacinv);
-    //Reference()->X(int_point, x); // Porque isso aqui ??
-    Shape(int_point,locphi,locdphi);
-    weight *= jac_det;
-    t.Apply(int_point,coarse_int_point);
-    coarsel.Shape(coarse_int_point,corphi,cordphi);
-    u.Fill(0.);
-    int iv = 0;
-    for(lin=0; lin<cornod; lin++) {
-      df = &coarsel.Connect(lin);
-      int dfseq = df->SequenceNumber();
-
-      int dfvar = coarseblock.Size(dfseq);
-      int nconshapef = coarsel.NConnectShapeF(lin);
-      dfvar = dfvar < nconshapef*nvar ? dfvar : nconshapef;
-      for(ljn=0; ljn<dfvar; ljn++) {
-        u[iv%nvar] += corphi(iv/nvar,0)*coarseblock(dfseq,0,ljn,0);
-        iv++;
-      }
-      if(dfvar < nconshapef*nvar) iv += nconshapef*nvar- dfvar;
-    }
-    for(lin=0; lin<locmatsize; lin++) {
-      for(ljn=0; ljn<locmatsize; ljn++) {
-        loclocmat(lin,ljn) += weight*locphi(lin,0)*locphi(ljn,0);
-      }
-      for(cjn=0; cjn<nvar; cjn++) {
-        projectmat(lin,cjn) += weight*locphi(lin,0)*u[cjn];
-      }
-    }
-    jacobian.Zero();
-  }
-
-//   {
-//     stringstream sout;
-//     int matiter;
-//     for (matiter = 0; matiter < loclocmat.Cols();matiter++)
-//       sout << loclocmat(25,matiter) << "\t";
-//     sout << endl;
-//     projectmat.Print("projecmat",sout);
-//     loclocmat.Print("loclocmat",sout);
-//     LOGPZ_DEBUG(logger,sout.str());
-//   }
-
-  loclocmat.SolveDirect(projectmat,ELU);
-  // identify the non-zero blocks for each row
-  TPZBlock &fineblock = Mesh()->Block();
-  int iv=0,in;
-  for(in=0; in<locnod; in++) {
-    df = &Connect(in);
-    int dfseq = df->SequenceNumber();
-    int dfvar = fineblock.Size(dfseq);
-    for(ljn=0; ljn<dfvar; ljn++) {
-      fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
-      iv++;
-    }
-  }
-  intrule.SetOrder(prevorder);
-}
-
-void TPZInterpolatedElement::InterpolateSolution(TPZCompElDisc &coarsel){
-  // accumulates the transfer coefficients between the current element and the
-  // coarse element into the transfer matrix, using the transformation t
-  TPZAutoPointer<TPZMaterial> material = Material();
-  if(!material)
-  {
-    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
-    LOGPZ_ERROR(logger,"InterpolateSolution no material");
-    return;
-  }
-  TPZTransform t(Dimension());
-  TPZGeoEl *ref = Reference();
-
-  //Cedric 16/03/99
-  //  Reference()->BuildTransform(NConnects(),coarsel.Reference(),t);
-  t = Reference()->BuildTransform2(ref->NSides()-1,coarsel.Reference(),t);
-
-  int locnod = NConnects();
-  int cornod = coarsel.NConnects();
-  int locmatsize = NShapeF();
-  int cormatsize = coarsel.NShapeF();
-  int nvar = material->NStateVariables();
-  int dimension = Dimension();
-  if (!dimension) {
-    LOGPZ_WARN(logger,"Exiting InterpolateSolution - trying to interpolate a node solution ");
-    return ;
-  }
-
-  TPZFMatrix loclocmat(locmatsize,locmatsize,0.);
-  TPZFMatrix projectmat(locmatsize,nvar,0.);
-
-  TPZVec<int> prevorder(dimension);
-  TPZIntPoints &intrule = GetIntegrationRule();
-  intrule.GetOrder(prevorder);
-
-  TPZVec<int> interpolation(dimension);
-  GetInterpolationOrder(interpolation);
-  {
-    stringstream sout;
-    sout << "locnod = " << locnod << endl;
-    sout << "coarnod = " << cornod << endl;
-    sout << "local n shape f " << locmatsize << endl;
-    sout << "cormatsize " << cormatsize << endl;
-    sout << "nvar" << nvar << endl;
-    sout << "dimension " << dimension << endl;
-    int ccc;
-    sout << "interpolation={";
-    for (ccc = 0; ccc < interpolation.NElements(); ccc++)
-      sout << "  " << interpolation[ccc];
-    sout << "  }" << endl;
-    LOGPZ_DEBUG(logger,sout.str());
-  }
-
-  // compute the interpolation order of the shapefunctions squared
-  int nel = interpolation.NElements();
-  int dim,maxorder = interpolation[0];
-  for(dim=1;dim<nel;dim++) maxorder = (interpolation[dim] > maxorder) ? interpolation[dim] : maxorder;
-
-  // Cesar 2003-11-25 -->> To avoid integration warnings...
-  maxorder = (2*maxorder > intrule.GetMaxOrder() ) ? intrule.GetMaxOrder() : 2*maxorder;
-  TPZVec<int> order(dimension,maxorder);
-/*  for(dim=0; dim<dimension; dim++) {
-    order[dim] = maxorder*2;
-  }
-*/
-  intrule.SetOrder(order);
-
-  TPZFMatrix locphi(locmatsize,1);
-  TPZFMatrix locdphi(dimension,locmatsize);	// derivative of the shape function
-  // in the master domain
-
-  TPZFMatrix corphi(cormatsize,1);
-  TPZFMatrix cordphi(dimension,cormatsize);	// derivative of the shape function
-  // in the master domain
-
-  TPZVec<REAL> int_point(dimension),coarse_int_point(dimension);
-  TPZFMatrix jacobian(dimension,dimension),jacinv(dimension,dimension);
-  TPZFMatrix axes(3,3,0.);
-  REAL zero = 0.;
-  TPZVec<REAL> x(3,zero);
-  TPZVec<REAL> u(nvar);
-
-  int numintpoints = intrule.NPoints();
-  REAL weight;
-  int lin,ljn,cjn;
-  TPZConnect *df;
-  TPZBlock &coarseblock = coarsel.Mesh()->Block();
-
-  for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
-    intrule.Point(int_ind,int_point,weight);
-    REAL jac_det = 1.;
-    Reference()->Jacobian( int_point, jacobian, axes , jac_det, jacinv);
-    //Reference()->X(int_point, x); // Porque isso aqui ??
-    Shape(int_point,locphi,locdphi);
-    weight *= jac_det;
-    t.Apply(int_point,coarse_int_point);
-    coarsel.Shape(coarse_int_point,corphi,cordphi);
-    u.Fill(0.);
-    int iv = 0;
-    for(lin=0; lin<cornod; lin++) {
-      df = &coarsel.Connect(lin);
-      int dfseq = df->SequenceNumber();
-
-      int dfvar = coarseblock.Size(dfseq);
-      /** Discontinuos elements have only one connect */
-      int nconshapef = coarsel.NShapeF();
-      dfvar = dfvar < nconshapef*nvar ? dfvar : nconshapef;
-      for(ljn=0; ljn<dfvar; ljn++) {
-        u[iv%nvar] += corphi(iv/nvar,0)*coarseblock(dfseq,0,ljn,0);
-        iv++;
-      }
-      if(dfvar < nconshapef*nvar) iv += nconshapef*nvar- dfvar;
-    }
-    for(lin=0; lin<locmatsize; lin++) {
-      for(ljn=0; ljn<locmatsize; ljn++) {
-        loclocmat(lin,ljn) += weight*locphi(lin,0)*locphi(ljn,0);
-      }
-      for(cjn=0; cjn<nvar; cjn++) {
-        projectmat(lin,cjn) += weight*locphi(lin,0)*u[cjn];
-      }
-    }
-    jacobian.Zero();
-  }
-
-//   {
-//     stringstream sout;
-//     int matiter;
-//     for (matiter = 0; matiter < loclocmat.Cols();matiter++)
-//       sout << loclocmat(25,matiter) << "\t";
-//     sout << endl;
-//     projectmat.Print("projecmat",sout);
-//     loclocmat.Print("loclocmat",sout);
-//     LOGPZ_DEBUG(logger,sout.str());
-//   }
-
-  loclocmat.SolveDirect(projectmat,ELU);
-  // identify the non-zero blocks for each row
-  TPZBlock &fineblock = Mesh()->Block();
-  int iv=0,in;
-  for(in=0; in<locnod; in++) {
-    df = &Connect(in);
-    int dfseq = df->SequenceNumber();
-    int dfvar = fineblock.Size(dfseq);
-    for(ljn=0; ljn<dfvar; ljn++) {
-      fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
-      iv++;
-    }
-  }
-  intrule.SetOrder(prevorder);
-}
-
-void TPZInterpolatedElement::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
-
-  TPZAutoPointer<TPZMaterial> material = Material();
-  if(!material){
-    stringstream sout;
-    sout << "Exiting ProjectFlux: no material for this element\n";
-    Print(sout);
-    LOGPZ_ERROR(logger,sout.str());
-    ek.Reset();
-    ef.Reset();
-    return;
-  }
-
-  int numdof = material->NStateVariables();//misael
-  int num_flux = material->NFluxes();
-  int dim = Dimension();
-  int nshape = NShapeF();
-  int ncon = NConnects();
-  TPZBlock &block = Mesh()->Block();
-  TPZIntPoints &intrule = GetIntegrationRule();
-
-  int numeq = nshape;
-  ek.fMat.Resize(numeq,numeq);
-  ek.fBlock.SetNBlocks(ncon);
-  ef.fMat.Resize(numeq,num_flux);
-  ef.fBlock.SetNBlocks(ncon);
-
-
-  for(int i=0; i<ncon; ++i){
-    (ef.fConnect)[i] = ConnectIndex(i);
-    (ek.fConnect)[i] = ConnectIndex(i);
-  }
-
-  TPZFMatrix phi(nshape,1);
-  TPZFMatrix dphi(dim,nshape);
-  TPZFMatrix dphix(dim,nshape);
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
-  REAL detjac;
-  TPZVec<REAL> x(3);
-  TPZVec<REAL> sol(numdof);
-  TPZFMatrix dsol(dim,numdof);
-  TPZVec<REAL> flux(num_flux,1);
-  TPZVec<REAL> intpoint(dim);
-  REAL weight = 0.;
-  TPZGeoEl *ref = Reference();
-  for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
-
-    intrule.Point(int_ind,intpoint,weight);
-
-    ref->Jacobian( intpoint , jacobian, axes , detjac , jacinv);
-
-    weight *= fabs(detjac);
-
-    ref->X( intpoint , x);
-
-    Shape(intpoint,phi,dphi);
-    int ieq;
-
-    switch(dim) {
-    case 0:
-      break;
-    case 1:
-      dphix = dphi*REAL(1./detjac);
-      break;
-    case 2://Cedric
-      for(ieq = 0; ieq < nshape; ieq++) {
-        dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
-        dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
-      }
-      break;
-    case 3:
-      for(ieq = 0; ieq < nshape; ieq++) {
-        dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
-        dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
-        dphix(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
-      }
-      break;
-    default:
-      stringstream sout;
-      sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
-      LOGPZ_WARN(logger,sout.str());
-    }
-
-    int iv=0,in,jn,d;
-    TPZConnect *df;
-    for(in=0; in<ncon; in++) {
-      df = &Connect(in);
-      int dfseq = df->SequenceNumber();
-      int dfvar = block.Size(dfseq);
-      for(jn=0; jn<dfvar; jn++) {
-        sol[iv%numdof] += phi(iv/numdof,0)*block(dfseq,0,jn,0);
-        for(d=0; d<dim; d++) dsol(d,iv%numdof) += dphix(d,iv/numdof)*block(dfseq,0,jn,0);
-        iv++;
-      }
-    }
-    material->Flux(x,sol,dsol,axes,flux);
-    for(in=0; in<nshape; in++){
-      for(int ifl=0; ifl<num_flux; ifl++){
-        (ef.fMat)(in,ifl) += flux[ifl]*phi(in,0)*weight;
-      }
-      for(int jn = 0; jn<nshape; jn++){
-        (ek.fMat)(in,jn) += phi(in,0)*phi(jn,0)*weight;
-      }
-    }
-  }
-}
-
-
 /**Implement the refinement of an interpolated element*/
 void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolatesolution) {
 
@@ -1756,9 +1347,8 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
 REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
 {
   TPZAutoPointer<TPZMaterial> material = Material();
-  if(!material)
-  {
-    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
+  if(!material){
+    PZError << "\nError at " << __PRETTY_FUNCTION__ << " - no material " << std::endl;
     LOGPZ_ERROR(logger,"InterpolateSolution no material");
     return 0.;
   }
@@ -1766,37 +1356,31 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
   REAL error=0.;
   int dim = Dimension();
   int numdof = material->NSolutionVariables(var);
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
-  REAL detjac;
-  TPZManVector<REAL> sol(numdof,0.);
-  TPZManVector<REAL> othersol(numdof,0.);
-  TPZVec<REAL> x(3,0.);
+
+  TPZFNMatrix<9> axes(3,3,0.);
+  TPZFNMatrix<9> jacobian(dim,dim), jacinv(dim,dim);
+
+  TPZManVector<REAL> sol(numdof, 0.), othersol(numdof,0.);
   TPZVec<REAL> intpoint(dim,0.);
   REAL weight = 0.;
+  REAL detjac;
 
   // At this point we assume grids are identical
   TPZCompEl *otherelement = Reference()->Reference();
 
   TPZIntPoints &intrule = GetIntegrationRule();
   TPZGeoEl *ref = Reference();
-  //GetIntegrationRule().NPoints()
+
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
-    //GetIntegrationRule().Point(int_ind,intpoint,weight);
     intrule.Point(int_ind,intpoint,weight);
+    this->Solution(intpoint, var, sol);
+    otherelement->Solution(intpoint, var, othersol);
 
-    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
-
-    //ref->X(intpoint, x);
+    ref->Jacobian( intpoint, jacobian, axes, detjac, jacinv);
     weight *= fabs(detjac);
-    sol.Fill(0.);
-    Solution(intpoint,var,sol);
-    otherelement->Solution(intpoint,var,othersol);
-    int i=0;
-    //Compare the solutions on each point coordinate.
-    for (i=0; i<sol.NElements(); i++){
-      error += (sol[i]-othersol[i])*(sol[i]-othersol[i]);
+
+    for (int i = 0; i < sol.NElements(); i++){
+      error += (sol[i]-othersol[i])*(sol[i]-othersol[i])*weight;
     }
   }
   return error;
@@ -1847,128 +1431,6 @@ void TPZInterpolatedElement::PRefine(int order) {
 //   }
 }
 
-
-void TPZInterpolatedElement::EvaluateError(void (*fp)(
-                                                TPZVec<REAL> &loc,
-                                                TPZVec<REAL> &val,
-                                                TPZFMatrix &deriv),
-                                           TPZVec<REAL> &errors,
-                                           TPZBlock * /*flux */)
-{
-  TPZAutoPointer<TPZMaterial> material = Material();
-  if(!material)
-  {
-    cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
-    LOGPZ_ERROR(logger,"Exiting EvaluateError: no material for this element");
-    return;
-  }
-  int NErrors = material->NEvalErrors();
-  errors.Resize(NErrors);
-  errors.Fill(0.0);
-
-  if(dynamic_cast<TPZBndCond *>(material.operator ->())) {
-    LOGPZ_INFO(logger,"Exiting EvaluateError - null error - boundary condition material.");
-    return;
-  }
-  // Adjust the order of the integration rule
-  TPZIntPoints &intrule = GetIntegrationRule();
-  int dim = Dimension();
-
-  TPZManVector<int,3> prevorder(dim),
-    order(dim);
-  intrule.GetOrder(prevorder);
-
-  TPZManVector<int,3> interpolation(0);
-  GetInterpolationOrder(interpolation);
-
-  // compute the interpolation order of the shapefunctions squared
-  // This is wrong!
-  int maxorder = interpolation[0];
-  int d;
-  for(d=0; d<interpolation.NElements(); d++) {
-    maxorder = maxorder < interpolation[d] ? interpolation[d] : maxorder;
-  }
-  for(d=0; d<dim; d++) {
-    order[d] = 2*maxorder+2;
-  }
-  intrule.SetOrder(order);
-
-
-  int ndof = material->NStateVariables();
-  int nflux = material->NFluxes();
-  int nshape = NShapeF();
-  //suficiente para ordem 5 do cubo
-  REAL phistore[220],dphistore[660],dphixstore[660];
-  TPZFMatrix phi(nshape,1,phistore,220);
-  TPZFMatrix dphi(dim,nshape,dphistore,660),dphix(dim,nshape,dphixstore,660);
-  REAL jacobianstore[9],axesstore[9];
-  TPZFMatrix jacobian(dim,dim,jacobianstore,9);
-  TPZFMatrix axes(3,3,axesstore,9);
-  TPZManVector<REAL> x(3);//TPZVec<REAL> x(3,0.);
-  REAL duexactstore[90];
-  TPZManVector<REAL> u_exact(ndof);
-  TPZFMatrix du_exact(dim,ndof,duexactstore,90);
-  TPZManVector<REAL> intpoint(3),values(NErrors);
-  REAL detjac,weight;
-  TPZManVector<REAL> u(ndof);
-  REAL dudxstore[90];//,jacinvstore[9];
-  TPZFMatrix dudx(dim,ndof,dudxstore,90);
-  TPZManVector<REAL> flux_el(nflux);
-  TPZFMatrix jacinv(dim,dim);
-  int ieq;
-  TPZGeoEl *ref = Reference();
-
-  for(int nint=0; nint<GetIntegrationRule().NPoints(); nint++) {
-
-    GetIntegrationRule().Point(nint,intpoint,weight);
-    ref->Jacobian( intpoint , jacobian, axes, detjac , jacinv);
-    Shape(intpoint,phi,dphi);
-    ref->X( intpoint , x);
-    weight *= fabs(detjac);
-    switch(dim) {
-    case 0:
-      //dphix.Redim(1,1);
-      //dphix(0,0) = dphi(0,0);
-      break;
-    case 1:
-      dphix = dphi*(1./detjac);
-      break;
-    case 2:
-      for(ieq = 0; ieq < nshape; ieq++) {
-        dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
-        dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
-      }
-      break;
-    case 3:
-      for(ieq = 0; ieq < nshape; ieq++) {
-        dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
-        dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
-        dphix(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
-      }
-      break;
-    default:
-      stringstream sout;
-      sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
-      LOGPZ_WARN(logger,sout.str());
-    }
-
-    this->ComputeSolution(intpoint, phi, dphix, axes, u, dudx);
-
-    //contribucao dos erros
-    if(fp) {
-      fp(x,u_exact,du_exact);
-      material->Errors(x,u,dudx,axes,flux_el,u_exact,du_exact,values);
-      for(int ier = 0; ier < NErrors; ier++)
-        errors[ier] += values[ier]*weight;
-    }
-  }//fim for : integration rule
-   //Norma sobre o elemento
-  for(int ier = 0; ier < NErrors; ier++)
-    errors[ier] = sqrt(errors[ier]);
-
-  intrule.SetOrder(prevorder);
-}
-
 void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & blockdiag) {
   int i;
   TPZAutoPointer<TPZMaterial> material = Material();
@@ -1988,7 +1450,6 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
   BuildConnectList(connectlist);
   BuildDependencyOrder(connectlist,dependencyorder);
   int dim = Dimension();
-  int nshape = NShapeF();
 
   int numblocks = connectlist.NElements();
   TPZVec<int> blocksizes(numblocks,0);
@@ -2003,74 +1464,23 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
   for(b=0; b<numblocks; b++) {
     blocksizes[b] /= numdof;
   }
-  //  int numeq = nshape*numdof;
-  TPZVec<REAL> sol(numdof,0.);
-  //suficiente para ordem 5 do cubo
-  REAL phistore[220],dphistore[660],dphixstore[660];
-  TPZFMatrix phi(nexpandedshape,1,phistore,220);
-  TPZFMatrix dphi(dim,nexpandedshape,dphistore,660),dphix(dim,nexpandedshape,dphixstore,660);
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
-  REAL detjac;
-  TPZVec<REAL> x(3,0.);
+
   TPZVec<REAL> intpoint(dim,0.);
   REAL weight = 0.;
-
-  REAL dsolstore[90];
-  TPZFMatrix dsol(dim,numdof,dsolstore,90);
-
+  TPZMaterialData data;
+  this->InitMaterialData(data);
 
   TPZIntPoints &intrule = GetIntegrationRule();
-  TPZGeoEl *ref = Reference();
 
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
 
     intrule.Point(int_ind,intpoint,weight);
-
-    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
-
-    ref->X(intpoint, x);
-
-    weight *= fabs(detjac);
-
-    phi.Zero();
-    dphi.Zero();
-    dphix.Zero();
-    Shape(intpoint,phi,dphi);
-
-    int ieq;
-    switch(dim) {
-    case 0:
-      //dphix.Redim(1,1);
-      //dphix(0,0) = dphi(0,0);
-      break;
-    case 1:
-      dphix = dphi*(1./detjac);
-      break;
-    case 2:
-      for(ieq = 0; ieq < nshape; ieq++) {
-        dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
-        dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
-      }
-      break;
-    case 3:
-      for(ieq = 0; ieq < nshape; ieq++) {
-        dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
-        dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
-        dphix(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
-      }
-      break;
-    default:
-      stringstream sout;
-      sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
-      LOGPZ_WARN(logger,sout.str());
-    }
-
-    this->ComputeSolution(intpoint, phi, dphix, axes, sol, dsol);
+    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    weight *= fabs(data.detjac);
+    this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 
     // Expand the values of the shape functions and their derivatives
-    ExpandShapeFunctions(connectlist,dependencyorder,blocksizes,phi,dphix);
+    ExpandShapeFunctions(connectlist,dependencyorder,blocksizes,data.phi,data.dphix);
     // Make the contribution in small blocks
     int eq = 0;
     for(b=0; b<numblocks; b++) {
@@ -2082,17 +1492,17 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
         eq+= blsize;
         continue;
       }
-      TPZFMatrix phil(blsize,1);
-      TPZFMatrix dphil(dim,blsize);
+      TPZFNMatrix<220> phil(blsize,1);
+      TPZFNMatrix<660> dphil(dim,blsize);
       for(i=0; i<blsize; i++) {
-        phil(i,0) = phi(eq+i,0);
+        phil(i,0) = data.phi(eq+i,0);
         for(j=0; j<dim; j++) {
-          dphil(j,i) = dphix(j,eq+i);
+          dphil(j,i) = data.dphix(j,eq+i);
         }
       }
       eq += blsize;
-      TPZFMatrix ekl(blsize*numdof,blsize*numdof,0.), efl(blsize*numdof,1,0.);
-      material->Contribute(x,jacinv,sol,dsol,weight,axes,phil,dphil,ekl,efl);
+      TPZFNMatrix<1000> ekl(blsize*numdof,blsize*numdof,0.), efl(blsize*numdof,1,0.);
+      material->Contribute(data.x,data.jacinv,data.sol,data.dsol,weight,data.axes,phil,dphil,ekl,efl);
       blockdiag.AddBlock(b,ekl);
     }
   }
@@ -2301,15 +1711,14 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
     (ek.fConnect)[i] = ConnectIndex(i);
   }
   //suficiente para ordem 5 do cubo
-  REAL phistore[220],dphistore[660],dphixstore[660];
-  TPZFMatrix phi(nshape,1,phistore,220);
-  TPZFMatrix dphi(dim,nshape,dphistore,660),dphix(dim,nshape,dphixstore,660);
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
+  TPZFNMatrix<220> phi(nshape,1);
+  TPZFNMatrix<660> dphi(dim,nshape),dphix(dim,nshape);
+  TPZFNMatrix<9> axes(3,3,0.);
+  TPZFMatrix<9> jacobian(dim,dim);
+  TPZFNMatrix<9> jacinv(dim,dim);
   REAL detjac;
-  TPZVec<REAL> x(3,0.);
-  TPZVec<REAL> intpoint(dim,0.);
+  TPZManVector<REAL,3> x(3,0.);
+  TPZManVector<REAL,3> intpoint(dim,0.);
   REAL weight = 0.;
 
   TPZVec<FADFADREAL> sol(numdof);
@@ -2329,40 +1738,9 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
 
     intrule.Point(int_ind,intpoint,weight);
-
-    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
-
-    ref->X(intpoint, x);
-
+    this->ComputeShape(intpoint, x, jacobian, axes, detjac, jacinv, phi, dphix);
     weight *= fabs(detjac);
 
-    Shape(intpoint,phi,dphi);
-
-    int ieq;
-    switch(dim) {
-    case 0:
-      break;
-    case 1:
-      dphix = dphi*(1./detjac);
-      break;
-    case 2:
-      for(ieq = 0; ieq < nshape; ieq++) {
-        dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
-        dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
-      }
-      break;
-    case 3:
-      for(ieq = 0; ieq < nshape; ieq++) {
-        dphix(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
-        dphix(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
-        dphix(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
-      }
-      break;
-    default:
-      stringstream sout;
-      sout << "pzintel.c please implement the " << dim << "d Jacobian and inverse\n";
-      LOGPZ_WARN(logger,sout.str());
-    }
     int iv=0,d;
 
     sol.Fill(defaultFADFAD);

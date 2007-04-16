@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.28 2007-04-13 18:25:27 tiago Exp $
+//$Id: pzintel.h,v 1.29 2007-04-16 13:49:06 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -263,30 +263,6 @@ public:
   //@{
 
   /**
-   * Will project the flux associated with the variational statement onto the finite element interpolation space
-   * The ek matrix corresponds to an L2 (scalar) projection, the ef matrix contains multiple right hand sides, one
-   * for each component of the flux
-   * @param ek projection matrix
-   * @param ef inner product of the flux with the finite element interpolation space
-   */
-  void ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef);
-
-  /**
-   * Generic method for error evaluation, based on a function pointer which evaluates to the exact solution and
-   * a matrix pointer containing the projected flux values
-   * @param fp function which computes the exact solution, if fp=0, this implies that an exact solution is not available
-   * @param true_error (output) Energy error computed as the diference between the finite element interpolation and the exact solution
-   * @param L2_error (output) L2 error computed as the diference between the finite element interpolation and the exact solution
-   * @param flux (input) projected flux function. if flux=0, this means the projected flux is not available
-   * @param estimate (output) estimated energy error based on the projected flux function
-   * @see TPZMaterial::Flux
-   * @see TPZMaterial::NFluxes
-   * @see TPZMaterial::Errors which computes the error contributions at an integration point
-   */
-  void EvaluateError(void (*fp)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),
-  		     TPZVec<REAL> &errors, TPZBlock *flux);
-
-  /**
    * Computes solution and its derivatives in the local coordinate qsi.
    * @param qsi master element coordinate
    * @param sol finite element solution
@@ -418,13 +394,6 @@ public:
    * @param transfer transfer matrix mapping the solution of the coarse mesh into the fine mesh
    */
   virtual void BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform &t, TPZTransfer &transfer);
-
-  /**interpolates the solution into the degrees of freedom nodes from the degrees
-     of freedom nodes from the coarse element*/
-  virtual void InterpolateSolution(TPZInterpolatedElement &coarse);
-
-  virtual void InterpolateSolution(TPZCompElDisc &coarsel);
-
 
   /**
    * Verify the neighbours of the element and create a node along this side

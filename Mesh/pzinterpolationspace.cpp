@@ -1,9 +1,18 @@
-//$Id: pzinterpolationspace.cpp,v 1.4 2007-04-14 03:24:51 phil Exp $
+//$Id: pzinterpolationspace.cpp,v 1.5 2007-04-16 13:48:54 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
+#include "pzbndcond.h"
 #include "pzelmat.h"
 #include "pzquad.h"
+#include "TPZCompElDisc.h"
+#include "TPZInterfaceEl.h"
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZInterpolationSpace"));
+#endif
 
 TPZInterpolationSpace::TPZInterpolationSpace()
  : TPZCompEl(){}
@@ -121,7 +130,6 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
 }//void
 
 void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
-  int i;
 
   TPZAutoPointer<TPZMaterial> material = Material();
   if(!material){
@@ -130,34 +138,14 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     ef.Reset();
     return;
   }
-  int numdof = material->NStateVariables();
-  int ncon = NConnects();
-  int dim = Dimension();
-  int nshape = NShapeF();
 
-  int numeq = nshape*numdof;
-  ek.fMat.Redim(numeq,numeq);
-  ef.fMat.Redim(numeq,1);
-  ek.fBlock.SetNBlocks(ncon);
-  ef.fBlock.SetNBlocks(ncon);
-  TPZManVector<REAL> sol(numdof,0.);
-  for (i = 0; i < ncon ; i++)	{
-    ek.fBlock.Set(i,NConnectShapeF(i)*numdof);
-    ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
-  }
-
-  ek.fConnect.Resize(ncon);
-  ef.fConnect.Resize(ncon);
-
-  for(i=0; i<ncon; ++i){
-    (ef.fConnect)[i] = ConnectIndex(i);
-    (ek.fConnect)[i] = ConnectIndex(i);
-  }
+  this->InitializeElementMatrix(ek,ef);
 
   TPZMaterialData data;
   this->InitMaterialData(data);
   data.p = this->MaxOrder();
 
+  int dim = Dimension();
   TPZManVector<REAL,3> intpoint(dim,0.);
   REAL weight = 0.;
 
@@ -179,7 +167,6 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 }//CalcStiff
 
 void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
-  int i;
 
   TPZAutoPointer<TPZMaterial> material = Material();
   if(!material){
@@ -187,29 +174,14 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
     ef.Reset();
     return;
   }
-  int numdof = material->NStateVariables();
-  int ncon = NConnects();
-  int dim = Dimension();
-  int nshape = NShapeF();
 
-  int numeq = nshape*numdof;
-  ef.fMat.Redim(numeq,1);
-  ef.fBlock.SetNBlocks(ncon);
-  TPZManVector<REAL> sol(numdof,0.);
-  for (i = 0; i < ncon ; i++)	{
-    ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
-  }
-
-  ef.fConnect.Resize(ncon);
-
-  for(i=0; i<ncon; ++i){
-    (ef.fConnect)[i] = ConnectIndex(i);
-  }
+  this->InitializeElementMatrix(ef);
 
   TPZMaterialData data;
   this->InitMaterialData(data);
   data.p = this->MaxOrder();
 
+  int dim = Dimension();
   TPZManVector<REAL,3> intpoint(dim,0.);
   REAL weight = 0.;
 
@@ -229,6 +201,47 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
   }//loop over integratin points
 
 }//CalcResidual
+
+void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef){
+  const int numdof = this->Material()->NStateVariables();
+  const int ncon = this->NConnects();
+  const int nshape = this->NShapeF();
+  const int numeq = nshape*numdof;
+  ek.fMat.Redim(numeq,numeq);
+  ef.fMat.Redim(numeq,1);
+  ek.fBlock.SetNBlocks(ncon);
+  ef.fBlock.SetNBlocks(ncon);
+  TPZManVector<REAL> sol(numdof,0.);
+  int i;
+  for (i = 0; i < ncon ; i++){
+    ek.fBlock.Set(i,NConnectShapeF(i)*numdof);
+    ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
+  }
+  ek.fConnect.Resize(ncon);
+  ef.fConnect.Resize(ncon);
+  for(i=0; i<ncon; i++){
+    (ef.fConnect)[i] = ConnectIndex(i);
+    (ek.fConnect)[i] = ConnectIndex(i);
+  }
+}//void
+
+void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
+  const int numdof = this->Material()->NStateVariables();
+  const int ncon = this->NConnects();
+  const int nshape = this->NShapeF();
+  const int numeq = nshape*numdof;
+  ef.fMat.Redim(numeq,1);
+  ef.fBlock.SetNBlocks(ncon);
+  TPZManVector<REAL> sol(numdof,0.);
+  int i;
+  for (i = 0; i < ncon ; i++){
+    ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
+  }
+  ef.fConnect.Resize(ncon);
+  for(i=0; i<ncon; i++){
+    (ef.fConnect)[i] = ConnectIndex(i);
+  }
+}//void
 
 void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
 
@@ -255,4 +268,560 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
   this->ComputeSolution(qsi, u, du, axes);
   material->Solution(u,du,axes,var,sol);
 }
+
+void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
+  // accumulates the transfer coefficients between the current element and the
+  // coarse element into the transfer matrix, using the transformation t
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
+    PZError << __PRETTY_FUNCTION__ << " this->Material() == NULL " << std::endl;
+    return;
+  }
+
+  TPZTransform t(Dimension());
+  TPZGeoEl *ref = Reference();
+
+  //Cedric 16/03/99
+  //  Reference()->BuildTransform(NConnects(),coarsel.Reference(),t);
+  t = Reference()->BuildTransform2(ref->NSides()-1,coarsel.Reference(),t);
+
+  int locnod = NConnects();
+//   int cornod = coarsel.NConnects();
+  int locmatsize = NShapeF();
+  int cormatsize = coarsel.NShapeF();
+  int nvar = material->NStateVariables();
+  int dimension = Dimension();
+  if (!dimension) {
+    PZError << "\nExiting " << __PRETTY_FUNCTION__ << " - trying to interpolate a node solution.\n";
+    return ;
+  }
+
+  TPZFMatrix loclocmat(locmatsize,locmatsize,0.);
+  TPZFMatrix projectmat(locmatsize,nvar,0.);
+
+  TPZManVector<int,3> prevorder(dimension);
+  TPZIntPoints &intrule = GetIntegrationRule();
+  intrule.GetOrder(prevorder);
+
+  int thismaxorder = this->MaxOrder();
+  int coarsemaxorder = coarsel.MaxOrder();
+  int maxorder = (thismaxorder > coarsemaxorder) ? thismaxorder : coarsemaxorder;
+  // Cesar 2003-11-25 -->> To avoid integration warnings...
+  maxorder = (2*maxorder > intrule.GetMaxOrder() ) ? intrule.GetMaxOrder() : 2*maxorder;
+  TPZManVector<int,3> order(dimension,maxorder);
+  for(int dim = 0; dim < dimension; dim++){
+    order[dim] = maxorder*2;
+  }
+  intrule.SetOrder(order);
+
+  TPZFNMatrix<220> locphi(locmatsize,1);
+  TPZFNMatrix<660> locdphi(dimension,locmatsize);//derivative of the shape function in the master domain
+
+  TPZFNMatrix<220> corphi(cormatsize,1);
+  TPZFNMatrix<660> cordphi(dimension,cormatsize);//derivative of the shape function in the master domain
+
+  TPZManVector<REAL,3> int_point(dimension),coarse_int_point(dimension);
+  TPZFNMatrix<9> jacobian(dimension,dimension),jacinv(dimension,dimension);
+  TPZFNMatrix<9> axes(3,3,0.), coarseaxes(3,3,0.);
+  REAL zero = 0.;
+  TPZManVector<REAL,3> x(3,zero);
+  TPZManVector<REAL,10> u(nvar);
+  TPZFNMatrix<30> du(dimension,nvar);
+
+  int numintpoints = intrule.NPoints();
+  REAL weight;
+  int lin,ljn,cjn;
+  TPZConnect *df;
+//   TPZBlock &coarseblock = coarsel.Mesh()->Block();
+
+  for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
+    intrule.Point(int_ind,int_point,weight);
+    REAL jac_det = 1.;
+    this->ComputeShape(int_point, x, jacobian, axes, jac_det, jacinv, locphi, locdphi);
+    weight *= jac_det;
+    t.Apply(int_point,coarse_int_point);
+    coarsel.ComputeSolution(coarse_int_point, u, du, coarseaxes);
+
+    for(lin=0; lin<locmatsize; lin++) {
+      for(ljn=0; ljn<locmatsize; ljn++) {
+        loclocmat(lin,ljn) += weight*locphi(lin,0)*locphi(ljn,0);
+      }
+      for(cjn=0; cjn<nvar; cjn++) {
+        projectmat(lin,cjn) += weight*locphi(lin,0)*u[cjn];
+      }
+    }
+    jacobian.Zero();
+  }
+
+  loclocmat.SolveDirect(projectmat,ELU);
+  // identify the non-zero blocks for each row
+  TPZBlock &fineblock = Mesh()->Block();
+  int iv=0,in;
+  for(in=0; in<locnod; in++) {
+    df = &Connect(in);
+    int dfseq = df->SequenceNumber();
+    int dfvar = fineblock.Size(dfseq);
+    for(ljn=0; ljn<dfvar; ljn++) {
+      fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
+      iv++;
+    }
+  }
+  intrule.SetOrder(prevorder);
+}//InterpolateSolution
+
+void TPZInterpolationSpace::CreateInterfaces(bool BetweenContinuous){
+  //nao verifica-se caso o elemento de contorno
+  //eh maior em tamanho que o interface associado
+  //caso AdjustBoundaryElement nao for aplicado
+  //a malha eh criada consistentemente
+  TPZGeoEl *ref = Reference();
+  int nsides = ref->NSides();
+  int InterfaceDimension = this->Material()->Dimension() - 1;
+  int side;
+  nsides--;//last face
+  for(side=nsides;side>=0;side--){
+    if(ref->SideDimension(side) != InterfaceDimension) continue;
+    TPZCompElSide thisside(this,side);
+    if(this->ExistsInterface(thisside.Reference())) {
+//      cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
+      continue;
+    }
+    TPZStack<TPZCompElSide> highlist;
+    thisside.HigherLevelElementList(highlist,0,1);
+    //a interface se cria uma vez so quando existem ambos
+    //elementos esquerdo e direito (computacionais)
+    if(!highlist.NElements()) {
+      this->CreateInterface(side, BetweenContinuous);//s�tem iguais ou grande => pode criar a interface
+    } else {
+      int ns = highlist.NElements();
+      int is;
+      for(is=0; is<ns; is++) {//existem pequenos ligados ao lado atual
+        const int higheldim = highlist[is].Reference().Dimension();
+	if(higheldim != InterfaceDimension) continue;
+// 	TPZCompElDisc *del = dynamic_cast<TPZCompElDisc *> (highlist[is].Element());
+// 	if(!del) continue;
+
+	TPZCompEl *del = highlist[is].Element();
+	if(!del) continue;
+
+        TPZCompElSide delside( del, highlist[is].Side() );
+        TPZInterpolationSpace * delSp = dynamic_cast<TPZInterpolationSpace*>(del);
+        if (!delSp){
+          PZError << "\nERROR AT " << __PRETTY_FUNCTION__ <<  " - CASE NOT AVAILABLE\n";
+          return;
+        }
+        if ( delSp->ExistsInterface(delside.Reference()) ) {
+//          cout << "TPZCompElDisc::CreateInterface inconsistent: interface already exists\n";
+        }
+        else{
+	  delSp->CreateInterface(highlist[is].Side(), BetweenContinuous);
+        }
+      }
+    }
+  }
+}
+
+TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool BetweenContinuous)
+{
+//  LOGPZ_INFO(logger, "Entering CreateInterface");
+  TPZInterfaceElement * newcreatedinterface = NULL;
+
+  TPZGeoEl *ref = Reference();
+  if(!ref) {
+    LOGPZ_WARN(logger, "Exiting CreateInterface Null reference reached - NULL interface returned");
+    return newcreatedinterface;
+  }
+
+  TPZCompElSide thisside(this,side);
+  TPZStack<TPZCompElSide> list;
+  list.Resize(0);
+  thisside.EqualLevelElementList(list,0,1);//retorna distinto ao atual ou nulo
+  int size = list.NElements();
+  //espera-se ter os elementos computacionais esquerdo e direito
+  //ja criados antes de criar o elemento interface
+  if(size){
+    //Interface has the same material of the neighbour with lesser dimension.
+    //It makes the interface have the same material of boundary conditions (TPZCompElDisc with interface dimension)
+    int matid;
+    int thisdim = this->Dimension();
+    int neighbourdim = list[0].Element()->Dimension();
+    if (thisdim == neighbourdim){
+//      matid = this->Material()->Id();
+        matid = this->Mesh()->Reference()->InterfaceMaterial(this->Material()->Id(), list[0].Element()->Material()->Id() );
+    }
+    else { //one element is a boundary condition
+      if (thisdim < neighbourdim) matid = this->Material()->Id();
+      else matid = list[0].Element()->Material()->Id();
+    }
+
+
+    int index;
+
+    TPZCompEl *list0 = list[0].Element();
+    int list0side = list[0].Side();
+    TPZCompElDisc * thisdisc  = dynamic_cast<TPZCompElDisc*>(this);
+    TPZCompElDisc * neighdisc = dynamic_cast<TPZCompElDisc*>(list0);
+    int thisside = side;
+    int neighside = list0side;
+
+    if (BetweenContinuous == false){
+      //It means at least one element must be discontinuous
+      if (!thisdisc && !neighdisc){
+        return NULL;
+      }
+    }
+
+    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
+
+
+    if(Dimension() > list0->Dimension()){
+       //o de volume eh o direito caso um deles seja BC
+       //a normal aponta para fora do contorno
+       TPZCompElSide thiscompelside(this, thisside);
+       TPZCompElSide neighcompelside(list0, neighside);
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
+    } else {
+       //caso contrario ou caso ambos sejam de volume
+       TPZCompElSide thiscompelside(this, thisside);
+       TPZCompElSide neighcompelside(list0, neighside);
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,neighcompelside,thiscompelside);
+    }
+    return newcreatedinterface;
+  }
+
+//If there is no equal level element, we try the lower elements.
+//Higher elements will not be considered by this method. In that case the interface must be created by the neighbour.
+  TPZCompElSide lower = thisside.LowerLevelElementList(0);
+  if(lower.Exists()){
+    //Interface has the same material of the neighbour with lesser dimension.
+    //It makes the interface has the same material of boundary conditions (TPZCompElDisc with interface dimension)
+    int matid;
+    int thisdim = this->Dimension();
+    int neighbourdim = lower.Element()->Dimension();
+
+    if (thisdim == neighbourdim){
+//      matid = this->Material()->Id();
+        matid = this->Mesh()->Reference()->InterfaceMaterial(this->Material()->Id(), lower.Element()->Material()->Id() );
+    }
+    else { //one element is a boundary condition
+      if (thisdim < neighbourdim) matid = this->Material()->Id();
+      else matid = lower.Element()->Material()->Id();
+    }
+
+
+    TPZCompEl *lowcel = lower.Element();
+    int lowside = lower.Side();
+    TPZCompElDisc * thisdisc  = dynamic_cast<TPZCompElDisc*>(this);
+    TPZCompElDisc * neighdisc = dynamic_cast<TPZCompElDisc*>(lowcel);
+    int thisside = side;
+    int neighside = lowside;
+
+    if (BetweenContinuous == false){
+      //It means at least one element must be discontinuous
+      if (!thisdisc && !neighdisc){
+        return NULL;
+      }
+    }
+
+    //existem esquerdo e direito: this e lower
+    TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
+    int index;
+
+
+    if(Dimension() > lowcel->Dimension()){
+       //para que o elemento esquerdo seja de volume
+       TPZCompElSide thiscompelside(this, thisside);
+       TPZCompElSide lowcelcompelside(lowcel, neighside);
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,lowcelcompelside);
+    } else {
+       TPZCompElSide thiscompelside(this, thisside);
+       TPZCompElSide lowcelcompelside(lowcel, neighside);
+       newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
+    }
+    return newcreatedinterface;
+  }
+  return newcreatedinterface;
+}
+
+int TPZInterpolationSpace::ExistsInterface(TPZGeoElSide geosd){
+
+  TPZGeoElSide  neighside = geosd.Neighbour();
+  while(neighside.Element() && neighside.Element() != geosd.Element()){
+    TPZCompElSide neighcompside = neighside.Reference();
+    neighside = neighside.Neighbour();
+    if(!neighcompside.Element()) continue;
+    if(neighcompside.Element()->Type() == EInterface)
+      return 1;
+  }
+  return 0;
+}
+
+void TPZInterpolationSpace::RemoveInterfaces(){
+
+  int nsides = Reference()->NSides();
+  if (!this->Material()){
+    std::stringstream mess;
+    mess << __PRETTY_FUNCTION__ << " - this->Material() == NULL, I can't RemoveInterfaces()";
+    PZError << mess.str() << std::endl;
+    LOGPZ_ERROR(logger, mess.str());
+    return;
+  }
+  int InterfaceDimension = this->Material()->Dimension() - 1;
+  int is;
+  TPZStack<TPZCompElSide> list,equal;
+  for(is=0;is<nsides;is++){
+    TPZCompElSide thisside(this,is);
+    if(thisside.Reference().Dimension() != InterfaceDimension) continue;
+    // procurar na lista de elementos iguais
+    list.Resize(0);// o lado atual �uma face
+    //thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
+    RemoveInterface(is);// chame remove interface do elemento atual (para o side atual)
+    thisside.HigherLevelElementList(list,0,0);// procurar na lista de elementos menores (todos)
+    int size = list.NElements(),i;            // 'isto pode incluir elementos interfaces'
+    //tirando os elementos de interface da lista
+    for(i=0;i<size;i++){
+      if(list[i].Element()->Type() == EInterface) {
+        LOGPZ_DEBUG(logger, "Removing interface element from the list of higher level elements");
+        //This need to be done because otherwise list could be invalidated when an interface is removed.
+        list[i] = TPZCompElSide();//tirando interface
+      }
+    }
+    for(i=0;i<size;i++){// percorre os elementos menores
+      if(!list[i].Element()) continue;
+      TPZGeoElSide geolist = list[i].Reference();//TESTE
+      if(geolist.Dimension() != InterfaceDimension) continue;
+      equal.Resize(0);// para cada elemento menor e' preciso verificar a dimensao,
+      list[i].EqualLevelElementList(equal,0,0);//montar a lista de elementos iguais (todos)
+      equal.Push(list[i]);//n� �incorporado no m�odo anterior
+      int neq = equal.NElements(),k=-1;
+      while(++k < neq) if(equal[k].Element()->Type() != EInterface) break;//procurando elemento descont�uo cujo
+      if(!neq || k == neq){                               //lado faz parte da parti� do lado side do this
+	      LOGPZ_FATAL(logger, " Inconsistency of data");
+	      exit(-1);//elemento descont�uo n� achado: ERRO
+      }// chame removeinterface do elemento menor
+
+      TPZInterpolationSpace * equalkSp = dynamic_cast<TPZInterpolationSpace*>(equal[k].Element());
+      if (!equalkSp){
+        PZError << "\nERROR AT " << __PRETTY_FUNCTION__ <<  " - CASE NOT AVAILABLE\n";
+        return;
+      }
+      equalkSp->RemoveInterface(equal[k].Side());
+    }
+  }
+
+}
+
+void TPZInterpolationSpace::RemoveInterface(int side) {
+
+  TPZStack<TPZCompElSide> list;
+  list.Resize(0);
+  TPZCompElSide thisside(this,side);
+  thisside.EqualLevelElementList(list,0,0);// monta a lista de elementos iguais
+  int size = list.NElements(),i=-1;
+  while(++i < size) if(list[i].Element()->Type() == EInterface) break;// procura aquele que e derivado de TPZInterfaceEl
+  if(!size || i == size){
+    return;// nada a ser feito
+  }
+  // aqui existe a interface
+  TPZCompEl *cel = list[i].Element();
+  TPZGeoEl *gel = cel->Reference();
+  gel->RemoveConnectivities();// deleta o elemento das vizinhancas
+  TPZGeoMesh *gmesh = Mesh()->Reference();
+  int index = gmesh->ElementIndex(gel);// identifica o index do elemento
+  gmesh->ElementVec()[index] = NULL;
+  delete cel;
+  delete gel;// deleta o elemento
+  gmesh->ElementVec().SetFree(index);// Chame SetFree do vetor de elementos da malha geometrica para o index
+
+}
+
+void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
+                                            TPZVec<REAL> &errors,TPZBlock * /*flux */){
+  int NErrors = this->Material()->NEvalErrors();
+  errors.Resize(NErrors);
+  errors.Fill(0.);
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
+    PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
+    Print(PZError);
+    return;
+  }
+  if(dynamic_cast<TPZBndCond *>(material.operator ->())) {
+    LOGPZ_INFO(logger,"Exiting EvaluateError - null error - boundary condition material.");
+    return;
+  }
+  int problemdimension = Mesh()->Dimension();
+  if(Reference()->Dimension() < problemdimension) return;
+
+  // Adjust the order of the integration rule
+  int dim = Dimension();
+  TPZIntPoints &intrule = this->GetIntegrationRule();
+
+  TPZManVector<int,3> prevorder(dim), maxorder(dim, this->MaxOrder());
+  intrule.GetOrder(prevorder);
+  intrule.SetOrder(maxorder);
+
+  int ndof = material->NStateVariables();
+  int nflux = material->NFluxes();
+  TPZManVector<REAL,10> u_exact(ndof);
+  TPZFNMatrix<90> du_exact(dim,ndof);
+  TPZManVector<REAL,3> intpoint(3), values(NErrors);
+  values.Fill(0.0);
+  REAL weight;
+  TPZManVector<REAL,9> flux_el(nflux,0.);
+
+  TPZMaterialData data;
+  this->InitMaterialData(data);
+
+  for(int nint = 0; nint < intrule.NPoints(); nint++) {
+
+    intrule.Point(nint,intpoint,weight);
+    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    weight *= fabs(data.detjac);
+    this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+
+    //contribuicoes dos erros
+    if(fp) {
+      fp(data.x,u_exact,du_exact);
+      material->Errors(data.x,data.sol,data.dsol,data.axes,flux_el,u_exact,du_exact,values);
+      for(int ier = 0; ier < NErrors; ier++)
+        errors[ier] += values[ier]*weight;
+    }
+  }//fim for : integration rule
+   //Norma sobre o elemento
+  for(int ier = 0; ier < NErrors; ier++){
+    errors[ier] = sqrt(errors[ier]);
+  }//for ier
+
+  intrule.SetOrder(prevorder);
+
+}//method
+
+void TPZInterpolationSpace::ComputeError(int errorid, TPZVec<REAL> &error){
+
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
+    cout << "TPZCompElDisc::ComputeError : no material for this element\n";
+    return;
+  }
+
+  TPZMaterialData data;
+  this->InitMaterialData(data);
+
+  REAL weight;
+  int dim = Dimension();
+  TPZVec<REAL> intpoint(dim,0.);
+
+  TPZIntPoints &intrule = this->GetIntegrationRule();
+
+  TPZManVector<int,3> prevorder(dim), maxorder(dim, this->MaxOrder());
+  intrule.GetOrder(prevorder);
+  intrule.SetOrder(maxorder);
+
+  data.p = this->MaxOrder();
+  data.HSize = 2.*this->InnerRadius();
+  error.Fill(0.);
+  int npoints = intrule.NPoints(), ip;
+  for(ip=0;ip<npoints;ip++){
+    intrule.Point(ip,intpoint,weight);
+    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    weight *= fabs(data.detjac);
+    this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+    material->ContributeErrors(data.x,data.sol, data.dsol,weight,error,data.p,data.HSize, errorid);
+  }
+  intrule.SetOrder(prevorder);
+}
+
+void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
+    return;
+  }
+  if (!this->Reference()){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " : no reference element\n";
+    return;
+  }
+  const int dim = this->Dimension();
+  REAL weight;
+  TPZMaterialData data;
+  this->InitMaterialData(data);
+
+  TPZManVector<REAL, 3> intpoint(dim,0.);
+  const int varsize = material->NSolutionVariables(variable);
+  value.Resize(varsize);
+  value.Fill(0.);
+
+  TPZIntPoints &intrule = this->GetIntegrationRule();
+  int npoints = intrule.NPoints(), ip, iv;
+  for(ip=0;ip<npoints;ip++){
+    intrule.Point(ip,intpoint,weight);
+    data.sol.Fill(0.);
+    this->Solution(intpoint, variable, data.sol);
+    //Tiago: Next call is performet only for computing detcaj. The previous method (Solution) has already computed jacobian.
+    //       It means that the next call would not be necessary if I write the whole code here.
+    this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+    weight *= fabs(data.detjac);
+    for(iv = 0; iv < varsize; iv++){
+      value[iv] += data.sol[iv]*weight;
+    }//for iv
+  }//for ip
+}//method
+
+void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
+
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
+    stringstream sout;
+    sout << "Exiting ProjectFlux: no material for this element\n";
+    Print(sout);
+    LOGPZ_ERROR(logger,sout.str());
+    ek.Reset();
+    ef.Reset();
+    return;
+  }
+
+  int num_flux = material->NFluxes();
+  int dim = Dimension();
+  int nshape = NShapeF();
+  int ncon = NConnects();
+  TPZIntPoints &intrule = GetIntegrationRule();
+
+  int numeq = nshape;
+  ek.fMat.Resize(numeq,numeq);
+  ek.fBlock.SetNBlocks(ncon);
+  ef.fMat.Resize(numeq,num_flux);
+  ef.fBlock.SetNBlocks(ncon);
+
+  for(int i=0; i<ncon; ++i){
+    (ef.fConnect)[i] = ConnectIndex(i);
+    (ek.fConnect)[i] = ConnectIndex(i);
+  }
+
+  TPZMaterialData data;
+  this->InitMaterialData(data);
+
+  TPZManVector<REAL> flux(num_flux,1);
+  TPZManVector<REAL,3> intpoint(dim);
+  REAL weight = 0.;
+  for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
+
+    intrule.Point(int_ind,intpoint,weight);
+    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    weight *= fabs(data.detjac);
+    this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+
+    material->Flux(data.x,data.sol,data.dsol,data.axes,flux);
+    for(int in=0; in<nshape; in++){
+      for(int ifl=0; ifl<num_flux; ifl++){
+        (ef.fMat)(in,ifl) += flux[ifl]*data.phi(in,0)*weight;
+      }//for ifl
+      for(int jn = 0; jn<nshape; jn++){
+        (ek.fMat)(in,jn) += data.phi(in,0)*data.phi(jn,0)*weight;
+      }//for jn
+    }//for in
+  }//for int_ind
+}//method
+
+
 

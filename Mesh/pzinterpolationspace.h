@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.3 2007-04-13 18:25:27 tiago Exp $
+//$Id: pzinterpolationspace.h,v 1.4 2007-04-16 13:48:54 tiago Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -94,6 +94,14 @@ public:
    */
   virtual void CalcResidual(TPZElementMatrix &ef);
 
+  /** Initialize element matrix in which is computed CalcStiff
+  */
+  void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+  /** Initialize element matrix in which is computed in CalcResidual
+  */
+  void InitializeElementMatrix(TPZElementMatrix &ef);
+
   /**returns a reference to an integration rule suitable for integrating
      the interior of the element */
   virtual TPZIntPoints &GetIntegrationRule() = 0;
@@ -114,6 +122,64 @@ public:
    * @see TPZMaterial::Solution
    */
   virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
+
+  /**
+   * Interpolates the solution into the degrees of freedom nodes from the degrees
+   * of freedom nodes from the coarse element
+   */
+  void InterpolateSolution(TPZInterpolationSpace &coarsel);
+
+  /** Create interfaces between this and its neighbours.
+   * Param BetweenContinuous allows to create interface between two elements that are not TPZCompElDisc.
+   * If param is false, it is necessary to have at least one TPZCompElDisc.
+   */
+  void CreateInterfaces(bool BetweenContinuous = false);
+
+  /** Create an interface between this and the neighbour by side side.
+   * @param side : side where interface must be created
+   * @param BetweenContinuous allows to create interface between two elements that are not TPZCompElDisc. If param is false, it is necessary to have at least one TPZCompElDisc.
+   * Returns the interface created.
+   */
+  TPZInterfaceElement * CreateInterface(int side, bool BetweenContinuous = false);
+
+  /** Verify existence of interface */
+  int ExistsInterface(TPZGeoElSide geosd);
+
+  /** Remove interfaces connected to this element */
+  void RemoveInterfaces();
+
+  /** Remove interface which is neighbour from side side */
+  void RemoveInterface(int side);
+
+  /**
+   * Perform an error estimate on the elemen
+   * @param fp function pointer which computes the exact solution
+   * @param true_error (output)  the true error of the solution
+   * @param L2_error (output) the L2 norm of the error of the solution
+   * @param flux (input) value of the interpolated flux values
+   * @param estimate (output) estimated error based on the implemented criterium
+   */
+  virtual void EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
+                               TPZVec<REAL> &errors,TPZBlock * flux );
+
+  /**
+   * ComputeError computes the element error estimator
+   */
+  virtual void ComputeError(int errorid, TPZVec<REAL> &error);
+
+  /**
+   * Integrate a variable over the element.
+   */
+   virtual void Integrate(int variable, TPZVec<REAL> & value);
+
+  /**
+   * Will project the flux associated with the variational statement onto the finite element interpolation space
+   * The ek matrix corresponds to an L2 (scalar) projection, the ef matrix contains multiple right hand sides, one
+   * for each component of the flux
+   * @param ek projection matrix
+   * @param ef inner product of the flux with the finite element interpolation space
+   */
+  void ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
 };
 

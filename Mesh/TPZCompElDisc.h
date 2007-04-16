@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.54 2007-04-13 18:25:27 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.55 2007-04-16 13:46:44 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -146,20 +146,12 @@ protected:
     return new TPZCompElDisc(mesh,*this,gl2lcConMap,gl2lcElMap);
   }
 
-  ~TPZCompElDisc() {
-    if(Reference()->Reference() == this) Reference()->ResetReference();
-    if (this->fIntRule) delete this->fIntRule;
-   }
+  ~TPZCompElDisc();
 
   /**
    * Divide the computational element
    */
   void Divide(int index, TPZVec<int> &subindex, int interpolate = 0);
-
-  /**
-   * ComputeError computes the element error estimator
-  */
- void ComputeError(int errorid, TPZVec<REAL> &error);
 
   /**
    * Integrate a variable over the element.
@@ -192,11 +184,6 @@ protected:
    * Type of the element
    */
   virtual MElementType Type() {return EDiscontinuous;}
-
-  /**
-   *
-   */
-  void InterpolateSolution(TPZCompElDisc &coarsel);
 
   /**
    * it returns the constant that normalizes the bases of the element
@@ -330,9 +317,6 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   int NSides();
 
   void BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &transfer);
-
-  void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-		     TPZVec< REAL> &errors, TPZBlock * /*flux */ );
 
   /**
   * returns the unique identifier for reading/writing objects to streams
