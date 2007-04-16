@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.71 2007-04-16 13:57:04 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.72 2007-04-16 14:04:49 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -615,7 +615,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
    }
 
   TPZMaterialData data;
-  this->InitMaterialData(data);
   const int dim = this->Dimension();
   const int diml = left->Dimension();
   const int dimr = right->Dimension();
@@ -848,8 +847,8 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
    }
 
   TPZMaterialData data;
-  this->InitMaterialData(data,left,right);
   data.SetAllRequirements(true);
+  this->InitMaterialData(data,left,right);
 
   const int dim = this->Dimension();
   const int diml = left->Dimension();
