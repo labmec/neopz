@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.70 2007-04-15 21:08:44 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.71 2007-04-16 13:57:04 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -615,7 +615,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
    }
 
   TPZMaterialData data;
-  this->Material()->FillDataRequirementsInterface(data);
+  this->InitMaterialData(data);
   const int dim = this->Dimension();
   const int diml = left->Dimension();
   const int dimr = right->Dimension();
