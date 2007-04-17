@@ -76,7 +76,7 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
 #ifdef LOG4CXX
     {
       std::stringstream sout;
-      sout << "Number of CG iterations " << numiterations;
+      sout << "Number of CG iterations " << numiterations << " tol = " << tol;
       LOGPZ_DEBUG(logger,sout.str().c_str());
     }
 #endif
@@ -92,7 +92,7 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
 #ifdef LOG4CXX
     {
       std::stringstream sout;
-      sout << "Number of GMRES iterations " << numiterations;
+      sout << "Number of GMRES iterations " << numiterations << " tol = " << tol;
       LOGPZ_DEBUG(logger,sout.str().c_str());
     }
 #endif
