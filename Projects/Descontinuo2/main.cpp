@@ -194,10 +194,12 @@ int run(std::istream & input, std::ostream & output)
    int nSubdiv = 0;
    TPZFlowCompMesh * cmesh;
    TPZGeoMesh * gmesh;
+   std::ofstream options("options.txt");
 
    output << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n\t5: RadialShock\n\t6: NACA\n\t7: GenerateNACAProfile\n\t8: From File\n\t9: Sphere3D\n";
 
    input >> ProblemType;
+   options << ProblemType << std::endl;
 
    if(ProblemType != 7)
    {
@@ -206,6 +208,7 @@ int run(std::istream & input, std::ostream & output)
 
 
       input >> temp;
+      options << temp << std::endl;
 
       if(temp == 0)
       {
@@ -236,6 +239,7 @@ int run(std::istream & input, std::ostream & output)
          output << "\nInterpolation Space:\n\t0: Discontinuous\n\t1: Continuous\n";
          
          input >> temp;
+         options << temp << std::endl;
          
          switch(temp)
          {
@@ -258,6 +262,7 @@ int run(std::istream & input, std::ostream & output)
 
 
          input >> temp;
+         options << temp << std::endl;
 
          switch(temp)
          {
@@ -277,6 +282,7 @@ int run(std::istream & input, std::ostream & output)
 
          output << "\nDelta\n";
          input >> delta;
+         options << delta << std::endl;
          sprintf(number, "%lf_", delta);
          filename += number;
       }
@@ -284,6 +290,7 @@ int run(std::istream & input, std::ostream & output)
       output << "\nVolume convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n";
 
       input >> temp;
+      options << temp << std::endl;
 
       switch(temp)
       {
@@ -305,6 +312,7 @@ int run(std::istream & input, std::ostream & output)
       output << "\nFace convective Time Discr:\n\t0: None\n\t1: Implicit\n\t2: Explicit\n\t3: Approx Implicit\n";
 
       input >> temp;
+      options << temp << std::endl;
 
       switch(temp)
       {
@@ -327,11 +335,13 @@ int run(std::istream & input, std::ostream & output)
 
       output << "\nCFL\n";
       input >> CFL;
+      options << CFL << std::endl;
       sprintf(number, "CFL%lf_", CFL);
       filename += number;
 
       output << "\nEvolute CFL? 0:[no] 1:[yes] 2:[super]\n";
       input >> EvolCFL;
+      options << EvolCFL << std::endl;
       if(EvolCFL == 1)
       {
          filename += "EvolCFL_";
@@ -343,11 +353,13 @@ int run(std::istream & input, std::ostream & output)
    {
       output << "\nInterpolation degree\n";
       input >> p;
+      options << p << std::endl;
       sprintf(number, "P%d_", p);
       filename += number;
 
       output << "\nNumber of Subdivisions\n";
       input >> nSubdiv;
+      options << nSubdiv << std::endl;
       sprintf(number, "N%d", nSubdiv);
       filename += number;
    }
@@ -405,7 +417,8 @@ int run(std::istream & input, std::ostream & output)
          output << "\nEnter filename to restart from [without extension]:\n";
 	 char inputChar[1024];
          input >> inputChar;
-	 startFileName = inputChar;
+         options << inputChar << std::endl;
+         startFileName = inputChar;
 
 	 TPZAutoPointer<TPZMaterial> pmat;
 	 TPZEulerConsLaw2 * pEuler;
@@ -434,7 +447,8 @@ int run(std::istream & input, std::ostream & output)
 	 {
 	   output << "Interpolation Degree:\n";
 	   input >> p;
-	   sprintf(number, "P%d_", p);
+           options << p << std::endl;
+           sprintf(number, "P%d_", p);
 	   filename += number;
 	   filename += startFileName;
 	 }
@@ -500,6 +514,12 @@ int run(std::istream & input, std::ostream & output)
 
    output << "\nMaxIter\n";
    input >> MaxIter;
+   options << MaxIter << std::endl;
+   
+   options.close();
+   std::string optionname(&file[0]);
+   optionname += ".input";
+   rename("options.txt",optionname.c_str());
 
 
 // Creating the analysis object
