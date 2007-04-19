@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.h,v 1.14 2007-04-16 20:27:36 tiago Exp $
+// $Id: pzdiscgal.h,v 1.15 2007-04-19 11:43:12 tiago Exp $
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 
@@ -73,7 +73,10 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
                                    TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
                                    TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
                                    TPZFMatrix &axesleft, TPZFMatrix &axesright,
-                                   TPZFMatrix &ek,TPZFMatrix &ef) = 0;
+                                   TPZFMatrix &ek,TPZFMatrix &ef){
+        PZError << "\nThis method ( " << __PRETTY_FUNCTION__ 
+                << " ) was pure virtual before TPZMaterialData\n";
+      }
 
 ///deprecated method
   virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
@@ -93,7 +96,10 @@ virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL>
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
                                      TPZFMatrix &phiL,TPZFMatrix &dphiL,
                                      TPZFMatrix &axesleft,
-                                     TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) = 0;
+                                     TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+        PZError << "\nThis method ( " << __PRETTY_FUNCTION__ 
+                << " ) was pure virtual before TPZMaterialData\n";
+      }
 
 ///deprecated method
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,

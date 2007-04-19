@@ -16,6 +16,7 @@
 #include "pzadmchunk.h"
 #include "tpzautopointer.h"
 #include "pzsave.h"
+#include "pzmaterialdata.h"
 
 //#ifdef _AUTODIFF
 //#include "fadType.h"
@@ -161,7 +162,10 @@ class  TPZMaterial : public TPZSaveable
                               TPZVec<REAL> &sol, TPZFMatrix &dsol,
                               REAL weight,TPZFMatrix &axes,
                               TPZFMatrix &phi, TPZFMatrix &dphi,
-                              TPZFMatrix &ek, TPZFMatrix &ef) = 0;
+                              TPZFMatrix &ek, TPZFMatrix &ef){
+        PZError << "\nThis method ( " << __PRETTY_FUNCTION__ 
+                << " ) was pure virtual before TPZMaterialData\n";
+      }
 
       /** Compute contribution to the stiffness matrix and right hand
         * This method is deprecated
@@ -179,7 +183,10 @@ class  TPZMaterial : public TPZSaveable
       virtual void ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
                                 REAL weight, TPZFMatrix &axes,
                                 TPZFMatrix &phi, TPZFMatrix &ek,
-                                TPZFMatrix &ef, TPZBndCond &bc) = 0;
+                                TPZFMatrix &ef, TPZBndCond &bc){
+        PZError << "\nThis method ( " << __PRETTY_FUNCTION__ 
+                << " ) was pure virtual before TPZMaterialData\n";
+      }
 
 //#ifdef _AUTODIFF
 
