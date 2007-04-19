@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.cpp,v 1.4 2007-04-19 19:49:51 tiago Exp $
+//$Id: pzmaterialdata.cpp,v 1.5 2007-04-19 20:18:02 tiago Exp $
 
 #include "pzmaterialdata.h"
 #include "pzmaterial.h"
@@ -88,7 +88,7 @@ void TPZMaterialData::InvertLeftRightData(){
   this->solr = cp.soll;
   this->dsolr = cp.dsoll;  
   
-  this->normal = -1.;
+  this->normal *= -1.;
 }
 
 
