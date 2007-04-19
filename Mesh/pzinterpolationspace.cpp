@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.6 2007-04-16 20:26:10 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.7 2007-04-19 11:41:32 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -51,7 +51,7 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
     PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
     return;
   }//if
-  TPZFNMatrix<660> dphi;
+  TPZFNMatrix<660> dphi(dphix.Rows(), dphix.Cols(), 0.);
   int dim = this->Dimension();
   int nshape = NShapeF();
 

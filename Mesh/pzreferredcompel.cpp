@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.14 2007-04-12 20:04:15 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.15 2007-04-19 11:41:14 tiago Exp $
 
 
 #include "pzreferredcompel.h"
@@ -145,11 +145,16 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
                          OtherLeftSol,  OtherDLeftSol,  OtherLeftAxes,
                          OtherRightSol, OtherDRightSol, OtherRightAxes);
 
-  if (OtherLeftSol.NElements() || OtherRightSol.NElements()){
-    if ( !AreEqual(normal,OtherNormal) ){
-      PZError << "\nFATAL ERROR at " << __PRETTY_FUNCTION__ << "\n";
+  if (OtherLeftSol.NElements() || OtherRightSol.NElements()){//it means other has solution left/right
+    if (normal.NElements() && OtherNormal.NElements()){ //then both element must have same normal
+      if ( !AreEqual(normal,OtherNormal) ){
+        PZError << "\nFATAL ERROR at " << __PRETTY_FUNCTION__ << "\n";
+      }
     }
-  }
+    if (normal.NElements() == 0){//however, this may be a interpolationspace and other is an interface.
+       normal = OtherNormal;//Then OtherNormal is the corret value
+    }//if (normal.NElements() == 0)
+  }//if other has solution
 
   if(leftsol.NElements()){
     AdjustSolutionDerivatives(OtherDLeftSol,OtherLeftAxes,OtherDLeftSol2,leftaxes);
