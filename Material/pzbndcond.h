@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.21 2007-03-20 20:52:02 cesar Exp $
+//$Id: pzbndcond.h,v 1.22 2007-04-19 19:01:26 tiago Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -111,42 +111,86 @@ public :
     out << " val2 = \n"; fBCVal2.Print("fBCVal2",out);
   }
 
-  void Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &sol,TPZFMatrix &dsol, REAL
-	weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+  /**
+    * It computes a contribution to the stiffness matrix and load vector at one integration point.
+    * @param data[in] stores all input data
+    * @param weight[in] is the weight of the integration rule
+    * @param ek[out] is the stiffness matrix
+    * @param ef[out] is the load vector
+    * @since April 16, 2007
+    */
+  virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 
-    if(fForcingFunction) {
-      TPZManVector<REAL> result(fBCVal2.Rows());
-      fForcingFunction(x,result);
-      int i;
-      for(i=0; i<fBCVal2.Rows(); i++) {
-	fBCVal2(i,0) = result[i];
-      }
-    }
+  /**
+    * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+    * @param data[in] stores all input data
+    * @param weight[in] is the weight of the integration rule
+    * @param ek[out] is the stiffness matrix
+    * @param ef[out] is the load vector
+    * @param bc[in] is the boundary condition material
+    * @since April 16, 2007
+    */
+  virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
 
-    if( this->fValFunction ) {
-      TPZManVector<REAL> result(this->fBCVal2.Rows());
-      this->fValFunction( x, this->fBCVal1, result, this->fType );
-      int i;
-      for(i = 0; i < this->fBCVal2.Rows(); i++) {
-        this->fBCVal2(i,0) = result[i];
-      }
-    }//if
+  /**
+    * It computes a contribution to the residual vector at one integration point.
+    * @param data[in] stores all input data
+    * @param weight[in] is the weight of the integration rule
+    * @param ef[out] is the residual vector
+    * @since April 16, 2007
+    */
+  virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
 
-    //clone meshes required analysis
-    int typetmp = fType;
-    if (fType == 50){
-	    int i;
-	    for (i=0;i<sol.NElements();i++){
-		fBCVal2(i,0) = gBigNumber*sol[i];
-		fBCVal1(i,i) = gBigNumber;
-	    }
-	    fType = 2;
-    }
+  /**
+    * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+    * @param data[in] stores all input data
+    * @param weight[in] is the weight of the integration rule
+    * @param ek[out] is the stiffness matrix
+    * @param ef[out] is the load vector
+    * @param bc[in] is the boundary condition material
+    * @since April 16, 2007
+    */
+  virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc);
 
-    fMaterial->ContributeBC(x,sol,weight,axes,phi,ek,ef,*this);
-    fType = typetmp;
-  }
+  /**
+   * It computes a contribution to stiffness matrix and load vector at one integration point 
+   * @param data [in]
+   * @param weight [in]
+   * @param ek [out] is the stiffness matrix
+   * @param ef [out] is the load vector
+   * @since April 16, 2007
+   */
+  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 
+  /**
+   * It computes a contribution to residual vector at one integration point 
+   * @param data [in]
+   * @param weight [in]
+   * @param ef [out] is the load vector
+   * @since April 16, 2007
+   */
+  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+
+  /**
+   * It computes a contribution to stiffness matrix and load vector at one BC integration point 
+   * @param data [in]
+   * @param weight [in]
+   * @param ek [out] is the stiffness matrix
+   * @param ef [out] is the load vector
+   * @param bc [in] is the boundary condition object
+   * @since April 16, 2007
+   */
+  virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
+  /**
+   * It computes a contribution to residual vector at one BC integration point 
+   * @param data [in]
+   * @param weight [in]
+   * @param ef [out] is the load vector
+   * @param bc [in] is the boundary condition object
+   * @since April 16, 2007
+   */
+  virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc);
 
 //#ifdef _AUTODIFF
 
@@ -159,40 +203,12 @@ public :
 //#endif
 
 
-  void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,TPZFMatrix &axes,
-		    TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
-  }
-
-
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix &dsol, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	      TPZVec<REAL> &uexact,TPZFMatrix &duexact,TPZVec<REAL> &val){
     val.Fill(0.);
   }
 
   virtual void Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec);
-
-  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                   TPZFMatrix &axesleft, TPZFMatrix &axesright,
-				   TPZFMatrix &ek,TPZFMatrix &ef);
-
-  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                   TPZFMatrix &axesleft, TPZFMatrix &axesright,
-				   TPZFMatrix &ef);
-
-  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                   TPZFMatrix &axesleft, TPZFMatrix &axesright,
-				   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
-
-  virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-    TPZFMatrix &phiL,TPZFMatrix &dphiL, TPZFMatrix &axesleft, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
-    //NOTHING TO BE DONE HERE
-  }
 
   /** Compute interface jumps
    * values[1] = (solleft - solright)^2

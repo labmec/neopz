@@ -66,7 +66,25 @@ void UmElemento3D(TPZGeoMesh &malha);
 //Inser�o de uma condi�o de contorno dada por uma fun�o
 void forcingfunction(TPZVec<REAL> &ponto, TPZVec<REAL> &force);
 
-int main() {
+int main(){
+  int n = 34, m = 42, p = 25;
+  std::ofstream matrices("matrices.txt");
+  TPZFMatrix A(m,n);
+  double val = 0.;
+  for(int i = 0; i < m; i++) for(int j = 0; j < n; j++){
+    val = rand()/100000000.;
+    A(i,j) = val;
+  }
+  TPZFMatrix x(n,p);
+  for(int i = 0; i < n; i++) for(int j = 0; j < p; j++) x(i,j) = random()/100000000.;
+  A.Print("A=", matrices, EMathematicaInput);
+  x.Print("x=", matrices, EMathematicaInput);
+  TPZFMatrix B;
+  A.ConstMultiply(x,B);
+  B.Print("B=", matrices, EMathematicaInput);
+}
+
+int main22() {
   //Arquivo de impress� de log (n� essencial)
   std::ofstream file("graphtest.txt");
    

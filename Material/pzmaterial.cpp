@@ -111,6 +111,11 @@ void TPZMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
   this->Contribute(data, weight, fakeek, ef);
 }
 
+void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc){
+  TPZFMatrix fakeek(ef.Rows(), ef.Rows(), 0.);
+  this->ContributeBC(data, weight, fakeek, ef, bc);
+}
+
 void TPZMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv, TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ef){
    TPZFMatrix ek(ef.Rows(),ef.Rows(),0.);
    Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphi,ek,ef);

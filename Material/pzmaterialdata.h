@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.h,v 1.3 2007-04-16 13:50:14 tiago Exp $
+//$Id: pzmaterialdata.h,v 1.4 2007-04-19 19:01:26 tiago Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
@@ -36,11 +36,18 @@ public:
 /** Class constructor */
   TPZMaterialData();
 
+/** Copy constructor */
+  TPZMaterialData( const TPZMaterialData &cp );
+
 /** Class destructor */
   ~TPZMaterialData();
 
 /** Set all flags at once */
   void SetAllRequirements(bool set);
+
+  void InvertLeftRightData();
+
+  TPZMaterialData &operator= (const TPZMaterialData &A );
 
 };
 
