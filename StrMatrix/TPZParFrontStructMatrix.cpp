@@ -100,8 +100,8 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
   
 
   while(parfront->fCurrentElement < parfront->fNElements) {
-     ek = new TPZElementMatrix;
-     ef = new TPZElementMatrix;
+     ek = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EK);
+     ef = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EF);
      
      /**
       *Lock mutex and search for an avilable element
