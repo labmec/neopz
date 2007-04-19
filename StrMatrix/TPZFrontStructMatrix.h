@@ -94,6 +94,14 @@ public:
      	TPZMatrix & stiffness //! Stiffness matrix to assembled
      	, TPZFMatrix & rhs //! Vector contaning loads
           );
+
+     /**
+      *Assemble a stiffness matrix.
+      */ 	
+     void Assemble(
+     	TPZMatrix & stiffness //! Stiffness matrix to assembled
+     	, TPZFMatrix & rhs //! Vector contaning loads
+        , std::set<int> &MaterialIds  );
      
      /**
       * Computes element matrices. \n
@@ -115,6 +123,16 @@ public:
      TPZMatrix * CreateAssemble(
           TPZFMatrix &rhs //!Load matrix
           );
+
+     /**
+      * Returns a pointer to TPZMatrix. \n
+      * This is a mandatory function, it is neded by all StructMatrix. \n
+      * Except in frontal matrices, the returned matrix is not in its decomposed form.
+      */
+     TPZMatrix * CreateAssemble(
+          TPZFMatrix &rhs //!Load matrix
+          , std::set<int> &MaterialIds);
+
     void SetQuiet(int quiet);
 
    
