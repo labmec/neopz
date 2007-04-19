@@ -14,6 +14,7 @@
 using namespace std;
 #include <string.h>
 #include <stdio.h>
+#include "pzstrmatrix.h"
 
 TPZNonLinearAnalysis::TPZNonLinearAnalysis() : TPZAnalysis() {
 	Mesh()->Solution().Zero();
@@ -88,7 +89,7 @@ void TPZNonLinearAnalysis::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coe
 	int neq = fCompMesh->NEquations();
 	tangent.Redim(neq,neq);
 	TPZFMatrix rhs(neq,1);
-	Mesh()->Assemble(tangent,rhs);
+	TPZStructMatrix::Assemble(tangent, rhs, *Mesh());
 }
 
 int TPZNonLinearAnalysis::NumCases(){
@@ -99,7 +100,7 @@ void TPZNonLinearAnalysis::Residual(TPZFMatrix &residual, int icase){
 	int neq = fCompMesh->NEquations();
 	TPZFMatrix tangent(neq,neq);
 	residual.Redim(neq,1);
-	Mesh()->Assemble(tangent,residual);
+	TPZStructMatrix::Assemble(tangent, residual, *Mesh());
 	residual *= -1.;
 }
 

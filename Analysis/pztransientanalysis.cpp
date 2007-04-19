@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientanalysis.cpp,v 1.5 2007-01-03 00:15:14 phil Exp $
+//$Id: pztransientanalysis.cpp,v 1.6 2007-04-19 11:43:54 tiago Exp $
 
 #include "pztransientanalysis.h"
 #include "pztransientmat.h"
@@ -243,7 +243,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::Assemble(){
   if(fSolver->Matrix()) if (fSolver->Matrix()->Rows()==sz) exist = true;
   if (exist){
     if (fIsLinearProblem){
-      this->Mesh()->Assemble(fRhs);
+      TPZStructMatrix::Assemble(fRhs, *Mesh());
     }
     else{
       fSolver->Matrix()->Zero();
@@ -294,7 +294,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeFluxOnly(){
   int sz = fCompMesh->NEquations();
   fRhs.Redim(sz,1);
   if(fSolver->Matrix() && fSolver->Matrix()->Rows()==sz){
-    this->Mesh()->Assemble(fRhs);
+    TPZStructMatrix::Assemble(fRhs, *Mesh());
   }//if
 }//method
 

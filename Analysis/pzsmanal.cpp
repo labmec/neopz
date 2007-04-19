@@ -33,7 +33,7 @@ void TPZSubMeshAnalysis::Assemble(){
 	fSolver->SetMatrix(fStructMatrix->Create());
 	fReducableStiff.SetK00(fSolver->Matrix().operator ->());
 	fReducableStiff.SetDecomposeType(ELDLt);
-	fMesh->Assemble(fReducableStiff,fRhs);
+	TPZStructMatrix::Assemble(fReducableStiff,fRhs, *fMesh);
 	
 }
 
