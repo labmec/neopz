@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.22 2007-04-19 19:01:26 tiago Exp $
+//$Id: pzbndcond.h,v 1.23 2007-04-19 19:49:03 tiago Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -110,6 +110,8 @@ public :
     out << " val1 = \n"; fBCVal1.Print("fBCVal1",out);
     out << " val2 = \n"; fBCVal2.Print("fBCVal2",out);
   }
+  
+  void UpdataBCValues(TPZMaterialData &data);
 
   /**
     * It computes a contribution to the stiffness matrix and load vector at one integration point.

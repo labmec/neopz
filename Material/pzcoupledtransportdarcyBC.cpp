@@ -20,7 +20,15 @@ void TPZCoupledTransportDarcyBC::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,
   TPZBndCond * bc = this->GetCurrentMaterial();
   if (!bc) return;
   this->UpdateConvectionDir(dsol);
-  bc->Contribute(x, jacinv, sol, dsol, weight, axes, phi, dphi, ek, ef);
+  TPZMaterialData data;
+  data.x = x;
+  data.jacinv = jacinv;
+  data.sol = sol;
+  data.dsol = dsol;
+  data.axes = axes;
+  data.phi = phi;
+  data.dphix = dphi;
+  bc->Contribute(data, weight, ek, ef);
 }
 
 void TPZCoupledTransportDarcyBC::ContributeInterface(TPZVec<REAL> &x,
@@ -34,7 +42,20 @@ void TPZCoupledTransportDarcyBC::ContributeInterface(TPZVec<REAL> &x,
   TPZBndCond * bc = this->GetCurrentMaterial();
   if (!bc) return;
   this->UpdateConvectionDirInterface(dsolL, dsolR, phiL, phiR);
-  bc->ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft, axesright, ek, ef);
+  TPZMaterialData data;
+  data.x = x;
+  data.soll = solL;
+  data.solr = solR;
+  data.dsoll = dsolL;
+  data.dsolr = dsolR;
+  data.axesleft = axesleft;
+  data.axesright = axesright;
+  data.phil = phiL;
+  data.phir = phiR;
+  data.dphixl = dphiL;
+  data.dphixr = dphiR;
+  data.normal = normal;
+  bc->ContributeInterface(data, weight, ek, ef);
 }
 
 void TPZCoupledTransportDarcyBC::ContributeInterface(TPZVec<REAL> &x,
@@ -48,7 +69,20 @@ void TPZCoupledTransportDarcyBC::ContributeInterface(TPZVec<REAL> &x,
   TPZBndCond * bc = this->GetCurrentMaterial();
   if (!bc) return;
   this->UpdateConvectionDirInterface(dsolL, dsolR, phiL, phiR);
-  bc->ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft, axesright, ef);
+  TPZMaterialData data;
+  data.x = x;
+  data.soll = solL;
+  data.solr = solR;
+  data.dsoll = dsolL;
+  data.dsolr = dsolR;
+  data.axesleft = axesleft;
+  data.axesright = axesright;
+  data.phil = phiL;
+  data.phir = phiR;
+  data.dphixl = dphiL;
+  data.dphixr = dphiR;
+  data.normal = normal;
+  bc->ContributeInterface(data, weight, ef);
 }
 
 void TPZCoupledTransportDarcyBC::
@@ -60,7 +94,23 @@ void TPZCoupledTransportDarcyBC::
   TPZBndCond * bc = this->GetCurrentMaterial();
   if (!bc) return;
   this->UpdateConvectionDirInterface(dsolL, dsolR, phiL, phiR);
-  bc->ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft, axesright, ek, ef, LeftPOrder, RightPOrder, faceSize);
+  TPZMaterialData data;
+  data.x = x;
+  data.soll = solL;
+  data.solr = solR;
+  data.dsoll = dsolL;
+  data.dsolr = dsolR;
+  data.axesleft = axesleft;
+  data.axesright = axesright;
+  data.phil = phiL;
+  data.phir = phiR;
+  data.dphixl = dphiL;
+  data.dphixr = dphiR;
+  data.normal = normal;
+  data.leftp = LeftPOrder;
+  data.rightp = RightPOrder;
+  data.HSize = faceSize;
+  bc->ContributeInterface(data, weight, ek, ef);
 }
 
 void TPZCoupledTransportDarcyBC::UpdateConvectionDir(TPZFMatrix &dsol){

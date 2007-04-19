@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzbctension.h,v 1.9 2007-01-03 00:08:27 phil Exp $
+// $Id: pzbctension.h,v 1.10 2007-04-19 19:49:03 tiago Exp $
 
 #ifndef BCTENSIONHPP
 #define BCTENSIONHPP
@@ -60,7 +60,15 @@ class TPZBCTension : public TPZBndCond {
       Material()->ContributeBC(x,sol,weight,axes,phi,ek,ef,*this);
       fType = typekeep;
     } else {
-      TPZBndCond::Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphi,ek,ef);
+      TPZMaterialData data;
+      data.x = x;
+      data.jacinv = jacinv;
+      data.sol = sol;
+      data.dsol = dsol;
+      data.axes = axes;
+      data.phi = phi;
+      data.dphix = dphi;
+      TPZBndCond::Contribute(data,weight,ek,ef);
     }
 
   }

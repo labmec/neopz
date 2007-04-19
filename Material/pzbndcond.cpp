@@ -48,121 +48,6 @@ void TPZBndCond::ContributeEnergy(TPZVec<REAL> &x,
 */
 //#endif
 
-
-void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                   TPZFMatrix &axesleft, TPZFMatrix &axesright,
-				     TPZFMatrix &ek,TPZFMatrix &ef) {
-//   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
-//   if(!mat) return;
-//   if(fForcingFunction) {
-//       TPZManVector<REAL> result(fBCVal2.Rows());
-//       fForcingFunction(x,result);
-//       int i;
-//       for(i=0; i<fBCVal2.Rows(); i++) {
-// 	fBCVal2(i,0) = result[i];
-//       }
-//   }
-//   
-//   if( this->fValFunction ) {
-//     TPZManVector<REAL> result(this->fBCVal2.Rows());
-//     this->fValFunction( x, this->fBCVal1, result, this->fType );
-//     int i;
-//     for(i = 0; i < this->fBCVal2.Rows(); i++) {
-//       this->fBCVal2(i,0) = result[i];
-//     }
-//   }//if     
-//   
-//   if(phiL.Rows() == 0) {
-//     TPZManVector<REAL,3> nor(normal.NElements(),0.);
-//     for(int i=0; i<nor.NElements(); i++) nor[i] = -normal[i];
-//     mat->ContributeBCInterface(x,solR,dsolR,weight,nor,phiR,dphiR,axesright, ek,ef,*this);
-//     return;
-//   }
-//   if(phiR.Rows() == 0) {
-//     mat->ContributeBCInterface(x,solL,dsolL,weight,normal,phiL,dphiL,axesleft,ek,ef,*this);
-//     return;
-//   }
-}
-
-void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                   TPZFMatrix &axesleft, TPZFMatrix &axesright,
-				   TPZFMatrix &ef) {
-  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
-  if(!mat) return;
-  if(fForcingFunction) {
-      TPZManVector<REAL> result(fBCVal2.Rows());
-      fForcingFunction(x,result);
-      int i;
-      for(i=0; i<fBCVal2.Rows(); i++) {
-	fBCVal2(i,0) = result[i];
-      }
-  }
-  
-  if( this->fValFunction ) {
-    TPZManVector<REAL> result(this->fBCVal2.Rows());
-    this->fValFunction( x, this->fBCVal1, result, this->fType );
-    int i;
-    for(i = 0; i < this->fBCVal2.Rows(); i++) {
-      this->fBCVal2(i,0) = result[i];
-    }
-  }//if
-  
-  if(phiL.Rows() == 0) {
-    TPZManVector<REAL,3> nor(normal.NElements(),0.);
-    for(int i=0; i<nor.NElements(); i++) nor[i] = -normal[i];
-    mat->ContributeBCInterface(x,solR,dsolR,weight,nor,phiR,dphiR,axesright,ef,*this);
-    return;
-  }
-  if(phiR.Rows() == 0) {
-    mat->ContributeBCInterface(x,solL,dsolL,weight,normal,phiL,dphiL,axesleft,ef,*this);
-    return;
-  }
-}
-
-void TPZBndCond::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-			 TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-			 TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                         TPZFMatrix &axesleft, TPZFMatrix &axesright,
-			 TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
-   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial.operator ->());
-
-   if(!mat) return;
-   if(fForcingFunction) {
-      TPZManVector<REAL> result(fBCVal2.Rows());
-      fForcingFunction(x,result);
-      int i;
-      for(i=0; i<fBCVal2.Rows(); i++) {
-	fBCVal2(i,0) = result[i];
-      }
-   }
-   
-  if( this->fValFunction ) {
-    TPZManVector<REAL> result(this->fBCVal2.Rows());
-    this->fValFunction( x, this->fBCVal1, result, this->fType );
-    int i;
-    for(i = 0; i < this->fBCVal2.Rows(); i++) {
-      this->fBCVal2(i,0) = result[i];
-    }
-  }//if
-
-   if(phiL.Rows() == 0) {
-      TPZManVector<REAL,3> nor(normal.NElements(),0.);
-      for(int i=0; i<nor.NElements(); i++) nor[i] = -normal[i];
-      mat->ContributeBCInterface(x,solR,dsolR,weight,nor,phiR,dphiR,axesright,ek,ef,*this, RightPOrder, faceSize );
-      return;
-   }
-
-   if(phiR.Rows() == 0) {
-      mat->ContributeBCInterface(x,solL,dsolL,weight,normal,phiL,dphiL,axesleft,ek,ef,*this, LeftPOrder, faceSize);
-      return;
-   }
-
-}
-
 void TPZBndCond::InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
                                 TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
                                 TPZVec<REAL> &values){
@@ -270,30 +155,14 @@ void TPZBndCond::ContributeInterfaceErrors(TPZVec<REAL> &x,
 }
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
-  if( this->HasForcingFunction() ){
-    const int n = this->fBCVal2.Rows();
-    TPZManVector<REAL> result(n);
-    this->fForcingFunction(x,result);
-    for(int i = 0; i < n; i++){
-      this->fBCVal2(i,0) = result[i];
-    }//for i
-  }//if (hasforcintfunction)
-
-  if( this->fValFunction ){
-    const int n = this->fBCVal2.Rows();
-    TPZManVector<REAL> result(n);
-    this->fValFunction( x, this->fBCVal1, result, this->fType );
-    for(int i = 0; i < n; i++){
-      this->fBCVal2(i,0) = result[i];
-    }//for i
-  }//if
+  this->UpdataBCValues(data);
 
   //clone meshes required analysis
   int typetmp = fType;
   if (fType == 50){
     int i;
-    for (i=0;i<sol.NElements();i++){
-        fBCVal2(i,0) = gBigNumber*sol[i];
+    for (i = 0; i <data.sol.NElements(); i++){
+        fBCVal2(i,0) = gBigNumber*data.sol[i];
         fBCVal1(i,i) = gBigNumber;
     }
     fType = 2;
@@ -304,7 +173,21 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, 
 }
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
+  this->UpdataBCValues(data);
 
+  //clone meshes required analysis
+  int typetmp = fType;
+  if (fType == 50){
+    int i;
+    for (i = 0; i <data.sol.NElements(); i++){
+        fBCVal2(i,0) = gBigNumber*data.sol[i];
+        fBCVal1(i,i) = gBigNumber;
+    }
+    fType = 2;
+  }
+
+  this->fMaterial->ContributeBC(data,weight,ef,*this);
+  fType = typetmp;
 }
 
 void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
@@ -318,41 +201,25 @@ void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
   if(!mat) return;
-  if(fForcingFunction){
-    TPZManVector<REAL> result(fBCVal2.Rows());
-    fForcingFunction(x,result);
-    int i;
-    for(i=0; i<fBCVal2.Rows(); i++) {
-      fBCVal2(i,0) = result[i];
-    }
-  }
+  this->UpdataBCValues(data);
 
-  if( this->fValFunction ){
-    TPZManVector<REAL> result(this->fBCVal2.Rows());
-    this->fValFunction( x, this->fBCVal1, result, this->fType );
-    int i;
-    for(i = 0; i < this->fBCVal2.Rows(); i++) {
-      this->fBCVal2(i,0) = result[i];
-    }
-  }//if
-
-  if(phiL.Rows() == 0) {//it meanst right data has been filled
+  if(data.phil.Rows() == 0){//it meanst right data has been filled
     //left data should be filled instead of right data
     data.InvertLeftRightData();
-  
-    TPZManVector<REAL,3> nor(normal.NElements(),0.);
-    for(int i=0; i<nor.NElements(); i++) nor[i] = -normal[i];
-    mat->ContributeBCInterface(x,solR,dsolR,weight,nor,phiR,dphiR,axesright, ek,ef,*this);
-    return;
   }
-  if(phiR.Rows() == 0) {
-    mat->ContributeBCInterface(x,solL,dsolL,weight,normal,phiL,dphiL,axesleft,ek,ef,*this);
-    return;
-  }
-}
+  mat->ContributeBCInterface(data,weight,ek,ef,*this);
+}//void
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
+  if(!mat) return;
+  this->UpdataBCValues(data);
 
+  if(data.phil.Rows() == 0){//it meanst right data has been filled
+    //left data should be filled instead of right data
+    data.InvertLeftRightData();
+  }
+  mat->ContributeBCInterface(data,weight,ef,*this);
 }
 
 void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
@@ -362,3 +229,24 @@ void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFM
 void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
 ///nothing to be done here
 }
+
+void TPZBndCond::UpdataBCValues(TPZMaterialData &data){
+  if(fForcingFunction){
+    TPZManVector<REAL> result(fBCVal2.Rows());
+    fForcingFunction(data.x,result);
+    int i;
+    for(i=0; i<fBCVal2.Rows(); i++) {
+      fBCVal2(i,0) = result[i];
+    }
+  }
+
+  if( this->fValFunction ){
+    TPZManVector<REAL> result(this->fBCVal2.Rows());
+    this->fValFunction( data.x, this->fBCVal1, result, this->fType );
+    int i;
+    for(i = 0; i < this->fBCVal2.Rows(); i++) {
+      this->fBCVal2(i,0) = result[i];
+    }
+  }//if
+}
+
