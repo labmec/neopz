@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.h,v 1.4 2007-04-19 19:01:26 tiago Exp $
+//$Id: pzmaterialdata.h,v 1.5 2007-04-19 19:49:51 tiago Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
@@ -47,7 +47,7 @@ public:
 
   void InvertLeftRightData();
 
-  TPZMaterialData &operator= (const TPZMaterialData &A );
+  TPZMaterialData &operator= (const TPZMaterialData &cp );
 
 };
 

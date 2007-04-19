@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.cpp,v 1.3 2007-04-19 19:01:26 tiago Exp $
+//$Id: pzmaterialdata.cpp,v 1.4 2007-04-19 19:49:51 tiago Exp $
 
 #include "pzmaterialdata.h"
 #include "pzmaterial.h"
@@ -19,7 +19,7 @@ TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ){
   this->operator =(cp);
 }
 
-TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &A ){
+TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
   this->fNeedsSol = cp.fNeedsSol;
   this->fNeedsNeighborSol = cp.fNeedsNeighborSol;
   this->fNeedsHSize = cp.fNeedsHSize;
@@ -67,17 +67,28 @@ void TPZMaterialData::SetAllRequirements(bool set){
 }
 
 void TPZMaterialData::InvertLeftRightData(){
-  TPZMaterialData cp(data);
+  TPZMaterialData cp(*this);
   this->leftdetjac = cp.rightdetjac;
   this->leftjac = cp.rightjac;
   this->leftjacinv = cp.rightjacinv;
-  this->leftp = cp.rightp;
-
-
+  this->leftp = cp.rightp; 
+  this->phil = cp.phir;
+  this->dphixl = cp.dphixr;
+  this->axesleft = cp.axesright;
+  this->soll = cp.solr;
+  this->dsoll = cp.dsolr;
+  
   this->rightdetjac = cp.leftdetjac;
   this->rightjac = cp.leftjac;
   this->rightjacinv = cp.leftjacinv;
   this->rightp = cp.leftp;
+  this->phir = cp.phil;
+  this->dphixr = cp.dphixl;
+  this->axesright = cp.axesleft;
+  this->solr = cp.soll;
+  this->dsolr = cp.dsoll;  
+  
+  this->normal = -1.;
 }
 
 
