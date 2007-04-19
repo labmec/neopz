@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.34 2007-04-16 13:49:36 tiago Exp $
+// $Id: pzcompel.h,v 1.35 2007-04-19 11:42:43 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -378,21 +378,6 @@ public:
    * @param interpolate boolean variable to indicates if the solution will be interpolated to the sub elements
    */
   virtual void Divide(int index, TPZVec<int> &subindex, int interpolate = 0);
-
-  /**
-   * Apply the constraints applied to the nodes by transforming the tangent
-   * matrix and right hand side
-   * @param ekmat element stiffness matrix
-   * @param efmat element loads matrix
-   */
-  virtual void ApplyConstraints(TPZElementMatrix &ekmat,TPZElementMatrix &efmat);
-
-  /**
-   * Apply the constraints applied to the nodes by transforming only the
-   * right hand side
-   * @param efmat element loads vector
-   */
-  virtual void ApplyConstraints(TPZElementMatrix &efmat);
 
   /**
    * Projects the flux function on the finite element space

@@ -1,4 +1,4 @@
-//$Id: pzelmat.h,v 1.6 2007-01-27 14:33:53 phil Exp $
+//$Id: pzelmat.h,v 1.7 2007-04-19 11:42:43 tiago Exp $
 
 #ifndef ELMATHPP
 #define ELMATHPP
@@ -21,6 +21,12 @@ In future versions, the computation of the contraints will be incorporated in a 
 */
 struct TPZElementMatrix {
 
+  enum MType{EF = 1, EK = 2};
+
+  MType fType;
+
+  TPZCompMesh * fMesh;
+
   /**vector of pointers to TPZConnect objects*/
   TPZStack<int>	fConnect;
   /**pointer to a blocked matrix object*/
@@ -34,6 +40,10 @@ struct TPZElementMatrix {
   /**block structure associated with fConstrMat*/
   TPZBlock		fConstrBlock;
   
+  TPZManVector<int> fDestinationIndex, fSourceIndex;
+  
+  int fNumStateVars;
+  
   ///Reset the data structure
   void Reset()
   {
@@ -45,7 +55,7 @@ struct TPZElementMatrix {
     fConstrBlock.SetNBlocks(0);
   }
 
-  TPZElementMatrix() : fConnect(), fMat(0,0), fBlock(&fMat),  fConstrConnect(), fConstrMat(0,0), fConstrBlock(&fConstrMat)
+  TPZElementMatrix(TPZCompMesh *mesh, MType type) : fType(type), fMesh(mesh), fConnect(), fMat(0,0), fBlock(&fMat),  fConstrConnect(), fConstrMat(0,0), fConstrBlock(&fConstrMat), fNumStateVars(0)
     {
     }
 
@@ -63,11 +73,44 @@ struct TPZElementMatrix {
     return fConnect[i];
   }
 
-  void Print(TPZCompMesh &mesh, std::ostream &out);
+  void Print(std::ostream &out);
 
   void SetMatrixSize(short NumBli, short NumBlj, short BlSizei, short BlSizej);
 
   void SetMatrixMinSize(short NumBli, short NumBlj, short BlMinSizei, short BlMinSizej);
+
+  void ComputeDestinationIndices();
+
+
+  /**
+   * Returns true if the element has at least one dependent node
+   * returns false otherwise
+   */
+  bool HasDependency();
+
+  /**
+   * Apply the constraints applied to the nodes by transforming the tangent
+   * matrix and right hand side
+   * @param ekmat element stiffness matrix
+   * @param efmat element loads matrix
+   */
+  void ApplyConstraints();
+
+  /**
+   * Builds the list of all connectivities related to the element including the
+   * connects pointed to by dependent connects
+   * Note : this method does not reset the stack to zero. The calling
+   * method should do this
+   * @param connectlist stack to receive the list
+   */
+  void BuildConnectList(TPZStack<int> &connectlist);
+
+  /**
+   * This method builds the vector DependenceOrder which indicates in which
+   * order constrained nodes need to be processed
+   * connectlist need to be computed by BuildConnectList
+   */
+  void BuildDependencyOrder(TPZVec<int> &connectlist, TPZVec<int> &DependenceOrder);
 
 };
 

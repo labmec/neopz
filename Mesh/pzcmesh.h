@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.29 2007-04-03 12:29:26 tiago Exp $
+//$Id: pzcmesh.h,v 1.30 2007-04-19 11:42:43 tiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -426,24 +426,11 @@ public:
   void Skyline(TPZVec<int> &skyline);
 
   /**
-   * Assemble the global stiffness matrix and right hand side
-   * @param stiffness matrix where will be assembled the stiffness matrix
-   * @param rhs vector where the load vector will be assembled
-   */
-  void Assemble(TPZMatrix &stiffness,TPZFMatrix &rhs);
-
-  /**
    * Assemble the vector with errors estimators
    * @param estimator vector where will be assembled the errors
    * @param errorid index for dual or wheeler estimator
    */
   void AssembleError(TPZFMatrix &estimator, int errorid);
-  
-  /**
-   * Assemble only the right hand side
-   * @param rhs vector where the load vector will be assembled
-   */
-  void Assemble(TPZFMatrix &rhs);
 
   /**
    * Builds the transfer matrix from the current grid to the coarse grid
