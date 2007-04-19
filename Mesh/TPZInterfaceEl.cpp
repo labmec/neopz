@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.74 2007-04-19 11:42:42 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.75 2007-04-19 21:53:41 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -1019,7 +1019,9 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
   }
 
   if (data.fNeedsSol){
-    this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
+    this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+    //this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);//chamando acima porque senao nao chega 
+                                                                 //a TPZReferredCompEl<TPZInterfaceElement>
   }
 
   if (data.fNeedsHSize){
