@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.54 2007-04-16 13:49:06 tiago Exp $
+// $Id: pzintel.cpp,v 1.55 2007-04-19 12:21:36 tiago Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -424,7 +424,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
   corblocksize.Resize(0);
   for(ic=0; ic<cornod; ic++) connectlistcoarse.Push(coarsel.ConnectIndex(ic));
   coarsel.BuildConnectList(connectlistcoarse);
-  coarsel.BuildDependencyOrder(connectlistcoarse,dependencyordercoarse);
+  TPZConnect::BuildDependencyOrder(connectlistcoarse,dependencyordercoarse,*coarsel.Mesh());
   cornod = connectlistcoarse.NElements();
   int nvar = coarsel.Material()->NStateVariables();
   TPZBlock corblock(0,cornod);
@@ -1448,7 +1448,7 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
   connectlist.Resize(0);
   for(i=0; i<ncon; i++) connectlist.Push(ConnectIndex(i));
   BuildConnectList(connectlist);
-  BuildDependencyOrder(connectlist,dependencyorder);
+  TPZConnect::BuildDependencyOrder(connectlist,dependencyorder,*this->Mesh());
   int dim = Dimension();
 
   int numblocks = connectlist.NElements();

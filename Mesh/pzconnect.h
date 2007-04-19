@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.10 2007-04-03 12:29:43 tiago Exp $
+//$Id: pzconnect.h,v 1.11 2007-04-19 12:21:36 tiago Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -159,6 +159,25 @@ class TPZConnect {
    * @param gl2lcIdx global to local indexes map
    */
   void CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx);
+
+  /**
+   * Builds the list of all connectivities related to ConnectIndex including the
+   * connects pointed to by dependent connects
+   * Note : this method does not reset the stack to zero. The calling
+   * method should do this
+   * @param connectlist [out] stack to receive the list
+   * @param ConnectIndex [in]
+   * @param mesh [in]
+   */
+  static void BuildConnectList(TPZStack<int> &connectlist, TPZVec<int> &ConnectIndex, TPZCompMesh &mesh);
+
+  /**
+   * This method builds the vector DependenceOrder which indicates in which
+   * order constrained nodes need to be processed
+   * connectlist need to be computed by BuildConnectList
+   */
+  static void BuildDependencyOrder(TPZVec<int> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh);
+
 };
 
 

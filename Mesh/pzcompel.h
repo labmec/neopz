@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.35 2007-04-19 11:42:43 tiago Exp $
+// $Id: pzcompel.h,v 1.36 2007-04-19 12:21:36 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -477,14 +477,6 @@ public:
    * returns 0 otherwise
    */
   virtual int HasDependency();
-
-  /**
-   * This method builds the vector DependenceOrder which indicates in which
-   * order constrained nodes need to be processed
-   * connectlist need to be computed by BuildConnectList
-   */
-  virtual void BuildDependencyOrder(TPZVec<int> &connectlist,
-				    TPZVec<int> &DependenceOrder);
 
   /**
    * Domain Decomposition: Misael

@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.13 2007-04-05 21:47:51 cesar Exp $
+//$Id: pzconnect.cpp,v 1.14 2007-04-19 12:21:36 tiago Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -431,5 +431,48 @@ void TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<int,int>& gl2lcIdx
   else
   {
     fNext = 0;
+  }
+}
+
+void TPZConnect::BuildConnectList(TPZStack<int> &connectlist, TPZVec<int> &ConnectIndex, TPZCompMesh &mesh){
+  TPZConnect *dfn;
+  int dfnindex;
+  int nconnects = ConnectIndex.NElements();
+  int in;
+  for(in = 0; in < nconnects; in++){
+    dfnindex = ConnectIndex[in];
+    dfn = & (mesh.ConnectVec()[ dfnindex ]);
+    dfn->AddToList(dfnindex,mesh,connectlist);
+  }//for in
+}//void
+
+void TPZConnect::BuildDependencyOrder(TPZVec<int> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh) {
+  // nodelist (input) : vector which contains pointers to all nodes which
+  // are in the dependency chain of the nodes of the element
+  int totalnodes = connectlist.NElements();
+  DependenceOrder.Resize(totalnodes);
+  DependenceOrder.Fill(0,0);
+  // initialize the vector which contains the
+  // dependency order to zero
+  int CurrentOrder = 0;
+  // order which is currently processed
+  int numnodes_processed = totalnodes;
+  // number of nodes processed during the current cycle
+
+  while(numnodes_processed) {
+
+    numnodes_processed = 0;
+    int i;
+    for(i=0; i<totalnodes; i++) {
+      int dfnindex = connectlist[i];
+      TPZConnect &dfn = mesh.ConnectVec()[dfnindex];
+      if(dfn.HasDependency() && DependenceOrder[i] == CurrentOrder) {
+        dfn.SetDependenceOrder(dfnindex,mesh,CurrentOrder,connectlist,DependenceOrder);
+        // this method will fill in the DependenceOrder vector by recursively
+        // calling SetDependenceOrder for the nodes upon which dfn depends
+        numnodes_processed++;
+      }
+    }
+    CurrentOrder++;
   }
 }

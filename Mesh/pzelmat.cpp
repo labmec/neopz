@@ -1,4 +1,4 @@
-//$Id: pzelmat.cpp,v 1.5 2007-04-19 11:42:43 tiago Exp $
+//$Id: pzelmat.cpp,v 1.6 2007-04-19 12:21:36 tiago Exp $
 
 #include "pzelmat.h"
 #include "pzfmatrix.h"
@@ -73,50 +73,6 @@ void TPZElementMatrix::ComputeDestinationIndices(){
       fDestinationIndex.Resize(destindex);
 }
 
-void TPZElementMatrix::BuildConnectList(TPZStack<int> &connectlist) {
-  TPZConnect *dfn;
-  int dfnindex;
-  int nconnects = this->NConnects();
-  int in;
-  for(in=0; in<nconnects; in++) {
-    dfnindex = ConnectIndex(in);
-    dfn = & (this->fMesh->ConnectVec()[ this->ConnectIndex(in) ]);
-    dfn->AddToList(dfnindex,*fMesh,connectlist);
-  }
-}
-
-void TPZElementMatrix::BuildDependencyOrder(TPZVec<int> &connectlist,
-                                     TPZVec<int> &DependenceOrder) {
-  // nodelist (input) : vector which contains pointers to all nodes which
-  // are in the dependency chain of the nodes of the element
-  int totalnodes = connectlist.NElements();
-  DependenceOrder.Resize(totalnodes);
-  DependenceOrder.Fill(0,0);
-  // initialize the vector which contains the
-  // dependency order to zero
-  int CurrentOrder = 0;
-  // order which is currently processed
-  int numnodes_processed = totalnodes;
-  // number of nodes processed during the current cycle
-
-  while(numnodes_processed) {
-
-    numnodes_processed = 0;
-    int i;
-    for(i=0; i<totalnodes; i++) {
-      int dfnindex = connectlist[i];
-      TPZConnect &dfn = this->fMesh->ConnectVec()[dfnindex];
-      if(dfn.HasDependency() && DependenceOrder[i] == CurrentOrder) {
-        dfn.SetDependenceOrder(dfnindex,*fMesh,CurrentOrder,connectlist,DependenceOrder);
-        // this method will fill in the DependenceOrder vector by recursively
-        // calling SetDependenceOrder for the nodes upon which dfn depends
-        numnodes_processed++;
-      }
-    }
-    CurrentOrder++;
-  }
-}
-
 void TPZElementMatrix::ApplyConstraints(){
 
   if (!this->fNumStateVars){
@@ -129,14 +85,14 @@ void TPZElementMatrix::ApplyConstraints(){
   int in;
   for(in=0; in<totalnodes; in++) this->fConstrConnect[in] = this->fConnect[in];
   // total number of nodes of the constrained element
-  BuildConnectList(this->fConstrConnect);
+  TPZConnect::BuildConnectList(this->fConstrConnect, this->fConnect, *this->fMesh);
   totalnodes = this->fConstrConnect.NElements();
 
   // compute the list of nodes and their proper order of processing
   TPZVec<int> DependenceOrder(0);
   // this->fConstrNod, totalnodes and DependenceOrder
   // are initialized using codes documented above
-  BuildDependencyOrder(this->fConstrConnect,DependenceOrder);
+  TPZConnect::BuildDependencyOrder(this->fConstrConnect,DependenceOrder,*this->fMesh);
 
   // compute the number of statevariables
   // the number of state variables is the number of unknowns associated with

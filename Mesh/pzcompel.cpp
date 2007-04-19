@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.36 2007-04-19 11:42:43 tiago Exp $
+//$Id: pzcompel.cpp,v 1.37 2007-04-19 12:21:36 tiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -186,7 +186,7 @@ void TPZCompEl::LoadSolution() {
   BuildConnectList(connectlist);
   totalconnects = connectlist.NElements();
   TPZManVector<int> dependenceorder(totalconnects);
-  BuildDependencyOrder(connectlist,dependenceorder);
+  TPZConnect::BuildDependencyOrder(connectlist,dependenceorder,*this->Mesh());
   TPZAutoPointer<TPZMaterial> mat = Material();
   if(!mat) {
     LOGPZ_WARN(logger, "Exiting LoadSolution because a null material was reached.");
@@ -377,60 +377,22 @@ void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<REAL> &sol){
 }
 
 void TPZCompEl::BuildConnectList(TPZStack<int> &connectlist) {
-  TPZConnect *dfn;
-  int dfnindex;
-  int nconnects = NConnects();
-  int in;
-  for(in=0; in<nconnects; in++) {
-    dfnindex = ConnectIndex(in);
-    dfn = &Connect(in);
-    dfn->AddToList(dfnindex,*Mesh(),connectlist);
+  const int ncon = this->NConnects();
+  TPZManVector<int> ThisConnectIndices(ncon);
+  for(int i = 0; i < ncon; i++) {
+    ThisConnectIndices[i] = this->ConnectIndex(i);
   }
+  TPZConnect::BuildConnectList(connectlist, ThisConnectIndices, *this->Mesh());
 }
 
 int TPZCompEl::HasDependency() {
   int nconnects = NConnects();
   int in;
   for(in=0; in<nconnects; in++) if(Connect(in).HasDependency()){
-    //LOGPZ_INFO(logger, "Exiting True HasDependency");
     return 1;
   }
   return 0;
 }
-
-void TPZCompEl::BuildDependencyOrder(TPZVec<int> &connectlist,
-                                     TPZVec<int> &DependenceOrder) {
-  // nodelist (input) : vector which contains pointers to all nodes which
-  // are in the dependency chain of the nodes of the element
-  int totalnodes = connectlist.NElements();
-  DependenceOrder.Resize(totalnodes);
-  DependenceOrder.Fill(0,0);
-  // initialize the vector which contains the
-  // dependency order to zero
-  int CurrentOrder = 0;
-  // order which is currently processed
-  int numnodes_processed = totalnodes;
-  // number of nodes processed during the current cycle
-
-  while(numnodes_processed) {
-
-    numnodes_processed = 0;
-    int i;
-    for(i=0; i<totalnodes; i++) {
-      int dfnindex = connectlist[i];
-      TPZConnect *dfn = &Mesh()->ConnectVec()[dfnindex];
-      if(dfn->HasDependency() && DependenceOrder[i] == CurrentOrder) {
-        dfn->SetDependenceOrder(dfnindex,*Mesh(),CurrentOrder,connectlist,DependenceOrder);
-        // this method will fill in the DependenceOrder vector by recursively
-        // calling SetDependenceOrder for the nodes upon which dfn depends
-        numnodes_processed++;
-      }
-    }
-    CurrentOrder++;
-  }
-}
-
-
 
 void TPZCompEl::SetIndex(int index) {
   /*   int i=0; */

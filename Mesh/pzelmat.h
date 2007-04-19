@@ -1,4 +1,4 @@
-//$Id: pzelmat.h,v 1.7 2007-04-19 11:42:43 tiago Exp $
+//$Id: pzelmat.h,v 1.8 2007-04-19 12:21:36 tiago Exp $
 
 #ifndef ELMATHPP
 #define ELMATHPP
@@ -95,22 +95,6 @@ struct TPZElementMatrix {
    * @param efmat element loads matrix
    */
   void ApplyConstraints();
-
-  /**
-   * Builds the list of all connectivities related to the element including the
-   * connects pointed to by dependent connects
-   * Note : this method does not reset the stack to zero. The calling
-   * method should do this
-   * @param connectlist stack to receive the list
-   */
-  void BuildConnectList(TPZStack<int> &connectlist);
-
-  /**
-   * This method builds the vector DependenceOrder which indicates in which
-   * order constrained nodes need to be processed
-   * connectlist need to be computed by BuildConnectList
-   */
-  void BuildDependencyOrder(TPZVec<int> &connectlist, TPZVec<int> &DependenceOrder);
 
 };
 
