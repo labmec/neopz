@@ -126,7 +126,7 @@ void CC4(TPZVec<REAL> &x, TPZVec<REAL> &f) {
 
 int main(){
 
-  TPZInterfaceElement::SetCalcStiffPenalty();
+//  TPZInterfaceElement::SetCalcStiffPenalty();
 
   TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
 
