@@ -406,7 +406,7 @@ int run(std::istream & input, std::ostream & output)
       file = "NACA_";
       cmesh =
          NACACompMesh(CFL, delta, p, nSubdiv, DiffType,
-	            Diff_TD, ConvVol_TD, ConvFace_TD);
+	            Diff_TD, ConvVol_TD, ConvFace_TD,options);
       break;
 
       case 7:
@@ -706,8 +706,8 @@ int run(std::istream & input, std::ostream & output)
    */   
    
    REAL linsystol = 1.e-8;
-   int maxiter = 200;
-   int numvec = 200;
+   int maxiter = 400;
+   int numvec = 400;
    An.ComputeTimeStep();
    An.SetGMResBlock(linsystol,maxiter,numvec);
    int numnewton = 4;
@@ -758,7 +758,7 @@ int main()
   configfile += "log4cxx.cfg";
 //   InitializePZLOG(configfile);
   InitializePZLOG();
-  TPZInterfaceElement::SetCalcStiffPenalty();
+//  TPZInterfaceElement::SetCalcStiffPenalty();
 
   //TPZOutofRange obj;
    try

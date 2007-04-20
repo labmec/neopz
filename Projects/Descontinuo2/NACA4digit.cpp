@@ -873,7 +873,7 @@ TPZFlowCompMesh *
 		 TPZArtDiffType DiffType,
 		 TPZTimeDiscr Diff_TD,
 		 TPZTimeDiscr ConvVol_TD,
-		 TPZTimeDiscr ConvFace_TD)
+   TPZTimeDiscr ConvFace_TD, std::ostream &options)
 {
    TPZCompEl::gOrder = degree;
    REAL gamma = 1.4;
@@ -904,6 +904,7 @@ TPZFlowCompMesh *
 
    cout << "\nAirfoil angle [degrees]\n";
    cin >> profangle;
+   options << profangle << std::endl;
    profangle *= PI/180.;
 
    TPZNACAXXXX profile(cord,digits,profangle,x0);
@@ -955,6 +956,7 @@ TPZFlowCompMesh *
 
    cout << "\nMach number\n";
    cin >> Mach;
+   options << Mach << std::endl;
 
    // leftmost bc face: Inlet
    val1.Zero();
