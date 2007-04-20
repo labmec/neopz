@@ -12,6 +12,7 @@ bin_PROGRAMS =  HeMan
 HeMan_SOURCES = c0-simplequad.cpp c1-simplecube.cpp main.cc MeshReader.cpp \
 	Quad_1_Rib_Marked.cpp Quad_2_Rib_Ad_Marked.cpp
 
+HeMan_DEPENDENCIES = $(top_builddir)/lib/libpz.a
 ## tpzdxfdraw.cpp
 
 ## noinst_HEADERS =  tpzdxfdraw.h
