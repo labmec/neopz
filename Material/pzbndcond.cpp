@@ -3,6 +3,12 @@
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.material.bndcond"));
+#endif
+
 void TPZBndCond::Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec) {
   int matid = Id();
 
@@ -105,6 +111,13 @@ void TPZBndCond::Read(TPZStream &buf, void *context)
    buf.Read(&MatId,1);
    TPZCompMesh * pCM = (TPZCompMesh * )/*dynamic_cast<TPZCompMesh *>*/(context);
    fMaterial = pCM->FindMaterial(MatId);
+   if(!fMaterial)
+   {
+     std::cout << " reading a boundary condition without material object!!\n";
+#ifdef LOG4CXX
+     LOGPZ_FATAL(logger,"reading a boundary condition without material object!!");
+#endif
+   }
 }
 
 void TPZBndCond::ContributeInterfaceErrors(TPZVec<REAL> &x,
