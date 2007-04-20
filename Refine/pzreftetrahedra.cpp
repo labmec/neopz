@@ -213,15 +213,15 @@ void TPZRefTetrahedra::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 	}
 	int j,sub,matid=geo->MaterialId(),index;
 	int np[TPZShapeTetra::NSides];//guarda conectividades dos 8 subelementos
-	for(j=0;j<TPZShapeTetra::NNodes;j++) np[j] = geo->NodeIndex(j);
-	for(sub=TPZShapeTetra::NNodes;sub<10;sub++) {
+	for(j=0;j<TPZShapeTetra::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
+	for(sub=TPZShapeTetra::NCornerNodes;sub<10;sub++) {
 		NewMidSideNode(geo,sub,index);
 		np[sub] = index;
 	}
 	// creating new subelements
 	for (i=0;i<4;i++){
-	  TPZManVector<int> cornerindexes(TPZShapeTetra::NNodes);
-	  for(int j=0;j<TPZShapeTetra::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
+	  TPZManVector<int> cornerindexes(TPZShapeTetra::NCornerNodes);
+	  for(int j=0;j<TPZShapeTetra::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
 	  TPZGeoEl *t3sub = geo->Mesh()->CreateGeoElement(ETetraedro,cornerindexes,matid,index);
 	  geo->SetSubElement(i,t3sub);
 	  t3sub->SetFather(geo);
@@ -229,8 +229,8 @@ void TPZRefTetrahedra::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 	  SubElVec[i] = t3sub;
 	}
 	for (;i<6;i++){
-	  TPZManVector<int> cornerindexes(TPZShapePiram::NNodes);
-	  for(int j=0;j<TPZShapePiram::NNodes;j++) 
+	  TPZManVector<int> cornerindexes(TPZShapePiram::NCornerNodes);
+	  for(int j=0;j<TPZShapePiram::NCornerNodes;j++) 
 	    cornerindexes[j] = np[CornerSons[i][j]];
 	  TPZGeoEl *pi3sub = geo->Mesh()->CreateGeoElement(EPiramide,cornerindexes,matid,index);
 	  geo->SetSubElement(i,pi3sub);
@@ -262,12 +262,12 @@ void TPZRefTetrahedra::NewMidSideNode(TPZGeoEl *gel,int side,int &index) {
 		}
 		TPZVec<REAL> par(3,0.);
 		TPZVec<REAL> coord(3,0.);
-		if(side < TPZShapeTetra::NNodes) {
+		if(side < TPZShapeTetra::NCornerNodes) {
 			index = gel->NodeIndex(side); 
 			return;
 		}
 		//aqui side = 8 a 26
-		side-=TPZShapeTetra::NNodes;//0,1,..,18
+		side-=TPZShapeTetra::NCornerNodes;//0,1,..,18
 		par[0] = MidCoord[side][0];
 		par[1] = MidCoord[side][1];
 		par[2] = MidCoord[side][2];
@@ -284,7 +284,7 @@ void TPZRefTetrahedra::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
 		return;
 	}
 	//sides 0 a 7
-	if(side<TPZShapeTetra::NNodes) {//o nó medio do lado 0 é o 0 etc.
+	if(side<TPZShapeTetra::NCornerNodes) {//o nó medio do lado 0 é o 0 etc.
 		index = (gel)->NodeIndex(side);
 		return; 
 	}
@@ -292,7 +292,7 @@ void TPZRefTetrahedra::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
 	//como nó de algum filho se este existir
 	//caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
 	if(gel->HasSubElement()) {
-		side-=TPZShapeTetra::NNodes;
+		side-=TPZShapeTetra::NCornerNodes;
 		index=(gel->SubElement(MidSideNodes[side][0]))->NodeIndex(MidSideNodes[side][1]);
 	}
 }

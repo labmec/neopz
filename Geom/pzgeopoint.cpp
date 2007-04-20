@@ -11,21 +11,6 @@ using namespace std;
 
 namespace pzgeom {
 
-MElementType TPZGeoPoint::Type()
-{
-  return EPoint;
-}
-
-MElementType TPZGeoPoint::Type(int side)
-{
-  switch(side) {
-    case 0:
-      return EPoint;
-    default:
-      return ENoType;
-  }
-}
-
 void TPZGeoPoint::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
   int i;
   for (i=0;i<coord.Rows();i++){
@@ -66,8 +51,5 @@ TPZGeoEl *TPZGeoPoint::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
   return 0;
 }
 
-TPZIntPoints *TPZGeoPoint::CreateSideIntegrationRule(int side, int order) {
-  return new TPZInt1Point();
-}
 
 };

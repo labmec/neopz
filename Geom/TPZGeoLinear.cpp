@@ -11,25 +11,6 @@ using namespace std;
 
 namespace pzgeom {
 
-MElementType TPZGeoLinear::Type()
-{
-  return EOned;
-}
-
-MElementType TPZGeoLinear::Type(int side)
-{
-  switch(side) {
-    case 0:
-    case 1:
-      return EPoint;
-    case 2:
-      return EOned;
-    default:
-      return ENoType;
-  }
-}
-
-
 void TPZGeoLinear::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 	REAL x = pt[0];
     phi(0,0) = (1-x)/2.;
@@ -64,18 +45,6 @@ TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
   }
   else PZError << "TPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
   return 0;
-}
-
-TPZIntPoints *TPZGeoLinear::CreateSideIntegrationRule(int side, int order) {
-
-	if(side<0 || side>2) {
-		PZError << "TPZGeoLinear::CreateSideIntegrationRule wrong side " << side << endl;
-		return 0;
-	}
-	if(side != 2) return new TPZInt1Point();
-	return new TPZInt1d(order);
-
-
 }
 
 };

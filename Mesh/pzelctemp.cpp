@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.33 2007-04-12 20:11:08 tiago Exp $
+// $Id: pzelctemp.cpp,v 1.34 2007-04-20 18:31:02 caju Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -12,22 +12,22 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzintelgen"));
 #endif
 
-//template<class TGEO, class TSHAPE>
+//template<class TSHAPE>
 //class TPZIntelGen : public TPZInterpolatedElement {
 
 
-template<class TGEO, class TSHAPE>
-TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
+template<class TSHAPE>
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
   TPZInterpolatedElement(mesh,gel,index) {
   int i;
-  for(i=0;i<TSHAPE::NSides-TSHAPE::NNodes;i++) {
+  for(i=0;i<TSHAPE::NSides-TSHAPE::NCornerNodes;i++) {
     //    fSideOrder[i] = gOrder;
     fPreferredSideOrder = gOrder;
   }
   for(i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
   //  RemoveSideRestraintsII(EInsert);
   gel->SetReference(this);
-  for(i=0;i<TSHAPE::NNodes;i++) {
+  for(i=0;i<TSHAPE::NCornerNodes;i++) {
     fConnectIndexes[i] = CreateMidSideConnect(i);
     mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
   }
@@ -47,8 +47,8 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &ind
 
 }
 
-template<class TGEO, class TSHAPE>
-TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,TSHAPE> &copy) :
+template<class TSHAPE>
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy) :
   TPZInterpolatedElement(mesh,copy), fIntRule(copy.fIntRule) {
   fPreferredSideOrder = copy.fPreferredSideOrder;
   int i;
@@ -58,9 +58,9 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,
 }
 
 
-template<class TGEO, class TSHAPE>
-TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
-                                      const TPZIntelGen<TGEO,TSHAPE> &copy,
+template<class TSHAPE>
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
+                                      const TPZIntelGen<TSHAPE> &copy,
                                       std::map<int,int> & gl2lcConMap,
                                       std::map<int,int> & gl2lcElMap) :
     TPZInterpolatedElement(mesh,copy,gl2lcElMap), fIntRule(copy.fIntRule)
@@ -97,8 +97,8 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
 }
 
 
-template<class TGEO, class TSHAPE>
-TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen() :
+template<class TSHAPE>
+TPZIntelGen<TSHAPE>::TPZIntelGen() :
   TPZInterpolatedElement(), fIntRule() {
   fPreferredSideOrder = -1;
   int i;
@@ -107,8 +107,8 @@ TPZIntelGen<TGEO,TSHAPE>::TPZIntelGen() :
   }
 }
 
-template<class TGEO, class TSHAPE>
-TPZIntelGen<TGEO,TSHAPE>::~TPZIntelGen(){
+template<class TSHAPE>
+TPZIntelGen<TSHAPE>::~TPZIntelGen(){
   if(Reference()) {
     if(Reference()->Reference()) {
       RemoveSideRestraintsII(EDelete);
@@ -117,22 +117,22 @@ TPZIntelGen<TGEO,TSHAPE>::~TPZIntelGen(){
   }
 }
 
-template<class TGEO, class TSHAPE>
-MElementType TPZIntelGen<TGEO,TSHAPE>::Type() {
-  return TGEO::Type();
+template<class TSHAPE>
+MElementType TPZIntelGen<TSHAPE>::Type() {
+  return TSHAPE::Type();
 }
 
 
-//template<class TGEO, class TSHAPE>
-//int TPZIntelGen<TGEO,TSHAPE>::NConnects() {
+//template<class TSHAPE>
+//int TPZIntelGen<TSHAPE>::NConnects() {
 //  return TSHAPE::NSides;
 //}
 
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::SetConnectIndex(int i, int connectindex){
+template<class TSHAPE>
+void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, int connectindex){
 #ifndef NODEBUG
   if(i<0 || i>= TSHAPE::NSides) {
-    std::cout << " TPZIntelGen<TGEO,TSHAPE>::SetConnectIndex index " << i <<
+    std::cout << " TPZIntelGen<TSHAPE>::SetConnectIndex index " << i <<
       " out of range\n";
     return;
   }
@@ -140,61 +140,61 @@ void TPZIntelGen<TGEO,TSHAPE>::SetConnectIndex(int i, int connectindex){
   fConnectIndexes[i] = connectindex;
 }
 
-template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::NConnectShapeF(int connect){
-  if(connect < TSHAPE::NNodes) return 1;
+template<class TSHAPE>
+int TPZIntelGen<TSHAPE>::NConnectShapeF(int connect){
+  if(connect < TSHAPE::NCornerNodes) return 1;
   int order = SideOrder(connect);
   if(order < 0) return 0;
   return TSHAPE::NConnectShapeF(connect, order);
 }
 
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::SetIntegrationRule(int ord) {
+template<class TSHAPE>
+void TPZIntelGen<TSHAPE>::SetIntegrationRule(int ord) {
   TPZManVector<int,3> order(TSHAPE::Dimension,ord);
   fIntRule.SetOrder(order);
 }
 
-//template<class TGEO, class TSHAPE>
-//int TPZIntelGen<TGEO,TSHAPE>::Dimension() {
+//template<class TSHAPE>
+//int TPZIntelGen<TSHAPE>::Dimension() {
 //    return TSHAPE::Dimension;
 //}
 
 
-//template<class TGEO, class TSHAPE>
-//int TPZIntelGen<TGEO,TSHAPE>::NCornerConnects() {
-//  return TSHAPE::NNodes;
+//template<class TSHAPE>
+//int TPZIntelGen<TSHAPE>::NCornerConnects() {
+//  return TSHAPE::NCornerNodes;
 //}
 
-template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::NSideConnects(int side){
+template<class TSHAPE>
+int TPZIntelGen<TSHAPE>::NSideConnects(int side){
   return TSHAPE::NSideConnects(side);
 }
 
-template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::SideConnectLocId(int node, int side) {
+template<class TSHAPE>
+int TPZIntelGen<TSHAPE>::SideConnectLocId(int node, int side) {
   return TSHAPE::SideConnectLocId(side,node);
 }
 
 /**Sets the interpolation order for the interior of the element*/
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::SetInterpolationOrder(int order) {
+template<class TSHAPE>
+void TPZIntelGen<TSHAPE>::SetInterpolationOrder(int order) {
   fPreferredSideOrder = order;
 }
 
 /**Identifies the interpolation order on the interior of the element*/
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
-  ord.Resize(TSHAPE::NSides-TSHAPE::NNodes);
+template<class TSHAPE>
+void TPZIntelGen<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
+  ord.Resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
   int i;
-  for(i=0; i<TSHAPE::NSides-TSHAPE::NNodes; i++) {
-    ord[i] = SideOrder(i+TSHAPE::NNodes);
+  for(i=0; i<TSHAPE::NSides-TSHAPE::NCornerNodes; i++) {
+    ord[i] = SideOrder(i+TSHAPE::NCornerNodes);
   }
 }
 
 /**return the preferred order of the polynomial along side iside*/
-template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::PreferredSideOrder(int side) {
-  if(side < TSHAPE::NNodes) return 0;
+template<class TSHAPE>
+int TPZIntelGen<TSHAPE>::PreferredSideOrder(int side) {
+  if(side < TSHAPE::NCornerNodes) return 0;
   if(side<TSHAPE::NSides) {
 	  int order =fPreferredSideOrder;
 	  return AdjustPreferredSideOrder(side,order);
@@ -204,8 +204,8 @@ int TPZIntelGen<TGEO,TSHAPE>::PreferredSideOrder(int side) {
 
 }
 
-template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::ConnectIndex(int con) {
+template<class TSHAPE>
+int TPZIntelGen<TSHAPE>::ConnectIndex(int con) {
 
 #ifndef NODEBUG
   if(con<0 || con>= TSHAPE::NSides) {
@@ -224,19 +224,19 @@ int TPZIntelGen<TGEO,TSHAPE>::ConnectIndex(int con) {
    This method only updates the datastructure of the element
    In order to change the interpolation order of an element, use the method PRefine
 */
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::SetPreferredSideOrder(int order) {
+template<class TSHAPE>
+void TPZIntelGen<TSHAPE>::SetPreferredSideOrder(int order) {
   fPreferredSideOrder = order;
 }
 
 /**sets the interpolation order of side to order*/
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::SetSideOrder(int side, int order) {
-  if(side<0 || side >= TSHAPE::NSides || (side >= TSHAPE::NNodes && order <1)) {
+template<class TSHAPE>
+void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
+  if(side<0 || side >= TSHAPE::NSides || (side >= TSHAPE::NCornerNodes && order <1)) {
     PZError << "TPZIntelGen::SetSideOrder. Bad paramenter side " << side << " order " << order << std::endl;
     return;
   }
-  if(side>= TSHAPE::NNodes) {
+  if(side>= TSHAPE::NCornerNodes) {
     if(fConnectIndexes[side] == -1) return;
     TPZConnect &c = Connect(side);
     c.SetOrder(order);
@@ -252,9 +252,9 @@ void TPZIntelGen<TGEO,TSHAPE>::SetSideOrder(int side, int order) {
 }
 
 /**returns the actual interpolation order of the polynomial along the side*/
-template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::SideOrder(int side) {
-  if(side < TSHAPE::NNodes || side >= TSHAPE::NSides) return 0;
+template<class TSHAPE>
+int TPZIntelGen<TSHAPE>::SideOrder(int side) {
+  if(side < TSHAPE::NCornerNodes || side >= TSHAPE::NSides) return 0;
   if(fConnectIndexes[side] == -1)
   {
     std::cout << __PRETTY_FUNCTION__ << " side " << side << std::endl;
@@ -267,8 +267,8 @@ int TPZIntelGen<TGEO,TSHAPE>::SideOrder(int side) {
 
 /**transform a point in the parameter space of the side into a point in the space
    of the master element*/
-//template<class TGEO, class TSHAPE>
-//void TPZIntelGen<TGEO,TSHAPE>::SideParameterToElement(int side,TPZVec<REAL> &par,TPZVec<REAL> &point) {
+//template<class TSHAPE>
+//void TPZIntelGen<TSHAPE>::SideParameterToElement(int side,TPZVec<REAL> &par,TPZVec<REAL> &point) {
 
 //}
 
@@ -279,8 +279,8 @@ int TPZIntelGen<TGEO,TSHAPE>::SideOrder(int side) {
 
 /**compute the values of the shape function of the side*/
 
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &phi,TPZFMatrix &dphi) {
+template<class TSHAPE>
+void TPZIntelGen<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
   int nc = TSHAPE::NSideConnects(side);
   int nn = TSHAPE::NSideNodes(side);
@@ -298,32 +298,32 @@ void TPZIntelGen<TGEO,TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TP
   TSHAPE::SideShape(side, point, id, order, phi, dphi);
 }
 
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
-  TPZManVector<int,TSHAPE::NNodes> id(TSHAPE::NNodes,0);
-  TPZManVector<int, TSHAPE::NSides-TSHAPE::NNodes+1> ord(TSHAPE::NSides-TSHAPE::NNodes,0);
+template<class TSHAPE>
+void TPZIntelGen<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+  TPZManVector<int,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
+  TPZManVector<int, TSHAPE::NSides-TSHAPE::NCornerNodes+1> ord(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
   int i;
   TPZGeoEl *ref = Reference();
-  for(i=0; i<TSHAPE::NNodes; i++) {
+  for(i=0; i<TSHAPE::NCornerNodes; i++) {
     id[i] = ref->NodePtr(i)->Id();
   }
-  for(i=0; i<TSHAPE::NSides-TSHAPE::NNodes; i++) {
-    ord[i] = SideOrder(i+TSHAPE::NNodes);
+  for(i=0; i<TSHAPE::NSides-TSHAPE::NCornerNodes; i++) {
+    ord[i] = SideOrder(i+TSHAPE::NCornerNodes);
   }
   TSHAPE::Shape(pt,id,ord,phi,dphi);
 }
 
 
-// template<class TGEO, class TSHAPE>
-// void TPZIntelGen<TGEO,TSHAPE>::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
+// template<class TSHAPE>
+// void TPZIntelGen<TSHAPE>::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
 
 // }
 
   /** Jorge 09/06/2001
    * Returns the transformation which transform a point from the side to the interior of the element
    */
-template<class TGEO, class TSHAPE>
-TPZTransform TPZIntelGen<TGEO,TSHAPE>::TransformSideToElement(int side){
+template<class TSHAPE>
+TPZTransform TPZIntelGen<TSHAPE>::TransformSideToElement(int side){
   return TSHAPE::TransformSideToElement(side);
 }
 
@@ -331,18 +331,18 @@ TPZTransform TPZIntelGen<TGEO,TSHAPE>::TransformSideToElement(int side){
   * returns the unique identifier for reading/writing objects to streams
   */
 /*
-template<class TGEO, class TSHAPE>
-int TPZIntelGen<TGEO,TSHAPE>::ClassId() const
+template<class TSHAPE>
+int TPZIntelGen<TSHAPE>::ClassId() const
 {
-  std::cout << "TPZIntelGen<TGEO,TSHAPE>::ClassId() type not specified at " << __FILE__ << ':' << __LINE__ << std::endl;
+  std::cout << "TPZIntelGen<TSHAPE>::ClassId() type not specified at " << __FILE__ << ':' << __LINE__ << std::endl;
   return -1;
 }
 */
   /**
   Save the element data to a stream
   */
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::Write(TPZStream &buf, int withclassid)
+template<class TSHAPE>
+void TPZIntelGen<TSHAPE>::Write(TPZStream &buf, int withclassid)
 {
   TPZInterpolatedElement::Write(buf,withclassid);
   TPZManVector<int,3> order(3,0);
@@ -355,8 +355,8 @@ void TPZIntelGen<TGEO,TSHAPE>::Write(TPZStream &buf, int withclassid)
   /**
   Read the element data from a stream
   */
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::Read(TPZStream &buf, void *context)
+template<class TSHAPE>
+void TPZIntelGen<TSHAPE>::Read(TPZStream &buf, void *context)
 {
   TPZInterpolatedElement::Read(buf,context);
   TPZManVector<int,3> order;
@@ -367,11 +367,9 @@ void TPZIntelGen<TGEO,TSHAPE>::Read(TPZStream &buf, void *context)
 }
 
 
-#include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
 #include "pzshapelinear.h"
-#include "TPZGeoLinear.h"
 #include "TPZRefLinear.h"
 #include "pzrefquad.h"
 #include "pzshapequad.h"
@@ -397,8 +395,18 @@ void TPZIntelGen<TGEO,TSHAPE>::Read(TPZStream &buf, void *context)
 #include "pztrigraphd.h"
 #include "pzgraphelq3dd.h"
 
+using namespace pztopology;
+
+#include "tpzpoint.h"
+#include "tpzline.h"
+#include "tpzquadrilateral.h"
+#include "tpztriangle.h"
+#include "tpzcube.h"
+#include "tpztetrahedron.h"
+#include "tpzprism.h"
+#include "tpzpyramid.h"
 /*
-void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+void TPZIntelGen<TPZPoint,TPZShapePoint>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
   phi(0,0) = 1.;
 }
 */
@@ -406,134 +414,135 @@ using namespace pzgeom;
 using namespace pzshape;
 
 template<>
-void TPZIntelGen<TPZGeoPoint,TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+void TPZIntelGen<TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 0) std::cout << "A point element has no graphical representation\n";
 }
 
 template<>
-void TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+void TPZIntelGen<TPZShapeTetra>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 3)
   {
-    new TPZGeoTetrahedra::GraphElType(this,&grafgrid);
+    new TPZTetrahedron::GraphElType(this,&grafgrid);
   }
 }
 
 template<>
-void TPZIntelGen<TPZGeoPrism,TPZShapePrism>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+void TPZIntelGen<TPZShapePrism>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 3) std::cout << "A prism element has no graphical representation\n";
 }
 
 template<>
-void TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+void TPZIntelGen<TPZShapePiram>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 3) std::cout << "A pyramid element has no graphical representation\n";
 }
 #ifndef DOS
 
-template<class TGEO, class TSHAPE>
-void TPZIntelGen<TGEO,TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+template<class TSHAPE>
+void TPZIntelGen<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == TSHAPE::Dimension && Material()->Id() > 0) {
-    new typename TGEO::GraphElType(this,&grafgrid);
+    new typename TSHAPE::GraphElType(this,&grafgrid);
   }
 }
 
 #else
 template<>
-void TPZIntelGen<TPZGeoLinear,TPZShapeLinear>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+void TPZIntelGen<TPZShapeLinear>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == TPZShapeLinear::Dimension && Material()->Id() > 0) {
-    new typename TPZGeoLinear::GraphElType(this,&grafgrid);
+    new typename TPZShapeLinear::GraphElType(this,&grafgrid);
   }
 }
 template<>
-void TPZIntelGen<TPZGeoQuad,TPZShapeQuad>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+void TPZIntelGen<TPZShapeQuad>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == TPZShapeQuad::Dimension && Material()->Id() > 0) {
-    new typename TPZGeoQuad::GraphElType(this,&grafgrid);
+    new typename TPZShapeQuad::GraphElType(this,&grafgrid);
   }
 }
 template<>
-void TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+void TPZIntelGen<TPZShapeTriang>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == TPZShapeTriang::Dimension && Material()->Id() > 0) {
-    new typename TPZGeoTriangle::GraphElType(this,&grafgrid);
+    new typename TPZShapeTriang::GraphElType(this,&grafgrid);
   }
 }
 template<>
-void TPZIntelGen<TPZGeoCube,TPZShapeCube>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+void TPZIntelGen<TPZShapeCube>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == TPZShapeCube::Dimension && Material()->Id() > 0) {
-    new typename TPZGeoCube::GraphElType(this,&grafgrid);
+    new typename TPZShapeCube::GraphElType(this,&grafgrid);
   }
 }
 
 #endif
 template<>
-int TPZIntelGen<TPZGeoPoint,TPZShapePoint>::ClassId() const
+int TPZIntelGen<TPZShapePoint>::ClassId() const
 {
   return TPZINTELPOINTID;
 }
 template class
-    TPZRestoreClass< TPZIntelGen<TPZGeoPoint,TPZShapePoint>, TPZINTELPOINTID>;
+    TPZRestoreClass< TPZIntelGen<TPZShapePoint>, TPZINTELPOINTID>;
 
 
 template<>
-int TPZIntelGen<TPZGeoLinear,TPZShapeLinear>::ClassId() const
+int TPZIntelGen<TPZShapeLinear>::ClassId() const
 {
   return TPZINTELLINEARID;
 }
 template class
-    TPZRestoreClass< TPZIntelGen<TPZGeoLinear,TPZShapeLinear>, TPZINTELLINEARID>;
+    TPZRestoreClass< TPZIntelGen<TPZShapeLinear>, TPZINTELLINEARID>;
 
 template<>
-int TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>::ClassId() const
+int TPZIntelGen<TPZShapeTriang>::ClassId() const
 {
   return TPZINTELTRIANGLEID;
 }
 template class
-    TPZRestoreClass< TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>, TPZINTELTRIANGLEID>;
+    TPZRestoreClass< TPZIntelGen<TPZShapeTriang>, TPZINTELTRIANGLEID>;
 
 template<>
-int TPZIntelGen<TPZGeoQuad,TPZShapeQuad>::ClassId() const
+int TPZIntelGen<TPZShapeQuad>::ClassId() const
 {
   return TPZINTELQUADID;
 }
 template class
-    TPZRestoreClass< TPZIntelGen<TPZGeoQuad,TPZShapeQuad>, TPZINTELQUADID>;
+    TPZRestoreClass< TPZIntelGen<TPZShapeQuad>, TPZINTELQUADID>;
 
 template<>
-int TPZIntelGen<TPZGeoCube,TPZShapeCube>::ClassId() const
+int TPZIntelGen<TPZShapeCube>::ClassId() const
 {
   return TPZINTELCUBEID;
 }
 template class
-    TPZRestoreClass< TPZIntelGen<TPZGeoCube,TPZShapeCube>, TPZINTELCUBEID>;
+    TPZRestoreClass< TPZIntelGen<TPZShapeCube>, TPZINTELCUBEID>;
 
 template<>
-int TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>::ClassId() const
+int TPZIntelGen<TPZShapeTetra>::ClassId() const
 {
   return TPZINTELTETRAID;
 }
 template class
-    TPZRestoreClass< TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>, TPZINTELTETRAID>;
+    TPZRestoreClass< TPZIntelGen<TPZShapeTetra>, TPZINTELTETRAID>;
 
 template<>
-int TPZIntelGen<TPZGeoPrism,TPZShapePrism>::ClassId() const
+int TPZIntelGen<TPZShapePrism>::ClassId() const
 {
   return TPZINTELPRISMID;
 }
 template class
-    TPZRestoreClass< TPZIntelGen<TPZGeoPrism,TPZShapePrism>, TPZINTELPRISMID>;
+    TPZRestoreClass< TPZIntelGen<TPZShapePrism>, TPZINTELPRISMID>;
 
 template<>
-int TPZIntelGen<TPZGeoPyramid,TPZShapePiram>::ClassId() const
+int TPZIntelGen<TPZShapePiram>::ClassId() const
 {
   return TPZINTELPYRAMID;
 }
 template class
-    TPZRestoreClass< TPZIntelGen<TPZGeoPyramid,TPZShapePiram>, TPZINTELPYRAMID>;
+    TPZRestoreClass< TPZIntelGen<TPZShapePiram>, TPZINTELPYRAMID>;
 
 
-template class TPZIntelGen<TPZGeoPoint,TPZShapePoint>;
-template class TPZIntelGen<TPZGeoLinear, TPZShapeLinear>;
-template class TPZIntelGen<TPZGeoQuad,TPZShapeQuad>;
-template class TPZIntelGen<TPZGeoTriangle,TPZShapeTriang>;
-template class TPZIntelGen<TPZGeoCube,TPZShapeCube>;
-template class TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra>;
-template class TPZIntelGen<TPZGeoPrism,TPZShapePrism>;
-template class TPZIntelGen<TPZGeoPyramid,TPZShapePiram>;
+template class TPZIntelGen<TPZShapeTriang>;
+template class TPZIntelGen<TPZShapePoint>;
+template class TPZIntelGen<TPZShapeLinear>;
+template class TPZIntelGen<TPZShapeQuad>;
+template class TPZIntelGen<TPZShapeTetra>;
+template class TPZIntelGen<TPZShapePrism>;
+template class TPZIntelGen<TPZShapePiram>;
+template class TPZIntelGen<TPZShapeCube>;
+

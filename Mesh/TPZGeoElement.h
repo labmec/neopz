@@ -1,7 +1,7 @@
 
 // -*- c++ -*-
 
-// $Id: TPZGeoElement.h,v 1.17 2007-03-21 17:45:52 cesar Exp $
+// $Id: TPZGeoElement.h,v 1.18 2007-04-20 18:31:10 caju Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
@@ -16,8 +16,8 @@ template<class T,int N>
 class TPZStack;
 
 /// Implements a generic geometric element with a uniform refinement pattern
-template <class TShape, class TGeo, class TRef>
-class TPZGeoElement : public TPZGeoElRefLess<TShape,TGeo> {
+template <class TGeo, class TRef>
+class TPZGeoElement : public TPZGeoElRefLess<TGeo> {
 
   int fSubEl[TRef::NSubEl];
 //int fNodeIndexes[TGeo::NNodes];
@@ -52,7 +52,7 @@ public:
   //  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh );
   //  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh, int& index );
 
-  ~TPZGeoElement(){};
+  virtual ~TPZGeoElement(){};
 
   virtual int ClassId() const;
 

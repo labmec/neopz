@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzshapequad.h,v 1.6 2005-02-28 22:11:26 phil Exp $
+// $Id: pzshapequad.h,v 1.7 2007-04-20 18:30:23 caju Exp $
 
 #ifndef SHAPEQUADHPP
 #define SHAPEQUADHPP
@@ -7,13 +7,14 @@
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include "pztrnsform.h"
+#include "tpzquadrilateral.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
 #endif
 
 /// groups all classes dedicated to the computation of shape functions
-namespace pzshape {
+namespace pzshape{
 
 /** 
  *
@@ -23,10 +24,9 @@ namespace pzshape {
  * The range of the master element is -1,1
  * @ingroup shape
  */
-class TPZShapeQuad {
+class TPZShapeQuad  : public pztopology::TPZQuadrilateral{
 
  public:
-	 enum {NSides = 9, NNodes = 4, Dimension = 2};
 
 /**
  * Computes the values of the shape functions and their derivatives for a quadrilateral element
@@ -158,21 +158,7 @@ class TPZShapeQuad {
  */
 //  static void TransformDerivativeFromRibToQuad(int rib,int num,TPZVec<FADREAL> &phi);
 #endif
-/**
- * Returns the transformation which transform a point from the interior of the element to the side
- * @param side side to which the point will be tranformed (0<=side<=8)
- * @return TPZTransform object
- * @see the class TPZTransform
- */
-static TPZTransform TransformElementToSide(int side);
 
-/**
- * Returns the transformation which transform a point from the side to the interior of the element
- * @param side side from which the point will be tranformed (0<=side<=2)
- * @return TPZTransform object
- * @see the class TPZTransform
- */
-static TPZTransform TransformSideToElement(int side);
 
 /** 
  * Data structure which defines the quadrilateral transformations
@@ -186,12 +172,6 @@ static REAL gFaceTr2dQ[6][2][3];
  * Data structure which defines the quadrilateral transformations
  */
 static REAL gRibTrans2dQ1d[4][2];
-
-/**
- * Number of connects of the element (9)
- * @return number of connects of the element
- */
-static int NConnects();
 
 /**
  * Number of shapefunctions of the connect associated with the side, considering the order
@@ -209,49 +189,6 @@ static int NConnectShapeF(int side, int order);
  * @return number of shape functions
  */
 static int NShapeF(TPZVec<int> &order);
-
- /**
-  * returns the dimension of the side
-  */
-static int SideDimension(int side);
- /**
-  * returns the transformation which takes a point from the side sidefrom ot
-  * the side sideto
-  * @param sidefrom side where the point resides
-  * @param sideto side whose closure contains sidefrom
-  */
-static TPZTransform SideToSideTransform(int sidefrom, int sideto);
- /**
-  * returns all sides whose closure contains side
-  * @param side smaller dimension side
-  * @param high vector which will contain all sides whose closure contain sidefrom
-  */
-static void HigherDimensionSides(int side, TPZStack<int> &high);
- /**
-  * return the number of nodes (not connectivities) associated with a side
-  */
-static int NSideNodes(int side);
- /**
-  * returns the local node number of the node "node" along side "side"
-  */
-static int SideNodeLocId(int side, int node);
- /**
-  * return the number of nodes (not connectivities) associated with a side
-  */
-static int NSideConnects(int side);
- /**
-  * returns the local connect number of the connect "c" along side "side"
-  */
-static int SideConnectLocId(int side, int c);
-
-/**
- * returns the barycentric coordinates in the master element space of the original element
- */
-
- static void CenterPoint(int side, TPZVec<REAL> &center);
-
- /**volume of the master element*/
-static REAL RefElVolume(){return 4.0;}
 
 
 

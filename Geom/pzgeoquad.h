@@ -12,36 +12,34 @@
 #include "pznoderep.h"
 #include "pzvec.h"
 #include "pzeltype.h"
+#include "tpzquadrilateral.h"
 
 #include <string>
 
 
 class TPZFMatrix;
 class TPZGeoEl;
-class TPZIntPoints;
-class TPZIntQuad;
-class TPZGraphElQ2dd;
 class TPZGeoMesh;
 
 namespace pzgeom {
 
 /// implements the geometry of a quadrilateral element
-class TPZGeoQuad  : public TPZNodeRep<4>
+class TPZGeoQuad  : public TPZNodeRep<4, pztopology::TPZQuadrilateral>
 {
 public:
 
-	enum {NNodes = 4, NSides = 9};
+	enum {NNodes = 4};
   /**
   * Constructor with list of nodes
    */
- TPZGeoQuad(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+ TPZGeoQuad(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
  {
  }
   
   /**
   * Empty constructor
    */
- TPZGeoQuad() : TPZNodeRep<NNodes>()
+ TPZGeoQuad() : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
  {
  }
   
@@ -49,45 +47,18 @@ public:
   * Constructor with node map
    */
  TPZGeoQuad(const TPZGeoQuad &cp,
-                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
  {
  }
   
   /**
   * Copy constructor
    */
- TPZGeoQuad(const TPZGeoQuad &cp) : TPZNodeRep<NNodes>(cp)
+ TPZGeoQuad(const TPZGeoQuad &cp) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
  {
  }
 
 
-  /**
-   * return the type of the element as specified in file pzeltype.h
-   */
-  static MElementType Type();// { return EQuadrilateral;}
-
-/**
- * return the type of the element as specified in file pzeltype.h
- */
-static MElementType Type(int side);/* {
-  switch(side) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-      return EPoint;
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-      return EOned;
-    case 8:
-      return EQuadrilateral;
-    default:
-      return ENoType;
-  }
-}
-*/
 /**
  * returns the type name of the element
  */
@@ -109,15 +80,7 @@ static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
    */
 static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 
-  /**
-   * Create an integration rule 
-   * @param order order of the integration rule to be created
-   * @param side side to create integration rule
-   */
-static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
 
-  typedef TPZIntQuad IntruleType;
-  typedef TPZGraphElQ2dd GraphElType;
 };
 
 };

@@ -333,15 +333,15 @@ void TPZRefPrism::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 	int j,sub,matid=geo->MaterialId(),index;
 	int np[TPZShapePrism::NSides];//guarda conectividades dos 8 subelementos
 
-	for(j=0;j<TPZShapePrism::NNodes;j++) np[j] = geo->NodeIndex(j);
-	for(j=TPZShapePrism::NNodes;j<TPZShapePrism::NSides;j++) {
+	for(j=0;j<TPZShapePrism::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
+	for(j=TPZShapePrism::NCornerNodes;j<TPZShapePrism::NSides;j++) {
 		NewMidSideNode(geo,j,index);
 		np[j] = index;
 	}
 	// creating new subelements
 	for(i=0;i<TPZRefPrism::NSubEl;i++) {
-		TPZManVector<int> cornerindexes(TPZShapePrism::NNodes);
-		for(int j=0;j<TPZShapePrism::NNodes;j++) 
+		TPZManVector<int> cornerindexes(TPZShapePrism::NCornerNodes);
+		for(int j=0;j<TPZShapePrism::NCornerNodes;j++) 
 			cornerindexes[j] = np[CornerSons[i][j]];
 		int index;
 		TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EPrisma,cornerindexes,matid,index);
@@ -384,12 +384,12 @@ void TPZRefPrism::NewMidSideNode(TPZGeoEl *gel,int side,int &index) {
 		}
 		TPZVec<REAL> par(3,0.);
 		TPZVec<REAL> coord(3,0.);
-		if(side < TPZShapePrism::NNodes) {
+		if(side < TPZShapePrism::NCornerNodes) {
 			index = gel->NodeIndex(side); 
 			return;
 		}
 		//aqui side = 6 a 20
-		side-=TPZShapePrism::NNodes;//0,1,..,13
+		side-=TPZShapePrism::NCornerNodes;//0,1,..,13
 		par[0] = MidCoord[side][0];
 		par[1] = MidCoord[side][1];
 		par[2] = MidCoord[side][2];
@@ -407,7 +407,7 @@ void TPZRefPrism::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
 		return;
 	}
 	//sides 0 a 7
-	if(side<TPZShapePrism::NNodes) {//o nó medio do lado 0 é o 0 etc.
+	if(side<TPZShapePrism::NCornerNodes) {//o nó medio do lado 0 é o 0 etc.
 		index = (gel)->NodeIndex(side);
 		return; 
 	}
@@ -415,7 +415,7 @@ void TPZRefPrism::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
 	//como nó de algum filho se este existir
 	//caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
 	if(gel->HasSubElement()) {
-		side-=TPZShapePrism::NNodes;
+		side-=TPZShapePrism::NCornerNodes;
 		index=(gel->SubElement(MidSideNodes[side][0]))->NodeIndex(MidSideNodes[side][1]);
 	}
 }

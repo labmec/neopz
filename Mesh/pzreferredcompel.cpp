@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.15 2007-04-19 11:41:14 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.16 2007-04-20 18:31:02 caju Exp $
 
 
 #include "pzreferredcompel.h"
@@ -261,45 +261,45 @@ using namespace pzgeom;
 
 template class TPZReferredCompEl< TPZInterfaceElement >;
 template class TPZReferredCompEl< TPZCompElDisc >;
-template class TPZReferredCompEl< TPZIntelGen<TPZGeoPoint,TPZShapePoint> >;
-template class TPZReferredCompEl< TPZIntelGen<TPZGeoLinear,TPZShapeLinear> >;
-template class TPZReferredCompEl< TPZIntelGen<TPZGeoQuad,TPZShapeQuad> >;
-template class TPZReferredCompEl< TPZIntelGen<TPZGeoTriangle,TPZShapeTriang> >;
-template class TPZReferredCompEl< TPZIntelGen<TPZGeoCube,TPZShapeCube> >;
-template class TPZReferredCompEl< TPZIntelGen<TPZGeoPrism,TPZShapePrism> >;
-template class TPZReferredCompEl< TPZIntelGen<TPZGeoPyramid,TPZShapePiram> >;
-template class TPZReferredCompEl< TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra> >;
+template class TPZReferredCompEl< TPZIntelGen<TPZShapePoint> >;
+template class TPZReferredCompEl< TPZIntelGen<TPZShapeLinear> >;
+template class TPZReferredCompEl< TPZIntelGen<TPZShapeQuad> >;
+template class TPZReferredCompEl< TPZIntelGen<TPZShapeTriang> >;
+template class TPZReferredCompEl< TPZIntelGen<TPZShapeCube> >;
+template class TPZReferredCompEl< TPZIntelGen<TPZShapePrism> >;
+template class TPZReferredCompEl< TPZIntelGen<TPZShapePiram> >;
+template class TPZReferredCompEl< TPZIntelGen<TPZShapeTetra> >;
 
 TPZCompEl * CreateReferredPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZReferredCompEl< TPZIntelGen<TPZGeoPoint,TPZShapePoint> >(mesh,gel,index);
+  return new TPZReferredCompEl< TPZIntelGen<TPZShapePoint> >(mesh,gel,index);
 }
 
 TPZCompEl * CreateReferredLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZReferredCompEl< TPZIntelGen<TPZGeoLinear,TPZShapeLinear> >(mesh,gel,index);
+  return new TPZReferredCompEl< TPZIntelGen<TPZShapeLinear> >(mesh,gel,index);
 }
 
 TPZCompEl * CreateReferredQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZReferredCompEl< TPZIntelGen<TPZGeoQuad,TPZShapeQuad> >(mesh,gel,index);
+  return new TPZReferredCompEl< TPZIntelGen<TPZShapeQuad> >(mesh,gel,index);
 }
 
 TPZCompEl * CreateReferredTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZReferredCompEl< TPZIntelGen<TPZGeoTriangle,TPZShapeTriang> >(mesh,gel,index);
+  return new TPZReferredCompEl< TPZIntelGen<TPZShapeTriang> >(mesh,gel,index);
 }
 
 TPZCompEl * CreateReferredCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZReferredCompEl< TPZIntelGen<TPZGeoCube,TPZShapeCube> >(mesh,gel,index);
+  return new TPZReferredCompEl< TPZIntelGen<TPZShapeCube> >(mesh,gel,index);
 }
 
 TPZCompEl * CreateReferredPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZReferredCompEl< TPZIntelGen<TPZGeoPrism,TPZShapePrism> >(mesh,gel,index);
+  return new TPZReferredCompEl< TPZIntelGen<TPZShapePrism> >(mesh,gel,index);
 }
 
 TPZCompEl * CreateReferredPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZReferredCompEl< TPZIntelGen<TPZGeoPyramid,TPZShapePiram> >(mesh,gel,index);
+  return new TPZReferredCompEl< TPZIntelGen<TPZShapePiram> >(mesh,gel,index);
 }
 
 TPZCompEl * CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZReferredCompEl< TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra> >(mesh,gel,index);
+  return new TPZReferredCompEl< TPZIntelGen<TPZShapeTetra> >(mesh,gel,index);
 }
 
 TPZCompEl * CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeoprism.h,v 1.9 2007-04-13 18:59:40 phil Exp $
+// $Id: pzgeoprism.h,v 1.10 2007-04-20 18:31:10 caju Exp $
 
 // TPZGeoPrism.h: interface for the TPZGeoQuad class.
 //
@@ -11,11 +11,10 @@
 #include "pznoderep.h"
 #include "pzvec.h"
 #include "pzeltype.h"
+#include "tpzprism.h"
 
 class TPZFMatrix;
 class TPZGeoEl;
-class TPZIntPoints;
-class TPZIntPrism3D;
 class TPZGeoMesh;
 
 #include <string>
@@ -24,22 +23,22 @@ class TPZGeoMesh;
 namespace pzgeom {
 
 /// implements the geometry of a prism element
-class TPZGeoPrism : public TPZNodeRep<6>  
+class TPZGeoPrism : public TPZNodeRep<6, pztopology::TPZPrism>  
 {
 public:
 
-	enum {NNodes = 6, NSides = 21};
+	enum {NNodes = 6};
   /**
   * Constructor with list of nodes
    */
- TPZGeoPrism(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+ TPZGeoPrism(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes, pztopology::TPZPrism>(nodeindexes)
  {
  }
   
   /**
   * Empty constructor
    */
- TPZGeoPrism() : TPZNodeRep<NNodes>()
+ TPZGeoPrism() : TPZNodeRep<NNodes, pztopology::TPZPrism>()
  {
  }
   
@@ -47,59 +46,16 @@ public:
   * Constructor with node map
    */
  TPZGeoPrism(const TPZGeoPrism &cp,
-                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp,gl2lcNdMap)
  {
  }
   
   /**
   * Copy constructor
    */
- TPZGeoPrism(const TPZGeoPrism &cp) : TPZNodeRep<NNodes>(cp)
+ TPZGeoPrism(const TPZGeoPrism &cp) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp)
  {
  }
-
-
-  /**
-   * return the type of the element as specified in file pzeltype.h
-   */
-  static MElementType Type();// { return EPrisma;}
-
-/**
-  * return the type of the element as specified in file pzeltype.h
-  */
-static MElementType Type(int side);/* {
-  switch(side) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-      return EPoint;
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
-    case 13:
-    case 14:
-      return EOned;
-    case 15:
-      return ETriangle;
-    case 16:
-    case 17:
-    case 18:
-      return EQuadrilateral;
-    case 19:
-      return ETriangle;
-    case 20:
-      return EPrisma;
-    default:
-      return ENoType;
-  }
-}*/
 
 /**
  * returns the type name of the element
@@ -122,14 +78,6 @@ static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
    */
 static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 
-  /**
-   * Create an integration rule 
-   * @param order order of the integration rule to be created
-   * @param side side to create integration rule
-   */
-static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
-
-  typedef TPZIntPrism3D IntruleType;
 
 };
 

@@ -41,113 +41,113 @@ using namespace pzgeom;
 using namespace pzrefine;
 using namespace pzshape;
 
-template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
-template class TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>;
-template class TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>;
-template class TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>;
-template class TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>;
-template class TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>;
-template class TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>;
-template class TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>;
+template class TPZGeoElement<TPZGeoPoint,TPZRefPoint>;
+template class TPZGeoElement<TPZGeoLinear,TPZRefLinear>;
+template class TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>;
+template class TPZGeoElement<TPZGeoQuad,TPZRefQuad>;
+template class TPZGeoElement<TPZGeoCube,TPZRefCube>;
+template class TPZGeoElement<TPZGeoPrism,TPZRefPrism>;
+template class TPZGeoElement<TPZGeoTetrahedra,TPZRefTetrahedra>;
+template class TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>;
 
 #ifndef BORLAND
 
 /** ClassId method for each instantiation followed by the registration of the class in the TPZRestoreClass */
 template<>
-int TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>::ClassId() const {
+int TPZGeoElement<TPZGeoPoint,TPZRefPoint>::ClassId() const {
   return TPZFGEOELEMENTPOINTID;
 }
 template class
-TPZRestoreClass< TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>, TPZFGEOELEMENTPOINTID>;
+TPZRestoreClass< TPZGeoElement<TPZGeoPoint,TPZRefPoint>, TPZFGEOELEMENTPOINTID>;
 
 template<>
-int TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::ClassId() const {
+int TPZGeoElement<TPZGeoLinear,TPZRefLinear>::ClassId() const {
   return TPZFGEOELEMENTLINEARID;
 }
 template class
-TPZRestoreClass< TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>, TPZFGEOELEMENTLINEARID>;
+TPZRestoreClass< TPZGeoElement<TPZGeoLinear,TPZRefLinear>, TPZFGEOELEMENTLINEARID>;
 
 template<>
-int TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::ClassId() const {
+int TPZGeoElement<TPZGeoQuad,TPZRefQuad>::ClassId() const {
   return TPZFGEOELEMENTQUADID;
 }
 template class
-TPZRestoreClass< TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>, TPZFGEOELEMENTQUADID>;
+TPZRestoreClass< TPZGeoElement<TPZGeoQuad,TPZRefQuad>, TPZFGEOELEMENTQUADID>;
 
 template<>
-int TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::ClassId() const {
+int TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>::ClassId() const {
   return TPZFGEOELEMENTRIANGLEID;
 }
 template class
-TPZRestoreClass< TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>, TPZFGEOELEMENTRIANGLEID>;
+TPZRestoreClass< TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>, TPZFGEOELEMENTRIANGLEID>;
 
 template<>
-int TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::ClassId() const {
+int TPZGeoElement<TPZGeoCube,TPZRefCube>::ClassId() const {
   return TPZFGEOELEMENTCUBEID;
 }
 template class
-TPZRestoreClass< TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>, TPZFGEOELEMENTCUBEID>;
+TPZRestoreClass< TPZGeoElement<TPZGeoCube,TPZRefCube>, TPZFGEOELEMENTCUBEID>;
 
 template<>
-int TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::ClassId() const {
+int TPZGeoElement<TPZGeoPrism,TPZRefPrism>::ClassId() const {
   return TPZFGEOELEMENTPRISMID;
 }
 template class
-TPZRestoreClass< TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>, TPZFGEOELEMENTPRISMID>;
+TPZRestoreClass< TPZGeoElement<TPZGeoPrism,TPZRefPrism>, TPZFGEOELEMENTPRISMID>;
 
 template<>
-int TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::ClassId() const {
+int TPZGeoElement<TPZGeoTetrahedra,TPZRefTetrahedra>::ClassId() const {
   return TPZFGEOELEMENTTETRAID;
 }
 template class
-TPZRestoreClass< TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>, TPZFGEOELEMENTTETRAID>;
+TPZRestoreClass< TPZGeoElement<TPZGeoTetrahedra,TPZRefTetrahedra>, TPZFGEOELEMENTTETRAID>;
 
 template<>
-int TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::ClassId() const {
+int TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>::ClassId() const {
   return TPZFGEOELEMENTPYRAMID;
 }
 template class
-TPZRestoreClass< TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>, TPZFGEOELEMENTPYRAMID>;
+TPZRestoreClass< TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>, TPZFGEOELEMENTPYRAMID>;
 
 #else
 
 int
-TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>::ClassId() const {
+TPZGeoElement<TPZGeoPoint,TPZRefPoint>::ClassId() const {
   return TPZFGEOELEMENTPOINTID;
 }
 
 int
-TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::ClassId() const {
+TPZGeoElement<TPZGeoLinear,TPZRefLinear>::ClassId() const {
   return TPZFGEOELEMENTLINEARID;
 }
 
 int
-TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::ClassId() const {
+TPZGeoElement<TPZGeoQuad,TPZRefQuad>::ClassId() const {
   return TPZFGEOELEMENTQUADID;
 }
 
 int
-TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::ClassId() const {
+TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>::ClassId() const {
   return TPZFGEOELEMENTRIANGLEID;
 }
 
 int
-TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::ClassId() const {
+TPZGeoElement<TPZGeoCube,TPZRefCube>::ClassId() const {
   return TPZFGEOELEMENTCUBEID;
 }
 
 int
-TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>::ClassId() const {
+TPZGeoElement<TPZGeoPrism,TPZRefPrism>::ClassId() const {
   return TPZFGEOELEMENTPRISMID;
 }
 
 int
-TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::ClassId() const {
+TPZGeoElement<TPZGeoTetrahedra,TPZRefTetrahedra>::ClassId() const {
   return TPZFGEOELEMENTTETRAID;
 }
 
 int
-TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::ClassId() const {
+TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>::ClassId() const {
   return TPZFGEOELEMENTPYRAMID;
 }
 #endif

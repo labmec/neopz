@@ -10,36 +10,34 @@
 #include "pzvec.h"
 #include "pzeltype.h"
 #include "pzfmatrix.h"
+#include "tpzline.h"
 
 #include <string>
 
 
 class TPZFMatrix;
 class TPZGeoEl;
-class TPZIntPoints;
-class TPZInt1d;
-class TPZGraphEl1dd;
 class TPZGeoMesh;
 
 namespace pzgeom {
 
 /// implements the geometry of a one dimensional linear element
-  class TPZGeoLinear : public TPZNodeRep<2> {
+  class TPZGeoLinear : public TPZNodeRep<2, pztopology::TPZLine> {
 
 public:
-	enum {NNodes = 2, NSides = 3};
+	enum {NNodes = 2};
 
   /**
   * Constructor with list of nodes
    */
- TPZGeoLinear(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+ TPZGeoLinear(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
  {
  }
   
   /**
   * Empty constructor
    */
- TPZGeoLinear() : TPZNodeRep<NNodes>()
+ TPZGeoLinear() : TPZNodeRep<NNodes, pztopology::TPZLine>()
  {
  }
   
@@ -47,38 +45,18 @@ public:
   * Constructor with node map
    */
  TPZGeoLinear(const TPZGeoLinear &cp,
-                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp,gl2lcNdMap)
  {
  }
   
   /**
   * Copy constructor
    */
- TPZGeoLinear(const TPZGeoLinear &cp) : TPZNodeRep<NNodes>(cp)
+ TPZGeoLinear(const TPZGeoLinear &cp) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
  {
  }
 
 
-  /**
-   * return the type of the element as specified in file pzeltype.h
-   */
-static MElementType Type() ;//{ return EOned;}
-
-/**
-  * return the type of the element as specified in file pzeltype.h
-  */
-static MElementType Type(int side);/* {
-  switch(side) {
-    case 0:
-    case 1:
-      return EPoint;
-    case 2:
-      return EOned;
-    default:
-      return ENoType;
-  }
-}
-*/
 /**
  * returns the type name of the element
  */
@@ -93,12 +71,7 @@ static void Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian,
 
 static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 
-static TPZIntPoints *CreateSideIntegrationRule(int side, int order);
 
-static int NSubElements();
-
- typedef TPZInt1d IntruleType;
- typedef TPZGraphEl1dd GraphElType;
 
 
 };
@@ -132,15 +105,15 @@ inline void TPZGeoLinear::Jacobian(TPZFMatrix &coord,TPZVec<REAL> &param,TPZFMat
   }
 
   // VERSAO ORIGINAL
-//   TPZFNMatrix<9> phi(NNodes,1);
-//   TPZFNMatrix<18> dphi(1,NNodes);
+//   TPZFNMatrix<9> phi(NNodes, pztopology::TPZLine,1);
+//   TPZFNMatrix<18> dphi(1,NNodes, pztopology::TPZLine);
 //   Shape(param,phi,dphi);
 
 //   int ic;
 //   TPZManVector<REAL,3> v1(3,0.);
 //   REAL mod1 = 0.;
 
-//   for(int i=0; i < NNodes; i++) {
+//   for(int i=0; i < NNodes, pztopology::TPZLine; i++) {
 //     for(ic = 0; ic < 3; ic++) {
 //       v1[ic] += coord(ic,i)*dphi(0,i);
 //     }
@@ -168,12 +141,12 @@ inline void TPZGeoLinear::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &re
   int nrow = coord.Rows();
   for(ic=0; ic<nrow; ic++) result[ic] = coord(ic,0)*(1.-xi)*0.5+coord(ic,1)*(1.+xi)*0.5;
 
-//   TPZFNMatrix<9> phi(NNodes,1);
-//   TPZFNMatrix<18> dphi(1,NNodes);
+//   TPZFNMatrix<9> phi(NNodes, pztopology::TPZLine,1);
+//   TPZFNMatrix<18> dphi(1,NNodes, pztopology::TPZLine);
 //   Shape(loc,phi,dphi);
 //   int in,ic;
 //   for(in=0; in<3; in++) result[in] = 0.;
-//   for(in = 0; in < NNodes; in++) {
+//   for(in = 0; in < NNodes, pztopology::TPZLine; in++) {
 //     for(ic=0; ic<3 ; ic++) {
 //       result[ic] += coord(ic,in)*phi(in,0);
 //     }

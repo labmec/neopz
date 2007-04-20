@@ -21,38 +21,6 @@ using namespace pzshape;
 
 namespace pzgeom {
 
-MElementType TPZGeoTetrahedra::Type()
-{
-  return ETetraedro;
-}
-
-MElementType TPZGeoTetrahedra::Type(int side)
-{
-  switch(side) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-      return EPoint;
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-      return EOned;
-    case 10:
-    case 11:
-    case 12:
-    case 13:
-      return ETriangle;
-    case 14:
-      return ETetraedro;
-    default:
-      return ENoType;
-  }
-}
-
 
 void TPZGeoTetrahedra::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
   phi(0,0)  = 1-pt[0]-pt[1]-pt[2];
@@ -194,21 +162,5 @@ TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 }
 
 
-TPZIntPoints * TPZGeoTetrahedra::CreateSideIntegrationRule(int side, int order){
-	if(side<0 || side>15) {
-		PZError << "TPZGeoTetrahedra::CreateSideIntegrationRule. bad side number.\n";
-   		return 0;
-	}
-	//SideOrder corrige sides de 4 a 14 para 0 a 10
-	if(side<4)   return new TPZInt1Point();//cantos 0 a 3 : cria regra com um ponto
-	if(side<10)  return new TPZInt1d(order);//lados 4 a 9
-	if(side<14)  {//faces : 10 a 13
-   		return new TPZIntTriang(order);
-	}
-	if(side==14) {//integra�o do elemento
-   		return new TPZIntTetra3D(order);
-	}
-	return 0;
-}
 
 };

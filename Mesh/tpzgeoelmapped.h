@@ -23,25 +23,24 @@ This class implements a geometric element which uses its ancestral to compute it
 
 @author Philippe R. B. Devloo
 */
-template<class TGeo, class TShape, class TFather>
-class TPZGeoElMapped : public TFather {
+template<class TGeo, class TShape, class TBase>
+class TPZGeoElMapped : public TBase {
 public:
-  TPZGeoElMapped() : TFather(), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
+  TPZGeoElMapped() : TBase(), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
   {
   }
   TPZGeoElMapped(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh) :
-      TFather(id,nodeindexes,matind,mesh), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
+      TBase(id,nodeindexes,matind,mesh), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
       {
       }
   TPZGeoElMapped(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) :
-      TFather(nodeindices,matind,mesh), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
+      TBase(nodeindices,matind,mesh), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
       {
       }
   TPZGeoElMapped(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index) :
-      TFather(nodeindices,matind,mesh,index), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
+      TBase(nodeindices,matind,mesh,index), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
       {
       }
-
 
   ~TPZGeoElMapped()
   {
@@ -50,8 +49,8 @@ public:
   /**Sets the father element index*/
   virtual void SetFather(int fatherindex)
   {
-    TFather::SetFather(fatherindex);
-    TPZGeoEl *father = TFather::Father();
+    TBase::SetFather(fatherindex);
+    TPZGeoEl *father = TBase::Father();
     if(!father) return;
     TPZGeoEl *nextfather = 0;
     if(father) nextfather = father->Father();
@@ -82,11 +81,18 @@ public:
     
   }
 
-  /**return the Jacobian matrix at the point*/
+  /**return the Jacobian matrix at the point (from son to father)*/
   virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)
   {
-    TPZGeoEl *father = TFather::Father();
-    if(!father) return;
+    /**
+    / Creating Variables
+   */
+    TPZGeoEl *father = TBase::Father();
+    if(!father) 
+    {
+      TBase::Jacobian(coordinate,jac,axes,detjac,jacinv);
+      return;
+    }
     TPZGeoEl *nextfather = 0;
     if(father) nextfather = father->Father();
     while(nextfather)
@@ -96,41 +102,199 @@ public:
     }
     const int dim = TShape::Dimension;
     TPZManVector<REAL,3> ksibar(father->Dimension());
-    TPZFNMatrix<dim*dim> jaclocal(dim,dim,0.),jacinvlocal(dim,dim,0.),jacfather(dim,dim,0.),
-    jacinvfather(dim,dim,0.);
-    TPZFNMatrix<9> axeslocal(3,3,0.),axesfinal(3,3,0.),axesfather(3,3,0.);
+    TPZFNMatrix<dim*dim> jaclocal(dim,dim,0.),jacinvlocal(dim,dim,0.),jacfather(dim,dim,0.), jacinvfather(dim,dim,0.);
+    TPZFNMatrix<9> axeslocal(3,3,0.), /*axesfinal(3,3,0.),*/axesfather(3,3,0.);
     REAL detjaclocal, detjacfather;
+
+    /**
+    / Processing Variables (isolated)
+   */
     TGeo::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);
     axeslocal.Transpose();
     TGeo::X(fCornerCo,coordinate,ksibar);
     father->Jacobian(ksibar,jacfather,axesfather,detjacfather,jacinvfather);
-    axeslocal.Multiply(axes,axesfinal);
-    jacfather.Multiply(jaclocal,jac);
+
+    /**
+    / Combining Variables
+   */
+    axeslocal.Multiply(axesfather,axes);
+    jaclocal.Multiply(jacfather,jac);
     jacinvlocal.Multiply(jacinvfather,jacinv);
     detjac = detjaclocal*detjacfather;
+
   }
 
   /**return the coordinate in real space of the point coordinate in the master element space*/
   virtual void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result)
   {
-    TPZGeoEl *father = TFather::Father();
-    if(!father) return;
-    TPZGeoEl *nextfather = 0;
-    if(father) nextfather = father->Father();
-    while(nextfather)
+    TPZGeoEl *father = TBase::Father();
+
+    if(!father)
     {
-      father = nextfather;
-      nextfather = father->Father();
+        return TBase::X(coordinate,result);
     }
 
-    TPZManVector<REAL,3> ksibar(father->Dimension());
-    KsiBar(coordinate,ksibar);
-    father->X(ksibar,result);
+    else
+    {
+        TPZManVector<REAL,3> ksibar(this->Dimension());
+        TPZGeoEl *nextfather = 0;
+        if(father) nextfather = father->Father();
+        while(nextfather)
+        {
+          father = nextfather;
+          nextfather = father->Father();
+        }
+
+        KsiBar(coordinate,ksibar);
+        father->X(ksibar,result);
+    }
+  }
+
+  virtual void Print(std::ostream & out = std::cout)
+  {
+        TBase::Print(out);
+
+        out << "\nfCornerCo Print():\n";
+        fCornerCo.Print();
+  }
+
+  /**Avaliate the Jacobian 2D (2x2 size) by Expected Convergence Order*/
+//   virtual void JacobianConv(TPZVec< REAL > QsiEta,  TPZVec< REAL > &XYZ)
+//   {std::cout << "***USING THE JACOBIAN FOR 2D ELEMENTS METHOD***\n\n";
+//           TPZFMatrix jacobian(2,2);
+//           TPZFMatrix Axes(3,3);
+//           REAL detJacobian;
+//           TPZFMatrix InvJac(2,2);
+//           TPZVec< REAL > QsiEtaIni (2,1);
+//           QsiEtaIni[0] = QsiEta[0];
+//           QsiEtaIni[1] = QsiEta[1];
+//           const double deltaQsi = 0.1;
+//           const double deltaEta = 0.1;
+//           double alpha;
+// 
+//           std::cout << "\ninitial Qsi = " << QsiEtaIni[0] << " | initial Eta = " << QsiEtaIni[1] << "\n";
+//           std::cout << "deltaQsi = const = " << deltaQsi << " | deltaEta = const = " << deltaEta << "\n\n";
+// 
+//           TPZVec< REAL > XYZaprox(3);
+//           TPZFMatrix error(11,1,0.);
+//           int edge;
+//           double dX, dY, dZ;
+//           for(int i = 0; i <= 10; i++)
+//           {
+//                 alpha = i/10.;
+//                 std::cout << "\nalpha = " << alpha << std::endl;
+//                 X(QsiEtaIni,XYZ);//for aproximate compute
+//                 std::cout << "f(x)                     : x = " << XYZ[0] << " | y = " << XYZ[1] << " | z = " << XYZ[2] << "\n";
+//                 Jacobian(QsiEtaIni,jacobian,Axes,detJacobian,InvJac);
+// 
+//                 dX = alpha*( jacobian.GetVal(0,0)*deltaQsi + jacobian.GetVal(0,1)*deltaEta )*Axes(0,0) + alpha*( jacobian.GetVal(1,0)*deltaQsi + jacobian.GetVal(1,1)*deltaEta )*Axes(1,0);
+//                 XYZaprox[0] = XYZ[0] + dX;
+// 
+//                 dY = alpha*( jacobian.GetVal(0,0)*deltaQsi + jacobian.GetVal(0,1)*deltaEta )*Axes(0,1) + alpha*( jacobian.GetVal(1,0)*deltaQsi + jacobian.GetVal(1,1)*deltaEta )*Axes(1,1);
+//                 XYZaprox[1] = XYZ[1] + dY;
+// 
+//                 dZ = alpha*( jacobian.GetVal(0,0)*deltaQsi + jacobian.GetVal(0,1)*deltaEta )*Axes(0,2) + alpha*( jacobian.GetVal(1,0)*deltaQsi + jacobian.GetVal(1,1)*deltaEta )*Axes(1,2);
+//                 XYZaprox[2] = XYZ[2] + dZ;
+// 
+//                 QsiEta[0] = QsiEtaIni[0] + alpha*deltaQsi;
+//                 QsiEta[1] = QsiEtaIni[1] + alpha*deltaEta;
+//                 edge = i;
+//                 if(QsiEta[1] > 1.00001 - QsiEta[0]) break;
+//                 X(QsiEta,XYZ);//for real compute
+// 
+//                 std::cout << "alpha.(axes.J).dx        : x = " << dX << " | y = " << dY << " | z = " << dZ << "\n";
+//                 std::cout << "f(x) + alpha.(axes.J).dx : x = " << XYZaprox[0] << " | y = " << XYZaprox[1] << " | z = " << XYZaprox[2] << "\n";
+//                 std::cout << "f(x + alpha.dx)          : x = " << XYZ[0] << " | y = " << XYZ[1] << " | z = " << XYZ[2] << "\n";
+// 
+//                 XYZ[0] -= XYZaprox[0];
+//                 XYZ[1] -= XYZaprox[1];
+//                 XYZ[2] -= XYZaprox[2];
+// 
+//                 double XDiffNorm = sqrt(XYZ[0]*XYZ[0] + XYZ[1]*XYZ[1] + XYZ[2]*XYZ[2]);
+//                 error(int(i),0) = XDiffNorm;
+//           }
+// 
+//           std::cout << "\n|| [f(x + alpha.dx)] - [f(x) + alpha.(axes.J).dx] ||:\n\n"; error.Print();
+// 
+//           std::cout << "\nConvergence Order:\n";
+//           for(int j = 2; j < edge; j++)
+//           {
+//                 std::cout << ( log(error(1,0)) - log(error(j,0)) )/( log(0.1)-log(j/10.) ) << "\n";
+//           }
+//           if(edge != 10) std::cout << "The direction track has touch the edge of the element.\nThe method has stopped!\n";
+//   }
+
+  /**Avaliate the Jacobian 3D (3x3 size) by Expected Convergence Order*/
+  virtual void JacobianConv(TPZVec< REAL > QsiEta,  TPZVec< REAL > &XYZ)
+  {std::cout << "\n***USING THE JACOBIAN FOR 3D ELEMENTS METHOD***\n";
+          TPZFMatrix jacobian(3,3);
+          TPZFMatrix Axes(3,3);
+          REAL detJacobian;
+          TPZFMatrix InvJac(3,3);
+          TPZVec< REAL > QsiEtaIni (3,1);
+          QsiEtaIni[0] = QsiEta[0];
+          QsiEtaIni[1] = QsiEta[1];
+          QsiEtaIni[2] = QsiEta[2];
+          const double deltaQsi  = 0.1;
+          const double deltaEta  = 0.1;
+          const double deltaZeta = 0.1;
+          double alpha;
+
+          std::cout << "\ninitial Qsi = " << QsiEtaIni[0] << " | initial Eta = " << QsiEtaIni[1] << " | initial Zeta = " << QsiEtaIni[2] <<"\n";
+          std::cout << "deltaQsi = const = " << deltaQsi << " | deltaEta = const = " << deltaEta << " | deltaZeta = const = " << deltaZeta <<"\n\n";
+
+          TPZVec< REAL > XYZaprox(3);
+          TPZFMatrix error(11,1,0.);
+          int edge;
+          double dX, dY, dZ;
+          for(int i = 0; i <= 10; i++)
+          {
+                alpha = i/10.;
+                X(QsiEtaIni,XYZ);//for aproximate compute
+                Jacobian(QsiEtaIni,jacobian,Axes,detJacobian,InvJac);
+
+                dX = alpha*( jacobian.GetVal(0,0)*deltaQsi + jacobian.GetVal(0,1)*deltaEta + jacobian.GetVal(0,2)*deltaZeta)*Axes(0,0) + alpha*( jacobian.GetVal(1,0)*deltaQsi + jacobian.GetVal(1,1)*deltaEta + jacobian.GetVal(1,2)*deltaZeta)*Axes(1,0) + alpha*( jacobian.GetVal(2,0)*deltaQsi + jacobian.GetVal(2,1)*deltaEta + jacobian.GetVal(2,2)*deltaZeta)*Axes(2,0);
+                XYZaprox[0] = XYZ[0] + dX;
+
+                dY = alpha*( jacobian.GetVal(0,0)*deltaQsi + jacobian.GetVal(0,1)*deltaEta + jacobian.GetVal(0,2)*deltaZeta)*Axes(0,1) + alpha*( jacobian.GetVal(1,0)*deltaQsi + jacobian.GetVal(1,1)*deltaEta + jacobian.GetVal(1,2)*deltaZeta)*Axes(1,1) + alpha*( jacobian.GetVal(2,0)*deltaQsi + jacobian.GetVal(2,1)*deltaEta + jacobian.GetVal(2,2)*deltaZeta)*Axes(2,1);
+                XYZaprox[1] = XYZ[1] + dY;
+
+                dZ = alpha*( jacobian.GetVal(0,0)*deltaQsi + jacobian.GetVal(0,1)*deltaEta + jacobian.GetVal(0,2)*deltaZeta)*Axes(0,2) + alpha*( jacobian.GetVal(1,0)*deltaQsi + jacobian.GetVal(1,1)*deltaEta + jacobian.GetVal(1,2)*deltaZeta)*Axes(1,2) + alpha*( jacobian.GetVal(2,0)*deltaQsi + jacobian.GetVal(2,1)*deltaEta + jacobian.GetVal(2,2)*deltaZeta)*Axes(2,2);
+                XYZaprox[2] = XYZ[2] + dZ;
+
+                QsiEta[0] = QsiEtaIni[0] + alpha*deltaQsi;
+                QsiEta[1] = QsiEtaIni[1] + alpha*deltaEta;
+                QsiEta[2] = QsiEtaIni[2] + alpha*deltaZeta;
+                edge = i + 1;
+                if((QsiEta[1]>1.00001-QsiEta[0]) || QsiEta[2]>1.00001-QsiEta[0]-QsiEta[1]) break;
+                X(QsiEta,XYZ);//for real compute
+
+                XYZ[0] -= XYZaprox[0];
+                XYZ[1] -= XYZaprox[1];
+                XYZ[2] -= XYZaprox[2];
+
+                double XDiffNorm = sqrt(XYZ[0]*XYZ[0] + XYZ[1]*XYZ[1] + XYZ[2]*XYZ[2]);
+                error(int(i),0) = XDiffNorm;
+          }
+
+          std::cout << "ERROR Vector:\n";
+          for(int j = 2; j < edge; j++)
+          {
+                std::cout << error(j,0) << "\n";
+          }
+
+          std::cout << "\nConvergence Order:\n";
+          for(int j = 2; j < edge; j++)
+          {
+                std::cout << ( log(error(1,0)) - log(error(j,0)) )/( log(0.1)-log(j/10.) ) << "\n";
+          }
+          if(edge != 11) std::cout << "The direction track has touch the edge of the element.\nThe method has stopped!\n";
   }
 
 private:
+
     TPZFNMatrix<TShape::Dimension*TGeo::NNodes> fCornerCo;
-    
+
     /// compute the map of the point ksi to the ancestor ksibar and the gradient of the ancestor ksibar with respect to ksi
     void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar, TPZFMatrix &jac)
     {
@@ -153,7 +317,7 @@ private:
         }
       }
     }
-    
+
     /// compute the map of the point ksi to the ancestor ksibar
     void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar)
     {

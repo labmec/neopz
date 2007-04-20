@@ -11,50 +11,6 @@ using namespace std;
 
 namespace pzgeom {
 
-MElementType TPZGeoCube::Type()
-{
-  return ECube;
-}
-
-MElementType TPZGeoCube::Type(int side)
-{
-  switch(side) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-      return EPoint;
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
-    case 13:
-    case 14:
-    case 15:
-    case 16:
-    case 17:
-    case 18:
-    case 19:        
-      return EOned;
-    case 20:
-    case 21:
-    case 22:
-    case 23:
-    case 24:
-    case 25:
-      return EQuadrilateral;
-    case 26:
-      return ECube;
-    default:
-      return ENoType;
-  }
-}
-
 void TPZGeoCube::X(TPZFMatrix &nodes,TPZVec<REAL> & loc,TPZVec<REAL> &result){
 
   int nrow = nodes.Rows();
@@ -240,23 +196,5 @@ TPZGeoEl *TPZGeoCube::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc) {
   return 0;
 }
 
-TPZIntPoints *TPZGeoCube::CreateSideIntegrationRule(int side, int order){
-
-  if(side<0 || side>26) {
-    PZError << "TPZGeoCube::CreateSideIntegrationRule. bad side number.\n";
-    return 0;
-  }
-  //SideOrder corrige sides de 8 a 26 para 0 a 18
-  if(side<8)   return new TPZInt1Point();//cantos 0 a 7
-  if(side<20)  return new TPZInt1d(order);//lados 8 a 19
-  if(side<26)  {//faces : 20 a 25
-    return new TPZIntQuad(order,order);
-  }
-  if(side==26) {//integra�o do elemento
-    return new TPZIntCube3D(order,order,order);
-  }
-  return 0;
-
-}
 
 };

@@ -46,4 +46,4 @@
 using namespace pzgeom;
 using namespace pzshape;
 
-template class TPZGeoElMapped<TPZGeoCube, TPZShapeCube, TPZGeoElRefPattern<TPZShapeCube,TPZGeoCube> >;
+template class TPZGeoElMapped<TPZGeoCube, TPZShapeCube, TPZGeoElRefPattern<TPZGeoCube> >;

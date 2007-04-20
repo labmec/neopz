@@ -20,8 +20,8 @@ class TPZGeoMesh;
 
 namespace pzgeom {
 
-template<int N>
-class TPZNodeRep
+template<int N, class Topology>
+class TPZNodeRep : public Topology
 
 {
 public:
@@ -55,7 +55,7 @@ public:
   /**
    * Copy constructor
    */
-  TPZNodeRep(const TPZNodeRep<N> &cp)
+  TPZNodeRep(const TPZNodeRep<N,Topology> &cp)
   {
     memcpy(fNodeIndexes,cp.fNodeIndexes,N*sizeof(int));
   }

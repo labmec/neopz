@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeopyramid.h,v 1.7 2007-04-13 18:59:40 phil Exp $
+// $Id: pzgeopyramid.h,v 1.8 2007-04-20 18:31:10 caju Exp $
 
 // TPZGeoPiramid.h: interface for the TPZGeoQuad class.
 //
@@ -11,33 +11,32 @@
 #include "pznoderep.h"
 #include "pzvec.h"
 #include "pzeltype.h"
+#include "tpzpyramid.h"
 
 class TPZFMatrix;
 class TPZGeoEl;
-class TPZIntPoints;
-class TPZIntPyram3D;
 class TPZGeoMesh;
 
 namespace pzgeom {
 
 /// implements the geometry of pyramid element
-class TPZGeoPyramid  : public TPZNodeRep<5>
+class TPZGeoPyramid  : public TPZNodeRep<5, pztopology::TPZPyramid>
 {
 public:
 
-	enum {NNodes = 5, NSides = 19};
+	enum {NNodes = 5};
 
   /**
   * Constructor with list of nodes
    */
- TPZGeoPyramid(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+ TPZGeoPyramid(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(nodeindexes)
  {
  }
   
   /**
   * Empty constructor
    */
- TPZGeoPyramid() : TPZNodeRep<NNodes>()
+ TPZGeoPyramid() : TPZNodeRep<NNodes, pztopology::TPZPyramid>()
  {
  }
   
@@ -45,57 +44,17 @@ public:
   * Constructor with node map
    */
  TPZGeoPyramid(const TPZGeoPyramid &cp,
-                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp,gl2lcNdMap)
  {
  }
   
   /**
   * Copy constructor
    */
- TPZGeoPyramid(const TPZGeoPyramid &cp) : TPZNodeRep<NNodes>(cp)
+ TPZGeoPyramid(const TPZGeoPyramid &cp) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp)
  {
  }
 
-
-  /**
-   * return the type of the element as specified in file pzeltype.h
-   */
-static MElementType Type();// { return EPiramide;}
-
-/**
-  * return the type of the element as specified in file pzeltype.h
-  */
-static MElementType Type(int side);/* {
-  switch(side) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-      return EPoint;
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
-      return EOned;
-    case 13:
-      return EQuadrilateral;
-    case 14:
-    case 15:
-    case 16:
-    case 17:
-      return ETriangle;
-    case 18:
-      return EPiramide;
-    default:
-      return ENoType;
-  }
-}
-*/
 /**
  * returns the type name of the element
  */
@@ -117,14 +76,6 @@ static std::string TypeName() { return "Pyramid";}
 	*/
 	static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 
-	/**
-	* Create an integration rule 
-	* @param order order of the integration rule to be created
-	* @param side side to create integration rule
-	*/
-	static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
-
-	typedef TPZIntPyram3D IntruleType;
 };
 
 };

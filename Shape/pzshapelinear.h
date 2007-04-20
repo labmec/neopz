@@ -7,6 +7,7 @@
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include "pztrnsform.h"
+#include "tpzline.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
@@ -26,10 +27,10 @@ namespace pzshape {
  * all static tables and functions concerning one-d elements will be grouped in this class
  * @ingroup shape
  */
-class TPZShapeLinear {
+class TPZShapeLinear : public pztopology::TPZLine{
 
 public:
-	enum {NNodes = 2, NSides = 3, Dimension = 1};
+
 /**
  *	pointer to function which returns num orthogonal functions at the point x
  * @param x coordinate of the point
@@ -189,28 +190,7 @@ static void TransformDerivative1d(int transid,int num,TPZFMatrix &in);
  * @return index of the tranformation
  */
 static int GetTransformId1d(TPZVec<int> &id);
-/**
- * Returns the transformation which transform a point from the interior of the element to the side
- * @param side side to which the point will be tranformed (0<=side<=2)
- * @return TPZTransform object
- * @see the class TPZTransform
- */
-static TPZTransform TransformElementToSide(int side);
 
-/**
- * Returns the transformation which transform a point from the side to the interior of the element
- * @param side side from which the point will be tranformed (0<=side<=2)
- * @return TPZTransform object
- * @see the class TPZTransform
- */
-static TPZTransform TransformSideToElement(int side);
-
-
-/**
- * Number of connects of the element (3)
- * @return number of connects of the element
- */
-static int NConnects();
 
 /**
  * Number of shapefunctions of the connect associated with the side, considering the order
@@ -228,49 +208,6 @@ static int NConnectShapeF(int side, int order);
  * @return number of shape functions
  */
 static int NShapeF(TPZVec<int> &order);
-
- /**
-  * returns the dimension of the side
-  */
-static int SideDimension(int side);
- /**
-  * returns the transformation which takes a point from the side sidefrom ot
-  * the side sideto
-  * @param sidefrom side where the point resides
-  * @param sideto side whose closure contains sidefrom
-  */
-static TPZTransform SideToSideTransform(int sidefrom, int sideto);
- /**
-  * returns all sides whose closure contains side
-  * @param side smaller dimension side
-  * @param high vector which will contain all sides whose closure contain sidefrom
-  */
-static void HigherDimensionSides(int side, TPZStack<int> &high);
- /**
-  * return the number of nodes (not connectivities) associated with a side
-  */
-static int NSideNodes(int side);
- /**
-  * returns the local node number of the node "node" along side "side"
-  */
-static int SideNodeLocId(int side, int node);
- /**
-  * return the number of nodes (not connectivities) associated with a side
-  */
-static int NSideConnects(int side);
- /**
-  * returns the local connect number of the connect "c" along side "side"
-  */
-static int SideConnectLocId(int side, int c);
-
- /**
-  * returns the barycentric coordinates in the master element space of the original element
-  */
-
- static void CenterPoint(int side, TPZVec<REAL> &center);
-
- /**volume of the master element*/
-static REAL RefElVolume(){return 2.0;}
 
 
 };

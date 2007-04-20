@@ -129,15 +129,15 @@ void TPZRefQuad::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
   int j,sub,matid=geo->MaterialId(),index;
   int np[TPZShapeQuad::NSides];//guarda conectividades dos 4 subelementos
   
-  for(j=0;j<TPZShapeQuad::NNodes;j++) np[j] = geo->NodeIndex(j);
-  for(sub=TPZShapeQuad::NNodes;sub<TPZShapeQuad::NSides;sub++) {
+  for(j=0;j<TPZShapeQuad::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
+  for(sub=TPZShapeQuad::NCornerNodes;sub<TPZShapeQuad::NSides;sub++) {
     NewMidSideNode(geo,sub,index);
     np[sub] = index;
   }
   // creating new subelements
-  for(i=0;i<TPZShapeQuad::NNodes;i++) {
-    TPZManVector<int>  cornerindexes(TPZShapeQuad::NNodes);
-    for(int j=0;j<TPZShapeQuad::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
+  for(i=0;i<TPZShapeQuad::NCornerNodes;i++) {
+    TPZManVector<int>  cornerindexes(TPZShapeQuad::NCornerNodes);
+    for(int j=0;j<TPZShapeQuad::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
     int index;
     TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EQuadrilateral,cornerindexes,matid,index);
     geo->SetSubElement(i , subel);
@@ -172,12 +172,12 @@ void TPZRefQuad::NewMidSideNode(TPZGeoEl *gel,int side,int &index) {
     }
     TPZVec<REAL> par(3,0.);
     TPZVec<REAL> coord(3,0.);
-    if(side < TPZShapeQuad::NNodes) {
+    if(side < TPZShapeQuad::NCornerNodes) {
       index = gel->NodeIndex(side); 
       return;
     }
     //aqui side = 8 a 26
-    side-=TPZShapeQuad::NNodes;//0,1,..,18
+    side-=TPZShapeQuad::NCornerNodes;//0,1,..,18
     par[0] = MidCoord[side][0];
     par[1] = MidCoord[side][1];
     gel->X(par,coord);
@@ -193,7 +193,7 @@ void TPZRefQuad::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
     return;
   }
   //sides 0 a 3
-  if(side<TPZShapeQuad::NNodes) {//o nó medio do lado 0 é o 0 etc.
+  if(side<TPZShapeQuad::NCornerNodes) {//o nó medio do lado 0 é o 0 etc.
     index = (gel)->NodeIndex(side);
     return; 
   }
@@ -201,7 +201,7 @@ void TPZRefQuad::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
   //como nó de algum filho se este existir
   //caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
   if(gel->HasSubElement()) {
-    side-=TPZShapeQuad::NNodes;
+    side-=TPZShapeQuad::NCornerNodes;
     index=(gel->SubElement(MidSideNodes[side][0]))->NodeIndex(MidSideNodes[side][1]);
   }
 }

@@ -20,43 +20,6 @@ using namespace std;
 
 namespace pzgeom {
 
-MElementType TPZGeoPyramid::Type()
-{
-  return EPiramide;
-}
-
-MElementType TPZGeoPyramid::Type(int side)
-{
-  switch(side) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-      return EPoint;
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
-      return EOned;
-    case 13:
-      return EQuadrilateral;
-    case 14:
-    case 15:
-    case 16:
-    case 17:
-      return ETriangle;
-    case 18:
-      return EPiramide;
-    default:
-      return ENoType;
-  }
-}
-
 void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
   if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
     //para testes com transforma�es geometricas-->>Que  o que faz o RefPattern!!
@@ -259,23 +222,5 @@ TPZGeoEl *TPZGeoPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	return 0;
 }
 
-
-TPZIntPoints * TPZGeoPyramid::CreateSideIntegrationRule(int side, int order){
-	if(side<0 || side>18) {
-		PZError << "TPZGeoPyramid::CreateSideIntegrationRule. bad side number.\n";
-		return 0;
-	}
-	//SideOrder corrige sides de 5 a 18 para 0 a 13
-	if(side<5)   return new TPZInt1Point();//cantos 0 a 3
-	if(side<13)  return new TPZInt1d(order);//lados 5 a 12
-	if(side==13) return new TPZIntQuad(order,order);
-	if(side<18)  {//faces : 14 a 17
-		return new TPZIntTriang(order);
-	}
-	if(side==18) {//integra�o do elemento
-		return new TPZIntPyram3D(order);
-	}
-	return 0;
-}
 
 };

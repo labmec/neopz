@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.27 2007-02-02 17:42:08 cesar Exp $
+//$Id: pzgmesh.h,v 1.28 2007-04-20 18:31:02 caju Exp $
 
 /**File : pzgmes.h
 
@@ -49,7 +49,7 @@ class TPZVec;
 //template<class T,class TT>
 //class TPZAVLMap;
 
-template <class TShape, class TGeo> class TPZGeoElRefPattern;
+template <class TGeo> class TPZGeoElRefPattern;
 
 /// this class implements a geometric mesh for the pz environment
 /**

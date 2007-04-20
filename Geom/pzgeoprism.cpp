@@ -18,46 +18,6 @@ using namespace std;
 
 namespace pzgeom {
 
-MElementType TPZGeoPrism::Type()
-{
-  return EPrisma;
-}
-
-MElementType TPZGeoPrism::Type(int side)
-{
-  switch(side) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-      return EPoint;
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
-    case 13:
-    case 14:
-      return EOned;
-    case 15:
-      return ETriangle;
-    case 16:
-    case 17:
-    case 18:
-      return EQuadrilateral;
-    case 19:
-      return ETriangle;
-    case 20:
-      return EPrisma;
-    default:
-      return ENoType;
-  }
-}
-
 
 void TPZGeoPrism::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
@@ -239,25 +199,6 @@ TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	
 	
 	return result;
-}
-
-
-TPZIntPoints * TPZGeoPrism::CreateSideIntegrationRule(int side, int order){
-	if(side<0 || side>20) {
-		PZError << "TPZGeoPrism::CreateSideIntegrationRule. bad side number.\n";
-		return 0;
-	}
-	//SideOrder corrige sides de 5 a 18 para 0 a 13
-	if(side<6)   return new TPZInt1Point();//cantos 0 a 5
-	if(side<15)  return new TPZInt1d(order);//lados 6 a 14
-	if(side==15 || side==19) return new TPZIntTriang(order);
-	if(side<20)  {//faces : 16 a 18
-		return new TPZIntQuad(order,order);
-	}
-	if(side==20) {//integra�o do elemento
-		return new TPZIntPrism3D(order,order);
-	}
-	return 0;
 }
 
 };

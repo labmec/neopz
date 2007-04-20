@@ -868,6 +868,72 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
 
 }
 
+void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
+
+  REAL error = 10.;
+
+  while(error > Tol)
+  {
+      TPZVec<REAL> X0(3,0.);
+      if(ksi.NElements()!=Dimension()) {
+        PZError << "\nTPZGeoEl::ComputeXInverse vector dimension error\n";
+        ksi.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
+        //return;
+      }
+      X(ksi,X0);//ksi deve ter dimensao do elemento atual
+      TPZFMatrix DelX(3,1);
+      int i;
+      for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
+      int dim = Dimension();
+      TPZFMatrix residual(dim,1),delksi(dim,1);
+      REAL detJ;
+      TPZFMatrix J(dim,dim,0.),axes(3,3,0.),Inv(dim,dim,0.);
+      TPZFMatrix JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
+      int nao = 0;
+      if(NSides() == 19 && nao){
+              ksi.Resize(3,0.);
+              REAL epsilon = 0.002;
+              ofstream outp("JACOBIANO");
+              for(int l=0;l<10;l++){	     
+                    ksi[0] = l*epsilon;
+                    ksi[1] = l*epsilon/2.0;
+                    outp << "ksi : " << ksi[0] << "  "	<< ksi[1] << endl;
+                Jacobian(ksi,J,axes,detJ,Inv);
+                    outp << "\nJacobiano ";
+                    J.Print("",outp);
+                    outp << "\nInversa do Jacobiano ";
+                    Inv.Print("",outp);
+                    TPZFMatrix Unit = J*Inv;
+                    outp << "Jac * InvJac = ";
+                    Unit.Print("",outp);
+                    outp << "\n det Jacobiano : " << detJ << "\n";
+              }
+              outp.flush();
+              //outp.close();
+              //exit(-1);
+      }
+      Jacobian(ksi,J,axes,detJ,Inv);
+      TPZFMatrix axest;
+      axes.Transpose(&axest);
+      axest.Resize(3,dim);//casos 1D e 2D onde JX espacial é 1x3 e 2x3 respectivamente
+      if(dim==1){
+            JX(0,0) = axest(0,0)*J(0,0);
+            JX(1,0) = axest(1,0)*J(0,0);
+            JX(2,0) = axest(2,0)*J(0,0);        
+      } else {
+          axest.Multiply(J,JX,0,1);
+      }
+      JX.Transpose(&JXt);
+      JXt.Multiply(JX,JXtJX,0,1);//JXtJX = JXt*JX;
+      JXt.Multiply(DelX,residual);//cout << "\nComputeXInverse: : \n";
+      JXtJX.SolveDirect(residual,ELU);//cout << "Atual/dimensao : " << Id() << " / " << Dimension();
+      for(i=0; i<dim; i++) ksi[i] += residual(i,0);
+      X(ksi,X0);
+      for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
+      error = Norm(DelX);
+  }
+}
+
 TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson){
 
   //transformacao do lado de elemento pequeno para elemento grande que o contem

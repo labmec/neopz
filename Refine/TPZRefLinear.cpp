@@ -62,15 +62,15 @@ void TPZRefLinear::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
   int j,sub,matid=geo->MaterialId(),index;
   int np[TPZShapeLinear::NSides];//guarda conectividades dos 8 subelementos
 
-  for(j=0;j<TPZShapeLinear::NNodes;j++) np[j] = geo->NodeIndex(j);
-  for(sub=TPZShapeLinear::NNodes;sub<TPZShapeLinear::NSides;sub++) {
+  for(j=0;j<TPZShapeLinear::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
+  for(sub=TPZShapeLinear::NCornerNodes;sub<TPZShapeLinear::NSides;sub++) {
     NewMidSideNode(geo,sub,index);
     np[sub] = index;
   }
   // creating new subelements
-  for(i=0;i<TPZShapeLinear::NNodes;i++) {
-    TPZManVector<int> cornerindexes(TPZShapeLinear::NNodes);
-    for(int j=0;j<TPZShapeLinear::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
+  for(i=0;i<TPZShapeLinear::NCornerNodes;i++) {
+    TPZManVector<int> cornerindexes(TPZShapeLinear::NCornerNodes);
+    for(int j=0;j<TPZShapeLinear::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
     int index;
     TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EOned,cornerindexes,matid,index);
     geo->SetSubElement(i , subel);
@@ -98,7 +98,7 @@ void TPZRefLinear::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index){
     return;
   }
   //sides 0 a 7
-  if(side<TPZShapeLinear::NNodes) {//o nó medio do lado 0 é o 0 etc.
+  if(side<TPZShapeLinear::NCornerNodes) {//o nó medio do lado 0 é o 0 etc.
     index = (gel)->NodeIndex(side);
     return; 
   }
@@ -106,7 +106,7 @@ void TPZRefLinear::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index){
   //como nó de algum filho se este existir
   //caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
   if(gel->HasSubElement()) {
-	  side-=TPZShapeLinear::NNodes;
+	  side-=TPZShapeLinear::NCornerNodes;
     index=(gel->SubElement(MidSideNodes[side][0]))->NodeIndex(MidSideNodes[side][1]);
   }
 }
@@ -124,12 +124,12 @@ void TPZRefLinear::NewMidSideNode(TPZGeoEl *gel,int side,int &index) {
 	}
     TPZVec<REAL> par(3,0.);
     TPZVec<REAL> coord(3,0.);
-    if(side < TPZShapeLinear::NNodes) {
+    if(side < TPZShapeLinear::NCornerNodes) {
 		index = gel->NodeIndex(side); 
 		return;
 	}
     //aqui side = 8 a 26
-    side-=TPZShapeLinear::NNodes;//0,1,..,18
+    side-=TPZShapeLinear::NCornerNodes;//0,1,..,18
     par[0] = MidCoord[side][0];
     gel->X(par,coord);
     index = gel->Mesh()->NodeVec().AllocateNewElement();

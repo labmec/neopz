@@ -305,21 +305,21 @@ void TPZRefPyramid::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
 	}
 	int j,sub,matid=geo->MaterialId(),index;
 	int np[TPZShapePiram::NSides];//guarda conectividades dos 8 subelementos
-	for(j=0;j<TPZShapePiram::NNodes;j++) np[j] = geo->NodeIndex(j);
-	for(sub=TPZShapePiram::NNodes;sub<14;sub++) {
+	for(j=0;j<TPZShapePiram::NCornerNodes;j++) np[j] = geo->NodeIndex(j);
+	for(sub=TPZShapePiram::NCornerNodes;sub<14;sub++) {
 		NewMidSideNode(geo,sub,index);
 		np[sub] = index;
 	}
 	// creating new subelements
 	for (i=0;i<6;i++){
-	  TPZManVector<int> cornerindexes(TPZShapePiram::NNodes);
-	  for(int j=0;j<TPZShapePiram::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
+	  TPZManVector<int> cornerindexes(TPZShapePiram::NCornerNodes);
+	  for(int j=0;j<TPZShapePiram::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
 	  TPZGeoEl *pi3sub = geo->Mesh()->CreateGeoElement(EPiramide,cornerindexes,matid,index);
 	  geo->SetSubElement(i,pi3sub);
 	}
 	for (;i<10;i++){
-	  TPZManVector<int> cornerindexes(TPZShapeTetra::NNodes);
-	  for(int j=0;j<TPZShapeTetra::NNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
+	  TPZManVector<int> cornerindexes(TPZShapeTetra::NCornerNodes);
+	  for(int j=0;j<TPZShapeTetra::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
 	  TPZGeoEl *t3sub = geo->Mesh()->CreateGeoElement(ETetraedro,cornerindexes,matid,index);
 	  geo->SetSubElement(i,t3sub);
 	}
@@ -353,12 +353,12 @@ void TPZRefPyramid::NewMidSideNode(TPZGeoEl *gel,int side,int &index) {
 		}
 		TPZVec<REAL> par(3,0.);
 		TPZVec<REAL> coord(3,0.);
-		if(side < TPZShapePiram::NNodes) {
+		if(side < TPZShapePiram::NCornerNodes) {
 			index = gel->NodeIndex(side); 
 			return;
 		}
 		//aqui side = 8 a 26
-		side-=TPZShapePiram::NNodes;//0,1,..,18
+		side-=TPZShapePiram::NCornerNodes;//0,1,..,18
 		par[0] = MidCoord[side][0];
 		par[1] = MidCoord[side][1];
 		par[2] = MidCoord[side][2];
@@ -375,7 +375,7 @@ void TPZRefPyramid::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
 		return;
 	}
 	//sides 0 a 7
-	if(side<TPZShapePiram::NNodes) {//o nó medio do lado 0 é o 0 etc.
+	if(side<TPZShapePiram::NCornerNodes) {//o nó medio do lado 0 é o 0 etc.
 		index = (gel)->NodeIndex(side);
 		return; 
 	}
@@ -383,7 +383,7 @@ void TPZRefPyramid::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
 	//como nó de algum filho se este existir
 	//caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
 	if(gel->HasSubElement()) {
-		side-=TPZShapePiram::NNodes;
+		side-=TPZShapePiram::NCornerNodes;
 		if(side >= NSubEl) {
 			index = -1;
 			PZError << "TPZRefPyramid : MidSideNodeIndex called for wrong side\n";

@@ -6,18 +6,18 @@
 #include "pzreal.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
+#include "tpzpoint.h"
 
 /// groups all classes dedicated to the computation of shape functions
-namespace pzshape {
+namespace pzshape{
 
 /// Computes the shpae functions associated with a point
 /**
  Compute the single shape function associated with a point
  @ingroup shape
 */
-class TPZShapePoint {
+class TPZShapePoint  : public pztopology::TPZPoint  {
 public:
-  enum {NNodes = 1, NSides = 1, Dimension = 0};
 
 /**
  * Computes the values of the shape functions and their derivatives for a quadrilateral element
@@ -39,78 +39,6 @@ public:
     if(side == 0) Shape(pt,id,order,phi,dphi);
   }
 
-  /**
-   * returns the local node number of the node "node" along side "side"
-   */
-  static int SideNodeLocId(int side, int node) {
-    return 0;
-  }
-
- /**volume of the master element*/
-  static REAL RefElVolume(){
-    return 0.;
-  }
-
- /**
-  * return the number of nodes (not connectivities) associated with a side
-  */
-  static int NSideNodes(int side) {
-    return 1;
-  }
- /**
-  * returns all sides whose closure contains side
-  * @param side smaller dimension side
-  * @param high vector which will contain all sides whose closure contain sidefrom
-  */
-  static void HigherDimensionSides(int side, TPZStack<int> &high) {
-  }
-
- /**
-  * return the number of nodes (not connectivities) associated with a side
-  */
-  static int NSideConnects(int side) {
-    return 1;
-  }
- /**
-  * returns the local connect number of the connect "c" along side "side"
-  */
-  static int SideConnectLocId(int side, int c) {
-    return 0;
-  }
- /**
-  * returns the barycentric coordinates in the master element space of the original element
-  */
-
-  static void CenterPoint(int side, TPZVec<REAL> &center) {
-  }
-
- /**
-  * returns the transformation which takes a point from the side sidefrom ot
-  * the side sideto
-  * @param sidefrom side where the point resides
-  * @param sideto side whose closure contains sidefrom
-  */
-  static TPZTransform SideToSideTransform(int sidefrom, int sideto) {
-    TPZTransform result(0,0);
-    return result;
-  }
-/**
- * Returns the transformation which transform a point from the side to the interior of the element
- * @param side side from which the point will be tranformed (0<=side<=2)
- * @return TPZTransform object
- * @see the class TPZTransform
- */
-  static TPZTransform TransformSideToElement(int side) {
-    TPZTransform result(0,0);
-    return result;
-  }
-
- /**
-  * returns the dimension of the side
-  */
-  static int SideDimension(int side) {
-    return 0;
-  }
 
   /**
  * Number of shapefunctions of the connect associated with the side, considering the order

@@ -9,6 +9,7 @@
 #include "pzvec.h"
 #include "pzeltype.h"
 #include "pzintel.h"
+#include "tpzpoint.h"
 
 class TPZFMatrix;
 class TPZGeoEl;
@@ -30,22 +31,22 @@ class TPZGeoMesh;
 namespace pzgeom {
 
 /// implements the geometry of a point element
-  class TPZGeoPoint : public TPZNodeRep<1> {
+  class TPZGeoPoint : public TPZNodeRep<1, pztopology::TPZPoint> {
 
 public:
-	enum {NNodes = 1, NSides = 1};
+	enum {NNodes = 1};
 
   /**
   * Constructor with list of nodes
    */
- TPZGeoPoint(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes>(nodeindexes)
+ TPZGeoPoint(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
  {
  }
   
   /**
   * Empty constructor
    */
- TPZGeoPoint() : TPZNodeRep<NNodes>()
+ TPZGeoPoint() : TPZNodeRep<NNodes, pztopology::TPZPoint>()
  {
  }
   
@@ -53,41 +54,22 @@ public:
   * Constructor with node map
    */
  TPZGeoPoint(const TPZGeoPoint &cp,
-                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes>(cp,gl2lcNdMap)
+                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp,gl2lcNdMap)
  {
  }
   
   /**
   * Copy constructor
    */
- TPZGeoPoint(const TPZGeoPoint &cp) : TPZNodeRep<NNodes>(cp)
+ TPZGeoPoint(const TPZGeoPoint &cp) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
  {
  }
 
 
-  /**
-   * return the type of the element as specified in file pzeltype.h
-   */
-static MElementType Type() ;//{ return EPoint;}
-
-
-/**
-  * return the type of the element as specified in file pzeltype.h
-  */
-static MElementType Type(int side) ;/*{
-  switch(side) {
-    case 0:
-      return EPoint;
-    default:
-      return ENoType;
-  }
-}
-*/
-
 /**
  * returns the type name of the element
  */
-static std::string TypeName() { return "Point";} 
+        static std::string TypeName() { return "Point";} 
 
 	static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 
@@ -98,11 +80,8 @@ static std::string TypeName() { return "Point";}
 
 	static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 
-	static TPZIntPoints *CreateSideIntegrationRule(int side, int order);
+//	static int NSubElements();
 
-	static int NSubElements();
-
-	typedef TPZInt1Point IntruleType;
 	//	typedef TPZGraphEl1dd GraphElType;
 };
 

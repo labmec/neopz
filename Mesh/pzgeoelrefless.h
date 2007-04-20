@@ -36,16 +36,16 @@ This class implements the mapping between the master element and deformed elemen
 Its data structure is the vector of node indices and element neighbours
 @ingroup geometry
 */
-template <class TShape, class TGeo>
+template <class TGeo>
 class TPZGeoElRefLess : public TPZGeoEl  {
 //  int fSubElement;
 protected:
   TGeo fGeo;
 //  int fNodeIndexes[TGeo::NNodes];
-  TPZGeoElSideIndex fNeighbours[TShape::NSides];
+  TPZGeoElSideIndex fNeighbours[TGeo::NSides];
 public:
 
-  ~TPZGeoElRefLess();
+  virtual ~TPZGeoElRefLess();
   TPZGeoElRefLess();
 
   /** Copy constructor */
@@ -254,15 +254,15 @@ public:
 
 };
 
-template<class TShape, class TGeo>
+template<class TGeo>
 inline
-TPZCompEl *TPZGeoElRefLess<TShape,TGeo>::CreateCompEl(TPZCompMesh &mesh,int &index){
+TPZCompEl *TPZGeoElRefLess<TGeo>::CreateCompEl(TPZCompMesh &mesh,int &index){
   return fp(this,mesh,index);
 }
 
-template<class TShape, class TGeo>
+template<class TGeo>
 inline
-void TPZGeoElRefLess<TShape,TGeo>::SetCreateFunction(TPZCompEl *(*f)(TPZGeoEl *el,TPZCompMesh &mesh,int &index)){
+void TPZGeoElRefLess<TGeo>::SetCreateFunction(TPZCompEl *(*f)(TPZGeoEl *el,TPZCompMesh &mesh,int &index)){
   fp = f;
 }
 

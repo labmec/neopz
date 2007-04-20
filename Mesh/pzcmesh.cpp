@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.57 2007-04-19 11:42:43 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.58 2007-04-20 18:31:02 caju Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1986,26 +1986,26 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 
 void TPZCompMesh::SetAllCreateFunctionsDiscontinuous(){
 
-  TPZGeoElement<pzshape::TPZShapePoint,  pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<pzshape::TPZShapeLinear, pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<pzshape::TPZShapeQuad,   pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<pzshape::TPZShapeTriang, pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<pzshape::TPZShapePrism,  pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<pzshape::TPZShapeTetra,  pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<pzshape::TPZShapePiram,  pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction(TPZCompElDisc::CreateDisc); 
-  TPZGeoElement<pzshape::TPZShapeCube,   pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement< pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement< pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement< pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction(TPZCompElDisc::CreateDisc);
+  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction(TPZCompElDisc::CreateDisc); 
+  TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction(TPZCompElDisc::CreateDisc);
    
 }
 void TPZCompMesh::SetAllCreateFunctionsContinuous(){
 
-  TPZGeoElement<pzshape::TPZShapePoint,  pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction( CreatePointEl);
-  TPZGeoElement<pzshape::TPZShapeLinear, pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction( CreateLinearEl);
-  TPZGeoElement<pzshape::TPZShapeQuad,   pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction( CreateQuadEl);
-  TPZGeoElement<pzshape::TPZShapeTriang, pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction( CreateTriangleEl);
-  TPZGeoElement<pzshape::TPZShapePrism,  pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction( CreatePrismEl);
-  TPZGeoElement<pzshape::TPZShapeTetra,  pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction( CreateTetraEl);
-  TPZGeoElement<pzshape::TPZShapePiram,  pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreatePyramEl); 
-  TPZGeoElement<pzshape::TPZShapeCube,   pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateCubeEl);
+  TPZGeoElement< pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction( CreatePointEl);
+  TPZGeoElement< pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction( CreateLinearEl);
+  TPZGeoElement< pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction( CreateQuadEl);
+  TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction( CreateTriangleEl);
+  TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction( CreatePrismEl);
+  TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction( CreateTetraEl);
+  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreatePyramEl); 
+  TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateCubeEl);
 
 }
 
@@ -2013,27 +2013,27 @@ void TPZCompMesh::SetAllCreateFunctionsContinuous(){
 #include "pzelctemp.h"
 void TPZCompMesh::SetAllCreateFunctionsDiscontinuousReferred(){
 
-  TPZGeoElement<pzshape::TPZShapePoint,  pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement<pzshape::TPZShapeLinear, pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement<pzshape::TPZShapeQuad,   pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement<pzshape::TPZShapeTriang, pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement<pzshape::TPZShapePrism,  pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement<pzshape::TPZShapeTetra,  pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement<pzshape::TPZShapePiram,  pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement<pzshape::TPZShapeCube,   pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction(CreateReferredDisc);
+  TPZGeoElement< pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction(CreateReferredDisc);
+  TPZGeoElement< pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction(CreateReferredDisc);
+  TPZGeoElement< pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction(CreateReferredDisc);
+  TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction(CreateReferredDisc);
+  TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction(CreateReferredDisc);
+  TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction(CreateReferredDisc);
+  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction(CreateReferredDisc);
+  TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction(CreateReferredDisc);
    
 }
 
 void TPZCompMesh::SetAllCreateFunctionsContinuousReferred(){
 
-  TPZGeoElement<pzshape::TPZShapePoint,  pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction( CreateReferredPointEl );
-  TPZGeoElement<pzshape::TPZShapeLinear, pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction( CreateReferredLinearEl );
-  TPZGeoElement<pzshape::TPZShapeQuad,   pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction( CreateReferredQuadEl );
-  TPZGeoElement<pzshape::TPZShapeTriang, pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction( CreateReferredTriangleEl );
-  TPZGeoElement<pzshape::TPZShapePrism,  pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction( CreateReferredPrismEl );
-  TPZGeoElement<pzshape::TPZShapeTetra,  pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction( CreateReferredTetraEl );
-  TPZGeoElement<pzshape::TPZShapePiram,  pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreateReferredPyramEl ); 
-  TPZGeoElement<pzshape::TPZShapeCube,   pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateReferredCubeEl );
+  TPZGeoElement< pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction( CreateReferredPointEl );
+  TPZGeoElement< pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction( CreateReferredLinearEl );
+  TPZGeoElement< pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction( CreateReferredQuadEl );
+  TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction( CreateReferredTriangleEl );
+  TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction( CreateReferredPrismEl );
+  TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction( CreateReferredTetraEl );
+  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreateReferredPyramEl ); 
+  TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateReferredCubeEl );
 
 }
 

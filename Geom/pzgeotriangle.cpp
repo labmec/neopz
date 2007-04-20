@@ -5,7 +5,6 @@
 #include "pzgeotriangle.h"
 #include "pzfmatrix.h"
 #include "pzgeoel.h"
-#include "pzquad.h"
 #include "pzshapetriang.h"
 #include "pzgmesh.h"
 
@@ -16,28 +15,6 @@ using namespace std;
 namespace pzgeom {
 
 
-MElementType TPZGeoTriangle::Type()
-{
-  return ETriangle;
-}
-
-MElementType TPZGeoTriangle::Type(int side)
-{
-  switch(side) {
-    case 0:
-    case 1:
-    case 2:
-      return EPoint;
-    case 3:
-    case 4:
-    case 5:
-      return EOned;
-    case 6:
-      return ETriangle;
-    default:
-      return ENoType;
-  }
-}
 
 void TPZGeoTriangle::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
 	REAL x = param[0], y = param[1];
@@ -167,15 +144,5 @@ TPZGeoEl *TPZGeoTriangle::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 }
 
 
-TPZIntPoints * TPZGeoTriangle::CreateSideIntegrationRule(int side, int order){
-	if(side < 0 || side>6) {
-		PZError << "TPZGeoTriangle::CreateSideIntegrationRule wrong side " << side << endl;
-		return 0;
-	}
-	if(side<3) return new TPZInt1Point();
-	if(side<6) return new TPZInt1d(order);
-	if(side==6)return new TPZIntTriang(order);
-	return 0;
-}
 
 };

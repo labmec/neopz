@@ -55,64 +55,64 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
 
 /** ClassId method for each instantiation followed by the registration of the class in the TPZRestoreClass */
 template < >
-int TPZGeoElRefPattern<TPZShapeCube,TPZGeoCube>::ClassId() const{
+int TPZGeoElRefPattern<TPZGeoCube>::ClassId() const{
   return TPZGEOELREFPATCUBEID;
 }
 template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZShapeCube,TPZGeoCube>, TPZGEOELREFPATCUBEID>;
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoCube>, TPZGEOELREFPATCUBEID>;
 
 template < >
-int TPZGeoElRefPattern<TPZShapeLinear,TPZGeoLinear>::ClassId() const{
+int TPZGeoElRefPattern<TPZGeoLinear>::ClassId() const{
   return TPZGEOELREFPATLINEARID;
 }
 template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZShapeLinear,TPZGeoLinear>, TPZGEOELREFPATLINEARID>;
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoLinear>, TPZGEOELREFPATLINEARID>;
 
 template < >
-int TPZGeoElRefPattern<TPZShapeQuad,TPZGeoQuad>::ClassId() const{
+int TPZGeoElRefPattern<TPZGeoQuad>::ClassId() const{
   return TPZGEOELREFPATQUADID;
 }
 template class
-TPZRestoreClass<TPZGeoElRefPattern<TPZShapeQuad,TPZGeoQuad>, TPZGEOELREFPATQUADID>;
+TPZRestoreClass<TPZGeoElRefPattern<TPZGeoQuad>, TPZGEOELREFPATQUADID>;
 
 template < >
-int TPZGeoElRefPattern<TPZShapeTriang,TPZGeoTriangle>::ClassId() const{
+int TPZGeoElRefPattern<TPZGeoTriangle>::ClassId() const{
   return TPZGEOELREFPATTRIANGLEID;
 }
 template class
-TPZRestoreClass<TPZGeoElRefPattern<TPZShapeTriang,TPZGeoTriangle>, TPZGEOELREFPATTRIANGLEID>;
+TPZRestoreClass<TPZGeoElRefPattern<TPZGeoTriangle>, TPZGEOELREFPATTRIANGLEID>;
 
 template < >
-int TPZGeoElRefPattern<TPZShapePrism,TPZGeoPrism>::ClassId() const{
+int TPZGeoElRefPattern<TPZGeoPrism>::ClassId() const{
   return TPZGEOELREFPATPRISMID;
 }
 template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZShapePrism,TPZGeoPrism>, TPZGEOELREFPATPRISMID>;
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPrism>, TPZGEOELREFPATPRISMID>;
 
 template < >
-int TPZGeoElRefPattern<TPZShapeTetra,TPZGeoTetrahedra>::ClassId() const{
+int TPZGeoElRefPattern<TPZGeoTetrahedra>::ClassId() const{
   return TPZGEOELREFPATTETRAID;
 }
 template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZShapeTetra,TPZGeoTetrahedra>, TPZGEOELREFPATTETRAID>;
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoTetrahedra>, TPZGEOELREFPATTETRAID>;
 
 template < >
-int TPZGeoElRefPattern<TPZShapePiram,TPZGeoPyramid>::ClassId() const{
+int TPZGeoElRefPattern<TPZGeoPyramid>::ClassId() const{
   return TPZGEOELREFPATPYRAMID;
 }
 template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZShapePiram,TPZGeoPyramid>, TPZGEOELREFPATPYRAMID>;
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPyramid>, TPZGEOELREFPATPYRAMID>;
 
 template < >
-int TPZGeoElRefPattern<TPZShapePoint,TPZGeoPoint>::ClassId() const{
+int TPZGeoElRefPattern<TPZGeoPoint>::ClassId() const{
   return TPZGEOELREFPATPOINTID;
 }
 template class
-TPZRestoreClass< TPZGeoElRefPattern<TPZShapePoint,TPZGeoPoint>, TPZGEOELREFPATPOINTID>;
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPoint>, TPZGEOELREFPATPOINTID>;
 
-template <class TShape, class TGeo>
-void TPZGeoElRefPattern<TShape,TGeo>::Read(TPZStream &str, void *context){
-  TPZGeoElRefLess<TShape,TGeo>::Read(str, context);
+template <class TGeo>
+void TPZGeoElRefPattern<TGeo>::Read(TPZStream &str, void *context){
+  TPZGeoElRefLess<TGeo>::Read(str, context);
   TPZGeoMesh *gmesh = (TPZGeoMesh *) context;
   int refpatternindex;
   str.Read(&refpatternindex, 1);
@@ -126,33 +126,33 @@ void TPZGeoElRefPattern<TShape,TGeo>::Read(TPZStream &str, void *context){
   TPZSaveable::ReadObjects(str, this->fSubEl);
 }
 
-template <class TShape, class TGeo>
-void TPZGeoElRefPattern<TShape,TGeo>::Write(TPZStream &str, int withclassid){
-  TPZGeoElRefLess<TShape,TGeo>::Write(str, withclassid);
+template <class TGeo>
+void TPZGeoElRefPattern<TGeo>::Write(TPZStream &str, int withclassid){
+  TPZGeoElRefLess<TGeo>::Write(str, withclassid);
   int refpatternindex = -1;
   if(fRefPattern) refpatternindex = fRefPattern->Id();
   str.Write(&refpatternindex, 1);
   TPZSaveable::WriteObjects(str, this->fSubEl);
 }
 
-template <class TShape, class TGeo>
-TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh, const TPZGeoElRefPattern<TShape,TGeo> &cp):TPZGeoElRefLess<TShape,TGeo>(DestMesh,cp),
+template <class TGeo>
+TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh, const TPZGeoElRefPattern<TGeo> &cp):TPZGeoElRefLess<TGeo>(DestMesh,cp),
   fRefPattern(cp.fRefPattern) {
   this->fSubEl = cp.fSubEl;
 }
 
-template <class TShape, class TGeo>
-TPZGeoEl * TPZGeoElRefPattern<TShape,TGeo>::Clone(TPZGeoMesh &DestMesh) const{
-  return new TPZGeoElRefPattern<TShape,TGeo>(DestMesh, *this);
+template <class TGeo>
+TPZGeoEl * TPZGeoElRefPattern<TGeo>::Clone(TPZGeoMesh &DestMesh) const{
+  return new TPZGeoElRefPattern<TGeo>(DestMesh, *this);
 }
 
 
-template <class TShape, class TGeo>
-TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh,
-                                                    const TPZGeoElRefPattern<TShape,TGeo> &cp,
+template <class TGeo>
+TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh,
+                                                    const TPZGeoElRefPattern<TGeo> &cp,
                                                     std::map<int,int> &gl2lcNdMap,
                                                     std::map<int,int> &gl2lcElMap):
-                                                    TPZGeoElRefLess<TShape,TGeo>(DestMesh,cp,gl2lcNdMap,gl2lcElMap),
+                                                    TPZGeoElRefLess<TGeo>(DestMesh,cp,gl2lcNdMap,gl2lcElMap),
                                                     fRefPattern ( cp.fRefPattern )
 {
   int i;
@@ -176,10 +176,10 @@ TPZGeoElRefPattern<TShape,TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh,
 }
 
 
-template <class TShape, class TGeo>
-TPZGeoEl * TPZGeoElRefPattern<TShape,TGeo>::ClonePatchEl(TPZGeoMesh &DestMesh,
+template <class TGeo>
+TPZGeoEl * TPZGeoElRefPattern<TGeo>::ClonePatchEl(TPZGeoMesh &DestMesh,
                                                         std::map<int,int> &gl2lcNdMap,
                                                         std::map<int,int> &gl2lcElMap) const{
-  return new TPZGeoElRefPattern<TShape,TGeo>(DestMesh, *this, gl2lcNdMap, gl2lcElMap);
+  return new TPZGeoElRefPattern<TGeo>(DestMesh, *this, gl2lcNdMap, gl2lcElMap);
 }
 

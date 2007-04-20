@@ -1,4 +1,4 @@
-//$Id: pzelctemp.h,v 1.10 2007-03-26 13:02:30 cesar Exp $
+//$Id: pzelctemp.h,v 1.11 2007-04-20 18:31:02 caju Exp $
 
 // -*- c++ -*-
 #ifndef PZELCTEMPH
@@ -12,27 +12,27 @@
 By varying the classes passed as template arguments, the complete family of computational elements are implemented
 @ingroup CompElement
 */
-template<class TGEO, class TSHAPE>
+template<class TSHAPE>
 class TPZIntelGen : public TPZInterpolatedElement {
 
   int fConnectIndexes[TSHAPE::NSides];
 
   int fPreferredSideOrder;
 
-  typename TGEO::IntruleType fIntRule;
+  typename TSHAPE::IntruleType fIntRule;
 
 public:
 
   TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 
-  TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TGEO,TSHAPE> &copy);
+  TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy);
 
   /**
    * used to generate patch mesh... generates a map of connect index from
    * global mesh to clone mesh
    */
   TPZIntelGen(TPZCompMesh &mesh,
-              const TPZIntelGen<TGEO,TSHAPE> &copy,
+              const TPZIntelGen<TSHAPE> &copy,
               std::map<int,int> & gl2lcConMap,
               std::map<int,int> & gl2lcElMap);
 
@@ -41,7 +41,7 @@ public:
   virtual ~TPZIntelGen();
 
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
-    return new TPZIntelGen<TGEO, TSHAPE> (mesh, *this);
+    return new TPZIntelGen<TSHAPE> (mesh, *this);
   }
 
   /**
@@ -53,7 +53,7 @@ public:
    */
   virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int,int> & gl2lcConMap,std::map<int,int>&gl2lcElMap) const
   {
-    return new TPZIntelGen<TGEO, TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
+    return new TPZIntelGen<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
   }
 
 
@@ -72,7 +72,7 @@ public:
   }
 
   virtual int NCornerConnects() {
-    return TSHAPE::NNodes;
+    return TSHAPE::NCornerNodes;
   }
 
   virtual int NSideConnects(int side);

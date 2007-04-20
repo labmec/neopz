@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.27 2007-04-06 13:56:27 phil Exp $
+//$Id: pzgeoel.h,v 1.28 2007-04-20 18:31:02 caju Exp $
 
 // -*- c++ -*-
 
@@ -502,6 +502,7 @@ void CheckSubelDataStructure();
 //  virtual void Center(TPZVec<REAL> &center) { center[0] = 0.; }
 
 void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi);
+void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol);
 
 TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 

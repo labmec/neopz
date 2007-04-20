@@ -15,31 +15,6 @@ using namespace pzshape;
 using namespace std;
 
 namespace pzgeom {
-  
-MElementType TPZGeoQuad::Type()
-{
-  return EQuadrilateral;
-}
-
-MElementType TPZGeoQuad::Type(int side)
-{
-  switch(side) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-      return EPoint;
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-      return EOned;
-    case 8:
-      return EQuadrilateral;
-    default:
-      return ENoType;
-  }
-}
 
 void TPZGeoQuad::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
@@ -189,16 +164,5 @@ TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
   return 0;
 }
 
-
-TPZIntPoints * TPZGeoQuad::CreateSideIntegrationRule(int side, int order){
-  if(side<0 || side>8) {
-    PZError << "TPZGeoQuad::CreateSideIntegrationRule wrong side " << side << endl;
-    return 0;
-  }
-  if(side<4) return new TPZInt1Point();
-  if(side<8) return new TPZInt1d(order);
-  if(side==8) return new TPZIntQuad(order,order);
-  return 0;
-}
 
 };
