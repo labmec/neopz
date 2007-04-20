@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.58 2007-04-20 18:31:02 caju Exp $
+//$Id: pzcmesh.cpp,v 1.59 2007-04-20 20:58:54 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1874,7 +1874,21 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
   //buf.Write(&fName,1);
   buf.Write(&fDimModel,1);
   TPZSaveable::WriteObjects<TPZConnect>(buf,fConnectVec);
-  WriteObjectPointers<TPZMaterial>(buf,fMaterialVec);
+  std::map<int,TPZAutoPointer<TPZMaterial> >::iterator it;
+  std::map<int,TPZAutoPointer<TPZMaterial> > temp1,temp2;
+  for(it=fMaterialVec.begin(); it!=fMaterialVec.end(); it++)
+  {
+    if(dynamic_cast<TPZBndCond *>(it->second.operator->()))
+    {
+      temp1[it->first]=it->second;
+    }
+    else
+    {
+      temp2[it->first]=it->second;
+    }
+  }
+  WriteObjectPointers<TPZMaterial>(buf,temp2);
+  WriteObjectPointers<TPZMaterial>(buf,temp1);
   WriteObjectPointers<TPZCompEl>(buf,fElementVec);
   fSolution.Write(buf,0);
   fSolutionBlock.Write(buf,0);
@@ -1941,6 +1955,8 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
     sout << __PRETTY_FUNCTION__ << " after reading the connects";
     LOGPZ_DEBUG(logger,sout.str().c_str());
   }
+  // first the material objects, then the boundary conditions
+  ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,this);
   ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,this);
 
   {
