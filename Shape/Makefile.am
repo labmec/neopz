@@ -18,6 +18,6 @@ shapeinc_HEADERS= $(top_srcdir)/Shape/*.h
 
 noinst_LIBRARIES = libpzshape.a
 
-libpzshape_a_SOURCES = pzshapecube.cpp pzshapelinear.cpp pzshapepiram.cpp pzshapeprism.cpp pzshapequad.cpp pzshapetetra.cpp pzshapetriang.cpp TPZShapeDisc.cpp 
+libpzshape_a_SOURCES = pzshapetriang.cpp pzshapecube.cpp pzshapelinear.cpp pzshapepiram.cpp pzshapeprism.cpp pzshapequad.cpp pzshapetetra.cpp  TPZShapeDisc.cpp 
 
 ## --| NeoPZ |------------------------------------------------------------------

@@ -19,6 +19,11 @@ topologyinc_HEADERS= $(top_srcdir)/Topology/*.h
 
 noinst_LIBRARIES = libpztopology.a
 
-libpzstrmatrix_a_SOURCES = pztriangle.cpp
+libpzstrmatrix_a_SOURCES = pztriangle.cpp tpztetrahedron.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
+noinst_HEADERS = tpztriangle.h tpztetrahedron.h tpzquadrilateral.h tpzprism.h \
+		tpzpoint.h tpzpyramid.h tpzline.h tpzdisc.h tpzcube.h pznoderep.h.h
+libpztopology_a_SOURCES = tpztriangle.cpp tpztetrahedron.cpp \
+		tpzquadrilateral.cpp tpzprism.cpp tpzpoint.cpp tpzpyramid.cpp tpzline.cpp tpzdisc.cpp \
+	tpzcube.cpp

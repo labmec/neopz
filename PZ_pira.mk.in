@@ -3,7 +3,7 @@
 #
 # It will be processed by GNU automake to produce Makefile.in
 #
-# $Id: PZ_pira.mk.in,v 1.1 2006-08-24 19:26:46 tiago Exp $
+# $Id: PZ_pira.mk.in,v 1.2 2007-04-20 18:31:51 caju Exp $
 #
 
 PZ_INCLUDES = -I@prefix@/Util \
@@ -26,6 +26,7 @@ PZ_INCLUDES = -I@prefix@/Util \
 	-I@prefix@/External \
 	-I@prefix@/External/sloan \
 	-I@prefix@/Save \
+        -I@prefix@/Topology \
 	@METISINCLUDE@ \
 	@FADINCLUDE@ \
 	@FADINCLUDE_FAD@ \
