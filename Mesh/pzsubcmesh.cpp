@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.16 2007-04-19 11:42:42 tiago Exp $
+//$Id: pzsubcmesh.cpp,v 1.17 2007-04-22 21:06:27 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -528,6 +528,15 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
 		cel->SetConnectIndex(i,subindex);
 	}
 	cel->SetMesh(this);
+        if(cel->Reference())
+        {
+          TPZAutoPointer<TPZMaterial> mat = cel->Material();
+          if(!mat)
+          {
+            father->CopyMaterials(this);
+          }
+        }
+      
 //	int blocksize=mesh->ConnectVec()[elindex].NDof((TPZCompMesh *)mesh);
 	int newelind = fElementVec.AllocateNewElement();
 	fElementVec[newelind] = cel;
