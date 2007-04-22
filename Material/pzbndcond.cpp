@@ -22,7 +22,7 @@ void TPZBndCond::Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec) {
   }
   std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
   matit = matvec.find(matid);
-  if(matit != matvec.end())
+  if(matit == matvec.end())
   {
     TPZAutoPointer<TPZMaterial> newmat = TPZAutoPointer<TPZMaterial>(new TPZBndCond(*this, newrefmaterial));
     matvec[matid] = newmat;
