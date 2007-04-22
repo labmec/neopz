@@ -710,7 +710,7 @@ int run(std::istream & input, std::ostream & output)
    int numvec = 400;
    An.ComputeTimeStep();
    An.SetGMResBlock(linsystol,maxiter,numvec);
-   int numnewton = 4;
+   int numnewton = 10;
    REAL NewtonTol = 1.e-8;
 #ifdef LOG4CXX
    if(logger->isDebugEnabled())
