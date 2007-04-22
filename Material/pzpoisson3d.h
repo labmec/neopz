@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.23 2007-01-27 14:48:24 phil Exp $
+//$Id: pzpoisson3d.h,v 1.24 2007-04-22 21:07:05 phil Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -76,6 +76,7 @@ public:
     for (int i = 0; i < 3; i++) fConvDir[i] = copy.fConvDir[i];
     fSymmetry = copy.fSymmetry;
     fSD = copy.fSD;
+    fPenaltyConstant = copy.fPenaltyConstant;
 
   }
   
