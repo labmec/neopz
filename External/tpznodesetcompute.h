@@ -61,6 +61,14 @@ void BuildNodeSet(int node, std::set<int> &nodeset);
   */
   static int ColorGraph(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq,
     TPZVec<int> &colors);
+  
+  /**
+   * return the level of the nodes
+   */
+  TPZVec<int> &Levels()
+  {
+    return fLevel;
+  }
     
 void Print(std::ostream &file) const;
 
