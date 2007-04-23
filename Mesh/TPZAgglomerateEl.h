@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.26 2007-01-03 00:06:47 phil Exp $
+//$Id: TPZAgglomerateEl.h,v 1.27 2007-04-23 19:02:44 tiago Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -122,15 +122,6 @@ public:
    * Type of the element 
    */  
   MElementType Type(){return EAgglomerate;}
-  
-  /**
-   * Identify the material object associated with the element
-     */
-  virtual TPZAutoPointer<TPZMaterial> Material() const 
-  {
-    return fMesh->FindMaterial(fMaterialId);
-  }
-
 
   /** retorna malha mae */
   TPZCompMesh *MotherMesh(){return fMotherMesh;}

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.55 2007-04-19 12:21:36 tiago Exp $
+// $Id: pzintel.cpp,v 1.56 2007-04-23 19:02:44 tiago Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -71,12 +71,6 @@ TPZInterpolatedElement::TPZInterpolatedElement() :
 }
 
 TPZInterpolatedElement::~TPZInterpolatedElement() {
-}
-
-int TPZInterpolatedElement::MaterialId() const {
-  TPZAutoPointer<TPZMaterial> mat = Material();
-  if(mat) return mat->Id();
-  return -999;
 }
 
 int TPZInterpolatedElement::NShapeF() {

@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.29 2007-04-16 13:49:06 tiago Exp $
+//$Id: pzintel.h,v 1.30 2007-04-23 19:02:44 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -86,11 +86,6 @@ public:
    * methods which allow to access the internal data structure of the element
    */
   //@{
-
-  /**
-   * @return return the index of the material
-   */
-  int MaterialId() const;
 
   /**
    * Print the relevant data of the element to the output stream
