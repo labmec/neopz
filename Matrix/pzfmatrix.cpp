@@ -756,53 +756,59 @@ TPZFMatrix &TPZFMatrix::operator*=( const REAL value ) {
 /**************/
 /*** Resize ***/
 
+
 int TPZFMatrix::Resize(const int newRows,const int newCols) {
-	 if ( newRows == Rows() && newCols == Cols() )
-		  return( 1 );
-	 long newsize = ((long)newRows)*newCols;
-	 REAL * newElem;
-	 if(fGiven && fElem != fGiven && newsize <= fSize) {
-		  newElem = fGiven;
-	 } else {
-		 // newElem = (REAL *) calloc(newRows*newCols,sizeof(REAL));//
-       newElem = new( REAL[ newRows * newCols ] );
-	 }
-	 if ( newElem == NULL )
-		  Error( "Resize <memory allocation error>." );
+  if ( newRows == Rows() && newCols == Cols() ) return( 1 );
+  long newsize = ((long)newRows)*newCols;
+  REAL * newElem;
+  if(fGiven && fElem != fGiven && newsize <= fSize) 
+  {
+    newElem = fGiven;
+  } else 
+  {
+    newElem = new( REAL[ newRows * newCols ] );
+  }
+  if ( newElem == NULL )
+          Error( "Resize <memory allocation error>." );
 
-	 long minRow  = ( fRow < newRows ? fRow : newRows );
-	 long minCol  = ( fCol < newCols ? fCol : newCols );
-	 REAL * src;
-	 REAL * dst;
-	 long r, c;
+  long minRow  = ( fRow < newRows ? fRow : newRows );
+  long minCol  = ( fCol < newCols ? fCol : newCols );
+  REAL * src;
+  REAL * dst;
+  long r, c;
 
-	 for ( c = 0; c < minCol; c++ ) {
-		  // Copia as linhas da matriz antiga para a nova.
-		  // Copia os elementos de uma linha.
-		  dst = newElem + c*newRows;
-		  src = fElem + c*fRow;
-		  for ( r = 0; r < minRow; r++ )
-				*dst++ = *src++;
+  for ( c = 0; c < minCol; c++ ) {
+    // Copia as linhas da matriz antiga para a nova.
+    // Copia os elementos de uma linha.
+    dst = newElem + c*newRows;
+    src = fElem + c*fRow;
+    for ( r = 0; r < minRow; r++ ) *dst++ = *src++;
 
-		  // Se a nova linha for maior (mais colunas), preenche o
-		  //  resto da linha com ZEROS.
-		  for ( ; r < newRows; r++ )
-				*dst++ = 0.0;
-	 }
+    // Se a nova linha for maior (mais colunas), preenche o
+    //  resto da linha com ZEROS.
+    for ( ; r < newRows; r++ ) *dst++ = 0.0;
+  }
 
-	 // Preenche as linha que sobrarem (se sobrarem) com ZEROS.
-	 for ( ;c < newCols; c++ ) {
-		  dst = newElem + c*newRows;
-		  for (r = 0 ; r < newRows; r++ ) *dst++ = 0.0;
-	 }
+  // Preenche as linha que sobrarem (se sobrarem) com ZEROS.
+  for ( ;c < newCols; c++ ) 
+  {
+      dst = newElem + c*newRows;
+      for (r = 0 ; r < newRows; r++ ) *dst++ = 0.0;
+  }
 
-	 if (fElem && fElem != fGiven )delete[]( fElem );
-	 fElem = newElem;
-	 fRow  = newRows;
-	 fCol  = newCols;
-	 return( 1 );
+  if (fElem && fElem != fGiven )delete[]( fElem );
+  fElem = newElem;
+  fRow  = newRows;
+  fCol  = newCols;
+  return( 1 );
 }
 
+int TPZFMatrix::Remodel(const int newRows,const int newCols) {
+  if(newRows*newCols != fRow*fCol) return -1;
+  fRow = newRows;
+  fCol = newCols;
+  return 1;
+}
 
 
 /*************/

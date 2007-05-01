@@ -79,7 +79,7 @@ public:
     return fIA[Rows()];
   }
 
-  void PutVal(const int row, const int col, REAL Value);
+  int PutVal(const int row, const int col, const REAL &Value);
 
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 );
@@ -136,6 +136,8 @@ void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
   		);    
 
   void AddKel(TPZFMatrix & elmat, TPZVec<int> & destinationindex);    
+
+  void AddKel(TPZFMatrix & elmat, TPZVec<int> & sourceindex, TPZVec<int> & destinationindex);    
 
   void Multiply(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res);    
 

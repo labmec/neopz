@@ -208,6 +208,10 @@ static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TP
   // Redimension a matrix, but maintain your elements.
   int Resize(const int newRows,const int wCols );
 
+  // Remodel the shape of the  matrix, but keeping the same dimension.
+  int Remodel(const int newRows,const int wCols );
+
+
   // Redimension a matrix and ZERO your elements.
   int Redim(const int newRows,const int newCols );
 
