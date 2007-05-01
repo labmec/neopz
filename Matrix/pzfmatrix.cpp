@@ -884,20 +884,9 @@ void TPZFMatrix::Transpose(TPZMatrix *const T) const{
 }
 
 void TPZFMatrix::Transpose() {
-	  Resize( Cols(), Rows() );
-//Transposta por filas
-    REAL val;
-	 for ( int c = 0; c < Cols(); c++ ) {
-		 for ( int r = 0; r < Rows(); r++ ) {
-       	val = GetVal(r,c);
-         PutVal(r,c,GetVal(c,r));
-         PutVal(c,r,val);
-//            cout<<"(r,c)= "<<r<<"  "<<c<<"\n";
-		  }
-	 }
-    int row = Rows();
-	 fRow = fCol;
-    fCol = row;
+  TPZFMatrix temp;
+  Transpose(&temp);
+  *this = temp;
 }
 
 
