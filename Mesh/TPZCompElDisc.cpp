@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.91 2007-04-16 13:46:44 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.92 2007-05-01 20:27:39 phil Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.91 2007-04-16 13:46:44 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.92 2007-05-01 20:27:39 phil Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -71,13 +71,10 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
-                             TPZInterpolationSpace(mesh,copy), fCenterPoint(copy.fCenterPoint) {
+    TPZInterpolationSpace(mesh,copy),  fConnectIndex(copy.fConnectIndex),fConstC(copy.fConstC),fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
-  if (this->fIntRule){
-    delete this->fIntRule;
-    this->fIntRule = NULL;
-  }
+  this->fIntRule = NULL;
   if (copy.fIntRule) this->GetIntegrationRule();
 }
 
@@ -107,10 +104,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
   CreateMidSideConnect();
   this->SetDegree( TPZCompEl::gOrder );
   //as interfaces foram clonadas
-  if (this->fIntRule){
-    delete this->fIntRule;
-    this->fIntRule = NULL;
-  }
+  this->fIntRule = NULL;
   if (copy.fIntRule) this->GetIntegrationRule();
 }
 
