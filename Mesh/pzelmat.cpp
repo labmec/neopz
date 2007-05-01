@@ -1,4 +1,4 @@
-//$Id: pzelmat.cpp,v 1.7 2007-04-19 19:01:16 tiago Exp $
+//$Id: pzelmat.cpp,v 1.8 2007-05-01 17:41:28 phil Exp $
 
 #include "pzelmat.h"
 #include "pzfmatrix.h"
@@ -49,6 +49,7 @@ void TPZElementMatrix::Print(ostream &out){
 
 void TPZElementMatrix::ComputeDestinationIndices(){
   if (!this->HasDependency()){
+    this->fSourceIndex.Resize(this->fMat.Rows());
     this->fDestinationIndex.Resize(this->fMat.Rows());
     int destindex = 0;
     const int numnod = this->NConnects();
@@ -59,6 +60,7 @@ void TPZElementMatrix::ComputeDestinationIndices(){
       int firsteq = this->fMesh->Block().Position(blocknumber);
       int ndf = this->fMesh->Block().Size(blocknumber);
       for(int idf=0; idf<ndf; idf++){
+        this->fSourceIndex[destindex] = destindex;
         this->fDestinationIndex[destindex++] = firsteq+idf;
       }//for idf
     }//for in

@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.30 2007-04-23 19:02:44 tiago Exp $
+//$Id: pzintel.h,v 1.31 2007-05-01 17:41:28 phil Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -447,20 +447,6 @@ virtual  int CheckElementConsistency();
   //@}
 
 
-private:
-
-  /**
-   * Auxiliary method to expand a vector of shapefunctions and their derivatives to acount for constraints
-   * As input the regular values of the shapefunctions are given and their derivatives\n
-   * if these shapefunctions are dependent upon other shapefunctions (because of constraints) then the vectors
-   * are expanded to include the value of the independent shapefunctions and their derivatives as well
-   * @param (input) connectlist vector of all connects to which the element will contribute
-   * @param (input) dependencyorder vector of indices which indicate the order in which the connects will be processed
-   * @param blocksizes (output) number of shapefunctions associated with each connect
-   * @param phi (input/output) values of the shapefunctions
-   * @param dphi (input/output) values of the derivatives of the shapefunctions
-   */
-  void ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix &phi, TPZFMatrix &dphi);
 
 public:
 

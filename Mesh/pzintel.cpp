@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.56 2007-04-23 19:02:44 tiago Exp $
+// $Id: pzintel.cpp,v 1.57 2007-05-01 17:41:28 phil Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -419,15 +419,22 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
   for(ic=0; ic<cornod; ic++) connectlistcoarse.Push(coarsel.ConnectIndex(ic));
   coarsel.BuildConnectList(connectlistcoarse);
   TPZConnect::BuildDependencyOrder(connectlistcoarse,dependencyordercoarse,*coarsel.Mesh());
+  
+  // cornod = number of connects associated with the coarse element
   cornod = connectlistcoarse.NElements();
   int nvar = coarsel.Material()->NStateVariables();
+  
+  // number of blocks is cornod
   TPZBlock corblock(0,cornod);
   int in;
+  // corblock and corblocksize have the same function
   for(in = 0; in < NConnects(); in++) {
     int blsize = coarsel.NConnectShapeF(in);
     corblock.Set(in,blsize);
     corblocksize.Push(blsize);
   }
+  
+  // cormatsize is , so far, the number of shape functions of the coarse element
   int c;
   for(;in<cornod; in++) {
     c = connectlistcoarse[in];
@@ -438,9 +445,12 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
   }
   corblock.Resequence();
 
-  REAL loclocmatstore[500] = {0.};
-  TPZFMatrix loclocmat(locmatsize,locmatsize,loclocmatstore,500);
-  TPZFMatrix loccormat(locmatsize,cormatsize);
+//  REAL loclocmatstore[500] = {0.};
+  // loclocmat is the inner product of the shape functions of the local element
+  // loccormat is the inner product of the shape functions with the shape functions
+  //    of the coarse element, both dependent and independent
+  TPZFNMatrix<500> loclocmat(locmatsize,locmatsize);
+  TPZFNMatrix<500> loccormat(locmatsize,cormatsize);
   loclocmat.Zero();
   loccormat.Zero();
 
@@ -1502,26 +1512,6 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
   }
 }
 
-void TPZInterpolatedElement::ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix &phi, TPZFMatrix &dphix) {
-  int numblocks =  connectlist.NElements();
-  TPZCompMesh &mesh = *Mesh();
-  int nhandled=0;
-  int current_order = 0;
-  int current_block =0;
-  while(nhandled < numblocks) {
-    if(dependencyorder[current_block] == current_order) {
-      nhandled++;
-      int cind = connectlist[current_block];
-      TPZConnect &con = mesh.ConnectVec()[cind];
-      con.ExpandShape(cind,connectlist,blocksizes,phi,dphix);
-    }
-    current_block++;
-    if(current_block == numblocks) {
-      current_block = 0;
-      current_order++;
-    }
-  }
-}
 
 
 REAL TPZInterpolatedElement::MeanSolution(int var) {

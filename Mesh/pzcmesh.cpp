@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.59 2007-04-20 20:58:54 phil Exp $
+//$Id: pzcmesh.cpp,v 1.60 2007-05-01 17:41:28 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -668,7 +668,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
   int nelem = NElements();
   for(i=0; i<nelem; i++) {    
     if(!fElementVec[i]) continue;
-    TPZInterpolatedElement * locel = dynamic_cast<TPZInterpolatedElement *> (fElementVec[i]);    
+    TPZInterpolationSpace * locel = dynamic_cast<TPZInterpolationSpace *> (fElementVec[i]);    
     if(!locel) continue;
     if(locel->Dimension() != dim) continue;
     TPZGeoEl *locgel = locel->Reference();
@@ -687,7 +687,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
       continue;
     }
 
-    TPZInterpolatedElement * coarsel = dynamic_cast<TPZInterpolatedElement *> ( coarsegel->Reference() );   
+    TPZInterpolationSpace * coarsel = dynamic_cast<TPZInterpolationSpace *> ( coarsegel->Reference() );   
     if(!coarsel) continue;
     
     if(coarsel->Mesh() != &coarsemesh) {
@@ -869,7 +869,10 @@ void TPZCompMesh::ComputeElGraph(TPZStack<int> &elgraph, TPZVec<int> &elgraphind
       int ic = connectstack[in];
       TPZConnect &c = fConnectVec[ic];
       if(c.HasDependency()) continue;
-      elgraph.Push(c.SequenceNumber());
+      if(fBlock.Size(c.SequenceNumber()))
+      {
+        elgraph.Push(c.SequenceNumber());
+      }
     }
     elgraphindex[curel+1]=elgraph.NElements();
     curel++;

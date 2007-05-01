@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.4 2007-04-16 13:48:54 tiago Exp $
+//$Id: pzinterpolationspace.h,v 1.5 2007-05-01 17:41:28 phil Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -180,6 +180,31 @@ public:
    * @param ef inner product of the flux with the finite element interpolation space
    */
   void ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+  /**
+   * Accumulates the transfer coefficients between the current element and the
+   * coarse element into the transfer matrix, using the transformation t
+   * This method forms the basis for the multigrid method
+   * @param coarsel larger element with respect to which the transfer matrix is computed
+   * @param t transformation which maps the master element space of the current element into the master element space of the coarse element
+   * @param transfer transfer matrix mapping the solution of the coarse mesh into the fine mesh
+   */
+  void BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform &t, TPZTransfer &transfer);
+
+  protected:
+
+  /**
+   * Auxiliary method to expand a vector of shapefunctions and their derivatives to acount for constraints
+   * As input the regular values of the shapefunctions are given and their derivatives\n
+   * if these shapefunctions are dependent upon other shapefunctions (because of constraints) then the vectors
+   * are expanded to include the value of the independent shapefunctions and their derivatives as well
+   * @param (input) connectlist vector of all connects to which the element will contribute
+   * @param (input) dependencyorder vector of indices which indicate the order in which the connects will be processed
+   * @param blocksizes (output) number of shapefunctions associated with each connect
+   * @param phi (input/output) values of the shapefunctions
+   * @param dphi (input/output) values of the derivatives of the shapefunctions
+   */
+    void ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix &phi, TPZFMatrix &dphi);
 
 };
 
