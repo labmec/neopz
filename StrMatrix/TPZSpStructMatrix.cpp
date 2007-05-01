@@ -32,7 +32,7 @@ void UniformRefine(int num, TPZGeoMesh &m);
 const int eu=0;
 
 TPZStructMatrix * TPZSpStructMatrix::Clone(){
-    return new TPZSpStructMatrix(fMesh);
+    return new TPZSpStructMatrix(*this);
 }
 TPZMatrix * TPZSpStructMatrix::CreateAssemble(TPZFMatrix &rhs){
   
@@ -60,14 +60,23 @@ TPZMatrix * TPZSpStructMatrix::CreateAssemble(TPZFMatrix &rhs){
 }
 TPZMatrix * TPZSpStructMatrix::Create(){
     int neq = fMesh->NEquations();
-    if(fMesh->FatherMesh()) {
+    if(HasRange())
+    {
+      neq = fMaxEq-fMinEq;
+    }
+    else
+    {
+      fMinEq = 0;
+      fMaxEq = neq;
+    }
+/*    if(fMesh->FatherMesh()) {
       TPZSubCompMesh *smesh = (TPZSubCompMesh *) fMesh;
       neq = smesh->NumInternalEquations();
-    }
+    }*/
     TPZFYsmpMatrix * mat = new TPZFYsmpMatrix(neq,neq);
 
     /**Rearange elements order*/
-    TPZVec<int> elorder(fMesh->NEquations(),0);
+//    TPZVec<int> elorder(fMesh->NEquations(),0);
   
   
     /**
@@ -95,6 +104,8 @@ TPZMatrix * TPZSpStructMatrix::Create(){
     int totaleq = 0;
     for(i=0;i<nblock;i++){
       int iblsize = fMesh->Block().Size(i);
+      int iblpos = fMesh->Block().Position(i);
+      if(iblpos < fMinEq || iblpos >= fMaxEq) continue;
       totaleq += iblsize;
       int icfirst = nodegraphindex[i];
       int iclast = nodegraphindex[i+1];
@@ -104,6 +115,8 @@ TPZMatrix * TPZSpStructMatrix::Create(){
       for(j=icfirst;j<iclast;j++) {
         int col = nodegraph[j];
         int colsize = fMesh->Block().Size(col);
+        int colpos = fMesh->Block().Position(col);
+        if(colpos < fMinEq || colpos >= fMaxEq) continue;
         totalvar += iblsize*colsize;
       }
     }
@@ -118,7 +131,8 @@ TPZMatrix * TPZSpStructMatrix::Create(){
     REAL * EqValue = new REAL [totalvar];
     for(i=0;i<nblock;i++){
       int iblsize = fMesh->Block().Size(i);
-      if(ieq != fMesh->Block().Position(i)) cout << "TPZSpStructMatrix::Create I dont understand\n";
+      int iblpos = fMesh->Block().Position(i);
+      if(iblpos < fMinEq || iblpos >= fMaxEq) continue;
       int ibleq;
       for(ibleq=0; ibleq<iblsize; ibleq++) {
 	Eq[ieq] = pos;
@@ -131,29 +145,30 @@ TPZMatrix * TPZSpStructMatrix::Create(){
         int iclast = nodegraphindex[i+1];
         int j;
         for(j=icfirst;j<iclast;j++) {
-        	int col = nodegraph[j];
-        	if(!diagonalinsert && col > i)
-        	{
-                    diagonalinsert = 1;
-                    int colsize = fMesh->Block().Size(i);
-                    int colpos = fMesh->Block().Position(i);
-                    int jbleq;
-                    for(jbleq=0; jbleq<colsize; jbleq++) {
-            //             if(colpos+jbleq == ieq) continue;
-                        EqCol[pos] = colpos+jbleq;
-                        EqValue[pos] = 0.;
-                        //            colpos++;
-                        pos++;
-                    }
-        	}
-        	colsize = fMesh->Block().Size(col);
-        	colpos = fMesh->Block().Position(col);
-        	for(jbleq=0; jbleq<colsize; jbleq++) {
-            	  EqCol[pos] = colpos;
-            	  EqValue[pos] = 0.;
-            	  colpos++;
-            	  pos++;
-          	}
+          int col = nodegraph[j];
+          if(!diagonalinsert && col > i)
+          {
+              diagonalinsert = 1;
+              int colsize = fMesh->Block().Size(i);
+              int colpos = fMesh->Block().Position(i);
+              int jbleq;
+              for(jbleq=0; jbleq<colsize; jbleq++) {
+      //             if(colpos+jbleq == ieq) continue;
+                  EqCol[pos] = colpos+jbleq-fMinEq;
+                  EqValue[pos] = 0.;
+                  //            colpos++;
+                  pos++;
+              }
+          }
+          colsize = fMesh->Block().Size(col);
+          colpos = fMesh->Block().Position(col);
+          if(colpos < fMinEq || colpos >= fMaxEq) continue;
+          for(jbleq=0; jbleq<colsize; jbleq++) {
+            EqCol[pos] = colpos-fMinEq;
+            EqValue[pos] = 0.;
+            colpos++;
+            pos++;
+          }
         }
         if(!diagonalinsert)
         {
@@ -163,7 +178,7 @@ TPZMatrix * TPZSpStructMatrix::Create(){
             int jbleq;
             for(jbleq=0; jbleq<colsize; jbleq++) {
     //             if(colpos+jbleq == ieq) continue;
-                EqCol[pos] = colpos+jbleq;
+                EqCol[pos] = colpos+jbleq-fMinEq;
                 EqValue[pos] = 0.;
                 //            colpos++;
                 pos++;
@@ -173,14 +188,6 @@ TPZMatrix * TPZSpStructMatrix::Create(){
       }
     }
     Eq[ieq] = pos;
-/*    for(i=0;i<totalvar;i++){
-        if(i<totaleq+1){
-            cout << i <<  " " << Eq[i] << " "<< EqCol[i] << " " << EqValue[i] << endl;
-        }else{
-            cout << i <<  " " << " "<< EqCol[i] << " " << EqValue[i] << endl;
-        }
-    }
-    */
     mat->SetData(Eq,EqCol,EqValue);
     return mat;
 }

@@ -21,6 +21,9 @@ public:
     virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs);
 
     virtual TPZStructMatrix * Clone();
+    
+    /// Adapt the skyline for a range of equations
+    void FilterSkyline(TPZVec<int> &skyline);
 
 public:
 };

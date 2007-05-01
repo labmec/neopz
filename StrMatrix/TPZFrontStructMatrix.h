@@ -55,7 +55,12 @@ public:
      * @url http://www.fec.unicamp.br/~phil 
      */ 
      TPZFrontStructMatrix(TPZCompMesh *);
+     
+     TPZFrontStructMatrix(const TPZFrontStructMatrix &copy) : TPZStructMatrix(copy), fElementOrder(copy.fElementOrder),f_quiet(copy.f_quiet)
+      {
+      }
 
+     
      static int main();
 
     /**

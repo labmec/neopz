@@ -6,20 +6,28 @@
 #include "pzcmesh.h"
 
 TPZStructMatrix * TPZSBandStructMatrix::Clone(){
-    return new TPZSBandStructMatrix(fMesh);
+    return new TPZSBandStructMatrix(*this);
 }
 TPZMatrix * TPZSBandStructMatrix::CreateAssemble(TPZFMatrix &rhs){
-    int neq = fMesh->NEquations();
-    int band = fMesh->BandWidth();
-    TPZSBMatrix *stiff = new TPZSBMatrix(neq,band);
-    rhs.Redim(neq,1);
-    Assemble(*stiff,rhs);
-    return stiff;
+  TPZMatrix *mat = Create();
+  rhs.Redim(mat->Rows(),1);
+    Assemble(*mat,rhs);
+    return mat;
 }
 TPZMatrix * TPZSBandStructMatrix::Create(){
-    int neq = fMesh->NEquations();
-    int band = fMesh->BandWidth();
-    return new TPZSBMatrix(neq,band);
+  int neq = fMesh->NEquations();
+  if(HasRange())
+  {
+    neq = fMaxEq-fMinEq;
+  }
+  else
+  {
+    fMinEq = 0;
+    fMaxEq = neq;
+  }
+  
+  int band = fMesh->BandWidth();
+  return new TPZSBMatrix(neq,band);
 }
 TPZSBandStructMatrix::TPZSBandStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {}

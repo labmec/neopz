@@ -8,27 +8,29 @@
 using namespace std;
 
 TPZMatrix * TPZFStructMatrix::CreateAssemble(TPZFMatrix &rhs){
-    int neq = fMesh->NEquations();
-    if(fMesh->FatherMesh()) {
-      cout << "TPZFStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
-      return new TPZFMatrix();
-    }
-    TPZFMatrix *stiff = new TPZFMatrix(neq,neq,0.);
+    TPZMatrix *stiff = Create();
+    int neq = stiff->Rows();
     rhs.Redim(neq,1);
     Assemble(*stiff,rhs);
     return stiff;
 }
 
 TPZMatrix * TPZFStructMatrix::Create(){
-    int neq = fMesh->NEquations();
-    if(fMesh->FatherMesh()) {
-      TPZSubCompMesh *smesh = (TPZSubCompMesh *) fMesh;
-      neq = smesh->NumInternalEquations();
-    }
-    return new TPZFMatrix(neq,neq,0.);
+  int neq = fMesh->NEquations();
+  if(HasRange())
+  {
+    neq = fMaxEq-fMinEq;
+  }
+  else
+  {
+    fMaxEq = neq;
+    fMinEq = 0;
+  }
+    
+  return new TPZFMatrix(neq,neq,0.);
 }
 TPZFStructMatrix::TPZFStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {}
 TPZStructMatrix * TPZFStructMatrix::Clone(){
-    return new TPZFStructMatrix(fMesh);
+    return new TPZFStructMatrix(*this);
 }

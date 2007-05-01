@@ -57,10 +57,12 @@ public:
      TPZParFrontStructMatrix(
           TPZCompMesh *mesh //! Mesh to refer to
           );
+     
+     TPZParFrontStructMatrix(const TPZParFrontStructMatrix &copy);
      /**
       * Returns a poniter to TPZMatrix
       */
-     TPZMatrix * CreateAssemble(
+     virtual TPZMatrix * CreateAssemble(
           TPZFMatrix &rhs //! Load matrix
           );
      

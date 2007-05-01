@@ -21,12 +21,17 @@ enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
 
   TPZBlockDiagonalStructMatrix(TPZCompMesh *);
   
+  TPZBlockDiagonalStructMatrix(const TPZBlockDiagonalStructMatrix &copy) : TPZStructMatrix(copy),
+  fBlockStructure(copy.fBlockStructure),fOverlap(copy.fOverlap)
+  {
+  }
+  
   // create a sparse blockdiagonal matrix, overlapping should be assumed
   virtual TPZMatrix * Create();
   
   // create a sparse blockdiagonal matrix of the given color
   // this should be used to create a sequence solver
-  TPZMatrix * Create(int color);
+//  TPZMatrix * Create(int color);
   
   virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs);
 

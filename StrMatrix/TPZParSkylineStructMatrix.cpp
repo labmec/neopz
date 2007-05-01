@@ -28,23 +28,22 @@ TPZParSkylineStructMatrix::TPZParSkylineStructMatrix(TPZCompMesh *mesh) : TPZSky
 {}
 
 TPZStructMatrix * TPZParSkylineStructMatrix::Clone(){
-    return new TPZParSkylineStructMatrix(fMesh);
+    return new TPZParSkylineStructMatrix(*this);
 }
 
 TPZMatrix * TPZParSkylineStructMatrix::Create(){
     int neq = fMesh->NEquations();
     TPZVec<int> skyline;
     fMesh->Skyline(skyline);
+    FilterSkyline(skyline);
+    neq = skyline.NElements();
     return new TPZSkylParMatrix(neq,skyline,2);
 }
 TPZMatrix * TPZParSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs){
-    int neq = fMesh->NEquations();
-    TPZVec<int> skyline;
-    fMesh->Skyline(skyline);
-    TPZSkylParMatrix *stiff = new TPZSkylParMatrix(neq,skyline,2);
-    rhs.Redim(neq,1);
-    Assemble(*stiff,rhs);
-    return stiff;
+  TPZMatrix *mat = Create();
+  rhs.Redim(mat->Rows(),1);
+  Assemble(*mat,rhs);
+  return mat;
 }
 int TPZParSkylineStructMatrix::main() {
      

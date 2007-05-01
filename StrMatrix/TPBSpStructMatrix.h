@@ -11,6 +11,8 @@ class TPZStructMatrix;
 
 void UniformRefine(int num, TPZGeoMesh &m);
 
+
+/// this matrix assembles on the pair equations
 class TPBSpStructMatrix : public TPZSpStructMatrix {
 public:    
 
@@ -24,5 +26,9 @@ public:
     static int main();
 
     TPBSpStructMatrix(TPZCompMesh *);
+    
+    TPBSpStructMatrix(const TPBSpStructMatrix &copy) : TPZSpStructMatrix(copy)
+    {
+    }
 };
 #endif //TPBSPSTRUCTMATRIX_H

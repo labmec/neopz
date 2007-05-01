@@ -203,7 +203,7 @@ int TPBSpStructMatrix::main() {
 
 }
 TPZStructMatrix * TPBSpStructMatrix::Clone(){
-    return new TPBSpStructMatrix(fMesh);
+    return new TPBSpStructMatrix(*this);
 }
 TPZMatrix * TPBSpStructMatrix::CreateAssemble(TPZFMatrix &rhs){
     int neq = fMesh->NEquations();
@@ -221,14 +221,19 @@ TPZMatrix * TPBSpStructMatrix::CreateAssemble(TPZFMatrix &rhs){
 TPZMatrix * TPBSpStructMatrix::Create(){
     //checked
     int neq = fMesh->NEquations();
-    if(fMesh->FatherMesh()) {
-      TPZSubCompMesh *smesh = (TPZSubCompMesh *) fMesh;
-      neq = smesh->NumInternalEquations();
+    if(HasRange())
+    {
+      neq = fMaxEq-fMinEq;
+    }
+    else
+    {
+      fMinEq = 0;
+      fMaxEq = neq;
     }
     TPZFYsmpMatrix * mat = new TPZFYsmpMatrix(neq,neq);
 
     /**Rearange elements order*/
-    TPZVec<int> elorder(fMesh->NEquations(),0);
+//    TPZVec<int> elorder(fMesh->NEquations(),0);
   
   
     /**
@@ -256,6 +261,8 @@ TPZMatrix * TPBSpStructMatrix::Create(){
     int totaleq = 0;
     for(i=0;i<nblock;i++){
       int iblsize = fMesh->Block().Size(i);
+      int iblpos = fMesh->Block().Position(i);
+      if(iblpos < fMinEq || iblpos >= fMaxEq) continue;
       totaleq += iblsize;
       int icfirst = nodegraphindex[i];
       int iclast = nodegraphindex[i+1];
@@ -265,6 +272,8 @@ TPZMatrix * TPBSpStructMatrix::Create(){
       for(j=icfirst;j<iclast;j++) {
         int col = nodegraph[j];
         int colsize = fMesh->Block().Size(col);
+        int colpos = fMesh->Block().Position(col);
+        if(colpos < fMinEq || colpos >= fMaxEq) continue;
         totalvar += iblsize*colsize;
       }
     }
@@ -279,6 +288,8 @@ TPZMatrix * TPBSpStructMatrix::Create(){
     REAL * EqValue = new REAL[totalvar/2];
     for(i=0;i<nblock;i++){
       int iblsize = fMesh->Block().Size(i);
+      int iblpos = fMesh->Block().Position(i);
+      if(iblpos < fMinEq || iblpos >= fMaxEq) continue;
       int ibleq;
       for(ibleq=0; ibleq<iblsize; ibleq++) {
         Eq[ieq] = pos;
@@ -304,7 +315,8 @@ TPZMatrix * TPBSpStructMatrix::Create(){
         	int col = nodegraph[j];
         	colsize = fMesh->Block().Size(col);
         	colpos = fMesh->Block().Position(col);
-        	for(jbleq=0; jbleq<colsize; jbleq++) {
+                if(colpos < fMinEq || colpos >= fMaxEq) continue;
+                for(jbleq=0; jbleq<colsize; jbleq++) {
                  	  EqCol[pos] = -1;//colpos;
                  	  EqValue[pos] = 0.;
                       colpos++;

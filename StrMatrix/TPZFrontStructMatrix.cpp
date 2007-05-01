@@ -48,51 +48,23 @@ void TPZFrontStructMatrix<front>::GetNumElConnected(TPZVec <int> &numelconnected
 	
 	fMesh->ComputeNodElCon();
 ///////////////////////////////////////////////////////////////
-/////////////// É AQUI???/////////////////////////////////////
-	/* case the mesh is a submesh  connects are summed
-		 on external nodes in order to the frontal method
-		 don't decompose these equations
-		 Cesar - 02/11.01 */
-	if (fMesh->FatherMesh()){
-		int i;
-		TPZVec<int> extcon;
-		((TPZSubCompMesh*)fMesh)->GetExternalConnectIndex(extcon);
-		for (i=0; i<extcon.NElements(); i++){
-			int connindex = extcon[i];
-			fMesh->ConnectVec()[connindex].IncrementElConnected();
-		}
-	}
-/////////////////////////////////////////////////////////////////
 	
-	for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) {
-		TPZConnect &cn = fMesh->ConnectVec()[ic];
-		if(cn.HasDependency()) continue;
-		int seqn = cn.SequenceNumber();
-		if(seqn < 0) continue;
-		int firsteq = fMesh->Block().Position(seqn);
-		int lasteq = firsteq+fMesh->Block().Size(seqn);
-		int ind;
-		for(ind=firsteq;ind<lasteq;ind++) numelconnected[ind] = fMesh->ConnectVec()[ic].NElConnected();
-	}
-/*cout << "GetNumElConnected::numelconnected : ";
-int i;
-for(i=0; i<numelconnected.NElements(); i++) cout << numelconnected[i] << ' ';
-cout << endl;
-cout.flush();*/
+  for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) {
+    TPZConnect &cn = fMesh->ConnectVec()[ic];
+    if(cn.HasDependency()) continue;
+    int seqn = cn.SequenceNumber();
+    if(seqn < 0) continue;
+    int firsteq = fMesh->Block().Position(seqn);
+    int lasteq = firsteq+fMesh->Block().Size(seqn);
+    if(firsteq < fMinEq || firsteq >= fMaxEq) continue;
+    int ind;
+    for(ind=firsteq;ind<lasteq;ind++) numelconnected[ind-fMinEq] = fMesh->ConnectVec()[ic].NElConnected();
+  }
 }
 
 template<class front>
 TPZFrontStructMatrix<front>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh) { 
   f_quiet = 0;
-
-  //TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym>(fMesh->NEquations());
-	//TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(cmesh.NEquations());
-	//TPZFrontMatrix<TPZStackEqnStorage> *mat = new TPZFrontMatrix<TPZStackEqnStorage>(cmesh.NEquations());
-
-/*  TPZVec<int> numelconnected(fMesh->NEquations(),0);
-  TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(fMesh->NEquations());
-  GetNumElConnected(numelconnected);
-  mat->SetNumElConnected(numelconnected);*/
 }
 
 
@@ -117,8 +89,7 @@ TPZMatrix * TPZFrontStructMatrix<front>::Create(){
 template<class front>     
 TPZStructMatrix * TPZFrontStructMatrix<front>::Clone(){
      
-  TPZFrontStructMatrix<front>* result =  new TPZFrontStructMatrix<front>(fMesh);
-  result->SetQuiet(f_quiet);
+  TPZFrontStructMatrix<front>* result =  new TPZFrontStructMatrix<front>(*this);
   return result;
 }
 template<class front>
@@ -210,10 +181,20 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 template<class front>
 TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
 
-     TPZVec <int> numelconnected(fMesh->NEquations(),0);
+  int neq = fMesh->NEquations();
+  if(HasRange())
+  {
+    neq = fMaxEq-fMinEq;
+  }
+  else
+  {
+    fMinEq = 0;
+    fMaxEq = neq;
+  }
+     TPZVec <int> numelconnected(neq,0);
      //TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
      
-     TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
+     TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(neq);
      GetNumElConnected(numelconnected);
      mat->SetNumElConnected(numelconnected);
      
@@ -221,44 +202,33 @@ TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
 
      Assemble(*mat,rhs);
 
-	 if(fMesh->FatherMesh()) {
-		 TPZSubCompMesh *csmesh = dynamic_cast<TPZSubCompMesh *> (fMesh);
-		 if(csmesh) {
-			TPZSubMeshFrontalAnalysis *an = dynamic_cast<TPZSubMeshFrontalAnalysis *> (csmesh->GetAnalysis());
-			an->SetFront(mat->GetFront());
-		 }
-
-		 mat->FinishWriting();
-		 mat->ReOpen();
-	 }
      return mat;
 }
 
 template<class front>
 TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs, std::set<int> &MaterialIds){
 
-     TPZVec <int> numelconnected(fMesh->NEquations(),0);
-     //TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
+  int neq = fMesh->NEquations();
+  if(HasRange())
+  {
+    neq = fMaxEq-fMinEq;
+  }
+  else
+  {
+    fMinEq = 0;
+    fMaxEq = neq;
+  }
+  TPZVec <int> numelconnected(fMesh->NEquations(),0);
      
-     TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
-     GetNumElConnected(numelconnected);
-     mat->SetNumElConnected(numelconnected);
-     
-     OrderElement();
-
-     Assemble(*mat,rhs, MaterialIds);
-
-	 if(fMesh->FatherMesh()) {
-		 TPZSubCompMesh *csmesh = dynamic_cast<TPZSubCompMesh *> (fMesh);
-		 if(csmesh) {
-			TPZSubMeshFrontalAnalysis *an = dynamic_cast<TPZSubMeshFrontalAnalysis *> (csmesh->GetAnalysis());
-			an->SetFront(mat->GetFront());
-		 }
-
-		 mat->FinishWriting();
-		 mat->ReOpen();
-	 }
-     return mat;
+  TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
+  GetNumElConnected(numelconnected);
+  mat->SetNumElConnected(numelconnected);
+  
+  OrderElement();
+  
+  Assemble(*mat,rhs, MaterialIds);
+  
+  return mat;
 }
 
 template<class front>
@@ -289,7 +259,7 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix & stiffness, TPZFMatrix 
     //Builds elements stiffness matrix
     el->CalcStiff(ek,ef);
     ek.ComputeDestinationIndices();
-    ef.ComputeDestinationIndices();
+    FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
       //ek.fMat->Print(out);
     //ef.fMat->Print();
     if(!f_quiet)
@@ -302,15 +272,15 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix & stiffness, TPZFMatrix 
     numel++;
 
     if(!el->HasDependency()) {
-      stiffness.AddKel(ek.fMat,ek.fDestinationIndex);
-      rhs.AddFel(ef.fMat,ef.fDestinationIndex);
+      stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+      rhs.AddFel(ef.fMat,ek.fSourceIndex, ek.fDestinationIndex);
     }
     else {
       //ek.Print(*fMesh,cout);
       ek.ApplyConstraints();
       ef.ApplyConstraints();
       stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-      rhs.AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
+      rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 /*
 if(ek.fConstrMat->Decompose_LU() != -1) {
     el->ApplyConstraints(ek,ef);
@@ -422,17 +392,19 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
           //ef.fMat->Print("rhs has no constraint",test);
           //test.flush();
           ek.ComputeDestinationIndices();
-          ef.ComputeDestinationIndices();
+          this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
+
           //ek.Print(*fMesh,cout);
-          stiffness.AddKel(ek.fMat,ek.fDestinationIndex);
-          rhs.AddFel(ef.fMat,ef.fDestinationIndex);                 //  ??????????? Erro
+          stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+          rhs.AddFel(ef.fMat,ek.fSourceIndex, ek.fDestinationIndex);                 //  ??????????? Erro
      }
      else
      {
         ek.ApplyConstraints();
         ef.ApplyConstraints();
+        FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
         stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-        rhs.AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
+        rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
      }
 }
 

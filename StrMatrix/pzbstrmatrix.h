@@ -16,6 +16,10 @@ public:
 
     TPZBandStructMatrix(TPZCompMesh *);
 
+    TPZBandStructMatrix(const TPZBandStructMatrix &copy) : TPZStructMatrix(copy)
+    {
+    }
+
     virtual TPZMatrix * Create();
 
     virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs);

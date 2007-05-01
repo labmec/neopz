@@ -59,6 +59,13 @@ TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZCompMesh *mesh): TPZF
      fMaxStackSize = 500;
      fNThreads = 3;
 }
+
+template<class front>
+    TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(const TPZParFrontStructMatrix &copy): TPZFrontStructMatrix<front>(copy), fNThreads(copy.fNThreads), fMaxStackSize(copy.fMaxStackSize)
+{
+}
+
+
 template<class front>
 void TPZParFrontStructMatrix<front>::SetNumberOfThreads(int nthreads)
 {
@@ -78,10 +85,9 @@ void TPZParFrontStructMatrix<front>::SetNumberOfThreads(int nthreads)
 
 template<class front>     
 TPZStructMatrix * TPZParFrontStructMatrix<front>::Clone(){
-     TPZParFrontStructMatrix<front> * mat = new TPZParFrontStructMatrix<front>(this->fMesh);
-     mat->SetNumberOfThreads(fNThreads);
-     //return new TPZParFrontStructMatrix<front>(fMesh);
-     return (TPZStructMatrix*)mat;
+  TPZParFrontStructMatrix<front> * mat = new TPZParFrontStructMatrix<front>(*this);
+  return mat;
+;
      
 }
 
@@ -359,21 +365,6 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
 }
 
 
-template<class front>
-TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
-  
-      //TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
-     
-     //TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
-     
-     
-     TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(this->fMesh->NEquations());
-
-     Assemble(*mat,rhs);
-     return mat;
-          
-}
-
 
 
 template<class front>
@@ -551,6 +542,33 @@ int TPZParFrontStructMatrix<front>::main() {
 	return 0;
 
 }
+
+template<class front>
+TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs)
+{
+  
+//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
+     
+//TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
+  int neq = this->fMesh->NEquations();
+  if(this->HasRange())
+  {
+    neq = this->fMaxEq-this->fMinEq;
+  }
+  else
+  {
+    this->fMinEq = 0;
+    this->fMaxEq = neq;
+  }
+     
+  TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(neq);
+  rhs.Redim(neq,1);
+
+  Assemble(*mat,rhs);
+  return mat;
+          
+}
+
 
 
 class TPZFrontSym;
