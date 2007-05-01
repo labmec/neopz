@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.56 2007-04-16 14:19:50 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.57 2007-05-01 20:27:18 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -164,8 +164,10 @@ protected:
    * @param phi vector of values of shapefunctions, dimension (numshape,1)
    * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
    */
-  virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi){ 
-    PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this method should never be called!\n";
+  virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi){
+    TPZManVector<REAL,4> x(3);
+    Reference()->X(qsi,x);
+    ShapeX(x,phi,dphi);
   }
 
   virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv,
