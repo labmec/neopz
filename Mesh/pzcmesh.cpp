@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.60 2007-05-01 17:41:28 phil Exp $
+//$Id: pzcmesh.cpp,v 1.61 2007-05-01 20:28:21 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1604,18 +1604,47 @@ void TPZCompMesh::GetElementPatch(TPZVec<int> nodtoelgraph, TPZVec<int> nodtoelg
   }	
 }
 
-TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) : fReference(copy.fReference), fElementVec(copy.fElementVec),
-						    fConnectVec(copy.fConnectVec), fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
-						    fSolution(copy.fSolution), fBlock(copy.fBlock), fElementSolution(copy.fElementSolution)
+TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) : 
+    fReference(copy.fReference),fConnectVec(copy.fConnectVec), 
+    fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
+    fSolution(copy.fSolution), fBlock(copy.fBlock), 
+    fElementSolution(copy.fElementSolution)
 {
+  fReference->ResetReference();
   fBlock.SetMatrix(&fSolution);
   fSolutionBlock.SetMatrix(&fSolution);
   copy.CopyMaterials(this);
-  int nel = fElementVec.NElements();
+  int nel = copy.fElementVec.NElements();
+  fElementVec.Resize(nel);
   int iel;
+  for(iel = 0; iel<nel; iel++) fElementVec[iel] = 0;
   for(iel = 0; iel<nel; iel++) {
-    TPZCompEl *cel = fElementVec[iel];
-    if(cel) cel->Clone(*this);
+    TPZCompEl *cel = copy.fElementVec[iel];
+    if(cel && !dynamic_cast<TPZInterfaceElement* >(cel) )
+    {
+      TPZCompEl *clone = cel->Clone(*this);
+/*#ifdef LOG4CXX
+      {
+        std::stringstream sout;
+        sout << "original\n";
+        cel->Print(sout);
+        sout << "cloned\n";
+        clone->Print(sout);
+        LOGPZ_DEBUG(logger,sout.str())
+      }
+#endif*/
+    }
+  }
+/*#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    Print(sout);
+    LOGPZ_DEBUG(logger,sout.str())
+  }
+#endif*/
+  for(iel = 0; iel<nel; iel++) {
+    TPZCompEl *cel = copy.fElementVec[iel];
+    if(cel && dynamic_cast<TPZInterfaceElement* >(cel) ) cel->Clone(*this);
   }
   fDimModel = copy.fDimModel;
   fName = copy.fName;
@@ -1703,7 +1732,10 @@ void TPZCompMesh::CopyMaterials(TPZCompMesh *mesh) const {
   std::map<int, TPZAutoPointer<TPZMaterial> >::const_iterator mit;
 //  int m;
   for(mit=fMaterialVec.begin(); mit!=fMaterialVec.end(); mit++) {
-    mit->second->Clone(mesh->fMaterialVec);
+    if(!dynamic_cast<TPZBndCond *> (mit->second.operator->())) mit->second->Clone(mesh->fMaterialVec);
+  }
+  for(mit=fMaterialVec.begin(); mit!=fMaterialVec.end(); mit++) {
+    if(dynamic_cast<TPZBndCond *> (mit->second.operator->())) mit->second->Clone(mesh->fMaterialVec);
   }
 
 }
