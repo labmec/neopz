@@ -3,7 +3,7 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzchunk.h,v 1.9 2006-02-21 14:47:01 cesar Exp $
+// $Id: pzchunk.h,v 1.10 2007-05-01 20:25:59 phil Exp $
 
 #ifndef PZCHUNK_H
 #define PZCHUNK_H
@@ -194,6 +194,7 @@ inline T &TPZChunkVector<T,EXP>::operator[](const int nelem) const {
       PZError << "TPZChunkVector::operator[]. "
 	      << "Bad parameter nelem." << nelem << " NElements "
 	      << NElements() << std::endl;
+      DebugStop();
       PZError.flush();
       exit (-1);
       return fVec[0][0];
