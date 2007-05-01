@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.17 2007-04-22 21:06:27 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.18 2007-05-01 03:56:38 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -22,6 +22,12 @@
 
 #include <stdio.h>
 
+#include <sstream>
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.subcmesh"));
+#endif
 
 const int numel=1;
 
@@ -297,10 +303,32 @@ int TPZSubCompMesh::Dimension() const {
 //void TPZSubCompMesh::SetMaterial(TPZAutoPointer<TPZMaterial> mat){
 //}
 
-int TPZSubCompMesh::NodeIndex(int nolocal, TPZCompMesh *neighbour){
-	TPZCompMesh *root = CommonMesh(neighbour);
-	int rootindex = PutinSuperMesh(nolocal,root);
-	return neighbour->GetFromSuperMesh(rootindex,root);
+int TPZSubCompMesh::NodeIndex(int nolocal, TPZCompMesh *super)
+{
+  if(super == this) return nolocal;
+  TPZCompMesh *root = CommonMesh(super);
+  if(!root || fExternalLocIndex[nolocal] == -1) return -1;
+  int result = fConnectIndex[fExternalLocIndex[nolocal]];
+ 
+  if(root == FatherMesh())
+  {
+    return result;
+  }
+  else
+  {
+    TPZCompMesh *father =  FatherMesh();
+    TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *> (father);
+    if(sub)
+    {
+      return sub->NodeIndex(result,super);
+    }
+    else
+    {
+      return -1;
+    }
+  }
+/*	int rootindex = PutinSuperMesh(nolocal,root);
+	return neighbour->GetFromSuperMesh(rootindex,root);*/
 }
 
 int TPZSubCompMesh::AllocateNewConnect(int blocksize, int order){
@@ -417,35 +445,49 @@ void TPZSubCompMesh::Print(std::ostream &out){
 	}
 }
 		
+  /**
+ * Transfer the dependency list of a connect. This will
+ * make the dependency disappear for the corresponding father mesh
+ * It is necessary that the number of elements connected to the connect be equal one
+   */
+void TPZSubCompMesh::TransferDependencies(int local)
+{
+  if (fExternalLocIndex[local] == -1) return;
+  TPZCompMesh *father = FatherMesh();
+  int superind = fConnectIndex[fExternalLocIndex[local]];
+  if(father->ConnectVec()[superind].NElConnected() != 1)
+  {
+    std::cout << __PRETTY_FUNCTION__ << " number of elements connected to connect " << superind <<
+        " = " << father->ConnectVec()[superind].NElConnected() << std::endl;
+  }
+  if(father && RootMesh(local) != father) {
+    std::cout << "ERROR";
+  }
+  TPZConnect::TPZDepend *listdepend = father->ConnectVec()[superind].FirstDepend();
+  while(listdepend) {
+    int depfatherindex = listdepend->fDepConnectIndex;
+    int depindexlocal = GetFromSuperMesh(depfatherindex,father);
+    int r = listdepend->fDepMatrix.Rows();
+    int c = listdepend->fDepMatrix.Cols();
+    ConnectVec()[local].AddDependency(local,depindexlocal,listdepend->fDepMatrix,0,0,r,c);
+    father->ConnectVec()[depfatherindex].RemoveDepend(superind,depfatherindex);
+    listdepend = father->ConnectVec()[superind].FirstDepend();
+  }
+}
 
 
 void TPZSubCompMesh::MakeInternal(int local){
-	if (fExternalLocIndex[local] == -1) return;
-	TPZCompMesh *father = FatherMesh();
-	int superind = fConnectIndex[fExternalLocIndex[local]];
-	if(father && RootMesh(local) != father) {
-		std::cout << "ERROR";
-	}
-	TPZConnect::TPZDepend *listdepend = father->ConnectVec()[superind].FirstDepend();
-	while(listdepend) {
-		int depfatherindex = listdepend->fDepConnectIndex;
-		int depindexlocal = GetFromSuperMesh(depfatherindex,father);
-		int r = listdepend->fDepMatrix.Rows();
-		int c = listdepend->fDepMatrix.Cols();
-		ConnectVec()[local].AddDependency(local,depindexlocal,listdepend->fDepMatrix,0,0,r,c);
-		father->ConnectVec()[depfatherindex].RemoveDepend(superind,depfatherindex);
-		listdepend = father->ConnectVec()[superind].FirstDepend();
-	}
-	int i;
-	int localindex = fExternalLocIndex[local];
-	for (i=fExternalLocIndex[local]; i<fConnectIndex.NElements()-1; i++){
-		fConnectIndex[i]= fConnectIndex[i+1];	
-	}
-	for(i=0; i<fConnectVec.NElements(); i++) {
-		if(fExternalLocIndex[i] != -1 && fExternalLocIndex[i] > localindex) fExternalLocIndex[i]--;
-	}
-	fConnectIndex.Resize(fConnectIndex.NElements()-1);
-	fExternalLocIndex[local]= -1;
+  TransferDependencies(local);
+  int i;
+  int localindex = fExternalLocIndex[local];
+  for (i=fExternalLocIndex[local]; i<fConnectIndex.NElements()-1; i++){
+          fConnectIndex[i]= fConnectIndex[i+1];	
+  }
+  for(i=0; i<fConnectVec.NElements(); i++) {
+          if(fExternalLocIndex[i] != -1 && fExternalLocIndex[i] > localindex) fExternalLocIndex[i]--;
+  }
+  fConnectIndex.Resize(fConnectIndex.NElements()-1);
+  fExternalLocIndex[local]= -1;
 }
 
 
@@ -455,48 +497,87 @@ TPZCompMesh * TPZSubCompMesh::RootMesh(int local){
 	return NULL;
 }
 
+/**
+ * Este método deve estar errado. Primeiro tem que por os connects que tem dependencias
+ * caso contrario nós com dependencias serao duplicados
+ * 
+ * talvez primeiro copiar a estrutura dos nós dependentes e DEPOIS tirá los da malha pai
+ */
 void TPZSubCompMesh::MakeAllInternal(){
-	TPZStack<int> stack;
-	int i,j;
-	TPZCompMesh *father = FatherMesh();
-	father->ComputeNodElCon();
-	//TPZCompMesh::Print();
-	//father->Print();
-	for (i=0;i<fConnectVec.NElements();i++){
-		if (fExternalLocIndex[i]==-1) continue;
-		if (father->ConnectVec()[fConnectIndex[fExternalLocIndex[i]]].NElConnected() == 1) stack.Push(i);
-	}
-	while(stack.NElements()) {
-		int locind = stack.Pop();
-		TPZConnect &coni = father->ConnectVec()[fConnectIndex[fExternalLocIndex[locind]]];
-		int can = 0;
-		if (coni.FirstDepend()){
-			TPZConnect::TPZDepend *listdepend = coni.FirstDepend();
-			for(j=0;j<stack.NElements(); j++){
-				int jlocind = stack[j];
-				if (jlocind == locind) continue;
-				//				TPZConnect &conj = father->ConnectVec()[fConnectIndex[fExternalLocIndex[jlocind]]];
-				if (listdepend->HasDepend(fConnectIndex[fExternalLocIndex[jlocind]])) break;
-			}
-			if (j == stack.NElements()) can=1;
-			else {
-				int jlocind = stack[j];
-				stack[j] = locind;
-				stack.Push(jlocind);
-			}
-		}
-		else {
-			can=1;
-		}
-		if(can && RootMesh(locind) != FatherMesh()) can = 0;
-		if (can) {
-			MakeInternal(locind);
-		}
-	}
-	//TPZCompMesh::Print();
-	//father->Print();
-	//std::cout.flush();
+  TPZStack<int> stack;
+  int i,j;
+  TPZCompMesh *father = FatherMesh();
+  father->ComputeNodElCon();
+  //TPZCompMesh::Print();
+  //father->Print();
+  for (i=0;i<fConnectVec.NElements();i++){
+    if (fExternalLocIndex[i]==-1) continue;
+    // put the candidate nodes in the stack
+    if (father->ConnectVec()[fConnectIndex[fExternalLocIndex[i]]].NElConnected() == 1) stack.Push(i);
+  }
+  // put the independent connects first
+  while(stack.NElements()) {
+    int locind = stack.Pop();
+    TPZConnect &coni = father->ConnectVec()[fConnectIndex[fExternalLocIndex[locind]]];
+    int can = 0;
+    // special procedure when the node has dependencies
+    if (coni.FirstDepend()){
+      TPZConnect::TPZDepend *listdepend = coni.FirstDepend();
+      for(j=0;j<stack.NElements(); j++){
+        int jlocind = stack[j];
+        if (jlocind == locind) continue;
+        // if the node upon which locind is dependent is already on the stack, no further analysis required
+        if (listdepend->HasDepend(fConnectIndex[fExternalLocIndex[jlocind]])) break;
+      }
+      // no element on the stack is listed as dependent from the current node
+      if (j == stack.NElements()) 
+      {
+        can=1;
+      }
+      // we found an element in the dependency list. Let s check it first
+      else 
+
+      {
+        // put the node upon which the current node depends in the current position and the dependent node at the end
+        int jlocind = stack[j];
+        stack[j] = locind;
+        stack.Push(jlocind);
+      }
+    }
+    // the node has no dependencies
+    else {
+            can=1;
+    }
+    // if the node is not internal to the fathermesh, don't put it on the stack
+    if(can && RootMesh(locind) != FatherMesh()) can = 0;
+    if (can) {
+            MakeInternal(locind);
+    }
+  }
+  //TPZCompMesh::Print();
+  //father->Print();
+  //std::cout.flush();
 }
+
+void TPZSubCompMesh::PotentialInternal(std::list<int> &connectindices){
+  int i;
+  TPZCompMesh *father = FatherMesh();
+  father->ComputeNodElCon();
+  //TPZCompMesh::Print();
+  //father->Print();
+  for (i=0;i<fConnectVec.NElements();i++){
+    if (fExternalLocIndex[i]==-1) 
+    {
+      connectindices.push_back(i);
+    }
+    else
+    {
+      int extcon = this->fConnectIndex[fExternalLocIndex[i]];
+      if(father->ConnectVec()[extcon].NElConnected() == 1) connectindices.push_back(i);
+    }
+  }
+}
+
 
 void TPZSubCompMesh::SetConnectIndex(int inode, int index){
 	fConnectIndex[inode] = index;
@@ -674,6 +755,73 @@ void TPZSubCompMesh::SetAnalysis(){
 	PermuteExternalConnects();
 //	ofstream out("subcmesh.dat");
 //	Prints(out);
+}
+
+  /**
+ * Permute the potentially internal connects to the first on the list
+ * Respect the previous order of the connects
+   */
+void TPZSubCompMesh::PermuteInternalFirst()
+{
+  // map from sequence number of the pontentially internal nodes to the node indices
+  // first the independent nodes, then the dependent nodes
+  std::map<int,int> independent;
+  std::list<int> internal;
+  this->PotentialInternal(internal);
+#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    sout << "Internal connects ic/seqnum";
+    std::list<int>::iterator it;
+    for(it=internal.begin(); it!= internal.end(); it++)
+    {
+      sout << *it << "/" << ConnectVec()[*it].SequenceNumber() << " ";
+    }
+    LOGPZ_DEBUG(logger,sout.str())
+  }
+#endif
+  TPZCompMesh *father = this->FatherMesh();
+  std::list<int>::iterator it;
+  for(it=internal.begin(); it!= internal.end(); it++)
+  {
+    int locind = *it;
+    int superind = fConnectIndex[this->fExternalLocIndex[locind]];
+    if(father->ConnectVec()[superind].FirstDepend())
+    {
+    }
+    else
+    {
+      independent[ConnectVec()[locind].SequenceNumber()] = locind;
+    }
+  }
+  TPZManVector<int> permute(fConnectVec.NElements(),-1);
+  
+  int count = 0;
+  map<int,int>::iterator mapit;
+  for(mapit=independent.begin(); mapit!=independent.end(); mapit++)
+  {
+    permute[mapit->first] = count++;
+  }
+  map<int,int> seqmap;
+  int ind;
+  for(ind=0; ind < fConnectVec.NElements(); ind++)
+  {
+    int seqnum = fConnectVec[ind].SequenceNumber();
+    if(seqnum == -1) continue;
+    seqmap[seqnum]=ind;
+  }
+  for(mapit=seqmap.begin(); mapit!=seqmap.end(); mapit++)
+  {
+    if(permute[mapit->first] == -1) permute[mapit->first] = count++;
+  }
+#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    sout << "Permutation vector " << permute;
+    LOGPZ_DEBUG(logger,sout.str())
+  }
+#endif
+  Permute(permute);
 }
 
 void TPZSubCompMesh::PermuteExternalConnects(){
