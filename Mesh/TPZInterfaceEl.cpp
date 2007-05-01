@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.75 2007-04-19 21:53:41 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.76 2007-05-01 20:26:59 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -25,7 +25,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterfacelement"));
 
 void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right){
 
-  this->DecreaseElConnected();
+  if(fLeftElSide.Element() && fRightElSide.Element()) this->DecreaseElConnected();
 
   TPZCompEl * cel = left.Element();
   if(cel){
@@ -84,7 +84,7 @@ TPZInterfaceElement::~TPZInterfaceElement(){
     this->Reference()->DecrementNumInterfaces();
     this->Reference()->ResetReference();
   }
-  this->DecreaseElConnected();
+//  this->DecreaseElConnected();
 };
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
