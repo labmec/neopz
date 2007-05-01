@@ -77,6 +77,30 @@ TPZMatRed::TPZMatRed( int dim, int dim00 ):TPZMatrix( dim,dim ){
 
 }
 
+TPZMatRed::TPZMatRed(const TPZMatRed &cp) : TPZMatrix(cp)
+{
+  fDim0=cp.fDim0;
+  fDim1=cp.fDim1;
+  fDecomposeType=cp.fDecomposeType;
+  fF0IsComputed=cp.fF0IsComputed;
+  fK01IsComputed=cp.fK01IsComputed;
+  fK11IsReduced=cp.fK11IsReduced;
+  fF1IsReduced=fF1IsReduced;
+
+  fK00= 0; //new TPZFMatrix(fDim0,fDim0,0.);
+  if(cp.fK00) fK00 = cp.fK00->Clone();
+  fK01=new TPZFMatrix(*(cp.fK01));
+  fK10=new TPZFMatrix(*cp.fK10);
+  fK11=new TPZFMatrix(*cp.fK11);
+
+
+  fF0=NULL;
+  fF1=NULL;
+  if(fF0) fF0 = new TPZFMatrix(*cp.fF0);
+  if(fF1) fF1 = new TPZFMatrix(*cp.fF1);
+}
+
+
 TPZMatRed::~TPZMatRed(){
 	if(fK00) delete fK00;
 	if(fK01) delete fK01;

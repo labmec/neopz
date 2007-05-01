@@ -45,7 +45,7 @@ using namespace std;
 /*** Constructor ***/
 
 TPZSSpMatrix::TPZSSpMatrix(const TPZSSpMatrix &A )
-  : TPZMatrix( A.Dim(),A.Dim() ), fMat( A.fMat )
+  : TPZMatrix( A ), fMat( A.fMat )
 {
   fDecomposed  = A.fDecomposed;
   fDefPositive = A.fDefPositive;

@@ -67,6 +67,13 @@ public:
 	TPZFrontMatrix(
 		       int globalsize //! Indicates initial global size
 		       );
+ 
+ TPZFrontMatrix(const TPZFrontMatrix &cp) : fStorage(cp.fStorage),
+ fFront(cp.fFront),fNumEq(cp.fNumEq),fLastDecomposed(cp.fLastDecomposed), fNumElConnected(cp.fNumElConnected),fNumElConnectedBackup(fNumElConnectedBackup)
+    {
+    }
+    
+    CLONEDEF(TPZFrontMatrix)
 
     /**
      * Sends a message to decompose equations from lower_eq to upper_eq,

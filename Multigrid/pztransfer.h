@@ -17,6 +17,20 @@ class TPZTransfer : public TPZMatrix {
 
   /**the sparse matrix blocks are defined by row, col*/
   TPZTransfer(TPZBlock &row, TPZBlock &col,int nvar, int nrowblocks, int ncolblocks);
+  
+  TPZTransfer(const TPZTransfer &cp) : TPZMatrix(cp),
+  fNStateVar(cp.fNStateVar), fRowBlock(cp.fRowBlock),
+  fColBlock(cp.fColBlock),fColPosition(cp.fColPosition),
+  fNumberofColumnBlocks(cp.fNumberofColumnBlocks),
+  fColumnBlockNumber(cp.fColumnBlockNumber),
+  fColumnBlockLastUsed(cp.fColumnBlockLastUsed),
+  fDoubleValues(cp.fDoubleValues),
+  fDoubleValLastUsed(cp.fDoubleValLastUsed)
+  {
+  }
+  
+  CLONEDEF(TPZTransfer)
+      
   //TPZMatrix : EFormatted, EInputFormat, EMathematicaInput
   virtual void Print(const char *name = NULL, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const;
 

@@ -74,7 +74,7 @@ TPZSFMatrix::TPZSFMatrix (const TPZSFMatrix & A)
 /*** Constructor( TPZMatrix& ) ***/
 
 TPZSFMatrix::TPZSFMatrix(const  TPZMatrix &A )
-  : TPZMatrix( A.Rows(), A.Cols() )
+  : TPZMatrix( A )
 {
   fElem = new( REAL[Size()] );
 

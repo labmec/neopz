@@ -59,6 +59,7 @@ public:
     /** Constructor with a initial size parameter */
         TPZFrontNonSym(int GlobalSize);
 
+        TPZFrontNonSym(const TPZFrontNonSym &cp);
     /**
      * Decompose these equations and put the result in eqnarray. \n
      * Default decompose method is LU

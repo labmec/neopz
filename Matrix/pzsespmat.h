@@ -47,6 +47,8 @@ class TPZSSpMatrix : public TPZMatrix
   TPZSSpMatrix() : TPZMatrix(0,0)  {}
   TPZSSpMatrix(const int dim ) : TPZMatrix(dim,dim), fMat(dim, dim) {}
   TPZSSpMatrix(const TPZSSpMatrix & );
+  
+  CLONEDEF(TPZSSpMatrix)
 
   inline int    PutVal(const int row,const int col,const REAL&  element );
   inline const REAL & GetVal(const int row,const int col ) const;

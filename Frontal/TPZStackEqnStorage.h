@@ -38,6 +38,10 @@ public:
     ~TPZStackEqnStorage();
     /** Simple Constructor */
     TPZStackEqnStorage();
+    
+    TPZStackEqnStorage(const TPZStackEqnStorage &cp) : fEqnStack(cp.fEqnStack)
+    {
+    }
     /** Adds an EqnArray to EqnStack object
     *@param *EqnArray Pointer to EqnArray to be added to the Stack
     */

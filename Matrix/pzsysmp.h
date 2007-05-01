@@ -30,6 +30,22 @@ class TPZSYsmpMatrix : public TPZMatrix {
     TPZSYsmpMatrix( int rows, int cols );
   // sets up the StencilMatrix based on the stencil
 
+    TPZSYsmpMatrix(const TPZSYsmpMatrix &cp) : TPZMatrix(cp)
+    {
+      int fjasize = fIA[Rows()];
+      fIA = new int[Rows()+1];
+      fDiag = new REAL[Rows()];
+      fJA = new int[fjasize];
+      fA = new REAL[fjasize];
+      memcpy(fIA,cp.fIA,(Rows()+1)*sizeof(int));
+      memcpy(fJA,cp.fJA,fjasize*sizeof(int));
+      memcpy(fDiag,cp.fDiag,Rows()*sizeof(REAL));
+      memcpy(fA,cp.fA,fjasize*sizeof(REAL));
+
+    }
+    
+    CLONEDEF(TPZSYsmpMatrix)
+        
   virtual ~TPZSYsmpMatrix();
 
 

@@ -51,6 +51,10 @@ class TPZMatRed :public TPZMatrix {
 
 
   TPZMatRed(const  int dim,const int dim00  ) ;
+  
+  TPZMatRed(const TPZMatRed &cp);
+  
+  CLONEDEF(TPZMatRed)
   /**
    *Simple destructor
    */

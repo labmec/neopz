@@ -47,7 +47,18 @@ public:
      TPZParFrontMatrix(
 		       int globalsize //! Indicates initial global size
 		       );
+     
+     TPZParFrontMatrix(const TPZParFrontMatrix &cp) : TPZFrontMatrix<store,front>(cp), fFinish(0)
+     {
+        fEqnStack.Resize(0);
+        pthread_mutex_t mlocal = PTHREAD_MUTEX_INITIALIZER;
+        fwritelock = mlocal;
+        pthread_cond_t clocal = PTHREAD_COND_INITIALIZER;
+        fwritecond = clocal;
+     }
 
+     CLONEDEF(TPZParFrontMatrix)
+         
     /** Add a contribution of a stiffness matrix */
     void AddKel(
 		TPZFMatrix & elmat //! Member stiffness matrix beeing added

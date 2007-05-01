@@ -55,6 +55,8 @@ class TPZSkylParMatrix : public TPZSkylMatrix
   TPZSkylParMatrix(const int dim, const TPZVec<int> &skyline,int NumThreads);
   //TPZSkylParMatrix (const int dim,int NumThreads);
   TPZSkylParMatrix(const TPZSkylParMatrix &A);
+  
+  CLONEDEF(TPZSkylParMatrix)
     //    : TPZMatrix(A.Dim(), A.Dim()), fElem(0), fStorage(0) {Copy(A); }
 
   virtual ~TPZSkylParMatrix();

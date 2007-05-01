@@ -374,6 +374,9 @@ TPZFrontNonSym::TPZFrontNonSym() : TPZFront() {
 	 fWork=0;
 }
 
+TPZFrontNonSym::TPZFrontNonSym(const TPZFrontNonSym &cp) : TPZFront(cp) , fDecomposeType(cp.fDecomposeType) {
+}
+
 TPZFrontNonSym::~TPZFrontNonSym(){}
 
 

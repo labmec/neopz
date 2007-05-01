@@ -40,6 +40,9 @@ public:
 	     );
     /** Simple constructor */
 	TPZFileEqnStorage();
+ 
+ TPZFileEqnStorage(const TPZFileEqnStorage &cp);
+ 
     /** Static main for testing */
 	static void main();
 

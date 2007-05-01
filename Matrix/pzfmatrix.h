@@ -83,6 +83,9 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
      @param refmat Used as a model for current object
   */
   TPZFMatrix (const TPZFMatrix & );
+  
+  CLONEDEF(TPZFMatrix)
+      
   TPZFMatrix(const TPZMatrix &refmat); // copy the elements one by one
   //@}
   /**
@@ -314,6 +317,7 @@ inline TPZFNMatrix(const TPZFMatrix &copy) : TPZFMatrix(0,0,fBuf,N)
   *this = copy;
 }
 
+  CLONEDEF(TPZFNMatrix)
   /*
    * Constructor which initializes the data
    * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col

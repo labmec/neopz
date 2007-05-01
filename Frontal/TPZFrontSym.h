@@ -51,6 +51,11 @@ public:
     ~TPZFrontSym();
     /** Simple constructor */
     TPZFrontSym();
+    
+    TPZFrontSym(const TPZFrontSym &cp) : TPZFront(cp),
+    fDecomposeType(cp.fDecomposeType)
+    {
+    }
     /** Constructor with a initial size parameter */
 	TPZFrontSym(int GlobalSize);
 

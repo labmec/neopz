@@ -21,6 +21,8 @@
 //#include "pzmaterialid.h"
 #include "pzsave.h"
 
+#define CLONEDEF(A) virtual TPZMatrix *Clone() const { return new A(*this); }
+
 class TPZFMatrix;
 class TPZSolver;
 
@@ -62,7 +64,11 @@ public:
     fRow = 0;
     fCol = 0;
     gZero = 0.;
-  }  
+  }
+  
+  TPZMatrix(const TPZMatrix &cp) : fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
+  {
+  }
   /**
    *Simple destructor
    */
@@ -73,6 +79,8 @@ public:
     fRow = 0;
     fCol = 0; 
   }
+  
+  virtual TPZMatrix *Clone() const = 0;
   
     /**
    * Checks if current matrix value is symmetric

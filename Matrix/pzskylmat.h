@@ -46,7 +46,9 @@ class TPZSkylMatrix : public TPZMatrix
      skyline indicates the minimum row number which will be accessed by each equation
   */
   TPZSkylMatrix(const int dim ,const TPZVec<int> &skyline);
-  TPZSkylMatrix(const TPZSkylMatrix &A ) : TPZMatrix(A.Dim(),A.Dim()), fElem(0), fStorage(0)  { Copy(A); }
+  TPZSkylMatrix(const TPZSkylMatrix &A ) : TPZMatrix(A), fElem(0), fStorage(0)  { Copy(A); }
+  
+  CLONEDEF(TPZSkylMatrix)
   /**
      modify the skyline of the matrix, throwing away its values
      skyline indicates the minimum row number which will be accessed by each equation

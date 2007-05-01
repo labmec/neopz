@@ -45,6 +45,9 @@ class TPZSFMatrix : public TPZMatrix {
   // Usa o maior bloco quadrado possivel, comecado em (0,0).
   // E inicializa com a parte triangular inferior do bloco.
   TPZSFMatrix (const TPZMatrix & );
+  
+  CLONEDEF(TPZSFMatrix)
+      
   ~TPZSFMatrix();
 
   int PutVal(const int row,const int col,const REAL &value );

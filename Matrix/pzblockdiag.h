@@ -46,6 +46,8 @@ class TPZBlockDiagonal : public TPZMatrix
      Copy constructor
    */
   TPZBlockDiagonal (const TPZBlockDiagonal & );
+  
+  CLONEDEF(TPZBlockDiagonal)
   /**
    *Simple destructor
    */

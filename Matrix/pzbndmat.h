@@ -49,6 +49,8 @@ class TPZFBMatrix : public TPZMatrix
      Copy constructor
   */
   TPZFBMatrix (const TPZFBMatrix & );
+  
+  CLONEDEF(TPZFBMatrix)
   /**
      Simple destructor
   */

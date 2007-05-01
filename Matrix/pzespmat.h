@@ -79,7 +79,9 @@ class TPZSpMatrix : public TPZMatrix
      @param A Model object
   */
   TPZSpMatrix (const TPZSpMatrix &A )
-    : TPZMatrix( A.Rows(), A.Cols() )  { fCopy( &A ); }
+    : TPZMatrix( A )  { fCopy( &A ); }
+  
+  CLONEDEF(TPZSpMatrix)
   /**
      Simple destructor
   */

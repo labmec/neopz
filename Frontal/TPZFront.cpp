@@ -145,6 +145,13 @@ TPZFront::TPZFront(){
 	fWork = 0;
 }
 
+TPZFront::TPZFront(const TPZFront &cp) : fMaxFront(cp.fMaxFront),
+  fGlobal(cp.fGlobal),
+  fLocal(cp.fLocal),fFront(cp.fFront),fFree(cp.fFree),
+  fData(cp.fData),fExpandRatio(cp.fExpandRatio)
+{
+}
+
 
 
 TPZFront::TPZFront(int GlobalSize)

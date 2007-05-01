@@ -33,6 +33,8 @@ public:
 	TPZFront(
 	     int GlobalSize //! Initial size of the Frontal Matrix
 	     );
+ 
+ TPZFront(const TPZFront &cp);
 
     /**
      * Decompose these equations in a symbolic way and store freed indexes in fFree 

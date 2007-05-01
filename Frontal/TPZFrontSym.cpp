@@ -339,6 +339,8 @@ TPZFrontSym::TPZFrontSym(int GlobalSize) : TPZFront(GlobalSize)
 TPZFrontSym::TPZFrontSym(){
 	fDecomposeType=ECholesky;
 }
+
+
 TPZFrontSym::~TPZFrontSym(){}
 #ifndef WIN32
 void TPZFrontSym::main()

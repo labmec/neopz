@@ -34,7 +34,7 @@ inline   TPZTempFMatrix(const TPZFMatrix &basis) {
         fp = new MIntern(basis);
    }
 
-inline   ~TPZTempFMatrix() {
+inline  ~TPZTempFMatrix() {
         fp->fNRef--;
       if(!fp->fNRef) delete fp;
    }

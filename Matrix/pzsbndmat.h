@@ -35,7 +35,10 @@ class TPZSBMatrix : public TPZMatrix
  public:
   TPZSBMatrix() : TPZMatrix(0,0) { fDiag = NULL; fBand = 0; }
   TPZSBMatrix(const int dim,const int band );
-  TPZSBMatrix(const TPZSBMatrix &A ) : TPZMatrix(A.Dim(),A.Dim())  { Copy(A); }
+  TPZSBMatrix(const TPZSBMatrix &A ) : TPZMatrix(A)  { Copy(A); }
+  
+  CLONEDEF(TPZSBMatrix)
+      
   ~TPZSBMatrix() { Clear(); }
 
   int    PutVal(const int row,const int col,const REAL& element );
