@@ -344,6 +344,7 @@ template<class TGeo>
 TPZTransform
 TPZGeoElRefLess<TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform &t)
 {
+  if(this == father) return t;
   //Augusto:09/01/01
   TPZGeoEl *myfather = Father();
   if(side<0 || side>(TGeo::NSides-1) || !myfather){
