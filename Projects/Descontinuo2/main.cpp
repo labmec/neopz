@@ -45,12 +45,15 @@
 #include "tpzoutofrange.h"
 #include "pzlog.h"
 
+#include "pztransfer.h"
+
  using namespace pzgeom;
  using namespace pzshape;
  using namespace pzrefine;
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.converge"));
+static LoggerPtr logtr(Logger::getLogger("pz.mesh.transfer"));
 #endif
 
 int gDebug;
@@ -458,8 +461,7 @@ int run(std::istream & input, std::ostream & output)
 	 TPZCompEl * pEl;
 	 TPZGeoEl * pGEl;
 	 TPZInterfaceElement * pIEl;
-
-
+         TPZCompMesh tempmesh(*cmesh);
          for(i_el = 0; i_el < nEl; i_el++)
 	 {
 	    pEl = cmesh->ElementVec()[i_el];
@@ -469,16 +471,33 @@ int run(std::istream & input, std::ostream & output)
 	    pGEl = pEl->Reference();
 	    pGEl->SetReference(pEl); // building cross references
 	 }
+          if(ProblemType == 8)
+          {
+            cmesh->ExpandSolution2();
+          }else
+          {
+            ofstream arq("profile.csv");
+            GetSolutionGraph (-1, arq, cmesh);
+            return 0;
+          }
+          TPZTransfer transfer;
+          cmesh->BuildTransferMatrix(tempmesh,transfer);
+          TPZFMatrix coarsesol = tempmesh.Solution();
+          coarsesol.Remodel(4,coarsesol.Rows()/4);
+          coarsesol.Transpose();
+          TPZFMatrix finesol;
+          transfer.Multiply(coarsesol,finesol,0,1);
+          finesol.Transpose();
+          finesol.Remodel(finesol.Rows()*finesol.Cols(),1);
+          cmesh->LoadSolution(finesol);
+// #ifdef LOG4CXX
+//           {
+//             std::stringstream sout;
+//             transfer.Print("Transfer matrix for p refinement",sout);
+//             LOGPZ_DEBUG(logtr,sout.str())
+//           }
+// #endif
 
-         if(ProblemType == 8)
-	 {
-	    cmesh->ExpandSolution2();
-	 }else
-	 {
-           ofstream arq("profile.csv");
-           GetSolutionGraph (-1, arq, cmesh);
-	   return 0;
-	 }
 
       }
       break;
