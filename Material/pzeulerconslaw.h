@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.35 2007-01-27 14:49:27 phil Exp $
+//$Id: pzeulerconslaw.h,v 1.36 2007-05-01 20:29:02 phil Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -38,7 +38,18 @@ public :
   ~TPZEulerConsLaw2();
 
   TPZEulerConsLaw2();
+  
+  TPZEulerConsLaw2(const TPZEulerConsLaw2 &cp) : TPZConservationLaw2(cp), fArtDiff(cp.fArtDiff),fDiff(cp.fDiff),
+  fConvVol(cp.fConvVol),fConvFace(cp.fConvFace)
+  {
+  }
 
+  TPZAutoPointer<TPZMaterial> NewMaterial()
+  {
+    return new TPZEulerConsLaw2(*this);
+  }
+  
+  
   /**
    * Configures the time discretization of some contributions
    *
