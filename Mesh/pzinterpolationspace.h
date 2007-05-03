@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.5 2007-05-01 17:41:28 phil Exp $
+//$Id: pzinterpolationspace.h,v 1.6 2007-05-03 18:52:19 tiago Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -101,6 +101,12 @@ public:
   /** Initialize element matrix in which is computed in CalcResidual
   */
   void InitializeElementMatrix(TPZElementMatrix &ef);
+
+  /** Returns minimum and maximum values for each state variable.
+   * It is not a cheap method because it computes solution for
+   * all integration points ( with intrule.MaxOrder() )
+   */
+  void MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL> &max);
 
   /**returns a reference to an integration rule suitable for integrating
      the interior of the element */

@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.8 2007-05-01 17:41:28 phil Exp $
+//$Id: pzinterpolationspace.cpp,v 1.9 2007-05-03 18:51:56 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -824,6 +824,41 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
   }//for int_ind
 }//method
 
+void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL> &max){
+
+  const int dim = Dimension();
+  TPZManVector<REAL,3> intpoint(dim,0.);
+
+  TPZIntPoints &intrule = GetIntegrationRule();
+  TPZManVector<int,3> prevorder(dim,0);
+  intrule.GetOrder(prevorder);
+
+  TPZManVector<int,3> maxorder(dim,intrule.GetMaxOrder());
+  intrule.SetOrder(maxorder);
+
+  TPZManVector<REAL,10> sol;
+  TPZFNMatrix<30> dsol;
+  TPZFNMatrix<9> axes(3,3,0.);
+  REAL weight;
+
+  int intrulepoints = intrule.NPoints();
+  intrule.Point(0,intpoint,weight);
+  this->ComputeSolution(intpoint, sol, dsol, axes);
+  min = sol;
+  max = sol;
+  const int nvars = sol.NElements();
+  for(int int_ind = 1; int_ind < intrulepoints; int_ind++){
+    intrule.Point(int_ind,intpoint,weight);
+    this->ComputeSolution(intpoint, sol, dsol, axes);
+    for(int iv = 0; iv < nvars; iv++){
+      if (sol[iv] < min[iv]) min[iv] = sol[iv];
+      if (sol[iv] > max[iv]) max[iv] = sol[iv];
+    }//iv
+  }//loop over integratin points
+
+  intrule.SetOrder(prevorder);
+
+}//void
 void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform &t, TPZTransfer &transfer){
   // accumulates the transfer coefficients between the current element and the
   // coarse element into the transfer matrix, using the transformation t
