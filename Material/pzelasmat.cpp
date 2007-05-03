@@ -174,7 +174,7 @@ void TPZElasticityMaterial::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol
 					 TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
   //	const REAL LITTLENUMB = 1.e-6;
-  const REAL BIGNUMBER  = 1.e12;
+  const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
 
   int phr = phi.Rows();
   short in,jn;
