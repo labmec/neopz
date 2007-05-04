@@ -901,7 +901,7 @@ int TPZFMatrix::Decompose_LU() {
   REAL * ptrpivot,*pik, *pij,*pkj;
   
   int i,j,k,rows=Rows(),cols=Cols();
-  int  min = ( cols < (rows-1) ) ? cols : rows - 1;
+  int  min = ( cols < (rows) ) ? cols : rows;
   
   ptrpivot=&fElem[0];
   for (  k = 0; k < min ; k++ )
@@ -910,11 +910,16 @@ int TPZFMatrix::Decompose_LU() {
       //Power plus...
       if (fabs(*ptrpivot) > 0){
         for (j=k+1;j<rows;j++){
-          if (fabs(*(ptrpivot + j - k) - *(ptrpivot)) > 1e-12)
+          if (fabs(*(ptrpivot + j - k) - *(ptrpivot)) > 1e-12){
             Error( "DecomposeLU <matrix is singular> even after Power Plus..." );
+            cout << "DecomposeLU <matrix is singular> even after Power Plus...\n" ;
+          }
         }
       }
-      else Error( "DecomposeLU <matrix is singular>" );
+      else{
+        Error( "DecomposeLU <matrix is singular>" );
+        cout << "DecomposeLU <matrix is singular>\n";
+      }
     }
     pik=ptrpivot;
     for ( i = k+1; i < rows; i++ )

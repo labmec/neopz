@@ -710,7 +710,7 @@ int TPZMatrix::Decompose_LU() {
 	 if (fDecomposed) return 1;
 
 	 REAL nn, pivot;
-	 int  min = ( Cols() < (Rows()-1) ) ? Cols() : Rows() - 1;
+	 int  min = ( Cols() < (Rows()) ) ? Cols() : Rows();
 
 	 for ( int k = 0; k < min ; k++ ) {
 		  if (IsZero( pivot = GetVal(k, k))) Error( "Decompose_LU <matrix is singular>" );
