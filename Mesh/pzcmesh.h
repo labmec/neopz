@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.30 2007-04-19 11:42:43 tiago Exp $
+//$Id: pzcmesh.h,v 1.31 2007-05-07 17:39:26 joao Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -430,7 +430,8 @@ public:
    * @param estimator vector where will be assembled the errors
    * @param errorid index for dual or wheeler estimator
    */
-  void AssembleError(TPZFMatrix &estimator, int errorid);
+  void AssembleError(TPZFMatrix &estimator, int errorid, void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),void (*fd)(TPZVec<REAL> &locdual,TPZVec<REAL> &valdual,TPZFMatrix &derivdual));
+ 
 
   /**
    * Builds the transfer matrix from the current grid to the coarse grid

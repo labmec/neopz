@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.57 2007-05-01 20:27:18 phil Exp $
+//$Id: TPZCompElDisc.h,v 1.58 2007-05-07 17:38:08 joao Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -152,6 +152,16 @@ protected:
    * Divide the computational element
    */
   void Divide(int index, TPZVec<int> &subindex, int interpolate = 0);
+
+  /**
+   * ComputeError computes the element error estimator
+  */
+ void ComputeError(int errorid, TPZVec<REAL> &error, void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),void (*fd)(TPZVec<REAL> &locdual,TPZVec<REAL> &valdual,TPZFMatrix &derivdual));
+
+  /**
+   * Integrate a variable over the element.
+   */
+  virtual void Integrate(int variable, TPZVec<REAL> & value);
 
   /**
    * value of the bases and derivatives of the element deformed in point X
