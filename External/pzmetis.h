@@ -3,43 +3,87 @@
 #ifndef TPZMETIS_H
 #define TPZMETIS_H
 
+
+#include "pzstack.h"
 #include "pzrenumbering.h"
 #include <iostream>
 
 
 class TPZMetis : public TPZRenumbering {
 public:
+  /**
+   * Perform the renumbering of elements. The aim of this operation is to minimize the
+   * band of the resulting stiffeness matrix.
+   */
   void Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm);
-/**This method declares the element graph to the object
-The first vector contains the element node number
-The second vector contains the index where to find the first node number 
-of each element
-the size of second vector is fNElements+1*/
+  /**
+   * This method declares the element graph to the object
+   * The first vector contains the element node number
+   * The second vector contains the index where to find the first node number
+   * of each element
+   *the size of second vector is fNElements+1
+   */
   void SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex);
-/**Sets the number of equations associated with each node
-The derived class may or may not take this data into 
-consideration*/
+  /**
+   * Sets the number of equations associated with each node
+   * The derived class may or may not take this data into
+   * consideration
+   */
   void SetNodeWeights(TPZVec<int> &weights);
-/**This will reset all datastructures the object may contain.
-Node resequencing algorithms may require a possibly large 
-amount of temporary data*/
-virtual void ClearDataStructures();
-private:
-/**Number of equations associated with each node*/
-  TPZVec<int> fNodeWeights;
-/**Node number of each element*/
-  TPZVec<int> fElementGraph;
-/**Indicates for each element the index of the first entry with
-fElementGraph for that element
-Size of the vector fNElements+1*/
-  TPZVec<int> fElementGraphIndex;
-public:
-/**Instantiates an object which will compute the resequencing
-scheme of the metis package*/
+  /**
+   * This will reset all datastructures the object may contain.
+   * Node resequencing algorithms may require a possibly large
+   * amount of temporary data
+   */
+  virtual void ClearDataStructures();
+  /**
+   * Constructor.
+   * Instantiates an object which will compute the resequencing
+   * scheme of the metis package.
+   */
   TPZMetis(int NElements, int NNodes);
+  /**
+   * Destructor
+   */
   virtual ~TPZMetis() {}
+  /**
+   * Prints the current object data structure.
+   */
   void Print(std::ostream &out);
   void Print(std::ostream &out,char * title);
+  /**
+   * Subdivides a Graph in nParts.
+   * The Adjacency list works according to the MeTiS specification as found on MeTiS manual.
+   * The graph information is stored using the CSR (Compressed Storage Format)
+   * The CSR for a graph with 'n' vertices and 'm' edges is represented using two vector XAdj
+   * and Adjacency. XAdj is of size 'n + 1' while Adjacency is of size '2 * m'.
+   * The graph structures is stored as follows:
+   * For the ith vertex, its Adjacency list is stored in the Adjacency vector positions
+   * startint in XAdj[i] until XAdj[i+1]-1.
+   * @param nParts : Number of subdomains the Original domain must be divided to.
+   * @param XAdj : Vector of int containing the indexes for the ith element on the 
+   * Adjacency Vector.
+   * @param Adjacency : The index for the edges according to XAdj.
+   * @param Domains : A vector of size 'nParts' containing for each Subdomain the index 
+   * of the Vertices it holds.
+   */
+   void Subdivide(int nParts, TPZVec<int> &XAdj, TPZVec<int> &Adjacency, 
+          TPZVec < TPZStack < int > > & Domains);
+private:
+  /**
+   * Number of equations associated with each node
+   */
+  TPZVec<int> fNodeWeights;
+  /**
+   * Node number of each element
+   */
+  TPZVec<int> fElementGraph;
+  /**
+   * Indicates for each element the index of the first entry with
+   * fElementGraph for that element
+   * Size of the vector fNElements+1
+   */
+  TPZVec<int> fElementGraphIndex;
 };
 
 #endif //TPZMETIS_H
