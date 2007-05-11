@@ -119,7 +119,7 @@ for (nod=0;nod<fNNodes;nod++) {perm[nod] = inverseperm[nod] = nod;}
 #endif
 }
 
-void TPZMetis::Subdivide(int nParts, TPZVec<int> &XAdj, TPZVec<int> &Adjacency, 
+void TPZMetis::Subdivide(int nParts, TPZVec<int> &XAdj, TPZVec<int> &Adjacency,
           TPZVec < TPZStack < int > > & Domains)
 {
   int i;
@@ -134,6 +134,7 @@ void TPZMetis::Subdivide(int nParts, TPZVec<int> &XAdj, TPZVec<int> &Adjacency,
   partIndex.Resize(nVertices);
   int lStyle = 0;
   int lWeigth = 0;
+#ifdef USING_METIS
   METIS_WPartGraphVKway(
 	 &nVertices,                        // number of vertices
 	 &XAdj[0],                          // adjacency structure
@@ -146,6 +147,7 @@ void TPZMetis::Subdivide(int nParts, TPZVec<int> &XAdj, TPZVec<int> &Adjacency,
 	 &CommVolume,                       // total communication volume
 	 &partIndex[0]                      // the final partition
   );
+#endif
 
   Domains.Resize(nParts);
   for(i=0;i<nVertices;i++)
