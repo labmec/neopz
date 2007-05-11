@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.22 2007-05-01 20:29:03 phil Exp $
+//$Id: pzconslaw.h,v 1.23 2007-05-11 14:44:03 tiago Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -184,33 +184,25 @@ public:
    * Contributes to the residual vector and tangent matrix the
    * volume-based quantities.
    */
-  virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &,
-			TPZVec<REAL> &sol,TPZFMatrix &dsol,
-			REAL weight, TPZFMatrix &axes,
-			TPZFMatrix &phi,TPZFMatrix &dphi,
-			TPZFMatrix &ek,TPZFMatrix &ef)=0;
+  virtual void Contribute(TPZMaterialData &data,
+                          REAL weight,
+                          TPZFMatrix &ek,TPZFMatrix &ef)=0;
 
   /**
    * Contributes to the residual vector and tangent matrix the
    * face-based quantities.
    */
-  virtual void ContributeInterface(TPZVec<REAL> &x,
-			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
-			TPZFMatrix &dsolL,TPZFMatrix &dsolR,
-			REAL weight,TPZVec<REAL> &normal,
-			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-   TPZFMatrix &axesleft, TPZFMatrix &axesright,
-   TPZFMatrix &ek,TPZFMatrix &ef)=0;
+  virtual void ContributeInterface(TPZMaterialData &data,
+                                   REAL weight,
+                                   TPZFMatrix &ek,TPZFMatrix &ef)=0;
   /**
    * Contributes to the residual vector the boundary conditions
    *
    */
-  virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,
-			REAL weight, TPZFMatrix &axes,
-			TPZFMatrix &phi,
-			TPZFMatrix &ek,TPZFMatrix &ef,
-			TPZBndCond &bc)=0;
+  virtual void ContributeBC(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ek,TPZFMatrix &ef,
+                            TPZBndCond &bc)=0;
 
 //--------------------
   //virtual int IntegrationDegree() = 0;

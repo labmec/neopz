@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.36 2007-05-01 20:29:02 phil Exp $
+//$Id: pzeulerconslaw.h,v 1.37 2007-05-11 14:44:03 tiago Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -395,78 +395,42 @@ template <class T>
   /**
    * See declaration in base class
    */
-  virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,
-			TPZVec<REAL> &sol,TPZFMatrix &dsol,
-			REAL weight, TPZFMatrix &axes,
-			TPZFMatrix &phi,TPZFMatrix &dphi,
-			TPZFMatrix &ek,TPZFMatrix &ef);
+  virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 
   /**
    * See declaration in base class
    * Contributes only to the rhs.
    */
-
-  virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-			TPZVec<REAL> &sol, TPZFMatrix &dsol, REAL weight,
-			TPZFMatrix &axes, TPZFMatrix &phi,
-			TPZFMatrix &dphi, TPZFMatrix &ef);
+  virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
 
   /**
    * See declaration in base class
    */
-  virtual void ContributeInterface(TPZVec<REAL> &x,
-			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
-			TPZFMatrix &dsolL,TPZFMatrix &dsolR,
-			REAL weight,TPZVec<REAL> &normal,
-			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-   TPZFMatrix &axesleft, TPZFMatrix &axesright,
-   TPZFMatrix &ek,TPZFMatrix &ef);
+  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 
   /**
    * See declaration in base class
    */
-  virtual void ContributeInterface(TPZVec<REAL> &x,
-			TPZVec<REAL> &solL,TPZVec<REAL> &solR,
-			TPZFMatrix &dsolL,TPZFMatrix &dsolR,
-			REAL weight,TPZVec<REAL> &normal,
-			TPZFMatrix &phiL,TPZFMatrix &phiR,
-			TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-   TPZFMatrix &axesleft, TPZFMatrix &axesright,
-   TPZFMatrix &ef);
-
-  /**
-   * Interface contribution which depends on the size of the interface
-   */
-  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-                                   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-                                   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                   TPZFMatrix &axesleft, TPZFMatrix &axesright,
-                                   TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize);
+  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
 
   /**
    * See declaration in base class
    */
 
-  virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,
-			REAL weight,TPZFMatrix &axes,
-			TPZFMatrix &phi,
-			TPZFMatrix &ek, TPZFMatrix &ef,
-			TPZBndCond &bc);
+  virtual void ContributeBC(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ek, TPZFMatrix &ef,
+                            TPZBndCond &bc);
 
-  virtual void ContributeBCInterface(TPZVec<REAL> &x,
-			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
-			REAL weight, TPZVec<REAL> &normal,
-			TPZFMatrix &phiL, TPZFMatrix &dphiL,
-   TPZFMatrix &axesleft, 
-   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+  virtual void ContributeBCInterface(TPZMaterialData &data,
+                                     REAL weight,
+                                     TPZFMatrix &ek,TPZFMatrix &ef,
+                                     TPZBndCond &bc);
 
-  virtual void ContributeBCInterface(TPZVec<REAL> &x,
-			TPZVec<REAL> &solL, TPZFMatrix &dsolL,
-			REAL weight, TPZVec<REAL> &normal,
-			TPZFMatrix &phiL, TPZFMatrix &dphiL,
-   TPZFMatrix &axesleft,
-   TPZFMatrix &ef,TPZBndCond &bc);
+  virtual void ContributeBCInterface(TPZMaterialData &data,
+                                     REAL weight,
+                                     TPZFMatrix &ef,
+                                     TPZBndCond &bc);
 
 //------------------internal contributions
 
@@ -486,11 +450,11 @@ void ContributeFastestBCInterface_dim(
 			TPZFMatrix &phiL,TPZFMatrix &dphiL,
    TPZFMatrix &axesleft,
    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
-
+/*
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
                                      TPZFMatrix &phiL,TPZFMatrix &dphiL, 
                                      TPZFMatrix &axesleft,
-                                     TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize);
+                                     TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize);*/
   
   virtual void ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
