@@ -202,14 +202,14 @@ void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TP
     PZError << "TPZShapeDisc::Shape2D wrong shape count\n";
   }
   REAL phi0,dphi0[2];
-  phi0 = phi(0);
+  phi0 = phi(0,0);//here
   dphi0[0] = dphi(0,0);
   dphi0[1] = dphi(1,0);
-  phi(0) = phi(nshape-1);
+  phi(0,0) = phi(nshape-1,0);//here
   dphi(0,0) = dphi(0,nshape-1);
   dphi(1,0) = dphi(1,nshape-1);
 
-  phi(nshape-1) = phi0;
+  phi(nshape-1,0) = phi0;//here
   dphi(0,nshape-1) = dphi0[0];
   dphi(1,nshape-1) = dphi0[1];
 }
