@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.31 2007-05-07 17:39:26 joao Exp $
+//$Id: pzcmesh.h,v 1.32 2007-05-11 13:34:07 cesar Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -48,12 +48,12 @@ protected:
    * Geometric grid to which this grid refers
    */
   TPZGeoMesh	*fReference;
-  
+
   /**
    * Grid name for model identification
    */
   std::string fName;
-  
+
 
   /**
    * List of pointers to elements
@@ -69,7 +69,7 @@ protected:
    * Map of pointers to materials
    */
   std::map<int, TPZAutoPointer<TPZMaterial> >	fMaterialVec;
-  
+
   /**
    * List of nodes with associated boundary conditions
    */
@@ -82,7 +82,7 @@ protected:
 
   /**Solution vector*/
   TPZFMatrix	fSolution;
-  
+
   /**
    * Block structure to right construction of the
    * stiffness matrix and load vector
@@ -135,7 +135,7 @@ public:
 
    /**
     * Gives the conects graphs
-    * @param nodegraph 
+    * @param nodegraph
     * @param nodegraphindex
     */
    void GetNodeToElGraph(TPZVec<int> &nodtoelgraph, TPZVec<int> &nodtoelgraphinde,TPZStack<int> &elgraph, TPZVec<int> &elgraphindexx);
@@ -146,7 +146,7 @@ public:
      * @param patch: patch of elements
      */
    void GetElementPatch(TPZVec<int> nodtoelgraph, TPZVec<int> nodtoelgraphindex, TPZStack<int> &elgraph, TPZVec<int> &elgraphindex,int elind ,TPZStack<int> &patch);
-    
+
   /**
    * Set the mesh name
    */
@@ -258,7 +258,7 @@ public:
 
   /**
    * Insert a material object in the datastructure
-   @ @param mat pointer to the material 
+   @ @param mat pointer to the material
    */
   int InsertMaterialObject(TPZAutoPointer<TPZMaterial> & mat);
 
@@ -281,7 +281,7 @@ public:
 
   /**
    * @name Access_Solution
-   * Methods for access and manipulates solution 
+   * Methods for access and manipulates solution
    */
   //@{
   /**
@@ -347,48 +347,48 @@ public:
    * Get the father meshes stack
    */
   virtual TPZCompMesh *FatherMesh() {return NULL;}
-  
+
   /**
-   * Makes a specified connection a internal mesh connection. 
+   * Makes a specified connection a internal mesh connection.
    * @param local connection local number to be processed
    */
   virtual void MakeInternal(int local) {;}
 
   /**
-   * Make all mesh connections internal mesh connections. 
+   * Make all mesh connections internal mesh connections.
    * connects to an internal connection
    */
   virtual void MakeAllInternal(){;}
- 
+
   /**
-   * Returns the rootmesh who have the specified connection. 
+   * Returns the rootmesh who have the specified connection.
    */
   virtual TPZCompMesh* RootMesh (int local) {return this;}
 
   /**
-   * Transfer one element from a specified mesh to the current submesh. 
+   * Transfer one element from a specified mesh to the current submesh.
    * @param mesh pointer to the mesh whose the element from
-   * @param elindex element index to transfer 
+   * @param elindex element index to transfer
    */
   virtual int TransferElementFrom(TPZCompMesh *mesh, int elindex) {return elindex;}
 
   /**
-   * Transfer one element from a submesh to another mesh. 
+   * Transfer one element from a submesh to another mesh.
    * @param mesh mesh pointer who will receive the element
    * @param elindex element index to transfer
    */
   virtual int TransferElementTo(TPZCompMesh *mesh, int elindex) {return elindex;}
 
   /**
-   * Transfer one element form a submesh to another mesh.  
+   * Transfer one element form a submesh to another mesh.
    * @param mesh mesh pointer who will receive the element
    * @param elindex element index to transfer
    */
   virtual int TransferElement(TPZCompMesh *mesh, int elindex) {return elindex;}
- 
+
    /**
     * Put an local connection in the supermesh - Supermesh is one
-    * mesh who contains the analised submesh. 
+    * mesh who contains the analised submesh.
     * @param local local index of the element to be trasnfered
     * @param super pointer to the destination mesh
     */
@@ -396,7 +396,7 @@ public:
 
    /**
     * Get an external connection from the supermesh - Supermesh is one
-    * mesh who contains the analised submesh. 
+    * mesh who contains the analised submesh.
     * @param superind index of the element to be trasnfered
     * @param super pointer to the destination mesh
     */
@@ -415,7 +415,7 @@ public:
   int NEquations();
 
   /**
-   *This method computes the bandwidth of the system of equations 
+   *This method computes the bandwidth of the system of equations
    */
   int BandWidth();
 
@@ -430,8 +430,8 @@ public:
    * @param estimator vector where will be assembled the errors
    * @param errorid index for dual or wheeler estimator
    */
-  void AssembleError(TPZFMatrix &estimator, int errorid, void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),void (*fd)(TPZVec<REAL> &locdual,TPZVec<REAL> &valdual,TPZFMatrix &derivdual));
- 
+  void AssembleError(TPZFMatrix &estimator, int errorid);
+
 
   /**
    * Builds the transfer matrix from the current grid to the coarse grid
@@ -462,7 +462,7 @@ public:
    * indices contains the type of the element. Element type are given by the enumerate MCreationType.
    */
   virtual void AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const TPZVec<TPZGeoEl*> &discontinuous);
-  
+
   void AutoBuild(std::set<int> &MaterialIDs);
 
 static  void SetAllCreateFunctionsDiscontinuous();
@@ -508,13 +508,13 @@ static  void SetAllCreateFunctionsContinuousReferred();
    * @param CreateDiscontinuous = false indicates a TPZInterpolatedElement must be created. True indicates a TPZCompElDisc
    */
   void Coarsen(TPZVec<int> &elements, int &index, bool CreateDiscontinuous = false);
-  
+
   /** Deletes all interfaces and rebuild them all */
   void RemakeAllInterfaceElements();
 
   /**
    * Will refine the elements associated with a boundary condition till there are
-   * no elements constrained by boundary condition elements 
+   * no elements constrained by boundary condition elements
    */
   void AdjustBoundaryElements();
 
@@ -535,7 +535,7 @@ static  void SetAllCreateFunctionsContinuousReferred();
    */
   void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
                                  TPZVec<REAL> &errorSum);
-                                 
+
   /** This method compute the jump solution of interface and convert discontinuous elements with
    * jump less than eps in continuous elements.
    * It may be compared the following values to eps:
@@ -544,9 +544,9 @@ static  void SetAllCreateFunctionsContinuousReferred();
    * int val = 0: (leftsol - rightsol)^2 + (DSolLeft - DSolRight)^2
    */
   void ConvertDiscontinuous2Continuous(REAL eps, int val, bool InterfaceBetweenContinuous = false);
-  
+
   void Discontinuous2Continuous(int disc_index, int &new_index, bool InterfaceBetweenContinuous = false);
-  
+
   //@}
 
 
@@ -567,7 +567,7 @@ static  void SetAllCreateFunctionsContinuousReferred();
   REAL LesserEdgeOfMesh();
 
   /** cria uma malha obtida por aglomera� de elementos,
-   * accumlist relaciona a lista de elementos da malha fina que 
+   * accumlist relaciona a lista de elementos da malha fina que
    * ser� acumulados
    */
   TPZCompMesh *ComputeMesh(TPZVec<int> &accumlist,int numaggl);
@@ -584,13 +584,13 @@ static  void SetAllCreateFunctionsContinuousReferred();
   Save the element data to a stream
   */
   virtual void Write(TPZStream &buf, int withclassid);
-  
+
   /**
   Read the element data from a stream
   */
   virtual void Read(TPZStream &buf, void *context);
 
-  
+
 };
 
 
