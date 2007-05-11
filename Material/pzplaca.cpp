@@ -1,6 +1,6 @@
 #include "pzplaca.h"
 #include "pzmaterial.h"
-#include "pztempmat.h"
+#include "pztempmat.h" 
 
 #include "pzbndcond.h"
 #include <math.h>
@@ -101,8 +101,31 @@ TPZPlaca::TPZPlaca(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
 
 }
 
-void TPZPlaca::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &,REAL weight,
-			     TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZPlaca::Contribute(TPZMaterialData &data,
+                          REAL weight,
+                          TPZFMatrix &ek,
+                          TPZFMatrix &ef) {
+
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &axes=data.axes;
   // this method adds the contribution of the material to the stiffness
   // matrix and right hand side
 
@@ -194,8 +217,32 @@ void TPZPlaca::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZ
    }
 }
 
-void TPZPlaca::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
-			       TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZPlaca::ContributeBC(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ek,
+                            TPZFMatrix &ef,
+                            TPZBndCond &bc) {
+
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
 
   if(bc.Material().operator ->() != this){
     PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
@@ -276,11 +323,11 @@ int TPZPlaca::VariableIndex(char *name){
   if(!strcmp(name,"Mn1"))     return 5;// Mom. fletor eixo n1 da fibra
   if(!strcmp(name,"Mn2"))     return 6;// Mom. fletor eixo n2 da fibra
   if(!strcmp(name,"Mn1n2"))   return 7;// Mom. volvente eixos n1 e n2 da fibra
-  if(!strcmp(name,"Sign1"))   return 8;// tensão normal na direção n1
-  if(!strcmp(name,"Sign2"))   return 9;// tensão normal na direção n2
-  if(!strcmp(name,"Taun1n2")) return 10;// tensão cisalhamento eixos n1 e n2
-  if(!strcmp(name,"Taun1n3")) return 11;// tensão cisalhamento eixos n1 e n3
-  if(!strcmp(name,"Taun2n3")) return 12;// tensão cisalhamento eixos n2 e n2
+  if(!strcmp(name,"Sign1"))   return 8;// tensï¿½ normal na direï¿½o n1
+  if(!strcmp(name,"Sign2"))   return 9;// tensï¿½ normal na direï¿½o n2
+  if(!strcmp(name,"Taun1n2")) return 10;// tensï¿½ cisalhamento eixos n1 e n2
+  if(!strcmp(name,"Taun1n3")) return 11;// tensï¿½ cisalhamento eixos n1 e n3
+  if(!strcmp(name,"Taun2n3")) return 12;// tensï¿½ cisalhamento eixos n2 e n2
   if(!strcmp(name,"Displacement")) return 13;// deslocamento x,y,z
   int var;
   cout << "TPZPlaca name not found " << name << endl;

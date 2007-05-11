@@ -1,7 +1,7 @@
 #include "TPZConservationLaw.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
-#include "pzmatrix.h"
+#include "pzmatrix.h" 
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include <math.h>
@@ -45,22 +45,28 @@ void TPZConservationLaw::Print(ostream &out) {
   TPZMaterial::Print(out);
 }
 
-void TPZConservationLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-				TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZConservationLaw::Contribute(TPZMaterialData &data,
+                                    REAL weight,
+                                    TPZFMatrix &ek,
+                                    TPZFMatrix &ef) {
   
   cout << "TPZConservationLaw::Contribute this metod does not have to be called\n";
   
 }
 
-void TPZConservationLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-				TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ef) {
+void TPZConservationLaw::Contribute(TPZMaterialData &data,
+                                    REAL weight,
+                                    TPZFMatrix &ef) {
   
   cout << "TPZConservationLaw::Contribute this metod does not have to be called\n";
   
 }
 
-void TPZConservationLaw::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
-				     TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZConservationLaw::ContributeBC(TPZMaterialData &data,
+                                      REAL weight,
+                                      TPZFMatrix &ek,
+                                      TPZFMatrix &ef,
+                                      TPZBndCond &bc) {
   
   cout << "TPZConservationLaw::ContributeBC this metod does not have to be called\n";
 }

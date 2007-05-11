@@ -1,4 +1,4 @@
-
+ 
 #include "TPZEuler.h"
 #include "pzerror.h"
 #include "pzbndcond.h"
@@ -44,9 +44,29 @@ int TPZEuler::VariableIndex(char *name) {
 void TPZEuler::Print(ostream & out) {
     TPZMaterial::Print(out);
 }
-void TPZEuler::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,
+void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
+			    TPZFMatrix &ek,
 			    TPZFMatrix &ef,TPZBndCond &bc) {
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &axes=data.axes;
   
   if(fState == 0) return;
   if(bc.Material().operator ->() != this){
@@ -134,10 +154,29 @@ void TPZEuler::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
     }//fim switch
   }
 }
-void TPZEuler::Contribute(TPZVec<REAL> &x, TPZFMatrix &daxesdksi, TPZVec<REAL> &sol,
-			  TPZFMatrix &dsol, REAL weight,TPZFMatrix &axes, 
-			  TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,
+void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,
 			  TPZFMatrix &ef) {
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &axes=data.axes;
+
     int nshape = phi.Rows();
     REAL dphix[2];
     int in,jn,idf,jdf;

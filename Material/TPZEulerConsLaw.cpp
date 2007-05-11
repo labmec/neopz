@@ -1,4 +1,4 @@
-#include "TPZEulerConsLaw.h"
+#include "TPZEulerConsLaw.h" 
 #include "TPZDiffusionConsLaw.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
@@ -53,14 +53,34 @@ void TPZEulerConsLaw::Print(ostream &out) {
   TPZMaterial::Print(out);
 }
 
-void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,
-                                 REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,
+void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight,
                                  TPZFMatrix &ek,TPZFMatrix &ef) {
+
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
 
   int phr = phi.Rows();// phi(in, 0) = phi_in  ,  dphi(i,jn) = dphi_jn/dxi
   int i,k,l,p,nstate = NStateVariables();//3, 4 ou 5
   if(fForcingFunction) {
-    //na 2a iteração deve-se ter fForcingFunction = 0
+    //na 2a iteraï¿½o deve-se ter fForcingFunction = 0
     TPZManVector<REAL> res(nstate);
     fForcingFunction(x,res);
     for(i=0;i<nstate;i++) sol[i] = res[i];
@@ -69,7 +89,7 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   if(Dimension() != dim)
     PZError << "TPZEulerConsLaw::Contribute dimension error, dimension = " << dim << endl;
 
-  //neste passo é calculada (ðFx/ðU,ðFy/ðU,ðFz/ðU) (no construtor)
+  //neste passo ï¿½calculada (ï¿½x/ï¿½,ï¿½y/ï¿½,ï¿½z/ï¿½) (no construtor)
   TPZDiffusionConsLaw diffusion(sol,fGamma,dim,fArtificialDiffusion);
   TPZVec<REAL> Fx(nstate),Fy(nstate),Fz(nstate);
   Flux(sol,Fx,Fy,Fz);
@@ -78,7 +98,7 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   TPZFMatrix DF1(nstate,nstate),DF2(nstate,nstate),DF3(nstate,nstate);
   diffusion.Tau(Tx,Ty,Tz);
   TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
-  int permite = 0;//SEM TRANSPOStA É A TEORIA
+  int permite = 0;//SEM TRANSPOStA ï¿½A TEORIA
   if(permite){
     Tx.Transpose(&Trx);
     Ty.Transpose(&Try);
@@ -111,7 +131,7 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
     // w * Un+1 + (grad(w) @ T) * div F(Un+1)    
     for( int jn = 0; jn < phr; jn++ ) {
       
-      // DIFUSÃO + w * Un+1
+      // DIFUSï¿½ + w * Un+1
       for(k=0;k<nstate;k++){
 	for(l=0;l<nstate;l++){
 	  
@@ -142,26 +162,47 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   }//in
 }
 
-void TPZEulerConsLaw::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,
-                                          TPZFMatrix &dsolL,TPZFMatrix &dsolR,REAL weight,
-                                          TPZVec<REAL> &normal,TPZFMatrix &phiL,TPZFMatrix &phiR,
-                                          TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,TPZFMatrix &ef){
+void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data,
+                                          REAL weight,
+                                          TPZFMatrix &ek,
+                                          TPZFMatrix &ef){
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+// TPZFMatrix &phi = data.phi;
+TPZFMatrix &phiL = data.phil;
+TPZFMatrix &phiR = data.phir;
+TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+TPZVec<REAL> &solL=data.soll;
+TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
+
   int phrl = phiL.Rows();
   int phrr = phiR.Rows();
   int i,nstate = NStateVariables();//3, 4 ou 5
   if(fForcingFunction) {
     TPZManVector<REAL> res(nstate);// phi(in, 0) = phi_in , dphi(i,j) = dphi_j/dxi
     fForcingFunction(x,res);//fXf(0,0) = res[0];
-    //si o elemento é BC então não tem espa¢o de interpola¢ão associado => phi = {ø} (vacio) e a CC é aplicada
-    if(phrl) for(i=0;i<nstate;i++) solL[i] = res[i];//solução inicial (interior, t=0) fForcingFunction != 0
-    if(phrr) for(i=0;i<nstate;i++) solR[i] = res[i];//nas iterações > 0 fForcingFunction = 0
-  }//caso phr=0 a CC já está em sol
+    //si o elemento ï¿½BC entï¿½ nï¿½ tem espao de interpolaï¿½ associado => phi = {} (vacio) e a CC ï¿½aplicada
+    if(phrl) for(i=0;i<nstate;i++) solL[i] = res[i];//soluï¿½o inicial (interior, t=0) fForcingFunction != 0
+    if(phrr) for(i=0;i<nstate;i++) solR[i] = res[i];//nas iteraï¿½es > 0 fForcingFunction = 0
+  }//caso phr=0 a CC jï¿½estï¿½em sol
   
-  //No que se segue a defini¢ão das variáveis pode ser otimizada
+  //No que se segue a definiï¿½ das variï¿½eis pode ser otimizada
   REAL flux_rho,flux_rhou,flux_rhov,flux_rhow,flux_rhoE;
   TPZVec<REAL> flux_Roe(nstate,0.);
 
-  if(nstate == 5){//dimensão 3
+  if(nstate == 5){//dimensï¿½ 3
     TPZDiffusionConsLaw::Roe_Flux(solL[0],solL[1],solL[2],solL[3],solL[4],
                                   solR[0],solR[1],solR[2],solR[3],solR[4],
                                   normal[0],normal[1],normal[2],fGamma,
@@ -172,16 +213,16 @@ void TPZEulerConsLaw::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     flux_Roe[3] = flux_rhow;
     flux_Roe[4] = flux_rhoE;
     
-  } else if(nstate == 4){//dimensão 2
+  } else if(nstate == 4){//dimensï¿½ 2
 
-    if(1){//TESTE : utiliza Roe 3D para o cálculo de Roe 2D
+    if(1){//TESTE : utiliza Roe 3D para o cï¿½culo de Roe 2D
       TPZVec<REAL> left(2),right(2);
       left[0] = 0.0;
       left[1] = solL[3];
       right[0] = 0.0;
       right[1] = solR[3];          // ro     ro_u    ro_v    0.0     E
       TPZDiffusionConsLaw::Roe_Flux(solL[0],solL[1],solL[2],left[0],left[1],          //
-				    solR[0],solR[1],solR[2],right[0],right[1],        // dimensão 1 : Roe 3D -> Roe 2D
+				    solR[0],solR[1],solR[2],right[0],right[1],        // dimensï¿½ 1 : Roe 3D -> Roe 2D
 				    normal[0],normal[1],normal[2],fGamma,             //
 				    flux_rho,flux_rhou,flux_rhov,flux_rhow,flux_rhoE);//
     }
@@ -197,7 +238,7 @@ void TPZEulerConsLaw::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     flux_Roe[2] = flux_rhov;
     flux_Roe[3] = flux_rhoE;
 
-  } else if(nstate == 3){//dimensão 1
+  } else if(nstate == 3){//dimensï¿½ 1
     TPZVec<REAL> left(2),right(2);
     left[0] = 0.0;
     left[1] = solL[2];
@@ -211,10 +252,10 @@ void TPZEulerConsLaw::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
     flux_Roe[1] = flux_rhou;
     flux_Roe[2] = flux_rhoE;
   }
-  //contribui¢ão do elemento interface para a carga
+  //contribuiï¿½ do elemento interface para a carga
   REAL timestep = TimeStep();
   int pos = 0;
-  //a normal à interface sempre aponta do seu elemento esquerdo para o seu direito
+  //a normal ï¿½interface sempre aponta do seu elemento esquerdo para o seu direito
 
   for( int in = 0; in < phrl; in++ ) {
     for(i=0;i<nstate;i++)
@@ -229,14 +270,31 @@ void TPZEulerConsLaw::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
 }
 
 
-void TPZEulerConsLaw::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &sol,REAL weight,
-                                   TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,
-                                   TPZFMatrix &ef,TPZBndCond &bc) {
-  
+void TPZEulerConsLaw::ContributeBC(TPZMaterialData &data,REAL weight,
+                                   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+  TPZFMatrix dphi = data.dphix;
+TPZFMatrix dphiL = data.dphixl;
+TPZFMatrix dphiR = data.dphixr;
+TPZFMatrix phi = data.phi;
+TPZFMatrix phiL = data.phil;
+TPZFMatrix phiR = data.phir;
+TPZManVector<REAL,3> normal = data.normal;
+TPZManVector<REAL,3> x = data.x;
+// int POrder=data.p;
+// int LeftPOrder=data.leftp;
+// int RightPOrder=data.rightp;
+TPZVec<REAL> sol=data.sol;
+TPZVec<REAL> solL=data.soll;
+TPZVec<REAL> solR=data.solr;
+TPZFMatrix dsol=data.dsol;
+TPZFMatrix dsolL=data.dsoll;
+TPZFMatrix dsolR=data.dsolr;
+// REAL faceSize=data.HSize;
+
   int phr = phi.Rows();
   short in,jn,i,j;
   int nstate = NStateVariables();
-  REAL v2[5];//máximo nstate
+  REAL v2[5];//mï¿½imo nstate
   for(i=0;i<nstate;i++) v2[i] = bc.Val2()(i,0);
   
   switch (bc.Type()) {
@@ -256,7 +314,7 @@ void TPZEulerConsLaw::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &sol,REAL we
         ef(in*nstate+i,0) += v2[i] * phi(in,0) * weight;
     }
     break;
-  case 2 :// condiçao mista
+  case 2 :// condiï¿½o mista
     for(in = 0 ; in < phi.Rows(); in++) {
       for(i = 0 ; i < nstate; i++)
         ef(in*nstate+i, 0) += weight * v2[i] * phi(in, 0);
@@ -312,7 +370,7 @@ int TPZEulerConsLaw::VariableIndex(char *name) {
   if( !strcmp(name,"energy")   )     return 3;//E
   if( !strcmp(name,"pressure") )     return 4;//p
   if( !strcmp(name,"solution") )     return 5;//(ro,u,v,w,E)
-  if( !strcmp(name,"normvelocity") ) return 6;//sqrt(u²+v²+w²)
+  if( !strcmp(name,"normvelocity") ) return 6;//sqrt(u+v+w)
   cout << "TPZEulerConsLaw::VariableIndex not defined\n";
   return TPZMaterial::VariableIndex(name);
 }
@@ -369,8 +427,8 @@ REAL TPZEulerConsLaw::Pressure(TPZVec<REAL> &U) {
     cout << "Densidade = " << U[0] << endl;
     //exit(-1);
   }
-  // Pressão = (gam-1)*(E - ro*||(u,v,w)||²/2)
-  // onde aqui ro_e = E (nota¢ão)
+  // Pressï¿½ = (gam-1)*(E - ro*||(u,v,w)||/2)
+  // onde aqui ro_e = E (notaï¿½)
 
   int nstate = NStateVariables();
   REAL press = 0.0;
@@ -413,9 +471,9 @@ void TPZEulerConsLaw::Flux(TPZVec<REAL> &U,TPZVec<REAL> &Fx,TPZVec<REAL> &Fy,TPZ
     exit(-1);
   }
 
-  Fx.Resize(5,0.0);//válido
+  Fx.Resize(5,0.0);//vï¿½ido
   Fy.Resize(5,0.0);//para
-  Fz.Resize(5,0.0);//R¹ , R² , R³
+  Fz.Resize(5,0.0);//R , R , R
 
   if(nstate == 5){
     Fx[0] = U[1];//ro u
@@ -488,13 +546,32 @@ void TPZEulerConsLaw::Flux(TPZVec<REAL> &x,TPZVec<REAL> &Sol,TPZFMatrix &DSol,
   }
 }
 
-void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,
-                                 REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ef) {
+void TPZEulerConsLaw::Contribute(TPZMaterialData &data,
+                                 REAL weight,TPZFMatrix &ef) {
+
+TPZFMatrix dphi = data.dphix;
+TPZFMatrix dphiL = data.dphixl;
+TPZFMatrix dphiR = data.dphixr;
+TPZFMatrix phi = data.phi;
+TPZFMatrix phiL = data.phil;
+TPZFMatrix phiR = data.phir;
+TPZManVector<REAL,3> normal = data.normal;
+TPZManVector<REAL,3> x = data.x;
+// int POrder=data.p;
+// int LeftPOrder=data.leftp;
+// int RightPOrder=data.rightp;
+TPZVec<REAL> sol=data.sol;
+TPZVec<REAL> solL=data.soll;
+TPZVec<REAL> solR=data.solr;
+TPZFMatrix dsol=data.dsol;
+TPZFMatrix dsolL=data.dsoll;
+TPZFMatrix dsolR=data.dsolr;
+// REAL faceSize=data.HSize;
 
   int phr = phi.Rows();// phi(in, 0) = phi_in  ,  dphi(i,jn) = dphi_jn/dxi
   int i,nstate = NStateVariables();//3, 4 ou 5
   if(fForcingFunction) {
-    //na 2a iteração deve-se ter fForcingFunction = 0
+    //na 2a iteraï¿½o deve-se ter fForcingFunction = 0
     TPZManVector<REAL> res(nstate);
     fForcingFunction(x,res);
     for(i=0;i<nstate;i++) sol[i] = res[i];
@@ -503,7 +580,7 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   if(Dimension() != dim)
     PZError << "TPZEulerConsLaw::Contribute dimension error, dimension = " << dim << endl;
 
-  //neste passo é calculada (ðFx/ðU,ðFy/ðU,ðFz/ðU) (no construtor)
+  //neste passo ï¿½calculada (ï¿½x/ï¿½,ï¿½y/ï¿½,ï¿½z/ï¿½) (no construtor)
   TPZDiffusionConsLaw diffusion(sol,fGamma,dim,fArtificialDiffusion);
   TPZVec<REAL> Fx(nstate),Fy(nstate),Fz(nstate);
   Flux(sol,Fx,Fy,Fz);
@@ -540,12 +617,12 @@ void TPZEulerConsLaw::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
   }//in
 }
 
-//método para testes de implementa¢ão, verifica¢ão das integrais elementares
+//mï¿½odo para testes de implementaï¿½, verificaï¿½ das integrais elementares
 void TPZEulerConsLaw::ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,
 				 REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,
 				      TPZFMatrix &ek,TPZFMatrix &ef) {
 
-//   está chamada deve ser feita do Contribute(..)
+//   estï¿½chamada deve ser feita do Contribute(..)
 //   if(0){
 //     ContributeTESTE(x,jacinv,sol,dsol,weight,axes,phi,dphi,ek,ef);//PARA TESTES
 //     return;
@@ -579,7 +656,7 @@ void TPZEulerConsLaw::ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<
   //int phr = phi.Rows();// phi(in, 0) = phi_in  ,  dphi(i,jn) = dphi_jn/dxi
   int nstate = NStateVariables();//3, 4 ou 5
   if(fForcingFunction) {
-    //na 2a iteração deve-se ter fForcingFunction = 0
+    //na 2a iteraï¿½o deve-se ter fForcingFunction = 0
     TPZManVector<REAL> res(nstate);
     fForcingFunction(x,res);
     for(int i=0;i<nstate;i++) sol[i] = res[i];
@@ -619,7 +696,7 @@ void TPZEulerConsLaw::ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<
 //     // w * Un+1 + (grad(w) @ T) * div F(Un+1)    
 //     for( int jn = 0; jn < phr; jn++ ) {
       
-//       // DIFUSÃO + w * Un+1
+//       // DIFUSï¿½ + w * Un+1
 //       for(k=0;k<nstate;k++){
 // 	for(l=0;l<nstate;l++){
 	  
@@ -658,10 +735,10 @@ void TPZEulerConsLaw::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVe
   case 2://Mista
     PZError << "TPZEulerConsLaw::ComputeSolLeft boundary condition error\n";
     break;
-  case 3://Dirichlet: nada a fazer a CC é a correta
+  case 3://Dirichlet: nada a fazer a CC ï¿½a correta
     for(i=0;i<nstate;i++) soll[i] = bcleft->Val2()(i,0);
     break;
-  case 4://recuperar valor da solu¢ão MEF direita: saida livre
+  case 4://recuperar valor da soluï¿½ MEF direita: saida livre
     for(i=0;i<nstate; i++) soll[i] = solr[i];
     break;
   case 5://parede
@@ -670,7 +747,7 @@ void TPZEulerConsLaw::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVe
     soll[0] = solr[0];
     soll[nstate-1] = solr[nstate-1];
     break;
-  case 6://não refletivas (campo distante)
+  case 6://nï¿½ refletivas (campo distante)
     for(i=0;i<nstate;i++) soll[i] = solr[i];
     break;
   default:
@@ -693,18 +770,18 @@ void TPZEulerConsLaw::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZV
   case 2://Mista
     PZError << "TPZEulerConsLaw::ComputeSolLeft boundary condition error\n";
     break;
-  case 3://Dirichlet: nada a fazer a CC é a correta
+  case 3://Dirichlet: nada a fazer a CC ï¿½a correta
     break;
-  case 4://recuperar valor da solu¢ão MEF esquerda: saida livre
+  case 4://recuperar valor da soluï¿½ MEF esquerda: saida livre
     for(i=0;i<nstate; i++) solr[i] = soll[i];
     break;
-  case 5://condi¢ão de parede
+  case 5://condiï¿½ de parede
     for(i=1;i<nstate-1;i++) vpn += soll[i]*normal[i-1];//v.n
     for(i=1;i<nstate-1;i++) solr[i] = soll[i] - 2.0*vpn*normal[i-1];
     solr[0] = soll[0];
     solr[nstate-1] = soll[nstate-1];
     break;
-  case 6://não refletivas (campo distante)
+  case 6://nï¿½ refletivas (campo distante)
     for(i=0;i<nstate;i++) solr[i] = soll[i];
     break;
   default:
@@ -716,18 +793,18 @@ void TPZEulerConsLaw::SetDeltaTime(REAL maxveloc,REAL deltax,int degree){
 
   REAL CFL = 1./((2.0*(REAL)degree) + 1.0);
 //  TPZDiffusionConsLaw *diff;
-//  if(diff->fCFL) CFL = diff->fCFL;//o primeiro valor não nulo é mantido
+//  if(diff->fCFL) CFL = diff->fCFL;//o primeiro valor nï¿½ nulo ï¿½mantido
   REAL deltaT = CFL*deltax/maxveloc;
   cout << "TPZCompMesh::Delta Time : " << deltaT << endl;
   SetTimeStep(deltaT);
 }
 
 void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL &increment){
-  //Problema teste choque refletido estacionário de três estados constantes 
-  //OS VALORES ENCONTRADOS SÃO:
+  //Problema teste choque refletido estacionï¿½io de trï¿½ estados constantes 
+  //OS VALORES ENCONTRADOS Sï¿½:
   //61 GRAUS 
   //-66.7169 GRAUS (-1.16443 RADIANOS)
-  //região R1
+  //regiï¿½ R1
   //  REAL r1M = 2.9;//Mach
   REAL r1ro = 1.0;
   REAL r1u = 2.9;
@@ -735,7 +812,7 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   REAL r1w = 0.0;
   REAL r1p = 0.714286;
   REAL r1vel2 = r1u*r1u+r1v*r1v+r1w*r1w;
-  //região R2
+  //regiï¿½ R2
   //REAL r2M = 2.3781;//Mach
   REAL r2ro = 1.7;
   REAL r2u = 2.61934;
@@ -743,7 +820,7 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   REAL r2w = 0.0;
   REAL r2p = 1.52819;
   REAL r2vel2 = r2u*r2u+r2v*r2v+r2w*r2w;
-  //região R3
+  //regiï¿½ R3
   //REAL r3M = 1.94235;//Mach
   REAL r3ro = 2.68728;
   REAL r3u = 2.40140;
@@ -751,10 +828,10 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   REAL r3w = 0.0;
   REAL r3p = 2.93407;
   REAL r3vel2 = r3u*r3u+r3v*r3v+r3w*r3w;
-  //procurando a normal à frente estacionaria: aproximadamente 23.28 graus ~ 0.406313 radianos
-  //entre as regiões R1 e R2
-  //reta (cos ø , sen ø) de ângulo ø
-  //(sen ø , -cos ø) normal à reta de ângulo ø apontando da região R1 para a região R2
+  //procurando a normal ï¿½frente estacionaria: aproximadamente 23.28 graus ~ 0.406313 radianos
+  //entre as regiï¿½s R1 e R2
+  //reta (cos  , sen ) de ï¿½gulo 
+  //(sen  , -cos ) normal ï¿½reta de ï¿½gulo  apontando da regiï¿½ R1 para a regiï¿½ R2
   REAL teta=0.0,flux_rho,flux_rhou,flux_rhov,flux_rhoE,gama = 1.4;//flux_rhow,
   //REAL increment=0.00001;
   TPZVec<REAL> U1(5,0.),U2(5,0.),U3(5,0.),r1Fx(0),r1Fy(0),r1Fz(0),r2Fx(0),r2Fy(0),r2Fz(0),r3Fx(0),r3Fy(0),r3Fz(0),n(3,0.);
@@ -795,7 +872,7 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
     }
     if(fabs(soma) < tol){
       cout << "TPZEulerConsLaw::TestOfRoeFlux found angle, angle = " << teta << "\tradians\n";
-      //a normal aponta da região R1 para a região R2: U1 é esquerdo e U2 direito
+      //a normal aponta da regiï¿½ R1 para a regiï¿½ R2: U1 ï¿½esquerdo e U2 direito
       TPZDiffusionConsLaw::Roe_Flux(U1[0],U1[1],U1[2],U1[3],
 				    U2[0],U2[1],U2[2],U2[3],
 				    n[0],n[1],gama,
@@ -820,7 +897,7 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
     }
     if(fabs(suma) < tol){
       cout << "TPZEulerConsLaw::TestOfRoeFlux found angle, angle = " << teta << "\tradians\n";
-      //a normal aponta da região R1 para a região R2: 
+      //a normal aponta da regiï¿½ R1 para a regiï¿½ R2: 
       TPZDiffusionConsLaw::Roe_Flux(U2[0],U2[1],U2[2],U2[3],
 				    U3[0],U3[1],U3[2],U3[3],
 				    n[0],n[1],gama,
@@ -855,18 +932,18 @@ void TPZEulerConsLaw::TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL 
   if(enter) cout << "\nTPZEulerConsLaw::TestOfRoeFlux angle not found, The End\n";
   else cout << "\nTPZEulerConsLaw::TestOfRoeFlux norma da diferenca |F1*n - F2*n| = " << fabs(soma) << "\n\n";
   cout << "\nTPZEulerConsLaw::TestOfRoeFlux concluded test\n";
-  //OS VALORES ENCONTRADOS SÃO:
+  //OS VALORES ENCONTRADOS Sï¿½:
   //61 GRAUS 
   //-66.7169 GRAUS (-1.16443 RADIANOS)
 }
 
-//       if(diffright){// DIFUSÃO NA CARGA : 2
+//       if(diffright){// DIFUSï¿½ NA CARGA : 2
 // 	// w * Un+1 
 // 	for(i=0;i<nstate;i++)
 // 	  ek(nstate * in + i, nstate * jn + i) += weight * phi(in,0) * phi(jn,0);
 //       }
 
-//     if(diffright){// DIFUSÃO NA CARGA : 1
+//     if(diffright){// DIFUSï¿½ NA CARGA : 1
 //       // grad(w)
 //       for(i=0;i<dim;i++) gradphi[i] = dphi(i,in);
 //       // grad(w) @ T (point product)

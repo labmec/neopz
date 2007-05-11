@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.23 2007-04-19 19:49:03 tiago Exp $
+//$Id: pzbndcond.h,v 1.24 2007-05-11 19:15:17 joao Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -246,43 +246,28 @@ public :
   */
   virtual void Read(TPZStream &buf, void *context);
 
-  void ContributeInterfaceErrors(TPZVec<REAL> &x,
-                                       TPZVec<REAL> &solL,
-                                       TPZVec<REAL> &solR,
-                                       TPZFMatrix &dsolL,
-                                       TPZFMatrix &dsolR,
-                                       REAL weight,
-                                       TPZVec<REAL> &normal,
-                                       TPZVec<REAL> &nkL,
-                                       TPZVec<REAL> &nkR,
-                                       int LeftPOrder,
-                                       int RightPOrder,
-                                       REAL faceSize,
-                                       int &errorid);
+  void ContributeInterfaceErrors(TPZMaterialData &data,
+                               REAL weight,
+                               TPZVec<REAL> &nkL,
+                               TPZVec<REAL> &nkR,
+                               int &errorid);
+ void  ContributeErrors(TPZMaterialData &data,/// aqui
+                        REAL weight,
+                        TPZVec<REAL> &nk,
+                        int &errorid){
+//nothing to be done here
+};
 
-  virtual void ContributeInterfaceBCErrors(TPZVec<REAL> &x,
-                                                              TPZVec<REAL> &sol,
-                                                              TPZFMatrix &dsol,
-                                                              REAL weight,
-                                                              TPZVec<REAL> &normal,
-                                                              TPZVec<REAL> &nk,
-                                                              TPZBndCond &bc,
-                                                              int POrder,
-                                                              REAL faceSize,
-                                                              int &errorid){
+
+  virtual void ContributeInterfaceBCErrors(TPZMaterialData &data,
+                          REAL weight,
+                          TPZVec<REAL> &nk,
+                          TPZBndCond &bc,
+                          int &errorid
+                          ){
   //nothing to be done here
 }
 
-virtual void ContributeErrors(TPZVec<REAL> &x,
-                              TPZVec<REAL> &sol,
-                              TPZFMatrix &dsol,
-                              REAL weight,
-                              TPZVec<REAL> &nk,
-                              int POrder,
-                              REAL Size,
-                              int &errorid){
-  //nothing to be done here
-}
 
 };
 

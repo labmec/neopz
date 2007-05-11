@@ -1,4 +1,4 @@
-// -*- c++ -*-
+// -*- c++ -*- 
 #include "pzmat1dlin.h"
 #include "pzmaterial.h"
 #include "pztempmat.h"
@@ -11,11 +11,30 @@
 #include <math.h>
 using namespace std;
 
-void TPZMat1dLin::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-			      TPZVec<REAL> &sol, TPZFMatrix &dsol,
-			      REAL weight,TPZFMatrix &axes,
-			      TPZFMatrix &phi, TPZFMatrix &dphi,
-			     TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZMat1dLin::Contribute(TPZMaterialData &data,
+                             REAL weight,
+                             TPZFMatrix &ek, 
+                             TPZFMatrix &ef){
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
 
   // this method adds the contribution of the material to the stiffness
   // matrix and right hand side
@@ -49,10 +68,31 @@ void TPZMat1dLin::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
   }
 }
 
-void TPZMat1dLin::ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
-				REAL weight, TPZFMatrix &axes,
-				TPZFMatrix &phi, TPZFMatrix &ek,
-			       TPZFMatrix &ef, TPZBndCond &bc){
+void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
+                               REAL weight,
+                               TPZFMatrix &ek,
+                               TPZFMatrix &ef,
+                               TPZBndCond &bc){
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
 
   //void TPZMat1dLin::ContributeBc(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*sol*/, TElementMatrix &ek, TElementMatrix &ef, TPZBndCond &bc, int nod) {
 

@@ -14,7 +14,7 @@ class TPZConsLawTest  : public TPZConservationLaw {
   TPZFMatrix fXf;//fonte
   TPZVec<REAL> fB;
   int fArtificialDiffusion;
-  //int fIntegrationDegree;//integra¢ão da solu¢ão inicial:opcional
+  //int fIntegrationDegree;//integraï¿½ da soluï¿½ inicial:opcional
   int fTest;
   
   public :
@@ -47,13 +47,21 @@ class TPZConsLawTest  : public TPZConservationLaw {
   
   char *Name() { return "TPZConsLawTest"; }
   
-  virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
+  virtual void Contribute(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ek,
+                            TPZFMatrix &ef);
   
-  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,TPZFMatrix &ef);
+  virtual void ContributeInterface(TPZMaterialData &data,
+                                     REAL weight,
+                                     TPZFMatrix &ek,
+                                     TPZFMatrix &ef);
   
-  virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+  virtual void ContributeBC(TPZMaterialData &data,
+                              REAL weight,
+                              TPZFMatrix &ek,
+                              TPZFMatrix &ef,
+                              TPZBndCond &bc);
   
   virtual int VariableIndex(char *name);
   

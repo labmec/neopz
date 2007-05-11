@@ -1,4 +1,4 @@
-
+ 
 #include "pzbndcond.h"
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
@@ -120,51 +120,25 @@ void TPZBndCond::Read(TPZStream &buf, void *context)
    }
 }
 
-void TPZBndCond::ContributeInterfaceErrors(TPZVec<REAL> &x,
-                                       TPZVec<REAL> &solL,
-                                       TPZVec<REAL> &solR,
-                                       TPZFMatrix &dsolL, 
-                                       TPZFMatrix &dsolR,
-                                       REAL weight,
-                                       TPZVec<REAL> &normal,
-                                       TPZVec<REAL> &nkL, 
-                                       TPZVec<REAL> &nkR,
-                                       int LeftPOrder, 
-                                       int RightPOrder, 
-                                       REAL faceSize,
-                                       int &errorid){
+void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data,
+                                            REAL weight,
+                                            TPZVec<REAL> &nkL, 
+                                            TPZVec<REAL> &nkR,
+                                            int &errorid){
 
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial.operator ->());
    if(!mat) return;
 
-   if(fForcingFunction) {
-      TPZManVector<REAL> result(fBCVal2.Rows());
-      fForcingFunction(x,result);
-      int i;
-      for(i=0; i<fBCVal2.Rows(); i++) {
-        fBCVal2(i,0) = result[i];
-      }
-   }
+    this->UpdataBCValues( data );
 
-   int POrder;
-   TPZVec<REAL> sol;  
-   TPZFMatrix dsol;
-   TPZVec<REAL> nk;
-   if(solL.NElements() < solR.NElements()){
-      POrder=  RightPOrder;
-      sol = solR;  
-      dsol = dsolR;
-      nk= nkR;
-      for(int i=0; i<normal.NElements(); i++) normal[i] = -normal[i];
+   if(data.soll.NElements() < data.solr.NElements()){
+      data.InvertLeftRightData();
+      mat->ContributeInterfaceBCErrors(data,weight,nkR,*this, errorid);
    }
    else {
-     POrder=  LeftPOrder;
-     sol = solL;
-     dsol = dsolL;
-     nk= nkL;
+      mat->ContributeInterfaceBCErrors(data,weight,nkL,*this, errorid);
    }
- 
-   mat->ContributeInterfaceBCErrors(x,sol,dsol,weight,normal,nk,*this , POrder, faceSize, errorid);
+
 }
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){

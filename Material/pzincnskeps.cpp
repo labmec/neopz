@@ -1,5 +1,5 @@
 #include "pzincnskeps.h"    
-    
+     
 TPZIncNavierStokesKEps::TPZIncNavierStokesKEps(int id, int dimension):TPZMaterial(id){
   this->fDimension = dimension;
 }
@@ -77,12 +77,33 @@ void TPZIncNavierStokesKEps::Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
   
 }
 
-void TPZIncNavierStokesKEps::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                            TPZVec<REAL> &sol, TPZFMatrix &dsol,
-                            REAL weight,TPZFMatrix &axes,
-                            TPZFMatrix &phi, TPZFMatrix &dphi,
-                            TPZFMatrix &ek, TPZFMatrix &ef){
-                            
+void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
+                                        REAL weight,
+                                        TPZFMatrix &ek,
+                                        TPZFMatrix &ef){
+
+
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
+
                             REAL valor;
 
   const int dim = this->Dimension();
@@ -183,22 +204,22 @@ void TPZIncNavierStokesKEps::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
                       -1.  * fBodyForce[j] * phi[i];                      
     }  
   }
-                            
+
 }//method
-                            
-void TPZIncNavierStokesKEps::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                              TPZVec<REAL> &sol, TPZFMatrix &dsol, REAL weight,
-                              TPZFMatrix &axes, TPZFMatrix &phi,
-                              TPZFMatrix &dphi, TPZFMatrix &ef){
-                              
+
+void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
+                                        REAL weight,
+                                        TPZFMatrix &ef){
+
 }
 
 
-void TPZIncNavierStokesKEps::ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
-                              REAL weight, TPZFMatrix &axes,
-                              TPZFMatrix &phi, TPZFMatrix &ek,
-                              TPZFMatrix &ef, TPZBndCond &bc){
-                              
+void TPZIncNavierStokesKEps::ContributeBC(TPZMaterialData &data,
+                                          REAL weight,
+                                          TPZFMatrix &ek,
+                                          TPZFMatrix &ef,
+                                          TPZBndCond &bc){
+
 }
 
 

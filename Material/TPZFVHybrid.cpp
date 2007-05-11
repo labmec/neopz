@@ -1,5 +1,5 @@
 #include "TPZFVHybrid.h"
-
+ 
 #include "pzbndcond.h"
 
 #include "pzfmatrix.h"
@@ -26,15 +26,39 @@ void TPZMatHybrid::Print(ostream &out) {
   out << "Material id   = " << fNumMat   << endl;
 }
 
-void TPZMatHybrid::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &,REAL weight,
-			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZMatHybrid::Contribute(TPZMaterialData &data,
+                              REAL weight,
+                              TPZFMatrix &ek,
+                              TPZFMatrix &ef) {
+
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &axes=data.axes;
+
 
   int phr = phi.Rows();
   int dim = phi.Cols();
   int k;
-  if(fForcingFunction) {            // phi(in, 0) :  função de forma associada ao nó in
+  if(fForcingFunction) {            // phi(in, 0) :  funï¿½o de forma associada ao nï¿½in
     TPZManVector<REAL> res(1);
-    fForcingFunction(x,res);       // dphi(i,j) :  derivada c/r a xi da função de forma j
+    fForcingFunction(x,res);       // dphi(i,j) :  derivada c/r a xi da funï¿½o de forma j
     fXf(0,0) = res[0];
   }
 
@@ -51,8 +75,32 @@ void TPZMatHybrid::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/
   }
 }
 
-void TPZMatHybrid::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
-			    TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZMatHybrid::ContributeBC(TPZMaterialData &data,
+                                REAL weight,
+                                TPZFMatrix &ek,
+                                TPZFMatrix &ef,
+                                TPZBndCond &bc) {
+
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
 
   if(bc.Material().operator ->() != this){
     PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";

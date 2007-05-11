@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.h,v 1.5 2007-04-19 19:49:51 tiago Exp $
+//$Id: pzmaterialdata.h,v 1.6 2007-05-11 19:15:18 joao Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
@@ -32,6 +32,7 @@ public:
   TPZFNMatrix<30> dsol, dsoll, dsolr;
   REAL HSize;
   REAL detjac, leftdetjac, rightdetjac;
+
 
 /** Class constructor */
   TPZMaterialData();

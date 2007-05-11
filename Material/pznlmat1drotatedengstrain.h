@@ -1,4 +1,4 @@
-//$Id: pznlmat1drotatedengstrain.h,v 1.2 2007-01-27 14:49:27 phil Exp $
+//$Id: pznlmat1drotatedengstrain.h,v 1.3 2007-05-11 19:15:18 joao Exp $
 // -*- c++ -*-
 
 #ifndef TPZNLMAT1DROTATEDENGSTRAIN_H
@@ -75,20 +75,20 @@ public:
      * Compute contribution to the stiffness matrix and right hand\
      * side at an integration point
      */
-    virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                            TPZVec<REAL> &sol, TPZFMatrix &dsol,
-                            REAL weight,TPZFMatrix &axes,
-                            TPZFMatrix &phi, TPZFMatrix &dphi,
-                            TPZFMatrix &ek, TPZFMatrix &ef);
+    virtual void Contribute(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ek, 
+                            TPZFMatrix &ef);
 
     /**
      * Compute contribution to the stiffness matrix and right hand\
      * side at the integration point of a boundary
      */
-    virtual void ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
-                              REAL weight, TPZFMatrix &axes,
-                              TPZFMatrix &phi, TPZFMatrix &ek,
-                              TPZFMatrix &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data,
+                                REAL weight,
+                                TPZFMatrix &ek,
+                                TPZFMatrix &ef,
+                                TPZBndCond &bc);
 
     /**
      * To create another material of the same type
@@ -104,10 +104,9 @@ public:
      * Compute contribution to the stiffness matrix and right hand\
      * side at an integration point
      */
-    virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                            TPZVec<REAL> &sol, TPZFMatrix &dsol, REAL weight,
-                            TPZFMatrix &axes, TPZFMatrix &phi,
-                            TPZFMatrix &dphi, TPZFMatrix &ef);
+    virtual void Contribute(TPZMaterialData &data,
+                              REAL weight,
+                              TPZFMatrix &ef);
 
 
     /**

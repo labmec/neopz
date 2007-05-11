@@ -1,5 +1,5 @@
-//$Id: pzthermicelast3d.cpp,v 1.1 2006-05-30 17:45:00 tiago Exp $
-
+//$Id: pzthermicelast3d.cpp,v 1.2 2007-05-11 19:15:18 joao Exp $
+ 
 #include "pzthermicelast3d.h"
 
 TPZThermicElast3D::TPZThermicElast3D(int nummat, REAL ThermalCoeff, REAL RefTemp, REAL E, REAL poisson, TPZVec<REAL> &force)
@@ -11,10 +11,13 @@ TPZThermicElast3D::TPZThermicElast3D(int nummat, REAL ThermalCoeff, REAL RefTemp
 
 TPZThermicElast3D::~TPZThermicElast3D(){}
 
-void TPZThermicElast3D::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-                        TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef){
- TPZElasticity3D::Contribute(x, jacinv, sol, dsol, weight, axes, phi, dphi, ek, ef);
- this->ContributeThermalStress(sol, phi, dphi, weight, ef);
+void TPZThermicElast3D::Contribute(TPZMaterialData &data,
+                                   REAL weight,
+                                   TPZFMatrix &ek,
+                                    TPZFMatrix &ef){
+
+ TPZElasticity3D::Contribute(data, weight, ek, ef);
+ this->ContributeThermalStress(data.sol, data.phi, data.dphix, weight, ef);
 }
 
 void TPZThermicElast3D::ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix &phi, TPZFMatrix &dphi, REAL weight, TPZFMatrix &ef){

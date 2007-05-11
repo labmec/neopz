@@ -38,8 +38,8 @@ public:
     virtual int NFluxes() {return 2;}
 
 
-    virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-    			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data,REAL weight,
+    			    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
     /** print out the data associated with the material*/
     virtual void Print(std::ostream &out = std::cout);
@@ -63,15 +63,10 @@ public:
     /**Read data of the material from a istream (file data)*/
     virtual void SetData(std::istream &data);
 
-    /**
-       * Contribute adds the contribution to the stiffness matrix
-       **/
-//    virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv, TPZVec<REAL> &sol,TPZFMatrix &dsol, REAL weight,
-//  			  TPZFMatrix &axes,TPZFMatrix &daxesdksi, TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
 
     /**Compute contribution to the stiffness matrix and right hand side at an integration point*/
-    virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv, TPZVec<REAL> &sol,TPZFMatrix &dsol, REAL weight,
-  			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) ;
+    virtual void Contribute(TPZMaterialData &data, REAL weight,
+  			  TPZFMatrix &ek,TPZFMatrix &ef) ;
 
 private:    
 

@@ -1,4 +1,4 @@
-// -*- c++ -*-
+// -*- c++ -*- 
 #include "pzmat2dlin.h"
 #include "pzmaterial.h"
 #include "pztempmat.h"
@@ -12,13 +12,34 @@
 
 using namespace std;
 
-void TPZMat2dLin::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &,REAL weight,
-			     TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZMat2dLin::Contribute(TPZMaterialData &data,REAL weight,
+			     TPZFMatrix &ek,TPZFMatrix &ef) {
   // this method adds the contribution of the material to the stiffness
   // matrix and right hand side
 
   // check on the validity of the arguments
   //rows x cols
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &axes=data.axes;
+
   if(phi.Cols() != 1 || dphi.Rows() != 2 || phi.Rows() != dphi.Cols()){
     PZError << "TPZMat2dLin.contr, inconsistent input data : phi.Cols() = "
 	    << phi.Cols() << " dphi.Cols + " << dphi.Cols() <<
@@ -61,8 +82,29 @@ void TPZMat2dLin::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,
 
 }
 
-void TPZMat2dLin::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &sol,REAL weight,
-			       TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
+			       TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &axes=data.axes;
 
   if(bc.Material().operator ->() != this){
     PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";

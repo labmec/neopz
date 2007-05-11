@@ -1,4 +1,4 @@
-#include "pzintel.h"
+#include "pzintel.h" 
 #include "TPZPlacaOrthotropic.h"
 #include "pzgnode.h"
 #include "pzgeoel.h"
@@ -48,7 +48,7 @@ void TPZPlacaOrthotropic::Tensor(TPZVec<REAL> &ksi, TPZFMatrix &T) {
   for(i=0; i<9; i++) {//original
     T(i%3,i/3) = tensor[i];
   }
-//   for(i=0; i<3; i++) {//é simétrico
+//   for(i=0; i<3; i++) {//ï¿½simï¿½rico
 //     for(j=0; j<3; j++) {
 //       T(i,j) = tensor[3*i+j];
 //     }
@@ -68,8 +68,8 @@ REAL TPZPlacaOrthotropic::Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &
     ksi[2] = pos[0];
     Tensor(ksi,tensor);
     REAL z = fZMin + (fZMax-fZMin)*(pos[0]+1.)/2.;//original
-    //REAL f = (fZMin + fZMax)/2.0;//não
-    //REAL z = fH*pos[0]/2. + f;//não
+    //REAL f = (fZMin + fZMax)/2.0;//nï¿½
+    //REAL z = fH*pos[0]/2. + f;//nï¿½
     REAL tension = 0.;
     int n,d;
     for(n=0; n<3; n++) {
@@ -78,7 +78,7 @@ REAL TPZPlacaOrthotropic::Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &
       }
     }
     moment += weight*tension*(z-zref);//original
-    //moment += weight*tension*z;//não
+    //moment += weight*tension*z;//nï¿½
   }
   moment *= fH/2.;
   return moment;
@@ -114,13 +114,13 @@ void TPZPlacaOrthotropic::Print(){
 
   fIntel->Print();
   cout << "Plate height : " ;
-  cout << this->Height();//this é o objeto placa
+  cout << this->Height();//this ï¿½o objeto placa
 
 }
 
 //se fosse TPZMulticamadaOrthotropic::Print, o this seria multcam
-//se a funcão fosse declarada como void Print(){...}, não haveria This.
-//caso chamemos a funcão Print com o objeto placa2, ao invés de placa->Print, o This é o objeto placa2.
+//se a funcï¿½ fosse declarada como void Print(){...}, nï¿½ haveria This.
+//caso chamemos a funcï¿½ Print com o objeto placa2, ao invï¿½ de placa->Print, o This ï¿½o objeto placa2.
   
   
 void TPZPlacaOrthotropic::IdentifyCompEl() {
@@ -238,7 +238,7 @@ REAL TPZPlacaOrthotropic::GradMoment(REAL zref, TPZVec<REAL> &graddir, TPZVec<RE
       }
     }
     moment += weight*tension*(z-zref);//original
-    //moment += weight*tension*z;//não
+    //moment += weight*tension*z;//nï¿½
   }
   moment *= fH/(2.*dist);
   return moment;
@@ -307,10 +307,10 @@ void TPZPlacaOrthotropic::GradTensor(TPZVec<REAL> &graddir, TPZVec<REAL> &ksi, T
   fIntel->Solution(ksi1,fTensorVar,tensor1);
   fIntel->Solution(ksi2,fTensorVar,tensor2);
   int i;
-  for(i=0; i<9; i++) {//é simétrico OK
+  for(i=0; i<9; i++) {//ï¿½simï¿½rico OK
     T(i%3,i/3) = (tensor2[i]-tensor1[i])/dist;
   }
-//   for(i=0; i<3; i++) {//não simétrico
+//   for(i=0; i<3; i++) {//nï¿½ simï¿½rico
 //     for(j=0; j<3; j++) {
 //       T(i,j) = (tensor2[3*i+j]-tensor1[3*i+j])/dist;
 //     }

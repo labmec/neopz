@@ -1,11 +1,11 @@
 /*
-  Dissipa¢ão
+  Dissipaï¿½
   substantivo feminino
   1. acto ou efeito de dissipar ou dissipar-se;
   2. desaparecimento; desvanecimento;
-  3. desperdício de meios; gasto exagerado de dinheiro;
-  4. devassidão;
-  (Do lat. dissipatióne-, «id.»)
+  3. desperdï¿½io de meios; gasto exagerado de dinheiro;
+  4. devassidï¿½;
+  (Do lat. dissipatiï¿½e-, id.)
 */
 
 #ifndef EULERCONSLAWHPP
@@ -26,14 +26,14 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   REAL fGamma;
   
   /**
-   * Termo que adiciona estabilidade ao método numérico de aproximação
+   * Termo que adiciona estabilidade ao mï¿½odo numï¿½ico de aproximaï¿½o
    * SUPG
    * LS
    * Bornhaus
    */
   char *fArtificialDiffusion;
 
-  //int fIntegrationDegree;//grau de integra¢ão da solu¢ão inicial:opcional
+  //int fIntegrationDegree;//grau de integraï¿½ da soluï¿½ inicial:opcional
   
   public :
   
@@ -81,18 +81,22 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   
   char *Name() { return "TPZEulerConsLaw"; }
   
-  virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
+  virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
   
-  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,TPZFMatrix &ef);
+  virtual void ContributeInterface(TPZMaterialData &data,
+                                     REAL weight,
+                                     TPZFMatrix &ek,
+                                     TPZFMatrix &ef);
   
-  virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,TPZFMatrix &axes,
-			    TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+  virtual void ContributeBC(TPZMaterialData &data,
+                              REAL weight,
+                              TPZFMatrix &ek,
+                              TPZFMatrix &ef,
+                              TPZBndCond &bc);
 
-  virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ef);
+  virtual void Contribute(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ef);
   
   virtual int VariableIndex(char *name);
   

@@ -1,4 +1,4 @@
-// -*- c++ -*-
+// -*- c++ -*- 
 #include "pzmattest3d.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
@@ -27,17 +27,37 @@ void TPZMaterialTest3D::Print(ostream &out) {
   TPZMaterial::Print(out);
 }
 
-void TPZMaterialTest3D::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &/*sol*/,TPZFMatrix & /* dsol */,REAL weight,
-				   TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZMaterialTest3D::Contribute(TPZMaterialData &data,REAL weight,
+				   TPZFMatrix &ek,TPZFMatrix &ef) {
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;  
 
-  int phr = phi.Rows();
+int phr = phi.Rows();
   if(fForcingFunction) {            // phi(in, 0) = phi_in
     TPZManVector<REAL> res(1);
     fForcingFunction(x,res);       // dphi(i,j) = dphi_j/dxi
     fXf(0,0) = res[0];
   }
   if(eq3==0) {
-    //projeção L2 da carga fXf : fForcingFunction
+    //projeï¿½o L2 da carga fXf : fForcingFunction
     /*for( int jn = 0; jn < phr; jn++ ) {
       ef(jn, 0) += weight * fXf(0,0) * phi(jn, 0);
       for( int in = 0; in < phr; in++ ) {
@@ -52,7 +72,7 @@ void TPZMaterialTest3D::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REA
     }
   } else
     if(eq3==1) {
-      //Equação de Poisson
+      //Equaï¿½o de Poisson
       for( int in = 0; in < phr; in++ ) {
 	ef(in, 0) += weight * fXf(0,0) * phi(in, 0);
 	for( int jn = 0; jn < phr; jn++ ) {
@@ -83,8 +103,29 @@ void TPZMaterialTest3D::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REA
     }
     }
 */
-void TPZMaterialTest3D::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
-				     TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZMaterialTest3D::ContributeBC(TPZMaterialData &data,REAL weight,
+				     TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
+
 
   int phr = phi.Rows();
   short in,jn;
@@ -105,7 +146,7 @@ void TPZMaterialTest3D::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,R
       ef(in,0) += v2[0] * phi(in,0) * weight;
     }
     break;
-  case 2 :		// condiçao mista
+  case 2 :		// condiï¿½o mista
     for(in = 0 ; in < phi.Rows(); in++) {
       ef(in, 0) += v2[0] * phi(in, 0) * weight;
       for (jn = 0 ; jn < phi.Rows(); jn++) {

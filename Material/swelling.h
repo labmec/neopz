@@ -170,13 +170,18 @@ void SetComputationMode(int mode) {
  * This method computes the contribution to the residual vector and tangent matrix the traditional way
  * THIS METHOD IS NOT IMPLEMENTED!!!
  */
-virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv ,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-			TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef){
+virtual void Contribute(TPZMaterialData &data,
+                          REAL weight,
+                          TPZFMatrix &ek,
+                          TPZFMatrix &ef){
   std::cout << "TPZSwelling::Contribute not implemented\n";
 }
  
- virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+ virtual void ContributeBC(TPZMaterialData &data,
+                             REAL weight,
+                             TPZFMatrix &ek,
+                             TPZFMatrix &ef,
+                             TPZBndCond &bc);
 
 
 #ifdef _AUTODIFF

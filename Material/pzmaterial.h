@@ -74,14 +74,6 @@ class  TPZMaterial : public TPZSaveable
        */
       virtual void FillDataRequirements(TPZMaterialData &data);
 
-      /** Fill material data parameter with necessary requirements for the
-       * ContributeInterface method. Here, in base class, all requirements are considered
-       * as necessary. Each derived class may optimize performance by selecting
-       * only the necessary data.
-       * @since April 10, 2007
-       */
-      virtual void FillDataRequirementsInterface(TPZMaterialData &data);
-
       /** returns the name of the material*/
       virtual char *Name() { return "no_name"; }
 
@@ -132,7 +124,7 @@ class  TPZMaterial : public TPZSaveable
        * @param ef[out] is the load vector
        * @since April 16, 2007
        */
-      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef) = 0;
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -143,7 +135,7 @@ class  TPZMaterial : public TPZSaveable
        * @param bc[in] is the boundary condition material
        * @since April 16, 2007
        */
-      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
+      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc) = 0;
 
       /**
        * It computes a contribution to the residual vector at one integration point.
@@ -164,42 +156,6 @@ class  TPZMaterial : public TPZSaveable
        * @since April 16, 2007
        */
       virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc);
-
-      /** Compute contribution to the stiffness matrix and right hand
-        * side at an integration point
-        * This method is deprecated
-        */
-      virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                              TPZVec<REAL> &sol, TPZFMatrix &dsol,
-                              REAL weight,TPZFMatrix &axes,
-                              TPZFMatrix &phi, TPZFMatrix &dphi,
-                              TPZFMatrix &ek, TPZFMatrix &ef){
-        PZError << "\nThis method ( " << __PRETTY_FUNCTION__ 
-                << " ) was pure virtual before TPZMaterialData\n";
-      }
-
-      /** Compute contribution to the stiffness matrix and right hand
-        * This method is deprecated
-        * side at an integration point
-        */
-      virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                              TPZVec<REAL> &sol, TPZFMatrix &dsol, REAL weight,
-                              TPZFMatrix &axes, TPZFMatrix &phi,
-                              TPZFMatrix &dphi, TPZFMatrix &ef);
-
-      /** Compute contribution to the stiffness matrix and right hand
-        * This method is deprecated
-        * side at the integration point of a boundary
-        */
-      virtual void ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
-                                REAL weight, TPZFMatrix &axes,
-                                TPZFMatrix &phi, TPZFMatrix &ek,
-                                TPZFMatrix &ef, TPZBndCond &bc){
-        PZError << "\nThis method ( " << __PRETTY_FUNCTION__ 
-                << " ) was pure virtual before TPZMaterialData\n";
-      }
-
-//#ifdef _AUTODIFF
 
       /**Compute contribution to the energy at an integration point*/
 //      virtual void ContributeEnergy(TPZVec<REAL> &x,
@@ -265,43 +221,13 @@ class  TPZMaterial : public TPZSaveable
       /** Factor to diffussive term*/
 //      virtual int IdBC(REAL *x) { return 5; }
 
-  virtual void ContributeErrors(TPZVec<REAL> &x,
-                              TPZVec<REAL> &sol,
-                              TPZFMatrix &dsol,
-                              REAL weight,
-                              TPZVec<REAL> &nk,
-                              int POrder,
-                              REAL Size,
-                              int &errorid){
-  PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
-}
-virtual void ContributeInterfaceErrors(TPZVec<REAL> &x,
-                                       TPZVec<REAL> &solL,
-                                       TPZVec<REAL> &solR,
-                                       TPZFMatrix &dsolL,
-                                       TPZFMatrix &dsolR,
-                                       REAL weight,
-                                       TPZVec<REAL> &normal,
-                                       TPZVec<REAL> &nkL,
-                                       TPZVec<REAL> &nkR,
-                                       int LeftPOrder,
-                                       int RightPOrder,
-                                       REAL faceSize,
-                                       int &errorid){
-PZError << "Method not implemented\n";
-}
-virtual void ContributeInterfaceBCErrors(TPZVec<REAL> &x,
-                                                              TPZVec<REAL> &sol,
-                                                              TPZFMatrix &dsol,
-                                                              REAL weight,
-                                                              TPZVec<REAL> &normal,
-                                                              TPZVec<REAL> &nk,
-                                                              TPZBndCond &bc,
-                                                              int POrder,
-                                                              REAL faceSize,
-                                                              int &errorid){
-PZError << "Method not implemented\n";
-}
+      virtual void ContributeErrors(TPZMaterialData &data,
+                                  REAL weight,
+                                  TPZVec<REAL> &nk,
+                                  int &errorid){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
+      }
+
 
   virtual int ClassId() const;
 

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-#include "pzelasmat.h"
+#include "pzelasmat.h" 
 #include "pzelmat.h"
 #include "pzbndcond.h"
 #include "pzmatrix.h"
@@ -69,8 +69,27 @@ void TPZElasticityMaterial::SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy){
   fPreStressXY = Sigxy;
 }
 
-void TPZElasticityMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &,REAL weight,
-				       TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef) {
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &axes=data.axes;
 
   int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
   phc = phi.Cols();
@@ -96,7 +115,7 @@ void TPZElasticityMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL>
   }
   if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
       TPZManVector<REAL> res(3);
-      fForcingFunction(x,res);
+      fForcingFunction(data.x,res);
       ff[0] = res[0];
       ff[1] = res[1];
       ff[2] = res[2];
@@ -171,8 +190,28 @@ void TPZElasticityMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL>
   //     for (int w=0; w<phr; w++) { cout << ef(w,0)<< endl;}
 }
 
-void TPZElasticityMaterial::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
-					 TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
+					 TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
 
   //	const REAL LITTLENUMB = 1.e-6;
   const REAL BIGNUMBER  = TPZMaterial::gBigNumber;

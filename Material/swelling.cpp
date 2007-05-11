@@ -1,7 +1,7 @@
 // -*- c++ -*-
 #include "swelling.h"
 #include "pzelmat.h"
-#include "pzbndcond.h"
+#include "pzbndcond.h" 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pztempmat.h"
@@ -109,8 +109,33 @@ void TPZSwelling::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,i
 
 
 
-void TPZSwelling::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-			       TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZSwelling::ContributeBC(TPZMaterialData &data,
+                               REAL weight,
+                               TPZFMatrix &ek,
+                               TPZFMatrix &ef,
+                               TPZBndCond &bc) {
+
+
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
 
   if(bc.Material().operator ->() != this){
     PZError << "TPZMatHyperElastic.ContributeBC : this material don't exists \n";

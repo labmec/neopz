@@ -1,4 +1,4 @@
-// -*- c++ -*-
+// -*- c++ -*- 
 #include "pzmathyperelastic.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
@@ -47,8 +47,27 @@ void TPZMatHyperElastic::Print(ostream &out) {
    TPZMaterial::Print(out);
 }
 
-void TPZMatHyperElastic::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &dsol,REAL weight,
-			  TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef) {
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
 
    if(fForcingFunction) {
       TPZManVector<REAL> res(3);
@@ -287,7 +306,7 @@ void TPZMatHyperElastic::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/
 	   global[i][i][8] += c*fE9[i];
    }
 
-//ATÉ AQUI AS TRES MATRIZES A INTEGRAR SÃO fK , fL E fE , SENDO fE CONSTANTE
+//ATï¿½AQUI AS TRES MATRIZES A INTEGRAR Sï¿½ fK , fL E fE , SENDO fE CONSTANTE
   REAL gradJx[3],gradJy[3],gradJz[3];
   REAL gradtrCx[3],gradtrCy[3],gradtrCz[3];
   int k,l;
@@ -449,8 +468,28 @@ void TPZMatHyperElastic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 
 
 
-void TPZMatHyperElastic::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-			    TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
+
+//   TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+//TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
 
 	if(bc.Material().operator ->() != this){
 		PZError << "TPZMatHyperElastic.ContributeBC : this material don't exists \n";
@@ -679,7 +718,7 @@ void TPZMatHyperElastic::ContributeBCEnergy(TPZVec<REAL> & x,
 	           sol[2] * FADREAL(bc.Val2()(2,0) ) ) *
 	         FADREAL(weight);
 	  break;
-	  case 2:// condiçao mista
+	  case 2:// condiï¿½o mista
             // U += 1/2 * weight * Integral(<(u-u0), [g].(u-u0)> dOmega)
 	    BCsolMinBC[0] = solMinBC[0] * FADREAL(bc.Val1()(0,0)) +
 	                    solMinBC[1] * FADREAL(bc.Val1()(0,1)) +

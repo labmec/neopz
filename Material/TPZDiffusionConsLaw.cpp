@@ -1,6 +1,6 @@
 #include "TPZDiffusionConsLaw.h"
 #include "TPZCompElDisc.h"
-#include "pzfmatrix.h"
+#include "pzfmatrix.h" 
 #include "pzvec.h"
 #include "pzreal.h"
 using namespace std;
@@ -66,7 +66,7 @@ void TPZDiffusionConsLaw::Divergence(TPZVec<REAL> &dphi,TPZFMatrix &diverg){
   int i,j,nstate=2+fDimension;
   diverg.Redim(nstate,1);
   diverg.Zero();
-  // soma das linhas de diffterm da : div(F) = ðF1/ðU [ðw/ðx] + ðF2/ðU [ðw/ðy] + ðF3/ðU [ðw/ðz]
+  // soma das linhas de diffterm da : div(F) = ï¿½1/ï¿½ [ï¿½/ï¿½] + ï¿½2/ï¿½ [ï¿½/ï¿½] + ï¿½3/ï¿½ [ï¿½/ï¿½]
   for(i=0;i<nstate;i++) for(j=0;j<nstate;j++) diverg(i,0) += diffterm(i,j);// 5x1 (3D)
   fArtificialDiffusion = type;
 }
@@ -77,7 +77,7 @@ void TPZDiffusionConsLaw::PointOperator(TPZVec<REAL> &dphi,TPZFMatrix &diff_term
   int size = dphi.NElements();
   int nstate = 2+fDimension;
   if(size != 3){
-    //esta forma permite trabalhar com 1, 2 e 3 dimensões
+    //esta forma permite trabalhar com 1, 2 e 3 dimensï¿½s
     cout << "TPZDiffusionConsLaw::PointOperator error data size";
   }
   TPZFMatrix Tx(nstate,nstate),Ty(nstate,nstate),Tz(nstate,nstate);
@@ -88,7 +88,7 @@ void TPZDiffusionConsLaw::PointOperator(TPZVec<REAL> &dphi,TPZFMatrix &diff_term
   Ty.Transpose(&Try);
   Tz.Transpose(&Trz);
   int i,j;
-  // ðw/ðx *  (T1)'  + ðw/ðy * (T2)'  + ðw/ðz * (T3)'
+  // ï¿½/ï¿½ *  (T1)'  + ï¿½/ï¿½ * (T2)'  + ï¿½/ï¿½ * (T3)'
   for(i=0;i<nstate;i++){
     for(j=0;j<nstate;j++){
       diff_term(i,j) = dphi[0] * Trx(i,j) + dphi[1] * Try(i,j) + dphi[2] * Trz(i,j);

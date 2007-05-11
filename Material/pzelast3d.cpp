@@ -1,5 +1,5 @@
-//$Id: pzelast3d.cpp,v 1.11 2006-10-16 17:43:57 phil Exp $
-
+//$Id: pzelast3d.cpp,v 1.12 2007-05-11 19:15:17 joao Exp $
+ 
 #include "pzelast3d.h"
 #include "pzbndcond.h"
 #include "pzmatrix.h"
@@ -48,9 +48,30 @@ void TPZElasticity3D::Print(std::ostream & out){
   out << "End of TPZElasticity3D::Print\n";
 }
 
-void TPZElasticity3D::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-                        TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef){
-  
+void TPZElasticity3D::Contribute(TPZMaterialData &data,
+                                 REAL weight,
+                                 TPZFMatrix &ek,
+                                 TPZFMatrix &ef){
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &jacinv = data.jacinv;
+
+
+
   const int phr = phi.Rows();
   if(this->fForcingFunction){
     this->fForcingFunction(x,this->fForce);
@@ -120,9 +141,31 @@ void TPZElasticity3D::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
 #endif
 }//method
 
-void TPZElasticity3D::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-                          TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
-  const REAL BIGNUMBER  = 1.e12;
+void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
+                                   REAL weight,
+                                   TPZFMatrix &ek,
+                                   TPZFMatrix &ef,
+                                   TPZBndCond &bc){
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &jacinv = data.jacinv;
+ 
+
+ const REAL BIGNUMBER  = 1.e12;
 
   const int phr = phi.Rows();
   int in,jn,idf,jdf;

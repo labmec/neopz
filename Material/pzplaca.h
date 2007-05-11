@@ -37,11 +37,16 @@ class TPZPlaca : public TPZMaterial{
 
 //  virtual TPZBndCond *CreateBC(int num,int typ,TPZFMatrix &val1,TPZFMatrix &val2);
 
-  virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv ,TPZVec<REAL> &sol,TPZFMatrix &,REAL weight,
-			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
+  virtual void Contribute(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ek,
+                            TPZFMatrix &ef);
 
-  virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+  virtual void ContributeBC(TPZMaterialData &data,
+                              REAL weight,
+                              TPZFMatrix &ek,
+                              TPZFMatrix &ef,
+                              TPZBndCond &bc);
 
   virtual int NFluxes();
 

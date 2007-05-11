@@ -1,4 +1,4 @@
-#include "TPZConsLawTest.h"
+#include "TPZConsLawTest.h" 
 #include "pzelmat.h"
 #include "pzbndcond.h"
 #include "pzmatrix.h"
@@ -41,16 +41,39 @@ void TPZConsLawTest::Print(ostream &out) {
   TPZMaterial::Print(out);
 }
 
-void TPZConsLawTest::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-				TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZConsLawTest::Contribute(TPZMaterialData &data,
+                                REAL weight,
+                                TPZFMatrix &ek,
+                                TPZFMatrix &ef) {
+
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
   
   int phr = phi.Rows();// phi(in, 0) = phi_in  ,  dphi(i,jn) = dphi_jn/dxi
 
   if(fForcingFunction) {
     TPZManVector<REAL> res(1);
     fForcingFunction(x,res);//fXf(0,0) = res[0];//if(!sol[0]) 
-    sol[0] = res[0];//solução inicial, na iteração 0 sol = 0 e res != 0 
-  }                  //nas iterações > 0 sol != 0 e res = 0
+    sol[0] = res[0];//soluï¿½o inicial, na iteraï¿½o 0 sol = 0 e res != 0 
+  }                  //nas iteraï¿½es > 0 sol != 0 e res = 0
   int dim = dphi.Rows();
   if(Dimension() != dim)
     PZError << "TPZConsLawTest::Contribute dimension error, dimension = " << dim;
@@ -65,8 +88,8 @@ void TPZConsLawTest::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> 
     sum2 = 0.;
     for(i=0;i<dim;i++) sum2 += B(i,x) * dphi(i,in);//F = (B0*u.B1*u,B2*u)
     sum2 *= time * sol[0];
-    //terceira parcela: contribui¢ão do elemento interface: feita na classe TPZInterfaceElement
-    //contribui¢ão final
+    //terceira parcela: contribuiï¿½ do elemento interface: feita na classe TPZInterfaceElement
+    //contribuiï¿½ final
     ef(in, 0) += weight *(sum1+sum2);//* fXf(0,0);
 
     for( int jn = 0; jn < phr; jn++ ) {
@@ -143,9 +166,32 @@ REAL TPZConsLawTest::T(int jn,TPZVec<REAL> &x){
   return 0.0;
 }
 
-void TPZConsLawTest::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,TPZFMatrix &phiR,
- 				   TPZFMatrix &dphiL,TPZFMatrix &dphiR,TPZFMatrix &ek,TPZFMatrix &ef){
+void TPZConsLawTest::ContributeInterface(TPZMaterialData &data,
+                                         REAL weight,
+                                         TPZFMatrix &ek,
+                                         TPZFMatrix &ef){
+
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+// TPZFMatrix &phi = data.phi;
+TPZFMatrix &phiL = data.phil;
+TPZFMatrix &phiR = data.phir;
+TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+TPZVec<REAL> &solL=data.soll;
+TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
+
 
   int phrl = phiL.Rows();
   int phrr = phiR.Rows();
@@ -153,19 +199,19 @@ void TPZConsLawTest::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZV
   if(fForcingFunction) {      // phi(in, 0) = phi_in
     TPZManVector<REAL> res(1);// dphi(i,j) = dphi_j/dxi
     fForcingFunction(x,res);
-    if(phrl) solL[0] = res[0];//solução inicial interior (t=0), na iteração 0 sol = 0 e res != 0
-    if(phrr) solR[0] = res[0];//nas iterações > 0 sol != 0 e res = 0
+    if(phrl) solL[0] = res[0];//soluï¿½o inicial interior (t=0), na iteraï¿½o 0 sol = 0 e res != 0
+    if(phrr) solR[0] = res[0];//nas iteraï¿½es > 0 sol != 0 e res = 0
   }
 
   REAL Bn=0.0;
-  //a normal está imersa no mesmo espa¢o da malha: R¹, R², R³
+  //a normal estï¿½imersa no mesmo espao da malha: R, R, R
   int dim = Dimension(),i;
   for(i=0;i<dim;i++) Bn += B(i,x)*normal[i];
-  //contribui¢ão do elemento interface
+  //contribuiï¿½ do elemento interface
   REAL time = TimeStep();
   int efc = 0;
   if(Bn > 0){
-    //a normal à interface sempre aponta do seu elemento esquerdo para o seu direito
+    //a normal ï¿½interface sempre aponta do seu elemento esquerdo para o seu direito
     for( int in = 0; in < phrl; in++ ) {
       ef(efc  , 0) += -time * weight * solL[0] * phiL(in, 0) * Bn;//0 2 4 ..
       efc++;
@@ -186,8 +232,32 @@ void TPZConsLawTest::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZV
   }
 }
 
-void TPZConsLawTest::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
-				     TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZConsLawTest::ContributeBC(TPZMaterialData &data,
+                                  REAL weight,
+                                  TPZFMatrix &ek,
+                                  TPZFMatrix &ef,
+                                  TPZBndCond &bc) {
+
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
   
   int phr = phi.Rows();
   short in,jn;
@@ -208,7 +278,7 @@ void TPZConsLawTest::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL
       ef(in,0) += v2[0] * phi(in,0) * weight;
     }
     break;
-  case 2 :		// condiçao mista
+  case 2 :		// condiï¿½o mista
     for(in = 0 ; in < phi.Rows(); in++) {
       ef(in, 0) += v2[0] * phi(in, 0) * weight;
       for (jn = 0 ; jn < phi.Rows(); jn++) {
@@ -283,9 +353,9 @@ void TPZConsLawTest::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec
   case 2://Mista
     PZError << "TPZConsLawTest::ComputeSolLeft boundary condition error\n";
     break;
-  case 3://Dirichlet: nada a fazer a CC é a correta
+  case 3://Dirichlet: nada a fazer a CC ï¿½a correta
     break;
-  case 4://recuperar valor da solu¢ão MEF direita: saida livre
+  case 4://recuperar valor da soluï¿½ MEF direita: saida livre
     soll[0] = solr[0];
     break;
   default:
@@ -308,9 +378,9 @@ void TPZConsLawTest::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVe
   case 2://Mista
     PZError << "TPZConsLawTest::ComputeSolLeft boundary condition error\n";
     break;
-  case 3://Dirichlet: nada a fazer a CC é a correta
+  case 3://Dirichlet: nada a fazer a CC ï¿½a correta
     break;
-  case 4://recuperar valor da solu¢ão MEF esquerda: saida livre
+  case 4://recuperar valor da soluï¿½ MEF esquerda: saida livre
     solr[0] = soll[0];
     break;
   default:

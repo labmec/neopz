@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3dreferred.h,v 1.4 2007-01-27 14:49:27 phil Exp $
+//$Id: pzpoisson3dreferred.h,v 1.5 2007-05-11 19:15:18 joao Exp $
 
 #ifndef MATPOISSON3DREFERREDH
 #define MATPOISSON3DREFERREDH
@@ -55,41 +55,27 @@ public:
   }
     
   
-  virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                          TPZVec<REAL> &sol, TPZFMatrix &dsol,
-                          REAL weight,TPZFMatrix &axes,
-                          TPZFMatrix &phi, TPZFMatrix &dphi,
-                          TPZFMatrix &ek, TPZFMatrix &ef);
+  virtual void Contribute(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ek, 
+                            TPZFMatrix &ef);
 
-  virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+  virtual void ContributeBC(TPZMaterialData &data,
+                              REAL weight,
+			      TPZFMatrix &ek,
+                              TPZFMatrix &ef,
+                              TPZBndCond &bc);
 
-  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-       TPZFMatrix &axesleft, TPZFMatrix &axesright,
-       TPZFMatrix &ek,TPZFMatrix &ef);
+  virtual void ContributeInterface(TPZMaterialData &data,
+                                     REAL weight,
+                                     TPZFMatrix &ek,
+                                     TPZFMatrix &ef);
   
-  virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-			    TPZFMatrix &phiL,TPZFMatrix &dphiL, 
-       TPZFMatrix &axesleft,
-       TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
-			    
-  virtual void ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-				   TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-				   TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-       TPZFMatrix &axesleft, TPZFMatrix &axesright,
-       TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
-    std::cout << "Please, implement me - " << __PRETTY_FUNCTION__ << std::endl;        
-  }
-				   
-  virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-				     TPZFMatrix &phiL,TPZFMatrix &dphiL, 
-         TPZFMatrix &axesleft,
-         TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
-    std::cout << "Please, implement me - " << __PRETTY_FUNCTION__ << std::endl;
-  }    
-             
+  virtual void ContributeBCInterface(TPZMaterialData &data, 
+                                       REAL weight,
+                                       TPZFMatrix &ek,
+                                       TPZFMatrix &ef,
+                                       TPZBndCond &bc);
 };
 
 #endif

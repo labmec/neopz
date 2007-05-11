@@ -42,23 +42,22 @@ public:
     
     /**Compute contribution to the stiffness matrix and right hand
      * side at an integration point*/
-    virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                            TPZVec<REAL> &sol, TPZFMatrix &dsol,
-                            REAL weight,TPZFMatrix &axes,
-                            TPZFMatrix &phi, TPZFMatrix &dphi,
-                            TPZFMatrix &ek, TPZFMatrix &ef);
-			    
-    virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-			      TPZVec<REAL> &sol, TPZFMatrix &dsol, REAL weight,
-			      TPZFMatrix &axes, TPZFMatrix &phi,
-			      TPZFMatrix &dphi, TPZFMatrix &ef);			    
+    virtual void Contribute(TPZMaterialData &data,
+                              REAL weight,
+                              TPZFMatrix &ek,
+                              TPZFMatrix &ef);
+
+    virtual void Contribute(TPZMaterialData &data,
+                              REAL weight,
+                              TPZFMatrix &ef);
 
     /** Compute contribution to the stiffness matrix and right hand
      * side at the integration point of a boundary*/
-    virtual void ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
-				REAL weight, TPZFMatrix &axes,
-				TPZFMatrix &phi, TPZFMatrix &ek,
-				TPZFMatrix &ef, TPZBndCond &bc);    
+    virtual void ContributeBC(TPZMaterialData &data,
+                                REAL weight, 
+                                TPZFMatrix &ek,
+                                TPZFMatrix &ef,
+                                TPZBndCond &bc);
 
     void SetParameters(REAL D, TPZVec<REAL> &V, REAL Sigma, REAL LambdaDivK, REAL F);
     

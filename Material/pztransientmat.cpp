@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-//$Id: pztransientmat.cpp,v 1.4 2007-01-27 14:49:27 phil Exp $
-
+//$Id: pztransientmat.cpp,v 1.5 2007-05-11 19:15:18 joao Exp $
+ 
 #include "pztransientmat.h"
 
 template<class TBASEMAT>
@@ -33,29 +33,31 @@ TPZTransientMaterial< TBASEMAT >::~TPZTransientMaterial(){
 }
 
 template<class TBASEMAT>
-void TPZTransientMaterial< TBASEMAT >::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-                          TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef){
+void TPZTransientMaterial< TBASEMAT >::Contribute(TPZMaterialData &data,
+                                                  REAL weight,
+                                                  TPZFMatrix &ek,
+                                                  TPZFMatrix &ef){
  if (this->gTemporalIntegrator == EImplicit){
   if (this->fStep == ECurrent){
-    TBASEMAT::Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphi,ek,ef);
-    this->ContributeSolutionRhs(sol, phi, weight, ef);
-    this->ContributeTangent(phi, weight, ek);
+    TBASEMAT::Contribute(data,weight,ek,ef);
+    this->ContributeSolutionRhs(data.sol, data.phi, weight, ef);
+    this->ContributeTangent(data.phi, weight, ek);
     return;
   }
   
   if (this->fStep == ELast){
-    this->ContributeSolutionRhs(sol, phi, weight, ef);
+    this->ContributeSolutionRhs(data.sol, data.phi, weight, ef);
     return;
   }
  }//EImplicit
  
  if (this->gTemporalIntegrator == EExplicit){
   if (this->fStep == EMassMatrix){
-    this->ContributeTangent(phi, weight, ek);
+    this->ContributeTangent(data.phi, weight, ek);
     return;
   }
   if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
-    TBASEMAT::Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphi,ek,ef);
+    TBASEMAT::Contribute(data,weight,ek,ef);
     return;
   }
  }//EExplicit
@@ -65,11 +67,14 @@ void TPZTransientMaterial< TBASEMAT >::Contribute(TPZVec<REAL> &x,TPZFMatrix &ja
 }
 
 template<class TBASEMAT>
-void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-                            TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZMaterialData &data,
+                                                    REAL weight,
+                                                    TPZFMatrix &ek,
+                                                    TPZFMatrix &ef,
+                                                    TPZBndCond &bc){
  if (this->gTemporalIntegrator == EImplicit){
   if (this->fStep == ECurrent){
-    TBASEMAT::ContributeBC(x,sol,weight,axes,phi,ek,ef,bc);
+    TBASEMAT::ContributeBC(data,weight,ek,ef,bc);
     return;
   }
   
@@ -83,7 +88,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL>
     return;
   }
   if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
-    TBASEMAT::ContributeBC(x,sol,weight,axes,phi,ek,ef,bc);
+    TBASEMAT::ContributeBC(data,weight,ek,ef,bc);
     return;
   }
  }//EExplicit
@@ -92,14 +97,13 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL>
 }
 
 template<class TBASEMAT>
-void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-                                                           TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-                                                           TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                                           TPZFMatrix &axesleft, TPZFMatrix &axesright,
-                                                           TPZFMatrix &ek,TPZFMatrix &ef){
+void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data,
+                                                           REAL weight,
+                                                           TPZFMatrix &ek,
+                                                           TPZFMatrix &ef){
  if (this->gTemporalIntegrator == EImplicit){
   if (this->fStep == ECurrent){
-    TBASEMAT::ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft, axesright, ek, ef);
+    TBASEMAT::ContributeInterface(data, weight, ek, ef);
     return;
   }
   
@@ -113,8 +117,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZVec<REAL> &x,TPZVe
     return;
   }
   if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
-    TBASEMAT::ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft,
-                                  axesright, ek, ef);
+    TBASEMAT::ContributeInterface(data, weight, ek, ef);
     return;
   }
  }//EExplicit
@@ -123,14 +126,14 @@ void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZVec<REAL> &x,TPZVe
 }
 
 template<class TBASEMAT>
-void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, 
-                                                             REAL weight, TPZVec<REAL> &normal,
-                                                             TPZFMatrix &phiL,TPZFMatrix &dphiL, 
-                                                             TPZFMatrix &axesleft,
-                                                             TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &data,
+                                                             REAL weight, 
+                                                             TPZFMatrix &ek,
+                                                             TPZFMatrix &ef,
+                                                             TPZBndCond &bc){
  if (this->gTemporalIntegrator == EImplicit){
   if (this->fStep == ECurrent){
-    TBASEMAT::ContributeBCInterface(x, solL, dsolL, weight, normal, phiL, dphiL, axesleft, ek, ef, bc);
+    TBASEMAT::ContributeBCInterface(data, weight,ek, ef, bc);
     return;
   }
   
@@ -144,7 +147,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZVec<REAL> &x,TPZ
     return;
   }
   if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
-    TBASEMAT::ContributeBCInterface(x, solL, dsolL, weight, normal, phiL, dphiL, axesleft, ek, ef, bc);
+    TBASEMAT::ContributeBCInterface(data, weight,  ek, ef, bc);
     return;
   }
  }//EExplicit

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzthermicelast3d.h,v 1.1 2006-05-30 17:45:00 tiago Exp $
+//$Id: pzthermicelast3d.h,v 1.2 2007-05-11 19:15:18 joao Exp $
 
 #ifndef PZTHERMICELAST3D
 #define PZTHERMICELAST3D
@@ -71,9 +71,11 @@ void ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix &phi, TPZFMatrix &dph
 /** Contribute to stiff matrix and load vector.
  *  See base class to more informations.
  */
-virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-                        TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
-                        
+virtual void Contribute(TPZMaterialData &data,
+                          REAL weight,
+                          TPZFMatrix &ek,
+                          TPZFMatrix &ef);
+
 virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
                       TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
 

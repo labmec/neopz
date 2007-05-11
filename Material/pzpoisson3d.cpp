@@ -1,6 +1,6 @@
 // -*- c++ -*-
-
-//$Id: pzpoisson3d.cpp,v 1.25 2007-04-14 03:25:48 phil Exp $
+ 
+//$Id: pzpoisson3d.cpp,v 1.26 2007-05-11 19:15:18 joao Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -8,6 +8,7 @@
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
+#include "pzmaterialdata.h"
 #include <math.h>
 
 using namespace std;
@@ -16,10 +17,10 @@ REAL TPZMatPoisson3d::gAlfa = 0.5;
 TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(0.) {
   fK = 1.;
   fC = 0.;
-  fConvDir[0] = 1.;
+  fConvDir[0] = 0.;
   fConvDir[1] = 0.;
   fConvDir[2] = 0.;
-  fPenaltyConstant = 1.;
+  fPenaltyConstant = 0.;
   this->SetNonSymmetric();
   this->SetRightK(fK);
 }
@@ -59,8 +60,12 @@ void TPZMatPoisson3d::Print(ostream &out) {
   out << "\n";
 }
 
-void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &  dsol ,REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
-
+void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef) {
+TPZFMatrix  &phi = data.phi;
+TPZFMatrix &dphi = data.dphix;
+TPZVec<REAL>  &x = data.x;
+TPZFMatrix &axes = data.axes;
+TPZFMatrix &jacinv = data.jacinv;
   int phr = phi.Rows();
 
   if(fForcingFunction) {            // phi(in, 0) = phi_in
@@ -133,9 +138,13 @@ void TPZMatPoisson3d::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL>
 }
 
 
-void TPZMatPoisson3d::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
-				     TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
+				   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 
+  TPZFMatrix  &phi = data.phi;
+//   TPZFMatrix &dphi = data.dphix;
+//   TPZVec<REAL>  &x = data.x;
+  TPZFMatrix &axes = data.axes;
   int phr = phi.Rows();
   short in,jn;
   REAL v2[1];
@@ -207,6 +216,13 @@ int TPZMatPoisson3d::VariableIndex(char *name){
   if(!strcmp("NormKDu",name))         return  6;
   if(!strcmp("MinusKGradU",name))     return  7;
   if(!strcmp("POrder",name))          return 10;
+  if(!strcmp("EnergyDual",name))      return 100;
+  if(!strcmp("EnergyPrimal",name))    return 101;
+  if(!strcmp("GOEstimator",name))     return 102;
+  if(!strcmp("DualExact",name))       return 103;
+  if(!strcmp("PrimalExact",name))     return 104;
+  if(!strcmp("GOError",name))         return 105;
+  if(!strcmp("EfetivityIndex",name))  return 106;
   cout << "TPZMatPoisson3d::VariableIndex Error\n";
   return -1;
 }
@@ -219,6 +235,13 @@ int TPZMatPoisson3d::NSolutionVariables(int var){
   if ((var == 3) || (var == 4) || (var == 5) || (var == 6)) return 1;
   if (var == 7) return fDim;
   if(var == 10) return 1;
+  if(var == 100) return 1;
+  if(var == 101) return 1;
+  if(var == 102) return 1;
+  if(var == 103) return 1;
+  if(var == 104) return 1;
+  if(var == 105) return 1;
+  if(var == 106) return 1;
   return TPZMaterial::NSolutionVariables(var);
   //  cout << "TPZMatPoisson3d::NSolutionVariables Error\n";
   //  return 0;
@@ -388,104 +411,30 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 
 #endif
 
-/** Termos de penalidade. */
-void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-                                          TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-                                          TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                          TPZFMatrix &axesleft, TPZFMatrix &axesright,
-                                          TPZFMatrix &ek,TPZFMatrix &ef, int LeftPOrder, int RightPOrder, REAL faceSize){
-
-  this->ContributeInterface( x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft, axesright, ek, ef );
-  
-  REAL leftK, rightK;
-  leftK  = this->fK;
-  rightK = this->GetRightK();
-  
-  int nrowl = phiL.Rows();
-  int nrowr = phiR.Rows();
-  int il,jl,ir,jr;
-//penalty = <A p^2>/h 
-  const REAL penalty = fPenaltyConstant * (0.5 * (leftK*LeftPOrder*LeftPOrder + rightK*RightPOrder*RightPOrder)) / faceSize;
-  
-  // 1) left i / left j
-  for(il=0; il<nrowl; il++) {
-    for(jl=0; jl<nrowl; jl++) {
-      ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
-    }
-  }
-  
-  // 2) right i / right j
-  for(ir=0; ir<nrowr; ir++) {
-    for(jr=0; jr<nrowr; jr++) {
-      ek(ir+nrowl,jr+nrowl) += weight * penalty * phiR(ir,0) * phiR(jr,0);
-    }
-  }
-  
-  // 3) left i / right j
-  for(il=0; il<nrowl; il++) {
-    for(jr=0; jr<nrowr; jr++) {
-      ek(il,jr+nrowl) += -1.0 * weight * penalty * phiR(jr,0) * phiL(il,0);
-    }
-  }
-  
-  // 4) right i / left j
-  for(ir=0; ir<nrowr; ir++) {
-    for(jl=0; jl<nrowl; jl++) {
-      ek(ir+nrowl,jl) += -1.0 * weight *  penalty * phiL(jl,0) * phiR(ir,0);
-    }
-  }
-  
-}
-
-/** Termos de penalidade. */
-void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-                                            TPZFMatrix &phiL,TPZFMatrix &dphiL, 
-                                            TPZFMatrix &axesleft,
-                                            TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize){
-  
-  this->ContributeBCInterface( x, solL, dsolL, weight, normal, phiL, dphiL, axesleft, ek, ef, bc);
-
-  int il,jl,nrowl;
-  nrowl = phiL.Rows(); 
-  const REAL penalty = fPenaltyConstant * fK * POrder * POrder / faceSize; //Ap^2/h
-  REAL outflow = 0.;
-  for(il=0; il<fDim; il++) outflow += fC * fConvDir[il] * normal[il];
-
-  switch(bc.Type()) {
-  case 0: // DIRICHLET  
-    for(il=0; il<nrowl; il++) {
-      ef(il,0) += weight * penalty * phiL(il,0) * bc.Val2()(0,0);
-      for(jl=0; jl<nrowl; jl++) {
-        ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
-      }
-    }
-     
-    break;
-  case 1: // Neumann
-    if(outflow > 0.)
-    {
-      for(il=0; il<nrowl; il++)
-      {
-        for(jl=0; jl<nrowl; jl++)
-        {
-          ek(il,jl) += weight * outflow * phiL(il,0) * phiL(jl,0);
-        }
-      }
-    }
-    //nothing to be done
-    break;
-  default:
-    PZError << "TPZMatPoisson3d::Wrong boundary condition type\n";
-    break;
-  }    
-  
-}
-
-void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-                                          TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-                                          TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                          TPZFMatrix &axesleft, TPZFMatrix &axesright,
+/** OLD Termos de penalidade. */
+void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
                                           TPZFMatrix &ek,TPZFMatrix &ef){
+
+
+// TPZFMatrix &dphi = data.dphix;
+TPZFMatrix &dphiL = data.dphixl;
+TPZFMatrix &dphiR = data.dphixr;
+// TPZFMatrix &phi = data.phi;
+TPZFMatrix &phiL = data.phil;
+TPZFMatrix &phiR = data.phir;
+TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+int &LeftPOrder=data.leftp;
+int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+REAL &faceSize=data.HSize;
+
 
   int nrowl = phiL.Rows();
   int nrowr = phiR.Rows();
@@ -595,13 +544,69 @@ void TPZMatPoisson3d::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZ
   if (this->IsSymetric()){
     if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
   }
+ ///////
+  
+  if (this->fPenaltyConstant == 0.) return;
+
+  leftK  = this->fK;
+  rightK = this->GetRightK();
+  
+  
+
+//penalty = <A p^2>/h 
+  const REAL penalty = fPenaltyConstant * (0.5 * (leftK*LeftPOrder*LeftPOrder + rightK*RightPOrder*RightPOrder)) / faceSize;
+  
+  // 1) left i / left j
+  for(il=0; il<nrowl; il++) {
+    for(jl=0; jl<nrowl; jl++) {
+      ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
+    }
+  }
+  
+  // 2) right i / right j
+  for(ir=0; ir<nrowr; ir++) {
+    for(jr=0; jr<nrowr; jr++) {
+      ek(ir+nrowl,jr+nrowl) += weight * penalty * phiR(ir,0) * phiR(jr,0);
+    }
+  }
+  
+  // 3) left i / right j
+  for(il=0; il<nrowl; il++) {
+    for(jr=0; jr<nrowr; jr++) {
+      ek(il,jr+nrowl) += -1.0 * weight * penalty * phiR(jr,0) * phiL(il,0);
+    }
+  }
+  
+  // 4) right i / left j
+  for(ir=0; ir<nrowr; ir++) {
+    for(jl=0; jl<nrowl; jl++) {
+      ek(ir+nrowl,jl) += -1.0 * weight *  penalty * phiL(jl,0) * phiR(ir,0);
+    }
+  }
+  
 }
 
-void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-                                            TPZFMatrix &phiL,TPZFMatrix &dphiL, 
-                                            TPZFMatrix &axesleft,
-                                            TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+/** Termos de penalidade. */
+void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, REAL weight,
+                                            TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
 
+// TPZFMatrix &dphi = data.dphix;
+TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+// TPZFMatrix &phi = data.phi;
+TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+int &POrder=data.p;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+REAL &faceSize=data.HSize;
+  
   //  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
   int il,jl,nrowl,id;
   nrowl = phiL.Rows();
@@ -667,6 +672,44 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, 
     if (this->IsSymetric()){
       if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }
+
+//////////////
+  if (this->fPenaltyConstant == 0.) return;
+
+
+  nrowl = phiL.Rows(); 
+  const REAL penalty = fPenaltyConstant * fK * POrder * POrder / faceSize; //Ap^2/h
+  REAL outflow = 0.;
+  for(il=0; il<fDim; il++) outflow += fC * fConvDir[il] * normal[il];
+
+  switch(bc.Type()) {
+  case 0: // DIRICHLET  
+    for(il=0; il<nrowl; il++) {
+      ef(il,0) += weight * penalty * phiL(il,0) * bc.Val2()(0,0);
+      for(jl=0; jl<nrowl; jl++) {
+        ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
+      }
+    }
+     
+    break;
+  case 1: // Neumann
+    if(outflow > 0.)
+    {
+      for(il=0; il<nrowl; il++)
+      {
+        for(jl=0; jl<nrowl; jl++)
+        {
+          ek(il,jl) += weight * outflow * phiL(il,0) * phiL(jl,0);
+        }
+      }
+    }
+    //nothing to be done
+    break;
+  default:
+    PZError << "TPZMatPoisson3d::Wrong boundary condition type\n";
+    break;
+  }    
+  
 }
 
 void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,

@@ -1,5 +1,5 @@
 //METHODS DEFINITION FOR CLASS TPZMaterial
-
+ 
 #include "pzmaterial.h"
 #include "pzmaterialdata.h"
 #include "pzerror.h"
@@ -43,11 +43,6 @@ TPZMaterial::TPZMaterial(const TPZMaterial &material) {
 void TPZMaterial::FillDataRequirements(TPZMaterialData &data){
   data.SetAllRequirements(true);
   data.fNeedsNeighborSol = false;
-}
-
-void TPZMaterial::FillDataRequirementsInterface(TPZMaterialData &data){
-  data.SetAllRequirements(true);
-  data.fNeedsSol = false;
 }
 
 void TPZMaterial::Print(std::ostream & out) {
@@ -98,14 +93,6 @@ TPZAutoPointer<TPZMaterial> TPZMaterial::NewMaterial() {
    return 0;
 }
 
-void TPZMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
-  this->Contribute(data.x, data.jacinv, data.sol, data.dsol, weight, data.axes, data.phi, data.dphix, ek, ef);
-}
-
-void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
-  this->ContributeBC(data.x, data.sol, weight, data.axes, data.phi, ek, ef, bc);
-}
-
 void TPZMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
   TPZFMatrix fakeek(ef.Rows(), ef.Rows(), 0.);
   this->Contribute(data, weight, fakeek, ef);
@@ -114,11 +101,6 @@ void TPZMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
 void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc){
   TPZFMatrix fakeek(ef.Rows(), ef.Rows(), 0.);
   this->ContributeBC(data, weight, fakeek, ef, bc);
-}
-
-void TPZMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv, TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ef){
-   TPZFMatrix ek(ef.Rows(),ef.Rows(),0.);
-   Contribute(x,jacinv,sol,dsol,weight,axes,phi,dphi,ek,ef);
 }
 
 void TPZMaterial::Clone(std::map<int, TPZAutoPointer<TPZMaterial> >&matvec) {

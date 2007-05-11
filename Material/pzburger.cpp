@@ -1,6 +1,6 @@
 // -*- c++ -*-
-
-//$Id: pzburger.cpp,v 1.4 2007-01-27 14:49:27 phil Exp $
+ 
+//$Id: pzburger.cpp,v 1.5 2007-05-11 19:15:17 joao Exp $
 
 #include "pzburger.h"
 #include "pzbndcond.h"
@@ -187,8 +187,28 @@ void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &
   }                          
 }
                
-void TPZBurger::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-                            TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+void TPZBurger::ContributeBC(TPZMaterialData &data,
+                             REAL weight,
+                             TPZFMatrix &ek,
+                             TPZFMatrix &ef,
+                             TPZBndCond &bc){
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// // REAL &faceSize=data.HSize;
+TPZFMatrix &axes=data.axes;
 
   int phr = phi.Rows();
   short in,jn;
@@ -264,11 +284,27 @@ void TPZBurger::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
   }
 }
 
-void TPZBurger::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-                                          TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-                                          TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                          TPZFMatrix &axesleft, TPZFMatrix &axesright,
-                                          TPZFMatrix &ek,TPZFMatrix &ef){
+void TPZBurger::ContributeInterface(TPZMaterialData &data,
+                                    REAL weight,
+                                    TPZFMatrix &ek,
+                                    TPZFMatrix &ef){
+// TPZFMatrix &dphi = data.dphix;
+TPZFMatrix &dphiL = data.dphixl;
+TPZFMatrix &dphiR = data.dphixr;
+// TPZFMatrix &phi = data.phi;
+TPZFMatrix &phiL = data.phil;
+TPZFMatrix &phiR = data.phir;
+TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// TPZVec<REAL> &sol=data.sol;
+TPZVec<REAL> &solL=data.soll;
+TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+TPZFMatrix &dsolL=data.dsoll;
+TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &axes=data.axes;
 
   if (this->IsReferred()){
     this->SetConvectionTermInterface(dsolL, dsolR);
@@ -412,10 +448,28 @@ void TPZBurger::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<RE
   }
 }
 
-void TPZBurger::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-              TPZFMatrix &phiL,TPZFMatrix &dphiL, 
-              TPZFMatrix &axesleft,
-              TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZBurger::ContributeBCInterface(TPZMaterialData &data,
+                                      REAL weight,
+                                      TPZFMatrix &ek,
+                                      TPZFMatrix &ef,
+                                      TPZBndCond &bc) {
+// TPZFMatrix &dphi = data.dphix;
+TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+// TPZFMatrix &phi = data.phi;
+TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// TPZVec<REAL> &sol=data.sol;
+TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &axes=data.axes;
 
   if (this->IsReferred()){
     this->SetConvectionTermInterface(dsolL, dsolL);

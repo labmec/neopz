@@ -1,6 +1,6 @@
-//$Id: pznlmat1d.cpp,v 1.3 2007-01-03 00:08:27 phil Exp $
+//$Id: pznlmat1d.cpp,v 1.4 2007-05-11 19:15:18 joao Exp $
 // -*- c++ -*-
-
+ 
 #include "pznlmat1d.h"
 #include "pzbndcond.h"
 
@@ -31,7 +31,7 @@ void TPZNLMat1d::Print(std::ostream &out)
 
 int TPZNLMat1d::VariableIndex(char *name)
 {
-  if (!strcmp(name,"Tensão")) return 0;
+  if (!strcmp(name,"Tensï¿½")) return 0;
   else return -1;
 }
 
@@ -74,12 +74,32 @@ void TPZNLMat1d::Read(TPZStream &buf, void *context)
   }
 }
 
-void TPZNLMat1d::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                          TPZVec<REAL> &sol, TPZFMatrix &dsol,
-                          REAL weight,TPZFMatrix &axes,
-                          TPZFMatrix &phi, TPZFMatrix &dphi,
-                          TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZNLMat1d::Contribute(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ek,
+                            TPZFMatrix &ef)
 {
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+// TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &axes=data.axes;
+
 
 //   //sol -> (u1,w1,u2,w2)
 //   //dphi = 2/l => l0 = 2/dphi
@@ -144,11 +164,33 @@ void TPZNLMat1d::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
   }
 }
 
-void TPZNLMat1d::ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
-                            REAL weight, TPZFMatrix &axes,
-                            TPZFMatrix &phi, TPZFMatrix &ek,
-                            TPZFMatrix &ef, TPZBndCond &bc)
+void TPZNLMat1d::ContributeBC(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ek,
+                            TPZFMatrix &ef,
+                            TPZBndCond &bc)
 {
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
+
   int phr = phi.Rows();
   short in,jn;
   REAL v2[1];
@@ -175,11 +217,32 @@ void TPZNLMat1d::ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
 }
 
 
-void TPZNLMat1d::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                          TPZVec<REAL> &sol, TPZFMatrix &dsol, REAL weight,
-                          TPZFMatrix &axes, TPZFMatrix &phi,
-                          TPZFMatrix &dphi, TPZFMatrix &ef)
+void TPZNLMat1d::Contribute(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ef)
 {
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+// TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &axes=data.axes;
+
+
 //   //sol -> (u1,w1,u2,w2)
 //   //dphi = 2/l => l0 = 2/dphi
 //   //x21 = delta x = l cos theta

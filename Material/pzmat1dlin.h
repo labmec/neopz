@@ -43,18 +43,18 @@ class TPZMat1dLin : public TPZMaterial{
 
       /**Compute contribution to the stiffness matrix and right hand
        * side at an integration point*/
-      virtual void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-			      TPZVec<REAL> &sol, TPZFMatrix &dsol,
-			      REAL weight,TPZFMatrix &axes,
-			      TPZFMatrix &phi, TPZFMatrix &dphi,
-			      TPZFMatrix &ek, TPZFMatrix &ef);
+      virtual void Contribute(TPZMaterialData &data,
+                                REAL weight,
+                                TPZFMatrix &ek,
+                                TPZFMatrix &ef);
 
       /** Compute contribution to the stiffness matrix and right hand
        * side at the integration point of a boundary*/
-      virtual void ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
-				REAL weight, TPZFMatrix &axes,
-				TPZFMatrix &phi, TPZFMatrix &ek,
-				TPZFMatrix &ef, TPZBndCond &bc);
+      virtual void ContributeBC(TPZMaterialData &data,
+                                  REAL weight,
+                                  TPZFMatrix &ek,
+                                  TPZFMatrix &ef,
+                                  TPZBndCond &bc);
 
 
   virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &fl);

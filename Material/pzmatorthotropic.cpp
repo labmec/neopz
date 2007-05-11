@@ -1,4 +1,4 @@
-
+ 
 #include "pzmatorthotropic.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
@@ -110,8 +110,31 @@ void TPZMatOrthotropic::Print(ostream &out) {
 }
 
 ofstream MatrizesK("MatrizesK.out");
-void TPZMatOrthotropic::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &/*sol*/,TPZFMatrix & /* dsol */,REAL weight,
-			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZMatOrthotropic::Contribute(TPZMaterialData &data,
+                                   REAL weight,
+                                   TPZFMatrix &ek,
+                                   TPZFMatrix &ef) {
+
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &axes=data.axes;
 
    int phr = phi.Rows();
    if(fForcingFunction) {            
@@ -127,10 +150,10 @@ void TPZMatOrthotropic::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REA
    TPZFMatrix kzx(3,3,0.),kzy(3,3,0.),kzz(3,3,0.);
 
    Rt.Transpose(&R);
-   /** as linhas de axes são as derivadas nas direcões do jacobiano,
-     * cada linha de newaxes é o produto interno entre uma direcão (ni)
-     * da placa e as 3 direcões locais da derivada (a0,a1,a2), assim a
-     * linha i de newaxes é:  ni*a0 ni*a1 ni*a2
+   /** as linhas de axes sï¿½ as derivadas nas direcï¿½s do jacobiano,
+     * cada linha de newaxes ï¿½o produto interno entre uma direcï¿½ (ni)
+     * da placa e as 3 direcï¿½s locais da derivada (a0,a1,a2), assim a
+     * linha i de newaxes ï¿½  ni*a0 ni*a1 ni*a2
      */
    axes.Transpose(&newaxes);
    newaxes = Rt*newaxes;
@@ -190,8 +213,32 @@ void TPZMatOrthotropic::Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REA
    }
 }
 
-void TPZMatOrthotropic::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,REAL weight,
-			    TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+void TPZMatOrthotropic::ContributeBC(TPZMaterialData &data,
+                                     REAL weight,
+                                     TPZFMatrix &ek,
+                                     TPZFMatrix &ef,
+                                     TPZBndCond &bc) {
+
+// TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+// TPZManVector<REAL,3> &x = data.x;
+// int &POrder=data.p;
+// int &LeftPOrder=data.leftp;
+// int &RightPOrder=data.rightp;
+// TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+// TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
+// REAL &faceSize=data.HSize;
+// TPZFMatrix &daxesdksi=data.daxesdksi;
+// TPZFMatrix &axes=data.axes;
 
   const REAL BIGNUMBER  = 1.e12;
 
@@ -211,20 +258,20 @@ void TPZMatOrthotropic::ContributeBC(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*sol*/,R
 	      for (jn = 0 ; jn < phi.Rows(); jn++) {		
 		for(k=0; k<3; k++) {
 		    ek(3*in+k,3*jn+k) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
-		}//o Big. deve ser só na diagonal: OK!
+		}//o Big. deve ser sï¿½na diagonal: OK!
 	      }
 	   }          
            break;
     
     case 1 :// Neumann condition
-           for(in = 0 ; in < phi.Rows(); in++) {// componentes da tração normal ao contorno
-	     ef(3*in,0)   += v2[0] * phi(in,0) * weight; // tração em x (ou pressão)
-	     ef(3*in+1,0) += v2[1] * phi(in,0) * weight; // tração em y (ou pressão)
-             ef(3*in+2,0) += v2[2] * phi(in,0) * weight; // tração em z (ou pressão)
+           for(in = 0 ; in < phi.Rows(); in++) {// componentes da traï¿½o normal ao contorno
+	     ef(3*in,0)   += v2[0] * phi(in,0) * weight; // traï¿½o em x (ou pressï¿½)
+	     ef(3*in+1,0) += v2[1] * phi(in,0) * weight; // traï¿½o em y (ou pressï¿½)
+             ef(3*in+2,0) += v2[2] * phi(in,0) * weight; // traï¿½o em z (ou pressï¿½)
 	   }
 	   break;
 
-    case 2 :// condiçao mista
+    case 2 :// condiï¿½o mista
            for(in = 0 ; in < phi.Rows(); in++) {          //Sigmaij
 	     ef(3*in, 0)   += v2[0] * phi(in, 0) * weight;// Neumann x
 	     ef(3*in+1, 0) += v2[1] * phi(in, 0) * weight;// Neumann y
@@ -270,7 +317,7 @@ int TPZMatOrthotropic::NSolutionVariables(int var){
   if(var > -1 && var < 6)  return 1;//escalares
   if(var == 6 || var == 7) return 3;//vetores
   if(var == 8)             return 6;//deve ser
-  if(var == 9)             return 9;//tensor completo (simétrico)
+  if(var == 9)             return 9;//tensor completo (simï¿½rico)
   if(var > 9 && var < 16)  return 1;
   cout << "TPZMatOrthotropic::NSolutionVariables Error\n";
   return 0;
@@ -421,7 +468,7 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &
 
     if(var == 8) return;
 
-    //aqui var é 9 e o tensor é simétrico
+    //aqui var ï¿½9 e o tensor ï¿½simï¿½rico
     Solout.Resize(9);
     /**para saida no programa do Cafu (DX)*/
     Solout[0] = SigGlob(0,0);//00
@@ -476,7 +523,7 @@ void TPZMatOrthotropic::Normalize(TPZFMatrix &naxes){
 
   /** 
    * os eixos devem vir por linhas e 
-   * orientados pela regra da mão direita
+   * orientados pela regra da mï¿½ direita
    */
 
   int i;
@@ -499,14 +546,14 @@ void TPZMatOrthotropic::Normalize(TPZFMatrix &naxes){
     PZError << "Programa abortado\n";
     exit(-1);
   }
-  /**aqui os dois primeiros vetores são ortogonais*/
-  /**o terceiro eixo é ortogonal aos dois primeiros*/
+  /**aqui os dois primeiros vetores sï¿½ ortogonais*/
+  /**o terceiro eixo ï¿½ortogonal aos dois primeiros*/
   norm2 = componente_I*componente_I+componente_J*componente_J+componente_K*componente_K;
   norm2 = sqrt(norm2);
   naxes(2,0) = componente_I/norm2;
   naxes(2,1) = componente_J/norm2;
   naxes(2,2) = componente_K/norm2;
-  /**caso o segundo eixo não seja ortogonal ao primeiro nem ao terceiro*/
+  /**caso o segundo eixo nï¿½ seja ortogonal ao primeiro nem ao terceiro*/
   naxes(1,2) =  naxes(2,0)*naxes(0,1) - naxes(2,1)*naxes(0,0);//K
   naxes(1,1) = -naxes(2,0)*naxes(0,2) + naxes(2,2)*naxes(0,0);//J
   naxes(1,0) =  naxes(2,1)*naxes(0,2) - naxes(2,2)*naxes(0,1);//I

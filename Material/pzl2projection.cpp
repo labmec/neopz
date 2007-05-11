@@ -1,4 +1,4 @@
-//$Id: pzl2projection.cpp,v 1.1 2007-04-23 19:02:56 tiago Exp $
+//$Id: pzl2projection.cpp,v 1.2 2007-05-11 19:15:17 joao Exp $ 
 
 #include "pzl2projection.h"
 
@@ -15,8 +15,8 @@ TPZL2Projection::~TPZL2Projection()
 }
 
 void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
-  const int nshape = data.phi.Rows();
-  const int nvars = this->fNStateVars;
+  const int &nshape = data.phi.Rows();
+  const int &nvars = this->fNStateVars;
   for(int i = 0; i < nshape; i++){
     for(int j = 0; j < nshape; j++){
       for(int ivi = 0; ivi < nvars; ivi++){

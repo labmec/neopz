@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzelast3d.h,v 1.7 2007-01-27 14:49:27 phil Exp $
+//$Id: pzelast3d.h,v 1.8 2007-05-11 19:15:17 joao Exp $
 
 #ifndef PZELAST3D
 #define PZELAST3D
@@ -69,14 +69,19 @@ char *Name() { return "TPZElasticity3D"; }
 /** Contribute to stiff matrix and load vector.
  *  See base class to more informations.
  */
-virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-                        TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
+virtual void Contribute(TPZMaterialData &data,
+                          REAL weight,
+                          TPZFMatrix &ek,
+                          TPZFMatrix &ef);
 
 /** Implements Dirichlet and Neumann boundary conditions.
  *  See base class to more informations.
  */
-virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-                          TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+virtual void ContributeBC(TPZMaterialData &data,
+                            REAL weight,
+                            TPZFMatrix &ek,
+                            TPZFMatrix &ef,
+                            TPZBndCond &bc);
 
 /** Returns index of post-processing variable.
  */

@@ -28,12 +28,16 @@ virtual void Print(std::ostream & out);
 
 char *Name() { return "TPZMatHybrid"; }
 
-virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &sol,TPZFMatrix &,REAL weight,
-			  TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
+    virtual void Contribute(TPZMaterialData &data,
+                              REAL weight,
+                              TPZFMatrix & ek,
+                              TPZFMatrix & ef);
 
-
-virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-			    TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data,
+                                REAL weight,
+                                TPZFMatrix & ek,
+                                TPZFMatrix & ef,
+                                TPZBndCond & bc);
 
 virtual int VariableIndex(char *name);
 

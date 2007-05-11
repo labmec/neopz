@@ -1,6 +1,6 @@
-//$Id: pzeulerconslaw.cpp,v 1.43 2007-05-11 15:16:15 tiago Exp $
+//$Id: pzeulerconslaw.cpp,v 1.44 2007-05-11 19:15:17 joao Exp $
 
-#include "pzeulerconslaw.h"
+#include "pzeulerconslaw.h" 
 //#include "TPZDiffusionConsLaw.h"
 #include "pzartdiff.h"
 #include "pzelmat.h"
@@ -157,8 +157,8 @@ int TPZEulerConsLaw2::VariableIndex(char *name) {
   if( !strcmp(name,"energy")   )     return 3;//E
   if( !strcmp(name,"pressure") )     return 4;//p
   if( !strcmp(name,"solution") )     return 5;//(ro,u,v,w,E)
-  if( !strcmp(name,"normvelocity") ) return 6;//sqrt(u²+v²+w²)
-  if( !strcmp(name,"Mach") )         return 7;//sqrt(u²+v²+w²)/c
+  if( !strcmp(name,"normvelocity") ) return 6;//sqrt(u+v+w)
+  if( !strcmp(name,"Mach") )         return 7;//sqrt(u+v+w)/c
   cout << "TPZEulerConsLaw2::VariableIndex not defined\n";
   return TPZMaterial::VariableIndex(name);
 }
@@ -707,7 +707,7 @@ void TPZEulerConsLaw2::ContributeBC(TPZMaterialData &data,
   int phr = data.phi.Rows();
   short in,jn,i,j;
   int nstate = NStateVariables();
-  REAL v2[5];//máximo nstate
+  REAL v2[5];//mï¿½imo nstate
   for(i=0;i<nstate;i++) v2[i] = bc.Val2()(i,0);
 
   switch (bc.Type()) {
@@ -727,7 +727,7 @@ void TPZEulerConsLaw2::ContributeBC(TPZMaterialData &data,
         ef(in*nstate+i,0) += v2[i] * data.phi(in,0) * weight;
     }
     break;
-  case 2 :// condiçao mista
+  case 2 :// condiï¿½o mista
     for(in = 0 ; in < data.phi.Rows(); in++) {
       for(i = 0 ; i < nstate; i++)
         ef(in*nstate+i, 0) += weight * v2[i] * data.phi(in, 0);
@@ -1062,20 +1062,20 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
   REAL cinf;
 
   switch (bc.Type()){
-  case 3://Dirichlet: nada a fazer a CC é a correta
+  case 3://Dirichlet: nada a fazer a CC ï¿½a correta
     for(i=0;i<nstate; i++) solR[i] = bc.Val2().operator()(i,0);
     break;
-  case 4://recuperar valor da solu¢ão MEF esquerda: saida livre
+  case 4://recuperar valor da soluï¿½ MEF esquerda: saida livre
     for(i=0;i<nstate; i++) solR[i] = solL[i];
     break;
-  case 5://condi¢ão de parede
+  case 5://condiï¿½ de parede
     for(i=1;i<nstate-1;i++) vpn += solL[i]*T(normal[i-1]);//v.n
     for(i=1;i<nstate-1;i++) solR[i] = solL[i] - T(2.0*normal[i-1])*vpn;
     solR[0] = solL[0];
     solR[nstate-1] = solL[nstate-1];
     entropyFix = 0;
     break;
-  case 6://não refletivas (campo distante)
+  case 6://nï¿½ refletivas (campo distante)
     for(i=0;i<nstate;i++) solR[i] = solL[i];
     break;
   case 7:// INLET (Dirichlet using Mach)

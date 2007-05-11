@@ -1,6 +1,6 @@
-// -*- c++ -*-
+// -*- c++ -*- 
 
-//$Id: pzpoisson3dreferred.cpp,v 1.4 2007-01-27 14:49:27 phil Exp $
+//$Id: pzpoisson3dreferred.cpp,v 1.5 2007-05-11 19:15:18 joao Exp $
 
 #include "pzpoisson3dreferred.h"
 
@@ -54,34 +54,38 @@ void TPZMatPoisson3dReferred::SetConvectionTermInterface(TPZFMatrix &dsolL, TPZF
   this->fC = this->falpha;  
 }
 
-void TPZMatPoisson3dReferred::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
-                                         TPZVec<REAL> &sol, TPZFMatrix &dsol,
-                                         REAL weight,TPZFMatrix &axes,
-                                         TPZFMatrix &phi, TPZFMatrix &dphi,
-                                         TPZFMatrix &ek, TPZFMatrix &ef){
-  this->SetConvectionTerm(dsol, axes);
-  TPZMatPoisson3d::Contribute(x, jacinv, sol, dsol, weight, axes, phi, dphi, ek, ef);                                          
+void TPZMatPoisson3dReferred::Contribute(TPZMaterialData &data,
+                                         REAL weight,
+                                         TPZFMatrix &ek, 
+                                         TPZFMatrix &ef){
+
+  this->SetConvectionTerm(data.dsol, data.axes);
+  TPZMatPoisson3d::Contribute(data, weight, ek, ef);
 }
 
-void TPZMatPoisson3dReferred::ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight,
-                                           TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
-  TPZMatPoisson3d::ContributeBC(x, sol, weight, axes, phi, ek, ef, bc);
+void TPZMatPoisson3dReferred::ContributeBC(TPZMaterialData &data,
+                                           REAL weight,
+                                           TPZFMatrix &ek,
+                                           TPZFMatrix &ef,
+                                           TPZBndCond &bc){
+  TPZMatPoisson3d::ContributeBC(data, weight, ek, ef, bc);
 }
 
-void TPZMatPoisson3dReferred::ContributeInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL,TPZVec<REAL> &solR,TPZFMatrix &dsolL,
-                                                  TPZFMatrix &dsolR,REAL weight,TPZVec<REAL> &normal,TPZFMatrix &phiL,
-                                                  TPZFMatrix &phiR,TPZFMatrix &dphiL,TPZFMatrix &dphiR,
-                                                  TPZFMatrix &axesleft, TPZFMatrix &axesright,
-                                                  TPZFMatrix &ek,TPZFMatrix &ef){
+void TPZMatPoisson3dReferred::ContributeInterface(TPZMaterialData &data,
+                                                  REAL weight,
+                                                  TPZFMatrix &ek,
+                                                  TPZFMatrix &ef){
+TPZFMatrix dsolL=data.dsoll;
+TPZFMatrix dsolR=data.dsolr;
   this->SetConvectionTerm(dsolL, dsolR);
-  TPZMatPoisson3d::ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, axesleft,
-                                       axesright, ek, ef);
+  TPZMatPoisson3d::ContributeInterface(data, weight, ek, ef);
 }
   
-void TPZMatPoisson3dReferred::ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-                                                    TPZFMatrix &phiL,TPZFMatrix &dphiL, 
-                                                    TPZFMatrix &axesleft,
-                                                    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
-  this->SetConvectionTerm(dsolL, dsolL);
-  TPZMatPoisson3d::ContributeBCInterface(x, solL, dsolL, weight, normal, phiL, dphiL, axesleft, ek, ef, bc);
+void TPZMatPoisson3dReferred::ContributeBCInterface(TPZMaterialData &data,
+                                                    REAL weight,
+                                                    TPZFMatrix &ek,
+                                                    TPZFMatrix &ef,
+                                                    TPZBndCond &bc){
+  this->SetConvectionTerm(data.dsoll, data.dsoll);
+  TPZMatPoisson3d::ContributeBCInterface(data, weight,  ek, ef, bc);
 }

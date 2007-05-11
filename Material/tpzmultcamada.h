@@ -15,11 +15,16 @@ public:
     void AddLayer(TPZMatPlaca2 * l) { fCamadas.Push(l); }
 
     /** Compute contribution to the stiffness matrix and right hand side at an integration point */
-    virtual void Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &sol,TPZFMatrix &, REAL weight,TPZFMatrix & axes, TPZFMatrix & phi,
-       TPZFMatrix & dphi, TPZFMatrix & ek, TPZFMatrix & ef);
+    virtual void Contribute(TPZMaterialData &data,
+                              REAL weight,
+                              TPZFMatrix & ek,
+                              TPZFMatrix & ef);
 
-    virtual void ContributeBC(TPZVec<REAL> &x,TPZVec<REAL> &sol,REAL weight, TPZFMatrix & axes, TPZFMatrix & phi,
-       TPZFMatrix & ek, TPZFMatrix & ef, TPZBndCond & bc);
+    virtual void ContributeBC(TPZMaterialData &data,
+                                REAL weight,
+                                TPZFMatrix & ek,
+                                TPZFMatrix & ef,
+                                TPZBndCond & bc);
 
     /** returns the variable index associated with the name */
     virtual int VariableIndex(char * name);

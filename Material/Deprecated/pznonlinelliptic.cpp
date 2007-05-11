@@ -1,4 +1,4 @@
-//
+// 
 // C++ Implementation: pznonlinelliptic
 //
 // Description: 
@@ -87,7 +87,7 @@ void TPZNonLinElliptic::Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,
     }
   }
   
-  //Termos não lineares
+  //Termos nï¿½ lineares
   for( int in = 0; in < phr; in++ )
   {
     int kd;
@@ -164,7 +164,7 @@ void TPZNonLinElliptic::ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
   break;
   }
 
-// termos não lineares
+// termos nï¿½ lineares
   REAL aux = 0.;
   switch (bc.Type())
   {

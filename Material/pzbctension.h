@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzbctension.h,v 1.11 2007-05-11 12:07:06 joao Exp $
+// $Id: pzbctension.h,v 1.12 2007-05-11 19:15:17 joao Exp $
 
 #ifndef BCTENSIONHPP
 #define BCTENSIONHPP
@@ -40,26 +40,26 @@ class TPZBCTension : public TPZBndCond {
 
   void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef) {
 
-TPZFMatrix dphi = data.dphix;
-TPZFMatrix dphiL = data.dphixl;
-TPZFMatrix dphiR = data.dphixr;
-TPZFMatrix phi = data.phi;
-TPZFMatrix phiL = data.phil;
-TPZFMatrix phiR = data.phir;
-TPZManVector<REAL,3> normal = data.normal;
-TPZManVector<REAL,3> x = data.x;
+TPZFMatrix &dphi = data.dphix;
+// TPZFMatrix &dphiL = data.dphixl;
+// TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &phi = data.phi;
+// TPZFMatrix &phiL = data.phil;
+// TPZFMatrix &phiR = data.phir;
+// TPZManVector<REAL,3> &normal = data.normal;
+TPZManVector<REAL,3> &x = data.x;
 //int POrder=data.p;
 //int LeftPOrder=data.leftp;
 //int RightPOrder=data.rightp;
-TPZVec<REAL> sol=data.sol;
-TPZVec<REAL> solL=data.soll;
-TPZVec<REAL> solR=data.solr;
-TPZFMatrix dsol=data.dsol;
-TPZFMatrix dsolL=data.dsoll;
-TPZFMatrix dsolR=data.dsolr;
+TPZVec<REAL> &sol=data.sol;
+// TPZVec<REAL> &solL=data.soll;
+// TPZVec<REAL> &solR=data.solr;
+TPZFMatrix &dsol=data.dsol;
+// TPZFMatrix &dsolL=data.dsoll;
+// TPZFMatrix &dsolR=data.dsolr;
 //REAL faceSize=data.HSize;
-TPZFMatrix jacinv = data.jacinv;
-TPZFMatrix axes = data.axes;
+TPZFMatrix &jacinv = data.jacinv;
+TPZFMatrix &axes = data.axes;
 
 
 
