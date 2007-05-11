@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzbctension.h,v 1.10 2007-04-19 19:49:03 tiago Exp $
+// $Id: pzbctension.h,v 1.11 2007-05-11 12:07:06 joao Exp $
 
 #ifndef BCTENSIONHPP
 #define BCTENSIONHPP
@@ -38,8 +38,30 @@ class TPZBCTension : public TPZBndCond {
 
   int NStateVariables() { return Material()->NStateVariables(); }
 
-  void Contribute(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol, REAL
-		  weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
+  void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef) {
+
+TPZFMatrix dphi = data.dphix;
+TPZFMatrix dphiL = data.dphixl;
+TPZFMatrix dphiR = data.dphixr;
+TPZFMatrix phi = data.phi;
+TPZFMatrix phiL = data.phil;
+TPZFMatrix phiR = data.phir;
+TPZManVector<REAL,3> normal = data.normal;
+TPZManVector<REAL,3> x = data.x;
+//int POrder=data.p;
+//int LeftPOrder=data.leftp;
+//int RightPOrder=data.rightp;
+TPZVec<REAL> sol=data.sol;
+TPZVec<REAL> solL=data.soll;
+TPZVec<REAL> solR=data.solr;
+TPZFMatrix dsol=data.dsol;
+TPZFMatrix dsolL=data.dsoll;
+TPZFMatrix dsolR=data.dsolr;
+//REAL faceSize=data.HSize;
+TPZFMatrix jacinv = data.jacinv;
+TPZFMatrix axes = data.axes;
+
+
 
     int typekeep = fType;
     if(fType == 4) {
@@ -57,7 +79,7 @@ class TPZBCTension : public TPZBndCond {
 	}
       }
       fType = 1;
-      Material()->ContributeBC(x,sol,weight,axes,phi,ek,ef,*this);
+      Material()->ContributeBC(data,weight,ek,ef,*this);
       fType = typekeep;
     } else {
       TPZMaterialData data;
