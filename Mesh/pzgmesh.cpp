@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.38 2007-04-20 18:31:02 caju Exp $
+//$Id: pzgmesh.cpp,v 1.39 2007-05-11 13:35:44 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -567,7 +567,9 @@ void TPZGeoMesh::BuildConnectivity()
 	      for(in=0; in<nneigh; in++) {
 		if(neighbours[in].Side() == -1)
 		  {
-		    std::cout << "TPZGeoMesh::BuildConnectivity : Inconsistent mesh detected!\n";
+		    std::cout << "TPZGeoMesh::BuildConnectivity : Inconsistent mesh detected analysing element/side:" ;
+        std::cout << gelside ;
+        std::cout << std::endl;
 		    continue;
 		  }
 		gelside.SetConnectivity(neighbours[in]);

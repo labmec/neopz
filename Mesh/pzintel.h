@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.31 2007-05-01 17:41:28 phil Exp $
+//$Id: pzintel.h,v 1.32 2007-05-11 13:35:44 cesar Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -179,7 +179,7 @@ public:
    * This method only updates the datastructure of the element
    * In order to change the interpolation order of an element, use the method PRefine
    */
-  virtual void SetPreferredSideOrder(int order) = 0;
+  virtual void SetPreferredOrder(int order) = 0;
 
 public:
   /**

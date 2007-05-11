@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.61 2007-05-01 20:28:21 phil Exp $
+//$Id: pzcmesh.cpp,v 1.62 2007-05-11 13:35:44 cesar Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -42,7 +42,7 @@ using namespace std;
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
 					    fConnectVec(0),fMaterialVec(),
 					    fSolution(0,1) {
-  
+
   //Initializing class members
   fDimModel = 0;
   fReference = gr;
@@ -63,10 +63,14 @@ TPZCompMesh::~TPZCompMesh() {
 
   // THIS NEEDS TO INCLUDE THE DELETION ROUTINES OF ALL ITEMS
   CleanUp();
+  if(Reference()->Reference() == this)
+  {
+    Reference()->ResetReference();
+  }
 }
 
 void TPZCompMesh::CleanUp() {
-  
+
   // THIS ROUTINE NEEDS TO INCLUDE THE DELETION OF THE LIST POINTERS
   TPZGeoMesh *ref = Reference();
   ref->ResetReference();
@@ -75,14 +79,14 @@ void TPZCompMesh::CleanUp() {
   for(i=0; i<nelem; i++) {
     TPZCompEl *el = fElementVec[i];
     if(!el) continue;
-    
+
 #ifdef HUGE_DEBUG
     TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(el);
     if(disc)
       {
 	disc->RemoveInterfaces();
       }
-    if(el && el->Type() != EInterface) 
+    if(el && el->Type() != EInterface)
       {
 	delete el;
 	fElementVec[i] = 0;
@@ -91,27 +95,27 @@ void TPZCompMesh::CleanUp() {
     delete el;
 #endif
   }
-  
+
 #ifdef HUGE_DEBUG
   for(i=0; i<nelem; i++) {
-    TPZCompEl *el = fElementVec[i];   
+    TPZCompEl *el = fElementVec[i];
     if(!el) continue;
-    if(el && el->Type() == EInterface) 
+    if(el && el->Type() == EInterface)
       {
 	cout << "TPZCompMesh::CleanUp some interface elements were not deleted\n";
 	delete el;
 	fElementVec[i] = 0;
       }
   }
-#endif  
-  
+#endif
+
   fElementVec.Resize(0);
   fElementVec.CompactDataStructure(1);
   fConnectVec.Resize(0);
   fConnectVec.CompactDataStructure(1);
   nelem = NMaterials();
   fMaterialVec.clear();
-  
+
   fBlock.SetNBlocks(0);
   fSolutionBlock.SetNBlocks(0);
   fSolution.Redim(0,0);
@@ -155,13 +159,13 @@ void TPZCompMesh::Print (std::ostream & out) {
     el->Print(out);
     if(!el->Reference()) continue;
     out << "\tReference Id = " << el->Reference()->Id() << std::endl << std::endl;
-	
+
   }
   out << "\n\tMaterial Information:\n\n";
   std::map<int, TPZAutoPointer<TPZMaterial> >::iterator mit;
   nelem = NMaterials();
   for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
-  
+
     mit->second->Print(out);
   }
 }
@@ -194,7 +198,7 @@ void TPZCompMesh::AutoBuild() {
     TPZGeoEl *gel = elvec[i];
     if(!gel) continue;
     if(!gel->HasSubElement()) {
-      neltocreate++;      
+      neltocreate++;
     }
   }
   std::set<int> matnotfound;
@@ -207,7 +211,7 @@ void TPZCompMesh::AutoBuild() {
     if(!gel->HasSubElement()) {
       int matid = gel->MaterialId();
       TPZAutoPointer<TPZMaterial> mat = this->FindMaterial(matid);
-      if(!mat) 
+      if(!mat)
       {
         matnotfound.insert(matid);
         continue;
@@ -216,7 +220,7 @@ void TPZCompMesh::AutoBuild() {
       if (printing) {
 	      gel->Print(cout);
       }
-      
+
       if(!gel->Reference() && gel->NumInterfaces() == 0){
         gel->CreateCompEl(*this,index);
       }
@@ -234,7 +238,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
   int nelem = elvec.NElements();
 
   if (nelem != (continuous.NElements() + discontinuous.NElements()) ){
-    PZError << __PRETTY_FUNCTION__ << endl 
+    PZError << __PRETTY_FUNCTION__ << endl
 	    << "nelem != continuous.NElements() + discontinuous.NElements() " << endl;
     exit(-1);
   }
@@ -248,7 +252,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
       neltocreate++;
     }
   }
-   
+
   int nbl = fBlock.NBlocks();
   if(neltocreate > nbl) fBlock.SetNBlocks(neltocreate);
   fBlock.SetNBlocks(nbl);
@@ -266,7 +270,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
       }
 
       if(gel->NumInterfaces() == 0){
-        gel->CreateCompEl(*this,index);       
+        gel->CreateCompEl(*this,index);
       }
     }
   }
@@ -282,9 +286,9 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
       if (printing) {
 	      gel->Print(cout);
       }
-    
+
       if(gel->NumInterfaces() == 0){
-        gel->CreateCompEl(*this,index);     
+        gel->CreateCompEl(*this,index);
       }
     }
   }
@@ -307,11 +311,11 @@ void TPZCompMesh::AutoBuild(std::set<int> &MaterialIDs){
     matid = gel->MaterialId();
     std::set<int>::iterator found = MaterialIDs.find(matid);
     if (found == MaterialIDs.end()) continue;
-    if(!gel->HasSubElement()) {    
+    if(!gel->HasSubElement()) {
       gel2create.insert(gel);
     }
   }
-   
+
 //  int neltocreate = gel2create.size();
 //   fBlock.SetNBlocks( fBlock.NBlocks() + neltocreate );
 
@@ -320,7 +324,7 @@ void TPZCompMesh::AutoBuild(std::set<int> &MaterialIDs){
     if(!gel) continue;
     if(!gel->HasSubElement()) {
       if(gel->NumInterfaces() == 0){
-        gel->CreateCompEl(*this,index);       
+        gel->CreateCompEl(*this,index);
       }
     }
   }
@@ -336,7 +340,7 @@ void TPZCompMesh::InitializeBlock() {
 void TPZCompMesh::ExpandSolution() {
   fBlock.Resequence();
   int ibl,nblocks = fBlock.NBlocks();
-  
+
   TPZFMatrix OldSolution(fSolution);
 
   int cols = fSolution.Cols();
@@ -393,7 +397,7 @@ void TPZCompMesh::LoadSolution(TPZFMatrix &mat){
 }
 
 void TPZCompMesh::LoadReferences() {
-  
+
   //	Reference()->ResetReference();
   Reference()->SetReference(this);
   int i, nelem = NElements();
@@ -412,7 +416,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
   ComputeNodElCon();
   int i, nelem = NConnects();
   int ndepblocks = 0, nvalidblocks = 0, nremoved = 0;
-  for (i=0;i<nelem;i++) 
+  for (i=0;i<nelem;i++)
     {
       TPZConnect &no = fConnectVec[i];
       int seq = no.SequenceNumber();
@@ -431,12 +435,12 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
       PZError << "TPZCompMesh::CleanUpUnconnectedNodes node has dependency\n";
       continue;
     }
-    if (!no.NElConnected() && no.SequenceNumber() != -1) 
+    if (!no.NElConnected() && no.SequenceNumber() != -1)
       {
 	need = 1;
 	break;
       }
-    if (no.HasDependency() && no.SequenceNumber() < nvalidblocks) 
+    if (no.HasDependency() && no.SequenceNumber() < nvalidblocks)
       {
 	need = 1;
 	break;
@@ -462,13 +466,13 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	  fBlock.Set(seq,0);
 	  no.SetSequenceNumber(-1);
 	  fConnectVec.SetFree(i);
-	  iremovedblocks++; 
+	  iremovedblocks++;
 	}
       else if(no.HasDependency()) {
         permute[seq] = nvalidblocks+idepblocks;
         down[seq] = 1;
         idepblocks++;
-      } 
+      }
     }
     for(i=1; i<nblocks; i++) down[i] += down[i-1];
     for(i=0; i<nblocks; i++)
@@ -507,15 +511,15 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 }
 
 void TPZCompMesh::ComputeNodElCon() {
-  
+
   int i, nelem = NConnects();
   for(i=0; i<nelem; i++) {
     TPZConnect &no = fConnectVec[i];
     if(no.SequenceNumber() == -1) continue;
     no.ResetElConnected();
   }
-  
-  
+
+
   TPZStack<int> nodelist;
   int numnod;
   // modified Philippe 22/7/97
@@ -550,12 +554,12 @@ int TPZCompMesh::NEquations() {
 
 /** Este metodo nao e apropriado para aproximantes descontinuas */
 int TPZCompMesh::BandWidth() {
-  
+
   int bw = 0;
   TPZStack<int> connectlist;
   // modified Philippe 24/7/97
   // in order to take dependent nodes into account
-  
+
   int i, nelem = NElements();
   for(i=0; i<nelem; i++) {
     connectlist.Resize(0);
@@ -661,12 +665,12 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
   mat = fMaterialVec.begin()->second;
   int nvar = mat->NStateVariables();
   int dim = mat->Dimension();
-  
+
   transfer.SetBlocks(localblock,coarseblock,nvar,NIndependentConnects(),coarsemesh.NIndependentConnects());
   Reference()->ResetReference();
   coarsemesh.LoadReferences();
   int nelem = NElements();
-  for(i=0; i<nelem; i++) {    
+  for(i=0; i<nelem; i++) {
     if(!fElementVec[i]) continue;
     TPZInterpolationSpace * locel = dynamic_cast<TPZInterpolationSpace *> (fElementVec[i]);    
     if(!locel) continue;
@@ -677,7 +681,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
       cout << "TPZCompMesh::BuildTransferMatrix is not implemented for super elements\n";
       continue;
     }
-   
+
     while(coarsegel && !coarsegel->Reference()) {
       coarsegel = coarsegel->Father();
     }
@@ -689,7 +693,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
 
     TPZInterpolationSpace * coarsel = dynamic_cast<TPZInterpolationSpace *> ( coarsegel->Reference() );   
     if(!coarsel) continue;
-    
+
     if(coarsel->Mesh() != &coarsemesh) {
       cout << "TPZCompMesh::BuildTransferMatrix is not implemented for transfers"
 	" between superelements\n";
@@ -747,19 +751,19 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
       //      TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(aggel->FineElement(i));
       TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(aggel->SubElement(i));
       if(!disc){
-	PZError << "TPZCompMesh::BuildTransferMatrixDesc index with null" 
+	PZError << "TPZCompMesh::BuildTransferMatrixDesc index with null"
 		<< " elemento\n";
 	continue;
       }
       if(disc->Type() != EDiscontinuous) {
-	PZError << "TPZCompMesh::BuildTransferMatrixDesc index of not" 
+	PZError << "TPZCompMesh::BuildTransferMatrixDesc index of not"
 		<< " discontinous element\n";
 	continue;
       }
       disc->BuildTransferMatrix(*aggel,transfer);
     }
   }
-} 
+}
 
 /*
   void TPZCompMesh::CreateConnectBC() {
@@ -893,15 +897,15 @@ void TPZCompMesh::Divide(int index,TPZVec<int> &subindex,int interpolate) {
     subindex.Resize(0);
     return;
   }
-  
-  
+
+
   el->Divide(index,subindex,interpolate);
 }
 
 void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index, bool CreateDiscontinuous) {
   int i;
   const int nelem = elements.NElements();
-  
+
   if(!nelem) {
     index = -1;
     return;
@@ -913,31 +917,31 @@ void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index, bool CreateDisconti
     index = -1;
     return;
   }//if
-  
+
   if(cel) father = cel->Reference()->Father();
   if(!father) {
     index = -1;
     return;
   }//if
-  
+
   for(i=1;i<nelem;i++) {
     if(!fElementVec[elements[i]]) {
       index = -1;
       return;
     }//if
-    
+
     TPZGeoEl *father2 = fElementVec[elements[i]]->Reference()->Father();
     if(!father2 || father != father2) {
       index = -1;
       return;
     }//if
-    
+
   }//for i
-  
+
   if(nelem != father->NSubElements()){
     cout << "TPZCompEl::Coarsen : incomplete list of elements sons\n";
   }//if
-  
+
   for(i=0; i<nelem; i++) {
     TPZInterpolationSpace * cel = dynamic_cast<TPZInterpolationSpace*>(this->ElementVec()[elements[i]]);
     if (!cel) continue;
@@ -946,26 +950,26 @@ void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index, bool CreateDisconti
     if (intel){
       intel->RemoveSideRestraintsII(TPZInterpolatedElement::EDelete);
     }//if (intel)
-    
+
     cel->Reference()->ResetReference();
   }//for
-  
-  
+
+
   for(i=0; i<nelem; i++) {
     TPZCompEl * cel = this->ElementVec()[elements[i]];
     if (cel) delete cel;
   }
-  
+
   if (CreateDiscontinuous) this->SetAllCreateFunctionsDiscontinuous();
   else this->SetAllCreateFunctionsContinuous();
-  
+
   TPZCompEl * newcel = father->CreateCompEl(*this,index);
-  
+
   TPZCompElDisc * newdisc = dynamic_cast<TPZCompElDisc*>(newcel);
   if (newdisc){
     newdisc->SetDegree( TPZCompEl::gOrder );
   }
-  
+
 }//method
 
 void TPZCompMesh::Discontinuous2Continuous(int disc_index, int &new_index, bool InterfaceBetweenContinuous) {
@@ -975,13 +979,13 @@ void TPZCompMesh::Discontinuous2Continuous(int disc_index, int &new_index, bool 
     new_index = -1;
     return;
   }//if
-  
+
   TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cel);
   if (!disc) {
     new_index = -1;
     return;
-  }//if  
-  
+  }//if
+
   TPZGeoEl * ref = cel->Reference();
   if (!ref){
     LOGPZ_FATAL(logger, "Computational element without reference");
@@ -989,30 +993,30 @@ void TPZCompMesh::Discontinuous2Continuous(int disc_index, int &new_index, bool 
   }
   cel->RemoveInterfaces();
   cel->Reference()->ResetReference();
-  //  this->fElementVec[ cel->Index() ] = NULL;  
-  //  delete cel;  
+  //  this->fElementVec[ cel->Index() ] = NULL;
+  //  delete cel;
 
-  this->SetAllCreateFunctionsContinuous();    
+  this->SetAllCreateFunctionsContinuous();
   TPZCompEl * newcel = ref->CreateCompEl(*this,new_index);
-  TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement*>(newcel); 
+  TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement*>(newcel);
   intel->CreateInterfaces(false);
-  
+
   if (!intel){
     LOGPZ_FATAL(logger, "New created element is not an interpolated element as requested.");
   }
-  
+
   if(!ref->Reference()){
     LOGPZ_FATAL(logger, "New created element is not referenced by geometric element");
   }
-  
+
   if (ref->Reference() != newcel){
-    LOGPZ_FATAL(logger, "New created element is not the same as referenced by geometric element");  
+    LOGPZ_FATAL(logger, "New created element is not the same as referenced by geometric element");
   }
-  
+
   //  ExpandSolution();
-  //  intel->InterpolateSolution(*disc);    
-  delete cel;  
-  
+  //  intel->InterpolateSolution(*disc);
+  delete cel;
+
 }//method
 
 void TPZCompMesh::RemakeAllInterfaceElements(){
@@ -1023,8 +1027,8 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
     TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>( this->ElementVec()[i] );
     if (!disc) continue;
     disc->RemoveInterfaces();
-  }//for  
- 
+  }//for
+
 #ifdef DEBUG
   {
     n = this->ElementVec().NElements();
@@ -1036,9 +1040,9 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
       if(face){
 	PZError << __PRETTY_FUNCTION__ << " - At this point no TPZInterfaceElement may exist.\n";
       }
-    }  
+    }
   }
-#endif  
+#endif
 
   n = this->ElementVec().NElements();
   for(int i = 0; i < n; i++){
@@ -1046,7 +1050,7 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
     if (!disc) continue;
     disc->CreateInterfaces();
   }//for
-  
+
 }//method
 
 /**ExpandSolution must be called before calling this*/
@@ -1127,12 +1131,12 @@ void TPZCompMesh::EvaluateError(
 
     int nerrors = true_error.NElements();
     errorSum.Resize(nerrors,0.);
-    for(int ii = 0; ii < nerrors; ii++)      
+    for(int ii = 0; ii < nerrors; ii++)
       errorSum[ii] += true_error[ii]*true_error[ii];
   }
 
   int nerrors = errorSum.NElements();
-  for(int ii = 0; ii < nerrors; ii++)      
+  for(int ii = 0; ii < nerrors; ii++)
     errorSum[ii] = sqrt(errorSum[ii]);
 }
 
@@ -1547,7 +1551,7 @@ void TPZCompMesh::GetRefPatches(std::set<TPZGeoEl *> &grpatch){
     if (fElementVec[i]){
       TPZGeoEl *gel = fElementVec[i]->Reference();
       if (gel) gel = fElementVec[i]->GetRefElPatch();
-      if (gel) 
+      if (gel)
 	{
 	  grpatch.insert(gel);
 	}
@@ -1560,7 +1564,7 @@ void TPZCompMesh::GetRefPatches(std::set<TPZGeoEl *> &grpatch){
 void  TPZCompMesh::GetNodeToElGraph(TPZVec<int> &nodtoelgraph, TPZVec<int> &nodtoelgraphindex, TPZStack<int> &elgraph, TPZVec<int> &elgraphindex){
 
   ComputeElGraph(elgraph,elgraphindex);
-  
+
   //  int i,j;
   //  for (i=0; i<elgraphindex.NElements()-1; i++){
   //    cout << "Block: " << i << "\t";
@@ -1572,7 +1576,7 @@ void  TPZCompMesh::GetNodeToElGraph(TPZVec<int> &nodtoelgraph, TPZVec<int> &nodt
 
   TPZMetis renum(elgraphindex.NElements() -1 ,NIndependentConnects());
   renum.SetElementGraph(elgraph,elgraphindex);
-  renum.NodeToElGraph(elgraph,elgraphindex,nodtoelgraph, nodtoelgraphindex);	
+  renum.NodeToElGraph(elgraph,elgraphindex,nodtoelgraph, nodtoelgraphindex);
   /*   TPZRenumbering *re = &renum; */
   /*   re->Print(nodtoelgraph, nodtoelgraphindex , "Grapho de n� para elementos "); */
 
@@ -1590,7 +1594,7 @@ void TPZCompMesh::GetElementPatch(TPZVec<int> nodtoelgraph, TPZVec<int> nodtoelg
     int node = elgraph[i];
     for (j = nodtoelgraphindex[node];  j<nodtoelgraphindex[node+1]; j++){
       elconmap.insert(nodtoelgraph[j]);
-      
+
     }
   }
   patch.Resize(0);
@@ -1601,7 +1605,7 @@ void TPZCompMesh::GetElementPatch(TPZVec<int> nodtoelgraph, TPZVec<int> nodtoelg
     //patch.Push(elconmap.Key(iter));
     patch.Push(*iter);//elconmap.Key(iter));
     iter++;//elconmap.Next(iter);
-  }	
+  }
 }
 
 TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) : 
@@ -1668,7 +1672,7 @@ TPZCompMesh* TPZCompMesh::Clone() const {
   if (!gel) continue;
   int indexcomp;
   gel->CreateCompEl(*cmesh,indexcomp);
-    
+
   TPZInterpolatedElement *clintel = dynamic_cast<TPZInterpolatedElement *> (cmesh->ElementVec()[indexcomp]);
   int side, nsides = intel->NConnects();
   for (side =0;side<nsides;side++){
@@ -1676,14 +1680,14 @@ TPZCompMesh* TPZCompMesh::Clone() const {
   clintel->PRefine(side,porder);
   int clorder = clintel->SideOrder(side);
   if(porder != clorder) {
-  cout << "PZCompMesh::Clone order was not honoured side " << 
+  cout << "PZCompMesh::Clone order was not honoured side " <<
   side << " porder " << porder << " clorder " << clorder <<
   endl;
   }
   int elndof = intel->Connect(side).NDof(*this);
   int clelndof = clintel->Connect(side).NDof(*cmesh);
   if(elndof != clelndof) {
-  cout << "PZCompMesh::Clone ndof different side " << 
+  cout << "PZCompMesh::Clone ndof different side " <<
   side << " porder " << porder << " clorder " << clorder <<
   " elndof = "<< elndof << " clelndof " << clelndof << endl;
   }
@@ -1695,7 +1699,7 @@ TPZCompMesh* TPZCompMesh::Clone() const {
   gmesh->ResetReference();
   LoadReferences();
 
- 
+
   int clnel = cmesh->ElementVec().NElements();
   //  if (clnel != nel){
   //    cout << "Clone mesh inconsistancy: clone elements failed!\n";
@@ -1719,7 +1723,7 @@ TPZCompMesh* TPZCompMesh::Clone() const {
   }
   int idof;
   for (idof=0; idof<elndof; idof++){
-  cmesh->fSolutionBlock(clelseqnum,0,idof,0) = Block()(elseqnum,0,idof,0); 
+  cmesh->fSolutionBlock(clelseqnum,0,idof,0) = Block()(elseqnum,0,idof,0);
   }
   }
   }
@@ -1805,7 +1809,7 @@ void TPZCompMesh::ComputeFillIn(int resolution, TPZFMatrix &fillin){
   if(divider*resolution != nequations) divider++;
   REAL factor = 1./(divider*divider);
   fillin.Redim(resolution,resolution);
-  
+
   TPZStack<int> graphelindex, graphel, graphnodeindex, graphnode;
   this->ComputeElGraph(graphel,graphelindex);
   TPZMetis renum(fElementVec.NElements(),fConnectVec.NElements());
@@ -1877,7 +1881,7 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix &projectsol) {
   TPZAgglomerateElement *aggel = 0;
   TPZAdmChunkVector<TPZCompEl *> &elvec = ElementVec();
   int nelem = elvec.NElements();
-  
+
 
   for(i=0; i<nelem; i++) {
     TPZCompEl *comp = elvec[i];
@@ -1891,7 +1895,7 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix &projectsol) {
     aggel = dynamic_cast<TPZAgglomerateElement *>(comp);
     aggel->ProjectSolution(projectsol);
   }
-} 
+}
 /**
  * returns the unique identifier for reading/writing objects to streams
  */
@@ -1930,7 +1934,7 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
   fBlock.Write(buf,0);
 
 }
-  
+
 /**
    Read the element data from a stream
 */
@@ -2043,20 +2047,21 @@ void TPZCompMesh::SetAllCreateFunctionsDiscontinuous(){
   TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction(TPZCompElDisc::CreateDisc); 
+  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-   
 }
-void TPZCompMesh::SetAllCreateFunctionsContinuous(){
 
+
+void TPZCompMesh::SetAllCreateFunctionsContinuous(){
   TPZGeoElement< pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction( CreatePointEl);
   TPZGeoElement< pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction( CreateLinearEl);
   TPZGeoElement< pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction( CreateQuadEl);
   TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction( CreateTriangleEl);
   TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction( CreatePrismEl);
   TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction( CreateTetraEl);
-  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreatePyramEl); 
+  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreatePyramEl);
   TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateCubeEl);
+
 
 }
 
@@ -2072,7 +2077,6 @@ void TPZCompMesh::SetAllCreateFunctionsDiscontinuousReferred(){
   TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction(CreateReferredDisc);
   TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction(CreateReferredDisc);
   TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction(CreateReferredDisc);
-   
 }
 
 void TPZCompMesh::SetAllCreateFunctionsContinuousReferred(){
@@ -2083,7 +2087,7 @@ void TPZCompMesh::SetAllCreateFunctionsContinuousReferred(){
   TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction( CreateReferredTriangleEl );
   TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction( CreateReferredPrismEl );
   TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction( CreateReferredTetraEl );
-  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreateReferredPyramEl ); 
+  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreateReferredPyramEl );
   TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateReferredCubeEl );
 
 }
@@ -2115,7 +2119,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int val, bool Interf
     celJumps[leftel] += faceerror[val]*faceerror[val];
     celJumps[rightel] += faceerror[val]*faceerror[val];
   }//for i
-  
+
   for(int i = 0; i < nelements; i++){
     if (!AllCels[i]) continue;
     TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(AllCels[i]);
@@ -2127,10 +2131,10 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int val, bool Interf
       this->Discontinuous2Continuous(i, index, InterfaceBetweenContinuous);
     }//if
   }//for i
-  
+
   this->CleanUpUnconnectedNodes();
   this->AdjustBoundaryElements();
-    
+
 }//method
 
 void TPZCompMesh::AssembleError(TPZFMatrix &estimator, int errorid){
@@ -2149,7 +2153,7 @@ void TPZCompMesh::AssembleError(TPZFMatrix &estimator, int errorid){
       face->ComputeError(errorid, errorL, errorR);
       int n = errorL.NElements();
       if (errorR.NElements() > n) n = errorR.NElements();
-      //if number of errors > 1 then resize matrix. 
+      //if number of errors > 1 then resize matrix.
       //Method Resize keeps previous values and zero new values.
       estimator.Resize(nelem, n);
       for(i = 0; i < errorL.NElements(); i++){
@@ -2162,7 +2166,7 @@ void TPZCompMesh::AssembleError(TPZFMatrix &estimator, int errorid){
     else{
       locerror.Fill(0.);
       el->ComputeError(errorid, locerror);
-      //if number of errors > 1 then resize matrix. 
+      //if number of errors > 1 then resize matrix.
       //Method Resize keeps previous values and zero new values.
       estimator.Resize(nelem, locerror.NElements());
       for(i = 0; i < locerror.NElements(); i++){

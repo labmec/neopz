@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.57 2007-05-01 17:41:28 phil Exp $
+// $Id: pzintel.cpp,v 1.58 2007-05-11 13:35:44 cesar Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -1424,7 +1424,7 @@ void TPZInterpolatedElement::Print(std::ostream &out) {
 }
 
 void TPZInterpolatedElement::PRefine(int order) {
-  SetPreferredSideOrder(order);
+  SetPreferredOrder(order);
   int side;
   for(side=0; side<NConnects(); side++) {
     IdentifySideOrder(side);
@@ -1800,16 +1800,18 @@ void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMat
   */
 void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid)
 {
-  TPZCompEl::Write(buf,withclassid);
+  TPZInterpolationSpace::Write(buf,withclassid);
 }
+
 
   /**
   Read the element data from a stream
   */
 void TPZInterpolatedElement::Read(TPZStream &buf, void *context)
 {
-  TPZCompEl::Read(buf,context);
+  TPZInterpolationSpace::Read(buf,context);
 }
+
 
 void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
 

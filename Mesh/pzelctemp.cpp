@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.34 2007-04-20 18:31:02 caju Exp $
+// $Id: pzelctemp.cpp,v 1.35 2007-05-11 13:35:44 cesar Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -22,7 +22,7 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
   int i;
   for(i=0;i<TSHAPE::NSides-TSHAPE::NCornerNodes;i++) {
     //    fSideOrder[i] = gOrder;
-    fPreferredSideOrder = gOrder;
+    fPreferredOrder = gOrder;
   }
   for(i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
   //  RemoveSideRestraintsII(EInsert);
@@ -50,7 +50,7 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy) :
   TPZInterpolatedElement(mesh,copy), fIntRule(copy.fIntRule) {
-  fPreferredSideOrder = copy.fPreferredSideOrder;
+  fPreferredOrder = copy.fPreferredOrder;
   int i;
   for(i=0;i<TSHAPE::NSides;i++) {
     fConnectIndexes[i] = copy.fConnectIndexes[i];
@@ -74,7 +74,7 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
 //     exit(-1);
 //   }
 
-  fPreferredSideOrder = copy.fPreferredSideOrder;
+  fPreferredOrder = copy.fPreferredOrder;
   int i;
   for(i=0;i<TSHAPE::NSides;i++)
   {
@@ -100,7 +100,7 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen() :
   TPZInterpolatedElement(), fIntRule() {
-  fPreferredSideOrder = -1;
+  fPreferredOrder = -1;
   int i;
   for(i=0;i<TSHAPE::NSides;i++) {
     fConnectIndexes[i] = -1;
@@ -178,7 +178,7 @@ int TPZIntelGen<TSHAPE>::SideConnectLocId(int node, int side) {
 /**Sets the interpolation order for the interior of the element*/
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::SetInterpolationOrder(int order) {
-  fPreferredSideOrder = order;
+  fPreferredOrder = order;
 }
 
 /**Identifies the interpolation order on the interior of the element*/
@@ -196,7 +196,7 @@ template<class TSHAPE>
 int TPZIntelGen<TSHAPE>::PreferredSideOrder(int side) {
   if(side < TSHAPE::NCornerNodes) return 0;
   if(side<TSHAPE::NSides) {
-	  int order =fPreferredSideOrder;
+	  int order =fPreferredOrder;
 	  return AdjustPreferredSideOrder(side,order);
   }
   PZError << "TPZIntelgen::PreferredSideOrder called for side = " << side << "\n";
@@ -225,8 +225,9 @@ int TPZIntelGen<TSHAPE>::ConnectIndex(int con) {
    In order to change the interpolation order of an element, use the method PRefine
 */
 template<class TSHAPE>
-void TPZIntelGen<TSHAPE>::SetPreferredSideOrder(int order) {
-  fPreferredSideOrder = order;
+void TPZIntelGen<TSHAPE>::SetPreferredOrder(int order)
+{
+  fPreferredOrder = order;
 }
 
 /**sets the interpolation order of side to order*/
@@ -349,7 +350,9 @@ void TPZIntelGen<TSHAPE>::Write(TPZStream &buf, int withclassid)
   fIntRule.GetOrder(order);
   WriteObjects(buf,order);
   buf.Write(fConnectIndexes,TSHAPE::NSides);
-  buf.Write(&fPreferredSideOrder,1);
+  buf.Write(&fPreferredOrder,1);
+  int classid = this->ClassId();
+  buf.Write ( &classid, 1 );
 }
 
   /**
@@ -363,7 +366,16 @@ void TPZIntelGen<TSHAPE>::Read(TPZStream &buf, void *context)
   ReadObjects(buf,order);
   fIntRule.SetOrder(order);
   buf.Read(fConnectIndexes,TSHAPE::NSides);
-  buf.Read(&fPreferredSideOrder,1);
+  buf.Read(&fPreferredOrder,1);
+  int classid = -1;
+  buf.Read( &classid, 1 );
+  if ( classid != this->ClassId() )
+  {
+    std::stringstream sout;
+    sout << "ERROR - " << __PRETTY_FUNCTION__
+        << " trying to restore an object id " << this->ClassId() << " for an package of id = " << classid;
+    LOGPZ_ERROR ( logger, sout.str().c_str() );
+  }
 }
 
 
@@ -469,7 +481,6 @@ void TPZIntelGen<TPZShapeCube>::CreateGraphicalElement(TPZGraphMesh &grafgrid, i
     new typename TPZShapeCube::GraphElType(this,&grafgrid);
   }
 }
-
 #endif
 template<>
 int TPZIntelGen<TPZShapePoint>::ClassId() const

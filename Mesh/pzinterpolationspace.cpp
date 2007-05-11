@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.9 2007-05-03 18:51:56 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.10 2007-05-11 13:35:44 cesar Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -16,19 +16,34 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZInterpolationSpace"));
 #endif
 
 TPZInterpolationSpace::TPZInterpolationSpace()
- : TPZCompEl(){}
+ : TPZCompEl()
+{
+  fPreferredOrder = -1;
+}
 
-TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy) 
- : TPZCompEl(mesh, copy){}
+TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy)
+ : TPZCompEl(mesh, copy)
+{
+  fPreferredOrder = copy.fPreferredOrder;
+}
 
 TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, std::map<int,int> &gl2lcElMap)
-  : TPZCompEl(mesh, copy, gl2lcElMap){}
+  : TPZCompEl(mesh, copy, gl2lcElMap)
+{
+  fPreferredOrder = copy.fPreferredOrder;
+}
 
 TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, int &index)
-  : TPZCompEl(mesh, copy, index){}
+  : TPZCompEl(mesh, copy, index)
+{
+  fPreferredOrder = copy.fPreferredOrder;
+}
 
 TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int &index)
- : TPZCompEl(mesh,gel,index){}
+ : TPZCompEl(mesh,gel,index)
+{
+  fPreferredOrder = TPZCompEl::gOrder;
+}
 
 TPZInterpolationSpace::~TPZInterpolationSpace(){}
 
@@ -824,6 +839,14 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
   }//for int_ind
 }//method
 
+/**
+ * Save the element data to a stream
+ */
+void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid)
+{
+  TPZCompEl::Write(buf,withclassid);
+  buf.Write(&fPreferredOrder,1);
+}
 void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL> &max){
 
   const int dim = Dimension();
@@ -1059,4 +1082,12 @@ void TPZInterpolationSpace::ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVe
       current_order++;
     }
   }
+}
+/**
+ * Read the element data from a stream
+ */
+void TPZInterpolationSpace::Read(TPZStream &buf, void *context)
+{
+  TPZCompEl::Read(buf,context);
+  buf.Read(&fPreferredOrder,1);
 }

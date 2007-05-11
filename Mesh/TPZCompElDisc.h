@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.59 2007-05-07 17:43:15 joao Exp $
+//$Id: TPZCompElDisc.h,v 1.60 2007-05-11 13:35:44 cesar Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -333,6 +333,19 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
   Read the element data from a stream
   */
   virtual void Read(TPZStream &buf, void *context);
+
+  /**
+   *  Define the desired order for entire element.
+   */
+  virtual void SetPreferredOrder ( int order ) { SetDegree( order ); }
+
+  /**
+   * Change the preferred order for the element and proceed the
+   * adjust of the aproximation space taking in acount the type
+   * of formulation and the neighbours of the element
+   */
+  virtual void PRefine ( int order ) { SetDegree( order ); }
+
 
 
 };

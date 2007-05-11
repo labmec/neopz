@@ -1254,7 +1254,7 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> 
   this->fMesh = &DestMesh;
   this->fId = cp.fId;
   this->fMatId = cp.fMatId;
-  this->fReference = cp.fReference;
+  this->fReference = 0;
   if ( cp.fFatherIndex == -1) this->fFatherIndex = -1;
   else if (org2clnMap.find(cp.fFatherIndex) == org2clnMap.end())
   {

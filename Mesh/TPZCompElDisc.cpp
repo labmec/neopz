@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.93 2007-05-07 17:42:58 joao Exp $
+//$Id: TPZCompElDisc.cpp,v 1.94 2007-05-11 13:35:44 cesar Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.93 2007-05-07 17:42:58 joao Exp $
+//$Id: TPZCompElDisc.cpp,v 1.94 2007-05-11 13:35:44 cesar Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -160,8 +160,8 @@ REAL TPZCompElDisc::NormalizeConst()
   return maxdist;
 }
 
-void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, 
-                                 TPZFMatrix &jacobian, TPZFMatrix &axes, 
+void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
+                                 TPZFMatrix &jacobian, TPZFMatrix &axes,
                                  REAL &detjac, TPZFMatrix &jacinv,
                                  TPZFMatrix &phi, TPZFMatrix &dphix){
   TPZGeoEl * ref = this->Reference();
@@ -294,7 +294,7 @@ int TPZCompElDisc::NShapeF(){
 int TPZCompElDisc::NConnectShapeF(int inod){
 #ifdef DEBUG2
   if (inod != 0){
-    PZError << "\nFATAL ERROR AT " << __PRETTY_FUNCTION__ 
+    PZError << "\nFATAL ERROR AT " << __PRETTY_FUNCTION__
             << " - TPZCompElDisc has only one connect and inod = " << inod << "\n";
   }
 #endif
@@ -660,6 +660,7 @@ void TPZCompElDisc::AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) {
 }
 
 void TPZCompElDisc::SetDegree(int degree) {
+  this->fPreferredOrder = degree;
   if (fConnectIndex < 0) return;
   TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
   c.SetOrder(degree);
@@ -686,7 +687,7 @@ template class
   */
 void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
 {
-  TPZCompEl::Write(buf,withclassid);
+  TPZInterpolationSpace::Write(buf,withclassid);
   WriteObjects(buf,fCenterPoint);
   buf.Write(&fConnectIndex,1);
   buf.Write(&fConstC,1);
@@ -702,7 +703,7 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
   */
  void TPZCompElDisc::Read(TPZStream &buf, void *context)
  {
-  TPZCompEl::Read(buf,context);
+  TPZInterpolationSpace::Read(buf,context);
   ReadObjects<3>(buf,fCenterPoint);
   buf.Read(&fConnectIndex,1);
   buf.Read(&fConstC,1);

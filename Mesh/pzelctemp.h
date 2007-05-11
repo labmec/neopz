@@ -1,4 +1,4 @@
-//$Id: pzelctemp.h,v 1.11 2007-04-20 18:31:02 caju Exp $
+//$Id: pzelctemp.h,v 1.12 2007-05-11 13:35:44 cesar Exp $
 
 // -*- c++ -*-
 #ifndef PZELCTEMPH
@@ -17,7 +17,7 @@ class TPZIntelGen : public TPZInterpolatedElement {
 
   int fConnectIndexes[TSHAPE::NSides];
 
-  int fPreferredSideOrder;
+  //int fPreferredSideOrder;
 
   typename TSHAPE::IntruleType fIntRule;
 
@@ -95,7 +95,7 @@ public:
   /**Sets the preferred interpolation order along a side
   This method only updates the datastructure of the element
   In order to change the interpolation order of an element, use the method PRefine*/
-  virtual void SetPreferredSideOrder(int order);
+  virtual void SetPreferredOrder(int order);
 
   /**sets the interpolation order of side to order*/
   virtual void SetSideOrder(int side, int order);
@@ -143,8 +143,6 @@ public:
   Read the element data from a stream
   */
   virtual void Read(TPZStream &buf, void *context);
-
-
 
 };
 

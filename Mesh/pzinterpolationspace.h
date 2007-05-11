@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.6 2007-05-03 18:52:19 tiago Exp $
+//$Id: pzinterpolationspace.h,v 1.7 2007-05-11 13:35:44 cesar Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -69,7 +69,7 @@ public:
 
   /** Compute shape functions based on master element in the classical FEM manner.
    */
-  virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes, 
+  virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes,
                             REAL &detjac, TPZFMatrix &jacinv, TPZFMatrix &phi, TPZFMatrix &dphix);
 
   /** Initialize a material data and its attributes based on element dimension, number
@@ -186,6 +186,41 @@ public:
    * @param ef inner product of the flux with the finite element interpolation space
    */
   void ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+protected:
+
+  int fPreferredOrder;
+
+public:
+
+  /**
+   *  Define the desired order for entire element.
+   */
+  virtual void SetPreferredOrder ( int order ) = 0;
+
+  /**
+   * Return the prefered order for the element
+   */
+  virtual int GetPreferredOrder () { return fPreferredOrder; }
+
+  /**
+   * Change the preferred order for the element and proceed the
+   * adjust of the aproximation space taking in acount the type
+   * of formulation and the neighbours of the element
+   */
+  virtual void PRefine ( int order ) = 0;
+
+public:
+
+  /**
+   * Save the element data to a stream
+   */
+  virtual void Write(TPZStream &buf, int withclassid);
+
+  /**
+   * Read the element data from a stream
+   */
+  virtual void Read(TPZStream &buf, void *context);
 
   /**
    * Accumulates the transfer coefficients between the current element and the

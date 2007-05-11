@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.18 2007-05-01 03:56:38 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.19 2007-05-11 13:35:44 cesar Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -45,8 +45,8 @@ static void Forcing(TPZVec<REAL> &x, TPZVec<REAL> &disp){
 //////////////////////////////////////////////////////////////////////
 int TPZSubCompMesh::main() {
 //	int index;
-	
-	//Create the Geometric Mesh	
+
+	//Create the Geometric Mesh
 	TPZGeoMesh geo;
 
 	//Define the output file name
@@ -54,8 +54,8 @@ int TPZSubCompMesh::main() {
 
 	//Set the basic coordinate nodes
 	double coordstore[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};
-	
-	TPZVec<REAL> coord(3,0.); 
+
+	TPZVec<REAL> coord(3,0.);
 	int i,j;
 
 	//Set the node coordinates
@@ -67,7 +67,7 @@ int TPZSubCompMesh::main() {
 		//   	int nodeindex = geo.NodeVec().AllocateNewElement();
 	geo.NodeVec()[i].Initialize(i,coord,geo);
 	}
-	
+
 	// create the elements
 	TPZGeoEl *gel[numel];
 	TPZVec<int> indices(8);
@@ -75,12 +75,12 @@ int TPZSubCompMesh::main() {
 	// Set the connectivities
 	for(i=0; i<numel; i++) {
 		// initialize node indexes
-		for(j=0; j<8; j++) indices[j] = 4*i+j; 
-    int index;  
+		for(j=0; j<8; j++) indices[j] = 4*i+j;
+    int index;
 		gel[i] = geo.CreateGeoElement(ECube,indices,1, index);
 	}
-	//	TPZGeoElBC t3(gel[0],20,-1,geo); 	
-	//	TPZGeoElBC t4(gel[numel-1],25,-2,geo); 
+	//	TPZGeoElBC t3(gel[0],20,-1,geo);
+	//	TPZGeoElBC t4(gel[numel-1],25,-2,geo);
 	geo.BuildConnectivity();
 
 	//Create the computacional mesh
@@ -104,7 +104,7 @@ int TPZSubCompMesh::main() {
 	mesh.AutoBuild();
 	mesh.InitializeBlock();
 
-	
+
 	numeq = mesh.NEquations();
 
 	// Teste 1 colocar os elementos, inclusive intermediários, como sub elementos
@@ -150,7 +150,7 @@ int TPZSubCompMesh::main() {
 	sub[0]->Print(output);
 	output.flush();
 
-	
+
 //	int a=1;
 	/*int m1, m2;
 	while (a != 0){
@@ -190,7 +190,7 @@ int TPZSubCompMesh::main() {
 */
 
 	//sub[2]->TransferElementTo(sub[4],0);//gel[0]->Index());
-	
+
 	/*TPZVec<int> indices(3,0);
 	int nodeindex = geo.NodeVec().AllocateNewElement();
 	geo.NodeVec().Initialize(nodeindex,indices,sub[9]);
@@ -309,7 +309,7 @@ int TPZSubCompMesh::NodeIndex(int nolocal, TPZCompMesh *super)
   TPZCompMesh *root = CommonMesh(super);
   if(!root || fExternalLocIndex[nolocal] == -1) return -1;
   int result = fConnectIndex[fExternalLocIndex[nolocal]];
- 
+
   if(root == FatherMesh())
   {
     return result;
@@ -336,7 +336,7 @@ int TPZSubCompMesh::AllocateNewConnect(int blocksize, int order){
 	int blocknum = fBlock.NBlocks();
 	fBlock.SetNBlocks(blocknum+1);
 	fConnectVec[connectindex].SetSequenceNumber(blocknum);
-	return connectindex; 
+	return connectindex;
 	*/
 
 	int connectindex = TPZCompMesh::AllocateNewConnect();
@@ -358,7 +358,7 @@ int TPZSubCompMesh::AllocateNewConnect(int blocksize, int order){
 		fConnectIndex.Resize(fConnectIndex.NElements()+1);
 		fExternalLocIndex.Resize(fExternalLocIndex.NElements()+1);
 		fExternalLocIndex[fExternalLocIndex.NElements()-1]=-1;
-		nodeindex = NodeIndex (connectindex, 
+		nodeindex = NodeIndex (connectindex,
 		MakeExternal(connectindex);
 	}
 */
@@ -432,7 +432,7 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 }
 
 void TPZSubCompMesh::Print(std::ostream &out){
-        
+
 	out << "Sub Mesh" << (void *) this;
  TPZCompEl::Print(out);
 	TPZCompMesh::Print(out);
@@ -444,7 +444,7 @@ void TPZSubCompMesh::Print(std::ostream &out){
 		out << std::endl;
 	}
 }
-		
+
   /**
  * Transfer the dependency list of a connect. This will
  * make the dependency disappear for the corresponding father mesh
@@ -481,7 +481,7 @@ void TPZSubCompMesh::MakeInternal(int local){
   int i;
   int localindex = fExternalLocIndex[local];
   for (i=fExternalLocIndex[local]; i<fConnectIndex.NElements()-1; i++){
-          fConnectIndex[i]= fConnectIndex[i+1];	
+          fConnectIndex[i]= fConnectIndex[i+1];
   }
   for(i=0; i<fConnectVec.NElements(); i++) {
           if(fExternalLocIndex[i] != -1 && fExternalLocIndex[i] > localindex) fExternalLocIndex[i]--;
@@ -500,7 +500,7 @@ TPZCompMesh * TPZSubCompMesh::RootMesh(int local){
 /**
  * Este método deve estar errado. Primeiro tem que por os connects que tem dependencias
  * caso contrario nós com dependencias serao duplicados
- * 
+ *
  * talvez primeiro copiar a estrutura dos nós dependentes e DEPOIS tirá los da malha pai
  */
 void TPZSubCompMesh::MakeAllInternal(){
@@ -530,12 +530,12 @@ void TPZSubCompMesh::MakeAllInternal(){
         if (listdepend->HasDepend(fConnectIndex[fExternalLocIndex[jlocind]])) break;
       }
       // no element on the stack is listed as dependent from the current node
-      if (j == stack.NElements()) 
+      if (j == stack.NElements())
       {
         can=1;
       }
       // we found an element in the dependency list. Let s check it first
-      else 
+      else
 
       {
         // put the node upon which the current node depends in the current position and the dependent node at the end
@@ -566,7 +566,7 @@ void TPZSubCompMesh::PotentialInternal(std::list<int> &connectindices){
   //TPZCompMesh::Print();
   //father->Print();
   for (i=0;i<fConnectVec.NElements();i++){
-    if (fExternalLocIndex[i]==-1) 
+    if (fExternalLocIndex[i]==-1)
     {
       connectindices.push_back(i);
     }
@@ -585,8 +585,8 @@ void TPZSubCompMesh::SetConnectIndex(int inode, int index){
 
 int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
 	if(mesh == this) return elindex;
-		if (! IsAllowedElement(mesh,elindex)) { 
-		std::cout <<"TPZSubCompMesh::TransferElementFrom ERROR: trying to transfer an element not allowed" << std::endl;	
+		if (! IsAllowedElement(mesh,elindex)) {
+		std::cout <<"TPZSubCompMesh::TransferElementFrom ERROR: trying to transfer an element not allowed" << std::endl;
 		return -1;
 	}
 	if (mesh != FatherMesh()){
@@ -617,7 +617,7 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
             father->CopyMaterials(this);
           }
         }
-      
+
 //	int blocksize=mesh->ConnectVec()[elindex].NDof((TPZCompMesh *)mesh);
 	int newelind = fElementVec.AllocateNewElement();
 	fElementVec[newelind] = cel;
@@ -638,7 +638,7 @@ int TPZSubCompMesh::TransferElementTo(TPZCompMesh *mesh, int elindex){
 	if (mesh != FatherMesh()){
 		FatherMesh()->TransferElementTo(mesh,elindex);
 	}
-	
+
 
 	TPZCompMesh *father = FatherMesh();
 	if(elindex >= ElementVec().NElements()){
@@ -693,7 +693,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	int i=0;
 	CleanUpUnconnectedNodes();
 	PermuteExternalConnects();
-	
+
 	TPZBlock &block = Mesh()->Block();
 	//	TPZFMatrix &MeshSol = Mesh()->Solution();
 	// clean ek and ef
@@ -717,7 +717,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	ef.fMat.Redim(numeq,1);
 
 	int nelemnodes = NConnects();
-	
+
 	ek.fBlock.SetNBlocks(nelemnodes);
 	ef.fBlock.SetNBlocks(nelemnodes);
 	for (i = 0; i < nelemnodes ; i++)	{
@@ -795,14 +795,14 @@ void TPZSubCompMesh::PermuteInternalFirst()
     }
   }
   TPZManVector<int> permute(fConnectVec.NElements(),-1);
-  
+
   int count = 0;
-  map<int,int>::iterator mapit;
+  std::map<int,int>::iterator mapit;
   for(mapit=independent.begin(); mapit!=independent.end(); mapit++)
   {
     permute[mapit->first] = count++;
   }
-  map<int,int> seqmap;
+  std::map<int,int> seqmap;
   int ind;
   for(ind=0; ind < fConnectVec.NElements(); ind++)
   {
@@ -856,12 +856,12 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 		//TPZConnect &no = fConnectIndex[fExternalLocIndex[i]];
 		TPZConnect &no = fConnectVec[i];
 		seqnum = no.SequenceNumber();
-		// if the node is free or constrained 
+		// if the node is free or constrained
 		if (no.HasDependency() || no.NElConnected() == 0) {
 			//->set permute[sequnum] to itself
 			continue;
 		}
-		// if the node is internal 	
+		// if the node is internal
 		if (fExternalLocIndex[i] == -1){
 			//-> set permute[sequnum] to counter
 			permute[seqnum] = countint;
@@ -952,7 +952,7 @@ void TPZSubCompMesh::GetExternalConnectIndex (TPZVec<int> &extconn){
 		if (fExternalLocIndex[i] != -1) count++;
 	}
 	extconn.Resize(count);
-	
+
 	count=0;
 	for(i=0; i<fExternalLocIndex.NElements(); i++){
 		if (fExternalLocIndex[i] != -1){
@@ -962,7 +962,7 @@ void TPZSubCompMesh::GetExternalConnectIndex (TPZVec<int> &extconn){
 	}
 	return;
 }
-	
+
 
 TPZAnalysis * TPZSubCompMesh::GetAnalysis()
 {
@@ -976,7 +976,7 @@ int TPZSubCompMesh::ClassId() const
 {
   return TPZSUBCOMPMESHID;
 }
-template class 
+template class
     TPZRestoreClass< TPZSubCompMesh, TPZSUBCOMPMESHID>;
 
   /**
@@ -989,7 +989,7 @@ void TPZSubCompMesh::Write(TPZStream &buf, int withclassid)
   WriteObjects(buf,fConnectIndex);
   WriteObjects(buf,fExternalLocIndex);
 }
-  
+
   /**
   Read the element data from a stream
   */
@@ -1005,7 +1005,7 @@ void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFM
   PZError << __PRETTY_FUNCTION__ << " - ERROR! This method is not implemented\n";
 }
 
-void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix, 
+void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
                                 const TPZFMatrix &axes,  TPZVec<REAL> &sol, TPZFMatrix &dsol){
   PZError << __PRETTY_FUNCTION__ << " - ERROR! This method is not implemented\n";
 }
