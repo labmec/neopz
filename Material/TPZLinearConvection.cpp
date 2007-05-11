@@ -144,7 +144,7 @@ TPZFMatrix &phi = data.phi;
 // TPZFMatrix &dsolL=data.dsoll;
 // TPZFMatrix &dsolR=data.dsolr;
 // REAL &faceSize=data.HSize;
-TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &daxesdksi=data.jacinv;
 TPZFMatrix &axes=data.axes;
 
     REAL convectax[2];

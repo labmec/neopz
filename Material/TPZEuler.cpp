@@ -174,7 +174,7 @@ TPZVec<REAL> &sol=data.sol;
 // TPZFMatrix &dsolL=data.dsoll;
 // TPZFMatrix &dsolR=data.dsolr;
 // REAL &faceSize=data.HSize;
-TPZFMatrix &daxesdksi=data.daxesdksi;
+TPZFMatrix &daxesdksi=data.jacinv;
 TPZFMatrix &axes=data.axes;
 
     int nshape = phi.Rows();
