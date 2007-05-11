@@ -41,7 +41,7 @@ TPZGeoEl *TPZGeoPoint::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
     nodeindexes[0] = orig->NodeIndex(0);
     //TPZGeoElPoint *gel = CreateGeoEl(nodes,bc,*Mesh());
     int index;
-    TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodeindexes,bc,index);
+    TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
 
     //    TPZGeoElPoint *gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
     TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,0));
