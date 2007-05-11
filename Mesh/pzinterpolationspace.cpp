@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.10 2007-05-11 13:35:44 cesar Exp $
+//$Id: pzinterpolationspace.cpp,v 1.11 2007-05-11 19:22:51 joao Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -713,7 +713,8 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
 
 }//method
 
-void TPZInterpolationSpace::ComputeError(int errorid, TPZVec<REAL> &error){
+void TPZInterpolationSpace::ComputeError(int errorid, 
+                                         TPZVec<REAL> &error){
 
   TPZAutoPointer<TPZMaterial> material = Material();
   if(!material){
@@ -723,6 +724,9 @@ void TPZInterpolationSpace::ComputeError(int errorid, TPZVec<REAL> &error){
 
   TPZMaterialData data;
   this->InitMaterialData(data);
+
+//   data.fPrimalExactSol = fp;
+//   data.fDualExactSol = fd;
 
   REAL weight;
   int dim = Dimension();
@@ -743,7 +747,7 @@ void TPZInterpolationSpace::ComputeError(int errorid, TPZVec<REAL> &error){
     this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     weight *= fabs(data.detjac);
     this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-    material->ContributeErrors(data.x,data.sol, data.dsol,weight,error,data.p,data.HSize, errorid);
+    material->ContributeErrors(data,weight,error,errorid);
   }
   intrule.SetOrder(prevorder);
 }

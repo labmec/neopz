@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.46 2007-04-16 20:22:27 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.47 2007-05-11 19:22:51 joao Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -319,7 +319,9 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * ComputeError computes the element error estimator
   */
-  virtual void ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec<REAL> &errorR);
+  virtual void ComputeError(int errorid, 
+                              TPZVec<REAL> &errorL, 
+                              TPZVec<REAL> &errorR);
 
   /**
    * Integrate a variable over the element.

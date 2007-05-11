@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.76 2007-05-01 20:26:59 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.77 2007-05-11 19:22:51 joao Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -814,13 +814,16 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
 
 }//method
 
-void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec<REAL> &errorR){
+void TPZInterfaceElement::ComputeError(int errorid, 
+                                       TPZVec<REAL> &errorL, 
+                                       TPZVec<REAL> &errorR){
 
-  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
+   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
    if(!mat){
       PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
       return;
    }
+
 
    TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
    TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
@@ -837,6 +840,10 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
   TPZMaterialData data;
   data.SetAllRequirements(true);
   this->InitMaterialData(data,left,right);
+
+//   data.fPrimalExactSol = fp;
+//   data.fDualExactSol = fd;
+
 
   const int dim = this->Dimension();
   const int diml = left->Dimension();
@@ -886,8 +893,7 @@ void TPZInterfaceElement::ComputeError(int errorid, TPZVec<REAL> &errorL, TPZVec
 
       this->ComputeRequiredData(data, left, right, intpoint, LeftIntPoint, RightIntPoint);
 
-      this->Material()->ContributeInterfaceErrors(data.x,data.soll,data.solr,data.dsoll,data.dsolr,
-                                                  weight,data.normal,errorL,errorR,data.leftp,data.rightp,data.HSize,errorid);
+      mat->ContributeInterfaceErrors(data, weight,errorL,errorR,errorid);
 
    }//loop over integration points
 
@@ -978,7 +984,11 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 }//method
 
 void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *left, TPZInterpolationSpace *right){
-  this->Material()->FillDataRequirementsInterface(data);
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
+  if (!mat){
+    PZError << "FATAL ERROR AT "  << __PRETTY_FUNCTION__ << "\n";
+  }
+  mat->FillDataRequirementsInterface(data);
   int nshapel = left->NShapeF();
   int nshaper = right->NShapeF();
   const int nstatel = left->Material()->NStateVariables();

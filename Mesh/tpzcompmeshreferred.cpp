@@ -71,3 +71,20 @@ TPZCompEl *TPZCompMeshReferred::ReferredEl(int index)
   return cel;
 }
 
+void TPZCompMeshReferred::DivideReferredEl(TPZCompEl * cel){
+  if (!cel) return;
+
+  TPZCompMeshReferred * mesh = dynamic_cast<TPZCompMeshReferred*>(cel->Mesh());
+  if (!mesh) return;
+  TPZCompEl * ref = mesh->ReferredEl(cel->Index());
+
+  TPZManVector<int> filhos;
+  cel->Mesh()->Reference()->ResetReference();
+  cel->Mesh()->LoadReferences();
+//   cel->Reference()->ResetReference();
+//   cel->Reference()->SetReference( cel );
+  cel->Divide(cel->Index(),filhos);
+
+  if (ref) TPZCompMeshReferred::DivideReferredEl(ref);
+}
+

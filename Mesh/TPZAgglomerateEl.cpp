@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.41 2007-04-13 18:25:27 tiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.42 2007-05-11 19:22:51 joao Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -209,28 +209,24 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     (ek.fConnect)[i] = ConnectIndex(i);
   }
   if(ncon==0) return;//elemento CC no passa
-  TPZFMatrix phix(nshape,1),dphix(dim,nshape);
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacinv(dim,dim);
-  TPZVec<REAL> x(3,0.);
   REAL weight;
   int integ = 2*Degree();
   TPZStack<REAL> points,weights;
   //acumula as regras dos obtidos por aglomera�o
   AccumulateIntegrationRule(integ,points,weights);//integra fi*fj
   int ip,npoints = weights.NElements();
-  TPZVec<REAL> sol(nstate,0.);
-  TPZFMatrix dsol(dim,nstate,0.);
 
+  TPZMaterialData data;
+  this->InitMaterialData(data);
   for(ip=0;ip<npoints;ip++){
-    x[0] = points[3*ip];
-    x[1] = points[3*ip+1];
-    x[2] = points[3*ip+2];
+    data.x[0] = points[3*ip];
+    data.x[1] = points[3*ip+1];
+    data.x[2] = points[3*ip+2];
     weight = weights[ip];
-    ShapeX(x,phix,dphix);
+    ShapeX(data.x,data.phi,data.dphix);
     //solu� da itera� anterior
-    sol.Fill(0.);
-    dsol.Zero();
+    data.sol.Fill(0.);
+    data.dsol.Zero();
     for(int in=0; in<ncon; in++) {
       TPZConnect *df = &Connect(in);
       int dfseq = df->SequenceNumber();
@@ -238,12 +234,12 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
       int pos = block.Position(dfseq);
       int iv = 0,d;
       for(int jn=0; jn<dfvar; jn++) {
-        sol[iv%nstate] += phix(iv/nstate,0)*MeshSol(pos+jn,0);
-        for(d=0; d<dim; d++) dsol(d,iv%nstate) += dphix(d,iv/nstate)*MeshSol(pos+jn,0);
+        data.sol[iv%nstate] += data.phi(iv/nstate,0)*MeshSol(pos+jn,0);
+        for(d=0; d<dim; d++) data.dsol(d,iv%nstate) += data.dphix(d,iv/nstate)*MeshSol(pos+jn,0);
         iv++;
       }
     }
-    Material()->Contribute(x,jacinv,sol,dsol,weight,axes,phix,dphix,ek.fMat,ef.fMat);
+    Material()->Contribute(data,weight,ek.fMat,ef.fMat);
   }
 }
 

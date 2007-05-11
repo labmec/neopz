@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.62 2007-05-11 13:35:44 cesar Exp $
+//$Id: pzcmesh.cpp,v 1.63 2007-05-11 19:22:51 joao Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -2140,9 +2140,9 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int val, bool Interf
 void TPZCompMesh::AssembleError(TPZFMatrix &estimator, int errorid){
   int iel, i;
   const int nelem = this->NElements();
-  TPZManVector<REAL> locerror(1), errorL(1), errorR(1);
+  TPZManVector<REAL> locerror(7), errorL(7), errorR(7);
 
-  estimator.Resize(nelem, 2);
+  estimator.Resize(nelem, 7);
   estimator.Zero();
   for(iel=0; iel < nelem; iel++) {
     TPZCompEl *el = fElementVec[iel];
@@ -2155,23 +2155,31 @@ void TPZCompMesh::AssembleError(TPZFMatrix &estimator, int errorid){
       if (errorR.NElements() > n) n = errorR.NElements();
       //if number of errors > 1 then resize matrix.
       //Method Resize keeps previous values and zero new values.
-      estimator.Resize(nelem, n);
-      for(i = 0; i < errorL.NElements(); i++){
-        estimator(face->LeftElement()->Index(),i) += fabs(errorL[i]);
+      //estimator.Resize(nelem, n);
+      for(i = 0; i < errorL.NElements()-1; i++){
+        estimator(face->LeftElement()->Index(),i) += errorL[i];
        }//for i
-     for(i = 0; i < errorR.NElements(); i++){
-        estimator(face->RightElement()->Index(),i) += fabs(errorR[i]);
+     for(i = 0; i < errorR.NElements()-1; i++){
+        estimator(face->RightElement()->Index(),i) += errorR[i];
         }//for i
-      }//if
+    }//if
     else{
       locerror.Fill(0.);
       el->ComputeError(errorid, locerror);
       //if number of errors > 1 then resize matrix.
       //Method Resize keeps previous values and zero new values.
-      estimator.Resize(nelem, locerror.NElements());
-      for(i = 0; i < locerror.NElements(); i++){
-        estimator(iel, i) += fabs(locerror[i]);
+      //estimator.Resize(nelem, locerror.NElements());
+      for(i = 0; i < locerror.NElements()-1; i++){
+        estimator(iel, i) += locerror[i];
         }//for i
+//        estimator.Print("Estimator", std::cout, EFormatted); 
+
       }//else
   }
+     for(iel=0; iel < nelem; iel++) {
+       if(fabs(estimator(iel,5))>=0.0000001){  // Possivel erro ao plotar os indíces de efetividade
+            estimator(iel,6) = estimator(iel,2)/estimator(iel,5) ;
+          }
+     }
+
 }

@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.94 2007-05-11 13:35:44 cesar Exp $
+//$Id: TPZCompElDisc.cpp,v 1.95 2007-05-11 19:22:51 joao Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.94 2007-05-11 13:35:44 cesar Exp $
+//$Id: TPZCompElDisc.cpp,v 1.95 2007-05-11 19:22:51 joao Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -715,46 +715,6 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
   fShapefunctionType = (TPZShapeDisc::MShapeType) shapetype;
  }
 
-void TPZCompElDisc::ComputeError(int errorid, TPZVec<REAL> &error,void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),void (*fd)(TPZVec<REAL> &locdual,TPZVec<REAL> &valdual,TPZFMatrix &derivdual)){
-
-  TPZAutoPointer<TPZMaterial> material = Material();
-  if(!material){
-    cout << "TPZCompElDisc::ComputeError : no material for this element\n";
-    return;
-  }
-
-  TPZVec<REAL> x(3,0.);
-  REAL weight;
-  int dim = Dimension();
-  TPZVec<REAL> intpoint(dim,0.);
-  int integ = max( 2 * Degree(), 0);
-  TPZIntPoints *intrule = 0;
-  intrule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
-  int nstate = material->NStateVariables();
-  int npoints = intrule->NPoints(), ip;
-
-  TPZManVector<REAL,220> sol(nstate,0.);
-  TPZFNMatrix<660> dsol(dim,nstate,0.);
-  TPZGeoEl * ref = this->Reference();
-
-  TPZFMatrix axes(3,3,0.);
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
-  REAL detjac;
-
-  const int POrder = this->Degree();
-  const REAL faceSize = 2. * ref->ElementRadius();
-  error.Fill(0.);
-  for(ip=0;ip<npoints;ip++){
-    intrule->Point(ip,intpoint,weight);
-    ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
-    ref->X(intpoint, x);
-    weight *= fabs(detjac);
-    this->ComputeSolution(intpoint, sol, dsol, axes);
-    material->ContributeErrors(x,sol, dsol,weight,error,POrder,faceSize, errorid,fp,fd);
-  }
-  delete intrule;
-}
 void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix & axes){
   TPZGeoEl * ref = this->Reference();
   const int nshape = this->NShapeF();

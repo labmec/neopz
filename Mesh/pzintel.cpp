@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.58 2007-05-11 13:35:44 cesar Exp $
+// $Id: pzintel.cpp,v 1.59 2007-05-11 19:22:51 joao Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -1506,7 +1506,9 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
       }
       eq += blsize;
       TPZFNMatrix<1000> ekl(blsize*numdof,blsize*numdof,0.), efl(blsize*numdof,1,0.);
-      material->Contribute(data.x,data.jacinv,data.sol,data.dsol,weight,data.axes,phil,dphil,ekl,efl);
+      data.phi = phil;
+      data.dphix = dphil;
+      material->Contribute(data,weight,ekl,efl);
       blockdiag.AddBlock(b,ekl);
     }
   }
