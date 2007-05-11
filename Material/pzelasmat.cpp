@@ -91,6 +91,7 @@ void TPZElasticityMaterial::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL>
 	    << ek.Cols() <<
       "\nef.Rows() = " << ef.Rows() << " ef.Cols() = "
 	    << ef.Cols() << "\n";
+    return;
     //		PZError.show();
   }
   if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
@@ -516,6 +517,6 @@ void TPZElasticityMaterial::Write(TPZStream &buf, int withclassid)
 
   buf.Write(ff,3);
   buf.Write(&fPlaneStress,1);
-  
+
 }
 
