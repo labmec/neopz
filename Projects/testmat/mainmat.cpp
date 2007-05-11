@@ -82,7 +82,17 @@ void ExemploElasticidade(TPZFMatrix &phi, TPZFMatrix &dphi) {
 	// a matriz de rigidez e a matriz do vetor de carga
 	TPZFMatrix ek(nstate*nshape,nstate*nshape,0.),ef(nstate*nshape,1,0.);
 
-	matexemplo.Contribute (x,jacinv,sol,dsol,1.,axes,phi,dphi,ek,ef);
+        TPZMaterialData data;
+        data.x = x;
+        data.jacinv = jacinv;
+        data.sol = sol;
+        data.dsol = dsol;
+        data.axes = axes;
+        data.phi = phi;
+        data.dphix = dphi;
+
+// 	matexemplo.Contribute (x,jacinv,sol,dsol,1.,axes,phi,dphi,ek,ef);
+        matexemplo.Contribute (data,1.,ek,ef);
 
 	//	ek.Print("contribuicao para matriz de rigidez");
 
@@ -131,7 +141,17 @@ void ExemploGenerico2D(TPZFMatrix &phi, TPZFMatrix &dphi) {
 	// a matriz de rigidez e a matriz do vetor de carga
 	TPZFMatrix ek(nstate*nshape,nstate*nshape,0.),ef(nstate*nshape,1,0.);
 
-	matexemplo.Contribute (x,jacinv,sol,dsol,1.,axes,phi,dphi,ek,ef);
+        TPZMaterialData data;
+        data.x = x;
+        data.jacinv = jacinv;
+        data.sol = sol;
+        data.dsol = dsol;
+        data.axes = axes;
+        data.phi = phi;
+        data.dphix = dphi;
+
+// 	matexemplo.Contribute (x,jacinv,sol,dsol,1.,axes,phi,dphi,ek,ef);
+        matexemplo.Contribute (data,1.,ek,ef);
 
 	//	ek.Print("contribuicao para matriz de rigidez");
 

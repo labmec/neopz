@@ -1,5 +1,6 @@
 
 #include "convhyper.h"
+#include "pzmaterialdata.h"
 
 TPZConvHyper::TPZConvHyper(int numnod, int num, REAL E, REAL mu, REAL nu, REAL lambda, REAL coef1, REAL coef2, REAL coef3) : TPZMatHyperElastic(num,E,mu,nu,lambda,coef1,coef2,coef3), fState(3,3,0.),
 						       fPhi(numnod,1,0.),fDphi(3,numnod,0.),fAxes(3,3,0.),fSol(3,0.),fX(3,0.),fNumNod(numnod) {
@@ -38,7 +39,16 @@ void TPZConvHyper::Residual(TPZFMatrix &residual, int icase) {
 //  int i;
   //for(i=0; i<3; i++) residual(i,0) = fState(0,i)*fState(0,i);
   TPZFMatrix jacinv(3,3,0.);
-  Contribute(fX,jacinv,fSol,fState,1.,fAxes,fPhi,fDphi,ek,residual);
+  TPZMaterialData data;
+  data.x = fX;
+  data.jacinv = jacinv;
+  data.sol = fSol;
+  data.dsol = fState;
+  data.axes = fAxes;
+  data.phi = fPhi;
+  data.dphix = fDphi;
+//   Contribute(fX,jacinv,fSol,fState,1.,fAxes,fPhi,fDphi,ek,residual);
+  Contribute(data,1.,ek,residual);
   residual *= -1.;
   //residual.Print("residual");
 }
@@ -51,6 +61,14 @@ void TPZConvHyper::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int 
   TPZFMatrix jacinv(3,3,0.);
   int j;
   for(j = 0; j < 3; j++) jacinv(j,j) = 1.;  
-  Contribute(fX,jacinv,fSol,fState,1.,fAxes,fPhi,fDphi,tangent,ef);
+  TPZMaterialData data;
+  data.x = fX;
+  data.jacinv = jacinv;
+  data.sol = fSol;
+  data.dsol = fState;
+  data.axes = fAxes;
+  data.phi = fPhi;
+  data.dphix = fDphi;
+  Contribute(data,1.,tangent,ef);
   //tangent.Print("tangent");
 }
