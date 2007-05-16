@@ -758,6 +758,10 @@ void TPZFYsmpMatrix::RowLUUpdate(int sourcerow, int destrow)
   /**
    * Decomposes the current matrix using LU decomposition.
    */
+int TPZFYsmpMatrix::Decompose_LU(std::list<int> &singular)
+{
+  return Decompose_LU();
+}
 int TPZFYsmpMatrix::Decompose_LU()
 {
   int row;

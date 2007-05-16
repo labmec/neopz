@@ -180,10 +180,12 @@ void * TPZSkylParMatrix::ParallelCholesky(void *t) {
 }
 
 
+int TPZSkylParMatrix::Decompose_Cholesky(std::list<int> &singular)
+{
+  return Decompose_Cholesky();
+}
 
-
-int TPZSkylParMatrix::Decompose_Cholesky()//, TPZVec<int> fDec, TPZVec<int> fThreadUsed, int fEqDec, int fNthreads, int neq)
-
+int TPZSkylParMatrix::Decompose_Cholesky()
 {
   
   if (fDecomposed == ECholesky) return 1;
@@ -230,7 +232,12 @@ int TPZSkylParMatrix::Decompose_Cholesky()//, TPZVec<int> fDec, TPZVec<int> fThr
 #endif 
 
 #ifdef OMNITHREAD 
-int TPZSkylParMatrix::Decompose_Cholesky()//, TPZVec<int> fDec, TPZVec<int> fThreadUsed, int fEqDec, int fNthreads, int neq)
+int TPZSkylParMatrix::Decompose_Cholesky(std::list<int> &singular)
+{ 
+  return Decompose_Cholesky();
+}
+
+int TPZSkylParMatrix::Decompose_Cholesky()
 { 
 
   if (fDecomposed == ECholesky) return 1;

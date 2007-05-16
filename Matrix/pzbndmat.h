@@ -108,6 +108,7 @@ class TPZFBMatrix : public TPZMatrix
   int Zero();
 
   void Transpose(TPZMatrix *const T) const;
+  int       Decompose_LU(std::list<int> &singular);
   int       Decompose_LU();
 
 #ifdef OOPARLIB

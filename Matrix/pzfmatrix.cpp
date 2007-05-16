@@ -892,6 +892,9 @@ void TPZFMatrix::Transpose() {
 
 /*****************/
 /*** DecomposeLU ***/
+int TPZFMatrix::Decompose_LU(std::list<int> &singular) {
+  return Decompose_LU();
+}
 
 int TPZFMatrix::Decompose_LU() {
 

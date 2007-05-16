@@ -560,21 +560,38 @@ void TPZMatrix::Transpose(TPZMatrix *T) const {
 
 /*************/
 /*** Solve ***/
-int TPZMatrix::SolveDirect( TPZFMatrix &B , DecomposeType dt) {
+int TPZMatrix::SolveDirect( TPZFMatrix &B , DecomposeType dt, std::list<int> &singular) {
 
 	 switch ( dt ) {
 		  case ELU:
-				return( Solve_LU( &B )  );
+				return( Solve_LU( &B ,singular)  );
 		  case ECholesky:
-				return( Solve_Cholesky( &B )  );
+				return( Solve_Cholesky( &B , singular)  );
 		  case ELDLt:
-				return( Solve_LDLt( &B )  );
+				return( Solve_LDLt( &B, singular )  );
 		  default:
 				Error( "Solve  < Unknow decomposition type >" );
 				break;
 	 }
 	 return ( 0 );
 }
+
+int TPZMatrix::SolveDirect( TPZFMatrix &B , DecomposeType dt) {
+
+  switch ( dt ) {
+    case ELU:
+      return( Solve_LU( &B)  );
+    case ECholesky:
+      return( Solve_Cholesky( &B )  );
+    case ELDLt:
+      return( Solve_LDLt( &B )  );
+    default:
+      Error( "Solve  < Unknow decomposition type >" );
+      break;
+  }
+  return ( 0 );
+}
+
 
 void TPZMatrix::SolveJacobi(int &numiterations,const TPZFMatrix &F, TPZFMatrix &result,
 				TPZFMatrix *residual, TPZFMatrix &scratch, REAL &tol,const int FromCurrent) {
@@ -703,6 +720,9 @@ void TPZMatrix::SolveIR(int &numiterations, TPZSolver &preconditioner,
 
 /*****************/
 /*** Decompose_LU ***/
+int TPZMatrix::Decompose_LU(std::list<int> &singular) {
+  return Decompose_LU();
+}
 
 int TPZMatrix::Decompose_LU() {
 
@@ -758,7 +778,9 @@ int TPZMatrix::Substitution( TPZFMatrix *B ) const{
     return( 1 );
 }
 
-
+int TPZMatrix::Decompose_LDLt(std::list<int> &singular) {
+  return Decompose_LDLt();
+}
 
 int TPZMatrix::Decompose_LDLt() {
 
@@ -791,6 +813,9 @@ int TPZMatrix::Decompose_LDLt() {
 	 fDecomposed  = ELDLt;
 	 fDefPositive = 0;
 	 return( 1 );
+}
+int TPZMatrix::Decompose_Cholesky(std::list<int> &singular) {
+  return Decompose_Cholesky();
 }
 
 int TPZMatrix::Decompose_Cholesky() {

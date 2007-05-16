@@ -609,6 +609,81 @@ TPZSkylMatrix::Redim( int newDim , int)
 /*** Decompose Cholesky ***/
 
 int
+TPZSkylMatrix::Decompose_Cholesky(std::list<int> &singular)
+{
+  if(fDecomposed == ECholesky) return 1;
+  if (  fDecomposed )  TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
+
+  singular.clear();
+  REAL pivot;
+  int dimension = Dim();
+  if(Dim() > 100) {
+    cout << "\nTPZSkylMatrix Cholesky decomposition Dim = " << Dim() << endl;
+    cout.flush();
+  }
+  for ( int k = 0; k < dimension; k++ )
+  {
+    if(!(k%100) && Dim() > 100) {
+      cout <<  k << ' ';
+      cout.flush();
+    }
+    if(!(k%1000)) cout << endl;
+    if ( Size(k) == 0 )	return( 0 );
+
+      // Faz sum = SOMA( A(k,p) * A(k,p) ), p = 1, ..., k-1.
+    //
+    REAL sum = 0.0;
+    REAL *elem_k = fElem[k]+1;
+    REAL *end_k  = fElem[k]+Size(k);
+    for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
+
+      // Faz A(k,k) = sqrt( A(k,k) - sum ).
+    //
+    pivot = fElem[k][0] - sum;
+    if ( pivot < 1.e-15 ) {
+      singular.push_back(k);
+      pivot = 1.;
+    }
+      // A matriz nao e' definida positiva.
+
+    pivot = fElem[k][0] = sqrt( pivot );
+
+      // Loop para i = k+1 ... Dim().
+    //
+    int i=k+1;
+    for ( int j = 2; i<dimension; j++,i++ ) {
+	// Se tiverem elementos na linha 'i' cuja coluna e'
+	//  menor do que 'K'...
+      if ( Size(i) > j ) {
+	  // Faz sum = SOMA( A(i,p) * A(k,p) ), p = 1,..,k-1.
+        sum = 0.0;
+        REAL *elem_i = &fElem[i][j];
+        REAL *end_i  = fElem[i+1];
+        elem_k = &(fElem[k][1]);
+        while ( (elem_i < end_i) && (elem_k < end_k) ) sum += (*elem_i++) * (*elem_k++);
+
+	  // Faz A(i,k) = (A(i,k) - sum) / A(k,k)
+        fElem[i][j-1] = (fElem[i][j-1] -sum) / pivot;
+      } else if ( Size(i) == j ) fElem[i][j-1] /= pivot;
+
+	// Se nao tiverem estes elementos, sum = 0.0.
+
+	// Se nao existir nem o elemento A(i,k), nao faz nada.
+    }
+  }
+
+  if((GetVal(Rows()-1,Rows()-1)) < 1.e-15)
+  {
+    singular.push_back(Rows()-1);
+    PutVal(Rows()-1,Rows()-1,1.);
+  }
+  fDecomposed  = ECholesky;
+  fDefPositive = 1;
+  return( 1 );
+}
+
+
+int
 TPZSkylMatrix::Decompose_Cholesky()
 {
   if(fDecomposed == ECholesky) return 1;
@@ -680,6 +755,12 @@ TPZSkylMatrix::Decompose_Cholesky()
 
 /**********************/
 /*** Decompose LDLt ***/
+int
+TPZSkylMatrix::Decompose_LDLt(std::list<int> &singular)
+{
+  return Decompose_LDLt();
+}
+
 int
 TPZSkylMatrix::Decompose_LDLt()
 {

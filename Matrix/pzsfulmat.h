@@ -101,6 +101,8 @@ class TPZSFMatrix : public TPZMatrix {
 
   virtual int Decompose_Cholesky();
   virtual int Decompose_LDLt();
+  virtual int Decompose_Cholesky(std::list<int> &singular);
+  virtual int Decompose_LDLt(std::list<int> &singular);
 
   virtual int Subst_Forward  ( TPZFMatrix *B ) const;
   virtual int Subst_Backward ( TPZFMatrix *B ) const;

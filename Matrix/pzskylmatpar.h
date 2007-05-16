@@ -63,9 +63,11 @@ class TPZSkylParMatrix : public TPZSkylMatrix
   //Parallel procedure using pthreads
   //Implement all data structure used in procedure.
 #ifndef PZNTPAR
-  int Decompose_Cholesky();//, TPZVec<int> fDec, TPZVec<int> fThreadUsed, int fEqDec, int nthreads, int neq);
+  int Decompose_Cholesky(std::list<int> &singular);
+  int Decompose_Cholesky();
 #endif
 #ifdef OMNITHREAD
+  int Decompose_Cholesky(std::list<int> &singular);
   int Decompose_Cholesky();
 #endif
 

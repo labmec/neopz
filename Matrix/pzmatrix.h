@@ -21,6 +21,8 @@
 //#include "pzmaterialid.h"
 #include "pzsave.h"
 
+#include <list>
+
 #define CLONEDEF(A) virtual TPZMatrix *Clone() const { return new A(*this); }
 
 class TPZFMatrix;
@@ -523,14 +525,16 @@ public:
    * @param F The right hand side of the system and where the solution is stored.
    * @param DecomposeType Indicates type of decomposition
    */
-  virtual int SolveDirect ( TPZFMatrix & F , const DecomposeType dt);
+   virtual int SolveDirect ( TPZFMatrix & F , const DecomposeType dt, std::list<int> &singular);
+   virtual int SolveDirect ( TPZFMatrix & F , const DecomposeType dt);
 
 
   /**
    * Solves the linear system using LU method\n
    * @param B The right hand side of the system and where the solution is stored.
    */
-  int Solve_LU ( TPZFMatrix * B );
+   int Solve_LU ( TPZFMatrix * B, std::list<int> &singular );
+   int Solve_LU ( TPZFMatrix * B );
 
   //para usar estos solves e' responsabilidade do usuario
   //que a mtriz corrente seja simetrica
@@ -538,12 +542,14 @@ public:
    * Solves the linear system using Cholesky method\n
    * @param B The right hand side of the system and where the solution is stored.
    */  
-  int Solve_Cholesky( TPZFMatrix * B );
+   int Solve_Cholesky( TPZFMatrix * B);
+   int Solve_Cholesky( TPZFMatrix * B, std::list<int> &singular );
   /**
    * Solves the linear system using LDLt method\n
    * @param B The right hand side of the system and where the solution is stored.
    */  
-  int Solve_LDLt    ( TPZFMatrix * B );
+   int Solve_LDLt    ( TPZFMatrix * B, std::list<int> &singular );
+   int Solve_LDLt    ( TPZFMatrix * B);
 
   //@}
   /**
@@ -554,7 +560,8 @@ public:
   /**
    * Decomposes the current matrix using LU decomposition.
    */
-  virtual int Decompose_LU();
+   virtual int Decompose_LU(std::list<int> &singular);
+   virtual int Decompose_LU();
 
   // Decompoe a matriz em GGt (onde G e' triangular inferior).
   //a matriz corrente tem que ser simetrica.
@@ -562,7 +569,8 @@ public:
    * Decomposes the current matrix using Cholesky method. \n
    * The current matrix has to be symmetric.
    */
-  virtual int Decompose_Cholesky() ;
+   virtual int Decompose_Cholesky() ;
+   virtual int Decompose_Cholesky(std::list<int> &singular) ;
 
   // Decompoe a matriz em LDLt (onde L e' triangular inferior com
   //  1.0 na diagonal, e D e' uma matriz diagonal).
@@ -572,7 +580,8 @@ public:
    * The current matrix has to be symmetric.
    * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
    */
-  virtual int Decompose_LDLt();
+   virtual int Decompose_LDLt(std::list<int> &singular);
+   virtual int Decompose_LDLt();
   //@}
  
   /**
@@ -773,7 +782,12 @@ inline int TPZMatrix::Dim() const{
 }
 //***Solve LU ***/
 
-inline int TPZMatrix::Solve_LU( TPZFMatrix *B) {
+inline int TPZMatrix::Solve_LU( TPZFMatrix *B, std::list<int> &singular) {
+  if ( IsSimetric() ) Error( "LU decomposition is a not symetric decomposition" );
+  return ( ( !Decompose_LU(singular) )?  0 : Substitution( B )  );
+}
+
+inline int TPZMatrix::Solve_LU( TPZFMatrix *B ) {
         if ( IsSimetric() ) Error( "LU decomposition is a not symetric decomposition" );
         return ( ( !Decompose_LU() )?  0 : Substitution( B )  );
 }
@@ -783,9 +797,16 @@ inline int TPZMatrix::Solve_LU( TPZFMatrix *B) {
 //  Se nao conseguir resolver por Cholesky retorna 0 e a matriz
 //   sera' modificada (seu valor perdera' o sentido).
 //
-inline int TPZMatrix::Solve_Cholesky( TPZFMatrix * B ) {
+inline int TPZMatrix::Solve_Cholesky( TPZFMatrix * B ) 
+{
+  return(
+      ( !Decompose_Cholesky() )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
+        );
+}
+
+inline int TPZMatrix::Solve_Cholesky( TPZFMatrix * B, std::list<int> &singular ) {
         return(
-            ( !Decompose_Cholesky() )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
+            ( !Decompose_Cholesky(singular) )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
                           );
 }
 
@@ -795,8 +816,19 @@ inline int TPZMatrix::Solve_Cholesky( TPZFMatrix * B ) {
 /*** Solve LDLt ***/
 inline int TPZMatrix::Solve_LDLt( TPZFMatrix * B ) {
 
-        return(
+  return(
               ( !Decompose_LDLt() )? 0 :
+      ( Subst_LForward( B ) && Subst_Diag( B ) && Subst_LBackward( B ) )
+        );
+}
+
+
+
+
+inline int TPZMatrix::Solve_LDLt( TPZFMatrix * B, std::list<int> &singular ) {
+
+        return(
+              ( !Decompose_LDLt(singular) )? 0 :
                        ( Subst_LForward( B ) && Subst_Diag( B ) && Subst_LBackward( B ) )
               );
 }

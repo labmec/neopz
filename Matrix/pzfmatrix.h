@@ -226,6 +226,7 @@ static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TP
 
   /*** Solve some systems ***/
 
+  virtual int Decompose_LU(std::list<int> &singular);
   virtual int Decompose_LU();
   
   static int Substitution(const REAL *ptr, int rows, TPZFMatrix *B);

@@ -457,6 +457,12 @@ TPZBlockDiagonal::Transpose (TPZMatrix *const T) const
 /*** Decompose_LU ***/
 //fElem[ fBand * (2*row + 1) + col ]
 int
+TPZBlockDiagonal::Decompose_LU(std::list<int> &singular)
+{
+  return Decompose_LU();
+}
+
+int
 TPZBlockDiagonal::Decompose_LU()
 {
 
@@ -482,7 +488,8 @@ TPZBlockDiagonal::Decompose_LU()
 #endif
     
     TPZFMatrix temp(bsize,bsize,&fStorage[pos],bsize*bsize);
-    temp.Decompose_LU();
+    std::list<int> singular;
+    temp.Decompose_LU(singular);
   }
   fDecomposed = ELU;
   return 1;

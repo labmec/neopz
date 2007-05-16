@@ -3,6 +3,8 @@
 #ifndef TPZSTEPSOLVER_H
 #define TPZSTEPSOLVER_H
 #include "pzsolve.h"
+
+#include <list>
 class TPZFMatrix;
 
 /**
@@ -36,6 +38,14 @@ public:
   void SetTolerance(REAL tol) { fTol = tol; }
 
     void ResetSolver();
+    
+    /**
+     * return the equations for which the equations had zero pivot
+     */
+    std::list<int> &Singular()
+    {
+      return fSingular;
+    }
 
   /**
   This method will reset the matrix associated with the solver
@@ -80,5 +90,7 @@ private:
      */
     TPZSolver *fPrecond;
     int fFromCurrent;
+    
+    std::list<int> fSingular;
 };
 #endif //TPZSTEPSOLVER_H

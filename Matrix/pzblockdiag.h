@@ -85,6 +85,7 @@ class TPZBlockDiagonal : public TPZMatrix
 
   void Transpose(TPZMatrix *const T) const;
   virtual int Decompose_LU();
+  virtual int Decompose_LU(std::list<int> &singular);
 
         // Faz o Backward e Forward substitutions para a matriz
         // decomposta com LU

@@ -151,7 +151,8 @@ void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
   /**
    * Decomposes the current matrix using LU decomposition.
    */
-  virtual int Decompose_LU();
+   virtual int Decompose_LU(std::list<int> &singular);
+   virtual int Decompose_LU();
 
   //@}
   

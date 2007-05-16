@@ -15,7 +15,7 @@ TPZStepSolver::TPZStepSolver(TPZMatrix *refmat) : TPZMatrixSolver(refmat) {
   ResetSolver();
 }
 
-TPZStepSolver::TPZStepSolver(const TPZStepSolver & copy) : TPZMatrixSolver(copy) {
+TPZStepSolver::TPZStepSolver(const TPZStepSolver & copy) : TPZMatrixSolver(copy), fSingular(copy.fSingular) {
     fSolver = copy.fSolver;
     fDecompose = copy.fDecompose;
     fNumIterations = copy.fNumIterations;
@@ -100,7 +100,7 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
     break;
   case EDirect:
     result = F;
-    mat->SolveDirect(result,fDecompose);
+    mat->SolveDirect(result,fDecompose,fSingular);
     if(residual) residual->Redim(F.Rows(),F.Cols());
     break;
   case EMultiply:

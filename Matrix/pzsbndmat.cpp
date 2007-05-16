@@ -551,6 +551,12 @@ TPZSBMatrix::SetBand(const int newBand )
 /**************************/
 /*** Decompose Cholesky ***/
 int
+TPZSBMatrix::Decompose_Cholesky(std::list<int> &singular)
+{
+  return Decompose_Cholesky();
+}
+
+int
 TPZSBMatrix::Decompose_Cholesky()
 {
   if (  fDecomposed )  TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
@@ -613,6 +619,12 @@ TPZSBMatrix::Decompose_Cholesky()
 
 /**********************/
 /*** Decompose LDLt ***/
+int
+    TPZSBMatrix::Decompose_LDLt(std::list<int> &singular)
+{
+  return Decompose_LDLt();
+}
+
 int
 TPZSBMatrix::Decompose_LDLt()
 {

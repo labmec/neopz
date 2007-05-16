@@ -615,6 +615,12 @@ TPZFBMatrix::Transpose (TPZMatrix *const T) const
 /*** Decompose_LU ***/
 //fElem[ fBand * (2*row + 1) + col ]
 int
+TPZFBMatrix::Decompose_LU(std::list<int> &singular)
+{
+  return Decompose_LU();
+}
+
+int
 TPZFBMatrix::Decompose_LU()
 {
   if (  fDecomposed && fDecomposed == ELU) {

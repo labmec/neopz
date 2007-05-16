@@ -511,6 +511,11 @@ TPZSFMatrix::Zero()
 
 /**************************/
 /*** Decompose Cholesky ***/
+int
+TPZSFMatrix::Decompose_Cholesky(std::list<int> &singular)
+{
+  return Decompose_Cholesky();
+}
 
 int
 TPZSFMatrix::Decompose_Cholesky()
@@ -563,6 +568,12 @@ TPZSFMatrix::Decompose_Cholesky()
 
 /**********************/
 /*** Decompose LDLt ***/
+int
+TPZSFMatrix::Decompose_LDLt(std::list<int> &singular)
+{
+  return Decompose_LDLt();
+}
+
 
 int
 TPZSFMatrix::Decompose_LDLt()
