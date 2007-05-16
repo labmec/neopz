@@ -220,6 +220,7 @@ int TPZGeoEl::NeighbourExists(int side,const TPZGeoElSide &gel) {
 
 void TPZGeoEl::Print(ostream & out) {
 
+  out << "Element index      " << fIndex << endl;
   out << "Element id         " << fId << endl;
 //  out << "Element level      " << Level() << endl;
   out << "Number of nodes    " << NNodes() << endl;
@@ -243,7 +244,8 @@ void TPZGeoEl::Print(ostream & out) {
   out << endl;
   for (i = 0;i < NSides();i++) {
     out << "Neighbours for side   " << i << " : ";
-    TPZGeoElSide neighbour = Neighbour(i),thisside(this,i);
+    TPZGeoElSide neighbour = Neighbour(i);
+    TPZGeoElSide thisside(this,i);
     if (!neighbour.Exists()) out << "No neighbour\n";
     else {
       int count = 0;
@@ -894,7 +896,7 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
               ksi.Resize(3,0.);
               REAL epsilon = 0.002;
               ofstream outp("JACOBIANO");
-              for(int l=0;l<10;l++){	     
+              for(int l=0;l<10;l++){
                     ksi[0] = l*epsilon;
                     ksi[1] = l*epsilon/2.0;
                     outp << "ksi : " << ksi[0] << "  "	<< ksi[1] << endl;
@@ -919,7 +921,7 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
       if(dim==1){
             JX(0,0) = axest(0,0)*J(0,0);
             JX(1,0) = axest(1,0)*J(0,0);
-            JX(2,0) = axest(2,0)*J(0,0);        
+            JX(2,0) = axest(2,0)*J(0,0);
       } else {
           axest.Multiply(J,JX,0,1);
       }
@@ -1274,13 +1276,6 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> 
     LOGPZ_ERROR (logger,sout.str().c_str());
     exit(-1);
   }
-
-  std::map<int,int>::iterator it;
-  for (it=org2clnMap.begin();it!=org2clnMap.end();it++)
-  {
-    std::cout << it->first << "\t" << it->second << std::endl;
-  }
-
 
   this->fIndex = org2clnMap[cp.fIndex];
   this->fMesh->ElementVec()[this->fIndex] = this;
