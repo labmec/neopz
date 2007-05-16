@@ -520,7 +520,7 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,             //malh
   gmesh->ResetReference();
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   TPZCheckMesh check(cmesh,&cout);
-  mesh->CopyMaterials(cmesh);
+  mesh->CopyMaterials(*cmesh);
 
   //Idenifica o vetor de elementos computacionais de mesh
   //  TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh->ElementVec();

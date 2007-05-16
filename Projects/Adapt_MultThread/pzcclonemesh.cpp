@@ -44,7 +44,7 @@ static ofstream gDeduce("deduce.txt");
 
 TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : TPZCompMesh(gr)/*, fMapConnects(zero)*/{
   fCloneReference = cmesh;
-  cmesh->CopyMaterials(this);
+  cmesh->CopyMaterials(*this);
 }
 
 TPZCompCloneMesh::TPZCompCloneMesh () : TPZCompMesh(),fCloneReference(){

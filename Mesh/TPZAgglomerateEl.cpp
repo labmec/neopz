@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.42 2007-05-11 19:22:51 joao Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.43 2007-05-16 22:17:53 phil Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -822,7 +822,7 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
   TPZAgglomerateMesh *aggmesh = new TPZAgglomerateMesh(finemesh);
   //copiando materiais para nova malha
   //finemesh->fMaterials eh copiado para aggmesh
-  finemesh->CopyMaterials(aggmesh);
+  finemesh->CopyMaterials(*aggmesh);
 
   TPZVec<int> IdElNewMesh(accumlist.NElements());
   IdElNewMesh.Fill(-1);
