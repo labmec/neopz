@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.44 2007-05-11 19:15:17 joao Exp $
+//$Id: pzeulerconslaw.cpp,v 1.45 2007-05-16 22:18:45 phil Exp $
 
 #include "pzeulerconslaw.h" 
 //#include "TPZDiffusionConsLaw.h"
@@ -626,7 +626,7 @@ void TPZEulerConsLaw2::ContributeInterface(TPZMaterialData &data, REAL weight, T
 #ifdef LOG4CXX
     if(fluxroe->isDebugEnabled()){
       std::stringstream sout;
-      sout << "solL " << solL << endl << "solR " << solR << endl;
+      sout << "solL " << data.soll << endl << "solR " << data.solr << endl;
       LOGPZ_DEBUG(fluxroe,sout.str().c_str());
       LOGPZ_DEBUG(fluxappr,sout.str().c_str());
     }
