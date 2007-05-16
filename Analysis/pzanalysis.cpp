@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.33 2007-04-02 20:54:25 phil Exp $
+//$Id: pzanalysis.cpp,v 1.34 2007-05-16 12:13:55 cesar Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -64,6 +64,16 @@ TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh,std::ostream &out) :
   fGraphMesh[2] = 0;
   this->SetCompMesh(mesh);
 }
+
+TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh,std::ostream &out) :
+    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fTable()
+{
+  fGraphMesh[0] = 0;
+  fGraphMesh[1] = 0;
+  fGraphMesh[2] = 0;
+  this->SetCompMesh(mesh.operator ->());
+}
+
 
 void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh) {
 	fCompMesh = mesh;
@@ -169,7 +179,7 @@ void TPZAnalysis::Solve() {
 	//	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
 	fSolver->Solve(residual, delu);
 	fSolution = delu;
-	
+
 	fCompMesh->LoadSolution(fSolution);
 }
 
@@ -354,10 +364,10 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps,
 			     TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, char *plotfile)
 {
   Assemble();
-  
+
   int numeq = fCompMesh->NEquations();
   if(fRhs.Rows() != numeq ) return;
-  
+
   TPZFMatrix residual(fRhs);
   int dim = HighestDimension();
   TPZAutoPointer<TPZMaterial> mat = 0;
@@ -372,7 +382,7 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps,
       break;
     }
   }
-  if(!mat) 
+  if(!mat)
   {
     std::cout << __PRETTY_FUNCTION__ << " no material found " << std::endl;
     LOGPZ_ERROR(logger, " no material found");
@@ -384,18 +394,18 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps,
   gg.SetOutFile(plot);
   gg.SetResolution(0);
   gg.DrawMesh(num_iter);
-  
+
   int i;
   for(i=1; i<=num_iter;i+=steps){
-    
- 
+
+
     TPZStepSolver sol;
     sol.ShareMatrix(Solver());
     sol.SetJacobi(i,0.,0);
     SetSolver(sol);
     //    Solver().SetNumIterations(i);
     fSolver->Solve(fRhs, fSolution);
-    
+
     fCompMesh->LoadSolution(fSolution);
     gg.DrawSolution(i-1,0);
   }
@@ -524,7 +534,7 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
 #else
     cout << "TPZMatrixSolver *TPZAnalysis::BuildPreconditioner" << " called with uninitialized stiffness matrix\n";
 #endif
-    
+
   }
   if(preconditioner == EJacobi)
   {
@@ -546,7 +556,7 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
     nodeset.AnalyseGraph();
     //nodeset.Print(file);
     TPZStack<int> blockgraph,blockgraphindex;
-    switch(preconditioner)    
+    switch(preconditioner)
     {
       case EJacobi:
         return 0;
@@ -561,7 +571,7 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
          break;
     }
     TPZStack<int> expblockgraph,expblockgraphindex;
-    
+
     nodeset.ExpandGraph(blockgraph,blockgraphindex,fCompMesh->Block(),expblockgraph,expblockgraphindex);
 #ifdef LOG4CXX
 #ifdef DEBUG2
@@ -661,4 +671,4 @@ TPZMatrixSolver *TPZAnalysis::BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int
   }
   return result;
 }
-  
+

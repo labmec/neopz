@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.32 2007-05-11 13:34:07 cesar Exp $
+//$Id: pzcmesh.h,v 1.33 2007-05-16 12:16:46 cesar Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -558,7 +558,7 @@ static  void SetAllCreateFunctionsContinuousReferred();
   /**
    * Copies the materials of this mesh to the given mesh
    */
-  void CopyMaterials(TPZCompMesh *mesh) const ;
+  void CopyMaterials(TPZCompMesh &mesh) const ;
 
   REAL DeltaX();
 

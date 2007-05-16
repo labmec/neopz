@@ -135,7 +135,7 @@ void TPZMGAnalysis::MeshError(TPZCompMesh *fine, TPZCompMesh *coarse, TPZVec<REA
     cel = elementvec[el];
     if (!cel) continue;
     TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
-    if(!cint) continue;    
+    if(!cint) continue;
     int ncon = cint->NConnects();
     TPZGeoElSide gelside(cint->Reference(),ncon-1);
     if(gelside.Dimension() != dim) continue;
@@ -386,7 +386,7 @@ void TPZMGAnalysis::Solve() {
   int numeq = fCompMesh->NEquations();
   if(fRhs.Rows() != numeq ) return;
   int nsolvers = fSolvers.NElements();
-  
+
   TPZFMatrix residual(fRhs);
   TPZFMatrix delu(numeq,1);
   TPZMatrixSolver *solve = dynamic_cast<TPZMatrixSolver *> (fSolvers[nsolvers-1]);
@@ -395,7 +395,7 @@ void TPZMGAnalysis::Solve() {
   } else {
     solve->Matrix()->Residual(fSolution,fRhs,residual);
   }
-  
+
   REAL normrhs = Norm(fRhs);
   REAL normres  = Norm(residual);
   if(normrhs*1.e-6 >= normres) {
@@ -419,7 +419,7 @@ void TPZMGAnalysis::Solve() {
   cout << "TPZMGAnalysis::Run res : " << Norm(residual) << " neq " << numeq << endl;
   solve->Solve(residual, delu);
   fSolution += delu;
-	
+
   fCompMesh->LoadSolution(fSolution);
   if(fSolutions.NElements() < fMeshes.NElements()) {
     fSolutions.Push(new TPZFMatrix(fSolution));
@@ -438,13 +438,13 @@ TPZCompMesh  *TPZMGAnalysis::UniformlyRefineMesh(TPZCompMesh *mesh, bool withP) 
   }
   gmesh->ResetReference();
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-  mesh->CopyMaterials(cmesh);
+  mesh->CopyMaterials(*cmesh);
   TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh->ElementVec();
   int el,nelem = elementvec.NElements();
   for(el=0; el<nelem; el++) {
     TPZCompEl *cel = elementvec[el];
     if(!cel) continue;
-    TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);    
+    TPZInterpolatedElement *cint = dynamic_cast<TPZInterpolatedElement *> (cel);
     if(!cint) {
       cout << "TPZMGAnalysis::UniformlyRefineMesh encountered a non interpolated element\n";
       continue;

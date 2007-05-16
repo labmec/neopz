@@ -35,7 +35,7 @@ public:
 
 /// Precondtioners which can be created by objects of this class
  enum EPrecond { EJacobi, EBlockJacobi, EElement, ENodeCentered };
- 
+
 
  protected:
   /**
@@ -102,24 +102,29 @@ public:
      * Exact solution ??? not implemented???
      */
     void (*fExact)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix &deriv);
-	
+
   /**
    *Create an TPZAnalysis object from one mesh pointer
    */
   TPZAnalysis(TPZCompMesh *mesh,std::ostream &out = std::cout);
 
-	/**
+  /**
+   *Create an TPZAnalysis object from one mesh pointer
+   */
+  TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh,std::ostream &out = std::cout);
+
+  /**
 	 * Set the computational mesh of the analysis.
 	 **/
   void SetCompMesh(TPZCompMesh * mesh);
 
 	/**
-   *Create an empty TPZAnalysis object 
+   *Create an empty TPZAnalysis object
    **/
   TPZAnalysis();
 
   /**
-   *Destructor: deletes all protected dynamic allocated 
+   *Destructor: deletes all protected dynamic allocated
    *objects
    **/
   virtual ~TPZAnalysis(void);
@@ -169,23 +174,23 @@ public:
   * Returns a reference to the structural matrix
   */
   TPZStructMatrix &StructMatrix() { return *fStructMatrix;}
-  
+
   /**
   * Define the type of preconditioner used
   * This method will create the stiffness matrix but without assembling
   */
   TPZMatrixSolver *BuildPreconditioner(EPrecond preconditioner, bool overlap);
-  
+
   void SetTime(REAL time);
   REAL GetTime();
-  
+
  private:
- 
+
  /**
  * Build a sequence solver based on the block graph and its colors
  */
 TPZMatrixSolver *BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq, int numcolors, TPZVec<int> &colors);
-  
+
 
 public:
   void ShowShape( TPZVec<char *> &scalnames, TPZVec<char *> &vecnames,//1o : TPZConnect* nod,
@@ -197,9 +202,9 @@ public:
   // calls the appropriate sequence of methods to build a
   // solution or a time stepping sequence
   virtual void DefineGraphMesh(int dimension, TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, const char *plotfile);
-  
+
   virtual void CloseGraphMesh();
-  
+
   /**
    * defines the postprocessing parameters for the graphical grid
    **/
@@ -269,6 +274,6 @@ inline REAL TPZAnalysis::GetTime(){
   return this->fTime;
 }
 
-         
+
 #endif
 

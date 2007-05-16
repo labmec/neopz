@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.63 2007-05-11 19:22:51 joao Exp $
+//$Id: pzcmesh.cpp,v 1.64 2007-05-16 12:17:37 cesar Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -158,7 +158,7 @@ void TPZCompMesh::Print (std::ostream & out) {
     out << "Index " << i << ' ';
     el->Print(out);
     if(!el->Reference()) continue;
-    out << "\tReference Id = " << el->Reference()->Id() << std::endl << std::endl;
+    out << "\tReference Index = " << el->Reference()->Index() << std::endl << std::endl;
 
   }
   out << "\n\tMaterial Information:\n\n";
@@ -672,7 +672,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
   int nelem = NElements();
   for(i=0; i<nelem; i++) {
     if(!fElementVec[i]) continue;
-    TPZInterpolationSpace * locel = dynamic_cast<TPZInterpolationSpace *> (fElementVec[i]);    
+    TPZInterpolationSpace * locel = dynamic_cast<TPZInterpolationSpace *> (fElementVec[i]);
     if(!locel) continue;
     if(locel->Dimension() != dim) continue;
     TPZGeoEl *locgel = locel->Reference();
@@ -691,7 +691,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
       continue;
     }
 
-    TPZInterpolationSpace * coarsel = dynamic_cast<TPZInterpolationSpace *> ( coarsegel->Reference() );   
+    TPZInterpolationSpace * coarsel = dynamic_cast<TPZInterpolationSpace *> ( coarsegel->Reference() );
     if(!coarsel) continue;
 
     if(coarsel->Mesh() != &coarsemesh) {
@@ -1608,16 +1608,16 @@ void TPZCompMesh::GetElementPatch(TPZVec<int> nodtoelgraph, TPZVec<int> nodtoelg
   }
 }
 
-TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) : 
-    fReference(copy.fReference),fConnectVec(copy.fConnectVec), 
+TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) :
+    fReference(copy.fReference),fConnectVec(copy.fConnectVec),
     fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
-    fSolution(copy.fSolution), fBlock(copy.fBlock), 
+    fSolution(copy.fSolution), fBlock(copy.fBlock),
     fElementSolution(copy.fElementSolution)
 {
   fReference->ResetReference();
   fBlock.SetMatrix(&fSolution);
   fSolutionBlock.SetMatrix(&fSolution);
-  copy.CopyMaterials(this);
+  copy.CopyMaterials(*this);
   int nel = copy.fElementVec.NElements();
   fElementVec.Resize(nel);
   int iel;
@@ -1731,15 +1731,15 @@ TPZCompMesh* TPZCompMesh::Clone() const {
   }
 */
 
-void TPZCompMesh::CopyMaterials(TPZCompMesh *mesh) const {
+void TPZCompMesh::CopyMaterials(TPZCompMesh &mesh) const {
 //  int nmat = fMaterialVec.size();
   std::map<int, TPZAutoPointer<TPZMaterial> >::const_iterator mit;
 //  int m;
   for(mit=fMaterialVec.begin(); mit!=fMaterialVec.end(); mit++) {
-    if(!dynamic_cast<TPZBndCond *> (mit->second.operator->())) mit->second->Clone(mesh->fMaterialVec);
+    if(!dynamic_cast<TPZBndCond *> (mit->second.operator->())) mit->second->Clone(mesh.fMaterialVec);
   }
   for(mit=fMaterialVec.begin(); mit!=fMaterialVec.end(); mit++) {
-    if(dynamic_cast<TPZBndCond *> (mit->second.operator->())) mit->second->Clone(mesh->fMaterialVec);
+    if(dynamic_cast<TPZBndCond *> (mit->second.operator->())) mit->second->Clone(mesh.fMaterialVec);
   }
 
 }

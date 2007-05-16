@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.19 2007-05-11 13:35:44 cesar Exp $
+//$Id: pzsubcmesh.cpp,v 1.20 2007-05-16 12:19:46 cesar Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -614,7 +614,7 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
           TPZAutoPointer<TPZMaterial> mat = cel->Material();
           if(!mat)
           {
-            father->CopyMaterials(this);
+            father->CopyMaterials(*this);
           }
         }
 
