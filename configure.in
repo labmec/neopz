@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.55 2007-04-20 18:32:16 caju Exp $
+dnl $Id: configure.in,v 1.56 2007-05-17 19:58:26 tiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -108,7 +108,7 @@ case "${comp_mode}" in
     echo "Development mode chosen. Debug symbols will be added."
     COMPILATION_MODE="Development compilation mode."
     case "$CXX" in
-      c++ | g++ | /usr/local/gcc-3.3.5/installdir/bin/gcc | /usr/local/gcc-3.3.5/installdir/bin/g++)
+      c++ | g++ | /usr/local/gcc-3.3.5/installdir/bin/gcc | /usr/local/gcc-3.3.5/installdir/bin/g++ | /usr/bin/g++-3.3.6 | /usr/bin/gcc-3.3.6)
         MODE_OPTIONS="-DDEBUG -Wall -ggdb3 -pipe -fno-default-inline -fno-inline"
         ;;
       *)
@@ -121,7 +121,7 @@ dnl         MODE_OPTIONS="-DDEBUG -Wall -ggdb3 -pipe -fno-default-inline -fno-in
     echo "Profiling mode chosen. Information for gprof will be added."
     COMPILATION_MODE="Profiling compilation mode."
     case "$CXX" in
-      c++ | g++)
+      c++ | g++ | /usr/bin/g++-3.3.6 | /usr/bin/gcc-3.3.6)
         MODE_OPTIONS="-DNODEBUG -DNOTDEBUG -Wall -O2 -fdefault-inline -pg -pipe"
         ;;
       *)
@@ -133,7 +133,7 @@ dnl         MODE_OPTIONS="-DDEBUG -Wall -ggdb3 -pipe -fno-default-inline -fno-in
     echo "Optimization mode chosen. Warp 9 Mr. Sulu!"
     COMPILATION_MODE="Optimization compilation mode."
     case "$CXX" in
-      c++ | g++)
+      c++ | g++ | /usr/bin/g++-3.3.6 | /usr/bin/gcc-3.3.6)
         dnl Assumed by -O2, but here anyway :)
         dnl   -fthread-jumps -fomit-frame-pointer -fstrength-reduce
         dnl   -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop
