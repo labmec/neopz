@@ -249,6 +249,26 @@ TPZTempFMatrix TPZFMatrix::operator-(const TPZFMatrix &A ) const {
 	 return( res );
 }
 
+/** By Caju 2007 */
+void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog) {
+    int QTDcomp = Rows(); int QTDvec = Cols();
+    Orthog.Resize(QTDcomp,QTDvec); Orthog.Zero();
+    for(int r = 0; r < QTDcomp; r++) { for(int c = 0; c < QTDvec; c++) { Orthog(r,c) = GetVal(r,c); } }
+    double dotUp, dotDown;
+    for(int c = 1; c < QTDvec; c++) {
+        for(int stop = 0; stop < c; stop++) { dotUp = 0.; dotDown = 0.;
+            for(int r = 0; r < QTDcomp; r++) { dotUp += GetVal(r,c)*Orthog(r,stop); dotDown += Orthog(r,stop)*Orthog(r,stop); }
+            if(dotDown < 0.0001) { cout << "Null Vector on Gram-Schmidt Method!\nMethod Aborted!\n"; exit(-1); }
+            for(int r = 0; r < QTDcomp; r++) { Orthog(r,c) -= dotUp*Orthog(r,stop)/dotDown; }
+        }
+    }
+    for(int c = 0; c < QTDvec; c++) { dotUp = 0.; 
+        for(int r = 0; r < QTDcomp; r++) { dotUp += Orthog(r,c)*Orthog(r,c); }
+        for(int r = 0; r < QTDcomp; r++) { Orthog(r,c) = Orthog(r,c)/sqrt(dotUp); }
+    }
+    Orthog.Multiply(*this,BasisToOrthog,1);
+}
+
 void TPZFMatrix::ConstMultiply(const TPZFMatrix & x,TPZFMatrix & B,const int opt) const{
   if (!opt){
     if (this->Cols() != x.Rows()){
@@ -1243,7 +1263,7 @@ int TPZFMatrix::Substitution(const REAL *ptr, int rows, TPZFMatrix *B, TPZVec<in
 
 
 
-REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B) {
+REAL Dot(const TPZFMatrix &A, const TPZFMatrix &B) {
 	int size = (A.Rows())*A.Cols();
 	REAL result = 0.;
 #ifdef USING_ATLAS

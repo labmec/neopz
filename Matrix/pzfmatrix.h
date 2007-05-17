@@ -91,7 +91,7 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
   /**
      Constructor that uses a temporary matrix
   */
-  TPZFMatrix(TPZTempFMatrix );
+  TPZFMatrix(TPZTempFMatrix);
   /**
      Simple destructor
   */
@@ -217,6 +217,14 @@ static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TP
 
   // Zero os elements
   int Zero();
+
+  /**
+  / by Caju 2007
+  / Input:  OriginalAxes (columns vectors)
+  / Output: NormOrthog - Axes Orthogonalized and Normalized with respect with the first column
+  /         BasisChange - From NormOrthog to OriginalAxes Basis
+ */
+  void GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog);
 
   void Transpose(TPZMatrix *const T) const;
   /**
