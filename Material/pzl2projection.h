@@ -1,4 +1,4 @@
-//$Id: pzl2projection.h,v 1.2 2007-05-18 20:05:06 tiago Exp $
+//$Id: pzl2projection.h,v 1.3 2007-05-21 19:48:15 tiago Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
@@ -20,6 +20,9 @@ private:
 
  /** Constant solution vector */
   TPZVec<REAL> fSol;
+
+ /** Argument defining this material is a referred material */
+  bool fIsReferred;
 
 public:
 
@@ -52,6 +55,9 @@ public:
   /** Returns number of state variables
    */
   virtual int NStateVariables(){ return this->fNStateVars; }
+
+  /** Define if material is referred or not */
+  void SetIsReferred(bool val);
 
 };
 

@@ -1,4 +1,4 @@
-//$Id: pzl2projection.cpp,v 1.3 2007-05-18 20:05:06 tiago Exp $ 
+//$Id: pzl2projection.cpp,v 1.4 2007-05-21 19:48:15 tiago Exp $ 
 
 #include "pzl2projection.h"
 
@@ -7,11 +7,16 @@ TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol)
   this->fDim = dim;
   this->fNStateVars = nstate;
   this->fSol = sol;
+  this->SetIsReferred(false);
 }
 
 
 TPZL2Projection::~TPZL2Projection()
 {
+}
+
+void TPZL2Projection::SetIsReferred(bool val){
+  this->fIsReferred = val;
 }
 
 void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
@@ -20,8 +25,15 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
     this->fForcingFunction(data.x, this->fSol);
   }
 
-  const int nshape = data.phi.Rows();
   const int nvars = this->fNStateVars;
+  if (this->fIsReferred){
+    this->fSol.Resize(nvars);
+    for(int i = 0; i < nvars; i++){
+      this->fSol[i] = data.sol[i+nvars];
+    }//for
+  }//if
+
+  const int nshape = data.phi.Rows();
   for(int i = 0; i < nshape; i++){
     for(int j = 0; j < nshape; j++){
       for(int ivi = 0; ivi < nvars; ivi++){
