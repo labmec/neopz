@@ -1,7 +1,7 @@
 //
 // C++ Interface: TPZGeoElement
 //
-// Description: 
+// Description:
 //
 //
 // Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
@@ -240,7 +240,7 @@ TPZGeoElement<TGeo,TRef>::TPZGeoElement(TPZGeoMesh &DestMesh,
       LOGPZ_ERROR(logger,sout.str().c_str());
       exit(-1);
     }
-    this->fSubEl[i] = gl2lcElMap[fSubEl[i]];
+    this->fSubEl[i] = gl2lcElMap[cp.fSubEl[i]];
   }
 }
 
