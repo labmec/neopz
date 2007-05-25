@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.11 2007-05-11 19:22:51 joao Exp $
+//$Id: pzinterpolationspace.cpp,v 1.12 2007-05-25 23:12:11 cesar Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -227,6 +227,8 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
   ef.fMat.Redim(numeq,1);
   ek.fBlock.SetNBlocks(ncon);
   ef.fBlock.SetNBlocks(ncon);
+  ek.fNumStateVars = numdof;
+  ef.fNumStateVars = numdof;
   TPZManVector<REAL> sol(numdof,0.);
   int i;
   for (i = 0; i < ncon ; i++){
@@ -248,6 +250,7 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
   const int numeq = nshape*numdof;
   ef.fMat.Redim(numeq,1);
   ef.fBlock.SetNBlocks(ncon);
+  ef.fNumStateVars = numdof;
   TPZManVector<REAL> sol(numdof,0.);
   int i;
   for (i = 0; i < ncon ; i++){
@@ -713,7 +716,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
 
 }//method
 
-void TPZInterpolationSpace::ComputeError(int errorid, 
+void TPZInterpolationSpace::ComputeError(int errorid,
                                          TPZVec<REAL> &error){
 
   TPZAutoPointer<TPZMaterial> material = Material();
@@ -915,15 +918,15 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
   for(ic=0; ic<coarsel.NConnects(); ic++) connectlistcoarse.Push(coarsel.ConnectIndex(ic));
   coarsel.BuildConnectList(connectlistcoarse);
   TPZConnect::BuildDependencyOrder(connectlistcoarse,dependencyordercoarse,*coarsel.Mesh());
-  
+
   // cornod = number of connects associated with the coarse element
   cornod = connectlistcoarse.NElements();
   int nvar = coarsel.Material()->NStateVariables();
-  
+
   // number of blocks is cornod
   TPZBlock corblock(0,cornod);
   int in;
-  
+
   cormatsize = 0;
   int c;
   for(in=0;in<cornod; in++) {
