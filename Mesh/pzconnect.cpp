@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.16 2007-05-25 23:11:05 cesar Exp $
+//$Id: pzconnect.cpp,v 1.17 2007-05-26 06:47:53 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -410,18 +410,23 @@ void TPZConnect::CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx)
   fSequenceNumber = orig.fSequenceNumber;
   fNElConnected = orig.fNElConnected;
   TPZDepend * depend = orig.fDependList;
+  bool copydepend = true;
   while ( depend )
   {
     if (gl2lcIdx.find(depend->fDepConnectIndex) != gl2lcIdx.end())
     {
-      fDependList = new TPZDepend(-1);
-      fDependList->CopyFrom(orig.fDependList,gl2lcIdx);
-      depend = 0;
+      depend = depend->fNext;
     }
     else
     {
-      depend = depend->fNext;
+      depend = 0;
+      copydepend = false;
     }
+  }
+  if(orig.fDependList && copydepend)
+  {
+    fDependList = new TPZDepend(-1);
+    fDependList->CopyFrom(orig.fDependList,gl2lcIdx);
   }
 }
 
@@ -452,7 +457,7 @@ void TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<int,int>& gl2lcIdx
     if (gl2lcIdx.find(depend->fDepConnectIndex) != gl2lcIdx.end())
     {
       fNext = new TPZDepend(-1);
-      fNext->CopyFrom(orig->fNext,gl2lcIdx);
+      fNext->CopyFrom(depend,gl2lcIdx);
       depend = 0;
     }
     else

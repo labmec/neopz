@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.35 2007-05-11 13:35:44 cesar Exp $
+// $Id: pzelctemp.cpp,v 1.36 2007-05-26 06:47:53 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -235,6 +235,11 @@ template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
   if(side<0 || side >= TSHAPE::NSides || (side >= TSHAPE::NCornerNodes && order <1)) {
     PZError << "TPZIntelGen::SetSideOrder. Bad paramenter side " << side << " order " << order << std::endl;
+#ifdef LOG4CXX
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " Bad side or order " << side << " order " << order;
+    LOGPZ_DEBUG(logger,sout.str())
+#endif
     return;
   }
   if(side>= TSHAPE::NCornerNodes) {
