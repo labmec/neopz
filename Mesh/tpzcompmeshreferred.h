@@ -23,7 +23,7 @@ This class implements the structure to allow one mesh to refer to the solution o
 class TPZCompMeshReferred : public TPZCompMesh
 {
 
-  std::vector<int> fReferredIndices;
+  TPZVec<int> fReferredIndices;
 
   TPZCompMesh *fReferred;
 

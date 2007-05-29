@@ -25,7 +25,7 @@ TPZCompMeshReferred::TPZCompMeshReferred(TPZGeoMesh *gmesh)
 }
 
 TPZCompMeshReferred::TPZCompMeshReferred(const TPZCompMeshReferred &copy)
- : TPZCompMesh(*this), fReferredIndices(copy.fReferredIndices), fReferred(copy.fReferred)
+ : TPZCompMesh(copy), fReferredIndices(copy.fReferredIndices), fReferred(copy.fReferred)
 {
 }
 
@@ -36,7 +36,7 @@ TPZCompMeshReferred::~TPZCompMeshReferred()
 
 void TPZCompMeshReferred::LoadReferred(TPZCompMesh *mesh)
 {
-  fReferredIndices.resize(this->NElements());
+  fReferredIndices.Resize(this->NElements());
   fReferred = mesh;
   if(!mesh) return;
   TPZGeoMesh *gmesh = mesh->Reference();
@@ -58,7 +58,7 @@ void TPZCompMeshReferred::LoadReferred(TPZCompMesh *mesh)
 
 void TPZCompMeshReferred::ResetReferred()
 {
-  fReferredIndices.resize(0);
+  fReferredIndices.Resize(0);
   fReferred = 0;
 }
 
