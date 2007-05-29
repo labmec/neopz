@@ -1,4 +1,4 @@
-//$Id: pzl2projection.h,v 1.3 2007-05-21 19:48:15 tiago Exp $
+//$Id: pzl2projection.h,v 1.4 2007-05-29 21:28:40 tiago Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
@@ -38,6 +38,10 @@ public:
    */
   ~TPZL2Projection();
 
+  /** Copy constructor
+   */
+  TPZL2Projection(const TPZL2Projection &cp);
+
   /** Contribute method
    */
   virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
@@ -58,6 +62,9 @@ public:
 
   /** Define if material is referred or not */
   void SetIsReferred(bool val);
+
+  /**To create another material of the same type*/
+  virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 
 };
 

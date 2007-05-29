@@ -1,4 +1,4 @@
-//$Id: pzl2projection.cpp,v 1.4 2007-05-21 19:48:15 tiago Exp $ 
+//$Id: pzl2projection.cpp,v 1.5 2007-05-29 21:28:40 tiago Exp $ 
 
 #include "pzl2projection.h"
 
@@ -10,6 +10,12 @@ TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol)
   this->SetIsReferred(false);
 }
 
+TPZL2Projection::TPZL2Projection(const TPZL2Projection &cp):TPZMaterial(cp){
+  this->fDim = cp.fDim;
+  this->fNStateVars = cp.fNStateVars;
+  this->fSol = cp.fSol;
+  this->SetIsReferred(cp.fIsReferred);
+}
 
 TPZL2Projection::~TPZL2Projection()
 {
@@ -17,6 +23,10 @@ TPZL2Projection::~TPZL2Projection()
 
 void TPZL2Projection::SetIsReferred(bool val){
   this->fIsReferred = val;
+}
+
+TPZAutoPointer<TPZMaterial> TPZL2Projection::NewMaterial(){
+  return new TPZL2Projection(*this);
 }
 
 void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
@@ -28,9 +38,14 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
   const int nvars = this->fNStateVars;
   if (this->fIsReferred){
     this->fSol.Resize(nvars);
-    for(int i = 0; i < nvars; i++){
-      this->fSol[i] = data.sol[i+nvars];
-    }//for
+    if (data.sol.NElements() < 2*nvars){//it means the referred element does not exist or it is an interface element. In that case, I ASSUME the referred solution is ZERO
+      this->fSol.Fill(0.);
+    }//if
+    else{
+      for(int i = 0; i < nvars; i++){
+        this->fSol[i] = data.sol[i+nvars];
+      }//for
+    }//else
   }//if
 
   const int nshape = data.phi.Rows();
