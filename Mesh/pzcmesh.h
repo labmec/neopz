@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.33 2007-05-16 12:16:46 cesar Exp $
+//$Id: pzcmesh.h,v 1.34 2007-05-29 21:28:28 tiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -154,6 +154,9 @@ public:
 
   /**set de dimension of the domain of the problem*/
   void SetDimModel(int dim){fDimModel = dim;}
+
+  /** Sets the geometric reference mesh */
+  void SetReference(TPZGeoMesh * gmesh);
 
   /**return the dimension of the simulation*/
   int Dimension() const {return fDimModel;}
@@ -604,6 +607,10 @@ inline int TPZCompMesh::AllocateNewConnect(int blocksize) {
   fBlock.Set(blocknum,blocksize);
   fConnectVec[connectindex].SetSequenceNumber(blocknum);
   return connectindex;
+}
+
+inline void TPZCompMesh::SetReference(TPZGeoMesh * gmesh){
+  this->fReference = gmesh;
 }
 
 #endif
