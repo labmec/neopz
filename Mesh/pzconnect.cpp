@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.17 2007-05-26 06:47:53 phil Exp $
+//$Id: pzconnect.cpp,v 1.18 2007-05-31 13:45:39 cesar Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -57,6 +57,36 @@ void TPZConnect::Print(TPZCompMesh &mesh, ostream & out) {
   if(fSequenceNumber > -1)
   {
 	  out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
+    out << " Solution ";
+    int ieq;
+    for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
+    {
+      out << mesh.Block()(fSequenceNumber,0,ieq,0) << ' ';
+    }
+  }
+
+  out << endl;
+  if(fDependList) {
+    out << "Dependency :\n";
+    TPZDepend *ptr = fDependList;
+    while(ptr) {
+      int depindex = ptr->fDepConnectIndex;
+      //TPZConnect &nod = mesh.ConnectVec()[depindex];
+      out << "Connect index = " << depindex << endl;
+      ptr->fDepMatrix.Print(" ",out);
+      ptr = ptr->fNext;
+//      nod.Print(mesh,out);
+    }
+  }
+}
+
+void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
+{
+  out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fOrder;
+  out << " coordinate " << cp;
+  if(fSequenceNumber > -1)
+  {
+    out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
     out << " Solution ";
     int ieq;
     for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
