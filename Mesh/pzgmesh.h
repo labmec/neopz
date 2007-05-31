@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.29 2007-04-22 21:06:05 phil Exp $
+//$Id: pzgmesh.h,v 1.30 2007-05-31 13:42:52 cesar Exp $
 
 /**File : pzgmes.h
 
@@ -124,6 +124,16 @@ virtual void Write(TPZStream &buf, int withclassid);
   int CreateUniqueNodeId() { return ++fNodeMaxId; }
   /**Return ++fElementMaxId*/
   int CreateUniqueElementId() { return ++fElementMaxId; }
+
+  /**
+   * Used in patch meshes
+   */
+  void SetMaxNodeId(int id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
+
+  /**
+   * Used in patch meshes
+   */
+  void SetMaxElementId(int id) { fElementMaxId = (id > fElementMaxId) ? id : fElementMaxId; }
 
   /**Number of nodes of the mesh*/
   int NNodes() const {return fNodeVec.NElements();}
