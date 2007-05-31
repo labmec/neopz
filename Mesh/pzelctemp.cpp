@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.36 2007-05-26 06:47:53 phil Exp $
+// $Id: pzelctemp.cpp,v 1.37 2007-05-31 11:13:42 cesar Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -263,8 +263,16 @@ int TPZIntelGen<TSHAPE>::SideOrder(int side) {
   if(side < TSHAPE::NCornerNodes || side >= TSHAPE::NSides) return 0;
   if(fConnectIndexes[side] == -1)
   {
-    std::cout << __PRETTY_FUNCTION__ << " side " << side << std::endl;
-    Print(cout);
+
+    std::stringstream sout ;
+    sout << __PRETTY_FUNCTION__ << " side " << side << std::endl;
+    //Print(sout);
+#ifdef LOG4CXX
+    LOGPZ_ERROR(logger,sout.str());
+    DebugStop();
+#else
+    std::cout << sout.str() << std::endl;
+#endif
     return -1;
   }
   TPZConnect &c = Connect(side);
