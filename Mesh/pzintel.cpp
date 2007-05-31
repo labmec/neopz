@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.59 2007-05-11 19:22:51 joao Exp $
+// $Id: pzintel.cpp,v 1.60 2007-05-31 13:42:13 cesar Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -206,9 +206,14 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
   if(dimension == 0) sideorder = -1;
   int neworder;
   int orderchanged = 0;
-  TPZStack<TPZCompElSide> elvec;
-  thisside.EqualLevelElementList(elvec,1,0);
-  elvec.Push(thisside);
+  TPZStack<TPZCompElSide> elvecall,elvec;
+  thisside.EqualLevelElementList(elvecall,1,0);
+  elvecall.Push(thisside);
+  int i;
+  for(i=0; i<elvecall.NElements(); i++)
+  {
+    if(elvecall[i].ConnectIndex() != -1) elvec.Push(elvecall[i]);
+  }
   int cap,il;
   TPZInterpolatedElement *equal;
   int equalside;
@@ -322,9 +327,14 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
       if (!el) continue;
       highside = highdim[il].Side();
       int order, comporder;
-      TPZStack<TPZCompElSide> equallist;
-      highdim[il].EqualLevelElementList(equallist,1,0);
-      equallist.Push(highdim[il]);
+      TPZStack<TPZCompElSide> equallistall, equallist;
+      highdim[il].EqualLevelElementList(equallistall,1,0);
+      equallistall.Push(highdim[il]);
+      int i;
+      for(i=0; i< equallistall.NElements(); i++)
+      {
+        if(equallistall[i].ConnectIndex() != -1) equallist.Push(equallistall[i]);
+      }
       // when the  element highdim is restricted by the same element as the original side, do nothing
       // the restriction will be taken care of in the future
       // verify if the order of the higher dimension side changed due to the change in order of the side being studied
@@ -419,11 +429,11 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
   for(ic=0; ic<cornod; ic++) connectlistcoarse.Push(coarsel.ConnectIndex(ic));
   coarsel.BuildConnectList(connectlistcoarse);
   TPZConnect::BuildDependencyOrder(connectlistcoarse,dependencyordercoarse,*coarsel.Mesh());
-  
+
   // cornod = number of connects associated with the coarse element
   cornod = connectlistcoarse.NElements();
   int nvar = coarsel.Material()->NStateVariables();
-  
+
   // number of blocks is cornod
   TPZBlock corblock(0,cornod);
   int in;
@@ -433,7 +443,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
     corblock.Set(in,blsize);
     corblocksize.Push(blsize);
   }
-  
+
   // cormatsize is , so far, the number of shape functions of the coarse element
   int c;
   for(;in<cornod; in++) {
@@ -1391,6 +1401,15 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
 }
 
 void TPZInterpolatedElement::Print(std::ostream &out) {
+  out << "Index = " << fIndex ;
+  out << " - Center coordinate: ";
+  for (int i=0;i<Reference()->NCornerNodes();i++)
+  {
+    TPZVec< REAL > center( 3,0.);
+    for (int j=0;j<3;j++) center[j]=  Reference()->NodePtr(i)->Coord(j);
+    out << "[" <<  i << "]" << center << " " ;
+  }
+  out << std::endl;
   out << "Number of connects = " << NConnects() << " Node indexes : ";
   int nod;
   for(nod=0; nod< NConnects(); nod++)
@@ -1633,7 +1652,7 @@ int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
     return order;
   }
   int dim = gel->SideDimension(side);
-  if(dim != 2) {
+  if(dim != 2 || ConnectIndex(side) == -1) {
 //    std::stringstream sout;
 //    sout << "Exiting AdjustPreferredSideOrder: dimension != 2 " << dim;
 //    LOGPZ_ERROR(logger,sout.str().c_str());
