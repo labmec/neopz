@@ -3,9 +3,7 @@
 #include <fstream>
 using namespace std;
 
-#ifdef PTHREAD
 #include "pthread.h"
-#endif
 
 TPZSloan::TPZSloan(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes),
 	fNodeWeights(0), fElementGraph(0), fElementGraphIndex(0) 
@@ -159,14 +157,10 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 		cout << endl;
 	}
 #endif
-#ifdef PTHREAD
-	pthread_mutex_t Lock_clindex = PTHREAD_MUTEX_INITIALIZER;
+        static pthread_mutex_t Lock_clindex = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_lock(&Lock_clindex);
-#endif
 	gegra_(&fNNodes, &fNElements, &inpn, &fElementGraph[1], &fElementGraphIndex[1], &iadj, &adj[0], &xadj[0], &nop);
-#ifdef PTHREAD
 	pthread_mutex_unlock(&Lock_clindex);
-#endif
 	//gegra_(&fNNodes, &fNElements, &inpn, npn, xnpn, &iadj, adj, xadj, &nop);
 #ifdef SLOANDEBUG
 	cout << "node index vector ";
