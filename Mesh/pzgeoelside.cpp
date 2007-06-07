@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.21 2007-02-02 18:45:07 cesar Exp $
+//$Id: pzgeoelside.cpp,v 1.22 2007-06-07 15:32:11 phil Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -19,7 +19,7 @@ using namespace std;
 #include <sstream>
 
 #ifdef LOG4CXX
-static LoggerPtr Log(Logger::getLogger("pz.mesh.tpzgeoelside"));
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelside"));
 #endif
 
 
