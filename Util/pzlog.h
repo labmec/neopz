@@ -16,6 +16,8 @@
 #include <sstream>
 #ifdef LOG4CXX
 
+#include <pthread.h>
+
 #ifdef DEBUG
   #define DEBUG2
 #endif
@@ -26,13 +28,28 @@
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 
-#define LOGPZ_DEBUG(A,B) LOG4CXX_DEBUG(A,B)
-#define LOGPZ_INFO(A,B) LOG4CXX_INFO(A,B)
-#define LOGPZ_WARN(A,B) LOG4CXX_WARN(A,B)
-#define LOGPZ_ERROR(A,B) LOG4CXX_ERROR(A,B)
-#define LOGPZ_FATAL(A,B) LOG4CXX_FATAL(A,B)
+extern pthread_mutex_t glogmutex;
 
+/*    pthread_mutex_lock(&fCommunicate);
+    int ret = msg.ReceiveBlocking();
+    pthread_mutex_unlock(&fCommunicate);
+*/
 
+#define LOGPZ_DEBUG(A,B) {pthread_mutex_lock(&glogmutex); \
+                          LOG4CXX_DEBUG(A,B); \
+                          pthread_mutex_unlock(&glogmutex); }
+#define LOGPZ_INFO(A,B) {pthread_mutex_lock(&glogmutex); \
+                          LOG4CXX_INFO(A,B) \
+                          pthread_mutex_unlock(&glogmutex); }
+#define LOGPZ_WARN(A,B) {pthread_mutex_lock(&glogmutex); \
+                        LOG4CXX_WARN(A,B) \
+                          pthread_mutex_unlock(&glogmutex); }
+#define LOGPZ_ERROR(A,B) {pthread_mutex_lock(&glogmutex); \
+                        LOG4CXX_ERROR(A,B) \
+                          pthread_mutex_unlock(&glogmutex); }
+#define LOGPZ_FATAL(A,B) {pthread_mutex_lock(&glogmutex); \
+                        LOG4CXX_FATAL(A,B) \
+                          pthread_mutex_unlock(&glogmutex); }
 
 #else
 
@@ -57,12 +74,12 @@ inline void InitializePZLOG(std::string &configfile)
   {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
     logger->setAdditivity(false);
-    logger->setLevel(log4cxx::Level::DEBUG);
+    logger->setLevel(log4cxx::Level::getDebug());
   }
  {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
     logger->setAdditivity(false);
-    logger->setLevel(log4cxx::Level::DEBUG);
+    logger->setLevel(log4cxx::Level::getDebug());
   }
 #endif
 }
