@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.h,v 1.16 2007-05-11 19:15:17 joao Exp $
+// $Id: pzdiscgal.h,v 1.17 2007-06-08 00:09:31 cesar Exp $
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 
@@ -107,6 +107,10 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
                                 TPZBndCond &bc,
                                 TPZVec<REAL> &values);
 
+
+  virtual int NStateVariables() = 0;
+
+
 virtual void ContributeInterfaceErrors(TPZMaterialData &data,
                                         REAL weight,
                                         TPZVec<REAL> &nkL,
@@ -122,6 +126,7 @@ virtual void ContributeInterfaceBCErrors(TPZMaterialData &data,
                                            int &errorid){
   PZError << "Method not implemented\n";
 }
+
 
 };
 

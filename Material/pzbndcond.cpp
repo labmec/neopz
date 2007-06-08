@@ -48,7 +48,7 @@ void TPZBndCond::ContributeEnergy(TPZVec<REAL> &x,
     }
     fMaterial->ContributeBCEnergy(x,sol,U,weight,*this);
     fType = typetmp;
-  
+
 
 }
 */
@@ -73,12 +73,12 @@ void TPZBndCond::InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REA
       mat->BCInterfaceJumps(rightu, *this, values);
       return;
    }
-   
+
    if(rightu.NElements() == 0) {
       mat->BCInterfaceJumps(leftu, *this, values);
       return;
-   }   
-   
+   }
+
    std::cout << __PRETTY_FUNCTION__ << " - Huge problem. Both leftu and rightu contain elements. Wich one is the actual element neighbour to the Dirichlet boundary ?" << std::endl;
 
 }//InterfaceJumps
@@ -140,6 +140,7 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data,
    }
 
 }
+
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
   this->UpdataBCValues(data);
@@ -216,6 +217,7 @@ void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFM
 void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
 ///nothing to be done here
 }
+
 
 void TPZBndCond::UpdataBCValues(TPZMaterialData &data){
   if(fForcingFunction){

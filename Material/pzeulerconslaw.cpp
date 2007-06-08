@@ -1,6 +1,6 @@
-//$Id: pzeulerconslaw.cpp,v 1.45 2007-05-16 22:18:45 phil Exp $
+//$Id: pzeulerconslaw.cpp,v 1.46 2007-06-08 00:09:31 cesar Exp $
 
-#include "pzeulerconslaw.h" 
+#include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
 #include "pzartdiff.h"
 #include "pzelmat.h"
@@ -567,7 +567,7 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 
 // void TPZEulerConsLaw2::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
 // {
-// 
+//
 //    // contributing face-based quantities
 //    if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
 //       {
@@ -613,8 +613,8 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 //         }
 // #endif
 //       }
-// 
-// 
+//
+//
 //    if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
 //    {
 //       ContributeExplConvFace(data.x,data.soll,data.solr,weight,data.normal,data.phil,data.phir,ef);
@@ -833,7 +833,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
 //    TPZFMatrix dsolR(data.dsoll.Rows(), data.dsoll.Cols(),0.);
 //    TPZFMatrix phiR(0,0), dphiR(0,0);
 //    int entropyFix;
-// 
+//
 //    // contributing face-based quantities
 //    if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
 //       {
@@ -855,7 +855,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
 //             }
 //          }*/
 // #endif
-// 
+//
 //          #ifdef FASTEST_IMPLICIT
 //             ContributeFastestBCInterface(fDim, x, solL, dsolL,
 // 	                      weight, normal, phiL, phiR, ek, ef, bc);
@@ -896,14 +896,14 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
 //         }
 // #endif
 //       }
-// 
-// 
+//
+//
 //    if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
 //    {
 //          ComputeGhostState(data.soll, solR, data.normal, bc, entropyFix);
 //          ContributeExplConvFace(data.x,data.soll,solR,weight,data.normal,data.phil,phiR,ef, entropyFix);
 //    }
-// } 
+// }
 
 
 void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
@@ -1511,9 +1511,9 @@ void TPZEulerConsLaw2::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSi
   int nState = NStateVariables();
   TPZVec<FADREAL > flux(nState,REAL(0.));
   ApproxRoe_Flux(solL, solR, normal, fGamma, flux, entropyFix);
-   
+
    // Testing whether Roe_Flux<REAL> gives the same result as Roe_Flux<FADREAL>
-   
+
 /*   TPZVec<REAL> solL2(nState,0.),solR2(nState,0.),flux2(nState,0.);
   int i;
   for(i=0; i<nState; i++)
@@ -1625,7 +1625,7 @@ void TPZEulerConsLaw2::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSi
       fluxroe[i_state] * phiL(i_shape,0) * constant;
   for(j_shape = 0; j_shape < nShapeL; j_shape++)
   {
-    
+
     for(j_state = 0; j_state < nState; j_state++)
     {
       int jndex = j_shape*nState + j_state;
@@ -1634,7 +1634,7 @@ void TPZEulerConsLaw2::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSi
   }
   for(j_shape = 0; j_shape < nShapeR; j_shape++)
   {
-    
+
     for(j_state = 0; j_state < nState; j_state++)
     {
       int jndex = (nShapeL+j_shape)*nState + j_state;
@@ -1656,7 +1656,7 @@ void TPZEulerConsLaw2::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSi
       fluxroe[i_state] * phiR(i_shape,0) * constant;
   for(j_shape = 0; j_shape < nShapeL; j_shape++)
   {
-    
+
     for(j_state = 0; j_state < nState; j_state++)
     {
       int jndex = j_shape*nState + j_state;
@@ -1665,7 +1665,7 @@ void TPZEulerConsLaw2::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSi
   }
   for(j_shape = 0; j_shape < nShapeR; j_shape++)
   {
-    
+
     for(j_state = 0; j_state < nState; j_state++)
     {
       int jndex = (nShapeL+j_shape)*nState + j_state;
@@ -1689,9 +1689,9 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
    int nState = NStateVariables();
    TPZVec<FADREAL > flux(nState,REAL(0.));
    Roe_Flux(solL, solR, normal, fGamma, flux, entropyFix);
-   
+
    // Testing whether Roe_Flux<REAL> gives the same result as Roe_Flux<FADREAL>
-   
+
 /*   TPZVec<REAL> solL2(nState,0.),solR2(nState,0.),flux2(nState,0.);
    int i;
    for(i=0; i<nState; i++)
@@ -2417,7 +2417,7 @@ void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
   typedef FADREAL T;
   typedef REAL locREAL;
   locREAL rho_fv, rhou_fv, rhov_fv, rhoE_fv, rho_tv, rhou_tv, rhov_tv, rhoE_tv;
-  
+
   rho_fv = rho_f.val();
   rhou_fv = rhou_f.val();
   rhov_fv = rhov_f.val();
@@ -2426,8 +2426,8 @@ void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
   rhou_tv = rhou_t.val();
   rhov_tv = rhov_t.val();
   rhoE_tv = rhoE_t.val();
-  
-  
+
+
 //   rho_fv = rho_f;
 //   rhou_fv = rhou_f;
 //   rhov_fv = rhov_f;
@@ -2449,20 +2449,20 @@ void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
   locREAL    v_tv = rhov_tv/rho_tv;
   REAL gam1 = gam - REAL(1.0);
   locREAL    p_tv = gam1 * (rhoE_tv - REAL(0.5) * (rhou_tv * rhou_tv + rhov_tv * rhov_tv) / rho_tv);
-  locREAL    p_fv = gam1 * (rhoE_fv - REAL(0.5) * (rhou_fv * rhou_fv + rhov_fv * rhov_fv) / rho_fv);  
+  locREAL    p_fv = gam1 * (rhoE_fv - REAL(0.5) * (rhou_fv * rhou_fv + rhov_fv * rhov_fv) / rho_fv);
   REAL norme = sqrt(nx * nx + ny * ny);
   locREAL scal,c_speed;
   locREAL u_ave,v_ave,u2pv2;
   {
- 
+
     flux_rho = 0;
     flux_rhou = 0;
     flux_rhov = 0;
     flux_rhoE = 0;
-  
+
     //REAL gam2 = gam * (gam - 1.0);
     //REAL igam = 1.0 / (gam - 1.0);
-  
+
     //
     //.. Compute the ROE Averages
     //
@@ -2472,7 +2472,7 @@ void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
     locREAL    somme_coef = coef1 + coef2;
     locREAL    h_f = (gam * rhoE_fv/rho_fv) -  (u_fv * u_fv + v_fv * v_fv) * (gam1 / REAL(2.0));
     locREAL    h_t = (gam * rhoE_tv/rho_tv) -  (u_tv * u_tv + v_tv * v_tv) * (gam1 / REAL(2.0));
-  
+
     //.... averages
     //REAL rho_ave = coef1 * coef2;
 //    cout << "Approx coef1 " << coef1 << "coef2 " << coef2 << "h_f " << h_f << "h_t " << h_t << endl;
@@ -2638,5 +2638,5 @@ void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
   int TPZEulerConsLaw2::ClassId() const {
     return TPZEULERCONSLAW2ID;
   }
-  template class 
+  template class
       TPZRestoreClass< TPZEulerConsLaw2, TPZEULERCONSLAW2ID>;
