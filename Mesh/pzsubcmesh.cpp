@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.20 2007-05-16 12:19:46 cesar Exp $
+//$Id: pzsubcmesh.cpp,v 1.21 2007-06-08 00:02:28 cesar Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -287,11 +287,11 @@ TPZCompMesh * TPZSubCompMesh::CommonMesh(TPZCompMesh *mesh){
 	return (pos1 >=0 ) ? (s1[pos1+1]) : s2[pos2+1];
 }
 
-int TPZSubCompMesh::NConnects(){
+int TPZSubCompMesh::NConnects() const{
 	return fConnectIndex.NElements();
 }
 
-int TPZSubCompMesh::ConnectIndex(int i){
+int TPZSubCompMesh::ConnectIndex(int i) const{
 	return fConnectIndex[i];
 }
 

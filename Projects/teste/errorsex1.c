@@ -111,7 +111,8 @@ int main() {
    int ord;
    cout << "Entre ordem 1,2,3,4,5 : ";
    cin >> ord;
-   TPZCompEl::gOrder = ord;
+//   TPZCompEl::gOrder = ord;
+   cmesh.SetDefaultOrder(ord);
    //construção malha computacional
    secondmesh->AutoBuild();
    //redistribuicao de ordem aos lados do elemento
@@ -164,7 +165,10 @@ int main() {
    an.SetMatrix(stiff);
    an.Solver().SetDirect(ELU);
    //an.Solver().SetDirect(ELDLt);
-   //an.Solver().SetDirect(ECholesky);   //an.Solver().SetJacobi(4, 1E-8, 0);   //an.Solver().SetSOR(4, 0.2, 1E-8, 0);   //an.Solver().SetSSOR(6, 1.3, 1E-8,0);
+   //an.Solver().SetDirect(ECholesky);
+   //an.Solver().SetJacobi(4, 1E-8, 0);
+   //an.Solver().SetSOR(4, 0.2, 1E-8, 0);
+   //an.Solver().SetSSOR(6, 1.3, 1E-8,0);
    secondmesh->SetName("Malha Computacional :  Connects e Elementos");
    // Posprocessamento
    an.Run(outcm2);

@@ -54,7 +54,7 @@ TPZStack <TPZElementMatrix *> fefstack;
 void UniformRefine(int num, TPZGeoMesh &m);
 
 template<class front>
-TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZCompMesh *mesh): TPZFrontStructMatrix<front>(mesh) 
+TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZCompMesh *mesh): TPZFrontStructMatrix<front>(mesh)
 {
      fMaxStackSize = 500;
      fNThreads = 3;
@@ -83,53 +83,53 @@ void TPZParFrontStructMatrix<front>::SetNumberOfThreads(int nthreads)
 }
 
 
-template<class front>     
+template<class front>
 TPZStructMatrix * TPZParFrontStructMatrix<front>::Clone(){
   TPZParFrontStructMatrix<front> * mat = new TPZParFrontStructMatrix<front>(*this);
   return mat;
 ;
-     
+
 }
 
 
 
 template<class front>
 void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
-  
+
   TPZParFrontStructMatrix<front> *parfront = (TPZParFrontStructMatrix<front> *) t;
-  
+
   TPZElementMatrix *ek,*ef;
-  
+
 
   TPZAdmChunkVector<TPZCompEl *> &elementvec = parfront->fMesh->ElementVec();
-  
-  
+
+
 
   while(parfront->fCurrentElement < parfront->fNElements) {
      ek = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EK);
      ef = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EF);
-     
+
      /**
       *Lock mutex and search for an avilable element
       *A global variable to be updated whenever a element is processed
       */
-  
 
-      
-      
+
+
+
      //Lock a mutex and get an element number
-     
+
      pthread_mutex_lock(&mutex_element_assemble);
-     
+
      //Stack is full and process must wait here!
      if(parfront->felnum.NElements()==parfront->fMaxStackSize){
 /*          cout << "    Stack full" << endl;
           cout << "    Waiting" << endl;
           cout.flush();*/
           //cout << "Mutex unlocked on Condwait" << endl;
-          pthread_cond_wait(&stackfull,&mutex_element_assemble); 
+          pthread_cond_wait(&stackfull,&mutex_element_assemble);
           //cout << "Mutex LOCKED leaving Condwait" << endl;
-          
+
      }
 
      //cout << "Locking mutex_element_assemble" << endl;
@@ -146,55 +146,55 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
      //cout << "Unlocking mutex_element_assemble" << endl;
      //cout.flush();
      pthread_mutex_unlock(&mutex_element_assemble);
-     
-      
+
+
      if(parfront->fElementOrder[local_element] < 0) continue;
      TPZCompEl *el = elementvec[parfront->fElementOrder[local_element]];
      if(!el) continue;
      //		int dim = el->NumNodes();
-    
+
      //Builds elements stiffness matrix
      el->CalcStiff(*ek, *ef);
      //Locks a mutex and adds element contribution to frontmatrix
      //if mutex is locked go to condwait waiting for an specific condvariable
      // este mutex deve ser outro mutex -> mutexassemble
-     
+
      pthread_mutex_lock(&mutex_global_assemble);
      //cout << "Locking mutex_global_assemble" << endl;
      //cout << "Pushing variables to the stack" << endl;
      //cout.flush();
-     
+
      // colocar ek, ef e o element_local no stack
      parfront->felnum.Push(local_element);
      parfront->fekstack.Push(ek);
      parfront->fefstack.Push(ef);
-     
+
      // Outro thread procura se stack contem o proximo elemento
      // qdo nao encontra entra em condwait de acordo com condassemble
      // isso ocorre num outro processo
      // Uma vez que uma nova ek foi adicionada ao stack
      // chame broadcast para acordar o thread que faz assemblagem global
-     
+
      //cout << "Unlocking mutex_global_assemble" << endl;
      //cout << "Broadcasting condassemble" << endl;
      //cout.flush();
-     
+
 /*     if(!(parfront->fCurrentElement%20)){
           cout << endl << "Computing " << parfront->fCurrentElement << " on thread " << pthread_self() << endl;
           cout << " " << (100*parfront->fCurrentElement/parfront->fNElements) << "% Elements computed" << "     " << (100*parfront->fCurrentAssembled/parfront->fNElements) << "% Elements assembled" << endl;;
-     }     
+     }
      cout << '*';
      cout.flush();
- */  
+ */
  //Alterado cond_broadcast para cond_signal
- //invertendo a sequ�cia das chamadas  
+ //invertendo a sequ�cia das chamadas
       pthread_cond_broadcast(&condassemble);
       pthread_mutex_unlock(&mutex_global_assemble);
-    
+
      // o thread de assemblagem utiliza mutexassemble
-     // e feito em outro thread     AssembleElement(el, ek, ef, stiffness, rhs); 
-     
-      
+     // e feito em outro thread     AssembleElement(el, ek, ef, stiffness, rhs);
+
+
   }//fim for iel
   return NULL;
 
@@ -223,11 +223,11 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
       *Lock mutex and search for an available element
       *A global variable to be updated whenever a element is processed
       */
-  
+
      //Lock a mutex and get an element number
      int local_element = parfront->fCurrentAssembled;
      parfront->fCurrentAssembled++;
-      
+
      if(parfront->fElementOrder[local_element] < 0) continue;
      TPZCompEl *el = elementvec[parfront->fElementOrder[local_element]];
      if(!el) continue;
@@ -247,13 +247,13 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
                     ektemp = parfront->fekstack.Pop();
                     eftemp = parfront->fefstack.Pop();
                     if(parfront->felnum.NElements()<parfront->fMaxStackSize){
-                         pthread_cond_broadcast(&stackfull); 
+                         pthread_cond_broadcast(&stackfull);
                     }
-                    
-                    if(i < parfront->felnum.NElements()) {                              
+
+                    if(i < parfront->felnum.NElements()) {
 
                          parfront->felnum[i] = itemp;
-                         parfront->fekstack[i]=ektemp;                
+                         parfront->fekstack[i]=ektemp;
                          parfront->fefstack[i]=eftemp;
                     }
                     break;
@@ -267,14 +267,14 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
      }
      pthread_mutex_unlock(&mutex_global_assemble);
      parfront->AssembleElement(el, *ekaux, *efaux, *parfront->fStiffness, *parfront->fRhs);
-               
+
      delete ekaux;
-     delete efaux; 
+     delete efaux;
   }//fim for iel
 #ifdef USING_ATLAS
 	cout << "Matrix decomposed\n";
 	cout.flush();
-#endif  
+#endif
 
   return 0;
 }
@@ -287,7 +287,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
   {
     cout << __PRETTY_FUNCTION__ << " we are in serious trouble : wrong type of matrix"<< endl;
   }
-  
+
      int nthreads;
      //cout << "Number of Threads " << endl;
      //cin >> nthreads;
@@ -296,33 +296,33 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
      nthreads = fNThreads;
      cout.flush();
          //int nthreads = fNThreads+1;
- 
+
      pthread_t *allthreads = new pthread_t[nthreads];
      int *res = new int[nthreads];
      int i;
- 
-     TPZVec <int> numelconnected(this->fMesh->NEquations(),0);  
+
+     TPZVec <int> numelconnected(this->fMesh->NEquations(),0);
      //TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
-     
+
      //TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
-     
-     
-     
-     
+
+
+
+
      //TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZParFrontMatrix<TPZStackEqnStorage, front>(this->fMesh->NEquations());
      this->GetNumElConnected(numelconnected);
      mat->SetNumElConnected(numelconnected);
-     
+
      fNElements = this->fMesh->NElements();
-     
+
      this->OrderElement();
      fStiffness = mat;
      fRhs = &rhs;
      fCurrentElement = 0;
      fCurrentAssembled = 0;
-     
+
      /**
-      *Triger 'n' threads passing Assemble as argument 
+      *Triger 'n' threads passing Assemble as argument
       */
      //pthread_create(&allthreads[fNThreads-1],NULL,this->GlobalAssemble, this);
      // try{
@@ -331,7 +331,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
  	          cout << "GlobalAssemble Thread created Successfuly "<< allthreads[nthreads-1] << endl;
  	          cout.flush();
           }else{
- 	          cout << "GlobalAssemble Thread Fail "<< allthreads[nthreads-1] << endl;       
+ 	          cout << "GlobalAssemble Thread Fail "<< allthreads[nthreads-1] << endl;
                cout.flush();
  	 //          exit;
           }
@@ -340,11 +340,11 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
  	          cout << "WriteFile Thread created Successfuly "<< allthreads[nthreads-2] << endl;
  	          cout.flush();
           }else{
- 	          cout << "WriteFile Thread Fail "<< allthreads[nthreads-2] << endl;       
+ 	          cout << "WriteFile Thread Fail "<< allthreads[nthreads-2] << endl;
  	          cout.flush();
  	 //          exit;
           }
-      
+
           for(i=0;i<nthreads-2;i++){
  	          res[i] = pthread_create(&allthreads[i],NULL,this->ElementAssemble, this);
  	          if(!res[i]){
@@ -355,9 +355,9 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
         		    cout << "ElementAssemble Thread "<< i+1 << " Fail " << allthreads[i] << endl;
         		    cout.flush();
  	          }
-          }    
+          }
      for(i=0;i<nthreads;i++) pthread_join(allthreads[i], NULL);
-  
+
      delete allthreads;// fThreadUsed, fDec;
      delete res;
      fStiffness = 0;
@@ -369,17 +369,17 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
 
 template<class front>
 int TPZParFrontStructMatrix<front>::main() {
-     
+
      int refine=1;
-     int order=1;             
-     
+     int order=1;
+
 	TPZGeoMesh gmesh;
 	TPZCompMesh cmesh(&gmesh);
 	double coordstore[4][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},
 	  {0.,1.,0.}};
 
 	int i,j;
-	TPZVec<REAL> coord(3,0.); 
+	TPZVec<REAL> coord(3,0.);
 	for(i=0; i<4; i++) {
 		// initializar as coordenadas do no em um vetor
 		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
@@ -392,12 +392,12 @@ int TPZParFrontStructMatrix<front>::main() {
 	int el;
 	TPZGeoEl *gel;
 	for(el=0; el<1; el++) {
-	  
+
 	  // initializar os indices dos n�
 	  TPZVec<int> indices(4);
 	  for(i=0; i<4; i++) indices[i] = i;
 	  // O proprio construtor vai inserir o elemento na malha
-    int index; 
+    int index;
 	  gel = gmesh.CreateGeoElement(EQuadrilateral,indices,1,index);
 	}
 	gmesh.BuildConnectivity ();
@@ -405,14 +405,14 @@ int TPZParFrontStructMatrix<front>::main() {
 	TPZVec<TPZGeoEl *> subel;
 	//gel->Divide(subel);
 
-	
-	
+
+
 	cout << "Refinement ";
 	cin >> refine;
-	cout << endl; 
-	
+	cout << endl;
+
 	UniformRefine(refine,gmesh);
-	
+
 
         TPZMat2dLin *mat2d = new TPZMat2dLin(1);
         TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
@@ -424,19 +424,20 @@ int TPZParFrontStructMatrix<front>::main() {
 	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-4,0,val1,val2);
 	cmesh.InsertMaterialObject(bnd);
 
-	
-	
+
+
 	cout << "Interpolation order ";
 	cin >> order;
 	cout << endl;
-	
-	TPZCompEl::gOrder = order;
+
+//	TPZCompEl::gOrder = order;
+  cmesh.SetDefaultOrder(order);
 
 	cmesh.AutoBuild();
 //	cmesh.AdjustBoundaryElements();
 	cmesh.InitializeBlock();
 
-	ofstream output("outputPar.dat");	
+	ofstream output("outputPar.dat");
 //	ofstream output2("outputNon.dat");
 	cmesh.Print(output);
 	TPZAnalysis an(&cmesh,output);
@@ -446,7 +447,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	int ic;
 	//cout << "Nmero de Equa�es -> " << cmesh.NEquations() << endl;
 	//cout.flush();
-	
+
 	ofstream out("cmeshBlock_out.txt");
 //	cmesh.Print(out);
 //	cmesh.Block().Print("Block",out);
@@ -471,9 +472,9 @@ int TPZParFrontStructMatrix<front>::main() {
 //	TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym>(cmesh.NEquations());
 	//TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(cmesh.NEquations());
 	//TPZFrontMatrix<TPZStackEqnStorage> *mat = new TPZFrontMatrix<TPZStackEqnStorage>(cmesh.NEquations());
-  
+
      TPZParFrontStructMatrix<TPZFrontSym> mat(&cmesh);
-     
+
 //   TPZFStructMatrix mat2(&cmesh);
 //  mat->SetNumElConnected(numelconnected);
 	//mat = CreateAssemble();
@@ -481,21 +482,21 @@ int TPZParFrontStructMatrix<front>::main() {
 	cout << "Number of Threads  ";
 	cin >> threads;
 	cout << endl;
-		
+
 	mat.SetNumberOfThreads(threads);
-     //mat.SetNumberOfThreads(1);	
-	
-	an.SetStructuralMatrix(mat);      
+     //mat.SetNumberOfThreads(1);
+
+	an.SetStructuralMatrix(mat);
 //	an2.SetStructuralMatrix(mat2);
-	
+
 	TPZStepSolver sol;
 //	sol.SetDirect(ELU);
 	sol.SetDirect(ECholesky);
 //	TPZStepSolver sol2;
 //	sol2.SetDirect(ECholesky);
 //	sol.SetDirect(ELU);
-	
-	
+
+
 	an.SetSolver(sol);
 //     an2.SetSolver(sol2);
 //	mat->SetNumElConnected(numelconnected);
@@ -509,7 +510,7 @@ int TPZParFrontStructMatrix<front>::main() {
 //	//cout << "******************************************************************************************************AQUI 2" << endl;
 //	an2.Run(output2);
 //	an2.Print("solution of frontal solver", output2);
-/*	
+/*
 	TPZVec<char *> scalnames(1);
 	scalnames[0] = "state";
 
@@ -519,7 +520,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	ofstream *dxout = new ofstream("poisson.dx");
 	graph.SetOutFile(*dxout);
 	graph.SetResolution(0);
-  
+
 	//an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
 	//an.Print("FEM SOLUTION ",output);
 	//an.PostProcess(1);
@@ -527,7 +528,7 @@ int TPZParFrontStructMatrix<front>::main() {
 
 	graph.DrawMesh(numstep+1);
 	graph.DrawSolution(0,0);
-  
+
 	TPZAnalysis an2(&cmesh,output);
 	TPZFMatrix *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
 	an2.SetMatrix(full);
@@ -546,9 +547,9 @@ int TPZParFrontStructMatrix<front>::main() {
 template<class front>
 TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs)
 {
-  
+
 //TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
-     
+
 //TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
   int neq = this->fMesh->NEquations();
   if(this->HasRange())
@@ -560,13 +561,13 @@ TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs)
     this->fMinEq = 0;
     this->fMaxEq = neq;
   }
-     
+
   TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(neq);
   rhs.Redim(neq,1);
 
   Assemble(*mat,rhs);
   return mat;
-          
+
 }
 
 

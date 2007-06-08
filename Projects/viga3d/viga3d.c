@@ -23,13 +23,13 @@ static REAL pi = 3.141592654;
 void Forcing(TPZVec<REAL> &x, TPZVec<REAL> &disp);
 
 int main(int argc, char* argv[]){
-	
+
 	cout << "Exemplo de aplicação de modelagem Tri-dimensional através do DX!\n";
 
 	double coordstore[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};
 	int numel = 10;
 	TPZVec<REAL> coord(3,0.);
-	
+
 	// criar um objeto tipo malha geometrica
 	TPZGeoMesh malha;
 
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]){
 	}
 /*	TPZVec<TPZGeoEl *> sub;
 	gel[1]->Divide(sub);*/
-	
+
 	ofstream output("output3d.dat");
 
 	malha.Print(output);
@@ -72,12 +72,12 @@ int main(int argc, char* argv[]){
 	gel[9]->Divide(sub);
 	// TPZMaterial::gBigNumber = 1.e6;
 
-	TPZGeoElBC t3(gel[0],20,-1,malha); 
-/*	TPZGeoElBC(gel[0],0,-3,malha); 
-	TPZGeoElBC(gel[0],1,-4,malha); 
-	TPZGeoElBC(gel[0],2,-5,malha); 
+	TPZGeoElBC t3(gel[0],20,-1,malha);
+/*	TPZGeoElBC(gel[0],0,-3,malha);
+	TPZGeoElBC(gel[0],1,-4,malha);
+	TPZGeoElBC(gel[0],2,-5,malha);
 */
-	TPZGeoElBC t4(gel[numel-1],25,-2,malha); 
+	TPZGeoElBC t4(gel[numel-1],25,-2,malha);
 	malha.Print(output);
 
 	TPZCompMesh comp(&malha);
@@ -106,7 +106,8 @@ int main(int argc, char* argv[]){
 	bnd = meumat->CreateBC (-5,2,val1,val2);
 	comp.InsertMaterialObject(bnd);
 */
-	TPZCompEl::gOrder = 2;
+//	TPZCompEl::gOrder = 2;
+  cmesh.SetDefaultOrder(2);
 	comp.AutoBuild();
 
 	angle = pi/4.;
@@ -124,7 +125,7 @@ int main(int argc, char* argv[]){
 	ofstream *dxout = new ofstream("output3d4.dx");
 	graph.SetOutFile(*dxout);
 	graph.SetResolution(2);
- 
+
 	graph.DrawMesh(2);
     TPZVec<char *> scalnames(1),vecnames(2);
     scalnames[0] = "VonMises";
@@ -159,7 +160,7 @@ int main(int argc, char* argv[]){
 	//graph.DrawSolution(0,0.,scalnames,vecnames);
 
 
-	return 0;	
+	return 0;
 }
 
 

@@ -133,14 +133,14 @@ ofstream erros("ERROS.out");
 
 int main() {
 
-  
+
 
   //inserindo a ordem de interpola¢ão dos elementos e do espa¢o
   int ord;
   cout << "Entre ordem 1,2,3,4,5 : -> 1";
   //cin >> ord;
   ord = 1; cout << endl;
-  TPZCompEl::gOrder = ord;
+  TPZCompEl::SetgOrder(ord);
 
   //malha geometrica
   TPZGeoMesh *geomesh = new TPZGeoMesh;
@@ -153,7 +153,7 @@ int main() {
   if(0) CriaNos(4, *geomesh, Teste1Nos);
   if(1) CriaNos(5, *geomesh, Teste2Nos);
 
-  //elementos geométricos 
+  //elementos geométricos
   if(0) CriaElementos (4,4,*geomesh, IncidQuads);
   if(0) CriaElementos (4,8,*geomesh, Cubic3d);
   if(0) CriaElementos (1,4,*geomesh, Teste1Elems);
@@ -164,14 +164,14 @@ int main() {
 
   //cria malha computacional
   TPZCompMesh *compmesh = new TPZCompMesh(geomesh);
-   
+
   //cria material do problema
   TPZMaterial *placa = LerMaterial("placa.in",*compmesh);
 
-  //transferindo para o material uma carga conhecida 
+  //transferindo para o material uma carga conhecida
   //placa->SetForcingFunction(LoadSolution);
   (dynamic_cast<TPZPlaca *>(placa))->SetExactFunction(LoadSolution);
-   
+
   //cria condi¢ões de contorno
   if(0) CriaCondContTeste1(*geomesh);
   if(0) CriaCondContTeste2(*geomesh);
@@ -183,7 +183,7 @@ int main() {
 
   //divide níveis
   NivelDivide(compmesh);
-  
+
   //ajusta elementos no contorno
   compmesh->AdjustBoundaryElements();
 
@@ -205,7 +205,7 @@ int main() {
   delete geomesh;
   return 0;
 }
- 
+
 /**
  * --> FIM PROGRAMA PRINCIPAL <-- --> FIM PROGRAMA PRINCIPAL <-- --> FIM PROGRAMA PRINCIPAL <--
  */
@@ -271,7 +271,7 @@ void CriaCondContTeste3(TPZGeoMesh &gmesh){
     cout << "\t\tindice material pedido : " << indicematerial << endl;
     return;
   }
-  
+
   TPZGeoEl *elg0 = gmesh.FindElement(0);
 
   //malha computacional
@@ -301,7 +301,7 @@ void CriaCondContTeste4(TPZGeoMesh &gmesh){
     cout << "\t\tindice material pedido : " << indicematerial << endl;
     return;
   }
-  
+
   TPZGeoEl *elg0 = gmesh.FindElement(0);
   TPZGeoEl *elg1 = gmesh.FindElement(1);
   TPZGeoEl *elg2 = gmesh.FindElement(2);
@@ -314,7 +314,7 @@ void CriaCondContTeste4(TPZGeoMesh &gmesh){
   //REAL big = 1.e12;
   //valor das CC
   TPZFMatrix val1(6,6,0.),val2(6,1,0.);
-  
+
   TPZGeoElBC(elg0,3,-1,gmesh);
   TPZGeoElBC(elg1,3,-1,gmesh);
   TPZGeoElBC(elg2,3,-1,gmesh);
@@ -322,7 +322,7 @@ void CriaCondContTeste4(TPZGeoMesh &gmesh){
   TPZBndCond *bc = placa->CreateBC(-1,0,val1,val2);
   bc->SetForcingFunction(BCSolution);
   cmesh->InsertMaterialObject(bc);
-  
+
 }
 
 void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
@@ -343,7 +343,7 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
 
    //cria objeto solver
    TPZStepSolver solver;
-   
+
    //define a decomposi¢ão LU
    solver.SetDirect(ELDLt);//ECholesky, ELDLt, ELU
 
@@ -374,7 +374,7 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
      //monta a global baseada nas matrizes elementares e o bloco da malha
      cout << "main::ExecutaAnalysis comeca assemble\n";
      an.Assemble();
-     
+
      //resolve o sistema com a matriz cheia e o solver direto com decomposi¢ão LU
      cout << "main::ExecutaAnalysis comeca solve\n";
      an.Solve();
@@ -398,7 +398,7 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
 }
 
 void PosProcessamento(TPZAnalysis &an){
-  
+
   TPZVec<char *> scalar(4);
   scalar[0] = "Deslocz";//var = 4
   scalar[1] = "Mn1";//var = 5
@@ -408,7 +408,7 @@ void PosProcessamento(TPZAnalysis &an){
   TPZMaterial *mat = an.Mesh()->FindMaterial(1);
   int dim = mat->Dimension();
   TPZDXGraphMesh graph(an.Mesh(),dim,mat,scalar,vetorial);
-  ofstream *dxout = new ofstream("PLACA.dx"); //visualiza com o DX 
+  ofstream *dxout = new ofstream("PLACA.dx"); //visualiza com o DX
   cout << "\nmain::PosProcessamento arquivo de saida -> PLACA.dx\n";
   graph.SetOutFile(*dxout);
   graph.SetResolution(0);
@@ -424,7 +424,7 @@ void ProcessamentoLocal(TPZGeoMesh &gmesh,ostream &out) {
   int count = -1;
   while(count++<nel){
     for(int iel=0;iel<nel;iel++) {
-      if(!gmesh.Reference()->ElementVec()[iel]) continue;      
+      if(!gmesh.Reference()->ElementVec()[iel]) continue;
       int elemtype = gmesh.Reference()->ElementVec()[iel]->Type();
       if(elemtype==0 && elemtype==1) continue;
       TPZCompEl *el = gmesh.Reference()->ElementVec()[iel];
@@ -463,7 +463,7 @@ void ProcessamentoLocal(TPZGeoMesh &gmesh,ostream &out) {
 	    if(elemtype==7) elc3d->Reference()->Solution(csi,var,sol);
 	    out << "solucao em x    = " << x[0] << ' ' << x[1] << ' ' << x[2] << endl;
 	    if(sol.NElements()>0)
-	      out << "               u = " << sol[0] << endl;	    
+	      out << "               u = " << sol[0] << endl;
 	  }
 	  in.close();
 	} else {
@@ -522,7 +522,7 @@ REAL SolutionError(TPZCompMesh *cmesh){
     error1 = 0.0,
     error2 = 0.0;
 
-  //erro da aproximacao FEM  
+  //erro da aproximacao FEM
   TPZManVector<REAL> flux(9);
   cmesh->EvaluateError(Solution,Energy_error,error1,error2);
   cout << "\nError Energia    : " << Energy_error << "\n\n";
@@ -699,7 +699,7 @@ void AdaptativeProcedure(REAL error,int numiter,int marcha,int resolution,TPZMat
 
     numeq = cmesh->NEquations();
     cout << "\nmain::AdaptativeProcedure numero de equacoes    : " << numeq;
-    numel = NumElComp(*cmesh);    
+    numel = NumElComp(*cmesh);
     fBegin = clock();
     an.SetBlockNumber();
     an.Solution().Zero();
@@ -714,9 +714,9 @@ void AdaptativeProcedure(REAL error,int numiter,int marcha,int resolution,TPZMat
     refined = AdaptiveMesh(*cmesh,tol,iter);
     CoutTime(fBegin,"TPZIterativeAnalysis::AdaptativeProcedure End adaptative procedure");
     cout << "TPZIterativeAnalysis::AdaptativeProcedure iteracao = " << ++iter << endl;
-    
+
   }
-  
+
   if( normsol > tolmax ){
     cout << "\nTPZIterativeAnalysis::AdaptativeProcedure the iterative process stopped due the great norm "
 	 << "of the solution, norm solution = " << normsol << endl;

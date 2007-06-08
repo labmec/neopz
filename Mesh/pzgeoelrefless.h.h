@@ -1,7 +1,7 @@
 //
 // C++ Interface: pzgeoelrefless
 //
-// Description: 
+// Description:
 //
 //
 // Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
@@ -441,27 +441,44 @@ template<class TGeo>
 
 
 template<class TGeo>
-TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZGeoMesh &DestMesh,
-                                              const TPZGeoElRefLess &cp,
-                                              std::map<int,int> & gl2lcNdMap,
-                                              std::map<int,int> & gl2lcElMap ) :
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess( TPZGeoMesh &DestMesh,
+                                        const TPZGeoElRefLess &cp,
+                                        std::map<int,int> & gl2lcNdMap,
+                                        std::map<int,int> & gl2lcElMap ) :
     TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
 {
   int i;
   const int n = TGeo::NSides;
+// #ifdef DEBUG2
+//   std::stringstream sout;
+//   sout << __PRETTY_FUNCTION__ << " for element " << Index() << std::endl;
+// #endif
+
   for(i = 0; i < n; i++)
   {
     TPZGeoElSide neigh (cp.fNeighbours[i],cp.Mesh());
     int neighIdx = neigh.Element()->Index();
     int side = neigh.Side();
+/*#ifdef DEBUG2
+    sout << "neighbour data = " << neighIdx << " / " << side << std::endl;
+#endif*/
     while (gl2lcElMap.find(neighIdx)==gl2lcElMap.end())
     {
       neigh = neigh.Neighbour();
       neighIdx = neigh.Element()->Index();
       side = neigh.Side();
+/*#ifdef DEBUG2
+      sout << "\t\tnot neighbour = " << neighIdx << " / " << side << std::endl;
+#endif*/
     }
     this->fNeighbours[i] = TPZGeoElSideIndex ( gl2lcElMap [ neighIdx ] , side );
+/*#ifdef DEBUG2
+    sout << "defining neighbour = " << i << " = " << gl2lcElMap [ neighIdx ] << " / " << side << std::endl;
+#endif*/
   }
+/*#ifdef DEBUG2
+    LOGPZ_DEBUG( logger, sout.str().c_str() );
+#endif*/
 }
 
 

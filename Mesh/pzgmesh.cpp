@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.39 2007-05-11 13:35:44 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.40 2007-06-08 00:02:28 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -1106,6 +1106,14 @@ template class TPZRestoreClass<TPZGeoMesh,TPZGEOMESHID>;
 void TPZGeoMesh::Read(TPZStream &buf, void *context)
 {
   TPZSaveable::Read(buf,context);
+  int classid;
+  buf.Read(&classid,1);
+
+  if (classid != ClassId() )
+  {
+    std::cout << "ERROR RESTORING GEOMETRIC MESH!!\n";
+  }
+
   buf.Read(&fName,1);
   ReadObjects(buf,fNodeVec,this);
   ReadObjectPointers(buf,fElementVec,this);
@@ -1119,12 +1127,11 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
     buf.Read(vals,3);
     fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
   }
-
-  //Reading TPZRefPattern's
+   //Reading TPZRefPattern's
   this->fRefPatterns.clear();
   int bigmapsize, iRef;
   buf.Read(&bigmapsize, 1);
-  for(iRef = 0; iRef < bigmapsize; iRef++){
+   for(iRef = 0; iRef < bigmapsize; iRef++){
     int intElementType;
     buf.Read(&intElementType, 1);
     MElementType MElType = static_cast<MElementType>(intElementType);
@@ -1142,6 +1149,8 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 {
   TPZSaveable::Write(buf,withclassid);
+  int classid = ClassId();
+  buf.Write(&classid,1);
   buf.Write(&fName,1);
   WriteObjects(buf,fNodeVec);
   WriteObjectPointers(buf,fElementVec);

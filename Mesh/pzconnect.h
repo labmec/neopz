@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.12 2007-05-31 13:45:53 cesar Exp $
+//$Id: pzconnect.h,v 1.13 2007-06-08 00:02:28 cesar Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -104,7 +104,7 @@ class TPZConnect {
   /**
    * Access function to return the order associated with the connect
    */
-  int Order() {
+  int Order() const {
     return fOrder;
   }
 

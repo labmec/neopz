@@ -234,7 +234,8 @@ int main() {
    int ord;
    cout << "Entre ordem 1,2,3,4,5 : ";
    cin >> ord;
-   TPZCompEl::gOrder = ord;
+//   TPZCompEl::gOrder = ord;
+   firstmesh.SetDefaultOrder(order);
    //construção malha computacional
    TPZVec<int> csub(0);
    TPZManVector<TPZGeoEl *> pv(4);
@@ -382,7 +383,7 @@ TESTE 1 TESTE 1 TESTE 1 TESTE 1 TESTE 1 TESTE 1 TESTE 1
    val1(5,5)=big;
 	TPZGeoElBC(elg0,7,-4,*firstmesh);
    bc = pl->CreateBC(-4,2,val1,val2);
-   secondmesh->InsertMaterialObject(bc);   
+   secondmesh->InsertMaterialObject(bc);
 */
 /*
    //redistribuicao de ordem aos lados do elemento

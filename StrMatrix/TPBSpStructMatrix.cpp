@@ -23,32 +23,32 @@
 using namespace std;
 
 int TPBSpStructMatrix::main() {
-     
+
      int refine=5;
-     int order=5;             
-     
+     int order=5;
+
      TPZGeoMesh gmesh;
      TPZCompMesh cmesh(&gmesh);
      double coordstore[4][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},
 				{0.,1.,0.}};
-     
+
      int i,j;
-     TPZVec<REAL> coord(3,0.); 
+     TPZVec<REAL> coord(3,0.);
      for(i=0; i<4; i++) {
        // initializar as coordenadas do no em um vetor
        for (j=0; j<3; j++) coord[j] = coordstore[i][j];
-       
+
        // identificar um espa� no vetor onde podemos armazenar
        // este vetor
        gmesh.NodeVec ().AllocateNewElement ();
-       
+
        // initializar os dados do n�
        gmesh.NodeVec ()[i].Initialize (i,coord,gmesh);
      }
      int el;
      TPZGeoEl *gel;
      for(el=0; el<1; el++) {
-       
+
        // initializar os indices dos n�
        TPZVec<int> indices(4);
        for(i=0; i<4; i++) indices[i] = i;
@@ -57,18 +57,18 @@ int TPBSpStructMatrix::main() {
        gel = gmesh.CreateGeoElement(EQuadrilateral, indices,1,index);
      }
      gmesh.BuildConnectivity ();
-     
+
      TPZVec<TPZGeoEl *> subel;
      //gel->Divide(subel);
-     
-     
-     
+
+
+
      cout << "Refinement ";
      cin >> refine;
-     cout << endl; 
-	
+     cout << endl;
+
      UniformRefine(refine,gmesh);
-	
+
 
      TPZGeoElBC gelbc(gel,4,-4,gmesh);
      TPZMat2dLin *meumat = new TPZMat2dLin(1);
@@ -79,22 +79,23 @@ int TPBSpStructMatrix::main() {
 
      TPZFMatrix val1(1,1,0.),val2(1,1,0.);
      TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumatptr,-4,0,val1,val2);
-     
+
      cmesh.InsertMaterialObject(bnd);
 
-	
-	
+
+
      cout << "Interpolation order ";
      cin >> order;
      cout << endl;
-	
-     TPZCompEl::gOrder = order;
+
+//     TPZCompEl::gOrder = order;
+     cmesh.SetDefaultOrder(order);
 
      cmesh.AutoBuild();
      //	cmesh.AdjustBoundaryElements();
      cmesh.InitializeBlock();
 
-     ofstream output("outputPar.dat");	
+     ofstream output("outputPar.dat");
      //	ofstream output2("outputNon.dat");
      //cmesh.Print(output);
      TPZAnalysis an(&cmesh,output);
@@ -104,7 +105,7 @@ int TPBSpStructMatrix::main() {
      int ic;
      //cout << "Nmero de Equa�es -> " << cmesh.NEquations() << endl;
      //cout.flush();
-	
+
      ofstream out("cmeshBlock_out.txt");
      //	cmesh.Print(out);
      //	cmesh.Block().Print("Block",out);
@@ -129,33 +130,33 @@ int TPBSpStructMatrix::main() {
      //	TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym>(cmesh.NEquations());
      //TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(cmesh.NEquations());
      //TPZFrontMatrix<TPZStackEqnStorage> *mat = new TPZFrontMatrix<TPZStackEqnStorage>(cmesh.NEquations());
-  
+
      //TPZParFrontStructMatrix<TPZFrontSym> mat(&cmesh);
      TPBSpStructMatrix mat(&cmesh);
-     
+
      //   TPZFStructMatrix mat2(&cmesh);
      //  mat->SetNumElConnected(numelconnected);
      //mat = CreateAssemble();
-     
+
      //int threads=3;
      //cout << "Number of Threads  ";
      //cin >> threads;
      //cout << endl;
-		
+
      //mat.SetNumberOfThreads(threads);
-     //mat.SetNumberOfThreads(1);	
-	
-     an.SetStructuralMatrix(mat);      
+     //mat.SetNumberOfThreads(1);
+
+     an.SetStructuralMatrix(mat);
      //	an2.SetStructuralMatrix(mat2);
-	
+
      TPZStepSolver sol;
      //	sol.SetDirect(ELU);
      sol.SetDirect(ECholesky);
      //	TPZStepSolver sol2;
      //	sol2.SetDirect(ECholesky);
      //	sol.SetDirect(ELU);
-	
-	
+
+
      an.SetSolver(sol);
      //     an2.SetSolver(sol2);
      //	mat->SetNumElConnected(numelconnected);
@@ -169,7 +170,7 @@ int TPBSpStructMatrix::main() {
      //	//cout << "******************************************************************************************************AQUI 2" << endl;
      //	an2.Run(output2);
      //	an2.Print("solution of frontal solver", output2);
-     /*	
+     /*
        TPZVec<char *> scalnames(1);
        scalnames[0] = "state";
 
@@ -179,7 +180,7 @@ int TPBSpStructMatrix::main() {
        ofstream *dxout = new ofstream("poisson.dx");
        graph.SetOutFile(*dxout);
        graph.SetResolution(0);
-  
+
        //an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
        //an.Print("FEM SOLUTION ",output);
        //an.PostProcess(1);
@@ -187,7 +188,7 @@ int TPBSpStructMatrix::main() {
 
        graph.DrawMesh(numstep+1);
        graph.DrawSolution(0,0);
-  
+
        TPZAnalysis an2(&cmesh,output);
        TPZFMatrix *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
        an2.SetMatrix(full);
@@ -197,7 +198,7 @@ int TPBSpStructMatrix::main() {
 
        //	full->Print("full decomposed matrix");
        */
-     output.flush();                                        
+     output.flush();
      cout.flush();
      return 0;
 
@@ -234,8 +235,8 @@ TPZMatrix * TPBSpStructMatrix::Create(){
 
     /**Rearange elements order*/
 //    TPZVec<int> elorder(fMesh->NEquations(),0);
-  
-  
+
+
     /**
      *Longhin implementation
     */
@@ -246,7 +247,7 @@ TPZMatrix * TPBSpStructMatrix::Create(){
     /**Creates a element graph*/
     TPZMetis metis(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
     metis.SetElementGraph(elgraph,elgraphindex);
-  
+
     TPZVec<int> nodegraph;
     TPZVec<int> nodegraphindex;
     /**
@@ -277,7 +278,7 @@ TPZMatrix * TPBSpStructMatrix::Create(){
         totalvar += iblsize*colsize;
       }
     }
-  
+
     int ieq = 0;
     int pos = 0;
 

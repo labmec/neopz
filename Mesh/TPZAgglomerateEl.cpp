@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.43 2007-05-16 22:17:53 phil Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.44 2007-06-08 00:02:28 cesar Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -28,11 +28,11 @@
 
 using namespace std;
 
-TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh) : 
+TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh) :
   TPZCompElDisc(aggcmesh,index) {
 
-  /** 
-   * o algomerado aponta para nulo mas o elemento computacional 
+  /**
+   * o algomerado aponta para nulo mas o elemento computacional
    * que ele agrupa aponta para o geom�rico original
    * a copia do material na nova malha (malha aglomerada) neste
    * ponto j�devia existir
@@ -40,7 +40,7 @@ TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &
   fMotherMesh = finemesh;
 
   //<!> Initialized as bignumber because I expect the radius will be lesser than that.
-  fInnerRadius = TPZMaterial::gBigNumber; 
+  fInnerRadius = TPZMaterial::gBigNumber;
 
   //<!>It is set up as zero. It must be initialized after.
   fNFaces = 0;
@@ -148,13 +148,13 @@ void TPZAgglomerateElement::CenterPoint(){
 }
 
 void TPZAgglomerateElement::CenterPoint(TPZVec<REAL> &center){
-  for(int i = 0; i < 3; i++) 
+  for(int i = 0; i < 3; i++)
     center[i] = fCenterPoint[i];
 }
 
 REAL TPZAgglomerateElement::VolumeOfEl(){
 
-  /** 
+  /**
    * um elemento aglomerado �formado de grupos de sub-elementos aglomerados
    * ou de sub-elementos descont�uos n� aglomerados
    */
@@ -198,7 +198,7 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
   ef.fMat.Redim(numeq,1);
   if(ncon){//pode ser no m�imo ncon = 1
     ek.fBlock.SetNBlocks(ncon);
-    ef.fBlock.SetNBlocks(ncon); 
+    ef.fBlock.SetNBlocks(ncon);
     ek.fBlock.Set(0,NShapeF()*nstate);
     ef.fBlock.Set(0,NShapeF()*nstate);
   }
@@ -269,7 +269,7 @@ REAL TPZAgglomerateElement::NormalizeConst(){
     maxsub = cel->NormalizeConst();
     if(maxall < maxsub) maxall = maxsub;
   }
-  return maxall;  
+  return maxall;
 }
 
 
@@ -353,7 +353,7 @@ int TPZAgglomerateElement::NSides(){
 }
 
 void TPZAgglomerateElement::ListOfDiscEl(TPZStack<TPZCompEl *> &elvec){
-  //agrupa na lista todos os elementos discontinuos 
+  //agrupa na lista todos os elementos discontinuos
   //agrupados no elemento aglomerado atual
   int indsize = NIndexes(),i;
   for(i=0;i<indsize;i++){
@@ -372,7 +372,7 @@ void TPZAgglomerateElement::ListOfDiscEl(TPZStack<TPZCompEl *> &elvec){
 
 //#warning "TPZAgglomerateElement::IndexesDiscSubEls is inconsistent"
 void TPZAgglomerateElement::IndexesDiscSubEls(TPZStack<int> &elvec){
-  //agrupa na lista todos os indexes dos elementos discontinuos 
+  //agrupa na lista todos os indexes dos elementos discontinuos
   //agrupados no elemento aglomerado atual
   int indsize = NIndexes(),i;
   for(i=0;i<indsize;i++){
@@ -440,7 +440,7 @@ TPZGeoEl *TPZAgglomerateElement::CalculateReference(){
   int size = elvec.NElements(),i,nlevels = 1;
   TPZGeoEl *ref0 = elvec[0]->Reference();
   if(size == 1) return ref0;
-  
+
   TPZGeoEl *fat = FatherN(ref0,nlevels);
   while(fat){
     for(i=1;i<size;i++){
@@ -553,7 +553,7 @@ void TPZAgglomerateElement::ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &a
         list[i] = list[j];
         list[j] = aux;
       }
-    }    
+    }
   }
   //conta o nmero de elementos obtidos por aglomera�
   numaggl = 0;
@@ -592,7 +592,7 @@ void TPZAgglomerateElement::ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &a
 }
 
 void TPZAgglomerateElement::Print(TPZStack<int> &listindex){
-  
+
   cout << "TPZAgglomerateElement::Print agrupamento de indexes: saida AGRUPAMENTO.out\n";
   ofstream out("AGRUPAMENTO.out");
   int size = listindex.NElements(),i,father = 0;
@@ -644,7 +644,7 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix &projectsol){
   int size = NIndexes(),i;
   int mindegree = 1000,coarsedeg = Degree(),maxdegree = 0;
   for(i=0;i<size;i++){
-    TPZCompElDisc *disc = 
+    TPZCompElDisc *disc =
 //      dynamic_cast<TPZCompElDisc *>(FineElement(i));
       dynamic_cast<TPZCompElDisc *>(SubElement(i));
     int degree = disc->Degree();
@@ -660,7 +660,7 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix &projectsol){
   }
   //para integrar uh * fi sobre cada o sub-elemento:
   //fi base do grande, uh solu�o sobre os pequenos
-//   TPZIntPoints *intrule = 
+//   TPZIntPoints *intrule =
 //     ref->CreateSideIntegrationRule(ref->NSides()-1,maxdegree + coarsedeg);
   //eventualmente pode criar uma regra para cada sub-elemento dentro do la�
   //de integra�o para reduzir o nmero de pontos caso os grus s� distintos
@@ -954,7 +954,7 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 
       LeftEl->CenterPoint(LeftCenter);
       RightEl->CenterPoint(RightCenter);
-      
+
 
       REAL LeftDistance = -1., RightDistance = -1.;
       int nsides = interface->Reference()->NSides();
@@ -995,7 +995,7 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 	    RightAgg->SetInnerRadius(RightDistance);
 	 RightAgg->SetNInterfaces(RightAgg->NInterfaces() + 1);
       }
-      
+
 
     }//end of if
 
@@ -1021,7 +1021,7 @@ void TPZAgglomerateElement::ComputeNeighbours(TPZCompMesh *mesh, map<TPZCompElDi
     }
   }
 }
-    
+
   /**
   * returns the unique identifier for reading/writing objects to streams
   */
@@ -1030,7 +1030,7 @@ int TPZAgglomerateElement::ClassId() const
   return TPZAGGLOMERATEELID;
 }
 
-template class 
+template class
     TPZRestoreClass< TPZAgglomerateElement, TPZAGGLOMERATEELID>;
 
   /**
@@ -1048,7 +1048,7 @@ template class
   buf.Write(&fInnerRadius,1);
   buf.Write(&fNFaces,1);
  }
-  
+
   /**
   Read the element data from a stream
   */

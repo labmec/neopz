@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.15 2007-05-01 03:56:38 phil Exp $
+//$Id: pzsubcmesh.h,v 1.16 2007-06-08 00:02:28 cesar Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -167,7 +167,7 @@ public:
    * @param local connection local number to be processed
    */
   virtual void MakeInternal(int local);
-  
+
 private:
   /**
    * Transfer the dependency list of a connect. This will
@@ -175,8 +175,8 @@ private:
    * It is necessary that the number of elements connected to the connect be equal one
    */
   void TransferDependencies(int local);
-  
-public:  
+
+public:
   /// puts the nodes which can be transferred in an ordered list
   void PotentialInternal(std::list<int> &connectindices);
 
@@ -219,7 +219,7 @@ public:
    * void TPZSubCompMesh::PermuteExternalNodes(){
    */
   void PermuteExternalConnects();
-  
+
   /**
    * Permute the potentially internal connects to the first on the list
    * Respect the previous order of the connects
@@ -269,12 +269,12 @@ public:
   //    /**
   //     * Returns the connection index i.
   //     */
-	virtual int ConnectIndex(int i);
+	virtual int ConnectIndex(int i) const;
 
   //    /**
   //     * Returns the number of connections.
   //     */
-	virtual int NConnects();
+	virtual int NConnects() const;
 
   //  /**
   //     * Load the father mesh solution to all submesh connects -

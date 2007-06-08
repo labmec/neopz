@@ -104,11 +104,12 @@ int main() {
    int ord;
    cout << "Entre ordem 1,2,3,4,5 : ";
    cin >> ord;
-   TPZCompEl::gOrder = ord;
+//   TPZCompEl::gOrder = ord;
+   cmesh.SetDefaultOrder(ord);
    //constroe a malha computacional
    secondmesh->AutoBuild();
    secondmesh->Print(outcm1);
-   outcm1.flush();   
+   outcm1.flush();
    secondmesh->InitializeBlock();
    secondmesh->ComputeConnectSequence();
 	//Resolucao do sistema

@@ -31,7 +31,7 @@
 #include "pzanalysis.h"
 #include "pzfstrmatrix.h"
 #include "pzskylstrmatrix.h"
-#include "pzstepsolver.h"    		
+#include "pzstepsolver.h"
 #include "pzadaptmesh.h"
 #include "pzonedref.h"
 
@@ -93,7 +93,7 @@ int main(){
   int dim = 0;
   int opt = 0;
 
-  TPZCompEl::gOrder = mygorder;
+  TPZCompEl::SetgOrder(mygorder);
   gDebug = 0;
 
   TPZCompMesh *cmesh = ReadCase(nref,dim,opt);
@@ -133,7 +133,7 @@ int main(){
   ofstream out("output.txt");
 
   //Multigrid======================
-  
+
 //   TPZMGAnalysis mgan (cmesh);
 //   mgan.SetStructuralMatrix(strskyl);
 //   TPZStepSolver *direct = new TPZStepSolver;
@@ -142,7 +142,7 @@ int main(){
 //   delete direct;
 //   direct = 0;
 //   mgan.Run();
-//   TPZCompMesh *finemesh = cmesh;      
+//   TPZCompMesh *finemesh = cmesh;
   // ===================================
 
   {
@@ -184,8 +184,8 @@ int main(){
       an.Run();
       //an.Rhs().Print();
       //an.Solution().Print();
-      
-      if (r==nref -1) 
+
+      if (r==nref -1)
 	an.PostProcess(0,dim);
 
       REAL valerror =0.;
@@ -236,19 +236,19 @@ int main(){
 
       time_t endtime;
       time (& endtime);
-      
+
       int time_elapsed = endtime - sttime;
-      cout << "\n\n\n\nExiting Auto Adaptive Methods....step " << r 
+      cout << "\n\n\n\nExiting Auto Adaptive Methods....step " << r
 	   << "time elapsed " << time_elapsed << "\n\n\n\n";
 
       int prt;
-      cout << "neq = " << cmesh->NEquations() << " erestimate = " << valerror 
+      cout << "neq = " << cmesh->NEquations() << " erestimate = " << valerror
 	   << " true " << valtruerror <<  " effect " << valerror/valtruerror << endl;
 
 
-      convergence  << cmesh->NEquations() << "\t" 
-		   << valerror << "\t" 
-		   << valtruerror << "\t" 
+      convergence  << cmesh->NEquations() << "\t"
+		   << valerror << "\t"
+		   << valtruerror << "\t"
 		   << ( valtruerror / valerror ) <<  "\t"
 		   << sttime <<endl;
       for (prt=0;prt<ervec.NElements();prt++){
@@ -272,7 +272,7 @@ int main(){
       cmesh->CleanUpUnconnectedNodes();
       //adptmesh->Print(out);
       //adptmesh->Print(MALHAG);//CEDRIC
-      
+
       /*   if (r == (nref-1)){ */
       /*        an.PostProcess(2,2); */
       /*        cout << "The maximum level = " << MaxLevel(cmesh) << endl; */
@@ -382,16 +382,16 @@ TPZCompMesh *ReadCase(int &nref, int &dim, int &opt){
 //*******L Shape Quadrilateral*********
 //*************************************
 TPZCompMesh *CreateSillyMesh(){
-  
+
   //malha quadrada de nr x nc
   const	int numrel = 1;
   const	int numcel = 1;
   //  int numel = numrel*numcel;
   TPZVec<REAL> coord(2,0.);
-  
+
   // criar um objeto tipo malha geometrica
   TPZGeoMesh *geomesh = new TPZGeoMesh();
-  
+
   // criar nos
   int i,j;
   for(i=0; i<(numrel+1); i++) {
@@ -408,7 +408,7 @@ TPZCompMesh *CreateSillyMesh(){
   int elc, elr;
   TPZGeoEl *gel[numrel*numcel];
   TPZVec<int> indices(4);
-  for(elr=0; elr<numrel; elr++) {  
+  for(elr=0; elr<numrel; elr++) {
     for(elc=0; elc<numcel; elc++) {
       indices[0] = (numcel+1)*elr+elc;
       indices[1] = indices[0]+1;
@@ -420,9 +420,9 @@ TPZCompMesh *CreateSillyMesh(){
       gel[elr*numcel+elc] = geomesh->CreateGeoElement(EQuadrilateral,indices,1,index);
     }
   }
- 
+
   // Descomentar o trecho abaixo para habilitar a
-  // divisão dos elementos geométricos criados 
+  // divisão dos elementos geométricos criados
   /*
   geomesh->BuildConnectivity2();
   geomesh->Print(cout);
@@ -435,10 +435,10 @@ TPZCompMesh *CreateSillyMesh(){
     sub[i]->Divide(subsub);
   }
   */
-  
+
   // Criação das condições de contorno geométricas
   TPZGeoElBC t3(gel[0],4,-1,*geomesh);
-  TPZGeoElBC t4(gel[0],6,-2,*geomesh); 
+  TPZGeoElBC t4(gel[0],6,-2,*geomesh);
   geomesh->BuildConnectivity2();
   //geomesh->Print(cout);
 
@@ -448,7 +448,7 @@ TPZCompMesh *CreateSillyMesh(){
   // Criar e inserir os materiais na malha
   TPZMaterial *mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
   comp->InsertMaterialObject(mat);
- 
+
   TPZMaterial *meumat = mat;
 
   // Condições de contorno
@@ -466,7 +466,7 @@ TPZCompMesh *CreateSillyMesh(){
   val2(0,0)=1.;
   bnd = meumat->CreateBC (-2,1,val1,val2);
   comp->InsertMaterialObject(bnd);
-  
+
   // comp->Print(cout);
 
   // Ajuste da estrutura de dados computacional
@@ -525,40 +525,40 @@ TPZCompMesh *CreateMesh() {
     int index;
     elvec[el] = gmesh->CreateGeoElement(EQuadrilateral,nodind,1,index);
   }
-  
+
   gmesh->BuildConnectivity2();
-  
+
   TPZVec<TPZGeoEl *> sub;
  // elvec[0]->Divide(sub);
 //  elvec[1]->Divide(sub);
 //  elvec[2]->Divide(sub);
-  
+
   TPZGeoElBC gbc;
-  
+
   // bc -1 -> Dirichlet
   TPZGeoElBC gbc1(elvec[0],4,-1,*gmesh);
   // bc -2 -> Neumann at the bottom y==-1
   TPZGeoElBC gbc2(elvec[0],5,-2,*gmesh);
   // bc -3 -> Neumann at the right x==1
   TPZGeoElBC gbc3(elvec[0],6,-3,*gmesh);
-  
+
   // bc -3 -> Neumann at the right x==1
   TPZGeoElBC gbc4(elvec[1],5,-3,*gmesh);
-  
+
   // bc -4 -> Neumann at the top y==1
   TPZGeoElBC gbc5(elvec[1],6,-4,*gmesh);
-  
+
   // bc -4 -> Neumann at the top y==1
   TPZGeoElBC gbc6(elvec[2],5,-4,*gmesh);
-  
+
   // bc -5 -> Neumann at the left x==-1
   TPZGeoElBC gbc7(elvec[2],6,-5,*gmesh);
-  
+
   // bc -6 -> Homogeneous Neumann
   TPZGeoElBC gbc8(elvec[2],7,-6,*gmesh);
-  
+
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-  
+
   TPZMaterial *mat;
   if(nstate == 2) {
     mat = new TPZElasticityMaterial(1,2.,0.3,1.,1.);
@@ -592,15 +592,15 @@ TPZCompMesh *CreateMesh() {
       bc[i] = mat->CreateBC(-i-1,0,val1,val2);
     }
   }
-  
+
   cmesh->InsertMaterialObject(mat);
   for(i=0; i<6; i++) cmesh->InsertMaterialObject(bc[i]);
-  
+
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
   //  cmesh->ExpandSolution();
-  
+
   return cmesh;
 }
 
@@ -613,13 +613,13 @@ TPZCompMesh *CreateTriangularMesh(){
 
   const int nelem = 1;
   const int nnode = 3;
-  
+
   REAL co[nnode][3] = {{0.,0.,0.},{1.,0.,0.},{0.,1.,0.}};
   int indices[nelem][nnode] = {{0,1,2}};
-  
+
   TPZGeoEl *elvec[nelem];
   TPZGeoMesh *gmesh = new TPZGeoMesh();
-  
+
   int nod;
   for(nod=0; nod<nnode; nod++) {
     int nodind = gmesh->NodeVec().AllocateNewElement();
@@ -638,25 +638,25 @@ TPZCompMesh *CreateTriangularMesh(){
     int index;
     elvec[el] = gmesh->CreateGeoElement(ETriangle,nodind,1,index);
   }
-  
+
   gmesh->BuildConnectivity2();
   //  TPZStack<TPZGeoEl*> subel;
   //  elvec[0]->Divide(subel);
-  
+
   TPZGeoElBC gbc;
-  
+
   // bc -1 -> Dirichlet
   TPZGeoElBC gbc1(elvec[0],3,-1,*gmesh);
 
   // bc -2 -> Neumann at the right x==1
   TPZGeoElBC gbc2(elvec[0],5,-2,*gmesh);
-  
+
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-  
+
  // inserir os materiais
  TPZMaterial *mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
  cmesh->InsertMaterialObject(mat);
- 
+
  TPZMaterial *meumat = mat;
 
  // inserir a condicao de contorno
@@ -673,7 +673,7 @@ TPZCompMesh *CreateTriangularMesh(){
  cmesh->AutoBuild();
  cmesh->AdjustBoundaryElements();
  cmesh->CleanUpUnconnectedNodes();
-  
+
  return cmesh;
 }
 
@@ -683,7 +683,7 @@ TPZCompMesh *CreateTriangularMesh(){
 //*****Plane Quad & Triang Mesh********
 //*************************************
 TPZCompMesh *CreatePlanMesh() {
-  
+
   REAL co[5][2] = {
     {0.,0.},
     {1.,0.},
@@ -696,10 +696,10 @@ TPZCompMesh *CreatePlanMesh() {
     {0,1,4,3},
     {1,2,4,-1}
   };
-  
+
   TPZGeoEl *elvec[2];
   TPZGeoMesh *gmesh = new TPZGeoMesh();
-  
+
   int nnode = 5;
   int nelem = 2;
 
@@ -729,7 +729,7 @@ TPZCompMesh *CreatePlanMesh() {
   }
 
   gmesh->BuildConnectivity2();
-  
+
   // bc -1 -> Dirichlet
   TPZGeoElBC gbc1(elvec[0],4,-1,*gmesh);
   TPZGeoElBC gbc2(elvec[1],3,-2,*gmesh);
@@ -746,7 +746,7 @@ TPZCompMesh *CreatePlanMesh() {
   // Criar e inserir os materiais na malha
   TPZMaterial *mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
   cmesh->InsertMaterialObject(mat);
- 
+
   TPZMaterial *meumat = mat;
 
   // Condições de contorno
@@ -767,7 +767,7 @@ TPZCompMesh *CreatePlanMesh() {
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
   //cmesh->ExpandSolution();
-  
+
   //cmesh->Print(cout);
   return cmesh;
 }
@@ -869,7 +869,7 @@ TPZCompMesh *CreateSimple3DMesh() {
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
   //cmesh->ExpandSolution();
-  
+
   return cmesh;
 }
 
@@ -890,7 +890,7 @@ TPZCompMesh *Create3DMesh() {
     {0.,1.,2.},{1.,1.,2.},{2.,1.,2.},
     {0.,2.,2.},{1.,2.,2.}
   };
-  
+
   int indices[7][8] = {
     {0,1,4,3,9,10,13,12},
     {1,2,5,4,10,11,14,13},
@@ -900,7 +900,7 @@ TPZCompMesh *Create3DMesh() {
     {10,11,14,13,19,20,23,22},
     {12,13,16,15,21,22,25,24}
   };
-  
+
   const int nelem = 7;
   int nnode = 26;
 
@@ -927,19 +927,19 @@ TPZCompMesh *Create3DMesh() {
   }
 
   gmesh->BuildConnectivity2();
-	
+
   //  	TPZVec<TPZGeoEl *> sub;
   //   	elvec[0]->Divide(sub);
   //   	elvec[1]->Divide(sub);
   //   	elvec[2]->Divide(sub);
-  
+
   TPZGeoElBC gbc;
 
   // bc -1 -> Dirichlet
   TPZGeoElBC gbc1(elvec[0],21,-1,*gmesh);
-  
+
   TPZGeoElBC gbc2(elvec[0],22,-1,*gmesh);
-  
+
   TPZGeoElBC gbc3(elvec[0],25,-1,*gmesh);
 
   // bc -3 -> Neumann at the right x==1
@@ -981,7 +981,7 @@ TPZCompMesh *Create3DMesh() {
   val2(1,0)=0.;
   val2(0,0)=-1.;
   bc[3] = mat->CreateBC(-4,1,val1,val2);
-   
+
   cmesh->InsertMaterialObject(mat);
   for(i=0; i<4; i++) cmesh->InsertMaterialObject(bc[i]);
 
@@ -989,7 +989,7 @@ TPZCompMesh *Create3DMesh() {
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
   //cmesh->ExpandSolution();
-  
+
   return cmesh;
 }
 
@@ -1005,7 +1005,7 @@ TPZCompMesh *Create3DTetraMesh() {
     {0.,1.,0.},
     {0.,0.,1.}
   };
-  
+
   int indices[1][4] = {{0,1,2,3}};
   const int nelem = 1;
   int nnode = 4;
@@ -1383,7 +1383,7 @@ void Exact3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
   	REAL theta = atan2(x[1],x[0]);
   	REAL rexp = pow(r,onethird);
   	sol[0] = rexp*sin(onethird*(theta+PI/2));
-  	dsol(0,0) = onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp); 
+  	dsol(0,0) = onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp);
   	dsol(1,0) = onethird*cos(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 
@@ -1396,14 +1396,14 @@ void ExactSimple3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
 }
 
 void Exact3DExp(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
-  
+
   sol[0] = pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*x[0]*(1 - x[1])*x[1]*x[2];
-  dsol(0,0) = pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*(1 - x[1])*x[1]*x[2] - 
-    pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*x[0]*(1 - x[1])*x[1]*x[2] - 
+  dsol(0,0) = pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*(1 - x[1])*x[1]*x[2] -
+    pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*x[0]*(1 - x[1])*x[1]*x[2] -
     (2*pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*(-0.5 + x[0])*x[0]*
      (1 - x[1])*x[1]*x[2])/pow(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2),2);
-  dsol(1,0) = pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*x[0]*(1 - x[1])*x[2] - 
-   pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*x[0]*x[1]*x[2] - 
+  dsol(1,0) = pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*x[0]*(1 - x[1])*x[2] -
+   pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*x[0]*x[1]*x[2] -
    (2*pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*x[0]*(1 - x[1])*
       (-0.5 + x[1])*x[1]*x[2])/pow(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2),2);
   dsol(2,0) = pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*x[0]*(1 - x[1])*x[1];
@@ -1425,7 +1425,7 @@ void Neumann3(TPZVec<REAL> &x, TPZVec<REAL> &f) {
   	REAL r = sqrt(x[0]*x[0]+x[1]*x[1]);
   	REAL theta = atan2(x[1],x[0]);
   	REAL rexp = pow(r,onethird);
-  	f[0] = onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp); 
+  	f[0] = onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 
 
@@ -1553,7 +1553,7 @@ TPZCompMesh *ReadKumar(char *filename) {
 //**********Aleatorio Mesh**************
 //*************************************
 TPZCompMesh *CreateAleatorioMesh() {
-  
+
   REAL co[6][3] = {
     {0.,0.,0.},
     {1.,0.,0.},
@@ -1562,7 +1562,7 @@ TPZCompMesh *CreateAleatorioMesh() {
     {1.,0.,1.},
     {0.,1.,1.}
   };
-  
+
   int indices[1][6] = {{0,1,2,3,4,5}};
 
   const int nelem = 1;
@@ -1580,7 +1580,7 @@ TPZCompMesh *CreateAleatorioMesh() {
     coord[2] = co[nod][2];
     gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
   }
-  
+
   int el;
   for(el=0; el<nelem; el++) {
     TPZVec<int> nodind(6);
@@ -1589,12 +1589,12 @@ TPZCompMesh *CreateAleatorioMesh() {
     elvec[el] = gmesh->CreateGeoElement(EPrisma,nodind,1,index);
     //    elvec[el] = new TPZGeoElPr3d(el,nodind,1,*gmesh);
   }
-  
+
   //  TPZStack<TPZGeoEl*> subel;
   //  elvec[0]->Divide(subel);
-  
+
   TPZGeoElBC gbc;
-  
+
   // bc -1 -> Dirichlet
   TPZGeoElBC gbc1(elvec[0],15,-1,*gmesh);
 
@@ -1604,15 +1604,15 @@ TPZCompMesh *CreateAleatorioMesh() {
   gmesh->BuildConnectivity2();
   //ofstream MALHAG("malhageometrica");
   gmesh->Print(MALHAG);
-  
+
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-  
+
   TPZMaterial *mat;
   if(nstate == 3) {
     //		mat = new TPZMatHyperElastic(1,2.,400);
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix mp (3,1,0.);
-    
+
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
     TPZMaterialTest3D::eq3=1;
     mataux->SetMaterial(mp);
@@ -1635,10 +1635,10 @@ TPZCompMesh *CreateAleatorioMesh() {
   int i;
   val2(0,0)=-1.;
   bc[1] = mat->CreateBC(-2,0,val1,val2);
-  
+
   cmesh->InsertMaterialObject(mat);
   for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
-  
+
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
@@ -1658,7 +1658,7 @@ TPZCompMesh *CreateAleatorioMesh() {
  //  cmesh->ElementVec()[subelvec [7]]->PRefine(4);
   //  cmesh->ElementVec()[0]->Divide(,subelvec,1);
 
- 
+
   //  cmesh->Print(cout);
   return cmesh;
 }
@@ -1669,7 +1669,7 @@ TPZCompMesh *CreateAleatorioMesh() {
 //******Pyramid and Tetrahedre**********
 //**************************************
 TPZCompMesh *CreatePyramTetraMesh() {
-  
+
   REAL co[8][3] = {
     {0.,0.,0.},
     {1.,0.,0.},
@@ -1681,7 +1681,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
     {0.,1.,1.}
 
   };
-  
+
   int noel [4] = {5,5,4,4};
 
   int indices[4][5] = {
@@ -1706,7 +1706,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
     coord[2] = co[nod][2];
     gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
   }
-  
+
   int el;
   for(el=0; el<nelem; el++) {
     TPZVec<int> nodind(6);
@@ -1723,12 +1723,12 @@ TPZCompMesh *CreatePyramTetraMesh() {
       elvec[el] = elvec[el] = gmesh->CreateGeoElement(ETetraedro,nodind,1,index);
     }
   }
-  
+
   //  TPZStack<TPZGeoEl*> subel;
   //  elvec[0]->Divide(subel);
-  
+
   //  TPZGeoElBC gbc;
-  
+
   // bc -1 -> Neumann
   TPZGeoElBC gbc1(elvec[0],13,-1,*gmesh);
 
@@ -1746,15 +1746,15 @@ TPZCompMesh *CreatePyramTetraMesh() {
   gmesh->BuildConnectivity();
   ofstream MALHAG("malhageometrica");
   gmesh->Print(MALHAG);
-  
+
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-  
+
   TPZMaterial *mat;
   //  if(nstate == 3) {
     //		mat = new TPZMatHyperElastic(1,2.,400);
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix mp (3,1,0.);
-    
+
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
     TPZMaterialTest3D::eq3=1;
     mataux->SetMaterial(mp);
@@ -1777,10 +1777,10 @@ TPZCompMesh *CreatePyramTetraMesh() {
   int i;
   val2(0,0)=-1.;
   bc[1] = mat->CreateBC(-2,0,val1,val2);
-  
+
   cmesh->InsertMaterialObject(mat);
   for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
-  
+
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
@@ -1800,7 +1800,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
  //  cmesh->ElementVec()[subelvec [7]]->PRefine(4);
   //  cmesh->ElementVec()[0]->Divide(,subelvec,1);
 
- 
+
   //  cmesh->Print(cout);
   return cmesh;
 }
@@ -1811,13 +1811,13 @@ TPZCompMesh *CreatePyramTetraMesh() {
 //*******3D Discontinuous Mesh**********
 //*************************************
 TPZCompMesh *Create3DDiscMesh() {
-  
+
   REAL co[26][3] = {
     {0.,0.,0.},{0.5,0.,0.},{1,0.,0.},{0.,0.5,0.},{0.5,0.5,0.},{1,0.5,0.},{0.,1.,0.},{0.5,1.,0.},{1,1.,0.},
     {0.,0.,0.5},{0.5,0.,0.5},{1,0.,0.5},{0.,0.5,0.5},{0.5,0.5,0.5},{1,0.5,0.5},{0.,1.,0.5},{0.5,1.,0.5},{1,1.,0.5},
     {0.,0.,1.},{0.5,0.,1.},{1,0.,1.},{0.,0.5,1.},{0.5,0.5,1.},{1,0.5,1.},{0.,1.,1.},{0.5,1.,1.}
   };
-  
+
   int indices[7][8] = {
     {0,1,4,3,9,10,13,12},
     {1,2,5,4,10,11,14,13},
@@ -1844,7 +1844,7 @@ TPZCompMesh *Create3DDiscMesh() {
     coord[2] = co[nod][2];
     gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
   }
-  
+
   int el;
   for(el=0; el<nelem; el++) {
     TPZVec<int> nodind(nodeperel);
@@ -1853,10 +1853,10 @@ TPZCompMesh *Create3DDiscMesh() {
     elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
     //    elvec[el] = new TPZGeoElPr3d(el,nodind,1,*gmesh);
   }
-  
- 
+
+
   TPZGeoElBC gbc;
-  
+
   //Condicoes de Neumann
   // bc -1 -> Face inferior
   TPZGeoElBC gbc1(elvec[0],20,-1,*gmesh);
@@ -1895,7 +1895,7 @@ TPZCompMesh *Create3DDiscMesh() {
   //ofstream MALHAG("malhageometrica");
   //gmesh->Print(MALHAG);
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-  
+
   TPZMaterial *mat;
   if(nstate == 3) {
     mat = new TPZMaterialTest3D(1);
@@ -1921,11 +1921,11 @@ TPZCompMesh *Create3DDiscMesh() {
   //CreateBC
   //....
 
-  
+
   cmesh->InsertMaterialObject(mat);
   int i;
   // for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
-  
+
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
@@ -1945,7 +1945,7 @@ TPZCompMesh *Create3DDiscMesh() {
  //  cmesh->ElementVec()[subelvec [7]]->PRefine(4);
   //  cmesh->ElementVec()[0]->Divide(,subelvec,1);
 
- 
+
   //  cmesh->Print(cout);
   return cmesh;
 }
@@ -2013,7 +2013,7 @@ TPZCompMesh *PlateMesh (){
     geomesh.NodeVec()[i].Initialize(coord,geomesh);
   }
 
-  //elementos geométricos 
+  //elementos geométricos
   TPZVec<int> index(3);
   int i,j,indice;
   for(i=0;i<4;i++) {
@@ -2028,14 +2028,14 @@ TPZCompMesh *PlateMesh (){
 
   //cria malha computacional
   TPZCompMesh *compmesh = new TPZCompMesh(geomesh);
-   
+
   //cria material do problema
   TPZMaterial *placa = LerMaterial("placa.in",*compmesh);
 
-  //transferindo para o material uma carga conhecida 
+  //transferindo para o material uma carga conhecida
   //placa->SetForcingFunction(LoadSolution);
   (dynamic_cast<TPZPlaca *>(placa))->SetExactFunction(LoadSolution);
-   
+
   //cria condi¢ões de contorno
   if(1) CriaCondContTeste4(*geomesh);
 
@@ -2311,6 +2311,6 @@ TPZCompMesh *Create3DExpMesh() {
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
   //cmesh->ExpandSolution();
-  
+
   return cmesh;
 }

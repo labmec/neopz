@@ -119,16 +119,17 @@ int main() {
    int ord;
    cout << "Entre ordem 1,2,3,4,5 : ";
    cin >> ord;
-   TPZCompEl::gOrder = ord;
+//   TPZCompEl::gOrder = ord;
+   firstmesh.SetDefaultOrder(order);
    //construção malha computacional
    TPZVec<int> csub(0);
    TPZManVector<TPZGeoEl *> pv(4);
-   int n1=1,level=0; 
+   int n1=1,level=0;
    cout << "\nDividir ate nivel ? ";
    int resp;
-   cin >> resp;      
+   cin >> resp;
    int nelc = firstmesh->ElementVec().NElements();
-   int el;  
+   int el;
 
    TPZGeoEl *cpel;
    for(el=0;el<firstmesh->ElementVec().NElements();el++) {
@@ -153,7 +154,7 @@ int main() {
    secondmesh->Skyline(skyline);
    TPZSkylMatrix *stiff = new TPZSkylMatrix(numeq,skyline);
    an.SetMatrix(stiff);
-   
+
    //   TPZMatrixSolver jacobi(stiff);
    //   jacobi.SetSSOR(1,1,1.e-6,1);
    //   an.Solver().SetCG(400,jacobi,1.e-6,1);
@@ -288,7 +289,7 @@ TESTE 1 TESTE 1 TESTE 1 TESTE 1 TESTE 1 TESTE 1 TESTE 1
    val1(5,5)=big;
 	TPZGeoElBC(elg0,7,-4,*firstmesh);
    bc = pl->CreateBC(-4,2,val1,val2);
-   secondmesh->InsertMaterialObject(bc);   
+   secondmesh->InsertMaterialObject(bc);
 */
 /*
    //redistribuicao de ordem aos lados do elemento

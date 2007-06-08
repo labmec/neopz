@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.95 2007-05-11 19:22:51 joao Exp $
+//$Id: TPZCompElDisc.cpp,v 1.96 2007-06-08 00:02:28 cesar Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.95 2007-05-11 19:22:51 joao Exp $
+//$Id: TPZCompElDisc.cpp,v 1.96 2007-06-08 00:02:28 cesar Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -102,7 +102,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
   fConstC = copy.fConstC;
   CreateMidSideConnect();
-  this->SetDegree( TPZCompEl::gOrder );
+  this->SetDegree( copy.Degree() );
   //as interfaces foram clonadas
   this->fIntRule = NULL;
   if (copy.fIntRule) this->GetIntegrationRule();
@@ -128,7 +128,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
   }
   ref->SetReference(this);
   CreateMidSideConnect();
-  this->SetDegree( TPZCompEl::gOrder );
+  this->SetDegree( fMesh->GetDefaultOrder() );
   ref->CenterPoint(ref->NSides()-1,fCenterPoint);
   TPZVec<REAL> csi(fCenterPoint);
   ref->X(csi,fCenterPoint);
@@ -216,11 +216,11 @@ void TPZCompElDisc::Print(std::ostream &out) {
   out << "\tDimension : " << this->Dimension() << endl;
 }
 
-int TPZCompElDisc::ConnectIndex(int side) {
+int TPZCompElDisc::ConnectIndex(int side) const{
   return fConnectIndex;
 }
 
-int TPZCompElDisc::NConnects(){
+int TPZCompElDisc::NConnects() const{
   return (fConnectIndex !=-1);
 }
 

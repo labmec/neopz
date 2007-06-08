@@ -108,7 +108,8 @@ int main() {
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
   cin >> grau;
   TPZCompElDisc::gDegree = grau;
-  TPZCompEl::gOrder = grau;
+//  TPZCompEl::gOrder = grau;
+  cmesh.SetDefaultOrder(grau);
   TPZMaterial *mat;
   TPZStack<TPZGeoEl *> elem;
   TPZStack<TPZGeoElSide> elembc;
@@ -160,7 +161,7 @@ int main() {
     gmesh->Print(outgm);
     cmesh->Print(outgm);
     outgm.flush();
-  }  
+  }
 
   int numiter,marcha;
   cout << "\nNumero de iteracoes requerida ? : ";
@@ -252,7 +253,7 @@ void LeituraDaMalha(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoElS
   int nnodes,number;
   mesh >> title;//$NOD
   mesh >> nnodes;
-  gmesh->NodeVec().Resize(nnodes);   
+  gmesh->NodeVec().Resize(nnodes);
   TPZVec<REAL> coord(3);
   int i;
   for(i=0;i<nnodes;i++){
@@ -304,7 +305,7 @@ void LeituraDaMalha2(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoEl
   int nnodes,number;
   mesh >> title;//$NOD
   mesh >> nnodes;
-  gmesh->NodeVec().Resize(nnodes);   
+  gmesh->NodeVec().Resize(nnodes);
   TPZVec<REAL> coord(3);
   int i;
   for(i=0;i<nnodes;i++){
@@ -368,7 +369,7 @@ void SetDeltaTime(TPZMaterial *mat,int nstate){
 }
 
 void Divisao (TPZCompMesh *cmesh,int key){
-  
+
   if(key < 0) return;
   TPZVec<int> csub(0);
   int n1=1;
@@ -512,7 +513,7 @@ int Nivel(TPZGeoEl *gel){
 }
 
 void Divisao(TPZCompMesh *cmesh){
-  
+
   int k=0;
   TPZVec<int> csub(0);
   int n1=1,n2;
@@ -580,7 +581,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condições de contorno  
+  //condições de contorno
   TPZBndCond *bc;
   TPZFMatrix val1(4,4),val2(4,1);
 
@@ -685,7 +686,7 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condições de contorno  
+  //condições de contorno
   TPZBndCond *bc;
   TPZFMatrix val1(5,4),val2(5,1);
 

@@ -50,7 +50,7 @@ int main(){
   cout << "Entry order : ";
   cin >> mygorder;
 
-  TPZCompEl::gOrder = mygorder;
+  TPZCompEl::SetgOrder(mygorder);
   gDebug = 0;
 
   TPZCompMesh *cmesh = ReadCase(nref,dim,opt);
@@ -89,7 +89,7 @@ int main(){
   ofstream out("output.txt");
 
   //Multigrid======================
-  
+
 //   TPZMGAnalysis mgan (cmesh);
 //   mgan.SetStructuralMatrix(strskyl);
 //   TPZStepSolver *direct = new TPZStepSolver;
@@ -98,7 +98,7 @@ int main(){
 //   delete direct;
 //   direct = 0;
 //   mgan.Run();
-//   TPZCompMesh *finemesh = cmesh;      
+//   TPZCompMesh *finemesh = cmesh;
   // ===================================
 
   {
@@ -192,18 +192,18 @@ int main(){
 
       time_t endtime;
       time (& endtime);
-      
+
       int time_elapsed = endtime - sttime;
-      cout << "\n\n\n\nExiting Auto Adaptive Methods....step " << r 
+      cout << "\n\n\n\nExiting Auto Adaptive Methods....step " << r
            << "time elapsed " << time_elapsed << "\n\n\n\n";
 
       int prt;
-      cout << "neq = " << cmesh->NEquations() << " erestimate = " << valerror 
+      cout << "neq = " << cmesh->NEquations() << " erestimate = " << valerror
            << " true " << valtruerror <<  " effect " << valerror/valtruerror << endl;
 
       convergence   << cmesh->NEquations() << "\t"
                     << valerror << "\t" << valtruerror << "\t"
-                    << ( valtruerror / valerror ) <<  "\t" << sttime 
+                    << ( valtruerror / valerror ) <<  "\t" << sttime
 		    << "\t" << time_elapsed <<endl;
 
       for (prt=0;prt<ervec.NElements();prt++){
@@ -222,11 +222,11 @@ int main(){
       adapt.DeleteElements(cmesh);
       delete cmesh;
       cmesh = adptmesh;
- 
+
       cmesh->CleanUpUnconnectedNodes();
       //adptmesh->Print(out);
       //adptmesh->Print(MALHAG);//CEDRIC
-      
+
       /*   if (r == (nref-1)){ */
       /*        an.PostProcess(2,2); */
       /*        cout << "The maximum level = " << MaxLevel(cmesh) << endl; */

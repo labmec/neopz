@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.12 2007-05-25 23:12:11 cesar Exp $
+//$Id: pzinterpolationspace.cpp,v 1.13 2007-06-08 00:02:28 cesar Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -42,7 +42,7 @@ TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpo
 TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int &index)
  : TPZCompEl(mesh,gel,index)
 {
-  fPreferredOrder = TPZCompEl::gOrder;
+  fPreferredOrder = mesh.GetDefaultOrder();
 }
 
 TPZInterpolationSpace::~TPZInterpolationSpace(){}

@@ -108,7 +108,8 @@ int main() {
    int ord;
    cout << "Entre ordem geral 1,2,3,4,5 : \n";
    cin >> ord;
-   TPZCompEl::gOrder = ord;
+//   TPZCompEl::gOrder = ord;
+   cmesh.SetDefaultOrder(ord);
    //construção malha computacional
    secondmesh->AutoBuild();
    //redistribuicao de ordem aos lados do elemento

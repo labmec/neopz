@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.36 2007-04-19 12:21:36 tiago Exp $
+// $Id: pzcompel.h,v 1.37 2007-06-08 00:02:28 cesar Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -129,9 +129,11 @@ public:
   TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 
   /**
-   * Default interpolation order
+   * Set & Get the value of gOrder
    */
-  static int gOrder;
+  static void SetgOrder( int order );
+
+  static int GetgOrder();
 
   /**
    * Returns the volume of the geometric element associated.
@@ -202,7 +204,7 @@ public:
   /**
    * Return the number of nodes of the element
    */
-  virtual int NConnects()=0;
+  virtual int NConnects() const =0;
 
   /**
    * Return the number of equations of the element
@@ -223,13 +225,13 @@ public:
    * Return the index of the ith connectivity of the element
    * @param i connectivity index who want knows
    */
-  virtual int ConnectIndex(int i) = 0;
+  virtual int ConnectIndex(int i) const = 0;
 
   /**
    * Return a pointer to the ith node
    * @param i node index
    */
-  virtual TPZConnect &Connect(int i);
+  virtual TPZConnect &Connect(int i) const;
 
   /**
    * Dimension of the element
@@ -515,6 +517,13 @@ public:
   */
   virtual void Read(TPZStream &buf, void *context);
 
+private:
+  /**
+   * Default interpolation order
+   */
+    static int gOrder;
+
+
 };
 
 
@@ -674,13 +683,14 @@ public:
   /**
    * Return the index of the middle side connect alon fSide
    */
-  int ConnectIndex(){
+  int ConnectIndex() const{
     if(fEl) return fEl->ConnectIndex(fSide);
     else return -1;
   }
 
   bool operator != (const TPZCompElSide &other);
   bool operator == (const TPZCompElSide &other);
+
 
 };
 //  std::ostream & operator << (std::ostream &out,const TPZCompElSide &celside);
@@ -719,5 +729,16 @@ inline std::ostream &operator << (std::ostream &out,const TPZCompElSide &celside
 inline int TPZCompEl::Index() {
   return fIndex;
 }
+
+inline void TPZCompEl::SetgOrder( int order )
+{
+  gOrder = order;
+}
+
+inline int TPZCompEl::GetgOrder( )
+{
+  return gOrder;
+}
+
 
 #endif

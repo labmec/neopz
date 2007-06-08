@@ -41,7 +41,7 @@ int main(){
   int dim = 0;
   int opt = 0;
 
-  TPZCompEl::gOrder = mygorder;
+  TPZCompEl::SetgOrder(mygorder);
   gDebug = 0;
 
   TPZCompMesh *cmesh = ReadCase(nref,dim,opt);
@@ -82,7 +82,7 @@ int main(){
   ofstream out("output.txt");
 
   //Multigrid======================
-  
+
 //   TPZMGAnalysis mgan (cmesh);
 //   mgan.SetStructuralMatrix(strskyl);
 //   TPZStepSolver *direct = new TPZStepSolver;
@@ -91,12 +91,12 @@ int main(){
 //   delete direct;
 //   direct = 0;
 //   mgan.Run();
-//   TPZCompMesh *finemesh = cmesh;      
+//   TPZCompMesh *finemesh = cmesh;
   // ===================================
   REAL valerror =0.;
   REAL valtruerror=0.;
   TPZManVector<REAL> ervec,truervec,effect;
-  
+
   {
     int r;
     for(r=0; r<nref; r++) {
@@ -129,7 +129,7 @@ int main(){
         TPZStepSolver direct;
         direct.SetDirect(ECholesky);
         an.SetSolver(direct);
-      
+
         an.Run();
         //an.Rhs().Print();
         //an.Solution().Print();
@@ -181,13 +181,13 @@ int main(){
       }
       time_t endtime;
       time (& endtime);
-      
+
       int time_elapsed = endtime - sttime;
-      cout << "\n\n\n\nExiting Auto Adaptive Methods....step " << r 
+      cout << "\n\n\n\nExiting Auto Adaptive Methods....step " << r
            << "time elapsed " << time_elapsed << "\n\n\n\n";
 
       int prt;
-      cout << "neq = " << cmesh->NEquations() << " erestimate = " << valerror 
+      cout << "neq = " << cmesh->NEquations() << " erestimate = " << valerror
            << " true " << valtruerror <<  " effect " << valerror/valtruerror << endl;
 
       convergence   << cmesh->NEquations() << "\t"
@@ -215,7 +215,7 @@ int main(){
       adaptmesh->Print(cout);
       cout.flush();
       //adptmesh->Print(MALHAG);//CEDRIC
-      
+
       /*   if (r == (nref-1)){ */
       /*        an.PostProcess(2,2); */
       /*        cout << "The maximum level = " << MaxLevel(cmesh) << endl; */

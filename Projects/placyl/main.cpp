@@ -49,12 +49,12 @@ int main() {
 
 	// criar quatro nos
 	int i,j;
-	TPZVec<REAL> coord(3,0.); 
+	TPZVec<REAL> coord(3,0.);
 	  for(i=0; i<12; i++) {
 	    // initializar as coordenadas do no em um vetor
 	    for (j=0; j<3; j++) coord[j] = coordstore[i][j];
 	    cyl->ToCart(&coord[0]);
-	    
+
 	    // identificar um espaço no vetor onde podemos armazenar
 	    // este vetor
 	    int nodeindex = malha.NodeVec ().AllocateNewElement ();
@@ -82,7 +82,7 @@ int main() {
 	  indices[2] = el+5;
 	  indices[3] = el+4;
 	  }
-	
+
 	  // O proprio construtor vai inserir o elemento na malha
 	  gel[el] = new TPZGeoElQ2dCyl(el,indices,1,malha,sysindex);
 	  //gel[el] = new TPZGeoElQ2d(el,indices,1,malha);
@@ -101,7 +101,8 @@ int main() {
 //	ifstream matarq("/home/pos/cesar/pzrepository/project/multiplaca/multiplaca3.dat");
 	TPZMultCamada *meumat;
 	LerMaterial(comp,"multplaca2.dat",meumat);
-	TPZCompEl::gOrder = 4;
+//	TPZCompEl::gOrder = 4;
+  comp.SetDefaultOrder(order);
 
 	comp.AutoBuild();
 	comp.AdjustBoundaryElements();
@@ -112,7 +113,7 @@ int main() {
 	int numeq = comp.NEquations();
 	TPZVec<int> skyline;
 	comp.Skyline(skyline);
-	// TPZFMatrix *stiff =  new TPZFMatrix(numeq,numeq); 
+	// TPZFMatrix *stiff =  new TPZFMatrix(numeq,numeq);
 	TPZSkylMatrix *stiff = new TPZSkylMatrix(numeq,skyline);
 	an.SetMatrix(stiff);
 
@@ -258,4 +259,4 @@ void LerMaterial(TPZCompMesh &cmesh,char *filename, TPZMultCamada * &matcamadas)
      cmesh.InsertMaterialObject(matcamadas->CreateBC(bnum,btype,val1,val2));
      //   mat = matcamadas;
    }
-}	
+}

@@ -1,4 +1,4 @@
-//$Id: pzelctemp.h,v 1.12 2007-05-11 13:35:44 cesar Exp $
+//$Id: pzelctemp.h,v 1.13 2007-06-08 00:02:28 cesar Exp $
 
 // -*- c++ -*-
 #ifndef PZELCTEMPH
@@ -59,7 +59,7 @@ public:
 
   virtual MElementType Type();
 
-  virtual int NConnects() {
+  virtual int NConnects() const{
     return TSHAPE::NSides;
   }
 
@@ -79,7 +79,7 @@ public:
 
   virtual int SideConnectLocId(int node, int side);
 
-  virtual int ConnectIndex(int node);
+  virtual int ConnectIndex(int node) const;
 
   virtual void SetIntegrationRule(int ord);
 

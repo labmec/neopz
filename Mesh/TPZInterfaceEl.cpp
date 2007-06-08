@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.77 2007-05-11 19:22:51 joao Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.78 2007-06-08 00:02:28 cesar Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -56,7 +56,7 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
     this->fRightElSide.SetSide( right.Side() );
   }
   else{
-    PZError << __PRETTY_FUNCTION__ << " - Right element is null.\n";    
+    PZError << __PRETTY_FUNCTION__ << " - Right element is null.\n";
   }
   this->ComputeNormal();
 
@@ -247,23 +247,23 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
   this->CalcStiff(fake_ek, ef);
 }
 
-int TPZInterfaceElement::NConnects() {
+int TPZInterfaceElement::NConnects() const {
    return this->NLeftConnects() + this->NRightConnects();
 }
 
-int TPZInterfaceElement::NLeftConnects(){
+int TPZInterfaceElement::NLeftConnects() const{
    TPZCompEl * LeftEl  = fLeftElSide.Element();
    if (!LeftEl) return 0;
    return LeftEl->NConnects();
 }
 
-int TPZInterfaceElement::NRightConnects(){
+int TPZInterfaceElement::NRightConnects() const{
    TPZCompEl * RightEl = fRightElSide.Element();
    if (!RightEl) return 0;
    return RightEl->NConnects();
 }
 
-int TPZInterfaceElement::ConnectIndex(int i) {
+int TPZInterfaceElement::ConnectIndex(int i) const {
 
    const int nleftcon = this->NLeftConnects();
    const int nrightcon = this->NRightConnects();
@@ -814,8 +814,8 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
 
 }//method
 
-void TPZInterfaceElement::ComputeError(int errorid, 
-                                       TPZVec<REAL> &errorL, 
+void TPZInterfaceElement::ComputeError(int errorid,
+                                       TPZVec<REAL> &errorL,
                                        TPZVec<REAL> &errorR){
 
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
@@ -951,7 +951,7 @@ bool TPZInterfaceElement::CheckConsistencyOfMappedQsi(TPZCompElSide &Neighbor, T
   return true;
 }//void
 
-void TPZInterfaceElement::NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, 
+void TPZInterfaceElement::NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi,
                                             TPZVec<REAL> &sol, TPZFMatrix &dsol,
                                             TPZFMatrix &NeighborAxes){
   TPZGeoEl * neighel = Neighbor.Element()->Reference();
@@ -1030,7 +1030,7 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
 
   if (data.fNeedsSol){
     this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-    //this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);//chamando acima porque senao nao chega 
+    //this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);//chamando acima porque senao nao chega
                                                                  //a TPZReferredCompEl<TPZInterfaceElement>
   }
 

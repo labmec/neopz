@@ -142,13 +142,13 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
 		 TPZTimeDiscr ConvVol_TD,
 		 TPZTimeDiscr ConvFace_TD)
 {
-   TPZCompEl::gOrder = degree;
+   TPZCompEl::SetgOrder(degree);
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
 //    TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
 //                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-// 
+//
 //    TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>
 //                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
 
@@ -195,7 +195,7 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
 //   cout << .22/(2/**lambdaMax*/);
 
    matp->SetDelta(delta);
-   
+
    TPZAutoPointer<TPZMaterial> mat(matp);
 
    cmesh -> InsertMaterialObject(mat);

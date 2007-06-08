@@ -125,7 +125,7 @@ int main() {
    val1(3,3)=0.;
    val1(4,4)=0.;
    val1(5,5)=0.;
- 
+
    TPZGeoElBC(elg0,5,-2,*firstmesh);
    bc = pl->CreateBC(-2,2,val1,val2);
    secondmesh->InsertMaterialObject(bc);
@@ -161,14 +161,15 @@ int main() {
    int ord;
    cout << "Entre ordem 1,2,3,4,5 : ";
    cin >> ord;
-   TPZCompEl::gOrder = ord;
+//   TPZCompEl::gOrder = ord;
+   cmesh.SetDefaultOrder(ord);
    //construção malha computacional
    TPZVec<int> csub(0);
    TPZManVector<TPZGeoEl *> pv(4);
-   int n1=1,level=0; 
+   int n1=1,level=0;
    cout << "\nDividir ate nivel ? ";
    int resp;
-   cin >> resp;      
+   cin >> resp;
    int nelc = firstmesh->ElementVec().NElements();
    int el;
    TPZGeoEl *cpel;
@@ -200,7 +201,7 @@ int main() {
    scalnames[1] = "Mn2";
    scalnames[2] = "Sign1";
    scalnames[3] = "Sign2";
-   scalnames[4] = "Deslocz";   
+   scalnames[4] = "Deslocz";
    TPZVec<char *> vecnames(0);
    char plotfile[] =  "placaPos.pos";
    char pltfile[] =  "placaView.plt";
@@ -284,7 +285,7 @@ TESTE 1 TESTE 1 TESTE 1 TESTE 1 TESTE 1 TESTE 1 TESTE 1
    val1(5,5)=big;
 	TPZGeoElBC(elg0,7,-4,*firstmesh);
    bc = pl->CreateBC(-4,2,val1,val2);
-   secondmesh->InsertMaterialObject(bc);   
+   secondmesh->InsertMaterialObject(bc);
 */
 /*
    //redistribuicao de ordem aos lados do elemento

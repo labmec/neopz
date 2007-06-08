@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.60 2007-05-31 13:42:13 cesar Exp $
+// $Id: pzintel.cpp,v 1.61 2007-06-08 00:02:28 cesar Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -618,7 +618,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
         newnod.Print(*cmesh);
       }
       int seqnum = newnod.SequenceNumber();
-      newnod.SetOrder(TPZCompEl::gOrder);
+      newnod.SetOrder(cmesh->GetDefaultOrder());
       SetConnectIndex(nodloc,newnodeindex);   //Is true only to one-dimensional case
       cmesh->Block().Set(seqnum,nvar*NConnectShapeF(nodloc));
       // We created a new node, check whether the node needs to be constrained
@@ -652,7 +652,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
   } else {
     newnodeindex = cmesh->AllocateNewConnect();
     TPZConnect &newnod = cmesh->ConnectVec()[newnodeindex];
-    newnod.SetOrder(TPZCompEl::gOrder);
+    newnod.SetOrder( cmesh->GetDefaultOrder());
     int seqnum = newnod.SequenceNumber();
     SetConnectIndex(nodloc,newnodeindex);
     cmesh->Block().Set(seqnum,nvar*NConnectShapeF(nodloc));
@@ -1328,7 +1328,7 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
 #endif
 
   int ncon = ref->NSides();
-  TPZInterpolatedElement::gOrder = PreferredSideOrder(ncon-1);
+  fMesh->SetDefaultOrder( PreferredSideOrder(ncon-1) );
   for (i=0;i<nsubelements;i++) {
     cref = pv[i];//ponteiro para subelemento i
     cref->CreateCompEl(*fMesh,sub[i]);

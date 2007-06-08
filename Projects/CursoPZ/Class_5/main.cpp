@@ -4,7 +4,7 @@
 #include <pzcompel.h>
 #include <pzgeoel.h>
 #include <pzquad.h>
-#include <pzmat2dlin.h> 
+#include <pzmat2dlin.h>
 #include <TPZGeoElement.h>
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
@@ -38,7 +38,7 @@ int main(){
   int order;
   cout << "Enter the order of the element:\n";
   cin >> order;
-  TPZCompEl::gOrder = order;
+  TPZCompEl::SetgOrder(order);
 
 	//Creates the geometric mesh
 	TPZGeoMesh *mesh = GetMesh(nx,ny);
@@ -56,7 +56,7 @@ int main(){
 //  TPZSkylStructMatrix skystr(cmesh);
   cmesh->AutoBuild();
   TPZVec<int> subelindex(4,0);
-  cmesh->ElementVec()[0]->Divide(0,subelindex,0);  
+  cmesh->ElementVec()[0]->Divide(0,subelindex,0);
   cmesh->Reference()->Print(cout);
   out << "antes de lido\n";
   //Prints the refined mesh
@@ -84,7 +84,7 @@ int main(){
   delete cmesh;
   delete mesh;
   return 0;
-  
+
 }
 
 TPZGeoMesh *GetMesh (int nx,int ny){
@@ -99,9 +99,9 @@ TPZGeoMesh *GetMesh (int nx,int ny){
   //will be inserted into mesh object during initilize process
   TPZGeoMesh *gmesh = new TPZGeoMesh();
 
-  //Auxiliar vector to store a coordinate  
+  //Auxiliar vector to store a coordinate
   TPZVec <REAL> coord (3,0.);
-  
+
   //Nodes initialization
   for(i = 0; i < nx; i++){
     for(j = 0; j < ny; j++){
@@ -120,10 +120,10 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 
 	//Creates a vector of pointers to geometric elements
   TPZGeoEl * elvec[(const int)((nx-1)*(ny-1))];
-  
+
   //Auxiliar vector to store a element connectivities
   TPZVec <int> connect(4,0);
-  
+
   //Element connectivities
   for(i = 0; i < (nx - 1); i++){
     for(j = 0; j < (ny - 1); j++){

@@ -63,7 +63,7 @@ int main(){
   for (i=0;i<4;i++){
     for (j=0;j<3;j++){
       coord[j] = coordinates[i][j];
-      
+
     }
     index = gmesh->NodeVec().AllocateNewElement();
     gmesh->NodeVec()[index] = TPZGeoNode(index,coord,*gmesh);
@@ -71,12 +71,11 @@ int main(){
 
   TPZVec<int> connect(4,0);
   for (i=0;i<4;i++) connect[i] = i;
-  TPZCompEl::gOrder = 1;
   int a = 1;
   TPZGeoEl *gel;
   TPZAutoPointer<TPZRefPattern> unifquad;
   if (a){
-    
+
     // Crio um elemento sem padrão de refinamento -->> \
     // Está implementado na malha como uniforme (fRefPattern  = 0)
     gel = new TPZGeoElRefPattern <TPZShapeQuad,TPZGeoQuad> (index,connect,1,*gmesh,0/*,unifquad*/);
@@ -89,7 +88,7 @@ int main(){
   unifquad = new TPZRefPattern ("/home/pos/cesar/RefPattern/Quad_Unif.rpt");
   TPZGeoElRefPattern <TPZShapeQuad,TPZGeoQuad> *gelrp = dynamic_cast<TPZGeoElRefPattern<TPZShapeQuad,TPZGeoQuad> *> (gel);
   gelrp->SetRefPattern(unifquad);
-  
+
   // bc -1 -> Dirichlet at the bottom face of the cube
   TPZGeoElBC gbc1(gel,4,-1,*gmesh);
   //  // bc -2 -> Neumann at the top face of the cube
@@ -99,7 +98,7 @@ int main(){
   gmesh->Print(cout);
   TPZVec<TPZGeoEl *> subel;
   gel->Divide(subel);
-  
+
   delete gmesh;
 
 /*  TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
@@ -128,7 +127,7 @@ int main(){
   TPZStepSolver *direct = new TPZStepSolver;
   direct->SetDirect(ECholesky);
   an.SetSolver(*direct);
- 
+
   direct = 0;
   an.Run();
   cmesh->Solution().Print("Vetor Solucao",cout);
@@ -138,7 +137,7 @@ int main(){
   delete cmesh;
   delete unifquad;*/
   return 0;
-    
+
 
 }
 

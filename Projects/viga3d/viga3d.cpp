@@ -28,13 +28,13 @@ static REAL pi = 3.141592654;
 void Forcing(TPZVec<REAL> &x, TPZVec<REAL> &disp);
 
 int main(int argc, char* argv[]){
-	
+
 	cout << "Exemplo de aplicação de modelagem Tri-dimensional através do DX!\n";
 
 	double coordstore[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};
 	int numel = 10;
 	TPZVec<REAL> coord(3,0.);
-	
+
 	// criar um objeto tipo malha geometrica
 	TPZGeoMesh malha;
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]){
 	}
 /*	TPZVec<TPZGeoEl *> sub;
 	gel[1]->Divide(sub);*/
-	
+
 	ofstream output("output3d.dat");
 
 	malha.Print(output);
@@ -77,12 +77,12 @@ int main(int argc, char* argv[]){
 	gel[9]->Divide(sub);
 	// TPZMaterial::gBigNumber = 1.e6;
 
-	TPZGeoElBC t3(gel[0],20,-1,malha); 
-/*	TPZGeoElBC(gel[0],0,-3,malha); 
-	TPZGeoElBC(gel[0],1,-4,malha); 
-	TPZGeoElBC(gel[0],2,-5,malha); 
+	TPZGeoElBC t3(gel[0],20,-1,malha);
+/*	TPZGeoElBC(gel[0],0,-3,malha);
+	TPZGeoElBC(gel[0],1,-4,malha);
+	TPZGeoElBC(gel[0],2,-5,malha);
 */
-	TPZGeoElBC t4(gel[numel-1],25,-2,malha); 
+	TPZGeoElBC t4(gel[numel-1],25,-2,malha);
 	malha.Print(output);
 
 	TPZCompMesh comp(&malha);
@@ -111,13 +111,14 @@ int main(int argc, char* argv[]){
 	bnd = meumat->CreateBC (-5,2,val1,val2);
 	comp.InsertMaterialObject(bnd);
 */
-	TPZCompEl::gOrder = 2;
+//	TPZCompEl::gOrder = 2;
+  cmesh.SetDefaultOrder(2);
 	comp.AutoBuild();
 
 	angle = pi/4.;
 	TPZNonLinearAnalysis an(&comp,output);
 	int numeq = comp.NEquations();
-        TPZParSkylineStructMatrix StrSkyLine(&comp);        
+        TPZParSkylineStructMatrix StrSkyLine(&comp);
         an.SetStructuralMatrix(StrSkyLine);
         an.Solution().Zero();
         TPZStepSolver step;
@@ -126,7 +127,7 @@ int main(int argc, char* argv[]){
   int numiter =2;
   REAL tol = 1.e-5;
   an.IterativeProcess(output,tol,numiter);
-  
+
   std::stringstream dxout;
   dxout << "output3d4.dx";
   TPZVec<char *> scalnames(1),vecnames(2);
@@ -134,8 +135,8 @@ int main(int argc, char* argv[]){
   vecnames[0] = "state";
   vecnames[1] = "displacement";
   an.DefineGraphMesh(3,scalnames,vecnames,&(dxout.str()[0]) );
-  an.PostProcess(2);  
-	return 0;	
+  an.PostProcess(2);
+	return 0;
 }
 
 void Forcing(TPZVec<REAL> &x, TPZVec<REAL> &disp){

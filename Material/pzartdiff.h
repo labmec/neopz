@@ -93,7 +93,7 @@ public:
     * Returns the best value for CFL based on the
     * interpolation degree
     */
-   REAL OptimalCFL(int degree = TPZCompEl::gOrder);
+   REAL OptimalCFL(int degree = TPZCompEl::GetgOrder());
 
      /**
   Save the element data to a stream
@@ -110,7 +110,7 @@ public:
   */
   virtual int ClassId() const;
 
-   
+
    /**
     * pressure
     */

@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.64 2007-05-16 12:17:37 cesar Exp $
+//$Id: pzcmesh.cpp,v 1.65 2007-06-08 00:02:28 cesar Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -42,6 +42,7 @@ using namespace std;
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
 					    fConnectVec(0),fMaterialVec(),
 					    fSolution(0,1) {
+  fDefaultOrder = TPZCompEl::GetgOrder();
 
   //Initializing class members
   fDimModel = 0;
@@ -141,9 +142,9 @@ void TPZCompMesh::Print (std::ostream & out) {
   for(i=0; i<nelem; i++) {
     if(fConnectVec[i].SequenceNumber() == -1) {
       if(fConnectVec[i].HasDependency()) {
-      	cout << "TPZCompMesh::Print inconsistency of connect\n";
-	cout << "Index " << i << ' ';
-	fConnectVec[i].Print(*this,std::cout);
+        cout << "TPZCompMesh::Print inconsistency of connect\n";
+        cout << "Index " << i << ' ';
+        fConnectVec[i].Print(*this,std::cout);
       }
       continue;
     }
@@ -159,13 +160,11 @@ void TPZCompMesh::Print (std::ostream & out) {
     el->Print(out);
     if(!el->Reference()) continue;
     out << "\tReference Index = " << el->Reference()->Index() << std::endl << std::endl;
-
   }
   out << "\n\tMaterial Information:\n\n";
   std::map<int, TPZAutoPointer<TPZMaterial> >::iterator mit;
   nelem = NMaterials();
   for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
-
     mit->second->Print(out);
   }
 }
@@ -967,7 +966,7 @@ void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index, bool CreateDisconti
 
   TPZCompElDisc * newdisc = dynamic_cast<TPZCompElDisc*>(newcel);
   if (newdisc){
-    newdisc->SetDegree( TPZCompEl::gOrder );
+    newdisc->SetDegree( this->GetDefaultOrder() );
   }
 
 }//method
@@ -1614,6 +1613,7 @@ TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) :
     fSolution(copy.fSolution), fBlock(copy.fBlock),
     fElementSolution(copy.fElementSolution)
 {
+  fDefaultOrder = TPZCompEl::GetgOrder();
   fReference->ResetReference();
   fBlock.SetMatrix(&fSolution);
   fSolutionBlock.SetMatrix(&fSolution);
@@ -1910,7 +1910,7 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 {
   TPZSaveable::Write(buf,withclassid);
   Reference()->Write(buf,1);
-  //buf.Write(&fName,1);
+  buf.Write(&fName,1);
   buf.Write(&fDimModel,1);
   TPZSaveable::WriteObjects<TPZConnect>(buf,fConnectVec);
   std::map<int,TPZAutoPointer<TPZMaterial> >::iterator it;
@@ -1947,7 +1947,6 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
     LOGPZ_DEBUG(logger,sout.str().c_str());
   }
   TPZSaveable::Read(buf,context);
-
      TPZGeoMesh *gmesh;
      TPZSaveable *obj = TPZSaveable::Restore(buf,0);
      gmesh = dynamic_cast<TPZGeoMesh *>(obj);
@@ -1956,9 +1955,7 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
       std::stringstream sout;
       sout << __PRETTY_FUNCTION__ << " calling load references";
       LOGPZ_DEBUG(logger,sout.str().c_str());
-      }
-
-
+    }
   {
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__ << " after reading saveable";
@@ -1974,14 +1971,13 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
     LOGPZ_DEBUG(logger,sout.str().c_str());
   }
 
-  //buf.Read(&fName,1);
+  buf.Read(&fName,1);
 
   {
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__ << " after reading the name";
     LOGPZ_DEBUG(logger,sout.str().c_str());
   }
-
   buf.Read(&fDimModel,1);
   {
     std::stringstream sout;
@@ -2004,12 +2000,10 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
     LOGPZ_DEBUG(logger,sout.str().c_str());
   }
 
-
   ReadObjectPointers<TPZCompEl>(buf,fElementVec,this);
   fSolution.Read(buf,0);
   fSolutionBlock.Read(buf,&fSolution);
   fBlock.Read(buf,&fSolution);
-
 }
 
 #include "TPZGeoElement.h"
@@ -2172,7 +2166,7 @@ void TPZCompMesh::AssembleError(TPZFMatrix &estimator, int errorid){
       for(i = 0; i < locerror.NElements()-1; i++){
         estimator(iel, i) += locerror[i];
         }//for i
-//        estimator.Print("Estimator", std::cout, EFormatted); 
+//        estimator.Print("Estimator", std::cout, EFormatted);
 
       }//else
   }

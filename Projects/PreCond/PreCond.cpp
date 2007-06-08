@@ -1,4 +1,4 @@
-//$Id: PreCond.cpp,v 1.4 2006-03-13 11:51:22 phil Exp $
+//$Id: PreCond.cpp,v 1.5 2007-06-08 00:05:31 cesar Exp $
 
 /**
  * This project test some preconditioners for 3D elastic problems.
@@ -49,7 +49,7 @@
 #include "TPZStackEqnStorage.h"
 
 #include "pzsbstrmatrix.h"
-#include "pzstepsolver.h"    		
+#include "pzstepsolver.h"
 #include "pzonedref.h"
 
 #include "pzadmchunk.h"
@@ -89,7 +89,7 @@ void InitializeLOG()
 #ifdef LOG4CXX
   configfile = path;
   configfile += "/Util/log4cxx.cfg";
-  
+
   log4cxx::PropertyConfigurator::configure(configfile);
 
     //  log4cxx::BasicConfigurator::configure();
@@ -124,10 +124,10 @@ int main2(){
   //result(0,0) = 9999999.;
   for(int i = 0; i < neq; i++) matrix(i,i) = 5;//1000.*(i+1);
   TPZCopySolve precond( &matrix );
-  int niter = 1000; 
+  int niter = 1000;
   REAL tol = 1.e-10;
   TPZTimer time;
-  
+
   TPZCounter before (TPZFlopCounter::gCount);
   time.start();
 //  matrix.SolveCGown(niter, precond, F, result, &residual, tol, 1);
@@ -139,12 +139,12 @@ int main2(){
   TPZCounter after(TPZFlopCounter::gCount);
   TPZCounter counter = after-before;
   counter.Print(std::cout);
-  
+
   std::cout << "\n\nSolucao\n";
   result.Print("Solucao", std::cout);
   std::cout << "\n\nresiduo\n";
   residual.Print("Residuo", std::cout);
-  
+
   std::cout << "\n\nF\n";
   F.Print("F", std::cout);
   return 0;
@@ -163,10 +163,10 @@ TPZMaterial::gBigNumber= 1.e6;
   int h, p;
   for(p = 2; p < 3; p++){
     for(h =2; h < 3; h++){
-      TPZCompEl::gOrder = p;
+      TPZCompEl::SetgOrder(p);
 
       TPZCompMesh *cmesh;
-      cmesh = CreateSimpleMesh(h);     
+      cmesh = CreateSimpleMesh(h);
       TPZGeoMesh *gmesh = cmesh->Reference();
 
       TPZAnalysis an(cmesh);
@@ -175,7 +175,7 @@ TPZMaterial::gBigNumber= 1.e6;
       //Escolha do metodo de resolucao do sistema linear
 
       //metodo direto: foi escolhido o metodo frontal
-//#define direct 
+//#define direct
 #ifdef direct
 
       // Melhor caso para GEM e elementos finitos. Melhor metodo direto
@@ -184,7 +184,7 @@ TPZMaterial::gBigNumber= 1.e6;
       an.SetStructuralMatrix(Matrix);
       TPZStepSolver step;
       step.SetDirect( ECholesky );
-      
+
       TPZCounter before (TPZFlopCounter::gCount);
       an.SetSolver(step);
 #endif
@@ -200,20 +200,20 @@ TPZMaterial::gBigNumber= 1.e6;
       //TPZSBandStructMatrix Matrix(cmesh); //Matriz Banda Simetrica
 
       cout << "before SetStructuralMatrix\n";
-      an.SetStructuralMatrix(Matrix);  
+      an.SetStructuralMatrix(Matrix);
       cout << "before step constructor\n";
       TPZStepSolver step( Matrix.Create() );
       an.SetSolver(step);
-  
+
       cout << "matrix created" << endl;
       REAL tol = 1.e-10;
-     
+
       //Com precondicionador
       //TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EBlockJacobi , true);
       TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::EElement , true);
 //      TPZMatrixSolver * precond = an.BuildPreconditioner(TPZAnalysis::ENodeCentered , false);
-      // Sem pre-condicionador 
-      //TPZCopySolve * precond = new TPZCopySolve( Matrix.Create() );  step.ShareMatrix( *precond );  
+      // Sem pre-condicionador
+      //TPZCopySolve * precond = new TPZCopySolve( Matrix.Create() );  step.ShareMatrix( *precond );
       //Precondicionador jacobi
       //TPZStepSolver * precond = new TPZStepSolver( Matrix.Create() ); step.ShareMatrix( *precond ); precond->SetJacobi(1, 0.0, 0);
       //TPZStepSolver * precond = new TPZStepSolver( Matrix.Create() ); step.ShareMatrix( *precond ); precond->SetSOR(1, 0.0, 0);
@@ -224,24 +224,24 @@ TPZMaterial::gBigNumber= 1.e6;
       jac.ShareMatrix(step);
 
       TPZCounter before (TPZFlopCounter::gCount);
-      
-      
-      //step.SetGMRES( 2000, 2000, jac, tol, 0 ); 
-      //step.SetGMRES(  an.Mesh()->NEquations() + 2,  an.Mesh()->NEquations() + 1, *precond, tol, 0 ); 
+
+
+      //step.SetGMRES( 2000, 2000, jac, tol, 0 );
+      //step.SetGMRES(  an.Mesh()->NEquations() + 2,  an.Mesh()->NEquations() + 1, *precond, tol, 0 );
       //step.CGown(&A, &x, &b, &max_iter, Real &tol)
       step.SetCG(200, *precond, tol, 0);
       //step.SetCG(100, jac, tol, 0);
       //step.SetCG( an.Mesh()->NEquations() + 2, *precond, tol,0);
 
       an.SetSolver(step);
-      
+
       delete precond;
 #endif
 
-      //Isso nao serve pra nada. Eh so pra evitar de tentar resolver problemas muito grandes. 
+      //Isso nao serve pra nada. Eh so pra evitar de tentar resolver problemas muito grandes.
       //nmaxeq esta definido no comeco do codigo
       cout << "\nNumero de equacoes: " << an.Mesh()->NEquations() << endl;
-      if (an.Mesh()->NEquations() > nmaxeq) { 
+      if (an.Mesh()->NEquations() > nmaxeq) {
 	cout << "skipping simulation...\n" << endl;
 	delete cmesh;
 	delete gmesh;
@@ -250,14 +250,14 @@ TPZMaterial::gBigNumber= 1.e6;
 
       //Resolve o problema
       cout << "p = " << p << " h = " << h << endl;
-      an.Run(); 
+      an.Run();
 
       TPZCounter after(TPZFlopCounter::gCount);
       TPZCounter result = after-before;
       result.Print(std::cout);
-            
+
 #define geradxTPZShapeLinear
-#ifdef geradx      
+#ifdef geradx
 
       //Gera arquivo de soluicao .dx
       char filedx[20];
@@ -268,7 +268,7 @@ TPZMaterial::gBigNumber= 1.e6;
       char filevisualdx[20];
       sprintf(filevisualdx,"Visual_p%d_h%d.dx",p,h);
       VisualMatrix(*cmesh, 100, filevisualdx);
-      
+
  #endif
 
       delete cmesh;
@@ -278,7 +278,7 @@ TPZMaterial::gBigNumber= 1.e6;
   }
 
   return 0;
-  
+
   TPZFMatrix A, b, p1, q, r, x;
   REAL normr;
   A(0,0) = 1; A(0,1) = 2; A(0,1) = 2; A(1,1) = 1;
@@ -300,7 +300,7 @@ void PostProcessing(TPZAnalysis &an, char* filedx){
   an.PostProcess(2);
 }
 
-void VisualMatrix(TPZCompMesh &cmesh, int resolution, char *filedx){  
+void VisualMatrix(TPZCompMesh &cmesh, int resolution, char *filedx){
   TPZFMatrix fillin;
   cmesh.ComputeFillIn(resolution,fillin);
   VisualMatrix(fillin , filedx);
@@ -335,7 +335,7 @@ TPZCompMesh * CreateSimpleMesh(int h){
   TPZElasticity3D *mat = new TPZElasticity3D(1,E,poisson,force);
 //        TPZMatPoisson3d *mat = new TPZMatPoisson3d(1, 3);
 //        TPZVec<REAL> dir(3, 0.);
-//        mat->SetParameters(1., 0., dir);  
+//        mat->SetParameters(1., 0., dir);
 //        mat->SetInternalFlux(1.0);
 
   int nstate = mat->NStateVariables();
@@ -353,12 +353,12 @@ TPZCompMesh * CreateSimpleMesh(int h){
 TPZGeoMesh * CreateSimpleGeometry(){
 
 //#define lermalha
-//#ifdef lermalha      
-  
+//#ifdef lermalha
+
 //  void ReadMesh();
-  
-//#endif  
-  
+
+//#endif
+
   REAL co[8][3] = {{0.,0.,0.},{0.,0.,0.1},{0.,0.1,0.1},{0.,0.1,0.},{1.,0.,0.},{1.,0.,0.1},{1.,0.1,0.1},{1.,0.1,0.}};
   int indices[1][8] = {{0,1,2,3,4,5,6,7}};
   TPZGeoEl *elvec[1];
@@ -398,7 +398,7 @@ TPZGeoMesh * CreateSimpleGeometry(){
 }
 
 // void ReadMesh(){
-// 
+//
 //   int dado1, dado2, dado3;
 //   char texto[256];
 //   ifstream entrada("break_d.1.node");
@@ -409,7 +409,7 @@ TPZGeoMesh * CreateSimpleGeometry(){
 //   //cout << "nnod " << nnod << endl;
 //   std::string str2(str,0,8);
 //   cout << "str2 " << str2 << endl;
-//   
+//
 //   chave = "Vertices";
 //   cout << "chave " << chave << endl;
 //   while (str2 != chave){
@@ -422,10 +422,10 @@ TPZGeoMesh * CreateSimpleGeometry(){
 //   entrada >> dado1 >> dado2 >> dado3;
 //   cout << "\n" << dado1 << "\n" << dado2 << "\n" << dado3;
 //   entrada.close();
-//   
+//
 //   ofstream saida("elipse_a.1.txt");
 //   saida << "\n" << dado1 << "\t" << dado2 << "\t" << dado3;
 //   saida.close();
-// 
+//
 // }
 

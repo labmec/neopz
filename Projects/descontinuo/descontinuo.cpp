@@ -1,6 +1,6 @@
 ///#include "pzmetis.h"
 //#include "pztrnsform.h"
-#include "pzgmesh.h" 
+#include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzfmatrix.h"
 #include "pzelgc3d.h"
@@ -154,7 +154,7 @@ int main() {
   if(tipo==4) Piramide();
 
   if(tipo==5) Prisma();
-  
+
   ofstream outgm("mesh.out");
 
   if(0){//cyclerefinements
@@ -189,7 +189,7 @@ int main() {
     gmesh->Print(outgm);
     cmesh->Print(outgm);
     outgm.flush();
-  }  
+  }
 
   if(1){
     start = clock();
@@ -268,16 +268,16 @@ int main() {
 	  an.PostProcess(0);
 	}
     }
-    
+
     //ofstream outan("analysis.out");
     if(0) an.Print("FEM SOLUTION ",outgm);
 
     REAL estimate=0.,H1_error=0.,L2_error=0.;
 
-    if(0){//erro da aproximacao FEM  
+    if(0){//erro da aproximacao FEM
       TPZManVector<REAL> flux(9);
       cmesh->EvaluateError(Solution,H1_error,L2_error,estimate);
-      outgm << "\n\n\n";    
+      outgm << "\n\n\n";
       outgm << "L2 Error  : " << L2_error << endl;
       outgm << "Semi Norm : " << estimate << endl;
       outgm << "Energy    : " << H1_error << endl;
@@ -288,7 +288,7 @@ int main() {
     }
     if(0){//pos-processamento local
       PostProcess(*gmesh,outgm);
-      outgm.flush();  
+      outgm.flush();
     }
 
     ContagemDeElementos();
@@ -303,7 +303,7 @@ int main() {
 
 void CriacaoDeNos(int nnodes,double lista[20][3]){
 
-   gmesh->NodeVec().Resize(nnodes);   
+   gmesh->NodeVec().Resize(nnodes);
    TPZVec<REAL> coord(3);
    int i;
    for(i=0;i<nnodes;i++){
@@ -315,7 +315,7 @@ void CriacaoDeNos(int nnodes,double lista[20][3]){
 }
 
 TPZMaterial *Linha(int ordem){
- 
+
   CriacaoDeNos(2,linha);
   //elemento de volume
   TPZVec<int> nodes;
@@ -370,10 +370,10 @@ TPZMaterial *Linha(int ordem){
   //((TPZConservationLaw *)mat)->SetIntegDegree(grau);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno  
+  //condições de contorno
   TPZBndCond *bc;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
-  
+
   //CC no canto -1
   val1.Zero();
   val2.Zero();
@@ -381,12 +381,12 @@ TPZMaterial *Linha(int ordem){
   TPZGeoElBC(elg1d,0,-1,*gmesh);
   bc = mater->CreateBC(-1,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
-  
+
   //CC no canto 1
   TPZGeoElBC(elg1d,1,-2,*gmesh);
   bc = mater->CreateBC(-2,3,val1,val2);
   //bc->SetForcingFunction(BCZero);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   cout << endl;
   cmesh->AutoBuild();
@@ -421,7 +421,7 @@ void BCZero(TPZVec<REAL> &x,TPZVec<REAL> &result){
 }
 
 TPZMaterial *Quadrilatero(int ordem){
- 
+
   CriacaoDeNos(4,quadrilatero);
   //elemento de volume
   TPZVec<int> nodes;
@@ -449,7 +449,7 @@ TPZMaterial *Quadrilatero(int ordem){
   if(problem==9){
     B[0] = 1.0;//1d e 2d
     B[1] = 0.0;//test=0
-  }  
+  }
   if(problem==10){
     test = 1;
   }
@@ -490,7 +490,7 @@ TPZMaterial *Quadrilatero(int ordem){
   //((TPZConservationLaw *)mater)->SetIntegDegree(grau);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno  
+  //condições de contorno
   TPZBndCond *bc;
   //  REAL big = 1.e12;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
@@ -506,24 +506,24 @@ TPZMaterial *Quadrilatero(int ordem){
   bc = mater->CreateBC(-1,1,val1,val2);
   //bc->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(bc);
-  
+
   //CC na aresta 5
   TPZGeoElBC(elgq2d,5,-2,*gmesh);
   bc = mater->CreateBC(-2,1,val1,val2);
   //bc->SetForcingFunction(Function);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   //CC na aresta 6
   TPZGeoElBC(elgq2d,6,-3,*gmesh);
   bc = mater->CreateBC(-3,1,val1,val2);
   //bc->SetForcingFunction(Function);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   //CC na aresta 7
   TPZGeoElBC(elgq2d,7,-4,*gmesh);
   bc = mater->CreateBC(-4,1,val1,val2);
   //bc->SetForcingFunction(Function);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   cout << endl;
   cmesh->AutoBuild();
@@ -532,7 +532,7 @@ TPZMaterial *Quadrilatero(int ordem){
 }
 
 TPZMaterial *Hexaedro(int ordem){
- 
+
   CriacaoDeNos(8,hexaedro);
   //elemento de volume
   TPZVec<int> nodes;
@@ -568,7 +568,7 @@ TPZMaterial *Hexaedro(int ordem){
     B[0] = 1.0;
     B[1] = 0.0;
     B[2] = 0.0;
-  }  
+  }
   if(problem==10){
     test = 2;
   }
@@ -583,7 +583,7 @@ TPZMaterial *Hexaedro(int ordem){
   REAL delta_t = cfl*delta_x / maxflinha;//delta_t é <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
-  //delta = delta_x / 2.0; 
+  //delta = delta_x / 2.0;
   cout << "\nMaximo de f' = " << maxflinha
        << "\nCFL = " << cfl
        << "\nDominio [0,1]x[0,1]x[0,1]"
@@ -600,7 +600,7 @@ TPZMaterial *Hexaedro(int ordem){
   //((TPZConservationLaw *)mater)->SetIntegDegree(grau);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno  
+  //condições de contorno
   TPZBndCond *bc;
   //  REAL big = 1.e12;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
@@ -617,18 +617,18 @@ TPZMaterial *Hexaedro(int ordem){
   bc = mater->CreateBC(-1,1,val1,val2);
   //bc->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(bc);
-  
+
   //CC na aresta 21
   TPZGeoElBC(elgc3d,21,-2,*gmesh);
   bc = mater->CreateBC(-2,1,val1,val2);
   //bc->SetForcingFunction(Function);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   //CC na aresta 22
   TPZGeoElBC(elgc3d,22,-3,*gmesh);
   bc = mater->CreateBC(-3,1,val1,val2);
   //bc->SetForcingFunction(Function);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   //CC na aresta 23
   TPZGeoElBC(elgc3d,23,-4,*gmesh);
@@ -652,6 +652,7 @@ TPZMaterial *Hexaedro(int ordem){
 //   cout << "\nEntre ordem -> ";
 //   //cin >> ordem;
 //   TPZCompEl::gOrder = ordem;
+  //cmesh->SetDefaultOrder(ordem);
   cout << endl;
   cmesh->AutoBuild();
 
@@ -659,7 +660,7 @@ TPZMaterial *Hexaedro(int ordem){
 }
 
 TPZMaterial *Triangulo(int ordem){
- 
+
   CriacaoDeNos(3,triangulo);
   //elemento de volume
   TPZVec<int> nodes;
@@ -686,7 +687,7 @@ TPZMaterial *Triangulo(int ordem){
   TPZMaterial *mater = new TPZConsLawTest(nummat,B,dif_artif,delta_t,dim,integ);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno  
+  //condições de contorno
   TPZBndCond *bc;
   //  REAL big = 1.e12;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
@@ -700,18 +701,18 @@ TPZMaterial *Triangulo(int ordem){
   bc = mater->CreateBC(-1,1,val1,val2);
   bc->SetForcingFunction(BCZero);
   cmesh->InsertMaterialObject(bc);
-  
+
   //CC na aresta 4
   TPZGeoElBC(elgt2d,5,-2,*gmesh);
   bc = mater->CreateBC(-2,1,val1,val2);
   bc->SetForcingFunction(BCZero);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   //CC na aresta 5
   TPZGeoElBC(elgt2d,6,-3,*gmesh);
   bc = mater->CreateBC(-3,1,val1,val2);
   bc->SetForcingFunction(BCZero);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   cout << endl;
   cmesh->AutoBuild();
@@ -720,7 +721,7 @@ TPZMaterial *Triangulo(int ordem){
 }
 
 void Piramide(){
- 
+
   CriacaoDeNos(5,piramide);
   //elemento de volume
   TPZVec<int> nodes;
@@ -741,19 +742,20 @@ void Piramide(){
   TPZMaterial *mater = new TPZMatPoisson3d(100,3);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno  
+  //condições de contorno
   //if(problemtype == 1) CC_Projecao(mater);
   //if(problemtype == 2) CC_Poisson(mater);
   int ordem=2;
   //cout << "\nEntre ordem -> ";
   //cin >> ordem;
-  TPZCompEl::gOrder = ordem;
+//  TPZCompEl::gOrder = ordem;
+  cmesh->SetDefaultOrder(ordem);
   cout << endl;
   cmesh->AutoBuild();
 }
 
 void Prisma(){
- 
+
   CriacaoDeNos(6,prisma);
   //elemento de volume
   TPZVec<int> nodes;
@@ -774,19 +776,20 @@ void Prisma(){
   TPZMaterial *mater = new TPZMatPoisson3d(100,3);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno  
+  //condições de contorno
   //if(problemtype == 1) CC_Projecao(mater);
   //if(problemtype == 2) CC_Poisson(mater);
   int ordem=2;
   //cout << "\nEntre ordem -> ";
   //cin >> ordem;
-  TPZCompEl::gOrder = ordem;
+//  TPZCompEl::gOrder = ordem;
+  cmesh->SetDefaultOrder(ordem);
   cout << endl;
   cmesh->AutoBuild();
 }
 
 void Tetraedro(){
- 
+
   CriacaoDeNos(4,tetraedro);
   //elemento de volume
   TPZVec<int> nodes;
@@ -795,7 +798,7 @@ void Tetraedro(){
   nodes[1] = 1;
   nodes[2] = 2;
   nodes[3] = 3;
-  new TPZGeoElT3d(nodes,100,*gmesh);//TPZGeoElT3d *elg3d = 
+  new TPZGeoElT3d(nodes,100,*gmesh);//TPZGeoElT3d *elg3d =
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   //construtor descontínuo
@@ -810,7 +813,8 @@ void Tetraedro(){
   int ordem=2;
   //cout << "\nEntre ordem -> ";
   //cin >> ordem;
-  TPZCompEl::gOrder = ordem;
+//  TPZCompEl::gOrder = ordem;
+  cmesh->SetDefaultOrder(ordem);
   cout << endl;
   cmesh->AutoBuild();
 }
@@ -821,7 +825,7 @@ void CC_Projecao(TPZMaterial *mater){
 
    TPZBndCond *bc;
    //   REAL big = 1.e12;
-   TPZFMatrix val1(1,1,0.),val2(1,1,0.);       
+   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
    TPZGeoEl *elg0 = gmesh->ElementVec()[0];
 
    //CC na face 20
@@ -870,9 +874,9 @@ void CC_Poisson(TPZMaterial *mater){
   //nulo nos lados contidos nos eixos
   TPZBndCond *bc;
   //  REAL big = 1.e12;
-  TPZFMatrix val1(1,1,0.),val2(1,1,0.);       
+  TPZFMatrix val1(1,1,0.),val2(1,1,0.);
   TPZGeoEl *elg0 = gmesh->ElementVec()[0];
-  
+
   //CC na face 20
   val1.Zero();//para uso CC tipo 2
   val2.Zero();
@@ -880,19 +884,19 @@ void CC_Poisson(TPZMaterial *mater){
   bc = mater->CreateBC(-1,0,val1,val2);
   bc->SetForcingFunction(BCPoisson);
   cmesh->InsertMaterialObject(bc);
-  
+
   //CC na face 21
   TPZGeoElBC(elg0,21,-2,*gmesh);
   bc = mater->CreateBC(-2,0,val1,val2);
   bc->SetForcingFunction(BCPoisson);
   cmesh->InsertMaterialObject(bc);
-  
+
   //CC na face 22
   TPZGeoElBC(elg0,22,-3,*gmesh);
   bc = mater->CreateBC(-3,1,val1,val2);
   bc->SetForcingFunction(BCPoisson);
   cmesh->InsertMaterialObject(bc);
-  
+
   //CC na face 23
   TPZGeoElBC(elg0,23,-4,*gmesh);
   bc = mater->CreateBC(-4,1,val1,val2);
@@ -935,7 +939,7 @@ void BCPoisson(TPZVec<REAL> &x,TPZVec<REAL> &result){
 }
 
 // void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
-//   //sol u = x*x + y*y + z*z , -laplaciano(u) = f  
+//   //sol u = x*x + y*y + z*z , -laplaciano(u) = f
 //   if(problemtype == 1) result[0]  = x[0]*x[0]+x[1]*x[1]+x[2]*x[2];
 //   if(problemtype == 2) result[0] = -6.0;//Laplaciano
 // }
@@ -973,7 +977,7 @@ void Solution(TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix &deriv){
 }
 
 void Divisao (TPZCompMesh *cmesh,int key){
-  
+
   if(key < 0) return;
   TPZVec<int> csub(0);
   int n1=1;
@@ -1053,9 +1057,9 @@ void CycleRefinements(TPZCompMesh& cm, int numcycles, int minel, int maxel, ofst
   int ic,aleat;
   cout <<  "\nEntre numero inteiro aleatorio ";// << 1;
   //aleat = 15;
-  cin >> aleat;   
+  cin >> aleat;
   srand(aleat);
-  clock_t start,end,begin,ttot=0;  
+  clock_t start,end,begin,ttot=0;
   ofstream divide("adapta.out");
   int divididos,agrupados,totdiv=0,totagr=0,realdiv=0;
   //  int elbc=0;
@@ -1066,7 +1070,7 @@ void CycleRefinements(TPZCompMesh& cm, int numcycles, int minel, int maxel, ofst
     numel = cm.NElements() - cm.ElementVec().NFreeElements();
     divididos = 0;
     while(numel < maxel) {
-      int elindex = rand()%cm.NElements();	 	  	  	  	  
+      int elindex = rand()%cm.NElements();
       TPZCompEl *cel = elemvec[elindex];
       if(cel){
 	if(cel->Type() == 16) continue;
@@ -1082,7 +1086,7 @@ void CycleRefinements(TPZCompMesh& cm, int numcycles, int minel, int maxel, ofst
 	divide.flush();
 	if(cel->Reference()->HasSubElement()){
 	  PZError << "Elemento ja' era dividido\n";
-	} else {	  
+	} else {
 	  if(cel->Reference()->MaterialId() < 0){
 	    PZError << "Elemento BC nao era dividido\n";
 	  }
@@ -1098,7 +1102,7 @@ void CycleRefinements(TPZCompMesh& cm, int numcycles, int minel, int maxel, ofst
     totdiv += divididos;
     //}//TESTE
     //return;//TESTE
-    //{//TESTE  
+    //{//TESTE
     end = clock();
     cout << "\nEnd divide cycle: "  << (ic+1) << endl;
     cout << "Total divididos do ciclo " << (ic+1) << " -> " << divididos << endl;
@@ -1116,37 +1120,37 @@ void CycleRefinements(TPZCompMesh& cm, int numcycles, int minel, int maxel, ofst
       if(cel) {
 	TPZVec<int> subindex;
 	int ID = cel->Reference()->Id();//depois cel pode ser apagado
-	if(IsGroup(elindex,cel,subindex)){	  
-	  divide << "agrupa id   =  " << ID;	  
+	if(IsGroup(elindex,cel,subindex)){
+	  divide << "agrupa id   =  " << ID;
 	  divide << "\tpai id   =  " << cel->Reference()->Father()->Id();
 	  divide << "        elindex    =  " << elindex << endl;
 	  divide.flush();
-	  //out << "Coarsening "; for(i=0;i<4;i++) out << subindex[i] << "/" 
+	  //out << "Coarsening "; for(i=0;i<4;i++) out << subindex[i] << "/"
 	  //    << cm.ElementVec()[subindex[i]]->Reference()->Id() << " ";
 	  //out << endl;
 	  cm.Coarsen(subindex,elindex);
 	  agrupados++;
-	  //out << "Created " << elindex << "/" 
+	  //out << "Created " << elindex << "/"
 	  //<< cm.ElementVec()[elindex]->Reference()->Id() << endl;
 	  cout << "Agrupado " << ID << endl;
 	  //out.flush();
 	  cm.CleanUpUnconnectedNodes();
 	  numel = cm.NElements()-cm.ElementVec().NFreeElements();
 	}
-      }      
+      }
     }//
     totagr += agrupados;
     cout << "\nEnd coarsen cycle: " << (ic+1) << endl;
     cout << "Total agrupados do ciclo " << (ic+1) << " -> " <<  agrupados << endl;
     cout << "\nCleanUpUnconnectedNodes()\n";
     cm.CleanUpUnconnectedNodes();
-    end = clock();    
+    end = clock();
     segundos = ((end - start)/CLOCKS_PER_SEC);
     cout << segundos << " segundos" << endl;
     cout << segundos/60.0 << " minutos" << endl << endl;
     ttot += segundos;
     //out.flush();
-    //cm.Print(out);    
+    //cm.Print(out);
     cout << "\nTotal divididos = " << totdiv;
     cout << "\nTotal realmente divididos = " << realdiv;
     cout << "\nTotal agrupados = " << totagr << endl;
@@ -1314,7 +1318,7 @@ void PostProcess(TPZGeoMesh &gmesh,ostream &out) {
     if(id > idmax) idmax = id;
   }
   for(int iel=0;iel<nel;iel++) {
-    if(!gmesh.Reference()->ElementVec()[iel]) continue;      
+    if(!gmesh.Reference()->ElementVec()[iel]) continue;
     int elemtype = gmesh.Reference()->ElementVec()[iel]->Type();
     if(elemtype==16) continue;
     TPZCompEl *el = gmesh.Reference()->ElementVec()[iel];
@@ -1383,7 +1387,7 @@ void PostProcess(TPZGeoMesh &gmesh,ostream &out) {
 	  if(nsides==27) elc3d->Reference()->Solution(csi,0,sol);
 	}
 	out << "solucao em x    = " << x[0] << ' ' << x[1] << ' ' << x[2] << endl;
-	out << "               u = " << sol[0] << endl;	    
+	out << "               u = " << sol[0] << endl;
       }
     }
   }
@@ -1409,7 +1413,7 @@ void FileNB(TPZGeoMesh &gmesh,ostream &out) {
   int count = -1,capacity=0;
   while(count++<idmax){
     for(int iel=0;iel<nel;iel++) {
-      if(!gmesh.Reference()->ElementVec()[iel]) continue;      
+      if(!gmesh.Reference()->ElementVec()[iel]) continue;
       int elemtype = gmesh.Reference()->ElementVec()[iel]->Type();
       if(elemtype==16) continue;//interface
       TPZCompEl *el = gmesh.Reference()->ElementVec()[iel];
@@ -1557,7 +1561,7 @@ void CoutTime(clock_t &start){
 }
 
 TPZMaterial *HexaedroNovo(int ordem){
- 
+
   CriacaoDeNos(8,hexaedro);
   //elemento de volume
   TPZVec<int> nodes;
@@ -1594,7 +1598,7 @@ TPZMaterial *HexaedroNovo(int ordem){
     B[1] = 0.0;
     B[2] = 0.0;
     test = 0;
-  }  
+  }
   if(problem==10){
     test = 2;
   }
@@ -1606,7 +1610,7 @@ TPZMaterial *HexaedroNovo(int ordem){
   REAL delta_x = ( 1.0 / pow(2.0,(REAL)nivel) );//tamanho do elemento
   REAL delta = ( (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10. );
   REAL maxflinha = 1.0;
-  REAL delta_t = cfl*delta_x / maxflinha;//delta_t é <= que este valor 
+  REAL delta_t = cfl*delta_x / maxflinha;//delta_t é <= que este valor
   cout << "\nMaximo de f' = " << maxflinha
        << "\nCFL = " << cfl
        << "\nDominio [0,1]x[0,1]x[0,1]"
@@ -1618,7 +1622,7 @@ TPZMaterial *HexaedroNovo(int ordem){
   //((TPZConservationLaw *)mat)->SetIntegDegree(grau);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
-  //condições de contorno  
+  //condições de contorno
   TPZBndCond *bc;
   //  REAL big = 1.e12;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
@@ -1635,18 +1639,18 @@ TPZMaterial *HexaedroNovo(int ordem){
   bc = mater->CreateBC(-1,1,val1,val2);
   //bc->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(bc);
-  
+
   //CC na aresta 21
   TPZGeoElBC(elgc3d,21,-2,*gmesh);
   bc = mater->CreateBC(-2,1,val1,val2);
   //bc->SetForcingFunction(Function);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   //CC na aresta 22
   TPZGeoElBC(elgc3d,22,-3,*gmesh);
   bc = mater->CreateBC(-3,1,val1,val2);
   //bc->SetForcingFunction(Function);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   //CC na aresta 23
   TPZGeoElBC(elgc3d,23,-4,*gmesh);
@@ -1677,7 +1681,7 @@ TPZMaterial *HexaedroNovo(int ordem){
 }
 
 TPZMaterial *QuadrilateroNovo(int ordem){
- 
+
   CriacaoDeNos(4,quadrilatero);
   //elemento de volume
   TPZVec<int> nodes;
@@ -1706,7 +1710,7 @@ TPZMaterial *QuadrilateroNovo(int ordem){
     B[0] = 1.0;//1d e 2d
     B[1] = 0.0;//test=0
     test = 0;
-  }  
+  }
   if(problem==10){
     test = 1;
   }
@@ -1730,7 +1734,7 @@ TPZMaterial *QuadrilateroNovo(int ordem){
   //((TPZConservationLaw *)mat)->SetIntegDegree(grau);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
-  //condições de contorno  
+  //condições de contorno
   TPZBndCond *bc;
   //  REAL big = 1.e12;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
@@ -1746,24 +1750,24 @@ TPZMaterial *QuadrilateroNovo(int ordem){
   bc = mater->CreateBC(-1,1,val1,val2);
   //bc->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(bc);
-  
+
   //CC na aresta 5
   TPZGeoElBC(elgq2d,5,-2,*gmesh);
   bc = mater->CreateBC(-2,1,val1,val2);
   //bc->SetForcingFunction(Function);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   //CC na aresta 6
   TPZGeoElBC(elgq2d,6,-3,*gmesh);
   bc = mater->CreateBC(-3,1,val1,val2);
   //bc->SetForcingFunction(Function);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   //CC na aresta 7
   TPZGeoElBC(elgq2d,7,-4,*gmesh);
   bc = mater->CreateBC(-4,1,val1,val2);
   //bc->SetForcingFunction(Function);
-  cmesh->InsertMaterialObject(bc); 
+  cmesh->InsertMaterialObject(bc);
 
   cout << endl;
   cmesh->AutoBuild();

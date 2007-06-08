@@ -1,4 +1,4 @@
-//$Id: pzelmat.h,v 1.8 2007-04-19 12:21:36 tiago Exp $
+//$Id: pzelmat.h,v 1.9 2007-06-08 00:02:28 cesar Exp $
 
 #ifndef ELMATHPP
 #define ELMATHPP
@@ -39,11 +39,11 @@ struct TPZElementMatrix {
   TPZFNMatrix<1000>		fConstrMat;
   /**block structure associated with fConstrMat*/
   TPZBlock		fConstrBlock;
-  
+
   TPZManVector<int> fDestinationIndex, fSourceIndex;
-  
+
   int fNumStateVars;
-  
+
   ///Reset the data structure
   void Reset()
   {
@@ -69,7 +69,7 @@ struct TPZElementMatrix {
   }
 
   /**returns the pointer to the ith node of the element*/
-  int ConnectIndex(int i){
+  int ConnectIndex(int i)const{
     return fConnect[i];
   }
 

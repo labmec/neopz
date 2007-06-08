@@ -33,7 +33,7 @@ int numshape = (order_+1)*(order_+1)*(order_+1);
         order[i] = order_;
   }
 
-  TPZCompEl::gOrder = order_;
+  TPZCompEl::SetgOrder(order_);
 
   TPZVec<FADREAL> phi(numshape);
   TPZFMatrix OldPhi(numshape,1), OldDPhi(3,numshape);

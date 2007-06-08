@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.47 2007-05-11 19:22:51 joao Exp $
+//$Id: TPZInterfaceEl.h,v 1.48 2007-06-08 00:02:28 cesar Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -196,22 +196,22 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * it returns the number from connectivities of the element
    */
-  int NConnects();
+  virtual int NConnects() const;
 
   /**
    * it returns the number from connectivities of the element related to right neighbour
    */
-  int NRightConnects();
+  int NRightConnects() const;
 
   /**
    * it returns the number from connectivities of the element related to left neighbour
    */
-  int NLeftConnects();
+  int NLeftConnects() const;
 
   /**
    * Its return the connects of the left and right element associates
    */
-  int ConnectIndex(int i);
+  int ConnectIndex(int i) const;
 
   /**
    * This function should not be called
@@ -285,7 +285,7 @@ class TPZInterfaceElement : public TPZCompEl {
   * @param dsol solution derivatives
   * @param axes axes associated with the derivative of the solution
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, 
+  virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
 
   void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
@@ -319,8 +319,8 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * ComputeError computes the element error estimator
   */
-  virtual void ComputeError(int errorid, 
-                              TPZVec<REAL> &errorL, 
+  virtual void ComputeError(int errorid,
+                              TPZVec<REAL> &errorL,
                               TPZVec<REAL> &errorR);
 
   /**

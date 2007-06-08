@@ -6,7 +6,8 @@
 
 int main() {
 
-    TPZCompEl::gOrder = 3;
+//    TPZCompEl::gOrder = 3;
+  cmesh.SetDefaultOrder(3);
   //  return TPZBlockDiagonalStructMatrix::main();
 //     return TPZOneDRef::main();
     return TPZMGAnalysis::main();

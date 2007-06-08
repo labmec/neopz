@@ -52,7 +52,7 @@ void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int
    //        \_ 7____6 |
    //                  |
    //                [\|/]
-   //                 / 
+   //                 /
    // the points 1, 2 and 3 represents the projections of vectors
    // [0,0,-1], [0,1,0], [0,0,1]
    // Point 4 is the projection of alpha*[1]+beta*[3] onto the sphere
@@ -401,16 +401,16 @@ TPZFlowCompMesh *
 		 TPZTimeDiscr ConvVol_TD,
 		 TPZTimeDiscr ConvFace_TD)
 {
-   TPZCompEl::gOrder = degree;
+   TPZCompEl::SetgOrder(degree);
    REAL gamma = 1.4;
 
 // Configuring the PZ to generate discontinuous elements
 //    TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
 //                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-// 
+//
 //    TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>
 //                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-// 
+//
 //    TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>
 //                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
 
@@ -455,7 +455,7 @@ TPZFlowCompMesh *
    matp->SetDelta(delta);
 
    TPZAutoPointer<TPZMaterial> mat(matp);
-   
+
    cmesh -> InsertMaterialObject(mat);
 
 // Boundary conditions

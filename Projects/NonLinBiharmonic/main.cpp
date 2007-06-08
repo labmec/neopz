@@ -12,7 +12,7 @@
 #include <pzcompel.h>
 #include <pzgeoel.h>
 #include <pzvec.h>
-#include <pzgnode.h> 
+#include <pzgnode.h>
 #include <pzgeoelbc.h>
 //#include <pzpoisson3d.h>
 #include <pzmatrix.h>
@@ -57,8 +57,8 @@
 #include "pzquad.h"
 #include "pzbndcond.h"
 #include "TPZParFrontStructMatrix.h"
-#include "TPZSpStructMatrix.h" 
-#include "pznonlinanalysis.h" 
+#include "TPZSpStructMatrix.h"
+#include "pznonlinanalysis.h"
 #include "checkconv.h"
 using namespace pzshape;
 using namespace pzrefine;
@@ -88,19 +88,19 @@ void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
 }
 
 void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
-  u[0] =        x[1]-(exp(lbd*x[0])*sin(2.0* Pi*x[1]))/(Pi*2.0); 
+  u[0] =        x[1]-(exp(lbd*x[0])*sin(2.0* Pi*x[1]))/(Pi*2.0);
   deriv(0,0) = -lbd*exp(lbd*x[0])*sin(2.0* Pi*x[1])/(Pi*2.0); //dx
   deriv(1,0) =  1.0 - exp(lbd*x[0])*cos(2.0* Pi*x[1]);   // dy
-  deriv(2,0) = -lbd*lbd *exp(lbd*x[0])*sin(2.0* Pi*x[1])/(Pi*2.0)  
+  deriv(2,0) = -lbd*lbd *exp(lbd*x[0])*sin(2.0* Pi*x[1])/(Pi*2.0)
                + 2.0*exp(lbd*x[0])*sin(2.0* Pi*x[1])*Pi;   // laplaciano
   deriv(3,0) = -lbd*lbd*lbd *exp(lbd*x[0])*sin(2.0* Pi*x[1])/(Pi*2.0)
-               + lbd*2.0*exp(lbd*x[0])*sin(2.0* Pi*x[1])*Pi;//D/dx do laplaciano	       
+               + lbd*2.0*exp(lbd*x[0])*sin(2.0* Pi*x[1])*Pi;//D/dx do laplaciano
   deriv(4,0) = -lbd*lbd *exp(lbd*x[0])*cos(2.0* Pi*x[1])
                + 2.0*exp(lbd*x[0])*cos(2.0* Pi*x[1])*Pi*2.0*Pi;//D/dy do laplaciano
   deriv(5,0) = -lbd*lbd *exp(lbd*x[0])*sin(2.0* Pi*x[1])/(Pi*2.0);// dxx
   deriv(6,0) = 2.0*exp(lbd*x[0])*sin(2.0* Pi*x[1])*Pi;// dyy
   deriv(7,0) = -lbd *exp(lbd*x[0])*cos(2.0* Pi*x[1]);// dxy
-  
+
 }
 
 void CC1(TPZVec<REAL> &x, TPZVec<REAL> &f) {
@@ -131,7 +131,7 @@ int main(){
   TPZCompElDisc::SetOrthogonalFunction(TPZShapeDisc::Legendre);
 
   Pi = 4.0*atan(1.0);
-  
+
   TPZNonLinBiharmonic::NorP = 1;
 
   ofstream out("teste.txt");
@@ -139,31 +139,31 @@ int main(){
 
   time_t tm1 = time(0);
   int p_inicial=3, p_final=3, n_inicial=2,  n_final=2;
-  
+
   int Reynolds[]={1};  // Reynolds e NReynolds precisam ter a mesma dimensao.
   TPZVec<int> NReynolds(1,0);                       // Isso e manual
   for(int ip=0; ip<NReynolds.NElements(); ip++) NReynolds[ip] = Reynolds[ip];
-  
-  nonlin<<" Kovasznay Flow "<<endl;  
+
+  nonlin<<" Kovasznay Flow "<<endl;
   nonlin<<" The current time is :"<<ctime(&tm1)<<endl;
-  
+
   out<<n_final-n_inicial<<"  "<<p_final-p_inicial<<"  "<<NReynolds.NElements()<<endl;
-  
+
   for(int iR=0; iR<NReynolds.NElements(); iR++){
-    
+
     out<<NReynolds[iR]<<endl;
 
     Re = TPZNonLinBiharmonic::Re = NReynolds[iR];
-    cout<<" Reynolds = "<<Re<<endl;  
-    lbd = Re/2. - sqrt(Re*Re/4. + 4.*Pi*Pi); 
+    cout<<" Reynolds = "<<Re<<endl;
+    lbd = Re/2. - sqrt(Re*Re/4. + 4.*Pi*Pi);
     cout<<" lbd = "<<lbd<<endl;
     time_t tm3=0, tm2=0 ;
     clock_t ck3, ck2;
-      
+
     for(int p_ordem=p_inicial; p_ordem<=p_final; p_ordem++){
       out<<p_ordem;
       for(int n_refin=n_inicial; n_refin<=n_final; n_refin++){
-      
+
       tm2 = time(0);
       ck2 = clock();
       if (tm3){
@@ -172,16 +172,16 @@ int main(){
       }
       tm3 = time(0);
       ck3 = clock();
-      
+
       nonlin<<" _________________________________________________________________________"<<endl;
       nonlin<<"Dados: "<<endl;
       nonlin<<"    Metodo               = "<<TPZNonLinBiharmonic::NorP<<" (1=Newton, 0=Picard)"<<endl;
       nonlin<<"    Reynolds             = "<<NReynolds[iR]<<endl;
       nonlin<<"    Ordem p              = "<<p_ordem<<endl;
       nonlin<<"    Nivel de Refinamento = "<<n_refin<<endl<<endl;
-      
-      
-                
+
+
+
       TPZGeoMesh *geomalha = NULL;
       TPZCompMesh *malha = NULL;
 
@@ -196,8 +196,8 @@ int main(){
 
 
       SolveLU(an, malha, geomalha, nonlin);
-      an.PostProcess(1); 
-      
+      an.PostProcess(1);
+
       ofstream analy("Analysis.out");
       an.Print("Analysis.out", analy);
 
@@ -217,8 +217,8 @@ int main(){
       vec_names[0] = "Derivate";
       an.DefineGraphMesh(2, scalar_names, vec_names, "Solution.dx");
 
-      an.PostProcess(2); 
-     
+      an.PostProcess(2);
+
       an.SetExact(ExactSolution);
       TPZVec<REAL> pos;
       out<<endl;
@@ -231,13 +231,13 @@ int main(){
       TPZCompElDisc *myElem = NULL;
       myElem = FindElement(malha, pt_x, pt_ksi);
       if(myElem) {
-        cout<<"myElem != 0"<<endl;          
+        cout<<"myElem != 0"<<endl;
         AnalyseElementSolutionClass6(myElem, pt_ksi);
        }
-      
+
       delete malha;
       delete geomalha;
-  
+
 
    }//nivel
   }//pordem
@@ -263,7 +263,7 @@ TPZCompElDisc * FindElement(TPZCompMesh *malhacomp, TPZVec<REAL> &pont,TPZVec<RE
          return dynamic_cast<TPZCompElDisc*> (mycompel);
 	 //return dynamic_cast<TPZCompElDiscTPZInterpolatedElement *> (mycompel);
      }
-    
+
  }
    return 0;
   }
@@ -310,10 +310,10 @@ void AnalysisErrorandOrder() {
  infile >> Np;
  infile >> NReynolds;
  int tmp_p, tmp_Re;
-  
+
  TPZVec<REAL> error_atual(5,0.), error_anter(5,0.), ordem(5,0.);
- 
- 
+
+
  for(int iR=0; iR<NReynolds; iR++){
    infile >> tmp_Re;
      for(int ip=0; ip<=Np; ip++){
@@ -333,7 +333,7 @@ void AnalysisErrorandOrder() {
          outf<<"\\hline"<<endl;
          outf<<" L & Error & Order & Error & Order & Error & Order & Error & Order \\\\"<<endl;
          outf<<"\\hline"<<endl;
-         outf.setf(ios_base::scientific, ios_base::floatfield);	 
+         outf.setf(ios_base::scientific, ios_base::floatfield);
          outf<<iN<<" & "<<error_atual[0]<<" &        & "<<error_atual[2]<<" &        &"<<error_atual[4]<<" &        &"<<error_atual[1]<<" &         \\\\"<<endl;
 	 outf<<"\\hline"<<endl;
        }
@@ -343,7 +343,7 @@ void AnalysisErrorandOrder() {
 	   infile >> error_atual[j];
 	   ordem[j] = log10(error_atual[j]/error_anter[j])/log10(0.5);
          }
-	 outf.setf(ios_base::scientific, ios_base::floatfield);         
+	 outf.setf(ios_base::scientific, ios_base::floatfield);
 	 outf<<iN<<" & "<<error_atual[0]<<" & ";
 	 outf.setf(ios_base::floatfield, ios_base::floatfield);
 	 //outf.width(4);
@@ -366,11 +366,11 @@ void AnalysisErrorandOrder() {
          outf<<"\\end{tabular}"<<endl;
 	 outf<<"\\end{table}"<<endl<<endl<<endl;
        }
-     }   
+     }
    }
- }  
- 
- 
+ }
+
+
 }
 
 
@@ -378,31 +378,31 @@ void SolveLU(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMesh *geomalha,
 
 /*
   cout << " TPZSpStructMatrix " << endl;
-  an.SetStructuralMatrix(mat); 
+  an.SetStructuralMatrix(mat);
   cout << endl;
-  
+
   TPZMatrix *sec_mat = NULL;
- 
-  
+
+
   TPZStepSolver solv;
   solv.SetGMRES(3000,200,Pre,1e-9,0);
   cout << "GMRES " << endl;
   solv.SetMatrix(sec_mat);
   an.SetSolver(solv);
-  
+
   an.Solution().Redim(0,0);
   cout << "Assemble " << endl;
-  
+
  */
 
-  
+
   TPZBandStructMatrix mat(malha);
   //TPZParFrontStructMatrix<TPZFrontNonSym> mat(malha);
   //TPZParFrontStructMatrix mat(malha);
   //cout << "BandStructMatrix " << endl;
-  an.SetStructuralMatrix(mat); 
+  an.SetStructuralMatrix(mat);
   TPZMatrix *sec_mat = NULL;
- 
+
   TPZStepSolver solv;
   solv.SetMatrix(sec_mat);
   solv.SetDirect(ELU);
@@ -413,10 +413,10 @@ void SolveLU(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMesh *geomalha,
   cout << endl;
   an.Solution().Redim(0,0);
   cout << "Assemble " << endl;
-   
-  
+
+
   an.IterativeProcess(iterproc,1e-8,60);
-  //an.Assemble();   an.Run() faz a Assemble e Solve 
+  //an.Assemble();   an.Run() faz a Assemble e Solve
   //an.Solve();
   cout << endl;
   //TPZStepSolver solv2;
@@ -439,10 +439,10 @@ void SolveLU(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMesh *geomalha,
   //TPZParFrontStructMatrix mat(malha);
 
     //     bandmat->Print();
- 
+
   }
 
-} 
+}
 
 void SolveIterative(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMesh *geomalha){
 
@@ -457,12 +457,12 @@ void SolveIterative(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMesh *ge
 
   TPZStepSolver solv, precond(block);
 
-  precond.SetDirect(ELU);  
+  precond.SetDirect(ELU);
   //TPZBandStructMatrix mat(malha);
   //TPZParFrontStructMatrix<TPZFrontNonSym> mat(malha);
   //TPZParFrontStructMatrix mat(malha);
   cout << "BandStructMatrix " << endl;
-  
+
   cout << " GMRES " << endl;
 
   solv.SetGMRES( 2000, 10, precond, 1e-10, 0);
@@ -472,7 +472,7 @@ void SolveIterative(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMesh *ge
   cout << endl;
   cout << "Assemble " << endl;
 
-  //an.Assemble();  // an.Run() faz a Assemble e Solve 
+  //an.Assemble();  // an.Run() faz a Assemble e Solve
   cout << endl;
   cout << "Solve " << endl;
 
@@ -496,83 +496,83 @@ void SolveIterative_2(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMesh *
   cout << " TPZParFrontStructMatrix " << endl;
   an.SetStructuralMatrix(mat);
   cout << endl;
-  
+
   TPZMatrix *sec_mat = NULL;
-  
+
   TPZStepSolver solv;
   solv.SetDirect(ELU);
   cout << "ELU " << endl;
   solv.SetMatrix(sec_mat);
   an.SetSolver(solv);
-  
+
   an.Solution().Redim(0,0);
   cout << "Assemble " << endl;
-  
+
   ofstream iterproc("IteraProc.dat");
-  
-  
+
+
   an.IterativeProcess(iterproc,1e-10,50);
   cout << endl;
- 
+
   TPZFBMatrix * bandmat = dynamic_cast<TPZFBMatrix*>(solv.Matrix().operator ->());
   if (bandmat){
     cout << endl << "Banda = " << bandmat->GetBand() << endl;
     cout << "No equacoes = " << malha->NEquations() << endl;
     cout << "No equacoes 2  TPZBandStructMatrix mat(malha)";
   }
-  
+
 }
 
 void SolveIterative_GMRES(TPZNonLinearAnalysis &an, TPZCompMesh *malha, TPZGeoMesh *geomalha, ofstream &iterproc){
 
- 
+
   TPZSpStructMatrix mat(malha);
- 
+
   cout << " TPZSpStructMatrix " << endl;
-  an.SetStructuralMatrix(mat); 
+  an.SetStructuralMatrix(mat);
   cout << endl;
-  
+
   TPZMatrix *sec_mat = NULL;
- 
+
   TPZStepSolver Pre;
-  
+
   TPZBlockDiagonalStructMatrix strBlockDiag(malha);
-  
+
   TPZBlockDiagonal * block = new TPZBlockDiagonal();
   strBlockDiag.AssembleBlockDiagonal(*block);
-  
+
   Pre.SetMatrix(block);
   Pre.SetDirect(ELU);
-  
+
   TPZStepSolver solv;
   solv.SetGMRES(3000,200,Pre,1e-8,0);
   cout << "GMRES " << endl;
   solv.SetMatrix(sec_mat);
   an.SetSolver(solv);
-  
+
   an.Solution().Redim(0,0);
   cout << "Assemble " << endl;
-  
+
 //  ofstream iterproc("IteraProc.dat");
 //  for(int j1=1; j1<6; j1++){
 //    TPZNonLinBiharmonic::Re = j1*400;
     an.IterativeProcess(iterproc,1e-10,50);
-//  } 
+//  }
    cout << endl;
- 
+
     cout << "No equacoes = " << malha->NEquations() << endl;
     iterproc<< "No equacoes = " << malha->NEquations() << endl;
 
 
 
 
-  
+
 }
- 
+
 
 TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
 
-  TPZCompEl::gOrder = p_ordem;
+  TPZCompEl::SetgOrder(p_ordem);
 
   TPZGeoMesh *geomalha = new TPZGeoMesh;
 
@@ -618,7 +618,7 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
   TPZVec<TPZGeoEl *> children, netos, bisnetos,bisbisnetos,bisbisbisnetos, trinetos;
 
 
-  if(n_refin==1) 
+  if(n_refin==1)
     for(int i=0;i<1;i++){
        geoel[i]->Divide(children);
     }
@@ -638,7 +638,7 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
                 	 netos[j2]->Divide(bisnetos);
          	  }
 	}
-    
+
   }
   else if(n_refin==4)
     for(int i=0;i<1;i++){
@@ -651,7 +651,7 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
                	             bisnetos[j3]->Divide(bisbisnetos);
          		  }
 		 }
-    
+
        }
    }
   else if(n_refin==5)
@@ -690,13 +690,13 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
       }
    }
    else {
- 
-      cout<<" 1 <= n_refin <= 5 "<<endl; 
+
+      cout<<" 1 <= n_refin <= 5 "<<endl;
    }
 
   TPZGeoElBC elbc1(geoel[0],4,-1,*geomalha);
   TPZGeoElBC elbc2(geoel[0],5,-2,*geomalha);
- 
+
   TPZGeoElBC elbc3(geoel[0],6,-3,*geomalha);
   TPZGeoElBC elbc4(geoel[0],7,-4,*geomalha);
 
@@ -707,7 +707,7 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
 //   TPZGeoElBC elbc8(geoel[3],7,-2,*geomalha);
 
   TPZCompMesh * malha = new TPZCompMesh(geomalha);
-  malha->SetDimModel(2); 
+  malha->SetDimModel(2);
 
   TPZAutoPointer<TPZMaterial> mater;
   mater = new TPZNonLinBiharmonic(1,0.);  // segundo par. �a f(x)
@@ -717,12 +717,12 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
   malha->InsertMaterialObject(mater);
 
  TPZFMatrix val1(1,1,0.), val2(2,1,0.);
-  
+
  TPZAutoPointer<TPZMaterial> bnd1 = mater->CreateBC(mater,-1,0, val1, val2);
  TPZAutoPointer<TPZMaterial> bnd2 = mater->CreateBC(mater,-2,0, val1, val2);
  TPZAutoPointer<TPZMaterial> bnd3 = mater->CreateBC(mater,-3,0, val1, val2);
  TPZAutoPointer<TPZMaterial> bnd4 = mater->CreateBC(mater,-4,0, val1, val2);
- 
+
  bnd1->SetForcingFunction(CC1);
  malha->InsertMaterialObject(bnd1);
  bnd2->SetForcingFunction(CC2);
@@ -732,7 +732,7 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
  bnd4->SetForcingFunction(CC4);
  malha->InsertMaterialObject(bnd4);
 
-  /*  
+  /*
   TPZBndCond *cond_front[4];
 
   cond_front[0] = mater->CreateBC(-1, 0, val1, val2);
@@ -741,7 +741,7 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
   cond_front[3] = mater->CreateBC(-4, 0, val1, val2);
 
   cond_front[0]->SetForcingFunction(CC1);
-  cond_front[1]->SetForcingFunction(CC2); 
+  cond_front[1]->SetForcingFunction(CC2);
   cond_front[2]->SetForcingFunction(CC3);
   cond_front[3]->SetForcingFunction(CC4);
 
@@ -762,8 +762,8 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
   malha->InsertMaterialObject(cond_front[3]);
 */
 
-  
-  // Para usar elementos descontinuos. Caso for subtraido, ser�elementos continuos. 
+
+  // Para usar elementos descontinuos. Caso for subtraido, ser�elementos continuos.
    TPZGeoElement<TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
    TPZGeoElement<TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
    TPZGeoElement<TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
@@ -774,7 +774,7 @@ TPZCompMesh * CreateMesh(int type, int n_refin, int p_ordem){
 
 
   malha->AutoBuild();
-  
+
   return malha;
 
 }//end of CreateMesh

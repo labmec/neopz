@@ -1,4 +1,4 @@
- 
+
 #include "TPZPlacaOrthotropic.h"
 #include "TPZMulticamadaOrtho.h"
 #include "pzmatorthotropic.h"
@@ -76,7 +76,7 @@ TPZMulticamadaOrthotropic::TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int
 void TPZMulticamadaOrthotropic::GenerateMesh(){
 
   fGeoMesh->BuildConnectivity();
-  TPZCompEl::gOrder = 3;
+  fCompMesh->SetDefaultOrder( 3 );
   fCompMesh->AutoBuild();
   int nplaca = fPlacaOrth.NElements();
   int ip;
@@ -151,7 +151,7 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZAutoPointer<TPZMaterial> materi
 	val1(2,2) = 1.e12;
 	TPZBndCond *bc4 = new TPZBndCond(material,-102,2,val1,val2);
         bcptr = TPZAutoPointer<TPZMaterial>(bc4);
-	
+
         fCompMesh->InsertMaterialObject(bcptr);
 	TPZGeoElBC gbc7(gel,2,-102,*fGeoMesh);
       }
@@ -170,10 +170,10 @@ void  TPZMulticamadaOrthotropic::Print(ostream &out){
   out << nplaca << endl;
   for (i=0; i<nplaca; i++){
     out << "placa : " << i << endl;
-    fPlacaOrth[i].Print(); 
+    fPlacaOrth[i].Print();
   }
 }
-  
+
 REAL TPZMulticamadaOrthotropic::Height(){
 
   return (fZMax - fZMin);
@@ -398,7 +398,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(ostream &out,int print){
   an.Solution().Zero();
 
   an.Run();
-  if(print) an.Print("* PRINT ANALISYS *",out);  
+  if(print) an.Print("* PRINT ANALISYS *",out);
 }
 
 void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,ofstream &out,int numiter){
@@ -488,122 +488,122 @@ void TPZMulticamadaOrthotropic::PrintCenterForces(ostream &out) {
   int i;
   out << "fMX ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fMX[i] << " ";
   }
   out << "\nfdMXdX ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdMXdX[i] << " ";
   }
   out << "\nfdMXdY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdMXdY[i] << " ";
   }
   out << "\nfMY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fMY[i] << " ";
   }
   out << "\nfMYdX ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdMYdX[i] << " ";
   }
   out << "\nfdMYdY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdMYdY[i] << " ";
   }
   out << "\nfMXY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fMXY[i] << " ";
   }
   out << "\nfdMXYdX ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdMXYdX[i] << " ";
   }
   out << "\nfdMXYdY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdMXYdY[i] << " ";
   }
   out << "\nfNX ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fNX[i] << " ";
   }
   out << "\nfdNXdX ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdNXdX[i] << " ";
   }
   out << "\nfdNXdY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdNXdY[i] << " ";
   }
   out << "\nfNY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fNY[i] << " ";
   }
   out << "\nfdNYdX ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdNYdX[i] << " ";
   }
   out << "\nfdNYdY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdNYdY[i] << " ";
   }
   out << "\nfNXY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fNXY[i] << " ";
   }
   out << "\nfdNXYdX ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdNXYdX[i] << " ";
    }
   out << "\nfdNXYdY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
    fdNXYdY[i] << " ";
   }
   out << "\nfQX ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fQX[i] << " ";
   }
   out << "\nfdQXdX ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdQXdX[i] << " ";
   }
   out << "\nfdQXdY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdQXdY[i] << " ";
   }
   out << "\nfQY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fQY[i] << " ";
   }
   out << "\nfdQYdX ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdQYdX[i] << " ";
   }
   out << "\nfdQYdY ";
   for(i=0; i<3; i++) {
-    out << 
+    out <<
     fdQYdY[i] << " ";
   }
   out << endl << endl;

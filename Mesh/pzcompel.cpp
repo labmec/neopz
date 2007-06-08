@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.38 2007-05-31 13:44:22 cesar Exp $
+//$Id: pzcompel.cpp,v 1.39 2007-06-08 00:02:28 cesar Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -245,7 +245,7 @@ TPZCompMesh *TPZCompEl::Mesh() const {
   return fMesh;
 }
 
-TPZConnect &TPZCompEl::Connect(int i) {
+TPZConnect &TPZCompEl::Connect(int i) const{
 #ifndef NODEBUG
   if(fMesh) {
     int connectindex = ConnectIndex(i);

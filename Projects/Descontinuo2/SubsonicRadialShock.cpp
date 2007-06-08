@@ -121,14 +121,14 @@ TPZFlowCompMesh *
 		 TPZTimeDiscr ConvVol_TD,
 		 TPZTimeDiscr ConvFace_TD)
 {
-   TPZCompEl::gOrder = degree;
+   TPZCompEl::SetgOrder(degree);
    REAL gamma = 1.4;
    int i;
 
 // Configuring the PZ to generate discontinuous elements
 //    TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>
 //                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-// 
+//
 //    TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>
 //                 ::SetCreateFunction(TPZCompElDisc::CreateDisc);
 

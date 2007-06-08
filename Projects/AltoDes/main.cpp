@@ -54,13 +54,13 @@ void PZProceed();
 
 
 int main(){
-  //PZProceed();  
+  //PZProceed();
   ifstream arq ("teste.mat");
   TPZVec<REAL> vec;
-  
+
   TPZFYsmpMatrix *matrix =  ReadMatrix(arq,vec);
-  
-    
+
+
   return 0;
 }
 
@@ -69,21 +69,21 @@ void PZProceed(){
   TPZAnalysis an (cMesh);
   TPZSpStructMatrix spStrMatrix (cMesh);
   an.SetStructuralMatrix(spStrMatrix);
-  
+
   int solId = -1;
   cout << "Which solver?:\n\t( 0 ) - Jacobi\n\t( 1 ) - GausseSeidel\n\t ( 2 ) - SOR\n";
   cout << "\tConjugate Gradient (3)\n";
   cin >> solId;
-  
+
   double tol = 1e-10;
   int maxIters = 100;
   double overRelax = 1.79;
-  
+
   int neq = cMesh->NEquations();
   TPZFMatrix  cheia(neq,neq, 0.);
   TPZStepSolver step(&cheia);
   TPZStepSolver precond(step);
-  
+
   TPZStepSolver iterSolver;
   switch (solId){
     case  ( 0 ) : {
@@ -98,20 +98,20 @@ void PZProceed(){
       iterSolver.SetSOR(maxIters,1.,tol,0);
     }
     case  ( 3 ) : {
-      iterSolver.SetCG(maxIters,precond,tol,0); 
+      iterSolver.SetCG(maxIters,precond,tol,0);
     }
-    default : 
+    default :
       cout << "Error... undefined solver\n";
-      exit (-1);    
+      exit (-1);
   }
-  
+
   an.SetSolver(iterSolver);
   an.Run();
-  
+
   //an.Rhs().Print();
   cout << Norm(an.Rhs());
- 
-  
+
+
 }
 
 TPZCompMesh * BuildMesh(){
@@ -155,18 +155,18 @@ TPZCompMesh * BuildMesh(){
 	  //          cout <<  "\n Segunda divisao \n" ;
           if(gDivide[2] == 1) {
             for(int k = 0; k < netos.NElements(); k++) {
-              netos[k]->Divide(bisnetos); 
+              netos[k]->Divide(bisnetos);
 	      //              cout <<  "\n Terceira divisao \n" ;
               if(gDivide[3] == 1) {
                 for(int k = 0; k < bisnetos.NElements(); k++) {
-                  bisnetos[k]->Divide(tata1); 
+                  bisnetos[k]->Divide(tata1);
 		  //                  cout <<  "\n Quarta divisao \n" ;
                   if(gDivide[4] == 1) {
                     for(int k = 0; k < tata1.NElements(); k++) {
-                      tata1[k]->Divide(tata2); 
+                      tata1[k]->Divide(tata2);
 		      //                      cout <<  "\n Quinta divisao \n" ;
                       if(gDivide[5] == 1) {
-                        for(int k = 0; k < tata2.NElements(); k++) tata2[k]->Divide(tata3); 
+                        for(int k = 0; k < tata2.NElements(); k++) tata2[k]->Divide(tata3);
 			//                        cout <<  "\n Sexta divisao \n" ;
                       }
                     }
@@ -178,7 +178,7 @@ TPZCompMesh * BuildMesh(){
         }
       }
     }
-  }  
+  }
 
   cout << "Elementos divididos" << endl;
 
@@ -193,10 +193,10 @@ TPZCompMesh * BuildMesh(){
   TPZGeoElBC gbc6(elvec[2],6,-2,*gmesh); // left
   TPZGeoElBC gbc7(elvec[3],5,-1,*gmesh); // left
   TPZGeoElBC gbc8(elvec[3],6,-1,*gmesh); // bottom
-  
+
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   cmesh->SetDimModel(2);
-  
+
   TPZMatPoisson3d *mat;
   mat = new TPZMatPoisson3d(1, 2);
   mat->SetForcingFunction(Forcing1);
@@ -208,7 +208,7 @@ TPZCompMesh * BuildMesh(){
   int nstate = 1;
   TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
   TPZBndCond *bc[2];
-  
+
   val2(0,0) = 0.618; //Dirichlet nao homogeneo
   //val2.Zero(); //Dirichlet homogeneo
   bc[0] = mat->CreateBC(-1,0,val1,val2);
@@ -218,12 +218,12 @@ TPZCompMesh * BuildMesh(){
   val2(0,0) = 3.14159;//Dirichlet nao homogeneo
   bc[1] = mat->CreateBC(-2,0,val1,val2);
   //  bc[1]->SetForcingFunction(Dirichlet2);
-  
+
   cmesh->InsertMaterialObject(mat);
   int i;
   for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
 
-  
+
 //   TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 //   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 //   TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
@@ -232,16 +232,16 @@ TPZCompMesh * BuildMesh(){
 //   TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 //   TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
-  
+
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
-  
+
   return cmesh;
 }
 
 void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp) {
-  disp[0] = - exp(0.75 * (x[0] + x[1])) * (8. * (1. - x[1] * x[1]) + 12. * x[0] * (1. - x[1] * x[1]) -4.5 * (1. - x[0] * x[0])* (1. - x[1] * x[1] )+ 
+  disp[0] = - exp(0.75 * (x[0] + x[1])) * (8. * (1. - x[1] * x[1]) + 12. * x[0] * (1. - x[1] * x[1]) -4.5 * (1. - x[0] * x[0])* (1. - x[1] * x[1] )+
 					  8. * (1. - x[0] * x[0]) + 12. * x[1] * (1. - x[0] * x[0]));
 }
 
@@ -251,7 +251,7 @@ void WriteMatrix(){
   cout << "Binary Files: yes = 1 ; false = 0" << endl;
   cin >> aux ;
 
-  TPZCompEl::gOrder = 1;
+  TPZCompEl::SetgOrder(1);
 
 #ifdef BinFile
   TPZBFileStream Out;
@@ -265,7 +265,7 @@ void WriteMatrix(){
   cout << "Gerando a malha" << endl;
   TPZCompMesh * cmesh = BuildMesh();
   cout << "Malha pronta" << endl;
-  
+
   int neq = cmesh->NEquations();
 
 #ifdef Comentarios
@@ -276,7 +276,7 @@ void WriteMatrix(){
   messg = "Numero de equacoes:";
   Out.WriteSameLine(&messg[0], messg.Length() );
 #endif
-   
+
   Out.Write(&neq, 1);
 
   int nel = 0;
@@ -296,16 +296,16 @@ void WriteMatrix(){
   messg = "Eh simetrica:";
   Out.WriteSameLine(&messg[0], messg.Length() );
 #endif
-   
+
 //acho que eh simetrico.
 #warning Verificar se eh simetrico
   int issimetric = 1;
   Out.Write(&issimetric, 1);
-   
+
   TPZElementMatrix ek, ef;
 
 //nos dos elementos
-//incidencia 
+//incidencia
   cout << "Escrevendo incidencia" << endl;
 
 #ifdef Comentarios
@@ -354,14 +354,14 @@ void WriteMatrix(){
     Out.WriteSameLine(&messg[0], messg.Length() );
 #endif
     int cel_neq = ek.fMat.Rows();
-      
+
 #ifdef Comentarios
     messg = "Matriz - elementos em coluna:";
     Out.WriteSameLine(&messg[0], messg.Length() );
 #endif
 
     Out.Write( &( ek.fMat(0,0) ), cel_neq * cel_neq );
-      
+
 #ifdef Comentarios
     messg = "Vetor de carga";
     Out.WriteSameLine(&messg[0], messg.Length() );
@@ -370,33 +370,33 @@ void WriteMatrix(){
     Out.Write( &( ef.fMat(0,0) ), cel_neq );
 
     cout << i << endl;
-  }  
+  }
 }
 
 
 
 TPZFYsmpMatrix * ReadMatrix (istream &arq, TPZVec<REAL> &B){
-  
+
   //Number of equations
   int size;
   arq >> size;
-  
+
   //multiset structure...
   //              row               col     val
   //std::multimap < int , std::pair < int , double > > values;
   std::vector< std::map <int,double> > sparsemat (size);
   B.Resize(size);
   //std::vector<double> B(size);
-  
+
   //Number of elements
   int nel;
   arq >> nel;
   std::vector< std::vector<int> > nodes (nel);
-  
+
   //Is symetric?
   int issym;
   arq >> issym;
-  
+
   //Read the elements connectivities
   register int e,n,auxn;
   int nnodes;
@@ -414,7 +414,7 @@ TPZFYsmpMatrix * ReadMatrix (istream &arq, TPZVec<REAL> &B){
       }
     }
   }//the vector of maps is created and all values is zero!
-  
+
   double value;
   for (e=0;e<nel;e++){
     nnodes = nodes[e].size();
@@ -430,57 +430,57 @@ TPZFYsmpMatrix * ReadMatrix (istream &arq, TPZVec<REAL> &B){
       B[(nodes[e])[n]] += value;
     }
   }
-  
+
   //View the sparse matrix
   int i,j;
   std::map<int,double>::iterator it;
   for (i=0;i<sparsemat.size();i++){
     std::map<int,double> &linemap = sparsemat[i];
-    for (it=linemap.begin();it!=linemap.end();it++){ 
+    for (it=linemap.begin();it!=linemap.end();it++){
       std::cout << " \t\t( " << i << " , " << (*it).first << " )  = " << (*it).second;
     }
     std::cout << " \t\t f = " << B[i] << std::endl;
   }
 
-    
- 
+
+
   int count_row = 0;
   int nz = 0;
-  
+
   int m = size;
   n = size;
   std::vector<int> *rowptr = new std::vector<int>(size+1);
   std::vector<int> *colptr = new std::vector<int>(nz);
   std::vector<double> *val = new std::vector<double>(nz);
- 
+
   int ncols =  0;
   int countcols = 0;
   int line;
   int counter = 0;
-  
+
   for (i=0;i<size;i++){
     (*rowptr)[i] = countcols;
     std::map<int,double> &linemap = sparsemat[i];
-    ncols = linemap.size();    
+    ncols = linemap.size();
     countcols += ncols;
     it = linemap.begin();
-    
+
     for (j=0;j<ncols;j++,it++){
       (*colptr)[counter] = (*it).first;
       (*val)[counter] = (*it).second;
 /*      std::cout << "col " << col << " value " << v << "colptr " << (*colptr)[counter] << std::endl;*/
       counter++;
     }
-  }   
+  }
   (*rowptr)[size] = nz;
 
 //   double val[] = {1.0, 4.0, 5.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0};
 //   int colind[] = {0,   0,   1,   1,   2,   2,   3,    0,    4   };
 //   int rowptr[] = {0,   1,        3,        5,         7,           9};
 
-/*  TNT::Sparse_Matrix_CompRow<double> *A = 
+/*  TNT::Sparse_Matrix_CompRow<double> *A =
   new TNT::Sparse_Matrix_CompRow<double>(m,n,nz,&(*val->begin()), &(*rowptr->begin()),&(*colptr->begin()));*/
-  
+
   TPZFYsmpMatrix *A = new TPZFYsmpMatrix (size,size);
   A->SetData(&(*rowptr->begin()),&(*colptr->begin()),&(*val->begin()));
   return A;

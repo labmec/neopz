@@ -79,7 +79,8 @@ int main() {
    int ord;
    cout << "Entre ordem 1,2,3,4,... : ";
    cin >> ord;
-   TPZCompEl::gOrder = ord;
+//   TPZCompEl::gOrder = ord;
+   secondmesh.SetDefaultOrder(order);
    //construção malha computacional
    secondmesh->AutoBuild();
    //Divisão

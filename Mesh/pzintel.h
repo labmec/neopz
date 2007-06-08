@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.32 2007-05-11 13:35:44 cesar Exp $
+//$Id: pzintel.h,v 1.33 2007-06-08 00:02:28 cesar Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -131,7 +131,7 @@ public:
   virtual int NCornerConnects() = 0;
 
   /**return the number of connect objects of the element*/
-  virtual int NConnects() = 0;
+  virtual int NConnects() const = 0;
 
   /**
    * Identifies the interpolation order of all connects of the element different from the corner connects

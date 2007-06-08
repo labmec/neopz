@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.61 2007-05-11 19:22:51 joao Exp $
+//$Id: TPZCompElDisc.h,v 1.62 2007-06-08 00:02:28 cesar Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -201,7 +201,7 @@ protected:
   /**
    * it returns the degree of interpolation of the element
    */
-  virtual int Degree(){
+  virtual int Degree() const{
     if (fConnectIndex < 0) return -1;
     return this->Connect(0).Order() ;
   }
@@ -211,7 +211,7 @@ protected:
    */
   virtual void SetDegree(int degree);// {fDegree = degree;}
 
-  int NConnects();
+  virtual int NConnects() const;
 
   /**
    * amount of vertices of the element
@@ -231,7 +231,7 @@ protected:
   /**
    * it returns the connect index from the element
    */
-  int ConnectIndex(int side = 0);
+  int ConnectIndex(int side = 0) const;
   void  SetConnectIndex(int /*inode*/, int index) {fConnectIndex = index;}
 
   /**

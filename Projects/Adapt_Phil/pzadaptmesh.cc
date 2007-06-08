@@ -30,7 +30,7 @@ TPZAdaptMesh::TPZAdaptMesh(TPZCompMesh *mesh){
   fMaxP = 10;
 
   fTrueErrorVec.Resize(nel);
-  
+
   fElementError.Fill(0.);
   fTrueErrorVec.Fill(0.);
 
@@ -51,7 +51,7 @@ TPZAdaptMesh::~TPZAdaptMesh(){
 
 void TPZAdaptMesh::SetMaxP(int maxp){
   if (maxp < 1) {
-    cout << "TPZAdaptMesh::Error : SetMaxP - maximum p order must be greter than 0... trying to set maximum p to " 
+    cout << "TPZAdaptMesh::Error : SetMaxP - maximum p order must be greter than 0... trying to set maximum p to "
 	 << maxp << endl;
     return;
   }
@@ -88,9 +88,9 @@ void TPZAdaptMesh::TPZCloneInfo::Cleanup() {
 
 
 void TPZAdaptMesh::GetAdaptedMesh(TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> &porder,
-                                  REAL &error, REAL & truerror, TPZVec<REAL> &ervec, 
+                                  REAL &error, REAL & truerror, TPZVec<REAL> &ervec,
                                   void(*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),
-                                  TPZVec<REAL> &truervec, 
+                                  TPZVec<REAL> &truervec,
                                   TPZVec<REAL> &effect,int use_trueerror){
 
   int nelmesh = fReference->ElementVec().NElements();
@@ -127,14 +127,14 @@ void TPZAdaptMesh::GetAdaptedMesh(TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> 
   if (use_trueerror && f){
     for (i=0;i<fReference->ElementVec().NElements();i++){
       TPZInterpolatedElement *el = dynamic_cast<TPZInterpolatedElement *> (fReference->ElementVec()[i]);
-      if (el) 
+      if (el)
         fTrueErrorVec[i] = ComputeTrueError (el,f);
       else
         fTrueErrorVec[i] = 0.;
     }
     minerror = SortMinError(fTrueErrorVec,perm,0.65);
     cout << "MinError " << minerror << endl;
-  } 
+  }
 
   //Creates an uniformly refined mesh and evaluates the error
   for (cliter = 0; cliter<ncl; cliter++){
@@ -185,7 +185,7 @@ void TPZAdaptMesh::GetAdaptedMesh(TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> 
       truerror += fTrueErrorVec[i];
     }
   }
-  
+
   //inicializa effect com o tamanho de trueeerror
   if(f) {
     for(i=0; i<nelem; i++) {
@@ -199,7 +199,7 @@ void TPZAdaptMesh::GetAdaptedMesh(TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> 
     }
   }
   //  int nstate = fCloneMesh[0]->MaterialVec()[0]->NStateVariables();
-  
+
   int ibc;
   for (ibc=0;ibc<fReference->ElementVec().NElements();ibc++){
     TPZCompEl *cel = fReference->ElementVec()[ibc];
@@ -209,11 +209,11 @@ void TPZAdaptMesh::GetAdaptedMesh(TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> 
     if ( matid < 0){
       int cintorder = cintel->PreferredSideOrder(cintel->NConnects() -1);
       gelstack.Push(cintel->Reference());
-      porder.Push(cintorder);      
+      porder.Push(cintorder);
     }
   }
 
-    
+
   //Analyse clone element error and, if necessary, analyse element and changes its refinement pattern
   for (i=0;i<fCloneStructs.NElements();i++){
 //    fCloneStructs[i].PrintElementIds(cout);
@@ -299,7 +299,7 @@ void TPZAdaptMesh::BuildReferencePatch(){
   fReference->CopyMaterials(tmpcmesh);
   for (i=0;i<fGeoRef.NElements();i++){
     fGeoRef[i]->CreateCompEl(*tmpcmesh,i);
-  } 
+  }
   tmpcmesh->CleanUpUnconnectedNodes();
   TPZStack <int> patchelindex;
   TPZStack <TPZGeoEl *> toclonegel;
@@ -329,9 +329,9 @@ void TPZAdaptMesh::CreatePatch(int clid){
   fReference->Reference()->ResetReference();
   fReference->LoadReferences();
   TPZGeoMesh *geomesh = fReference->Reference();
-  
+
   TPZStack<TPZGeoEl*> patch;
-  
+
   int elid;
   TPZGeoCloneMesh *geoclone = new TPZGeoCloneMesh(geomesh);
   for (elid=fPatchIndex[clid];elid<fPatchIndex[clid+1];elid++){
@@ -390,7 +390,7 @@ void TPZAdaptMesh::HeapSort(TPZVec<REAL> &sol, TPZVec<int> &perm){
   int nelem = perm.NElements();
   int i,j;
   for(i=0; i<nelem; i++) perm[i] = i;
-  
+
   if(nelem == 1) return;
   int l, ir,ind;
   REAL q;
@@ -439,10 +439,10 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,             //malh
   gmesh->ResetReference();
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
 
-#ifdef HUGE_DEBUG      
+#ifdef HUGE_DEBUG
   TPZCheckMesh check(cmesh,&cout);
 #endif
-  
+
   int nmat = mesh->MaterialVec().NElements();
   int m;
 
@@ -455,7 +455,7 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,             //malh
 
   //Idenifica o vetor de elementos computacionais de mesh
   //  TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh->ElementVec();
-  
+
   int el,nelem = gelstack.NElements();
   //  cmesh->SetName("Antes PRefine");
   //  cmesh->Print(cout);
@@ -469,18 +469,18 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,             //malh
     }
     int celindex;
     //Cria um TPZIntel baseado no gel identificado
-    int temporder = TPZCompEl::gOrder;
-    TPZCompEl::gOrder = porders[el];
+    int temporder = cmesh->GetDefaultOrder();
+    cmesh->SetDefaultOrder(porders[el]);
     TPZInterpolatedElement *csint;
     csint = dynamic_cast<TPZInterpolatedElement *> (gel->CreateCompEl(*cmesh,celindex));
-    TPZCompEl::gOrder = temporder;
-    
-#ifdef HUGE_DEBUG      
+    cmesh->SetDefaultOrder(temporder);
+
+#ifdef HUGE_DEBUG
     if(check.CheckConnectOrderConsistency() != -1) {
       cout << "TPZAdaptMesh::CreateCompMesh mesh inconsistent\n";
     }
-#endif    
-    
+#endif
+
     /**PRefine precisar ser verificado!!!
        if(!csint) continue;
        //Refina em p o elemento criado
@@ -498,13 +498,13 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,             //malh
   cmesh->AdjustBoundaryElements();
   //  cmesh->SetName("Depois");
   //  cmesh->Print(cout);
-  
-#ifdef HUGE_DEBUG    
+
+#ifdef HUGE_DEBUG
   if(check.CheckConnectOrderConsistency() != -1) {
     cout << "TPZAdaptMesh::CreateCompMesh mesh inconsistent\n";
   }
 #endif
-  
+
   return cmesh;
 }
 

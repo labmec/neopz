@@ -99,7 +99,8 @@ int main() {
    secondmesh->MaterialVec()[matindex] = mat;
    //CC : condicao de contorno
    //ordem de interpolacao
-   TPZCompEl::gOrder = 3;   
+//   TPZCompEl::gOrder = 3;
+   cmesh.SetDefaultOrder(3);
    //constroe a malha computacional
    secondmesh->AutoBuild();
    secondmesh->InitializeBlock();

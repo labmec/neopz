@@ -159,7 +159,7 @@ FADToMatrix(U, ekFAD, efFAD);
 
 int mainFull(){
 
-TPZCompEl::gOrder = 2;
+TPZCompEl::SetgOrder(2);
   TPZCompMesh *cmesh = CreateMesh();
 	int nsol = cmesh->Solution().Rows();
 	int is;

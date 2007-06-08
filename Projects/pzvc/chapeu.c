@@ -67,7 +67,8 @@ int main() {
    int ord;
    cout << "Entre ordem 1,2,3,4,5 : ";
    cin >> ord;
-   TPZCompEl::gOrder = ord;
+//   TPZCompEl::gOrder = ord;
+   firstmesh.SetDefaultOrder(order);
    //construção malha computacional
    TPZVec<int> csub(0);
    TPZManVector<TPZGeoEl *> pv(4);
@@ -177,10 +178,10 @@ void ReadMaterial(TPZCompMesh &mesh, istream &file) {
 	for(ind = 0; ind<nmat; ind++) {
 		file >> matindex;
 		file >> naxes(0,0) >> naxes(0,1) >> naxes(0,2) >> naxes(1,0)
-			>> naxes(1,1) >> naxes(1,2) >> naxes(2,0) >> naxes(2,1) 
+			>> naxes(1,1) >> naxes(1,2) >> naxes(2,0) >> naxes(2,1)
 			>> naxes(2,2);
 		file >> xf[0] >> xf[1] >> xf[2] >> xf[3] >> xf[4] >> xf[5];
-   
+
 		mat = new TPZPlaca(matindex,h,f,E1,E2,ni1,ni2,G12,G13,G23,naxes,xf);
 		mesh.InsertMaterialObject(mat);
 	}

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.34 2007-05-29 21:28:28 tiago Exp $
+//$Id: pzcmesh.h,v 1.35 2007-06-08 00:02:28 cesar Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -96,6 +96,11 @@ protected:
 
   /*set the dimension of the simulation or the model*/
   int fDimModel;
+
+  /**
+   * Default order for all elements of this mesh
+   */
+  int fDefaultOrder;
 
 public:
 
@@ -405,6 +410,18 @@ public:
     */
   virtual int GetFromSuperMesh (int superind, TPZCompMesh *super);
   //@}
+
+
+  int GetDefaultOrder()
+  {
+    return fDefaultOrder;
+  }
+
+  void SetDefaultOrder( int order )
+  {
+    fDefaultOrder = order;
+  }
+
 
   /**
    * @name SCIENTIFIC_ROUTINES

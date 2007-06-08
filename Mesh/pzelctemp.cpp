@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.37 2007-05-31 11:13:42 cesar Exp $
+// $Id: pzelctemp.cpp,v 1.38 2007-06-08 00:02:28 cesar Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -205,7 +205,7 @@ int TPZIntelGen<TSHAPE>::PreferredSideOrder(int side) {
 }
 
 template<class TSHAPE>
-int TPZIntelGen<TSHAPE>::ConnectIndex(int con) {
+int TPZIntelGen<TSHAPE>::ConnectIndex(int con) const{
 
 #ifndef NODEBUG
   if(con<0 || con>= TSHAPE::NSides) {

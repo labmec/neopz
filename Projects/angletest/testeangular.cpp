@@ -67,7 +67,7 @@ int main() {
    int ord;
    cout << "Enter order 1,2,3,4,5,... : \n";
    cin >> ord;
-   TPZCompEl::gOrder = ord;
+   cmesh.SetDefaultOrder(ord);
    //construção malha computacional
    compmesh->AutoBuild();
    //Divide computacional

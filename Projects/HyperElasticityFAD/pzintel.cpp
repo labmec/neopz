@@ -695,22 +695,22 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
       inod.AddDependency(inodindex,jnodindex,MSL,MBlocksmall.Position(in),MBlocklarge.Position(jn),
 			 MBlocksmall.Size(in),MBlocklarge.Size(jn));
       ndepend++;
-    }    
+    }
   }
   delete intrule;
   // a matriz frestraint deveria ser igual a MSL
   TPZCheckRestraint test(thisside,largecompside);
   //test.Print(cout);
-  
+
   int imsl, jmsl;
   int rmsl = MSL.Rows();
   int cmsl = MSL.Cols();
 
   int rtest = test.RestraintMatrix().Rows();
   int ctest = test.RestraintMatrix().Cols();
-  
+
   if (rtest!=rmsl || ctest!=cmsl){
-    cout << "TPZInterpolatedElement::Error::Restraint matrix side incompatibility: MSL (rows,cols): ( " << rmsl 
+    cout << "TPZInterpolatedElement::Error::Restraint matrix side incompatibility: MSL (rows,cols): ( " << rmsl
 	 << " , " << cmsl << " )" << " RestraintMatrix (rows,cols): (" << rtest << " , "  << ctest << " )\n";
     int a;
     cin >> a;
@@ -739,19 +739,19 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     gDebug = 1;
     cin >> a;
   }
-	
-      
+
+
   // verificar a norma de MSL
   if(test.CheckRestraint()) {
     cout << "TPZInterpolatedElement::Error::Bad restraints detected\n";// recado de erro.
     test.Print(cout);
     int a;
     gDebug = 1;
-    cin >> a; 
+    cin >> a;
     test.Diagnose();
     TPZCheckRestraint test2(thisside,largecompside);
   }
-  
+
 }
 
 void TPZInterpolatedElement::CheckConstraintConsistency() {
@@ -775,30 +775,30 @@ int TPZInterpolatedElement::CheckElementConsistency(){
       cout << "TPZInterpolatedElement::CheckConstraintConsistency : dismall >= dimel: " << dimsmall << " >= " <<  dimel << endl;
       cin >> a;
     }
-    
+
     int idim;
 
     int nshapes = NSideShapeF(iside);
     TPZFMatrix phis(nshapes,1);
     TPZFMatrix dphis(dimsmall,nshapes);
-	  
+
     for (idim = (dimsmall + 1); idim <= dimel; idim++){
       TPZStack <TPZGeoElSide> geoelsidevec;
       celside.Reference().Element()->AllHigherDimensionSides(iside,idim,geoelsidevec);
-      
+
       int nelhigh = geoelsidevec.NElements();
       int inh;
       for (inh = 0; inh < nelhigh; inh++){
 
 	int sidel =  geoelsidevec[inh].Side();
 	int nshapel =  NSideShapeF(sidel);
-      
+
 	TPZFMatrix phil(nshapel, 1);
 	TPZFMatrix dphil(idim,nshapel);
 
 	int npts = sirule->NPoints();
 	int ipt;
-	
+
 	TPZTransform transform (Reference()->SideToSideTransform(iside,sidel));
 
 	for (ipt = 0; ipt<npts; ipt++){
@@ -843,7 +843,7 @@ int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix &phis
     if(conscounter != ncons) {
       int firsts = poss[conscounter];
       int firstl = posl[icon];
-     
+
       int dimsmall = cellsmallside.Reference().Dimension();
       int idim;
       for (idim = 0; idim < dimsmall; idim++){
@@ -854,7 +854,7 @@ int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix &phis
 	  return 0;
 	}
       }
-      
+
       //como aplicar o transform a matrizes??
       TPZFMatrix left = transform.Mult()*dphil;
       left -= dphis;
@@ -1557,12 +1557,12 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname) {
     Solution(intpoint,var,sol);
     otherelement->Solution(intpoint,var,othersol);
     int i=0;
-		
+
     //Compare the solutions on each point coordinate.
     for (i=0; i<sol.NElements(); i++){
       error += (sol[i]-othersol[i])*(sol[i]-othersol[i]);
     }
-	
+
   }
   return error;
 }
@@ -1676,14 +1676,14 @@ void TPZInterpolatedElement::Print(ostream &out) {
 
   int norders = prevorder.NElements();
   out << "Integration orders : \t";
-  for (id=0;id<norders;id++){    
+  for (id=0;id<norders;id++){
     out << prevorder[id] << "\t" ;
   }
   out << endl;
 }
 
 void TPZInterpolatedElement::PRefine(int side, int order) {
-  SetPreferredSideOrder(side,order);
+  SetPreferredOrder(side,order);
   IdentifySideOrder(side);
 //   if (side == NConnects()-1){
 //     int trueorder = SideOrder(side);
@@ -1991,7 +1991,7 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
   REAL dsolstore[90];
   TPZFMatrix dsol(dim,numdof,dsolstore,90);
 
-  
+
   TPZIntPoints &intrule = GetIntegrationRule();
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
 
@@ -2035,7 +2035,7 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
       PZError.flush();
     }
     int iv=0,d;
-    
+
     sol.Fill(0.);
     dsol.Zero();
     for(int in=0; in<ncon; in++) {
