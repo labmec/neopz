@@ -8,55 +8,129 @@
 //#include "pzmanvector.h"
 
 
-class TPZMaterialTest3D : public TPZMaterial {
+class TPZMaterialTest3D : public TPZMaterial
+{
+private:
 
-   TPZFMatrix fXf;//fonte
+  /**
+   * Fonte
+   */
+  TPZFMatrix fXf;
 
 public :
 
-static int eq3;//Cedric : para testes no programa main 3dmaterial.c
+  /**
+   * Default empty constructor
+   */
+  TPZMaterialTest3D();
 
-TPZMaterialTest3D(int nummat);
+  /**
+   * Full data constructor
+   */
+  TPZMaterialTest3D(int nummat);
 
-virtual ~TPZMaterialTest3D();
+  /**
+   * Destructor
+   */
+  virtual ~TPZMaterialTest3D();
 
-void SetMaterial(TPZFMatrix &xfin){
-   fXf = xfin;
-}
+public:
+  /**
+   *Cedric : para testes no programa main 3dmaterial.c
+   */
+  static int geq3;
 
-int Dimension() { return 3;}
+  /**
+   * Set the flow
+   */
+  void SetMaterial(TPZFMatrix &xfin);
 
-int NStateVariables();
+  /**
+   * @see TPZMaterial
+   */
+  virtual int Dimension();
 
-virtual void Print(std::ostream & out);
+  /**
+   * @see TPZMaterial
+   */
+  virtual int NStateVariables();
 
-char *Name() { return "TPZMaterialTest3D"; }
+  /**
+   * Print the object data structure
+   */
+  virtual void Print(std::ostream & out);
 
-virtual void Contribute(TPZMaterialData &data,REAL weight,
-			  TPZFMatrix &ek,TPZFMatrix &ef);
+  /**
+   * @see TPZMaterial
+   */
+  virtual char *Name() { return "TPZMaterialTest3D"; }
 
+  /**
+   * @see TPZMaterial
+   */
+  virtual void Contribute( TPZMaterialData &data,REAL weight,
+                           TPZFMatrix &ek,TPZFMatrix &ef );
 
-virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-			    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
-  
+  /**
+   * @see TPZMaterial
+   */
+  virtual void ContributeBC( TPZMaterialData &data,REAL weight,
+                             TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc );
+
+  /**
+   * @see TPZMaterial
+   */
   virtual int VariableIndex(char *name);
-  
+
+  /**
+   * @see TPZMaterial
+   */
   virtual int NSolutionVariables(int var);
-  
+
+  /**
+   * @see TPZMaterial
+   */
   virtual int NFluxes(){ return 3;}
-  
-  virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
-  
+
+  /**
+   * @see TPZMaterial
+   */
+  virtual void Solution( TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,
+                         int var,TPZVec<REAL> &Solout );
+
+  /**
+   * @see TPZMaterial
+   */
   virtual TPZAutoPointer<TPZMaterial> NewMaterial();
-  
-  //virtual void Clone(TPZAdmChunkVector<TPZMaterial *> &matvec);
-  
-  /**compute the value of the flux function to be used by ZZ error estimator*/
-  virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
-  
-  void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
+
+
+  /**
+   * Compute the value of the flux function to be used by ZZ error estimator
+   */
+  virtual void Flux( TPZVec<REAL> &x, TPZVec<REAL> &Sol,
+                     TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux );
+
+  /**
+   * @see TPZMaterial
+   */
+  virtual void Errors( TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx,
+                       TPZFMatrix &axes, TPZVec<REAL> &flux,TPZVec<REAL> &u_exact,
+                       TPZFMatrix &du_exact,TPZVec<REAL> &values );
+
+  /**
+   * @see TPZSaveable
+   */
+  virtual int ClassId() const;
+
+  /**
+   * @see TPZSaveable
+   */
+  virtual void Read(TPZStream &buf, void *context);
+
+  /**
+   * @see TPZSaveable
+   */
+  virtual void Write(TPZStream &buf, int withclassid);
 };
 
 #endif
