@@ -58,7 +58,7 @@ TPZCompMesh *Create3DExpMesh() {
   TPZAutoPointer<TPZMaterial> mat;
   TPZMaterialTest3D *mat3 = new TPZMaterialTest3D(1);
   TPZFMatrix mp (3,1,1.);
-  TPZMaterialTest3D::eq3=1;
+  TPZMaterialTest3D::geq3=1;
   mat3->SetMaterial(mp);
   mat3->SetForcingFunction(ForcingFunction3DExp);
   mat = mat3;

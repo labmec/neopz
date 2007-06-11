@@ -68,7 +68,7 @@ TPZCompMesh *CreateSimple3DMesh() {
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix mp (3,1,0.);
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
   TPZBndCond *bc[2];
@@ -85,6 +85,6 @@ TPZCompMesh *CreateSimple3DMesh() {
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
   //cmesh->ExpandSolution();
-  
+
   return cmesh;
 }

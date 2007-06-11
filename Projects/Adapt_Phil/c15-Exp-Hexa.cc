@@ -54,7 +54,7 @@ TPZCompMesh *Create3DExpMesh() {
 
   TPZMaterialTest3D *mat = new TPZMaterialTest3D(1);
   TPZFMatrix mp (3,1,1.);
-  TPZMaterialTest3D::eq3=1;
+  TPZMaterialTest3D::geq3=1;
   mat->SetMaterial(mp);
   mat->SetForcingFunction(ForcingFunction3DExp);
   cmesh->InsertMaterialObject(mat);

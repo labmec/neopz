@@ -839,7 +839,7 @@ TPZCompMesh *CreateSimple3DMesh() {
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix mp (3,1,0.);
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
   } else {
     TPZMat2dLin *mat2d = new TPZMat2dLin(1);
@@ -1056,7 +1056,7 @@ TPZCompMesh *Create3DTetraMesh() {
     TPZFMatrix mp (3,1,1.);
 
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
   } else {
     TPZMat2dLin *mat2d = new TPZMat2dLin(1);
@@ -1160,7 +1160,7 @@ TPZCompMesh *Create3DPrismMesh() {
     TPZFMatrix mp (1,1,0.);
 
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
   } else {
     TPZMat2dLin *mat2d = new TPZMat2dLin(1);
@@ -1328,7 +1328,7 @@ TPZCompMesh * CreateTestMesh() {
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix mp (3,1,0.);
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
   } else {
     TPZMat2dLin *mat2d = new TPZMat2dLin(1);
@@ -1614,7 +1614,7 @@ TPZCompMesh *CreateAleatorioMesh() {
     TPZFMatrix mp (3,1,0.);
 
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
   } else {
     TPZMat2dLin *mat2d = new TPZMat2dLin(1);
@@ -1756,7 +1756,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
     TPZFMatrix mp (3,1,0.);
 
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
 //   } else {
 //     TPZMat2dLin *mat2d = new TPZMat2dLin(1);
@@ -1901,7 +1901,7 @@ TPZCompMesh *Create3DDiscMesh() {
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix mp (3,1,0.);
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
   } else {
     //   TPZPoison3D *mat3d = new TPZPoison3D();
@@ -2279,7 +2279,7 @@ TPZCompMesh *Create3DExpMesh() {
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix mp (3,1,0.);
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
     //    mat->SetForcingFunction(NeumannExp);
 //   } else {

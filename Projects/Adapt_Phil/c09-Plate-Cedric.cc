@@ -12,13 +12,13 @@ static void LoadSolution(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatr
 //*******3D Discontinuous Mesh**********
 //*************************************
 TPZCompMesh *Create3DDiscMesh() {
-  
+
   REAL co[26][3] = {
     {0.,0.,0.},{0.5,0.,0.},{1,0.,0.},{0.,0.5,0.},{0.5,0.5,0.},{1,0.5,0.},{0.,1.,0.},{0.5,1.,0.},{1,1.,0.},
     {0.,0.,0.5},{0.5,0.,0.5},{1,0.,0.5},{0.,0.5,0.5},{0.5,0.5,0.5},{1,0.5,0.5},{0.,1.,0.5},{0.5,1.,0.5},{1,1.,0.5},
     {0.,0.,1.},{0.5,0.,1.},{1,0.,1.},{0.,0.5,1.},{0.5,0.5,1.},{1,0.5,1.},{0.,1.,1.},{0.5,1.,1.}
   };
-  
+
   int indices[7][8] = {
     {0,1,4,3,9,10,13,12},
     {1,2,5,4,10,11,14,13},
@@ -45,7 +45,7 @@ TPZCompMesh *Create3DDiscMesh() {
     coord[2] = co[nod][2];
     gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
   }
-  
+
   int el;
   for(el=0; el<nelem; el++) {
     TPZVec<int> nodind(nodeperel);
@@ -54,10 +54,10 @@ TPZCompMesh *Create3DDiscMesh() {
     elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
     //    elvec[el] = new TPZGeoElPr3d(el,nodind,1,*gmesh);
   }
-  
- 
+
+
   TPZGeoElBC gbc;
-  
+
   //Condicoes de Neumann
   // bc -1 -> Face inferior
   TPZGeoElBC gbc1(elvec[0],20,-1,*gmesh);
@@ -96,21 +96,21 @@ TPZCompMesh *Create3DDiscMesh() {
   //ofstream MALHAG("malhageometrica");
   //gmesh->Print(MALHAG);
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-  
+
   TPZMaterialTest3D *mat = new TPZMaterialTest3D(1);
   TPZFMatrix mp (3,1,0.);
-  TPZMaterialTest3D::eq3=1;
+  TPZMaterialTest3D::geq3=1;
   mat->SetMaterial(mp);
   //  mat->SetForcingFunction(ForcingFunction3DExp);
 
   //CreateBC
   //....
 
-  
+
   cmesh->InsertMaterialObject(mat);
 //  int i;
   // for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
-  
+
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
@@ -130,7 +130,7 @@ TPZCompMesh *Create3DDiscMesh() {
  //  cmesh->ElementVec()[subelvec [7]]->PRefine(4);
   //  cmesh->ElementVec()[0]->Divide(,subelvec,1);
 
- 
+
   //  cmesh->Print(cout);
   return cmesh;
 }

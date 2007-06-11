@@ -120,7 +120,7 @@ TPZCompMesh * CreateTestMesh() {
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix mp (3,1,0.);
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator ->());
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
     /*  } else {
     TPZMat2dLin *mat2d = new TPZMat2dLin(1);

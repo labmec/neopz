@@ -15,7 +15,7 @@ TPZCompMesh *Create3DTetraMesh() {
     {0.,1.,0.},
     {0.,0.,1.}
   };
-  
+
   int indices[1][4] = {{0,1,2,3}};
   const int nelem = 1;
   int nnode = 4;
@@ -67,7 +67,7 @@ TPZCompMesh *Create3DTetraMesh() {
     TPZFMatrix mp (3,1,1.);
 
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator ->());
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
     /*  } else {
     TPZMat2dLin *mat2d = new TPZMat2dLin(1);

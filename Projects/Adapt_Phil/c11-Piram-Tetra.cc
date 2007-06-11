@@ -8,7 +8,7 @@ static TPZCompMesh *CreatePyramTetraMesh();
 //******Pyramid and Tetrahedre**********
 //**************************************
 TPZCompMesh *CreatePyramTetraMesh() {
-  
+
   REAL co[8][3] = {
     {0.,0.,0.},
     {1.,0.,0.},
@@ -20,7 +20,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
     {0.,1.,1.}
 
   };
-  
+
   int noel [4] = {5,5,4,4};
 
   int indices[4][5] = {
@@ -45,7 +45,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
     coord[2] = co[nod][2];
     gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
   }
-  
+
   int el;
   for(el=0; el<nelem; el++) {
     TPZVec<int> nodind(6);
@@ -62,12 +62,12 @@ TPZCompMesh *CreatePyramTetraMesh() {
       elvec[el] = elvec[el] = gmesh->CreateGeoElement(ETetraedro,nodind,1,index);
     }
   }
-  
+
   //  TPZStack<TPZGeoEl*> subel;
   //  elvec[0]->Divide(subel);
-  
+
   //  TPZGeoElBC gbc;
-  
+
   // bc -1 -> Neumann
   TPZGeoElBC gbc1(elvec[0],13,-1,*gmesh);
 
@@ -85,17 +85,17 @@ TPZCompMesh *CreatePyramTetraMesh() {
   gmesh->BuildConnectivity();
   ofstream MALHAG("malhageometrica");
   gmesh->Print(MALHAG);
-  
+
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-  
+
   TPZMaterial *mat;
   //  if(nstate == 3) {
     //		mat = new TPZMatHyperElastic(1,2.,400);
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix mp (3,1,0.);
-    
+
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
 //   } else {
 //     TPZMat2dLin *mat2d = new TPZMat2dLin(1);
@@ -116,10 +116,10 @@ TPZCompMesh *CreatePyramTetraMesh() {
   int i;
   val2(0,0)=-1.;
   bc[1] = mat->CreateBC(-2,0,val1,val2);
-  
+
   cmesh->InsertMaterialObject(mat);
   for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
-  
+
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
@@ -139,7 +139,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
  //  cmesh->ElementVec()[subelvec [7]]->PRefine(4);
   //  cmesh->ElementVec()[0]->Divide(,subelvec,1);
 
- 
+
   //  cmesh->Print(cout);
   return cmesh;
 }

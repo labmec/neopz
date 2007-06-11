@@ -7,7 +7,7 @@ static TPZCompMesh *CreateAleatorioMesh();
 //**********Aleatorio Mesh**************
 //*************************************
 TPZCompMesh *CreateAleatorioMesh() {
-  
+
   REAL co[6][3] = {
     {0.,0.,0.},
     {1.,0.,0.},
@@ -16,7 +16,7 @@ TPZCompMesh *CreateAleatorioMesh() {
     {1.,0.,1.},
     {0.,1.,1.}
   };
-  
+
   int indices[1][6] = {{0,1,2,3,4,5}};
 
   const int nelem = 1;
@@ -34,7 +34,7 @@ TPZCompMesh *CreateAleatorioMesh() {
     coord[2] = co[nod][2];
     gmesh->NodeVec()[nodind] = TPZGeoNode(nod,coord,*gmesh);
   }
-  
+
   int el;
   for(el=0; el<nelem; el++) {
     TPZVec<int> nodind(6);
@@ -43,12 +43,12 @@ TPZCompMesh *CreateAleatorioMesh() {
     elvec[el] = gmesh->CreateGeoElement(EPrisma,nodind,1,index);
     //    elvec[el] = new TPZGeoElPr3d(el,nodind,1,*gmesh);
   }
-  
+
   //  TPZStack<TPZGeoEl*> subel;
   //  elvec[0]->Divide(subel);
-  
+
   //  TPZGeoElBC gbc;
-  
+
   // bc -1 -> Dirichlet
   TPZGeoElBC gbc1(elvec[0],15,-1,*gmesh);
 
@@ -58,17 +58,17 @@ TPZCompMesh *CreateAleatorioMesh() {
   gmesh->BuildConnectivity2();
   //ofstream MALHAG("malhageometrica");
   //  gmesh->Print(MALHAG);
-  
+
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-  
+
   TPZMaterial *mat;
   //  if(nstate == 3) {
     //		mat = new TPZMatHyperElastic(1,2.,400);
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix mp (3,1,0.);
-    
+
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
-    TPZMaterialTest3D::eq3=1;
+    TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
     /*  } else {
     TPZMat2dLin *mat2d = new TPZMat2dLin(1);
@@ -89,10 +89,10 @@ TPZCompMesh *CreateAleatorioMesh() {
   int i;
   val2(0,0)=-1.;
   bc[1] = mat->CreateBC(-2,0,val1,val2);
-  
+
   cmesh->InsertMaterialObject(mat);
   for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
-  
+
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
@@ -112,7 +112,7 @@ TPZCompMesh *CreateAleatorioMesh() {
  //  cmesh->ElementVec()[subelvec [7]]->PRefine(4);
   //  cmesh->ElementVec()[0]->Divide(,subelvec,1);
 
- 
+
   //  cmesh->Print(cout);
   return cmesh;
 }
