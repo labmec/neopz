@@ -78,6 +78,7 @@ void TPZSloan::Resequence(int * jj, int * jk, int n_nodes, int n_elements, int *
 	int inpn = 2 * n_elements;
 
 	//adjacency list generation
+  cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" ;
 	gegra_(&n_nodes, &n_elements, &inpn, npn, xnpn, &iadj, adj, xadj, &nop);
 
 	int *iw = new int[2*(n_elements+1)];
@@ -157,7 +158,7 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 		cout << endl;
 	}
 #endif
-        static pthread_mutex_t Lock_clindex = PTHREAD_MUTEX_INITIALIZER;
+  static pthread_mutex_t Lock_clindex = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_lock(&Lock_clindex);
 	gegra_(&fNNodes, &fNElements, &inpn, &fElementGraph[1], &fElementGraphIndex[1], &iadj, &adj[0], &xadj[0], &nop);
 	pthread_mutex_unlock(&Lock_clindex);
@@ -196,13 +197,10 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 	int old_profile=0;
 	int new_profile=0;
 	perm.Resize(fNNodes+1);
-#ifdef PTHREAD
+
 	pthread_mutex_lock(&Lock_clindex);
-#endif
-	label_(&fNNodes , &e2, &adj[0], &xadj[0], &perm[1], &iw[1], &old_profile, &new_profile);
-#ifdef PTHREAD
+  label_(&fNNodes , &e2, &adj[0], &xadj[0], &perm[1], &iw[1], &old_profile, &new_profile);
 	pthread_mutex_unlock(&Lock_clindex);
-#endif
 
 	//label_(&fNNodes , &e2, adj, xadj, NowPerm, iw, &old_profile, &new_profile);
 	//cout << __PRETTY_FUNCTION__ << " oldprofile " << old_profile << " newprofile " << new_profile << endl;
