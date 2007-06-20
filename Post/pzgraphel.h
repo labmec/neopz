@@ -2,13 +2,14 @@
 #define GRAFELH
 
 
-#include <iostream>
-#include <string.h>
+
+
 #include "pzcompel.h"
 #include "pzgraphnode.h"
 #include "pzgraphmesh.h"
 #include "pzvec.h"
 
+#include <iostream>
 class TPZGraphMesh;
 class TPZGraphNode;
 class TPZBlock;

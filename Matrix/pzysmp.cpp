@@ -1,11 +1,11 @@
+#include "pzysmp.h"
+#include "pzfmatrix.h"
+#include "pzvec.h"
+
 #include <memory.h>
 #include <string>
 #include <map>
 #include <pthread.h>
-
-#include "pzysmp.h"
-#include "pzfmatrix.h"
-#include "pzvec.h"
 
 #ifdef USING_BLAS
 	double cblas_ddoti(const int N, const double *X, const int *indx,
@@ -357,7 +357,7 @@ void TPZFYsmpMatrix::MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y,
         int icol;
         for(ir=0; ir<Rows(); ir++) {
       for(icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
-        if(fJA[icol]==-1) break; //Checa a existência de dado ou não
+        if(fJA[icol]==-1) break; //Checa a existï¿½cia de dado ou nï¿½
         jc = fJA[icol];
         z(jc*stride,ic) += alpha * fA[icol] * x.g(jc*stride,ic);
       }
@@ -638,7 +638,7 @@ void *TPZFYsmpMatrix::ExecuteMT(void *entrydata)
         int icol;
         for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
       for(icol=mat->fIA[ir]; icol<mat->fIA[ir+1]; icol++ ) {
-        if(mat->fJA[icol]==-1) break; //Checa a existência de dado ou não
+        if(mat->fJA[icol]==-1) break; //Checa a existï¿½cia de dado ou nï¿½
         jc = mat->fJA[icol];
         data->fZ->operator()(jc*data->fStride,ic) += data->fAlpha * mat->fA[icol] * data->fX->g(jc*data->fStride,ic);
       }

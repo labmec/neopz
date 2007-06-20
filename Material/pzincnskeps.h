@@ -8,10 +8,10 @@
 #ifndef PZINCNSKEPS
 #define PZINCNSKEPS
 
-#include <iostream>
-#include <string.h>
-
 #include "pzmaterial.h"
+
+#include <iostream>
+#include <string>
 
 #ifdef _AUTODIFF
 #include "fadType.h"

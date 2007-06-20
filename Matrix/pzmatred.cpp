@@ -6,7 +6,7 @@
 //
 // Class:  TPZMatRed
 //
-// Obs.: SubestruturaÛao simples de um sistema de equacoes.
+// Obs.: Subestruturaï¿½o simples de um sistema de equacoes.
 //       So'para matrizes quadradas
 // Versao: 04 / 1996.
 //

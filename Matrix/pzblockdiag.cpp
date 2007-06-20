@@ -10,14 +10,11 @@
 //
 // Versao: 01 - 2001
 //
-
-
-#include <string>
-#include <math.h>
 #include "pzfmatrix.h"
 #include "pzblockdiag.h"
 
 //#include "pzerror.h"
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -35,11 +32,11 @@ using namespace std;
 static REAL zero =0.;
 
 void TPZBlockDiagonal::AddBlock(int i, TPZFMatrix &block){
-  // ::cout << "Iniciando insercão de bloco na posicão\t" ;
+  // ::cout << "Iniciando insercï¿½ de bloco na posicï¿½\t" ;
   int firstpos = fBlockPos[i];
   //  ::cout << firstpos << "\n";
   int bsize = fBlockSize[i];
-  //  ::cout << "Dimensão do bloco a ser inserido\t" << bsize << "\n";
+  //  ::cout << "Dimensï¿½ do bloco a ser inserido\t" << bsize << "\n";
   
   int r,c;
   for(r=0; r<bsize; r++) {
@@ -54,11 +51,11 @@ void TPZBlockDiagonal::AddBlock(int i, TPZFMatrix &block){
 }
 
 void TPZBlockDiagonal::SetBlock(int i, TPZFMatrix &block){
-  // ::cout << "Iniciando insercão de bloco na posicão\t" ;
+  // ::cout << "Iniciando insercï¿½ de bloco na posicï¿½\t" ;
   int firstpos = fBlockPos[i];
   //  ::cout << firstpos << "\n";
   int bsize = fBlockSize[i];
-  //  ::cout << "Dimensão do bloco a ser inserido\t" << bsize << "\n";
+  //  ::cout << "Dimensï¿½ do bloco a ser inserido\t" << bsize << "\n";
   
   int r,c;
   for(r=0; r<bsize; r++) {
@@ -92,7 +89,7 @@ void TPZBlockDiagonal::Initialize(const TPZVec<int> &blocksize){
     LOGPZ_DEBUG(logger,sout.str());
   }
 #endif
-  //  ::cout << "Número de blocos \t" << nblock << "\n";
+  //  ::cout << "Nmero de blocos \t" << nblock << "\n";
   fBlockSize = blocksize;
   fBlockPos.Resize(nblock+1,0); 
   int b;
@@ -101,11 +98,11 @@ void TPZBlockDiagonal::Initialize(const TPZVec<int> &blocksize){
   int bsize;
   for(b=0; b<nblock; b++) {
     bsize = blocksize[b];
-    //    ::cout << "Dimensão do bloco [" << b << "]\t" <<bsize <<"\n";
+    //    ::cout << "Dimensï¿½ do bloco [" << b << "]\t" <<bsize <<"\n";
     fBlockPos[b+1] = fBlockPos[b]+bsize*bsize;
     ndata += bsize*bsize;
     neq += bsize;
-    //    ::cout << "Número de equacões\t" << neq << "\n";
+    //    ::cout << "Nmero de equacï¿½s\t" << neq << "\n";
   }
 #ifdef LOG4CXX
   if(ndata > 10000000)
@@ -115,6 +112,7 @@ void TPZBlockDiagonal::Initialize(const TPZVec<int> &blocksize){
     LOGPZ_DEBUG(logger,sout.str());
   }
 #endif
+
   fStorage.Fill(0.,0);
   fStorage.Resize(ndata,0.);
   fDecomposed = 0;

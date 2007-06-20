@@ -2,15 +2,13 @@
  * @file pzstring.h
  * @brief String implementation.
  */
-// $Id: pzstring.h,v 1.4 2004-01-14 12:21:01 rgdamas Exp $
+// $Id: pzstring.h,v 1.5 2007-06-20 21:25:34 cesar Exp $
 
 #ifndef PZSTRING_H
 #define PZSTRING_H
 
 #include "pzstack.h"
 #include "pzmanvector.h"
-
-#include <string.h>
 
 class TPZString : public TPZStack < char >
 {

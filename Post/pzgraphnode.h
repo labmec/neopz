@@ -1,13 +1,14 @@
 #ifndef GRAFNODEH
 #define GRAFNODEH
 
-#include <iostream>
 
 
-#include <string.h>
+
 #include "pzconnect.h"
 #include "pzgraphmesh.h"
 #include "pzvec.h"
+
+#include <iostream>
 
 class TPZGraphMesh;
 class TPZGraphEl;

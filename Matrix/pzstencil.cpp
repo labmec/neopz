@@ -16,12 +16,13 @@
  *
  *****************************************************************************/
 
-#include <memory.h>
-#include <string.h>
-
 
 #include "pzstencil.h"
 #include "pzfmatrix.h"
+
+
+#include <memory.h>
+#include <string>
 using namespace std;
 
 // ****************************************************************************

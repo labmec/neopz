@@ -32,7 +32,7 @@
 #include <iterator>
 
 TPZIdentifyRefPattern::TPZIdentifyRefPattern(string &path){
-  fPath = path;  
+  fPath = path;
 }
 TPZIdentifyRefPattern::~TPZIdentifyRefPattern(){
 }

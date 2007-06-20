@@ -9,12 +9,14 @@
 #include "pzelmat.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
-#include "checkconv.h" 
-#include <fstream>
-using namespace std;
-#include <string.h>
-#include <stdio.h>
+#include "checkconv.h"
 #include "pzstrmatrix.h"
+
+#include <stdio.h>
+#include <fstream>
+
+using namespace std;
+
 
 TPZNonLinearAnalysis::TPZNonLinearAnalysis() : TPZAnalysis() {
 	Mesh()->Solution().Zero();

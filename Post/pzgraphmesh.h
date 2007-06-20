@@ -3,15 +3,13 @@
 #define GRAFGRIDH
 
 
-#include <iostream>
-
-#include <string.h>
 #include "pzcompel.h"
 #include "pzadmchunk.h"
 #include "pzvec.h"
 #include "tpzautopointer.h"
 #include "pzmaterial.h"
 
+#include <iostream>
 class TPZGraphNode;
 class TPZCompMesh;
 class TPZGraphEl;

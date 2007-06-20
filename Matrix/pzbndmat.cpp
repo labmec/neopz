@@ -12,7 +12,7 @@
 //
 
 
-#include <string.h>
+
 #include <math.h>
 #include "pzfmatrix.h"
 #include "pzbndmat.h"
@@ -20,7 +20,6 @@
 //#include "pzerror.h"
 #include <stdlib.h>
 
-#include <sstream>
 #include "pzlog.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfbmatrix"));

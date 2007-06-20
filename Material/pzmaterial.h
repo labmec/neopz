@@ -6,9 +6,6 @@
 #ifndef PZMATERIALHPP
 #define PZMATERIALHPP
 
-#include <iostream>
-#include <string.h>
-
 #include "pzreal.h"
 #include "pzvec.h"
 #include "pzmatrix.h"
@@ -18,6 +15,7 @@
 #include "pzsave.h"
 #include "pzmaterialdata.h"
 
+#include <iostream>
 //#ifdef _AUTODIFF
 //#include "fadType.h"
 //#endif

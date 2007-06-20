@@ -4,11 +4,11 @@
 #ifndef PZDATAFIHPP
 #define PZDATAFIHPP
 
-#include <fstream.h>
-#include <string.h>
-#include <stdlib.h>
-//#include "pzcondef.h"
 #include "pzerror.h"
+
+#include <stdlib>
+#include <fstream>
+
 
 class TGeoGrid;
 class TCompGrid;

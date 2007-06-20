@@ -16,8 +16,6 @@
  *****************************************************************************/
 
 #include <memory.h>
-#include <string.h>
-
 
 #include "pzsysmp.h"
 #include "pzfmatrix.h"

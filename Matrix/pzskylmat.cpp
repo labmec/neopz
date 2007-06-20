@@ -617,17 +617,17 @@ TPZSkylMatrix::Decompose_Cholesky(std::list<int> &singular)
   singular.clear();
   REAL pivot;
   int dimension = Dim();
-  if(Dim() > 100) {
+/*  if(Dim() > 100) {
     cout << "\nTPZSkylMatrix Cholesky decomposition Dim = " << Dim() << endl;
     cout.flush();
-  }
+  }*/
   for ( int k = 0; k < dimension; k++ )
   {
-    if(!(k%100) && Dim() > 100) {
+/*    if(!(k%100) && Dim() > 100) {
       cout <<  k << ' ';
       cout.flush();
     }
-    if(!(k%1000)) cout << endl;
+    if(!(k%1000)) cout << endl;*/
     if ( Size(k) == 0 )	return( 0 );
 
       // Faz sum = SOMA( A(k,p) * A(k,p) ), p = 1, ..., k-1.
@@ -691,17 +691,17 @@ TPZSkylMatrix::Decompose_Cholesky()
 
   REAL pivot;
   int dimension = Dim();
-  if(Dim() > 100) {
+/*  if(Dim() > 100) {
     cout << "\nTPZSkylMatrix Cholesky decomposition Dim = " << Dim() << endl;
 	cout.flush();
-  }
+  }*/
   for ( int k = 0; k < dimension; k++ )
     {
-      if(!(k%100) && Dim() > 100) {
+/*      if(!(k%100) && Dim() > 100) {
 		cout <<  k << ' ';
 		cout.flush();
       }
-      if(!(k%1000)) cout << endl;
+      if(!(k%1000)) cout << endl;*/
       if ( Size(k) == 0 )	return( 0 );
 
       // Faz sum = SOMA( A(k,p) * A(k,p) ), p = 1, ..., k-1.
@@ -775,11 +775,11 @@ TPZSkylMatrix::Decompose_LDLt()
   REAL sum;
   j = 1;
   while(j < dimension) {
-    if(!(j%100) && Dim() > 100) {
+/*    if(!(j%100) && Dim() > 100) {
       cout <<  j << ' ';
       cout.flush();
     }
-    if(!(j%1000)) cout << endl;
+    if(!(j%1000)) cout << endl;*/
     minj = j-Size(j)+1;
     l = minj;
     while(l <= j) {
@@ -806,7 +806,7 @@ TPZSkylMatrix::Decompose_LDLt()
   }
   fDecomposed  = ELDLt;
   fDefPositive = 0;
-  if(Dim() > 100) cout << endl;
+  //if(Dim() > 100) cout << endl;
   return( 1 );
 }
 

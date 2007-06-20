@@ -12,9 +12,7 @@
 //
 
 
-#include <string.h>
-#include <math.h>
-#include <stdlib.h>
+
 
 #ifdef __BOORLANDC__
 #include <alloc.h>
@@ -25,7 +23,12 @@
 #include "pzvec.h"
 #include "pzerror.h"
 
+
+#include <math.h>
+#include <stdlib.h>
 #include <sstream>
+#include <string>
+
 #include "pzlog.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));

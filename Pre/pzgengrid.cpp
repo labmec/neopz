@@ -129,8 +129,8 @@ void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
 			iy = i/(2*fNx[0]);
 		}
 	}
-cout << "Coord i = " << i << " ix = " << ix << " iy = " << iy << " layer = " << ilayer << endl;
-cout.flush();
+//cout << "Coord i = " << i << " ix = " << ix << " iy = " << iy << " layer = " << ilayer << endl;
+//cout.flush();
    REAL coorold[2];
    coorold[0] = fX0[0]+fDelx[0]*ix;
    coorold[1] = fX0[1]+fDelx[1]*iy;
@@ -145,15 +145,15 @@ void TPZGenGrid::ElementConnectivity(int i, TPZVec<int> &rectangle_nodes){
 	int xel = i%(fNx[0]);
 	int yel = (i/(fNx[0]))%(fNx[1]);
 	int layer = i/(fNx[0]*fNx[1]);
-cout << "ElConnectivity : xel = " << xel << " yel = " << yel << " layer = " << layer << endl;
-cout.flush();
+//cout << "ElConnectivity : xel = " << xel << " yel = " << yel << " layer = " << layer << endl;
+//cout.flush();
    if(fElementType == 0 || fElementType == 1) {
 		rectangle_nodes[0] = GlobalI(xel,yel,layer);
 		rectangle_nodes[1] = GlobalI(xel+1,yel,layer);
 		rectangle_nodes[2] = GlobalI(xel+1,yel+1,layer);
 		rectangle_nodes[3] = GlobalI(xel,yel+1,layer);
-cout << "ElConnectivity : " << rectangle_nodes[0] << ' '<< rectangle_nodes[1] << ' '<<rectangle_nodes[2] << ' '<<rectangle_nodes[3] << endl;
-cout.flush();
+//cout << "ElConnectivity : " << rectangle_nodes[0] << ' '<< rectangle_nodes[1] << ' '<<rectangle_nodes[2] << ' '<<rectangle_nodes[3] << endl;
+//cout.flush();
    } else if(fElementType == 2) {
 		rectangle_nodes[0] = GlobalI(2*xel,2*yel,layer);
 		rectangle_nodes[1] = GlobalI(2*xel+2,2*yel,layer);
