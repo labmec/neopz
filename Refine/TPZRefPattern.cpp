@@ -26,9 +26,9 @@ using namespace log4cxx::helpers;
 
 std::map<MElementType, std::list<TPZRefPattern::TPZRefPatternPermute> > TPZRefPattern::fPermutations;
 
-TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh) : fInternalMesh(), fOwnerMesh(OwnerMesh), fSideRefPattern(0), fId(-50){
+TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh) : fInternalMesh(), fOwnerMesh(OwnerMesh), fSideRefPattern(0), fId(-50), fName(){
   fSideRefPattern.Resize(0);
-  fName = "";
+  //fName = "";
   fNSubEl = 0;
 }
 
@@ -56,7 +56,7 @@ TPZRefPattern::TPZRefPattern (const TPZRefPattern &copy,const TPZPermutation &pe
 }
 
 
-TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh, std::string &file ) : fSideRefPattern(0), fId(-50) {
+TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh, std::string &file ) : fSideRefPattern(0), fId(-50), fName() {
   this->fOwnerMesh = OwnerMesh;
   fInternalMesh.SetName("***RefinementPattern***");
   fFileRefPatt = file;/**arquivo contendo o padr� de refinamento*/
@@ -67,7 +67,7 @@ TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh, std::string &file ) : fSide
   ComputePartition();/**efetua a parti�o do elemento pai de acordo com os lados dos sub-elementos*/
 }
 
-TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh, std::istream &file ) : fSideRefPattern(0), fId(-50) {
+TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh, std::istream &file ) : fSideRefPattern(0), fId(-50),fName() {
   this->fOwnerMesh = OwnerMesh;
   ReadPattern(file);
 }
