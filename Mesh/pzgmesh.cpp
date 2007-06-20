@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.40 2007-06-08 00:02:28 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.41 2007-06-20 21:34:20 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -27,13 +27,13 @@ Method definition for class TPZGeoMesh.*/
 #include <TPZRefPattern.h>
 #include <tpzgeoelrefpattern.h>
 
-#include <sstream>
-
-#include <string>
 #ifdef BORLAND
 #include <io.h>
 #include <fcntl.h>
 #endif
+
+#include <sstream>
+#include <string>
 
 #include "pzlog.h"
 
@@ -44,9 +44,9 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeomesh"));
 
 using namespace std;
 
-TPZGeoMesh::TPZGeoMesh() : fElementVec(0), fNodeVec(0){
+TPZGeoMesh::TPZGeoMesh() : fElementVec(0), fNodeVec(0), fName(){
 
-//  fName[0] = '\0';
+  //fName[0] = '\0';
   fReference = 0;
   fNodeMaxId = -1;
   fElementMaxId = -1;
@@ -106,7 +106,7 @@ void TPZGeoMesh::CleanUp() {
   fRefPatterns.clear();
 }
 
-void TPZGeoMesh::SetName (char *nm) {
+void TPZGeoMesh::SetName (const char *nm) {
   fName = nm;
 //  if(nm != NULL) {
 //    strncpy(fName,nm,62);
@@ -954,8 +954,8 @@ TPZGeoEl* TPZGeoMesh::CreateGeoElement( MElementType type, int* nodeindexes,
    return NULL;
 }
 */
-void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){
-  if(index < 0 || gel != fElementVec[index]){
+void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){ 
+  if(index < 0 || gel != fElementVec[index]){ 
     index = ElementIndex(gel);
     if(index < 0) {
       PZError << "TPZGeoMesh::DeleteElement index error\n";
@@ -1105,87 +1105,122 @@ template class TPZRestoreClass<TPZGeoMesh,TPZGEOMESHID>;
 
 void TPZGeoMesh::Read(TPZStream &buf, void *context)
 {
-  TPZSaveable::Read(buf,context);
-  int classid;
-  buf.Read(&classid,1);
-
-  if (classid != ClassId() )
-  {
-    std::cout << "ERROR RESTORING GEOMETRIC MESH!!\n";
-  }
-
-  buf.Read(&fName,1);
-  ReadObjects(buf,fNodeVec,this);
-  ReadObjectPointers(buf,fElementVec,this);
-  buf.Read(&fNodeMaxId,1);
-  buf.Read(&fElementMaxId,1);
-  int ninterfacemaps;
-  buf.Read(&ninterfacemaps,1);
-  int c;
-  for(c=0; c< ninterfacemaps; c++){
-    int vals[3];
-    buf.Read(vals,3);
-    fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
-  }
-   //Reading TPZRefPattern's
-  this->fRefPatterns.clear();
-  int bigmapsize, iRef;
-  buf.Read(&bigmapsize, 1);
-   for(iRef = 0; iRef < bigmapsize; iRef++){
-    int intElementType;
-    buf.Read(&intElementType, 1);
-    MElementType MElType = static_cast<MElementType>(intElementType);
-    int smallmapsize, iMap;
-    buf.Read(&smallmapsize, 1);
-    for(iMap = 0; iMap < smallmapsize; iMap++){
-      TPZRefPattern * refp = new TPZRefPattern(this);
-      refp->Read(buf);
-      this->fRefPatterns[MElType][refp->Id()] = refp;
+  try{
+    LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
+    TPZSaveable::Read(buf,context);
+    int classid;
+    buf.Read(&classid,1);
+    LOGPZ_DEBUG(logger,"rg1");
+  
+    if (classid != ClassId() )
+    {
+      std::cout << "ERROR RESTORING GEOMETRIC MESH!!\n";
+    }
+  
+    buf.Read(&fName,1);
+    LOGPZ_DEBUG(logger,"rg2");
+    ReadObjects(buf,fNodeVec,this);
+    LOGPZ_DEBUG(logger,"rg3");
+    ReadObjectPointers(buf,fElementVec,this);
+    LOGPZ_DEBUG(logger,"rg4");
+    buf.Read(&fNodeMaxId,1);
+    LOGPZ_DEBUG(logger,"rg5");
+    buf.Read(&fElementMaxId,1);
+    LOGPZ_DEBUG(logger,"rg6");
+    int ninterfacemaps;
+    buf.Read(&ninterfacemaps,1);
+    LOGPZ_DEBUG(logger,"rg7");
+    int c;
+    for(c=0; c< ninterfacemaps; c++){
+      int vals[3];
+      buf.Read(vals,3);
+      fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
+    }
+    LOGPZ_DEBUG(logger,"rg8");
+    //Reading TPZRefPattern's
+    this->fRefPatterns.clear();
+    int bigmapsize, iRef;
+    buf.Read(&bigmapsize, 1);
+    LOGPZ_DEBUG(logger,"rg9");
+    for(iRef = 0; iRef < bigmapsize; iRef++){
+      int intElementType;
+      buf.Read(&intElementType, 1);
+      MElementType MElType = static_cast<MElementType>(intElementType);
+      int smallmapsize, iMap;
+      buf.Read(&smallmapsize, 1);
+      for(iMap = 0; iMap < smallmapsize; iMap++){
+        TPZRefPattern * refp = new TPZRefPattern(this);
+        refp->Read(buf);
+        this->fRefPatterns[MElType][refp->Id()] = refp;
+      }//for
     }//for
-  }//for
-  //Reading TPZRefPattern's
+    LOGPZ_DEBUG(logger,"end of read mesh");
+    //Reading TPZRefPattern's
+  }catch(const exception& e)
+  {
+    cout << "Exception catched! " << e.what() << std::endl;
+    cout.flush();
+    exit(-1);
+  }
 }
 
 void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 {
-  TPZSaveable::Write(buf,withclassid);
-  int classid = ClassId();
-  buf.Write(&classid,1);
-  buf.Write(&fName,1);
-  WriteObjects(buf,fNodeVec);
-  WriteObjectPointers(buf,fElementVec);
-  buf.Write(&fNodeMaxId,1);
-  buf.Write(&fElementMaxId,1);
-  int ninterfacemaps = fInterfaceMaterials.size();
-  buf.Write(&ninterfacemaps,1);
-  InterfaceMaterialsMap::iterator it = fInterfaceMaterials.begin();
-  for(; it != fInterfaceMaterials.end(); it++){
-    int vals[3];
-    vals[0] = (it->first).first;
-    vals[1] = (it->first).second;
-    vals[2] = it->second;
-    buf.Write(vals,3);
-  }
-
-  //Writing TPZRefPattern's
-  std::map< MElementType, std::map<int, TPZAutoPointer<TPZRefPattern> > >::iterator eRef,itRef;
-  int bigmapsize = fRefPatterns.size();
-  buf.Write(&bigmapsize, 1);
-  eRef = this->fRefPatterns.end();
-  for(itRef = this->fRefPatterns.begin(); itRef != eRef; itRef++){
-    int intElementType = static_cast<int>(itRef->first);
-    buf.Write(&intElementType, 1);
-    std::map<int, TPZAutoPointer<TPZRefPattern> >::iterator eMap, itMap;
-    std::map<int, TPZAutoPointer<TPZRefPattern> > &SmallMap = itRef->second;
-    int smallmapsize = SmallMap.size();
-    buf.Write(&smallmapsize, 1);
-    eMap = SmallMap.end();
-    for(itMap = SmallMap.begin(); itMap != eMap; itMap++){
-      TPZAutoPointer<TPZRefPattern> refp = itMap->second;
-      refp->Write(buf);
+  try
+  {
+    TPZSaveable::Write(buf,withclassid);
+    LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
+    int classid = ClassId();
+    buf.Write(&classid,1);
+    buf.Write(&fName,1);
+    LOGPZ_DEBUG(logger,"g0");
+    WriteObjects(buf,fNodeVec);
+    LOGPZ_DEBUG(logger,"g1");
+    WriteObjectPointers(buf,fElementVec);
+    LOGPZ_DEBUG(logger,"g2");
+    buf.Write(&fNodeMaxId,1);
+    LOGPZ_DEBUG(logger,"g3");
+    buf.Write(&fElementMaxId,1);
+    LOGPZ_DEBUG(logger,"g4");
+    int ninterfacemaps = fInterfaceMaterials.size();
+    buf.Write(&ninterfacemaps,1);
+    LOGPZ_DEBUG(logger,"g5");
+    InterfaceMaterialsMap::iterator it = fInterfaceMaterials.begin();
+    for(; it != fInterfaceMaterials.end(); it++){
+      int vals[3];
+      vals[0] = (it->first).first;
+      vals[1] = (it->first).second;
+      vals[2] = it->second;
+      buf.Write(vals,3);
+    }
+    LOGPZ_DEBUG(logger,"g6");
+    //Writing TPZRefPattern's
+    std::map< MElementType, std::map<int, TPZAutoPointer<TPZRefPattern> > >::iterator eRef,itRef;
+    int bigmapsize = fRefPatterns.size();
+    buf.Write(&bigmapsize, 1);
+    LOGPZ_DEBUG(logger,"g7");
+    eRef = this->fRefPatterns.end();
+    for(itRef = this->fRefPatterns.begin(); itRef != eRef; itRef++){
+      int intElementType = static_cast<int>(itRef->first);
+      buf.Write(&intElementType, 1);
+      std::map<int, TPZAutoPointer<TPZRefPattern> >::iterator eMap, itMap;
+      std::map<int, TPZAutoPointer<TPZRefPattern> > &SmallMap = itRef->second;
+      int smallmapsize = SmallMap.size();
+      buf.Write(&smallmapsize, 1);
+      eMap = SmallMap.end();
+      for(itMap = SmallMap.begin(); itMap != eMap; itMap++){
+        TPZAutoPointer<TPZRefPattern> refp = itMap->second;
+        refp->Write(buf);
+      }//for
     }//for
-  }//for
-  //Finishing writing TPZRefPattern's
+    //Finishing writing TPZRefPattern's
+    LOGPZ_DEBUG(logger,"end of gmesh");
+  }catch(const exception& e)
+  {
+    cout << "Exception catched! " << e.what() << std::endl;
+    cout.flush();
+    exit(-1);
+  }
 }//method
 
 int TPZGeoMesh::AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial){

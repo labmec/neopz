@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.30 2007-05-31 13:42:52 cesar Exp $
+//$Id: pzgmesh.h,v 1.31 2007-06-20 21:34:20 cesar Exp $
 
 /**File : pzgmes.h
 
@@ -21,12 +21,6 @@ contained within the TPZGeoMesh.
 #define IsZero( x )    ( (x) < 1.e-10 && (x) > -1.e-10 )
 #endif
 
-
-#include <iostream>
-#include <string>
-#include <map>
-#include <list>
-
 #include "pzsave.h"
 #include "pzreal.h"
 #include "pzeltype.h"
@@ -34,6 +28,11 @@ contained within the TPZGeoMesh.
 //#include "pzbndcond.h"
 #include "pzadmchunk.h"
 #include "tpzautopointer.h"
+
+#include <iostream>
+#include <string>
+#include <map>
+#include <list>
 
 class TPZMaterial;
 class TPZGeoNode;
@@ -61,6 +60,7 @@ class  TPZGeoMesh : public TPZSaveable {
 
   /** TPZGeoMesh name for model identification*/
   std::string fName;
+
   /** Computational mesh associated*/
   TPZCompMesh 	*fReference;
 
@@ -75,6 +75,7 @@ class  TPZGeoMesh : public TPZSaveable {
 
   /**Maximum id used by all nodes of this mesh*/
   int fNodeMaxId;
+  
   /**Maximum id used by all elements of this mesh*/
   int fElementMaxId;
 
@@ -109,14 +110,15 @@ class  TPZGeoMesh : public TPZSaveable {
   /** Reset all connectivities */
   void ResetConnectivities();
 
-virtual int ClassId() const;
+  virtual int ClassId() const;
 
-virtual void Read(TPZStream &buf, void *context);
+  virtual void Read(TPZStream &buf, void *context);
 
-virtual void Write(TPZStream &buf, int withclassid);
+  virtual void Write(TPZStream &buf, int withclassid);
 
   /**Indicates that a node with id was created*/
   void SetNodeIdUsed(int id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
+  
   /**Indicates that an element with id was created*/
   void SetElementIdUsed(int id) { fElementMaxId = (id > fElementMaxId) ? id : fElementMaxId; }
 
@@ -137,12 +139,14 @@ virtual void Write(TPZStream &buf, int withclassid);
 
   /**Number of nodes of the mesh*/
   int NNodes() const {return fNodeVec.NElements();}
+
   /**Number of elements of the mesh*/
   int NElements() const {return fElementVec.NElements();}
 
   int ReallyNEl() {return (fElementVec.NElements() - fElementVec.NFreeElements()) ; }
 
-  void SetName(char *name);
+  void SetName(const char *name);
+
   std::string &Name() { return fName; }
 
   /**Methods for handling pzlists*/
