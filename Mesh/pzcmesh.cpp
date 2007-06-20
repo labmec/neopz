@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.65 2007-06-08 00:02:28 cesar Exp $
+//$Id: pzcmesh.cpp,v 1.66 2007-06-20 12:37:02 tiago Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -63,20 +63,24 @@ TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
 TPZCompMesh::~TPZCompMesh() {
 
   // THIS NEEDS TO INCLUDE THE DELETION ROUTINES OF ALL ITEMS
-  CleanUp();
-  if(Reference()->Reference() == this)
-  {
-    Reference()->ResetReference();
-  }
-}
+  this->CleanUp();
+  TPZGeoMesh * ref = this->Reference();
+  if (ref){
+    if(ref->Reference() == this){
+      ref->ResetReference();
+    }//if == this
+  }//if (ref)
+}//~
 
 void TPZCompMesh::CleanUp() {
 
   // THIS ROUTINE NEEDS TO INCLUDE THE DELETION OF THE LIST POINTERS
   TPZGeoMesh *ref = Reference();
-  ref->ResetReference();
-  LoadReferences();
-  int i, nelem = NElements();
+  if (ref){
+    ref->ResetReference();
+    this->LoadReferences();
+  }
+  int i, nelem = this->NElements();
   for(i=0; i<nelem; i++) {
     TPZCompEl *el = fElementVec[i];
     if(!el) continue;

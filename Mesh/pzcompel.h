@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.37 2007-06-08 00:02:28 cesar Exp $
+// $Id: pzcompel.h,v 1.38 2007-06-20 12:37:03 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -179,6 +179,7 @@ public:
    */
   TPZGeoEl *Reference() const
   {
+    if ( fMesh->Reference() == NULL ) return NULL;
     return (fReferenceIndex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex];
   }
 

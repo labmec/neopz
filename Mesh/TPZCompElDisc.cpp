@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.96 2007-06-08 00:02:28 cesar Exp $
+//$Id: TPZCompElDisc.cpp,v 1.97 2007-06-20 12:37:03 tiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.96 2007-06-08 00:02:28 cesar Exp $
+//$Id: TPZCompElDisc.cpp,v 1.97 2007-06-20 12:37:03 tiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -51,7 +51,10 @@ using namespace pzshape;
 using namespace std;
 
 TPZCompElDisc::~TPZCompElDisc() {
-  if(Reference()->Reference() == this) Reference()->ResetReference();
+  TPZGeoEl * ref = this->Reference();
+  if (ref){
+    if(ref->Reference() == this) ref->ResetReference();
+  }//if (ref)
   if (this->fIntRule){
     delete this->fIntRule;
     this->fIntRule = NULL;
