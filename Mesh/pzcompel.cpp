@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.39 2007-06-08 00:02:28 cesar Exp $
+//$Id: pzcompel.cpp,v 1.40 2007-06-24 19:05:37 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -115,11 +115,20 @@ void (*TPZShapeCube::fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & d
 */
 
 TPZCompEl::TPZCompEl() {
+#ifdef LOG4CXX
+  LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
+#endif
   fMesh = 0;
   fIndex = -1;
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) {
+/*#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " Mesh add" << (void*) &mesh << " this address " << (void*) this;          LOGPZ_DEBUG(logger,sout.str());
+  }
+#endif*/
   fMesh = &mesh;
   index = mesh.ElementVec().AllocateNewElement();
   mesh.ElementVec()[index] = this;
@@ -129,6 +138,9 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) {
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy) {
+/*#ifdef LOG4CXX
+  LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
+#endif*/
   fMesh = &mesh;
   int index = copy.fIndex;
   if(index >= 0) mesh.ElementVec()[index] = this;
@@ -138,6 +150,9 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy) {
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index) {
+/*#ifdef LOG4CXX
+  LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
+#endif*/
   fMesh = &mesh;
   index = mesh.ElementVec().AllocateNewElement();
   if(index >= 0) mesh.ElementVec()[index] = this;
@@ -148,6 +163,9 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index) {
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int,int> &gl2lcElMap)
 {
+/*#ifdef LOG4CXX
+  LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
+#endif*/
   fMesh = &mesh;
   if (gl2lcElMap.find(copy.fIndex) == gl2lcElMap.end())
   {
@@ -241,7 +259,11 @@ void TPZCompEl::SetMesh(TPZCompMesh *mesh) {
 
 TPZCompMesh *TPZCompEl::Mesh() const {
   if(!fMesh)
-    LOGPZ_WARN(logger, "TPZCompEl.Mesh called for a uninitialized element.");
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " mesh address " << (void *) fMesh << " this address " << (void *) this;
+    LOGPZ_WARN(logger, sout.str());
+  }
   return fMesh;
 }
 
@@ -267,12 +289,15 @@ TPZConnect &TPZCompEl::Connect(int i) const{
 
 void TPZCompEl::Print(std::ostream & out) {
   out << "Output for a computable element index: " << fIndex ;
-  out << " Center coordinate: ";
-  TPZVec< REAL > centerMaster( this->Reference()->Dimension(),0. );
-  TPZVec< REAL > centerEuclid( 3,0.);
-  this->Reference()->CenterPoint(this->Reference()->NSides()-1,centerMaster);
-  this->Reference()->X(centerMaster,centerEuclid);
-  out << centerEuclid << std::endl;
+  if(this->Reference())
+  {
+    out << " Center coordinate: ";
+    TPZVec< REAL > centerMaster( this->Reference()->Dimension(),0. );
+    TPZVec< REAL > centerEuclid( 3,0.);
+    this->Reference()->CenterPoint(this->Reference()->NSides()-1,centerMaster);
+    this->Reference()->X(centerMaster,centerEuclid);
+    out << centerEuclid << std::endl;
+  }
   out << "Number of connects = " << NConnects() << " Node indexes : ";
   int nod;
   for(nod=0; nod< NConnects(); nod++)
