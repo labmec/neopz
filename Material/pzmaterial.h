@@ -241,9 +241,7 @@ class  TPZMaterial : public TPZSaveable
 
 };
 
-
-
-
+extern TPZVec< void(*) ( TPZVec<REAL> &, TPZVec<REAL>& ) > GFORCINGVEC;
 
 #endif
 

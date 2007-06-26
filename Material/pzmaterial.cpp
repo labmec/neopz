@@ -144,13 +144,36 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid)
 {
   TPZSaveable::Write(buf,withclassid);
   buf.Write(&fId,1);
+  int forcingIdx = -1;
+  if (fForcingFunction)
+  {
+    for (forcingIdx=0;forcingIdx<GFORCINGVEC.NElements();forcingIdx++)
+    {
+      if (GFORCINGVEC[ forcingIdx ] == fForcingFunction) break;
+    }
+    if ( forcingIdx == GFORCINGVEC.NElements() ) forcingIdx = -1;
+  }
+  buf.Write( &forcingIdx,1 );
 }
 
-  /**
+/**
   Read the element data from a stream
-  */
+ */
 void TPZMaterial::Read(TPZStream &buf, void *context)
 {
   TPZSaveable::Read(buf,context);
-  buf.Read(&fId,1);
+  buf.Read( &fId,1 );
+  int forcingIdx = -1;
+  buf.Read( &forcingIdx,1 );
+  if ( forcingIdx > -1 && forcingIdx < GFORCINGVEC.NElements() )
+  {
+    fForcingFunction = GFORCINGVEC[ forcingIdx ] ;
+#ifdef DEBUG2
+    {
+      std::stringstream sout;
+      sout << " Seting forcing function index " << forcingIdx;
+      LOGPZ_DEBUG( logger,sout.str().c_str() );
+    }
+#endif
+  }
 }
