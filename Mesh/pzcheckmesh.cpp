@@ -1,4 +1,4 @@
-//$Id: pzcheckmesh.cpp,v 1.6 2005-04-25 02:31:46 phil Exp $
+//$Id: pzcheckmesh.cpp,v 1.7 2007-06-27 18:18:04 cesar Exp $
 
 // _*_ c++ _*_
 //#include <fstream>
@@ -203,7 +203,7 @@ int TPZCheckMesh::CheckConstraintDimension()
 int TPZCheckMesh::CheckConnectOrderConsistency() {
 
   int nel = fMesh->ElementVec().NElements();
-  int nstate = fMesh->MaterialVec()[0]->NStateVariables();
+  int nstate = (fMesh->MaterialVec().begin()->second)->NStateVariables();
   int iel;
   for(iel = 0; iel<nel; iel++) {
     TPZCompEl *cel = fMesh->ElementVec()[iel];
