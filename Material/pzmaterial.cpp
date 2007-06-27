@@ -1,5 +1,5 @@
 //METHODS DEFINITION FOR CLASS TPZMaterial
- 
+
 #include "pzmaterial.h"
 #include "pzmaterialdata.h"
 #include "pzerror.h"
@@ -18,7 +18,9 @@
 #endif
 
 using namespace std;
-REAL TPZMaterial::gBigNumber = 1.e12;
+REAL TPZMaterial::gBigNumber = 1.e15;
+
+TPZVec<void(*)(TPZVec<REAL> &, TPZVec<REAL> &)> GFORCINGVEC;
 
 TPZMaterial::TPZMaterial(){
   this->fId = -666;
