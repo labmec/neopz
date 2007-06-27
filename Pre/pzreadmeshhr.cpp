@@ -149,13 +149,64 @@ void TPZReadMeshHR::ReadElements (int NElem, TPZGeoMesh & GMesh)
 void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
 {
   int i;
-  int id;
-  double e, nu, px, py;
+  int id, classId;
   for (i=0;i<NMat;i++)
   {
-    fInputFile >> id >> e >> nu >> px >> py;
-    TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(id,e,nu,px,py,0);
-    CMesh.InsertMaterialObject(mat);
+    fInputFile >> id >> classId;
+    switch (classId)
+    {
+      case (TPZELASTICITYMATERIALID) :
+      {
+        double e, nu, px, py;
+        fInputFile >> e >> nu >> px >> py;
+        TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(id,e,nu,px,py,0);
+        CMesh.InsertMaterialObject(mat);
+        break;
+      }
+      case ( TPZMAT2DLINID ):
+      {
+        TPZMat2dLin *mat2d = new TPZMat2dLin(id);
+        int nstate;
+        fInputFile >> nstate;
+
+        int ist,jst;
+        TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+        //xk
+        for(ist=0; ist<nstate; ist++)
+        {
+          fInputFile >> xf(ist,0) ;
+        }
+        //xc
+        for(ist=0; ist<nstate; ist++)
+        {
+          for(jst=0; jst<nstate; jst++)
+          {
+            fInputFile >> xc(ist,jst);
+          }
+        }
+        //xf
+        for(ist=0; ist<nstate; ist++)
+        {
+          for(jst=0; jst<nstate; jst++)
+          {
+            fInputFile >> xf(ist,jst);
+          }
+        }
+        mat2d->SetMaterial(xk,xc,xf);
+        TPZAutoPointer<TPZMaterial> mat = mat2d;
+        CMesh.InsertMaterialObject(mat);
+        break;
+      }
+      default :
+        std::stringstream sout;
+        sout << "Could not identify material of type: " << classId << " check material identifier for material " << i ;
+#ifdef LOG4CXX
+        LOGPZ_FATAL( logger,sout.str().c_str() );
+#endif
+        std::cout << sout.str().c_str() << std::endl;
+        exit(-1);
+      break;
+    }
   }
 }
 
