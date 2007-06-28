@@ -1,4 +1,4 @@
-// -*- c++ -*- 
+// -*- c++ -*-
 #include "pzmat2dlin.h"
 #include "pzmaterial.h"
 #include "pztempmat.h"
@@ -230,9 +230,9 @@ void TPZMat2dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,TPZFMatrix &dudx,TP
    REAL dx = dudx(0,0)*axes(0,0)+dudx(1,0)*axes(1,0);
    REAL dy = dudx(0,0)*axes(0,1)+dudx(1,0)*axes(1,1);
   //Norma Energia
-  REAL parc1 = fabs(dx-du_exact(0,0));
-  REAL parc2 = fabs(dy-du_exact(1,0));
-  values[0] = pow(parc1,2.)+pow(parc2,2.);
+  REAL parc1 = dx-du_exact(0,0) ;
+  REAL parc2 = dy-du_exact(1,0) ;
+  values[0] = parc1*parc1 + parc2*parc2;/*pow(parc1,2.)+pow(parc2,2.);*/
   //Norma L2
   values[1] = pow(fabs(u[0] - u_exact[0]),2.0);
   values[2] = 0.;
@@ -296,7 +296,7 @@ void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
   fXf.Write(buf,0);
 
 }
-  
+
   /**
   Read the element data from a stream
   */
