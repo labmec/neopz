@@ -2,7 +2,7 @@
 
 #include "pzesfersys.h"
 #include "pzcartsys.h"
-const REAL PI=3.1415926536;
+
 //***************************************
 //***************************************
 TPZEsfersys::TPZEsfersys() : TPZCosys() {
@@ -86,7 +86,7 @@ void TPZEsfersys::VerifyRange(TPZFMatrix &points){
  int i,j,k=0;
     for(i=0;i<points.Rows();i++){
         for(j=i+1;j<points.Rows();j++){
-            if ((points(i,1)-points(j,1))>PI || (points(i,1)-points(j,1))< -(PI) ){
+            if ((points(i,1)-points(j,1))>M_PI || (points(i,1)-points(j,1))< -(M_PI) ){
                 k=1;
 	            break;
             }
@@ -95,7 +95,7 @@ void TPZEsfersys::VerifyRange(TPZFMatrix &points){
     }
     if(k) {
         for (i=0;i<points.Rows();i++){
-            if (points(i,1)>0) points(i,1)=points(i,1)-2.*PI;
+            if (points(i,1)>0) points(i,1)=points(i,1)-2.*M_PI;
         }
     }
 	//verify phi
