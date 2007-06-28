@@ -77,7 +77,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <ostream>
-#include <string.h>
+
 #include <math.h>
 using namespace std;
 
@@ -135,7 +135,7 @@ int main() {
 
 
 
-  //inserindo a ordem de interpola¢ão dos elementos e do espa¢o
+  //inserindo a ordem de interpolaï¿½ dos elementos e do espao
   int ord;
   cout << "Entre ordem 1,2,3,4,5 : -> 1";
   //cin >> ord;
@@ -147,13 +147,13 @@ int main() {
 
   geomesh->Reference();
 
-  //cria nós geométricos
+  //cria nï¿½ geomï¿½ricos
   if(0) CriaNos(9, *geomesh, NosQuads);
   if(0) CriaNos(18, *geomesh, Nodos3d);
   if(0) CriaNos(4, *geomesh, Teste1Nos);
   if(1) CriaNos(5, *geomesh, Teste2Nos);
 
-  //elementos geométricos
+  //elementos geomï¿½ricos
   if(0) CriaElementos (4,4,*geomesh, IncidQuads);
   if(0) CriaElementos (4,8,*geomesh, Cubic3d);
   if(0) CriaElementos (1,4,*geomesh, Teste1Elems);
@@ -172,7 +172,7 @@ int main() {
   //placa->SetForcingFunction(LoadSolution);
   (dynamic_cast<TPZPlaca *>(placa))->SetExactFunction(LoadSolution);
 
-  //cria condi¢ões de contorno
+  //cria condiï¿½s de contorno
   if(0) CriaCondContTeste1(*geomesh);
   if(0) CriaCondContTeste2(*geomesh);
   if(0) CriaCondContTeste3(*geomesh);
@@ -181,7 +181,7 @@ int main() {
   //cria elementos computacionais
   compmesh->AutoBuild();
 
-  //divide níveis
+  //divide nï¿½eis
   NivelDivide(compmesh);
 
   //ajusta elementos no contorno
@@ -190,7 +190,7 @@ int main() {
   //analysis do problema
   ExecutaAnalysis(*compmesh,placa);
 
-  //calcula o erro energia da solu¢ão
+  //calcula o erro energia da soluï¿½
   SolutionError(compmesh);
 
   //arquivo de saida de dados
@@ -331,7 +331,7 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
    cmesh.InitializeBlock();
 
    //define o tipo de matriz de rigidez
-   //matriz cheia não singular: requer um solver direto
+   //matriz cheia nï¿½ singular: requer um solver direto
    //TPZFStructMatrix strm(&cmesh);
    TPZSkylineStructMatrix strm(&cmesh);
 
@@ -344,13 +344,13 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
    //cria objeto solver
    TPZStepSolver solver;
 
-   //define a decomposi¢ão LU
+   //define a decomposiï¿½ LU
    solver.SetDirect(ELDLt);//ECholesky, ELDLt, ELU
 
    //associa o solver com o objeto analysis
    an.SetSolver(solver);
 
-   //análise adaptativa
+   //anï¿½ise adaptativa
    if(1){
      REAL tol;
      int numiter,marcha,resolut;
@@ -375,7 +375,7 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
      cout << "main::ExecutaAnalysis comeca assemble\n";
      an.Assemble();
 
-     //resolve o sistema com a matriz cheia e o solver direto com decomposi¢ão LU
+     //resolve o sistema com a matriz cheia e o solver direto com decomposiï¿½ LU
      cout << "main::ExecutaAnalysis comeca solve\n";
      an.Solve();
    }
@@ -385,11 +385,11 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
    an.Print("FEM SOLUTION ",dados);
 
    if(0){
-     //pós processamento do main
+     //pï¿½ processamento do main
      TPZGeoMesh *gmesh = an.Mesh()->Reference();
      ProcessamentoLocal(*gmesh,dados);
 
-     //pós processamento do DX
+     //pï¿½ processamento do DX
      PosProcessamento(an);
    }
 
@@ -504,7 +504,7 @@ void NivelDivide(TPZCompMesh *cmesh){
 }
 
 int Nivel(TPZGeoEl *gel){
-  //retorna o nível do elemento gel
+  //retorna o nï¿½el do elemento gel
   if(!gel) return -1;
   TPZGeoEl *fat = gel->Father();
   if(!fat) return 0;
@@ -553,7 +553,7 @@ void LoadSolution(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du)
   static REAL val;
 
   k = 0.0;//0.00001;
-  eps = 0.4;//-1.0 é interessante
+  eps = 0.4;//-1.0 ï¿½interessante
   div = 100.0;
 
   if(key){
@@ -584,9 +584,9 @@ void LoadSolution(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du)
   u(0,0) =  0.0;//u
   u(1,0) =  0.0;//v
   u(2,0) =  (expx/div+k)*(expy/div+k);//w
-  u(3,0) = -( 2.*expy*(expx/div+k)*(y-1.) ) / div / eps2;//øx
-  u(4,0) =  ( 2.*expx*(expy/div+k)*(x-1.) ) / div / eps2;//øy
-  u(5,0) =  0.0;//øz
+  u(3,0) = -( 2.*expy*(expx/div+k)*(y-1.) ) / div / eps2;//x
+  u(4,0) =  ( 2.*expx*(expy/div+k)*(x-1.) ) / div / eps2;//y
+  u(5,0) =  0.0;//z
 
   //du exact
   TPZFMatrix dur(2,6);
@@ -599,14 +599,14 @@ void LoadSolution(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du)
   dur(0,2)  =  -exmeydivmk*(x-1.);//dw/dx
   dur(1,2)  =  -eymexdivmk*(y-1.);//dw/dy
 
-  dur(0,3)  =  4.*exy*(x-1.)*(y-1.) / (div*div) / (eps2*eps2);//døx/dx
-  dur(1,3)  = -eymexdivmk + 2.*eymexdivmk*(y-1.)*(y-1.) / eps2;//døx/dy
+  dur(0,3)  =  4.*exy*(x-1.)*(y-1.) / (div*div) / (eps2*eps2);//dx/dx
+  dur(1,3)  = -eymexdivmk + 2.*eymexdivmk*(y-1.)*(y-1.) / eps2;//dx/dy
 
-  dur(0,4)  =  exmeydivmk - 2.*exmeydivmk*(x-1.)*(x-1.) / eps2;//døy/dx
-  dur(1,4)  = -4.*exy*(x-1.)*(y-1.) / (div*div) / (eps2*eps2);//døy/dy
+  dur(0,4)  =  exmeydivmk - 2.*exmeydivmk*(x-1.)*(x-1.) / eps2;//dy/dx
+  dur(1,4)  = -4.*exy*(x-1.)*(y-1.) / (div*div) / (eps2*eps2);//dy/dy
 
-  dur(0,5)  = 0.0;//døz/dx
-  dur(1,5)  = 0.0;//døz/dy
+  dur(0,5)  = 0.0;//dz/dx
+  dur(1,5)  = 0.0;//dz/dy
 
   du(0,0) = axes(0,0)*dur(0,0) + axes(1,0)*dur(1,0);
   du(1,0) = axes(0,1)*dur(0,0) + axes(1,1)*dur(1,0);
@@ -788,7 +788,7 @@ int AdaptiveMesh(TPZCompMesh &cmesh,REAL tol,int iter){
     }
     intel = dynamic_cast<TPZInterpolatedElement *>(com);
     order = intel->SideOrder(intel->NConnects()-1);
-    if(energy > tol && nel < 51){//até 512 é nivel 5
+    if(energy > tol && nel < 51){//atï¿½512 ï¿½nivel 5
       nindex.Push(i);
       numdivide++;
     }
@@ -804,7 +804,7 @@ int AdaptiveMesh(TPZCompMesh &cmesh,REAL tol,int iter){
   }
   int nsize = nindex.NElements();
   int psize = pindex.NElements(),neworder;
-  if( maxerror > tol && !numdivide ) return -1;//erro uniforme não atingido, não há adaptação
+  if( maxerror > tol && !numdivide ) return -1;//erro uniforme nï¿½ atingido, nï¿½ hï¿½adaptaï¿½o
   else if( maxerror <= tol ) return 0;//erro uniforme atingido
   for(i=0;i<nsize;i++){
     com = cmesh.ElementVec()[nindex[i]];
