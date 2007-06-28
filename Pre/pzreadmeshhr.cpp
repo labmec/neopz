@@ -189,7 +189,7 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
         {
           for(jst=0; jst<nstate; jst++)
           {
-            fInputFile >> xf(ist,jst);
+            fInputFile >> xk(ist,jst);
           }
         }
         mat2d->SetMaterial(xk,xc,xf);
