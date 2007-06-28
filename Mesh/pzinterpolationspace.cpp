@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.13 2007-06-08 00:02:28 cesar Exp $
+//$Id: pzinterpolationspace.cpp,v 1.14 2007-06-28 00:03:58 cesar Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -675,8 +675,9 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
   // Adjust the order of the integration rule
   int dim = Dimension();
   TPZIntPoints &intrule = this->GetIntegrationRule();
+  int maxIntOrder = intrule.GetMaxOrder();
 
-  TPZManVector<int,3> prevorder(dim), maxorder(dim, this->MaxOrder());
+  TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder/*this->MaxOrder()*/);
   intrule.GetOrder(prevorder);
   intrule.SetOrder(maxorder);
 
