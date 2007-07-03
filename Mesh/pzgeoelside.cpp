@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.22 2007-06-07 15:32:11 phil Exp $
+//$Id: pzgeoelside.cpp,v 1.23 2007-07-03 14:40:31 phil Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -73,13 +73,19 @@ void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const{
   } else if (neighneigh.Exists() && currentneigh.Exists()) {
     // It would be convenient to check the consistency of both loops
     // insert the connectivity between two independent loops
-    if(NeighbourExists(neighbour) || neighbour.NeighbourExists(*this)) {
+    int a = NeighbourExists(neighbour);
+    int b = neighbour.NeighbourExists(*this);
+    if(
+	(a && !b) ||
+	(!a && b)
+    )
+    {
       std::cout << "This element side : " << fSide << std::endl;
       this->Element()->Print(std::cout);
       cout << "\nNeighbour side :"   << neighbour.Side() << std::endl;
       neighbour.Element()->Print(std::cout);
       PZError << "TPZGeoElSide::SetConnectivity Fourth untreated case, wrong data structure\n";
-    } else {
+    } else if(!a) {
       SetNeighbour(neighneigh);
       neighbour.SetNeighbour(currentneigh);
     }
