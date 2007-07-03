@@ -17,6 +17,8 @@
   static LoggerPtr logger(Logger::getLogger("pz.material"));
 #endif
 
+TPZVec< void(*) ( TPZVec<REAL> &, TPZVec<REAL>& ) > GFORCINGVEC;
+
 using namespace std;
 REAL TPZMaterial::gBigNumber = 1.e15;
 
