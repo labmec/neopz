@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.41 2007-06-20 21:34:20 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.42 2007-07-03 14:40:12 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -44,7 +44,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeomesh"));
 
 using namespace std;
 
-TPZGeoMesh::TPZGeoMesh() : fElementVec(0), fNodeVec(0), fName(){
+TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0){
 
   //fName[0] = '\0';
   fReference = 0;
@@ -572,6 +572,10 @@ void TPZGeoMesh::BuildConnectivity()
         std::cout << std::endl;
 		    continue;
 		  }
+		if(neighbours[in].Element()->SideIsUndefined(neighbours[in].Side()))
+		{
+			neighbours[in].Element()->SetSideDefined(neighbours[in].Side());
+		}
 		gelside.SetConnectivity(neighbours[in]);
 	      }
 	    }
