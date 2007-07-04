@@ -1,15 +1,16 @@
-//$Id: pzl2projection.h,v 1.4 2007-05-29 21:28:40 tiago Exp $
+//$Id: pzl2projection.h,v 1.5 2007-07-04 19:04:28 tiago Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
 
-#include <pzmaterial.h>
+#include "pzmaterial.h"
+#include "pzdiscgal.h"
 
 /**
  * Implements an L2 projection to constant solution values.
  * @since April 23, 2007
 */
-class TPZL2Projection : public TPZMaterial{
+class TPZL2Projection : public TPZDiscontinuousGalerkin{
 
 private:
   /** Problem dimension */
@@ -49,6 +50,18 @@ public:
   /** To satisfy base class interface.
    */
   virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
+    //NOTHING TO BE DONE HERE
+  }
+
+  /** To satisfy base class interface.
+   */
+  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+    //NOTHING TO BE DONE HERE
+  }
+
+  /** To satisfy base class interface.
+   */
+  virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
     //NOTHING TO BE DONE HERE
   }
 

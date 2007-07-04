@@ -1,16 +1,16 @@
-//$Id: pzl2projection.cpp,v 1.5 2007-05-29 21:28:40 tiago Exp $ 
+//$Id: pzl2projection.cpp,v 1.6 2007-07-04 19:04:28 tiago Exp $ 
 
 #include "pzl2projection.h"
 
 TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol)
-  :TPZMaterial(id){
+  :TPZDiscontinuousGalerkin(id){
   this->fDim = dim;
   this->fNStateVars = nstate;
   this->fSol = sol;
   this->SetIsReferred(false);
 }
 
-TPZL2Projection::TPZL2Projection(const TPZL2Projection &cp):TPZMaterial(cp){
+TPZL2Projection::TPZL2Projection(const TPZL2Projection &cp):TPZDiscontinuousGalerkin(cp){
   this->fDim = cp.fDim;
   this->fNStateVars = cp.fNStateVars;
   this->fSol = cp.fSol;
