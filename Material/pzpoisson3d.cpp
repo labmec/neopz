@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.26 2007-05-11 19:15:18 joao Exp $
+//$Id: pzpoisson3d.cpp,v 1.27 2007-07-04 19:26:53 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -23,6 +23,35 @@ TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin
   fPenaltyConstant = 0.;
   this->SetNonSymmetric();
   this->SetRightK(fK);
+}
+
+TPZMatPoisson3d::TPZMatPoisson3d():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fSD(0.){
+  fK = 1.;
+  fC = 0.;
+  fConvDir[0] = 0.;
+  fConvDir[1] = 0.;
+  fConvDir[2] = 0.;
+  fPenaltyConstant = 0.;
+  this->SetNonSymmetric();
+  this->SetRightK(fK);
+}
+
+TPZMatPoisson3d::TPZMatPoisson3d(const TPZMatPoisson3d &copy):TPZDiscontinuousGalerkin(copy){
+  this->operator =(copy);
+}
+
+TPZMatPoisson3d & TPZMatPoisson3d::operator=(const TPZMatPoisson3d &copy){
+  TPZDiscontinuousGalerkin::operator = (copy);
+  fXf  = copy.fXf;
+  fDim = copy.fDim;
+  fK   = copy.fK;
+  this->fRightK = copy.fRightK;
+  fC   = copy.fC;
+  for (int i = 0; i < 3; i++) fConvDir[i] = copy.fConvDir[i];
+  fSymmetry = copy.fSymmetry;
+  fSD = copy.fSD;
+  fPenaltyConstant = copy.fPenaltyConstant;
+  return *this;
 }
 
 void TPZMatPoisson3d::SetParameters(REAL diff, REAL conv, TPZVec<REAL> &convdir) {
@@ -776,4 +805,37 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
   values[0]  = values[1]+values[2];
 }
 
+int TPZMatPoisson3d::ClassId() const{
+  return TPZMATPOISSON3D;
+}
+
+void TPZMatPoisson3d::Write(TPZStream &buf, int withclassid){
+  TPZDiscontinuousGalerkin::Write(buf, withclassid);
+  buf.Write(&fXf, 1);
+  buf.Write(&fDim, 1);
+  buf.Write(&fK, 1);
+  buf.Write(&fRightK, 1);
+  buf.Write(&fC, 1);
+  buf.Write(fConvDir, 3);
+  buf.Write(&fSymmetry, 1);
+  buf.Write(&fSD, 1);
+  buf.Write(&fPenaltyConstant,1);
+  buf.Write(&gAlfa, 1);
+}
+
+void TPZMatPoisson3d::Read(TPZStream &buf, void *context){
+  TPZDiscontinuousGalerkin::Read(buf, context);
+  buf.Read(&fXf, 1);
+  buf.Read(&fDim, 1);
+  buf.Read(&fK, 1);
+  buf.Read(&fRightK, 1);
+  buf.Read(&fC, 1);
+  buf.Read(fConvDir, 3);
+  buf.Read(&fSymmetry, 1);
+  buf.Read(&fSD, 1);
+  buf.Read(&fPenaltyConstant,1);
+  buf.Read(&gAlfa, 1);
+}
+
+template class TPZRestoreClass < TPZMatPoisson3d, TPZMATPOISSON3D> ;
 

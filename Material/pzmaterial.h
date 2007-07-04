@@ -226,17 +226,19 @@ class  TPZMaterial : public TPZSaveable
         PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
       }
 
-
+  /**
+   * Unique identifier for serialization purposes
+   */
   virtual int ClassId() const;
 
   /**
-  Save the element data to a stream
-  */
+   * Save the element data to a stream
+   */
   virtual void Write(TPZStream &buf, int withclassid);
 
   /**
-  Read the element data from a stream
-  */
+   * Read the element data from a stream
+   */
   virtual void Read(TPZStream &buf, void *context);
 
 };

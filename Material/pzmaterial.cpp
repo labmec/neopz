@@ -1,6 +1,7 @@
 //METHODS DEFINITION FOR CLASS TPZMaterial
 
 #include "pzmaterial.h"
+#include "pzmaterialid.h"
 #include "pzmaterialdata.h"
 #include "pzerror.h"
 #include "pzvec.h"
@@ -134,7 +135,6 @@ void TPZMaterial::Clone(std::map<int, TPZAutoPointer<TPZMaterial> >&matvec) {
 
 //#endif
 
-#define TPZMATERIALID 300
 int TPZMaterial::ClassId() const
 {
   return TPZMATERIALID;
@@ -147,6 +147,7 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid)
 {
   TPZSaveable::Write(buf,withclassid);
   buf.Write(&fId,1);
+  buf.Write(&gBigNumber,1);
   int forcingIdx = -1;
   if (fForcingFunction)
   {
@@ -165,6 +166,8 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid)
 void TPZMaterial::Read(TPZStream &buf, void *context)
 {
   TPZSaveable::Read(buf,context);
+  buf.Read(&fId,1);
+  buf.Read(&gBigNumber,1);
   buf.Read( &fId,1 );
   int forcingIdx = -1;
   buf.Read( &forcingIdx,1 );
@@ -180,3 +183,4 @@ void TPZMaterial::Read(TPZStream &buf, void *context)
 #endif
   }
 }
+

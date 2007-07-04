@@ -335,7 +335,6 @@ void TPZMaterialTest3D::Write(TPZStream &buf, int withclassid)
 #endif
 }
 
-#define TPZMATTEST3DID 308
 int TPZMaterialTest3D::ClassId() const
 {
   return TPZMATTEST3DID;

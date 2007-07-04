@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.25 2007-05-11 19:15:18 joao Exp $
+//$Id: pzpoisson3d.h,v 1.26 2007-07-04 19:26:53 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -65,20 +65,13 @@ public:
   
   TPZMatPoisson3d(int nummat, int dim);
 
+  TPZMatPoisson3d();
+
+  TPZMatPoisson3d(const TPZMatPoisson3d &copy);
+
   virtual ~TPZMatPoisson3d();
 
-  TPZMatPoisson3d(const TPZMatPoisson3d &copy) : TPZDiscontinuousGalerkin(copy){
-    fXf  = copy.fXf;
-    fDim = copy.fDim;
-    fK   = copy.fK;
-    this->fRightK = copy.fRightK;
-    fC   = copy.fC;
-    for (int i = 0; i < 3; i++) fConvDir[i] = copy.fConvDir[i];
-    fSymmetry = copy.fSymmetry;
-    fSD = copy.fSD;
-    fPenaltyConstant = copy.fPenaltyConstant;
-
-  }
+ TPZMatPoisson3d &operator=(const TPZMatPoisson3d &copy);
   
   /** Set material elliptic term as the global element method, i.e. the symmetrical formulation.
   */
@@ -209,6 +202,21 @@ public:
                                 TPZVec<REAL> &values);                              
 
   virtual int IsInterfaceConservative(){ return 1;}
+
+  /**
+   * Unique identifier for serialization purposes
+   */
+  virtual int ClassId() const;
+
+  /**
+   * Save the element data to a stream
+   */
+  virtual void Write(TPZStream &buf, int withclassid);
+
+  /**
+   * Read the element data from a stream
+   */
+  virtual void Read(TPZStream &buf, void *context);
 
 };
 

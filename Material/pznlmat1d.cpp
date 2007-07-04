@@ -1,4 +1,4 @@
-//$Id: pznlmat1d.cpp,v 1.4 2007-05-11 19:15:18 joao Exp $
+//$Id: pznlmat1d.cpp,v 1.5 2007-07-04 19:26:53 tiago Exp $
 // -*- c++ -*-
  
 #include "pznlmat1d.h"
@@ -40,7 +40,6 @@ int TPZNLMat1d::NSolutionVariables(int var)
   return (var==0) ? 1 : -1;
 }
 
-#define TPZNLMAT1D 310
 int TPZNLMat1d::ClassId() const
 {
   return TPZNLMAT1D;

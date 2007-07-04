@@ -283,7 +283,7 @@ template class TPZRestoreClass<TPZMat2dLin,TPZMAT2DLINID>;
   */
 void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
 {
-  TPZSaveable::Write(buf,withclassid);
+  TPZMaterial::Write(buf,withclassid);
   fKxx.Write(buf,0);
   fKxy.Write(buf,0);
   fKyx.Write(buf,0);
@@ -302,7 +302,7 @@ void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
   */
 void TPZMat2dLin::Read(TPZStream &buf, void *context)
 {
-  TPZSaveable::Read(buf,context);
+  TPZMaterial::Read(buf,context);
   fKxx.Read(buf,0);
   fKxy.Read(buf,0);
   fKyx.Read(buf,0);

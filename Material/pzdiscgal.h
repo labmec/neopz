@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.h,v 1.17 2007-06-08 00:09:31 cesar Exp $
+// $Id: pzdiscgal.h,v 1.18 2007-07-04 19:26:53 tiago Exp $
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 
@@ -126,6 +126,21 @@ virtual void ContributeInterfaceBCErrors(TPZMaterialData &data,
                                            int &errorid){
   PZError << "Method not implemented\n";
 }
+
+  /**
+   * Unique identifier for serialization purposes
+   */
+  virtual int ClassId() const;
+
+  /**
+   * Save the element data to a stream
+   */
+  virtual void Write(TPZStream &buf, int withclassid);
+
+  /**
+   * Read the element data from a stream
+   */
+  virtual void Read(TPZStream &buf, void *context);
 
 
 };

@@ -1,8 +1,9 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.cpp,v 1.8 2007-06-08 00:09:31 cesar Exp $
+// $Id: pzdiscgal.cpp,v 1.9 2007-07-04 19:26:53 tiago Exp $
 
 #include "pzdiscgal.h"
 #include "pzmaterialdata.h"
+#include "pzmaterialid.h"
 
 TPZDiscontinuousGalerkin::TPZDiscontinuousGalerkin() : TPZMaterial(){}
 
@@ -43,4 +44,16 @@ void TPZDiscontinuousGalerkin::BCInterfaceJumps(TPZVec<REAL> &leftu,
                                                 TPZBndCond &bc,
                                                 TPZVec<REAL> &values){
   PZError << __PRETTY_FUNCTION__ << " - method not implemented in derived class" << std::endl;
+}
+
+int TPZDiscontinuousGalerkin::ClassId() const{
+  return TPZDISCONTINUOUSGALERKIN;
+}
+
+void TPZDiscontinuousGalerkin::Write(TPZStream &buf, int withclassid){
+  TPZMaterial::Write(buf, withclassid);
+}
+
+void TPZDiscontinuousGalerkin::Read(TPZStream &buf, void *context){
+  TPZMaterial::Read(buf, context);
 }
