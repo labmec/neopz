@@ -11,6 +11,7 @@
 #include <pzcmesh.h>
 #include <pzelasmat.h>
 #include <pzmat2dlin.h>
+#include <pzpoisson3d.h>
 #include <pzbndcond.h>
 #include <pzcompel.h>
 #include <pzlog.h>
@@ -197,9 +198,28 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
         CMesh.InsertMaterialObject(mat);
         break;
       }
+      case ( TPZMATPOISSON3D ):
+      {
+        TPZMatPoisson3d *mat3d = new TPZMatPoisson3d(id,3);
+        int nstate;
+        fInputFile >> nstate;
+        int ist;
+        REAL diff, conv;
+        TPZVec<REAL> dir(3,0.);
+        fInputFile >> diff >> conv;
+        for(ist=0; ist<3; ist++)
+        {
+          fInputFile >> dir[ist];
+        }
+        mat3d->SetParameters(diff,conv,dir);
+        TPZAutoPointer<TPZMaterial> mat = mat3d;
+        CMesh.InsertMaterialObject(mat);
+        break;
+      }
       default :
         std::stringstream sout;
-        sout << "Could not identify material of type: " << classId << " check material identifier for material " << i ;
+        sout << "Could not identify material of type: " << classId
+             << " check material identifier for material " << i ;
 #ifdef LOG4CXX
         LOGPZ_FATAL( logger,sout.str().c_str() );
 #endif
