@@ -83,9 +83,9 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
      @param refmat Used as a model for current object
   */
   TPZFMatrix (const TPZFMatrix & );
-  
+
   CLONEDEF(TPZFMatrix)
-      
+
   TPZFMatrix(const TPZMatrix &refmat); // copy the elements one by one
   //@}
   /**
@@ -96,10 +96,10 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
      Simple destructor
   */
   virtual  ~TPZFMatrix();
-  
+
   int PutVal(const int row,const int col,const REAL & value );
   const REAL &GetVal(const int row,const int col ) const;
-  
+
   virtual REAL &s(const int row, const int col);
 
   REAL &g(const int row, const int col) const;
@@ -125,7 +125,7 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
 
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) ;
- 
+
 static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 );
 
@@ -184,7 +184,7 @@ static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TP
   TPZFMatrix &operator-=(const TPZMatrix &A );
   //@}
   // Operations with values NUMERICOS.
-  
+
   /**
      @name Numerics
      Numeric operations with matrices
@@ -236,17 +236,17 @@ static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TP
 
   virtual int Decompose_LU(std::list<int> &singular);
   virtual int Decompose_LU();
-  
+
   static int Substitution(const REAL *ptr, int rows, TPZFMatrix *B);
-  
-  
+
+
   virtual int Substitution( TPZFMatrix *B ) const;
-  
+
   /** Decomposicao LU com pivoteamento.
    * @author Edimar Cesar Rylo
    */
   virtual int Decompose_LU(TPZVec<int> &index);
-  
+
   /** Substituicao LU com pivoteamento.
    * @author Edimar Cesar Rylo
    */
@@ -257,18 +257,18 @@ static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TP
    */
   static int Substitution(const REAL *ptr, int rows,  TPZFMatrix *B, TPZVec<int> &index );
 
-  
-  
+
+
 
   //routines to send and receive messages
 
   virtual int ClassId() const;
-  
+
   virtual void Read( TPZStream &buf, void *context );
   virtual void Write(TPZStream &buf, int withclassid );
 
   operator const REAL*() const { return fElem; }
-  
+
   static void PrintStatic(const REAL *ptr, int rows, int cols, const char *name, std::ostream& out,const MatrixOutputFormat form);
 
 
@@ -387,7 +387,8 @@ inline const REAL &TPZFMatrix::GetVal( const int row, const int col ) const {
 inline REAL &TPZFMatrix::operator()( const int row, const int col) {
 #ifndef NODEBUG
   if(row >= Rows() || row<0 || col >= Cols() || col<0) {
-    Error("TPZFMatrix::operator()","Index out of bounds");
+    Error("TPZFMatrix::operator() "," Index out of bounds");
+    DebugStop();
     return gZero;
   }
 #endif
@@ -403,7 +404,8 @@ inline REAL &TPZFMatrix::s(const int row, const int col) {
 inline REAL &TPZFMatrix::g( const int row, const int col) const {
 #ifdef DEBUG
   if(row >= Rows() || row<0 || col >= Cols() || col<0) {
-    Error("TPZFMatrix::operator()","Index out of bounds");
+    Error("TPZFMatrix::operator() "," Index out of bounds");
+    DebugStop();
     return gZero;
   }
 #endif
@@ -414,7 +416,8 @@ inline REAL &TPZFMatrix::g( const int row, const int col) const {
 inline REAL &TPZFMatrix::operator()(const int row) {
 #ifdef DEBUG
   if(row >= Rows() || row<0) {
-    Error("TPZFMatrix::operator()","Index out of bounds");
+    Error("TPZFMatrix::operator() "," Index out of bounds");
+    DebugStop();
     return gZero;
   }
 #endif
