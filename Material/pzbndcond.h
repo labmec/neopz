@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.24 2007-05-11 19:15:17 joao Exp $
+//$Id: pzbndcond.h,v 1.25 2007-07-10 23:07:55 cesar Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -109,8 +109,10 @@ public :
     out << " boundary condition type = " << fType << "\n";
     out << " val1 = \n"; fBCVal1.Print("fBCVal1",out);
     out << " val2 = \n"; fBCVal2.Print("fBCVal2",out);
+    if (HasForcingFunction()) out << " has forcing function\n";
+    else out << "has no forcing function\n";
   }
-  
+
   void UpdataBCValues(TPZMaterialData &data);
 
   /**
@@ -155,7 +157,7 @@ public :
   virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc);
 
   /**
-   * It computes a contribution to stiffness matrix and load vector at one integration point 
+   * It computes a contribution to stiffness matrix and load vector at one integration point
    * @param data [in]
    * @param weight [in]
    * @param ek [out] is the stiffness matrix
@@ -165,7 +167,7 @@ public :
   virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 
   /**
-   * It computes a contribution to residual vector at one integration point 
+   * It computes a contribution to residual vector at one integration point
    * @param data [in]
    * @param weight [in]
    * @param ef [out] is the load vector
@@ -174,7 +176,7 @@ public :
   virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
 
   /**
-   * It computes a contribution to stiffness matrix and load vector at one BC integration point 
+   * It computes a contribution to stiffness matrix and load vector at one BC integration point
    * @param data [in]
    * @param weight [in]
    * @param ek [out] is the stiffness matrix
@@ -185,7 +187,7 @@ public :
   virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
   /**
-   * It computes a contribution to residual vector at one BC integration point 
+   * It computes a contribution to residual vector at one BC integration point
    * @param data [in]
    * @param weight [in]
    * @param ef [out] is the load vector
