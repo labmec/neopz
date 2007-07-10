@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.13 2007-06-08 00:02:28 cesar Exp $
+//$Id: pzconnect.h,v 1.14 2007-07-10 23:10:58 cesar Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -125,15 +125,19 @@ class TPZConnect {
   /**Decrement fNElConnected*/
   void DecrementElConnected() { fNElConnected--; }
   /**Return fNElConnected*/
-  int NElConnected() { return fNElConnected; }
+  int NElConnected() const { return fNElConnected; }
 
   void AddDependency(int myindex, int dependindex,TPZFMatrix &depmat,int ipos,int jpos, int isize, int jsize);
 
   void RemoveDepend(int myindex, int dependindex);
 
+  /// delete all dependency information
+  void RemoveDepend();
+
+
   int DependencyDepth(TPZCompMesh &mesh);
 
-  int HasDependency() { return fDependList != 0; }
+  int HasDependency()const { return fDependList != 0; }
 
   int CheckDependency(int nshape, TPZCompMesh *mesh, int nstate);
 
@@ -210,6 +214,13 @@ struct TPZConnectBC {
 
 };
 
-
+inline std::ostream & operator<<(std::ostream &out,TPZConnect &con)
+{
+  out << "seq num: " << con.SequenceNumber()
+      << " nel con: " << con.NElConnected()
+      << " order: " << con.Order()
+      << " hasdepend: " << con.HasDependency();
+  return out;
+}
 #endif
 

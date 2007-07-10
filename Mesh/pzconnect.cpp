@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.18 2007-05-31 13:45:39 cesar Exp $
+//$Id: pzconnect.cpp,v 1.19 2007-07-10 23:10:58 cesar Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -144,6 +144,14 @@ void TPZConnect::AddDependency(int myindex, int dependindex,TPZFMatrix &depmat,i
     if(val > 1.e-6) {
       cout << "TPZConnect::Dependency inconsistent\n";
     }
+  }
+}
+
+void TPZConnect::RemoveDepend() {
+  if(fDependList)
+  {
+    delete fDependList;
+    fDependList = 0;
   }
 }
 
