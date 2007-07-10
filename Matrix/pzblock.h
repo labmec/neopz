@@ -113,6 +113,10 @@ class TPZBlock : public TPZSaveable
   const REAL & Get(const int block_row,const int block_col,const int r,const int c ) const;
   int Put(const int block_row,const int block_col,const int r,const int c,const REAL& value );
 
+  // Le e escreve um elemento na matriz, fazendo verificacoes.
+  const REAL & Get(const int block_row,const int r,const int c ) const;
+  int Put(const int block_row,const int r,const int c,const REAL& value );
+
   // Le e escreve um elemento na matriz, sem fazer verificacoes. GetVal devolva referencia
   const REAL & GetVal(const int bRow,const int bCol,const int r,const int c ) const;
   int PutVal(const int bRow,const int bCol,const int r,const int c,const REAL& value );
@@ -142,7 +146,7 @@ class TPZBlock : public TPZSaveable
   int AddBlock(const int block_row,const int block_col, const TPZFMatrix & block );
 
   //Coloca o bloco (block_row , block_col) dentro da matriz &target desde a posicao (row,col)
-  
+
   /**
      Inserts a block (block_row , block_col) on current matrix target
      @param block_row Contains block row
@@ -180,13 +184,13 @@ class TPZBlock : public TPZSaveable
   */
   int NBlocks() const {return fBlock.NElements();}
 
-  //retorna a dimensao do bloco 
+  //retorna a dimensao do bloco
   /**
      Returns block dimension
      @param block_diagonal Inquired block_diagonal
   */
   int Size(const int block_diagonal) const { return fBlock[block_diagonal].dim; }
- 
+
   //**retorna a posicao do primeiro elemento bloco, relativo á diagonal da matriz*/
   /**
      Returns the position of first element block dependent on matrix diagonal
@@ -208,7 +212,7 @@ class TPZBlock : public TPZSaveable
   Save the element data to a stream
   */
   virtual void Write(TPZStream &buf, int withclassid);
-  
+
   /**
   Read the element data from a stream
   */

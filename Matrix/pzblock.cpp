@@ -286,6 +286,61 @@ TPZBlock::Put(const int bRow,const int bCol,const int r,const int c,
 }
 
 
+/***********/
+/*** Get ***/
+const REAL &
+    TPZBlock::Get(const int bRow,const int r,const int c ) const
+{
+  int row(r),col(c);
+  int MaxBlocks = fBlock.NElements();
+  if ( (bRow >= MaxBlocks)  )
+  {
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Get <block index out of range>" );
+  }
+
+  int rowDim = fBlock[bRow].dim;
+
+
+  if ( !rowDim  )
+  {
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Get <inexistent block>" );
+  }
+
+  if ( (row >= rowDim) || (col >= fpMatrix->Cols()) )
+  {
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Get <elemente is out of the block>" );
+  }
+
+  row += fBlock[bRow].pos;
+  return( fpMatrix->Get( row, col ) );
+}
+
+
+
+/***********/
+/*** Put ***/
+int
+    TPZBlock::Put(const int bRow,const int r,const int c,
+                  const REAL& value )
+{
+  int MaxBlocks = fBlock.NElements();
+  int row(r),col(c);
+  if ( (bRow >= MaxBlocks)  )
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Put <block index out of range>" );
+
+  int rowDim = fBlock[bRow].dim;
+
+  if ( !rowDim )
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Put <inexistent block>" );
+
+  if ( (row >= rowDim) || (col >= fpMatrix->Cols()) )
+    TPZMatrix::Error(__PRETTY_FUNCTION__, "Put <elemente is out of the block>" );
+
+  row += fBlock[bRow].pos;
+  return( fpMatrix->Put( row, col, value ) );
+}
+
+
 
 /**************/
 /*** GetVal ***/
@@ -477,13 +532,13 @@ TPZBlock::Error(const char *msg )
   LOGPZ_ERROR (logger, out.str().c_str());
   exit( 1 );
 }
-*/  
-void TPZBlock::TNode::Read(TPZStream &buf, void *context) 
+*/
+void TPZBlock::TNode::Read(TPZStream &buf, void *context)
 {
   buf.Read(&dim,1);
   buf.Read(&pos,1);
 }
-  
+
 void TPZBlock::TNode::Write(TPZStream &buf, void *context)
 {
   buf.Write(&dim,1);
@@ -506,9 +561,9 @@ void TPZBlock::Write(TPZStream &buf, int withclassid)
 {
   TPZSaveable::Write(buf,withclassid);
   TPZSaveable::WriteObjects<TNode>(buf,fBlock);
-  
+
 }
-  
+
   /**
   Read the element data from a stream
   */
