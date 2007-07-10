@@ -12,8 +12,9 @@
 
 using namespace std;
 
-void TPZMat2dLin::Contribute(TPZMaterialData &data,REAL weight,
-			     TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
+                              TPZFMatrix &ek,TPZFMatrix &ef )
+{
   // this method adds the contribution of the material to the stiffness
   // matrix and right hand side
 
@@ -40,13 +41,14 @@ TPZManVector<REAL,3> &x = data.x;
 // TPZFMatrix &daxesdksi=data.daxesdksi;
 TPZFMatrix &axes=data.axes;
 
-  if(phi.Cols() != 1 || dphi.Rows() != 2 || phi.Rows() != dphi.Cols()){
+  if(phi.Cols() != 1 || dphi.Rows() != 2 || phi.Rows() != dphi.Cols())
+  {
     PZError << "TPZMat2dLin.contr, inconsistent input data : phi.Cols() = "
-	    << phi.Cols() << " dphi.Cols + " << dphi.Cols() <<
-      " phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
-      dphi.Rows() << "\n";
+            << phi.Cols() << " dphi.Cols + " << dphi.Cols()
+            << " phi.Rows = " << phi.Rows() << " dphi.Rows = " << dphi.Rows() << "\n";
   }
-  if(fForcingFunction) {
+  if(fForcingFunction)
+  {
     TPZManVector<REAL> xfloat(fXf.Rows());
     fForcingFunction(x,xfloat);//fXf = xfloat
     int i;
@@ -55,31 +57,31 @@ TPZFMatrix &axes=data.axes;
   int r = fKxx.Rows();
   //int c = fXk.Cols();
   int ic,jc;
-  for(int in=0 ; in < phi.Rows() ; ++in){
-    for(ic=0; ic< r; ic++) {
+  for(int in=0 ; in < phi.Rows() ; ++in)
+  {
+    for(ic=0; ic< r; ic++)
+    {
       ef(in*r+ic, 0) +=  weight*fXf(ic,0)*phi(in,0);
     }
-    for(int jn=0 ; jn<phi.Rows() ; ++jn){
-      for(ic=0; ic<r; ic++) for(jc=0; jc<r; jc++) {
-      	REAL dphix = dphi(0,in)*axes(0,0)+axes(1,0)*dphi(1,in);
-	REAL dphiy = dphi(0,in)*axes(0,1)+axes(1,1)*dphi(1,in);
-      	REAL dphjx = dphi(0,jn)*axes(0,0)+axes(1,0)*dphi(1,jn);
-	REAL dphjy = dphi(0,jn)*axes(0,1)+axes(1,1)*dphi(1,jn);
-      	ek(in*r+ic,jn*r+jc) += weight*phi(in,0)*fK00(ic,jc)*phi(jn,0) +
-		(
-		dphix*dphjx*fKxx(ic,jc)+
-		dphiy*dphjy*fKyy(ic,jc)+
-		dphix*phi(jn,0)*fKx0(ic,jc)+
-		dphiy*phi(jn,0)*fKy0(ic,jc)+
-		phi(in,0)*dphjx*fK0x(ic,jc)+
-		phi(in,0)*dphjy*fK0y(ic,jc)
-		)*weight;
-	  //(phi(in,0)*phi(jn,0))*weight;
-
+    for(int jn=0 ; jn<phi.Rows() ; ++jn)
+    {
+      for(ic=0; ic<r; ic++) for(jc=0; jc<r; jc++)
+      {
+        REAL dphix = dphi(0,in)*axes(0,0)+axes(1,0)*dphi(1,in);
+        REAL dphiy = dphi(0,in)*axes(0,1)+axes(1,1)*dphi(1,in);
+        REAL dphjx = dphi(0,jn)*axes(0,0)+axes(1,0)*dphi(1,jn);
+        REAL dphjy = dphi(0,jn)*axes(0,1)+axes(1,1)*dphi(1,jn);
+        ek(in*r+ic,jn*r+jc) += weight*phi(in,0)*fK00(ic,jc)*phi(jn,0) +
+                              (dphix*dphjx*fKxx(ic,jc) +
+                               dphiy*dphjy*fKyy(ic,jc) +
+                               dphix*phi(jn,0)*fKx0(ic,jc) +
+                               dphiy*phi(jn,0)*fKy0(ic,jc) +
+                               phi(in,0)*dphjx*fK0x(ic,jc) +
+                               phi(in,0)*dphjy*fK0y(ic,jc) ) * weight;
+        //(phi(in,0)*phi(jn,0))*weight;
       }
     }
   }
-
 }
 
 void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
@@ -171,6 +173,7 @@ TPZFMatrix &axes=data.axes;
                }
             }
          }
+         break;
 	 case 3:
 		 for(in=0; in<numnod; in++) {
 			 for(idf=0; idf<r; idf++) {
@@ -179,6 +182,7 @@ TPZFMatrix &axes=data.axes;
 				 }
 			 }
 		 }
+     break;
   }//fim switch
 }
 
@@ -283,7 +287,22 @@ template class TPZRestoreClass<TPZMat2dLin,TPZMAT2DLINID>;
   */
 void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
 {
+#ifdef DEBUG2
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " before write material ";
+    LOGPZ_DEBUG( logger,sout.str().c_str() );
+  }
+#endif
   TPZMaterial::Write(buf,withclassid);
+#ifdef DEBUG2
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " after write material ";
+    LOGPZ_DEBUG( logger,sout.str().c_str() );
+  }
+#endif
+
   fKxx.Write(buf,0);
   fKxy.Write(buf,0);
   fKyx.Write(buf,0);
@@ -294,7 +313,6 @@ void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
   fK0y.Write(buf,0);
   fK00.Write(buf,0);
   fXf.Write(buf,0);
-
 }
 
   /**
