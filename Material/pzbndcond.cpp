@@ -1,4 +1,4 @@
- 
+
 #include "pzbndcond.h"
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
@@ -122,7 +122,7 @@ void TPZBndCond::Read(TPZStream &buf, void *context)
 
 void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data,
                                             REAL weight,
-                                            TPZVec<REAL> &nkL, 
+                                            TPZVec<REAL> &nkL,
                                             TPZVec<REAL> &nkR,
                                             int &errorid){
 
@@ -146,9 +146,21 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, 
   this->UpdataBCValues(data);
 
   //clone meshes required analysis
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << "bc type " <<  fType << " x " << data.x;
+    LOGPZ_DEBUG(logger,sout.str().c_str());
+  }
   int typetmp = fType;
   if (fType == 50){
     int i;
+#ifdef DEBUG2
+    {
+      std::stringstream sout;
+      sout << __PRETTY_FUNCTION__ << data.sol << " " << data.x;
+      LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+#endif
     for (i = 0; i <data.sol.NElements(); i++){
         fBCVal2(i,0) = gBigNumber*data.sol[i];
         fBCVal1(i,i) = gBigNumber;
@@ -167,6 +179,13 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
   int typetmp = fType;
   if (fType == 50){
     int i;
+#ifdef DEBUG2
+    {
+      std::stringstream sout;
+      sout << __PRETTY_FUNCTION__ << data.sol << " " << data.x;
+      LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+#endif
     for (i = 0; i <data.sol.NElements(); i++){
         fBCVal2(i,0) = gBigNumber*data.sol[i];
         fBCVal1(i,i) = gBigNumber;
@@ -221,7 +240,7 @@ void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFM
 
 void TPZBndCond::UpdataBCValues(TPZMaterialData &data){
   if(fForcingFunction){
-    TPZManVector<REAL> result(fBCVal2.Rows());
+    TPZManVector<REAL> result(fBCVal2.Rows(),0.);
     fForcingFunction(data.x,result);
     int i;
     for(i=0; i<fBCVal2.Rows(); i++) {
@@ -230,7 +249,7 @@ void TPZBndCond::UpdataBCValues(TPZMaterialData &data){
   }
 
   if( this->fValFunction ){
-    TPZManVector<REAL> result(this->fBCVal2.Rows());
+    TPZManVector<REAL> result(this->fBCVal2.Rows(),0.);
     this->fValFunction( data.x, this->fBCVal1, result, this->fType );
     int i;
     for(i = 0; i < this->fBCVal2.Rows(); i++) {
