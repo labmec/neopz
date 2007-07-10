@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.14 2007-06-28 00:03:58 cesar Exp $
+//$Id: pzinterpolationspace.cpp,v 1.15 2007-07-10 23:12:29 cesar Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -155,6 +155,11 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     return;
   }
 
+  {
+    std::stringstream sout;
+    sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
+    LOGPZ_DEBUG(logger,sout.str());
+  }
   this->InitializeElementMatrix(ek,ef);
 
   TPZMaterialData data;
@@ -166,6 +171,8 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
   REAL weight = 0.;
 
   TPZIntPoints &intrule = GetIntegrationRule();
+  TPZManVector<int,3> p2(dim,2*data.p);
+  intrule.SetOrder(p2);
   if(material->HasForcingFunction()) {
     TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
     intrule.SetOrder(order);
@@ -673,11 +680,14 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
   if(Reference()->Dimension() < problemdimension) return;
 
   // Adjust the order of the integration rule
+  //Cesar 2007-06-27 ==>> Begin
+  //this->MaxOrder is usefull to evaluate polynomial function of the aproximation space.
+  //fp can be any function and max order of the integration rule could produce best results
   int dim = Dimension();
   TPZIntPoints &intrule = this->GetIntegrationRule();
   int maxIntOrder = intrule.GetMaxOrder();
-
-  TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder/*this->MaxOrder()*/);
+  TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
+  //end
   intrule.GetOrder(prevorder);
   intrule.SetOrder(maxorder);
 
