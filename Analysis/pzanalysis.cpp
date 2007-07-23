@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.35 2007-06-20 21:31:07 cesar Exp $
+//$Id: pzanalysis.cpp,v 1.36 2007-07-23 14:15:32 tiago Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -113,7 +113,7 @@ void TPZAnalysis::SetBlockNumber(){
 	TPZSloan sloan(nel,nindep);
 	sloan.SetElementGraph(elgraph,elgraphindex);
 	sloan.Resequence(perm,iperm);
-	fCompMesh->Permute(perm);
+  	fCompMesh->Permute(perm);
 /*
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 
@@ -154,11 +154,16 @@ void TPZAnalysis::Assemble()
   else
   {
     TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
-    //mat->Print("Rigidez");
     fSolver->SetMatrix(mat);
     //aqui TPZFMatrix n� �nula
   }
+  
+//   ofstream fileout("rigidez.txt");
+//   fSolver->Matrix()->Print("Rigidez", fileout, EMathematicaInput);  
+  
+  
   fSolver->UpdateFrom(fSolver->Matrix());
+
   //fRhs.Print("Rhs");
   //cout.flush();
 }
@@ -168,7 +173,7 @@ void TPZAnalysis::Solve() {
 	if(fRhs.Rows() != numeq ) return;
 
 	TPZFMatrix residual(fRhs);
-	TPZFMatrix delu(numeq,1);
+	TPZFMatrix delu(numeq,1,0.);
 /*	if(fSolution.Rows() != numeq) {
 	  fSolution.Redim(numeq,1);
 	} else {
