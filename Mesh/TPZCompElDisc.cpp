@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.97 2007-06-20 12:37:03 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.98 2007-07-31 23:15:21 tiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.97 2007-06-20 12:37:03 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.98 2007-07-31 23:15:21 tiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -61,20 +61,20 @@ TPZCompElDisc::~TPZCompElDisc() {
   }
 }
 
-TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fCenterPoint(3,0.)
+TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fShape(), fCenterPoint(3,0.)
 {
   fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
   this->fIntRule = NULL;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
-		TPZInterpolationSpace(mesh,0,index), fCenterPoint(3) {
+		TPZInterpolationSpace(mesh,0,index), fShape(), fCenterPoint(3) {
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
   this->fIntRule = NULL;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
-    TPZInterpolationSpace(mesh,copy),  fConnectIndex(copy.fConnectIndex),fConstC(copy.fConstC),fCenterPoint(copy.fCenterPoint) {
+    TPZInterpolationSpace(mesh,copy),  fConnectIndex(copy.fConnectIndex),fConstC(copy.fConstC), fShape(copy.fShape), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
   this->fIntRule = NULL;
@@ -85,6 +85,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
                              const TPZCompElDisc &copy,
                              std::map<int,int> &gl2lcConMap,
                              std::map<int,int> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy),
+                                                              fShape(copy.fShape), 
                                                               fCenterPoint(copy.fCenterPoint)
 {
   fShapefunctionType = copy.fShapefunctionType;
@@ -98,7 +99,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index) :
-                             TPZInterpolationSpace(mesh,copy,index), fCenterPoint(copy.fCenterPoint) {
+                             TPZInterpolationSpace(mesh,copy,index), fShape(copy.fShape), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
   //criando nova malha computacional
   Reference()->SetReference(this);
@@ -112,7 +113,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
-		TPZInterpolationSpace(mesh,ref,index), fCenterPoint(3) {
+		TPZInterpolationSpace(mesh,ref,index), fShape(), fCenterPoint(3) {
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
   this->fIntRule = NULL;
   switch(ref->Type()) {
@@ -174,34 +175,55 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
   }//if
   ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
   axes.Identity();//discontinuous shape does not use axes
-   ref->X(intpoint, X);
-  this->ShapeX(X,phi,dphix);
+  ref->X(intpoint, X);
+  this->Shape(intpoint,X,phi,dphix);
 }
 
-void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi) {
+void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi){
+  TPZManVector<REAL,4> x(3);
+  this->Reference()->X(qsi,x);
+  this->Shape(qsi,x,phi,dphi);
+}
+
+void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix &phi,TPZFMatrix &dphi){
 
   const int Degree = this->Degree();
-  if(Degree < 0) return;
-
-  if(Dimension()==0){
-    TPZShapeDisc::Shape0D(fConstC,fCenterPoint,X,Degree,phi,dphi);
+  if(Degree < 0){
+    phi.Redim(0,0);
+    dphi.Redim(0,0);
     return;
   }
+  
+  const int dim = this->Dimension();
 
-  if(Dimension()==1){
-     TPZShapeDisc::Shape1D(fConstC,fCenterPoint,X,Degree,phi,dphi);
-     return;
+  if (this->fShape.HasSingularFunction()){
+    TPZManVector<REAL,3> SingularPoint(3), qsiSP(dim,-9.);
+    TPZGeoEl *ref = this->Reference();
+    const int SingSide = this->fShape.SingularSide();
+    const int nnodes = ref->NCornerNodes();
+    if (SingSide < nnodes){///singularity is around a node
+      ref->CenterPoint(SingSide, qsiSP);
+    }
+    else{///if singularity is around a rib or a face, then it is more difficult
+      TPZTransform transf;
+      transf = ref->SideToSideTransform(ref->NSides()-1,SingSide);
+      transf = ref->SideToSideTransform(SingSide, ref->NSides()-1).Multiply(transf);
+      transf.Apply(qsi, qsiSP);
+    }
+    ref->X(qsiSP, SingularPoint);
+    this->fShape.Shape(SingularPoint, fConstC,fCenterPoint,X,Degree,dim,phi,dphi,fShapefunctionType);
   }
-
-  if(Dimension()==2){
-     TPZShapeDisc::Shape2D/*Full*/(fConstC,fCenterPoint,X,Degree,phi,dphi,fShapefunctionType);
+  else{
+    this->fShape.Shape(fConstC,fCenterPoint,X,Degree,dim,phi,dphi,fShapefunctionType);
   }
+    
+}
 
-  if(Dimension()==3){
-     TPZShapeDisc::Shape3D(fConstC,fCenterPoint,X,Degree,phi,dphi,fShapefunctionType);
-     return;
-  }
-
+///@deprecated
+void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
+  const int Degree = this->Degree();
+  if(Degree < 0) return;
+  this->fShape.Shape(fConstC,fCenterPoint,X,Degree,this->Dimension(),phi,dphi,fShapefunctionType);
 }//method
 
 void TPZCompElDisc::Print(std::ostream &out) {
@@ -291,7 +313,7 @@ int TPZCompElDisc::NShapeF(){
   //deve ter pelo menos um connect
 
   int dim = Dimension();
-  return TPZShapeDisc::NShapeF(this->Degree(),dim,fShapefunctionType);
+  return this->fShape.NShapeF(this->Degree(),dim,fShapefunctionType);
 }
 
 int TPZCompElDisc::NConnectShapeF(int inod){
@@ -600,11 +622,11 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
     intrule->Point(int_ind,int_point,weight);
     ref->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
     ref->X(int_point, x);
-    ShapeX(int_point,locphi,locdphi);
+    Shape(int_point,x,locphi,locdphi);
     weight *= jac_det;
     corphi.Zero();
     cordphi.Zero();
-    coarsel.ShapeX(int_point,corphi,cordphi);
+    coarsel.Shape(int_point,x,corphi,cordphi);
 
     for(lin=0; lin<locnshape; lin++) {
       for(ljn=0; ljn<locnshape; ljn++) {
@@ -671,7 +693,23 @@ void TPZCompElDisc::SetDegree(int degree) {
   int nvar = 1;
   TPZAutoPointer<TPZMaterial> mat = Material();
   if(mat) nvar = mat->NStateVariables();
-  Mesh()->Block().Set(seqnum,NShapeF()*nvar);
+  int nshapef = this->NShapeF();
+  Mesh()->Block().Set(seqnum,nshapef*nvar);
+}
+
+void TPZCompElDisc::SetSingularShapeFunction(void (*f)(const TPZVec<REAL>& x, const TPZVec<REAL> &SingularPoint, TPZFMatrix & phi, TPZFMatrix & dphi, int n),
+                                             int NumberOfSingularFunctions,
+                                             int SingularSide){
+  this->fShape.SetSingularShapeFunction(f,NumberOfSingularFunctions,SingularSide);
+  ///in order of ajust block size because NShapeF may have changed
+  if (fConnectIndex < 0) return;
+  TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
+  int seqnum = c.SequenceNumber();
+  int nvar = 1;
+  TPZAutoPointer<TPZMaterial> mat = Material();
+  if(mat) nvar = mat->NStateVariables();
+  int nshapef = this->NShapeF();
+  Mesh()->Block().Set(seqnum,nshapef*nvar);  
 }
 
   /**
@@ -730,7 +768,7 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMa
   TPZManVector<REAL,3> x(3,0.);
   ref->Jacobian( qsi, jacobian, axes, detjac , jacinv);
   ref->X(qsi, x);
-  this->ShapeX(x,phix,dphix);
+  this->Shape(qsi,x,phix,dphix);
   this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
 }//method
 

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.62 2007-06-08 00:02:28 cesar Exp $
+//$Id: TPZCompElDisc.h,v 1.63 2007-07-31 23:15:21 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -43,7 +43,14 @@ class TPZGeoElPoint;
 */
 class TPZCompElDisc : public TPZInterpolationSpace{
 
+public:
+  void SetSingularShapeFunction(void (*f)(const TPZVec<REAL>& x, const TPZVec<REAL> &SingularPoint, TPZFMatrix & phi, TPZFMatrix & dphi, int n),
+                                int NumberOfSingularFunctions,
+                                int SingularSide);
+
 protected:
+
+  pzshape::TPZShapeDisc fShape;
 
   TPZIntPoints * fIntRule;
 
@@ -153,25 +160,30 @@ protected:
    */
   void Divide(int index, TPZVec<int> &subindex, int interpolate = 0);
 
-  /**
-   * value of the bases and derivatives of the element deformed in point X
-   */
-  virtual void ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
-
   /**computes the shape function set at the point x. This method uses the order of interpolation
    * of the element along the sides to compute the number of shapefunctions
    * @param qsi point in master element coordinates
    * @param phi vector of values of shapefunctions, dimension (numshape,1)
    * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
    */
-  virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi){
-    TPZManVector<REAL,4> x(3);
-    Reference()->X(qsi,x);
-    ShapeX(x,phi,dphi);
-  }
+   virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi);
+
+   /** Compute shape functions.
+    * @param qsi[in]
+    * @param x[in]
+    * @param phi[out]
+    * @param dphi[out]
+    */
+   void Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix &phi,TPZFMatrix &dphi);
 
   virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv,
                             TPZFMatrix &phi, TPZFMatrix &dphix);
+
+  /** @deprecated 
+   * Deprecated shape function method. It is kept because of TPZAgglomerateElement.
+   * It does not include singular shape functions if they exist.
+   */
+  void ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
 
   /**returns a reference to an integration rule suitable for integrating
      the interior of the element */
@@ -263,8 +275,10 @@ protected:
    */
   void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 
-  /**
+  /** @deprecated
   * \brief Computes the solution in function of a point in cartesian space
+  *  Deprecated shape function method. It is kept because of TPZAgglomerateElement.
+  * It does not include singular shape functions if they exist.
   */
   void SolutionX(TPZVec<REAL> &x,TPZVec<REAL> &uh);
 

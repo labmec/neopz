@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.44 2007-06-08 00:02:28 cesar Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.45 2007-07-31 23:15:21 tiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -1021,6 +1021,7 @@ void TPZAgglomerateElement::ComputeNeighbours(TPZCompMesh *mesh, map<TPZCompElDi
     }
   }
 }
+
 
   /**
   * returns the unique identifier for reading/writing objects to streams

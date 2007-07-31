@@ -11,6 +11,27 @@ namespace pzshape {
 void (*TPZShapeDisc::fOrthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix & phi, TPZFMatrix & dphi, int n) = TPZShapeDisc::Polynomial;
 
 TPZShapeDisc::TPZShapeDisc(){
+  this->fSingularFunctions = NULL;
+  this->fNumberOfSingularFunctions = 0;
+  this->fSingularSide = -1;
+}
+
+TPZShapeDisc::TPZShapeDisc(const TPZShapeDisc &copy){
+  this->fNumberOfSingularFunctions = copy.fNumberOfSingularFunctions;
+  this->fSingularFunctions = copy.fSingularFunctions;
+  this->fSingularSide = copy.fSingularSide;
+}
+
+TPZShapeDisc::~TPZShapeDisc(){
+
+}
+
+void TPZShapeDisc::SetSingularShapeFunction(void (*f)(const TPZVec<REAL>& x, const TPZVec<REAL> &SingularPoint, TPZFMatrix & phi, TPZFMatrix & dphi, int n),
+                                            int NumberOfSingularFunctions,
+                                            int SingularSide){
+  this->fSingularFunctions = f;
+  this->fNumberOfSingularFunctions = NumberOfSingularFunctions;
+  this->fSingularSide = SingularSide;
 }
 
 void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, int n){
@@ -128,7 +149,7 @@ void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TP
 
   int i, j, ix, iy, counter=0, num = degree+1;
 
-  int nshape = NShapeF(degree,2,type);
+  int nshape = NDiscShapeF(degree,2,type);
 //  int count=num,ind=0;
   phi.Redim(nshape,1);
   dphi.Redim(2,nshape);
@@ -287,7 +308,7 @@ void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degr
  
   int i,j,counter=0,num = degree+1;
   
-  int nshape = NShapeF(degree,2,type);
+  int nshape = NDiscShapeF(degree,2,type);
 //  int count=num,ind=0;
   phi.Redim(nshape,1);
   dphi.Redim(8,nshape);
@@ -323,7 +344,7 @@ void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degr
   for(i=0; i<8; i++) dphi(i,nshape-1) = dphi0[i];
 }
 
-int  TPZShapeDisc::NShapeF(int degree, int dimension, MShapeType type) {
+int  TPZShapeDisc::NDiscShapeF(int degree, int dimension, MShapeType type) {
   int sum =0,i;
   switch(dimension) {
   case 1:
@@ -343,5 +364,140 @@ int  TPZShapeDisc::NShapeF(int degree, int dimension, MShapeType type) {
       return -1;
   }
 }
+
+int TPZShapeDisc::NShapeF(int degree, int dimension, TPZShapeDisc::MShapeType type){
+  int base = TPZShapeDisc::NDiscShapeF(degree, dimension, type);
+  return base + this->fNumberOfSingularFunctions;  
+}
+
+void TPZShapeDisc::Shape(const TPZVec<REAL> &SingularPoint, 
+                         REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree, int dim, 
+                         TPZFMatrix &phi,TPZFMatrix &dphi, 
+                         TPZShapeDisc::MShapeType type){
+  if (this->fSingularFunctions){
+    const int NSingShape = this->fNumberOfSingularFunctions;
+    const int NDiscShape = TPZShapeDisc::NDiscShapeF(degree, dim, type);
+    const int NShape = NSingShape+NDiscShape;
+    
+    TPZFNMatrix<220> DiscPhi, SingPhi; 
+    TPZFNMatrix<660> DiscDPhi, SingDPhi;  
+    
+    this->Shape(C,X0,X,degree,dim,DiscPhi,DiscDPhi,type);
+    const int nderivatives = DiscDPhi.Rows();
+    phi.Redim(NShape,1);
+    dphi.Redim(nderivatives, NShape);
+    for(int i = 0; i < NDiscShape; i++){
+      phi(i,0) = DiscPhi(i,0);
+      for(int j = 0; j < nderivatives; j++){
+        dphi(j,i) = DiscDPhi(j,i);
+      }///for nderivatives
+    }///for NDiscShape
+
+    this->fSingularFunctions(X, SingularPoint, SingPhi, SingDPhi, 1);        
+    for(int i = 0; i < NSingShape; i++){
+      phi(i+NDiscShape,0) = SingPhi(i,0);
+      for(int j = 0; j < nderivatives; j++){
+        dphi(j,i+NDiscShape) = SingDPhi(j,i);
+      }///for nderivatives
+    }///for NSingShape
+  }///if there is a singular function  
+  ///Classic discontinuous basis
+  else{
+    if (this->fNumberOfSingularFunctions) PZError << "ERROR AT " << __PRETTY_FUNCTION__ << " - fSingularFunctions = NULL and fNumberOfSingularFunctions = "  << fNumberOfSingularFunctions << "\n";
+    this->Shape(C,X0,X,degree,dim,phi,dphi,type);    
+  }///else
+
+}
+
+void TPZShapeDisc::Shape(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree, int dim, 
+                         TPZFMatrix &phi,TPZFMatrix &dphi, 
+                         TPZShapeDisc::MShapeType type){
+  if(dim == 0){
+    TPZShapeDisc::Shape0D(C,X0,X,degree,phi,dphi);
+  }
+  if(dim == 1){
+    TPZShapeDisc::Shape1D(C,X0,X,degree,phi,dphi);
+  }
+  if(dim == 2){
+    TPZShapeDisc::Shape2D/*Full*/(C,X0,X,degree,phi,dphi,type);
+  }
+  if(dim == 3){
+    TPZShapeDisc::Shape3D(C,X0,X,degree,phi,dphi,type);
+  }
+}
+
+void TPZShapeDisc::SqrtFunction(const TPZVec<REAL>& pt, const TPZVec<REAL> &SingularPoint, TPZFMatrix & phi, TPZFMatrix & dphi, int n){
+
+  if (n != 1){
+    PZError << "ERROR AT " << __PRETTY_FUNCTION__ << " - only first derivatives are implemented\n";
+  }
+
+  const int dim = pt.NElements();
+  if (dim == 0){
+    phi.Redim(0,0);
+    dphi.Redim(0,0);
+    return;
+  }  
+  
+  phi.Redim(1,1);///only one function
+  dphi.Redim(dim,1);
+
+  const REAL r = TPZShapeDisc::Distance(pt, SingularPoint); 
+  phi(0,0) = sqrt(r);
+  
+  ///computing derivatives  
+  if (dim == 1){
+    const REAL x = pt[0];
+    const REAL XS = SingularPoint[0];
+    dphi(0,0) = (x-XS)/(2.*r*sqrt(r)); ///df/dx
+    return;
+  }
+  
+  if (dim == 2){
+    const REAL x = pt[0];
+    const REAL XS = SingularPoint[0];
+    const REAL y = pt[1];
+    const REAL YS = SingularPoint[1];
+    dphi(0,0) = (x-XS)/(2.*r*sqrt(r)); ///df/dx
+    dphi(1,0) = (y-YS)/(2.*r*sqrt(r)); ///df/dy
+    return;
+  }
+  
+  if (dim == 3){
+    const REAL x = pt[0];
+    const REAL XS = SingularPoint[0];
+    const REAL y = pt[1];
+    const REAL YS = SingularPoint[1];
+    const REAL z = pt[2];
+    const REAL ZS = SingularPoint[2];
+    dphi(0,0) = (x-XS)/(2.*r*sqrt(r)); ///df/dx
+    dphi(1,0) = (y-YS)/(2.*r*sqrt(r)); ///df/dy
+    dphi(2,0) = (z-ZS)/(2.*r*sqrt(r)); ///df/dz
+    return;
+  }
+  
+  PZError << "ERROR AT " << __PRETTY_FUNCTION__ << " - only 0, 1, 2 and 3D shape functions are implemented\n";
+  
+
+  
+}///SqrtFunction
+
+REAL TPZShapeDisc::Distance(const TPZVec<REAL>& A, const TPZVec<REAL> &B){
+#ifdef DEBUG
+  int na = A.NElements();
+  int nb = B.NElements();
+  if (na != nb){
+    PZError << "FATAL ERROR AT " << __PRETTY_FUNCTION__ << " LINE " << __LINE__ << "\n";
+    exit(-1);
+  }
+#endif
+  REAL result = 0.;
+  for(int i = 0; i < A.NElements(); i++){
+    result += (A[i]-B[i])*(A[i]-B[i]);
+  }
+  result = sqrt(result);
+  return result;
+
+}///Distance
 
 };
