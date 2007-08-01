@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.48 2007-06-08 00:02:28 cesar Exp $
+//$Id: TPZInterfaceEl.h,v 1.49 2007-08-01 18:36:44 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -68,6 +68,8 @@ class TPZInterfaceElement : public TPZCompEl {
                            TPZVec<REAL> &qsi,
                            TPZVec<REAL> &LeftIntPoint, TPZVec<REAL> &RightIntPoint);
 
+  public:
+
   /** Compute solution at neighbour element in a given master coordinate qsi. It returns the axes
    * at which respect derivatives are computed.
    * @param [in] Neighbor
@@ -77,6 +79,8 @@ class TPZInterfaceElement : public TPZCompEl {
    * @param [out] NeighborAxes
    */
   void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &NeighborAxes);
+  
+  protected:
 
   /** Check consistency of mapped qsi performed by method TPZInterfaceElement::MapQsi by
    * comparing the X coordinate of qsi and the correspondent NeighIntPoint.
