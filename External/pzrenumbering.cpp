@@ -72,7 +72,7 @@ void TPZRenumbering::ConvertGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphinde
 	nodegraphindex.Resize(fNNodes+1);
   	nodegraphindex.Fill(0);
 //	cout << "Passou por aqui0\n";
-	int nodegraphincrement = 100;
+	int nodegraphincrement = 10000;
   	nodegraph.Resize(nodegraphincrement);       
 //  	int nodegraphsize = nodegraph.NElements();
   	int nextfreeindex = 0;
