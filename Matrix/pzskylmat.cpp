@@ -640,7 +640,7 @@ TPZSkylMatrix::Decompose_Cholesky(std::list<int> &singular)
       // Faz A(k,k) = sqrt( A(k,k) - sum ).
     //
     pivot = fElem[k][0] - sum;
-    if ( pivot < 1.e-15 ) {
+    if ( pivot < 1.e-10 ) {
       singular.push_back(k);
       pivot = 1.;
     }
