@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.21 2007-06-08 00:02:28 cesar Exp $
+//$Id: pzsubcmesh.cpp,v 1.22 2007-08-14 12:36:05 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -107,7 +107,7 @@ int TPZSubCompMesh::main() {
 
 	numeq = mesh.NEquations();
 
-	// Teste 1 colocar os elementos, inclusive intermediários, como sub elementos
+	// Teste 1 colocar os elementos, inclusive intermediï¿½rios, como sub elementos
 	TPZSubCompMesh *sub[numel];
 
 	int index = -1;
@@ -498,10 +498,10 @@ TPZCompMesh * TPZSubCompMesh::RootMesh(int local){
 }
 
 /**
- * Este método deve estar errado. Primeiro tem que por os connects que tem dependencias
- * caso contrario nós com dependencias serao duplicados
+ * Este mï¿½todo deve estar errado. Primeiro tem que por os connects que tem dependencias
+ * caso contrario nï¿½s com dependencias serao duplicados
  *
- * talvez primeiro copiar a estrutura dos nós dependentes e DEPOIS tirá los da malha pai
+ * talvez primeiro copiar a estrutura dos nï¿½s dependentes e DEPOIS tirï¿½ los da malha pai
  */
 void TPZSubCompMesh::MakeAllInternal(){
   TPZStack<int> stack;
@@ -768,7 +768,7 @@ void TPZSubCompMesh::PermuteInternalFirst()
   std::map<int,int> independent;
   std::list<int> internal;
   this->PotentialInternal(internal);
-#ifdef LOG4CXX
+/*#ifdef LOG4CXX
   {
     std::stringstream sout;
     sout << "Internal connects ic/seqnum";
@@ -779,7 +779,7 @@ void TPZSubCompMesh::PermuteInternalFirst()
     }
     LOGPZ_DEBUG(logger,sout.str())
   }
-#endif
+#endif*/
   TPZCompMesh *father = this->FatherMesh();
   std::list<int>::iterator it;
   for(it=internal.begin(); it!= internal.end(); it++)
@@ -814,13 +814,13 @@ void TPZSubCompMesh::PermuteInternalFirst()
   {
     if(permute[mapit->first] == -1) permute[mapit->first] = count++;
   }
-#ifdef LOG4CXX
+/*#ifdef LOG4CXX
   {
     std::stringstream sout;
     sout << "Permutation vector " << permute;
     LOGPZ_DEBUG(logger,sout.str())
   }
-#endif
+#endif*/
   Permute(permute);
 }
 
@@ -839,7 +839,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 			TPZConnect &no = fConnectVec[i];
 
 			if(no.NElConnected() == 0) continue;
-			//se não tiver elemento conectado tambe'm
+			//se nï¿½o tiver elemento conectado tambe'm
 			numinternal+= 1;
 		}
 	}

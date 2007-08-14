@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.15 2007-07-10 23:12:29 cesar Exp $
+//$Id: pzinterpolationspace.cpp,v 1.16 2007-08-14 12:36:05 phil Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -155,11 +155,11 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     return;
   }
 
-  {
+/*  {
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
     LOGPZ_DEBUG(logger,sout.str());
-  }
+  }*/
   this->InitializeElementMatrix(ek,ef);
 
   TPZMaterialData data;
