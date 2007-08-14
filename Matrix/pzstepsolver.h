@@ -13,7 +13,7 @@ class TPZFMatrix;
 */
 class TPZStepSolver : public TPZMatrixSolver {
 public:  
-  TPZStepSolver(TPZMatrix *refmat=0);
+  TPZStepSolver(TPZAutoPointer<TPZMatrix> refmat=0);
 
   TPZStepSolver(const TPZStepSolver & copy);
 

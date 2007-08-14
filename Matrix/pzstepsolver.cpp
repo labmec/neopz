@@ -10,7 +10,7 @@ using namespace std;
 static LoggerPtr logger(Logger::getLogger("pz.converge"));
 #endif
 
-TPZStepSolver::TPZStepSolver(TPZMatrix *refmat) : TPZMatrixSolver(refmat) {
+TPZStepSolver::TPZStepSolver(TPZAutoPointer<TPZMatrix> refmat) : TPZMatrixSolver(refmat) {
   fPrecond = 0;
   ResetSolver();
 }
