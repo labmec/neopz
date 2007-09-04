@@ -10,7 +10,7 @@
 #include <fstream>
 using namespace std;
 
-TPZElasticityMaterial::TPZElasticityMaterial() : TPZMaterial(0) {
+TPZElasticityMaterial::TPZElasticityMaterial() : TPZDiscontinuousGalerkin(0) {
   fE	= -1.;  // Young modulus
   fnu	= -1.;   // poisson coefficient
   ff[0]	= 0.; // X component of the body force
@@ -26,7 +26,7 @@ TPZElasticityMaterial::TPZElasticityMaterial() : TPZMaterial(0) {
   fPlaneStress = -1;
 }
 
-TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZMaterial(num) {
+TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZDiscontinuousGalerkin(num) {
 
   fE	= E;  // Young modulus
   fnu	= nu;   // poisson coefficient
@@ -502,7 +502,7 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 
 
 TPZElasticityMaterial::TPZElasticityMaterial(const TPZElasticityMaterial &copy) :
-  TPZMaterial(copy),
+  TPZDiscontinuousGalerkin(copy),
   fE(copy.fE),
   fnu(copy.fnu),
   fEover21PlusNu(copy.fEover21PlusNu),

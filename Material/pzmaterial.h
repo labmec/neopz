@@ -99,8 +99,13 @@ class  TPZMaterial : public TPZSaveable
 
       /**returns the solution associated with the var index based on
        * the finite element approximation*/
-      virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-			    TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+      virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+      
+      protected:
+      /** @deprecated Deprecated interface for Solution method which must use material data. */
+      virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+      
+      public:
 
       /**compute the value of the flux function to be used by ZZ error
        * estimator*/

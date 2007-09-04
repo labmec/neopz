@@ -74,6 +74,10 @@ int TPZMaterial::NSolutionVariables(int index) {
    return 0;
 }
 
+void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
+  this->Solution(data.sol, data.dsol, data.axes, var, Solout);
+}
+
 void TPZMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &/*DSol*/,TPZFMatrix &/*axes*/,int var,
 			   TPZVec<REAL> &Solout){
    if(var == 0) Solout = Sol;

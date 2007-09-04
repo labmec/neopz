@@ -4,9 +4,10 @@
 #include <iostream>
 
 #include "pzmaterial.h"
+#include "pzdiscgal.h"
 
 /// This class implements a two dimensional elastic material in plane stress or strain
-class TPZElasticityMaterial : public TPZMaterial {
+class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 
 public :
 
@@ -58,6 +59,14 @@ public :
   //*Applies the element boundary conditions*/
   virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 			    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
+  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+    PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
+  }
+
+  virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+    PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
+  }
 
   /**Returns the variable index associated with the name*/
   virtual int VariableIndex(char *name);
