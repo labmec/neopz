@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.33 2007-06-08 00:02:28 cesar Exp $
+//$Id: pzintel.h,v 1.34 2007-09-04 12:33:16 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -10,7 +10,7 @@ struct TPZElementMatrix;
 
 class TPZIntPoints;
 class TPZBlockDiagonal;
-class TPZCompElDisc;
+#include "TPZCompElDisc.h"
 
 /**
  * @brief Class TPZInterpolatedElement implemments computational element based on an interpolation space

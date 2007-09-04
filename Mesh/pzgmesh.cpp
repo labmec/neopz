@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.42 2007-07-03 14:40:12 phil Exp $
+//$Id: pzgmesh.cpp,v 1.43 2007-09-04 12:33:16 tiago Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -519,6 +519,7 @@ TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co) {
 
 void TPZGeoMesh::BuildConnectivity()
 {
+
   TPZVec<int> SideNum(NNodes(),-1);
   TPZVec<TPZGeoEl *> NeighNode(NNodes(),0);
   int nelem = NElements();
@@ -581,6 +582,7 @@ void TPZGeoMesh::BuildConnectivity()
 	    }
 	}
     }
+this->SetName("built");
 }
 
 void TPZGeoMesh::BuildConnectivity2() {
@@ -1279,6 +1281,7 @@ void TPZGeoMesh::ResetConnectivities(){
       gel->SetNeighbour(is, side);
     }
   }
+  this->SetName("reset");
 }
 
 const std::map<int, TPZAutoPointer<TPZRefPattern> > &TPZGeoMesh::RefPatternList(MElementType eltype){

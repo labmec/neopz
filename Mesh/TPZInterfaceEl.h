@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.49 2007-08-01 18:36:44 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.50 2007-09-04 12:33:16 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -17,7 +17,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <iostream>
-class TPZCompElDisc;
+#include "TPZCompElDisc.h"
 
 /// This class computes the contribution over an interface between two discontinuous elements
 /**
@@ -331,6 +331,8 @@ class TPZInterfaceElement : public TPZCompEl {
    * Integrate a variable over the element.
    */
    virtual void Integrate(int variable, TPZVec<REAL> & value);
+   
+   void IntegrateInterface(int variable, TPZVec<REAL> & value);
 
   void EvaluateInterfaceJumps(TPZVec<REAL> &errors);
 

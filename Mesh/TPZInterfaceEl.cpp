@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.78 2007-06-08 00:02:28 cesar Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.79 2007-09-04 12:33:16 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -905,6 +905,71 @@ void TPZInterfaceElement::Integrate(int variable, TPZVec<REAL> & value){
   value.Resize(varsize);
   value.Fill(0.);
 }
+
+void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
+    return;
+  }
+  if (!this->Reference()){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " : no reference element\n";
+    return;
+  }
+  const int dim = this->Dimension();
+  TPZInterpolationSpace *left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
+  TPZInterpolationSpace *right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
+  if (!left || !right){
+    PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
+    return;
+  }
+  if(!left->Material() || !right->Material()){
+    PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
+    return;
+  }
+ 
+  ///local variables
+  REAL weight;
+  TPZMaterialData data;  
+  this->InitMaterialData(data,left,right);
+  TPZGeoEl *ref = Reference();
+  data.leftp = left->MaxOrder();
+  data.rightp = right->MaxOrder();
+  TPZManVector<REAL, 3> intpoint(dim,0.);
+  const int varsize = material->NSolutionVariables(variable);
+  ///Max interpolation order
+  const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
+  
+  ///Integration rule
+  TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p+1));
+  if(material->HasForcingFunction()){
+    TPZManVector<int,10> order(3);
+    intrule->GetOrder(order);
+    int maxorder = intrule->GetMaxOrder();
+    order.Fill(maxorder);
+    intrule->SetOrder(order);
+  }
+  
+  ///loop over integration points
+  const int npoints = intrule->NPoints();
+  int ip, iv;
+  value.Resize(varsize);
+  value.Fill(0.);
+  TPZManVector<REAL> locval(varsize);
+  for(ip=0;ip<npoints;ip++){
+    intrule->Point(ip,intpoint,weight);
+    ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+    weight *= fabs(data.detjac);
+    this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+    this->NeighbourSolution(this->LeftElementSide(), intpoint, data.soll, data.dsoll, data.axesleft);
+    this->NeighbourSolution(this->RightElementSide(), intpoint, data.solr, data.dsolr, data.axesright);
+    material->Solution(data, variable, locval);
+    for(iv = 0; iv < varsize; iv++){
+      value[iv] += locval[iv]*weight;
+    }///for iv
+  }///for ip
+  delete intrule;
+}///method
 
 void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf){
   TPZGeoEl * neighel = Neighbor.Element()->Reference();

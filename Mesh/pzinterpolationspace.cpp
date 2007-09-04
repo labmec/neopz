@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.16 2007-08-14 12:36:05 phil Exp $
+//$Id: pzinterpolationspace.cpp,v 1.17 2007-09-04 12:33:17 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -287,12 +287,16 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
     return;
   }
 
-  int numdof = material->NStateVariables();
-  TPZManVector<REAL,10> u(numdof);
-  TPZFNMatrix<30> du(dim,numdof,0.);
-  TPZFNMatrix<9> axes(3,3,0.);
-  this->ComputeSolution(qsi, u, du, axes);
-  material->Solution(u,du,axes,var,sol);
+  const int numdof = material->NStateVariables();
+  TPZMaterialData data;
+  data.sol.Resize(numdof);
+  data.sol.Fill(0.);
+  data.dsol.Redim(dim,numdof);
+  data.dsol.Zero();
+  data.axes.Redim(3,3);
+  data.axes.Zero();
+  this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
+  material->Solution(data, var, sol);
 }
 
 void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
