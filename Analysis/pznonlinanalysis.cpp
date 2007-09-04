@@ -49,21 +49,17 @@ void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter) {
       fSolution.Redim(0,0);
       Run();
       REAL norm = SolutionNorm();
-      cout << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << endl;
       out << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << endl;
 
       fSolution += prevsol;
 	  prevsol = fSolution;
 	  TPZAnalysis::LoadSolution();
       if(norm < tol) {
-         cout << "\nTolerancia atingida na iteracao : " << (iter+1) << endl;
-         cout << "\n\nNorma da solucao |Delta(Un)|  : " << norm << endl << endl;
          out << "\nTolerancia atingida na iteracao : " << (iter+1) << endl;
          out << "\n\nNorma da solucao |Delta(Un)|  : " << norm << endl << endl;
 
       } else
       if( (norm - error) > 1.e-9 ) {
-         cout << "\nDivergent Method\n";
          out << "\nDivergent Method\n";
       }
       error = norm;
