@@ -18,7 +18,7 @@ libpz_a_SOURCES =
 libpz_a_LIBADD = ../Topology/tpzprism.o ../Topology/tpzpyramid.o \
 	../Topology/tpzcube.o ../Topology/tpztetrahedron.o ../Topology/tpzquadrilateral.o \
 	../Topology/tpztriangle.o ../Topology/tpzline.o ../Topology/tpzpoint.o ../External/pzsloan.o \
-	../Util/TPZTimer.o ../Util/tpzpermutation.o ../Matrix/tpzsparseblockdiagonal.o \
+	../Util/TPZTimer.o ../Util/tpzpermutation.o ../Util/pzfunction.o ../Matrix/tpzsparseblockdiagonal.o \
 	../External/tpznodesetcompute.o ../Common/pzreal.o ../Util/pzmap.o ../Util/pzstring.o \
 	../Util/tpzautopointer.o ../Util/pzlog.o ../Refine/pzrefpoint.o ../Refine/pzrefprism.o \
 	../Refine/pzrefpyram.o ../Refine/pzrefquad.o ../Refine/pzreftetrahedra.o \
