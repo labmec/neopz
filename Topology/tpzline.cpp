@@ -60,6 +60,24 @@ int TPZLine::NSideNodes(int side)
 	return nsidenodes[side];
 }
 
+void TPZLine::LowerDimensionSides(int side,TPZStack<int> &smallsides)
+{
+     smallsides.Resize(0);
+     int nsidecon = NSideConnects(side);
+     int is;
+     for(is=0; is<nsidecon-1; is++)
+     smallsides.Push(SideConnectLocId(side,is));
+}
+
+void TPZLine::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
+{
+     smallsides.Resize(0);
+     int nsidecon = NSideConnects(side);
+     for(int is = 0; is < nsidecon - 1; is++) {
+     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+  }
+}
+
 void TPZLine::HigherDimensionSides(int side, TPZStack<int> &high)
 {
 	if(side <0 || side >= NSides) {

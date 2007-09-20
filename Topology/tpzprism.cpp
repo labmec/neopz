@@ -93,7 +93,7 @@ static REAL sidetosidetransforms[21][7][4][3] = {
 {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
 {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,-99}},
 {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-1,-99}},
-//{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,0,-99}},//está errado deve ser {-1,-1,-99}
+//{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,0,-99}},//estï¿½ errado deve ser {-1,-1,-99}
 {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-1,-99}},//CEDRIC
 {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,-1}}
 },
@@ -225,6 +225,23 @@ static REAL MidSideNode[21][3] = {
 /*16*/{.5,.0, 0.},/*17*/{.5,.5, 0.},/*18*/{0.,.5, 0.},/*19*/{1./3.,1./3., 1.},
 /*20*/{1./3.,1./3.,0.} };
 
+void TPZPrism::LowerDimensionSides(int side,TPZStack<int> &smallsides)
+{
+     smallsides.Resize(0);
+     int nsidecon = NSideConnects(side);
+     int is;
+     for(is=0; is<nsidecon-1; is++)
+     smallsides.Push(SideConnectLocId(side,is));
+}
+
+void TPZPrism::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
+{
+     smallsides.Resize(0);
+     int nsidecon = NSideConnects(side);
+     for(int is = 0; is < nsidecon - 1; is++) {
+     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+  }
+}
 
 void TPZPrism::HigherDimensionSides(int side, TPZStack<int> &high)
 {

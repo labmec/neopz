@@ -244,6 +244,23 @@ static REAL MidSideNode[27][3] = {
 /*20*/{ 0., 0.,-1.},/*21*/{0.,-1., 0.},/*22*/{1.,0., 0.},/*23*/{ 0.,1., 0.},
 /*24*/{-1., 0., 0.},/*25*/{0., 0., 1.},/*26*/{0.,0., 0.} };
 
+void TPZCube::LowerDimensionSides(int side,TPZStack<int> &smallsides)
+{
+     smallsides.Resize(0);
+     int nsidecon = NSideConnects(side);
+     for(int is = 0; is < nsidecon - 1; is++)
+     smallsides.Push(SideConnectLocId(side,is));
+}
+
+void TPZCube::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
+{
+     smallsides.Resize(0);
+     int nsidecon = NSideConnects(side);
+     for(int is = 0; is < nsidecon - 1; is++) {
+     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+  }
+}
+
 void TPZCube::HigherDimensionSides(int side, TPZStack<int> &high)
 {
 	if(side <0 || side >= NSides) {

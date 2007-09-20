@@ -190,6 +190,24 @@ static REAL MidSideNode[19][3] = {
 /*13*/{0.,  0. ,  0. },/*14*/{  0.  ,-2./3.,1./3.},/*15*/{2./3.,0.,1./3.},
 /*16*/{0.,2./3.,1./3.},/*17*/{-2./3.,  0.  ,1./3.},/*18*/{  0. ,0.,1./5.} };
 
+void TPZPyramid::LowerDimensionSides(int side,TPZStack<int> &smallsides)
+{
+     smallsides.Resize(0);
+     int nsidecon = NSideConnects(side);
+     int is;
+     for(is=0; is<nsidecon-1; is++)
+     smallsides.Push(SideConnectLocId(side,is));
+}
+
+void TPZPyramid::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
+{
+     smallsides.Resize(0);
+     int nsidecon = NSideConnects(side);
+     for(int is = 0; is < nsidecon - 1; is++) {
+     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+  }
+}
+
 void TPZPyramid::HigherDimensionSides(int side, TPZStack<int> &high)
 {
 	if(side <0 || side >= NSides) {
@@ -316,7 +334,7 @@ TPZTransform TPZPyramid::TransformElementToSide(int side){
       t.Mult()(1,2) =  1.0;
       return t;
     case 15:
-    case 16:
+    case 16:/** CONTEM ERRO AQUI */
     	t.Mult()(0,0) =  0.5;
       t.Mult()(0,1) =  0.5;
       t.Mult()(1,2) =  1.0;

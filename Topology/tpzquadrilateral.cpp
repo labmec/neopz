@@ -109,6 +109,24 @@ int TPZQuadrilateral::SideNodeLocId(int side, int node)
 	return -1;
 }
 
+void TPZQuadrilateral::LowerDimensionSides(int side,TPZStack<int> &smallsides)
+{
+     smallsides.Resize(0);
+     int nsidecon = NSideConnects(side);
+     int is;
+     for(is=0; is<nsidecon-1; is++)
+     smallsides.Push(SideConnectLocId(side,is));
+}
+
+void TPZQuadrilateral::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
+{
+     smallsides.Resize(0);
+     int nsidecon = NSideConnects(side);
+     for(int is = 0; is < nsidecon - 1; is++) {
+     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+  }
+}
+
 void TPZQuadrilateral::HigherDimensionSides(int side, TPZStack<int> &high)
 {
 	if(side <0 || side >= NSides) {

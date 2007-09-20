@@ -28,6 +28,7 @@ namespace pztopology {
 /**
 @author Philippe R. B. Devloo
 */
+
 class TPZPoint {
 public:
 
@@ -36,6 +37,11 @@ public:
     TPZPoint();
 
     ~TPZPoint();
+
+  static void LowerDimensionSides(int side,TPZStack<int> &smallsides) {
+    smallsides.Push(0);
+  }
+
  /**
   * returns all sides whose closure contains side
   * @param side smaller dimension side

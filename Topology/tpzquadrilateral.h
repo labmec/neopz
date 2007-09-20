@@ -39,6 +39,9 @@ public:
 
     ~TPZQuadrilateral();
 
+    static void LowerDimensionSides(int side,TPZStack<int> &smallsides);
+    static void LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget);
+
     /**
       * returns all sides whose closure contains side
       * @param side smaller dimension side
