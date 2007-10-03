@@ -394,6 +394,37 @@ int TPZMatRed::Zero(){
 	fF1IsReduced=0;
 	return 0;
 }
+
+
+void TPZMatRed::MultAdd(const TPZFMatrix &x,
+                        const TPZFMatrix &y, TPZFMatrix &z,
+                        const REAL alpha,const REAL beta,
+                        const int opt,const int stride)
+{
+#warning Not functional yet. Still need to Identify all the variables
+  int i = 0;
+  int j = 0;
+
+  /**
+   * It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
+   * @param x Is x on the above operation
+   * @param y Is y on the above operation
+   * @param z Is z on the above operation
+   * @param alpha Is alpha on the above operation
+   * @param beta Is beta on the above operation
+   * @param opt Indicates if is Transpose or not
+   * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
+   */
+
+  TPZFMatrix l_Res(fK01->Rows(), 1, 0);
+  fK01->Multiply(x,l_Res,0,0);
+  fK00->Solve_LU(&l_Res);
+  TPZFMatrix l_ResFinal(fK11->Rows(), 1, 0);
+  fK11->Multiply(x,l_ResFinal,0,0);
+  fK10->MultAdd(x,l_ResFinal,z,alpha,-alpha,opt,stride);
+}
+
+
 /*************************** Private ***************************/
 
 /*************/

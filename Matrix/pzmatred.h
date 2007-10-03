@@ -41,15 +41,17 @@ class TPZFMatrix;
  *@ingroup matrix
 */
 class TPZMatRed :public TPZMatrix {
-  //	friend class TPZMatrix;
-
- public:
+  public:
   /**
    *Simple constructor
    */
   TPZMatRed ();
 
-
+  /**
+   * Constructor with 2 parameters
+   * dim assumes the value of n1+n2
+   * dim00 equals n1
+   */
   TPZMatRed(const  int dim,const int dim00  ) ;
   
   TPZMatRed(const TPZMatRed &cp);
@@ -60,11 +62,16 @@ class TPZMatRed :public TPZMatrix {
    */
   ~TPZMatRed ();
 
+  /**
+   * returns 1 or 0 depending on whether the fK00 matrix is zero or not
+   */
   virtual int IsSimetric() const;
-  // returns 1 or 0 depending on whether the fK00 matrix is zero or not
+  
 
-  // Put and Get values without bounds checking
-  // these methods are faster than "Put" e "Get" if DEBUG is defined
+  /**
+   * Put and Get values without bounds checking
+   * these methods are faster than "Put" e "Get" if DEBUG is defined
+   */
   int    PutVal(const int row,const int col,const REAL& value );
   const REAL &GetVal(const int row,const int col ) const;
 
@@ -113,16 +120,41 @@ class TPZMatRed :public TPZMatrix {
   //  TPZFMatrix U0(TPZMatrix *u1 = NULL);
 
 
+  /**
+   * Prints the object data structure
+   */
+  void Print(const char *name = NULL, std::ostream &out = std::cout,
+          const MatrixOutputFormat = EFormatted ) const;
 
-  void Print(const char *name = NULL, std::ostream &out = std::cout,const MatrixOutputFormat = EFormatted ) const;
-
+  /**
+   * Performs substitution.
+   * Not sure which one
+   */
   int Substitution(TPZFMatrix *right_side) const;
 
   /**
-	*Redim: Set the dimension of the complete matrix
-	*and reduced matrix
-	**/
-	int Redim(int dim, int dim00); //Cesar 19/12/00
+  * Redim: Set the dimension of the complete matrix
+  * and reduced matrix
+  */
+  int Redim(int dim, int dim00); //Cesar 19/12/00
+
+
+  /**
+   * It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
+   * @param x Is x on the above operation
+   * @param y Is y on the above operation
+   * @param z Is z on the above operation
+   * @param alpha Is alpha on the above operation
+   * @param beta Is beta on the above operation
+   * @param opt Indicates if is Transpose or not
+   * @param stride Indicates n/N where n is dimension of the right hand side 
+   * vector and N is matrix dimension
+   */
+  void MultAdd(const TPZFMatrix &x,
+                          const TPZFMatrix &y, TPZFMatrix &z,
+                          const REAL alpha,const REAL beta,
+                          const int opt,const int stride);
+   
 
  private:
 
