@@ -76,7 +76,7 @@ void TPZMetis::Print(ostream &out) {
     	int lastindex = fElementGraphIndex[el+1];
        int index;
        for(index=firstindex;index<lastindex;index++) {
-       	if(fElementGraph[index] == index) continue;//o atual não deve aparecer
+       	if(fElementGraph[index] == index) continue;//o atual nï¿½o deve aparecer
        	out << (fElementGraph[index]+1) << " ";
        }
        out << endl;
@@ -91,7 +91,7 @@ void TPZMetis::Print(ostream &out) {
  for (nod = numelnodegraph; nod>0; nod--) nodegraph[nod] = nodegraph[nod-1];
  for (el=0;el<fNNodes;el++) {
   int firstindex = nodegraphindex[el];
-  int lastindex = nodegraphindex[el+1];//começo do próximo
+  int lastindex = nodegraphindex[el+1];//comeï¿½o do prï¿½ximo
   int index;
   for (index=firstindex;index<lastindex;index++) {
    out << (nodegraph[index+1]+1) << " ";
@@ -148,7 +148,6 @@ void TPZMetis::Subdivide(int nParts, TPZVec<int> &XAdj, TPZVec<int> &Adjacency,
 	 &partIndex[0]                      // the final partition
   );
 #endif
-
   Domains.Resize(nParts);
   for(i=0;i<nVertices;i++)
   {
