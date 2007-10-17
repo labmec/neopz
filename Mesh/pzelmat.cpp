@@ -1,4 +1,4 @@
-//$Id: pzelmat.cpp,v 1.8 2007-05-01 17:41:28 phil Exp $
+//$Id: pzelmat.cpp,v 1.9 2007-10-17 19:21:12 joao Exp $
 
 #include "pzelmat.h"
 #include "pzfmatrix.h"
@@ -30,7 +30,7 @@ void TPZElementMatrix::SetMatrixMinSize(short NumBli, short NumBlj,
   }
 }
 
-void TPZElementMatrix::Print(ostream &out){
+void TPZElementMatrix::Print(std::ostream &out){
   fMat.Print("Unconstrained matrix",out);
    int ncon = fConnect.NElements();
    int ic;
