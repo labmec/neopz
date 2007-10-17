@@ -1315,7 +1315,7 @@ TPZTempFMatrix operator*(const REAL value, const TPZFMatrix &A ) {
 int TPZFMatrix::Error(const char *msg1,const char *msg2 ) {
   ostringstream out;
   out << "TPZFMatrix::" << msg1;
-  if(msg2) cout << msg2;
+  if(msg2) out << msg2;
   out << ".\n";
   LOGPZ_ERROR (logger, out.str().c_str());
  // int temp;//para testes

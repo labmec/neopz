@@ -976,7 +976,7 @@ int TPZMatrix::Error(const char *msg ,const char *msg2) {
     ostringstream out;
     out << "TPZMatrix::" << msg;
     if(msg2) out << msg2;
-    cout << ".\n";
+    out << ".\n";
     LOGPZ_ERROR (logger, out.str().c_str());
 //    exit( 1 );
     return 0;
