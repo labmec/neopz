@@ -46,9 +46,8 @@ public:
     }
 
   /** Divide computational element recursively over referred elements.
-    * Geometric element will point to last referred element. 
     */
-  static void DivideReferredEl(TPZCompEl * cel);
+  static void DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZCompMesh * cmesh);
  
    /**
    * Prints mesh data

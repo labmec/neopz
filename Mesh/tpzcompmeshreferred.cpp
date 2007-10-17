@@ -71,20 +71,38 @@ TPZCompEl *TPZCompMeshReferred::ReferredEl(int index)
   return cel;
 }
 
-void TPZCompMeshReferred::DivideReferredEl(TPZCompEl * cel){
-  if (!cel) return;
+void TPZCompMeshReferred::DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZCompMesh * cmesh){
+  TPZCompMeshReferred * me = dynamic_cast<TPZCompMeshReferred*>(cmesh);
+  TPZCompMesh * other = NULL;
+  if (me) other = me->ReferredMesh();
 
-  TPZCompMeshReferred * mesh = dynamic_cast<TPZCompMeshReferred*>(cel->Mesh());
-  if (!mesh) return;
-  TPZCompEl * ref = mesh->ReferredEl(cel->Index());
+  const int nel2ref = WhichRefine.NElements();
+  TPZVec<TPZCompEl *> Other2Refine(nel2ref, NULL);
+  if (other){
+    for(int i = 0; i < nel2ref; i++){
+      TPZCompEl * cel = WhichRefine[i];
+      if (!cel) continue;
+      Other2Refine[i] = me->ReferredEl(cel->Index());
+    }
+  }
 
-  TPZManVector<int> filhos;
-  cel->Mesh()->Reference()->ResetReference();
-  cel->Mesh()->LoadReferences();
-//   cel->Reference()->ResetReference();
-//   cel->Reference()->SetReference( cel );
-  cel->Divide(cel->Index(),filhos);
+  TPZGeoMesh * gmesh = me->Reference();
+  gmesh->ResetReference();
+  me->ResetReferred();
+  me->LoadReferences();
+  TPZVec<int> filhos;
+  for ( int iref = 0; iref < nel2ref; iref++ )
+  {
+    TPZCompEl * cel = WhichRefine[iref];
+    if (!cel) continue;
+    cel->Divide ( cel->Index(), filhos );
+  }
+  me->ExpandSolution();
 
-  if (ref) TPZCompMeshReferred::DivideReferredEl(ref);
+  if (other){
+    TPZCompMeshReferred::DivideReferredEl(Other2Refine, other);
+    me->LoadReferred(other);
+  }
+
 }
 
