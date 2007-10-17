@@ -49,7 +49,9 @@ TPZFMatrix TPZGeoEl::gGlobalAxes;
 
 /**Constructor and destructor*/
 TPZGeoEl::~TPZGeoEl(){
-  //nothing to be done
+  int index = Index();
+  fMesh->ElementVec()[index] = 0;
+  fMesh->ElementVec().SetFree(index);
 };
 
 TPZGeoEl::TPZGeoEl(int id,int materialid,TPZGeoMesh &mesh) {
@@ -218,7 +220,7 @@ int TPZGeoEl::NeighbourExists(int side,const TPZGeoElSide &gel) {
 }
 
 
-void TPZGeoEl::Print(ostream & out) {
+void TPZGeoEl::Print(std::ostream & out) {
 
   out << "Element index      " << fIndex << endl;
   out << "Element id         " << fId << endl;
@@ -258,9 +260,10 @@ void TPZGeoEl::Print(ostream & out) {
   }
   out << "Reference element: " << fReference << endl;
   if (this->Reference()) out << "Reference element index : " << this->Reference()->Index() << endl;
+  out << "fNumInterfaces = " << fNumInterfaces << endl;
 }
 
-ostream &operator<<(ostream &out,TPZGeoEl & el) {
+std::ostream &operator<<(std::ostream &out,TPZGeoEl & el) {
   el.Print(out);
   return out;
 }
@@ -400,8 +403,8 @@ int TPZGeoEl::WhichSubel(){
 
 int TPZGeoEl::WhichSide(TPZVec<REAL> &pt){
 	int dim = Dimension();
-	int nums = NSides();//número de lados
-	REAL tol = 1.e-06;//tolerância do zero -> x é zero se -o<=x<=+o
+	int nums = NSides();//nï¿½mero de lados
+	REAL tol = 1.e-06;//tolerï¿½ncia do zero -> x ï¿½ zero se -o<=x<=+o
 	int is;
 	for(is=0; is<nums; is++) {
 		int sdim = SideDimension(is);
@@ -421,15 +424,15 @@ int TPZGeoEl::WhichSide(TPZVec<REAL> &pt){
   cout << "TPZGeoEl::WhichSide ERROR : side not found" << endl ;
 /*
   if(nums==3){//LINHA
-    if((pt[0]<-1.-O) || (pt[0]>1.+O) || pt[1]<-O || pt[1]>O || pt[2]<-O || pt[2]>O) return -1;//está fora da linha
+    if((pt[0]<-1.-O) || (pt[0]>1.+O) || pt[1]<-O || pt[1]>O || pt[2]<-O || pt[2]>O) return -1;//estï¿½ fora da linha
     if(pt[0]<=-1.+O) return 0;
     if(pt[0]>= 1.-O) return 1;
-    return 3;//interior à linha
+    return 3;//interior ï¿½ linha
   } else
-  if(nums == 7){//TRIÂNGULO
+  if(nums == 7){//TRIï¿½NGULO
   	int r0=0,r1=0,r2=0;
-    if(pt[2]<-O || pt[2]>O) return -1;//está fora do triângulo
-    if( (O<pt[0]) && (pt[0]<1.-O) && (O<pt[1]) && (pt[1]<1.-pt[0]-O) ) return 6;//interior ao triângulo
+    if(pt[2]<-O || pt[2]>O) return -1;//estï¿½ fora do triï¿½ngulo
+    if( (O<pt[0]) && (pt[0]<1.-O) && (O<pt[1]) && (pt[1]<1.-pt[0]-O) ) return 6;//interior ao triï¿½ngulo
     REAL ptz = pt[1]-(1.-pt[0]);
     if( (-O<=pt[0]) && (pt[0]<=1.+O) && (-O<=pt[1]) && (pt[1]<=O   ) ) r0 = 1;
     if( (-O<=pt[0]) && (pt[0]<=1.+O) && (-O<=ptz  ) && (ptz  <=O   ) ) r1 = 1;
@@ -444,11 +447,11 @@ int TPZGeoEl::WhichSide(TPZVec<REAL> &pt){
       return 4;//aresta r1=4
     }
     if(r2) return 5;//aresta r2=5
-    return -1;//esta fora do triângulo
+    return -1;//esta fora do triï¿½ngulo
   } else
-  if(nums==9){//QUADRILÁTERO
+  if(nums==9){//QUADRILï¿½TERO
   	 int r0=0,r1=0,r2=0,r3=0;
-    if(pt[2]<-O || pt[2]>O) return -1;//está fora do quadrilátero
+    if(pt[2]<-O || pt[2]>O) return -1;//estï¿½ fora do quadrilï¿½tero
     if( (-1.+O< pt[0]) && (pt[0]<  1.-O) && (-1.+O< pt[1]) && (pt[1]<  1.-O) ) return 9;
     if( (-1.-O<=pt[0]) && (pt[0]<= 1.+O) && (-1.-O<=pt[1]) && (pt[1]<=-1.+O) ) r0 = 1;
     if( ( 1.-O<=pt[0]) && (pt[0]<= 1.+O) && (-1.-O<=pt[1]) && (pt[1]<= 1.+O) ) r1 = 1;
@@ -468,7 +471,7 @@ int TPZGeoEl::WhichSide(TPZVec<REAL> &pt){
       return 6;//aresta r2=6
     }
     if(r3) return 7;//aresta r3=7
-    return -1;//esta fora do quadrilátero
+    return -1;//esta fora do quadrilï¿½tero
   } else
   if(nums==15){//TETRAEDRO
     int f0=0,f1=0,f2=0,f3=0;//faces
@@ -554,7 +557,7 @@ int TPZGeoEl::WhichSide(TPZVec<REAL> &pt){
     if((-1.+O<pt[0]) && (pt[0]<1.-O) && (-1.+O<pt[1]) && (pt[1]<1.-O) && (-1.+O<pt[2]) && (pt[2]<1.-O)) return 26;
     return -1;
   } else
-  if(nums==19){//PIRÂMIDE
+  if(nums==19){//PIRï¿½MIDE
     int f0=0,f1=0,f2=0,f3=0,f4=0;
     if(-O<=pt[2] && pt[2]<=O && (-1.-O<=pt[0]) && (pt[0]<=1.+O) && (-1.-O<=pt[1]) && (pt[1]<=1.+O)) f0 = 1;
     if((-1.-O<=pt[0]) && (pt[0]<=1.+O) && (-1.-O<=pt[1]) && (pt[1]<=-fabs(pt[0])+O) && (1.+pt[1]-O<=pt[2]) && (pt[2]<=1.+pt[1]+O)) f1 = 1;
@@ -649,7 +652,7 @@ void TPZGeoEl::CheckSubelDataStructure(){
 
 	TPZVec<TPZGeoEl *> sub;
   Divide(sub);
-  int side,nsubside,isub,ok;            //no máximo 9 subelementos/lados
+  int side,nsubside,isub,ok;            //no mï¿½ximo 9 subelementos/lados
   TPZStack<TPZGeoElSide> subside;//4 faces+4 arestas+1 canto
   ofstream out("Checksubdata.dat");
   for(side=0;side<NSides();side++){//percorre-se os lados do elemento atual = pai
@@ -665,7 +668,7 @@ void TPZGeoEl::CheckSubelDataStructure(){
           cout << "Pai do sub elemento e' nulo!\n";
           cout << "Sub elemento/lado : " << neigh.Element()->Id() << "/" << neigh.Side() << endl;
           cin >> ok;
-        } else //o pai existe é igual ao atual e a dimensão dos lados é a mesma OK!
+        } else //o pai existe ï¿½ igual ao atual e a dimensï¿½o dos lados ï¿½ a mesma OK!
           if(fatside.Element() == this){
             cout << "Pai atual/lado        : " << Id() << "/" << side << endl;
             cout << "Sub elemento/lado     : " << neigh.Element()->Id() << "/" << neigh.Side() << endl;
@@ -690,7 +693,7 @@ void TPZGeoEl::CheckSubelDataStructure(){
         cout << "\n";
          out << "\n";
         if(neigh.Element()==subside[isub].Element()) break;
-        //no próximo while confia-se que o ciclo de conectividades é fechado e os viz sao filhos de alguem
+        //no prï¿½ximo while confia-se que o ciclo de conectividades ï¿½ fechado e os viz sao filhos de alguem
         TPZGeoEl *gel = neigh.Element()->Father2(neigh.Element()->NSides()-1).Element();//pai pelo interior:sempre existe
         while(gel && !(gel== this)) neigh = neigh.Neighbour();
         if(neigh.Element()==subside[isub].Element()){
@@ -848,7 +851,7 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
   Jacobian(ksi,J,axes,detJ,Inv);
   TPZFMatrix axest;
   axes.Transpose(&axest);
-  axest.Resize(3,dim);//casos 1D e 2D onde JX espacial é 1x3 e 2x3 respectivamente
+  axest.Resize(3,dim);//casos 1D e 2D onde JX espacial ï¿½ 1x3 e 2x3 respectivamente
   if(dim==1){
          JX(0,0) = axest(0,0)*J(0,0);
          JX(1,0) = axest(1,0)*J(0,0);
@@ -917,7 +920,7 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
       Jacobian(ksi,J,axes,detJ,Inv);
       TPZFMatrix axest;
       axes.Transpose(&axest);
-      axest.Resize(3,dim);//casos 1D e 2D onde JX espacial é 1x3 e 2x3 respectivamente
+      axest.Resize(3,dim);//casos 1D e 2D onde JX espacial ï¿½ 1x3 e 2x3 respectivamente
       if(dim==1){
             JX(0,0) = axest(0,0)*J(0,0);
             JX(1,0) = axest(1,0)*J(0,0);
@@ -948,7 +951,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
     exit(-1);
   }
 
-  /**para o canto do pai não existe transformacão definida*/
+  /**para o canto do pai nï¿½o existe transformacï¿½o definida*/
   if(!fat->SideDimension(fatside)) return TPZTransform(0,0);
 
   REAL weight;
@@ -961,7 +964,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
   TPZIntPoints *intrule = CreateSideIntegrationRule(sideson,2);
   TPZVec<int> order(dimss,2);
   intrule->SetOrder(order);
-  //integração sobre o lado-filho contido no lado-pai
+  //integraï¿½ï¿½o sobre o lado-filho contido no lado-pai
   int ij,ik,indp;
   REAL D2Edaikdaij,D2Edcidaij,D2Edci2;
   D2Edcidaij = 0.;
@@ -972,7 +975,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
       D2Edcidaij  = 0.;
       for(indp = 0; indp < intrule->NPoints(); ++indp){
         intrule->Point(indp,intpoint,weight);
-        //Jacobian(intpoint,jac,axes,detjac,jacinv);/**estes passos não são precisos pois:*/
+        //Jacobian(intpoint,jac,axes,detjac,jacinv);/**estes passos nï¿½o sï¿½o precisos pois:*/
         //weight *= fabs(detjac);/**ambas as matrizes, A e b, multiplicam a mesma constante detjac*/
         D2Edaikdaij += intpoint[ik]*intpoint[ij]*weight;
         if(ik==ij) D2Edcidaij += intpoint[ij]*weight;
@@ -1002,7 +1005,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
         intrule->Point(indp,intpoint,weight);
 	tsidetoson.Apply(intpoint,sidepoint);//lado do filho para o seu interior: mestre
         X(sidepoint,x);//ponto do mestre do filho para o filho deformado, 3 coordenadas
-        TPZVec<REAL> csi(dimf,0.);/**o seguinte passo não é preciso dado que fat = elemento mestre*/
+        TPZVec<REAL> csi(dimf,0.);/**o seguinte passo nï¿½o ï¿½ preciso dado que fat = elemento mestre*/
         fat->ComputeXInverse(x,csi);//csi ponto no pai mestre
         TPZVec<REAL> outcsi(dimsf,0.);
 		fatelside.Apply(csi,outcsi);
@@ -1014,7 +1017,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
       if(j==0) grad0(dimss,0) = 2.*DEdci;
       if(!dimss) grad0(0,0) = DEdci;
     }//final integral gradiente
-    //resolução do sistema para cada variavel ifat do pai
+    //resoluï¿½ï¿½o do sistema para cada variavel ifat do pai
     if(dimss) hess.SolveDirect(grad0,ELU);
     for(int k=0;k<dimss;k++) A(ifat,k) = grad0(k,0);
     sol(ifat,0) = grad0(dimss,0);
@@ -1150,7 +1153,7 @@ REAL TPZGeoEl::Volume(){
   //supondo jacobiano constante: X linear
   CenterPoint(NSides()-1,param);
   Jacobian(param,jacobian,axes,detjac,jacinv);
-  return (RefElVolume()*detjac);//RefElVolume(): volume do elemento de referência
+  return (RefElVolume()*detjac);//RefElVolume(): volume do elemento de referï¿½ncia
 }
 
 REAL TPZGeoEl::SideArea(int side){
