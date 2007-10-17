@@ -56,8 +56,8 @@ extern pthread_mutex_t glogmutex;
 #define LOGPZ_DEBUG(A,B) {}
 #define LOGPZ_INFO(A,B) {}
 #define LOGPZ_WARN(A,B) {}
-#define LOGPZ_ERROR(A,B) {}
-#define LOGPZ_FATAL(A,B) {}
+#define LOGPZ_ERROR(A,B) {std::cout << B << std::endl;}
+#define LOGPZ_FATAL(A,B) {std::cout << B << std::endl;}
 
 
 #endif
@@ -74,12 +74,12 @@ inline void InitializePZLOG(std::string &configfile)
   {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
     logger->setAdditivity(false);
-    logger->setLevel(log4cxx::Level::getDebug());
+//    logger->setLevel(log4cxx::Level::getDebug());
   }
  {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
     logger->setAdditivity(false);
-    logger->setLevel(log4cxx::Level::getDebug());
+  //  logger->setLevel(log4cxx::Level::getDebug());
   }
 #endif
 }
