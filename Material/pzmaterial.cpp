@@ -21,7 +21,7 @@
 TPZVec< void(*) ( TPZVec<REAL> &, TPZVec<REAL>& ) > GFORCINGVEC;
 
 using namespace std;
-REAL TPZMaterial::gBigNumber = 1.e15;
+REAL TPZMaterial::gBigNumber = 1.e12;
 
 
 TPZMaterial::TPZMaterial(){
@@ -59,7 +59,10 @@ int TPZMaterial::VariableIndex(char *name) {
    if(!strcmp(name,"Error")) return 100;
    if(!strcmp(name,"TrueError")) return 101;
    if(!strcmp(name,"EffectivityIndex")) return 102;
-
+   
+   if(!strcmp(name,"L2Error")) return 103;
+   if(!strcmp(name,"SemiH1Error")) return 104;
+   if(!strcmp(name,"H1Error")) return 105;
 
    return -1;
 }
@@ -70,6 +73,9 @@ int TPZMaterial::NSolutionVariables(int index) {
    if(index == 100) return 1;
    if(index == 101) return 1;
    if(index == 102) return 1;
+   if (index == 103) return 1;
+   if (index == 104) return 1;
+   if (index == 105) return 1;
    PZError << "TPZMaterial::NSolutionVariables called index = " << index << "\n";
    return 0;
 }
