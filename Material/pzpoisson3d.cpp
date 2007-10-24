@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.27 2007-07-04 19:26:53 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.28 2007-10-24 11:56:19 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -244,16 +244,7 @@ int TPZMatPoisson3d::VariableIndex(char *name){
   if(!strcmp("KDuDz",name))           return  5;
   if(!strcmp("NormKDu",name))         return  6;
   if(!strcmp("MinusKGradU",name))     return  7;
-  if(!strcmp("POrder",name))          return 10;
-  if(!strcmp("EnergyDual",name))      return 100;
-  if(!strcmp("EnergyPrimal",name))    return 101;
-  if(!strcmp("GOEstimator",name))     return 102;
-  if(!strcmp("DualExact",name))       return 103;
-  if(!strcmp("PrimalExact",name))     return 104;
-  if(!strcmp("GOError",name))         return 105;
-  if(!strcmp("EfetivityIndex",name))  return 106;
-  cout << "TPZMatPoisson3d::VariableIndex Error\n";
-  return -1;
+  return TPZMaterial::VariableIndex(name);
 }
 
 int TPZMatPoisson3d::NSolutionVariables(int var){
@@ -263,20 +254,10 @@ int TPZMatPoisson3d::NSolutionVariables(int var){
   if(var == 2) return fDim;
   if ((var == 3) || (var == 4) || (var == 5) || (var == 6)) return 1;
   if (var == 7) return fDim;
-  if(var == 10) return 1;
-  if(var == 100) return 1;
-  if(var == 101) return 1;
-  if(var == 102) return 1;
-  if(var == 103) return 1;
-  if(var == 104) return 1;
-  if(var == 105) return 1;
-  if(var == 106) return 1;
   return TPZMaterial::NSolutionVariables(var);
-  //  cout << "TPZMatPoisson3d::NSolutionVariables Error\n";
-  //  return 0;
 }
 
-void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*axes*/,int var,TPZVec<REAL> &Solout){
+void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 
   if(var == 0 || var == 1) Solout[0] = Sol[0];//function
   if(var == 2) {
@@ -310,6 +291,9 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*
     }
     Solout[0] = sqrt(val);
   }//var == 7  
+  
+  TPZMaterial::Solution(Sol, DSol, axes, var, Solout);
+  
 }//method
 
 void TPZMatPoisson3d::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
