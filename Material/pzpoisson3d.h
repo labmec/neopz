@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.26 2007-07-04 19:26:53 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.27 2007-10-26 13:16:14 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -51,14 +51,37 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
    * multiplication value for the streamline diffusion term
    */
    REAL fSD;
+   
+   /** Enumerate for penalty term definitions
+    */
+   enum EPenaltyType {ENoPenalty = 0, EFluxPenalty = 1, ESolutionPenalty, EBoth};
+      
+   /** Penalty term definition
+    */
+   EPenaltyType fPenaltyType;
 
 public:
 
   /** Constant multiplyer of penalty term, when required.
-   * Penalty terms are not used always. It's used when TPZInterfaceElement::CalcStiffPenalty 
    * is set.
    */
   REAL fPenaltyConstant;
+  
+  /** Define no penalty terms in ContributeInterface
+   */
+  void SetNoPenalty(){ this->fPenaltyType = ENoPenalty;}
+  
+  /** Define flux penalty terms in ContributeInterface
+   */
+  void SetFluxPenalty(){ this->fPenaltyType = EFluxPenalty; }
+  
+  /** Define solution penalty terms in ContributeInterface
+   */
+  void SetSolutionPenalty(){ this->fPenaltyType = ESolutionPenalty; }
+  
+  /** Define solution and flux penalty terms in ContributeInterface
+   */
+  void SetBothPenalty(){ this->fPenaltyType = EBoth; }
 
   /** Usado em InterfaceErrors */
   static REAL gAlfa;

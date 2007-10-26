@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.28 2007-10-24 11:56:19 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.29 2007-10-26 13:16:14 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -23,6 +23,7 @@ TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin
   fPenaltyConstant = 0.;
   this->SetNonSymmetric();
   this->SetRightK(fK);
+  this->SetNoPenalty();
 }
 
 TPZMatPoisson3d::TPZMatPoisson3d():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fSD(0.){
@@ -34,6 +35,7 @@ TPZMatPoisson3d::TPZMatPoisson3d():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1),
   fPenaltyConstant = 0.;
   this->SetNonSymmetric();
   this->SetRightK(fK);
+  this->SetNoPenalty();
 }
 
 TPZMatPoisson3d::TPZMatPoisson3d(const TPZMatPoisson3d &copy):TPZDiscontinuousGalerkin(copy){
@@ -51,6 +53,7 @@ TPZMatPoisson3d & TPZMatPoisson3d::operator=(const TPZMatPoisson3d &copy){
   fSymmetry = copy.fSymmetry;
   fSD = copy.fSD;
   fPenaltyConstant = copy.fPenaltyConstant;
+  this->fPenaltyType = copy.fPenaltyType;
   return *this;
 }
 
@@ -424,28 +427,18 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 
 #endif
 
-/** OLD Termos de penalidade. */
 void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
                                           TPZFMatrix &ek,TPZFMatrix &ef){
 
-
-// TPZFMatrix &dphi = data.dphix;
 TPZFMatrix &dphiL = data.dphixl;
 TPZFMatrix &dphiR = data.dphixr;
-// TPZFMatrix &phi = data.phi;
 TPZFMatrix &phiL = data.phil;
 TPZFMatrix &phiR = data.phir;
 TPZManVector<REAL,3> &normal = data.normal;
-// TPZManVector<REAL,3> &x = data.x;
-// int &POrder=data.p;
+
 int &LeftPOrder=data.leftp;
 int &RightPOrder=data.rightp;
-// TPZVec<REAL> &sol=data.sol;
-// TPZVec<REAL> &solL=data.soll;
-// TPZVec<REAL> &solR=data.solr;
-// TPZFMatrix &dsol=data.dsol;
-// TPZFMatrix &dsolL=data.dsoll;
-// TPZFMatrix &dsolR=data.dsolr;
+
 REAL &faceSize=data.HSize;
 
 
@@ -453,7 +446,7 @@ REAL &faceSize=data.HSize;
   int nrowr = phiR.Rows();
   int il,jl,ir,jr,id;
   
-  //Convection term
+  ///Convection term
   REAL ConvNormal = 0.;
   for(id=0; id<fDim; id++) ConvNormal += fC * fConvDir[id] * normal[id];
   if(ConvNormal > 0.) {
@@ -481,7 +474,7 @@ REAL &faceSize=data.HSize;
   }
   
   
-  //diffusion term
+  ///diffusion term
   REAL leftK, rightK;
   leftK  = this->fK;
   rightK = this->GetRightK();
@@ -566,36 +559,107 @@ REAL &faceSize=data.HSize;
   
   
 
-//penalty = <A p^2>/h 
-  const REAL penalty = fPenaltyConstant * (0.5 * (leftK*LeftPOrder*LeftPOrder + rightK*RightPOrder*RightPOrder)) / faceSize;
+///penalty = <A p^2>/h 
+  REAL penalty = fPenaltyConstant * (0.5 * (leftK*LeftPOrder*LeftPOrder + rightK*RightPOrder*RightPOrder)) / faceSize;
   
-  // 1) left i / left j
-  for(il=0; il<nrowl; il++) {
-    for(jl=0; jl<nrowl; jl++) {
-      ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
+  if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){
+  
+    // 1) left i / left j
+    for(il=0; il<nrowl; il++) {
+      for(jl=0; jl<nrowl; jl++) {
+        ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
+      }
     }
+    
+    // 2) right i / right j
+    for(ir=0; ir<nrowr; ir++) {
+      for(jr=0; jr<nrowr; jr++) {
+        ek(ir+nrowl,jr+nrowl) += weight * penalty * phiR(ir,0) * phiR(jr,0);
+      }
+    }
+    
+    // 3) left i / right j
+    for(il=0; il<nrowl; il++) {
+      for(jr=0; jr<nrowr; jr++) {
+        ek(il,jr+nrowl) += -1.0 * weight * penalty * phiR(jr,0) * phiL(il,0);
+      }
+    }
+    
+    // 4) right i / left j
+    for(ir=0; ir<nrowr; ir++) {
+      for(jl=0; jl<nrowl; jl++) {
+        ek(ir+nrowl,jl) += -1.0 * weight *  penalty * phiL(jl,0) * phiR(ir,0);
+      }
+    }
+    
   }
   
-  // 2) right i / right j
-  for(ir=0; ir<nrowr; ir++) {
-    for(jr=0; jr<nrowr; jr++) {
-      ek(ir+nrowl,jr+nrowl) += weight * penalty * phiR(ir,0) * phiR(jr,0);
-    }
-  }
+  if (this->fPenaltyType == EFluxPenalty || this->fPenaltyType == EBoth){
   
-  // 3) left i / right j
-  for(il=0; il<nrowl; il++) {
-    for(jr=0; jr<nrowr; jr++) {
-      ek(il,jr+nrowl) += -1.0 * weight * penalty * phiR(jr,0) * phiL(il,0);
-    }
-  }
+    REAL NormalFlux_i = 0.;
+    REAL NormalFlux_j = 0.;
   
-  // 4) right i / left j
-  for(ir=0; ir<nrowr; ir++) {
-    for(jl=0; jl<nrowl; jl++) {
-      ek(ir+nrowl,jl) += -1.0 * weight *  penalty * phiL(jl,0) * phiR(ir,0);
+    /// 1) left i / left j
+    for(il=0; il<nrowl; il++) {
+      NormalFlux_i = 0.;
+      for(id=0; id<fDim; id++) {
+        NormalFlux_i += dphiL(id,il)*normal[id];
+      }
+      for(jl=0; jl<nrowl; jl++) {
+        NormalFlux_j = 0.;
+        for(id=0; id<fDim; id++) {
+          NormalFlux_j += dphiL(id,jl)*normal[id];
+        }
+        ek(il,jl) += weight * (1./penalty) * NormalFlux_i * (leftK * NormalFlux_j);
+      }
     }
-  }
+    
+    /// 2) right i / right j
+    for(ir=0; ir<nrowr; ir++) {
+      NormalFlux_i = 0.;
+      for(id=0; id<fDim; id++) {
+        NormalFlux_i += dphiR(id,ir)*normal[id];
+      }
+      for(jr=0; jr<nrowr; jr++) {
+        NormalFlux_j = 0.;
+        for(id=0; id<fDim; id++) {
+          NormalFlux_j += dphiR(id,jr)*normal[id];
+        }      
+        ek(ir+nrowl,jr+nrowl) += weight * (1./penalty) * NormalFlux_i * (rightK * NormalFlux_j);
+      }
+    }
+    
+    /// 3) left i / right j
+    for(il=0; il<nrowl; il++) {
+      NormalFlux_i = 0.;
+      for(id=0; id<fDim; id++) {
+        NormalFlux_i += dphiL(id,il)*normal[id];
+      }
+      for(jr=0; jr<nrowr; jr++) {
+        NormalFlux_j = 0.;
+        for(id=0; id<fDim; id++) {
+          NormalFlux_j += dphiR(id,jr)*normal[id];
+        }      
+        ek(il,jr+nrowl) += -1.0 * weight * (1./penalty) * NormalFlux_i * (rightK * NormalFlux_j);
+      }
+    }
+    
+    /// 4) right i / left j
+    for(ir=0; ir<nrowr; ir++) {
+      NormalFlux_i = 0.;
+      for(id=0; id<fDim; id++) {
+        NormalFlux_i += dphiR(id,ir)*normal[id];
+      }
+      for(jl=0; jl<nrowl; jl++) {
+        NormalFlux_j = 0.;
+        for(id=0; id<fDim; id++) {
+          NormalFlux_j += dphiL(id,jl)*normal[id];
+        }
+        ek(ir+nrowl,jl) += -1.0 * weight * (1./penalty) * NormalFlux_i * (leftK * NormalFlux_j);
+      }
+    }
+    
+  }  
   
 }
 
@@ -603,22 +667,12 @@ REAL &faceSize=data.HSize;
 void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, REAL weight,
                                             TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
 
-// TPZFMatrix &dphi = data.dphix;
 TPZFMatrix &dphiL = data.dphixl;
-// TPZFMatrix &dphiR = data.dphixr;
-// TPZFMatrix &phi = data.phi;
 TPZFMatrix &phiL = data.phil;
-// TPZFMatrix &phiR = data.phir;
 TPZManVector<REAL,3> &normal = data.normal;
-// TPZManVector<REAL,3> &x = data.x;
-int &POrder=data.p;
-// TPZVec<REAL> &sol=data.sol;
-// TPZVec<REAL> &solL=data.soll;
-// TPZVec<REAL> &solR=data.solr;
-// TPZFMatrix &dsol=data.dsol;
-// TPZFMatrix &dsolL=data.dsoll;
-// TPZFMatrix &dsolR=data.dsolr;
-REAL &faceSize=data.HSize;
+int POrder= data.leftp;
+if (data.rightp > data.leftp) POrder = data.rightp;
+REAL faceSize=data.HSize;
   
   //  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
   int il,jl,nrowl,id;
@@ -689,39 +743,42 @@ REAL &faceSize=data.HSize;
 //////////////
   if (this->fPenaltyConstant == 0.) return;
 
+  if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){  
+    nrowl = phiL.Rows(); 
+    const REAL penalty = fPenaltyConstant * fK * POrder * POrder / faceSize; //Ap^2/h
+    REAL outflow = 0.;
+    for(il=0; il<fDim; il++) outflow += fC * fConvDir[il] * normal[il];
+  
 
-  nrowl = phiL.Rows(); 
-  const REAL penalty = fPenaltyConstant * fK * POrder * POrder / faceSize; //Ap^2/h
-  REAL outflow = 0.;
-  for(il=0; il<fDim; il++) outflow += fC * fConvDir[il] * normal[il];
-
-  switch(bc.Type()) {
-  case 0: // DIRICHLET  
-    for(il=0; il<nrowl; il++) {
-      ef(il,0) += weight * penalty * phiL(il,0) * bc.Val2()(0,0);
-      for(jl=0; jl<nrowl; jl++) {
-        ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
-      }
-    }
-     
-    break;
-  case 1: // Neumann
-    if(outflow > 0.)
-    {
-      for(il=0; il<nrowl; il++)
-      {
-        for(jl=0; jl<nrowl; jl++)
-        {
-          ek(il,jl) += weight * outflow * phiL(il,0) * phiL(jl,0);
+    switch(bc.Type()) {
+    case 0: // DIRICHLET  
+      for(il=0; il<nrowl; il++) {
+        ef(il,0) += weight * penalty * phiL(il,0) * bc.Val2()(0,0);
+        for(jl=0; jl<nrowl; jl++) {
+          ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
         }
       }
+      
+      break;
+    case 1: // Neumann
+      if(outflow > 0.)
+      {
+        for(il=0; il<nrowl; il++)
+        {
+          for(jl=0; jl<nrowl; jl++)
+          {
+            ek(il,jl) += weight * outflow * phiL(il,0) * phiL(jl,0);
+          }
+        }
+      }
+      //nothing to be done
+      break;
+    default:
+      PZError << "TPZMatPoisson3d::Wrong boundary condition type\n";
+      break;
     }
-    //nothing to be done
-    break;
-  default:
-    PZError << "TPZMatPoisson3d::Wrong boundary condition type\n";
-    break;
-  }    
+        
+  }
   
 }
 
