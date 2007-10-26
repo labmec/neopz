@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: pznonlinearpoisson3d.cpp,v 1.6 2007-05-11 19:15:18 joao Exp $
+//$Id: pznonlinearpoisson3d.cpp,v 1.7 2007-10-26 13:13:41 tiago Exp $
 
 #include "pznonlinearpoisson3d.h"
 #include "pzbndcond.h"
@@ -9,14 +9,31 @@ using namespace std;
 
 TPZNonLinearPoisson3d::TPZNonLinearPoisson3d(int nummat, int dim):TPZMatPoisson3dReferred(nummat, dim){
   this->fIsReferred = true;
+  this->SetNoStabilizationTerm();
 }
 
 TPZNonLinearPoisson3d::TPZNonLinearPoisson3d(const TPZNonLinearPoisson3d &cp):TPZMatPoisson3dReferred(cp){
   this->fIsReferred = cp.fIsReferred;
+  this->fStabilizationType = cp.fStabilizationType;
 }
 
 TPZNonLinearPoisson3d::~TPZNonLinearPoisson3d(){
 
+}
+
+void TPZNonLinearPoisson3d::SetSUPGStab(REAL sd){
+  this->fStabilizationType = ESUPG;
+  this->fSD = sd;
+}
+  
+void TPZNonLinearPoisson3d::SetGradientStab(REAL sd){
+  this->fStabilizationType = EGradient;
+  this->fSD = sd;
+}
+  
+void TPZNonLinearPoisson3d::SetNoStabilizationTerm(){
+  this->fStabilizationType = ENoStabilization;
+  this->fSD = 0.;
 }
 
 void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
@@ -24,24 +41,13 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
                                        TPZFMatrix &ek,
                                        TPZFMatrix &ef){
 
-TPZFMatrix &dphi = data.dphix;
-// TPZFMatrix &dphiL = data.dphixl;
-// TPZFMatrix &dphiR = data.dphixr;
-TPZFMatrix &phi = data.phi;
-// TPZFMatrix &phiL = data.phil;
-// TPZFMatrix &phiR = data.phir;
-// TPZManVector<REAL,3> &normal = data.normal;
-TPZManVector<REAL,3> &x = data.x;
-// int &POrder=data.p;
-TPZVec<REAL> &sol=data.sol;
-// TPZVec<REAL> &solL=data.soll;
-// TPZVec<REAL> &solR=data.solr;
-TPZFMatrix &dsol=data.dsol;
-// TPZFMatrix &dsolL=data.dsoll;
-// TPZFMatrix &dsolR=data.dsolr;
-// REAL &faceSize=data.HSize;
-TPZFMatrix &axes=data.axes;
-TPZFMatrix &jacinv=data.jacinv;
+  TPZFMatrix &dphi = data.dphix;
+  TPZFMatrix &phi = data.phi;
+  TPZManVector<REAL,3> &x = data.x;
+  TPZVec<REAL> &sol=data.sol;
+  TPZFMatrix &dsol=data.dsol;
+  TPZFMatrix &axes=data.axes;
+  TPZFMatrix &jacinv=data.jacinv;
 
   if (this->IsReferred()){
     this->SetConvectionTerm(dsol, axes);
@@ -49,9 +55,9 @@ TPZFMatrix &jacinv=data.jacinv;
 
   int phr = phi.Rows();
 
-  if(fForcingFunction) {            // phi(in, 0) = phi_in
+  if(fForcingFunction) {      
     TPZManVector<REAL> res(1);
-    fForcingFunction(x,res);       // dphi(i,j) = dphi_j/dxi
+    fForcingFunction(x,res);  
     fXf = res[0];
   }
   REAL delx = 0.;
@@ -84,7 +90,7 @@ TPZFMatrix &jacinv=data.jacinv;
         PZError << "TPZMatPoisson3d::Contribute dimension error " << fDim << endl;
     }
   }
-    
+ 
   for( int in = 0; in < phr; in++ ) {
     int kd;
     REAL dphiic = 0;
@@ -92,24 +98,82 @@ TPZFMatrix &jacinv=data.jacinv;
     ef(in, 0) += - weight * ( fXf*phi(in,0) + 0.5*fSD*delx*fC*dphiic*fXf );
     for(kd = 0; kd < fDim; kd++){
       ef(in, 0) += -1. * weight * ( +fK * ( dphi(kd,in) * dsol(kd,0) )
-                                    -fC * ( ConvDirAx[kd]* dphi(kd,in) * sol[0] )
-                                    +0.5 * fSD * delx * fC * dphiic * dsol(kd,0) * ConvDirAx[kd] );
-    }//kd
+                                    -fC * ( ConvDirAx[kd]* dphi(kd,in) * sol[0] )  );
+    }///kd
 
     for( int jn = 0; jn < phr; jn++ ) {
       for(kd=0; kd<fDim; kd++) {
         ek(in,jn) += weight * (
           +fK * ( dphi(kd,in) * dphi(kd,jn) ) 
-          -fC * ( ConvDirAx[kd]* dphi(kd,in) * phi(jn) )
-          +0.5 * fSD * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
-          );
+          -fC * ( ConvDirAx[kd]* dphi(kd,in) * phi(jn) ) );
       }
     }
-  }//in
+  }///in
     
-  if (this->IsSymetric()){    
+  if (fStabilizationType == ESUPG){
+  
+    for( int in = 0; in < phr; in++ ) {
+      int kd;
+      REAL dphiic = 0;
+      for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
+      ef(in, 0) += - weight * ( + 0.5*fSD*delx*fC*dphiic*fXf );
+      for(kd = 0; kd < fDim; kd++){
+        ef(in, 0) += -1. * weight * ( +0.5 * fSD * delx * fC * dphiic * dsol(kd,0) * ConvDirAx[kd] );
+      }///kd
+  
+      for( int jn = 0; jn < phr; jn++ ) {
+        for(kd=0; kd<fDim; kd++) {
+          ek(in,jn) += weight * (            
+            +0.5 * fSD * delx * fC * dphiic * dphi(kd,jn)* ConvDirAx[kd]
+          );
+        }
+      }
+    }///in
+    
+  }///SUPG
+    
+  if (fStabilizationType == EGradient){
+    
+    ///computing norm of solution gradient
+    REAL dsolNorm = 0.;
+    for(int d = 0; d < fDim; d++) dsolNorm += dsol(d,0)*dsol(d,0);
+    dsolNorm = sqrt(dsolNorm);
+    if (dsolNorm < 1e-16) dsolNorm = 1.;
+    
+    ///loop over i shape functions
+    int kd;
+    for( int in = 0; in < phr; in++ ){
+    
+      ///computing gradV.gradU/Norm(gradU)
+      REAL dphiic = 0.;
+      for(kd = 0; kd<fDim; kd++) dphiic += dsol(kd,0) * dphi(kd,in) / dsolNorm;
+
+      ef(in, 0) += - weight * ( 0.5*fSD*delx* /*dsolNorm**/ dphiic* fXf );
+      
+      double aux = 0.;
+      for(kd = 0; kd < fDim; kd++){
+        aux += dphiic * dsol(kd,0)*(fC*ConvDirAx[kd]);
+      }///kd
+      ef(in,0) += -1.* ( +0.5 * fSD * delx * aux * weight );
+  
+      for( int jn = 0; jn < phr; jn++ ) {
+        REAL DdphiicDalpha = 0.;
+        for(kd = 0; kd<fDim; kd++) DdphiicDalpha += dphi(kd,jn)*dphi(kd,in)/dsolNorm;
+        double aux = 0.;
+        for(kd=0; kd<fDim; kd++) {
+          aux += (fC*ConvDirAx[kd]) * ( dphiic*dphi(kd,jn) + dsol(kd,0)*DdphiicDalpha );
+        }///kd
+        ek(in,jn) += +0.5 * fSD * delx * aux * weight;        
+      }///jn
+      
+    }///in
+    
+  }///EGradiente
+
+  if (this->fC == 0.){
     if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
-  }                          
+  }
+
 }
                
 void TPZNonLinearPoisson3d::ContributeBC(TPZMaterialData &data,
@@ -117,23 +181,9 @@ void TPZNonLinearPoisson3d::ContributeBC(TPZMaterialData &data,
                                          TPZFMatrix &ek,
                                          TPZFMatrix &ef,
                                          TPZBndCond &bc){
-// TPZFMatrix &dphi = data.dphix;
-// TPZFMatrix &dphiL = data.dphixl;
-// TPZFMatrix &dphiR = data.dphixr;
-TPZFMatrix &phi = data.phi;
-// TPZFMatrix &phiL = data.phil;
-// TPZFMatrix &phiR = data.phir;
-// TPZManVector<REAL,3> &normal = data.normal;
-// TPZManVector<REAL,3> &x = data.x;
-// int &POrder=data.p;
-TPZVec<REAL> &sol=data.sol;
-// TPZVec<REAL> &solL=data.soll;
-// TPZVec<REAL> &solR=data.solr;
-// TPZFMatrix &dsol=data.dsol;
-// TPZFMatrix &dsolL=data.dsoll;
-// TPZFMatrix &dsolR=data.dsolr;
-// REAL &faceSize=data.HSize;
-TPZFMatrix &axes=data.axes;
+  TPZFMatrix &phi = data.phi;
+  TPZVec<REAL> &sol=data.sol;
+  TPZFMatrix &axes=data.axes;
 
   int phr = phi.Rows();
   short in,jn;
@@ -213,22 +263,15 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data,
                                                 REAL weight,
                                                 TPZFMatrix &ek,
                                                 TPZFMatrix &ef){
-// TPZFMatrix &dphi = data.dphix;
 TPZFMatrix &dphiL = data.dphixl;
 TPZFMatrix &dphiR = data.dphixr;
-// TPZFMatrix &phi = data.phi;
 TPZFMatrix &phiL = data.phil;
 TPZFMatrix &phiR = data.phir;
 TPZManVector<REAL,3> &normal = data.normal;
-// TPZManVector<REAL,3> &x = data.x;
-// int &POrder=data.p;
-// TPZVec<REAL> &sol=data.sol;
 TPZVec<REAL> &solL=data.soll;
 TPZVec<REAL> &solR=data.solr;
-// TPZFMatrix &dsol=data.dsol;
 TPZFMatrix &dsolL=data.dsoll;
 TPZFMatrix &dsolR=data.dsolr;
-// REAL &faceSize=data.HSize;
 
   if (this->IsReferred()){
     this->SetConvectionTermInterface(dsolL, dsolR);
@@ -238,7 +281,7 @@ TPZFMatrix &dsolR=data.dsolr;
   int nrowr = phiR.Rows();
   int il,jl,ir,jr,id;
   
-  //Convection term
+  ///Convection term
   REAL ConvNormal = 0.;
   for(id=0; id<fDim; id++) ConvNormal += fC * fConvDir[id]*normal[id];
   if(ConvNormal > 0.) {
@@ -270,7 +313,7 @@ TPZFMatrix &dsolR=data.dsolr;
   }
   
   
-  //diffusion term
+  ///diffusion term
   REAL leftK, rightK;
   leftK  = this->fK;
   rightK = this->GetRightK();
@@ -377,28 +420,16 @@ void TPZNonLinearPoisson3d::ContributeBCInterface(TPZMaterialData &data,
                                                   TPZFMatrix &ek,
                                                   TPZFMatrix &ef,
                                                   TPZBndCond &bc) {
-// TPZFMatrix &dphi = data.dphix;
 TPZFMatrix &dphiL = data.dphixl;
-// TPZFMatrix &dphiR = data.dphixr;
-// TPZFMatrix &phi = data.phi;
 TPZFMatrix &phiL = data.phil;
-// TPZFMatrix &phiR = data.phir;
 TPZManVector<REAL,3> &normal = data.normal;
-// TPZManVector<REAL,3> &x = data.x;
-// int &POrder=data.p;
-// TPZVec<REAL> &sol=data.sol;
 TPZVec<REAL> &solL=data.soll;
-// TPZVec<REAL> &solR=data.solr;
-// TPZFMatrix &dsol=data.dsol;
 TPZFMatrix &dsolL=data.dsoll;
-// TPZFMatrix &dsolR=data.dsolr;
-// REAL &faceSize=data.HSize;
 
 if (this->IsReferred()){
     this->SetConvectionTermInterface(dsolL, dsolL);
   }
   
-  //  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
   int il,jl,nrowl,id;
   nrowl = phiL.Rows();
   REAL ConvNormal = 0.;
