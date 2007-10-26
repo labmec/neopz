@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.38 2007-06-20 12:37:03 tiago Exp $
+// $Id: pzcompel.h,v 1.39 2007-10-26 13:18:58 tiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -134,6 +134,12 @@ public:
   static void SetgOrder( int order );
 
   static int GetgOrder();
+  
+  /** Set create function in TPZCompMesh to create elements of this type
+   */
+  virtual void SetCreateFunctions(){
+    TPZCompMesh::SetAllCreateFunctionsContinuous();
+  }
 
   /**
    * Returns the volume of the geometric element associated.

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.61 2007-06-08 00:02:28 cesar Exp $
+// $Id: pzintel.cpp,v 1.62 2007-10-26 13:18:59 tiago Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -1275,6 +1275,8 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
 /**Implement the refinement of an interpolated element*/
 void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolatesolution) {
 
+  TPZCompMesh::SetAllCreateFunctions(*this);
+  
   //necessary to allow continuous and discontinuous elements in same simulation
   this->RemoveInterfaces();
 

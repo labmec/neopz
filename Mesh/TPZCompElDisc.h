@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.63 2007-07-31 23:15:21 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.64 2007-10-26 13:18:58 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -135,6 +135,12 @@ protected:
 
 
   TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index);
+
+  /** Set create function in TPZCompMesh to create elements of this type
+   */
+  virtual void SetCreateFunctions(){
+    TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+  }
 
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
     return new TPZCompElDisc(mesh,*this);

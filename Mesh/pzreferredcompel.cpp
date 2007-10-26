@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.16 2007-04-20 18:31:02 caju Exp $
+// $Id: pzreferredcompel.cpp,v 1.17 2007-10-26 13:18:59 tiago Exp $
 
 
 #include "pzreferredcompel.h"
@@ -176,6 +176,16 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
   Append(ThisDLeftSol, OtherDLeftSol, dleftsol);
   Append(ThisRightSol, OtherRightSol, rightsol);
   Append(ThisDRightSol, OtherDRightSol, drightsol);
+}
+
+template <  >
+void TPZReferredCompEl< TPZCompElDisc >::SetCreateFunctions(){
+  TPZCompMesh::SetAllCreateFunctionsDiscontinuousReferred();
+}
+
+template< class TCOMPEL >
+void TPZReferredCompEl< TCOMPEL >::SetCreateFunctions(){
+  TPZCompMesh::SetAllCreateFunctionsContinuousReferred();
 }
 
 template< class TCOMPEL >

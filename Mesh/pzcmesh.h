@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.36 2007-06-27 20:58:24 cesar Exp $
+//$Id: pzcmesh.h,v 1.37 2007-10-26 13:18:58 tiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -33,6 +33,11 @@ class TPZTransfer;
 class TPZCoSys;
 class TPZGeoEl;
 class TPZStream;
+class TPZCompElDisc;
+class TPZInterpolatedElement;
+template<class T> class TPZReferredCompEl;
+template<class T> class TPZIntelGen;
+
 /**
  * @brief Class TPZCompMesh implemments computational mesh
  The computational mesh is a repository for computational elements, nodes and
@@ -490,6 +495,7 @@ static  void SetAllCreateFunctionsDiscontinuous();
 static  void SetAllCreateFunctionsContinuous();
 static  void SetAllCreateFunctionsDiscontinuousReferred();
 static  void SetAllCreateFunctionsContinuousReferred();
+static  void SetAllCreateFunctions(TPZCompEl &cel);
 
   /**
    * Will build the list of element boundary conditions build the list of connect boundary conditions.

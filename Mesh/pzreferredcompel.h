@@ -1,4 +1,4 @@
-//$Id: pzreferredcompel.h,v 1.8 2007-04-12 20:04:15 tiago Exp $
+//$Id: pzreferredcompel.h,v 1.9 2007-10-26 13:18:59 tiago Exp $
 
 // -*- c++ -*-
 #ifndef PZSPECIAL
@@ -23,6 +23,10 @@ class TPZReferredCompEl : public TCOMPEL {
 
   /** Class destructor */
   ~TPZReferredCompEl();
+  
+  /** Set create function in TPZCompMesh to create elements of this type
+   */
+  virtual void SetCreateFunctions();
 
   /** Returns referred element of this
    */

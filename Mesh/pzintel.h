@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.34 2007-09-04 12:33:16 tiago Exp $
+//$Id: pzintel.h,v 1.35 2007-10-26 13:18:59 tiago Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -71,6 +71,12 @@ public:
    * destructor, does nothing
    */
   virtual ~TPZInterpolatedElement();
+
+  /** Set create function in TPZCompMesh to create elements of this type
+   */
+  virtual void SetCreateFunctions(){
+    TPZCompMesh::SetAllCreateFunctionsContinuous();
+  }
 
   /**
   Save the element data to a stream

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.50 2007-09-04 12:33:16 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.51 2007-10-26 13:18:58 tiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -149,7 +149,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /** Set neighbors.
   */
   void SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right);
-
+  
   /** Makes a clone of this */
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
     return new TPZInterfaceElement(mesh, *this);

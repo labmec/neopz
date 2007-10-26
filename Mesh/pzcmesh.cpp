@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.66 2007-06-20 12:37:02 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.67 2007-10-26 13:18:58 tiago Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -240,12 +240,6 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
   TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
   int nelem = elvec.NElements();
 
-  if (nelem != (continuous.NElements() + discontinuous.NElements()) ){
-    PZError << __PRETTY_FUNCTION__ << endl
-	    << "nelem != continuous.NElements() + discontinuous.NElements() " << endl;
-    exit(-1);
-  }
-
   int neltocreate = 0;
   int index;
   for(int i=0; i<nelem; i++) {
@@ -301,8 +295,8 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 
 void TPZCompMesh::AutoBuild(std::set<int> &MaterialIDs){
 
-  std::set<TPZGeoEl*> gel2create;
-  std::set<TPZGeoEl*>::iterator it;
+  std::set<int> gel2create;
+  std::set<int>::iterator it;
 
   TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
   int nelem = elvec.NElements();
@@ -315,7 +309,10 @@ void TPZCompMesh::AutoBuild(std::set<int> &MaterialIDs){
     std::set<int>::iterator found = MaterialIDs.find(matid);
     if (found == MaterialIDs.end()) continue;
     if(!gel->HasSubElement()) {
-      gel2create.insert(gel);
+      if (gel->Index() != i){
+        PZError << "\nFATAL ERROR AT " << __PRETTY_FUNCTION__ << "@" << __LINE__ << "\n";
+      }
+      gel2create.insert(gel->Index());
     }
   }
 
@@ -323,7 +320,8 @@ void TPZCompMesh::AutoBuild(std::set<int> &MaterialIDs){
 //   fBlock.SetNBlocks( fBlock.NBlocks() + neltocreate );
 
   for(it = gel2create.begin(); it != gel2create.end(); it++){
-    TPZGeoEl *gel = *it;
+    int index = *it;
+    TPZGeoEl *gel = elvec[index];
     if(!gel) continue;
     if(!gel->HasSubElement()) {
       if(gel->NumInterfaces() == 0){
@@ -2088,6 +2086,10 @@ void TPZCompMesh::SetAllCreateFunctionsContinuousReferred(){
   TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreateReferredPyramEl );
   TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateReferredCubeEl );
 
+}
+
+void TPZCompMesh::SetAllCreateFunctions(TPZCompEl &cel){
+  cel.SetCreateFunctions();  
 }
 
 void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int val, bool InterfaceBetweenContinuous){

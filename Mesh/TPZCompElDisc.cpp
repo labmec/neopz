@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.98 2007-07-31 23:15:21 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.99 2007-10-26 13:18:58 tiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.98 2007-07-31 23:15:21 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.99 2007-10-26 13:18:58 tiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -360,6 +360,8 @@ REAL TPZCompElDisc::SizeOfElement()
 }
 
 void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesolution){
+
+  TPZCompMesh::SetAllCreateFunctions(*this);
 
   if (Mesh()->ElementVec()[index] != this) {
     PZError << "TPZInterpolatedElement::Divide index error";
