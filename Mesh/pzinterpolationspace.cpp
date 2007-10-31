@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.17 2007-09-04 12:33:17 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.18 2007-10-31 19:01:49 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -49,7 +49,7 @@ TPZInterpolationSpace::~TPZInterpolationSpace(){}
 
 int TPZInterpolationSpace::MaxOrder(){
   const int n = this->NConnects();
-  int result = 0;
+  int result = -1;
   int side;
   for(int i = 0; i < n; i++){
     side = this->Connect(i).Order();
@@ -161,6 +161,8 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     LOGPZ_DEBUG(logger,sout.str());
   }*/
   this->InitializeElementMatrix(ek,ef);
+
+  if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
 
   TPZMaterialData data;
   this->InitMaterialData(data);
