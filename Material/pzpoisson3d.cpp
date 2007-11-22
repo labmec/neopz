@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.29 2007-10-26 13:16:14 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.30 2007-11-22 15:47:55 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -239,7 +239,6 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 
 /** returns the variable index associated with the name*/
 int TPZMatPoisson3d::VariableIndex(char *name){
-  if(!strcmp("Displacement6",name))   return  0;
   if(!strcmp("Solution",name))        return  1;
   if(!strcmp("Derivate",name))        return  2;
   if(!strcmp("KDuDx",name))           return  3;
@@ -251,8 +250,6 @@ int TPZMatPoisson3d::VariableIndex(char *name){
 }
 
 int TPZMatPoisson3d::NSolutionVariables(int var){
-
-  if(var == 0) return 6;
   if(var == 1) return 1;
   if(var == 2) return fDim;
   if ((var == 3) || (var == 4) || (var == 5) || (var == 6)) return 1;
@@ -262,21 +259,28 @@ int TPZMatPoisson3d::NSolutionVariables(int var){
 
 void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 
-  if(var == 0 || var == 1) Solout[0] = Sol[0];//function
+  if(var == 1){
+    Solout[0] = Sol[0];//function
+    return;
+  }
   if(var == 2) {
     int id;
     for(id=0 ; id<fDim; id++) {
       Solout[id] = DSol(id,0);//derivate
     }
+    return;
   }//var == 2
   if (var == 3){ //KDuDx
     Solout[0] = DSol(0,0) * this->fK;
+    return;
   }//var ==3
   if (var == 4){ //KDuDy
     Solout[0] = DSol(1,0) * this->fK;
+    return;
   }//var == 4 
   if (var == 5){ //KDuDz
     Solout[0] = DSol(2,0) * this->fK;
+    return;
   }//var == 5
   if (var == 6){ //NormKDu
     int id;
@@ -285,6 +289,7 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
       val += (DSol(id,0) * this->fK) * (DSol(id,0) * this->fK);
     }
     Solout[0] = sqrt(val);
+    return;
   }//var == 6
   if (var == 7){ //MinusKGradU
     int id;
@@ -293,6 +298,7 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
       Solout[id] = -1. * this->fK * DSol(id,0);
     }
     Solout[0] = sqrt(val);
+    return;
   }//var == 7  
   
   TPZMaterial::Solution(Sol, DSol, axes, var, Solout);
