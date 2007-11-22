@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: pznonlinearpoisson3d.cpp,v 1.7 2007-10-26 13:13:41 tiago Exp $
+//$Id: pznonlinearpoisson3d.cpp,v 1.8 2007-11-22 15:48:06 tiago Exp $
 
 #include "pznonlinearpoisson3d.h"
 #include "pzbndcond.h"
@@ -277,36 +277,35 @@ TPZFMatrix &dsolR=data.dsolr;
     this->SetConvectionTermInterface(dsolL, dsolR);
   }
   
-  int nrowl = phiL.Rows();
-  int nrowr = phiR.Rows();
-  int il,jl,ir,jr,id;
+  const int nrowl = phiL.Rows();
+  const int nrowr = phiR.Rows();
   
   ///Convection term
   REAL ConvNormal = 0.;
-  for(id=0; id<fDim; id++) ConvNormal += fC * fConvDir[id]*normal[id];
+  for(int id=0; id<fDim; id++) ConvNormal += fC * fConvDir[id]*normal[id];
   if(ConvNormal > 0.) {
-    for(il=0; il<nrowl; il++) {
+    for(int il=0; il<nrowl; il++) {
       ef(il, 0) += -1. * weight * ConvNormal * phiL(il) * solL[0];
-      for(jl=0; jl<nrowl; jl++) {
+      for(int jl=0; jl<nrowl; jl++) {
         ek(il,jl) += weight * ConvNormal * phiL(il)*phiL(jl);
       }
     }
-    for(ir=0; ir<nrowr; ir++) {
+    for(int ir=0; ir<nrowr; ir++) {
       ef(ir+nrowl,0) += -1. * (-1. * weight * ConvNormal * phiR(ir) * solL[0] );
-      for(jl=0; jl<nrowl; jl++) {
+      for(int jl=0; jl<nrowl; jl++) {
         ek(ir+nrowl,jl) -= weight * ConvNormal * phiR(ir) * phiL(jl);
       }
     }
   } else {
-    for(ir=0; ir<nrowr; ir++) {
+    for(int ir=0; ir<nrowr; ir++) {
       ef(ir+nrowl,0) += -1. * (-1. * weight * ConvNormal * phiR(ir) * solR[0] );
-      for(jr=0; jr<nrowr; jr++) {
+      for(int jr=0; jr<nrowr; jr++) {
         ek(ir+nrowl,jr+nrowl) -= weight * ConvNormal * phiR(ir) * phiR(jr);
       }
     }
-    for(il=0; il<nrowl; il++) {
+    for(int il=0; il<nrowl; il++) {
       ef(il,0) += -1. * weight * ConvNormal * phiL(il) * solR[0];
-      for(jr=0; jr<nrowr; jr++) {
+      for(int jr=0; jr<nrowr; jr++) {
         ek(il,jr+nrowl) += weight * ConvNormal * phiL(il) * phiR(jr);
       }
     }
@@ -321,24 +320,24 @@ TPZFMatrix &dsolR=data.dsolr;
   //Compute GradSol . normal
   REAL DSolLNormal = 0.;
   REAL DSolRNormal = 0.;
-  for(id=0; id<fDim; id++) {
+  for(int id=0; id<fDim; id++) {
     DSolLNormal += dsolL(id,0)*normal[id];
     DSolRNormal += dsolR(id,0)*normal[id];
   }//for
 
   // 1) phi_I_left, phi_J_left
-  for(il=0; il<nrowl; il++) {
+  for(int il=0; il<nrowl; il++) {
     REAL dphiLinormal = 0.;
-    for(id=0; id<fDim; id++) {
+    for(int id=0; id<fDim; id++) {
       dphiLinormal += dphiL(id,il)*normal[id];
     }
     
     //ef = F - K u
     ef(il,0) += -1. * (weight * leftK * (this->fSymmetry * 0.5 * dphiLinormal*solL[0]-0.5*DSolLNormal*phiL(il,0)));
     
-    for(jl=0; jl<nrowl; jl++) {
+    for(int jl=0; jl<nrowl; jl++) {
       REAL dphiLjnormal = 0.;
-      for(id=0; id<fDim; id++) {
+      for(int id=0; id<fDim; id++) {
         dphiLjnormal += dphiL(id,jl)*normal[id];
       }
       ek(il,jl) += weight * leftK * (
@@ -348,18 +347,18 @@ TPZFMatrix &dsolR=data.dsolr;
   }
   
   // 2) phi_I_right, phi_J_right
-  for(ir=0; ir<nrowr; ir++) {
+  for(int ir=0; ir<nrowr; ir++) {
     REAL dphiRinormal = 0.;
-    for(id=0; id<fDim; id++) {
+    for(int id=0; id<fDim; id++) {
       dphiRinormal += dphiR(id,ir)*normal[id];
     }
 
     //ef = F - K u
     ef(ir+nrowl,0) += -1. * weight * rightK * ( this->fSymmetry * (-0.5 * dphiRinormal * solR[0] ) + 0.5 * DSolRNormal * phiR(ir) );
     
-    for(jr=0; jr<nrowr; jr++) {
+    for(int jr=0; jr<nrowr; jr++) {
       REAL dphiRjnormal = 0.;
-      for(id=0; id<fDim; id++) {
+      for(int id=0; id<fDim; id++) {
         dphiRjnormal += dphiR(id,jr)*normal[id];
       }
       ek(ir+nrowl,jr+nrowl) += weight * rightK * (
@@ -369,18 +368,18 @@ TPZFMatrix &dsolR=data.dsolr;
   }
   
   // 3) phi_I_left, phi_J_right
-  for(il=0; il<nrowl; il++) {
+  for(int il=0; il<nrowl; il++) {
     REAL dphiLinormal = 0.;
-    for(id=0; id<fDim; id++) {
+    for(int id=0; id<fDim; id++) {
       dphiLinormal += dphiL(id,il)*normal[id];
     }
     
     //ef = F - K u
     ef(il,0) += -1. * weight * ( this->fSymmetry * (-0.5 * dphiLinormal * leftK * solR[0] ) - 0.5 * DSolRNormal * rightK * phiL(il) );
     
-    for(jr=0; jr<nrowr; jr++) {
+    for(int jr=0; jr<nrowr; jr++) {
       REAL dphiRjnormal = 0.;
-      for(id=0; id<fDim; id++) {
+      for(int id=0; id<fDim; id++) {
         dphiRjnormal += dphiR(id,jr)*normal[id];
       }
       ek(il,jr+nrowl) += weight * (
@@ -390,18 +389,18 @@ TPZFMatrix &dsolR=data.dsolr;
   }
   
   // 4) phi_I_right, phi_J_left
-  for(ir=0; ir<nrowr; ir++) {
+  for(int ir=0; ir<nrowr; ir++) {
     REAL dphiRinormal = 0.;
-    for(id=0; id<fDim; id++) {
+    for(int id=0; id<fDim; id++) {
       dphiRinormal += dphiR(id,ir)*normal[id];
     }
     
     //ef = F - K u
     ef(ir+nrowl,0) += -1. * weight * (this->fSymmetry * 0.5 * dphiRinormal * rightK * solL[0] + 0.5 * DSolLNormal * leftK * phiR(ir));
     
-    for(jl=0; jl<nrowl; jl++) {
+    for(int jl=0; jl<nrowl; jl++) {
       REAL dphiLjnormal = 0.;
-      for(id=0; id<fDim; id++) {
+      for(int id=0; id<fDim; id++) {
         dphiLjnormal += dphiL(id,jl)*normal[id];
       }
       ek(ir+nrowl,jl) += weight * (

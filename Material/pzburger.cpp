@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzburger.cpp,v 1.5 2007-05-11 19:15:17 joao Exp $
+//$Id: pzburger.cpp,v 1.6 2007-11-22 15:48:06 tiago Exp $
 
 #include "pzburger.h"
 #include "pzbndcond.h"
@@ -104,7 +104,7 @@ void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REA
     }
   }//in
     
-  if (this->IsSymetric()){    
+  if (this->fC == 0.){    
     if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
   }                          
 }
@@ -182,7 +182,7 @@ void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &
     }
   }//in
     
-  if (this->IsSymetric()){    
+  if (fC == 0.){    
     if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
   }                          
 }

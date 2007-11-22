@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzburger.h,v 1.4 2007-05-11 19:15:17 joao Exp $
+//$Id: pzburger.h,v 1.5 2007-11-22 15:48:06 tiago Exp $
 
 #ifndef BURGERH
 #define BURGERH
@@ -42,7 +42,7 @@ class TPZBurger : public TPZMatPoisson3dReferred {
     if (TPZBurger::gStabilizationScheme == EGRADIENT){
       this->ContributeGradStab(data.x,data.jacinv,data.sol,data.dsol,weight,data.axes,data.phi,data.dphix,ek,ef);
     }
-  }//Contribute
+  }///Contribute
   
   void ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
                           TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef);
