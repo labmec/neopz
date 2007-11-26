@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.25 2007-07-10 23:07:55 cesar Exp $
+//$Id: pzbndcond.h,v 1.26 2007-11-26 17:06:42 tiago Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -92,6 +92,8 @@ public :
   virtual int NEvalErrors() {return fMaterial->NEvalErrors();}
 
   int Type() { return fType; }
+  
+  void SetType(int type){ this->fType = type; }
 
   TPZFMatrix &Val1() { return fBCVal1; }
 
