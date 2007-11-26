@@ -19,6 +19,8 @@ public:
     static int main();
     
     TPZParSkylineStructMatrix(TPZCompMesh *);
+    
+    TPZParSkylineStructMatrix(const TPZParSkylineStructMatrix &cp);
 
     virtual TPZMatrix * Create();
 

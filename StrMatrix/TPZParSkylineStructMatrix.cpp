@@ -24,6 +24,10 @@ using namespace std;
 
 void UniformRefine(int num, TPZGeoMesh &m);
 
+TPZParSkylineStructMatrix::TPZParSkylineStructMatrix(const TPZParSkylineStructMatrix &cp) : TPZSkylineStructMatrix(cp){
+
+}
+
 TPZParSkylineStructMatrix::TPZParSkylineStructMatrix(TPZCompMesh *mesh) : TPZSkylineStructMatrix(mesh)
 {}
 
@@ -61,17 +65,17 @@ int TPZParSkylineStructMatrix::main() {
 		// initializar as coordenadas do no em um vetor
 		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
 
-		// identificar um espaço no vetor onde podemos armazenar
+		// identificar um espaï¿½o no vetor onde podemos armazenar
 		// este vetor
 
-		// initializar os dados do nó
+		// initializar os dados do nï¿½
 		gmesh.NodeVec ()[i].Initialize (i,coord,gmesh);
 	}
 	int el;
 	TPZGeoEl *gel;
 	for(el=0; el<1; el++) {
 
-	  // initializar os indices dos nós
+	  // initializar os indices dos nï¿½s
 	  TPZVec<int> indices(4);
 	  for(i=0; i<4; i++) indices[i] = i;
 	  // O proprio construtor vai inserir o elemento na malha
@@ -123,7 +127,7 @@ int TPZParSkylineStructMatrix::main() {
 
 	TPZVec<int> numelconnected(cmesh.NEquations(),0);
 	int ic;
-	//cout << "Número de Equações -> " << cmesh.NEquations() << endl;
+	//cout << "Nï¿½mero de Equaï¿½ï¿½es -> " << cmesh.NEquations() << endl;
 	//cout.flush();
 
 	ofstream out("cmeshBlock_out.txt");
