@@ -10,100 +10,101 @@ TPZSloan::TPZSloan(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes)
 {
 	fNNodes = NNodes;
 	fNElements = NElements;
+        fMaxNodesElement = 27;
 }
 
-void TPZSloan::Resequence(int n_nodes, int n_elements, int *nnn,int *npn, int *xnpn, int old_profile, int new_profile)
-{
-	//Sloan routine with npn and xnpn as parameters
-	//Renumbering using the npn and xnpn vectors already built.
-	int nen;
-//	int k=0;
-
-	/**
-	*Must be updated to work in accordance to TPZMetis!
-	*/
-	nen = 27; //Assumed as the highest node amount per element
-
-	int iadj = n_elements * nen * (nen-1);
-	int *adj = new int[iadj];
-	int *xadj = new int[iadj];
-	int nop = 0;
-	int inpn = 2 * n_elements;
-
-	//adjacency list generation
-	gegra_(&n_nodes, &n_elements, &inpn, npn, xnpn, &iadj, adj, xadj, &nop);
-
-	int *iw = new int[2*(n_elements+1)];
-	int e2 = xadj[n_nodes]-1;
-
-	//rewriting with new order
-	//array nnn contains the new enumeration
-	label_(&n_nodes , &e2, adj, xadj, nnn, iw, &old_profile, &new_profile);
-	old_profile=0;
-	new_profile=0;
-
-}
-
-void TPZSloan::Resequence(int * jj, int * jk, int n_nodes, int n_elements, int * nnn, int old_profile, int new_profile)
-{
-	//Sloan renumbering routine passing jj and jk as parameter
-	//use only with bar elements
-
-	int nen = 2;                          // number of nodes per element
-	int *npn = new int[nen * n_elements]; // npn[i..i+nen] contains adjacent nodes of element i
-	int *xnpn = new int[n_elements+1];	  // xnpn[i] index of element i in npn
-
-	//feed npn and xnpn with data from jj and jk
-	int i;
-	int k=0;
-	for(i=1;i<=nen*n_elements;i=i+nen)
-	{
-		k=k+1;
-		npn[i-1]=jj[k];
-		npn[i]=jk[k];
-	}
-
-	int j=1;
-	for(i = 0;i <= n_elements; i++)
-	{
-		xnpn[i] = j;
-		j=j+2;
-	}
-
-
-	int iadj = n_elements * nen * (nen-1);
-	int *adj = new int[iadj];
-	int *xadj = new int[iadj];
-	int nop = 0;
-	int inpn = 2 * n_elements;
-
-	//adjacency list generation
-  cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" ;
-	gegra_(&n_nodes, &n_elements, &inpn, npn, xnpn, &iadj, adj, xadj, &nop);
-
-	int *iw = new int[2*(n_elements+1)];
-	int e2 = xadj[n_nodes]-1;
-
-	//rewriting with new order
-	//array nnn contains the new enumeration
-	label_(&n_nodes , &e2, adj, xadj, nnn, iw, &old_profile, &new_profile);
-	old_profile=0;
-	new_profile=0;
-
-	for(i=1;i<=n_elements;i++)
-	{
-		if(abs(jj[i]-jk[i]) > old_profile)
-		{
-			old_profile = abs(jj[i]-jk[i]);
-		}
-		if(abs(nnn[jj[i]-1]-nnn[jk[i]-1]) > new_profile)
-		{
-			new_profile = abs(nnn[jj[i]-1]-nnn[jk[i]-1]);
-		}
-	}
-
-
-}
+// void TPZSloan::Resequence(int n_nodes, int n_elements, int *nnn,int *npn, int *xnpn, int old_profile, int new_profile)
+// {
+// 	//Sloan routine with npn and xnpn as parameters
+// 	//Renumbering using the npn and xnpn vectors already built.
+// 	int nen;
+// //	int k=0;
+// 
+// 	/**
+// 	*Must be updated to work in accordance to TPZMetis!
+// 	*/
+// 	nen = 27; //Assumed as the highest node amount per element
+// 
+// 	int iadj = n_elements * nen * (nen-1);
+// 	int *adj = new int[iadj];
+// 	int *xadj = new int[iadj];
+// 	int nop = 0;
+// 	int inpn = 2 * n_elements;
+// 
+// 	//adjacency list generation
+// 	gegra_(&n_nodes, &n_elements, &inpn, npn, xnpn, &iadj, adj, xadj, &nop);
+// 
+// 	int *iw = new int[2*(n_elements+1)];
+// 	int e2 = xadj[n_nodes]-1;
+// 
+// 	//rewriting with new order
+// 	//array nnn contains the new enumeration
+// 	label_(&n_nodes , &e2, adj, xadj, nnn, iw, &old_profile, &new_profile);
+// 	old_profile=0;
+// 	new_profile=0;
+// 
+// }
+// 
+// void TPZSloan::Resequence(int * jj, int * jk, int n_nodes, int n_elements, int * nnn, int old_profile, int new_profile)
+// {
+// 	//Sloan renumbering routine passing jj and jk as parameter
+// 	//use only with bar elements
+// 
+// 	int nen = 2;                          // number of nodes per element
+// 	int *npn = new int[nen * n_elements]; // npn[i..i+nen] contains adjacent nodes of element i
+// 	int *xnpn = new int[n_elements+1];	  // xnpn[i] index of element i in npn
+// 
+// 	//feed npn and xnpn with data from jj and jk
+// 	int i;
+// 	int k=0;
+// 	for(i=1;i<=nen*n_elements;i=i+nen)
+// 	{
+// 		k=k+1;
+// 		npn[i-1]=jj[k];
+// 		npn[i]=jk[k];
+// 	}
+// 
+// 	int j=1;
+// 	for(i = 0;i <= n_elements; i++)
+// 	{
+// 		xnpn[i] = j;
+// 		j=j+2;
+// 	}
+// 
+// 
+// 	int iadj = n_elements * nen * (nen-1);
+// 	int *adj = new int[iadj];
+// 	int *xadj = new int[iadj];
+// 	int nop = 0;
+// 	int inpn = 2 * n_elements;
+// 
+// 	//adjacency list generation
+//   cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" ;
+// 	gegra_(&n_nodes, &n_elements, &inpn, npn, xnpn, &iadj, adj, xadj, &nop);
+// 
+// 	int *iw = new int[2*(n_elements+1)];
+// 	int e2 = xadj[n_nodes]-1;
+// 
+// 	//rewriting with new order
+// 	//array nnn contains the new enumeration
+// 	label_(&n_nodes , &e2, adj, xadj, nnn, iw, &old_profile, &new_profile);
+// 	old_profile=0;
+// 	new_profile=0;
+// 
+// 	for(i=1;i<=n_elements;i++)
+// 	{
+// 		if(abs(jj[i]-jk[i]) > old_profile)
+// 		{
+// 			old_profile = abs(jj[i]-jk[i]);
+// 		}
+// 		if(abs(nnn[jj[i]-1]-nnn[jk[i]-1]) > new_profile)
+// 		{
+// 			new_profile = abs(nnn[jj[i]-1]-nnn[jk[i]-1]);
+// 		}
+// 	}
+// 
+// 
+// }
 
 
 
@@ -119,7 +120,7 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 	//feed npn and xnpn with data from jj and jk
 	int i;
 //	int k=0;
-	int nnodes_per_element=27;
+	int nnodes_per_element=fMaxNodesElement;
 
 	int iadj = fElementGraph.NElements()* nnodes_per_element* (nnodes_per_element-1);
 	TPZVec<int> adj(iadj);
@@ -186,7 +187,7 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 		cout << endl;
 	}
 #endif
-	TPZVec<int> iw(nnodes_per_element*(fNElements+1));
+	TPZVec<int> iw(nnodes_per_element*(fNElements+1)*10);
 	//int *iw = new int [nnodes_per_element*(fNElements+1)];
 	int e2 = xadj[fNNodes]-1;
 
