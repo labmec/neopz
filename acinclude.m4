@@ -3,13 +3,13 @@ dnl acinclude.m4 for NeoPZ
 dnl
 dnl Process this file with GNU aclocal to produce a configure script.
 dnl
-dnl $Id: acinclude.m4,v 1.5 2004-04-06 12:37:19 longhin Exp $
+dnl $Id: acinclude.m4,v 1.6 2007-11-29 17:39:51 phil Exp $
 dnl
 
 dnl
 dnl Greetings!
 dnl
-AC_DEFUN(PZ_GREETINGS,
+AC_DEFUN([PZ_GREETINGS],
 [
     echo
     echo "+-----------------------------------------------+"
@@ -25,7 +25,7 @@ dnl Checking g++ version
 dnl
 dnl AC_CHECK_TYPE (int, DEFAULT)
 
-AC_DEFUN(PZ_PROG_CXX,
+AC_DEFUN([PZ_PROG_CXX],
 [
     AC_PROG_CXX
     case "$CXX" in
@@ -48,7 +48,7 @@ AC_DEFUN(PZ_PROG_CXX,
 dnl
 dnl Checking for ar
 dnl
-AC_DEFUN(PZ_PROG_AR,
+AC_DEFUN([PZ_PROG_AR],
 [
     case "${AR-unset}" in
 	unset) AC_CHECK_PROG(AR, ar, ar) ;;
@@ -71,7 +71,7 @@ dnl
 dnl
 dnl Bye bye!
 dnl
-AC_DEFUN(PZ_BYEBYE,
+AC_DEFUN([PZ_BYEBYE],
 [
     echo
     echo "Finished configuration for PZ version" $PZ_VERSION.$PZ_REV
@@ -120,6 +120,35 @@ AC_DEFUN(PZ_BYEBYE,
       ;;
     esac
     
+    case "${log4cxx_enabled}" in
+      yes)
+        echo "      -> LOG4CXX enabled."
+      ;;
+      no)
+        echo "      -> LOG4CXX not enabled."
+      ;;
+    esac
+    
+    case "${refpat_enabled}" in
+      yes)
+        echo "      -> REFPAT enabled."
+      ;;
+      no)
+        echo "      -> REFPAT not enabled."
+      ;;
+    esac
+    
+    case "${boost_enabled}" in
+      yes)
+        echo "      -> BOOST enabled."
+      ;;
+      no)
+        echo "      -> BOOST not enabled."
+      ;;
+    esac
+    
+
+
     echo
     echo "   type \"make\" to start compilation."
     echo "   type \"make install\" as root to install it."
