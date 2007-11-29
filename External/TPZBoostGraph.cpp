@@ -3,6 +3,8 @@
 #include "TPZBoostGraph.h"
 #include <fstream>
 
+#ifdef USING_BOOST
+
 using namespace boost;
 using namespace std;
 
@@ -458,3 +460,4 @@ void TPZBoostGraph::SetElementGraphOld(TPZVec<int> &elgraph, TPZVec<int> &elgrap
   }
 
 */
+#endif

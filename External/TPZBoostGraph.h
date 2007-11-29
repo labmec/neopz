@@ -3,6 +3,9 @@
 #ifndef TPZBOOSTGRAPH_H
 #define TPZBOOSTGRAPH_H
 #include "pzrenumbering.h"
+
+#ifdef USING_BOOST
+
 #include <vector>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/sloan_ordering.hpp>
@@ -127,6 +130,9 @@ private:
   std::vector<int> m_Connects;
 
 };
+
+#endif // USING_BOOST
+
 #endif //TPZBOOSTGRAPH_H
 /*    Graph m_Graph;
 template <class Graph, class OutputIterator,
