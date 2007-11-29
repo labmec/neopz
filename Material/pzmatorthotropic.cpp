@@ -5,7 +5,7 @@
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzmanvector.h"
 #include <math.h>
 #include <fstream>

@@ -3,7 +3,7 @@
 #include "pzgnode.h"
 #include "pzgeoel.h"
 #include "pzquad.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzmaterial.h"
 
 using namespace std;

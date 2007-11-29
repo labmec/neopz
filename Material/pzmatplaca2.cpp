@@ -1,7 +1,6 @@
 
 #include "pzmatplaca2.h" 
 #include "pzmaterial.h"
-#include "pztempmat.h"
 
 #include "pzbndcond.h"
 #include <math.h>
@@ -123,7 +122,15 @@ void TPZMatPlaca2::SetNAxes(TPZFMatrix &n) {
 
   fRmat.Transpose(&fRmatT);
 
-  fKxxR = fRmatT * (fKxx * fRmat);
+  
+  
+  
+  
+  
+  
+  TPZFMatrix tmp;
+  fKxx.Multiply(fRmat,tmp);
+  fRmatT.Multiply(tmp,fKxxR);
   fKyxR = fRmatT * (fKyx * fRmat);
   fKxyR = fRmatT * (fKxy * fRmat);
   fKyyR = fRmatT * (fKyy * fRmat);

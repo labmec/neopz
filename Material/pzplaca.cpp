@@ -1,6 +1,6 @@
 #include "pzplaca.h"
 #include "pzmaterial.h"
-#include "pztempmat.h" 
+//#include "pztempmat.h" 
 
 #include "pzbndcond.h"
 #include <math.h>

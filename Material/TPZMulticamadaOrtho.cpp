@@ -6,7 +6,7 @@
 #include "pzintel.h"
 #include "pzgeoel.h"
 #include "pzbctension.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"

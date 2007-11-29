@@ -4,7 +4,7 @@
 #include "pzbndcond.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzerror.h"
 #include <math.h>
 using namespace std;
