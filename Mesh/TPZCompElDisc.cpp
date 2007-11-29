@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.99 2007-10-26 13:18:58 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.100 2007-11-29 18:19:53 phil Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.99 2007-10-26 13:18:58 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.100 2007-11-29 18:19:53 phil Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -16,7 +16,7 @@
 #include "pzconnect.h"
 #include "pzmaterial.h"
 #include "pzbndcond.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzmanvector.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"

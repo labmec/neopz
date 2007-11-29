@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.17 2007-10-26 13:18:59 tiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.18 2007-11-29 18:22:39 phil Exp $
 
 
 #include "pzreferredcompel.h"
@@ -37,7 +37,7 @@
 
 
 
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "tpzcompmeshreferred.h"
 
 #ifdef DEBUG

@@ -1,9 +1,9 @@
-//$Id: pzcheckrestraint.cpp,v 1.10 2007-01-03 00:06:47 phil Exp $
+//$Id: pzcheckrestraint.cpp,v 1.11 2007-11-29 18:20:56 phil Exp $
 
 #include "pzcheckrestraint.h"
 #include "pzintel.h"
 #include "pzcmesh.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pztrnsform.h"
 #include "pzgeoelside.h"
 #include "pzquad.h"
@@ -213,8 +213,8 @@ int TPZCheckRestraint::CheckRestraint() {
   TPZTransform t(smallside.Dimension());
   smallside.SideTransform3(largeside,t);
   
-  TPZTransform T = smallel->Reference()->ComputeParamTrans(largel->Reference(),fLarge.Side(), fSmall.Side());//transformação direta, sem acumulo
-  if(T.Compare(t))//caso erro é maior que tol=1.e-6 retorna 1
+  TPZTransform T = smallel->Reference()->ComputeParamTrans(largel->Reference(),fLarge.Side(), fSmall.Side());//transformaï¿½ï¿½o direta, sem acumulo
+  if(T.Compare(t))//caso erro ï¿½ maior que tol=1.e-6 retorna 1
     PZError << "TPZCheckRestraint::CheckRestraint transformation error!\n";
   
   int numint = intrule->NPoints();
