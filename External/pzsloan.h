@@ -9,7 +9,7 @@
 #include "sloan\\sloan.h"
 #endif
 
-class TPZSloan : TPZRenumbering {
+class TPZSloan : public TPZRenumbering {
  public:
 //  void Resequence(int * jj, int * jk, int n_nodes, int n_elements, int * nnn, int old_profile, int new_profile);
 //  void Resequence(int n_nodes, int n_elements, int *nnn,int *npn, int *xnpn, int old_profile, int new_profile);
@@ -52,6 +52,11 @@ class TPZSloan : TPZRenumbering {
   int fNElements;
 	
  public:
+   
+   TPZSloan(): TPZRenumbering(),
+            fNodeWeights(0), fElementGraph(0), fElementGraphIndex(0),fMaxNodesElement(27)
+   {
+   }
   TPZSloan(int NElements, int NNodes);
 
   virtual ~TPZSloan()
