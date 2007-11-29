@@ -55,7 +55,7 @@ class TPZTransfer : public TPZMatrix {
 
   /**multiplies the transfer matrix and puts the result in z*/
   void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-	       const REAL alpha,const REAL beta,const int opt = 0,const int stride = 1) ;
+	       const REAL alpha, REAL beta, int opt = 0, int stride = 1) const ;
 
   /**
    * Will transfer the solution, taking into acount there may be more than
@@ -69,8 +69,8 @@ class TPZTransfer : public TPZMatrix {
    */
   void TransferResidual(const TPZFMatrix &fine, TPZFMatrix &coarse);
 
-  void Multiply(const TPZFMatrix &A, TPZFMatrix&B,const int opt,
-		const int stride) ;
+  void Multiply(const TPZFMatrix &A, TPZFMatrix&B, int opt,
+		 int stride) const;
 
  private:
 
