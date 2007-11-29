@@ -40,7 +40,7 @@ libpz_a_LIBADD = ../Post/tpzgraphelt2dmapped.o \
 	../Material/pzeulerconslaw.o ../Material/pzincnskeps.o ../Material/pzl2projection.o \
 	../Material/pzmat1dlin.o ../Material/pzmat2dlin.o ../Material/pzmaterial.o \
 	../Material/pzmaterialdata.o ../Material/pzmaterialid.o ../Material/pzmathyperelastic.o \
-	../Material/pzmatorthotropic.o ../Material/pzmatplaca.o ../Material/pzmatplaca2.o \
+	../Material/pzmatorthotropic.o ../Material/pzmatplaca2.o \
 	../Material/pzmattest.o ../Material/pzmattest3d.o ../Material/pzmultplaca.o \
 	../Material/pznlmat1d.o ../Material/pznlmat1drotatedengstrain.o \
 	../Material/pznonlinbiharmonic.o ../Material/pznonlinearpoisson3d.o ../Material/pzplaca.o \
