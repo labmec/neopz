@@ -5,7 +5,7 @@
 #include "pzsmanal.h"
 #include "pzsubcmesh.h"
 #include "pzfmatrix.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzstrmatrix.h"
 #include "pzsolve.h"
 

@@ -5,7 +5,7 @@
 #include "pzsmfrontalanal.h"
 #include "pzsubcmesh.h"
 #include "pzfmatrix.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "TPZFrontStructMatrix.h"
 #include "pzstrmatrix.h"
 #include "pzsolve.h"
