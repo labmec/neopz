@@ -46,6 +46,7 @@ class TPZGeoElRefPattern : public TPZGeoElRefLess<TGeo>  {
     TPZAutoPointer<TPZRefPattern> fRefPattern;
 
 public:
+  typedef TGeo TGeoLoc;
   TPZGeoElRefPattern();
   ~TPZGeoElRefPattern();
   TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
