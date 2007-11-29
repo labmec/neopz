@@ -33,4 +33,4 @@ libpzmaterial_a_SOURCES = pzmaterialdata.cpp pzdiscgal.cpp eulerdif.cpp \
 	pznonlinearpoisson3d.cpp pzburger.cpp pzl2projection.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
-noinst_HEADERS = pzmaterialdata.h pzl2projection.h pzburger.h
+noinst_HEADERS = pzl2projection.h pzmaterialdata.h pzplaca2.h pzburger.h
