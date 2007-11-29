@@ -9,18 +9,28 @@ need to implement
 for implementing node sequence numbering optimization*/
 class TPZRenumbering {
 public:
+  
+  TPZRenumbering() : fNElements(0), fNNodes(0)
+  {
+  }
+  
   TPZRenumbering(int NElements, int NNodes);
   
   virtual ~TPZRenumbering()
   {
   }
 
+  void SetElementsNodes(int NElements, int NNodes)
+  {
+    this->fNElements = NElements;
+    this->fNNodes = NNodes;
+  }
   /**
    * This method declares the element graph to the object
    * The first vector contains the element node number
-   * The second vector contains the number of nodes of each element
+   * The second vector indexes into the first vector indicating the first index of each element
    */
-  virtual void SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &numelnodes) = 0;
+  virtual void SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex) = 0;
 
   /**
    * Sets the number of equations associated with each node
@@ -35,6 +45,9 @@ public:
    * amount of temporary data
    */
   virtual void ClearDataStructures() =0;
+  
+  virtual void Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)=0;
+
 
   /**
    * Will convert an element graph defined by elgraph and elgraphindex
