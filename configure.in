@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.58 2007-11-29 17:38:28 phil Exp $
+dnl $Id: configure.in,v 1.59 2007-11-29 23:44:56 phil Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -512,7 +512,7 @@ case "${boost_enabled}" in
     BOOSTINCLUDE="-I$boost_dir"
   ;;
   no)
-    BOOSTINCLUDE =""
+    BOOSTINCLUDE=""
   ;;
   *)
     AC_MSG_ERROR(bad value ${boost_enabled} for --enable-boost)
