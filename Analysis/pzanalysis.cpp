@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.36 2007-07-23 14:15:32 tiago Exp $
+//$Id: pzanalysis.cpp,v 1.37 2007-11-29 17:30:08 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -36,19 +36,27 @@
 static LoggerPtr logger(Logger::getLogger("pz.analysis"));
 #endif
 
+#ifdef USING_BOOST
+#include "TPZBoostGraph.h"
+#define RENUMBER TPZBoostGraph
+#else
+#define RENUMBER TPZSloan
+#endif
+
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
 
 using namespace std;
 
-
-
 void TPZAnalysis::SetStructuralMatrix(TPZStructMatrix &strmatrix){
-    if(fStructMatrix) delete fStructMatrix;
-    fStructMatrix = strmatrix.Clone();
+  fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix.Clone());
 }
-TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fTable() {
+
+void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix){
+    fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix->Clone());
+}
+TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER()), fTable() {
    fGraphMesh[0] = 0;
    fGraphMesh[1] = 0;
    fGraphMesh[2] = 0;
@@ -56,7 +64,7 @@ TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSo
 
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh,std::ostream &out) :
-    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fTable()
+    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER()),  fTable()
 {
   fGraphMesh[0] = 0;
   fGraphMesh[1] = 0;
@@ -65,7 +73,7 @@ TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh,std::ostream &out) :
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh,std::ostream &out) :
-    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fTable()
+    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0),fRenumber(new RENUMBER()),  fTable()
 {
   fGraphMesh[0] = 0;
   fGraphMesh[1] = 0;
@@ -91,7 +99,6 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh) {
 }
 
 TPZAnalysis::~TPZAnalysis(void){
-	if(fStructMatrix) delete fStructMatrix;
 	if(fSolver) delete fSolver;
 	int dim;
 	for(dim=0; dim<3; dim++) {
@@ -110,9 +117,21 @@ void TPZAnalysis::SetBlockNumber(){
 	int nindep = fCompMesh->NIndependentConnects();
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 	int nel = elgraphindex.NElements()-1;
-	TPZSloan sloan(nel,nindep);
-	sloan.SetElementGraph(elgraph,elgraphindex);
-	sloan.Resequence(perm,iperm);
+        int el,ncel = fCompMesh->NElements();
+        int maxelcon = 0;
+        for(el = 0; el<ncel; el++)
+        {
+          TPZCompEl *cel = fCompMesh->ElementVec()[el];
+          if(!cel) continue;
+          std::set<int> indepconlist,depconlist;
+          cel->BuildConnectList(indepconlist,depconlist);
+          int locnindep = indepconlist.size();
+          maxelcon = maxelcon < locnindep ? locnindep : maxelcon;
+        }
+        fRenumber->SetElementsNodes(nel,nindep);
+//	TPZSloan sloan(nel,nindep,maxelcon);
+        fRenumber->SetElementGraph(elgraph,elgraphindex);
+	fRenumber->Resequence(perm,iperm);
   	fCompMesh->Permute(perm);
 /*
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
@@ -130,7 +149,7 @@ void TPZAnalysis::Assemble()
   {
     std::stringstream sout;
     sout << "TPZAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh
-         << " fStructMatrix " << (void *) fStructMatrix
+         << " fStructMatrix " << (void *) fStructMatrix.operator->()
          << " fSolver " << (void *) fSolver;
 #ifndef WINDOWS
     sout << " at file " << __FILE__ << " line " << __LINE__ ;
