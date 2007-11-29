@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.64 2007-10-26 13:18:58 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.65 2007-11-29 18:19:28 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -28,14 +28,6 @@ class TPZMaterial;
 class TPZGeoEl;
 class TPZMatrix;
 class TPZCompMesh;
-class TPZGeoElC3d;
-class TPZGeoElT3d;
-class TPZGeoElPi3d;
-class TPZGeoElPr3d;
-class TPZGeoElT2d;
-class TPZGeoElQ2d;
-class TPZGeoEl1d;
-class TPZGeoElPoint;
 
 /// This class implements a discontinuous element (for use with discontinuous Galerkin)
 /**
