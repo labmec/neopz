@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.57 2007-07-31 23:14:41 tiago Exp $
+dnl $Id: configure.in,v 1.58 2007-11-29 17:38:28 phil Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -62,7 +62,7 @@ AC_TYPE_SIZE_T
 AC_TYPE_UID_T
 dnl AC_CHECK_SIZEOF(int *)
 
-dnl ----------------------------------------------------------------------------
+dnl ----------------------------------------------------------------------------void *
 dnl                          ARCHITECTURE SPECIFICS     
 dnl ----------------------------------------------------------------------------
 
@@ -393,7 +393,8 @@ case "${atlas_enabled}" in
     ATLASDIR=$atlas_dir
     ATLASINCLUDE="-I$ATLASDIR/../../include"
     ATLASLIBDIR="-L$ATLASDIR"
-    ATLASLIB="-lcblas -llapack -latlas"
+#    ATLASLIB="-lcblas -llapack -latlas"
+    ATLASLIB="-lcblas -latlas"
     LIBATLAS="$ATLASDIR/libcblas.a $ATLASDIR/liblapack.a $ATLASDIR/libatlas.a"
   ;;
   no)
@@ -470,6 +471,58 @@ AC_DEFINE_UNQUOTED([REFPATTERNINSTALLDIR],["[$prefix]/include/Refine/RefPattern"
 
 
 dnl ----------------------------------------------------------------------------
+dnl                              ENABLE BOOST
+dnl ----------------------------------------------------------------------------
+
+AC_ARG_ENABLE(boost,
+  [  --enable-boost=no Enables the use of BOOST [default=no]],
+  [boost_enabled=$enableval],
+  [boost_enabled="no"])
+
+case "${boost_enabled}" in
+  yes)
+    echo "Enabling BOOST code."
+    USING_BOOST="-DUSING_BOOST"
+  ;;
+  no)
+    echo "BOOST not chosen."
+    USING_BOOST=""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${boost_enabled} for --enable-boost)
+  ;;
+esac
+
+AM_CONDITIONAL( BOOST, test x${boost_enabled} = xyes )
+
+AC_SUBST(USING_BOOST)
+
+dnl ----------------------------------------------------------------------------
+dnl                               REFPAT LOCATION
+dnl ----------------------------------------------------------------------------
+
+dnl BOOST location
+AC_ARG_WITH(boost-dir,
+  [  --with-boost-dir=DIR    Root of BOOST instalation [/usr/local/boost]],
+  [boost_dir=$withval],
+  [boost_dir=${boost_dir=[/usr/local/boost]}])
+
+case "${boost_enabled}" in
+  yes)
+    BOOSTINCLUDE="-I$boost_dir"
+  ;;
+  no)
+    BOOSTINCLUDE =""
+  ;;
+  *)
+    AC_MSG_ERROR(bad value ${boost_enabled} for --enable-boost)
+  ;;
+esac
+
+AC_SUBST(BOOSTINCLUDE)
+
+
+dnl ----------------------------------------------------------------------------
 dnl                               PZ directories
 dnl ----------------------------------------------------------------------------
 AC_DEFINE_UNQUOTED([PZSOURCEDIR],["[$srcdir]"],[Define the pz source directory])
@@ -490,7 +543,17 @@ dnl ----------------------------------------------------------------------------
 dnl                              CONGRATULATIONS!
 dnl ----------------------------------------------------------------------------
 
-AC_OUTPUT([ Makefile PZ.mk PZ_user.mk PZ_pira.mk Projects/AltoDes/Makefile Util/Makefile Matrix/Makefile Cosys/Makefile Multigrid/Makefile Material/Makefile Post/Makefile Shape/Makefile Integral/Makefile Geom/Makefile Mesh/Makefile Refine/Makefile Topology/Makefile External/Makefile External/sloan/Makefile Analysis/Makefile Frontal/Makefile StrMatrix/Makefile Pre/Makefile Common/Makefile LinearSolvers/Makefile Save/Makefile lib/Makefile Projects/Makefile Projects/adaptivity/Makefile Projects/Test_RefPattern/Makefile Projects/Adapt_MultThread/Makefile Projects/termica/Makefile Projects/NonLinBiharmonic/Makefile Projects/Heman/Makefile Projects/testgeom/Makefile Projects/checkconv/Makefile Projects/HyperElasticityFAD/Makefile Projects/ConsLaw/Makefile Projects/Descontinuo2/Makefile Projects/testshape/Makefile Projects/testmat/Makefile Projects/viga3d/Makefile Projects/ReadTetGen/Makefile Projects/SingularShapeFunction/Makefile ])
+AC_OUTPUT([ Makefile PZ.mk PZ_user.mk PZ_pira.mk Projects/AltoDes/Makefile Util/Makefile Matrix/Makefile Cosys/Makefile Multigrid/Makefile Material/Makefile Post/Makefile Shape/Makefile Integral/Makefile Geom/Makefile Mesh/Makefile Refine/Makefile Topology/Makefile External/Makefile External/sloan/Makefile Analysis/Makefile Frontal/Makefile StrMatrix/Makefile Pre/Makefile Common/Makefile LinearSolvers/Makefile Save/Makefile lib/Makefile Projects/Makefile \
+Projects/angletest/Makefile Projects/cylin/Makefile Projects/materialhyperelastico/Makefile \
+Projects/matrix/Makefile Projects/multplaca/Makefile Projects/teste/Makefile \
+Projects/testeisotropia/Makefile Projects/descontinuo/Makefile \
+Projects/Test_RefPattern/Makefile Projects/CursoPZ/Makefile \
+Projects/CursoPZ/Class_1/Makefile Projects/CursoPZ/Class_2/Makefile Projects/CursoPZ/Class_3/Makefile Projects/CursoPZ/Class_4/Makefile Projects/CursoPZ/Class_5/Makefile \
+Projects/DiffusionTest/Makefile Projects/Error/Makefile Projects/visualmatrix/Makefile Projects/Bench/Makefile \
+Projects/LuisGuilherme/Makefile \
+Projects/termica/Makefile Projects/NonLinBiharmonic/Makefile Projects/Heman/Makefile Projects/testgeom/Makefile \
+Projects/checkconv/Makefile Projects/HyperElasticityFAD/Makefile Projects/ConsLaw/Makefile Projects/Descontinuo2/Makefile \
+Projects/testshape/Makefile Projects/testmat/Makefile Projects/viga3d/Makefile Projects/ReadTetGen/Makefile ])
 
 PZ_BYEBYE
 
