@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.40 2007-06-24 19:05:37 phil Exp $
+//$Id: pzcompel.cpp,v 1.41 2007-11-29 18:16:17 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -406,6 +406,15 @@ void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<REAL> &sol){
     }
   } else {
     sol.Resize(0);
+  }
+}
+
+void TPZCompEl::BuildConnectList(std::set<int> &indepconnectlist,
+                                std::set<int> &depconnectlist) {
+  const int ncon = this->NConnects();
+  for(int i = 0; i < ncon; i++) {
+    int conind = ConnectIndex(i);
+    Connect(i).BuildConnectList(conind, indepconnectlist,depconnectlist,*Mesh());
   }
 }
 

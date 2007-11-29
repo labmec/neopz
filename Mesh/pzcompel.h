@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.39 2007-10-26 13:18:58 tiago Exp $
+// $Id: pzcompel.h,v 1.40 2007-11-29 18:15:28 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -44,7 +44,7 @@ class TPZTransform;
 class TPZTransfer;
 #include "pzeltype.h"
 
-
+#include <set>
 
 /**
  * @brief Class TPZCompEl defines the interface of a computational element
@@ -472,6 +472,15 @@ public:
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
                                const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol) = 0;
 
+  /**
+   * Builds the list of all connectivities related to the element including the
+   * connects pointed to by dependent connects
+   * Note : this method does not reset the set to zero. The calling
+   * method should do this
+   * @param indepconnectlist set of independent connect indices
+   * @param depconnectlist set of dependent connect indices
+   */
+  virtual void BuildConnectList(std::set<int> &indepconnectlist, std::set<int> &depconnectlist);
   /**
    * Builds the list of all connectivities related to the element including the
    * connects pointed to by dependent connects

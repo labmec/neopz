@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.20 2007-10-17 19:20:59 joao Exp $
+//$Id: pzconnect.cpp,v 1.21 2007-11-29 18:16:47 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -504,6 +504,24 @@ void TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<int,int>& gl2lcIdx
     }
   }
 }
+
+void TPZConnect::BuildConnectList(int index, std::set<int> &indepconnectlist, std::set<int> &depconnectlist, TPZCompMesh &mesh){
+  if(fDependList)
+  {
+    depconnectlist.insert(index);
+    TPZDepend *dep = fDependList;
+    while(dep)
+    {
+      TPZConnect &master = mesh.ConnectVec()[dep->fDepConnectIndex];
+      master.BuildConnectList(dep->fDepConnectIndex,indepconnectlist,depconnectlist,mesh);
+      dep = dep->fNext;
+    }
+  }
+  else
+  {
+    indepconnectlist.insert(index);
+  }
+}//void
 
 void TPZConnect::BuildConnectList(TPZStack<int> &connectlist, TPZVec<int> &ConnectIndex, TPZCompMesh &mesh){
   TPZConnect *dfn;

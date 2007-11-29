@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.14 2007-07-10 23:10:58 cesar Exp $
+//$Id: pzconnect.h,v 1.15 2007-11-29 18:16:47 phil Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -9,6 +9,7 @@
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include <iostream>
+#include <set>
 
 
 class TPZBndCond;
@@ -168,6 +169,18 @@ class TPZConnect {
    * @param gl2lcIdx global to local indexes map
    */
   void CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx);
+
+  /**
+   * Builds the list of all connectivities related to ConnectIndex including the
+   * connects pointed to by dependent connects
+   * Note : this method does not reset the stack to zero. The calling
+   * method should do this
+   * @param index [in] index of the current connect
+   * @param indepconnectlist [out] set which contains the indices of independent connects
+   * @param depconnectlist [out] set which contains the indices of dependent connects
+   * @param mesh [in]
+   */
+  void BuildConnectList(int index, std::set<int> &indepconnectlist, std::set<int> &depconnectlist, TPZCompMesh &mesh);
 
   /**
    * Builds the list of all connectivities related to ConnectIndex including the
