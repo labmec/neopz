@@ -16,7 +16,7 @@ MBLE NODE ADJACENCY LIST\002,//,1x,\002CHECK NPN AND XNPN ARRAYS\002)";
  /* System generated locals */
     int     i__1, i__2, i__3, i__4;
  /* Local variables */
-    static int i, j, k, l, m, nodej, nodek, jstop, lstop, mstop, jstrt, jrtst, lstrt, mstrt, nen1;
+    int i, j, k, l, m, nodej, nodek, jstop, lstop, mstop, jstrt, jrtst, lstrt, mstrt, nen1;
 
 
 /*     PURPOSE: */
