@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.62 2007-10-26 13:18:59 tiago Exp $
+// $Id: pzintel.cpp,v 1.63 2007-11-29 18:14:15 phil Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -14,7 +14,7 @@
 #include "pzquad.h"
 #include "pzelmat.h"
 #include "pzmat1dlin.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "time.h"
 #include "pzmanvector.h"
 #include "pzblockdiag.h"

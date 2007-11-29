@@ -5,7 +5,7 @@
 
 Contains the methods definition for (abstract) base class TPZGeoEl.
 */
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzgeoel.h"
 #include "pzcompel.h"
 #include "pzgmesh.h"
