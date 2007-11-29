@@ -71,6 +71,13 @@ void TPZConservationLaw::ContributeBC(TPZMaterialData &data,
   cout << "TPZConservationLaw::ContributeBC this metod does not have to be called\n";
 }
 
+void TPZConservationLaw::ContributeInterface(TPZMaterialData &data,
+                                   REAL weight, 
+                                   TPZFMatrix &ek,
+                                   TPZFMatrix &ef)
+{
+  cout << __PRETTY_FUNCTION__ << " this metod should not be called\n";
+}
 /** returns the variable index associated with the name*/
 int TPZConservationLaw::VariableIndex(char *name){
 
