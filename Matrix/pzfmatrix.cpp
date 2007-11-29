@@ -19,7 +19,7 @@
 #endif
 
 #include "pzfmatrix.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzvec.h"
 #include "pzerror.h"
 
@@ -110,7 +110,7 @@ TPZFMatrix::TPZFMatrix (const TPZFMatrix & A)
 
 /******************/
 /*** Operator = ***/
-
+/*
 TPZFMatrix &TPZFMatrix::operator=( TPZTempFMatrix Atemp ) {
 	TPZFMatrix &A = Atemp.Object();
 	if(this == &A) return *this;
@@ -138,11 +138,12 @@ TPZFMatrix &TPZFMatrix::operator=( TPZTempFMatrix Atemp ) {
 
 	 return *this;
 }
-
+*/
 /******************/
 /*** Operator = ***/
 
-TPZFMatrix::TPZFMatrix( TPZTempFMatrix Atemp ) : fGiven(Atemp.Object().fGiven) {
+/*
+  TPZFMatrix::TPZFMatrix( TPZTempFMatrix Atemp ) : fGiven(Atemp.Object().fGiven) {
 	TPZFMatrix &A = Atemp.Object();
 
 	 fRow  = A.fRow;
@@ -160,7 +161,7 @@ TPZFMatrix::TPZFMatrix( TPZTempFMatrix Atemp ) : fGiven(Atemp.Object().fGiven) {
     A.fSize = 0;
 
 }
-
+*/
 TPZFMatrix &TPZFMatrix::operator=(const TPZFMatrix &A ) {
 	if(this == &A) return *this;
 	 long size = A.fRow * A.fCol;
@@ -216,16 +217,16 @@ void TPZFMatrix::AddFel(TPZFMatrix &rhs,TPZVec<int> &source, TPZVec<int> &destin
 /*******************************/
 /*** Operator+( TPZFMatrix & ) ***/
 
-TPZTempFMatrix TPZFMatrix::operator+(const TPZFMatrix &A ) const {
+TPZFMatrix TPZFMatrix::operator+(const TPZFMatrix &A ) const {
 	 if ( (A.Rows() != Rows())  ||  (A.Cols() != Cols()) )
 		  Error( "Operator+ <matrixs with different dimensions>" );
 
-  TPZTempFMatrix res;
-  res.Object().Redim( Rows(), Cols() );
+  TPZFMatrix res;
+  res.Redim( Rows(), Cols() );
   long size = ((long)Rows()) * Cols();
   REAL * pm = fElem, *plast = fElem+size;
   REAL * pa = A.fElem;
-  REAL * pr = res.Object().fElem;
+  REAL * pr = res.fElem;
 
   while(pm < plast) *pr++ = (*pm++) + (*pa++);
 
@@ -237,16 +238,16 @@ TPZTempFMatrix TPZFMatrix::operator+(const TPZFMatrix &A ) const {
 /*******************************/
 /*** Operator-( TPZFMatrix & ) ***/
 
-TPZTempFMatrix TPZFMatrix::operator-(const TPZFMatrix &A ) const {
+TPZFMatrix TPZFMatrix::operator-(const TPZFMatrix &A ) const {
 	 if ( (A.Rows() != Rows())  ||  (A.Cols() != Cols()) )
 		  Error( "Operator- <matrixs with different dimensions>" );
 
-	 TPZTempFMatrix res;
-    res.Object().Redim( Rows(), Cols() );
+	 TPZFMatrix res;
+    res.Redim( Rows(), Cols() );
 	 long size = ((long)Rows()) * Cols();
 	 REAL * pm = fElem;
 	 REAL * pa = A.fElem;
-	 REAL * pr = res.Object().fElem, *prlast =pr+size;
+	 REAL * pr = res.fElem, *prlast =pr+size;
 
 	 while(pr < prlast) *pr++ = (*pm++) - (*pa++);
 	 return( res );
@@ -317,8 +318,8 @@ void TPZFMatrix::ConstMultiply(const TPZFMatrix & x,TPZFMatrix & B,const int opt
   }
 }//void
 
-void TPZFMatrix::MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha,const REAL beta ,const int opt ,const int stride)
+void TPZFMatrix::MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+                         const REAL alpha,const REAL beta ,const int opt ,const int stride) 
 {
   if ((!opt && cols*stride != x.Rows()) || (opt && rows*stride != x.Rows())) {
     Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
@@ -346,18 +347,18 @@ void TPZFMatrix::MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,con
     if(beta != 0.) {
       const REAL *yp = &y.g(0,ic);
       if(beta != 1. || (&z != &y && stride != 1)) {
-	while(zp < zlast) {
-	  *zp = beta * (*yp);
-	  zp += stride;
-	  yp += stride;
-	}
+        while(zp < zlast) {
+          *zp = beta * (*yp);
+          zp += stride;
+          yp += stride;
+        }
       } else if(&z != &y) {
-	memcpy(zp,yp,numeq*sizeof(REAL));
+        memcpy(zp,yp,numeq*sizeof(REAL));
       }
     } else {
       while(zp != zlast) {
-	*zp = 0.;
-	zp += stride;
+        *zp = 0.;
+        zp += stride;
       }
     }
   }
@@ -366,36 +367,37 @@ void TPZFMatrix::MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,con
   for (ic = 0; ic < xcols; ic++) {
     if(!opt) {
       for ( c = 0; c<cols; c++) {
-	REAL * zp = &z(0,ic), *zlast = zp+rows*stride;
-	const REAL * fp = ptr +rows*c;
-	const REAL * xp = &x.g(c*stride,ic);
-	while(zp < zlast) {
-	  *zp += alpha* *fp++ * *xp;
-	  zp += stride;
-	}
+        REAL * zp = &z(0,ic), *zlast = zp+rows*stride;
+        const REAL * fp = ptr +rows*c;
+        const REAL * xp = &x.g(c*stride,ic);
+        while(zp < zlast) {
+          *zp += alpha* *fp++ * *xp;
+          zp += stride;
+        }
       }
     } else {
       const REAL * fp = ptr;
       REAL *zp = &z(0,ic);
       for (c = 0; c<cols; c++) {
-	REAL val = 0.;
+        REAL val = 0.;
 	// bug correction philippe 5/2/97
 	//					 REAL * xp = &x(0,ic), xlast = xp + numeq*stride;
-	const REAL *xp = &x.g(0,ic);
-	const REAL *xlast = xp + rows*stride;
-	while(xp < xlast) {
-	  val += *fp++ * *xp;
-	  xp += stride;
-	}
-	*zp += alpha *val;
-	zp += stride;
+        const REAL *xp = &x.g(0,ic);
+        const REAL *xlast = xp + rows*stride;
+        while(xp < xlast) {
+          val += *fp++ * *xp;
+          xp += stride;
+        }
+        *zp += alpha *val;
+        zp += stride;
       }
     }
   }
 }
 
+
 void TPZFMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-			 const REAL alpha,const REAL beta,const int opt,const int stride) {
+			 const REAL alpha,const REAL beta,const int opt,const int stride) const {
   if ((!opt && Cols()*stride != x.Rows()) || (opt && Rows()*stride != x.Rows())) {
     Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
     return;
@@ -469,19 +471,6 @@ void TPZFMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
       }
     }
   }
-}
-
-
-/*******************************/
-/*** Operator*( TPZFMatrix & ) ***/
-
-TPZTempFMatrix TPZFMatrix::operator*( TPZFMatrix &A ) {
-	 if ( Cols() != A.Rows() )
-		  Error( "Operator* <matrixs with incompatible dimensions>" );
-	 TPZTempFMatrix res;
-    res.Object().Redim( Rows(), A.Cols() );
-	 MultAdd(A,A,res.Object(),1.,0.,0);
-	 return( res );
 }
 
 
@@ -591,15 +580,15 @@ TPZFMatrix &TPZFMatrix::operator=(const TPZMatrix &A ) {
 
 /******************/
 /*** Operator + ***/
-
-TPZTempFMatrix TPZFMatrix::operator+(const TPZMatrix &A ) const {
+/*
+TPZFMatrix TPZFMatrix::operator+(const TPZMatrix &A ) const {
 	 if ( (Rows() != A.Rows()) || (Cols() != A.Cols()) )
 		  Error( "Operator+ (TPZMatrix &) <different dimensions>" );
 
-	 TPZTempFMatrix res;
-    res.Object().Redim( Rows(), Cols() );
+	 TPZFMatrix res;
+    res.Redim( Rows(), Cols() );
 	 REAL * src = fElem;
-	 REAL * dst = res.Object().fElem;
+	 REAL * dst = res.fElem;
 	 long row = Rows();
 	 long col = Cols();
 	 for ( int c = 0; c < col; c++ )
@@ -608,41 +597,41 @@ TPZTempFMatrix TPZFMatrix::operator+(const TPZMatrix &A ) const {
 
 	 return( res );
 }
-
+*/
 
 
 /******************/
 /*** Operator - ***/
-
-TPZTempFMatrix TPZFMatrix::operator-(const TPZMatrix &A ) const {
+/*
+TPZFMatrix TPZFMatrix::operator-(const TPZMatrix &A ) const {
 	 if ( (Rows() != A.Rows()) || (Cols() != A.Cols()) )
 		  Error( "Operator+ (TPZMatrix &) <different dimensions>" );
 
-	 TPZTempFMatrix res(*this);
-	 res.Object() -= A;
+	 TPZFMatrix res(*this);
+	 res -= A;
 	 return( res );
 }
-
+*/
 
 
 /******************/
 /*** Operator * ***/
-
-TPZTempFMatrix TPZFMatrix::operator*( TPZMatrix &A )  {
+/*
+TPZFMatrix TPZFMatrix::operator*(const TPZMatrix &A ) const {
 
 	 if ( Cols() != A.Rows() )
 		  Error( "Operator* (TPZMatrix &) <incompatible dimensions>" );
 
 
-	 TPZTempFMatrix res;
-    res.Object().Redim( Rows(), A.Cols() );
+	 TPZFMatrix res;
+    res.Redim( Rows(), A.Cols() );
 
 	 int     r,c,i,
 				acols=A.Cols(),
 				rows=Rows(),
 				cols=Cols();
 
-	 REAL * pr = res.Object().fElem, /*Percorre os elementos da matriz 'res'*/
+	 REAL * pr = res.fElem, 
 				*pm,
 				*pm_aux;
 
@@ -662,12 +651,12 @@ TPZTempFMatrix TPZFMatrix::operator*( TPZMatrix &A )  {
 
 	 return( res );
 }
-
+*/
 
 
 /*******************/
 /*** Operator += ***/
-
+/*
 TPZFMatrix &TPZFMatrix::operator+=(const TPZMatrix &A ) {
 	 if ( (Rows() != A.Rows()) || (Cols() != A.Cols()) )
 		  Error( "Operator+ (TPZMatrix &) <different dimensions>" );
@@ -681,12 +670,12 @@ TPZFMatrix &TPZFMatrix::operator+=(const TPZMatrix &A ) {
 
 	 return( *this );
 }
-
+*/
 
 
 /*******************/
 /*** Operator -= ***/
-
+/*
 TPZFMatrix &TPZFMatrix::operator-=(const TPZMatrix &A ) {
 	 if ( (Rows() != A.Rows()) || (Cols() != A.Cols()) )
 		  Error( "Operator+ (TPZMatrix &) <different dimensions>" );
@@ -700,7 +689,7 @@ TPZFMatrix &TPZFMatrix::operator-=(const TPZMatrix &A ) {
 
 	 return( *this );
 }
-
+*/
 
 
 /******** Operacoes com valores NUMERICOS ********/
@@ -735,18 +724,18 @@ TPZFMatrix &TPZFMatrix::operator+=(const REAL value ) {
 /**************************/
 /*** Operator+( value ) ***/
 
-TPZTempFMatrix TPZFMatrix::operator+(const REAL value ) const {
-	 TPZTempFMatrix res( *this );
+TPZFMatrix TPZFMatrix::operator+(const REAL value ) const {
+	 TPZFMatrix res( *this );
 	 long size = ((long)Rows()) * Cols();
 
-	 REAL * dst = res.Object().fElem,  *dstlast = dst+size;
+	 REAL * dst = res.fElem,  *dstlast = dst+size;
 	 while ( dst < dstlast )
 		  *dst++ += value;
 
 	 return( res );
 }
 
-TPZTempFMatrix TPZFMatrix::operator-  (const REAL val ) const {
+TPZFMatrix TPZFMatrix::operator-  (const REAL val ) const {
 	return operator+( -val ); 
 }
 
@@ -754,11 +743,11 @@ TPZTempFMatrix TPZFMatrix::operator-  (const REAL val ) const {
 /**************************/
 /*** Operator*( value ) ***/
 
-TPZTempFMatrix
+TPZFMatrix
 TPZFMatrix::operator*(const REAL value ) const
 {
-	 TPZTempFMatrix res( *this );
-	 res.Object() *= value;
+	 TPZFMatrix res( *this );
+	 res *= value;
 	 return( res );
 }
 
@@ -1288,23 +1277,23 @@ REAL Dot(const TPZFMatrix &A, const TPZFMatrix &B) {
 #endif
 }
 
-TPZTempFMatrix operator+(const REAL value, const TPZFMatrix &A ) {
+TPZFMatrix operator+(const REAL value, const TPZFMatrix &A ) {
 	 return( A + value );
 }
 
 
 
-TPZTempFMatrix operator-(const REAL value, const TPZFMatrix &A ) {
+TPZFMatrix operator-(const REAL value, const TPZFMatrix &A ) {
 	 return( A - value );
 }
 
 
 
 
-TPZTempFMatrix operator*(const REAL value, const TPZFMatrix &A ) {
+/*TPZTempFMatrix operator*(const REAL value, const TPZFMatrix &A ) {
 	 return( A * value );
 }
-
+*/
 
 
 /************************** Private **************************/

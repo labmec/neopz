@@ -28,7 +28,7 @@
 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzsolve.h"
 #include "pzvec.h"
 
@@ -50,24 +50,6 @@ using namespace std;
 
 REAL TPZMatrix::gZero = 0.;
 
-/******************/
-/***  Multiply ***/
-void TPZMatrix::Multiply(const TPZFMatrix &A, TPZFMatrix&B,const int opt,const int stride) {
-  if (opt==0 && Cols()*stride != A.Rows() || opt ==1 && Rows()*stride != A.Rows())
-    Error( "Multiply (TPZMatrix &,TPZMatrix&) <incompatible dimensions>" );
-//   if(opt == 0) {
-//     B.Redim(Rows()*stride, A.Cols() );
-//   } else {
-//     B.Redim(Cols()*stride, A.Cols() );
-//   }
-	if(!opt && (B.Rows() != Cols()*stride || B.Cols() != A.Cols())) {
-		B.Redim(Cols()*stride,A.Cols());
-	}
-	else if (opt && (B.Rows() != Rows()*stride || B.Cols() != A.Cols())) {
-		B.Redim(Rows()*stride,A.Cols());
-	}
-  MultAdd( A, B, B, 1.0, 0.0, opt,stride);
-}
 
 void
 TPZMatrix::Add(const TPZMatrix &A,TPZMatrix&B) const {
@@ -95,10 +77,10 @@ void TPZMatrix::Substract(const TPZMatrix &A,TPZMatrix &result) const {
     }
 }
 
-TPZTempFMatrix operator+(const TPZMatrix &A, const TPZMatrix &B ) {
-	TPZTempFMatrix temp;
-    temp.Object().Redim( A.Rows(), A.Cols() );
-    A.Add(B,temp.Object());
+TPZFMatrix operator+(const TPZMatrix &A, const TPZMatrix &B ) {
+	TPZFMatrix temp;
+    temp.Redim( A.Rows(), A.Cols() );
+    A.Add(B,temp);
     return temp;
 }
 
@@ -108,9 +90,9 @@ TPZTempFMatrix operator+(const TPZMatrix &A, const TPZMatrix &B ) {
 /******************/
 /*** Operator - ***/
 
-TPZTempFMatrix operator-(const TPZMatrix &A, const TPZMatrix &B ) {
-	TPZTempFMatrix temp;
-    TPZFMatrix &res = temp.Object();
+TPZFMatrix operator-(const TPZMatrix &A, const TPZMatrix &B ) {
+	TPZFMatrix temp;
+    TPZFMatrix res;
     res.Redim( A.Rows(), A.Cols() );
     A.Substract(B,res);
     return temp;
@@ -121,12 +103,11 @@ TPZTempFMatrix operator-(const TPZMatrix &A, const TPZMatrix &B ) {
 /******************/
 /*** Operator * ***/
 
-TPZTempFMatrix operator*( TPZMatrix &A, const TPZFMatrix &B ) {
-	TPZTempFMatrix temp;
-    TPZFMatrix &res = temp.Object();
+TPZFMatrix operator*( TPZMatrix &A, const TPZFMatrix &B ) {
+    TPZFMatrix res;
     res.Redim( A.Rows(), B.Cols() );
 	A.Multiply(B,res);
-	 return temp;
+	 return res;
 }
 
 void TPZMatrix::PrepareZ(const TPZFMatrix &y, TPZFMatrix &z,const REAL beta,const int opt,const int stride) const
@@ -134,6 +115,7 @@ void TPZMatrix::PrepareZ(const TPZFMatrix &y, TPZFMatrix &z,const REAL beta,cons
   int numeq = (opt) ? Cols()*stride : Rows()*stride;
   int xcols = y.Cols();
   int ic;
+  if(!z.Rows()) return;
   for (ic = 0; ic < xcols; ic++) 
   {
     REAL *zp = &z(0,ic), *zlast = zp+numeq;
@@ -163,8 +145,7 @@ void TPZMatrix::PrepareZ(const TPZFMatrix &y, TPZFMatrix &z,const REAL beta,cons
   }
 }
 
-void TPZMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-								  const REAL alpha,const REAL beta,const int opt,const int stride) {
+void TPZMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z, const REAL alpha,const REAL beta,const int opt,const int stride) const {
 	 if ((!opt && Cols() != x.Rows()*stride) || Rows() != x.Rows()*stride)
 		  Error( "Operator* <matrixs with incompatible dimensions>" );
 	 if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
@@ -705,7 +686,7 @@ void TPZMatrix::SolveBICG(int &numiterations, TPZSolver &preconditioner,
 						const TPZFMatrix &F,
 					        TPZFMatrix &result,
 						 REAL &tol)  {
-	BiCG(*this,result,F,preconditioner,numiterations,tol);
+	BiCG<TPZMatrix,TPZFMatrix,TPZSolver,REAL>(*this,result,F,preconditioner,numiterations,tol);
 }
 
 #include "ir.h"
@@ -1350,20 +1331,22 @@ REAL TPZMatrix::ConditionNumber(int p, int numiter, REAL tol){
   return thisnorm * invnorm;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void TPZMatrix::Multiply(const TPZFMatrix &A, TPZFMatrix&B, int opt, int stride) const {
+  if (opt==0 && Cols()*stride != A.Rows() || opt ==1 && Rows()*stride != A.Rows())
+    Error( "Multiply (TPZMatrix &,TPZMatrix&) <incompatible dimensions>" );
+//   if(opt == 0) {
+//     B.Redim(Rows()*stride, A.Cols() );
+//   } else {
+//     B.Redim(Cols()*stride, A.Cols() );
+//   }
+  if(!opt && (B.Rows() != Cols()*stride || B.Cols() != A.Cols())) {
+    B.Redim(Cols()*stride,A.Cols());
+  }
+  else if (opt && (B.Rows() != Rows()*stride || B.Cols() != A.Cols())) {
+    B.Redim(Rows()*stride,A.Cols());
+  }
+  MultAdd( A, B, B, 1.0, 0.0, opt,stride);
+}
 
 
 

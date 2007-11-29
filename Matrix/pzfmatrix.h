@@ -40,7 +40,7 @@
 
 /******************************/
 
-class TPZTempFMatrix;
+
 template <class T>
 class TPZVec;
 /**
@@ -91,7 +91,7 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
   /**
      Constructor that uses a temporary matrix
   */
-  TPZFMatrix(TPZTempFMatrix);
+//  TPZFMatrix(TPZTempFMatrix);
   /**
      Simple destructor
   */
@@ -124,9 +124,9 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
   void ConstMultiply(const TPZFMatrix & x,TPZFMatrix & B,const int opt = 0) const;
 
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) ;
+		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const ;
 
-static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+static void MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 );
 
   //@{
@@ -145,11 +145,11 @@ static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TP
      Generic operator with FULL matrices
   */
   TPZFMatrix &operator= (const TPZFMatrix &A );
-  TPZFMatrix &operator= ( TPZTempFMatrix A);
-  TPZTempFMatrix operator+  (const TPZFMatrix &A ) const;
+  //TPZFMatrix &operator= ( TPZTempFMatrix A);
+  TPZFMatrix operator+  (const TPZFMatrix &A ) const;
   //TPZTempFMatrix operator+ (TPZTempFMatrix A);
-  TPZTempFMatrix operator-  (const TPZFMatrix &A ) const;
-  TPZTempFMatrix operator*  ( TPZFMatrix &A ) ;
+  TPZFMatrix operator-  (const TPZFMatrix &A ) const;
+  TPZFMatrix operator*  ( TPZFMatrix A ) const ;
   TPZFMatrix &operator+=(const TPZFMatrix &A );
   //    TPZFMatrix &operator+=(TPZTempFMatrix A );
   TPZFMatrix &operator-=(const TPZFMatrix &A );
@@ -177,11 +177,11 @@ static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TP
      Generic operator with matrices
   */
   TPZFMatrix &operator= (const TPZMatrix &A );
-  TPZTempFMatrix operator+  (const TPZMatrix &A ) const;
-  TPZTempFMatrix operator-  (const TPZMatrix &A ) const;
-  TPZTempFMatrix operator*  ( TPZMatrix &A );
-  TPZFMatrix &operator+=(const TPZMatrix &A );
-  TPZFMatrix &operator-=(const TPZMatrix &A );
+//  TPZFMatrix operator+  (const TPZMatrix &A ) const;
+//  TPZFMatrix operator-  (const TPZMatrix &A ) const;
+//  TPZFMatrix operator*  (const TPZMatrix &A ) const;
+//  TPZFMatrix &operator+=(const TPZMatrix &A );
+//  TPZFMatrix &operator-=(const TPZMatrix &A );
   //@}
   // Operations with values NUMERICOS.
 
@@ -194,14 +194,14 @@ static void MultAdd( REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TP
      Numeric operator with matrices
   */
   TPZFMatrix &operator= (const REAL val );
-  TPZTempFMatrix operator+  (const REAL val ) const;
-  TPZTempFMatrix operator-  (const REAL val ) const;// { return operator+( -val ); }
-  TPZTempFMatrix operator*  (const REAL val ) const;
+  TPZFMatrix operator+  (const REAL val ) const;
+  TPZFMatrix operator-  (const REAL val ) const;// { return operator+( -val ); }
+  TPZFMatrix operator*  (const REAL val ) const;
   TPZFMatrix &operator+=(const REAL val );
   TPZFMatrix &operator-=(const REAL val )  { return operator+=( -val ); }
   TPZFMatrix &operator*=(const REAL val );
 
-  TPZTempFMatrix operator-() const;// { return operator*( -1.0 ); }
+  TPZFMatrix operator-() const;// { return operator*( -1.0 ); }
   //@}
   //  void Input( istream & in = cin );
 
@@ -302,6 +302,24 @@ inline TPZFMatrix::TPZFMatrix(const int rows,const int cols,const REAL & val )
 	 if ( fElem == NULL && size) Error( "Constructor <memory allocation error>." );
 #endif
 	 for(int i=0;i<size;i++) fElem[i] = val;
+}
+
+inline TPZFMatrix operator*(REAL val, const TPZFMatrix &A)
+{
+  return A*val;
+}
+
+
+/*******************************/
+/*** Operator*( TPZFMatrix & ) ***/
+
+inline TPZFMatrix TPZFMatrix::operator*( TPZFMatrix A ) const {
+  if ( Cols() != A.Rows() )
+    Error( "Operator* <matrixs with incompatible dimensions>" );
+  TPZFMatrix res;
+  res.Redim( Rows(), A.Cols() );
+  MultAdd(A,A,res,1.,0.,0);
+  return( res );
 }
 
 /**
@@ -478,6 +496,7 @@ inline int TPZFMatrix::Zero() {
 inline REAL Norm(const TPZFMatrix &A) {
   return sqrt(Dot(A,A));
 }
+
 
 
 #endif
