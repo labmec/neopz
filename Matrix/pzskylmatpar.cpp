@@ -60,6 +60,11 @@ TPZSkylParMatrix::TPZSkylParMatrix(const int dim, const TPZVec<int> &skyline,int
   fEqDec = -1;
 }
 
+TPZSkylParMatrix::TPZSkylParMatrix(const TPZSkylParMatrix &copy) : TPZSkylMatrix(copy), fDec(copy.fDec),fSkyline(copy.fSkyline),fEqDec(copy.fEqDec),
+        fNthreads(copy.fNthreads),fThreadUsed(0)
+{
+}
+
 TPZSkylParMatrix::TPZSkylParMatrix()
   : TPZSkylMatrix(),fDec(0)
 {
@@ -78,9 +83,11 @@ TPZSkylParMatrix::~TPZSkylParMatrix() {
 
 void TPZSkylParMatrix::SetSkyline(const TPZVec<int> &skyline)
 {
+  fSkyline = skyline;
   int i,neq=Dim();
   for(i=0;i<neq;i++) fDec[i]=skyline[i]-1;
   fEqDec=-1;
+  TPZSkylMatrix::SetSkyline(skyline);
 }
 
 void TPZSkylParMatrix::PrintState() {

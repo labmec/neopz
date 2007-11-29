@@ -76,7 +76,7 @@ class TPZSkylMatrix : public TPZMatrix
   REAL &operator()(const int row);
 
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha,const REAL beta ,const int opt = 0,const int stride = 1 ) ;
+		       const REAL alpha,const REAL beta ,const int opt = 0,const int stride = 1 ) const ;
   // Operadores com matrizes SKY LINE.
   TPZSkylMatrix &operator= (const TPZSkylMatrix &A );
   //TPZSkylMatrix &operator= (TTempMat<TPZSkylMatrix> A);
@@ -94,11 +94,11 @@ class TPZSkylMatrix : public TPZMatrix
   TPZSkylMatrix operator-() const;// { return operator*(-1.0); }
 
   // Redimensiona a matriz, mas mantem seus elementos.
-  // o segundo parametro é o tamanho das colunas
+  // o segundo parametro ï¿½ o tamanho das colunas
   int Resize(const int newDim ,const int );
 
   // Redimensiona a matriz e ZERA seus elementos.
-  // o segundo parametro é o tamanho das colunas
+  // o segundo parametro ï¿½ o tamanho das colunas
   int Redim(const int newDim ,const int );
   int Redim(const int newDim) {return Redim(newDim,newDim);}
 

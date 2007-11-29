@@ -75,6 +75,11 @@ TPZSkylMatrix::TPZSkylMatrix(const int dim, const TPZVec<int> &skyline )
   InitializeElem(skyline,fStorage,fElem);
 }
 
+void TPZSkylMatrix::SetSkyline(const TPZVec<int> &skyline)
+{
+  fElem.Fill(0);
+  InitializeElem(skyline,fStorage,fElem);
+}
 int TPZSkylMatrix::NumElements(const TPZVec<int> &skyline) {
   int dim = skyline.NElements();
   int i,nelem=0;
@@ -170,7 +175,7 @@ TPZSkylMatrix::PutVal(const int r,const int c,const REAL & value )
 }
 
 void TPZSkylMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-			    const REAL alpha,const REAL beta ,const int opt,const int stride )  {
+			    const REAL alpha,const REAL beta ,const int opt,const int stride ) const {
   // Computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
   if ((!opt && Cols()*stride != x.Rows()) || Rows()*stride != x.Rows())
@@ -672,7 +677,7 @@ TPZSkylMatrix::Decompose_Cholesky(std::list<int> &singular)
     }
   }
 
-  if((GetVal(Rows()-1,Rows()-1)) < 1.e-15)
+  if(Rows() && (GetVal(Rows()-1,Rows()-1)) < 1.e-15)
   {
     singular.push_back(Rows()-1);
     PutVal(Rows()-1,Rows()-1,1.);
@@ -1033,8 +1038,10 @@ TPZSkylMatrix::Copy(const TPZSkylMatrix &A )
   fElem.Resize(A.fElem.NElements());
   fStorage = A.fStorage;
   int i;
+  REAL *firstp = 0;
+  if(fStorage.NElements()) firstp = &fStorage[0];
   for(i=0; i<=dimension; i++)
-    fElem[i]=&fStorage[0]+(A.fElem[i]-A.fElem[0]);
+    fElem[i]=firstp+(A.fElem[i]-A.fElem[0]);
   fDecomposed  = A.fDecomposed;
   fDefPositive = A.fDefPositive;
  

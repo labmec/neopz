@@ -39,7 +39,7 @@ class TPZStencilMatrix : public TPZMatrix {
   // Get the matrix entry at (row,col) without bound checking
 
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha=1., const REAL beta = 0., const int opt = 0 , const int stride = 1) ;
+		       const REAL alpha=1., const REAL beta = 0., const int opt = 0 , const int stride = 1) const;
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
 

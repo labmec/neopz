@@ -19,7 +19,7 @@
 
 #include "pzfmatrix.h"
 #include "pzmatrix.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 
 #ifdef OOPARLIB
 

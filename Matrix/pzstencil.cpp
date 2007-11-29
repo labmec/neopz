@@ -123,7 +123,7 @@ const REAL & TPZStencilMatrix::GetVal(const int row,const int col ) const {
 
 void TPZStencilMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			       TPZFMatrix &z,
-			       const REAL alpha,const REAL beta,const int opt,const int stride )  {
+			       const REAL alpha,const REAL beta,const int opt,const int stride ) const {
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot share storage
   int ix=0;
