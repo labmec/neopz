@@ -19,7 +19,14 @@ TPZNonLinearAnalysis();
 
 virtual ~TPZNonLinearAnalysis(void);
 
-void IterativeProcess(std::ostream &out,REAL tol,int numiter);
+/**
+ * It process a Newton's method to solve the non-linear problem.
+ * It has the possibility of line search with parameter linesearch = true.
+ */
+void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch = false);
+
+/** Implements a golden section line search. */
+void LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
 
 REAL SolutionNorm();
 
