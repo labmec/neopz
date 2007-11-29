@@ -23,28 +23,30 @@ This class implements a geometric element which uses its ancestral to compute it
 
 @author Philippe R. B. Devloo
 */
-template<class TGeo, class TShape, class TBase>
+template<class TBase>
 class TPZGeoElMapped : public TBase {
 public:
-  TPZGeoElMapped() : TBase(), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
+  TPZGeoElMapped() : TBase(), fCornerCo(TBase::TGeoLoc::Dimension,TBase::TGeoLoc::NNodes,0.)
   {
   }
   TPZGeoElMapped(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh) :
-      TBase(id,nodeindexes,matind,mesh), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
+      TBase(id,nodeindexes,matind,mesh), fCornerCo(TBase::TGeoLoc::Dimension,TBase::TGeoLoc::NNodes,0.)
       {
       }
   TPZGeoElMapped(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) :
-      TBase(nodeindices,matind,mesh), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
+      TBase(nodeindices,matind,mesh), fCornerCo(TBase::TGeoLoc::Dimension,TBase::TGeoLoc::NNodes,0.)
       {
       }
   TPZGeoElMapped(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index) :
-      TBase(nodeindices,matind,mesh,index), fCornerCo(TShape::Dimension,TGeo::NNodes,0.)
+      TBase(nodeindices,matind,mesh,index), fCornerCo(TBase::TGeoLoc::Dimension,TBase::TGeoLoc::NNodes,0.)
       {
       }
 
   ~TPZGeoElMapped()
   {
   }
+  
+  virtual int ClassId() const;
 
   /**Sets the father element index*/
   virtual void SetFather(int fatherindex)
@@ -59,21 +61,21 @@ public:
       father = nextfather;
       nextfather = father->Father();
     }
-    int in, nnodes = TGeo::NNodes;
+    int in, nnodes = TBase::TGeoLoc::NNodes;
     for(in=0; in<nnodes; in++)
     {
-      TPZTransform tr = TShape::SideToSideTransform(in,TGeo::NSides-1);
-      TPZManVector<REAL,TShape::Dimension> ptin(0),ptout(TShape::Dimension,0.);
+      TPZTransform tr = TBase::TGeoLoc::SideToSideTransform(in,TBase::TGeoLoc::NSides-1);
+      TPZManVector<REAL,TBase::TGeoLoc::Dimension> ptin(0),ptout(TBase::TGeoLoc::Dimension,0.);
       tr.Apply(ptin,ptout);
       int nfs = father->NSides();
-      TPZGeoElSide thisside(this,TGeo::NSides-1);
+      TPZGeoElSide thisside(this,TBase::TGeoLoc::NSides-1);
       TPZGeoElSide ancestor(father,nfs-1);
-      TPZTransform trfat(TShape::Dimension);
+      TPZTransform trfat(TBase::TGeoLoc::Dimension);
       TPZManVector<REAL,3> ptancestor(father->Dimension(),0.);
       thisside.SideTransform3(ancestor,trfat);
       trfat.Apply(ptout,ptancestor);
       int id;
-      for(id=0; id<TShape::Dimension; id++)
+      for(id=0; id<TBase::TGeoLoc::Dimension; id++)
       {
         fCornerCo(id,in) = ptancestor[id];
       }
@@ -100,7 +102,7 @@ public:
       father = nextfather;
       nextfather = father->Father();
     }
-    const int dim = TShape::Dimension;
+    const int dim = TBase::TGeoLoc::Dimension;
     TPZManVector<REAL,3> ksibar(father->Dimension());
     TPZFNMatrix<dim*dim> jaclocal(dim,dim,0.),jacinvlocal(dim,dim,0.),jacfather(dim,dim,0.), jacinvfather(dim,dim,0.);
     TPZFNMatrix<9> axeslocal(3,3,0.), /*axesfinal(3,3,0.),*/axesfather(3,3,0.);
@@ -109,9 +111,9 @@ public:
     /**
     / Processing Variables (isolated)
    */
-    TGeo::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);
+    TBase::TGeoLoc::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);
     axeslocal.Transpose();
-    TGeo::X(fCornerCo,coordinate,ksibar);
+    TBase::TGeoLoc::X(fCornerCo,coordinate,ksibar);
     father->Jacobian(ksibar,jacfather,axesfather,detjacfather,jacinvfather);
 
     /**
@@ -293,19 +295,19 @@ public:
 
 private:
 
-    TPZFNMatrix<TShape::Dimension*TGeo::NNodes> fCornerCo;
+    TPZFNMatrix<TBase::TGeoLoc::Dimension*TBase::TGeoLoc::NNodes> fCornerCo;
 
     /// compute the map of the point ksi to the ancestor ksibar and the gradient of the ancestor ksibar with respect to ksi
     void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar, TPZFMatrix &jac)
     {
-      const int dim = TShape::Dimension;
-      TPZFNMatrix<TGeo::NNodes> phi(TGeo::NNodes,1,0.);
-      TPZFNMatrix<dim*TGeo::NNodes> dphi(dim,TGeo::NNodes,0.);
-      TGeo::Shape(ksi,phi,dphi);
+      const int dim = TBase::TGeoLoc::Dimension;
+      TPZFNMatrix<TBase::TGeoLoc::NNodes> phi(TBase::TGeoLoc::NNodes,1,0.);
+      TPZFNMatrix<dim*TBase::TGeoLoc::NNodes> dphi(dim,TBase::TGeoLoc::NNodes,0.);
+      TBase::TGeoLoc::Shape(ksi,phi,dphi);
       jac.Redim(dim,dim);
       ksibar.Fill(0.);
       int in,id,jd;
-      for(in=0; in<TGeo::NNodes; in++)
+      for(in=0; in<TBase::TGeoLoc::NNodes; in++)
       {
         for(id=0; id<dim; id++)
         {
@@ -321,14 +323,14 @@ private:
     /// compute the map of the point ksi to the ancestor ksibar
     void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar)
     {
-      const int dim = TShape::Dimension;
-      TPZFNMatrix<TGeo::NNodes> phi(TGeo::NNodes,1,0.);
+      const int dim = TBase::TGeoLoc::Dimension;
+      TPZFNMatrix<TBase::TGeoLoc::NNodes> phi(TBase::TGeoLoc::NNodes,1,0.);
       TPZFNMatrix<dim*dim> jac(dim,dim,0.);
-      TPZFNMatrix<dim*TGeo::NNodes> dphi(dim,TGeo::NNodes,0.);
-      TGeo::Shape(ksi,phi,dphi);
+      TPZFNMatrix<dim*TBase::TGeoLoc::NNodes> dphi(dim,TBase::TGeoLoc::NNodes,0.);
+      TBase::TGeoLoc::Shape(ksi,phi,dphi);
       ksibar.Fill(0.);
       int in,id;
-      for(in=0; in<TGeo::NNodes; in++)
+      for(in=0; in<TBase::TGeoLoc::NNodes; in++)
       {
         for(id=0; id<dim; id++)
         {
