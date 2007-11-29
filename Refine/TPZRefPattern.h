@@ -7,6 +7,7 @@
 #include <string>
 #include <map>
 #include <list>
+#include <set>
 #include "tpzpermutation.h"
 #include "pztrnsform.h"
 
@@ -59,7 +60,7 @@ public:
      */
     TPZRefPattern(TPZGeoMesh * OwnerMesh, std::istream &file);
 
-    TPZRefPattern(TPZGeoMesh * OwnerMesh, std::string &file);
+    TPZRefPattern(TPZGeoMesh * OwnerMesh, const std::string &file);
     
     /**Copy constructor*/
     TPZRefPattern (const TPZRefPattern &copy);
@@ -84,10 +85,15 @@ public:
     void Write(TPZStream &buf);
 
     /**
-     * It returns the mesh of refinement pattern
+     * It returns the mesh which owns the refinement pattern
      */
-    //TPZGeoMesh *Mesh() {return fMesh;}
+    TPZGeoMesh *Mesh() {return fOwnerMesh;}
 
+    /**
+     * Refine the element if it touches an element with a material id included in matids
+     */
+    void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids);
+    
     /**
      * It effects the reading of the archive that defines the refinement standard
      */

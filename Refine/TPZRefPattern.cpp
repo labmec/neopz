@@ -56,7 +56,7 @@ TPZRefPattern::TPZRefPattern (const TPZRefPattern &copy,const TPZPermutation &pe
 }
 
 
-TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh, std::string &file ) : fSideRefPattern(0), fId(-50), fName() {
+TPZRefPattern::TPZRefPattern(TPZGeoMesh * OwnerMesh,  const std::string &file ) : fSideRefPattern(0), fId(-50), fName() {
   this->fOwnerMesh = OwnerMesh;
   fInternalMesh.SetName("***RefinementPattern***");
   fFileRefPatt = file;/**arquivo contendo o padr� de refinamento*/
@@ -1640,3 +1640,167 @@ void TPZRefPattern::Write(TPZStream &buf){
   TPZSaveable::WriteObjects(buf, this->fPermutedRefPatterns);
   TPZSaveable::WriteObjects(buf, this->fSideRefPattern);
 }
+
+static TPZAutoPointer<TPZRefPattern> GetBestRefPattern(TPZVec<int> &sides, std::list<TPZAutoPointer<TPZRefPattern> > &patlist)
+{
+  std::list<TPZAutoPointer<TPZRefPattern> >::iterator it;
+  for(it = patlist.begin(); it != patlist.end(); it++)
+  {
+    if(! (*it)) continue;
+    TPZGeoEl *gel = (*it)->Element(0);
+    int ncorners = gel->NCornerNodes();
+    int nsides = gel->NSides();
+    int is;
+    for(is = ncorners; is<nsides; is++)
+    {
+      if(sides[is] != (*it)->NSideNodes(is)) break;
+    }
+    if(is == nsides) return (*it);
+  }
+  return 0;
+}
+
+
+void TPZRefPattern::RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
+{
+  int matid = gel->MaterialId();
+  if(matids.count(matid)) return;
+  TPZManVector<int,27> sidestorefine(gel->NSides(),0);
+  TPZManVector<int,27> cornerstorefine(gel->NSides(),0);
+  // look for corners which are on the boundary
+  int in;
+  int numrefribs = 0;
+  for(in=0; in<gel->NCornerNodes(); in++)
+  {
+    TPZGeoElSide gels(gel,in);
+    TPZGeoElSide neigh(gels.Neighbour());
+    while(gels != neigh)
+    {
+      if(matids.count(neigh.Element()->MaterialId()))
+      {
+        cornerstorefine[in] = 1;
+        break;
+      }
+      neigh = neigh.Neighbour();
+    }
+  }
+  // look for ribs which touch the boundary but which do no lay on the boundary
+  int is;
+  for(is=gel->NCornerNodes(); is<gel->NSides(); is++)
+  {
+    // we are only interested in ribs
+    if(gel->SideDimension(is) != 1) continue;
+
+    // the side is a candidate if it contains a corner which is neighbour of the boundary condition
+    if(cornerstorefine[gel->SideNodeLocIndex(is,0)] || cornerstorefine[gel->SideNodeLocIndex(is,1)])
+    {
+      sidestorefine[is] = 1;
+      numrefribs++;
+      TPZGeoElSide gels(gel,is);
+      TPZGeoElSide neigh(gels.Neighbour());
+      while(neigh != gels)
+      {
+        // if this condition is true the rib lies on the boundary
+        if(matids.count(neigh.Element()->MaterialId()))
+        {
+          sidestorefine[is] = 0;
+          numrefribs--;
+          break;
+        }
+        neigh = neigh.Neighbour();
+      }
+    }
+  }
+  if(!numrefribs)
+  {
+    return;
+  }
+//  TPZGeoMesh *gmesh = gel->Mesh();
+  std::list<TPZAutoPointer<TPZRefPattern> > patlist;
+  TPZRefPattern::GetCompatibleRefinementPatterns(gel, patlist);
+  TPZAutoPointer<TPZRefPattern> patt = GetBestRefPattern(sidestorefine,patlist);
+  static int count = 1;
+  if(patt)
+  {
+    gel->SetRefPattern(patt);
+    TPZManVector<TPZGeoEl *> subel;
+    gel->Divide(subel);
+    std::cout << "-";
+  }
+  else
+  {
+    if(count++ == 1) std::cout << "couldnt find a suitable refinement pattern\n";
+    std::cout << "|";
+    std::ofstream arquivo ("NotListedPatterns.txt",std::ios::app);
+    std::list<TPZAutoPointer<TPZRefPattern> >::iterator it;
+    arquivo << "Compatible refinement patterns\n";
+    for(it=patlist.begin(); it!=patlist.end(); it++)
+    {
+      (*it)->ShortPrint(arquivo); arquivo << (void*) (it->operator->()); arquivo << endl;
+    }
+    arquivo << std::endl;
+    arquivo << "Element Type :" << gel->Type() << std::endl;
+    arquivo << "Sides selected for refinement :" << std::endl;
+    int i;
+    for (i=0 ; i<gel->NSides() ; i++){
+      if(cornerstorefine[i] == 1)
+      {
+        arquivo << " " << i << " ";
+      }
+      if (sidestorefine[i] == 1) {
+        arquivo << " " << i << " " ;
+      }
+    }
+    gel->Print(arquivo);
+    int in;
+    arquivo << std::endl;
+    arquivo << "Neighbouring information \n";
+    for(in=0; in<gel->NSides(); in++)
+    {
+      arquivo << "Side : " << in << " ";
+      TPZGeoElSide gels(gel,in);
+      arquivo << "Dim " << gels.Dimension() << " ";
+      TPZGeoElSide neigh(gels.Neighbour());
+      while(gels != neigh)
+      {
+        if(matids.count(neigh.Element()->MaterialId()))
+        {
+          arquivo << neigh.Element()->Id() << "-l-" << neigh.Side() << " ";
+          if (neigh.Side() == 9 && gel->Type() == ETetraedro) {
+            arquivo << "Teje pego meliante..." << std::endl;
+            neigh.Element()->Print(arquivo);
+          }
+        }
+        neigh = neigh.Neighbour();
+      }
+      arquivo << std::endl;
+    }
+    arquivo << std::endl;
+
+    arquivo << "Element information : " << gel->Index() << std::endl;
+    arquivo << "Vizinhos dos lados marcados para refinamento:" << std::endl;
+    for (i=0 ; i<gel->NSides() ; i++){
+      if(cornerstorefine[i] == 1 || sidestorefine[i] == 1)
+      {
+        TPZGeoElSide gelside (gel,i);
+        TPZGeoElSide neigh = gelside.Neighbour();
+        while (neigh != gelside)
+        {
+          arquivo << "*********** my side = " << i << " neighside " << neigh.Side() << std::endl;
+          neigh.Element()->Print(arquivo);
+          neigh = neigh.Neighbour();
+        }
+      }
+    }
+    arquivo << std::endl << std::endl << std::endl << std::endl;
+    // Here we will provide the necessary information to develop a new ref. patt.
+  }
+  count++;
+  if(!(count%20))
+  {
+    std::cout << count << std::endl;
+  }
+
+  return;
+}
+
