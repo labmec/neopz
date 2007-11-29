@@ -71,12 +71,12 @@ TPZSkylParMatrix::TPZSkylParMatrix()
   //something
 }
 
-TPZSkylParMatrix::TPZSkylParMatrix(const TPZSkylParMatrix &cp):TPZSkylMatrix(cp){
-  fDec = cp.fDec;
-  fSkyline = cp.fSkyline;
-  fNthreads = cp.fNthreads;
-  fEqDec = cp.fEqDec;
-}
+// TPZSkylParMatrix::TPZSkylParMatrix(const TPZSkylParMatrix &cp):TPZSkylMatrix(cp){
+//   fDec = cp.fDec;
+//   fSkyline = cp.fSkyline;
+//   fNthreads = cp.fNthreads;
+//   fEqDec = cp.fEqDec;
+// }
 
 TPZSkylParMatrix::~TPZSkylParMatrix() {
 }
