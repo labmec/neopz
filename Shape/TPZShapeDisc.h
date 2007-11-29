@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZShapeDisc.h,v 1.9 2007-07-31 23:16:45 tiago Exp $
+// $Id: TPZShapeDisc.h,v 1.10 2007-11-29 11:41:46 phil Exp $
 #ifndef SHAPEDISCHPP
 #define SHAPEDISCHPP
 
@@ -55,7 +55,7 @@ TPZShapeDisc(const TPZShapeDisc &copy);
 
 ~TPZShapeDisc();
   
-protected:
+public:
 
 /**
  * Number of shapefunctions dependent on the dimension and order of interpolation
@@ -86,6 +86,7 @@ static void Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFM
  */
 static void Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type);
 
+  protected:
 /**
  * @param x:      coordinate of the point
  * @param SingularPoint: singular point coordinate
@@ -104,10 +105,11 @@ static void Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatri
 /** Stores the singular side of the TPZCompElDisc element */  
   int fSingularSide;
 
+  public:
+  
   /** Computes the distance between two points */
   static REAL Distance(const TPZVec<REAL>& A, const TPZVec<REAL> &B);  
   
-public:
 
 /** Singular function of type phi = Sqrt[r] */
 static void SqrtFunction(const TPZVec<REAL>& pt, const TPZVec<REAL> &SingularPoint, TPZFMatrix & phi, TPZFMatrix & dphi, int n = 1);  
