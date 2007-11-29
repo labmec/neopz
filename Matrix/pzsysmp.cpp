@@ -87,7 +87,7 @@ const REAL & TPZSYsmpMatrix::GetVal(const int r,const int c ) const {
 
 void TPZSYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			     TPZFMatrix &z,
-			     const REAL alpha,const REAL beta,const int opt,const int stride )  {
+			     const REAL alpha,const REAL beta,const int opt,const int stride ) const {
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot share storage
   int  ir, ic;
