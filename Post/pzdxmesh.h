@@ -18,7 +18,7 @@ class TPZDXGraphMesh : public TPZGraphMesh {
   TPZStack<REAL> fTimes;
   TPZStack<int> fFirstFieldValues[3];
   int fNumCases;
-  char *fElementType;
+  std::string fElementType;
 
 public:
 
@@ -34,7 +34,7 @@ public:
   virtual void DrawSolution(int step, REAL time);
 
   int  NNodes();
-  char *ElementName();
+  std::string ElementName();
   void Close();
 	
 	/** Jorge 16/06/2001 */

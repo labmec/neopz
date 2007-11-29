@@ -1,4 +1,4 @@
-//$Id: pzdxmesh.cpp,v 1.10 2007-01-03 00:05:20 phil Exp $
+//$Id: pzdxmesh.cpp,v 1.11 2007-11-29 13:29:50 tiago Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -52,7 +52,7 @@ TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,
   fStyle = EDXStyle;
 	fElementType = "noname";
   fElementType[0] = '\0';
-  strcpy(fElementType,graph->fElementType);
+	fElementType = graph->fElementType;
   fNumCases = graph->fNumCases;
 	int i;
   for(i=0;i<3;i++) {
@@ -80,7 +80,7 @@ int TPZDXGraphMesh::NNodes() {
 	return -1;
 }
 
-char * TPZDXGraphMesh::ElementName() {
+std::string TPZDXGraphMesh::ElementName() {
 	return fElementType;
 }
 
