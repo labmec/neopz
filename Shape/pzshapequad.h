@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzshapequad.h,v 1.7 2007-04-20 18:30:23 caju Exp $
+// $Id: pzshapequad.h,v 1.8 2007-11-29 11:42:49 phil Exp $
 
 #ifndef SHAPEQUADHPP
 #define SHAPEQUADHPP
@@ -50,7 +50,7 @@ class TPZShapeQuad  : public pztopology::TPZQuadrilateral{
  * @param phi (output) value of the (4) shape functions
  * @param dphi (output) value of the derivatives of the (4) shape functions holding the derivatives in a column
  */
-  static void ShapeCornerQuad(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+  static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
 
 /** 
  * Compute the internal functions of the quadrilateral shape function at a point\n

@@ -1,4 +1,4 @@
-// $Id: pzshapequad.cpp,v 1.9 2007-04-20 18:30:23 caju Exp $
+// $Id: pzshapequad.cpp,v 1.10 2007-11-29 11:42:49 phil Exp $
 #include "pzshapequad.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -24,7 +24,7 @@ REAL TPZShapeQuad::gTrans2dQ[8][2][2] = {//s* , t*
 
 REAL TPZShapeQuad::gRibTrans2dQ1d[4][2] = { {1.,0.},{0.,1.},{-1.,0.},{0.,-1.} };
 
-void TPZShapeQuad::ShapeCornerQuad(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+void TPZShapeQuad::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
 
   REAL x[2],dx[2],y[2],dy[2];
   x[0]  =  (1.-pt[0])/2.;
@@ -51,7 +51,7 @@ void TPZShapeQuad::ShapeCornerQuad(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix
 
 void TPZShapeQuad::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
 			 TPZFMatrix &phi,TPZFMatrix &dphi) {
-  ShapeCornerQuad(pt,phi,dphi);
+  ShapeCorner(pt,phi,dphi);
   REAL out;
   int shape = 4;
   for (int rib = 0; rib < 4; rib++) {
@@ -80,7 +80,7 @@ void TPZShapeQuad::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
   int ord = (order[4]-1)*(order[4]-1);
   TPZFMatrix phin(ord,1,store1,20),dphin(2,ord,store2,40);
   ShapeInternal(pt,order[4]-2,phin,dphin,GetTransformId2dQ(id));
-  for(int i=0;i<ord;i++)	{//funcoes de interior são em numero ordem-1
+  for(int i=0;i<ord;i++)	{//funcoes de interior sï¿½o em numero ordem-1
     phi(shape,0) = phi(0,0)*phi(2,0)*phin(i,0);
     for(int xj=0;xj<2;xj++) {//x e y
       dphi(xj,shape) = dphi(xj,0)*phi(2,0)*phin(i,0) +
