@@ -87,9 +87,9 @@ void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
 void TPZGeoPyramid::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
 
-	int nnodes = NNodes;
 
 #ifdef DEBUG
+	int nnodes = NNodes;
 	if (nnodes != 5) {
 	  PZError <<	"TPZGeoPyramid.jacobian only implemented for"
 	    " 5 nodes, NumberOfNodes = " << nnodes << "\n";
