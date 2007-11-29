@@ -1,7 +1,7 @@
 
 // -*- c++ -*-
 
-// $Id: TPZGeoElement.h,v 1.18 2007-04-20 18:31:10 caju Exp $
+// $Id: TPZGeoElement.h,v 1.19 2007-11-29 11:46:25 phil Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
@@ -25,6 +25,7 @@ class TPZGeoElement : public TPZGeoElRefLess<TGeo> {
 public:
 //static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
   //  static int fTest;
+  typedef TGeo TGeoLoc;
 
 public:
 
