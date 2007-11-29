@@ -149,7 +149,7 @@ public:
    * @param opt Indicates if is Transpose or not
    * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
    */
-  virtual void Multiply(const TPZFMatrix & A,TPZFMatrix & res,const int opt = 0,const int stride = 1) ;
+  virtual void Multiply(const TPZFMatrix & A,TPZFMatrix & res, int opt = 0, int stride = 1) const;
   /**
    * It adds itself to TPZMatrix A putting the result in res
    * @param A TPZMatrix to added to current matrix
@@ -167,7 +167,7 @@ public:
    * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
    */
   virtual void MultAdd(const TPZFMatrix & x,const TPZFMatrix & y, TPZFMatrix & z,
-		       const REAL alpha=1., const REAL beta = 0., const int opt = 0, const int stride = 1 ) ;
+		       const REAL alpha=1., const REAL beta = 0., const int opt = 0, const int stride = 1 ) const;
 
   /**
    * Computes res = rhs - this * x 
@@ -840,9 +840,10 @@ TPZMatrix::Swap( int *a, int *b )
   *a = *b;
   *b = aux;
 }
+/******************/
+/***  Multiply ***/
 
 
 #endif
 // _TMATRIXH_
-
 
