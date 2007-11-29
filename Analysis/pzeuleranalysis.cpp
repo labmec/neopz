@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.40 2007-04-19 11:43:54 tiago Exp $
+//$Id: pzeuleranalysis.cpp,v 1.41 2007-11-29 17:34:42 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -9,7 +9,7 @@
 #include "pzbdstrmatrix.h"
 
 #include "tpzoutofrange.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include <time.h>
 #include "pzlog.h"
 
@@ -178,7 +178,7 @@ void TPZEulerAnalysis::Assemble()
 
    TPZAutoPointer<TPZMatrix>  pTangentMatrix = fSolver->Matrix();
 
-   if(!pTangentMatrix || dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym> *>(fStructMatrix))
+   if(!pTangentMatrix || dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym> *>(fStructMatrix.operator->()))
    {
       pTangentMatrix = fStructMatrix->CreateAssemble(fRhs);
       fSolver->SetMatrix(pTangentMatrix);
@@ -348,9 +348,9 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout, int dxRes)
 
   TPZAutoPointer<TPZMaterial>  mat = fFlowCompMesh->GetFlowMaterial();
   int dim = mat->Dimension();
-  //ResetReference(Mesh());//retira referências para criar graph consistente
+  //ResetReference(Mesh());//retira referï¿½ncias para criar graph consistente
   TPZDXGraphMesh * graph = new TPZDXGraphMesh (Mesh(),dim,mat,scalar,vector);
-  //SetReference(Mesh());//recupera as referências retiradas
+  //SetReference(Mesh());//recupera as referï¿½ncias retiradas
   //ofstream *dxout = new ofstream("ConsLaw.dx");
   //cout << "\nDX output file : ConsLaw.dx\n";
   graph->SetOutFile(dxout);
@@ -669,8 +669,8 @@ void TPZEulerAnalysis::SetGMResFront(REAL tol, int numiter, int numvectors)
  */
 void TPZEulerAnalysis::SetFrontalSolver()
 {
-  TPZFrontStructMatrix <TPZFrontNonSym> StrMatrix(Mesh());
-  StrMatrix.SetQuiet(1);
+  TPZFrontStructMatrix <TPZFrontNonSym> *StrMatrix = new TPZFrontStructMatrix <TPZFrontNonSym>(Mesh());
+  StrMatrix->SetQuiet(1);
 //  TPZMatrix *front = StrMatrix.CreateAssemble(fRhs);
   SetStructuralMatrix(StrMatrix);
   TPZStepSolver FrontSolver;

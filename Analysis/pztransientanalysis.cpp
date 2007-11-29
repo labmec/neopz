@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientanalysis.cpp,v 1.6 2007-04-19 11:43:54 tiago Exp $
+//$Id: pztransientanalysis.cpp,v 1.7 2007-11-29 17:32:28 phil Exp $
 
 #include "pztransientanalysis.h"
 #include "pztransientmat.h"
@@ -217,7 +217,7 @@ template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::Assemble(){
   if(!fCompMesh || !fStructMatrix || !fSolver){
     cout << "TPZTransientAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh 
-         << " fStructMatrix " << (void *) fStructMatrix << " fSolver " << (void *) fSolver << " at file " 
+         << " fStructMatrix " << (bool) fStructMatrix << " fSolver " << (bool) fSolver << " at file " 
          << __FILE__ << " line " << __LINE__ << endl;
     return;
   }
@@ -285,7 +285,7 @@ template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeFluxOnly(){
   if(!fCompMesh || !fStructMatrix || !fSolver){
     cout << "TPZTransientAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh 
-         << " fStructMatrix " << (void *) fStructMatrix << " fSolver " << (void *) fSolver << " at file " 
+         << " fStructMatrix " << (bool) fStructMatrix << " fSolver " << (bool) fSolver << " at file " 
          << __FILE__ << " line " << __LINE__ << endl;
     return;
   }
