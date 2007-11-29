@@ -13,6 +13,8 @@ class TPZGraphMesh;
 class TPZMaterial;
 #include "pzvec.h"
 #include "pzadmchunk.h"
+#include "pzrenumbering.h"
+#include "pzstrmatrix.h"
 #include <iostream>
 
 
@@ -82,7 +84,12 @@ public:
   /**
    * Structural matrix
    */
-  TPZStructMatrix * fStructMatrix;
+  TPZAutoPointer<TPZStructMatrix>  fStructMatrix;
+  
+  /**
+   * Renumbering scheme
+   */
+  TPZAutoPointer<TPZRenumbering> fRenumber;
 
   /// datastructure which defines postprocessing for one dimensional meshes
   struct TTablePostProcess {
@@ -173,7 +180,7 @@ public:
   /**
   * Returns a reference to the structural matrix
   */
-  TPZStructMatrix &StructMatrix() { return *fStructMatrix;}
+  TPZAutoPointer<TPZStructMatrix> StructMatrix() { return fStructMatrix;}
 
   /**
   * Define the type of preconditioner used
@@ -246,7 +253,12 @@ public:
 
   void SetSolver(TPZMatrixSolver &solver);
 
+  void SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix);
+  
   void SetStructuralMatrix(TPZStructMatrix &strmatrix);
+  
+  
+  
 };
 
 
