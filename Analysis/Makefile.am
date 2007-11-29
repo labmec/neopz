@@ -18,8 +18,8 @@ analysisinc_HEADERS= $(top_srcdir)/Analysis/*.h
 
 noinst_LIBRARIES = libpzanalysis.a
 
-libpzanalysis_a_SOURCES = pzanalysis.cpp pzanalysiserror.cpp pzmganalysis.cpp \
-	pznonlinanalysis.cpp pzsmanal.cpp pzsmfrontalanal.cpp pzeuleranalysis.cpp \
-	pztransientanalysis.cpp
+libpzanalysis_a_SOURCES = TPZNLMultGridAnalysis.cpp TPZNLMultGridAnalysis.h \
+	pzanalysis.cpp pzanalysiserror.cpp pzeuleranalysis.cpp pzmganalysis.cpp \
+	pznonlinanalysis.cpp pzsmanal.cpp pzsmfrontalanal.cpp pztransientanalysis.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
