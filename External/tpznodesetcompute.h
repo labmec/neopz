@@ -69,6 +69,14 @@ void BuildNodeSet(int node, std::set<int> &nodeset);
   {
     return fLevel;
   }
+  
+  /**
+   * return the maximum level
+   */
+  int MaxLevel()
+  {
+    return fMaxLevel;
+  }
     
 void Print(std::ostream &file) const;
 
