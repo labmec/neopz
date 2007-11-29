@@ -110,7 +110,7 @@ class TPZSpMatrix : public TPZMatrix
   TPZSpMatrix &operator=(const TPZMatrix &A );
   //@}
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha ,const REAL beta = 0.,const int opt = 0,const int stride = 1) ;
+		       const REAL alpha ,const REAL beta = 0.,const int opt = 0,const int stride = 1) const;
 
 
   // Operadores com valores NUMERICOS.

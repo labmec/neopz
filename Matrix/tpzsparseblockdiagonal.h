@@ -40,7 +40,7 @@ public:
     void AddBlock(int i, TPZFMatrix& block);
     void BuildFromMatrix(TPZMatrix& matrix);
     void GetBlock(int i, TPZFMatrix& block);
-    void MultAdd(const TPZFMatrix& x, const TPZFMatrix& y, TPZFMatrix& z, const REAL alpha, const REAL beta, const int opt, const int stride);
+    void MultAdd(const TPZFMatrix& x, const TPZFMatrix& y, TPZFMatrix& z, const REAL alpha, const REAL beta, const int opt, const int stride) const;
     void FindBlockIndex(int glob, int &block, int &blockind) const;
 
    /**

@@ -153,7 +153,7 @@ class TPZMatRed :public TPZMatrix {
   void MultAdd(const TPZFMatrix &x,
                           const TPZFMatrix &y, TPZFMatrix &z,
                           const REAL alpha,const REAL beta,
-                          const int opt,const int stride);
+                          const int opt,const int stride) const;
    
 
  private:

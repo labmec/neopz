@@ -399,11 +399,11 @@ int TPZMatRed::Zero(){
 void TPZMatRed::MultAdd(const TPZFMatrix &x,
                         const TPZFMatrix &y, TPZFMatrix &z,
                         const REAL alpha,const REAL beta,
-                        const int opt,const int stride)
+                        const int opt,const int stride) const
 {
 #warning Not functional yet. Still need to Identify all the variables
-  int i = 0;
-  int j = 0;
+//   int i = 0;
+//   int j = 0;
 
   /**
    * It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.

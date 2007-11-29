@@ -361,7 +361,7 @@ TPZBlockDiagonal::GetVal(const int row,const int col ) const
 //
 
 void TPZBlockDiagonal::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-			  const REAL alpha,const REAL beta ,const int opt,const int stride )  {
+			  const REAL alpha,const REAL beta ,const int opt,const int stride ) const {
   // Computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
 

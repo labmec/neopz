@@ -82,7 +82,7 @@ public:
   int PutVal(const int row, const int col, const REAL &Value);
 
   virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 );
+		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const;
                        
   virtual void MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 );

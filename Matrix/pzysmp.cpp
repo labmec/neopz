@@ -47,7 +47,15 @@ int TPZFYsmpMatrix::PutVal(const int row, const int col, const REAL &Value){
     	break;
       }
     }
-    if(!flag) cout << "TPZFYsmpMatrix::PutVal: Non existing position on sparse matrix: line = " << row << " column " << col << endl;
+    if(!flag) 
+    {
+      cout << "TPZFYsmpMatrix::PutVal: Non existing position on sparse matrix: line = " << row << " column " << col << endl;
+      return 0;
+    }
+    else
+    {
+      return 1;
+    }
 }
 void TPZFYsmpMatrix::AddKel(TPZFMatrix & elmat, TPZVec<int> & destinationindex){
     int i,j,k = 0;
@@ -375,7 +383,7 @@ void TPZFYsmpMatrix::MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y,
 
 void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			     TPZFMatrix &z,
-			     const REAL alpha,const REAL beta,const int opt,const int stride )  {
+			     const REAL alpha,const REAL beta,const int opt,const int stride ) const {
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot share storage
   int  ic, xcols;
