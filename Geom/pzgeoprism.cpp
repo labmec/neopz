@@ -58,9 +58,9 @@ void TPZGeoPrism::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
 void TPZGeoPrism::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
 
-//  int nnodes = NNodes;
 
 #ifdef DEBUG
+  int nnodes = NNodes;
   if (nnodes != 6) {
     PZError << "TPZGeoPrism.jacobian only implemented for"
       " 6 nodes, NumberOfNodes = " << nnodes << "\n";
