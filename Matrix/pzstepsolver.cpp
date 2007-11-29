@@ -76,6 +76,7 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
 #ifdef LOG4CXX
     {
       std::stringstream sout;
+      sout << "Number of equations " << mat->Rows() << std::endl;
       sout << "Number of CG iterations " << numiterations << " tol = " << tol;
       LOGPZ_DEBUG(logger,sout.str().c_str());
     }
