@@ -97,25 +97,25 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
    */
   static TPZCompMesh *AgglomerateMesh(TPZCompMesh *finemesh,int levelnumbertogroup);
 
-  void SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,int marcha = 0,
-			 ostream &dxout = cout);
+  void SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,int marcha = 0,
+			 std::ostream &dxout = std::cout);
 
-  void SmoothingSolution(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,TPZFMatrix &rhs);
+  void SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,TPZFMatrix &rhs);
 
-  void SmoothingSolution2(REAL tol,int numiter,TPZMaterial *mat,TPZAnalysis &an,int marcha,
-			  ostream &dxout = cout);
+  void SmoothingSolution2(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,int marcha,
+			  std::ostream &dxout = std::cout);
   
   void ResetReference(TPZCompMesh *aggcmesh);
 
   void SetReference(TPZCompMesh *aggcmesh);
 
-  void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat);
+  void SetDeltaTime(TPZCompMesh *CompMesh,TPZAutoPointer<TPZMaterial> mat);
 
   void CoutTime(clock_t &start,char *title);
 
-  void OneGridAlgorithm(ostream &out,int nummat);
+  void OneGridAlgorithm(std::ostream &out,int nummat);
 
-  void TwoGridAlgorithm(ostream &out,int nummat);
+  void TwoGridAlgorithm(std::ostream &out,int nummat);
 
   void CalcResidual(TPZMatrix &sol,TPZAnalysis &an,char *decompose,TPZFMatrix &res);
 
