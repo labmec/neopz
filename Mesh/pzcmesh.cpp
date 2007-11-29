@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.67 2007-10-26 13:18:58 tiago Exp $
+//$Id: pzcmesh.cpp,v 1.68 2007-11-29 18:18:55 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -174,7 +174,7 @@ void TPZCompMesh::Print (std::ostream & out) {
 }
 
 /**Insert a material object in the datastructure*/
-int TPZCompMesh::InsertMaterialObject(TPZAutoPointer<TPZMaterial> &mat) {
+int TPZCompMesh::InsertMaterialObject(TPZAutoPointer<TPZMaterial> mat) {
   if(!mat) return -1;
   int matid = mat->Id();
   fMaterialVec[matid] = mat;

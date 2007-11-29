@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.37 2007-10-26 13:18:58 tiago Exp $
+//$Id: pzcmesh.h,v 1.38 2007-11-29 18:17:46 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -274,7 +274,7 @@ public:
    * Insert a material object in the datastructure
    @ @param mat pointer to the material
    */
-  int InsertMaterialObject(TPZAutoPointer<TPZMaterial> & mat);
+  int InsertMaterialObject(TPZAutoPointer<TPZMaterial> mat);
 
   /**
    * Resequence the block object, remove unconnected connect objects
