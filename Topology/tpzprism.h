@@ -19,6 +19,7 @@
 
 class TPZIntPoints;
 class TPZIntPrism3D;
+class TPZGraphElPrismMapped;
 
 namespace pztopology {
 
@@ -91,6 +92,7 @@ public:
 static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
 
 typedef TPZIntPrism3D IntruleType;
+typedef TPZGraphElPrismMapped GraphElType;
 
   /**
    * return the type of the element as specified in file pzeltype.h

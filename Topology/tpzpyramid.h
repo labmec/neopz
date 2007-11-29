@@ -20,6 +20,7 @@
 
 class TPZIntPoints;
 class TPZIntPyram3D;
+class TPZGraphElPyramidMapped;
 
 namespace pztopology {
 
@@ -93,6 +94,7 @@ static TPZTransform TransformSideToElement(int side);
 static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
 
 typedef TPZIntPyram3D IntruleType;
+typedef TPZGraphElPyramidMapped GraphElType;
 
 
   /**

@@ -20,6 +20,7 @@
 class TPZIntPoints;
 class TPZGraphElTd;
 class TPZIntTriang;
+class TPZGraphElT2dMapped;
 
 namespace pztopology {
 
@@ -96,7 +97,7 @@ static REAL RefElVolume(){return 0.5;}
 static TPZIntPoints * CreateSideIntegrationRule(int side, int order);
 
   typedef TPZIntTriang IntruleType;
-  typedef TPZGraphElTd GraphElType;
+  typedef TPZGraphElT2dMapped GraphElType;
 
 
   /**
