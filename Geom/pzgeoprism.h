@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeoprism.h,v 1.10 2007-04-20 18:31:10 caju Exp $
+// $Id: pzgeoprism.h,v 1.11 2007-11-30 12:41:53 phil Exp $
 
 // TPZGeoPrism.h: interface for the TPZGeoQuad class.
 //
@@ -57,6 +57,13 @@ public:
  {
  }
 
+  /**
+  * Copy constructor
+   */
+ TPZGeoPrism(const TPZGeoPrism &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp)
+ {
+ }
+
 /**
  * returns the type name of the element
  */
@@ -70,6 +77,11 @@ static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobia
 
   /**Computes the geometric location*/
 static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
+
+/**
+ * returns the projection of a given point from "NSide - 1" side to "side".
+ */
+static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 
   /**
    * Method which creates a geometric boundary condition 

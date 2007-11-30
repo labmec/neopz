@@ -29,6 +29,21 @@ void TPZGeoCube::X(TPZFMatrix &nodes,TPZVec<REAL> & loc,TPZVec<REAL> &result){
   }
 }
 
+void TPZGeoCube::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+     TPZTransform Transf = pztopology::TPZCube::SideToSideTransform(TPZGeoCube::NSides - 1, side);
+     SidePar.Resize(SideDimension(side));
+     Transf.Apply(InternalPar,SidePar);
+
+     int R = Transf.Mult().Rows();
+     int C = Transf.Mult().Cols();
+
+     JacToSide.Resize(R,C);
+     for(int i = 0; i < R; i++)
+     {
+          for(int j = 0; j < C; j++) JacToSide(i,j) = Transf.Mult()(i,j);
+     }
+}
+
 void TPZGeoCube::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
   REAL x[2],dx[2],y[2],dy[2],z[2],dz[2];
@@ -94,7 +109,7 @@ void TPZGeoCube::Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jaco
     return;
   }
 #endif
-
+  jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
   int nrow = nodes.Rows();
   int ncol = nodes.Cols();
   if(nrow != 3 || ncol != 8){//8x3 n� por linhas

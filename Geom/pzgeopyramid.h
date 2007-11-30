@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeopyramid.h,v 1.8 2007-04-20 18:31:10 caju Exp $
+// $Id: pzgeopyramid.h,v 1.9 2007-11-30 12:41:53 phil Exp $
 
 // TPZGeoPiramid.h: interface for the TPZGeoQuad class.
 //
@@ -55,26 +55,38 @@ public:
  {
  }
 
+  /**
+  * Copy constructor
+   */
+ TPZGeoPyramid(const TPZGeoPyramid &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp)
+ {
+ }
+
 /**
  * returns the type name of the element
  */
 static std::string TypeName() { return "Pyramid";} 
 
-	/** implementation of two-dimensional bilinear interpolation*/
-	static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
+/** implementation of two-dimensional bilinear interpolation*/
+static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
 
-	/**Computes the jacobian*/
-	static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+/**Computes the jacobian*/
+static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
 
-	/**Computes the geometric location*/
-	static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
+/**Computes the geometric location*/
+static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
 
-	/**
-	* Method which creates a geometric boundary condition 
-	* element based on the current geometric element, 
-	* a side and a boundary condition number
-	*/
-	static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
+/**
+ * returns the projection of a given point from "NSide - 1" side to "side".
+ */
+static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
+
+/**
+* Method which creates a geometric boundary condition 
+* element based on the current geometric element, 
+* a side and a boundary condition number
+*/
+static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 
 };
 

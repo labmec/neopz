@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: TPZGeoCube.h,v 1.8 2007-04-20 18:31:10 caju Exp $
+// $Id: TPZGeoCube.h,v 1.9 2007-11-30 12:41:53 phil Exp $
 
 //HEADER FILE FOR CLASS TPZGeoCube
 
@@ -56,6 +56,13 @@ public:
  {
  }
 
+  /**
+  * Copy constructor
+   */
+ TPZGeoCube(const TPZGeoCube &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZCube>(cp)
+ {
+ }
+
 
 
 /**
@@ -64,6 +71,11 @@ public:
 static std::string TypeName() { return "Hexa";} 
 
 static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
+
+/**
+ * returns the projection of a given point from "NSide - 1" side to "side".
+ */
+static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 
 static void Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi);
 

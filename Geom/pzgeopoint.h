@@ -65,24 +65,35 @@ public:
  {
  }
 
+  /**
+  * Copy constructor
+   */
+ TPZGeoPoint(const TPZGeoPoint &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
+ {
+ }
+
 
 /**
  * returns the type name of the element
  */
-        static std::string TypeName() { return "Point";} 
+static std::string TypeName() { return "Point";} 
 
-	static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
+static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 
-	static void Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi);
+/**
+ * returns the projection of a given point from "NSide - 1" side to "side".
+ */
+static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 
-	static void Jacobian(TPZFMatrix nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian,
-				TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+static void Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi);
 
-	static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
+static void Jacobian(TPZFMatrix nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+
+static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 
 //	static int NSubElements();
 
-	//	typedef TPZGraphEl1dd GraphElType;
+//	typedef TPZGraphEl1dd GraphElType;
 };
 
 };

@@ -58,6 +58,12 @@ public:
  {
  }
 
+  /**
+  * Copy constructor
+   */
+ TPZGeoQuad(const TPZGeoQuad &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+ {
+ }
 
 /**
  * returns the type name of the element
@@ -72,6 +78,11 @@ static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobia
 
   /**Computes the geometric location*/
 static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
+
+/**
+ * returns the projection of a given point from "NSide - 1" side to "side".
+ */
+static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 
   /**
    * Method which creates a geometric boundary condition 

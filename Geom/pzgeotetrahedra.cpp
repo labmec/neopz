@@ -60,6 +60,7 @@ void TPZGeoTetrahedra::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatr
 		return;
 	}
 #endif
+        jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
 	REAL spacephi[10];
 	TPZFMatrix phi(4,1,spacephi,10);
 	REAL spacedphi[20];
@@ -110,6 +111,166 @@ void TPZGeoTetrahedra::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &re
 		for(i=0;i<4;i++) 
 			result[j] += coord(j,i)*phi(i,0);
 	}
+}
+
+void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+
+     REAL qsi = InternalPar[0]; REAL eta = InternalPar[1]; REAL zeta = InternalPar[2];
+
+     switch(side)
+     {
+          case 4://1D
+               SidePar.Resize(1); JacToSide.Resize(1,3);
+               if(eta + zeta > 0.999)
+               {
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+               }
+               else
+               {
+                    SidePar[0] = -(2.*qsi + eta + zeta -1.)/(eta + zeta -1.);
+                    JacToSide(0,0) = -2./(eta + zeta - 1.); JacToSide(0,1) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.)); JacToSide(0,2) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.));
+               }
+          return;
+
+          case 5://1D
+               SidePar.Resize(1); JacToSide.Resize(1,3);
+               if(qsi + eta < 1.E-3)
+               {
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+               }
+               else
+               {
+                    SidePar[0] = (eta - qsi)/(eta + qsi);
+                    JacToSide(0,0) = -2.*eta/((qsi + eta)*(qsi + eta)); JacToSide(0,1) = 2.*qsi/((qsi + eta)*(qsi + eta)); JacToSide(0,2) = 0.;
+               }
+          return;
+
+          case 6://1D
+               SidePar.Resize(1); JacToSide.Resize(1,3);
+               if(qsi + zeta > 0.999)
+               {
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+               }
+               else
+               {
+                    SidePar[0] = (qsi + 2*eta + zeta -1.)/(qsi + zeta -1.);
+                    JacToSide(0,0) = -2.*eta/((qsi + zeta - 1.)*(qsi + zeta - 1.)); JacToSide(0,1) = 2./(qsi + zeta - 1.); JacToSide(0,2) = -2.*eta/((qsi + zeta - 1.)*(qsi + zeta - 1.));
+               }
+          return;
+
+          case 7://1D
+               SidePar.Resize(1); JacToSide.Resize(1,3);
+               if(qsi + eta > 0.999)
+               {
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+               }
+               else
+               {
+                    SidePar[0] = -(qsi + eta + 2*zeta -1.)/(qsi + eta -1.);
+                    JacToSide(0,0) = 2.*zeta/((qsi + eta - 1.)*(qsi + eta - 1.)); JacToSide(0,1) = 2.*zeta/((qsi + eta - 1.)*(qsi + eta - 1.)); JacToSide(0,2) = -2./(qsi + eta -1.);
+               }
+          return;
+
+          case 8://1D
+               SidePar.Resize(1); JacToSide.Resize(1,3);
+               if(qsi + zeta < 1.E-3)
+               {
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+               }
+               else
+               {
+                    SidePar[0] = (zeta - qsi)/(zeta + qsi);
+                    JacToSide(0,0) = -2.*zeta/(qsi + zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = 2.*qsi/((qsi + zeta)*(qsi + zeta));
+               }
+          return;
+
+          case 9://1D
+               SidePar.Resize(1); JacToSide.Resize(1,3);
+               if(eta + zeta < 1.E-3)
+               {
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+               }
+               else
+               {
+                    SidePar[0] = (zeta - eta)/(zeta + eta);
+                    JacToSide(0,0) = -2./(eta + zeta - 1.); JacToSide(0,1) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.)); JacToSide(0,2) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.));
+               }
+          return;
+
+          case 10://2D
+               SidePar.Resize(2); JacToSide.Resize(2,3);
+               if(zeta > 0.999)
+               {
+                    SidePar[0] = 1./3.; SidePar[1] = 1./3.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
+               }
+               else
+               {
+                    SidePar[0] = qsi/(1.-zeta); SidePar[1] = eta/(1.-zeta);
+                    JacToSide(0,0) = 1/(1.-zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = qsi/((zeta-1.)*(zeta-1.));
+                    JacToSide(1,0) = 0.; JacToSide(1,1) = 1/(1.-zeta); JacToSide(1,2) = eta/((zeta-1.)*(zeta-1.));
+               }
+          return;
+
+          case 11://2D
+               SidePar.Resize(2); JacToSide.Resize(2,3);
+               if(eta > 0.999)
+               {
+                    SidePar[0] = 1./3.; SidePar[1] = 1./3.;
+                    JacToSide(0,0) = 1./(1.-eta); JacToSide(0,1) = qsi/((eta-1.)*(eta-1.)); JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = 0.; JacToSide(1,1) = zeta/((eta-1.)*(eta-1.)); JacToSide(1,2) = 1./(1.-eta);
+               }
+               else
+               {
+                    SidePar[0] = qsi/(1.-eta); SidePar[1] = zeta/(1.-eta);
+                    JacToSide(0,0) = 1/(1.-zeta); JacToSide(0,1) = 1/(1.-zeta); JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = 1/(1.-zeta); JacToSide(1,1) = 1/(1.-zeta); JacToSide(1,2) = 0.;
+               }
+          return;
+
+          case 12://2D
+               SidePar.Resize(2); JacToSide.Resize(2,3);
+               if(qsi+eta+zeta < 1.E-3)
+               {
+                    SidePar[0] = 1./6.; SidePar[1] = 1./3.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
+               }
+               else
+               {
+                    SidePar[0] = eta/(qsi+eta+zeta); SidePar[1] = zeta/(qsi+eta+zeta);
+                    JacToSide(0,0) = -eta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(0,1) = (qsi+zeta)/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(0,2) = -eta/((qsi+eta+zeta)*(qsi+eta+zeta));
+                    JacToSide(1,0) = -zeta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(1,1) = -zeta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(1,2) = (qsi+eta)/((qsi+eta+zeta)*(qsi+eta+zeta));
+               }
+          return;
+
+          case 13://2D
+               SidePar.Resize(2); JacToSide.Resize(2,3);
+               if(qsi > 0.999)
+               {
+                    SidePar[0] = 1./3.; SidePar[1] = 1./3.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
+               }
+               else
+               {
+                    SidePar[0] = eta/(1.-qsi); SidePar[1] = zeta/(1.-qsi);
+                    JacToSide(0,0) = eta/((qsi-1.)*(qsi-1.)); JacToSide(0,1) = 1/(1.-qsi); JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = zeta/((qsi-1.)*(qsi-1.)); JacToSide(1,1) = 0.; JacToSide(1,2) = 1/(1.-qsi);
+               }
+          return;
+     }
+     if(side < 4 || side > 13)
+     {
+          cout << "Cant compute MapToSide method in TPZGeoTetrahedra class!\nParameter (SIDE) must be between 4 and 13!\nMethod Aborted!\n"; exit(-1);
+     }
 }
 
 TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {

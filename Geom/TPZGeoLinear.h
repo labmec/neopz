@@ -56,6 +56,13 @@ public:
  {
  }
 
+  /**
+  * Copy constructor
+   */
+ TPZGeoLinear(const TPZGeoLinear &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
+ {
+ }
+
 
 /**
  * returns the type name of the element
@@ -63,6 +70,11 @@ public:
 static std::string TypeName() { return "Linear";} 
 
 static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
+
+/**
+ * returns the projection of a given point from "NSide - 1" side to "side".
+ */
+static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 
 static void Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi);
 
@@ -87,6 +99,7 @@ inline void TPZGeoLinear::Jacobian(TPZFMatrix &coord,TPZVec<REAL> &param,TPZFMat
 //   axes(0,0) = 1.;
 
   //VERSAO FUNCIONAL
+  jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
   int ic;
   REAL v1[3] = {0.};
   int nrow = coord.Rows();
@@ -152,6 +165,14 @@ inline void TPZGeoLinear::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &re
 //     }
 //   }
 
+}
+
+inline void TPZGeoLinear::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+     TPZTransform Transf = pztopology::TPZLine::SideToSideTransform(TPZGeoLinear::NSides - 1, side);
+     SidePar.Resize(SideDimension(side));
+     Transf.Apply(InternalPar,SidePar);
+
+     JacToSide.Resize(1,1); JacToSide(0,0) = 0.;
 }
 
 };

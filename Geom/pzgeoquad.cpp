@@ -41,11 +41,11 @@ void TPZGeoQuad::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
 void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
 
-  int nnodes = NNodes;
+
 #ifdef DEBUG
   if (nnodes != 4) {
     PZError << "TPZGeoQuad.jacobian only implemented for"
-      " 4, 8 or 9 nodes, NumberOfNodes = " << nnodes << "\n";
+      " 4 nodes, NumberOfNodes = " << nnodes << "\n";
   }
   if( param[0] < -1.001 || param[0] > 1.001 || param[1] < -1.001 || param[1] > 1.001) {
     PZError << "TPZGeoQuad.jacobian. param out of range : "
@@ -54,56 +54,35 @@ void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &ja
     //return;
   }
 #endif
-  REAL spacephi[4];
-  TPZFMatrix phi(4,1,spacephi,4);
-  REAL spacedphi[8];
-  TPZFMatrix dphi(2,4,spacedphi,8);
+  jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
+  TPZFNMatrix<4> phi(4,1);
+  TPZFNMatrix<8> dphi(2,4);
+  TPZFNMatrix<6> axest(3,2);
   Shape(param,phi,dphi);
-  int i,j;
-  int space = coord.Rows();
-  for(i=0;i<2;i++)
-    for(j=0;j<2;j++)
-      jacobian(i,j)=0.;
+  jacobian.Zero();
 
-//  TPZGeoNode *np;
-  TPZVec<REAL> V1(3,0.),V2(3,0.),V2til(3,0.),V3(3,0.);
-  REAL V1Norm=0.,V1V2=0.,V2tilNorm=0.;
-  for(i=0;i<nnodes;i++) {
-    //np = NodePtr(i);
-    for(j=0;j<space;j++) {
-      //V1[j] += np->Coord(j)*dphi(0,i);
-		V1[j] += coord(j,i)*dphi(0,i);
-      //V2[j] += np->Coord(j)*dphi(1,i);
-		V2[j] += coord(j,i)*dphi(1,i);
+  int spacedim = coord.Rows();
+  TPZFMatrix VecMatrix(3,2,0.);
+  for(int i = 0; i < 4; i++) {
+    for(int j = 0; j < spacedim; j++) {
+        VecMatrix(j,0) += coord(j,i)*dphi(0,i);
+        VecMatrix(j,1) += coord(j,i)*dphi(1,i);
     }
   }
-  for(i=0;i<3;i++) {
-    V1Norm += V1[i]*V1[i];
-    V1V2 += V1[i]*V2[i];
+  VecMatrix.GramSchmidt(axest,jacobian);
+  axest.Transpose(&axes);
+  detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
+  if(detjac)
+  {
+    jacinv(0,0) =  jacobian(1,1)/detjac;
+    jacinv(1,1) =  jacobian(0,0)/detjac;
+    jacinv(0,1) = -jacobian(0,1)/detjac;
+    jacinv(1,0) = -jacobian(1,0)/detjac;
   }
-  V1Norm = sqrt(V1Norm);
-  for(i=0;i<3;i++) {
-    V1[i] /= V1Norm;
-    V2til[i] = V2[i] - V1V2*V1[i]/V1Norm;
-    V2tilNorm += V2til[i]*V2til[i];
+  else
+  {
+    jacinv.Zero();
   }
-  V2tilNorm = sqrt(V2tilNorm);
-  jacobian(0,0) = V1Norm;
-  jacobian(0,1) = V1V2/V1Norm;
-  jacobian(1,1) = V2tilNorm;
-  for(i=0;i<3;i++) {
-    axes(0,i) = V1[i];
-    axes(1,i) = V2til[i]/V2tilNorm;
-  }
-  detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
-  jacinv(0,0) = jacobian(1,1)/detjac;
-  jacinv(1,1) = jacobian(0,0)/detjac;
-  jacinv(0,1) = -jacobian(0,1)/detjac;
-  jacinv(1,0) = -jacobian(1,0)/detjac;
-
-  axes(2,0) = axes(0,1)*axes(1,2)-axes(0,2)*axes(1,1);
-  axes(2,1) = -axes(0,0)*axes(1,2)+axes(0,2)*axes(1,0);
-  axes(2,2) = axes(0,0)*axes(1,1)-axes(0,1)*axes(1,0);
 }
 
 void TPZGeoQuad::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
@@ -119,6 +98,21 @@ void TPZGeoQuad::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
       //result[i] += phi(j,0)*NodePtr(j)->Coord(i);
 	  result[i] += phi(j,0)*coord(i,j);
   }
+}
+
+void TPZGeoQuad::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+     TPZTransform Transf = pztopology::TPZQuadrilateral::SideToSideTransform(TPZGeoQuad::NSides - 1, side);
+     SidePar.Resize(SideDimension(side));
+     Transf.Apply(InternalPar,SidePar);
+
+     int R = Transf.Mult().Rows();
+     int C = Transf.Mult().Cols();
+
+     JacToSide.Resize(R,C);
+     for(int i = 0; i < R; i++)
+     {
+          for(int j = 0; j < C; j++) JacToSide(i,j) = Transf.Mult()(i,j);
+     }
 }
 
 TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {

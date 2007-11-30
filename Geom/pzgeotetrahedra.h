@@ -49,11 +49,18 @@ public:
                 std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap)
  {
  }
-  
+
   /**
   * Copy constructor
    */
  TPZGeoTetrahedra(const TPZGeoTetrahedra &cp) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
+ {
+ }
+
+  /**
+  * Copy constructor
+   */
+ TPZGeoTetrahedra(const TPZGeoTetrahedra &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
  {
  }
 
@@ -62,21 +69,26 @@ public:
  */
 static std::string TypeName() { return "Tetra";} 
 
-	/** implementation of two-dimensional bilinear interpolation*/
-	static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
+/** implementation of two-dimensional bilinear interpolation*/
+static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
 
-	/**Computes the jacobian*/
-	static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+/**Computes the jacobian*/
+static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
 
-	/**Computes the geometric location*/
-	static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
+/**Computes the geometric location*/
+static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
 
-	/**
-	* Method which creates a geometric boundary condition 
-	* element based on the current geometric element, 
-	* a side and a boundary condition number
-	*/
-	static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
+/**
+ * returns the projection of a given point from "NSide - 1" side to "side".
+ */
+static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
+
+/**
+* Method which creates a geometric boundary condition 
+* element based on the current geometric element, 
+* a side and a boundary condition number
+*/
+static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 
 };
 

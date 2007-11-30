@@ -47,6 +47,21 @@ TPZGeoElement<TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZG
 }
 
 template<class TGeo, class TRef>
+TPZGeoElement<TGeo,TRef>::TPZGeoElement(TGeo &geo,int matind,TPZGeoMesh &mesh) :
+  TPZGeoElRefLess<TGeo>(geo,matind,mesh) {
+
+//  int i,nnod = nodeindices.NElements();
+//  if(nnod!=TGeo::NNodes) {
+ //   PZError << "TPZGeoElement<TGeo,TRef>::Constuctor, number of nodes : " << nnod << endl;
+  //  return;
+ // }
+
+//  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
+  int i;
+  for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
+}
+
+template<class TGeo, class TRef>
 TPZGeoElement<TGeo,TRef>::TPZGeoElement(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh) :
   TPZGeoElRefLess<TGeo>(id,nodeindexes,matind,mesh) {
 

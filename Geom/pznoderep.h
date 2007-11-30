@@ -16,6 +16,7 @@
 #include "pzvec.h"
 
 #include <map>
+#include <pzgeoelside.h>
 class TPZGeoMesh;
 
 #include "pzlog.h"
@@ -30,6 +31,20 @@ class TPZNodeRep : public Topology
 
 {
 public:
+
+  virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) {
+     std::cout << "Element that is NOT TPZGeoBlend trying to Set Neighbour Information on Geometric Mesh!\n";
+     std::cout << "See TPZGeoElRefLess::SetNeighbourInfo() Method!\n";
+     exit(-1);
+  }
+
+  bool IsLinearMapping() const { return true; }
+  bool IsGeoBlendEl() const 
+  { 
+    return false; 
+  }
+
+  static const int NNodes=N;
   int fNodeIndexes[N];
   /**
    * Constructor with list of nodes
@@ -83,6 +98,17 @@ public:
     memcpy(fNodeIndexes,&nodeindexes[0],nn*sizeof(int));
     int i;
     for(i=nn; i<N; i++) fNodeIndexes[i]=-1;
+  }
+  
+  void Print(std::ostream &out)
+  {
+    int nn;
+    out << "Nodeindices :";
+    for(nn=0; nn<N; nn++)
+    {
+      out << fNodeIndexes[nn] << ' ';
+    }
+    out << std::endl;
   }
 
 };
