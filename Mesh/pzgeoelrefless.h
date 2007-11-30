@@ -19,6 +19,7 @@
 #define PZGEOELREFLESS_H
 
 #include <pzgeoel.h>
+#include <pzgeoelside.h>
 
 class TPZGeoElSide;
 class TPZCompMesh;
@@ -70,6 +71,9 @@ public:
 
 
   TPZGeoElRefLess(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
+
+  TPZGeoElRefLess(TGeo &Geo, int matind,TPZGeoMesh &mesh);
+
   TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
   TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
 
@@ -107,6 +111,13 @@ public:
   virtual  void SetNeighbour(int side,const TPZGeoElSide &neighbour){
     fNeighbours[side]=neighbour;
   }
+  
+  virtual void Print(std::ostream &out)
+  {
+    TPZGeoEl::Print(out);
+    out << "fGeo:\n";
+    fGeo.Print(out);
+  }
 
   virtual  int SideNodeIndex(int side,int node);
 
@@ -143,7 +154,7 @@ public:
     */
     virtual std::string TypeName()
     {
-      return TGeo::TypeName();
+      return fGeo.TypeName();
     }
 
   /**return the number of nodes of the element*/
@@ -195,6 +206,14 @@ public:
    */
    virtual  TPZGeoEl *CreateBCGeoEl(int side, int bc);
 
+  /**
+    * Creates a geometric element according to the type of the father element
+   */
+   virtual TPZGeoEl *CreateGeoElement(MElementType type,
+                                      TPZVec<int>& nodeindexes,
+                                      int matid,
+                                      int& index);
+
   /**initializes the node i of the element*/
   virtual  void SetNodeIndex(int i,int nodeindex);
 
@@ -235,6 +254,10 @@ public:
   /**return the coordinate in real space of the point coordinate in the master element space*/
   virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result);
 
+  virtual bool IsLinearMapping() const;
+  virtual bool IsGeoBlendEl() const;
+  TGeo &Geom() { return fGeo; }
+
   virtual  TPZTransform GetTransform(int side,int son);
 
   /**
@@ -251,6 +274,11 @@ public:
   virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
 
   virtual void ResetSubElements()=0;
+
+  virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans)
+  {
+     Geom().SetNeighbourInfo(side,neigh,trans);
+  }
 
 };
 

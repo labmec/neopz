@@ -38,7 +38,7 @@ public:
 
     TPZCube();
 
-    ~TPZCube();
+    virtual ~TPZCube();
 
 
 static void LowerDimensionSides(int side,TPZStack<int> &smallsides);

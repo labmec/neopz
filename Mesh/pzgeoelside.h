@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.16 2006-10-17 00:57:54 phil Exp $
+//$Id: pzgeoelside.h,v 1.17 2007-11-30 12:48:22 phil Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -11,6 +11,7 @@
 class TPZGeoEl;
 class TPZTransform;
 class TPZCompElSide;
+class TPZFMatrix;
 
 #include "pzvec.h"
 #include "pzstack.h"
@@ -73,6 +74,13 @@ class TPZGeoElSide {
 	 TPZGeoElSide Father2();
 	 TPZCompElSide LowerLevelCompElementList2(int onlyinterpolated);
 
+
+         /** By Caju */
+         void X(TPZVec< REAL > &loc, TPZVec< REAL > &result);
+         /** By Caju */
+         void Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+
+
 	 /**
 	  * Will return all elements of equal or higher level than than the current element
 	  * All elements/sides have the same dimension
@@ -100,6 +108,8 @@ class TPZGeoElSide {
   int Side() const {return fSide;}
 
   void SetSide(int side) { fSide = side; }
+  
+  bool IsLinearMapping() const;
 
   int Exists() const {return (fGeoEl != 0 && fSide > -1);}
 

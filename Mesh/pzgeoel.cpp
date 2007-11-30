@@ -37,11 +37,12 @@ Contains the methods definition for (abstract) base class TPZGeoEl.
 #include <stdio.h>
 #include <stdlib.h>
 
+using namespace std;
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoel"));
 #endif
 
-using namespace std;
 
 class TPZRefPattern;
 
@@ -224,7 +225,15 @@ void TPZGeoEl::Print(std::ostream & out) {
 
   out << "Element index      " << fIndex << endl;
   out << "Element id         " << fId << endl;
-//  out << "Element level      " << Level() << endl;
+  out << "Is GeoBlend ? : ";
+  if(this->IsGeoBlendEl())
+  {
+     cout << "true" << endl;
+  }
+  else
+  {
+     cout << "false" << endl;
+  }
   out << "Number of nodes    " << NNodes() << endl;
   out << "Corner nodes       " << NCornerNodes() << endl;
   out << "Nodes ids          ";
@@ -807,24 +816,24 @@ void TPZGeoEl::SetSubElementConnectivities() {
   }
   InitializeNeighbours();
 }
-
+/*
 void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
 
-  TPZVec<REAL> X0(3,0.);
+  TPZManVector<REAL,3> X0(3,0.);
    if(ksi.NElements()!=Dimension()) {
      PZError << "\nTPZGeoEl::ComputeXInverse vector dimension error\n";
      ksi.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
     //return;
    }
   X(ksi,X0);//ksi deve ter dimensao do elemento atual
-  TPZFMatrix DelX(3,1);
+  TPZFNMatrix<3> DelX(3,1);
   int i;
   for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
   int dim = Dimension();
-  TPZFMatrix residual(dim,1),delksi(dim,1);
+  TPZFNMatrix<3> residual(dim,1),delksi(dim,1);
   REAL detJ;
-  TPZFMatrix J(dim,dim,0.),axes(3,3,0.),Inv(dim,dim,0.);
-  TPZFMatrix JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
+  TPZFNMatrix<9> J(dim,dim,0.),axes(3,3,0.),Inv(dim,dim,0.);
+  TPZFNMatrix<9> JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
   int nao = 0;
   if(NSides() == 19 && nao){
 	  ksi.Resize(3,0.);
@@ -849,7 +858,7 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
 	  //exit(-1);
   }
   Jacobian(ksi,J,axes,detJ,Inv);
-  TPZFMatrix axest;
+  TPZFNMatrix<9> axest;
   axes.Transpose(&axest);
   axest.Resize(3,dim);//casos 1D e 2D onde JX espacial � 1x3 e 2x3 respectivamente
   if(dim==1){
@@ -869,10 +878,11 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
   REAL error = Norm(DelX);
   if(error > 1.0E-4) {
 	  cout << "ComputeXInverse did not compute the inverse correctly\n";
+          Jacobian(ksi,J,axes,detJ,Inv);
   }
 
 }
-
+*/
 void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 
   REAL error = 10.;
@@ -955,14 +965,14 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
   if(!fat->SideDimension(fatside)) return TPZTransform(0,0);
 
   REAL weight;
-  TPZFMatrix jac(dim,dim),axes(3,3,0.);
-  TPZFMatrix jacinv(dim,dim);
-  TPZVec<REAL> x(3,0.);
-  TPZVec<REAL> intpoint(dimss,0.);
+  TPZFNMatrix<9> jac(dim,dim),axes(3,3,0.);
+  TPZFNMatrix<9> jacinv(dim,dim);
+  TPZManVector<REAL,3> x(3,0.);
+  TPZManVector<REAL,3> intpoint(dimss,0.);
   int tam = (dimss+1);
-  TPZFMatrix hess(tam,tam,0.),grad0(tam,1,0.);
+  TPZFNMatrix<16> hess(tam,tam,0.),grad0(tam,1,0.);
   TPZIntPoints *intrule = CreateSideIntegrationRule(sideson,2);
-  TPZVec<int> order(dimss,2);
+  TPZManVector<int,2> order(dimss,2);
   intrule->SetOrder(order);
   //integra��o sobre o lado-filho contido no lado-pai
   int ij,ik,indp;
@@ -994,9 +1004,9 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
   TPZTransform tsidetoson(Dimension());//identidade
   if(dimss<Dimension()) tsidetoson = SideToSideTransform(sideson,NSides()-1);
   TPZTransform fatelside = fat->SideToSideTransform(fat->NSides()-1,fatside);
-  TPZVec<REAL> sidepoint(Dimension());//dimensao do dominio da transformacao X do filho
+  TPZManVector<REAL,3> sidepoint(Dimension());//dimensao do dominio da transformacao X do filho
   int j;//transf. para o lado do pai
-  TPZFMatrix A(dimsf,dimss,0.),sol(dimsf,1,0.);
+  TPZFNMatrix<9> A(dimsf,dimss,0.),sol(dimsf,1,0.);
   for(int ifat=0;ifat<dimsf;ifat++){//numero de variaveis do pai
     REAL DEdci = 0.;
     for(j=0;j<(dimss+1);j++){
@@ -1292,3 +1302,108 @@ TPZAutoPointer<TPZRefPattern> TPZGeoEl::GetRefPattern()
   TPZAutoPointer<TPZRefPattern> result;
   return result;
 }
+
+
+#include "tpzgeoelrefpattern.h"
+#include "TPZGeoCube.h"
+#include "pzshapecube.h"
+#include "TPZRefCube.h"
+#include "pzshapelinear.h"
+#include "TPZGeoLinear.h"
+#include "TPZRefLinear.h"
+#include "pzrefquad.h"
+#include "pzshapequad.h"
+#include "pzgeoquad.h"
+#include "pzshapetriang.h"
+#include "pzreftriangle.h"
+#include "pzgeotriangle.h"
+#include "pzshapeprism.h"
+#include "pzrefprism.h"
+#include "pzgeoprism.h"
+#include "pzshapetetra.h"
+#include "pzreftetrahedra.h"
+#include "pzgeotetrahedra.h"
+#include "pzshapepiram.h"
+#include "pzrefpyram.h"
+#include "pzgeopyramid.h"
+#include "pzgeopoint.h"
+#include "pzrefpoint.h"
+#include "pzshapepoint.h"
+
+using namespace pzgeom;
+using namespace pzrefine;
+using namespace pzshape;
+
+TPZGeoEl *TPZGeoEl::CreateGeoElement(MElementType type,
+                                       TPZVec<int>& nodeindexes,
+                                       int matid,
+                                       int& index)
+{
+  TPZGeoMesh &mesh = *Mesh();
+  if(!&mesh) return 0;
+  
+  switch( type ){
+    case 0://point
+    {
+      TPZGeoElRefPattern<TPZGeoPoint> * gel =
+          new TPZGeoElRefPattern<TPZGeoPoint> (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 1://line
+    {
+      TPZGeoElRefPattern < TPZGeoLinear > *gel =
+          new TPZGeoElRefPattern < TPZGeoLinear >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 2://triangle
+    {
+      TPZGeoElRefPattern < TPZGeoTriangle > *gel =
+          new TPZGeoElRefPattern < TPZGeoTriangle >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 3://quadrilatera
+    {
+      TPZGeoElRefPattern < TPZGeoQuad > * gel =
+          new TPZGeoElRefPattern < TPZGeoQuad >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 4://tetraedra
+    {
+      TPZGeoElRefPattern < TPZGeoTetrahedra > *gel =
+          new TPZGeoElRefPattern < TPZGeoTetrahedra >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 5://pyramid
+    {
+      TPZGeoElRefPattern < TPZGeoPyramid > *gel =
+          new TPZGeoElRefPattern < TPZGeoPyramid >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 6://prism
+    {
+      TPZGeoElRefPattern < TPZGeoPrism > *gel =
+          new TPZGeoElRefPattern < TPZGeoPrism >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 7://cube
+    {
+      TPZGeoElRefPattern < TPZGeoCube > *gel =
+          new TPZGeoElRefPattern < TPZGeoCube >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    default:
+    {
+      PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
+          << " type = " << type << std::endl;
+      return NULL;
+    }
+  }
+}
+

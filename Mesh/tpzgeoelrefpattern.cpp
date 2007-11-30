@@ -7,6 +7,7 @@
  ***************************************************************************/
 
 #include "tpzgeoelrefpattern.h"
+#include "tpzgeoelrefpattern.h.h"
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
@@ -37,21 +38,82 @@
 #include "TPZRefPattern.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
-#include "pzlog.h"
 using namespace pzgeom;
 using namespace pzshape;
 
-// class TPZGeoElRefPattern<TPZShapeCube,TPZGeoCube>;
-// class TPZGeoElRefPattern<TPZShapeLinear,TPZGeoLinear>;
-// class TPZGeoElRefPattern<TPZShapeQuad,TPZGeoQuad>;
-// class TPZGeoElRefPattern<TPZShapeTriang,TPZGeoTriangle>;
-// class TPZGeoElRefPattern<TPZShapePrism,TPZGeoPrism>;
-// class TPZGeoElRefPattern<TPZShapeTetra,TPZGeoTetrahedra>;
-// class TPZGeoElRefPattern<TPZShapePiram,TPZGeoPyramid>;
-// class TPZGeoElRefPattern<TPZShapePoint,TPZGeoPoint>;
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
-#endif
+TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh, MElementType type,
+                                  TPZVec<int>& nodeindexes,
+                                  int matid,
+                                  int& index)
+  
+{
+  if(!&mesh) return 0;
+  
+  switch( type ){
+    case 0://point
+    {
+      TPZGeoEl * gel =
+          new TPZGeoElRefPattern<TPZGeoPoint>(nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 1://line
+    {
+      TPZGeoEl *gel =
+          new TPZGeoElRefPattern< TPZGeoLinear >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 2://triangle
+    {
+      TPZGeoEl *gel =
+          new TPZGeoElRefPattern< TPZGeoTriangle >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 3://quadrilatera
+    {
+      TPZGeoEl* gel =
+          new TPZGeoElRefPattern< TPZGeoQuad >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 4://tetraedra
+    {
+      TPZGeoEl*gel =
+          new TPZGeoElRefPattern< TPZGeoTetrahedra >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 5://pyramid
+    {
+      TPZGeoEl *gel =
+          new TPZGeoElRefPattern< TPZGeoPyramid >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 6://prism
+    {
+      TPZGeoEl*gel =
+          new TPZGeoElRefPattern< TPZGeoPrism >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    case 7://cube
+    {
+      TPZGeoEl*gel =
+          new TPZGeoElRefPattern< TPZGeoCube >
+          (nodeindexes, matid, mesh, index);
+      return gel;
+    }
+    default:
+    {
+      PZError << "TPZGeoMesh::CreateGeoElementRefPattern type element not exists:"
+          << " type = " << type << std::endl;
+      return NULL;
+    }
+  }
+}
+
 
 /** ClassId method for each instantiation followed by the registration of the class in the TPZRestoreClass */
 template < >
@@ -110,76 +172,11 @@ int TPZGeoElRefPattern<TPZGeoPoint>::ClassId() const{
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPoint>, TPZGEOELREFPATPOINTID>;
 
-template <class TGeo>
-void TPZGeoElRefPattern<TGeo>::Read(TPZStream &str, void *context){
-  TPZGeoElRefLess<TGeo>::Read(str, context);
-  TPZGeoMesh *gmesh = (TPZGeoMesh *) context;
-  int refpatternindex;
-  str.Read(&refpatternindex, 1);
-  if(refpatternindex != -1)
-  {
-    const std::map<int, TPZAutoPointer<TPZRefPattern> > &RefPatternList = gmesh->RefPatternList(this->Type());
-    std::map<int, TPZAutoPointer<TPZRefPattern> >::const_iterator it;
-    it = RefPatternList.find(refpatternindex);
-    if(it != RefPatternList.end()) fRefPattern = it->second;
-  }
-  TPZSaveable::ReadObjects(str, this->fSubEl);
-}
-
-template <class TGeo>
-void TPZGeoElRefPattern<TGeo>::Write(TPZStream &str, int withclassid){
-  TPZGeoElRefLess<TGeo>::Write(str, withclassid);
-  int refpatternindex = -1;
-  if(fRefPattern) refpatternindex = fRefPattern->Id();
-  str.Write(&refpatternindex, 1);
-  TPZSaveable::WriteObjects(str, this->fSubEl);
-}
-
-template <class TGeo>
-TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh, const TPZGeoElRefPattern<TGeo> &cp):TPZGeoElRefLess<TGeo>(DestMesh,cp),
-  fRefPattern(cp.fRefPattern) {
-  this->fSubEl = cp.fSubEl;
-}
-
-template <class TGeo>
-TPZGeoEl * TPZGeoElRefPattern<TGeo>::Clone(TPZGeoMesh &DestMesh) const{
-  return new TPZGeoElRefPattern<TGeo>(DestMesh, *this);
-}
-
-
-template <class TGeo>
-TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh,
-                                                    const TPZGeoElRefPattern<TGeo> &cp,
-                                                    std::map<int,int> &gl2lcNdMap,
-                                                    std::map<int,int> &gl2lcElMap):
-                                                    TPZGeoElRefLess<TGeo>(DestMesh,cp,gl2lcNdMap,gl2lcElMap),
-                                                    fRefPattern ( cp.fRefPattern )
-{
-  int i;
-  for (i=0;i<cp.fSubEl.NElements();i++)
-  {
-    if (cp.fSubEl[i] == -1)
-    {
-      this->fSubEl[i] = -1;
-      continue;
-    }
-    if (gl2lcElMap.find(cp.fSubEl[i]) == gl2lcElMap.end())
-    {
-      std::stringstream sout;
-      sout << "ERROR in - " << __PRETTY_FUNCTION__
-           << " subelement " << i << " index = " << cp.fSubEl[i] << " is not in the map.";
-      LOGPZ_ERROR (logger,sout.str().c_str());
-      exit(-1);
-    }
-    this->fSubEl[i] = gl2lcElMap[cp.fSubEl[i]];
-  }
-}
-
-
-template <class TGeo>
-TPZGeoEl * TPZGeoElRefPattern<TGeo>::ClonePatchEl(TPZGeoMesh &DestMesh,
-                                                        std::map<int,int> &gl2lcNdMap,
-                                                        std::map<int,int> &gl2lcElMap) const{
-  return new TPZGeoElRefPattern<TGeo>(DestMesh, *this, gl2lcNdMap, gl2lcElMap);
-}
-
+// class TPZGeoElRefPattern<TPZGeoCube>;
+// class TPZGeoElRefPattern<TPZGeoLinear>;
+// class TPZGeoElRefPattern<TPZGeoQuad>;
+// class TPZGeoElRefPattern<TPZGeoTriangle>;
+// class TPZGeoElRefPattern<TPZGeoPrism>;
+// class TPZGeoElRefPattern<TPZGeoTetrahedra>;
+// class TPZGeoElRefPattern<TPZGeoPyramid>;
+// class TPZGeoElRefPattern<TPZGeoPoint>;

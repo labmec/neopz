@@ -26,7 +26,7 @@ public:
 
     TPZDisc();
 
-    ~TPZDisc();
+    virtual ~TPZDisc();
 
 };
 

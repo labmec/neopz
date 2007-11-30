@@ -34,6 +34,12 @@ public:
 
 enum {NSides = 7, NCornerNodes= 3, Dimension = 2};
 
+TPZTriangle(){
+};
+
+virtual ~TPZTriangle(){
+};
+
  /**
   * return the number of nodes (not connectivities) associated with a side
   */

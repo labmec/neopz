@@ -15,7 +15,7 @@
 
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
+static LoggerPtr loggerrefless(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
 #endif
 
 template<class TGeo>
@@ -67,6 +67,13 @@ TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGe
 }
 
 template<class TGeo>
+TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TGeo &geo,int matind,TPZGeoMesh &mesh) :
+    TPZGeoEl(matind,mesh), fGeo(geo,mesh) {
+  int i;
+  for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
+}
+
+template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
     TPZGeoEl(matind,mesh,index) , fGeo(nodeindices,mesh) {
 
@@ -91,7 +98,7 @@ void TPZGeoElRefLess<TGeo>::Initialize(TPZVec<int> &nodeindices, int matind, TPZ
 template<class TGeo>
 int
 TPZGeoElRefLess<TGeo>::NodeIndex(int node) {
-  if(node<0 || node>7) return -1;
+  if(node<0 || node>=fGeo.NNodes) return -1;
   return fGeo.fNodeIndexes[node];
 }
 
@@ -214,7 +221,16 @@ TPZGeoElRefLess<TGeo>::NSideSubElements2(int side){
 template<class TGeo>
 TPZGeoEl *
 TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
-  return TGeo::CreateBCGeoEl(this,side,bc);
+  return fGeo.CreateBCGeoEl(this,side,bc);
+}
+
+template<class TGeo>
+TPZGeoEl * TPZGeoElRefLess<TGeo>::CreateGeoElement(MElementType type,
+    TPZVec<int>& nodeindexes,
+    int matid,
+    int& index)
+{
+  return TPZGeoEl::CreateGeoElement(type,nodeindexes,matid,index);
 }
 
 template<class TGeo>
@@ -291,10 +307,7 @@ TPZGeoElRefLess<TGeo>::AllHigherDimensionSides(int side,int targetdimension,TPZS
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::LowerDimensionSides(int side,TPZStack<int> &smallsides){
-  int nsidecon = TGeo::NSideConnects(side);
-  int is;
-  for(is=0; is<nsidecon-1; is++)
-    smallsides.Push(TGeo::SideConnectLocId(side,is));
+  TGeo::LowerDimensionSides(side,smallsides);
 }
 
 template<class TGeo>
@@ -316,7 +329,7 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMat
       nodes(j,i) = np->Coord(j);
     }
   }
-  TGeo::Jacobian(nodes,coordinate,jac,axes,detjac,jacinv);
+  fGeo.Jacobian(nodes,coordinate,jac,axes,detjac,jacinv);
 //   if(TGeo::NNodes == 2) {
 //     detjac = 1.;
 //     jacinv(0,0) = 1.;
@@ -337,7 +350,19 @@ TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result){
       nodes(j,i) = np->Coord(j);
     }
   }
-  TGeo::X(nodes,coordinate,result);
+  fGeo.X(nodes,coordinate,result);
+}
+
+template<class TGeo>
+bool TPZGeoElRefLess<TGeo>::IsLinearMapping() const 
+{ 
+  return fGeo.IsLinearMapping();
+}
+
+template<class TGeo>
+bool TPZGeoElRefLess<TGeo>::IsGeoBlendEl() const 
+{ 
+  return fGeo.IsGeoBlendEl();
 }
 
 template<class TGeo>

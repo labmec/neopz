@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.28 2007-04-20 18:31:02 caju Exp $
+//$Id: pzgeoel.h,v 1.29 2007-11-30 12:48:22 phil Exp $
 
 // -*- c++ -*-
 
@@ -66,6 +66,8 @@ class TPZGeoEl : public TPZSaveable { 	// header file for the element class
    int fNumInterfaces;
 
 public:
+
+  virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) = 0;
 
   /**
    * Return number of TPZInterfaceElement pointing to this.
@@ -234,6 +236,16 @@ virtual MElementType Type(int side) =0;
     std::cout << "ElementType should never be called\n";
     return "Notype";
   }
+  
+  virtual bool IsLinearMapping() const
+  {
+    return true;
+  }
+  
+  virtual bool  IsGeoBlendEl() const
+  {
+    return false;
+  }
   /**return the number of connectivities of the element*/
   virtual int NSides() = 0;
 
@@ -298,6 +310,14 @@ virtual MElementType Type(int side) =0;
      based on the current geometric element, a side and a boundary condition number*/
   virtual TPZCompEl *CreateBCCompEl(int side, int bc, TPZCompMesh &cmesh);
 
+  /**
+   * Creates a geometric element according to the type of the father element
+   */
+  virtual TPZGeoEl *CreateGeoElement(MElementType type,
+                                       TPZVec<int>& nodeindexes,
+                                       int matid,
+                                       int& index);
+  
   /** method which creates a geometric element on the side of an existing element */
   virtual TPZGeoEl *CreateBCGeoEl(int side, int bc) = 0;
 
@@ -501,8 +521,8 @@ void CheckSubelDataStructure();
 	 */
 //  virtual void Center(TPZVec<REAL> &center) { center[0] = 0.; }
 
-void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi);
-void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol);
+//void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi);
+void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol = 1.E-5);
 
 TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 
@@ -550,6 +570,8 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
    */
   void InitializeNeighbours();
 };
+
+
 
 inline void TPZGeoEl::Divide(TPZVec<TPZGeoEl *> &) {
   PZError << "TPZGeoEl::Divide is called.\n";

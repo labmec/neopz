@@ -14,7 +14,7 @@
 #include <sstream>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.geom.noderep"));
+static LoggerPtr loggernoderep(Logger::getLogger("pz.geom.noderep"));
 #endif
 
 //using namespace pztopology;
@@ -36,7 +36,7 @@ TPZNodeRep<N,Topology>::TPZNodeRep(const TPZNodeRep<N,Topology> &cp, std::map<in
       sout << "ERROR in - " << __PRETTY_FUNCTION__
           << " trying to clone a node " << i << " index " << cp.fNodeIndexes[i]
           << " wich is not mapped";
-      LOGPZ_ERROR(logger,sout.str().c_str());
+      LOGPZ_ERROR(loggernoderep,sout.str().c_str());
       fNodeIndexes[i] = -1;
       continue;
     }
