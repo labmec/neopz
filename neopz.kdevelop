@@ -37,7 +37,7 @@
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevpgf77options</f77compiler>
         <cxxflags>-funroll-all-loops </cxxflags>
-        <configargs>--enable-atlas=yes --with-atlas-dir=/usr/local/ATLAS/lib/ATHLONS --with-compilation_mode=opt</configargs>
+        <configargs>--with-compilation_mode=opt</configargs>
         <topsourcedir/>
         <cppflags/>
         <ldflags/>
@@ -48,7 +48,7 @@
         <f77flags/>
       </optimized>
       <debug>
-        <configargs>--prefix=/home/longhin/Projetos/PZInstall</configargs>
+        <configargs/>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
@@ -64,38 +64,6 @@
         <f77flags/>
         <envvars/>
       </debug>
-      <testing>
-        <configargs/>
-        <builddir>testing</builddir>
-        <topsourcedir/>
-        <cppflags/>
-        <ldflags/>
-        <ccompiler>kdevgccoptions</ccompiler>
-        <cxxcompiler>kdevgppoptions</cxxcompiler>
-        <f77compiler>kdevpgf77options</f77compiler>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags/>
-        <cxxflags/>
-        <f77flags/>
-      </testing>
-      <usingsse>
-        <configargs>--enable-atlas=yes --with-atlas-dir=/usr/local/ATLAS/lib/ATHLON --with-compilation_mode=opt</configargs>
-        <builddir>usingsse</builddir>
-        <topsourcedir/>
-        <cppflags/>
-        <ldflags/>
-        <ccompiler>kdevgccoptions</ccompiler>
-        <cxxcompiler>kdevgppoptions</cxxcompiler>
-        <f77compiler>kdevpgf77options</f77compiler>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags/>
-        <cxxflags>-funroll-all-loops -mfpmath=sse</cxxflags>
-        <f77flags/>
-      </usingsse>
     </configurations>
     <make>
       <envvars/>
