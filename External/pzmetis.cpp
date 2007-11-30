@@ -30,7 +30,7 @@ void TPZMetis::SetNodeWeights(TPZVec<int> &weights){
  fNodeWeights = weights;
 }
 
-void TPZMetis::Print(ostream &out,char * title) {
+void TPZMetis::Print(std::ostream &out,char * title) {
 
  int nel = fElementGraphIndex.NElements()-1;
  int el;
@@ -66,11 +66,11 @@ void TPZMetis::Print(ostream &out,char * title) {
  }
 }
 
-void TPZMetis::Print(ostream &out) {
+void TPZMetis::Print(std::ostream &out) {
 
  // 	int nel = fElementGraphIndex.NElements()-1;
  int el;
- out << fNNodes << endl;
+ out << fNNodes << std::endl;
  /*   for(el=0;el<nel;el++) {
     	int firstindex = fElementGraphIndex[el];
     	int lastindex = fElementGraphIndex[el+1];

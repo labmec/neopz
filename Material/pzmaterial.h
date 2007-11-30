@@ -34,6 +34,7 @@ TPZMaterial objects also need to implement the interface for post processing the
 */
 class  TPZMaterial : public TPZSaveable
 {
+private:
       int fId;
 
    protected:
@@ -79,7 +80,12 @@ class  TPZMaterial : public TPZSaveable
       virtual int Dimension() = 0;
 
       int Id() const { return fId; }
-      void SetId(int id) { fId = id; }
+      void SetId(int id) { 
+          if(id == 0) {
+          std::cout << "\n*** Material Id can't be ZERO! ***\n";
+          std::cout << "*** This Will Be a Disaster!!! ***\n";
+      }
+      fId = id; }
 
       /** returns the number of state variables associated with the material*/
       virtual int NStateVariables() = 0;

@@ -1,4 +1,4 @@
-//$Id: pzl2projection.h,v 1.7 2007-11-30 11:36:43 phil Exp $
+//$Id: pzl2projection.h,v 1.8 2007-11-30 12:44:56 phil Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
@@ -52,11 +52,6 @@ public:
    */
   virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 
-  /** To satisfy base class interface.
-   */
-  virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
-    //NOTHING TO BE DONE HERE
-  }
 
   /** To satisfy base class interface.
    */

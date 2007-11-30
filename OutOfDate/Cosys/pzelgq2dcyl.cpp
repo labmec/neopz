@@ -146,7 +146,7 @@ void TPZGeoElQ2dCyl::Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatri
 	TPZFMatrix gradX(3,2,0.);
 	TPZFMatrix gradx(3,2,0.);
 	
-	//Cálculo de phi
+	//Cï¿½lculo de phi
 	for (i=0;i<4;i++){
 		for(j=0; j<3;j++) {
 			for(k=0; k<2; k++) {
@@ -210,7 +210,7 @@ void TPZGeoElQ2dCyl::X(TPZVec<REAL> & loc,TPZVec<REAL> &result){
 	Shape(loc,phi,dphi);
 
 	
-	/** O método X do TPZCosys calcula result dao phi e dphi **/
+	/** O mï¿½todo X do TPZCosys calcula result dao phi e dphi **/
 
 //	fCosys->X(phi,dphi,result);
 	//X(phi,dphi,result);
@@ -350,7 +350,7 @@ void TPZGeoElQ2dCyl::NormalVector(int side,TPZVec<REAL> &param,TPZVec<REAL> &nor
 }
 
 
-void TPZGeoElQ2dCyl::Print(ostream & out) {
+void TPZGeoElQ2dCyl::Print(std::ostream & out) {
     TPZGeoElQ2d::Print(out);
   int i;
   //=====Cesar=====

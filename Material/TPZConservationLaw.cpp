@@ -39,7 +39,7 @@ int TPZConservationLaw::NStateVariables() {
   return 1;
 }
 
-void TPZConservationLaw::Print(ostream &out) {
+void TPZConservationLaw::Print(std::ostream &out) {
   out << "name of material : " << Name() << "\n";
   out << "properties : \n";           
   TPZMaterial::Print(out);

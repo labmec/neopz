@@ -30,7 +30,7 @@ TPZMaterial::TPZMaterial(){
 }
 
 TPZMaterial::TPZMaterial(int id) {
-   fId = id;
+   this->SetId(id);
    fForcingFunction = 0;
 }
 

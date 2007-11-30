@@ -40,7 +40,7 @@ void TPZCosys::Reset() {
 
 //***************************************
 //***************************************
-void TPZCosys::Print(ostream& out) {
+void TPZCosys::Print(std::ostream& out) {
   out << "\nCosys number " << fNumber << " and Type ";
   switch(this->Type()) {
   case cartesian: out << "cartesian\n"; break;

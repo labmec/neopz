@@ -37,7 +37,7 @@ void TPZSubMeshAnalysis::Assemble(){
 	
 }
 
-void TPZSubMeshAnalysis::Run(ostream &out){
+void TPZSubMeshAnalysis::Run(std::ostream &out){
 
 	//fReducableStiff.Print("Reducable stiff before assembled");
 	fReferenceSolution = fSolution;

@@ -1,4 +1,4 @@
-//$Id: pzanalysiserror.cpp,v 1.11 2006-10-17 02:04:47 phil Exp $
+//$Id: pzanalysiserror.cpp,v 1.12 2007-11-30 12:40:22 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysiserror.h"
@@ -20,8 +20,8 @@ void TPZAnalysisError::SetAdaptivityParameters(REAL EtaAdmissible, int NIteratio
 	fEtaAdmissible = EtaAdmissible;
    fNIterations = NIterations;
 }
-ofstream arq("Param.dat");
-void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmissible) {
+std::ofstream arq("Param.dat");
+void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEtaAdmissible) {
    int iter = 0;//iteraï¿½o atual
    cout << "\n\nIteration  1\n";
    out << "\n   Iteration  1\n";
@@ -51,7 +51,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmi
       out << " - Eta Admissible     :  " << CurrentEtaAdmissible << endl;
       //      out << " - Eta Reached        :  " << true_error/exactnorm << endl;
       out << " - Eta Reached        :  " << errors[0]/errors[2] << endl;
-//Code isn´t place to chat
+//Code isnï¿½t place to chat
 //#warning Philippe, nï¿½ entendo nada!!!!! //<!>
 //#warning De fato Thiago, voce tem razao
 
@@ -71,7 +71,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(ostream &out,REAL &CurrentEtaAdmi
       out << "\n   Iteration " << (iter+1) << endl;
       Run(out);
    }
-//Code isn´t place to chat
+//Code isnï¿½t place to chat
 //#warning Philippe, nao parece igual acima ?? //<!>
 //#warning Olhar aqui //<!>
    errors.Resize(3);
@@ -515,7 +515,7 @@ void TPZAnalysisError::MathematicaPlot() {
    graph << "ListPlot[list, PlotJoined->True, PlotRange->All];" << endl;
 }
 void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, ostream &out) {
-//Code isn´t place to chat
+//Code isnï¿½t place to chat
 //#warning Philippe, tambem nao entendo aqui //<!>
 
    TPZManVector<REAL,3> elerror(3);
@@ -553,7 +553,7 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, ostream &out) {
    Mesh()->EvaluateError(NullFunction,elerror);
    //   fAdmissibleError = CurrentEtaAdmissible*sqrt(true_error*true_error + fTotalError*fTotalError) / sqrt(1.*elcounter);
    //<!>pra compilar
-   //Code isn´t place to chat
+   //Code isnï¿½t place to chat
 //#warning Phil, ver isso urgente. Tiago
    fAdmissibleError = CurrentEtaAdmissible*sqrt(elerror[0]*elerror[0] + fTotalError*fTotalError) / sqrt(1.*elcounter);
 }

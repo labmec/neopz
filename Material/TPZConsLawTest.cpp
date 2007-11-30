@@ -35,7 +35,7 @@ int TPZConsLawTest::NStateVariables() {
   return 1;
 }
 
-void TPZConsLawTest::Print(ostream &out) {
+void TPZConsLawTest::Print(std::ostream &out) {
   out << "name of material : " << Name() << "\n";
   out << "properties : \n";           
   TPZMaterial::Print(out);
