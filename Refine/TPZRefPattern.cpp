@@ -516,8 +516,8 @@ void TPZRefPattern::Print1(/*TPZGeoMesh &gmesh,*/std::ostream &out){
       out << "sub/lado = " << isub << "/" << iside << "  Lado do pai = " << FatherSide(iside,isub)  << endl;
     }
   }
-  this->fFatherSides.Print(*this->fOwnerMesh,out);
-  this->fTransforms.Print(*this->fOwnerMesh,out);
+  this->fFatherSides.Print(this->fInternalMesh,out);
+  this->fTransforms.Print(this->fInternalMesh,out);
 }
 
 /** Determina-se, para todos e cada um dos lados dos sub-elementos, o lado do pai no
@@ -1269,7 +1269,7 @@ void TPZRefPattern::GeneratePermuted(TPZGeoEl *gel)
   }
   TPZGeoEl *gelp;
   TPZIntPoints *integ = gel->CreateSideIntegrationRule(gel->NSides()-1,3);
-  TPZVec<int> nodes(nnodes),nodesperm(nnodes);
+  TPZManVector<int,8> nodes(nnodes),nodesperm(nnodes);
   for(in=0; in<nnodes; in++)
   {
     nodes[in]=in;
@@ -1289,7 +1289,7 @@ void TPZRefPattern::GeneratePermuted(TPZGeoEl *gel)
     int index;
     gelp = gmesh.CreateGeoElement(gel->Type(),nodesperm,matid,index,0);
     int dim = gel->Dimension();
-    TPZVec<REAL> point(dim,0.);
+    TPZManVector<REAL,3> point(dim,0.);
     REAL w;
     int npoint = integ->NPoints();
     int ip;
@@ -1297,7 +1297,7 @@ void TPZRefPattern::GeneratePermuted(TPZGeoEl *gel)
     for(ip=0; ip<npoint; ip++)
     {
       integ->Point(ip,point,w);
-      TPZFMatrix jac(dim,dim),jacinv(dim,dim),axes(3,3);
+      TPZFNMatrix<9> jac(dim,dim),jacinv(dim,dim),axes(3,3);
       REAL detjac,detjac2;
       gelp->Jacobian(point,jac,axes,detjac,jacinv);
       gel->Jacobian(point,jac,axes,detjac2,jacinv);
