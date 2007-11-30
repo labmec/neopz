@@ -224,7 +224,7 @@ static void MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,con
   / Output: NormOrthog - Axes Orthogonalized and Normalized with respect with the first column
   /         BasisChange - From NormOrthog to OriginalAxes Basis
  */
-  void GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog);
+void GramSchmidt(TPZFMatrix &AxesOrth, TPZFMatrix &JacobToOrth);
 
   void Transpose(TPZMatrix *const T) const;
   /**

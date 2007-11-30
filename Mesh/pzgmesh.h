@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.31 2007-06-20 21:34:20 cesar Exp $
+//$Id: pzgmesh.h,v 1.32 2007-11-30 11:37:43 phil Exp $
 
 /**File : pzgmes.h
 
@@ -197,6 +197,9 @@ void RefPatternFile(std::ofstream &filename);
 
   /**Build the connectivity of the grid*/
   void BuildConnectivity();
+
+  /**Build the connectivity of the grid and Set Neighbour Info for TPZGeoBlend Elements*/
+  void BuildBlendConnectivity();
 
   /**Fills the nodep vector with pointers to the nodes identified by their indexes*/
   void GetNodePtr(TPZVec<int> &nos,TPZVec<TPZGeoNode *> &nodep);

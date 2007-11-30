@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.43 2007-09-04 12:33:16 tiago Exp $
+//$Id: pzgmesh.cpp,v 1.44 2007-11-30 11:37:43 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -238,7 +238,7 @@ void TPZGeoMesh::RefPatternFile(std::ofstream &filename){
   /*filename << std::endl*/;
 }
 
-void TPZGeoMesh::Print (ostream & out){
+void TPZGeoMesh::Print (std::ostream & out){
   out << "\n\t\t GEOMETRIC TPZGeoMesh INFORMATIONS:\n\n";
   out << "TITLE-> " << fName << "\n\n";
   out << "number of nodes               = " << fNodeVec.NElements() << "\n";
@@ -583,6 +583,35 @@ void TPZGeoMesh::BuildConnectivity()
 	}
     }
 this->SetName("built");
+}
+
+void TPZGeoMesh::BuildBlendConnectivity()
+{
+     this->BuildConnectivity();
+     int Qelem = this->NElements();
+     for(int el = 0; el < Qelem; el++)
+     {
+          if(this->ElementVec()[el]->IsGeoBlendEl())
+          {
+               for(int byside = this->ElementVec()[el]->NNodes(); byside < (this->ElementVec()[el]->NSides() - 1); byside++)
+               {
+                    TPZGeoElSide ElemSide(this->ElementVec()[el],byside);
+                    TPZGeoElSide NextSide(this->ElementVec()[el],byside);
+                    while(NextSide.Neighbour().Element() != ElemSide.Element())
+                    {
+                         if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
+                         {
+                              TPZGeoElSide NeighSide = NextSide.Neighbour();
+                              TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
+                              ElemSide.SideTransform3(NeighSide,NeighTransf);
+                              this->ElementVec()[el]->SetNeighbourInfo(byside,NeighSide,NeighTransf);
+                              break;
+                         }
+                         NextSide = NextSide.Neighbour();
+                    }
+               }
+          }
+     }
 }
 
 void TPZGeoMesh::BuildConnectivity2() {

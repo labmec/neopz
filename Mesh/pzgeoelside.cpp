@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.23 2007-07-03 14:40:31 phil Exp $
+//$Id: pzgeoelside.cpp,v 1.24 2007-11-30 11:37:43 phil Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -21,6 +21,77 @@ using namespace std;
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelside"));
 #endif
+
+
+/** By Caju */
+void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) {
+
+  TPZVec< REAL > locElement; locElement.Resize(fGeoEl->Dimension(),0.);
+  TPZTransform ElementDim = fGeoEl->SideToSideTransform(fSide,fGeoEl->NSides()-1);
+  ElementDim.Apply(loc,locElement);
+  fGeoEl->X(locElement,result);
+}
+
+/** By Caju */
+void TPZGeoElSide::Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
+
+  if(!fGeoEl) return;
+  int DIM = fGeoEl->Dimension();
+
+  TPZTransform ThisTransf = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+  TPZManVector< REAL,3 > paramElement(DIM,0.);
+
+  ThisTransf.Apply(param,paramElement);
+  double DetElement;
+
+  TPZFNMatrix<9> JCn(3,DIM,0.), JacElement(DIM,DIM,0.), AxesElement(DIM,3,0.), Temp(3,DIM,0.), InvElement(DIM,DIM,0.), axest(3,DIM);
+
+  fGeoEl->Jacobian(paramElement,JacElement,AxesElement,DetElement,InvElement);
+
+  AxesElement.Transpose();
+  AxesElement.Multiply(JacElement,JCn);
+  JCn.Multiply(ThisTransf.Mult(),Temp);
+
+  Temp.GramSchmidt(axest,jacobian); 
+  axest.Transpose(&axes);
+  jacinv.Resize(jacobian.Rows(),jacobian.Cols());
+  if(axes.Rows() == 1) 
+  { 
+    detjac = jacobian(0,0); 
+    if(detjac)
+    {
+      jacinv(0,0) = 1./jacobian(0,0); 
+    }
+    else
+    {
+      jacinv(0,0) = 0.;
+    }
+  }
+  if(axes.Rows() == 2) {
+      detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
+      if(detjac)
+      {
+        jacinv(0,0) =  jacobian(1,1)/detjac; jacinv(0,1) = -jacobian(0,1)/detjac;
+        jacinv(1,0) = -jacobian(1,0)/detjac; jacinv(1,1) =  jacobian(0,0)/detjac;
+      }
+      else
+      {
+        jacinv.Zero();
+      }
+  }
+  if(axes.Rows() == 3) {
+      detjac = -(jacobian(0,2)*jacobian(1,1)*jacobian(2,0)) + jacobian(0,1)*jacobian(1,2)*jacobian(2,0) + jacobian(0,2)*jacobian(1,0)*jacobian(2,1) - jacobian(0,0)*jacobian(1,2)*jacobian(2,1) - jacobian(0,1)*jacobian(1,0)*jacobian(2,2) + jacobian(0,0)*jacobian(1,1)*jacobian(2,2);
+      jacinv(0,0) = (-(jacobian(1,2)*jacobian(2,1)) + jacobian(1,1)*jacobian(2,2))/detjac;
+      jacinv(0,1) = (jacobian(0,2)*jacobian(2,1) - jacobian(0,1)*jacobian(2,2))/detjac;
+      jacinv(0,2) = (-(jacobian(0,2)*jacobian(1,1)) + jacobian(0,1)*jacobian(1,2))/detjac;
+      jacinv(1,0) = (jacobian(1,2)*jacobian(2,0) - jacobian(1,0)*jacobian(2,2))/detjac;
+      jacinv(1,1) = (-(jacobian(0,2)*jacobian(2,0)) + jacobian(0,0)*jacobian(2,2))/detjac;
+      jacinv(1,2) = (jacobian(0,2)*jacobian(1,0) - jacobian(0,0)*jacobian(1,2))/detjac;
+      jacinv(2,0) = (-(jacobian(1,1)*jacobian(2,0)) + jacobian(1,0)*jacobian(2,1))/detjac;
+      jacinv(2,1) = (jacobian(0,1)*jacobian(2,0) - jacobian(0,0)*jacobian(2,1))/detjac;
+      jacinv(2,2) = (-(jacobian(0,1)*jacobian(1,0)) + jacobian(0,0)*jacobian(1,1))/detjac;
+  }
+}
 
 
 void TPZGeoElSide::RemoveConnectivity(){
@@ -680,4 +751,10 @@ std::ostream &operator << (std::ostream & out,const TPZGeoElSide &geoside){
  out << "TPZGeoElSide : side = " << geoside.Side() << std::endl ;
  if (geoside.Element()) geoside.Element()->Print(out);
  return out;
+}
+
+bool TPZGeoElSide::IsLinearMapping() const
+{
+  if(!fGeoEl) return false;
+  return fGeoEl->IsLinearMapping();
 }

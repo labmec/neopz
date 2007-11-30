@@ -46,7 +46,7 @@ class TPZGeoElRefPattern : public TPZGeoElRefLess<TGeo>  {
     TPZAutoPointer<TPZRefPattern> fRefPattern;
 
 public:
-  typedef TGeo TGeoLoc;
+  typedef TGeo Geo;
   TPZGeoElRefPattern();
   ~TPZGeoElRefPattern();
   TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
@@ -92,6 +92,7 @@ public:
 
   /**divides the element and puts the resulting elements in the vector*/
   virtual void Divide(TPZVec<TPZGeoEl *> &pv);
+  
 
   virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
 
@@ -137,6 +138,12 @@ public:
                        std::map<int,int> &gl2lcElIdx );
 
 };
+
+TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh,
+                                  MElementType type,
+                                  TPZVec<int>& nodeindexes,
+                                  int matid,
+                                  int& index);
 
 //--| IMPLEMENTATION |----------------------------------------------------------
 
@@ -382,7 +389,7 @@ TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 
   int totalnodes = this->GetRefPattern()->NNodes();
   TPZManVector<int> np(totalnodes);
-  int nnodes = this->NNodes();
+  int nnodes = this->NCornerNodes();
 
   for(j=0;j<nnodes;j++) {
     np[j] = this->NodeIndex(j);
@@ -418,7 +425,7 @@ TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
       cornerindexes[j] = np[mappedid];
     }
     //std::cout << "Subel corner " << cornerindexes << std::endl;
-    TPZGeoEl *subel = this->Mesh()->CreateGeoElement((MElementType)this->GetRefPattern()->Element(i+1)->Type(),cornerindexes,matid,index,1);
+    TPZGeoEl *subel = this->CreateGeoElement((MElementType)this->GetRefPattern()->Element(i+1)->Type(),cornerindexes,matid,index);
     SetSubElement(i,subel);
   }
 

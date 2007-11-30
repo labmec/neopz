@@ -26,19 +26,20 @@ This class implements a geometric element which uses its ancestral to compute it
 template<class TBase>
 class TPZGeoElMapped : public TBase {
 public:
-  TPZGeoElMapped() : TBase(), fCornerCo(TBase::TGeoLoc::Dimension,TBase::TGeoLoc::NNodes,0.)
+  typedef typename TBase::Geo Geo;
+  TPZGeoElMapped() : TBase(), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
   {
   }
   TPZGeoElMapped(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh) :
-      TBase(id,nodeindexes,matind,mesh), fCornerCo(TBase::TGeoLoc::Dimension,TBase::TGeoLoc::NNodes,0.)
+      TBase(id,nodeindexes,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
       {
       }
   TPZGeoElMapped(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) :
-      TBase(nodeindices,matind,mesh), fCornerCo(TBase::TGeoLoc::Dimension,TBase::TGeoLoc::NNodes,0.)
+      TBase(nodeindices,matind,mesh), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
       {
       }
   TPZGeoElMapped(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index) :
-      TBase(nodeindices,matind,mesh,index), fCornerCo(TBase::TGeoLoc::Dimension,TBase::TGeoLoc::NNodes,0.)
+      TBase(nodeindices,matind,mesh,index), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
       {
       }
 
@@ -47,6 +48,14 @@ public:
   }
   
   virtual int ClassId() const;
+  /**
+   * Creates a geometric element according to the type of the father element
+   */
+  virtual TPZGeoEl *CreateGeoElement(MElementType type,
+                                     TPZVec<int>& nodeindexes,
+                                     int matid,
+                                     int& index);
+
 
   /**Sets the father element index*/
   virtual void SetFather(int fatherindex)
@@ -61,21 +70,21 @@ public:
       father = nextfather;
       nextfather = father->Father();
     }
-    int in, nnodes = TBase::TGeoLoc::NNodes;
+    int in, nnodes = Geo::NNodes;
     for(in=0; in<nnodes; in++)
     {
-      TPZTransform tr = TBase::TGeoLoc::SideToSideTransform(in,TBase::TGeoLoc::NSides-1);
-      TPZManVector<REAL,TBase::TGeoLoc::Dimension> ptin(0),ptout(TBase::TGeoLoc::Dimension,0.);
+      TPZTransform tr = Geo::SideToSideTransform(in,Geo::NSides-1);
+      TPZManVector<REAL,Geo::Dimension> ptin(0),ptout(Geo::Dimension,0.);
       tr.Apply(ptin,ptout);
       int nfs = father->NSides();
-      TPZGeoElSide thisside(this,TBase::TGeoLoc::NSides-1);
+      TPZGeoElSide thisside(this,Geo::NSides-1);
       TPZGeoElSide ancestor(father,nfs-1);
-      TPZTransform trfat(TBase::TGeoLoc::Dimension);
+      TPZTransform trfat(Geo::Dimension);
       TPZManVector<REAL,3> ptancestor(father->Dimension(),0.);
       thisside.SideTransform3(ancestor,trfat);
       trfat.Apply(ptout,ptancestor);
       int id;
-      for(id=0; id<TBase::TGeoLoc::Dimension; id++)
+      for(id=0; id<Geo::Dimension; id++)
       {
         fCornerCo(id,in) = ptancestor[id];
       }
@@ -102,7 +111,7 @@ public:
       father = nextfather;
       nextfather = father->Father();
     }
-    const int dim = TBase::TGeoLoc::Dimension;
+    const int dim = Geo::Dimension;
     TPZManVector<REAL,3> ksibar(father->Dimension());
     TPZFNMatrix<dim*dim> jaclocal(dim,dim,0.),jacinvlocal(dim,dim,0.),jacfather(dim,dim,0.), jacinvfather(dim,dim,0.);
     TPZFNMatrix<9> axeslocal(3,3,0.), /*axesfinal(3,3,0.),*/axesfather(3,3,0.);
@@ -111,9 +120,9 @@ public:
     /**
     / Processing Variables (isolated)
    */
-    TBase::TGeoLoc::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);
+    Geo::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);
     axeslocal.Transpose();
-    TBase::TGeoLoc::X(fCornerCo,coordinate,ksibar);
+    Geo::X(fCornerCo,coordinate,ksibar);
     father->Jacobian(ksibar,jacfather,axesfather,detjacfather,jacinvfather);
 
     /**
@@ -156,8 +165,7 @@ public:
   {
         TBase::Print(out);
 
-        out << "\nfCornerCo Print():\n";
-        fCornerCo.Print();
+        fCornerCo.Print("fCornerCo Print():",out);
   }
 
   /**Avaliate the Jacobian 2D (2x2 size) by Expected Convergence Order*/
@@ -295,19 +303,19 @@ public:
 
 private:
 
-    TPZFNMatrix<TBase::TGeoLoc::Dimension*TBase::TGeoLoc::NNodes> fCornerCo;
+    TPZFNMatrix<Geo::Dimension*Geo::NNodes> fCornerCo;
 
     /// compute the map of the point ksi to the ancestor ksibar and the gradient of the ancestor ksibar with respect to ksi
     void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar, TPZFMatrix &jac)
     {
-      const int dim = TBase::TGeoLoc::Dimension;
-      TPZFNMatrix<TBase::TGeoLoc::NNodes> phi(TBase::TGeoLoc::NNodes,1,0.);
-      TPZFNMatrix<dim*TBase::TGeoLoc::NNodes> dphi(dim,TBase::TGeoLoc::NNodes,0.);
-      TBase::TGeoLoc::Shape(ksi,phi,dphi);
+      const int dim = Geo::Dimension;
+      TPZFNMatrix<Geo::NNodes> phi(Geo::NNodes,1,0.);
+      TPZFNMatrix<dim*Geo::NNodes> dphi(dim,Geo::NNodes,0.);
+      Geo::Shape(ksi,phi,dphi);
       jac.Redim(dim,dim);
       ksibar.Fill(0.);
       int in,id,jd;
-      for(in=0; in<TBase::TGeoLoc::NNodes; in++)
+      for(in=0; in<Geo::NNodes; in++)
       {
         for(id=0; id<dim; id++)
         {
@@ -323,14 +331,14 @@ private:
     /// compute the map of the point ksi to the ancestor ksibar
     void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar)
     {
-      const int dim = TBase::TGeoLoc::Dimension;
-      TPZFNMatrix<TBase::TGeoLoc::NNodes> phi(TBase::TGeoLoc::NNodes,1,0.);
+      const int dim = Geo::Dimension;
+      TPZFNMatrix<Geo::NNodes> phi(Geo::NNodes,1,0.);
       TPZFNMatrix<dim*dim> jac(dim,dim,0.);
-      TPZFNMatrix<dim*TBase::TGeoLoc::NNodes> dphi(dim,TBase::TGeoLoc::NNodes,0.);
-      TBase::TGeoLoc::Shape(ksi,phi,dphi);
+      TPZFNMatrix<dim*Geo::NNodes> dphi(dim,Geo::NNodes,0.);
+      Geo::Shape(ksi,phi,dphi);
       ksibar.Fill(0.);
       int in,id;
-      for(in=0; in<TBase::TGeoLoc::NNodes; in++)
+      for(in=0; in<Geo::NNodes; in++)
       {
         for(id=0; id<dim; id++)
         {
@@ -340,5 +348,11 @@ private:
     }
 
 };
+
+TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
+                                  MElementType type,
+                                  TPZVec<int>& nodeindexes,
+                                  int matid,
+                                  int& index);
 
 #endif

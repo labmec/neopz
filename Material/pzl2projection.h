@@ -1,4 +1,4 @@
-//$Id: pzl2projection.h,v 1.6 2007-07-06 18:27:42 tiago Exp $
+//$Id: pzl2projection.h,v 1.7 2007-11-30 11:36:43 phil Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
@@ -77,6 +77,19 @@ public:
   /** Returns number of state variables
    */
   virtual int NStateVariables(){ return this->fNStateVars; }
+      /**
+   * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+   * @param data[in] stores all input data
+   * @param weight[in] is the weight of the integration rule
+   * @param ek[out] is the stiffness matrix
+   * @param ef[out] is the load vector
+   * @param bc[in] is the boundary condition material
+   * @since April 16, 2007
+       */
+  virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc)
+  {
+  }
+
 
   /** Define if material is referred or not */
   void SetIsReferred(bool val);
