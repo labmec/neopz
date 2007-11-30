@@ -1,7 +1,9 @@
 #include <pzvisualmatrix.h>
-#include <fstream.h>
+#include <fstream>
 
-main()
+using namespace std;
+
+int main()
 {
   cout << "visual matrix." << endl;
   TPZFMatrix matrix(3,3);

@@ -5,7 +5,7 @@
 #include "pzfmatrix.h"
 #include "pzelgc3d.h"
 #include "pzbndcond.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzcompel.h"
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
@@ -240,7 +240,7 @@ int main() {
 	REAL tol;
 	cout << "\nNumero de iteracoes? : ";
 	cin >> numiter;
-	tol = 1.0e15;// = norma da solução inicial + epsilon
+	tol = 1.0e15;// = norma da soluï¿½ï¿½o inicial + epsilon
 	cout << "\nTolerancia? : " << tol << "\n";
 	//cin >> tol;
 	an.SetExact(Solution);
@@ -324,7 +324,7 @@ TPZMaterial *Linha(int ordem){
   nodes[1] = 1;
   TPZGeoEl1d *elg1d = new TPZGeoEl1d(nodes,1,*gmesh);
   TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//de volume
-  TPZGeoElPoint::SetCreateFunction(TPZCompElDisc::CreatePointDisc);//não de interface
+  TPZGeoElPoint::SetCreateFunction(TPZCompElDisc::CreatePointDisc);//nï¿½o de interface
   int interfdim = 0;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -338,7 +338,7 @@ TPZMaterial *Linha(int ordem){
   REAL delta_x = 1.0 / pow(2.0,(REAL)nivel);//tamanho do elemento
   REAL delta = ( (10./3.)*CFL*CFL - (2./3.)*CFL + 1./10. );
   REAL maxflinha = 1.0;
-  REAL delta_t = CFL*delta_x / maxflinha;//delta_t é <= que este valor
+  REAL delta_t = CFL*delta_x / maxflinha;//delta_t ï¿½ <= que este valor
   cout << "\nMaximo de f' = " << maxflinha
        << "\nCFL = 1/(2p+1) = " << CFL
        << "\nDominio [0,1]"
@@ -370,7 +370,7 @@ TPZMaterial *Linha(int ordem){
   //((TPZConservationLaw *)mat)->SetIntegDegree(grau);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno
+  //condiï¿½ï¿½es de contorno
   TPZBndCond *bc;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
 
@@ -432,7 +432,7 @@ TPZMaterial *Quadrilatero(int ordem){
   nodes[3] = 3;
   TPZGeoElQ2d *elgq2d = new TPZGeoElQ2d(nodes,1,*gmesh);
   TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//de volume
-  TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//não de interface
+  TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//nï¿½o de interface
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -461,7 +461,7 @@ TPZMaterial *Quadrilatero(int ordem){
   REAL delta_x = ( 1.0 / pow(2.0,(REAL)nivel) );//tamanho do elemento
   REAL delta = ( (10./3.)*CFL*CFL - (2./3.)*CFL + 1./10. );
   REAL maxflinha = 1.0;
-  REAL delta_t = CFL*delta_x / maxflinha;//delta_t é <= que este valor
+  REAL delta_t = CFL*delta_x / maxflinha;//delta_t ï¿½ <= que este valor
   cout << "\nMaximo de f' = " << maxflinha
        << "\nCFL = " << CFL
        << "\nDominio [0,1]x[0,1]"
@@ -490,13 +490,13 @@ TPZMaterial *Quadrilatero(int ordem){
   //((TPZConservationLaw *)mater)->SetIntegDegree(grau);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno
+  //condiï¿½ï¿½es de contorno
   TPZBndCond *bc;
   //  REAL big = 1.e12;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
 
-  //a única fun¢ão atual destes elemento
-  //é a cria¢ão dos elementos de interface
+  //a ï¿½nica funï¿½ï¿½o atual destes elemento
+  //ï¿½ a criaï¿½ï¿½o dos elementos de interface
   //CC na aresta 4
   val1.Zero();//para uso CC tipo 2
   val2.Zero();
@@ -546,9 +546,9 @@ TPZMaterial *Hexaedro(int ordem){
   nodes[6] = 6;
   nodes[7] = 7;
   TPZGeoElC3d *elgc3d = new TPZGeoElC3d(nodes,1,*gmesh);
-  //construtor descontínuo
+  //construtor descontï¿½nuo
   TPZGeoElC3d::SetCreateFunction(TPZCompElDisc::CreateC3Disc);//de volume
-  TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//não de interface
+  TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//nï¿½o de interface
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -580,7 +580,7 @@ TPZMaterial *Hexaedro(int ordem){
   REAL delta_x = ( 1.0 / pow(2.0,(REAL)nivel) );//tamanho do elemento
   REAL delta = 2.5*delta_x;//( (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10. );
   REAL maxflinha = 1.0;
-  REAL delta_t = cfl*delta_x / maxflinha;//delta_t é <= que este valor
+  REAL delta_t = cfl*delta_x / maxflinha;//delta_t ï¿½ <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
   //delta = delta_x / 2.0;
@@ -600,13 +600,13 @@ TPZMaterial *Hexaedro(int ordem){
   //((TPZConservationLaw *)mater)->SetIntegDegree(grau);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno
+  //condiï¿½ï¿½es de contorno
   TPZBndCond *bc;
   //  REAL big = 1.e12;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
 
-  //a única fun¢ão atual destes elemento
-  //é a cria¢ão dos elementos de interface
+  //a ï¿½nica funï¿½ï¿½o atual destes elemento
+  //ï¿½ a criaï¿½ï¿½o dos elementos de interface
   //CC na aresta 4
   val1.Zero();//para uso CC tipo 2
   val2.Zero();
@@ -670,7 +670,7 @@ TPZMaterial *Triangulo(int ordem){
   nodes[2] = 2;
   TPZGeoElT2d *elgt2d = new TPZGeoElT2d(nodes,1,*gmesh);
   TPZGeoElT2d::SetCreateFunction(TPZCompElDisc::CreateT2Disc);//de volume
-  TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//não de interface
+  TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//nï¿½o de interface
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -687,13 +687,13 @@ TPZMaterial *Triangulo(int ordem){
   TPZMaterial *mater = new TPZConsLawTest(nummat,B,dif_artif,delta_t,dim,integ);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno
+  //condiï¿½ï¿½es de contorno
   TPZBndCond *bc;
   //  REAL big = 1.e12;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
 
-  //a única única fun¢ão atual destes elemento
-  //é a cria¢ão dos elementos de interface
+  //a ï¿½nica ï¿½nica funï¿½ï¿½o atual destes elemento
+  //ï¿½ a criaï¿½ï¿½o dos elementos de interface
   //CC na aresta 3
   val1.Zero();//para uso CC tipo 2
   val2.Zero();
@@ -742,7 +742,7 @@ void Piramide(){
   TPZMaterial *mater = new TPZMatPoisson3d(100,3);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno
+  //condiï¿½ï¿½es de contorno
   //if(problemtype == 1) CC_Projecao(mater);
   //if(problemtype == 2) CC_Poisson(mater);
   int ordem=2;
@@ -776,7 +776,7 @@ void Prisma(){
   TPZMaterial *mater = new TPZMatPoisson3d(100,3);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mater);
-  //condições de contorno
+  //condiï¿½ï¿½es de contorno
   //if(problemtype == 1) CC_Projecao(mater);
   //if(problemtype == 2) CC_Poisson(mater);
   int ordem=2;
@@ -801,7 +801,7 @@ void Tetraedro(){
   new TPZGeoElT3d(nodes,100,*gmesh);//TPZGeoElT3d *elg3d =
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
-  //construtor descontínuo
+  //construtor descontï¿½nuo
   TPZGeoElT3d::SetCreateFunction(TPZCompElDisc::CreateT3Disc);
   TPZGeoElPi3d::SetCreateFunction(TPZCompElDisc::CreatePi3Disc);
   TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);
@@ -918,7 +918,7 @@ void CC_Poisson(TPZMaterial *mater){
 
 void BCPoisson(TPZVec<REAL> &x,TPZVec<REAL> &result){
 
-  //solução u = x2+y2+z2, domínio cubo unitário
+  //soluï¿½ï¿½o u = x2+y2+z2, domï¿½nio cubo unitï¿½rio
   if( fabs(x[0]-1.0) < 1.e-8 ){//face 22
     result[0] = 2.0*x[0];
     return;
@@ -932,8 +932,8 @@ void BCPoisson(TPZVec<REAL> &x,TPZVec<REAL> &result){
     return;
   }
   //faces nos planos X=0 (face 24), Y=0 (face 21), Z=0 (facec 20)
-  //no plano Xi=0 a derivada normal depende de Xi, logo é nula
-  //a condição imposta é de Dirichlet, a CC de Neumman é nula
+  //no plano Xi=0 a derivada normal depende de Xi, logo ï¿½ nula
+  //a condiï¿½ï¿½o imposta ï¿½ de Dirichlet, a CC de Neumman ï¿½ nula
   if( fabs(x[0]) < 1.e-8 || fabs(x[1]) < 1.e-8 || fabs(x[2]) < 1.e-8)
     result[0] = x[0]*x[0]+x[1]*x[1]+x[2]*x[2];
 }
@@ -1091,7 +1091,7 @@ void CycleRefinements(TPZCompMesh& cm, int numcycles, int minel, int maxel, ofst
 	    PZError << "Elemento BC nao era dividido\n";
 	  }
 	  else PZError << "Elemento nao era dividido\n";
-	  realdiv++;//todos os divididos que não eram agrupados
+	  realdiv++;//todos os divididos que nï¿½o eram agrupados
 	}
 	TPZVec<int> subindex;
 	cel->Divide(elindex,subindex);
@@ -1248,7 +1248,7 @@ void ContagemDeElementos(){
   cout << "\nTamanho do vetor de connects       : " << cmesh->NConnects();
   cout << "\nTamanho do vetor el. comput.       : " << cmesh->NElements();
   cout << "\nNivel maximo comput. atingido      : " << nivmax;
-  cout << "\nGrau de interpola¢ão               : " << grau;
+  cout << "\nGrau de interpolaï¿½ï¿½o               : " << grau;
   cout << "\nCFL                                : " << CFL;
   cout << "\nPasso de tempo                     : " << passo;
   cout << "\nNivel maximo geomet. atingido      : " << nivmax << endl << endl;
@@ -1285,7 +1285,7 @@ void NivelDivide(TPZCompMesh *cmesh){
 }
 
 int Nivel(TPZGeoEl *gel){
-  //retorna o nível do elemento gel
+  //retorna o nï¿½vel do elemento gel
   if(!gel) return -1;
   TPZGeoEl *fat = gel->Father();
   if(!fat) return 0;
@@ -1418,7 +1418,7 @@ void FileNB(TPZGeoMesh &gmesh,ostream &out) {
       if(elemtype==16) continue;//interface
       TPZCompEl *el = gmesh.Reference()->ElementVec()[iel];
       if(el->Material()->Id() < 0) continue;
-      //só elementos de volume
+      //sï¿½ elementos de volume
       TPZGeoEl *gel = el->Reference();
       if(el && gel) {
 	if(gel->Id()==count){
@@ -1575,9 +1575,9 @@ TPZMaterial *HexaedroNovo(int ordem){
   nodes[6] = 6;
   nodes[7] = 7;
   TPZGeoElC3d *elgc3d = new TPZGeoElC3d(nodes,1,*gmesh);
-  //construtor descontínuo
+  //construtor descontï¿½nuo
   TPZGeoElC3d::SetCreateFunction(TPZCompElDisc::CreateC3Disc);//de volume
-  TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//não de interface
+  TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//nï¿½o de interface
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -1610,7 +1610,7 @@ TPZMaterial *HexaedroNovo(int ordem){
   REAL delta_x = ( 1.0 / pow(2.0,(REAL)nivel) );//tamanho do elemento
   REAL delta = ( (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10. );
   REAL maxflinha = 1.0;
-  REAL delta_t = cfl*delta_x / maxflinha;//delta_t é <= que este valor
+  REAL delta_t = cfl*delta_x / maxflinha;//delta_t ï¿½ <= que este valor
   cout << "\nMaximo de f' = " << maxflinha
        << "\nCFL = " << cfl
        << "\nDominio [0,1]x[0,1]x[0,1]"
@@ -1622,13 +1622,13 @@ TPZMaterial *HexaedroNovo(int ordem){
   //((TPZConservationLaw *)mat)->SetIntegDegree(grau);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
-  //condições de contorno
+  //condiï¿½ï¿½es de contorno
   TPZBndCond *bc;
   //  REAL big = 1.e12;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
 
-  //a única fun¢ão atual destes elemento
-  //é a cria¢ão dos elementos de interface
+  //a ï¿½nica funï¿½ï¿½o atual destes elemento
+  //ï¿½ a criaï¿½ï¿½o dos elementos de interface
   //CC na aresta 4
   val1.Zero();//para uso CC tipo 2
   val2.Zero();
@@ -1692,7 +1692,7 @@ TPZMaterial *QuadrilateroNovo(int ordem){
   nodes[3] = 3;
   TPZGeoElQ2d *elgq2d = new TPZGeoElQ2d(nodes,1,*gmesh);
   TPZGeoElQ2d::SetCreateFunction(TPZCompElDisc::CreateQ2Disc);//de volume
-  TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//não de interface
+  TPZGeoEl1d::SetCreateFunction(TPZCompElDisc::Create1dDisc);//nï¿½o de interface
   int interfdim = 1;
   TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -1722,7 +1722,7 @@ TPZMaterial *QuadrilateroNovo(int ordem){
   REAL delta_x = ( 1.0 / pow(2.0,(REAL)nivel) );//tamanho do elemento
   REAL delta = ( (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10. );
   REAL maxflinha = 1.0;
-  REAL delta_t = cfl*delta_x / maxflinha;//delta_t é <= que este valor
+  REAL delta_t = cfl*delta_x / maxflinha;//delta_t ï¿½ <= que este valor
   cout << "\nMaximo de f' = " << maxflinha
        << "\nCFL = " << cfl
        << "\nDominio [0,1]x[0,1]"
@@ -1734,13 +1734,13 @@ TPZMaterial *QuadrilateroNovo(int ordem){
   //((TPZConservationLaw *)mat)->SetIntegDegree(grau);
   mater->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
-  //condições de contorno
+  //condiï¿½ï¿½es de contorno
   TPZBndCond *bc;
   //  REAL big = 1.e12;
   TPZFMatrix val1(1,1,0.),val2(1,1,0.);
 
-  //a única fun¢ão atual destes elemento
-  //é a cria¢ão dos elementos de interface
+  //a ï¿½nica funï¿½ï¿½o atual destes elemento
+  //ï¿½ a criaï¿½ï¿½o dos elementos de interface
   //CC na aresta 4
   val1.Zero();//para uso CC tipo 2
   val2.Zero();

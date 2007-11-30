@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <cmath>
-#include "pztempmat.h"
+//#include "pztempmat.h"
 
 template <class TConv>
 void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<REAL> &coefs){

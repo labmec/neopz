@@ -3,10 +3,12 @@
 #include "pzartdiff.h"
 #include "pzdiffmatrix.h"
 
+#ifndef _AUTODIFF
 void error(char * teste)
 {
 
 }
+#endif
 
 int main()
 {
@@ -110,8 +112,9 @@ cout << teste << endl;
 
 cout << "\n\ndphi\n" << dphi;
 */
-  ArtDiff.PrepareFastDiff(dim, sol, dsol, dphi, TauDiv, &TaudDiv);
-  ArtDiff.PrepareFastDiff(dim, FADsol, FADdsol, FADTauDiv);
+  TPZFMatrix Jac(dim,dim,1.);
+  ArtDiff.PrepareFastDiff(dim,Jac, sol, dsol, dphi, TauDiv, &TaudDiv);
+  ArtDiff.PrepareFastDiff(dim, Jac, FADsol, FADdsol, FADTauDiv);
 
 
   cout << "\n\nFADTauDiv\n" << FADTauDiv;

@@ -7,25 +7,12 @@
 #include "pzskylmat.h"
 #include "pzgnode.h"
 #include "pznonlinanalysis.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzcompel.h"
 #include "pzbndcond.h"
 #include "pzstack.h"
 #include "pzsolve.h"
 #include "pzintel.h"
-#include "pzelg1d.h"
-#include "pzelc1d.h"
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
-#include "pzelct2d.h"
-#include "pzelgc3d.h"
-#include "pzelcc3d.h"
-#include "pzelgt3d.h"
-#include "pzelct3d.h"
-#include "pzelgpi3d.h"
-#include "pzelcpi3d.h"
-#include "pzelgpr3d.h"
-#include "pzelcpr3d.h"
 #include "pzelmat.h"
 #include "pzelasmat.h"
 #include "pzmattest.h"
@@ -33,10 +20,13 @@
 #include "pzmat2dlin.h"
 #include "pzmattest3d.h"
 #include "pzmathyperelastic.h"
+#include "pzfstrmatrix.h"
+#include "pzstepsolver.h"
+
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-#include <iostream.h>
+#include <iostream>
 struct TPZGeoElBC;
 
 
@@ -68,22 +58,22 @@ int main() {
    //malha computacional
    secondmesh->SetName("Malha Computacional : Conectividades e Elementos");
    //forcingfunction
-   int nmat = secondmesh->MaterialVec().NElements(),k;
-   for(k=0;k<nmat;k++) {
-      mat = secondmesh->MaterialVec()[k];
-      mat->SetForcingFunction(force);
+   std::map<int,TPZAutoPointer<TPZMaterial> >::iterator k = secondmesh->MaterialVec().begin();
+   for(;k!=secondmesh->MaterialVec().end();k++) {
+
+      k->second->SetForcingFunction(force);
    }//para diferentes tipos de elementos o material pode ser o mesmo
-   //CC : condicões de contorno
+   //CC : condicï¿½es de contorno
    CC(firstmesh);
    //ordem de interpolacao
    int ord;
    cout << "Entre ordem 1,2,3,4,... : ";
    cin >> ord;
 //   TPZCompEl::gOrder = ord;
-   secondmesh.SetDefaultOrder(order);
-   //construção malha computacional
+   TPZCompEl::SetgOrder(ord);
+   //construï¿½ï¿½o malha computacional
    secondmesh->AutoBuild();
-   //Divisão
+   //Divisï¿½o
    cout << "\nDivide niveis completos (0/1)? ";
    cin >> ord;
    if(!ord){
@@ -109,14 +99,16 @@ int main() {
    outcm.flush();
    //analysis
 	secondmesh->InitializeBlock();
-   TPZHyperElasticAnalysis *an = new TPZHyperElasticAnalysis(secondmesh,outcm);
-   int numeq = secondmesh->NEquations();
+   TPZNonLinearAnalysis *an = new TPZNonLinearAnalysis(secondmesh,outcm);
+//   int numeq = secondmesh->NEquations();
    //TPZVec<int> skyline;
    //secondmesh->Skyline(skyline);
 	//TPZSkylMatrix *stiff = new TPZSkylMatrix(numeq,skyline);
-   TPZFMatrix *stiff = new TPZFMatrix(numeq,numeq);
-   an->SetMatrix(stiff);
-   an->Solver().SetDirect(ELU);//ELDLt , ECholesky
+   TPZFStructMatrix stiff(secondmesh);
+   an->SetStructuralMatrix(stiff);
+   TPZStepSolver step;
+   step.SetDirect(ELU);
+   an->SetSolver(step);
    secondmesh->SetName("Malha Computacional :  Connects e Elementos");
    // Posprocessamento
    /*TPZVec<char *> scalnames(2);
@@ -148,7 +140,7 @@ int main() {
 static int mattype1=-1,mattype2=-1,key = 1;
 static REAL pi = 2.*asin(1.);
 static REAL tetha;
-//solução exata e sua derivada
+//soluï¿½ï¿½o exata e sua derivada
 void ExactSol(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix &deriv) {
 
    if(mattype2==-1) {
@@ -224,13 +216,13 @@ void BCDirichlet(TPZVec<REAL> &point, TPZVec<REAL> &f) {
       f[1] = 0.0;
       f[2] = point[0]*sin(tetha) + point[2]*(cos(tetha)-1.);
    }
-   TPZHyperElasticAnalysis han;
-   han.BoundCondStep_n(point,0,f,normal);
+//   TPZHyperElasticAnalysis han;
+//   han.BoundCondStep_n(point,0,f,normal);
 }
 
 void BCNeumann(TPZVec<REAL> &point, TPZVec<REAL> &f) {
 
-   TPZHyperElasticAnalysis han;
+//   TPZHyperElasticAnalysis han;
    f[0] =  0.0;//=du1/dn  : U(x,y,z) = (u1,u2,u3)
    f[1] =  0.0;//=du2/dn          ui = ui(x,y,z)
    f[2] =  0.0;//=du3/dn      dui/dn = n1*dui/dx+n2*dui/dy+n3*dui/dz
@@ -245,9 +237,9 @@ void BCNeumann(TPZVec<REAL> &point, TPZVec<REAL> &f) {
       if(mattype1==3) f[0] =  point[0];//du1/dx
       if(mattype1==4){
       	f[0] =  cos(tetha);//du1/dx
-         han.BoundCondStep_n(point,1,f,normal);
+//         han.BoundCondStep_n(point,1,f,normal);
 			f[2] =  sin(tetha);//du3/dx
-         han.BoundCondStep_n(point,3,f,normal);
+//         han.BoundCondStep_n(point,3,f,normal);
          return;
       }
    }else
@@ -258,9 +250,9 @@ void BCNeumann(TPZVec<REAL> &point, TPZVec<REAL> &f) {
       if(mattype1==3) f[0] =  -point[0];//-du1/dx
       if(mattype1==4){
       	f[0] = -cos(tetha);//-du1/dx
-         han.BoundCondStep_n(point,1,f,normal);
+//         han.BoundCondStep_n(point,1,f,normal);
 			f[2] = -sin(tetha);//-du3/dx
-         han.BoundCondStep_n(point,3,f,normal);
+//         han.BoundCondStep_n(point,3,f,normal);
          return;
       }
    }else
@@ -292,9 +284,9 @@ void BCNeumann(TPZVec<REAL> &point, TPZVec<REAL> &f) {
 	   if(mattype1==1) f[2] =  fact;//du3/dz : n = (0,0,1)
       if(mattype1==4){
       	f[0] = -sin(tetha);//du1/dz
-         han.BoundCondStep_n(point,1,f,normal);
+//         han.BoundCondStep_n(point,1,f,normal);
 			f[2] =  cos(tetha);//du3/dz
-         han.BoundCondStep_n(point,3,f,normal);
+//         han.BoundCondStep_n(point,3,f,normal);
          return;
       }
    }else
@@ -304,24 +296,24 @@ void BCNeumann(TPZVec<REAL> &point, TPZVec<REAL> &f) {
 	   if(mattype1==1) f[2] =  -fact;//-du3/dz : n = (0,0,-1)
       if(mattype1==4){
       	f[0] =  sin(tetha);//-du1/dz
-         han.BoundCondStep_n(point,1,f,normal);
+//         han.BoundCondStep_n(point,1,f,normal);
 			f[2] = -cos(tetha);//-du3/dz
-         han.BoundCondStep_n(point,3,f,normal);
+//         han.BoundCondStep_n(point,3,f,normal);
          return;
       }
    }
-   han.BoundCondStep_n(point,var,f,normal);
+//   han.BoundCondStep_n(point,var,f,normal);
 }
 
-//força de corpo : b0
+//forï¿½a de corpo : b0
 void force(TPZVec<REAL> &/*point*/, TPZVec<REAL> &f) {
-   f[0] =  .0;//força
+   f[0] =  .0;//forï¿½a
    f[1] =  .0;//de corpo
    f[2] =  .0;//nula
 }
 
 void CC(TPZGeoMesh *gmesh) {
-   TPZBndCond *bc;
+   
    REAL big  = 1.e12;
    TPZFMatrix val1(3,1,big), val2(3,1,0.);
    int side,ncc,type,elid,matindex;
@@ -335,12 +327,14 @@ void CC(TPZGeoMesh *gmesh) {
          elgi = gmesh->ElementVec()[el];
          if(elgi && elgi->Id() == elid) break;
       }
+      TPZAutoPointer<TPZMaterial> mat;
       mat = gmesh->Reference()->MaterialVec()[matindex];
       if(elgi) {
          for(int k=0;k<ncc;k++) {
             in >> side >> type;
             TPZGeoElBC(elgi,side,--idc,*gmesh);
-            bc = mat->CreateBC(idc,type,val1,val2);
+            TPZAutoPointer<TPZMaterial> bc;
+            bc = mat->CreateBC(mat,idc,type,val1,val2);
             gmesh->Reference()->InsertMaterialObject(bc);
             if(type==0) bc->SetForcingFunction(BCDirichlet);
             if(type==1) bc->SetForcingFunction(BCNeumann);
@@ -357,10 +351,6 @@ void LerMalha(char *malha,TPZGeoMesh *geomesh,TPZCompMesh *&compmesh) {
    REAL e,mu,nu,lambda,coef1,coef2,coef3;
    grid >> e >> mu >> nu >> lambda >> coef1 >> coef2 >> coef3;
    TPZFMatrix xk(3,1,0.),xb(1,1,0.),xc(1,1,0.),xf(1,1,0.);
-   TPZMat1dLin *mat1d;
-   TPZMat2dLin *mat2d;
-   TPZMaterialTest3D *mat3d;
-   TPZMatHyperElastic *mat4d;
    int nnode,nel,ncorners;//,yaxisindex;
    //TPZGeoEl1d *elg1d;TPZGeoElT2d *elgt2d;TPZGeoElQ2d *elgq2d;TPZGeoElC3d *elgc3d;TPZGeoElT3d *elgt3d;TPZGeoElPi3d *elgpi3d;TPZGeoElPr3d *elgpr3d
    TPZVec<REAL> coord(3);
@@ -373,6 +363,23 @@ void LerMalha(char *malha,TPZGeoMesh *geomesh,TPZCompMesh *&compmesh) {
       geomesh->NodeVec()[inode].Initialize(coord,*geomesh);
    }
    compmesh = new TPZCompMesh(geomesh);
+   TPZMat1dLin *mat1d = new TPZMat1dLin(1);
+   mat1d->SetMaterial(xk,xb,xc,xf);
+   TPZAutoPointer<TPZMaterial> mat1(mat1d);
+   compmesh->InsertMaterialObject(mat1);
+   TPZMat2dLin *mat2d = new TPZMat2dLin(2);
+    mat2d->SetMaterial(xk,xc,xf);
+    TPZAutoPointer<TPZMaterial> mat2(mat2d);
+    compmesh->InsertMaterialObject(mat2);
+    TPZMaterialTest3D *mat3d = new TPZMaterialTest3D(3);
+    mat3d->SetMaterial(xk);
+    TPZAutoPointer<TPZMaterial> mat3(mat3d);
+    compmesh->InsertMaterialObject(mat3);
+    TPZMatHyperElastic *mat4d = new TPZMatHyperElastic(4,e,mu,nu,lambda,coef1,coef2,coef3);
+    mat4d->SetMaterial(xk);
+    TPZAutoPointer<TPZMaterial> mat4(mat4d);
+    compmesh->InsertMaterialObject(mat4);
+   
    for(int el=0;el<nel;el++)  {
       int mat,ntype;
       grid >> ntype >> mat;
@@ -380,82 +387,9 @@ void LerMalha(char *malha,TPZGeoMesh *geomesh,TPZCompMesh *&compmesh) {
       if(ntype == 7) ncorners = 4;
       TPZVec<int> nodes(ncorners);
       for(int incid=0;incid<ncorners;incid++) grid >> nodes[incid];
-      switch(ntype) {//tipo de elemento
-         case 2://unidimensional ; elg1d =
-            new TPZGeoEl1d(nodes,mat,*geomesh);
-            if(mat==1) {
-               mat1d = new TPZMat1dLin(mat);
-               compmesh->InsertMaterialObject(mat1d);
-               if(mat==1) mat1d->SetMaterial(xk,xb,xc,xf);
-            }
-            if(mat==2) {
-            	mat2d = new TPZMat2dLin(mat);
-               compmesh->InsertMaterialObject(mat2d);
-               mat2d->SetMaterial(xk,xc,xf);
-            }
-            break;
-         case 3://triângulo ; elgt2d =
-         	new TPZGeoElT2d(nodes,mat,*geomesh);
-            if(mat==2) {
-            	mat2d = new TPZMat2dLin(mat);
-               compmesh->InsertMaterialObject(mat2d);
-               mat2d->SetMaterial(xk,xc,xf);
-            }
-            if(mat==3) {
-            	mat3d = new TPZMaterialTest3D(mat);
-               compmesh->InsertMaterialObject(mat3d);
-               mat3d->SetMaterial(xk);
-            }
-            break;
-         case 4://quadrilátero ; elgq2d =
-            new TPZGeoElQ2d(nodes,mat,*geomesh);
-            if(mat==2) {
-            	mat2d = new TPZMat2dLin(mat);
-               compmesh->InsertMaterialObject(mat2d);
-               mat2d->SetMaterial(xk,xc,xf);
-            }
-            if(mat==3) {
-            	mat3d = new TPZMaterialTest3D(mat);
-               compmesh->InsertMaterialObject(mat3d);
-               mat3d->SetMaterial(xk);
-            }
-            break;
-         case 7://tetraedro ; elgt3d =
-            new TPZGeoElT3d(nodes,mat,*geomesh);
-            mat4d = new TPZMatHyperElastic(mat,e,mu,nu,lambda,coef1,coef2,coef3);
-            compmesh->InsertMaterialObject(mat4d);
-            mat4d->SetMaterial(xk);
-            break;
-         case 5://pirâmide ; elgpi3d =
-            new TPZGeoElPi3d(nodes,mat,*geomesh);
-            mat4d = new TPZMatHyperElastic(mat,e,mu,nu,lambda,coef1,coef2,coef3);
-				compmesh->InsertMaterialObject(mat4d);
-            mat4d->SetMaterial(xk);
-            break;
-         case 6://prisma ; elgpr3d =
-            new TPZGeoElPr3d(nodes,mat,*geomesh);
-            mat4d = new TPZMatHyperElastic(mat,e,mu,nu,lambda,coef1,coef2,coef3);
-				compmesh->InsertMaterialObject(mat4d);
-            mat4d->SetMaterial(xk);
-            break;
-         case 8://cubo ; elgc3d =
-            new TPZGeoElC3d(nodes,mat,*geomesh);
-            mat4d = new TPZMatHyperElastic(mat,e,mu,nu,lambda,coef1,coef2,coef3);
-				compmesh->InsertMaterialObject(mat4d);
-            mat4d->SetMaterial(xk);
-	         break;
-         default:
-         	for(int i=0;i<300;i++)
-            	cout << "\nmain::LerMalha -> Elemento nao conhecido\n";
-            cout << "\nChao\n";
-            exit(1);
-            delete mat1d;
-            delete mat2d;
-            delete mat3d;
-            delete mat4d;
-      }
+      int index;
+      geomesh->CreateGeoElement((MElementType) ntype,nodes,mat,index,1);
    }
-   grid.close();
 }
 
 void Divide(TPZCompMesh *compmesh) {
@@ -535,21 +469,6 @@ void PostProcess(TPZGeoMesh &gmesh,ostream &out) {
    if(elemtype==0) continue;
    TPZCompEl *el = gmesh.Reference()->ElementVec()[iel];
    TPZGeoEl *gel = el->Reference();
-   if(el && gel) {
-      TPZGeoEl1d  *el1d=0;
-      TPZGeoElT2d *elt2d=0;
-      TPZGeoElQ2d *elq2d=0;
-      TPZGeoElT3d *elt3d=0;
-      TPZGeoElPi3d *elpi3d=0;
-      TPZGeoElPr3d *elpr3d=0;
-      TPZGeoElC3d  *elc3d=0;
-      if(elemtype==1) el1d   = (TPZGeoEl1d    *) gel;
-      if(elemtype==2) elt2d  = (TPZGeoElT2d   *) gel;
-      if(elemtype==3) elq2d  = (TPZGeoElQ2d   *) gel;
-      if(elemtype==4) elt3d  = (TPZGeoElT3d   *) gel;
-      if(elemtype==5) elpi3d = (TPZGeoElPi3d  *) gel;
-      if(elemtype==6) elpr3d = (TPZGeoElPr3d  *) gel;
-      if(elemtype==7) elc3d  = (TPZGeoElC3d   *) gel;
    	out << "Elemento " << el->Reference()->Id() << endl;;
    	TPZManVector<REAL> sol(3);
       TPZVec<REAL> csi(3,0.),x(3);
@@ -558,24 +477,17 @@ void PostProcess(TPZGeoMesh &gmesh,ostream &out) {
       for(int p=0;p<numpoints;p++) {
          in >> csi[0] >> csi[1] >>  csi[2];
          gel->X(csi,x);
-         if(elemtype==1) el1d->Reference()->Solution(csi,0,sol);
-         if(elemtype==2) elt2d->Reference()->Solution(csi,0,sol);
-         if(elemtype==3) elq2d->Reference()->Solution(csi,0,sol);
-         if(elemtype==4) elt3d->Reference()->Solution(csi,0,sol);
-         if(elemtype==5) elpi3d->Reference()->Solution(csi,0,sol);
-         if(elemtype==6) elpr3d->Reference()->Solution(csi,0,sol);
-         if(elemtype==7) elc3d->Reference()->Solution(csi,0,sol);
+        gel->Reference()->Solution(csi,0,sol);
          out << "solucao em x y z  = " << x[0] << ' ' << x[1] << ' ' << x[2] << endl;
          out << "               u  = " << sol[0] << endl;
          out << "               v  = " << sol[1] << endl;
          out << "               w  = " << sol[2] << endl;
       }
       in.close();
-   }
  }
 }
 /*
-   //comparação dos connects de lados viz da malha
+   //comparaï¿½ï¿½o dos connects de lados viz da malha
    int i,side;
    TPZCompEl *cel;
    for (i=0;i<secondmesh->NElements();i++){

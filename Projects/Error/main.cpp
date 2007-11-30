@@ -2,6 +2,7 @@
 #include "pzcmesh.h"
 #include "pzgeoel.h"
 #include "pzcompel.h"
+#include "pzanalysis.h"
 #include "pzvec.h"
 #include "pzerror.h"
 #include "tmbadapinterface.h"
@@ -143,7 +144,7 @@ void ReadControl (ifstream &arq, TPZVec<int> &meshsize, int &nstate,
                   TPZVec<int> &erind, TPZVec<int> &erantype,
                   TPZVec<REAL> &maxerror, TPZVec<REAL> &minerror,int &nsteps){
   cout << "================================================\n";
-  cout << "CFD Group - Embraer / Fapesp\nAdaptive Módulus\n";
+  cout << "CFD Group - Embraer / Fapesp\nAdaptive Mï¿½dulus\n";
   cout << "================================================\n\n";
   cout << endl << endl;
   cout << "Reading control data\n";

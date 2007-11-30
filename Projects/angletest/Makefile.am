@@ -15,6 +15,4 @@ bin_PROGRAMS = testeangular
 
 testeangular_SOURCES = testeangular.cpp
 
-testeangular_LDADD = $(top_builddir)/lib/libpz.a @METISDIR@/lib/libmetis.a
-
 ## --| NeoPZ |------------------------------------------------------------------

@@ -3,7 +3,6 @@
 
 #include "pzintel.h"
 #include "pzcompel.h"
-#include "pzelcq2d.h"
 
 #include "pzfmatrix.h"
 #include "pzvec.h"
@@ -178,7 +177,7 @@ void dxfdraw (TPZGeoMesh *Gmesh)
 
     int faces = 0 , nsides , controlsides = 0 , sidedim ;
  
-   // Identificando o número de faces do elemento.
+   // Identificando o nï¿½mero de faces do elemento.
   
     nsides = gel->NSides();
     
@@ -190,7 +189,7 @@ void dxfdraw (TPZGeoMesh *Gmesh)
       }
     }
 
-   // Fim da identificação do número de faces.
+   // Fim da identificaï¿½ï¿½o do nï¿½mero de faces.
 
 
     arquivo << "  72" << endl;
@@ -235,13 +234,13 @@ void dxfdraw (TPZGeoMesh *Gmesh)
    }
 
 
-   // Definição do tipo de elemento e chamada de função construtora de faces
+   // Definiï¿½ï¿½o do tipo de elemento e chamada de funï¿½ï¿½o construtora de faces
 
    
    facemaker (arquivo , faces , gel , el , Gmesh);
 
 
-   // Fim da construção de faces
+   // Fim da construï¿½ï¿½o de faces
 
 
    arquivo << "  0" << endl;
@@ -383,7 +382,7 @@ void dxfdraw (TPZGeoMesh *Gmesh)
 
 
 
-/* Inicio da geração do arquivo DXF que gera imagens 
+/* Inicio da geraï¿½ï¿½o do arquivo DXF que gera imagens 
    das componentes filhas reduzidas */
 
 
@@ -436,12 +435,12 @@ void dxfdraw (TPZGeoMesh *Gmesh)
     
    //ofstream arquivo(nome.c_str());
  
-   //Início da declaração de polyfacemesh
+   //Inï¿½cio da declaraï¿½ï¿½o de polyfacemesh
 
    meshindex=el;
    polyfacemesh (arquivo,meshindex);
   
-   //Fim da declaração de polyfacemesh
+   //Fim da declaraï¿½ï¿½o de polyfacemesh
    
    TPZGeoEl *gel = Gmesh->ElementVec()[el];
    if (!gel) continue;
@@ -461,7 +460,7 @@ void dxfdraw (TPZGeoMesh *Gmesh)
     arquivo << "  71" << endl;
     arquivo << ncorner << endl;
 
-   // Identificando o número de faces do elemento.
+   // Identificando o nï¿½mero de faces do elemento.
   
     int sidedim, faces=0;
     int nsides = gel->NSides();
@@ -473,7 +472,7 @@ void dxfdraw (TPZGeoMesh *Gmesh)
       }
     }
 
-   // Fim da identificação do número de faces.
+   // Fim da identificaï¿½ï¿½o do nï¿½mero de faces.
 
     arquivo << "  72" << endl;
     arquivo << faces << endl;
@@ -539,11 +538,11 @@ void dxfdraw (TPZGeoMesh *Gmesh)
 
 
 
-   // Construção de faces
+   // Construï¿½ï¿½o de faces
 
    facemaker (arquivo , faces , gel , el , Gmesh);
 
-   // Fim da construção de faces
+   // Fim da construï¿½ï¿½o de faces
 
 
    arquivo << "  0" << endl;
@@ -737,7 +736,7 @@ void siderecog (TPZGeoMesh *Gmesh){
 
   // Para reconhecer o lado dividido ao meio, basta trabalharmos com o primeiro elemento da malha (pai).
   TPZGeoEl *elemento = Gmesh->ElementVec()[0];
-  // Acima é gerado o GelEl do elemento pai .
+  // Acima ï¿½ gerado o GelEl do elemento pai .
   
   int nnodes = elemento->NNodes();
   int nsides = elemento->NSides();
@@ -758,7 +757,7 @@ void siderecog (TPZGeoMesh *Gmesh){
 
 
 
-  // No loop abaixo testamos todos os sides, e naqueles que são veificados como sendo arestas, fazemos o teste de alinhamento dos pontos .
+  // No loop abaixo testamos todos os sides, e naqueles que sï¿½o veificados como sendo arestas, fazemos o teste de alinhamento dos pontos .
 
   for (int controle=0;controle<nsides;controle++){
     dimensao = elemento->SideDimension(controle);
@@ -778,7 +777,7 @@ void siderecog (TPZGeoMesh *Gmesh){
     }
 
     // Calcularemos o determinante da matriz contendo as coordenadas de 
-    // três pontos para checar alinhamento (os dois extremos do lado e o nó médio)
+    // trï¿½s pontos para checar alinhamento (os dois extremos do lado e o nï¿½ mï¿½dio)
     
     detcheck = ((nomediocoord[1]*no1coord[2])+(nomediocoord[2]*no2coord[1])+(no1coord[1]*no2coord[2])-(no1coord[2]*no2coord[1])-(nomediocoord[2]*no1coord[1])-(nomediocoord[1]*no2coord[2]))*((nomediocoord[1]*no1coord[2])+(nomediocoord[2]*no2coord[1])+(no1coord[1]*no2coord[2])-(no1coord[2]*no2coord[1])-(nomediocoord[2]*no1coord[1])-(nomediocoord[1]*no2coord[2]))+((nomediocoord[2]*no1coord[0])+(nomediocoord[0]*no2coord[2])+(no1coord[2]*no2coord[0])-(no1coord[0]*no2coord[2])-(nomediocoord[0]*no1coord[2])-(nomediocoord[2]*no2coord[0]))*((nomediocoord[2]*no1coord[0])+(nomediocoord[0]*no2coord[2])+(no1coord[2]*no2coord[0])-(no1coord[0]*no2coord[2])-(nomediocoord[0]*no1coord[2])-(nomediocoord[2]*no2coord[0]))+((nomediocoord[0]*no1coord[1])+(nomediocoord[1]*no2coord[0])+(no1coord[0]*no2coord[1])-(no1coord[1]*no2coord[0])-(nomediocoord[1]*no1coord[0])-(nomediocoord[0]*no2coord[1]))*((nomediocoord[0]*no1coord[1])+(nomediocoord[1]*no2coord[0])+(no1coord[0]*no2coord[1])-(no1coord[1]*no2coord[0])-(nomediocoord[1]*no1coord[0])-(nomediocoord[0]*no2coord[1]));
     
@@ -786,7 +785,7 @@ void siderecog (TPZGeoMesh *Gmesh){
 
 
 
-    // Caso o alinhamento seja verificado, guardamos algumas referências abaixo.
+    // Caso o alinhamento seja verificado, guardamos algumas referï¿½ncias abaixo.
     if (fabs(detcheck)<smallnumber){
       ladodividido = lado;
       ribsideindex = controle;
@@ -819,7 +818,7 @@ void siderecog (TPZGeoMesh *Gmesh){
   cout << endl;
   cout << endl;
   cout << "Existem " << considesnumber << " lados conectados ao RibSide." << endl;
-  cout << "Estes lados são os sides de índice :" << endl;
+  cout << "Estes lados sï¿½o os sides de ï¿½ndice :" << endl;
     for (int p=0;p<considesnumber;p++){
       cout << neighbourindex[p] << endl;
 
@@ -837,14 +836,16 @@ void siderecog (TPZGeoMesh *Gmesh){
 int main ()
 {
 
+  TPZGeoMesh ownermesh;
+  std::string filename("/home/ic/luis/Documents/ic/catalogacao/meuRefPattern/Prisma_Triangular_1");
   //TPZRefPattern *reftetra = new TPZRefPattern ("/home/pos/cesar/RefPattern/Triang_Unif.rpt");
-  TPZRefPattern *reftetra = new TPZRefPattern ("/home/ic/luis/Documents/ic/catalogacao/meuRefPattern/Prisma_Triangular_1");
+  TPZRefPattern *reftetra = new TPZRefPattern (&ownermesh,filename);
   //TPZRefPattern *reftetra = new TPZRefPattern ("/home/pos/cesar/RefPattern/Piram_Rib_Side_7.rpt");
   TPZGeoMesh *Gmesh = reftetra->Mesh();
   dxfdraw(Gmesh);  
   dxfdrawsep(Gmesh, reftetra);
 
-  //Teste da função de reconhecimento de lados
+  //Teste da funï¿½ï¿½o de reconhecimento de lados
 
   siderecog(Gmesh);
   //Fim do teste

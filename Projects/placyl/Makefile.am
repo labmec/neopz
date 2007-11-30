@@ -13,8 +13,6 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 bin_PROGRAMS = main
 
-main_SOURCES = main.cpp tpzmatplacaiso.cpp pzelgq2dcyl.cpp
-
-main_LDADD = $(top_builddir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
+main_SOURCES = chapeu.c
 
 ## --| NeoPZ |------------------------------------------------------------------

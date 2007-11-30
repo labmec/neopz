@@ -52,7 +52,8 @@ int main(){
   TPZFMatrix xcin (1,1,0.);
   TPZFMatrix xfin (1,1,1e3);
   mat2d->SetMaterial(xkin,xcin,xfin);
-  cmesh->InsertMaterialObject (mat2d);
+  TPZAutoPointer<TPZMaterial> mat(mat2d);
+  cmesh->InsertMaterialObject (mat);
 //  TPZSkylStructMatrix skystr(cmesh);
   cmesh->AutoBuild();
   TPZVec<int> subelindex(4,0);

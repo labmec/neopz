@@ -38,7 +38,7 @@
 #include "pzfmatrix.h"
 #include "pzelgc3d.h"
 #include "pzbndcond.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzcompel.h"
 #include "pzanalysis.h"
 #include "pzfstrmatrix.h"
@@ -104,7 +104,7 @@ static TPZMulticamadaOrthotropic *multcam;
 
 int main(){
 
-  //criando objetos das classes computacional e geométrica
+  //criando objetos das classes computacional e geomï¿½trica
   REAL zmin = 0.;
   REAL dx = 1.0;
   REAL dy = 1.0;

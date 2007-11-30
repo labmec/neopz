@@ -29,9 +29,8 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzfmatrix.h"
-#include "pzelgc3d.h"
 #include "pzbndcond.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzcompel.h"
 #include "pzanalysis.h"
 #include "pzfstrmatrix.h"
@@ -43,18 +42,7 @@
 #include "pzstack.h"
 #include "pzvec.h"
 #include "pzsolve.h"
-#include "pzelgpoint.h"
-#include "pzelg1d.h"
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
-#include "pzelct2d.h"
-#include "pzelcc3d.h"
-#include "pzelgt3d.h"
-#include "pzelct3d.h"
-#include "pzelgpi3d.h"
-#include "pzelcpi3d.h"
-#include "pzelgpr3d.h"
-#include "pzelcpr3d.h"
+//#include "pzelgpoint.h"
 #include "pzelmat.h"
 #include "pzelasmat.h"
 #include "pzmattest.h"
@@ -169,27 +157,27 @@ int main() {
        << "[11:x*x*y*y]\n";
 
   cin >> problema;
-  //inserindo a ordem de interpola¢ão dos elementos e do espa¢o
+  //inserindo a ordem de interpolaï¿½ï¿½o dos elementos e do espaï¿½o
   int ord;
   cout << "Entre ordem : 1,2,3,4,5 : -> ";
   cin >> ord;
   //ord = 4; cout << endl;
 //  TPZCompEl::gOrder = ord;
-  cmesh.SetDefaultOrder(ord);
+  TPZCompEl::SetgOrder(ord);
 
   //malha geometrica
   TPZGeoMesh *geomesh = new TPZGeoMesh;
 
   geomesh->Reference();
 
-  //cria nós geométricos
+  //cria nï¿½s geomï¿½tricos
   if(0) CriaNos(9, *geomesh, NosQuads);
   if(0) CriaNos(18, *geomesh, Nodos3d);
   if(0) CriaNos(4, *geomesh, Teste1Nos);
   if(0) CriaNos(5, *geomesh, Teste2Nos);
   if(1) CriaNos(4, *geomesh, PolNos);
 
-  //elementos geométricos
+  //elementos geomï¿½tricos
   if(0) CriaElementos (4,4,*geomesh, IncidQuads);
   if(0) CriaElementos (4,8,*geomesh, Cubic3d);
   if(0) CriaElementos (1,4,*geomesh, Teste1Elems);
@@ -215,7 +203,7 @@ int main() {
   if(problema==13) (dynamic_cast<TPZPlaca *>(placa))->SetExactFunction(LoadSolution13);
   if(problema==14) (dynamic_cast<TPZPlaca *>(placa))->SetExactFunction(LoadSolution14);
 
-  //cria condi¢ões de contorno
+  //cria condiï¿½ï¿½es de contorno
   if(0) CriaCondContTeste1(*geomesh);
   if(0) CriaCondContTeste2(*geomesh);
   if(1) CriaCondContTeste3(*geomesh);
@@ -230,7 +218,7 @@ int main() {
     //return 0;
   }
 
-  //divide níveis
+  //divide nï¿½veis
   NivelDivide(compmesh);
 
   //ajusta elementos no contorno
@@ -239,7 +227,7 @@ int main() {
   //analysis do problema
   ExecutaAnalysis(*compmesh,placa);
 
-  //calcula o erro energia da solu¢ão
+  //calcula o erro energia da soluï¿½ï¿½o
   SolutionError(compmesh,"ERRO PERCENTUAL FINAL : ");
 
   //arquivo de saida de dados
@@ -322,7 +310,7 @@ TPZMaterial *LerMaterial(char *filename, TPZCompMesh &cmesh) {
 void CriaCondContTeste3(TPZGeoMesh &gmesh){
 
   int indicematerial = 1;
-  TPZMaterial *placa = gmesh.Reference()->FindMaterial(indicematerial);
+  TPZAutoPointer<TPZMaterial> placa = gmesh.Reference()->FindMaterial(indicematerial);
   if(!placa){
     cout << "main::CriaCond material nao existe, CC nao criadas\n";
     cout << "\t\tindice material pedido : " << indicematerial << endl;
@@ -343,7 +331,7 @@ void CriaCondContTeste3(TPZGeoMesh &gmesh){
    TPZGeoElBC(elg0,5,-1,gmesh);
    TPZGeoElBC(elg0,6,-1,gmesh);
    TPZGeoElBC(elg0,7,-1,gmesh);
-   TPZBndCond *bc = placa->CreateBC(-1,0,val1,val2);
+   TPZBndCond *bc = placa->CreateBC(placa,-1,0,val1,val2);
    bc->SetForcingFunction(BCSolution);
    cmesh->InsertMaterialObject(bc);
 
@@ -352,7 +340,7 @@ void CriaCondContTeste3(TPZGeoMesh &gmesh){
 void CriaCondContTeste4(TPZGeoMesh &gmesh){
 
   int indicematerial = 1;
-  TPZMaterial *placa = gmesh.Reference()->FindMaterial(indicematerial);
+  TPZAutoPointer<TPZMaterial> placa = gmesh.Reference()->FindMaterial(indicematerial);
   if(!placa){
     cout << "main::CriaCond material nao existe, CC nao criadas\n";
     cout << "\t\tindice material pedido : " << indicematerial << endl;
@@ -376,7 +364,7 @@ void CriaCondContTeste4(TPZGeoMesh &gmesh){
   TPZGeoElBC(elg1,3,-1,gmesh);
   TPZGeoElBC(elg2,3,-1,gmesh);
   TPZGeoElBC(elg3,3,-1,gmesh);
-  TPZBndCond *bc = placa->CreateBC(-1,0,val1,val2);
+  TPZBndCond *bc = placa->CreateBC(placa,-1,0,val1,val2);
   bc->SetForcingFunction(BCSolution);
   cmesh->InsertMaterialObject(bc);
 
@@ -388,7 +376,7 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
    cmesh.InitializeBlock();
 
    //define o tipo de matriz de rigidez
-   //matriz cheia não singular: requer um solver direto
+   //matriz cheia nï¿½o singular: requer um solver direto
    //TPZFStructMatrix strm(&cmesh);
    TPZSkylineStructMatrix strm(&cmesh);
 
@@ -401,13 +389,13 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
    //cria objeto solver
    TPZStepSolver solver;
 
-   //define a decomposi¢ão LU
+   //define a decomposiï¿½ï¿½o LU
    solver.SetDirect(ELDLt);//ECholesky, ELDLt, ELU
 
    //associa o solver com o objeto analysis
    an.SetSolver(solver);
 
-   //análise adaptativa
+   //anï¿½lise adaptativa
    if(1){
      REAL erro_adm;
      int numiter,resolut;
@@ -429,7 +417,7 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
      cout << "main::ExecutaAnalysis comeca assemble\n";
      an.Assemble();
 
-     //resolve o sistema com a matriz cheia e o solver direto com decomposi¢ão LU
+     //resolve o sistema com a matriz cheia e o solver direto com decomposiï¿½ï¿½o LU
      cout << "main::ExecutaAnalysis comeca solve\n";
      an.Solve();
    }
@@ -439,11 +427,11 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
    an.Print("FEM SOLUTION ",dados);
 
    if(0){
-     //pós processamento do main
+     //pï¿½s processamento do main
      TPZGeoMesh *gmesh = an.Mesh()->Reference();
      ProcessamentoLocal(*gmesh,dados);
 
-     //pós processamento do DX
+     //pï¿½s processamento do DX
      PosProcessamento(an);
    }
 
@@ -459,7 +447,7 @@ void PosProcessamento(TPZAnalysis &an){
   scalar[2] = "Mn2";//var = 6
   scalar[3] = "Mn1n2";//var = 7
   TPZVec<char *> vetorial(0);
-  TPZMaterial *mat = an.Mesh()->FindMaterial(1);
+  TPZAutoPointer<TPZMaterial> mat = an.Mesh()->FindMaterial(1);
   int dim = mat->Dimension();
   TPZDXGraphMesh graph(an.Mesh(),dim,mat,scalar,vetorial);
   ofstream *dxout = new ofstream("PLACA.dx"); //visualiza com o DX
@@ -485,20 +473,6 @@ void ProcessamentoLocal(TPZGeoMesh &gmesh,ostream &out) {
       TPZGeoEl *gel = el->Reference();
       if(el && gel) {
 	if(gel->Id()==count){
-	  TPZGeoEl1d  *el1d=0;
-	  TPZGeoElT2d *elt2d=0;
-	  TPZGeoElQ2d *elq2d=0;
-	  TPZGeoElT3d *elt3d=0;
-	  TPZGeoElPi3d *elpi3d=0;
-	  TPZGeoElPr3d *elpr3d=0;
-	  TPZGeoElC3d  *elc3d=0;
-	  if(elemtype==1) el1d   = (TPZGeoEl1d    *) gel;
-	  if(elemtype==2) elt2d  = (TPZGeoElT2d   *) gel;
-	  if(elemtype==3) elq2d  = (TPZGeoElQ2d   *) gel;
-	  if(elemtype==4) elt3d  = (TPZGeoElT3d   *) gel;
-	  if(elemtype==5) elpi3d = (TPZGeoElPi3d  *) gel;
-	  if(elemtype==6) elpr3d = (TPZGeoElPr3d  *) gel;
-	  if(elemtype==7) elc3d  = (TPZGeoElC3d   *) gel;
 	  out << "Elemento " << el->Reference()->Id() << endl;;
 	  TPZManVector<REAL> sol(1);
 	  TPZVec<REAL> csi(3,0.),x(3);
@@ -508,13 +482,7 @@ void ProcessamentoLocal(TPZGeoMesh &gmesh,ostream &out) {
 	    in >> csi[0] >> csi[1] >>  csi[2];
 	    gel->X(csi,x);
 	    int var = 4;
-	    if(elemtype==1) el1d->Reference()->Solution(csi,var,sol);
-	    if(elemtype==2) elt2d->Reference()->Solution(csi,var,sol);
-	    if(elemtype==3) elq2d->Reference()->Solution(csi,var,sol);
-	    if(elemtype==4) elt3d->Reference()->Solution(csi,var,sol);
-	    if(elemtype==5) elpi3d->Reference()->Solution(csi,var,sol);
-	    if(elemtype==6) elpr3d->Reference()->Solution(csi,var,sol);
-	    if(elemtype==7) elc3d->Reference()->Solution(csi,var,sol);
+	    gel->Reference()->Solution(csi,var,sol);
 	    out << "solucao em x    = " << x[0] << ' ' << x[1] << ' ' << x[2] << endl;
 	    if(sol.NElements()>0)
 	      out << "               u = " << sol[0] << endl;
@@ -558,7 +526,7 @@ void NivelDivide(TPZCompMesh *cmesh){
 }
 
 int Nivel(TPZGeoEl *gel){
-  //retorna o nível do elemento gel
+  //retorna o nï¿½vel do elemento gel
   if(!gel) return -1;
   TPZGeoEl *fat = gel->Father();
   if(!fat) return 0;
@@ -578,7 +546,13 @@ REAL SolutionError(TPZCompMesh *cmesh,char *title){
 
   //erro da aproximacao FEM
   TPZManVector<REAL> flux(9);
-  cmesh->EvaluateError(Solution,Energy_error,error1,error2);
+  TPZManVector<REAL,3> errors(3,0.);
+#warning Taken out an important call!!!
+  std::cout << __PRETTY_FUNCTION__ << " Program this again\n";
+  cmesh->EvaluateError(Solution,errors);
+  Energy_error = errors[0];
+  error1 = errors[1];
+  error2 = errors[2];
   if(strcmp(title,"0")){
     if(NormSol < 0)
       cout << "\n" << title << Energy_error << "\n\n";
@@ -591,7 +565,7 @@ REAL SolutionError(TPZCompMesh *cmesh,char *title){
 
 
 REAL NormSolExact(TPZCompMesh *cmesh,char *title){
-  //Dada a soluãp conhecida a sua norma pode ser calculada a qualquer momento
+  //Dada a soluï¿½p conhecida a sua norma pode ser calculada a qualquer momento
   //NormSol = NormSolExact(compmesh,"Norma energia da solucao exata : ");// <-- chamada
   TPZFMatrix *mat = dynamic_cast<TPZFMatrix *>(cmesh->Block().Matrix());
   TPZFMatrix copymat(*mat);
@@ -632,7 +606,7 @@ void LoadSolution3(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du
   static REAL val;
 
   k = 0.0;//0.00001;
-  eps = 0.4;//-1.0 é interessante
+  eps = 0.4;//-1.0 ï¿½ interessante
   div = 100.0;
 
   if(key){
@@ -663,9 +637,9 @@ void LoadSolution3(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du
   u(0,0) =  0.0;//u
   u(1,0) =  0.0;//v
   u(2,0) =  (expx/div+k)*(expy/div+k);//w
-  u(3,0) = -( 2.*expy*(expx/div+k)*(y-1.) ) / div / eps2;//øx
-  u(4,0) =  ( 2.*expx*(expy/div+k)*(x-1.) ) / div / eps2;//øy
-  u(5,0) =  0.0;//øz
+  u(3,0) = -( 2.*expy*(expx/div+k)*(y-1.) ) / div / eps2;//ï¿½x
+  u(4,0) =  ( 2.*expx*(expy/div+k)*(x-1.) ) / div / eps2;//ï¿½y
+  u(5,0) =  0.0;//ï¿½z
 
   //du exact
   TPZFMatrix dur(2,6);
@@ -678,14 +652,14 @@ void LoadSolution3(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du
   dur(0,2)  =  -exmeydivmk*(x-1.);//dw/dx
   dur(1,2)  =  -eymexdivmk*(y-1.);//dw/dy
 
-  dur(0,3)  =  4.*exy*(x-1.)*(y-1.) / (div*div) / (eps2*eps2);//døx/dx
-  dur(1,3)  = -eymexdivmk + 2.*eymexdivmk*(y-1.)*(y-1.) / eps2;//døx/dy
+  dur(0,3)  =  4.*exy*(x-1.)*(y-1.) / (div*div) / (eps2*eps2);//dï¿½x/dx
+  dur(1,3)  = -eymexdivmk + 2.*eymexdivmk*(y-1.)*(y-1.) / eps2;//dï¿½x/dy
 
-  dur(0,4)  =  exmeydivmk - 2.*exmeydivmk*(x-1.)*(x-1.) / eps2;//døy/dx
-  dur(1,4)  = -4.*exy*(x-1.)*(y-1.) / (div*div) / (eps2*eps2);//døy/dy
+  dur(0,4)  =  exmeydivmk - 2.*exmeydivmk*(x-1.)*(x-1.) / eps2;//dï¿½y/dx
+  dur(1,4)  = -4.*exy*(x-1.)*(y-1.) / (div*div) / (eps2*eps2);//dï¿½y/dy
 
-  dur(0,5)  = 0.0;//døz/dx
-  dur(1,5)  = 0.0;//døz/dy
+  dur(0,5)  = 0.0;//dï¿½z/dx
+  dur(1,5)  = 0.0;//dï¿½z/dy
 
   du(0,0) = axes(0,0)*dur(0,0) + axes(1,0)*dur(1,0);
   du(1,0) = axes(0,1)*dur(0,0) + axes(1,1)*dur(1,0);
@@ -1017,7 +991,12 @@ int AdaptiveMesh(TPZCompMesh &cmesh,REAL tol,int iter){
     //if(com->Type() == 16) continue
     if(com->Material()->Id() < 0) continue;
     intel = dynamic_cast<TPZInterpolatedElement *>(com);
-    intel->EvaluateError(Solution,energy,error2,flux,error3);
+    TPZManVector<REAL,3> errors(3,0.);
+    intel->EvaluateError(Solution,errors,flux);
+    energy = errors[0];
+    error2 = errors[1];
+    error3 = errors[2];
+//    intel->EvaluateError(Solution,energy,error2,flux,error3);
     elid = com->Reference()->Id();
     erros << "\nElemento id   = " << elid;
     erros << "\nNorma energia absoluta = " << energy;
@@ -1044,11 +1023,11 @@ int AdaptiveMesh(TPZCompMesh &cmesh,REAL tol,int iter){
     cout << "main::AdaptiveMesh Maximo erro absoluto da malha : " << maxerror;
     cout << "\nmain::AdaptiveMesh elemento de id = " << elid << endl;
   }
-  //erro da malha e maximo erro dos elementos são menor que a tolerancia para o erro global
+  //erro da malha e maximo erro dos elementos sï¿½o menor que a tolerancia para o erro global
   if(maxerror < user_error && MeshError < user_error) return 0;
   int nsize = nindex.NElements();
   int psize = pindex.NElements();//,neworder;
-  if( maxerror > tol && !numdivide ) return -1;//erro uniforme não atingido, não há adaptação
+  if( maxerror > tol && !numdivide ) return -1;//erro uniforme nï¿½o atingido, nï¿½o hï¿½ adaptaï¿½ï¿½o
   else if( maxerror <= tol ) return 0;//erro uniforme atingido
   for(i=0;i<nsize;i++){
     com = cmesh.ElementVec()[nindex[i]];

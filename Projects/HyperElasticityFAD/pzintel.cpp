@@ -11,7 +11,7 @@
 #include "pzquad.h"
 #include "pzelmat.h"
 #include "pzmat1dlin.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "time.h"
 #include "pzmanvector.h"
 #include "pzblockdiag.h"
@@ -689,7 +689,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
   }
 
   if (! ndepend){
-    //  cout << "Caso esquisito!!! Chame o Boss que vc receberá um prêmio\n";
+    //  cout << "Caso esquisito!!! Chame o Boss que vc receberï¿½ um prï¿½mio\n";
     for(jn = 0; jn<numsidenodes_large; jn++) {
       int jnodindex = large->SideConnectIndex(jn,neighbourside);
       inod.AddDependency(inodindex,jnodindex,MSL,MBlocksmall.Position(in),MBlocklarge.Position(jn),
@@ -995,12 +995,12 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
 	  //cels->RemoveSideRestraintWithRespectTo(elemset[iel].Side(),large,&thisside);
 	  cels->RemoveSideRestraintWithRespectTo(elemset[iel].Side(),large);
 	}
-	//no construtor é feito a identificacao da ordem : IdentifySideOrder(i)
+	//no construtor ï¿½ feito a identificacao da ordem : IdentifySideOrder(i)
       }
       continue;
     }//fim mode Einsert
 
-    if(mode == EDelete) {//modo remoção
+    if(mode == EDelete) {//modo remoï¿½ï¿½o
       elemset.Resize(0);
       thisside.EqualLevelElementList(elemset,1,0);//iguais
       if(side < NCornerConnects()) thisside.HigherLevelElementList(elemset,1,0);
@@ -1010,7 +1010,7 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
       int nsmall = smallset.NElements();
       large = thisside.LowerLevelElementList(1);
       if(nelem && !large.Exists()) {//iguais e nao grande
-	//se existem iguais só deve-se recalcular a ordem de todos os iguais que restaram
+	//se existem iguais sï¿½ deve-se recalcular a ordem de todos os iguais que restaram
 	/* 	int oldorder = SideOrder(side); */
 	/* 	int order = ComputeSideOrder(elemset); */
 	/* 	if(order != oldorder) { */
@@ -1490,7 +1490,7 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
   sub.Resize(nsubelements);
 
   TPZManVector<TPZGeoEl *> pv(nsubelements);
-  fReference->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional é dividido
+  fReference->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional ï¿½ dividido
   if(!pv.NElements()) {
     sub.Resize(0);
     return;
@@ -1810,7 +1810,7 @@ void TPZInterpolatedElement::EvaluateError(
 	iv++;
       }
     }//solucao calculculada no sistema local : elementos 2d
-    //contribuções dos erros
+    //contribuï¿½ï¿½es dos erros
     if(fp) {
       fp(x,u_exact,du_exact);
       matp->Errors(x,u,dudx,axes,flux_el,u_exact,du_exact,values);

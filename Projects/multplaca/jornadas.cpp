@@ -6,7 +6,6 @@
 #include "pzcmesh.h"
 #include "pzgnode.h"
 #include "pzsolve.h"
-#include "pzelg1d.h"
 #include "pzmat1dlin.h"
 #include "pzelmat.h"
 #include "pzelasmat.h"
@@ -15,11 +14,9 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 #include <stdlib.h>
-#include <iostream.h>
+#include <iostream>
 #include "pzvec.h"
 
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
 #include "pzmat2dlin.h"
 #include "pzanalysis.h"
 #include "pzmetis.h"
@@ -27,19 +24,23 @@
 #include "pzmultplaca.h"
 #include "tpzmultcamada.h"
 
+#include "pzskylstrmatrix.h"
+#include "pzstepsolver.h"
+
 #include <stdio.h>
 #include <time.h>
-#include "pzelct2d.h"
 //template<class T>
 //class TPZVec;
 //#define NOTDEBUG
+
+using namespace std;
 
 void LerMaterial(TPZCompMesh &cmesh, char *filename);
 int main() {
 
    //malha geometrica
    TPZGeoMesh *firstmesh = new TPZGeoMesh;
-   firstmesh->SetName("Malha Geometrica : Nós e Elementos");
+   firstmesh->SetName("Malha Geometrica : Nï¿½s e Elementos");
    firstmesh->NodeVec().Resize(4);
    TPZVec<REAL> coord(2),coordtrans(2);
    REAL ct,st,PI=3.141592654;
@@ -96,7 +97,9 @@ int main() {
    nodeindexes[2] = 2;
    nodeindexes[3] = 3;
     //elementos geometricos
-   TPZGeoEl *elg0 = new TPZGeoElQ2d(nodeindexes,1,*firstmesh);
+   int index;
+   firstmesh->CreateGeoElement(EQuadrilateral,nodeindexes,1,index,1);
+   //TPZGeoEl *elg0 = new TPZGeoElQ2d(nodeindexes,1,*firstmesh);
    //   TPZGeoEl *elg1 = new TPZGeoElQ2d(nodeindexes,2,*firstmesh);
    //   TPZGeoEl *elg2 = new TPZGeoElQ2d(nodeindexes,3,*firstmesh);
 
@@ -120,8 +123,8 @@ int main() {
    cout << "Entre ordem 1,2,3,4,5 : ";
    cin >> ord;
 //   TPZCompEl::gOrder = ord;
-   firstmesh.SetDefaultOrder(order);
-   //construção malha computacional
+   TPZCompEl::SetgOrder(ord);
+   //construï¿½ï¿½o malha computacional
    TPZVec<int> csub(0);
    TPZManVector<TPZGeoEl *> pv(4);
    int n1=1,level=0;
@@ -147,18 +150,17 @@ int main() {
    //   return 0;
 
    TPZAnalysis an(secondmesh,outcm1);
-   int numeq = secondmesh->NEquations();
    secondmesh->Print(outcm1);
    outcm1.flush();
-   TPZVec<int> skyline;
-   secondmesh->Skyline(skyline);
-   TPZSkylMatrix *stiff = new TPZSkylMatrix(numeq,skyline);
-   an.SetMatrix(stiff);
+   TPZSkylineStructMatrix stiff (secondmesh);
+   an.SetStructuralMatrix(stiff);
 
    //   TPZMatrixSolver jacobi(stiff);
    //   jacobi.SetSSOR(1,1,1.e-6,1);
    //   an.Solver().SetCG(400,jacobi,1.e-6,1);
-   an.Solver().SetDirect(ECholesky);
+   TPZStepSolver step;
+   step.SetDirect(ECholesky);
+   an.SetSolver(step);
    secondmesh->SetName("Malha Computacional :  Connects e Elementos");
    // Posprocessamento
    an.Run(outcm2);
@@ -194,7 +196,8 @@ void LerMaterial(TPZCompMesh &cmesh,char *filename) {
   int matindex, numcamadas,i,numbc,camadaref, materialtype;
   input >> matindex >> numcamadas >> camadaref >> numbc >> materialtype;
   TPZMultCamada *matcamadas = new TPZMultCamada(matindex);
-  cmesh.InsertMaterialObject(matcamadas);
+  TPZAutoPointer<TPZMaterial> mat(matcamadas);
+  cmesh.InsertMaterialObject(mat);
   esp.Resize(numcamadas);
   for(i=0; i<numcamadas; i++) input >> esp[i];
   for(i=0; i< numcamadas; i++) {
@@ -236,7 +239,8 @@ void LerMaterial(TPZCompMesh &cmesh,char *filename) {
     TPZGeoMesh *gmesh = cmesh.Reference();
     TPZGeoEl *gel = gmesh->ElementVec()[belindex];
     TPZGeoElBC(gel,elside,bnum,*gmesh);
-    cmesh.InsertMaterialObject(matcamadas->CreateBC(bnum,btype,val1,val2));
+    TPZAutoPointer<TPZMaterial> bc(matcamadas->CreateBC(mat,bnum,btype,val1,val2));
+    cmesh.InsertMaterialObject(bc);
   }
 
 }

@@ -6,7 +6,6 @@
 #include "pzcmesh.h"
 #include "pzgnode.h"
 #include "pzsolve.h"
-#include "pzelg1d.h"
 #include "pzmat1dlin.h"
 #include "pzelmat.h"
 #include "pzelasmat.h"
@@ -18,8 +17,6 @@
 #include <iostream.h>
 #include "pzvec.h"
 
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
 #include "pzmat2dlin.h"
 #include "pzanalysis.h"
 #include "pzmetis.h"
@@ -27,7 +24,6 @@
 
 #include <stdio.h>
 #include <time.h>
-#include "pzelct2d.h"
 //template<class T>
 //class TPZVec;
 //#define NOTDEBUG
@@ -69,7 +65,7 @@ int main() {
    cin >> ord;
 //   TPZCompEl::gOrder = ord;
    firstmesh.SetDefaultOrder(order);
-   //construção malha computacional
+   //construï¿½ï¿½o malha computacional
    TPZVec<int> csub(0);
    TPZManVector<TPZGeoEl *> pv(4);
    int n1=1,level=0;

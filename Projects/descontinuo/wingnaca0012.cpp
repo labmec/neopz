@@ -15,7 +15,7 @@
 #include "pzcmesh.h"
 #include "pzfmatrix.h"
 #include "pzbndcond.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzcompel.h"
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
@@ -218,7 +218,7 @@ int main() {
       an.SetSolver(solver);
       if(1){
 	REAL tol;
-	tol = 1.0e15;// = norma da solução inicial + epsilon
+	tol = 1.0e15;// = norma da soluï¿½ï¿½o inicial + epsilon
 	cout << "\nTolerancia ? : " << tol << "\n";
 	//cin >> tol;
 	//an.SetExact(Solution);
@@ -268,11 +268,11 @@ void LeituraDaMalha(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoElS
   TPZVec<int> nodes;
   nodes.Resize(3);
   int index,numb,fgt1,nmat,fgt2,nvert;
-  TPZVec<int> nos(8);//máximo do cubo
+  TPZVec<int> nos(8);//mï¿½ximo do cubo
   for(i=0;i<numelem;i++){
     mesh >> numb >> fgt1 >> nmat >> fgt2 >> nvert;
     for(i=0;i<nvert;i++) mesh >> nos[i];
-    if(nvert == 3){//triângulos
+    if(nvert == 3){//triï¿½ngulos
       for(i=0;i<nvert;i++) nodes[i] = nos[i]-1;
       nodes.Resize(3);
       elembc.Push(TPZGeoElSide(gmesh->CreateGeoElement(ETriangle,nodes,1,index),-nmat));
@@ -326,12 +326,12 @@ void LeituraDaMalha2(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoEl
     mesh >> no2;
     nodes[0] = no1-1;
     nodes[1] = no2-1;
-    if(nvert == 2){//só elementos de contorno
+    if(nvert == 2){//sï¿½ elementos de contorno
       nodes.Resize(2);
       elembc.Push(TPZGeoElSide(gmesh->CreateGeoElement(EOned,nodes,1,index),-nmat));
       continue;
     }
-    if(nvert == 3){//só elementos de volume
+    if(nvert == 3){//sï¿½ elementos de volume
       nodes.Resize(3);
       mesh >> no3;
       nodes[2] = no3-1;
@@ -351,7 +351,7 @@ void SetDeltaTime(TPZMaterial *mat,int nstate){
   if(nstate==5) x[2] = 0.5;
   Function(x,sol);
   REAL prod = 0.0,maxveloc;
-  for(i=1;i<nstate-1;i++) prod += sol[i]*sol[i];//(u²+v²+w²)*ro²
+  for(i=1;i<nstate-1;i++) prod += sol[i]*sol[i];//(uï¿½+vï¿½+wï¿½)*roï¿½
   REAL dens2 = sol[0]*sol[0];
   maxveloc = sqrt(prod/dens2);//velocidade
   TPZEulerConsLaw *law = dynamic_cast<TPZEulerConsLaw *>(mat);
@@ -457,7 +457,7 @@ void ContagemDeElementos(TPZMaterial *mat){
   cout << "\nTotal de elementos geometricos     : " << total;
   cout << "\nTamanho do vetor de connects       : " << cmesh->NConnects();
   cout << "\nTamanho do vetor el. comput.       : " << cmesh->NElements();
-  cout << "\nGrau do espaço de interpolação     : " << grau;
+  cout << "\nGrau do espaï¿½o de interpolaï¿½ï¿½o     : " << grau;
   cout << "\nNivel maximo comput. atingido      : " << nivmax;
   cout << "\nNivel maximo geomet. atingido      : " << nivmax << endl << endl;
   if(mat){
@@ -500,7 +500,7 @@ void NivelDivide(TPZCompMesh *cmesh){
 }
 
 int Nivel(TPZGeoEl *gel){
-  //retorna o nível do elemento gel
+  //retorna o nï¿½vel do elemento gel
   if(!gel) return -1;
   TPZGeoEl *fat = gel->Father();
   if(!fat) return 0;
@@ -533,7 +533,7 @@ void Divisao(TPZCompMesh *cmesh){
       if(cpel && cpel->Reference()->Id() == n1) break;
     }
     if(el < nelc) cmesh->Divide(el,csub,0);
-    else cout << "Divisao::Elemento não existe\n";
+    else cout << "Divisao::Elemento nï¿½o existe\n";
     n1 = 1;
   }
 }
@@ -562,7 +562,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
   cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
   REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
-  REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
+  REAL delta_t = cfl*delta_x;//delta_t ï¿½ <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
   REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
@@ -581,11 +581,11 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condições de contorno
+  //condiï¿½ï¿½es de contorno
   TPZBndCond *bc;
   TPZFMatrix val1(4,4),val2(4,1);
 
-  //CC : a vizinhan¢a geometrica foi preenchida
+  //CC : a vizinhanï¿½a geometrica foi preenchida
   val1.Zero();
   val2.Zero();
   int numbc = elembc.NElements();
@@ -637,7 +637,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
 
     result.Resize(4);
-    //Condi¢ão inicial t =  0
+    //Condiï¿½ï¿½o inicial t =  0
     REAL ro = 1.0;
     REAL u = 0.5;
     REAL v = 0.0;
@@ -669,7 +669,7 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
   cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
   REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
-  REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
+  REAL delta_t = cfl*delta_x;//delta_t ï¿½ <= que este valor
   REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
   gama = 1.4;//do ar
   cout << "\nDominio [0,1]x[0,1]"
@@ -686,11 +686,11 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condições de contorno
+  //condiï¿½ï¿½es de contorno
   TPZBndCond *bc;
   TPZFMatrix val1(5,4),val2(5,1);
 
-  //CC : a vizinhan¢a geometrica foi preenchida
+  //CC : a vizinhanï¿½a geometrica foi preenchida
   val1.Zero();
   val2.Zero();
   int numbc = elembc.NElements();
@@ -721,7 +721,7 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
     delete elgbound;
     gmesh->ElementVec().SetFree(index);
   }
-  //o domínio é um hexaedro
+  //o domï¿½nio ï¿½ um hexaedro
   bc = mat->CreateBC(-1,5,val1,val2);//parede na asa
   cmesh->InsertMaterialObject(bc);
   bc = mat->CreateBC(-2,6,val1,val2);//no refletivas

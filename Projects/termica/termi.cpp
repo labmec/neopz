@@ -53,7 +53,7 @@
 //#define NOTDEBUG
 
 using namespace std;
-//Método para inserção de materiais
+//Mï¿½todo para inserï¿½ï¿½o de materiais
 void InicializarMaterial(TPZCompMesh &cmesh);
 
 //Mï¿½odo para a leitura da malha
@@ -123,7 +123,7 @@ int main22() {
 
   //Define a ordem p de criaï¿½o de todo elemento computacional como sendo ord
 //  TPZCompEl::gOrder = ord;
-  cmesh.SetDefaultOrder(ord);
+  TPZCompEl::SetgOrder(ord);
 
   // Construï¿½o da malha computacional. Aqui a malha terï¿½apenas uma referï¿½cia
   // para a malha geomï¿½rica...
@@ -169,7 +169,7 @@ int main22() {
 
   //Escolha do padrï¿½ de armazenamento. O parï¿½etro de entrada ï¿½a malha computacional
   //TPZSkylineStructMatrix strmat(malhacomp);
-  TPZSkylineStructMatrix strmat(malhacomp);       //skyline em paralelo (multthread)
+  TPZSkylineStructMatrix strmat (malhacomp);       //skyline em paralelo (multthread)
   //TPZParFrontStructMatrix<TPZFrontSym> strmat(malhacomp);
 
   //Define-se o padrï¿½ de armazenamento para a anï¿½ise

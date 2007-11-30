@@ -45,14 +45,14 @@ class GeoElTypes {
 
  public:
 
-  typedef TPZGeoElement<pzshape::TPZShapePoint,pzgeom::TPZGeoPoint,pzrefine::TPZRefPoint> GPointType;
-  typedef TPZGeoElement<pzshape::TPZShapeLinear,pzgeom::TPZGeoLinear,pzrefine::TPZRefLinear> GLinearType;
-  typedef TPZGeoElement<pzshape::TPZShapeQuad,pzgeom::TPZGeoQuad,pzrefine::TPZRefQuad> GQuadType;
-  typedef TPZGeoElement<pzshape::TPZShapeTriang,pzgeom::TPZGeoTriangle,pzrefine::TPZRefTriangle> GTriangleType;
-  typedef TPZGeoElement<pzshape::TPZShapeCube,pzgeom::TPZGeoCube,pzrefine::TPZRefCube> GHexahedronType;
-  typedef TPZGeoElement<pzshape::TPZShapePrism,pzgeom::TPZGeoPrism,pzrefine::TPZRefPrism> GPrismType;
-  typedef TPZGeoElement<pzshape::TPZShapeTetra,pzgeom::TPZGeoTetrahedra,pzrefine::TPZRefTetrahedra> GTetrahedronType;
-  typedef TPZGeoElement<pzshape::TPZShapePiram,pzgeom::TPZGeoPyramid,pzrefine::TPZRefPyramid> GPyramidType;
+  typedef TPZGeoElement<pzgeom::TPZGeoPoint,pzrefine::TPZRefPoint> GPointType;
+  typedef TPZGeoElement<pzgeom::TPZGeoLinear,pzrefine::TPZRefLinear> GLinearType;
+  typedef TPZGeoElement<pzgeom::TPZGeoQuad,pzrefine::TPZRefQuad> GQuadType;
+  typedef TPZGeoElement<pzgeom::TPZGeoTriangle,pzrefine::TPZRefTriangle> GTriangleType;
+  typedef TPZGeoElement<pzgeom::TPZGeoCube,pzrefine::TPZRefCube> GHexahedronType;
+  typedef TPZGeoElement<pzgeom::TPZGeoPrism,pzrefine::TPZRefPrism> GPrismType;
+  typedef TPZGeoElement<pzgeom::TPZGeoTetrahedra,pzrefine::TPZRefTetrahedra> GTetrahedronType;
+  typedef TPZGeoElement<pzgeom::TPZGeoPyramid,pzrefine::TPZRefPyramid> GPyramidType;
 
 };
 

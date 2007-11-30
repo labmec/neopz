@@ -6,7 +6,6 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzgeoel.h"
-#include "pzelgc3d.h"
 #include "pzmathyperelastic.h"
 #include "pznonlinanalysis.h"
 #include "pzdxmesh.h"
@@ -29,7 +28,7 @@ void Forcing(TPZVec<REAL> &x, TPZVec<REAL> &disp);
 
 int main(int argc, char* argv[]){
 
-	cout << "Exemplo de aplicação de modelagem Tri-dimensional através do DX!\n";
+	cout << "Exemplo de aplicaï¿½ï¿½o de modelagem Tri-dimensional atravï¿½s do DX!\n";
 
 	double coordstore[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};
 	int numel = 10;
@@ -46,10 +45,10 @@ int main(int argc, char* argv[]){
 			coord[j] = coordstore[i%4][j];
 		}
 		coord[2] = i/4;
-		// identificar um espaço no vetor onde podemos armazenar
+		// identificar um espaï¿½o no vetor onde podemos armazenar
 		// este vetor
 		int nodeindex = malha.NodeVec().AllocateNewElement();
-		// initializar os dados do nó
+		// initializar os dados do nï¿½
 		malha.NodeVec()[nodeindex].Initialize(i,coord,malha);
 	}
 
@@ -59,10 +58,12 @@ int main(int argc, char* argv[]){
 	TPZVec<int> indices(8);
 
 	for(el=0; el<numel; el++) {
-		// inicializar os indices dos nós
+		// inicializar os indices dos nï¿½s
 		for(i=0; i<8; i++) indices[i] =4*el+i;
 		// O proprio construtor vai inserir o elemento na malha
-		gel[el] = new TPZGeoElC3d(el,indices,1,malha);
+                int index;
+                gel[el] = malha.CreateGeoElement(ECube,indices,1,index,1);
+		
 	}
 /*	TPZVec<TPZGeoEl *> sub;
 	gel[1]->Divide(sub);*/
@@ -89,14 +90,15 @@ int main(int argc, char* argv[]){
 
 	// inserir os materiais
 	TPZMaterial *meumat = new TPZMatHyperElastic(1,1.e5,0.25);
-	comp.InsertMaterialObject(meumat);
+        TPZAutoPointer<TPZMaterial> mat(meumat);
+	comp.InsertMaterialObject(mat);
 
 	// inserir a condicao de contorno
 	TPZFMatrix val1(3,3,0.),val2(3,1,0.);
 
-	TPZMaterial *bnd = meumat->CreateBC (-1,0,val1,val2);
+	TPZMaterial *bnd = meumat->CreateBC (mat,-1,0,val1,val2);
 	comp.InsertMaterialObject(bnd);
-	bnd = meumat->CreateBC (-2,0,val1,val2);
+	bnd = meumat->CreateBC (mat,-2,0,val1,val2);
 	bnd->SetForcingFunction(Forcing);
 	comp.InsertMaterialObject(bnd);
 /*	val2.Zero();
@@ -112,7 +114,7 @@ int main(int argc, char* argv[]){
 	comp.InsertMaterialObject(bnd);
 */
 //	TPZCompEl::gOrder = 2;
-  cmesh.SetDefaultOrder(2);
+        TPZCompEl::SetgOrder(2);
 	comp.AutoBuild();
 
 	angle = pi/4.;

@@ -1,13 +1,9 @@
 
 
 #include "pzfmatrix.h"
-#include "pztempmat.h" 
+//#include "pztempmat.h" 
 #include "pzskylmat.h"
-#include "pzgmesh.h"
-#include "pzcmesh.h"
-#include "pzgnode.h"
 #include "pzsolve.h"
-#include "pzelg1d.h"
 #include "pzmat1dlin.h"
 #include "pzelmat.h"
 #include "pzelasmat.h"
@@ -16,11 +12,9 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 #include <stdlib.h>
-#include <iostream.h>
+#include <iostream>
 #include "pzvec.h"
 
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
 #include "pzmat2dlin.h"
 #include "pzanalysis.h"
 #include "pzmetis.h"
@@ -30,7 +24,6 @@
 
 #include <stdio.h>
 #include <time.h>
-#include "pzelct2d.h"
 //template<class T>
 //class TPZVec;
 //#define NOTDEBUG

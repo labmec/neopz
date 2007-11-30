@@ -5,7 +5,7 @@
 #include "pzdiffmatrix.h"
 #include "pzeulerconslaw.h"
 #include "stdlib.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "fadType.h"
 
 int gDebug;

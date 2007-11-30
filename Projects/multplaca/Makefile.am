@@ -15,6 +15,4 @@ bin_PROGRAMS = jornadas
 
 jornadas_SOURCES = jornadas.cpp
 
-jornadas_LDADD = $(top_builddir)/lib/libpz.a @METISDIR@/Lib/libmetis.a
-
 ## --| NeoPZ |------------------------------------------------------------------

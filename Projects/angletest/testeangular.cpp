@@ -15,18 +15,6 @@
 #include "pztrnsform.h"
 #include "pzsolve.h"
 
-#include "pzelg1d.h"
-#include "pzelgq2d.h"
-#include "pzelgt2d.h"
-#include "pzelct2d.h"
-#include "pzelgc3d.h"
-#include "pzelcc3d.h"
-#include "pzelgt3d.h"
-#include "pzelct3d.h"
-#include "pzelgpi3d.h"
-#include "pzelcpi3d.h"
-#include "pzelgpr3d.h"
-#include "pzelcpr3d.h"
 #include "pzelmat.h"
 #include "pzelasmat.h"
 #include "pzmattest.h"
@@ -38,7 +26,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#define NOTDEBUG
+using namespace std;
 
 REAL Norm(REAL *vec);
 void FirstFace(int &face0,int &nfaces,TPZGeoEl *gel);
@@ -59,16 +47,14 @@ int main() {
 	ofstream outgm("outgm.txt");
    ofstream outcm("outcm.txt");
    TPZCompMesh *compmesh;
-   //malha geométrica
+   //malha geomï¿½trica
    LerMalha("malha.txt",gmesh,compmesh);
-   //montagem de conectividades entre elementos
-   gmesh->BuildConnectivity();
    //ordem de interpolacao
    int ord;
    cout << "Enter order 1,2,3,4,5,... : \n";
    cin >> ord;
-   cmesh.SetDefaultOrder(ord);
-   //construção malha computacional
+   TPZCompEl::SetgOrder(ord);
+   //construï¿½ï¿½o malha computacional
    compmesh->AutoBuild();
    //Divide computacional
    cout << "\nDivisao manual (0/1)? : ";
@@ -97,7 +83,7 @@ void AngularTest(TPZGeoMesh *geomesh,ofstream &out) {
    cout << "\nMaximo nivel a ser atingido (nivel dividido+1) : ";
    cin >> maxlevel;
    TPZGeoEl *gel;
-   TPZVec<REAL> angles(250000,4.0);//angulo t é: |t|<Pi
+   TPZVec<REAL> angles(250000,4.0);//angulo t ï¿½: |t|<Pi
    while(level < maxlevel+1){
       REAL levelminangle=4.0,levelmaxangle=0.0;
       int nelg = geomesh->ElementVec().NElements();
@@ -116,8 +102,8 @@ void AngularTest(TPZGeoMesh *geomesh,ofstream &out) {
          out << "  Element id " << gel->Id() << "  level " << level << endl;
          for(int f=0;f<nfaces;f++) {//percorre faces
             int facei = f+face0;
-            int nnodeface = gel->NSideNodes(facei);//num nós da face
-            for(int node=0;node<nnodeface;node++) {//percorre nós das faces
+            int nnodeface = gel->NSideNodes(facei);//num nï¿½s da face
+            for(int node=0;node<nnodeface;node++) {//percorre nï¿½s das faces
                out << "face " << f << " : node local " << node;
                REAL angulo = AngleFaceFi(gel,f,node);
                if(angulo<levelminangle) levelminangle = angulo;
@@ -144,53 +130,28 @@ void AngularTest(TPZGeoMesh *geomesh,ofstream &out) {
    }
    out << "\nAngulos diferentes da malha\n";
    int i=0;
-   while( (4.0-angles[i]) > 0.5 ) out << i << ": " << angles[i++] << endl;
+   while( (4.0-angles[i]) > 0.5 ) 
+   {
+     out << i << ": " << angles[i] << endl;
+     i++;
+   }
    out << "\nMinimo angulo da malha : " << minangle;
    out << "\nMaximo angulo da malha : " << maxangle;
 }
 
 REAL AngleFaceFi(TPZGeoEl *gel,int f,int node){
 
+  TPZGeoElSide gels(gel,f);
+  if(gels.Dimension() != 2) return 0.;
+  int nsidenodes = gels.NSideNodes();
    REAL u[3],v[3];
    TPZVec<int> nodes(4);
    int i,index[3];
-   for(i=0;i<4;i++) nodes[i] = i;
-   int type = gel->Reference()->Type();
-   switch(type){
-      case 0: return 0.;//pontual
-      case 1: return 0.;//linear
-      case 2: nodes.Resize(3);//triângulo
-      case 3: //quadrilatero
-         break;//nada a fazer
-      case 4://tetraedro
-         nodes.Resize(3);
-         for(i=0;i<3;i++) nodes[i] = TPZCompElT3d::FaceNodes[f][i];
-         break;
-      case 5://pirâmide
-	      for(i=0;i<4;i++) nodes[i] = TPZCompElPi3d::FaceNodes[f][i];
-         if(f>0) nodes.Resize(3);
-         break;
-      case 6://prisma
-	      for(i=0;i<4;i++) nodes[i] = TPZCompElPr3d::FaceNodes[f][i];
-         if(f==0 || f==4) nodes.Resize(3);
-         break;
-      case 7://cubo
-	      for(i=0;i<4;i++) nodes[i] = TPZCompElC3d::FaceNodes[f][i];
-         break;
-      default:
-      	cout << "main::AngleFaceFi(..) elemento nao tratado\n";
-   }
-   if(nodes.NElements()==3){
-    for(i=0;i<3;i++)
-       index[i] = gel->NodeIndex(nodes[node++%3]);
-   } else
-   if(nodes.NElements()==4){
-    index[0] = gel->NodeIndex(nodes[node%4]);
-    index[1] = gel->NodeIndex(nodes[(node+1)%4]);
-    index[2] = gel->NodeIndex(nodes[(node+3)%4]);
-   }
+   index[0] = gels.SideNodeIndex(node%nsidenodes);
+   index[1] = gels.SideNodeIndex((node+1)%nsidenodes);
+   index[2] = gels.SideNodeIndex((node+nsidenodes-1)%nsidenodes);
    TPZGeoMesh *gm = gel->Mesh();
-   TPZAdmChunkVector<TPZGeoNode> nodevec = gm->NodeVec();
+   TPZAdmChunkVector<TPZGeoNode> &nodevec = gm->NodeVec();
    for(i=0;i<3;i++){
     u[i] = nodevec[index[1]].Coord(i) - nodevec[index[0]].Coord(i);
     v[i] = nodevec[index[2]].Coord(i) - nodevec[index[0]].Coord(i);
@@ -211,11 +172,11 @@ void FirstFace(int &face0,int &nfaces,TPZGeoEl *gel){
          nfaces = 0;
          face0 = -1;//=side
          break;
-      case 7://triângulo : 3
+      case 7://triï¿½ngulo : 3
          nfaces = 1;
          face0 =  6;//=side
          break;
-      case 9://quadrilátero : 4
+      case 9://quadrilï¿½tero : 4
          nfaces = 1;
          face0 =  8;//=side
          break;
@@ -223,7 +184,7 @@ void FirstFace(int &face0,int &nfaces,TPZGeoEl *gel){
          nfaces = 4;
          face0 = 10;//=side
          break;
-      case 19://pirâmide : 5
+      case 19://pirï¿½mide : 5
          nfaces = 5;
          face0 = 13;//=side
          break;
@@ -274,9 +235,13 @@ void ElementName(TPZCompEl *cel,ofstream &out) {
 
 void LerMalha(char *malha,TPZGeoMesh *geomesh,TPZCompMesh *&compmesh) {
 
-	ifstream grid(malha);
+   ifstream grid(malha);
    TPZFMatrix xk(1,1,0.),xb(1,1,0.),xc(1,1,0.),xf(1,1,0.);
-   TPZMaterialTest3D *mat1d,*mat2d,*mat3d;//TPZMat1dLin *mat1d;//TPZMat2dLin *mat2d;
+   TPZAutoPointer<TPZMaterial> mat1d;
+   int matindex = 1;
+   TPZMaterialTest3D *mattest = new TPZMaterialTest3D(1);
+   mattest->SetMaterial(xk);
+   mat1d = mattest;
    int nnode,nel,ncorners;
    TPZVec<REAL> coord(3);
    grid >> nnode >> nel;
@@ -288,66 +253,20 @@ void LerMalha(char *malha,TPZGeoMesh *geomesh,TPZCompMesh *&compmesh) {
       geomesh->NodeVec()[inode].Initialize(coord,*geomesh);
    }
    compmesh = new TPZCompMesh(geomesh);
+   compmesh->InsertMaterialObject(mat1d);
    for(int el=0;el<nel;el++)  {
-      int mat,ntype;
-      grid >> ntype >> mat;
+      int ntype;
+      grid >> ntype;
       ncorners = ntype;
       if(ntype == 7) ncorners = 4;
       TPZVec<int> nodes(ncorners);
+      int index;
       for(int incid=0;incid<ncorners;incid++) grid >> nodes[incid];
-      switch(ntype) {//tipo de elemento
-         case 2://unidimensional ; elg1d =
-            new TPZGeoEl1d(nodes,mat,*geomesh);
-            mat1d = new TPZMaterialTest3D(mat);//mat1d = new TPZMat1dLin(mat);
-            compmesh->InsertMaterialObject(mat1d);
-            mat1d->SetMaterial(xk);//mat1d->SetMaterial(xk,xb,xc,xf);
-            break;
-         case 3://triângulo ; elgt2d =
-         	new TPZGeoElT2d(nodes,mat,*geomesh);
-            mat2d = new TPZMaterialTest3D(mat);//mat2d = new TPZMat2dLin(mat);
-            compmesh->InsertMaterialObject(mat2d);//mat2d->SetMaterial(xk,xc,xf);
-            mat2d->SetMaterial(xk);
-            break;
-         case 4://quadrilátero ; elgq2d =
-            new TPZGeoElQ2d(nodes,mat,*geomesh);
-            mat2d = new TPZMaterialTest3D(mat);//mat2d = new TPZMat2dLin(mat);
-            compmesh->InsertMaterialObject(mat2d);//mat2d->SetMaterial(xk,xc,xf);
-            mat2d->SetMaterial(xk);
-            break;
-         case 7://tetraedro ; elgt3d =
-            new TPZGeoElT3d(nodes,mat,*geomesh);
-            mat3d = new TPZMaterialTest3D(mat);
-            compmesh->InsertMaterialObject(mat3d);
-            mat3d->SetMaterial(xk);
-            break;
-         case 5://pirâmide ; elgpi3d =
-            new TPZGeoElPi3d(nodes,mat,*geomesh);
-            mat3d = new TPZMaterialTest3D(mat);
-				compmesh->InsertMaterialObject(mat3d);
-            mat3d->SetMaterial(xk);
-            break;
-         case 6://pirâmide ; elgpi3d =
-            new TPZGeoElPr3d(nodes,mat,*geomesh);
-            mat3d = new TPZMaterialTest3D(mat);
-				compmesh->InsertMaterialObject(mat3d);
-            mat3d->SetMaterial(xk);
-            break;
-         case 8://cubo ; elgc3d =
-            new TPZGeoElC3d(nodes,mat,*geomesh);
-            mat3d = new TPZMaterialTest3D(mat);
-				compmesh->InsertMaterialObject(mat3d);
-            mat3d->SetMaterial(xk);
-	         break;
-         default:
-         	for(int i=0;i<300;i++)
-            	cout << "\nmain::LerMalha -> Elemento nao conhecido\n";
-            cout << "\nChao\n";
-            exit(1);
-            delete mat1d;
-            delete mat2d;
-            delete mat3d;
-      }
+      geomesh->CreateGeoElement((MElementType) ntype,nodes,matindex,index,1);
    }
+      //montagem de conectividades entre elementos
+   geomesh->BuildConnectivity();
+
 }
 
 void Divide(TPZCompMesh *compmesh) {

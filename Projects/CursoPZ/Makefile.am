@@ -11,7 +11,6 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 -include $(top_builddir)/@PZ_MK@
 
-SUBDIRS = Class_5
-#Class_1 Class_2 Class_3 Class_4
+SUBDIRS = Class_5 Class_1 Class_2 Class_3 Class_4
 
 ## --| NeoPZ |------------------------------------------------------------------

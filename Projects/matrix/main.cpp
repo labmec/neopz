@@ -1,4 +1,5 @@
 #include "pzfmatrix.h"
+//#include ".h"
 #include "pzsolve.h"
 void Orthogonalization_CGS(TPZFMatrix &a, TPZFMatrix &q,TPZFMatrix &r);
 int main() {
@@ -45,7 +46,7 @@ int main() {
 void Orthogonalization_CGS(TPZFMatrix &a, TPZFMatrix &q,TPZFMatrix &r) {
 
       if(a.Rows()!=q.Rows() && a.Cols()!=q.Cols()) {
-      	cout << "TPZMatrixSolver::Orthogonalization_CGS isn't compatible dimension\n";
+      	std::cout << "TPZMatrixSolver::Orthogonalization_CGS isn't compatible dimension\n";
       }
 
       int rows = a.Rows();

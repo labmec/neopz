@@ -31,7 +31,7 @@
 #include "pzfmatrix.h"
 #include "pzelgc3d.h"
 #include "pzbndcond.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzcompel.h"
 #include "pzanalysis.h"
 #include "pzfstrmatrix.h"

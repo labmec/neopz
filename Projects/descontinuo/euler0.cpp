@@ -30,7 +30,7 @@
 #include "pzfmatrix.h"
 #include "pzelgc3d.h"
 #include "pzbndcond.h"
-#include "pztempmat.h"
+//#include "pztempmat.h"
 #include "pzcompel.h"
 #include "pzanalysis.h"
 #include "pzfstrmatrix.h"
@@ -278,7 +278,7 @@ int main() {
   AgrupaList(accumlist,nivel,numaggl);
   TPZCompElDisc::CreateAgglomerateMesh(cmesh,*aggcmesh,accumlist,numaggl);
   if(!aggcmesh || !aggcmesh->ElementVec().NElements())
-    PZError << "main:: malha computacional aglomerada não criada\n\n";
+    PZError << "main:: malha computacional aglomerada nï¿½o criada\n\n";
   else {
     outgm << "\n\n\n* * * MALHA AGLOMERADA : COMPUTACIONAL * * *\n\n\n";
     aggcmesh->Print(outgm);
@@ -288,22 +288,22 @@ int main() {
   }
   outgm.flush();
   /////////////////////////////////////////////////////////////////////////////////////////////////
-  //com matriz não simétrica e ELU 2D e 3D convergen
+  //com matriz nï¿½o simï¿½trica e ELU 2D e 3D convergen
   if(1){
     TPZIterativeAnalysis an(cmesh,outgm);
     if(1){//Analysis
       cout << "\nmain::Resolve o sistema\n";
-      TPZSkylineStructMatrix stiff(cmesh);//para formula¢ão LS : matriz simétrica
-      //TPZFStructMatrix stiff(cmesh);//não simétrica
+      TPZSkylineStructMatrix stiff(cmesh);//para formulaï¿½ï¿½o LS : matriz simï¿½trica
+      //TPZFStructMatrix stiff(cmesh);//nï¿½o simï¿½trica
       an.SetStructuralMatrix(stiff);
       an.Solution().Zero();
-      TPZStepSolver solver;// ECholesky -> simétrica e positiva definida
-      //solver.SetDirect(ELU);//    ELU -> matriz não singular
-      solver.SetDirect(ELDLt);//  ELDLt -> só simétrica
+      TPZStepSolver solver;// ECholesky -> simï¿½trica e positiva definida
+      //solver.SetDirect(ELU);//    ELU -> matriz nï¿½o singular
+      solver.SetDirect(ELDLt);//  ELDLt -> sï¿½ simï¿½trica
       an.SetSolver(solver);
       if(1){
 	REAL tol;
-	tol = 1.0e15;// = norma da solução inicial + epsilon
+	tol = 1.0e15;// = norma da soluï¿½ï¿½o inicial + epsilon
 	cout << "\nTolerancia ? : " << tol << "\n";
 	//cin >> tol;
 	//an.SetExact(Solution);
@@ -313,10 +313,10 @@ int main() {
 	resolution = 0;
 	cout << resolution << "\n";
 	an.IterativeProcess(outgm,tol,numiter,mat,marcha,resolution);
-	an.Print("SOLUÇÃO DO ANALYSIS",outgm);
+	an.Print("SOLUï¿½ï¿½O DO ANALYSIS",outgm);
 	outgm.flush();
 	if(0) PostProcess(*gmesh,outgm);
-	if(0){//MALHAS NÃO CONFORMES
+	if(0){//MALHAS Nï¿½O CONFORMES
 	  Divisao(cmesh);
 	  cmesh->AdjustBoundaryElements();
 	  if(1){
@@ -376,7 +376,7 @@ void SetDeltaTime(TPZMaterial *mat,int nstate){
   x[1] = 0.5;
   Function(x,sol);
   REAL prod = 0.0,maxveloc;
-  for(i=1;i<nstate-1;i++) prod += sol[i]*sol[i];//(u²+v²+w²)*ro²
+  for(i=1;i<nstate-1;i++) prod += sol[i]*sol[i];//(uï¿½+vï¿½+wï¿½)*roï¿½
   REAL dens2 = sol[0]*sol[0];
   maxveloc = sqrt(prod/dens2);//velocidade
   TPZEulerConsLaw *law = dynamic_cast<TPZEulerConsLaw *>(mat);//TPZEulerConsLaw *law = (TPZEulerConsLaw *)(mat);
@@ -524,7 +524,7 @@ void ContagemDeElementos(TPZMaterial *mat){
   cout << "\nTotal de elementos geometricos     : " << total;
   cout << "\nTamanho do vetor de connects       : " << cmesh->NConnects();
   cout << "\nTamanho do vetor el. comput.       : " << cmesh->NElements();
-  cout << "\nGrau do espaço de interpolação     : " << grau;
+  cout << "\nGrau do espaï¿½o de interpolaï¿½ï¿½o     : " << grau;
   cout << "\nNivel maximo comput. atingido      : " << nivmax;
   cout << "\nNivel maximo geomet. atingido      : " << nivmax << endl << endl;
   if(mat){
@@ -567,7 +567,7 @@ void NivelDivide(TPZCompMesh *cmesh){
 }
 
 int Nivel(TPZGeoEl *gel){
-  //retorna o nível do elemento gel
+  //retorna o nï¿½vel do elemento gel
   if(!gel) return -1;
   TPZGeoEl *fat = gel->Father();
   if(!fat) return 0;
@@ -700,7 +700,7 @@ void FileNB(TPZGeoMesh &gmesh,ostream &out,int var) {
       if(elemtype==EInterface) continue;//interface
       TPZCompEl *el = gmesh.Reference()->ElementVec()[iel];
       if(el->Material()->Id() < 0) continue;
-      //só elementos de volume
+      //sï¿½ elementos de volume
       TPZGeoEl *gel = el->Reference();
       if(el && gel) {
 	if(gel->Id()==count){
@@ -860,7 +860,7 @@ TPZMaterial *Hexaedro(int grau){
   nodes[6] = 6;
   nodes[7] = 7;
   TPZGeoElC3d *elgc3d = new TPZGeoElC3d(nodes,1,*gmesh);
-  //construtor descontínuo
+  //construtor descontï¿½nuo
 
   int interfdim = 2;
   TPZCompElDisc::gInterfaceDimension = interfdim;
@@ -873,7 +873,7 @@ TPZMaterial *Hexaedro(int grau){
 
   cfl = ( 1./(2.0*(REAL)grau+1.0) );
   delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );
-  delta_t = cfl*delta_x;//delta_t é <= que este valor
+  delta_t = cfl*delta_x;//delta_t ï¿½ <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
   delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
@@ -893,7 +893,7 @@ TPZMaterial *Hexaedro(int grau){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condições de contorno  
+  //condiï¿½ï¿½es de contorno  
   TPZBndCond *bc;
   //REAL big = 1.e12;
   TPZFMatrix val1(5,5,0.),val2(5,1,0.);
@@ -993,7 +993,7 @@ TPZMaterial *ProblemaT2D(int grau){
   cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
   REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
-  REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
+  REAL delta_t = cfl*delta_x;//delta_t ï¿½ <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
   REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
@@ -1011,7 +1011,7 @@ TPZMaterial *ProblemaT2D(int grau){
 
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
-  //condições de contorno  
+  //condiï¿½ï¿½es de contorno  
   TPZBndCond *bc;
   //REAL big = 1.e12;
   TPZFMatrix val1(4,4,0.),val2(4,1,0.);
@@ -1020,7 +1020,7 @@ TPZMaterial *ProblemaT2D(int grau){
   //0: Dirichlet
   //1: Neumann
   //2: Mista
-  //3: Dirichlet -> cálculo do fluxo
+  //3: Dirichlet -> cï¿½lculo do fluxo
   //4: livre
   //5: parede
 
@@ -1091,7 +1091,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   nodes[3] = 3;
   TPZGeoEl *elgq2d = gmesh->CreateGeoElement(EQuadrilateral,nodes,1,index);
 
-  //construtor descontínuo
+  //construtor descontï¿½nuo
   TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 
@@ -1104,7 +1104,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
   REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
-  REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
+  REAL delta_t = cfl*delta_x;//delta_t ï¿½ <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
   REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
@@ -1123,7 +1123,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condições de contorno  
+  //condiï¿½ï¿½es de contorno  
   TPZBndCond *bc;
   //REAL big = 1.e12;
   TPZFMatrix val1(4,4),val2(4,1);
@@ -1221,7 +1221,7 @@ TPZMaterial *TresTriangulos(int grau){
   cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
   REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
-  REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
+  REAL delta_t = cfl*delta_x;//delta_t ï¿½ <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
   REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
@@ -1239,7 +1239,7 @@ TPZMaterial *TresTriangulos(int grau){
 
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
-  //condições de contorno  
+  //condiï¿½ï¿½es de contorno  
   TPZBndCond *bc;
   TPZFMatrix val1(4,4,0.),val2(4,1,0.);
 
@@ -1337,7 +1337,7 @@ TPZMaterial *TresPrismas(int grau){
 
   cfl = ( 1./(2.0*(REAL)grau+1.0) );
   delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );
-  delta_t = cfl*delta_x;//delta_t é <= que este valor
+  delta_t = cfl*delta_x;//delta_t ï¿½ <= que este valor
   delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
   gama = 1.4;
   cout << "\nDominio [0,1]x[0,1]"
@@ -1355,7 +1355,7 @@ TPZMaterial *TresPrismas(int grau){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condições de contorno  
+  //condiï¿½ï¿½es de contorno  
   TPZBndCond *bc;
   TPZFMatrix val1(5,5,0.),val2(5,1,0.);
 
@@ -1439,7 +1439,7 @@ TPZMaterial *FluxConst3D(int grau){
   nodes[6] = 6;
   nodes[7] = 7;
   TPZGeoEl *elgc3d = gmesh->CreateGeoElement(ECube,nodes,1,index);
-  //construtor descontínuo
+  //construtor descontï¿½nuo
   TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
@@ -1456,7 +1456,7 @@ TPZMaterial *FluxConst3D(int grau){
 
   cfl = ( 1./(2.0*(REAL)grau+1.0) );
   delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );
-  delta_t = cfl*delta_x;//delta_t é <= que este valor
+  delta_t = cfl*delta_x;//delta_t ï¿½ <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
   delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
@@ -1476,7 +1476,7 @@ TPZMaterial *FluxConst3D(int grau){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condições de contorno  
+  //condiï¿½ï¿½es de contorno  
   TPZBndCond *bc;
   TPZFMatrix val1(5,5,0.),val2(5,1,0.);
 
@@ -1545,7 +1545,7 @@ TPZMaterial *FluxConst2D(int grau){
   //nivel = 2;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
   REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
-  REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
+  REAL delta_t = cfl*delta_x;//delta_t ï¿½ <= que este valor
   REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
   gama = 1.4;
   cout << "\nDominio [0,1]x[0,1]"
@@ -1562,7 +1562,7 @@ TPZMaterial *FluxConst2D(int grau){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condições de contorno  
+  //condiï¿½ï¿½es de contorno  
   TPZBndCond *bc;
   TPZFMatrix val1(4,4),val2(4,1);
   REAL ro,u,v,vel2,p;
@@ -1623,7 +1623,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
     nodes[3] = INCID[i][3];
     elem[i] = gmesh->CreateGeoElement(EQuadrilateral,nodes,1,index);
   }
-  //construtor descontínuo
+  //construtor descontï¿½nuo
   TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   int interfdim = 1;
@@ -1635,7 +1635,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
   cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
   REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
-  REAL delta_t = cfl*delta_x;//delta_t é <= que este valor
+  REAL delta_t = cfl*delta_x;//delta_t ï¿½ <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
   REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
@@ -1654,7 +1654,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condições de contorno  
+  //condiï¿½ï¿½es de contorno  
   TPZBndCond *bc;
   TPZFMatrix val1(4,4),val2(4,1);
 
@@ -1720,7 +1720,7 @@ void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
 
   if(problem == 6){
     result.Resize(5);
-    //Condi¢ão inicial t =  0
+    //Condiï¿½ï¿½o inicial t =  0
     REAL ro = 1.0;
     REAL u = 2.9;// 1.0 , 2.9
     REAL v = 0.0;
@@ -1737,7 +1737,7 @@ void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
 
   if(problem == 0){
     result.Resize(4);
-    //Condi¢ão inicial t =  0
+    //Condiï¿½ï¿½o inicial t =  0
     REAL ro = 1.0;
     REAL u = 2.9;
     REAL v = 0.0;
@@ -1752,7 +1752,7 @@ void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
 
   if(problem == 1){
     result.Resize(5);
-    //Condi¢ão inicial t =  0
+    //Condiï¿½ï¿½o inicial t =  0
     REAL ro = 1.0;
     REAL u = 2.9;
     REAL v = 0.0;
@@ -1768,7 +1768,7 @@ void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
   }
   if(problem == 2){
     result.Resize(5);
-    //Condi¢ão inicial t =  0
+    //Condiï¿½ï¿½o inicial t =  0
     REAL ro = 1.0;
     REAL u = 2.9;// 1.0 , 2.9
     REAL v = 0.0;
@@ -1799,7 +1799,7 @@ void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
   }
   if(problem == 3 || problem == 7){
     result.Resize(4);
-    //Condi¢ão inicial t =  0
+    //Condiï¿½ï¿½o inicial t =  0
     REAL ro = 1.0;
     REAL u = 2.9;
     REAL v = 0.0;
@@ -1813,7 +1813,7 @@ void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
   }
   if(problem == 4){
     result.Resize(4);
-    //Condi¢ão inicial t =  0
+    //Condiï¿½ï¿½o inicial t =  0
     REAL ro = 1.0;
     REAL u = 1.0;
     REAL v = 0.0;
@@ -1853,7 +1853,7 @@ TPZMaterial *NoveCubos(int grau){
     elem[i] = gmesh->CreateGeoElement(ECube,nodes,1,index);
   }
 
-  //elemento de volume descontínuo
+  //elemento de volume descontï¿½nuo
   TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
@@ -1869,7 +1869,7 @@ TPZMaterial *NoveCubos(int grau){
 
   cfl = ( 1./(2.0*(REAL)grau+1.0) );
   delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );
-  delta_t = cfl*delta_x;//delta_t é <= que este valor
+  delta_t = cfl*delta_x;//delta_t ï¿½ <= que este valor
   delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
   gama = 1.4;
   cout << "\nDominio [0,1]x[0,1]"
@@ -1887,7 +1887,7 @@ TPZMaterial *NoveCubos(int grau){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condições de contorno  
+  //condiï¿½ï¿½es de contorno  
   TPZBndCond *bc;
   TPZFMatrix val1(5,5,0.),val2(5,1,0.);
 
@@ -2017,7 +2017,7 @@ void SequenceDivide2(){
     cmesh->Divide(0,s,0);
     cmesh->Divide(s[7],s,0);//6
     cmesh->Divide(s[5],s,0);//4
-    cmesh->Divide(s[5],s,0);//4: essa combina¢ão da problemas
+    cmesh->Divide(s[5],s,0);//4: essa combinaï¿½ï¿½o da problemas
     //cmesh->Divide(s[4],s,0);
   }
 }
@@ -2027,7 +2027,7 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
   cmesh->SetDimModel(2);
   cout << "\n\nmain::AgrupaList para malha 2D\n\n";
   int nel = cmesh->NElements(),i;
-  //não todo index é sub-elemento
+  //nï¿½o todo index ï¿½ sub-elemento
   accumlist.Resize(nel,-1);
   int mdim = cmesh->Dimension();
   int sdim = mdim - 1;
@@ -2037,8 +2037,8 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
     TPZGeoEl *gel = cel->Reference();
     int type = cel->Type(),eldim = cel->Dimension();
     //agrupando elementos computacionais de volume
-    if(type == EInterface) continue;//interface será clonada
-    if(eldim == sdim) continue;//discontinuo BC será clonado
+    if(type == EInterface) continue;//interface serï¿½ clonada
+    if(eldim == sdim) continue;//discontinuo BC serï¿½ clonado
     TPZGeoEl *father = gel->Father();
     if(!father) continue;
     while(father && Nivel(father) != nivel) father = father->Father();//nova
@@ -2059,7 +2059,7 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
       }
     }    
   }
-  //conta o número de elementos obtidos por aglomera¢ão
+  //conta o nï¿½mero de elementos obtidos por aglomeraï¿½ï¿½o
   numaggl = 0;
   int act2 = -1;
   for(i=0;i<nel;i++){
@@ -2091,20 +2091,20 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
     }
     newfat++;
   }
-  if(newfat != numaggl) cout << "main::AgrupaList número de pais não confere\n";
+  if(newfat != numaggl) cout << "main::AgrupaList nï¿½mero de pais nï¿½o confere\n";
 }
 
 // void ResetReference(TPZCompMesh *aggcmesh){
-//   //APLICAR ESTA FUNÇÃO ANTES DE GERAR A MALHA COM O DX
+//   //APLICAR ESTA FUNï¿½ï¿½O ANTES DE GERAR A MALHA COM O DX
 
-//   //caso o aglomerado tem referência anulam-se as referencias
-//   //dos sub-elementos 'geométricos' aglomerados por ele
-//   //caso contrário deixa-se um único elemento geométrico
+//   //caso o aglomerado tem referï¿½ncia anulam-se as referencias
+//   //dos sub-elementos 'geomï¿½tricos' aglomerados por ele
+//   //caso contrï¿½rio deixa-se um ï¿½nico elemento geomï¿½trico
 //   //apontando para o aglomerado
-//   //isso forma uma partição da malha atual por elementos computacionais
+//   //isso forma uma partiï¿½ï¿½o da malha atual por elementos computacionais
 
 //   int nel = aggcmesh->NElements(),i;
-//   //não todo index é sub-elemento
+//   //nï¿½o todo index ï¿½ sub-elemento
 //   for(i=0;i<nel;i++){
 //     TPZCompEl *cel = aggcmesh->ElementVec()[i];
 //     if(!cel) continue;
@@ -2124,15 +2124,15 @@ void AgrupaList(TPZVec<int> &accumlist,int nivel,int &numaggl){
 //       TPZGeoEl *ref = sub->REference();
 //       if(!ref) PZError << "main::ResetReference error2\n";
 //       ref->SetReference(NULL);
-//       //o aglomerado não tem geométrico direto associado
-//       //agora existe um único geométrico apontando
+//       //o aglomerado nï¿½o tem geomï¿½trico direto associado
+//       //agora existe um ï¿½nico geomï¿½trico apontando
 //       //para ele
 //     }
 //     if(gel){
 //       TPZGeoEl *ref0 = sub0->REference();
 //       if(!ref0) PZError << "main::ResetReference error2\n";
 //       ref0->SetReference(NULL);
-//       //o aglomerado tem geométrico direto associado
+//       //o aglomerado tem geomï¿½trico direto associado
 //       //e esse aponta para ele
 //     }
 //   }

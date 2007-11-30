@@ -1,6 +1,5 @@
 // -*- c++ -*-
 #include "pzgmesh.h"
-#include "pzelgq2d.h"
 #include "pzcmesh.h"
 #include "pzmat2dlin.h"
 #include "pzbndcond.h"
@@ -27,22 +26,23 @@ int main() {
 		// initializar as coordenadas do no em um vetor
 		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
 
-		// identificar um espaço no vetor onde podemos armazenar
+		// identificar um espaï¿½o no vetor onde podemos armazenar
 		// este vetor
 		//		int nodeindex = malha.NodeVec ().AllocateNewElement ();
 
-		// initializar os dados do nó
+		// initializar os dados do nï¿½
 		malha.NodeVec ()[i].Initialize (i,coord,malha);
 	}
 
 	// criar um elemento
 
-	// initializar os indices dos nós
+	// initializar os indices dos nï¿½s
 	TPZVec<int> indices(4);
 	for(i=0; i<4; i++) indices[i] = i;
 
 	// O proprio construtor vai inserir o elemento na malha
-	TPZGeoEl *gel = new TPZGeoElQ2d(0,indices,1,malha);
+        int index;
+	TPZGeoEl *gel = malha.CreateGeoElement(EQuadrilateral,indices,1,index,1);
 
 
 	malha.BuildConnectivity ();
@@ -63,14 +63,15 @@ int main() {
 	TPZCompMesh comp(&malha2);
 
 	// inserir os materiais
-	TPZMat2dLin *meumat = new TPZMat2dLin(1);
+        TPZMat2dLin *meumat  = new TPZMat2dLin(1);
+	TPZAutoPointer<TPZMaterial> mat(meumat);
 	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	meumat->SetMaterial (xk,xc,xf);
-	comp.InsertMaterialObject(meumat);
+	comp.InsertMaterialObject(mat);
 
 	// inserir a condicao de contorno
 	TPZFMatrix val1(1,1,0.),val2(1,1,0.);
-	TPZMaterial *bnd = meumat->CreateBC (-4,0,val1,val2);
+	TPZAutoPointer<TPZMaterial> bnd = mat->CreateBC (mat,-4,0,val1,val2);
 	comp.InsertMaterialObject(bnd);
 
 	comp.AutoBuild();
@@ -80,7 +81,7 @@ int main() {
 
 	TPZVec<char *> scalarnames(1),vecnames(0);
 	scalarnames[0] = "state";
-	TPZDXGraphMesh graph(&comp,2,meumat,scalarnames,vecnames);
+	TPZDXGraphMesh graph(&comp,2,mat,scalarnames,vecnames);
 	ofstream *dxout = new ofstream("output.dx");
 	graph.SetOutFile(*dxout);
 	graph.SetResolution(0);
@@ -113,7 +114,8 @@ void LerMalha(char *nome, TPZGeoMesh &grid) {
 		infile >> elid;
 		for(j=0; j<4;j++) infile >> nodeindices[j];
 		infile >> mat;
-		new TPZGeoElQ2d(elid,nodeindices,mat,grid);
+                int index;
+		grid.CreateGeoElement(EQuadrilateral,nodeindices,mat,index,1);
 	}
 	infile.getline(buf,255);
 	infile.getline(buf,255);
