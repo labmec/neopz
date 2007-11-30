@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.37 2007-11-29 17:30:08 phil Exp $
+//$Id: pzanalysis.cpp,v 1.38 2007-11-30 11:35:11 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -327,6 +327,12 @@ void TPZAnalysis::DefineGraphMesh(int dim, TPZVec<char *> &scalnames, TPZVec<cha
     TPZBndCond *bc = dynamic_cast<TPZBndCond *> (matit->second.operator->());
     if(matit->second && !bc && matit->second->Dimension() == dim) break;
   }
+  if(matit == fCompMesh->MaterialVec().end())
+     {
+          std::cout << __PRETTY_FUNCTION__ << " The computational mesh has no associated material!!!!\n";
+          DebugStop();
+          return;
+     }
   if(fGraphMesh[dim1]) delete fGraphMesh[dim1];
   fScalarNames[dim1] = scalnames;
   fVectorNames[dim1] = vecnames;

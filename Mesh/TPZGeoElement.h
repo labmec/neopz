@@ -1,7 +1,7 @@
 
 // -*- c++ -*-
 
-// $Id: TPZGeoElement.h,v 1.19 2007-11-29 11:46:25 phil Exp $
+// $Id: TPZGeoElement.h,v 1.20 2007-11-30 11:34:28 phil Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
@@ -32,6 +32,7 @@ public:
   TPZGeoElement();
   TPZGeoElement(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
   TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
+  TPZGeoElement(TGeo &geo, int matind, TPZGeoMesh &mesh);
   TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
 
   /** Copy constructor */

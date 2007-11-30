@@ -740,7 +740,7 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZFMatrix &anres,
 ////                                                                     ////
 /////////////////////////////////////////////////////////////////////////////
 
-void TPZNonLinMultGridAnalysis::OneGridAlgorithm(ostream &out,int nummat){
+void TPZNonLinMultGridAnalysis::OneGridAlgorithm(std::ostream &out,int nummat){
   //ALGORITMO SIMPLES A UMA MALHA
   int iter,marcha;
   ofstream *dxout = new ofstream("OneGridAlgorithm.dx");
@@ -781,7 +781,7 @@ void TPZNonLinMultGridAnalysis::OneGridAlgorithm(ostream &out,int nummat){
 ////                                                                     ////
 /////////////////////////////////////////////////////////////////////////////
 
-void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(ostream &out,int nummat){
+void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 
   ifstream IN("DADOS.in");
   TPZCompMesh *coarcmesh = fMeshes[0];//malha grosseira inicial
