@@ -43,6 +43,7 @@ void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &ja
 
 
 #ifdef DEBUG
+  const int nnodes = NNodes;
   if (nnodes != 4) {
     PZError << "TPZGeoQuad.jacobian only implemented for"
       " 4 nodes, NumberOfNodes = " << nnodes << "\n";
