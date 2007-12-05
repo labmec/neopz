@@ -161,13 +161,13 @@ void TPZRenumbering::Print(TPZVec<int> &grapho, TPZVec<int> &graphoindex, const 
 		out << "Grapho item: " << i << "\t";
 		for(j=graphoindex[i];j<graphoindex[i+1];j++){
 		  if(j >= grapho.NElements()) {
-		    cout << "graphoindex errado grapho.NElements = " << grapho.NElements() << " i = " << i << "graphoindex[i] = " << graphoindex[i] << " " << graphoindex[i+1] << endl;
+		    out << "graphoindex errado grapho.NElements = " << grapho.NElements() << " i = " << i << "graphoindex[i] = " << graphoindex[i] << " " << graphoindex[i+1] << endl;
 		    break;
 		  } else {
 			out << grapho[j] <<"\t";
 		  }
 		}
-		cout << endl;
+		out << endl;
 	}
 }
 #include "pzgeoel.h"
