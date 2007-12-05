@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.24 2007-11-30 11:37:43 phil Exp $
+//$Id: pzgeoelside.cpp,v 1.25 2007-12-05 14:16:00 phil Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -120,6 +120,28 @@ void TPZGeoElSide::RemoveConnectivity(){
 }
 
 using namespace std;
+
+  /**
+ * This method inserts the element/side and all lowerdimension sides into the connectivity loop
+   */
+void TPZGeoElSide::InsertConnectivity(TPZGeoElSide &neighbour)
+{
+  if(!fGeoEl || !neighbour.fGeoEl) return;
+  
+  TPZStack<int> mylowerdimension, neighbourlowerdimension;
+  fGeoEl->LowerDimensionSides(fSide,mylowerdimension);
+  neighbour.fGeoEl->LowerDimensionSides(neighbour.fSide,neighbourlowerdimension);
+  SetConnectivity(neighbour);
+  int ns = mylowerdimension.NElements();
+  int is;
+  for(is=0; is<ns; is++)
+  {
+    TPZGeoElSide myl(fGeoEl,mylowerdimension[is]);
+    TPZGeoElSide neighl(neighbour.fGeoEl,neighbourlowerdimension[is]);
+    myl.SetConnectivity(neighl);
+  }
+  
+}
 
 void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const{
   

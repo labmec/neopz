@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.17 2007-11-30 12:48:22 phil Exp $
+//$Id: pzgeoelside.h,v 1.18 2007-12-05 14:16:00 phil Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -157,6 +157,10 @@ class TPZGeoElSide {
   void SideTransform3(TPZGeoElSide neighbour,TPZTransform &t);
 
   void SetConnectivity(const TPZGeoElSide &neighbour) const;
+  /**
+   * This method inserts the element/side and all lowerdimension sides into the connectivity loop
+   */
+  void InsertConnectivity(TPZGeoElSide &neighbour);
 
   void RemoveConnectivity();
 
