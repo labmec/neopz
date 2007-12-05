@@ -1,6 +1,6 @@
 // -*- c++ -*- 
 
-//$Id: pznonlinearpoisson3d.cpp,v 1.8 2007-11-22 15:48:06 tiago Exp $
+//$Id: pznonlinearpoisson3d.cpp,v 1.9 2007-12-05 14:15:30 tiago Exp $
 
 #include "pznonlinearpoisson3d.h"
 #include "pzbndcond.h"
@@ -175,6 +175,114 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
   }
 
 }
+
+void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
+  TPZFMatrix &dphi = data.dphix;
+  TPZFMatrix &phi = data.phi;
+  TPZManVector<REAL,3> &x = data.x;
+  TPZVec<REAL> &sol=data.sol;
+  TPZFMatrix &dsol=data.dsol;
+  TPZFMatrix &axes=data.axes;
+  TPZFMatrix &jacinv=data.jacinv;
+
+  if (this->IsReferred()){
+    this->SetConvectionTerm(dsol, axes);
+  }
+
+  int phr = phi.Rows();
+
+  if(fForcingFunction) {      
+    TPZManVector<REAL> res(1);
+    fForcingFunction(x,res);  
+    fXf = res[0];
+  }
+  REAL delx = 0.;
+  REAL ConvDirAx[3] = {0.};
+  if(fC != 0.0) {
+    int di,dj;
+    delx = 0.;
+    for(di=0; di<fDim; di++) {
+      for(dj=0; dj<fDim; dj++) {
+        delx = (delx<fabs(jacinv(di,dj))) ? fabs(jacinv(di,dj)) : delx;
+      }
+    }
+    delx = 2./delx;
+      
+    
+    switch(fDim) {
+      case 1:
+        ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
+        break;
+      case 2:
+        ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
+        ConvDirAx[1] = axes(1,0)*fConvDir[0]+axes(1,1)*fConvDir[1]+axes(1,2)*fConvDir[2];
+        break;
+      case 3:
+        ConvDirAx[0] = axes(0,0)*fConvDir[0]+axes(0,1)*fConvDir[1]+axes(0,2)*fConvDir[2];
+        ConvDirAx[1] = axes(1,0)*fConvDir[0]+axes(1,1)*fConvDir[1]+axes(1,2)*fConvDir[2];
+        ConvDirAx[2] = axes(2,0)*fConvDir[0]+axes(2,1)*fConvDir[1]+axes(2,2)*fConvDir[2];
+        break;
+      default:
+        PZError << "TPZMatPoisson3d::Contribute dimension error " << fDim << endl;
+    }
+  }
+ 
+  for( int in = 0; in < phr; in++ ) {
+    int kd;
+    REAL dphiic = 0;
+    for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
+    ef(in, 0) += - weight * ( fXf*phi(in,0) + 0.5*fSD*delx*fC*dphiic*fXf );
+    for(kd = 0; kd < fDim; kd++){
+      ef(in, 0) += -1. * weight * ( +fK * ( dphi(kd,in) * dsol(kd,0) )
+                                    -fC * ( ConvDirAx[kd]* dphi(kd,in) * sol[0] )  );
+    }///kd
+
+  }///in
+    
+  if (fStabilizationType == ESUPG){
+  
+    for( int in = 0; in < phr; in++ ) {
+      int kd;
+      REAL dphiic = 0;
+      for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
+      ef(in, 0) += - weight * ( + 0.5*fSD*delx*fC*dphiic*fXf );
+      for(kd = 0; kd < fDim; kd++){
+        ef(in, 0) += -1. * weight * ( +0.5 * fSD * delx * fC * dphiic * dsol(kd,0) * ConvDirAx[kd] );
+      }///kd
+  
+    }///in
+    
+  }///SUPG
+    
+  if (fStabilizationType == EGradient){
+    
+    ///computing norm of solution gradient
+    REAL dsolNorm = 0.;
+    for(int d = 0; d < fDim; d++) dsolNorm += dsol(d,0)*dsol(d,0);
+    dsolNorm = sqrt(dsolNorm);
+    if (dsolNorm < 1e-16) dsolNorm = 1.;
+    
+    ///loop over i shape functions
+    int kd;
+    for( int in = 0; in < phr; in++ ){
+    
+      ///computing gradV.gradU/Norm(gradU)
+      REAL dphiic = 0.;
+      for(kd = 0; kd<fDim; kd++) dphiic += dsol(kd,0) * dphi(kd,in) / dsolNorm;
+
+      ef(in, 0) += - weight * ( 0.5*fSD*delx* /*dsolNorm**/ dphiic* fXf );
+      
+      double aux = 0.;
+      for(kd = 0; kd < fDim; kd++){
+        aux += dphiic * dsol(kd,0)*(fC*ConvDirAx[kd]);
+      }///kd
+      ef(in,0) += -1.* ( +0.5 * fSD * delx * aux * weight );
+
+    }///in
+    
+  }///EGradiente
+
+}///void
                
 void TPZNonLinearPoisson3d::ContributeBC(TPZMaterialData &data,
                                          REAL weight,

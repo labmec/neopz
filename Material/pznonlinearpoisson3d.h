@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pznonlinearpoisson3d.h,v 1.5 2007-10-26 13:13:41 tiago Exp $
+//$Id: pznonlinearpoisson3d.h,v 1.6 2007-12-05 14:15:30 tiago Exp $
 
 #ifndef MATNLPOISSON3DH
 #define MATNLPOISSON3DH
@@ -49,6 +49,15 @@ class TPZNonLinearPoisson3d : public TPZMatPoisson3dReferred {
                             REAL weight,
                             TPZFMatrix &ek,
                             TPZFMatrix &ef);
+
+  /**
+    * It computes a contribution to the residual vector at one integration point.
+    * @param data[in] stores all input data
+    * @param weight[in] is the weight of the integration rule
+    * @param ef[out] is the residual vector
+    * @since April 16, 2007
+    */
+  virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
                
   virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
