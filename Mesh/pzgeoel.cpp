@@ -228,11 +228,11 @@ void TPZGeoEl::Print(std::ostream & out) {
   out << "Is GeoBlend ? : ";
   if(this->IsGeoBlendEl())
   {
-     cout << "true" << endl;
+     out << "true" << endl;
   }
   else
   {
-     cout << "false" << endl;
+     out << "false" << endl;
   }
   out << "Number of nodes    " << NNodes() << endl;
   out << "Corner nodes       " << NCornerNodes() << endl;
