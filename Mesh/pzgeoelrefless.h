@@ -82,6 +82,11 @@ public:
   virtual void Write(TPZStream &str, int withclassid);
 
   virtual void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
+  
+  virtual void Initialize()
+  {
+    fGeo.Initialize(this);
+  }
 
   static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
 

@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.29 2007-11-30 12:48:22 phil Exp $
+//$Id: pzgeoel.h,v 1.30 2007-12-05 20:26:39 phil Exp $
 
 // -*- c++ -*-
 
@@ -162,6 +162,10 @@ public:
 
   virtual void Initialize(int materialindex, TPZGeoMesh &mesh, int &index);
 
+  virtual void Initialize()
+  {
+  }
+  
   virtual void Read(TPZStream &str, void *context);
 
   virtual void Write(TPZStream &str, int withclassid);
