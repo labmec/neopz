@@ -100,7 +100,9 @@ public:
     int i;
     for(i=nn; i<N; i++) fNodeIndexes[i]=-1;
   }
-  
+  void Initialize(TPZGeoEl *refel)
+  {
+  }
     /**
    * Create an element along the side with material id bc
      */
