@@ -1,4 +1,4 @@
-//$Id: pzl2projection.cpp,v 1.7 2007-07-06 18:27:42 tiago Exp $ 
+//$Id: pzl2projection.cpp,v 1.8 2007-12-05 22:01:16 phil Exp $ 
 
 #include "pzl2projection.h"
 
@@ -69,8 +69,7 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
 
 int TPZL2Projection::VariableIndex(char *name){
   if(!strcmp("Solution",name)) return ESolution;
-  PZError << "\nError in " << __PRETTY_FUNCTION__ << "\n";
-  return -1;
+  return TPZMaterial::VariableIndex(name);
 }
 
 int TPZL2Projection::NSolutionVariables(int var){
