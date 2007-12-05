@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.68 2007-11-29 18:18:55 phil Exp $
+//$Id: pzcmesh.cpp,v 1.69 2007-12-05 22:01:45 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -874,10 +874,10 @@ void TPZCompMesh::ComputeElGraph(TPZStack<int> &elgraph, TPZVec<int> &elgraphind
       int ic = connectstack[in];
       TPZConnect &c = fConnectVec[ic];
       if(c.HasDependency()) continue;
-      if(fBlock.Size(c.SequenceNumber()))
-      {
+//      if(fBlock.Size(c.SequenceNumber()))
+//      {
         elgraph.Push(c.SequenceNumber());
-      }
+//      }
     }
     elgraphindex[curel+1]=elgraph.NElements();
     curel++;
