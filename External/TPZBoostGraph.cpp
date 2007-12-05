@@ -5,6 +5,12 @@
 
 #ifdef USING_BOOST
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("boostgraph"));
+#endif
+
 using namespace boost;
 using namespace std;
 
@@ -40,6 +46,13 @@ void TPZBoostGraph::SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphin
 
 void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
 {
+#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    Print(fElementGraph,fElementGraphIndex,"Element graph when entering Resequence",sout);
+    LOG4CXX_DEBUG(logger,sout.str())
+  }
+#endif
   Graph G;
   size_type i;
   size_type elgraphsize = fElementGraphIndex.NElements()-1;
