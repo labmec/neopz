@@ -17,6 +17,7 @@
 
 #include <map>
 #include <pzgeoelside.h>
+#include "tpzgeoelrefpattern.h"
 class TPZGeoMesh;
 
 #include "pzlog.h"
@@ -100,6 +101,26 @@ public:
     for(i=nn; i<N; i++) fNodeIndexes[i]=-1;
   }
   
+    /**
+   * Create an element along the side with material id bc
+     */
+  TPZGeoEl *CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
+  {
+    int ns = orig->NSideNodes(side);
+    TPZManVector<int> nodeindices(ns);
+    int in;
+    for(in=0; in<ns; in++)
+    {
+      nodeindices[in] = orig->SideNodeIndex(side,in);
+    }
+    int index;
+    TPZGeoEl *newel = CreateGeoElementPattern(*(orig->Mesh()),Topology::Type(side),nodeindices,bc,index);
+    TPZGeoElSide me(orig,side);
+    TPZGeoElSide newelside(newel,newel->NSides()-1);
+    newelside.InsertConnectivity(me);
+    return newel;
+  }
+
   void Print(std::ostream &out)
   {
     int nn;
