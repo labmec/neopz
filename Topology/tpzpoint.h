@@ -39,7 +39,10 @@ public:
     virtual ~TPZPoint();
 
   static void LowerDimensionSides(int side,TPZStack<int> &smallsides) {
-    smallsides.Push(0);
+//    smallsides.Push(0);
+  }
+  static void LowerDimensionSides(int side,TPZStack<int> &smallsides, int targetdim) {
+//    smallsides.Push(0);
   }
 
  /**
