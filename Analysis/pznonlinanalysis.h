@@ -30,6 +30,11 @@ void LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMatrix &NextW, REAL tol,
 
 REAL SolutionNorm();
 
+/**
+ * Assemble only the residual vector
+ **/
+void AssembleResidual();
+
 void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase);
 
 int NumCases();
