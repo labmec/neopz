@@ -60,6 +60,7 @@ libpz_a_LIBADD = ../Post/tpzgraphelt2dmapped.o \
 	../Mesh/pzintel.o ../Mesh/pzinterpolationspace.o ../Mesh/pzmeshid.o \
 	../Mesh/pzreferredcompel.o ../Mesh/pzstackmesh.o ../Mesh/pzsubcmesh.o ../Mesh/pzvecmesh.o \
 	../Mesh/tpzcompmeshreferred.o ../Mesh/tpzgeoelrefpattern.o ../Multigrid/pzmgsolver.o \
+	../Mesh/tpzgeoelmapped.o \
 	../Multigrid/pztransfer.o ../Multigrid/pztrnsform.o ../Post/pzdxmesh.o ../Post/pzgraphel.o \
 	../Post/pzgraphel1d.o ../Post/pzgraphel1dd.o ../Post/pzgraphelq2d.o ../Post/pzgraphelq2dd.o \
 	../Post/pzgraphelq3dd.o ../Post/pzgraphmesh.o ../Post/pzgraphnode.o ../Post/pzmvmesh.o \

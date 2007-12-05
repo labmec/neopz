@@ -25,5 +25,3 @@ libpzmesh_a_SOURCES = pzinterpolationspace.cpp pzcompel.cpp pzelctemp.cpp 	pzmes
 			tpzgeoelrefpattern.cpp tpzagglomeratemesh.cpp pzreferredcompel.cpp tpzgeoelmapped.cpp pzsubcmesh.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
-noinst_HEADERS = pzgeoelrefless.h.h pzinterpolationspace.h tpzgeoelmapped.h \
-	tpzgeoelrefpattern.h.h
