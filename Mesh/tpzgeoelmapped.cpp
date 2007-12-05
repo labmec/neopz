@@ -58,36 +58,21 @@ TPZGeoEl *TPZGeoElMapped<TBase>::CreateGeoElement(MElementType type,
 
 
 #include "TPZGeoCube.h"
-#include "pzshapecube.h"
-#include "TPZRefCube.h"
-#include "pzshapelinear.h"
 #include "TPZGeoLinear.h"
-#include "TPZRefLinear.h"
-#include "pzrefquad.h"
-#include "pzshapequad.h"
 #include "pzgeoquad.h"
-#include "pzshapetriang.h"
-#include "pzreftriangle.h"
 #include "pzgeotriangle.h"
-#include "pzshapeprism.h"
-#include "pzrefprism.h"
 #include "pzgeoprism.h"
-#include "pzshapetetra.h"
-#include "pzreftetrahedra.h"
 #include "pzgeotetrahedra.h"
-#include "pzshapepiram.h"
-#include "pzrefpyram.h"
 #include "pzgeopyramid.h"
-#include "pzrefpoint.h"
 #include "pzgeopoint.h"
-#include "pzshapepoint.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 #include "TPZGeoElement.h"
-#include "TPZRefPattern.h"
+
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "tpzgeoelrefpattern.h"
+
 
 TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
                                   MElementType type,
@@ -162,15 +147,32 @@ TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
     }
   }
 }
-             
-             
+
 using namespace pzgeom;
 
-template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoCube> >;
-template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoPoint> >;
-template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoQuad> >;
-template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoTriangle> >;
-template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoPrism> >;
-template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoTetrahedra> >;
-template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoPyramid> >;
+#define INSERTCLASS(TCL,CLID) \
+template<> \
+int TPZGeoElMapped<TPZGeoElRefPattern< TCL > >::ClassId() const \
+{ \
+  return CLID; \
+} \
+template class \
+TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >, CLID>; \
+template class TPZGeoElMapped< TPZGeoElRefPattern<TCL> >;
 
+INSERTCLASS(TPZGeoPoint,TPZGEOELREFPATMAPPEDPOINTID)
+INSERTCLASS(TPZGeoLinear,TPZGEOELREFPATMAPPEDLINEID)
+INSERTCLASS(TPZGeoTriangle,TPZGEOELREFPATMAPPEDTRIANGLEID)
+INSERTCLASS(TPZGeoQuad,TPZGEOELREFPATMAPPEDQUADRILATERALID)
+INSERTCLASS(TPZGeoCube,TPZGEOELREFPATMAPPEDCUBEID)
+INSERTCLASS(TPZGeoPrism,TPZGEOELREFPATMAPPEDPRISMID)
+INSERTCLASS(TPZGeoTetrahedra,TPZGEOELREFPATMAPPEDTETRAHEDRAID)
+INSERTCLASS(TPZGeoPyramid,TPZGEOELREFPATMAPPEDPYRAMIDID)
+
+//template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoCube> >;
+// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoPoint> >;
+// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoQuad> >;
+// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoTriangle> >;
+// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoPrism> >;
+// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoTetrahedra> >;
+// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoPyramid> >;
