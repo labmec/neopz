@@ -92,7 +92,7 @@ public:
     /**
      * Refine the element if it touches an element with a material id included in matids
      */
-    void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids);
+static void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids);
     
     /**
      * It effects the reading of the archive that defines the refinement standard
