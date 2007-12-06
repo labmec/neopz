@@ -34,7 +34,7 @@ int TPZMaterialTest3D::NStateVariables()
   return 1;
 }
 
-void TPZMaterialTest3D::Print(ostream &out)
+void TPZMaterialTest3D::Print(std::ostream &out)
 {
   std::stringstream sout;
   sout << " Name of material : " << Name() << "properties: " ;
