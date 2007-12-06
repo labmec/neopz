@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.9 2006-02-21 14:47:31 cesar Exp $
+// $Id: pzvec.h,v 1.10 2007-12-06 20:42:29 caju Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -333,8 +333,9 @@ template< class T >
 void TPZVec<T>::Resize(const int newsize){
 #ifndef NOTDEBUG
    if(newsize<0) {
-      PZError << "TPZVec::Resize. Bad parameter newsize." << std::endl;
+      PZError << "TPZVec::Resize. Bad parameter newsize." << newsize <<  std::endl;
       PZError.flush();
+      DebugStop();
       return;
    }
 #endif
