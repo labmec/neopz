@@ -52,7 +52,7 @@ TPZGeoEl *TPZGeoElMapped<TBase>::CreateGeoElement(MElementType type,
                                      int& index)
 {
   TPZGeoMesh &mesh = *(this->Mesh());
-  return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
+  return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
   
 
