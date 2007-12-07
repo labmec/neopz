@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.32 2007-11-30 11:37:43 phil Exp $
+//$Id: pzgmesh.h,v 1.33 2007-12-07 18:27:45 cesar Exp $
 
 /**File : pzgmes.h
 
@@ -75,7 +75,7 @@ class  TPZGeoMesh : public TPZSaveable {
 
   /**Maximum id used by all nodes of this mesh*/
   int fNodeMaxId;
-  
+
   /**Maximum id used by all elements of this mesh*/
   int fElementMaxId;
 
@@ -118,7 +118,7 @@ class  TPZGeoMesh : public TPZSaveable {
 
   /**Indicates that a node with id was created*/
   void SetNodeIdUsed(int id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
-  
+
   /**Indicates that an element with id was created*/
   void SetElementIdUsed(int id) { fElementMaxId = (id > fElementMaxId) ? id : fElementMaxId; }
 
@@ -185,7 +185,12 @@ void RefPatternFile(std::ofstream &filename);
   /**
    * Import a library of refinement patterns from the install directory
    */
-  int ImportRefPattern();
+  int ImportRefPattern ( );
+
+  /**
+   * Try to read a processed list of refinement patterns from a given file
+   */
+  int ImportRefPattern ( std::string &allPatternFilePath );
 
   /**Returns the nearest node to the coordinate
      this method is VERY INEFICIENT*/

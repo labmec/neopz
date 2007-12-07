@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.46 2007-12-07 12:24:51 phil Exp $
+//$Id: pzgmesh.cpp,v 1.47 2007-12-07 18:27:40 cesar Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -989,8 +989,8 @@ TPZGeoEl* TPZGeoMesh::CreateGeoElement( MElementType type, int* nodeindexes,
    return NULL;
 }
 */
-void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){ 
-  if(index < 0 || gel != fElementVec[index]){ 
+void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){
+  if(index < 0 || gel != fElementVec[index]){
     index = ElementIndex(gel);
     if(index < 0) {
       PZError << "TPZGeoMesh::DeleteElement index error\n";
@@ -1118,7 +1118,7 @@ int TPZGeoMesh::ImportRefPattern(){
       std::cout << "Reading refinement patern file : " << psBuffer << std::endl;
       std::string filref (psBuffer);
       TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern( this,filref );
-      if(!this->FindRefPattern(refpat)) 
+      if(!this->FindRefPattern(refpat))
       {
         this->InsertRefPattern(refpat);
       }
@@ -1133,6 +1133,30 @@ int TPZGeoMesh::ImportRefPattern(){
 #endif
   return count;
 }
+
+
+int TPZGeoMesh::ImportRefPattern(std::string &allPatternFilePath)
+{
+  std::ifstream fonte (allPatternFilePath.c_str(),ios::in);
+  if(!fonte.fail())
+  {
+    try
+    {
+      PatternFileLoad(fonte);
+    }
+    catch (...)
+    {
+      std::cout << __PRETTY_FUNCTION__ << " ERROR trying to load file "
+                << allPatternFilePath.c_str()  << std::endl;
+      exit (-1);
+    }
+  }
+  else
+  {
+    ImportRefPattern();
+  }
+}
+
 
 int TPZGeoMesh::ClassId() const {
   return TPZGEOMESHID;
@@ -1150,12 +1174,12 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
     int classid;
     buf.Read(&classid,1);
     LOGPZ_DEBUG(logger,"rg1");
-  
+
     if (classid != ClassId() )
     {
       std::cout << "ERROR RESTORING GEOMETRIC MESH!!\n";
     }
-  
+
     buf.Read(&fName,1);
     LOGPZ_DEBUG(logger,"rg2");
     ReadObjects(buf,fNodeVec,this);
