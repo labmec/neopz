@@ -57,7 +57,7 @@ libpz_a_LIBADD = ../Post/tpzgraphelt2dmapped.o \
 	../Mesh/pzcmesh.o ../Mesh/pzcompel.o ../Mesh/pzconnect.o ../Mesh/pzelctemp.o \
 	../Mesh/pzelmat.o ../Mesh/pzflowcmesh.o ../Mesh/pzgeoel.o ../Mesh/pzgeoelbc.o \
 	../Mesh/pzgeoelrefless.o ../Mesh/pzgeoelside.o ../Mesh/pzgmesh.o ../Mesh/pzgnode.o \
-	../Mesh/pzintel.o ../Mesh/pzinterpolationspace.o ../Mesh/pzmeshid.o \
+	../Mesh/pzintel.o ../Mesh/pzinterpolationspace.o ../Mesh/pzmeshid.o ../Mesh/tpzgeoelmapped.o \
 	../Mesh/pzreferredcompel.o ../Mesh/pzstackmesh.o ../Mesh/pzsubcmesh.o ../Mesh/pzvecmesh.o \
 	../Mesh/tpzcompmeshreferred.o ../Mesh/tpzgeoelrefpattern.o ../Multigrid/pzmgsolver.o \
 	../Mesh/tpzgeoelmapped.o \
