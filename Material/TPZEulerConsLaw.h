@@ -21,10 +21,10 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
 
   /**
    * ratio between specific heat is constant and the specific heat the constant
-   * volume of a polytropic gas 
+   * volume of a polytropic gas
    */
   REAL fGamma;
-  
+
   /**
    * Termo que adiciona estabilidade ao m�odo num�ico de aproxima�o
    * SUPG
@@ -34,9 +34,9 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   char *fArtificialDiffusion;
 
   //int fIntegrationDegree;//grau de integra� da solu� inicial:opcional
-  
+
   public :
-  
+
   TPZEulerConsLaw(int nummat,REAL delta_t,REAL gamma,int dim,char *artdiff);
 
   /**copy constructor*/
@@ -48,17 +48,17 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   ~TPZEulerConsLaw();
 
   /**
-   * compute the boundary condition left solution 
+   * compute the boundary condition left solution
    */
   virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft);
 
   /**
-   * compute the boundary condition right solution 
+   * compute the boundary condition right solution
    */
   virtual void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright);
 
   /**
-   * termodinamic pressure determined by the law of an ideal gas 
+   * termodinamic pressure determined by the law of an ideal gas
    */
   virtual REAL Pressure(TPZVec<REAL> &U);
 
@@ -67,7 +67,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   virtual void SetDeltaTime(REAL maxveloc,REAL deltax,int degree);
 
   /**
-   * tensor of the three-dimensional flux of Euler 
+   * tensor of the three-dimensional flux of Euler
    */
   void Flux(TPZVec<REAL> &U,TPZVec<REAL> &Fx,TPZVec<REAL> &Fy,TPZVec<REAL> &Fz);
 
@@ -76,18 +76,18 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   //virtual int IntegrationDegree(){return fIntegrationDegree;}
 
   int NStateVariables();
-  
+
   virtual void Print(std::ostream & out);
-  
-  char *Name() { return "TPZEulerConsLaw"; }
-  
+
+  virtual std::string Name() { return "TPZEulerConsLaw"; }
+
   virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
-  
+
   virtual void ContributeInterface(TPZMaterialData &data,
                                      REAL weight,
                                      TPZFMatrix &ek,
                                      TPZFMatrix &ef);
-  
+
   virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
                               TPZFMatrix &ek,
@@ -97,19 +97,19 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
   virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix &ef);
-  
+
   virtual int VariableIndex(char *name);
-  
+
   virtual int NSolutionVariables(int var);
-  
+
   virtual int NFluxes(){ return Dimension();}
-  
+
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
-  
+
   /**compute the value of the flux function to be used by ZZ error estimator*/
-  virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, 
+  virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes,
 		    TPZVec<REAL> &flux);
-  
+
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);

@@ -21,9 +21,9 @@ class TPZMat2dLin : public TPZMaterial{
      fKyx() , fKyy(), fKx0(), fK0x(), fKy0(), fK0y(), fK00(), fXf() {
     }
 
-  TPZMat2dLin(TPZMat2dLin &copy) : TPZMaterial(copy), 
-	  fKxx(copy.fKxx), fKxy(copy.fKxy), fKyx(copy.fKyx), fKyy(copy.fKyy), 
-	  fKx0(copy.fKx0), fK0x(copy.fK0x), fKy0(copy.fKy0), 
+  TPZMat2dLin(TPZMat2dLin &copy) : TPZMaterial(copy),
+	  fKxx(copy.fKxx), fKxy(copy.fKxy), fKyx(copy.fKyx), fKyy(copy.fKyy),
+	  fKx0(copy.fKx0), fK0x(copy.fK0x), fKy0(copy.fKy0),
 	  fK0y(copy.fK0y), fK00(copy.fK00), fXf(copy.fXf){}
 
   virtual int NStateVariables() { return fKxx.Rows(); }
@@ -52,9 +52,9 @@ class TPZMat2dLin : public TPZMaterial{
 
   TPZFMatrix &Xk() {return fKxx;}
   TPZFMatrix &Ck() {return fK00;}
-  TPZFMatrix &Xf() {return fXf;}  
+  TPZFMatrix &Xf() {return fXf;}
 
-  virtual char *Name() { return "TPZMat2dLin"; }
+  virtual std::string Name() { return "TPZMat2dLin"; }
 
 //  virtual TPZBndCond *CreateBC(int num,int typ,TPZFMatrix &val1,TPZFMatrix &val2);
 
@@ -92,7 +92,7 @@ TPZBndCond *OutflowFlux(TPZAutoPointer<TPZMaterial> &reference, int bc);
   Save the element data to a stream
   */
   virtual void Write(TPZStream &buf, int withclassid);
-  
+
   /**
   Read the element data from a stream
   */

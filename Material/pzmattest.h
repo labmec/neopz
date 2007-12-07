@@ -32,7 +32,7 @@ int NStateVariables();
 
 virtual void Print(std::ostream & out);
 
-char *Name() { return "TPZMaterialTest"; }
+virtual std::string Name() { return "TPZMaterialTest"; }
 
 virtual void Contribute(TPZMaterialData &data,
                           REAL weight,

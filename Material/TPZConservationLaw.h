@@ -14,11 +14,11 @@ class TPZConservationLaw  : public TPZMaterial {
 
   int fDim;
   REAL fTimeStep;
-  
+
   public :
 
   REAL fDelta;
-  
+
   TPZConservationLaw(int nummat,REAL delta_t,int dim);
 
   /**copy constructor*/
@@ -30,17 +30,17 @@ class TPZConservationLaw  : public TPZMaterial {
   ~TPZConservationLaw(){};
 
   /**
-   * compute the boundary condition left solution 
+   * compute the boundary condition left solution
    */
   virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft);
 
   /**
-   * compute the boundary condition right solution 
+   * compute the boundary condition right solution
    */
   virtual void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright);
 
   /**
-   * termodinamic pressure determined by the law of an ideal gas 
+   * termodinamic pressure determined by the law of an ideal gas
    */
   virtual REAL Pressure(TPZVec<REAL> &U);
 
@@ -49,11 +49,11 @@ class TPZConservationLaw  : public TPZMaterial {
   //virtual int IntegrationDegree() = 0;
 
   //virtual void SetIntegDegree(int degree) = 0;
-  
+
   virtual void SetDelta(REAL delta){fDelta = delta;}
 
   virtual void SetDeltaTime(REAL maxveloc,REAL deltax,int degree);
-  
+
   REAL Delta();
 
   virtual void SetTimeStep(REAL timestep){fTimeStep = timestep;}
@@ -61,23 +61,23 @@ class TPZConservationLaw  : public TPZMaterial {
   virtual REAL TimeStep(){return fTimeStep;}
 
   int Dimension() { return fDim;}
-  
+
   int NStateVariables();
-  
+
   virtual void Print(std::ostream & out);
-  
-  char *Name() { return "TPZConservationLaw"; }
-  
+
+  virtual std::string Name() { return "TPZConservationLaw"; }
+
   virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix &ek,
                             TPZFMatrix &ef);
-  
+
   virtual void ContributeInterface(TPZMaterialData &data,
-                                     REAL weight, 
+                                     REAL weight,
                                      TPZFMatrix &ek,
                                      TPZFMatrix &ef);
-  
+
   virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
                               TPZFMatrix &ek,
@@ -87,18 +87,18 @@ class TPZConservationLaw  : public TPZMaterial {
   virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix &ef);
-  
+
   virtual int VariableIndex(char *name);
-  
+
   virtual int NSolutionVariables(int var);
-  
+
   virtual int NFluxes(){ return 1;}
-  
+
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
-  
+
   /**compute the value of the flux function to be used by ZZ error estimator*/
   virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
-  
+
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);

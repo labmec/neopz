@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.h,v 1.18 2007-07-04 19:26:53 tiago Exp $
+// $Id: pzdiscgal.h,v 1.19 2007-12-07 13:47:47 cesar Exp $
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 
@@ -26,7 +26,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 
   virtual ~TPZDiscontinuousGalerkin();
 
-  char *Name();
+  virtual std::string Name();
 
   /** Fill material data parameter with necessary requirements for the
     * ContributeInterface method. Here, in base class, all requirements are considered
@@ -37,7 +37,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
   virtual void FillDataRequirementsInterface(TPZMaterialData &data);
 
   /**
-   * It computes a contribution to stiffness matrix and load vector at one integration point 
+   * It computes a contribution to stiffness matrix and load vector at one integration point
    * @param data [in]
    * @param weight [in]
    * @param ek [out] is the stiffness matrix
@@ -47,7 +47,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
   virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef) = 0;
 
   /**
-   * It computes a contribution to residual vector at one integration point 
+   * It computes a contribution to residual vector at one integration point
    * @param data [in]
    * @param weight [in]
    * @param ef [out] is the load vector
@@ -56,7 +56,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
   virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
 
   /**
-   * It computes a contribution to stiffness matrix and load vector at one BC integration point 
+   * It computes a contribution to stiffness matrix and load vector at one BC integration point
    * @param data [in]
    * @param weight [in]
    * @param ek [out] is the stiffness matrix
@@ -67,7 +67,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
   virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) = 0;
 
   /**
-   * It computes a contribution to residual vector at one BC integration point 
+   * It computes a contribution to residual vector at one BC integration point
    * @param data [in]
    * @param weight [in]
    * @param ef [out] is the load vector

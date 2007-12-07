@@ -33,7 +33,7 @@ class TPZPlaca : public TPZMaterial{
 
   void Print(std::ostream & out);
 
-  virtual char *Name() { return "TPZPlaca"; }
+  virtual std::string Name() { return "TPZPlaca"; }
 
 //  virtual TPZBndCond *CreateBC(int num,int typ,TPZFMatrix &val1,TPZFMatrix &val2);
 
@@ -70,7 +70,7 @@ class TPZPlaca : public TPZMaterial{
     {
       fExactFunction = fp;
     }
-  
+
  protected:
 
   void (*fExactFunction)(TPZFMatrix &axes,TPZVec<REAL> &x,TPZFMatrix &uexact,TPZFMatrix &duexact);

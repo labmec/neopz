@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pznonlinbiharmonic.h,v 1.5 2007-05-11 19:15:18 joao Exp $
+//$Id: pznonlinbiharmonic.h,v 1.6 2007-12-07 13:47:48 cesar Exp $
 
 #ifndef TPZNONLINBIHARMONICHPP
 #define TPZNONLINBIHARMONICHPP
@@ -17,12 +17,12 @@ class TPZNonLinBiharmonic : public TPZDiscontinuousGalerkin {
 
 private:
   REAL  fXf;
-  
+
   //Problem dimention
-  
+
 public :
 
-  static REAL gLambda1, gLambda2, gSigmaA,gSigmaB, gL_alpha, gM_alpha, gL_betta, 
+  static REAL gLambda1, gLambda2, gSigmaA,gSigmaB, gL_alpha, gM_alpha, gL_betta,
               gM_betta, g_teta, Re;
   static int NorP;
 
@@ -30,9 +30,9 @@ public :
    * Inicialisation of biharmonic material
    */
   TPZNonLinBiharmonic(int nummat, REAL f);
-  
+
   virtual ~TPZNonLinBiharmonic();
- 
+
   /**
    * Returns the number of norm errors. Default is 3: energy, L2,  H1, semi-norm H2 and H2.
    */
@@ -41,18 +41,18 @@ public :
   void SetMaterial(REAL &xfin){
     fXf = xfin;
   }
-  
+
   int Dimension() { return 2;}
 
-  // Returns one because of scalar problem 
+  // Returns one because of scalar problem
   int NStateVariables(){
     return 1;
   };
-  
+
   virtual void Print(std::ostream & out);
-  
-  char *Name() { return "TPZBiharmonic"; }
-  
+
+  virtual std::string Name() { return "TPZBiharmonic"; }
+
   //Implements integral over  element's volume
   virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
@@ -66,18 +66,18 @@ public :
                               TPZBndCond &bc);
 
   virtual int VariableIndex(char *name);
-  
+
   virtual int NSolutionVariables(int var);
-  
+
   virtual int NFluxes(){ return 0;}
-  
+
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 
-  
+
   /**compute the value of the flux function to be used by ZZ error estimator*/
   virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 
-  
+
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
@@ -88,9 +88,9 @@ public :
                                      TPZFMatrix &ek,
                                      TPZFMatrix &ef);
 
-  
+
   virtual void ContributeBCInterface(TPZMaterialData &data,
-                                       REAL weight, 
+                                       REAL weight,
                                        TPZFMatrix &ek,
                                        TPZFMatrix &ef,
                                        TPZBndCond &bc);

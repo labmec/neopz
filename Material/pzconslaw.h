@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.23 2007-05-11 14:44:03 tiago Exp $
+//$Id: pzconslaw.h,v 1.24 2007-12-07 13:47:47 cesar Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -44,14 +44,14 @@ class TPZConservationLaw2  : public TPZDiscontinuousGalerkin
 public:
 
   TPZConservationLaw2(int nummat,REAL timeStep,int dim);
-  
+
   TPZConservationLaw2(const TPZConservationLaw2 &cp) : TPZDiscontinuousGalerkin(cp),
   fDim(cp.fDim),fTimeStep(cp.fTimeStep),fCFL(cp.fCFL), fGamma(cp.fGamma),fContributionTime(cp.fContributionTime)
       ,fResidualType(cp.fResidualType)
   {
-  }  
+  }
 
-  
+
   virtual ~TPZConservationLaw2();
 
 //------------------attributes and parameters
@@ -154,7 +154,7 @@ public:
   /**
    * Returns the material name
    */
-  virtual char *Name()=0;
+  virtual std::string Name() = 0;
 
   /**
    * Returns the relative index of a variable according to its name

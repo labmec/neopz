@@ -26,7 +26,7 @@ int NStateVariables();
 
 virtual void Print(std::ostream & out);
 
-char *Name() { return "TPZMatHybrid"; }
+virtual std::string Name() { return "TPZMatHybrid"; }
 
     virtual void Contribute(TPZMaterialData &data,
                               REAL weight,

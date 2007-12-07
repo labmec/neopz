@@ -1,4 +1,4 @@
-//$Id: pznlmat1d.h,v 1.3 2007-05-11 19:15:18 joao Exp $
+//$Id: pznlmat1d.h,v 1.4 2007-12-07 13:47:48 cesar Exp $
 // -*- c++ -*-
 
 #ifndef TPZNLMAT1D_H
@@ -10,7 +10,7 @@
 /**
 Virtual class that implements the whole structure for evaluta non linear truss elements.
 The theory can be found at section 3.1 of the M. A. Crisfield book: Non-Linear Finite Element Analysis of Solids and Structures: Volume 1 Essentials
- 
+
 @author Edimar Cesar Rylo
 */
 class TPZNLMat1d : public TPZMaterial//TPZElasticityMaterial
@@ -29,7 +29,7 @@ public:
   /**
     * Returns the name of the material
     */
-  virtual char *Name() { return "nonlinear_1dMaterial"; }
+  virtual std::string Name() { return "nonlinear_1dMaterial"; }
 
   /**
     * Returns the integrable dimension of the material:

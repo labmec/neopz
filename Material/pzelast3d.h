@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzelast3d.h,v 1.8 2007-05-11 19:15:17 joao Exp $
+//$Id: pzelast3d.h,v 1.9 2007-12-07 13:47:47 cesar Exp $
 
 #ifndef PZELAST3D
 #define PZELAST3D
@@ -19,15 +19,15 @@ class TPZElasticity3D : public TPZMaterial {
 public :
 
 enum SOLUTIONVARS{ENone = -1, EDisplacement = 0, EDisplacementX, EDisplacementY, EDisplacementZ,
-                              EPrincipalStress, EPrincipalStrain, EPrincipalDirection1, EPrincipalDirection2, EPrincipalDirection3, 
+                              EPrincipalStress, EPrincipalStrain, EPrincipalDirection1, EPrincipalDirection2, EPrincipalDirection3,
                               EVonMisesStress, EStress, EStrain, EStrain1, EStress1};
 
 /** Class constructor.
  * @param nummat - material ID.
  * @param E - Young's modulus.
- * @param poisson - poisson's ratio 
+ * @param poisson - poisson's ratio
  * @param force - external forces
- */ 
+ */
 TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force);
 TPZElasticity3D();
 
@@ -64,7 +64,7 @@ void SetYieldingStress(REAL fy){ this->fFy = fy; }
 
 /** Material name.
  */
-char *Name() { return "TPZElasticity3D"; }
+virtual std::string Name() { return "TPZElasticity3D"; }
 
 /** Contribute to stiff matrix and load vector.
  *  See base class to more informations.
@@ -98,7 +98,7 @@ virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int va
 /** Return the number of components which form the flux function
  * Method not implemented.
  */
-virtual int NFluxes() { 
+virtual int NFluxes() {
   PZError << "\nTPZElasticity3D::NFluxes() - Method not implemented\n";
   return 0;
 }
@@ -112,26 +112,26 @@ virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatr
 
 /** Evaluate error between approximate (FEM) and exact solutions.
  */
-virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx, 
+virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx,
                     TPZFMatrix &axes, TPZVec<REAL> &flux,
                     TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
 /**
  * Returns the number of norm errors: 3 (Semi H1, L2 and H1).
  */
-virtual int NEvalErrors() {return 3;} 
+virtual int NEvalErrors() {return 3;}
 
 protected :
 
 /** Young's modulus.
- */  
+ */
 REAL fE;
-  
+
 /** Poisson's ratio.
- */  
+ */
 REAL fPoisson;
-  
+
 /** External forces.
- */  
+ */
 TPZManVector<REAL,3> fForce;
 
 /** Direction to compute stress and strain.
@@ -154,7 +154,7 @@ void PrincipalDirection(TPZFMatrix &DSol, TPZVec< REAL > &Solout, int direction)
   Save the element data to a stream
    */
   virtual void Write(TPZStream &buf, int withclassid);
-  
+
   /**
   Read the element data from a stream
    */

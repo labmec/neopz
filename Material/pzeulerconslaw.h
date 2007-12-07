@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.37 2007-05-11 14:44:03 tiago Exp $
+//$Id: pzeulerconslaw.h,v 1.38 2007-12-07 13:47:47 cesar Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -38,7 +38,7 @@ public :
   ~TPZEulerConsLaw2();
 
   TPZEulerConsLaw2();
-  
+
   TPZEulerConsLaw2(const TPZEulerConsLaw2 &cp) : TPZConservationLaw2(cp), fArtDiff(cp.fArtDiff),fDiff(cp.fDiff),
   fConvVol(cp.fConvVol),fConvFace(cp.fConvFace)
   {
@@ -48,8 +48,8 @@ public :
   {
     return new TPZEulerConsLaw2(*this);
   }
-  
-  
+
+
   /**
    * Configures the time discretization of some contributions
    *
@@ -134,7 +134,7 @@ public :
   /**
    * See declaration in base class
    */
-  char *Name();
+  virtual std::string Name();
 
   /**
    * See declaration in base class
@@ -242,8 +242,8 @@ void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, T
       static void ApproxRoe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
                            TPZVec<REAL> & normal, REAL gamma,
                            TPZVec<T> & flux, int entropyFix = 1);
-  
-  
+
+
    /**
     * Sets the delta parameter inside the artifficial
     * diffusion term.
@@ -452,10 +452,10 @@ void ContributeFastestBCInterface_dim(
    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 /*
   virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-                                     TPZFMatrix &phiL,TPZFMatrix &dphiL, 
+                                     TPZFMatrix &phiL,TPZFMatrix &dphiL,
                                      TPZFMatrix &axesleft,
                                      TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize);*/
-  
+
   virtual void ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 			TPZVec<REAL> &sol,TPZFMatrix &dsol,
 			REAL weight,
@@ -635,7 +635,7 @@ protected:
 
 };
 
-inline char * TPZEulerConsLaw2::Name()
+inline std::string TPZEulerConsLaw2::Name()
 {
    return "TPZEulerConsLaw2";
 }

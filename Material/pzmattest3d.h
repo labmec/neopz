@@ -63,7 +63,7 @@ public:
   /**
    * @see TPZMaterial
    */
-  virtual char *Name() { return "TPZMaterialTest3D"; }
+  virtual std::string Name() { return "TPZMaterialTest3D"; }
 
   /**
    * @see TPZMaterial

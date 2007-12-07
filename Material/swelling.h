@@ -9,7 +9,7 @@
 #endif
 
 /**
- * The TPZSwelling class implements a numerical model of swelling material coupling 
+ * The TPZSwelling class implements a numerical model of swelling material coupling
  * flow through porous media with ionic transport
  */
 class TPZSwelling : public TPZMaterial {
@@ -144,14 +144,14 @@ virtual ~TPZSwelling();
  int Dimension() { return 3;}
 
  /**
-  * Number of state variables, in this case 
+  * Number of state variables, in this case
   * 3 displacements, 1 pressure, 3 eletrochemical potencials, 1 eletrical potencial
   */
  int NStateVariables() { return 8;}
 
 virtual void Print(std::ostream & out);
 
-char *Name() { return "TPZSwelling"; }
+virtual std::string Name() { return "TPZSwelling"; }
 
 void SetComputationMode(int mode) {
   switch(mode) {
@@ -176,7 +176,7 @@ virtual void Contribute(TPZMaterialData &data,
                           TPZFMatrix &ef){
   std::cout << "TPZSwelling::Contribute not implemented\n";
 }
- 
+
  virtual void ContributeBC(TPZMaterialData &data,
                              REAL weight,
                              TPZFMatrix &ek,
@@ -191,18 +191,18 @@ virtual void Contribute(TPZMaterialData &data,
 				    TPZVec<FADFADREAL> &dsol,
 				    FADFADREAL &U,
 				    REAL weight);
- 
+
 /**
  * Computes the residual vector at an integration point and its tangent matrix by automatic differentiation
  */
  virtual void ContributeResidual(TPZVec<REAL> & x,
-				 TPZVec<FADREAL> & sol, 
+				 TPZVec<FADREAL> & sol,
 				 TPZVec<FADREAL> &dsol,
 				 TPZFMatrix &phi,
 				 TPZFMatrix &dphi,
 				 TPZVec<FADREAL> &RES,
 				 REAL weight);
- 
+
 /**
  * Computes the residual vector at an integration point and its tangent matrix by automatic differentiation
  */
@@ -215,7 +215,7 @@ virtual void Contribute(TPZMaterialData &data,
 				 REAL weight);
 
 
- /** 
+ /**
   * Compute contribution of BC to the Energy
   */
  virtual void ContributeBCEnergy(TPZVec<REAL> & x,
@@ -288,7 +288,7 @@ void NResidual(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N);
 
 /**
  * This method performs a simple LU decomposition and inversion
- * As the arguments are of type FADREAL, the solution of the system already carries the 
+ * As the arguments are of type FADREAL, the solution of the system already carries the
  * partial derivatives of the original system and right hand side
  */
  static void Solve(TPZVec<TPZVec<FADREAL> > &tangent, TPZVec<FADREAL> &res);
@@ -326,7 +326,7 @@ void NResidual(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N);
 
  static TPZFMatrix gphi,gdphi;
 
- 
+
  public:
 
  /**

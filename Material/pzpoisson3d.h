@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.27 2007-10-26 13:16:14 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.28 2007-12-07 13:47:48 cesar Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -17,45 +17,45 @@
 
 // -fK Laplac(u) + fC * div(fConvDir*u) = - fXf
 class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
- 
+
   protected :
 
   /** Forcing function value */
   REAL fXf;
-  
+
   /** Problem dimension */
   int fDim;
-  
+
   /** Coeficient which multiplies the Laplacian operator. */
   REAL fK;
-  
+
   /** Coeficient which multiplies the Laplacian operator associated to right neighbour element of the interface.
    * The coefficient of left neighbour is fK.
    * It is for use with discontinuous Galerkin method. Default value for fRightK is fK.
    */
   REAL fRightK;
-  
+
   /** Variable which multiplies the convection term of the equation */
   REAL fC;
-  
+
   /** Direction of the convection operator */
   REAL fConvDir[3];
-  
+
   /** Symmetry coefficient of elliptic term.
    * Symmetrical formulation - Global element method - has coefficient = -1.
    * Non-symmetrical formulation - Baumann's formulation - has coefficient = +1.
    */
   REAL fSymmetry;
-  
+
   /**
    * multiplication value for the streamline diffusion term
    */
    REAL fSD;
-   
+
    /** Enumerate for penalty term definitions
     */
    enum EPenaltyType {ENoPenalty = 0, EFluxPenalty = 1, ESolutionPenalty, EBoth};
-      
+
    /** Penalty term definition
     */
    EPenaltyType fPenaltyType;
@@ -66,26 +66,26 @@ public:
    * is set.
    */
   REAL fPenaltyConstant;
-  
+
   /** Define no penalty terms in ContributeInterface
    */
   void SetNoPenalty(){ this->fPenaltyType = ENoPenalty;}
-  
+
   /** Define flux penalty terms in ContributeInterface
    */
   void SetFluxPenalty(){ this->fPenaltyType = EFluxPenalty; }
-  
+
   /** Define solution penalty terms in ContributeInterface
    */
   void SetSolutionPenalty(){ this->fPenaltyType = ESolutionPenalty; }
-  
+
   /** Define solution and flux penalty terms in ContributeInterface
    */
   void SetBothPenalty(){ this->fPenaltyType = EBoth; }
 
   /** Usado em InterfaceErrors */
   static REAL gAlfa;
-  
+
   TPZMatPoisson3d(int nummat, int dim);
 
   TPZMatPoisson3d();
@@ -95,19 +95,19 @@ public:
   virtual ~TPZMatPoisson3d();
 
  TPZMatPoisson3d &operator=(const TPZMatPoisson3d &copy);
-  
+
   /** Set material elliptic term as the global element method, i.e. the symmetrical formulation.
   */
   void SetSymmetric(){
     this->fSymmetry = -1.0;
   }
-  
+
   /** Set material elliptic term as the Baumann's formulation, i.e. the non-symmetrical formulation.
-  */  
+  */
   void SetNonSymmetric() {
-    this->fSymmetry = +1.0; 
+    this->fSymmetry = +1.0;
   }
-  
+
   bool IsSymetric(){
     if (fSymmetry == -1.0) return true;
     if (fSymmetry == +1.0) return false;
@@ -118,25 +118,25 @@ public:
   virtual TPZAutoPointer<TPZMaterial> NewMaterial(){
     return new TPZMatPoisson3d(*this);
   }
-    
+
   int Dimension() { return fDim;}
 
   int NStateVariables();
 
   void SetParameters(REAL diff, REAL conv, TPZVec<REAL> &convdir);
-  
+
   void GetParameters(REAL &diff, REAL &conv, TPZVec<REAL> &convdir);
 
   void SetInternalFlux(REAL flux)
   {
     fXf = flux;
   }
-  
+
   void SetSD(REAL sd)
   {
     fSD = sd;
   }
-  
+
   /** Define fK of right neighbour element. It is used with discontinuous Galerkin
    * on the computation of ContributeInterface methods.
    * Attention that method SetParameters override the modifications of this method. Then call it after SetParameters
@@ -146,13 +146,13 @@ public:
     this->fRightK = rightK;
   }
   REAL GetRightK(){
-    return this->fRightK;    
+    return this->fRightK;
   }
-  
+
   virtual void Print(std::ostream & out);
-  
-  char *Name() { return "TPZMatPoisson3d"; }
-  
+
+  virtual std::string Name() { return "TPZMatPoisson3d"; }
+
   virtual void Contribute(TPZMaterialData &data,REAL weight,
 			  TPZFMatrix &ek,TPZFMatrix &ef);
 #ifdef _AUTODIFF
@@ -176,53 +176,53 @@ public:
 #endif
 
   virtual int VariableIndex(char *name);
-  
+
   virtual int NSolutionVariables(int var);
-  
+
   virtual int NFluxes(){ return 3;}
-  
+
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
-  
+
   /**compute the value of the flux function to be used by ZZ error estimator*/
   virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
-  
+
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
 
 
   virtual void ContributeBCInterface(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
-			    
+
   virtual void ContributeInterface(TPZMaterialData &data,REAL weight,
 				   TPZFMatrix &ek,TPZFMatrix &ef);
 
 
   void InterfaceErrors(TPZVec<REAL> &/*x*/,
-		       TPZVec<REAL> &leftu, TPZFMatrix &leftdudx, /* TPZFMatrix &leftaxes,*/ 
-		       TPZVec<REAL> &rightu, TPZFMatrix &rightdudx, /* TPZFMatrix &rightaxes,*/ 
+		       TPZVec<REAL> &leftu, TPZFMatrix &leftdudx, /* TPZFMatrix &leftaxes,*/
+		       TPZVec<REAL> &rightu, TPZFMatrix &rightdudx, /* TPZFMatrix &rightaxes,*/
 		       TPZVec<REAL> &/*flux*/,
-		       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values, 
+		       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values,
 		       TPZVec<REAL> normal, REAL elsize);
-                       
-  /** Compute interface jumps 
+
+  /** Compute interface jumps
    * values[1] = (solleft - solright)^2
    * values[2] = (dsolleft - dsolright)^2
    * values[0] = values[0] + values[1]
    * @since Feb 14, 2006
-   */  
+   */
   virtual void InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
                               TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
                               TPZVec<REAL> &values);
-                              
+
   /** Compute interface jumps from element to Dirichlet boundary condition
    * values[1] = (solleft - solright)^2
    * values[2] = (dsolleft - dsolright)^2
    * values[0] = values[0] + values[1]
    * @since Mar 08, 2006
-   */  
+   */
   virtual void BCInterfaceJumps(TPZVec<REAL> &leftu,
                                 TPZBndCond &bc,
-                                TPZVec<REAL> &values);                              
+                                TPZVec<REAL> &values);
 
   virtual int IsInterfaceConservative(){ return 1;}
 

@@ -14,7 +14,7 @@ class TPZMatOrthotropic : public TPZMaterial {
  	TPZFMatrix fLocAxs;
 	REAL fEppx,fEppy,fEppz,fVxy,fVyx,fVyz,fVzy,fVzx,fVxz;
 	REAL fNumNom,fGxy,fGzx,fGyz;
-        TPZFMatrix fXf;//fonte         
+        TPZFMatrix fXf;//fonte
 
 public :
 
@@ -34,7 +34,7 @@ int NStateVariables();
 
 virtual void Print(std::ostream & out);
 
-char *Name() { return "TPZMatOrthotropic"; }
+virtual std::string Name() { return "TPZMatOrthotropic"; }
 
 virtual void Contribute(TPZMaterialData &data,
                           REAL weight,

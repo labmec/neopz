@@ -37,7 +37,7 @@ class TPZMat1dLin : public TPZMaterial{
     fXf = xfin;
   }
 
-  virtual char *Name() { return "TPZMat1dLin"; }
+  virtual std::string Name() { return "TPZMat1dLin"; }
 
   int NFluxes() { return NStateVariables(); }
 

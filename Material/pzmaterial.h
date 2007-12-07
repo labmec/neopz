@@ -16,6 +16,7 @@
 #include "pzmaterialdata.h"
 
 #include <iostream>
+#include <string>
 //#ifdef _AUTODIFF
 //#include "fadType.h"
 //#endif
@@ -74,13 +75,13 @@ private:
       virtual void FillDataRequirements(TPZMaterialData &data);
 
       /** returns the name of the material*/
-      virtual char *Name() { return "no_name"; }
+      virtual std::string Name() { return "no_name"; }
 
       /**returns the integrable dimension of the material*/
       virtual int Dimension() = 0;
 
       int Id() const { return fId; }
-      void SetId(int id) { 
+      void SetId(int id) {
           if(id == 0) {
           std::cout << "\n*** Material Id can't be ZERO! ***\n";
           std::cout << "*** This Will Be a Disaster!!! ***\n";
@@ -106,11 +107,11 @@ private:
       /**returns the solution associated with the var index based on
        * the finite element approximation*/
       virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
-      
+
       protected:
       /** @deprecated Deprecated interface for Solution method which must use material data. */
       virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
-      
+
       public:
 
       /**compute the value of the flux function to be used by ZZ error

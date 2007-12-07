@@ -34,7 +34,7 @@ int NStateVariables();
 
 virtual void Print(std::ostream & out);
 
-char *Name() { return "TPZMatHyperElastic"; }
+std::string Name() { return "TPZMatHyperElastic"; }
 
 virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 

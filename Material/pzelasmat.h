@@ -20,8 +20,8 @@ public :
 	    fplainstress = 1 indicates use of plainstress
   */
   TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress = 1);
-  
-  /**Copies the data of one TPZElasticityMaterial object to 
+
+  /**Copies the data of one TPZElasticityMaterial object to
      another*/
   TPZElasticityMaterial(const TPZElasticityMaterial &copy);
 
@@ -42,7 +42,7 @@ public :
   virtual void Print(std::ostream & out = std::cout);
 
   /**Returns the material name*/
-  char *Name() { return "TPZElasticityMaterial"; }
+  std::string Name() { return "TPZElasticityMaterial"; }
 
   /**Return the number of components which form the flux function*/
   virtual short NumberOfFluxes(){return 3;}
@@ -124,7 +124,7 @@ private:
   REAL fEover21PlusNu;
 
   /** E/(1-nu)*/
-  REAL fEover1MinNu2;  
+  REAL fEover1MinNu2;
 
   /**Pre Stress Tensor - Sigma XX*/
   REAL fPreStressXX;

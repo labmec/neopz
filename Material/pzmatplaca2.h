@@ -38,7 +38,7 @@ class TPZMatPlaca2 : public TPZMaterial{
 
   void Print(std::ostream & out);
 
-  virtual char *Name() { return "TPZMatPlaca2"; }
+  virtual std::string Name() { return "TPZMatPlaca2"; }
 
 //  virtual TPZBndCond *CreateBC(int num,int typ,TPZFMatrix &val1,TPZFMatrix &val2);
 

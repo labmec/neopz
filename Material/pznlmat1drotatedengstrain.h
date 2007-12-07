@@ -1,4 +1,4 @@
-//$Id: pznlmat1drotatedengstrain.h,v 1.3 2007-05-11 19:15:18 joao Exp $
+//$Id: pznlmat1drotatedengstrain.h,v 1.4 2007-12-07 13:47:48 cesar Exp $
 // -*- c++ -*-
 
 #ifndef TPZNLMAT1DROTATEDENGSTRAIN_H
@@ -13,7 +13,7 @@ Implements a non linear 1d material based on a rotated engineering strain \
 measurement. \
 The implementation is based on the section 3.1.1 of the book Non-linear \
 Finite Element Analysis of Solids and Structures - Volume 1: Essentials \
-of M. A. Crisfield 
+of M. A. Crisfield
 @author Edimar Cesar Rylo
 @since May, 2006
 */
@@ -33,7 +33,7 @@ public:
     /**
      * Returns the name of the material
      */
-    virtual char *Name() { return "nonlinear_RotatedEnginneringStrain"; }
+    virtual std::string Name() { return "nonlinear_RotatedEnginneringStrain"; }
 
     /**
      * Returns the integrable dimension of the material:
@@ -77,7 +77,7 @@ public:
      */
     virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix &ek, 
+                            TPZFMatrix &ek,
                             TPZFMatrix &ef);
 
     /**
