@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.44 2007-11-30 11:37:43 phil Exp $
+//$Id: pzgmesh.cpp,v 1.45 2007-12-07 11:03:33 caju Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -1093,7 +1093,7 @@ TPZAutoPointer<TPZRefPattern> TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side
 int TPZGeoMesh::ImportRefPattern(){
   std::string StartingPath;
 #ifndef BORLAND
-  StartingPath = REFPATTERNDIR;
+  StartingPath = REFPATTERNINSTALLDIR;
 #else
   StartingPath = "NeoPZ/Refine/RefPatterns";
 #endif
