@@ -1663,6 +1663,7 @@ static TPZAutoPointer<TPZRefPattern> GetBestRefPattern(TPZVec<int> &sides, std::
 
 void TPZRefPattern::RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
 {
+  if(gel->HasSubElement()) return;
   int matid = gel->MaterialId();
   if(matids.count(matid)) return;
   TPZManVector<int,27> sidestorefine(gel->NSides(),0);
