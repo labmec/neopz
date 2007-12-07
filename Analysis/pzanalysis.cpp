@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.39 2007-12-06 20:40:01 caju Exp $
+//$Id: pzanalysis.cpp,v 1.40 2007-12-07 11:55:47 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -32,9 +32,9 @@
 
 #include "pzlog.h"
 
-// #ifdef LOG4CXX
-// static LoggerPtr logger(Logger::getLogger("pz.analysis"));
-// #endif
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.analysis"));
+#endif
 
 #ifdef USING_BOOST
 #include "TPZBoostGraph.h"
