@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.30 2007-12-05 20:26:39 phil Exp $
+//$Id: pzgeoel.h,v 1.31 2007-12-07 18:32:57 caju Exp $
 
 // -*- c++ -*-
 
@@ -158,6 +158,10 @@ public:
     fReference = NULL;
     fFatherIndex = -1;
     this->fNumInterfaces = 0;
+  }
+
+  virtual void Initialize()
+  {
   }
 
   virtual void Initialize(int materialindex, TPZGeoMesh &mesh, int &index);
