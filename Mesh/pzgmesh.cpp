@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.45 2007-12-07 11:03:33 caju Exp $
+//$Id: pzgmesh.cpp,v 1.46 2007-12-07 12:24:51 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -282,7 +282,7 @@ void TPZGeoMesh::Print (std::ostream & out){
     std::map<int, TPZAutoPointer<TPZRefPattern> >::const_iterator it, e;
     e = mymap.end();
     for(it = mymap.begin(); it != e; it++){
-      it->second->/*ShortPrint*/Print1(out);
+      it->second->ShortPrint(out);
       out << "\n";
     }//for it
     out << "\n\n";
@@ -1118,7 +1118,11 @@ int TPZGeoMesh::ImportRefPattern(){
       std::cout << "Reading refinement patern file : " << psBuffer << std::endl;
       std::string filref (psBuffer);
       TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern( this,filref );
-      this->InsertRefPattern(refpat);
+      if(!this->FindRefPattern(refpat)) 
+      {
+        this->InsertRefPattern(refpat);
+      }
+      refpat->InsertPermuted();
       count++;
     }
   }
