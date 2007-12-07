@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.63 2007-11-29 18:14:15 phil Exp $
+// $Id: pzintel.cpp,v 1.64 2007-12-07 18:37:22 cesar Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -1276,7 +1276,7 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
 void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolatesolution) {
 
   TPZCompMesh::SetAllCreateFunctions(*this);
-  
+
   //necessary to allow continuous and discontinuous elements in same simulation
   this->RemoveInterfaces();
 
@@ -1368,7 +1368,7 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
     LOGPZ_ERROR(logger,"InterpolateSolution no material");
     return 0.;
   }
-  if (strcmp(matname,material->Name())) return(0.);
+  if (matname!=material->Name()) return(0.);
   REAL error=0.;
   int dim = Dimension();
   int numdof = material->NSolutionVariables(var);

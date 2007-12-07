@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.79 2007-09-04 12:33:16 tiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.80 2007-12-07 18:37:22 cesar Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -590,7 +590,7 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
-   if(!mat || !strcmp("no_name",mat->Name())){
+  if(!mat || mat->Name() != "no_name"){
       PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
       ek.Reset();
       ef.Reset();
@@ -740,7 +740,7 @@ void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*>
 
 void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
-   if(!mat || !strcmp("no_name",mat->Name())){
+   if(!mat || mat->Name() != "no_name"){
       PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
       return;
    }
@@ -927,10 +927,10 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
     PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
     return;
   }
- 
+
   ///local variables
   REAL weight;
-  TPZMaterialData data;  
+  TPZMaterialData data;
   this->InitMaterialData(data,left,right);
   TPZGeoEl *ref = Reference();
   data.leftp = left->MaxOrder();
@@ -939,7 +939,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
   const int varsize = material->NSolutionVariables(variable);
   ///Max interpolation order
   const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
-  
+
   ///Integration rule
   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p+1));
   if(material->HasForcingFunction()){
@@ -949,7 +949,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
     order.Fill(maxorder);
     intrule->SetOrder(order);
   }
-  
+
   ///loop over integration points
   const int npoints = intrule->NPoints();
   int ip, iv;

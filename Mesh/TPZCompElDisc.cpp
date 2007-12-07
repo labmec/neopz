@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.100 2007-11-29 18:19:53 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.101 2007-12-07 18:37:22 cesar Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.100 2007-11-29 18:19:53 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.101 2007-12-07 18:37:22 cesar Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -74,7 +74,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
-    TPZInterpolationSpace(mesh,copy),  fConnectIndex(copy.fConnectIndex),fConstC(copy.fConstC), fShape(copy.fShape), fCenterPoint(copy.fCenterPoint) {
+    TPZInterpolationSpace(mesh,copy), fShape(copy.fShape), fConnectIndex(copy.fConnectIndex), fConstC(copy.fConstC), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
   this->fIntRule = NULL;
@@ -85,7 +85,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
                              const TPZCompElDisc &copy,
                              std::map<int,int> &gl2lcConMap,
                              std::map<int,int> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy),
-                                                              fShape(copy.fShape), 
+                                                              fShape(copy.fShape),
                                                               fCenterPoint(copy.fCenterPoint)
 {
   fShapefunctionType = copy.fShapefunctionType;
@@ -193,7 +193,7 @@ void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix &phi,TPZF
     dphi.Redim(0,0);
     return;
   }
-  
+
   const int dim = this->Dimension();
 
   if (this->fShape.HasSingularFunction()){
@@ -216,7 +216,7 @@ void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix &phi,TPZF
   else{
     this->fShape.Shape(fConstC,fCenterPoint,X,Degree,dim,phi,dphi,fShapefunctionType);
   }
-    
+
 }
 
 ///@deprecated
@@ -711,7 +711,7 @@ void TPZCompElDisc::SetSingularShapeFunction(void (*f)(const TPZVec<REAL>& x, co
   TPZAutoPointer<TPZMaterial> mat = Material();
   if(mat) nvar = mat->NStateVariables();
   int nshapef = this->NShapeF();
-  Mesh()->Block().Set(seqnum,nshapef*nvar);  
+  Mesh()->Block().Set(seqnum,nshapef*nvar);
 }
 
   /**
