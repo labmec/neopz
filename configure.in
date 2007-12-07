@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.59 2007-11-29 23:44:56 phil Exp $
+dnl $Id: configure.in,v 1.60 2007-12-07 12:01:49 phil Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -467,7 +467,7 @@ esac
 AC_SUBST(REFPATDIR)
 
 AC_DEFINE_UNQUOTED([REFPATTERNDIR],["[$refpat_dir]"],[Define toto the directory])
-AC_DEFINE_UNQUOTED([REFPATTERNINSTALLDIR],["[$prefix]/include/Refine/RefPattern"],[Define toto the directory])
+AC_DEFINE_UNQUOTED([REFPATTERNINSTALLDIR],["[$prefix]/include/Refine"],[Define toto the directory])
 
 
 dnl ----------------------------------------------------------------------------
