@@ -14,7 +14,7 @@ static LoggerPtr logger(Logger::getLogger("boostgraph"));
 using namespace boost;
 using namespace std;
 
-TPZBoostGraph::TPZBoostGraph(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes),fGType(Sloan)
+TPZBoostGraph::TPZBoostGraph(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes),fGType(KMCExpensive)
 {
   m_Graph.clear();
 /*  Graph lG(NElements);
@@ -46,6 +46,7 @@ void TPZBoostGraph::SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphin
 
 void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
 {
+    std::cout << "TPZBoostGraph::Resequence comecando \n";
 #ifdef LOG4CXX
   {
     std::stringstream sout;
@@ -93,7 +94,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
   std::cout << " Original profile: " 
       << profile(G)
       << std::endl;
-  std::cout << " Original max_wavefront: " 
+/*  std::cout << " Original max_wavefront: " 
       << max_wavefront(G)
       << std::endl;
   std::cout << " Original aver_wavefront: " 
@@ -101,7 +102,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
       << std::endl;
   std::cout << " Original rms_wavefront: " 
       << rms_wavefront(G)
-      << std::endl;
+      << std::endl;*/
 //   std::cout << "Number of Vertices " << num_vertices(G) << std::endl;
 //   std::cout << "Number of Edges " << num_edges(G) << std::endl;
   int nVertices = num_vertices(G);
@@ -159,18 +160,18 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
       l_perm[inv_perm[c]] = c;
     }
         
-
+/*
     std::cout << "l_perm = ";
     for (size_type i = 0; i < l_perm.size(); ++i)
     {
       std::cout << i << "/" << l_perm[i] << " ";
     }
     std::cout << std::endl;
-    
+  */  
     property_map<Graph, vertex_index_t>::type
         index_map = get(vertex_index, G);
     
-    std::cout << "  bandwidth: "
+/*    std::cout << "  bandwidth: "
        << bandwidth(G, make_iterator_property_map(&l_perm[0], index_map, l_perm[0]))
        << std::endl;
     std::cout << "  profile: " 
@@ -199,7 +200,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
         << std::endl;
     std::cout << "  inverse map rms_wavefront: " 
         << rms_wavefront(G, make_iterator_property_map(&inv_perm[0], index_map, inv_perm[0]))
-        << std::endl;
+        << std::endl;*/
     perm.Resize(l_perm.size());
     inverseperm.Resize(inv_perm.size());
     for(i=0; i<l_perm.size(); i++)
@@ -207,7 +208,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
       perm[i] = l_perm[i];
       inverseperm[i] = inv_perm[i];
     }
-  
+  std::cout << "TPZBoostGraph::Resequence acabando \n";
 
 }
 /*

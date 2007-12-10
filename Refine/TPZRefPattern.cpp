@@ -229,7 +229,7 @@ void TPZRefPattern::ReadPattern(std::istream &in)
     for(incid=0;incid<ncorners;incid++){
       in >> nodes[incid];
     }
-    cout << "nodes...: " << nodes << endl;
+    //cout << "nodes...: " << nodes << endl;
     int index;
 
     TPZGeoEl *subel = fInternalMesh.CreateGeoElement(etype,nodes,nummat,index,0);
@@ -1309,7 +1309,7 @@ void TPZRefPattern::GeneratePermuted(TPZGeoEl *gel)
     }
     if(valid)
     {
-      cout << " element type " << gel->Type() << " nodesperm " << nodesperm << endl;
+//       cout << " element type " << gel->Type() << " nodesperm " << nodesperm << endl;
       TPZRefPatternPermute candidate;
       candidate.fPermute = permute;
       candidate.fTransform = gel->ComputeParamTrans(gelp,gel->NSides()-1,gel->NSides()-1);
@@ -1726,7 +1726,7 @@ void TPZRefPattern::RefineDirectional(TPZGeoEl *gel,std::set<int> &matids)
     gel->SetRefPattern(patt);
     TPZManVector<TPZGeoEl *> subel;
     gel->Divide(subel);
-    std::cout << "-";
+    //std::cout << "-";
   }
   else
   {
