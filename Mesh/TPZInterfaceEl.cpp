@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.80 2007-12-07 18:37:22 cesar Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.81 2007-12-12 19:10:40 tiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -590,7 +590,7 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
-  if(!mat || mat->Name() != "no_name"){
+  if(!mat || mat->Name() == "no_name"){
       PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
       ek.Reset();
       ef.Reset();
@@ -740,7 +740,7 @@ void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*>
 
 void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
-   if(!mat || mat->Name() != "no_name"){
+   if(!mat || mat->Name() == "no_name"){
       PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
       return;
    }
