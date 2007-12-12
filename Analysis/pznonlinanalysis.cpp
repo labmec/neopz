@@ -30,7 +30,16 @@ TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,ostream &out) : TPZ
 
 TPZNonLinearAnalysis::~TPZNonLinearAnalysis(void){}
 
-  ofstream alphafile("alpha.txt");
+void TPZNonLinearAnalysis::AssembleResidual(){
+  int sz = this->Mesh()->NEquations();
+  this->Rhs().Redim(sz,1);
+  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
+}///void
+
+// #define DEBUGLINESEARCH
+#ifdef DEBUGLINESEARCH
+ofstream alphafile("alpha.txt");
+#endif
 void TPZNonLinearAnalysis::LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMatrix &NextW, REAL tol, int niter){
   REAL error = 2.*tol+1.;
   TPZFMatrix ak, bk, lambdak, muk, Interval;
@@ -39,52 +48,74 @@ void TPZNonLinearAnalysis::LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMa
   ak = DeltaW;
   ak *= 0.1;
   ak += Wn;
-  ///bk = Wn + DeltaW
-  bk = Wn; bk += DeltaW;
+  ///bk = Wn + 2.0 DeltaW
+  bk = DeltaW;
+  bk *= 2.;
+  bk += Wn;
   ///Interval = (bk-ak)
   Interval = bk; Interval -= ak;
   int iter = 0;
+  int KeptVal = -1;///0 means I have residual(labmda); 1 means I have residual(mu); -1 means I have nothing
   while(error > tol && iter < niter){
     iter++;
-    ///lambdak = ak + 0.382*(bk-ak)
-    lambdak = Interval; lambdak *= 0.382; lambdak += ak;
-    ///muk = ak + 0.618*(bk-ak)
-    muk = Interval; muk *= 0.618; muk += ak;
-    ///computing residuals
-    this->LoadSolution(lambdak);
-    this->Assemble();
-//     TPZStructMatrix::Assemble(fRhs, *(this->fCompMesh));
-    NormResLambda = Norm(fRhs);
-    this->LoadSolution(muk);
-    this->Assemble();
-//     TPZStructMatrix::Assemble(fRhs, *(this->fCompMesh));
-    NormResMu = Norm(fRhs);
+    
+    if (KeptVal != 0){
+      ///lambdak = ak + 0.382*(bk-ak)
+      lambdak = Interval; lambdak *= 0.382; lambdak += ak;
+      ///computing residual
+      this->LoadSolution(lambdak);
+//       this->Assemble();
+      this->AssembleResidual();
+      NormResLambda = Norm(fRhs);
+    }
+    
+    if (KeptVal != 1){
+      ///muk = ak + 0.618*(bk-ak)
+      muk = Interval; muk *= 0.618; muk += ak;
+      this->LoadSolution(muk);
+//       this->Assemble();
+      this->AssembleResidual();
+      NormResMu = Norm(fRhs);
+    }
+
     if (NormResLambda > NormResMu){
       ak = lambdak;
+      lambdak = muk;
+      NormResLambda = NormResMu;
+      KeptVal = 0;
     }
     else{
       bk = muk;
+      muk = lambdak;
+      NormResMu = NormResLambda;
+      KeptVal = 1;
     }
     ///error = Norm(bk-ak)
     Interval = bk; Interval -= ak; error = Norm(Interval);
   }///while
-  
+
   NextW = ak;
   NextW += bk;
   NextW *= 0.5;
   
-  
+#ifdef DEBUGLINESEARCH
   ///debug: valor do alpha
   TPZFMatrix alpha;
   alpha = NextW;
   alpha -= Wn;
-  REAL MeanAlpha = 0.;
+  REAL sum = 0.;
+  int ncontrib = 0;
   for(int i = 0; i < alpha.Rows(); i++){
-    alpha(i,0) = alpha(i,0)/DeltaW(i,0);
-    MeanAlpha += alpha(i,0)/alpha.Rows();
+    if (DeltaW(i,0)){
+      alpha(i,0) = alpha(i,0)/DeltaW(i,0);
+      sum += alpha(i,0);
+      ncontrib++;
+    }
   }
+  REAL MeanAlpha = sum/ncontrib;
   alphafile << MeanAlpha << "\t";
   alphafile.flush();
+#endif
 
 }///void
 
@@ -101,8 +132,7 @@ void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter, b
    
 	TPZVec<REAL> coefs(1,1.);
 	TPZFMatrix range(numeq,1,0.01);
-	CheckConvergence(*this,fSolution,range,coefs);	
-//         CheckConvergence<TPZNonLinearAnalysis>(*this,*fSolution,range,coefs);	
+// 	CheckConvergence(*this,fSolution,range,coefs);	
 	
    while(error > tol && iter < numiter) {
 
