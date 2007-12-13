@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.60 2007-12-07 12:01:49 phil Exp $
+dnl $Id: configure.in,v 1.61 2007-12-13 13:01:46 caju Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -448,9 +448,9 @@ dnl ----------------------------------------------------------------------------
 
 dnl REFPAT location
 AC_ARG_WITH(refpat-dir,
-  [  --with-refpat-dir=DIR    Root of REFPAT instalation [/usr/local/include/Refine/RefPattern]],
+  [  --with-refpat-dir=DIR    Root of REFPAT instalation [/usr/local/include/Refine/]],
   [refpat_dir=$withval],
-  [refpat_dir=${refpat_dir=[$srcdir/src/Files]}])
+  [refpat_dir=${refpat_dir=[$srcdir/Refine]}])
 
 case "${refpat_enabled}" in
   yes)
