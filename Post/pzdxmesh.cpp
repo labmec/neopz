@@ -1,4 +1,4 @@
-//$Id: pzdxmesh.cpp,v 1.11 2007-11-29 13:29:50 tiago Exp $
+//$Id: pzdxmesh.cpp,v 1.12 2007-12-17 18:25:31 tiago Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -29,7 +29,8 @@ TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer
 	  if(type == EOned)               fElementType = "lines";
 	  if(type == ETriangle)           fElementType = "triangles";
 	  if(type == EQuadrilateral)      fElementType = "quads";
-	  if(type == 7)                   fElementType = "cubes";
+	  if(type == ECube)               fElementType = "cubes";
+    if(type == EPrisma)             fElementType = "cubes";
 	  TPZGeoEl *gel = ce->Reference();
 	  if( type == EDiscontinuous || (type == EAgglomerate && gel) ){
 	    int nnodes = gel->NNodes();
@@ -43,6 +44,9 @@ TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer
 	fNumConnectObjects[1] = 1;
 	fNumConnectObjects[2] = 1;
 	fNormalObject = 0;
+  
+  for(int i = 0; i < 8; i++) fElConnectivityObject[i] = -1;
+  
 }
 
 TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat) :
@@ -65,6 +69,9 @@ TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,
   fOutFile = graph->Out();
   /**independing the transfered output file from old graphmesh */
   graph->fOutFile = 0;
+  
+  for(int i = 0; i < 8; i++) fElConnectivityObject[i] = -1;
+  
 }
 
 TPZDXGraphMesh::~TPZDXGraphMesh() {
@@ -199,7 +206,7 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
 		
 		
     //+++++ Cubes    
-    if(dim == 3 && NNodes() == 8) {
+    if(dim == 3 && (NNodes() == 8 || NNodes() == 6)) {
       (*fOutFile) << "object " << (fNextDataField) << " class field" << endl;
       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
@@ -211,7 +218,7 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
     }
     //|\|\|\|\|\|\|\|\|\|\|
 		
-    if(dim == 2 && NNodes() == 4) {
+    if(dim == 2 && (NNodes() == 4 || NNodes() == 3)) {
       (*fOutFile) << "object " << (fNextDataField) << " class field" << endl;
       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
@@ -224,16 +231,17 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
       (*fOutFile) << "#" << endl; (*fOutFile).flush();
       fNextDataField ++;
     }
-    if(dim == 2 && NNodes() == 3) {
-      (*fOutFile) << "object " << (fNextDataField) << " class field" << endl;
-      (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
-      (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
-      (*fOutFile) << "component \"connections\" value " << fElConnectivityObject[ETriangle] << endl;
-      (*fOutFile) << "attribute \"name\" string \"" << (char *) fScalarNames[n]
-		  << step << (1) << "\"" << endl;
-      (*fOutFile) << "#" << endl;
-      fNextDataField ++;
-    }
+    ///@deprecated
+//     if(dim == 2 && NNodes() == 3) {
+//       (*fOutFile) << "object " << (fNextDataField) << " class field" << endl;
+//       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
+//       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
+//       (*fOutFile) << "component \"connections\" value " << fElConnectivityObject[ETriangle] << endl;
+//       (*fOutFile) << "attribute \"name\" string \"" << (char *) fScalarNames[n]
+// 		  << step << (1) << "\"" << endl;
+//       (*fOutFile) << "#" << endl;
+//       fNextDataField ++;
+//     }
     if(dim == 1) {
       (*fOutFile) << "object " << (fNextDataField) << " class field" << endl;
       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
