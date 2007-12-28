@@ -143,7 +143,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                if(eta == 1.)
                {
                     SidePar[0] = 0.;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                }
                else
                {
@@ -157,7 +157,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                if(qsi+eta == 0.)
                {
                     SidePar[0] = 0.;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                }
                else
                {
@@ -171,7 +171,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                if(qsi == 1.)
                {
                     SidePar[0] = 0.;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                }
                else
                {
@@ -203,7 +203,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                if(eta == 1.)
                {
                     SidePar[0] = 0.;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                }
                else
                {
@@ -217,7 +217,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                if(qsi+eta == 0.)
                {
                     SidePar[0] = 0.;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                }
                else
                {
@@ -231,7 +231,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                if(qsi == 1.)
                {
                     SidePar[0] = 0.;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                }
                else
                {
@@ -252,7 +252,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                if(eta == 1.)
                {
                     SidePar[0] = 0.; SidePar[1] = zeta;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
                }
                else
@@ -268,7 +268,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                if(qsi+eta == 0.)
                {
                     SidePar[0] = 0.; SidePar[1] = zeta;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
                }
                else
@@ -284,7 +284,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                if(qsi == 1.)
                {
                     SidePar[0] = 0.; SidePar[1] = zeta;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
                }
                else
