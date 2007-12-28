@@ -73,11 +73,17 @@ void TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL>
 
      REAL qsi = InternalPar[0]; REAL eta = InternalPar[1];
      SidePar.Resize(1); JacToSide.Resize(1,2);
+     if((qsi + eta) > 1 || qsi < 0. || eta < 0.)
+     {
+         cout << "Point (qsi,eta) = (" << qsi << "," << eta << ") is out of TPZGeoTriangle Master Element Range!\n";
+         cout << "See TPZGeoTriangle::MapToSide() method!\n";
+         exit(-1);
+     }
 
      switch(side)
      {
           case 3:
-               if(eta > 0.999)
+               if(eta == 1.)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;
@@ -90,7 +96,7 @@ void TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL>
           return;
 
           case 4:
-               if(qsi+eta < 1.E-3)
+               if(qsi+eta == 0.)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;
@@ -103,7 +109,7 @@ void TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL>
           return;
 
           case 5:
-               if(qsi > 0.999)
+               if(qsi == 1.)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;
