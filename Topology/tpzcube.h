@@ -62,7 +62,7 @@ static int SideNodeLocId(int side, int node);
   * returns the barycentric coordinates in the master element space of the original element
   */
  static void CenterPoint(int side, TPZVec<REAL> &center);
-
+ 
  /**volume of the master element*/
 static REAL RefElVolume(){return 8.0;}
 
