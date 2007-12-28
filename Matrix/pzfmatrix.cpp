@@ -256,122 +256,64 @@ TPZFMatrix TPZFMatrix::operator-(const TPZFMatrix &A ) const {
 /* By Caju 2007 */
 void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog) 
 {
-  int QTDcomp = Rows(); int QTDvec = Cols();
-  Orthog.Resize(QTDcomp,QTDvec); Orthog.Zero();
-  for(int r = 0; r < QTDcomp; r++) { for(int c = 0; c < QTDvec; c++) { Orthog(r,c) = GetVal(r,c); } }
-  double dotUp, dotDown;
-  for(int c = 1; c < QTDvec; c++) {
-    for(int stop = 0; stop < c; stop++) { dotUp = 0.; dotDown = 0.;
-      for(int r = 0; r < QTDcomp; r++) { dotUp += GetVal(r,c)*Orthog(r,stop); dotDown += Orthog(r,stop)*Orthog(r,stop); }
-      if(dotDown < 0.0001) 
-      { 
-        cout << "Parallel Vectors on Gram-Schmidt Method! c = " << c << " inner = " << dotDown << "\n"; 
-        DebugStop();
-        for(int r = 0; r < QTDcomp; r++) 
-        { 
-          Orthog(r,c) = 0.; 
-        }
-      }
-      else
-      {
-        for(int r = 0; r < QTDcomp; r++) { Orthog(r,c) -= dotUp*Orthog(r,stop)/dotDown; }
-      }
-    }
-  }
-  for(int c = 0; c < QTDvec; c++) { dotUp = 0.; 
-    for(int r = 0; r < QTDcomp; r++) { dotUp += Orthog(r,c)*Orthog(r,c); }
-    if(dotUp)
+    int QTDcomp = Rows();
+    int QTDvec = Cols();
+    Orthog.Resize(QTDcomp,QTDvec);
+    Orthog.Zero();
+    /// Making a copy of *this (Ortog = *this)
+    for(int r = 0; r < QTDcomp; r++)
     {
-      for(int r = 0; r < QTDcomp; r++) { Orthog(r,c) = Orthog(r,c)/sqrt(dotUp); }
+        for(int c = 0; c < QTDvec; c++)
+        {
+            Orthog(r,c) = GetVal(r,c);
+        }
     }
-  }
-  Orthog.Multiply(*this,BasisToOrthog,1);
-/*
-     int QTDcomp = Rows();
-     int QTDvec = Cols();
-
-     AxesOrth.Resize(QTDcomp,QTDvec);
-     AxesOrth.Zero();
-
-     JacobToOrth.Resize(QTDcomp,QTDcomp);
-     JacobToOrth.Zero();
-
-     // Copying the JCnCn ( = this) 
-     for(int r = 0; r < QTDcomp; r++)
-     {
-          for(int c = 0; c < QTDvec; c++)
-          {
-               AxesOrth(r,c) = GetVal(r,c);
-          }
-     }
-
-     // Orthogonalization 
-     double dotUp, dotDown;
-     for(int c = 1; c < QTDvec; c++)
-     {
-          for(int stop = 0; stop < c; stop++)
-          {
-               dotUp = 0.; dotDown = 0.;
-               for(int r = 0; r < QTDcomp; r++)
-               {
-                    dotUp += GetVal(r,c)*AxesOrth(r,stop); dotDown += AxesOrth(r,stop)*AxesOrth(r,stop);
-               }
-               if(dotDown < 0.0001) 
-               { 
-                    cout << "Parallel Vectors on Gram-Schmidt Method! c = " << c << " inner = " << dotDown << "\n"; 
-                    DebugStop();
-                    for(int r = 0; r < QTDcomp; r++) 
-                    { 
-                         AxesOrth(r,c) = 0.; 
-                    }
-               }
-               else
-               {
-                    for(int r = 0; r < QTDcomp; r++)
-                    {
-                         AxesOrth(r,c) -= dotUp*AxesOrth(r,stop)/dotDown;
-                    }
-               }
-          }
-     }
-
-     // Normalization 
-     for(int c = 0; c < QTDvec; c++)
-     {
-          dotUp = 0.; 
-          for(int r = 0; r < QTDcomp; r++)
-          {
-               dotUp += AxesOrth(r,c)*AxesOrth(r,c);
-          }
-          if(dotUp)
-          {
-               for(int r = 0; r < QTDcomp; r++)
-               {
-                    AxesOrth(r,c) = AxesOrth(r,c)/sqrt(dotUp);
-               }
-          }
-     }
-
-     // Computing Jacobian (from Cn to A*) 
-     AxesOrth.Transpose();
-     AxesOrth.Multiply(*this,JacobToOrth);
-
-     for(int i = 0; i < AxesOrth.Rows(); i++)
-     {
-          for(int j = 0; j <  AxesOrth.Cols(); j++)
-          {
-               if(fabs(AxesOrth(i,j)) < 1.E-15 )  AxesOrth(i,j) = 0.;
-          }
-     }
-
-     for(int i = 0; i < JacobToOrth.Rows(); i++)
-     {
-          for(int j = 0; j <  JacobToOrth.Cols(); j++)
-          {
-               if(fabs(JacobToOrth(i,j)) < 1.E-15 )  JacobToOrth(i,j) = 0.;
-          }
-     }
-  */
+    double dotUp, dotDown;
+    for(int c = 1; c < QTDvec; c++)
+    {
+        for(int stop = 0; stop < c; stop++)
+        {
+            dotUp = 0.;
+            dotDown = 0.;
+            for(int r = 0; r < QTDcomp; r++)
+            {
+                dotUp += GetVal(r,c)*Orthog(r,stop);
+                dotDown += Orthog(r,stop)*Orthog(r,stop);
+            }
+            if(dotDown < 1.E-15) 
+            { 
+                cout << "Null Vector on Gram-Schmidt Method! Col = " << stop << "\n"; 
+                DebugStop();
+                for(int r = 0; r < QTDcomp; r++) 
+                { 
+                    Orthog(r,stop) = 0.; 
+                }
+            }
+            else
+            {
+                for(int r = 0; r < QTDcomp; r++)
+                {
+                    Orthog(r,c) -= dotUp*Orthog(r,stop)/dotDown;
+                }
+            }
+        }
+    }
+    for(int c = 0; c < QTDvec; c++)
+    {
+        dotUp = 0.; 
+        for(int r = 0; r < QTDcomp; r++)
+        {
+            dotUp += Orthog(r,c)*Orthog(r,c);
+        }
+        if(dotUp)
+        {
+            for(int r = 0; r < QTDcomp; r++)
+            {
+                Orthog(r,c) = Orthog(r,c)/sqrt(dotUp);
+            }
+        }
+    }
+    Orthog.Multiply(*this,BasisToOrthog,1);
 }
 
 
