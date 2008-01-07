@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.30 2007-11-22 15:47:55 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.31 2008-01-07 16:36:31 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -297,7 +297,6 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
     for(id=0 ; id<fDim; id++) {
       Solout[id] = -1. * this->fK * DSol(id,0);
     }
-    Solout[0] = sqrt(val);
     return;
   }//var == 7  
   
