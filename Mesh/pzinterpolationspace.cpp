@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.18 2007-10-31 19:01:49 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.19 2008-01-21 19:16:05 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -201,6 +201,8 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
   }
 
   this->InitializeElementMatrix(ef);
+
+  if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
 
   TPZMaterialData data;
   this->InitMaterialData(data);
@@ -695,6 +697,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
   TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
   //end
   intrule.GetOrder(prevorder);
+
   intrule.SetOrder(maxorder);
 
   int ndof = material->NStateVariables();
