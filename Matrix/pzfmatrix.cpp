@@ -283,7 +283,7 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
             if(dotDown < 1.E-15) 
             { 
                 cout << "Null Vector on Gram-Schmidt Method! Col = " << stop << "\n"; 
-                DebugStop();
+//                 DebugStop();
                 for(int r = 0; r < QTDcomp; r++) 
                 { 
                     Orthog(r,stop) = 0.; 
