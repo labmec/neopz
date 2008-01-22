@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.40 2007-12-07 11:55:47 phil Exp $
+//$Id: pzanalysis.cpp,v 1.41 2008-01-22 19:11:12 caju Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -132,7 +132,7 @@ void TPZAnalysis::SetBlockNumber(){
 //	TPZSloan sloan(nel,nindep,maxelcon);
         fRenumber->SetElementGraph(elgraph,elgraphindex);
 	fRenumber->Resequence(perm,iperm);
-  	fCompMesh->Permute(perm);
+   	fCompMesh->Permute(perm);
 /*
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 
