@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.19 2008-01-21 19:16:05 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.20 2008-01-22 19:18:12 caju Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -202,8 +202,6 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 
   this->InitializeElementMatrix(ef);
 
-  if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
-
   TPZMaterialData data;
   this->InitMaterialData(data);
   data.p = this->MaxOrder();
@@ -295,6 +293,8 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
   TPZMaterialData data;
   data.sol.Resize(numdof);
   data.sol.Fill(0.);
+  sol.Resize(numdof);
+  sol.Fill(0.);
   data.dsol.Redim(dim,numdof);
   data.dsol.Zero();
   data.axes.Redim(3,3);
@@ -697,8 +697,8 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
   TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
   //end
   intrule.GetOrder(prevorder);
-
-  intrule.SetOrder(maxorder);
+#warning abaixo foi comentado, mas nao pode ir para o cvs
+//  intrule.SetOrder(maxorder);
 
   int ndof = material->NStateVariables();
   int nflux = material->NFluxes();
