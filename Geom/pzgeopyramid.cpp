@@ -223,7 +223,7 @@ void TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 9://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if( fabs(qsi) == 1. && fabs(eta) == 1. && (1.5 + eta -0.5*qsi*eta != 0.) )
+               if( qsi == 1. || eta == 1. )
                {
                     SidePar[0] = -1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -244,7 +244,7 @@ void TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 10://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if( fabs(qsi) == 1. && fabs(eta) == 1. && 1.5 + eta -0.5*qsi*eta != 1. )
+               if( qsi == -1. || eta == 1. )
                {
                     SidePar[0] = -1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -265,7 +265,7 @@ void TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 11://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if( fabs(qsi) == 1. && fabs(eta) == 1. && 1.5 + eta -0.5*qsi*eta != 2. )
+               if( qsi == -1. || eta == -1. )
                {
                     SidePar[0] = -1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -286,7 +286,7 @@ void TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 12://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if( fabs(qsi) == 1. && fabs(eta) == 1. && 1.5 + eta -0.5*qsi*eta != 3. )
+               if( qsi == 1. || eta == -1. )
                {
                     SidePar[0] = -1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -506,5 +506,206 @@ TPZGeoEl *TPZGeoPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	return 0;
 }
 
+void TPZGeoPyramid::FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint)
+{
+    ChangedPoint.Resize(OriginalPoint.NElements(),0.);
+    ChangedPoint = OriginalPoint;
+
+    switch(side)
+    {
+        case 5:
+        {
+            if(OriginalPoint[2] ==  1.)
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            break;
+        }
+
+        case 6:
+        {
+            if(OriginalPoint[2] ==  1.)
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            break;
+        }
+
+        case 7:
+        {
+            if(OriginalPoint[2] ==  1.)
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            break;
+        }
+
+        case 8:
+        {
+            if(OriginalPoint[2] ==  1.)
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            break;
+        }
+
+        case 9:
+        {
+            if( ChangedPoint[0] == 1. && ChangedPoint[1] == -1. )
+            {
+                ChangedPoint[0] =  1. - tol;
+                ChangedPoint[1] = -1. + tol;
+            }
+            if( ChangedPoint[0] == 1. && ChangedPoint[1] == 1. )
+            {
+                ChangedPoint[0] = 1. - tol;
+                ChangedPoint[1] = 1. - tol;
+            }
+            if( ChangedPoint[0] == -1. && ChangedPoint[1] == 1. )
+            {
+                ChangedPoint[0] = -1. + tol;
+                ChangedPoint[1] =  1. - tol;
+            }
+            if(OriginalPoint[2] ==  1.)
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            break;
+        }
+
+        case 10:
+        {
+            if( ChangedPoint[0] == -1. && ChangedPoint[1] == -1. )
+            {
+                ChangedPoint[0] = -1. + tol;
+                ChangedPoint[1] = -1. + tol;
+            }
+            if( ChangedPoint[0] == -1. && ChangedPoint[1] == 1. )
+            {
+                ChangedPoint[0] = -1. + tol;
+                ChangedPoint[1] =  1. - tol;
+            }
+            if( ChangedPoint[0] ==  1. && ChangedPoint[1] == 1. )
+            {
+                ChangedPoint[0] = 1. - tol;
+                ChangedPoint[1] = 1. - tol;
+            }
+            if(OriginalPoint[2] ==  1.)
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            break;
+        }
+
+        case 11:
+        {
+            if( ChangedPoint[0] ==  1. && ChangedPoint[1] == -1. )
+            {
+                ChangedPoint[0] =  1. - tol;
+                ChangedPoint[1] = -1. + tol;
+            }
+            if( ChangedPoint[0] == -1. && ChangedPoint[1] == -1. )
+            {
+                ChangedPoint[0] = -1. + tol;
+                ChangedPoint[1] = -1. + tol;
+            }
+            if( ChangedPoint[0] == -1. && ChangedPoint[1] ==  1. )
+            {
+                ChangedPoint[0] = -1. + tol;
+                ChangedPoint[1] =  1. - tol;
+            }
+            if(OriginalPoint[2] ==  1.)
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            break;
+        }
+
+        case 12:
+        {
+            if( ChangedPoint[0] ==  1. && ChangedPoint[1] ==  1. )
+            {
+                ChangedPoint[0] = 1. - tol;
+                ChangedPoint[1] = 1. - tol;
+            }
+            if( ChangedPoint[0] ==  1. && ChangedPoint[1] == -1. )
+            {
+                ChangedPoint[0] =  1. - tol;
+                ChangedPoint[1] = -1. + tol;
+            }
+            if( ChangedPoint[0] == -1. && ChangedPoint[1] == -1. )
+            {
+                ChangedPoint[0] = -1. + tol;
+                ChangedPoint[1] = -1. + tol;
+            }
+            if(OriginalPoint[2] ==  1.)
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            break;
+        }
+
+        case 13:
+        {
+            if( ChangedPoint[2] ==  1. )
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            break;
+        }
+
+        case 14:
+        {
+            if( ChangedPoint[2] ==  1. )
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            if( (ChangedPoint[0] ==  1. && ChangedPoint[0] ==  1.) || (ChangedPoint[0] ==  -1. && ChangedPoint[0] ==  1.) )
+            {
+                ChangedPoint[1] = 1. - tol;
+            }
+            break;
+        }
+
+        case 15:
+        {
+            if( ChangedPoint[2] ==  1. )
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            if( (ChangedPoint[0] ==  -1. && ChangedPoint[0] ==  1.) || (ChangedPoint[0] ==  -1. && ChangedPoint[0] ==  -1.) )
+            {
+                ChangedPoint[0] = -1. + tol;
+            }
+            break;
+        }
+
+        case 16:
+        {
+            if( ChangedPoint[2] ==  1. )
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            if( (ChangedPoint[0] ==  1. && ChangedPoint[0] == -1.) || (ChangedPoint[0] ==  -1. && ChangedPoint[0] == -1.) )
+            {
+                ChangedPoint[1] = -1. + tol;
+            }
+            break;
+        }
+
+        case 17:
+        {
+            if( ChangedPoint[2] ==  1. )
+            {
+                ChangedPoint[2] = 1. - tol;
+            }
+            if( (ChangedPoint[0] ==  1. && ChangedPoint[0] ==  1.) || (ChangedPoint[0] ==  1. && ChangedPoint[0] ==  -1.) )
+            {
+                ChangedPoint[0] = 1. - tol;
+            }
+            break;
+        }
+    }
+}
 
 };

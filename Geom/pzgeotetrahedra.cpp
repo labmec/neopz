@@ -327,6 +327,123 @@ TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	return 0;
 }
 
+void TPZGeoTetrahedra::FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint)
+{
+    ChangedPoint.Resize(OriginalPoint.NElements(),0.);
+    ChangedPoint = OriginalPoint;
 
+    switch(side)
+    {
+        case 4:
+        {
+            if(OriginalPoint[1] == 1. || OriginalPoint[2] == 1.)
+            {
+                ChangedPoint[0] = (0.5*tol)/sqrt(0.25 + pow(OriginalPoint[1],2) + pow(OriginalPoint[2],2));
+                ChangedPoint[1] = OriginalPoint[1] - (OriginalPoint[1]*tol) / sqrt(0.25 + pow(OriginalPoint[1],2) + pow(OriginalPoint[2],2));
+                ChangedPoint[2] = OriginalPoint[2] - (OriginalPoint[2]*tol)/sqrt(0.25 + pow(OriginalPoint[1],2) + pow(OriginalPoint[2],2));
+            }
+            break;
+        }
+
+        case 5:
+        {
+            if(OriginalPoint[0] + OriginalPoint[1] == 0.)
+            {
+                ChangedPoint[0] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[2],2));
+                ChangedPoint[1] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[2],2));
+                ChangedPoint[2] = OriginalPoint[2] - (OriginalPoint[2]*tol)/sqrt(0.5 + pow(OriginalPoint[2],2));
+            }
+            break;
+        }
+
+        case 6:
+        {
+            if(OriginalPoint[0] == 1. || OriginalPoint[2] == 1.)
+            {
+                ChangedPoint[0] = OriginalPoint[0] - (OriginalPoint[0]*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[2],2));
+                ChangedPoint[1] = (0.5*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[2],2));
+                ChangedPoint[2] = OriginalPoint[2] - (OriginalPoint[2]*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[2],2));
+            }
+            break;
+        }
+
+        case 7:
+        {
+            if(OriginalPoint[0]== 1. || OriginalPoint[1] == 1.)
+            {
+                ChangedPoint[0] = OriginalPoint[0] - (OriginalPoint[0]*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[1],2));
+                ChangedPoint[1] = OriginalPoint[1] - (OriginalPoint[1]*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[1],2));
+                ChangedPoint[2] = (0.5*tol)/sqrt(0.25 + pow(OriginalPoint[0],2) + pow(OriginalPoint[1],2));
+            }
+            break;
+        }
+
+        case 8:
+        {
+            if(OriginalPoint[0] + OriginalPoint[2] == 0.)
+            {
+                ChangedPoint[0] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[1],2));
+                ChangedPoint[1] = OriginalPoint[1] - (OriginalPoint[1]*tol)/sqrt(0.5 + pow(OriginalPoint[1],2));
+                ChangedPoint[2] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[1],2));
+            }
+            break;
+        }
+
+        case 9:
+        {
+            if(OriginalPoint[1] + OriginalPoint[2] == 0.)
+            {
+                ChangedPoint[0] = OriginalPoint[0] - (OriginalPoint[0]*tol)/sqrt(0.5 + pow(OriginalPoint[0],2));
+                ChangedPoint[1] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[0],2));
+                ChangedPoint[2] = (0.5*tol)/sqrt(0.5 + pow(OriginalPoint[0],2));
+            }
+            break;
+        }
+
+        case 10:
+        {
+            if(OriginalPoint[2] == 1.)
+            {
+                ChangedPoint[0] = tol/sqrt(11.);
+                ChangedPoint[1] = tol/sqrt(11.);
+                ChangedPoint[2] = 1. - (3.*tol)/sqrt(11.);
+            }
+            break;
+        }
+
+        case 11:
+        {
+            if(OriginalPoint[1] == 1.)
+            {
+                ChangedPoint[0] = tol/sqrt(11.);
+                ChangedPoint[1] = 1. - (3.*tol)/sqrt(11.);
+                ChangedPoint[2] = tol/sqrt(11.);
+            }
+            break;
+        }
+
+        case 12:
+        {
+            if(OriginalPoint[0] + OriginalPoint[1] + OriginalPoint[2] == 0.)
+            {
+                ChangedPoint[0] = tol;
+                ChangedPoint[1] = tol;
+                ChangedPoint[2] = tol;
+            }
+            break;
+        }
+
+        case 13:
+        {
+            if(OriginalPoint[0] == 1.)
+            {
+                ChangedPoint[0] = 1. - (3.*tol)/sqrt(11.);
+                ChangedPoint[1] = tol/sqrt(11.);
+                ChangedPoint[2] = tol/sqrt(11.);
+            }
+            break;
+        }
+    }
+}
 
 };

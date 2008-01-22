@@ -166,4 +166,43 @@ TPZGeoEl *TPZGeoTriangle::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	return 0;
 }
 
+void TPZGeoTriangle::FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint)
+{
+    ChangedPoint.Resize(OriginalPoint.NElements(),0.);
+    ChangedPoint = OriginalPoint;
+
+    switch(side)
+    {
+        case 3:
+        {
+            if(OriginalPoint[0] == 0. && OriginalPoint[1] == 1.)
+            {
+                ChangedPoint[0] = tol;
+                ChangedPoint[1] = 1. - 2.*tol;
+            }
+            break;
+        }
+
+        case 4:
+        {
+            if(OriginalPoint[0] == 0. && OriginalPoint[1] == 0.)
+            {
+                ChangedPoint[0] = tol;
+                ChangedPoint[1] = tol;
+            }
+            break;
+        }
+
+        case 5:
+        {
+            if(OriginalPoint[0] == 1. && OriginalPoint[1] == 0.)
+            {
+                ChangedPoint[0] = 1.-tol;
+                ChangedPoint[1] = tol/2.;
+            }
+            break;
+        }
+    }
+}
+
 };

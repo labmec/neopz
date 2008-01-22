@@ -92,6 +92,13 @@ static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar
    */
 static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 
+protected:
+   /**
+    * This method apply an infinitesimal displacement in some points
+    * to fix singularity problems when using MapToSide() method!
+    * This points are CornerNodes, when projected in the opposing side
+    */
+    static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint);
 
 
 };

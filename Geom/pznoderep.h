@@ -25,6 +25,8 @@ class TPZGeoMesh;
 static LoggerPtr lognoderep(Logger::getLogger("pz.geom.tpznoderep"));
 #endif
 
+const double tol = 1.E-6;
+
 namespace pzgeom {
 
 template<int N, class Topology>
@@ -133,6 +135,17 @@ public:
     }
     out << std::endl;
   }
+
+    protected:
+    /**
+    * This method is redefined in TPZGeoTriangle, TPZGeoPrism, TPZGeoTetrahedra, TPZGeoPyramid
+    * to fix singularity problems when using MapToSide() method!
+    */
+    static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint)
+    {
+        ChangedPoint.Resize(OriginalPoint.NElements(),0.);
+        ChangedPoint = OriginalPoint;
+    }
 
 };
 
