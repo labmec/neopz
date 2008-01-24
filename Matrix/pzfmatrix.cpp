@@ -30,6 +30,11 @@
 #include <string>
 
 #include "pzlog.h"
+
+#ifdef DEBUG
+  #define DEBUG2
+#endif
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
 #endif
@@ -91,7 +96,7 @@ TPZFMatrix::TPZFMatrix (const TPZFMatrix & A)
     int size = fRow * fCol;
     if(!size) return;
     fElem = new( REAL[ size ] );
-#ifdef DEBUG
+#ifdef DEBUG2
     if ( size && fElem == NULL ) Error( "Constructor <memory allocation error>." );
 #endif
     // Copia a matriz
@@ -268,6 +273,22 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
             Orthog(r,c) = GetVal(r,c);
         }
     }
+
+    #ifdef DEBUG2
+    for(int c = 0; c < QTDvec; c++)
+    {
+        double summ = 0.;
+        for(int r = 0; r < QTDcomp; r++)
+        {
+            summ += fabs(GetVal(r,c));
+        }
+        if(fabs(summ) < 0.00001)
+        {
+            cout << "Null Vector on Gram-Schmidt Method! Col = " << c << "\n";
+        }
+    }
+    #endif
+
     double dotUp, dotDown;
     for(int c = 1; c < QTDvec; c++)
     {
@@ -282,8 +303,10 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
             }
             if(dotDown < 1.E-15) 
             { 
-                cout << "Null Vector on Gram-Schmidt Method! Col = " << stop << "\n"; 
-//                 DebugStop();
+                #ifdef DEBUG2
+                cout << "Parallel Vectors on Gram-Schmidt Method! Col = " << stop << "\n";
+                #endif
+
                 for(int r = 0; r < QTDcomp; r++) 
                 { 
                     Orthog(r,stop) = 0.; 
@@ -1040,7 +1063,7 @@ int TPZFMatrix::Substitution(const REAL *ptr, int rows, TPZFMatrix *B)
 
 int TPZFMatrix::Substitution( TPZFMatrix *B ) const {
 
-#ifndef DEBUG
+#ifndef DEBUG2
   if(fDecomposed != ELU) {
     Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
   }
