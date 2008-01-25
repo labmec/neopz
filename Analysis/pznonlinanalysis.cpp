@@ -42,15 +42,18 @@ ofstream alphafile("alpha.txt");
 #endif
 void TPZNonLinearAnalysis::LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMatrix &NextW, REAL tol, int niter){
   REAL error = 2.*tol+1.;
+  REAL A, B, L, M;
   TPZFMatrix ak, bk, lambdak, muk, Interval;
   REAL NormResLambda, NormResMu;
   ///ak = Wn + 0.1 * DeltaW
   ak = DeltaW;
-  ak *= 0.1;
+  A = 0.1;
+  ak *= A;
   ak += Wn;
-  ///bk = Wn + 2.0 DeltaW
+  ///bk = Wn + 2. DeltaW
   bk = DeltaW;
-  bk *= 2.;
+  B = 2.;
+  bk *= B;
   bk += Wn;
   ///Interval = (bk-ak)
   Interval = bk; Interval -= ak;
@@ -60,31 +63,35 @@ void TPZNonLinearAnalysis::LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMa
     iter++;
     
     if (KeptVal != 0){
+      L = 0.382*(B-A)+A;
       ///lambdak = ak + 0.382*(bk-ak)
       lambdak = Interval; lambdak *= 0.382; lambdak += ak;
       ///computing residual
       this->LoadSolution(lambdak);
-//       this->Assemble();
       this->AssembleResidual();
       NormResLambda = Norm(fRhs);
     }
     
     if (KeptVal != 1){
       ///muk = ak + 0.618*(bk-ak)
+      M = 0.618*(B-A)+A;
       muk = Interval; muk *= 0.618; muk += ak;
       this->LoadSolution(muk);
-//       this->Assemble();
       this->AssembleResidual();
       NormResMu = Norm(fRhs);
     }
 
     if (NormResLambda > NormResMu){
+      A = L;
+      L = M;
       ak = lambdak;
       lambdak = muk;
       NormResLambda = NormResMu;
       KeptVal = 0;
     }
     else{
+      B = M;
+      M = L;
       bk = muk;
       muk = lambdak;
       NormResMu = NormResLambda;
@@ -94,9 +101,11 @@ void TPZNonLinearAnalysis::LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMa
     Interval = bk; Interval -= ak; error = Norm(Interval);
   }///while
 
+  double ALPHA = 0.5*(A + B);
   NextW = ak;
   NextW += bk;
   NextW *= 0.5;
+  
   
 #ifdef DEBUGLINESEARCH
   ///debug: valor do alpha
@@ -113,9 +122,17 @@ void TPZNonLinearAnalysis::LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMa
     }
   }
   REAL MeanAlpha = sum/ncontrib;
-  alphafile << MeanAlpha << "\t";
+  alphafile << MeanAlpha << "\t" << "ALPHA = " << ALPHA << "\n";
   alphafile.flush();
 #endif
+
+  if(ALPHA > 1.){ ///alpha shall be alpha <= 1
+    NextW = Wn;
+    NextW += DeltaW;
+#ifdef DEBUGLINESEARCH
+ alphafile << "ALPHA LIMIT APPLIED. Alpha = 1.\n";
+#endif
+  }
 
 }///void
 
@@ -132,7 +149,7 @@ void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter, b
    
 	TPZVec<REAL> coefs(1,1.);
 	TPZFMatrix range(numeq,1,0.01);
-// 	CheckConvergence(*this,fSolution,range,coefs);	
+	CheckConvergence(*this,fSolution,range,coefs);	
 	
    while(error > tol && iter < numiter) {
 
