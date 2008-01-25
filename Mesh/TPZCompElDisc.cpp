@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.101 2007-12-07 18:37:22 cesar Exp $
+//$Id: TPZCompElDisc.cpp,v 1.102 2008-01-25 14:29:16 tiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.101 2007-12-07 18:37:22 cesar Exp $
+//$Id: TPZCompElDisc.cpp,v 1.102 2008-01-25 14:29:16 tiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -174,6 +174,7 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
     return;
   }//if
   ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+  axes.Resize(3,3);
   axes.Identity();//discontinuous shape does not use axes
   ref->X(intpoint, X);
   this->Shape(intpoint,X,phi,dphix);
