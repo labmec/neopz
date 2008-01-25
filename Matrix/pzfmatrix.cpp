@@ -275,6 +275,7 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
     }
 
     #ifdef DEBUG2
+    int check = 0;
     for(int c = 0; c < QTDvec; c++)
     {
         double summ = 0.;
@@ -285,6 +286,7 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
         if(fabs(summ) < 0.00001)
         {
             cout << "Null Vector on Gram-Schmidt Method! Col = " << c << "\n";
+            check = 1;
         }
     }
     #endif
@@ -304,7 +306,10 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
             if(dotDown < 1.E-15) 
             { 
                 #ifdef DEBUG2
-                cout << "Parallel Vectors on Gram-Schmidt Method! Col = " << stop << "\n";
+                if(check == 0)
+                {
+                    cout << "Parallel Vectors on Gram-Schmidt Method! Col = " << stop << "\n";
+                }
                 #endif
 
                 for(int r = 0; r < QTDcomp; r++) 
