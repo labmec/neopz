@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.20 2008-01-22 19:18:12 caju Exp $
+//$Id: pzinterpolationspace.cpp,v 1.21 2008-01-31 13:12:12 caju Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -697,8 +697,8 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
   TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
   //end
   intrule.GetOrder(prevorder);
-#warning abaixo foi comentado, mas nao pode ir para o cvs
-//  intrule.SetOrder(maxorder);
+
+  intrule.SetOrder(maxorder);
 
   int ndof = material->NStateVariables();
   int nflux = material->NFluxes();
