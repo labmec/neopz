@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZShapeDisc.h,v 1.10 2007-11-29 11:41:46 phil Exp $
+// $Id: TPZShapeDisc.h,v 1.11 2008-02-05 20:58:27 tiago Exp $
 #ifndef SHAPEDISCHPP
 #define SHAPEDISCHPP
 
@@ -60,7 +60,7 @@ public:
 /**
  * Number of shapefunctions dependent on the dimension and order of interpolation
  */
-static int NDiscShapeF(int degree, int dimension, MShapeType type);
+static int NShapeF(int degree, int dimension, MShapeType type);
 /**
  * discontinous polynomials of the line element
  */
@@ -85,60 +85,6 @@ static void Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFM
  * discontinous bases of the three-dimensional elements 
  */
 static void Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type);
-
-  protected:
-/**
- * @param x:      coordinate of the point
- * @param SingularPoint: singular point coordinate
- * @param phi:    shapefunction values
- * @param dphi:   values of the derivatives of the shape functions
- * @param n:      number of derivatives to be computed
- * Remember when set this attribute to also set fNumberOfSingularFunctions.
- */  
-  void (*fSingularFunctions)(const TPZVec<REAL>& x, const TPZVec<REAL> &SingularPoint, TPZFMatrix & phi, TPZFMatrix & dphi, int n);
-
-/** Number of singular functions computed in void *fSingularFunctions.
- * It must be according to void *fSingularFunctions.
- */
-  int fNumberOfSingularFunctions;
-  
-/** Stores the singular side of the TPZCompElDisc element */  
-  int fSingularSide;
-
-  public:
-  
-  /** Computes the distance between two points */
-  static REAL Distance(const TPZVec<REAL>& A, const TPZVec<REAL> &B);  
-  
-
-/** Singular function of type phi = Sqrt[r] */
-static void SqrtFunction(const TPZVec<REAL>& pt, const TPZVec<REAL> &SingularPoint, TPZFMatrix & phi, TPZFMatrix & dphi, int n = 1);  
-  
-/**
- * Number of shapefunctions dependent on the dimension and order of interpolation
- */
-  int NShapeF(int degree, int dimension, TPZShapeDisc::MShapeType type);
-
-/**
- * Discontinous base functions
- */
-  void Shape(const TPZVec<REAL> &SingularPoint, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree, int dim, TPZFMatrix &phi,TPZFMatrix &dphi, TPZShapeDisc::MShapeType type);
-  void Shape(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree, int dim, TPZFMatrix &phi,TPZFMatrix &dphi, TPZShapeDisc::MShapeType type);
-
-/** Defines singular functions */
-  void SetSingularShapeFunction(void (*f)(const TPZVec<REAL>& x, const TPZVec<REAL> &SingularPoint, TPZFMatrix & phi, TPZFMatrix & dphi, int n),
-                                int NumberOfSingularFunctions,
-                                int SingularSide);
-
-/** Returns existence of singular shape function */
-  bool HasSingularFunction(){
-    return (fSingularFunctions != NULL);
-  }
-  
-  /** Returns attribue fSingularSide */
-  int SingularSide(){
-    return this->fSingularSide;
-  }
 
 };
 

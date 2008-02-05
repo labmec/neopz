@@ -353,21 +353,4 @@ int  TPZShapeDisc::NShapeF(int degree, int dimension, MShapeType type) {
   }
 }
 
-void TPZShapeDisc::Shape(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree, int dim, 
-                         TPZFMatrix &phi,TPZFMatrix &dphi, 
-                         TPZShapeDisc::MShapeType type){
-  if(dim == 0){
-    TPZShapeDisc::Shape0D(C,X0,X,degree,phi,dphi);
-  }
-  if(dim == 1){
-    TPZShapeDisc::Shape1D(C,X0,X,degree,phi,dphi);
-  }
-  if(dim == 2){
-    TPZShapeDisc::Shape2D/*Full*/(C,X0,X,degree,phi,dphi,type);
-  }
-  if(dim == 3){
-    TPZShapeDisc::Shape3D(C,X0,X,degree,phi,dphi,type);
-  }
-}
-
 };
