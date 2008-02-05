@@ -1,4 +1,4 @@
-//$Id: pzfunction.h,v 1.2 2008-02-05 21:02:55 tiago Exp $
+//$Id: pzfunction.h,v 1.3 2008-02-05 22:23:27 tiago Exp $
 
 #ifndef PZFUNCTION_H
 #define PZFUNCTION_H
@@ -37,6 +37,11 @@ public:
  /** Returns number of functions.
   */ 
   virtual int NFunctions() = 0;
+  
+  /** Polynomial order of this function. In case of non-polynomial
+   * function it can be a reasonable approximation order.
+   */
+  virtual int PolynomialOrder() = 0;
   
   /**
    * Unique identifier for serialization purposes
