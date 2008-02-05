@@ -1,4 +1,4 @@
-//$Id: pzfunction.h,v 1.1 2007-09-04 12:35:22 tiago Exp $
+//$Id: pzfunction.h,v 1.2 2008-02-05 21:02:55 tiago Exp $
 
 #ifndef PZFUNCTION_H
 #define PZFUNCTION_H
@@ -33,6 +33,10 @@ public:
    * @param df function derivatives
    */
   virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix &df) = 0;
+  
+ /** Returns number of functions.
+  */ 
+  virtual int NFunctions() = 0;
   
   /**
    * Unique identifier for serialization purposes
