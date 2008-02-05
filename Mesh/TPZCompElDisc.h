@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.66 2008-02-05 20:53:24 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.67 2008-02-05 21:44:26 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -19,6 +19,7 @@
 #include "tpzautopointer.h"
 #include "pzmaterial.h"
 #include "pzquad.h"
+#include "pzfunction.h"
 
 struct TPZElementMatrix;
 class TPZFMatrix;
@@ -53,6 +54,11 @@ protected:
    * Normalizing constant for shape functions
    */
   REAL fConstC;
+  
+  /** A pz function to allow the inclusion of extra shape functions
+   * which are defined externally.
+   */
+  TPZAutoPointer<TPZFunction> fExternalShape;
 
   protected:
 
@@ -68,6 +74,9 @@ protected:
   virtual int CreateMidSideConnect();
 
  public:
+ 
+  /** Define external shape functions which are stored in class attribute fExternalShape */
+  void SetExternalShapeFunction(TPZAutoPointer<TPZFunction> externalShapes);
 
   int GetMaterial( const TPZGeoElSide& gside );
 

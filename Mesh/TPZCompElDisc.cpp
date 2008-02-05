@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.103 2008-02-05 20:53:24 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.104 2008-02-05 21:44:26 tiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.103 2008-02-05 20:53:24 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.104 2008-02-05 21:44:26 tiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -61,14 +61,14 @@ TPZCompElDisc::~TPZCompElDisc() {
   }
 }
 
-TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fCenterPoint(3,0.)
+TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fExternalShape(), fCenterPoint(3,0.)
 {
   fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
   this->fIntRule = NULL;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
-		TPZInterpolationSpace(mesh,0,index), fCenterPoint(3) {
+		TPZInterpolationSpace(mesh,0,index), fExternalShape(), fCenterPoint(3){
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
   this->fIntRule = NULL;
 }
@@ -79,6 +79,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
   this->fIntRule = NULL;
   if (copy.fIntRule) this->GetIntegrationRule();
+  this->SetExternalShapeFunction(copy.fExternalShape);
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
@@ -95,6 +96,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
     this->fIntRule = NULL;
   }
   if (copy.fIntRule) this->GetIntegrationRule();
+  this->SetExternalShapeFunction(copy.fExternalShape);
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index) :
@@ -109,10 +111,11 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
   //as interfaces foram clonadas
   this->fIntRule = NULL;
   if (copy.fIntRule) this->GetIntegrationRule();
+  this->SetExternalShapeFunction(copy.fExternalShape);
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
-		TPZInterpolationSpace(mesh,ref,index), fCenterPoint(3) {
+		TPZInterpolationSpace(mesh,ref,index), fExternalShape(), fCenterPoint(3){
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
   this->fIntRule = NULL;
   switch(ref->Type()) {
@@ -214,6 +217,66 @@ void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
   if(dim == 3){
     TPZShapeDisc::Shape3D(fConstC,fCenterPoint,X,Degree,phi,dphi,fShapefunctionType);
   }
+  
+  ///adding external shape functions whether they exist
+  if(!this->fExternalShape.operator ->()) return;
+  
+  TPZFNMatrix<100> ThisPhi(phi), ThisDPhi(dphi);
+  TPZManVector<REAL> extPhi;
+  TPZFNMatrix<100> extDPhi;
+  
+  ///computing external shape functions
+  this->fExternalShape->Execute(X, extPhi, extDPhi);
+  
+  ///now appending all shape functions
+  {
+  
+  const int ndiscphi = ThisPhi.Rows();
+  const int nextphi = extPhi.NElements();
+  
+#ifdef DEBUG
+  if(ThisPhi.Cols() != 1){
+    PZError << "\nError at " << __PRETTY_FUNCTION__ << "\n";
+    DebugStop();
+  }
+#endif  
+  
+  phi.Resize(ndiscphi+nextphi,1);
+  phi.Zero();
+  for(int i = 0; i < ndiscphi; i++){
+    phi(i,0) = ThisPhi(i,0);
+  }
+  for(int i = 0; i < nextphi; i++){
+    phi(i+ndiscphi,0) = extPhi[i];
+  }
+  
+  } 
+  
+  {
+#ifdef DEBUG
+  if(ThisDPhi.Rows() != extDPhi.Rows()){
+    PZError << "\nError at " << __PRETTY_FUNCTION__ << "\n";
+    DebugStop();
+  }
+#endif
+
+  const int ndiscdphi = ThisDPhi.Cols();
+  const int nextdphi = extDPhi.Cols();
+  dphi.Resize(ThisDPhi.Rows(), ndiscdphi+nextdphi);
+  dphi.Zero();
+  for(int i = 0; i < dphi.Rows(); i++){
+    for(int j = 0; j < ndiscdphi; j++){
+      dphi(i,j) = ThisDPhi(i,j);
+    }
+  }
+  for(int i = 0; i < dphi.Rows(); i++){
+    for(int j = 0; j < nextdphi; j++){
+      dphi(i,j+ndiscdphi) = extDPhi(i,j);
+    }
+  }
+  
+  }
+  
 }///method
 
 void TPZCompElDisc::Print(std::ostream &out) {
@@ -302,8 +365,12 @@ int TPZCompElDisc::NShapeF(){
   if(fConnectIndex == -1) return 0;
   //deve ter pelo menos um connect
 
+  int nExtShape = 0;
+  if(fExternalShape.operator ->()) nExtShape = fExternalShape->NFunctions();
+  
   int dim = Dimension();
-  return TPZShapeDisc::NShapeF(this->Degree(),dim,fShapefunctionType);
+  return (TPZShapeDisc::NShapeF(this->Degree(),dim,fShapefunctionType) + nExtShape);  
+  
 }
 
 int TPZCompElDisc::NConnectShapeF(int inod){
@@ -681,6 +748,19 @@ void TPZCompElDisc::SetDegree(int degree) {
   if (fConnectIndex < 0) return;
   TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
   c.SetOrder(degree);
+  int seqnum = c.SequenceNumber();
+  int nvar = 1;
+  TPZAutoPointer<TPZMaterial> mat = Material();
+  if(mat) nvar = mat->NStateVariables();
+  int nshapef = this->NShapeF();
+  Mesh()->Block().Set(seqnum,nshapef*nvar);
+}
+
+void TPZCompElDisc::SetExternalShapeFunction(TPZAutoPointer<TPZFunction> externalShapes){
+  this->fExternalShape = externalShapes;
+  ///in order of ajust block size because NShapeF may have changed
+  if (fConnectIndex < 0) return;
+  TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
   int seqnum = c.SequenceNumber();
   int nvar = 1;
   TPZAutoPointer<TPZMaterial> mat = Material();
