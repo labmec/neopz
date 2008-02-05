@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.7 2007-05-11 13:35:44 cesar Exp $
+//$Id: pzinterpolationspace.h,v 1.8 2008-02-05 22:24:42 tiago Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -57,7 +57,7 @@ public:
   virtual int NConnectShapeF(int inod) = 0;
 
   /** Returns the max order of interpolation. */
-  int MaxOrder();
+  virtual int MaxOrder();
 
   /**computes the shape function set at the point x. This method uses the order of interpolation
    * of the element along the sides to compute the number of shapefunctions
@@ -167,6 +167,14 @@ public:
    */
   virtual void EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
                                TPZVec<REAL> &errors,TPZBlock * flux );
+                               
+  /** Compute the integral of the square residual over the element domain.
+   * For instance, let us take the Poisson's equation: -Laplac(u) = f.
+   * Then this method compute the integral of ( -Laplac(u) - f )^2.
+   * For the given example it is observed that approximation orders < 2 will
+   * not work properly since Laplac(u) is always = 0.
+   */
+  virtual REAL EvaluateSquareResidual();
 
   /**
    * ComputeError computes the element error estimator

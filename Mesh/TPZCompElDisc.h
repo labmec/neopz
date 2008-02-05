@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.67 2008-02-05 21:44:26 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.68 2008-02-05 22:23:58 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -248,6 +248,9 @@ protected:
    * it returns the shapes number of the element
    */
   virtual int NShapeF();
+  
+  /** Returns the max order of interpolation. */
+  virtual int MaxOrder();
 
   /**returns the number of shapefunctions associated with a connect*/
   virtual int NConnectShapeF(int inod);

@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.104 2008-02-05 21:44:26 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.105 2008-02-05 22:23:58 tiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.104 2008-02-05 21:44:26 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.105 2008-02-05 22:23:58 tiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -880,6 +880,16 @@ TPZIntPoints &TPZCompElDisc::GetIntegrationRule(){
   }
   return *fIntRule;
 }
+
+int TPZCompElDisc::MaxOrder(){
+  int result = TPZInterpolationSpace::MaxOrder();
+  if(this->fExternalShape.operator ->()){
+    int extOrder = this->fExternalShape->PolynomialOrder();
+    if(extOrder > result) result = extOrder;
+  }
+  return result;
+}
+
 
 
 
