@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.65 2007-11-29 18:19:28 phil Exp $
+//$Id: TPZCompElDisc.h,v 1.66 2008-02-05 20:53:24 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -35,14 +35,7 @@ class TPZCompMesh;
 */
 class TPZCompElDisc : public TPZInterpolationSpace{
 
-public:
-  void SetSingularShapeFunction(void (*f)(const TPZVec<REAL>& x, const TPZVec<REAL> &SingularPoint, TPZFMatrix & phi, TPZFMatrix & dphi, int n),
-                                int NumberOfSingularFunctions,
-                                int SingularSide);
-
 protected:
-
-  pzshape::TPZShapeDisc fShape;
 
   TPZIntPoints * fIntRule;
 
@@ -177,9 +170,7 @@ protected:
   virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv,
                             TPZFMatrix &phi, TPZFMatrix &dphix);
 
-  /** @deprecated 
-   * Deprecated shape function method. It is kept because of TPZAgglomerateElement.
-   * It does not include singular shape functions if they exist.
+  /**
    */
   void ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
 

@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.102 2008-01-25 14:29:16 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.103 2008-02-05 20:53:24 tiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.102 2008-01-25 14:29:16 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.103 2008-02-05 20:53:24 tiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -61,20 +61,20 @@ TPZCompElDisc::~TPZCompElDisc() {
   }
 }
 
-TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fShape(), fCenterPoint(3,0.)
+TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fCenterPoint(3,0.)
 {
   fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
   this->fIntRule = NULL;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
-		TPZInterpolationSpace(mesh,0,index), fShape(), fCenterPoint(3) {
+		TPZInterpolationSpace(mesh,0,index), fCenterPoint(3) {
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
   this->fIntRule = NULL;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
-    TPZInterpolationSpace(mesh,copy), fShape(copy.fShape), fConnectIndex(copy.fConnectIndex), fConstC(copy.fConstC), fCenterPoint(copy.fCenterPoint) {
+    TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(copy.fConstC), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
   this->fIntRule = NULL;
@@ -85,7 +85,6 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
                              const TPZCompElDisc &copy,
                              std::map<int,int> &gl2lcConMap,
                              std::map<int,int> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy),
-                                                              fShape(copy.fShape),
                                                               fCenterPoint(copy.fCenterPoint)
 {
   fShapefunctionType = copy.fShapefunctionType;
@@ -99,7 +98,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index) :
-                             TPZInterpolationSpace(mesh,copy,index), fShape(copy.fShape), fCenterPoint(copy.fCenterPoint) {
+                             TPZInterpolationSpace(mesh,copy,index), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
   //criando nova malha computacional
   Reference()->SetReference(this);
@@ -113,7 +112,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
-		TPZInterpolationSpace(mesh,ref,index), fShape(), fCenterPoint(3) {
+		TPZInterpolationSpace(mesh,ref,index), fCenterPoint(3) {
   fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
   this->fIntRule = NULL;
   switch(ref->Type()) {
@@ -195,37 +194,27 @@ void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix &phi,TPZF
     return;
   }
 
-  const int dim = this->Dimension();
-
-  if (this->fShape.HasSingularFunction()){
-    TPZManVector<REAL,3> SingularPoint(3), qsiSP(dim,-9.);
-    TPZGeoEl *ref = this->Reference();
-    const int SingSide = this->fShape.SingularSide();
-    const int nnodes = ref->NCornerNodes();
-    if (SingSide < nnodes){///singularity is around a node
-      ref->CenterPoint(SingSide, qsiSP);
-    }
-    else{///if singularity is around a rib or a face, then it is more difficult
-      TPZTransform transf;
-      transf = ref->SideToSideTransform(ref->NSides()-1,SingSide);
-      transf = ref->SideToSideTransform(SingSide, ref->NSides()-1).Multiply(transf);
-      transf.Apply(qsi, qsiSP);
-    }
-    ref->X(qsiSP, SingularPoint);
-    this->fShape.Shape(SingularPoint, fConstC,fCenterPoint,X,Degree,dim,phi,dphi,fShapefunctionType);
-  }
-  else{
-    this->fShape.Shape(fConstC,fCenterPoint,X,Degree,dim,phi,dphi,fShapefunctionType);
-  }
+  this->ShapeX(X, phi, dphi);
 
 }
 
-///@deprecated
 void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
   const int Degree = this->Degree();
   if(Degree < 0) return;
-  this->fShape.Shape(fConstC,fCenterPoint,X,Degree,this->Dimension(),phi,dphi,fShapefunctionType);
-}//method
+  const int dim = this->Dimension();
+  if(dim == 0){
+    TPZShapeDisc::Shape0D(fConstC,fCenterPoint,X,Degree,phi,dphi);
+  }
+  if(dim == 1){
+    TPZShapeDisc::Shape1D(fConstC,fCenterPoint,X,Degree,phi,dphi);
+  }
+  if(dim == 2){
+    TPZShapeDisc::Shape2D/*Full*/(fConstC,fCenterPoint,X,Degree,phi,dphi,fShapefunctionType);
+  }
+  if(dim == 3){
+    TPZShapeDisc::Shape3D(fConstC,fCenterPoint,X,Degree,phi,dphi,fShapefunctionType);
+  }
+}///method
 
 void TPZCompElDisc::Print(std::ostream &out) {
 
@@ -314,7 +303,7 @@ int TPZCompElDisc::NShapeF(){
   //deve ter pelo menos um connect
 
   int dim = Dimension();
-  return this->fShape.NShapeF(this->Degree(),dim,fShapefunctionType);
+  return TPZShapeDisc::NShapeF(this->Degree(),dim,fShapefunctionType);
 }
 
 int TPZCompElDisc::NConnectShapeF(int inod){
@@ -692,21 +681,6 @@ void TPZCompElDisc::SetDegree(int degree) {
   if (fConnectIndex < 0) return;
   TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
   c.SetOrder(degree);
-  int seqnum = c.SequenceNumber();
-  int nvar = 1;
-  TPZAutoPointer<TPZMaterial> mat = Material();
-  if(mat) nvar = mat->NStateVariables();
-  int nshapef = this->NShapeF();
-  Mesh()->Block().Set(seqnum,nshapef*nvar);
-}
-
-void TPZCompElDisc::SetSingularShapeFunction(void (*f)(const TPZVec<REAL>& x, const TPZVec<REAL> &SingularPoint, TPZFMatrix & phi, TPZFMatrix & dphi, int n),
-                                             int NumberOfSingularFunctions,
-                                             int SingularSide){
-  this->fShape.SetSingularShapeFunction(f,NumberOfSingularFunctions,SingularSide);
-  ///in order of ajust block size because NShapeF may have changed
-  if (fConnectIndex < 0) return;
-  TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
   int seqnum = c.SequenceNumber();
   int nvar = 1;
   TPZAutoPointer<TPZMaterial> mat = Material();
