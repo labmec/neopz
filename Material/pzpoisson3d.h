@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.28 2007-12-07 13:47:48 cesar Exp $
+//$Id: pzpoisson3d.h,v 1.29 2008-02-06 12:44:09 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -195,6 +195,14 @@ public:
 
   virtual void ContributeInterface(TPZMaterialData &data,REAL weight,
 				   TPZFMatrix &ek,TPZFMatrix &ef);
+
+  /**
+   * Compute square of residual of the differential equation at one integration point.
+   * @param X is the point coordinate (x,y,z)
+   * @param sol is the solution vector
+   * @param dsol is the solution derivative with respect to x,y,z as computed in TPZShapeDisc::Shape2DFull
+   */   
+  virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 
 
   void InterfaceErrors(TPZVec<REAL> &/*x*/,

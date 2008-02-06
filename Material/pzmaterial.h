@@ -237,6 +237,17 @@ private:
                                   int &errorid){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
       }
+  
+  /**
+   * Compute square of residual of the differential equation at one integration point.
+   * @param X is the point coordinate (x,y,z)
+   * @param sol is the solution vector
+   * @param dsol is the solution derivative with respect to x,y,z as computed in TPZShapeDisc::Shape2DFull
+   */    
+  virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
+    return -1.;
+  }
 
   /**
    * Unique identifier for serialization purposes

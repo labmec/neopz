@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.31 2008-01-07 16:36:31 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.32 2008-02-06 12:44:09 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -850,6 +850,29 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
   //values[0] : erro em norma H1 <=> norma Energia
   values[0]  = values[1]+values[2];
 }
+
+REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+// residual = -fK Laplac(u) + fC * div(fConvDir*u) - (-fXf)
+  if(fForcingFunction) {
+    TPZManVector<REAL> res(1);
+    fForcingFunction(X,res);
+    fXf = res[0];
+  }
+  
+  REAL laplacU;
+  REAL divBetaU;
+  if(this->Dimension() == 1){
+    laplacU = dsol(0,1);
+    divBetaU = this->fC * this->fConvDir[0] * dsol(0,0);
+  }
+  if(this->Dimension() == 2){
+    laplacU = dsol(0,2);
+    divBetaU = this->fC * ( this->fConvDir[0] * dsol(0,0) + this->fConvDir[1] * dsol(0,1) );
+  } 
+  
+  REAL result = -this->fK * laplacU + divBetaU - (-fXf);
+  return (result*result);
+}///method
 
 int TPZMatPoisson3d::ClassId() const{
   return TPZMATPOISSON3D;
