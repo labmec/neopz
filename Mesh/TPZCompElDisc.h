@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.68 2008-02-05 22:23:58 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.69 2008-02-06 12:43:09 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -356,7 +356,14 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    */
   virtual void PRefine ( int order ) { SetDegree( order ); }
 
-
+  /** Compute the integral of the square residual over the element domain.
+   * For instance, let us take the Poisson's equation: -Laplac(u) = f.
+   * Then this method compute the integral of ( -Laplac(u) - f )^2.
+   * For the given example it is observed that approximation orders < 2 will
+   * not work properly since Laplac(u) is always = 0.
+   * It works only for elements that lay in the same space dimension of the master element.
+   */
+  static REAL EvaluateSquareResidual2D(TPZInterpolationSpace *cel);
 
 };
 

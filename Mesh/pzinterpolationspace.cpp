@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.22 2008-02-05 22:24:42 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.23 2008-02-06 12:42:40 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -1119,10 +1119,32 @@ void TPZInterpolationSpace::Read(TPZStream &buf, void *context)
   buf.Read(&fPreferredOrder,1);
 }
 
-REAL TPZInterpolationSpace::EvaluateSquareResidual(){
-///please implement me
- ///fazer uma mudanca de base da solucao do elemento para uma base em XYZ.
- /// Para cada ponto de integracao calcular a derivada e o laplaciano da funcao e chamar um metodo do material
- /// (metodo que ainda nao existe) para contribuir o residuo ao quadrado
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

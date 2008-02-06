@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.8 2008-02-05 22:24:42 tiago Exp $
+//$Id: pzinterpolationspace.h,v 1.9 2008-02-06 12:42:40 tiago Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -168,14 +168,6 @@ public:
   virtual void EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
                                TPZVec<REAL> &errors,TPZBlock * flux );
                                
-  /** Compute the integral of the square residual over the element domain.
-   * For instance, let us take the Poisson's equation: -Laplac(u) = f.
-   * Then this method compute the integral of ( -Laplac(u) - f )^2.
-   * For the given example it is observed that approximation orders < 2 will
-   * not work properly since Laplac(u) is always = 0.
-   */
-  virtual REAL EvaluateSquareResidual();
-
   /**
    * ComputeError computes the element error estimator
    */

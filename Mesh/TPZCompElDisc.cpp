@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.105 2008-02-05 22:23:58 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.106 2008-02-06 12:43:09 tiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.105 2008-02-05 22:23:58 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.106 2008-02-06 12:43:09 tiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -889,6 +889,66 @@ int TPZCompElDisc::MaxOrder(){
   }
   return result;
 }
+
+REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
+
+  if (cel->NConnects() == 0) return 0.;///boundary discontinuous elements have this characteristic
+  
+  cel->LoadElementReference();
+
+  ///creating discontinuous element
+  int index;
+  TPZCompElDisc * disc = NULL;
+  TPZCompElDisc * cel_disc = dynamic_cast<TPZCompElDisc*>(cel);
+  if(cel_disc){
+    disc = new TPZCompElDisc(*cel_disc->Mesh(), *cel_disc);
+  }
+  else{
+    TPZCompElDisc * disc = new TPZCompElDisc(*cel->Mesh(), cel->Reference(), index);
+    disc->SetDegree( cel->MaxOrder() );
+  }
+  disc->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
+  
+  ///interpolating solution - indeed it is a change of basis
+  disc->InterpolateSolution(*cel);
+
+  ///integrating residual
+  TPZAutoPointer<TPZMaterial> material = disc->Material();
+  if(!material){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+    DebugStop();
+    return -1.;
+  }
+  
+  const int dim = disc->Dimension();
+  TPZIntPoints &intrule = cel->GetIntegrationRule();
+  if(material->HasForcingFunction()) {
+    TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
+    intrule.SetOrder(order);
+  }
+  
+  TPZMaterialData data;
+  disc->InitMaterialData(data);
+  data.p = disc->MaxOrder();
+  TPZManVector<REAL,3> intpoint(dim,0.);
+  REAL weight = 0.; 
+
+  REAL SquareResidual = 0.;
+  int intrulepoints = intrule.NPoints();
+  for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+    intrule.Point(int_ind,intpoint,weight);
+    disc->ComputeSolution(intpoint, data.sol, data.dsol, data.axes);
+    disc->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+    disc->Reference()->X(intpoint, data.x);
+    weight *= fabs(data.detjac);
+    SquareResidual += material->ComputeSquareResidual(data.x,data.sol,data.dsol) * weight;
+  }///loop over integration points  
+
+  delete disc;
+  cel->LoadElementReference();
+  return SquareResidual;
+  
+}///method
 
 
 
