@@ -18,12 +18,13 @@
 #include "pzl2projection.h"
 #include "tpzautopointer.h"
 #include "pzanalysis.h"
+#include "TExtFunction.h"
 using namespace std;
 using namespace pzshape;
 
 int main(){
   TPZGeoMesh *gmesh = new TPZGeoMesh;
-  REAL co[4][2] = {{-0.5,-0.2},{2,-0.2},{2,3},{-0.5,3}};
+  REAL co[4][2] = {{-0.5,-0.2},{2.,-0.2},{2.,3.},{-0.5,3.}};
   for(int nod = 0; nod < 4; nod++){
     int nodind = gmesh->NodeVec().AllocateNewElement();
     TPZManVector<REAL,2> coord(2);
@@ -54,11 +55,8 @@ int main(){
   cmesh->AutoBuild();
   cout << "\ncmesh->NElements() = " << cmesh->NElements() << "\n";
   TPZCompElDisc * cel = dynamic_cast<TPZCompElDisc*>(cmesh->ElementVec()[0]);
-  int side;
-  cout << "\nEntre com o lado singular: ";
-  cin >> side;
-  cel->SetSingularShapeFunction(TPZShapeDisc::SqrtFunction,1,side); 
-  
+  TPZAutoPointer<TPZFunction> extShapes = new TExtFunction();
+  cel->SetExternalShapeFunction(extShapes);  
   TPZVec<int> ord(3,10);
   cel->GetIntegrationRule().SetOrder(ord);
   const int npoints = cel->GetIntegrationRule().NPoints();
@@ -96,7 +94,7 @@ int main(){
     TPZVec<char *> vecnames(0);
     char plotfile[] = "singular.dx";
     an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
-    an.PostProcess(4);  
+    an.PostProcess(8);  
   }
   delete cmesh;
   delete gmesh;

@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.61 2007-12-13 13:01:46 caju Exp $
+dnl $Id: configure.in,v 1.62 2008-02-06 18:19:03 tiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -553,7 +553,7 @@ Projects/DiffusionTest/Makefile Projects/Error/Makefile Projects/visualmatrix/Ma
 Projects/LuisGuilherme/Makefile \
 Projects/termica/Makefile Projects/NonLinBiharmonic/Makefile Projects/Heman/Makefile Projects/testgeom/Makefile \
 Projects/checkconv/Makefile Projects/HyperElasticityFAD/Makefile Projects/ConsLaw/Makefile Projects/Descontinuo2/Makefile \
-Projects/testshape/Makefile Projects/testmat/Makefile Projects/viga3d/Makefile Projects/ReadTetGen/Makefile ])
+Projects/testshape/Makefile Projects/testmat/Makefile Projects/viga3d/Makefile Projects/ReadTetGen/Makefile Projects/SingularShapeFunction/Makefile ])
 
 PZ_BYEBYE
 

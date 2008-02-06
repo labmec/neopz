@@ -17,5 +17,5 @@ bin_PROGRAMS = main
 
 ## --| NeoPZ |------------------------------------------------------------------
 
-main_SOURCES = main.cpp
+main_SOURCES = main.cpp TExtFunction.cpp
 
