@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.23 2008-02-06 12:42:40 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.24 2008-02-07 11:17:24 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -201,6 +201,8 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
   }
 
   this->InitializeElementMatrix(ef);
+
+  if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
 
   TPZMaterialData data;
   this->InitMaterialData(data);
