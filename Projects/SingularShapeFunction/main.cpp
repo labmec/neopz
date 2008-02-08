@@ -22,7 +22,8 @@
 using namespace std;
 using namespace pzshape;
 
-int main(){
+/** Acrescenta uma funcao de forma singular */
+int main1(){
   TPZGeoMesh *gmesh = new TPZGeoMesh;
   REAL co[4][2] = {{-0.5,-0.2},{2.,-0.2},{2.,3.},{-0.5,3.}};
   for(int nod = 0; nod < 4; nod++){
@@ -96,6 +97,224 @@ int main(){
     an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
     an.PostProcess(8);  
   }
+  delete cmesh;
+  delete gmesh;
+  return 0;
+}
+
+/** Disco com furo no meio - problema de Poisson */
+#include "pzpoisson3d.h"
+#include "tpzautopointer.h"
+#include "pzbndcond.h"
+#include "pzanalysis.h"
+#include "pzfstrmatrix.h"
+#include "pzskylstrmatrix.h"
+#include "TPZParFrontStructMatrix.h"
+#include "TPZParFrontMatrix.h"
+#include "TPZFrontNonSym.h"
+#include "pzstepsolver.h"
+#include "TDiscoFunction.h"
+#include "TPZCopySolve.h"
+
+void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
+  u.Resize(1);
+  deriv.Resize(2,1);
+  double Xp = x[0];
+  double Yp = x[1];
+  double r = sqrt( pow(Xp,2) + pow(Yp,2) );
+  if(r < 1e-6) r = 1e-6;
+  
+  u[0] = 8.148974294721926 + 2.6704656055626725*log(r);
+  deriv(0,0) = (2.6704656055626725*Xp)/(r*r);
+  deriv(1,0) = (2.6704656055626725*Yp)/(r*r);
+}
+
+void Dirichlet(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+  TPZFNMatrix<2> deriv(2,1);
+  ExactSolution(x,f,deriv);
+}
+
+void LoadFunction(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+  f.Resize(1);
+  f[0] = 0.;
+}
+
+void UniformRefinement(const int dim, TPZGeoMesh &gmesh){
+  TPZManVector<TPZGeoEl*> filhos;
+  int n = gmesh.NElements();
+  for(int i = 0; i < n; i++){
+    TPZGeoEl * gel = gmesh.ElementVec()[i];
+    if(!gel) continue;
+    if(gel->Dimension() != dim) continue;
+    if(gel->HasSubElement()) continue;
+    gel->Divide(filhos);
+  }
+}
+
+int main(){
+
+  const int nnodes = 20;
+  const double scaleFuro = 1e-1;
+  REAL co[nnodes][2] = {{2., 0.}, {1.618033988749895,1.1755705045849463}, {0.6180339887498949, 1.902113032590307}, 
+   {-0.6180339887498949, 1.902113032590307}, {-1.618033988749895, 1.1755705045849463}, {-2., 0.},
+   {-1.618033988749895, -1.1755705045849463},{-0.6180339887498949, -1.902113032590307}, {0.6180339887498949,-1.902113032590307},
+   {1.618033988749895, -1.1755705045849463},
+   
+    {0.1*scaleFuro, 0.*scaleFuro}, {0.08090169943749476*scaleFuro , 0.058778525229247314*scaleFuro }, {0.030901699437494747*scaleFuro ,   0.09510565162951536*scaleFuro }, 
+    {-0.030901699437494747*scaleFuro ,   0.09510565162951536*scaleFuro }, {-0.08090169943749476*scaleFuro ,   0.058778525229247314*scaleFuro }, 
+    {-0.1*scaleFuro ,   0.*scaleFuro }, {-0.08090169943749476*scaleFuro , -0.058778525229247314*scaleFuro }, {-0.030901699437494747*scaleFuro , -0.09510565162951536*scaleFuro }, 
+    {0.030901699437494747*scaleFuro , -0.09510565162951536*scaleFuro }, {0.08090169943749476*scaleFuro , -0.058778525229247314*scaleFuro }};
+   
+  const int nelem = 10; 
+  int indices[nelem][4] = {{0,1,11,10},{1,2,12,11},{2,3,13,12},{3,4,14,13},{4,5,15,14},{5,6,16,15},{6,7,17,16},{7,8,18,17},{8,9,19,18},{9,0,10,19}};
+  const int nelbc = 20;
+  int contorno[nelbc][3] = {{0,1,-2},{1,2,-2},{2,3,-2},{3,4,-2},{4,5,-2},{5,6,-2},{6,7,-2},{7,8,-2},{8,9,-2},{9,0,-2},{10,11,-3},{11,12,-3},{12,13,-3},
+                            {13,14,-3},{14,15,-3},{15,16,-3},{16,17,-3},{17,18,-3},{18,19,-3},{19,10,-3}};
+
+
+  TPZGeoMesh *gmesh = new TPZGeoMesh();
+  for(int nod=0; nod<nnodes; nod++) {
+    int nodind = gmesh->NodeVec().AllocateNewElement();
+    TPZManVector<REAL,2> coord(2);
+    coord[0] = co[nod][0];
+    coord[1] = co[nod][1];
+    gmesh->NodeVec()[nodind].Initialize(nod,coord,*gmesh);
+  }
+
+  const int matid = 1;
+  for(int el=0; el<nelem; el++) {
+    TPZManVector<int,4> nodind(4);
+    for(int nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
+    int index;
+    gmesh->CreateGeoElement(EQuadrilateral,nodind,matid,index);
+  }
+
+  for(int el=0; el<nelbc; el++) {
+    TPZManVector<int,2> nodind(2);
+    for(int nod=0; nod<2; nod++) nodind[nod]=contorno[el][nod];
+    int bcmatid = contorno[el][2];
+    int index;
+    gmesh->CreateGeoElement(EOned,nodind,bcmatid,index);
+  }
+
+
+  gmesh->BuildConnectivity();
+  for(int ir = 0; ir < 4; ir++){
+    UniformRefinement(2,*gmesh);
+    UniformRefinement(1,*gmesh);
+  }
+  TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+  
+  cmesh->SetDimModel(2);
+  
+  TPZAutoPointer<TPZMaterial> mat = new TPZMatPoisson3d(matid, 2);
+//   mat->SetForcingFunction( LoadFunction );
+  TPZMatPoisson3d * matcast = dynamic_cast<TPZMatPoisson3d*>(mat.operator->());
+  matcast->fPenaltyConstant = 1.;
+  matcast->SetSolutionPenalty();
+//   matcast->SetFluxPenalty();
+//   matcast->SetBothPenalty();
+//   matcast->SetSymmetric();
+
+  TPZManVector<REAL,2> convdir(2,0.);
+  REAL diff = 1.;
+  matcast->SetParameters(diff, 0., convdir);
+  int nstate = 1;
+  TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,10.);
+  TPZAutoPointer<TPZMaterial> bcFora ( mat->CreateBC(mat,-2, 0,val1,val2) );
+  val2(0,0) = 2.;
+  TPZAutoPointer<TPZMaterial> bcDentro = mat->CreateBC(mat,-3, 0,val1,val2);
+  
+  bcFora->SetForcingFunction(Dirichlet);
+  bcDentro->SetForcingFunction(Dirichlet);
+  
+  cmesh->InsertMaterialObject(mat);
+  cmesh->InsertMaterialObject(bcFora);
+  cmesh->InsertMaterialObject(bcDentro);
+  
+  TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+  const int p = 0;
+  TPZCompEl::SetgOrder(p);
+  cmesh->SetDefaultOrder(p);
+  cmesh->AutoBuild();
+  TPZCompElDisc::SetTotalOrderShape();
+  
+  TPZAutoPointer<TPZFunction> ExternalShapes = new TDiscoFunction();
+  for(int iel = 0; iel < cmesh->NElements(); iel++){
+    TPZCompEl * cel = cmesh->ElementVec()[iel];
+    if(!cel) continue;
+    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cel);
+    if(!disc) continue;
+    disc->SetExternalShapeFunction(ExternalShapes);    
+  }
+  
+
+  TPZAnalysis an(cmesh);
+  /*TPZFStructMatrix*/TPZFrontStructMatrix<TPZFrontNonSym> matrix(cmesh);
+  an.SetStructuralMatrix(matrix);
+  TPZStepSolver step;
+  
+#define DIRETO
+#ifdef DIRETO  
+    step.SetDirect(ELU); 
+#else 
+//       TPZCopySolve precond( matrix.Create()  );
+      TPZFMatrix fakeRhs;
+      TPZStepSolver precond(matrix.CreateAssemble(fakeRhs));
+      precond.SetDirect(ELU);
+//       step.ShareMatrix( precond );  
+      step.SetGMRES( 3000, 30, precond, 1.e-15, 0 );
+#endif  
+  
+  
+  an.SetSolver(step);  
+  cout << "Numero de equacoes = " << cmesh->NEquations() << std::endl;
+  cout << "Banda = " << cmesh->BandWidth() << "\n";
+  cout.flush();
+  an.Assemble();
+  
+  /** checando residuo da sol exata descontinua */
+            TPZFMatrix mySol = an.Rhs();
+            int nshapeperel = TPZShapeDisc::NShapeF(p,2,TPZShapeDisc::EOrdemTotal)+ExternalShapes->NFunctions();
+            const int ndiscel = mySol.Rows() / nshapeperel;
+            mySol.Zero();
+            for(int i = 0; i < ndiscel; i++){
+              int pos = (i+1)*nshapeperel - 1; 
+              mySol(pos, 0) = 2.6704656055626725;
+              pos = (i+1)*nshapeperel - 2;
+              mySol(pos, 0) = 8.148974294721926;
+            }
+            TPZFMatrix myRhs;
+            an.Solver().Matrix()->Multiply(mySol, myRhs);
+            myRhs -= an.Rhs();
+            ofstream residuofile("residuo.txt");
+            myRhs.Print("myRhs",residuofile);
+            ofstream rigfile("rigidez.nb");
+            an.Solver().Matrix()->Print("rigidez=",rigfile,EMathematicaInput);
+  /** ate aqui */
+  
+  
+  an.Solve();
+  
+      an.SetExact(ExactSolution);
+      TPZVec<REAL> pos;
+      ofstream errorfile("erro.txt");
+      an.PostProcess(pos,errorfile);
+      errorfile << "Numero de equacoes = " << cmesh->NEquations() << std::endl;
+      errorfile << "Banda = " << cmesh->BandWidth() << "\n";
+      errorfile.flush();  
+  
+  ofstream solfile("solucao.txt");
+  an.Solution().Print("solucao",solfile);
+  
+  TPZVec<char *> scalnames(1);
+  scalnames[0] = "Solution";
+  TPZVec<char *> vecnames(1);
+  vecnames[0] = "Derivate";
+  char plotfile[] = "singular.dx";
+  an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
+  an.PostProcess(2);  
+
   delete cmesh;
   delete gmesh;
   return 0;
