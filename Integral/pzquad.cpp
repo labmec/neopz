@@ -312,11 +312,11 @@ TPZIntRuleT::TPZIntRuleT(int precision){
   int rule = 0;
   if (precision ==  0 || precision == 1) rule = 1;//fNumInt =  1;//integra constantes
   else if (precision <=  2) rule = 2;
-  else if (precision <=  4) rule = 4;//fNumInt =  3;//integra até grau  2 : cte, x, y, xy, x2, y2
-  else if (precision <=  6) rule = 6;//fNumInt =  4;//integra até grau  4 : anteriores + x3,x4,xy2,x2y,y3,y4
-  else if (precision <=  8) rule = 8;//fNumInt = 13;//integra até grau  6 : anteriores + etc
-  else if (precision <=  10) rule = 10;//fNumInt = 25;//integra até grau  8
-  else if (precision <=  12) rule = 12;//fNumInt = 30;//integra até grau 10
+  else if (precision <=  4) rule = 4;//fNumInt =  3;//integra atï¿½ grau  2 : cte, x, y, xy, x2, y2
+  else if (precision <=  6) rule = 6;//fNumInt =  4;//integra atï¿½ grau  4 : anteriores + x3,x4,xy2,x2y,y3,y4
+  else if (precision <=  8) rule = 8;//fNumInt = 13;//integra atï¿½ grau  6 : anteriores + etc
+  else if (precision <=  10) rule = 10;//fNumInt = 25;//integra atï¿½ grau  8
+  else if (precision <=  12) rule = 12;//fNumInt = 30;//integra atï¿½ grau 10
   else if (precision <=  14) rule = 14;
   else if (precision <=  16) rule = 17;
   else if (precision <=  18) rule = 19;
@@ -2181,11 +2181,19 @@ TPZIntRuleList::~TPZIntRuleList(){
 //***************************************
 TPZIntRule* TPZIntRuleList::GetRule(int fNumInt) {
 
-  if (fNumInt < 0 || fNumInt > intavail) {
-    PZError << "\nERROR(TPZIntRuleList::getrule)-> Numint = " << fNumInt;
+  if (fNumInt < 0 || fNumInt >= intavail) {
+  
+    static bool verbose = true;
+    if(verbose){  
+      PZError << "\nERROR(TPZIntRuleList::getrule)-> Numint = " << fNumInt;
+    }
     //		PZError.show();
-    fNumInt = intavailT-1;
-    PZError << "\n                     precision obtained = " << fNumInt;
+    fNumInt = intavail-1;
+    if(verbose){
+      PZError << "\n                     precision obtained = " << fNumInt << "\n";
+      PZError.flush();
+      verbose = false;
+    }
     //return NULL;
   }
   if(fNumInt == 0) fNumInt = 1;
@@ -2687,7 +2695,7 @@ else if (precision == 8)  fNumInt = 150;//integra de grau 8
 
     break;
 
-  case 24://integra até grau 4
+  case 24://integra atï¿½ grau 4
 
     fLocationKsi[0]  = 0.056715233422327;
     fLocationEta[0]  = 0.006358305388836;
