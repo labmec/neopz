@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.32 2008-02-06 12:44:09 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.33 2008-02-08 14:11:14 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -258,6 +258,8 @@ int TPZMatPoisson3d::NSolutionVariables(int var){
 }
 
 void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
+
+  Solout.Resize( this->NSolutionVariables( var ) );
 
   if(var == 1){
     Solout[0] = Sol[0];//function
