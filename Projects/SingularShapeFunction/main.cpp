@@ -151,6 +151,29 @@ void UniformRefinement(const int dim, TPZGeoMesh &gmesh){
   }
 }
 
+void LocalRefinement(const int dim, const int matid, TPZGeoMesh &gmesh){
+  TPZManVector<TPZGeoEl*> filhos;
+  int n = gmesh.NElements();
+  for(int i = 0; i < n; i++){
+    TPZGeoEl * gel = gmesh.ElementVec()[i];
+    if(!gel) continue;
+    if(gel->Dimension() != dim) continue;
+    if(gel->HasSubElement()) continue;
+    bool refine = false;
+    for(int is = 0; is < gel->NSides(); is++){
+      TPZGeoElSide neig = gel->Neighbour(is);
+      while(neig.Element() != gel){
+        if(neig.Element()->MaterialId() == matid){
+          refine = true;
+          break;
+        }
+        neig = neig.Neighbour();
+      }
+    }
+    if (refine) gel->Divide(filhos);
+  }
+}
+
 int main(){
 
   const int nnodes = 20;
@@ -199,9 +222,12 @@ int main(){
 
 
   gmesh->BuildConnectivity();
-  for(int ir = 0; ir < 4; ir++){
-    UniformRefinement(2,*gmesh);
-    UniformRefinement(1,*gmesh);
+  
+  const int p = 0;
+  const int h = 2;  
+  for(int ir = 0; ir < h; ir++){
+    UniformRefinement(2,*gmesh); UniformRefinement(1,*gmesh);
+    LocalRefinement(2,-3,*gmesh);
   }
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
   
@@ -233,7 +259,7 @@ int main(){
   cmesh->InsertMaterialObject(bcDentro);
   
   TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
-  const int p = 0;
+
   TPZCompEl::SetgOrder(p);
   cmesh->SetDefaultOrder(p);
   cmesh->AutoBuild();
@@ -250,20 +276,18 @@ int main(){
   
 
   TPZAnalysis an(cmesh);
-  /*TPZFStructMatrix*/TPZFrontStructMatrix<TPZFrontNonSym> matrix(cmesh);
+  TPZFStructMatrix /*TPZFrontStructMatrix<TPZFrontNonSym>*/ matrix(cmesh);
   an.SetStructuralMatrix(matrix);
   TPZStepSolver step;
   
-#define DIRETO
+// #define DIRETO
 #ifdef DIRETO  
     step.SetDirect(ELU); 
 #else 
-//       TPZCopySolve precond( matrix.Create()  );
-      TPZFMatrix fakeRhs;
-      TPZStepSolver precond(matrix.CreateAssemble(fakeRhs));
-      precond.SetDirect(ELU);
-//       step.ShareMatrix( precond );  
-      step.SetGMRES( 3000, 30, precond, 1.e-15, 0 );
+//       TPZCopySolve precond( matrix.Create()  );step.ShareMatrix( precond );  
+      TPZFMatrix fakeRhs(cmesh->NEquations(),1);TPZFrontStructMatrix<TPZFrontNonSym> PrecondMatrix(cmesh); TPZStepSolver precond(PrecondMatrix.CreateAssemble(fakeRhs));precond.SetDirect(ELU);
+      
+      step.SetGMRES( 3000, 650, precond, 1.e-18, 0 );
 #endif  
   
   
@@ -274,6 +298,7 @@ int main(){
   an.Assemble();
   
   /** checando residuo da sol exata descontinua */
+  {
             TPZFMatrix mySol = an.Rhs();
             int nshapeperel = TPZShapeDisc::NShapeF(p,2,TPZShapeDisc::EOrdemTotal)+ExternalShapes->NFunctions();
             const int ndiscel = mySol.Rows() / nshapeperel;
@@ -291,6 +316,7 @@ int main(){
             myRhs.Print("myRhs",residuofile);
             ofstream rigfile("rigidez.nb");
             an.Solver().Matrix()->Print("rigidez=",rigfile,EMathematicaInput);
+  }
   /** ate aqui */
   
   
@@ -313,7 +339,7 @@ int main(){
   vecnames[0] = "Derivate";
   char plotfile[] = "singular.dx";
   an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
-  an.PostProcess(2);  
+  an.PostProcess(0);  
 
   delete cmesh;
   delete gmesh;
