@@ -1,4 +1,4 @@
-//$Id: TDiscoFunction.cpp,v 1.1 2008-02-08 14:12:47 tiago Exp $
+//$Id: TDiscoFunction.cpp,v 1.2 2008-02-09 21:12:07 tiago Exp $
 
 #include "TDiscoFunction.h"
 
@@ -17,8 +17,7 @@ void  TDiscoFunction::Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix
   double Yc = 0.;
   double Xp = x[0];
   double Yp = x[1];
-  double r = sqrt( pow(Xp-Xc,2) + pow(Yp-Yc,2) );
-  if(r < 1e-16) r = 1e-16;
+  double r = sqrt( (Xp-Xc)*(Xp-Xc) +(Yp-Yc)*(Yp-Yc) );
   f[0] = log(r);
   df(0,0) = (Xp - Xc)/(r*r);
   df(1,0) = (Yp - Yc)/(r*r);

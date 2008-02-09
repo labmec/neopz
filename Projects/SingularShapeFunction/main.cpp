@@ -115,6 +115,7 @@ int main1(){
 #include "pzstepsolver.h"
 #include "TDiscoFunction.h"
 #include "TPZCopySolve.h"
+#include "TPZSpStructMatrix.h"
 
 void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   u.Resize(1);
@@ -194,6 +195,13 @@ int main(){
   int contorno[nelbc][3] = {{0,1,-2},{1,2,-2},{2,3,-2},{3,4,-2},{4,5,-2},{5,6,-2},{6,7,-2},{7,8,-2},{8,9,-2},{9,0,-2},{10,11,-3},{11,12,-3},{12,13,-3},
                             {13,14,-3},{14,15,-3},{15,16,-3},{16,17,-3},{17,18,-3},{18,19,-3},{19,10,-3}};
 
+/** teste - apenas 1 elemento **/
+/*  const int nelem = 1; 
+  int indices[nelem][4] = {{0,1,11,10}};
+  const int nelbc = 2;
+  int contorno[nelbc][3] = {{0,1,-2},{10,11,-3}};*/
+/** teste - apenas 1 elemento **/
+
 
   TPZGeoMesh *gmesh = new TPZGeoMesh();
   for(int nod=0; nod<nnodes; nod++) {
@@ -223,8 +231,8 @@ int main(){
 
   gmesh->BuildConnectivity();
   
-  const int p = 0;
-  const int h = 2;  
+  const int p = 2;
+  const int h = 0;  
   for(int ir = 0; ir < h; ir++){
     UniformRefinement(2,*gmesh); UniformRefinement(1,*gmesh);
     LocalRefinement(2,-3,*gmesh);
@@ -237,7 +245,7 @@ int main(){
 //   mat->SetForcingFunction( LoadFunction );
   TPZMatPoisson3d * matcast = dynamic_cast<TPZMatPoisson3d*>(mat.operator->());
   matcast->fPenaltyConstant = 1.;
-  matcast->SetSolutionPenalty();
+  matcast->SetSolutionPenalty(); 
 //   matcast->SetFluxPenalty();
 //   matcast->SetBothPenalty();
 //   matcast->SetSymmetric();
@@ -276,7 +284,7 @@ int main(){
   
 
   TPZAnalysis an(cmesh);
-  TPZFStructMatrix /*TPZFrontStructMatrix<TPZFrontNonSym>*/ matrix(cmesh);
+  /*TPZSpStructMatrix*/TPZFStructMatrix /*TPZFrontStructMatrix<TPZFrontNonSym>*/ matrix(cmesh);
   an.SetStructuralMatrix(matrix);
   TPZStepSolver step;
   
@@ -287,12 +295,12 @@ int main(){
 //       TPZCopySolve precond( matrix.Create()  );step.ShareMatrix( precond );  
       TPZFMatrix fakeRhs(cmesh->NEquations(),1);TPZFrontStructMatrix<TPZFrontNonSym> PrecondMatrix(cmesh); TPZStepSolver precond(PrecondMatrix.CreateAssemble(fakeRhs));precond.SetDirect(ELU);
       
-      step.SetGMRES( 3000, 650, precond, 1.e-18, 0 );
+      step.SetGMRES( 30000, 650, precond, 1.e-38, 0 );
 #endif  
   
   
   an.SetSolver(step);  
-  cout << "Numero de equacoes = " << cmesh->NEquations() << std::endl;
+  cout << "\nNumero de equacoes = " << cmesh->NEquations() << std::endl;
   cout << "Banda = " << cmesh->BandWidth() << "\n";
   cout.flush();
   an.Assemble();
