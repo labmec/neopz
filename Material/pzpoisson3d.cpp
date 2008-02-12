@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.33 2008-02-08 14:11:14 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.34 2008-02-12 10:34:53 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -257,6 +257,7 @@ int TPZMatPoisson3d::NSolutionVariables(int var){
   return TPZMaterial::NSolutionVariables(var);
 }
 
+#include "pzaxestools.h"
 void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 
   Solout.Resize( this->NSolutionVariables( var ) );
@@ -268,26 +269,34 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
   if(var == 2) {
     int id;
     for(id=0 ; id<fDim; id++) {
-      Solout[id] = DSol(id,0);//derivate
+      TPZFNMatrix<9> dsoldx;
+      TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
+      Solout[id] = dsoldx(id,0);//derivate
     }
     return;
   }//var == 2
   if (var == 3){ //KDuDx
-    Solout[0] = DSol(0,0) * this->fK;
+    TPZFNMatrix<9> dsoldx;
+    TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
+    Solout[0] = dsoldx(0,0) * this->fK;
     return;
   }//var ==3
   if (var == 4){ //KDuDy
-    Solout[0] = DSol(1,0) * this->fK;
+    TPZFNMatrix<9> dsoldx;
+    TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
+    Solout[0] = dsoldx(1,0) * this->fK;
     return;
   }//var == 4 
   if (var == 5){ //KDuDz
-    Solout[0] = DSol(2,0) * this->fK;
+    TPZFNMatrix<9> dsoldx;
+    TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
+    Solout[0] = dsoldx(2,0) * this->fK;
     return;
   }//var == 5
   if (var == 6){ //NormKDu
     int id;
     REAL val = 0.;
-    for(id=0 ; id<fDim; id++) {
+    for(id=0 ; id<fDim; id++){
       val += (DSol(id,0) * this->fK) * (DSol(id,0) * this->fK);
     }
     Solout[0] = sqrt(val);
@@ -296,8 +305,10 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
   if (var == 7){ //MinusKGradU
     int id;
     REAL val = 0.;
+    TPZFNMatrix<9> dsoldx;
+    TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
     for(id=0 ; id<fDim; id++) {
-      Solout[id] = -1. * this->fK * DSol(id,0);
+      Solout[id] = -1. * this->fK * dsoldx(id,0);
     }
     return;
   }//var == 7  
