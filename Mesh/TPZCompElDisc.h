@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.69 2008-02-06 12:43:09 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.70 2008-02-14 12:43:15 tiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -43,7 +43,17 @@ protected:
   /**
    * Shape function type used by the element
    */
-  pzshape::TPZShapeDisc::MShapeType fShapefunctionType;
+  static pzshape::TPZShapeDisc::MShapeType fShapefunctionType;
+  
+public:
+
+  /** Set tensorial shape functions. Discontinuous elements in cmesh are updated. */
+  static void SetTensorialShape(TPZCompMesh * cmesh);
+  
+  /** Set total order shape functions. Discontinuous elements in cmesh are updated. */
+  static void SetTotalOrderShape(TPZCompMesh * cmesh);
+
+protected:
 
   /**
    * it preserves index of connect associated to the element
