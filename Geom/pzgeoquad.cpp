@@ -103,7 +103,7 @@ void TPZGeoQuad::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
 
 void TPZGeoQuad::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
      REAL qsi = InternalPar[0]; REAL eta = InternalPar[1];
-     if( fabs(qsi) > 1. || fabs(eta) > 1. )
+     if( (fabs(qsi) - 1.) > 1e-5 || (fabs(eta) - 1.) > 1e-5 )
      {
          cout << "Point (qsi,eta) = (" << qsi << "," << eta << ") is out of TPZGeoQuad Master Element Range!\n";
          cout << "See TPZGeoQuad::MapToSide() method!\n";
