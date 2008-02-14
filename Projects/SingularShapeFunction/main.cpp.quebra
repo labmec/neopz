@@ -207,18 +207,18 @@ int main(){
     {-0.030901699437494747*scaleFuro ,   0.09510565162951536*scaleFuro }, {-0.08090169943749476*scaleFuro ,   0.058778525229247314*scaleFuro }, 
     {-0.1*scaleFuro ,   0.*scaleFuro }, {-0.08090169943749476*scaleFuro , -0.058778525229247314*scaleFuro }, {-0.030901699437494747*scaleFuro , -0.09510565162951536*scaleFuro }, 
     {0.030901699437494747*scaleFuro , -0.09510565162951536*scaleFuro }, {0.08090169943749476*scaleFuro , -0.058778525229247314*scaleFuro }};
-   
+ /*  
   const int nelem = 10; 
   int indices[nelem][4] = {{0,1,11,10},{1,2,12,11},{2,3,13,12},{3,4,14,13},{4,5,15,14},{5,6,16,15},{6,7,17,16},{7,8,18,17},{8,9,19,18},{9,0,10,19}};
   const int nelbc = 20;
   int contorno[nelbc][3] = {{0,1,-2},{1,2,-2},{2,3,-2},{3,4,-2},{4,5,-2},{5,6,-2},{6,7,-2},{7,8,-2},{8,9,-2},{9,0,-2},{10,11,-3},{11,12,-3},{12,13,-3},
                             {13,14,-3},{14,15,-3},{15,16,-3},{16,17,-3},{17,18,-3},{18,19,-3},{19,10,-3}};
-
+*/
 /** teste - apenas 1 elemento **/
-/*  const int nelem = 1; 
+  const int nelem = 1; 
   int indices[nelem][4] = {{0,1,11,10}};
   const int nelbc = 2;
-  int contorno[nelbc][3] = {{0,1,-2},{10,11,-3}};*/
+  int contorno[nelbc][3] = {{0,1,-2},{10,11,-3}};
 /** teste - apenas 1 elemento **/
 
 
@@ -250,13 +250,12 @@ int main(){
 
   gmesh->BuildConnectivity();
   
-  const int p = 2;
-  const int h = 3;  
+  const int p = 3;
+  const int h = 1;  
   for(int ir = 0; ir < h; ir++){
 //     UniformRefinement(2,*gmesh, true, 8511965); UniformRefinement(1,*gmesh, true, 8511965);
      LocalRefinement(2,-3,*gmesh); UniformRefinement(1,*gmesh, false, -3);
   }
- 
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
   
   cmesh->SetDimModel(2);
@@ -264,8 +263,8 @@ int main(){
   TPZAutoPointer<TPZMaterial> mat = new TPZMatPoisson3d(matid, 2);
 //   mat->SetForcingFunction( LoadFunction );
   TPZMatPoisson3d * matcast = dynamic_cast<TPZMatPoisson3d*>(mat.operator->());
-  matcast->fPenaltyConstant = 0*1.;
-//   matcast->SetSolutionPenalty(); 
+  matcast->fPenaltyConstant = 1.;
+  matcast->SetSolutionPenalty(); 
 //   matcast->SetFluxPenalty();
 //   matcast->SetBothPenalty();
 //   matcast->SetSymmetric();
@@ -286,22 +285,23 @@ int main(){
   cmesh->InsertMaterialObject(bcFora);
   cmesh->InsertMaterialObject(bcDentro);
   
-  TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+  TPZCompMesh::SetAllCreateFunctionsContinuous();
 
   TPZCompEl::SetgOrder(p);
   cmesh->SetDefaultOrder(p);
   cmesh->AutoBuild();
+//   cmesh->AdjustBoundaryElements();
   
-  /*ofstream malhas("malhas.txt");
+  ofstream malhas("malhas.txt");
   cmesh->Reference()->Print(malhas);
-  cmesh->Print(malhas);*/
+  cmesh->Print(malhas);
   
   
-  PRefinement(*cmesh, 2);
+//   PRefinement(*cmesh, 1);
 //   cmesh->ExpandSolution();
   
   
-  TPZCompElDisc::SetTotalOrderShape(cmesh);
+//   TPZCompElDisc::SetTotalOrderShape(cmesh);
   
   TPZAutoPointer<TPZFunction> ExternalShapes = new TDiscoFunction();
   for(int iel = 0; iel < cmesh->NElements(); iel++){

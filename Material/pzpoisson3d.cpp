@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.34 2008-02-12 10:34:53 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.35 2008-02-14 12:39:43 tiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -246,6 +246,7 @@ int TPZMatPoisson3d::VariableIndex(char *name){
   if(!strcmp("KDuDz",name))           return  5;
   if(!strcmp("NormKDu",name))         return  6;
   if(!strcmp("MinusKGradU",name))     return  7;
+  if(!strcmp("p",name))               return  8;
   return TPZMaterial::VariableIndex(name);
 }
 
@@ -254,7 +255,16 @@ int TPZMatPoisson3d::NSolutionVariables(int var){
   if(var == 2) return fDim;
   if ((var == 3) || (var == 4) || (var == 5) || (var == 6)) return 1;
   if (var == 7) return fDim;
+  if (var == 8) return 1;
   return TPZMaterial::NSolutionVariables(var);
+}
+
+void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
+  if(var == 8){
+    Solout[0] = data.p;
+    return;
+  }
+  this->Solution(data.sol, data.dsol, data.axes, var, Solout);
 }
 
 #include "pzaxestools.h"

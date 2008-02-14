@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.29 2008-02-06 12:44:09 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.30 2008-02-14 12:39:43 tiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -182,6 +182,10 @@ public:
   virtual int NFluxes(){ return 3;}
 
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+
+   /**returns the solution associated with the var index based on
+    * the finite element approximation*/
+  virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 
   /**compute the value of the flux function to be used by ZZ error estimator*/
   virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);

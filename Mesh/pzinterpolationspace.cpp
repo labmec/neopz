@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.24 2008-02-07 11:17:24 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.25 2008-02-14 12:39:52 tiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -293,6 +293,7 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
 
   const int numdof = material->NStateVariables();
   TPZMaterialData data;
+  data.p = this->MaxOrder();
   data.sol.Resize(numdof);
   data.sol.Fill(0.);
   sol.Resize(numdof);
