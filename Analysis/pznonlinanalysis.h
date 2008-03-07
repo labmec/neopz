@@ -23,7 +23,7 @@ virtual ~TPZNonLinearAnalysis(void);
  * It process a Newton's method to solve the non-linear problem.
  * It has the possibility of line search with parameter linesearch = true.
  */
-void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch = false);
+virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch = false, bool checkconv = false);
 
 /** Implements a golden section line search. */
 void LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
@@ -33,15 +33,15 @@ REAL SolutionNorm();
 /**
  * Assemble only the residual vector
  **/
-void AssembleResidual();
+virtual void AssembleResidual();
 
-void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase);
+virtual void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase);
 
 int NumCases();
 
-void Residual(TPZFMatrix &residual, int icase);
+virtual void Residual(TPZFMatrix &residual, int icase);
 
-void LoadSolution(TPZFMatrix &state);
+virtual void LoadSolution(TPZFMatrix &state);
 
 void LoadState(TPZFMatrix &state);
 

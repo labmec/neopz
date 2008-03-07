@@ -99,6 +99,10 @@ void TPZNonLinearAnalysis::LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMa
     }
     ///error = Norm(bk-ak)
     Interval = bk; Interval -= ak; error = Norm(Interval);
+    
+    ///alpha shall be alpha <= 1
+    if(A > 1. && B > 1.) break;
+
   }///while
 
   double ALPHA = 0.5*(A + B);
@@ -136,7 +140,7 @@ void TPZNonLinearAnalysis::LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMa
 
 }///void
 
-void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter, bool linesearch) {
+void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv) {
 
    int iter = 0;
    REAL error = 1.e10;
@@ -147,9 +151,12 @@ void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter, b
    TPZFMatrix prevsol(fSolution);
    if(prevsol.Rows() != numeq) prevsol.Redim(numeq,1);
    
-	TPZVec<REAL> coefs(1,1.);
-	TPZFMatrix range(numeq,1,0.01);
-	CheckConvergence(*this,fSolution,range,coefs);	
+  if(checkconv){
+	  TPZVec<REAL> coefs(1,1.);
+	  TPZFMatrix range(numeq,1,1.);
+	  CheckConvergence(*this,fSolution,range,coefs);
+  }
+  
 	
    while(error > tol && iter < numiter) {
 
