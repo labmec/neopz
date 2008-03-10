@@ -2,6 +2,8 @@
 #include "pzcmesh.h"
 #include "pzgengrid.h"
 
+#include "pzl2projection.h"
+
 #include "pzshapelinear.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -14,15 +16,15 @@
 
 using namespace pzshape;
 
-void InitialMesh(TPZGeoMesh * , int );
+void InitialMesh(TPZCompMesh * , int );
 
 int main() {
+	ofstream saida("malha.txt");
 
 	// Insere malha geometrica e computacional
-	TPZGeoMesh *gmesh = new TPZGeoMesh;
-	InitialMesh(gmesh,2);
-	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
- 	cmesh->AutoBuild();
+	TPZCompMesh *cmesh = 0;
+	InitialMesh(cmesh,2);
+	cmesh->Print(saida);
 
 	// Funcoes shape
 	TPZFMatrix phi(100,1,0.),dphi(1,100,0.);
@@ -138,13 +140,13 @@ int main() {
 	return 0;
 }
 
-void InitialMesh(TPZGeoMesh *g,int dim) {
-	if(!g || dim < 1) {
-		cout << "Geo mesh pointer is null or bad dimension.";
+void InitialMesh(TPZCompMesh *c,int dim) {
+	if(dim < 1) {
+		cout << "Mesh with bad dimension.";
 		return;
 	}
 
-	ofstream saida("malha.txt");
+	TPZGeoMesh *g = new TPZGeoMesh;
 	TPZVec<int> nx(dim);
 	TPZVec<REAL> X0(dim), X1(dim);
 	for(int i=0;i<dim;i++) {
@@ -154,5 +156,13 @@ void InitialMesh(TPZGeoMesh *g,int dim) {
 	}
 	TPZGenGrid gen(nx,X0,X1,1,0.5);
 	gen.Read(*g);
-	g->Print(saida);
+	if(c) delete c;
+	c = new TPZCompMesh(g);
+	TPZVec<REAL> sol(1,0.);
+	TPZAutoPointer<TPZMaterial> material = new TPZL2Projection(1,2,1,sol);
+	c->InsertMaterialObject(material);
+	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+	TPZCompEl::SetgOrder(1);
+	c->SetDefaultOrder(1);
+	c->AutoBuild();
 }
