@@ -1,4 +1,6 @@
-
+#include "pzgmesh.h"
+#include "pzcmesh.h"
+#include "pzgengrid.h"
 
 #include "pzshapelinear.h"
 #include "pzshapequad.h"
@@ -11,8 +13,18 @@
 #include <iostream>
 
 using namespace pzshape;
+
+void InitialMesh(TPZGeoMesh * , int );
+
 int main() {
 
+	// Insere malha geometrica e computacional
+	TPZGeoMesh *gmesh = new TPZGeoMesh;
+	InitialMesh(gmesh,2);
+	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+ 	cmesh->AutoBuild();
+
+	// Funcoes shape
 	TPZFMatrix phi(100,1,0.),dphi(1,100,0.);
 
 	TPZVec<int> order(27,3);
@@ -124,4 +136,23 @@ int main() {
 	}
 
 	return 0;
+}
+
+void InitialMesh(TPZGeoMesh *g,int dim) {
+	if(!g || dim < 1) {
+		cout << "Geo mesh pointer is null or bad dimension.";
+		return;
+	}
+
+	ofstream saida("malha.txt");
+	TPZVec<int> nx(dim);
+	TPZVec<REAL> X0(dim), X1(dim);
+	for(int i=0;i<dim;i++) {
+		nx[0] = 3, nx[1] = 3;
+		X0[0] = -1., X0[1] = -1.;
+		X1[0] = 1., X1[1] = 1.;
+	}
+	TPZGenGrid gen(nx,X0,X1,1,0.5);
+	gen.Read(*g);
+	g->Print(saida);
 }
