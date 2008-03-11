@@ -1,4 +1,4 @@
-//$Id: pzl2projection.h,v 1.8 2007-11-30 12:44:56 phil Exp $
+//$Id: pzl2projection.h,v 1.9 2008-03-11 12:31:05 fortiago Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
@@ -12,7 +12,7 @@
 */
 class TPZL2Projection : public TPZDiscontinuousGalerkin{
 
-private:
+protected:
 
   /** Problem dimension */
   int fDim;
