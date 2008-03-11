@@ -1,6 +1,9 @@
+#include "pzreal.h"
+
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzgengrid.h"
+#include "pzintel.h"
 
 #include "pzl2projection.h"
 
@@ -13,25 +16,35 @@
 #include "pzshapecube.h"
 
 #include <iostream>
+#include <math.h>
 
 using namespace pzshape;
 
-void InitialMesh(TPZCompMesh * , int );
+ofstream saida("malha.txt");
+
+TPZCompMesh *InitialMesh(int dim,int order);
+void TestShape(TPZInterpolatedElement *el);
 
 int main() {
-	ofstream saida("malha.txt");
+	int i;
+	int dim = 2, int_order = 3;
+	TPZInterpolatedElement *el;
 
 	// Insere malha geometrica e computacional
-	TPZCompMesh *cmesh = 0;
-	InitialMesh(cmesh,2);
-	cmesh->Print(saida);
+	TPZCompMesh *cmesh = InitialMesh(dim,int_order);
+
+	// Calcula os valores das funcoes shape no lado e no elemento
+	for(i=0;i<cmesh->NElements();i++) {
+		el = (TPZInterpolatedElement *)cmesh->ElementVec()[i];
+		TestShape(el);
+	}
+	return 0;
 
 	// Funcoes shape
 	TPZFMatrix phi(100,1,0.),dphi(1,100,0.);
 
 	TPZVec<int> order(27,3);
 	TPZVec<int> nodeids(27,0);
-	int i;
 	for(i=0; i<27; i++) nodeids[i] = i;
 
 	TPZVec<REAL> point(3,0.2);
@@ -52,7 +65,7 @@ int main() {
 		phi.Print("Funcoes de forma uni dimensionais");
 		dphi.Print("Derivadas de funcoes de forma uni dimensionais");
 	}
-	{
+/*	{
 		TPZShapeQuad sel;
 
 		nc = sel.NConnects ();
@@ -136,33 +149,65 @@ int main() {
 		phi.Print("Funcoes de forma tetrahedra");
 		dphi.Print("Derivadas de funcoes de forma tetrahedra");
 	}
-
+*/
 	return 0;
 }
 
-void InitialMesh(TPZCompMesh *c,int dim) {
+TPZCompMesh *InitialMesh(int dim,int order) {
 	if(dim < 1) {
 		cout << "Mesh with bad dimension.";
-		return;
+		return 0;
 	}
 
 	TPZGeoMesh *g = new TPZGeoMesh;
 	TPZVec<int> nx(dim);
-	TPZVec<REAL> X0(dim), X1(dim);
+	TPZVec<REAL> X0(dim);
+	TPZVec<REAL> X1(dim);
 	for(int i=0;i<dim;i++) {
-		nx[0] = 3, nx[1] = 3;
-		X0[0] = -1., X0[1] = -1.;
-		X1[0] = 1., X1[1] = 1.;
+		nx[i] = 3;
+		X0[i] = -3.;
+		X1[i] = 3.;
 	}
 	TPZGenGrid gen(nx,X0,X1,1,0.5);
 	gen.Read(*g);
-	if(c) delete c;
-	c = new TPZCompMesh(g);
+	TPZCompMesh *c = new TPZCompMesh(g);
 	TPZVec<REAL> sol(1,0.);
 	TPZAutoPointer<TPZMaterial> material = new TPZL2Projection(1,2,1,sol);
 	c->InsertMaterialObject(material);
-	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
-	TPZCompEl::SetgOrder(1);
-	c->SetDefaultOrder(1);
+//	TPZCompEl::SetgOrder(1);
+	c->SetDefaultOrder(order);
 	c->AutoBuild();
+	return c;
+}
+
+void TestShape(TPZInterpolatedElement *el) {
+	int nsides = el->Reference()->NSides();
+	TPZVec<REAL> p(3,0);
+	TPZVec<REAL> p_int(3,0);
+	TPZFMatrix phi(100,1,0.), dphi(3,100,0.);
+	TPZFMatrix phiint(100,1,0.), dphiint(3,100,0.);
+	int nsideconnects, nsideshapef;
+	int nconnects, nshapef;
+	((TPZCompEl *)el)->SetgOrder(3);
+	saida << endl << "Elemento: " << el->Index() << endl;
+	nconnects = el->NConnects();
+	nshapef = el->NShapeF();
+	saida << "connects: " << nconnects << "\tn shape: " << nshapef << endl;
+	for(int i=0;i<nsides;i++) {
+		phi.Zero(); phiint.Zero(); dphi.Zero(); dphiint.Zero();
+		el->Reference()->CenterPoint(i,p);
+		el->Reference()->X(p,p_int);
+		el->SideShapeFunction(i,p,phi,dphi);
+		el->Shape(p,phiint,dphiint);
+		nsideconnects = el->NSideConnects(i);
+		nsideshapef = el->NSideShapeF(i);
+		saida << "side connects: " << nsideconnects << "\tn side shape: " << nsideshapef << endl;
+		phi.Transpose();
+		phi.Print("Side Shape: ",saida);
+		phi.Transpose();
+		phiint.Transpose();
+		phiint.Print("Shape: ",saida);
+		phiint.Transpose();
+		saida << endl;
+	}
 }
