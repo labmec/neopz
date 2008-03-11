@@ -174,7 +174,6 @@ TPZCompMesh *InitialMesh(int dim,int order) {
 	TPZVec<REAL> sol(1,0.);
 	TPZAutoPointer<TPZMaterial> material = new TPZL2Projection(1,2,1,sol);
 	c->InsertMaterialObject(material);
-//	TPZCompEl::SetgOrder(1);
 	c->SetDefaultOrder(order);
 	c->AutoBuild();
 	return c;
@@ -188,12 +187,12 @@ void TestShape(TPZInterpolatedElement *el) {
 	TPZFMatrix phiint(100,1,0.), dphiint(3,100,0.);
 	int nsideconnects, nsideshapef;
 	int nconnects, nshapef;
-	((TPZCompEl *)el)->SetgOrder(3);
+	int i, k;
 	saida << endl << "Elemento: " << el->Index() << endl;
 	nconnects = el->NConnects();
 	nshapef = el->NShapeF();
-	saida << "connects: " << nconnects << "\tn shape: " << nshapef << endl;
-	for(int i=0;i<nsides;i++) {
+	saida << " " << "connects: " << nconnects << "\tn shape: " << nshapef << endl;
+	for(i=0;i<nsides;i++) {
 		phi.Zero(); phiint.Zero(); dphi.Zero(); dphiint.Zero();
 		el->Reference()->CenterPoint(i,p);
 		el->Reference()->X(p,p_int);
@@ -201,13 +200,12 @@ void TestShape(TPZInterpolatedElement *el) {
 		el->Shape(p,phiint,dphiint);
 		nsideconnects = el->NSideConnects(i);
 		nsideshapef = el->NSideShapeF(i);
-		saida << "side connects: " << nsideconnects << "\tn side shape: " << nsideshapef << endl;
-		phi.Transpose();
-		phi.Print("Side Shape: ",saida);
-		phi.Transpose();
-		phiint.Transpose();
-		phiint.Print("Shape: ",saida);
-		phiint.Transpose();
+		saida << " " << "Side " << i << ":" << "\t" << "\tside connects: " << nsideconnects << "\tn side shape: " << nsideshapef << endl;
+		saida << " " << " " << "MATRIX Side Shape: ";
+		for(k=0;k<nsideconnects;k++) saida << phi(k,0) << "\t";
+		saida << endl;
+		saida << " " << " " << "MATRIX Shape:      ";
+		for(k=0;k<nconnects;k++) saida << phiint(k,0) << "\t";
 		saida << endl;
 	}
 }
