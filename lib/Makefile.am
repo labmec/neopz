@@ -76,7 +76,7 @@ libpz_a_LIBADD = ../Post/tpzgraphelt2dmapped.o \
 	../StrMatrix/TPZFrontStructMatrix.o ../StrMatrix/TPZParFrontStructMatrix.o \
 	../StrMatrix/TPZParSkylineStructMatrix.o ../StrMatrix/TPZSpStructMatrix.o ../StrMatrix/pzbdstrmatrix.o \
 	../StrMatrix/pzbstrmatrix.o ../StrMatrix/pzfstrmatrix.o ../StrMatrix/pzsbstrmatrix.o \
-	../StrMatrix/pzskylstrmatrix.o ../StrMatrix/pzstrmatrix.o ../Topology/tpzcube.o ../Topology/tpzline.o \
+	../StrMatrix/pzskylstrmatrix.o ../StrMatrix/pzstrmatrix.o ../StrMatrix/TPZMTAssemble.o ../Topology/tpzcube.o ../Topology/tpzline.o \
 	../Topology/tpzpoint.o ../Topology/tpzprism.o ../Topology/tpzpyramid.o \
 	../Topology/tpzquadrilateral.o ../Topology/tpztetrahedron.o ../Topology/tpztriangle.o \
 	../Util/TPZTimer.o ../Util/pzfunction.o ../Util/pzlog.o ../Util/pzmap.o ../Util/pzstring.o \
