@@ -23,30 +23,33 @@
 
 using namespace pzshape;
 
-ofstream saida("malha.txt");
 
-TPZCompMesh *InitialMesh(int dim,int order);
-void TestShape(TPZInterpolatedElement *el,int order);
+TPZCompMesh *InitialMesh(int dim,int order,int nsubdiv);
+void TestShape(TPZInterpolatedElement *el,int order,ostream &out);
+void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida);
 
 int main() {
-	int i;
-	int dim = 2, int_order;
+	int i, order;
+	int dim = 2, max_order;
 	TPZInterpolatedElement *el;
+	ofstream saida("malha.txt");
 
 	// Insere malha geometrica e computacional
-	cout << "Ordem de integração = ";
-	cin >> int_order;
-	TPZCompMesh *cmesh = InitialMesh(dim,int_order);
+//	cout << "Ordem de integração = ";
+//	cin >> int_order;
+	max_order = 32;
+	TPZCompMesh *cmesh = InitialMesh(dim,max_order,1);
 
 	// Calcula os valores das funcoes shape no lado e no elemento
 	for(i=0;i<cmesh->NElements();i++) {
 		el = (TPZInterpolatedElement *)cmesh->ElementVec()[i];
-		TestShape(el,int_order);
+		for(order=0;order<max_order;order++)
+			TestShape(el,order,saida);
 	}
 	saida.close();
 	return 0;
 
-	// Funcoes shape
+	/* Funcoes shape
 	TPZFMatrix phi(100,1,0.),dphi(1,100,0.);
 
 	TPZVec<int> order(27,3);
@@ -71,7 +74,7 @@ int main() {
 		phi.Print("Funcoes de forma uni dimensionais");
 		dphi.Print("Derivadas de funcoes de forma uni dimensionais");
 	}
-/*	{
+	{
 		TPZShapeQuad sel;
 
 		nc = sel.NConnects ();
@@ -159,7 +162,7 @@ int main() {
 	return 0;
 }
 
-TPZCompMesh *InitialMesh(int dim,int order) {
+TPZCompMesh *InitialMesh(int dim,int order,int nsubdiv) {
 	if(dim < 1) {
 		cout << "Mesh with bad dimension.";
 		return 0;
@@ -170,7 +173,7 @@ TPZCompMesh *InitialMesh(int dim,int order) {
 	TPZVec<REAL> X0(dim);
 	TPZVec<REAL> X1(dim);
 	for(int i=0;i<dim;i++) {
-		nx[i] = 3;
+		nx[i] = nsubdiv;
 		X0[i] = -3.;
 		X1[i] = 3.;
 	}
@@ -185,7 +188,7 @@ TPZCompMesh *InitialMesh(int dim,int order) {
 	return c;
 }
 
-void TestShape(TPZInterpolatedElement *el,int order) {
+void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 	TPZGeoEl *gel = el->Reference();
 	int nsides = gel->NSides();
 	int npoints;
@@ -197,10 +200,10 @@ void TestShape(TPZInterpolatedElement *el,int order) {
 	int nconnects, nshapef;
 	int i, j, k;
 	TPZIntPoints *pointIntRule = 0;
-	TPZVec<REAL> peso(10,0);
+	TPZVec<REAL> peso(1000,0);
 	TPZTransform transform;
 
-	saida << "Elemento: " << el->Index() << endl;
+	saida << "Elemento: " << el->Index() << "  Order = " << order << endl;
 	nconnects = el->NConnects();
 	nshapef = el->NShapeF();
 	saida << " " << "connects: " << nconnects << "  n shape: " << nshapef << endl;
@@ -217,7 +220,7 @@ void TestShape(TPZInterpolatedElement *el,int order) {
 			//el->Reference()->X(p,p_int);
 			el->SideShapeFunction(i,p_int,phi,dphi);
 			el->Shape(p,phiint,dphiint);
-			saida << " " << " Point " << j << " (" << p[0] << "," << p[1] << "," << p[1] << ")" << "  peso = " << peso[j] << endl;
+			saida << " " << " Point " << j << " (" << p[0] << "," << p[1] << "," << p[2] << ")" << "  peso = " << peso[j] << endl;
 			saida << " " << " " << " MATRIX Side Shape: ";
 			for(k=0;k<nsideconnects;k++) saida << phi(k,0) << "  ";
 			saida << endl;
@@ -227,6 +230,66 @@ void TestShape(TPZInterpolatedElement *el,int order) {
 			saida << endl;
 		}
 		saida << endl;
+	}
+	delete pointIntRule;
+}
+
+void TestShape(TPZInterpolatedElement *el,int order,ostream &saida) {
+	TPZGeoEl *gel = el->Reference();
+	int nsides = gel->NSides();
+	int npoints;
+	TPZVec<REAL> p(3,0);
+	TPZVec<REAL> p_int(3,0);
+	TPZFMatrix phi(100,1,0.), dphi(3,100,0.);
+	TPZFMatrix phiint(100,1,0.), dphiint(3,100,0.);
+	int nsideconnects, nsideshapef;
+	int nconnects, nshapef;
+	int i, j;
+	TPZIntPoints *pointIntRule = 0;
+	TPZVec<REAL> peso(1000,0);
+	TPZTransform transform;
+	bool notequal = false;
+
+	nconnects = el->NConnects();
+	nshapef = el->NShapeF();
+	TPZVec<int> firstindexinternal(el->NConnects()+1,0);
+	for(i=0; i<nsides; i++)
+	{
+		firstindexinternal[i+1] = firstindexinternal[i]+el->NConnectShapeF(i);
+	}
+	saida << endl;
+	for(i=0;i<nsides;i++) {
+		nsideconnects = el->NSideConnects(i);
+		nsideshapef = el->NSideShapeF(i);
+		TPZVec<int> firstindexside(el->NSideConnects(i)+1,0);
+		int isc;
+		for(isc=0; isc<nsideconnects; isc++) firstindexside[isc+1] = firstindexside[isc]+el->NConnectShapeF(el->SideConnectIndex(isc,i));
+		transform = gel->SideToSideTransform(i,nsides-1);
+		pointIntRule = el->Reference()->CreateSideIntegrationRule(i,order);
+		npoints = pointIntRule->NPoints();
+		for(j=0;j<npoints;j++) {
+			pointIntRule->Point(j,p_int,peso[j]);
+			transform.Apply(p_int,p);
+			el->SideShapeFunction(i,p_int,phi,dphi);
+			el->Shape(p,phiint,dphiint);
+			// Comparando os valores das funções shape nos correspondentes connects
+			int isc;
+			for(isc=0; isc<el->NSideConnects(i); isc++)
+			{
+				int sideconnectindex = el->SideConnectIndex(isc,i);
+				for(int il=firstindexside[isc], ilint = firstindexinternal[sideconnectindex];il<firstindexside[isc+1]; il++,ilint++)
+				{
+					if(fabs(phi(il,0)-phiint(ilint,0)) > 1.e-6)
+					{
+						notequal = true;
+					}
+				}
+			}
+		}
+		if(notequal) { 
+			saida << "\tValor diferente. Side " << i << endl;
+			notequal = false;
+		}
 	}
 	delete pointIntRule;
 }
