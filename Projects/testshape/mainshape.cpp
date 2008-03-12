@@ -15,6 +15,9 @@
 #include "pzshapeprism.h"
 #include "pzshapecube.h"
 
+// integration rule
+#include <pzquad.h>
+
 #include <iostream>
 #include <math.h>
 
@@ -23,21 +26,24 @@ using namespace pzshape;
 ofstream saida("malha.txt");
 
 TPZCompMesh *InitialMesh(int dim,int order);
-void TestShape(TPZInterpolatedElement *el);
+void TestShape(TPZInterpolatedElement *el,int order);
 
 int main() {
 	int i;
-	int dim = 2, int_order = 3;
+	int dim = 2, int_order;
 	TPZInterpolatedElement *el;
 
 	// Insere malha geometrica e computacional
+	cout << "Ordem de integração = ";
+	cin >> int_order;
 	TPZCompMesh *cmesh = InitialMesh(dim,int_order);
 
 	// Calcula os valores das funcoes shape no lado e no elemento
 	for(i=0;i<cmesh->NElements();i++) {
 		el = (TPZInterpolatedElement *)cmesh->ElementVec()[i];
-		TestShape(el);
+		TestShape(el,int_order);
 	}
+	saida.close();
 	return 0;
 
 	// Funcoes shape
@@ -179,33 +185,48 @@ TPZCompMesh *InitialMesh(int dim,int order) {
 	return c;
 }
 
-void TestShape(TPZInterpolatedElement *el) {
-	int nsides = el->Reference()->NSides();
+void TestShape(TPZInterpolatedElement *el,int order) {
+	TPZGeoEl *gel = el->Reference();
+	int nsides = gel->NSides();
+	int npoints;
 	TPZVec<REAL> p(3,0);
 	TPZVec<REAL> p_int(3,0);
 	TPZFMatrix phi(100,1,0.), dphi(3,100,0.);
 	TPZFMatrix phiint(100,1,0.), dphiint(3,100,0.);
 	int nsideconnects, nsideshapef;
 	int nconnects, nshapef;
-	int i, k;
-	saida << endl << "Elemento: " << el->Index() << endl;
+	int i, j, k;
+	TPZIntPoints *pointIntRule = 0;
+	TPZVec<REAL> peso(10,0);
+	TPZTransform transform;
+
+	saida << "Elemento: " << el->Index() << endl;
 	nconnects = el->NConnects();
 	nshapef = el->NShapeF();
-	saida << " " << "connects: " << nconnects << "\tn shape: " << nshapef << endl;
+	saida << " " << "connects: " << nconnects << "  n shape: " << nshapef << endl;
 	for(i=0;i<nsides;i++) {
-		phi.Zero(); phiint.Zero(); dphi.Zero(); dphiint.Zero();
-		el->Reference()->CenterPoint(i,p);
-		el->Reference()->X(p,p_int);
-		el->SideShapeFunction(i,p,phi,dphi);
-		el->Shape(p,phiint,dphiint);
 		nsideconnects = el->NSideConnects(i);
 		nsideshapef = el->NSideShapeF(i);
-		saida << " " << "Side " << i << ":" << "\t" << "\tside connects: " << nsideconnects << "\tn side shape: " << nsideshapef << endl;
-		saida << " " << " " << "MATRIX Side Shape: ";
-		for(k=0;k<nsideconnects;k++) saida << phi(k,0) << "\t";
-		saida << endl;
-		saida << " " << " " << "MATRIX Shape:      ";
-		for(k=0;k<nconnects;k++) saida << phiint(k,0) << "\t";
+		saida << "  Side " << i << ": " << "  side connects: " << nsideconnects << "  n side shape: " << nsideshapef << endl;
+		transform = gel->SideToSideTransform(i,nsides-1);
+		pointIntRule = el->Reference()->CreateSideIntegrationRule(i,order);
+		npoints = pointIntRule->NPoints();
+		for(j=0;j<npoints;j++) {
+			pointIntRule->Point(j,p_int,peso[j]);
+			transform.Apply(p_int,p);
+			//el->Reference()->X(p,p_int);
+			el->SideShapeFunction(i,p_int,phi,dphi);
+			el->Shape(p,phiint,dphiint);
+			saida << " " << " Point " << j << " (" << p[0] << "," << p[1] << "," << p[1] << ")" << "  peso = " << peso[j] << endl;
+			saida << " " << " " << " MATRIX Side Shape: ";
+			for(k=0;k<nsideconnects;k++) saida << phi(k,0) << "  ";
+			saida << endl;
+			saida << " " << " " << " MATRIX Shape:      ";
+			for(k=0;k<nconnects;k++) 
+				saida << phiint(k,0) << "  ";
+			saida << endl;
+		}
 		saida << endl;
 	}
+	delete pointIntRule;
 }
