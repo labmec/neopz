@@ -25,9 +25,18 @@ using namespace pzshape;
 
 
 TPZCompMesh *InitialMesh(int dim,int order,int nsubdiv);
+
+
+// A ordem de regra de integracao nao precisa ser parametro, pega uma ordem suficiente...
+
+
 void TestShape(TPZInterpolatedElement *el,int order,ostream &out);
 void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida);
-void TestShapeIsLinear(TPZInterpolatedElement *el,int order,ostream &saida);
+
+// Para verifica a linearidade, 'e preciso especificar o lado e a direcao da linearidade
+// todas as funcoes associadas ao lado devem ser lineares com respeito a variacao de pontos de integracao na direcao indicada
+// uma alternativa seria verificar se grad(phi).direction 'e constante
+void TestShapeIsLinear(TPZInterpolatedElement *el,int side, TPZVec<REAL> &direction,ostream &saida);
 
 int main() {
 	int i, order;
