@@ -39,136 +39,28 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida);
 void TestShapeIsLinear(TPZInterpolatedElement *el,int side, TPZVec<REAL> &direction,ostream &saida);
 
 int main() {
-	int i, order;
-	int dim = 2, max_order;
+	int elem, side, order;
+	int dim = 3, max_order;
 	TPZInterpolatedElement *el;
+	TPZVec<REAL> normal(3,0.);
 	ofstream saida("malha.txt");
 
 	// Insere malha geometrica e computacional
-//	cout << "Ordem de integração = ";
-//	cin >> int_order;
 	max_order = 15;
 	TPZCompMesh *cmesh = InitialMesh(dim,max_order,1);
 
 	// Calcula os valores das funcoes shape no lado e no elemento
-	for(i=0;i<cmesh->NElements();i++) {
-		el = (TPZInterpolatedElement *)cmesh->ElementVec()[i];
+	for(elem=0;elem<cmesh->NElements();elem++) {
+		el = (TPZInterpolatedElement *)cmesh->ElementVec()[elem];
+		// Testing side shape function values with shape function values
 		for(order=0;order<max_order;order++)
-			TestShapeIsLinear(el,order,saida);
+			TestShapeWithPrint(el,order,saida);
+		// Testing if shape function is linear relative a side on a one direction
+		side = el->NCornerConnects();
+		normal[1] = 1.;
+		TestShapeIsLinear(el,side,normal,saida);
 	}
 	saida.close();
-	return 0;
-
-	/* Funcoes shape
-	TPZFMatrix phi(100,1,0.),dphi(1,100,0.);
-
-	TPZVec<int> order(27,3);
-	TPZVec<int> nodeids(27,0);
-	for(i=0; i<27; i++) nodeids[i] = i;
-
-	TPZVec<REAL> point(3,0.2);
-
-	int nc,nshape;
-
-	{
-		TPZShapeLinear sel;
-
-		nc = sel.NConnects ();
-		nshape = sel.NShapeF (order);
-
-		phi.Resize(nshape,1);
-		dphi.Resize(1,nshape);
-		
-		sel.Shape (point,nodeids,order,phi,dphi);
-
-		phi.Print("Funcoes de forma uni dimensionais");
-		dphi.Print("Derivadas de funcoes de forma uni dimensionais");
-	}
-	{
-		TPZShapeQuad sel;
-
-		nc = sel.NConnects ();
-		nshape = sel.NShapeF (order);
-
-		phi.Resize(nshape,1);
-		dphi.Resize(2,nshape);
-		
-		sel.Shape (point,nodeids, order,phi,dphi);
-
-		phi.Print("Funcoes de forma quadrilaterais");
-		dphi.Print("Derivadas de funcoes de forma quadri laterais");
-	}
-	{
-		TPZShapeTriang sel;
-
-		nc = sel.NConnects ();
-		nshape = sel.NShapeF (order);
-
-		phi.Resize(nshape,1);
-		dphi.Resize(2,nshape);
-		
-		sel.Shape (point,nodeids, order,phi,dphi);
-
-		phi.Print("Funcoes de forma triangular");
-		dphi.Print("Derivadas de funcoes de forma triangular");
-	}
-	{
-		TPZShapeCube sel;
-
-		nc = sel.NConnects ();
-		nshape = sel.NShapeF (order);
-
-		phi.Resize(nshape,1);
-		dphi.Resize(3,nshape);
-		
-		sel.Shape (point,nodeids, order,phi,dphi);
-
-		phi.Print("Funcoes de forma cubo");
-		dphi.Print("Derivadas de funcoes de forma cubo");
-	}
-	{
-		TPZShapePiram sel;
-
-		nc = sel.NConnects ();
-		nshape = sel.NShapeF (order);
-
-		phi.Resize(nshape,1);
-		dphi.Resize(3,nshape);
-		
-		sel.Shape (point,nodeids, order,phi,dphi);
-
-		phi.Print("Funcoes de forma piramide");
-		dphi.Print("Derivadas de funcoes de forma piramide");
-	}
-	{
-		TPZShapePrism sel;
-
-		nc = sel.NConnects ();
-		nshape = sel.NShapeF (order);
-
-		phi.Resize(nshape,1);
-		dphi.Resize(3,nshape);
-		
-		sel.Shape (point,nodeids, order,phi,dphi);
-
-		phi.Print("Funcoes de forma prisme");
-		dphi.Print("Derivadas de funcoes de forma prisme");
-	}
-	{
-		TPZShapeTetra sel;
-
-		nc = sel.NConnects ();
-		nshape = sel.NShapeF (order);
-
-		phi.Resize(nshape,1);
-		dphi.Resize(3,nshape);
-		
-		sel.Shape (point,nodeids, order,phi,dphi);
-
-		phi.Print("Funcoes de forma tetrahedra");
-		dphi.Print("Derivadas de funcoes de forma tetrahedra");
-	}
-*/
 	return 0;
 }
 
@@ -187,7 +79,7 @@ TPZCompMesh *InitialMesh(int dim,int order,int nsubdiv) {
 		X0[i] = -3.;
 		X1[i] = 3.;
 	}
-	TPZGenGrid gen(nx,X0,X1,1,0.5);
+	TPZGenGrid gen(nx,X0,X1,1);
 	gen.Read(*g);
 	TPZCompMesh *c = new TPZCompMesh(g);
 	TPZVec<REAL> sol(1,0.);
@@ -203,7 +95,7 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 	int nsides = gel->NSides();
 	int npoints;
 	TPZVec<REAL> p(3,0);
-	TPZVec<REAL> p_int(3,0);
+	TPZVec<REAL> p_side(3,0);
 	TPZFMatrix phi(100,1,0.), dphi(3,100,0.);
 	TPZFMatrix phiint(100,1,0.), dphiint(3,100,0.);
 	int nsideconnects, nsideshapef;
@@ -222,9 +114,9 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 	saida << "Elemento: " << el->Index() << "  Order = " << order << endl;
 	saida << " " << "connects: " << nconnects << "  n shape: " << nshapef << endl;
 	for(side=0;side<nsides;side++) {
-		TPZVec<int> firstindexside(nsideconnects+1,0);
 		nsideconnects = el->NSideConnects(side);
 		nsideshapef = el->NSideShapeF(side);
+		TPZVec<int> firstindexside(nsideconnects+1,0);
 		for(conside=0;conside<nsideconnects;conside++) {
 			firstindexside[conside+1] = firstindexside[conside] + el->NConnectShapeF(el->SideConnectIndex(conside,side));
 		}
@@ -233,9 +125,9 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 		pointIntRule = el->Reference()->CreateSideIntegrationRule(side,order);
 		npoints = pointIntRule->NPoints();
 		for(point=0;point<npoints;point++) {
-			pointIntRule->Point(point,p_int,peso[point]);
-			transform.Apply(p_int,p);
-			el->SideShapeFunction(side,p_int,phi,dphi);
+			pointIntRule->Point(point,p_side,peso[point]);
+			transform.Apply(p_side,p);
+			el->SideShapeFunction(side,p_side,phi,dphi);
 			el->Shape(p,phiint,dphiint);
 			saida << " " << " Point " << point << " (" << p[0] << "," << p[1] << "," << p[2] << ")" << "  peso = " << peso[point] << endl;
 			saida << " " << " " << " MATRIX Side Shape: ";
@@ -265,81 +157,78 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 	delete pointIntRule;
 }
 
-void TestShapeIsLinear(TPZInterpolatedElement *el,int order,ostream &saida) {
+void TestShapeIsLinear(TPZInterpolatedElement *el,int side,TPZVec<REAL> &normal,ostream &saida) {
 	TPZGeoEl *gel = el->Reference();
-	int nsides = gel->NSides();
-	int npoints;
-	TPZVec<REAL> p1(3,0.);
-	TPZVec<REAL> p2(3,0.);
-	TPZVec<REAL> p3(3,0.);
-	TPZVec<REAL> p_int(3,0.);
+	int npoints, i;
+	int order = 5;
+	TPZVec<REAL> p1(3,0.), p2(3,0.), p3(3,0.);
+	REAL prod_int1(0.), prod_int2(0.), prod_int3(0.);
+	TPZVec<REAL> p_pointIntRule(3,0.);
 	TPZFMatrix phi1(100,1,0.), dphi1(3,100,0.);
 	TPZFMatrix phi2(100,1,0.), dphi2(3,100,0.);
 	TPZFMatrix phi3(100,1,0.), dphi3(3,100,0.);
-	int nsideconnects, nsideshapef;
-	int nconnects, nshapef;
-	int side, con, point, shape, conside;
+	int nsideconnects, nconnectshapef;
+	int conn, sideconnect, sideconnectshapef, point;
 	TPZIntPoints *pointIntRule = 0;
 	TPZVec<REAL> peso(1000,0.);
 	TPZTransform transform;
+	TPZVec<REAL> n_unit(3,0.);
+	REAL n_modulo;
 
-	nconnects = el->NConnects();
-	nshapef = el->NShapeF();
-	TPZVec<int> firstindexinternal(nconnects+1,0);
-	for(con=0;con<nconnects;con++) 
-		firstindexinternal[con+1] = firstindexinternal[con]+el->NConnectShapeF(con);
-	// Imprime dados do elemento, numero de connects e funçoes shape dependendo da ordem escolhida
-	saida << "Elemento: " << el->Index() << "  Order = " << order << endl;
-	saida << " " << "connects: " << nconnects << "  n shape: " << nshapef << endl;
-	for(side=el->NCornerConnects();side<nsides-1;side++) {
-		TPZVec<REAL> n(3,0.);
-		int i;
-		REAL fator = -1.;
-		if(!(side%2)) { n[1] = 1.;
-			for(i=0;i<side/2;i++)
-				n[1] *= fator;
+	TPZVec<int> firstindexinternal(el->NConnects()+1,0);
+	for(conn=0;conn<el->NConnects();conn++) 
+		firstindexinternal[conn+1] = firstindexinternal[conn]+el->NConnectShapeF(conn);
+
+	// Normalizing the normal vetor
+	if(normal.NElements()<3) {
+		cout << "ERRO: Bad normal vector." << endl;
+		return;
+	}
+	n_modulo = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
+	if(IsZero(n_modulo)) return;
+	for(i=0;i<3;i++) {
+		n_unit[i] = normal[i]/n_modulo;
+	}
+	// On the side: connects, shape functions and first indexes
+	nsideconnects = el->NSideConnects(side);
+	// Print element index, number of connects and shape functions on the side
+	saida << "Elemento: " << el->Index() << "  Side = " << side;
+	saida << " " << "side_connects: " << nsideconnects << "  N_side_shape: " << el->NSideShapeF(side) << endl;
+	// Creating integration rule on the side
+	transform = gel->SideToSideTransform(side,((el->Reference()->NSides())-1));
+	pointIntRule = el->Reference()->CreateSideIntegrationRule(side,order);
+	npoints = pointIntRule->NPoints();
+	// Over all side points (based on the integration rule) compute the gradient values to shape functions associated to connects on the side
+	for(point=0;point<npoints;point++) {
+		pointIntRule->Point(point,p_pointIntRule,peso[point]);
+		transform.Apply(p_pointIntRule,p1);
+		for(i=0;i<p2.NElements();i++) {
+			p2[i] = p1[i]+0.5*n_unit[i];
+			p3[i] = p1[i]+n_unit[i];
 		}
-		else { n[0] = 1.;
-			for(i=0;i<(side/2 - 1);i++)
-				n[1] *= fator;
-		}
-		TPZVec<int> firstindexside(nsideconnects+1,0);
-		nsideconnects = el->NSideConnects(side);
-		nsideshapef = el->NSideShapeF(side);
-//		for(conside=0;conside<nsideconnects;conside++) {
-//			firstindexside[conside+1] = firstindexside[conside] + el->NConnectShapeF(el->SideConnectIndex(conside,side));
-//		}
-		saida << "  Side " << side << ": " << "  side connects: " << nsideconnects << "  n side shape: " << nsideshapef << endl;
-		transform = gel->SideToSideTransform(side,(nsides-1));
-		pointIntRule = el->Reference()->CreateSideIntegrationRule(side,order);
-		npoints = pointIntRule->NPoints();
-		for(point=0;point<npoints;point++) {
-			pointIntRule->Point(point,p_int,peso[point]);
-			transform.Apply(p_int,p1);
-			for(i=0;i<p2.NElements();i++) p2[i] = p1[i]+n[i];
-			for(i=0;i<p3.NElements();i++) p3[i] = p2[i]+n[i];
-			el->Shape(p1,phi1,dphi1);
-			el->Shape(p2,phi2,dphi2);
-			el->Shape(p3,phi3,dphi3);
-			saida << " " << " Point 1 " << point << " (" << p1[0] << "," << p1[1] << "," << p1[2] << ")" << "  peso = " << peso[point] << endl;
-			saida << " " << " Point 2 " << point << " (" << p2[0] << "," << p2[1] << "," << p2[2] << ")" << endl;
-			saida << " " << " Point 3 " << point << " (" << p3[0] << "," << p3[1] << "," << p3[2] << ")" << endl;
-//			saida << " " << " " << " MATRIX Side Shape: ";
-//			for(conside=0;conside<nsideconnects;conside++) {
-//				nshapef = el->NConnectShapeF(el->SideConnectIndex(conside,side));
-//				for(shape=0;shape<nshapef;shape++) 
-//					saida << phi1((firstindexside[conside]+shape),0) << "  ";
-//			}
-//			saida << endl << " " << " " << " MATRIX Shape:      ";
-//			for(conside=0;conside<nsideconnects;conside++) {
-//				nshapef = el->NConnectShapeF(el->SideConnectIndex(conside,side));
-//				for(shape=0;shape<nshapef;shape++) 
-//					saida << phi2((firstindexinternal[el->SideConnectIndex(conside,side)]+shape),0) << "  ";
-//			}
-			saida << endl;
+		el->Shape(p1,phi1,dphi1);
+		el->Shape(p2,phi2,dphi2);
+		el->Shape(p3,phi3,dphi3);
+		saida << " Point integration rule: " << point << endl;
+		saida << " - Point1 " << " (" << p1[0] << "," << p1[1] << "," << p1[2] << ")";
+		saida << " - Point2 " << " (" << p2[0] << "," << p2[1] << "," << p2[2] << ")";
+		saida << " - Point3 " << " (" << p3[0] << "," << p3[1] << "," << p3[2] << ")" << endl;
+		// Computing dphi.normal to all shape functions associated to connects on this side
+		for(sideconnect=0;sideconnect<nsideconnects;sideconnect++) {
+			nconnectshapef = el->NConnectShapeF(el->SideConnectIndex(sideconnect,side));
+			for(sideconnectshapef=0;sideconnectshapef<nconnectshapef;sideconnectshapef++) {
+				int index = firstindexinternal[el->SideConnectIndex(sideconnect,side)] + sideconnectshapef;
+				prod_int1 = dphi1(0,index)*n_unit[0] + dphi1(1,index)*n_unit[1] + dphi1(2,index)*n_unit[2];
+				prod_int2 = dphi2(0,index)*n_unit[0] + dphi2(1,index)*n_unit[1] + dphi2(2,index)*n_unit[2];
+				prod_int3 = dphi3(0,index)*n_unit[0] + dphi3(1,index)*n_unit[1] + dphi3(2,index)*n_unit[2];
+				// All the scalar products must to be equals
+				if(!IsZero(prod_int1-prod_int2) || !IsZero(prod_int2-prod_int3))
+					saida << "Shape " << index << " on the side_connect " << sideconnect << " on the side " << side << " is not linear." << endl;
+			}
 		}
 		saida << endl;
 	}
+	saida << endl;
 	delete pointIntRule;
 }
 
