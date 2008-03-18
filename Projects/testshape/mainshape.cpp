@@ -3,6 +3,7 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzgengrid.h"
+#include "TPZExtendGridDimension.h"
 #include "pzintel.h"
 
 #include "pzl2projection.h"
@@ -24,11 +25,7 @@
 using namespace pzshape;
 
 
-TPZCompMesh *InitialMesh(int dim,int order,int nsubdiv);
-
-
-// A ordem de regra de integracao nao precisa ser parametro, pega uma ordem suficiente...
-
+TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int elem_type);
 
 void TestShape(TPZInterpolatedElement *el,int order,ostream &out);
 void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida);
@@ -40,14 +37,16 @@ void TestShapeIsLinear(TPZInterpolatedElement *el,int side, TPZVec<REAL> &direct
 
 int main() {
 	int elem, side, order;
-	int dim = 3, max_order;
+	int dim = 3; // se dim igual a 3 sera construida malha com elementos tridimensionais, se diferente elementos bidimensionais
+	int max_order, elem_type;
 	TPZInterpolatedElement *el;
 	TPZVec<REAL> normal(3,0.);
 	ofstream saida("malha.txt");
+	elem_type = 0; // se igual a 1 triangulo, se diferente quadrilatero
 
 	// Insere malha geometrica e computacional
 	max_order = 15;
-	TPZCompMesh *cmesh = InitialMesh(dim,max_order,1);
+	TPZCompMesh *cmesh = InitialMesh(max_order,1,dim,elem_type);
 
 	// Calcula os valores das funcoes shape no lado e no elemento
 	for(elem=0;elem<cmesh->NElements();elem++) {
@@ -64,24 +63,31 @@ int main() {
 	return 0;
 }
 
-TPZCompMesh *InitialMesh(int dim,int order,int nsubdiv) {
-	if(dim < 1) {
-		cout << "Mesh with bad dimension.";
-		return 0;
-	}
+TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int type) {
+	if(dim != 3)
+		dim = 2;
 
 	TPZGeoMesh *g = new TPZGeoMesh;
-	TPZVec<int> nx(dim);
-	TPZVec<REAL> X0(dim);
-	TPZVec<REAL> X1(dim);
-	for(int i=0;i<dim;i++) {
+	TPZGeoMesh *g_extended = 0;
+	TPZVec<int> nx(3);
+	TPZVec<REAL> X0(3);
+	TPZVec<REAL> X1(3);
+	for(int i=0;i<3;i++) {
 		nx[i] = nsubdiv;
 		X0[i] = -3.;
 		X1[i] = 3.;
 	}
 	TPZGenGrid gen(nx,X0,X1,1);
+	if(type==1) gen.SetElementType(type);  // type = 1 para elementos triangulares
+	else gen.SetElementType(0);  // type = 0 para elementos quadrilateros
 	gen.Read(*g);
-	TPZCompMesh *c = new TPZCompMesh(g);
+	if(dim == 3) {
+		TPZExtendGridDimension genext(g,1.);
+		g_extended = genext.ExtendedMesh();
+	}
+	else 
+		g_extended = g;
+	TPZCompMesh *c = new TPZCompMesh(g_extended);
 	TPZVec<REAL> sol(1,0.);
 	TPZAutoPointer<TPZMaterial> material = new TPZL2Projection(1,2,1,sol);
 	c->InsertMaterialObject(material);
