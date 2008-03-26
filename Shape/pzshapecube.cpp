@@ -81,9 +81,93 @@ void TPZShapeCube::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dp
       dphi(2,7) = x[0]*y[1]*dz[1];
 }
 
+/**
+ * Computes the generating shape functions for a quadrilateral element
+ * @param pt (input) point where the shape function is computed
+ * @param phi (input) value of the (8) shape functions
+ * @param dphi (input) value of the derivatives of the (8) shape functions holding the derivatives in a column
+ * @param phig (output) value of the (19) generating shape functions
+ * @param dphig (output) value of the derivatives of the (19) generating shape functions holding the derivatives in a column
+ */
+void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+{
+  int is;
+  // contribute the ribs
+  for(is=8; is<20; is++)
+  {
+    int is1,is2;
+    is1 = SideConnectLocId(is,0);
+    is2 = SideConnectLocId(is,1);
+    phi(is,0) = phi(is1,0)*phi(is2,0);
+    dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+    dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+    dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+  }
+  // contribution of the faces
+  for(is=20; is<26; is++)
+  {
+    int is1,is2;
+    is1 = SideConnectLocId(is,0);
+    is2 = SideConnectLocId(is,2);
+    phi(is,0) = phi(is1,0)*phi(is2,0);
+    dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+    dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+    dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+  }
+  // contribution of the volume
+  for(is=26; is<27; is++)
+  {
+    int is1,is2;
+    is1 = 0;
+    is2 = 6;
+    phi(is,0) = phi(is1,0)*phi(is2,0);
+    dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+    dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+    dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+  }
+#ifdef NEWSTYLESHAPE
+  // Make the generating shape functions linear and unitary
+  for(is=8; is<27; is++)
+  {
+    TPZStack<int> highsides;
+    HigherDimensionSides(is,highsides);
+    int h, nh = highsides.NElements();
+    for(h=0; h<nh; h++)
+    {
+      int hs = highsides[h];
+      phi(is,0) += phi(hs,0);
+      dphi(0,is) += dphi(0,hs);
+      dphi(1,is) += dphi(1,hs);
+      dphi(2,is) += dphi(2,hs);
+    }
+    int dim = SideDimension(is);
+    int mult = (dim == 1) ? 4 : (dim == 2) ? 16 : (dim ==3) ? 64 : 0;
+    phi(is,0) *= mult;
+    dphi(0,is) *= mult;
+    dphi(1,is) *= mult;
+    dphi(2,is) *= mult;
+  }
+#endif
+}
+
 
 void TPZShapeCube::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
   ShapeCorner(pt,phi,dphi);
+  bool linear = true;
+  int is,d;
+  for(is=NCornerNodes; is<NSides; is++) if(order[is-NCornerNodes] > 1) linear = false;
+  if(linear) return;
+  
+  TPZFNMatrix<100> phiblend(NSides,1),dphiblend(Dimension,NSides);
+  for(is=0; is<NCornerNodes; is++)
+  {
+    phiblend(is,0) = phi(is,0);
+    for(d=0; d<Dimension; d++)
+    {
+      dphiblend(d,is) = dphi(d,is);
+    }
+  }
+  ShapeGenerating(pt,phiblend,dphiblend);
   int shape = 8;
   //rib shapes
   for (int rib = 0; rib < 12; rib++) {
@@ -104,11 +188,10 @@ void TPZShapeCube::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, 
     TPZShapeLinear::ShapeInternal(outvalvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
     TransformDerivativeFromRibToCube(rib,ordin,dphin);
     for (int i = 0; i < ordin; i++) {
-      phi(shape,0) = phi(id0,0)*phi(id1,0)*phin(i,0);
+      phi(shape,0) = phiblend(rib+8,0)*phin(i,0);
       for(int xj=0;xj<3;xj++) {
-         dphi(xj,shape) = dphi(xj ,id0) * phi(id1, 0 )  * phin( i, 0) +
-                          phi(id0, 0 )  * dphi(xj ,id1) * phin( i, 0) +
-                          phi(id0, 0 )  * phi(id1, 0 )  * dphin(xj,i);
+         dphi(xj,shape) = dphiblend(xj ,rib+8) *  phin( i, 0) +
+                          phiblend(rib+8, 0 ) * dphin(xj,i);
       }
       shape++;
     }
@@ -139,11 +222,10 @@ void TPZShapeCube::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, 
     TPZShapeQuad::ShapeInternal(outval,ord1-2,phin,dphin,TPZShapeQuad::GetTransformId2dQ(ids));//ordin = ordem de um lado
     TransformDerivativeFromFaceToCube(face,ord,dphin);//ord = numero de shapes
     for(i=0;i<ord;i++)	{
-      phi(shape,0) = phi(id0,0)*phi(id1,0)*phin(i,0);
+      phi(shape,0) = phiblend(face+20,0)*phin(i,0);
       for(int xj=0;xj<3;xj++) {
-         dphi(xj,shape) = dphi(xj,id0)* phi(id1 , 0 )* phin(i ,0) +
-                           phi(id0, 0)*dphi(xj  ,id1)* phin(i ,0) +
-                           phi(id0, 0)* phi(id1 , 0 )*dphin(xj,i);
+         dphi(xj,shape) = dphiblend(xj,face+20) * phin(i ,0) +
+                           phiblend(face+20, 0)* dphin(xj,i);
       }
       shape++;
     }
@@ -157,15 +239,15 @@ void TPZShapeCube::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, 
   dphin.Zero();
   ShapeInternal(pt,ordmin1,phin,dphin);
   for(int i=0;i<ord;i++)	{
-    phi(shape,0) = phi(0,0)*phi(6,0)*phin(i,0);
+    phi(shape,0) = phiblend(26,0)*phin(i,0);
     for(int xj=0;xj<3;xj++) {
-      dphi(xj,shape) = dphi(xj,0)* phi(6 ,0)* phin(i ,0) +
-                        phi(0, 0)*dphi(xj,6)* phin(i ,0) +
-                        phi(0, 0)* phi(6 ,0)*dphin(xj,i);
+      dphi(xj,shape) = dphiblend(xj,26) * phin(i ,0) +
+                        phiblend(26, 0)*dphin(xj,i);
     }
     shape++;
   }
 }
+
 void TPZShapeCube::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
   if(side<0 || side>26) PZError << "TPZCompElC3d::SideShapeFunction. Bad paramenter side.\n";
   else if(side==26) Shape(pt,id,order,phi,dphi);
@@ -175,6 +257,10 @@ void TPZShapeCube::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec
   }
   else if(side<26) {//faces
     TPZShapeQuad::Shape(pt,id,order,phi,dphi);
+  }
+  else
+  {
+    Shape(pt,id,order,phi,dphi);
   }
 }
 

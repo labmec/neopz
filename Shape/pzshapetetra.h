@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzshapetetra.h,v 1.5 2007-04-20 18:30:23 caju Exp $
+// $Id: pzshapetetra.h,v 1.6 2008-03-26 20:17:34 phil Exp $
 #ifndef SHAPETETRAHPP
 #define SHAPETETRAHPP
 
@@ -44,6 +44,15 @@ public:
  * @param dphi (output) value of the derivatives of the (4) shape functions holding the derivatives in a column
  */
 static void CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+
+/**
+ * Computes the generating shape functions for a quadrilateral element
+ * @param pt (input) point where the shape function is computed
+ * @param phi (input/output) value of the (4) shape functions
+ * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
+ */
+  static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+
 
 /** 
  * Compute the internal functions of the tetrahedral shape function at a point\n

@@ -125,6 +125,14 @@ static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatr
  */
 static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix &phi,TPZFMatrix &dphi,int transformation_index);
 
+/**
+ * Computes the generating shape functions for a quadrilateral element
+ * @param pt (input) point where the shape function is computed
+ * @param phi (input/output) value of the  shape functions
+ * @param dphi (input/output) value of the derivatives of the shape functions holding the derivatives in a column
+ */
+  static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+
 #ifdef _AUTODIFF
 /**
  * Computes the values of the orthogonal shapefunctions before multiplying them by the

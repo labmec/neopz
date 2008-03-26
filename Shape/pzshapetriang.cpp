@@ -1,4 +1,4 @@
-// $Id: pzshapetriang.cpp,v 1.7 2007-04-20 18:30:23 caju Exp $
+// $Id: pzshapetriang.cpp,v 1.8 2008-03-26 20:17:34 phil Exp $
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -39,10 +39,58 @@ void TPZShapeTriang::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &
   dphi(1,2) =  1.;
 }
 
+/**
+ * Computes the generating shape functions for a quadrilateral element
+ * @param pt (input) point where the shape function is computed
+ * @param phi (input/output) value of the (4) shape functions
+ * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
+ */
+void TPZShapeTriang::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+{
+  int is;
+  for(is=3; is<6; is++)
+  {
+    int is1 = is%3;
+    int is2 = (is+1)%3;
+    phi(is,0) = phi(is1,0)*phi(is2,0);
+    dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+    dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+  }
+  int is1 = 0;
+  int is2 = 1;
+  int is3 = 2;
+  phi(is,0) = phi(is1,0)*phi(is2,0)*phi(is3,0);
+  dphi(0,is) = dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3);
+  dphi(1,is) = dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3);
+#ifdef NEWSTYLESHAPE
+  // Make the generating shape functions linear and unitary
+  REAL mult[] = {1.,1.,1.,4.,4.,4.,27.};
+  for(is=3;is<NSides; is++)
+  {
+    phi(is,0) *= mult[is];
+    dphi(0,is) *= mult[is];
+    dphi(1,is) *= mult[is];
+  }
+#endif
+  
+}
+
 void TPZShapeTriang::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
 			    TPZFMatrix &phi,TPZFMatrix &dphi) {
   ShapeCorner(pt,phi,dphi);
   if (order[0] < 2 && order[1] < 2 && order[2] < 2 && order[3] < 3) return;
+  int is,d;
+  TPZFNMatrix<100> phiblend(NSides,1),dphiblend(Dimension,NSides);
+  for(is=0; is<NCornerNodes; is++)
+  {
+    phiblend(is,0) = phi(is,0);
+    for(d=0; d<Dimension; d++)
+    {
+      dphiblend(d,is) = dphi(d,is);
+    }
+  }
+  ShapeGenerating(pt,phiblend,dphiblend);
+  
   REAL out;
   int shape = 3;
   for (int rib = 0; rib < 3; rib++) {
@@ -59,11 +107,10 @@ void TPZShapeTriang::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order
     shplin->ShapeInternal(outvec,order[rib],phin,dphin,shplin->GetTransformId1d(ids));
     TransformDerivativeFromRibToTriang(rib,ord2,dphin);
     for (int i = 0; i < ord2; i++) {
-      phi(shape,0) = phi(rib,0)*phi((rib+1)%3,0)*phin(i,0);
+      phi(shape,0) = phiblend(rib+3,0)*phin(i,0);
       for(int xj=0;xj<2;xj++) {
-           dphi(xj,shape) = dphi(xj,rib)* phi((rib+1)%3, 0 )* phin( i, 0)+
-                            phi(rib, 0 )*dphi(xj,(rib+1)%3) * phin( i, 0)+
-                            phi(rib, 0 )* phi((rib+1)%3, 0 )*dphin(xj,i);
+           dphi(xj,shape) = dphiblend(xj,rib+3)* phin( i, 0)+
+                            phiblend(rib+3, 0 )* dphin(xj,i);
       }
       shape++;
     }
@@ -75,12 +122,10 @@ void TPZShapeTriang::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order
   TPZFMatrix phin(nsh,1,store1,20),dphin(2,nsh,store2,40);
   ShapeInternal(pt,order[3]-2,phin,dphin,GetTransformId2dT(id));
   for(int i=0;i<nsh;i++)	{//number of internal shape equal maximal order
-    phi(shape,0) = phi(0,0)*phi(1,0)*phi(2,0)*phin(i,0);
+    phi(shape,0) = phiblend(6,0)*phin(i,0);
     for(int d=0;d<2;d++) {
-      dphi(d,shape) = dphi(d,0)* phi(1,0)* phi(2,0)* phin(i,0) +
-                       phi(0,0)*dphi(d,1)* phi(2,0)* phin(i,0) +
-                       phi(0,0)* phi(1,0)*dphi(d,2)* phin(i,0) +
-                       phi(0,0)* phi(1,0)* phi(2,0)*dphin(d,i);
+      dphi(d,shape) = dphiblend(d,6)* phin(i,0) +
+                       phiblend(6,0)*dphin(d,i);
     }
     shape++;
   }

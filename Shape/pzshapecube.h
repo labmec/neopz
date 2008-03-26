@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzshapecube.h,v 1.7 2007-04-20 18:30:23 caju Exp $
+// $Id: pzshapecube.h,v 1.8 2008-03-26 20:17:33 phil Exp $
 #ifndef SHAPECUBEHPP
 #define SHAPECUBEHPP
 
@@ -61,6 +61,14 @@ static void ShapeCube(TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, 
  * @param dphi (output) value of the derivatives of the (8) shape functions holding the derivatives in a column
  */
 static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+
+/**
+ * Computes the generating shape functions for a quadrilateral element
+ * @param pt (input) point where the shape function is computed
+ * @param phi (input) value of the (4) shape functions
+ * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
+ */
+  static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
 
 #ifdef _AUTODIFF
 /**

@@ -1,4 +1,4 @@
-// $Id: pzshapepiram.cpp,v 1.6 2007-04-20 18:30:23 caju Exp $
+// $Id: pzshapepiram.cpp,v 1.7 2008-03-26 20:17:33 phil Exp $
 #include "pzshapepiram.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -13,16 +13,16 @@ using namespace std;
 namespace pzshape {
 
 /*Projection of the point within a piramide to a rib*/
-REAL TPZShapePiram::gRibTrans3dPiram1d[8][3] = {//parâmetros de arestas
+REAL TPZShapePiram::gRibTrans3dPiram1d[8][3] = {//parï¿½metros de arestas
   { 1., 0.,0.} , { 0., 1.,0.} ,//percorre o sentido
   {-1., 0.,0.} , { 0.,-1.,0.} ,//da aresta segundo
   { .5, .5,1.} , {-.5,.5 ,1.} ,//SideNodes[8][2]
   {-.5,-.5,1.} , { .5,-.5,1.}
 };
-//não tem vetor associado -> OK!
+//nï¿½o tem vetor associado -> OK!
 
 //Projection of the point within a piramide to a face
-REAL TPZShapePiram::gFaceTrans3dPiram2d[5][2][3] = {//parâmetros de faces
+REAL TPZShapePiram::gFaceTrans3dPiram2d[5][2][3] = {//parï¿½metros de faces
   { { 1., 0., 0.},{ 0., 1.,0.}  },//0 1 2 3  : percorre os eixos segundo
   { { 1.,-.5,-.5},{ 0., 1.,1.}  },//0 1 4    : FaceNodes[5][4]
   { { .5, 1.,-.5},{-1., 0.,1.}  },//1 2 4
@@ -37,8 +37,8 @@ REAL TPZShapePiram::gFaceSum3dPiram2d[5][2] = { {.0,0.},{-.5,0.},{-.5,0.},{-.5,0
 void TPZShapePiram::CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
 
   /*if(abs(pt[0])<1.e-10 && abs(pt[1])<1.e-10 && pt[2]==1.) {
-  	//para testes com transformações geometricas
-   //(0,0,1) nunca é um ponto de integração
+  	//para testes com transformaï¿½ï¿½es geometricas
+   //(0,0,1) nunca ï¿½ um ponto de integraï¿½ï¿½o
      phi(0,0)  = 0.;
      phi(1,0)  = 0.;
      phi(2,0)  = 0.;
@@ -85,6 +85,89 @@ void TPZShapePiram::CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &d
   dphi(1,4) =  0.0;
   dphi(2,4) =  1.0;
 }
+
+/**
+ * Computes the generating shape functions for a quadrilateral element
+ * @param pt (input) point where the shape function is computed
+ * @param phi (input/output) value of the (4) shape functions
+ * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
+ */
+void TPZShapePiram::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+{
+  int is;
+  // contribute the ribs
+  for(is=NCornerNodes; is<NCornerNodes+8; is++)
+  {
+    int is1,is2;
+    is1 = SideConnectLocId(is,0);
+    is2 = SideConnectLocId(is,1);
+    phi(is,0) = phi(is1,0)*phi(is2,0);
+    dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+    dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+    dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+  }
+  // contribution of the faces
+  // quadrilateral face
+  is = 13;
+  {
+    int is1,is2;
+    is1 = ShapeFaceId[0][0];// SideConnectLocId(is,0);
+    is2 = ShapeFaceId[0][2];// SideConnectLocId(is,2);
+    phi(is,0) = phi(is1,0)*phi(is2,0);
+    dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+    dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+    dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+  }
+  is++;
+  // triangular faces
+  for(;is<18; is++)
+  {
+    int is1,is2,is3;
+    is1 = SideConnectLocId(is,0);
+    is2 = SideConnectLocId(is,1);
+    is3 = SideConnectLocId(is,2);
+    phi(is,0) = phi(is1,0)*phi(is2,0)*phi(is3,0);
+    dphi(0,is) = dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3);
+    dphi(1,is) = dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3);
+    dphi(2,is) = dphi(2,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(2,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(2,is3);
+    
+  }
+  {
+    int is1 = 0;
+    int is2 = 2;
+    int is3 = 4;
+    phi(is,0) = phi(is1,0)*phi(is2,0)*phi(is3,0);
+    dphi(0,is) = dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3);
+    dphi(1,is) = dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3);
+    dphi(2,is) = dphi(2,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(2,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(2,is3);
+  }
+  
+#ifdef NEWSTYLESHAPE
+  // Make the generating shape functions linear and unitary
+  // contribute the ribs
+  for(is=NCornerNodes; is<NCornerNodes+4; is++)
+  {
+    int isface = 13;
+    phi(is,0) += phi(isface,0);
+    dphi(0,is) += dphi(0,isface);
+    dphi(1,is) += dphi(1,isface);
+    dphi(2,is) += dphi(2,isface);
+  }
+  // scaling the shapefunctions
+  {
+    REAL sidescale[] = {1.,1.,1.,1.,1.,4.,4.,4.,4.,4.,4.,4.,4.,16.,27.,27.,27.,27.,64.};
+    for(is=5; is<NSides; is++)
+    {
+      phi(is,0) *= sidescale[is];
+      dphi(0,is) *= sidescale[is];
+      dphi(1,is) *= sidescale[is];
+      dphi(2,is) *= sidescale[is];
+    }
+  }
+#endif
+
+}
+
 /*REAL TPZCompEl::T(REAL &pt0,REAL &pt1) {
   return ( ( ( 1 - pt1 ) - pt0 ) / 2 / (1 - pt1) );
 }
@@ -127,6 +210,21 @@ void TPZCompEl::ShapeCornerPira(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &d
 void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
 
   CornerShape(pt,phi,dphi);
+  bool linear = true;
+  int is,d;
+  for(is=NCornerNodes; is<NSides; is++) if(order[is-NCornerNodes] > 1) linear = false;
+  if(linear) return;
+  
+  TPZFNMatrix<100> phiblend(NSides,1),dphiblend(Dimension,NSides);
+  for(is=0; is<NCornerNodes; is++)
+  {
+    phiblend(is,0) = phi(is,0);
+    for(d=0; d<Dimension; d++)
+    {
+      dphiblend(d,is) = dphi(d,is);
+    }
+  }
+  ShapeGenerating(pt,phiblend,dphiblend);
   //  if(order[13]<2) return;//order tem as ordens dos lados do elemento
   int shape = 5;
   //rib shapes
@@ -149,11 +247,10 @@ void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
     TPZShapeLinear::ShapeInternal(outvalvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
     TransformDerivativeFromRibToPiram(rib,ordin,dphin);
     for (int i = 0; i < ordin; i++) {
-      phi(shape,0) = phi(id0,0)*phi(id1,0)*phin(i,0);
+      phi(shape,0) = phiblend(rib+5,0)*phin(i,0);
       for(int xj=0;xj<3;xj++) {
-         dphi(xj,shape) = dphi(xj ,id0) * phi(id1, 0 )  * phin( i, 0) +
-                          phi(id0, 0 )  * dphi(xj ,id1) * phin( i, 0) +
-                          phi(id0, 0 )  * phi(id1, 0 )  * dphin(xj,i);
+         dphi(xj,shape) = dphiblend(xj ,rib+5) * phin( i, 0) +
+                          phiblend(rib+5, 0 )  * dphin(xj,i);
       }
       shape++;
     }
@@ -162,19 +259,18 @@ void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
   //face shapes
   for (int face = 0; face < 5; face++) {
     if (order[face+8] < 2) continue;
-    if(face>0 && order[face+8]<=2) continue;//só a face 13 tem shape associada com ordem p=2
-    TPZVec<REAL> outval(2);
+    if(face>0 && order[face+8]<=2) continue;//sï¿½ a face 13 tem shape associada com ordem p=2
+    TPZManVector<REAL,2> outval(2);
     ProjectPoint3dPiramToFace(face,pt,outval);
-    REAL store1[20],store2[60];
     int ord1;//,ord2;
 	 ord1 = order[8+face];
 	//ord2 = ord1;
     //FaceOrder(face,ord1,ord2);//ordem da face
-    if(face && ord1<3) continue;//uma face com ordem < 3 não tem shape associada
+    if(face && ord1<3) continue;//uma face com ordem < 3 nï¿½o tem shape associada
     int ordin;
     if(!face) ordin = (ord1-1)*(ord1-1);//face quadrada
     else ordin = (ord1-2)*(ord1-1)/2;//face triangular
-    TPZFMatrix phin(ordin,1,store1,20),dphin(3,ordin,store2,60);//ponto na face
+    TPZFNMatrix<60> phin(ordin,1),dphin(3,ordin);//ponto na face
     phin.Zero();
     dphin.Zero();
     TPZManVector<int> ids(4);
@@ -189,54 +285,43 @@ void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
       transid = TPZShapeQuad::GetTransformId2dQ(ids);
       TPZShapeQuad::ShapeInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
     } else {
-       ids.Resize(3);
-    	 transid = TPZShapeTriang::GetTransformId2dT(ids);
-       outval[0] = (outval[0]+1.)/2.;//devido a correção na função
-       outval[1] = (outval[1]+1.)/2.;//Shape2dTriangleInternal(..) : correto aqui
-       TPZShapeTriang::ShapeInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
-       int c = dphin.Cols();//isto da (p-2)(p-1)/2 ; ord1 = p ; correto aqui
-       for(int i=0;i<c;i++) {
-         dphin(0,i) /= 2.;//correcao da derivada OK! aqui
-         dphin(1,i) /= 2.;
-         dphin(2,i) /= 2.;
-       }
+      ids.Resize(3);
+      transid = TPZShapeTriang::GetTransformId2dT(ids);
+      outval[0] = (outval[0]+1.)/2.;//devido a correï¿½ï¿½o na funï¿½ï¿½o
+      outval[1] = (outval[1]+1.)/2.;//Shape2dTriangleInternal(..) : correto aqui
+      TPZShapeTriang::ShapeInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
+      int c = dphin.Cols();//isto da (p-2)(p-1)/2 ; ord1 = p ; correto aqui
+      for(int i=0;i<c;i++) {
+        dphin(0,i) /= 2.;//correcao da derivada OK! aqui
+        dphin(1,i) /= 2.;
+        dphin(2,i) /= 2.;
+      }
     }
     TransformDerivativeFromFaceToPiram(face,ordin,dphin);//ordin = numero de shapes
     for(i=0;i<ordin;i++)	{
-      phi(shape,0) = phi(id0,0)*phi(id2,0)*phin(i,0);//face quadriláteral
-      REAL fi1 = phi(id1 , 0 );
-      if(face) phi(shape,0) *= fi1;//face triangular
+      phi(shape,0) = phiblend(face+13,0)*phin(i,0);//face quadrilï¿½teral
       for(int xj=0;xj<3;xj++) {
-         dphi(xj,shape) = dphi(xj,id0)* phi(id2 , 0 )* phin(i ,0) +
-                           phi(id0, 0)*dphi(xj  ,id2)* phin(i ,0) +
-                           phi(id0, 0)* phi(id2 , 0 )*dphin(xj,i);
-
-         if(face) {
-         	dphi(xj,shape) *= fi1;
-            dphi(xj,shape) += phi(id0, 0)* phi(id2 , 0 )*dphi(xj  ,id1)* phin(i ,0);
-         }
+         dphi(xj,shape) = dphiblend(xj,face+13)* phin(i ,0) +
+                           phiblend(face+13, 0)*dphin(xj,i);
       }
       shape++;
     }
   }
-  if(order[13]<3) return;//não há ordens para cantos
+  if(order[13]<3) return;//nï¿½o hï¿½ ordens para cantos
   //volume shapes
-  REAL store1[20],store2[60];
   int ord=0,i;
   for(i=0;i<order[13]-2;i++) {
     ord += (i+1)*(i+2) / 2;
   }
-  TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);
+  TPZFNMatrix<40> phin(ord,1),dphin(3,ord);
   phin.Zero();
   dphin.Zero();
   ShapeInternal(pt,order[13],phin,dphin);
   for(i=0;i<ord;i++)	{
-    phi(shape,0) = phi(0,0)*phi(2,0)*phi(4,0)*phin(i,0);
+    phi(shape,0) = phiblend(NSides-1,0)*phin(i,0);
     for(int xj=0;xj<3;xj++) {
-      dphi(xj,shape) = dphi(xj,0)* phi(2 ,0)* phi(4 ,0)* phin(i ,0) +
-                        phi(0, 0)*dphi(xj,2)* phi(4 ,0)* phin(i ,0) +
-                        phi(0, 0)* phi(2 ,0)*dphi(xj,4)* phin(i ,0) +
-                        phi(0, 0)* phi(2 ,0)* phi(4 ,0)* dphin(xj,i);
+      dphi(xj,shape) = dphiblend(xj,NSides-1) * phin(i ,0) +
+                        phiblend(NSides-1, 0) * dphin(xj,i);
     }
     shape++;
   }
@@ -259,7 +344,7 @@ void TPZShapePiram::SideShape(int side, TPZVec<REAL> &point, TPZVec<int> &id, TP
 
 void TPZShapePiram::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
 				                    TPZFMatrix &dphi) {
-  //valor da função e derivada do produto das funções ortogonais
+  //valor da funï¿½ï¿½o e derivada do produto das funï¿½ï¿½es ortogonais
   if(order < 3) return;
   int ord = order-2;
   REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
@@ -268,12 +353,12 @@ void TPZShapePiram::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
   TPZShapeLinear::fOrthogonal(x[0],ord,phi0,dphi0);//f e df            -1<=x0<=1
   TPZShapeLinear::fOrthogonal(x[1],ord,phi1,dphi1);//g e dg            -1<=x1<=1
   TPZShapeLinear::fOrthogonal(2.*x[2]-1.,ord,phi2,dphi2);//h e dh       0<=x3<=1 -> -1<=2*x2-1<=1
-  int index = 0;//x é ponto de integraçào dentro da pirâmide
+  int index = 0;//x ï¿½ ponto de integraï¿½ï¿½o dentro da pirï¿½mide
   for (int i=0;i<ord;i++) {
     for (int j=0;j<ord;j++) {
       for (int k=0;k<ord;k++) {
       	if( i+j+k < ord ) {
-            //int index = ord*(ord*i+j)+k; //i,j,k é o grau das funções ortogonais
+            //int index = ord*(ord*i+j)+k; //i,j,k ï¿½ o grau das funï¿½ï¿½es ortogonais
              phi(index,0) =    phi0(i,0)* phi1(j,0)* phi2(k,0);
             dphi(0,index) =   dphi0(0,i)* phi1(j,0)* phi2(k,0);
             dphi(1,index) =    phi0(i,0)*dphi1(0,j)* phi2(k,0);

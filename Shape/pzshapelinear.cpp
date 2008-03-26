@@ -189,6 +189,22 @@ void TPZShapeLinear::Legendre(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi, i
 void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix &, TPZFMatrix &) = TPZShapeLinear::Chebyshev;
 
 //  REAL TPZCompEl::gTrans1d[2] = {1.,-1.};
+/**
+ * Computes the generating shape functions for a quadrilateral element
+ * @param pt (input) point where the shape function is computed
+ * @param phi (input/output) value of the  shape functions
+ * @param dphi (input/output) value of the derivatives of the shape functions holding the derivatives in a column
+ */
+void TPZShapeLinear::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+{
+    
+  phi(2,0) = phi(0,0)*phi(1,0);
+  dphi(0,2) = dphi(0,0)*phi(1,0)+phi(0,0)*dphi(0,1);
+#ifdef NEWSTYLESHAPE
+  phi(2,0) *= 4.;
+  dphi(0,2) *= 4.;
+#endif
+}
 
 void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi) {
   //	num = number of functions to compute
@@ -208,34 +224,41 @@ void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<int> &id, TPZVec<int> &order,T
   }
 #endif
 
-  if ( order[0] == 0) {
+  if ( order[0] == 0) 
+  {
     phi(0,0) = 1.;
     dphi(0,0) = 0.;
-  } else if (order[0] == 1) {		// Linear shape functions
+  } else 
+  {		// Linear shape functions
     phi(0,0) = (1-x[0])/2.;
     phi(1,0) = (1+x[0])/2.;
     dphi(0,0) = -0.5;
     dphi(0,1)= 0.5;
-    return;
   }
 
+  int is,d;
+  TPZFNMatrix<100> phiblend(NSides,1),dphiblend(Dimension,NSides);
+  for(is=0; is<NCornerNodes; is++)
+  {
+    phiblend(is,0) = phi(is,0);
+    for(d=0; d<Dimension; d++)
+    {
+      dphiblend(d,is) = dphi(d,is);
+    }
+  }
+  ShapeGenerating(x,phiblend,dphiblend);
   // Quadratic or higher shape functions
   int num2 = order[0]-1;
   int transformationindex = GetTransformId1d(id);
-  if(num2 > 0) ShapeInternal(x,order[0],phi,dphi,transformationindex);
-  int ord;
-  for (ord = order[0]; ord > 1; ord--) {
-    phi(ord,0) = phi(ord-2,0);
-    dphi(0,ord) = dphi(0,ord-2);
+  TPZFNMatrix<10> phiint(num2,1),dphiint(1,num2);
+  if(num2 > 0)
+  {
+    ShapeInternal(x,order[0],phiint,dphiint,transformationindex);
   }
-  phi(0,0) = (1-x[0])/2.;
-  phi(1,0) = (1+x[0])/2.;
-  dphi(0,0) = -0.5;
-  dphi(0,1) = 0.5;
+  int ord;
   for (ord = 2; ord < order[0]+1; ord++) {    // even functions
-    dphi(0,ord) *= phi(0,0)*phi(1,0);
-    dphi(0,ord) += 0.5*phi(0,0)*phi(ord,0)-0.5*phi(1,0)*phi(ord,0);
-    phi(ord,0) *= phi(0,0)*phi(1,0);
+    dphi(0,ord) = dphiint(0,ord-2)*phiblend(2,0)+dphiblend(0,2)*phiint(ord-2,0);
+    phi(ord,0) = phiint(ord-2,0)*phiblend(2,0);
   }
 }
 

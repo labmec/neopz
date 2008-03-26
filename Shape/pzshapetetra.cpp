@@ -1,4 +1,4 @@
-// $Id: pzshapetetra.cpp,v 1.7 2007-04-20 18:30:23 caju Exp $
+// $Id: pzshapetetra.cpp,v 1.8 2008-03-26 20:17:34 phil Exp $
 #include "pzshapetetra.h"
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
@@ -65,10 +65,92 @@ void TPZShapeTetra::CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &d
   dphi(2,3) =  1.0;
 }
 
+/**
+ * Computes the generating shape functions for a quadrilateral element
+ * @param pt (input) point where the shape function is computed
+ * @param phi (input/output) value of the (4) shape functions
+ * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
+ */
+void TPZShapeTetra::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+{
+  int is;
+  // 6 ribs
+  for(is=4; is<NSides; is++)
+  {
+    int nsnodes = NSideNodes(is);
+    switch(nsnodes)
+    {
+      case 2:
+      {
+        int is1 = SideNodeLocId(is,0);
+        int is2 = SideNodeLocId(is,1);
+        phi(is,0) = phi(is1,0)*phi(is2,0);
+        dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+        dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+        dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+      }
+      break;
+      case 3:
+      {
+        int face = is-10;
+        int is1 = SideNodeLocId(is,0); //ShapeFaceId[face][0]; 
+        int is2 = SideNodeLocId(is,1); //ShapeFaceId[face][1]; 
+        int is3 = SideNodeLocId(is,2); //ShapeFaceId[face][2]; 
+        phi(is,0) = phi(is1,0)*phi(is2,0)*phi(is3,0);
+        dphi(0,is) = dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3);
+        dphi(1,is) = dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3);
+        dphi(2,is) = dphi(2,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(2,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(2,is3);
+      }
+      break;
+      case 4:
+      {
+        phi(is,0) = phi(0,0)*phi(1,0)*phi(2,0)*phi(3,0);
+        for(int xj=0;xj<3;xj++) {
+          dphi(xj,is) = dphi(xj,0)* phi(1 ,0)* phi(2 ,0)* phi(3 ,0) +
+              phi(0, 0)*dphi(xj,1)* phi(2 ,0)* phi(3 ,0) +
+              phi(0, 0)* phi(1 ,0)*dphi(xj,2)* phi(3 ,0) +
+              phi(0, 0)* phi(1 ,0)* phi(2 ,0)*dphi(xj,3);
+        }
+      }
+        break;
+
+      default:
+        DebugStop();
+    }
+  }
+#ifdef NEWSTYLESHAPE
+  REAL mult[] = {1.,1.,1.,1.,4.,4.,4.,4.,4.,4.,27.,27.,27.,27.,54.};
+  for(is=4;is<NSides; is++)
+  {
+    phi(is,0) *= mult[is];
+    dphi(0,is) *= mult[is];
+    dphi(1,is) *= mult[is];
+    dphi(2,is) *= mult[is];
+  }
+#endif
+}
+
+
 //ifstream inn("mats.dt");
 void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
 
   CornerShape(pt,phi,dphi);
+  bool linear = true;
+  int is,d;
+  for(is=NCornerNodes; is<NSides; is++) if(order[is-NCornerNodes] > 1) linear = false;
+  if(linear) return;
+  
+  TPZFNMatrix<100> phiblend(NSides,1),dphiblend(Dimension,NSides);
+  for(is=0; is<NCornerNodes; is++)
+  {
+    phiblend(is,0) = phi(is,0);
+    for(d=0; d<Dimension; d++)
+    {
+      dphiblend(d,is) = dphi(d,is);
+    }
+  }
+  ShapeGenerating(pt,phiblend,dphiblend);
+
   //  if(order[9]<2) return;
   int shape = 4;
   //rib shapes
@@ -90,11 +172,10 @@ void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
     TPZShapeLinear::ShapeInternal(outvalvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
     TransformDerivativeFromRibToTetra(rib,ordin,dphin);
     for (int i = 0; i < ordin; i++) {
-      phi(shape,0) = phi(id0,0)*phi(id1,0)*phin(i,0);
+      phi(shape,0) = phiblend(rib+4,0)*phin(i,0);
       for(int xj=0;xj<3;xj++) {
-         dphi(xj,shape) = dphi(xj ,id0) * phi(id1, 0 )  * phin( i, 0) +
-                          phi(id0, 0 )  * dphi(xj ,id1) * phin( i, 0) +
-                          phi(id0, 0 )  * phi(id1, 0 )  * dphin(xj,i);
+         dphi(xj,shape) = dphiblend(xj ,rib+4) * phin( i, 0) +
+                          phiblend(rib+4, 0 )  * dphin(xj,i);
       }
       shape++;
     }
@@ -122,7 +203,7 @@ void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
     id1 = ShapeFaceId[face][1];//equivale a FaceIdsCube(face,ids,id,id0,id1);
     id2 = ShapeFaceId[face][2];
     int transid = TPZShapeTriang::GetTransformId2dT(ids);
-    outval[0] = (outval[0]+1.)/2.;//devido a correção na função
+    outval[0] = (outval[0]+1.)/2.;//devido a correï¿½ï¿½o na funï¿½ï¿½o
     outval[1] = (outval[1]+1.)/2.;//Shape2dTriangleInternal(..)
     TPZShapeTriang::ShapeInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
     int c = dphin.Cols();
@@ -133,19 +214,16 @@ void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
     }
     TransformDerivativeFromFaceToTetra(face,ordin,dphin);//ord = numero de shapes
     for(i=0;i<ordin;i++)	{
-      phi(shape,0) = phi(id0,0)*phi(id1,0)*phi(id2,0)*phin(i,0);
+      phi(shape,0) = phiblend(face+10,0)*phin(i,0);
       for(int xj=0;xj<3;xj++) {
-         dphi(xj,shape) = dphi(xj,id0)* phi(id1 , 0 )* phi(id2 , 0 )* phin(i ,0) +
-                           phi(id0, 0)*dphi(xj  ,id1)* phi(id2 , 0 )* phin(i ,0) +
-                           phi(id0, 0)* phi(id1 , 0 )*dphi(xj  ,id2)* phin(i ,0) +
-                           phi(id0, 0)* phi(id1 , 0 )* phi(id2 , 0 )*dphin(xj,i);
+         dphi(xj,shape) = dphiblend(xj,face+10) * phin(i ,0) +
+                           phiblend(face+10, 0) * dphin(xj,i);
       }
       shape++;
     }
   }
   if(order[10]<4) return;
   //volume shapes
-  REAL store1[20],store2[60];
   int totsum = 0,sum;
   int i;
   for(i=0;i<order[10]-3;i++) {
@@ -153,18 +231,15 @@ void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
     totsum += sum;
   }
   int ord = totsum;
-  TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);
+  TPZFNMatrix<80> phin(ord,1),dphin(3,ord);
   phin.Zero();
   dphin.Zero();
   ShapeInternal(pt,order[10],phin,dphin);
   for(i=0;i<ord;i++)	{
-    phi(shape,0) = phi(0,0)*phi(1,0)*phi(2,0)*phi(3,0)*phin(i,0);
+    phi(shape,0) = phiblend(NSides-1,0)*phin(i,0);
     for(int xj=0;xj<3;xj++) {
-      dphi(xj,shape) = dphi(xj,0)* phi(1 ,0)* phi(2 ,0)* phi(3 ,0)* phin(i ,0) +
-                        phi(0, 0)*dphi(xj,1)* phi(2 ,0)* phi(3 ,0)* phin(i ,0) +
-                        phi(0, 0)* phi(1 ,0)*dphi(xj,2)* phi(3 ,0)* phin(i ,0) +
-                        phi(0, 0)* phi(1 ,0)* phi(2 ,0)*dphi(xj,3)* phin(i ,0) +
-                        phi(0, 0)* phi(1 ,0)* phi(2 ,0)* phi(3 ,0)*dphin(xj,i);
+      dphi(xj,shape) = dphiblend(xj,NSides-1) * phin(i ,0) +
+                        phiblend(NSides-1, 0) * dphin(xj,i);
     }
     shape++;
   }

@@ -48,6 +48,14 @@ public:
   static void CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
 
 
+/**
+   * Computes the generating shape functions for a quadrilateral element
+   * @param pt (input) point where the shape function is computed
+   * @param phi (input) value of the (4) shape functions
+   * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
+ */
+  static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+
 /** 
  * Compute the internal functions of the prism shape function at a point\n
  * the internal shape functions are the shapefunctions before being multiplied by the corner
