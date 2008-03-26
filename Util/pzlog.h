@@ -67,7 +67,7 @@ extern pthread_mutex_t glogmutex;
 #endif
 
 
-inline void InitializePZLOG(std::string &configfile)
+inline void InitializePZLOG(const std::string &configfile)
 {
 #ifdef LOG4CXX
   log4cxx::PropertyConfigurator::configure(configfile);
