@@ -15,6 +15,5 @@ bin_PROGRAMS = main
 
 main_SOURCES = mainshape.cpp
 
-main_DEPENDENCIES = $(top_builddir)/lib/libpz.a
-
 ## --| NeoPZ |------------------------------------------------------------------
+main_DEPENDENCIES = $(top_builddir)/lib/libpz.a
