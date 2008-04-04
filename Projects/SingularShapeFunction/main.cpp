@@ -125,6 +125,11 @@ void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   double r = sqrt( pow(Xp,2) + pow(Yp,2) );
   if(r < 1e-6) r = 1e-6;
   
+  /*u[0] = Xp*Xp +Yp*Yp;
+  deriv(0,0) = 2.*Xp;
+  deriv(1,0) = 2.*Yp;
+  return;*/
+  
   u[0] = 8.148974294721926 + 2.6704656055626725*log(r);
   deriv(0,0) = (2.6704656055626725*Xp)/(r*r);
   deriv(1,0) = (2.6704656055626725*Yp)/(r*r);
@@ -196,6 +201,8 @@ void PRefinement(TPZCompMesh &cmesh, const int InitialP){
 
 int main(){
 
+  TPZShapeDisc::fOrthogonal = TPZShapeDisc::Legendre;
+
   const int nnodes = 20;
   const double scaleFuro = 1e-1;
   REAL co[nnodes][2] = {{2., 0.}, {1.618033988749895,1.1755705045849463}, {0.6180339887498949, 1.902113032590307}, 
@@ -251,7 +258,8 @@ int main(){
   gmesh->BuildConnectivity();
   
   const int p = 2;
-  const int h = 3;  
+  cout << "npassos = "; int hval; cin >> hval;
+  const int h = hval;   cout << "\nh=" << h;
   for(int ir = 0; ir < h; ir++){
 //     UniformRefinement(2,*gmesh, true, 8511965); UniformRefinement(1,*gmesh, true, 8511965);
      LocalRefinement(2,-3,*gmesh); UniformRefinement(1,*gmesh, false, -3);
@@ -262,11 +270,11 @@ int main(){
   cmesh->SetDimModel(2);
   
   TPZAutoPointer<TPZMaterial> mat = new TPZMatPoisson3d(matid, 2);
-//   mat->SetForcingFunction( LoadFunction );
+  mat->SetForcingFunction( LoadFunction );
   TPZMatPoisson3d * matcast = dynamic_cast<TPZMatPoisson3d*>(mat.operator->());
   matcast->fPenaltyConstant = 0*1.;
-//   matcast->SetSolutionPenalty(); 
-//   matcast->SetFluxPenalty();
+  matcast->SetSolutionPenalty(); 
+//    matcast->SetFluxPenalty();
 //   matcast->SetBothPenalty();
 //   matcast->SetSymmetric();
 
@@ -286,7 +294,7 @@ int main(){
   cmesh->InsertMaterialObject(bcFora);
   cmesh->InsertMaterialObject(bcDentro);
   
-  TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+  TPZCompMesh::SetAllCreateFunctionsContinuous();
 
   TPZCompEl::SetgOrder(p);
   cmesh->SetDefaultOrder(p);
@@ -298,10 +306,11 @@ int main(){
   
   
   PRefinement(*cmesh, 2);
-//   cmesh->ExpandSolution();
+  cmesh->AdjustBoundaryElements();
   
   
   TPZCompElDisc::SetTotalOrderShape(cmesh);
+//   TPZCompElDisc::SetTensorialShape(cmesh);
   
   TPZAutoPointer<TPZFunction> ExternalShapes = new TDiscoFunction();
   for(int iel = 0; iel < cmesh->NElements(); iel++){
@@ -309,23 +318,23 @@ int main(){
     if(!cel) continue;
     TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cel);
     if(!disc) continue;
-//     disc->SetExternalShapeFunction(ExternalShapes);    
+    disc->SetExternalShapeFunction(ExternalShapes);    
   }
   
 
   TPZAnalysis an(cmesh);
-  /*TPZSpStructMatrix*//*TPZFStructMatrix*/ TPZFrontStructMatrix<TPZFrontNonSym> matrix(cmesh);
+  TPZSpStructMatrix/*TPZFStructMatrix*/ /*TPZFrontStructMatrix<TPZFrontNonSym>*/ matrix(cmesh);
   an.SetStructuralMatrix(matrix);
   TPZStepSolver step;
   
-#define DIRETO
+// #define DIRETO
 #ifdef DIRETO  
     step.SetDirect(ELU); 
 #else 
-      TPZCopySolve precond( matrix.Create() );step.ShareMatrix( precond );  
-//       TPZFMatrix fakeRhs(cmesh->NEquations(),1);TPZFrontStructMatrix<TPZFrontNonSym> PrecondMatrix(cmesh); TPZStepSolver precond(PrecondMatrix.CreateAssemble(fakeRhs));precond.SetDirect(ELU);
+//       TPZCopySolve precond( matrix.Create() );step.ShareMatrix( precond );  
+      TPZFMatrix fakeRhs(cmesh->NEquations(),1);TPZFrontStructMatrix<TPZFrontNonSym> PrecondMatrix(cmesh); TPZStepSolver precond(PrecondMatrix.CreateAssemble(fakeRhs));precond.SetDirect(ELU);
       
-      step.SetGMRES( 300000, 160, precond, 1.e-10, 0 );
+      step.SetGMRES( 300000, 160, precond, 1.e-16, 0 );
 #endif  
   
   
@@ -362,6 +371,13 @@ int main(){
   
   
   an.Solve();
+  an.LoadSolution();
+  
+  TPZVec<REAL> error(cmesh->NElements(),0.);
+  TPZCompElDisc::EvaluateSquareResidual2D(*cmesh, error,false);
+  {ofstream resfile("res.txt");
+  for(int i = 0; i < error.NElements(); i++) resfile << sqrt(error[i]) << "\n";}
+  cmesh->SetElementSolution(0, error);
 
   
       an.SetExact(ExactSolution);
@@ -375,10 +391,12 @@ int main(){
   ofstream solfile("solucao.txt");
   an.Solution().Print("solucao",solfile);
   
-  TPZVec<char *> scalnames(3);
+  TPZVec<char *> scalnames(4);
   scalnames[0] = "Solution";
   scalnames[1] = "p";
   scalnames[2] = "POrder";
+  scalnames[3] = "Error";
+//   scalnames[4] = "Laplac";
   TPZVec<char *> vecnames(1);
   vecnames[0] = "Derivate";
   char plotfile[] = "singular.dx";

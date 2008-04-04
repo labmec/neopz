@@ -19,8 +19,10 @@ strmatrixinc_HEADERS= $(top_srcdir)/StrMatrix/*.h
 noinst_LIBRARIES = libpzstrmatrix.a
 
 libpzstrmatrix_a_SOURCES = TPBSpStructMatrix.cpp TPZFrontStructMatrix.cpp \
-	TPZParFrontStructMatrix.cpp TPZParSkylineStructMatrix.cpp TPZSpStructMatrix.cpp pzbdstrmatrix.cpp \
-	pzbstrmatrix.cpp pzfstrmatrix.cpp pzmaterialids pzsbstrmatrix.cpp pzskylstrmatrix.cpp \
-	pzstrmatrix.cpp tpzsparseblockdiagonalstructmatrix.cpp
+	TPZMTAssemble.cpp TPZParFrontStructMatrix.cpp TPZParSkylineStructMatrix.cpp \
+	TPZSpStructMatrix.cpp pzbdstrmatrix.cpp pzbstrmatrix.cpp pzfstrmatrix.cpp pzmaterialids \
+	pzsbstrmatrix.cpp pzskylstrmatrix.cpp pzstrmatrix.cpp \
+	tpzsparseblockdiagonalstructmatrix.cpp TPZMTAssemble.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
+noinst_HEADERS = TPZMTAssemble.h
