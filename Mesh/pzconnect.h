@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.15 2007-11-29 18:16:47 phil Exp $
+//$Id: pzconnect.h,v 1.16 2008-04-04 13:54:01 fortiago Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -128,8 +128,14 @@ class TPZConnect {
   /**Return fNElConnected*/
   int NElConnected() const { return fNElConnected; }
 
+  /** 
+   * @param myindex [in] index of this connect
+   * @param dependindex [in] index of the connect this will depend upon
+   * @param depmat [in] dependency matrix which defines the relation between the connects
+   * @param ipos, jpos, isize, jsize are parameters which define the submatrix within depmat which is to be used
+   */
   void AddDependency(int myindex, int dependindex,TPZFMatrix &depmat,int ipos,int jpos, int isize, int jsize);
-
+  
   void RemoveDepend(int myindex, int dependindex);
 
   /// delete all dependency information
