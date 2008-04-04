@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <sstream>
 #include <string>
+#include <pzaxestools.h>
 
 #include "pzlog.h"
 
@@ -261,6 +262,7 @@ TPZFMatrix TPZFMatrix::operator-(const TPZFMatrix &A ) const {
 /* By Caju 2007 */
 void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog) 
 {
+
     int QTDcomp = Rows();
     int QTDvec = Cols();
     Orthog.Resize(QTDcomp,QTDvec);
@@ -303,7 +305,7 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
                 dotUp += GetVal(r,c)*Orthog(r,stop);
                 dotDown += Orthog(r,stop)*Orthog(r,stop);
             }
-            if(dotDown < 1.E-15) 
+            if(dotDown < 1.E-8) 
             { 
                 #ifdef DEBUG2
                 if(check == 0)
@@ -342,6 +344,12 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
         }
     }
     Orthog.Multiply(*this,BasisToOrthog,1);
+
+#ifdef DEBUG
+  TPZFNMatrix<9> OrthogT;
+  Orthog.Transpose(&OrthogT);
+  TPZAxesTools::VerifyAxes(OrthogT);
+#endif
 }
 
 

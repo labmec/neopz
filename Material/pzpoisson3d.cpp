@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.35 2008-02-14 12:39:43 tiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.36 2008-04-04 12:14:30 fortiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -247,6 +247,7 @@ int TPZMatPoisson3d::VariableIndex(char *name){
   if(!strcmp("NormKDu",name))         return  6;
   if(!strcmp("MinusKGradU",name))     return  7;
   if(!strcmp("p",name))               return  8;
+  if(!strcmp("Laplac",name))          return  9;
   return TPZMaterial::VariableIndex(name);
 }
 
@@ -256,6 +257,7 @@ int TPZMatPoisson3d::NSolutionVariables(int var){
   if ((var == 3) || (var == 4) || (var == 5) || (var == 6)) return 1;
   if (var == 7) return fDim;
   if (var == 8) return 1;
+  if (var == 9) return 1;
   return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -322,6 +324,11 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
     }
     return;
   }//var == 7  
+  if(var == 9){//Laplac
+    Solout.Resize(1);
+    Solout[0] = DSol(2,0);
+    return;
+  }//Laplac
   
   TPZMaterial::Solution(Sol, DSol, axes, var, Solout);
   
@@ -339,15 +346,13 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
   TPZManVector<REAL> sol(1),dsol(3,0.);
   Solution(u,dudx,axes,1,sol);
   Solution(u,dudx,axes,2,dsol);
-  REAL dx[3] = {0.};
   int id,jd;
-  for(id=0; id<fDim; id++) for(jd=0; jd<3; jd++) dx[jd] += dsol[id]*axes(id,jd);
   //values[1] : eror em norma L2
   values[1]  = (sol[0] - u_exact[0])*(sol[0] - u_exact[0]);
   //values[2] : erro em semi norma H1
   values[2] = 0.;
   for(id=0; id<fDim; id++) {
-    values[2]  += fK*(dx[id] - du_exact(id,0))*(dx[id] - du_exact(id,0));
+    values[2]  += fK*(dsol[id] - du_exact(id,0))*(dsol[id] - du_exact(id,0));
   }
   //values[0] : erro em norma H1 <=> norma Energia
   values[0]  = values[1]+values[2];
@@ -885,12 +890,12 @@ REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, 
   REAL laplacU;
   REAL divBetaU;
   if(this->Dimension() == 1){
-    laplacU = dsol(0,1);
+    laplacU = dsol(1,0);
     divBetaU = this->fC * this->fConvDir[0] * dsol(0,0);
   }
   if(this->Dimension() == 2){
-    laplacU = dsol(0,2);
-    divBetaU = this->fC * ( this->fConvDir[0] * dsol(0,0) + this->fConvDir[1] * dsol(0,1) );
+    laplacU = dsol(2,0);
+    divBetaU = this->fC * ( this->fConvDir[0] * dsol(0,0) + this->fConvDir[1] * dsol(1,0) );
   } 
   
   REAL result = -this->fK * laplacU + divBetaU - (-fXf);
