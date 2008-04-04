@@ -94,6 +94,36 @@ void TPZShapeDisc::Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TP
 
 } //end of method
 
+void TPZShapeDisc::Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
+  switch (dimension){
+    case(0) :{
+      TPZShapeDisc::Shape0D(C,X0,X,degree,phi,dphi);
+      break;
+    }
+    case(1) : {
+      TPZShapeDisc::Shape1D(C,X0,X,degree,phi,dphi);
+      break;
+    }
+    case(2) : {
+      if(type == ETensorial || type == EOrdemTotal){
+        TPZShapeDisc::Shape2D(C,X0,X,degree,phi,dphi,type);
+      }
+      else{
+        TPZShapeDisc::Shape2DFull(C,X0,X,degree,phi,dphi,type);
+      }
+      break;
+    }
+    case(3) : {
+      TPZShapeDisc::Shape3D(C,X0,X,degree,phi,dphi,type);
+      break;
+    }
+    default:{
+      PZError << "\nFATAL ERROR at " << __PRETTY_FUNCTION__ << "\n";
+      PZError.flush();
+      exit(-1);
+    }
+  }
+}
 
 void  TPZShapeDisc::Shape0D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
 
@@ -306,7 +336,7 @@ void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degr
   //valor da fun�o
   for(i=0;i<num;i++){
     for(j=0;j<num;j++){
-      if(i+j > degree && type == EOrdemTotal) break;
+      if(i+j > degree && type == EOrdemTotalFull) break;
       phi(counter,0) = phix(i,0)*phiy(j,0);
       dphi(0,counter) = dphix(0,i)* phiy(j,0); // dx 
       dphi(1,counter) =  phix(i,0)*dphiy(0,j); // dy
@@ -339,11 +369,11 @@ int  TPZShapeDisc::NShapeF(int degree, int dimension, MShapeType type) {
     return degree+1;
     break;
   case 2:
-    if(type == ETensorial) return (degree+1)*(degree+1);
+    if(type == ETensorial || type == ETensorialFull) return (degree+1)*(degree+1);
     else return (degree+1)*(degree+2)/2;
     break;
   case 3:
-    if(type == ETensorial) return (degree+1)*(degree+1)*(degree+1);
+    if(type == ETensorial || type == ETensorialFull) return (degree+1)*(degree+1)*(degree+1);
     for(i=0;i<(degree+1);i++) sum += (i+1)*(i+2)/2;
     return sum;
     break;

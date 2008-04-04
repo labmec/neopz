@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZShapeDisc.h,v 1.11 2008-02-05 20:58:27 tiago Exp $
+// $Id: TPZShapeDisc.h,v 1.12 2008-04-04 13:23:53 fortiago Exp $
 #ifndef SHAPEDISCHPP
 #define SHAPEDISCHPP
 
@@ -47,7 +47,7 @@ static void (*fOrthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix & phi,
 
 public:
 
-enum MShapeType {ETensorial, EOrdemTotal};
+enum MShapeType {ETensorial, EOrdemTotal, ETensorialFull, EOrdemTotalFull};
 
 TPZShapeDisc();
 
@@ -55,12 +55,15 @@ TPZShapeDisc(const TPZShapeDisc &copy);
 
 ~TPZShapeDisc();
   
-public:
+static void Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type);  
 
 /**
  * Number of shapefunctions dependent on the dimension and order of interpolation
  */
 static int NShapeF(int degree, int dimension, MShapeType type);
+
+protected:
+
 /**
  * discontinous polynomials of the line element
  */
