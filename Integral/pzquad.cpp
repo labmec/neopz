@@ -55,8 +55,9 @@ TPZIntRule::TPZIntRule(int precision){
   /// codigo original default
   int intpoints[] = {1,1,2,3,4,5,6,7,8,9,10,12,12,20,20,20,20,20,20,20,20};
 #endif
-  int numpoints = (precision+1) >> 1;
-  if(!(precision%2)) numpoints++;
+//   int numpoints = (precision+1) >> 1;
+//   if(!(precision%2)) numpoints++;
+  int numpoints = (int)((precision+1.)/2.+0.5);
   if(numpoints > 20) exit(-1);
   fNumInt = (short) intpoints[numpoints];
   fLocation = new REAL[fNumInt];
