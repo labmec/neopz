@@ -45,7 +45,7 @@ libpz_a_LIBADD = ../Post/tpzgraphelt2dmapped.o \
 	../Material/pznlmat1d.o ../Material/pznlmat1drotatedengstrain.o \
 	../Material/pznonlinbiharmonic.o ../Material/pznonlinearpoisson3d.o ../Material/pzplaca.o \
 	../Material/pzpoisson3d.o ../Material/pzpoisson3dreferred.o ../Material/pzthermicelast3d.o \
-	../Material/pztransientmat.o ../Material/tpzmultcamada.o ../Material/tpzoutofrange.o \
+	../Material/pztransientmat.o ../Material/tpzmultcamada.o ../Material/tpzoutofrange.o ../Material/pzspacetimerichardseq.o \
 	../Matrix/pzblock.o ../Matrix/pzblockdiag.o ../Matrix/pzbndmat.o ../Matrix/pzespmat.o \
 	../Matrix/pzfmatrix.o ../Matrix/pzlink.o ../Matrix/pzmatred.o ../Matrix/pzmatrix.o \
 	../Matrix/pzmatrixid.o ../Matrix/pzsbndmat.o ../Matrix/pzseqsolver.o ../Matrix/pzsespmat.o \
