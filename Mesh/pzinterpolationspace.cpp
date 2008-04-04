@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.25 2008-02-14 12:39:52 tiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.26 2008-04-04 12:26:21 fortiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -173,7 +173,7 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
   REAL weight = 0.;
 
   TPZIntPoints &intrule = GetIntegrationRule();
-  TPZManVector<int,3> p2(dim,2*data.p);
+  TPZManVector<int,3> p2(dim,data.p*2);
   intrule.SetOrder(p2);
   if(material->HasForcingFunction()) {
     TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
@@ -213,6 +213,10 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
   REAL weight = 0.;
 
   TPZIntPoints &intrule = GetIntegrationRule();
+  TPZManVector<int,3> p2(dim,data.p*2);
+
+  intrule.SetOrder(p2);
+ 
   if(material->HasForcingFunction()) {
     TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
     intrule.SetOrder(order);
@@ -221,10 +225,15 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
   int intrulepoints = intrule.NPoints();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
     intrule.Point(int_ind,intpoint,weight);
+    
     this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+     
     weight *= fabs(data.detjac);
+    
     this->ComputeRequiredData(data, intpoint);
+   
     material->Contribute(data,weight,ef.fMat);
+   
   }//loop over integratin points
 
 }//CalcResidual
@@ -303,6 +312,10 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
   data.axes.Redim(3,3);
   data.axes.Zero();
   this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
+  
+  data.x.Resize(3);
+  this->Reference()->X(qsi, data.x);
+  
   material->Solution(data, var, sol);
 }
 
@@ -678,6 +691,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
   errors.Resize(NErrors);
   errors.Fill(0.);
   TPZAutoPointer<TPZMaterial> material = Material();
+  TPZMaterial * matptr = material.operator->();
   if(!material){
     PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
     Print(PZError);
