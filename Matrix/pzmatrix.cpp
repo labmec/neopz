@@ -336,6 +336,22 @@ void TPZMatrix::Print(const char *name, std::ostream& out,const MatrixOutputForm
 
 }
 
+void TPZMatrix::PrintMath(const char *name, std::ostream &out){
+  out.precision(10);
+  out << name << "\n{ ";
+  for ( int row = 0; row < Rows(); row++) {
+    out << "\n{ ";
+    for ( int col = 0; col < Cols(); col++ ) {
+      REAL val = Get (row, col);
+      out << val;
+      if(col < Cols()-1) out << ", ";
+    }
+    out << " }";
+    if(row < Rows()-1) out << ",";
+  }
+  out << " };\n";
+}
+
 
 /*******************/
 /*** Overload << ***/

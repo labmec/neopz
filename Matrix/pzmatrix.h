@@ -235,6 +235,8 @@ public:
   /** It prints the matrix data in a MatrixFormat Rows X Cols */
   virtual void Print(const char *name = 0, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
 
+  void PrintMath(const char *name = 0, std::ostream &out = std::cout);
+
   /**Returns number of rows */
   int Rows() const;
   /** Returns number of cols */
