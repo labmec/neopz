@@ -2861,26 +2861,11 @@ void TPZIntCube3D::Point(int ip, TPZVec<REAL> &pos, REAL &w){
 
   if((fIntZeta) && (fIntEta) && (fIntKsi) && ((ip >= 0) && (ip < NPoints()))){
     int ik, ie , iz;
-    int IK=0;
-
-    if (ip > fIntKsi->NInt() * fIntEta->NInt() * fIntZeta->NInt()) {
-      cout<<"\nPonto de Integracao numero "<<ip<<" fora do intervalo"<<endl;
-      return;
-    }
-
-    while ( ip >= IK*fIntZeta->NInt()*fIntEta->NInt() ) IK++;
-    IK--;
-    int IP = ip - IK*fIntZeta->NInt()*fIntEta->NInt();
-
-
-    if (IP <  fIntZeta->NInt()) {ik = IK; ie = 0; iz = IP;} else
-      if (IP >=  fIntZeta->NInt() && IP < fIntZeta->NInt()*fIntEta->NInt()) {
-	for (int i=0;i<fIntEta->NInt();i++) {
-	  if (IP >= fIntZeta->NInt()+i*fIntEta->NInt() &&
-	      IP < fIntZeta->NInt()+(i+1)*fIntEta->NInt())
-	    {ik = IK; ie = (i+1); iz = IP - (i+1)*fIntZeta->NInt();}
-	}
-      }
+    
+    ik = ip % fIntKsi->NInt();
+    ie = (ip % (fIntKsi->NInt()*fIntEta->NInt()))/fIntKsi->NInt();
+    iz = ip/(fIntKsi->NInt()*fIntEta->NInt());
+    
     pos[0] 	= fIntKsi->Loc(ik);
     pos[1]	= fIntEta->Loc(ie);
     pos[2]	= fIntZeta->Loc(iz);
