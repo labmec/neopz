@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.107 2008-02-14 12:43:15 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.108 2008-04-04 13:33:45 fortiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.107 2008-02-14 12:43:15 tiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.108 2008-04-04 13:33:45 fortiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -50,11 +50,27 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompeldisc"));
 using namespace pzshape;
 using namespace std;
 
-pzshape::TPZShapeDisc::MShapeType TPZCompElDisc::fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
+void TPZCompElDisc::SetTensorialShape(){
+  this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
+  this->SetDegree( this->Degree() );
+}
+  
+void TPZCompElDisc::SetTotalOrderShape(){
+  this->fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
+  this->SetDegree( this->Degree() );
+}
+
+void TPZCompElDisc::SetTensorialShapeFull(){
+  this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorialFull;
+  this->SetDegree( this->Degree() );
+}
+  
+void TPZCompElDisc::SetTotalOrderShapeFull(){
+  this->fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotalFull;
+  this->SetDegree( this->Degree() );
+}
 
 void TPZCompElDisc::SetTensorialShape(TPZCompMesh * cmesh){
-  if(fShapefunctionType == pzshape::TPZShapeDisc::ETensorial) return;
-  fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
   if(!cmesh) return;
   int nel = cmesh->NElements();
   for(int iel = 0; iel < nel; iel++){
@@ -62,13 +78,11 @@ void TPZCompElDisc::SetTensorialShape(TPZCompMesh * cmesh){
     if(!cel) continue;
     TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cel);
     if(!disc) continue;
-    disc->SetDegree( disc->Degree() );
+    disc->SetTensorialShape();
   }
 }
   
 void TPZCompElDisc::SetTotalOrderShape(TPZCompMesh * cmesh){
-  if(fShapefunctionType == pzshape::TPZShapeDisc::EOrdemTotal) return;
-  fShapefunctionType = pzshape::TPZShapeDisc::EOrdemTotal;
   if(!cmesh) return;
   int nel = cmesh->NElements();
   for(int iel = 0; iel < nel; iel++){
@@ -76,7 +90,7 @@ void TPZCompElDisc::SetTotalOrderShape(TPZCompMesh * cmesh){
     if(!cel) continue;
     TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cel);
     if(!disc) continue;
-    disc->SetDegree( disc->Degree() );
+    disc->SetTotalOrderShape();
   }
 }
 
@@ -93,11 +107,13 @@ TPZCompElDisc::~TPZCompElDisc() {
 
 TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fExternalShape(), fCenterPoint(3,0.)
 {
+  this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
   this->fIntRule = NULL;
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
 		TPZInterpolationSpace(mesh,0,index), fExternalShape(), fCenterPoint(3){
+  this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
   this->fIntRule = NULL;
 }
 
@@ -144,6 +160,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 		TPZInterpolationSpace(mesh,ref,index), fExternalShape(), fCenterPoint(3){
+  this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
   this->fIntRule = NULL;
   ref->SetReference(this);
   CreateMidSideConnect();
@@ -189,15 +206,20 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
     return;
   }//if
   ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+
+  ref->X(intpoint, X);
+  this->Shape(intpoint,X,phi,dphix);
+
   ///axes is identity in discontinuous elements
-  for(int i = 0; i < axes.Rows(); i++){
+  axes.Resize(dphix.Rows(), dphix.Rows());
+  axes.Identity();
+/*  for(int i = 0; i < axes.Rows(); i++){
     for(int j = 0; j < axes.Cols(); j++){
       if(i == j) axes(i,j) = 1.;
       else axes(i,j) = 0.;
     }///j
-  }///i
-  ref->X(intpoint, X);
-  this->Shape(intpoint,X,phi,dphix);
+  }///i*/
+
 }
 
 void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi){
@@ -223,29 +245,27 @@ void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
   const int Degree = this->Degree();
   if(Degree < 0) return;
   const int dim = this->Dimension();
-  if(dim == 0){
-    TPZShapeDisc::Shape0D(fConstC,fCenterPoint,X,Degree,phi,dphi);
-  }
-  if(dim == 1){
-    TPZShapeDisc::Shape1D(fConstC,fCenterPoint,X,Degree,phi,dphi);
-  }
-  if(dim == 2){
-    TPZShapeDisc::Shape2D/*Full*/(fConstC,fCenterPoint,X,Degree,phi,dphi,fShapefunctionType);
-  }
-  if(dim == 3){
-    TPZShapeDisc::Shape3D(fConstC,fCenterPoint,X,Degree,phi,dphi,fShapefunctionType);
-  }
+  TPZShapeDisc::Shape(dim, fConstC,fCenterPoint,X,Degree,phi,dphi,fShapefunctionType);
   
+  ///now appending external shape functions
+  this->AppendExternalShapeFunctions(X,phi,dphi);
+
+  
+}///method
+
+void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
+
   ///adding external shape functions whether they exist
   if(!this->fExternalShape.operator ->()) return;
-
-  TPZManVector<REAL> extPhi;
-  TPZFNMatrix<100> extDPhi, ThisPhi, ThisDPhi;
   
+  TPZManVector<REAL> extPhi;
+  TPZFNMatrix<100> extDPhi, ThisPhi, ThisDPhi;  
+
   ///computing external shape functions
   this->fExternalShape->Execute(X, extPhi, extDPhi);
   
   ///now appending all shape functions
+
   {
   
   const int ndiscphi = TPZShapeDisc::NShapeF(this->Degree(),this->Dimension(),fShapefunctionType);
@@ -272,7 +292,7 @@ void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
   
   {
 #ifdef DEBUG
-  if(dphi.Rows() != extDPhi.Rows()){
+  if(dphi.Rows() > extDPhi.Rows()){
     PZError << "\nError at " << __PRETTY_FUNCTION__ << "\n";
     DebugStop();
   }
@@ -281,7 +301,7 @@ void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
   ThisDPhi = dphi;
   const int ndiscdphi = TPZShapeDisc::NShapeF(this->Degree(),this->Dimension(),fShapefunctionType);
   const int nextdphi = this->fExternalShape->NFunctions();
-  const int nderiv = extDPhi.Rows();
+  const int nderiv = ThisDPhi.Rows();
   dphi.Resize(nderiv, ndiscdphi+nextdphi);
   dphi.Zero();
   for(int i = 0; i < nderiv; i++){
@@ -296,8 +316,7 @@ void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
   }
   
   }
-  
-}///method
+}
 
 void TPZCompElDisc::Print(std::ostream &out) {
 
@@ -857,10 +876,9 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMa
   TPZFMatrix jacobian(dim,dim);
   TPZFMatrix jacinv(dim,dim);
   REAL detjac;
+  
   TPZManVector<REAL,3> x(3,0.);
-  ref->Jacobian( qsi, jacobian, axes, detjac , jacinv);
-  ref->X(qsi, x);
-  this->Shape(qsi,x,phix,dphix);
+  this->ComputeShape(qsi,x,jacobian,axes,detjac,jacinv,phix,dphix);
   this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
 }//method
 
@@ -932,21 +950,20 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
   cel->LoadElementReference();
 
   ///creating discontinuous element
-  pzshape::TPZShapeDisc::MShapeType keepType = TPZCompElDisc::fShapefunctionType;
-  TPZCompElDisc::SetTensorialShape(NULL);
+  TPZCompMesh tempMesh(cel->Mesh()->Reference());
+  tempMesh.InsertMaterialObject( cel->Material() );
   
   int index;
-  TPZCompElDisc * disc = NULL;
-  TPZCompElDisc * cel_disc = dynamic_cast<TPZCompElDisc*>(cel);
-  if(cel_disc){
-    disc = new TPZCompElDisc(*cel_disc->Mesh(), *cel_disc);
+  TPZCompElDisc * disc = new TPZCompElDisc(tempMesh, cel->Reference(), index);
+  disc->SetTensorialShapeFull();
+  disc->SetDegree(2*cel->MaxOrder());
+  TPZCompElDisc * celdisc = dynamic_cast<TPZCompElDisc*>(cel);
+  if(celdisc){
+    disc->fExternalShape = celdisc->fExternalShape;
   }
-  else{
-    TPZCompElDisc * disc = new TPZCompElDisc(*cel->Mesh(), cel->Reference(), index);
-    disc->SetDegree( cel->MaxOrder() );
-  }
+  tempMesh.InitializeBlock();
   
-  ///interpolating solution - indeed it is a change of basis
+  ///interpolating solution
   disc->InterpolateSolution(*cel);
 
   ///integrating residual
@@ -974,23 +991,46 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
   int intrulepoints = intrule.NPoints();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
     intrule.Point(int_ind,intpoint,weight);
-    disc->ComputeSolution(intpoint, data.sol, data.dsol, data.axes);
-    disc->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
-    disc->Reference()->X(intpoint, data.x);
+    disc->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.dphix);
+    disc->ComputeSolution(intpoint,data.phi,data.dphix,data.axes,data.sol,data.dsol);    
     weight *= fabs(data.detjac);
     SquareResidual += material->ComputeSquareResidual(data.x,data.sol,data.dsol) * weight;
   }///loop over integration points  
 
   delete disc;
   cel->LoadElementReference();
-  
-  if(keepType == TPZShapeDisc::ETensorial) TPZCompElDisc::SetTensorialShape(NULL);
-  if(keepType == TPZShapeDisc::EOrdemTotal ) TPZCompElDisc::SetTotalOrderShape(NULL);
+  cel->Mesh()->LoadReferences();
   
   return SquareResidual;
   
 }///method
 
+void TPZCompElDisc::EvaluateSquareResidual2D(TPZCompMesh &cmesh, TPZVec<REAL> &error, bool verbose){
+
+  const int nel = cmesh.NElements();
+  error.Resize(nel);
+  error.Fill(-1.);
+  double elerror;
+  for(int iel = 0; iel < nel; iel++){
+    if(verbose){
+      std::cout << "Evaluating square residual of element " << iel << "\n";
+      std::cout.flush();
+    }
+    TPZCompEl * cel = cmesh.ElementVec()[iel];
+    if(!cel) continue;
+    TPZInterpolationSpace * sp = dynamic_cast< TPZInterpolationSpace * > (cel);
+    if(!sp) continue;
+    if(sp->Reference()->Dimension() != 2) continue;
+    elerror = TPZCompElDisc::EvaluateSquareResidual2D(sp);
+    error[iel] = elerror;
+  }///for
+
+  if(verbose){
+    std::cout << "Evaluation of square residual completed." << "\n";
+    std::cout.flush();
+  }
+
+}///method
 
 
 

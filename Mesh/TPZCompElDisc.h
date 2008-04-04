@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.70 2008-02-14 12:43:15 tiago Exp $
+//$Id: TPZCompElDisc.h,v 1.71 2008-04-04 13:33:45 fortiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -43,15 +43,31 @@ protected:
   /**
    * Shape function type used by the element
    */
-  static pzshape::TPZShapeDisc::MShapeType fShapefunctionType;
+  pzshape::TPZShapeDisc::MShapeType fShapefunctionType;
   
 public:
 
-  /** Set tensorial shape functions. Discontinuous elements in cmesh are updated. */
+  /** Set tensorial shape functions for all Discontinuous elements in cmesh. */
   static void SetTensorialShape(TPZCompMesh * cmesh);
   
-  /** Set total order shape functions. Discontinuous elements in cmesh are updated. */
+  /** Set total order shape functions for all Discontinuous elements in cmesh. */
   static void SetTotalOrderShape(TPZCompMesh * cmesh);
+
+  /** Set tensorial shape functions. */
+  void SetTensorialShape();
+  
+  /** Set total order shape functions. */
+  void SetTotalOrderShape();
+
+  /** Set tensorial shape functions with many derivatives.
+   * Available only for 2D shape functions.
+   */
+  void SetTensorialShapeFull();
+  
+  /** Set total order shape functions.
+   * Available only for 2D shape functions.
+   */
+  void SetTotalOrderShapeFull();
 
 protected:
 
@@ -192,6 +208,10 @@ protected:
   /**
    */
   void ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
+  
+  /** Add extenal shape function into already computed phi and dphi discontinuous functions.
+   */
+  void AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
 
   /**returns a reference to an integration rule suitable for integrating
      the interior of the element */
@@ -374,6 +394,10 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * It works only for elements that lay in the same space dimension of the master element.
    */
   static REAL EvaluateSquareResidual2D(TPZInterpolationSpace *cel);
+
+  /** Evaluare the square residual for every element in mesh.
+   */
+  static void EvaluateSquareResidual2D(TPZCompMesh &cmesh, TPZVec<REAL> &error, bool verbose = false);
 
 };
 
