@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.70 2007-12-07 18:37:22 cesar Exp $
+//$Id: pzcmesh.cpp,v 1.71 2008-04-07 11:22:10 fortiago Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -306,6 +306,12 @@ void TPZCompMesh::AutoBuild(std::set<int> &MaterialIDs){
     TPZGeoEl *gel = elvec[i];
     if(!gel) continue;
     matid = gel->MaterialId();
+    
+    ///checking material in TPZCompMesh
+    TPZAutoPointer<TPZMaterial> mat = this->FindMaterial(matid);
+    if(!mat)continue;
+    
+    ///checking material in MaterialIDs
     std::set<int>::iterator found = MaterialIDs.find(matid);
     if (found == MaterialIDs.end()) continue;
     if(!gel->HasSubElement()) {
