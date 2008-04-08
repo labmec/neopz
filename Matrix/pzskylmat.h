@@ -60,6 +60,11 @@ class TPZSkylMatrix : public TPZMatrix
   */
   int SkyHeight(int col) { return fElem[col+1]-fElem[col] - 1; }
 
+  /** Add a skyline matrix B with same structure of this
+   *  It makes this += k * B
+   */
+  void AddSameStruct(TPZSkylMatrix &B, double k = 1.);
+
   /**declare the object as simetric matrix*/
   virtual int IsSimetric() const {return 1;}
 

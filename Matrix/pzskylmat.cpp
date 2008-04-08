@@ -75,6 +75,30 @@ TPZSkylMatrix::TPZSkylMatrix(const int dim, const TPZVec<int> &skyline )
   InitializeElem(skyline,fStorage,fElem);
 }
 
+void TPZSkylMatrix::AddSameStruct(TPZSkylMatrix &B, double k){
+#ifdef DEBUG
+{
+  int size = this->fElem.NElements();
+  if(size != B.fElem.NElements()){
+    PZError << "\nFATAL ERROR at " << __PRETTY_FUNCTION__ << "\n";
+    PZError.flush();
+    exit(-1);
+  }
+  for(int i = 0; i < size; i++){
+    if((this->fElem[i]-this->fElem[0]) != (B.fElem[i]-B.fElem[0])){
+      PZError << "\nFATAL ERROR at " << __PRETTY_FUNCTION__ << "\n";
+      PZError.flush();
+      exit(-1);
+    }
+  }
+}
+#endif
+
+  const int n = this->fStorage.NElements();
+  for(int i = 0; i < n; i++) this->fStorage[i] += k*B.fStorage[i];
+
+}
+
 void TPZSkylMatrix::SetSkyline(const TPZVec<int> &skyline)
 {
   fElem.Fill(0);
