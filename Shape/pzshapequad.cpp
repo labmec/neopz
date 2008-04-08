@@ -1,4 +1,4 @@
-// $Id: pzshapequad.cpp,v 1.11 2008-03-26 20:17:34 phil Exp $
+// $Id: pzshapequad.cpp,v 1.12 2008-04-08 20:10:41 fortiago Exp $
 #include "pzshapequad.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -69,7 +69,7 @@ void TPZShapeQuad::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix
   phi(8,0) = phi(0,0)*phi(2,0);
   dphi(0,8) = dphi(0,0)*phi(2,0)+phi(0,0)*dphi(0,2);
   dphi(1,8) = dphi(1,0)*phi(2,0)+phi(0,0)*dphi(1,2);
-#ifdef NEWSTYLESHAPE
+#ifndef OLDSTYLESHAPE
   // Make the generating shape functions linear and unitary
   for(is=4; is<8; is++)
   {

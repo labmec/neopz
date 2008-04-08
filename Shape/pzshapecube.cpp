@@ -125,7 +125,7 @@ void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix
     dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
     dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
   }
-#ifdef NEWSTYLESHAPE
+#ifndef OLDSTYLESHAPE
   // Make the generating shape functions linear and unitary
   for(is=8; is<27; is++)
   {

@@ -1,4 +1,4 @@
-// $Id: pzshapetriang.cpp,v 1.8 2008-03-26 20:17:34 phil Exp $
+// $Id: pzshapetriang.cpp,v 1.9 2008-04-08 20:10:41 fortiago Exp $
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -62,7 +62,7 @@ void TPZShapeTriang::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatr
   phi(is,0) = phi(is1,0)*phi(is2,0)*phi(is3,0);
   dphi(0,is) = dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3);
   dphi(1,is) = dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3);
-#ifdef NEWSTYLESHAPE
+#ifndef OLDSTYLESHAPE
   // Make the generating shape functions linear and unitary
   REAL mult[] = {1.,1.,1.,4.,4.,4.,27.};
   for(is=3;is<NSides; is++)

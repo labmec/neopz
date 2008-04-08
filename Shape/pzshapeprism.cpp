@@ -1,4 +1,4 @@
-// $Id: pzshapeprism.cpp,v 1.8 2008-03-26 20:17:34 phil Exp $
+// $Id: pzshapeprism.cpp,v 1.9 2008-04-08 20:10:41 fortiago Exp $
 #include "pzshapeprism.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -141,7 +141,7 @@ void TPZShapePrism::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatri
         ;
     }
   }
-#ifdef NEWSTYLESHAPE
+#ifndef OLDSTYLESHAPE
   // Make the generating shape functions linear and unitary
   for(is=6; is<NSides; is++)
   {

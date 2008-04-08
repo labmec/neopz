@@ -1,4 +1,4 @@
-// $Id: pzshapetetra.cpp,v 1.8 2008-03-26 20:17:34 phil Exp $
+// $Id: pzshapetetra.cpp,v 1.9 2008-04-08 20:10:41 fortiago Exp $
 #include "pzshapetetra.h"
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
@@ -118,7 +118,7 @@ void TPZShapeTetra::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatri
         DebugStop();
     }
   }
-#ifdef NEWSTYLESHAPE
+#ifndef OLDSTYLESHAPE
   REAL mult[] = {1.,1.,1.,1.,4.,4.,4.,4.,4.,4.,27.,27.,27.,27.,54.};
   for(is=4;is<NSides; is++)
   {

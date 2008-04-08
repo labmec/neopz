@@ -200,7 +200,7 @@ void TPZShapeLinear::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatr
     
   phi(2,0) = phi(0,0)*phi(1,0);
   dphi(0,2) = dphi(0,0)*phi(1,0)+phi(0,0)*dphi(0,1);
-#ifdef NEWSTYLESHAPE
+#ifndef OLDSTYLESHAPE
   phi(2,0) *= 4.;
   dphi(0,2) *= 4.;
 #endif

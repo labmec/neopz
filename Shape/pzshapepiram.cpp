@@ -1,4 +1,4 @@
-// $Id: pzshapepiram.cpp,v 1.7 2008-03-26 20:17:33 phil Exp $
+// $Id: pzshapepiram.cpp,v 1.8 2008-04-08 20:10:41 fortiago Exp $
 #include "pzshapepiram.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -142,7 +142,7 @@ void TPZShapePiram::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatri
     dphi(2,is) = dphi(2,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(2,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(2,is3);
   }
   
-#ifdef NEWSTYLESHAPE
+#ifndef OLDSTYLESHAPE
   // Make the generating shape functions linear and unitary
   // contribute the ribs
   for(is=NCornerNodes; is<NCornerNodes+4; is++)
