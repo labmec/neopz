@@ -281,7 +281,11 @@ int TPZMat2dLin::ClassId() const
 {
   return TPZMAT2DLINID;
 }
+
+#ifndef WIN32
 template class TPZRestoreClass<TPZMat2dLin,TPZMAT2DLINID>;
+#endif
+
   /**
   Save the element data to a stream
   */

@@ -74,7 +74,7 @@ public:
     for(in=0; in<nnodes; in++)
     {
       TPZTransform tr = Geo::SideToSideTransform(in,Geo::NSides-1);
-      TPZManVector<REAL,Geo::Dimension> ptin(0),ptout(Geo::Dimension,0.);
+			TPZManVector<REAL,Geo::Dimension+1> ptin(0),ptout(Geo::Dimension,0.);
       tr.Apply(ptin,ptout);
       int nfs = father->NSides();
       TPZGeoElSide thisside(this,Geo::NSides-1);
@@ -113,7 +113,7 @@ public:
     }
     const int dim = Geo::Dimension;
     TPZManVector<REAL,3> ksibar(father->Dimension());
-    TPZFNMatrix<dim*dim> jaclocal(dim,dim,0.),jacinvlocal(dim,dim,0.),jacfather(dim,dim,0.), jacinvfather(dim,dim,0.);
+		TPZFNMatrix<dim*dim+1> jaclocal(dim,dim,0.),jacinvlocal(dim,dim,0.),jacfather(dim,dim,0.), jacinvfather(dim,dim,0.);
     TPZFNMatrix<9> axeslocal(3,3,0.), /*axesfinal(3,3,0.),*/axesfather(3,3,0.);
     REAL detjaclocal, detjacfather;
 
@@ -303,7 +303,11 @@ public:
 
 private:
 
-    TPZFNMatrix<Geo::Dimension*Geo::NNodes> fCornerCo;
+#ifdef WIN32
+		TPZFNMatrix<24/*Geo::Dimension*Geo::NNodes*/> fCornerCo;
+#else
+		TPZFNMatrix<Geo::Dimension*Geo::NNodes> fCornerCo;
+#endif
 
     /// compute the map of the point ksi to the ancestor ksibar and the gradient of the ancestor ksibar with respect to ksi
     void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar, TPZFMatrix &jac)
@@ -333,8 +337,8 @@ private:
     {
       const int dim = Geo::Dimension;
       TPZFNMatrix<Geo::NNodes> phi(Geo::NNodes,1,0.);
-      TPZFNMatrix<dim*dim> jac(dim,dim,0.);
-      TPZFNMatrix<dim*Geo::NNodes> dphi(dim,Geo::NNodes,0.);
+			TPZFNMatrix<dim*dim+1> jac(dim,dim,0.);
+      TPZFNMatrix<dim*Geo::NNodes+1> dphi(dim,Geo::NNodes,0.);
       Geo::Shape(ksi,phi,dphi);
       ksibar.Fill(0.);
       int in,id;

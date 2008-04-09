@@ -292,7 +292,7 @@ void TPZSparseBlockDiagonal::UpdateFrom(TPZMatrix *mat)
   LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::UpdateFrom");
   if(!mat) 
   {
-    cout << __FUNCTION__ << " called with zero argument\n";
+    cout << __PRETTY_FUNCTION__ << " called with zero argument\n";
     return;
   }
   this->fDecomposed = ENoDecompose;

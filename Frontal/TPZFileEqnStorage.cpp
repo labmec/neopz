@@ -3,7 +3,7 @@
 #include "TPZFileEqnStorage.h"
 #include <stdlib.h>
 
-#ifdef DOS
+#ifdef WIN32
 #include <dir.h>
 #endif
 
@@ -327,7 +327,7 @@ static char filenamestorage[256];
 TPZFileEqnStorage::TPZFileEqnStorage()
 {
      strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
-#ifdef DOS
+#ifdef WIN32
      _mktemp(filenamestorage);
 #else
      mkstemp(filenamestorage);
@@ -363,7 +363,7 @@ TPZFileEqnStorage::TPZFileEqnStorage()
 TPZFileEqnStorage::TPZFileEqnStorage(const TPZFileEqnStorage &)
 {
   strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
-#ifdef DOS
+#ifdef WIN32
      _mktemp(filenamestorage);
 #else
      mkstemp(filenamestorage);
@@ -402,7 +402,7 @@ void TPZFileEqnStorage::Zero()
   remove(fFileName);
 
   strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
-#ifdef DOS
+#ifdef WIN32
      _mktemp(filenamestorage);
 #else
      mkstemp(filenamestorage);

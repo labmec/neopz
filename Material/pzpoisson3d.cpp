@@ -1,6 +1,6 @@
-// -*- c++ -*-
+﻿// -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.36 2008-04-04 12:14:30 fortiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.37 2008-04-09 14:26:30 caju Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -821,7 +821,7 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
                                       TPZVec<REAL> &/*flux*/,
 				      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values, 
 				      TPZVec<REAL> normal, REAL elsize) {
-#ifndef DOS
+#ifndef WIN32
 #warning Metodo nao funcional
 #endif
   TPZManVector<REAL,3> Lsol(1), Ldsol(3,0.), Rsol(1), Rdsol(3,0.);
@@ -934,5 +934,8 @@ void TPZMatPoisson3d::Read(TPZStream &buf, void *context){
   buf.Read(&gAlfa, 1);
 }
 
+#ifndef WIN32
 template class TPZRestoreClass < TPZMatPoisson3d, TPZMATPOISSON3D> ;
+#endif
+
 

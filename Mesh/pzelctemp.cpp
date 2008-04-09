@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.39 2007-11-29 18:22:15 phil Exp $
+// $Id: pzelctemp.cpp,v 1.40 2008-04-09 14:26:31 caju Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -21,8 +21,8 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
   TPZInterpolatedElement(mesh,gel,index) {
   int i;
   for(i=0;i<TSHAPE::NSides-TSHAPE::NCornerNodes;i++) {
-    //    fSideOrder[i] = gOrder;
-    fPreferredOrder = gOrder;
+		//    fSideOrder[i] = gOrder;
+		fPreferredOrder = TPZCompEl::GetgOrder();
   }
   for(i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
   //  RemoveSideRestraintsII(EInsert);
@@ -460,8 +460,11 @@ int TPZIntelGen<TPZShapePoint>::ClassId() const
 {
   return TPZINTELPOINTID;
 }
+
+#ifndef WIN32
 template class
-    TPZRestoreClass< TPZIntelGen<TPZShapePoint>, TPZINTELPOINTID>;
+		TPZRestoreClass< TPZIntelGen<TPZShapePoint>, TPZINTELPOINTID>;
+#endif
 
 
 template<>
@@ -469,56 +472,77 @@ int TPZIntelGen<TPZShapeLinear>::ClassId() const
 {
   return TPZINTELLINEARID;
 }
+
+#ifndef WIN32
 template class
-    TPZRestoreClass< TPZIntelGen<TPZShapeLinear>, TPZINTELLINEARID>;
+		TPZRestoreClass< TPZIntelGen<TPZShapeLinear>, TPZINTELLINEARID>;
+#endif
 
 template<>
 int TPZIntelGen<TPZShapeTriang>::ClassId() const
 {
-  return TPZINTELTRIANGLEID;
+	return TPZINTELTRIANGLEID;
 }
+
+#ifndef WIN32
 template class
-    TPZRestoreClass< TPZIntelGen<TPZShapeTriang>, TPZINTELTRIANGLEID>;
+		TPZRestoreClass< TPZIntelGen<TPZShapeTriang>, TPZINTELTRIANGLEID>;
+#endif
 
 template<>
 int TPZIntelGen<TPZShapeQuad>::ClassId() const
 {
-  return TPZINTELQUADID;
+	return TPZINTELQUADID;
 }
+
+#ifndef WIN32
 template class
-    TPZRestoreClass< TPZIntelGen<TPZShapeQuad>, TPZINTELQUADID>;
+		TPZRestoreClass< TPZIntelGen<TPZShapeQuad>, TPZINTELQUADID>;
+#endif
 
 template<>
 int TPZIntelGen<TPZShapeCube>::ClassId() const
 {
-  return TPZINTELCUBEID;
+	return TPZINTELCUBEID;
 }
+
+#ifndef WIN32
 template class
-    TPZRestoreClass< TPZIntelGen<TPZShapeCube>, TPZINTELCUBEID>;
+		TPZRestoreClass< TPZIntelGen<TPZShapeCube>, TPZINTELCUBEID>;
+#endif
 
 template<>
 int TPZIntelGen<TPZShapeTetra>::ClassId() const
 {
-  return TPZINTELTETRAID;
+	return TPZINTELTETRAID;
 }
+
+#ifndef WIN32
 template class
-    TPZRestoreClass< TPZIntelGen<TPZShapeTetra>, TPZINTELTETRAID>;
+		TPZRestoreClass< TPZIntelGen<TPZShapeTetra>, TPZINTELTETRAID>;
+#endif
 
 template<>
 int TPZIntelGen<TPZShapePrism>::ClassId() const
 {
-  return TPZINTELPRISMID;
+	return TPZINTELPRISMID;
 }
+
+#ifndef WIN32
 template class
-    TPZRestoreClass< TPZIntelGen<TPZShapePrism>, TPZINTELPRISMID>;
+		TPZRestoreClass< TPZIntelGen<TPZShapePrism>, TPZINTELPRISMID>;
+#endif
 
 template<>
 int TPZIntelGen<TPZShapePiram>::ClassId() const
 {
-  return TPZINTELPYRAMID;
+	return TPZINTELPYRAMID;
 }
+
+#ifndef WIN32
 template class
-    TPZRestoreClass< TPZIntelGen<TPZShapePiram>, TPZINTELPYRAMID>;
+		TPZRestoreClass< TPZIntelGen<TPZShapePiram>, TPZINTELPYRAMID>;
+#endif
 
 
 template class TPZIntelGen<TPZShapeTriang>;

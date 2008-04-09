@@ -101,76 +101,88 @@ TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh, MElementType type,
     case 7://cube
     {
       TPZGeoEl*gel =
-          new TPZGeoElRefPattern< TPZGeoCube >
-          (nodeindexes, matid, mesh, index);
-      return gel;
-    }
-    default:
-    {
-      PZError << "TPZGeoMesh::CreateGeoElementRefPattern type element not exists:"
-          << " type = " << type << std::endl;
-      return NULL;
-    }
-  }
+					new TPZGeoElRefPattern< TPZGeoCube >
+					(nodeindexes, matid, mesh, index);
+			return gel;
+		}
+		default:
+		{
+			PZError << "TPZGeoMesh::CreateGeoElementRefPattern type element not exists:"
+					<< " type = " << type << std::endl;
+			return NULL;
+		}
+	}
 }
 
 
 /** ClassId method for each instantiation followed by the registration of the class in the TPZRestoreClass */
+
+#ifndef WIN32
+
 template < >
 int TPZGeoElRefPattern<TPZGeoCube>::ClassId() const{
-  return TPZGEOELREFPATCUBEID;
+	return TPZGEOELREFPATCUBEID;
 }
+
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoCube>, TPZGEOELREFPATCUBEID>;
 
 template < >
 int TPZGeoElRefPattern<TPZGeoLinear>::ClassId() const{
-  return TPZGEOELREFPATLINEARID;
+	return TPZGEOELREFPATLINEARID;
 }
+
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoLinear>, TPZGEOELREFPATLINEARID>;
 
 template < >
 int TPZGeoElRefPattern<TPZGeoQuad>::ClassId() const{
-  return TPZGEOELREFPATQUADID;
+	return TPZGEOELREFPATQUADID;
 }
+
 template class
 TPZRestoreClass<TPZGeoElRefPattern<TPZGeoQuad>, TPZGEOELREFPATQUADID>;
 
 template < >
 int TPZGeoElRefPattern<TPZGeoTriangle>::ClassId() const{
-  return TPZGEOELREFPATTRIANGLEID;
+	return TPZGEOELREFPATTRIANGLEID;
 }
+
 template class
 TPZRestoreClass<TPZGeoElRefPattern<TPZGeoTriangle>, TPZGEOELREFPATTRIANGLEID>;
 
 template < >
 int TPZGeoElRefPattern<TPZGeoPrism>::ClassId() const{
-  return TPZGEOELREFPATPRISMID;
+	return TPZGEOELREFPATPRISMID;
 }
+
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPrism>, TPZGEOELREFPATPRISMID>;
 
 template < >
 int TPZGeoElRefPattern<TPZGeoTetrahedra>::ClassId() const{
-  return TPZGEOELREFPATTETRAID;
+	return TPZGEOELREFPATTETRAID;
 }
+
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoTetrahedra>, TPZGEOELREFPATTETRAID>;
 
 template < >
 int TPZGeoElRefPattern<TPZGeoPyramid>::ClassId() const{
-  return TPZGEOELREFPATPYRAMID;
+	return TPZGEOELREFPATPYRAMID;
 }
+
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPyramid>, TPZGEOELREFPATPYRAMID>;
 
 template < >
 int TPZGeoElRefPattern<TPZGeoPoint>::ClassId() const{
-  return TPZGEOELREFPATPOINTID;
+	return TPZGEOELREFPATPOINTID;
 }
+
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPoint>, TPZGEOELREFPATPOINTID>;
+#endif
 
 // class TPZGeoElRefPattern<TPZGeoCube>;
 // class TPZGeoElRefPattern<TPZGeoLinear>;
@@ -180,3 +192,4 @@ TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPoint>, TPZGEOELREFPATPOINTID>;
 // class TPZGeoElRefPattern<TPZGeoTetrahedra>;
 // class TPZGeoElRefPattern<TPZGeoPyramid>;
 // class TPZGeoElRefPattern<TPZGeoPoint>;
+

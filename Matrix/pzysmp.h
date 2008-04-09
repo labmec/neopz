@@ -59,11 +59,26 @@ public:
       fIA = new int[Rows()+1];
       fDiag = new REAL[Rows()];
       fJA = new int[fjasize];
-      fA = new REAL[fjasize];
-      memcpy(fIA,cp.fIA,(Rows()+1)*sizeof(int));
-      memcpy(fJA,cp.fJA,fjasize*sizeof(int));
-      memcpy(fDiag,cp.fDiag,Rows()*sizeof(REAL));
-      memcpy(fA,cp.fA,fjasize*sizeof(REAL));
+			fA = new REAL[fjasize];
+#ifdef WIN32
+			for(int i = 0; i < Rows()+1; i++){
+				fIA[i] = cp.fIA[i];
+			}
+			for(int i = 0; i < fjasize; i++){
+				fJA[i] = cp.fJA[i];
+			}
+			for(int i = 0; i < Rows(); i++){
+				fDiag[i] = cp.fDiag[i];
+			}
+			for(int i = 0; i < fjasize; i++){
+       	fA[i] = cp.fA[i];
+			}
+#else
+			memcpy(fIA,cp.fIA,(Rows()+1)*sizeof(int));
+			memcpy(fJA,cp.fJA,fjasize*sizeof(int));
+			memcpy(fDiag,cp.fDiag,Rows()*sizeof(REAL));
+			memcpy(fA,cp.fA,fjasize*sizeof(REAL));
+#endif
     }
     
     CLONEDEF(TPZFYsmpMatrix)

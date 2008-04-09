@@ -135,8 +135,8 @@ TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
     //    TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
     int iside;
     for (iside = 0; iside <8; iside++){
-      TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZQuadrilateral::SideConnectLocId(side,iside)));
-    }	    
+			TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::SideConnectLocId(side,iside)));
+		}
     TPZGeoElSide(gel,8).SetConnectivity(TPZGeoElSide(orig,side));
     return gel;
   }
@@ -157,8 +157,8 @@ TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
     //    TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
     int index;
     TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
-    TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZQuadrilateral::SideConnectLocId(side,0)));
-    TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZQuadrilateral::SideConnectLocId(side,1)));
+		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::SideConnectLocId(side,0)));
+		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::SideConnectLocId(side,1)));
     TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
     return gel;
   }

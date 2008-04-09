@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.45 2007-07-31 23:15:21 tiago Exp $
+﻿//$Id: TPZAgglomerateEl.cpp,v 1.46 2008-04-09 14:26:31 caju Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -1031,8 +1031,10 @@ int TPZAgglomerateElement::ClassId() const
   return TPZAGGLOMERATEELID;
 }
 
+#ifndef WIN32
 template class
-    TPZRestoreClass< TPZAgglomerateElement, TPZAGGLOMERATEELID>;
+		TPZRestoreClass< TPZAgglomerateElement, TPZAGGLOMERATEELID>;
+#endif
 
   /**
   Save the element data to a stream

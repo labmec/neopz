@@ -1,4 +1,4 @@
-// -*- c++ -*-
+﻿// -*- c++ -*-
 #include "pzmattest3d.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
@@ -340,6 +340,8 @@ int TPZMaterialTest3D::ClassId() const
   return TPZMATTEST3DID;
 }
 
+#ifndef WIN32
 template class
-    TPZRestoreClass < TPZMaterialTest3D,TPZMATTEST3DID > ;
+		TPZRestoreClass < TPZMaterialTest3D,TPZMATTEST3DID > ;
+#endif
 

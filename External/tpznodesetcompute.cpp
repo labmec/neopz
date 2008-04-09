@@ -1,7 +1,7 @@
 //
 // C++ Implementation: tpznodesetcompute
 //
-// Description: 
+// Description:
 //
 //
 // Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2004
@@ -14,6 +14,8 @@
 #include "pzblock.h"
 #include <set>
 #include <map>
+#include <algorithm>
+#include <iterator>
 #include <fstream>
 
 static std::ofstream out("nodeset.txt");
@@ -243,7 +245,7 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int> &vertices, std::set< st
     // only diffset with nodes which have no connection with lower nodes interest us
     if(*locset.begin() < *vertices.begin()) continue;
     // diffset contains all vertices in the mesh, except for those in the influence zone of intit????
-    set_difference(vertices.begin(),vertices.end(),locset.begin(),locset.end(),inserter(diffset,diffset.begin()));
+		set_difference(vertices.begin(),vertices.end(),locset.begin(),locset.end(),inserter(diffset,diffset.begin()));
     // the influence zone of the vertex includes other vertices
     if(diffset.size())
     {
@@ -317,7 +319,7 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int> &blockgraph, TPZStack<in
     std::set< std::set<int> >::iterator itel;
     for(itel = elements.begin(); itel != elements.end(); itel++)
     {
-      std::set<int>::iterator it;
+      std::set<int>::const_iterator it;
       for(it = (*itel).begin(); it!= (*itel).end(); it++)
       {
         blockgraph.Push(*it);

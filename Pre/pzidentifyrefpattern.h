@@ -33,10 +33,10 @@ class TPZRefPattern;
 
 class TPZIdentifyRefPattern {
 public: 
-  TPZIdentifyRefPattern(string &path);
+	TPZIdentifyRefPattern(std::string &path);
   ~TPZIdentifyRefPattern();
   /** Returns the refinement pattern that generates the given refinement */
-  TPZRefPattern * GetRefPattern (TPZGeoEl *father, TPZVec<TPZGeoEl *> subelem);
+  TPZAutoPointer<TPZRefPattern> GetRefPattern (TPZGeoEl *father, TPZVec<TPZGeoEl *> subelem);
 
 protected: // Protected methods
   /** Identify the side of the refinement pattern */
@@ -46,15 +46,15 @@ protected: // Protected methods
    pattern for the specified element type.
   */
   int UniformSubElem(int eltype) ;
-  TPZRefPattern *GetUniform( int eltype);
-  TPZRefPattern *GetSideRefPattern (int eltype, int side);
+	TPZAutoPointer<TPZRefPattern> GetUniform( TPZGeoEl * gel);
+  TPZAutoPointer<TPZRefPattern> GetSideRefPattern (TPZGeoEl *gel, int side);
 
 protected:
-  string fPath;
+	std::string fPath;
 };
 
 struct TSide {
-  set<int> fNodes;
+  std::set<int> fNodes;
   int fSide;
   int operator<(const TSide &other) const{
     return fNodes < other.fNodes;

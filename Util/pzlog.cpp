@@ -32,8 +32,10 @@ void InitializePZLOG()
   configfile = path;
   configfile += "log4cxx.cfg";
 
-  int res = mkdir ("LOG", S_IRWXU | S_IXGRP | S_IRGRP | S_IXOTH | S_IROTH);
-  if (res) std::cout << "Error in mkdir : " << res << std::endl;
+#ifndef WIN32
+	int res = mkdir ("LOG", S_IRWXU | S_IXGRP | S_IRGRP | S_IXOTH | S_IROTH);
+	if (res) std::cout << "Error in mkdir : " << res << std::endl;
+#endif
 
   InitializePZLOG(configfile);
 }

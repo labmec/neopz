@@ -1,5 +1,5 @@
 /***************************************************************************
-                          pzidentifyrefpattern.cpp  -  description
+													pzidentifyrefpattern.cpp  -  description
                              -------------------
     begin                : Mon Mar 8 2004
     copyright            : (C) 2004 by cesar
@@ -28,8 +28,11 @@
 #include <pzrefprism.h>
 #include <pzreftetrahedra.h>
 #include <TPZRefCube.h>
-
+#include "tpzautopointer.h"
+#include <algorithm>
 #include <iterator>
+
+using namespace std;
 
 TPZIdentifyRefPattern::TPZIdentifyRefPattern(string &path){
   fPath = path;
@@ -37,57 +40,57 @@ TPZIdentifyRefPattern::TPZIdentifyRefPattern(string &path){
 TPZIdentifyRefPattern::~TPZIdentifyRefPattern(){
 }
 /** Returns the refinement pattern that generates the given refinement */
-TPZRefPattern * TPZIdentifyRefPattern::GetRefPattern (TPZGeoEl *father, TPZVec<TPZGeoEl *> subelem){
-  int eltype =  father->Type();
-  int nelem = subelem.NElements();
-  TPZRefPattern *rp;
-  switch (eltype) {
-    case (EPoint) : {
-      if (nelem != 1){
-        PZError << "TPZIdentifyRefPattern::GetRefPattern ERROR : point partition detected!" << endl;
-        exit (-1);
-      }
-      return 0;// return refpattern for point!!
-    }
-    case (EOned) :{
-      if (nelem != 2){
-        PZError << "TPZIdentifyRefPattern::GetRefPattern ERROR : wrong linear partition detected!" << endl;
-        exit (-1);
-      }
-      rp = new TPZRefPattern ("/home/pos/cesar/RefPattern/Unif_Linear.rpt");
+TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetRefPattern (TPZGeoEl *father, TPZVec<TPZGeoEl *> subelem){
+	MElementType eltype =  father->Type();
+	int nelem = subelem.NElements();
+	TPZAutoPointer<TPZRefPattern> rp;
+	switch (eltype) {
+		case (EPoint) : {
+			if (nelem != 1){
+				PZError << "TPZIdentifyRefPattern::GetRefPattern ERROR : point partition detected!" << endl;
+				exit (-1);
+			}
+			return 0;// return refpattern for point!!
+		}
+		case (EOned) :{
+			if (nelem != 2){
+				PZError << "TPZIdentifyRefPattern::GetRefPattern ERROR : wrong linear partition detected!" << endl;
+				exit (-1);
+			}
+			TPZRefPattern * newRef = new TPZRefPattern (father->Mesh(),"/home/pos/cesar/RefPattern/Unif_Linear.rpt");
+			rp = newRef;
     }
     default : {
       //return a uniform refinement pattern
       if (nelem == UniformSubElem(eltype)) {
-        rp = GetUniform(eltype);
-      }else{
-        //identify the side refinement pattern
-        int side = IdentifySide(father,subelem);
-        rp = GetSideRefPattern(eltype,side);
-      }
-    }
-  }
-  TPZRefPattern *mesh_rp = father->Mesh()->GetRefPattern (eltype,rp->GetName());
-  //If the refinement pattern is already defined delete the created refinement pattern
-  if (mesh_rp) {
-    delete rp;
-    return mesh_rp;
-  }
-  //Insert a new refinement pattern into mesh
-  father->Mesh()->InsertRefPattern(rp);
-  return rp;
+				rp = GetUniform(father);
+			}else{
+				//identify the side refinement pattern
+				int side = IdentifySide(father,subelem);
+				rp = GetSideRefPattern(father,side);
+			}
+		}
+	}
+	TPZAutoPointer<TPZRefPattern> mesh_rp = father->Mesh()->GetRefPattern (eltype,rp->GetName());
+	//If the refinement pattern is already defined delete the created refinement pattern
+	if (mesh_rp) {
+		return mesh_rp.operator->();
+	}
+	//Insert a new refinement pattern into mesh
+	father->Mesh()->InsertRefPattern(rp);
+	return rp;
 }
 
 /** Identify the side of the refinement pattern */
 int TPZIdentifyRefPattern::IdentifySide(TPZGeoEl *father, TPZVec<TPZGeoEl *> subelem){
-  set< TSide > Father;
-  set< TSide > Sons;
-  set< TSide > Result;
-  int iside,isub;
+	set< TSide > Father;
+	set< TSide > Sons;
+	set< TSide > Result;
+	int iside,isub;
 
-  for (iside=0;iside<father->NSides();iside++){
-    if (father->SideDimension(iside) != 1) continue;
-    TPZGeoElSide gelside (father,iside);
+	for (iside=0;iside<father->NSides();iside++){
+		if (father->SideDimension(iside) != 1) continue;
+		TPZGeoElSide gelside (father,iside);
     TSide sidefat(gelside);
     Father.insert(sidefat);
   }
@@ -100,7 +103,7 @@ int TPZIdentifyRefPattern::IdentifySide(TPZGeoEl *father, TPZVec<TPZGeoEl *> sub
     }
   }
 
-  set_difference(Father.begin(),Father.end(),Sons.begin(),Sons.end(),inserter(Result,Result.begin()));
+	set_difference(Father.begin(),Father.end(),Sons.begin(),Sons.end(),inserter(Result,Result.begin()));
   if (Result.size() != 1) return -1;
 
   TSide side_result = *Result.begin();
@@ -125,96 +128,98 @@ int TPZIdentifyRefPattern::UniformSubElem( int eltype){
   return (-1);
 }
 
-TPZRefPattern * TPZIdentifyRefPattern::GetUniform(int eltype){
-  string fullfilename = fPath;
-  fullfilename += "/";
-  switch (eltype) {
-    case (EPoint) : {
-      fullfilename += "Point_";
-      break;
-    }
-    case (EOned) : {
-      fullfilename += "Linear_";
-      break;
-    }
-    case (ETriangle) : {
-      fullfilename += "Triang_";
-      break;
-    }
-    case (EQuadrilateral) : {
-      fullfilename += "Quad_";
-      break;
-    }
-    case (ETetraedro) : {
-      fullfilename += "Tetra_";
-      break;
-    }
-    case (EPiramide)  : {
-      fullfilename += "Piram_";
-      break;
-    }
-    case (EPrisma) : {
-      fullfilename += "Prism_";
-      break;
-    }
-    case (ECube) : {
-      fullfilename += "Hexa_";
-      break;
-    }
-    default:{
-      PZError << "TPZIdentifyRefPattern::GetUniform ERROR unknown eltype : " << eltype << endl;
-      return (0);
-    }
-  }
-  fullfilename += "Unif.rpt";
-  TPZRefPattern *rp = new TPZRefPattern(fullfilename);  
-  return rp;
+TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetUniform(TPZGeoEl * gel){
+	MElementType eltype = gel->Type();
+	string fullfilename = fPath;
+	fullfilename += "/";
+	switch (eltype) {
+		case (EPoint) : {
+			fullfilename += "Point_";
+			break;
+		}
+		case (EOned) : {
+			fullfilename += "Linear_";
+			break;
+		}
+		case (ETriangle) : {
+			fullfilename += "Triang_";
+			break;
+		}
+		case (EQuadrilateral) : {
+			fullfilename += "Quad_";
+			break;
+		}
+		case (ETetraedro) : {
+			fullfilename += "Tetra_";
+			break;
+		}
+		case (EPiramide)  : {
+			fullfilename += "Piram_";
+			break;
+		}
+		case (EPrisma) : {
+			fullfilename += "Prism_";
+			break;
+		}
+		case (ECube) : {
+			fullfilename += "Hexa_";
+			break;
+		}
+		default:{
+			PZError << "TPZIdentifyRefPattern::GetUniform ERROR unknown eltype : " << eltype << endl;
+			return (0);
+		}
+	}
+	fullfilename += "Unif.rpt";
+	TPZRefPattern *rp = new TPZRefPattern(gel->Mesh(),fullfilename);
+	return rp;
 }
 
-TPZRefPattern * TPZIdentifyRefPattern::GetSideRefPattern(int eltype,int side){
-  string fullfilename = fPath;
-  fullfilename += "/";
-  switch (eltype) {
-    case (EPoint) : {
-      fullfilename += "Point_";
-      break;
-    }
-    case (EOned) : {
-      fullfilename += "Linear_";
-      break;
-    }
-    case (ETriangle) : {
-      fullfilename += "Triang_";
-      break;
-    }
-    case (EQuadrilateral) : {
-      fullfilename += "Quad_";
-      break;
-    }
-    case (ETetraedro) : {
-      fullfilename += "Tetra_";
-      break;
-    }
-    case (EPiramide)  : {
-      fullfilename += "Piram_";
-      break;
-    }
-    case (EPrisma) : {
-      fullfilename += "Prism_";
-      break;
-    }
-    case (ECube) : {
-      fullfilename += "Hexa_";
-      break;
-    }
-    default:{
-      PZError << "TPZIdentifyRefPattern::GetUniform ERROR unknown eltype : " << eltype << endl;
-      return (0);
-    }
-  }
-  fullfilename += "Unif.rpt";
-  TPZRefPattern *rp = new TPZRefPattern(fullfilename);
-  return rp;
+TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetSideRefPattern(TPZGeoEl * gel,int side){
+	MElementType eltype = gel->Type();
+	string fullfilename = fPath;
+	fullfilename += "/";
+	switch (eltype) {
+		case (EPoint) : {
+			fullfilename += "Point_";
+			break;
+		}
+		case (EOned) : {
+			fullfilename += "Linear_";
+			break;
+		}
+		case (ETriangle) : {
+			fullfilename += "Triang_";
+			break;
+		}
+		case (EQuadrilateral) : {
+			fullfilename += "Quad_";
+			break;
+		}
+		case (ETetraedro) : {
+			fullfilename += "Tetra_";
+			break;
+		}
+		case (EPiramide)  : {
+			fullfilename += "Piram_";
+			break;
+		}
+		case (EPrisma) : {
+			fullfilename += "Prism_";
+			break;
+		}
+		case (ECube) : {
+			fullfilename += "Hexa_";
+			break;
+		}
+		default:{
+			PZError << "TPZIdentifyRefPattern::GetUniform ERROR unknown eltype : " << eltype << endl;
+			return (0);
+		}
+	}
+	fullfilename += "Unif.rpt";
+	TPZRefPattern *rp = new TPZRefPattern(gel->Mesh(),fullfilename);
+	return rp;
 }
 
 

@@ -877,5 +877,8 @@ void TPZArtDiff::Read(TPZStream &buf, void *context)
 int TPZArtDiff::ClassId() const {
     return TPZARTDIFFID;
 }
+
+#ifndef WIN32
 template class TPZRestoreClass<TPZArtDiff,TPZARTDIFFID>;
+#endif
 

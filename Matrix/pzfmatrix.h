@@ -477,10 +477,17 @@ inline int TPZFMatrix::Redim(const int newRows,const int newCols) {
 /****Zero*******/
 
 inline int TPZFMatrix::Zero() {
+#ifdef WIN32
+	int size = fRow * fCol;
+	for(int i = 0; i < size; i++) fElem[i] = 0.;
+	fDecomposed = 0;
+	return( 1 );
+#else
 	 int size = fRow * fCol * sizeof(REAL);
 	 memset(fElem,'\0',size);
 	 fDecomposed = 0;
 	 return( 1 );
+#endif
 }
 
 
