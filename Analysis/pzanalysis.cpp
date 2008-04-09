@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.41 2008-01-22 19:11:12 caju Exp $
+﻿//$Id: pzanalysis.cpp,v 1.42 2008-04-09 19:06:16 fortiago Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -108,7 +108,21 @@ TPZAnalysis::~TPZAnalysis(void){
 }
 
 void TPZAnalysis::SetBlockNumber(){
+///enquanto nao compilamos o BOOST no windows, vai o sloan antigo
+#ifdef WIN32
+				if(!fCompMesh) return;
+				fCompMesh->InitializeBlock();
+				TPZVec<int> perm,iperm;
 
+				TPZStack<int> elgraph,elgraphindex;
+				int nindep = fCompMesh->NIndependentConnects();
+				fCompMesh->ComputeElGraph(elgraph,elgraphindex);
+				int nel = elgraphindex.NElements()-1;
+				TPZSloan sloan(nel,nindep);
+				sloan.SetElementGraph(elgraph,elgraphindex);
+				sloan.Resequence(perm,iperm);
+				fCompMesh->Permute(perm);
+#else
 	if(!fCompMesh) return;
 	fCompMesh->InitializeBlock();
 	TPZVec<int> perm,iperm;
@@ -117,22 +131,22 @@ void TPZAnalysis::SetBlockNumber(){
 	int nindep = fCompMesh->NIndependentConnects();
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 	int nel = elgraphindex.NElements()-1;
-        int el,ncel = fCompMesh->NElements();
-        int maxelcon = 0;
-        for(el = 0; el<ncel; el++)
-        {
-          TPZCompEl *cel = fCompMesh->ElementVec()[el];
-          if(!cel) continue;
-          std::set<int> indepconlist,depconlist;
-          cel->BuildConnectList(indepconlist,depconlist);
-          int locnindep = indepconlist.size();
-          maxelcon = maxelcon < locnindep ? locnindep : maxelcon;
-        }
-        fRenumber->SetElementsNodes(nel,nindep);
+				int el,ncel = fCompMesh->NElements();
+				int maxelcon = 0;
+				for(el = 0; el<ncel; el++)
+				{
+					TPZCompEl *cel = fCompMesh->ElementVec()[el];
+					if(!cel) continue;
+					std::set<int> indepconlist,depconlist;
+					cel->BuildConnectList(indepconlist,depconlist);
+					int locnindep = indepconlist.size();
+					maxelcon = maxelcon < locnindep ? locnindep : maxelcon;
+				}
+				fRenumber->SetElementsNodes(nel,nindep);
 //	TPZSloan sloan(nel,nindep,maxelcon);
-        fRenumber->SetElementGraph(elgraph,elgraphindex);
+				fRenumber->SetElementGraph(elgraph,elgraphindex);
 	fRenumber->Resequence(perm,iperm);
-   	fCompMesh->Permute(perm);
+		fCompMesh->Permute(perm);
 /*
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 
@@ -141,16 +155,19 @@ void TPZAnalysis::SetBlockNumber(){
 	metis.Resequence(perm,iperm);
 	fCompMesh->Permute(iperm);
 */
+
+#endif
+
 }
 
 void TPZAnalysis::Assemble()
 {
-  if(!fCompMesh || !fStructMatrix || !fSolver)
-  {
-    std::stringstream sout;
-    sout << "TPZAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh
-         << " fStructMatrix " << (void *) fStructMatrix.operator->()
-         << " fSolver " << (void *) fSolver;
+	if(!fCompMesh || !fStructMatrix || !fSolver)
+	{
+		std::stringstream sout;
+		sout << "TPZAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh
+				 << " fStructMatrix " << (void *) fStructMatrix.operator->()
+				 << " fSolver " << (void *) fSolver;
 #ifndef WINDOWS
     sout << " at file " << __FILE__ << " line " << __LINE__ ;
 #else

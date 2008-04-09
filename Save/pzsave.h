@@ -371,13 +371,13 @@ TPZSaveable *Restore(TPZStream &buf, void *context) {
 A declaration of the type "template class<classname, classid> put in .cpp file does the trick
 The static object which is "automatically" created calls the proper interface of the TPZSaveable class
 */
-#ifndef BORLAND
+//#ifndef BORLAND
 template<class T, int N>
 class TPZRestoreClass {
 public:
 TPZRestoreClass()
 {
-  std::string func_name = __PRETTY_FUNCTION__;
+	std::string func_name = __PRETTY_FUNCTION__;
 #ifndef WIN32
   std::cout << func_name << std::endl;
 #endif
@@ -408,7 +408,7 @@ inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, void *context) {
 }
 
 template class TPZRestoreClass<TPZSaveable, -1>;
-#endif //borland
+//#endif //borland
 #endif //ellips
 
 #endif //PZSAVEH

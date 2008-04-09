@@ -1,6 +1,6 @@
 ﻿// -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.37 2008-04-09 14:26:30 caju Exp $
+//$Id: pzpoisson3d.cpp,v 1.38 2008-04-09 19:06:16 fortiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -835,7 +835,7 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
   Solution(rightu,rightdudx,fake_axes,2,Rdsol);
 
 #ifdef DEBUG
-  if ( (leftdudx.Rows() != rightdudx.Rows()) || (leftdudx.Rows() != du_exact.Rows()) ){
+	if ( (leftdudx.Rows() != rightdudx.Rows()) || (leftdudx.Rows() != du_exact.Rows()) ){
     PZError << "TPZMatPoisson3d::InterfaceErrors - Left and right matrices should have" 
 	    << endl 
 	    << "same sizes in internal boundaries." 
