@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.51 2007-10-26 13:18:58 tiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.52 2008-04-25 18:28:01 fortiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -40,7 +40,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * Normal to the face element
    */
-  TPZManVector<REAL,3> fNormal;
+  TPZManVector<REAL,3> fCenterNormal;
 
   /** Informs the connect that this element is no longer connected to it.
    */
@@ -90,9 +90,19 @@ class TPZInterfaceElement : public TPZCompEl {
 
   void ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf);
 
-  /** Computes normal.
+  /** Computes normal at qsi point
    */
-  void ComputeNormal();
+  void ComputeNormal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal);
+  
+  /** Computes normal based on already computed axes matrix.
+   * Axes has been computed in the desired qsi coordinate
+   */
+  void ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal);
+  
+  /** Computes normal for linear geometric elements.
+   * For linear geometry the normal vector is constant.
+   */
+  void ComputeCenterNormal(TPZVec<REAL> &normal);
 
  public:
 
@@ -195,7 +205,18 @@ class TPZInterfaceElement : public TPZCompEl {
   /**
    * it returns the normal of this interface which goes from left to right neighbors
    */
-  void Normal(TPZVec<REAL> &normal);
+  void CenterNormal(TPZVec<REAL> &CenterNormal) const;
+  
+  /** Returns normal based on already computed axes matrix.
+   * Axes has been computed in the desired qsi coordinate
+   * If geometric element has LinearMapping the CenterNormal is returned
+   */  
+  void Normal(TPZFMatrix &axes, TPZVec<REAL> &normal);
+  
+  /** Returns normal at qsi point
+   * If geometric element has LinearMapping the CenterNormal is returned
+   */
+  void Normal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal);  
 
   /**
    * it returns the number from connectivities of the element

@@ -1,6 +1,6 @@
-﻿// -*- c++ -*-
+// -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.82 2008-04-09 14:26:31 caju Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.83 2008-04-25 18:28:01 fortiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -58,7 +58,7 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
   else{
     PZError << __PRETTY_FUNCTION__ << " - Right element is null.\n";
   }
-  this->ComputeNormal();
+  this->ComputeCenterNormal(fCenterNormal);
 
   this->IncrementElConnected();
 }//method
@@ -130,7 +130,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
    }
 #endif
 
-   fNormal = copy.fNormal;
+   fCenterNormal = copy.fCenterNormal;
 
    TPZAutoPointer<TPZMaterial> mat = copy.Material();
 
@@ -181,7 +181,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
   }
 #endif
 
-  fNormal = copy.fNormal;
+  fCenterNormal = copy.fCenterNormal;
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
   this->IncrementElConnected();
 
@@ -201,7 +201,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
 
   //ambos elementos esquerdo e direito j�foram clonados e moram na malha aglomerada
   //o geometrico da malha fina aponta para o computacional da malha aglomerada
-  fNormal = copy.fNormal;
+  fCenterNormal = copy.fCenterNormal;
 
   this->fLeftElSide.SetElement( mesh.ElementVec()[copy.fLeftElSide.Element()->Index()] );
   this->fLeftElSide.SetSide( copy.fLeftElSide.Side() );
@@ -232,7 +232,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
 }
 
 TPZInterfaceElement::TPZInterfaceElement() : TPZCompEl(), fLeftElSide(), fRightElSide(),
-  fNormal(3,0.)
+  fCenterNormal(3,0.)
 {
    //NOTHING TO BE DONE HERE
 }
@@ -310,7 +310,7 @@ void TPZInterfaceElement::Print(std::ostream &out){
   out << "\tMaterial id : " << Reference()->MaterialId() << endl;
 
   out << "\tNormal a interface : ";
-  out << "(" << fNormal[0] << "," << fNormal[1] << "," << fNormal[2] << ")\n";
+  out << "(" << fCenterNormal[0] << "," << fCenterNormal[1] << "," << fCenterNormal[2] << ")\n";
 
 }
 
@@ -438,23 +438,38 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
   return 1;
 }
 
-void TPZInterfaceElement::ComputeNormal(){
+void TPZInterfaceElement::ComputeCenterNormal(TPZVec<REAL> &normal){
+  TPZManVector<REAL> qsi(3);
+  int side = this->Reference()->NSides() - 1;
+  this->Reference()->CenterPoint(side,qsi);
+  this->ComputeNormal(qsi,normal);
+}
 
-   TPZCompEl * fLeftEl = this->LeftElement();
-   TPZCompEl * fRightEl = this->RightElement();
+void TPZInterfaceElement::ComputeNormal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal){
+  TPZFNMatrix<9> jacobian(3,3),jacinv(3,3),axes(3,3);
+  REAL detjac;
+  this->Reference()->Jacobian(qsi,jacobian,axes,detjac,jacinv);
+  this->ComputeNormal(axes,normal);
+}
+
+void TPZInterfaceElement::ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal){
+
+  normal.Resize(3);
+
+  TPZCompEl * fLeftEl = this->LeftElement();
+  TPZCompEl * fRightEl = this->RightElement();
 
   //  int dim = Reference()->Dimension();
   TPZGeoEl *ref = Reference();
   int face = ref->NSides()-1;
   //face: lado do elemento bidimensional ou aresta
   //do unidimensional ou canto do ponto
-  fNormal.Resize(3,0.);
-  fNormal.Fill(0.);
+  normal.Resize(3,0.);
+  normal.Fill(0.);
   int faceleft,faceright;
 
-  TPZManVector<REAL, 10> param(3),centleft(3),centright(3),point(3,0.),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
-  TPZFMatrix jacobian(3,3),jacinv(3,3),axes(3,3);
-  REAL detjac,normalize;
+  TPZManVector<REAL, 3> centleft(3),centright(3),point(3,0.),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
+  REAL normalize;
   int i;
 
   faceleft = fLeftEl->Reference()->NSides()-1;//lado interior do elemento esquerdo
@@ -469,39 +484,42 @@ void TPZInterfaceElement::ComputeNormal(){
 
   switch(InterfaceDimension){
   case 0:
-     fNormal[0] = 1.0;// a normal sempre apontar�na dire� positiva do eixo
-     fNormal[1] = 0.;
-     fNormal[2] = 0.;
+     normal[0] = 1.0;// a normal sempre apontar�na dire� positiva do eixo
+     normal[1] = 0.;
+     normal[2] = 0.;
    break;
   case 1:
-    ref->Jacobian(param,jacobian,axes,detjac,jacinv);
     for(i=0;i<3;i++) rib[i] = axes(0,i);//dire� da aresta
     this->VetorialProd(rib,vec,result);
-    this->VetorialProd(result,rib,fNormal);
+    this->VetorialProd(result,rib,normal);
     //normalizando a normal
     normalize = 0.;
-    for(i=0;i<3;i++) normalize += fNormal[i]*fNormal[i];
+    for(i=0;i<3;i++) normalize += normal[i]*normal[i];
     if(normalize == 0.0)
       PZError << "TPZInterfaceElement::NormalToFace null normal vetor\n";
     normalize = sqrt(normalize);
-    for(i=0;i<3;i++) fNormal[i] = fNormal[i]/normalize;
+    for(i=0;i<3;i++) normal[i] = normal[i]/normalize;
     break;
-  case 2:
-    ref->CenterPoint(face,param);//ponto da face
-    ref->Jacobian(param,jacobian,axes,detjac,jacinv);
-    for(i=0;i<3;i++) fNormal[i] = axes(2,i);
+  case 2:{
+    TPZManVector<REAL,3> axes1(3), axes2(3);
+    for(int iax = 0; iax < 3; iax++){
+      axes1[iax] = axes(0,iax);
+      axes2[iax] = axes(1,iax);
+    }
+    this->VetorialProd(axes1,axes2,normal);
+    }
     break;
   default:
     PZError << "TPZInterfaceElement::NormalToFace in case that not treated\n";
-    fNormal.Resize(0);
+    normal.Resize(0);
     return;
   }
 
   //to guarantee the normal points from left to right neighbours:
-  normalize = 0.;
-  for(i=0; i<3; i++) normalize += fNormal[i]*vec[i];
-  if(normalize < 0.) {
-    for(i=0; i<3; i++) fNormal[i] = -fNormal[i];
+  REAL dot = 0.;
+  for(i=0; i<3; i++) dot += normal[i]*vec[i];
+  if(dot < 0.) {
+    for(i=0; i<3; i++) normal[i] = -normal[i];
   }
 }
 
@@ -513,9 +531,22 @@ void TPZInterfaceElement::VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZ
   kvet[2] =  ivet[0]*jvet[1] - ivet[1]*jvet[0];
 }
 
-void TPZInterfaceElement::Normal(TPZVec<REAL> &normal) {
-  normal.Resize(3);
-  for(int i=0;i<3;i++) normal[i] = fNormal[i];
+void TPZInterfaceElement::CenterNormal(TPZVec<REAL> &CenterNormal) const{
+  const int n = fCenterNormal.NElements();
+  CenterNormal.Resize(n);
+  for(int i = 0; i < n; i++) CenterNormal[i] = fCenterNormal[i];  
+}
+
+void TPZInterfaceElement::Normal(TPZFMatrix &axes, TPZVec<REAL> &normal){
+  TPZGeoEl * gel = this->Reference();
+  if(gel->IsLinearMapping()) return this->CenterNormal(normal);
+  return this->ComputeNormal(axes, normal);
+}
+
+void TPZInterfaceElement::Normal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal){
+  TPZGeoEl * gel = this->Reference();
+  if(gel->IsLinearMapping()) return this->CenterNormal(normal);
+  return this->ComputeNormal(qsi, normal);
 }
 
 void TPZInterfaceElement::EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
@@ -558,7 +589,7 @@ void TPZInterfaceElement::Write(TPZStream &buf, int withclassid)
   buf.Write(&leftside,1);
   buf.Write(&rightelindex,1);
   buf.Write(&rightside,1);
-  WriteObjects(buf,fNormal);
+  WriteObjects(buf,fCenterNormal);
 }
 
   /**
@@ -586,7 +617,7 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
   this->fLeftElSide.SetSide( leftside );
   this->fRightElSide.SetSide( rightside );
 
-  ReadObjects(buf,fNormal);
+  ReadObjects(buf,fCenterNormal);
 }
 
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
@@ -696,6 +727,8 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
       ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
       weight *= fabs(data.detjac);
 
+      this->Normal(data.axes,data.normal);
+
       TransfLeft.Apply( intpoint, LeftIntPoint );
       TransfRight.Apply( intpoint, RightIntPoint );
 
@@ -782,7 +815,7 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
       this->NeighbourSolution(this->RightElementSide(), intpoint, data.solr, data.dsolr, data.axesright);
 
       TPZManVector<REAL> leftNormalDeriv(nstatel), rightNormalDeriv(nstater), normal;
-      this->Normal(normal);
+      this->Normal(data.axes,normal);
 
       if (data.soll.NElements()){
         for(int iv = 0; iv < nstatel; iv++){
@@ -881,6 +914,8 @@ void TPZInterfaceElement::ComputeError(int errorid,
       intrule->Point(ip,intpoint,weight);
       ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
       weight *= fabs(data.detjac);
+      
+      this->Normal(data.axes,data.normal);
 
       TransfLeft.Apply( intpoint, LeftIntPoint );
       TransfRight.Apply( intpoint, RightIntPoint );
@@ -962,6 +997,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
     intrule->Point(ip,intpoint,weight);
     ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
     weight *= fabs(data.detjac);
+    this->Normal(data.axes,data.normal);
     this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
     this->NeighbourSolution(this->LeftElementSide(), intpoint, data.soll, data.dsoll, data.axesleft);
     this->NeighbourSolution(this->RightElementSide(), intpoint, data.solr, data.dsolr, data.axesright);
@@ -1045,7 +1081,7 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
                                  TPZVec<REAL> &normal,
                                  TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
                                  TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
-  normal = this->fNormal;
+  this->Normal(qsi, normal);
   this->NeighbourSolution(this->fLeftElSide, qsi, leftsol, dleftsol, leftaxes);
   this->NeighbourSolution(this->fRightElSide, qsi, rightsol, drightsol, rightaxes);
 }//method
@@ -1083,7 +1119,7 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
     data.dsoll.Redim(diml,nstatel);
     data.dsolr.Redim(dimr,nstater);
   }
-  data.normal = this->fNormal;
+
 }//void
 
 void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
@@ -1109,9 +1145,17 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
       faceSize = left->InnerRadius() + right->InnerRadius();
     }
     else{
-      faceSize = 2.*this->Reference()->ElementRadius();//Ivo Mozolevski's suggestion. It works well for elements with small aspect ratio
+      faceSize = 2.*this->Reference()->ElementRadius();//Igor Mozolevski's suggestion. It works well for elements with small aspect ratio
     }
     data.HSize = faceSize;
   }
+  
+  if(!this->Reference()->IsLinearMapping()){
+    this->ComputeNormal(data.axes,data.normal);
+  }
+  
 }//void
+
+
+
 
