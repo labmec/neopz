@@ -1,6 +1,6 @@
-// -*- c++ -*-
+﻿// -*- c++ -*-
 
-// $Id: pzintel.cpp,v 1.64 2007-12-07 18:37:22 cesar Exp $
+// $Id: pzintel.cpp,v 1.65 2008-05-07 17:39:27 fortiago Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -1409,7 +1409,7 @@ void TPZInterpolatedElement::Print(std::ostream &out) {
   {
     TPZVec< REAL > center( 3,0.);
     for (int j=0;j<3;j++) center[j]=  Reference()->NodePtr(i)->Coord(j);
-    out << "[" <<  i << "]" << center << " " ;
+		out << "[" <<  i << "]" << center << " " ;
   }
   out << std::endl;
   out << "Number of connects = " << NConnects() << " Node indexes : ";

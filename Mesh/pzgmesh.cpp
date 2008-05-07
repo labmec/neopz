@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.47 2007-12-07 18:27:40 cesar Exp $
+//$Id: pzgmesh.cpp,v 1.48 2008-05-07 17:39:26 fortiago Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -253,9 +253,10 @@ void TPZGeoMesh::Print (std::ostream & out){
   }
   out << "\n\tGeometric Element Information:\n\n";
   int nelem = fElementVec.NElements();
-  for(i=0; i<nelem; i++) {
+	for(i=0; i<nelem; i++) {
     if(fElementVec[i]) fElementVec[i]->Print(out);
-    out << "\n";
+		out << "\n";
+
   }
 
   out << "\nInterface materials : \n\n";

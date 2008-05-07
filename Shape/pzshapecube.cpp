@@ -127,13 +127,13 @@ void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix
   }
 #ifndef OLDSTYLESHAPE
   // Make the generating shape functions linear and unitary
-  for(is=8; is<27; is++)
+	for(is=8; is<27; is++)
   {
     TPZStack<int> highsides;
     HigherDimensionSides(is,highsides);
     int h, nh = highsides.NElements();
     for(h=0; h<nh; h++)
-    {
+		{
       int hs = highsides[h];
       phi(is,0) += phi(hs,0);
       dphi(0,is) += dphi(0,hs);

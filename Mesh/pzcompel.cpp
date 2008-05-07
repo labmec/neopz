@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.41 2007-11-29 18:16:17 phil Exp $
+﻿//$Id: pzcompel.cpp,v 1.42 2008-05-07 17:39:26 fortiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -296,8 +296,8 @@ void TPZCompEl::Print(std::ostream & out) {
     TPZVec< REAL > centerEuclid( 3,0.);
     this->Reference()->CenterPoint(this->Reference()->NSides()-1,centerMaster);
     this->Reference()->X(centerMaster,centerEuclid);
-    out << centerEuclid << std::endl;
-  }
+		out << centerEuclid << std::endl;
+	}
   out << "Number of connects = " << NConnects() << " Node indexes : ";
   int nod;
   for(nod=0; nod< NConnects(); nod++)
