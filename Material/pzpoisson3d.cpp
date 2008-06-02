@@ -1,6 +1,6 @@
-﻿// -*- c++ -*-
+// -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.38 2008-04-09 19:06:16 fortiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.39 2008-06-02 17:58:33 fortiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"

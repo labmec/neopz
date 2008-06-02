@@ -1,4 +1,4 @@
-﻿//$Id: pzcompel.cpp,v 1.42 2008-05-07 17:39:26 fortiago Exp $
+//$Id: pzcompel.cpp,v 1.43 2008-06-02 17:58:33 fortiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 

@@ -1,4 +1,4 @@
-﻿//$Id: pzeulerconslaw.cpp,v 1.47 2008-04-09 14:26:30 caju Exp $
+//$Id: pzeulerconslaw.cpp,v 1.48 2008-06-02 17:58:32 fortiago Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
