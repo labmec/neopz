@@ -1,6 +1,5 @@
 ﻿// -*- c++ -*-
-//AGORA SIM
-// $Id: pzintel.cpp,v 1.66 2008-06-02 15:09:31 longhin Exp $
+// $Id: pzintel.cpp,v 1.67 2008-06-02 15:12:52 longhin Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
