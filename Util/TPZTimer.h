@@ -9,7 +9,7 @@
  *
  * @author Cantao!
  */
-// $Id: TPZTimer.h,v 1.4 2008-04-09 14:26:31 caju Exp $
+// $Id: TPZTimer.h,v 1.5 2008-06-02 18:00:04 fortiago Exp $
 
 #ifndef TPZTIMER_H
 #define TPZTIMER_H
@@ -22,9 +22,7 @@
 //--| resuse.{h,c} from GNU time |----------------------------------------------
 
 #include <time.h>
-#ifdef BORLAND
-#include<Winsock2.h>
-#endif
+
 // Checking for resource usage structure.
 
 #if HAVE_SYS_RUSAGE_H
@@ -33,22 +31,21 @@
 #   include <sys/rusage.h>
 #else
 #   define TV_MSEC tv_usec / 1000
-#   ifdef HAVE_WAIT3
-#		ifndef BORLAND
-#      		include <sys/resource.h>
-#   	else
-#		endif
-/// Process resource usage structure.
-struct pzrusage
-{
-	struct timeval ru_utime;	// User time used.
-	struct timeval ru_stime;	// System time used.
+#   if HAVE_WAIT3
+#      include <sys/resource.h>
+#   else
 
-	// They're here just for completeness.
-	int ru_maxrss, ru_ixrss, ru_idrss, ru_isrss,
-	ru_minflt, ru_majflt, ru_nswap, ru_inblock,
-	ru_oublock, ru_msgsnd, ru_msgrcv, ru_nsignals,
-	ru_nvcsw, ru_nivcsw;
+/// Process resource usage structure.
+struct pzrusage  
+{
+  struct timeval ru_utime;	// User time used.
+  struct timeval ru_stime;	// System time used.
+
+  // They're here just for completeness.
+  int ru_maxrss, ru_ixrss, ru_idrss, ru_isrss,
+  ru_minflt, ru_majflt, ru_nswap, ru_inblock, 
+  ru_oublock, ru_msgsnd, ru_msgrcv, ru_nsignals,
+  ru_nvcsw, ru_nivcsw;
 };
 #   endif
 #endif
@@ -56,29 +53,18 @@ struct pzrusage
 /// Information on the resources used by a child process.
 struct PZResourceUsage
 {
-		int waitstatus;
-#   ifdef HAVE_WAIT3
-		struct pzrusage ru;
-#endif
+      int waitstatus;
 
-		struct timeval start, elapsed;   // Wallclock time of process.
+      struct pzrusage ru;
+
+      struct timeval start, elapsed;   // Wallclock time of process.
 } ;   // Change from the original "RESUSE".
 
-#ifndef HAVE_WAIT3
-#	ifndef BORLAND
-#   	include <sys/times.h>
-#	else
-#   	include <time.h>
-#	endif
-#
-
-#	ifndef BORLAND
-#   	ifndef HZ
-#      		include <sys/param.h>
-#   	endif
-#	else
-#		include <time.h>
-#	endif
+#if !HAVE_WAIT3
+#   include <sys/times.h>
+#   ifndef HZ
+#      include <sys/param.h>
+#   endif
 #   if !defined(HZ) && defined(CLOCKS_PER_SEC)
 #      define HZ CLOCKS_PER_SEC
 #   endif

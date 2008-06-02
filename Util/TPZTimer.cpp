@@ -1,6 +1,6 @@
 /** @file TPZTimer.cpp */
 
-// $Id: TPZTimer.cpp,v 1.2 2008-04-09 14:26:31 caju Exp $
+// $Id: TPZTimer.cpp,v 1.3 2008-06-02 18:00:04 fortiago Exp $
 
 #include <sstream>
 #include <algorithm>
@@ -28,19 +28,15 @@ else						\
 
 void TPZTimer::start()
 {
-#ifdef HAVE_WAIT3
-#	ifndef BORLAND
+#if HAVE_WAIT3
    gettimeofday( &resources.start, ( struct timezone * ) 0 );
-#	endif
 #else
-	 long value;
-#   ifdef HAVE_WAIT3
-	 struct tms tms;
+   long value;
+   struct tms tms;
 
-	 value = times( &tms );
-	 resources.start.tv_sec = value / HZ;
-	 resources.start.tv_usec = value % HZ * ( 1000000 / HZ );
-#endif
+   value = times( &tms );
+   resources.start.tv_sec = value / HZ;
+   resources.start.tv_usec = value % HZ * ( 1000000 / HZ );
 #endif
 }
 
@@ -48,13 +44,11 @@ void TPZTimer::start()
 
 void TPZTimer::stop()
 {
-#ifdef HAVE_WAIT3
-#	ifndef BORLAND
+#if HAVE_WAIT3
    gettimeofday( &resources.elapsed, ( struct timezone * ) 0 );
-#	endif
 #else  // !HAVE_WAIT3
    long value;
-	 struct tms tms;
+   struct tms tms;
 
    value = times( &tms );
 
