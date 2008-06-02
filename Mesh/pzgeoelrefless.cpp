@@ -65,6 +65,10 @@ using namespace pztopology;
 #include "tpzprism.h"
 #include "tpzpyramid.h"
 
+#ifndef WIN32
+#include "pzgeoelrefless.h.h"
+#endif
+
 TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   return new TPZIntelGen<TPZShapePoint>(mesh,gel,index);
 }
@@ -156,9 +160,9 @@ IMPLEMENTBLEND(pzgeom::TPZGeoPrism,TPZGEOBLENDPRISMID,CreatePrismEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,TPZGEOBLENDPYRAMIDID,CreatePyramEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,TPZGEOBLENDTETRAHEDRAID,CreateTetraEl)
 
-#endif
-
 #include "pzgeoelrefless.h.h"
+
+#endif
 
 int main_refless()
 {
