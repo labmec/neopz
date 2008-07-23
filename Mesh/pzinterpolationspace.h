@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.9 2008-02-06 12:42:40 tiago Exp $
+//$Id: pzinterpolationspace.h,v 1.10 2008-07-23 21:41:23 erick Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -78,7 +78,7 @@ public:
   void InitMaterialData(TPZMaterialData &data);
 
   /** Compute and fill data with requested attributes */
-  void ComputeRequiredData(TPZMaterialData &data,
+  virtual void ComputeRequiredData(TPZMaterialData &data,
                            TPZVec<REAL> &qsi);
 
   /**
