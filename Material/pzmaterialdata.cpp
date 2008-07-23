@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.cpp,v 1.7 2007-05-11 19:15:18 joao Exp $ 
+//$Id: pzmaterialdata.cpp,v 1.8 2008-07-23 21:38:26 erick Exp $ 
 
 #include "pzmaterialdata.h"
 #include "pzmaterial.h"
@@ -13,6 +13,7 @@
 
 TPZMaterialData::TPZMaterialData(){
   this->SetAllRequirements(false);
+  this->intPtIndex = -1;
 }
 
 TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ){
@@ -53,6 +54,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
   this->detjac = cp.detjac;
   this->leftdetjac = cp.leftdetjac;
   this->rightdetjac = cp.rightdetjac;
+  this->intPtIndex = cp.intPtIndex;
   return *this;
 }
 

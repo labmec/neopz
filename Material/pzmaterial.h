@@ -264,6 +264,14 @@ private:
    */
   virtual void Read(TPZStream &buf, void *context);
 
+  /**
+   * Pushes a new entry in the context of materials with memory,
+   * returning its index at the internal storage stack.
+   * to be implemented only in the proper materials.
+   */
+  virtual int PushMemItem(){ return -1; }
+	
+	
 };
 
 extern TPZVec< void(*) ( TPZVec<REAL> &, TPZVec<REAL>& ) > GFORCINGVEC;

@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.h,v 1.6 2007-05-11 19:15:18 joao Exp $
+//$Id: pzmaterialdata.h,v 1.7 2008-07-23 21:38:26 erick Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
@@ -11,6 +11,7 @@ This class implements an interface between TPZCompEl::CalcStiff and TPZMaterial:
 
 @since April 10, 2007
 */
+
 
 class TPZMaterialData{
 
@@ -33,6 +34,10 @@ public:
   REAL HSize;
   REAL detjac, leftdetjac, rightdetjac;
 
+/** Index of the current integration point being evaluated **/
+/** Needed for materials with memory **/
+
+  int intPtIndex;
 
 /** Class constructor */
   TPZMaterialData();
