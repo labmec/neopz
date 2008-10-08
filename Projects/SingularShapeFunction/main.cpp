@@ -19,6 +19,7 @@
 #include "tpzautopointer.h"
 #include "pzanalysis.h"
 #include "TExtFunction.h"
+#include "pzlog.h"
 using namespace std;
 using namespace pzshape;
 
@@ -90,9 +91,9 @@ int main1(){
     
     TPZAnalysis an(cmesh);
     an.Solution() = cmesh->Solution();
-    TPZVec<char *> scalnames(1);
+    TPZVec<std::string> scalnames(1);
     scalnames[0] = "Solution";
-    TPZVec<char *> vecnames(0);
+    TPZVec<std::string> vecnames(0);
     char plotfile[] = "singular.dx";
     an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
     an.PostProcess(8);  
@@ -201,6 +202,7 @@ void PRefinement(TPZCompMesh &cmesh, const int InitialP){
 
 int main(){
 
+  InitializePZLOG("log4cxx.cfg");
   TPZShapeDisc::fOrthogonal = TPZShapeDisc::Legendre;
 
   const int nnodes = 20;
@@ -214,18 +216,18 @@ int main(){
     {-0.030901699437494747*scaleFuro ,   0.09510565162951536*scaleFuro }, {-0.08090169943749476*scaleFuro ,   0.058778525229247314*scaleFuro }, 
     {-0.1*scaleFuro ,   0.*scaleFuro }, {-0.08090169943749476*scaleFuro , -0.058778525229247314*scaleFuro }, {-0.030901699437494747*scaleFuro , -0.09510565162951536*scaleFuro }, 
     {0.030901699437494747*scaleFuro , -0.09510565162951536*scaleFuro }, {0.08090169943749476*scaleFuro , -0.058778525229247314*scaleFuro }};
-   
+ /*  
   const int nelem = 10; 
   int indices[nelem][4] = {{0,1,11,10},{1,2,12,11},{2,3,13,12},{3,4,14,13},{4,5,15,14},{5,6,16,15},{6,7,17,16},{7,8,18,17},{8,9,19,18},{9,0,10,19}};
   const int nelbc = 20;
   int contorno[nelbc][3] = {{0,1,-2},{1,2,-2},{2,3,-2},{3,4,-2},{4,5,-2},{5,6,-2},{6,7,-2},{7,8,-2},{8,9,-2},{9,0,-2},{10,11,-3},{11,12,-3},{12,13,-3},
                             {13,14,-3},{14,15,-3},{15,16,-3},{16,17,-3},{17,18,-3},{18,19,-3},{19,10,-3}};
-
+*/
 /** teste - apenas 1 elemento **/
-/*  const int nelem = 1; 
+  const int nelem = 1; 
   int indices[nelem][4] = {{0,1,11,10}};
   const int nelbc = 2;
-  int contorno[nelbc][3] = {{0,1,-2},{10,11,-3}};*/
+  int contorno[nelbc][3] = {{0,1,-2},{10,11,-3}};
 /** teste - apenas 1 elemento **/
 
 
@@ -264,7 +266,6 @@ int main(){
 //     UniformRefinement(2,*gmesh, true, 8511965); UniformRefinement(1,*gmesh, true, 8511965);
      LocalRefinement(2,-3,*gmesh); UniformRefinement(1,*gmesh, false, -3);
   }
- 
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
   
   cmesh->SetDimModel(2);
@@ -299,10 +300,12 @@ int main(){
   TPZCompEl::SetgOrder(p);
   cmesh->SetDefaultOrder(p);
   cmesh->AutoBuild();
+  cmesh->ComputeNodElCon();
+//   cmesh->AdjustBoundaryElements();
   
-  /*ofstream malhas("malhas.txt");
+  ofstream malhas("malhas.txt");
   cmesh->Reference()->Print(malhas);
-  cmesh->Print(malhas);*/
+  cmesh->Print(malhas);
   
   
   PRefinement(*cmesh, 2);
@@ -323,13 +326,15 @@ int main(){
   
 
   TPZAnalysis an(cmesh);
-  TPZSpStructMatrix/*TPZFStructMatrix*/ /*TPZFrontStructMatrix<TPZFrontNonSym>*/ matrix(cmesh);
+  TPZFrontStructMatrix<TPZFrontNonSym> matrix(cmesh);
+//   TPZFrontStructMatrix<TPZFrontSym> matrix(cmesh);
+//   TPZFStructMatrix matrix(cmesh);
   an.SetStructuralMatrix(matrix);
   TPZStepSolver step;
   
 // #define DIRETO
 #ifdef DIRETO  
-    step.SetDirect(ELU); 
+    step.SetDirect(ELU);//ECholesky); 
 #else 
 //       TPZCopySolve precond( matrix.Create() );step.ShareMatrix( precond );  
       TPZFMatrix fakeRhs(cmesh->NEquations(),1);TPZFrontStructMatrix<TPZFrontNonSym> PrecondMatrix(cmesh); TPZStepSolver precond(PrecondMatrix.CreateAssemble(fakeRhs));precond.SetDirect(ELU);
@@ -391,15 +396,15 @@ int main(){
   ofstream solfile("solucao.txt");
   an.Solution().Print("solucao",solfile);
   
-  TPZVec<char *> scalnames(4);
+  TPZVec<std::string> scalnames(4);
   scalnames[0] = "Solution";
   scalnames[1] = "p";
   scalnames[2] = "POrder";
   scalnames[3] = "Error";
 //   scalnames[4] = "Laplac";
-  TPZVec<char *> vecnames(1);
+  TPZVec<std::string> vecnames(1);
   vecnames[0] = "Derivate";
-  char plotfile[] = "singular.dx";
+  std::string plotfile = "singular.dx";
   an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
   an.PostProcess(0);  
 
