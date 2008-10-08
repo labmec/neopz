@@ -80,7 +80,7 @@ public:
   /**
    * @see TPZMaterial
    */
-  virtual int VariableIndex(char *name);
+  virtual int VariableIndex(const std::string &name);
 
   /**
    * @see TPZMaterial

@@ -206,8 +206,8 @@ void TPZMat2dLin::Print(ostream & out) {
   out << "Matrix xf ->  "; fXf.Print("fXf",out);
 }
 
-int TPZMat2dLin::VariableIndex(char *name) {
-  if(!strcmp(name,"displacement")) return 1;
+int TPZMat2dLin::VariableIndex(const std::string &name) {
+  if(!strcmp(name.c_str(),"displacement")) return 1;
   return TPZMaterial::VariableIndex(name);
 }
 

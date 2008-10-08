@@ -1,4 +1,4 @@
-//$Id: pzl2projection.h,v 1.9 2008-03-11 12:31:05 fortiago Exp $
+//$Id: pzl2projection.h,v 1.10 2008-10-08 02:09:27 phil Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
@@ -93,7 +93,7 @@ public:
   virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 
   /** It returns the variable index associated with the name */
-  virtual int VariableIndex(char *name);
+  virtual int VariableIndex(const std::string &name);
 
   /** It returns the number of variables associated with the variable
    *  indexed by var.  

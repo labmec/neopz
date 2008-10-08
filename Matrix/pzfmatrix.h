@@ -219,12 +219,14 @@ static void MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,con
   int Zero();
 
   /**
-  / by Caju 2007
-  / Input:  OriginalAxes (columns vectors)
-  / Output: NormOrthog - Axes Orthogonalized and Normalized with respect with the first column
-  /         BasisChange - From NormOrthog to OriginalAxes Basis
+  * by Caju 2007
+  * Input:  OriginalAxes (columns vectors)
+  * Output: NormOrthog - Axes Orthogonalized and Normalized with respect with the first column
+  *         BasisChange - From NormOrthog to OriginalAxes Basis
  */
 void GramSchmidt(TPZFMatrix &AxesOrth, TPZFMatrix &JacobToOrth);
+
+void DeterminantInverse(REAL &determinant, TPZFMatrix &inverse);
 
   void Transpose(TPZMatrix *const T) const;
   /**

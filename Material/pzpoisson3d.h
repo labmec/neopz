@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.30 2008-02-14 12:39:43 tiago Exp $
+//$Id: pzpoisson3d.h,v 1.31 2008-10-08 02:09:29 phil Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -175,7 +175,7 @@ public:
 
 #endif
 
-  virtual int VariableIndex(char *name);
+  virtual int VariableIndex(const std::string &name);
 
   virtual int NSolutionVariables(int var);
 

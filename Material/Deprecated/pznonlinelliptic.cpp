@@ -187,7 +187,7 @@ void TPZNonLinElliptic::ContributeBC(TPZVec<REAL> &x, TPZVec<REAL> &sol,
   }
 }
   
-int TPZNonLinElliptic::VariableIndex(char *name){
+int TPZNonLinElliptic::VariableIndex(const std::string &name){
   if(!strcmp("Solution",name)) return 1;
   cout << "TPZNonLinElliptic::VariableIndex Error\n";
   return -1;

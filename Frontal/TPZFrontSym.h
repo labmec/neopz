@@ -41,7 +41,7 @@ extern "C"{
 class TPZFrontSym : public TPZFront {
 public:
      /**Returns its type*/
-     char * GetMatrixType();
+     std::string GetMatrixType();
 
     /** Static main used for testing */
 #ifndef WIN32

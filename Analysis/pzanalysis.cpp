@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.43 2008-06-02 17:58:32 fortiago Exp $
+//$Id: pzanalysis.cpp,v 1.44 2008-10-08 02:06:24 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -230,7 +230,7 @@ void TPZAnalysis::LoadSolution(){
   }
 }
 
-void TPZAnalysis::Print( char *name , std::ostream &out )
+void TPZAnalysis::Print( const std::string &name , std::ostream &out )
 {
 
   out<<endl<<name<<endl;
@@ -330,7 +330,7 @@ void TPZAnalysis::Run(std::ostream &out)
   Solve();
 }
 
-void TPZAnalysis::DefineGraphMesh(int dim, TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, const char *plotfile) {
+void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile) {
 
   int dim1 = dim-1;
   if(!fCompMesh)
@@ -354,18 +354,23 @@ void TPZAnalysis::DefineGraphMesh(int dim, TPZVec<char *> &scalnames, TPZVec<cha
   fScalarNames[dim1] = scalnames;
   fVectorNames[dim1] = vecnames;
   //misael
-  if(! ( strcmp( strrchr(plotfile,'.')+1,"plt") ) )	{
-    fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh,dim,matit->second) ;
-  }else if(!strcmp( strrchr(plotfile,'.')+1,"dx") ) {
+//  if(! ( strcmp( strrchr(plotfile,'.')+1,"plt") ) )	{
+  int posplot = plotfile.rfind(".plt");
+  int posdx = plotfile.rfind(".dx");
+  int pospos = plotfile.rfind(".pos");
+  int filelength = plotfile.size();
+  if(filelength-posplot == 3)	{
+      fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh,dim,matit->second) ;
+  }else if(filelength-posdx == 3) {
     fGraphMesh[dim1] = new TPZDXGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames) ;
-  }else if(!strcmp( strrchr(plotfile,'.')+1,"pos") ) {
+  }else if(filelength-pospos == 3) {
     fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh,dim,matit->second);
   } else {
     cout << "grafgrid was not created\n";
     fGraphMesh[dim1] = 0;
   }
   if(fGraphMesh[dim1]) {
-    ofstream *plot = new ofstream(plotfile);
+    ofstream *plot = new ofstream(plotfile.c_str());
     fGraphMesh[dim1]->SetOutFile(*plot);
   }
 }
@@ -407,7 +412,7 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
 }
 
 void TPZAnalysis::AnimateRun(int num_iter, int steps,
-			     TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, char *plotfile)
+			     TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, const std::string &plotfile)
 {
   Assemble();
 
@@ -436,7 +441,7 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps,
   }
   TPZDXGraphMesh gg(fCompMesh,dim,mat,scalnames,vecnames) ;
   // 		TPZV3DGrafGrid gg(fCompMesh) ;
-  ofstream plot(plotfile);
+  ofstream plot(plotfile.c_str());
   gg.SetOutFile(plot);
   gg.SetResolution(0);
   gg.DrawMesh(num_iter);

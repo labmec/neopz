@@ -336,22 +336,6 @@ void TPZMatrix::Print(const char *name, std::ostream& out,const MatrixOutputForm
 
 }
 
-void TPZMatrix::PrintMath(const char *name, std::ostream &out){
-  out.precision(10);
-  out << name << "\n{ ";
-  for ( int row = 0; row < Rows(); row++) {
-    out << "\n{ ";
-    for ( int col = 0; col < Cols(); col++ ) {
-      REAL val = Get (row, col);
-      out << val;
-      if(col < Cols()-1) out << ", ";
-    }
-    out << " }";
-    if(row < Rows()-1) out << ",";
-  }
-  out << " };\n";
-}
-
 
 /*******************/
 /*** Overload << ***/
@@ -1160,12 +1144,14 @@ bool TPZMatrix::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<RE
 bool TPZMatrix::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<REAL> & Eigenvalues, TPZFMatrix & Eigenvectors) const{
   
 #ifdef DEBUG2  
-  if (this->Rows() != this->Cols()){
+  if (this->Rows() != this->Cols())
+  {
     PZError << __PRETTY_FUNCTION__ << " - Jacobi method of computing eigensystem requires a symmetric square matrix. this->Rows = " << this->Rows() << " - this->Cols() = " << this->Cols() << endl;
     return false;  
   }
   
-  if (this->VerifySymmetry(1.e-8) == false){
+  if (this->VerifySymmetry(1.e-8) == false)
+  {
     PZError << __PRETTY_FUNCTION__ << " - Jacobi method of computing eigensystem requires a symmetric square matrix. This matrix is not symmetric." << endl;
     return false;  
   }  
@@ -1174,78 +1160,76 @@ bool TPZMatrix::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<RE
   /** Making a copy of this */
   TPZFNMatrix<9> Matrix(3,3); //fast constructor in case of this is a stress or strain tensor.
   const int size = this->Rows();
-  int i, j;
+
   Matrix.Resize(size,size);
-  for(i = 0; i < size; i++) for(j = 0; j < size; j++) Matrix(i,j) = this->Get(i,j);
+  for(int i = 0; i < size; i++) for(int j = 0; j < size; j++) Matrix(i,j) = this->Get(i,j);
     
   /** Compute Eigenvalues */  
   bool result = Matrix.SolveEigenvaluesJacobi(numiterations, tol, &Eigenvalues);
   if (result == false) return false;
   
   /** Resizing Eigenvectors */
-  Eigenvectors.Resize(size, size);  
-  
-  /** Creating an auxiliar matrix to compute eigenvectors */
-  TPZFNMatrix<3> AuxVector(3,1);
-  
-  for(int eigen = 0; eigen < size; eigen++){
-    /** Restoring original matrix */
-    for(i = 0; i < size; i++) for(j = 0; j < size; j++) Matrix(i,j) = this->Get(i,j);
-    
-    /** Making (this - Eigenvalue Identity) */
-    for(i = 0; i < size; i++) Matrix(i,i) = Matrix(i,i) - Eigenvalues[eigen];
-    
-    /** Applying condition of Eigenvector[eigen] = 1 */
-      /** Zeroing row eigen */
-    for(i = 0; i < size; i++){
-      Matrix(eigen,i) = 0.;
-    }//for i
-    Matrix(eigen,eigen) = 1.;
-    
-    AuxVector.Resize(size, 1);
-    AuxVector.Zero();
-    AuxVector(eigen, 0) = 1.;
-    
-//     cout << "\nVetor " << eigen << endl;
-// {
-//     stringstream mess;
-//     mess << "Matrix " << eigen;
-//     Matrix.Print(mess.str().c_str(), cout, EMathematicaInput);
-// }
-// {
-//     stringstream mess;
-//     mess << "F " << eigen;
-//     AuxVector.Print(mess.str().c_str(), cout, EMathematicaInput);
-// }
+  Eigenvectors.Resize(size, size);
 
-    Matrix.SetIsDecomposed(ENoDecompose);
-    Matrix.SolveDirect(AuxVector, ELU);
-    
-// {
-//     stringstream mess;
-//     mess << "X " << eigen;
-//     AuxVector.Print(mess.str().c_str(), cout, EMathematicaInput);
-// }    
-    
-    /** Normalizing Eigenvec */
-    REAL norm = 0.;
-    for(i = 0; i < size; i++) norm += AuxVector(i,0) * AuxVector(i,0);
-    norm = sqrt(norm);
-    for(i = 0; i < size; i++) AuxVector(i,0) = AuxVector(i,0)/norm;
-    
+  double Tol = 1.e-5;
+
+  for(int eigen = 0; eigen < size; eigen++)
+  {
+      /** Creating an auxiliar matrix and vector to compute eigenvectors */
+      TPZFNMatrix<9> AuxMatrix(size,size,0.);
+      for(int i = 0; i < size; i++) for(int j = 0; j < size; j++) AuxMatrix(i,j) = this->Get(i,j);
+      for(int i = 0; i < size; i++) AuxMatrix.PutVal(i,i, this->GetVal(i,i) - 0.999*Eigenvalues[eigen] );
+      TPZFNMatrix<3> AuxVector(size,1,0.), TempVector(size,1,0.);
+      for(int ei = 0; ei < size; ei++) AuxVector.PutVal(ei,0, Eigenvalues[ei]);
+
+      int count = 0, MaxCount = 100;
+      double dif = 10., difTemp;
+      while(dif > Tol && count <= MaxCount)
+      {
+          /** Normalizing Initial Eigenvec */
+          REAL norm1 = 0.;
+          for(int i = 0; i < size; i++) norm1 += AuxVector(i,0) * AuxVector(i,0);
+          norm1 = sqrt(norm1);
+          for(int i = 0; i < size; i++)
+          {
+              AuxVector(i,0) = AuxVector(i,0)/norm1;
+              TempVector(i,0) = AuxVector(i,0);
+          }
+
+          /** Estimating Eigenvec */
+          AuxMatrix.Solve_LU(&AuxVector);
+
+          /** Normalizing Final Eigenvec */
+          REAL norm2 = 0.;
+          for(int i = 0; i < size; i++) norm2 += AuxVector(i,0) * AuxVector(i,0);
+          norm2 = sqrt(norm2);
+          difTemp = 0.;
+          for(int i = 0; i < size; i++)
+          {
+              AuxVector(i,0) = AuxVector(i,0)/norm2;
+              difTemp += (TempVector(i,0) - AuxVector(i,0)) * (TempVector(i,0) - AuxVector(i,0));
+          }
+          dif = sqrt(difTemp);
+          count++;
+      }
+
 #ifdef DEBUG2
-     norm = 0.;
-     for(i = 0; i < size; i++) norm += AuxVector(i,0) * AuxVector(i,0);
-     if (fabs(norm - 1.) > 1.e-10){
-       PZError << __PRETTY_FUNCTION__ << endl;
-     }
+      double norm = 0.;
+      for(int i = 0; i < size; i++) norm += AuxVector(i,0) * AuxVector(i,0);
+      if (fabs(norm - 1.) > 1.e-10)
+      {
+        PZError << __PRETTY_FUNCTION__ << endl;
+      }
+      if(count > 98)// O metodo nao convergiu !!!
+      {
+        PZError << __PRETTY_FUNCTION__ << endl;
+      }
 #endif
 
-  /** Copy values from AuxVector to Eigenvectors */
-    for(i = 0; i < size; i++) Eigenvectors(eigen,i) = AuxVector(i,0);
-    
-  }//for eigen
-  
+      /** Copy values from AuxVector to Eigenvectors */
+      for(int i = 0; i < size; i++) Eigenvectors(eigen,i) = AuxVector(i,0);
+  }
+
   return true;
 
 }//method

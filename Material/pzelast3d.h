@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzelast3d.h,v 1.9 2007-12-07 13:47:47 cesar Exp $
+//$Id: pzelast3d.h,v 1.10 2008-10-08 02:09:27 phil Exp $
 
 #ifndef PZELAST3D
 #define PZELAST3D
@@ -85,7 +85,7 @@ virtual void ContributeBC(TPZMaterialData &data,
 
 /** Returns index of post-processing variable.
  */
-virtual int VariableIndex(char *name);
+virtual int VariableIndex(const std::string &name);
 
 /** Number of data of variable var.
  */

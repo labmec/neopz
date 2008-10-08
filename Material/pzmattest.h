@@ -46,7 +46,7 @@ virtual void ContributeBC(TPZMaterialData &data,
                             TPZFMatrix &ef,
                             TPZBndCond &bc);
 
-virtual int VariableIndex(char *name);
+virtual int VariableIndex(const std::string &name);
 
 virtual int NSolutionVariables(int var);
 

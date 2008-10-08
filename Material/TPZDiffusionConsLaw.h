@@ -1,15 +1,15 @@
 /**
-   DIFUSÃO <-> DIFFUSION
+   DIFUSï¿½O <-> DIFFUSION
 
 do Lat. diffusione
 
 s. f., acto ou efeito de difundir ou difundir-se;
     derramamento de fluido;
-    disseminação;
-    propagação;
+    disseminaï¿½ï¿½o;
+    propagaï¿½ï¿½o;
     prolixidade;
-    falta de concisão;
-Quím., mistura de gases de diferentes densidades.
+    falta de concisï¿½o;
+Quï¿½m., mistura de gases de diferentes densidades.
 */
 
 #ifndef DIFFUSIONFORCONSLAWHH
@@ -40,7 +40,7 @@ class TPZDiffusionConsLaw {
   static REAL fDelta;
 
   /**
-   * parámetro that it limits the condition of stability of the numerical approach
+   * parï¿½metro that it limits the condition of stability of the numerical approach
    */
   static REAL fCFL;
 
@@ -50,7 +50,7 @@ class TPZDiffusionConsLaw {
    * LS
    * Bornhaus
    */
-  static char *fArtificialDiffusion;
+  static std::string fArtificialDiffusion;
 
  private:
   /*
@@ -67,7 +67,7 @@ class TPZDiffusionConsLaw {
   
   TPZDiffusionConsLaw();
 
-  TPZDiffusionConsLaw(TPZVec<REAL> U,REAL gamma,int dim,char *diff);
+  TPZDiffusionConsLaw(TPZVec<REAL> U,REAL gamma,int dim,const std::string &diff);
 
   ~TPZDiffusionConsLaw();
 

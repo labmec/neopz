@@ -98,17 +98,17 @@ void TPZMultCamada::ContributeBC(TPZMaterialData &data,
   if(fCamadas.NElements()) fCamadas[0]->ContributeBC(data,weight,ek,ef,bc);
 }
 
-int TPZMultCamada::VariableIndex(char *name) {
-  if(!strcmp(name,"Displacement")) return 2;
-  if(!strcmp(name,"Deslocz")) return 4;
-  if(!strcmp(name,"M1Vec"))     return 50;// Momento na direcao do primeiro  eixo principal
-  if(!strcmp(name,"M2Vec"))     return 51;// Momento na direcao do segundo  eixo principal
-  if(!strcmp(name,"M1Scal"))     return 52;// Valor do primeiro momento principal
-  if(!strcmp(name,"M2Scal"))     return 53;// Valor do segundo momento principal
-  if(!strcmp(name,"N1Vec"))     return 54;// Momento na direcao do primeiro  eixo principal
-  if(!strcmp(name,"N2Vec"))     return 55;// Momento na direcao do segundo  eixo principal
-  if(!strcmp(name,"N1Scal"))     return 56;// Valor do primeiro momento principal
-  if(!strcmp(name,"N2Scal"))     return 57;// Valor do segundo momento principal
+int TPZMultCamada::VariableIndex(const std::string &name) {
+  if(!strcmp(name.c_str(),"Displacement")) return 2;
+  if(!strcmp(name.c_str(),"Deslocz")) return 4;
+  if(!strcmp(name.c_str(),"M1Vec"))     return 50;// Momento na direcao do primeiro  eixo principal
+  if(!strcmp(name.c_str(),"M2Vec"))     return 51;// Momento na direcao do segundo  eixo principal
+  if(!strcmp(name.c_str(),"M1Scal"))     return 52;// Valor do primeiro momento principal
+  if(!strcmp(name.c_str(),"M2Scal"))     return 53;// Valor do segundo momento principal
+  if(!strcmp(name.c_str(),"N1Vec"))     return 54;// Momento na direcao do primeiro  eixo principal
+  if(!strcmp(name.c_str(),"N2Vec"))     return 55;// Momento na direcao do segundo  eixo principal
+  if(!strcmp(name.c_str(),"N1Scal"))     return 56;// Valor do primeiro momento principal
+  if(!strcmp(name.c_str(),"N2Scal"))     return 57;// Valor do segundo momento principal
 
   return TPZMaterial::VariableIndex(name);
 }

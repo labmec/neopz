@@ -197,12 +197,20 @@ void TPZEqnArray::Write(FILE * outputfile){
 	//cout << ftell(outputfile) << endl;
 	/** TPZStack fEqStart data */
 	int aux = fEqStart.NElements();
+        if(aux == 0) 
+        {
+          std::cout << __PRETTY_FUNCTION__ << __LINE__ << std::endl;
+        }
 	fwrite(&aux,sizeof(int),1,outputfile);
 	fwrite(&fEqStart[0],sizeof(int), aux ,outputfile);
 
 	/** TPZStack fEqNumber data */
 	aux = fEqNumber.NElements();
-	fwrite(&aux,sizeof(int),1,outputfile);
+        if(aux == 0) 
+        {
+          std::cout << __PRETTY_FUNCTION__ << __LINE__ << std::endl;
+        }
+        fwrite(&aux,sizeof(int),1,outputfile);
 	fwrite(&fEqNumber[0],sizeof(int), aux ,outputfile);
 
 	/** TPZStack fIndex data */

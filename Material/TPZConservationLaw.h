@@ -88,7 +88,7 @@ class TPZConservationLaw  : public TPZMaterial {
                             REAL weight,
                             TPZFMatrix &ef);
 
-  virtual int VariableIndex(char *name);
+  virtual int VariableIndex(const std::string &name);
 
   virtual int NSolutionVariables(int var);
 

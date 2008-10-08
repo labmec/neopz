@@ -39,7 +39,7 @@ virtual std::string Name() { return "TPZMatHybrid"; }
                                 TPZFMatrix & ef,
                                 TPZBndCond & bc);
 
-virtual int VariableIndex(char *name);
+virtual int VariableIndex(const std::string &name);
 
 virtual int NSolutionVariables(int var);
 

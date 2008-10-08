@@ -50,7 +50,7 @@ public:
   void SetResolution(int res){ fResolution = res; SequenceNodes();}
 	
   void Print(std::ostream &out);
-  void SetNames(TPZVec<char *>&scalarnames, TPZVec<char *>&vecnames);
+  void SetNames(const TPZVec<std::string>&scalarnames, const TPZVec<std::string>&vecnames);
 	
 protected:
   TPZCompMesh *fCompMesh;
@@ -61,7 +61,7 @@ protected:
   int fResolution;
   TPZDrawStyle fStyle;
   std::ostream *fOutFile;
-  TPZVec<char *> fScalarNames, fVecNames;
+  TPZVec<std::string> fScalarNames, fVecNames;
   virtual void SequenceNodes();
 
   TPZCompEl *FindFirstInterpolatedElement(TPZCompMesh *mesh,int dimension);

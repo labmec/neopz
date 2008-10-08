@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.39 2008-06-02 17:58:33 fortiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.40 2008-10-08 02:09:29 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -238,16 +238,16 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 }
 
 /** returns the variable index associated with the name*/
-int TPZMatPoisson3d::VariableIndex(char *name){
-  if(!strcmp("Solution",name))        return  1;
-  if(!strcmp("Derivate",name))        return  2;
-  if(!strcmp("KDuDx",name))           return  3;
-  if(!strcmp("KDuDy",name))           return  4;
-  if(!strcmp("KDuDz",name))           return  5;
-  if(!strcmp("NormKDu",name))         return  6;
-  if(!strcmp("MinusKGradU",name))     return  7;
-  if(!strcmp("p",name))               return  8;
-  if(!strcmp("Laplac",name))          return  9;
+int TPZMatPoisson3d::VariableIndex(const std::string &name){
+  if(!strcmp("Solution",name.c_str()))        return  1;
+  if(!strcmp("Derivate",name.c_str()))        return  2;
+  if(!strcmp("KDuDx",name.c_str()))           return  3;
+  if(!strcmp("KDuDy",name.c_str()))           return  4;
+  if(!strcmp("KDuDz",name.c_str()))           return  5;
+  if(!strcmp("NormKDu",name.c_str()))         return  6;
+  if(!strcmp("MinusKGradU",name.c_str()))     return  7;
+  if(!strcmp("p",name.c_str()))               return  8;
+  if(!strcmp("Laplac",name.c_str()))          return  9;
   return TPZMaterial::VariableIndex(name);
 }
 

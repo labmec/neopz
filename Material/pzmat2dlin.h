@@ -71,7 +71,7 @@ class TPZMat2dLin : public TPZMaterial{
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx,TPZFMatrix &axes,TPZVec<REAL> &flux,
 			 TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
 
-  virtual int VariableIndex(char *name);
+  virtual int VariableIndex(const std::string &name);
 
   virtual int NSolutionVariables(int index);
 

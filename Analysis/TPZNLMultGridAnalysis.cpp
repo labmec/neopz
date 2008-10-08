@@ -255,7 +255,7 @@ void TPZNonLinMultGridAnalysis::SetReference(TPZCompMesh *aggcmesh){
   }
 }
 
-void TPZNonLinMultGridAnalysis::CoutTime(clock_t &start,char *title){
+void TPZNonLinMultGridAnalysis::CoutTime(clock_t &start,const char *title){
     clock_t end = clock();
     cout << title <<  endl;
     clock_t segundos = ((end - start)/CLOCKS_PER_SEC);
@@ -373,7 +373,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPo
 void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,
 					      TPZAnalysis &an,int marcha,ostream &dxout) {
 
-  TPZVec<char *> scalar(1),vector(0);
+  TPZVec<std::string> scalar(1),vector(0);
   scalar[0] = "pressure";
   int dim = mat->Dimension();
   TPZCompMesh *anmesh = an.Mesh();
@@ -437,7 +437,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZAutoP
 }
 
 void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZAnalysis &an,
-					     char *decompose,TPZFMatrix &res){
+                    const std::string &decompose,TPZFMatrix &res){
 
   //TPZStepSolver *solver = dynamic_cast<TPZStepSolver *>(&an.Solver());
   //TPZMatrix *stiff = solver->Matrix();
@@ -449,7 +449,7 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZAnalysis &an,
   //c�culo de stiff * solution
   TPZFMatrix tsup(dim,1),diag(dim,1),tinf(dim,1);
 
-  if( !strcmp(decompose , "LDLt") ){
+  if( !strcmp(decompose.c_str() , "LDLt") ){
     //tri�gulo superior
     for(i=0;i<dim;i++){
       REAL sum = 0.;
@@ -494,7 +494,7 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZAnalysis &an,
 
 
 void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZFMatrix &anres,
-					  TPZFMatrix &res,TPZAnalysis &an,char *decompose){
+    TPZFMatrix &res,TPZAnalysis &an,const std::string &decompose){
 
   //TPZStepSolver *solver = dynamic_cast<TPZStepSolver *>(&an.Solver());
   //TPZMatrix *stiff = solver->Matrix();
@@ -505,7 +505,7 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZFMatrix &anres,
   //c�culo de stiff * solution
   TPZFMatrix tsup(dim,1),diag(dim,1),tinf(dim,1);
 
-  if( !strcmp(decompose , "LDLt") ){
+  if( !strcmp(decompose.c_str() , "LDLt") ){
     //tri�gulo superior
     for(i=0;i<dim;i++){
       REAL sum = 0.;
@@ -871,7 +871,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
   TPZFMatrix coarsesol(coarneq,1,0.),projfineres(coarneq,1),rhs(coarneq,1),frhsk;
   TPZFMatrix finesolkeep,coarsesolkeep;
   int mgmaxiter = 100,mgiter = 0;
-  TPZVec<char *> scalar(1),vector(0);
+  TPZVec<std::string> scalar(1),vector(0);
   scalar[0] = "pressure";
   geomesh->ResetReference();
   fMeshes[2]->LoadReferences();

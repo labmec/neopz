@@ -44,8 +44,8 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZAutoPointer<TPZMat
   }
 
   fOutFile = 0;
-  fScalarNames = 0;
-  fVecNames = 0;
+  fScalarNames = "";
+  fVecNames = "";
 }
 
 TPZGraphMesh::~TPZGraphMesh(void)
@@ -214,7 +214,7 @@ void TPZGraphMesh::Print(ostream &out) {
 	}
 }
 
-void TPZGraphMesh::SetNames(TPZVec<char *>&scalarnames, TPZVec<char *>&vecnames) {
+void TPZGraphMesh::SetNames(const TPZVec<std::string>&scalarnames, const TPZVec<std::string>&vecnames) {
 	fScalarNames = scalarnames;
 	fVecNames = vecnames;
 }

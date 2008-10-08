@@ -1,4 +1,4 @@
-//$Id: pzanalysiserror.cpp,v 1.12 2007-11-30 12:40:22 phil Exp $
+//$Id: pzanalysiserror.cpp,v 1.13 2008-10-08 02:06:24 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysiserror.h"
@@ -11,6 +11,8 @@
 #include "pzintel.h"
 #include "pzskylstrmatrix.h"
 #include "pzmaterial.h"
+
+#include <sstream> 
 
 using namespace std;
 TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,ostream &out) : TPZAnalysis(mesh,out),fElIndexes(0),fElErrors(0),
@@ -102,21 +104,29 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 
 void TPZAnalysisError::PlotLocal(int iter, REAL CurrentEtaAdmissible, ostream &out) {
 	  EvaluateError(CurrentEtaAdmissible,out);
-      TPZManVector<char *> solution(1);
+      TPZManVector<std::string> solution(1);
       solution[0] = "Solution";
-      TPZVec<char *> vecnames(0);
-      char plotfile[10] =  "";
-      strcat (plotfile,"plot");
-      plotfile[4] = '0'+iter;
-      plotfile[5] = '\0';
-      strcat (plotfile,".plt");
-      DefineGraphMesh(2, solution, vecnames, plotfile);
+      TPZVec<std::string> vecnames(0);
+      {
+      std::stringstream plotfile;
+      plotfile << "plot";
+      plotfile <<  '0' << iter;
+      plotfile << '\0';
+      plotfile << ".plt";
+      DefineGraphMesh(2, solution, vecnames, plotfile.str());
+      }
       PostProcess(0);
       solution.Resize(2);
       solution[0] = "POrder";
-	  solution[1] = "Error";
-      plotfile[3] = 'p';
-      DefineGraphMesh(2, solution, vecnames, plotfile);
+      solution[1] = "Error";
+      {
+          std::stringstream plotfile;
+          plotfile << "plop";
+          plotfile <<  '0' << iter;
+          plotfile << '\0';
+          plotfile << ".plt";
+          DefineGraphMesh(2, solution, vecnames, plotfile.str());
+      }
       PostProcess(3);
 }
 

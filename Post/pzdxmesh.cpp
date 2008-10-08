@@ -1,4 +1,4 @@
-//$Id: pzdxmesh.cpp,v 1.12 2007-12-17 18:25:31 tiago Exp $
+//$Id: pzdxmesh.cpp,v 1.13 2008-10-08 02:14:47 phil Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -17,7 +17,7 @@ using namespace std;
 // 		if(ce->NConnects() == 9) fElementType = "quads";
 // 		if(ce->NConnects() == 27) fElementType = "cubes";
 
-TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat, TPZVec<char *> &scalarnames, TPZVec<char *> &vecnames) : TPZGraphMesh(cmesh,dimension,mat) {
+TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh,dimension,mat) {
   SetNames(scalarnames,vecnames);
 	fNextDataField = 1;
 	fStyle = EDXStyle;
@@ -181,10 +181,10 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
   vecind.Fill(-1);
   int n;
   for(n=0; n<numscal; n++) {
-    scalind[n] = matp->VariableIndex((char *) fScalarNames[n]);
+    scalind[n] = matp->VariableIndex( fScalarNames[n]);
   }
   for(n=0; n<numvec; n++) {
-    vecind[n] = matp->VariableIndex((char *) fVecNames[n]);
+    vecind[n] = matp->VariableIndex( fVecNames[n]);
   }
   fFirstFieldValues[dim1].Push(fNextDataField+1);
   fTimes.Push(time);
@@ -211,7 +211,7 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
       (*fOutFile) << "component \"connections\" value " << fElConnectivityObject[ECube] << endl;
-      (*fOutFile) << "attribute \"name\" string \"" << (char *) fScalarNames[n]
+      (*fOutFile) << "attribute \"name\" string \"" << (std::string) fScalarNames[n]
 		  << step << (0) << "\"" << endl;
       (*fOutFile) << "#" << endl;
       fNextDataField ++;
@@ -223,7 +223,7 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
       (*fOutFile) << "component \"connections\" value " << fElConnectivityObject[EQuadrilateral] << endl;
-      (*fOutFile) << "attribute \"name\" string \"" << (char *) fScalarNames[n]; (*fOutFile).flush();
+      (*fOutFile) << "attribute \"name\" string \"" << (std::string) fScalarNames[n]; (*fOutFile).flush();
 		  (*fOutFile) << step; (*fOutFile).flush();
       (*fOutFile) << (0); (*fOutFile).flush();
       (*fOutFile) << "\""; (*fOutFile).flush();
@@ -248,7 +248,7 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
       (*fOutFile) << "component \"connections\" value " << fElConnectivityObject[EOned] << endl;
       if(fNormalObject > 0) (*fOutFile) << "component \"normals\" value " << fNormalObject << endl;
-      (*fOutFile) << "attribute \"name\" string \"" << (char *) fScalarNames[n]
+      (*fOutFile) << "attribute \"name\" string \"" << (std::string) fScalarNames[n]
 		  << step << (0) << "\"" << endl;
       (*fOutFile) << "#" << endl;
       fNextDataField ++;
@@ -274,7 +274,7 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
       (*fOutFile) << "component \"connections\" value " << fElConnectivityObject[ECube] << endl;
-      (*fOutFile) << "attribute \"name\" string \"" << (char *) fVecNames[n]
+      (*fOutFile) << "attribute \"name\" string \"" << (std::string) fVecNames[n]
 		  << step << (0) << "\"" << endl;
       (*fOutFile) << "#" << endl;
       fNextDataField ++;
@@ -285,7 +285,7 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
       (*fOutFile) << "component \"connections\" value " << fElConnectivityObject[EQuadrilateral] << endl;
-      (*fOutFile) << "attribute \"name\" string \"" << (char *) fVecNames[n]
+      (*fOutFile) << "attribute \"name\" string \"" << (std::string) fVecNames[n]
 		  << step << (0) << "\"" << endl;
       (*fOutFile) << "#" << endl;
       fNextDataField ++;
@@ -295,7 +295,7 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
       (*fOutFile) << "component \"connections\" value " << fElConnectivityObject[ETriangle] << endl;
-      (*fOutFile) << "attribute \"name\" string \"" << (char *) fVecNames[n]
+      (*fOutFile) << "attribute \"name\" string \"" << (std::string) fVecNames[n]
 		  << step << (1) << "\"" << endl;
       (*fOutFile) << "#" << endl;
       fNextDataField ++;
@@ -305,7 +305,7 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
       (*fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
       (*fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
       (*fOutFile) << "component \"connections\" value " << fElConnectivityObject[EOned] << endl;
-      (*fOutFile) << "attribute \"name\" string \"" << (char *) fVecNames[n]
+      (*fOutFile) << "attribute \"name\" string \"" << (std::string) fVecNames[n]
 		  << step << (0) << "\"" << endl;
       (*fOutFile) << "#" << endl;
       fNextDataField ++;
@@ -389,7 +389,7 @@ void TPZDXGraphMesh::DrawSolution(char * var)
     int nel = fCompMesh->ConnectVec().NElements();
     for(i=0;i<nel;i++) {
 		TPZGraphNode n = fNodeMap[i];
-		if(&n) n.DrawSolution(vec,fStyle);
+		n.DrawSolution(vec,fStyle);
     }
     (*fOutFile) << "attribute \"dep\" string \"positions\"" << endl;
     (*fOutFile) << "#" << endl;

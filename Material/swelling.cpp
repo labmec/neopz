@@ -92,7 +92,7 @@ void TPZSwelling::Print(ostream &out) {
 
 
 /** returns the variable index associated with the name*/
-int TPZSwelling::VariableIndex(char *name){
+int TPZSwelling::VariableIndex(const std::string &name){
   return TPZMaterial::VariableIndex(name);
 }
 

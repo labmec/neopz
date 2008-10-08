@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcy.h,v 1.7 2007-12-07 13:47:47 cesar Exp $
+//$Id: pzcoupledtransportdarcy.h,v 1.8 2008-10-08 02:09:27 phil Exp $
 
 #ifndef MATCOUPLEDTRANSPDARCY
 #define MATCOUPLEDTRANSPDARCY
@@ -127,7 +127,7 @@ public:
                               TPZFMatrix &ef,
                               TPZBndCond &bc);
 
-  virtual int VariableIndex(char *name);
+  virtual int VariableIndex(const std::string &name);
 
   virtual int NSolutionVariables(int var);
 

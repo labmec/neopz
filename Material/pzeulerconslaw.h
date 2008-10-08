@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.38 2007-12-07 13:47:47 cesar Exp $
+//$Id: pzeulerconslaw.h,v 1.39 2008-10-08 02:09:27 phil Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -139,7 +139,7 @@ public :
   /**
    * See declaration in base class
    */
-  virtual int VariableIndex(char *name);
+  virtual int VariableIndex(const std::string &name);
 
   /**
    * See declaration in base class

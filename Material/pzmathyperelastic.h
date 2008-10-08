@@ -58,7 +58,7 @@ virtual void ContributeBCEnergy(TPZVec<REAL> & x,
 
 #endif
 
-virtual int VariableIndex(char *name);
+virtual int VariableIndex(const std::string &name);
 
 virtual int NSolutionVariables(int var);
 

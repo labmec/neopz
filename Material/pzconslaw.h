@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.24 2007-12-07 13:47:47 cesar Exp $
+//$Id: pzconslaw.h,v 1.25 2008-10-08 02:09:27 phil Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -161,7 +161,7 @@ public:
    *
    * @param name [in]
    */
-  virtual int VariableIndex(char *name)=0;
+  virtual int VariableIndex(const std::string &name)=0;
 
   virtual int NSolutionVariables(int var)=0;
 

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.48 2008-06-02 17:58:32 fortiago Exp $
+//$Id: pzeulerconslaw.cpp,v 1.49 2008-10-08 02:09:27 phil Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -151,14 +151,14 @@ void TPZEulerConsLaw2::Print(std::ostream &out) {
 
 }
 
-int TPZEulerConsLaw2::VariableIndex(char *name) {
-  if( !strcmp(name,"density")  )     return 1;//rho
-  if( !strcmp(name,"velocity") )     return 2;//(u,v,w)
-  if( !strcmp(name,"energy")   )     return 3;//E
-  if( !strcmp(name,"pressure") )     return 4;//p
-  if( !strcmp(name,"solution") )     return 5;//(ro,u,v,w,E)
-  if( !strcmp(name,"normvelocity") ) return 6;//sqrt(u+v+w)
-  if( !strcmp(name,"Mach") )         return 7;//sqrt(u+v+w)/c
+int TPZEulerConsLaw2::VariableIndex(const std::string &name) {
+  if( !strcmp(name.c_str(),"density")  )     return 1;//rho
+  if( !strcmp(name.c_str(),"velocity") )     return 2;//(u,v,w)
+  if( !strcmp(name.c_str(),"energy")   )     return 3;//E
+  if( !strcmp(name.c_str(),"pressure") )     return 4;//p
+  if( !strcmp(name.c_str(),"solution") )     return 5;//(ro,u,v,w,E)
+  if( !strcmp(name.c_str(),"normvelocity") ) return 6;//sqrt(u+v+w)
+  if( !strcmp(name.c_str(),"Mach") )         return 7;//sqrt(u+v+w)/c
   cout << "TPZEulerConsLaw2::VariableIndex not defined\n";
   return TPZMaterial::VariableIndex(name);
 }

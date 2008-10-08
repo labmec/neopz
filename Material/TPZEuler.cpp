@@ -35,10 +35,10 @@ int TPZEuler::NSolutionVariables(int index) {
   if(index == 3) return 2;
   return TPZMaterial::NSolutionVariables(index);
 }
-int TPZEuler::VariableIndex(char *name) {
-  if(!strcmp(name,"pressure")) return 1;
-  if(!strcmp(name,"density")) return 2;
-  if(!strcmp(name,"velocity")) return 3;
+int TPZEuler::VariableIndex(const std::string &name) {
+  if(!strcmp(name.c_str(),"pressure")) return 1;
+  if(!strcmp(name.c_str(),"density")) return 2;
+  if(!strcmp(name.c_str(),"velocity")) return 3;
   return TPZMaterial::VariableIndex(name);
 }
 void TPZEuler::Print(ostream & out) {

@@ -13,14 +13,17 @@ TPZEulerConsLaw::~TPZEulerConsLaw(){
 
 }
 
-TPZEulerConsLaw::TPZEulerConsLaw(int nummat,REAL delta_t,REAL gamma,int dim,char *artdiff) :
+TPZEulerConsLaw::TPZEulerConsLaw(int nummat,REAL delta_t,REAL gamma,int dim,const std::string &artdiff) :
                                 TPZConservationLaw(nummat,delta_t,dim) {
 
-  if( strcmp("SUPG",artdiff) && strcmp("LS",artdiff) && strcmp("Bornhaus",artdiff) ){
+  if( strcmp("SUPG",artdiff.c_str()) && strcmp("LS",artdiff.c_str()) && strcmp("Bornhaus",artdiff.c_str()) ){
     PZError << "TPZEulerConsLaw::TPZEulerConsLaw artificial diffusion parameter, default LS\n";
-    artdiff = "LS";
+    fArtificialDiffusion = "LS";
   }
-  fArtificialDiffusion = artdiff;//SUPG, LS, Bornhauss
+  else
+  {
+    fArtificialDiffusion = artdiff;//SUPG, LS, Bornhauss
+  }
   fGamma = gamma;
 }
 
@@ -364,13 +367,13 @@ int TPZEulerConsLaw::NSolutionVariables(int var){
 }
 
 /** returns the variable index associated with the name*/
-int TPZEulerConsLaw::VariableIndex(char *name) {
-  if( !strcmp(name,"density")  )     return 1;//rho
-  if( !strcmp(name,"velocity") )     return 2;//(u,v,w)
-  if( !strcmp(name,"energy")   )     return 3;//E
-  if( !strcmp(name,"pressure") )     return 4;//p
-  if( !strcmp(name,"solution") )     return 5;//(ro,u,v,w,E)
-  if( !strcmp(name,"normvelocity") ) return 6;//sqrt(u+v+w)
+int TPZEulerConsLaw::VariableIndex(const std::string &name) {
+  if( !strcmp(name.c_str(),"density")  )     return 1;//rho
+  if( !strcmp(name.c_str(),"velocity") )     return 2;//(u,v,w)
+  if( !strcmp(name.c_str(),"energy")   )     return 3;//E
+  if( !strcmp(name.c_str(),"pressure") )     return 4;//p
+  if( !strcmp(name.c_str(),"solution") )     return 5;//(ro,u,v,w,E)
+  if( !strcmp(name.c_str(),"normvelocity") ) return 6;//sqrt(u+v+w)
   cout << "TPZEulerConsLaw::VariableIndex not defined\n";
   return TPZMaterial::VariableIndex(name);
 }

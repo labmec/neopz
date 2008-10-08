@@ -53,7 +53,7 @@ public:
         */
     TPZFileEqnStorage(
 		      char option //! 'w' means writing and 'r' reading
-		      , const char * name //! the file name to print to
+		      , const std::string &name //! the file name to print to
 		      );
     /** Adds an EqnArray */
     void AddEqnArray(
@@ -101,7 +101,7 @@ public:
    /**
     *Type of Storage
     */
-   char * GetStorage();
+   std::string GetStorage();
 
 
 private:
@@ -123,7 +123,7 @@ private:
      * @link association*/
     /*#  TPZEqnArray lnkTPZEqnArray; */
     /** file name containing binary data */
-    char fFileName[256];
+    std::string fFileName;
 
     /**
      * binary file itself 

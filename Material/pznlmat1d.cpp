@@ -1,4 +1,4 @@
-//$Id: pznlmat1d.cpp,v 1.5 2007-07-04 19:26:53 tiago Exp $
+//$Id: pznlmat1d.cpp,v 1.6 2008-10-08 02:09:28 phil Exp $
 // -*- c++ -*-
  
 #include "pznlmat1d.h"
@@ -29,9 +29,9 @@ void TPZNLMat1d::Print(std::ostream &out)
   out << "Young module = " << fE << std::endl;
 }
 
-int TPZNLMat1d::VariableIndex(char *name)
+int TPZNLMat1d::VariableIndex(const std::string &name)
 {
-  if (!strcmp(name,"Tens�")) return 0;
+  if (!strcmp(name.c_str(),"Tens�")) return 0;
   else return -1;
 }
 

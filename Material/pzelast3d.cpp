@@ -1,4 +1,4 @@
-//$Id: pzelast3d.cpp,v 1.13 2007-11-29 11:31:07 phil Exp $
+//$Id: pzelast3d.cpp,v 1.14 2008-10-08 02:09:27 phil Exp $
  
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -217,18 +217,18 @@ TPZFMatrix &phi = data.phi;
                           
 }//method
 
-int TPZElasticity3D::VariableIndex(char *name){
-  if(!strcmp("Displacement",name))  return TPZElasticity3D::EDisplacement;
-  if(!strcmp("DisplacementX",name))  return TPZElasticity3D::EDisplacementX;
-  if(!strcmp("DisplacementY",name))  return TPZElasticity3D::EDisplacementY;
-  if(!strcmp("DisplacementZ",name))  return TPZElasticity3D::EDisplacementZ;
-  if(!strcmp("PrincipalStress", name))  return TPZElasticity3D::EPrincipalStress;
-  if(!strcmp("PrincipalStrain", name))  return TPZElasticity3D::EPrincipalStrain;
-  if(!strcmp("VonMises",    name))  return TPZElasticity3D::EVonMisesStress;
-  if(!strcmp("Stress",     name))  return TPZElasticity3D::EStress;
-  if(!strcmp("Strain",     name))  return TPZElasticity3D::EStrain;
-  if(!strcmp("Stress1",     name))  return TPZElasticity3D::EStress1;
-  if(!strcmp("Strain1",     name))  return TPZElasticity3D::EStrain1;  
+int TPZElasticity3D::VariableIndex(const std::string &name){
+  if(!strcmp("Displacement",name.c_str()))  return TPZElasticity3D::EDisplacement;
+  if(!strcmp("DisplacementX",name.c_str()))  return TPZElasticity3D::EDisplacementX;
+  if(!strcmp("DisplacementY",name.c_str()))  return TPZElasticity3D::EDisplacementY;
+  if(!strcmp("DisplacementZ",name.c_str()))  return TPZElasticity3D::EDisplacementZ;
+  if(!strcmp("PrincipalStress", name.c_str()))  return TPZElasticity3D::EPrincipalStress;
+  if(!strcmp("PrincipalStrain", name.c_str()))  return TPZElasticity3D::EPrincipalStrain;
+  if(!strcmp("VonMises",    name.c_str()))  return TPZElasticity3D::EVonMisesStress;
+  if(!strcmp("Stress",     name.c_str()))  return TPZElasticity3D::EStress;
+  if(!strcmp("Strain",     name.c_str()))  return TPZElasticity3D::EStrain;
+  if(!strcmp("Stress1",     name.c_str()))  return TPZElasticity3D::EStress1;
+  if(!strcmp("Strain1",     name.c_str()))  return TPZElasticity3D::EStrain1;  
   PZError << "TPZElasticity3D::VariableIndex Error\n";
   return -1;
 }

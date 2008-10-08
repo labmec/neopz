@@ -411,7 +411,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,ofstream &out,i
   an.SetSolver(solve);
   an.Solution().Zero();
 
-  TPZVec<char *> scalar(3),vector(0);
+  TPZVec<std::string> scalar(3),vector(0);
   scalar[0] = "SigX";
   scalar[1] = "SigY";
   scalar[2] = "TauXY";

@@ -1,4 +1,4 @@
-//$Id: pzspacetimerichardseq.cpp,v 1.1 2008-04-04 12:15:03 fortiago Exp $
+//$Id: pzspacetimerichardseq.cpp,v 1.2 2008-10-08 02:09:29 phil Exp $
 
 #include "pzspacetimerichardseq.h"
 #include "pzbndcond.h"
@@ -348,10 +348,10 @@ int TPZSpaceTimeRichardsEq::main(){
     cmesh->Reference()->NodeVec()[i].SetCoord(0, cmesh->Reference()->NodeVec()[i].Coord(0) * 86400.);
   }*/
   
-  TPZVec<char *> scalnames(1);
+  TPZVec<std::string> scalnames(1);
   scalnames[0] = "state";
-  TPZVec<char *> vecnames(0);
-  char plotfile[] = "richards.dx";
+  TPZVec<std::string> vecnames(0);
+  std::string plotfile = "richards.dx";
   an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
   an.PostProcess(1);  
 

@@ -415,10 +415,10 @@ void TPZFrontNonSym::main()
 	TestFront.SymbolicAddKel(DestIndex);
 	TestFront.SymbolicDecomposeEquations(0,matsize-1); 
 
-	char * OutFile;
+	std::string OutFile;
 	OutFile = "TPZFrontNonSymTest.txt";
 
-	ofstream output(OutFile,ios::app);
+	ofstream output(OutFile.c_str(),ios::app);
 
 	TestFront.Compress();
 
@@ -475,6 +475,6 @@ void TPZFrontNonSym::main()
 }
 #endif
 
-char * TPZFrontNonSym::GetMatrixType(){
+std::string TPZFrontNonSym::GetMatrixType(){
      return "Non symmetric matrix";
 }

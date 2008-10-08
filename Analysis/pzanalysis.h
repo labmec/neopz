@@ -67,11 +67,11 @@ public:
   /**
    * Scalar variables names - to post process
    */
-  TPZVec<char *> fScalarNames[3];
+  TPZVec<std::string> fScalarNames[3];
   /**
    * Vector variables names - to post process
    */
-  TPZVec<char *> fVectorNames[3];
+  TPZVec<std::string> fVectorNames[3];
   /**
    * Step ???
    */
@@ -208,7 +208,7 @@ public:
   virtual void Run(std::ostream &out = std::cout);
   // calls the appropriate sequence of methods to build a
   // solution or a time stepping sequence
-  virtual void DefineGraphMesh(int dimension, TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, const char *plotfile);
+  virtual void DefineGraphMesh(int dimension, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile);
 
   virtual void CloseGraphMesh();
 
@@ -243,13 +243,13 @@ public:
 
   void PostProcessTable(  TPZFMatrix &pos,std::ostream &out= std::cout );
 
-  void Print( char *name , std::ostream &out );
+  void Print( const std::string &name , std::ostream &out );
 
   //misael
   TPZMatrixSolver & Solver();
 
   void AnimateRun(int num_iter, int steps,
-		  TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, char *plotfile);
+		  TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, const std::string &plotfile);
 
   void SetSolver(TPZMatrixSolver &solver);
 

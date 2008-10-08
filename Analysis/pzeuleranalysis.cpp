@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.41 2007-11-29 17:34:42 phil Exp $
+//$Id: pzeuleranalysis.cpp,v 1.42 2008-10-08 02:06:24 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -339,7 +339,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 
 TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout, int dxRes)
 {
-  TPZVec<char *> scalar(4),vector(0);
+  TPZVec<std::string> scalar(4),vector(0);
   scalar[0] = "density";
   scalar[1] = "pressure";
   scalar[2] = "normvelocity";

@@ -332,7 +332,7 @@ void NResidual(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N);
  /**
   * return the integer index corresponding to a post processing variable name
   */
- virtual int VariableIndex(char *name);
+ virtual int VariableIndex(const std::string &name);
  /**
   * return the number of solution variables associated with a variable index
   * (e.g. 1 for scalar, 3 for vectorial, 9 for tensorial)

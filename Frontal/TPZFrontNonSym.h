@@ -46,7 +46,7 @@ public:
      /**
       *Type of matrix
       */
-     char * GetMatrixType();
+     std::string GetMatrixType();
 
     /** Static main used for testing */
 #ifndef WIN32

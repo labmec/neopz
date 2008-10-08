@@ -290,9 +290,9 @@ TPZFMatrix &phi = data.phi;
 }
 
 /** returns the variable index associated with the name*/
-int TPZConsLawTest::VariableIndex(char *name){
-  if(!strcmp("Solution",name))        return  1;
-  if(!strcmp("Derivate",name))        return  2;
+int TPZConsLawTest::VariableIndex(const std::string &name){
+  if(!strcmp("Solution",name.c_str()))        return  1;
+  if(!strcmp("Derivate",name.c_str()))        return  2;
   cout << "TPZConsLawTest::VariableIndex Error\n";
   return -1;
 }

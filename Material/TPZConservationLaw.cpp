@@ -79,7 +79,7 @@ void TPZConservationLaw::ContributeInterface(TPZMaterialData &data,
   cout << __PRETTY_FUNCTION__ << " this metod should not be called\n";
 }
 /** returns the variable index associated with the name*/
-int TPZConservationLaw::VariableIndex(char *name){
+int TPZConservationLaw::VariableIndex(const std::string &name){
 
   cout << "TPZConservationLaw::VariableIndex this metod does not have to be called\n";
   return -1;

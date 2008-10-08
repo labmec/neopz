@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pznonlinbiharmonic.h,v 1.6 2007-12-07 13:47:48 cesar Exp $
+//$Id: pznonlinbiharmonic.h,v 1.7 2008-10-08 02:09:28 phil Exp $
 
 #ifndef TPZNONLINBIHARMONICHPP
 #define TPZNONLINBIHARMONICHPP
@@ -65,7 +65,7 @@ public :
                               TPZFMatrix &ef,
                               TPZBndCond &bc);
 
-  virtual int VariableIndex(char *name);
+  virtual int VariableIndex(const std::string &name);
 
   virtual int NSolutionVariables(int var);
 

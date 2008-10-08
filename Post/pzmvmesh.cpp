@@ -55,10 +55,10 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time,
 	}
 	int n;
 	for(n=0; n<numscal; n++) {
-		scalind[n] = matp->VariableIndex((char *) scalarnames[n]);
+		scalind[n] = matp->VariableIndex( scalarnames[n]);
 	}
 	for(n=0; n<numvec; n++) {
-		vecind[n] = matp->VariableIndex((char *) vectornames[n]);
+		vecind[n] = matp->VariableIndex(vectornames[n]);
 	}
 
 	(*fOutFile) << "%RESULT.CASE.STEP\n" << (step+1) << endl;
@@ -112,7 +112,7 @@ void TPZMVGraphMesh::SequenceNodes(){
         for(int i=0;i<nnod;i++) {
            TPZGraphNode *n = &fNodeMap[i];
            if(n) n->SetPointNumber(n->FirstPoint()+1);// renumera de 1 para frente
-        }                                             // o valor do id do nó
+        }                                             // o valor do id do nï¿½
    }
 }
 

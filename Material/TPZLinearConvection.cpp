@@ -110,8 +110,8 @@ int TPZLinearConvection::NSolutionVariables(int index) {
   if(index == 1) return 2;
   return TPZMaterial::NSolutionVariables(index);
 }
-int TPZLinearConvection::VariableIndex(char *name) {
-  if(!strcmp(name,"flux")) return 1;
+int TPZLinearConvection::VariableIndex(const std::string &name) {
+  if(!strcmp(name.c_str(),"flux")) return 1;
   return TPZMaterial::VariableIndex(name);
 }
 void TPZLinearConvection::Print(ostream & out) {

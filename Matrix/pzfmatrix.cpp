@@ -352,6 +352,16 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
 #endif
 }
 
+void TPZFMatrix::DeterminantInverse(REAL &determinant, TPZFMatrix &inverse)
+{
+  TPZFNMatrix<100> copy(*this);
+  inverse.Redim(Rows(),Rows());
+  int r;
+  for(r=0; r<Rows(); r++) inverse(r,r) = 1.;
+  copy.Solve_LU(&inverse);
+  determinant = 1.;
+  for(r=0; r<Rows(); r++) determinant *= copy(r,r);
+}
 
 
 

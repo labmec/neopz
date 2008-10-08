@@ -377,24 +377,24 @@ void TPZMatPlaca2::Print(ostream & out) {
 }        */
 
   /**returns the variable index associated with the name*/
-int TPZMatPlaca2::VariableIndex(char *name){
-  if(!strcmp(name,"Deslocamentos nodais")) return 0;
-  if(!strcmp(name,"Deslocx")) return 2;// Desloc. eixo x global
-  if(!strcmp(name,"Deslocy")) return 3;// Desloc. eixo y global
-  if(!strcmp(name,"Deslocz")) return 4;// Desloc. eixo z global
-  if(!strcmp(name,"Mn1 Mn2 e Mn1n2"))     return 5;// Momentos nas direcoes dos eixos n1 e n2
-  if(!strcmp(name,"Ma1 Ma2 e Ma1a2"))     return 50;// Momentos nas direcoes dos eixos a1 e a2
+int TPZMatPlaca2::VariableIndex(const std::string &name){
+  if(!strcmp(name.c_str(),"Deslocamentos nodais")) return 0;
+  if(!strcmp(name.c_str(),"Deslocx")) return 2;// Desloc. eixo x global
+  if(!strcmp(name.c_str(),"Deslocy")) return 3;// Desloc. eixo y global
+  if(!strcmp(name.c_str(),"Deslocz")) return 4;// Desloc. eixo z global
+  if(!strcmp(name.c_str(),"Mn1 Mn2 e Mn1n2"))     return 5;// Momentos nas direcoes dos eixos n1 e n2
+  if(!strcmp(name.c_str(),"Ma1 Ma2 e Ma1a2"))     return 50;// Momentos nas direcoes dos eixos a1 e a2
   //if(!strcmp(name,"Mn2"))     return 6;// Mom. fletor eixo n2 da fibra
   //if(!strcmp(name,"Mn1n2"))   return 7;// Mom. volvente eixos n1 e n2 da fibra
-  if(!strcmp(name,"Vn1"))     return 8;// forca cortante Vn1 (positiva se antihorario)
-  if(!strcmp(name,"Vn2"))     return 9;// forca cortante Vn2 (positiva se antihorario)
-  if(!strcmp(name,"Sign1"))   return 10;// tens� normal na dire�o n1
-  if(!strcmp(name,"Sign2"))   return 11;// tens� normal na dire�o n2
-  if(!strcmp(name,"Taun1n2")) return 12;// tens� cisalhamento eixos n1 e n2
-  if(!strcmp(name,"Na1, Na2 e Na1a2")) return 54;//Tensoes normais nas direcoes dos eixos a1,a2
-  if(!strcmp(name,"Taun1n3")) return 13;// tens� cisalhamento eixos n1 e n3
-  if(!strcmp(name,"Taun2n3")) return 14;// tens� cisalhamento eixos n2 e n3
-  if(!strcmp(name,"Translacoes na superficie de referencia (u,v,w)")) return 15;// translacoes u,v,w
+  if(!strcmp(name.c_str(),"Vn1"))     return 8;// forca cortante Vn1 (positiva se antihorario)
+  if(!strcmp(name.c_str(),"Vn2"))     return 9;// forca cortante Vn2 (positiva se antihorario)
+  if(!strcmp(name.c_str(),"Sign1"))   return 10;// tens� normal na dire�o n1
+  if(!strcmp(name.c_str(),"Sign2"))   return 11;// tens� normal na dire�o n2
+  if(!strcmp(name.c_str(),"Taun1n2")) return 12;// tens� cisalhamento eixos n1 e n2
+  if(!strcmp(name.c_str(),"Na1, Na2 e Na1a2")) return 54;//Tensoes normais nas direcoes dos eixos a1,a2
+  if(!strcmp(name.c_str(),"Taun1n3")) return 13;// tens� cisalhamento eixos n1 e n3
+  if(!strcmp(name.c_str(),"Taun2n3")) return 14;// tens� cisalhamento eixos n2 e n3
+  if(!strcmp(name.c_str(),"Translacoes na superficie de referencia (u,v,w)")) return 15;// translacoes u,v,w
 
 
 

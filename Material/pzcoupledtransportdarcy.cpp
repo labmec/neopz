@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzcoupledtransportdarcy.cpp,v 1.6 2007-05-11 19:15:17 joao Exp $
+//$Id: pzcoupledtransportdarcy.cpp,v 1.7 2008-10-08 02:09:27 phil Exp $
 
 #include "pzcoupledtransportdarcy.h"
 #include "pzcoupledtransportdarcyBC.h"
@@ -80,7 +80,7 @@ void TPZCoupledTransportDarcy::ContributeBC(TPZMaterialData &data,
 }
 
 /** returns the variable index associated with the name*/
-int TPZCoupledTransportDarcy::VariableIndex(char *name){
+int TPZCoupledTransportDarcy::VariableIndex(const std::string &name){
   return this->GetCurrentMaterial()->VariableIndex(name);
 }
 

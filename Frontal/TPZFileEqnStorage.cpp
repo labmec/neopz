@@ -6,7 +6,11 @@
 #ifdef WIN32
 #include <dir.h>
 #endif
+#include "pzlog.h"
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.frontal.tpzfileeqnstorage"));
+#endif
 #include <fstream>
 using namespace std;
 
@@ -27,7 +31,14 @@ void TPZFileEqnStorage::WriteHeaders(){
 	if(fCurrentBlock==0){
 		long int basepos = ftell(fIOStream);
 		fBlockPos.Push(basepos);
-	}else{
+#ifdef LOG4CXX
+                {
+                  std::stringstream sout;
+                  sout << "basepos = " << basepos;
+                  LOGPZ_DEBUG(logger,sout.str())
+                }
+#endif	
+        }else{
 		long int tempaddress = ftell(fIOStream);
 		fBlockPos.Push(tempaddress);
 	}
@@ -35,6 +46,15 @@ void TPZFileEqnStorage::WriteHeaders(){
 	long int firstpos = ftell(fIOStream);
 	//if (fCurrentBlock) firstpos = 
 	
+#ifdef LOG4CXX
+        {
+          std::stringstream sout;
+          sout << "Writing the position of the headers, numheaders " << fNumHeaders << " position ";
+          int i;
+          for(i=0; i<fNumHeaders; i++) sout << Position[i] << ' ';
+          LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
 	/**
 	 *Writes fNumHeaders positions for the headers
 	 */
@@ -50,6 +70,13 @@ void TPZFileEqnStorage::WriteHeaders(){
 	 */
 	fseek(fIOStream,firstpos,SEEK_SET);
 	fwrite(&firstaddress,sizeof(long int),1,fIOStream);
+#ifdef LOG4CXX
+        {
+          std::stringstream sout;
+          sout << "At position " << firstpos << " writing the first address " << firstaddress;
+          LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
 	/**
 	 *Sets fCurBlockPosition to actual address
 	 */
@@ -58,7 +85,14 @@ void TPZFileEqnStorage::WriteHeaders(){
 	/**
 	 *Return the pointer to the actual position
 	 */
-	fseek(fIOStream,firstaddress,SEEK_SET);
+#ifdef LOG4CXX
+        {
+          std::stringstream sout;
+          sout << "Setting the file position at " << firstaddress;
+          LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+        fseek(fIOStream,firstaddress,SEEK_SET);
 	
 }
 /*void TPZFileEqnStorage::SetBlockSize(int bs){
@@ -197,13 +231,29 @@ void TPZFileEqnStorage::Print(const char *name, ostream& out){
 
 void TPZFileEqnStorage::AddEqnArray(TPZEqnArray *EqnArray)
 {
-
+#ifdef LOG4CXX
+  {
+    std::stringstream sout;
+    sout << "fCurrentBlock "<< fCurrentBlock << " fNumHeaders " << fNumHeaders;
+    LOGPZ_DEBUG(logger,sout.str())
+  }
+#endif
   	
 	if(fCurrentBlock%(fNumHeaders-1)==0) {
+#ifdef LOG4CXX
+          LOGPZ_DEBUG(logger,"writing headers")
+#endif
 		WriteHeaders();
 //		fBlockPos.Push(fBlockPos[fCurrentBlock-1]+sizeof(long int));
 		
 	}else if(fCurrentBlock!=0){
+#ifdef LOG4CXX
+          {
+            std::stringstream sout;
+            sout << "fCurrentBlock " << fCurrentBlock << " fBlockPos[fCurrentBlock-1] "<< fBlockPos[fCurrentBlock-1] << fBlockPos;
+            LOGPZ_DEBUG(logger,sout.str())
+          }
+#endif
 		fBlockPos.Push(fBlockPos[fCurrentBlock-1]+sizeof(long int));
 	}
 
@@ -221,7 +271,13 @@ void TPZFileEqnStorage::AddEqnArray(TPZEqnArray *EqnArray)
 	fseek(fIOStream,fBlockPos[fCurrentBlock]+sizeof(long int),SEEK_SET);
   	fCurBlockPosition=ftell(fIOStream);
   	fwrite(&nextaddress,sizeof(long int),1,fIOStream);
-
+#ifdef LOG4CXX
+        {
+          std::stringstream sout;
+          sout << "nextaddress " << nextaddress << " fCurBlockPosition " << fCurBlockPosition;
+          LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
 
 	fseek(fIOStream,nextaddress,SEEK_SET);
 //	fBlockPos.Push(fCurBlockPosition);
@@ -233,15 +289,15 @@ void TPZFileEqnStorage::AddEqnArray(TPZEqnArray *EqnArray)
 //	cout << "NumHeaders " << fNumHeaders << endl;
 }
 
-TPZFileEqnStorage::TPZFileEqnStorage(char option, const char * name)
+TPZFileEqnStorage::TPZFileEqnStorage(char option, const std::string & name)
 {
 	fCurBlockPosition = -1;
 	fNumBlocks=0;
 	fCurrentBlock=0;
 	fNumHeaders=20;
-	strcpy(fFileName,name);
+	fFileName = name;
 	if(option=='r'){
-		fIOStream = fopen(fFileName,"rb"); //open for reading
+		fIOStream = fopen(fFileName.c_str(),"rb"); //open for reading
 		/**
 		 *Opens binary files and get initial information
 		 *use this information for storage requirements
@@ -250,7 +306,7 @@ TPZFileEqnStorage::TPZFileEqnStorage(char option, const char * name)
 		fread(&fNumBlocks,sizeof(int),1,fIOStream);
 		ReadBlockPositions();
 	}else if(option=='w'){
-		fIOStream = fopen(fFileName,"wb"); //open for writing
+		fIOStream = fopen(fFileName.c_str(),"wb"); //open for writing
 		/**
 		 *Writes NumHeaders and NumBlocks information in
 		 *the two initial positions on fIOStream
@@ -265,7 +321,7 @@ TPZFileEqnStorage::TPZFileEqnStorage(char option, const char * name)
 
 TPZFileEqnStorage::~TPZFileEqnStorage()
 {
-     remove(fFileName);
+     remove(fFileName.c_str());
 }
 
 void TPZFileEqnStorage::main()
@@ -273,7 +329,7 @@ void TPZFileEqnStorage::main()
 	int Loop_Limit=24;
 	//cout << "Loop_Limit <";
 	//cin >> Loop_Limit;
-	char * filename;
+	std::string filename;
 	filename = "testbinary.txt\0";
 	TPZFileEqnStorage FileStoreW('w',filename);
 //	FileStoreW.SetBlockSize(10); 
@@ -343,9 +399,9 @@ TPZFileEqnStorage::TPZFileEqnStorage()
 	//fBlockPos.Resize(fNumHeaders);
 
 
-	strcpy(fFileName,filenamestorage);
+	fFileName = filenamestorage;
 
-	fIOStream = fopen(fFileName,"wb"); //open for writing
+	fIOStream = fopen(fFileName.c_str(),"wb"); //open for writing
     	/**
     	 *Writes NumHeaders and NumBlocks information in
     	 *the two initial positions on fIOStream
@@ -379,9 +435,9 @@ TPZFileEqnStorage::TPZFileEqnStorage(const TPZFileEqnStorage &)
 	//fBlockPos.Resize(fNumHeaders);
 
 
- strcpy(fFileName,filenamestorage);
+ fFileName = filenamestorage;
 
- fIOStream = fopen(fFileName,"wb"); //open for writing
+ fIOStream = fopen(fFileName.c_str(),"wb"); //open for writing
     	/**
   *Writes NumHeaders and NumBlocks information in
   *the two initial positions on fIOStream
@@ -399,7 +455,7 @@ TPZFileEqnStorage::TPZFileEqnStorage(const TPZFileEqnStorage &)
 void TPZFileEqnStorage::Zero()
 {
   if(fIOStream) FinishWriting();
-  remove(fFileName);
+  remove(fFileName.c_str());
 
   strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
 #ifdef WIN32
@@ -419,9 +475,9 @@ void TPZFileEqnStorage::Zero()
 	//fBlockPos.Resize(fNumHeaders);
 
 
-	strcpy(fFileName,filenamestorage);
+	fFileName = filenamestorage;
 
-	fIOStream = fopen(fFileName,"wb"); //open for writing
+	fIOStream = fopen(fFileName.c_str(),"wb"); //open for writing
     	/**
     	 *Writes NumHeaders and NumBlocks information in
     	 *the two initial positions on fIOStream
@@ -438,7 +494,10 @@ void TPZFileEqnStorage::Zero()
 
 void TPZFileEqnStorage::ReOpen()
 {
-	fIOStream = fopen(fFileName,"rb"); //open for reading
+#ifdef LOG4CXX
+  LOGPZ_DEBUG(logger,"reopening the file")
+#endif
+	fIOStream = fopen(fFileName.c_str(),"rb"); //open for reading
 	/**
 	 *Opens binary files and get initial information
 	 *use this information for storage requirements
@@ -459,10 +518,10 @@ void TPZFileEqnStorage::OpenGeneric(char option, const char * name)
 	//fBlockPos.Resize(fNumHeaders);
 
 
-	strcpy(fFileName,name);
+	fFileName = name;
 
 	if(option=='r'){
-		fIOStream = fopen(fFileName,"rb"); //open for reading
+		fIOStream = fopen(fFileName.c_str(),"rb"); //open for reading
 		/**
 		 *Opens binary files and get initial information
 		 *use this information for storage requirements
@@ -471,7 +530,7 @@ void TPZFileEqnStorage::OpenGeneric(char option, const char * name)
 		fread(&fNumBlocks,sizeof(int),1,fIOStream);
 		ReadBlockPositions();
 	}else if(option=='w'){
-		fIOStream = fopen(fFileName,"wb"); //open for writing
+		fIOStream = fopen(fFileName.c_str(),"wb"); //open for writing
 		/**
 		 *Writes NumHeaders and NumBlocks information in
 		 *the two initial positions on fIOStream
@@ -507,6 +566,9 @@ void TPZFileEqnStorage::OpenGeneric(char option, const char * name)
 
 void TPZFileEqnStorage::FinishWriting()
 {
+#ifdef LOG4CXX
+  LOGPZ_DEBUG(logger,"Closing the binary file")
+#endif
 	fseek(fIOStream,sizeof(int),SEEK_SET);
 	//cout << "Second fseek " << ftell(fIOStream) << endl;
 	//fwrite(&fNumBlocks,sizeof(int),1,fIOStream);
@@ -517,6 +579,9 @@ void TPZFileEqnStorage::FinishWriting()
 
 void TPZFileEqnStorage::ReadBlockPositions()
 {
+#ifdef LOG4CXX
+  LOGPZ_DEBUG(logger,"Reading block positions")
+#endif
 	int aux = fNumBlocks * (fNumHeaders-1);
 	fBlockPos.Resize(aux);
 	int i, ibl = 0;
@@ -539,4 +604,4 @@ void TPZFileEqnStorage::ReadBlockPositions()
 		
 }
 
-char * TPZFileEqnStorage::GetStorage() {return "File Storage";}
+std::string TPZFileEqnStorage::GetStorage() {return "File Storage";}

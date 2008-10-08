@@ -376,10 +376,10 @@ void TPZFrontSym::main()
 	TestFront.SymbolicAddKel(DestIndex);
 	TestFront.SymbolicDecomposeEquations(0,matsize-1); 
 
-	char * OutFile;
+	std::string OutFile;
 	OutFile = "TPZFrontSymTest.txt";
 
-	ofstream output(OutFile,ios::app);
+	ofstream output(OutFile.c_str(),ios::app);
 
 	TestFront.Compress();
 
@@ -436,7 +436,7 @@ void TPZFrontSym::main()
 }
 #endif
 
-char * TPZFrontSym::GetMatrixType(){
+std::string TPZFrontSym::GetMatrixType(){
      return "Symmetric matrix";
 }
 

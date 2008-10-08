@@ -71,5 +71,5 @@ TPZStackEqnStorage::TPZStackEqnStorage(char option, const char *name)
 void TPZStackEqnStorage::OpenGeneric(char option, const char * name){}
 void TPZStackEqnStorage::ReadBlockPositions() {}
 void TPZStackEqnStorage::FinishWriting(){}
-char * TPZStackEqnStorage::GetStorage() {return "Stack Storage";}
+std::string TPZStackEqnStorage::GetStorage() {return "Stack Storage";}
 

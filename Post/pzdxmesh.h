@@ -22,7 +22,7 @@ class TPZDXGraphMesh : public TPZGraphMesh {
 
 public:
 
-  TPZDXGraphMesh(TPZCompMesh *mesh, int dimension, TPZAutoPointer<TPZMaterial> mat, TPZVec<char *> &scalarnames, TPZVec<char *> &vecnames);
+  TPZDXGraphMesh(TPZCompMesh *mesh, int dimension, TPZAutoPointer<TPZMaterial> mat, const TPZVec<std::string> &scalarnames,const TPZVec<std::string> &vecnames);
   TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat);
 
   virtual ~TPZDXGraphMesh();

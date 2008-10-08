@@ -31,13 +31,13 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
    * LS
    * Bornhaus
    */
-  char *fArtificialDiffusion;
+  std::string fArtificialDiffusion;
 
   //int fIntegrationDegree;//grau de integra� da solu� inicial:opcional
 
   public :
 
-  TPZEulerConsLaw(int nummat,REAL delta_t,REAL gamma,int dim,char *artdiff);
+  TPZEulerConsLaw(int nummat,REAL delta_t,REAL gamma,int dim,const std::string &artdiff);
 
   /**copy constructor*/
   TPZEulerConsLaw(TPZEulerConsLaw & copy);
@@ -98,7 +98,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
                             REAL weight,
                             TPZFMatrix &ef);
 
-  virtual int VariableIndex(char *name);
+  virtual int VariableIndex(const std::string &name);
 
   virtual int NSolutionVariables(int var);
 

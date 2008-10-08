@@ -98,7 +98,7 @@ public:
 	/**
 	 *Name of Storage
 	 */
-	char * GetStorage();
+	std::string GetStorage();
 private:
     /** Sets the block size to be used */
     void SetBlockSize();

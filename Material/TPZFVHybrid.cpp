@@ -157,9 +157,9 @@ TPZFMatrix &phi = data.phi;
 }
 
 /** returns the variable index associated with the name*/
-int TPZMatHybrid::VariableIndex(char *name){
-  if(!strcmp("Pressao",name))       return 0;
-  if(!strcmp("Solution",name))      return 1;
+int TPZMatHybrid::VariableIndex(const std::string &name){
+  if(!strcmp("Pressao",name.c_str()))       return 0;
+  if(!strcmp("Solution",name.c_str()))      return 1;
 
   return TPZMaterial::VariableIndex(name);
 }

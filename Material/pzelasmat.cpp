@@ -265,20 +265,20 @@ TPZFMatrix &phi = data.phi;
 }         // 1 Val1 : a leitura �00 01 10 11
 
 /** returns the variable index associated with the name*/
-int TPZElasticityMaterial::VariableIndex(char *name){
-  if(!strcmp("displacement",name))     return 9;
-  if(!strcmp("Pressure",name))         return 1;
-  if(!strcmp("MaxStress",name))        return 2;
-  if(!strcmp("PrincipalStress1",name)) return 3;
-  if(!strcmp("PrincipalStress2",name)) return 4;
-  if(!strcmp("SigmaX",name))           return 5;
-  if(!strcmp("SigmaY",name))           return 6;
-  if(!strcmp("TauXY",name))            return 8;//Cedric
-  if(!strcmp("sig_x",name))            return 5;
-  if(!strcmp("sig_y",name))            return 6;
-  if(!strcmp("tau_xy",name))           return 8;//Cedric
-  if(!strcmp("Displacement6",name))    return 7;
-  if(!strcmp("Stress",name))           return 10;
+int TPZElasticityMaterial::VariableIndex(const std::string &name){
+  if(!strcmp("displacement",name.c_str()))     return 9;
+  if(!strcmp("Pressure",name.c_str()))         return 1;
+  if(!strcmp("MaxStress",name.c_str()))        return 2;
+  if(!strcmp("PrincipalStress1",name.c_str())) return 3;
+  if(!strcmp("PrincipalStress2",name.c_str())) return 4;
+  if(!strcmp("SigmaX",name.c_str()))           return 5;
+  if(!strcmp("SigmaY",name.c_str()))           return 6;
+  if(!strcmp("TauXY",name.c_str()))            return 8;//Cedric
+  if(!strcmp("sig_x",name.c_str()))            return 5;
+  if(!strcmp("sig_y",name.c_str()))            return 6;
+  if(!strcmp("tau_xy",name.c_str()))           return 8;//Cedric
+  if(!strcmp("Displacement6",name.c_str()))    return 7;
+  if(!strcmp("Stress",name.c_str()))           return 10;
 
   //   cout << "TPZElasticityMaterial::VariableIndex Error\n";
   return TPZMaterial::VariableIndex(name);

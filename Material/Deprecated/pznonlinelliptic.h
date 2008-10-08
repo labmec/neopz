@@ -63,7 +63,7 @@ public:
     
     void GetParameters(REAL &D, TPZVec<REAL> &V, REAL &Sigma, REAL &LambdaDivK, REAL &F);    
    
-  virtual int VariableIndex(char *name);
+  virtual int VariableIndex(const std::string &name);
 
   virtual int NSolutionVariables(int var);
 

@@ -13,6 +13,13 @@
 #include <stdlib.h>
 #include <fstream>
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.frontal.frontmatrix"));
+
+#endif
+
 using namespace std;
 
 //void TPZFrontMatrix::AddConnectsToBiTree(){}
@@ -34,6 +41,13 @@ void TPZFrontMatrix<store, front>::EquationsToDecompose(TPZVec<int> &destination
 	lower_eq=fLastDecomposed+1;
 	while(upper_eq < fNumEq-1 && fNumElConnected[upper_eq+1]==0) upper_eq++;
 	fLastDecomposed=upper_eq;
+#ifdef LOG4CXX
+        {
+          std::stringstream sout;
+          sout << "Constructor frontmatrix lower_eq "<< lower_eq << " upper_eq " << upper_eq << " fNumElConnected " << fNumElConnected;
+          LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
 }
 
 
@@ -43,6 +57,13 @@ void TPZFrontMatrix<store, front>::SetNumElConnected(TPZVec < int > &numelconnec
      fNumElConnected.Resize(numelconnected.NElements());
 	fNumElConnected=numelconnected;
 	fNumElConnectedBackup = fNumElConnected;
+#ifdef LOG4CXX
+        {
+          std::stringstream sout;
+          sout << "fNumElConnected " << fNumElConnected;
+          LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
 //	cout << "Storage Schema -> " << fStorage.GetStorage() << endl; 
 //	cout << "Front Matrix Type -> " << fFront.GetMatrixType() << endl;
 	#ifdef BLAS

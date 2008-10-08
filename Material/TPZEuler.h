@@ -45,7 +45,7 @@ public:
     virtual void Print(std::ostream &out = std::cout);
 
     /**returns the variable index associated with the name*/
-    virtual int VariableIndex(char *name);
+    virtual int VariableIndex(const std::string &name);
 
     /** returns the number of variables associated with the variable indexed by var.
    *       var is obtained by calling VariableIndex*/

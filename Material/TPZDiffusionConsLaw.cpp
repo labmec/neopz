@@ -8,7 +8,7 @@ using namespace std;
 REAL TPZDiffusionConsLaw::fGamma = 1.4;
 REAL TPZDiffusionConsLaw::fDelta = -1.0;
 REAL TPZDiffusionConsLaw::fCFL = 0.0;
-char *TPZDiffusionConsLaw::fArtificialDiffusion = "LS";
+std::string TPZDiffusionConsLaw::fArtificialDiffusion = "LS";
 
 TPZDiffusionConsLaw::~TPZDiffusionConsLaw(){}
 
@@ -20,7 +20,7 @@ TPZDiffusionConsLaw::TPZDiffusionConsLaw(){
   fC.Redim(0,0);
 }
 
-TPZDiffusionConsLaw::TPZDiffusionConsLaw(TPZVec<REAL> U,REAL gamma,int dim,char *diff) :
+TPZDiffusionConsLaw::TPZDiffusionConsLaw(TPZVec<REAL> U,REAL gamma,int dim,const std::string &diff) :
                                                               fA(0,0), fB(0,0), fC(0,0) {
   fGamma = gamma;
   fDimension = dim;
@@ -59,8 +59,8 @@ REAL TPZDiffusionConsLaw::DeltaOtimo(){
 
 void TPZDiffusionConsLaw::Divergence(TPZVec<REAL> &dphi,TPZFMatrix &diverg){
 
-  char *type = fArtificialDiffusion;
   fArtificialDiffusion = "LS";
+  std::string type = fArtificialDiffusion;
   TPZFMatrix diffterm(0,0);
   PointOperator(dphi,diffterm);
   int i,j,nstate=2+fDimension;
@@ -98,15 +98,15 @@ void TPZDiffusionConsLaw::PointOperator(TPZVec<REAL> &dphi,TPZFMatrix &diff_term
 
 void TPZDiffusionConsLaw::Tau(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz){
 
-  if(!strcmp(fArtificialDiffusion,"SUPG")){
+  if(!strcmp(fArtificialDiffusion.c_str(),"SUPG")){
     SUPG(Tx,Ty,Tz);
     return;
   }
-  if(!strcmp(fArtificialDiffusion,"LS")){
+  if(!strcmp(fArtificialDiffusion.c_str(),"LS")){
     LS(Tx,Ty,Tz);
     return;
   }
-  if(!strcmp(fArtificialDiffusion,"BORNHAUS")){
+  if(!strcmp(fArtificialDiffusion.c_str(),"BORNHAUS")){
     Bornhaus(Tx,Ty,Tz);
     return;
   }

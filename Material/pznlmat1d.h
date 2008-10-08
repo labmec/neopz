@@ -1,4 +1,4 @@
-//$Id: pznlmat1d.h,v 1.4 2007-12-07 13:47:48 cesar Exp $
+//$Id: pznlmat1d.h,v 1.5 2008-10-08 02:09:28 phil Exp $
 // -*- c++ -*-
 
 #ifndef TPZNLMAT1D_H
@@ -51,7 +51,7 @@ public:
   /**
     * Returns the variable index associated with the name
     */
-  virtual int VariableIndex(char *name);
+  virtual int VariableIndex(const std::string &name);
 
   /**
     * Returns the number of variables associated with the variable\

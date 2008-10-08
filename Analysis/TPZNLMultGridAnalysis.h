@@ -111,15 +111,15 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
 
   void SetDeltaTime(TPZCompMesh *CompMesh,TPZAutoPointer<TPZMaterial> mat);
 
-  void CoutTime(clock_t &start,char *title);
+  void CoutTime(clock_t &start,const char *title);
 
   void OneGridAlgorithm(std::ostream &out,int nummat);
 
   void TwoGridAlgorithm(std::ostream &out,int nummat);
 
-  void CalcResidual(TPZMatrix &sol,TPZAnalysis &an,char *decompose,TPZFMatrix &res);
+  void CalcResidual(TPZMatrix &sol,TPZAnalysis &an,const std::string  &decompose,TPZFMatrix &res);
 
-  void CalcResidual(TPZMatrix &sol,TPZFMatrix &anres,TPZFMatrix &res,TPZAnalysis &an,char *decompose);
+  void CalcResidual(TPZMatrix &sol,TPZFMatrix &anres,TPZFMatrix &res,TPZAnalysis &an,const std::string &decompose);
 
 /*   void IterativeProcess(TPZAnalysis &an,REAL tol,int numiter, */
 /* 			TPZMaterial *mat,int marcha,int resolution); */

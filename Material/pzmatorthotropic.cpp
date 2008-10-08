@@ -289,23 +289,24 @@ TPZFMatrix &phi = data.phi;
 
 
 /** returns the variable index associated with the name*/
-int TPZMatOrthotropic::VariableIndex(char *name){
-   if(!strcmp("DisplacX",name))          return  0;
-   if(!strcmp("DisplacY",name))          return  1;
-   if(!strcmp("DisplacZ",name))          return  2;
-   if(!strcmp("DisplacN0",name))         return  3;
-   if(!strcmp("DisplacN1",name))         return  4;
-   if(!strcmp("DisplacN2",name))         return  5;
-   if(!strcmp("GlobDisplac",name))       return  6;
-   if(!strcmp("FiberDisplac",name))      return  7;
-   if(!strcmp("Tension",name))           return  8;
-   if(!strcmp("Tensor",name))            return  9;
-   if(!strcmp("SigX",name))              return 10;
-   if(!strcmp("SigY",name))              return 11;
-   if(!strcmp("SigZ",name))              return 12;
-   if(!strcmp("TauXY",name))             return 13;
-   if(!strcmp("TauXZ",name))             return 14;
-   if(!strcmp("TauYZ",name))             return 15;
+int TPZMatOrthotropic::VariableIndex(const std::string &name){
+  if("DisplacX" == name) return 0;
+   if(!strcmp("DisplacX",name.c_str()))          return  0;
+   if(!strcmp("DisplacY",name.c_str()))          return  1;
+   if(!strcmp("DisplacZ",name.c_str()))          return  2;
+   if(!strcmp("DisplacN0",name.c_str()))         return  3;
+   if(!strcmp("DisplacN1",name.c_str()))         return  4;
+   if(!strcmp("DisplacN2",name.c_str()))         return  5;
+   if(!strcmp("GlobDisplac",name.c_str()))       return  6;
+   if(!strcmp("FiberDisplac",name.c_str()))      return  7;
+   if(!strcmp("Tension",name.c_str()))           return  8;
+   if(!strcmp("Tensor",name.c_str()))            return  9;
+   if(!strcmp("SigX",name.c_str()))              return 10;
+   if(!strcmp("SigY",name.c_str()))              return 11;
+   if(!strcmp("SigZ",name.c_str()))              return 12;
+   if(!strcmp("TauXY",name.c_str()))             return 13;
+   if(!strcmp("TauXZ",name.c_str()))             return 14;
+   if(!strcmp("TauYZ",name.c_str()))             return 15;
 
 
    cout << "TPZMatOrthotropic::VariableIndex Error\n";

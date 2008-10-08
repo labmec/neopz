@@ -326,7 +326,7 @@ void TPZPlaca2::Print(ostream & out) {
 }        */
 
   /**returns the variable index associated with the name*/
-int TPZPlaca2::VariableIndex(char *name){
+int TPZPlaca2::VariableIndex(const std::string &name){
 	if(!strcmp(name,"Displacement6")) return 0;
 	if(!strcmp(name,"Deslocx")) return 2;// Desloc. eixo x global
 	if(!strcmp(name,"Deslocy")) return 3;// Desloc. eixo y global

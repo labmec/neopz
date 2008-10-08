@@ -316,19 +316,19 @@ void TPZPlaca::Print(ostream & out) {
 }        */
 
   /**returns the variable index associated with the name*/
-int TPZPlaca::VariableIndex(char *name){
-  if(!strcmp(name,"Deslocx")) return 2;// Desloc. eixo x global
-  if(!strcmp(name,"Deslocy")) return 3;// Desloc. eixo y global
-  if(!strcmp(name,"Deslocz")) return 4;// Desloc. eixo z global
-  if(!strcmp(name,"Mn1"))     return 5;// Mom. fletor eixo n1 da fibra
-  if(!strcmp(name,"Mn2"))     return 6;// Mom. fletor eixo n2 da fibra
-  if(!strcmp(name,"Mn1n2"))   return 7;// Mom. volvente eixos n1 e n2 da fibra
-  if(!strcmp(name,"Sign1"))   return 8;// tens� normal na dire�o n1
-  if(!strcmp(name,"Sign2"))   return 9;// tens� normal na dire�o n2
-  if(!strcmp(name,"Taun1n2")) return 10;// tens� cisalhamento eixos n1 e n2
-  if(!strcmp(name,"Taun1n3")) return 11;// tens� cisalhamento eixos n1 e n3
-  if(!strcmp(name,"Taun2n3")) return 12;// tens� cisalhamento eixos n2 e n2
-  if(!strcmp(name,"Displacement")) return 13;// deslocamento x,y,z
+int TPZPlaca::VariableIndex(const std::string &name){
+  if(!strcmp(name.c_str(),"Deslocx")) return 2;// Desloc. eixo x global
+  if(!strcmp(name.c_str(),"Deslocy")) return 3;// Desloc. eixo y global
+  if(!strcmp(name.c_str(),"Deslocz")) return 4;// Desloc. eixo z global
+  if(!strcmp(name.c_str(),"Mn1"))     return 5;// Mom. fletor eixo n1 da fibra
+  if(!strcmp(name.c_str(),"Mn2"))     return 6;// Mom. fletor eixo n2 da fibra
+  if(!strcmp(name.c_str(),"Mn1n2"))   return 7;// Mom. volvente eixos n1 e n2 da fibra
+  if(!strcmp(name.c_str(),"Sign1"))   return 8;// tens� normal na dire�o n1
+  if(!strcmp(name.c_str(),"Sign2"))   return 9;// tens� normal na dire�o n2
+  if(!strcmp(name.c_str(),"Taun1n2")) return 10;// tens� cisalhamento eixos n1 e n2
+  if(!strcmp(name.c_str(),"Taun1n3")) return 11;// tens� cisalhamento eixos n1 e n3
+  if(!strcmp(name.c_str(),"Taun2n3")) return 12;// tens� cisalhamento eixos n2 e n2
+  if(!strcmp(name.c_str(),"Displacement")) return 13;// deslocamento x,y,z
   int var;
   cout << "TPZPlaca name not found " << name << endl;
   cout.flush();

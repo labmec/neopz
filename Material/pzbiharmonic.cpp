@@ -1,4 +1,4 @@
-//$Id: pzbiharmonic.cpp,v 1.9 2007-05-11 19:15:17 joao Exp $ 
+//$Id: pzbiharmonic.cpp,v 1.10 2008-10-08 02:09:27 phil Exp $ 
 
 #include "pzbiharmonic.h"
 #include "pzelmat.h"
@@ -85,11 +85,11 @@ void TPZBiharmonic::ContributeBC(TPZMaterialData &data,
 }
 
 /** returns the variable index associated with the name*/
-int TPZBiharmonic::VariableIndex(char *name){
-  if(!strcmp("Displacement6",name))   return  0;
-  if(!strcmp("Solution",name))        return  1;
-  if(!strcmp("Derivate",name))        return  2;
-  if(!strcmp("POrder",name))          return 10;
+int TPZBiharmonic::VariableIndex(const std::string &name){
+  if(!strcmp("Displacement6",name.c_str()))   return  0;
+  if(!strcmp("Solution",name.c_str()))        return  1;
+  if(!strcmp("Derivate",name.c_str()))        return  2;
+  if(!strcmp("POrder",name.c_str()))          return 10;
   cout << "TPZBiharmonic::VariableIndex Error\n";
   return -1;
 }
