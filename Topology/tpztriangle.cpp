@@ -11,6 +11,7 @@
 //
 #include "tpztriangle.h"
 #include "pzquad.h"
+#include "tpzint1point.h"
 
 using namespace std;
 

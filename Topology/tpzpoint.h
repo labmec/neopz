@@ -34,6 +34,8 @@ public:
 
     enum {NCornerNodes = 1, NSides = 1, Dimension = 0};
 
+    typedef TPZInt1Point IntruleType;
+    
     TPZPoint();
 
     virtual ~TPZPoint();
@@ -102,7 +104,6 @@ public:
 
   static TPZIntPoints *CreateSideIntegrationRule(int side, int order);
 
-  typedef TPZInt1Point IntruleType;
 
 
   /**
@@ -110,13 +111,18 @@ public:
    */
 static MElementType Type() ;//{ return EPoint;}
 
+static std::string StrType() { return "Point";}
+
 
 /**
   * return the type of the element as specified in file pzeltype.h
   */
 static MElementType Type(int side) ;
 
+static std::string StrType(int side) { return "Point";}
 
+
+static int NConnects() {return 1;}
  /**
   * return the number of nodes (not connectivities) associated with a side
   */
@@ -128,6 +134,11 @@ static MElementType Type(int side) ;
   */
   static int SideConnectLocId(int side, int c) {
     return 0;
+  }
+
+  static TPZTransform TransformElementToSide(int side){
+    TPZTransform t(0,0);
+    return t;
   }
 
 };

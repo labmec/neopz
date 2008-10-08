@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZShapeDisc.h,v 1.12 2008-04-04 13:23:53 fortiago Exp $
+// $Id: TPZShapeDisc.h,v 1.13 2008-10-08 02:33:06 phil Exp $
 #ifndef SHAPEDISCHPP
 #define SHAPEDISCHPP
 
@@ -62,7 +62,7 @@ static void Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int deg
  */
 static int NShapeF(int degree, int dimension, MShapeType type);
 
-protected:
+//protected:
 
 /**
  * discontinous polynomials of the line element

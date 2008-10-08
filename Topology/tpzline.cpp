@@ -15,6 +15,7 @@
 #include "pzreal.h"
 #include "pztrnsform.h"
 #include "pzquad.h"
+#include "tpzint1point.h"
 #include "pzeltype.h"
 
 using namespace std;

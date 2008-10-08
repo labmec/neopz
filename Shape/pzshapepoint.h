@@ -18,6 +18,11 @@ namespace pzshape{
 */
 class TPZShapePoint  : public pztopology::TPZPoint  {
 public:
+  
+  struct TMem  
+  {
+  };
+  typedef pztopology::TPZPoint Top;
 
 /**
  * Computes the values of the shape functions and their derivatives for a quadrilateral element

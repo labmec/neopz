@@ -14,6 +14,7 @@
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzquad.h"
+#include "tpzint1point.h"
 #include "pzeltype.h"
 
 using namespace std;

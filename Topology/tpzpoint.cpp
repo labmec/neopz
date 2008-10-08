@@ -11,6 +11,7 @@
 //
 #include "tpzpoint.h"
 #include "pzquad.h"
+#include "tpzint1point.h"
 #include "pzeltype.h"
 
 namespace pztopology {
@@ -26,7 +27,7 @@ TPZPoint::~TPZPoint()
 
 TPZIntPoints *TPZPoint::CreateSideIntegrationRule(int side, int order)
 {
-  return new TPZInt1Point();
+  return new IntruleType(order);
 }
 
 
