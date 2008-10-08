@@ -19,3 +19,4 @@ bin_PROGRAMS = main
 
 main_SOURCES = main.cpp TExtFunction.cpp TDiscoFunction.cpp
 
+main_DEPENDENCIES = $(top_builddir)/lib/libpz.a
