@@ -35,6 +35,12 @@ namespace pzgeom {
 
 public:
 	enum {NNodes = 1};
+        
+        struct TMem
+        {
+        };
+        
+        typedef pztopology::TPZPoint Top;
 
   /**
   * Constructor with list of nodes
@@ -89,6 +95,10 @@ static void Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi);
 
 static void Jacobian(TPZFMatrix nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
 
+static void Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian)
+{
+  jacobian.Redim(nodes.Rows(),0);
+}
 static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 
 //	static int NSubElements();
