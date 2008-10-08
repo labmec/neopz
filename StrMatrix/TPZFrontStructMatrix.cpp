@@ -33,7 +33,7 @@ using namespace std;
 
 #ifdef LOG4CXX
 
-static LoggerPtr logger(Logger::getLogger("pz.converge"));
+static LoggerPtr logger(Logger::getLogger("pz.strmatrix.frontstructmatrix"));
 
 #endif
 
@@ -393,7 +393,13 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
           //test.flush();
           ek.ComputeDestinationIndices();
           this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
-
+#ifdef LOG4CXX
+          {
+            std::stringstream sout;
+            sout << "Element index " << el->Index() << " Unconstrained destination index " << ek.fDestinationIndex;
+            LOGPZ_DEBUG(logger,sout.str())
+          }
+#endif
           //ek.Print(*fMesh,cout);
           stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
           rhs.AddFel(ef.fMat,ek.fSourceIndex, ek.fDestinationIndex);                 //  ??????????? Erro
@@ -404,6 +410,13 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
         ef.ApplyConstraints();
         ek.ComputeDestinationIndices();
         FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
+#ifdef LOG4CXX
+        {
+          std::stringstream sout;
+          sout << "Element index " << el->Index() << " Constrained destination index " << ek.fDestinationIndex;
+          LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
         stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
         rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
      }
