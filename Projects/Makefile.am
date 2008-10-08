@@ -11,14 +11,19 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 -include $(top_builddir)/@PZ_MK@
 
-SUBDIRS =
+#SUBDIRS =
 #checkconv testmat Adapt_MultThread termica Descontinuo2 Heman NonLinBiharmonic
 
-#SUBDIRS = Adapt_MultThread CursoPZ Adapt_Phil
-#	adaptivity angletest checkcont checkconv cycleref cylin
-#	materialhyperelastico matrix multplaca placyl pzvc qualif
-#	termica teste testeisotropia testgeom testmat testshape
-#	viga3d descontinuo DiffusionTest Error Jacobi_Base
-#	Adapt_MultThread Curso_PZ visualmatrix Bench LuisGuilherme
+#deletecheckcont cycleref qualif
+
+#caju cylin placyl 
+
+#cesar pzvc  Adapt_MultThread adaptivity Adapt_Phil  Error Bench
+
+#longhin Bench
+
+SUBDIRS = CarmargoCorrea CursoPZ DiffusionTest Heman LuisGuilherme \
+	SingularShapeFunction angletest checkconv descontinuo materialhyperelastico matrix multplaca \
+	termica teste testeisotropia testgeom testmat testshape viga3d visualmatrix
 
 ## --| NeoPZ |------------------------------------------------------------------
