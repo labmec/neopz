@@ -27,9 +27,13 @@ class TPZTransform {
 
   TPZTransform &operator=(const TPZTransform &t);
 
+  const TPZFMatrix  & Mult() const {return fMult;}
+
+  const TPZFMatrix  & Sum() const {return fSum;}
+
   TPZFMatrix  & Mult() {return fMult;}
 
-  TPZFMatrix  & Sum() {return fSum;}
+  TPZFMatrix  & Sum()  {return fSum;}
 
   /**Sets the transformation matrices*/
   void SetMatrix(TPZFMatrix &mult,TPZFMatrix &sum);
@@ -50,4 +54,9 @@ class TPZTransform {
 
 };
 
+inline std::ostream &operator<<(std::ostream &out, const TPZTransform &tr)
+{
+  out << "mult = " << tr.Mult() << " sum = " << tr.Sum();
+  return out;
+}
 #endif
