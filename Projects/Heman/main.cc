@@ -309,25 +309,25 @@ void InitializeLOG()
     //  log4cxx::BasicConfigurator::configure();
   {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzcompel"));
-    logger->setLevel(log4cxx::Level::WARN);
+    logger->setLevel(log4cxx::Level::getWarn());
   }
   {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzcompelside"));
-    logger->setLevel(log4cxx::Level::WARN);
+    logger->setLevel(log4cxx::Level::getWarn());
   }
   {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
-    logger->setLevel(log4cxx::Level::WARN);
+    logger->setLevel(log4cxx::Level::getWarn());
   }
   {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
     logger->setAdditivity(false);
-    logger->setLevel(log4cxx::Level::DEBUG);
+    logger->setLevel(log4cxx::Level::getDebug());
   }
  {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
     logger->setAdditivity(false);
-    logger->setLevel(log4cxx::Level::DEBUG);
+    logger->setLevel(log4cxx::Level::getDebug());
   }
 #endif
 }

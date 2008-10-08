@@ -441,12 +441,12 @@ void ExecutaAnalysis(TPZCompMesh &cmesh,TPZMaterial *mat){
 
 void PosProcessamento(TPZAnalysis &an){
 
-  TPZVec<char *> scalar(4);
+  TPZVec<std::string> scalar(4);
   scalar[0] = "Deslocz";//var = 4
   scalar[1] = "Mn1";//var = 5
   scalar[2] = "Mn2";//var = 6
   scalar[3] = "Mn1n2";//var = 7
-  TPZVec<char *> vetorial(0);
+  TPZVec<std::string> vetorial(0);
   TPZAutoPointer<TPZMaterial> mat = an.Mesh()->FindMaterial(1);
   int dim = mat->Dimension();
   TPZDXGraphMesh graph(an.Mesh(),dim,mat,scalar,vetorial);
@@ -881,7 +881,7 @@ void LoadSolution1(TPZFMatrix &axes,TPZVec<REAL> &x,TPZFMatrix &u,TPZFMatrix &du
 }
 
 static clock_t fBegin=0,fInit=0;
-void CoutTime(clock_t &start,char *title);
+void CoutTime(clock_t &start,const char *title);
 void AdaptativeProcedure(REAL erro_adm,int numiter,int resolution,TPZMaterial *mat,TPZAnalysis &an) {
   cout << "PZAnalysis::IterativeProcessTest beginning of the iterative process, general time 0\n";
   int iter = 0,draw=0;
@@ -939,7 +939,7 @@ void AdaptativeProcedure(REAL erro_adm,int numiter,int resolution,TPZMaterial *m
 	 <<"\t\t\t\t\t<-> TOLERANCIA ATINGIDA <->\n\n";
   }
   if(refined == -1) cout << "\n\nPZIterativeAnalysis::AdaptativeProcedure STOP FOR MAXIM DOF\n\n";
-  TPZVec<char *> scalar(2),vector(0);
+  TPZVec<std::string> scalar(2),vector(0);
   scalar[0] = "Deslocz";
   scalar[1] = "POrder";
   //scalar[1] = "Mn1";
@@ -956,7 +956,7 @@ void AdaptativeProcedure(REAL erro_adm,int numiter,int resolution,TPZMaterial *m
   dxout->flush();
 }
 
-void CoutTime(clock_t &start,char *title){
+void CoutTime(clock_t &start,const char *title){
     clock_t end = clock();
     cout << title <<  endl;
     clock_t segundos = ((end - start)/CLOCKS_PER_SEC);

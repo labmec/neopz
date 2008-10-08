@@ -22,7 +22,7 @@ public:
 
   void IterativeProcessTest(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha,int resolution=0);
 
-  void CoutTime(clock_t &start,char *title);
+  void CoutTime(clock_t &start,const char *title);
 
   virtual void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat);
 

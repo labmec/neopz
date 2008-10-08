@@ -17,3 +17,4 @@ main_SOURCES = pzgbmesh.cpp geom.cpp
 
 
 ## --| NeoPZ |------------------------------------------------------------------
+main_DEPENDENCIES = $(top_builddir)/lib/libpz.a

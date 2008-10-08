@@ -745,7 +745,7 @@ void AdaptativeProcedure(REAL error,int numiter,int marcha,int resolution,TPZMat
   dxout->flush();
 }
 
-void CoutTime(clock_t &start,char *title){
+void CoutTime(clock_t &start,const char *title){
     clock_t end = clock();
     cout << title <<  endl;
     clock_t segundos = ((end - start)/CLOCKS_PER_SEC);

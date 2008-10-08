@@ -26,16 +26,16 @@ void TPZIterativeAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TP
   cout << "TPZIterativeAnalysis::IterativeProcess solution required : " << scalar[0] << endl;
   //       << "\n" << scalar[1] << "\n" << scalar[2] << endl;
   int dim = mat->Dimension();
-  ResetReference(Mesh());//retira referências para criar graph consistente
+  ResetReference(Mesh());//retira referï¿½ncias para criar graph consistente
   TPZDXGraphMesh graph(Mesh(),dim,mat,scalar,vector);
-  SetReference(Mesh());//recupera as referências retiradas
+  SetReference(Mesh());//recupera as referï¿½ncias retiradas
   ofstream *dxout = new ofstream("ConsLaw.dx");
   cout << "\nTPZIterativeAnalysis::IterativeProcess out file : ConsLaw.dx\n";
   graph.SetOutFile(*dxout);
   graph.SetResolution(resolution);
   graph.DrawMesh(dim);
   int iter = 0,draw=0;
-//   SetReference(Mesh());//recupera as referências retiradas
+//   SetReference(Mesh());//recupera as referï¿½ncias retiradas
   fSolution.Zero();
   fBegin = clock();
   Run();
@@ -151,7 +151,7 @@ void TPZIterativeAnalysis::IterativeProcessTest(ostream &out,REAL tol,int numite
   CoutTime(fInit,"TPZIterativeAnalysis:: general time of iterative process");
 }
 
-void TPZIterativeAnalysis::CoutTime(clock_t &start,char *title){
+void TPZIterativeAnalysis::CoutTime(clock_t &start,const char *title){
     clock_t end = clock();
     cout << title <<  endl;
     clock_t segundos = ((end - start)/CLOCKS_PER_SEC);
@@ -188,17 +188,17 @@ void TPZIterativeAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat){
 */
 
 void TPZIterativeAnalysis::ResetReference(TPZCompMesh *aggcmesh){
-  //APLICAR ESTA FUNÇÃO ANTES DE GERAR A MALHA COM O DX
+  //APLICAR ESTA FUNï¿½ï¿½O ANTES DE GERAR A MALHA COM O DX
 
-  //caso o aglomerado tem referência anulam-se as referencias
-  //dos sub-elementos 'geométricos' aglomerados por ele
-  //caso contrário deixa-se um único elemento geométrico
+  //caso o aglomerado tem referï¿½ncia anulam-se as referencias
+  //dos sub-elementos 'geomï¿½tricos' aglomerados por ele
+  //caso contrï¿½rio deixa-se um ï¿½nico elemento geomï¿½trico
   //apontando para o aglomerado
-  //isso forma uma partição da malha atual por elementos computacionais
+  //isso forma uma partiï¿½ï¿½o da malha atual por elementos computacionais
 
   int nel = aggcmesh->NElements(),i;
   TPZCompMesh *finemesh;
-  //não todo index é sub-elemento
+  //nï¿½o todo index ï¿½ sub-elemento
   for(i=0;i<nel;i++){
     TPZCompEl *cel = aggcmesh->ElementVec()[i];
     if(!cel) continue;
@@ -222,15 +222,15 @@ void TPZIterativeAnalysis::ResetReference(TPZCompMesh *aggcmesh){
       TPZGeoEl *ref = sub->Reference();
       if(!ref) PZError << "main::ResetReference error2\n";
       ref->SetReference(NULL);
-      //o aglomerado não tem geométrico direto associado
-      //agora existe um único geométrico apontando
+      //o aglomerado nï¿½o tem geomï¿½trico direto associado
+      //agora existe um ï¿½nico geomï¿½trico apontando
       //para ele
     }
     if(gel){
       TPZGeoEl * ref0 = sub0->Reference();
       if(!ref0) PZError << "main::ResetReference error2\n";
       ref0->SetReference(NULL);
-      //o aglomerado tem geométrico direto associado
+      //o aglomerado tem geomï¿½trico direto associado
       //e esse aponta para ele
     }
   }
@@ -240,7 +240,7 @@ void TPZIterativeAnalysis::SetReference(TPZCompMesh *aggcmesh){
 
   int nel = aggcmesh->NElements(),i;
   //TPZCompMesh *finemesh;
-  //não todo index é sub-elemento
+  //nï¿½o todo index ï¿½ sub-elemento
   for(i=0;i<nel;i++){
     TPZCompEl *cel = aggcmesh->ElementVec()[i];
     if(!cel) continue;
@@ -253,10 +253,10 @@ void TPZIterativeAnalysis::SetReference(TPZCompMesh *aggcmesh){
     if(!agg) PZError << "TPZIterativeAnalysis::SetReference not agglomerate element\n";
     TPZStack<int> elvec;
     agg->IndexesDiscSubEls(elvec);
-    //os computacionais da malha fina apontam para os respectivos geométricos
-    //os geométricos deveram apontar para o agglomerado que o agrupa;
-    //si existe um geométrico tal que as referências dos agrupados no aglomerado
-    //formam uma partição unitaria desse então esse geométrico já 
+    //os computacionais da malha fina apontam para os respectivos geomï¿½tricos
+    //os geomï¿½tricos deveram apontar para o agglomerado que o agrupa;
+    //si existe um geomï¿½trico tal que as referï¿½ncias dos agrupados no aglomerado
+    //formam uma partiï¿½ï¿½o unitaria desse entï¿½o esse geomï¿½trico jï¿½ 
     //aponta para esse aglomerado
     int indsize = elvec.NElements(),k;
     for(k=0;k<indsize;k++){

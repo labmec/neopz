@@ -164,16 +164,16 @@ int main() {
    secondmesh->SetName("Malha Computacional :  Connects e Elementos");
    // Posprocessamento
    an.Run(outcm2);
-   TPZVec<char *> scalnames(2);
+   TPZVec<std::string> scalnames(2);
    scalnames[0] = "M1Scal";
    scalnames[1] = "M2Scal";
 
-   TPZVec<char *> vecnames(3);
+   TPZVec<std::string> vecnames(3);
    vecnames[0] = "Displacement";
    vecnames[1] = "M1Vec";
    vecnames[2] = "M2Vec";
 
-   char plotfile[] =  "placaPos.dx";
+   std::string plotfile =  "placaPos.dx";
    char pltfile[] =  "placaView.plt";
    an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
    an.Print("FEM SOLUTION ",outcm1);

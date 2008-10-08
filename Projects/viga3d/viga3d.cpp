@@ -132,11 +132,11 @@ int main(int argc, char* argv[]){
 
   std::stringstream dxout;
   dxout << "output3d4.dx";
-  TPZVec<char *> scalnames(1),vecnames(2);
+  TPZVec<std::string> scalnames(1),vecnames(2);
   scalnames[0] = "VonMises";
   vecnames[0] = "state";
   vecnames[1] = "displacement";
-  an.DefineGraphMesh(3,scalnames,vecnames,&(dxout.str()[0]) );
+  an.DefineGraphMesh(3,scalnames,vecnames,dxout.str() );
   an.PostProcess(2);
 	return 0;
 }

@@ -200,10 +200,10 @@ int main22() {
   an.Solution().Print("Solution obtained",out);
 
   // Posprocessamento
-  TPZVec<char *> scalnames(1);
+  TPZVec<std::string> scalnames(1);
   scalnames[0] = "state";    //nome das vari�eis que se quer p�-processar
-  TPZVec<char *> vecnames(0);
-  char plotfile[] =  "termica.dx"; //nome do arquivo de resultados
+  TPZVec<std::string> vecnames(0);
+  std::string plotfile =  "termica.dx"; //nome do arquivo de resultados
   //Define-se para a an�ise as vari�eis a p�-processar
   an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
   //Executa os c�culos para gera�o dos resultados de p�-processamento

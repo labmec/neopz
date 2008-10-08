@@ -4,15 +4,43 @@
 #include "pzmat2dlin.h"
 #include "pzbndcond.h"
 #include "pzdxmesh.h"
+#include "PrismExtend.h"
+#include "TPZGeoExtend.h"
+#include "pzshapepoint.h"
+#include "pzshapeextend.h"
+#include "tpzpoint.h"
+#include "pzgeopoint.h"
 
 #include <fstream>
 
 using std::ifstream;
 using std::ofstream;
 
-void LerMalha(char *arquivo,TPZGeoMesh &mesh);
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.extend"));
+#endif
+
+void LerMalha(const std::string &arquivo,TPZGeoMesh &mesh);
 
 int main() {
+  
+  pztopology::Pr<pztopology::TPZPoint> line;
+  typedef pztopology::Pr<pztopology::TPZPoint> tline;
+  pztopology::Pr<pztopology::Pr<pztopology::TPZPoint> > quad;
+  pzshape::SPr<pzshape::TPZShapePoint> shline;
+  pzgeom::GPr<pzgeom::TPZGeoPoint,pztopology::Pr<pztopology::TPZPoint> > geoline;
+  
+  TPZFMatrix coordd(3,2,0.);
+  int ic;
+  for(ic=0;ic<3;ic++) coordd(ic,1) = 1.;
+  
+#ifdef LOG4CXX
+  InitializePZLOG();
+#endif  
+  tline::Diagnostic();
+  quad.Diagnostic();
+  geoline.Diagnostic(coordd);
+  return 0;
 
 	double coordstore[4][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.}};
 	// criar um objeto tipo malha geometrica
@@ -79,7 +107,7 @@ int main() {
 
 	comp.Print(output);
 
-	TPZVec<char *> scalarnames(1),vecnames(0);
+	TPZVec<std::string> scalarnames(1),vecnames(0);
 	scalarnames[0] = "state";
 	TPZDXGraphMesh graph(&comp,2,mat,scalarnames,vecnames);
 	ofstream *dxout = new ofstream("output.dx");
@@ -92,8 +120,8 @@ int main() {
 
 }
 
-void LerMalha(char *nome, TPZGeoMesh &grid) {
-	ifstream infile(nome);
+void LerMalha(const std::string &nome, TPZGeoMesh &grid) {
+	ifstream infile(nome.c_str());
 
 	int linestoskip;
 	char buf[256];
