@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.83 2008-04-25 18:28:01 fortiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.84 2008-10-08 02:13:34 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -461,7 +461,7 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal){
 
   //  int dim = Reference()->Dimension();
   TPZGeoEl *ref = Reference();
-  int face = ref->NSides()-1;
+//  int face = ref->NSides()-1;
   //face: lado do elemento bidimensional ou aresta
   //do unidimensional ou canto do ponto
   normal.Resize(3,0.);

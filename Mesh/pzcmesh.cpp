@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.71 2008-04-07 11:22:10 fortiago Exp $
+//$Id: pzcmesh.cpp,v 1.72 2008-10-08 02:13:33 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1634,7 +1634,7 @@ TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) :
     TPZCompEl *cel = copy.fElementVec[iel];
     if(cel && !dynamic_cast<TPZInterfaceElement* >(cel) )
     {
-      TPZCompEl *clone = cel->Clone(*this);
+      /*TPZCompEl *clone  = */ cel->Clone(*this);
 /*#ifdef LOG4CXX
       {
         std::stringstream sout;

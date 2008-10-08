@@ -15,7 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-
+#include "tpzint1point.h"
 #include "pzintel.h"
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"

@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.48 2008-05-07 17:39:26 fortiago Exp $
+//$Id: pzgmesh.cpp,v 1.49 2008-10-08 02:13:33 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -1156,6 +1156,7 @@ int TPZGeoMesh::ImportRefPattern(std::string &allPatternFilePath)
   {
     ImportRefPattern();
   }
+  return 1;
 }
 
 

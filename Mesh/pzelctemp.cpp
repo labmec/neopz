@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.40 2008-04-09 14:26:31 caju Exp $
+// $Id: pzelctemp.cpp,v 1.41 2008-10-08 02:13:33 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -391,7 +391,7 @@ void TPZIntelGen<TSHAPE>::Read(TPZStream &buf, void *context)
   }
 }
 
-
+#include "tpzint1point.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
 #include "pzshapelinear.h"
