@@ -330,7 +330,7 @@ inline TPZFMatrix TPZFMatrix::operator*( TPZFMatrix A ) const {
  */
 template<int N>
 class TPZFNMatrix : public TPZFMatrix {
-  REAL fBuf[N];
+  REAL fBuf[N+1];
 
 public:
   /*
