@@ -41,14 +41,6 @@ using namespace pzgeom;
 using namespace pzrefine;
 using namespace pzshape;
 
-template class TPZGeoElement<TPZGeoPoint,TPZRefPoint>;
-template class TPZGeoElement<TPZGeoLinear,TPZRefLinear>;
-template class TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>;
-template class TPZGeoElement<TPZGeoQuad,TPZRefQuad>;
-template class TPZGeoElement<TPZGeoCube,TPZRefCube>;
-template class TPZGeoElement<TPZGeoPrism,TPZRefPrism>;
-template class TPZGeoElement<TPZGeoTetrahedra,TPZRefTetrahedra>;
-template class TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>;
 
 #ifndef BORLAND
 
@@ -151,3 +143,11 @@ TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>::ClassId() const {
   return TPZFGEOELEMENTPYRAMID;
 }
 #endif
+template class TPZGeoElement<TPZGeoPoint,TPZRefPoint>;
+template class TPZGeoElement<TPZGeoLinear,TPZRefLinear>;
+template class TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>;
+template class TPZGeoElement<TPZGeoQuad,TPZRefQuad>;
+template class TPZGeoElement<TPZGeoCube,TPZRefCube>;
+template class TPZGeoElement<TPZGeoPrism,TPZRefPrism>;
+template class TPZGeoElement<TPZGeoTetrahedra,TPZRefTetrahedra>;
+template class TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>;

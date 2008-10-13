@@ -81,3 +81,7 @@ TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
   return 0;
 #endif
 }
+
+template class TPZRestoreClass<TPZSaveable, -1>;
+
+

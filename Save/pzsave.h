@@ -407,7 +407,6 @@ inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, void *context) {
   return 0;
 }
 
-template class TPZRestoreClass<TPZSaveable, -1>;
 //#endif //borland
 #endif //ellips
 
