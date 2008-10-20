@@ -12,7 +12,7 @@
 #ifndef TPZGRAPHELPRISMMAPPED_H
 #define TPZGRAPHELPRISMMAPPED_H
 
-#include <pzgraphelq3dd.h>
+#include "pzgraphelq3dd.h"
 
 /**
 Implements the graphical element for a prism using a degenerated cube element

@@ -5,9 +5,9 @@ class TPZEqnArray;
 #define TPZFRONTNONSYM_H
 
 
-#include <pzmatrix.h>
-#include <pzstack.h>
-#include <pzvec.h>
+#include "pzmatrix.h"
+#include "pzstack.h"
+#include "pzvec.h"
 #include "TPZFront.h"
 
 #include <math.h>

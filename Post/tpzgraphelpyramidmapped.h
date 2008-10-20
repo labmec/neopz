@@ -12,7 +12,7 @@
 #ifndef TPZGRAPHELPYRAMIDMAPPED_H
 #define TPZGRAPHELPYRAMIDMAPPED_H
 
-#include <pzgraphelq3dd.h>
+#include "pzgraphelq3dd.h"
 
 /**
 Implements the graphical element for a pyramid using a map to the cube element

@@ -16,7 +16,7 @@
 #include "pzvec.h"
 
 #include <map>
-#include <pzgeoelside.h>
+#include "pzgeoelside.h"
 #include "tpzgeoelrefpattern.h"
 class TPZGeoMesh;
 

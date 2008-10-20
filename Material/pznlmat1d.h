@@ -1,10 +1,10 @@
-//$Id: pznlmat1d.h,v 1.5 2008-10-08 02:09:28 phil Exp $
+//$Id: pznlmat1d.h,v 1.6 2008-10-20 11:56:22 longhin Exp $
 // -*- c++ -*-
 
 #ifndef TPZNLMAT1D_H
 #define TPZNLMAT1D_H
 
-#include <pzmaterial.h>
+#include "pzmaterial.h"
 //#include <pzelasmat.h>
 
 /**

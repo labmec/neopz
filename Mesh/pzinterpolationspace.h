@@ -1,9 +1,9 @@
-//$Id: pzinterpolationspace.h,v 1.10 2008-07-23 21:41:23 erick Exp $
+//$Id: pzinterpolationspace.h,v 1.11 2008-10-20 11:57:25 longhin Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
 
-#include <pzcompel.h>
+#include "pzcompel.h"
 class TPZMaterialData;
 
 /**

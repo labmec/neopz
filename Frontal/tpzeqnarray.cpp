@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <fstream>
 #include "tpzeqnarray.h"
-#include <pzreal.h>
+#include "pzreal.h"
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -1,4 +1,4 @@
-//$Id: pzspacetimerichardseq.cpp,v 1.2 2008-10-08 02:09:29 phil Exp $
+//$Id: pzspacetimerichardseq.cpp,v 1.3 2008-10-20 11:56:21 longhin Exp $
 
 #include "pzspacetimerichardseq.h"
 #include "pzbndcond.h"
@@ -294,19 +294,19 @@ REAL TPZSpaceTimeRichardsEq::DKDsol(REAL sol){
 }
 
 #include <iostream>
-#include <pzcmesh.h>
-#include <pzgmesh.h>
-#include <tpzautopointer.h>
-#include <pzanalysis.h>
-#include <pzfstrmatrix.h>
-#include <TPZParFrontStructMatrix.h>
-#include <TPZFrontNonSym.h>
+#include "pzcmesh.h"
+#include "pzgmesh.h"
+#include "tpzautopointer.h"
+#include "pzanalysis.h"
+#include "pzfstrmatrix.h"
+#include "TPZParFrontStructMatrix.h"
+#include "TPZFrontNonSym.h"
 #include "pzskylstrmatrix.h"
 #include "pzbstrmatrix.h"
-#include <pzstepsolver.h>
-#include <pzcompel.h>
-#include <pzinterpolationspace.h>
-#include <pznonlinanalysis.h>
+#include "pzstepsolver.h"
+#include "pzcompel.h"
+#include "pzinterpolationspace.h"
+#include "pznonlinanalysis.h"
 
 using namespace std;
 

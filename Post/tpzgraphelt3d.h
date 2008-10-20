@@ -12,7 +12,7 @@
 #ifndef TPZGRAPHELT3D_H
 #define TPZGRAPHELT3D_H
 
-#include <pzgraphelq3dd.h>
+#include "pzgraphelq3dd.h"
 
 /**
 This class implements the graphical representation of a tetrahedra elemennt

@@ -51,6 +51,16 @@ using namespace std;
 REAL TPZMatrix::gZero = 0.;
 
 
+TPZMatrix::~TPZMatrix()
+{
+    fDecomposed = 0;
+    fDefPositive = 0;
+    fRow = 0;
+    fCol = 0; 
+  }
+
+
+
 void
 TPZMatrix::Add(const TPZMatrix &A,TPZMatrix&B) const {
 	 if ((Rows() != A.Rows()) || (Cols() != A.Cols()) ) {

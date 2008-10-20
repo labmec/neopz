@@ -12,7 +12,7 @@
 #ifndef TPZAGGLOMERATEMESH_H
 #define TPZAGGLOMERATEMESH_H
 
-#include <pzflowcmesh.h>
+#include "pzflowcmesh.h"
 
 /// Implements a mesh that contains agglomerated elements
 /**

@@ -12,7 +12,7 @@
 #ifndef PZSPBLOCKDIAGPIVOT_H
 #define PZSPBLOCKDIAGPIVOT_H
 
-#include <tpzsparseblockdiagonal.h>
+#include "tpzsparseblockdiagonal.h"
 
 /**
 Derivation using decompose LU with pivot.

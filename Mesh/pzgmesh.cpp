@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.49 2008-10-08 02:13:33 phil Exp $
+//$Id: pzgmesh.cpp,v 1.50 2008-10-20 11:57:25 longhin Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -24,8 +24,8 @@ Method definition for class TPZGeoMesh.*/
 #include "pzmatrix.h"
 //#include "pzavlmap.h"
 
-#include <TPZRefPattern.h>
-#include <tpzgeoelrefpattern.h>
+#include "TPZRefPattern.h"
+#include "tpzgeoelrefpattern.h"
 
 #ifdef BORLAND
 #include <io.h>
@@ -1093,10 +1093,16 @@ TPZAutoPointer<TPZRefPattern> TPZGeoMesh::GetRefPattern (TPZGeoEl *gel, int side
 
 int TPZGeoMesh::ImportRefPattern(){
   std::string StartingPath;
-#ifndef BORLAND
-  StartingPath = REFPATTERNINSTALLDIR;
-#else
-  StartingPath = "NeoPZ/Refine/RefPatterns";
+#ifdef BORLAND
+	StartingPath = "NeoPZ/Refine/RefPatterns";
+	#define StartPathDefined=1;
+#endif
+#ifdef MACOSX
+	StartingPath = "NeoPZ/Refine/RefPatterns";
+	#define StartPathDefined=1;
+#endif
+#ifndef StartPathDefined
+	StartingPath=REFPATTERNINSTALLDIR;
 #endif
   std::string FileTypes ("*.rpt");
   std::string Command = std::string("ls -1 ") + StartingPath + std::string("/") + FileTypes;

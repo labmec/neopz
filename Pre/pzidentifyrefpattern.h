@@ -19,8 +19,8 @@
 #define PZIDENTIFYREFPATTERN_H
 
 
-#include <pzvec.h>
-#include <pzgeoelside.h>
+#include "pzvec.h"
+#include "pzgeoelside.h"
 #include <set>
 #include <string>
 class TPZRefPattern;

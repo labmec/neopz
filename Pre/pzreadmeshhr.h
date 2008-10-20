@@ -7,7 +7,7 @@
 #ifndef PZREADMESHHR_H
 #define PZREADMESHHR_H
 
-#include <pzreadmesh.h>
+#include "pzreadmesh.h"
 #include <string>
 
 class TPZGeoMesh;

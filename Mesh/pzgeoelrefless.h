@@ -18,8 +18,8 @@
 #ifndef PZGEOELREFLESS_H
 #define PZGEOELREFLESS_H
 
-#include <pzgeoel.h>
-#include <pzgeoelside.h>
+#include "pzgeoel.h"
+#include "pzgeoelside.h"
 
 class TPZGeoElSide;
 class TPZCompMesh;

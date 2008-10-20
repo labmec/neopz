@@ -1,10 +1,10 @@
-//$Id: pznlmat1d.cpp,v 1.6 2008-10-08 02:09:28 phil Exp $
+//$Id: pznlmat1d.cpp,v 1.7 2008-10-20 11:56:21 longhin Exp $
 // -*- c++ -*-
  
 #include "pznlmat1d.h"
 #include "pzbndcond.h"
 
-#include <pzlog.h>
+#include "pzlog.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.material.tpznlmat1d"));
 #endif

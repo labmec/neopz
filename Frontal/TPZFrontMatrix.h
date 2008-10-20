@@ -12,7 +12,7 @@
 
 
 #include "TPZStackEqnStorage.h"
-#include <pzvec.h>
+#include "pzvec.h"
 #include "TPZFileEqnStorage.h"
 #include "pzmatrix.h"
 

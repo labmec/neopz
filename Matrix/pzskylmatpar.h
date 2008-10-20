@@ -19,10 +19,10 @@
 #define TSKYLPARMATH
 
 
-#include <pzmatrix.h>
-#include <pzvec.h>
-#include <pzmanvector.h>
-#include <pzskylmat.h>
+#include "pzmatrix.h"
+#include "pzvec.h"
+#include "pzmanvector.h"
+#include "pzskylmat.h"
 
 #ifdef PZNTPAR
 	#include <omnithread.h>

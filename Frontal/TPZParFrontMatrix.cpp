@@ -3,10 +3,10 @@
 
 #include "TPZParFrontMatrix.h"
 #include "TPZFrontMatrix.h"
-#include <pzsfulmat.h>
+#include "pzsfulmat.h"
 #include "TPZFront.h"
-#include <pzstack.h>
-#include <pzreal.h>
+#include "pzstack.h"
+#include "pzreal.h"
 #include <math.h>
 #include <pthread.h>
 

@@ -12,7 +12,7 @@
 #ifndef TPZSPARSEBLOCKDIAGONALSTRUCTMATRIX_H
 #define TPZSPARSEBLOCKDIAGONALSTRUCTMATRIX_H
 
-#include <pzstrmatrix.h>
+#include "pzstrmatrix.h"
 
 /**
 This class will Build a sparse block diagonal preconditioner with a structure determined by the parameters passed to it

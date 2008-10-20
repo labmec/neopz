@@ -1,9 +1,9 @@
-//$Id: pzspacetimerichardseq.h,v 1.1 2008-04-04 12:15:03 fortiago Exp $
+//$Id: pzspacetimerichardseq.h,v 1.2 2008-10-20 11:56:22 longhin Exp $
 
 #ifndef PZSPACETIMERICHARDSEQ_H
 #define PZSPACETIMERICHARDSEQ_H
 
-#include <pzmaterial.h>
+#include "pzmaterial.h"
 
 class TPZCompMesh;
 

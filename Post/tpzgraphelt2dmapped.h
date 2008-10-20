@@ -12,7 +12,7 @@
 #ifndef TPZGRAPHELT2DMAPPED_H
 #define TPZGRAPHELT2DMAPPED_H
 
-#include <pzgraphelq2dd.h>
+#include "pzgraphelq2dd.h"
 
 /**
 This class implements a graphical element for a triangle mapped into de quadrilateral element

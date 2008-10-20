@@ -4,9 +4,9 @@
 #ifndef TPZFRONT_H
 #define TPZFRONT_H
 
-#include <pzmatrix.h>
-#include <pzstack.h>
-#include <pzvec.h>
+#include "pzmatrix.h"
+#include "pzstack.h"
+#include "pzvec.h"
 
 class TPZEqnArray;
 /** 

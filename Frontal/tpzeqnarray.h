@@ -19,12 +19,12 @@
 #define TPZEQNARRAY_H
 
 
-#include <pzmatrix.h>
-#include <pzstack.h>
-#include <pzfmatrix.h>
-#include <pzreal.h>
-#include <pzmanvector.h>
-#include <pzvec.h>
+#include "pzmatrix.h"
+#include "pzstack.h"
+#include "pzfmatrix.h"
+#include "pzreal.h"
+#include "pzmanvector.h"
+#include "pzvec.h"
 
 #include <stdlib.h>
 

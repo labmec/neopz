@@ -4,7 +4,7 @@
 #define TPZFILEEQNSTORAGE_H
 //#include "TPZFrontMatrix.h"
 #include "tpzeqnarray.h"
-#include <pzstack.h>
+#include "pzstack.h"
 #include "pzstack.h"
 #include "tpzeqnarray.h"
 #include "pzfmatrix.h"

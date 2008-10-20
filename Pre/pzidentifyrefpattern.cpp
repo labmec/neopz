@@ -17,17 +17,17 @@
 
 #include "pzidentifyrefpattern.h"
 #include "pzgeoel.h"
-#include <pzeltype.h>
-#include <TPZRefPattern.h>
+#include "pzeltype.h"
+#include "TPZRefPattern.h"
 
-#include <pzrefpoint.h>
-#include <TPZRefLinear.h>
-#include <pzreftriangle.h>
-#include <pzrefquad.h>
-#include <pzrefpyram.h>
-#include <pzrefprism.h>
-#include <pzreftetrahedra.h>
-#include <TPZRefCube.h>
+#include "pzrefpoint.h"
+#include "TPZRefLinear.h"
+#include "pzreftriangle.h"
+#include "pzrefquad.h"
+#include "pzrefpyram.h"
+#include "pzrefprism.h"
+#include "pzreftetrahedra.h"
+#include "TPZRefCube.h"
 #include "tpzautopointer.h"
 #include <algorithm>
 #include <iterator>

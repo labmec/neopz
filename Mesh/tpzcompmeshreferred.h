@@ -12,7 +12,7 @@
 #ifndef TPZCOMPMESHREFERRED_H
 #define TPZCOMPMESHREFERRED_H
 
-#include <pzcmesh.h>
+#include "pzcmesh.h"
 #include <vector>
 
 /**

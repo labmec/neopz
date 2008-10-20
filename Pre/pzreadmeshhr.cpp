@@ -6,15 +6,15 @@
  *****************************************************************************/
 #include "pzreadmeshhr.h"
 
-#include <pzgeoel.h>
-#include <pzgmesh.h>
-#include <pzcmesh.h>
-#include <pzelasmat.h>
-#include <pzmat2dlin.h>
-#include <pzpoisson3d.h>
-#include <pzbndcond.h>
-#include <pzcompel.h>
-#include <pzlog.h>
+#include "pzgeoel.h"
+#include "pzgmesh.h"
+#include "pzcmesh.h"
+#include "pzelasmat.h"
+#include "pzmat2dlin.h"
+#include "pzpoisson3d.h"
+#include "pzbndcond.h"
+#include "pzcompel.h"
+#include "pzlog.h"
 
 #include <iostream>
 #include <sstream>

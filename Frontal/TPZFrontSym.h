@@ -23,9 +23,9 @@ extern "C"{
 #include <fstream>
 
 
-#include <pzmatrix.h>
-#include <pzstack.h>
-#include <pzvec.h>
+#include "pzmatrix.h"
+#include "pzstack.h"
+#include "pzvec.h"
 #include "TPZFront.h"
 #include "TPZFileEqnStorage.h"
 #include "TPZStackEqnStorage.h"

@@ -75,12 +75,7 @@ public:
    *Simple destructor
    */
 
-  virtual ~TPZMatrix() {
-    fDecomposed = 0;
-    fDefPositive = 0;
-    fRow = 0;
-    fCol = 0; 
-  }
+	virtual ~TPZMatrix();
   
   virtual TPZMatrix *Clone() const = 0;
   
