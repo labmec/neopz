@@ -1,4 +1,3 @@
-
 //
 // Aut.hor: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -53,13 +52,11 @@ REAL TPZMatrix::gZero = 0.;
 
 TPZMatrix::~TPZMatrix()
 {
-    fDecomposed = 0;
-    fDefPositive = 0;
-    fRow = 0;
-    fCol = 0; 
-  }
-
-
+  fDecomposed = 0;
+  fDefPositive = 0;
+  fRow = 0;
+  fCol = 0; 
+}
 
 void
 TPZMatrix::Add(const TPZMatrix &A,TPZMatrix&B) const {
@@ -1043,6 +1040,134 @@ bool TPZMatrix::CompareValues(TPZMatrix &M, REAL tol){
   return true;
 }
 
+REAL TPZMatrix::ReturnNearestValue(REAL val, TPZVec<REAL>& Vec, REAL tol)
+{
+    REAL diff0 = fabs(val - Vec[0]) >= tol ?  (val - Vec[0]) : 1.E10;
+    REAL diff1, res = Vec[0];
+    for(int i = 1; i < Vec.NElements(); i++)
+    {
+        diff1 = val - Vec[i];
+        diff0 = ( fabs(diff1) >= tol && fabs(diff1) < fabs(diff0) ) ? res = Vec[i],diff1 : diff0;
+    }
+    return res;
+}
+
+bool TPZMatrix::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<REAL> & Eigenvalues, TPZFMatrix & Eigenvectors) const{
+
+  int NumIt = numiterations;
+  REAL tolerance = tol;
+
+  #ifdef DEBUG2  
+  if (this->Rows() != this->Cols())
+  {
+      PZError << __PRETTY_FUNCTION__ <<
+      " - Jacobi method of computing eigensystem requires a symmetric square matrix. this->Rows = " << this->Rows() << " - this->Cols() = " << this->Cols() << endl;
+      return false;
+  }
+
+  if (this->VerifySymmetry(1.e-8) == false)
+  {
+      PZError << __PRETTY_FUNCTION__ <<
+      " - Jacobi method of computing eigensystem requires a symmetric square matrix. This matrix is not symmetric." << endl;
+      return false;
+  }
+  #endif
+
+  const int size = this->Rows();
+
+  /** Making a copy of this */
+  TPZFNMatrix<9> Matrix(size,size); //fast constructor in case of this is a stress or strain tensor.
+  for(int i = 0; i < size; i++) for(int j = 0; j < size; j++) Matrix(i,j) = this->Get(i,j);
+
+/** Compute Eigenvalues *//////////////////////////////////////
+  bool result = Matrix.SolveEigenvaluesJacobi(numiterations, tol, &Eigenvalues);
+  if (result == false) return false;
+
+/** Compute Eigenvectors *//////////////////////////////////////
+  TPZFNMatrix<3> VecIni(size,1,0.), VecIni_cp(size,1,0.);
+
+  Eigenvectors.Resize(size, size);
+  Eigenvectors.Zero();
+  for(int eigen = 0; eigen < size; eigen++)
+  {
+        for(int i = 0; i < size; i++) VecIni.PutVal(i,0,rand());
+
+        TPZFNMatrix<9> Matrix(*this);
+
+        REAL answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,1.E-5);
+        if(fabs(answ - Eigenvalues[eigen]) > 1.E-5) 
+        {
+            for(int i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (Eigenvalues[eigen] - 0.01 * fabs(answ-Eigenvalues[eigen])) );
+        }
+        else
+        {
+            for(int i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (Eigenvalues[eigen] - 0.01) );
+        }
+
+        /** Normalizing Initial Eigenvec */
+        REAL norm1 = 0.;
+        for(int i = 0; i < size; i++) norm1 += VecIni(i,0) * VecIni(i,0); norm1 = sqrt(norm1);
+        for(int i = 0; i < size; i++) VecIni(i,0) = VecIni(i,0)/norm1;
+
+        int count = 0;
+        double dif = 10., difTemp = 0.;
+
+        while(dif > tolerance && count <= NumIt)
+        {
+              for(int i = 0; i < size; i++) VecIni_cp(i,0) = VecIni(i,0);
+
+              /** Estimating Eigenvec */
+              Matrix.Solve_LU(&VecIni);
+
+              /** Normalizing Final Eigenvec */
+              REAL norm2 = 0.;
+              for(int i = 0; i < size; i++) norm2 += VecIni(i,0) * VecIni(i,0);
+              norm2 = sqrt(norm2);
+
+              difTemp = 0.;
+              for(int i = 0; i < size; i++)
+              {
+                VecIni(i,0) = VecIni(i,0)/norm2;
+                difTemp += (VecIni_cp(i,0) - VecIni(i,0)) * (VecIni_cp(i,0) - VecIni(i,0));
+              }
+              dif = sqrt(difTemp);
+              count++;
+        }
+
+        /** Copy values from AuxVector to Eigenvectors */
+        for(int i = 0; i < size; i++)
+        {
+              double val = VecIni(i,0);
+              if(fabs(val) < 1.E-5) val = 0.;
+              Eigenvectors(eigen,i) = val;
+        }
+
+        #ifdef DEBUG2
+        double norm = 0.;
+        for(int i = 0; i < size; i++) norm += VecIni(i,0) * VecIni(i,0);
+        if (fabs(norm - 1.) > 1.e-10)
+        {
+            PZError << __PRETTY_FUNCTION__ << endl;
+        }
+        if(count > NumIt-1)// O metodo nao convergiu !!!
+        {
+            PZError << __PRETTY_FUNCTION__ << endl;
+            #ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                Print("Matrix for SolveEigensystemJacobi did not converge",sout);
+                LOGPZ_DEBUG(logger,sout.str());
+            }
+            #endif
+        }
+        #endif
+  }
+
+  return true;
+
+}//method
+
+
 bool TPZMatrix::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
   
 #ifdef DEBUG2  
@@ -1149,99 +1274,6 @@ bool TPZMatrix::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<RE
   numiterations = iter;
   return false;
       
-}//method
-
-bool TPZMatrix::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<REAL> & Eigenvalues, TPZFMatrix & Eigenvectors) const{
-  
-#ifdef DEBUG2  
-  if (this->Rows() != this->Cols())
-  {
-    PZError << __PRETTY_FUNCTION__ << " - Jacobi method of computing eigensystem requires a symmetric square matrix. this->Rows = " << this->Rows() << " - this->Cols() = " << this->Cols() << endl;
-    return false;  
-  }
-  
-  if (this->VerifySymmetry(1.e-8) == false)
-  {
-    PZError << __PRETTY_FUNCTION__ << " - Jacobi method of computing eigensystem requires a symmetric square matrix. This matrix is not symmetric." << endl;
-    return false;  
-  }  
-#endif  
-
-  /** Making a copy of this */
-  TPZFNMatrix<9> Matrix(3,3); //fast constructor in case of this is a stress or strain tensor.
-  const int size = this->Rows();
-
-  Matrix.Resize(size,size);
-  for(int i = 0; i < size; i++) for(int j = 0; j < size; j++) Matrix(i,j) = this->Get(i,j);
-    
-  /** Compute Eigenvalues */  
-  bool result = Matrix.SolveEigenvaluesJacobi(numiterations, tol, &Eigenvalues);
-  if (result == false) return false;
-  
-  /** Resizing Eigenvectors */
-  Eigenvectors.Resize(size, size);
-
-  double Tol = 1.e-5;
-
-  for(int eigen = 0; eigen < size; eigen++)
-  {
-      /** Creating an auxiliar matrix and vector to compute eigenvectors */
-      TPZFNMatrix<9> AuxMatrix(size,size,0.);
-      for(int i = 0; i < size; i++) for(int j = 0; j < size; j++) AuxMatrix(i,j) = this->Get(i,j);
-      for(int i = 0; i < size; i++) AuxMatrix.PutVal(i,i, this->GetVal(i,i) - 0.999*Eigenvalues[eigen] );
-      TPZFNMatrix<3> AuxVector(size,1,0.), TempVector(size,1,0.);
-      for(int ei = 0; ei < size; ei++) AuxVector.PutVal(ei,0, Eigenvalues[ei]);
-
-      int count = 0, MaxCount = 100;
-      double dif = 10., difTemp;
-      while(dif > Tol && count <= MaxCount)
-      {
-          /** Normalizing Initial Eigenvec */
-          REAL norm1 = 0.;
-          for(int i = 0; i < size; i++) norm1 += AuxVector(i,0) * AuxVector(i,0);
-          norm1 = sqrt(norm1);
-          for(int i = 0; i < size; i++)
-          {
-              AuxVector(i,0) = AuxVector(i,0)/norm1;
-              TempVector(i,0) = AuxVector(i,0);
-          }
-
-          /** Estimating Eigenvec */
-          AuxMatrix.Solve_LU(&AuxVector);
-
-          /** Normalizing Final Eigenvec */
-          REAL norm2 = 0.;
-          for(int i = 0; i < size; i++) norm2 += AuxVector(i,0) * AuxVector(i,0);
-          norm2 = sqrt(norm2);
-          difTemp = 0.;
-          for(int i = 0; i < size; i++)
-          {
-              AuxVector(i,0) = AuxVector(i,0)/norm2;
-              difTemp += (TempVector(i,0) - AuxVector(i,0)) * (TempVector(i,0) - AuxVector(i,0));
-          }
-          dif = sqrt(difTemp);
-          count++;
-      }
-
-#ifdef DEBUG2
-      double norm = 0.;
-      for(int i = 0; i < size; i++) norm += AuxVector(i,0) * AuxVector(i,0);
-      if (fabs(norm - 1.) > 1.e-10)
-      {
-        PZError << __PRETTY_FUNCTION__ << endl;
-      }
-      if(count > 98)// O metodo nao convergiu !!!
-      {
-        PZError << __PRETTY_FUNCTION__ << endl;
-      }
-#endif
-
-      /** Copy values from AuxVector to Eigenvectors */
-      for(int i = 0; i < size; i++) Eigenvectors(eigen,i) = AuxVector(i,0);
-  }
-
-  return true;
-
 }//method
 
 REAL TPZMatrix::MatrixNorm(int p, int numiter, REAL tol) const{
@@ -1357,8 +1389,4 @@ void TPZMatrix::Multiply(const TPZFMatrix &A, TPZFMatrix&B, int opt, int stride)
   }
   MultAdd( A, B, B, 1.0, 0.0, opt,stride);
 }
-
-
-
-
 
