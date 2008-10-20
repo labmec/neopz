@@ -58,7 +58,7 @@ public:
   
   GraphType fGType;
   
-  TPZBoostGraph() : TPZRenumbering(), fGType(KMCExpensive)
+  TPZBoostGraph() : TPZRenumbering(), fGType(KMC)
   {
   }
   /**
