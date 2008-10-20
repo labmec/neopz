@@ -16,7 +16,7 @@ static LoggerPtr logger(Logger::getLogger("pz.material.axisymetric"));
 #include <fstream>
 using namespace std;
 
-TPZElasticityAxiMaterial::TPZElasticityAxiMaterial() : TPZDiscontinuousGalerkin(0), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.) {
+TPZElasticityAxiMaterial::TPZElasticityAxiMaterial() : TPZMaterial(0), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.) {
   f_AxisZ[1] = 1.;
   f_AxisR[0] = 1.;
   fE	= -1.;  // Young modulus
@@ -26,9 +26,12 @@ TPZElasticityAxiMaterial::TPZElasticityAxiMaterial() : TPZDiscontinuousGalerkin(
   ff[2] = 0.; // Z component of the body force - not used for this class
   fEover1MinNu2 = -1.;  //G = E/2(1-nu);
   fEover21PlusNu = -1.;//E/(1-nu)
+
+  f_c = 0.;
+  f_phi = 0.;
 }
 
-TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy) : TPZDiscontinuousGalerkin(num) {
+TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy) : TPZMaterial(num) {
 
   fE	= E;  // Young modulus
   fnu	= nu;   // poisson coefficient
@@ -65,6 +68,11 @@ void TPZElasticityAxiMaterial::SetOrigin(vector<REAL> &Orig, vector<REAL> &AxisZ
     cout << "Invalid Origin and/or Axis vector on TPZElasticityAxiMaterial()!\n";
     DebugStop();
   }
+}
+
+REAL TPZElasticityAxiMaterial::ComputeR(TPZVec<REAL> &x)
+{
+  return (x[0] - f_Origin[0])*f_AxisR[0] + (x[1] - f_Origin[1])*f_AxisR[1] + (x[2] - f_Origin[2])*f_AxisR[2];
 }
 
 vector<REAL> TPZElasticityAxiMaterial::GetAxisR()
@@ -135,6 +143,9 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
   /// R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!
   REAL R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
 
+  int s = (R > 0)? 1:-1;
+  R = fabs(R);
+
   /**
    * Plain strain materials values
    */
@@ -142,21 +153,23 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
   REAL nu2 = (1-2*fnu)/2;
   REAL F = fE/((1+fnu)*(1-2*fnu));
 
-  TPZFNMatrix<4> dphiRZi(2,1),dphiRZj(2,1);
+  TPZFNMatrix<4> dphiRZi(2,1), dphiRZj(2,1);
 
   double axis0DOTr = 0., axis1DOTr = 0., axis0DOTz = 0., axis1DOTz = 0.;
   for(int pos = 0; pos < 3; pos++)
   {
-    axis0DOTr += axes.GetVal(0,pos) * f_AxisR[pos];
-    axis1DOTr += axes.GetVal(1,pos) * f_AxisR[pos];
+    axis0DOTr += axes.GetVal(0,pos) * f_AxisR[pos] * s;
+    axis1DOTr += axes.GetVal(1,pos) * f_AxisR[pos] * s;
     axis0DOTz += axes.GetVal(0,pos) * f_AxisZ[pos];
     axis1DOTz += axes.GetVal(1,pos) * f_AxisZ[pos];
   }
 
+  double R2PI = 2. * M_PI * R;
   for( int in = 0; in < phr; in++ )
   {
-    ef(2*in, 0)   += weight * R * (ff[0] * phi(in,0)); // direcao x
-    ef(2*in+1, 0) += weight * R * (ff[1] * phi(in,0)); // direcao y
+    ef(2*in, 0)   += weight * R2PI * (ff[0] * phi(in,0)); // direcao x
+    ef(2*in+1, 0) += weight * R2PI * (ff[1] * phi(in,0)); // direcao y
+
     //dphi_i/dr = dphi_i/axis0 <axes0,f_AxisR> + dphi_i/axis1 <axes1,f_AxisR>
     dphiRZi.PutVal(0,0, dphi.GetVal(0,in)*axis0DOTr + dphi.GetVal(1,in)*axis1DOTr );
 
@@ -192,10 +205,10 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
       double term11 = dphiRZi(0,0) * mi * dphiRZj(0,0) +
                       dphiRZi(1,0) * (lambda + 2.*mi) * dphiRZj(1,0);
 
-      ek(2*in,2*jn)     += weight * R * term00;
-      ek(2*in,2*jn+1)   += weight * R * term01;
-      ek(2*in+1,2*jn)   += weight * R * term10;
-      ek(2*in+1,2*jn+1) += weight * R * term11;
+      ek(2*in,2*jn)     += weight * R2PI * term00;
+      ek(2*in,2*jn+1)   += weight * R2PI * term01;
+      ek(2*in+1,2*jn)   += weight * R2PI * term10;
+      ek(2*in+1,2*jn+1) += weight * R2PI * term11;
     }
   }
 }
@@ -215,47 +228,82 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
   /// R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!
   REAL R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
 
+  int s = (R > 0) ? 1:-1;
+  R = fabs(R);
+  double R2PI = 2. * M_PI * R;
+
   switch (bc.Type())
   {
-    case 0 :// Dirichlet condition
-      for(in = 0 ; in < phr; in++)
+      case 0 :// Dirichlet condition
       {
-        ef(2*in,0)   += BIGNUMBER * v2[0]*  // x displacement
-                        phi(in,0) * R * weight;        // forced v2 displacement
+          for(in = 0 ; in < phr; in++)
+          {
+            ef(2*in,0)   += BIGNUMBER * v2[0]*  // x displacement
+                phi(in,0) * R2PI * weight;        // forced v2 displacement
 
-        ef(2*in+1,0) += BIGNUMBER * v2[1]*// x displacement
-                        phi(in,0) * R * weight;        // forced v2 displacement
+            ef(2*in+1,0) += BIGNUMBER * v2[1]*// x displacement
+                phi(in,0) * R2PI * weight;        // forced v2 displacement
 
-        for (jn = 0 ; jn < phi.Rows(); jn++)
-        {
-          ek(2*in,2*jn)     += BIGNUMBER * phi(in,0) * phi(jn,0) * R * weight;
-          ek(2*in+1,2*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * R * weight;
-        }
+            for (jn = 0 ; jn < phi.Rows(); jn++)
+            {
+              ek(2*in,2*jn)     += BIGNUMBER * phi(in,0) * phi(jn,0) * R2PI * weight;
+              ek(2*in+1,2*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * R2PI * weight;
+            }
+          }
       }
       break;
 
       case 1 :// Neumann condition
-      for(in = 0 ; in < phi.Rows(); in++)
-      {           // componentes da tracao normal ao contorno
-        ef(2*in,0)   += v2[0] * phi(in,0) * R * weight;   // tracao em x  (ou pressao)
-        ef(2*in+1,0) += v2[1] * phi(in,0) * R * weight; // tracao em y (ou pressao) , nula se n� h
-      }      // ou deslocamento nulo  v2 = 0
+      {
+          for(in = 0 ; in < phi.Rows(); in++)
+          {           // componentes da tracao na direcao de v2
+            ef(2*in,0)   += v2[0] * phi(in,0) * R2PI * weight;   // tracao em x  (ou pressao)
+            ef(2*in+1,0) += v2[1] * phi(in,0) * R2PI * weight; // tracao em y (ou pressao) , nula se n� h
+          }      // ou deslocamento nulo  v2 = 0
+      }
       break;
 
       case 2 :// condicao mista
-      for(in = 0 ; in < phi.Rows(); in++)
       {
-        ef(2*in, 0)   += v2[0] * phi(in, 0) * R * weight;   // Neumann , Sigmaij
-        ef(2*in+1, 0) += v2[1] * phi(in, 0) * R * weight; // Neumann
+          for(in = 0 ; in < phi.Rows(); in++)
+          {
+            ef(2*in, 0)   += v2[0] * phi(in, 0) * R2PI * weight;   // Neumann , Sigmaij
+            ef(2*in+1, 0) += v2[1] * phi(in, 0) * R2PI * weight; // Neumann
 
-        for (jn = 0 ; jn < phi.Rows(); jn++)
-        {
-          ek(2*in,2*jn)     += bc.Val1()(0,0) * phi(in,0) * phi(jn,0) * R * weight; // peso de contorno => integral de contorno
-          ek(2*in+1,2*jn)   += bc.Val1()(1,0) * phi(in,0) * phi(jn,0) * R * weight;
-          ek(2*in+1,2*jn+1) += bc.Val1()(1,1) * phi(in,0) * phi(jn,0) * R * weight;
-          ek(2*in,2*jn+1)   += bc.Val1()(0,1) * phi(in,0) * phi(jn,0) * R * weight;
-        }
-      }   // este caso pode reproduzir o caso 0 quando o deslocamento
+            for (jn = 0 ; jn < phi.Rows(); jn++)
+            {
+              ek(2*in,2*jn)     += bc.Val1()(0,0) * phi(in,0) * phi(jn,0) * R2PI * weight; // peso de contorno => integral de contorno
+              ek(2*in+1,2*jn)   += bc.Val1()(1,0) * phi(in,0) * phi(jn,0) * R2PI * weight;
+              ek(2*in+1,2*jn+1) += bc.Val1()(1,1) * phi(in,0) * phi(jn,0) * R2PI * weight;
+              ek(2*in,2*jn+1)   += bc.Val1()(0,1) * phi(in,0) * phi(jn,0) * R2PI * weight;
+            }
+          }   // este caso pode reproduzir o caso 0 quando o deslocamento
+      }
+      break;
+
+      case 3 :// Neumann condition - Normal rotacionada 90 graus no sentido horário em relacao ao vetor axes (1D)
+      {
+          REAL Nxy[2],Nrz[2];
+          Nxy[0] =  data.axes(0,1);
+          Nxy[1] = -data.axes(0,0);
+          Nrz[0] = s*(Nxy[0]*f_AxisR[0] + Nxy[1]*f_AxisR[1]);
+          Nrz[1] = Nxy[0]*f_AxisZ[0] + Nxy[1]*f_AxisZ[1];
+
+//           #ifdef LOG4CXX
+//           {
+//               std::stringstream sout;
+//               sout << "CoordX: " << data.x << " R= " << R << " Nrz = " << Nrz[0] << "," << Nrz[1] << endl;
+//               LOGPZ_DEBUG(logger,sout.str());
+//           }
+//           #endif
+
+          for(in = 0 ; in < phi.Rows(); in++)
+          {           // componentes da tracao normal ao contorno
+            ef(2*in,0)   += v2[0] * Nrz[0] * phi(in,0) * R2PI * weight;   // tracao em x  (ou pressao)
+            ef(2*in+1,0) += v2[0] * Nrz[1] * phi(in,0) * R2PI * weight; // tracao em y (ou pressao) , nula se n� h
+          }      // ou deslocamento nulo  v2 = 0
+      }
+      break;
   }      // �nulo introduzindo o BIGNUMBER pelos valores da condicao
 }         // 1 Val1 : a leitura �00 01 10 11
 
@@ -270,6 +318,7 @@ int TPZElasticityAxiMaterial::VariableIndex(const std::string &name)
   if(!strcmp("Sigmatt",name.c_str()))       return 5;
   if(!strcmp("Taurz",name.c_str()))         return 6;
   if(!strcmp("displacement",name.c_str()))  return 7;
+  if(!strcmp("MohrCoulomb",name.c_str()))  return 8;
 
   return TPZMaterial::VariableIndex(name);
   return -1;
@@ -296,6 +345,8 @@ int TPZElasticityAxiMaterial::NSolutionVariables(int var)
     return 1;
   case 7:
     return 3;
+    case 8:
+      return 1;
   default:
     return TPZMaterial::NSolutionVariables(var);
     return 0;
@@ -310,28 +361,36 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
   TPZVec<REAL> &SolAxes = data.sol;
   TPZFMatrix &DSolAxes = data.dsol;
 
+  double R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
+  int s = (R>0) ? 1:-1;
+  R = fabs(R);
+
   double axis0DOTr = 0., axis1DOTr = 0., axis0DOTz = 0., axis1DOTz = 0.;
   for(int pos = 0; pos < 3; pos++)
   {
-    axis0DOTr += axes.GetVal(0,pos) * f_AxisR[pos];
-    axis1DOTr += axes.GetVal(1,pos) * f_AxisR[pos];
+    axis0DOTr += axes.GetVal(0,pos) * f_AxisR[pos] * s;
+    axis1DOTr += axes.GetVal(1,pos) * f_AxisR[pos] * s;
     axis0DOTz += axes.GetVal(0,pos) * f_AxisZ[pos];
     axis1DOTz += axes.GetVal(1,pos) * f_AxisZ[pos];
   }
   TPZFNMatrix<9> DSolrz(2,2,0.);
-  DSolrz.PutVal(0,0,DSolAxes(0,0)*axis0DOTr); DSolrz.PutVal(0,1,DSolAxes(0,1)*axis0DOTr);
-  DSolrz.PutVal(1,0,DSolAxes(1,0)*axis1DOTz); DSolrz.PutVal(1,1,DSolAxes(1,1)*axis1DOTz);
+  DSolrz.PutVal(0,0, DSolAxes(0,0)*axis0DOTr + DSolAxes(1,0)*axis1DOTr );
+  DSolrz.PutVal(0,1, DSolAxes(0,0)*axis0DOTz + DSolAxes(1,0)*axis1DOTz );
+  DSolrz.PutVal(1,0, DSolAxes(0,1)*axis0DOTr + DSolAxes(1,1)*axis1DOTr );
+  DSolrz.PutVal(1,1, DSolAxes(0,1)*axis0DOTz + DSolAxes(1,1)*axis1DOTz );
 
-  double R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
 
 #ifdef LOG4CXX
   {
     std::stringstream sout;
+    sout << "Point " << data.x << std::endl;
+    sout << "Solution " << data.sol << std::endl;
     DSolrz.Print("Derivatives of the solution\n",sout);
     sout << "Radius " << R << std::endl;
     LOGPZ_DEBUG(logger,sout.str());
   }
 #endif
+
   ///Infinitesimal Tensor
   TPZFNMatrix<9> Einf(3,3,0.);
   Einf.PutVal(0,0,DSolrz(0,0)); 
@@ -339,6 +398,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
   Einf.PutVal(1,0,0.5*(DSolrz(0,1) + DSolrz(1,0))); 
   Einf.PutVal(1,1,DSolrz(1,1));
   Einf.PutVal(2,2,data.sol[0]/R);
+
 #ifdef LOG4CXX
   {
     std::stringstream sout;
@@ -350,6 +410,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
   double lambda = -((fE*fnu)/((1. + fnu)*(2.*fnu-1.)));
   double mi =  fE/(2.*(1. + fnu));
   double trE = Einf(0,0) + Einf(1,1) + Einf(2,2);
+
 #ifdef LOG4CXX
   {
     std::stringstream sout;
@@ -357,6 +418,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
     LOGPZ_DEBUG(logger,sout.str());
   }
 #endif
+
   ///Stress Tensor
   TPZFNMatrix<9> T(3,3,0.);
   double cte = lambda*trE;
@@ -371,6 +433,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
   T.PutVal(2,0,      2.*mi*Einf(2,0)); 
   T.PutVal(2,1,      2.*mi*Einf(2,1)); 
   T.PutVal(2,2,cte + 2.*mi*Einf(2,2));
+
 #ifdef LOG4CXX
   {
     std::stringstream sout;
@@ -521,6 +584,31 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
       }
       break;
 
+      case 8: //MohrCoulomb plasticity criteria
+      {
+        Solout.Resize(1);
+        double i1, i2, i3, j1, j2, j3;
+
+        i1 = T(0,0) + T(1,1) + T(2,2);
+        TPZFMatrix T2(3,3,0.);
+        T.Multiply(T,T2);
+
+        i2 = 0.5*( i1*i1 - (T2(0,0) + T2(1,1) + T2(2,2)) );
+
+        i3 = T(0,0)*T(1,1)*T(2,2) + T(0,1)*T(1,2)*T(2,0) + T(0,2)*T(1,0)*T(2,1) - T(0,2)*T(1,1)*T(2,0) - T(1,2)*T(2,1)*T(0,0) - T(2,2)*T(0,1)*T(1,0);
+
+        j1 = 0.;
+        j2 = 1./3.*(i1*i1 - 3.*i2);
+        j3 = 1./27.*(2.*i1*i1*i1 - 9.*i1*i2 + 27.*i3);
+
+        double cos3theta = 3.*sqrt(3.)/2. * j3/(pow(j2,1.5));
+
+        double theta = acos(cos3theta)/3.;
+
+        Solout[0] = 1./3.*i1*sin(f_phi) + sqrt(i2)*sin(theta + M_PI/3.) + sqrt(i2/3.)*cos(theta + M_PI/3.)*sin(f_phi) - f_c*cos(f_phi);
+      }
+      break;
+
       default:
       {
         cout << "TPZElasticityAxiMaterial::Solution Error -> default\n";
@@ -593,7 +681,7 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatri
 }
 
 
-TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy) :  TPZDiscontinuousGalerkin(copy), fE(copy.fE),
+TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy) :  TPZMaterial(copy), fE(copy.fE),
                                                                                             fnu(copy.fnu), fEover21PlusNu(copy.fEover21PlusNu),
                                                                                             fEover1MinNu2(copy.fEover1MinNu2)
 {

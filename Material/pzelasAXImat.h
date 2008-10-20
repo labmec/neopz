@@ -7,9 +7,12 @@
 #include "pzdiscgal.h"
 
 #include <vector>
+#include <math.h>
+
+const REAL Pi = 4.*atan(1);
 
 /// This class implements a two dimensional elastic material in plane stress or strain
-class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
+class TPZElasticityAxiMaterial : public TPZMaterial {
 
 public :
 
@@ -28,6 +31,14 @@ public :
      and the Radius vector (orthogonal with respect of Z axis)
  */
  void SetOrigin(std::vector<REAL> &Orig, std::vector<REAL> &AxisZ, std::vector<REAL> &AxisR);
+
+ REAL ComputeR(TPZVec<REAL> &x);
+
+ void SetMohrCoulomb(double c, double phi)
+ {
+    f_c = c;
+    f_phi = phi;
+ }
 
   /**Copies the data of one TPZElasticityAxiMaterial object to
      another*/
@@ -120,7 +131,12 @@ public :
   std::vector<REAL> GetAxisZ();
   std::vector<REAL> GetOrigin();
 
+
 private:
+
+  /** Mohr Coulomb Plasticity Criteria Data */
+  REAL f_phi;
+  REAL f_c;
 
   /**Elasticity modulus*/
   REAL fE;

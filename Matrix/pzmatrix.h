@@ -525,6 +525,10 @@ public:
    virtual int SolveDirect ( TPZFMatrix & F , const DecomposeType dt, std::list<int> &singular);
    virtual int SolveDirect ( TPZFMatrix & F , const DecomposeType dt);
 
+   /**
+    * Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec
+    */
+   static REAL ReturnNearestValue(REAL val, TPZVec<REAL> &Vec, REAL tol);
 
   /**
    * Solves the linear system using LU method\n

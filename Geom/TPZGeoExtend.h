@@ -14,6 +14,12 @@
 #include <string>
 #include "PrismExtend.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr loggernoderep(Logger::getLogger("pz.geom.extend"));
+#endif
+
 class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;

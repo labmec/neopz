@@ -146,11 +146,11 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, 
   this->UpdataBCValues(data);
 
   //clone meshes required analysis
-  {
+/*  {
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__ << "bc type " <<  fType << " x " << data.x;
     LOGPZ_DEBUG(logger,sout.str().c_str());
-  }
+  }*/
   int typetmp = fType;
   if (fType == 50){
     int i;
