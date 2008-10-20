@@ -46,7 +46,7 @@ void TPZBoostGraph::SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphin
 
 void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
 {
-    std::cout << "TPZBoostGraph::Resequence comecando \n";
+    std::cout << "TPZBoostGraph::Resequence started \n";
 #ifdef LOG4CXX
   {
     std::stringstream sout;
@@ -208,7 +208,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
       perm[i] = l_perm[i];
       inverseperm[i] = inv_perm[i];
     }
-  std::cout << "TPZBoostGraph::Resequence acabando \n";
+  std::cout << "TPZBoostGraph::Resequence finished \n";
 
 }
 /*
