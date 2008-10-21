@@ -40,6 +40,8 @@ TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REA
   ff[2] = 0.; // Z component of the body force - not used for this class
   fEover1MinNu2 = E/(1-fnu*fnu);  //G = E/2(1-nu);
   fEover21PlusNu = E/(2.*(1+fnu));//E/(1-nu)
+  f_c = 0.;
+  f_phi = 0.;
 }
 
 void TPZElasticityAxiMaterial::SetOrigin(vector<REAL> &Orig, vector<REAL> &AxisZ, vector<REAL> &AxisR)
@@ -231,6 +233,8 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
   int s = (R > 0) ? 1:-1;
   R = fabs(R);
   double R2PI = 2. * M_PI * R;
+  
+  static REAL accum1 = 0., accum2 = 0.;
 
   switch (bc.Type())
   {
@@ -260,6 +264,14 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
             ef(2*in,0)   += v2[0] * phi(in,0) * R2PI * weight;   // tracao em x  (ou pressao)
             ef(2*in+1,0) += v2[1] * phi(in,0) * R2PI * weight; // tracao em y (ou pressao) , nula se n� h
           }      // ou deslocamento nulo  v2 = 0
+          accum1 += v2[1] * R2PI *weight;
+#ifdef LOG4CXX
+          {
+            std::stringstream sout;
+            sout << "Accumulated force 1 " << accum1;
+            LOGPZ_DEBUG(logger,sout.str());
+          }
+#endif
       }
       break;
 
@@ -302,6 +314,14 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
             ef(2*in,0)   += v2[0] * Nrz[0] * phi(in,0) * R2PI * weight;   // tracao em x  (ou pressao)
             ef(2*in+1,0) += v2[0] * Nrz[1] * phi(in,0) * R2PI * weight; // tracao em y (ou pressao) , nula se n� h
           }      // ou deslocamento nulo  v2 = 0
+          accum2 += v2[0] * Nrz[1] * R2PI *weight;
+#ifdef LOG4CXX
+          {
+            std::stringstream sout;
+            sout << "Accumulated force 2 " << accum2;
+            LOGPZ_DEBUG(logger,sout.str());
+          }
+#endif
       }
       break;
   }      // �nulo introduzindo o BIGNUMBER pelos valores da condicao
@@ -310,7 +330,7 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
 /** returns the variable index associated with the name*/
 int TPZElasticityAxiMaterial::VariableIndex(const std::string &name)
 {
-  if(!strcmp("Eigenvector1",name.c_str()))     return 0;
+  if(!strcmp("Eigenvector1",name.c_str()))     return 9;
   if(!strcmp("Eigenvector2",name.c_str()))     return 1;
   if(!strcmp("Eigenvector3",name.c_str()))     return 2;
   if(!strcmp("Sigmarr",name.c_str()))       return 3;
@@ -329,7 +349,7 @@ int TPZElasticityAxiMaterial::VariableIndex(const std::string &name)
 int TPZElasticityAxiMaterial::NSolutionVariables(int var)
 {
   switch(var) {
-  case 0:
+  case 9:
     return 3;
   case 1:
     return 3;
@@ -357,6 +377,11 @@ int TPZElasticityAxiMaterial::NSolutionVariables(int var)
     on the finite element approximation*/
 void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 {
+  if(var == 0) 
+  {
+    TPZMaterial::Solution(data,var,Solout);
+    return;
+  }
   TPZFMatrix &axes = data.axes;
   TPZVec<REAL> &SolAxes = data.sol;
   TPZFMatrix &DSolAxes = data.dsol;
@@ -444,7 +469,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 
   switch(var)
   {
-      case 0: //Solout = 1stEigenvalue * {1stEigenvector}
+      case 9: //Solout = 1stEigenvalue * {1stEigenvector}
       {
         int NumIt = 1000;
         REAL tol = 1.E-5;
@@ -606,6 +631,16 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
         double theta = acos(cos3theta)/3.;
 
         Solout[0] = 1./3.*i1*sin(f_phi) + sqrt(i2)*sin(theta + M_PI/3.) + sqrt(i2/3.)*cos(theta + M_PI/3.)*sin(f_phi) - f_c*cos(f_phi);
+#ifdef LOG4CXX
+        {
+          std::stringstream sout;
+          sout << "Criterio de Mohr Coulomb \ni1 " << i1 << " i2 " << i2 <<
+              " i3 " << i3 << " \nj1 " << j1 << " j2 " << j2 << " j3 " << j3
+              << " \nf_phi " << f_phi << 
+              "  f_c " << f_c << " theta " << theta << " MohrCoul " << Solout[0];
+          LOGPZ_DEBUG(logger,sout.str());
+        }
+#endif
       }
       break;
 
