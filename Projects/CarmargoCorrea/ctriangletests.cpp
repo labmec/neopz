@@ -914,7 +914,7 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
     TPZVec <int> Topol(4);
     /// *********** CHOOSE MATERIAL FOR EACH ELEMENT ***********
     int ElMat = 1;
-    int PreDistribMat = 2;
+    int PreDistribMat = 1;
 
     int Nonemat = -1;
     int PNmat = -1;
@@ -2330,7 +2330,7 @@ void IntegralForces(TPZCompMesh * cmesh, int MatId, TPZVec<REAL> &forces)
 
         TPZTransform transf1(1,1), transf2(1,2), transf(1,2);
         transf1 = geoside.NeighbourSideTransform(neigh);
-        transf2 = geoside.SideToSideTransform(internalSide);
+        transf2 = neigh.SideToSideTransform(internalSide);
         transf = transf2.Multiply(transf1);
 
         TPZIntPoints * rule = cel->Reference()->CreateSideIntegrationRule(geoside.Side(),5);
@@ -2349,7 +2349,7 @@ void IntegralForces(TPZCompMesh * cmesh, int MatId, TPZVec<REAL> &forces)
           transf.Apply(location,locout);
 
           TPZVec<REAL> x(3);
-          geoside.X(locout,x);
+          geoside.X(location,x);
           REAL R = Mat->ComputeR(x);
           R = fabs(R);
 
@@ -2502,11 +2502,11 @@ TPZCompMesh * SpiralMesh()
 
   TPZFMatrix Base1(2,2,0.), Base2(2,1,0.);
   Base1(1,1) = 1.E20;
-  TPZAutoPointer<TPZMaterial> bcmatPG = mat->CreateBC(mat, -7, 3, Base1, Base2);
+  TPZAutoPointer<TPZMaterial> bcmatBase = mat->CreateBC(mat, -8, 2, Base1, Base2);
 
   TPZFMatrix Force1(2,2,0.), Force2(2,1,0.);
   Force2(0,0) = -700.;
-  TPZAutoPointer<TPZMaterial> bcmatBase = mat->CreateBC(mat, -8, 3, Force1, Force2);
+  TPZAutoPointer<TPZMaterial> bcmatForce = mat->CreateBC(mat, -7, 3, Force1, Force2);
 
 //   TPZFMatrix Dot1(2,2,0.), Dot2(2,1,0.);
 //   Dot1(1,1) = 0.01;
@@ -2518,8 +2518,8 @@ TPZCompMesh * SpiralMesh()
   TPZCompEl::SetgOrder(3);
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
   cmesh->InsertMaterialObject(mat);
-  cmesh->InsertMaterialObject(bcmatPG);
   cmesh->InsertMaterialObject(bcmatBase);
+  cmesh->InsertMaterialObject(bcmatForce);
 //   cmesh->InsertMaterialObject(bcmatDot);
 //**************************
 
