@@ -254,6 +254,17 @@ int main(int argc, char *argv[])
 
     std::ofstream out("malha.txt");
     an.Print("nothing",out);
+
+#ifdef LOG4CXX
+{
+  std::stringstream sout;
+  TPZVec<REAL> forces;
+  IntegralForces(cmesh, -8, forces);
+  sout << "\n===========================================================\n" << forces << "\n===========================================================\n";
+  LOGPZ_DEBUG(logger,sout.str());
+}
+#endif
+
 ///End Malha Axi-simetrica
 
     return EXIT_SUCCESS;
@@ -906,14 +917,14 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
     int PreDistribMat = 2;
 
     int Nonemat = -1;
-    int PNmat = -2;
-    int TTmat = -3;
-    int PDmat = -4;
-    int FFmat = -5;
-    int FEmat = -6;
+    int PNmat = -1;
+    int TTmat = -1;
+    int PDmat = -1;
+    int FFmat = -1;
+    int FEmat = -1;
     int PGmat = -7;
     int Basemat = -8;
-    int Dotmat = -9;
+    int Dotmat = -1;
 
     int id = 0;
     ///Quadrilaterals
@@ -1189,12 +1200,12 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
 
     Topol[0] = 0;
     Topol[1] = 1;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Basemat,*Mesh);
     id++;
 
     Topol[0] = 1;
     Topol[1] = 2;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Basemat,*Mesh);
     id++;
 
     Topol[0] = 2;
@@ -1337,10 +1348,10 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
     new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
     id++;
 
-    Topol[0] = 53;
-    Topol[1] = 9;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PDmat,*Mesh);
-    id++;
+//     Topol[0] = 53;
+//     Topol[1] = 9;
+//     new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PDmat,*Mesh);
+//     id++;
 
     Topol.Resize(1);
     Topol[0] = 0;
@@ -2313,12 +2324,12 @@ void IntegralForces(TPZCompMesh * cmesh, int MatId, TPZVec<REAL> &forces)
     TPZCompEl * cel = cmesh->ElementVec()[el];
     if(cel->Material()->Id() == MatId)
     {
-        TPZGeoElSide geoside(cel->Reference(),3), neigh, internalSide;
-        neigh = geoside.Neighbour();
-        internalSide = TPZGeoElSide(neigh.Element(),neigh.Element()->NSides() - 1);
+        TPZGeoElSide geoside(cel->Reference(),2);
+        TPZGeoElSide neigh = geoside.Neighbour();
+        TPZGeoElSide internalSide = TPZGeoElSide(neigh.Element(),neigh.Element()->NSides() - 1);
 
-        TPZTransform transf1(1,1), transf2(2,1), transf;
-        geoside.SideTransform3(neigh,transf1);
+        TPZTransform transf1(1,1), transf2(1,2), transf(1,2);
+        transf1 = geoside.NeighbourSideTransform(neigh);
         transf2 = geoside.SideToSideTransform(internalSide);
         transf = transf2.Multiply(transf1);
 
@@ -2326,29 +2337,31 @@ void IntegralForces(TPZCompMesh * cmesh, int MatId, TPZVec<REAL> &forces)
 
         TPZVec<REAL> location(1);
         REAL w;
-        for(int pt = 0; pt < rule->NPoints(); pt++)
+        int npts = rule->NPoints();
+        for(int pt = 0; pt < npts; pt++)
         {
           rule->Point(pt, location,w);
           TPZFMatrix jac(1,1), jacinv(1,1), axes(1,3);
           REAL detJac;
           geoside.Jacobian(location,jac, axes, detJac, jacinv);
 
-          TPZVec<REAL> locout;
+          TPZVec<REAL> locout(2);
           transf.Apply(location,locout);
 
           TPZVec<REAL> x(3);
-          geoside.X(location,x);
+          geoside.X(locout,x);
           REAL R = Mat->ComputeR(x);
           R = fabs(R);
 
           TPZVec<REAL> sol;
-          cel->Solution(locout,4,sol);
+          neigh.Element()->Reference()->Solution(locout,4,sol);
           forces[0] += w * (2.*M_PI*R) * detJac * sol[0];
         }
 
         delete rule;
     }
   }
+  int bye=0;
 }
 
 TPZCompMesh * SquareMesh()
@@ -2470,7 +2483,7 @@ TPZCompMesh * SpiralMesh()
   TPZGeoMesh * gmesh = CxEspiral2D(Bb, Hr, Bt, Hl, Cx, Cy, R, h, b, Dx, Dy, e1, e2, e3, X1, X2, X3, X4, X5, h1, h2, Py);
 
 ///Materials
-  REAL fx = 0., fy = -0.025;
+  REAL fx = 0., fy = 0.;//-0.025;
 
   double E = 18.5*1000.; // Young modulus = 18.5 GPa = 18.5*10^3 MPa
   double nu = 0.2; // poisson coefficient
@@ -2482,22 +2495,22 @@ TPZCompMesh * SpiralMesh()
   (dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->()))->SetOrigin(Orig, AxisZ, AxisR);
 
   //MohrCoulomb data
-  double phi = M_PI/6.;
-  double fc = 15./1.4; //fck = 15 MPa, fc = fck/1.4
-  double c = fc*(1. - sin(phi))/(2.*cos(phi));
-  (dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->()))->SetMohrCoulomb(c,phi);
+//   double phi = M_PI/6.;
+//   double fc = 15./1.4; //fck = 15 MPa, fc = fck/1.4
+//   double c = fc*(1. - sin(phi))/(2.*cos(phi));
+//   (dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->()))->SetMohrCoulomb(c,phi);
 
-  TPZFMatrix Internal1(2,2,0.), Internal2(2,1,0.);
-  Internal2(0,0) = -1.;
-  TPZAutoPointer<TPZMaterial> bcmatInt = mat->CreateBC(mat, -1, 3, Internal1, Internal2);
+  TPZFMatrix Base1(2,2,0.), Base2(2,1,0.);
+  Base1(1,1) = 1.E20;
+  TPZAutoPointer<TPZMaterial> bcmatPG = mat->CreateBC(mat, -7, 3, Base1, Base2);
 
-  TPZFMatrix External1(2,2,0.), External2(2,1,0.);
-  External2(0,0) = -1.;
-  TPZAutoPointer<TPZMaterial> bcmatExt = mat->CreateBC(mat, -2, 3, External1, External2);
+  TPZFMatrix Force1(2,2,0.), Force2(2,1,0.);
+  Force2(0,0) = -700.;
+  TPZAutoPointer<TPZMaterial> bcmatBase = mat->CreateBC(mat, -8, 3, Force1, Force2);
 
-  TPZFMatrix Dot1(2,2,0.), Dot2(2,1,0.);
-  Dot1(1,1) = 0.01;
-  TPZAutoPointer<TPZMaterial> bcmatDot = mat->CreateBC(mat, -3, 2, Dot1, Dot2);
+//   TPZFMatrix Dot1(2,2,0.), Dot2(2,1,0.);
+//   Dot1(1,1) = 0.01;
+//   TPZAutoPointer<TPZMaterial> bcmatDot = mat->CreateBC(mat, -3, 2, Dot1, Dot2);
 //**************************
 
 ///Computational Mesh
@@ -2505,11 +2518,12 @@ TPZCompMesh * SpiralMesh()
   TPZCompEl::SetgOrder(3);
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
   cmesh->InsertMaterialObject(mat);
-  cmesh->InsertMaterialObject(bcmatInt);
-  cmesh->InsertMaterialObject(bcmatExt);
-  cmesh->InsertMaterialObject(bcmatDot);
+  cmesh->InsertMaterialObject(bcmatPG);
+  cmesh->InsertMaterialObject(bcmatBase);
+//   cmesh->InsertMaterialObject(bcmatDot);
 //**************************
 
   cmesh->AutoBuild();
+
   return cmesh; 
 }
