@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
     an.SetSolver(step);
     an.Run();
 
-    TPZVec<std::string> scalnames(4), vecnames(3);
+    TPZVec<std::string> scalnames(5), vecnames(3);
     vecnames[0] = "Eigenvector1";
     vecnames[1] = "Eigenvector2";
     vecnames[2] = "Eigenvector3";
@@ -248,6 +248,7 @@ int main(int argc, char *argv[])
     scalnames[1] = "Sigmazz";
     scalnames[2] = "Sigmatt";
     scalnames[3] = "Taurz";
+    scalnames[4] = "MohrCoulomb";
     std::string plotfile("saida.dx");
     an.DefineGraphMesh(2,scalnames,vecnames,plotfile);
     an.PostProcess(2);
@@ -2492,16 +2493,17 @@ TPZCompMesh * SpiralMesh()
   double nu = 0.2; // poisson coefficient
 
   TPZAutoPointer<TPZMaterial> mat = new TPZElasticityAxiMaterial(1, E, nu, fx, fy);
+  TPZElasticityAxiMaterial *aximat = dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->());
   vector<REAL> Orig(3);  Orig[0] = 15.;  Orig[1] = 0.;  Orig[2] = 0.;
   vector<REAL> AxisZ(3); AxisZ[0] = 0.; AxisZ[1] = 1.; AxisZ[2] = 0.;
   vector<REAL> AxisR(3); AxisR[0] = -1.; AxisR[1] = 0.; AxisR[2] = 0.;
-  (dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->()))->SetOrigin(Orig, AxisZ, AxisR);
+  aximat->SetOrigin(Orig, AxisZ, AxisR);
 
   //MohrCoulomb data
-//   double phi = M_PI/6.;
-//   double fc = 15./1.4; //fck = 15 MPa, fc = fck/1.4
-//   double c = fc*(1. - sin(phi))/(2.*cos(phi));
-//   (dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->()))->SetMohrCoulomb(c,phi);
+  double phi = M_PI/6.;
+  double fc = 15./1.4; //fck = 15 MPa, fc = fck/1.4
+  double c = fc*(1. - sin(phi))/(2.*cos(phi));
+  aximat->SetMohrCoulomb(c,phi);
 
   TPZFMatrix Base1(2,2,0.), Base2(2,1,0.);
   Base1(1,1) = 1.E9;
