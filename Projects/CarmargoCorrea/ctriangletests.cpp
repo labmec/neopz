@@ -2316,8 +2316,9 @@ void NodesHunter(TPZGeoMesh &gMesh, std::vector<int>& NodesHunted, int IdIni, in
 
 void IntegralForces(TPZCompMesh * cmesh, int MatId, TPZVec<REAL> &forces)
 {
-  forces.Resize(1);
+  forces.Resize(2);
   forces[0] = 0.;
+  forces[1] = 0.;
   TPZElasticityAxiMaterial * Mat = dynamic_cast<TPZElasticityAxiMaterial*>(cmesh->MaterialVec()[1].operator->());
   for(int el = 0; el < cmesh->ElementVec().NElements(); el++)
   {
@@ -2333,7 +2334,7 @@ void IntegralForces(TPZCompMesh * cmesh, int MatId, TPZVec<REAL> &forces)
         transf2 = neigh.SideToSideTransform(internalSide);
         transf = transf2.Multiply(transf1);
 
-        TPZIntPoints * rule = cel->Reference()->CreateSideIntegrationRule(geoside.Side(),5);
+        TPZIntPoints * rule = cel->Reference()->CreateSideIntegrationRule(geoside.Side(),15);
 
         TPZVec<REAL> location(1);
         REAL w;
@@ -2356,6 +2357,8 @@ void IntegralForces(TPZCompMesh * cmesh, int MatId, TPZVec<REAL> &forces)
           TPZVec<REAL> sol;
           neigh.Element()->Reference()->Solution(locout,4,sol);
           forces[0] += w * (2.*M_PI*R) * detJac * sol[0];
+          neigh.Element()->Reference()->Solution(locout,0,sol);
+          forces[1] += w * (2.*M_PI*R) * detJac * sol[1];
         }
 
         delete rule;
@@ -2501,12 +2504,12 @@ TPZCompMesh * SpiralMesh()
 //   (dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->()))->SetMohrCoulomb(c,phi);
 
   TPZFMatrix Base1(2,2,0.), Base2(2,1,0.);
-  Base1(1,1) = 1.E20;
+  Base1(1,1) = 1.E9;
   TPZAutoPointer<TPZMaterial> bcmatBase = mat->CreateBC(mat, -8, 2, Base1, Base2);
 
   TPZFMatrix Force1(2,2,0.), Force2(2,1,0.);
-  Force2(0,0) = -700.;
-  TPZAutoPointer<TPZMaterial> bcmatForce = mat->CreateBC(mat, -7, 3, Force1, Force2);
+  Force2(1,0) = -700.;
+  TPZAutoPointer<TPZMaterial> bcmatForce = mat->CreateBC(mat, -7, 1, Force1, Force2);
 
 //   TPZFMatrix Dot1(2,2,0.), Dot2(2,1,0.);
 //   Dot1(1,1) = 0.01;
@@ -2515,7 +2518,7 @@ TPZCompMesh * SpiralMesh()
 
 ///Computational Mesh
   const int dim = 2;
-  TPZCompEl::SetgOrder(3);
+  TPZCompEl::SetgOrder(6);
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
   cmesh->InsertMaterialObject(mat);
   cmesh->InsertMaterialObject(bcmatBase);
