@@ -12,7 +12,7 @@ void error(char * teste)
 
 int main()
 {
-
+#ifdef FAD
   const int dim = 3;
   const int nstate = dim+2;
   const int nphi = 6;
@@ -122,6 +122,6 @@ cout << "\n\ndphi\n" << dphi;
   cout << "\n\nTauDiv\n" << TauDiv;
 
   cout << "\n\nTaudDiv\n" << TaudDiv;
-
+#endif
   return 0;
 }
