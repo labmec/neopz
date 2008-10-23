@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.27 2008-07-23 21:41:23 erick Exp $
+//$Id: pzinterpolationspace.cpp,v 1.28 2008-10-23 10:54:10 fortiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -684,8 +684,6 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
   gmesh->ElementVec()[index] = NULL;
   delete cel;
   delete gel;// deleta o elemento
-  gmesh->ElementVec().SetFree(index);// Chame SetFree do vetor de elementos da malha geometrica para o index
-
 }
 
 void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
