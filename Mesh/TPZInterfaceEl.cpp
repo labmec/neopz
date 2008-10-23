@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.84 2008-10-08 02:13:34 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.85 2008-10-23 10:58:28 fortiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -1120,6 +1120,20 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
     data.dsolr.Redim(dimr,nstater);
   }
 
+  ///this values needs to be computed only once
+  if(data.fNeedsNeighborCenter){
+    TPZManVector<REAL,3> qsi(3);
+    data.XLeftElCenter.Resize(3);
+    data.XRightElCenter.Resize(3);
+    TPZGeoEl * gel = this->LeftElement()->Reference();
+    gel->CenterPoint(gel->NSides()-1,qsi);
+    gel->X(qsi,data.XLeftElCenter);
+    gel = this->RightElement()->Reference();
+    gel->CenterPoint(gel->NSides()-1,qsi);
+    gel->X(qsi,data.XRightElCenter);
+  }
+
+  data.normal = this->fNormal;
 }//void
 
 void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
