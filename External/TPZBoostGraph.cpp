@@ -46,7 +46,9 @@ void TPZBoostGraph::SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphin
 
 void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
 {
+#ifdef DEBUG
     std::cout << "TPZBoostGraph::Resequence started \n";
+#endif
 #ifdef LOG4CXX
   {
     std::stringstream sout;
@@ -87,6 +89,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
   for (boost::tie(ui, ui_end) = vertices(G); ui != ui_end; ++ui)
     deg[*ui] = degree(*ui, G);
 
+#ifdef DEBUG
  std::cout << "NNodes " << fNNodes << std::endl;
  std::cout << "NElements " << fNElements << std::endl;
 
@@ -94,6 +97,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
   std::cout << " Original profile: " 
       << profile(G)
       << std::endl;
+#endif
 /*  std::cout << " Original max_wavefront: " 
       << max_wavefront(G)
       << std::endl;
@@ -120,8 +124,10 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
       Vertex s = vertex(0, G);
       //reverse cuthill_mckee_ordering
       cuthill_mckee_ordering(G, s, inv_perm.begin(), get(vertex_color, G),
-                            get(vertex_degree, G));    
+                            get(vertex_degree, G));   
+#ifdef DEBUG 
       cout << "Reverse Cuthill-McKee ordering:" << endl;
+#endif
 
     }
     break;
@@ -130,13 +136,17 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
     {
       cuthill_mckee_ordering(G, inv_perm.begin(), get(vertex_color, G),
                             get(vertex_degree, G));
+#ifdef DEBUG
       cout << "Reverse Expensive Cuthill-McKee ordering:" << endl;
+#endif
 
     }
     break;
     case Sloan:
     {
+#ifdef DEBUG
       cout << "Sloan ordering:" << endl;
+#endif      
     
     //Setting the start node
       Vertex s = vertex(0, G);
@@ -144,10 +154,11 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
     
     //Calculating the pseudoeperipheral node and radius
       Vertex e = pseudo_peripheral_pair(G, s, ecc, get(vertex_color, G), get(vertex_degree, G) );
-
+#ifdef DEBUG
       cout << "Sloan Starting vertex: " << s << endl;
       cout << "Sloan Pseudoperipheral vertex: " << e << endl;
       cout << "Sloan Pseudoperipheral radius: " << ecc << endl << endl;
+#endif      
     //Sloan ordering
       sloan_ordering(G, s, e, inv_perm.begin(), get(vertex_color, G), 
                      get(vertex_degree, G), get(vertex_priority, G));
@@ -208,7 +219,9 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
       perm[i] = l_perm[i];
       inverseperm[i] = inv_perm[i];
     }
+#ifdef DEBUG
   std::cout << "TPZBoostGraph::Resequence finished \n";
+#endif
 
 }
 /*
