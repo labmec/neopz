@@ -156,6 +156,8 @@ public:
    *Assemble the stiffness matrix
    **/
   virtual  void Assemble();
+  
+  void AssembleResidual();
 
   /**
    *Invert the stiffness matrix

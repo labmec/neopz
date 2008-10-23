@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.44 2008-10-08 02:06:24 phil Exp $
+//$Id: pzanalysis.cpp,v 1.45 2008-10-23 10:28:38 fortiago Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -125,6 +125,7 @@ void TPZAnalysis::SetBlockNumber(){
 #else
 	if(!fCompMesh) return;
 	fCompMesh->InitializeBlock();
+  
 	TPZVec<int> perm,iperm;
 
 	TPZStack<int> elgraph,elgraphindex;
@@ -159,6 +160,12 @@ void TPZAnalysis::SetBlockNumber(){
 #endif
 
 }
+
+void TPZAnalysis::AssembleResidual(){
+  int sz = this->Mesh()->NEquations();
+  this->Rhs().Redim(sz,1);
+  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
+}///void
 
 void TPZAnalysis::Assemble()
 {
