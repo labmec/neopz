@@ -1,6 +1,7 @@
-//$Id: pzl2projection.cpp,v 1.9 2008-10-08 02:09:27 phil Exp $ 
+//$Id: pzl2projection.cpp,v 1.10 2008-10-23 10:37:52 fortiago Exp $ 
 
 #include "pzl2projection.h"
+#include "pzbndcond.h"
 
 TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol)
   :TPZDiscontinuousGalerkin(id){
@@ -66,6 +67,34 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
   }//for i
 }
 
+void TPZL2Projection::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
+
+  const int nvars = this->fNStateVars;
+  TPZFMatrix &phi = data.phi;
+  const int phr = phi.Rows();
+  int in, jn, iv;
+  
+  switch (bc.Type()){
+  
+    /// Dirichlet condition
+    case 0 : {      
+      for(iv = 0; iv < nvars; iv++){
+        for(in = 0 ; in < phr; in++) {
+          ef(nvars*in+iv,0) += TPZMaterial::gBigNumber * bc.Val2()(iv,0) * phi(in,0) * weight;      
+          for (jn = 0 ; jn < phr; jn++) {
+            ek(nvars*in+iv,nvars*jn+iv) += TPZMaterial::gBigNumber * phi(in,0) * phi(jn,0) * weight;
+          }///jn
+        }///in
+      }///iv
+      break;
+    }
+         
+    default:{
+      std::cout << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " not implemented\n";
+    }
+  }///switch
+
+}
 
 int TPZL2Projection::VariableIndex(const std::string &name){
   if(!strcmp("Solution",name.c_str())) return ESolution;

@@ -1,4 +1,4 @@
-//$Id: pzl2projection.h,v 1.10 2008-10-08 02:09:27 phil Exp $
+//$Id: pzl2projection.h,v 1.11 2008-10-23 10:37:52 fortiago Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
@@ -81,10 +81,7 @@ public:
    * @param bc[in] is the boundary condition material
    * @since April 16, 2007
        */
-  virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc)
-  {
-  }
-
+  virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
 
   /** Define if material is referred or not */
   void SetIsReferred(bool val);
