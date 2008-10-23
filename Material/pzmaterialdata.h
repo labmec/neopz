@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.h,v 1.7 2008-07-23 21:38:26 erick Exp $
+//$Id: pzmaterialdata.h,v 1.8 2008-10-23 10:41:50 fortiago Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
@@ -18,7 +18,7 @@ class TPZMaterialData{
 public:
 
 /** Flags indicating whether some attributes shall be computed or not */
-  bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize;
+  bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize, fNeedsNeighborCenter;
 
 /** Attributes to be computed in CalcStiff */
   TPZFNMatrix<220> phi, phil, phir;
@@ -33,6 +33,7 @@ public:
   TPZFNMatrix<30> dsol, dsoll, dsolr;
   REAL HSize;
   REAL detjac, leftdetjac, rightdetjac;
+  TPZManVector<REAL,3> XLeftElCenter, XRightElCenter;
 
 /** Index of the current integration point being evaluated **/
 /** Needed for materials with memory **/

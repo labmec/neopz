@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.cpp,v 1.8 2008-07-23 21:38:26 erick Exp $ 
+//$Id: pzmaterialdata.cpp,v 1.9 2008-10-23 10:41:50 fortiago Exp $ 
 
 #include "pzmaterialdata.h"
 #include "pzmaterial.h"
@@ -24,6 +24,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
   this->fNeedsSol = cp.fNeedsSol;
   this->fNeedsNeighborSol = cp.fNeedsNeighborSol;
   this->fNeedsHSize = cp.fNeedsHSize;
+  this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter;
   this->phi = cp.phi;
   this-> phil = cp.phil;
   this->phir = cp.phir;
@@ -55,6 +56,8 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
   this->leftdetjac = cp.leftdetjac;
   this->rightdetjac = cp.rightdetjac;
   this->intPtIndex = cp.intPtIndex;
+  this->XLeftElCenter = cp.XLeftElCenter;
+  this->XRightElCenter = cp.XRightElCenter;
   return *this;
 }
 
@@ -66,6 +69,7 @@ void TPZMaterialData::SetAllRequirements(bool set){
   this->fNeedsSol = set;
   this->fNeedsNeighborSol = set;
   this->fNeedsHSize = set;
+  this->fNeedsNeighborCenter = set;
 }
 
 void TPZMaterialData::InvertLeftRightData(){
@@ -89,6 +93,9 @@ void TPZMaterialData::InvertLeftRightData(){
   this->axesright = cp.axesleft;
   this->solr = cp.soll;
   this->dsolr = cp.dsoll;  
+
+  this->XRightElCenter = cp.XLeftElCenter;
+  this->XLeftElCenter = cp.XRightElCenter;
   
   const int n = this->normal.NElements();
   for(int i = 0; i < n; i++){
