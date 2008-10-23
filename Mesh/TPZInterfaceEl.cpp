@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.85 2008-10-23 10:58:28 fortiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.86 2008-10-23 11:10:36 fortiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -1133,7 +1133,7 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
     gel->X(qsi,data.XRightElCenter);
   }
 
-  data.normal = this->fNormal;
+  data.normal = this->fCenterNormal;
 }//void
 
 void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
