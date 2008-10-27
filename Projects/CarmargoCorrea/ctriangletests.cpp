@@ -98,6 +98,7 @@
 #include "tpzblendnaca.h"
 #include "pzelasAXImat.h"
 #include "pzmaterialdata.h"
+#include "pzmganalysis.h"
 
 #include "pzlog.h"
 
@@ -174,11 +175,12 @@ TPZCompMesh * SpiralMesh();
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-  InitializePZLOG();
+  InitializePZLOG("log4cxx.cfg");
 #endif
 
 //     TPZCompMesh * cmesh = SquareMesh();
     TPZCompMesh * cmesh = SpiralMesh();
+	cmesh->Reference()->InitializeRefPatterns();
 
 //////////////////////////////////////////////////////////////////////
 #ifdef LOG4CXX
@@ -212,7 +214,10 @@ int main(int argc, char *argv[])
 }
 #endif
 
-
+	TPZCompMesh *fine = TPZMGAnalysis::UniformlyRefineMesh (cmesh,false);
+	delete cmesh;
+	cmesh = fine;
+	cmesh->LoadReferences();
 //////////////////////////////////////////////////////////////////////
 
     ///Inserindo os deslocamentos "na unha!"
@@ -232,6 +237,7 @@ int main(int argc, char *argv[])
 //     }
 // #endif
 
+	
     TPZAnalysis an(cmesh);
     TPZSkylineStructMatrix full(cmesh);
     an.SetStructuralMatrix(full);
