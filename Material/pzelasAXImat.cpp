@@ -716,13 +716,15 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatri
 }
 
 
-TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy) :  TPZMaterial(copy), fE(copy.fE),
-                                                                                            fnu(copy.fnu), fEover21PlusNu(copy.fEover21PlusNu),
-                                                                                            fEover1MinNu2(copy.fEover1MinNu2)
+TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy) : 
+		TPZMaterial(copy), fE(copy.fE),
+        fnu(copy.fnu), fEover21PlusNu(copy.fEover21PlusNu),
+        fEover1MinNu2(copy.fEover1MinNu2),f_c(copy.f_c),f_phi(copy.f_phi),
+		f_Origin(copy.f_Origin),f_AxisZ(copy.f_AxisZ),f_AxisR(copy.f_AxisR)
 {
-  ff[0]=copy.ff[0];
-  ff[1]=copy.ff[1];
-  ff[2]=copy.ff[2];
+	ff[0] = copy.ff[0];
+	ff[1] = copy.ff[1];
+	ff[2] = copy.ff[2];
 }
 
 int TPZElasticityAxiMaterial::ClassId() const
