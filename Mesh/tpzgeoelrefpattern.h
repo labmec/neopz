@@ -375,11 +375,26 @@ TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &sube
 template<class TGeo>
 void
 TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
-  if (!fRefPattern) {
-    PZError << "TPZGeoElRefPattern<TGeo>::Divide ERROR : Undefined Refinement Pattern!" << std::endl;
-    SubElVec.Resize(0);
-    return;
-  }
+	if (!fRefPattern) {
+		TPZAutoPointer<TPZRefPattern> uniform = this->Mesh()->GetUniformPattern(this->Type());
+		std::list<TPZAutoPointer<TPZRefPattern> > compat;
+		TPZRefPattern::GetCompatibleRefinementPatterns(this,compat);
+		std::list<TPZAutoPointer<TPZRefPattern> >::iterator it = compat.begin();
+		while(it != compat.end()){
+			if(*it == uniform) break;
+			it++;
+		}
+		if(it != compat.end())
+		{
+			this->SetRefPattern(uniform);
+		}
+		else
+		{
+			PZError << "TPZGeoElRefPattern<TGeo>::Divide ERROR : Undefined Refinement Pattern!" << std::endl;
+			SubElVec.Resize(0);
+			return;
+		}
+	}
   int i;
   int NSubEl = this->GetRefPattern()->NSubElements();
   if(HasSubElement()) {
