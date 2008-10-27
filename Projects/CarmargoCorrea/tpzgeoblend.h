@@ -97,8 +97,8 @@ public:
 protected:
 
     void MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide);
-    TPZGeoElSide fNeighbours[TGeo::NSides - TGeo::NNodes];
-    TPZTransform fTrans[TGeo::NSides - TGeo::NNodes];
+    TPZGeoElSide fNeighbours[1+TGeo::NSides - TGeo::NNodes];
+    TPZTransform fTrans[1+TGeo::NSides - TGeo::NNodes];
 };
 
 TPZGeoEl *CreateGeoBlendElement(TPZGeoMesh &mesh, MElementType type, TPZVec<int>& nodeindexes, int matid, int& index);
