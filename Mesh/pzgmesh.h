@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.33 2007-12-07 18:27:45 cesar Exp $
+//$Id: pzgmesh.h,v 1.34 2008-10-27 17:55:15 phil Exp $
 
 /**File : pzgmes.h
 
@@ -305,7 +305,7 @@ public:
   /**
    * Retrieves the uniform refinement pattern for given element type
    */
-  TPZAutoPointer<TPZRefPattern> GetUniformPattern(MElementType &type);
+  TPZAutoPointer<TPZRefPattern> GetUniformPattern(MElementType type);
 
   /**
    * Return the complete set of refinement patterns availabe

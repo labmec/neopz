@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.50 2008-10-20 11:57:25 longhin Exp $
+//$Id: pzgmesh.cpp,v 1.51 2008-10-27 17:55:15 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -50,7 +50,7 @@ TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0){
   fReference = 0;
   fNodeMaxId = -1;
   fElementMaxId = -1;
-//  InitializeRefPatterns();
+  InitializeRefPatterns();
 }
 
 TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp):
@@ -882,7 +882,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
   //return NULL;
 }
 
-TPZAutoPointer<TPZRefPattern> TPZGeoMesh::GetUniformPattern(MElementType &type)
+TPZAutoPointer<TPZRefPattern> TPZGeoMesh::GetUniformPattern(MElementType type)
 {
   if (!fRefPatterns[type].size())
   {
