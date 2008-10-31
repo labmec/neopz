@@ -43,8 +43,8 @@ static REAL MidCoord[3][2] = {
 
 /**
  * define as conectividades entre sub-elementos
- * linha i é filho i, {a,b,c} = {lado do filho atual,
- * irmão vizinho,lado do vizinho}
+ * linha i ï¿½ filho i, {a,b,c} = {lado do filho atual,
+ * irmï¿½o vizinho,lado do vizinho}
  */
 const int NumInNeigh = 6;
 static int InNeigh[4][NumInNeigh][3] = {
@@ -182,13 +182,13 @@ void TPZRefTriangle::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
     return;
   }
   //sides 0 a 3
-  if(side<TPZShapeTriang::NCornerNodes) {//o nó medio do lado 0 é o 0 etc.
+  if(side<TPZShapeTriang::NCornerNodes) {//o nï¿½ medio do lado 0 ï¿½ o 0 etc.
     index = (gel)->NodeIndex(side);
     return; 
   }
-  //o nó medio da face é o centro e o nó medio do centro é o centro
-  //como nó de algum filho se este existir
-  //caso tenha filhos é o canto de algum filho, se não tiver filhos retorna -1
+  //o nï¿½ medio da face ï¿½ o centro e o nï¿½ medio do centro ï¿½ o centro
+  //como nï¿½ de algum filho se este existir
+  //caso tenha filhos ï¿½ o canto de algum filho, se nï¿½o tiver filhos retorna -1
   if(gel->HasSubElement()) {
     side-=TPZShapeTriang::NCornerNodes;
     index=(gel->SubElement(MidSideNodes[side][0]))->NodeIndex(MidSideNodes[side][1]);
