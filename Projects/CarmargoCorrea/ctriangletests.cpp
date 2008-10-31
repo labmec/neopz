@@ -9,6 +9,7 @@
 #include "pzgnode.h"
 #include "pzgeoelside.h"
 
+#include <pzgeoel.h>
 #include "pzcompel.h"
 #include "TPZCompElDisc.h"
 #include "pzmatrix.h"
@@ -84,7 +85,7 @@
 #include "tpzquadratictrig.h"
 #include "tpzquadratictetra.h"
 #include "tpzquadraticquad.h"
-#include "tpzarc3d.h"
+#include "tpzarc3d.h"2
 #include "tpzgeoelrefpattern.h"
 #include "tpzgeoelrefpattern.h.h"
 #include "pzgeoelside.h"
@@ -99,6 +100,7 @@
 #include "pzelasAXImat.h"
 #include "pzmaterialdata.h"
 #include "pzmganalysis.h"
+#include "TPZNLMultGridAnalysis.h"
 
 #include "pzlog.h"
 
@@ -111,61 +113,121 @@ using namespace std;
 using namespace pzgeom;
 using namespace pzshape;
 using namespace pzrefine;
+struct MatIds;
 
-void WriteElement(TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &elementtype);
-void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq);
-
-TPZGeoMesh * HorizWellGenE(double Wr, double Hr, double Lr, double Lw, double Dw, int part, double excentr);
-
-TPZGeoMesh * DefaultMesh(double R);
-TPZGeoMesh * CurvedTriangleMesh(double R);
-TPZGeoMesh * BlendTriangleMesh(double R);
+void AuxEspiral(TPZVec <REAL> &vecIn, TPZVec <REAL> &vecOut, TPZVec <REAL> &C, double R);
 TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, double Cy,
                          double R, double h, double b, double Dx, double Dy, double e1,
                          double e2, double e3, double X1, double X2, double X3, double X4,
-                         double X5, double h1, double h2, double Py);
-void AuxEspiral(TPZVec <REAL> &vecIn, TPZVec <REAL> &vecOut, TPZVec <REAL> &C, double R);
+                         double X5, double h1, double h2, double Py, double es, MatIds &mat);
+TPZCompMesh * SquareMesh();
+TPZCompMesh * SpiralMesh(MatIds &MatId);
+void ApplyDisplacements(TPZCompMesh & cmesh);
 
-/** by Caju 2007 */
-/** Input:  gMesh.NodeVec(), IdIni, IdFin, Tol */
-/** Output: NodesHunted */
-/** This method computes the nodes that belongs to the IdIni->IdFin line */
-void NodesHunter(TPZGeoMesh &gMesh, vector<int>& NodesHunted, int IdIni, int IdFin, double Tol = 1.E-3);
+void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq);
+void WriteElement(TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &elementtype);
 
 void IntegralForces(TPZCompMesh * cmesh, int MatId, TPZVec<REAL> &forces);
 
-void MathOutUP(TPZBlendNACA * naca)
-{
-    cout << endl << endl << "NacaPtosUp = {";
-    for(int pos = int(naca->fX0[0]); pos <= int(naca->fX0[0] + naca->fCord); pos++)
-    {
-        cout << "{" << naca->xua(pos) << "," << naca->yua(pos) << "}";
-        if(pos != int(naca->fX0[0] + naca->fCord)) cout << ",";
-    }
-    cout << "};" << endl;
-    cout << "A=ListPlot[NacaPtosUp, Joined -> True,AspectRatio -> 0.2,PlotRange->{{";
-    cout << naca->fX0[0] << "," << naca->fX0[0] + int(naca->fCord) << "},{-5,5}}];" << endl << endl;
-}
+REAL CalcArea(TPZCompMesh *mesh);
 
-void MathOutDW(TPZBlendNACA * naca)
-{
-    cout << "NacaPtosDw = {";
-    for(int pos = int(naca->fX0[0]); pos <= int(naca->fX0[0] + naca->fCord); pos++)
-    {
-        cout << "{" << naca->xla(pos) << "," << naca->yla(pos) << "}";
-        if(pos != int(naca->fX0[0] + naca->fCord)) cout << ",";
-    }
-    cout << "};" << endl;
-    cout << "B=ListPlot[NacaPtosDw, Joined -> True,AspectRatio -> 0.2];" << endl;
-}
+void MathOutUP(TPZBlendNACA * naca);
+void MathOutDW(TPZBlendNACA * naca);
 
 
-void ApplyDisplacements(TPZCompMesh & cmesh);
+//   int ElMat = 1;
+//   int PreDistribMat = 1;
+//   int PreDistribAnelMat = 1;
 
-TPZCompMesh * SquareMesh();
+//   int ElMat = 1;
+//   int PreDistribMat = 2;
+//   int PreDistribAnelMat = 3;
 
-TPZCompMesh * SpiralMesh();
+//   int Nonemat = -8;
+//   int Dotmat = -9;
+//   int PNmat = -8;
+//   int PD2mat = PNmat;
+//   int TTmat = Nonemat;
+//   int PDmat = Nonemat;
+//   int FFmat = Nonemat;
+//   int FEmat = Nonemat;
+//   int PGmat = Nonemat;
+//   int Basemat = Nonemat;
+//   int RRBc = Nonemat;
 
+//   int TTmat = -2;
+//   int PDmat = -3;
+//   int FFmat = -4;
+//   int FEmat = -5;
+//   int PGmat = -6;
+//   int Basemat = -1;
+//   int RRBc = -7;
+//   int Dotmat = -9;
+
+struct MatIds
+ {
+   enum {ElMat =1, PreDistribMat = 2, PreDistribAnelMat = 3, Basemat = -1, TTmat = -2, PDmat = -3, FFmat = -4, FEmat = -5, PGmat = -6, RRBc = -7, PNmat = -8, Dotmat = -9, OutBound = -10, PD2mat = -11, Nonemat = -100};
+  std::map<int, int> fMat;
+  REAL f_rho;
+  MatIds()
+  {
+    SetFullLoad();
+  }
+  void SetFullLoad()
+  {
+    fMat[ElMat] = ElMat;
+    fMat[PreDistribMat] = PreDistribMat;
+    fMat[PreDistribAnelMat] = PreDistribAnelMat;
+    fMat[TTmat] = TTmat;
+    fMat[PDmat] = PDmat;
+    fMat[PD2mat] = PD2mat;
+    fMat[FFmat] = FFmat;
+    fMat[FEmat] = FEmat;
+    fMat[PGmat] = PGmat;
+    fMat[Basemat] = Basemat;
+    fMat[RRBc] = RRBc;
+    fMat[PNmat] = PNmat;
+    fMat[OutBound] = Nonemat;
+    fMat[Dotmat] = Dotmat;
+    f_rho = -0.025;
+  }
+  void SetInternalPressure()
+  {
+    fMat[ElMat] = ElMat;
+    fMat[PreDistribMat] = PreDistribMat;
+    fMat[PreDistribAnelMat] = PreDistribAnelMat;
+    fMat[TTmat] = Nonemat;
+    fMat[PDmat] = Nonemat;
+    fMat[PD2mat] = PNmat;
+    fMat[FFmat] = Nonemat;
+    fMat[FEmat] = Nonemat;
+    fMat[PGmat] = Nonemat;
+    fMat[Basemat] = Nonemat;
+    fMat[RRBc] = Nonemat;
+    fMat[PNmat] = PNmat;
+    fMat[OutBound] = Nonemat;
+    fMat[Dotmat] = Dotmat;
+    f_rho = 0.;
+  }
+  void SetHydrostatic()
+  {
+    fMat[ElMat] = ElMat;
+    fMat[PreDistribMat] = ElMat;
+    fMat[PreDistribAnelMat] = ElMat;
+    fMat[TTmat] = PNmat;
+    fMat[PDmat] = Nonemat;
+    fMat[PD2mat] = PNmat;
+    fMat[FFmat] = PNmat;
+    fMat[FEmat] = PNmat;
+    fMat[PGmat] = PNmat;
+    fMat[Basemat] = PNmat;
+    fMat[RRBc] = PNmat;
+    fMat[PNmat] = PNmat;
+    fMat[OutBound] = PNmat;
+    fMat[Dotmat] = Dotmat;
+    f_rho = 0.;
+  }
+ };
 /**
  * 
  * @param argc 
@@ -179,8 +241,14 @@ int main(int argc, char *argv[])
 #endif
 
 //     TPZCompMesh * cmesh = SquareMesh();
-    TPZCompMesh * cmesh = SpiralMesh();
-	cmesh->Reference()->InitializeRefPatterns();
+    MatIds start;
+//    start.SetInternalPressure();
+    TPZCompMesh * cmesh = SpiralMesh(start);
+
+//     TPZCompMesh *refmesh = TPZNonLinMultGridAnalysis::UniformlyRefineMesh (cmesh,1,4);
+//     delete cmesh;
+//     cmesh = refmesh;
+//     cmesh->LoadReferences();
 
 //////////////////////////////////////////////////////////////////////
 #ifdef LOG4CXX
@@ -205,7 +273,9 @@ int main(int argc, char *argv[])
 
                   if(allneigh.NElements() != 1)
                   {
-                          sout << endl << "Elemento: " << el << " Lado: " << side << " -> NOT Ok!" << endl;
+                          sout << endl << "Elemento: " << el << " dim " << El->Dimension() << " Lado: " << side << " -> NOT Ok!" << 
+                              " numero de elementos vizinhos " << allneigh.NElements() << 
+                              " sidenodes " << SideEl.SideNodeIndex(0) << " " << SideEl.SideNodeIndex(1) <<   endl;
                   }
               }
           }
@@ -223,19 +293,21 @@ int main(int argc, char *argv[])
     ///Inserindo os deslocamentos "na unha!"
 //     ApplyDisplacements(*cmesh);
 
-// #ifdef LOG4CXX
-// {
-//   std::stringstream sout;
-//   cmesh->Reference()->Print(sout);
-//   LOGPZ_DEBUG(logger,sout.str());
-// }
-// 
-//     {
-//         std::stringstream sout;
-//         cmesh->Print(sout);
-//         LOGPZ_DEBUG(logger,sout.str());
-//     }
-// #endif
+#ifdef LOG4CXX
+{
+  std::stringstream sout;
+  cmesh->Reference()->Print(sout);
+  LOGPZ_DEBUG(logger,sout.str());
+}
+
+
+    {
+        std::stringstream sout;
+        cmesh->Print(sout);
+        LOGPZ_DEBUG(logger,sout.str());
+    }
+#endif
+
 
 	
     TPZAnalysis an(cmesh);
@@ -257,7 +329,7 @@ int main(int argc, char *argv[])
     scalnames[4] = "MohrCoulomb";
     std::string plotfile("saida.dx");
     an.DefineGraphMesh(2,scalnames,vecnames,plotfile);
-    an.PostProcess(2);
+    an.PostProcess(3);
 
     std::ofstream out("malha.txt");
     an.Print("nothing",out);
@@ -266,8 +338,8 @@ int main(int argc, char *argv[])
 {
   std::stringstream sout;
   TPZVec<REAL> forces;
-  IntegralForces(cmesh, -8, forces);
-  sout << "\n===========================================================\n" << forces << "\n===========================================================\n";
+  IntegralForces(cmesh, MatIds::Basemat, forces);
+  sout << "\n===========================================================\n" << forces << " CalcArea " << CalcArea(cmesh) <<  "\n===========================================================\n";
   LOGPZ_DEBUG(logger,sout.str());
 }
 #endif
@@ -275,429 +347,6 @@ int main(int argc, char *argv[])
 ///End Malha Axi-simetrica
 
     return EXIT_SUCCESS;
-}
-
-
-void ApplyDisplacements(TPZCompMesh & cmesh)
-{
-      TPZElasticityAxiMaterial * AxiMat = (dynamic_cast<TPZElasticityAxiMaterial*>(cmesh.MaterialVec()[1].operator->()));
-      std::vector<REAL> AxisR = AxiMat->GetAxisR();
-      std::vector<REAL> AxisZ = AxiMat->GetAxisZ();
-      std::vector<REAL> Orig = AxiMat->GetOrigin();
-
-      double alpha = 0.1;
-
-      for(int compel = 0; compel < cmesh.NElements(); compel++)
-      {
-          for(int Conect = 0; Conect < cmesh.ElementVec()[compel]->NConnects(); Conect++)
-          {
-              TPZCompEl * cel = cmesh.ElementVec()[compel];
-              TPZGeoEl * gel = cel->Reference();
-
-              if(gel->SideDimension(Conect) == 0)
-              {
-                    int blockIndex = cel->Connect(Conect).SequenceNumber();
-                    int nsides = gel->NSides();
-                    TPZTransform Tr = gel->SideToSideTransform(Conect,nsides-1);
-                    TPZVec<REAL> From(0), To(gel->Dimension()), xco(3);
-                    Tr.Apply(From,To);
-                    gel->X(To,xco);
-
-                    double R = (xco[0] - Orig[0])*AxisR[0] + (xco[1] - Orig[1])*AxisR[1] + (xco[2] - Orig[2])*AxisR[2];
-                    double Z = (xco[0] - Orig[0])*AxisZ[0] + (xco[1] - Orig[1])*AxisZ[1] + (xco[2] - Orig[2])*AxisZ[2];
-
-                    cmesh.Block()(blockIndex,0,0,0) = alpha*R;
-                    cmesh.Block()(blockIndex,0,1,0) = alpha*Z;
-              }
-          }
-      }
-}
-
-
-
-
-
-
-
-
-
-
-TPZGeoMesh * DefaultMesh(double R)
-{
-    TPZGeoMesh * Mesh = new TPZGeoMesh;
-
-    int Qnodes = 15;
-    TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
-    for(int i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3);
-    TPZFMatrix Rot(3,3,0.);
-    TPZFMatrix IniVec1(3,1), IniVec2(3,1), IniVec3(3,1);
-    TPZFMatrix FinalVec(3,1);
-
-    double r00, r01, r10, r11, th;
-//     double Pi = atan(1.)*4.;
-
-    IniVec1(0,0) = 1.*R; IniVec1(1,0) = 0.; IniVec1(2,0) = 0.;
-    IniVec2(0,0) = 2.*R; IniVec2(1,0) = 0.; IniVec2(2,0) = 0.;
-    IniVec3(0,0) = 3.*R; IniVec3(1,0) = 0.; IniVec3(2,0) = 0.;
-
-    for(int i = 0; i < 5; i++)
-    {
-        th = i*Pi/8.;
-        r00 = cos(th); r01 = -sin(th);
-        r10 = sin(th); r11 = cos(th);
-
-        Rot(0,0) = r00; Rot(0,1) = r01;
-        Rot(1,0) = r10; Rot(1,1) = r11; Rot(2,2) = 1.;
-
-        Rot.Multiply(IniVec1,FinalVec);
-        NodeCoord[3*i][0] = FinalVec(0,0);
-        NodeCoord[3*i][1] = FinalVec(1,0);
-        NodeCoord[3*i][2] = FinalVec(2,0);
-
-        Rot.Multiply(IniVec2,FinalVec);
-        NodeCoord[3*i+1][0] = FinalVec(0,0);
-        NodeCoord[3*i+1][1] = FinalVec(1,0);
-        NodeCoord[3*i+1][2] = FinalVec(2,0);
-
-        Rot.Multiply(IniVec3,FinalVec);
-        NodeCoord[3*i+2][0] = FinalVec(0,0);
-        NodeCoord[3*i+2][1] = FinalVec(1,0);
-        NodeCoord[3*i+2][2] = FinalVec(2,0);
-    }
-
-    Mesh->NodeVec().Resize(Qnodes);
-    TPZVec <TPZGeoNode> Node(Qnodes);
-    for(int n = 0; n < Qnodes; n++)
-    {
-        Node[n].SetNodeId(n);
-        Node[n].SetCoord(&NodeCoord[n][0]);
-        Mesh->NodeVec()[n] = Node[n];
-    }
-
-    TPZVec <int> Topol(4);
-
-    /// *********** CHOOSE MATERIAL FOR EACH ELEMENT ***********
-    int QuadMat = 1;
-    int arcMat = -1;
-    int id = 0;
-
-    ///Quadrilaterals
-    TPZVec< TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoQuad> > *> QuadEl(4);
-    for(int layer1 = 0; layer1 < 2; layer1++)
-    {
-        for(int layer2 = 0; layer2 < 2; layer2++)
-        {
-            Topol[0] =  6*layer1 + layer2; Topol[1] = Topol[0] + 1; Topol[2] = Topol[1] + 6; Topol[3] = Topol[0] + 6;
-            QuadEl[2*layer1 + layer2] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,QuadMat,*Mesh);
-            id++;
-        }
-    }
-
-    ///Arcs
-    Topol.Resize(3);
-    TPZVec <TPZGeoEl*> ArcEl(6);
-    for(int layer1 = 0; layer1 < 2; layer1++)
-    {
-        for(int layer2 = 0; layer2 < 3; layer2++)
-        {
-            Topol[0] = 6*layer1 + layer2;
-            Topol[1] = Topol[0] + 6;
-            Topol[2] = Topol[0] + 3;
-            ArcEl[3*layer1 + layer2] = new TPZGeoElRefPattern<TPZArc3D> (id,Topol,arcMat,*Mesh);
-            id++;
-        }
-    }
-
-    Mesh->BuildBlendConnectivity();
-
-    return Mesh;
-}
-
-TPZGeoMesh * CurvedTriangleMesh(double R)
-{
-    TPZGeoMesh * Mesh = new TPZGeoMesh;
-
-    int Qnodes = 8;
-    int Allnodes = 15; 
-    TPZVec < TPZVec <REAL> > NodeCoord(Allnodes);
-    for(int i = 0; i < Allnodes; i++) NodeCoord[i].Resize(3);
-    TPZFMatrix Rot(3,3,0.);
-    TPZFMatrix IniVec1(3,1), IniVec2(3,1), IniVec3(3,1);
-    TPZFMatrix FinalVec(3,1);
-
-    double r00, r01, r10, r11, th;
-//     double Pi = atan(1.)*4.;
-
-    IniVec1(0,0) = 1.*R; IniVec1(1,0) = 0.; IniVec1(2,0) = 0.;
-    IniVec2(0,0) = 2.*R; IniVec2(1,0) = 0.; IniVec2(2,0) = 0.;
-    IniVec3(0,0) = 3.*R; IniVec3(1,0) = 0.; IniVec3(2,0) = 0.;
-
-    for(int i = 0; i < 5; i++)
-    {
-        th = i*Pi/8.;
-        r00 = cos(th); r01 = -sin(th);
-        r10 = sin(th); r11 = cos(th);
-
-        Rot(0,0) = r00; Rot(0,1) = r01;
-        Rot(1,0) = r10; Rot(1,1) = r11; Rot(2,2) = 1.;
-
-        Rot.Multiply(IniVec1,FinalVec);
-        NodeCoord[3*i][0] = FinalVec(0,0);
-        NodeCoord[3*i][1] = FinalVec(1,0);
-        NodeCoord[3*i][2] = FinalVec(2,0);
-
-        Rot.Multiply(IniVec2,FinalVec);
-        NodeCoord[3*i+1][0] = FinalVec(0,0);
-        NodeCoord[3*i+1][1] = FinalVec(1,0);
-        NodeCoord[3*i+1][2] = FinalVec(2,0);
-
-        Rot.Multiply(IniVec3,FinalVec);
-        NodeCoord[3*i+2][0] = FinalVec(0,0);
-        NodeCoord[3*i+2][1] = FinalVec(1,0);
-        NodeCoord[3*i+2][2] = FinalVec(2,0);
-    }
-
-    Mesh->NodeVec().Resize(Qnodes);
-    TPZVec <TPZGeoNode> Node(Qnodes);
-
-    Node[0].SetNodeId(0);
-    Node[0].SetCoord(&NodeCoord[0][0]);
-    Mesh->NodeVec()[0] = Node[0];
-
-    Node[1].SetNodeId(1);
-    Node[1].SetCoord(&NodeCoord[2][0]);
-    Mesh->NodeVec()[1] = Node[1];
-
-    Node[2].SetNodeId(2);
-    Node[2].SetCoord(&NodeCoord[5][0]);
-    Mesh->NodeVec()[2] = Node[2];
-
-    NodeCoord[7][0] = R;
-    NodeCoord[7][1] = R;
-    NodeCoord[7][2] = 0.;
-    Node[3].SetNodeId(3);
-    Node[3].SetCoord(&NodeCoord[7][0]);
-    Mesh->NodeVec()[3] = Node[3];
-
-    Node[4].SetNodeId(4);
-    Node[4].SetCoord(&NodeCoord[8][0]);
-    Mesh->NodeVec()[4] = Node[4];
-
-    Node[5].SetNodeId(5);
-    Node[5].SetCoord(&NodeCoord[11][0]);
-    Mesh->NodeVec()[5] = Node[5];
-
-    Node[6].SetNodeId(6);
-    Node[6].SetCoord(&NodeCoord[12][0]);
-    Mesh->NodeVec()[6] = Node[6];
-
-    Node[7].SetNodeId(7);
-    Node[7].SetCoord(&NodeCoord[14][0]);
-    Mesh->NodeVec()[7] = Node[7];
-
-
-    TPZVec <int> Topol(3);
-
-    /// *********** CHOOSE MATERIAL FOR EACH ELEMENT ***********
-    int TrigMat = 1;
-    int CTrigMat = 2;
-    int arcMat = -1;
-    int id = 0;
-
-    ///Triangles
-    TPZVec< TPZGeoElRefLess<pzgeom::TPZGeoTriangle > *> TrigEl(2);
-    {
-        Topol[0] = 0; Topol[1] = 1; Topol[2] = 3;
-        TrigEl[0] = new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle > (id,Topol,TrigMat,*Mesh);
-        id++;
-
-        Topol[0] = 7; Topol[1] = 6; Topol[2] = 3;
-        TrigEl[1] = new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle > (id,Topol,TrigMat,*Mesh);
-        id++;
-    }
-
-    TPZVec< TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoTriangle> > *> BTrigEl(2);
-    {
-        Topol[0] = 1; Topol[1] = 4; Topol[2] = 3;
-        BTrigEl[0] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTriangle> > (id,Topol,TrigMat,*Mesh);
-        id++;
-
-        Topol[0] = 4; Topol[1] = 7; Topol[2] = 3;
-        BTrigEl[1] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTriangle> > (id,Topol,TrigMat,*Mesh);
-        id++;
-    }
-
-    TPZVec< TPZGeoElRefLess<TPZCurvedTriangle> *> CTrigEl(1);
-    {
-        Topol[0] = 3; Topol[1] = 6; Topol[2] = 0;
-        CTrigEl[0] = new TPZGeoElRefPattern<TPZCurvedTriangle > (id,Topol,CTrigMat,*Mesh);
-        id++;
-    }
-
-    ///Arcs
-    Topol.Resize(3);
-    TPZVec <TPZGeoEl*> ArcEl(2);
-
-    Topol[0] = 1;
-    Topol[1] = 4;
-    Topol[2] = 2;
-    ArcEl[0] = new TPZGeoElRefPattern<TPZArc3D> (id,Topol,arcMat,*Mesh);
-    id++;
-
-    Topol[0] = 4;
-    Topol[1] = 7;
-    Topol[2] = 5;
-    ArcEl[1] = new TPZGeoElRefPattern<TPZArc3D> (id,Topol,arcMat,*Mesh);
-
-    Mesh->BuildBlendConnectivity();
-
-    return Mesh;
-}
-
-TPZGeoMesh * BlendTriangleMesh(double R)
-{
-    TPZGeoMesh * Mesh = new TPZGeoMesh;
-
-    int Qnodes = 9;
-    int Allnodes = 15; 
-    TPZVec < TPZVec <REAL> > NodeCoord(Allnodes);
-    for(int i = 0; i < Allnodes; i++) NodeCoord[i].Resize(3);
-    TPZFMatrix Rot(3,3,0.);
-    TPZFMatrix IniVec1(3,1), IniVec2(3,1), IniVec3(3,1);
-    TPZFMatrix FinalVec(3,1);
-
-    double r00, r01, r10, r11, th;
-//     double Pi = atan(1.)*4.;
-
-    IniVec1(0,0) = 1.*R; IniVec1(1,0) = 0.; IniVec1(2,0) = 0.;
-    IniVec2(0,0) = 2.*R; IniVec2(1,0) = 0.; IniVec2(2,0) = 0.;
-    IniVec3(0,0) = 3.*R; IniVec3(1,0) = 0.; IniVec3(2,0) = 0.;
-
-    for(int i = 0; i < 5; i++)
-    {
-        th = i*Pi/8.;
-        r00 = cos(th); r01 = -sin(th);
-        r10 = sin(th); r11 = cos(th);
-
-        Rot(0,0) = r00; Rot(0,1) = r01;
-        Rot(1,0) = r10; Rot(1,1) = r11; Rot(2,2) = 1.;
-
-        Rot.Multiply(IniVec1,FinalVec);
-        NodeCoord[3*i][0] = FinalVec(0,0);
-        NodeCoord[3*i][1] = FinalVec(1,0);
-        NodeCoord[3*i][2] = FinalVec(2,0);
-
-        Rot.Multiply(IniVec2,FinalVec);
-        NodeCoord[3*i+1][0] = FinalVec(0,0);
-        NodeCoord[3*i+1][1] = FinalVec(1,0);
-        NodeCoord[3*i+1][2] = FinalVec(2,0);
-
-        Rot.Multiply(IniVec3,FinalVec);
-        NodeCoord[3*i+2][0] = FinalVec(0,0);
-        NodeCoord[3*i+2][1] = FinalVec(1,0);
-        NodeCoord[3*i+2][2] = FinalVec(2,0);
-    }
-
-    Mesh->NodeVec().Resize(Qnodes);
-    TPZVec <TPZGeoNode> Node(Qnodes);
-
-    Node[0].SetNodeId(0);
-    Node[0].SetCoord(&NodeCoord[0][0]);
-    Mesh->NodeVec()[0] = Node[0];
-
-    Node[1].SetNodeId(1);
-    Node[1].SetCoord(&NodeCoord[2][0]);
-    Mesh->NodeVec()[1] = Node[1];
-
-    Node[2].SetNodeId(2);
-    Node[2].SetCoord(&NodeCoord[5][0]);
-    Mesh->NodeVec()[2] = Node[2];
-
-    NodeCoord[7][0] = R;
-    NodeCoord[7][1] = R;
-    NodeCoord[7][2] = 0.;
-    Node[3].SetNodeId(3);
-    Node[3].SetCoord(&NodeCoord[7][0]);
-    Mesh->NodeVec()[3] = Node[3];
-
-    Node[4].SetNodeId(4);
-    Node[4].SetCoord(&NodeCoord[8][0]);
-    Mesh->NodeVec()[4] = Node[4];
-
-    Node[5].SetNodeId(5);
-    Node[5].SetCoord(&NodeCoord[11][0]);
-    Mesh->NodeVec()[5] = Node[5];
-
-    Node[6].SetNodeId(6);
-    Node[6].SetCoord(&NodeCoord[12][0]);
-    Mesh->NodeVec()[6] = Node[6];
-
-    Node[7].SetNodeId(7);
-    Node[7].SetCoord(&NodeCoord[14][0]);
-    Mesh->NodeVec()[7] = Node[7];
-
-    Node[8].SetNodeId(8);
-    Node[8].SetCoord(&NodeCoord[6][0]);
-    Mesh->NodeVec()[8] = Node[8];
-
-
-    TPZVec <int> Topol(3);
-
-    /// *********** CHOOSE MATERIAL FOR EACH ELEMENT ***********
-    int TrigMat = 1;
-    int arcMat = -1;
-    int id = 0;
-
-    ///Triangles
-    TPZVec< TPZGeoElRefLess<pzgeom::TPZGeoTriangle > *> TrigEl(2);
-    {
-        Topol[0] = 0; Topol[1] = 1; Topol[2] = 3;
-        TrigEl[0] = new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle > (id,Topol,TrigMat,*Mesh);
-        id++;
-
-        Topol[0] = 7; Topol[1] = 6; Topol[2] = 3;
-        TrigEl[1] = new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle > (id,Topol,TrigMat,*Mesh);
-        id++;
-    }
-
-    TPZVec< TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoTriangle> > *> BTrigEl(3);
-    {
-        Topol[0] = 1; Topol[1] = 4; Topol[2] = 3;
-        BTrigEl[0] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTriangle> > (id,Topol,TrigMat,*Mesh);
-        id++;
-
-        Topol[0] = 4; Topol[1] = 7; Topol[2] = 3;
-        BTrigEl[1] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTriangle> > (id,Topol,TrigMat,*Mesh);
-        id++;
-
-        Topol[0] = 0; Topol[1] = 3; Topol[2] = 6;
-        BTrigEl[2] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTriangle> > (id,Topol,TrigMat,*Mesh);
-        id++;
-    }
-
-    ///Arcs
-    Topol.Resize(3);
-    TPZVec <TPZGeoEl*> ArcEl(3);
-
-    Topol[0] = 1;
-    Topol[1] = 4;
-    Topol[2] = 2;
-    ArcEl[0] = new TPZGeoElRefPattern<TPZArc3D> (id,Topol,arcMat,*Mesh);
-    id++;
-
-    Topol[0] = 4;
-    Topol[1] = 7;
-    Topol[2] = 5;
-    ArcEl[1] = new TPZGeoElRefPattern<TPZArc3D> (id,Topol,arcMat,*Mesh);
-
-    Topol[0] = 0;
-    Topol[1] = 6;
-    Topol[2] = 8;
-    ArcEl[2] = new TPZGeoElRefPattern<TPZArc3D> (id,Topol,arcMat,*Mesh);
-
-    Mesh->BuildBlendConnectivity();
-
-    return Mesh;
 }
 
 void AuxEspiral(TPZVec <REAL> &vecIn, TPZVec <REAL> &vecOut, TPZVec <REAL> &C, double R)
@@ -712,10 +361,10 @@ void AuxEspiral(TPZVec <REAL> &vecIn, TPZVec <REAL> &vecOut, TPZVec <REAL> &C, d
 TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, double Cy,
                          double R, double h, double b, double Dx, double Dy, double e1,
                          double e2, double e3, double X1, double X2, double X3, double X4,
-                         double X5, double h1, double h2, double Py)
+                         double X5, double h1, double h2, double Py, double es, MatIds &mat)
 {
     TPZGeoMesh * Mesh = new TPZGeoMesh;
-    int Qnodes = 58;
+    int Qnodes = 62;
     TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
     for(int i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3);
 
@@ -897,16 +546,24 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
     NodeCoord[52][2] = Out[2];
 
     NodeCoord[53][0] = (2.*Cx + sqrt(-h*h + 4.*R*R))/2.;    NodeCoord[54][0] = Bt + e3 - b;
-    NodeCoord[53][1] = Cy - h/2.;                           NodeCoord[54][1] = Cy;
+    NodeCoord[53][1] = Cy - h/2.;                           NodeCoord[54][1] = Cy - h/2. + es;
     NodeCoord[53][2] = 0.;                                  NodeCoord[54][2] = 0.;
 
     NodeCoord[55][0] = (2.*Cx + sqrt(-h*h + 4.*R*R))/2.;    NodeCoord[56][0] = Bt;
-    NodeCoord[55][1] = Cy;                                  NodeCoord[56][1] = Cy;
+    NodeCoord[55][1] = Cy - h/2. + es;                      NodeCoord[56][1] = Cy - h/2. + es;
     NodeCoord[55][2] = 0.;                                  NodeCoord[56][2] = 0.;
 
-    NodeCoord[57][0] = Bt + e3;
-    NodeCoord[57][1] = Cy;
-    NodeCoord[57][2] = 0.;
+    NodeCoord[57][0] = Bt + e3;                             NodeCoord[58][0] = Bt + e3 - b;
+    NodeCoord[57][1] = Cy - h/2. + es;                      NodeCoord[58][1] = Cy + h/2. - es;
+    NodeCoord[57][2] = 0.;                                  NodeCoord[58][2] = 0.;
+
+    NodeCoord[59][0] = (2.*Cx + sqrt(-h*h + 4.*R*R))/2.;    NodeCoord[60][0] = Bt;
+    NodeCoord[59][1] = Cy + h/2. - es;                      NodeCoord[60][1] = Cy + h/2. - es;
+    NodeCoord[59][2] = 0.;                                  NodeCoord[60][2] = 0.;
+
+    NodeCoord[61][0] = Bt + e3;                             NodeCoord[58][0] = Bt + e3 - b;
+    NodeCoord[61][1] = Cy + h/2. - es;                      NodeCoord[58][1] = Cy + h/2. - es;
+    NodeCoord[61][2] = 0.;
     //Ufa!!!!!!!!!!!!!!
 
     Mesh->NodeVec().Resize(Qnodes);
@@ -920,145 +577,148 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
 
     TPZVec <int> Topol(4);
     /// *********** CHOOSE MATERIAL FOR EACH ELEMENT ***********
-    int ElMat = 1;
-    int PreDistribMat = 1;
-
-    int Nonemat = -1;
-    int PNmat = -1;
-    int TTmat = -1;
-    int PDmat = -1;
-    int FFmat = -1;
-    int FEmat = -1;
-    int PGmat = -7;
-    int Basemat = -8;
-    int Dotmat = -1;
 
     int id = 0;
     ///Quadrilaterals
     {
         //El0
         Topol[0] = 22; Topol[1] = 0; Topol[2] = 47; Topol[3] = 45;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El1
         Topol[0] = 0; Topol[1] = 1; Topol[2] = 49; Topol[3] = 47;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El2
         Topol[0] = 1; Topol[1] = 2; Topol[2] = 51; Topol[3] = 49;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El3
         Topol[0] = 2; Topol[1] = 3; Topol[2] = 8; Topol[3] = 51;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El4
         Topol[0] = 3; Topol[1] = 4; Topol[2] = 7; Topol[3] = 8;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El5
         Topol[0] = 4; Topol[1] = 5; Topol[2] = 6; Topol[3] = 7;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El6
         Topol[0] = 8; Topol[1] = 9; Topol[2] = 53; Topol[3] = 51;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El7
         Topol[0] = 24; Topol[1] = 53; Topol[2] = 55; Topol[3] = 54;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,PreDistribMat,*Mesh);
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::PreDistribAnelMat],*Mesh);
         id++;
 
         //El8
         Topol[0] = 53; Topol[1] = 9; Topol[2] = 56; Topol[3] = 55;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,PreDistribMat,*Mesh);
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::PreDistribAnelMat],*Mesh);
         id++;
 
         //El9
         Topol[0] = 9; Topol[1] = 23; Topol[2] = 57; Topol[3] = 56;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,PreDistribMat,*Mesh);
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::PreDistribAnelMat],*Mesh);
         id++;
 
         //El10
-        Topol[0] = 54; Topol[1] = 55; Topol[2] = 29; Topol[3] = 25;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,PreDistribMat,*Mesh);
+        Topol[0] = 54; Topol[1] = 55; Topol[2] = 59; Topol[3] = 58;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::PreDistribAnelMat],*Mesh);
         id++;
 
         //El11
-        Topol[0] = 55; Topol[1] = 56; Topol[2] = 10; Topol[3] = 29;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,PreDistribMat,*Mesh);
+        Topol[0] = 55; Topol[1] = 56; Topol[2] = 60; Topol[3] = 59;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::PreDistribMat],*Mesh);
         id++;
 
         //El12
-        Topol[0] = 56; Topol[1] = 57; Topol[2] = 26; Topol[3] = 10;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,PreDistribMat,*Mesh);
+        Topol[0] = 56; Topol[1] = 57; Topol[2] = 61; Topol[3] = 60;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::PreDistribMat],*Mesh);
         id++;
 
         //El13
-        Topol[0] = 10; Topol[1] = 11; Topol[2] = 31; Topol[3] = 29;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        Topol[0] = 58; Topol[1] = 59; Topol[2] = 29; Topol[3] = 25;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::PreDistribAnelMat],*Mesh);
         id++;
 
         //El14
-        Topol[0] = 11; Topol[1] = 28; Topol[2] = 33; Topol[3] = 31;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        Topol[0] = 59; Topol[1] = 60; Topol[2] = 10; Topol[3] = 29;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::PreDistribAnelMat],*Mesh);
         id++;
 
         //El15
-        Topol[0] = 11; Topol[1] = 12; Topol[2] = 13; Topol[3] = 28;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        Topol[0] = 60; Topol[1] = 61; Topol[2] = 26; Topol[3] = 10;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::PreDistribAnelMat],*Mesh);
         id++;
 
         //El16
-        Topol[0] = 28; Topol[1] = 27; Topol[2] = 35; Topol[3] = 33;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        Topol[0] = 10; Topol[1] = 11; Topol[2] = 31; Topol[3] = 29;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El17
-        Topol[0] = 13; Topol[1] = 14; Topol[2] = 27; Topol[3] = 28;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        Topol[0] = 11; Topol[1] = 28; Topol[2] = 33; Topol[3] = 31;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El18
-        Topol[0] = 27; Topol[1] = 16; Topol[2] = 37; Topol[3] = 35;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        Topol[0] = 11; Topol[1] = 12; Topol[2] = 13; Topol[3] = 28;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El19
-        Topol[0] = 14; Topol[1] = 15; Topol[2] = 16; Topol[3] = 27;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        Topol[0] = 28; Topol[1] = 27; Topol[2] = 35; Topol[3] = 33;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El20
-        Topol[0] = 16; Topol[1] = 17; Topol[2] = 39; Topol[3] = 37;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        Topol[0] = 13; Topol[1] = 14; Topol[2] = 27; Topol[3] = 28;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El21
-        Topol[0] = 17; Topol[1] = 20; Topol[2] = 41; Topol[3] = 39;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        Topol[0] = 27; Topol[1] = 16; Topol[2] = 37; Topol[3] = 35;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El22
-        Topol[0] = 17; Topol[1] = 18; Topol[2] = 19; Topol[3] = 20;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        Topol[0] = 14; Topol[1] = 15; Topol[2] = 16; Topol[3] = 27;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El23
-        Topol[0] = 20; Topol[1] = 21; Topol[2] = 43; Topol[3] = 41;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        Topol[0] = 16; Topol[1] = 17; Topol[2] = 39; Topol[3] = 37;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
 
         //El24
+        Topol[0] = 17; Topol[1] = 20; Topol[2] = 41; Topol[3] = 39;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
+        id++;
+
+        //El25
+        Topol[0] = 17; Topol[1] = 18; Topol[2] = 19; Topol[3] = 20;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
+        id++;
+
+        //El26
+        Topol[0] = 20; Topol[1] = 21; Topol[2] = 43; Topol[3] = 41;
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
+        id++;
+
+        //El27
         Topol[0] = 21; Topol[1] = 22; Topol[2] = 45; Topol[3] = 43;
-        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,ElMat,*Mesh);
+        new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,Topol,mat.fMat[MatIds::ElMat],*Mesh);
         id++;
     }
 
@@ -1068,73 +728,73 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
     Topol[0] = 31;
     Topol[1] = 29;
     Topol[2] = 30;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 33;
     Topol[1] = 31;
     Topol[2] = 32;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 35;
     Topol[1] = 33;
     Topol[2] = 34;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 37;
     Topol[1] = 35;
     Topol[2] = 36;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 39;
     Topol[1] = 37;
     Topol[2] = 38;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 41;
     Topol[1] = 39;
     Topol[2] = 40;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 43;
     Topol[1] = 41;
     Topol[2] = 42;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 45;
     Topol[1] = 43;
     Topol[2] = 44;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 47;
     Topol[1] = 45;
     Topol[2] = 46;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 49;
     Topol[1] = 47;
     Topol[2] = 48;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 51;
     Topol[1] = 49;
     Topol[2] = 50;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 53;
     Topol[1] = 51;
     Topol[2] = 52;
-    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZArc3D> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
 #else
@@ -1143,62 +803,62 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
 
     Topol[0] = 31;
     Topol[1] = 29;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 33;
     Topol[1] = 31;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 35;
     Topol[1] = 33;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 37;
     Topol[1] = 35;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 39;
     Topol[1] = 37;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 41;
     Topol[1] = 39;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 43;
     Topol[1] = 41;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 45;
     Topol[1] = 43;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 47;
     Topol[1] = 45;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 49;
     Topol[1] = 47;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 51;
     Topol[1] = 49;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
     Topol[0] = 53;
     Topol[1] = 51;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PNmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PNmat],*Mesh);
     id++;
 
 #endif
@@ -1207,162 +867,172 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
 
     Topol[0] = 0;
     Topol[1] = 1;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Basemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::Basemat],*Mesh);
     id++;
 
     Topol[0] = 1;
     Topol[1] = 2;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Basemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::Basemat],*Mesh);
     id++;
 
     Topol[0] = 2;
     Topol[1] = 3;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 3;
     Topol[1] = 4;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 4;
     Topol[1] = 5;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 5;
     Topol[1] = 6;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,TTmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::TTmat],*Mesh);
     id++;
 
     Topol[0] = 6;
     Topol[1] = 7;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 7;
     Topol[1] = 8;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 8;
     Topol[1] = 9;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 9;
     Topol[1] = 23;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 23;
     Topol[1] = 57;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 57;
+    Topol[1] = 61;
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
+    id++;
+
+    Topol[0] = 61;
     Topol[1] = 26;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 26;
     Topol[1] = 10;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 10;
     Topol[1] = 11;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 11;
     Topol[1] = 12;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 12;
     Topol[1] = 13;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 13;
     Topol[1] = 14;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 14;
     Topol[1] = 15;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,FFmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::FFmat],*Mesh);
     id++;
 
     Topol[0] = 15;
     Topol[1] = 16;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 16;
     Topol[1] = 17;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,FEmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::FEmat],*Mesh);
     id++;
 
     Topol[0] = 17;
     Topol[1] = 18;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 18;
     Topol[1] = 19;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PGmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PGmat],*Mesh);
     id++;
 
     Topol[0] = 19;
     Topol[1] = 20;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 20;
     Topol[1] = 21;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::OutBound],*Mesh);
     id++;
 
     Topol[0] = 21;
     Topol[1] = 22;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::RRBc],*Mesh);
     id++;
 
     Topol[0] = 22;
     Topol[1] = 0;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::RRBc],*Mesh);
     id++;
 
     Topol[0] = 29;
     Topol[1] = 25;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PD2mat],*Mesh);
     id++;
 
     Topol[0] = 25;
+    Topol[1] = 58;
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PD2mat],*Mesh);
+    id++;
+
+    Topol[0] = 58;
     Topol[1] = 54;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PD2mat],*Mesh);
     id++;
 
     Topol[0] = 54;
     Topol[1] = 24;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PD2mat],*Mesh);
     id++;
 
     Topol[0] = 24;
     Topol[1] = 53;
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,Nonemat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PD2mat],*Mesh);
     id++;
 
-//     Topol[0] = 53;
-//     Topol[1] = 9;
-//     new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,PDmat,*Mesh);
-//     id++;
+     Topol[0] = 53;
+     Topol[1] = 9;
+     new TPZGeoElRefPattern<TPZGeoLinear> (id,Topol,mat.fMat[MatIds::PDmat],*Mesh);
+     id++;
 
     Topol.Resize(1);
     Topol[0] = 0;
-    new TPZGeoElRefPattern<TPZGeoPoint> (id,Topol,Dotmat,*Mesh);
+    new TPZGeoElRefPattern<TPZGeoPoint> (id,Topol,mat.fMat[MatIds::Dotmat],*Mesh);
 
     Mesh->BuildBlendConnectivity();
 
@@ -1421,904 +1091,411 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
     return Mesh;
 }
 
-#include "pzgeoelrefless.h.h"
-///CreateGeoElement -> TPZArc3D
-template< >
-TPZGeoEl *TPZGeoElRefLess<TPZArc3D >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+TPZCompMesh * SquareMesh()
 {
-    TPZGeoMesh &mesh = *(this->Mesh());
-    if(!&mesh) return 0;
-    return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+  TPZGeoMesh * gmesh = new TPZGeoMesh;
+
+  int Qnodes = 4;
+  TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
+  for(int i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3,0.);
+  NodeCoord[0][0] = 1.0; NodeCoord[0][1] = 0.5;
+  NodeCoord[1][0] = 1.5; NodeCoord[1][1] = 0.5;
+  NodeCoord[2][0] = 1.5; NodeCoord[2][1] = 4.5;
+  NodeCoord[3][0] = 1.0; NodeCoord[3][1] = 4.5; // *** o eixo de revolucao serah o eixo Y !!!
+
+  gmesh->NodeVec().Resize(Qnodes);
+  TPZVec <TPZGeoNode> Node(Qnodes);
+  for(int n = 0; n < Qnodes; n++)
+  {
+    Node[n].SetNodeId(n);
+    Node[n].SetCoord(&NodeCoord[n][0]);
+    gmesh->NodeVec()[n] = Node[n];
+  }
+
+    //TOPOLOGIES
+  TPZVec <int> QTopol(4), DownTopol(2), ExtTopol(2), UpTopol(2), IntTopol(2);
+  for(int t = 0; t < 4; t++) QTopol[t] = t;
+  DownTopol[0] = 0; DownTopol[1] = 1;
+  ExtTopol[0] = 1;  ExtTopol[1] = 2;
+  UpTopol[0] = 2;   UpTopol[1] = 3;
+  IntTopol[0] = 3;  IntTopol[1] = 0;
+
+    //MATERIALS Id's
+  int QuadMat =  1;
+  int DownMat = -1;
+  int ExtMat  = -2;
+  int UpMat   = -3;
+  int IntMat  = -4;
+  int DotMat = -5;
+
+    //Quadrilateral
+  int id = 0;
+  TPZGeoEl * QuadEl = new TPZGeoElRefPattern<TPZGeoQuad> (id,QTopol,QuadMat,*gmesh);
+  id++;
+
+    //BC Bottom Side
+  TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoLinear> > * BCdownEl = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (id,DownTopol,DownMat,*gmesh);
+  id++;
+
+    //BC External Side
+  TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoLinear> > * BCextEl = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (id,ExtTopol,ExtMat,*gmesh);
+  id++;
+
+    //BC Upper Side
+  TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoLinear> > * BCupEl = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (id,UpTopol,UpMat,*gmesh);
+  id++;
+
+    //BC Internal Side
+  TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoLinear> > * BCintEl = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (id,IntTopol,IntMat,*gmesh);
+  id++;
+
+  TPZGeoElBC(QuadEl,0,DotMat,*gmesh);
+  gmesh->BuildConnectivity();
+//**************************
+
+///Materials
+  REAL fx = 0., fy = 0.;
+  TPZAutoPointer<TPZMaterial> mat = new TPZElasticityAxiMaterial(QuadMat, 2500., 0.0, fx, fy);
+
+  vector<REAL> Orig(3);  Orig[0] = 2.5; Orig[1] = 0.; Orig[2] = 0.;
+  vector<REAL> AxisZ(3); AxisZ[0] = 0.; AxisZ[1] = 1.; AxisZ[2] = 0.;
+  vector<REAL> AxisR(3); AxisR[0] = 1.; AxisR[1] = 0.; AxisR[2] = 0.;
+
+  (dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->()))->SetOrigin(Orig, AxisZ, AxisR);
+
+  TPZFMatrix Bval1(2,2,0.), Bval2(2,1,0.);
+  Bval2(0,0) = 1.;
+  TPZAutoPointer<TPZMaterial> bcmatB = mat->CreateBC(mat, DownMat, 3, Bval1, Bval2);
+
+  TPZFMatrix Uval1(2,2,0.), Uval2(2,1,0.);
+  Uval2(0,0) = 1.;
+  TPZAutoPointer<TPZMaterial> bcmatE = mat->CreateBC(mat, ExtMat, 3, Uval1, Uval2);
+
+  TPZFMatrix Eval1(2,2,0.), Eval2(2,1,0.);
+  Eval2(0,0) = 1.;
+  TPZAutoPointer<TPZMaterial> bcmatU = mat->CreateBC(mat, UpMat, 3, Eval1, Eval2);
+
+  TPZFMatrix Ival1(2,2,0.), Ival2(2,1,0.);
+  Ival2(0,0) = 1.;
+  TPZAutoPointer<TPZMaterial> bcmatI = mat->CreateBC(mat, IntMat, 3, Ival1, Ival2);
+
+  TPZFMatrix Dval1(2,2,0.), Dval2(2,1,0.);
+  Dval2(1,1) = 1.e-10;
+  TPZAutoPointer<TPZMaterial> Dotmat = mat->CreateBC(mat, DotMat, 2, Dval1, Dval2);
+//**************************
+
+///Computacional Mesh
+  const int dim = 2;
+  TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+  cmesh->InsertMaterialObject(mat);
+  cmesh->InsertMaterialObject(bcmatB);
+  cmesh->InsertMaterialObject(bcmatE);
+  cmesh->InsertMaterialObject(bcmatU);
+  cmesh->InsertMaterialObject(bcmatI);
+//**************************
+
+  TPZCompEl::SetgOrder(2);
+  cmesh->AutoBuild();
+
+  return cmesh;
 }
 
-    #define TPZGEOELEMENTARC3DID 300
-    template<>
-    int TPZGeoElRefPattern<TPZArc3D>::ClassId() const {
-        return TPZGEOELEMENTARC3DID;
-    }
-    template class 
-    TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
-
-    template<>
-    TPZCompEl *(*TPZGeoElRefLess<TPZArc3D>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
-
-    template class TPZGeoElRefLess<TPZArc3D>;
-
-
-///CreateGeoElement -> TPZEllipse
-template< >
-TPZGeoEl *TPZGeoElRefLess<TPZEllipse >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+TPZCompMesh * SpiralMesh(MatIds &MatId)
 {
-    TPZGeoMesh &mesh = *(this->Mesh());
-    if(!&mesh) return 0;
-    return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+/*  int ElMat = 1;
+  int PreDistribMat = 2;
+  int PreDistribAnelMat = 3;
+
+  int Nonemat = -100;
+  int Dotmat = -9;
+  int PNmat = -8;
+  int TTmat = -2;
+  int PDmat = -3;
+  int PD2mat = -8;
+  int FFmat = -4;
+  int FEmat = -5;
+  int PGmat = -6;
+  int Basemat = -1;
+  int RRBc = -7;*/
+  
+  
+  ///Geometria Caixa Espiral 2D
+
+  double Bb = 8.6; double Hr = 10.8; double Bt = 8.4; double Hl = 10.15; double Cx = 4.9; double Cy = 5.9; double R = 3.4;
+  double h = 2.1; double b = 0.55; double Dx = 0.65; double Dy = 3.5; double e1 = 0.25; double e2 = 0.45; double e3 = 0.1;
+  double X1 = 3.8; double X2 = 1.; double X3 = 1.9; double X4 = 0.6; double X5 = 0.3; double h1 = 0.45; double h2 = 0.45; double Py = 3.3; double es = 0.1;
+  TPZGeoMesh * gmesh = CxEspiral2D(Bb, Hr, Bt, Hl, Cx, Cy, R, h, b, Dx, Dy, e1, e2, e3, X1, X2, X3, X4, X5, h1, h2, Py, es, MatId);
+
+///Materials
+  REAL fx = 0., fy = MatId.f_rho; //fy = -0.025;
+
+  double E = 18.5*1000.; // Young modulus = 18.5 GPa = 18.5*10^3 MPa
+  double nu = 0.2; // poisson coefficient
+
+
+  TPZAutoPointer<TPZMaterial> mat = new TPZElasticityAxiMaterial(MatIds::ElMat, E, nu, fx, fy);
+  TPZElasticityAxiMaterial *aximat = dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->());
+  vector<REAL> Orig(3);  Orig[0] = 15.;  Orig[1] = 0.;  Orig[2] = 0.;
+  vector<REAL> AxisZ(3); AxisZ[0] = 0.; AxisZ[1] = 1.; AxisZ[2] = 0.;
+  vector<REAL> AxisR(3); AxisR[0] = -1.; AxisR[1] = 0.; AxisR[2] = 0.;
+  aximat->SetOrigin(Orig, AxisZ, AxisR);
+  REAL EPre = 0.116 * 210.e3;
+  REAL nuPre = 0.2;
+  TPZAutoPointer<TPZMaterial> mat2 = new TPZElasticityAxiMaterial(MatIds::PreDistribMat, EPre, nuPre, fx, fy);
+  TPZElasticityAxiMaterial *aximat2 = dynamic_cast<TPZElasticityAxiMaterial*>(mat2.operator->());
+  aximat2->SetOrigin(Orig, AxisZ, AxisR);
+  REAL EPreAnel = 210.e3;
+  REAL nuPreAnel = 0.2;
+  TPZAutoPointer<TPZMaterial> mat3 = new TPZElasticityAxiMaterial(MatIds::PreDistribAnelMat, EPreAnel, nuPreAnel, fx, fy);
+  TPZElasticityAxiMaterial *aximat3 = dynamic_cast<TPZElasticityAxiMaterial*>(mat3.operator->());
+  aximat3->SetOrigin(Orig, AxisZ, AxisR);
+
+  //MohrCoulomb data
+  double phi = M_PI/6.;
+  double fc = 15./1.4;//15./1.4; //fck = 15 MPa, fc = fck/1.4
+  double c = fc*(1. - sin(phi))/(2.*cos(phi));
+  aximat->SetMohrCoulomb(c,phi);
+  aximat2->SetMohrCoulomb(0.,0.);
+  aximat3->SetMohrCoulomb(0.,0.);
+
+  TPZFMatrix Base1(2,2,0.), Base2(2,1,0.);
+  Base1(1,1) = 1.E9;
+  TPZAutoPointer<TPZMaterial> bcmatBase = mat->CreateBC(mat, MatIds::Basemat, 2, Base1, Base2);
+
+  TPZFMatrix PGForce1(2,2,0.), PGForce2(2,1,0.);
+  PGForce2(1,0) = -700.e-3;
+  TPZAutoPointer<TPZMaterial> bcmatPGForce = mat->CreateBC(mat, MatIds::PGmat, 1, PGForce1, PGForce2);
+
+  TPZFMatrix FEForce1(2,2,0.), FEForce2(2,1,0.);
+  FEForce2(1,0) = -53.41e-3;
+  TPZAutoPointer<TPZMaterial> bcmatFEForce = mat->CreateBC(mat, MatIds::FEmat, 1, FEForce1, FEForce2);
+
+  TPZFMatrix FFForce1(2,2,0.), FFForce2(2,1,0.);
+  FFForce2(1,0) = -254.94e-3;
+  TPZAutoPointer<TPZMaterial> bcmatFFForce = mat->CreateBC(mat, MatIds::FFmat, 1, FFForce1, FFForce2);
+
+  TPZFMatrix PDForce1(2,2,0.), PDForce2(2,1,0.);
+  PDForce2(1,0) = -2759.68e-3;
+  TPZAutoPointer<TPZMaterial> bcmatPDForce = mat->CreateBC(mat, MatIds::PDmat, 1, PDForce1, PDForce2);
+
+  TPZFMatrix TTForce1(2,2,0.), TTForce2(2,1,0.);
+  TTForce2(1,0) = -61.04e-3;
+  TPZAutoPointer<TPZMaterial> bcmatTTForce = mat->CreateBC(mat, MatIds::TTmat, 1, TTForce1, TTForce2);
+
+  TPZFMatrix RRForce1(2,2,0.), RRForce2(2,1,0.);
+  RRForce1(0,0) = 1.e9;
+  TPZAutoPointer<TPZMaterial> bcmatRR = mat->CreateBC(mat, MatIds::RRBc, 1, RRForce1, RRForce2);
+
+  TPZFMatrix PNForce1(2,2,0.), PNForce2(2,1,0.);
+  PNForce2(0,0) = 0.0;//Sem Pressao Interna
+//   PNForce2(0,0) = 0.286;//Sem Golpe com Alivio
+//   PNForce2(0,0) = 0.434;//Com Golpe com Alivio
+//   PNForce2(0,0) = 0.565;//Sem Golpe sem Alivio
+//   PNForce2(0,0) = 0.750;//Com Golpe sem Alivio
+
+  TPZAutoPointer<TPZMaterial> bcmatPNForce = mat->CreateBC(mat, MatIds::PNmat, 3, PNForce1, PNForce2);
+
+  TPZFMatrix Dot1(2,2,0.), Dot2(2,1,0.);
+  Dot1(1,1) = 0.01;
+  TPZAutoPointer<TPZMaterial> bcmatDot = mat->CreateBC(mat, MatIds::Dotmat, 2, Dot1, Dot2);
+//**************************
+
+///Computational Mesh
+  const int dim = 2;
+  TPZCompEl::SetgOrder(6);
+  TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+  cmesh->InsertMaterialObject(mat);
+  cmesh->InsertMaterialObject(mat2);
+  cmesh->InsertMaterialObject(mat3);
+  cmesh->InsertMaterialObject(bcmatBase);
+  cmesh->InsertMaterialObject(bcmatPGForce);
+  cmesh->InsertMaterialObject(bcmatPNForce);
+  cmesh->InsertMaterialObject(bcmatFEForce);
+  cmesh->InsertMaterialObject(bcmatFFForce);
+  cmesh->InsertMaterialObject(bcmatPDForce);
+  cmesh->InsertMaterialObject(bcmatTTForce);
+  cmesh->InsertMaterialObject(bcmatRR);
+  cmesh->InsertMaterialObject(bcmatDot);
+//**************************
+
+  cmesh->AutoBuild();
+
+  return cmesh; 
 }
 
-    #define TPZGEOELEMENTELLIPSEID 301
-    template<>
-    int TPZGeoElRefPattern<TPZEllipse>::ClassId() const
+void ApplyDisplacements(TPZCompMesh & cmesh)
+{
+  TPZElasticityAxiMaterial * AxiMat = (dynamic_cast<TPZElasticityAxiMaterial*>(cmesh.MaterialVec()[1].operator->()));
+  std::vector<REAL> AxisR = AxiMat->GetAxisR();
+  std::vector<REAL> AxisZ = AxiMat->GetAxisZ();
+  std::vector<REAL> Orig = AxiMat->GetOrigin();
+
+  double alpha = 0.1;
+
+  for(int compel = 0; compel < cmesh.NElements(); compel++)
+  {
+    for(int Conect = 0; Conect < cmesh.ElementVec()[compel]->NConnects(); Conect++)
     {
-        return TPZGEOELEMENTELLIPSEID;
+      TPZCompEl * cel = cmesh.ElementVec()[compel];
+      TPZGeoEl * gel = cel->Reference();
+
+      if(gel->SideDimension(Conect) == 0)
+      {
+        int blockIndex = cel->Connect(Conect).SequenceNumber();
+        int nsides = gel->NSides();
+        TPZTransform Tr = gel->SideToSideTransform(Conect,nsides-1);
+        TPZVec<REAL> From(0), To(gel->Dimension()), xco(3);
+        Tr.Apply(From,To);
+        gel->X(To,xco);
+
+        double R = (xco[0] - Orig[0])*AxisR[0] + (xco[1] - Orig[1])*AxisR[1] + (xco[2] - Orig[2])*AxisR[2];
+        double Z = (xco[0] - Orig[0])*AxisZ[0] + (xco[1] - Orig[1])*AxisZ[1] + (xco[2] - Orig[2])*AxisZ[2];
+
+        cmesh.Block()(blockIndex,0,0,0) = alpha*R;
+        cmesh.Block()(blockIndex,0,1,0) = alpha*Z;
+      }
     }
-    template class 
-    TPZRestoreClass< TPZGeoElRefPattern<TPZEllipse>, TPZGEOELEMENTELLIPSEID>;
-
-    template<>
-    TPZCompEl *(*TPZGeoElRefLess<TPZEllipse>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
-
-    template class TPZGeoElRefLess<TPZEllipse>;
-
-
-///CreateGeoElement -> TPZCurvedTriangle
-template< >
-TPZGeoEl *TPZGeoElRefLess<TPZCurvedTriangle >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
-{
-    TPZGeoMesh &mesh = *(this->Mesh());
-    if(!&mesh) return 0;
-    return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+  }
 }
-
-    #define TPZGEOELEMENTCURVEDTRIANGLEID 302
-    template<>
-    int TPZGeoElRefPattern<TPZCurvedTriangle>::ClassId() const {
-        return TPZGEOELEMENTCURVEDTRIANGLEID;
-    }
-    template class 
-    TPZRestoreClass< TPZGeoElRefPattern<TPZCurvedTriangle>, TPZGEOELEMENTCURVEDTRIANGLEID>;
-
-    template<>
-    TPZCompEl *(*TPZGeoElRefLess<TPZCurvedTriangle>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
-
-    template class TPZGeoElRefLess<TPZCurvedTriangle>;
-
-
-
-///CreateGeoElement -> TPZGeoBlend
-#define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
-template< > \
-TPZGeoEl *TPZGeoElRefLess<TPZGeoBlend<TGEO> >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index) \
-{ \
-    TPZGeoMesh &mesh = *(this->Mesh()); \
-    if(!&mesh) return 0; \
-    return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index); \
-} \
-\
-    template<> \
-    int TPZGeoElRefPattern<TPZGeoBlend<TGEO>  >::ClassId() const { \
-        return CLASSID; \
-    } \
-    template class \
-    TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >, CLASSID>; \
-\
-    template<> \
-    TPZCompEl *(*TPZGeoElRefLess<TPZGeoBlend<TGEO> >::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CREATEFUNCTION; \
-\
-    template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;
-
-#define TPZGEOBLENDPOINTID 303
-#define TPZGEOBLENDLINEARID 304
-#define TPZGEOBLENDQUADID 305
-#define TPZGEOBLENDTRIANGLEID 306
-#define TPZGEOBLENDCUBEID 307
-#define TPZGEOBLENDPRISMID 308
-#define TPZGEOBLENDPYRAMIDID 309
-#define TPZGEOBLENDTETRAHEDRAID 310
-
-IMPLEMENTBLEND(pzgeom::TPZGeoPoint,TPZGEOBLENDPOINTID,CreatePointEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoLinear,TPZGEOBLENDLINEARID,CreateLinearEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoQuad,TPZGEOBLENDQUADID,CreateQuadEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoTriangle,TPZGEOBLENDTRIANGLEID,CreateTriangleEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoCube,TPZGEOBLENDCUBEID,CreateCubeEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoPrism,TPZGEOBLENDPRISMID,CreatePrismEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,TPZGEOBLENDPYRAMIDID,CreatePyramEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,TPZGEOBLENDTETRAHEDRAID,CreateTetraEl)
-
-
-///CreateGeoElement -> TPZQuadraticQuad
-template< >
-TPZGeoEl *TPZGeoElRefLess<TPZQuadraticQuad >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
-{
-    TPZGeoMesh &mesh = *(this->Mesh());
-    if(!&mesh) return 0;
-    return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-}
-
-    #define TPZGEOELEMENTQUADRATICQUADID 311
-    template<>
-    int TPZGeoElRefPattern<TPZQuadraticQuad>::ClassId() const {
-        return TPZGEOELEMENTQUADRATICQUADID;
-    }
-    template class 
-    TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticQuad>, TPZGEOELEMENTQUADRATICQUADID>;
-
-    template<>
-    TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticQuad>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;
-
-    template class TPZGeoElRefLess<TPZQuadraticQuad>;
-
-
-///CreateGeoElement -> TPZQuadraticTetra
-template< >
-TPZGeoEl *TPZGeoElRefLess<TPZQuadraticTetra >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
-{
-    TPZGeoMesh &mesh = *(this->Mesh());
-    if(!&mesh) return 0;
-    return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-}
-
-    #define TPZGEOELEMENTQUADRATICTETRAID 312
-    template<>
-    int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {
-        return TPZGEOELEMENTQUADRATICTETRAID;
-    }
-    template class 
-    TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>, TPZGEOELEMENTQUADRATICTETRAID>;
-
-    template<>
-    TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticTetra>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;
-
-    template class TPZGeoElRefLess<TPZQuadraticTetra>;
-
-
-///CreateGeoElement -> TPZQuadraticTrig
-template< >
-TPZGeoEl *TPZGeoElRefLess<TPZQuadraticTrig >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
-{
-    TPZGeoMesh &mesh = *(this->Mesh());
-    if(!&mesh) return 0;
-    return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-}
-
-    #define TPZGEOELEMENTQUADRATICTRIANGLEID 313
-    template<>
-    int TPZGeoElRefPattern<TPZQuadraticTrig>::ClassId() const {
-        return TPZGEOELEMENTQUADRATICTRIANGLEID;
-    }
-    template class 
-    TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>, TPZGEOELEMENTQUADRATICTRIANGLEID>;
-
-    template<>
-    TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticTrig>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
-
-    template class TPZGeoElRefLess<TPZQuadraticTrig>;
-
-
-#include "pznoderep.h.h"
-template class pzgeom::TPZNodeRep<2,TPZEllipse>;
-template class pzgeom::TPZNodeRep<3,TPZArc3D>;
-template class pzgeom::TPZNodeRep<3,TPZCurvedTriangle>;
-template class pzgeom::TPZNodeRep<8,TPZGeoBlend<TPZGeoCube> >;
-template class pzgeom::TPZNodeRep<6,TPZGeoBlend<TPZGeoPrism> >;
-template class pzgeom::TPZNodeRep<8,TPZQuadraticQuad>;
-template class pzgeom::TPZNodeRep<10,TPZQuadraticTetra>;
-template class pzgeom::TPZNodeRep<6,TPZQuadraticTrig>;
-
-
-
-#include <pzgeoel.h>
-
 
 void WriteMesh(TPZGeoMesh *mesh,std::ofstream &arq)
 {
-    arq << "object 1 class array type float rank 1 shape 3 items ";
-    arq << mesh->NodeVec().NElements() << " data follows" << std::endl;
-    int i;
+  arq << "object 1 class array type float rank 1 shape 3 items ";
+  arq << mesh->NodeVec().NElements() << " data follows" << std::endl;
+  int i;
 
     //Print Nodes
-    for (i=0;i<mesh->NodeVec().NElements(); i++)
-    {
-        TPZGeoNode *node = &mesh->NodeVec()[i];
-        arq << node->Coord(0) << "\t" << node->Coord(1) << "\t" << node->Coord(2) << std::endl;
-    }
+  for (i=0;i<mesh->NodeVec().NElements(); i++)
+  {
+    TPZGeoNode *node = &mesh->NodeVec()[i];
+    arq << node->Coord(0) << "\t" << node->Coord(1) << "\t" << node->Coord(2) << std::endl;
+  }
 
-    int numelements = 0;
-    for (i=0;i<mesh->ElementVec().NElements();i++)
-    {
-        TPZGeoEl *el = mesh->ElementVec()[i];
-        if ( !el /*|| el->Dimension() != 2*/) continue;
-        numelements++;
-    }
-    arq << "object 2 class array type integer rank 1 shape 8 items ";
-    arq << numelements << " data follows" << std::endl;
+  int numelements = 0;
+  for (i=0;i<mesh->ElementVec().NElements();i++)
+  {
+    TPZGeoEl *el = mesh->ElementVec()[i];
+    if ( !el /*|| el->Dimension() != 2*/) continue;
+    numelements++;
+  }
+  arq << "object 2 class array type integer rank 1 shape 8 items ";
+  arq << numelements << " data follows" << std::endl;
 
-    TPZVec<int> elementtype(mesh->ElementVec().NElements(),0);
-    for (i=0;i<mesh->ElementVec().NElements();i++)
-    {
-        TPZGeoEl *el = mesh->ElementVec()[i];
-        if ( !el /*|| el->Dimension() != 2*/) continue;
-        WriteElement (el,i,arq,elementtype);
-    }
-    arq << "attribute \"element type\" string \"cubes\"" << std::endl
-    << "attribute \"ref\" string \"positions\"" << std::endl;
-    arq << "object 3 class array type integer rank 0 items ";
-    arq << numelements << " data follows" << std::endl;
+  TPZVec<int> elementtype(mesh->ElementVec().NElements(),0);
+  for (i=0;i<mesh->ElementVec().NElements();i++)
+  {
+    TPZGeoEl *el = mesh->ElementVec()[i];
+    if ( !el /*|| el->Dimension() != 2*/) continue;
+    WriteElement (el,i,arq,elementtype);
+  }
+  arq << "attribute \"element type\" string \"cubes\"" << std::endl
+      << "attribute \"ref\" string \"positions\"" << std::endl;
+  arq << "object 3 class array type integer rank 0 items ";
+  arq << numelements << " data follows" << std::endl;
 
-    for (i=0;i<mesh->ElementVec().NElements();i++)
-    {
-        TPZGeoEl *el = mesh->ElementVec()[i];
-        if ( !el /*|| el->Dimension()!= 2*/) continue;
-        arq << elementtype[i] << std::endl;
-    }
-    arq << "attribute \"dep\" string \"connections\"" << std::endl;
-    arq << "object 4 class field" << std::endl
-    << "component \"positions\" value 1" << std::endl
-    << "component \"connections\" value 2" << std::endl
-    << "component \"data\" value 3" << std::endl;
+  for (i=0;i<mesh->ElementVec().NElements();i++)
+  {
+    TPZGeoEl *el = mesh->ElementVec()[i];
+    if ( !el /*|| el->Dimension()!= 2*/) continue;
+    arq << elementtype[i] << std::endl;
+  }
+  arq << "attribute \"dep\" string \"connections\"" << std::endl;
+  arq << "object 4 class field" << std::endl
+      << "component \"positions\" value 1" << std::endl
+      << "component \"connections\" value 2" << std::endl
+      << "component \"data\" value 3" << std::endl;
 }
 
 void WriteElement (TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &elementtype)
 {
-    int ncon = el->NNodes();
-    elementtype[elindex] = ncon;
-    switch (ncon) 
+  int ncon = el->NNodes();
+  elementtype[elindex] = ncon;
+  switch (ncon) 
+  {
+    case (2):
     {
-        case (2):
-        {
             //rib
-            int ni = el->NodeIndex(0);
-            int nf = el->NodeIndex(1);
-            arq << ni << "\t" << nf << "\t" << ni << "\t" << nf << "\t" << ni << "\t" << nf << "\t" << ni << "\t" << nf << std::endl;
-            break;
-        }
+      int ni = el->NodeIndex(0);
+      int nf = el->NodeIndex(1);
+      arq << ni << "\t" << nf << "\t" << ni << "\t" << nf << "\t" << ni << "\t" << nf << "\t" << ni << "\t" << nf << std::endl;
+      break;
+    }
 
-        case (3):
-        {
+    case (3):
+    {
             //triangle
-            int n0 = el->NodeIndex(0);
-            int n1 = el->NodeIndex(1);
-            int n2 = el->NodeIndex(2);
-            arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n2 << "\t" << n0 << "\t" << n1 << "\t" << n2 << "\t" << n2 << std::endl;
-            break;
-        }
+      int n0 = el->NodeIndex(0);
+      int n1 = el->NodeIndex(1);
+      int n2 = el->NodeIndex(2);
+      arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n2 << "\t" << n0 << "\t" << n1 << "\t" << n2 << "\t" << n2 << std::endl;
+      break;
+    }
 
-        case (4):
-        {
-            if (el->Dimension() == 2)
-            {
+    case (4):
+    {
+      if (el->Dimension() == 2)
+      {
                 //quad
-                int n0 = el->NodeIndex(0);
-                int n1 = el->NodeIndex(1);
-                int n2 = el->NodeIndex(3);
-                int n3 = el->NodeIndex(2);
-                arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n3 << "\t" << n0 << "\t" << n1 << "\t" << n2 << "\t" << n3 << std::endl;
-            }
-            else
-            {
+        int n0 = el->NodeIndex(0);
+        int n1 = el->NodeIndex(1);
+        int n2 = el->NodeIndex(3);
+        int n3 = el->NodeIndex(2);
+        arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n3 << "\t" << n0 << "\t" << n1 << "\t" << n2 << "\t" << n3 << std::endl;
+      }
+      else
+      {
                 //tetrahedre
-                int n0 = el->NodeIndex(0);
-                int n1 = el->NodeIndex(1);
-                int n2 = el->NodeIndex(2);
-                int n3 = el->NodeIndex(3);
-                arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n2 << "\t" << n3 << "\t" << n3 << "\t" << n3 << "\t" << n3 << std::endl;
-            }
-            break;
-        }
+        int n0 = el->NodeIndex(0);
+        int n1 = el->NodeIndex(1);
+        int n2 = el->NodeIndex(2);
+        int n3 = el->NodeIndex(3);
+        arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n2 << "\t" << n3 << "\t" << n3 << "\t" << n3 << "\t" << n3 << std::endl;
+      }
+      break;
+    }
 
-        case (5):
-        {
+    case (5):
+    {
             //pyramid
-            int n0 = el->NodeIndex(0);
-            int n1 = el->NodeIndex(1);
-            int n2 = el->NodeIndex(3);
-            int n3 = el->NodeIndex(2);
-            int n4 = el->NodeIndex(4);
-            arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n3 << "\t" << n4 << "\t" << n4 << "\t" << n4 << "\t" << n4 << std::endl;
-            break;
-        }
+      int n0 = el->NodeIndex(0);
+      int n1 = el->NodeIndex(1);
+      int n2 = el->NodeIndex(3);
+      int n3 = el->NodeIndex(2);
+      int n4 = el->NodeIndex(4);
+      arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n3 << "\t" << n4 << "\t" << n4 << "\t" << n4 << "\t" << n4 << std::endl;
+      break;
+    }
 
-        case (6):
-        {
+    case (6):
+    {
             //pyramid
-            int n0 = el->NodeIndex(0);
-            int n1 = el->NodeIndex(1);
-            int n2 = el->NodeIndex(2);
-            int n3 = el->NodeIndex(3);
-            int n4 = el->NodeIndex(4);
-            int n5 = el->NodeIndex(5);
-            arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n2 << "\t" << n3 << "\t" << n4 << "\t" << n5 << "\t" << n5 << std::endl;
-            break;
-        }
-
-        case (8):
-        {
-            int n0 = el->NodeIndex(0);
-            int n1 = el->NodeIndex(1);
-            int n2 = el->NodeIndex(3);
-            int n3 = el->NodeIndex(2);
-            int n4 = el->NodeIndex(4);
-            int n5 = el->NodeIndex(5);
-            int n6 = el->NodeIndex(7);
-            int n7 = el->NodeIndex(6);
-            arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n3 << "\t" << n4 << "\t" << n5 << "\t" << n6 << "\t" << n7 << std::endl;
-            break;
-        }
-        default:
-        std::cout << "Erro..." << std::endl;
+      int n0 = el->NodeIndex(0);
+      int n1 = el->NodeIndex(1);
+      int n2 = el->NodeIndex(2);
+      int n3 = el->NodeIndex(3);
+      int n4 = el->NodeIndex(4);
+      int n5 = el->NodeIndex(5);
+      arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n2 << "\t" << n3 << "\t" << n4 << "\t" << n5 << "\t" << n5 << std::endl;
+      break;
     }
-    return;
-}
 
- /**
-  * Method that generate an 3D Horizontal Well_Mesh - Elliptical Reservoir
-  * Caju - 2007
-  */
-TPZGeoMesh * HorizWellGenE(double Wr, double Hr, double Lr, double Lw, double Dw, int part, double excentr)
-{
-    TPZGeoMesh * Mesh = new TPZGeoMesh;
-    int id = 0;
-
-    #ifndef Debug
-    if(Dw > Wr || Dw > Hr)
+    case (8):
     {
-        cout << "Well Diameter (Dw) Bigger than Reservoir Dimensions!\n";
-        exit(-1);
+      int n0 = el->NodeIndex(0);
+      int n1 = el->NodeIndex(1);
+      int n2 = el->NodeIndex(3);
+      int n3 = el->NodeIndex(2);
+      int n4 = el->NodeIndex(4);
+      int n5 = el->NodeIndex(5);
+      int n6 = el->NodeIndex(7);
+      int n7 = el->NodeIndex(6);
+      arq << n0 << "\t" << n1 << "\t" << n2 << "\t" << n3 << "\t" << n4 << "\t" << n5 << "\t" << n6 << "\t" << n7 << std::endl;
+      break;
     }
-    #endif
-
-    double Yneg    = -Lr/2.;
-    double Ya      = -Lw/2.;
-    double Yb      =  Lw/2.;
-    double Ypos    =  Lr/2.;
-    double h       =  Lw/double(part);
-
-    int Qnodes = 48 + (part-1)*16;
-    TPZVec < TPZVec <REAL> > NodesCoords(Qnodes);
-    for(int i = 0; i < Qnodes; i++) NodesCoords[i].Resize(3);
-
-    for(int i = 0; i < part + 1; i++)
-    {
-        NodesCoords[0 + i*16][0] = -Wr/2.;
-        NodesCoords[0 + i*16][1] =  Ya + i*h;
-        NodesCoords[0 + i*16][2] = -Hr/2.;
-
-        NodesCoords[1 + i*16][0] =  Wr/2.;
-        NodesCoords[1 + i*16][1] =  Ya + i*h;
-        NodesCoords[1 + i*16][2] = -Hr/2.;
-
-        NodesCoords[2 + i*16][0] =  Wr/2.;
-        NodesCoords[2 + i*16][1] =  Ya + i*h;
-        NodesCoords[2 + i*16][2] =  Hr/2.;
-
-        NodesCoords[3 + i*16][0] = -Wr/2.;
-        NodesCoords[3 + i*16][1] =  Ya + i*h;
-        NodesCoords[3 + i*16][2] =  Hr/2.;
-
-        NodesCoords[4 + i*16][0] = -Hr/2.;
-        NodesCoords[4 + i*16][1] =  Ya + i*h;
-        NodesCoords[4 + i*16][2] = -Hr/2.;
-
-        NodesCoords[5 + i*16][0] =  Hr/2.;
-        NodesCoords[5 + i*16][1] =  Ya + i*h;
-        NodesCoords[5 + i*16][2] = -Hr/2.;
-
-        NodesCoords[6 + i*16][0] =  Hr/2.;
-        NodesCoords[6 + i*16][1] =  Ya + i*h;
-        NodesCoords[6 + i*16][2] =  Hr/2.;
-
-        NodesCoords[7 + i*16][0] = -Hr/2.;
-        NodesCoords[7 + i*16][1] =  Ya + i*h;
-        NodesCoords[7 + i*16][2] =  Hr/2.;
-
-        NodesCoords[8 + i*16][0] = -Dw*sqrt(2.)/4.;
-        NodesCoords[8 + i*16][1] =  Ya + i*h;
-        NodesCoords[8 + i*16][2] = -Dw*sqrt(2.)/4. + excentr;
-
-        NodesCoords[9 + i*16][0] =  0.;
-        NodesCoords[9 + i*16][1] =  Ya + i*h;
-        NodesCoords[9 + i*16][2] = -Dw/2. + excentr;
-
-        NodesCoords[10 + i*16][0] =  Dw*sqrt(2.)/4.;
-        NodesCoords[10 + i*16][1] =  Ya + i*h;
-        NodesCoords[10 + i*16][2] = -Dw*sqrt(2.)/4. + excentr;
-
-        NodesCoords[11 + i*16][0] =  Dw/2.;
-        NodesCoords[11 + i*16][1] =  Ya + i*h;
-        NodesCoords[11 + i*16][2] =  0. + excentr;
-
-        NodesCoords[12 + i*16][0] =  Dw*sqrt(2.)/4.;
-        NodesCoords[12 + i*16][1] =  Ya + i*h;
-        NodesCoords[12 + i*16][2] =  Dw*sqrt(2.)/4. + excentr;
-
-        NodesCoords[13 + i*16][0] =  0.;
-        NodesCoords[13 + i*16][1] =  Ya + i*h;
-        NodesCoords[13 + i*16][2] =  Dw/2. + excentr;
-
-        NodesCoords[14 + i*16][0] = -Dw*sqrt(2.)/4.;
-        NodesCoords[14 + i*16][1] =  Ya + i*h;
-        NodesCoords[14 + i*16][2] =  Dw*sqrt(2.)/4. + excentr;
-
-        NodesCoords[15 + i*16][0] = -Dw/2.;
-        NodesCoords[15 + i*16][1] =  Ya + i*h;
-        NodesCoords[15 + i*16][2] =  0. + excentr;
-
-        if(i == 0)
-        {
-            NodesCoords[0 + i*16][0] = -Wr/2.;
-            NodesCoords[0 + i*16][1] =  Ya - Hr/2.;
-            NodesCoords[0 + i*16][2] = -Hr/2.;
-
-            NodesCoords[1 + i*16][0] =  Wr/2.;
-            NodesCoords[1 + i*16][1] =  Ya - Hr/2.;
-            NodesCoords[1 + i*16][2] = -Hr/2.;
-
-            NodesCoords[2 + i*16][0] =  Wr/2.;
-            NodesCoords[2 + i*16][1] =  Ya - Hr/2.;
-            NodesCoords[2 + i*16][2] =  Hr/2.;
-
-            NodesCoords[3 + i*16][0] = -Wr/2.;
-            NodesCoords[3 + i*16][1] =  Ya - Hr/2.;
-            NodesCoords[3 + i*16][2] =  Hr/2.;
-
-            NodesCoords[4 + i*16][0] = -Hr/2.;
-            NodesCoords[4 + i*16][1] =  Ya - Hr/2.;
-            NodesCoords[4 + i*16][2] = -Hr/2.;
-
-            NodesCoords[4 + i*16][0] = -Hr/2.;
-            NodesCoords[4 + i*16][1] =  Ya - Hr/2.;
-            NodesCoords[4 + i*16][2] = -Hr/2.;
-
-            NodesCoords[5 + i*16][0] =  Hr/2.;
-            NodesCoords[5 + i*16][1] =  Ya - Hr/2.;
-            NodesCoords[5 + i*16][2] = -Hr/2.;
-
-            NodesCoords[6 + i*16][0] =  Hr/2.;
-            NodesCoords[6 + i*16][1] =  Ya - Hr/2.;
-            NodesCoords[6 + i*16][2] =  Hr/2.;
-
-            NodesCoords[7 + i*16][0] = -Hr/2.;
-            NodesCoords[7 + i*16][1] =  Ya - Hr/2.;
-            NodesCoords[7 + i*16][2] =  Hr/2.;
-        }
-
-        if(i == part)
-        {
-            NodesCoords[0 + i*16][0] = -Wr/2.;
-            NodesCoords[0 + i*16][1] =  Yb + Hr/2.;
-            NodesCoords[0 + i*16][2] = -Hr/2.;
-
-            NodesCoords[1 + i*16][0] =  Wr/2.;
-            NodesCoords[1 + i*16][1] =  Yb + Hr/2.;
-            NodesCoords[1 + i*16][2] = -Hr/2.;
-
-            NodesCoords[2 + i*16][0] =  Wr/2.;
-            NodesCoords[2 + i*16][1] =  Yb + Hr/2.;
-            NodesCoords[2 + i*16][2] =  Hr/2.;
-
-            NodesCoords[3 + i*16][0] = -Wr/2.;
-            NodesCoords[3 + i*16][1] =  Yb + Hr/2.;
-            NodesCoords[3 + i*16][2] =  Hr/2.;
-
-            NodesCoords[4 + i*16][0] = -Hr/2.;
-            NodesCoords[4 + i*16][1] =  Yb + Hr/2.;
-            NodesCoords[4 + i*16][2] = -Hr/2.;
-
-            NodesCoords[5 + i*16][0] =  Hr/2.;
-            NodesCoords[5 + i*16][1] =  Yb + Hr/2.;
-            NodesCoords[5 + i*16][2] = -Hr/2.;
-
-            NodesCoords[6 + i*16][0] =  Hr/2.;
-            NodesCoords[6 + i*16][1] =  Yb + Hr/2.;
-            NodesCoords[6 + i*16][2] =  Hr/2.;
-
-            NodesCoords[7 + i*16][0] = -Hr/2.;
-            NodesCoords[7 + i*16][1] =  Yb + Hr/2.;
-            NodesCoords[7 + i*16][2] =  Hr/2.;
-        }
-    }
-    NodesCoords[Qnodes-1][0] = -Wr/2.;
-    NodesCoords[Qnodes-1][1] =  Ypos;
-    NodesCoords[Qnodes-1][2] =  Hr/2.;
-
-    NodesCoords[Qnodes-2][0] = -Hr/2.;
-    NodesCoords[Qnodes-2][1] =  Ypos;
-    NodesCoords[Qnodes-2][2] =  Hr/2.;
-
-    NodesCoords[Qnodes-3][0] =  Hr/2.;
-    NodesCoords[Qnodes-3][1] =  Ypos;
-    NodesCoords[Qnodes-3][2] =  Hr/2.;
-
-    NodesCoords[Qnodes-4][0] =  Wr/2.;
-    NodesCoords[Qnodes-4][1] =  Ypos;
-    NodesCoords[Qnodes-4][2] =  Hr/2.;
-
-    NodesCoords[Qnodes-5][0] =  Wr/2.;
-    NodesCoords[Qnodes-5][1] =  Ypos;
-    NodesCoords[Qnodes-5][2] = -Hr/2.;
-
-    NodesCoords[Qnodes-6][0] =  Hr/2.;
-    NodesCoords[Qnodes-6][1] =  Ypos;
-    NodesCoords[Qnodes-6][2] = -Hr/2.;
-
-    NodesCoords[Qnodes-7][0] = -Hr/2.;
-    NodesCoords[Qnodes-7][1] =  Ypos;
-    NodesCoords[Qnodes-7][2] = -Hr/2.;
-
-    NodesCoords[Qnodes-8][0] = -Wr/2.;
-    NodesCoords[Qnodes-8][1] =  Ypos;
-    NodesCoords[Qnodes-8][2] = -Hr/2.;
-
-    NodesCoords[Qnodes-9][0] = -Wr/2.;
-    NodesCoords[Qnodes-9][1] =  Yneg;
-    NodesCoords[Qnodes-9][2] =  Hr/2.;
-
-    NodesCoords[Qnodes-10][0] = -Hr/2.;
-    NodesCoords[Qnodes-10][1] =  Yneg;
-    NodesCoords[Qnodes-10][2] =  Hr/2.;
-
-    NodesCoords[Qnodes-11][0] =  Hr/2.;
-    NodesCoords[Qnodes-11][1] =  Yneg;
-    NodesCoords[Qnodes-11][2] =  Hr/2.;
-
-    NodesCoords[Qnodes-12][0] =  Wr/2.;
-    NodesCoords[Qnodes-12][1] =  Yneg;
-    NodesCoords[Qnodes-12][2] =  Hr/2.;
-
-    NodesCoords[Qnodes-13][0] =  Wr/2.;
-    NodesCoords[Qnodes-13][1] =  Yneg;
-    NodesCoords[Qnodes-13][2] = -Hr/2.;
-
-    NodesCoords[Qnodes-14][0] =  Hr/2.;
-    NodesCoords[Qnodes-14][1] =  Yneg;
-    NodesCoords[Qnodes-14][2] = -Hr/2.;
-
-    NodesCoords[Qnodes-15][0] = -Hr/2.;
-    NodesCoords[Qnodes-15][1] =  Yneg;
-    NodesCoords[Qnodes-15][2] = -Hr/2.;
-
-    NodesCoords[Qnodes-16][0] = -Wr/2.;
-    NodesCoords[Qnodes-16][1] =  Yneg;
-    NodesCoords[Qnodes-16][2] = -Hr/2.;
-
-    Mesh->NodeVec().Resize(Qnodes);
-    TPZVec <TPZGeoNode> Node(Qnodes);
-    for(int n = 0; n < Qnodes; n++)
-    {
-        Node[n].SetNodeId(n);
-        Node[n].SetCoord(&NodesCoords[n][0]);
-        Mesh->NodeVec()[n] = Node[n];
-    }
-
-    TPZVec <int> Topol(8);
-
-
-    /// *********** CHOOSE MATERIAL FOR EACH ELEMENT ***********
-    int reservMat = 1;
-    int wellMat = 2;
-    int arcMat = 10;
-
-
-    ///Horizontal Well
-    TPZVec< TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoCube> > *> WellEl(part);
-    for(int w = 0; w < part; w++)
-    {
-        Topol[0] =  8 + w*16; Topol[1] = 10 + w*16; Topol[2] = 26 + w*16; Topol[3] = 24 + w*16;
-        Topol[4] = 14 + w*16; Topol[5] = 12 + w*16; Topol[6] = 28 + w*16; Topol[7] = 30 + w*16;
-        WellEl[w] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> > (id,Topol,wellMat,*Mesh);
-        id++;
-    }
-
-    ///Arcs in Well x_z Planes
-    Topol.Resize(3);
-    TPZVec <TPZGeoEl*> ArcEl( 4*(part + 1) );
-    for(int interface = 0; interface < part + 1; interface++)
-    {
-        for(int edge = 0; edge < 4; edge++)
-        {
-            if(edge == 3)
-            {
-                Topol[0] = 14 + interface*16;
-                Topol[1] = Topol[0] - 6;
-                Topol[2] = Topol[0] + 1;
-            }
-            else
-            {
-                Topol[0] = 8 + 2*edge + interface*16;
-                Topol[1] = Topol[0] + 2;
-                Topol[2] = Topol[1] - 1;
-            }
-            ArcEl[4*interface + edge] = new TPZGeoElRefPattern<TPZArc3D> (id,Topol,arcMat,*Mesh);
-            id++;
-        }
-    }
-
-    ///Hexaedrons that Surround Horizontal Well
-    Topol.Resize(8);
-    TPZVec < TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoCube> >* > HexaEl(4*part);
-    for(int w = 0; w < part; w++)
-    {
-        for(int face = 0; face < 4; face++)
-        {
-            if(face == 3)
-            {
-                Topol[0] = 7 + w*16;   Topol[1] = Topol[0] - 3; Topol[2] = Topol[0] + 13;  Topol[3] = 23 + w*16;
-                Topol[4] = 14 + w*16; Topol[5] = Topol[0] + 1; Topol[6] = Topol[0] + 17; Topol[7] = 30 + w*16;
-            }
-            else
-            {
-                Topol[0] = 4 + face + w*16;   Topol[1] =  5 + face + w*16;   Topol[2] = 21 + face + w*16;   Topol[3] = 20 + face + w*16;
-                Topol[4] = 8 + 2*face + w*16; Topol[5] = 10 + 2*face + w*16; Topol[6] = 26 + 2*face + w*16; Topol[7] = 24 + 2*face + w*16;
-            }
-            HexaEl[4*w + face] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> >  (id, Topol,reservMat,*Mesh);
-            id++;
-        }
-    }
-
-    ///Lateral Hexaedrons
-    TPZVec < TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoCube> >* > HexaElLateral(2*part);
-    for(int w = 0; w < part; w++)
-    {
-        Topol[0] = 0 + 16*w; Topol[1] = 4 + 16*w; Topol[2] = 20 + 16*w; Topol[3] = 16 + 16*w;
-        Topol[4] = 3 + 16*w; Topol[5] = 7 + 16*w; Topol[6] = 23 + 16*w; Topol[7] = 19 + 16*w;
-        HexaElLateral[2*w + 0] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> >  (id, Topol,reservMat,*Mesh);
-        id++;
-
-        Topol[0] = 5 + 16*w; Topol[1] = 1 + 16*w; Topol[2] = 17 + 16*w; Topol[3] = 21 + 16*w;
-        Topol[4] = 6 + 16*w; Topol[5] = 2 + 16*w; Topol[6] = 18 + 16*w; Topol[7] = 22 + 16*w;
-        HexaElLateral[2*w + 1] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> >  (id, Topol,reservMat,*Mesh);
-        id++;
-    }
-
-    ///Hexahedron WellTips
-    TPZVec < TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoCube> >* > HexaElTips(2);
-    {
-        Topol[0] = 4; Topol[1] = 5; Topol[2] = 10; Topol[3] = 8;
-        Topol[4] = 7; Topol[5] = 6; Topol[6] = 12; Topol[7] = 14;
-        HexaElTips[0] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> >  (id, Topol,reservMat,*Mesh);
-        id++;
-
-        Topol[0] = Qnodes - 24; Topol[1] = Qnodes - 22; Topol[2] = Qnodes - 27; Topol[3] = Qnodes - 28;
-        Topol[4] = Qnodes - 18; Topol[5] = Qnodes - 20; Topol[6] = Qnodes - 26; Topol[7] = Qnodes - 25;
-        HexaElTips[1] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> >  (id, Topol,reservMat,*Mesh);
-        id++;
-    }
-
-    ///Hexahedron ReservoirTips
-    TPZVec < TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoCube> >* > HexaResTips(2);
-    {
-        Topol[0] = Qnodes-15; Topol[1] = Qnodes-14; Topol[2] = 5; Topol[3] = 4;
-        Topol[4] = Qnodes-10; Topol[5] = Qnodes-11; Topol[6] = 6; Topol[7] = 7;
-        HexaResTips[0] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> >  (id, Topol,reservMat,*Mesh);
-        id++;
-
-        Topol[0] = Qnodes-28; Topol[1] = Qnodes-27; Topol[2] = Qnodes-6; Topol[3] = Qnodes-7;
-        Topol[4] = Qnodes-25; Topol[5] = Qnodes-26; Topol[6] = Qnodes-3; Topol[7] = Qnodes-2;
-        HexaResTips[1] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> >  (id, Topol,reservMat,*Mesh);
-        id++;
-    }
-
-    ///Prism ReservoirTips
-    Topol.Resize(6);
-    TPZVec < TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoPrism> >* > PrismResTips(8);
-    {
-        Topol[0] = Qnodes-10; Topol[1] = Qnodes- 9; Topol[2] = 7;
-        Topol[3] = Qnodes-15; Topol[4] = Qnodes-16; Topol[5] = 4;
-        PrismResTips[0] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> >  (id, Topol,reservMat,*Mesh);
-        id++;
-
-        Topol[0] = 0; Topol[1] = Qnodes-16; Topol[2] = 4;
-        Topol[3] = 3; Topol[4] = Qnodes- 9; Topol[5] = 7;
-        PrismResTips[1] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> >  (id, Topol,reservMat,*Mesh);
-        id++;
-
-        Topol[0] = Qnodes-14; Topol[1] = Qnodes-13; Topol[2] = 5;
-        Topol[3] = Qnodes-11; Topol[4] = Qnodes-12; Topol[5] = 6;
-        PrismResTips[2] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> >  (id, Topol,reservMat,*Mesh);
-        id++;
-
-        Topol[0] = 2; Topol[1] = Qnodes-12; Topol[2] = 6;
-        Topol[3] = 1; Topol[4] = Qnodes-13; Topol[5] = 5;
-        PrismResTips[3] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> >  (id, Topol,reservMat,*Mesh);
-        id++;
-
-        Topol[0] = Qnodes-29; Topol[1] = Qnodes-1; Topol[2] = Qnodes-25;
-        Topol[3] = Qnodes-32; Topol[4] = Qnodes-8; Topol[5] = Qnodes-28;
-        PrismResTips[4] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> >  (id, Topol,reservMat,*Mesh);
-        id++;
-
-        Topol[0] = Qnodes-7; Topol[1] = Qnodes-8; Topol[2] = Qnodes-28;
-        Topol[3] = Qnodes-2; Topol[4] = Qnodes-1; Topol[5] = Qnodes-25;
-        PrismResTips[5] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> >  (id, Topol,reservMat,*Mesh);
-        id++;
-
-        Topol[0] = Qnodes-31; Topol[1] = Qnodes-5; Topol[2] = Qnodes-27;
-        Topol[3] = Qnodes-30; Topol[4] = Qnodes-4; Topol[5] = Qnodes-26;
-        PrismResTips[6] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> >  (id, Topol,reservMat,*Mesh);
-        id++;
-
-        Topol[0] = Qnodes-3; Topol[1] = Qnodes-4; Topol[2] = Qnodes-26;
-        Topol[3] = Qnodes-6; Topol[4] = Qnodes-5; Topol[5] = Qnodes-27;
-        PrismResTips[7] = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> >  (id, Topol,reservMat,*Mesh);
-        id++;
-    }
-
-    Topol.Resize(2);
-    vector<int> node;
-    NodesHunter(*Mesh,node,Qnodes-16,Qnodes-13);
-    for(unsigned int n = 0; n < node.size() - 1; n++)
-    {
-        Topol[0] = node[n];
-        Topol[1] = node[n+1];
-        TPZGeoElRefPattern<TPZEllipse> *Geo = new TPZGeoElRefPattern<TPZEllipse> (id,Topol,arcMat,*Mesh);
-        Geo->Geom().SetAxes(Wr/2.,Lr/2.);
-        id++;
-    }
-    NodesHunter(*Mesh,node,Qnodes-13,Qnodes-5);
-    for(int n = 0; n < node.size() - 1; n++)
-    {
-        Topol[0] = node[n];
-        Topol[1] = node[n+1];
-        TPZGeoElRefPattern<TPZEllipse> *Geo = new TPZGeoElRefPattern<TPZEllipse> (id,Topol,arcMat,*Mesh);
-        Geo->Geom().SetAxes(Wr/2.,Lr/2.);
-        id++;
-    }
-    NodesHunter(*Mesh,node,Qnodes-5,Qnodes-8);
-    for(int n = 0; n < node.size() - 1; n++)
-    {
-        Topol[0] = node[n];
-        Topol[1] = node[n+1];
-        TPZGeoElRefPattern<TPZEllipse> *Geo = new TPZGeoElRefPattern<TPZEllipse> (id,Topol,arcMat,*Mesh);
-        Geo->Geom().SetAxes(Wr/2.,Lr/2.);
-        id++;
-    }
-    NodesHunter(*Mesh,node,Qnodes-8,Qnodes-16);
-    for(int n = 0; n < node.size() - 1; n++)
-    {
-        Topol[0] = node[n];
-        Topol[1] = node[n+1];
-        TPZGeoElRefPattern<TPZEllipse> *Geo = new TPZGeoElRefPattern<TPZEllipse> (id,Topol,arcMat,*Mesh);
-        Geo->Geom().SetAxes(Wr/2.,Lr/2.);
-        id++;
-    }
-    NodesHunter(*Mesh,node,Qnodes-9,Qnodes-12);
-    for(int n = 0; n < node.size() - 1; n++)
-    {
-        Topol[0] = node[n];
-        Topol[1] = node[n+1];
-        TPZGeoElRefPattern<TPZEllipse> *Geo = new TPZGeoElRefPattern<TPZEllipse> (id,Topol,arcMat,*Mesh);
-        Geo->Geom().SetAxes(Wr/2.,Lr/2.);
-        id++;
-    }
-    NodesHunter(*Mesh,node,Qnodes-12,Qnodes-4);
-    for(int n = 0; n < node.size() - 1; n++)
-    {
-        Topol[0] = node[n];
-        Topol[1] = node[n+1];
-        TPZGeoElRefPattern<TPZEllipse> *Geo = new TPZGeoElRefPattern<TPZEllipse> (id,Topol,arcMat,*Mesh);
-        Geo->Geom().SetAxes(Wr/2.,Lr/2.);
-        id++;
-    }
-    NodesHunter(*Mesh,node,Qnodes-4,Qnodes-1);
-    for(int n = 0; n < node.size() - 1; n++)
-    {
-        Topol[0] = node[n];
-        Topol[1] = node[n+1];
-        TPZGeoElRefPattern<TPZEllipse> *Geo = new TPZGeoElRefPattern<TPZEllipse> (id,Topol,arcMat,*Mesh);
-        Geo->Geom().SetAxes(Wr/2.,Lr/2.);
-        id++;
-    }
-    NodesHunter(*Mesh,node,Qnodes-1,Qnodes-9);
-    for(int n = 0; n < node.size() - 1; n++)
-    {
-        Topol[0] = node[n];
-        Topol[1] = node[n+1];
-        TPZGeoElRefPattern<TPZEllipse> *Geo = new TPZGeoElRefPattern<TPZEllipse> (id,Topol,arcMat,*Mesh);
-        Geo->Geom().SetAxes(Wr/2.,Lr/2.);
-        id++;
-    }
-
-    Mesh->BuildBlendConnectivity();
-
-    return Mesh;
-}
-
-void NodesHunter(TPZGeoMesh &gMesh, std::vector<int>& NodesHunted, int IdIni, int IdFin, double Tol)
-{
-    /** Although this method considers coordinates in R3, Coord-Z must be constant for all nodes */
-    /** i.e., nodes coordinates belong to XY parallel plane */
-    int dim = 3;
-
-    int VecSize = gMesh.NodeVec().NElements();
-    int posIni = -1;
-    int posFin = -1;
-
-    /** Changing NodesCoords from Cartesian Notation to Vectorial Notation */
-    /** with respect to IniNode coordinate */
-    TPZFMatrix VectorialNotation(VecSize,dim);
-    for(int pos = 0; pos < VecSize; pos++)
-    {
-        if(gMesh.NodeVec()[pos].Id() == IdIni) posIni = pos;
-        if(gMesh.NodeVec()[pos].Id() == IdFin) posFin = pos;
-
-        for(int coord = 0; coord < dim; coord++)
-        {
-            double val = gMesh.NodeVec()[pos].Coord(coord) - gMesh.NodeVec()[IdIni].Coord(coord);
-            VectorialNotation.PutVal(pos,coord,val);
-        }
-    }
-
-    if(posIni == -1 || posFin == -1)
-    {
-        cout << "Initial Node index or Final Node index doesn't belong to the given TPZGeoNode vector!\n";
-        cout << "See NodesHunter method!\n"; exit(-1);
-    }
-
-    /// Computing BasisChange Matrix
-    /// Where NewBase X_axis is defined by IniNode->FinNode orientation
-    /// and   NewBase Y_axis is perpendicular to X_axis in XY plane counter-clockwise
-    TPZFMatrix IfromCntoBase(dim,dim,0.);
-    IfromCntoBase(dim-1,dim-1) = 1.;
-    double norm = 0.;
-    //computing X_axis
-    for(int coord = 0; coord < dim; coord++)
-    {
-        double val = VectorialNotation.GetVal(posFin,coord) - VectorialNotation.GetVal(posIni,coord);
-        IfromCntoBase.PutVal(0,coord,val);
-        norm += val*val;
-    }
-    //normalizing X_axis
-    for(int coord = 0; coord < dim; coord++)
-    {
-        IfromCntoBase.PutVal(0,coord,IfromCntoBase.GetVal(0,coord)/sqrt(norm));
-    }
-    //computing Y_axis, i.e., if X_axis=(x,y) then Y_axis=(-y,x)
-    IfromCntoBase.PutVal(1,0,-IfromCntoBase.GetVal(0,1));
-    IfromCntoBase.PutVal(1,1, IfromCntoBase.GetVal(0,0));
-
-    /** Changing VectorialNotation from Canonic Base to NewBase */
-    for(int i = 0; i < VecSize; i++)
-    {
-            vector <double> temp; temp.resize(3);
-            for(int j = 0; j < dim; j++)
-            {
-                double val = 0.;
-                for(int k = 0; k < dim; k++)
-                {
-                    val += IfromCntoBase.GetVal(j,k)*VectorialNotation.GetVal(i,k);
-                }
-                temp[j] = val;
-            }
-            for(int p = 0; p < dim; p++) VectorialNotation.PutVal(i,p,temp[p]);
-    }
-
-    /** Hunting Nodes */
-    std::map <double,int> mymap;
-    for(int h = 0; h < VecSize; h++)
-    {
-        if( VectorialNotation.GetVal(h,0) >= VectorialNotation.GetVal(posIni,0) &&
-            VectorialNotation.GetVal(h,0) <= VectorialNotation.GetVal(posFin,0) &&
-            (fabs(VectorialNotation.GetVal(h,1)) + fabs(VectorialNotation.GetVal(h,2))) < Tol )
-        {
-            std::pair< double , int> Item(VectorialNotation.GetVal(h,0), gMesh.NodeVec()[h].Id());
-            mymap.insert(Item);
-        }
-    }
-    NodesHunted.resize(mymap.size());
-    std::map<double, int>::iterator it = mymap.begin();
-    int i = 0;
-    for(it = mymap.begin(); it!= mymap.end(); it++, i++)
-    {
-        NodesHunted[i] = it->second;
-    }
+    default:
+      std::cout << "Erro..." << std::endl;
+  }
+  return;
 }
 
 void IntegralForces(TPZCompMesh * cmesh, int MatId, TPZVec<REAL> &forces)
@@ -2332,209 +1509,310 @@ void IntegralForces(TPZCompMesh * cmesh, int MatId, TPZVec<REAL> &forces)
     TPZCompEl * cel = cmesh->ElementVec()[el];
     if(cel->Material()->Id() == MatId)
     {
-        TPZGeoElSide geoside(cel->Reference(),2);
-        TPZGeoElSide neigh = geoside.Neighbour();
-        TPZGeoElSide internalSide = TPZGeoElSide(neigh.Element(),neigh.Element()->NSides() - 1);
+      TPZGeoElSide geoside(cel->Reference(),2);
+      TPZGeoElSide neigh = geoside.Neighbour();
+      TPZGeoElSide internalSide = TPZGeoElSide(neigh.Element(),neigh.Element()->NSides() - 1);
 
-        TPZTransform transf1(1,1), transf2(1,2), transf(1,2);
-        transf1 = geoside.NeighbourSideTransform(neigh);
-        transf2 = neigh.SideToSideTransform(internalSide);
-        transf = transf2.Multiply(transf1);
+      TPZTransform transf1(1,1), transf2(1,2), transf(1,2);
+      transf1 = geoside.NeighbourSideTransform(neigh);
+      transf2 = neigh.SideToSideTransform(internalSide);
+      transf = transf2.Multiply(transf1);
 
-        TPZIntPoints * rule = cel->Reference()->CreateSideIntegrationRule(geoside.Side(),15);
+      TPZIntPoints * rule = cel->Reference()->CreateSideIntegrationRule(geoside.Side(),15);
 
-        TPZVec<REAL> location(1);
-        REAL w;
-        int npts = rule->NPoints();
-        for(int pt = 0; pt < npts; pt++)
-        {
-          rule->Point(pt, location,w);
-          TPZFMatrix jac(1,1), jacinv(1,1), axes(1,3);
-          REAL detJac;
-          geoside.Jacobian(location,jac, axes, detJac, jacinv);
+      TPZVec<REAL> location(1);
+      REAL w;
+      int npts = rule->NPoints();
+      for(int pt = 0; pt < npts; pt++)
+      {
+        rule->Point(pt, location,w);
+        TPZFMatrix jac(1,1), jacinv(1,1), axes(1,3);
+        REAL detJac;
+        geoside.Jacobian(location,jac, axes, detJac, jacinv);
 
-          TPZVec<REAL> locout(2);
-          transf.Apply(location,locout);
+        TPZVec<REAL> locout(2);
+        transf.Apply(location,locout);
 
-          TPZVec<REAL> x(3);
-          geoside.X(location,x);
-          REAL R = Mat->ComputeR(x);
-          R = fabs(R);
+        TPZVec<REAL> x(3);
+        geoside.X(location,x);
+        REAL R = Mat->ComputeR(x);
+        R = fabs(R);
 
-          TPZVec<REAL> sol;
-          neigh.Element()->Reference()->Solution(locout,4,sol);
-          forces[0] += w * (2.*M_PI*R) * detJac * sol[0];
-          neigh.Element()->Reference()->Solution(locout,0,sol);
-          forces[1] += w * (2.*M_PI*R) * detJac * sol[1];
-        }
+        TPZVec<REAL> sol;
+        neigh.Element()->Reference()->Solution(locout,4,sol);
+        forces[0] += w * (2.*M_PI*R) * detJac * sol[0];
+        neigh.Element()->Reference()->Solution(locout,0,sol);
+        forces[1] += w * (2.*M_PI*R) * detJac * sol[1];
+      }
 
-        delete rule;
+      delete rule;
     }
   }
   int bye=0;
 }
 
-TPZCompMesh * SquareMesh()
+REAL CalcArea(TPZCompMesh *mesh)
 {
-    TPZGeoMesh * gmesh = new TPZGeoMesh;
-
-    int Qnodes = 4;
-    TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
-    for(int i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3,0.);
-    NodeCoord[0][0] = 1.0; NodeCoord[0][1] = 0.5;
-    NodeCoord[1][0] = 1.5; NodeCoord[1][1] = 0.5;
-    NodeCoord[2][0] = 1.5; NodeCoord[2][1] = 4.5;
-    NodeCoord[3][0] = 1.0; NodeCoord[3][1] = 4.5; // *** o eixo de revolucao serah o eixo Y !!!
-
-    gmesh->NodeVec().Resize(Qnodes);
-    TPZVec <TPZGeoNode> Node(Qnodes);
-    for(int n = 0; n < Qnodes; n++)
+  REAL area = 0.;
+  TPZElasticityAxiMaterial * Mat = dynamic_cast<TPZElasticityAxiMaterial*>(mesh->MaterialVec()[MatIds::ElMat].operator->());
+  for(int el = 0; el < mesh->ElementVec().NElements(); el++)
+  {
+    TPZCompEl * cel = mesh->ElementVec()[el];
+    if(cel->Material()->Id() == MatIds::ElMat)
     {
-      Node[n].SetNodeId(n);
-      Node[n].SetCoord(&NodeCoord[n][0]);
-      gmesh->NodeVec()[n] = Node[n];
+
+      TPZGeoEl *gel = cel->Reference();
+      TPZIntPoints * rule = cel->Reference()->CreateSideIntegrationRule(gel->NSides()-1,15);
+
+      TPZVec<REAL> location(2);
+      REAL w;
+      int npts = rule->NPoints();
+      for(int pt = 0; pt < npts; pt++)
+      {
+        rule->Point(pt, location,w);
+        TPZFMatrix jac(2,2), jacinv(2,2), axes(2,3);
+        REAL detJac;
+        cel->Reference()->Jacobian(location,jac, axes, detJac, jacinv);
+        TPZManVector<REAL> x(3,0.);
+        cel->Reference()->X(location,x);
+        REAL R = fabs(Mat->ComputeR(x));
+        
+        area += w*detJac*2.*M_PI*R;
+      }
+
+      delete rule;
     }
+  }
+  return area;
 
-    //TOPOLOGIES
-    TPZVec <int> QTopol(4), DownTopol(2), ExtTopol(2), UpTopol(2), IntTopol(2);
-    for(int t = 0; t < 4; t++) QTopol[t] = t;
-    DownTopol[0] = 0; DownTopol[1] = 1;
-    ExtTopol[0] = 1;  ExtTopol[1] = 2;
-    UpTopol[0] = 2;   UpTopol[1] = 3;
-    IntTopol[0] = 3;  IntTopol[1] = 0;
-
-    //MATERIALS Id's
-    int QuadMat =  1;
-    int DownMat = -1;
-    int ExtMat  = -2;
-    int UpMat   = -3;
-    int IntMat  = -4;
-    int DotMat = -5;
-
-    //Quadrilateral
-    int id = 0;
-    TPZGeoEl * QuadEl = new TPZGeoElRefPattern<TPZGeoQuad> (id,QTopol,QuadMat,*gmesh);
-    id++;
-
-    //BC Bottom Side
-    TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoLinear> > * BCdownEl = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (id,DownTopol,DownMat,*gmesh);
-    id++;
-
-    //BC External Side
-    TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoLinear> > * BCextEl = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (id,ExtTopol,ExtMat,*gmesh);
-    id++;
-
-    //BC Upper Side
-    TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoLinear> > * BCupEl = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (id,UpTopol,UpMat,*gmesh);
-    id++;
-
-    //BC Internal Side
-    TPZGeoElRefLess<TPZGeoBlend<pzgeom::TPZGeoLinear> > * BCintEl = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (id,IntTopol,IntMat,*gmesh);
-    id++;
-
-    TPZGeoElBC(QuadEl,0,DotMat,*gmesh);
-    gmesh->BuildConnectivity();
-//**************************
-
-///Materials
-    REAL fx = 0., fy = 0.;
-    TPZAutoPointer<TPZMaterial> mat = new TPZElasticityAxiMaterial(QuadMat, 2500., 0.0, fx, fy);
-
-    vector<REAL> Orig(3);  Orig[0] = 2.5; Orig[1] = 0.; Orig[2] = 0.;
-    vector<REAL> AxisZ(3); AxisZ[0] = 0.; AxisZ[1] = 1.; AxisZ[2] = 0.;
-    vector<REAL> AxisR(3); AxisR[0] = 1.; AxisR[1] = 0.; AxisR[2] = 0.;
-
-    (dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->()))->SetOrigin(Orig, AxisZ, AxisR);
-
-    TPZFMatrix Bval1(2,2,0.), Bval2(2,1,0.);
-    Bval2(0,0) = 1.;
-    TPZAutoPointer<TPZMaterial> bcmatB = mat->CreateBC(mat, DownMat, 3, Bval1, Bval2);
-
-    TPZFMatrix Uval1(2,2,0.), Uval2(2,1,0.);
-    Uval2(0,0) = 1.;
-    TPZAutoPointer<TPZMaterial> bcmatE = mat->CreateBC(mat, ExtMat, 3, Uval1, Uval2);
-
-    TPZFMatrix Eval1(2,2,0.), Eval2(2,1,0.);
-    Eval2(0,0) = 1.;
-    TPZAutoPointer<TPZMaterial> bcmatU = mat->CreateBC(mat, UpMat, 3, Eval1, Eval2);
-
-    TPZFMatrix Ival1(2,2,0.), Ival2(2,1,0.);
-    Ival2(0,0) = 1.;
-    TPZAutoPointer<TPZMaterial> bcmatI = mat->CreateBC(mat, IntMat, 3, Ival1, Ival2);
-
-    TPZFMatrix Dval1(2,2,0.), Dval2(2,1,0.);
-    Dval2(1,1) = 1.e-10;
-    TPZAutoPointer<TPZMaterial> Dotmat = mat->CreateBC(mat, DotMat, 2, Dval1, Dval2);
-//**************************
-
-///Computacional Mesh
-    const int dim = 2;
-    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    cmesh->InsertMaterialObject(mat);
-    cmesh->InsertMaterialObject(bcmatB);
-    cmesh->InsertMaterialObject(bcmatE);
-    cmesh->InsertMaterialObject(bcmatU);
-    cmesh->InsertMaterialObject(bcmatI);
-//**************************
-
-    TPZCompEl::SetgOrder(2);
-    cmesh->AutoBuild();
-
-    return cmesh;
 }
 
-TPZCompMesh * SpiralMesh()
+
+void MathOutUP(TPZBlendNACA * naca)
 {
-  ///Geometria Caixa Espiral 2D
-
-  double Bb = 8.6; double Hr = 10.8; double Bt = 8.4; double Hl = 10.15; double Cx = 4.9; double Cy = 5.9; double R = 3.4;
-  double h = 2.1; double b = 0.55; double Dx = 0.65; double Dy = 3.5; double e1 = 0.25; double e2 = 0.45; double e3 = 0.1;
-  double X1 = 3.8; double X2 = 1.; double X3 = 1.9; double X4 = 0.6; double X5 = 0.3; double h1 = 0.45; double h2 = 0.45; double Py = 3.3;
-  TPZGeoMesh * gmesh = CxEspiral2D(Bb, Hr, Bt, Hl, Cx, Cy, R, h, b, Dx, Dy, e1, e2, e3, X1, X2, X3, X4, X5, h1, h2, Py);
-
-///Materials
-  REAL fx = 0., fy = 0.;//-0.025;
-
-  double E = 18.5*1000.; // Young modulus = 18.5 GPa = 18.5*10^3 MPa
-  double nu = 0.2; // poisson coefficient
-
-  TPZAutoPointer<TPZMaterial> mat = new TPZElasticityAxiMaterial(1, E, nu, fx, fy);
-  TPZElasticityAxiMaterial *aximat = dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->());
-  vector<REAL> Orig(3);  Orig[0] = 15.;  Orig[1] = 0.;  Orig[2] = 0.;
-  vector<REAL> AxisZ(3); AxisZ[0] = 0.; AxisZ[1] = 1.; AxisZ[2] = 0.;
-  vector<REAL> AxisR(3); AxisR[0] = -1.; AxisR[1] = 0.; AxisR[2] = 0.;
-  aximat->SetOrigin(Orig, AxisZ, AxisR);
-
-  //MohrCoulomb data
-  double phi = M_PI/6.;
-  double fc = 15./1.4; //fck = 15 MPa, fc = fck/1.4
-  double c = fc*(1. - sin(phi))/(2.*cos(phi));
-  aximat->SetMohrCoulomb(c,phi);
-
-  TPZFMatrix Base1(2,2,0.), Base2(2,1,0.);
-  Base1(1,1) = 1.E9;
-  TPZAutoPointer<TPZMaterial> bcmatBase = mat->CreateBC(mat, -8, 2, Base1, Base2);
-
-  TPZFMatrix Force1(2,2,0.), Force2(2,1,0.);
-  Force2(1,0) = -700.;
-  TPZAutoPointer<TPZMaterial> bcmatForce = mat->CreateBC(mat, -7, 1, Force1, Force2);
-
-//   TPZFMatrix Dot1(2,2,0.), Dot2(2,1,0.);
-//   Dot1(1,1) = 0.01;
-//   TPZAutoPointer<TPZMaterial> bcmatDot = mat->CreateBC(mat, -3, 2, Dot1, Dot2);
-//**************************
-
-///Computational Mesh
-  const int dim = 2;
-  TPZCompEl::SetgOrder(6);
-  TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-  cmesh->InsertMaterialObject(mat);
-  cmesh->InsertMaterialObject(bcmatBase);
-  cmesh->InsertMaterialObject(bcmatForce);
-//   cmesh->InsertMaterialObject(bcmatDot);
-//**************************
-
-  cmesh->AutoBuild();
-
-  return cmesh; 
+  cout << endl << endl << "NacaPtosUp = {";
+  for(int pos = int(naca->fX0[0]); pos <= int(naca->fX0[0] + naca->fCord); pos++)
+  {
+    cout << "{" << naca->xua(pos) << "," << naca->yua(pos) << "}";
+    if(pos != int(naca->fX0[0] + naca->fCord)) cout << ",";
+  }
+  cout << "};" << endl;
+  cout << "A=ListPlot[NacaPtosUp, Joined -> True,AspectRatio -> 0.2,PlotRange->{{";
+  cout << naca->fX0[0] << "," << naca->fX0[0] + int(naca->fCord) << "},{-5,5}}];" << endl << endl;
 }
+
+void MathOutDW(TPZBlendNACA * naca)
+{
+  cout << "NacaPtosDw = {";
+  for(int pos = int(naca->fX0[0]); pos <= int(naca->fX0[0] + naca->fCord); pos++)
+  {
+    cout << "{" << naca->xla(pos) << "," << naca->yla(pos) << "}";
+    if(pos != int(naca->fX0[0] + naca->fCord)) cout << ",";
+  }
+  cout << "};" << endl;
+  cout << "B=ListPlot[NacaPtosDw, Joined -> True,AspectRatio -> 0.2];" << endl;
+}
+
+
+
+
+
+
+
+
+
+
+
+///GeoBlend Stuffs!
+
+#include "pzgeoelrefless.h.h"
+///CreateGeoElement -> TPZArc3D
+             template< >
+             TPZGeoEl *TPZGeoElRefLess<TPZArc3D >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+{
+  TPZGeoMesh &mesh = *(this->Mesh());
+  if(!&mesh) return 0;
+  return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+#define TPZGEOELEMENTARC3DID 300
+    template<>
+        int TPZGeoElRefPattern<TPZArc3D>::ClassId() const {
+      return TPZGEOELEMENTARC3DID;
+        }
+        template class 
+            TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
+
+        template<>
+            TPZCompEl *(*TPZGeoElRefLess<TPZArc3D>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
+
+        template class TPZGeoElRefLess<TPZArc3D>;
+
+
+///CreateGeoElement -> TPZEllipse
+        template< >
+            TPZGeoEl *TPZGeoElRefLess<TPZEllipse >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+        {
+          TPZGeoMesh &mesh = *(this->Mesh());
+          if(!&mesh) return 0;
+          return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+        }
+
+#define TPZGEOELEMENTELLIPSEID 301
+        template<>
+            int TPZGeoElRefPattern<TPZEllipse>::ClassId() const
+        {
+          return TPZGEOELEMENTELLIPSEID;
+        }
+        template class 
+            TPZRestoreClass< TPZGeoElRefPattern<TPZEllipse>, TPZGEOELEMENTELLIPSEID>;
+
+        template<>
+            TPZCompEl *(*TPZGeoElRefLess<TPZEllipse>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
+
+        template class TPZGeoElRefLess<TPZEllipse>;
+
+
+///CreateGeoElement -> TPZCurvedTriangle
+        template< >
+            TPZGeoEl *TPZGeoElRefLess<TPZCurvedTriangle >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+        {
+          TPZGeoMesh &mesh = *(this->Mesh());
+          if(!&mesh) return 0;
+          return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+        }
+
+#define TPZGEOELEMENTCURVEDTRIANGLEID 302
+        template<>
+            int TPZGeoElRefPattern<TPZCurvedTriangle>::ClassId() const {
+          return TPZGEOELEMENTCURVEDTRIANGLEID;
+            }
+            template class 
+                TPZRestoreClass< TPZGeoElRefPattern<TPZCurvedTriangle>, TPZGEOELEMENTCURVEDTRIANGLEID>;
+
+            template<>
+                TPZCompEl *(*TPZGeoElRefLess<TPZCurvedTriangle>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
+
+            template class TPZGeoElRefLess<TPZCurvedTriangle>;
+
+
+
+///CreateGeoElement -> TPZGeoBlend
+#define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
+            template< > \
+            TPZGeoEl *TPZGeoElRefLess<TPZGeoBlend<TGEO> >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index) \
+            { \
+            TPZGeoMesh &mesh = *(this->Mesh()); \
+            if(!&mesh) return 0; \
+            return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index); \
+} \
+            \
+            template<> \
+            int TPZGeoElRefPattern<TPZGeoBlend<TGEO>  >::ClassId() const { \
+            return CLASSID; \
+} \
+            template class \
+            TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >, CLASSID>; \
+            \
+            template<> \
+            TPZCompEl *(*TPZGeoElRefLess<TPZGeoBlend<TGEO> >::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CREATEFUNCTION; \
+            \
+            template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;
+
+#define TPZGEOBLENDPOINTID 303
+#define TPZGEOBLENDLINEARID 304
+#define TPZGEOBLENDQUADID 305
+#define TPZGEOBLENDTRIANGLEID 306
+#define TPZGEOBLENDCUBEID 307
+#define TPZGEOBLENDPRISMID 308
+#define TPZGEOBLENDPYRAMIDID 309
+#define TPZGEOBLENDTETRAHEDRAID 310
+
+            IMPLEMENTBLEND(pzgeom::TPZGeoPoint,TPZGEOBLENDPOINTID,CreatePointEl)
+                IMPLEMENTBLEND(pzgeom::TPZGeoLinear,TPZGEOBLENDLINEARID,CreateLinearEl)
+                IMPLEMENTBLEND(pzgeom::TPZGeoQuad,TPZGEOBLENDQUADID,CreateQuadEl)
+                IMPLEMENTBLEND(pzgeom::TPZGeoTriangle,TPZGEOBLENDTRIANGLEID,CreateTriangleEl)
+                IMPLEMENTBLEND(pzgeom::TPZGeoCube,TPZGEOBLENDCUBEID,CreateCubeEl)
+                IMPLEMENTBLEND(pzgeom::TPZGeoPrism,TPZGEOBLENDPRISMID,CreatePrismEl)
+                IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,TPZGEOBLENDPYRAMIDID,CreatePyramEl)
+                IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,TPZGEOBLENDTETRAHEDRAID,CreateTetraEl)
+
+
+///CreateGeoElement -> TPZQuadraticQuad
+                template< >
+                TPZGeoEl *TPZGeoElRefLess<TPZQuadraticQuad >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+            {
+              TPZGeoMesh &mesh = *(this->Mesh());
+              if(!&mesh) return 0;
+              return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+            }
+
+#define TPZGEOELEMENTQUADRATICQUADID 311
+            template<>
+                int TPZGeoElRefPattern<TPZQuadraticQuad>::ClassId() const {
+              return TPZGEOELEMENTQUADRATICQUADID;
+                }
+                template class 
+                    TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticQuad>, TPZGEOELEMENTQUADRATICQUADID>;
+
+                template<>
+                    TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticQuad>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;
+
+                template class TPZGeoElRefLess<TPZQuadraticQuad>;
+
+
+///CreateGeoElement -> TPZQuadraticTetra
+                template< >
+                    TPZGeoEl *TPZGeoElRefLess<TPZQuadraticTetra >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+                {
+                  TPZGeoMesh &mesh = *(this->Mesh());
+                  if(!&mesh) return 0;
+                  return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+                }
+
+#define TPZGEOELEMENTQUADRATICTETRAID 312
+                template<>
+                    int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {
+                  return TPZGEOELEMENTQUADRATICTETRAID;
+                    }
+                    template class 
+                        TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>, TPZGEOELEMENTQUADRATICTETRAID>;
+
+                    template<>
+                        TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticTetra>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;
+
+                    template class TPZGeoElRefLess<TPZQuadraticTetra>;
+
+
+///CreateGeoElement -> TPZQuadraticTrig
+                    template< >
+                        TPZGeoEl *TPZGeoElRefLess<TPZQuadraticTrig >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+                    {
+                      TPZGeoMesh &mesh = *(this->Mesh());
+                      if(!&mesh) return 0;
+                      return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+                    }
+
+#define TPZGEOELEMENTQUADRATICTRIANGLEID 313
+                    template<>
+                        int TPZGeoElRefPattern<TPZQuadraticTrig>::ClassId() const {
+                      return TPZGEOELEMENTQUADRATICTRIANGLEID;
+                        }
+                        template class 
+                            TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>, TPZGEOELEMENTQUADRATICTRIANGLEID>;
+
+                        template<>
+                            TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticTrig>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
+
+                        template class TPZGeoElRefLess<TPZQuadraticTrig>;
+
+
+#include "pznoderep.h.h"
+         template class pzgeom::TPZNodeRep<2,TPZEllipse>;
+         template class pzgeom::TPZNodeRep<3,TPZArc3D>;
+         template class pzgeom::TPZNodeRep<3,TPZCurvedTriangle>;
+         template class pzgeom::TPZNodeRep<8,TPZGeoBlend<TPZGeoCube> >;
+         template class pzgeom::TPZNodeRep<6,TPZGeoBlend<TPZGeoPrism> >;
+         template class pzgeom::TPZNodeRep<8,TPZQuadraticQuad>;
+         template class pzgeom::TPZNodeRep<10,TPZQuadraticTetra>;
+         template class pzgeom::TPZNodeRep<6,TPZQuadraticTrig>;
