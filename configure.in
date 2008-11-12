@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.63 2008-10-08 02:34:35 phil Exp $
+dnl $Id: configure.in,v 1.64 2008-11-12 12:45:10 fortiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -557,7 +557,7 @@ AC_OUTPUT(Analysis/Makefile Common/Makefile Cosys/Makefile External/Makefile \
 	Projects/checkconv/Makefile Projects/cylin/Makefile Projects/descontinuo/Makefile \
 	Projects/materialhyperelastico/Makefile Projects/matrix/Makefile Projects/multplaca/Makefile \
 	Projects/termica/Makefile Projects/teste/Makefile Projects/testeisotropia/Makefile \
-	Projects/testgeom/Makefile Projects/testmat/Makefile Projects/testshape/Makefile \
+	Projects/testgeom/Makefile Projects/testmat/Makefile Projects/testshape/Makefile Projects/BlackOil/Makefile \
 	Projects/viga3d/Makefile Projects/visualmatrix/Makefile Refine/Makefile Save/Makefile Shape/Makefile \
 	StrMatrix/Makefile Topology/Makefile Util/Makefile [ ] lib/Makefile)
 

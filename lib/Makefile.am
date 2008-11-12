@@ -18,7 +18,7 @@ libpz_a_SOURCES =
 libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o \
 	../Analysis/pzanalysis.o ../Analysis/pzanalysiserror.o ../Analysis/pzeuleranalysis.o \
 	../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o ../Analysis/pzsmanal.o \
-	../Analysis/pzsmfrontalanal.o ../Analysis/pztransientanalysis.o ../Common/pzreal.o \
+	../Analysis/pzsmfrontalanal.o ../Analysis/pztransientanalysis.o ../Analysis/pzblackoilanalysis.o ../Common/pzreal.o \
 	../Cosys/pzcartsys.o ../Cosys/pzcosys.o ../Cosys/pzcylinsys.o ../Cosys/pzesfersys.o \
 	../External/TPZBoostGraph.o ../External/pzmetis.o ../External/pzrenumbering.o ../External/pzsloan.o \
 	../External/sloan/diamtr.o ../External/sloan/gegra.o ../External/sloan/iorele.o \
@@ -47,7 +47,7 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Material/pznonlinbiharmonic.o ../Material/pznonlinearpoisson3d.o ../Material/pzplaca.o \
 	../Material/pzpoisson3d.o ../Material/pzpoisson3dreferred.o ../Material/pzspacetimerichardseq.o \
 	../Material/pzthermicelast3d.o ../Material/pztransientmat.o ../Material/tpzmultcamada.o \
-	../Material/tpzoutofrange.o ../Matrix/pzblock.o ../Matrix/pzblockdiag.o ../Matrix/pzbndmat.o \
+	../Material/tpzoutofrange.o ../Material/pzblackoil2p3d.o ../Matrix/pzblock.o ../Matrix/pzblockdiag.o ../Matrix/pzbndmat.o \
 	../Matrix/pzespmat.o ../Matrix/pzfmatrix.o ../Matrix/pzlink.o ../Matrix/pzmatred.o \
 	../Matrix/pzmatrix.o ../Matrix/pzmatrixid.o ../Matrix/pzsbndmat.o ../Matrix/pzseqsolver.o \
 	../Matrix/pzsespmat.o ../Matrix/pzsfulmat.o ../Matrix/pzshtmat.o ../Matrix/pzskylmat.o \
