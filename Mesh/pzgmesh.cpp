@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.51 2008-10-27 17:55:15 phil Exp $
+//$Id: pzgmesh.cpp,v 1.52 2008-11-12 12:53:10 fortiago Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -50,7 +50,6 @@ TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0){
   fReference = 0;
   fNodeMaxId = -1;
   fElementMaxId = -1;
-  InitializeRefPatterns();
 }
 
 TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp):
