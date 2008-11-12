@@ -1,4 +1,4 @@
-//$Id: pzblackoil2p3d.cpp,v 1.1 2008-11-12 12:45:51 fortiago Exp $ 
+//$Id: pzblackoil2p3d.cpp,v 1.2 2008-11-12 14:14:21 fortiago Exp $ 
 
 #include "pzblackoil2p3d.h"
 #include "pzbndcond.h"
@@ -246,7 +246,8 @@ double TPZBlackOil2P3D::RhoAguaSC(){
 /** Aceleracao da gravidade
   */
 double TPZBlackOil2P3D::g(){
-  return 9.81;
+#warning Aqui esta simplificando a gravidade
+  return 0;// 9.81;
 }
 
 /** Bw = constante
@@ -325,11 +326,13 @@ void TPZBlackOil2P3D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
   ef(1,0) += -1.*weight*stateVal*VolOp2.val();
 
   ///ek = -T (R)
-  ek(0,0) += +1.*weight*stateVal*VolOp1.dx(0);
-  ek(0,1) += +1.*weight*stateVal*VolOp1.dx(1);
+  if(gState == ECurrentState){///Last state has no tangent
+    ek(0,0) += +1.*weight*stateVal*VolOp1.dx(0);
+    ek(0,1) += +1.*weight*stateVal*VolOp1.dx(1);
 
-  ek(1,0) += +1.*weight*stateVal*VolOp2.dx(0);
-  ek(1,1) += +1.*weight*stateVal*VolOp2.dx(1);
+    ek(1,0) += +1.*weight*stateVal*VolOp2.dx(0);
+    ek(1,1) += +1.*weight*stateVal*VolOp2.dx(1);
+  }
 
 }///method
 
@@ -477,7 +480,15 @@ void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, REAL weight, 
 
     data.solr[0] = bc.Val2()(0,0);
     data.solr[1] = bc.Val2()(1,0);
-    this->ContributeInterface(data,weight,ek,ef);
+    TPZFNMatrix<16> auxek(4,4,0.), auxef(4,1,0.);
+    this->ContributeInterface(data,weight,auxek,auxef);
+
+    for(int i = 0; i < 2; i++){
+      ef(i,0) += auxef(i,0);
+      for(int j = 0; j < 2; j++){
+        ek(i,j) += auxek(i,j);
+      }
+    }
 
   }///Dirichlet na pressao e Dirichlet ou outflow na saturacao
 
@@ -520,6 +531,7 @@ int TPZBlackOil2P3D::NSolutionVariables(int var){
   if(var == EWaterSaturation) return 1;
   if(var == EOilSaturation) return 1;
   if(var == EDarcyVelocity) return 3;
+  return TPZMaterial::NSolutionVariables(var);
 }
 
 void TPZBlackOil2P3D::Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,

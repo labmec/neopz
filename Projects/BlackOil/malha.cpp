@@ -1,4 +1,4 @@
-//$Id: malha.cpp,v 1.1 2008-11-12 12:47:09 fortiago Exp $
+//$Id: malha.cpp,v 1.2 2008-11-12 14:14:21 fortiago Exp $
 
 #include "malha.h"
 #include "pzblackoil2p3d.h"
@@ -42,16 +42,17 @@ TPZCompMesh *Unidimensional(int h, double deltaT){
   const REAL PressaoInjecao = 30.e6;
   const REAL PressaoProducao = 25.e6;
   const REAL SoInj = 0.;
-  const REAL SoProd = 666; ///a saturacao na producao nao eh prescrita por ser um outflow
+  const REAL SoProd = 1e12; ///a saturacao na producao nao eh prescrita por ser um outflow
 
 
-  REAL co[8][3] = {{0.,0.,0.},    {0.,0., Base},    {0.,Height, Base},    {0., Height, 0.}, 
-                   {Length,0.,0.},{Length,0., Base},{Length,Height, Base},{Length, Height, 0.}};
-  int indices[1][8] = {{0,1,2,3,4,5,6,7}};
+  const int nnode = 12;
+  const int nelem = 2;
+  REAL co[nnode][3] = {{0.,0.,0.},    {0.,0., Base},    {0.,Height, Base},    {0., Height, 0.}, 
+                   {Length,0.,0.},{Length,0., Base},{Length,Height, Base},{Length, Height, 0.},
+                   {0.5*Length,0.,0.},{0.5*Length,0., Base},{0.5*Length,Height, Base},{0.5*Length, Height, 0.}};
+  int indices[nelem][8] = {{0,1,2,3,8,9,10,11},{8,9,10,11,4,5,6,7}};
   TPZGeoEl *elvec[1];
   TPZGeoMesh *gmesh = new TPZGeoMesh();
-  int nnode = 8;
-  int nelem = 1;
   int nod;
   for(nod=0; nod < nnode; nod++) {
     int nodind = gmesh->NodeVec().AllocateNewElement();
@@ -90,7 +91,7 @@ TPZCompMesh *Unidimensional(int h, double deltaT){
   for(int i = 0; i < h; i++){
     int n = gmesh->NElements();
     for(int j = 0; j < n; j++){
-      if (gmesh->ElementVec()[j]->Dimension() == 3) gmesh->ElementVec()[j]->Divide(filhos);
+      gmesh->ElementVec()[j]->Divide(filhos);
     }
   }
 
@@ -102,7 +103,7 @@ TPZCompMesh *Unidimensional(int h, double deltaT){
   TPZFMatrix val1(2,2,0.),val2(2,1,0.);
   val2(0,0) = PressaoInjecao;
   val2(1,0) = SoInj;
-  TPZAutoPointer<TPZMaterial> bcI = mat->CreateBC(mat,-1, 1,val1,val2);
+  TPZAutoPointer<TPZMaterial> bcI = mat->CreateBC(mat,-1, 0,val1,val2);
 
   val2(0,0) = PressaoProducao;
   val2(1,0) = SoProd;
@@ -115,9 +116,12 @@ TPZCompMesh *Unidimensional(int h, double deltaT){
   cmesh->SetAllCreateFunctionsDiscontinuous();
   cmesh->SetDefaultOrder(0);
   cmesh->AutoBuild();
-//   cmesh->AdjustBoundaryElements();
+  cmesh->AdjustBoundaryElements();
 //   cmesh->CleanUpUnconnectedNodes();
 //   cmesh->ExpandSolution();
 
+  ofstream file("malha.txt");
+  cmesh->Reference()->Print(file);
+  cmesh->Print(file);
   return cmesh;
 }

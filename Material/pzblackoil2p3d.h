@@ -1,4 +1,4 @@
-//$Id: pzblackoil2p3d.h,v 1.1 2008-11-12 12:45:51 fortiago Exp $
+//$Id: pzblackoil2p3d.h,v 1.2 2008-11-12 14:14:21 fortiago Exp $
 
 #ifndef PZBLACKOIL2P3D_H
 #define PZBLACKOIL2P3D_H
@@ -123,6 +123,28 @@ public:
    */
   virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
                         TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+
+
+  /** Fill material data parameter with necessary requirements for the
+    * Contribute method. Here, in base class, all requirements are considered
+    * as necessary. Each derived class may optimize performance by selecting
+    * only the necessary data.
+    */
+  virtual void FillDataRequirements(TPZMaterialData &data){
+    data.SetAllRequirements(true);
+    data.fNeedsNeighborSol = false;
+    data.fNeedsNeighborCenter = false;
+  }
+
+  /** Fill material data parameter with necessary requirements for the
+    * ContributeInterface method. Here, in base class, all requirements are considered
+    * as necessary. Each derived class may optimize performance by selecting
+    * only the necessary data.
+    */
+  virtual void FillDataRequirementsInterface(TPZMaterialData &data){
+    data.SetAllRequirements(true);
+    data.fNeedsSol = false;
+  }
 
   ///Dados
 

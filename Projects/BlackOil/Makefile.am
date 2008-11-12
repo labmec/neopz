@@ -20,4 +20,4 @@ bin_PROGRAMS = main
 main_SOURCES = main.cpp malha.cpp
 
 main_DEPENDENCIES = $(top_builddir)/lib/libpz.a
-_SOURCES = malha.h
+

@@ -1,4 +1,4 @@
-//$Id: pzblackoilanalysis.cpp,v 1.1 2008-11-12 12:46:03 fortiago Exp $
+//$Id: pzblackoilanalysis.cpp,v 1.2 2008-11-12 14:14:21 fortiago Exp $
 
 #include "pzblackoilanalysis.h"
 #include "pzblackoil2p3d.h"
@@ -6,6 +6,7 @@
 #include "pzfstrmatrix.h"
 #include "pzstrmatrix.h"
 #include "pzseqsolver.h"
+#include "checkconv.h"
 
 using namespace std;
 
@@ -30,6 +31,7 @@ void TPZBlackOilAnalysis::SetInitialSolution(TPZFMatrix & InitialSol){
   else{
     this->fSolution = InitialSol;
   }
+  TPZAnalysis::LoadSolution();
 }
 
 void TPZBlackOilAnalysis::SetInitialSolutionAsZero(){
@@ -39,6 +41,15 @@ void TPZBlackOilAnalysis::SetInitialSolutionAsZero(){
 }
 
 void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
+
+/*  {
+        int numeq = fCompMesh->NEquations();
+        TPZVec<REAL> coefs(1,1.);
+        TPZFMatrix range(numeq,1,1.);
+        TPZFMatrix solinicial = fSolution;
+        this->SetCurrentState();
+        CheckConvergence(*this,solinicial,range,coefs);
+  }*/
 
   this->SetAllMaterialsDeltaT();
 
@@ -62,6 +73,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
       this->fRhs += laststate;
       this->Solve();
 
+      #warning LineSearch nao esta funcionando, provavelmente por causa do residuo nao contemplar o last state
       if (linesearch){
         TPZFMatrix nextSol;
         REAL LineSearchTol = 1e-3 * Norm(fSolution);
