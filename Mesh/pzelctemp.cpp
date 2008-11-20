@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.41 2008-10-08 02:13:33 phil Exp $
+// $Id: pzelctemp.cpp,v 1.42 2008-11-20 23:30:41 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -20,9 +20,9 @@ template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
   TPZInterpolatedElement(mesh,gel,index) {
   int i;
+  fPreferredOrder = mesh.GetDefaultOrder();
   for(i=0;i<TSHAPE::NSides-TSHAPE::NCornerNodes;i++) {
 		//    fSideOrder[i] = gOrder;
-		fPreferredOrder = TPZCompEl::GetgOrder();
   }
   for(i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
   //  RemoveSideRestraintsII(EInsert);
