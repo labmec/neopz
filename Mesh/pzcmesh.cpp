@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.73 2008-10-13 18:12:14 longhin Exp $
+//$Id: pzcmesh.cpp,v 1.74 2008-11-20 23:29:05 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1621,7 +1621,7 @@ TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) :
     fSolution(copy.fSolution), fBlock(copy.fBlock),
     fElementSolution(copy.fElementSolution)
 {
-  fDefaultOrder = TPZCompEl::GetgOrder();
+  fDefaultOrder = copy.fDefaultOrder;
   fReference->ResetReference();
   fBlock.SetMatrix(&fSolution);
   fSolutionBlock.SetMatrix(&fSolution);
