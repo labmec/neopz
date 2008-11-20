@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.16 2007-06-08 00:02:28 cesar Exp $
+//$Id: pzsubcmesh.h,v 1.17 2008-11-20 23:37:02 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -42,13 +42,13 @@ protected:
    * Pointer to external location index of the connection.
    * If the connection hasn't external location return the local id.
    */
-  TPZVec<int> fConnectIndex;
+  TPZManVector<int> fConnectIndex;
 
   /**
    * Indexes of the external connections.
    * If the connection isn't external id is -1!
    */
-  TPZVec<int> fExternalLocIndex;
+  TPZManVector<int> fExternalLocIndex;
 
 
 private:
@@ -265,7 +265,11 @@ public:
   //     * The use of this method in submesh class return -1 == Error!
   //     */
 	virtual int Dimension() const;
-
+	/**
+	 * Compute the number of elements connected to each connect object
+	 */
+	virtual void ComputeNodElCon();
+	
   //    /**
   //     * Returns the connection index i.
   //     */

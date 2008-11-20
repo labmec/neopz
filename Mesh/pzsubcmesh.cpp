@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.24 2008-06-02 17:58:33 fortiago Exp $
+//$Id: pzsubcmesh.cpp,v 1.25 2008-11-20 23:37:02 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -17,6 +17,7 @@
 #include "pzskylstrmatrix.h"
 #include "pzfstrmatrix.h"
 #include "TPZFrontStructMatrix.h"
+#include "TPZParFrontStructMatrix.h"
 #include "pzsmfrontalanal.h"
 #include "pzbndcond.h"
 
@@ -287,6 +288,22 @@ TPZCompMesh * TPZSubCompMesh::CommonMesh(TPZCompMesh *mesh){
 	return (pos1 >=0 ) ? (s1[pos1+1]) : s2[pos2+1];
 }
 
+/**
+ * Compute the number of elements connected to each connect object
+ */
+void TPZSubCompMesh::ComputeNodElCon()
+{
+	TPZCompMesh::ComputeNodElCon();
+	int ic;
+	for(ic = 0; ic< fConnectVec.NElements(); ic++)
+	{
+		if(fExternalLocIndex[ic] != -1)
+		{
+			fConnectVec[ic].IncrementElConnected();
+		}
+	}
+}
+
 int TPZSubCompMesh::NConnects() const{
 	return fConnectIndex.NElements();
 }
@@ -470,7 +487,7 @@ void TPZSubCompMesh::TransferDependencies(int local)
     int r = listdepend->fDepMatrix.Rows();
     int c = listdepend->fDepMatrix.Cols();
     ConnectVec()[local].AddDependency(local,depindexlocal,listdepend->fDepMatrix,0,0,r,c);
-    father->ConnectVec()[depfatherindex].RemoveDepend(superind,depfatherindex);
+    father->ConnectVec()[superind].RemoveDepend(superind,depfatherindex);
     listdepend = father->ConnectVec()[superind].FirstDepend();
   }
 }
@@ -722,8 +739,9 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	ef.fBlock.SetNBlocks(nelemnodes);
 	for (i = 0; i < nelemnodes ; i++)	{
 		int nodeindex = ConnectIndex(i);
-  		ek.fBlock.Set(i,block.Size(nodeindex));
-  		ef.fBlock.Set(i,block.Size(nodeindex));
+		int seqnum = Connect(i).SequenceNumber();
+  		ek.fBlock.Set(i,block.Size(seqnum));
+  		ef.fBlock.Set(i,block.Size(seqnum));
 	  }
 	  ek.fConnect.Resize(nelemnodes);
 	  ef.fConnect.Resize(nelemnodes);
@@ -737,6 +755,16 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 	else{
 		fAnalysis->Run(std::cout);
+
+		TPZSubMeshFrontalAnalysis *sman = dynamic_cast<TPZSubMeshFrontalAnalysis *> (fAnalysis);
+		if(sman)
+		{
+			TPZAbstractFrontMatrix *frontmat = dynamic_cast<TPZAbstractFrontMatrix *> (fAnalysis->Solver().Matrix().operator->());
+			if(frontmat)
+			{
+				sman->SetFront(frontmat->GetFront());
+			}
+		}
 		fAnalysis->CondensedSolution(ek.fMat,ef.fMat);
 //		ek.fMat->Print("ek reduzido");
 //		std::cout.flush();
@@ -748,11 +776,17 @@ void TPZSubCompMesh::SetAnalysis(){
 	if(fAnalysis) delete fAnalysis;
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
 	//	int numint = NumInternalEquations();
-	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
+//	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
+	TPZParFrontStructMatrix<TPZFrontSym> fstr(this);
+	fstr.SetNumberOfThreads(5);
 	fAnalysis->SetStructuralMatrix(fstr);
+	
 	TPZStepSolver solver;
 	fAnalysis->SetSolver(solver);
 	PermuteExternalConnects();
+	
+	int neq = TPZCompMesh::NEquations(); 
+	neq *= 2;
 //	ofstream out("subcmesh.dat");
 //	Prints(out);
 }
@@ -828,8 +862,10 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 	//compute number of internal nodes -> numinternal
 //	TPZCompMesh::Print();
 
-	int i=0, numinternal=0;
+	int i=0, numinternal=0, numconstraints = 0, numexternal=0;
+	int countinternal=0, countconstraint=0;
 	int nconnects = fConnectVec.NElements();
+	std::set<int> internalseqnum;
 //std::cout << "fExternalLocIndex\n";
 //for(i=0; i<nconnects; i++) std::cout << fExternalLocIndex[i] << ' ';
 //std::cout << std::endl;
@@ -840,16 +876,40 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 
 			if(no.NElConnected() == 0) continue;
 			//se n�o tiver elemento conectado tambe'm
-			numinternal+= 1;
+			if(no.HasDependency())
+			{
+				numconstraints++;
+			}
+			else
+			{
+				numinternal+= 1;
+				internalseqnum.insert(no.SequenceNumber());
+			}
+		}
+		else
+		{
+			numexternal++;
 		}
 	}
+	countconstraint = numinternal+numexternal;
 	// initialize a counter for internal nodes
 	i=0;
-	int seqnum=0;
-	int countint=0;
 	TPZManVector<int> permute(nconnects);
 	for (i=0;i<nconnects;i++) permute[i] = i;
-
+	std::set<int>::iterator it;
+	int seqnum = 0;
+	for(it=internalseqnum.begin(); it!=internalseqnum.end(); it++)
+	{
+		permute[*it] = seqnum++;
+	}
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << " numinternal " << numinternal << " numconstraints " << numconstraints << " numexternal " << numexternal << std::endl;
+		sout << " permute so far " << permute;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 	// loop over all nodes
 	for (i=0;i<fConnectVec.NElements();i++){
 		// take seqnum = the sequencenumber of the node
@@ -857,27 +917,37 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 		TPZConnect &no = fConnectVec[i];
 		seqnum = no.SequenceNumber();
 		// if the node is free or constrained
-		if (no.HasDependency() || no.NElConnected() == 0) {
-			//->set permute[sequnum] to itself
-			continue;
-		}
+//		if (no.HasDependency() || no.NElConnected() == 0) {
+//			//->set permute[sequnum] to itself
+//			continue;
+//		}
 		// if the node is internal
 		if (fExternalLocIndex[i] == -1){
 			//-> set permute[sequnum] to counter
-			permute[seqnum] = countint;
-			//-> increment counter
-			countint += 1;
+			// ->set permute[seqnum] = fExternalConnectIndex+numinternal
+			if(no.HasDependency())
+			{
+				permute[seqnum] = countconstraint;
+				countconstraint++;
+			}
+			else
+			{
+			}
 		}
 		// if the node is external
-		else{
-			// ->set permute[seqnum] = fExternalConnectIndex+numinternal
+		else
+		{
 			permute [seqnum] = fExternalLocIndex[i]+numinternal;
 		// end loop
 		}
 	}
-	//for (i=0;i<NConnects();i++){
-	//	std::cout << "Permute [" <<i <<"]\n";
-	//}
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Permutations " << permute;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 	Permute(permute);
 }
 
