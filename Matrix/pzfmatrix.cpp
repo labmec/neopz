@@ -1352,6 +1352,7 @@ int TPZFMatrix::Substitution(const REAL *ptr, int rows, TPZFMatrix *B, TPZVec<in
 REAL Dot(const TPZFMatrix &A, const TPZFMatrix &B) {
 	int size = (A.Rows())*A.Cols();
 	REAL result = 0.;
+	if(!size) return result;
 #ifdef USING_ATLAS
 	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
 	return result;
