@@ -18,6 +18,16 @@
 
 using namespace std;
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+
+static LoggerPtr logger(Logger::getLogger("pz.strmatrix.frontstructmatrix"));
+static LoggerPtr loggerfw(Logger::getLogger("pz.frontal.frontmatrix.fw"));
+
+#endif
+
+
 pthread_mutex_t mutex_write = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t conda_write = PTHREAD_COND_INITIALIZER;
 
@@ -68,6 +78,13 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
 
           // message #1.3 to fFront:TPZFront
           this->fFront.AddKel(elmat, destinationindex);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Frondwidth after AddKel "<< this->fFront.FrontSize();
+		LOGPZ_DEBUG(loggerfw,sout.str())
+	}
+#endif
     /*      cout << "destination index" << endl;
           int i;
           for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
@@ -103,7 +120,14 @@ template<class store, class front>
 void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex)
 {
 	this->fFront.AddKel(elmat, sourceindex, destinationindex);
-//	EquationsToDecompose(destinationindex);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Frondwidth after AddKel "<< this->fFront.FrontSize();
+		LOGPZ_DEBUG(loggerfw,sout.str())
+	}
+#endif
+	//	EquationsToDecompose(destinationindex);
  //         cout << "AddKel::destination index 2" << endl;
 //          for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
  //         cout << endl;
@@ -142,30 +166,69 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
 
 template<class store, class front>
 void TPZParFrontMatrix<store, front>::FinishWriting(){
-     cout << endl << "FinishWriting" << endl;
-     cout.flush();     
-     fFinish = 1;
+	pthread_mutex_lock(&fwritelock);
+	cout << endl << "FinishWriting" << endl;
+	cout.flush();     
+	fFinish = 1;
+	pthread_mutex_unlock(&fwritelock);
+	pthread_cond_signal(&fwritecond);
 } 
 
 template<class store, class front>
 void * TPZParFrontMatrix<store, front>::WriteFile(void *t){
-     TPZParFrontMatrix<store, front> *parfront = (TPZParFrontMatrix<store, front>*) t;       
+     TPZParFrontMatrix<store, front> *parfront = (TPZParFrontMatrix<store, front>*) t;    
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Entering WriteFile thread execution";
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
      cout << endl << "Entering Decomposition" << endl;
      cout.flush();
      while(1){
           TPZStack<TPZEqnArray *> local;
           pthread_mutex_lock(&parfront->fwritelock);
-          if(parfront->fEqnStack.NElements() == 0){
+#ifdef LOG4CXX
+		 {
+			 std::stringstream sout;
+			 sout << "Acquired writelock";
+			 LOGPZ_DEBUG(logger,sout.str())
+		 }
+#endif
+		 if(parfront->fEqnStack.NElements() == 0){
                if(parfront->fFinish == 1) {
-                    cout << "Leaving WHILE" << endl;
+#ifdef LOG4CXX
+				   {
+					   std::stringstream sout;
+					   sout << "Terminating WriteFile thread execution";
+					   LOGPZ_DEBUG(logger,sout.str())
+				   }
+#endif
+				   cout << "Leaving WHILE" << endl;
                     cout.flush();
                     break;
                }
-               pthread_cond_wait(&parfront->fwritecond, &parfront->fwritelock);
+#ifdef LOG4CXX
+			  {
+				  std::stringstream sout;
+				  sout << "Entering cond_wait on fwritecond variable";
+				  LOGPZ_DEBUG(logger,sout.str())
+			  }
+#endif
+			  pthread_cond_wait(&parfront->fwritecond, &parfront->fwritelock);
           }
           
           local = parfront->fEqnStack;
           parfront->fEqnStack.Resize(0);
+#ifdef LOG4CXX
+		 {
+			 std::stringstream sout;
+			 sout << "Copied the equation stack releasing the writelock";
+			 LOGPZ_DEBUG(logger,sout.str())
+		 }
+#endif
+		 
           pthread_mutex_unlock(&parfront->fwritelock);
           int neqn = local.NElements();
           
@@ -186,7 +249,23 @@ void * TPZParFrontMatrix<store, front>::WriteFile(void *t){
      parfront->fStorage.FinishWriting();
      parfront->fStorage.ReOpen();
      parfront->fFinish = 0;
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Releasing writelock";
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	
      pthread_mutex_unlock(&parfront->fwritelock);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Falling through on the write thread";
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	std::cout << "Terminating write thread\n";
      return (0);
 } 
 

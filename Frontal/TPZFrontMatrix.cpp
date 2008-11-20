@@ -17,6 +17,7 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.frontal.frontmatrix"));
+static LoggerPtr loggerfw(Logger::getLogger("pz.frontal.frontmatrix.fw"));
 
 #endif
 
@@ -85,6 +86,13 @@ void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > & d
 
           // message #1.3 to fFront:TPZFront
           fFront.AddKel(elmat, destinationindex);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Frondwidth after AddKel "<< fFront.NElements();
+		LOGPZ_DEBUG(loggerfw,sout.str())
+	}
+#endif
     /*      cout << "destination index" << endl;
           int i;
           for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
@@ -114,6 +122,14 @@ template<class store, class front>
 void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex)
 {
 	fFront.AddKel(elmat, sourceindex, destinationindex);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Frondwidth after AddKel "<< fFront.FrontSize();
+		LOGPZ_DEBUG(loggerfw,sout.str())
+	}
+#endif
+	
 //	EquationsToDecompose(destinationindex);
  //         cout << "AddKel::destination index 2" << endl;
 //     int i;
@@ -161,7 +177,7 @@ TPZFrontMatrix<store, front>::~TPZFrontMatrix(){
 
 
 template<class store, class front>
-TPZFrontMatrix<store, front>::TPZFrontMatrix()
+TPZFrontMatrix<store, front>::TPZFrontMatrix() : TPZAbstractFrontMatrix()
 {
 	fFront.Reset();
 	fStorage.Reset();
@@ -172,7 +188,7 @@ TPZFrontMatrix<store, front>::TPZFrontMatrix()
 }
 
 template<class store, class front>
-TPZFrontMatrix<store, front>::TPZFrontMatrix(int globalsize) : TPZMatrix(globalsize,globalsize)
+TPZFrontMatrix<store, front>::TPZFrontMatrix(int globalsize) : TPZAbstractFrontMatrix(globalsize,globalsize)
 {
 	fFront.Reset(globalsize);
 	fStorage.Reset();
@@ -273,8 +289,25 @@ void TPZFrontMatrix<store, front>::main()
 template<class store, class front>
 void TPZFrontMatrix<store, front>::CheckCompress()
 {
-	double nfreerate = ( (double)fFront.NFree() / (double)fFront.NElements() ) * 100;
-	if(nfreerate>20.) fFront.Compress();
+	double nfreerate = ( (double)fFront.NFree() / (double)fFront.FrontSize() ) * 100;
+	if(nfreerate>20.) 
+	{
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "Compressing front nfreerate " << nfreerate << " NFree " << fFront.NFree() << " Front elements " << fFront.FrontSize();
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		fFront.Compress();
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "Frondwidth after Compress "<< fFront.FrontSize();
+			LOGPZ_DEBUG(loggerfw,sout.str())
+		}
+#endif
+	}
 }
 
 template<class store, class front>

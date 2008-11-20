@@ -80,7 +80,7 @@ virtual	void ExtractFrontMatrix(TPZFMatrix &front) {
 	std::cout << "TPZFront ExtractFrontMatrix should never be called\n";
 }
     /** Returns the number of free equations */
-	int NFree();
+	virtual int NFree();
     /** Resets data structure */
 	void Reset(int GlobalSize=0);
 
@@ -90,6 +90,13 @@ virtual	void ExtractFrontMatrix(TPZFMatrix &front) {
      void Print(const char *name, std::ostream& out);
      void PrintGlobal(const char *name, std::ostream& out = std::cout);
 
+	/**
+	 * returns the actual front size
+	 */
+	int FrontSize()
+	{
+		return fFront;
+	}
 
 
 

@@ -136,7 +136,7 @@ private:
           );
 public:
     /** Returns the number of free equations */
-        int NFree();
+        virtual int NFree();
     /** Resets data structure */
         void Reset(
              int GlobalSize=0 //! Initial global size to be used in reseting.

@@ -136,7 +136,7 @@ private:
     int Local(int global);
 public:
     /** Returns the number of free equations */
-	int NFree();
+	virtual int NFree();
     /** Resets data structure */
 	void Reset(int GlobalSize=0);
     /** Allocates data for Front */

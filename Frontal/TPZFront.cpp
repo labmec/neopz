@@ -285,9 +285,9 @@ int TPZFront::NFree()
 {
 	int i;
 	int free_eq=0;
-	for(i=0;i<fLocal.NElements();i++)
+	for(i=0;i<fGlobal.NElements();i++)
 	{
-		if(fLocal[i]==-1){
+		if(fGlobal[i]==-1){
 			free_eq=free_eq+1;
 		}
 	}

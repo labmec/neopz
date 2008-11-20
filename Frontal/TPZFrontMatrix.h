@@ -17,13 +17,29 @@
 #include "pzmatrix.h"
 
 class TPZFMatrix;
+
+class TPZAbstractFrontMatrix : public TPZMatrix
+{
+public:
+
+	TPZAbstractFrontMatrix() : TPZMatrix()
+	{
+	}
+	
+	TPZAbstractFrontMatrix(int ieq, int jeq) : TPZMatrix(ieq,jeq)
+	{
+	}
+	
+	virtual TPZFront & GetFront() = 0;
+		
+};
 /**
  * Class responsible for the frontal method as a whole
  * Manages the remaining classes connecting them
  * @ingroup frontal
  */
 template <class store, class front>
-class TPZFrontMatrix : public TPZMatrix {
+class TPZFrontMatrix : public TPZAbstractFrontMatrix {
 protected:
 
     /**
@@ -68,7 +84,7 @@ public:
 		       int globalsize //! Indicates initial global size
 		       );
  
- TPZFrontMatrix(const TPZFrontMatrix &cp) : fStorage(cp.fStorage),
+ TPZFrontMatrix(const TPZFrontMatrix &cp) : TPZAbstractFrontMatrix(cp), fStorage(cp.fStorage),
  fFront(cp.fFront),fNumEq(cp.fNumEq),fLastDecomposed(cp.fLastDecomposed), fNumElConnected(cp.fNumElConnected),fNumElConnectedBackup(fNumElConnectedBackup)
     {
     }

@@ -106,16 +106,9 @@ void TPZFrontSym::Reset(int GlobalSize)
 }
 int TPZFrontSym::NFree()
 {
-	int i;
-	int free_eq=0;
-	for(i=0;i<fLocal.NElements();i++)
-	{
-		if(fLocal[i]==-1){
-			free_eq=free_eq+1;
-		}
-	}
-	return free_eq;
+	return fFree.NElements();
 }
+
 int TPZFrontSym::Local(int global){
 	int index;
 	if(fLocal[global]!=-1) return fLocal[global];
