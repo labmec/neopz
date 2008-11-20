@@ -110,8 +110,9 @@ private:
       * Whenever this value is reached a execution of element computing is suspended
       */
      int fMaxStackSize;
-     /**Local pointer to stiffness matrix*/
-     TPZMatrix * fStiffness;
+	/**Local pointer to stiffness matrix*/
+	//TPZParFrontMatrix<TPZFileEqnStorage, front> * fStiffness;
+	TPZMatrix * fStiffness;
      /**Local pointer to load matrix*/
      TPZFMatrix * fRhs;
 

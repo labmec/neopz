@@ -191,7 +191,7 @@ TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
     fMinEq = 0;
     fMaxEq = neq;
   }
-     TPZVec <int> numelconnected(neq,0);
+     TPZManVector <int> numelconnected(neq,0);
      //TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
 
      TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(neq);
@@ -202,33 +202,39 @@ TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs){
 
      Assemble(*mat,rhs);
 
+	mat->FinishWriting();
+	mat->ReOpen();
      return mat;
 }
 
 template<class front>
 TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs, std::set<int> &MaterialIds){
 
-  int neq = fMesh->NEquations();
-  if(HasRange())
-  {
-    neq = fMaxEq-fMinEq;
-  }
-  else
-  {
-    fMinEq = 0;
-    fMaxEq = neq;
-  }
-  TPZVec <int> numelconnected(fMesh->NEquations(),0);
-
-  TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
-  GetNumElConnected(numelconnected);
-  mat->SetNumElConnected(numelconnected);
-
-  OrderElement();
-
-  Assemble(*mat,rhs, MaterialIds);
-
-  return mat;
+	int neq = fMesh->NEquations();
+	if(HasRange())
+	{
+		neq = fMaxEq-fMinEq;
+	}
+	else
+	{
+		fMinEq = 0;
+		fMaxEq = neq;
+	}
+	TPZVec <int> numelconnected(fMesh->NEquations(),0);
+	
+	TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
+	OrderElement();
+	
+	AdjustSequenceNumbering();
+	
+	GetNumElConnected(numelconnected);
+	
+	mat->SetNumElConnected(numelconnected);
+	
+	
+	Assemble(*mat,rhs, MaterialIds);
+	
+	return mat;
 }
 
 template<class front>
@@ -603,6 +609,61 @@ int TPZFrontStructMatrix<front>::main() {
 
 }
 
+/**
+ * Resequence the connects according to the element order
+ **/
+template<class front>
+void TPZFrontStructMatrix<front>::AdjustSequenceNumbering()
+{
+	int nconnect = this->fMesh->ConnectVec().NElements();
+	TPZManVector<int> permute(nconnect);
+	fMesh->ComputeNodElCon();
+	int i;
+	for(i=0; i<nconnect; i++)
+	{
+		permute[i] = i;
+	}
+	TPZCompEl *cel;
+	int nelem = fElementOrder.NElements();
+	int el;
+	int connectcount = 0;
+	for(i=0; i<nelem; i++)
+	{
+		el = fElementOrder[i];
+		cel = fMesh->ElementVec()[el];
+		if(!cel) continue;
+		std::set<int> indepconnects, depconnects;
+		cel->BuildConnectList(indepconnects,depconnects);
+		std::set<int>::iterator it;
+		for(it=indepconnects.begin(); it != indepconnects.end(); it++)
+		{
+			TPZConnect &nod = fMesh->ConnectVec()[*it];
+			int nelcon = nod.NElConnected()-1;
+			int seqnum = nod.SequenceNumber();
+			if(nelcon == 0) permute[seqnum]= connectcount++;
+			nod.DecrementElConnected();
+		}
+	}
+	for(i=0; i<nconnect; i++)
+	{
+		TPZConnect &nod = fMesh->ConnectVec()[i];
+		if(nod.SequenceNumber() < 0 || nod.NElConnected() <= 0) continue;
+		if(permute[nod.SequenceNumber()] < connectcount)
+		{
+			std::cout << __PRETTY_FUNCTION__ << " very fishy\n";
+			DebugStop();
+		}
+	}
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__ << " permutation " << permute;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	fMesh->Permute(permute);
+}
+
 class TPZFrontSym;
 class TPZFrontNonSym;
 
@@ -636,3 +697,4 @@ void UniformRefine(int num, TPZGeoMesh &m){
         cout << endl;
   }
 }
+

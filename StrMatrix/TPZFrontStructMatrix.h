@@ -47,6 +47,12 @@ protected:
       * It is applied over fElementOrder putting it in the correct order.
       */
      void OrderElement();//TPZVec <int> &elorder);
+	
+	/**
+	 * Resequence the connects according to the element order
+	 **/
+	void AdjustSequenceNumbering();
+
 public:    
 
     /**
