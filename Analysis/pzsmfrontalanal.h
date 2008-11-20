@@ -13,6 +13,9 @@ class TPZSubCompMesh;
 class TPZFront;
 
 #include "pzfmatrix.h"	// Added by ClassView
+/**
+ * Analysis for substructuring
+ */
 class TPZSubMeshFrontalAnalysis : public TPZAnalysis  
 {
 private:

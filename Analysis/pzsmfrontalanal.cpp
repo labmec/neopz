@@ -17,6 +17,7 @@ using namespace std;
 
 TPZSubMeshFrontalAnalysis::TPZSubMeshFrontalAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh){
 	fMesh = mesh;
+	fFront = 0;
 }
 
 TPZSubMeshFrontalAnalysis::~TPZSubMeshFrontalAnalysis()
