@@ -17,9 +17,9 @@
  */
 
 #ifdef _AUTODIFF
-#define IsZero( a )  ( fabs(shapeFAD::val(a) ) < 1.e-10 )
+#define IsZero( a )  ( fabs(shapeFAD::val(shapeFAD::val(a)) ) < 1.e-20 )
 #else
-#define IsZero( a )  ( fabs( a ) < 1.e-10 )
+#define IsZero( a )  ( fabs( a ) < 1.e-20 )
 #endif
 
 enum EStatus {EOk = 0, EIncompDim, EZeroPivot};
@@ -74,7 +74,7 @@ class TPZDiffMatrix
     /**
      * Matrix data access
      */
-    T & operator()(const int i, const int j);
+    T & operator()(const int i, const int j = 0);
 
     void PutVal(const int row,const int col,const T & value );
   
@@ -126,6 +126,7 @@ class TPZDiffMatrix
 
     EStatus Substitution( TPZDiffMatrix<T> *B ) const;
 	
+	void Reset();
 	
   private:
 
@@ -404,5 +405,12 @@ inline EStatus TPZDiffMatrix<T>::Substitution( TPZDiffMatrix<T> *B ) const{
     }
     return EOk;
 }
+
+template <class T>
+inline void TPZDiffMatrix<T>::Reset()
+{
+	fDecomposed = ENoDecompose; 
+}
+
 
 #endif
