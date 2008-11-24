@@ -1,4 +1,4 @@
-//$Id: pzblackoilanalysis.cpp,v 1.2 2008-11-12 14:14:21 fortiago Exp $
+//$Id: pzblackoilanalysis.cpp,v 1.3 2008-11-24 19:31:15 fortiago Exp $
 
 #include "pzblackoilanalysis.h"
 #include "pzblackoil2p3d.h"
@@ -71,6 +71,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
       fSolution.Redim(0,0);
       this->Assemble();
       this->fRhs += laststate;
+
       this->Solve();
 
       #warning LineSearch nao esta funcionando, provavelmente por causa do residuo nao contemplar o last state
@@ -221,3 +222,33 @@ REAL & TPZBlackOilAnalysis::TimeStep(){
   return this->fTimeStep;
 }
 
+void TPZBlackOilAnalysis::Solve(){
+
+  const int n = this->Solver().Matrix()->Rows();
+  double minP = 0, maxP = 0, minS = 0, maxS = 0, p, S;
+  for(int i = 0; i < n/2; i++){
+    p = this->Solver().Matrix()->operator()(2*i,2*i);
+    S = this->Solver().Matrix()->operator()(2*i+1,2*i+1);
+    if(p > maxP) maxP = p;
+    if(p < minP) minP = p;
+    if(S > maxS) maxS = S;
+    if(S < minS) minS = S;
+  }///for i
+
+  double ScaleP = fabs(minP+maxP)/2.;
+  double ScaleS = fabs(minS+maxS)/2.;
+  for(int j = 0; j < n/2; j++){
+    for(int i = 0; i < n; i++){
+      this->Solver().Matrix()->operator()(i,2*j) *= 1./ScaleP;
+      this->Solver().Matrix()->operator()(i,2*j+1) *= 1./ScaleS;
+    }///i
+  }///j
+
+  TPZNonLinearAnalysis::Solve();
+
+  for(int i = 0; i < n/2; i++){
+    fSolution(2*i,0) *= 1./ScaleP;
+    fSolution(2*i+1,0) *= 1./ScaleS;
+  }///i
+
+}///method

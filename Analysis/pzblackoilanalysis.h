@@ -1,4 +1,4 @@
-//$Id: pzblackoilanalysis.h,v 1.1 2008-11-12 12:46:03 fortiago Exp $
+//$Id: pzblackoilanalysis.h,v 1.2 2008-11-24 19:31:15 fortiago Exp $
 
 #ifndef BLACKOILANALH
 #define BLACKOILANALH
@@ -26,6 +26,11 @@ public:
    * Assemble residual vector and tangent matrix
   */
   virtual void Assemble();
+
+  /**
+   * Invert the algebraic system
+  **/
+  virtual void Solve();
 
   virtual void Run(std::ostream &out = std::cout, bool linesearch = true);
 

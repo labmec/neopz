@@ -1,4 +1,4 @@
-//$Id: pzblackoil2p3d.cpp,v 1.2 2008-11-12 14:14:21 fortiago Exp $ 
+//$Id: pzblackoil2p3d.cpp,v 1.3 2008-11-24 19:31:55 fortiago Exp $ 
 
 #include "pzblackoil2p3d.h"
 #include "pzbndcond.h"
@@ -246,8 +246,7 @@ double TPZBlackOil2P3D::RhoAguaSC(){
 /** Aceleracao da gravidade
   */
 double TPZBlackOil2P3D::g(){
-#warning Aqui esta simplificando a gravidade
-  return 0;// 9.81;
+  return 9.81;
 }
 
 /** Bw = constante
@@ -259,7 +258,7 @@ double TPZBlackOil2P3D::Bw(){
 /** Viscosidade da agua (constante)
 */
 double TPZBlackOil2P3D::ViscAgua(){
-  return 0.31e-3;
+  return 1.e-3;
 }
 
 /** Permeabilidade absoluta 
@@ -385,7 +384,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
   const BFadREAL GammaOleoLeft  = this->g() * this->RhoOleoSC()/BoL;
   const BFadREAL GammaOleoRight = this->g() * this->RhoOleoSC()/BoR;
 
-  ///velocidade de Darcy
+  ///velocidade de Darcy: na verdade a velocidade eh menos o que esta abaixo
   BFadREAL velocOleo = (knormal*poR-knormal*poL)/dist - (GammaOleoRight*kgradZn+GammaOleoLeft*kgradZn)/2.;
 
   ///Mobilidades
@@ -429,7 +428,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
   const double Bw = this->Bw();
   const double GammaAgua = this->g() * this->RhoAguaSC() / Bw;
 
-  ///velocidade de Darcy
+  ///velocidade de Darcy: na verdade a velocidade eh menos o que esta abaixo
   BFadREAL velocAgua = (knormal*pwR-knormal*pwL)/dist - (GammaAgua*kgradZn+GammaAgua*kgradZn)/2.;
 
   ///Mobilidades
