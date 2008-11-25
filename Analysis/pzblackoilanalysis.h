@@ -1,4 +1,4 @@
-//$Id: pzblackoilanalysis.h,v 1.2 2008-11-24 19:31:15 fortiago Exp $
+//$Id: pzblackoilanalysis.h,v 1.3 2008-11-25 13:27:17 fortiago Exp $
 
 #ifndef BLACKOILANALH
 #define BLACKOILANALH
@@ -16,6 +16,10 @@ class TPZFStructMatrix;
 
 class TPZBlackOilAnalysis : public TPZNonLinearAnalysis {
 
+private:
+
+  TPZFMatrix fLastState;
+
 public:
 
   TPZBlackOilAnalysis(TPZCompMesh *mesh, double TimeStep, std::ostream &out = std::cout);
@@ -26,6 +30,11 @@ public:
    * Assemble residual vector and tangent matrix
   */
   virtual void Assemble();
+
+  /**
+  * Assemble only the residual vector
+  **/
+  virtual void AssembleResidual();
 
   /**
    * Invert the algebraic system

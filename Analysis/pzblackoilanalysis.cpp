@@ -1,4 +1,4 @@
-//$Id: pzblackoilanalysis.cpp,v 1.3 2008-11-24 19:31:15 fortiago Exp $
+//$Id: pzblackoilanalysis.cpp,v 1.4 2008-11-25 13:27:16 fortiago Exp $
 
 #include "pzblackoilanalysis.h"
 #include "pzblackoil2p3d.h"
@@ -40,6 +40,14 @@ void TPZBlackOilAnalysis::SetInitialSolutionAsZero(){
   this->fSolution.Zero();
 }
 
+void TPZBlackOilAnalysis::AssembleResidual(){
+  this->SetCurrentState();
+  int sz = this->Mesh()->NEquations();
+  this->Rhs().Redim(sz,1);
+  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
+  this->fRhs += fLastState;
+}///void
+
 void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 
 /*  {
@@ -53,13 +61,13 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 
   this->SetAllMaterialsDeltaT();
 
-  TPZFMatrix prevsol, laststate, lastsol;
+  TPZFMatrix prevsol, lastsol;
   for(this->fCurrentStep = 0; this->fCurrentStep < this->fNIter; this->fCurrentStep++){
 
     ///Computing residual of last state solution
     this->SetLastState();
     this->Assemble();
-    laststate = this->fRhs;
+    fLastState = this->fRhs;
     prevsol = fSolution;
     lastsol = fSolution;
     ///Newton's method
@@ -70,11 +78,10 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 
       fSolution.Redim(0,0);
       this->Assemble();
-      this->fRhs += laststate;
+      this->fRhs += fLastState;
 
       this->Solve();
 
-      #warning LineSearch nao esta funcionando, provavelmente por causa do residuo nao contemplar o last state
       if (linesearch){
         TPZFMatrix nextSol;
         REAL LineSearchTol = 1e-3 * Norm(fSolution);
@@ -252,3 +259,4 @@ void TPZBlackOilAnalysis::Solve(){
   }///i
 
 }///method
+
