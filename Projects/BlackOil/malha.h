@@ -1,4 +1,4 @@
-//$Id: malha.h,v 1.1 2008-11-12 12:47:09 fortiago Exp $
+//$Id: malha.h,v 1.2 2008-11-25 13:28:15 fortiago Exp $
 
 #include "pzcmesh.h"
 
@@ -7,3 +7,7 @@
   */
 TPZCompMesh *Unidimensional(int h, double deltaT);
 
+/** Gera malha tridimensional para problema com solucao unidimensional.
+  * O problema eh agua em cima e oleo em baixo que devem migrar.
+  */
+TPZCompMesh *UnidimensionalGravidade(int h, double deltaT);

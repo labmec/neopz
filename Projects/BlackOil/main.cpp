@@ -22,8 +22,10 @@ using namespace std;
 
 int main(){
 
-  const double deltaT = 1.e4;
+  const double deltaT = 2629743.8;///1 month
   TPZCompMesh * cmesh = Unidimensional(1, deltaT);
+//   TPZCompMesh * cmesh = UnidimensionalGravidade(1, deltaT);
+
   TPZGeoMesh *gmesh = cmesh->Reference();
   TPZBlackOilAnalysis an(cmesh,deltaT);
 
@@ -34,7 +36,7 @@ int main(){
   an.SetSolver(step);
 
   an.SetConvergence(1000, 1e-6, true);
-  an.SetNewtonConvergence(100,1e-11);
+  an.SetNewtonConvergence(100,1e-7);
   an.SetTime(deltaT);
 
   TPZFMatrix initialSol = an.Solution();
@@ -44,13 +46,13 @@ int main(){
   }
 
 //   initialSol(0,0) = 27.5e6;
-//   initialSol(1,0) = 0.9;
+//   initialSol(1,0) = 1.;
 //   initialSol(2,0) = 27.5e6;
-//   initialSol(3,0) = 0.9;
+//   initialSol(3,0) = 0.;
 
   an.SetInitialSolution(initialSol);
 
-  an.Run(cout,false);
+  an.Run(cout,/*false*/true);
 
   ofstream sol("solutionvec.txt");
   an.Solution().Print("solvec", sol);

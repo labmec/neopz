@@ -1,4 +1,4 @@
-//$Id: malha.cpp,v 1.2 2008-11-12 14:14:21 fortiago Exp $
+//$Id: malha.cpp,v 1.3 2008-11-25 13:28:15 fortiago Exp $
 
 #include "malha.h"
 #include "pzblackoil2p3d.h"
@@ -112,6 +112,82 @@ TPZCompMesh *Unidimensional(int h, double deltaT){
   cmesh->InsertMaterialObject(mat);
   cmesh->InsertMaterialObject(bcI);
   cmesh->InsertMaterialObject(bcP);
+
+  cmesh->SetAllCreateFunctionsDiscontinuous();
+  cmesh->SetDefaultOrder(0);
+  cmesh->AutoBuild();
+  cmesh->AdjustBoundaryElements();
+//   cmesh->CleanUpUnconnectedNodes();
+//   cmesh->ExpandSolution();
+
+  ofstream file("malha.txt");
+  cmesh->Reference()->Print(file);
+  cmesh->Print(file);
+  return cmesh;
+}
+
+TPZCompMesh *UnidimensionalGravidade(int h, double deltaT){
+  const REAL H = 1000.;
+  const REAL B   = 20.;
+  const REAL L = 30.;
+
+  const int nnode = 12;
+  const int nelem = 2;
+  REAL co[nnode][3] = { {0,0,0},{B,0,0},{B,L,0},{0,L,0},
+                        {0,0,H},{B,0,H},{B,L,H},{0,L,H},
+                        {0,0,H/2.},{B,0,H/2.},{B,L,H/2.},{0,L,H/2.}
+                      };
+  int indices[nelem][8] = {{0,1,2,3,8,9,10,11},{8,9,10,11,4,5,6,7}};
+  TPZGeoEl *elvec[1];
+  TPZGeoMesh *gmesh = new TPZGeoMesh();
+  int nod;
+  for(nod=0; nod < nnode; nod++) {
+    int nodind = gmesh->NodeVec().AllocateNewElement();
+    TPZManVector<REAL,3> coord(3);
+    coord[0] = co[nod][0];
+    coord[1] = co[nod][1];
+    coord[2] = co[nod][2];
+    gmesh->NodeVec()[nodind].Initialize(nod,coord,*gmesh);
+  }
+
+  int el;
+  for(el=0; el<nelem; el++) {
+    TPZManVector<int,8> nodind(8);
+    for(nod=0; nod < 8; nod++) nodind[nod]=indices[el][nod];
+    int index;
+    elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
+  }
+
+  int index;
+  TPZManVector<int,4> bcincid(4);
+  bcincid[0] = 0;
+  bcincid[1] = 1;
+  bcincid[2] = 2;
+  bcincid[3] = 3;
+  gmesh->CreateGeoElement(EQuadrilateral,bcincid,-1,index);
+
+  bcincid[0] = 4;
+  bcincid[1] = 5;
+  bcincid[2] = 6;
+  bcincid[3] = 7;  
+  gmesh->CreateGeoElement(EQuadrilateral,bcincid,-2,index);
+
+  gmesh->BuildConnectivity();
+
+  TPZVec<TPZGeoEl*> filhos;
+  for(int i = 0; i < h; i++){
+    int n = gmesh->NElements();
+    for(int j = 0; j < n; j++){
+      gmesh->ElementVec()[j]->Divide(filhos);
+    }
+  }
+
+  TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+  cmesh->SetDimModel(3);
+
+  TPZAutoPointer<TPZMaterial> mat = new TPZBlackOil2P3D(1, deltaT);
+
+  cmesh->InsertMaterialObject(mat);
 
   cmesh->SetAllCreateFunctionsDiscontinuous();
   cmesh->SetDefaultOrder(0);
