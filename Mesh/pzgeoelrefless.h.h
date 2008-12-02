@@ -75,8 +75,8 @@ TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TGeo &geo,int matind,TPZGeoMesh &mesh) :
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
-    TPZGeoEl(matind,mesh,index) , fGeo(nodeindices,mesh) {
-
+    TPZGeoEl(matind,mesh,index) , fGeo(nodeindices,mesh) 
+{
   int i;
   for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
 }
