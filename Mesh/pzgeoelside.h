@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.18 2007-12-05 14:16:00 phil Exp $
+//$Id: pzgeoelside.h,v 1.19 2008-12-02 10:24:48 longhin Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -26,7 +26,7 @@ class TPZGeoElSideIndex{
 
  public:
  
-  virtual ~TPZGeoElSideIndex();
+  ~TPZGeoElSideIndex();
   
   TPZGeoElSideIndex();
  
@@ -38,7 +38,7 @@ class TPZGeoElSideIndex{
   
   TPZGeoElSideIndex(const TPZGeoElSideIndex &cp);
   
-  virtual TPZGeoElSideIndex * Clone();
+  TPZGeoElSideIndex * Clone();
   
   TPZGeoElSideIndex &operator= (const TPZGeoElSideIndex &A );
   
