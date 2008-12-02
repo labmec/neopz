@@ -42,6 +42,12 @@ void TPZGeoElRefPattern<TGeo>::Write(TPZStream &str, int withclassid){
   TPZSaveable::WriteObjects(str, this->fSubEl);
 }
 
+template<class TGeo>
+TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
+TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index) 
+{
+}
+
 template <class TGeo>
 TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh, const TPZGeoElRefPattern<TGeo> &cp):TPZGeoElRefLess<TGeo>(DestMesh,cp),
   fRefPattern(cp.fRefPattern) {

@@ -166,10 +166,6 @@ TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind
   TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh) {
 }
 
-template<class TGeo>
-TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
-  TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index) {
-}
 
 template<class TGeo>
 TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh) :
