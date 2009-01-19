@@ -1,3 +1,4 @@
+//$Id: pzelasAXImat.cpp,v 1.5 2009-01-19 23:43:39 erick Exp $
 // -*- c++ -*-
 #include "pzelasAXImat.h" 
 #include "pzelmat.h"
@@ -99,7 +100,7 @@ int TPZElasticityAxiMaterial::NStateVariables() {
   return 2;
 }
 
-void TPZElasticityAxiMaterial::Print(ostream &out) {
+void TPZElasticityAxiMaterial::Print(std::ostream &out) {
   out << "name of material : " << Name() << "\n";
   out << "properties : \n";
   out << "\tE   = " << fE   << endl;
