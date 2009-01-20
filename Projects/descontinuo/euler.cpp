@@ -106,9 +106,9 @@ TPZMaterial *TresPrismas(int grau);
 TPZMaterial *FluxConst3D(int grau);
 TPZMaterial *FluxConst2D(int grau);
 void ContagemDeElementos(TPZMaterial *mat);
-void FileNB(TPZGeoMesh &gmesh,ostream &out,int var);
+void FileNB(TPZGeoMesh &gmesh,std::ostream &out,int var);
 void Function(TPZVec<REAL> &x,TPZVec<REAL> &result);
-void PostProcess(TPZCompMesh &cmesh,ostream &out,int var);
+void PostProcess(TPZCompMesh &cmesh,std::ostream &out,int var);
 void Divisao (TPZCompMesh *cmesh);
 void NivelDivide(TPZCompMesh *cmesh);
 void SequenceDivide2();
@@ -456,7 +456,7 @@ static REAL quad[5][3] = {{-.5,-.5,0.},{.5,-.5,.0},{.5,.5,.0},{-.5,.5,.0},{.0,.0
 static REAL hexa[9][3] = { {-0.8,-0.8,-0.8},{0.8,-0.8,-0.8},{0.8,0.8,-0.8},{-0.8,0.8,-0.8},
 			   {-0.8,-0.8,00.8},{0.8,-0.8,00.8},{0.8,0.8,00.8},{-0.8,0.8,00.8},
 			   {0.,0.,0.} };//hexaedro
-void PostProcess(TPZCompMesh &cmesh,ostream &out,int var) {
+void PostProcess(TPZCompMesh &cmesh,std::ostream &out,int var) {
 
   int nel = cmesh.ElementVec().NElements();
   TPZGeoMesh *gmesh = cmesh.Reference();
@@ -515,7 +515,7 @@ void PostProcess(TPZCompMesh &cmesh,ostream &out,int var) {
 }
 
 void Ordena(TPZVec<REAL> &coordx,TPZVec<int> &sort);
-void FileNB(TPZGeoMesh &gmesh,ostream &out,int var) {
+void FileNB(TPZGeoMesh &gmesh,std::ostream &out,int var) {
 
   //  int numpoints;
   int nel = gmesh.Reference()->ElementVec().NElements();

@@ -1,4 +1,4 @@
-
+//$Id: placa.cpp,v 1.5 2009-01-20 00:19:26 erick Exp $
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
@@ -95,7 +95,7 @@ static double Nodos3d[18][3] = {{-1.,-1.,0.},{0.,-1.,0.},{1.,-1.,0.},{-1.,0.,0.,
 static int  Cubic3d[4][8]  = { {0,1,4,3,9,10,13,12},{1,2,5,4,10,11,14,13},
 			       {4,5,8,7,13,14,17,16},{3,4,7,6,12,13,16,15} };
 
-void ProcessamentoLocal(TPZGeoMesh &gmesh,ostream &out);
+void ProcessamentoLocal(TPZGeoMesh &gmesh,std::ostream &out);
 void CriaNos(int num, TPZGeoMesh &geomesh, double list [20][3]);
 void CriaElementos(int numelem,int ncon,TPZGeoMesh &geomesh, int list[20][8] );
 void CriaCondCont(TPZGeoMesh &gmesh);
@@ -459,7 +459,7 @@ void PosProcessamento(TPZAnalysis &an){
   graph.DrawSolution(0,time);
 }
 
-void ProcessamentoLocal(TPZGeoMesh &gmesh,ostream &out) {
+void ProcessamentoLocal(TPZGeoMesh &gmesh,std::ostream &out) {
 
   int numpoints;
   int nel = gmesh.Reference()->ElementVec().NElements();
