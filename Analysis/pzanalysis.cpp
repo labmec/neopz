@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.45 2008-10-23 10:28:38 fortiago Exp $
+//$Id: pzanalysis.cpp,v 1.46 2009-02-02 10:19:36 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -16,6 +16,9 @@
 #include "pzv3dmesh.h"
 #include "pzdxmesh.h"
 #include "pzmvmesh.h"
+#include "pzvtkmesh.h"
+
+
 #include "pzsolve.h"
 #include "pzstepsolver.h"
 #include "pzmetis.h"
@@ -38,9 +41,9 @@ static LoggerPtr logger(Logger::getLogger("pz.analysis"));
 
 #ifdef USING_BOOST
 #include "TPZBoostGraph.h"
-#define RENUMBER TPZBoostGraph
+#define RENUMBER TPZBoostGraph(TPZBoostGraph::KMCExpensive)
 #else
-#define RENUMBER TPZSloan
+#define RENUMBER TPZSloan()
 #endif
 
 #include <fstream>
@@ -56,7 +59,7 @@ void TPZAnalysis::SetStructuralMatrix(TPZStructMatrix &strmatrix){
 void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix){
     fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix->Clone());
 }
-TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER()), fTable() {
+TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fTable() {
    fGraphMesh[0] = 0;
    fGraphMesh[1] = 0;
    fGraphMesh[2] = 0;
@@ -64,7 +67,7 @@ TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSo
 
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh,std::ostream &out) :
-    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER()),  fTable()
+    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER),  fTable()
 {
   fGraphMesh[0] = 0;
   fGraphMesh[1] = 0;
@@ -73,7 +76,7 @@ TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh,std::ostream &out) :
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh,std::ostream &out) :
-    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0),fRenumber(new RENUMBER()),  fTable()
+    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0),fRenumber(new RENUMBER),  fTable()
 {
   fGraphMesh[0] = 0;
   fGraphMesh[1] = 0;
@@ -315,8 +318,7 @@ void TPZAnalysis::ShowShape( TPZVec<char *> &scalnames, TPZVec<char *> &vecnames
 
    TPZV3DGraphMesh gg(fCompMesh,2,fCompMesh->MaterialVec()[0]);
 
-	ofstream plot(plotfile);
-	gg.SetOutFile(plot);
+	gg.SetFileName(plotfile);
 	gg.SetResolution(0);
 	gg.DrawMesh(1);
 	gg.DrawSolution(0,0.,scalnames,vecnames);
@@ -365,6 +367,7 @@ void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames,
   int posplot = plotfile.rfind(".plt");
   int posdx = plotfile.rfind(".dx");
   int pospos = plotfile.rfind(".pos");
+	int posvtk = plotfile.rfind(".vtk");
   int filelength = plotfile.size();
   if(filelength-posplot == 3)	{
       fGraphMesh[dim1] = new TPZV3DGraphMesh(fCompMesh,dim,matit->second) ;
@@ -372,13 +375,15 @@ void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames,
     fGraphMesh[dim1] = new TPZDXGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames) ;
   }else if(filelength-pospos == 3) {
     fGraphMesh[dim1] = new TPZMVGraphMesh(fCompMesh,dim,matit->second);
+  }
+  else if(filelength-posvtk == 4) {
+	  fGraphMesh[dim1] = new TPZVTKGraphMesh(fCompMesh,dim,matit->second,scalnames,vecnames);
   } else {
     cout << "grafgrid was not created\n";
     fGraphMesh[dim1] = 0;
   }
   if(fGraphMesh[dim1]) {
-    ofstream *plot = new ofstream(plotfile.c_str());
-    fGraphMesh[dim1]->SetOutFile(*plot);
+	  fGraphMesh[dim1]->SetFileName(plotfile);
   }
 }
 
@@ -448,8 +453,7 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps,
   }
   TPZDXGraphMesh gg(fCompMesh,dim,mat,scalnames,vecnames) ;
   // 		TPZV3DGrafGrid gg(fCompMesh) ;
-  ofstream plot(plotfile.c_str());
-  gg.SetOutFile(plot);
+	gg.SetFileName(plotfile);
   gg.SetResolution(0);
   gg.DrawMesh(num_iter);
 

@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.42 2008-10-08 02:06:24 phil Exp $
+//$Id: pzeuleranalysis.cpp,v 1.43 2009-02-02 10:20:33 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -337,7 +337,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
    return 1;
 }
 
-TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout, int dxRes)
+TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(const std::string &dxout, int dxRes)
 {
   TPZVec<std::string> scalar(4),vector(0);
   scalar[0] = "density";
@@ -353,7 +353,7 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout, int dxRes)
   //SetReference(Mesh());//recupera as refer�ncias retiradas
   //ofstream *dxout = new ofstream("ConsLaw.dx");
   //cout << "\nDX output file : ConsLaw.dx\n";
-  graph->SetOutFile(dxout);
+  graph->SetFileName(dxout);
   //int resolution = 2;
   graph->SetResolution(dxRes);
   graph->DrawMesh(dim);
@@ -361,7 +361,7 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(ofstream &dxout, int dxRes)
   return graph;
 }
 
-void TPZEulerAnalysis::Run(std::ostream &out, std::ofstream & dxout, int dxRes)
+void TPZEulerAnalysis::Run(std::ostream &out, const std::string & dxout, int dxRes)
 {
    // this analysis loop encloses several calls
    // to Newton's linearizations, updating the
@@ -404,7 +404,7 @@ void TPZEulerAnalysis::Run(std::ostream &out, std::ofstream & dxout, int dxRes)
       if(i%numIterDX==0)
       {
          graph->DrawSolution(i,AccumTime);
-	 graph->Out()->flush();
+	 graph->Out().flush();
          // increases the accumulated time and
          AccumTime += nextTimeStep;
       }
@@ -468,7 +468,7 @@ void TPZEulerAnalysis::Run(std::ostream &out, std::ofstream & dxout, int dxRes)
    // for the storage of the tangent matrix.
 
    graph->DrawSolution(i,AccumTime);
-   graph->Out()->flush();
+   graph->Out().flush();
 
    delete graph;
 

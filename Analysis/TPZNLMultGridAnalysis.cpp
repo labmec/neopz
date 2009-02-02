@@ -320,7 +320,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPo
 
 
 void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,
-						  TPZAnalysis &an,int marcha,ostream &dxout) {
+												  TPZAnalysis &an,int marcha,const std::string &dxout) {
   if(numiter <= 0){
     cout << "PZAnalysis::SmoothingSolution NENHUMA RESOLU�O EFETUADA\n";
     an.Solution().Zero();
@@ -371,7 +371,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPo
 }
 
 void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,
-					      TPZAnalysis &an,int marcha,ostream &dxout) {
+												   TPZAnalysis &an,int marcha,const std::string &dxout) {
 
   TPZVec<std::string> scalar(1),vector(0);
   scalar[0] = "pressure";
@@ -382,7 +382,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZAutoP
   SetReference(anmesh);//recupera as refer�cias retiradas
   //ofstream dxout = new ofstream("SmoothingSolution2.dx");
   //cout << "\nTPZNonLinMultGridAnalysis::IterativeProcess out file : .dx\n";
-  graph.SetOutFile(dxout);
+  graph.SetFileName(dxout);
   int resolution = 0;
   graph.SetResolution(resolution);
   graph.DrawMesh(dim);
@@ -418,7 +418,6 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZAutoP
     if( REAL(iter) / REAL(marcha) == draw || marcha == 1){
       time = (REAL)iter;
       graph.DrawSolution(draw++,time);
-      dxout.flush();
     }
   }
   if(iter < numiter){
@@ -429,7 +428,6 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZAutoP
   CoutTime(fInit,"TPZNonLinMultGridAnalysis::SmoothingSolution general time of iterative process");
   time = (REAL)iter;
   graph.DrawSolution(draw++,time);
-  dxout.flush();
   ofstream out("SmoothingSolution2_ANALYSIS.out");
   an.Print("\n\n* * * SOLUCAO PELO ANALYSIS: ltima solu�o  * * *\n\n",out);
   out.flush();
@@ -743,7 +741,6 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix &sol,TPZFMatrix &anres,
 void TPZNonLinMultGridAnalysis::OneGridAlgorithm(std::ostream &out,int nummat){
   //ALGORITMO SIMPLES A UMA MALHA
   int iter,marcha;
-  ofstream *dxout = new ofstream("OneGridAlgorithm.dx");
   cout << "TPZNonLinMultGridAnalysis::OneGridAlgorithm Name of the out dx OneGridAlgorithm.dx\n";
   int levelnumbertorefine = 1;
   cout << "TPZNonLinMultGridAnalysis:: nmero de n�eis a dividir: ";
@@ -772,7 +769,8 @@ void TPZNonLinMultGridAnalysis::OneGridAlgorithm(std::ostream &out,int nummat){
   cout << "\nTPZNonLinMultGridAnalysis::OneGridAlgorithm Marcha ? :\n";
   cin >> marcha;
   REAL sol_tol = 1.e15;//valor m�imo da ||solu�o||
-  SmoothingSolution(sol_tol,iter,finemat,finean,marcha,*dxout);
+	std::string dxout("OneGridAlgorithm.dx");
+  SmoothingSolution(sol_tol,iter,finemat,finean,marcha,dxout);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -876,8 +874,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
   geomesh->ResetReference();
   fMeshes[2]->LoadReferences();
   TPZDXGraphMesh finegraph(fMeshes[2],finedim,finemat,scalar,vector);
-  ofstream *finedx = new ofstream("FineSmoothing.dx");
-  finegraph.SetOutFile(*finedx);
+  finegraph.SetFileName("FineSmoothing.dx");
   finegraph.SetResolution(0);
   finegraph.DrawMesh(finedim);
   geomesh->ResetReference();
@@ -885,8 +882,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
   ResetReference(fMeshes[1]);//retira refer�cias para criar coarsegraph consistente  
   TPZDXGraphMesh coarsegraph(fMeshes[1],coarsedim,coarsemat,scalar,vector);
   SetReference(fMeshes[1]);//recupera as refer�cias
-  ofstream *coarsedx = new ofstream("CoarseSmoothing.dx");
-  coarsegraph.SetOutFile(*coarsedx);
+  coarsegraph.SetFileName("CoarseSmoothing.dx");
   coarsegraph.SetResolution(0);
   coarsegraph.DrawMesh(coarsedim);
   REAL sol_tol = 1.e15;//valor m�imo da ||solu�o||
