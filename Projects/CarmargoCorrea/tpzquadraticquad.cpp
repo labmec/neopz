@@ -1,5 +1,6 @@
 #include "tpzquadraticquad.h"
 #include "pzshapequad.h"
+#include "tpzgeoblend.h"
 
 using namespace pzshape;
 
@@ -36,11 +37,9 @@ void TPZQuadraticQuad::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dph
 }
 
 void TPZQuadraticQuad::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
-    TPZVec<REAL> parMap(2);
 
-    REAL spacephi[8],spacedphi[16];
-    TPZFMatrix phi(8,1,spacephi,8);
-    TPZFMatrix dphi(2,8,spacedphi,16);
+    TPZFNMatrix<9> phi(8,1);
+    TPZFNMatrix<16> dphi(2,8);
     Shape(loc,phi,dphi);
 
     for(int i = 0; i < 3; i++) {
@@ -90,7 +89,32 @@ void TPZQuadraticQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatr
 }
 
 TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
-  if(side==8) {//8
+	
+	int ns = orig->NSideNodes(side);
+	TPZManVector<int> nodeindices(ns);
+	int in;
+	for(in=0; in<ns; in++)
+	{
+		nodeindices[in] = orig->SideNodeIndex(side,in);
+	}
+	int index;
+	
+	TPZGeoMesh *mesh = orig->Mesh();
+	MElementType type = orig->Type(side);
+	
+	TPZGeoEl *newel = CreateGeoBlendElement(*mesh, type, nodeindices, bc, index);
+	TPZGeoElSide me(orig,side);
+	TPZGeoElSide newelside(newel,newel->NSides()-1);
+	
+	newelside.InsertConnectivity(me);
+	newel->Initialize();
+	
+	return newel;
+	
+	
+	
+/*
+	if(side==8) {//8
     TPZManVector<int> nodes(4);
     int i; 
     for (i=0;i<4;i++) {
@@ -124,4 +148,5 @@ TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
   }
   else PZError << "TPZGeoQuad::CreateBCCompEl has no bc.\n";
   return 0;
+ */
 }
