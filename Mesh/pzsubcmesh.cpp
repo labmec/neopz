@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.25 2008-11-20 23:37:02 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.26 2009-02-02 10:06:59 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -434,16 +434,40 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 		fConnectIndex.Resize(fConnectIndex.NElements()+1);
 		fConnectIndex[fConnectIndex.NElements()-1] = superind;
 		fExternalLocIndex[gl] = fConnectIndex.NElements()-1;
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "Connect in fathermesh " << superind << "  new connect created : corresponds to connect " << gl << " in subcompmesh";
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 		return gl;
 	} else {
 		int j;
 		for(j=0; j<fExternalLocIndex.NElements(); j++) {
-			if(fExternalLocIndex[j] == i) return j;
+			if(fExternalLocIndex[j] == i) 
+			{
+#ifdef LOG4CXX
+				{
+					std::stringstream sout;
+					sout << "Connect in fathermesh " << superind << "  existing connect found : corresponds to connect " << j << " in subcompmesh";
+					LOGPZ_DEBUG(logger,sout.str())
+				}
+#endif
+				return j;
+			}
 		}
 		int blocksize=super->ConnectVec()[superind].NDof(*(TPZCompMesh *)super);
                 int order = super->ConnectVec()[superind].Order();
 		j = AllocateNewConnect(blocksize,order);
 		fExternalLocIndex[j] = i;
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "Connect in fathermesh " << superind << " STRANGE new connect created : corresponds to connect " << j << " in subcompmesh";
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 		return j;
 	}
 }
@@ -533,47 +557,63 @@ void TPZSubCompMesh::MakeAllInternal(){
     if (father->ConnectVec()[fConnectIndex[fExternalLocIndex[i]]].NElConnected() == 1) stack.Push(i);
   }
   // put the independent connects first
-  while(stack.NElements()) {
-    int locind = stack.Pop();
-    TPZConnect &coni = father->ConnectVec()[fConnectIndex[fExternalLocIndex[locind]]];
-    int can = 0;
-    // special procedure when the node has dependencies
-    if (coni.FirstDepend()){
-      TPZConnect::TPZDepend *listdepend = coni.FirstDepend();
-      for(j=0;j<stack.NElements(); j++){
-        int jlocind = stack[j];
-        if (jlocind == locind) continue;
-        // if the node upon which locind is dependent is already on the stack, no further analysis required
-        if (listdepend->HasDepend(fConnectIndex[fExternalLocIndex[jlocind]])) break;
-      }
-      // no element on the stack is listed as dependent from the current node
-      if (j == stack.NElements())
-      {
-        can=1;
-      }
-      // we found an element in the dependency list. Let s check it first
-      else
-
-      {
-        // put the node upon which the current node depends in the current position and the dependent node at the end
-        int jlocind = stack[j];
-        stack[j] = locind;
-        stack.Push(jlocind);
-      }
-    }
-    // the node has no dependencies
-    else {
-            can=1;
-    }
-    // if the node is not internal to the fathermesh, don't put it on the stack
-    if(can && RootMesh(locind) != FatherMesh()) can = 0;
-    if (can) {
+	while(stack.NElements()) {
+		int locind = stack.Pop();
+		int can = 0;
+		for(j=0; j<stack.NElements();j++)
+		{
+			int jlocind = stack[j];
+			if (jlocind == locind) continue;
+			TPZConnect &conj = father->ConnectVec()[fConnectIndex[fExternalLocIndex[stack[j]]]];
+			// special procedure when the node has dependencies
+			if (conj.FirstDepend())
+			{
+				TPZConnect::TPZDepend *listdepend = conj.FirstDepend();
+				// if the node upon which locind is dependent is already on the stack, no further analysis required
+				if (listdepend->HasDepend(fConnectIndex[fExternalLocIndex[locind]])) 
+				{
+#ifdef LOG4CXX
+					{
+						std::stringstream sout;
+						sout << "Connect " << locind << " cannot be made internal because of " << jlocind;
+						LOGPZ_DEBUG(logger,sout.str())
+					}
+#endif
+					break;
+				}
+			}
+		}
+		// no element on the stack is listed as dependent from the current node
+		if (j == stack.NElements())
+		{
+			can=1;
+		}
+		// we found an element in the dependency list. Let s check it first
+		else
+		{
+			// put the node upon which the current node depends in the current position and the dependent node at the end
+			int jlocind = stack[j];
+			stack[j] = locind;
+			stack.Push(jlocind);
+		}
+		// if the node is not internal to the fathermesh, don't put it on the stack
+		if(can && RootMesh(locind) != FatherMesh()) can = 0;
+		if (can) 
+		{
+#ifdef LOG4CXX
+			{
+				std::stringstream sout;
+				sout << "Making the connect index " << locind << " internal";
+				LOGPZ_DEBUG(logger,sout.str())				
+			}
+#endif
             MakeInternal(locind);
-    }
-  }
-  //TPZCompMesh::Print();
-  //father->Print();
-  //std::cout.flush();
+		}
+	}
+	TPZCompMesh::ExpandSolution();
+	//TPZCompMesh::Print();
+	//father->Print();
+	//std::cout.flush();
 }
 
 void TPZSubCompMesh::PotentialInternal(std::list<int> &connectindices){
@@ -706,7 +746,14 @@ int TPZSubCompMesh::IsAllowedElement(TPZCompMesh *mesh, int elindex){
 }
 
 void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
-	if(!fAnalysis) this->SetAnalysis();
+	if(fAnalysis)
+	{
+	}
+	else
+	{
+		this->SetAnalysis();
+	}
+		
 	int i=0;
 	CleanUpUnconnectedNodes();
 	PermuteExternalConnects();
@@ -754,7 +801,10 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this);
 	}
 	else{
-		fAnalysis->Run(std::cout);
+		if(!fAnalysis->Solver().Matrix())
+		{
+			fAnalysis->Run(std::cout);
+		}
 
 		TPZSubMeshFrontalAnalysis *sman = dynamic_cast<TPZSubMeshFrontalAnalysis *> (fAnalysis);
 		if(sman)
@@ -776,9 +826,9 @@ void TPZSubCompMesh::SetAnalysis(){
 	if(fAnalysis) delete fAnalysis;
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
 	//	int numint = NumInternalEquations();
-//	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
-	TPZParFrontStructMatrix<TPZFrontSym> fstr(this);
-	fstr.SetNumberOfThreads(5);
+	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
+//	TPZParFrontStructMatrix<TPZFrontSym> fstr(this);
+//	fstr.SetNumberOfThreads(5);
 	fAnalysis->SetStructuralMatrix(fstr);
 	
 	TPZStepSolver solver;
@@ -1091,3 +1141,20 @@ void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi,
 }
 
 
+/**
+ * Creates corresponding graphical element(s) if the dimension matches
+ * graphical elements are used to generate output files
+ * @param graphmesh graphical mesh where the element will be created
+ * @param dimension target dimension of the graphical element
+ */
+void TPZSubCompMesh::CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension)
+{
+	int nel = fElementVec.NElements();
+	int iel;
+	for(iel=0; iel<nel; iel++)
+	{
+		TPZCompEl *cel = fElementVec[iel];
+		if(!cel) continue;
+		cel->CreateGraphicalElement(graphmesh, dimension);
+	}
+}
