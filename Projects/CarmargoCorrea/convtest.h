@@ -16,8 +16,8 @@
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "TPZGeoElement.h"
-#include <TPZRefPattern.h>
-#include <tpzgeoelrefpattern.h>
+#include "TPZRefPattern.h"
+#include "tpzgeoelrefpattern.h"
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
