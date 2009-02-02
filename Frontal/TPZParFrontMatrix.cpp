@@ -82,7 +82,7 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
 	{
 		std::stringstream sout;
 		sout << "Frondwidth after AddKel "<< this->fFront.FrontSize();
-		LOGPZ_DEBUG(loggerfw,sout.str())
+		LOGPZ_INFO(loggerfw,sout.str())
 	}
 #endif
     /*      cout << "destination index" << endl;
@@ -124,7 +124,7 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
 	{
 		std::stringstream sout;
 		sout << "Frondwidth after AddKel "<< this->fFront.FrontSize();
-		LOGPZ_DEBUG(loggerfw,sout.str())
+		LOGPZ_INFO(loggerfw,sout.str())
 	}
 #endif
 	//	EquationsToDecompose(destinationindex);
