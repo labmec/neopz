@@ -1,4 +1,4 @@
-//$Id: pzdiffmatrix.h,v 1.4 2008-11-22 20:56:59 erick Exp $
+//$Id: pzdiffmatrix.h,v 1.5 2009-02-02 10:23:04 phil Exp $
 
 #ifndef PZDIFFMATRIX_H
 #define PZDIFFMATRIX_H
@@ -155,7 +155,7 @@ std::ostream & operator<<(std::ostream & out, TPZDiffMatrix<T> & A)
 	    out << " " << A(i,j);
 	 }
    }
-    out << endl;
+    out << std::endl;
 
    return out;
 }
