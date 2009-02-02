@@ -1,4 +1,4 @@
-//$Id: pzspacetimerichardseq.cpp,v 1.3 2008-10-20 11:56:21 longhin Exp $
+//$Id: pzspacetimerichardseq.cpp,v 1.4 2009-02-02 10:25:22 phil Exp $
 
 #include "pzspacetimerichardseq.h"
 #include "pzbndcond.h"
@@ -416,8 +416,9 @@ TPZCompMesh * TPZSpaceTimeRichardsEq::CreateMesh(REAL L, REAL Time, int p, int n
     }
   }
   
-  TPZCompEl::SetgOrder(p); 
+//  TPZCompEl::SetgOrder(p); 
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);  
+	cmesh->SetDefaultOrder(p);
   cmesh->SetDimModel(2);
   
   TPZAutoPointer<TPZMaterial> mat = new TPZSpaceTimeRichardsEq(matid,Alpha,N,ThetaS,ThetaR,Ks);
@@ -441,7 +442,7 @@ TPZCompMesh * TPZSpaceTimeRichardsEq::CreateMesh(REAL L, REAL Time, int p, int n
   cmesh->InsertMaterialObject(bcOutFlow);
   cmesh->InsertMaterialObject(bcX0);
   
-  TPZCompEl::SetgOrder(p);
+//  TPZCompEl::SetgOrder(p);
   cmesh->SetDefaultOrder(p);
   cmesh->AutoBuild();
 
