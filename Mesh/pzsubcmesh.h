@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.17 2008-11-20 23:37:02 phil Exp $
+//$Id: pzsubcmesh.h,v 1.18 2009-02-02 10:06:05 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -260,11 +260,20 @@ public:
 	int NodeIndex(int nolocal, TPZCompMesh *super);
 
 
-  //    /**
-  //     * Virtual Method! See declaration in TPZCompEl class.
-  //     * The use of this method in submesh class return -1 == Error!
-  //     */
+      /**
+       * Virtual Method! See declaration in TPZCompEl class.
+       * The use of this method in submesh class return -1 == Error!
+       */
 	virtual int Dimension() const;
+	
+	/**
+	 * Creates corresponding graphical element(s) if the dimension matches
+	 * graphical elements are used to generate output files
+	 * @param graphmesh graphical mesh where the element will be created
+	 * @param dimension target dimension of the graphical element
+	 */
+	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension);
+	
 	/**
 	 * Compute the number of elements connected to each connect object
 	 */
