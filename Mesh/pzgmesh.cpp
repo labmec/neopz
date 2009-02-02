@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.52 2008-11-12 12:53:10 fortiago Exp $
+//$Id: pzgmesh.cpp,v 1.53 2009-02-02 10:03:13 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -1008,7 +1008,6 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int index){
   gel->RemoveConnectivities();
   if(gel) delete gel;
   fElementVec[index] = NULL;
-  fElementVec.SetFree(index);
 }
 
 /** Verifies if the side based refinement pattern exists. If the refinement pattern doesn't exists return a Null refinement Pattern. */
