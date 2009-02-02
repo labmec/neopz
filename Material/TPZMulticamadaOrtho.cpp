@@ -419,9 +419,8 @@ void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,ofstream &out,i
   TPZCompMesh *cmesh = an.Mesh();
   int dim = mat->Dimension();
   TPZDXGraphMesh graph(cmesh,dim,mat,scalar,vector);
-  ofstream *dxout = new ofstream("MultCam.dx");
   cout << "\nmain::ComputeSolution out file : MultCam.dx\n";
-  graph.SetOutFile(*dxout);
+	graph.SetFileName("MultCam.dx");
   int resolution = 0;
   graph.SetResolution(resolution);
   graph.DrawMesh(dim);
@@ -435,7 +434,6 @@ void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,ofstream &out,i
   an.LoadSolution();
   REAL time = 0.0;
   graph.DrawSolution(draw++,time);
-  dxout->flush();
 
   while(iter < numiter) {
 
@@ -447,11 +445,9 @@ void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,ofstream &out,i
     an.LoadSolution();
     time += 0.1;
     graph.DrawSolution(draw++,time);
-    dxout->flush();
     cout << "Iteracao = " << ++iter << endl;
   }
   out.flush();
-  dxout->flush();
   an.LoadSolution();
 }
 
