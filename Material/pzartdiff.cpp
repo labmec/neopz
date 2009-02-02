@@ -431,7 +431,8 @@ void TPZArtDiff::Bornhaus(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec<T
    RTM. Multiply(BornhausTau, Temp);
    Temp.Multiply(RMi, BornhausTau);
 
-   BornhausTau.Inverse();
+#warning "This doesnt exist anymore"
+//   BornhausTau.Inverse();
 //cout << BornhausTau;
    for( i = 0; i < dim;i++)
    {
