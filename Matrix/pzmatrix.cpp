@@ -337,7 +337,7 @@ void TPZMatrix::Print(const char *name, std::ostream& out,const MatrixOutputForm
 	    out << ",";
 	 }
 
-     out << " }\n";
+     out << " };\n";
 
    }
 
