@@ -17,8 +17,13 @@
 #include <algorithm>
 #include <iterator>
 #include <fstream>
+#include "pzlog.h"
 
-static std::ofstream out("nodeset.txt");
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.nodesetcompute"));
+#endif
+
+//static std::ofstream out("nodeset.txt");
 
 TPZNodesetCompute::TPZNodesetCompute()
 {
@@ -235,8 +240,12 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int> &vertices, std::set< st
   if(!vertices.size()) return;
   std::set<int> elem;
   std::set<int>::iterator intit,diffit;
-  out << __PRETTY_FUNCTION__ << " Original set of nodes ";
-  Print(out,vertices,0);
+	{
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__ << " Original set of nodes ";
+		Print(sout,vertices,0);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
   for(intit = vertices.begin(); intit != vertices.end(); intit++)
   {
     std::set<int> locset,diffset,interset,unionset,loclocset;
@@ -249,8 +258,14 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int> &vertices, std::set< st
     // the influence zone of the vertex includes other vertices
     if(diffset.size())
     {
-      out << "Difference after taking the intersection with " << *intit;
-      Print(out,diffset," Difference set");
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "Difference after taking the intersection with " << *intit;
+			Print(sout,diffset," Difference set");
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
     // some unions need to be made before calling this method
       for(diffit=diffset.begin(); diffit!= diffset.end(); diffit++) 
       {
@@ -265,9 +280,21 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int> &vertices, std::set< st
       diffset.clear();
       // diffset will now contain only vertex nodes
       set_intersection(unionset.begin(),unionset.end(),vertices.begin(),vertices.end(),inserter(diffset,diffset.begin()));
-      Print(out,diffset,"First set to be reanalised");
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			Print(sout,diffset,"First set to be reanalised");
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
       set_intersection(vertices.begin(),vertices.end(),locset.begin(),locset.end(),inserter(interset,interset.begin()));
-      Print(out,interset,"Second set to be reanalised");
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			Print(sout,interset,"Second set to be reanalised");
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
       AnalyseForElements(diffset,elements);
       AnalyseForElements(interset,elements);
       return;
@@ -288,19 +315,37 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int> &vertices, std::set< st
   }
   if(vertices != elem)
   {
-    out << "Discarding a vertex set as incomplete";
-    Print(out,vertices,0);
+#ifdef LOG4CXX
+	  {
+		  std::stringstream sout;
+		  sout << "Discarding a vertex set as incomplete";
+		  Print(sout,vertices,0);
+		  LOGPZ_DEBUG(logger,sout.str())
+	  }
+#endif
   }
   else if(elem.size())
   {
-    Print(out,elem,"Inserted element");
+#ifdef LOG4CXX
+	  {
+		  std::stringstream sout;
+		  Print(sout,elem,"Inserted element");
+		  LOGPZ_DEBUG(logger,sout.str())
+	  }
+#endif
     elements.insert(elem);
   }
 }
 
 void TPZNodesetCompute::BuildElementGraph(TPZStack<int> &blockgraph, TPZStack<int> &blockgraphindex)
 {
-  out << __PRETTY_FUNCTION__ << " entering build element graph\n";
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__ << " entering build element graph\n";
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
   blockgraph.Resize(0);
   blockgraphindex.Resize(1);
   blockgraphindex[0] = 0;
@@ -311,10 +356,22 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int> &blockgraph, TPZStack<in
   {
     std::set< std::set<int> > elements;
     BuildNodeSet(in,nodeset);
-    out << "Nodeset for " << in << ' ';
-    Print(out,nodeset,"Nodeset");
+#ifdef LOG4CXX
+	  {
+		  std::stringstream sout;
+		  sout << "Nodeset for " << in << ' ';
+		  Print(sout,nodeset,"Nodeset");
+		  LOGPZ_DEBUG(logger,sout.str())
+	  }
+#endif
     SubstractLowerNodes(in,nodeset);
-    Print(out,nodeset,"LowerNodes result");
+#ifdef LOG4CXX
+		  {
+			  std::stringstream sout;
+			  Print(sout,nodeset,"LowerNodes result");
+			  LOGPZ_DEBUG(logger,sout.str())
+		  }
+#endif
     AnalyseForElements(nodeset,elements);
     std::set< std::set<int> >::iterator itel;
     for(itel = elements.begin(); itel != elements.end(); itel++)
@@ -333,8 +390,14 @@ void TPZNodesetCompute::SubstractLowerNodes(int node, std::set<int> &nodeset)
 {
   std::set<int> lownode,lownodeset,unionset;
   std::set<int>::iterator it;
-  out << __PRETTY_FUNCTION__;
-  Print(out,nodeset," Incoming nodeset");
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__;
+		Print(sout,nodeset," Incoming nodeset");
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
   for(it=nodeset.begin(); it != nodeset.end() && *it < node; it++)
   {
     BuildNodeSet(*it,lownodeset);
@@ -343,7 +406,13 @@ void TPZNodesetCompute::SubstractLowerNodes(int node, std::set<int> &nodeset)
   }
   set_difference(nodeset.begin(),nodeset.end(),unionset.begin(),unionset.end(),
     inserter(lownode,lownode.begin()));
-  Print(out,lownode," What is left after substracting the influence of lower numbered nodes ");
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		Print(sout,lownode," What is left after substracting the influence of lower numbered nodes ");
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
   unionset.clear();
   for(it=lownode.begin(); it!=lownode.end(); it++)
   {
@@ -354,7 +423,13 @@ void TPZNodesetCompute::SubstractLowerNodes(int node, std::set<int> &nodeset)
   lownode.clear();
   set_intersection(unionset.begin(),unionset.end(),nodeset.begin(),nodeset.end(),
     inserter(lownode,lownode.begin()));
-  Print(out,lownode," Resulting lower nodeset");
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		Print(sout,lownode," Resulting lower nodeset");
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
   nodeset = lownode;
 }
 
