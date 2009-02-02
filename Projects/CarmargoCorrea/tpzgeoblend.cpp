@@ -30,7 +30,7 @@ template <class TGeo>
 void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result)
 {
     ///Criando uma cópia das coordenadas dos nós
-    TPZVec< TPZVec<REAL> > NodeCoord(TGeo::NNodes);
+    TPZManVector< TPZManVector<REAL,3>,27 > NodeCoord(TGeo::NNodes);
     for(int i = 0; i < TGeo::NNodes; i++)
     {
         NodeCoord[i].Resize(3);
@@ -41,14 +41,14 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
     }
     ///
     result.Fill(0.);
-    TPZVec<REAL> NeighPar, SidePar, Xside(3,0.);
+    TPZManVector<REAL,3> NeighPar, SidePar, Xside(3,0.);
 
     int majorSide = TGeo::NSides - 1;
 
-    TPZVec<REAL> SidesCounter(majorSide,0);
+    TPZManVector<REAL,27> SidesCounter(TGeo::NSides,0);
     TPZStack<int> LowNodeSides, LowAllSides;
 
-    TPZFMatrix blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
+    TPZFNMatrix<9> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
     TGeo::Shape(par,blend,Dblend);
 
     for(int byside = majorSide; byside >= TGeo::NNodes; byside--)
@@ -104,7 +104,7 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
     TPZManVector<REAL,3> NeighPar, SidePar, Xside(3,0.), XNode(3,0.);
     int majorSide = TGeo::NSides - 1;
 
-    TPZManVector<REAL> SidesCounter(majorSide,0);
+    TPZManVector<REAL> SidesCounter(TGeo::NSides,0);
     TPZStack<int> LowNodeSides, LowAllSides;
 
     TPZFNMatrix<24> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
@@ -243,7 +243,7 @@ void TPZGeoBlend<TGeo>::Print(std::ostream &out)
 template <class TGeo>
 void TPZGeoBlend<TGeo>::Initialize(TPZGeoEl *refel)
 {
-  for(int byside = TGeo::NNodes; byside < (TGeo::NSides - 1); byside++)
+  for(int byside = TGeo::NNodes; byside < (TGeo::NSides); byside++)
   {
     TPZGeoElSide ElemSide(refel,byside);
     TPZGeoElSide NextSide(refel,byside);
