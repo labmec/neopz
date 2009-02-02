@@ -66,7 +66,7 @@ void TPZGraphElQ3dd::NextIJ(int connect,  TPZVec<int> &co, int /*incr*/) {
 void TPZGraphElQ3dd::Connectivity(TPZDrawStyle st){
 	int res = fGraphMesh->Res();
 	int imax = 1 << res;
-	ostream *out = fGraphMesh->Out();
+	ostream &out = fGraphMesh->Out();
 	long ip = fId;
 	TPZVec<int> co0(3,0), co1(3,0), co2(3,0), co3(3,0), 
 			co4(3,0),co5(3,0),co6(3,0),co7(3,0);
@@ -74,8 +74,8 @@ void TPZGraphElQ3dd::Connectivity(TPZDrawStyle st){
 	for(int i=0;i<imax;i++) {
 		for(int j=0;j<imax;j++) {
 			for (int k=0;k<imax;k++){
-				if(st == EV3DStyle) *out << ip << " 8 ";
-				if(st == EMVStyle) *out << ip << " 1 1 1 ";
+				if(st == EV3DStyle) out << ip << " 8 ";
+				if(st == EMVStyle) out << ip << " 1 1 1 ";
 				ip++;
 				if(st == EDXStyle) {
 					co0[0] = i; co0[1] = j; co0[2]= k; 
@@ -97,7 +97,7 @@ void TPZGraphElQ3dd::Connectivity(TPZDrawStyle st){
 					co6[0] = i+1; co6[1] = j+1; co6[2]= k+1;
 					co7[0] = i; co7[1] = j+1; co7[2]= k+1;
 				}
-				*out << EqNum(co0) << " " << EqNum(co1) << " " <<
+				out << EqNum(co0) << " " << EqNum(co1) << " " <<
 					EqNum(co2) << " " << EqNum(co3)<< " " << EqNum(co4)
 					<< " " << EqNum(co5)<< " " << EqNum(co6)
 					<< " " << EqNum(co7)<< endl;

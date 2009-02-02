@@ -36,7 +36,7 @@ int TPZGraphElT::NPoints(TPZGraphNode *n){
 void TPZGraphElT::Connectivity(TPZDrawStyle st){
 	int res = fGraphMesh->Res();
 	int imax = 1 << res;
-	ostream &out = *fGraphMesh->Out();
+	ostream &out = fGraphMesh->Out();
     long ip = fId;
 	TPZVec<int> co0(3,0), co1(3,0), co2(3,0);
 	if(st == EV3DStyle) ip++;

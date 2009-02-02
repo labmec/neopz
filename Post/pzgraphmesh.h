@@ -16,7 +16,7 @@ class TPZGraphEl;
 class TPZFMatrix;
 class TPZBlock;
 
-enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle};
+enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle,EVTKStyle};
 
 /// This class represents a graphical mesh used for post processing purposes
 /**
@@ -38,15 +38,22 @@ public:
   int Res() {return fResolution;}
   void SetMaterial(TPZAutoPointer<TPZMaterial> mat) {fMaterial = mat;}
   virtual void SetCompMesh(TPZCompMesh *mesh, TPZAutoPointer<TPZMaterial> &mat);
-  std::ostream *Out();
   virtual void DrawNodes();
   virtual void DrawMesh(int numcases);
   virtual void DrawConnectivity(MElementType type);
-  virtual void DrawSolution(TPZBlock &Sol);
-  virtual void DrawSolution(char * var = 0);
+//  virtual void DrawSolution(TPZBlock &Sol);
+//  virtual void DrawSolution(char * var = 0);
   virtual void DrawSolution(int step, REAL time);
   TPZDrawStyle Style();
-  void SetOutFile(std::ostream &out);
+	virtual void SetFileName(const std::string &filename);
+/*
+	void SetOutFile(std::ostream &out);
+ */
+	std::ostream &Out()
+	{
+		return fOutFile;
+	}
+ 
   void SetResolution(int res){ fResolution = res; SequenceNodes();}
 	
   void Print(std::ostream &out);
@@ -60,7 +67,8 @@ protected:
   TPZAdmChunkVector<TPZGraphNode> fNodeMap;
   int fResolution;
   TPZDrawStyle fStyle;
-  std::ostream *fOutFile;
+  std::ofstream fOutFile;
+	std::string fFileName;
   TPZVec<std::string> fScalarNames, fVecNames;
   virtual void SequenceNodes();
 

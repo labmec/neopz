@@ -39,11 +39,10 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZAutoPointer<TPZMat
   for(i=0;i<nel;i++) {
     ce = (TPZCompEl *) celvec[i];
     if(!ce) continue;
-    if (ce->Dimension() != dimension) continue;
+//    if (ce->Dimension() != dimension) continue;
     ce->CreateGraphicalElement(*this, dimension);
   }
 
-  fOutFile = 0;
   fScalarNames = "";
   fVecNames = "";
 }
@@ -57,10 +56,6 @@ TPZGraphMesh::~TPZGraphMesh(void)
       if(!el) continue;
       if(el) delete el;
 	}
-   if(fOutFile) {
-   	delete fOutFile;
-      fOutFile = 0;
-   }
 }
 
 static TPZGraphNode gn;
@@ -126,7 +121,18 @@ void TPZGraphMesh::SequenceNodes(){
    }
 }
 
-void TPZGraphMesh::SetOutFile(ostream &out)
+void TPZGraphMesh::SetFileName(const std::string &filename)
+{
+	fFileName = filename;
+	if(fOutFile)
+	{
+		fOutFile.close();
+	}
+//	fOutFile.open(filename.c_str());
+}
+
+/*
+ void TPZGraphMesh::SetOutFile(ostream &out)
 {
 	fOutFile = &out;
 }
@@ -135,7 +141,7 @@ ostream *TPZGraphMesh::Out()
 {
 	return fOutFile;
 }
-
+*/
 
 void TPZGraphMesh::DrawNodes()
 {
@@ -150,13 +156,13 @@ void TPZGraphMesh::DrawMesh(int /*numcases*/){
 }
 
 
-void TPZGraphMesh::DrawSolution(char * /*var*/)
-{
-}
+//void TPZGraphMesh::DrawSolution(char * /*var*/)
+//{
+//}
 
-void TPZGraphMesh::DrawSolution(TPZBlock &/*bl*/)
-{
-}
+//void TPZGraphMesh::DrawSolution(TPZBlock &/*bl*/)
+//{
+//}
 
 void TPZGraphMesh::DrawSolution(int /*step*/, REAL /*time*/){
   cout << "TPZGraphMesh::DrawSolution called\n";

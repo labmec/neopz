@@ -27,6 +27,7 @@ public:
 
   virtual ~TPZDXGraphMesh();
 
+	virtual void SetFileName(const std::string &filename);
 
   virtual void DrawMesh(int numcases);
   virtual void DrawSolution(TPZBlock &Sol);

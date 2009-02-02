@@ -379,14 +379,14 @@ void TPZGraphElQ2d::ComputeSequence(TPZGraphNode *n, int *ibound, int *incr)
 void TPZGraphElQ2d::Connectivity(TPZDrawStyle st){
 	int res = fGraphMesh->Res();
 	int imax = 1 << res;
-	ostream *out = fGraphMesh->Out();
+	ostream &out = fGraphMesh->Out();
 	long ip = fId;
 	TPZVec<int> co0(3,0),co1(3,0),co2(3,0),co3(3,0);
 	if(st == EV3DStyle) ip++;
 	for(int i=0;i<imax;i++) {
 		for(int j=0;j<imax;j++) {
-			if(st == EV3DStyle) *out << ip << " 4 ";
-			if(st == EMVStyle) *out << ip << " 1 1 1 ";
+			if(st == EV3DStyle) out << ip << " 4 ";
+			if(st == EMVStyle) out << ip << " 1 1 1 ";
 			ip++;
 			if(st == EDXStyle) {
 				co0[0]=i; co0[1]=j;
@@ -399,7 +399,7 @@ void TPZGraphElQ2d::Connectivity(TPZDrawStyle st){
 				co2[0]=i+1; co2[1]=j+1;
 				co3[0]=i; co3[1]=j+1;
 			}
-			*out << EqNum(co0) << " " << EqNum(co1) << " " <<
+			out << EqNum(co0) << " " << EqNum(co1) << " " <<
 				  EqNum(co2) << " " << EqNum(co3) << endl;
 		}
 	}

@@ -45,7 +45,7 @@ void TPZGraphEl1dd::NextIJ(int no,TPZVec<int> &co, int incr) {
 void TPZGraphEl1dd::Connectivity(TPZDrawStyle st){
 	int res = fGraphMesh->Res();
 	int imax = 1 << res;
-	ostream &out = *fGraphMesh->Out();
+	ostream &out = fGraphMesh->Out();
 	long ip = fId;
 	TPZVec<int> co0(3,0), co1(3,0);
 
