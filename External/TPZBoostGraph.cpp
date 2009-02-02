@@ -14,7 +14,7 @@ static LoggerPtr logger(Logger::getLogger("boostgraph"));
 using namespace boost;
 using namespace std;
 
-TPZBoostGraph::TPZBoostGraph(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes),fGType(KMCExpensive)
+TPZBoostGraph::TPZBoostGraph(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes),fGType(Sloan)//,fGType(KMCExpensive)
 {
   m_Graph.clear();
 /*  Graph lG(NElements);
