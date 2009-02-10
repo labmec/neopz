@@ -52,7 +52,14 @@ std::ostream &operator<<(std::ostream &out,const TPZCounter &count)
 
 #endif
 
+#ifdef WIN32
+#include <Dialogs.hpp>
+#endif
+
 void DebugStop()
 {
+#ifdef WIN32
+	ShowMessage("Erro encontrado! Entre em contato com o suporte do programa!");
+#endif
   std::cout << "Your chance to put a breakpoint at " << __FILE__ <<  "\n";
 }
