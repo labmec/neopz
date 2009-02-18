@@ -22,7 +22,7 @@ libpzpost_a_SOURCES = pzdxmesh.cpp pzgraphel.cpp pzgraphel1d.cpp \
 	pzgraphel1dd.cpp pzgraphelq2d.cpp pzgraphelq2dd.cpp pzgraphelq3dd.cpp pzgraphmesh.cpp \
 	pzgraphnode.cpp pzmvmesh.cpp pztrigraph.cpp pztrigraphd.cpp pzv3dmesh.cpp \
 	pzvisualmatrix.cpp tpzgraphelprismmapped.cpp tpzgraphelpyramidmapped.cpp \
-	tpzgraphelt2dmapped.cpp tpzgraphelt3d.cpp
+	tpzgraphelt2dmapped.cpp tpzgraphelt3d.cpp pzvtkmesh.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
 
