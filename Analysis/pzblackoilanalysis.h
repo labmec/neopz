@@ -1,4 +1,4 @@
-//$Id: pzblackoilanalysis.h,v 1.4 2009-02-18 12:27:01 fortiago Exp $
+//$Id: pzblackoilanalysis.h,v 1.5 2009-02-18 13:28:55 fortiago Exp $
 
 #ifndef BLACKOILANALH
 #define BLACKOILANALH
@@ -13,6 +13,8 @@
 class TPZCompMesh;
 class TPZFMatrix;
 class TPZFStructMatrix;
+
+#ifdef _AUTODIFF
 
 class TPZBlackOilAnalysis : public TPZNonLinearAnalysis {
 
@@ -111,5 +113,7 @@ protected:
   static double PressaoMedia(TPZBlackOilAnalysis &an, int matid);
   static void Vazao(TPZBlackOilAnalysis &an, int matid, double & VazaoAguaSC, double  & VazaoOleoSC, double & VazaoAguaFundo, double  & VazaoOleoFundo);
 };
+
+#endif
 
 #endif

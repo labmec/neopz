@@ -1,4 +1,4 @@
-//$Id: pzblackoilanalysis.cpp,v 1.5 2009-02-18 12:27:01 fortiago Exp $
+//$Id: pzblackoilanalysis.cpp,v 1.6 2009-02-18 13:28:55 fortiago Exp $
 
 #include "pzblackoilanalysis.h"
 #include "pzblackoil2p3d.h"
@@ -9,6 +9,8 @@
 #include "checkconv.h"
 
 using namespace std;
+
+#ifdef _AUTODIFF
 
 TPZBlackOilAnalysis::TPZBlackOilAnalysis(TPZCompMesh *mesh, double TimeStep, std::ostream &out):TPZNonLinearAnalysis(mesh,out){
   this->fTimeStep = TimeStep;
@@ -391,3 +393,5 @@ void TPZBlackOilAnalysis::Vazao(TPZBlackOilAnalysis &an, int matid, double & Vaz
     VazaoAguaFundo += ef.fMat(1,0)*bo->Bw()*86400.;
   }///iel
 }///method
+
+#endif
