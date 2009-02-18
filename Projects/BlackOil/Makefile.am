@@ -17,7 +17,7 @@ bin_PROGRAMS = main
 
 ## --| NeoPZ |------------------------------------------------------------------
 
-main_SOURCES = main.cpp malha.cpp
+main_SOURCES = main.cpp malha.cpp postprocess.cpp tpzarc3d.cpp tpzgeoblend.cpp
 
 main_DEPENDENCIES = $(top_builddir)/lib/libpz.a
 
