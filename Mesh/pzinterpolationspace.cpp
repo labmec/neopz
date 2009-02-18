@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.28 2008-10-23 10:54:10 fortiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.29 2009-02-18 11:40:42 fortiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -525,7 +525,16 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
     }
 
     TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
-
+    if(!gel){
+      DebugStop();
+#ifdef LOG4CXX
+      {
+        std::stringstream sout;
+        sout << "CreateBCGeoEl devolveu zero!@@@@";
+        LOGPZ_DEBUG(logger,sout.str());
+      }
+#endif
+    }
 
     if(Dimension() > list0->Dimension()){
        //o de volume eh o direito caso um deles seja BC
