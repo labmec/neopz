@@ -639,6 +639,12 @@ TPZFBMatrix::Decompose_LU()
       REAL pivot = *iPtr;
       if ( pivot == 0.0 )
 	TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LU <matrix is singular>" );
+  
+//       if(IsZero(pivot)){
+//         if(pivot < 0.) *iPtr = -1.e-10;
+//         else *iPtr = +1.e-10;
+//         pivot = *iPtr;
+//       }
 
       REAL *jFirstPtr = fElem+fBand*(2*k+3)+k+1;
       imax = k+fBand+1;
@@ -705,7 +711,7 @@ int TPZFBMatrix::Substitution( TPZFMatrix *B ) const{
 //                    GetVal(i, j) * B->GetVal(j, col) );
 //            }
             if ( IsZero( GetVal(i, i) ) ) {
-                    TPZMatrix::Error(__PRETTY_FUNCTION__, "BackSub( SubstitutionLU ) <Matrix is singular" );
+//                     TPZMatrix::Error(__PRETTY_FUNCTION__, "BackSub( SubstitutionLU ) <Matrix is singular" );
             }
             B->PutVal( i, col, B->GetVal( i, col) / GetVal(i, i) );
 		  }

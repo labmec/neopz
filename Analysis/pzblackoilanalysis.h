@@ -1,4 +1,4 @@
-//$Id: pzblackoilanalysis.h,v 1.3 2008-11-25 13:27:17 fortiago Exp $
+//$Id: pzblackoilanalysis.h,v 1.4 2009-02-18 12:27:01 fortiago Exp $
 
 #ifndef BLACKOILANALH
 #define BLACKOILANALH
@@ -72,6 +72,9 @@ protected:
   /** Simulation time step */
   REAL fTimeStep;
 
+  /** */
+  REAL fSimulationTime;
+
   /** Number of iterations counting from fCurrentIter to fCurrentIter+fNIter */
   int fNIter;
 
@@ -104,7 +107,9 @@ protected:
 
   /** Set all materials the time step */
   void SetAllMaterialsDeltaT();
-
+  
+  static double PressaoMedia(TPZBlackOilAnalysis &an, int matid);
+  static void Vazao(TPZBlackOilAnalysis &an, int matid, double & VazaoAguaSC, double  & VazaoOleoSC, double & VazaoAguaFundo, double  & VazaoOleoFundo);
 };
 
 #endif

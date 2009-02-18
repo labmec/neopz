@@ -1,4 +1,4 @@
-//$Id: pzblackoil2p3d.cpp,v 1.3 2008-11-24 19:31:55 fortiago Exp $ 
+//$Id: pzblackoil2p3d.cpp,v 1.4 2009-02-18 12:28:13 fortiago Exp $ 
 
 #include "pzblackoil2p3d.h"
 #include "pzbndcond.h"
@@ -8,7 +8,6 @@ using namespace std;
 #ifdef _AUTODIFF
 
 #include "fad.h"
-
 
 TPZBlackOil2P3D::EState TPZBlackOil2P3D::gState = ELastState;
 
@@ -111,6 +110,7 @@ void TPZBlackOil2P3D::Kro(double So, double &Kro, double &dKroSo){
   }
   this->Interpolate(dados,So,Kro,dKroSo);
 }
+
 void TPZBlackOil2P3D::Kro(BFadREAL So, BFadREAL &Kro){
   const int n = 8;
   double tabela[n][2] = {{0.12,1.},{0.2,0.8},{0.3,0.6},{0.4,0.45},{0.5,0.3},{0.6,0.2},{0.7,0.1},{0.82,0.}};
@@ -135,7 +135,24 @@ void TPZBlackOil2P3D::Krw(double So, double &Krw, double &dKrwSo){
   this->Interpolate(dados,So,Krw,dKrwSo);
 }
 
+void TPZBlackOil2P3D::testeKrw(){
+  ofstream KrFDP("Krw.txt");
+  double doubleI;
+  BFadREAL Krw;
+  for(int i = 0; i < 1000; i++){
+    doubleI = i;
+    BFadREAL So(0. + doubleI * 1./100., 0);
+    this->Krw(So,Krw);
+    KrFDP << So.val() << "\t" << Krw.val() << "\t" << Krw.dx(0) << " \n";
+  }
+}///void
+
 void TPZBlackOil2P3D::Krw(BFadREAL So, BFadREAL &Krw){
+  static bool testeAG = true;
+  if(testeAG){
+    testeAG = false;
+    testeKrw();
+  }
   const int n = 8;
   double tabela[n][2] = {{0.12,0.},{0.2,0.1},{0.3,0.2},{0.4,0.3},{0.5,0.4},{0.6,0.55},{0.7,0.7},{0.82,1.}};
   std::map<REAL,REAL> dados;
@@ -148,9 +165,12 @@ void TPZBlackOil2P3D::Krw(BFadREAL So, BFadREAL &Krw){
 /** Bo = Bo( po )
   */
 void TPZBlackOil2P3D::Bo(double po, double &Bo, double &dBoDpo){
-  const int n = 10;
-  double tabela[n][2] = {{14.7,1.062},{264.7,1.15},{514.7,1.207},{1014.7,1.295},{2014.7,1.435},
-                         {2514.,1.5},{3014.7,1.565},{4014.7,1.695},{5014.7,1.827},{9014.7,2.352}};
+//   const int n = 10;
+//   double tabela[n][2] = {{14.7,1.062},{264.7,1.15},{514.7,1.207},{1014.7,1.295},{2014.7,1.435},
+//                          {2514.,1.5},{3014.7,1.565},{4014.7,1.695},{5014.7,1.827},{9014.7,2.352}};
+  const int n = 9;
+  double tabela[n][2] = {{14.7, 1.062}, {264.7, 1.15}, {514.7, 1.207}, {1014.7, 1.295}, {2014.7, 1.435}, {2514., 1.5}, 
+                         {3014.7, 1.565}, {4014.7, 1.695}, {9014.7, 1.695}};
   const double conv = 6894.757;
   std::map<REAL,REAL> dados;
   for(int i = 0; i < n; i++){
@@ -159,10 +179,35 @@ void TPZBlackOil2P3D::Bo(double po, double &Bo, double &dBoDpo){
   this->Interpolate(dados,po,Bo,dBoDpo);
 }
 
+
+void TPZBlackOil2P3D::testedoBo(){
+  ofstream BOFDP("bo.txt");
+  double doubleI;
+  BFadREAL Bo;
+  for(int i = 0; i < 1000; i++){
+    doubleI = i;
+    BFadREAL p(10135.93 + doubleI * (621562370.- 101352.93)/100., 0);
+    this->Bo(p,Bo);
+    BOFDP << p.val() << "\t" << Bo.val() << "\t" << Bo.dx(0) << " \n";
+  }
+}
+
 void TPZBlackOil2P3D::Bo(BFadREAL po, BFadREAL &Bo){
-  const int n = 10;
-  double tabela[n][2] = {{14.7,1.062},{264.7,1.15},{514.7,1.207},{1014.7,1.295},{2014.7,1.435},
-                         {2514.,1.5},{3014.7,1.565},{4014.7,1.695},{5014.7,1.827},{9014.7,2.352}};
+
+//   static bool primeiraVez = true;
+//   if(primeiraVez){
+//     primeiraVez = false;
+//     testedoBo();
+//   }
+
+//   Bo = 1.695; return;
+
+//   const int n = 10;
+//   double tabela[n][2] = {{14.7,1.062},{264.7,1.15},{514.7,1.207},{1014.7,1.295},{2014.7,1.435},
+//                          {2514.,1.5},{3014.7,1.565},{4014.7,1.695},{5014.7,1.827},{9014.7,2.352}};
+  const int n = 9;
+  double tabela[n][2] = {{14.7, 1.062}, {264.7, 1.15}, {514.7, 1.207}, {1014.7, 1.295}, {2014.7, 1.435}, {2514., 1.5}, 
+                         {3014.7, 1.565}, {4014.7, 1.695}, {9014.7, 1.695}};
   const double conv = 6894.757;
   std::map<REAL,REAL> dados;
   for(int i = 0; i < n; i++){
@@ -174,9 +219,12 @@ void TPZBlackOil2P3D::Bo(BFadREAL po, BFadREAL &Bo){
 /** Viscosidade do oleo ViscOleo = ViscOleo( po )
   */
 void TPZBlackOil2P3D::ViscOleo(double po, double &ViscOleo, double &dViscOleoDpo){
-  const int n = 10;
-  double tabela[n][2] = {{14.7,1.04},{264.7,0.975},{514.7,0.91},{1014.7,0.83},{2014.7,0.695},
-                         {2514.,0.641},{3014.7,0.594},{4014.7,0.51},{5014.7,0.449},{9014.7,0.203}};
+//   const int n = 10;
+//   double tabela[n][2] = {{14.7,1.04},{264.7,0.975},{514.7,0.91},{1014.7,0.83},{2014.7,0.695},
+//                          {2514.,0.641},{3014.7,0.594},{4014.7,0.51},{5014.7,0.449},{9014.7,0.203}};
+  const int n = 9;
+  double tabela[n][2] = {{14.7, 1.062}, {264.7, 1.15}, {514.7, 1.207}, {1014.7, 1.295}, {2014.7, 1.435}, {2514., 1.5}, 
+                         {3014.7, 1.565}, {4014.7, 1.695}, {9014.7, 1.6}};
   const double conv = 6894.757;
   const double convVisc = 1e-3;
   std::map<REAL,REAL> dados;
@@ -187,6 +235,7 @@ void TPZBlackOil2P3D::ViscOleo(double po, double &ViscOleo, double &dViscOleoDpo
 }
 
 void TPZBlackOil2P3D::ViscOleo(BFadREAL po, BFadREAL &ViscOleo){
+
   const int n = 10;
   double tabela[n][2] = {{14.7,1.04},{264.7,0.975},{514.7,0.91},{1014.7,0.83},{2014.7,0.695},
                          {2514.,0.641},{3014.7,0.594},{4014.7,0.51},{5014.7,0.449},{9014.7,0.203}};
@@ -226,7 +275,7 @@ void TPZBlackOil2P3D::Porosidade(BFadREAL po, BFadREAL &poros){
   const double comp = 3.625943e-10;
   const double pref = 101352.93;
   const double porosRef = 0.22;
-  poros = porosRef*exp(comp*(po-pref));  
+  poros = porosRef*exp(comp*(po-pref));
 }
 
 ///Dados constantes
@@ -258,7 +307,7 @@ double TPZBlackOil2P3D::Bw(){
 /** Viscosidade da agua (constante)
 */
 double TPZBlackOil2P3D::ViscAgua(){
-  return 1.e-3;
+  return 0.31e-3;
 }
 
 /** Permeabilidade absoluta 
@@ -266,9 +315,9 @@ double TPZBlackOil2P3D::ViscAgua(){
 void TPZBlackOil2P3D::K(TPZFMatrix &K){
   K.Resize(3,3);
   K.Zero();
-  K(0,0) = 2.96077e-10;
-  K(1,1) = 2.96077e-10;
-  K(2,2) = 4.93462e-11;
+  K(0,0) = 2.96077e-13;//10;
+  K(1,1) = 2.96077e-13;//10;
+  K(2,2) = 4.93462e-14;//11;
 }
 
 
@@ -384,8 +433,8 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
   const BFadREAL GammaOleoLeft  = this->g() * this->RhoOleoSC()/BoL;
   const BFadREAL GammaOleoRight = this->g() * this->RhoOleoSC()/BoR;
 
-  ///velocidade de Darcy: na verdade a velocidade eh menos o que esta abaixo
-  BFadREAL velocOleo = (knormal*poR-knormal*poL)/dist - (GammaOleoRight*kgradZn+GammaOleoLeft*kgradZn)/2.;
+  ///velocidade de Darcy
+  BFadREAL velocOleo = -1.*((knormal*poR-knormal*poL)/dist - (GammaOleoRight*kgradZn+GammaOleoLeft*kgradZn)/2.);
 
   ///Mobilidades
   BFadREAL KroL,KroR;
@@ -399,17 +448,18 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 
   ///Fluxo numerico da primeira equacao do residuo
   BFadREAL Fn1 = 0.;
-  if(velocOleo < 0.){
-    Fn1 = LambdaOleoLeft*velocOleo;
+  if(velocOleo > 0.){
+    Fn1 = -LambdaOleoLeft*velocOleo;
   }
   else{
-    Fn1 = LambdaOleoRight*velocOleo;
+    Fn1 = -LambdaOleoRight*velocOleo;
   }
 
   ///ef = R = -1.( (f(un+1) - f(un))/dT - Fluxos )
-  ef(0,0) += +1.*weight*( +Fn1.val() );
-  ef(2,0) += +1.*weight*( -Fn1.val() );
+  ef(0,0) += -1.*weight*( -Fn1.val() );
+  ef(2,0) += -1.*weight*( +Fn1.val() );
 
+#ifndef EXPLICITO
   ///ek = -T (R)
   ek(0,0) += -1.*weight*( +Fn1.dx(0) );
   ek(0,1) += -1.*weight*( +Fn1.dx(1) );
@@ -420,7 +470,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
   ek(2,1) += -1.*weight*( -Fn1.dx(1) );
   ek(2,2) += -1.*weight*( -Fn1.dx(2) );
   ek(2,3) += -1.*weight*( -Fn1.dx(3) );
-
+#endif
 
 /// ************* Equacao 2 ******************* /
 
@@ -428,8 +478,8 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
   const double Bw = this->Bw();
   const double GammaAgua = this->g() * this->RhoAguaSC() / Bw;
 
-  ///velocidade de Darcy: na verdade a velocidade eh menos o que esta abaixo
-  BFadREAL velocAgua = (knormal*pwR-knormal*pwL)/dist - (GammaAgua*kgradZn+GammaAgua*kgradZn)/2.;
+  ///velocidade de Darcy
+  BFadREAL velocAgua = -1.*( (knormal*pwR-knormal*pwL)/dist - (GammaAgua*kgradZn+GammaAgua*kgradZn)/2. );
 
   ///Mobilidades
   BFadREAL KrwL,KrwR;
@@ -441,17 +491,18 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 
   ///Fluxo numerico da segunda equacao do residuo
   BFadREAL Fn2 = 0.;
-  if(velocAgua < 0.){
-    Fn2 = LambdaAguaLeft*velocAgua;
+  if(velocAgua > 0.){
+    Fn2 = -LambdaAguaLeft*velocAgua;
   }
   else{
-    Fn2 = LambdaAguaRight*velocAgua;
+    Fn2 = -LambdaAguaRight*velocAgua;
   }
 
   ///ef = R = -1.( (f(un+1) - f(un))/dT - Fluxos )
-  ef(1,0) += +1.*weight*( +Fn2.val() );
-  ef(3,0) += +1.*weight*( -Fn2.val() );
+  ef(1,0) += -1.*weight*( -Fn2.val() );
+  ef(3,0) += -1.*weight*( +Fn2.val() );
 
+#ifndef EXPLICITO
   ///ek = -T (R)
   ek(1,0) += -1.*weight*( +Fn2.dx(0) );
   ek(1,1) += -1.*weight*( +Fn2.dx(1) );
@@ -462,6 +513,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
   ek(3,1) += -1.*weight*( -Fn2.dx(1) );
   ek(3,2) += -1.*weight*( -Fn2.dx(2) );
   ek(3,3) += -1.*weight*( -Fn2.dx(3) ); 
+#endif
 
 }///method
 
@@ -469,16 +521,28 @@ void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, REAL weight, 
 
   if(gState == ELastState) return;
 
+  if(bc.Type() == 3){
+    //
+    ///ef = R = -1.( (f(un+1) - f(un))/dT - Fluxos )
+//     ef(0,0) += 0.;
+    double vazao = -1. * (- fabs(bc.Val2()(0,0)) ); ///em m3/m2
+    ef(1,0) += weight * vazao;
+  }///impondo vazao da injecao de agua
+
   if(bc.Type() == 2) return;///Parede ou simetria
 
   if((bc.Type() == 0) || (bc.Type() == 1)){
 
     ///pressao e saturacao
-    const BFadREAL poL(data.soll[0],0);
-    const BFadREAL SoL(data.soll[1],1);
-
     data.solr[0] = bc.Val2()(0,0);
     data.solr[1] = bc.Val2()(1,0);
+
+//     if(bc.Type() == 1){///forcar outflow
+//       if(data.soll[0] < data.solr[0]){
+//         data.solr[0] = data.soll[0];
+//       }
+//     }
+
     TPZFNMatrix<16> auxek(4,4,0.), auxef(4,1,0.);
     this->ContributeInterface(data,weight,auxek,auxef);
 
@@ -535,8 +599,39 @@ int TPZBlackOil2P3D::NSolutionVariables(int var){
 
 void TPZBlackOil2P3D::Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
                       TPZFMatrix &axes, int var, TPZVec<REAL> &Solout){
+  const double po = Sol[0];
+  const double So = Sol[1];
 
-///please implement me
-}
+  if(var == EWaterPressure){
+    BFadREAL pc;
+    this->PressaoCapilar(So, pc);
+    Solout[0] = (po-pc.val());
+    return;
+  }///pw
+
+  if(var == EOilPressure){
+    Solout[0] = po;
+    return;
+  }///po
+
+  if(var == EWaterSaturation){
+    Solout[0] = 1.-So;
+    return;
+  }///Sw
+
+  if(var == EOilSaturation){
+    Solout[0] = So;
+    return;
+  }///So
+
+  if(var == EDarcyVelocity){
+    cout << "\nERROR AT " << __PRETTY_FUNCTION__ << " \n";
+    Solout.Fill(0.);
+    return;
+  }///Velocity
+
+  return TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
+
+}///method
 
 #endif

@@ -1,4 +1,4 @@
-//$Id: pzblackoil2p3d.h,v 1.2 2008-11-12 14:14:21 fortiago Exp $
+//$Id: pzblackoil2p3d.h,v 1.3 2009-02-18 12:28:13 fortiago Exp $
 
 #ifndef PZBLACKOIL2P3D_H
 #define PZBLACKOIL2P3D_H
@@ -39,6 +39,10 @@ protected:
   enum EState { ELastState = 0, ECurrentState = 1 };
 
   static EState gState;
+  
+  void testedoBo();
+  
+  void testeKrw();
 
 public:
 
