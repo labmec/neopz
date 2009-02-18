@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.86 2008-10-23 11:10:36 fortiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.87 2009-02-18 11:48:43 fortiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -242,9 +242,119 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index,
 }
 
 void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
-//  cout << "\nImplementar adequadamente: " << __PRETTY_FUNCTION__ << "\n";
-  TPZElementMatrix fake_ek(this->Mesh(), TPZElementMatrix::EK);
-  this->CalcStiff(fake_ek, ef);
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
+  if(!mat || mat->Name() == "no_name"){
+      PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
+      ef.Reset();
+      return;
+   }
+
+   TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
+   TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
+
+   if (!left || !right){
+     PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
+     ef.Reset();
+     return;
+   }
+   if(!left->Material() || !right->Material()){
+      PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
+      ef.Reset();
+      return;
+   }
+
+  TPZMaterialData data;
+  const int dim = this->Dimension();
+  const int diml = left->Dimension();
+  const int dimr = right->Dimension();
+  int nshapel = left ->NShapeF();
+  int nshaper = right->NShapeF();
+  const int nstatel = left->Material()->NStateVariables();
+  const int nstater = right->Material()->NStateVariables();
+  this->InitMaterialData(data,left,right);
+
+   TPZManVector<TPZConnect*> ConnectL, ConnectR;
+   TPZManVector<int> ConnectIndexL, ConnectIndexR;
+
+   this->GetConnects( this->LeftElementSide(),  ConnectL, ConnectIndexL );
+   this->GetConnects( this->RightElementSide(), ConnectR, ConnectIndexR );
+   const int ncon = ConnectL.NElements() + ConnectR.NElements();
+   const int neql = nshapel * nstatel;
+   const int neqr = nshaper * nstater;
+   const int neq = neql + neqr;
+   ef.fMat.Redim(neq,1);
+   ef.fBlock.SetNBlocks(ncon);
+   ef.fConnect.Resize(ncon);
+
+   int ic = 0;
+   int n = ConnectL.NElements();
+   for(int i = 0; i < n; i++) {
+    const int nshape = left->NConnectShapeF(i);
+    const int con_neq = nstatel * nshape;
+    ef.fBlock.Set(ic,con_neq);
+    (ef.fConnect)[ic] = ConnectIndexL[i];
+    ic++;
+   }
+   n = ConnectR.NElements();
+   for(int i = 0; i < n; i++) {
+    const int nshape = right->NConnectShapeF(i);
+    const int con_neq = nstater * nshape;
+    ef.fBlock.Set(ic,con_neq);
+    (ef.fConnect)[ic] = ConnectIndexR[i];
+    ic++;
+   }
+   ef.fBlock.Resequence();
+
+   //LOOKING FOR MAX INTERPOLATION ORDER
+   data.leftp = left->MaxOrder();
+   data.rightp = right->MaxOrder();
+   //Max interpolation order
+   const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
+
+   TPZGeoEl *ref = Reference();
+   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 0*2*(p+1) );
+   if(mat->HasForcingFunction()){
+      TPZManVector<int,10> order(3);
+      intrule->GetOrder(order);
+      int maxorder = intrule->GetMaxOrder();
+      order.Fill(maxorder);
+      intrule->SetOrder(order);
+   }
+   const int npoints = intrule->NPoints();
+
+   //integration points in left and right elements: making transformations to neighbour elements
+   TPZTransform TransfLeft, TransfRight;
+   this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
+   this->ComputeSideTransform(this->RightElementSide(), TransfRight);
+
+   TPZManVector<REAL,3> intpoint(dim), LeftIntPoint(diml), RightIntPoint(dimr);
+   REAL weight;
+   //LOOP OVER INTEGRATION POINTS
+   for(int ip = 0; ip < npoints; ip++){
+
+      intrule->Point(ip,intpoint,weight);
+      ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+      weight *= fabs(data.detjac);
+
+      this->Normal(data.axes,data.normal);
+
+      TransfLeft.Apply( intpoint, LeftIntPoint );
+      TransfRight.Apply( intpoint, RightIntPoint );
+
+#ifdef DEBUG
+      this->CheckConsistencyOfMappedQsi(this->LeftElementSide(), intpoint, LeftIntPoint);
+      this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
+#endif
+
+      left->ComputeShape(LeftIntPoint, data.x, data.leftjac, data.axesleft, data.leftdetjac, data.leftjacinv, data.phil, data.dphixl);
+      right->ComputeShape(RightIntPoint, data.x, data.rightjac, data.axesright, data.rightdetjac, data.rightjacinv, data.phir, data.dphixr);
+
+      this->ComputeRequiredData(data, left, right, intpoint, LeftIntPoint, RightIntPoint);
+      mat->ContributeInterface(data, weight, ef.fMat);
+
+   }//loop over integration points
+
+   delete intrule;
 }
 
 int TPZInterfaceElement::NConnects() const {
