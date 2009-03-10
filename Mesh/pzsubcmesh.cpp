@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.26 2009-02-02 10:06:59 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.27 2009-03-10 10:37:21 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -630,7 +630,10 @@ void TPZSubCompMesh::PotentialInternal(std::list<int> &connectindices){
     else
     {
       int extcon = this->fConnectIndex[fExternalLocIndex[i]];
-      if(father->ConnectVec()[extcon].NElConnected() == 1) connectindices.push_back(i);
+      if(father->ConnectVec()[extcon].NElConnected() == 1) 
+	  {
+		  connectindices.push_back(i);
+	  }
     }
   }
 }
@@ -845,7 +848,7 @@ void TPZSubCompMesh::SetAnalysis(){
  * Permute the potentially internal connects to the first on the list
  * Respect the previous order of the connects
    */
-void TPZSubCompMesh::PermuteInternalFirst()
+void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int> &permute)
 {
   // map from sequence number of the pontentially internal nodes to the node indices
   // first the independent nodes, then the dependent nodes
@@ -869,16 +872,37 @@ void TPZSubCompMesh::PermuteInternalFirst()
   for(it=internal.begin(); it!= internal.end(); it++)
   {
     int locind = *it;
-    int superind = fConnectIndex[this->fExternalLocIndex[locind]];
-    if(father->ConnectVec()[superind].FirstDepend())
-    {
-    }
-    else
-    {
-      independent[ConnectVec()[locind].SequenceNumber()] = locind;
-    }
+	  int externallocindex = this->fExternalLocIndex[locind];
+	  if(externallocindex > 0)
+	  {
+		  int superind = fConnectIndex[externallocindex];
+		  if(father->ConnectVec()[superind].FirstDepend())
+		  {
+		  }
+		  else
+		  {
+			  independent[ConnectVec()[locind].SequenceNumber()] = locind;
+		  }
+	  }
+	  else if (!ConnectVec()[locind].FirstDepend())
+	  {
+		  independent[ConnectVec()[locind].SequenceNumber()] = locind;
+	  }
   }
-  TPZManVector<int> permute(fConnectVec.NElements(),-1);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Independent connect sequence numbers and indices ";
+		std::map<int,int>::iterator mapit;
+		for(mapit=independent.begin(); mapit!= independent.end(); mapit++)
+		{
+			sout << "[" << mapit->first << " , " << mapit->second << "] ";
+		}
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+  permute.Resize(0);
+  permute.Resize(fConnectVec.NElements(),-1);
 
   int count = 0;
   std::map<int,int>::iterator mapit;
@@ -898,13 +922,13 @@ void TPZSubCompMesh::PermuteInternalFirst()
   {
     if(permute[mapit->first] == -1) permute[mapit->first] = count++;
   }
-/*#ifdef LOG4CXX
+#ifdef LOG4CXX
   {
     std::stringstream sout;
     sout << "Permutation vector " << permute;
     LOGPZ_DEBUG(logger,sout.str())
   }
-#endif*/
+#endif
   Permute(permute);
 }
 

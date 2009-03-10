@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.18 2009-02-02 10:06:05 phil Exp $
+//$Id: pzsubcmesh.h,v 1.19 2009-03-10 10:37:21 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -224,7 +224,7 @@ public:
    * Permute the potentially internal connects to the first on the list
    * Respect the previous order of the connects
    */
-  void PermuteInternalFirst();
+  void PermuteInternalFirst(TPZVec<int> &permute);
 
   /**
    * Print the submesh information on the specified device/file out.
