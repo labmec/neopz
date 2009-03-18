@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.11 2008-10-20 11:57:25 longhin Exp $
+//$Id: pzinterpolationspace.h,v 1.12 2009-03-18 13:56:43 fortiago Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -177,6 +177,11 @@ public:
    * Integrate a variable over the element.
    */
    virtual void Integrate(int variable, TPZVec<REAL> & value);
+
+   /** 
+    * Integrate the solution over the element
+    */
+   virtual void IntegrateSolution(TPZVec<REAL> & value);
 
   /**
    * Will project the flux associated with the variational statement onto the finite element interpolation space

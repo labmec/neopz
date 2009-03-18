@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.29 2009-02-18 11:40:42 fortiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.30 2009-03-18 13:56:43 fortiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -828,6 +828,42 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
     intrule.Point(ip,intpoint,weight);
     data.sol.Fill(0.);
     this->Solution(intpoint, variable, data.sol);
+    //Tiago: Next call is performet only for computing detcaj. The previous method (Solution) has already computed jacobian.
+    //       It means that the next call would not be necessary if I write the whole code here.
+    this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+    weight *= fabs(data.detjac);
+    for(iv = 0; iv < varsize; iv++){
+      value[iv] += data.sol[iv]*weight;
+    }//for iv
+  }//for ip
+}//method
+
+void TPZInterpolationSpace::IntegrateSolution(TPZVec<REAL> & value){
+  TPZAutoPointer<TPZMaterial> material = Material();
+  if(!material){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
+    return;
+  }
+  if (!this->Reference()){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " : no reference element\n";
+    return;
+  }
+  const int dim = this->Dimension();
+  REAL weight;
+  TPZMaterialData data;
+  this->InitMaterialData(data);
+
+  TPZManVector<REAL, 3> intpoint(dim,0.);
+  const int varsize = material->NStateVariables();
+  value.Resize(varsize);
+  value.Fill(0.);
+
+  TPZIntPoints &intrule = this->GetIntegrationRule();
+  int npoints = intrule.NPoints(), ip, iv;
+  for(ip=0;ip<npoints;ip++){
+    intrule.Point(ip,intpoint,weight);
+    data.sol.Fill(0.);
+    this->ComputeSolution(intpoint, data.sol, data.dsol, data.axes);
     //Tiago: Next call is performet only for computing detcaj. The previous method (Solution) has already computed jacobian.
     //       It means that the next call would not be necessary if I write the whole code here.
     this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
