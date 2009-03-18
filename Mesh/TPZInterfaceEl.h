@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.52 2008-04-25 18:28:01 fortiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.53 2009-03-18 13:58:23 fortiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -319,6 +319,14 @@ class TPZInterfaceElement : public TPZCompEl {
    * Print attributes of the object
    */
   void Print(std::ostream &out = std::cout);
+
+  /**
+   * @see Base class for comments
+   * Interface elements does not have graphical representation
+   */
+  virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension){
+    ///Nothing to be done here
+  }
 
   /**
    * it verifies the existence of interfaces associates

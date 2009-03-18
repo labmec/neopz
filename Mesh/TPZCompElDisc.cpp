@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.110 2008-06-02 17:58:33 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.111 2009-03-18 13:58:23 fortiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.110 2008-06-02 17:58:33 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.111 2009-03-18 13:58:23 fortiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -29,6 +29,10 @@
 #include "pzgraphel1dd.h"
 #include "pztrigraphd.h"
 #include "pztrigraph.h"
+#include "tpzgraphelt2dmapped.h"
+#include "tpzgraphelprismmapped.h"
+#include "tpzgraphelpyramidmapped.h"
+#include "tpzgraphelt3d.h"
 #include "pzgraphel.h"
 #include "pzmeshid.h"
 #include <sstream>
@@ -565,16 +569,33 @@ void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
       return;
     }
     if(nsides == 7){
-      new TPZGraphElTd(this,&grmesh);
+      new TPZGraphElT2dMapped(this,&grmesh);
       return;
     }
-  }
+  }///2d
+
   if(dimension == 3 && mat > 0){
-    new TPZGraphElQ3dd(this,&grmesh);
-  }
+    if(nsides == 27){
+      new TPZGraphElQ3dd(this,&grmesh);
+      return;
+    }///cube
+    if(nsides == 21){
+      new TPZGraphElPrismMapped(this,&grmesh);
+      return;
+    }///prism
+    if(nsides == 15){
+      new TPZGraphElT3d(this,&grmesh);
+      return;
+    }///tetra
+    if(nsides == 19){
+      new TPZGraphElPyramidMapped(this,&grmesh);
+      return;
+    }///pyram
+  }///3d
+
   if(dimension == 1 && mat > 0){
     new TPZGraphEl1dd(this,&grmesh);
-  }
+  }///1d
 }
 
 int TPZCompElDisc::NSides(){
