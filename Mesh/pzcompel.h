@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.40 2007-11-29 18:15:28 phil Exp $
+// $Id: pzcompel.h,v 1.41 2009-03-18 13:55:32 fortiago Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -713,6 +713,7 @@ public:
 
 inline void TPZCompEl::CreateGraphicalElement(TPZGraphMesh &, int) {
   std::cout << "TPZCompEl::CreateGrafEl called\n";
+  this->Print(std::cout);
 }
 
 
