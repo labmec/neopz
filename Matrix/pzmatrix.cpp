@@ -32,6 +32,7 @@
 #include "pzvec.h"
 
 #include <sstream>
+#include <exception>
 #include "pzlog.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatrix"));
@@ -803,7 +804,38 @@ int TPZMatrix::Decompose_LDLt() {
 	 return( 1 );
 }
 int TPZMatrix::Decompose_Cholesky(std::list<int> &singular) {
-  return Decompose_Cholesky();
+	if (  fDecomposed && fDecomposed != ECholesky) Error( "Decompose_Cholesky <Matrix already Decomposed>" );
+	if (  fDecomposed ) return ECholesky;
+	if ( Rows()!=Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );
+	//return 0;
+	
+	int dim=Dim();
+	for (int i=0 ; i<dim; i++) {
+		for(int k=0; k<i; k++) {             //elementos da diagonal
+			PutVal( i,i,GetVal(i,i)-GetVal(i,k)*GetVal(i,k) );
+		}
+		if(GetVal(i,i) <= 1.e-12)
+		{
+			singular.push_back(i);
+			PutVal(i,i,1.);
+		}
+		REAL tmp = sqrt(GetVal(i,i));
+        PutVal( i,i,tmp );
+        for (int j=i+1;j<dim; j++) {           //elementos fora da diagonal
+            for(int k=0; k<i; k++) {
+                PutVal( i,j,GetVal(i,j)-GetVal(i,k)*GetVal(k,j) );
+            }
+            REAL tmp2 = GetVal(i,i);
+            if ( IsZero(tmp2) ) {
+				Error( "Decompose_Cholesky <Zero on diagonal>" );
+            }
+            PutVal(i,j,GetVal(i,j)/GetVal(i,i) );
+            PutVal(j,i,GetVal(i,j));
+			
+        }
+    }
+	fDecomposed = ECholesky;
+	return ECholesky;
 }
 
 int TPZMatrix::Decompose_Cholesky() {
@@ -966,6 +998,8 @@ int TPZMatrix::Error(const char *msg ,const char *msg2) {
     if(msg2) out << msg2;
     out << ".\n";
     LOGPZ_ERROR (logger, out.str().c_str());
+	std::bad_exception myex;
+	throw myex;
 //    exit( 1 );
     return 0;
 }
