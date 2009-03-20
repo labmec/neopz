@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzintel.cpp,v 1.68 2008-06-02 17:58:33 fortiago Exp $
+// $Id: pzintel.cpp,v 1.69 2009-03-20 20:28:21 phil Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -1285,16 +1285,18 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
     return;
   }
   TPZGeoEl *ref = Reference();
-  int nsubelements = ref->NSubElements();
-  sub.Resize(nsubelements);
 
-  TPZManVector<TPZGeoEl *> pv(nsubelements);
+  TPZManVector<TPZGeoEl *> pv;
   ref->Divide(pv);//o elemento geometrico correspondente ao atual elemento computacional �dividido
   if(!pv.NElements()) {
     sub.Resize(0);
     LOGPZ_ERROR(logger,"Exiting Divide: no subelements acquired");
     return;
   }
+	// The refinement pattern may be adjusted during the division process
+	int nsubelements = ref->NSubElements();
+	sub.Resize(nsubelements);
+	
 
   int i;
 
