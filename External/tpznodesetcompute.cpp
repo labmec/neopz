@@ -114,12 +114,23 @@ void TPZNodesetCompute::AnalyseNode(int node, TPZVec< std::set<int> > &nodeset)
   fMaxLevel = fMaxLevel < minlevel ? minlevel : fMaxLevel;
   // assign the level of the node
   fLevel[node] = minlevel;
+	nodeset[node].erase(node);
   
   // memory clean up
   for(it = nodeset[node].begin(); it != nodeset[node].end(); it++)
   {
     int othernode = *it;
-    if(fSeqNumber[othernode] != -1 && fLevel[othernode] <= minlevel) nodeset[othernode].clear();
+	  int level = fLevel[othernode];
+	  int seq = fSeqNumber[othernode];
+    if(seq != -1 && level <= minlevel) 
+	{
+		nodeset[othernode].clear();
+		if(othernode == node)
+		{
+			LOGPZ_ERROR(logger," othernode equal to node!!")
+			break;
+		}
+	}
   }
   nodeset[node].clear();
   // initialize the datastructure of the nodes which have the same connectivity
