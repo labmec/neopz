@@ -1522,7 +1522,7 @@ void TPZRefPattern::GetCompatibleRefinementPatterns(TPZGeoEl *gel, std::list<TPZ
   // first we build the refinement patterns associated with the neighbours of the current element
   int is,nsides,nnodes;
   nsides = gel->NSides();
-  nnodes = gel->NNodes();
+  nnodes = gel->NCornerNodes();
   TPZManVector<TPZAutoPointer<TPZRefPattern> ,27> SideRefPatterns(nsides,0);
   TPZManVector<int, 27> refsides(nsides,0);
   for(is=nnodes; is<nsides; is++)
