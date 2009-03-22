@@ -110,6 +110,14 @@ TPZSloan::TPZSloan(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes)
 
 void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 {
+
+	if(!fNNodes || !fNElements)
+ 	{
+	   std::cout << __PRETTY_FUNCTION__ << " called with fNNodes = " << fNNodes
+	       << " and fNElements = " << fNElements << std::endl;
+	   return;
+	}
+	
 	/**
 	int nen = 2;                          // number of nodes per element
 	int *npn = new int[nen * n_elements]; // npn[i..i+nen] contains adjacent nodes of element i
@@ -128,12 +136,6 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 	int nop = 0;
 	int inpn = nnodes_per_element * fNElements;
 
- if(!fNNodes || !fNElements)
- {
-   std::cout << __PRETTY_FUNCTION__ << " called with fNNodes = " << fNNodes
-       << " and fNElements = " << fNElements << std::endl;
-   return;
- }
 	//adjacency list generation
 	//ofstream sai("felementgraph.txt");
 	//fElementGraph.Print(sai);

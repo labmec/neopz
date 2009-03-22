@@ -46,11 +46,11 @@ class TPZSloan : public TPZRenumbering {
 
 
   int fMaxNodesElement;
-
+/*
   int fNNodes;
 
   int fNElements;
-	
+	*/
  public:
    
    TPZSloan(): TPZRenumbering(),
