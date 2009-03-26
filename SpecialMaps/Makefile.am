@@ -19,7 +19,7 @@ specialmapsinc_HEADERS= $(top_srcdir)/SpecialMaps/*.h
 
 noinst_LIBRARIES = libpzspecialmaps.a
 
-libpzspecialmaps_a_SOURCES = convtest.cpp ctriangletests.cpp tpzarc3d.cpp tpzblendnaca.cpp tpzchangeel.cpp tpzcurvedtriangle.cpp \
+libpzspecialmaps_a_SOURCES = convtest.cpp tpzarc3d.cpp tpzblendnaca.cpp tpzchangeel.cpp tpzcurvedtriangle.cpp \
 														 tpzellipse.cpp tpzmathtools.cpp tpzquadraticquad.cpp tpzquadratictetra.cpp tpzquadratictrig.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
