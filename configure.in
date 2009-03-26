@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.64 2008-11-12 12:45:10 fortiago Exp $
+dnl $Id: configure.in,v 1.65 2009-03-26 20:35:33 fortiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -543,7 +543,7 @@ dnl ----------------------------------------------------------------------------
 dnl                              CONGRATULATIONS!
 dnl ----------------------------------------------------------------------------
 
-AC_OUTPUT(Analysis/Makefile Common/Makefile Cosys/Makefile External/Makefile \
+AC_OUTPUT(SpecialMaps/Makefile Analysis/Makefile Common/Makefile Cosys/Makefile External/Makefile \
 	External/sloan/Makefile Frontal/Makefile Geom/Makefile Integral/Makefile LinearSolvers/Makefile \
 	Makefile Material/Makefile Matrix/Makefile Mesh/Makefile Multigrid/Makefile PZ.mk \
 	PZ_pira.mk PZ_user.mk Post/Makefile Pre/Makefile Projects/AltoDes/Makefile \

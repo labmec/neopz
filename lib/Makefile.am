@@ -60,7 +60,7 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Mesh/pzgeoelrefless.o ../Mesh/pzgeoelside.o ../Mesh/pzgmesh.o ../Mesh/pzgnode.o \
 	../Mesh/pzintel.o ../Mesh/pzinterpolationspace.o ../Mesh/pzmeshid.o \
 	../Mesh/pzreferredcompel.o ../Mesh/pzstackmesh.o ../Mesh/pzsubcmesh.o ../Mesh/pzvecmesh.o \
-	../Mesh/tpzcompmeshreferred.o ../Mesh/tpzgeoelmapped.o ../Mesh/tpzgeoelrefpattern.o \
+	../Mesh/tpzcompmeshreferred.o ../Mesh/tpzgeoelmapped.o ../Mesh/tpzgeoelrefpattern.o ../Mesh/tpzgeoblend.o \
 	../Multigrid/pzmgsolver.o ../Multigrid/pztransfer.o ../Multigrid/pztrnsform.o ../Post/pzdxmesh.o \
 	../Post/pzgraphel.o ../Post/pzgraphel1d.o ../Post/pzgraphel1dd.o ../Post/pzgraphelq2d.o \
 	../Post/pzgraphelq2dd.o ../Post/pzgraphelq3dd.o ../Post/pzgraphmesh.o ../Post/pzgraphnode.o \
@@ -81,6 +81,9 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Topology/tpzpoint.o ../Topology/tpzprism.o ../Topology/tpzpyramid.o \
 	../Topology/tpzquadrilateral.o ../Topology/tpztetrahedron.o ../Topology/tpztriangle.o \
 	../Util/TPZTimer.o ../Util/pzfunction.o ../Util/pzlog.o ../Util/pzmap.o ../Util/pzstring.o \
-	../Util/tpzautopointer.o ../Util/tpzpermutation.o
+	../Util/tpzautopointer.o ../Util/tpzpermutation.o \
+  ../SpecialMaps/convtest.o ../SpecialMaps/ctriangletests.o ../SpecialMaps/tpzarc3d.o ../SpecialMaps/tpzblendnaca.o \
+  ../SpecialMaps/tpzchangeel.o ../SpecialMaps/tpzcurvedtriangle.o ../SpecialMaps/tpzellipse.o ../SpecialMaps/tpzmathtools.o \
+  ../SpecialMaps/tpzquadraticquad.o ../SpecialMaps/tpzquadratictetra.o ../SpecialMaps/tpzquadratictrig.o
 
 ## --| NeoPZ |------------------------------------------------------------------
