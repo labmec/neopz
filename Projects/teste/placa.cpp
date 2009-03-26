@@ -1,4 +1,4 @@
-//$Id: placa.cpp,v 1.5 2009-01-20 00:19:26 erick Exp $
+//$Id: placa.cpp,v 1.6 2009-03-26 21:14:49 fortiago Exp $
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
@@ -449,14 +449,11 @@ void PosProcessamento(TPZAnalysis &an){
   TPZVec<std::string> vetorial(0);
   TPZAutoPointer<TPZMaterial> mat = an.Mesh()->FindMaterial(1);
   int dim = mat->Dimension();
-  TPZDXGraphMesh graph(an.Mesh(),dim,mat,scalar,vetorial);
-  ofstream *dxout = new ofstream("PLACA.dx"); //visualiza com o DX
+
+  an.DefineGraphMesh(dim, scalar, vetorial, "PLACA.dx");
   cout << "\nmain::PosProcessamento arquivo de saida -> PLACA.dx\n";
-  graph.SetOutFile(*dxout);
-  graph.SetResolution(0);
-  graph.DrawMesh(dim);
-  REAL time = 0.0;
-  graph.DrawSolution(0,time);
+  an.PostProcess(0);
+  an.CloseGraphMesh();  
 }
 
 void ProcessamentoLocal(TPZGeoMesh &gmesh,std::ostream &out) {
@@ -884,7 +881,7 @@ static clock_t fBegin=0,fInit=0;
 void CoutTime(clock_t &start,const char *title);
 void AdaptativeProcedure(REAL erro_adm,int numiter,int resolution,TPZMaterial *mat,TPZAnalysis &an) {
   cout << "PZAnalysis::IterativeProcessTest beginning of the iterative process, general time 0\n";
-  int iter = 0,draw=0;
+  int iter = 0;
   TPZCompMesh *cmesh = an.Mesh();
   int numeq = cmesh->NEquations();
   cout << "\nmain::AdaptativeProcedure numero de equacoes    : " << numeq;
@@ -945,15 +942,13 @@ void AdaptativeProcedure(REAL erro_adm,int numiter,int resolution,TPZMaterial *m
   //scalar[1] = "Mn1";
   //scalar[2] = "Mn2";
   int dim = mat->Dimension();
-  TPZDXGraphMesh graph(cmesh,dim,mat,scalar,vector);
-  ofstream *dxout = new ofstream("PLACA.dx");
+
+  an.DefineGraphMesh(dim, scalar, vector, "PLACA.dx");
+  cout << "\nmain::PosProcessamento arquivo de saida -> PLACA.dx\n";
+  an.SetTime(0.1);
+  an.PostProcess(resolution);
   cout << "\nTPZIterativeAnalysis:: out file : PLACA.dx\n";
-  graph.SetOutFile(*dxout);
-  graph.SetResolution(resolution);
-  graph.DrawMesh(dim);
-  REAL time = 0.1;
-  graph.DrawSolution(draw++,time);
-  dxout->flush();
+  an.CloseGraphMesh();  
 }
 
 void CoutTime(clock_t &start,const char *title){

@@ -109,9 +109,9 @@ int main() {
 
 	TPZVec<std::string> scalarnames(1),vecnames(0);
 	scalarnames[0] = "state";
+
 	TPZDXGraphMesh graph(&comp,2,mat,scalarnames,vecnames);
-	ofstream *dxout = new ofstream("output.dx");
-	graph.SetOutFile(*dxout);
+	graph.SetFileName("output.dx");
 	graph.SetResolution(0);
  
 	graph.DrawMesh(1);

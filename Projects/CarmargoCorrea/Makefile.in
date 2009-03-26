@@ -14,15 +14,6 @@
 
 @SET_MAKE@
 
-#
-# NeoPZ SpecialMaps makefile
-#
-# It will be processed by GNU automake to produce Makefile.in
-#
-# $Id#
-#
-
-
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -42,9 +33,9 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = SpecialMaps
-DIST_COMMON = $(noinst_HEADERS) $(specialmapsinc_HEADERS) \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
+bin_PROGRAMS = cccc$(EXEEXT)
+subdir = Projects/CarmargoCorrea
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.in
@@ -53,16 +44,12 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-LIBRARIES = $(noinst_LIBRARIES)
-libpzspecialmaps_a_AR = $(AR) $(ARFLAGS)
-libpzspecialmaps_a_LIBADD =
-am_libpzspecialmaps_a_OBJECTS = convtest.$(OBJEXT) \
-	ctriangletests.$(OBJEXT) tpzarc3d.$(OBJEXT) \
-	tpzblendnaca.$(OBJEXT) tpzchangeel.$(OBJEXT) \
-	tpzcurvedtriangle.$(OBJEXT) tpzellipse.$(OBJEXT) \
-	tpzmathtools.$(OBJEXT) tpzquadraticquad.$(OBJEXT) \
-	tpzquadratictetra.$(OBJEXT) tpzquadratictrig.$(OBJEXT)
-libpzspecialmaps_a_OBJECTS = $(am_libpzspecialmaps_a_OBJECTS)
+am__installdirs = "$(DESTDIR)$(bindir)"
+binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
+PROGRAMS = $(bin_PROGRAMS)
+am_cccc_OBJECTS = ctriangletests.$(OBJEXT)
+cccc_OBJECTS = $(am_cccc_OBJECTS)
+cccc_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -71,17 +58,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(libpzspecialmaps_a_SOURCES)
-DIST_SOURCES = $(libpzspecialmaps_a_SOURCES)
-am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
-am__vpath_adj = case $$p in \
-    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
-    *) f=$$p;; \
-  esac;
-am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(specialmapsincdir)"
-specialmapsincHEADERS_INSTALL = $(INSTALL_HEADER)
-HEADERS = $(noinst_HEADERS) $(specialmapsinc_HEADERS)
+SOURCES = $(cccc_SOURCES)
+DIST_SOURCES = $(cccc_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -225,16 +203,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 DISTCLEANFILES = @PZ_DISTCLEANFILES@
 CLEANFILES = @PZ_CLEANFILES@
-specialmapsdir = $(prefix)/SpecialMaps
-specialmapsincdir = $(includedir)/SpecialMaps
-specialmapsinc_HEADERS = $(top_srcdir)/SpecialMaps/*.h
-noinst_LIBRARIES = libpzspecialmaps.a
-libpzspecialmaps_a_SOURCES = convtest.cpp ctriangletests.cpp tpzarc3d.cpp tpzblendnaca.cpp tpzchangeel.cpp tpzcurvedtriangle.cpp \
-														 tpzellipse.cpp tpzmathtools.cpp tpzquadraticquad.cpp tpzquadratictetra.cpp tpzquadratictrig.cpp
-
-noinst_HEADERS = convtest.h tpzarc3d.h tpzblendnaca.h tpzchangeel.h tpzcurvedtriangle.h \
-								 tpzellipse.h tpzmathtools.h tpzquadraticquad.h tpzquadratictetra.h tpzquadratictrig.h
-
+INCLUDES = 
+METASOURCES = AUTO
+cccc_SOURCES = ctriangletests.cpp
+cccc_DEPENDENCIES = $(top_builddir)/lib/libpz.a
 all: all-am
 
 .SUFFIXES:
@@ -248,9 +220,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  SpecialMaps/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  Projects/CarmargoCorrea/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  SpecialMaps/Makefile
+	  $(AUTOMAKE) --gnu  Projects/CarmargoCorrea/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -268,13 +240,32 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  if test -f $$p \
+	  ; then \
+	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(binPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(bindir)/$$f'"; \
+	   $(INSTALL_PROGRAM_ENV) $(binPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(bindir)/$$f" || exit 1; \
+	  else :; fi; \
+	done
 
-clean-noinstLIBRARIES:
-	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-libpzspecialmaps.a: $(libpzspecialmaps_a_OBJECTS) $(libpzspecialmaps_a_DEPENDENCIES) 
-	-rm -f libpzspecialmaps.a
-	$(libpzspecialmaps_a_AR) libpzspecialmaps.a $(libpzspecialmaps_a_OBJECTS) $(libpzspecialmaps_a_LIBADD)
-	$(RANLIB) libpzspecialmaps.a
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  f=`echo "$$p" | sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
+	  echo " rm -f '$(DESTDIR)$(bindir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(bindir)/$$f"; \
+	done
+
+clean-binPROGRAMS:
+	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+cccc$(EXEEXT): $(cccc_OBJECTS) $(cccc_DEPENDENCIES) 
+	@rm -f cccc$(EXEEXT)
+	$(CXXLINK) $(cccc_OBJECTS) $(cccc_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -282,17 +273,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convtest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ctriangletests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tpzarc3d.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tpzblendnaca.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tpzchangeel.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tpzcurvedtriangle.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tpzellipse.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tpzmathtools.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tpzquadraticquad.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tpzquadratictetra.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tpzquadratictrig.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -307,23 +288,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-install-specialmapsincHEADERS: $(specialmapsinc_HEADERS)
-	@$(NORMAL_INSTALL)
-	test -z "$(specialmapsincdir)" || $(MKDIR_P) "$(DESTDIR)$(specialmapsincdir)"
-	@list='$(specialmapsinc_HEADERS)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(specialmapsincHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(specialmapsincdir)/$$f'"; \
-	  $(specialmapsincHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(specialmapsincdir)/$$f"; \
-	done
-
-uninstall-specialmapsincHEADERS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(specialmapsinc_HEADERS)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(specialmapsincdir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(specialmapsincdir)/$$f"; \
-	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -400,9 +364,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(HEADERS)
+all-am: Makefile $(PROGRAMS)
 installdirs:
-	for dir in "$(DESTDIR)$(specialmapsincdir)"; do \
+	for dir in "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -433,7 +397,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -451,11 +415,11 @@ info: info-am
 
 info-am:
 
-install-data-am: install-specialmapsincHEADERS
+install-data-am:
 
 install-dvi: install-dvi-am
 
-install-exec-am:
+install-exec-am: install-binPROGRAMS
 
 install-html: install-html-am
 
@@ -486,25 +450,25 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-specialmapsincHEADERS
+uninstall-am: uninstall-binPROGRAMS
 
 .MAKE: install-am install-strip
 
-.PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-noinstLIBRARIES ctags distclean distclean-compile \
+.PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
+	clean-generic ctags distclean distclean-compile \
 	distclean-generic distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-specialmapsincHEADERS \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-specialmapsincHEADERS
+	html-am info info-am install install-am install-binPROGRAMS \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
+	uninstall-am uninstall-binPROGRAMS
 
 
--include $(top_builddir)/@PZ_MK@
+-include $(top_builddir)/@PZ_MK@ 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
