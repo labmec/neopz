@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.53 2009-02-02 10:03:13 phil Exp $
+//$Id: pzgmesh.cpp,v 1.54 2009-03-26 21:39:21 fortiago Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -26,6 +26,7 @@ Method definition for class TPZGeoMesh.*/
 
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
+#include "tpzgeoblend.h"
 
 #ifdef BORLAND
 #include <io.h>
@@ -879,6 +880,58 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
     }
   }
   //return NULL;
+}
+
+TPZGeoEl *TPZGeoMesh::CreateGeoBlendElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+{ 
+  switch( type ){
+    case 0://point
+    {
+      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPoint> > (nodeindexes,matid,*this);
+      return gel;
+    }
+    case 1://line
+    {
+      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (nodeindexes,matid,*this);
+      return gel;
+    }
+    case 2://triangle
+    {
+      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTriangle> > (nodeindexes,matid,*this);
+      return gel;
+    }
+    case 3://quadrilateral
+    {
+      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (nodeindexes,matid,*this);
+      return gel;
+    }
+    case 4://tetraedron
+    {
+      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTetrahedra> > (nodeindexes,matid,*this);
+      return gel;
+    }
+    case 5://pyramid
+    {
+      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPyramid> > (nodeindexes,matid,*this);
+      return gel;
+    }
+    case 6://prism
+    {
+      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> > (nodeindexes,matid,*this);
+      return gel;
+    }
+    case 7://cube
+    {
+      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> > (nodeindexes,matid,*this);
+      return gel;
+    }
+    default:
+    {
+      PZError << "TPZGeoMesh::CreateGeoElementRefPattern type element not exists:"
+          << " type = " << type << std::endl;
+      return NULL;
+    }
+  }
 }
 
 TPZAutoPointer<TPZRefPattern> TPZGeoMesh::GetUniformPattern(MElementType type)

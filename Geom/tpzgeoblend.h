@@ -101,6 +101,4 @@ protected:
     TPZTransform fTrans[1+TGeo::NSides - TGeo::NNodes];
 };
 
-TPZGeoEl *CreateGeoBlendElement(TPZGeoMesh &mesh, MElementType type, TPZVec<int>& nodeindexes, int matid, int& index);
-
 #endif

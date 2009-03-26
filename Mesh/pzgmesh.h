@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.34 2008-10-27 17:55:15 phil Exp $
+//$Id: pzgmesh.h,v 1.35 2009-03-26 21:39:21 fortiago Exp $
 
 /**File : pzgmes.h
 
@@ -233,6 +233,11 @@ void RefPatternFile(std::ofstream &filename);
    * @param reftype defines the type of refinement : 0 -> uniform 1-> refinement pattern
    */
   virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes,int matid,int &index, int reftype = 0);
+
+  /**
+   * Creates a geometric element in same fashion of CreateGeoElement but here the elements are blend, as Caju master thesis
+   */
+  virtual TPZGeoEl *CreateGeoBlendElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index);
 
 //  virtual void DeleteElement(int gelindex);
   /**

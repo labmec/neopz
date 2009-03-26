@@ -326,7 +326,7 @@ TPZGeoEl *TPZGeoBlend<TGeo>::CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc)
   TPZGeoMesh *mesh = orig->Mesh();
   MElementType type = orig->Type(side);
 
-  TPZGeoEl *newel = CreateGeoBlendElement(*mesh, type, nodeindices, bc, index);
+  TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
   TPZGeoElSide me(orig,side);
   TPZGeoElSide newelside(newel,newel->NSides()-1);
 
@@ -334,61 +334,6 @@ TPZGeoEl *TPZGeoBlend<TGeo>::CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc)
   newel->Initialize();
 
   return newel;
-}
-
-TPZGeoEl *CreateGeoBlendElement(TPZGeoMesh &mesh, MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
-{
-  if(!&mesh) return 0;
-
-  
-  switch( type ){
-    case 0://point
-    {
-      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPoint> > (nodeindexes,matid,mesh);
-      return gel;
-    }
-    case 1://line
-    {
-      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (nodeindexes,matid,mesh);
-      return gel;
-    }
-    case 2://triangle
-    {
-      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTriangle> > (nodeindexes,matid,mesh);
-      return gel;
-    }
-    case 3://quadrilateral
-    {
-      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (nodeindexes,matid,mesh);
-      return gel;
-    }
-    case 4://tetraedron
-    {
-      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTetrahedra> > (nodeindexes,matid,mesh);
-      return gel;
-    }
-    case 5://pyramid
-    {
-      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPyramid> > (nodeindexes,matid,mesh);
-      return gel;
-    }
-    case 6://prism
-    {
-      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> > (nodeindexes,matid,mesh);
-      return gel;
-    }
-    case 7://cube
-    {
-      TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> > (nodeindexes,matid,mesh);
-      return gel;
-    }
-    default:
-    {
-      PZError << "TPZGeoMesh::CreateGeoElementRefPattern type element not exists:"
-          << " type = " << type << std::endl;
-      return NULL;
-    }
-  }
 }
 
 template class TPZGeoBlend<TPZGeoCube>;

@@ -102,7 +102,7 @@ TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	TPZGeoMesh *mesh = orig->Mesh();
 	MElementType type = orig->Type(side);
 	
-	TPZGeoEl *newel = CreateGeoBlendElement(*mesh, type, nodeindices, bc, index);
+	TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
 	TPZGeoElSide me(orig,side);
 	TPZGeoElSide newelside(newel,newel->NSides()-1);
 	
