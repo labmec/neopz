@@ -82,7 +82,7 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Topology/tpzquadrilateral.o ../Topology/tpztetrahedron.o ../Topology/tpztriangle.o \
 	../Util/TPZTimer.o ../Util/pzfunction.o ../Util/pzlog.o ../Util/pzmap.o ../Util/pzstring.o \
 	../Util/tpzautopointer.o ../Util/tpzpermutation.o \
-  ../SpecialMaps/convtest.o ../SpecialMaps/ctriangletests.o ../SpecialMaps/tpzarc3d.o ../SpecialMaps/tpzblendnaca.o \
+  ../SpecialMaps/convtest.o ../SpecialMaps/tpzarc3d.o ../SpecialMaps/tpzblendnaca.o \
   ../SpecialMaps/tpzchangeel.o ../SpecialMaps/tpzcurvedtriangle.o ../SpecialMaps/tpzellipse.o ../SpecialMaps/tpzmathtools.o \
   ../SpecialMaps/tpzquadraticquad.o ../SpecialMaps/tpzquadratictetra.o ../SpecialMaps/tpzquadratictrig.o
 
