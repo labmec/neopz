@@ -364,6 +364,7 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
                          double X5, double h1, double h2, double Py, double es, MatIds &mat)
 {
     TPZGeoMesh * Mesh = new TPZGeoMesh;
+    Mesh->InitializeRefPatterns();
     int Qnodes = 62;
     TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
     for(int i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3);
@@ -1094,6 +1095,7 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
 TPZCompMesh * SquareMesh()
 {
   TPZGeoMesh * gmesh = new TPZGeoMesh;
+  gmesh->InitializeRefPatterns();
 
   int Qnodes = 4;
   TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
@@ -1225,7 +1227,6 @@ TPZCompMesh * SpiralMesh(MatIds &MatId)
   double h = 2.1; double b = 0.55; double Dx = 0.65; double Dy = 3.5; double e1 = 0.25; double e2 = 0.45; double e3 = 0.1;
   double X1 = 3.8; double X2 = 1.; double X3 = 1.9; double X4 = 0.6; double X5 = 0.3; double h1 = 0.45; double h2 = 0.45; double Py = 3.3; double es = 0.1;
   TPZGeoMesh * gmesh = CxEspiral2D(Bb, Hr, Bt, Hl, Cx, Cy, R, h, b, Dx, Dy, e1, e2, e3, X1, X2, X3, X4, X5, h1, h2, Py, es, MatId);
-
 ///Materials
   REAL fx = 0., fy = MatId.f_rho; //fy = -0.025;
 
