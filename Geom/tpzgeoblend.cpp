@@ -344,3 +344,47 @@ template class TPZGeoBlend<TPZGeoTetrahedra>;
 template class TPZGeoBlend<TPZGeoQuad>;
 template class TPZGeoBlend<TPZGeoLinear>;
 template class TPZGeoBlend<TPZGeoPoint>;
+
+#include "pzgeoelrefless.h.h"
+#include "tpzgeoelrefpattern.h.h"
+
+///CreateGeoElement -> TPZGeoBlend
+#define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
+template< > \
+TPZGeoEl *TPZGeoElRefLess<TPZGeoBlend<TGEO> >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index) \
+{ \
+TPZGeoMesh &mesh = *(this->Mesh()); \
+if(!&mesh) return 0; \
+return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index); \
+} \
+\
+template<> \
+int TPZGeoElRefPattern<TPZGeoBlend<TGEO>  >::ClassId() const { \
+return CLASSID; \
+} \
+template class \
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >, CLASSID>; \
+\
+template<> \
+TPZCompEl *(*TPZGeoElRefLess<TPZGeoBlend<TGEO> >::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CREATEFUNCTION; \
+\
+template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;
+
+#define TPZGEOBLENDPOINTID 303
+#define TPZGEOBLENDLINEARID 304
+#define TPZGEOBLENDQUADID 305
+#define TPZGEOBLENDTRIANGLEID 306
+#define TPZGEOBLENDCUBEID 307
+#define TPZGEOBLENDPRISMID 308
+#define TPZGEOBLENDPYRAMIDID 309
+#define TPZGEOBLENDTETRAHEDRAID 310
+
+IMPLEMENTBLEND(pzgeom::TPZGeoPoint,TPZGEOBLENDPOINTID,TPZCompElDisc::CreateDisc)
+IMPLEMENTBLEND(pzgeom::TPZGeoLinear,TPZGEOBLENDLINEARID,TPZCompElDisc::CreateDisc)
+IMPLEMENTBLEND(pzgeom::TPZGeoQuad,TPZGEOBLENDQUADID,TPZCompElDisc::CreateDisc)
+IMPLEMENTBLEND(pzgeom::TPZGeoTriangle,TPZGEOBLENDTRIANGLEID,TPZCompElDisc::CreateDisc)
+IMPLEMENTBLEND(pzgeom::TPZGeoCube,TPZGEOBLENDCUBEID,TPZCompElDisc::CreateDisc)
+IMPLEMENTBLEND(pzgeom::TPZGeoPrism,TPZGEOBLENDPRISMID,TPZCompElDisc::CreateDisc)
+IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,TPZGEOBLENDPYRAMIDID,TPZCompElDisc::CreateDisc)
+IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,TPZGEOBLENDTETRAHEDRAID,TPZCompElDisc::CreateDisc)
+
