@@ -1697,7 +1697,7 @@ void MathOutDW(TPZBlendNACA * naca)
             template class TPZGeoElRefLess<TPZCurvedTriangle>;
 
 
-
+/*
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
             template< > \
@@ -1737,7 +1737,7 @@ void MathOutDW(TPZBlendNACA * naca)
                 IMPLEMENTBLEND(pzgeom::TPZGeoPrism,TPZGEOBLENDPRISMID,CreatePrismEl)
                 IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,TPZGEOBLENDPYRAMIDID,CreatePyramEl)
                 IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,TPZGEOBLENDTETRAHEDRAID,CreateTetraEl)
-
+*/
 
 ///CreateGeoElement -> TPZQuadraticQuad
                 template< >
