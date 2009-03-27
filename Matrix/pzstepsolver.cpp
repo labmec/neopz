@@ -184,3 +184,57 @@ void TPZStepSolver::SetPreconditioner(TPZSolver &solve)
   if(fPrecond) delete fPrecond;
   fPrecond = solve.Clone();
 }
+
+void TPZStepSolver::Write(TPZStream & buf)
+{
+
+	int lfSolver = fSolver;
+	buf.Write(&lfSolver, 1);
+	int lfDT = fDecompose;
+	buf.Write(&lfDT, 1);
+	buf.Write(&fNumIterations, 1);
+  buf.Write(&fNumVectors, 1);
+	buf.Write(&fTol, 1);
+	buf.Write(&fOverRelax, 1);
+	
+	/**
+	 * @supplierCardinality 1 
+	 */
+//	TPZSolver *fPrecond;
+	buf.Write(&fFromCurrent, 1);
+	int size = fSingular.size();
+	buf.Write(&size, 1);
+	std::list<int>::iterator it = fSingular.begin();
+	for(;it != fSingular.end(); it++)
+	{
+		buf.Write(&*it, 1);
+	}
+}
+void TPZStepSolver::Read(TPZStream & buf)
+{
+	int lfSolver = 0;
+	buf.Read(&lfSolver, 1);
+	fSolver = (TPZMatrixSolver::MSolver)lfSolver;
+	int lfDT = 0;
+	buf.Read(&lfDT, 1);
+	fDecompose = (DecomposeType)lfDT;
+	buf.Read(&fNumIterations, 1);
+  buf.Read(&fNumVectors, 1);
+	buf.Read(&fTol, 1);
+	buf.Read(&fOverRelax, 1);
+	
+	/**
+	 * @supplierCardinality 1 
+	 */
+	//	TPZSolver *fPrecond;
+	buf.Read(&fFromCurrent, 1);
+	int size = 0;
+	buf.Read(&size, 1);
+	fSingular.resize(size);
+	std::list<int>::iterator it = fSingular.begin();
+	for(;it != fSingular.end(); it++)
+	{
+		buf.Read(&*it, 1);
+	}
+}
+

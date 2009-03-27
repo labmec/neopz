@@ -4,6 +4,8 @@
 #define TPZSTEPSOLVER_H
 #include "pzsolve.h"
 
+#include "pzstream.h"
+
 #include <list>
 class TPZFMatrix;
 
@@ -76,6 +78,11 @@ virtual void UpdateFrom(TPZMatrix *matrix)
   
     void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
     void SetPreconditioner(TPZSolver &solve);
+	/**
+	 * Serialization methods
+	 */
+	void Write(TPZStream & buf);
+	void Read(TPZStream & buf);
 
 private:  
     MSolver fSolver;
