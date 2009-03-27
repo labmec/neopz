@@ -37,6 +37,59 @@ void TPZFYsmpMatrix::Multiply(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res){
 	}
     }
 }
+
+// ****************************************************************************
+//
+// Constructor
+//
+// ****************************************************************************
+TPZFYsmpMatrix::TPZFYsmpMatrix(const TPZVerySparseMatrix &cp) : TPZMatrix(cp)
+{
+	
+	int nrows = cp.Rows();
+	
+	int count = 0, c = 0, r = 0;
+	
+	count = cp.fExtraSparseData.size();
+	fJA = new int[count];
+	fA = new REAL[count];
+	fIA = new int[nrows+1];
+	fIA[0] = 0;
+	
+	map< pair<int,int>, REAL>::const_iterator it;
+	c = 0;
+	r = 0;
+	for(it=cp.fExtraSparseData.begin(); it!= cp.fExtraSparseData.end(); it++)
+	{
+		int row = it->first.first;
+		if(r != row)
+		{
+			r++;
+			while(r < row) 
+			{
+				fIA[r] = c;
+				r++;
+			}
+			fIA[row] = c;
+			r = row;
+		}
+		int col = it->first.second;
+		fJA[c] = col;
+		REAL val = it->second;
+		fA[c] = val;
+		c++;
+	}
+	r++;
+	while(r<=nrows)
+	{
+		fIA[r] = c;
+		r++;
+	}
+	  
+}
+
+
+
 int TPZFYsmpMatrix::PutVal(const int row, const int col, const REAL &Value){
     int k;
     int flag=0;
@@ -301,6 +354,12 @@ void TPZFYsmpMatrix::MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y,
 			     const REAL alpha,const REAL beta,const int opt,const int stride )  {
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot share storage
+  if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || y.Rows() != z.Rows() )
+  {
+      cout << "\nERROR! in TPZVerySparseMatrix::MultiplyAdd : incompatible dimensions in x, y or z\n";
+      return;
+  }
+	
   int  ir, ic, icol, xcols;
   xcols = x.Cols();
   REAL sum;
@@ -333,17 +392,22 @@ void TPZFYsmpMatrix::MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y,
   // Compute alpha * A * x
   if(xcols == 1 && stride == 1 && opt == 0)
   {
-    for(ir=0; ir<r; ir++) {
-      int icolmin = fIA[ir];
-      int icolmax = fIA[ir+1];
-      const REAL *xptr = &(x.g(0,0));
-      REAL *Aptr = fA;
-      int *JAptr = fJA;
-      for(sum = 0.0, icol=icolmin; icol<icolmax; icol++ ) {
-        sum += Aptr[icol] * xptr[JAptr[icol]];
+	  if(Cols() != x.Rows()*stride || Rows() != y.Rows()*stride)
+	  {
+		  cout << "\nERROR! in TPZFYsmpMatrix::MultiplyAddMT: incompatible dimensions in opt=false\n";
+		  return;
+	  } 
+      for(ir=0; ir<r; ir++) {
+        int icolmin = fIA[ir];
+        int icolmax = fIA[ir+1];
+        const REAL *xptr = &(x.g(0,0));
+        REAL *Aptr = fA;
+        int *JAptr = fJA;
+        for(sum = 0.0, icol=icolmin; icol<icolmax; icol++ ) {
+          sum += Aptr[icol] * xptr[JAptr[icol]];
+        }
+        z(ir,0) += alpha * sum;
       }
-      z(ir,0) += alpha * sum;
-    }
   }
   else 
   {
@@ -351,24 +415,31 @@ void TPZFYsmpMatrix::MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y,
       if(opt == 0) {
   
         for(ir=0; ir<Rows(); ir++) {
-    for(sum = 0.0, icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
-      sum += fA[icol] * x.g((fJA[icol])*stride,ic);
-    }
-    z(ir*stride,ic) += alpha * sum;
+			for(sum = 0.0, icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
+				sum += fA[icol] * x.g((fJA[icol])*stride,ic);
+			}
+			z(ir*stride,ic) += alpha * sum;
         }
       }
   
     // Compute alpha * A^T * x
-      else {
-  
+      else 
+	  {
+	    if (Rows() != x.Rows()*stride || Cols() != y.Rows()*stride)
+        {
+	      cout << "\nERROR! in TPZFYsmpMatrix::MultiplyAddMT: incompatible dimensions in opt=true\n";
+          return; 
+        }
         int jc;
         int icol;
         for(ir=0; ir<Rows(); ir++) {
-      for(icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
-        if(fJA[icol]==-1) break; //Checa a exist�cia de dado ou n�
-        jc = fJA[icol];
-        z(jc*stride,ic) += alpha * fA[icol] * x.g(jc*stride,ic);
-      }
+			for(icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
+				if(fJA[icol]==-1) break; //Checa a exist�cia de dado ou n�
+				jc = fJA[icol];
+				REAL aval = fA[icol];
+				//cout << "FA["<<icol<<"] = "<<aval<< " * x["<< ir<<"] ="<< x.Get(ir,ic)<< endl;
+				z(jc*stride,ic) += alpha * aval * x.g(ir*stride,ic);
+			}
         }
       }
     }
@@ -386,6 +457,13 @@ void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			     const REAL alpha,const REAL beta,const int opt,const int stride ) const {
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot share storage
+	
+  if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || y.Rows() != z.Rows() )
+  {
+	  cout << "\nERROR! em TPZFYsmpMatrix::MultiplyAdd : incompatible dimensions in x, y or z\n";
+	  return;
+  }
+	
   int  ic, xcols;
   xcols = x.Cols();
   int  r = (opt) ? Cols() : Rows();
@@ -470,7 +548,7 @@ void TPZFYsmpMatrix::Print(const char *title, ostream &out ,const MatrixOutputFo
 	   << fJA[i] << '\t'
 	   << fA[i]  << '\n';
     }
-    for(i=Rows(); i<fIA[Rows()]; i++) {
+    for(i=Rows()+1; i<fIA[Rows()]; i++) {
       out << i      << "\t\t"
 	   << fJA[i] << '\t'
 	   << fA[i]  << '\n';

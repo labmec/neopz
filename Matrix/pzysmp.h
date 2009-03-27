@@ -20,6 +20,8 @@ extern "C"{
 #endif
 
 #include "pzmatrix.h"
+#include "tpzverysparsematrix.h" 
+
 #ifdef WIN32
 #include <mem.h>
 #endif
@@ -56,20 +58,24 @@ static void * ExecuteMT(void *entrydata);
 public: 
     TPZFYsmpMatrix(const int rows,const int cols );
   // sets up the StencilMatrix based on the stencil
-    TPZFYsmpMatrix(const TPZFYsmpMatrix &cp) : TPZMatrix(cp), fSymmetric(cp.fSymmetric)
-    {
-      int fjasize = fIA[Rows()];
-      fIA = new int[Rows()+1];
-      fDiag = new REAL[Rows()];
-      fJA = new int[fjasize];
-			fA = new REAL[fjasize];
-			memcpy(fIA,cp.fIA,(Rows()+1)*sizeof(int));
-			memcpy(fJA,cp.fJA,fjasize*sizeof(int));
-			memcpy(fDiag,cp.fDiag,Rows()*sizeof(REAL));
-			memcpy(fA,cp.fA,fjasize*sizeof(REAL));
-		}
+	
+    //TPZFYsmpMatrix(const TPZFYsmpMatrix &cp) : TPZMatrix(cp), fSymmetric(cp.fSymmetric)
+//    {
+//      int fjasize = fIA[Rows()];
+//      fIA = new int[Rows()+1];
+//      fDiag = new REAL[Rows()];
+//      fJA = new int[fjasize];
+//			fA = new REAL[fjasize];
+//			memcpy(fIA,cp.fIA,(Rows()+1)*sizeof(int));
+//			memcpy(fJA,cp.fJA,fjasize*sizeof(int));
+//			memcpy(fDiag,cp.fDiag,Rows()*sizeof(REAL));
+//			memcpy(fA,cp.fA,fjasize*sizeof(REAL));
+//		}
+
+  //Replace the above destructor
+  TPZFYsmpMatrix(const TPZVerySparseMatrix &cp);
     
-    CLONEDEF(TPZFYsmpMatrix)
+  CLONEDEF(TPZFYsmpMatrix)
 
   virtual ~TPZFYsmpMatrix();
 
@@ -90,10 +96,10 @@ public:
   virtual void MultAddMT(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 		       const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 );
   
-virtual int GetSub(const int sRow,const int sCol,const int rowSize,
+  virtual int GetSub(const int sRow,const int sCol,const int rowSize,
          const int colSize, TPZFMatrix & A ) const;
 
-void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
+  void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
 
   // computes z = beta * y + alpha * opt(this)*x
   //          z and x cannot overlap in memory
