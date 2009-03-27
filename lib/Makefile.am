@@ -52,7 +52,7 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Matrix/pzmatrix.o ../Matrix/pzmatrixid.o ../Matrix/pzsbndmat.o ../Matrix/pzseqsolver.o \
 	../Matrix/pzsespmat.o ../Matrix/pzsfulmat.o ../Matrix/pzshtmat.o ../Matrix/pzskylmat.o \
 	../Matrix/pzskylmatpar.o ../Matrix/pzsolve.o ../Matrix/pzspblockdiagpivot.o \
-	../Matrix/pzstencil.o ../Matrix/pzstepsolver.o ../Matrix/pzsysmp.o ../Matrix/pzysmp.o \
+	../Matrix/pzstencil.o ../Matrix/pzstepsolver.o ../Matrix/pzsysmp.o ../Matrix/pzysmp.o ../Matrix/TPZVerySparseMatrix.o \
 	../Matrix/tpzsparseblockdiagonal.o ../Mesh/TPZAgglomerateEl.o ../Mesh/TPZCompElDisc.o \
 	../Mesh/TPZInterfaceEl.o ../Mesh/pzcheckgeom.o ../Mesh/pzcheckmesh.o ../Mesh/pzcheckrestraint.o \
 	../Mesh/pzcmesh.o ../Mesh/pzcompel.o ../Mesh/pzconnect.o ../Mesh/pzelctemp.o \
