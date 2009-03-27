@@ -150,3 +150,8 @@ TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
   return 0;
  */
 }
+
+
+#include "pzgeoelrefless.h.h"
+
+template class TPZGeoElRefLess<TPZQuadraticQuad>;

@@ -121,3 +121,7 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
      else PZError << "TPZGeoTriangle::CreateBCGeoEl has no bc.\n";
      return 0;
 }
+
+#include "pzgeoelrefless.h.h"
+
+template class TPZGeoElRefLess<TPZQuadraticTrig>;

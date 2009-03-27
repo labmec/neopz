@@ -155,3 +155,8 @@ TPZGeoEl *TPZQuadraticTetra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
      else PZError << "TPZGeoTetrahedra::CreateBCGeoEl. Side = " << side << endl;
      return 0;
 }
+
+
+#include "pzgeoelrefless.h.h"
+
+template class TPZGeoElRefLess<TPZQuadraticTetra>;
