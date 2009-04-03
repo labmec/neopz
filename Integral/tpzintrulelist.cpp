@@ -129,12 +129,17 @@ TPZIntRule* TPZIntRuleList::GetRule(int fNumInt) {
 //**************************************
 TPZIntRuleT* TPZIntRuleList::GetRuleT(int precision) {
 
-  // <<<<<>>>>>
   if (precision < 0 || precision >= intavailT) {
-    PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision;
+    static bool verbose = true;
+    if(verbose){
+      PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision;
+    }
     precision = intavailT-1;
-    PZError << "\n                                 precision obtained = " << precision;
-    //		PZError.show();
+    if(verbose){
+      PZError << "\n                                 precision obtained = " << precision;
+      PZError.flush();
+      verbose = false;
+    }
   }
 
   return intlistT[precision];
