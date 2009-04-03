@@ -8,10 +8,15 @@
 #include "tpztriangle.h"
 #include "pznoderep.h"
 #include "pzshapetriang.h"
+#include "tpzgeoelmapped.h"
 
 #include <iostream>
 #include <iostream>
 #include <cmath>
+
+#include "pzgeoelrefless.h.h"
+#include "tpzgeoelrefpattern.h.h"
+#include "pznoderep.h.h"
 
 using namespace std;
 using namespace pzshape;
@@ -122,6 +127,26 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
      return 0;
 }
 
-#include "pzgeoelrefless.h.h"
+///CreateGeoElement -> TPZQuadraticTrig
+                    template< >
+                        TPZGeoEl *TPZGeoElRefLess<TPZQuadraticTrig >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+                    {
+                      TPZGeoMesh &mesh = *(this->Mesh());
+                      if(!&mesh) return 0;
+                      return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+                    }
 
-template class TPZGeoElRefLess<TPZQuadraticTrig>;
+#define TPZGEOELEMENTQUADRATICTRIANGLEID 313
+                    template<>
+                        int TPZGeoElRefPattern<TPZQuadraticTrig>::ClassId() const {
+                      return TPZGEOELEMENTQUADRATICTRIANGLEID;
+                        }
+                        template class 
+                            TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>, TPZGEOELEMENTQUADRATICTRIANGLEID>;
+
+                        template<>
+                            TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticTrig>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
+
+                        template class TPZGeoElRefLess<TPZQuadraticTrig>;
+         template class pzgeom::TPZNodeRep<6,TPZQuadraticTrig>;
+

@@ -1,5 +1,10 @@
 #include "tpzquadratictetra.h"
 #include "pzshapetetra.h"
+#include "tpzgeoelmapped.h"
+
+#include "pzgeoelrefless.h.h"
+#include "tpzgeoelrefpattern.h.h"
+#include "pznoderep.h.h"
 
 using namespace pzshape;
 
@@ -156,7 +161,25 @@ TPZGeoEl *TPZQuadraticTetra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
      return 0;
 }
 
+///CreateGeoElement -> TPZQuadraticTetra
+                template< >
+                    TPZGeoEl *TPZGeoElRefLess<TPZQuadraticTetra >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+                {
+                  TPZGeoMesh &mesh = *(this->Mesh());
+                  if(!&mesh) return 0;
+                  return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+                }
 
-#include "pzgeoelrefless.h.h"
+#define TPZGEOELEMENTQUADRATICTETRAID 312
+                template<>
+                    int TPZGeoElRefPattern<TPZQuadraticTetra>::ClassId() const {
+                  return TPZGEOELEMENTQUADRATICTETRAID;
+                    }
+                    template class 
+                        TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>, TPZGEOELEMENTQUADRATICTETRAID>;
 
-template class TPZGeoElRefLess<TPZQuadraticTetra>;
+                    template<>
+                        TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticTetra>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;
+
+                    template class TPZGeoElRefLess<TPZQuadraticTetra>;
+template class pzgeom::TPZNodeRep<10,TPZQuadraticTetra>;

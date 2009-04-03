@@ -25,13 +25,13 @@ public:
    ~TPZChangeEl();
 
     /** Turns an linear triangle or quadrilateral to quadratic */
-    void ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex);
+    static void ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex);
 
     /** Turns an quadratic triangle or quadrilateral to linear */
-    void ChangeToLinear(TPZGeoMesh *Mesh, int ElemIndex);
+    static void ChangeToLinear(TPZGeoMesh *Mesh, int ElemIndex);
 
     /** Slide correct nodes of an triangle or quadrilateral to the quarterpoint with respect to a given side */
-    void QuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int side);
+    static void QuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int side);
 
 };
 

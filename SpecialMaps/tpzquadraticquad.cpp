@@ -1,6 +1,11 @@
 #include "tpzquadraticquad.h"
 #include "pzshapequad.h"
 #include "tpzgeoblend.h"
+#include "tpzgeoelmapped.h"
+
+#include "pzgeoelrefless.h.h"
+#include "tpzgeoelrefpattern.h.h"
+#include "pznoderep.h.h"
 
 using namespace pzshape;
 
@@ -152,6 +157,27 @@ TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 }
 
 
-#include "pzgeoelrefless.h.h"
 
-template class TPZGeoElRefLess<TPZQuadraticQuad>;
+///CreateGeoElement -> TPZQuadraticQuad
+                template< >
+                TPZGeoEl *TPZGeoElRefLess<TPZQuadraticQuad >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+            {
+              TPZGeoMesh &mesh = *(this->Mesh());
+              if(!&mesh) return 0;
+              return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+            }
+
+#define TPZGEOELEMENTQUADRATICQUADID 311
+            template<>
+                int TPZGeoElRefPattern<TPZQuadraticQuad>::ClassId() const {
+              return TPZGEOELEMENTQUADRATICQUADID;
+                }
+                template class 
+                    TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticQuad>, TPZGEOELEMENTQUADRATICQUADID>;
+
+                template<>
+                    TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticQuad>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;
+
+               
+         template class pzgeom::TPZNodeRep<8,TPZQuadraticQuad>;
+ template class TPZGeoElRefLess<TPZQuadraticQuad>;

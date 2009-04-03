@@ -332,3 +332,22 @@ void TPZChangeEl::QuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int side)
      }
      else { cout << "Element type don't recognized!\nSee QuarterPoints Method!\n"; exit(-1); }
 }
+
+
+
+
+
+
+
+
+
+
+// #include "pznoderep.h.h"
+
+
+//          template class pzgeom::TPZNodeRep<8,TPZGeoBlend<TPZGeoCube> >;
+//          template class pzgeom::TPZNodeRep<6,TPZGeoBlend<TPZGeoPrism> >;
+
+         
+
+

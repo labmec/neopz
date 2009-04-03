@@ -11,6 +11,10 @@
 #include "pzgnode.h"
 #include "pzreal.h"
 
+#include "pzgeoelrefless.h.h"
+#include "tpzgeoelrefpattern.h.h"
+#include "pznoderep.h.h"
+
 using namespace std;
 using namespace pzgeom;
 using namespace pzshape;
@@ -159,4 +163,30 @@ TPZGeoEl *TPZEllipse::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
      else PZError << "\nTPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
      return 0;
 }
+
+#include "tpzgeoelmapped.h"
+
+///CreateGeoElement -> TPZEllipse
+        template< >
+            TPZGeoEl *TPZGeoElRefLess<TPZEllipse >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+        {
+          TPZGeoMesh &mesh = *(this->Mesh());
+          if(!&mesh) return 0;
+          return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+        }
+
+#define TPZGEOELEMENTELLIPSEID 301
+        template<>
+            int TPZGeoElRefPattern<TPZEllipse>::ClassId() const
+        {
+          return TPZGEOELEMENTELLIPSEID;
+        }
+        template class 
+            TPZRestoreClass< TPZGeoElRefPattern<TPZEllipse>, TPZGEOELEMENTELLIPSEID>;
+
+        template<>
+            TPZCompEl *(*TPZGeoElRefLess<TPZEllipse>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
+
+        template class TPZGeoElRefLess<TPZEllipse>;
+        template class pzgeom::TPZNodeRep<2,TPZEllipse>;
 

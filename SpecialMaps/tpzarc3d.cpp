@@ -8,6 +8,7 @@
 #include "pznoderep.h"
 #include "pzgnode.h"
 #include "pzreal.h"
+#include "tpzgeoelmapped.h"
 
 using namespace std;
 using namespace pzgeom;
@@ -298,3 +299,31 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
      else PZError << "\nTPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
      return 0;
 }
+
+#include "pzgeoelrefless.h.h"
+#include "tpzgeoelrefpattern.h.h"
+#include "pznoderep.h.h"
+
+///CreateGeoElement -> TPZArc3D
+             template< >
+             TPZGeoEl *TPZGeoElRefLess<TPZArc3D >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+{
+  TPZGeoMesh &mesh = *(this->Mesh());
+  if(!&mesh) return 0;
+  return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+#define TPZGEOELEMENTARC3DID 300
+    template<>
+        int TPZGeoElRefPattern<TPZArc3D>::ClassId() const {
+      return TPZGEOELEMENTARC3DID;
+        }
+        template class 
+            TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
+
+        template<>
+            TPZCompEl *(*TPZGeoElRefLess<TPZArc3D>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
+
+  
+//         template class pzgeom::TPZNodeRep<3,TPZArc3D>;
+        template class TPZGeoElRefLess<TPZArc3D>;
