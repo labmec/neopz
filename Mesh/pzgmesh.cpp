@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.54 2009-03-26 21:39:21 fortiago Exp $
+//$Id: pzgmesh.cpp,v 1.55 2009-04-06 19:16:54 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -1146,11 +1146,11 @@ int TPZGeoMesh::ImportRefPattern(){
   std::string StartingPath;
 #ifdef BORLAND
 	StartingPath = "NeoPZ/Refine/RefPatterns";
-	#define StartPathDefined=1;
+	#define StartPathDefined 1;
 #endif
 #ifdef MACOSX
 	StartingPath = "NeoPZ/Refine/RefPatterns";
-	#define StartPathDefined=1;
+	#define StartPathDefined 1; 
 #endif
 #ifndef StartPathDefined
 	StartingPath=REFPATTERNINSTALLDIR;
