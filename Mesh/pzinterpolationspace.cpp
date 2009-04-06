@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.30 2009-03-18 13:56:43 fortiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.31 2009-04-06 19:17:56 phil Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -175,7 +175,7 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
   TPZIntPoints &intrule = GetIntegrationRule();
   TPZManVector<int,3> p2(dim,data.p*2);
   intrule.SetOrder(p2);
-  if(material->HasForcingFunction()) {
+  if(material->HasForcingFunction() || !this->Reference()->IsLinearMapping()) {
     TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
     intrule.SetOrder(order);
   }
