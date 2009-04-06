@@ -11,6 +11,8 @@
 //
 #include "pzreal.h"
 #include <string>
+#include <exception>
+
 using namespace std;
 
 #ifndef ELLIPS
@@ -62,4 +64,7 @@ void DebugStop()
 	ShowMessage("Erro encontrado! Entre em contato com o suporte do programa!");
 #endif
   std::cout << "Your chance to put a breakpoint at " << __FILE__ <<  "\n";
+	std::bad_exception myex;
+	throw myex;
+
 }
