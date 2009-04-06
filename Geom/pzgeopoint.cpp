@@ -18,9 +18,9 @@ void TPZGeoPoint::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
   }
 }
 
-void TPZGeoPoint::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
-     SidePar.Resize(1); JacToSide.Resize(1,1);
-     SidePar[0] = InternalPar[0]; JacToSide(0,0) = 0.;
+bool TPZGeoPoint::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+     SidePar.Resize(0); JacToSide.Resize(0,0);
+     return true;
 }
 
 void TPZGeoPoint::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
