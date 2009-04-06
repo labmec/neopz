@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.47 2009-02-18 12:15:27 fortiago Exp $
+//$Id: pzanalysis.cpp,v 1.48 2009-04-06 18:59:09 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -227,7 +227,21 @@ void TPZAnalysis::Solve() {
 	}*/
 	//      REAL normres  = Norm(residual);
 	//	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		residual.Print("Residual",sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 	fSolver->Solve(residual, delu);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		delu.Print("delu",sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 	fSolution = delu;
 
 	fCompMesh->LoadSolution(fSolution);
