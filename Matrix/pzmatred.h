@@ -23,6 +23,8 @@
 
 #include "pzmatrix.h"
 #include "pzreal.h"
+#include "pzfmatrix.h"
+#include "pzsolve.h"
 
 #ifdef OOPARLIB
 #include "pzsaveable.h"
@@ -40,6 +42,7 @@ class TPZFMatrix;
  *			[K10][U0] + [K11][U1] = [F1]
  *@ingroup matrix
 */
+template<class TSideMatrix = TPZFMatrix>
 class TPZMatRed :public TPZMatrix {
   public:
   /**
@@ -84,7 +87,7 @@ class TPZMatRed :public TPZMatrix {
    * Sets the matrix pointer of the upper left matrix to K00
    * @param k00 pointer to an upper left matrix
    */
-  void SetK00(TPZMatrix *const k00);
+  void SetK00(TPZAutoPointer<TPZMatrix> k00);
   /**
    * Copies the F vector in the internal data structure
    * @param F vector containing data to stored in current object
@@ -176,18 +179,19 @@ class TPZMatRed :public TPZMatrix {
   /**
    * Stiffnes matrix
    */
-  TPZMatrix *fK00;
+  TPZAutoPointer<TPZMatrix> fK00;
+
+	TPZAutoPointer<TPZMatrixSolver> fSolver;
   /**
    * Full Stiffnes matrix
    */
-  TPZFMatrix *fK01,
-    *fK10,
-    *fK11;
+	TPZFMatrix fK11;
+	TSideMatrix fK01, fK10;
+
   /**
    * Right hand side or force matrix
    */
-  TPZFMatrix *fF0,
-    *fF1;
+  TPZFMatrix fF0, fF1;
 
   DecomposeType  fDecomposeType;
 
@@ -220,8 +224,9 @@ class TPZMatRed :public TPZMatrix {
 /************/
 /*** Swap ***/
 /* Modificacao por Philippe Devloo (insercao de inline )*/
+template<class TSideMatrix>
 inline void
-TPZMatRed::Swap( int *a, int *b )
+TPZMatRed<TSideMatrix>::Swap( int *a, int *b )
 {
   int aux = *a;
   *a = *b;
