@@ -113,15 +113,17 @@ void TPZGeoTetrahedra::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &re
 	}
 }
 
-void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+bool TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
 
      REAL qsi = InternalPar[0]; REAL eta = InternalPar[1]; REAL zeta = InternalPar[2];
      if((qsi + eta) > (1. - zeta) || qsi < 0. || eta < 0. || zeta < 0. || zeta > 1.)
      {
          cout << "Point (qsi,eta,zeta) = (" << qsi << "," << eta << "," << zeta << ") is out of TPZGeoTetrahedra Master Element Range!\n";
          cout << "See TPZGeoTetrahedra::MapToSide() method!\n";
+		 DebugStop();
          exit(-1);
      }
+	bool regularmap = true;
      switch(side)
      {
           case 4://1D
@@ -130,13 +132,14 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = -(2.*qsi + eta + zeta -1.)/(eta + zeta -1.);
                     JacToSide(0,0) = -2./(eta + zeta - 1.); JacToSide(0,1) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.)); JacToSide(0,2) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.));
                }
-          return;
+          break;
 
           case 5://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
@@ -144,13 +147,14 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = (eta - qsi)/(eta + qsi);
                     JacToSide(0,0) = -2.*eta/((qsi + eta)*(qsi + eta)); JacToSide(0,1) = 2.*qsi/((qsi + eta)*(qsi + eta)); JacToSide(0,2) = 0.;
                }
-          return;
+          break;
 
           case 6://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
@@ -158,13 +162,14 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = (qsi + 2*eta + zeta -1.)/(qsi + zeta -1.);
                     JacToSide(0,0) = -2.*eta/((qsi + zeta - 1.)*(qsi + zeta - 1.)); JacToSide(0,1) = 2./(qsi + zeta - 1.); JacToSide(0,2) = -2.*eta/((qsi + zeta - 1.)*(qsi + zeta - 1.));
                }
-          return;
+          break;
 
           case 7://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
@@ -172,13 +177,14 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = -(qsi + eta + 2*zeta -1.)/(qsi + eta -1.);
                     JacToSide(0,0) = 2.*zeta/((qsi + eta - 1.)*(qsi + eta - 1.)); JacToSide(0,1) = 2.*zeta/((qsi + eta - 1.)*(qsi + eta - 1.)); JacToSide(0,2) = -2./(qsi + eta -1.);
                }
-          return;
+          break;
 
           case 8://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
@@ -186,13 +192,14 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = (zeta - qsi)/(zeta + qsi);
                     JacToSide(0,0) = -2.*zeta/(qsi + zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = 2.*qsi/((qsi + zeta)*(qsi + zeta));
                }
-          return;
+          break;
 
           case 9://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
@@ -200,13 +207,14 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = (zeta - eta)/(zeta + eta);
                     JacToSide(0,0) = -2./(eta + zeta - 1.); JacToSide(0,1) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.)); JacToSide(0,2) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.));
                }
-          return;
+          break;
 
           case 10://2D
                SidePar.Resize(2); JacToSide.Resize(2,3);
@@ -215,6 +223,7 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                     SidePar[0] = 1./3.; SidePar[1] = 1./3.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
+				   regularmap = false;
                }
                else
                {
@@ -222,7 +231,7 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                     JacToSide(0,0) = 1/(1.-zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = qsi/((zeta-1.)*(zeta-1.));
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 1/(1.-zeta); JacToSide(1,2) = eta/((zeta-1.)*(zeta-1.));
                }
-          return;
+          break;
 
           case 11://2D
                SidePar.Resize(2); JacToSide.Resize(2,3);
@@ -231,6 +240,7 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                     SidePar[0] = 1./3.; SidePar[1] = 1./3.;
                     JacToSide(0,0) = 1./(1.-eta); JacToSide(0,1) = qsi/((eta-1.)*(eta-1.)); JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = zeta/((eta-1.)*(eta-1.)); JacToSide(1,2) = 1./(1.-eta);
+				   regularmap = false;
                }
                else
                {
@@ -238,7 +248,7 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                     JacToSide(0,0) = 1/(1.-zeta); JacToSide(0,1) = 1/(1.-zeta); JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 1/(1.-zeta); JacToSide(1,1) = 1/(1.-zeta); JacToSide(1,2) = 0.;
                }
-          return;
+          break;
 
           case 12://2D
                SidePar.Resize(2); JacToSide.Resize(2,3);
@@ -247,6 +257,7 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                     SidePar[0] = 1./6.; SidePar[1] = 1./3.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
+				   regularmap = false;
                }
                else
                {
@@ -254,7 +265,7 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                     JacToSide(0,0) = -eta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(0,1) = (qsi+zeta)/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(0,2) = -eta/((qsi+eta+zeta)*(qsi+eta+zeta));
                     JacToSide(1,0) = -zeta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(1,1) = -zeta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(1,2) = (qsi+eta)/((qsi+eta+zeta)*(qsi+eta+zeta));
                }
-          return;
+          break;
 
           case 13://2D
                SidePar.Resize(2); JacToSide.Resize(2,3);
@@ -263,6 +274,7 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                     SidePar[0] = 1./3.; SidePar[1] = 1./3.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
+				   regularmap = false;
                }
                else
                {
@@ -270,12 +282,15 @@ void TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
                     JacToSide(0,0) = eta/((qsi-1.)*(qsi-1.)); JacToSide(0,1) = 1/(1.-qsi); JacToSide(0,2) = 0.;
                     JacToSide(1,0) = zeta/((qsi-1.)*(qsi-1.)); JacToSide(1,1) = 0.; JacToSide(1,2) = 1/(1.-qsi);
                }
-          return;
+          break;
      }
      if(side < 4 || side > 13)
      {
-          cout << "Cant compute MapToSide method in TPZGeoTetrahedra class!\nParameter (SIDE) must be between 4 and 13!\nMethod Aborted!\n"; exit(-1);
+          cout << "Cant compute MapToSide method in TPZGeoTetrahedra class!\nParameter (SIDE) must be between 4 and 13!\nMethod Aborted!\n"; 
+		 DebugStop();
+		 exit(-1);
      }
+	return regularmap;
 }
 
 TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {

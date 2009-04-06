@@ -127,44 +127,55 @@ void TPZGeoPrism::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result)
   }
 }
 
-void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
 
-     REAL qsi = InternalPar[0]; REAL eta = InternalPar[1]; REAL zeta = InternalPar[2];
-     if((qsi + eta) > 1 || qsi < 0. || eta < 0. || zeta < -1. || zeta > 1.)
-     {
-         cout << "Point (qsi,eta,zeta) = (" << qsi << "," << eta << "," << zeta << ") is out of TPZGeoPrism Master Element Range!\n";
-         cout << "See TPZGeoPrism::MapToSide() method!\n";
-         exit(-1);
-     }
-     switch(side)
-     {
-          case 6://1D
-               SidePar.Resize(1); JacToSide.Resize(1,3);
-               if(eta == 1.)
-               {
-                    SidePar[0] = 0.;
-                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-               }
-               else
-               {
-                    SidePar[0] = 2.*qsi/(1.-eta) - 1.;
-                    JacToSide(0,0) = 2./(1.-eta); JacToSide(0,1) = 2.*qsi/((1.-eta)*(1.-eta)); JacToSide(0,2) = 0.;
-               }
-          return;
+	REAL qsi = InternalPar[0]; 
+	REAL eta = InternalPar[1]; 
+	REAL zeta = InternalPar[2];
+	if((qsi + eta) > 1 || qsi < 0. || eta < 0. || zeta < -1. || zeta > 1.)
+	{
+		cout << "Point (qsi,eta,zeta) = (" << qsi << "," << eta << "," << zeta << ") is out of TPZGeoPrism Master Element Range!\n";
+		cout << "See TPZGeoPrism::MapToSide() method!\n";
+		DebugStop();
+		exit(-1);
+	}
+	bool regularmap = true;
+	switch(side)
+	{
+		case 6://1D
+			SidePar.Resize(1); 
+			JacToSide.Resize(1,3);
+			if(eta == 1.)
+			{
+				SidePar[0] = 0.;
+				JacToSide(0,0) = 1.; 
+				JacToSide(0,1) = 1.; 
+				JacToSide(0,2) = 0.;
+				regularmap = false;
+			}
+			else
+			{
+				SidePar[0] = 2.*qsi/(1.-eta) - 1.;
+				JacToSide(0,0) = 2./(1.-eta); JacToSide(0,1) = 2.*qsi/((1.-eta)*(1.-eta)); JacToSide(0,2) = 0.;
+			}
+			break;
 
-          case 7://1D
-               SidePar.Resize(1); JacToSide.Resize(1,3);
-               if(qsi+eta == 0.)
-               {
-                    SidePar[0] = 0.;
-                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
+			case 7://1D
+				SidePar.Resize(1); JacToSide.Resize(1,3);
+				if(qsi+eta == 0.)
+				{
+					SidePar[0] = 0.;
+                    JacToSide(0,0) = 1.; 
+					JacToSide(0,1) = 1.; 
+					JacToSide(0,2) = 0.;
+					regularmap = false;
                }
                else
                {
                     SidePar[0] = 1. - 2.*qsi/(qsi + eta);
                     JacToSide(0,0) = -2.*eta/((qsi+eta)*(qsi+eta)); JacToSide(0,1) = 2.*qsi/((qsi+eta)*(qsi+eta)); JacToSide(0,2) = 0.;
                }
-          return;
+			break;
 
           case 8://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
@@ -172,31 +183,32 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = 1. - 2.*eta/(1.-qsi);
                     JacToSide(0,0) = -2.*eta/((1.-qsi)*(1.-qsi)); JacToSide(0,1) = -2./(1.-qsi); JacToSide(0,2) = 0.;
                }
-          return;
+			break;
 
           case 9://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
                SidePar[0] = zeta;
                JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 1.;
-          return;
+			break;
 
           case 10://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
                SidePar[0] = zeta;
                JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 1.;
-          return;
+			break;
 
           case 11://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
                SidePar[0] = zeta;
                JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 1.;
-          return;
+			break;
 
           case 12://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
@@ -204,13 +216,14 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = 2.*qsi/(1.-eta) - 1.;
                     JacToSide(0,0) = 2./(1.-eta); JacToSide(0,1) = 2.*qsi/((1.-eta)*(1.-eta)); JacToSide(0,2) = 0.;
                }
-          return;
+			break;
 
           case 13://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
@@ -218,13 +231,14 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = 1. - 2.*qsi/(qsi + eta);
                     JacToSide(0,0) = -2.*eta/((qsi+eta)*(qsi+eta)); JacToSide(0,1) = 2.*qsi/((qsi+eta)*(qsi+eta)); JacToSide(0,2) = 0.;
                }
-          return;
+			break;
 
           case 14://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
@@ -232,20 +246,21 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = 1. - 2.*eta/(1.-qsi);
                     JacToSide(0,0) = -2.*eta/((1.-qsi)*(1.-qsi)); JacToSide(0,1) = -2./(1.-qsi); JacToSide(0,2) = 0.;
                }
-          return;
+			break;
 
           case 15://2D - triangle
                SidePar.Resize(2); JacToSide.Resize(2,3);
                SidePar[0] = qsi; SidePar[1] = eta;
                JacToSide(0,0) = 1.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                JacToSide(1,0) = 0.; JacToSide(1,1) = 1.; JacToSide(1,2) = 0.;
-          return;
+			break;
 
           case 16://2D - quadrilateral
                SidePar.Resize(2); JacToSide.Resize(2,3);
@@ -254,6 +269,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
+				   regularmap = false;
                }
                else
                {
@@ -261,7 +277,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                     JacToSide(0,0) = 2./(1.-eta); JacToSide(0,1) = 2.*qsi/((1.-eta)*(1.-eta)); JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(0,2) = 1.;
                }
-          return;
+			break;
 
           case 17://2D - quadrilateral
                SidePar.Resize(2); JacToSide.Resize(2,3);
@@ -270,6 +286,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
+				   regularmap = false;
                }
                else
                {
@@ -277,7 +294,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                     JacToSide(0,0) = -2.*eta/((qsi+eta)*(qsi+eta)); JacToSide(0,1) = 2.*qsi/((qsi+eta)*(qsi+eta)); JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(0,2) = 1.;
                }
-          return;
+			break;
 
           case 18://2D - quadrilateral
                SidePar.Resize(2); JacToSide.Resize(2,3);
@@ -286,6 +303,7 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
+				   regularmap = false;
                }
                else
                {
@@ -293,20 +311,22 @@ void TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
                     JacToSide(0,0) = -2.*eta/((1.-qsi)*(1.-qsi)); JacToSide(0,1) = -2./(1.-qsi); JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(0,2) = 1.;
                }
-          return;
+			break;
 
           case 19://2D - triangle
                SidePar.Resize(2); JacToSide.Resize(2,3);
                SidePar[0] = qsi; SidePar[1] = eta;
                JacToSide(0,0) = 1.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                JacToSide(1,0) = 0.; JacToSide(1,1) = 1.; JacToSide(1,2) = 0.;
-          return;
+			break;
      }
      if(side < 6 || side > 19)
      {
-          cout << "Cant compute MapToSide method in TPZGeoPrism class!\nParameter (SIDE) must be between 6 and 19!\nMethod Aborted!\n"; exit(-1);
+          cout << "Cant compute MapToSide method in TPZGeoPrism class!\nParameter (SIDE) must be between 6 and 19!\nMethod Aborted!\n"; 
+		 DebugStop();
+		 exit(-1);
      }
-
+	return regularmap;
 }
 
 TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {

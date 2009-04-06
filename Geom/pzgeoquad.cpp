@@ -101,14 +101,16 @@ void TPZGeoQuad::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
   }
 }
 
-void TPZGeoQuad::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+bool TPZGeoQuad::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
      REAL qsi = InternalPar[0]; REAL eta = InternalPar[1];
      if( (fabs(qsi) - 1.) > 1e-5 || (fabs(eta) - 1.) > 1e-5 )
      {
          cout << "Point (qsi,eta) = (" << qsi << "," << eta << ") is out of TPZGeoQuad Master Element Range!\n";
          cout << "See TPZGeoQuad::MapToSide() method!\n";
+		 DebugStop();
          exit(-1);
      }
+	bool regularmap = true;
      TPZTransform Transf = pztopology::TPZQuadrilateral::SideToSideTransform(TPZGeoQuad::NSides - 1, side);
      SidePar.Resize(SideDimension(side));
      Transf.Apply(InternalPar,SidePar);
@@ -121,6 +123,7 @@ void TPZGeoQuad::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &Si
      {
           for(int j = 0; j < C; j++) JacToSide(i,j) = Transf.Mult()(i,j);
      }
+	return regularmap;
 }
 
 TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
