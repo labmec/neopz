@@ -16,7 +16,7 @@ class TPZSubMeshAnalysis : public TPZAnalysis
 private:
 	TPZFMatrix fReferenceSolution;
 	
-	TPZMatRed fReducableStiff;
+	TPZMatRed<> fReducableStiff;
 	TPZSubCompMesh *fMesh;
 
 public:
