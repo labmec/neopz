@@ -96,7 +96,8 @@ public:
 
 protected:
 
-    void MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide);
+	/// Project the InternalPar parameter to the parameter of the neighbour along side. Return true if the map is nonsingular
+    bool MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide);
     TPZGeoElSide fNeighbours[1+TGeo::NSides - TGeo::NNodes];
     TPZTransform fTrans[1+TGeo::NSides - TGeo::NNodes];
 };
