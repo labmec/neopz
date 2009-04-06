@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeoprism.h,v 1.12 2008-01-22 19:10:28 caju Exp $
+// $Id: pzgeoprism.h,v 1.13 2009-04-06 19:07:49 phil Exp $
 
 // TPZGeoPrism.h: interface for the TPZGeoQuad class.
 //
@@ -81,7 +81,7 @@ static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
 /**
  * returns the projection of a given point from "NSide - 1" side to "side".
  */
-static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
+static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 
   /**
    * Method which creates a geometric boundary condition 

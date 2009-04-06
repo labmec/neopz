@@ -74,7 +74,7 @@ static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 /**
  * returns the projection of a given point from "NSide - 1" side to "side".
  */
-static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
+static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 
 static void Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi);
 
@@ -167,12 +167,13 @@ inline void TPZGeoLinear::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &re
 
 }
 
-inline void TPZGeoLinear::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+inline bool TPZGeoLinear::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
      TPZTransform Transf = pztopology::TPZLine::SideToSideTransform(TPZGeoLinear::NSides - 1, side);
      SidePar.Resize(SideDimension(side));
      Transf.Apply(InternalPar,SidePar);
 
      JacToSide.Resize(1,1); JacToSide(0,0) = 0.;
+	return true;
 }
 
 };

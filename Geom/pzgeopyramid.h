@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeopyramid.h,v 1.10 2008-01-22 19:10:29 caju Exp $
+// $Id: pzgeopyramid.h,v 1.11 2009-04-06 19:08:41 phil Exp $
 
 // TPZGeoPiramid.h: interface for the TPZGeoQuad class.
 //
@@ -79,7 +79,7 @@ static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
 /**
  * returns the projection of a given point from "NSide - 1" side to "side".
  */
-static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
+static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 
 /**
 * Method which creates a geometric boundary condition 

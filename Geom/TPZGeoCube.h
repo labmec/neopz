@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: TPZGeoCube.h,v 1.9 2007-11-30 12:41:53 phil Exp $
+// $Id: TPZGeoCube.h,v 1.10 2009-04-06 19:13:09 phil Exp $
 
 //HEADER FILE FOR CLASS TPZGeoCube
 
@@ -75,7 +75,7 @@ static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 /**
  * returns the projection of a given point from "NSide - 1" side to "side".
  */
-static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
+static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 
 static void Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi);
 

@@ -29,7 +29,7 @@ void TPZGeoCube::X(TPZFMatrix &nodes,TPZVec<REAL> & loc,TPZVec<REAL> &result){
   }
 }
 
-void TPZGeoCube::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+bool TPZGeoCube::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
      TPZTransform Transf = pztopology::TPZCube::SideToSideTransform(TPZGeoCube::NSides - 1, side);
      SidePar.Resize(SideDimension(side));
      Transf.Apply(InternalPar,SidePar);
@@ -42,6 +42,7 @@ void TPZGeoCube::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &Si
      {
           for(int j = 0; j < C; j++) JacToSide(i,j) = Transf.Mult()(i,j);
      }
+	return true;
 }
 
 void TPZGeoCube::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
