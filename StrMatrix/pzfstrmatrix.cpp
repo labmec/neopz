@@ -4,6 +4,14 @@
 #include "pzfmatrix.h"
 #include "pzcmesh.h"
 #include "pzsubcmesh.h"
+#include <sstream>
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.strmatrix.tpzfstructmatrix"));
+static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
+#endif
+
 
 using namespace std;
 
@@ -12,6 +20,16 @@ TPZMatrix * TPZFStructMatrix::CreateAssemble(TPZFMatrix &rhs){
     int neq = stiff->Rows();
     rhs.Redim(neq,1);
     Assemble(*stiff,rhs);
+
+#ifdef LOG4CXX
+	if(loggerel->isDebugEnabled())
+	{
+		std::stringstream sout;
+		stiff->Print("Stiffness matrix",sout);
+		rhs.Print("Right hand side", sout);
+		LOGPZ_DEBUG(loggerel,sout.str())
+	}
+#endif
     return stiff;
 }
 

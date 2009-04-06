@@ -34,6 +34,7 @@ using namespace std;
 #ifdef LOG4CXX
 
 static LoggerPtr logger(Logger::getLogger("pz.strmatrix.frontstructmatrix"));
+static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 
 #endif
 
@@ -328,6 +329,15 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix & stiffness, TPZFMatrix & r
 
      //Builds elements stiffness matrix
      el->CalcStiff(ek,ef);
+#ifdef LOG4CXX
+	  if(loggerel->isDebugEnabled())
+	  {
+		  std::stringstream sout;
+		  ek.fMat.Print("Element stiffness",sout);
+		  ef.fMat.Print("Element right hand side",sout);
+		  LOGPZ_DEBUG(loggerel,sout.str())
+	  }
+#endif
      AssembleElement(el, ek, ef, stiffness, rhs);
      if(!f_quiet)
      {
