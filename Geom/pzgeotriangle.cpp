@@ -69,7 +69,7 @@ void TPZGeoTriangle::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &resu
 	}
 }
 
-void TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+bool TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
 
      REAL qsi = InternalPar[0]; REAL eta = InternalPar[1];
      SidePar.Resize(1); JacToSide.Resize(1,2);
@@ -84,56 +84,64 @@ void TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL>
 	if(eta < 0.) eta = 0.;
 	if(qsi+eta > 1.)
 	{
-		REAL qsieta = qsi+eta;
-		qsi -= qsieta/2.;
-		eta -= qsieta/2.;
+		// O BUG ESTAVA AQUI!!!
+		REAL qsieta = 1.-qsi-eta;
+		qsi += qsieta/2.;
+		eta += qsieta/2.;
 	}
+	bool regularmap = true;
 
      switch(side)
      {
           case 3:
-               if(eta == 1.)
+               if(fabs(eta - 1.) < 1.e-6)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = 2.*qsi/(1.-eta) - 1.;
                     JacToSide(0,0) = 2./(1.-eta); JacToSide(0,1) = 2.*qsi/((1.-eta)*(1.-eta));
                }
-          return;
+          break;
 
           case 4:
-               if(qsi+eta == 0.)
+               if(qsi+eta < 1.e-6)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = 1. - 2.*qsi/(qsi + eta);
                     JacToSide(0,0) = -2.*eta/((qsi+eta)*(qsi+eta)); JacToSide(0,1) = 2.*qsi/((qsi+eta)*(qsi+eta));
                }
-          return;
+          break;
 
           case 5:
-               if(qsi == 1.)
+               if(fabs(qsi - 1.) < 1.e-6)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;
+				   regularmap = false;
                }
                else
                {
                     SidePar[0] = 1. - 2.*eta/(1.-qsi);
                     JacToSide(0,0) = -2.*eta/((1.-qsi)*(1.-qsi)); JacToSide(0,1) = -2./(1.-qsi);
                }
-          return;
+          break;
      }
      if(side < 3 || side > 5)
      {
-          cout << "Cant compute MapToSide method in TPZGeoTriangle class!\nParameter (SIDE) must be 3, 4 or 5!\nMethod Aborted!\n"; exit(-1);
+		 cout << "Cant compute MapToSide method in TPZGeoTriangle class!\nParameter (SIDE) must be 3, 4 or 5!\nMethod Aborted!\n"; 
+		 DebugStop();
+		 exit(-1);
      }
+	return regularmap;
 }
 
 TPZGeoEl *TPZGeoTriangle::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
@@ -184,7 +192,7 @@ void TPZGeoTriangle::FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVe
     {
         case 3:
         {
-            if(OriginalPoint[0] == 0. && OriginalPoint[1] == 1.)
+            if(fabs(OriginalPoint[0]) <= tol && fabs(OriginalPoint[1]- 1.) <= tol)
             {
                 ChangedPoint[0] = tol;
                 ChangedPoint[1] = 1. - 2.*tol;
@@ -194,7 +202,7 @@ void TPZGeoTriangle::FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVe
 
         case 4:
         {
-            if(OriginalPoint[0] == 0. && OriginalPoint[1] == 0.)
+            if(fabs(OriginalPoint[0]) <= tol && fabs(OriginalPoint[1]) <= tol)
             {
                 ChangedPoint[0] = tol;
                 ChangedPoint[1] = tol;
@@ -204,7 +212,7 @@ void TPZGeoTriangle::FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVe
 
         case 5:
         {
-            if(OriginalPoint[0] == 1. && OriginalPoint[1] == 0.)
+            if(fabs(OriginalPoint[0] - 1.) <= tol && fabs(OriginalPoint[1]) <= tol)
             {
                 ChangedPoint[0] = 1.-tol;
                 ChangedPoint[1] = tol/2.;
