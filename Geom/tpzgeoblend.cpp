@@ -7,23 +7,27 @@
 #include <sstream>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.caju.geoblend"));
+static LoggerPtr logger(Logger::getLogger("pz.mesh.geoblend"));
 #endif
 
 template <class TGeo>
-void TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide)
+bool TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide)
 {
      int SideDim    = fNeighbours[side-TGeo::NNodes].Dimension();
      TPZFMatrix JacSide;
 
      TPZVec< REAL > SidePar(SideDim);
-     this->MapToSide(side, InternalPar, SidePar,JacSide);
+     if(! this->MapToSide(side, InternalPar, SidePar,JacSide))
+	 {
+		 return false;
+	 }
 
      NeighPar.Resize(SideDim);
      TransfBetweenNeigh(side).Apply(SidePar,NeighPar);
 
      JacNeighSide.Resize(TransfBetweenNeigh(side).Mult().Rows(),JacSide.Cols());
      TransfBetweenNeigh(side).Mult().Multiply(JacSide,JacNeighSide);
+	return true;
 }
 
 template <class TGeo>
@@ -39,6 +43,16 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
             NodeCoord[i][j] = coord(j,i);
         }
     }
+#ifdef LOG4CXX
+	if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout << "input parameter par " << par << std::endl;
+		sout << "NodeCoord " << NodeCoord;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	
     ///
     result.Fill(0.);
     TPZManVector<REAL,3> NeighPar, SidePar, Xside(3,0.);
@@ -70,9 +84,30 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
                 blendTemp += blend(LowNodeSides[a],0);
             }
 
-            MapToNeighSide(byside,par,NeighPar,NotUsedHere);
+            if(!MapToNeighSide(byside,par,NeighPar,NotUsedHere))
+			{
+#ifdef LOG4CXX
+				if(logger->isDebugEnabled())
+				{
+					std::stringstream sout;
+					sout << "MapToNeighSide is singular for par " << par << " and side " << byside << " skipping the side ";
+					LOGPZ_DEBUG(logger,sout.str())
+				}
+#endif
+				continue;
+			}
             Neighbour(byside).X(NeighPar,Xside);
-
+#ifdef LOG4CXX
+			if(logger->isDebugEnabled())
+			{
+				std::stringstream sout;
+				sout << "NeighPar " << NeighPar << ' ';
+				sout << "Xside " << Xside << ' ';
+				sout << "blendTemp " << blendTemp;
+				LOGPZ_DEBUG(logger,sout.str())
+			}
+#endif
+			
             for(int c = 0; c < 3; c++)
             {
                 result[c] += (1 - SidesCounter[byside]) * Xside[c]*blendTemp;
@@ -84,7 +119,15 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
             }
         }
     }
-
+#ifdef LOG4CXX
+	if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout << "sidescounter before contributing linear map " << SidesCounter;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	
     for(int a = 0; a < TGeo::NNodes; a++)
     {
         for(int b = 0; b < 3; b++)
@@ -95,6 +138,15 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
             result[b] += (1 - SidesCounter[a]) * NodeCoord[a][b]*blend(a,0);
         }
     }
+#ifdef LOG4CXX
+	if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout << "result " << result;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -106,7 +158,14 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
 
     TPZManVector<REAL> SidesCounter(TGeo::NSides,0);
     TPZStack<int> LowNodeSides, LowAllSides;
-
+#ifdef LOG4CXX
+	if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout << "input parameter par " << par;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
     TPZFNMatrix<24> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
     TGeo::Shape(par,blend,Dblend);
 
@@ -131,12 +190,36 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
             TGeo::LowerDimensionSides(byside,LowNodeSides,0);
             TGeo::LowerDimensionSides(byside,LowAllSides);
             TPZFNMatrix<9> Inv(fNeighbours[byside-TGeo::NNodes].Dimension(),fNeighbours[byside-TGeo::NNodes].Dimension());
-            MapToNeighSide(byside,par,NeighPar, Jneighbourhood);
+            if(!MapToNeighSide(byside,par,NeighPar, Jneighbourhood))
+			{
+				continue;
+			}
             Neighbour(byside).X(NeighPar,Xside);
             Neighbour(byside).Jacobian(NeighPar,J1,Ax,Det,Inv);
             Ax.Transpose(); 
             Ax.Multiply(J1,J2);
+#ifdef LOG4CXX
+			if(logger->isDebugEnabled())
+			{
+				std::stringstream sout;
+				sout << "byside " << byside << std::endl;
+				sout << "neighbour parameter(NeighPar) " << NeighPar << std::endl;
+				sout << "Jacobian of the map(Jneighborhood) " << Jneighbourhood << std::endl;
+				sout << "Xside " << Xside << std::endl;
+				sout << "jacobian neighbour(J1) " << J1 << std::endl;
+				sout << "jacobian of the neighbour multiplied by the axes(J2) " << J2 << std::endl;
+				LOGPZ_DEBUG(logger,sout.str())
+			}
+#endif
             J2.Multiply(Jneighbourhood,J1);
+#ifdef LOG4CXX
+			if(logger->isDebugEnabled())
+			{
+				std::stringstream sout;
+				sout << "acumulated jacobian(J1) " << J1 << std::endl;
+				LOGPZ_DEBUG(logger,sout.str())
+			}
+#endif
             REAL blendTemp = 0.; 
             TPZManVector<REAL,3> DblendTemp(TGeo::Dimension,0.);
             for(int a = 0; a < LowNodeSides.NElements(); a++)
@@ -144,7 +227,11 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
                     ///Mapeando os Nós ( para contemplar casos em que CoordNó != X(CoordNó) )
                     TPZVec<REAL> coordTemp(3);
                     TGeo::CenterPoint(LowNodeSides[a],coordTemp);
-                    MapToNeighSide(byside,coordTemp,NeighPar,NotUsedHere);
+                    if(!(MapToNeighSide(byside,coordTemp,NeighPar,NotUsedHere)))
+					{
+						cout << __PRETTY_FUNCTION__ << " This should never happen\n";
+						DebugStop();
+					}
                     Neighbour(byside).X(NeighPar,XNode);
                     NodeCoord[LowNodeSides[a]] = XNode;
                     ///
@@ -172,7 +259,16 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
             }
         }
     }
-
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		JacTemp.Print("Jabobian before contributing the nodes",sout);
+		sout << "SidesCounter " << SidesCounter << std::endl;
+		sout << "DBlend " << Dblend << std::endl;
+		sout << "NodeCoord " << NodeCoord << std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
     for(int a = 0; a < TGeo::NNodes; a++)
     {
         for(int b = 0; b < 3; b++) 
@@ -344,47 +440,3 @@ template class TPZGeoBlend<TPZGeoTetrahedra>;
 template class TPZGeoBlend<TPZGeoQuad>;
 template class TPZGeoBlend<TPZGeoLinear>;
 template class TPZGeoBlend<TPZGeoPoint>;
-
-#include "pzgeoelrefless.h.h"
-#include "tpzgeoelrefpattern.h.h"
-
-///CreateGeoElement -> TPZGeoBlend
-#define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
-template< > \
-TPZGeoEl *TPZGeoElRefLess<TPZGeoBlend<TGEO> >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index) \
-{ \
-TPZGeoMesh &mesh = *(this->Mesh()); \
-if(!&mesh) return 0; \
-return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index); \
-} \
-\
-template<> \
-int TPZGeoElRefPattern<TPZGeoBlend<TGEO>  >::ClassId() const { \
-return CLASSID; \
-} \
-template class \
-TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >, CLASSID>; \
-\
-template<> \
-TPZCompEl *(*TPZGeoElRefLess<TPZGeoBlend<TGEO> >::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CREATEFUNCTION; \
-\
-template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;
-
-#define TPZGEOBLENDPOINTID 303
-#define TPZGEOBLENDLINEARID 304
-#define TPZGEOBLENDQUADID 305
-#define TPZGEOBLENDTRIANGLEID 306
-#define TPZGEOBLENDCUBEID 307
-#define TPZGEOBLENDPRISMID 308
-#define TPZGEOBLENDPYRAMIDID 309
-#define TPZGEOBLENDTETRAHEDRAID 310
-
-IMPLEMENTBLEND(pzgeom::TPZGeoPoint,TPZGEOBLENDPOINTID,TPZCompElDisc::CreateDisc)
-IMPLEMENTBLEND(pzgeom::TPZGeoLinear,TPZGEOBLENDLINEARID,TPZCompElDisc::CreateDisc)
-IMPLEMENTBLEND(pzgeom::TPZGeoQuad,TPZGEOBLENDQUADID,TPZCompElDisc::CreateDisc)
-IMPLEMENTBLEND(pzgeom::TPZGeoTriangle,TPZGEOBLENDTRIANGLEID,TPZCompElDisc::CreateDisc)
-IMPLEMENTBLEND(pzgeom::TPZGeoCube,TPZGEOBLENDCUBEID,TPZCompElDisc::CreateDisc)
-IMPLEMENTBLEND(pzgeom::TPZGeoPrism,TPZGEOBLENDPRISMID,TPZCompElDisc::CreateDisc)
-IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,TPZGEOBLENDPYRAMIDID,TPZCompElDisc::CreateDisc)
-IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,TPZGEOBLENDTETRAHEDRAID,TPZCompElDisc::CreateDisc)
-
