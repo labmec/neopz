@@ -68,6 +68,15 @@ const int TPZGEOELREFPATMAPPEDPRISMID = 241;
 const int TPZGEOELREFPATMAPPEDTETRAHEDRAID = 242;
 const int TPZGEOELREFPATMAPPEDPYRAMIDID = 243;
 
+const int TPZGEOBLENDPOINTID = 403;
+const int TPZGEOBLENDLINEARID = 404;
+const int TPZGEOBLENDQUADID = 405;
+const int TPZGEOBLENDTRIANGLEID = 406;
+const int TPZGEOBLENDCUBEID = 407;
+const int TPZGEOBLENDPRISMID = 408;
+const int TPZGEOBLENDPYRAMIDID = 409;
+const int TPZGEOBLENDTETRAHEDRAID = 410;
+
 void RegisterMeshClasses();
 //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
 //template class TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>;
