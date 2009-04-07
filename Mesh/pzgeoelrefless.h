@@ -287,6 +287,10 @@ public:
 
 };
 
+#ifdef WIN32
+#include "pzgeoelrefless.h.h"
+#endif
+
 template<class TGeo>
 inline
 TPZCompEl *TPZGeoElRefLess<TGeo>::CreateCompEl(TPZCompMesh &mesh,int &index){
