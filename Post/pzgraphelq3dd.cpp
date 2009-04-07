@@ -75,6 +75,7 @@ void TPZGraphElQ3dd::Connectivity(TPZDrawStyle st){
 		for(int j=0;j<imax;j++) {
 			for (int k=0;k<imax;k++){
 				if(st == EV3DStyle) out << ip << " 8 ";
+				if(st == EVTKStyle) out << "8 ";
 				if(st == EMVStyle) out << ip << " 1 1 1 ";
 				ip++;
 				if(st == EDXStyle) {
