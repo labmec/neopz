@@ -71,6 +71,7 @@ void TPZGeoTriangle::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &resu
 
 bool TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
 
+     double zero = 1.E-5;
      REAL qsi = InternalPar[0]; REAL eta = InternalPar[1];
      SidePar.Resize(1); JacToSide.Resize(1,2);
      if((qsi + eta - 1.) > 1.e-5 || qsi < -1.e-5 || eta < -1.e-5)
@@ -94,7 +95,7 @@ bool TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL>
      switch(side)
      {
           case 3:
-               if(fabs(eta - 1.) < 1.e-6)
+               if(fabs(eta - 1.) < zero)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;
@@ -108,7 +109,7 @@ bool TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL>
           break;
 
           case 4:
-               if(qsi+eta < 1.e-6)
+               if(qsi+eta < zero)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;
@@ -122,7 +123,7 @@ bool TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL>
           break;
 
           case 5:
-               if(fabs(qsi - 1.) < 1.e-6)
+               if(fabs(qsi - 1.) < zero)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;

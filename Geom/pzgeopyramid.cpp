@@ -155,6 +155,7 @@ void TPZGeoPyramid::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &resul
 }
 
 bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+     double zero = 1.E-5;
 
      REAL qsi = InternalPar[0]; REAL eta = InternalPar[1]; REAL zeta = InternalPar[2];
      if(fabs(qsi) > (1.-zeta) || fabs(eta) > (1.-zeta) || zeta < 0. || zeta > 1.)
@@ -168,7 +169,7 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
      {
           case 5://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if(zeta == 1.)
+               if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -183,7 +184,7 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 6://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if(zeta == 1.)
+               if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -198,7 +199,7 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 7://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if(zeta == 1.)
+               if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -213,7 +214,7 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 8://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if(zeta == 1.)
+               if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -228,13 +229,13 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 9://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if( qsi == 1. || eta == 1. )
+               if( fabs(qsi-1.) < zero || fabs(eta-1.) < zero )
                {
                     SidePar[0] = -1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
 				   regularmap = false;
                }
-               else if(zeta == 1.)
+               else if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -251,13 +252,13 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 10://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if( qsi == -1. || eta == 1. )
+               if( fabs(qsi+1.) < zero || fabs(eta-1.) < zero )
                {
                     SidePar[0] = -1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
 				   regularmap = false;
                }
-               else if(zeta == 1.)
+               else if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -274,13 +275,13 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 11://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if( qsi == -1. || eta == -1. )
+               if( fabs(qsi+1.) < zero || fabs(eta+1.) < zero )
                {
                     SidePar[0] = -1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
 				   regularmap = false;
                }
-               else if(zeta == 1.)
+               else if(fabs(zeta-1.) < zero )
                {
                     SidePar[0] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -297,13 +298,13 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 12://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if( qsi == 1. || eta == -1. )
+               if( fabs(qsi-1.) < zero || fabs(eta+1.) > zero)
                {
                     SidePar[0] = -1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
 				   regularmap = false;
                }
-               else if(zeta == 1.)
+               else if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -320,7 +321,7 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 13://2D
                SidePar.Resize(2); JacToSide.Resize(2,3);
-               if(zeta == 1.)
+               if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 0.; SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -339,14 +340,14 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 14://2D
                SidePar.Resize(2); JacToSide.Resize(2,3);
-               if(zeta == 1.)
+               if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 0.; SidePar[1] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
 				   regularmap = false;
                }
-               else if(eta == 1.)
+               else if(fabs(eta-1.) < zero)
                {
                     SidePar[0] = qsi/2. + 0.5; SidePar[1] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -368,14 +369,14 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 15://2D
                SidePar.Resize(2); JacToSide.Resize(2,3);
-               if(zeta == 1.)
+               if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 0.; SidePar[1] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
 				   regularmap = false;
                }
-               else if(qsi == -1.)
+               else if(fabs(qsi+1.) < zero)
                {
                     SidePar[0] = eta/2. + .5; SidePar[1] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.5; JacToSide(0,2) = 0.;
@@ -398,14 +399,14 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 16://2D
                SidePar.Resize(2); JacToSide.Resize(2,3);
-               if(zeta == 1.)
+               if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 0.; SidePar[1] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
 				   regularmap = false;
                }
-               else if(eta == -1.)
+               else if(fabs(eta+1.) < zero)
                {
                     SidePar[0] = -qsi/2. + .5; SidePar[1] = 0.;
                     JacToSide(0,0) = -0.5; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -427,14 +428,14 @@ bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> 
 
           case 17://2D
                SidePar.Resize(2); JacToSide.Resize(2,3);
-               if(zeta == 1.)
+               if(fabs(zeta-1.) < zero)
                {
                     SidePar[0] = 0.; SidePar[1] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
 				   regularmap = false;
                }
-               else if(qsi == 1.)
+               else if(fabs(qsi-1.) < zero)
                {
                     SidePar[0] = 0.5 - eta/2.; SidePar[1] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = -0.5; JacToSide(0,2) = 0.;

@@ -128,11 +128,12 @@ void TPZGeoPrism::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result)
 }
 
 bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+        double zero = 1.E-5;
 
 	REAL qsi = InternalPar[0]; 
 	REAL eta = InternalPar[1]; 
 	REAL zeta = InternalPar[2];
-	if((qsi + eta) > 1 || qsi < 0. || eta < 0. || zeta < -1. || zeta > 1.)
+	if((qsi + eta) > 1. || qsi < 0. || eta < 0. || zeta < -1. || zeta > 1.)
 	{
 		cout << "Point (qsi,eta,zeta) = (" << qsi << "," << eta << "," << zeta << ") is out of TPZGeoPrism Master Element Range!\n";
 		cout << "See TPZGeoPrism::MapToSide() method!\n";
@@ -145,7 +146,7 @@ bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
 		case 6://1D
 			SidePar.Resize(1); 
 			JacToSide.Resize(1,3);
-			if(eta == 1.)
+			if(fabs(eta-1.) < zero)
 			{
 				SidePar[0] = 0.;
 				JacToSide(0,0) = 1.; 
@@ -162,7 +163,7 @@ bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
 
 			case 7://1D
 				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(qsi+eta == 0.)
+				if(fabs(qsi+eta) < zero)
 				{
 					SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; 
@@ -179,7 +180,7 @@ bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
 
           case 8://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if(qsi == 1.)
+               if(fabs(qsi-1.) < zero)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -212,7 +213,7 @@ bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
 
           case 12://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if(eta == 1.)
+               if(fabs(eta-1.) < zero)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -227,7 +228,7 @@ bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
 
           case 13://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if(qsi+eta == 0.)
+               if(fabs(qsi+eta) < zero)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -242,7 +243,7 @@ bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
 
           case 14://1D
                SidePar.Resize(1); JacToSide.Resize(1,3);
-               if(qsi == 1.)
+               if(fabs(qsi-1.) < zero)
                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -264,7 +265,7 @@ bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
 
           case 16://2D - quadrilateral
                SidePar.Resize(2); JacToSide.Resize(2,3);
-               if(eta == 1.)
+               if(fabs(eta-1.) < zero)
                {
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -281,7 +282,7 @@ bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
 
           case 17://2D - quadrilateral
                SidePar.Resize(2); JacToSide.Resize(2,3);
-               if(qsi+eta == 0.)
+               if(fabs(qsi+eta) < zero)
                {
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
@@ -298,7 +299,7 @@ bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
 
           case 18://2D - quadrilateral
                SidePar.Resize(2); JacToSide.Resize(2,3);
-               if(qsi == 1.)
+               if(fabs(qsi-1.) < zero)
                {
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
