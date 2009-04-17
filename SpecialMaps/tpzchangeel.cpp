@@ -27,7 +27,7 @@ TPZChangeEl::~TPZChangeEl()
 {
 }
 
-void TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
+TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
 {
      TPZGeoEl *OldElem = NULL;
      TPZGeoEl *NewElem = NULL;
@@ -67,9 +67,34 @@ void TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
                NodesSequence[5]  = Mesh->NodeVec().AllocateNewElement(); Mesh->NodeVec()[NodesSequence[5]] = Node5;
 
                /** Inserting New Element in Mesh and Deleting Old Element */
-               Mesh->ElementVec().SetFree(OldElem->Index());
+               
                NewElem = new TPZGeoElRefPattern<TPZQuadraticTrig> (OldElem->Id(),NodesSequence,OldElem->MaterialId(),*Mesh);
-               for(int j = 0; j < OldElem->NSides(); j++) NewElem->SetNeighbour(j,OldElem->Neighbour(j));
+               for(int j = 0; j < OldElem->NSides(); j++)
+               { 
+                  TPZGeoElSide currSide (OldElem,j);
+                  TPZGeoElSide newElSide (NewElem,j);
+                  TPZGeoElSide neighbour (currSide.Neighbour());
+                  
+                  if (neighbour == currSide)
+                  {
+                     newElSide.SetNeighbour(newElSide);
+                     continue;
+                  }
+                  newElSide.SetNeighbour(neighbour);
+
+                  while (neighbour != currSide)
+                  {
+                    TPZGeoElSide next = neighbour.Neighbour();
+                    if (next == currSide)
+                    {
+                       neighbour.SetNeighbour(newElSide);
+                       break;
+                    }
+                    neighbour = neighbour.Neighbour();
+                  }
+                  
+               }
+//               Mesh->ElementVec().SetFree(OldElem->Index());
                delete OldElem;
                OldElem = NULL;
           }
@@ -120,10 +145,11 @@ void TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
           else { cout << "Element type don't recognized!\nSee ChangeToQuadratic Method!\n"; exit(-1);}
      }
      OldElem = NULL;
+     return NewElem;
 }
 
 
-void  TPZChangeEl::ChangeToLinear(TPZGeoMesh *Mesh, int ElemIndex)
+TPZGeoEl * TPZChangeEl::ChangeToLinear(TPZGeoMesh *Mesh, int ElemIndex)
 {
      TPZGeoEl *OldElem = NULL;
      TPZGeoEl *NewElem = NULL;
@@ -162,9 +188,10 @@ void  TPZChangeEl::ChangeToLinear(TPZGeoMesh *Mesh, int ElemIndex)
           else { cout << "Element type don't recognized!\nSee ChangeToLinear Method!\n"; exit(-1);}
      }
      OldElem = NULL;
+     return NewElem;
 }
 
-void TPZChangeEl::QuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int side)
+TPZGeoEl* TPZChangeEl::QuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int side)
 {
      TPZGeoEl *OldElem = NULL;
      OldElem = Mesh->ElementVec()[ElemIndex];
@@ -172,163 +199,165 @@ void TPZChangeEl::QuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int side)
      {
           if(side < 0 || side > 6) { cout << "Invalid Side to Compute Quarter Points!\nSee QuarterPoints Method!\n"; exit(-1);}
           Mesh->SetNodeIdUsed(2);
-          ChangeToQuadratic(Mesh,ElemIndex);
+          TPZGeoEl * newEl = ChangeToQuadratic(Mesh,ElemIndex);
           switch(side)
           {
                case 0:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(3)].
+                      SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(5)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(5)].
+                      SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
                }
                break;
                case 1:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(3)].
+                      SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(4)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(4)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
                }
                break;
                case 2:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(4)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(4)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(5)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(5)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
                }
                break;
                case 3:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(4)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(4)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(5)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(5)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
                }
                break;
                case 4:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(3)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(5)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(5)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
                }
                break;
                case 5:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(3)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(4)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(4)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
                }
                case 6:
                // Do nothing!
                break;
           }
+          return newEl;
      }
      else if(OldElem->TypeName() == "Quad" && OldElem->NNodes() == 4)
      {
           if(side < 0 || side > 8) { cout << "Invalid Side to Compute Quarter Points!\nSee QuarterPoints Method!\n"; exit(-1);}
           Mesh->SetNodeIdUsed(3);
-          ChangeToQuadratic(Mesh,ElemIndex);
+          TPZGeoEl* newEl = ChangeToQuadratic(Mesh,ElemIndex);
           switch(side)
           {
                case 0:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(4)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(4)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(7)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(7)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
                }
                break;
                case 1:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(4)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(4)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(5)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(5)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
                }
                break;
                case 2:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(5)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(5)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(6)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(6)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
                }
                break;
                case 3:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(6)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(6)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(7)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(7)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
                }
                break;
                case 4:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(5)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(5)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(7)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(7)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
                }
                break;
                case 5:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(4)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(4)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(6)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(6)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
                }
                break;
                case 6:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(5)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(5)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(7)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(7)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
                }
                break;
                case 7:
                for(int i = 0; i < 3; i++)
                {
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(4)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(4)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
 
-                    Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(6)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(2)].Coord(i) + 0.75*Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(3)].Coord(i));
+                    Mesh->NodeVec()[newEl->NodeIndex(6)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
                }
                case 8:
                // Do nothing!
                break;
           }
+        return newEl;
      }
      else { cout << "Element type don't recognized!\nSee QuarterPoints Method!\n"; exit(-1); }
 }
