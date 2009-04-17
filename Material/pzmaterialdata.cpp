@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.cpp,v 1.9 2008-10-23 10:41:50 fortiago Exp $ 
+//$Id: pzmaterialdata.cpp,v 1.10 2009-04-17 01:25:09 erick Exp $ 
 
 #include "pzmaterialdata.h"
 #include "pzmaterial.h"
@@ -24,7 +24,8 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
   this->fNeedsSol = cp.fNeedsSol;
   this->fNeedsNeighborSol = cp.fNeedsNeighborSol;
   this->fNeedsHSize = cp.fNeedsHSize;
-  this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter;
+  this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter; 
+  this->fNeedsNormal = cp.fNeedsNormal; 
   this->phi = cp.phi;
   this-> phil = cp.phil;
   this->phir = cp.phir;
@@ -70,6 +71,7 @@ void TPZMaterialData::SetAllRequirements(bool set){
   this->fNeedsNeighborSol = set;
   this->fNeedsHSize = set;
   this->fNeedsNeighborCenter = set;
+  this->fNeedsNormal = set;
 }
 
 void TPZMaterialData::InvertLeftRightData(){

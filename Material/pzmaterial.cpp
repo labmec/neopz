@@ -48,6 +48,7 @@ void TPZMaterial::FillDataRequirements(TPZMaterialData &data){
   data.SetAllRequirements(true);
   data.fNeedsNeighborSol = false;
   data.fNeedsNeighborCenter = false;
+  data.fNeedsNormal = false;
 }
 
 void TPZMaterial::Print(std::ostream & out) {

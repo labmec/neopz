@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.h,v 1.8 2008-10-23 10:41:50 fortiago Exp $
+//$Id: pzmaterialdata.h,v 1.9 2009-04-17 01:25:09 erick Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
@@ -18,7 +18,7 @@ class TPZMaterialData{
 public:
 
 /** Flags indicating whether some attributes shall be computed or not */
-  bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize, fNeedsNeighborCenter;
+  bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize, fNeedsNeighborCenter, fNeedsNormal;
 
 /** Attributes to be computed in CalcStiff */
   TPZFNMatrix<220> phi, phil, phir;
