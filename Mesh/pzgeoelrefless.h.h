@@ -13,7 +13,7 @@
 
 #include <sstream>
 
-#include "pzlog.h"
+#include "pzlog.h" // test 
 #ifdef LOG4CXX
 static LoggerPtr loggerrefless(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
 #endif
