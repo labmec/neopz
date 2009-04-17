@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.31 2009-04-06 19:17:56 phil Exp $
+//$Id: pzinterpolationspace.cpp,v 1.32 2009-04-17 01:34:28 erick Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -143,7 +143,98 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
   if (data.fNeedsHSize){
     data.HSize = 2.*this->InnerRadius();
   }//fNeedHSize
+													
+  if (data.fNeedsNormal){
+	this->ComputeNormal(data);
+  }//fNeedsNormal
 }//void
+
+void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
+{
+	data.normal.Resize(3,0.);
+	
+	int thisFace, neighbourFace, i, dim;
+	TPZGeoEl * thisGeoEl, * neighbourGeoEl;
+	TPZManVector<REAL,3> thisCenter(3,0.), neighbourCenter(3,0.), thisXVol(3,0.), neighbourXVol(3,0.), vec(3), axes1(3), axes2(3);
+	REAL size;
+	
+	thisGeoEl = this->Reference();
+	thisFace = thisGeoEl->NSides() - 1;
+	
+	TPZGeoElSide neighbourGeoElSide = thisGeoEl->Neighbour(thisFace);
+	neighbourGeoEl = neighbourGeoElSide.Element();
+	neighbourFace = neighbourGeoEl->NSides() - 1;;
+	
+	thisGeoEl->     CenterPoint(thisFace,      thisCenter);
+	neighbourGeoEl->CenterPoint(neighbourFace, neighbourCenter);
+	
+	thisGeoEl->     X(thisCenter,     thisXVol);
+	neighbourGeoEl->X(neighbourCenter,neighbourXVol);
+
+	for(i = 0; i < 3; i++)vec[i] = neighbourXVol[i] - thisXVol[i];// vector towards the center of the neighbour element
+	
+	dim = thisGeoEl->Dimension();
+	
+	switch(dim)
+	{
+		case(0): // normal points towards the x-direction
+			data.normal[0] = 1.;
+			data.normal[1] = 0.;
+			data.normal[2] = 0.;
+		break;
+		case(1):
+			for(i = 0 ; i < 3; i ++)axes1[i] = data.axes(0,i); // rib direction
+			this->VectorialProd(axes1, vec, axes2);
+			this->VectorialProd(axes2, axes1, data.normal, true);
+		break;
+		case(2):
+			for(i = 0; i < 3; i++)
+			{	
+				axes1[i] = data.axes(0,i);
+				axes2[i] = data.axes(1,i);
+			}
+			this->VectorialProd(axes1, axes2, data.normal, true);
+		break;
+		case(3):// in this case the normal becomes senseless. The unitary vector from the
+			// mass center of this face towards the mass center of the neighbour element
+			// interior face is computed instead
+			size = 0.;
+			for(i = 0; i < 3; i++)size += vec[i] * vec[i];
+			size = sqrt(size);
+			if(size <= 1.e-9)PZError << "TPZInterpolationSpace::ComputeNormal - null normal\n";
+			for(i = 0; i < 3; i++)data.normal[i] = vec[i] /= size;
+		break;
+		default:
+			PZError << "TPZInterpolationSpace::ComputeNormal - unhandled element dimension\n";
+	}
+	
+	// ensuring the normal vector points towards the neighbour element
+	
+	REAL dot = 0.;
+	for(i = 0; i < 3; i++) dot += data.normal[i] * vec[i];
+	
+	if(dot < 0.)
+		for(i = 0; i < 3; i++) data.normal[i] *= -1.;
+	
+}
+
+void TPZInterpolationSpace::VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jvec, TPZVec<REAL> & kvec, bool unitary)
+{
+	kvec.Resize(3);
+	kvec[0] =  ivec[1]*jvec[2] - ivec[2]*jvec[1];
+	kvec[1] = -ivec[0]*jvec[2] + ivec[2]*jvec[0];
+	kvec[2] =  ivec[0]*jvec[1] - ivec[1]*jvec[0];
+	
+	if(unitary)
+	{
+		REAL size = 0.;
+		int i;
+		for(i = 0; i < 3; i++)size += kvec[i] * kvec[i];
+		size = sqrt(size);
+		if(size <= 1.e-9)PZError << "TPZInterpolationSpace::VectorialProd - null result";
+		for(i = 0; i < 3; i++)kvec[i] /= size;	
+	}
+}
 
 void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 

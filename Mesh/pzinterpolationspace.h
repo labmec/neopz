@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.12 2009-03-18 13:56:43 fortiago Exp $
+//$Id: pzinterpolationspace.h,v 1.13 2009-04-17 01:34:28 erick Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -81,6 +81,12 @@ public:
   virtual void ComputeRequiredData(TPZMaterialData &data,
                            TPZVec<REAL> &qsi);
 
+  /** Computes the proper normal vector towards the neighbour element */
+  virtual void ComputeNormal(TPZMaterialData & data);
+	
+  /** Computes the vectorial product of two vectors and normalize the result if unitary is set to true */
+  void VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jvec, TPZVec<REAL> & kvec, bool unitary = false);
+	
   /**
    * CalcStiff computes the element stiffness matrix and right hand side
    * @param ek element matrix
