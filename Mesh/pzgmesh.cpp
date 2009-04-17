@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.55 2009-04-06 19:16:54 phil Exp $
+//$Id: pzgmesh.cpp,v 1.56 2009-04-17 18:34:32 fortiago Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -588,32 +588,34 @@ this->SetName("built");
 
 void TPZGeoMesh::BuildBlendConnectivity()
 {
-     this->BuildConnectivity();
-     int Qelem = this->NElements();
-     for(int el = 0; el < Qelem; el++)
-     {
-          if(this->ElementVec()[el]->IsGeoBlendEl())
-          {
-               for(int byside = this->ElementVec()[el]->NNodes(); byside < (this->ElementVec()[el]->NSides() - 1); byside++)
-               {
-                    TPZGeoElSide ElemSide(this->ElementVec()[el],byside);
-                    TPZGeoElSide NextSide(this->ElementVec()[el],byside);
-                    while(NextSide.Neighbour().Element() != ElemSide.Element())
-                    {
-                         if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
-                         {
-                              TPZGeoElSide NeighSide = NextSide.Neighbour();
-                              TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
-                              ElemSide.SideTransform3(NeighSide,NeighTransf);
-                              this->ElementVec()[el]->SetNeighbourInfo(byside,NeighSide,NeighTransf);
-                              break;
-                         }
-                         NextSide = NextSide.Neighbour();
-                    }
-               }
-          }
-     }
-}
+  this->BuildConnectivity();
+  int Qelem = this->NElements();
+  for(int el = 0; el < Qelem; el++)
+  {
+    TPZGeoEl * gel = this->ElementVec()[el];
+    if(!gel) continue;
+    if( !gel->IsGeoBlendEl() ) continue;
+    
+    for(int byside = gel->NNodes(); byside < (gel->NSides() - 1); byside++)
+    {
+      TPZGeoElSide ElemSide(gel,byside);
+      TPZGeoElSide NextSide(gel,byside);
+      while(NextSide.Neighbour().Element() != ElemSide.Element())
+      {
+        if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
+        {
+          TPZGeoElSide NeighSide = NextSide.Neighbour();
+          TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
+          ElemSide.SideTransform3(NeighSide,NeighTransf);
+          gel->SetNeighbourInfo(byside,NeighSide,NeighTransf);
+          break;
+        }
+        NextSide = NextSide.Neighbour();
+      }///while
+    }///for byside
+
+  }///for el
+}///void
 
 void TPZGeoMesh::BuildConnectivity2() {
 
