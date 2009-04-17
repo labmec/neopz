@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.111 2009-03-18 13:58:23 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.112 2009-04-17 18:34:59 fortiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.111 2009-03-18 13:58:23 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.112 2009-04-17 18:34:59 fortiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -830,6 +830,10 @@ void TPZCompElDisc::SetExternalShapeFunction(TPZAutoPointer<TPZFunction> externa
   Mesh()->Block().Set(seqnum,nshapef*nvar);
 }
 
+bool TPZCompElDisc::HasExternalShapeFunction(){
+  return (this->fExternalShape);
+}
+
   /**
   * returns the unique identifier for reading/writing objects to streams
   */
@@ -955,6 +959,10 @@ TPZIntPoints &TPZCompElDisc::GetIntegrationRule(){
     this->fIntRule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
   }
   return *fIntRule;
+}
+
+int TPZCompElDisc::MaxOrderExceptExternalShapes(){
+  return TPZInterpolationSpace::MaxOrder();
 }
 
 int TPZCompElDisc::MaxOrder(){

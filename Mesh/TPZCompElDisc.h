@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.71 2008-04-04 13:33:45 fortiago Exp $
+//$Id: TPZCompElDisc.h,v 1.72 2009-04-17 18:34:59 fortiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -103,6 +103,10 @@ protected:
  
   /** Define external shape functions which are stored in class attribute fExternalShape */
   void SetExternalShapeFunction(TPZAutoPointer<TPZFunction> externalShapes);
+
+  /** Return whether element has external shape functions set to
+   */
+  bool HasExternalShapeFunction();
 
   int GetMaterial( const TPZGeoElSide& gside );
 
@@ -281,6 +285,9 @@ protected:
   
   /** Returns the max order of interpolation. */
   virtual int MaxOrder();
+
+  /** Returns the max order of interpolation excluding external shape order */
+  int MaxOrderExceptExternalShapes();
 
   /**returns the number of shapefunctions associated with a connect*/
   virtual int NConnectShapeF(int inod);
