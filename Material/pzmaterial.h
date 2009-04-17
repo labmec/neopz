@@ -269,7 +269,12 @@ private:
    * returning its index at the internal storage stack.
    * to be implemented only in the proper materials.
    */
-  virtual int PushMemItem(){ return -1; }
+  virtual int PushMemItem(int sourceIndex = -1){ return -1; }
+
+  /**
+   * Frees an entry in the material with memory internal history storage
+   */
+  virtual void FreeMemItem(int index){ return; }
 	
 	
 };
