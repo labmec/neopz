@@ -66,6 +66,11 @@ int TPZMaterial::VariableIndex(const std::string &name) {
    if(!strcmp(name.c_str(),"SemiH1Error")) return 104;
    if(!strcmp(name.c_str(),"H1Error")) return 105;
 
+   if(!strcmp(name.c_str(),"L2ErrorPerArea")) return 106;
+   if(!strcmp(name.c_str(),"SemiH1ErrorPerArea")) return 107;
+   if(!strcmp(name.c_str(),"H1ErrorPerArea")) return 108;
+
+
    return -1;
 }
 
@@ -78,6 +83,9 @@ int TPZMaterial::NSolutionVariables(int index) {
    if (index == 103) return 1;
    if (index == 104) return 1;
    if (index == 105) return 1;
+   if (index == 106) return 1;
+   if (index == 107) return 1;
+   if (index == 108) return 1;
    PZError << "TPZMaterial::NSolutionVariables called index = " << index << "\n";
    return 0;
 }
