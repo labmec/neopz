@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.32 2009-04-17 01:34:28 erick Exp $
+//$Id: pzinterpolationspace.cpp,v 1.33 2009-04-21 01:37:56 erick Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -163,7 +163,13 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 	
 	TPZGeoElSide neighbourGeoElSide = thisGeoEl->Neighbour(thisFace);
 	neighbourGeoEl = neighbourGeoElSide.Element();
-	neighbourFace = neighbourGeoEl->NSides() - 1;;
+	neighbourFace = neighbourGeoEl->NSides() - 1;
+	
+	if(neighbourGeoEl == thisGeoEl)
+	{
+		// normal evaluation makes no sense since the internal element side doesn't present a neighbour.
+		return; // place a breakpoint here if this is an issue
+	}
 	
 	thisGeoEl->     CenterPoint(thisFace,      thisCenter);
 	neighbourGeoEl->CenterPoint(neighbourFace, neighbourCenter);
@@ -195,14 +201,7 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 			}
 			this->VectorialProd(axes1, axes2, data.normal, true);
 		break;
-		case(3):// in this case the normal becomes senseless. The unitary vector from the
-			// mass center of this face towards the mass center of the neighbour element
-			// interior face is computed instead
-			size = 0.;
-			for(i = 0; i < 3; i++)size += vec[i] * vec[i];
-			size = sqrt(size);
-			if(size <= 1.e-9)PZError << "TPZInterpolationSpace::ComputeNormal - null normal\n";
-			for(i = 0; i < 3; i++)data.normal[i] = vec[i] /= size;
+		case(3):// in this case the normal becomes senseless. A null vector is passed instead
 		break;
 		default:
 			PZError << "TPZInterpolationSpace::ComputeNormal - unhandled element dimension\n";
