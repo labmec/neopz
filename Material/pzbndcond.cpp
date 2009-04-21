@@ -258,3 +258,11 @@ void TPZBndCond::UpdataBCValues(TPZMaterialData &data){
   }//if
 }
 
+void TPZBndCond::FillDataRequirements(TPZMaterialData &data){
+  if(!fMaterial)
+	{
+		PZError << "\nUnable to call TPZBndCond::fMaterial::FillDataRequirements - fMaterial pointer is null!\n";
+		return;
+	}
+	fMaterial->	FillDataRequirements(data);
+} 

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.26 2007-11-26 17:06:42 tiago Exp $
+//$Id: pzbndcond.h,v 1.27 2009-04-21 01:33:45 erick Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -272,6 +272,9 @@ public :
   //nothing to be done here
 }
 
+ /** Calls the aggregate material correspondent function\
+  */
+  virtual void FillDataRequirements(TPZMaterialData &data);
 
 };
 
