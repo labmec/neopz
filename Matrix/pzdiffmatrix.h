@@ -1,4 +1,4 @@
-//$Id: pzdiffmatrix.h,v 1.5 2009-02-02 10:23:04 phil Exp $
+//$Id: pzdiffmatrix.h,v 1.6 2009-04-21 01:40:23 erick Exp $
 
 #ifndef PZDIFFMATRIX_H
 #define PZDIFFMATRIX_H
@@ -361,7 +361,11 @@ inline int TPZDiffMatrix<T>::Rows()const
 template <class T>
 inline EStatus TPZDiffMatrix<T>::Decompose_LU() {
 
-	 if (fDecomposed == ELU) return EOk;
+	 if (fDecomposed == ELU)
+		{
+			PZError << "\npzdiffmatrix.h Attempting to decompose an already decomposed matrix\n";
+			return EOk;
+		}
 
 	 T nn, pivot;
 	 int  min = ( Cols() < (Rows()) ) ? Cols() : Rows();
