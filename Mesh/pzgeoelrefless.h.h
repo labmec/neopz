@@ -221,7 +221,9 @@ TPZGeoElRefLess<TGeo>::NSideSubElements2(int side){
 template<class TGeo>
 TPZGeoEl *
 TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
-  return fGeo.CreateBCGeoEl(this,side,bc);
+  TPZGeoEl * result = fGeo.CreateBCGeoEl(this,side,bc);
+  result->BuildBlendConnectivity();
+  return result;  
 }
 
 template<class TGeo>
