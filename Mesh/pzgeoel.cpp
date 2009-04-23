@@ -234,6 +234,15 @@ void TPZGeoEl::Print(std::ostream & out) {
   {
      out << "false" << endl;
   }
+  out << "Is Linear Mapping ? : ";
+  if(this->IsLinearMapping())
+  {
+     out << "true" << endl;
+  }
+  else
+  {
+     out << "false" << endl;
+  }
   out << "Number of nodes    " << NNodes() << endl;
   out << "Corner nodes       " << NCornerNodes() << endl;
   out << "Nodes ids          ";
@@ -1406,4 +1415,26 @@ TPZGeoEl *TPZGeoEl::CreateGeoElement(MElementType type,
     }
   }
 }
+
+void TPZGeoEl::BuildBlendConnectivity(){
+  if( !this->IsGeoBlendEl() ) return;
+  const int nsides = this->NSides();
+  for(int byside = this->NNodes(); byside < nsides; byside++)
+  {
+    TPZGeoElSide ElemSide(this,byside);
+    TPZGeoElSide NextSide(this,byside);
+    while(NextSide.Neighbour().Element() != ElemSide.Element())
+    {
+      if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
+      {
+        TPZGeoElSide NeighSide = NextSide.Neighbour();
+        TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
+        ElemSide.SideTransform3(NeighSide,NeighTransf);
+        this->SetNeighbourInfo(byside,NeighSide,NeighTransf);
+        break;
+      }
+      NextSide = NextSide.Neighbour();
+    }///while
+  }///for byside
+}///method
 

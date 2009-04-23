@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.32 2007-12-07 18:34:26 caju Exp $
+//$Id: pzgeoel.h,v 1.33 2009-04-23 11:30:44 fortiago Exp $
 
 // -*- c++ -*-
 
@@ -302,7 +302,8 @@ virtual MElementType Type(int side) =0;
 
   int FatherIndex() { return fFatherIndex; }
 
-
+  /// Set connectivity information elements with blend geometric map
+  void BuildBlendConnectivity();
 
   //@}
 
