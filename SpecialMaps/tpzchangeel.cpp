@@ -9,6 +9,7 @@
 #include "tpzmathtools.h"
 #include "tpzquadratictrig.h"
 #include "tpzquadraticquad.h"
+#include "tpzquadraticline.h"
 #include "TPZGeoElement.h.h"
 #include "pzgeoelside.h"
 #include "pzstack.h"
@@ -69,32 +70,9 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
                /** Inserting New Element in Mesh and Deleting Old Element */
                
                NewElem = new TPZGeoElRefPattern<TPZQuadraticTrig> (OldElem->Id(),NodesSequence,OldElem->MaterialId(),*Mesh);
-               for(int j = 0; j < OldElem->NSides(); j++)
-               { 
-                  TPZGeoElSide currSide (OldElem,j);
-                  TPZGeoElSide newElSide (NewElem,j);
-                  TPZGeoElSide neighbour (currSide.Neighbour());
-                  
-                  if (neighbour == currSide)
-                  {
-                     newElSide.SetNeighbour(newElSide);
-                     continue;
-                  }
-                  newElSide.SetNeighbour(neighbour);
 
-                  while (neighbour != currSide)
-                  {
-                    TPZGeoElSide next = neighbour.Neighbour();
-                    if (next == currSide)
-                    {
-                       neighbour.SetNeighbour(newElSide);
-                       break;
-                    }
-                    neighbour = neighbour.Neighbour();
-                  }
-                  
-               }
-//               Mesh->ElementVec().SetFree(OldElem->Index());
+               TPZChangeEl::AdjustNeighbourhood(OldElem,NewElem);
+
                delete OldElem;
                OldElem = NULL;
           }
@@ -136,9 +114,44 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
                NodesSequence[7]  = Mesh->NodeVec().AllocateNewElement(); Mesh->NodeVec()[NodesSequence[7]] = Node7;
 
                /** Inserting New Element in Mesh and Deleting Old Element */
-               Mesh->ElementVec().SetFree(OldElem->Index());
                NewElem = new TPZGeoElRefPattern<TPZQuadraticQuad> (OldElem->Id(),NodesSequence,OldElem->MaterialId(),*Mesh);
-               for(int j = 0; j < OldElem->NSides(); j++) NewElem->SetNeighbour(j,OldElem->Neighbour(j));
+               
+               TPZChangeEl::AdjustNeighbourhood(OldElem,NewElem);              
+
+               delete OldElem;
+               OldElem = NULL;
+          }
+          else if(OldElem->NNodes() == 2)
+          {
+               /** Creating Midnodes */
+               TPZGeoNode Node2;
+               TPZVec<REAL> Coord2(3);
+
+               /** Setting Midnodes Coordinates */
+               TPZGeoNode Node0 = Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)];
+               TPZGeoNode Node1 = Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)];
+               for(int i = 0; i < 3; i++)
+               {
+                    Coord2[i] = (Node0.Coord(i) + Node1.Coord(i)) / 2.;
+               }
+               Node2.SetCoord(&Coord2[0]);
+
+               /** Setting Midnodes Id's */
+               int NewNodeId = Mesh->CreateUniqueNodeId();
+               Mesh->SetNodeIdUsed(NewNodeId);
+               Node2.SetNodeId(NewNodeId);
+
+               /** Allocating Memory for MidNodes and Pushing Them */
+               TPZVec <int> NodesSequence(3) ;
+               NodesSequence[0]  = Mesh->ElementVec()[ElemIndex]->NodeIndex(0);
+               NodesSequence[1]  = Mesh->ElementVec()[ElemIndex]->NodeIndex(1);
+               NodesSequence[2]  = Mesh->NodeVec().AllocateNewElement(); Mesh->NodeVec()[NodesSequence[2]] = Node2;               
+
+               /** Inserting New Element in Mesh and Deleting Old Element */
+               NewElem = new TPZGeoElRefPattern<TPZQuadraticLine> (OldElem->Id(),NodesSequence,OldElem->MaterialId(),*Mesh);
+               
+               TPZChangeEl::AdjustNeighbourhood(OldElem,NewElem);              
+
                delete OldElem;
                OldElem = NULL;
           }
@@ -147,7 +160,6 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
      OldElem = NULL;
      return NewElem;
 }
-
 
 TPZGeoEl * TPZChangeEl::ChangeToLinear(TPZGeoMesh *Mesh, int ElemIndex)
 {
@@ -166,7 +178,9 @@ TPZGeoEl * TPZChangeEl::ChangeToLinear(TPZGeoMesh *Mesh, int ElemIndex)
                /** Inserting New Element in Mesh and Deleting Old Element */
                Mesh->ElementVec().SetFree(OldElem->Index());
                NewElem = new TPZGeoElRefPattern<TPZGeoTriangle> (OldElem->Id(),NodesSequence,OldElem->MaterialId(),*Mesh);
-               for(int j = 0; j < OldElem->NSides(); j++) NewElem->SetNeighbour(j,OldElem->Neighbour(j));
+               
+               TPZChangeEl::AdjustNeighbourhood(OldElem,NewElem);
+
                delete OldElem;
                OldElem = NULL;
           }
@@ -179,9 +193,11 @@ TPZGeoEl * TPZChangeEl::ChangeToLinear(TPZGeoMesh *Mesh, int ElemIndex)
                NodesSequence[3]  = Mesh->ElementVec()[ElemIndex]->NodeIndex(3);
 
                /** Inserting New Element in Mesh and Deleting Old Element */
-               Mesh->ElementVec().SetFree(OldElem->Index());
+               
                NewElem = new TPZGeoElRefPattern<TPZGeoTriangle> (OldElem->Id(),NodesSequence,OldElem->MaterialId(),*Mesh);
-               for(int j = 0; j < OldElem->NSides(); j++) NewElem->SetNeighbour(j,OldElem->Neighbour(j));
+
+               TPZChangeEl::AdjustNeighbourhood(OldElem,NewElem);
+
                delete OldElem;
                OldElem = NULL;
           }
@@ -359,12 +375,80 @@ TPZGeoEl* TPZChangeEl::QuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int side)
           }
         return newEl;
      }
+     else if(OldElem->NNodes() == 2)
+     {
+          if(side < 0 || side > 2) { cout << "Invalid Side to Compute Quarter Points!\nSee QuarterPoints Method!\n"; exit(-1);}
+          TPZGeoEl* newEl = ChangeToQuadratic(Mesh,ElemIndex);
+          switch(side)
+          {
+               case 0:
+               for(int i = 0; i < 3; i++)
+               {
+                    Mesh->NodeVec()[newEl->NodeIndex(2)].
+                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
+               }
+               break;
+               case 1:
+               for(int i = 0; i < 3; i++)
+               {
+                    Mesh->NodeVec()[newEl->NodeIndex(2)].
+                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
+               }
+               break;
+          }
+        return newEl;
+     }
      else { cout << "Element type don't recognized!\nSee QuarterPoints Method!\n"; exit(-1); }
 }
 
+TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int ElemIndex)
+{
+  TPZGeoEl * OldElem = Mesh->ElementVec()[ElemIndex];
+  if(!OldElem){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " - NULL geometric element.\n";
+    return NULL;
+  }
+  
+  const int nnodes = OldElem->NNodes();
+  TPZManVector<int> nodeindexes(nnodes);
+  for(int i = 0; i < nnodes; i++) nodeindexes[i] = OldElem->NodeIndex(i);
+  int newindex;
+  TPZGeoEl * NewElem = Mesh->CreateGeoBlendElement(OldElem->Type(),nodeindexes,OldElem->MaterialId(),newindex);
+  TPZChangeEl::AdjustNeighbourhood(OldElem,NewElem);
+  NewElem->BuildBlendConnectivity();
 
+  delete OldElem;
 
+  return NewElem;
+}///method
 
+void TPZChangeEl::AdjustNeighbourhood(TPZGeoEl* OldElem, TPZGeoEl*NewElem){
+  for(int j = 0; j < OldElem->NSides(); j++)
+  { 
+    TPZGeoElSide currSide (OldElem,j);
+    TPZGeoElSide newElSide (NewElem,j);
+    TPZGeoElSide neighbour (currSide.Neighbour());
+    
+    if (neighbour == currSide)
+    {
+        newElSide.SetNeighbour(newElSide);
+        continue;
+    }
+    newElSide.SetNeighbour(neighbour);
+  
+    while (neighbour != currSide)
+    {
+      TPZGeoElSide next = neighbour.Neighbour();
+      if (next == currSide)
+      {
+          neighbour.SetNeighbour(newElSide);
+          break;
+      }
+      neighbour = neighbour.Neighbour();
+    }
+    
+  }
+}///method
 
 
 
