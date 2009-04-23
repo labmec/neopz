@@ -18,13 +18,13 @@ TPZExtendGridDimension::TPZExtendGridDimension(TPZGeoMesh *finegeomesh,REAL thic
 
 TPZGeoMesh * TPZExtendGridDimension::ExtendedMesh(){
   /**
-   * a malha 2D será extendida para uma malha 3D: logo ela é plana e conforme
-   * as incidências devem estar dadas em sentido antihorário - vista superior do plano XY
-   * e as coordenadas são da forma (x,y,0)
+   * a malha 2D serï¿½ extendida para uma malha 3D: logo ela ï¿½ plana e conforme
+   * as incidï¿½ncias devem estar dadas em sentido antihorï¿½rio - vista superior do plano XY
+   * e as coordenadas sï¿½o da forma (x,y,0)
    * a terceira componente devera ser thickness: altura da malha
-   * os elementos 2D podem ser triângulos ou quadriláteros
-   * si os elementos são triângulos os elementos 3D serão prismas retos
-   * si os elementos são quadriláteros os elementos 3D serão hexaédros retos
+   * os elementos 2D podem ser triï¿½ngulos ou quadrilï¿½teros
+   * si os elementos sï¿½o triï¿½ngulos os elementos 3D serï¿½o prismas retos
+   * si os elementos sï¿½o quadrilï¿½teros os elementos 3D serï¿½o hexaï¿½dros retos
    */
 
   TPZGeoMesh *extendedmesh = new TPZGeoMesh;
@@ -32,11 +32,11 @@ TPZGeoMesh * TPZExtendGridDimension::ExtendedMesh(){
   int nelem = fFineGeoMesh->ElementVec().NElements(),i,j;
   TPZGeoNode gnode;
   int nnodes = fFineGeoMesh->NodeVec().NElements();
-  //o número de nós será duplicado
+  //o nï¿½mero de nï¿½s serï¿½ duplicado
   extendedmesh->NodeVec().Resize(2*nnodes);
   TPZVec<REAL> coord(3);
   int index;
-  //cria¢ão dos nó da malha 3D
+  //criaï¿½ï¿½o dos nï¿½ da malha 3D
   for(i=0;i<nnodes;i++){
     gnode = fFineGeoMesh->NodeVec()[i];
     if(!&gnode) continue; 
@@ -47,7 +47,7 @@ TPZGeoMesh * TPZExtendGridDimension::ExtendedMesh(){
     coord[2] = fThickness;
     extendedmesh->NodeVec()[i+maxid].Initialize(coord,*extendedmesh);
   }
-  //cria¢ão de elementos da malha 3D
+  //criaï¿½ï¿½o de elementos da malha 3D
   TPZGeoEl *gel;
   TPZVec<int> incidel;
   for(i=0;i<nelem;i++){
@@ -79,7 +79,7 @@ TPZGeoMesh * TPZExtendGridDimension::ExtendedMesh(){
       extendedmesh->CreateGeoElement(ECube,incidel,matind,index);     
     }
   }
-  extendedmesh->BuildConnectivity2();
+  extendedmesh->BuildConnectivity();
   return extendedmesh;
 }
 
