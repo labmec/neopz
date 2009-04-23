@@ -17,16 +17,50 @@ bool TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZV
      TPZFMatrix JacSide;
 
      TPZVec< REAL > SidePar(SideDim);
-     if(! this->MapToSide(side, InternalPar, SidePar,JacSide))
-	 {
-		 return false;
-	 }
+     const bool check = this->MapToSide(side, InternalPar, SidePar,JacSide);
+
+#ifdef LOG4CXX
+  if(logger->isDebugEnabled())
+  {
+    std::stringstream sout;
+    sout << "side " << side << std::endl;
+    sout << "InternalPar: ";
+    for(int i = 0; i < InternalPar.NElements(); i++) sout << InternalPar[i] << "\t";
+    sout << "\n";
+    
+    sout << "SidePar: ";
+    for(int i = 0; i < SidePar.NElements(); i++) sout << SidePar[i] << "\t";
+    sout << "\n";
+
+    JacSide.Print("JacSide = ",sout);
+    LOGPZ_DEBUG(logger,sout.str())
+  }
+#endif
+
+     if(!check){
+		  return false;
+	   }
 
      NeighPar.Resize(SideDim);
      TransfBetweenNeigh(side).Apply(SidePar,NeighPar);
 
      JacNeighSide.Resize(TransfBetweenNeigh(side).Mult().Rows(),JacSide.Cols());
      TransfBetweenNeigh(side).Mult().Multiply(JacSide,JacNeighSide);
+
+#ifdef LOG4CXX
+  if(logger->isDebugEnabled())
+  {
+    std::stringstream sout;
+
+    sout << "NeighPar: ";
+    for(int i = 0; i < NeighPar.NElements(); i++) sout << NeighPar[i] << "\t";
+    sout << "\n";
+
+    JacNeighSide.Print("JacNeighSide = ",sout);
+    LOGPZ_DEBUG(logger,sout.str())
+  }
+#endif
+
 	return true;
 }
 
@@ -203,10 +237,13 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
 			{
 				std::stringstream sout;
 				sout << "byside " << byside << std::endl;
+        sout << "side of the neighbour " << Neighbour(byside).Side() << std::endl;
+        Neighbour(byside).Element()->Print(sout);
 				sout << "neighbour parameter(NeighPar) " << NeighPar << std::endl;
 				sout << "Jacobian of the map(Jneighborhood) " << Jneighbourhood << std::endl;
 				sout << "Xside " << Xside << std::endl;
 				sout << "jacobian neighbour(J1) " << J1 << std::endl;
+        Ax.Print("Ax of the neighbour (Ax) ",sout);        
 				sout << "jacobian of the neighbour multiplied by the axes(J2) " << J2 << std::endl;
 				LOGPZ_DEBUG(logger,sout.str())
 			}
