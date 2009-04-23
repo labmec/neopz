@@ -172,8 +172,8 @@ inline bool TPZGeoLinear::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<
      SidePar.Resize(SideDimension(side));
      Transf.Apply(InternalPar,SidePar);
 
-     JacToSide.Resize(1,1); JacToSide(0,0) = 0.;
-	return true;
+     JacToSide = Transf.Mult();
+	   return true;
 }
 
 };
