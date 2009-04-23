@@ -84,6 +84,6 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Util/tpzautopointer.o ../Util/tpzpermutation.o \
   ../SpecialMaps/convtest.o ../SpecialMaps/tpzarc3d.o ../SpecialMaps/tpzblendnaca.o \
   ../SpecialMaps/tpzchangeel.o ../SpecialMaps/tpzcurvedtriangle.o ../SpecialMaps/tpzellipse.o ../SpecialMaps/tpzmathtools.o \
-  ../SpecialMaps/tpzquadraticquad.o ../SpecialMaps/tpzquadratictetra.o ../SpecialMaps/tpzquadratictrig.o
+  ../SpecialMaps/tpzquadraticquad.o ../SpecialMaps/tpzquadratictetra.o ../SpecialMaps/tpzquadratictrig.o ../SpecialMaps/tpzquadraticline.o
 
 ## --| NeoPZ |------------------------------------------------------------------
