@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.56 2009-04-17 18:34:32 fortiago Exp $
+//$Id: pzgmesh.cpp,v 1.57 2009-04-23 11:32:04 fortiago Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -583,41 +583,19 @@ void TPZGeoMesh::BuildConnectivity()
 	    }
 	}
     }
-this->SetName("built");
-}
 
-void TPZGeoMesh::BuildBlendConnectivity()
-{
-  this->BuildConnectivity();
+///Build the data structure of blend elements
   int Qelem = this->NElements();
   for(int el = 0; el < Qelem; el++)
   {
     TPZGeoEl * gel = this->ElementVec()[el];
     if(!gel) continue;
-    if( !gel->IsGeoBlendEl() ) continue;
-    
-    for(int byside = gel->NNodes(); byside < (gel->NSides() - 1); byside++)
-    {
-      TPZGeoElSide ElemSide(gel,byside);
-      TPZGeoElSide NextSide(gel,byside);
-      while(NextSide.Neighbour().Element() != ElemSide.Element())
-      {
-        if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
-        {
-          TPZGeoElSide NeighSide = NextSide.Neighbour();
-          TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
-          ElemSide.SideTransform3(NeighSide,NeighTransf);
-          gel->SetNeighbourInfo(byside,NeighSide,NeighTransf);
-          break;
-        }
-        NextSide = NextSide.Neighbour();
-      }///while
-    }///for byside
-
+    gel->BuildBlendConnectivity();
   }///for el
-}///void
 
-void TPZGeoMesh::BuildConnectivity2() {
+}
+
+void TPZGeoMesh::BuildConnectivityOld() {
 
   TPZVec<int> SideNum(NNodes(),-1);
   TPZVec<TPZGeoEl *> NeighNode(NNodes(),0);
