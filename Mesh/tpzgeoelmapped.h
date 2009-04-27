@@ -16,6 +16,7 @@
 #include "pzfmatrix.h"
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
+#include "pzaxestools.h"
 class TPZGeoMesh;
 
 /**
@@ -48,6 +49,21 @@ public:
   }
   
   virtual int ClassId() const;
+
+  virtual bool IsLinearMapping() const
+  {
+    TPZGeoEl *father = (TBase::fFatherIndex == -1) ? 0 : TBase::Mesh()->ElementVec()[TBase::fFatherIndex];
+    if(father) return father->IsLinearMapping();
+    else return TBase::IsLinearMapping();
+  }
+  
+  virtual bool  IsGeoBlendEl() const
+  {
+    TPZGeoEl *father = (TBase::fFatherIndex == -1) ? 0 : TBase::Mesh()->ElementVec()[TBase::fFatherIndex];
+    if(father)  return father->IsGeoBlendEl();
+    else return TBase::IsLinearMapping();
+  }
+
   /**
    * Creates a geometric element according to the type of the father element
    */
@@ -114,24 +130,36 @@ public:
     const int dim = Geo::Dimension;
     TPZManVector<REAL,3> ksibar(father->Dimension());
 		TPZFNMatrix<dim*dim+1> jaclocal(dim,dim,0.),jacinvlocal(dim,dim,0.),jacfather(dim,dim,0.), jacinvfather(dim,dim,0.);
-    TPZFNMatrix<9> axeslocal(3,3,0.), /*axesfinal(3,3,0.),*/axesfather(3,3,0.);
+    TPZFNMatrix<9> axeslocal(3,3,0.), axesfather(3,3,0.);
     REAL detjaclocal, detjacfather;
 
     /**
     / Processing Variables (isolated)
    */
-    Geo::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);
-    axeslocal.Transpose();
+    Geo::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);    
     Geo::X(fCornerCo,coordinate,ksibar);
     father->Jacobian(ksibar,jacfather,axesfather,detjacfather,jacinvfather);
 
     /**
     / Combining Variables
    */
-    axeslocal.Multiply(axesfather,axes);
-    jaclocal.Multiply(jacfather,jac);
-    jacinvlocal.Multiply(jacinvfather,jacinv);
+    TPZFNMatrix<9> aux(dim,dim);
+
+    ///jacinv
+    axeslocal.Resize(dim,dim); ///reducing axes local to its correct dimension in this context
+    axeslocal.Multiply(jacinvfather,aux);
+    jacinvlocal.Multiply(aux,jacinv);
+
+    ///jac
+    axeslocal.Transpose();
+    axeslocal.Multiply(jaclocal,aux);
+    jacfather.Multiply(aux,jac);
+  
+    ///detjac
     detjac = detjaclocal*detjacfather;
+
+    ///axes
+    axes = axesfather;
 
   }
 
@@ -350,6 +378,29 @@ private:
         }
       }
     }
+
+  virtual TPZGeoEl *CreateBCGeoEl(int side, int bc){
+    int ns = this->NSideNodes(side);
+    TPZManVector<int> nodeindices(ns);
+    int in;
+    for(in=0; in<ns; in++)
+    {
+      nodeindices[in] = this->SideNodeIndex(side,in);
+    }
+    int index;
+    
+    TPZGeoMesh *mesh = this->Mesh();
+    MElementType type = this->Type(side);
+    
+    TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
+    TPZGeoElSide me(this,side);
+    TPZGeoElSide newelside(newel,newel->NSides()-1);
+    
+    newelside.InsertConnectivity(me);
+    newel->Initialize();
+    
+    return newel;
+  }
 
 };
 

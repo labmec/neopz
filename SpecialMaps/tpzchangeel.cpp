@@ -176,7 +176,7 @@ TPZGeoEl * TPZChangeEl::ChangeToLinear(TPZGeoMesh *Mesh, int ElemIndex)
                NodesSequence[2]  = Mesh->ElementVec()[ElemIndex]->NodeIndex(2);
 
                /** Inserting New Element in Mesh and Deleting Old Element */
-               Mesh->ElementVec().SetFree(OldElem->Index());
+               
                NewElem = new TPZGeoElRefPattern<TPZGeoTriangle> (OldElem->Id(),NodesSequence,OldElem->MaterialId(),*Mesh);
                
                TPZChangeEl::AdjustNeighbourhood(OldElem,NewElem);

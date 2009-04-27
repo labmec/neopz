@@ -90,7 +90,7 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
           TPZManVector<int> nodes(3); int i;
           for (i=0;i<3;i++) nodes[i] = orig->SideNodeIndex(side,i);
           int index;
-          TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
+          TPZGeoEl *gel = orig->Mesh()->CreateGeoBlendElement(ETriangle,nodes,bc,index);
           int iside;
           for (iside = 0; iside <6; iside++)
           {
@@ -105,7 +105,7 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
           TPZManVector<int> nodeindexes(1);
           nodeindexes[0] = orig->SideNodeIndex(side,0);
           int index;
-          TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
+          TPZGeoEl *gel = orig->Mesh()->CreateGeoBlendElement(EPoint,nodeindexes,bc,index);
           TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
           return gel;
      }
@@ -116,7 +116,7 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
           nodes[0] = orig->SideNodeIndex(side,0);
           nodes[1] = orig->SideNodeIndex(side,1);
           int index;
-          TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
+          TPZGeoEl *gel = orig->Mesh()->CreateGeoBlendElement(EOned,nodes,bc,index);
           TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::SideConnectLocId(side,0)));
           TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::SideConnectLocId(side,1)));
           TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
