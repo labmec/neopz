@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientmat.cpp,v 1.6 2009-05-06 20:07:12 fortiago Exp $
+//$Id: pztransientmat.cpp,v 1.7 2009-05-06 20:13:37 fortiago Exp $
  
 #include "pztransientmat.h"
 
@@ -198,14 +198,10 @@ template class TPZTransientMaterial< TPZNonLinearPoisson3d >;
 #include "pzburger.h"
 template class TPZTransientMaterial< TPZBurger >;
 
-#include "pzrichardsequation.h"
-template class TPZTransientMaterial< TPZRichardsEquation >;
-
 void TestInstantiations(){
   TPZTransientMaterial< TPZMatPoisson3d > A(1,1,1.);
   TPZTransientMaterial< TPZNonLinearPoisson3d > B(1,1,1.);
   TPZTransientMaterial< TPZBurger > C(1,1,1.);
-  TPZTransientMaterial< TPZRichardsEquation > D(1,1,1.);
 }
 
 

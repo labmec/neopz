@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientmat.h,v 1.6 2009-05-06 20:07:12 fortiago Exp $
+//$Id: pztransientmat.h,v 1.7 2009-05-06 20:13:37 fortiago Exp $
 
 
 #ifndef TRANSIENTMATH
@@ -20,10 +20,16 @@ class TPZTransientMaterial : public TBASEMAT {
 
   public:
   
+  /** Class constructor
+   */
   TPZTransientMaterial(int nummat, int dim, REAL TimeStep);
   
+  /** Default destructor
+   */
   ~TPZTransientMaterial();
   
+  /** Copy constructor
+   */
   TPZTransientMaterial(const TPZTransientMaterial &cp);
 
   /** Set integral scheme as an explicit Euler */
@@ -31,23 +37,31 @@ class TPZTransientMaterial : public TBASEMAT {
 
   /** Set integral scheme as an implicit Euler */
   void SetImplicit();
-
+  
+  /** See TPZMaterial class for comments
+   */
   virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix &ek,
                             TPZFMatrix &ef);
-
+  
+  /** See TPZMaterial class for comments
+   */
   virtual void ContributeBC(TPZMaterialData &data,
                              REAL weight,
                              TPZFMatrix &ek,
                              TPZFMatrix &ef,
                              TPZBndCond &bc);
-
+  
+  /** See TPZDiscontinuousGalerkin class for comments
+   */
   virtual void ContributeInterface(TPZMaterialData &data,
                                      REAL weight,
                                      TPZFMatrix &ek,
                                      TPZFMatrix &ef);
 
+  /** See TPZDiscontinuousGalerkin class for comments
+   */
   virtual void ContributeBCInterface(TPZMaterialData &data,
                                        REAL weight,
                                        TPZFMatrix &ek,

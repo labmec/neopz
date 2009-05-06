@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientanalysis.h,v 1.4 2009-05-06 20:07:01 fortiago Exp $
+//$Id: pztransientanalysis.h,v 1.5 2009-05-06 20:13:37 fortiago Exp $
 
 #ifndef TRANSIENTANALH
 #define TRANSIENTANALH
@@ -17,22 +17,35 @@ class TPZCompMesh;
 class TPZFMatrix;
 class TPZFStructMatrix;
 
+/** Implements a very simple manner to perform transient simulations
+ * It uses an implicit or explicit Euler scheme for time derivative
+ * It is associated to a TPZTransientMaterial< TRANSIENTCLASS > class
+ */
 template<class TRANSIENTCLASS>
-class TPZTransientAnalysis : public /*TPZAnalysis*/ TPZNonLinearAnalysis{
+class TPZTransientAnalysis : public TPZNonLinearAnalysis {
 
 public:
 
+  /** Static attribute storing the current time of simulation
+   */
   static double gTime;
 
   double GetgTime(){ return gTime; }
 
+  /** Class constructor
+   * @param mesh for base class
+   * @param IsLinear for optimizating the process time, linear problems have flux tangent computed only once
+   * @param out for base class
+   */
   TPZTransientAnalysis(TPZCompMesh *mesh, bool IsLinear = false, std::ostream &out = std::cout);
   
+  /** Default destructor
+   */
   ~TPZTransientAnalysis();
   
-    /**
-   *Assemble the stiffness matrix
-   **/
+  /**
+   * Assemble flux vector and jacobian matrix
+   */
   virtual void Assemble();
 
   /** 
@@ -41,19 +54,20 @@ public:
   virtual void Run(std::ostream &out = std::cout, bool FromBegining = true, bool linesearch = true);
 
   /** 
-   * Executes a Dual Time Step method for the solution of the implicit in time equation 
-   */
-  virtual void RunDualTimeStep(REAL PseudoTimeStep, std::ostream &out = std::cout, bool FromBegining = true);
-
-  /** 
    * Solves a explicit Euler's scheme in time
    */
   virtual void RunExplicit(std::ostream &out = std::cout, bool FromBegining = true);
-  
+
+  /** See base class for comments
+  */  
   virtual void PostProcess(int resolution){ TPZAnalysis::PostProcess(resolution);}
   
+  /** See base class for comments
+  */
   virtual void PostProcess(int resolution, int dimension);
   
+  /** See base class for comments
+  */
   virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
   
   /** 
@@ -78,11 +92,20 @@ public:
    */  
   void SetNewtonConvergence(int niter, REAL eps);
 
+  /** Access to time step attribute
+  */
   REAL & TimeStep();
-  
+
+  /** Set problem initial solution
+   */
   void SetInitialSolution(TPZFMatrix & InitialSol);
+
+  /** Set problem initial solution as zero
+   */
   void SetInitialSolutionAsZero();
   
+  /** Returns current iteration
+   */
   int GetCurrentIter();
     
 protected:
