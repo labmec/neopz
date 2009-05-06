@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientmat.h,v 1.5 2007-05-11 19:15:18 joao Exp $
+//$Id: pztransientmat.h,v 1.6 2009-05-06 20:07:12 fortiago Exp $
 
 
 #ifndef TRANSIENTMATH
@@ -25,24 +25,24 @@ class TPZTransientMaterial : public TBASEMAT {
   ~TPZTransientMaterial();
   
   TPZTransientMaterial(const TPZTransientMaterial &cp);
-  
+
   /** Set integral scheme as an explicit Euler */
   void SetExplicit();
-  
+
   /** Set integral scheme as an implicit Euler */
   void SetImplicit();
-  
+
   virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix &ek,
                             TPZFMatrix &ef);
-                          
+
   virtual void ContributeBC(TPZMaterialData &data,
                              REAL weight,
                              TPZFMatrix &ek,
                              TPZFMatrix &ef,
                              TPZBndCond &bc);
-  
+
   virtual void ContributeInterface(TPZMaterialData &data,
                                      REAL weight,
                                      TPZFMatrix &ek,
@@ -68,7 +68,7 @@ class TPZTransientMaterial : public TBASEMAT {
   * Set material to compute ek = Integral[phi_i phi_j, Omega]/deltaT
   */
   void SetMassMatrix();
-  
+
   /**
   * Set material to compute ef = Linear Form - Bilinear Form(u) = F -ku
   */ 
@@ -104,7 +104,7 @@ class TPZTransientMaterial : public TBASEMAT {
   
   enum ETemporalScheme{EImplicit = 1, EExplicit = 2};
   
-  static int gTemporalIntegrator;
+  ETemporalScheme fTemporalIntegrator;
   
   enum STEPS{ENone = -1, ELast = 0, ECurrent = 1, EMassMatrix = 2, EFluxOnly = 3};
   
@@ -112,32 +112,28 @@ class TPZTransientMaterial : public TBASEMAT {
   
   REAL fTimeStep;
   
-  void ContributeSolutionRhs(TPZVec<REAL> &sol, TPZFMatrix &phi, REAL weight, TPZFMatrix &ef);
+  virtual void ContributeSolutionRhs(TPZVec<REAL> &sol, TPZFMatrix &phi, REAL weight, TPZFMatrix &ef);
   
-  void ContributeTangent(TPZFMatrix &phi, REAL weight, TPZFMatrix &ek);
+  virtual void ContributeTangent(TPZVec<REAL> &sol, TPZFMatrix &phi, REAL weight, TPZFMatrix &ek);
 };
 
 template<class TBASEMAT>
 inline void TPZTransientMaterial< TBASEMAT >::SetLastState(){
-  this->SetImplicit();
   this->fStep = ELast;
 }
 
 template<class TBASEMAT>
 inline void TPZTransientMaterial< TBASEMAT >::SetCurrentState(){
-  this->SetImplicit();
   this->fStep = ECurrent;
 }
 
 template<class TBASEMAT>
 inline void TPZTransientMaterial< TBASEMAT >::SetMassMatrix(){
-  this->SetExplicit();
   this->fStep = EMassMatrix;
 }
 
 template<class TBASEMAT>
 inline void TPZTransientMaterial< TBASEMAT >::SetFluxOnly(){
-  this->SetExplicit();
   this->fStep = EFluxOnly;
 }
 
@@ -145,7 +141,7 @@ template<class TBASEMAT>
 inline void TPZTransientMaterial< TBASEMAT >::SetTimeStep(REAL TimeStep){
   this->fTimeStep = TimeStep;
 }
-  
+
 template<class TBASEMAT>
 inline REAL TPZTransientMaterial< TBASEMAT >::TimeStep(){
   return this->fTimeStep;

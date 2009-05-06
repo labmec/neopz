@@ -1,26 +1,30 @@
 // -*- c++ -*-
 
-//$Id: pztransientanalysis.h,v 1.3 2006-10-17 02:00:58 phil Exp $
+//$Id: pztransientanalysis.h,v 1.4 2009-05-06 20:07:01 fortiago Exp $
 
 #ifndef TRANSIENTANALH
 #define TRANSIENTANALH
 
 #include "pzanalysis.h"
+#include "pznonlinanalysis.h"
 #include "pzcompel.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include <iostream>
+#include <list>
 
 class TPZCompMesh;
 class TPZFMatrix;
 class TPZFStructMatrix;
 
 template<class TRANSIENTCLASS>
-class TPZTransientAnalysis : public TPZAnalysis {
+class TPZTransientAnalysis : public /*TPZAnalysis*/ TPZNonLinearAnalysis{
 
 public:
 
   static double gTime;
+
+  double GetgTime(){ return gTime; }
 
   TPZTransientAnalysis(TPZCompMesh *mesh, bool IsLinear = false, std::ostream &out = std::cout);
   
@@ -31,7 +35,19 @@ public:
    **/
   virtual void Assemble();
 
-  virtual void Run(std::ostream &out = std::cout, bool FromBegining = true);
+  /** 
+   * Executes a Newton's method for the solution of the implicit in time equation 
+   */
+  virtual void Run(std::ostream &out = std::cout, bool FromBegining = true, bool linesearch = true);
+
+  /** 
+   * Executes a Dual Time Step method for the solution of the implicit in time equation 
+   */
+  virtual void RunDualTimeStep(REAL PseudoTimeStep, std::ostream &out = std::cout, bool FromBegining = true);
+
+  /** 
+   * Solves a explicit Euler's scheme in time
+   */
   virtual void RunExplicit(std::ostream &out = std::cout, bool FromBegining = true);
   
   virtual void PostProcess(int resolution){ TPZAnalysis::PostProcess(resolution);}
@@ -47,6 +63,15 @@ public:
 
   /** Defines properties of DX file */
   void SetSaveFrequency(int SaveFrequency, int resolution);
+
+  /** Defines to save solution vector with SaveFrequency frequency.
+   * If not set, no solution is kept in the process.
+   */
+  void SetSaveSolution(int SaveFrequency);
+
+  /** Access to saved solution. Pair of (solution vec, simulation time)
+    */
+  std::list< std::pair<TPZFMatrix, REAL> > & GetSavedSolutions();
 
   /** 
    * Defines max number of steps and error convergence tolerance for Newton's method.
@@ -87,13 +112,32 @@ protected:
   int fSaveFrequency;  
   /** Resolution of DX mesh */
   int fDXResolution;
-   
+
+  /** Frequency which solution vector must be saved.
+   *  Zero (default value) means no solution vector but the current one is saved.
+   */
+  int fSaveSolutionVecFrequency;
+
+  /** Attribute to store solution vectors during process. Pair of (solution vec, simulation time)
+   * This attribute is cleaned every time Run method is called
+   */
+  std::list< std::pair< TPZFMatrix, REAL> > fSavedSolutionVec;
+
+  /** If fSaveSolutionVecFrequency != 0, save current solution vector in fSavedSolutionVec attribute. */
+  void SaveCurrentSolutionVec();
+
   /** Max iteration number of Newton's method */
   int fNewtonMaxIter;
   
   /** Tolerance of Newton's method */
   REAL fNewtonTol;
-  
+
+  /** Sel all materials in temporal scheme as an implicit Euler */
+  void SetImplicit();
+
+  /** Sel all materials in temporal scheme as an explicit Euler */
+  void SetExplicit();
+
   /** Sel all materials in LastState */
   void SetLastState();
   

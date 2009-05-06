@@ -1,19 +1,16 @@
 // -*- c++ -*-
 
-//$Id: pztransientmat.cpp,v 1.5 2007-05-11 19:15:18 joao Exp $
+//$Id: pztransientmat.cpp,v 1.6 2009-05-06 20:07:12 fortiago Exp $
  
 #include "pztransientmat.h"
 
 template<class TBASEMAT>
-int TPZTransientMaterial< TBASEMAT >::gTemporalIntegrator = EImplicit;
-
-template<class TBASEMAT>
 void TPZTransientMaterial< TBASEMAT >::SetExplicit(){
-  this->gTemporalIntegrator = EExplicit;
+  this->fTemporalIntegrator = EExplicit;
 }
 template<class TBASEMAT>
 void TPZTransientMaterial< TBASEMAT >::SetImplicit(){
-  this->gTemporalIntegrator = EImplicit;
+  this->fTemporalIntegrator = EImplicit;
 }
 
 template<class TBASEMAT>
@@ -23,6 +20,7 @@ TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(int nummat, int dim, REAL
 
 template<class TBASEMAT>
 TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(const TPZTransientMaterial &cp):TBASEMAT(cp){
+  this->fTemporalIntegrator = cp.fTemporalIntegrator;
   this->fStep = cp.fStep;
   this->fTimeStep = cp.fTimeStep;
 }
@@ -37,33 +35,34 @@ void TPZTransientMaterial< TBASEMAT >::Contribute(TPZMaterialData &data,
                                                   REAL weight,
                                                   TPZFMatrix &ek,
                                                   TPZFMatrix &ef){
- if (this->gTemporalIntegrator == EImplicit){
+
+  /// Mostly for implicit
   if (this->fStep == ECurrent){
     TBASEMAT::Contribute(data,weight,ek,ef);
     this->ContributeSolutionRhs(data.sol, data.phi, weight, ef);
-    this->ContributeTangent(data.phi, weight, ek);
+    this->ContributeTangent(data.sol, data.phi, weight, ek);
     return;
   }
-  
+
   if (this->fStep == ELast){
     this->ContributeSolutionRhs(data.sol, data.phi, weight, ef);
     return;
   }
- }//EImplicit
- 
- if (this->gTemporalIntegrator == EExplicit){
+
+  /// Mostly for explicit
   if (this->fStep == EMassMatrix){
-    this->ContributeTangent(data.phi, weight, ek);
+    this->ContributeTangent(data.sol, data.phi, weight, ek);
     return;
   }
+
   if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
     TBASEMAT::Contribute(data,weight,ek,ef);
     return;
   }
- }//EExplicit
-  
+
+
  PZError << "ERROR! " << __PRETTY_FUNCTION__ << " at LINE " << __LINE__ << std::endl;
-  
+
 }
 
 template<class TBASEMAT>
@@ -72,27 +71,30 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZMaterialData &data,
                                                     TPZFMatrix &ek,
                                                     TPZFMatrix &ef,
                                                     TPZBndCond &bc){
- if (this->gTemporalIntegrator == EImplicit){
+  /// Mostly for implicit
   if (this->fStep == ECurrent){
     TBASEMAT::ContributeBC(data,weight,ek,ef,bc);
     return;
   }
-  
+
   if (this->fStep == ELast){
     return;
   }
- }//EImplicit
 
- if (this->gTemporalIntegrator == EExplicit){
+
+  /// Mostly for explicit
   if (this->fStep == EMassMatrix){
+    TPZFNMatrix<1000> fakeef(ek.Rows(),1,0.);
+    TBASEMAT::ContributeBC(data,weight,ek,fakeef,bc);
     return;
   }
   if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
+    TPZFNMatrix<1000> fakeef(ef.Rows(),ef.Rows(),0.);
     TBASEMAT::ContributeBC(data,weight,ek,ef,bc);
     return;
   }
- }//EExplicit
-  
+
+
   PZError << "ERROR! " << __PRETTY_FUNCTION__ << " at LINE " << __LINE__ << std::endl;
 }
 
@@ -101,18 +103,18 @@ void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data
                                                            REAL weight,
                                                            TPZFMatrix &ek,
                                                            TPZFMatrix &ef){
- if (this->gTemporalIntegrator == EImplicit){
+
+  /// Mostly for implicit
   if (this->fStep == ECurrent){
     TBASEMAT::ContributeInterface(data, weight, ek, ef);
     return;
   }
-  
+
   if (this->fStep == ELast){
     return;
   }
- }//EImplicit
- 
- if (this->gTemporalIntegrator == EExplicit){
+
+  /// Mostly for explicit
   if (this->fStep == EMassMatrix){
     return;
   }
@@ -120,9 +122,10 @@ void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data
     TBASEMAT::ContributeInterface(data, weight, ek, ef);
     return;
   }
- }//EExplicit
-  
+
+
   PZError << "ERROR! " << __PRETTY_FUNCTION__ << " at LINE " << __LINE__ << std::endl;
+
 }
 
 template<class TBASEMAT>
@@ -131,18 +134,18 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &da
                                                              TPZFMatrix &ek,
                                                              TPZFMatrix &ef,
                                                              TPZBndCond &bc){
- if (this->gTemporalIntegrator == EImplicit){
+  /// Mostly for implicit
   if (this->fStep == ECurrent){
     TBASEMAT::ContributeBCInterface(data, weight,ek, ef, bc);
     return;
   }
-  
+
   if (this->fStep == ELast){
     return;
   }
- }//EImplicit
- 
- if (this->gTemporalIntegrator == EExplicit){
+
+
+  /// Mostly for explicit
   if (this->fStep == EMassMatrix){
     return;
   }
@@ -150,9 +153,10 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &da
     TBASEMAT::ContributeBCInterface(data, weight,  ek, ef, bc);
     return;
   }
- }//EExplicit
-  
+
+
   PZError << "ERROR! " << __PRETTY_FUNCTION__ << " at LINE " << __LINE__ << std::endl;
+
 }
 
 template<class TBASEMAT>
@@ -171,7 +175,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeSolutionRhs(TPZVec<REAL> &sol, 
 }//method
 
 template<class TBASEMAT>
-void TPZTransientMaterial< TBASEMAT >::ContributeTangent(TPZFMatrix &phi, REAL weight, TPZFMatrix &ek){
+void TPZTransientMaterial< TBASEMAT >::ContributeTangent(TPZVec<REAL> &sol, TPZFMatrix &phi, REAL weight, TPZFMatrix &ek){
   const int phr = phi.Rows();
   const int nstate = this->NStateVariables();
   const REAL DeltaT = this->TimeStep();
@@ -193,3 +197,15 @@ template class TPZTransientMaterial< TPZNonLinearPoisson3d >;
 
 #include "pzburger.h"
 template class TPZTransientMaterial< TPZBurger >;
+
+#include "pzrichardsequation.h"
+template class TPZTransientMaterial< TPZRichardsEquation >;
+
+void TestInstantiations(){
+  TPZTransientMaterial< TPZMatPoisson3d > A(1,1,1.);
+  TPZTransientMaterial< TPZNonLinearPoisson3d > B(1,1,1.);
+  TPZTransientMaterial< TPZBurger > C(1,1,1.);
+  TPZTransientMaterial< TPZRichardsEquation > D(1,1,1.);
+}
+
+

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientanalysis.cpp,v 1.7 2007-11-29 17:32:28 phil Exp $
+//$Id: pztransientanalysis.cpp,v 1.8 2009-05-06 20:07:01 fortiago Exp $
 
 #include "pztransientanalysis.h"
 #include "pztransientmat.h"
@@ -8,6 +8,7 @@
 #include "pzfstrmatrix.h"
 #include "pzstrmatrix.h"
 #include "pzseqsolver.h"
+#include "checkconv.h"
 
 using namespace std;
 
@@ -15,7 +16,7 @@ template<class TRANSIENTCLASS>
 double TPZTransientAnalysis<TRANSIENTCLASS>::gTime = 0.;
 
 template<class TRANSIENTCLASS>
-TPZTransientAnalysis<TRANSIENTCLASS>::TPZTransientAnalysis(TPZCompMesh *mesh, bool IsLinear, std::ostream &out):TPZAnalysis(mesh,out){
+TPZTransientAnalysis<TRANSIENTCLASS>::TPZTransientAnalysis(TPZCompMesh *mesh, bool IsLinear, std::ostream &out):/*TPZAnalysis*/TPZNonLinearAnalysis(mesh,out), fSavedSolutionVec(){
   this->fTimeStep = 0.;
   this->fCurrentIter = 0;
   this->SetConvergence(0, 0.);
@@ -23,11 +24,12 @@ TPZTransientAnalysis<TRANSIENTCLASS>::TPZTransientAnalysis(TPZCompMesh *mesh, bo
   this->SetInitialSolutionAsZero();
   this->fIsLinearProblem = IsLinear;
   this->SetSaveFrequency(0,0);
+  this->fSaveSolutionVecFrequency = 0; 
 }
 
 template<class TRANSIENTCLASS>
 TPZTransientAnalysis<TRANSIENTCLASS>::~TPZTransientAnalysis(){
-
+  fSavedSolutionVec.clear();
 }
 
 template<class TRANSIENTCLASS>
@@ -50,9 +52,26 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetInitialSolutionAsZero(){
 }
 
 template<class TRANSIENTCLASS>
-void TPZTransientAnalysis<TRANSIENTCLASS>::Run(std::ostream &out, bool FromBegining){
+void TPZTransientAnalysis<TRANSIENTCLASS>::Run(std::ostream &out, bool FromBegining, bool linesearch){
 
-  if (FromBegining) this->fCurrentIter = 0;
+  this->SetImplicit();
+
+  if (FromBegining){
+    this->fCurrentIter = 0;
+    this->fSavedSolutionVec.clear();
+  }
+
+  {
+  TPZVec<REAL> coefs(1,1.);
+  TPZFMatrix cpSol(fSolution);
+  TPZFMatrix range(fCompMesh->NEquations(),1,1.);
+  this->SetLastState();
+  CheckConvergence(*this,cpSol,range,coefs);
+  this->SetCurrentState();
+  CheckConvergence(*this,cpSol,range,coefs);
+  }
+
+  this->LoadSolution(fSolution);
   
   TPZTransientAnalysis::gTime =this->GetCurrentIter() * this->TimeStep();
 //   this->PostProcess(this->fDXResolution);
@@ -85,12 +104,34 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::Run(std::ostream &out, bool FromBegin
       fSolution.Redim(0,0);
       this->Assemble();
       this->fRhs += laststate;
+
+/*    for(int i = 0; i < this->Solver().Matrix()->Rows(); i++)
+      for(int j = 0; j < this->Solver().Matrix()->Cols(); j++)
+        this->Solver().Matrix()->operator ( )(i,j) *= 1e6;
+    this->Rhs().operator*=( 1e6 );*/
+
+    /*{ofstream file("new.nb");
+    this->Solver().Matrix()->Print("rigidezNew = ", file, EMathematicaInput);
+    this->Rhs().Print("rhsNew = ", file);
+    file.flush();}*/
+
       this->Solve();
 
-      REAL norm = Norm(fSolution);
+      if (linesearch){
+        TPZFMatrix nextSol;
+        REAL LineSearchTol = 1e-3 * Norm(fSolution);
+        const int niter = 100;
+        this->LineSearch(prevsol, fSolution, nextSol, LineSearchTol, niter);
+        fSolution = nextSol;
+      }
+      else{
+        fSolution += prevsol;
+      }
+
+      prevsol -= fSolution;
+      REAL norm = Norm(prevsol);
       out << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << std::endl;
 
-      fSolution += prevsol;
       prevsol = fSolution;
       TPZAnalysis::LoadSolution();
 
@@ -105,6 +146,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::Run(std::ostream &out, bool FromBegin
       this->PostProcess(this->fDXResolution);
     }
    }
+   this->SaveCurrentSolutionVec();
    
    prevsol -= lastsol;
    REAL steadynorm = Norm(prevsol);
@@ -124,6 +166,34 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::Run(std::ostream &out, bool FromBegin
 
   
 }//method
+
+template<class TRANSIENTCLASS>
+void TPZTransientAnalysis<TRANSIENTCLASS>::SetImplicit(){
+  TPZCompMesh * mesh = this->Mesh();
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+  for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
+  {
+    if(!matit->second) continue;
+    TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second.operator->());
+    if (trans){
+      trans->SetImplicit();
+    }
+  }
+}
+
+template<class TRANSIENTCLASS>
+void TPZTransientAnalysis<TRANSIENTCLASS>::SetExplicit(){
+  TPZCompMesh * mesh = this->Mesh();
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+  for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
+  {
+    if(!matit->second) continue;
+    TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second.operator->());
+    if (trans){
+      trans->SetExplicit();
+    }
+  }
+}
 
 template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::SetLastState(){
@@ -301,35 +371,48 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeFluxOnly(){
 template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::RunExplicit(std::ostream &out, bool FromBegining){
 
-  if (FromBegining) this->fCurrentIter = 0;
+  this->SetExplicit();
+
+  if (FromBegining){
+    this->fCurrentIter = 0;
+    this->fSavedSolutionVec.clear();
+  }
   TPZTransientAnalysis::gTime = this->TimeStep() * this->fCurrentIter;
   this->PostProcess(this->fDXResolution);
-  
+
   this->SetAllMaterialsDeltaT();
-  
-  this->ComputeMassMatrix();
 
   TPZFMatrix prevsol;
   for( this->fCurrentIter++ ; this->fCurrentIter < this->fNIter; this->fCurrentIter++){
-  
+
+    this->ComputeMassMatrix();
+
     TPZTransientAnalysis::gTime = this->TimeStep() * this->fCurrentIter;
 
     this->SetFluxOnly();
-    
+
     //Computing residual of last state solution
     prevsol = fSolution;
     TPZAnalysis::LoadSolution();
     this->ComputeFluxOnly();
+
+    /*{ofstream file("new.txt");
+    this->Solver().Matrix()->Print("rigidezNew = ", file);
+    this->Rhs().Print("rhsNew = ", file);
+    file.flush();}
+    exit(-1);*/
+
     this->Solve();
     //now fSolution = deltaSol
     fSolution += prevsol;
     
-    this->LoadSolution();
+    TPZAnalysis::LoadSolution();
     if (this->fSaveFrequency){
       if (!(this->fCurrentIter % fSaveFrequency)){
         this->PostProcess(this->fDXResolution);
       }
     }
+    this->SaveCurrentSolutionVec();
    
     prevsol -= fSolution;
     REAL steadynorm = Norm(prevsol);
@@ -347,7 +430,263 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::RunExplicit(std::ostream &out, bool F
   
 }//method
 
-//instantiations
+template<class TRANSIENTCLASS>
+void TPZTransientAnalysis<TRANSIENTCLASS>::SetSaveSolution(int SaveFrequency){
+  this->fSaveSolutionVecFrequency = SaveFrequency;
+}
+
+template<class TRANSIENTCLASS>
+std::list< std::pair<TPZFMatrix, REAL> > & TPZTransientAnalysis<TRANSIENTCLASS>::GetSavedSolutions(){
+  return this->fSavedSolutionVec;
+}
+
+#include <sstream>
+template<class TRANSIENTCLASS>
+void TPZTransientAnalysis<TRANSIENTCLASS>::SaveCurrentSolutionVec(){
+  if(!this->fSaveSolutionVecFrequency) return;
+  if(this->fCurrentIter % this->fSaveSolutionVecFrequency == 0){
+    std::pair< TPZFMatrix, REAL > mypair;
+    mypair.first = this->Solution();
+    mypair.second = TPZTransientAnalysis::gTime;
+    this->fSavedSolutionVec.push_back(mypair);
+
+   ofstream file("currentsol.txt");
+   stringstream mess; mess << "sol( " << TPZTransientAnalysis::gTime << " ) = ";
+   this->Solution().Print(mess.str().c_str(), file);
+
+  }
+}
+
+#include "pztransrichardsmat.h"
+
+template<class TRANSIENTCLASS>
+void TPZTransientAnalysis<TRANSIENTCLASS>::RunDualTimeStep(REAL PseudoTimeStep, std::ostream &out, bool FromBegining){
+
+  this->SetImplicit();
+
+  if (FromBegining){
+    this->fCurrentIter = 0;
+    this->fSavedSolutionVec.clear();
+  }
+
+  this->LoadSolution(fSolution);
+
+  TPZTransientAnalysis::gTime =this->GetCurrentIter() * this->TimeStep();
+//   this->PostProcess(this->fDXResolution);
+
+  const REAL TimeStep = this->TimeStep();
+  this->SetAllMaterialsDeltaT();
+
+  /// Auxiliar vectors. They store multiplier coefficients
+  TPZFMatrix ActualUn, ActualUnPlus, DTSUn, DTSUnPlus;
+
+  /// Auxiliar vector. It stores integral values
+  TPZFMatrix laststateRes, /*IntegDTSUn,*/ Residual;
+
+  for( ; this->fCurrentIter < this->fNIter ; ){
+
+    this->TimeStep() = TimeStep;
+    this->SetAllMaterialsDeltaT();
+
+    /// Storing last actual solution
+    ActualUn = this->fSolution;
+
+    this->fCurrentIter++;
+    TPZTransientAnalysis::gTime = this->TimeStep() * this->fCurrentIter;
+
+    /// Computing residual of last state solution
+    this->SetLastState();
+    this->Assemble();
+    laststateRes = this->fRhs;
+
+    /// Dual Time Step
+    DTSUn = ActualUn;
+    DTSUnPlus = ActualUn;
+    REAL error = this->fNewtonTol * 2. + 1.;
+    int iter = 0;
+    while(error > this->fNewtonTol && iter < this->fNewtonMaxIter) {
+
+      /// Computing residual
+      this->TimeStep() = TimeStep;
+      this->SetAllMaterialsDeltaT();
+      this->SetCurrentState();
+      fSolution.Redim(0,0);
+      this->Assemble();
+      this->fRhs += laststateRes;
+      Residual = this->fRhs;
+
+      /// Integrating dual time step vector DTSUn
+      this->TimeStep() = PseudoTimeStep;
+      this->SetAllMaterialsDeltaT();
+
+/*      this->fSolution = DTSUn;
+      TPZAnalysis::LoadSolution();
+      this->SetLastState();
+      this->fRhs.Zero();
+      this->Assemble();
+      IntegDTSUn = this->fRhs;
+*/
+      /// Now, we perform DTSUnPlus/PseudoTimeStep = DTSUn/PseudoTimeStep + Residual
+        /// DTSUnPlus matrix
+      TPZTransientRichardsMaterial::gPureMassMatrix = true;
+      this->SetMassMatrix();
+      this->fSolver->Matrix()->Zero();      
+      this->Assemble();
+      TPZTransientRichardsMaterial::gPureMassMatrix = false;
+
+        /// Computing DTSUnPlus
+      this->fRhs = Residual;
+      this->Solve();
+      DTSUnPlus = this->fSolution;
+      DTSUnPlus += DTSUn;
+
+      /// Updating values
+      this->fSolution = DTSUnPlus;
+      TPZAnalysis::LoadSolution();
+
+      /// checking DTS convergence
+      DTSUn -= DTSUnPlus;
+      REAL norm = Norm(DTSUn);
+      REAL normRes = Norm(Residual);
+      out << "\tIteracao n : " << (iter+1) << " : norma de delta U |deltaU|: " << norm 
+          << " Norma do Rhs: " << normRes << std::endl;
+      error = norm;
+      iter++;
+
+      /// Updating values
+      DTSUn = DTSUnPlus;
+
+   }///DualTimeStep iterations
+
+   /// Getting DTS result
+   ActualUnPlus = this->fSolution;
+
+   /// Saving results
+   if (this->fSaveFrequency){
+    if (!(this->fCurrentIter % fSaveFrequency)){
+      this->PostProcess(this->fDXResolution);
+    }
+   }
+   this->SaveCurrentSolutionVec();
+
+   /// Checking steady state convergence
+   ActualUn -= ActualUnPlus;
+   REAL steadynorm = Norm(ActualUn);
+   std::cout << "*********** Steady state error at iteration " << this->fCurrentIter << " = " << steadynorm << "\n\n";
+   if (!fForceAllSteps){
+    if (steadynorm < this->fSteadyTol){
+      std::cout << "Steady state solution achieved\n\n";
+      this->fNIter = fCurrentIter;
+      break;
+    }
+   }
+   std::cout.flush();
+
+
+  }/// time iterations
+
+}/// method
+
+/*
+template<class TRANSIENTCLASS>
+void TPZTransientAnalysis<TRANSIENTCLASS>::RunDualTimeStep(REAL PseudoTimeStep, std::ostream &out, bool FromBegining){
+
+  this->SetImplicit();
+
+  if (FromBegining){
+    this->fCurrentIter = 0;
+    this->fSavedSolutionVec.clear();
+  }
+
+  this->LoadSolution(fSolution);
+
+  TPZTransientAnalysis::gTime =this->GetCurrentIter() * this->TimeStep();
+//   this->PostProcess(this->fDXResolution);
+
+  this->SetAllMaterialsDeltaT();
+
+  /// Auxiliar vectors. They store multiplier coefficients
+  TPZFMatrix ActualUn, ActualUnPlus, DTSUn, DTSUnPlus;
+
+  /// Auxiliar vector. It stores integral values
+  TPZFMatrix laststateRes, Residual;
+
+  for( ; this->fCurrentIter < this->fNIter ; ){
+
+    /// Storing last actual solution
+    ActualUn = this->fSolution;
+
+    this->fCurrentIter++;
+    TPZTransientAnalysis::gTime = this->TimeStep() * this->fCurrentIter;
+
+    /// Computing residual of last state solution
+    this->SetLastState();
+    this->Assemble();
+    laststateRes = this->fRhs;
+
+    /// Dual Time Step
+    DTSUn = ActualUn;
+    DTSUnPlus = ActualUn;
+    REAL error = this->fNewtonTol * 2. + 1.;
+    int iter = 0;
+    while(error > this->fNewtonTol && iter < this->fNewtonMaxIter) {
+
+      /// Computing residual
+      this->SetCurrentState();
+      fSolution.Redim(0,0);
+      this->Assemble();
+      this->fRhs += laststateRes;
+      Residual = this->fRhs;
+
+      /// Now, we perform DTSUnPlus = DTSUn - PseudoTimeStep * Residual
+      DTSUnPlus = Residual;
+      DTSUnPlus *= -1.;
+      DTSUnPlus *= PseudoTimeStep;
+      DTSUnPlus += DTSUn;
+
+      /// Updating values
+      this->fSolution = DTSUnPlus;
+      TPZAnalysis::LoadSolution();
+      DTSUn = DTSUnPlus;
+
+      /// checking DTS convergence
+      REAL norm = Norm(this->fRhs);
+      out << "\tIteracao n : " << (iter+1) << " : norma do residuo |RHS|: " << norm << std::endl;
+      error = norm;
+      iter++;
+
+   }///DualTimeStep iterations
+
+   /// Getting DTS result
+   ActualUnPlus = this->fSolution;
+
+   /// Saving results
+   if (this->fSaveFrequency){
+    if (!(this->fCurrentIter % fSaveFrequency)){
+      this->PostProcess(this->fDXResolution);
+    }
+   }
+   this->SaveCurrentSolutionVec();
+
+   /// Checking steady state convergence
+   ActualUn -= ActualUnPlus;
+   REAL steadynorm = Norm(ActualUn);
+   std::cout << "*********** Steady state error at iteration " << this->fCurrentIter << " = " << steadynorm << "\n\n";
+   if (!fForceAllSteps){
+    if (steadynorm < this->fSteadyTol){
+      std::cout << "Steady state solution achieved\n\n";
+      this->fNIter = fCurrentIter;
+      break;
+    }
+   }
+   std::cout.flush();
+
+
+  }/// time iterations
+
+}/// method
+*/
+///instantiations
 #include "pzpoisson3d.h"
 template class TPZTransientAnalysis< TPZMatPoisson3d >;
 
@@ -357,3 +696,5 @@ template class TPZTransientAnalysis< TPZNonLinearPoisson3d >;
 #include "pzburger.h"
 template class TPZTransientAnalysis< TPZBurger >;
 
+#include "pzrichardsequation.h"
+template class TPZTransientAnalysis< TPZRichardsEquation >;
