@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientanalysis.h,v 1.5 2009-05-06 20:13:37 fortiago Exp $
+//$Id: pztransientanalysis.h,v 1.6 2009-05-06 20:22:17 fortiago Exp $
 
 #ifndef TRANSIENTANALH
 #define TRANSIENTANALH
@@ -30,6 +30,8 @@ public:
    */
   static double gTime;
 
+  /** Method for gTime attribute access
+   */
   double GetgTime(){ return gTime; }
 
   /** Class constructor

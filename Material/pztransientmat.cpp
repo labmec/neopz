@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientmat.cpp,v 1.7 2009-05-06 20:13:37 fortiago Exp $
+//$Id: pztransientmat.cpp,v 1.8 2009-05-06 20:22:18 fortiago Exp $
  
 #include "pztransientmat.h"
 
@@ -27,7 +27,7 @@ TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(const TPZTransientMateria
 
 template<class TBASEMAT>
 TPZTransientMaterial< TBASEMAT >::~TPZTransientMaterial(){
-  //NOTHING TO BE DONE
+  ///NOTHING TO BE DONE
 }
 
 template<class TBASEMAT>
@@ -55,7 +55,7 @@ void TPZTransientMaterial< TBASEMAT >::Contribute(TPZMaterialData &data,
     return;
   }
 
-  if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
+  if (this->fStep == EFluxOnly){ ///Calcula ef = F-ku
     TBASEMAT::Contribute(data,weight,ek,ef);
     return;
   }
@@ -88,7 +88,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZMaterialData &data,
     TBASEMAT::ContributeBC(data,weight,ek,fakeef,bc);
     return;
   }
-  if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
+  if (this->fStep == EFluxOnly){ ///Calcula ef = F-ku
     TPZFNMatrix<1000> fakeef(ef.Rows(),ef.Rows(),0.);
     TBASEMAT::ContributeBC(data,weight,ek,ef,bc);
     return;
@@ -118,7 +118,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data
   if (this->fStep == EMassMatrix){
     return;
   }
-  if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
+  if (this->fStep == EFluxOnly){ ///Calcula ef = F-ku
     TBASEMAT::ContributeInterface(data, weight, ek, ef);
     return;
   }
@@ -149,7 +149,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &da
   if (this->fStep == EMassMatrix){
     return;
   }
-  if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
+  if (this->fStep == EFluxOnly){ ///Calcula ef = F-ku
     TBASEMAT::ContributeBCInterface(data, weight,  ek, ef, bc);
     return;
   }
@@ -161,8 +161,8 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &da
 
 template<class TBASEMAT>
 void TPZTransientMaterial< TBASEMAT >::ContributeSolutionRhs(TPZVec<REAL> &sol, TPZFMatrix &phi, REAL weight, TPZFMatrix &ef){
-  REAL Mult = +1.; //Last solution is added to residual
-  if (this->fStep == ECurrent) Mult = -1.; //Current solution is subtracted from residual
+  REAL Mult = +1.; ///Last solution is added to residual
+  if (this->fStep == ECurrent) Mult = -1.; ///Current solution is subtracted from residual
   const int phr = phi.Rows();
   const int nstate = this->NStateVariables();
   const REAL DeltaT = this->TimeStep();
@@ -170,9 +170,9 @@ void TPZTransientMaterial< TBASEMAT >::ContributeSolutionRhs(TPZVec<REAL> &sol, 
   for(i = 0; i < phr; i++) {
     for(k = 0; k < nstate; k++){
       ef(i*nstate+k, 0) += Mult * weight * sol[k] * phi(i,0) / DeltaT;
-    }//k
-  }//i
-}//method
+    }///k
+  }///i
+}///method
 
 template<class TBASEMAT>
 void TPZTransientMaterial< TBASEMAT >::ContributeTangent(TPZVec<REAL> &sol, TPZFMatrix &phi, REAL weight, TPZFMatrix &ek){
@@ -184,10 +184,10 @@ void TPZTransientMaterial< TBASEMAT >::ContributeTangent(TPZVec<REAL> &sol, TPZF
     for(j = 0; j < phr; j++){
       for(k = 0; k < nstate; k++){
         ek(i*nstate+k, j*nstate+k) += weight * phi(i,0) * phi(j,0) / DeltaT;
-      }//k
-    }//j
-  }//i
-}//method
+      }///k
+    }///j
+  }///i
+}///method
 
 #include "pzpoisson3d.h"
 template class TPZTransientMaterial< TPZMatPoisson3d >;
