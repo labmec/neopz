@@ -271,7 +271,8 @@ void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,T
   
  
   int i,j,k,nshape = 0,num=degree+1, counter=0;
-  for(i=0;i<num;i++) nshape += (i+1)*(i+2)/2;
+  //for(i=0;i<num;i++) nshape += (i+1)*(i+2)/2;
+  nshape = NShapeF(degree,3,type);
 //  int count=num,ind=0;
   phi.Redim(nshape,1);
   dphi.Redim(3,nshape);
