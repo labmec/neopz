@@ -78,7 +78,7 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 			int nnod = fNodeMap.NElements(),i;
 			for(i=0;i<nnod;i++) {
 				TPZGraphNode *node = &fNodeMap[i];
-				if(node) node->DrawSolution(scalind, EVTKStyle);
+				if(node) node->DrawSolution(scalind[n], EVTKStyle);
 			}
 			(fOutFile) << std::endl;
 		}
@@ -114,7 +114,7 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 			int nnod = fNodeMap.NElements(), i;
 			for(i=0;i<nnod;i++) {
 				TPZGraphNode *n = &fNodeMap[i];
-				if(n) n->DrawSolution(vecind, EVTKStyle);
+				if(n) n->DrawSolution(vecind[n], EVTKStyle);
 			}
 			(fOutFile) << std::endl;
 		}
