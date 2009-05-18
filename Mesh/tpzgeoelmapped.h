@@ -87,6 +87,38 @@ public:
       nextfather = father->Father();
     }
     int in, nnodes = Geo::NNodes;
+    TPZManVector<REAL,3> nodeX(3);
+    TPZManVector<REAL,3> ptancestor(Geo::Dimension);
+    for(in=0; in<nnodes; in++)
+    {
+      for(int id = 0; id < 3; id++){
+        nodeX[id] = this->NodePtr(in)->Coord(id);
+      }
+      ptancestor.Fill(0.);
+      father->ComputeXInverse(nodeX, ptancestor);
+#ifdef DEBUG
+{
+      TPZManVector<REAL,3> fatherX(3);
+      father->X(ptancestor,fatherX);
+      double error = 0.;
+      double diff;
+      for(int i = 0; i < 3; i++){
+        diff = fatherX[i]-nodeX[i];
+        error += diff*diff;
+      }
+      error = sqrt(error);
+      if(error > 1e-5){
+        std::cout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
+        DebugStop();
+      }
+}
+#endif
+      for(int id=0; id<Geo::Dimension; id++)
+      {
+        fCornerCo(id,in) = ptancestor[id];
+      }
+    }
+/*  Pira 18 maio 2009: abaixo nao funciona para mapeamento nao-linear (nem bilinear)
     for(in=0; in<nnodes; in++)
     {
       TPZTransform tr = Geo::SideToSideTransform(in,Geo::NSides-1);
@@ -104,7 +136,7 @@ public:
       {
         fCornerCo(id,in) = ptancestor[id];
       }
-    }
+    }*/
     
   }
 
