@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.48 2009-04-06 18:59:09 phil Exp $
+//$Id: pzanalysis.cpp,v 1.49 2009-05-23 02:19:07 erick Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -435,6 +435,7 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
   fGraphMesh[dim1]->DrawSolution(fStep,fTime);
 //   delete fGraphMesh[dim1];
 //   fGraphMesh[dim1] = 0;
+  fStep++;
 }
 
 void TPZAnalysis::AnimateRun(int num_iter, int steps,
