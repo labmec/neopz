@@ -9,12 +9,6 @@ TPZGraphEl1d::TPZGraphEl1d(TPZCompEl *ce, TPZGraphMesh *gg) : TPZGraphEl(ce,gg,f
 {
 }
 
-
-int TPZGraphEl1d::NNodes(){
-	return 3;
-}
-
-
 int TPZGraphEl1d::NPoints(TPZGraphNode *n)
 {
 	int in = ConnectNum(n);
@@ -172,12 +166,30 @@ void TPZGraphEl1d::Print(ostream &out) {
 	out << "TPZGraphEl1d element id = " << fId << endl;
 	out << "Node numbers : ";
    int i;
-	for(i=0; i<NNodes(); i++) {
+	for(i=0; i<NConnects(); i++) {
 		out << fConnects[i]->SequenceNumber() << " ";
 	}
 	out << endl << "First Equation : ";
-	for(i=0; i<NNodes(); i++) {
+	for(i=0; i<NConnects(); i++) {
 		out << fConnects[i]->FirstPoint() << " ";
 	}
 	out << endl;
 }
+
+int TPZGraphEl1d::ExportType(TPZDrawStyle st){
+	switch(st)
+	{
+	case(EVTKStyle):
+		return 1;
+		break;
+	default:
+		return -1;
+	}
+}
+
+int TPZGraphEl1d::NNodes()
+{
+	return 2;	
+}
+
+

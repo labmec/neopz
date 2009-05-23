@@ -13,7 +13,11 @@ TPZGraphElT(TPZCompEl *c, TPZGraphMesh *g);
 
 virtual int NConnects();
 
- virtual MElementType Type() {return ETriangle;}
+virtual MElementType Type() {return ETriangle;}
+	
+virtual int ExportType(TPZDrawStyle st);
+
+virtual int NNodes();
 
 virtual int NElements();
 

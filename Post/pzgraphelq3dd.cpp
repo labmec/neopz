@@ -111,3 +111,18 @@ void TPZGraphElQ3dd::SetNode(int i,TPZGraphNode *gno) {
 	fConnect = gno;
 }
 
+int TPZGraphElQ3dd::ExportType(TPZDrawStyle st){
+	switch(st)
+	{
+	case(EVTKStyle):
+		return 12;//vtk_hexahedron
+		break;
+	default:
+		return -1;
+	}
+}
+
+int TPZGraphElQ3dd::NNodes()
+{
+	return 8;	
+}

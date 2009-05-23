@@ -22,6 +22,10 @@ public:
 	virtual int NConnects(){ return 1;}
 
 	virtual MElementType Type(){return ECube;}
+	
+	virtual int ExportType(TPZDrawStyle st);
+	
+	virtual int NNodes();
 
 	virtual TPZGraphNode *Connect(int i);
 

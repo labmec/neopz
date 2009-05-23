@@ -29,6 +29,10 @@ public:
   int Id() {return fId;}
 
   virtual MElementType Type() = 0;
+	
+  virtual int ExportType(TPZDrawStyle st) = 0;
+	
+  virtual int NNodes() = 0;
 
   virtual TPZGraphNode *Connect(int con) = 0;
 

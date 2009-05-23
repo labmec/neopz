@@ -14,8 +14,6 @@ class TPZGraphEl1dd : public TPZGraphEl
 public:
 	TPZGraphEl1dd(TPZCompEl *ce, TPZGraphMesh *gg);
 
-virtual int NNodes();
-
 virtual int NPoints(TPZGraphNode *n);
 
 virtual int NElements();
@@ -26,6 +24,10 @@ void Print(std::ostream &out);
 
 virtual long EqNum(TPZVec<int> &co);
 
+virtual int ExportType(TPZDrawStyle st);
+	
+virtual int NNodes();
+	
 
 protected:
 
@@ -44,6 +46,7 @@ virtual void NextIJ(int no, TPZVec<int> &co, int incr);
 /** Jorge 8/6/2001 */
 	int NConnects() { return 1; }
 	MElementType Type() {return EOned;}
+	
 	TPZGraphNode *Connect(int i) {return fConnect;}
 
 };

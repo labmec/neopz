@@ -84,3 +84,18 @@ void TPZGraphElTd::NextIJ(int no,TPZVec<int> &co, int /*incr*/){
 	}
 }
 
+int TPZGraphElTd::ExportType(TPZDrawStyle st){
+	switch(st)
+	{
+	case(EVTKStyle):
+		return 5;//vtk_triangle
+		break;
+	default:
+		return -1;
+	}
+}
+
+int TPZGraphElTd::NNodes()
+{
+	return 3;
+}

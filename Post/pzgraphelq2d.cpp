@@ -408,3 +408,20 @@ void TPZGraphElQ2d::Connectivity(TPZDrawStyle st){
 void TPZGraphElQ2d::SetNode(int i,TPZGraphNode *gno) {
 	fConnects[i] = gno;
 }
+
+
+int TPZGraphElQ2d::ExportType(TPZDrawStyle st){
+	switch(st)
+	{
+	case(EVTKStyle):
+		return 9;//vtk quad
+		break;
+	default:
+		return -1;
+	}
+}
+
+int TPZGraphElQ2d::NNodes()
+{
+	return 4;
+}

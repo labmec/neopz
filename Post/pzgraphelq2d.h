@@ -14,7 +14,11 @@ public:
   virtual int NConnects(){ return 9;}
 
   virtual MElementType Type() { return EQuadrilateral;}
-
+	
+  virtual int ExportType(TPZDrawStyle st);
+	
+  virtual int NNodes();
+	
   virtual TPZGraphNode *Connect(int i);
 
   virtual int NPoints(TPZGraphNode *n);

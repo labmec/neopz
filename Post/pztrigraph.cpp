@@ -222,3 +222,20 @@ void TPZGraphElT::NextIJ(int no, TPZVec<int> &co, int incr){
 	}
 }
 
+
+int TPZGraphElT::ExportType(TPZDrawStyle st){
+	switch(st)
+	{
+	case(EVTKStyle):
+		return 5;//vtk_triangle
+		break;
+	default:
+		return -1;
+	}
+}
+
+
+int TPZGraphElT::NNodes()
+{
+	return 3;
+}

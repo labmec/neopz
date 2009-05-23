@@ -16,11 +16,13 @@ public:
 
 virtual int NConnects() { return 3;}
 
- virtual MElementType Type() {return EOned;}
+virtual MElementType Type() {return EOned;}
 
-virtual TPZGraphNode *Connect(int i) {return fConnects[i];}
+virtual int ExportType(TPZDrawStyle st);
 
 virtual int NNodes();
+
+virtual TPZGraphNode *Connect(int i) {return fConnects[i];}
 
 virtual int NPoints(TPZGraphNode *n);
 

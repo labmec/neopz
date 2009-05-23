@@ -13,7 +13,11 @@ virtual ~TPZGraphElQ2dd(void);
 
 virtual int NConnects(){ return 1;}
 
- virtual MElementType Type(){return EQuadrilateral;}
+virtual MElementType Type(){return EQuadrilateral;}
+
+virtual int ExportType(TPZDrawStyle st);
+
+virtual int NNodes();
 
 virtual TPZGraphNode *Connect(int i);
 

@@ -8,12 +8,6 @@ TPZGraphEl1dd::TPZGraphEl1dd(TPZCompEl *ce, TPZGraphMesh *gg) : TPZGraphEl(ce,gg
 {
 }
 
-
-int TPZGraphEl1dd::NNodes(){
-	return 1;
-}
-
-
 int TPZGraphEl1dd::NPoints(TPZGraphNode *n)
 {
 	int res = fGraphMesh->Res();
@@ -67,4 +61,20 @@ void TPZGraphEl1dd::Print(ostream &out) {
 	out << endl << "First Equation : ";
 	out << fConnect->FirstPoint() << " ";
 	out << endl;
+}
+
+int TPZGraphEl1dd::ExportType(TPZDrawStyle st){
+	switch(st)
+	{
+	case(EVTKStyle):
+		return 1;
+		break;
+	default:
+		return -1;
+	}
+}
+
+int TPZGraphEl1dd::NNodes()
+{
+	return 2;
 }
