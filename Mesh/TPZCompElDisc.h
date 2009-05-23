@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.72 2009-04-17 18:34:59 fortiago Exp $
+//$Id: TPZCompElDisc.h,v 1.73 2009-05-23 03:16:18 erick Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -409,7 +409,9 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
 };
 
 inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index) {
-  return new TPZCompElDisc(mesh,geo,index);
+  if(!geo->Reference() && geo->NumInterfaces() == 0)
+    return new TPZCompElDisc(mesh,geo,index);
+  return NULL;
 }
 //Exemplo do quadril�ero:
 //acessar com -> TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);

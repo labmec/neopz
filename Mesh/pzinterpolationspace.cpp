@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.33 2009-04-21 01:37:56 erick Exp $
+//$Id: pzinterpolationspace.cpp,v 1.34 2009-05-23 03:16:18 erick Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -609,7 +609,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 
     if (BetweenContinuous == false){
       //It means at least one element must be discontinuous
-      if (!thisdisc && !neighdisc){
+      if (!thisdisc  && neighdisc){
         return NULL;
       }
     }

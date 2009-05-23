@@ -70,28 +70,44 @@ using namespace pztopology;
 #endif
 
 TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZShapePoint>(mesh,gel,index);
+  if(!gel->Reference() && gel->NumInterfaces() == 0)
+  	return new TPZIntelGen<TPZShapePoint>(mesh,gel,index);
+  return NULL;
 }
 TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZShapeLinear>(mesh,gel,index);
+  if(!gel->Reference() && gel->NumInterfaces() == 0)
+  	return new TPZIntelGen<TPZShapeLinear>(mesh,gel,index);
+  return NULL;
 }
 TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZShapeQuad>(mesh,gel,index);
+  if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZIntelGen<TPZShapeQuad>(mesh,gel,index);
+  return NULL;
 }
 TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZShapeTriang>(mesh,gel,index);
+  if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZIntelGen<TPZShapeTriang>(mesh,gel,index);
+  return NULL;
 }
 TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZShapeCube>(mesh,gel,index);
+  if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZIntelGen<TPZShapeCube>(mesh,gel,index);
+  return NULL;
 }
 TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZShapePrism>(mesh,gel,index);
+  if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZIntelGen<TPZShapePrism>(mesh,gel,index);
+  return NULL;
 }
 TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZShapePiram>(mesh,gel,index);
+  if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZIntelGen<TPZShapePiram>(mesh,gel,index);
+  return NULL;
 }
 TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  return new TPZIntelGen<TPZShapeTetra>(mesh,gel,index);
+  if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZIntelGen<TPZShapeTetra>(mesh,gel,index);
+  return NULL;
 }
 
 

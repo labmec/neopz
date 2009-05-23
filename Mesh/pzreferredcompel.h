@@ -1,4 +1,4 @@
-//$Id: pzreferredcompel.h,v 1.9 2007-10-26 13:18:59 tiago Exp $
+//$Id: pzreferredcompel.h,v 1.10 2009-05-23 03:16:18 erick Exp $
 
 // -*- c++ -*-
 #ifndef PZSPECIAL
@@ -13,6 +13,9 @@ class TPZCompMesh;
 class TPZFMatrix;
 #include "pzvec.h"
 #include "pzmanvector.h"
+#include <map>
+#include <set>
+
 
 template<class TCOMPEL>
 class TPZReferredCompEl : public TCOMPEL {
@@ -20,6 +23,15 @@ class TPZReferredCompEl : public TCOMPEL {
 
    /** Class constructor */
    TPZReferredCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
+	
+   TPZReferredCompEl();
+	   
+   TPZReferredCompEl(TPZCompMesh &mesh, const TPZReferredCompEl<TCOMPEL> &copy);
+	
+	TPZReferredCompEl(TPZCompMesh &mesh,
+                      const TPZReferredCompEl<TCOMPEL> &copy,
+                      std::map<int,int> & gl2lcConMap,
+                      std::map<int,int> & gl2lcElMap);
 
   /** Class destructor */
   ~TPZReferredCompEl();

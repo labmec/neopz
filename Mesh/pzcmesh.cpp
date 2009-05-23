@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.74 2008-11-20 23:29:05 phil Exp $
+//$Id: pzcmesh.cpp,v 1.75 2009-05-23 03:16:18 erick Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -224,9 +224,8 @@ void TPZCompMesh::AutoBuild() {
 	      gel->Print(cout);
       }
 
-      if(!gel->Reference() && gel->NumInterfaces() == 0){
-        gel->CreateCompEl(*this,index);
-      }
+      //if(!gel->Reference() && gel->NumInterfaces() == 0)
+      gel->CreateCompEl(*this,index);
     }
   }
 
