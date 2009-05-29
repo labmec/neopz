@@ -144,7 +144,7 @@ static void MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,con
   /**
      Generic operator with FULL matrices
   */
-  TPZFMatrix &operator= (const TPZFMatrix &A );
+  virtual TPZFMatrix &operator= (const TPZFMatrix &A );
   //TPZFMatrix &operator= ( TPZTempFMatrix A);
   TPZFMatrix operator+  (const TPZFMatrix &A ) const;
   //TPZTempFMatrix operator+ (TPZTempFMatrix A);
