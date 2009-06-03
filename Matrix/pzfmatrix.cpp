@@ -259,9 +259,21 @@ TPZFMatrix TPZFMatrix::operator-(const TPZFMatrix &A ) const {
 	 return( res );
 }
 
-/* By Caju 2007 */
-void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog) 
+void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
 {
+    double scale = 1.;
+    for(int j = 0; j < this->Cols(); j++){
+      double norm = 0.;
+      for(int i = 0; i < this->Rows(); i++){
+        norm += this->GetVal(i,j)*this->GetVal(i,j);
+      }///for i
+      norm = sqrt(norm);
+      if(norm > 1e-10){
+        if(1./norm > scale) scale = 1./norm;
+      }
+    }///for j
+
+    this->operator *=( scale );
 
     int QTDcomp = Rows();
     int QTDvec = Cols();
@@ -276,7 +288,7 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
         }
     }
 
-    #ifdef DEBUG2
+#ifdef DEBUG2
     int check = 0;
     for(int c = 0; c < QTDvec; c++)
     {
@@ -291,7 +303,7 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
             check = 1;
         }
     }
-    #endif
+#endif
 
     double dotUp, dotDown;
     for(int c = 1; c < QTDvec; c++)
@@ -343,7 +355,10 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &BasisToOrthog)
             }
         }
     }
-    Orthog.Multiply(*this,BasisToOrthog,1);
+    Orthog.Multiply(*this,TransfToOrthog,1);
+
+    this->operator *=( 1./scale );
+    TransfToOrthog.operator *=( 1./scale );
 
 #ifdef DEBUG
   TPZFNMatrix<9> OrthogT;
