@@ -79,6 +79,16 @@ void TPZLine::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTar
   }
 }
 
+bool TPZLine::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+  const REAL qsi = pt[0];
+  if( fabs(qsi) <= 1. + tol){
+    return true;
+  }
+  else{
+    return false;
+  }  
+}///method
+
 void TPZLine::HigherDimensionSides(int side, TPZStack<int> &high)
 {
 	if(side <0 || side >= NSides) {

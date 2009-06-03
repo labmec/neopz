@@ -102,6 +102,12 @@ public:
     return result;
   }
 
+  /** Verifies if the parametric point pt is in the element parametric domain
+*/
+  static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6){
+    return true;
+  }
+
   static TPZIntPoints *CreateSideIntegrationRule(int side, int order);
 
 

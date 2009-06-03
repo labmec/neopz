@@ -493,5 +493,20 @@ int TPZTetrahedron::SideConnectLocId(int side, int node) {
    return -1;
 }
 
+bool TPZTetrahedron::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+  const REAL qsi = pt[0];
+  const REAL eta = pt[1];
+  const REAL zeta = pt[2];
+  if( (qsi < 0. - tol) || (qsi > 1. + tol) ||
+      (eta < 0. - tol) || (eta > 1. + tol) || 
+      (zeta < 0. -tol) || (zeta > 1. +tol) || 
+      (qsi+eta+zeta > 1.+tol) ) {
+    return false;
+  }
+  else{
+    return true;
+  }
+
+}///method
 
 }

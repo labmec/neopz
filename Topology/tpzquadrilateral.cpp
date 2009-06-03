@@ -195,7 +195,16 @@ TPZTransform TPZQuadrilateral::TransformElementToSide(int side){
   return TPZTransform(0,0);
 }
 
-
+bool TPZQuadrilateral::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+  const REAL qsi = pt[0];
+  const REAL eta = pt[1];
+  if( ( fabs(qsi) <= 1. + tol ) && ( fabs(eta) <= 1. + tol ) ){
+    return true;
+  }
+  else{
+    return false;
+  }  
+}///method
 
 MElementType TPZQuadrilateral::Type()
 {

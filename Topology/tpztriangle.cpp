@@ -75,6 +75,19 @@ int TPZTriangle::NSideNodes(int side)
 	return nsidenodes[side];
 }
 
+bool TPZTriangle::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+  const REAL qsi = pt[0];
+  const REAL eta = pt[1];
+  if( ( qsi <= 1. + tol ) && ( qsi >= 0. - tol ) &&
+      ( eta <= 1. + tol ) && ( eta >= 0. - tol ) &&
+      ( eta <= 1. - qsi + tol ) ){
+    return true;
+  }
+  else{
+    return false;
+  }  
+}///method
+
 TPZTransform TPZTriangle::SideToSideTransform(int sidefrom, int sideto)
 {
 	if(sidefrom <0 || sidefrom >= NSides || sideto <0 || sideto >= NSides) {

@@ -641,4 +641,20 @@ int TPZPrism::SideConnectLocId(int side, int node) {
   return -1;
 }
 
+bool TPZPrism::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+  const REAL qsi = pt[0];
+  const REAL eta = pt[1];
+  const REAL zeta = pt[2];
+  if( ( qsi <= 1. + tol ) && ( qsi >= 0. - tol ) &&
+      ( eta <= 1. + tol ) && ( eta >= 0. - tol ) &&
+      ( eta <= 1. - qsi + tol ) && 
+      ( zeta <= 1. + tol ) && ( zeta >= -1. - tol) ){
+    return true;
+  }
+  else{
+    return false;
+  }  
+
+}///method
+
 }

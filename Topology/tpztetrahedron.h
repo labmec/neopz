@@ -84,6 +84,10 @@ static void LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarge
     * @see the class TPZTransform
     */
     static TPZTransform TransformSideToElement(int side);
+
+    /** Verifies if the parametric point pt is in the element parametric domain
+    */
+    static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
     
     /**
     * Create an integration rule 

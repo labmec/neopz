@@ -90,6 +90,10 @@ static TPZTransform TransformElementToSide(int side);
  */
 static TPZTransform TransformSideToElement(int side);
 
+/** Verifies if the parametric point pt is in the element parametric domain
+ */
+static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
+
 static TPZIntPoints *CreateSideIntegrationRule(int side, int order);
 
  typedef TPZInt1d IntruleType;

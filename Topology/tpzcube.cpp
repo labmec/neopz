@@ -672,5 +672,16 @@ int TPZCube::SideConnectLocId(int side, int node) {
   return -1;
 }
 
+bool TPZCube::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+  const REAL qsi = pt[0];
+  const REAL eta = pt[1];
+  const REAL zeta = pt[2];
+  if( ( fabs(qsi) <= 1. + tol ) && ( fabs(eta) <= 1. + tol ) && ( fabs(zeta) <= 1. + tol ) ){
+    return true;
+  }
+  else{
+    return false;
+  }  
+}///method
 
 }

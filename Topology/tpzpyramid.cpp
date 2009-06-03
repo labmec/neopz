@@ -586,4 +586,22 @@ int TPZPyramid::SideConnectLocId(int side, int node) {
   return -1;
 }
 
+bool TPZPyramid::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+  const REAL qsi = pt[0];
+  const REAL eta = pt[1];
+  const REAL zeta = pt[2];
+
+  if( (qsi < -1. - tol) || (qsi > 1.+tol) ||
+      (eta < -1. - tol) || (eta > 1.+tol) || 
+      (zeta < 0. - tol) || (zeta > 1.+tol) ||
+      (fabs(qsi) > 1.-zeta + tol) || (fabs(eta) > 1.-zeta + tol)
+    ) {
+    return false;
+  }
+  else{
+    return true;
+  }  
+
+}///method
+
 }
