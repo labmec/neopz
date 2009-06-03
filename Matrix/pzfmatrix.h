@@ -218,13 +218,16 @@ static void MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,con
   // Zero os elements
   int Zero();
 
-  /**
-  * by Caju 2007
-  * Input:  OriginalAxes (columns vectors)
-  * Output: NormOrthog - Axes Orthogonalized and Normalized with respect with the first column
-  *         BasisChange - From NormOrthog to OriginalAxes Basis
+  /** 
+  * This method implements a Gram Schimidt method
+  * this = Orthog.TransfToOrthog
+  * @param this [in] each column represents a vector
+  * @param Orthog [out] each column represents a vector orthogonalized with respect to the first vector (first column of *this). Vectors are normalized
+  * @param TransfToOrthog [out] is the basis change from *this to Orthog 
+  * @author Caju
+  * @since 2007
  */
-void GramSchmidt(TPZFMatrix &AxesOrth, TPZFMatrix &JacobToOrth);
+void GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog);
 
 void DeterminantInverse(REAL &determinant, TPZFMatrix &inverse);
 
