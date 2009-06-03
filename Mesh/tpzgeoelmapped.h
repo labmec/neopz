@@ -57,6 +57,14 @@ public:
     else return TBase::IsLinearMapping();
   }
 
+  /** Return if is a TPZGeoElMapped< T > element
+   * It is necessary due to the lack of dynamic cast for
+   * these elements
+   */
+  virtual bool IsGeoElMapped() const{
+    return true;
+  }
+
   /**
    * Creates a geometric element according to the type of the father element
    */
@@ -118,11 +126,6 @@ public:
 
 #ifdef DEBUG
 {
-      const int nsides = father->NSides();
-      if(sideProjected != (nsides-1)){  
-        std::cout << "\n";
-      }
-
       double ksidiff = 0.;
       for(int i = 0; i < ptancestor.NElements(); i++){  
         ksidiff += (aux[i]-ptancestor[i])*(aux[i]-ptancestor[i]);

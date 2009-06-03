@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.34 2009-06-03 14:42:03 fortiago Exp $
+//$Id: pzgeoel.h,v 1.35 2009-06-03 20:03:59 fortiago Exp $
 
 // -*- c++ -*-
 
@@ -250,6 +250,15 @@ virtual MElementType Type(int side) =0;
   {
     return false;
   }
+
+  /** Return if is a TPZGeoElMapped< T > element
+   * It is necessary due to the lack of dynamic cast for
+   * these elements
+   */
+  virtual bool IsGeoElMapped() const{
+    return false;
+  }
+
   /**return the number of connectivities of the element*/
   virtual int NSides() = 0;
 
@@ -304,6 +313,12 @@ virtual MElementType Type(int side) =0;
 
   /// Set connectivity information elements with blend geometric map
   void BuildBlendConnectivity();
+
+  /** TPZGeoBlend need to find a non-linear neighbour
+   * Although TPZGeoElMapped have non-linear mapping
+   * they are less suitable than self non-linear elements
+   */
+  void SetNeighbourForBlending(int side);
 
   //@}
 

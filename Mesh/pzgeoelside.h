@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.20 2009-06-03 14:42:03 fortiago Exp $
+//$Id: pzgeoelside.h,v 1.21 2009-06-03 20:04:00 fortiago Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -77,6 +77,10 @@ class TPZGeoElSide {
   /** Checks whether other is a relative (son or ancestor) of this
    */
   bool IsRelative(TPZGeoElSide other);
+
+  /** Checks whether other is an ancestor of this
+   */
+  bool IsAncestor(TPZGeoElSide other);
 
          /** By Caju */
          void X(TPZVec< REAL > &loc, TPZVec< REAL > &result);
