@@ -18,6 +18,7 @@
 #include <map>
 #include "pzgeoelside.h"
 #include "tpzgeoelrefpattern.h"
+
 class TPZGeoMesh;
 
 #include "pzlog.h"
@@ -33,6 +34,13 @@ template<int N, class Topology>
 class TPZNodeRep : public Topology
 
 {
+
+private:
+
+  /** Verifies if pt (in parametric domain of the side) is within boundaries
+   */
+  bool IsInSideParametricDomain(int side, TPZVec<REAL> &pt, REAL tol);
+
 public:
 
   virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) {
@@ -83,6 +91,14 @@ public:
     memcpy(fNodeIndexes,cp.fNodeIndexes,N*sizeof(int));
   }
 
+  /** Adjust node coordinate in case the non-linear mapping
+   * changes node coordinates
+   * It happens for instance in TPZEllipse
+   */
+  virtual void AdjustNodeCoordinates(TPZGeoMesh &mesh){
+    ///nothing to be done here
+  }
+
   void Initialize(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh)
   {
     int nn = nodeindexes.NElements() < N ? nodeindexes.NElements() : N;
@@ -101,6 +117,9 @@ public:
     memcpy(fNodeIndexes,&nodeindexes[0],nn*sizeof(int));
     int i;
     for(i=nn; i<N; i++) fNodeIndexes[i]=-1;
+
+    this->AdjustNodeCoordinates(mesh);
+
   }
   void Initialize(TPZGeoEl *refel)
   {
@@ -124,6 +143,62 @@ public:
     newelside.InsertConnectivity(me);
     return newel;
   }
+
+  /** Verifies if the parametric point pt is in the element parametric domain
+   */
+  bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6){
+    const bool result = Topology::IsInParametricDomain(pt, tol);
+    return result;
+  }///method
+
+  /** Projects point pt (in parametric coordinate system) in the element parametric domain.
+   * Returns the side where the point was projected.
+   * Observe that if the point is already in the parametric domain, the method will return
+   * NSides() - 1
+   */
+  int ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
+    const int nsides = Topology::NSides;
+    if(this->IsInParametricDomain(pt,0.)){///it is already in the domain
+      ptInDomain = pt;
+      return nsides-1;
+    }///if
+
+    int winnerSide = -1;
+    REAL winnerDistance = 1e12;
+    TPZManVector<REAL,3> pt1(pt.NElements()), pt2(pt.NElements());
+    for(int is = 0; is < nsides-1; is++){
+
+      ///go from NSides-1 to side is
+      TPZTransform T1 = Topology::SideToSideTransform(nsides-1, is);
+      T1.Apply(pt,pt1);
+
+      ///check if the point is within side boundaries
+      bool IsInSideDomain = this->IsInSideParametricDomain(is,pt1,0.);
+      if(!IsInSideDomain) continue;
+
+      ///come back from side is to NSides-1
+      TPZTransform T2 = Topology::SideToSideTransform(is,nsides-1);
+      T2.Apply(pt1,pt2);
+
+      ///Compare original to mapped point
+      REAL distance = 0.;
+      for(int i = 0; i < pt.NElements(); i++){
+        REAL val = pt[i]-pt2[i];
+        distance += val*val;
+      }///i
+      distance = sqrt(distance);
+  
+      ///The closest side point to the original is the projected point
+      if(distance < winnerDistance){
+        winnerDistance = distance;
+        winnerSide = is;
+        ptInDomain = pt2;
+      }
+    }///for is
+    
+    return winnerSide;
+
+  }///method
 
   void Print(std::ostream &out)
   {
