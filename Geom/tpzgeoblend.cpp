@@ -11,12 +11,31 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.geoblend"));
 #endif
 
 template <class TGeo>
+void TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) {
+  if(!fNeighbours[side-TGeo::NNodes].Element()){
+    fNeighbours[side-TGeo::NNodes] = neigh;
+    fTrans[side - TGeo::NNodes] = trans;
+  }
+  else{
+#ifdef LOG4CXX
+    std::stringstream mess;
+    mess << "Trying to SetNeighbourInfo for an already set element\n";
+    mess << "* this * = " << __PRETTY_FUNCTION__ << "\n";
+    this->Print(mess);
+    mess << "* neigh * = \n";
+    neigh.Element()->Print(mess);
+    LOGPZ_DEBUG(logger,mess.str());
+#endif
+  }
+}
+
+template <class TGeo>
 bool TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide)
 {
      int SideDim    = fNeighbours[side-TGeo::NNodes].Dimension();
-     TPZFMatrix JacSide;
+     TPZFNMatrix<9> JacSide;
 
-     TPZVec< REAL > SidePar(SideDim);
+     TPZManVector< REAL, 3 > SidePar(SideDim);
      const bool check = this->MapToSide(side, InternalPar, SidePar,JacSide);
 
 #ifdef LOG4CXX
@@ -109,10 +128,13 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
             for(int a = 0; a < LowNodeSides.NElements(); a++)
             {
                 ///Mapeando os Nós ( para contemplar casos em que CoordNó != X(CoordNó) )
-                TPZVec<REAL> coordTemp(3);
+                TPZManVector<REAL,3> coordTemp(3);
                 TGeo::CenterPoint(LowNodeSides[a],coordTemp);
                 MapToNeighSide(byside,coordTemp,NeighPar,NotUsedHere);
                 Neighbour(byside).X(NeighPar,Xside);
+#ifdef DEBUG
+                TPZManVector<REAL,3> previous ( NodeCoord[LowNodeSides[a]] );
+#endif
                 NodeCoord[LowNodeSides[a]] = Xside;
                 ///
                 blendTemp += blend(LowNodeSides[a],0);
@@ -503,7 +525,8 @@ TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >, CLASSID>; \
 template<> \
 TPZCompEl *(*TPZGeoElRefLess<TPZGeoBlend<TGEO> >::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CREATEFUNCTION; \
 \
-template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;
+template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;\
+template class TPZGeoElRefPattern<TPZGeoBlend<TGEO> >;
 
 
 IMPLEMENTBLEND(pzgeom::TPZGeoPoint,TPZGEOBLENDPOINTID,CreatePointEl)

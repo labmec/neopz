@@ -46,10 +46,7 @@ public:
      TPZGeoBlend(const TPZGeoBlend &cp, TPZGeoMesh &) : TGeo(cp) {
      }
 
-     void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) {
-          fNeighbours[side-TGeo::NNodes] = neigh;
-          fTrans[side - TGeo::NNodes] = trans;
-     }
+     void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans);
 
      TPZGeoElSide Neighbour(int side) {
           return fNeighbours[side-TGeo::NNodes];
