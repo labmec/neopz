@@ -332,6 +332,12 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMat
     }
   }
   fGeo.Jacobian(nodes,coordinate,jac,axes,detjac,jacinv);
+
+#ifdef DEBUG
+  if(detjac == 0){
+    std::cout << "\nJacobiano nulo\n";
+  }
+#endif
 //   if(TGeo::NNodes == 2) {
 //     detjac = 1.;
 //     jacinv(0,0) = 1.;

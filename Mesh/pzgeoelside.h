@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.19 2008-12-02 10:24:48 longhin Exp $
+//$Id: pzgeoelside.h,v 1.20 2009-06-03 14:42:03 fortiago Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -74,6 +74,9 @@ class TPZGeoElSide {
 	 TPZGeoElSide Father2();
 	 TPZCompElSide LowerLevelCompElementList2(int onlyinterpolated);
 
+  /** Checks whether other is a relative (son or ancestor) of this
+   */
+  bool IsRelative(TPZGeoElSide other);
 
          /** By Caju */
          void X(TPZVec< REAL > &loc, TPZVec< REAL > &result);

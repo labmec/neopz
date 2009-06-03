@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.33 2009-04-23 11:30:44 fortiago Exp $
+//$Id: pzgeoel.h,v 1.34 2009-06-03 14:42:03 fortiago Exp $
 
 // -*- c++ -*-
 
@@ -527,7 +527,7 @@ void CheckSubelDataStructure();
 //  virtual void Center(TPZVec<REAL> &center) { center[0] = 0.; }
 
 //void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi);
-void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol = 1.E-5);
+void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol = 1.e-6);
 
 TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 
@@ -556,6 +556,23 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 
   /// return the refinement pattern associated with the element
   virtual TPZAutoPointer<TPZRefPattern> GetRefPattern();
+
+  /** Verify coordinate of element nodes checking if they
+   * are coincident to the X mapping of the corner nodes of
+   * parametric elements
+   */
+  bool VerifyNodeCoordinates(REAL tol = 1e-6);
+
+  /** Verifies if the parametric point pt is in the element parametric domain
+   */
+  virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 0.) = 0;
+
+  /** Projects point pt (in parametric coordinate system) in the element parametric domain.
+   * Returns the side where the point was projected.
+   * Observe that if the point is already in the parametric domain, the method will return
+   * NSides() - 1
+   */
+  virtual int ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain) = 0;
 
     /*!
         \fn TPZGeoEl::Index()

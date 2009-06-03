@@ -285,11 +285,37 @@ public:
      Geom().SetNeighbourInfo(side,neigh,trans);
   }
 
+  /** Verifies if the parametric point pt is in the element parametric domain
+   */
+  virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 0.);
+
+  /** Projects point pt (in parametric coordinate system) in the element parametric domain.
+   * Returns the side where the point was projected.
+   * Observe that if the point is already in the parametric domain, the method will return
+   * NSides() - 1
+   */
+  virtual int ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain);
+
 };
 
 #ifdef WIN32
 #include "pzgeoelrefless.h.h"
 #endif
+
+
+template<class TGeo>
+inline
+bool TPZGeoElRefLess<TGeo>::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+  const bool result = fGeo.IsInParametricDomain(pt,tol);
+  return result;
+}
+
+template<class TGeo>
+inline
+int TPZGeoElRefLess<TGeo>::ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
+  const int side = fGeo.ProjectInParametricDomain(pt, ptInDomain);
+  return side;
+}
 
 template<class TGeo>
 inline

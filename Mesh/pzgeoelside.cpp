@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.25 2007-12-05 14:16:00 phil Exp $
+//$Id: pzgeoelside.cpp,v 1.26 2009-06-03 14:42:03 fortiago Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -22,6 +22,36 @@ using namespace std;
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelside"));
 #endif
 
+bool TPZGeoElSide::IsRelative(TPZGeoElSide other){
+  TPZGeoElSide father = this->Father2();
+  if(father.Element()){
+    if(father.Element() == other.Element()){
+      return true;
+    }///if
+    else{
+      if(father.IsRelative(other)){
+        return true;
+      }///if
+    }///else
+  }///father
+  if(this->HasSubElement()){
+    const int nsubels = this->NSubElements2();
+    TPZStack<TPZGeoElSide> subEls;
+    this->GetSubElements2(subEls);
+    for(int iel = 0; iel < nsubels; iel++){
+      TPZGeoElSide son = subEls[iel];
+      if(son.Element() == other.Element()){
+        return true;
+      }
+      if(son.HasSubElement()){
+        if(son.IsRelative(other)){
+          return true;
+        }
+      }///son
+    }///iel
+  }
+  return false;
+}///method
 
 /** By Caju */
 void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) {

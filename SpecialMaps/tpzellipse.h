@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+class TPZGeoMesh;
+
 using namespace std;
 using namespace pzgeom;
 using namespace pztopology;
@@ -18,6 +20,10 @@ using namespace pztopology;
  */
 
 class TPZEllipse : public TPZNodeRep<2,TPZLine> {
+
+private:
+
+  void GetNodeCoord(TPZGeoMesh &mesh, TPZFMatrix &nodes);
 
 public:
 
@@ -38,7 +44,14 @@ public:
     }
 
     TPZEllipse(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
+      this->AdjustNodeCoordinates(mesh);
     }
+
+  /** Adjust node coordinate in case the non-linear mapping
+   * changes node coordinates
+   * It happens for instance in TPZEllipse
+   */
+  virtual void AdjustNodeCoordinates(TPZGeoMesh &mesh);
 
     void SetAxes(double a, double b);
     void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);

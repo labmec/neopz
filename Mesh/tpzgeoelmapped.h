@@ -56,13 +56,6 @@ public:
     if(father) return father->IsLinearMapping();
     else return TBase::IsLinearMapping();
   }
-  
-  virtual bool  IsGeoBlendEl() const
-  {
-    TPZGeoEl *father = (TBase::fFatherIndex == -1) ? 0 : TBase::Mesh()->ElementVec()[TBase::fFatherIndex];
-    if(father)  return father->IsGeoBlendEl();
-    else return TBase::IsLinearMapping();
-  }
 
   /**
    * Creates a geometric element according to the type of the father element
@@ -88,41 +81,13 @@ public:
     }
     int in, nnodes = Geo::NNodes;
     TPZManVector<REAL,3> nodeX(3);
-    TPZManVector<REAL,3> ptancestor(Geo::Dimension);
-    for(in=0; in<nnodes; in++)
-    {
-      for(int id = 0; id < 3; id++){
-        nodeX[id] = this->NodePtr(in)->Coord(id);
-      }
-      ptancestor.Fill(0.);
-      father->ComputeXInverse(nodeX, ptancestor);
-#ifdef DEBUG
-{
-      TPZManVector<REAL,3> fatherX(3);
-      father->X(ptancestor,fatherX);
-      double error = 0.;
-      double diff;
-      for(int i = 0; i < 3; i++){
-        diff = fatherX[i]-nodeX[i];
-        error += diff*diff;
-      }
-      error = sqrt(error);
-      if(error > 1e-5){
-        std::cout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
-        DebugStop();
-      }
-}
-#endif
-      for(int id=0; id<Geo::Dimension; id++)
-      {
-        fCornerCo(id,in) = ptancestor[id];
-      }
-    }
-/*  Pira 18 maio 2009: abaixo nao funciona para mapeamento nao-linear (nem bilinear)
-    for(in=0; in<nnodes; in++)
+    TPZManVector<REAL,3> ptancestor(Geo::Dimension), aux(Geo::Dimension);
+
+///  Pira 18 maio 2009: abaixo nao funciona para mapeamento nao-linear (nem bilinear)
+/*    for(in=0; in<nnodes; in++)
     {
       TPZTransform tr = Geo::SideToSideTransform(in,Geo::NSides-1);
-			TPZManVector<REAL,Geo::Dimension+1> ptin(0),ptout(Geo::Dimension,0.);
+      TPZManVector<REAL,Geo::Dimension+1> ptin(0),ptout(Geo::Dimension,0.);
       tr.Apply(ptin,ptout);
       int nfs = father->NSides();
       TPZGeoElSide thisside(this,Geo::NSides-1);
@@ -136,9 +101,105 @@ public:
       {
         fCornerCo(id,in) = ptancestor[id];
       }
-    }*/
-    
+    }
+    */
+
+///  Pira 18 maio 2009: nova implementação
+    for(in=0; in<nnodes; in++)
+    {
+      for(int id = 0; id < 3; id++){
+        nodeX[id] = this->NodePtr(in)->Coord(id);
+      }
+
+      aux.Fill(0.);
+      ptancestor.Fill(0.);
+      father->ComputeXInverse(nodeX, aux,1e-10);
+      const int sideProjected = father->ProjectInParametricDomain(aux,ptancestor);
+
+#ifdef DEBUG
+{
+      const int nsides = father->NSides();
+      if(sideProjected != (nsides-1)){  
+        std::cout << "\n";
+      }
+
+      double ksidiff = 0.;
+      for(int i = 0; i < ptancestor.NElements(); i++){  
+        ksidiff += (aux[i]-ptancestor[i])*(aux[i]-ptancestor[i]);
+      }///i
+      ksidiff = sqrt(ksidiff);
+      if(ksidiff > 1e-8){
+        std::cout.precision(12);
+        std::cout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
+        std::cout << "aux:\n";
+        for(int i = 0; i < aux.NElements(); i++) std::cout << aux[i] << "\t";
+        std::cout << "\nptancestor:\n";
+        for(int i = 0; i < ptancestor.NElements(); i++) std::cout << ptancestor[i] << "\t";
+        std::cout << "\n";
+        DebugStop();
+      }
+
+      TPZManVector<REAL,3> fatherX(3);
+      father->X(ptancestor,fatherX);
+      double error = 0.;
+      double diff;
+      for(int i = 0; i < 3; i++){
+        diff = fatherX[i]-nodeX[i];
+        error += diff*diff;
+      }
+      error = sqrt(error);
+      if(error > 1e-3){
+        std::cout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
+        std::cout << "this->Index = " << this->Index() << "\n";
+        std::cout << "aux:\n";
+        for(int i = 0; i < aux.NElements(); i++) std::cout << aux[i] << "\t";
+        std::cout << "\nptancestor:\n";
+        for(int i = 0; i < ptancestor.NElements(); i++) std::cout << ptancestor[i] << "\t";
+        std::cout << "\n";
+        std::cout << "nodeX:\n";
+        for(int i = 0; i < nodeX.NElements(); i++) std::cout << nodeX[i] << "\t";
+        std::cout << "\nfatherX:\n";
+        for(int i = 0; i < fatherX.NElements(); i++) std::cout << fatherX[i] << "\t";
+        std::cout << "\n";
+        DebugStop();
+      }
+
+      TPZManVector<REAL,3> fatherXaux(3);
+      father->X(aux,fatherXaux);
+      error = 0.;
+      for(int i = 0; i < 3; i++){
+        diff = fatherX[i]-fatherXaux[i];
+        error += diff*diff;
+      }
+      error = sqrt(error);
+      if(error > 1e-8){
+        std::cout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
+        std::cout << "this->Index = " << this->Index() << "\n";
+        std::cout << "aux:\n";
+        for(int i = 0; i < aux.NElements(); i++) std::cout << aux[i] << "\t";
+        std::cout << "\nptancestor:\n";
+        for(int i = 0; i < ptancestor.NElements(); i++) std::cout << ptancestor[i] << "\t";
+        std::cout << "\n";
+        std::cout << "nodeX:\n";
+        for(int i = 0; i < nodeX.NElements(); i++) std::cout << nodeX[i] << "\t";
+        std::cout << "\nfatherX:\n";
+        for(int i = 0; i < fatherX.NElements(); i++) std::cout << fatherX[i] << "\t";
+        std::cout << "\nfatherXaux:\n";
+        for(int i = 0; i < fatherXaux.NElements(); i++) std::cout << fatherXaux[i] << "\t";
+        std::cout << "\n";
+        DebugStop();
+      }
+
   }
+#endif
+      for(int id=0; id<Geo::Dimension; id++)
+      {
+        fCornerCo(id,in) = ptancestor[id];
+      }
+
+    }///for
+
+  }///method
 
   /**return the Jacobian matrix at the point (from son to father)*/
   virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)

@@ -137,6 +137,37 @@ void TPZEllipse::Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jaco
     jacinv(0,0) = 1./detjac;
 }
 
+void TPZEllipse::GetNodeCoord(TPZGeoMesh &mesh, TPZFMatrix &nodes){
+  for(int i = 0; i < NNodes; i++){
+    const int nodeindex = this->fNodeIndexes[i];
+    TPZGeoNode * np = &(mesh.NodeVec()[nodeindex]);
+    for(int j = 0; j < 3; j++){
+      nodes(j,i) = np->Coord(j);
+    }
+  }
+}///void
+
+
+void TPZEllipse::AdjustNodeCoordinates(TPZGeoMesh &mesh){
+
+  const int nnodes = NNodes;
+  const int dimension = 1;
+  TPZFNMatrix<3*nnodes> nodes(3,nnodes);
+  this->GetNodeCoord(mesh,nodes);
+
+  TPZManVector<REAL,3> qsi(dimension);
+  TPZManVector<REAL,3> MappedX(3);
+
+  for(int inode = 0; inode < nnodes; inode++){
+    const int nodeindex = this->fNodeIndexes[inode];
+    this->CenterPoint(inode, qsi);
+    this->X(nodes,qsi,MappedX);
+    for(int dim = 0; dim < 3; dim++){
+      mesh.NodeVec()[nodeindex].SetCoord(dim,MappedX[dim]);
+    }
+
+  }///for inode
+}///void
 
 TPZGeoEl *TPZEllipse::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {

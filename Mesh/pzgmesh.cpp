@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.57 2009-04-23 11:32:04 fortiago Exp $
+//$Id: pzgmesh.cpp,v 1.58 2009-06-03 14:42:03 fortiago Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -583,6 +583,17 @@ void TPZGeoMesh::BuildConnectivity()
 	    }
 	}
     }
+
+///Verify node coordinates for curved elements
+#ifdef DEBUG
+  const int nel = this->NElements();
+  for(int el = 0; el < nel; el++)
+  {
+    TPZGeoEl * gel = this->ElementVec()[el];
+    if(!gel) continue;
+    gel->VerifyNodeCoordinates();
+  }///for el
+#endif
 
 ///Build the data structure of blend elements
   int Qelem = this->NElements();

@@ -895,24 +895,26 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
 void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 
   REAL error = 10.;
-
-  while(error > Tol)
+  int iter = 0;
+  const int nMaxIter = 1000;
+  while(error > Tol && iter < nMaxIter)
   {
-      TPZVec<REAL> X0(3,0.);
+      iter++;
+      TPZManVector<REAL,3> X0(3,0.);
       if(ksi.NElements()!=Dimension()) {
         PZError << "\nTPZGeoEl::ComputeXInverse vector dimension error\n";
         ksi.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
         //return;
       }
       X(ksi,X0);//ksi deve ter dimensao do elemento atual
-      TPZFMatrix DelX(3,1);
+      TPZFNMatrix<9> DelX(3,1);
       int i;
       for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
       int dim = Dimension();
-      TPZFMatrix residual(dim,1),delksi(dim,1);
+      TPZFNMatrix<9> residual(dim,1),delksi(dim,1);
       REAL detJ;
-      TPZFMatrix J(dim,dim,0.),axes(3,3,0.),Inv(dim,dim,0.);
-      TPZFMatrix JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
+      TPZFNMatrix<9> J(dim,dim,0.),axes(3,3,0.),Inv(dim,dim,0.);
+      TPZFNMatrix<9> JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
       int nao = 0;
       if(NSides() == 19 && nao){
               ksi.Resize(3,0.);
@@ -937,7 +939,7 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
               //exit(-1);
       }
       Jacobian(ksi,J,axes,detJ,Inv);
-      TPZFMatrix axest;
+      TPZFNMatrix<9> axest;
       axes.Transpose(&axest);
       axest.Resize(3,dim);//casos 1D e 2D onde JX espacial � 1x3 e 2x3 respectivamente
       if(dim==1){
@@ -956,6 +958,36 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
       for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
       error = Norm(DelX);
   }
+
+#ifdef DEBUG
+  if(iter == nMaxIter){
+    std::stringstream sout;
+    sout << "Error at " << __PRETTY_FUNCTION__ << " - nMaxIter was reached before tolerance is achieved";
+    PZError << "\n" << sout.str() << "\n";
+#ifdef LOG4CXX
+    LOGPZ_ERROR(logger,sout.str().c_str());
+#endif
+    DebugStop();
+  }///if
+
+  if(this->IsInParametricDomain(ksi,Tol) == false){
+    std::stringstream sout;
+    sout << "Error at " << __PRETTY_FUNCTION__ << " - Ksi parameter found is outside parametric element domain. Element type = " << this->TypeName();
+    sout << " - ksi = ";
+    for(int i = 0; i < ksi.NElements(); i++) sout << ksi[i] << "\t";
+    sout << "iter = " << iter << ", nMaxIter = " << nMaxIter << "\t";
+    sout << "X = ";
+    for(int i = 0; i < XD.NElements(); i++) sout << XD[i] << "\t";
+    sout << "\n";this->Print(sout);
+    PZError << "\n" << sout.str() << "\n";
+#ifdef LOG4CXX
+    LOGPZ_ERROR(logger,sout.str().c_str());
+#endif
+    DebugStop();
+  }///if
+
+#endif
+
 }
 
 TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson){
@@ -1304,13 +1336,40 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> 
   this->fNumInterfaces = 0;
 }
 
-
   /// return the refinement pattern associated with the element
 TPZAutoPointer<TPZRefPattern> TPZGeoEl::GetRefPattern()
 {
   TPZAutoPointer<TPZRefPattern> result;
   return result;
 }
+
+bool TPZGeoEl::VerifyNodeCoordinates(REAL tol){
+  const int nnodes = this->NCornerNodes();
+  TPZManVector<REAL,3> qsi(this->Dimension());
+  TPZManVector<REAL,3> MappedX(3), NodeX(3);
+  for(int inode = 0; inode < nnodes; inode++){
+    for(int dim = 0; dim < 3; dim++){
+      NodeX[dim] = this->NodePtr(inode)->Coord(dim);
+    }///dim
+    this->CenterPoint(inode,qsi);
+    this->X(qsi,MappedX);
+    double error = 0.;
+    for(int dim = 0; dim < 3; dim++){
+      error += (NodeX[dim]-MappedX[dim])*(NodeX[dim]-MappedX[dim]);
+    }///dim
+    error = sqrt(error);
+    if(error > tol){
+      std::stringstream mess;
+      mess << "FATAL ERROR AT " << __PRETTY_FUNCTION__ << " - Node coordinate differs from mapped node.\n";
+      this->Print(mess);
+      PZError << mess.str() << "\n";
+#ifdef LOG4CXX
+      LOGPZ_ERROR(logger,mess.str().c_str());
+#endif
+      DebugStop();
+    }
+  }///for i
+}///method
 
 
 #include "tpzgeoelrefpattern.h"
@@ -1427,11 +1486,13 @@ void TPZGeoEl::BuildBlendConnectivity(){
     {
       if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
       {
-        TPZGeoElSide NeighSide = NextSide.Neighbour();
-        TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
-        ElemSide.SideTransform3(NeighSide,NeighTransf);
-        this->SetNeighbourInfo(byside,NeighSide,NeighTransf);
-        break;
+        if(NextSide.Neighbour().IsRelative(ElemSide) == false){
+          TPZGeoElSide NeighSide = NextSide.Neighbour();
+          TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
+          ElemSide.SideTransform3(NeighSide,NeighTransf);
+          this->SetNeighbourInfo(byside,NeighSide,NeighTransf);
+          break;
+        }///if IsRelative == false
       }
       NextSide = NextSide.Neighbour();
     }///while
