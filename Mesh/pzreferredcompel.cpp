@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.20 2009-05-23 03:16:18 erick Exp $
+// $Id: pzreferredcompel.cpp,v 1.21 2009-06-03 14:42:29 fortiago Exp $
 
 
 #include "pzreferredcompel.h"
@@ -352,5 +352,5 @@ TPZCompEl * CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 TPZCompEl * CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   if(gel->NumInterfaces() == 0)
     return new TPZReferredCompEl< TPZCompElDisc >(mesh,gel,index);
-
+  return NULL;
 }
