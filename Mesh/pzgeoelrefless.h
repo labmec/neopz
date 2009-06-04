@@ -287,7 +287,7 @@ public:
 
   /** Verifies if the parametric point pt is in the element parametric domain
    */
-  virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 0.);
+  virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
 
   /** Projects point pt (in parametric coordinate system) in the element parametric domain.
    * Returns the side where the point was projected.
