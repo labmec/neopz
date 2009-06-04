@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.35 2009-06-03 20:03:59 fortiago Exp $
+//$Id: pzgeoel.h,v 1.36 2009-06-04 13:23:42 fortiago Exp $
 
 // -*- c++ -*-
 
@@ -580,7 +580,7 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 
   /** Verifies if the parametric point pt is in the element parametric domain
    */
-  virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 0.) = 0;
+  virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6) = 0;
 
   /** Projects point pt (in parametric coordinate system) in the element parametric domain.
    * Returns the side where the point was projected.
