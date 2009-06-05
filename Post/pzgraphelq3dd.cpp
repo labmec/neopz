@@ -79,29 +79,33 @@ void TPZGraphElQ3dd::Connectivity(TPZDrawStyle st){
 				if(st == EMVStyle) out << ip << " 1 1 1 ";
 				ip++;
 				if(st == EDXStyle) {
-					co0[0] = i; co0[1] = j; co0[2]= k; 
-					co1[0] = i+1; co1[1] = j; co1[2]= k;
-					co2[0] = i; co2[1] = j+1; co2[2]= k;
+					co0[0] = i;   co0[1] = j;   co0[2]= k; 
+					co1[0] = i+1; co1[1] = j;   co1[2]= k;
+					co2[0] = i;   co2[1] = j+1; co2[2]= k;
 					co3[0] = i+1; co3[1] = j+1; co3[2]= k;
-					co4[0] = i; co4[1] = j; co4[2]= k+1; 
-					co5[0] = i+1; co5[1] = j; co5[2]= k+1;
-					co6[0] = i; co6[1] = j+1; co6[2]= k+1;
+					co4[0] = i;   co4[1] = j;   co4[2]= k+1; 
+					co5[0] = i+1; co5[1] = j;   co5[2]= k+1;
+					co6[0] = i;   co6[1] = j+1; co6[2]= k+1;
 					co7[0] = i+1; co7[1] = j+1; co7[2]= k+1;
 				}
  				else {
-					co0[0] = i; co0[1] = j; co0[2]= k; 
-					co1[0] = i+1; co1[1] = j; co1[2]= k;
+					co0[0] = i;   co0[1] = j;   co0[2]= k; 
+					co1[0] = i+1; co1[1] = j;   co1[2]= k;
 					co2[0] = i+1; co2[1] = j+1; co2[2]= k;
-					co3[0] = i; co3[1] = j+1; co3[2]= k;
-					co4[0] = i; co4[1] = j; co4[2]= k+1; 
-					co5[0] = i+1; co5[1] = j; co5[2]= k+1;
+					co3[0] = i;   co3[1] = j+1; co3[2]= k;
+					co4[0] = i;   co4[1] = j;   co4[2]= k+1; 
+					co5[0] = i+1; co5[1] = j;   co5[2]= k+1;
 					co6[0] = i+1; co6[1] = j+1; co6[2]= k+1;
-					co7[0] = i; co7[1] = j+1; co7[2]= k+1;
+					co7[0] = i;   co7[1] = j+1; co7[2]= k+1;
 				}
-				out << EqNum(co0) << " " << EqNum(co1) << " " <<
-					EqNum(co2) << " " << EqNum(co3)<< " " << EqNum(co4)
-					<< " " << EqNum(co5)<< " " << EqNum(co6)
-					<< " " << EqNum(co7)<< endl;
+				out << EqNum(co0) << " " 
+					<< EqNum(co1) << " " 
+					<< EqNum(co2) << " " 
+					<< EqNum(co3) << " " 
+					<< EqNum(co4) << " " 
+					<< EqNum(co5) << " " 
+					<< EqNum(co6) << " " 
+					<< EqNum(co7) << endl;
 			}
 		}
 	}

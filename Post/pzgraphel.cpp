@@ -145,6 +145,7 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
 				for(; iv<3; iv++) fGraphMesh->Out() << 0. << " ";
 			}
 		}
+		
 		fGraphMesh->Out() << endl;
 		NextIJ(in,co,incr);
 		point++;
