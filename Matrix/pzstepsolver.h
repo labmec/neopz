@@ -30,6 +30,8 @@ public:
     void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
 
     void SetGMRES(const int numiterations,const int numvectors, const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
+	
+    void SetBiCGStab(const int numiterations, const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
 
     void SetDirect (const DecomposeType decomp);
 

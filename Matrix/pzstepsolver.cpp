@@ -99,6 +99,22 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
 #endif
   }
     break;
+  case EBICGSTAB: 
+    mat->SolveBICGStab(numiterations, *fPrecond, F, result,residual,tol,fFromCurrent);
+
+    if(numiterations == fNumIterations || tol >= fTol)
+    {
+      std::cout << "BiCGStab tolerance was not achieved : numiter " << numiterations <<
+          " tol " << tol << endl;
+    }
+#ifdef LOG4CXX
+    {
+      std::stringstream sout;
+      sout << "Number of BiCGStab iterations " << numiterations << " tol = " << tol;
+      LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+#endif
+    break;
   case EDirect:
     result = F;
     mat->SolveDirect(result,fDecompose,fSingular);
@@ -140,6 +156,16 @@ void TPZStepSolver::SetGMRES(const int numiterations, const int numvectors, cons
   ResetSolver();
   fSolver = EGMRES;
   fNumVectors = numvectors;
+  fNumIterations = numiterations;
+  fTol = tol;
+  //	fPrecond = &pre;
+  if(fPrecond) delete fPrecond;
+  fPrecond = pre.Clone();
+  fFromCurrent = FromCurrent;
+}
+void TPZStepSolver::SetBiCGStab(const int numiterations, const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent){
+  ResetSolver();
+  fSolver = EBICGSTAB;
   fNumIterations = numiterations;
   fTol = tol;
   //	fPrecond = &pre;

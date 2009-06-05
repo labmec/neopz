@@ -697,6 +697,16 @@ void TPZMatrix::SolveBICG(int &numiterations, TPZSolver &preconditioner,
 	BiCG<TPZMatrix,TPZFMatrix,TPZSolver,REAL>(*this,result,F,preconditioner,numiterations,tol);
 }
 
+#include "bicgstab.h"
+
+void TPZMatrix::SolveBICGStab(int &numiterations, TPZSolver &preconditioner,
+						const TPZFMatrix &F, TPZFMatrix &result,
+						TPZFMatrix *residual, REAL &tol,const int FromCurrent)  {
+	BiCGSTAB<TPZMatrix,TPZFMatrix,TPZSolver,REAL>(*this,result,F,preconditioner,numiterations,tol,residual,FromCurrent);
+}
+
+
+
 #include "ir.h"
 
 void TPZMatrix::SolveIR(int &numiterations, TPZSolver &preconditioner,

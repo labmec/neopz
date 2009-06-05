@@ -467,6 +467,20 @@ public:
 		       REAL & tol) ;
 
   /**
+   * Solves the linear system using Bi-Conjugate Gradient stabilized method. \n
+   * @param numinterations The number of interations for the process.
+   * @param preconditioner The preconditioner attribute used.
+   * @param F The right hand side of the system.
+   * @param result The solution.
+   * @param residual Returns F - A*U which is the solution residual.
+   * @param tol The tolerance value.
+   */
+  virtual void SolveBICGStab(int & numiterations, TPZSolver & preconditioner,
+		       const TPZFMatrix & F, TPZFMatrix & result,
+			   TPZFMatrix * residual, REAL & tol,
+		       const int FromCurrent = 0) ;
+	
+  /**
    * Solves the linear system using Generalized Minimal Residual (GMRES) method. \n
    * @param numinterations The number of interations for the process.
    * @param preconditioner The preconditioner attribute used.

@@ -129,7 +129,7 @@ virtual  void SetMatrix(TPZAutoPointer<TPZMatrix> Refmat);
      @param ECG Conjugate Gradiente solver selected
      @param EDirect Jacobi solver selected
   */
-  enum MSolver {ENoSolver, EJacobi, ESOR, ESSOR, ECG, EGMRES, EDirect, EMultiply};
+  enum MSolver {ENoSolver, EJacobi, ESOR, ESSOR, ECG, EGMRES, EBICGSTAB, EDirect, EMultiply};
 
  private:
   /**
