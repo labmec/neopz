@@ -23,29 +23,45 @@
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int 
 BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
-         const Preconditioner &M, int &max_iter, Real &tol)
+         /*const */Preconditioner &M, int &max_iter, Real &tol, Vector *residual,const int FromCurrent)
 {
   Real resid;
   Vector rho_1(1), rho_2(1), alpha(1), beta(1), omega(1);
   Vector p, phat, s, shat, t, v;
+	
+  Vector resbackup;
+  Vector *res = residual;
+  if(!res) res = &resbackup;
+  Vector &r = *res;
+	
+	
+//  Real normb = norm(b);
+  Real normb = Norm(b);
+//  Vector r = b - A * x;
+  if(FromCurrent) A.MultAdd(x,b,r,-1.,1.);
+  else {
+		x.Zero();
+		r = b;
+	}
 
-  Real normb = norm(b);
-  Vector r = b - A * x;
   Vector rtilde = r;
 
   if (normb == 0.0)
     normb = 1;
   
-  if ((resid = norm(r) / normb) <= tol) {
+//  if ((resid = norm(r) / normb) <= tol) {
+  if ((resid = Norm(r) / normb) <= tol) {
     tol = resid;
     max_iter = 0;
     return 0;
   }
 
   for (int i = 1; i <= max_iter; i++) {
-    rho_1(0) = dot(rtilde, r);
+//    rho_1(0) = dot(rtilde, r);
+    rho_1(0) = Dot(rtilde, r);
     if (rho_1(0) == 0) {
-      tol = norm(r) / normb;
+//      tol = norm(r) / normb;
+      tol = Norm(r) / normb;
       return 2;
     }
     if (i == 1)
@@ -54,29 +70,38 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
       beta(0) = (rho_1(0)/rho_2(0)) * (alpha(0)/omega(0));
       p = r + beta(0) * (p - omega(0) * v);
     }
-    phat = M.solve(p);
-    v = A * phat;
-    alpha(0) = rho_1(0) / dot(rtilde, v);
+//    phat = M.solve(p);
+	M.Solve(p, phat);
+//    v = A * phat;
+	A.Multiply(phat, v);
+//    alpha(0) = rho_1(0) / dot(rtilde, v);
+    alpha(0) = rho_1(0) / Dot(rtilde, v);
     s = r - alpha(0) * v;
-    if ((resid = norm(s)/normb) < tol) {
+//    if ((resid = norm(s)/normb) < tol) {
+    if ((resid = Norm(s)/normb) < tol) {
       x += alpha(0) * phat;
       tol = resid;
       return 0;
     }
-    shat = M.solve(s);
-    t = A * shat;
-    omega = dot(t,s) / dot(t,t);
+//    shat = M.solve(s);
+    M.Solve(s, shat);
+//    t = A * shat;
+	A.Multiply(shat, t);
+//    omega = dot(t,s) / dot(t,t);
+    omega = Dot(t,s) / Dot(t,t);
     x += alpha(0) * phat + omega(0) * shat;
     r = s - omega(0) * t;
 
     rho_2(0) = rho_1(0);
-    if ((resid = norm(r) / normb) < tol) {
+//    if ((resid = norm(r) / normb) < tol) {
+    if ((resid = Norm(r) / normb) < tol) {
       tol = resid;
       max_iter = i;
       return 0;
     }
     if (omega(0) == 0) {
-      tol = norm(r) / normb;
+//      tol = norm(r) / normb;
+      tol = Norm(r) / normb;
       return 3;
     }
   }
