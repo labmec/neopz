@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.35 2007-10-26 13:18:59 tiago Exp $
+//$Id: pzintel.h,v 1.36 2009-06-05 00:54:42 erick Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -235,7 +235,7 @@ public:
    * @param connectlist (output) the connects to which the element will contribute
    * @param block (output) block diagonal matrix which contains the contributions of the element
    */
-  virtual void CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & block);
+//  virtual void CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & block);
 
   /**returns a reference to an integration rule suitable for integrating
      the interior of the element*/

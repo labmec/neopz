@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzintel.cpp,v 1.69 2009-03-20 20:28:21 phil Exp $
+// $Id: pzintel.cpp,v 1.70 2009-06-05 00:54:42 erick Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -1456,7 +1456,7 @@ void TPZInterpolatedElement::PRefine(int order) {
 //     SetIntegrationRule(2*trueorder+2);
 //   }
 }
-
+/*
 void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & blockdiag) {
   int i;
   TPZAutoPointer<TPZMaterial> material = Material();
@@ -1493,7 +1493,7 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
 
   TPZVec<REAL> intpoint(dim,0.);
   REAL weight = 0.;
-  TPZMaterialData data;
+  TPZMaterialData data, localData;
   this->InitMaterialData(data);
 
   TPZIntPoints &intrule = GetIntegrationRule();
@@ -1503,11 +1503,16 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
     intrule.Point(int_ind,intpoint,weight);
     this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     weight *= fabs(data.detjac);
-    this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-
+//    this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+    data.intPtIndex = int_ind;
+    this->ComputeRequiredData(data, intpoint);
+	localData = data;
+	  
     // Expand the values of the shape functions and their derivatives
     ExpandShapeFunctions(connectlist,dependencyorder,blocksizes,data.phi,data.dphix);
     // Make the contribution in small blocks
+	localData = data;
+	  
     int eq = 0;
     for(b=0; b<numblocks; b++) {
       int cind = connectlist[b];
@@ -1528,14 +1533,14 @@ void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBl
       }
       eq += blsize;
       TPZFNMatrix<1000> ekl(blsize*numdof,blsize*numdof,0.), efl(blsize*numdof,1,0.);
-      data.phi = phil;
-      data.dphix = dphil;
-      material->Contribute(data,weight,ekl,efl);
+      localData.phi = phil;
+      localData.dphix = dphil;
+      material->Contribute(localData,weight,ekl,efl);
       blockdiag.AddBlock(b,ekl);
     }
   }
 }
-
+*/
 
 
 REAL TPZInterpolatedElement::MeanSolution(int var) {
