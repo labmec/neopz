@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzelast3d.h,v 1.10 2008-10-08 02:09:27 phil Exp $
+//$Id: pzelast3d.h,v 1.11 2009-06-16 03:06:39 erick Exp $
 
 #ifndef PZELAST3D
 #define PZELAST3D
@@ -20,7 +20,7 @@ public :
 
 enum SOLUTIONVARS{ENone = -1, EDisplacement = 0, EDisplacementX, EDisplacementY, EDisplacementZ,
                               EPrincipalStress, EPrincipalStrain, EPrincipalDirection1, EPrincipalDirection2, EPrincipalDirection3,
-                              EVonMisesStress, EStress, EStrain, EStrain1, EStress1};
+                              EVonMisesStress, EStress, EStrain, EStrain1, EStress1, ENormalStress, ENormalStrain};
 
 /** Class constructor.
  * @param nummat - material ID.
@@ -119,6 +119,11 @@ virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx,
  * Returns the number of norm errors: 3 (Semi H1, L2 and H1).
  */
 virtual int NEvalErrors() {return 3;}
+
+/** Fill material data parameter with necessary requirements for the
+ * Contribute method. 
+ */
+void FillDataRequirements(TPZMaterialData &data);
 
 protected :
 

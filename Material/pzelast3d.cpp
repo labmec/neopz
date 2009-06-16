@@ -1,4 +1,4 @@
-//$Id: pzelast3d.cpp,v 1.14 2008-10-08 02:09:27 phil Exp $
+//$Id: pzelast3d.cpp,v 1.15 2009-06-16 03:06:39 erick Exp $
  
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -173,6 +173,7 @@ TPZFMatrix &phi = data.phi;
   v2[0] = bc.Val2()(0,0);
   v2[1] = bc.Val2()(1,0);
   v2[2] = bc.Val2()(2,0);
+  TPZFMatrix &v1 = bc.Val1();
 
   switch (bc.Type()) {
   case 0: // Dirichlet condition
@@ -210,7 +211,34 @@ TPZFMatrix &phi = data.phi;
       }
     }//in
     break;
-    
+  case 3: // Directional Null Dirichlet - displacement is set to null in the non-null vector component direction
+    for(in = 0 ; in < phr; in++) {
+      ef(3*in+0,0) += BIGNUMBER * (0. - data.sol[0]) * v2[0] * phi(in,0) * weight;
+      ef(3*in+1,0) += BIGNUMBER * (0. - data.sol[1]) * v2[1] * phi(in,0) * weight;        
+      ef(3*in+2,0) += BIGNUMBER * (0. - data.sol[2]) * v2[2] * phi(in,0) * weight;        
+      for (jn = 0 ; jn < phr; jn++) {
+        ek(3*in+0,3*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[0];
+        ek(3*in+1,3*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[1];
+        ek(3*in+2,3*jn+2) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[2];
+      }//jn
+    }//in
+	break;
+	  
+  case 4: // stressField Neumann condition
+	for(in = 0; in < 3; in ++)
+		v2[in] = - ( v1(in,0) * data.normal[0] +
+				     v1(in,1) * data.normal[1] +
+				     v1(in,2) * data.normal[2] );
+		// The normal vector points towards the neighbour. The negative sign is there to 
+	    // reflect the outward normal vector.
+    for(in = 0 ; in < phi.Rows(); in++) {
+      ef(3*in+0,0) += v2[0] * phi(in,0) * weight;
+      ef(3*in+1,0) += v2[1] * phi(in,0) * weight;
+      ef(3*in+2,0) += v2[2] * phi(in,0) * weight;
+	//cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << ' ' << data.normal[2] << endl;
+	//cout << "val2:  " << v2[0]          << ' ' << v2[1]          << ' ' << v2[2]          << endl;
+	}
+    break;
   default:
     PZError << "TPZElastitity3D::ContributeBC error - Wrong boundary condition type" << std::endl;
   }//switch
@@ -229,6 +257,8 @@ int TPZElasticity3D::VariableIndex(const std::string &name){
   if(!strcmp("Strain",     name.c_str()))  return TPZElasticity3D::EStrain;
   if(!strcmp("Stress1",     name.c_str()))  return TPZElasticity3D::EStress1;
   if(!strcmp("Strain1",     name.c_str()))  return TPZElasticity3D::EStrain1;  
+  if(!strcmp("NormalStress",name.c_str()))  return TPZElasticity3D::ENormalStress;
+  if(!strcmp("NormalStrain",name.c_str()))  return TPZElasticity3D::ENormalStrain;
   PZError << "TPZElasticity3D::VariableIndex Error\n";
   return -1;
 }
@@ -247,7 +277,9 @@ int TPZElasticity3D::NSolutionVariables(int var){
   if(var == TPZElasticity3D::EStress)              return 3;  
   if(var == TPZElasticity3D::EStrain)              return 3;  
   if(var == TPZElasticity3D::EStrain1)             return 1;  
-  if(var == TPZElasticity3D::EStress1)             return 1;  
+  if(var == TPZElasticity3D::EStress1)             return 1; 
+  if(var == TPZElasticity3D::ENormalStress)        return 3;  
+  if(var == TPZElasticity3D::ENormalStrain)        return 3; 
   PZError << "TPZElasticity3D::NSolutionVariables Error\n";
   return -1;
 }
@@ -382,6 +414,24 @@ void TPZElasticity3D::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
     this->ApplyDirection(Strain, Solout);
     return;
   }//TPZElasticity3D::EStrain
+	
+  if(var == TPZElasticity3D::ENormalStress){
+    TPZFNMatrix<6> Stress(6,1);
+    this->ComputeStressVector(Stress, DSol);
+    Solout[0] = Stress(0,0);
+	Solout[1] = Stress(1,0);
+	Solout[2] = Stress(2,0);
+    return;
+  }//TPZElasticity3D::ENormalStress
+  
+  if(var == TPZElasticity3D::ENormalStrain){
+    TPZFNMatrix<6> Strain(6,1);
+    this->ComputeStrainVector(Strain, DSol);
+    Solout[0] = Strain(0,0);
+	Solout[1] = Strain(1,0);
+	Solout[2] = Strain(2,0);
+    return;
+  }//TPZElasticity3D::ENormalStrain
   
 }//Solution
 
@@ -528,6 +578,14 @@ int TPZElasticity3D::ClassId() const
 {
   return TPZELASTICITY3DMATERIALID;
 }
+
+void TPZElasticity3D::FillDataRequirements(TPZMaterialData &data){
+  	
+	TPZMaterial::FillDataRequirements(data);
+	
+	data.SetAllRequirements(true);
+}
+
 #ifndef BORLAND
 template class TPZRestoreClass<TPZElasticity3D,TPZELASTICITY3DMATERIALID>;
 #endif
