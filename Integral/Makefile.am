@@ -20,8 +20,8 @@ integralinc_HEADERS= $(top_srcdir)/Integral/*.h
 noinst_LIBRARIES = libpzintegral.a
 
 libpzintegral_a_SOURCES = pzquad.cpp tpzint1point.cpp tpzintpoints.cpp \
-	tpzintrule.cpp tpzintrulelist.cpp tpzintrulep3d.cpp tpzintrulet.cpp tpzintrulet3d.cpp \
-	tpzprinteg.cpp
+    tpzgaussrule.cpp tpzgausslobattorule.cpp tpzintrule.cpp tpzintrulelist.cpp \
+    tpzintrulep3d.cpp tpzintrulet.cpp tpzintrulet3d.cpp tpzprinteg.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
 noinst_HEADERS = tpzint1point.h tpzintpoint.h tpzintpoints.h tpzintrule.h \
