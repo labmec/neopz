@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.76 2009-06-16 13:33:21 denise Exp $
+﻿//$Id: pzcmesh.cpp,v 1.77 2009-06-16 14:45:00 longhin Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -2091,19 +2091,6 @@ void TPZCompMesh::SetAllCreateFunctionsContinuousReferred(){
   TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreateReferredPyramEl );
   TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateReferredCubeEl );
 
-}
-#include "pzelchdiv.h" 
-void TPZCompMesh::SetAllCreateFunctionsHDiv(){
-	
-	TPZGeoElement< pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction( CreateHDivPointEl );
-	TPZGeoElement< pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction( CreateHDivLinearEl );
-	TPZGeoElement< pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction( CreateHDivQuadEl );
-	TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction( CreateHDivTriangleEl );
-	TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction( CreateHDivPrismEl );
-	TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction( CreateHDivTetraEl );
-	TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreateHDivPyramEl );
-	TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateHDivCubeEl );
-	
 }
 
 void TPZCompMesh::SetAllCreateFunctions(TPZCompEl &cel){
