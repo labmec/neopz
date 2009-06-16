@@ -129,11 +129,11 @@ void TPZMetis::Subdivide(int nParts, TPZVec<int> &XAdj, TPZVec<int> &Adjacency,
   TPZVec<int> Options(5);
   Options.Resize(5);
   Options[0]=0;
-  int CommVolume = 0;
+//  int CommVolume = 0;
   TPZVec<int> partIndex(nVertices);
   partIndex.Resize(nVertices);
-  int lStyle = 0;
-  int lWeigth = 0;
+//  int lStyle = 0;
+//  int lWeigth = 0;
 #ifdef USING_METIS
   METIS_WPartGraphVKway(
 	 &nVertices,                        // number of vertices
