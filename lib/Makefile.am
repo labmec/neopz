@@ -31,6 +31,7 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Geom/TPZGeoLinear.o ../Geom/pzgeopoint.o ../Geom/pzgeoprism.o ../Geom/pzgeopyramid.o \
 	../Geom/pzgeoquad.o ../Geom/pzgeotetrahedra.o ../Geom/pzgeotriangle.o ../Geom/pznoderep.o \
 	../Integral/pzquad.o ../Integral/tpzint1point.o ../Integral/tpzintrule.o \
+	../Integral/tpzgaussrule.o ../Integral/tpzgausslobattorule.o \
 	../Integral/tpzintrulelist.o ../Integral/tpzintrulep3d.o ../Integral/tpzintrulet.o \
 	../Integral/tpzintrulet3d.o ../Integral/tpzprinteg.o ../Material/TPZConservationLaw.o \
 	../Material/TPZDiffusionConsLaw.o ../Material/TPZEuler.o ../Material/TPZEulerConsLaw.o \
