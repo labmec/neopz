@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzintel.cpp,v 1.70 2009-06-05 00:54:42 erick Exp $
+// $Id: pzintel.cpp,v 1.71 2009-06-17 22:02:15 fortiago Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -87,7 +87,7 @@ int TPZInterpolatedElement::NSideShapeF(int side) {
 }
 
 int TPZInterpolatedElement::MidSideConnectLocId(int side) {
-  int il = 1 + NConnects() - (Reference()->NSides());
+	int il = 1; //+ NConnects() - (Reference()->NSides());
   int nodloc = SideConnectLocId(NSideConnects(side)-il,side);
   return nodloc;
 }

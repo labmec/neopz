@@ -111,6 +111,11 @@ public:
    virtual  TPZGeoElSide Neighbour(int side) { return TPZGeoElSide(fNeighbours[side],this->Mesh()); }
 
    virtual  int NodeIndex(int node);
+	//HDiv
+	
+ virtual void VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec ,TPZVec<int> &sidevector);
+	 
+	
 
   /**fill in the data structure for the neighbouring information*/
   virtual  void SetNeighbour(int side,const TPZGeoElSide &neighbour){

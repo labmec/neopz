@@ -61,6 +61,17 @@ int TPZLine::NSideNodes(int side)
 	return nsidenodes[side];
 }
 
+int TPZLine::NumSides(int dimension) {
+	if(dimension<0 || dimension> 1) {
+	PZError << "TPZLine::NumSides. Bad parameter i.\n";
+	return 0;
+	}
+	if(dimension==0) return 2;
+	if(dimension==1) return 1;
+	return -1;
+	}
+	
+
 void TPZLine::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 {
      smallsides.Resize(0);

@@ -135,6 +135,10 @@ static int NConnects() {return 1;}
   static int NSideConnects(int side) {
     return 1;
   }
+	/**
+	 * return the number of connects for a set dimension
+	 */
+	static int NumSides(int dimension){return 0;};	
  /**
   * returns the local connect number of the connect "c" along side "side"
   */

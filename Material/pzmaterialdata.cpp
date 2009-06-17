@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.cpp,v 1.10 2009-04-17 01:25:09 erick Exp $ 
+//$Id: pzmaterialdata.cpp,v 1.11 2009-06-17 22:02:15 fortiago Exp $ 
 
 #include "pzmaterialdata.h"
 #include "pzmaterial.h"
@@ -59,6 +59,12 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
   this->intPtIndex = cp.intPtIndex;
   this->XLeftElCenter = cp.XLeftElCenter;
   this->XRightElCenter = cp.XRightElCenter;
+	this->fVecIndex = cp.fVecIndex;
+	this->fShapeIndex = cp.fShapeIndex;
+	this->fNormalVec = cp.fNormalVec;
+	
+	
+	
   return *this;
 }
 
@@ -71,7 +77,6 @@ void TPZMaterialData::SetAllRequirements(bool set){
   this->fNeedsNeighborSol = set;
   this->fNeedsHSize = set;
   this->fNeedsNeighborCenter = set;
-  this->fNeedsNormal = set;
 }
 
 void TPZMaterialData::InvertLeftRightData(){

@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.27 2009-06-03 20:03:59 fortiago Exp $
+//$Id: pzgeoelside.cpp,v 1.28 2009-06-17 22:02:15 fortiago Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -578,6 +578,12 @@ int TPZGeoElSide::NSideNodes() const {
 int TPZGeoElSide::SideNodeIndex(int nodenum) const {
     if(!fGeoEl) return -1;
     return ( fGeoEl->SideNodeIndex(fSide,nodenum) );
+}
+
+/**returns the index of the local nodenum  node of side*/
+int TPZGeoElSide::SideNodeLocIndex(int nodenum) const {
+    if(!fGeoEl) return -1;
+    return ( fGeoEl->SideNodeLocIndex(fSide,nodenum) );
 }
 
 

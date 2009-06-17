@@ -329,9 +329,9 @@ void TPZShapeCube::ProjectPoint3dCubeFace(int face, TPZVec<REAL> &in, TPZVec<REA
 }
 
 int TPZShapeCube::NConnectShapeF(int side, int order){
-   if(side<8) return 1;//0 a 4
-   if(side<20) return (order-1);//6 a 14
-   if(side<26) {
+   if(side<8) return 1;//0 a 8
+   if(side<20) return (order-1);//9 a 19
+   if(side<26) {//20 a 25
       return ((order-1)*(order-1));
    }
    if(side==26) {
