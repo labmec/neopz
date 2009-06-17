@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.12 2009-06-17 22:02:16 fortiago Exp $
+// $Id: pzvec.h,v 1.13 2009-06-17 22:08:25 fortiago Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -18,7 +18,7 @@
 #include <cstdlib>
 
 #include <stdlib.h>
-using namespace std;
+
 
 /**
  * @ingroup util
@@ -110,8 +110,21 @@ class TPZVec {
 
       /// Extraction operator.
 #ifndef WIN32
-	template <class T2>
-	friend std::ostream& operator<<( std::ostream& Out, const TPZVec< T2 >& v );
+      friend std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
+      {
+         std::streamsize width = Out.width();
+
+	 const char* sep = ( width == 0 ? " " : "" );
+
+         int size = v.NElements();
+
+         for( int ii = 0; ii < size; ii++ )
+         {
+            Out << std::setw( width ) << sep << v.fStore[ ii ];
+         }
+
+         return Out;
+      }
 #endif
       /** Casting operator.
        *
@@ -182,43 +195,6 @@ class TPZVec {
 /* #endif */
 /*              return fStore[index]; */
 /* } */
-#ifndef WIN32
-
-template<class T>
-inline std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
-{
-	std::streamsize width = Out.width();
-	
-	const char* sep = ( width == 0 ? " " : "" );
-	
-	int size = v.NElements();
-	
-	for( int ii = 0; ii < size; ii++ )
-	{
-		Out << std::setw( width ) << sep << v.fStore[ ii ];
-	}
-	
-	return Out;
-}
-
-template<>
-inline std::ostream& operator<<( std::ostream& Out, const TPZVec< std::pair<int,int> >& v )
-{
-	std::streamsize width = Out.width();
-	
-	const char* sep = ( width == 0 ? " " : "" );
-	
-	int size = v.NElements();
-	
-	for( int ii = 0; ii < size; ii++ )
-	{
-		Out << std::setw( width ) << sep << v.fStore[ ii ].first << " * " << v.fStore[ii].second<< "  " ;
-	}
-	
-	return Out;
-}
-
-#endif
 
 template< class T >
 inline TPZVec<T>::TPZVec() : fStore( 0 ), fNElements( 0 )

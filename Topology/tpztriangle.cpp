@@ -161,17 +161,7 @@ void TPZTriangle::HigherDimensionSides(int side, TPZStack<int> &high)
 	
 }
 
-	//Tentando criar o metodo
-int TPZTriangle::NumSides(int dimension) {	
-	if(dimension<0 || dimension> 2) {
-			PZError << "TPZTriangle::NumSides. Bad parameter i.\n";
-			return 0;
-		}
-		if(dimension==0) return 3;
-		if(dimension==1) return 3;
-		if(dimension==2) return 1;
-	return -1;
-	}
+
 int TPZTriangle::SideDimension(int side) {
 	if(side<0 || side >= NSides) {
 		PZError << "TPZTriangle::SideDimension side " << side << endl;
@@ -318,7 +308,6 @@ int TPZTriangle::NSideConnects(int side) {
 }
 
 /**It do not verify the values of the c*/
-	// side é o lado do elemento, c é o noh do lado
 int TPZTriangle::SideConnectLocId(int side, int c) {
   switch(side) {
   case 0:
@@ -338,22 +327,4 @@ int TPZTriangle::SideConnectLocId(int side, int c) {
     return -1;
   }
 }
-
-	/*
-* return the connect associate to side side 
-*/
-//int TPZTriangle::SideConnectLocId(int side){
-//		
-//		switch(SideDimension(side)) {
-//			case 0:
-//				PZError << "TPZTriangle::SideConnectLocId no connect associate " <<  endl;
-//				return -1;
-//			case 1:
-//				return (side - 3)%3;
-//			case 2: 
-//				return 3;
-//				
-//		}
-//}
- 
 }

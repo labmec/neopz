@@ -1,4 +1,4 @@
-//$Id: pzelctemp.h,v 1.15 2009-06-17 22:02:15 fortiago Exp $
+//$Id: pzelctemp.h,v 1.16 2009-06-17 22:08:23 fortiago Exp $
 
 // -*- c++ -*-
 #ifndef PZELCTEMPH
@@ -15,8 +15,6 @@ By varying the classes passed as template arguments, the complete family of comp
 template<class TSHAPE>
 class TPZIntelGen : public TPZInterpolatedElement {
 
-protected:
-	
   int fConnectIndexes[TSHAPE::NSides];
 
   //int fPreferredSideOrder;
@@ -26,8 +24,6 @@ protected:
 public:
 
   TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
-
-	TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index, int nocreate);
 
   TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy);
 
@@ -106,8 +102,6 @@ public:
 
   /**returns the actual interpolation order of the polynomial along the side*/
   virtual int SideOrder(int side);
- /**returns the actual interpolation order of the polynomial for a connect*/
-	virtual int ConnectOrder(int connect);
 
   /**transform a point in the parameter space of the side into a point in the space
      of the master element*/

@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.14 2009-06-17 22:02:16 fortiago Exp $
+//$Id: pzinterpolationspace.h,v 1.15 2009-06-17 22:08:24 fortiago Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -76,13 +76,6 @@ public:
    * of state variables and material definitions
    */
   void InitMaterialData(TPZMaterialData &data);
-	
-	/** Compute the data to Hdiv implementation */
-//	void ComputeNormalVec(TPZMaterialData &data);
-	int FirstShapeIndex(int side);
-	void ComputeHdivIndex(TPZMaterialData &data);
-	void ComputeCoord(TPZFMatrix &coord);
-
 
   /** Compute and fill data with requested attributes */
   virtual void ComputeRequiredData(TPZMaterialData &data,

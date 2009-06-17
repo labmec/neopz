@@ -127,19 +127,6 @@ template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZGeoTetrahedra>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;
 template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZGeoPyramid>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePyramEl;
-//HDiv
-
- template<>
- void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )
- {
- pzgeom::TPZGeoQuad::VecHdiv(coordinate,normalvec,sidevector);
- }
- 
-template<>
-void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )
-{
-	pzgeom::TPZGeoTriangle::VecHdiv(coordinate,normalvec,sidevector);
-}
 
 
 template class TPZGeoElRefLess<TPZGeoCube>;

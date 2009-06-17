@@ -546,18 +546,7 @@ int TPZPyramid::NConnects() {
 	return 19;
 }
 
-	//Tentando criar o metodo
-	int TPZPyramid::NumSides(int dimension) {
-		if(dimension<0 || dimension> 3) {
-			PZError << "TPZPyramid::NumSides. Bad parameter i.\n";
-			return 0;
-		}
-		if(dimension==0) return 5;
-		if(dimension==1) return 8;
-		if(dimension==2) return 5;
-		if(dimension==3) return 1;
-		return -1;
-	}
+
 int TPZPyramid::NSideConnects(int side) {
   if(side<0)   return -1;
   if(side<5)   return 1;//cantos : 0 a 4

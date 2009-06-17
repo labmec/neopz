@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzgeotriangle.h,v 1.12 2009-06-17 22:02:15 fortiago Exp $
+// $ Id: $
 // TPZGeoQuad.h: interface for the TPZGeoQuad class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -79,14 +79,6 @@ static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobia
 
   /**Computes the geometric location*/
 static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
-	/** implementation of Hdiv space*/
-static	void ComputeNormal(TPZVec<REAL> &p1, TPZVec<REAL> &p2,TPZVec<REAL> &p3,TPZVec<REAL> &result);
-	
-static	void VectorialProduct(TPZVec<REAL> &v1, TPZVec<REAL> &v2,TPZVec<REAL> &result);
-	
-static void VecHdiv(TPZFMatrix & coord, TPZFMatrix & fNormalVec,TPZVec<int> &sidevector);
-	
-	
 
 /**
  * returns the projection of a given point from "NSide - 1" side to "side".

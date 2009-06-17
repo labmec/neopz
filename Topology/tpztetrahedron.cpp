@@ -191,18 +191,7 @@ int TPZTetrahedron::NSideNodes(int side)
 {
 	return nsidenodes[side];
 }
-	//Tentando criar o metodo
-	int TPZTetrahedron::NumSides(int dimension) {		if(dimension<0 || dimension> 3) {
-		PZError << "TPZTetrahedron::NumSides. Bad parameter i.\n";
-		return 0;
-	}
-		if(dimension==0) return 4;
-		if(dimension==1) return 6;
-		if(dimension==2) return 4;
-		if(dimension==3) return 1;
-		return -1;
-	}
-	
+
 int TPZTetrahedron::SideNodeLocId(int side, int node)
 {
 	if(side<4 && node == 0) return side;
@@ -471,7 +460,7 @@ int TPZTetrahedron::NSideConnects(int side) {
 	if(side<4)   return 1;//cantos : 0 a 3
    if(side<10)  return 3;//lados : 4 a 9
    if(side<14)	 return 7;//faces : 10 a 13
-   if(side==14) return 15;//centro : 14
+   if(side==14) return 15;//centro : 15
    return -1;
 }
 

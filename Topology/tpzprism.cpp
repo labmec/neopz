@@ -264,18 +264,6 @@ int TPZPrism::NSideNodes(int side)
 {
 	return nsidenodes[side];
 }
-	//Tentando criar o metodo
-	int TPZPrism::NumSides(int dimension) {
-		if(dimension<0 || dimension> 3) {
-			PZError << "TPZPyramid::NumSides. Bad parameter i.\n";
-			return 0;
-		}
-		if(dimension==0) return 6;
-		if(dimension==1) return 9;
-		if(dimension==2) return 5;
-		if(dimension==3) return 1;
-		return -1;
-	}
 
 int TPZPrism::SideNodeLocId(int side, int node)
 {

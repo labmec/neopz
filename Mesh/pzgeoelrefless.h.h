@@ -36,15 +36,6 @@ template<class TGeo>
   }
 //  fSubElement = -1;
 }
-//HDiv
-
- template<class TGeo>
- void TPZGeoElRefLess<TGeo>::VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )
- {
- PZError << __PRETTY_FUNCTION__ << " nao esta implementado\n";
- }
- 
-
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::~TPZGeoElRefLess(){

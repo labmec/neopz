@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.h,v 1.10 2009-06-17 22:02:15 fortiago Exp $
+//$Id: pzmaterialdata.h,v 1.11 2009-06-17 22:08:23 fortiago Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
@@ -34,17 +34,6 @@ public:
   REAL HSize;
   REAL detjac, leftdetjac, rightdetjac;
   TPZManVector<REAL,3> XLeftElCenter, XRightElCenter;
-	/** Mudancas Denise e Joao**/
-	
-	TPZManVector<REAL> fVecIndex;
-	TPZManVector<REAL> fShapeIndex;
-	TPZFNMatrix<100> fNormalVec;
-
-	
-	
-	
-	 
-	 
 
 /** Index of the current integration point being evaluated **/
 /** Needed for materials with memory **/

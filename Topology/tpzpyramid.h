@@ -63,11 +63,6 @@ static REAL RefElVolume(){return (4./3.);}
   * returns the dimension of the side
   */
 static int SideDimension(int side);
-	/**
-	 * return the number of connects for a set dimension
-	 */
-static int NumSides(int dimension);
-	
 /**
   * returns the transformation which takes a point from the side sidefrom ot
   * the side sideto

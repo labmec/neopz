@@ -289,20 +289,7 @@ int TPZQuadrilateral::NSideConnects(int side) {
   return 9;//Cedric
 }
 
-int TPZQuadrilateral::NumSides(int dimension) {
-	if(dimension<0 || dimension> 2) {
-	PZError << "TPZShapeQuad::NumSides. Bad parameter i.\n";
-	return 0;
-	}
-	if(dimension==0) return 4;
-	if(dimension==1) return 4;
-	if(dimension==2) return 1;
-	return -1;
-	 		
-}
-	
-	/**It do not verify the values of the c*/
-	// side é o lado do elemento, c é o noh do lado
+/**It do not verify the values of the c*/
 int TPZQuadrilateral::SideConnectLocId(int side,int c) {
   switch(side) {
   case 0:

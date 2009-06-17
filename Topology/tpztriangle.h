@@ -48,14 +48,6 @@ static int NSideNodes(int side);
   * returns the local node number of the node "node" along side "side"
   */
 static int SideNodeLocId(int side, int node);
-	
-/**
- * returns the local node number side "side" is particular method for hdivspace
- */
-//static int SideNodeLocId(int side);
-	
-	
-	
  /**
   * return the number of nodes (not connectivities) associated with a side
   */
@@ -63,11 +55,6 @@ static int SideNodeLocId(int side, int node);
   * returns the dimension of the side
   */
 static int SideDimension(int side);
-	/**
-	 * return the number of connects for a set dimension
-	 */
-static int NumSides(int dimension);
-	
  /**
   * returns the transformation which takes a point from the side sidefrom ot
   * the side sideto
@@ -142,13 +129,8 @@ static int NConnects();
 
 
 static int NSideConnects(int side);
-	/**
-	 * returns the local connect along side "side" especial for hdivspace
-	 */
-	static int SideConnectLocId(int side);
-
  /**
-  * @returns the local connect number of the connect "c" along side "side"
+  * returns the local connect number of the connect "c" along side "side"
   */
 static int SideConnectLocId(int side, int c);
 };

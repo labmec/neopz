@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.39 2009-06-17 22:02:15 fortiago Exp $
+//$Id: pzcmesh.h,v 1.40 2009-06-17 22:08:23 fortiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -495,7 +495,6 @@ static  void SetAllCreateFunctionsDiscontinuous();
 static  void SetAllCreateFunctionsContinuous();
 static  void SetAllCreateFunctionsDiscontinuousReferred();
 static  void SetAllCreateFunctionsContinuousReferred();
-static  void SetAllCreateFunctionsHDiv();
 static  void SetAllCreateFunctions(TPZCompEl &cel);
 
   /**

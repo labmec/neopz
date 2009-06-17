@@ -53,11 +53,6 @@ static void HigherDimensionSides(int side, TPZStack<int> &high);
   * return the number of nodes (not connectivities) associated with a side
   */
 static int NSideNodes(int side);
-	/**
-	 * return the number of connects for a set dimension
-	 */
-static int NumSides(int dimension);
-	
  /**
   * returns the local node number of the node "node" along side "side"
   */

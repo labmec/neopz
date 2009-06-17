@@ -117,12 +117,6 @@ static REAL RefElVolume(){return 1.0;}
  * @return number of connects of the element
  */
   static int NConnects();
-	
-/**
- * return the number of connects for a set dimension
- */
-static int NumSides(int dimension);
-	
 
   /**
   * return the number of nodes (not connectivities) associated with a side

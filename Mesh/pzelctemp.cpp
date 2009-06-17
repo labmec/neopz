@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.43 2009-06-17 22:02:15 fortiago Exp $
+// $Id: pzelctemp.cpp,v 1.44 2009-06-17 22:08:23 fortiago Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -47,18 +47,6 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
 
 }
 
-template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index, int nocreate) :
-TPZInterpolatedElement(mesh,gel,index) 
-{
-	int ic;
-	for(ic=0; ic<TSHAPE::NSides; ic++)
-	{
-		fConnectIndexes[ic] = -1;
-	}
-	fPreferredOrder = -1;
-}
-	
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy) :
   TPZInterpolatedElement(mesh,copy), fIntRule(copy.fIntRule) {
@@ -290,12 +278,6 @@ int TPZIntelGen<TSHAPE>::SideOrder(int side) {
   TPZConnect &c = Connect(side);
   return c.Order();
 }
-/**returns the actual interpolation order of the polynomial for a connect*/
-template<class TSHAPE>
-int TPZIntelGen<TSHAPE>::ConnectOrder(int connect) {
-	return SideOrder(connect);	
-}
-
 
 /**transform a point in the parameter space of the side into a point in the space
    of the master element*/

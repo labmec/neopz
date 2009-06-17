@@ -107,18 +107,10 @@ static int SideDimension(int side);
   * return the number of nodes (not connectivities) associated with a side
   */
 static int NSideConnects(int side);
-	/**
-	 * return the number of connects for a set dimension
-	 */
-static int NumSides(int dimension);
  /**
   * returns the local connect number of the connect "c" along side "side"
   */
 static int SideConnectLocId(int side, int c);
-	/**
-	 return the connect associate to side side is a particular method for hdiv space
-	 **/
-//static int SideConnectLocId(int side);
 
 /**
  * Returns the transformation which transform a point from the interior of the element to the side

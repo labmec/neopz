@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.37 2009-06-17 22:02:15 fortiago Exp $
+//$Id: pzgeoel.h,v 1.38 2009-06-17 22:08:24 fortiago Exp $
 
 // -*- c++ -*-
 
@@ -302,11 +302,6 @@ virtual MElementType Type(int side) =0;
   * return the number of subelements as returned by GetSubElements2(side)
   */
   virtual int NSideSubElements2(int side) = 0;
-	
-	//HDiv
-	
-	 virtual void VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector ) = 0;
-	 
 
   /**return a pointer to the father*/
   TPZGeoEl *Father()

@@ -113,21 +113,15 @@ static MElementType Type(int side);
  * @return number of connects of the element
  */
 static int NConnects();
-/**
- * return the number of connects for a set dimension
- */
-static int NumSides(int dimension);
 
  /**
-  * return the number of connectivities associated with a side
+  * return the number of nodes (not connectivities) associated with a side
   */
 static int NSideConnects(int side);
  /**
   * returns the local connect number of the connect "c" along side "side"
   */
 static int SideConnectLocId(int side, int c);
-	
-static int SideConnectLocId(int side); 
 
 protected:
 /** 

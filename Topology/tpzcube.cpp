@@ -635,21 +635,7 @@ int TPZCube::NSideConnects(int side) {
   if(side==26)	return 27;//centro : 26
   return -1;
 }
-	/**
-	 return number of sides of dimension dimension
-	 **/
-	int TPZCube::NumSides(int dimension) {
-		if(dimension<0 || dimension> 3) {
-		PZError << "TPZCube::NumSides. Bad parameter i.\n";
-		return 0;
-	}
-		if(dimension==0) return 8;
-		if(dimension==1) return 12;
-		if(dimension==2) return 6;
-		if(dimension==3) return 1;
-		return -1;
-	}
-	
+
 // Pronto 23/04/98
 int TPZCube::SideConnectLocId(int side, int node) {
   if(side<0 || side>26) return -1;
@@ -685,20 +671,6 @@ int TPZCube::SideConnectLocId(int side, int node) {
 	  << node << " and side = " << side << "\n";
   return -1;
 }
-	/**
-	 return the  connect id associate to side side 
-	 
-	int TPZCube::SideConnectLocId(int side) {
-		if(SideDimension(side)==0 || SideDimension(side)==1)
-		{		PZError << "TPZShapeQuad::SideConnectLocId no connect associate " <<  endl;
-				return -1;
-		}
-			
-			return side-NSides + NConnects();//(side-6)%7
-								
-		PZError << "TPZShapeCube::SideConnectLocId called for side = " << side << "\n";
-		return -1;
-	}
 
 bool TPZCube::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
   const REAL qsi = pt[0];
