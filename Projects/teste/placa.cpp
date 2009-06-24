@@ -1,4 +1,4 @@
-//$Id: placa.cpp,v 1.6 2009-03-26 21:14:49 fortiago Exp $
+//$Id: placa.cpp,v 1.7 2009-06-24 20:14:55 phil Exp $
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
@@ -185,7 +185,7 @@ int main() {
   if(1) CriaElementos (1,4,*geomesh,  PolElems);
 
   //montagem de conectividades entre elementos
-  geomesh->BuildConnectivity2();
+  geomesh->BuildConnectivity();
 
   //cria malha computacional
   TPZCompMesh *compmesh = new TPZCompMesh(geomesh);
@@ -453,7 +453,7 @@ void PosProcessamento(TPZAnalysis &an){
   an.DefineGraphMesh(dim, scalar, vetorial, "PLACA.dx");
   cout << "\nmain::PosProcessamento arquivo de saida -> PLACA.dx\n";
   an.PostProcess(0);
-  an.CloseGraphMesh();  
+  an.CloseGraphMesh();
 }
 
 void ProcessamentoLocal(TPZGeoMesh &gmesh,std::ostream &out) {
@@ -948,7 +948,7 @@ void AdaptativeProcedure(REAL erro_adm,int numiter,int resolution,TPZMaterial *m
   an.SetTime(0.1);
   an.PostProcess(resolution);
   cout << "\nTPZIterativeAnalysis:: out file : PLACA.dx\n";
-  an.CloseGraphMesh();  
+  an.CloseGraphMesh();
 }
 
 void CoutTime(clock_t &start,const char *title){

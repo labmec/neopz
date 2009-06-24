@@ -229,10 +229,10 @@ struct MatIds
   }
  };
 /**
- * 
- * @param argc 
- * @param argv[] 
- * @return 
+ *
+ * @param argc
+ * @param argv[]
+ * @return
  */
 int main(int argc, char *argv[])
 {
@@ -273,8 +273,8 @@ int main(int argc, char *argv[])
 
                   if(allneigh.NElements() != 1)
                   {
-                          sout << endl << "Elemento: " << el << " dim " << El->Dimension() << " Lado: " << side << " -> NOT Ok!" << 
-                              " numero de elementos vizinhos " << allneigh.NElements() << 
+                          sout << endl << "Elemento: " << el << " dim " << El->Dimension() << " Lado: " << side << " -> NOT Ok!" <<
+                              " numero de elementos vizinhos " << allneigh.NElements() <<
                               " sidenodes " << SideEl.SideNodeIndex(0) << " " << SideEl.SideNodeIndex(1) <<   endl;
                   }
               }
@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
 #endif
 
 
-	
+
     TPZAnalysis an(cmesh);
     TPZSkylineStructMatrix full(cmesh);
     an.SetStructuralMatrix(full);
@@ -573,7 +573,7 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
     {
         Node[n].SetNodeId(n);
         Node[n].SetCoord(&NodeCoord[n][0]);
-        Mesh->NodeVec()[n] = Node[n]; 
+        Mesh->NodeVec()[n] = Node[n];
     }
 
     TPZVec <int> Topol(4);
@@ -1035,7 +1035,7 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
     Topol[0] = 0;
     new TPZGeoElRefPattern<TPZGeoPoint> (id,Topol,mat.fMat[MatIds::Dotmat],*Mesh);
 
-    Mesh->BuildBlendConnectivity();
+    Mesh->BuildConnectivity();
 
 
 #ifdef LOG4CXX
@@ -1219,8 +1219,8 @@ TPZCompMesh * SpiralMesh(MatIds &MatId)
   int PGmat = -6;
   int Basemat = -1;
   int RRBc = -7;*/
-  
-  
+
+
   ///Geometria Caixa Espiral 2D
 
   double Bb = 8.6; double Hr = 10.8; double Bt = 8.4; double Hl = 10.15; double Cx = 4.9; double Cy = 5.9; double R = 3.4;
@@ -1321,7 +1321,7 @@ TPZCompMesh * SpiralMesh(MatIds &MatId)
 
   cmesh->AutoBuild();
 
-  return cmesh; 
+  return cmesh;
 }
 
 void ApplyDisplacements(TPZCompMesh & cmesh)
@@ -1411,7 +1411,7 @@ void WriteElement (TPZGeoEl *el,int elindex, std::ofstream &arq,TPZVec<int> &ele
 {
   int ncon = el->NNodes();
   elementtype[elindex] = ncon;
-  switch (ncon) 
+  switch (ncon)
   {
     case (2):
     {
@@ -1577,7 +1577,7 @@ REAL CalcArea(TPZCompMesh *mesh)
         TPZManVector<REAL> x(3,0.);
         cel->Reference()->X(location,x);
         REAL R = fabs(Mat->ComputeR(x));
-        
+
         area += w*detJac*2.*M_PI*R;
       }
 

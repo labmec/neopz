@@ -1,4 +1,4 @@
-//$Id: main.cc,v 1.18 2009-01-20 00:11:34 erick Exp $
+//$Id: main.cc,v 1.19 2009-06-24 20:14:56 phil Exp $
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -310,25 +310,25 @@ void InitializeLOG()
     //  log4cxx::BasicConfigurator::configure();
   {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzcompel"));
-    logger->setLevel(log4cxx::Level::WARN);
+ //   logger->setLevel(log4cxx::Level::WARNING);
   }
   {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzcompelside"));
-    logger->setLevel(log4cxx::Level::WARN);
+ //   logger->setLevel(log4cxx::Level::WARNING);
   }
   {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
-    logger->setLevel(log4cxx::Level::WARN);
+ //   logger->setLevel(log4cxx::Level::WARNING);
   }
   {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
     logger->setAdditivity(false);
-    logger->setLevel(log4cxx::Level::DEBUG);
+//    logger->setLevel(log4cxx::Level::DEBUG);
   }
  {
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
     logger->setAdditivity(false);
-    logger->setLevel(log4cxx::Level::DEBUG);
+//    logger->setLevel(log4cxx::Level::DEBUG);
   }
 #endif
 }
