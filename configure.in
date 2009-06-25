@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.66 2009-06-24 18:40:04 longhin Exp $
+dnl $Id: configure.in,v 1.67 2009-06-25 14:41:21 longhin Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -19,8 +19,8 @@ AM_CONFIG_HEADER(config.h)
 dnl Requires a recent version of autoconf
 AC_PREREQ(2.13)
 
-dnl Sets the default prefix instalation (/usr/local/pz)
-AC_PREFIX_DEFAULT(/usr/local/NeoPZ)
+dnl Sets the default prefix instalation (/usr/local/lib/NeoPZ)
+AC_PREFIX_DEFAULT(/usr/local/lib/NeoPZ)
 
 dnl PZ version stuff
 PZ_VERSION=2
