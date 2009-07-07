@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.67 2009-06-25 14:41:21 longhin Exp $
+dnl $Id: configure.in,v 1.68 2009-07-07 18:16:45 longhin Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -60,6 +60,11 @@ AC_TYPE_PID_T
 AC_TYPE_SIGNAL
 AC_TYPE_SIZE_T
 AC_TYPE_UID_T
+
+dnl Checks for the existence and location of Timer related includes
+AC_FUNC_WAIT3
+AC_HEADER_STDC
+
 dnl AC_CHECK_SIZEOF(int *)
 
 dnl ----------------------------------------------------------------------------void *
