@@ -20,7 +20,7 @@
 
 
 #include <iostream>
-
+#include <memory.h>
 
 #include <math.h>
 

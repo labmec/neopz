@@ -16,6 +16,7 @@
 #include "pzvec.h"
 
 #include <map>
+#include <memory.h>
 #include "pzgeoelside.h"
 #include "tpzgeoelrefpattern.h"
 
