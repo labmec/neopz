@@ -9,7 +9,7 @@
  *
  * @author Cantao!
  */
-// $Id: TPZTimer.h,v 1.5 2008-06-02 18:00:04 fortiago Exp $
+// $Id: TPZTimer.h,v 1.6 2009-07-07 18:27:59 longhin Exp $
 
 #ifndef TPZTIMER_H
 #define TPZTIMER_H
@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <config.h>
 
 
 //--| resuse.{h,c} from GNU time |----------------------------------------------
@@ -33,7 +34,7 @@
 #   define TV_MSEC tv_usec / 1000
 #   if HAVE_WAIT3
 #      include <sys/resource.h>
-#   else
+//# 	else
 
 /// Process resource usage structure.
 struct pzrusage  
