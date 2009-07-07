@@ -1,12 +1,14 @@
 /** @file TPZTimer.cpp */
 
-// $Id: TPZTimer.cpp,v 1.3 2008-06-02 18:00:04 fortiago Exp $
+// $Id: TPZTimer.cpp,v 1.4 2009-07-07 18:24:00 longhin Exp $
 
 #include <sstream>
 #include <algorithm>
 
 #include "TPZTimer.h"
-
+#ifdef HAVE_WAIT3
+#include <sys/time.h>
+#endif
 using namespace std;
 
 #define DIGITS2( STREAM, TIME )			\
