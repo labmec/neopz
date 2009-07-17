@@ -94,6 +94,25 @@ void TPZShapeDisc::Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TP
 
 } //end of method
 
+void TPZShapeDisc::ChebyshevWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n){
+   
+   phi.Redim(degree+1,1);
+   dphi.Redim(n,degree+1);
+
+   TPZShapeLinear::Chebyshev(x, degree+1, phi, dphi);
+
+} //end of method
+
+
+void TPZShapeDisc::LegendreWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n){
+   
+   phi.Redim(degree+1,1);
+   dphi.Redim(n,degree+1);
+
+   TPZShapeLinear::Legendre(x, degree+1, phi, dphi, n);
+
+} //end of method
+
 void TPZShapeDisc::Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
   switch (dimension){
     case(0) :{

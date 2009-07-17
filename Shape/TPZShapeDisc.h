@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: TPZShapeDisc.h,v 1.13 2008-10-08 02:33:06 phil Exp $
+// $Id: TPZShapeDisc.h,v 1.14 2009-07-17 02:27:54 erick Exp $
 #ifndef SHAPEDISCHPP
 #define SHAPEDISCHPP
 
@@ -38,6 +38,10 @@ static void Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMat
 static void PolynomialWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
 
 static void Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
+
+static void ChebyshevWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
+	
+static void LegendreWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
 
 /**
  * UseOrthoShape = 1 means it will be used Legendre polynomial as shape function. 
