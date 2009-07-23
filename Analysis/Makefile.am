@@ -20,8 +20,9 @@ noinst_LIBRARIES = libpzanalysis.a
 
 libpzanalysis_a_SOURCES = TPZNLMultGridAnalysis.cpp TPZNLMultGridAnalysis.h \
 	pzanalysis.cpp pzanalysiserror.cpp pzblackoilanalysis.cpp pzeuleranalysis.cpp \
-	pzmganalysis.cpp pznonlinanalysis.cpp pzsmanal.cpp pzsmfrontalanal.cpp \
+	pzexplfinvolanal.cpp pzmganalysis.cpp pznonlinanalysis.cpp pzsmanal.cpp pzsmfrontalanal.cpp \
 	pztransientanalysis.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
 
+noinst_HEADERS = pzexplfinvolanal.h
