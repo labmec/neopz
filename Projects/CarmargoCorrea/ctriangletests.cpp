@@ -85,7 +85,7 @@
 #include "tpzquadratictrig.h"
 #include "tpzquadratictetra.h"
 #include "tpzquadraticquad.h"
-#include "tpzarc3d.h"2
+#include "tpzarc3d.h"
 #include "tpzgeoelrefpattern.h"
 #include "tpzgeoelrefpattern.h.h"
 #include "pzgeoelside.h"
