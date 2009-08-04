@@ -1,4 +1,4 @@
-//$Id: pzausmflux.cpp,v 1.1 2009-07-23 20:36:41 fortiago Exp $
+//$Id: pzausmflux.cpp,v 1.2 2009-08-04 21:37:54 fortiago Exp $
 
 #include "pzausmflux.h"
 
@@ -32,7 +32,7 @@ void TPZAUSMFlux::ComputeFlux(TPZVec<REAL> &solL, TPZVec<REAL> &solR, TPZVec<REA
   const REAL FaceMach = this->FaceMachNumber(LeftNumMach,RightNumMach);
   const REAL MassFlux = this->MassFlux(NumericalSoundSpeed,solL[0], solR[0], FaceMach);
 
-
+///sol={rho,rhou,rhov,rhow,rhoe}
   const REAL uL = solL[1]/solL[0];
   const REAL vL = solL[2]/solL[0];
   const REAL wL = solL[3]/solL[0];
@@ -83,8 +83,8 @@ REAL TPZAUSMFlux::Pressure(TPZVec<REAL> &sol){
   REAL press = 0.0;
 
   ///sol = (rho , rho u , rho v , rho w , rho e)
-  const REAL rho_velocity = ( sol[1]*sol[1] + sol[2]*sol[2] + sol[3]*sol[3] )/sol[0];
-  press = ((this->fGamma-1.)*( sol[4] - 0.5 * rho_velocity ));
+  const REAL rho_velocity2 = ( sol[1]*sol[1] + sol[2]*sol[2] + sol[3]*sol[3] )/sol[0];
+  press = ((this->fGamma-1.)*( sol[4] - 0.5 * rho_velocity2 ));
 
   if(press < 0){
     REAL temp = (this->fGamma-1.)*sol[4];
@@ -124,7 +124,7 @@ REAL TPZAUSMFlux::FacePressure(REAL pL, REAL pR, REAL Ml, REAL Mr){
   if(Mr >= 1.) Pminus = 0.;
   else if(Mr <= -1.) Pminus = 1.;
   else{
-    Pminus = -0.25*(Mr+1.)*(Mr+1.)*(2.-Mr)-this->fAlpha*Mr*(Mr*Mr-1.)*(Mr*Mr-1.);
+    Pminus = 0.25*(Mr-1.)*(Mr-1.)*(2.+Mr)-this->fAlpha*Mr*(Mr*Mr-1.)*(Mr*Mr-1.);
   }
 
   const REAL pFace = pL*Pplus+pR*Pminus;
@@ -158,8 +158,8 @@ REAL TPZAUSMFlux::NumSoundSpeed(REAL LeftSoundSpeed,REAL RightSoundSpeed){
 
 REAL TPZAUSMFlux::MassFlux(REAL NumericalSoundSpeed, REAL rhoL, REAL rhoR, REAL FaceMach){
   REAL min = 0., max = 0.;
-  if(NumericalSoundSpeed > 0.) max = NumericalSoundSpeed;
-  if(NumericalSoundSpeed < 0.) min = NumericalSoundSpeed;
+  if(FaceMach > 0.) max = FaceMach;
+  if(FaceMach < 0.) min = FaceMach;
 
   const REAL m = NumericalSoundSpeed*(rhoL*max+rhoR*min);
   return m;

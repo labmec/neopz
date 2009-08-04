@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.cpp,v 1.1 2009-07-23 20:37:56 fortiago Exp $
+//$Id: pzexplfinvolanal.cpp,v 1.2 2009-08-04 21:37:43 fortiago Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -15,6 +15,7 @@ using namespace std;
 TPZExplFinVolAnal::TPZExplFinVolAnal(TPZCompMesh *mesh, std::ostream &out):TPZAnalysis(mesh,out){
   this->fTimeStep = -1.;
   this->fNMaxIter = -1.;
+  this->fSimulationTime = 0.;
   this->Set(-1.,0.,0.);
   this->SetInitialSolutionAsZero();
   this->SetSaveFrequency(0,0);
@@ -43,19 +44,28 @@ void TPZExplFinVolAnal::SetInitialSolutionAsZero(){
 }
 
 
-void TPZExplFinVolAnal::Run(std::ostream &out, bool linesearch){
+void TPZExplFinVolAnal::Run(std::ostream &out){
 
-  ofstream File("Pocos.txt");
-  File << "t(mes)\tPi(Pa)\tPp(Pa)\tQwiSC(m3/day)\tQoiSC(m3/day)\tQwpSC(m3/day)\tQopSC(m3/day)\t\tQwiFundo(m3/day)\tQoiFundo(m3/day)\tQwpFundo(m3/day)\tQopFundo(m3/day)\n";
+  fSimulationTime = 0.;
 
   this->PostProcess(this->fDXResolution);
 
   TPZFMatrix NextSol;
 
   REAL steadynorm;
+  
   for(int iter = 0; iter < this->fNMaxIter; iter++){
 
       this->UpdateSolution(fSolution,fRhs,NextSol);
+      
+      if(iter == (fNMaxIter -1)){
+        ofstream solfile("solucaoOlivier.txt");
+        for(int is = 0; is < NextSol.Rows(); is++){
+          solfile << NextSol(is,0) << "\t";
+          if((is+1)%5 == 0) solfile << "\n";
+        }
+        solfile << "\n";
+      }
 
       ///checking steady state
       steadynorm = 0.;
@@ -83,6 +93,8 @@ void TPZExplFinVolAnal::Run(std::ostream &out, bool linesearch){
     }
    }
    std::cout.flush();
+   fSolution = NextSol;
+   TPZAnalysis::LoadSolution();
 
   }///time step iterations
 

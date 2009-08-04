@@ -1,4 +1,4 @@
-//$Id: pzeuler.cpp,v 1.1 2009-07-23 20:36:41 fortiago Exp $
+//$Id: pzeuler.cpp,v 1.2 2009-08-04 21:37:54 fortiago Exp $
 
 #include "pzeuler.h"
 
@@ -53,7 +53,7 @@ void TPZEulerEquation::Print(std::ostream &out) {
 int TPZEulerEquation::VariableIndex(const std::string &name) {
   if( !strcmp(name.c_str(),"density")  )     return 1;//rho
   if( !strcmp(name.c_str(),"velocity") )     return 2;//(u,v,w)
-  if( !strcmp(name.c_str(),"energy")   )     return 3;//E
+  if( !strcmp(name.c_str(),"energy")   )     return 3;//rhoE
   if( !strcmp(name.c_str(),"pressure") )     return 4;//p
   if( !strcmp(name.c_str(),"solution") )     return 5;//(ro,u,v,w,E)
   if( !strcmp(name.c_str(),"normvelocity") ) return 6;//sqrt(u+v+w)
@@ -91,7 +91,7 @@ void TPZEulerEquation::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &a
   } else if(var == 3) {
     Solout.Resize(1);
     int pos = Dimension() + 1;
-    Solout[0] = Sol[pos];//energy
+    Solout[0] = Sol[pos];//energy = rhoE
     return;
   } else if(var == 4) {
     Solout.Resize(1);
@@ -140,22 +140,12 @@ void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, REAL weight, T
 
 
 void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
-  TPZFNMatrix<15> FluxLeft(5,3), FluxRight(5,3), Flux(5,3), NormalFlux(5,1);;
-  this->ComputeFlux(data.soll,FluxLeft);
-  this->ComputeFlux(data.solr,FluxRight);
 
-  TPZFNMatrix<3> normalVec(3,1);
-  for(int i = 0; i < 3; i++) normalVec(i,0) = data.normal[i];
+  TPZManVector<REAL,15> Flux(5);
+  fAUSMFlux.ComputeFlux(data.soll,data.solr,data.normal,Flux);
 
-  #warning fluxo que nao funciona, apenas para desenvolvimento
-  Flux = FluxLeft;
-  Flux += FluxRight;
-  Flux *= 0.5;
-
-  Flux.Multiply(normalVec,NormalFlux);
-
-  for(int i = 0; i < 5; i++) ef(i,0)   += -1. * weight*Flux(i,0);
-  for(int i = 0; i < 5; i++) ef(i+5,0) += +1. * weight*Flux(i,0);
+  for(int i = 0; i < 5; i++) ef(i,0)   += +1. * weight*Flux[i];
+  for(int i = 0; i < 5; i++) ef(i+5,0) += -1. * weight*Flux[i];
 
 }///void
 
@@ -170,14 +160,19 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
                                               REAL weight,
                                               TPZFMatrix &ek,TPZFMatrix &ef,
                                               TPZBndCond &bc){
-#warning implement it
-}
+  this->ContributeBCInterface(data,weight,ef,bc);
+  cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
+}///void
 
 void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
                                               REAL weight,
                                               TPZFMatrix &ef,
                                               TPZBndCond &bc){
-#warning implement it
+  if (bc.Type() == EFreeSlip){
+   TPZManVector<REAL,15> Flux(5);
+    fAUSMFlux.ComputeFlux(data.soll,data.soll,data.normal,Flux);
+    for(int i = 0; i < 5; i++) ef(i,0)   += +1. * weight*Flux[i];
+  }///if FreeSlip
 }
 
 REAL TPZEulerEquation::Pressure(TPZVec<REAL> &U){

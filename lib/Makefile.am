@@ -17,7 +17,7 @@ libpz_a_SOURCES =
 
 libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o \
 	../Analysis/pzanalysis.o ../Analysis/pzanalysiserror.o ../Analysis/pzeuleranalysis.o \
-	../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o ../Analysis/pzsmanal.o \
+	../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o ../Analysis/pzsmanal.o ../Analysis/pzexplfinvolanal.o \
 	../Analysis/pzsmfrontalanal.o ../Analysis/pztransientanalysis.o ../Analysis/pzblackoilanalysis.o ../Common/pzreal.o \
 	../Cosys/pzcartsys.o ../Cosys/pzcosys.o ../Cosys/pzcylinsys.o ../Cosys/pzesfersys.o \
 	../External/TPZBoostGraph.o ../External/pzmetis.o ../External/pzrenumbering.o ../External/pzsloan.o \
@@ -33,8 +33,8 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Integral/pzquad.o ../Integral/tpzint1point.o ../Integral/tpzintrule.o \
 	../Integral/tpzgaussrule.o ../Integral/tpzgausslobattorule.o \
 	../Integral/tpzintrulelist.o ../Integral/tpzintrulep3d.o ../Integral/tpzintrulet.o \
-	../Integral/tpzintrulet3d.o ../Integral/tpzprinteg.o ../Material/TPZConservationLaw.o \
-	../Material/TPZDiffusionConsLaw.o ../Material/TPZEuler.o ../Material/TPZEulerConsLaw.o \
+	../Integral/tpzintrulet3d.o ../Integral/tpzprinteg.o ../Material/TPZConservationLaw.o ../Material/pzeuler.o \
+	../Material/TPZDiffusionConsLaw.o ../Material/TPZEuler.o ../Material/TPZEulerConsLaw.o ../Material/pzausmflux.o \
 	../Material/TPZLinearConvection.o ../Material/TPZMulticamadaOrtho.o ../Material/TPZPlacaOrthotropic.o \
 	../Material/eulerdif.o ../Material/pzartdiff.o ../Material/pzbctension.o \
 	../Material/pzbiharmonic.o ../Material/pzbndcond.o ../Material/pzconslaw.o \

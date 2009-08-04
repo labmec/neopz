@@ -1,4 +1,4 @@
-//$Id: pzeuler.h,v 1.1 2009-07-23 20:36:42 fortiago Exp $
+//$Id: pzeuler.h,v 1.2 2009-08-04 21:37:54 fortiago Exp $
 
 #ifndef PZEULER_H
 #define PZEULER_H
@@ -18,6 +18,10 @@
  * explicit time integrator only.
  */
 class TPZEulerEquation : public TPZDiscontinuousGalerkin{
+
+public:
+
+  enum BCType{EFreeSlip = 1};
 
 private:
 
@@ -88,7 +92,7 @@ public:
   /**
    * See declaration in base class
    */
-  virtual std::string Name();
+  virtual std::string Name(){return "TPZEulerEquation";}
 
   /**
    * See declaration in base class

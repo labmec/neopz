@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.h,v 1.1 2009-07-23 20:37:56 fortiago Exp $
+//$Id: pzexplfinvolanal.h,v 1.2 2009-08-04 21:37:43 fortiago Exp $
 
 #ifndef EXPLFINVOLANALH
 #define EXPLFINVOLANALH
@@ -33,7 +33,7 @@ public:
    */
   void UpdateSolution(TPZFMatrix &LastSol, TPZFMatrix & rhs, TPZFMatrix &NextSol);
 
-  virtual void Run(std::ostream &out = std::cout, bool linesearch = true);
+  virtual void Run(std::ostream &out = std::cout);
 
   virtual void PostProcess(int resolution){ 
     TPZAnalysis::PostProcess(resolution);
