@@ -19,6 +19,9 @@ using namespace pztopology;
   / 2007
  */
 
+/** ESTA CLASSE SERÁ DELETADA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/** Será substituída pela classe TPZEllipse3D */
+
 class TPZEllipse : public TPZNodeRep<2,TPZLine> {
 
 private:
