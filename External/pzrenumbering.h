@@ -9,13 +9,13 @@ need to implement
 for implementing node sequence numbering optimization*/
 class TPZRenumbering {
 public:
-  
+
   TPZRenumbering() : fNElements(0), fNNodes(0)
   {
   }
-  
+
   TPZRenumbering(int NElements, int NNodes);
-  
+
   virtual ~TPZRenumbering()
   {
   }
@@ -45,7 +45,7 @@ public:
    * amount of temporary data
    */
   virtual void ClearDataStructures() =0;
-  
+
   virtual void Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)=0;
 
 
@@ -56,6 +56,10 @@ public:
   void ConvertGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &nodegraph, TPZVec<int> &nodegraphindex);
 
   /**
+   * Convert a traditional elgraph to an element to element graph
+   */
+  void ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &eltotelgraph, TPZVec<int> &eltoelgraphindex);
+  /**
    * Stores the graph of nodes to elements
    */
   void NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &nodetoelgraph, TPZVec<int> &nodetoelgraphindex);
@@ -65,10 +69,10 @@ public:
    * the return value indicates the number of colors in the graph
    */
   int ColorNodes(TPZVec<int> &nodegraph, TPZVec<int> &nodegraphindex, TPZVec<int> &family, TPZVec<int> &colors);
-  	
+
   /**
    * Prints graph
-   */   
+   */
   void Print(TPZVec<int> &grapho, TPZVec<int> &graphoindex, const char *name = 0, std::ostream &out = std::cout);
 
 protected:

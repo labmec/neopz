@@ -11,7 +11,7 @@ using namespace std;
 
 void TPZRenumbering::NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &nodtoelgraph, TPZVec<int> &nodtoelgraphindex){
   /*        cout << "fNNodes +1: " << (fNNodes+1) << endl;
-	cout << "fNElements " << fNElements << endl;	
+	cout << "fNElements " << fNElements << endl;
 	cout << "elgraph.NElements()" <<elgraph.NElements() <<endl;
 	cout << "elgraphindex.NElements()" <<elgraphindex.NElements() <<endl;
   */
@@ -28,11 +28,11 @@ void TPZRenumbering::NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphind
   	for(nod=fNNodes; nod>0; nod--) nodtoelgraphindex[nod] = nodtoelgraphindex[nod-1];
   	nodtoelgraphindex[0] = 0;
   	for(nod=1;nod<=fNNodes;nod++) nodtoelgraphindex[nod] += nodtoelgraphindex[nod-1];
-  
+
 	//nodtoelgraph(nodtoelgraphindex[fNNodes],-1);
 	nodtoelgraph.Resize(nodtoelgraphindex[fNNodes]);
 	nodtoelgraph.Fill (-1);
-	
+
 	int el;
   	for(el=0; el<fNElements; el++) {
     		int firstnode = elgraphindex[el];
@@ -50,7 +50,7 @@ void TPZRenumbering::NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphind
 				nodtoelgraph[firstel] = el;
       			}
     		}
-  	}       
+  	}
 	//	Print(nodtoelgraph,nodtoelgraphindex,"Node to Element Graph");
 }
 
@@ -60,7 +60,7 @@ void TPZRenumbering::ConvertGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphinde
 	int nod,el;
 	TPZVec<int> nodtoelgraphindex;
 	TPZVec<int> nodtoelgraph;
-	
+
 	NodeToElGraph(elgraph,elgraphindex,nodtoelgraph,nodtoelgraphindex);
 
 	//	Print(elgraph,elgraphindex,"Grapho de elementos",cout);
@@ -73,7 +73,7 @@ void TPZRenumbering::ConvertGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphinde
   	nodegraphindex.Fill(0);
 //	cout << "Passou por aqui0\n";
 	int nodegraphincrement = 10000;
-  	nodegraph.Resize(nodegraphincrement);       
+  	nodegraph.Resize(nodegraphincrement);
 //  	int nodegraphsize = nodegraph.NElements();
   	int nextfreeindex = 0;
   	for(nod=0; nod<fNNodes; nod++) {
@@ -173,7 +173,7 @@ void TPZRenumbering::Print(TPZVec<int> &grapho, TPZVec<int> &graphoindex, const 
 #include "pzgeoel.h"
 #include "pzgnode.h"
 #include "pzcompel.h"
-	
+
 static REAL XMin(TPZGeoEl *gel, const TPZVec<REAL> &normal) {
 
   int nnode = gel->NNodes();
@@ -226,3 +226,50 @@ void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
   cmesh->CleanUpUnconnectedNodes();
 
 }
+
+/**
+   * Convert a traditional elgraph to an element to element graph
+   */
+void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &eltoelgraph, TPZVec<int> &eltoelgraphindex)
+{
+	TPZVec<int> nodegraph,nodegraphindex;
+	NodeToElGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
+	int nelements = elgraph.NElements()-1;
+	eltoelgraphindex.Resize(nelements+1);
+	eltoelgraphindex[0] = 0;
+	eltoelgraph.Resize(1000);
+	int iel;
+	for(iel=0; iel<nelements; iel++)
+	{
+		set<int> elset;
+		int firstnodeindex = elgraphindex[iel];
+		int lastnodeindex = elgraphindex[iel+1];
+		int nodeindex;
+		for(nodeindex = firstnodeindex; nodeindex< lastnodeindex; nodeindex++)
+		{
+			int node = elgraph[nodeindex];
+			int firstelindex = nodegraphindex[node];
+			int lastelindex = nodegraphindex[node+1];
+			int elindex;
+			for(elindex = firstelindex; elindex < lastelindex; elindex++)
+			{
+				int element = nodegraph[elindex];
+				elset.insert(element);
+			}
+		}
+		int eltoelsize = eltoelgraph.NElements();
+		if(eltoelgraphindex[iel]+elset.size() >= eltoelsize)
+		{
+			eltoelgraph.Resize(eltoelsize+elset.size()+1000);
+		}
+		int count = eltoelgraphindex[iel];
+		set<int>::iterator it;
+		for(it=elset.begin(); it != elset.end(); it++,count++)
+		{
+			eltoelgraph[count] = *it;
+		}
+		eltoelgraphindex[iel+1] = count;
+	}
+	eltoelgraph.Resize(eltoelgraphindex[nelements]);
+}
+
