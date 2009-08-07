@@ -1,4 +1,4 @@
-//$Id: TPZMTAssemble.cpp,v 1.1 2008-03-18 12:15:35 cesar Exp $
+//$Id: TPZMTAssemble.cpp,v 1.2 2009-08-07 19:10:37 phil Exp $
 
 #include "TPZMTAssemble.h"
 #include "pzstrmatrix.h"
@@ -42,8 +42,8 @@ void * TPZMTAssemble::ExecuteAssembleResidualMT(void * ExtData){
     if (data->MaterialIds->find(matid) == data->MaterialIds->end()) return NULL;
   }///if
   
-  int mineq = data->mineq;
-  int maxeq = data->maxeq;
+ // int mineq = data->mineq;
+ // int maxeq = data->maxeq;
 
   TPZCompMesh * mesh = el->Mesh();
   TPZElementMatrix * ef = new TPZElementMatrix(mesh, TPZElementMatrix::EF);

@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.36 2009-06-17 22:08:24 fortiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.37 2009-08-07 19:07:30 phil Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -791,7 +791,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
   errors.Resize(NErrors);
   errors.Fill(0.);
   TPZAutoPointer<TPZMaterial> material = Material();
-  TPZMaterial * matptr = material.operator->();
+  //TPZMaterial * matptr = material.operator->();
   if(!material){
     PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
     Print(PZError);
