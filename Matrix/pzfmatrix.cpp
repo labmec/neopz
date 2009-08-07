@@ -194,6 +194,7 @@ TPZFMatrix &TPZFMatrix::operator=(const TPZFMatrix &A ) {
 void TPZFMatrix::AddFel(TPZFMatrix &rhs,TPZVec<int> &destination) {
 	if(rhs.Cols() != Cols()) {
    	PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
+		DebugStop();
 		return;
    }
    int ncol = Cols();
@@ -209,6 +210,7 @@ void TPZFMatrix::AddFel(TPZFMatrix &rhs,TPZVec<int> &destination) {
 void TPZFMatrix::AddFel(TPZFMatrix &rhs,TPZVec<int> &source, TPZVec<int> &destination) {
 	if(rhs.Cols() != Cols()) {
    	PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
+		DebugStop();
 		return;
    }
    int ncol = Cols();
