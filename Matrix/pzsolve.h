@@ -110,7 +110,7 @@ virtual  void SetMatrix(TPZAutoPointer<TPZMatrix> Refmat);
   /**
      Returns a pointer to TPZMatrix
   */
-  TPZAutoPointer<TPZMatrix> Matrix() { return fContainer;}
+  TPZAutoPointer<TPZMatrix> Matrix() const { return fContainer;}
 
   /**
      Shares the current matrix with another object of same type
