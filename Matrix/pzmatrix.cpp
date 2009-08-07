@@ -1425,11 +1425,11 @@ void TPZMatrix::Multiply(const TPZFMatrix &A, TPZFMatrix&B, int opt, int stride)
 //   } else {
 //     B.Redim(Cols()*stride, A.Cols() );
 //   }
-  if(!opt && (B.Rows() != Cols()*stride || B.Cols() != A.Cols())) {
-    B.Redim(Cols()*stride,A.Cols());
-  }
-  else if (opt && (B.Rows() != Rows()*stride || B.Cols() != A.Cols())) {
+  if(!opt && (B.Rows() != Rows()*stride || B.Cols() != A.Cols())) {
     B.Redim(Rows()*stride,A.Cols());
+  }
+  else if (opt && (B.Rows() != Cols()*stride || B.Cols() != A.Cols())) {
+    B.Redim(Cols()*stride,A.Cols());
   }
   MultAdd( A, B, B, 1.0, 0.0, opt,stride);
 }
