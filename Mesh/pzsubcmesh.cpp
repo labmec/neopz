@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.27 2009-03-10 10:37:21 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.28 2009-08-07 19:08:51 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -253,7 +253,7 @@ TPZSubCompMesh::~TPZSubCompMesh(){
 }
 
 
-TPZCompMesh * TPZSubCompMesh::FatherMesh(){
+TPZCompMesh * TPZSubCompMesh::FatherMesh() const{
 	return Mesh();
 }
 
@@ -616,7 +616,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 	//std::cout.flush();
 }
 
-void TPZSubCompMesh::PotentialInternal(std::list<int> &connectindices){
+void TPZSubCompMesh::PotentialInternal(std::list<int> &connectindices) const {
   int i;
   TPZCompMesh *father = FatherMesh();
   father->ComputeNodElCon();
@@ -788,7 +788,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	ek.fBlock.SetNBlocks(nelemnodes);
 	ef.fBlock.SetNBlocks(nelemnodes);
 	for (i = 0; i < nelemnodes ; i++)	{
-		int nodeindex = ConnectIndex(i);
+		//int nodeindex = ConnectIndex(i);
 		int seqnum = Connect(i).SequenceNumber();
   		ek.fBlock.Set(i,block.Size(seqnum));
   		ef.fBlock.Set(i,block.Size(seqnum));
@@ -844,11 +844,11 @@ void TPZSubCompMesh::SetAnalysis(){
 //	Prints(out);
 }
 
-  /**
- * Permute the potentially internal connects to the first on the list
+/**
+ * Compute the permutation vector which puts the internal connects to the first on the list
  * Respect the previous order of the connects
-   */
-void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int> &permute)
+ */
+void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int> &permute) const
 {
   // map from sequence number of the pontentially internal nodes to the node indices
   // first the independent nodes, then the dependent nodes
@@ -929,7 +929,16 @@ void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int> &permute)
     LOGPZ_DEBUG(logger,sout.str())
   }
 #endif
-  Permute(permute);
+}
+
+	/**
+	 * Permute the potentially internal connects to the first on the list
+	 * Respect the previous order of the connects
+	 */
+void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int> &permute)
+{
+	this->ComputePermutationInternalFirst(permute);
+	Permute(permute);
 }
 
 void TPZSubCompMesh::PermuteExternalConnects(){
@@ -937,7 +946,8 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 //	TPZCompMesh::Print();
 
 	int i=0, numinternal=0, numconstraints = 0, numexternal=0;
-	int countinternal=0, countconstraint=0;
+	//int countinternal=0
+	int countconstraint=0;
 	int nconnects = fConnectVec.NElements();
 	std::set<int> internalseqnum;
 //std::cout << "fExternalLocIndex\n";

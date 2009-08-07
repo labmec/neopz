@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.19 2009-03-10 10:37:21 phil Exp $
+//$Id: pzsubcmesh.h,v 1.20 2009-08-07 19:08:51 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -178,7 +178,7 @@ private:
 
 public:
   /// puts the nodes which can be transferred in an ordered list
-  void PotentialInternal(std::list<int> &connectindices);
+  void PotentialInternal(std::list<int> &connectindices) const;
 
    /**
     * Put an local connection in the supermesh - Supermesh is one
@@ -211,15 +211,21 @@ public:
   /**
    * Return the current submesh father mesh .
    */
-  virtual TPZCompMesh * FatherMesh();
+  virtual TPZCompMesh * FatherMesh() const;
   //@}
 
   /**
    * Optimize the connections positions on block.
-   * void TPZSubCompMesh::PermuteExternalNodes(){
+   * void TPZSubCompMesh::PermuteExternalConnects(){
    */
   void PermuteExternalConnects();
 
+	/**
+	 * Compute the permutation vector which puts the internal connects to the first on the list
+	 * Respect the previous order of the connects
+	 */
+	void ComputePermutationInternalFirst(TPZVec<int> &permute) const;
+	
   /**
    * Permute the potentially internal connects to the first on the list
    * Respect the previous order of the connects
