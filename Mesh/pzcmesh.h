@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.40 2009-06-17 22:08:23 fortiago Exp $
+//$Id: pzcmesh.h,v 1.41 2009-08-07 19:01:39 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -227,6 +227,7 @@ public:
    * Return a reference to the connect pointers vector
    */
   TPZAdmChunkVector<TPZConnect>    &ConnectVec() { return fConnectVec; }
+	const TPZAdmChunkVector<TPZConnect> &ConnectVec() const { return fConnectVec; }
 
   /**
    * Return a reference to the material pointers vector
@@ -360,7 +361,7 @@ public:
   /**
    * Get the father meshes stack
    */
-  virtual TPZCompMesh *FatherMesh() {return NULL;}
+  virtual TPZCompMesh *FatherMesh() const {return NULL;}
 
   /**
    * Makes a specified connection a internal mesh connection.
