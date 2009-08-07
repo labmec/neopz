@@ -41,8 +41,8 @@ TPZMatRed<TSideMatrix>::TPZMatRed () : TPZMatrix( 0, 0 ), fK01(0,0),fK10(0,0),fK
   fDim1=0;
   fDecomposeType=ENoDecompose;
   fF0IsComputed=0;
-  fK01IsComputed=0;
   fK11IsReduced=0;
+	fK01IsComputed = 0;
   fF1IsReduced=0;
 
 }
@@ -58,8 +58,8 @@ TPZMatRed<TSideMatrix>::TPZMatRed( int dim, int dim00 ):TPZMatrix( dim,dim ), fK
   fDim1=dim-dim00;
   fDecomposeType=ENoDecompose;
   fF0IsComputed=0;
-  fK01IsComputed=0;
   fK11IsReduced=0;
+	fK01IsComputed = 0;
   fF1IsReduced=0;
 
 }
@@ -72,8 +72,8 @@ TPZMatRed<TSideMatrix>::TPZMatRed(const TPZMatRed &cp) : TPZMatrix(cp), fK01(cp.
   fDim1=cp.fDim1;
   fDecomposeType=cp.fDecomposeType;
   fF0IsComputed=cp.fF0IsComputed;
-  fK01IsComputed=cp.fK01IsComputed;
   fK11IsReduced=cp.fK11IsReduced;
+	fK01IsComputed = cp.fK01IsComputed;
   fF1IsReduced=fF1IsReduced;
 
   if(cp.fK00) fK00 = cp.fK00->Clone();
@@ -136,11 +136,32 @@ TPZMatRed<TSideMatrix>::GetVal(const int r,const int c ) const {
 }
 
 template<class TSideMatrix>
+REAL&
+TPZMatRed<TSideMatrix>::s(const int r,const int c ) {
+	int row(r),col(c);
+	
+	if (r < fDim0 && IsSimetric() && row > col ) Swap( &row, &col );
+	if (row<fDim0 &&  col<fDim0)  return ( fK00->s(row,col) );
+	if (row<fDim0 &&  col>=fDim0)  return ( fK01.s(row,col-fDim0) );
+	if (row>=fDim0 &&  col<fDim0)  return ( fK10.s(row-fDim0,col) );
+	return (fK11.s(row-fDim0,col-fDim0) );
+	
+}
+
+
+template<class TSideMatrix>
 void
-TPZMatRed<TSideMatrix>::SetK00(TPZAutoPointer<TPZMatrix> k00)
+TPZMatRed<TSideMatrix>::SetSolver(TPZAutoPointer<TPZMatrixSolver> solver)
 {
-  fK00=k00;
-	fSolver->SetMatrix(k00);
+	fK00=solver->Matrix();
+	fSolver = solver;
+}
+
+template<class TSideMatrix>
+void
+TPZMatRed<TSideMatrix>::SetK00(TPZAutoPointer<TPZMatrix> K00)
+{
+	fK00=K00;
 }
 
 template<class TSideMatrix>
@@ -162,8 +183,6 @@ TPZMatRed<TSideMatrix>::SetF(const TPZFMatrix & F)
     for( ;r<Rows(); r++){
       fF1.PutVal( r1++,c,F.GetVal(r,c) );
     }
-
-
   }
   fF1IsReduced = 0;
   fF0IsComputed = 0;
@@ -173,57 +192,52 @@ template<class TSideMatrix>
 const TPZFMatrix&
 TPZMatRed<TSideMatrix>::F1Red()
 {
-  if (!fDim0 || fF1IsReduced)  return (fF1);
-
-  if (fK00->IsDecomposed()) {
-    if( !fF0IsComputed ){
-      Substitution((fF0));
-      fF0IsComputed=1;
-    }
-  }
-  else{
-    Simetrize();
-    fK00->SolveDirect((fF0),fDecomposeType);
-    fF0IsComputed=1;
-  }
-
-
-  //make [F1]=[F1]-[K10][K0]
-  fK10->MultAdd((fF0),(fF1),(fF1),-1,1);
-  fF1IsReduced=1;
-  return (fF1);
-
-
-
+	if (!fDim0 || fF1IsReduced)  return (fF1);
+	if(! fF0IsComputed)
+	{
+		fSolver->Solve(fF0,fF0);
+		fF0IsComputed = 1;
+	}
+	
+	//make [F1]=[F1]-[K10][K0]
+	fK10.MultAdd((fF0),(fF1),(fF1),-1,1);
+	fF1IsReduced=1;
+	return (fF1);
 }
 
 template<class TSideMatrix>
 const TPZFMatrix&
 TPZMatRed<TSideMatrix>::K11Red()
 {
-  if (!fDim0 || fK11IsReduced)  {
-    Simetrize();
-    return (fK11);
-  }
-  if (fK00->IsDecomposed()) {
-    if( !fK01IsComputed ){
-      Substitution((&fK01));
-      fK01IsComputed=1;
-    }
-  }
-  else{
-    Simetrize();
-    fK00->SolveDirect((fK01),fDecomposeType);
-    fK01IsComputed=1;
-  }
+	if (!fDim0 || fK11IsReduced)  {
+		//Simetrize();
+		return (fK11);
+	}
+	
+	if(!fK01IsComputed)
+	{
+		Simetrize();
+		fSolver->Solve(fK01,fK01);
+		fK01IsComputed = 1;
+	}
+
+	//make [K11]=[k11]-[k10][k01]
+	fK10.MultAdd(fK01,(fK11),(fK11),-1,1);
+	fK11IsReduced=1;
+	return (fK11);
 
 
-  //make [K11]=[k11]-[k10][k01]
-  fK10->MultAdd((fK01),(fK11),(fK11),-1,1);
-  fK11IsReduced=1;
-  return (fK11);
+}
 
+#include "tpzverysparsematrix.h"
 
+template<>
+const TPZFMatrix&
+TPZMatRed<TPZVerySparseMatrix>::K11Red()
+{
+	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";	
+	static TPZFMatrix temp;
+	return temp;
 }
 
 
@@ -240,53 +254,102 @@ TPZMatRed<TSideMatrix>::U1(TPZFMatrix & F)
 
 }
 
+template<>
+void
+TPZMatRed<TPZVerySparseMatrix>::UGlobal(const TPZFMatrix & U1, TPZFMatrix & result)
+{
+	//[u0]=[A00^-1][F0]-[A00^-1][A01]
+    if( !fF0IsComputed ){
+		//compute [F0]=[A00^-1][F0]
+		fSolver->Solve(fF0,fF0);
+		fF0IsComputed=1;
+	}
+	
+	if(!fK01IsComputed)
+	{
+		TPZFMatrix k01(fK01);
+		fSolver->Solve(k01,k01);
+		fK01 = k01;
+		fK01IsComputed = 1;
+	}
+	
+	//make [u0]=[F0]-[U1]
+	TPZFMatrix u0( fF0.Rows() , fF0.Cols() );
+	fK01.MultAdd(U1,(fF0),u0,-1,0);
+	//	fSolver->Solve(u0,u0);
+	//	u0 += fF0;
+	//compute result
+	
+	result.Redim( Rows(),fF0.Cols() );
+	int c,r,r1;
+	
+	for(c=0; c<fF0.Cols(); c++)
+	{
+		r1=0;
+		for(r=0; r<fDim0; r++)
+		{
+			result.PutVal( r,c,u0.GetVal(r,c) ) ;
+		}
+		//aqui r=fDim0
+		for( ;r<Rows(); r++)
+		{
+			result.PutVal( r,c,U1.GetVal(r1++,c) );
+		}
+	}
+}
+
 template<class TSideMatrix>
 void
 TPZMatRed<TSideMatrix>::UGlobal(const TPZFMatrix & U1, TPZFMatrix & result)
 {
   //[u0]=[A00^-1][F0]-[A00^-1][A01]
-  if ( fK00->IsDecomposed() ){
     if( !fF0IsComputed ){
-      //compute [F0]=[A00^-1][F0]
-      Substitution((fF0));
-      fF0IsComputed=1;
-    }
-    if( !fK01IsComputed ){
-      //compute [A01]=[A00^-1][A01]
-      Substitution( (&fK01) );
-      fK01IsComputed=1;
-    }
-  }else{
-    Simetrize();
-    fK00->SolveDirect( (fF0),fDecomposeType );
-    fF0IsComputed=1;
-    Substitution( (&fK01) );
-    fK01IsComputed=1;
-  }
+		//compute [F0]=[A00^-1][F0]
+		fSolver->Solve(fF0,fF0);
+		fF0IsComputed=1;
+	}
+	
+	if(!fK01IsComputed)
+	{
+		fSolver->Solve(fK01,fK01);
+		fK01IsComputed = 1;
+	}
 
-  //make [u0]=[F0]-[U1]
-  TPZFMatrix u0( fF0.Rows() , fF0.Cols() );
-  fK01.MultAdd(U1,(fF0),u0,-1,1);
-  //compute result
+	//make [u0]=[F0]-[U1]
+	TPZFMatrix u0( fF0.Rows() , fF0.Cols() );
+	fK01.MultAdd(U1,(fF0),u0,-1,1);
+//	fSolver->Solve(u0,u0);
+//	u0 += fF0;
+	//compute result
+#ifdef LOG4CXX
+	if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		fF0.Print("fF0 ",sout);
+		u0.Print("u0 " ,sout);
+		LOGPZ_DEBUG(logger,sout.str())   
 
-  result.Redim( Rows(),fF0.Cols() );
-  int c,r,r1;
+	}
+#endif
 
-  for(c=0; c<fF0.Cols(); c++){
-    r1=0;
-    for(r=0; r<fDim0; r++){
-      result.PutVal( r,c,u0.GetVal(r,c) ) ;
-    }
-    //aqui r=fDim0
-    for( ;r<Rows(); r++){
-      result.PutVal( r,c,U1.GetVal(r1++,c) );
-    }
+	result.Redim( Rows(),fF0.Cols() );
+	int c,r,r1;
 
-
-  }
-
-
+	for(c=0; c<fF0.Cols(); c++)
+	{
+		r1=0;
+		for(r=0; r<fDim0; r++)
+		{
+			result.PutVal( r,c,u0.GetVal(r,c) ) ;
+		}
+		//aqui r=fDim0
+		for( ;r<Rows(); r++)
+		{
+			result.PutVal( r,c,U1.GetVal(r1++,c) );
+		}
+	}
 }
+
 
 template<class TSideMatrix>
 void
@@ -338,9 +401,6 @@ template<class TSideMatrix>
 int TPZMatRed<TSideMatrix>::Redim(int dim, int dim00){
 	if(dim<dim00) TPZMatrix::Error(__PRETTY_FUNCTION__,"dim k00> dim");
 	if(fK00) fK00->Redim(dim00,dim00);
-	if(fK01) delete fK01;
-	if(fK10) delete fK10;
-	if(fK11) delete fK11;
 	if(fF0)  delete fF0;
 	if(fF1)  delete fF1;
 
@@ -348,13 +408,12 @@ int TPZMatRed<TSideMatrix>::Redim(int dim, int dim00){
 	fDim1=dim-dim00;
 	fDecomposeType=ENoDecompose;
 	fF0IsComputed=0;
-	fK01IsComputed=0;
 	fK11IsReduced=0;
 	fF1IsReduced=0;
 
-	fK01=new TPZFMatrix(fDim0,fDim1,0.);
-	fK10=new TPZFMatrix(fDim1,fDim0,0.);
-	fK11=new TPZFMatrix(fDim1,fDim1,0.);
+	fK01.Redim(fDim0,fDim1);
+	fK10.Redim(fDim1,fDim0);
+	fK11.Redim(fDim1,fDim1);
 
 	fF0=NULL;
 	fF1=NULL;
@@ -367,13 +426,12 @@ int TPZMatRed<TSideMatrix>::Redim(int dim, int dim00){
 template<class TSideMatrix>
 int TPZMatRed<TSideMatrix>::Zero(){
 	if(fK00) fK00->Zero();
-	fK01->Zero();
-	fK10->Zero();
+	fK01.Zero();
+	fK10.Zero();
 	fK11.Zero();
 	fF0.Zero();
 	fF1.Zero();
 	fF0IsComputed=0;
-	fK01IsComputed=0;
 	fK11IsReduced=0;
 	fF1IsReduced=0;
 	return 0;
@@ -404,12 +462,36 @@ void TPZMatRed<TSideMatrix>::MultAdd(const TPZFMatrix &x,
 
 	if(!opt)
 	{
-		TPZFMatrix l_Res(fK01->Rows(), x.Cols(), 0);
-		fK01.Multiply(x,l_Res,0,0);
-		fK00->Solve_LU(&l_Res);
+		TPZFMatrix l_Res(fK01.Rows(), x.Cols(), 0);
+		fK01.Multiply(x,l_Res,0,1);
+		fSolver->Solve(l_Res,l_Res);
+#ifdef LOG4CXX
+		if(logger->isDebugEnabled())
+		{
+			std::stringstream sout;
+			l_Res.Print("Internal solution",sout);
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 		TPZFMatrix l_ResFinal(fK11.Rows(), x.Cols(), 0);
-		fK11.Multiply(x,l_ResFinal,0,0);
-		fK10.MultAdd(x,l_ResFinal,z,alpha,-alpha,opt,stride);
+		fK11.Multiply(x,l_ResFinal,0,1);
+#ifdef LOG4CXX
+		if(logger->isDebugEnabled())
+		{
+			std::stringstream sout;
+			l_ResFinal.Print("Intermediate product l_ResFinal",sout);
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		fK10.MultAdd(l_Res,l_ResFinal,z,-alpha,alpha,opt,stride);
+#ifdef LOG4CXX
+		if(logger->isDebugEnabled())
+		{
+			std::stringstream sout;
+			z.Print("Final result z ",sout);
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 	}
 	else
 	{
@@ -432,3 +514,8 @@ TPZMatRed<TSideMatrix>::Error(const char *msg ,const char *msg2)
   exit( 1 );
   return 0;
 }*/
+
+#include "tpzverysparsematrix.h"
+
+template class TPZMatRed<TPZVerySparseMatrix>;
+template class TPZMatRed<TPZFMatrix>;
