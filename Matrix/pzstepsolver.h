@@ -60,10 +60,11 @@ public:
      Sets a matrix to the current object
      @param RefMat Sets reference matrix to RefMat     
   */
-virtual  void SetMatrix(TPZMatrix *Refmat)
+/*virtual  void SetMatrix(TPZMatrix *Refmat)
 {
   TPZMatrixSolver::SetMatrix(Refmat);
 }
+ */
 
   /**
   This method gives a preconditioner to share a matrix with the referring solver object
