@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.38 2009-06-17 22:08:24 fortiago Exp $
+//$Id: pzgeoel.h,v 1.39 2009-08-07 19:06:39 phil Exp $
 
 // -*- c++ -*-
 
@@ -468,6 +468,8 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
 
   /**return the coordinate in real space of the point coordinate in the master element space*/
   virtual void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result)=0;
+	
+	void ComputeNormals(TPZMatrix &normal);
 
   /**return the normal vector at the position loc in the master element space of side*/
 //  virtual void NormalVector(int side,TPZVec<REAL> &loc,TPZVec<REAL> &normal,

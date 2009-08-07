@@ -1475,6 +1475,88 @@ TPZGeoEl *TPZGeoEl::CreateGeoElement(MElementType type,
   }
 }
 
+int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension); 
+
+void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
+{
+}
+
+void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
+{
+}
+
+void TPZGeoEl::ComputeNormals(TPZMatrix &normals)
+{
+	int numbernormals = 0;
+	int dimension = Dimension();
+	int is;
+	int nsides = NSides();
+	for(is=0; is<nsides; is++)
+	{
+		if(SideDimension(is) == dimension-1)
+		{
+			TPZStack<int> lowdim;
+			LowerDimensionSides(is,lowdim);
+			numbernormals += lowdim.NElements();
+		}
+	}
+	normals.Redim(3, numbernormals);
+	int counter = 0;
+	for(is=0; is<nsides; is++)
+	{
+		if(SideDimension(is) == dimension-1)
+		{
+			TPZStack<int> lowdim;
+			LowerDimensionSides(is,lowdim);
+			lowdim.Push(is);
+			int nlowdim = lowdim.NElements();
+			int lowis;
+			for(lowis=0; lowis < nlowdim; lowis++)
+			{
+				int lowsidedimension = SideDimension(lowdim[lowis]);
+				int conj_side = ConjugateSide(this,lowdim[lowis],lowdim,lowsidedimension+1);
+				TPZGeoElSide LC(this,conj_side);
+				TPZGeoElSide LS(this,lowdim[lowis]);
+				TPZManVector<REAL> normal(3,0.);
+				NormalVector(LC,LS,normal);
+				int d;
+				for(d=0; d<3; d++) normals(d,counter) = normal[d];
+				counter++;
+			}
+			TPZManVector<REAL> normal(3,0.);
+			int d;
+			for(d=0; d<3; d++) normal[d] = normals(d,counter-1);
+			counter -= nlowdim;
+			for(lowis = counter; lowis < counter+nlowdim; lowis++)
+			{
+				TPZManVector<REAL> normlow(3,0.);
+				for(d=0; d<3; d++) normlow[d] = normals(d,lowis);
+				Normalize(normlow,normal);
+				for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
+			}
+		}		
+	}
+}
+
+int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension)
+{
+	std::set<int> allside;
+	allside.insert(&allsides[0],&allsides[allsides.NElements()-1]);
+	TPZStack<TPZGeoElSide> highsides;
+	int targetdimension = gel->SideDimension(side)+1;
+	gel->AllHigherDimensionSides(side,targetdimension,highsides);
+	int nhigh = highsides.NElements();
+	int is;
+	for(is=0; is<nhigh; is++)
+	{
+		int highside = highsides[is].Side();
+		if(allside.find(highside) == allside.end())
+		{
+			return highside;
+		}
+	}
+	return -1;
+}
 void TPZGeoEl::SetNeighbourForBlending(int side){
   if( !this->IsGeoBlendEl() ) return;
 
