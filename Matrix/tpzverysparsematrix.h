@@ -18,18 +18,26 @@ public:
 	friend class TPZFYsmpMatrix; 
 	
     TPZVerySparseMatrix();
-
+	
+	TPZVerySparseMatrix(int rows, int cols) : TPZMatrix(rows,cols)
+	{
+	}
+	TPZVerySparseMatrix(int rows, int cols, REAL val) : TPZMatrix(rows,cols)
+	{
+	}
+	
     virtual ~TPZVerySparseMatrix();
   
     TPZVerySparseMatrix(const TPZVerySparseMatrix &copy) : TPZMatrix(copy), fExtraSparseData(copy.fExtraSparseData)
     {
     }
 	
+	TPZVerySparseMatrix(const TPZFMatrix &cp);
+	
     /** 
 	 * Put values checking bounds\n
-    */
-	
-    virtual void PutVal(const int row, const int col, REAL val);
+    */	
+    virtual int PutVal(const int row, const int col, const REAL &val);
 	
 	/** 
 	 * Get values checking bounds\n
@@ -69,7 +77,7 @@ public:
       * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
     */
     virtual void MultAdd(const TPZFMatrix & x,const TPZFMatrix & y, TPZFMatrix & z,
-                        const REAL alpha=1., const REAL beta = 0., const int opt = 0, const int stride = 1 );
+                        const REAL alpha=1., const REAL beta = 0., const int opt = 0, const int stride = 1 ) const;
 	
 	    
 protected:

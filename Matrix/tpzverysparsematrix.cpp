@@ -11,17 +11,43 @@ TPZVerySparseMatrix::~TPZVerySparseMatrix()
 {
 }
 
-void TPZVerySparseMatrix::PutVal(int row, int col, REAL val)
+int TPZVerySparseMatrix::PutVal(int row, int col, const REAL &val)
 {
     if (row < 0 || col < 0 || row >fRow || col >fCol)
     {
         cout<< "ERRO! em TPZVerySparseMatrix::PutVal: The row i or column j are incompatible with the rows or columns of a matrix"<< endl;
-        return;
+        return -1;
    }
   
     pair <int,int> position(row,col);
-    fExtraSparseData[position] = val;
+	std::map <std::pair<int, int>, REAL>::iterator it = fExtraSparseData.find(position);
+	if(val == 0. && it != fExtraSparseData.end()) 
+	{
+		fExtraSparseData.erase(it);
+	}
+	else if(val && it != fExtraSparseData.end())
+	{
+		it->second = val;
+	}
+	else if (val)
+	{
+		fExtraSparseData[position] = val;
+	}
+	return 0;
 }
+
+TPZVerySparseMatrix::TPZVerySparseMatrix(const TPZFMatrix &cp) : TPZMatrix(cp)
+{
+	for(int i=0; i<fRow; i++)
+	{
+		for(int j=0; j<fCol; j++)
+		{
+			REAL a = cp.GetVal(i,j);
+			if(a) PutVal(i,j,a);
+		}
+	}
+}
+
 
 const REAL & TPZVerySparseMatrix::GetVal(int row, int col) const
 {
@@ -46,7 +72,7 @@ const REAL & TPZVerySparseMatrix::GetVal(int row, int col) const
 }
 
 void TPZVerySparseMatrix::MultAdd(const TPZFMatrix & x, const TPZFMatrix & y, TPZFMatrix & z,
-                                                        const REAL alpha, const REAL beta, const int opt, const int stride )
+                                                        const REAL alpha, const REAL beta, const int opt, const int stride ) const
 {
     if (!opt) 
     {
@@ -77,7 +103,7 @@ void TPZVerySparseMatrix::MultAdd(const TPZFMatrix & x, const TPZFMatrix & y, TP
     {
         if(!opt) 
         {
-          map< pair<int,int>, REAL>::iterator it;
+          map< pair<int,int>, REAL>::const_iterator it;
           
           for(it = fExtraSparseData.begin(); it!= fExtraSparseData.end(); it++)
           {
@@ -91,7 +117,7 @@ void TPZVerySparseMatrix::MultAdd(const TPZFMatrix & x, const TPZFMatrix & y, TP
           }
         } else 
           {
-              map<pair<int,int>, REAL>::iterator it;
+              map<pair<int,int>, REAL>::const_iterator it;
               
               for(it = fExtraSparseData.begin(); it != fExtraSparseData.end(); it++)
               {
