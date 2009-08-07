@@ -74,6 +74,10 @@ public:
 
   //Replace the above destructor
   TPZFYsmpMatrix(const TPZVerySparseMatrix &cp);
+	
+	TPZFYsmpMatrix &operator=(const TPZFYsmpMatrix &copy);
+	
+	TPZFYsmpMatrix &operator=(const TPZVerySparseMatrix &cp);
     
   CLONEDEF(TPZFYsmpMatrix)
 

@@ -43,9 +43,54 @@ void TPZFYsmpMatrix::Multiply(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res){
 // Constructor
 //
 // ****************************************************************************
-TPZFYsmpMatrix::TPZFYsmpMatrix(const TPZVerySparseMatrix &cp) : TPZMatrix(cp)
+TPZFYsmpMatrix::TPZFYsmpMatrix(const TPZVerySparseMatrix &cp) : TPZMatrix()
 {
-	
+	fDiag = 0;
+	fIA=0;
+	fJA=0;
+	fA=0;
+	*this = cp;
+}
+
+TPZFYsmpMatrix &TPZFYsmpMatrix::operator=(const TPZFYsmpMatrix &cp) {
+	// Deletes everything associated with a TPZFYsmpMatrix
+	delete []fDiag;
+	fDiag = 0;
+	delete []fIA;
+	fIA=0;
+	delete []fJA;
+	fJA=0;
+	delete []fA;
+	fA=0;
+	TPZMatrix::operator=(cp);
+	int nrows = cp.Rows();
+	int count = cp.fIA[nrows];
+	fJA = new int[count];
+	fA = new REAL[count];
+	fIA = new int[nrows+1];
+	fIA[0] = 0;
+	memcpy(fJA,cp.fJA,count*sizeof(int));
+	memcpy(fIA , cp.fIA, (nrows+1)*sizeof(int));
+	memcpy(fA, cp.fA, count*sizeof(REAL));
+	if(cp.fDiag)
+	{
+		fDiag = new REAL[nrows];
+		memcpy(fDiag, cp.fDiag, nrows*sizeof(REAL));
+	}
+	return *this;
+}
+
+TPZFYsmpMatrix &TPZFYsmpMatrix::operator=(const TPZVerySparseMatrix &cp)
+{
+	// Deletes everything associated with a TPZFYsmpMatrix
+	delete []fDiag;
+	fDiag = 0;
+	delete []fIA;
+	fIA=0;
+	delete []fJA;
+	fJA=0;
+	delete []fA;
+	fA=0;
 	int nrows = cp.Rows();
 	
 	int count = 0, c = 0, r = 0;
@@ -85,8 +130,9 @@ TPZFYsmpMatrix::TPZFYsmpMatrix(const TPZVerySparseMatrix &cp) : TPZMatrix(cp)
 		fIA[r] = c;
 		r++;
 	}
-	  
+	return *this;
 }
+
 
 
 
@@ -300,6 +346,9 @@ TPZFYsmpMatrix::TPZFYsmpMatrix(const int rows,const int cols ) : TPZMatrix(rows,
   //    fMaxIterations = 4;
   //    fSORRelaxation = 1.;
   fDiag = 0;
+	fA = 0;
+	fIA = 0;
+	fJA = 0;
 #ifdef CONSTRUCTOR
   cerr << "TPZFYsmpMatrix(int rows,int cols)\n";
 #endif
