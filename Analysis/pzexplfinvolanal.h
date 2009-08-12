@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.h,v 1.2 2009-08-04 21:37:43 fortiago Exp $
+//$Id: pzexplfinvolanal.h,v 1.3 2009-08-12 21:04:57 fortiago Exp $
 
 #ifndef EXPLFINVOLANALH
 #define EXPLFINVOLANALH
@@ -27,11 +27,11 @@ public:
   /**
    * Assemble fluxes
   **/
-  void AssembleFluxes(TPZFMatrix & rhs, std::set<int> *MaterialIds = NULL);
+  void AssembleFluxes(const TPZFMatrix & Solution, std::set<int> *MaterialIds = NULL);
 
   /** Computes next solution based on the last
    */
-  void UpdateSolution(TPZFMatrix &LastSol, TPZFMatrix & rhs, TPZFMatrix &NextSol);
+  void UpdateSolution(TPZFMatrix &LastSol, TPZFMatrix &NextSol);
 
   virtual void Run(std::ostream &out = std::cout);
 

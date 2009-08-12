@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.cpp,v 1.2 2009-08-04 21:37:43 fortiago Exp $
+//$Id: pzexplfinvolanal.cpp,v 1.3 2009-08-12 21:04:57 fortiago Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -50,16 +50,18 @@ void TPZExplFinVolAnal::Run(std::ostream &out){
 
   this->PostProcess(this->fDXResolution);
 
-  TPZFMatrix NextSol;
+  TPZFMatrix LastSol, NextSol;
+  LastSol = fSolution;
 
   REAL steadynorm;
-  
+
   for(int iter = 0; iter < this->fNMaxIter; iter++){
 
-      this->UpdateSolution(fSolution,fRhs,NextSol);
-      
+      this->UpdateSolution(LastSol,NextSol);
+
       if(iter == (fNMaxIter -1)){
         ofstream solfile("solucaoOlivier.txt");
+        solfile.precision(12);
         for(int is = 0; is < NextSol.Rows(); is++){
           solfile << NextSol(is,0) << "\t";
           if((is+1)%5 == 0) solfile << "\n";
@@ -69,17 +71,18 @@ void TPZExplFinVolAnal::Run(std::ostream &out){
 
       ///checking steady state
       steadynorm = 0.;
-      for(int i = 0; i < fSolution.Rows(); i++){
-        double val = (NextSol(i,0)-fSolution(i,0));
+      for(int i = 0; i < LastSol.Rows(); i++){
+        double val = (NextSol(i,0)-LastSol(i,0));
         steadynorm += val*val;
       }
       steadynorm = sqrt(steadynorm);
 
+      LastSol = NextSol;
       fSolution = NextSol;
       TPZAnalysis::LoadSolution();
 
    if (this->fSaveFrequency){
-    if (!(iter % fSaveFrequency)){
+    if ((!(iter % fSaveFrequency)) || (iter == (this->fNMaxIter-1))){
       this->fSimulationTime = (iter+1.)*fTimeStep;
       this->PostProcess(this->fDXResolution);
     }
@@ -93,8 +96,6 @@ void TPZExplFinVolAnal::Run(std::ostream &out){
     }
    }
    std::cout.flush();
-   fSolution = NextSol;
-   TPZAnalysis::LoadSolution();
 
   }///time step iterations
 
@@ -123,7 +124,10 @@ REAL TPZExplFinVolAnal::TimeStep(){
   return this->fTimeStep;
 }
 
-void TPZExplFinVolAnal::AssembleFluxes(TPZFMatrix & rhs, std::set<int> *MaterialIds){
+void TPZExplFinVolAnal::AssembleFluxes(const TPZFMatrix & Solution, std::set<int> *MaterialIds){
+  this->fSolution = Solution;
+  this->LoadSolution();
+
   const int nelem = this->Mesh()->NElements();
   TPZElementMatrix ef(this->Mesh(), TPZElementMatrix::EF);
 
@@ -143,7 +147,7 @@ void TPZExplFinVolAnal::AssembleFluxes(TPZFMatrix & rhs, std::set<int> *Material
 
     el->CalcResidual(ef);
     ef.ComputeDestinationIndices();
-    rhs.AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
+    this->fRhs.AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
 
   }///for iel = TPZInterfaceElement
 
@@ -169,28 +173,70 @@ void TPZExplFinVolAnal::AssembleFluxes(TPZFMatrix & rhs, std::set<int> *Material
     const int n = ef.fDestinationIndex.NElements();
     for(int i = 0; i < n; i++){
       int pos = ef.fDestinationIndex[i];
-      rhs(pos,0) *= this->fTimeStep/volume;
+      this->fRhs(pos,0) *= this->fTimeStep/volume;
     }
 
   }///for iel = TPZInterpolationSpace
 
 }///void
 
-void TPZExplFinVolAnal::UpdateSolution(TPZFMatrix &LastSol, TPZFMatrix & rhs, TPZFMatrix &NextSol){
-  int sz = fCompMesh->NEquations();
-  rhs.Redim(sz,1);
+void TPZExplFinVolAnal::UpdateSolution(TPZFMatrix &LastSol, TPZFMatrix &NextSol){
 
-  ///Euler explicit:
-  this->AssembleFluxes(rhs);
-  NextSol = LastSol;
-  NextSol.operator -=(rhs);
+  const int order = 1;
+  if(order == 1){
+    ///Euler explicit:
+    int sz = fCompMesh->NEquations();
+    fRhs.Redim(sz,1);
+    this->AssembleFluxes(LastSol);
+    NextSol = LastSol;
+    NextSol -= fRhs;
+  }
+  if(order == 2){
+    ///RK2
+    int sz = fCompMesh->NEquations();
+    this->fRhs.Redim(sz,1);
+    TPZFMatrix uEtoile(sz,1,0.);
+    ///uEtoile = un - 0.5*rhs(un)
+    this->fRhs.Zero();
+    this->AssembleFluxes(LastSol);
+    uEtoile = LastSol;
+    uEtoile.ZAXPY(-0.5, this->fRhs );
 
-  ///RK2
-  TPZFMatrix uEtoile(sz,1,0.);
-//   fazer
-  
-  ///RK3
-//   fazer
-  
+    ///un+1 = un - rhs(uEtoile)
+    this->fRhs.Zero();
+    this->AssembleFluxes(uEtoile);
+    NextSol = LastSol;
+    NextSol -= this->fRhs;
+  }
+  if(order == 3){
+    ///RK3: un+1 = un + dT (1/6 k1 +2/3 k2 +1/6 k3)
+    int sz = fCompMesh->NEquations();
+    this->fRhs.Redim(sz,1);
+    NextSol = LastSol;
+      ///un+1 = un
+
+    this->AssembleFluxes(LastSol);///k1*dT = -rhs
+    NextSol.ZAXPY(-1./6.,this->fRhs);
+      ///un+1 = un +1/6 k1*dt
+
+        ///keeping values
+        TPZFMatrix uEtoile(sz,1,0.);
+        uEtoile = LastSol;
+        uEtoile += this->fRhs;
+
+      ///fSolution = un - 0.5*rhs(un) = un+0.5 *K1*dt
+    TPZFMatrix uStar;
+    uStar = LastSol;
+    uStar.ZAXPY(-0.5,this->fRhs);
+    this->fRhs.Zero();
+    this->AssembleFluxes(uStar);///k2*dT = -rhs
+    NextSol.ZAXPY(-2./3.,this->fRhs);
+
+      ///un+1 = un +1/6 k1*dt+2/3 k2*dt
+    uEtoile.ZAXPY(-2.,this->fRhs);
+    this->fRhs.Zero();
+    this->AssembleFluxes(uEtoile);///k3*dT = -rhs
+    NextSol.ZAXPY(-1./6.,this->fRhs);
+  }
 
 }///void
