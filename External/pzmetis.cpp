@@ -2,6 +2,7 @@
 
 #include "pzmetis.h"
 
+
 #ifdef USING_METIS
 #include <math.h>
 extern "C" {
@@ -9,11 +10,18 @@ extern "C" {
 };
 #endif
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.metis"));
+#endif
+
+
 #include <iostream>
 using namespace std;
 
 TPZMetis::TPZMetis(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes),
-  fNodeWeights(0), fElementGraph(0), fElementGraphIndex(0) {
+  fElementGraph(0), fElementGraphIndex(0) {
 }
 
 void TPZMetis::ClearDataStructures(){
@@ -25,9 +33,6 @@ void TPZMetis::ClearDataStructures(){
 void TPZMetis::SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex){
  fElementGraph = elgraph;
  fElementGraphIndex = elgraphindex;
-}
-void TPZMetis::SetNodeWeights(TPZVec<int> &weights){
- fNodeWeights = weights;
 }
 
 void TPZMetis::Print(std::ostream &out,char * title) {
@@ -119,22 +124,42 @@ for (nod=0;nod<fNNodes;nod++) {perm[nod] = inverseperm[nod] = nod;}
 #endif
 }
 
-void TPZMetis::Subdivide(int nParts, TPZVec<int> &XAdj, TPZVec<int> &Adjacency,
-          TPZVec < TPZStack < int > > & Domains)
+void TPZMetis::Subdivide(int nParts,
+          TPZVec < int > & Domains)
 {
+	TPZVec<int> Adjacency,AdjacencyWeight,AdjacencyIndex;
+	ConvertToElementoToElementGraph(fElementGraph,fElementGraphIndex,Adjacency,AdjacencyWeight,AdjacencyIndex);
+
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		TPZRenumbering::Print(Adjacency,AdjacencyIndex,"Element to element graph",sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
   int i;
-  int nVertices = XAdj.NElements() -1;
-  TPZVec<float> PartitionFractions;
-  PartitionFractions.Resize(nParts);
+  int nVertices = AdjacencyIndex.NElements() -1;
   TPZVec<int> Options(5);
   Options.Resize(5);
   Options[0]=0;
 //  int CommVolume = 0;
+  int flag1 = 0;
+  int flag2 = 0;
   TPZVec<int> partIndex(nVertices);
   partIndex.Resize(nVertices);
+	int nEdgesCutted = 0;
+	Domains.Resize(nVertices);
+//	TPZVec<int> Partition(nVertices);
+
 //  int lStyle = 0;
 //  int lWeigth = 0;
 #ifdef USING_METIS
+	METIS_PartGraphRecursive(&nVertices, &AdjacencyIndex[0], &Adjacency[0], NULL, &AdjacencyWeight[0], &flag1,
+														&flag2, &nParts, Options, &nEdgesCutted, &Domains[0]);
+#endif
+
+#ifdef USING_METIS2
+	/*
   METIS_WPartGraphVKway(
 	 &nVertices,                        // number of vertices
 	 &XAdj[0],                          // adjacency structure
@@ -147,12 +172,8 @@ void TPZMetis::Subdivide(int nParts, TPZVec<int> &XAdj, TPZVec<int> &Adjacency,
 	 &CommVolume,                       // total communication volume
 	 &partIndex[0]                      // the final partition
   );
+  */
 #endif
-  Domains.Resize(nParts);
-  for(i=0;i<nVertices;i++)
-  {
-    Domains[partIndex[i]].Push(i);
-  }
 }
 
 

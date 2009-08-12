@@ -7,6 +7,13 @@
 #include "pzstack.h"
 #include <map>
 #include <set>
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.renumbering"));
+#endif
+
 using namespace std;
 
 void TPZRenumbering::NodeToElGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &nodtoelgraph, TPZVec<int> &nodtoelgraphindex){
@@ -230,18 +237,22 @@ void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
 /**
    * Convert a traditional elgraph to an element to element graph
    */
-void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &eltoelgraph, TPZVec<int> &eltoelgraphindex)
+void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex,
+					TPZVec<int> &eltoelgraph, TPZVec<int> &eltoelweight, TPZVec<int> &eltoelgraphindex)
 {
 	TPZVec<int> nodegraph,nodegraphindex;
+	LOGPZ_DEBUG(logger,"before NodeToElGraph")
 	NodeToElGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
-	int nelements = elgraph.NElements()-1;
+	LOGPZ_DEBUG(logger,"after NodeToElGraph")
+	int nelements = elgraphindex.NElements()-1;
 	eltoelgraphindex.Resize(nelements+1);
 	eltoelgraphindex[0] = 0;
 	eltoelgraph.Resize(1000);
+	eltoelweight.Resize(1000);
 	int iel;
 	for(iel=0; iel<nelements; iel++)
 	{
-		set<int> elset;
+		map<int,int> elset;
 		int firstnodeindex = elgraphindex[iel];
 		int lastnodeindex = elgraphindex[iel+1];
 		int nodeindex;
@@ -254,22 +265,30 @@ void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVe
 			for(elindex = firstelindex; elindex < lastelindex; elindex++)
 			{
 				int element = nodegraph[elindex];
-				elset.insert(element);
+				if(element != iel)
+				{
+					int nweight = 0;
+					if(node < fNodeWeights.NElements()) nweight = fNodeWeights[node];
+					elset[element] += nweight;
+				}
 			}
 		}
 		int eltoelsize = eltoelgraph.NElements();
 		if(eltoelgraphindex[iel]+elset.size() >= eltoelsize)
 		{
 			eltoelgraph.Resize(eltoelsize+elset.size()+1000);
+			eltoelweight.Resize(eltoelgraph.NElements());
 		}
 		int count = eltoelgraphindex[iel];
-		set<int>::iterator it;
+		map<int,int>::iterator it;
 		for(it=elset.begin(); it != elset.end(); it++,count++)
 		{
-			eltoelgraph[count] = *it;
+			eltoelgraph[count] = it->first;
+			eltoelweight[count] = it->second;
 		}
 		eltoelgraphindex[iel+1] = count;
 	}
 	eltoelgraph.Resize(eltoelgraphindex[nelements]);
+	eltoelweight.Resize(eltoelgraph.NElements());
 }
 

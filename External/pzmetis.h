@@ -25,12 +25,6 @@ public:
    */
   void SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex);
   /**
-   * Sets the number of equations associated with each node
-   * The derived class may or may not take this data into
-   * consideration
-   */
-  void SetNodeWeights(TPZVec<int> &weights);
-  /**
    * This will reset all datastructures the object may contain.
    * Node resequencing algorithms may require a possibly large
    * amount of temporary data
@@ -61,19 +55,13 @@ public:
    * For the ith vertex, its Adjacency list is stored in the Adjacency vector positions
    * startint in XAdj[i] until XAdj[i+1]-1.
    * @param nParts : Number of subdomains the Original domain must be divided to.
-   * @param XAdj : Vector of int containing the indexes for the ith element on the 
+   * @param Adjacencyindex : Vector of int containing the indexes for the ith element on the
    * Adjacency Vector.
    * @param Adjacency : The index for the edges according to XAdj.
-   * @param Domains : A vector of size 'nParts' containing for each Subdomain the index 
-   * of the Vertices it holds.
+   * @param Domains : A vector the subdomain index for each vertex
    */
-   void Subdivide(int nParts, TPZVec<int> &XAdj, TPZVec<int> &Adjacency, 
-          TPZVec < TPZStack < int > > & Domains);
+   void Subdivide(int nParts, TPZVec < int >  & Domains);
 private:
-  /**
-   * Number of equations associated with each node
-   */
-  TPZVec<int> fNodeWeights;
   /**
    * Node number of each element
    */

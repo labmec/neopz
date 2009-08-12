@@ -37,7 +37,10 @@ public:
    * The derived class may or may not take this data into
    * consideration
    */
-  virtual void SetNodeWeights(TPZVec<int> &weights) = 0;
+  void SetNodeWeights(TPZVec<int> &weights)
+  {
+	  fNodeWeights = weights;
+  }
 
   /**
    * This will reset all datastructures the object may contain.
@@ -58,7 +61,7 @@ public:
   /**
    * Convert a traditional elgraph to an element to element graph
    */
-  void ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &eltotelgraph, TPZVec<int> &eltoelgraphindex);
+  void ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex, TPZVec<int> &eltotelgraph, TPZVec<int> &eltoelweight, TPZVec<int> &eltoelgraphindex);
   /**
    * Stores the graph of nodes to elements
    */
@@ -85,6 +88,10 @@ protected:
    * Number of nodes in the graph
    */
   int fNNodes;
+  /**
+   * Number of equations associated with each node
+   */
+  TPZVec<int> fNodeWeights;
 };
 
 class TPZCompMesh;
