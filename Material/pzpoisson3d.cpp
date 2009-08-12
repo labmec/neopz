@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.40 2008-10-08 02:09:29 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.41 2009-08-12 21:07:10 fortiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -343,6 +343,13 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 			       TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
 			       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
 
+  values.Resize(5);
+  TPZManVector<REAL> dudxEF(1), dudyEF(1);
+  this->Solution(u,dudx,axes, this->VariableIndex("KDuDx"), dudxEF);
+  this->Solution(u,dudx,axes, this->VariableIndex("KDuDy"), dudyEF);
+  values[3] = (dudxEF[0]/this->fK - du_exact(0,0))*(dudxEF[0]/this->fK - du_exact(0,0));
+  values[4] = (dudyEF[0]/this->fK - du_exact(1,0))*(dudyEF[0]/this->fK - du_exact(1,0));
+
   TPZManVector<REAL> sol(1),dsol(3,0.);
   Solution(u,dudx,axes,1,sol);
   Solution(u,dudx,axes,2,dsol);
@@ -358,6 +365,9 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
   values[0]  = values[1]+values[2];
   
 //  ErroFile << x[0] << "  " << x[1] << "  " << u_exact[0] << "  " << sol[0] << "  " <<  du_exact(0,0) << "  " << dsol[0] << "  " << du_exact(1,0) << "  " << dsol[1] << endl;
+
+  
+
 }
 
 
@@ -460,14 +470,49 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 
 #endif
 
+// bool IsIdentity(TPZFMatrix &axes){
+//   int dim = axes.Rows();
+//   if(dim > axes.Cols()) dim = axes.Cols();
+//   double val;
+//   for(int i = 0; i < dim; i++){
+//     for(int j = 0; j < dim; j++){
+//       val = axes(i,j);
+//       if (i==j){
+//         if(fabs(val-1.) > 1e-5){
+//           return false;
+//         }
+//       }
+//       else{
+//         if(fabs(val-0.) > 1e-5){
+//           return false;
+//         }
+//       }
+//     }
+//   }
+//   return true;
+// }
+
 void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
                                           TPZFMatrix &ek,TPZFMatrix &ef){
 
-TPZFMatrix &dphiL = data.dphixl;
-TPZFMatrix &dphiR = data.dphixr;
+TPZFMatrix &dphiLdAxes = data.dphixl;
+TPZFMatrix &dphiRdAxes = data.dphixr;
 TPZFMatrix &phiL = data.phil;
 TPZFMatrix &phiR = data.phir;
 TPZManVector<REAL,3> &normal = data.normal;
+
+
+// if(IsIdentity( data.axesleft ) == false){
+//   int iiii = 23489423;
+// }
+// 
+// if(IsIdentity( data.axesright ) == false){
+//   int iiii = 23489423;
+// }
+
+TPZFNMatrix<660> dphiL, dphiR;
+TPZAxesTools::Axes2XYZ(dphiLdAxes, dphiL, data.axesleft);
+TPZAxesTools::Axes2XYZ(dphiRdAxes, dphiR, data.axesright);
 
 int &LeftPOrder=data.leftp;
 int &RightPOrder=data.rightp;
@@ -714,6 +759,16 @@ REAL faceSize=data.HSize;
   for(id=0; id<fDim; id++) ConvNormal += fC*fConvDir[id]*normal[id];
   switch(bc.Type()) {
   case 0: // DIRICHLET
+    
+    /** ***************************** */
+/*    for(int in = 0 ; in < nrowl; in++) {
+      ef(in,0) += gBigNumber * bc.Val2()(0,0) * phiL(in,0) * weight;
+      for (int jn = 0 ; jn < nrowl; jn++) {
+  ek(in,jn) += gBigNumber * phiL(in,0) * phiL(jn,0) * weight;
+      }
+    }    
+    return;*/
+    /** ***************************** */
     
     //Diffusion
     for(il=0; il<nrowl; il++) {

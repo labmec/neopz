@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.31 2008-10-08 02:09:29 phil Exp $
+//$Id: pzpoisson3d.h,v 1.32 2009-08-12 21:07:26 fortiago Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -193,6 +193,8 @@ public:
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	      TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
+
+  virtual int NEvalErrors() {return 5;}
 
 
   virtual void ContributeBCInterface(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
