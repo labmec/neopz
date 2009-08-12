@@ -1,4 +1,4 @@
-//$Id: pzausmflux.cpp,v 1.2 2009-08-04 21:37:54 fortiago Exp $
+//$Id: pzausmflux.cpp,v 1.3 2009-08-12 21:05:31 fortiago Exp $
 
 #include "pzausmflux.h"
 
@@ -144,7 +144,7 @@ REAL TPZAUSMFlux::FaceMachNumber(REAL Ml, REAL Mr){
   if(Mr >= 1.) Mminus = 0.;
   else if(Mr <= -1.) Mminus = Mr;
   else{
-    Mminus = -0.25*(Mr+1.)*(Mr+1.)-this->fBeta*(Mr*Mr-1.)*(Mr*Mr-1.);
+    Mminus = -0.25*(Mr-1.)*(Mr-1.)-this->fBeta*(Mr*Mr-1.)*(Mr*Mr-1.);
   }
 
   const REAL faceMach = Mplus+Mminus;
@@ -153,7 +153,7 @@ REAL TPZAUSMFlux::FaceMachNumber(REAL Ml, REAL Mr){
 }///method
 
 REAL TPZAUSMFlux::NumSoundSpeed(REAL LeftSoundSpeed,REAL RightSoundSpeed){
-  return 0.5*(LeftSoundSpeed+RightSoundSpeed);
+  return sqrt(LeftSoundSpeed*RightSoundSpeed);
 }///method
 
 REAL TPZAUSMFlux::MassFlux(REAL NumericalSoundSpeed, REAL rhoL, REAL rhoR, REAL FaceMach){
