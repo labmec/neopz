@@ -211,9 +211,10 @@ void TPZStepSolver::SetPreconditioner(TPZSolver &solve)
   fPrecond = solve.Clone();
 }
 
-void TPZStepSolver::Write(TPZStream & buf)
+void TPZStepSolver::Write(TPZStream &buf, int withclassid)
 {
-
+  TPZSolver::Write(buf, withclassid);
+  fPrecond->Write(buf, 1);
 	int lfSolver = fSolver;
 	buf.Write(&lfSolver, 1);
 	int lfDT = fDecompose;
@@ -222,11 +223,6 @@ void TPZStepSolver::Write(TPZStream & buf)
   buf.Write(&fNumVectors, 1);
 	buf.Write(&fTol, 1);
 	buf.Write(&fOverRelax, 1);
-	
-	/**
-	 * @supplierCardinality 1 
-	 */
-//	TPZSolver *fPrecond;
 	buf.Write(&fFromCurrent, 1);
 	int size = fSingular.size();
 	buf.Write(&size, 1);
@@ -236,8 +232,11 @@ void TPZStepSolver::Write(TPZStream & buf)
 		buf.Write(&*it, 1);
 	}
 }
-void TPZStepSolver::Read(TPZStream & buf)
+void TPZStepSolver::Read(TPZStream &buf, void *context)
 {
+  TPZSolver::Read(buf, context);
+  fPrecond = dynamic_cast<TPZSolver *>(TPZSaveable::Restore(buf, context));
+
 	int lfSolver = 0;
 	buf.Read(&lfSolver, 1);
 	fSolver = (TPZMatrixSolver::MSolver)lfSolver;
@@ -248,11 +247,6 @@ void TPZStepSolver::Read(TPZStream & buf)
   buf.Read(&fNumVectors, 1);
 	buf.Read(&fTol, 1);
 	buf.Read(&fOverRelax, 1);
-	
-	/**
-	 * @supplierCardinality 1 
-	 */
-	//	TPZSolver *fPrecond;
 	buf.Read(&fFromCurrent, 1);
 	int size = 0;
 	buf.Read(&size, 1);
@@ -264,3 +258,4 @@ void TPZStepSolver::Read(TPZStream & buf)
 	}
 }
 
+template class TPZRestoreClass< TPZStepSolver, TPZSTEPSOLVER_ID>;
