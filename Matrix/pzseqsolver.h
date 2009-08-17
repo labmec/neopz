@@ -7,6 +7,8 @@
 
 class TPZFMatrix;
 
+#define TPZSQUENCESOLVER_ID 29281006
+
 /**
    Defines sequence solvers
    @ingroup solver
@@ -49,6 +51,17 @@ public:
   void AppendSolver(TPZMatrixSolver & solve);
   
   virtual TPZSolver * Clone() const;
+
+  /**
+   * Saveable specific methods
+   */
+  virtual int ClassId()
+  {
+    return TPZSQUENCESOLVER_ID;
+  }
+  virtual void Write(TPZStream &buf, int withclassid);
+  virtual void Read(TPZStream &buf, void *context);
+
 
  private:    
   TPZStack < TPZMatrixSolver * > fSolvers;

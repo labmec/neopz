@@ -499,6 +499,102 @@ void TPZMatRed<TSideMatrix>::MultAdd(const TPZFMatrix &x,
 	}
 }
 
+template<class TSideMatrix>
+void TPZMatRed<TSideMatrix>::Write(TPZStream &buf, int withclassid)
+{
+  TPZMatrix::Write(buf, withclassid);
+  {//Ints
+    buf.Write(&this->fDim0, 1);
+    buf.Write(&this->fDim1, 1);
+    int dcType = (int)this->fDecomposeType;
+    buf.Write(&dcType, 1);
+  }
+  {//chars
+    buf.Write(&this->fDecomposed, 1);
+    buf.Write(&this->fDefPositive, 1);
+    buf.Write(&this->fF0IsComputed, 1);
+    buf.Write(&this->fF1IsReduced, 1);
+    buf.Write(&this->fIsReduced, 1);
+    buf.Write(&this->fK01IsComputed, 1);
+    buf.Write(&this->fK11IsReduced, 1);
+  }
+  {//Aggregates
+    this->fF0.Write(buf, 0);
+    this->fF1.Write(buf, 0);
+    if(this->fK00)
+    {
+      this->fK00->Write(buf, 0);
+    }
+    else
+    {
+      int flag = -1;
+      buf.Write(&flag, 1);
+    }
+    this->fK01.Write(buf, 0);
+    this->fK10.Write(buf, 0);
+    this->fK11.Write(buf, 0);
+    if(fSolver)
+    {
+      if(fSolver->Matrix() != fK00)
+      {
+        std::cout << "Error\n";
+      }
+      else
+      {
+        fSolver->Write(buf, 0);
+        //TODO Enviar o solver, atenção com a Matrix do Solver;
+      }
+
+    }
+    else
+    {
+      int flag = -1;
+      buf.Write(&flag, 1);
+    }
+
+  }
+
+}
+template<class TSideMatrix>
+void TPZMatRed<TSideMatrix>::Read(TPZStream &buf, void *context)
+{
+  TPZMatrix::Read(buf, context);
+  {//Ints
+    buf.Read(&this->fDim0, 1);
+    buf.Read(&this->fDim1, 1);
+    int dcType = 0;
+    buf.Read(&dcType, 1);
+    this->fDecomposeType = (DecomposeType) dcType;
+  }
+  {//chars
+    buf.Read(&this->fDecomposed, 1);
+    buf.Read(&this->fDefPositive, 1);
+    buf.Read(&this->fF0IsComputed, 1);
+    buf.Read(&this->fF1IsReduced, 1);
+    buf.Read(&this->fIsReduced, 1);
+    buf.Read(&this->fK01IsComputed, 1);
+    buf.Read(&this->fK11IsReduced, 1);
+  }
+  {//Aggregates
+    this->fF0.Read(buf, 0);
+    this->fF1.Read(buf, 0);
+    if(!fK00)
+    {
+      TSideMatrix * side = new TSideMatrix;
+      side->Read(buf, 0);
+      fK00 = side;
+    }
+    this->fK01.Read(buf, 0);
+    this->fK10.Read(buf, 0);
+    this->fK11.Read(buf, 0);
+//    if(!fSolver)
+//    {
+//      TPZMatrixSolver * solver = new TPZMatrixSolver;
+//      solver->Read(buf, 0);
+//      fSolver = solver;
+//    }
+  }
+}
 
 /*************************** Private ***************************/
 
@@ -515,7 +611,23 @@ TPZMatRed<TSideMatrix>::Error(const char *msg ,const char *msg2)
   return 0;
 }*/
 
+
+
 #include "tpzverysparsematrix.h"
 
 template class TPZMatRed<TPZVerySparseMatrix>;
 template class TPZMatRed<TPZFMatrix>;
+
+template <>
+int TPZMatRed<TPZVerySparseMatrix>::ClassId()
+{
+  return TPZMATRED_VERYSPARSE_ID;
+}
+template <>
+int TPZMatRed<TPZFMatrix>::ClassId()
+{
+  return TPZMATRED_FMATRIX_ID;
+}
+
+template class TPZRestoreClass<TPZMatRed<TPZVerySparseMatrix>, TPZMATRED_VERYSPARSE_ID>;
+template class TPZRestoreClass<TPZMatRed<TPZFMatrix>, TPZMATRED_FMATRIX_ID>;

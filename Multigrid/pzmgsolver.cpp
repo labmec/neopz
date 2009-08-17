@@ -65,3 +65,32 @@ void TPZMGSolver::SetTransferMatrix(TPZAutoPointer<TPZTransfer> Refmat){
   //        fTransfer = new TPZContainer(Refmat);
   //    }
 }
+
+
+void TPZMGSolver::Write(TPZStream &buf, int withclassid)
+{
+  TPZMatrixSolver::Write(buf, withclassid);
+  fCoarse->Write(buf, 1);
+  buf.Write(&fNVar);
+  if(fStep)
+  {
+    fStep->Write(buf, 1);
+  }
+  else
+  {
+    int flag = -1;
+    buf.Write(&flag, 1);
+  }
+}
+void TPZMGSolver::Read(TPZStream &buf, void *context)
+{
+  TPZMatrixSolver::Read(buf, context);
+  fCoarse = dynamic_cast<TPZMatrixSolver *>(TPZSaveable::Restore(buf, context));
+  buf.Read(&fNVar, 1);
+  fStep = dynamic_cast<TPZTransfer *>(TPZSaveable::Restore(buf, context));
+}
+
+
+template class TPZRestoreClass<TPZMGSolver, TPZMGSOLVER_ID>;
+
+

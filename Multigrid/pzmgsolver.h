@@ -5,31 +5,46 @@
 #include "pzsolve.h"
 #include "pzstepsolver.h"
 
+#define TPZMGSOLVER_ID 28291008
+
+
 class TPZFMatrix;
 class TPZTransfer;
-class TPZMGSolver : public TPZMatrixSolver {
+class TPZMGSolver: public TPZMatrixSolver
+{
 public:
+  TPZMGSolver() : TPZMatrixSolver() {}
+  TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver &sol,
+      int nvar, TPZAutoPointer<TPZMatrix> refmat);
+  TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver &sol,
+      int nvar);
 
-  TPZMGSolver(TPZAutoPointer<TPZTransfer> trf,const TPZMatrixSolver &sol, int nvar, TPZAutoPointer<TPZMatrix> refmat);
-  TPZMGSolver(TPZAutoPointer<TPZTransfer> trf,const TPZMatrixSolver &sol, int nvar);
+  TPZMGSolver(const TPZMGSolver & copy);
 
-    TPZMGSolver(const TPZMGSolver & copy);
+  ~TPZMGSolver();
+
+  void SetTransferMatrix(TPZAutoPointer<TPZTransfer> Refmat);
+
+  void ResetTransferMatrix();
+
+  TPZAutoPointer<TPZTransfer> TransferMatrix()
+  {
+    return fStep;
+  }
+
+  TPZSolver * Clone() const;
+
+  void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
+
+  virtual int ClassId()
+  {
+    return TPZMGSOLVER_ID;
+  }
+  virtual void Write(TPZStream &buf, int withclassid);
+  virtual void Read(TPZStream &buf, void *context);
 
 
-
-    ~TPZMGSolver();
-
-    void SetTransferMatrix(TPZAutoPointer<TPZTransfer> Refmat);
-
-    void ResetTransferMatrix();
-
-    TPZAutoPointer<TPZTransfer> TransferMatrix() { return fStep;}
-
-    TPZSolver * Clone() const;
-
-    void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
-
-private:    
+private:
   TPZMatrixSolver * fCoarse;
   int fNVar;
   TPZAutoPointer<TPZTransfer> fStep;

@@ -130,4 +130,63 @@ void TPZVerySparseMatrix::MultAdd(const TPZFMatrix & x, const TPZFMatrix & y, TP
           }
     }
 }
+void TPZVerySparseMatrix::Write(TPZStream &buf, int withclassid)
+{
+  TPZSaveable::Write(buf, withclassid);
+  buf.Write(&this->fCol, 1);
+  buf.Write(&this->fDecomposed, 1);
+  buf.Write(&this->fDefPositive, 1);
+  buf.Write(&this->fRow, 1);
+  buf.Write(&this->gZero, 1);
+  WriteMap(buf, withclassid, this->fExtraSparseData);
+
+}
+void TPZVerySparseMatrix::WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<int, int>, REAL> & TheMap)
+{
+  int mapsz = TheMap.size();
+  buf.Write(&mapsz, 1);
+  std::map<std::pair<int, int>, REAL>::iterator it;
+  for(it = TheMap.begin(); it != TheMap.end(); it++)
+  {
+    int ii = 0, jj = 0;
+    ii = it->first.first;
+    jj = it->first.second;
+    buf.Write(&ii, 1);
+    buf.Write(&jj, 1);
+    buf.Write(&it->second, 1);
+  }
+}
+
+void TPZVerySparseMatrix::Read(TPZStream &buf, void *context)
+{
+  TPZSaveable::Read(buf, context);
+  buf.Read(&this->fCol, 1);
+  buf.Read(&this->fDecomposed, 1);
+  buf.Read(&this->fDefPositive, 1);
+  buf.Read(&this->fRow, 1);
+  buf.Read(&this->gZero, 1);
+  ReadMap(buf, context, this->fExtraSparseData);
+
+}
+void TPZVerySparseMatrix::ReadMap(TPZStream &buf, void *context, std::map<std::pair<int, int>, REAL> & TheMap)
+{
+  TheMap.clear();
+  int size = 0;
+  buf.Read(&size, 1);
+  int i;
+  for(i = 0; i < size; i++)
+  {
+    int ii = 0, jj = 0;
+    REAL value = 0.;
+    buf.Read(&ii, 1);
+    buf.Read(&jj, 1);
+    std::pair<int, int> item(ii, jj);
+    buf.Read(&value, 1);
+    std::pair<std::pair<int, int>, REAL > fullitem(item, value);
+    TheMap.insert(fullitem);
+  }
+}
+
+#warning ClassId and RestoreClass definitions
+//template class TPZRestoreClass< TPZMatRed<TSideMatrix>, _ID>;
 

@@ -80,3 +80,29 @@ void TPZSequenceSolver::UpdateFrom(TPZMatrix *matrix)
     TPZMatrixSolver::UpdateFrom(matrix);
 }
 
+void TPZSequenceSolver::Write(TPZStream &buf, int withclassid)
+{
+  TPZMatrixSolver::Write(buf, withclassid);
+  int StackSz = fSolvers.NElements();
+  buf.Write(&StackSz, 1);
+  int i = 0;
+  for(i = 0; i < StackSz; i++)
+  {
+    fSolvers[i]->Write(buf, 1);
+  }
+
+}
+void TPZSequenceSolver::Read(TPZStream &buf, void *context)
+{
+  TPZMatrixSolver::Read(buf, context);
+  int StackSz = 0;
+  buf.Read(&StackSz, 1);
+  fSolvers.Resize(StackSz);
+  int i = 0;
+  for(i = 0; i< StackSz; i++)
+  {
+    fSolvers[i] = dynamic_cast<TPZMatrixSolver *>(TPZSaveable::Restore(buf, context));
+  }
+}
+
+template class TPZRestoreClass< TPZSequenceSolver, TPZSQUENCESOLVER_ID>;
