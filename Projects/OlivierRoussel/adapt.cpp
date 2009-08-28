@@ -25,7 +25,7 @@
 
 #include "adapt.h" 
 
-int main ( int argc, char *argv[] )
+int mainAdapt ( int argc, char *argv[] )
 {
 	// --- Start -----------------------------------------------
   
@@ -164,6 +164,36 @@ int main ( int argc, char *argv[] )
 	int q;
 	cin >> q;
 	return EXIT_SUCCESS;
+}
+
+TPZAutoPointer < TPZRefPattern > GetUsedRefinementPattern ( TPZCompMesh * CMesh )
+{
+	TPZGeoMesh * gmesh = CMesh->Reference();
+	int iel, nel = gmesh->NElements();
+	TPZAutoPointer < TPZRefPattern > refpattern;
+	for ( iel = 0; iel < nel; iel++ )
+	{
+		TPZGeoEl * gel = gmesh->ElementVec()[ iel ];
+		if ( !gel ) continue;
+		if ( gel->Type() == ETetraedro )
+		{
+			refpattern = gel->GetRefPattern();
+			if ( refpattern ) return refpattern;
+		}
+	}
+	return refpattern;	
+}
+
+/**
+ * Public interface to retrieve the adapted mesh
+ */
+void GetAdaptedMesh ( TPZCompMesh * CMesh )
+{
+	TPZVec < EAdaptElementAction > DivideOrCoarsen;
+	// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
+	ErrorEstimation ( * CMesh, DivideOrCoarsen );
+	TPZAutoPointer < TPZRefPattern > laraRefinementPattern = GetUsedRefinementPattern ( CMesh );	
+	AdaptMesh ( * CMesh,  DivideOrCoarsen, laraRefinementPattern );	
 }
 
 /**
