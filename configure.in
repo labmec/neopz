@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.69 2009-08-28 19:44:57 fortiago Exp $
+dnl $Id: configure.in,v 1.70 2009-08-28 19:47:06 fortiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ dnl         MODE_OPTIONS="-DDEBUG -Wall -ggdb3 -pipe -fno-default-inline -fno-in
 	dnl -fno-math-errno -funsafe-math-optimizations -fno-trapping-math \
 	dnl -mfpmath=sse
 
-        MODE_OPTIONS="-DNOTDEBUG -DNODEBUG -w -s -O2 -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -fexpensive-optimizations -finline-limit=1000 -fdefault-inline -ftemplate-depth-60 -pipe -static"
+        MODE_OPTIONS="-DNOTDEBUG -DNODEBUG -w -s -O2 -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -fexpensive-optimizations -finline-limit=1000 -fdefault-inline -ftemplate-depth-60 -pipe"
         ;;
       *)
         AC_MSG_ERROR(unsupported compiler.)
