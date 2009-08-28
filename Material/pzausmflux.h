@@ -1,4 +1,7 @@
-//$Id: pzausmflux.h,v 1.1 2009-07-23 20:36:41 fortiago Exp $
+//$Id: pzausmflux.h,v 1.2 2009-08-28 19:43:43 fortiago Exp $
+
+#ifndef TPZAUSMFLUX_H
+#define TPZAUSMFLUX_H
 
 #include "pzvec.h"
 #include "pzfmatrix.h"
@@ -67,3 +70,5 @@ class TPZAUSMFlux{
 
 
 };///class
+
+#endif
