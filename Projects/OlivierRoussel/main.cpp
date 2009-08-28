@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.1 2009-08-28 19:31:45 fortiago Exp $
+//$Id: main.cpp,v 1.2 2009-08-28 21:14:04 fortiago Exp $
 
 #include "malhas.h"
 #include "pzlog.h"
@@ -98,7 +98,7 @@ using namespace std;
 int main(){
 
   InitializePZLOG();
-  const int L = 8;
+  const int L = 5;
   REAL timeStep;
 //   TPZCompMesh * cmesh = CreateMeshLaxAndSod(L,timeStep);
 //   TPZCompMesh * cmesh = CreateMeshLax2D(L,timeStep);
@@ -133,7 +133,8 @@ int main(){
 //  scal[2] = "Mach";
   stringstream nome; nome << "testeL"<<L<<".dx";
   an.DefineGraphMesh(3,scal,vec,nome.str());
-  an.Run();
+  an.MultiResolution();
+//   an.Run();
 
   TPZGeoMesh *gmesh = cmesh->Reference();
   delete cmesh;

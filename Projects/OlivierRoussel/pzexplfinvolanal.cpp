@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.cpp,v 1.1 2009-08-28 20:23:45 fortiago Exp $
+//$Id: pzexplfinvolanal.cpp,v 1.2 2009-08-28 21:14:04 fortiago Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -9,6 +9,7 @@
 #include "TPZInterfaceEl.h"
 #include "pzinterpolationspace.h"
 #include "pzeuler.h"
+#include "adapt.h"
 
 using namespace std;
 
@@ -61,8 +62,12 @@ void TPZExplFinVolAnal::MultiResolution(std::ostream &out){
     this->InitializeAuxiliarVariables();
     this->TimeEvolution(LastSol,NextSol);
     this->CleanAuxiliarVariables();
+    LastSol = NextSol;
+    fSolution = NextSol;
+    TPZAnalysis::LoadSolution();
 
-    ///AdaptMesh(this->Mesh());
+    GetAdaptedMesh(this->Mesh());
+
     this->fSolution = this->Mesh()->Solution();
     LastSol = fSolution;
     TPZAnalysis::LoadSolution();

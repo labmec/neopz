@@ -17,7 +17,7 @@ libpz_a_SOURCES =
 
 libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o \
 	../Analysis/pzanalysis.o ../Analysis/pzanalysiserror.o ../Analysis/pzeuleranalysis.o \
-	../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o ../Analysis/pzsmanal.o ../Analysis/pzexplfinvolanal.o \
+	../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o ../Analysis/pzsmanal.o \
 	../Analysis/pzsmfrontalanal.o ../Analysis/pztransientanalysis.o ../Analysis/pzblackoilanalysis.o ../Common/pzreal.o \
 	../Cosys/pzcartsys.o ../Cosys/pzcosys.o ../Cosys/pzcylinsys.o ../Cosys/pzesfersys.o \
 	../External/TPZBoostGraph.o ../External/pzmetis.o ../External/pzrenumbering.o ../External/pzsloan.o \

@@ -1,4 +1,4 @@
-//$Id: pzeuler.cpp,v 1.3 2009-08-28 19:43:43 fortiago Exp $
+//$Id: pzeuler.cpp,v 1.4 2009-08-28 21:18:29 fortiago Exp $
 
 #include "pzeuler.h"
 
@@ -184,7 +184,6 @@ void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, REAL weight, T
 
 
 void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
-
 #ifdef LinearConvection
   if(gType == EFlux){
     fGradientFlux.ApplyLimiter(data);
@@ -235,7 +234,8 @@ void TPZEulerEquation::ContributeBC(TPZMaterialData &data,
                                     REAL weight,
                                     TPZFMatrix &ek, TPZFMatrix &ef,
                                     TPZBndCond &bc){
-  #warning implement it
+  std::cout << __PRETTY_FUNCTION__ << " - this method should not be called for Finite Volume Method\n";
+  DebugStop();
 }
 
 void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
