@@ -9,8 +9,9 @@ bin_PROGRAMS = main
 
 ## --| NeoPZ |------------------------------------------------------------------
 
-main_SOURCES = main.cpp malhas.cpp tools.cpp
+main_SOURCES = adapt.cpp main.cpp malhas.cpp tools.cpp
 
 main_DEPENDENCIES = $(top_builddir)/lib/libpz.a
 
 noinst_HEADERS = TPZFakeFunction.h
+_SOURCES = adapt.h

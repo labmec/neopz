@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.h,v 1.3 2009-08-12 21:04:57 fortiago Exp $
+//$Id: pzexplfinvolanal.h,v 1.4 2009-08-28 19:42:15 fortiago Exp $
 
 #ifndef EXPLFINVOLANALH
 #define EXPLFINVOLANALH
@@ -6,6 +6,9 @@
 #include "pzanalysis.h"
 #include "pznonlinanalysis.h"
 #include "pzcompel.h"
+#include "pzinterpolationspace.h"
+#include <map>
+#include <list>
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include <iostream>
@@ -13,6 +16,7 @@
 class TPZCompMesh;
 class TPZFMatrix;
 class TPZFStructMatrix;
+class TMTFaceData;
 
 /** This class implements an explicit finite volume analysis.
  */
@@ -27,7 +31,21 @@ public:
   /**
    * Assemble fluxes
   **/
-  void AssembleFluxes(const TPZFMatrix & Solution, std::set<int> *MaterialIds = NULL);
+  void AssembleFluxes(const TPZFMatrix & Solution, std::set<int> *MaterialIds = NULL){
+    this->AssembleFluxes2ndOrder(Solution);
+//     this->AssembleFluxesNew(Solution);
+  }
+
+  int NStateVariables(){
+    return 5;
+  }
+
+  int Dimension(){
+    return 3;
+  }
+
+  void AssembleFluxesOld(const TPZFMatrix & Solution, std::set<int> *MaterialIds = NULL);
+  void AssembleFluxesNew(const TPZFMatrix & Solution);
 
   /** Computes next solution based on the last
    */
@@ -58,6 +76,34 @@ public:
 
 protected:
 
+  /** divide vec elements by cell volume and multiply by alpha */
+  void DivideByVolume(TPZFMatrix &vec, double alpha);
+
+  /** Make loop over interfaces requesting flux computation */
+  void ComputeFlux(std::list< TPZInterfaceElement* > &FacePtrList);
+  void ParallelComputeFlux(std::list< TPZInterfaceElement* > &FacePtrList);
+  static void * ExecuteParallelComputeFlux(void * ExtData);
+
+  void AssembleFluxes2ndOrder(const TPZFMatrix & Solution);
+
+
+  void GetNeighbourSolution(TPZInterfaceElement *face, TPZVec<REAL> &LeftSol, TPZVec<REAL> &RightSol);
+  void GetSol(TPZCompElDisc * disc, TPZVec<REAL> &sol);
+
+  /** Compute the element residual.
+   * This special method for finite volume method only
+   * does not use shape functions.
+   * It assumes the solution vector stores the cell solution and its derivatives
+   * For instance: {rho, u, p, drhodx, drhody, dudx, dudy, dpdx,dpdy }
+   * Neighbour elements must be TPZCompElDisc, p = 0
+   * Implemented for Olivier Roussel
+   * @author Tiago Forti
+   * @since 2009 Aug 18
+   */
+  void CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face, TPZElementMatrix &ef, TPZVec<REAL> &LeftSol, TPZVec<REAL> &RightSol);
+
+  void FromConservativeToPrimitiveAndLoad(const TPZFMatrix & Solution);
+
   /** Simulation time step */
   REAL fTimeStep;
 
@@ -80,6 +126,35 @@ protected:
   /** Resolution of DX mesh */
   int fDXResolution;
 
+  /** Initialize fFacePtrList and fVolumeData class attributes */
+  void InitializeAuxiliarVariables();
+
+  /** Clean fFacePtrList and fVolumeData class attributes */
+  void CleanAuxiliarVariables();
+
+  /** Stores the list of interface elements to avoid dynamic cast all the time
+   */
+  std::list< TPZInterfaceElement * > fFacePtrList;
+
+  /** Stores volume data:
+   * From its pointer to the pair < cell volume, destination indices >
+   */
+  std::map< TPZInterpolationSpace*, std::pair< REAL, TPZVec<int> > > fVolumeData;
+
+  /** For parallel computing */
+  TPZVec< TMTFaceData * > fVecFaces;
+
+};
+
+struct TMTFaceData{
+  TMTFaceData():fFaces(),fAn(NULL){
+  }
+  ~TMTFaceData(){
+    fFaces.clear();
+    fAn= NULL;
+  }
+  std::list< TPZInterfaceElement* > fFaces;
+  TPZExplFinVolAnal * fAn;
 };
 
 #endif

@@ -3,7 +3,7 @@ dnl configure.in for NeoPZ
 dnl
 dnl Process this file with GNU autoconf(1) to produce a configure script.
 dnl
-dnl $Id: configure.in,v 1.68 2009-07-07 18:16:45 longhin Exp $
+dnl $Id: configure.in,v 1.69 2009-08-28 19:44:57 fortiago Exp $
 dnl
 
 dnl ----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ dnl         MODE_OPTIONS="-DDEBUG -Wall -ggdb3 -pipe -fno-default-inline -fno-in
 	dnl -fno-math-errno -funsafe-math-optimizations -fno-trapping-math \
 	dnl -mfpmath=sse
 
-        MODE_OPTIONS="-DNOTDEBUG -DNODEBUG -w -s -O2 -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -fexpensive-optimizations -finline-limit=1000 -fdefault-inline -ftemplate-depth-60 -pipe"
+        MODE_OPTIONS="-DNOTDEBUG -DNODEBUG -w -s -O2 -fthread-jumps -fomit-frame-pointer -fstrength-reduce -fcse-follow-jumps -fcse-skip-blocks -fexpensive-optimizations -finline-limit=1000 -fdefault-inline -ftemplate-depth-60 -pipe -static"
         ;;
       *)
         AC_MSG_ERROR(unsupported compiler.)
@@ -551,7 +551,7 @@ dnl ----------------------------------------------------------------------------
 AC_OUTPUT(SpecialMaps/Makefile Analysis/Makefile Common/Makefile Cosys/Makefile External/Makefile \
 	External/sloan/Makefile Frontal/Makefile Geom/Makefile Integral/Makefile LinearSolvers/Makefile \
 	Makefile Material/Makefile Matrix/Makefile Mesh/Makefile Multigrid/Makefile PZ.mk \
-	PZ_pira.mk PZ_user.mk Post/Makefile Pre/Makefile Projects/AltoDes/Makefile \
+	PZ_pira.mk PZ_user.mk Post/Makefile Pre/Makefile Projects/AltoDes/Makefile Projects/OlivierRoussel/Makefile \
 	Projects/Bench/Makefile Projects/CarmargoCorrea/Makefile Projects/ConsLaw/Makefile \
 	Projects/CursoPZ/Class_1/Makefile Projects/CursoPZ/Class_2/Makefile Projects/CursoPZ/Class_3/Makefile \
 	Projects/CursoPZ/Class_4/Makefile Projects/CursoPZ/Class_5/Makefile Projects/CursoPZ/Makefile \

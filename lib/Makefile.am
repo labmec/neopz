@@ -34,7 +34,7 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Integral/tpzgaussrule.o ../Integral/tpzgausslobattorule.o \
 	../Integral/tpzintrulelist.o ../Integral/tpzintrulep3d.o ../Integral/tpzintrulet.o \
 	../Integral/tpzintrulet3d.o ../Integral/tpzprinteg.o ../Material/TPZConservationLaw.o ../Material/pzeuler.o \
-	../Material/TPZDiffusionConsLaw.o ../Material/TPZEuler.o ../Material/TPZEulerConsLaw.o ../Material/pzausmflux.o \
+	../Material/TPZDiffusionConsLaw.o ../Material/TPZEuler.o ../Material/TPZEulerConsLaw.o ../Material/pzausmflux.o ../Material/pzgradientflux.o \
 	../Material/TPZLinearConvection.o ../Material/TPZMulticamadaOrtho.o ../Material/TPZPlacaOrthotropic.o \
 	../Material/eulerdif.o ../Material/pzartdiff.o ../Material/pzbctension.o \
 	../Material/pzbiharmonic.o ../Material/pzbndcond.o ../Material/pzconslaw.o \
