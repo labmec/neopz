@@ -1,4 +1,4 @@
-//$Id: malhas.cpp,v 1.1 2009-08-28 19:31:45 fortiago Exp $
+//$Id: malhas.cpp,v 1.2 2009-08-28 21:25:56 fortiago Exp $
 
 #include "malhas.h"
 #include "TPZFakeFunction.h"
@@ -552,7 +552,9 @@ void InitialSolutionLinearConvection(TPZFMatrix &InitialSol, TPZCompMesh * cmesh
 
   TPZVec<REAL> celerity(3,0.);
   celerity[0] = 1.;
+#ifdef LinearConvection
   TPZEulerEquation::SetLinearConvection(celerity);
+#endif
 
 }///method
 

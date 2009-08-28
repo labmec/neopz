@@ -1,4 +1,4 @@
-//$Id: tools.cpp,v 1.1 2009-08-28 19:31:45 fortiago Exp $
+//$Id: tools.cpp,v 1.2 2009-08-28 21:25:56 fortiago Exp $
 
 #include <map>
 #include "tpzquadratictrig.h"
@@ -88,7 +88,7 @@
 #include "malhas.h"
 
 void InitializeSolver(TPZAnalysis &an){
-  TPZCompMesh *cmesh = an.Mesh();
+//  TPZCompMesh *cmesh = an.Mesh();
   TPZStepSolver step;
   TPZBandStructMatrix matrix(an.Mesh());
   an.SetStructuralMatrix(matrix);

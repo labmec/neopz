@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.2 2009-08-28 21:14:04 fortiago Exp $
+//$Id: main.cpp,v 1.3 2009-08-28 21:25:56 fortiago Exp $
 
 #include "malhas.h"
 #include "pzlog.h"
@@ -101,8 +101,8 @@ int main(){
   const int L = 5;
   REAL timeStep;
 //   TPZCompMesh * cmesh = CreateMeshLaxAndSod(L,timeStep);
-//   TPZCompMesh * cmesh = CreateMeshLax2D(L,timeStep);
-  TPZCompMesh * cmesh = CreateMeshLinearConvection(L,timeStep);
+  TPZCompMesh * cmesh = CreateMeshLax2D(L,timeStep);
+//   TPZCompMesh * cmesh = CreateMeshLinearConvection(L,timeStep);
 
 #ifdef DEBUG
 {
@@ -121,8 +121,8 @@ int main(){
 
   TPZFMatrix InitialSol;
 //   InitialSolutionLaxAndSod(InitialSol,cmesh);
-//   InitialSolutionLax2D(InitialSol,cmesh);
-  InitialSolutionLinearConvection(InitialSol,cmesh);
+  InitialSolutionLax2D(InitialSol,cmesh);
+//   InitialSolutionLinearConvection(InitialSol,cmesh);
   an.SetInitialSolution(InitialSol);
 
   an.Set(timeStep,niter,1e-10);

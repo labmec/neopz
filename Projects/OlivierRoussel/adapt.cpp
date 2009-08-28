@@ -189,11 +189,12 @@ TPZAutoPointer < TPZRefPattern > GetUsedRefinementPattern ( TPZCompMesh * CMesh 
  */
 void GetAdaptedMesh ( TPZCompMesh * CMesh )
 {
-	TPZVec < EAdaptElementAction > DivideOrCoarsen;
+return;
+/*	TPZVec < EAdaptElementAction > DivideOrCoarsen;
 	// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
 	ErrorEstimation ( * CMesh, DivideOrCoarsen );
 	TPZAutoPointer < TPZRefPattern > laraRefinementPattern = GetUsedRefinementPattern ( CMesh );	
-	AdaptMesh ( * CMesh,  DivideOrCoarsen, laraRefinementPattern );	
+	AdaptMesh ( * CMesh,  DivideOrCoarsen, laraRefinementPattern );	*/
 }
 
 /**
