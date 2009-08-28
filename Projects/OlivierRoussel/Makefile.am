@@ -9,10 +9,11 @@ bin_PROGRAMS = lara
 
 ## --| NeoPZ |------------------------------------------------------------------
 
-lara_SOURCES = adapt.cpp main.cpp malhas.cpp pzexplfinvolanal.cpp \
-	pzexplfinvolanal.h tools.cpp
+lara_SOURCES = MultiResMesh.cpp adapt.cpp main.cpp malhas.cpp \
+	pzexplfinvolanal.cpp pzexplfinvolanal.h tools.cpp
 
 lara_DEPENDENCIES = $(top_builddir)/lib/libpz.a
 
 # noinst_HEADERS = TPZFakeFunction.h
 # _SOURCES = adapt.h
+noinst_HEADERS = MultiResMesh.h

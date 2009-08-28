@@ -1,6 +1,7 @@
-//$Id: main.cpp,v 1.3 2009-08-28 21:25:56 fortiago Exp $
+//$Id: main.cpp,v 1.4 2009-08-28 22:59:11 fortiago Exp $
 
 #include "malhas.h"
+#include "MultiResMesh.h"
 #include "pzlog.h"
 #include "pzmatrix.h"
 #include "tpzquadratictrig.h"
@@ -98,11 +99,14 @@ using namespace std;
 int main(){
 
   InitializePZLOG();
-  const int L = 5;
+  const int L = 2;
   REAL timeStep;
 //   TPZCompMesh * cmesh = CreateMeshLaxAndSod(L,timeStep);
-  TPZCompMesh * cmesh = CreateMeshLax2D(L,timeStep);
+//   TPZCompMesh * cmesh = CreateMeshLax2D(L,timeStep);
 //   TPZCompMesh * cmesh = CreateMeshLinearConvection(L,timeStep);
+  TPZGeoMesh * gmesh = CreateCoarseMesh(L);
+  TPZCompMesh * cmesh = CreateMeshMultires(gmesh);
+  timeStep = ComputeTimeStep(0.1,L,L,gmesh);
 
 #ifdef DEBUG
 {
@@ -115,14 +119,15 @@ int main(){
   TPZExplFinVolAnal an(cmesh, cout);
 
   InitializeSolver(an);
-  const double PhysicalTime = 0.5;
+  const double PhysicalTime = 0.1;
   int niter = PhysicalTime/timeStep+1;
   cout << "\nNiter = " << niter << "\n";
 
   TPZFMatrix InitialSol;
 //   InitialSolutionLaxAndSod(InitialSol,cmesh);
-  InitialSolutionLax2D(InitialSol,cmesh);
+//   InitialSolutionLax2D(InitialSol,cmesh);
 //   InitialSolutionLinearConvection(InitialSol,cmesh);
+  InitialSolutionMultires(InitialSol,cmesh);
   an.SetInitialSolution(InitialSol);
 
   an.Set(timeStep,niter,1e-10);
@@ -136,7 +141,6 @@ int main(){
   an.MultiResolution();
 //   an.Run();
 
-  TPZGeoMesh *gmesh = cmesh->Reference();
   delete cmesh;
   delete gmesh;
   return EXIT_SUCCESS;  

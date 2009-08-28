@@ -1,4 +1,4 @@
-//$Id: pzeuler.h,v 1.4 2009-08-28 21:25:41 fortiago Exp $
+//$Id: pzeuler.h,v 1.5 2009-08-28 22:58:56 fortiago Exp $
 
 #ifndef PZEULER_H
 #define PZEULER_H
@@ -13,7 +13,7 @@
 #include "pzgradientflux.h"
 #include "pzlog.h"
 
-// #define LinearConvection
+#define LinearConvection
 
 /** This material implements the weak statement of the compressible euler equations
  * for Olivier Roussel's project. It is for transient analysis, finite volume method and

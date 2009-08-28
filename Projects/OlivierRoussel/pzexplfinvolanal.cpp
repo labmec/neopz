@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.cpp,v 1.2 2009-08-28 21:14:04 fortiago Exp $
+//$Id: pzexplfinvolanal.cpp,v 1.3 2009-08-28 22:59:11 fortiago Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -54,8 +54,6 @@ void TPZExplFinVolAnal::MultiResolution(std::ostream &out){
 
   TPZFMatrix LastSol, NextSol;
   LastSol = fSolution;
-
-  REAL steadynorm;
 
   for(int iter = 0; iter < this->fNMaxIter; iter++){
 
@@ -277,7 +275,8 @@ void TPZExplFinVolAnal::ComputeFlux(std::list< TPZInterfaceElement* > &FacePtrLi
 
   TPZManVector<REAL,10> solL, solR;
   std::list< TPZInterfaceElement* >::iterator w;
-  for(w = FacePtrList.begin(); w != FacePtrList.end(); w++){
+  int iPira;
+  for(iPira = 0, w = FacePtrList.begin(); w != FacePtrList.end(); w++, iPira++){
     TPZInterfaceElement * face = *w;
     if(!face){
       PZError << "\nFatal error in " << __PRETTY_FUNCTION__ << "\n";
@@ -312,6 +311,18 @@ void TPZExplFinVolAnal::DivideByVolume(TPZFMatrix &vec, double alpha){
   }///for iel = TPZInterpolationSpace
 }///void
 
+void TPZExplFinVolAnal::ComputeGradient(const TPZFMatrix & SolutionConsVars){
+  this->FromConservativeToPrimitiveAndLoad(SolutionConsVars);
+
+  ///compute gradient into fRhs
+  ///fSolution must have zeros in gradient positions
+  this->fRhs.Zero();
+  TPZEulerEquation::SetComputeGradient();
+  this->/*Parallel*/ComputeFlux( this->fFacePtrList );
+  this->DivideByVolume(fRhs,1.);
+  fSolution += fRhs;///fRhs has zeros in state variables position and fSolution has zeros in gradient positions
+}
+
 void TPZExplFinVolAnal::AssembleFluxes2ndOrder(const TPZFMatrix & Solution){
   this->FromConservativeToPrimitiveAndLoad(Solution);
 
@@ -319,13 +330,13 @@ void TPZExplFinVolAnal::AssembleFluxes2ndOrder(const TPZFMatrix & Solution){
   ///fSolution must have zeros in gradient positions
   this->fRhs.Zero();
   TPZEulerEquation::SetComputeGradient();
-  this->ParallelComputeFlux( this->fFacePtrList );
+  this->/*Parallel*/ComputeFlux( this->fFacePtrList );
   this->DivideByVolume(fRhs,1.);
   fSolution += fRhs;///fRhs has zeros in state variables position and fSolution has zeros in gradient positions
 
   fRhs.Zero();
   TPZEulerEquation::SetComputeFlux();
-  this->ParallelComputeFlux( this->fFacePtrList );
+  this->/*Parallel*/ComputeFlux( this->fFacePtrList );
   this->DivideByVolume(fRhs,fTimeStep);
 }///void
 

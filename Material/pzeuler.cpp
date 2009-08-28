@@ -1,4 +1,4 @@
-//$Id: pzeuler.cpp,v 1.4 2009-08-28 21:18:29 fortiago Exp $
+//$Id: pzeuler.cpp,v 1.5 2009-08-28 22:58:56 fortiago Exp $
 
 #include "pzeuler.h"
 
@@ -253,8 +253,10 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
 #ifdef LinearConvection
   if(gType == EFlux){
     if (bc.Type() == EFreeSlip){
+      TPZFNMatrix<100> fakeef(2*ef.Rows(),ef.Cols(),0);
       data.solr = data.soll;
-      this->ContributeInterface(data,weight,ef);
+      this->ContributeInterface(data,weight,fakeef);
+      for(int i = 0; i < ef.Rows(); i++) ef(i,0) += fakeef(i,0);
     }///if FreeSlip
   }
   if(gType == EGradient){

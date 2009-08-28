@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.h,v 1.2 2009-08-28 21:14:04 fortiago Exp $
+//$Id: pzexplfinvolanal.h,v 1.3 2009-08-28 22:59:11 fortiago Exp $
 
 #ifndef EXPLFINVOLANALH
 #define EXPLFINVOLANALH
@@ -76,6 +76,14 @@ public:
 
   void SetInitialSolutionAsZero();
 
+ /** Computes solution gradients 
+  * Input is SolutionConsVars: conservative vars
+  * Result is given in fSolution which is a vector of solution and its derivatives
+  * in primitive vars
+  * <!> fRhs is modified
+  */
+  void ComputeGradient(const TPZFMatrix & SolutionConsVars);
+
 protected:
 
   /** divide vec elements by cell volume and multiply by alpha */
@@ -128,7 +136,7 @@ protected:
   /** Resolution of DX mesh */
   int fDXResolution;
 
-  /** Initialize fFacePtrList and fVolumeData class attributes */
+  /** Initialize fFacePtrList, fVolumeData, and fVecFaces class attributes */
   void InitializeAuxiliarVariables();
 
   /** Clean fFacePtrList and fVolumeData class attributes */
