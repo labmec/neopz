@@ -359,7 +359,7 @@ public:
    /**
    * Updates the values of the matrix based on the values of the matrix
    */
-   virtual void UpdateFrom(TPZMatrix * /* mat*/)
+   virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> /* mat*/)
    {
      std::cout << "TPZMatrix::UdateFrom is not implemented\n";
    }

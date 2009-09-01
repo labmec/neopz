@@ -45,9 +45,9 @@ public:
    */
   //  virtual void SetMatrix(TPZMatrixSolver *solver);
   /**
-   * Updates the values of the current matrix based on the values of the matrix
-   */
-  virtual void UpdateFrom(TPZMatrix *matrix)
+  * Updates the values of the current matrix based on the values of the matrix
+  */
+  virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> matrix)
   {
     std::cout << __PRETTY_FUNCTION__ << " called\n";
   }
@@ -100,8 +100,7 @@ public:
   {
     if (fReferenceMatrix == matrix && matrix)
     {
-      if (this->fContainer)
-        this->fContainer->UpdateFrom(matrix.operator->());
+	  if(this->fContainer) this->fContainer->UpdateFrom(matrix);
     }
   }
   /**

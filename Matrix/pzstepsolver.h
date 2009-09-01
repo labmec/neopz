@@ -83,13 +83,13 @@ public:
    */
 
   /**
-   This method gives a preconditioner to share a matrix with the referring solver object
-   */
-  //  virtual void SetMatrix(TPZMatrixSolver *solver);
+  This method gives a preconditioner to share a matrix with the referring solver object
+  */
+//  virtual void SetMatrix(TPZMatrixSolver *solver);
   /**
-   * Updates the values of the current matrix based on the values of the matrix
-   */
-  virtual void UpdateFrom(TPZMatrix *matrix)
+  * Updates the values of the current matrix based on the values of the matrix
+  */
+virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> matrix)
   {
     if (fPrecond)
       fPrecond->UpdateFrom(matrix);

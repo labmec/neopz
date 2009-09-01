@@ -70,7 +70,7 @@ void TPZSequenceSolver::ResetMatrix()
   /**
   Updates the values of the preconditioner based on the values of the matrix
   */
-void TPZSequenceSolver::UpdateFrom(TPZMatrix *matrix)
+void TPZSequenceSolver::UpdateFrom(TPZAutoPointer<TPZMatrix> matrix)
 {
     int nums = fSolvers.NElements();
     int s;
