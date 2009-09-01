@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.49 2009-05-23 02:19:07 erick Exp $
+﻿//$Id: pzanalysis.cpp,v 1.50 2009-09-01 19:32:20 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -328,14 +328,15 @@ void TPZAnalysis::PostProcessTable( TPZFMatrix &,std::ostream & )//pos,out
 	return;
 }
 
-void TPZAnalysis::ShowShape( TPZVec<char *> &scalnames, TPZVec<char *> &vecnames, char *plotfile, std::ostream &) {//1o :TPZConnect  *nod,
+void TPZAnalysis::ShowShape( TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, char *plotfile, std::ostream &) {//1o :TPZConnect  *nod,
 
    TPZV3DGraphMesh gg(fCompMesh,2,fCompMesh->MaterialVec()[0]);
 
 	gg.SetFileName(plotfile);
 	gg.SetResolution(0);
 	gg.DrawMesh(1);
-	gg.DrawSolution(0,0.,scalnames,vecnames);
+	gg.SetNames(scalnames,vecnames);
+	gg.DrawSolution(0,0.);
 
 }
 

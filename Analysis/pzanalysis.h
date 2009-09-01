@@ -202,7 +202,7 @@ TPZMatrixSolver *BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex
 
 
 public:
-  void ShowShape( TPZVec<char *> &scalnames, TPZVec<char *> &vecnames,//1o : TPZConnect* nod,
+  void ShowShape( TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames,//1o : TPZConnect* nod,
 		  char *plotfile, std::ostream &out=std::cout);
 
   void LoadShape(double dx,double dy, int numelem,TPZConnect* nod);
