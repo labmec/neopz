@@ -9,7 +9,7 @@
  *
  * @author Cantao!
  */
-// $Id: TPZTimer.h,v 1.6 2009-07-07 18:27:59 longhin Exp $
+// $Id: TPZTimer.h,v 1.7 2009-09-01 21:09:42 phil Exp $
 
 #ifndef TPZTIMER_H
 #define TPZTIMER_H
@@ -19,6 +19,10 @@
 #include <iostream>
 #include <config.h>
 
+#ifdef BORLAND
+#include <winsock2.h>
+#include <time.h>
+#endif
 
 //--| resuse.{h,c} from GNU time |----------------------------------------------
 
@@ -34,7 +38,7 @@
 #   define TV_MSEC tv_usec / 1000
 #   if HAVE_WAIT3
 #      include <sys/resource.h>
-//# 	else
+# 	else
 
 /// Process resource usage structure.
 struct pzrusage  
@@ -62,10 +66,12 @@ struct PZResourceUsage
 } ;   // Change from the original "RESUSE".
 
 #if !HAVE_WAIT3
-#   include <sys/times.h>
-#   ifndef HZ
-#      include <sys/param.h>
-#   endif
+#	ifndef BORLAND
+#   	include <sys/times.h>
+#   	ifndef HZ
+#      		include <sys/param.h>
+#   	endif
+#	endif
 #   if !defined(HZ) && defined(CLOCKS_PER_SEC)
 #      define HZ CLOCKS_PER_SEC
 #   endif
