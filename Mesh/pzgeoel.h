@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.39 2009-08-07 19:06:39 phil Exp $
+﻿//$Id: pzgeoel.h,v 1.40 2009-09-01 20:04:13 phil Exp $
 
 // -*- c++ -*-
 
@@ -578,7 +578,7 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
    * are coincident to the X mapping of the corner nodes of
    * parametric elements
    */
-  bool VerifyNodeCoordinates(REAL tol = 1e-6);
+  void VerifyNodeCoordinates(REAL tol = 1e-6);
 
   /** Verifies if the parametric point pt is in the element parametric domain
    */

@@ -1,4 +1,4 @@
-//Id: $
+﻿//Id: $
 
 // -*- c++ -*-
 /**File : pzgeoel.c
@@ -1098,7 +1098,7 @@ REAL TPZGeoEl::ElementRadius(){
    {
       case 0:
 	 return 0.;
-	 break;
+ //	 break;
 
       case 1:
       case 2:{
@@ -1119,7 +1119,7 @@ REAL TPZGeoEl::ElementRadius(){
 	    if(mindist > dist) mindist = dist;
 	 }
 	 return mindist;
-	 break;
+//	 break;
       }
 
       case 3:{
@@ -1141,7 +1141,7 @@ REAL TPZGeoEl::ElementRadius(){
 	    if(mindist > dist) mindist = dist;
 	 }
 	 return mindist;
-	 break;
+//	 break;
       }
 
       default:
@@ -1149,7 +1149,7 @@ REAL TPZGeoEl::ElementRadius(){
 	 return 0.;
 
    }//end of switch
-   return 0.;
+//   return 0.;
 } //end of method
 
 REAL TPZGeoEl::TriangleArea(TPZVec<TPZGeoNode *> &nodes){
@@ -1343,7 +1343,7 @@ TPZAutoPointer<TPZRefPattern> TPZGeoEl::GetRefPattern()
   return result;
 }
 
-bool TPZGeoEl::VerifyNodeCoordinates(REAL tol){
+void TPZGeoEl::VerifyNodeCoordinates(REAL tol){
   const int nnodes = this->NCornerNodes();
   TPZManVector<REAL,3> qsi(this->Dimension());
   TPZManVector<REAL,3> MappedX(3), NodeX(3);
