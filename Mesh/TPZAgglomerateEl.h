@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.27 2007-04-23 19:02:44 tiago Exp $
+//$Id: TPZAgglomerateEl.h,v 1.28 2009-09-01 20:58:35 phil Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -146,6 +146,12 @@ public:
    * obtido por aglomeração - este último chamado de elemento pai
    */
   void CalcResidual(TPZFMatrix &Rhs,TPZCompElDisc *el);
+
+  void CalcResidual(TPZElementMatrix &ef)
+  {
+	  std::cout << __PRETTY_FUNCTION__ << " is not implemented\n";
+	  exit(-1);
+  }
 
   /**
    * Monta a equação diferencial do modelo sobre o elemento definido por 
