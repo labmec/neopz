@@ -1,4 +1,4 @@
-//$Id: pznlmat1d.h,v 1.6 2008-10-20 11:56:22 longhin Exp $
+//$Id: pznlmat1d.h,v 1.7 2009-09-01 19:44:47 phil Exp $
 // -*- c++ -*-
 
 #ifndef TPZNLMAT1D_H
@@ -59,12 +59,21 @@ public:
     */
   virtual int NSolutionVariables(int var);
 
+protected:
   /**
-    * Returns the solution associated with the var index based on\
-    * the finite element approximation
-    */
+	* Returns the solution associated with the var index based on\
+	* the finite element approximation
+	*/
   virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-                        TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+						TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+public:
+
+      /**returns the solution associated with the var index based on
+       * the finite element approximation*/
+virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+    TPZMaterial::Solution(data,var,Solout);
+}
 
 
   /**
@@ -86,6 +95,17 @@ public:
                             TPZFMatrix &ef,
                             TPZBndCond &bc);
 
+  /**
+	* Compute contribution to the stiffness matrix and right hand\
+	* side at the integration point of a boundary
+	*/
+  virtual void ContributeBC(TPZMaterialData &data,
+							REAL weight,
+							TPZFMatrix &ef,
+							TPZBndCond &bc)
+  {
+		TPZMaterial::ContributeBC(data,weight,ef,bc);
+  }
   /**
     * To create another material of the same type
     */

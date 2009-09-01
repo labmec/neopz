@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.32 2009-08-12 21:07:26 fortiago Exp $
+//$Id: pzpoisson3d.h,v 1.33 2009-09-01 19:44:48 phil Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -155,6 +155,12 @@ public:
 
   virtual void Contribute(TPZMaterialData &data,REAL weight,
 			  TPZFMatrix &ek,TPZFMatrix &ef);
+
+  virtual void Contribute(TPZMaterialData &data,REAL weight,
+			  TPZFMatrix &ef)
+			  {
+				  TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+              }
 #ifdef _AUTODIFF
   /**Compute contribution to the energy at an integration point*/
   void ContributeEnergy(TPZVec<REAL> &x,
@@ -165,7 +171,13 @@ public:
 #endif
 
   virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-			    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+				TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
+  virtual void ContributeBC(TPZMaterialData &data,REAL weight,
+				TPZFMatrix &ef,TPZBndCond &bc)
+				{
+					TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+                }
 
 #ifdef _AUTODIFF
 
@@ -181,7 +193,9 @@ public:
 
   virtual int NFluxes(){ return 3;}
 
+protected:
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+public:
 
    /**returns the solution associated with the var index based on
     * the finite element approximation*/
@@ -201,6 +215,17 @@ public:
 
   virtual void ContributeInterface(TPZMaterialData &data,REAL weight,
 				   TPZFMatrix &ek,TPZFMatrix &ef);
+
+  virtual void ContributeBCInterface(TPZMaterialData &data,REAL weight,TPZFMatrix &ef,TPZBndCond &bc)
+  {
+	  TPZDiscontinuousGalerkin::ContributeBCInterface(data,weight,ef,bc);
+  }
+
+  virtual void ContributeInterface(TPZMaterialData &data,REAL weight,
+				   TPZFMatrix &ef)
+				   {
+                       TPZDiscontinuousGalerkin::ContributeInterface(data,weight,ef);
+                   }
 
   /**
    * Compute square of residual of the differential equation at one integration point.

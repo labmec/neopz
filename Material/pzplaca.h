@@ -45,8 +45,22 @@ class TPZPlaca : public TPZMaterial{
   virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
                               TPZFMatrix &ek,
-                              TPZFMatrix &ef,
-                              TPZBndCond &bc);
+							  TPZFMatrix &ef,
+							  TPZBndCond &bc);
+  virtual void Contribute(TPZMaterialData &data,
+							REAL weight,
+							TPZFMatrix &ef)
+  {
+	  TPZMaterial::Contribute(data,weight,ef);
+  }
+
+  virtual void ContributeBC(TPZMaterialData &data,
+							  REAL weight,
+							  TPZFMatrix &ef,
+							  TPZBndCond &bc)
+  {
+	  TPZMaterial::ContributeBC(data,weight,ef,bc);
+  }
 
   virtual int NFluxes();
 
@@ -62,8 +76,14 @@ class TPZPlaca : public TPZMaterial{
       var is obtained by calling VariableIndex*/
   virtual int NSolutionVariables(int var);
 
+  protected:
   /**returns the solution associated with the var index based on the finite element approximation*/
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+  public:
+  virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
+  {
+      Solution(data.sol,data.dsol,data.axes,var,Solout);
+  }
 
   /**Exact solution for tests*/
   void SetExactFunction( void (*fp)(TPZFMatrix &axes,TPZVec<REAL> &x,TPZFMatrix &uexact,TPZFMatrix &duexact) )

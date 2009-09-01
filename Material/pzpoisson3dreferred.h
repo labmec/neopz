@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3dreferred.h,v 1.5 2007-05-11 19:15:18 joao Exp $
+//$Id: pzpoisson3dreferred.h,v 1.6 2009-09-01 19:44:48 phil Exp $
 
 #ifndef MATPOISSON3DREFERREDH
 #define MATPOISSON3DREFERREDH
@@ -67,15 +67,43 @@ public:
                               TPZBndCond &bc);
 
   virtual void ContributeInterface(TPZMaterialData &data,
-                                     REAL weight,
-                                     TPZFMatrix &ek,
-                                     TPZFMatrix &ef);
-  
-  virtual void ContributeBCInterface(TPZMaterialData &data, 
-                                       REAL weight,
-                                       TPZFMatrix &ek,
-                                       TPZFMatrix &ef,
-                                       TPZBndCond &bc);
-};
+									 REAL weight,
+									 TPZFMatrix &ek,
+									 TPZFMatrix &ef);
+
+  virtual void ContributeBCInterface(TPZMaterialData &data,
+									   REAL weight,
+									   TPZFMatrix &ek,
+									   TPZFMatrix &ef,
+									   TPZBndCond &bc);
+  virtual void Contribute(TPZMaterialData &data,
+							REAL weight,
+							TPZFMatrix &ef)
+  {
+	  TPZMatPoisson3d::Contribute(data,weight,ef);
+  }
+  virtual void ContributeBC(TPZMaterialData &data,
+							  REAL weight,
+							  TPZFMatrix &ef,
+							  TPZBndCond &bc)
+  {
+	  TPZMatPoisson3d::ContributeBC(data,weight,ef,bc);
+  }
+  virtual void ContributeInterface(TPZMaterialData &data,
+									 REAL weight,
+									 TPZFMatrix &ef)
+  {
+	  TPZMatPoisson3d::ContributeInterface(data,weight,ef);
+  }
+
+  virtual void ContributeBCInterface(TPZMaterialData &data,
+									   REAL weight,
+									   TPZFMatrix &ef,
+									   TPZBndCond &bc)
+  {
+	  TPZMatPoisson3d::ContributeBCInterface(data,weight,ef,bc);
+  }
+
+  };
 
 #endif

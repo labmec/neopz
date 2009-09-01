@@ -40,6 +40,11 @@ public:
 
     virtual void ContributeBC(TPZMaterialData &data,REAL weight,
     			    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
+					TPZFMatrix &ef,TPZBndCond &bc)
+	{
+		TPZMaterial::ContributeBC(data,weight,ef,bc);
+    }
 
     /** print out the data associated with the material*/
     virtual void Print(std::ostream &out = std::cout);
@@ -50,9 +55,15 @@ public:
     /** returns the number of variables associated with the variable indexed by var.
    *       var is obtained by calling VariableIndex*/
     virtual int NSolutionVariables(int var);
+protected:
+	/**returns the solution associated with the var index based on the finite element approximation*/
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+public:
+	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
+	{
+		Solution(data.sol,data.dsol,data.axes,var,Solout);
+    }
 
-    /**returns the solution associated with the var index based on the finite element approximation*/
-    virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 
     /**compute the value of the flux function to be used by ZZ error estimator*/
     virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux) {}
@@ -65,8 +76,13 @@ public:
 
 
     /**Compute contribution to the stiffness matrix and right hand side at an integration point*/
-    virtual void Contribute(TPZMaterialData &data, REAL weight,
-  			  TPZFMatrix &ek,TPZFMatrix &ef) ;
+	virtual void Contribute(TPZMaterialData &data, REAL weight,
+			  TPZFMatrix &ek,TPZFMatrix &ef) ;
+	virtual void Contribute(TPZMaterialData &data, REAL weight,
+			  TPZFMatrix &ef)
+	{
+        TPZMaterial::Contribute(data,weight,ef);
+    }
 
 private:    
 

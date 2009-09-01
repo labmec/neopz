@@ -1,4 +1,4 @@
-//$Id: pznlmat1drotatedengstrain.h,v 1.5 2008-10-08 02:09:28 phil Exp $
+//$Id: pznlmat1drotatedengstrain.h,v 1.6 2009-09-01 19:44:47 phil Exp $
 // -*- c++ -*-
 
 #ifndef TPZNLMAT1DROTATEDENGSTRAIN_H
@@ -26,7 +26,7 @@ public:
     TPZNLMat1dRotatedEngStrain(int id);
 
     /**
-     * Destructor
+	 * Destructor
      */
     ~TPZNLMat1dRotatedEngStrain();
 
@@ -42,7 +42,7 @@ public:
     virtual int Dimension() {return  1;}
 
     /**
-     * Returns the number of state variables associated with the material:
+	 * Returns the number of state variables associated with the material:
      * Only w?
      */
     virtual int NStateVariables() {return  1;}
@@ -55,7 +55,7 @@ public:
     /**
      * Returns the variable index associated with the name
      */
-    virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name);
 
     /**
      * Returns the number of variables associated with the variable\
@@ -63,12 +63,18 @@ public:
      */
     virtual int NSolutionVariables(int var);
 
-    /**
-     * Returns the solution associated with the var index based on\
-     * the finite element approximation
-     */
-    virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-                          TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+protected:
+	/**
+	 * Returns the solution associated with the var index based on\
+	 * the finite element approximation
+	 */
+	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
+						  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+public:
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	{
+		Solution(data.sol,data.dsol,data.axes,var,Solout);
+    }
 
 
     /**
@@ -78,29 +84,36 @@ public:
     virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix &ek,
-                            TPZFMatrix &ef);
+							TPZFMatrix &ef);
 
     /**
      * Compute contribution to the stiffness matrix and right hand\
      * side at the integration point of a boundary
      */
-    virtual void ContributeBC(TPZMaterialData &data,
-                                REAL weight,
-                                TPZFMatrix &ek,
-                                TPZFMatrix &ef,
-                                TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data,
+								REAL weight,
+								TPZFMatrix &ek,
+								TPZFMatrix &ef,
+								TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data,
+								REAL weight,
+								TPZFMatrix &ef,
+								TPZBndCond &bc)
+	{
+		TPZNLMat1d::ContributeBC(data,weight,ef,bc);
+	}
 
-    /**
-     * To create another material of the same type
-     */
-    virtual TPZAutoPointer<TPZMaterial> NewMaterial();
+	/**
+	 * To create another material of the same type
+	 */
+	virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 
-    /**
-     * Read data of the material from a istream (file data)
-     */
-    virtual void SetData(std::istream &data);
+	/**
+	 * Read data of the material from a istream (file data)
+	 */
+	virtual void SetData(std::istream &data);
 
-    /**
+	/**
      * Compute contribution to the stiffness matrix and right hand\
      * side at an integration point
      */

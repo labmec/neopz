@@ -56,16 +56,37 @@ public :
   /**Calculates the element stiffness matrix*/
   virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
 
+  /**Calculates the element stiffness matrix*/
+virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ef)
+{
+   TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+}
+
   //*Applies the element boundary conditions*/
   virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-			    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+				TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
+  //*Applies the element boundary conditions*/
+  virtual void ContributeBC(TPZMaterialData &data,REAL weight,
+				TPZFMatrix &ef,TPZBndCond &bc)
+  {
+	  TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+  }
 
   virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
-    PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
+	PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
   }
 
   virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
-    PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
+	PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
+  }
+
+  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
+	PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
+  }
+
+  virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
+	PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
   }
 
   /**Returns the variable index associated with the name*/
@@ -75,9 +96,18 @@ public :
 	   indexed by var. var is obtained by calling VariableIndex*/
   virtual int NSolutionVariables(int var);
 
+protected:
   /**Returns the solution associated with the var index based
 	   on the finite element approximation*/
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+public:
+      /**returns the solution associated with the var index based on
+       * the finite element approximation*/
+	  virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	  {
+          TPZDiscontinuousGalerkin::Solution(data,var,Solout);
+      }
+
 
   /**Compute the value of the flux function to be used
      by ZZ error estimator*/

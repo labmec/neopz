@@ -73,10 +73,19 @@ class  TPZIncNavierStokesKEps : public TPZMaterial {
      *  indexed by var.  var is obtained by calling VariableIndex*/
     virtual int NSolutionVariables(int var);
 
-    /**returns the solution associated with the var index based on
-     * the finite element approximation */
-    virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-                          TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+protected:
+	/**returns the solution associated with the var index based on
+	 * the finite element approximation */
+	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
+						  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+public:
+      /**returns the solution associated with the var index based on
+       * the finite element approximation*/
+	  virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	  {
+		  TPZMaterial::Solution(data,var,Solout);
+      }
+
 
     /**Compute contribution to the tangent matrix and residual
      * at an integration point*/
@@ -91,13 +100,23 @@ class  TPZIncNavierStokesKEps : public TPZMaterial {
                               TPZFMatrix &ef);
 
 
-    /** Compute contribution to the stiffness matrix and right hand
-      * side at the integration point of a boundary*/
-    virtual void ContributeBC(TPZMaterialData &data,
-                                REAL weight,
-                                TPZFMatrix &ek,
-                                TPZFMatrix &ef,
-                                TPZBndCond &bc);
+	/** Compute contribution to the stiffness matrix and right hand
+	  * side at the integration point of a boundary*/
+	virtual void ContributeBC(TPZMaterialData &data,
+								REAL weight,
+								TPZFMatrix &ek,
+								TPZFMatrix &ef,
+								TPZBndCond &bc);
+
+	/** Compute contribution to the stiffness matrix and right hand
+	  * side at the integration point of a boundary*/
+	virtual void ContributeBC(TPZMaterialData &data,
+								REAL weight,
+								TPZFMatrix &ef,
+								TPZBndCond &bc)
+	{
+        TPZMaterial::ContributeBC(data,weight,ef,bc);
+    }
 
 
     /**Compute the error due to the difference between the

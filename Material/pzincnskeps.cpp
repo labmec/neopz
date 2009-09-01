@@ -196,13 +196,11 @@ TPZFMatrix &dsol=data.dsol;
     for(i = 0; i < nShape; i++){
       int k;
       for(k = 0; k < dim; k++) GradPhi[k] = dphi(k,i);
-      ef(i*nstate+ EVx+j) += fRHO * this->Dot(V, GradV, j) * phi[i]
-                      -1.  * this->Dot(GradPhi, T, j)
-                      -1.  * fBodyForce[j] * phi[i];
       valor = fRHO * this->Dot(V, GradV, j) * phi[i]
                       -1.  * this->Dot(GradPhi, T, j)
                       -1.  * fBodyForce[j] * phi[i];                      
-    }  
+	  ef(i*nstate+ EVx+j) += valor;
+	}
   }
 
 }//method

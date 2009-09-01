@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzelast3d.h,v 1.11 2009-06-16 03:06:39 erick Exp $
+//$Id: pzelast3d.h,v 1.12 2009-09-01 19:44:47 phil Exp $
 
 #ifndef PZELAST3D
 #define PZELAST3D
@@ -70,18 +70,37 @@ virtual std::string Name() { return "TPZElasticity3D"; }
  *  See base class to more informations.
  */
 virtual void Contribute(TPZMaterialData &data,
-                          REAL weight,
-                          TPZFMatrix &ek,
-                          TPZFMatrix &ef);
+						  REAL weight,
+						  TPZFMatrix &ek,
+						  TPZFMatrix &ef);
+/** Contribute to stiff matrix and load vector.
+ *  See base class to more informations.
+ */
+virtual void Contribute(TPZMaterialData &data,
+						  REAL weight,
+						  TPZFMatrix &ef)
+{
+	TPZMaterial::Contribute(data,weight,ef);
+}
 
 /** Implements Dirichlet and Neumann boundary conditions.
  *  See base class to more informations.
  */
 virtual void ContributeBC(TPZMaterialData &data,
-                            REAL weight,
-                            TPZFMatrix &ek,
-                            TPZFMatrix &ef,
-                            TPZBndCond &bc);
+							REAL weight,
+							TPZFMatrix &ek,
+							TPZFMatrix &ef,
+							TPZBndCond &bc);
+/** Implements Dirichlet and Neumann boundary conditions.
+ *  See base class to more informations.
+ */
+virtual void ContributeBC(TPZMaterialData &data,
+							REAL weight,
+							TPZFMatrix &ef,
+							TPZBndCond &bc)
+{
+	TPZMaterial::ContributeBC(data,weight,ef,bc);
+}
 
 /** Returns index of post-processing variable.
  */
@@ -90,10 +109,18 @@ virtual int VariableIndex(const std::string &name);
 /** Number of data of variable var.
  */
 virtual int NSolutionVariables(int var);
-
+protected:
 /** Post-processing method. Based on solution Sol and its derivatives DSol, it computes the post-processed variable var.
  */
 virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+public:
+      /**returns the solution associated with the var index based on
+       * the finite element approximation*/
+virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+	TPZMaterial::Solution(data,var,Solout);
+}
+
 
 /** Return the number of components which form the flux function
  * Method not implemented.

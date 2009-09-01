@@ -53,6 +53,21 @@ class TPZMatPlaca2 : public TPZMaterial{
                               TPZFMatrix &ef,
                               TPZBndCond &bc);
 
+  virtual void Contribute(TPZMaterialData &data,
+							REAL weight,
+							TPZFMatrix &ef)
+  {
+	   TPZMaterial::Contribute(data,weight,ef);
+  }
+
+  virtual void ContributeBC(TPZMaterialData &data,
+							  REAL weight,
+							  TPZFMatrix &ef,
+							  TPZBndCond &bc)
+  {
+		TPZMaterial::ContributeBC(data,weight,ef,bc);
+  }
+
   virtual int NFluxes();
 
   virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &fl);
@@ -67,8 +82,17 @@ class TPZMatPlaca2 : public TPZMaterial{
       var is obtained by calling VariableIndex*/
   virtual int NSolutionVariables(int var);
 
+protected:
   /**returns the solution associated with the var index based on the finite element approximation*/
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+public:
+      /**returns the solution associated with the var index based on
+       * the finite element approximation*/
+virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+    TPZMaterial::Solution(data,var,Solout);
+}
+
 
 };
 

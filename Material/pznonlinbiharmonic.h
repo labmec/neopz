@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pznonlinbiharmonic.h,v 1.7 2008-10-08 02:09:28 phil Exp $
+//$Id: pznonlinbiharmonic.h,v 1.8 2009-09-01 19:44:47 phil Exp $
 
 #ifndef TPZNONLINBIHARMONICHPP
 #define TPZNONLINBIHARMONICHPP
@@ -58,12 +58,28 @@ public :
                             REAL weight,
                             TPZFMatrix &ek,
                             TPZFMatrix &ef);
+  //Implements integral over  element's volume
+  virtual void Contribute(TPZMaterialData &data,
+                            REAL weight,
+							TPZFMatrix &ef)
+  {
+	  TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+  }
   // Implements boundary conditions for continuous Galerkin
   virtual void ContributeBC(TPZMaterialData &data,
-                              REAL weight,
-                              TPZFMatrix &ek,
-                              TPZFMatrix &ef,
-                              TPZBndCond &bc);
+							  REAL weight,
+							  TPZFMatrix &ek,
+							  TPZFMatrix &ef,
+							  TPZBndCond &bc);
+
+  // Implements boundary conditions for continuous Galerkin
+  virtual void ContributeBC(TPZMaterialData &data,
+							  REAL weight,
+							  TPZFMatrix &ef,
+							  TPZBndCond &bc)
+  {
+		 TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+  }
 
   virtual int VariableIndex(const std::string &name);
 
@@ -71,7 +87,17 @@ public :
 
   virtual int NFluxes(){ return 0;}
 
+protected:
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+public:
+      /**returns the solution associated with the var index based on
+       * the finite element approximation*/
+virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+	  TPZDiscontinuousGalerkin::Solution(data,var,Solout);
+}
+
+
 
 
   /**compute the value of the flux function to be used by ZZ error estimator*/
@@ -84,16 +110,32 @@ public :
 
 
   virtual void ContributeInterface(TPZMaterialData &data,
-                                     REAL weight,
-                                     TPZFMatrix &ek,
-                                     TPZFMatrix &ef);
+									 REAL weight,
+									 TPZFMatrix &ek,
+									 TPZFMatrix &ef);
 
 
   virtual void ContributeBCInterface(TPZMaterialData &data,
-                                       REAL weight,
-                                       TPZFMatrix &ek,
-                                       TPZFMatrix &ef,
-                                       TPZBndCond &bc);
+									   REAL weight,
+									   TPZFMatrix &ek,
+									   TPZFMatrix &ef,
+									   TPZBndCond &bc);
+
+  virtual void ContributeInterface(TPZMaterialData &data,
+									 REAL weight,
+									 TPZFMatrix &ef)
+  {
+		 TPZDiscontinuousGalerkin::ContributeInterface(data,weight,ef);
+  }
+
+
+  virtual void ContributeBCInterface(TPZMaterialData &data,
+									   REAL weight,
+									   TPZFMatrix &ef,
+									   TPZBndCond &bc)
+  {
+      TPZDiscontinuousGalerkin::ContributeBCInterface(data,weight,ef,bc);
+  }
 
 };
 

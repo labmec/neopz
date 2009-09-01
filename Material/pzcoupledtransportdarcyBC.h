@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcyBC.h,v 1.5 2007-05-11 19:15:17 joao Exp $
+//$Id: pzcoupledtransportdarcyBC.h,v 1.6 2009-09-01 19:44:47 phil Exp $
 
 #ifndef MATCOUPLEDTRANSPDARCYBC
 #define MATCOUPLEDTRANSPDARCYBC
@@ -26,7 +26,9 @@ protected:
     if (this->fMaterials[0]) return this->fMaterials[0];
     if (this->fMaterials[1]) return this->fMaterials[1];
     PZError << "Error! - "  << __PRETTY_FUNCTION__ << std::endl;
-    exit (-1);
+	exit (-1);
+	// the code will never reach this point
+	return 0;
   }
   
   void UpdateConvectionDir(TPZFMatrix &dsol);
@@ -44,8 +46,10 @@ public :
     else {
       PZError << "Error! - " << __PRETTY_FUNCTION__ << std::endl;
       exit (-1);
-    }
-  }  
+	}
+	// the code will never reach this point
+	return 0;
+  }
   
   virtual int HasForcingFunction() {
     TPZBndCond * bc = this->GetCurrentMaterial();
@@ -89,11 +93,27 @@ public :
                   TPZFMatrix &ek,
                   TPZFMatrix &ef);
 
+  void Contribute(TPZMaterialData &data,
+				  REAL weight,
+				  TPZFMatrix &ef)
+  {
+	  TPZBndCond::Contribute(data,weight,ef);
+  }
+
   void ContributeBC(TPZMaterialData &data,
-                    REAL weight,
-                    TPZFMatrix &ek,
-                    TPZFMatrix &ef,
-                    TPZBndCond &bc) {  }
+					REAL weight,
+					TPZFMatrix &ek,
+					TPZFMatrix &ef,
+					TPZBndCond &bc) {  }
+
+    void ContributeBC(TPZMaterialData &data,
+					REAL weight,
+					TPZFMatrix &ef,
+					TPZBndCond &bc)
+	{
+		TPZBndCond::ContributeBC(data,weight,ef,bc);
+	}
+
 
   void Errors(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix &dsol, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	      TPZVec<REAL> &uexact,TPZFMatrix &duexact,TPZVec<REAL> &val){
@@ -111,11 +131,19 @@ public :
 
 
   virtual void ContributeBCInterface(TPZMaterialData &data,
-                                       REAL weight,
-                                       TPZFMatrix &ek,
-                                       TPZFMatrix &ef,
-                                       TPZBndCond &bc) {
-    //NOTHING TO BE DONE HERE
+									   REAL weight,
+									   TPZFMatrix &ek,
+									   TPZFMatrix &ef,
+									   TPZBndCond &bc) {
+	//NOTHING TO BE DONE HERE
+  }
+
+  virtual void ContributeBCInterface(TPZMaterialData &data,
+									   REAL weight,
+									   TPZFMatrix &ef,
+									   TPZBndCond &bc)
+  {
+  	TPZBndCond::ContributeBCInterface(data,weight,ef,bc);
   }
 
 };

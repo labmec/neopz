@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzcoupledtransportdarcy.h,v 1.8 2008-10-08 02:09:27 phil Exp $
+//$Id: pzcoupledtransportdarcy.h,v 1.9 2009-09-01 19:44:47 phil Exp $
 
 #ifndef MATCOUPLEDTRANSPDARCY
 #define MATCOUPLEDTRANSPDARCY
@@ -42,7 +42,7 @@ class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {
 
 public:
 
-  virtual TPZBndCond *CreateBC(int id, int typ, TPZFMatrix &val1,TPZFMatrix &val2){
+  virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &mat, int id, int typ, TPZFMatrix &val1,TPZFMatrix &val2){
     PZError << "Error! - This method should not be called - " << __PRETTY_FUNCTION__ << std::endl;
     return 0;
   }
@@ -70,22 +70,26 @@ public:
         TPZCoupledTransportDarcy::gCurrentEq == 1) return this->fMaterials[TPZCoupledTransportDarcy::gCurrentEq];
     else {
       PZError << "Error! - " << __PRETTY_FUNCTION__ << std::endl;
-      exit (-1);
-    }
+	  exit (-1);
+	}
+	// the code will never reach this point
+	return 0;
   }
 
   TPZMatPoisson3d *GetMaterial(int eq){
 #ifdef DEBUG
   if (!this->fMaterials[0] || !this->fMaterials[1]){
-      PZError << "Error! - " << __PRETTY_FUNCTION__ << std::endl;
-      exit (-1);
+	  PZError << "Error! - " << __PRETTY_FUNCTION__ << std::endl;
+	  exit (-1);
   }
 #endif
-    if (eq == 0 || eq ==1) return this->fMaterials[eq];
-    else {
-      PZError << " Error - " << __PRETTY_FUNCTION__ << std::endl;
-      exit (-1);
-    }
+	if (eq == 0 || eq ==1) return this->fMaterials[eq];
+	else {
+	  PZError << " Error - " << __PRETTY_FUNCTION__ << std::endl;
+	  exit (-1);
+	}
+	// the code will never reach this point
+	return 0;
   }
 
   TPZCoupledTransportDarcy(int nummat, int nummat0, int nummat1, int dim);
@@ -117,15 +121,29 @@ public:
   virtual std::string Name() { return "TPZCoupledTransportDarcy"; }
 
   virtual void Contribute(TPZMaterialData &data,
-                            REAL weight,
-                            TPZFMatrix &ek,
-                            TPZFMatrix &ef);
+							REAL weight,
+							TPZFMatrix &ek,
+							TPZFMatrix &ef);
 
   virtual void ContributeBC(TPZMaterialData &data,
-                              REAL weight,
-                              TPZFMatrix &ek,
-                              TPZFMatrix &ef,
-                              TPZBndCond &bc);
+							  REAL weight,
+							  TPZFMatrix &ek,
+							  TPZFMatrix &ef,
+							  TPZBndCond &bc);
+
+  virtual void Contribute(TPZMaterialData &data,
+							REAL weight,
+							TPZFMatrix &ef)
+  {
+	  TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+  }
+  virtual void ContributeBC(TPZMaterialData &data,
+							  REAL weight,
+							  TPZFMatrix &ef,
+							  TPZBndCond &bc)
+  {
+	   TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+  }
 
   virtual int VariableIndex(const std::string &name);
 
@@ -133,7 +151,16 @@ public:
 
   virtual int NFluxes(){ return 3;}
 
+protected:
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+public:
+      /**returns the solution associated with the var index based on
+       * the finite element approximation*/
+	  virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	  {
+		  TPZDiscontinuousGalerkin::Solution(data,var,Solout);
+      }
+
 
   /**compute the value of the flux function to be used by ZZ error estimator*/
   virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
@@ -143,18 +170,33 @@ public:
 	      TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
 
   virtual void ContributeInterface(TPZMaterialData &data,
-                                     REAL weight,
-                                     TPZFMatrix &ek,
-                                     TPZFMatrix &ef);
+									 REAL weight,
+									 TPZFMatrix &ek,
+									 TPZFMatrix &ef);
 
   virtual void ContributeBCInterface(TPZMaterialData &data,
-                                       REAL weight,
-                                       TPZFMatrix &ek,
-                                       TPZFMatrix &ef,
-                                       TPZBndCond &bc);
+									   REAL weight,
+									   TPZFMatrix &ek,
+									   TPZFMatrix &ef,
+									   TPZBndCond &bc);
+
+  virtual void ContributeInterface(TPZMaterialData &data,
+									 REAL weight,
+									 TPZFMatrix &ef)
+  {
+	  TPZDiscontinuousGalerkin::ContributeInterface(data,weight,ef);
+  }
+
+  virtual void ContributeBCInterface(TPZMaterialData &data,
+									   REAL weight,
+									   TPZFMatrix &ef,
+									   TPZBndCond &bc)
+  {
+      TPZDiscontinuousGalerkin::ContributeBCInterface(data,weight,ef,bc);
+  }
 
   void InterfaceErrors(TPZVec<REAL> &/*x*/,
-		       TPZVec<REAL> &leftu, TPZFMatrix &leftdudx, /* TPZFMatrix &leftaxes,*/
+			   TPZVec<REAL> &leftu, TPZFMatrix &leftdudx, /* TPZFMatrix &leftaxes,*/
 		       TPZVec<REAL> &rightu, TPZFMatrix &rightdudx, /* TPZFMatrix &rightaxes,*/
 		       TPZVec<REAL> &/*flux*/,
 		       TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values,

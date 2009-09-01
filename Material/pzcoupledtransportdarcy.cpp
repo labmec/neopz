@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzcoupledtransportdarcy.cpp,v 1.7 2008-10-08 02:09:27 phil Exp $
+//$Id: pzcoupledtransportdarcy.cpp,v 1.8 2009-09-01 19:44:46 phil Exp $
 
 #include "pzcoupledtransportdarcy.h"
 #include "pzcoupledtransportdarcyBC.h"
@@ -89,8 +89,12 @@ int TPZCoupledTransportDarcy::NSolutionVariables(int var){
 }
 
 void TPZCoupledTransportDarcy::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,
-                                        int var,TPZVec<REAL> &Solout){
-  return this->GetCurrentMaterial()->Solution(Sol, DSol, axes, var, Solout);
+										int var,TPZVec<REAL> &Solout){
+  TPZMaterialData data;
+  data.sol = Sol;
+  data.dsol = DSol;
+  data.axes = axes;
+  return this->GetCurrentMaterial()->Solution(data, var, Solout);
 }//method
 
 void TPZCoupledTransportDarcy::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {

@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.h,v 1.39 2008-10-08 02:09:27 phil Exp $
+﻿//$Id: pzeulerconslaw.h,v 1.40 2009-09-01 19:44:47 phil Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -163,7 +163,16 @@ void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, T
   /**
    * See declaration in base class
    */
+protected:
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+public:
+
+      /**returns the solution associated with the var index based on
+	   * the finite element approximation*/
+virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+	TPZConservationLaw2::Solution(data,var,Solout);
+}
 
   /**
    * See declaration in base class
@@ -418,9 +427,17 @@ template <class T>
    */
 
   virtual void ContributeBC(TPZMaterialData &data,
-                            REAL weight,
-                            TPZFMatrix &ek, TPZFMatrix &ef,
-                            TPZBndCond &bc);
+							REAL weight,
+							TPZFMatrix &ek, TPZFMatrix &ef,
+							TPZBndCond &bc);
+
+ virtual void ContributeBC(TPZMaterialData &data,
+							REAL weight,
+							TPZFMatrix &ef,
+							TPZBndCond &bc)
+	{
+    	TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+	}
 
   virtual void ContributeBCInterface(TPZMaterialData &data,
                                      REAL weight,

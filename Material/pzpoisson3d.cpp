@@ -1,6 +1,6 @@
-// -*- c++ -*-
+﻿// -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.41 2009-08-12 21:07:10 fortiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.42 2009-09-01 19:44:48 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -316,7 +316,7 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
   }//var == 6
   if (var == 7){ //MinusKGradU
     int id;
-    REAL val = 0.;
+    //REAL val = 0.;
     TPZFNMatrix<9> dsoldx;
     TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
     for(id=0 ; id<fDim; id++) {

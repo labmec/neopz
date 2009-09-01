@@ -1,4 +1,4 @@
-//$Id: pzconslaw.h,v 1.25 2008-10-08 02:09:27 phil Exp $
+//$Id: pzconslaw.h,v 1.26 2009-09-01 19:44:46 phil Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H
@@ -172,10 +172,17 @@ public:
 
 
 //------------------solutions
-
+protected:
   virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
 			TPZFMatrix &axes,int var,
 			TPZVec<REAL> &Solout)=0;
+public:
+      /**returns the solution associated with the var index based on
+       * the finite element approximation*/
+virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+	TPZMaterial::Solution(data,var,Solout);
+}
 
 
 //------------------contributions
@@ -185,24 +192,55 @@ public:
    * volume-based quantities.
    */
   virtual void Contribute(TPZMaterialData &data,
-                          REAL weight,
-                          TPZFMatrix &ek,TPZFMatrix &ef)=0;
+						  REAL weight,
+						  TPZFMatrix &ek,TPZFMatrix &ef)=0;
 
+  /**
+   * Contributes to the residual vector and tangent matrix the
+   * volume-based quantities.
+   */
+  virtual void Contribute(TPZMaterialData &data,
+						  REAL weight,
+						  TPZFMatrix &ef)
+  {
+  	TPZMaterial::Contribute(data,weight,ef);
+  }
   /**
    * Contributes to the residual vector and tangent matrix the
    * face-based quantities.
    */
   virtual void ContributeInterface(TPZMaterialData &data,
-                                   REAL weight,
-                                   TPZFMatrix &ek,TPZFMatrix &ef)=0;
+								   REAL weight,
+								   TPZFMatrix &ek,TPZFMatrix &ef)=0;
+  /**
+   * Contributes to the residual vector and tangent matrix the
+   * face-based quantities.
+   */
+  virtual void ContributeInterface(TPZMaterialData &data,
+								   REAL weight,
+								   TPZFMatrix &ef)
+  {
+	TPZDiscontinuousGalerkin::ContributeInterface(data,weight,ef);
+  }
   /**
    * Contributes to the residual vector the boundary conditions
    *
    */
   virtual void ContributeBC(TPZMaterialData &data,
-                            REAL weight,
-                            TPZFMatrix &ek,TPZFMatrix &ef,
-                            TPZBndCond &bc)=0;
+							REAL weight,
+							TPZFMatrix &ek,TPZFMatrix &ef,
+							TPZBndCond &bc)=0;
+  /**
+   * Contributes to the residual vector the boundary conditions
+   *
+   */
+  virtual void ContributeBC(TPZMaterialData &data,
+							REAL weight,
+							TPZFMatrix &ef,
+							TPZBndCond &bc)
+  {
+	  TPZMaterial::ContributeBC(data,weight,ef,bc);
+  }
 
 //--------------------
   //virtual int IntegrationDegree() = 0;

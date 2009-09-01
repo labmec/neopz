@@ -913,12 +913,12 @@ void TPZArtDiff::ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, 
    int nstate = sol.NElements();
    int dim = nstate - 2;
 
-   T k, us2, l1, l3, l4, l5, lstar,
-     lsum, ldiff, twoCK, c2, temp1, temp2/*, temp3*/, k2;
-
+   T k, l1, l3, l4, l5, lstar,
+	 lsum, ldiff, twoCK, c2, temp1, temp2/*, temp3*/, k2;
+   //T us2;
 
    c2 = c * c;
-   us2 = us * us;
+   //us2 = us * us;
    //rho_c = sol[0] * c;
 
    switch (dim)

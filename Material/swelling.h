@@ -176,12 +176,24 @@ virtual void Contribute(TPZMaterialData &data,
                           TPZFMatrix &ef){
   std::cout << "TPZSwelling::Contribute not implemented\n";
 }
+virtual void Contribute(TPZMaterialData &data,
+                          REAL weight,
+						  TPZFMatrix &ef){
+  std::cout << "TPZSwelling::Contribute not implemented\n";
+}
 
  virtual void ContributeBC(TPZMaterialData &data,
-                             REAL weight,
-                             TPZFMatrix &ek,
-                             TPZFMatrix &ef,
-                             TPZBndCond &bc);
+							 REAL weight,
+							 TPZFMatrix &ek,
+							 TPZFMatrix &ef,
+							 TPZBndCond &bc);
+ virtual void ContributeBC(TPZMaterialData &data,
+							 REAL weight,
+							 TPZFMatrix &ef,
+							 TPZBndCond &bc)
+ {
+	 TPZMaterial::ContributeBC(data,weight,ef,bc);
+ }
 
 
 #ifdef _AUTODIFF
@@ -339,10 +351,17 @@ void NResidual(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N);
   */
  virtual int NSolutionVariables(int var);
 
+ protected:
  /**
   * computes a post-processed solution variable corresponding to the variable index
   */
  virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+ public:
+ virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
+ {
+     Solution(data.sol,data.dsol,data.axes,var,Solout);
+ }
+
 
 
 };

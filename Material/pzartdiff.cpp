@@ -46,23 +46,24 @@ TPZString TPZArtDiff::DiffusionName()
      case SUPG_AD:
         rtstr = "SUPG";
 	return rtstr;
-     break;
+//     break;
      case LeastSquares_AD:
         rtstr = "LeastSquares";
 	return rtstr;
-     break;
+//     break;
      case Bornhaus_AD:
         rtstr = "Bornhaus";
 	return rtstr;
-     break;
+//     break;
      case TrnLeastSquares_AD:
         rtstr = "TrnLeastSquares";
 	return rtstr;
-     break;
+ //    break;
      default:
      PZError << "Unknown artificial diffusion term (" << fArtDiffType << ")";
      return rtstr;
   }
+//  return rtstr;
 }
 
 REAL TPZArtDiff::OptimalDelta()
@@ -88,18 +89,19 @@ REAL TPZArtDiff::Delta(REAL deltax, TPZVec<REAL> & sol)
      case SUPG_AD:
      case Bornhaus_AD:
         return dX / 2.;
-     break;
+//     break;
      case LeastSquares_AD:
      case TrnLeastSquares_AD:
         TPZEulerConsLaw2::uRes(sol, us);
         TPZEulerConsLaw2::cSpeed(sol, fGamma, c);
         lambdaMax = us+c;
 	return dX /2. / lambdaMax;
-     break;
+ //    break;
      default:
      PZError << "Unknown artificial diffusion term (" << fArtDiffType << ")";
      return 0.;
   }
+//  return 0.;
 }
 
 void TPZArtDiff::SetDelta(REAL delta)

@@ -61,8 +61,20 @@ class TPZMat2dLin : public TPZMaterial{
   virtual void Contribute(TPZMaterialData &data,REAL weight,
 			  TPZFMatrix &ek,TPZFMatrix &ef);
 
+  virtual void Contribute(TPZMaterialData &data,REAL weight,
+			  TPZFMatrix &ef)
+ {
+	 TPZMaterial::Contribute(data,weight,ef);
+ }
+
   virtual void ContributeBC(TPZMaterialData &data, REAL weight,
-			    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+				TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+
+  virtual void ContributeBC(TPZMaterialData &data, REAL weight,
+				TPZFMatrix &ef,TPZBndCond &bc)
+	{
+		TPZMaterial::ContributeBC(data,weight,ef,bc);
+	}
 
   virtual int NFluxes();
 
@@ -75,8 +87,13 @@ class TPZMat2dLin : public TPZMaterial{
 
   virtual int NSolutionVariables(int index);
 
+protected:
   void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes, int var,TPZVec<REAL> &Solout);
-
+public:
+  virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+  {
+      TPZMaterial::Solution(data,var,Solout);
+  }
   /**
    * Create a copy of the material object
    */

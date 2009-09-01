@@ -1,4 +1,4 @@
-#include "TPZEulerConsLaw.h" 
+﻿#include "TPZEulerConsLaw.h" 
 #include "TPZDiffusionConsLaw.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
@@ -597,8 +597,8 @@ TPZFMatrix dsolR=data.dsolr;
   Tz.Transpose(&Trz);
   diffusion.GradientOfTheFlow(DF1,DF2,DF3);
   REAL timestep = TimeStep();
-  REAL delta = diffusion.Delta();
-  if(fDelta!= 0.) delta = diffusion.DeltaOtimo();
+  //REAL delta = diffusion.Delta();
+  //if(fDelta!= 0.) delta = diffusion.DeltaOtimo();
   TPZFMatrix divF(nstate,1),prodpoint(nstate,nstate);
   TPZVec<REAL> sum1(nstate,0.),sum2(nstate,0.);
 

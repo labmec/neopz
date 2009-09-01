@@ -1,4 +1,4 @@
-// -*- c++ -*-
+﻿// -*- c++ -*-
 #include "pzelasmat.h" 
 #include "pzelmat.h"
 #include "pzbndcond.h"
@@ -282,7 +282,6 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
 
   //   cout << "TPZElasticityMaterial::VariableIndex Error\n";
   return TPZMaterial::VariableIndex(name);
-  return -1;
 }
 
 /**returns the number of variables associated with the
@@ -309,8 +308,8 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
     return 3;
   default:
     return TPZMaterial::NSolutionVariables(var);
-    return 0;
-  }
+	  }
+//  return 0;
 }
 
 /** returns the solution associated with the var index based

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pznonlinearpoisson3d.h,v 1.6 2007-12-05 14:15:30 tiago Exp $
+//$Id: pznonlinearpoisson3d.h,v 1.7 2009-09-01 19:44:48 phil Exp $
 
 #ifndef MATNLPOISSON3DH
 #define MATNLPOISSON3DH
@@ -64,17 +64,37 @@ class TPZNonLinearPoisson3d : public TPZMatPoisson3dReferred {
                               TPZFMatrix &ek,
                               TPZFMatrix &ef,
                               TPZBndCond &bc);
-                            
+  virtual void ContributeBC(TPZMaterialData &data,
+                              REAL weight,
+							  TPZFMatrix &ef,
+							  TPZBndCond &bc)
+  {
+	   TPZMatPoisson3dReferred::ContributeBC(data,weight,ef,bc);
+  }
+
   virtual void ContributeInterface(TPZMaterialData &data,
-                                     REAL weight,
-                                     TPZFMatrix &ek,
-                                     TPZFMatrix &ef);
+									 REAL weight,
+									 TPZFMatrix &ek,
+									 TPZFMatrix &ef);
+  virtual void ContributeInterface(TPZMaterialData &data,
+									 REAL weight,
+									 TPZFMatrix &ef)
+  {
+		TPZMatPoisson3dReferred::ContributeInterface(data,weight,ef);
+  }
 
   virtual void ContributeBCInterface(TPZMaterialData &data,
-                                       REAL weight,
-                                       TPZFMatrix &ek,
-                                       TPZFMatrix &ef,
-                                       TPZBndCond &bc);
+									   REAL weight,
+									   TPZFMatrix &ek,
+									   TPZFMatrix &ef,
+									   TPZBndCond &bc);
+  virtual void ContributeBCInterface(TPZMaterialData &data,
+									   REAL weight,
+									   TPZFMatrix &ef,
+									   TPZBndCond &bc)
+  {
+         TPZMatPoisson3dReferred::ContributeBCInterface(data,weight,ef,bc);
+  }
 
   protected:
     bool fIsReferred;

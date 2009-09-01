@@ -1,4 +1,4 @@
-//$Id: pzl2projection.h,v 1.11 2008-10-23 10:37:52 fortiago Exp $
+//$Id: pzl2projection.h,v 1.12 2009-09-01 19:44:47 phil Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
@@ -52,20 +52,39 @@ public:
    */
   virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 
+  /** Contribute method
+   */
+  virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
+  {
+	  TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+  }
+
 
   /** To satisfy base class interface.
    */
   virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
-    //NOTHING TO BE DONE HERE
+	//NOTHING TO BE DONE HERE
   }
 
   /** To satisfy base class interface.
    */
   virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
-    //NOTHING TO BE DONE HERE
+	//NOTHING TO BE DONE HERE
   }
 
-  /** Returns problem dimension 
+  /** To satisfy base class interface.
+   */
+  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
+	//NOTHING TO BE DONE HERE
+  }
+
+  /** To satisfy base class interface.
+   */
+  virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
+	//NOTHING TO BE DONE HERE
+  }
+
+  /** Returns problem dimension
    */
   virtual int Dimension(){ return this->fDim; }
 
@@ -82,6 +101,10 @@ public:
    * @since April 16, 2007
        */
   virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
+  virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc)
+  {
+      TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+  }
 
   /** Define if material is referred or not */
   void SetIsReferred(bool val);
@@ -98,11 +121,22 @@ public:
    */
   virtual int NSolutionVariables(int var);
 
+protected:
   /** It returns the solution associated with the var index based on
    * the finite element approximation
    */
   virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-                        TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+						TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+public:
+      /**returns the solution associated with the var index based on
+       * the finite element approximation*/
+virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+    TPZMaterial::Solution(data,var,Solout);
+}
+
+
+
 
 };
 

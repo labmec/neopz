@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.50 2008-10-20 11:56:21 longhin Exp $
+﻿//$Id: pzeulerconslaw.cpp,v 1.51 2009-09-01 19:44:47 phil Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -48,9 +48,9 @@ TPZEulerConsLaw2::TPZEulerConsLaw2(int nummat,REAL timeStep,
 TPZEulerConsLaw2::TPZEulerConsLaw2() :
 			TPZConservationLaw2(-1, 0, 3),
 			fArtDiff(LeastSquares_AD, 1.4),
-			fDiff(),
-			fConvVol(),
-			fConvFace()
+			fDiff(Explicit_TD),
+			fConvVol(Explicit_TD),
+			fConvFace(Explicit_TD)
 {
   fGamma = 1.4;
 }
@@ -184,11 +184,11 @@ REAL TPZEulerConsLaw2::Det(TPZFMatrix & Mat)
    {
       case 1:
         return Mat(0,0);
-	break;
+//	break;
       case 2:
         return Mat(0,0) * Mat(1,1) -
 	        Mat(1,0) * Mat(0,1);
-        break;
+//        break;
       case 3:
         return Mat(0,0) * Mat(1,1) * Mat(2,2) +
                 Mat(1,0) * Mat(2,1) * Mat(0,2) +
@@ -196,7 +196,7 @@ REAL TPZEulerConsLaw2::Det(TPZFMatrix & Mat)
 		Mat(0,2) * Mat(1,1) * Mat(2,0) -
 		Mat(1,2) * Mat(2,1) * Mat(0,0) -
 		Mat(2,2) * Mat(0,1) * Mat(1,0);
-        break;
+//        break;
       default:
         PZError << "TPZEulerConsLaw2::Det error: unhandled matrix size: " <<
 	          Mat.Rows() << endl;

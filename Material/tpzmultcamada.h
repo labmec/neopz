@@ -26,14 +26,35 @@ public:
                                 TPZFMatrix & ef,
                                 TPZBndCond & bc);
 
-    /** returns the variable index associated with the name */
+    virtual void Contribute(TPZMaterialData &data,
+                              REAL weight,
+							  TPZFMatrix & ef)
+	{
+		TPZMaterial::Contribute(data,weight,ef);
+    }
+
+	virtual void ContributeBC(TPZMaterialData &data,
+								REAL weight,
+								TPZFMatrix & ef,
+								TPZBndCond & bc)
+	{
+		TPZMaterial::ContributeBC(data,weight,ef,bc);
+    }
+
+	/** returns the variable index associated with the name */
     virtual int VariableIndex(const std::string &name);
 
     /** returns the number of variables associated with the variable indexed by var. var is obtained by calling VariableIndex */
     virtual int NSolutionVariables(int var);
-
-    /** returns the solution associated with the var index based on the finite element approximation */
-    virtual void Solution(TPZVec < REAL > & Sol, TPZFMatrix & DSol, TPZFMatrix & axes, int var, TPZVec < REAL > & Solout);
+protected:
+	/** returns the solution associated with the var index based on the finite element approximation */
+	virtual void Solution(TPZVec < REAL > & Sol, TPZFMatrix & DSol, TPZFMatrix & axes, int var, TPZVec < REAL > & Solout);
+public:
+	/** returns the solution associated with the var index based on the finite element approximation */
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec < REAL > & Solout)
+	{
+        Solution(data.sol,data.dsol,data.axes,var,Solout);
+    }
 
     /** returns the number of state variables associated with the material*/
     virtual int NStateVariables();

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzthermicelast3d.h,v 1.2 2007-05-11 19:15:18 joao Exp $
+//$Id: pzthermicelast3d.h,v 1.3 2009-09-01 19:44:48 phil Exp $
 
 #ifndef PZTHERMICELAST3D
 #define PZTHERMICELAST3D
@@ -72,12 +72,26 @@ void ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix &phi, TPZFMatrix &dph
  *  See base class to more informations.
  */
 virtual void Contribute(TPZMaterialData &data,
-                          REAL weight,
-                          TPZFMatrix &ek,
-                          TPZFMatrix &ef);
+						  REAL weight,
+						  TPZFMatrix &ek,
+						  TPZFMatrix &ef);
 
+virtual void Contribute(TPZMaterialData &data,
+						  REAL weight,
+						  TPZFMatrix &ef)
+{
+	 TPZElasticity3D::Contribute(data,weight,ef);
+}
+
+protected:
 virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-                      TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+					  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+public:
+virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+    Solution(data.sol,data.dsol,data.axes,var,Solout);
+}
+
 
 
 };
