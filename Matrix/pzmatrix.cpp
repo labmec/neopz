@@ -1011,7 +1011,7 @@ int TPZMatrix::Error(const char *msg ,const char *msg2) {
 	std::bad_exception myex;
 	throw myex;
 //    exit( 1 );
-    return 0;
+//    return 0;
 }
 
 void TPZMatrix::Read( TPZStream &buf, void *context ){
