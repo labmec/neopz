@@ -1,6 +1,6 @@
-// -*- c++ -*-
+﻿// -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.88 2009-08-07 19:09:15 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.89 2009-09-01 20:54:53 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -312,7 +312,7 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
    const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
 
    TPZGeoEl *ref = Reference();
-   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 0*2*(p+1) );
+   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p+1) );
    if(mat->HasForcingFunction()){
       TPZManVector<int,10> order(3);
       intrule->GetOrder(order);
@@ -959,7 +959,7 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
 
 }//method
 
-void TPZInterfaceElement::ComputeError(int errorid,
+void TPZInterfaceElement::ComputeErrorFace(int errorid,
                                        TPZVec<REAL> &errorL,
                                        TPZVec<REAL> &errorR){
 
