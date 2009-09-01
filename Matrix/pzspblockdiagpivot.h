@@ -28,7 +28,12 @@ public:
     
     virtual int Decompose_LU();
     
-    virtual int Substitution( TPZFMatrix * B ) const;
+	virtual int Decompose_LU(std::list<int> &singular)
+	{
+        return TPZBlockDiagonal::Decompose_LU(singular);
+    }
+
+	virtual int Substitution( TPZFMatrix * B ) const;
      
 private:
   /** Attribute to store equation changes in LU decomposition.
