@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.28 2009-08-07 19:08:51 phil Exp $
+﻿//$Id: pzsubcmesh.cpp,v 1.29 2009-09-01 20:56:05 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -91,7 +91,7 @@ int TPZSubCompMesh::main() {
 	TPZAutoPointer<TPZMaterial> meumat = new TPZMatHyperElastic(1,1.e5,0.25);
 	mesh.InsertMaterialObject(meumat);
 
-	int numeq;
+	//int numeq;
 	TPZVec<int> skyline;
 
 	// Insert the boundary conditions
@@ -106,7 +106,7 @@ int TPZSubCompMesh::main() {
 	mesh.InitializeBlock();
 
 
-	numeq = mesh.NEquations();
+	//numeq = mesh.NEquations();
 
 	// Teste 1 colocar os elementos, inclusive intermedi�rios, como sub elementos
 	TPZSubCompMesh *sub[numel];
@@ -348,7 +348,7 @@ int TPZSubCompMesh::NodeIndex(int nolocal, TPZCompMesh *super)
 	return neighbour->GetFromSuperMesh(rootindex,root);*/
 }
 
-int TPZSubCompMesh::AllocateNewConnect(int blocksize, int order){
+int TPZSubCompMesh::AllocateNewConnectSub(int blocksize, int order){
 /*	int connectindex = fConnectIndex.AllocateNewElement();
 	int blocknum = fBlock.NBlocks();
 	fBlock.SetNBlocks(blocknum+1);
@@ -430,7 +430,7 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 	if(i== nc) {
 		int blocksize=super->ConnectVec()[superind].NDof(*(TPZCompMesh *)super);
                 int order = super->ConnectVec()[superind].Order();
-		int gl = AllocateNewConnect(blocksize,order);
+		int gl = AllocateNewConnectSub(blocksize,order);
 		fConnectIndex.Resize(fConnectIndex.NElements()+1);
 		fConnectIndex[fConnectIndex.NElements()-1] = superind;
 		fExternalLocIndex[gl] = fConnectIndex.NElements()-1;
@@ -459,7 +459,7 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 		}
 		int blocksize=super->ConnectVec()[superind].NDof(*(TPZCompMesh *)super);
                 int order = super->ConnectVec()[superind].Order();
-		j = AllocateNewConnect(blocksize,order);
+		j = AllocateNewConnectSub(blocksize,order);
 		fExternalLocIndex[j] = i;
 #ifdef LOG4CXX
 		{
@@ -535,7 +535,7 @@ void TPZSubCompMesh::MakeInternal(int local){
 TPZCompMesh * TPZSubCompMesh::RootMesh(int local){
 	if (fExternalLocIndex[local] == -1) return this;
 	else return (FatherMesh()->RootMesh(fConnectIndex[fExternalLocIndex[local]]));
-	return NULL;
+	//return NULL;
 }
 
 /**

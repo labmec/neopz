@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.20 2009-08-07 19:08:51 phil Exp $
+//$Id: pzsubcmesh.h,v 1.21 2009-09-01 20:56:05 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -258,7 +258,7 @@ public:
   //	/**
   //     * Virtual Method!
   //     */
-	virtual int AllocateNewConnect(int blocksize, int order);
+	virtual int AllocateNewConnectSub(int blocksize, int order);
 
   //    /**
   //     * Gives the id node  of one local node in containing mesh.
