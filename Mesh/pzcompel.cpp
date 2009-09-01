@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.43 2008-06-02 17:58:33 fortiago Exp $
+﻿//$Id: pzcompel.cpp,v 1.44 2009-09-01 20:07:39 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -762,7 +762,7 @@ TPZCompElSide TPZCompElSide::LowerIdElementList(TPZCompElSide &expandvec,int onl
   TPZStack<TPZGeoElSide> neighbourset;
   gelside.AllNeighbours(neighbourset);
   neighbourset.Push(gelside);
-  int lowidindex = neighbourset.NElements()-1;
+  //int lowidindex = neighbourset.NElements()-1;
   //  TPZGeoElSide neighbour = gelside.Neighbour(),
   TPZGeoElSide lowidneigh(gelside);
   //if(!neighbour.Element()) return expandvec;
@@ -773,8 +773,8 @@ TPZCompElSide TPZCompElSide::LowerIdElementList(TPZCompElSide &expandvec,int onl
     if(neighbourset[in].Id() < lowid && ref && (!onlyinterpolated || dynamic_cast<TPZInterpolatedElement*>(ref)    )) {
       lowidneigh = neighbourset[in];
       lowid = lowidneigh.Id();
-      lowidindex = in;
-    }
+	  //lowidindex = in;
+	}
     in++;
   }
 //   while(neighbour!=gelside) {     //pode ser um viz. inativo
