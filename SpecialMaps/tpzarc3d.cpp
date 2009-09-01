@@ -313,17 +313,17 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
   return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
 
-#define TPZGEOELEMENTARC3DID 300
+#define TPZGEOELEMENTARC3DID 350
     template<>
         int TPZGeoElRefPattern<TPZArc3D>::ClassId() const {
       return TPZGEOELEMENTARC3DID;
         }
-        template class 
+        template class
             TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
 
         template<>
             TPZCompEl *(*TPZGeoElRefLess<TPZArc3D>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
 
-  
+
 //         template class pzgeom::TPZNodeRep<3,TPZArc3D>;
         template class TPZGeoElRefLess<TPZArc3D>;

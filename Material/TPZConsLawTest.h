@@ -1,4 +1,4 @@
-﻿#ifndef CONSLAWTESTHPP
+#ifndef CONSLAWTESTHPP
 #define CONSLAWTESTHPP
 
 #include <iostream>

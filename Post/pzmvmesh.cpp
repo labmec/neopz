@@ -1,4 +1,4 @@
-﻿#include "pzmvmesh.h"
+#include "pzmvmesh.h"
 #include "pzcmesh.h"
 #include "pzmaterial.h"
 #include "pzgraphnode.h"

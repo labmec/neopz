@@ -1,4 +1,4 @@
-﻿#include "TPZGeoCube.h"
+#include "TPZGeoCube.h"
 //#include "pzelgpoint.h"
 //#include "pzelg1d.h"
 //#include "pzelgq2d.h"

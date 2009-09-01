@@ -1,4 +1,4 @@
-﻿// -*- c++ -*-
+// -*- c++ -*-
 #include "pzelasmat.h" 
 #include "pzelmat.h"
 #include "pzbndcond.h"

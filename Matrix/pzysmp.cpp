@@ -1,4 +1,4 @@
-﻿#include "pzysmp.h"
+#include "pzysmp.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 

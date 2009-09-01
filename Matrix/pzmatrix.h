@@ -48,9 +48,10 @@ enum DecomposeType {ENoDecompose, ELU, ELUPivot, ECholesky, ELDLt};
 
 enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput};
 
+class TPZFMatrix;
 
 /**
- * Abstract class TPZMatrix which defines interface of derived matrix classes. 
+ * Abstract class TPZMatrix which defines interface of derived matrix classes.
  * @ingroup matrix
  */
 class TPZMatrix  : public TPZSaveable
@@ -67,7 +68,7 @@ public:
     fCol = 0;
     gZero = 0.;
   }
-  
+
   TPZMatrix(const TPZMatrix &cp) : fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
   {
   }
@@ -76,13 +77,13 @@ public:
    */
 
 	virtual ~TPZMatrix();
-  
+
   virtual TPZMatrix *Clone() const = 0;
-  
+
     /**
    * Checks if current matrix value is symmetric
-   */  
-  virtual int VerifySymmetry(REAL tol = 1.e-13) const;  
+   */
+  virtual int VerifySymmetry(REAL tol = 1.e-13) const;
 
   /**
      Put values with bounds checking if DEBUG variable is defined.
@@ -91,15 +92,15 @@ public:
      @param value Value being put.
    */
   virtual int    Put(const int row,const int col,const REAL & value );
-  /** 
-   * Get value with bound checking 
+  /**
+   * Get value with bound checking
      @param row Row number.
      @param col Column number.
    */
   virtual const REAL &Get(const int row,const int col ) const;
 
-  /** 
-   * Substitution for the () operator when const arguments are needed 
+  /**
+   * Substitution for the () operator when const arguments are needed
      @param row Row number.
      @param col Column number.
    */
@@ -111,7 +112,7 @@ public:
      @param col Column number.
    */
   REAL &operator() (const int row,const int col );
-  /** 
+  /**
    * The operators check on the bounds if the DEBUG variable is defined
      @param row Row number.
      @param col Column number.
@@ -165,7 +166,7 @@ public:
 		       const REAL alpha=1., const REAL beta = 0., const int opt = 0, const int stride = 1 ) const;
 
   /**
-   * Computes res = rhs - this * x 
+   * Computes res = rhs - this * x
    */
   virtual void Residual(const TPZFMatrix & x,const TPZFMatrix & rhs, TPZFMatrix & res ) ;
   /**
@@ -176,17 +177,17 @@ public:
 
   /**Converts the matrix in an identity matrix*/
   virtual void Identity();
-  /** 
+  /**
    * It makes *T the transpose of current matrix.
-   */ 
+   */
   virtual void Transpose(TPZMatrix *const T) const;
 
   /**
    * It makes Inv = Inverse[this].
-   */  
+   */
   int Inverse(TPZFMatrix &Inv);
-  
-  /** 
+
+  /**
    * Computes the matrix norm of this
    * It is available p-norm = 1, 2 and infinity.
    * p=1 is the maximum absolute column sum norm
@@ -199,8 +200,8 @@ public:
    * @param tol - same of numiter
    */
   REAL MatrixNorm(int p, int numiter = 2000000, REAL tol = 1.e-10) const;
-  
-  /** 
+
+  /**
    * Computes the matrix condition number of this
    * It is available p-norm = 1, 2 and infinity.
    * p=1 is the maximum absolute column sum norm
@@ -208,11 +209,11 @@ public:
    * p=infinity is the maximum absolute row sum norm - p infinity is implemented with p = 0
    * These operations are defined on the website of the Mathematica software:
    * http://mathworld.wolfram.com/MatrixNorm.html
-   * All norms require the computation of the inverse matrix. 
+   * All norms require the computation of the inverse matrix.
    * It has a high computational cost and a high memory requirement.
    */
-  REAL ConditionNumber(int p, int numiter = 2000000, REAL tol = 1.e-10);  
-  
+  REAL ConditionNumber(int p, int numiter = 2000000, REAL tol = 1.e-10);
+
   //@}
 
   /**
@@ -244,26 +245,26 @@ public:
   inline virtual int Dim() const;
 
 
-  /** 
-   * Redimensions a matriz keeping the previous values 
+  /**
+   * Redimensions a matriz keeping the previous values
    * @param newRow Specifies the new number of rows in matrix
    * @param newCol Specifies the new number of Columns in matrix
    */
-  virtual int Resize(const int newRows, const int newCols ) { 
+  virtual int Resize(const int newRows, const int newCols ) {
     fRow = newRows;
     fCol = newCols;
-    return 0; 
+    return 0;
   }
 
-  /** 
-   * Redimensions the matrix reinitializing it with zero 
+  /**
+   * Redimensions the matrix reinitializing it with zero
    * @param newRow Specifies the new number of rows in matrix.
    * @param newCol Specifies the new number of Columns in matrix.
    */
-  virtual int Redim(const int newRows, const int newCols ) { 
+  virtual int Redim(const int newRows, const int newCols ) {
     fRow = newRows;
     fCol = newCols;
-    return 0; 
+    return 0;
   }
 
   /** Zeroes the matrix */
@@ -355,7 +356,7 @@ public:
    * @name Inquire
    * Returns information of the current object
    */
-   
+
    /**
    * Updates the values of the matrix based on the values of the matrix
    */
@@ -368,7 +369,7 @@ public:
   /**
    * Checks if the current matrix is symmetric
    */
-  
+
   virtual int IsSimetric() const    { return 0; }
   /**
    * Checks if current matrix is square
@@ -389,13 +390,13 @@ public:
    */
   void SetIsDecomposed(int val) {fDecomposed = (char) val; }
 
-  
+
   /**
    * @name Solvers
    * Linear system solvers. \n
    * For symmetric decompositions lower triangular matrix is used. \n
    * Solves a system A*X = B returning X in B
-   */  
+   */
   //@{
   /**
    * Solves the linear system using Jacobi method. \n
@@ -417,7 +418,7 @@ public:
    * @param result The solution.
    * @param residual Returns F - A*U which is the solution residual.
    * @param scratch Available manipulation area on memory.
-   * @param overrelax The over relaxation parameter  
+   * @param overrelax The over relaxation parameter
    * @param tol The tolerance value..
    * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
    * @param direction Indicates interaction direction, from first to last (default 1) or from last to first (-1)
@@ -432,7 +433,7 @@ public:
    * @param result The solution.
    * @param residual Returns F - A*U which is the solution residual.
    * @param scratch Available manipulation area on memory.
-   * @param overrelax The over relaxation parameter   
+   * @param overrelax The over relaxation parameter
    * @param tol The tolerance value..
    * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
    */
@@ -479,7 +480,7 @@ public:
 		       const TPZFMatrix & F, TPZFMatrix & result,
 			   TPZFMatrix * residual, REAL & tol,
 		       const int FromCurrent = 0) ;
-	
+
   /**
    * Solves the linear system using Generalized Minimal Residual (GMRES) method. \n
    * @param numinterations The number of interations for the process.
@@ -511,14 +512,14 @@ public:
 		       const TPZFMatrix & F, TPZFMatrix & result,
 		       TPZFMatrix * residual, REAL & tol,
 		       const int FromCurrent = 0);
-  
+
   /** Transforms this matrix in a diagonal matrix, where the diagonal values are its eigenvalues.
    * This method is efficient only for small matrices.
    * @param numinterations The number of interations for the process.
    * @param tol The tolerance value.
    * @param Sort diagonal values from big to small
    * @param return true if tolerance is achieved or false otherwise.
-   */                                         
+   */
    virtual bool SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort = 0);
 
   /** Compute Eigenvalues and Eigenvectors of this matrix.
@@ -528,7 +529,7 @@ public:
    * @param Eigenvalues ordered from big to small
    * @param Eigenvectors: each row represent one eigenvector. It is in same order of eigenvalues.
    * @param return true if tolerance is achieved or false otherwise.
-   */                                               
+   */
    virtual bool SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<REAL> & Eigenvalues, TPZFMatrix & Eigenvectors) const;
 
   /**
@@ -556,13 +557,13 @@ public:
   /**
    * Solves the linear system using Cholesky method\n
    * @param B The right hand side of the system and where the solution is stored.
-   */  
+   */
    int Solve_Cholesky( TPZFMatrix * B);
    int Solve_Cholesky( TPZFMatrix * B, std::list<int> &singular );
   /**
    * Solves the linear system using LDLt method\n
    * @param B The right hand side of the system and where the solution is stored.
-   */  
+   */
    int Solve_LDLt    ( TPZFMatrix * B, std::list<int> &singular );
    int Solve_LDLt    ( TPZFMatrix * B);
 
@@ -598,12 +599,12 @@ public:
    virtual int Decompose_LDLt(std::list<int> &singular);
    virtual int Decompose_LDLt();
   //@}
- 
+
   /**
    * @name Substitutions
    * Substitutions forward and backward
    */
-  //@{  
+  //@{
   /**
    * Computes Forward and Backward substitution for a "LU" decomposed matrix.
    * @param B right hand side and result after all
@@ -622,7 +623,7 @@ public:
    */
   virtual int Subst_Backward( TPZFMatrix * b ) const;
 
-  /** 
+  /**
    * Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
    * @param b right hand side and result after all
    */
@@ -659,10 +660,10 @@ public:
   * Extract the block indicated by the indices from the matrix
   */
    virtual void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
-    
+
   /**
    * Compare values of this to B, with a precision tolerance tol.
-   */  
+   */
     bool CompareValues(TPZMatrix &M, REAL tol);
 
 protected:
@@ -672,7 +673,7 @@ protected:
    * @see MultAdd
    */
   void PrepareZ(const TPZFMatrix & y, TPZFMatrix & z,const REAL beta,const int opt,const int stride) const;
-  
+
   /**
    * Constructor
    * @param row Number of rows
@@ -689,7 +690,7 @@ public:
    */
   static int Error(const char *msg ,const char *msg2 = 0);
 
-protected:  
+protected:
   /**
    * It clears data structure.
    */
@@ -763,7 +764,7 @@ inline const REAL &TPZMatrix::Get(const int row, const int col ) const {
             return gZero;
          }
 #endif
-         return( GetVal( row, col ) );  
+         return( GetVal( row, col ) );
 }
 
 
@@ -812,7 +813,7 @@ inline int TPZMatrix::Solve_LU( TPZFMatrix *B ) {
 //  Se nao conseguir resolver por Cholesky retorna 0 e a matriz
 //   sera' modificada (seu valor perdera' o sentido).
 //
-inline int TPZMatrix::Solve_Cholesky( TPZFMatrix * B ) 
+inline int TPZMatrix::Solve_Cholesky( TPZFMatrix * B )
 {
   return(
       ( !Decompose_Cholesky() )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )

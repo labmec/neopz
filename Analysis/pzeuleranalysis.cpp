@@ -1,4 +1,4 @@
-﻿//$Id: pzeuleranalysis.cpp,v 1.44 2009-09-01 19:31:17 phil Exp $
+//$Id: pzeuleranalysis.cpp,v 1.45 2009-09-01 22:05:26 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"

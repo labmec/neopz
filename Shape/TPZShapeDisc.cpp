@@ -1,4 +1,4 @@
-﻿#include "TPZShapeDisc.h"
+#include "TPZShapeDisc.h"
 #include "pzshapelinear.h"
 #include "pzreal.h"
 #include <math.h>

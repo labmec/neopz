@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.54 2009-09-01 20:54:53 phil Exp $
+//$Id: TPZInterfaceEl.h,v 1.55 2009-09-01 22:08:04 phil Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -49,7 +49,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /** Informs the connect that this element is connected to it.
    */
   void IncrementElConnected();
-
+public:
  /**
   * Extract connects from element el.
   */
@@ -79,7 +79,7 @@ class TPZInterfaceElement : public TPZCompEl {
    * @param [out] NeighborAxes
    */
   void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &NeighborAxes);
-  
+
   protected:
 
   /** Check consistency of mapped qsi performed by method TPZInterfaceElement::MapQsi by
@@ -93,12 +93,12 @@ class TPZInterfaceElement : public TPZCompEl {
   /** Computes normal at qsi point
    */
   void ComputeNormal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal);
-  
+
   /** Computes normal based on already computed axes matrix.
    * Axes has been computed in the desired qsi coordinate
    */
   void ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal);
-  
+
   /** Computes normal for linear geometric elements.
    * For linear geometry the normal vector is constant.
    */
@@ -159,7 +159,7 @@ class TPZInterfaceElement : public TPZCompEl {
   /** Set neighbors.
   */
   void SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right);
-  
+
   /** Makes a clone of this */
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
     return new TPZInterfaceElement(mesh, *this);
@@ -206,17 +206,17 @@ class TPZInterfaceElement : public TPZCompEl {
    * it returns the normal of this interface which goes from left to right neighbors
    */
   void CenterNormal(TPZVec<REAL> &CenterNormal) const;
-  
+
   /** Returns normal based on already computed axes matrix.
    * Axes has been computed in the desired qsi coordinate
    * If geometric element has LinearMapping the CenterNormal is returned
-   */  
+   */
   void Normal(TPZFMatrix &axes, TPZVec<REAL> &normal);
-  
+
   /** Returns normal at qsi point
    * If geometric element has LinearMapping the CenterNormal is returned
    */
-  void Normal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal);  
+  void Normal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal);
 
   /**
    * it returns the number from connectivities of the element
@@ -360,7 +360,7 @@ class TPZInterfaceElement : public TPZCompEl {
    * Integrate a variable over the element.
    */
    virtual void Integrate(int variable, TPZVec<REAL> & value);
-   
+
    void IntegrateInterface(int variable, TPZVec<REAL> & value);
 
   void EvaluateInterfaceJumps(TPZVec<REAL> &errors);

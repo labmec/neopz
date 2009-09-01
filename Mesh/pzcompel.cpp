@@ -1,4 +1,4 @@
-﻿//$Id: pzcompel.cpp,v 1.44 2009-09-01 20:07:39 phil Exp $
+//$Id: pzcompel.cpp,v 1.45 2009-09-01 22:08:04 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 

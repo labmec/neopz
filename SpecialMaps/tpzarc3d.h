@@ -4,7 +4,9 @@
 // #include "pzfmatrix.h"
 // #include "pzvec.h"
 // #include "pzgmesh.h"
-#include "pzgeoel.h"
+
+
+//#include "pzgeoel.h"
 #include "pznoderep.h"
 // #include "pzgnode.h"
 #include "tpzline.h"

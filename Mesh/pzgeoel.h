@@ -1,7 +1,3 @@
-﻿//$Id: pzgeoel.h,v 1.40 2009-09-01 20:04:13 phil Exp $
-
-// -*- c++ -*-
-
 #ifndef GEOELEMHPP
 #define GEOELEMHPP
 
@@ -240,12 +236,12 @@ virtual MElementType Type(int side) =0;
     std::cout << "ElementType should never be called\n";
     return "Notype";
   }
-  
+
   virtual bool IsLinearMapping() const
   {
     return true;
   }
-  
+
   virtual bool  IsGeoBlendEl() const
   {
     return false;
@@ -337,7 +333,7 @@ virtual MElementType Type(int side) =0;
                                        TPZVec<int>& nodeindexes,
                                        int matid,
                                        int& index);
-  
+
   /** method which creates a geometric element on the side of an existing element */
   virtual TPZGeoEl *CreateBCGeoEl(int side, int bc) = 0;
 
@@ -468,7 +464,7 @@ virtual	TPZTransform GetTransform(int side,int son) = 0;
 
   /**return the coordinate in real space of the point coordinate in the master element space*/
   virtual void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result)=0;
-	
+
 	void ComputeNormals(TPZMatrix &normal);
 
   /**return the normal vector at the position loc in the master element space of side*/

@@ -1,4 +1,4 @@
-﻿/*
+/*
   Dissipa�
   substantivo feminino
   1. acto ou efeito de dissipar ou dissipar-se;

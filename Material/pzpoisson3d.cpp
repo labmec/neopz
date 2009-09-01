@@ -1,6 +1,6 @@
-﻿// -*- c++ -*-
+// -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.42 2009-09-01 19:44:48 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.43 2009-09-01 22:07:16 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"

@@ -1,4 +1,4 @@
-﻿#include "TPZFrontStructMatrix.h"
+#include "TPZFrontStructMatrix.h"
 #include "TPZParSkylineStructMatrix.h"
 #include "pzskylmatpar.h"
 #include "pzvec.h"

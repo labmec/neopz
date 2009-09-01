@@ -1,4 +1,4 @@
-﻿#include "TPZEulerConsLaw.h" 
+#include "TPZEulerConsLaw.h" 
 #include "TPZDiffusionConsLaw.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
