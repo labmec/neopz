@@ -186,7 +186,7 @@ public:
   /**
    * Saveable specific methods
    */
-  virtual int ClassId()
+  virtual int ClassId() const
   {
     return TPZMATRIXSOLVER_ID;
   }

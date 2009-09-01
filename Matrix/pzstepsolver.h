@@ -101,7 +101,7 @@ virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> matrix)
   /**
    * Serialization methods
    */
-  virtual int ClassId()
+  virtual int ClassId() const
   {
     return TPZSTEPSOLVER_ID;
   }
