@@ -1,4 +1,4 @@
-// $Id: pzshapetetra.cpp,v 1.9 2008-04-08 20:10:41 fortiago Exp $
+﻿// $Id: pzshapetetra.cpp,v 1.10 2009-09-01 21:04:18 phil Exp $
 #include "pzshapetetra.h"
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
@@ -92,7 +92,7 @@ void TPZShapeTetra::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatri
       break;
       case 3:
       {
-        int face = is-10;
+		//int face = is-10;
         int is1 = SideNodeLocId(is,0); //ShapeFaceId[face][0]; 
         int is2 = SideNodeLocId(is,1); //ShapeFaceId[face][1]; 
         int is3 = SideNodeLocId(is,2); //ShapeFaceId[face][2]; 
@@ -197,11 +197,12 @@ void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
     phin.Zero();
     dphin.Zero();
     TPZManVector<int> ids(3);
-    int id0,id1,id2,i;
+//	int id0,id1,id2;
+	int i;
     for(i=0;i<3;i++) ids[i] = id[FaceNodes[face][i]];
-    id0 = ShapeFaceId[face][0];//indice das shapes da face que compoem a shape atual
-    id1 = ShapeFaceId[face][1];//equivale a FaceIdsCube(face,ids,id,id0,id1);
-    id2 = ShapeFaceId[face][2];
+//    id0 = ShapeFaceId[face][0];//indice das shapes da face que compoem a shape atual
+//    id1 = ShapeFaceId[face][1];//equivale a FaceIdsCube(face,ids,id,id0,id1);
+//    id2 = ShapeFaceId[face][2];
     int transid = TPZShapeTriang::GetTransformId2dT(ids);
     outval[0] = (outval[0]+1.)/2.;//devido a corre��o na fun��o
     outval[1] = (outval[1]+1.)/2.;//Shape2dTriangleInternal(..)

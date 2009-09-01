@@ -1,4 +1,4 @@
-#include "TPZFrontStructMatrix.h"
+﻿#include "TPZFrontStructMatrix.h"
 #include "TPZParSkylineStructMatrix.h"
 #include "pzskylmatpar.h"
 #include "pzvec.h"
@@ -72,7 +72,7 @@ int TPZParSkylineStructMatrix::main() {
 		gmesh.NodeVec ()[i].Initialize (i,coord,gmesh);
 	}
 	int el;
-	TPZGeoEl *gel;
+	//TPZGeoEl *gel;
 	for(el=0; el<1; el++) {
 
 	  // initializar os indices dos n�s
@@ -80,7 +80,7 @@ int TPZParSkylineStructMatrix::main() {
 	  for(i=0; i<4; i++) indices[i] = i;
 	  // O proprio construtor vai inserir o elemento na malha
     int index;
-	  gel = gmesh.CreateGeoElement(EQuadrilateral, indices,1,index);
+	  /*gel = */gmesh.CreateGeoElement(EQuadrilateral, indices,1,index);
 	}
 	gmesh.BuildConnectivity ();
 

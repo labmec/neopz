@@ -1,4 +1,4 @@
-// $Id: pzshapeprism.cpp,v 1.9 2008-04-08 20:10:41 fortiago Exp $
+﻿// $Id: pzshapeprism.cpp,v 1.10 2009-09-01 21:04:18 phil Exp $
 #include "pzshapeprism.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -237,12 +237,13 @@ void TPZShapePrism::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
     phin.Zero();
     dphin.Zero();
     TPZManVector<int> ids(4);
-    int id0,id1,id2,i;
-    if(face ==0 || face == 4) for(i=0;i<3;i++) ids[i] = id[FaceNodes[face][i]];
+//	int id0,id1,id2
+	int i;
+	if(face ==0 || face == 4) for(i=0;i<3;i++) ids[i] = id[FaceNodes[face][i]];
 	else for(i=0;i<4;i++) ids[i] = id[FaceNodes[face][i]];
-    id0 = ShapeFaceId[face][0];//indice das shapes da face x
-    id1 = ShapeFaceId[face][1];//que compoem a shape atual
-    id2 = ShapeFaceId[face][2];
+//    id0 = ShapeFaceId[face][0];//indice das shapes da face x
+//    id1 = ShapeFaceId[face][1];//que compoem a shape atual
+//    id2 = ShapeFaceId[face][2];
     int transid;
     if(face && face<4) {
       transid = TPZShapeQuad::GetTransformId2dQ(ids);

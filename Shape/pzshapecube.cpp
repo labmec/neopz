@@ -215,10 +215,11 @@ void TPZShapeCube::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, 
     ordin--;
     TPZManVector<int> ids(4);
     //TPZVec<int> ids(4);
-    int id0,id1,i;
+//	int id0,id1;
+	int i;
     for(i=0;i<4;i++) ids[i] = id[FaceNodes[face][i]];
-    id0 = ShapeFaceId[face][0];//numero das shapes da face que compoem a shape atual
-    id1 = ShapeFaceId[face][1];
+	//id0 = ShapeFaceId[face][0];//numero das shapes da face que compoem a shape atual
+	//id1 = ShapeFaceId[face][1];
     TPZShapeQuad::ShapeInternal(outval,ord1-2,phin,dphin,TPZShapeQuad::GetTransformId2dQ(ids));//ordin = ordem de um lado
     TransformDerivativeFromFaceToCube(face,ord,dphin);//ord = numero de shapes
     for(i=0;i<ord;i++)	{

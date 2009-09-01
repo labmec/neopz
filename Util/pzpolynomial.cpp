@@ -258,11 +258,12 @@ int TPZPolynomial::SetRoots() {
             cout << "Resultado da 1a raiz na equação" << teste << "\n";
             //Fim do cálculo da primeira raiz (X[0])
             //Redução da equação característica a grau 2.
-            REAL b0, b1, b2, b3;
-            b3 = fCo[3];
-            b2 = fCo[2] + X[0] * b3;
-            b1 = fCo[1] + X[0] * b2;
-            b0 = fCo[0] + X[0] * b1;
+			//REAL b0;
+			REAL  b1, b2, b3;
+			b3 = fCo[3];
+			b2 = fCo[2] + X[0] * b3;
+			b1 = fCo[1] + X[0] * b2;
+			//b0 = fCo[0] + X[0] * b1;
 
             /** Cálculo das outras duas raízes (X[1] e X[2]) b3*x² + b2*x + b1 = 0 */
             //cout<<b3<<"x² + "<<b2<<"x + "<<b1<<" = 0.0\n";

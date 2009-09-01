@@ -1,4 +1,4 @@
-#include "TPZShapeDisc.h"
+﻿#include "TPZShapeDisc.h"
 #include "pzshapelinear.h"
 #include "pzreal.h"
 #include <math.h>
@@ -387,20 +387,21 @@ int  TPZShapeDisc::NShapeF(int degree, int dimension, MShapeType type) {
   switch(dimension) {
   case 1:
     return degree+1;
-    break;
+//    break;
   case 2:
     if(type == ETensorial || type == ETensorialFull) return (degree+1)*(degree+1);
     else return (degree+1)*(degree+2)/2;
-    break;
+//    break;
   case 3:
     if(type == ETensorial || type == ETensorialFull) return (degree+1)*(degree+1)*(degree+1);
     for(i=0;i<(degree+1);i++) sum += (i+1)*(i+2)/2;
     return sum;
-    break;
+ //   break;
   default:
       PZError << "TPZShapeDisc::NShapeF case does not exists\n";
       return -1;
   }
+//  return -1;
 }
 
 };

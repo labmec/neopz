@@ -1,4 +1,4 @@
-// $Id: pzshapepiram.cpp,v 1.8 2008-04-08 20:10:41 fortiago Exp $
+﻿// $Id: pzshapepiram.cpp,v 1.9 2009-09-01 21:04:18 phil Exp $
 #include "pzshapepiram.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -274,22 +274,23 @@ void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
     phin.Zero();
     dphin.Zero();
     TPZManVector<int> ids(4);
-    int id0,id1,id2,i;
-    if(!face) for(i=0;i<4;i++) ids[i] = id[FaceNodes[face][i]];
+//	int id0,id1,id2;
+	int i;
+	if(!face) for(i=0;i<4;i++) ids[i] = id[FaceNodes[face][i]];
 	 else for(i=0;i<3;i++) ids[i] = id[FaceNodes[face][i]];
-    id0 = ShapeFaceId[face][0];//indice das shapes da face que compoem a shape atual
-    id1 = ShapeFaceId[face][1];//equivale a FaceIdsCube(face,ids,id,id0,id1);
-    id2 = ShapeFaceId[face][2];//if(face == 0) id3 = ShapeFaceId[face][3];
-    int transid;
-    if(!face) {
-      transid = TPZShapeQuad::GetTransformId2dQ(ids);
-      TPZShapeQuad::ShapeInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
-    } else {
-      ids.Resize(3);
-      transid = TPZShapeTriang::GetTransformId2dT(ids);
-      outval[0] = (outval[0]+1.)/2.;//devido a corre��o na fun��o
-      outval[1] = (outval[1]+1.)/2.;//Shape2dTriangleInternal(..) : correto aqui
-      TPZShapeTriang::ShapeInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
+//	id0 = ShapeFaceId[face][0];//indice das shapes da face que compoem a shape atual
+//	id1 = ShapeFaceId[face][1];//equivale a FaceIdsCube(face,ids,id,id0,id1);
+// 	id2 = ShapeFaceId[face][2];//if(face == 0) id3 = ShapeFaceId[face][3];
+	int transid;
+	if(!face) {
+	  transid = TPZShapeQuad::GetTransformId2dQ(ids);
+	  TPZShapeQuad::ShapeInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
+	} else {
+	  ids.Resize(3);
+	  transid = TPZShapeTriang::GetTransformId2dT(ids);
+	  outval[0] = (outval[0]+1.)/2.;//devido a corre��o na fun��o
+	  outval[1] = (outval[1]+1.)/2.;//Shape2dTriangleInternal(..) : correto aqui
+	  TPZShapeTriang::ShapeInternal(outval,ord1-2,phin,dphin,transid);//ordin = ordem de um lado
       int c = dphin.Cols();//isto da (p-2)(p-1)/2 ; ord1 = p ; correto aqui
       for(int i=0;i<c;i++) {
         dphin(0,i) /= 2.;//correcao da derivada OK! aqui
