@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.cpp,v 1.3 2009-08-28 22:59:11 fortiago Exp $
+//$Id: pzexplfinvolanal.cpp,v 1.4 2009-09-01 22:06:16 fortiago Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -318,7 +318,7 @@ void TPZExplFinVolAnal::ComputeGradient(const TPZFMatrix & SolutionConsVars){
   ///fSolution must have zeros in gradient positions
   this->fRhs.Zero();
   TPZEulerEquation::SetComputeGradient();
-  this->/*Parallel*/ComputeFlux( this->fFacePtrList );
+  this->ParallelComputeFlux( this->fFacePtrList );
   this->DivideByVolume(fRhs,1.);
   fSolution += fRhs;///fRhs has zeros in state variables position and fSolution has zeros in gradient positions
 }
@@ -330,13 +330,13 @@ void TPZExplFinVolAnal::AssembleFluxes2ndOrder(const TPZFMatrix & Solution){
   ///fSolution must have zeros in gradient positions
   this->fRhs.Zero();
   TPZEulerEquation::SetComputeGradient();
-  this->/*Parallel*/ComputeFlux( this->fFacePtrList );
+  this->ParallelComputeFlux( this->fFacePtrList );
   this->DivideByVolume(fRhs,1.);
   fSolution += fRhs;///fRhs has zeros in state variables position and fSolution has zeros in gradient positions
 
   fRhs.Zero();
   TPZEulerEquation::SetComputeFlux();
-  this->/*Parallel*/ComputeFlux( this->fFacePtrList );
+  this->ParallelComputeFlux( this->fFacePtrList );
   this->DivideByVolume(fRhs,fTimeStep);
 }///void
 
@@ -385,6 +385,7 @@ void TPZExplFinVolAnal::AssembleFluxesNew(const TPZFMatrix & Solution){
 void * TPZExplFinVolAnal::ExecuteParallelComputeFlux(void * ExtData){
   TMTFaceData * data = static_cast< TMTFaceData* > (ExtData);
   data->fAn->ComputeFlux(data->fFaces);
+  return NULL;
 }
 
 const int nthreads = 2;
