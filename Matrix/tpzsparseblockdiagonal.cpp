@@ -164,21 +164,24 @@ REAL& TPZSparseBlockDiagonal::s(const int row, const int col)
   return fStorage[fBlockPos[rblock]+pos];
 }
 
-void TPZSparseBlockDiagonal::Print(char* message, std::ostream& out)
+void TPZSparseBlockDiagonal::Print(const char* message, std::ostream& out, const MatrixOutputFormat format) const
 {
-    TPZBlockDiagonal::Print(message, out);
-    out << "Equations for each block " << endl;
-    int nbl = fBlockIndex.NElements()-1;
-    int ibl;
-    for(ibl = 0; ibl<nbl ; ibl++)
-    {
-      int first = fBlockIndex[ibl];
-      int last = fBlockIndex[ibl+1];
-      out << "Block " << ibl << " : ";
-      int i;
-      for(i=first; i<last; i++) out << fBlock[i] << " ";
-      out << endl;
-    }
+	TPZBlockDiagonal::Print(message, out, format);
+	if(format == EFormatted)
+	{
+		out << "Equations for each block " << endl;
+		int nbl = fBlockIndex.NElements()-1;
+		int ibl;
+		for(ibl = 0; ibl<nbl ; ibl++)
+		{
+		  int first = fBlockIndex[ibl];
+		  int last = fBlockIndex[ibl+1];
+		  out << "Block " << ibl << " : ";
+		  int i;
+		  for(i=first; i<last; i++) out << fBlock[i] << " ";
+		  out << endl;
+		}
+	}
 }
 
 void TPZSparseBlockDiagonal::AddBlock(int i, TPZFMatrix& block)
@@ -287,7 +290,7 @@ void TPZSparseBlockDiagonal::Gather(const TPZFMatrix &in, TPZFMatrix &out, int s
    /**
    * Updates the values of the matrix based on the values of the matrix
    */
-void TPZSparseBlockDiagonal::UpdateFrom(TPZMatrix *mat)
+void TPZSparseBlockDiagonal::UpdateFrom(TPZAutoPointer<TPZMatrix> mat)
 {
   LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::UpdateFrom");
   if(!mat) 

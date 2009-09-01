@@ -94,7 +94,7 @@ class TPZBlockDiagonal : public TPZMatrix
    /**
    * Updates the values of the matrix based on the values of the matrix
    */
-   virtual void UpdateFrom(TPZMatrix *mat);
+   virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
   
   /**
    * method which checks the working of the class
@@ -138,11 +138,11 @@ public:
   */
   void BuildFromMatrix(TPZMatrix &matrix);
   /**
-     Prints current matrix data
+	 Prints current matrix data
      @param message Message to be printed
      @param out Output device
   */
-  virtual void Print(char *message, std::ostream &out = std::cout);
+  virtual void Print(const char *message, std::ostream &out = std::cout, const MatrixOutputFormat format =EFormatted) const;
 
   int NumberofBlocks() {return fBlockSize.NElements();}
 

@@ -36,7 +36,7 @@ public:
     REAL& operator ( )(const int row, const int col);
     virtual int Substitution(TPZFMatrix* B) const;
     virtual REAL& s(const int row, const int col);
-    virtual void Print(char* message, std::ostream& out);
+    virtual void Print(const char* message, std::ostream& out, MatrixOutputFormat=EFormatted) const;
     void AddBlock(int i, TPZFMatrix& block);
     void BuildFromMatrix(TPZMatrix& matrix);
     void GetBlock(int i, TPZFMatrix& block);
@@ -46,7 +46,7 @@ public:
    /**
    * Updates the values of the matrix based on the values of the matrix
    */
-   virtual void UpdateFrom(TPZMatrix *mat);
+   virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
   
     
 protected:

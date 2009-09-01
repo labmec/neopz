@@ -1,4 +1,4 @@
-
+﻿
 //
 // Author: PHILIPPE DEVLOO
 //
@@ -585,8 +585,13 @@ int TPZBlockDiagonal::main() {
 
 }
 
-void TPZBlockDiagonal::Print(char *msg, std::ostream &out) {
+void TPZBlockDiagonal::Print(const char *msg, std::ostream &out, const MatrixOutputFormat format) const {
 
+  if(format != EFormatted)
+  {
+	TPZMatrix::Print(msg,out,format);
+	return;
+  }
   out << "TPZBlockDiagonal matrix ";
   if(msg) out << msg;
   out  << std::endl;
@@ -611,7 +616,7 @@ void TPZBlockDiagonal::Print(char *msg, std::ostream &out) {
    /**
    * Updates the values of the matrix based on the values of the matrix
    */
-void TPZBlockDiagonal::UpdateFrom(TPZMatrix *mat)
+void TPZBlockDiagonal::UpdateFrom(TPZAutoPointer<TPZMatrix> mat)
 {
   if(!mat) 
   {
