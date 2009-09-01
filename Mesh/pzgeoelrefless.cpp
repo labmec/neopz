@@ -15,6 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "pzgeoelrefless.h"
 #include "tpzint1point.h"
 #include "pzintel.h"
 #include "TPZGeoCube.h"
@@ -65,7 +66,7 @@ using namespace pztopology;
 #include "tpzprism.h"
 #include "tpzpyramid.h"
 
-#ifndef WIN32
+#ifndef BORLAND
 #include "pzgeoelrefless.h.h"
 #endif
 

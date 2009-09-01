@@ -298,7 +298,7 @@ public:
 
 };
 
-#ifdef WIN32
+#ifdef BORLAND
 #include "pzgeoelrefless.h.h"
 #endif
 
