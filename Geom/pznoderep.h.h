@@ -59,40 +59,36 @@ bool TPZNodeRep<N,Topology>::IsInSideParametricDomain(int side, TPZVec<REAL> &pt
     switch(type){
       case EPoint:
         return pztopology::TPZPoint::IsInParametricDomain(pt,tol);
-        break;
-      case EOned:
-        return pztopology::TPZLine::IsInParametricDomain(pt,tol);
-        break;
-      case ETriangle:
-        return pztopology::TPZTriangle::IsInParametricDomain(pt,tol);
-        break;
-      case EQuadrilateral:
-        return pztopology::TPZQuadrilateral::IsInParametricDomain(pt,tol);
-        break;
-      case ETetraedro:
-        return pztopology::TPZTetrahedron::IsInParametricDomain(pt,tol);
-        break;
-      case EPiramide:
-        return pztopology::TPZPyramid::IsInParametricDomain(pt,tol);
-        break;
-      case EPrisma:
-        return pztopology::TPZPrism::IsInParametricDomain(pt,tol);
-        break;
-      case ECube:
-        return pztopology::TPZCube::IsInParametricDomain(pt,tol);
-        break;
-      default: 
-        std::stringstream sout;
-        sout << "Fatal error at " << __PRETTY_FUNCTION__ << " - Element type " << type << " not found";
-        PZError << "\n" << sout.str() << "\n";
+	  case EOned:
+		return pztopology::TPZLine::IsInParametricDomain(pt,tol);
+	  case ETriangle:
+		return pztopology::TPZTriangle::IsInParametricDomain(pt,tol);
+	  case EQuadrilateral:
+		return pztopology::TPZQuadrilateral::IsInParametricDomain(pt,tol);
+
+	  case ETetraedro:
+		return pztopology::TPZTetrahedron::IsInParametricDomain(pt,tol);
+
+	  case EPiramide:
+		return pztopology::TPZPyramid::IsInParametricDomain(pt,tol);
+
+	  case EPrisma:
+		return pztopology::TPZPrism::IsInParametricDomain(pt,tol);
+
+	  case ECube:
+		return pztopology::TPZCube::IsInParametricDomain(pt,tol);
+
+	  default:
+		std::stringstream sout;
+		sout << "Fatal error at " << __PRETTY_FUNCTION__ << " - Element type " << type << " not found";
+		PZError << "\n" << sout.str() << "\n";
 #ifdef LOG4CXX
-        LOGPZ_FATAL(lognoderep,sout.str().c_str());
+		LOGPZ_FATAL(lognoderep,sout.str().c_str());
 #endif
-        DebugStop();
-        return false;
-        break;
-    }///case
-  
+		DebugStop();
+
+	}///case
+
   return false;
 }///method
 

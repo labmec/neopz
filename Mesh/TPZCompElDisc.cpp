@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.112 2009-04-17 18:34:59 fortiago Exp $
+﻿//$Id: TPZCompElDisc.cpp,v 1.113 2009-09-01 20:57:03 phil Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.112 2009-04-17 18:34:59 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.113 2009-09-01 20:57:03 phil Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -611,35 +611,36 @@ int TPZCompElDisc::NInterfaces(){
     {
     case 3: //line
       return 2;
-      break;
+//      break;
 
     case 7: //triangle
       return 3;
-      break;
+//      break;
 
     case 9: //square
       return 4;
 
     case 15: // Tetrahedra.
       return 4;
-      break;
+//      break;
 
     case 19: // Prism.
       return 5;
-      break;
+ //     break;
 
     case 21: // Pyramid.
       return 6;
-      break;
+ //     break;
 
     case 27: // Hexaedra.
       return 8;
-      break;
+ //     break;
 
     default:
       PZError << "TPZCompElDisc::NFaces() - Unknown element shape!" << endl;
       exit (-1);
-    }
+	}
+	return 0;
 }
 
 //#include "TPZAgglomerateEl.h"

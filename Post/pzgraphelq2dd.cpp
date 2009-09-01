@@ -103,10 +103,11 @@ int TPZGraphElQ2dd::ExportType(TPZDrawStyle st){
 	{
 	case(EVTKStyle):
 		return 9;//vtk_quad
-		break;
+//		break;
 	default:
 		return -1;
 	}
+//	return -1;
 }
 
 int TPZGraphElQ2dd::NNodes()

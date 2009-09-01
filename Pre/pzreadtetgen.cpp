@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzreadtetgen.cpp,v 1.3 2006-11-16 18:17:27 tiago Exp $
+//$Id: pzreadtetgen.cpp,v 1.4 2009-09-01 21:03:23 phil Exp $
 
 #include "pzreadtetgen.h"
 #include "pzgmesh.h"
@@ -104,7 +104,7 @@ bool TPZReadTetGen::ProcessFaces(std::string FaceFileName,  TPZGeoMesh &gmesh, i
   int nfaces, BoundMarker, ID, mat;
   int NO1, NO2, NO3, index;
   TPZManVector<int,3> nodind(3);
-  TPZGeoEl * gel;
+  //TPZGeoEl * gel;
   
   FaceFile >> nfaces >> BoundMarker;
   
@@ -117,7 +117,7 @@ bool TPZReadTetGen::ProcessFaces(std::string FaceFileName,  TPZGeoMesh &gmesh, i
     nodind[0] = this->fNodeIndices[ NO1 ];
     nodind[1] = this->fNodeIndices[ NO2 ];
     nodind[2] = this->fNodeIndices[ NO3 ];
-    gel = gmesh.CreateGeoElement(ETriangle, nodind, mat, index);
+	/*gel = */gmesh.CreateGeoElement(ETriangle, nodind, mat, index);
   }//for i
   
   return true;
@@ -128,7 +128,7 @@ bool TPZReadTetGen::ProcessTetra(std::string TetraFileName, TPZGeoMesh &gmesh, i
   std::ifstream TetraFile(TetraFileName.c_str());
   int nvols, n, mat, nattr, ID, NO1, NO2, NO3, NO4, index;
   TPZManVector<int,4> nodind(4);
-  TPZGeoEl * gel;
+  //TPZGeoEl * gel;
   TetraFile >> nvols >> n >> nattr;
   
   numbervols = nvols;
@@ -143,7 +143,7 @@ bool TPZReadTetGen::ProcessTetra(std::string TetraFileName, TPZGeoMesh &gmesh, i
     nodind[1] = this->fNodeIndices[ NO2 ];
     nodind[2] = this->fNodeIndices[ NO3 ];
     nodind[3] = this->fNodeIndices[ NO4 ];
-    gel = gmesh.CreateGeoElement(ETetraedro, nodind, mat, index);    
+    /*gel = */gmesh.CreateGeoElement(ETetraedro, nodind, mat, index);    
     
   }//for i
   return true;

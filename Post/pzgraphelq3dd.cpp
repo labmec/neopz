@@ -120,10 +120,11 @@ int TPZGraphElQ3dd::ExportType(TPZDrawStyle st){
 	{
 	case(EVTKStyle):
 		return 12;//vtk_hexahedron
-		break;
+//		break;
 	default:
 		return -1;
 	}
+//	return -1;
 }
 
 int TPZGraphElQ3dd::NNodes()

@@ -18,6 +18,7 @@
 #include "pztrnsform.h"
 #include "tpzpoint.h"
 #include "pzeltype.h"
+#include "tpzint1point.h"
 
 class TPZIntPoints;
 class TPZInt1Point;

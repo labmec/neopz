@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.47 2008-06-02 17:58:33 fortiago Exp $
+﻿//$Id: TPZAgglomerateEl.cpp,v 1.48 2009-09-01 20:57:58 phil Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -723,7 +723,7 @@ REAL TPZAgglomerateElement::LesserEdgeOfEl(){
 
   int j,l,nvertices;
   TPZVec<REAL> point0(3),point1(3);
-  TPZGeoNode *node0,*node1;
+  //TPZGeoNode *node0,*node1;
   //procura-se a maior distancia entre dois nodos do conjunto de elementos
   //em cada dire�o X, Y ou Z, retorna-se a menor dessas 3 distancias
   TPZStack<TPZGeoNode *> nodes;
@@ -733,8 +733,8 @@ REAL TPZAgglomerateElement::LesserEdgeOfEl(){
   REAL distX,distY,distZ;
   for(l=0;l<nvertices;l++){
     for(j=l+1;j<nvertices;j++){
-      node0 = nodes[l];
-      node1 = nodes[j];
+	  //node0 = nodes[l];
+      //node1 = nodes[j];
       distX = fabs(nodes[l]->Coord(0) - nodes[j]->Coord(0));
       distY = fabs(nodes[l]->Coord(1) - nodes[j]->Coord(1));
       distZ = fabs(nodes[l]->Coord(2) - nodes[j]->Coord(2));

@@ -181,10 +181,11 @@ int TPZGraphEl1d::ExportType(TPZDrawStyle st){
 	{
 	case(EVTKStyle):
 		return 1;
-		break;
+//		break;
 	default:
 		return -1;
 	}
+//	return -1;
 }
 
 int TPZGraphEl1d::NNodes()

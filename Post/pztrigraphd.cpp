@@ -89,10 +89,11 @@ int TPZGraphElTd::ExportType(TPZDrawStyle st){
 	{
 	case(EVTKStyle):
 		return 5;//vtk_triangle
-		break;
+//		break;
 	default:
 		return -1;
 	}
+//	return -1;
 }
 
 int TPZGraphElTd::NNodes()
