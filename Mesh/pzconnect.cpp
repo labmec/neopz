@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.21 2007-11-29 18:16:47 phil Exp $
+//$Id: pzconnect.cpp,v 1.22 2009-09-01 20:05:06 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -295,14 +295,14 @@ int TPZConnect::CheckDependency(int nshape, TPZCompMesh *mesh, int nstate) {
        TPZConnect &c2 = mesh->ConnectVec()[first->fDepConnectIndex];
        if(nc*nstate != c2.NDof(*mesh)) {
          cout << "TPZConnect::CheckDependency inconsistent dependency ndof = " << c2.NDof(*mesh) << " ncols " << nc << endl;
-         return -1;
-         int c2result = 0;
-         if(c2.HasDependency()) {
-           c2result = c2.CheckDependency(c2.NDof(*mesh)/nstate,mesh,nstate);
-         }
-         if(c2result == -1) return c2result;
-       }
-       first = first->fNext;
+		 return -1;
+	   }
+	   int c2result = 0;
+	   if(c2.HasDependency()) {
+		   c2result = c2.CheckDependency(c2.NDof(*mesh)/nstate,mesh,nstate);
+	   }
+	   if(c2result == -1) return c2result;
+	   first = first->fNext;
     }
   }
   return 0;
