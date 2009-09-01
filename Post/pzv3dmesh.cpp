@@ -58,11 +58,10 @@ void TPZV3DGraphMesh::DrawSolution(char * /*var*/){
 	cout << "TPZV3DGraphMesh::DrawSolution(char *) not implemented\n";
 }
 // Draw the solution associated with the variable name
-void TPZV3DGraphMesh::DrawSolution(int step, REAL /*time*/,
-						TPZVec<char *> &scalarnames, TPZVec<char *> &vectornames){
+void TPZV3DGraphMesh::DrawSolution(int step, REAL /*time*/){
 	if(step+1 != fNumCases && step%fInterval) return;
-	int numscal = scalarnames.NElements();
-	int numvec = vectornames.NElements();
+	int numscal = fScalarNames.NElements();
+	int numvec = fVecNames.NElements();
 	if(numscal > 6) {
 		cout << "View3d only allows for 6 scalars numscal = " << numscal << endl;
 		numscal = 6;
@@ -98,15 +97,15 @@ void TPZV3DGraphMesh::DrawSolution(int step, REAL /*time*/,
    }
 	int n;
 	for(n=0; n<numscal; n++) {
-		scalind[n] = matp->VariableIndex(scalarnames[n]);
+		scalind[n] = matp->VariableIndex(fScalarNames[n]);
 	}
 	for(n=0; n<numvec; n++) {
-		vecind[n] = matp->VariableIndex(vectornames[n]);
+		vecind[n] = matp->VariableIndex(fVecNames[n]);
 	}
 	if(numscal > 0) {
 		(fOutFile) << "nosc " << numscal << endl;
 		int nnod = fNodeMap.NElements();
-      for(int i=0;i<nnod;i++) {
+	  for(int i=0;i<nnod;i++) {
 			TPZGraphNode *np = &fNodeMap[i];
 			if(np) np->DrawSolution(scalind, fStyle);
 		}
@@ -140,7 +139,7 @@ void TPZV3DGraphMesh::DrawSolution(int step, REAL /*time*/,
 	if(numvec > 0) {
 		(fOutFile) << "nvec\n";
 		int nnod = fNodeMap.NElements();
-      for(int i=0;i<nnod;i++) {
+	  for(int i=0;i<nnod;i++) {
 			TPZGraphNode *np = &fNodeMap[i];
 			if(np) np->DrawSolution(vecind, fStyle);
 		}

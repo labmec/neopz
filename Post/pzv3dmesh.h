@@ -24,8 +24,7 @@ virtual void DrawSolution(TPZBlock &Sol);
 	// Draw the solution associated with Sol (not implemented)
 virtual void DrawSolution(char * var = 0);
 	// Draw the solution associated with the variable name
-virtual void DrawSolution(int step, REAL time,
-						TPZVec<char *> &scalarnames, TPZVec<char *> &vectornames);
+virtual void DrawSolution(int step, REAL time);
 	// Draw the solution sequence
 virtual void SequenceNodes();
 
