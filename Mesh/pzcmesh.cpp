@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.80 2009-06-17 22:08:23 fortiago Exp $
+﻿//$Id: pzcmesh.cpp,v 1.81 2009-09-01 20:06:43 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -2155,7 +2155,7 @@ void TPZCompMesh::AssembleError(TPZFMatrix &estimator, int errorid){
     TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(el);
     if (face){
       errorL.Fill(0.); errorR.Fill(0.);
-      face->ComputeError(errorid, errorL, errorR);
+      face->ComputeErrorFace(errorid, errorL, errorR);
       int n = errorL.NElements();
       if (errorR.NElements() > n) n = errorR.NElements();
       //if number of errors > 1 then resize matrix.
