@@ -43,16 +43,16 @@ void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &ja
 
 
 #ifdef DEBUG
-  const int nnodes = NNodes;
-  if (nnodes != 4) {
-    PZError << "TPZGeoQuad.jacobian only implemented for"
-      " 4 nodes, NumberOfNodes = " << nnodes << "\n";
-  }
+//  const int nnodes = NNodes;
+//  if (nnodes != 4) {
+//    PZError << "TPZGeoQuad.jacobian only implemented for"
+//      " 4 nodes, NumberOfNodes = " << nnodes << "\n";
+//  }
   if( param[0] < -1.001 || param[0] > 1.001 || param[1] < -1.001 || param[1] > 1.001) {
-    PZError << "TPZGeoQuad.jacobian. param out of range : "
-      " param.NElements() = " << param.NElements() <<
-      "\nparam[0] = " << param[0] << " param[1] = " << param[1] << "\n";
-    //return;
+	PZError << "TPZGeoQuad.jacobian. param out of range : "
+	  " param.NElements() = " << param.NElements() <<
+	  "\nparam[0] = " << param[0] << " param[1] = " << param[1] << "\n";
+	//return;
   }
 #endif
   jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
@@ -65,8 +65,8 @@ void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &ja
   int spacedim = coord.Rows();
   TPZFMatrix VecMatrix(3,2,0.);
   for(int i = 0; i < 4; i++) {
-    for(int j = 0; j < spacedim; j++) {
-        VecMatrix(j,0) += coord(j,i)*dphi(0,i);
+	for(int j = 0; j < spacedim; j++) {
+		VecMatrix(j,0) += coord(j,i)*dphi(0,i);
         VecMatrix(j,1) += coord(j,i)*dphi(1,i);
     }
   }

@@ -1,4 +1,4 @@
-#include "TPZGeoCube.h"
+﻿#include "TPZGeoCube.h"
 //#include "pzelgpoint.h"
 //#include "pzelg1d.h"
 //#include "pzelgq2d.h"
@@ -98,10 +98,10 @@ void TPZGeoCube::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 void TPZGeoCube::Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
 
 #ifdef DEBUG
-  if (NNodes != 8) {
-    PZError << "TPZGeoCube.jacobian only implemented for"
-      " 8 nodes, NumberOfNodes = " << NNodes << "\n";
-  }
+//  if (NNodes != 8) {
+//    PZError << "TPZGeoCube.jacobian only implemented for"
+//      " 8 nodes, NumberOfNodes = " << NNodes << "\n";
+//  }
   if(param.NElements() != 3 || param[0] < -1.001 || param[0] > 1.001 ||
      param[1] < -1.001 || param[1] > 1.001 || param[2] < -1.001 || param[2] > 1.001) {
     PZError << "TPZGeoCube.jacobian. param out of range : "
