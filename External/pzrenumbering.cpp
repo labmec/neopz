@@ -274,7 +274,7 @@ void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVe
 			}
 		}
 		int eltoelsize = eltoelgraph.NElements();
-		if(eltoelgraphindex[iel]+elset.size() >= eltoelsize)
+		if(eltoelgraphindex[iel]+(int)elset.size() >= eltoelsize)
 		{
 			eltoelgraph.Resize(eltoelsize+elset.size()+1000);
 			eltoelweight.Resize(eltoelgraph.NElements());
