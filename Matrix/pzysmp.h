@@ -152,7 +152,7 @@ public:
 
   void AddKel(TPZFMatrix & elmat, TPZVec<int> & sourceindex, TPZVec<int> & destinationindex);    
 
-  void Multiply(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res);    
+  void MultiplyDummy(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res);
 
   virtual int Zero();
   

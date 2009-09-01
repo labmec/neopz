@@ -1,4 +1,4 @@
-#include "pzysmp.h"
+﻿#include "pzysmp.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 
@@ -21,7 +21,7 @@ using namespace std;
 // ****************************************************************************
 
 void TPZFYsmpMatrix::InitializeData(){}
-void TPZFYsmpMatrix::Multiply(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res){
+void TPZFYsmpMatrix::MultiplyDummy(TPZFYsmpMatrix & B, TPZFYsmpMatrix & Res){
     int i,j,k;
     if (B.Rows()!=Rows()) return;
     int rows = Rows();
