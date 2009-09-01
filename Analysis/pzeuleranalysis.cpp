@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.43 2009-02-02 10:20:33 phil Exp $
+﻿//$Id: pzeuleranalysis.cpp,v 1.44 2009-09-01 19:31:17 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -155,7 +155,7 @@ void TPZEulerAnalysis::Assemble()
    if(!fCompMesh)
    {
       PZError << "TPZEulerAnalysis::Assemble Error: No Computational Mesh\n";
-      return;
+//      return;
       exit(-1);
    }
 
@@ -163,14 +163,14 @@ void TPZEulerAnalysis::Assemble()
    {
       PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
       exit(-1);
-      return;
+//      return;
    }
 
    if(!fSolver)
    {
       PZError << "TPZEulerAnalysis::Assemble Error: No Solver\n";
       exit(-1);
-      return;
+//      return;
    }
 
    // contributing referring to the last state
@@ -189,7 +189,7 @@ void TPZEulerAnalysis::Assemble()
       {
          PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
          exit(-1);
-         return;
+//         return;
 
       }
 
@@ -627,7 +627,7 @@ void TPZEulerAnalysis::CompareRhs()
     el->CalcResidual(ef2);
     diff =ef1.fMat;
     diff -= ef2.fMat;
-    diffnorm = Norm(diff);
+ //   diffnorm = Norm(diff);
   }
 }
 

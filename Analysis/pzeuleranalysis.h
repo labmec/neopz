@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.20 2009-02-02 10:20:33 phil Exp $
+//$Id: pzeuleranalysis.h,v 1.21 2009-09-01 19:31:17 phil Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -45,6 +45,15 @@ public:
     * see declaration in the base class.
     */
    virtual void Run(std::ostream &out, const std::string & dxout, int dxRes);
+
+      /**
+    * see declaration in the base class.
+    */
+virtual void Run(std::ostream &out)
+{
+	std::cout <<__PRETTY_FUNCTION__ << " should never be called!!!\n";
+	TPZAnalysis::Run(out);
+}
 
    /**
     * Sets the solution vector to be the one
@@ -130,7 +139,7 @@ public:
    virtual void AssembleRhs();
 
    /**
-    * Solves an assembled stiffness matrix.
+	* Solves an assembled stiffness matrix.
     * Not to be misunderstood as a global
     * solver, because it performs only part
     * of one linear iteration.
@@ -141,6 +150,11 @@ public:
     */
    int Solve(REAL & res, TPZFMatrix * residual, TPZFMatrix & delSol);
 
+   virtual void Solve()
+   {
+	   std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
+	   TPZAnalysis::Solve();
+   }
    /**
     * Implements the Newton's method.
     * Returns 1 if the desired tolerance was
