@@ -17,9 +17,8 @@ TPZMVGraphMesh(TPZCompMesh *cmesh,int dim,TPZMVGraphMesh *graph,TPZAutoPointer<T
 virtual void DrawMesh(int numcases);
 
 virtual void DrawNodes();
-virtual void DrawConnectivity();
-virtual void DrawSolution(int step, REAL time,
-						TPZVec<char *> &scalarnames, TPZVec<char *> &vectornames);
+virtual void DrawConnectivity(MElementType type);
+virtual void DrawSolution(int step, REAL time);
 virtual void DrawSolution(TPZBlock &Sol);
 virtual void DrawSolution(char *var = 0);
 

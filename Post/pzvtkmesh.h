@@ -27,7 +27,7 @@ public:
 	virtual void DrawMesh(int numcases);
 	
 	virtual void DrawNodes();
-	virtual void DrawConnectivity();
+	virtual void DrawConnectivity(MElementType type);
 	virtual void DrawSolution(int step, REAL time);
 	virtual void DrawSolution(TPZBlock &Sol);
 	virtual void DrawSolution(char *var = 0);

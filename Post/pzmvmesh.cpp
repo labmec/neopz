@@ -1,4 +1,4 @@
-#include "pzmvmesh.h"
+﻿#include "pzmvmesh.h"
 #include "pzcmesh.h"
 #include "pzmaterial.h"
 #include "pzgraphnode.h"
@@ -33,15 +33,14 @@ void TPZMVGraphMesh::DrawMesh(int numcases) {
 		(fOutFile) << (i+1) << " 'step" << i << "'" << endl;
 	}
 	DrawNodes();
-  	DrawConnectivity();
+	DrawConnectivity(ECube);
 }
 
-void TPZMVGraphMesh::DrawSolution(int step, REAL time,
-						TPZVec<char *> &scalarnames, TPZVec<char *> &vectornames){
+void TPZMVGraphMesh::DrawSolution(int step, REAL time){
 
 	fNumSteps++;
-	int numscal = scalarnames.NElements();
-	int numvec = vectornames.NElements();
+	int numscal = this->fScalarNames.NElements();
+	int numvec = fVecNames.NElements();
 	TPZVec<int> scalind(0);
 	TPZVec<int> vecind(0);
 	scalind.Resize(numscal);
@@ -55,10 +54,10 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time,
 	}
 	int n;
 	for(n=0; n<numscal; n++) {
-		scalind[n] = matp->VariableIndex( scalarnames[n]);
+		scalind[n] = matp->VariableIndex( fScalarNames[n]);
 	}
 	for(n=0; n<numvec; n++) {
-		vecind[n] = matp->VariableIndex(vectornames[n]);
+		vecind[n] = matp->VariableIndex(fVecNames[n]);
 	}
 
 	(fOutFile) << "%RESULT.CASE.STEP\n" << (step+1) << endl;
@@ -76,7 +75,7 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time,
 	(fOutFile) << "%RESULT.CASE.STEP.NODAL.SCALAR" << endl;
 	(fOutFile) << numscal << endl;
 	for(n=0;n<numscal;n++) {
-		(fOutFile) << "'" <<  (char *) scalarnames[n] << "' ";
+		(fOutFile) << "'" <<   fScalarNames[n] << "' ";
 	}
 	(fOutFile) << endl;
 
@@ -90,7 +89,7 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time,
 	(fOutFile) << "%RESULT.CASE.STEP.NODAL.VECTOR" << endl;
 	(fOutFile) << numvec << endl;
 	for(n=0;n<numvec;n++) {
-		(fOutFile) << "'" <<  (char *) vectornames[n] << "' ";
+		(fOutFile) << "'" << fVecNames[n] << "' ";
 	}
 	(fOutFile) << endl;
 	(fOutFile) << "%RESULT.CASE.STEP.NODAL.VECTOR.DATA" << endl;
@@ -136,7 +135,7 @@ void TPZMVGraphMesh::DrawNodes(){
 	}
 }
 
-void TPZMVGraphMesh::DrawConnectivity() {
+void TPZMVGraphMesh::DrawConnectivity(MElementType type) {
 
 	int nel = fElementList.NElements();
 	if(!nel) return;

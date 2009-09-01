@@ -61,7 +61,7 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 	(fOutFile) << "ASCII\n" << endl;
 	(fOutFile) << "DATASET UNSTRUCTURED_GRID" << endl;
 	DrawNodes();
-	DrawConnectivity();
+	DrawConnectivity(ECube);
 	int numscal = fScalarNames.NElements();
 	int numvec = fVecNames.NElements();
 	if(numscal || numvec)(fOutFile) << "POINT_DATA " << NPoints() << endl;
@@ -129,7 +129,7 @@ void TPZVTKGraphMesh::DrawNodes(){
 	}
 }
 
-void TPZVTKGraphMesh::DrawConnectivity() {
+void TPZVTKGraphMesh::DrawConnectivity(MElementType type) {
 	
 	int nel = fElementList.NElements();
 	if(!nel) return;
