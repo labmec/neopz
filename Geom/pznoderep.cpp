@@ -9,7 +9,14 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
+
+#ifndef BORLAND
 #include "pznoderep.h.h"
+#endif
+
+#ifdef BORLAND
+#include "pznoderep.h"
+#endif
 
 #include "tpzpoint.h"
 #include "tpzline.h"
