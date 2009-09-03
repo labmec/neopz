@@ -142,7 +142,7 @@ void TPZReadMeshHR::ReadElements (int NElem, TPZGeoMesh & GMesh)
       idx = GetNodeIndex(&GMesh,id);
       corneridx [c] = idx;
     }
-    GMesh.CreateGeoElement(etype,corneridx,matid,id,0);
+    GMesh.CreateGeoElement(etype,corneridx,matid,id,1);
   }
 }
 
