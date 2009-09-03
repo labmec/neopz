@@ -9,7 +9,7 @@
  *
  * @author Cantao!
  */
-// $Id: TPZTimer.h,v 1.7 2009-09-01 21:09:42 phil Exp $
+// $Id: TPZTimer.h,v 1.8 2009-09-03 18:50:47 phil Exp $
 
 #ifndef TPZTIMER_H
 #define TPZTIMER_H
@@ -38,21 +38,20 @@
 #   define TV_MSEC tv_usec / 1000
 #   if HAVE_WAIT3
 #      include <sys/resource.h>
-# 	else
+# 	endif
 
 /// Process resource usage structure.
-struct pzrusage  
+struct pzrusage
 {
   struct timeval ru_utime;	// User time used.
   struct timeval ru_stime;	// System time used.
 
   // They're here just for completeness.
   int ru_maxrss, ru_ixrss, ru_idrss, ru_isrss,
-  ru_minflt, ru_majflt, ru_nswap, ru_inblock, 
+  ru_minflt, ru_majflt, ru_nswap, ru_inblock,
   ru_oublock, ru_msgsnd, ru_msgrcv, ru_nsignals,
   ru_nvcsw, ru_nivcsw;
 };
-#   endif
 #endif
 
 /// Information on the resources used by a child process.
