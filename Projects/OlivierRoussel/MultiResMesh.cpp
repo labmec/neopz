@@ -1,4 +1,4 @@
-//$Id: MultiResMesh.cpp,v 1.1 2009-08-28 22:59:35 fortiago Exp $
+//$Id: MultiResMesh.cpp,v 1.2 2009-09-03 22:52:31 phil Exp $
 
 #include "malhas.h"
 #include "TPZFakeFunction.h"
@@ -59,7 +59,7 @@
 #include "TPZCopySolve.h"
 #include "TPZStackEqnStorage.h"
 #include "pzbstrmatrix.h"
-#include "pzstepsolver.h"       
+#include "pzstepsolver.h"
 #include "pzbndcond.h"
 #include "pzpoisson3d.h"
 #include "pzvisualmatrix.h"
@@ -118,9 +118,12 @@ TPZGeoMesh * CreateCoarseMesh(int nLevel){
     const int nel = gmesh->NElements();
     for(int iel = 0; iel < nel; iel++){
       TPZGeoEl * gel = gmesh->ElementVec()[iel];
-      gel->Divide(children);
-      for(int is = 0; is < children.NElements(); is++){
-        children[is]->SetRefPattern( gel->GetRefPattern() );
+      if(!gel->HasSubElement())
+      {
+    	  gel->Divide(children);
+    	  for(int is = 0; is < children.NElements(); is++){
+    		  children[is]->SetRefPattern( gel->GetRefPattern() );
+    	  }
       }
     }///for iel
   }///for idiv
@@ -209,54 +212,54 @@ void InitialSolutionMultires(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
 void DefineRefinementPattern ( TPZGeoMesh * GMesh )
 {
   // --- Define the refinement patterns for tetrahedra -------
-  
+
   // Read the refinement pattern
   string tetraFile ( "LaraRefineTetrahedron.txt" );
-  
+
   // Create and initialize an object to store the pattern
   TPZRefPattern *tetraPattern = new TPZRefPattern ( GMesh, tetraFile );
-  
+
   // Include the pattern info into the mesh
   tetraPattern->InsertPermuted();
-  
+
   // Remove this object
   delete tetraPattern;
-  
-  
+
+
   // --- Define the refinement patterns for triangles -------
-  
+
   // Read the refinement pattern
   string triangleFile ( "LaraRefineTriangle.txt" );
-  
+
   // Create and initialize an object to store the pattern
   TPZRefPattern * trianglePattern = new TPZRefPattern ( GMesh, triangleFile );
-  
+
   // Include the pattern info into the mesh
   trianglePattern->InsertPermuted();
-  
+
   // Remove this object
   delete trianglePattern;
-  
+
   //Select the correct refinement pattern  for the tetrahedra
   // Define the element type (tetrahedron)
   MElementType eltype = ETetraedro;
-  
+
   // Take the map of every refinement pattern for a tetrahedron defined into the mesh
   // the map below provides a relation between an index and a pointer to an object of type refinement pattern
   map < int, TPZAutoPointer < TPZRefPattern > > mapOfTetraRefPattern = GMesh->RefPatternList ( eltype );
   map < int, TPZAutoPointer < TPZRefPattern > >::iterator it;
-  
+
   // this is the first refinement pattern available = uniform pattern (include 2 pyramids)
   // NOTE: this is not what we want
   it = mapOfTetraRefPattern.begin();
-  
+
   // incresing the iterator, we have a pointer to the second refinement pattern available
   // i.e. the refinement pattern defined into the file "LaraRefineTetrahedron.txt"
   it++;
-  
+
   // *(it->first) = index of refinement pattern;
   // it->second = pointer to refinement pattern;
-  // TPZAutoPointer is an auxiliary structure to provide garbage collector facility 
+  // TPZAutoPointer is an auxiliary structure to provide garbage collector facility
   TPZAutoPointer < TPZRefPattern > tetraRefPattern = it->second;
 
 
@@ -267,7 +270,7 @@ void DefineRefinementPattern ( TPZGeoMesh * GMesh )
     if ( ! gel || gel->Dimension() != 3 ) continue;
     gel->SetRefPattern ( tetraRefPattern );
   }
-  
+
 }
 
 double ComputeTimeStep(double CFL, int maxLevel, int meshlevel, TPZGeoMesh * gmesh){
