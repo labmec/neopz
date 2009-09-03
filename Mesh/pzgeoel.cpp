@@ -414,6 +414,17 @@ int TPZGeoEl::WhichSubel(){
   for(son=0;son<nsub;son++) if(father->SubElement(son) == this) break;
   if(son > (nsub-1)){
     PZError << "TPZGeoEl::WhichSubel son not exist\n";
+#ifdef LOG4CXX
+    {
+    	std::stringstream sout;
+    	sout << "Father element\n";
+    	father->Print(sout);
+    	sout << "Son element\n";
+    	Print(sout);
+    	LOGPZ_ERROR(logger,sout.str())
+    }
+#endif
+    DebugStop();
     return -1;
   }
   return son;
@@ -1409,7 +1420,7 @@ TPZGeoEl *TPZGeoEl::CreateGeoElement(MElementType type,
 {
   TPZGeoMesh &mesh = *Mesh();
   if(!&mesh) return 0;
-  
+
   switch( type ){
     case 0://point
     {
@@ -1475,7 +1486,7 @@ TPZGeoEl *TPZGeoEl::CreateGeoElement(MElementType type,
   }
 }
 
-int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension); 
+int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension);
 
 void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 {
@@ -1534,7 +1545,7 @@ void TPZGeoEl::ComputeNormals(TPZMatrix &normals)
 				Normalize(normlow,normal);
 				for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
 			}
-		}		
+		}
 	}
 }
 
