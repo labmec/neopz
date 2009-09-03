@@ -1,7 +1,7 @@
 //
 // C++ Interface: tpzgeoelrefpattern
 //
-// Description: 
+// Description:
 //
 //
 // Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
@@ -13,9 +13,6 @@
 #include "pzlog.h"
 
 #include "tpzgeoelrefpattern.h"
-#ifdef LOG4CXX
-static LoggerPtr loggerrefpattern(Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
-#endif
 
 template <class TGeo>
 void TPZGeoElRefPattern<TGeo>::Read(TPZStream &str, void *context){
@@ -44,7 +41,7 @@ void TPZGeoElRefPattern<TGeo>::Write(TPZStream &str, int withclassid){
 
 // template<class TGeo>
 // TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
-// TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index) 
+// TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index)
 // {
 // }
 

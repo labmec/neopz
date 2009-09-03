@@ -20,7 +20,11 @@
 #include "pzgeoelrefless.h"
 #include "TPZRefPattern.h"
 #include "pzvec.h"
+#include "pzlog.h"
 
+#ifdef LOG4CXX
+static LoggerPtr loggerrefpattern(Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
+#endif
 
 /**Implements a geometric element which division is given by a TPZRefPattern object.
   *@author Edimar Cesar Rylo
@@ -49,14 +53,17 @@ public:
   typedef TGeo Geo;
   TPZGeoElRefPattern();
   ~TPZGeoElRefPattern();
-   
+
   TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
   TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
   TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
   void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index,TPZAutoPointer<TPZRefPattern> refpat);
 
   /** return 1 if the element has subelements along side*/
-  int HasSubElement() {return fSubEl.NElements() && fSubEl[0]!=-1;}
+  int HasSubElement()
+  {
+	  return fSubEl.NElements() && fSubEl[0]!=-1;
+	}
 
   void SetSubElement(int id, TPZGeoEl *el);
 
@@ -93,7 +100,7 @@ public:
 
   /**divides the element and puts the resulting elements in the vector*/
   virtual void Divide(TPZVec<TPZGeoEl *> &pv);
-  
+
 
   virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
 
@@ -168,7 +175,7 @@ TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind
 }
   template<class TGeo>
   TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
-    TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index) 
+    TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index)
   {
   }
 
@@ -401,6 +408,15 @@ TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
   if(HasSubElement()) {
     SubElVec.Resize(NSubEl);
     for(i=0;i<NSubEl;i++) SubElVec[i] = SubElement(i);
+#ifdef LOG4CXX
+    {
+    	std::stringstream sout;
+    	sout << "Trying to divide element which has subelements " << this->Index() << std::endl;
+    	sout << "Subelement indices ";
+    	for(i=0; i<NSubEl; i++) sout << SubElVec[i]->Index() << " ";
+    	LOGPZ_WARN(loggerrefpattern,sout.str());
+    }
+#endif
     return;//If exist fSubEl return this sons
   }
   int index,k,j,sub,matid=this->MaterialId();
@@ -452,6 +468,7 @@ TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
     SubElVec[sub] = SubElement(sub);
     SubElVec[sub]->SetFather(this);
     SubElVec[sub]->SetFather(this->fIndex);
+
   }
 
 //  this->Mesh()->Print(std::cout);
@@ -502,6 +519,15 @@ TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 
   //std::cout << "Chegou aqui ..." << std::endl;
   this->SetSubElementConnectivities();
+#ifdef LOG4CXX
+    {
+    	std::stringstream sout;
+    	sout << "Dividing element " << this->Index() << std::endl;
+    	sout << "Subelement indices ";
+    	for(i=0; i<NSubEl; i++) sout << SubElVec[i]->Index() << " ";
+    	LOGPZ_DEBUG(loggerrefpattern,sout.str())
+    }
+#endif
 }
 
 template<class TGeo> int TPZGeoElRefPattern<TGeo>::FatherSide(int side, int son){
@@ -546,6 +572,14 @@ void TPZGeoElRefPattern<TGeo>::SetRefPattern (TPZAutoPointer<TPZRefPattern> refp
 //  MElementType eltype = refpat->Element(0)->Type();
 //  std::string refname = refpat->GetName();
 //  refpat = this->Mesh()->GetRefPattern(eltype,refname);
+  if ( fRefPattern == refpat)
+  {
+	  return;
+  }
+  else if ( fRefPattern )
+  {
+	  LOGPZ_ERROR ( loggerrefpattern, "Changing an existing refinement pattern" );
+  }
   fRefPattern = refpat;
   int i;
   int nsubel = refpat->NSubElements();
