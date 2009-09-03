@@ -17,6 +17,15 @@
 #include "pzreal.h"
 #include "tpzautopointer.h"
 
+/**
+ * @defgroup save Classes and methods which support persistency
+ *
+ * Persistency within the PZ environment are implemented by deriving class from the TPZSave
+ * class and implementing the Read and Write method
+ * The association of the Class Id and a unique function is implemented in the
+ * TPZRestoreClass . The mere "instantiation" of the class will create a global object
+ * which will create the association
+ */
 const int TPZSAVEABLEID = -1;
 
 
@@ -27,9 +36,17 @@ typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,void *);
 
 
 /// This class defines the interface to save and restore objects from TPZStream objects
+/**
+ * @ingroup save
+ * This class defines the interface a class needs to implement (override) in order to become persistent
+ * Several static utility methods have been defined to make saving and restoring of vectors of
+ * objects easier
+ */
 class TPZSaveable {
 
 #ifndef ELLIPS
+
+/// This static function garantees that the gMap object is available when needed
 static std::map<int,TPZRestore_t> &Map() {
 static std::map<int,TPZRestore_t> gMap;
    return gMap;
@@ -42,14 +59,20 @@ virtual ~TPZSaveable()
 {
 }
 
+/// Define the class id associated with the class.
+/**
+ * This id has to be unique for all classes
+ * A non unique id is flagged at the startup of the program
+ */
 virtual int ClassId() const ;
 
+/// write this object to the TPZStream buffer. Include the classid if withclassid = true
 virtual void Write(TPZStream &buf, int withclassid);
 
 virtual void Read(TPZStream &buf, void *context);
 
 template<class T>
-static void WriteObjects(TPZStream &buf, TPZVec<T> &vec) 
+static void WriteObjects(TPZStream &buf, TPZVec<T> &vec)
 {
   int c,nc = vec.NElements();
   buf.Write(&nc,1);
@@ -57,7 +80,7 @@ static void WriteObjects(TPZStream &buf, TPZVec<T> &vec)
 }
 
 template<class T>
-static void WriteObjects(TPZStream &buf, std::vector<T> &vec) 
+static void WriteObjects(TPZStream &buf, std::vector<T> &vec)
 {
   int c,nc = vec.size();
   buf.Write(&nc,1);
@@ -71,7 +94,7 @@ static void WriteObjects(TPZStream &buf, std::vector<T> &vec)
     buf.Write(&nc,1);
     for(c=0; c<nc; c++) vec[c].Write(buf,0);
   }
-	
+
   template<class T, int EXP>
   static void WriteObjects(TPZStream &buf, TPZAdmChunkVector<T,EXP> &vec)
   {
@@ -82,18 +105,18 @@ static void WriteObjects(TPZStream &buf, std::vector<T> &vec)
     WriteObjects(buf,vec.fFree);
     WriteObjects(buf,vec.fNFree);
   }
-	
-      
+
+
 
 
 template<class T>
-static void WriteObjectPointers(TPZStream &buf, TPZVec<T *> &vec) 
+static void WriteObjectPointers(TPZStream &buf, TPZVec<T *> &vec)
 {
   int c,nc = vec.NElements(),one = -1;
   buf.Write(&nc,1);
-  for(c=0; c<nc; c++) 
+  for(c=0; c<nc; c++)
   {
-    if(vec[c]) 
+    if(vec[c])
     {
       vec[c]->Write(buf);
     } else {
@@ -102,17 +125,17 @@ static void WriteObjectPointers(TPZStream &buf, TPZVec<T *> &vec)
   }
 }
 template<class T>
-    static void WriteObjectPointers(TPZStream &buf, std::map<int, TPZAutoPointer<T> > &vec) 
+    static void WriteObjectPointers(TPZStream &buf, std::map<int, TPZAutoPointer<T> > &vec)
 {
   int nc = vec.size(),one = -1;
   buf.Write(&nc,1);
   typedef typename std::map<int, TPZAutoPointer<T> >::iterator vecit_type;
   vecit_type vecit;
-  for(vecit=vec.begin(); vecit!= vec.end(); vecit++) 
+  for(vecit=vec.begin(); vecit!= vec.end(); vecit++)
   {
     int id = vecit->first;
     buf.Write(&id,1);
-    if(vecit->second) 
+    if(vecit->second)
     {
       vecit->second->Write(buf,1);
     } else {
@@ -126,7 +149,7 @@ template<class T>
   {
     int c,m1=-1,nc = vec.NElements();
     buf.Write(&nc,1);
-    for(c=0; c<nc; c++) 
+    for(c=0; c<nc; c++)
     {
       T *ptr = vec[c];
       if(ptr) ptr->Write(buf);
@@ -139,7 +162,7 @@ template<class T>
   {
     int c,m1=-1,nc = vec.NElements();
     buf.Write(&nc,1);
-    for(c=0; c<nc; c++) 
+    for(c=0; c<nc; c++)
     {
       T *ptr = vec[c];
       if(ptr) ptr->Write(buf,1);
@@ -149,20 +172,20 @@ template<class T>
     WriteObjects(buf,vec.fFree);
     WriteObjects(buf,vec.fNFree);
   }
-	
+
 template<class T>
-static void ReadObjects(TPZStream &buf, TPZVec<T> &vec, void *context) 
+static void ReadObjects(TPZStream &buf, TPZVec<T> &vec, void *context)
 {
   int c,nc;
   buf.Read(&nc,1);
   vec.Resize(nc);
-  for(c=0; c<nc; c++) 
+  for(c=0; c<nc; c++)
   {
     vec[c].Read(buf,context);
   }
 }
 
-static void ReadObjects(TPZStream &buf, TPZVec<int> &vec) 
+static void ReadObjects(TPZStream &buf, TPZVec<int> &vec)
 {
   int nc;
   buf.Read(&nc,1);
@@ -171,18 +194,18 @@ static void ReadObjects(TPZStream &buf, TPZVec<int> &vec)
 }
 
 template<class T>
-static void ReadObjects(TPZStream &buf, std::vector<T> &vec, void *context) 
+static void ReadObjects(TPZStream &buf, std::vector<T> &vec, void *context)
 {
   int c,nc;
   buf.Read(&nc,1);
   vec.resize(nc);
-  for(c=0; c<nc; c++) 
+  for(c=0; c<nc; c++)
   {
     vec[c].Read(buf,context);
   }
 }
 
-static void ReadObjects(TPZStream &buf, std::vector<int> &vec) 
+static void ReadObjects(TPZStream &buf, std::vector<int> &vec)
 {
   int nc;
   buf.Read(&nc,1);
@@ -190,7 +213,7 @@ static void ReadObjects(TPZStream &buf, std::vector<int> &vec)
   if(nc) buf.Read(&vec[0],nc);
 }
 
-static void ReadObjects(TPZStream &buf, std::vector<REAL> &vec) 
+static void ReadObjects(TPZStream &buf, std::vector<REAL> &vec)
 {
   int nc;
   buf.Read(&nc,1);
@@ -198,7 +221,7 @@ static void ReadObjects(TPZStream &buf, std::vector<REAL> &vec)
   if(nc) buf.Read(&vec[0],nc);
 }
 
-static void ReadObjects(TPZStream &buf, TPZVec<REAL> &vec) 
+static void ReadObjects(TPZStream &buf, TPZVec<REAL> &vec)
 {
   int nc;
   buf.Read(&nc,1);
@@ -207,7 +230,7 @@ static void ReadObjects(TPZStream &buf, TPZVec<REAL> &vec)
 }
 
 template<int N>
-static void ReadObjects(TPZStream &buf, TPZManVector<REAL,N> &vec) 
+static void ReadObjects(TPZStream &buf, TPZManVector<REAL,N> &vec)
 {
   int nc;
   buf.Read(&nc,1);
@@ -217,12 +240,12 @@ static void ReadObjects(TPZStream &buf, TPZManVector<REAL,N> &vec)
 
 
   template<class T, int EXP>
-  static void ReadObjects(TPZStream &buf, TPZChunkVector<T,EXP> &vec, void *context) 
+  static void ReadObjects(TPZStream &buf, TPZChunkVector<T,EXP> &vec, void *context)
 {
   int c,nc;
   buf.Read(&nc,1);
   vec.Resize(nc);
-  for(c=0; c<nc; c++) 
+  for(c=0; c<nc; c++)
   {
     vec[c].Read(buf,context);
   }
@@ -246,33 +269,33 @@ static void ReadObjectPointers(TPZStream &buf, TPZVec<T *> &vec, void *context)
   int c,nc;
   buf.Read(&nc,1);
   vec.Resize(nc);
-  for(c=0; c<nc; c++) 
+  for(c=0; c<nc; c++)
   {
     vec[c] = dynamic_cast<T *>(Restore(buf,context));
-  }  
+  }
 }
- 
+
 template<class T>
     static void ReadObjectPointers(TPZStream &buf, std::map<int, TPZAutoPointer<T> > &vec, void *context)
 {
   int c,nc;
   buf.Read(&nc,1);
 //  vec.Resize(nc);
-  for(c=0; c<nc; c++) 
+  for(c=0; c<nc; c++)
   {
     int id;
     buf.Read(&id,1);
     vec[id] = TPZAutoPointer<T>(dynamic_cast<T *>(Restore(buf,context)));
-  }  
+  }
 }
- 
+
   template<class T, int EXP>
-  static void ReadObjectPointers(TPZStream &buf, TPZChunkVector<T *,EXP> &vec, void *context) 
+  static void ReadObjectPointers(TPZStream &buf, TPZChunkVector<T *,EXP> &vec, void *context)
 {
   int c,nc;
   buf.Read(&nc,1);
   vec.Resize(nc);
-  for(c=0; c<nc; c++) 
+  for(c=0; c<nc; c++)
   {
     vec[c] = dynamic_cast<T *>(Restore(buf,context));
   }
@@ -290,14 +313,14 @@ template<class T>
     ReadObjects(buf,vec.fNFree);
   }
 
-static void WriteObjects(TPZStream &buf, TPZVec<REAL> &vec) 
+static void WriteObjects(TPZStream &buf, TPZVec<REAL> &vec)
 {
   int nel = vec.NElements();
   buf.Write(&nel,1);
   if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
-static void WriteObjects(TPZStream &buf, std::vector<REAL> &vec) 
+static void WriteObjects(TPZStream &buf, std::vector<REAL> &vec)
 {
   int nel = vec.size();
   buf.Write(&nel,1);
@@ -305,14 +328,14 @@ static void WriteObjects(TPZStream &buf, std::vector<REAL> &vec)
 }
 
 #ifndef ELLIPS
-static void WriteObjects(TPZStream &buf, TPZVec<std::TPZFlopCounter> &vec) 
+static void WriteObjects(TPZStream &buf, TPZVec<std::TPZFlopCounter> &vec)
 {
   int nel = vec.NElements();
   buf.Write(&nel,1);
   if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
-static void WriteObjects(TPZStream &buf, std::vector<std::TPZFlopCounter> &vec) 
+static void WriteObjects(TPZStream &buf, std::vector<std::TPZFlopCounter> &vec)
 {
   int nel = vec.size();
   buf.Write(&nel,1);
@@ -320,28 +343,28 @@ static void WriteObjects(TPZStream &buf, std::vector<std::TPZFlopCounter> &vec)
 }
 #endif
 
-static void WriteObjects(TPZStream &buf, TPZVec<int> &vec) 
+static void WriteObjects(TPZStream &buf, TPZVec<int> &vec)
 {
   int nel = vec.NElements();
   buf.Write(&nel,1);
   if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
-static void WriteObjects(TPZStream &buf, std::vector<int> &vec) 
+static void WriteObjects(TPZStream &buf, std::vector<int> &vec)
 {
   int nel = vec.size();
   buf.Write(&nel,1);
   if(nel) buf.Write(&vec[0],vec.size());
 }
 
-static void WriteObjects(TPZStream &buf, TPZVec<char> &vec) 
+static void WriteObjects(TPZStream &buf, TPZVec<char> &vec)
 {
   int nel = vec.NElements();
   buf.Write(&nel,1);
   if(nel) buf.Write(&vec[0],vec.NElements());
 }
 
-static void WriteObjects(TPZStream &buf, std::vector<char> &vec) 
+static void WriteObjects(TPZStream &buf, std::vector<char> &vec)
 {
   int nel = vec.size();
   buf.Write(&nel,1);
