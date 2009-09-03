@@ -56,7 +56,7 @@ TPZMatrix::~TPZMatrix()
   fDecomposed = 0;
   fDefPositive = 0;
   fRow = 0;
-  fCol = 0; 
+  fCol = 0;
 }
 
 void
@@ -124,27 +124,27 @@ void TPZMatrix::PrepareZ(const TPZFMatrix &y, TPZFMatrix &z,const REAL beta,cons
   int xcols = y.Cols();
   int ic;
   if(!z.Rows()) return;
-  for (ic = 0; ic < xcols; ic++) 
+  for (ic = 0; ic < xcols; ic++)
   {
     REAL *zp = &z(0,ic), *zlast = zp+numeq;
-    if(beta != 0) 
+    if(beta != 0)
     {
       const REAL *yp = &y.g(0,ic);
-      if(beta != 1. || (beta == 1. && stride != 1 && &z != &y)) 
+      if(beta != 1. || (beta == 1. && stride != 1 && &z != &y))
       {
-        while(zp < zlast) 
+        while(zp < zlast)
         {
           *zp = beta * (*yp);
           zp += stride;
           yp += stride;
         }
-      } else if(&z != &y && stride == 1) 
+      } else if(&z != &y && stride == 1)
       {
         memcpy(zp,yp,numeq*sizeof(REAL));
       }
-    } else 
+    } else
     {
-      while(zp != zlast) 
+      while(zp != zlast)
       {
         *zp = 0.;
         zp += stride;
@@ -818,7 +818,7 @@ int TPZMatrix::Decompose_Cholesky(std::list<int> &singular) {
 	if (  fDecomposed ) return ECholesky;
 	if ( Rows()!=Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );
 	//return 0;
-	
+
 	int dim=Dim();
 	for (int i=0 ; i<dim; i++) {
 		for(int k=0; k<i; k++) {             //elementos da diagonal
@@ -841,7 +841,7 @@ int TPZMatrix::Decompose_Cholesky(std::list<int> &singular) {
             }
             PutVal(i,j,GetVal(i,j)/GetVal(i,i) );
             PutVal(j,i,GetVal(i,j));
-			
+
         }
     }
 	fDecomposed = ECholesky;
@@ -876,7 +876,7 @@ int TPZMatrix::Decompose_Cholesky() {
     }
 	 fDecomposed = ECholesky;
 	 return ECholesky;
-	 
+
 }
 
 
@@ -1008,6 +1008,7 @@ int TPZMatrix::Error(const char *msg ,const char *msg2) {
     if(msg2) out << msg2;
     out << ".\n";
     LOGPZ_ERROR (logger, out.str().c_str());
+    DebugStop();
 	std::bad_exception myex;
 	throw myex;
 //    exit( 1 );
@@ -1041,29 +1042,29 @@ void TPZMatrix::GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const
 {
     int nel = indices.NElements();
     int iel,jel;
-    for(iel=0; iel<nel; iel++) 
+    for(iel=0; iel<nel; iel++)
     {
       for(jel=0; jel<nel; jel++)
       {
         block(iel,jel) = GetVal(indices[iel],indices[jel]);
       }
     }
-    
+
 }
 
 int TPZMatrix::VerifySymmetry(REAL tol) const{
   int nrows = this->Rows();
   int ncols = this->Cols();
   if (nrows != ncols) return 0;
-  
+
   for( int i = 0; i < nrows; i++){
     for(int j = 0; j <= i; j++){
       if ( fabs( this->Get(i,j) - this->Get(j,i) ) > tol ) {
         cout << "Elemento: " << i << ", " << j << "  -> " << fabs(this->Get(i,j) - this->Get(j,i) ) << "/" <<
         this->Get(i,j) << endl;
-	return 0;       
+	return 0;
       }
-    }  
+    }
   }
   return 1;
 }
@@ -1080,7 +1081,7 @@ bool TPZMatrix::CompareValues(TPZMatrix &M, REAL tol){
       diff = fabs( this->Get(i,j) - M.Get(i,j) );
       if (diff > tol) return false;
     }
-   
+
   return true;
 }
 
@@ -1101,7 +1102,7 @@ bool TPZMatrix::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<RE
   int NumIt = numiterations;
   REAL tolerance = tol;
 
-  #ifdef DEBUG2  
+  #ifdef DEBUG2
   if (this->Rows() != this->Cols())
   {
       PZError << __PRETTY_FUNCTION__ <<
@@ -1139,7 +1140,7 @@ bool TPZMatrix::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<RE
         TPZFNMatrix<9> Matrix(*this);
 
         REAL answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,1.E-5);
-        if(fabs(answ - Eigenvalues[eigen]) > 1.E-5) 
+        if(fabs(answ - Eigenvalues[eigen]) > 1.E-5)
         {
             for(int i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (Eigenvalues[eigen] - 0.01 * fabs(answ-Eigenvalues[eigen])) );
         }
@@ -1213,19 +1214,19 @@ bool TPZMatrix::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<RE
 
 
 bool TPZMatrix::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
-  
-#ifdef DEBUG2  
+
+#ifdef DEBUG2
   if (this->Rows() != this->Cols()){
     PZError << __PRETTY_FUNCTION__ << " - Jacobi method of computing eigenvalues requires a symmetric square matrix. this->Rows = " << this->Rows() << " - this->Cols() = " << this->Cols() << endl;
-    return false;  
+    return false;
   }
-  
+
   if (this->VerifySymmetry(1.e-8) == false){
     PZError << __PRETTY_FUNCTION__ << " - Jacobi method of computing eigenvalues requires a symmetric square matrix. This matrix is not symmetric." << endl;
-    return false;  
-  }  
+    return false;
+  }
 #endif
-  
+
   int iter = 0;
   REAL res = 2. * tol;
   const int size = this->Rows();
@@ -1244,9 +1245,9 @@ bool TPZMatrix::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<RE
         }//if
       }//for j
     }//for i
-    
-//    cout << "iter: " << iter << " - " << maxval << endl;    
-    
+
+//    cout << "iter: " << iter << " - " << maxval << endl;
+
     /** Check if max value off diagonal is lesser than required tolerance */
     res = maxval;
     if (res < tol) break;
@@ -1255,69 +1256,69 @@ bool TPZMatrix::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<RE
 //       numiterations = iter;
 //       return true;
 //     }//if
-    
+
     /** Compute angle of rotation */
     theta = 0.5 * atan(2. * this->operator ( )(p,q) / (this->operator ( )(q,q) - this->operator ( )(p,p) ) );
     cost = cos(theta);
     sint = sin(theta);
-        
+
     /** Apply rotation */
     for(i = 0; i < size; i++){
       if (i != p && i != q){
-      
+
         aux = this->operator ( )(i,p) * cost - this->operator ( )(i,q) * sint;
         aux2 = this->operator ( )(i,p) * sint + this->operator ( )(i,q) * cost;
-        
+
         this->operator ( )(i,p) = aux;
-        this->operator ( )(p,i) = aux;        
-        
+        this->operator ( )(p,i) = aux;
+
         this->operator ( )(i,q) = aux2;
-        this->operator ( )(q,i) = aux2;        
-        
+        this->operator ( )(q,i) = aux2;
+
       }//if
     }//for i
 
     Spp = this->operator ( )(p,p) * cost * cost -2. * this->operator ( )(p,q) * sint * cost + this->operator ( )(q,q) * sint * sint;
     Sqq = this->operator ( )(p,p) * sint * sint +2. * this->operator ( )(p,q) * sint * cost + this->operator ( )(q,q) * cost * cost;
     Spq = ( this->operator ( )(p,p) - this->operator ( )(q,q) ) * cost * sint + this->operator ( )(p,q)*( cost*cost - sint*sint );
-    
+
     this->operator ( )(p,p) = Spp;
     this->operator ( )(q,q) = Sqq;
-    this->operator ( )(p,q) = Spq;    
-    this->operator ( )(q,p) = Spq;    
-    
+    this->operator ( )(p,q) = Spq;
+    this->operator ( )(q,p) = Spq;
+
     iter++;
   }//while
-  
+
   /** Sorting */
   if (Sort){
-  
+
     multiset< REAL > myset;
     for(i = 0; i < size; i++) myset.insert( this->operator ( )(i,i) );
 
-#ifdef DEBUG2        
-    if ((int)myset.size() != size) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;  
+#ifdef DEBUG2
+    if ((int)myset.size() != size) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;
 #endif
-    
+
     Sort->Resize(size);
     multiset< REAL >::iterator w, e = myset.end();
     for(i = size - 1, w = myset.begin(); w != e; w++, i--){
       Sort->operator [ ](i) = *w;
     }//for
-    
+
   }//if (Sort)
-  
-  
+
+
   if (res < tol){
     tol = res;
-    numiterations = iter; 
+    numiterations = iter;
     return true;
   }
-  
+
   tol = res;
   numiterations = iter;
   return false;
-      
+
 }//method
 
 REAL TPZMatrix::MatrixNorm(int p, int numiter, REAL tol) const{
@@ -1325,8 +1326,8 @@ REAL TPZMatrix::MatrixNorm(int p, int numiter, REAL tol) const{
   if (!n) return 0.;
   if (n != this->Cols()){
     PZError << __PRETTY_FUNCTION__
-            << " - matrix must be square - Rows() = " 
-            << this->Rows() << " - Cols() = " 
+            << " - matrix must be square - Rows() = "
+            << this->Rows() << " - Cols() = "
             << this->Cols() << std::endl;
   }
   switch(p){
@@ -1348,7 +1349,7 @@ REAL TPZMatrix::MatrixNorm(int p, int numiter, REAL tol) const{
         for(j = 0; j < n; j++) sum += fabs( this->Get(j,i) );
         if (sum > max) max = sum;
       }
-      return max;    
+      return max;
     }
     case 2:{
       TPZFMatrix transp(n,n);
@@ -1367,11 +1368,11 @@ REAL TPZMatrix::MatrixNorm(int p, int numiter, REAL tol) const{
           transp(i,j) = sum;
         }//for j
       }//for i
-      
+
       TPZVec<REAL> EigenVal;
       bool result = transp.SolveEigenvaluesJacobi(numiter, tol, &EigenVal);
-      if (result == false) PZError << __PRETTY_FUNCTION__ 
-                                   << " - it was not possible to find Eigenvalues. Iterations = " 
+      if (result == false) PZError << __PRETTY_FUNCTION__
+                                   << " - it was not possible to find Eigenvalues. Iterations = "
                                    << numiter << " - error found = " << tol << std::endl;
       return sqrt(EigenVal[0]);
     }//case 2
@@ -1387,8 +1388,8 @@ int TPZMatrix::Inverse(TPZFMatrix &Inv){
   if (!n) return 0;
   if (n != this->Cols()){
     PZError << __PRETTY_FUNCTION__
-            << " - matrix must be square - Rows() = " 
-            << this->Rows() << " - Cols() = " 
+            << " - matrix must be square - Rows() = "
+            << this->Rows() << " - Cols() = "
             << this->Cols() << std::endl;
     return 0;
   }
@@ -1397,7 +1398,7 @@ int TPZMatrix::Inverse(TPZFMatrix &Inv){
   Inv.Zero();
   int i;
   for(i = 0; i < n; i++) Inv(i,i) = 1.;
-  
+
   const int issimetric = this->IsSimetric();
   if (issimetric)  return this->SolveDirect(Inv, ELDLt);
   if (!issimetric) return this->SolveDirect(Inv, ELU);

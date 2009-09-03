@@ -22,6 +22,7 @@
 #include "pzsave.h"
 
 #include <list>
+#include <sstream>
 
 #define CLONEDEF(A) virtual TPZMatrix *Clone() const { return new A(*this); }
 
@@ -743,7 +744,9 @@ inline int TPZMatrix::Put(const int row,const int col,const REAL & value ) {
   // verificando se o elemento a inserir esta dentro da matriz
 #ifdef DEBUG
          if ( row >= Rows() || col >= Cols() || row <0 || col < 0 ) {
-         	Error("TPZMatrix::Put","Index out of range");
+        	 std::stringstream sout;
+        	 sout << "TPZMatrix::Put" << " Index out of range row = " << row << " col = " << col << " Rows() " << Rows() << " Cols() " << Cols() << std::endl;
+         	Error(sout.str().c_str());
          }
 #endif
 
