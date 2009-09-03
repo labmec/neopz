@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.41 2009-03-18 13:55:32 fortiago Exp $
+// $Id: pzcompel.h,v 1.42 2009-09-03 22:47:09 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -134,7 +134,7 @@ public:
   static void SetgOrder( int order );
 
   static int GetgOrder();
-  
+
   /** Set create function in TPZCompMesh to create elements of this type
    */
   virtual void SetCreateFunctions(){
@@ -309,7 +309,7 @@ public:
    * Prints element data
    * @param out indicates the device where the data will be printed
    */
-  virtual void Print(std::ostream & out = std::cout);
+  virtual void Print(std::ostream & out = std::cout) const;
 
   /**
    * Output device operator

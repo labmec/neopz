@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.45 2009-09-01 22:08:04 phil Exp $
+//$Id: pzcompel.cpp,v 1.46 2009-09-03 22:47:09 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -275,6 +275,10 @@ TPZConnect &TPZCompEl::Connect(int i) const{
       return fMesh->ConnectVec()[connectindex];
     } else {
       LOGPZ_ERROR(logger, "TPZCompEl::Connect called for noninitialized connect\n");
+      Reference()->Print(cout);
+      const TPZCompEl *cel = (const TPZCompEl *) this;
+      cel->Print(cout);
+      DebugStop();
     }
   } else {
     LOGPZ_FATAL(logger, "Connect called for an element without mesh\n");
@@ -287,7 +291,7 @@ TPZConnect &TPZCompEl::Connect(int i) const{
 #endif
 }
 
-void TPZCompEl::Print(std::ostream & out) {
+void TPZCompEl::Print(std::ostream & out) const {
   out << "Output for a computable element index: " << fIndex ;
   if(this->Reference())
   {
