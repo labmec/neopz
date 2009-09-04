@@ -24,6 +24,7 @@
 #endif
 
 #include "adapt.h"
+#include "TPZFakeFunction.h"
 
 int mainAdapt ( int argc, char *argv[] )
 {
@@ -370,6 +371,9 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 {
 	int maxLevel = 0;
 	TPZCompMesh * CoarseMesh = OriginalMesh.Clone();
+	CoarseMesh->LoadReferences();
+	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
+
 	int el = 0;
 	int nel = CoarseMesh->NElements();
 	for ( el = 0; el < nel; el++ )
@@ -394,7 +398,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 
 		TPZConnect con = cel->Connect ( 0 );
 		int seqnum = con.SequenceNumber();
-		TPZBlock &block = OriginalMesh.Block();
+		TPZBlock &block = CoarseMesh->Block();
 		int blocksize = block.Size( seqnum);
 
 		TPZVec <REAL>  solutionVec ( blocksize );
@@ -406,14 +410,14 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 			if (!subGel)
 			{
 				cout << __PRETTY_FUNCTION__ << " " << __LINE__ << " ";
-				cout << " Warning: geometric subelement doesn't exit \n";
+				cout << " Warning: geometric subelement doesn't exist \n";
 				continue;
 			}
 			TPZCompEl * subCel = subGel->Reference();
 			if (!subCel)
 			{
 				cout << __PRETTY_FUNCTION__ << " " << __LINE__ << " ";
-				cout << " Warning: computational subelement doesn't exit \n";
+				cout << " Warning: computational subelement doesn't exist \n";
 				continue;
 			}
 			subCElVec[ isub ] = subCel->Index();
@@ -422,17 +426,32 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 			REAL sonVolume = subGel->Volume();
 			for ( isol = 0; isol < blocksize; isol++ )
 			{
-				solutionVec[ isol ] += block.Get( seqnum + isol,0,0,0 ) * sonVolume;
+				solutionVec[ isol ] += block.Get( seqnum,0,isol,0 ) * sonVolume;
 			}
 		}
 		int coarseIdx = -1;
 		CoarseMesh->Coarsen ( subCElVec, coarseIdx, true );
 		TPZCompEl * coarseEl = CoarseMesh->ElementVec() [coarseIdx];
+	    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(coarseEl);
+	    if(disc)
+	    {
+	    	disc->SetExternalShapeFunction(fakefunc);
+		}
+	    else
+	    {
+	    	cout << __PRETTY_FUNCTION__ << " Created a non discontinuous element\n";
+	    }
+		CoarseMesh->ExpandSolution();
 		TPZConnect coarseCon = coarseEl->Connect(0);
 		int coarseSeqNum = coarseCon.SequenceNumber();
 		TPZBlock &coarseBlock = CoarseMesh->Block();
+		int coarseblocksize = coarseBlock.Size(coarseSeqNum);
+		if(coarseblocksize != blocksize)
+		{
+			cout << __PRETTY_FUNCTION__ << " coarseblocksize " << coarseblocksize << " blocksize " << blocksize << std::endl;
+		}
 
-		for ( isol = 0; isol < blocksize; isol++)
+		for ( isol = 0; isol < coarseblocksize; isol++)
 		{
 			coarseBlock.Put( coarseSeqNum, 0, isol, 0, solutionVec [isol] / fatherVolume );
 		}
