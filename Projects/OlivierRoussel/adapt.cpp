@@ -26,6 +26,12 @@
 #include "adapt.h"
 #include "TPZFakeFunction.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.olivier.adapt"));
+#endif
+
 int mainAdapt ( int argc, char *argv[] )
 {
 	// --- Start -----------------------------------------------
@@ -214,10 +220,10 @@ void GetSolution ( TPZCompMesh & CMesh,
 	int i = 0;
 	for ( i = 0; i < 5; i++ )
 	{
-		Solutions [ i ] = block.Get ( seqnum + i, 0, 0, 0 );
-		Gradients [ 3 * i + 5 ] = block.Get ( seqnum + 3 * i + 5, 0, 0, 0 );
-		Gradients [ 3 * i + 6 ] = block.Get ( seqnum + 3 * i + 6, 0, 0, 0 );
-		Gradients [ 3 * i + 7 ] = block.Get ( seqnum + 3 * i + 7, 0, 0, 0 );
+		Solutions [ i ] = block.Get ( seqnum, 0, i, 0 );
+		Gradients [ 3 * i + 0 ] = block.Get ( seqnum, 0, 3 * i + 5, 0 );
+		Gradients [ 3 * i + 1 ] = block.Get ( seqnum, 0, 3 * i + 6, 0 );
+		Gradients [ 3 * i + 2 ] = block.Get ( seqnum, 0, 3 * i + 7, 0 );
 	}
 }
 //-----------------------------------------------------------------------------------------------
@@ -259,6 +265,8 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 	for ( i = 0; i < fineDetail.NElements(); i++ )
 	{
 		fineMesh->LoadReferences();
+		TPZCompEl * cel = fineMesh->ElementVec()[ i ];
+		if (!cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
 
 		int l = fineMesh->ElementVec()[i]->Reference()->Level();
 		int L = l + 1;
@@ -314,7 +322,7 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 	for ( iel = 0; iel < nel; iel++ )
 	{
 		TPZCompEl * cel = CMesh.ElementVec()[ iel ];
-		if ( ! cel || cel->Type() != EDiscontinuous ) continue;
+		if ( ! cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
 
 		int celIdx = cel->Index();
 		int celLevel = cel->Reference()->Level();
@@ -471,7 +479,7 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 	TPZVec < REAL > solution ( 5, 0.0 );
 	TPZVec < REAL > gradient ( 15, 0.0 );
 
-	for ( im = nlevels - 1; im > 0; im-- )
+	for ( im = nlevels - 1; im > 1; im-- )
 	{
 		TPZCompMesh * coarseMesh = gradedMeshVec[ im ];
 		coarseMesh->LoadReferences();
@@ -481,7 +489,7 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 		{
 			coarseMesh->LoadReferences();
 			TPZCompEl * cel = coarseMesh->ElementVec()[ iel ];
-			if ( !cel || cel->Type() != EDiscontinuous ) continue;
+			if ( !cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
 			TPZGeoEl * gel = cel->Reference();
 			if ( !gel ) continue;
 			if ( ! gel->HasSubElement() )
@@ -494,7 +502,7 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 			gel->CenterPoint ( gel->NSides() - 1, fatherCenter );
 
 
-			TPZCompMesh * fineMesh = gradedMeshVec[ im + 1 ];
+			TPZCompMesh * fineMesh = gradedMeshVec[ im - 1 ];
 			fineMesh->LoadReferences();
 
 			for ( isub = 0; isub < nsubel; isub++ )
@@ -548,7 +556,7 @@ void  EvaluateAverageOfSolution ( TPZCompMesh & CompMesh,
 	for ( iel = 0; iel < ncel; iel++ )
 	{
 		TPZCompEl * cel = CompMesh.ElementVec()[ iel ];
-		if ( !cel || cel->Type() != EDiscontinuous ) continue;
+		if ( !cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
 		volumeOfElement = cel->Reference()->Volume();
 		GetSolution ( CompMesh, cel, solution, gradient );
 		for ( ist = 0; ist < 5; ist++ )
@@ -573,6 +581,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 	//Firt verify if some element marked to coarsen have a brother marked to refine
 	int el = 0;
 	int nel = CMesh.NElements();
+	CMesh.LoadReferences();
 	for (el=0;el<nel;el++)
 	{
 		TPZCompEl *cel = CMesh.ElementVec()[el];
@@ -597,15 +606,38 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			}
 		}
 	}
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Elements to divide or coarsen ";
+		int el;
+		for(el = 0; el<nel; el++)
+		{
+			if(DivideOrCoarsen[el] != ENone) sout << el << ":" << DivideOrCoarsen[el] << " ";
+		}
+		sout << std::endl;
+		CMesh.Print(sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 
 	//Let's divide the elements
 	for (el=0;el<nel;el++)
 	{
 		if ( DivideOrCoarsen[el] != EDivide ) continue;
 		TPZCompEl *cel = CMesh.ElementVec()[el];
-		if (!cel) continue;
+		if (!cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
 		int index = cel->Index();
 		TPZVec<int> subIndex;
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "Element to divide " << el << std::endl;
+			cel->Print(sout);
+			cel->Reference()->Print(sout);
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 		cel->Divide ( index, subIndex );
 		int isub = 0;
 		for ( isub=0; isub< subIndex.NElements(); isub++ )
@@ -616,7 +648,15 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			TPZGeoEl * subGel = subCel->Reference();
 			subGel->SetRefPattern ( RefPattern );
 		}
+		break;
 	}
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			CMesh.Print(sout);
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 
 	//Let's coarsen the elements
 	for (el=0;el<nel;el++)
@@ -651,7 +691,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 				DivideOrCoarsen [ subCElVec [ isub ] ] = ENone;
 			}
 			int newindex = -1;
-			CMesh.Coarsen ( subCElVec, newindex, true );
+			//CMesh.Coarsen ( subCElVec, newindex, true );
 		}
 	}
 
@@ -679,6 +719,13 @@ void CheckRefinementLevel ( TPZCompMesh & CMesh,
 void SelectElementsByLevel ( TPZCompMesh & CMesh,
 						     list < TPZCompEl * > & SelectedElements )
 {
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		CMesh.Print(sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 	// Using the set class we are sure that we don't have any duplicates...
 	set < TPZCompEl *> elementsToRefine;
 
