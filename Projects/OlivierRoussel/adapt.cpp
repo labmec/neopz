@@ -264,6 +264,7 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 
 	for ( i = 0; i < fineDetail.NElements(); i++ )
 	{
+		fineMesh->Reference()->ResetReference();
 		fineMesh->LoadReferences();
 		TPZCompEl * cel = fineMesh->ElementVec()[ i ];
 		if (!cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
@@ -279,6 +280,7 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 		}
 		if ( fineDetail[ i ] <= Epsl )
 		{
+			coarseMesh->Reference()->ResetReference();
 			coarseMesh->LoadReferences();
 
 			TPZCompEl * fineCel = fineMesh->ElementVec() [ i ];
@@ -317,7 +319,7 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 	int nel = CMesh.NElements();
 	Detail.Resize ( nel, 0.0 );
 
-	CMesh.LoadReferences();
+	CMesh.Reference()->RestoreReference(&CMesh);
 
 	for ( iel = 0; iel < nel; iel++ )
 	{
@@ -379,7 +381,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 {
 	int maxLevel = 0;
 	TPZCompMesh * CoarseMesh = OriginalMesh.Clone();
-	CoarseMesh->LoadReferences();
+	CoarseMesh->Reference()->RestoreReference(CoarseMesh);
 	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
 
 	int el = 0;
@@ -482,12 +484,12 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 	for ( im = nlevels - 1; im > 1; im-- )
 	{
 		TPZCompMesh * coarseMesh = gradedMeshVec[ im ];
-		coarseMesh->LoadReferences();
+		coarseMesh->Reference()->RestoreReference(coarseMesh);
 		int nel = coarseMesh->NElements();
 		vector < vector < double > > uhatVal ( nel );
 		for ( iel = 0; iel < nel; iel++ )
 		{
-			coarseMesh->LoadReferences();
+			coarseMesh->Reference()->RestoreReference(coarseMesh);
 			TPZCompEl * cel = coarseMesh->ElementVec()[ iel ];
 			if ( !cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
 			TPZGeoEl * gel = cel->Reference();
@@ -503,7 +505,7 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 
 
 			TPZCompMesh * fineMesh = gradedMeshVec[ im - 1 ];
-			fineMesh->LoadReferences();
+			fineMesh->Reference()->RestoreReference(fineMesh);
 
 			for ( isub = 0; isub < nsubel; isub++ )
 			{
@@ -581,6 +583,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 	//Firt verify if some element marked to coarsen have a brother marked to refine
 	int el = 0;
 	int nel = CMesh.NElements();
+	CMesh.Reference()->ResetReference();
 	CMesh.LoadReferences();
 	for (el=0;el<nel;el++)
 	{
@@ -616,7 +619,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			if(DivideOrCoarsen[el] != ENone) sout << el << ":" << DivideOrCoarsen[el] << " ";
 		}
 		sout << std::endl;
-		CMesh.Print(sout);
+		//CMesh.Print(sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
@@ -629,12 +632,28 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		if (!cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
 		int index = cel->Index();
 		TPZVec<int> subIndex;
-#ifdef LOG4CXX
+#ifdef LOG4CXX_KEEP
 		{
 			std::stringstream sout;
 			sout << "Element to divide " << el << std::endl;
 			cel->Print(sout);
-			cel->Reference()->Print(sout);
+			TPZGeoEl *gel = cel->Reference();
+			gel->Print(sout);
+			int side;
+			for(side=10; side<14; side++)
+			{
+				TPZGeoElSide gelside(gel,side);
+				TPZGeoElSide neighbour = gelside.Neighbour();
+				while(neighbour != gelside)
+				{
+					if(neighbour.Element()->Reference())
+					{
+						sout << "Computational element along side " << side << std::endl;
+						neighbour.Element()->Reference()->Print(sout);
+					}
+					neighbour = neighbour.Neighbour();
+				}
+			}
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
@@ -648,11 +667,12 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			TPZGeoEl * subGel = subCel->Reference();
 			subGel->SetRefPattern ( RefPattern );
 		}
-		break;
 	}
-#ifdef LOG4CXX
+	CMesh.ExpandSolution();
+#ifdef LOG4CXX_KEEP
 		{
 			std::stringstream sout;
+			CMesh.ExpandSolution();
 			CMesh.Print(sout);
 			LOGPZ_DEBUG(logger,sout.str())
 		}
@@ -691,9 +711,10 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 				DivideOrCoarsen [ subCElVec [ isub ] ] = ENone;
 			}
 			int newindex = -1;
-			//CMesh.Coarsen ( subCElVec, newindex, true );
+			CMesh.Coarsen ( subCElVec, newindex, true );
 		}
 	}
+	CMesh.ExpandSolution();
 
 	//By now, the mesh is adapted. We need to check the difference of level of refinement between neighbors
 	CheckRefinementLevel ( CMesh, RefPattern );
