@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.90 2009-09-01 22:08:04 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.91 2009-09-05 15:50:20 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -80,12 +80,21 @@ void TPZInterfaceElement::IncrementElConnected(){
 }
 
 TPZInterfaceElement::~TPZInterfaceElement(){
-  if(Reference()){
-    this->Reference()->DecrementNumInterfaces();
-    this->Reference()->ResetReference();
-  }
-//  this->DecreaseElConnected();
-};
+	DecreaseElConnected();
+	TPZGeoEl *gel = this->Reference();
+	if(gel){
+		gel->DecrementNumInterfaces();
+		gel->ResetReference();
+		if(gel->NumInterfaces() == 0)
+		{
+			gel->RemoveConnectivities();// deleta o elemento das vizinhancas
+			TPZGeoMesh *gmesh = gel->Mesh();
+			int index = gmesh->ElementIndex(gel);// identifica o index do elemento
+			gmesh->ElementVec()[index] = NULL;
+			delete gel;// deleta o elemento
+		}
+	}
+}
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,
                                          TPZCompElSide& left, TPZCompElSide& right)
@@ -644,7 +653,7 @@ void TPZInterfaceElement::VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZ
 void TPZInterfaceElement::CenterNormal(TPZVec<REAL> &CenterNormal) const{
   const int n = fCenterNormal.NElements();
   CenterNormal.Resize(n);
-  for(int i = 0; i < n; i++) CenterNormal[i] = fCenterNormal[i];  
+  for(int i = 0; i < n; i++) CenterNormal[i] = fCenterNormal[i];
 }
 
 void TPZInterfaceElement::Normal(TPZFMatrix &axes, TPZVec<REAL> &normal){
@@ -1024,7 +1033,7 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
       intrule->Point(ip,intpoint,weight);
       ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
       weight *= fabs(data.detjac);
-      
+
       this->Normal(data.axes,data.normal);
 
       TransfLeft.Apply( intpoint, LeftIntPoint );
@@ -1273,11 +1282,11 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
     }
     data.HSize = faceSize;
   }
-  
+
   if(!this->Reference()->IsLinearMapping()){
     this->ComputeNormal(data.axes,data.normal);
   }
-  
+
 }//void
 
 

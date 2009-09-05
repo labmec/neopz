@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.37 2009-08-07 19:07:30 phil Exp $
+//$Id: pzinterpolationspace.cpp,v 1.38 2009-09-05 15:49:08 phil Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -143,7 +143,7 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
   if (data.fNeedsHSize){
     data.HSize = 2.*this->InnerRadius();
   }//fNeedHSize
-													
+
   if (data.fNeedsNormal){
 	this->ComputeNormal(data);
   }//fNeedsNormal
@@ -152,35 +152,35 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
 void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 {
 	data.normal.Resize(3,0.);
-	
+
 	int thisFace, neighbourFace, i, dim;
 	TPZGeoEl * thisGeoEl, * neighbourGeoEl;
 	TPZManVector<REAL,3> thisCenter(3,0.), neighbourCenter(3,0.), thisXVol(3,0.), neighbourXVol(3,0.), vec(3), axes1(3), axes2(3);
 	REAL size;
-	
+
 	thisGeoEl = this->Reference();
 	thisFace = thisGeoEl->NSides() - 1;
-	
+
 	TPZGeoElSide neighbourGeoElSide = thisGeoEl->Neighbour(thisFace);
 	neighbourGeoEl = neighbourGeoElSide.Element();
 	neighbourFace = neighbourGeoEl->NSides() - 1;
-	
+
 	if(neighbourGeoEl == thisGeoEl)
 	{
 		// normal evaluation makes no sense since the internal element side doesn't present a neighbour.
 		return; // place a breakpoint here if this is an issue
 	}
-	
+
 	thisGeoEl->     CenterPoint(thisFace,      thisCenter);
 	neighbourGeoEl->CenterPoint(neighbourFace, neighbourCenter);
-	
+
 	thisGeoEl->     X(thisCenter,     thisXVol);
 	neighbourGeoEl->X(neighbourCenter,neighbourXVol);
 
 	for(i = 0; i < 3; i++)vec[i] = neighbourXVol[i] - thisXVol[i];// vector towards the center of the neighbour element
-	
+
 	dim = thisGeoEl->Dimension();
-	
+
 	switch(dim)
 	{
 		case(0): // normal points towards the x-direction
@@ -195,7 +195,7 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 		break;
 		case(2):
 			for(i = 0; i < 3; i++)
-			{	
+			{
 				axes1[i] = data.axes(0,i);
 				axes2[i] = data.axes(1,i);
 			}
@@ -206,15 +206,15 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 		default:
 			PZError << "TPZInterpolationSpace::ComputeNormal - unhandled element dimension\n";
 	}
-	
+
 	// ensuring the normal vector points towards the neighbour element
-	
+
 	REAL dot = 0.;
 	for(i = 0; i < 3; i++) dot += data.normal[i] * vec[i];
-	
+
 	if(dot < 0.)
 		for(i = 0; i < 3; i++) data.normal[i] *= -1.;
-	
+
 }
 
 void TPZInterpolationSpace::VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jvec, TPZVec<REAL> & kvec, bool unitary)
@@ -223,7 +223,7 @@ void TPZInterpolationSpace::VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jv
 	kvec[0] =  ivec[1]*jvec[2] - ivec[2]*jvec[1];
 	kvec[1] = -ivec[0]*jvec[2] + ivec[2]*jvec[0];
 	kvec[2] =  ivec[0]*jvec[1] - ivec[1]*jvec[0];
-	
+
 	if(unitary)
 	{
 		REAL size = 0.;
@@ -231,7 +231,7 @@ void TPZInterpolationSpace::VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jv
 		for(i = 0; i < 3; i++)size += kvec[i] * kvec[i];
 		size = sqrt(size);
 		if(size <= 1.e-9)PZError << "TPZInterpolationSpace::VectorialProd - null result";
-		for(i = 0; i < 3; i++)kvec[i] /= size;	
+		for(i = 0; i < 3; i++)kvec[i] /= size;
 	}
 }
 
@@ -307,7 +307,7 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
   TPZManVector<int,3> p2(dim,data.p*2);
 
   intrule.SetOrder(p2);
- 
+
   if(material->HasForcingFunction()) {
     TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
     intrule.SetOrder(order);
@@ -316,17 +316,17 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
   int intrulepoints = intrule.NPoints();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
     intrule.Point(int_ind,intpoint,weight);
-    
+
     this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
-     
+
     weight *= fabs(data.detjac);
-    
+
 	data.intPtIndex = int_ind;
-	  
+
     this->ComputeRequiredData(data, intpoint);
-   
+
     material->Contribute(data,weight,ef.fMat);
-   
+
   }//loop over integratin points
 
 }//CalcResidual
@@ -405,10 +405,10 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
   data.axes.Redim(3,3);
   data.axes.Zero();
   this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
-  
+
   data.x.Resize(3);
   this->Reference()->X(qsi, data.x);
-  
+
   material->Solution(data, var, sol);
 }
 
@@ -688,6 +688,18 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
     } else {
        TPZCompElSide thiscompelside(this, thisside);
        TPZCompElSide lowcelcompelside(lowcel, neighside);
+#ifdef LOG4CXX_KEEP
+       {
+    	   std::stringstream sout;
+    	   sout << __PRETTY_FUNCTION__ << " left element";
+    	   sout << lowcelcompelside << thiscompelside;
+    	   sout << "Left Element ";
+    	   lowcelcompelside.Element()->Print(sout);
+    	   sout << "Right Element ";
+    	   thiscompelside.Element()->Print(sout);
+    	   LOGPZ_DEBUG(logger,sout.str())
+       }
+#endif
        newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
     }
     return newcreatedinterface;
@@ -772,17 +784,28 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
   int size = list.NElements(),i=-1;
   while(++i < size) if(list[i].Element()->Type() == EInterface) break;// procura aquele que e derivado de TPZInterfaceEl
   if(!size || i == size){
+#ifdef LOG4CXX
+	  {
+		  std::stringstream sout;
+		  sout << __PRETTY_FUNCTION__ << " no interface element found\n";
+		  Print(sout);
+		  LOGPZ_DEBUG(logger,sout.str())
+	  }
+#endif
     return;// nada a ser feito
   }
   // aqui existe a interface
   TPZCompEl *cel = list[i].Element();
   TPZGeoEl *gel = cel->Reference();
-  gel->RemoveConnectivities();// deleta o elemento das vizinhancas
-  TPZGeoMesh *gmesh = Mesh()->Reference();
-  int index = gmesh->ElementIndex(gel);// identifica o index do elemento
-  gmesh->ElementVec()[index] = NULL;
+#ifdef LOG4CXX
+  {
+	  std::stringstream sout;
+	  sout << __PRETTY_FUNCTION__ << " element index " << Index() << " side " << std::endl;
+	  sout << "geometric element reference count " << gel->NumInterfaces();
+	  LOGPZ_DEBUG(logger,sout.str())
+  }
+#endif
   delete cel;
-  delete gel;// deleta o elemento
 }
 
 void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
