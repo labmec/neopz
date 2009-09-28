@@ -340,6 +340,21 @@ void TPZMatrix::Print(const char *name, std::ostream& out,const MatrixOutputForm
 
      out << " };\n";
 
+   }else if( form == EMatlabNonZeros)
+   {
+     out << name;
+	 for ( int row = 0; row < Rows(); row++) {
+	 out << "\n|";
+   	   for ( int col = 0; col < Cols(); col++ )
+			 if(IsZero(Get (row, col)) ){
+				 out << "."; 
+			 }else{
+				 out << "#";
+			 }
+		    //out << IsZero(Get (row, col)) ? "." : "#";
+	 out << "|";
+	 }
+     out << "\n";
    }
 
 }
