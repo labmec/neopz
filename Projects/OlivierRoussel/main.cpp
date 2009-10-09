@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.4 2009-08-28 22:59:11 fortiago Exp $
+//$Id: main.cpp,v 1.5 2009-10-09 15:14:19 fortiago Exp $
 
 #include "malhas.h"
 #include "MultiResMesh.h"
@@ -99,14 +99,14 @@ using namespace std;
 int main(){
 
   InitializePZLOG();
-  const int L = 2;
+  const int L = 4;
   REAL timeStep;
 //   TPZCompMesh * cmesh = CreateMeshLaxAndSod(L,timeStep);
 //   TPZCompMesh * cmesh = CreateMeshLax2D(L,timeStep);
 //   TPZCompMesh * cmesh = CreateMeshLinearConvection(L,timeStep);
   TPZGeoMesh * gmesh = CreateCoarseMesh(L);
   TPZCompMesh * cmesh = CreateMeshMultires(gmesh);
-  timeStep = ComputeTimeStep(0.1,L,L,gmesh);
+  timeStep = ComputeTimeStep(0.5,L,L,gmesh);
 
 #ifdef DEBUG
 {
@@ -119,8 +119,9 @@ int main(){
   TPZExplFinVolAnal an(cmesh, cout);
 
   InitializeSolver(an);
-  const double PhysicalTime = 0.1;
+  const double PhysicalTime = 0.5;
   int niter = PhysicalTime/timeStep+1;
+  cout << "\nnequations = " << cmesh->NEquations();
   cout << "\nNiter = " << niter << "\n";
 
   TPZFMatrix InitialSol;
@@ -131,12 +132,12 @@ int main(){
   an.SetInitialSolution(InitialSol);
 
   an.Set(timeStep,niter,1e-10);
-  an.SetSaveFrequency(niter/5,0);
+  an.SetSaveFrequency(niter/1,0);
   TPZVec<string> scal(3-2),vec(0);
   scal[0] = "density";
 //  scal[1] = "energy";
 //  scal[2] = "Mach";
-  stringstream nome; nome << "testeL"<<L<<".dx";
+  stringstream nome; nome << "testeL"/*<<L*/<<".dx";
   an.DefineGraphMesh(3,scal,vec,nome.str());
   an.MultiResolution();
 //   an.Run();
