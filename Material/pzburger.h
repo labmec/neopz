@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzburger.h,v 1.6 2009-09-01 19:44:46 phil Exp $
+//$Id: pzburger.h,v 1.7 2009-10-09 14:53:27 fortiago Exp $
 
 #ifndef BURGERH
 #define BURGERH
@@ -8,6 +8,14 @@
 #include "pzpoisson3d.h"
 #include "pzpoisson3dreferred.h"
 
+/** This class implements a linear convection equation using
+ * a burger flux instead of the linear flux.
+ * It's been developed for a Petrobras report
+ * where the water temperature is transported into
+ * the reservoir following the Darcy's velocity field
+ * I apologise for the class name which is not exact
+ * @author Tiago Forti
+ */
 class TPZBurger : public TPZMatPoisson3dReferred {
 
  public:
