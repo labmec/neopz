@@ -926,6 +926,7 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
       REAL detJ;
       TPZFNMatrix<9> J(dim,dim,0.),axes(3,3,0.),Inv(dim,dim,0.);
       TPZFNMatrix<9> JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
+#ifdef DEBUG
       int nao = 0;
       if(NSides() == 19 && nao){
               ksi.Resize(3,0.);
@@ -949,7 +950,13 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
               //outp.close();
               //exit(-1);
       }
+#endif
       Jacobian(ksi,J,axes,detJ,Inv);
+if(fabs(detJ) < 1e-10){
+  for(int ik = 0; ik < ksi.NElements(); ik++) ksi[ik] += 0.1;
+  residual(0,0) = 1e12;
+}
+else{
       TPZFNMatrix<9> axest;
       axes.Transpose(&axest);
       axest.Resize(3,dim);//casos 1D e 2D onde JX espacial � 1x3 e 2x3 respectivamente
@@ -965,9 +972,13 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
       JXt.Multiply(DelX,residual);//cout << "\nComputeXInverse: : \n";
       JXtJX.SolveDirect(residual,ELU);//cout << "Atual/dimensao : " << Id() << " / " << Dimension();
       for(i=0; i<dim; i++) ksi[i] += residual(i,0);
+}
       X(ksi,X0);
       for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
-      error = Norm(DelX);
+      ///A norma sobre coordenada parametrica eh mais objetiva pois os limites do
+      ///elemento mestre sao mais claros que os do elemento real
+//       error = Norm(DelX);
+      error = Norm(residual);
   }
 
 #ifdef DEBUG
@@ -981,8 +992,9 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
     DebugStop();
   }///if
 
-  if(this->IsInParametricDomain(ksi,Tol) == false){
+  if(this->IsInParametricDomain(ksi) == false){
     std::stringstream sout;
+    this->IsInParametricDomain(ksi);///for debug purposes only
     sout << "Error at " << __PRETTY_FUNCTION__ << " - Ksi parameter found is outside parametric element domain. Element type = " << this->TypeName();
     sout << " - ksi = ";
     for(int i = 0; i < ksi.NElements(); i++) sout << ksi[i] << "\t";
@@ -1209,9 +1221,9 @@ REAL TPZGeoEl::QuadArea(TPZVec<TPZGeoNode *> &nodes){
 
 REAL TPZGeoEl::Volume(){
 
-  TPZVec<REAL> param(3,0.);
+  TPZManVector<REAL,3> param(3,0.);
   REAL detjac;
-  TPZFMatrix jacinv(3,3),jacobian(3,3),axes(3,3);
+  TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3);
   //supondo jacobiano constante: X linear
   CenterPoint(NSides()-1,param);
   Jacobian(param,jacobian,axes,detjac,jacinv);
@@ -1378,8 +1390,10 @@ void TPZGeoEl::VerifyNodeCoordinates(REAL tol){
       LOGPZ_ERROR(logger,mess.str().c_str());
 #endif
       DebugStop();
+      return false;
     }
   }///for i
+  return true;
 }///method
 
 
