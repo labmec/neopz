@@ -179,7 +179,7 @@ void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TP
   REAL x = X[0];
   REAL y = X[1];
 
-  TPZFMatrix phix,phiy,dphix,dphiy;
+  TPZFNMatrix<660> phix,phiy,dphix,dphiy;
 
   fOrthogonal(C,x0,x,degree,phix,dphix,1);
   fOrthogonal(C,y0,y,degree,phiy,dphiy,1);
@@ -281,7 +281,7 @@ void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,T
   REAL y = X[1];
   REAL z = X[2];
 
-  TPZFMatrix phix,phiy,phiz,dphix,dphiy,dphiz;
+  TPZFNMatrix<1000> phix,phiy,phiz,dphix,dphiy,dphiz;
 
 
   fOrthogonal(C,x0,x,degree,phix,dphix,1);
