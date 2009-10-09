@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.56 2009-10-09 15:07:46 fortiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.57 2009-10-09 15:19:32 fortiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -49,11 +49,6 @@ class TPZInterfaceElement : public TPZCompEl {
   /** Informs the connect that this element is connected to it.
    */
   void IncrementElConnected();
-public:
- /**
-  * Extract connects from element el.
-  */
-  void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int> &connectindex);
 
  protected:
 

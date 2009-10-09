@@ -1390,10 +1390,10 @@ void TPZGeoEl::VerifyNodeCoordinates(REAL tol){
       LOGPZ_ERROR(logger,mess.str().c_str());
 #endif
       DebugStop();
-      return false;
+      return;
     }
   }///for i
-  return true;
+
 }///method
 
 
