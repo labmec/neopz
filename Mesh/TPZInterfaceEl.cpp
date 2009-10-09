@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.91 2009-09-05 15:50:20 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.92 2009-10-09 15:05:43 fortiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -34,6 +34,7 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
     TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);
     if (!intel && !disc){
       PZError << __PRETTY_FUNCTION__ << " - Left element is not a TPZInterpolatedElement or TPZCompElDisc.\n";
+      DebugStop();
     }
 
     this->fLeftElSide.SetElement( left.Element() );
@@ -41,6 +42,7 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
   }
   else{
     PZError << __PRETTY_FUNCTION__ << " - Left element is null.\n";
+    DebugStop();
   }
 
   cel = right.Element();
@@ -50,6 +52,7 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
     TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);
     if (!intel && !disc){
       PZError << __PRETTY_FUNCTION__ << " - Right element is not a TPZInterpolatedElement or TPZCompElDisc.\n";
+      DebugStop();
     }
 
     this->fRightElSide.SetElement( right.Element() );
@@ -57,6 +60,7 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
   }
   else{
     PZError << __PRETTY_FUNCTION__ << " - Right element is null.\n";
+    DebugStop();
   }
   this->ComputeCenterNormal(fCenterNormal);
 
@@ -105,6 +109,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &in
 
 if (left.Side() == -1 || right.Side() == -1){
   PZError << "Error at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " Side should not be -1\n";
+  DebugStop();
 }
 
   this->SetLeftRightElements(left, right);
@@ -150,7 +155,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
    }
    else{
     PZError << "ERROR at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - this->Reference() is NULL\n";
-    exit(-1);
+    DebugStop();
    }
 }
 
@@ -199,7 +204,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
   }
   else{
     PZError << "ERROR at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - this->Reference() is NULL\n";
-    //exit(-1); //the geometric elements are generated latter...
+    DebugStop();
   }
 }
 
@@ -237,6 +242,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
   }
   else{
     PZError << "ERROR at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - this->Reference() is NULL\n";
+    DebugStop();
   }
 }
 
@@ -253,8 +259,9 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index,
 void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
   if(!mat || mat->Name() == "no_name"){
-      PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
+      PZError << "TPZInterfaceElement::CalcResidual interface material null, do nothing\n";
       ef.Reset();
+      DebugStop();
       return;
    }
 
@@ -262,13 +269,15 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
    TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
 
    if (!left || !right){
-     PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
+     PZError << "\nError at TPZInterfaceElement::CalcResidual null neighbour\n";
      ef.Reset();
+     DebugStop();
      return;
    }
    if(!left->Material() || !right->Material()){
-      PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
+      PZError << "\n Error at TPZInterfaceElement::CalcResidual null material\n";
       ef.Reset();
+      DebugStop();
       return;
    }
 
@@ -390,6 +399,7 @@ int TPZInterfaceElement::ConnectIndex(int i) const {
 
    if(i < 0 || i >= ncon){
       PZError << "TPZInterfaceElement::ConnectIndex wrong argument i, i = " << i << endl;
+      DebugStop();
       return -1;
    }
 
@@ -405,32 +415,23 @@ int TPZInterfaceElement::ConnectIndex(int i) const {
 
 void TPZInterfaceElement::Print(std::ostream &out){
 
-   TPZCompEl* fLeftEl  = this->LeftElement();
-   TPZCompEl* fRightEl = this->RightElement();
-
   out << "\nInterface element : \n";
-  //out << "\tId of the geometric reference : " << Reference()->Id() << endl;
-  out << "\tGeometric reference of the left element of id : ";
-  if(fLeftEl){
-    if(fLeftEl->Type() == EAgglomerate) out << "EAgglomerate index " << LeftElement()->Index() << endl;
-    else out <<  fLeftEl->Reference()->Id() << endl;
-  } else {
-    out << "Null" << endl;
-    cout << "TPZInterfaceElement::Print null left element\n\n";
+  if(!LeftElement() || !LeftElement()->Reference()) out << "\tNULL LeftElement - this is inconsistent";
+  else{
+    out << "\tLeft Geometric Index: " << LeftElement()->Reference()->Index() << endl;
+    out << "\tLeft Geometric Id: " << LeftElement()->Reference()->Id() << endl;
   }
-  out << "\tGeometric reference of the right element of id : ";
-  if(fRightEl){
-    if(fRightEl->Type() == EAgglomerate) out << "EAgglomerate index " << RightElement()->Index() << endl;
-    else out << fRightEl->Reference()->Id() << endl;
-  } else {
-    out << "Null" << endl;
-    cout << "TPZInterfaceElement::Print null right element\n\n";
+
+  if(!RightElement() || !RightElement()->Reference()) out << "\tNULL RightElement - this is inconsistent";
+  else{
+    out << "\tRight Geometric Index: " << RightElement()->Reference()->Index() << endl;
+    out << "\tRight Geometric Id: " << RightElement()->Reference()->Id() << endl;
   }
+
   out << "\tMaterial id : " << Reference()->MaterialId() << endl;
 
-  out << "\tNormal a interface : ";
+  out << "\tNormal vector (at center point): ";
   out << "(" << fCenterNormal[0] << "," << fCenterNormal[1] << "," << fCenterNormal[2] << ")\n";
-
 }
 
  void TPZInterfaceElement::SetConnectIndex(int node, int index) {
@@ -456,7 +457,7 @@ int TPZInterfaceElement::main(TPZCompMesh &cmesh){
     InterfaceDimension = cel->Material()->Dimension() -1;
     if(!geo){
       PZError << "TPZInterfaceElement::main computational element with null reference\n";
-      exit(-1);
+      DebugStop();
     }
     int nsides = geo->NSides();;
     for(iside=0;iside<nsides;iside++){
@@ -497,7 +498,7 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
     while(neigh.Exists() && neigh != geo){
       if(neigh.Element()->Reference()){
 	PZError << "TPZInterfaceElement::ExistInterfaces error of data structure\n";
-	exit(-1);
+	DebugStop();
       }
       neigh = neigh.Neighbour();
     }
@@ -512,7 +513,7 @@ int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
   TPZGeoElSide geo = comp.Reference();
   if(!geo.Exists()){
     PZError << "TPZInterfaceElement::ExistInterfaces error of data structure\n";
-    exit(-1);
+    DebugStop();
   }
   TPZGeoElSide  neigh = geo.Neighbour();
   int exists = 0;
@@ -538,7 +539,7 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
     TPZGeoEl *gel = cel->Reference();
     if(!gel){
       PZError << "TPZInterfaceElement::FreeInterface computational element with null reference\n";
-      exit(-1);
+      DebugStop();
     }
     int nsides = gel->NSides();
     TPZCompElSide compside(cel,nsides-1);//face ou aresta
@@ -631,6 +632,7 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal){
   default:
     PZError << "TPZInterfaceElement::NormalToFace in case that not treated\n";
     normal.Resize(0);
+    DebugStop();
     return;
   }
 
@@ -699,6 +701,7 @@ void TPZInterfaceElement::Write(TPZStream &buf, int withclassid)
      PZError << __PRETTY_FUNCTION__ << endl
 	     << "Indices of neighbours are less than interface index:" << endl
 	     << "Left: " << leftelindex << ", Right: " << rightelindex << ", this: " << this->Index() << endl;
+      DebugStop(); 
   }
 
   int leftside = fLeftElSide.Side();
@@ -722,6 +725,7 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
    }
    else{
     PZError << "ERROR at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - this->Reference() is NULL\n";
+    DebugStop();
    }
   int leftelindex;
   int rightelindex;
@@ -746,6 +750,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
       PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
       ek.Reset();
       ef.Reset();
+      DebugStop();
       return;
    }
 
@@ -756,12 +761,14 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
      PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
      ek.Reset();
      ef.Reset();
+     DebugStop();
      return;
    }
    if(!left->Material() || !right->Material()){
       PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
       ek.Reset();
       ef.Reset();
+      DebugStop();
       return;
    }
 
@@ -865,6 +872,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
    }//loop over integration points
 
    delete intrule;
+
 }
 
 void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int> &connectindex){
@@ -896,6 +904,7 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
    if(!mat || mat->Name() == "no_name"){
       PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
+      DebugStop();
       return;
    }
 
@@ -975,6 +984,7 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
    if(!mat){
       PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
+      DebugStop();
       return;
    }
 
@@ -984,10 +994,12 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 
    if (!left || !right){
      PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
+     DebugStop();
      return;
    }
    if(!left->Material() || !right->Material()){
       PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
+      DebugStop();
       return;
    }
 
@@ -1066,10 +1078,12 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
   TPZAutoPointer<TPZMaterial> material = Material();
   if(!material){
     PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
+    DebugStop();
     return;
   }
   if (!this->Reference()){
     PZError << "Error at " << __PRETTY_FUNCTION__ << " : no reference element\n";
+    DebugStop();
     return;
   }
   const int dim = this->Dimension();
@@ -1077,10 +1091,12 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
   TPZInterpolationSpace *right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
   if (!left || !right){
     PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
+    DebugStop();
     return;
   }
   if(!left->Material() || !right->Material()){
     PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
+    DebugStop();
     return;
   }
 
@@ -1168,6 +1184,7 @@ bool TPZInterfaceElement::CheckConsistencyOfMappedQsi(TPZCompElSide &Neighbor, T
   if (erro > tol){
     PZError << __PRETTY_FUNCTION__ << std::endl
             << "Face X point and LeftElement X point are not same." << std::endl;
+    this->Print(cout);
     return false;
   }
   return true;
@@ -1209,6 +1226,7 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
   if (!mat){
     PZError << "FATAL ERROR AT "  << __PRETTY_FUNCTION__ << "\n";
+    DebugStop();
   }
   mat->FillDataRequirementsInterface(data);
   int nshapel = left->NShapeF();

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.55 2009-09-01 22:08:04 phil Exp $
+//$Id: TPZInterfaceEl.h,v 1.56 2009-10-09 15:07:46 fortiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -70,6 +70,11 @@ public:
 
   public:
 
+ /**
+  * Extract connects from element el.
+  */
+  void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int> &connectindex);
+
   /** Compute solution at neighbour element in a given master coordinate qsi. It returns the axes
    * at which respect derivatives are computed.
    * @param [in] Neighbor
@@ -86,10 +91,11 @@ public:
    * comparing the X coordinate of qsi and the correspondent NeighIntPoint.
    * It return true if everything is ok or false otherwise.
    */
+public:
   bool CheckConsistencyOfMappedQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZVec<REAL>&NeighIntPoint);
 
   void ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf);
-
+protected:
   /** Computes normal at qsi point
    */
   void ComputeNormal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal);
