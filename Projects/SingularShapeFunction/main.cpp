@@ -20,6 +20,7 @@
 #include "pzanalysis.h"
 #include "TExtFunction.h"
 #include "pzlog.h"
+#include "pzbstrmatrix.h"
 using namespace std;
 using namespace pzshape;
 
@@ -202,6 +203,8 @@ void PRefinement(TPZCompMesh &cmesh, const int InitialP){
 
 int main(){
 
+  const bool ApenasPolinomial = false;
+
   InitializePZLOG("log4cxx.cfg");
   TPZShapeDisc::fOrthogonal = TPZShapeDisc::Legendre;
 
@@ -216,18 +219,18 @@ int main(){
     {-0.030901699437494747*scaleFuro ,   0.09510565162951536*scaleFuro }, {-0.08090169943749476*scaleFuro ,   0.058778525229247314*scaleFuro }, 
     {-0.1*scaleFuro ,   0.*scaleFuro }, {-0.08090169943749476*scaleFuro , -0.058778525229247314*scaleFuro }, {-0.030901699437494747*scaleFuro , -0.09510565162951536*scaleFuro }, 
     {0.030901699437494747*scaleFuro , -0.09510565162951536*scaleFuro }, {0.08090169943749476*scaleFuro , -0.058778525229247314*scaleFuro }};
- /*  
+   
   const int nelem = 10; 
   int indices[nelem][4] = {{0,1,11,10},{1,2,12,11},{2,3,13,12},{3,4,14,13},{4,5,15,14},{5,6,16,15},{6,7,17,16},{7,8,18,17},{8,9,19,18},{9,0,10,19}};
   const int nelbc = 20;
   int contorno[nelbc][3] = {{0,1,-2},{1,2,-2},{2,3,-2},{3,4,-2},{4,5,-2},{5,6,-2},{6,7,-2},{7,8,-2},{8,9,-2},{9,0,-2},{10,11,-3},{11,12,-3},{12,13,-3},
                             {13,14,-3},{14,15,-3},{15,16,-3},{16,17,-3},{17,18,-3},{18,19,-3},{19,10,-3}};
-*/
+
 /** teste - apenas 1 elemento **/
-  const int nelem = 1; 
+/*  const int nelem = 1; 
   int indices[nelem][4] = {{0,1,11,10}};
   const int nelbc = 2;
-  int contorno[nelbc][3] = {{0,1,-2},{10,11,-3}};
+  int contorno[nelbc][3] = {{0,1,-2},{10,11,-3}};*/
 /** teste - apenas 1 elemento **/
 
 
@@ -259,7 +262,9 @@ int main(){
 
   gmesh->BuildConnectivity();
   
-  const int p = 2;
+  int p;
+  if(ApenasPolinomial) p = 2;
+  else p = 0;
   cout << "npassos = "; int hval; cin >> hval;
   const int h = hval;   cout << "\nh=" << h;
   for(int ir = 0; ir < h; ir++){
@@ -273,7 +278,7 @@ int main(){
   TPZAutoPointer<TPZMaterial> mat = new TPZMatPoisson3d(matid, 2);
   mat->SetForcingFunction( LoadFunction );
   TPZMatPoisson3d * matcast = dynamic_cast<TPZMatPoisson3d*>(mat.operator->());
-  matcast->fPenaltyConstant = 0*1.;
+  matcast->fPenaltyConstant = 1.;
   matcast->SetSolutionPenalty(); 
 //    matcast->SetFluxPenalty();
 //   matcast->SetBothPenalty();
@@ -295,40 +300,44 @@ int main(){
   cmesh->InsertMaterialObject(bcFora);
   cmesh->InsertMaterialObject(bcDentro);
   
-  TPZCompMesh::SetAllCreateFunctionsContinuous();
+  TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
 
   TPZCompEl::SetgOrder(p);
   cmesh->SetDefaultOrder(p);
   cmesh->AutoBuild();
   cmesh->ComputeNodElCon();
 //   cmesh->AdjustBoundaryElements();
-  
+
   ofstream malhas("malhas.txt");
   cmesh->Reference()->Print(malhas);
   cmesh->Print(malhas);
-  
-  
-  PRefinement(*cmesh, 2);
-  cmesh->AdjustBoundaryElements();
-  
-  
-  TPZCompElDisc::SetTotalOrderShape(cmesh);
-//   TPZCompElDisc::SetTensorialShape(cmesh);
-  
-  TPZAutoPointer<TPZFunction> ExternalShapes = new TDiscoFunction();
-  for(int iel = 0; iel < cmesh->NElements(); iel++){
-    TPZCompEl * cel = cmesh->ElementVec()[iel];
-    if(!cel) continue;
-    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cel);
-    if(!disc) continue;
-    disc->SetExternalShapeFunction(ExternalShapes);    
+
+  if(ApenasPolinomial){
+    PRefinement(*cmesh, 2);
   }
-  
+  cmesh->AdjustBoundaryElements();
+
+
+//   TPZCompElDisc::SetTotalOrderShape(cmesh);
+  TPZCompElDisc::SetTensorialShape(cmesh);
+
+  if(!ApenasPolinomial){
+    TPZAutoPointer<TPZFunction> ExternalShapes = new TDiscoFunction();
+    for(int iel = 0; iel < cmesh->NElements(); iel++){
+      TPZCompEl * cel = cmesh->ElementVec()[iel];
+      if(!cel) continue;
+      TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cel);
+      if(!disc) continue;
+      disc->SetExternalShapeFunction(ExternalShapes);
+    }
+  }///if
+
 
   TPZAnalysis an(cmesh);
-  TPZFrontStructMatrix<TPZFrontNonSym> matrix(cmesh);
+//   TPZFrontStructMatrix<TPZFrontNonSym> matrix(cmesh);
 //   TPZFrontStructMatrix<TPZFrontSym> matrix(cmesh);
 //   TPZFStructMatrix matrix(cmesh);
+  TPZBandStructMatrix matrix(cmesh);
   an.SetStructuralMatrix(matrix);
   TPZStepSolver step;
   
@@ -337,9 +346,9 @@ int main(){
     step.SetDirect(ELU);//ECholesky); 
 #else 
 //       TPZCopySolve precond( matrix.Create() );step.ShareMatrix( precond );  
-      TPZFMatrix fakeRhs(cmesh->NEquations(),1);TPZFrontStructMatrix<TPZFrontNonSym> PrecondMatrix(cmesh); TPZStepSolver precond(PrecondMatrix.CreateAssemble(fakeRhs));precond.SetDirect(ELU);
+     TPZFMatrix fakeRhs(cmesh->NEquations(),1);/*TPZFrontStructMatrix<TPZFrontNonSym>*/ TPZBandStructMatrix PrecondMatrix(cmesh); TPZStepSolver precond(PrecondMatrix.CreateAssemble(fakeRhs));precond.SetDirect(ELU);
       
-      step.SetGMRES( 300000, 160, precond, 1.e-16, 0 );
+      step.SetGMRES( 300000, 160, precond, 1.e-14, 0 );
 #endif  
   
   
@@ -348,6 +357,11 @@ int main(){
   cout << "Banda = " << cmesh->BandWidth() << "\n";
   cout.flush();
   an.Assemble();
+
+{ofstream fileKsdvcxcxv("k.nb");
+ an.Solver().Matrix()->Print("m=",fileKsdvcxcxv,EMathematicaInput);
+ fileKsdvcxcxv << "\nRe[Eigenvalues[m]]\n";
+ }
  
   /** checando residuo da sol exata descontinua */
  /* {
@@ -378,11 +392,11 @@ int main(){
   an.Solve();
   an.LoadSolution();
   
-  TPZVec<REAL> error(cmesh->NElements(),0.);
+/*  TPZVec<REAL> error(cmesh->NElements(),0.);
   TPZCompElDisc::EvaluateSquareResidual2D(*cmesh, error,false);
   {ofstream resfile("res.txt");
   for(int i = 0; i < error.NElements(); i++) resfile << sqrt(error[i]) << "\n";}
-  cmesh->SetElementSolution(0, error);
+  cmesh->SetElementSolution(0, error);*/
 
   
       an.SetExact(ExactSolution);
@@ -393,8 +407,8 @@ int main(){
       errorfile << "Banda = " << cmesh->BandWidth() << "\n";
       errorfile.flush();  
   
-  ofstream solfile("solucao.txt");
-  an.Solution().Print("solucao",solfile);
+//   ofstream solfile("solucao.txt");
+//   an.Solution().Print("solucao",solfile);
   
   TPZVec<std::string> scalnames(4);
   scalnames[0] = "Solution";
