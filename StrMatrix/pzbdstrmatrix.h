@@ -21,6 +21,8 @@ enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
 
   TPZBlockDiagonalStructMatrix(TPZCompMesh *);
   
+  ~TPZBlockDiagonalStructMatrix();
+  
   TPZBlockDiagonalStructMatrix(const TPZBlockDiagonalStructMatrix &copy) : TPZStructMatrix(copy),
   fBlockStructure(copy.fBlockStructure),fOverlap(copy.fOverlap)
   {

@@ -15,6 +15,8 @@ class TPZSkylineStructMatrix : public TPZStructMatrix {
 public:    
 
     TPZSkylineStructMatrix(TPZCompMesh *);
+    
+    ~TPZSkylineStructMatrix();
 
     virtual TPZMatrix * Create();
 

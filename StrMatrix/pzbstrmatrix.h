@@ -15,6 +15,8 @@ class TPZBandStructMatrix : public TPZStructMatrix {
 public:    
 
     TPZBandStructMatrix(TPZCompMesh *);
+    
+    ~TPZBandStructMatrix();
 
     TPZBandStructMatrix(const TPZBandStructMatrix &copy) : TPZStructMatrix(copy)
     {

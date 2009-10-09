@@ -4,6 +4,8 @@
 #include "pzbndmat.h"
 #include "pzcmesh.h"
 
+TPZBandStructMatrix::~TPZBandStructMatrix(){}
+
 TPZStructMatrix * TPZBandStructMatrix::Clone(){
     return new TPZBandStructMatrix(*this);
 }

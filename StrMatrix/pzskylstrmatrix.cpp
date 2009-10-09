@@ -30,6 +30,8 @@ TPZMatrix * TPZSkylineStructMatrix::Create(){
 TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {}
 
+TPZSkylineStructMatrix::~TPZSkylineStructMatrix(){}
+
 
 /*!
     \fn TPZSkylineStructMatrix::FilterSkyline()
