@@ -1,4 +1,4 @@
-// $ Id: $
+//$Id: pzshapelinear.cpp,v 1.16 2009-10-09 15:09:40 fortiago Exp $
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
 #include "pzerror.h"
