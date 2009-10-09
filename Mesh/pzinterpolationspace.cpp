@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.38 2009-09-05 15:49:08 phil Exp $
+//$Id: pzinterpolationspace.cpp,v 1.39 2009-10-09 15:01:25 fortiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -8,6 +8,7 @@
 #include "TPZCompElDisc.h"
 #include "TPZInterfaceEl.h"
 #include "pztransfer.h"
+#include "tpzchangeel.h"
 
 #include "pzlog.h"
 
@@ -265,7 +266,7 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
   TPZIntPoints &intrule = GetIntegrationRule();
   TPZManVector<int,3> p2(dim,data.p*2);
   intrule.SetOrder(p2);
-  if(material->HasForcingFunction() || !this->Reference()->IsLinearMapping()) {
+  if(material->HasForcingFunction()) {
     TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
     intrule.SetOrder(order);
   }
@@ -278,9 +279,9 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 	data.intPtIndex = int_ind;
     this->ComputeRequiredData(data, intpoint);
     material->Contribute(data,weight,ek.fMat,ef.fMat);
-  }//loop over integratin points
+  }///loop over integratin points
 
-}//CalcStiff
+}///CalcStiff
 
 void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 
@@ -398,8 +399,6 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
   data.p = this->MaxOrder();
   data.sol.Resize(numdof);
   data.sol.Fill(0.);
-  sol.Resize(numdof);
-  sol.Fill(0.);
   data.dsol.Redim(dim,numdof);
   data.dsol.Zero();
   data.axes.Redim(3,3);
@@ -408,7 +407,10 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
 
   data.x.Resize(3);
   this->Reference()->X(qsi, data.x);
-
+  
+  int solSize = material->NSolutionVariables(var);
+  sol.Resize(solSize);
+  sol.Fill(0.);
   material->Solution(data, var, sol);
 }
 
@@ -609,7 +611,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 
     if (BetweenContinuous == false){
       //It means at least one element must be discontinuous
-      if (!thisdisc  && neighdisc){
+      if (!thisdisc  && !neighdisc){
         return NULL;
       }
     }
@@ -638,6 +640,38 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
        TPZCompElSide neighcompelside(list0, neighside);
        newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,neighcompelside,thiscompelside);
     }
+
+
+/** GeoBlend verifications ***/
+#ifdef DEBUG
+{
+     TPZGeoEl * faceGel = newcreatedinterface->Reference();
+     TPZGeoEl * leftGel = newcreatedinterface->LeftElement()->Reference();
+     TPZGeoEl * rightGel = newcreatedinterface->RightElement()->Reference();
+     bool leftIsLinear = leftGel->IsLinearMapping();
+     bool rightIsLinear = rightGel->IsLinearMapping();
+     if(!leftIsLinear && !rightIsLinear){
+        if(gel->IsGeoBlendEl() == false){
+          std::cout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
+          #ifdef LOG4CXX
+                {
+                  std::stringstream sout;
+                  std::sout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
+                  sout << "left gel:\n";
+                  leftGel->Print(sout);
+                  sout << "right gel:";
+                  rightGel->Print(sout);
+                  sout << "face gel:";
+                  faceGel->Print(sout);
+                  LOGPZ_ERROR(logger,sout.str());
+                }
+          #endif
+        }
+     }
+}
+#endif
+/** ***/
+
     return newcreatedinterface;
   }
 
@@ -702,6 +736,37 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 #endif
        newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
     }
+
+/** GeoBlend verifications ***/
+#ifdef DEBUG
+{
+     TPZGeoEl * faceGel = newcreatedinterface->Reference();
+     TPZGeoEl * leftGel = newcreatedinterface->LeftElement()->Reference();
+     TPZGeoEl * rightGel = newcreatedinterface->RightElement()->Reference();
+     bool leftIsLinear = leftGel->IsLinearMapping();
+     bool rightIsLinear = rightGel->IsLinearMapping();
+     if(!leftIsLinear && !rightIsLinear){
+        if(gel->IsGeoBlendEl() == false){
+          std::cout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
+          #ifdef LOG4CXX
+                {
+                  std::stringstream sout;
+                  std::sout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
+                  sout << "left gel:\n";
+                  leftGel->Print(sout);
+                  sout << "right gel:";
+                  rightGel->Print(sout);
+                  sout << "face gel:";
+                  faceGel->Print(sout);
+                  LOGPZ_ERROR(logger,sout.str());
+                }
+          #endif
+        }
+     }
+}
+#endif
+/** ***/
+
     return newcreatedinterface;
   }
   return newcreatedinterface;
