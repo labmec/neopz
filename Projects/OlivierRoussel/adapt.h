@@ -104,7 +104,7 @@ void LoadDummySolution(TPZCompMesh *cmesh);
 
 inline void DummyFunction2(TPZVec<REAL> &co, TPZVec<REAL> &val)
 {
-	val.Fill((1-co[0])*co[0]);
+	val.Fill(co[0]);//(1-co[0])*co[0]);
 }
 void GetAdaptedMesh(TPZCompMesh * cmesh);
 
@@ -185,5 +185,6 @@ void RefineElements ( TPZCompMesh & CMesh,
             TPZAutoPointer < TPZRefPattern > & RefPattern );
 
 
+void PrintMeshSolution ( TPZCompMesh * cmesh, ostream & sout);
 
 

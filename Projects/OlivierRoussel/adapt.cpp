@@ -25,6 +25,7 @@
 
 #include "adapt.h"
 #include "TPZFakeFunction.h"
+#include "pzexplfinvolanal.h"
 
 #include "pzlog.h"
 
@@ -196,7 +197,7 @@ TPZAutoPointer < TPZRefPattern > GetUsedRefinementPattern ( TPZCompMesh * CMesh 
  */
 void GetAdaptedMesh ( TPZCompMesh * CMesh )
 {
-	TPZVec < EAdaptElementAction > DivideOrCoarsen;
+	TPZVec < EAdaptElementAction > DivideOrCoarsen ( CMesh->NElements(), ENone );
 	// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
 	ErrorEstimation ( * CMesh, DivideOrCoarsen );
 	TPZAutoPointer < TPZRefPattern > laraRefinementPattern = GetUsedRefinementPattern ( CMesh );
@@ -255,6 +256,9 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 	EvaluateAverageOfSolution ( * fineMesh, AverageSolutionFineVec );
 	EvaluateAverageOfSolution ( * coarseMesh, AverageSolutionCoarseVec );
 
+	cout << "Average fine " << AverageSolutionFineVec << endl;
+	cout << "Average coarse " << AverageSolutionCoarseVec << endl; 
+	
 	TPZVec < REAL > fineDetail;
 	TPZVec < REAL > coarseDetail;
 	EvaluateDetail ( * fineMesh , AverageSolutionFineVec, levelToElementUhatVec, fineDetail );
@@ -318,7 +322,29 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 	int iel = 0;
 	int nel = CMesh.NElements();
 	Detail.Resize ( nel, 0.0 );
-
+#ifdef LOG4CXX
+	
+	map < int, vector < vector < double > > >::iterator it;
+	for ( it = levelToElementUhatVec.begin(); it != levelToElementUhatVec.end(); it++ )
+	{
+		std::stringstream sout;
+		sout << it->first << endl;
+		vector < vector < double > > & solElVec = it->second;
+		int nel = solElVec.size();
+		for ( iel = 0; iel < nel; iel++ )
+		{
+			sout << "\tElement [ " << iel << " ] = \t";
+			vector < double > & solution = solElVec [ iel ];
+			for ( int isol = 0; isol < solution.size(); isol++ )
+			{
+				sout << "\t" << solution [ isol ] ;
+			}
+			sout << endl;
+		}
+		LOGPZ_DEBUG ( logger, sout.str().c_str() );
+	}
+#endif
+	
 	CMesh.Reference()->RestoreReference(&CMesh);
 
 	for ( iel = 0; iel < nel; iel++ )
@@ -372,31 +398,67 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	gradedMeshVec [0] = OriginalMesh.Clone();
 	for ( im = 1; im < nlevels; im++ )
 	{
-		gradedMeshVec[ im ] = CoarsenOneLevel ( * gradedMeshVec [ im - 1 ] );
+		gradedMeshVec[ im ] = CoarsenOneLevel ( * (gradedMeshVec [ im - 1 ]) );
+#ifdef LOG4CXX
+		{
+			stringstream sout;
+			gradedMeshVec[im]->Print(sout);
+			LOGPZ_DEBUG ( logger, sout.str().c_str() );
+		}
+#endif
 	}
+	
+	//Verify the projection method
+//#ifdef HUGE_DEBUG
+#ifdef LOG4CXX
+	for ( im = 0; im < nlevels; im++ )
+	{
+		TPZCompMesh * cmesh = gradedMeshVec[ im ];
+		stringstream sout;
+		sout << "Solution for level =  " << im << " number of elements = " << cmesh->NElements() << endl; 
+		PrintMeshSolution(cmesh,sout);
+		LOGPZ_DEBUG(logger,sout.str().c_str());
+	}
+#endif
+//#endif
 }
 
 
 TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 {
 	int maxLevel = 0;
-	TPZCompMesh * CoarseMesh = OriginalMesh.Clone();
+	TPZCompMesh * CoarseMesh = new TPZCompMesh ( *OriginalMesh.Clone() );
 	CoarseMesh->Reference()->RestoreReference(CoarseMesh);
 	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
-
+#ifdef HUGE_DEBUG
+#ifdef LOG4CXX
+	{
+		stringstream sout;
+		sout << "Solution after clone ! " << endl;
+		PrintMeshSolution(CoarseMesh, sout);
+		LOGPZ_DEBUG ( logger, sout.str().c_str() );
+	}
+#endif
+#endif
+	
 	int el = 0;
 	int nel = CoarseMesh->NElements();
 	for ( el = 0; el < nel; el++ )
 	{
 		TPZCompEl * cel = CoarseMesh->ElementVec()[ el ];
-		if ( ! cel ) continue;
+		if ( ! cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
 		int level = cel->Reference()->Level();
 		maxLevel = ( level > maxLevel ) ? level : maxLevel;
 	}
+	
+	set < int > alreadyCoarsen;
+	
 	for ( el = 0; el < nel; el++ )
 	{
 		TPZCompEl * cel = CoarseMesh->ElementVec()[ el ];
 		if ( ! cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
+		int celIdx = cel->Index();
+		if ( alreadyCoarsen.find(celIdx) != alreadyCoarsen.end() ) continue;
 		TPZGeoEl * gel = cel->Reference();
 		int level = gel->Level();
 		if ( level < maxLevel ) continue;
@@ -406,14 +468,9 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 		int isub = 0;
 		int isol = 0;
 
-		TPZConnect con = cel->Connect ( 0 );
-		int seqnum = con.SequenceNumber();
-		TPZBlock &block = CoarseMesh->Block();
-		int blocksize = block.Size( seqnum);
-
-		TPZVec <REAL>  solutionVec ( blocksize );
-
+		TPZVec <REAL>  solutionVec ( 5,0. );//blocksize );
 		REAL fatherVolume = father->Volume();
+		
 		for ( isub = 0; isub < nsubel; isub++ )
 		{
 			TPZGeoEl * subGel = father->SubElement ( isub );
@@ -430,13 +487,19 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 				cout << " Warning: computational subelement doesn't exist \n";
 				continue;
 			}
+			
 			subCElVec[ isub ] = subCel->Index();
-			con = subCel->Connect ( 0 );
-			seqnum = con.SequenceNumber();
+			//con = subCel->Connect ( 0 );
+			//seqnum = con.SequenceNumber();
+			int subCelIdx = subCel->Index();
+			alreadyCoarsen.insert ( subCelIdx );
 			REAL sonVolume = subGel->Volume();
-			for ( isol = 0; isol < blocksize; isol++ )
+			TPZVec <REAL> solution (5,0.);
+			TPZVec <REAL> grad (15,0.);
+			GetSolution ( *CoarseMesh, subCel, solution, grad );
+			for ( isol = 0; isol < 5/*blocksize*/; isol++ )
 			{
-				solutionVec[ isol ] += block.Get( seqnum,0,isol,0 ) * sonVolume;
+				solutionVec[ isol ] += solution[isol] * fabs(sonVolume);//block.Get( seqnum,0,isol,0 ) * sonVolume;
 			}
 		}
 		int coarseIdx = -1;
@@ -456,16 +519,31 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 		int coarseSeqNum = coarseCon.SequenceNumber();
 		TPZBlock &coarseBlock = CoarseMesh->Block();
 		int coarseblocksize = coarseBlock.Size(coarseSeqNum);
-		if(coarseblocksize != blocksize)
+		//solution
+		for ( isol = 0; isol < 5; isol++)
 		{
-			cout << __PRETTY_FUNCTION__ << " coarseblocksize " << coarseblocksize << " blocksize " << blocksize << std::endl;
+			coarseBlock.Put( coarseSeqNum, 0, isol, 0, solutionVec [isol] / fabs(fatherVolume) );
 		}
-
-		for ( isol = 0; isol < coarseblocksize; isol++)
+		//Gradients
+		for (; isol < coarseblocksize; isol++)
 		{
-			coarseBlock.Put( coarseSeqNum, 0, isol, 0, solutionVec [isol] / fatherVolume );
+			coarseBlock.Put( coarseSeqNum, 0, isol, 0, 0.0 );
 		}
 	}
+	
+	TPZExplFinVolAnal gradAnalysis ( CoarseMesh );
+	TPZFMatrix solAndGrad;
+	gradAnalysis.ComputeGradientForDetails( CoarseMesh->Solution(),solAndGrad );
+	CoarseMesh->LoadSolution(solAndGrad);
+#ifdef HUGE_DEBUG	
+#ifdef LOG4CXX
+	{
+		stringstream sout;
+		PrintMeshSolution(CoarseMesh, sout);
+		LOGPZ_DEBUG ( logger, sout.str().c_str() );
+	}
+#endif
+#endif
 	return CoarseMesh;
 }
 
@@ -481,7 +559,7 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 	TPZVec < REAL > solution ( 5, 0.0 );
 	TPZVec < REAL > gradient ( 15, 0.0 );
 
-	for ( im = nlevels - 1; im > 1; im-- )
+	for ( im = nlevels - 1; im > 0; im-- )
 	{
 		TPZCompMesh * coarseMesh = gradedMeshVec[ im ];
 		coarseMesh->Reference()->RestoreReference(coarseMesh);
@@ -530,9 +608,38 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 						uhat [ ist ] += gradient [ ist * 3 + idim ] * ( fatherCenter[ 0 ] - sonCenter [ 0 ] );
 					}
 				}
+#ifdef LOG4CXX
+				{
+					stringstream sout;
+					sout << "Uhat for [ " << subcelIdx  << " ] = " << uhat [ 0 ] << " , "
+									 << uhat [ 1 ] << " , "
+									 << uhat [ 2 ] << " , "
+									 << uhat [ 3 ] << " , "
+					                 << uhat [ 4 ] << endl;
+					LOGPZ_DEBUG ( logger, sout.str().c_str() );
+				}
+#endif
 				uhatVal [ subcelIdx ] = uhat;
 			}
 		}
+#ifdef LOG4CXX
+		{
+			stringstream sout;
+			sout << "UhatVAL for LEVEL " << im << ":\n";
+			int iel,isol;
+			sout << "Elem\t solution\n";
+			for ( iel = 0; iel < uhatVal.size(); iel++ )
+			{
+				sout << iel << " { ";
+				for ( isol = 0; isol < (uhatVal[ iel ]).size() ; isol++ )
+				{
+					sout << uhatVal[iel][isol] << "\t";
+				}
+				sout << "}\n";
+			}
+			LOGPZ_DEBUG ( logger, sout.str().c_str() );
+		}
+#endif
 		levelToUhatVec [ im ] = uhatVal;
 	}
 }
@@ -744,7 +851,7 @@ void SelectElementsByLevel ( TPZCompMesh & CMesh,
 	{
 		std::stringstream sout;
 		CMesh.Print(sout);
-		LOGPZ_DEBUG(logger,sout.str())
+		//LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
 	// Using the set class we are sure that we don't have any duplicates...
@@ -853,15 +960,17 @@ void LoadDummySolution(TPZCompMesh *cmesh)
 	for(iel = 0; iel<nel; iel++)
 	{
 		TPZCompEl *cel = cmesh->ElementVec()[iel];
-		if(!cel || !cel->Type()==EDiscontinuous) continue;
+		if(!cel || !cel->Type()==EDiscontinuous || cel->NConnects() == 0 ) continue;
 		TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(cel);
 		if(!disc) continue;
 		if(!disc->NConnects()) continue;
 		TPZGeoEl *gel = disc->Reference();
 		TPZManVector<REAL> center(3,0.);
 		gel->CenterPoint(gel->NSides()-1,center);
+		TPZVec<REAL> xptr (3,0.);
+		gel->X( center,xptr );
 		TPZManVector<REAL> val(5,0.);
-		DummyFunction2(center,val);
+		DummyFunction2(xptr,val);
 		TPZConnect &c = disc->Connect(0);
 		int seqnum = c.SequenceNumber();
 		TPZBlock &bl = cmesh->Block();
@@ -871,4 +980,48 @@ void LoadDummySolution(TPZCompMesh *cmesh)
 			bl(seqnum,0,i,0) = val[i];
 		}
 	}
+#ifdef LOG4CXX
+	{
+		stringstream sout;
+		sout << "Solution after LoadDummySolution: "; 
+		PrintMeshSolution(cmesh,sout);
+		LOGPZ_DEBUG(logger,sout.str().c_str());
+	}
+#endif
+}
+
+void PrintMeshSolution ( TPZCompMesh * cmesh, ostream & sout)
+{
+	sout << __PRETTY_FUNCTION__ << endl;
+	int iel= 0;
+	int nel = cmesh->NElements();
+	int count = 0;
+	for (iel=0;iel<nel;iel++)
+	{
+		TPZCompEl * cel = cmesh->ElementVec()[iel];
+		if ( !cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
+		count ++;
+		TPZGeoEl * gel = cel->Reference();
+		TPZVec <REAL> solution (5,0.0);
+		TPZVec <REAL> grad (15,0.);
+		TPZVec <REAL> center (3,0.);
+		TPZVec<REAL> xptr (3,0.);
+		gel->CenterPoint ( gel->NSides()-1, center );
+		gel->X ( center, xptr );
+		GetSolution ( *cmesh, cel, solution, grad );
+		if ( fabs (solution [0] -xptr[0]) > 1.e-12)
+		{
+			sout << "ERROR___";
+		}
+		else
+		{
+			sout << "OK___";
+		}
+		
+		sout << "elc/elg [ " << cel->Index() << " , " 
+		     << gel->Index() <<  " ] = solution { " 
+		     << solution << " } | center { " << xptr << " } " << endl;
+	}
+	sout << "number of volumes in this mesh = " << count << endl;
+	
 }
