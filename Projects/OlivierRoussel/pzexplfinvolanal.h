@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.h,v 1.3 2009-08-28 22:59:11 fortiago Exp $
+//$Id: pzexplfinvolanal.h,v 1.4 2009-10-15 19:56:25 cesar Exp $
 
 #ifndef EXPLFINVOLANALH
 #define EXPLFINVOLANALH
@@ -83,6 +83,8 @@ public:
   * <!> fRhs is modified
   */
   void ComputeGradient(const TPZFMatrix & SolutionConsVars);
+	
+  void ComputeGradientForDetails(const TPZFMatrix & PrimitiveSolution, TPZFMatrix & SolutionWithGrad);
 
 protected:
 

@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.cpp,v 1.4 2009-09-01 22:06:16 fortiago Exp $
+//$Id: pzexplfinvolanal.cpp,v 1.5 2009-10-15 19:56:25 cesar Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -622,4 +622,19 @@ void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face
 
    delete intrule;
 }
+
+void TPZExplFinVolAnal::ComputeGradientForDetails(const TPZFMatrix & PrimitiveSolution, TPZFMatrix & SolutionWithGrad){
+	this->InitializeAuxiliarVariables();
+	fSolution = PrimitiveSolution;
+	this->LoadSolution();	
+	///compute gradient into fRhs
+	///fSolution must have zeros in gradient positions
+	this->fRhs.Zero();
+	TPZEulerEquation::SetComputeGradient();
+	this->ParallelComputeFlux( this->fFacePtrList );
+	this->DivideByVolume(fRhs,1.);
+	fSolution += fRhs;///fRhs has zeros in state variables position and fSolution has zeros in gradient positions
+	this->CleanAuxiliarVariables();
+	SolutionWithGrad = this->fSolution;
+}///void
 
