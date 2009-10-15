@@ -1,4 +1,4 @@
-//$Id: malhas.cpp,v 1.2 2009-08-28 21:25:56 fortiago Exp $
+//$Id: malhas.cpp,v 1.3 2009-10-15 22:21:06 fortiago Exp $
 
 #include "malhas.h"
 #include "TPZFakeFunction.h"
@@ -539,7 +539,7 @@ void InitialSolutionLinearConvection(TPZFMatrix &InitialSol, TPZCompMesh * cmesh
 
     double xCircle = 0.25;
     double yCircle = 0.5;
-    double R = 0.2;
+    double R = 0.1;
     if( (x-xCircle)*(x-xCircle)+(y-yCircle)*(y-yCircle) <= R*R ) u = 1.;
 
     InitialSol(blpos+blocksize-20+0,0) = u;

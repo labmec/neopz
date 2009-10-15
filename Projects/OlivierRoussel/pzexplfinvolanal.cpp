@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.cpp,v 1.5 2009-10-15 19:56:25 cesar Exp $
+//$Id: pzexplfinvolanal.cpp,v 1.6 2009-10-15 22:21:06 fortiago Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -412,7 +412,7 @@ void TPZExplFinVolAnal::ParallelComputeFlux(std::list< TPZInterfaceElement* > &F
 
 void TPZExplFinVolAnal::TimeEvolution(TPZFMatrix &LastSol, TPZFMatrix &NextSol){
 
-  const int order = 2;
+  const int order = 1;
   if(order == 1){
     ///Euler explicit:
     int sz = fCompMesh->NEquations();
@@ -629,9 +629,10 @@ void TPZExplFinVolAnal::ComputeGradientForDetails(const TPZFMatrix & PrimitiveSo
 	this->LoadSolution();	
 	///compute gradient into fRhs
 	///fSolution must have zeros in gradient positions
+  this->fRhs.Redim(this->Mesh()->NEquations(),1);
 	this->fRhs.Zero();
 	TPZEulerEquation::SetComputeGradient();
-	this->ParallelComputeFlux( this->fFacePtrList );
+	this->ComputeFlux( this->fFacePtrList );
 	this->DivideByVolume(fRhs,1.);
 	fSolution += fRhs;///fRhs has zeros in state variables position and fSolution has zeros in gradient positions
 	this->CleanAuxiliarVariables();

@@ -185,6 +185,6 @@ void RefineElements ( TPZCompMesh & CMesh,
             TPZAutoPointer < TPZRefPattern > & RefPattern );
 
 
-void PrintMeshSolution ( TPZCompMesh * cmesh, ostream & sout);
+void PrintMeshSolution ( TPZCompMesh * cmesh, std::ostream & sout);
 
 

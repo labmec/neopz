@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.h,v 1.4 2009-10-15 19:56:25 cesar Exp $
+//$Id: pzexplfinvolanal.h,v 1.5 2009-10-15 22:21:06 fortiago Exp $
 
 #ifndef EXPLFINVOLANALH
 #define EXPLFINVOLANALH
@@ -32,8 +32,8 @@ public:
    * Assemble fluxes
   **/
   void AssembleFluxes(const TPZFMatrix & Solution, std::set<int> *MaterialIds = NULL){
-    this->AssembleFluxes2ndOrder(Solution);
-//     this->AssembleFluxesNew(Solution);
+//     this->AssembleFluxes2ndOrder(Solution);
+    this->AssembleFluxesNew(Solution);
   }
 
   int NStateVariables(){

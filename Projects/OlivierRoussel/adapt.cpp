@@ -198,7 +198,7 @@ TPZAutoPointer < TPZRefPattern > GetUsedRefinementPattern ( TPZCompMesh * CMesh 
 void GetAdaptedMesh ( TPZCompMesh * CMesh )
 {
 	TPZVec < EAdaptElementAction > DivideOrCoarsen ( CMesh->NElements(), ENone );
-	// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
+	/// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
 	ErrorEstimation ( * CMesh, DivideOrCoarsen );
 	TPZAutoPointer < TPZRefPattern > laraRefinementPattern = GetUsedRefinementPattern ( CMesh );
 	AdaptMesh ( * CMesh,  DivideOrCoarsen, laraRefinementPattern );
@@ -241,9 +241,21 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 	TPZVec < REAL > AverageSolutionFineVec ( 3, 0.0 );
 	TPZVec < REAL > AverageSolutionCoarseVec ( 3, 0.0 );
 
-	TPZVec < TPZCompMesh * > gradedMeshVec;
+	TPZVec < TPZCompMesh * > gradedMeshVec(3,NULL);
 	//Produce graded mesh vector, projecting the solution
 	ProduceGradedMeshes ( CMesh, gradedMeshVec );
+
+#ifdef LOG4CXX
+{
+  int iii;
+  for (iii=0;iii<gradedMeshVec.NElements();iii++)
+  {
+    std::stringstream sout;
+    gradedMeshVec[iii]->Print(sout);
+    LOGPZ_DEBUG ( logger, sout.str().c_str() );
+  }
+ }
+#endif
 
 	//evaluate uhat for each level
 	map < int, vector < vector < double > > > levelToElementUhatVec;
@@ -394,6 +406,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	}
 	int nlevels = maxLevel - minLevel;
 	gradedMeshVec.Resize ( nlevels );
+  gradedMeshVec.Fill(NULL); 
 	int im = 0;
 	gradedMeshVec [0] = OriginalMesh.Clone();
 	for ( im = 1; im < nlevels; im++ )
@@ -402,11 +415,21 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 #ifdef LOG4CXX
 		{
 			stringstream sout;
-			gradedMeshVec[im]->Print(sout);
+      for(int ops = 0; ops < gradedMeshVec.NElements(); ops++){   
+        if(gradedMeshVec[ops]) gradedMeshVec[ops]->Print(sout);
+      }   
 			LOGPZ_DEBUG ( logger, sout.str().c_str() );
 		}
 #endif
 	}
+ 
+#ifdef LOG4CXX
+    {
+      stringstream sout;
+      for ( im = 0; im < nlevels; im++ ) gradedMeshVec[im]->Print(sout);
+      LOGPZ_DEBUG ( logger, sout.str().c_str() );
+    }
+#endif
 	
 	//Verify the projection method
 //#ifdef HUGE_DEBUG
@@ -421,13 +444,22 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	}
 #endif
 //#endif
+
+#ifdef LOG4CXX
+    {
+      stringstream sout;
+      for ( im = 0; im < nlevels; im++ ) gradedMeshVec[im]->Print(sout);
+      LOGPZ_DEBUG ( logger, sout.str().c_str() );
+    }
+#endif
+
 }
 
 
 TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 {
 	int maxLevel = 0;
-	TPZCompMesh * CoarseMesh = new TPZCompMesh ( *OriginalMesh.Clone() );
+	TPZCompMesh * CoarseMesh = OriginalMesh.Clone();
 	CoarseMesh->Reference()->RestoreReference(CoarseMesh);
 	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
 #ifdef HUGE_DEBUG
@@ -505,9 +537,13 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 		int coarseIdx = -1;
 		CoarseMesh->Coarsen ( subCElVec, coarseIdx, true );
 		TPZCompEl * coarseEl = CoarseMesh->ElementVec() [coarseIdx];
-	    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(coarseEl);
-	    if(disc)
-	    {
+    if ( !coarseEl || !coarseEl->Reference() )
+    {
+      DebugStop();
+    }
+	  TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(coarseEl);
+	  if(disc)
+	  {
 	    	disc->SetExternalShapeFunction(fakefunc);
 		}
 	    else
@@ -535,21 +571,36 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 	TPZFMatrix solAndGrad;
 	gradAnalysis.ComputeGradientForDetails( CoarseMesh->Solution(),solAndGrad );
 	CoarseMesh->LoadSolution(solAndGrad);
-#ifdef HUGE_DEBUG	
+// #ifdef HUGE_DEBUG	
 #ifdef LOG4CXX
 	{
 		stringstream sout;
 		PrintMeshSolution(CoarseMesh, sout);
+    CoarseMesh->Print( sout );  
 		LOGPZ_DEBUG ( logger, sout.str().c_str() );
 	}
 #endif
-#endif
+// #endif
 	return CoarseMesh;
 }
 
 
 void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector < vector < double > > > & levelToUhatVec )
 {
+
+#ifdef LOG4CXX
+{
+  int iii;
+  for (iii=0;iii<gradedMeshVec.NElements();iii++)
+  {
+    std::stringstream sout;
+    gradedMeshVec[iii]->Print(sout);
+    LOGPZ_DEBUG ( logger, sout.str().c_str() );
+  }
+ }
+#endif
+
+
 	int nlevels = gradedMeshVec.NElements();
 	int im = 0;		// mesh iterator
 	int iel = 0;	// element iterator
@@ -583,6 +634,12 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 
 
 			TPZCompMesh * fineMesh = gradedMeshVec[ im - 1 ];
+      {
+        stringstream name; name << "malha" << im << ".txt";
+        ofstream malhaFile(name.str().c_str());
+        fineMesh->Print(malhaFile);
+        fineMesh->Reference()->Print(malhaFile);
+      }
 			fineMesh->Reference()->RestoreReference(fineMesh);
 
 			for ( isub = 0; isub < nsubel; isub++ )
@@ -990,7 +1047,7 @@ void LoadDummySolution(TPZCompMesh *cmesh)
 #endif
 }
 
-void PrintMeshSolution ( TPZCompMesh * cmesh, ostream & sout)
+void PrintMeshSolution ( TPZCompMesh * cmesh, std::ostream & sout)
 {
 	sout << __PRETTY_FUNCTION__ << endl;
 	int iel= 0;
