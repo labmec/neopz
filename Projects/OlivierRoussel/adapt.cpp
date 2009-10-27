@@ -198,7 +198,7 @@ TPZAutoPointer < TPZRefPattern > GetUsedRefinementPattern ( TPZCompMesh * CMesh 
 void GetAdaptedMesh ( TPZCompMesh * CMesh )
 {
 	TPZVec < EAdaptElementAction > DivideOrCoarsen ( CMesh->NElements(), ENone );
-	/// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
+	// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
 	ErrorEstimation ( * CMesh, DivideOrCoarsen );
 	TPZAutoPointer < TPZRefPattern > laraRefinementPattern = GetUsedRefinementPattern ( CMesh );
 	AdaptMesh ( * CMesh,  DivideOrCoarsen, laraRefinementPattern );
@@ -241,21 +241,9 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 	TPZVec < REAL > AverageSolutionFineVec ( 3, 0.0 );
 	TPZVec < REAL > AverageSolutionCoarseVec ( 3, 0.0 );
 
-	TPZVec < TPZCompMesh * > gradedMeshVec(3,NULL);
+	TPZVec < TPZCompMesh * > gradedMeshVec;
 	//Produce graded mesh vector, projecting the solution
 	ProduceGradedMeshes ( CMesh, gradedMeshVec );
-
-#ifdef LOG4CXX
-{
-  int iii;
-  for (iii=0;iii<gradedMeshVec.NElements();iii++)
-  {
-    std::stringstream sout;
-    gradedMeshVec[iii]->Print(sout);
-    LOGPZ_DEBUG ( logger, sout.str().c_str() );
-  }
- }
-#endif
 
 	//evaluate uhat for each level
 	map < int, vector < vector < double > > > levelToElementUhatVec;
@@ -296,7 +284,7 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 		}
 		if ( fineDetail[ i ] <= Epsl )
 		{
-			coarseMesh->Reference()->ResetReference();
+			/*coarseMesh->Reference()->ResetReference();
 			coarseMesh->LoadReferences();
 
 			TPZCompEl * fineCel = fineMesh->ElementVec() [ i ];
@@ -320,7 +308,7 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 				continue;
 			}
 			int coarseIndex = fatherCel->Index();
-			if ( coarseDetail [ coarseIndex ] < Epsl )  DivideOrCoarsen[ i ] = ECoarse;
+			if ( coarseDetail [ coarseIndex ] < Epsl ) */ DivideOrCoarsen[ i ] = ECoarse;
 		}
 	}
 }
@@ -334,6 +322,7 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 	int iel = 0;
 	int nel = CMesh.NElements();
 	Detail.Resize ( nel, 0.0 );
+#ifdef HUGE_DEBUG
 #ifdef LOG4CXX
 	
 	map < int, vector < vector < double > > >::iterator it;
@@ -355,6 +344,7 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 		}
 		LOGPZ_DEBUG ( logger, sout.str().c_str() );
 	}
+#endif
 #endif
 	
 	CMesh.Reference()->RestoreReference(&CMesh);
@@ -406,33 +396,61 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	}
 	int nlevels = maxLevel - minLevel;
 	gradedMeshVec.Resize ( nlevels );
-  gradedMeshVec.Fill(NULL); 
 	int im = 0;
+#ifdef HUGE_DEBUG
+#ifdef LOG4CXX
+	{
+		TPZGeoMesh * gMesh = OriginalMesh.Reference();
+		int i =0;
+		std::stringstream sout;
+		sout << " Antes do clone: ";
+		for (i=0;i<gMesh->NElements();i++)
+		{
+			TPZGeoEl *gel = gMesh->ElementVec()[i];
+			if (!gel) continue;
+			sout << gel->Index() << " = " << gel->NumInterfaces() << "\t";
+		}
+		sout << endl;
+		LOGPZ_DEBUG(logger,sout.str().c_str());
+	}
+#endif
+#endif
 	gradedMeshVec [0] = OriginalMesh.Clone();
+#ifdef HUGE_DEBUG
+#ifdef LOG4CXX
+	{
+		TPZGeoMesh * gMesh = OriginalMesh.Reference();
+		int i =0;
+		std::stringstream sout;
+		sout << " Depois do clone: ";
+		for (i=0;i<gMesh->NElements();i++)
+		{
+			TPZGeoEl *gel = gMesh->ElementVec()[i];
+			if (!gel) continue;
+			sout << gel->Index() << " = " << gel->NumInterfaces() << "\t";
+		}
+		sout << endl;
+		LOGPZ_DEBUG(logger,sout.str().c_str());
+	}
+#endif
+#endif
+	
 	for ( im = 1; im < nlevels; im++ )
 	{
 		gradedMeshVec[ im ] = CoarsenOneLevel ( * (gradedMeshVec [ im - 1 ]) );
+#ifdef HUGE_DEBUG
 #ifdef LOG4CXX
 		{
 			stringstream sout;
-      for(int ops = 0; ops < gradedMeshVec.NElements(); ops++){   
-        if(gradedMeshVec[ops]) gradedMeshVec[ops]->Print(sout);
-      }   
+			gradedMeshVec[im]->Print(sout);
 			LOGPZ_DEBUG ( logger, sout.str().c_str() );
 		}
 #endif
-	}
- 
-#ifdef LOG4CXX
-    {
-      stringstream sout;
-      for ( im = 0; im < nlevels; im++ ) gradedMeshVec[im]->Print(sout);
-      LOGPZ_DEBUG ( logger, sout.str().c_str() );
-    }
 #endif
+	}
 	
 	//Verify the projection method
-//#ifdef HUGE_DEBUG
+#ifdef HUGE_DEBUG
 #ifdef LOG4CXX
 	for ( im = 0; im < nlevels; im++ )
 	{
@@ -443,24 +461,53 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 		LOGPZ_DEBUG(logger,sout.str().c_str());
 	}
 #endif
-//#endif
-
-#ifdef LOG4CXX
-    {
-      stringstream sout;
-      for ( im = 0; im < nlevels; im++ ) gradedMeshVec[im]->Print(sout);
-      LOGPZ_DEBUG ( logger, sout.str().c_str() );
-    }
 #endif
-
 }
 
 
 TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 {
 	int maxLevel = 0;
+#ifdef HUGE_DEBUG
+#ifdef LOG4CXX
+{
+	TPZGeoMesh * gMesh = OriginalMesh.Reference();
+	int i =0;
+	std::stringstream sout;
+	sout << " Antes do clone: ";
+	for (i=0;i<gMesh->NElements();i++)
+	{
+		TPZGeoEl *gel = gMesh->ElementVec()[i];
+		if (!gel) continue;
+		sout << gel->Index() << " = " << gel->NumInterfaces() << "\t";
+	}
+	sout << endl;
+	LOGPZ_DEBUG(logger,sout.str().c_str());
+}
+#endif
+#endif
 	TPZCompMesh * CoarseMesh = OriginalMesh.Clone();
+#ifdef HUGE_DEBUG
+#ifdef LOG4CXX
+	{
+		TPZGeoMesh * gMesh = OriginalMesh.Reference();
+		int i =0;
+		std::stringstream sout;
+		sout << " Depois do clone: ";
+		for (i=0;i<gMesh->NElements();i++)
+		{
+			TPZGeoEl *gel = gMesh->ElementVec()[i];
+			if (!gel) continue;
+			sout << gel->Index() << " = " << gel->NumInterfaces() << "\t";
+		}
+		sout << endl;
+		LOGPZ_DEBUG(logger,sout.str().c_str());
+	}
+#endif
+#endif
+	
 	CoarseMesh->Reference()->RestoreReference(CoarseMesh);
+	
 	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
@@ -537,13 +584,9 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 		int coarseIdx = -1;
 		CoarseMesh->Coarsen ( subCElVec, coarseIdx, true );
 		TPZCompEl * coarseEl = CoarseMesh->ElementVec() [coarseIdx];
-    if ( !coarseEl || !coarseEl->Reference() )
-    {
-      DebugStop();
-    }
-	  TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(coarseEl);
-	  if(disc)
-	  {
+	    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(coarseEl);
+	    if(disc)
+	    {
 	    	disc->SetExternalShapeFunction(fakefunc);
 		}
 	    else
@@ -571,36 +614,21 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 	TPZFMatrix solAndGrad;
 	gradAnalysis.ComputeGradientForDetails( CoarseMesh->Solution(),solAndGrad );
 	CoarseMesh->LoadSolution(solAndGrad);
-// #ifdef HUGE_DEBUG	
+#ifdef HUGE_DEBUG	
 #ifdef LOG4CXX
 	{
 		stringstream sout;
 		PrintMeshSolution(CoarseMesh, sout);
-    CoarseMesh->Print( sout );  
 		LOGPZ_DEBUG ( logger, sout.str().c_str() );
 	}
 #endif
-// #endif
+#endif
 	return CoarseMesh;
 }
 
 
 void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector < vector < double > > > & levelToUhatVec )
 {
-
-#ifdef LOG4CXX
-{
-  int iii;
-  for (iii=0;iii<gradedMeshVec.NElements();iii++)
-  {
-    std::stringstream sout;
-    gradedMeshVec[iii]->Print(sout);
-    LOGPZ_DEBUG ( logger, sout.str().c_str() );
-  }
- }
-#endif
-
-
 	int nlevels = gradedMeshVec.NElements();
 	int im = 0;		// mesh iterator
 	int iel = 0;	// element iterator
@@ -634,12 +662,6 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 
 
 			TPZCompMesh * fineMesh = gradedMeshVec[ im - 1 ];
-      {
-        stringstream name; name << "malha" << im << ".txt";
-        ofstream malhaFile(name.str().c_str());
-        fineMesh->Print(malhaFile);
-        fineMesh->Reference()->Print(malhaFile);
-      }
 			fineMesh->Reference()->RestoreReference(fineMesh);
 
 			for ( isub = 0; isub < nsubel; isub++ )
@@ -665,6 +687,7 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 						uhat [ ist ] += gradient [ ist * 3 + idim ] * ( fatherCenter[ 0 ] - sonCenter [ 0 ] );
 					}
 				}
+#ifdef HUGE_DEBUG
 #ifdef LOG4CXX
 				{
 					stringstream sout;
@@ -676,9 +699,11 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 					LOGPZ_DEBUG ( logger, sout.str().c_str() );
 				}
 #endif
+#endif
 				uhatVal [ subcelIdx ] = uhat;
 			}
 		}
+#ifdef HUGE_DEBUG
 #ifdef LOG4CXX
 		{
 			stringstream sout;
@@ -696,6 +721,7 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 			}
 			LOGPZ_DEBUG ( logger, sout.str().c_str() );
 		}
+#endif
 #endif
 		levelToUhatVec [ im ] = uhatVal;
 	}
@@ -841,6 +867,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
+	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
 
 	//Let's coarsen the elements
 	for (el=0;el<nel;el++)
@@ -876,6 +903,29 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			}
 			int newindex = -1;
 			CMesh.Coarsen ( subCElVec, newindex, true );
+			
+			
+			TPZCompEl * coarseEl = CMesh.ElementVec() [newindex];
+			TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(coarseEl);
+			if(disc)
+			{
+				disc->SetExternalShapeFunction(fakefunc);
+			}
+			else
+			{
+				cout << __PRETTY_FUNCTION__ << " Created a non discontinuous element\n";
+			}
+			CMesh.ExpandSolution();
+			TPZConnect coarseCon = coarseEl->Connect(0);
+			int coarseSeqNum = coarseCon.SequenceNumber();
+			TPZBlock &coarseBlock = CMesh.Block();
+			int coarseblocksize = coarseBlock.Size(coarseSeqNum);
+			//Gradients
+			int isol = 5;
+			for (; isol < coarseblocksize; isol++)
+			{
+				coarseBlock.Put( coarseSeqNum, 0, isol, 0, 0.0 );
+			}
 		}
 	}
 	CMesh.ExpandSolution();
@@ -1047,7 +1097,7 @@ void LoadDummySolution(TPZCompMesh *cmesh)
 #endif
 }
 
-void PrintMeshSolution ( TPZCompMesh * cmesh, std::ostream & sout)
+void PrintMeshSolution ( TPZCompMesh * cmesh, ostream & sout)
 {
 	sout << __PRETTY_FUNCTION__ << endl;
 	int iel= 0;
