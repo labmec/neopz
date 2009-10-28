@@ -178,10 +178,10 @@ void CheckRefinementLevel ( TPZCompMesh & CMesh,
               TPZAutoPointer < TPZRefPattern > & RefPattern );
 
 void SelectElementsByLevel ( TPZCompMesh & CMesh,
-               list< TPZCompEl *> & SelectedElements );
+               list< int > & SelectedElements );
 
 void RefineElements ( TPZCompMesh & CMesh,
-            list < TPZCompEl * > RefineList,
+            list < int > & RefineList,
             TPZAutoPointer < TPZRefPattern > & RefPattern );
 
 

@@ -1056,7 +1056,7 @@ void SelectElementsByLevel ( TPZCompMesh & CMesh,
 
 // Refine the elements on the RefineList
 void RefineElements ( TPZCompMesh & CMesh,
-					  list < int > RefineList,
+					  list < int > & RefineList,
 					  TPZAutoPointer < TPZRefPattern > & RefPattern )
 {
 	int siz = RefineList.size();

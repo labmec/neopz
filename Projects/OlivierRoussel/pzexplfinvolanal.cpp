@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.cpp,v 1.6 2009-10-15 22:21:06 fortiago Exp $
+//$Id: pzexplfinvolanal.cpp,v 1.7 2009-10-28 18:46:19 cesar Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -50,8 +50,15 @@ void TPZExplFinVolAnal::MultiResolution(std::ostream &out){
 
   fSimulationTime = 0.;
 
-  this->PostProcess(this->fDXResolution);
-
+	TPZVec<string> scal(3-2),vec(0);
+	scal[0] = "density";
+	//  scal[1] = "energy";
+	//  scal[2] = "Mach";
+	stringstream nome; nome << "teste_inicial.dx";
+	this->DefineGraphMesh(3,scal,vec,nome.str());  
+	this->fSimulationTime = (0)*fTimeStep;
+	this->PostProcess(0);
+	this->CloseGraphMesh();
   TPZFMatrix LastSol, NextSol;
   LastSol = fSolution;
 
@@ -64,18 +71,30 @@ void TPZExplFinVolAnal::MultiResolution(std::ostream &out){
     fSolution = NextSol;
     TPZAnalysis::LoadSolution();
 
-    GetAdaptedMesh(this->Mesh());
+   GetAdaptedMesh(this->Mesh());
+	  this->SetCompMesh(this->Mesh());
 
     this->fSolution = this->Mesh()->Solution();
     LastSol = fSolution;
     TPZAnalysis::LoadSolution();
+	  this->Mesh()->LoadReferences();
+	  this->Mesh()->Reference()->RestoreReference(this->Mesh());
 
     if (this->fSaveFrequency){
       if ((!(iter % fSaveFrequency)) || (iter == (this->fNMaxIter-1))){
+		  TPZVec<string> scal(3-2),vec(0);
+		  scal[0] = "density";
+		  //  scal[1] = "energy";
+		  //  scal[2] = "Mach";
+		  stringstream nome; nome << "teste_" << iter <<".dx";
+		  this->DefineGraphMesh(3,scal,vec,nome.str());  
         this->fSimulationTime = (iter+1.)*fTimeStep;
-        this->PostProcess(this->fDXResolution);
+        this->PostProcess(0);
+		  this->CloseGraphMesh();
       }
     }
+	//  this->Mesh()->Print();
+	//  this->Mesh()->Reference()->Print();
 
     std::cout << "iter = " << iter << "\n";
     std::cout.flush();
