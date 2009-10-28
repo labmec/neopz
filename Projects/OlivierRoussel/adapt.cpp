@@ -277,12 +277,12 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 		int L = l + 1;
 		double NP = 1.0;
 		double Epsl = pow ( 2.0 , 3.0 * (double)( l - L ) / NP );
-		if ( fineDetail[ i ] > Epsl )
+		if ( fineDetail[ i ] > 10.0 * Epsl )
 		{
 			DivideOrCoarsen[ i ] = EDivide;
 			continue;
 		}
-		if ( fineDetail[ i ] <= Epsl )
+		if ( fineDetail[ i ] <= 10.0*Epsl )
 		{
 			/*coarseMesh->Reference()->ResetReference();
 			coarseMesh->LoadReferences();
@@ -542,6 +542,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 		int level = gel->Level();
 		if ( level < maxLevel ) continue;
 		TPZGeoEl * father = gel->Father();
+		if (!father) continue;
 		int nsubel = father->NSubElements();
 		TPZVec<int> subCElVec ( nsubel );
 		int isub = 0;
@@ -868,7 +869,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		}
 #endif
 	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
-
+	int isol;
 	//Let's coarsen the elements
 	for (el=0;el<nel;el++)
 	{
@@ -881,6 +882,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		int nsubel = father->NSubElements();
 		int isub = 0;
 		TPZVec<int> subCElVec ( nsubel );
+		TPZVec<REAL> solutionVec (5,0.);
 		for ( isub=0; isub<nsubel; isub++ )
 		{
 			TPZGeoEl *subGel = father->SubElement(isub);
@@ -889,7 +891,16 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			if (!subCel) continue;
 			int subindex = subCel->Index();
 			subCElVec [isub] = subindex;
-			if ( DivideOrCoarsen[subindex] != ECoarse )
+			
+			REAL sonVolume = subGel->Volume();
+			TPZVec <REAL> solution (5,0.);
+			TPZVec <REAL> grad (15,0.);
+			GetSolution ( CMesh, subCel, solution, grad );
+			for ( isol = 0; isol < 5/*blocksize*/; isol++ )
+			{
+				solutionVec[ isol ] += solution[isol] * fabs(sonVolume);			}
+			
+			if ( DivideOrCoarsen[subindex] == EDivide )
 			{
 				break;
 			}
@@ -920,8 +931,14 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			int coarseSeqNum = coarseCon.SequenceNumber();
 			TPZBlock &coarseBlock = CMesh.Block();
 			int coarseblocksize = coarseBlock.Size(coarseSeqNum);
+			//solution
+			REAL fatherVolume = fabs(father->Volume());
+			for ( isol = 0; isol < 5; isol++)
+			{
+				coarseBlock.Put( coarseSeqNum, 0, isol, 0, solutionVec [isol] / fatherVolume );
+			}
 			//Gradients
-			int isol = 5;
+			
 			for (; isol < coarseblocksize; isol++)
 			{
 				coarseBlock.Put( coarseSeqNum, 0, isol, 0, 0.0 );
@@ -929,7 +946,9 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		}
 	}
 	CMesh.ExpandSolution();
-
+	CMesh.CleanUpUnconnectedNodes();
+	CMesh.AdjustBoundaryElements();
+	CMesh.ExpandSolution();
 	//By now, the mesh is adapted. We need to check the difference of level of refinement between neighbors
 	CheckRefinementLevel ( CMesh, RefPattern );
 }
@@ -939,20 +958,23 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 void CheckRefinementLevel ( TPZCompMesh & CMesh,
 							TPZAutoPointer < TPZRefPattern > & RefPattern )
 {
-	list < TPZCompEl *> elementsToDivide;
+	list < int > elementsToDivide;
 	SelectElementsByLevel ( CMesh, elementsToDivide );
 	int count = 0;
-	while ( elementsToDivide.size() && count < 1000 )
+	while ( elementsToDivide.size() && count < 10 )
 	{
 		RefineElements ( CMesh, elementsToDivide, RefPattern );
 		SelectElementsByLevel ( CMesh, elementsToDivide );
 		count ++;
 	}
+	if (count == 10) {
+		cout << " Check refinement level skipped after reach the maximum number of steps\n";
+	}
 }
 
 
 void SelectElementsByLevel ( TPZCompMesh & CMesh,
-						     list < TPZCompEl * > & SelectedElements )
+						     list < int > & SelectedElementsIdx )
 {
 #ifdef LOG4CXX
 	{
@@ -1003,7 +1025,7 @@ void SelectElementsByLevel ( TPZCompMesh & CMesh,
 		int levelRight = gRight->Level();
 
 		// check the difference of levels
-		if ( abs ( levelLeft - levelRight ) > 1 )
+		if ( abs ( levelLeft - levelRight ) > 2 )
 		{
 			TPZVec < int > subIndex;
 			if ( levelLeft < levelRight )
@@ -1024,28 +1046,39 @@ void SelectElementsByLevel ( TPZCompMesh & CMesh,
 	set < TPZCompEl * >::iterator it;
 	for ( it = elementsToRefine.begin(); it != elementsToRefine.end(); it++ )
 	{
-		SelectedElements.push_back ( *it );
+		TPZCompEl * cel = *it;
+		if (!cel || cel->NConnects() != 1) continue;
+		int index = cel->Index();
+		SelectedElementsIdx.push_back (index);
 	}
 }
 
 
 // Refine the elements on the RefineList
 void RefineElements ( TPZCompMesh & CMesh,
-					  list < TPZCompEl * > RefineList,
+					  list < int > RefineList,
 					  TPZAutoPointer < TPZRefPattern > & RefPattern )
 {
+	int siz = RefineList.size();
+	
 	while ( RefineList.size() )
 	{
 		// take a pointer to element
-		TPZCompEl * cel = RefineList.front();
-		//remove this pointer from the list
+		int index = RefineList.front();
 		RefineList.pop_front();
+		if (index < 0 || index > CMesh.NElements() )
+		{
+			cout << "trying to divide element index " << index << " which is out of range ( 0 - " << CMesh.NElements() << endl;
+			continue;
+		}
+		TPZCompEl * cel = CMesh.ElementVec()[index];
+		//remove this pointer from the list
+		siz = RefineList.size();
 		//verify if the pointer exists
-		if ( ! cel ) continue;
+		if ( ! cel || cel->NConnects() != 1 ) continue;
 		//take index of corresponding element
-		int index = cel->Index();
 		//create an vector to receive the indexes of the children
-		TPZVec<int> subIndex;
+		TPZManVector<int> subIndex(8,0.);
 		// refinement function...
 		cel->Divide ( index, subIndex );
 		int isub = 0;
@@ -1055,9 +1088,14 @@ void RefineElements ( TPZCompMesh & CMesh,
 			TPZCompEl * subCel = CMesh.ElementVec()[ subElIndex ];
 			if ( ! subCel ) continue;
 			TPZGeoEl * subGel = subCel->Reference();
+			if ( !subGel) continue;
 			subGel->SetRefPattern ( RefPattern );
 		}
 	}
+	CMesh.ExpandSolution();
+	CMesh.CleanUpUnconnectedNodes();
+	CMesh.AdjustBoundaryElements();
+	CMesh.ExpandSolution();	
 }
 
 void LoadDummySolution(TPZCompMesh *cmesh)
