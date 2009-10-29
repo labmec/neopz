@@ -37,6 +37,7 @@ void InitializePZLOG()
 	if (res) std::cout << "Error in mkdir : " << res << std::endl;
 #endif
 
+	std::cout << "Logfile " << configfile << std::endl;
   InitializePZLOG(configfile);
 }
 
