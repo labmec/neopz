@@ -107,8 +107,8 @@ bool TPZGeoQuad::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &Si
      {
          cout << "Point (qsi,eta) = (" << qsi << "," << eta << ") is out of TPZGeoQuad Master Element Range!\n";
          cout << "See TPZGeoQuad::MapToSide() method!\n";
-		 DebugStop();
-         exit(-1);
+		 //DebugStop();
+         //exit(-1);
      }
 	bool regularmap = true;
      TPZTransform Transf = pztopology::TPZQuadrilateral::SideToSideTransform(TPZGeoQuad::NSides - 1, side);
@@ -129,7 +129,7 @@ bool TPZGeoQuad::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &Si
 TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
   if(side==8) {//8
     TPZManVector<int> nodes(4);
-    int i; 
+    int i;
     for (i=0;i<4;i++) {
       nodes[i] = orig->SideNodeIndex(side,i);
     }
