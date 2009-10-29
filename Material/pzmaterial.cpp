@@ -61,7 +61,7 @@ int TPZMaterial::VariableIndex(const std::string &name) {
    if(!strcmp(name.c_str(),"Error")) return 100;
    if(!strcmp(name.c_str(),"TrueError")) return 101;
    if(!strcmp(name.c_str(),"EffectivityIndex")) return 102;
-   
+
    if(!strcmp(name.c_str(),"L2Error")) return 103;
    if(!strcmp(name.c_str(),"SemiH1Error")) return 104;
    if(!strcmp(name.c_str(),"H1Error")) return 105;
@@ -72,7 +72,16 @@ int TPZMaterial::VariableIndex(const std::string &name) {
    if(!strcmp(name.c_str(),"dudxErrorPerArea")) return 109;
    if(!strcmp(name.c_str(),"dudyErrorPerArea")) return 110;
 
+   std::cout << __PRETTY_FUNCTION__ << " Variable " << name << " not found\n";
 
+#ifdef LOG4CXX
+   {
+	   std::stringstream sout;
+	   sout << "Variable " << name << " not found";
+	   LOGPZ_ERROR(logger,sout.str())
+   }
+#endif
+   DebugStop();
    return -1;
 }
 
