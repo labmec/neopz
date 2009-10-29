@@ -18,10 +18,9 @@
 
 using namespace std;
 
+
 #ifdef LOG4CXX
-#include <log4cxx/propertyconfigurator.h>
-using namespace log4cxx;
-using namespace log4cxx::helpers;
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzrefpattern"));
 #endif
 
 std::map<MElementType, std::list<TPZRefPattern::TPZRefPatternPermute> > TPZRefPattern::fPermutations;
@@ -1096,6 +1095,8 @@ void TPZRefPattern::CreateMidSideNodes (TPZGeoEl * gel, int side, TPZVec<int> &n
     //coordenada espacial do no na malha real
     gel->X(newnodecoord,refnodecoord);
     newnodeindexes[index] = -1;
+    REAL mindif = -1.;
+    int mindifindex = -1;
     //verificar se um vizinho ja criou o no
     for(i=0; i< sideindices.NElements(); i++) {
       for(k=0; k<3; k++) neighbourcoord[k] = gmesh->NodeVec()[sideindices[i]].Coord(k);
@@ -1103,10 +1104,27 @@ void TPZRefPattern::CreateMidSideNodes (TPZGeoEl * gel, int side, TPZVec<int> &n
       for (k=0;k<3;k++) {
         dif += (refnodecoord[k] - neighbourcoord[k]) * (refnodecoord[k] - neighbourcoord[k]);
       }
-      if (dif < 1e-12) {
-        newnodeindexes[index] = sideindices[i];
-        break;
+      if(mindifindex < 0. || mindif > dif)
+      {
+    	  mindif = dif;
+    	  mindifindex = i;
       }
+    }
+    if (mindif < 1e-6) {
+      newnodeindexes[index] = sideindices[mindifindex];
+    }
+    if (mindif >= 1.e-6 && sideindices.NElements() != 0)
+    {
+#ifdef LOG4CXX
+    	{
+    		std::stringstream sout;
+    		sout << "Incompatible refinement patterns detected\n";
+    		sout << "Closes node at distance " << mindif << std::endl;
+    		gel->Print(sout);
+    		LOGPZ_ERROR(logger,sout.str())
+    	}
+#endif
+    	DebugStop();
     }
     if (newnodeindexes[index] == -1) {
       //Caso o no nao exista nos vizinhos sera necessario cria-lo...
@@ -1134,7 +1152,7 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
   }
   TPZGeoEl *father = fInternalMesh.ElementVec()[0];
   TPZGeoEl *compfather = compare->fInternalMesh.ElementVec()[0];
-  if(father->Type() != compfather->Type()) 
+  if(father->Type() != compfather->Type())
   {
     return 0;
   }
@@ -1166,7 +1184,7 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
         break;
       }
     }
-    if(jn == nnodes) 
+    if(jn == nnodes)
     {
       return 0;
     }
@@ -1195,7 +1213,7 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
         break;
       }
     }
-    
+
     if(jel == nelem)
     {
 
@@ -1219,7 +1237,7 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
         for(in=0; in<nnode; in++) cout << igel->NodeIndex(in) << ' ';
         cout << std::endl;
       }*/
-    
+
       return 0;
     }
   }
