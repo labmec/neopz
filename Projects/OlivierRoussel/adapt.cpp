@@ -33,6 +33,8 @@
 static LoggerPtr logger(Logger::getLogger("pz.olivier.adapt"));
 #endif
 
+static int gLMax = 5; 
+
 int mainAdapt ( int argc, char *argv[] )
 {
 	// --- Start -----------------------------------------------
@@ -231,7 +233,7 @@ void GetSolution ( TPZCompMesh & CMesh,
 
 void ErrorEstimation ( TPZCompMesh & CMesh,
 					   TPZVec < EAdaptElementAction > & DivideOrCoarsen,
-					  double Epsl)
+					  double Epslref)
 {
 
 	int nel = CMesh.NElements();
@@ -251,22 +253,21 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 	EvaluateUHat ( gradedMeshVec, levelToElementUhatVec );
 
 	//Evaluate average solution for each state variable
-	TPZCompMesh * coarseMesh = gradedMeshVec[ 0 ];
-	TPZCompMesh * fineMesh = gradedMeshVec [ 1 ];
+	TPZCompMesh * coarseMesh = gradedMeshVec[ 1 ];
+	TPZCompMesh * fineMesh = gradedMeshVec [ 2 ];
 
 	EvaluateAverageOfSolution ( * fineMesh, AverageSolutionFineVec );
-	EvaluateAverageOfSolution ( * coarseMesh, AverageSolutionCoarseVec );
+	//EvaluateAverageOfSolution ( * coarseMesh, AverageSolutionCoarseVec );
 
 	cout << "Average fine " << AverageSolutionFineVec << endl;
-	cout << "Average coarse " << AverageSolutionCoarseVec << endl; 
+	///cout << "Average coarse " << AverageSolutionCoarseVec << endl; 
 	
-	TPZVec < REAL > fineDetail;
-	TPZVec < REAL > coarseDetail;
+	TPZManVector < REAL,1000 > fineDetail;
+	//TPZManVector < REAL,1000 > coarseDetail;
 	EvaluateDetail ( * fineMesh , AverageSolutionFineVec, levelToElementUhatVec, fineDetail );
-	EvaluateDetail ( * coarseMesh, AverageSolutionCoarseVec, levelToElementUhatVec, coarseDetail );
+	//EvaluateDetail ( * coarseMesh, AverageSolutionCoarseVec, levelToElementUhatVec, coarseDetail );
 
 	int i = 0;
-
 	for ( i = 0; i < fineDetail.NElements(); i++ )
 	{
 		fineMesh->Reference()->ResetReference();
@@ -275,9 +276,7 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 		if (!cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
 
 		int l = fineMesh->ElementVec()[i]->Reference()->Level();
-		int L = l + 1;
-		double NP = 1.0;
-		//double Epsl = pow ( 2.0 , 3.0 * (double)( l - L ) / NP );
+		double Epsl = Epslref * pow ( 2.0 ,(double)( l - gLMax ));
 		if ( fineDetail[ i ] > Epsl )
 		{
 			DivideOrCoarsen[ i ] = EDivide;
@@ -392,7 +391,7 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 
 		Detail [ celIdx ] = maxDetail;
 #ifdef LOG4CXX
-		sout << "Detail for element [ " << celIdx << " ] = " << maxDetail << " | " << dRho << " | " << dVel << " | " << dP << endl;
+		sout << "Detail for element [ " << celIdx << " ] = " << sol[0] << " - " << uhat[0] << " = " << dRho << " | " << dVel << " | " << dP << endl;
 #endif
 	}
 #ifdef LOG4CXX
