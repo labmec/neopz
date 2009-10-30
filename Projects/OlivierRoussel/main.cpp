@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.7 2009-10-30 13:18:40 cesar Exp $
+//$Id: main.cpp,v 1.8 2009-10-30 19:50:54 cesar Exp $
 
 #include "malhas.h"
 #include "MultiResMesh.h"
@@ -110,13 +110,14 @@ int main(int argc, char *argv[])
     cout << "initializing LOG\n";
 	InitializePZLOG();
   }
-  const int L = 5;
+  const int L = 3;
 
   REAL timeStep;
 //   TPZCompMesh * cmesh = CreateMeshLaxAndSod(L,timeStep);
 //   TPZCompMesh * cmesh = CreateMeshLax2D(L,timeStep);
 
   cout << "generating interpolation space...\n";
+	TPZGeoMesh *gmesh = CreateCoarseMesh(L);
   TPZCompMesh * cmesh = CreateMeshMultires(gmesh);
 
   
@@ -169,7 +170,7 @@ int main(int argc, char *argv[])
 //  an.DefineGraphMesh(3,scal,vec,nome.str());
 //   an.Run();	
 
-	double Epsl = 0.125 * 0.1*5.0;
+	double Epsl = 1.e-3;//0.125 * 0.1*5.0;
   an.MultiResolution( Epsl );
 
 

@@ -199,7 +199,8 @@ TPZAutoPointer < TPZRefPattern > GetUsedRefinementPattern ( TPZCompMesh * CMesh 
  */
 void GetAdaptedMesh ( TPZCompMesh * CMesh, double Epsl )
 {
-	TPZVec < EAdaptElementAction > DivideOrCoarsen ( CMesh->NElements(), ENone );
+	const int nelem = CMesh->NElements();
+	TPZManVector < EAdaptElementAction,1000 > DivideOrCoarsen ( nelem, ENone );
 	// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
 	ErrorEstimation ( * CMesh, DivideOrCoarsen, Epsl );
 	TPZAutoPointer < TPZRefPattern > laraRefinementPattern = GetUsedRefinementPattern ( CMesh );
@@ -242,7 +243,7 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 
 	// the average solutions are: rho , v (as vector ) and P
 	TPZVec < REAL > AverageSolutionFineVec ( 3, 0.0 );
-	TPZVec < REAL > AverageSolutionCoarseVec ( 3, 0.0 );
+	//TPZVec < REAL > AverageSolutionCoarseVec ( 3, 0.0 );
 
 	TPZVec < TPZCompMesh * > gradedMeshVec;
 	//Produce graded mesh vector, projecting the solution
@@ -253,7 +254,7 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 	EvaluateUHat ( gradedMeshVec, levelToElementUhatVec );
 
 	//Evaluate average solution for each state variable
-	TPZCompMesh * coarseMesh = gradedMeshVec[ 1 ];
+	//TPZCompMesh * coarseMesh = gradedMeshVec[ 1 ];
 	TPZCompMesh * fineMesh = gradedMeshVec [ 2 ];
 
 	EvaluateAverageOfSolution ( * fineMesh, AverageSolutionFineVec );
@@ -358,7 +359,8 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 
 		int celIdx = cel->Index();
 		int celLevel = cel->Reference()->Level();
-
+		if ( levelToElementUhatVec.find(celLevel) == levelToElementUhatVec.end()) continue;
+		if ( celIdx < 0 || celIdx >= levelToElementUhatVec[ celLevel].size() ) continue;
 		vector < double > uhat = ( levelToElementUhatVec[ celLevel] ) [ celIdx ];
 		TPZVec < REAL > sol ( 5, 0.0 );
 		TPZVec < REAL > grad ( 15, 0.0 );
@@ -863,6 +865,11 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		if (!cel) continue;
 		if ( DivideOrCoarsen[el] != ECoarse ) continue;
 		TPZGeoEl *gel = cel->Reference();
+		if ( gel->Level() < 3)
+		{
+			DivideOrCoarsen[el] = ENone;
+			continue;
+		}
 		TPZGeoEl *father = gel->Father();
 		if ( !father ) continue;
 		int nsubel = father->NSubElements();
@@ -903,6 +910,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		TPZCompEl *cel = CMesh.ElementVec()[el];
 		if (!cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
 		int index = cel->Index();
+		if (cel->Reference()->Level() > gLMax ) continue;
 		TPZVec<int> subIndex;
 #ifdef LOG4CXX_KEEP
 		{
@@ -929,7 +937,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
-		cel->Divide ( index, subIndex );
+		cel->Divide ( index, subIndex, true );
 		int isub = 0;
 		for ( isub=0; isub< subIndex.NElements(); isub++ )
 		{
@@ -1232,15 +1240,9 @@ void RefineElements ( TPZCompMesh & CMesh,
 		//take index of corresponding element
 		//create an vector to receive the indexes of the children
 		TPZManVector<int> subIndex(8,0.);
+		if (cel->Reference()->Level() > gLMax) continue;
 		// refinement function...
-		cel->Divide ( index, subIndex );
-#ifndef NDEBUG
-		if ( !CheckReferences(CMesh) )
-		{
-			cout << "Teje pego!\n";
-			exit (-1);
-		}
-#endif
+		cel->Divide ( index, subIndex, true );
 		int isub = 0;
 		for ( isub=0; isub< subIndex.NElements(); isub++ )
 		{
