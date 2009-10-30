@@ -349,7 +349,9 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 #endif
 	
 	CMesh.Reference()->RestoreReference(&CMesh);
-
+#ifdef LOG4CXX
+	std::stringstream sout;
+#endif
 	for ( iel = 0; iel < nel; iel++ )
 	{
 		TPZCompEl * cel = CMesh.ElementVec()[ iel ];
@@ -364,19 +366,38 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 		GetSolution ( CMesh, cel, sol, grad );
 		double maxDetail = 0.0;
 
-		double dRho = fabs ( sol[ 0 ] - uhat [ 0 ] ) / AverageSolutionVec[ 0 ] ;
+		double aux =  AverageSolutionVec[ 0 ] ;
+		double dRho = 0.0;
+		double dU = 0.0;
+		double dV = 0.0;
+		double dW = 0.0;
+		double dVel = 0.0;
+		double dP = 0.0;
+		const double tol = 1.e-12;
+		if ( fabs (aux) > tol )	dRho = fabs ( sol[ 0 ] - uhat [ 0 ] ) / aux;
 		maxDetail = dRho;
-		double dU = fabs ( sol[ 1 ] - uhat [ 1 ] ) / AverageSolutionVec[ 1 ] ;
-		double dV = fabs ( sol[ 2 ] - uhat [ 2 ] ) / AverageSolutionVec[ 2 ] ;
-		double dW = fabs ( sol[ 3 ] - uhat [ 3 ] ) / AverageSolutionVec[ 3 ] ;
-		double dVel = sqrt ( dU * dU + dV * dV + dW * dW );
+		aux  = AverageSolutionVec[ 1 ];
+		if ( fabs (aux) > tol ) dU = fabs ( sol[ 1 ] - uhat [ 1 ] ) / aux ;
+		aux = AverageSolutionVec[ 2 ];
+		if ( fabs (aux) > tol ) dV = fabs ( sol[ 2 ] - uhat [ 2 ] ) / aux ;
+		aux = AverageSolutionVec[ 3 ];
+		if ( fabs (aux) > tol ) dW = fabs ( sol[ 3 ] - uhat [ 3 ] ) / aux ;
+		
+		dVel = sqrt ( dU * dU + dV * dV + dW * dW );
 		maxDetail = ( dVel > maxDetail ) ? dVel : maxDetail;
 
-		double dP = fabs ( sol[ 4 ] - uhat [ 4 ] ) / AverageSolutionVec[ 4 ] ;
+		aux = AverageSolutionVec[ 4 ];
+		if ( fabs (aux) > tol ) dP = fabs ( sol[ 4 ] - uhat [ 4 ] ) / aux ;
 		maxDetail = ( dP > maxDetail ) ? dP : maxDetail;
 
 		Detail [ celIdx ] = maxDetail;
+#ifdef LOG4CXX
+		sout << "Detail for element [ " << celIdx << " ] = " << maxDetail << " | " << dRho << " | " << dVel << " | " << dP << endl;
+#endif
 	}
+#ifdef LOG4CXX
+	LOGPZ_DEBUG(logger,sout.str().c_str());
+#endif
 }
 
 
