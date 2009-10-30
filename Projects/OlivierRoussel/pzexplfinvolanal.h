@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.h,v 1.5 2009-10-15 22:21:06 fortiago Exp $
+//$Id: pzexplfinvolanal.h,v 1.6 2009-10-30 13:19:55 cesar Exp $
 
 #ifndef EXPLFINVOLANALH
 #define EXPLFINVOLANALH
@@ -53,7 +53,7 @@ public:
 
   virtual void Run(std::ostream &out = std::cout);
 
-  void MultiResolution(std::ostream &out = std::cout);
+  void MultiResolution(double Epsl, std::ostream &out = std::cout);
 
   virtual void PostProcess(int resolution){ 
     TPZAnalysis::PostProcess(resolution);

@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.6 2009-10-15 22:21:06 fortiago Exp $
+//$Id: main.cpp,v 1.7 2009-10-30 13:18:40 cesar Exp $
 
 #include "malhas.h"
 #include "MultiResMesh.h"
@@ -93,20 +93,47 @@
 #include "tools.h"
 #include <TPZTimer.h>
 #include "pzexplfinvolanal.h"
+#include "adapt.h"
 
 using namespace std;
 
-int main(){
+int main(int argc, char *argv[])
+{
+  if (argc > 1) 
+  {
+	std::string logpath ( argv[1] );
+    cout << "initializing LOG usign the following configuration file " << logpath << endl;
+    InitializePZLOG ( logpath );	
+  }
+  else
+  {
+    cout << "initializing LOG\n";
+	InitializePZLOG();
+  }
+  const int L = 5;
 
-  InitializePZLOG();
-  const int L = 3;
   REAL timeStep;
 //   TPZCompMesh * cmesh = CreateMeshLaxAndSod(L,timeStep);
 //   TPZCompMesh * cmesh = CreateMeshLax2D(L,timeStep);
-//  TPZCompMesh * cmesh = CreateMeshLinearConvection(L,timeStep);
-  TPZGeoMesh * gmesh = CreateCoarseMesh(L);
+
+  cout << "generating interpolation space...\n";
   TPZCompMesh * cmesh = CreateMeshMultires(gmesh);
+
+  
+//  cout << "loading dummy solution...\n";
+  
+//  LoadDummySolution ( cmesh );
+  
+ // cout << "entering adaptive procedure\n";
+  //GetAdaptedMesh ( cmesh );
+  
+ // cmesh->Print();
+ // cout << "finish!\n";
+ // return EXIT_SUCCESS;
+  
+
   timeStep = ComputeTimeStep(0.01,L,L,cmesh->Reference());
+
 
 #ifdef DEBUG
 {
@@ -132,15 +159,19 @@ int main(){
   an.SetInitialSolution(InitialSol);
 
   an.Set(timeStep,niter,1e-10);
-  an.SetSaveFrequency(niter/5,0);
-  TPZVec<string> scal(3-2),vec(0);
-  scal[0] = "density";
+
+//  an.SetSaveFrequency(niter/5,0);
+//  TPZVec<string> scal(3-2),vec(0);
+//  scal[0] = "density";
 //  scal[1] = "energy";
 //  scal[2] = "Mach";
-  stringstream nome; nome << "testeL"/*<<L*/<<".dx";
-  an.DefineGraphMesh(3,scal,vec,nome.str());
-  an.MultiResolution();
-//   an.Run();
+//  stringstream nome; nome << "testeL"<<".dx";
+//  an.DefineGraphMesh(3,scal,vec,nome.str());
+//   an.Run();	
+
+	double Epsl = 0.125 * 0.1*5.0;
+  an.MultiResolution( Epsl );
+
 
   delete cmesh;
   delete gmesh;

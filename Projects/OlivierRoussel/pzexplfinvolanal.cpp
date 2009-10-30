@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.cpp,v 1.7 2009-10-28 18:46:19 cesar Exp $
+//$Id: pzexplfinvolanal.cpp,v 1.8 2009-10-30 13:19:24 cesar Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -46,7 +46,7 @@ void TPZExplFinVolAnal::SetInitialSolutionAsZero(){
   this->fSolution.Zero();
 }
 
-void TPZExplFinVolAnal::MultiResolution(std::ostream &out){
+void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
 
   fSimulationTime = 0.;
 
@@ -71,7 +71,7 @@ void TPZExplFinVolAnal::MultiResolution(std::ostream &out){
     fSolution = NextSol;
     TPZAnalysis::LoadSolution();
 
-   GetAdaptedMesh(this->Mesh());
+   GetAdaptedMesh(this->Mesh(), Epsl);
 	  this->SetCompMesh(this->Mesh());
 
     this->fSolution = this->Mesh()->Solution();
@@ -349,7 +349,7 @@ void TPZExplFinVolAnal::AssembleFluxes2ndOrder(const TPZFMatrix & Solution){
   ///fSolution must have zeros in gradient positions
   this->fRhs.Zero();
   TPZEulerEquation::SetComputeGradient();
-  this->ParallelComputeFlux( this->fFacePtrList );
+  this->ComputeFlux( this->fFacePtrList );
   this->DivideByVolume(fRhs,1.);
   fSolution += fRhs;///fRhs has zeros in state variables position and fSolution has zeros in gradient positions
 

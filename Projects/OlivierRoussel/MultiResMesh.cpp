@@ -1,4 +1,4 @@
-//$Id: MultiResMesh.cpp,v 1.3 2009-10-09 15:14:19 fortiago Exp $
+//$Id: MultiResMesh.cpp,v 1.4 2009-10-30 13:20:38 cesar Exp $
 
 #include "malhas.h"
 #include "TPZFakeFunction.h"
@@ -189,7 +189,9 @@ void InitialSolutionMultires(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
     double xCircle = 0.25;
     double yCircle = 0.5;
     double zCircle = 0.5;
-    double R = 0.125;
+
+    double R = 0.025;
+
     if( (x-xCircle)*(x-xCircle)+(y-yCircle)*(y-yCircle)+(z-zCircle)*(z-zCircle) <= R*R ) u = 1.;
 
     InitialSol(blpos+blocksize-20+0,0) = u;

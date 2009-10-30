@@ -106,12 +106,13 @@ inline void DummyFunction2(TPZVec<REAL> &co, TPZVec<REAL> &val)
 {
 	val.Fill(co[0]);//(1-co[0])*co[0]);
 }
-void GetAdaptedMesh(TPZCompMesh * cmesh);
+void GetAdaptedMesh( TPZCompMesh * cmesh, double Epsl );
 
 
 //Evaluate error indicator / estimator
 void ErrorEstimation ( TPZCompMesh & CMesh,
-             TPZVec < EAdaptElementAction > & DivideOrCoarsen );
+                       TPZVec < EAdaptElementAction > & DivideOrCoarsen,
+					   double Epsl );
 
 //Proceed the mesh adaption
 void AdaptMesh ( TPZCompMesh & CMesh,
@@ -187,4 +188,5 @@ void RefineElements ( TPZCompMesh & CMesh,
 
 void PrintMeshSolution ( TPZCompMesh * cmesh, std::ostream & sout);
 
-
+bool CheckReferences ( TPZCompMesh & CMesh );
+bool CheckElementReferences(TPZCompEl * CEl );
