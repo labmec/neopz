@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.cpp,v 1.8 2009-10-30 13:19:24 cesar Exp $
+//$Id: pzexplfinvolanal.cpp,v 1.9 2009-10-30 22:20:20 fortiago Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -48,31 +48,39 @@ void TPZExplFinVolAnal::SetInitialSolutionAsZero(){
 
 void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
 
+   this->DX(0, "testeinicial_");
+   cout << "Starting adapt .... \n";cout.flush();
+   GetAdaptedMesh(this->Mesh(), Epsl);
+   cout << "Adapt finished .... \n";cout.flush();
+   this->SetCompMesh(this->Mesh());   
+
+
   fSimulationTime = 0.;
 
-	TPZVec<string> scal(3-2),vec(0);
-	scal[0] = "density";
-	//  scal[1] = "energy";
-	//  scal[2] = "Mach";
-	stringstream nome; nome << "teste_inicial.dx";
-	this->DefineGraphMesh(3,scal,vec,nome.str());  
-	this->fSimulationTime = (0)*fTimeStep;
-	this->PostProcess(0);
-	this->CloseGraphMesh();
+  this->DX(0, "testeinicialadapt_");
   TPZFMatrix LastSol, NextSol;
   LastSol = fSolution;
 
   for(int iter = 0; iter < this->fNMaxIter; iter++){
 
     this->InitializeAuxiliarVariables();
-    this->TimeEvolution(LastSol,NextSol);
+   this->TimeEvolution(LastSol,NextSol);
+
     this->CleanAuxiliarVariables();
     LastSol = NextSol;
     fSolution = NextSol;
     TPZAnalysis::LoadSolution();
 
+  if( iter % 5  == 0){
+//     this->DX(iter, "antes_");
+    cout << "Starting adapt .... \n";cout.flush();
    GetAdaptedMesh(this->Mesh(), Epsl);
-	  this->SetCompMesh(this->Mesh());
+   cout << "Adapt finished .... \n";cout.flush();
+   this->SetCompMesh(this->Mesh());   
+//    this->DX(iter, "depois_");
+  }
+   
+//    return;
 
     this->fSolution = this->Mesh()->Solution();
     LastSol = fSolution;
@@ -82,15 +90,7 @@ void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
 
     if (this->fSaveFrequency){
       if ((!(iter % fSaveFrequency)) || (iter == (this->fNMaxIter-1))){
-		  TPZVec<string> scal(3-2),vec(0);
-		  scal[0] = "density";
-		  //  scal[1] = "energy";
-		  //  scal[2] = "Mach";
-		  stringstream nome; nome << "teste_" << iter <<".dx";
-		  this->DefineGraphMesh(3,scal,vec,nome.str());  
-        this->fSimulationTime = (iter+1.)*fTimeStep;
-        this->PostProcess(0);
-		  this->CloseGraphMesh();
+        this->DX(iter,"teste_");
       }
     }
 	//  this->Mesh()->Print();
@@ -102,6 +102,18 @@ void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
   }///time step iterations
 
 }///void
+
+void TPZExplFinVolAnal::DX(int iter, string filename){
+  TPZVec<string> scal(3-2),vec(0);
+  scal[0] = "density";
+  //  scal[1] = "energy";
+  //  scal[2] = "Mach";
+  stringstream nome; nome << filename << iter <<".dx";
+  this->DefineGraphMesh(3,scal,vec,nome.str());  
+  this->fSimulationTime = (iter+1.)*fTimeStep;
+  this->PostProcess(0);
+  this->CloseGraphMesh();
+}
 
 void TPZExplFinVolAnal::Run(std::ostream &out){
 

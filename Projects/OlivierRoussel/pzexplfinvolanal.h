@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.h,v 1.6 2009-10-30 13:19:55 cesar Exp $
+//$Id: pzexplfinvolanal.h,v 1.7 2009-10-30 22:20:20 fortiago Exp $
 
 #ifndef EXPLFINVOLANALH
 #define EXPLFINVOLANALH
@@ -87,6 +87,9 @@ public:
   void ComputeGradientForDetails(const TPZFMatrix & PrimitiveSolution, TPZFMatrix & SolutionWithGrad);
 
 protected:
+
+
+  void DX(int iter, std::string filename);
 
   /** divide vec elements by cell volume and multiply by alpha */
   void DivideByVolume(TPZFMatrix &vec, double alpha);

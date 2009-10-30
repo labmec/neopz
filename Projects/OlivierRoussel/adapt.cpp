@@ -203,8 +203,11 @@ void GetAdaptedMesh ( TPZCompMesh * CMesh, double Epsl )
 	TPZManVector < EAdaptElementAction,1000 > DivideOrCoarsen ( nelem, ENone );
 	// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
 	ErrorEstimation ( * CMesh, DivideOrCoarsen, Epsl );
+ cout << " GetUsedRefinementPattern " << endl;cout.flush();
 	TPZAutoPointer < TPZRefPattern > laraRefinementPattern = GetUsedRefinementPattern ( CMesh );
+ cout << " AdaptMesh " << endl;cout.flush(); 
 	AdaptMesh ( * CMesh,  DivideOrCoarsen, laraRefinementPattern );
+  cout << " GetAdaptedMesh finished " << endl;cout.flush(); 
 }
 
 /**
@@ -247,16 +250,19 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 
 	TPZVec < TPZCompMesh * > gradedMeshVec;
 	//Produce graded mesh vector, projecting the solution
+ cout <<  "ProduceGradedMeshes ... \n"; cout.flush();
 	ProduceGradedMeshes ( CMesh, gradedMeshVec );
 
 	//evaluate uhat for each level
 	map < int, vector < vector < double > > > levelToElementUhatVec;
+ cout <<  "EvaluateUHat( ... \n"; cout.flush(); 
 	EvaluateUHat ( gradedMeshVec, levelToElementUhatVec );
 
 	//Evaluate average solution for each state variable
 	//TPZCompMesh * coarseMesh = gradedMeshVec[ 1 ];
 	TPZCompMesh * fineMesh = gradedMeshVec [ 2 ];
 
+cout <<  "EvaluateAverageOfSolution( ... \n"; cout.flush();
 	EvaluateAverageOfSolution ( * fineMesh, AverageSolutionFineVec );
 	//EvaluateAverageOfSolution ( * coarseMesh, AverageSolutionCoarseVec );
 
@@ -265,16 +271,20 @@ void ErrorEstimation ( TPZCompMesh & CMesh,
 	
 	TPZManVector < REAL,1000 > fineDetail;
 	//TPZManVector < REAL,1000 > coarseDetail;
+ cout <<  "EvaluateDetail( ... \n"; cout.flush(); 
 	EvaluateDetail ( * fineMesh , AverageSolutionFineVec, levelToElementUhatVec, fineDetail );
 	//EvaluateDetail ( * coarseMesh, AverageSolutionCoarseVec, levelToElementUhatVec, coarseDetail );
 
+cout <<  "Adaptando ... \n"; cout.flush();
 	int i = 0;
+  fineMesh->Reference()->ResetReference();
+  fineMesh->LoadReferences(); 
 	for ( i = 0; i < fineDetail.NElements(); i++ )
 	{
-		fineMesh->Reference()->ResetReference();
-		fineMesh->LoadReferences();
 		TPZCompEl * cel = fineMesh->ElementVec()[ i ];
 		if (!cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
+    //fineMesh->Reference()->ResetReference();
+    //fineMesh->LoadReferences();
 
 		int l = fineMesh->ElementVec()[i]->Reference()->Level();
 		double Epsl = Epslref * pow ( 2.0 ,(double)( l - gLMax ));
@@ -406,7 +416,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 						   TPZVec < TPZCompMesh * > & gradedMeshVec )
 {
 #ifndef NDEBUG
-	{
+	{dfsdfssdf
 		if ( !CheckReferences( OriginalMesh ) )
 		{
 			std::stringstream sout;
@@ -434,7 +444,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	int im = 0;
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
-	{
+	{dfsfsd
 		TPZGeoMesh * gMesh = OriginalMesh.Reference();
 		int i =0;
 		std::stringstream sout;
@@ -453,7 +463,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	gradedMeshVec [0] = OriginalMesh.Clone();
 	(gradedMeshVec [0])->LoadReferences();
 #ifndef NDEBUG
-	{
+	{fdsdsf
 		if ( !CheckReferences(*gradedMeshVec[0]) )
 		{
 			std::stringstream sout;
@@ -467,7 +477,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
-	{
+	{dsfds
 		TPZGeoMesh * gMesh = OriginalMesh.Reference();
 		int i =0;
 		std::stringstream sout;
@@ -486,9 +496,10 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	
 	for ( im = 1; im < nlevels; im++ )
 	{
+    cout << "clonando nivel " << im << "\n"; cout.flush(); 
 		gradedMeshVec[ im ] = CoarsenOneLevel ( * (gradedMeshVec [ im - 1 ]) );
 #ifndef NDEBUG
-		{
+		{fdsfsd
 			if ( !CheckReferences ( *gradedMeshVec [ im ] ) )
 			{
 				std::stringstream sout;
@@ -501,7 +512,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 #endif
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
-		{
+		{ddsf
 			stringstream sout;
 			gradedMeshVec[im]->Print(sout);
 			LOGPZ_DEBUG ( logger, sout.str().c_str() );
@@ -513,6 +524,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	//Verify the projection method
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
+fdsfds
 	for ( im = 0; im < nlevels; im++ )
 	{
 		TPZCompMesh * cmesh = gradedMeshVec[ im ];
@@ -717,12 +729,15 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 		TPZCompMesh * coarseMesh = gradedMeshVec[ im ];
 		coarseMesh->Reference()->RestoreReference(coarseMesh);
 		int nel = coarseMesh->NElements();
+//     cout << "nivel = " << im << "  com nel = " << nel << endl;   
 		vector < vector < double > > uhatVal ( nel );
 		for ( iel = 0; iel < nel; iel++ )
 		{
-			coarseMesh->Reference()->RestoreReference(coarseMesh);
+//       if(iel % 1000 == 0) cout << iel << " ";  cout.flush();
+			
 			TPZCompEl * cel = coarseMesh->ElementVec()[ iel ];
 			if ( !cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
+       
 			TPZGeoEl * gel = cel->Reference();
 			if ( !gel ) continue;
 			if ( ! gel->HasSubElement() )
@@ -730,9 +745,11 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 				//copy uhat do nível anterior...
 				return;
 			}
+      coarseMesh->Reference()->RestoreReference(coarseMesh);     
 			int nsubel = gel->NSubElements();
-			TPZVec < REAL > fatherCenter (3,0.);
-			gel->CenterPoint ( gel->NSides() - 1, fatherCenter );
+			TPZVec < REAL > qsi(3,0.),fatherCenter (3,0.);
+			gel->CenterPoint ( gel->NSides() - 1, qsi);
+      gel->X(qsi,fatherCenter);
 
 
 			TPZCompMesh * fineMesh = gradedMeshVec[ im - 1 ];
@@ -749,7 +766,8 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 
 				int subcelIdx = subCel->Index();
 				TPZVec < REAL > sonCenter (3,0.);
-				subGel->CenterPoint ( subGel->NSides() - 1, sonCenter );
+				subGel->CenterPoint ( subGel->NSides() - 1, qsi );
+        subGel->X(qsi,sonCenter);    
 
 				// take the solution and the gradient value from coarse mesh
 				vector < double > uhat ( 5, 0.0 );
@@ -911,7 +929,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		if (!cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
 		int index = cel->Index();
 		if (cel->Reference()->Level() > gLMax ) continue;
-		TPZVec<int> subIndex;
+		TPZManVector<int,8> subIndex;
 #ifdef LOG4CXX_KEEP
 		{
 			std::stringstream sout;
@@ -956,10 +974,10 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			{
 				cout << __PRETTY_FUNCTION__ << " Created a non discontinuous element\n";
 			}
-			CMesh.ExpandSolution();
+/*			CMesh.ExpandSolution();
 			CMesh.CleanUpUnconnectedNodes();
 			CMesh.AdjustBoundaryElements();
-			CMesh.ExpandSolution();		}
+			CMesh.ExpandSolution();		*/}
 	}
 	CMesh.ExpandSolution();
 	CMesh.CleanUpUnconnectedNodes();
@@ -1122,7 +1140,7 @@ void CheckRefinementLevel ( TPZCompMesh & CMesh,
 	list < int > elementsToDivide;
 	SelectElementsByLevel ( CMesh, elementsToDivide );
 	int count = 0;
-	while ( elementsToDivide.size() && count < 10 )
+	while ( elementsToDivide.size() && count < 2 )
 	{
 		RefineElements ( CMesh, elementsToDivide, RefPattern );
 		SelectElementsByLevel ( CMesh, elementsToDivide );
