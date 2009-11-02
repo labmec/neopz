@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.11 2006-10-17 00:54:50 phil Exp $
+//$Id: pzgnode.h,v 1.12 2009-11-02 23:43:05 phil Exp $
 
 /**File : pzgnode.h
 
@@ -89,6 +89,11 @@ virtual  ~TPZGeoNode() { }
   void SetCoord(REAL *x,int dim = 3);
   /**Set the i-th coordinate for current node*/
   void SetCoord(int i,REAL coord);
+	
+	/**
+	 * fill the coordinates of the node
+	 */
+	void GetCoordinates(TPZVec<REAL> &co);
 
   void Print(std::ostream & out = std::cout);
 };

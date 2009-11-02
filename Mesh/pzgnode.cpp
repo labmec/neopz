@@ -1,4 +1,4 @@
-//$Id: pzgnode.cpp,v 1.7 2006-02-21 14:49:13 cesar Exp $
+//$Id: pzgnode.cpp,v 1.8 2009-11-02 23:43:05 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -64,6 +64,14 @@ void TPZGeoNode::SetCoord(int i,REAL coord) {
     return;
   }
   fCoord[i] = coord;
+}
+
+/**
+ * fill the coordinates of the node
+ */
+void TPZGeoNode::GetCoordinates(TPZVec<REAL> &co)
+{
+	for(int i=0; i<3; i++) co[i] = fCoord[i];
 }
 
 void TPZGeoNode::Print(ostream & out) {
