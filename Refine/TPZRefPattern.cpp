@@ -279,6 +279,9 @@ void TPZRefPattern::ReadPattern(std::istream &in,std::vector< TPZAutoPointer<TPZ
       fSideRefPattern[is] = 0;
      }
   }
+#ifdef DEBUG
+	this->TransformationTest();
+#endif
 }
 
 
@@ -950,7 +953,7 @@ int TPZRefPattern::SidePartition(TPZVec<TPZGeoElSide> &gelvec, int side){
 void TPZRefPattern::TransformationTest(){
   int isub,sd,ip;
   //x1 no filho deformado, x2 no pai deformado
-  TPZManVector<REAL> x1(3),pf(3),x2(3),xpf(3,0.);
+  TPZManVector<REAL,3> x1(3),pf(3),x2(3),xpf(3,0.);
   REAL weight;
   TPZGeoEl *father = Element(0);/**pai*/
   int dimfatside,fatside,nsides;
@@ -961,13 +964,18 @@ void TPZRefPattern::TransformationTest(){
     subel  = Element(isub+1);
     nsides = subel->NSides();
     for(sd=0;sd<nsides;sd++){
-      if( sd<subel->NNodes() && IsFatherNeighbour(TPZGeoElSide(father,sd),subel) ) continue;
+		TPZGeoElSide subside(subel,sd);
+		if(!ConstJacobian(subside,1.e-6))
+		{
+		   continue;
+		}
+      if( sd<subel->NNodes() && IsFatherNeighbour(TPZGeoElSide(subel,sd),father) ) continue;
       int dims = subel->SideDimension(sd);
       int dimsub = subel->Dimension();
       /**regra de integrac� para o espaco param�rico do lado do sub-elemento*/
       TPZIntPoints *rule = subel->CreateSideIntegrationRule(sd,5);
-      TPZVec<int> order(dims,5);
-      TPZVec<REAL> point(dims,0.),point2(dimsub);
+      TPZVec<int> order(dims,2);
+      TPZManVector<REAL,3> point(dims,0.),point2(dimsub),pointparamfather(dimfat,0.);
       rule->SetOrder(order);
       for(ip=0;ip<rule->NPoints();ip++){
         /**ponto no espaco param�rico do lado do filho*/
@@ -983,15 +991,17 @@ void TPZRefPattern::TransformationTest(){
         sidet.Apply(point,point2);//**transformac� para o interior do mestre do sub-elemento*
         subel->X(point2,x1);/**ponto no lado do filho deformado*/
         /**transformac�: espaco param�rico do filho/lado  -> espaco param�rico do pai/lado*/
-        fatside = father->WhichSide(x1);/**no elemento mestre do pai, father �o deformado*/;
+		  father->ComputeXInverse(x1, pointparamfather, 1.e-10);
+        fatside = father->WhichSide(pointparamfather);/**no elemento mestre do pai, father �o deformado*/;
         dimfatside = father->SideDimension(fatside);
         TPZTransform trans = Transform(sd,isub);/**transforma�o calculada pelo TPZRefPattern*/
         /**------------teste das transforma�es-----------*/
-        TPZTransform sdtosd(dims);
-        TPZGeoElSide(subel,sd).SideTransform3(TPZGeoElSide(father,fatside),sdtosd);
-        if(IsNotEqual(trans,sdtosd)){
-          PZError <<  "TPZRefPattern::TransformationTest as transformacoes nao sao iguais -> 2\n\n";
-        }
+		  // Este codigo somente funciona se o pai e refinado utilizando o proprio refpattern
+//        TPZTransform sdtosd(dims);
+//        TPZGeoElSide(subel,sd).SideTransform3(TPZGeoElSide(father,fatside),sdtosd);
+//        if(IsNotEqual(trans,sdtosd)){
+//          PZError <<  "TPZRefPattern::TransformationTest as transformacoes nao sao iguais -> 2\n\n";
+//        }
         /**-----------fim teste das transforma�es--------*/
         TPZVec<REAL> pf(dimfatside);
         trans.Apply(point,pf);/**ponto pf no espaco param�rico do lado do pai*/
@@ -1016,8 +1026,48 @@ void TPZRefPattern::TransformationTest(){
 /*           cout << "Pai : " << father->Id() << endl << endl; */
         }//fim if sqrt..
       }//fim rule
+		delete rule;
+		rule = 0;
     }//fim for sd
   }//fim for isub
+}
+
+/**
+ * Method to test if the jacobian of a TPZGeoElSide element is constant
+ */
+bool TPZRefPattern::ConstJacobian(TPZGeoElSide gelside, REAL tol)
+{
+	TPZIntPoints *rule = gelside.Element()->CreateSideIntegrationRule(gelside.Side(),5);
+	int dim = gelside.Dimension();
+	TPZManVector<REAL,4> pt(dim,0.);
+	REAL weight;
+	int np = rule->NPoints();
+	rule->Point(0, pt, weight);
+	TPZFNMatrix<9> jacobian(dim,dim,0.),jacinv(dim,dim,0.);
+	TPZFNMatrix<9> axes(3,3,0.);
+	REAL detjac;
+	gelside.Jacobian(pt, jacobian, axes , detjac, jacinv);
+	int ip;
+	for(ip=1; ip<np; ip++)
+	{
+		rule->Point(ip, pt, weight);
+		TPZFNMatrix<9> jacobian2(dim,dim,0.),jacinv2(dim,dim,0.);
+		REAL detjac2;
+		TPZFNMatrix<9> axes2(3,3,0.);
+		gelside.Jacobian(pt, jacobian2, axes2 , detjac2, jacinv2);
+		jacobian2 -= jacobian;
+		axes2 -= axes;
+		detjac2 -= detjac;
+		jacinv2 -= jacinv;
+		REAL diff = Norm(jacobian2)+Norm(axes2)+Norm(jacinv2)+fabs(detjac2);
+		if(diff > 1.e-8) 
+		{
+			delete rule;
+			return false;
+		}
+	}
+	delete rule;
+	return true;
 }
 
 int TPZRefPattern::IsNotEqual(TPZTransform &Told, TPZTransform &Tnew){
@@ -1110,7 +1160,7 @@ void TPZRefPattern::CreateMidSideNodes (TPZGeoEl * gel, int side, TPZVec<int> &n
     	  mindifindex = i;
       }
     }
-    if (mindif < 1e-6) {
+    if (mindif < 1e-6 && sideindices.NElements() != 0) {
       newnodeindexes[index] = sideindices[mindifindex];
     }
     if (mindif >= 1.e-6 && sideindices.NElements() != 0)

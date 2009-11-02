@@ -213,6 +213,11 @@ static void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids);
      * must the same be.
      */
     void TransformationTest();
+	
+	/**
+	 * Method to test if the jacobian of a TPZGeoElSide element is constant
+	 */
+	static bool ConstJacobian(TPZGeoElSide gelside, REAL tol = 1.e-6);
 
 
     /** Print the useful information of a Refinement Pattern in a log file
