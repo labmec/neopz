@@ -4,7 +4,7 @@
  * @file pzmanvector.h
  * @brief Free store vector implementation.
  */
-// $Id: pzmanvector.h,v 1.9 2007-01-27 14:18:14 phil Exp $
+// $Id: pzmanvector.h,v 1.10 2009-11-03 00:51:02 phil Exp $
 
 #ifndef PZMANVECTOR_H
 #define PZMANVECTOR_H
@@ -279,39 +279,43 @@ template< class T, int NumExtAlloc >
 TPZManVector< T, NumExtAlloc >& TPZManVector< T, NumExtAlloc >::operator=(
    const TPZManVector< T, NumExtAlloc >& copy )
 {
-   // Checking auto assignment.
-   if( this == &copy )
-   {
-      return *this;
-   }
-
-   const int nel = copy.NElements();
-
-   if( nel > fNAlloc && this->fStore && this->fStore != fExtAlloc )
-   {
-      delete [] this->fStore;
-
-      this->fStore  = fExtAlloc;
-      fNAlloc = NumExtAlloc;
-   }
+	// Checking auto assignment.
+	if( this == &copy )
+	{
+		return *this;
+	}
 	
-   if( fNAlloc >= nel )
-   {
-      this->fNElements = nel;
-   }
-   else
-   {
-      this->fStore     = new T[ nel ];
-      fNAlloc    = nel;
-      this->fNElements = nel;
-   }
+	const int nel = copy.NElements();
 	
-   for( int i = 0; i < nel; i++ )
-   {
-      this->fStore[i] = copy.fStore[i];
-   }
+	if( nel > fNAlloc && this->fStore && this->fStore != fExtAlloc )
+	{
+		delete [] this->fStore;		
+		this->fStore  = 0;
+		fNAlloc = 0;
+	}
 	
-   return *this;
+	if(nel <= NumExtAlloc)
+	{
+		this->fStore = fExtAlloc;
+		this->fNElements = nel;		
+	}
+    else if( fNAlloc >= nel )
+	{
+		this->fNElements = nel;
+	}
+	else
+	{
+		this->fStore     = new T[ nel ];
+		fNAlloc    = nel;
+		this->fNElements = nel;
+	}
+	
+	for( int i = 0; i < nel; i++ )
+	{
+		this->fStore[i] = copy.fStore[i];
+	}
+	
+	return *this;
 }
 
 template< class T, int NumExtAlloc >
