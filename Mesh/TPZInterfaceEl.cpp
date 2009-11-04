@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.93 2009-11-04 14:10:50 fortiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.94 2009-11-04 20:04:26 fortiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -293,14 +293,14 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
   this->InitMaterialData(data,left,right);
   this->InitializeElementMatrix(ef);
 
-   //LOOKING FOR MAX INTERPOLATION ORDER
+   ///LOOKING FOR MAX INTERPOLATION ORDER
    data.leftp = left->MaxOrder();
    data.rightp = right->MaxOrder();
    //Max interpolation order
    const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
 
    TPZGeoEl *ref = Reference();
-   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p+1) );
+   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p);
    if(mat->HasForcingFunction()){
       TPZManVector<int,10> order(3);
       intrule->GetOrder(order);
@@ -720,13 +720,13 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 
 #ifdef DEBUG
    if (!left || !right){
-     PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
+     PZError << "\nError at TPZInterfaceElement::InitializeElementMatrix null neighbour\n";
      ef.Reset();
      DebugStop();
      return;
    }
    if(!left->Material() || !right->Material()){
-      PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
+      PZError << "\n Error at TPZInterfaceElement::InitializeElementMatrix null material\n";
       ef.Reset();
       DebugStop();
       return;
@@ -782,14 +782,14 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 
 #ifdef DEBUG
    if (!left || !right){
-     PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
+     PZError << "\nError at TPZInterfaceElement::InitializeElementMatrix null neighbour\n";
      ek.Reset();
      ef.Reset();
      DebugStop();
      return;
    }
    if(!left->Material() || !right->Material()){
-      PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
+      PZError << "\n Error at TPZInterfaceElement::InitializeElementMatrix null material\n";
       ek.Reset();
       ef.Reset();
       DebugStop();
@@ -888,12 +888,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
   this->InitMaterialData(data,left,right);
   this->InitializeElementMatrix(ek,ef);
 
-   TPZManVector<TPZConnect*> ConnectL, ConnectR;
-   TPZManVector<int> ConnectIndexL, ConnectIndexR;
-
-   this->GetConnects( this->LeftElementSide(),  ConnectL, ConnectIndexL );
-   this->GetConnects( this->RightElementSide(), ConnectR, ConnectIndexR );
-
    //LOOKING FOR MAX INTERPOLATION ORDER
    data.leftp = left->MaxOrder();
    data.rightp = right->MaxOrder();
@@ -976,7 +970,7 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZVec<REAL> &jump, int opt){
 
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
    if(!mat || mat->Name() == "no_name"){
-      PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
+      PZError << "TPZInterfaceElement::EvaluateInterfaceJump interface material null, do nothing\n";
       DebugStop();
       return;
    }
@@ -1059,7 +1053,7 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
    if(!mat){
-      PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
+      PZError << "TPZInterfaceElement::ComputeErrorFace interface material null, do nothing\n";
       DebugStop();
       return;
    }
@@ -1069,12 +1063,12 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
    TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
 
    if (!left || !right){
-     PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
+     PZError << "\nError at TPZInterfaceElement::ComputeErrorFace null neighbour\n";
      DebugStop();
      return;
    }
    if(!left->Material() || !right->Material()){
-      PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
+      PZError << "\n Error at TPZInterfaceElement::ComputeErrorFace null material\n";
       DebugStop();
       return;
    }
@@ -1098,7 +1092,7 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
    const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
 
    TPZGeoEl *ref = Reference();
-   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p+1) );
+   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p );
    if(mat->HasForcingFunction()){
       TPZManVector<int,10> order(3);
       intrule->GetOrder(order);
@@ -1166,12 +1160,12 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
   TPZInterpolationSpace *left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
   TPZInterpolationSpace *right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
   if (!left || !right){
-    PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
+    PZError << "\nError at TPZInterfaceElement::IntegrateInterface null neighbour\n";
     DebugStop();
     return;
   }
   if(!left->Material() || !right->Material()){
-    PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
+    PZError << "\n Error at TPZInterfaceElement::IntegrateInterface null material\n";
     DebugStop();
     return;
   }
@@ -1189,7 +1183,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
   const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
 
   ///Integration rule
-  TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p+1));
+  TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p);
   if(material->HasForcingFunction()){
     TPZManVector<int,10> order(3);
     intrule->GetOrder(order);
