@@ -161,8 +161,8 @@ void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter, b
    while(error > tol && iter < numiter) {
 
       fSolution.Redim(0,0);
-      Run();
-
+      Assemble();
+      Solve();
       if (linesearch){
         TPZFMatrix nextSol;
         REAL LineSearchTol = 1e-3 * Norm(fSolution);
@@ -175,8 +175,12 @@ void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter, b
       }
       
       prevsol -= fSolution;
-      REAL norm = Norm(prevsol);
-      out << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << endl;
+      REAL normDeltaSol = Norm(prevsol);
+      this->AssembleResidual();
+      double NormResLambda = Norm(fRhs);
+      double norm = NormResLambda;
+//       out << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << endl;
+      out << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << NormResLambda << endl;
 
       prevsol = fSolution;
       TPZAnalysis::LoadSolution();
