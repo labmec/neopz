@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.cpp,v 1.10 2007-12-07 13:47:47 cesar Exp $
+// $Id: pzdiscgal.cpp,v 1.11 2009-11-04 14:04:43 fortiago Exp $
 
 #include "pzdiscgal.h"
 #include "pzmaterialdata.h"
@@ -34,16 +34,23 @@ int TPZDiscontinuousGalerkin::IsInterfaceConservative(){
   return 0;
 }
 
-void TPZDiscontinuousGalerkin::InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
-                                              TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
-                                              TPZVec<REAL> &values){
-  PZError << __PRETTY_FUNCTION__ << " - method not implemented in derived class" << std::endl;
+void TPZDiscontinuousGalerkin::InterfaceJump(TPZVec<REAL> &x, 
+                                              TPZVec<REAL> &leftu,
+                                              TPZVec<REAL> &rightu,
+                                              TPZVec<REAL> &jump){
+  const int n = leftu.NElements();
+  jump.Resize(n);
+  for(int i = 0; i < n; i++){
+    jump[i] = leftu[i] - rightu[i];
+  }
 }
 
-void TPZDiscontinuousGalerkin::BCInterfaceJumps(TPZVec<REAL> &leftu,
-                                                TPZBndCond &bc,
-                                                TPZVec<REAL> &values){
+void TPZDiscontinuousGalerkin::BCInterfaceJump(TPZVec<REAL> &x, 
+                                               TPZVec<REAL> &leftu,
+                                               TPZBndCond &bc,
+                                               TPZVec<REAL> & jump){
   PZError << __PRETTY_FUNCTION__ << " - method not implemented in derived class" << std::endl;
+  DebugStop();
 }
 
 int TPZDiscontinuousGalerkin::ClassId() const{

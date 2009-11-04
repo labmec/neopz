@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.h,v 1.19 2007-12-07 13:47:47 cesar Exp $
+// $Id: pzdiscgal.h,v 1.20 2009-11-04 14:04:43 fortiago Exp $
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 
@@ -87,25 +87,17 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
    */
   virtual int IsInterfaceConservative();
 
-  /** Compute interface jumps
-   * values[1] = (solleft - solright)^2
-   * values[2] = (dsolleft - dsolright)^2
-   * values[0] = values[1] + values[2]
+  /** Compute interface jump = leftu - rightu
    * @since Feb 14, 2006
    */
-  virtual void InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
-                         TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
-                         TPZVec<REAL> &values);
+  virtual void InterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZVec<REAL> &rightu,TPZVec<REAL> &jump);
 
-  /** Compute interface jumps from element to Dirichlet boundary condition
-   * values[1] = (solleft - solright)^2
-   * values[2] = (dsolleft - dsolright)^2
-   * values[0] = values[1] + values[2]
+
+  /** Compute interface jump from element to Dirichlet boundary condition
+   * It has to reimplemented
    * @since Mar 08, 2006
    */
-  virtual void BCInterfaceJumps(TPZVec<REAL> &leftu,
-                                TPZBndCond &bc,
-                                TPZVec<REAL> &values);
+  virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZBndCond &bc,TPZVec<REAL> & jump);
 
 
   virtual int NStateVariables() = 0;

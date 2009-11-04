@@ -54,9 +54,7 @@ void TPZBndCond::ContributeEnergy(TPZVec<REAL> &x,
 */
 //#endif
 
-void TPZBndCond::InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
-                                TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
-                                TPZVec<REAL> &values){
+void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZVec<REAL> &rightu,TPZVec<REAL> &jump){
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial.operator ->());
 
    if(!mat) return;
@@ -70,18 +68,19 @@ void TPZBndCond::InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REA
    }
 
    if(leftu.NElements() == 0) {
-      mat->BCInterfaceJumps(rightu, *this, values);
+      mat->BCInterfaceJump(x, rightu, *this, jump);
       return;
    }
 
    if(rightu.NElements() == 0) {
-      mat->BCInterfaceJumps(leftu, *this, values);
+      mat->BCInterfaceJump(x, leftu, *this, jump);
       return;
    }
 
-   std::cout << __PRETTY_FUNCTION__ << " - Huge problem. Both leftu and rightu contain elements. Wich one is the actual element neighbour to the Dirichlet boundary ?" << std::endl;
+   PZError << __PRETTY_FUNCTION__ << " - Huge problem. Both leftu and rightu contain elements. Wich one is the actual element neighbour to the Dirichlet boundary ?" << std::endl;
+   DebugStop();
 
-}//InterfaceJumps
+}///InterfaceJump
 
 int TPZBndCond::ClassId() const
 {

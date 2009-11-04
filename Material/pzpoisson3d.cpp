@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.43 2009-09-01 22:07:16 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.44 2009-11-04 14:07:06 fortiago Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -370,31 +370,16 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 
 }
 
-
-void TPZMatPoisson3d::InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu,  TPZVec<REAL> &leftNormalDeriv,
-                    TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
-                    TPZVec<REAL> &values){
-  values.Resize(3);
-  values[1]  = (leftu[0] - rightu[0]) * (leftu[0] - rightu[0]);
-
-  values[2] = (leftNormalDeriv[0] - rightNormalDeriv[0]) * (leftNormalDeriv[0] - rightNormalDeriv[0]);
-
-  values[0]  = values[1]+values[2];
-}//method
-
-void TPZMatPoisson3d::BCInterfaceJumps(TPZVec<REAL> &leftu,
-                                       TPZBndCond &bc,
-                                       TPZVec<REAL> &values){
-  if(bc.Type() == 0){ //DIRICHLET
+void TPZMatPoisson3d::BCInterfaceJump(TPZVec<REAL> &leftu,TPZBndCond &bc,TPZVec<REAL> & jump){
+  jump.Resize(1);
+  if(bc.Type() == 0){ ///DIRICHLET
     REAL f = bc.Val2()(0,0);
-    values.Resize(3);
-    values[1]  = (leftu[0] - f) * (leftu[0] - f);  
-    values[2] = 0.0; //it is zero because it is not possible 
-                     //to be computed since only u is restrained 
-                     //by Dirichlet BC in that formulation/implementation
-    values[0]  = values[1] + values[2];    
-  }//if                 
-}//method
+    jump[0] = leftu[0] - f;
+  }
+  else{
+    jump.Fill(0.);
+  }
+}///method
 
 #ifdef _AUTODIFF
 void TPZMatPoisson3d::ContributeEnergy(TPZVec<REAL> &x,

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.27 2009-04-21 01:33:45 erick Exp $
+//$Id: pzbndcond.h,v 1.28 2009-11-04 14:04:43 fortiago Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -222,19 +222,7 @@ public :
    * values[0] = values[1] + values[2]
    * @since Feb 14, 2006
    */
-  virtual void InterfaceJumps(TPZVec<REAL> &x, TPZVec<REAL> &leftu, TPZVec<REAL> &leftNormalDeriv,
-                         TPZVec<REAL> &rightu, TPZVec<REAL> &rightNormalDeriv,
-                         TPZVec<REAL> &values);
-
-  /** Compute interface jumps from element to Dirichlet boundary condition
-   * values[1] = (solleft - solright)^2
-   * values[2] = (dsolleft - dsolright)^2
-   * values[0] = values[1] + values[2]
-   * @since Feb 14, 2006
-   */
-  virtual void BCInterfaceJumps(TPZVec<REAL> &leftu, TPZBndCond &bc, TPZVec<REAL> &values){
-    //NOTHING TO BE DONE HERE
-  }
+  virtual void InterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZVec<REAL> &rightu,TPZVec<REAL> &jump);
 
   /**
   * returns the unique identifier for reading/writing objects to streams
