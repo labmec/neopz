@@ -245,7 +245,7 @@ void TPZRefPattern::ReadPattern(std::istream &in)
   }
   GeneratePermuted(father);
   fInternalMesh.BuildConnectivity();/**conectividades entre sub-elementos*/
-//  fInternalMesh.Print(); /**Printing mesh info to check */
+ // fInternalMesh.Print(); /**Printing mesh info to check */
   ComputeTransforms();/**calcula as transforma�es entre filhos e pai*/
   ComputePartition();/**efetua a parti�o do elemento pai de acordo com os lados dos sub-elementos*/
 }
@@ -691,7 +691,7 @@ if (gDebug == 2){
       TPZGeoEl *el = subs.Element();
       int node = el->NodeIndex(sd);
       //vecnodes[par-pos] = sd;/**cada n�aparece uma nica ves na partic� do lado*/
-      vecnodes[par-pos] = node;
+      vecnodes[count] = node;
       count++;
     }
   }
@@ -1134,7 +1134,7 @@ void TPZRefPattern::CreateMidSideNodes (TPZGeoEl * gel, int side, TPZVec<int> &n
   for (j=0;j<sidenodes.NElements();j++){
     index = sidenodes[j];
     //coordenadas do novo no na malha ref pattern
-    TPZVec<REAL> refnodecoord(3,0.);
+    TPZManVector<REAL,3> refnodecoord(3,0.);
     TPZManVector<REAL,3> neighbourcoord(3,0.);
     for (k=0;k<3;k++) refnodecoord[k] = fInternalMesh.NodeVec()[index].Coord(k);
     //passando para as coordenadas do elemento da malha real...

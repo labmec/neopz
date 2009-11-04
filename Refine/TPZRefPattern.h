@@ -83,11 +83,20 @@ public:
     
     void Read(TPZStream &buf);
     void Write(TPZStream &buf);
+	void Name(std::string name)
+	{
+		fName = name;
+	}
 
     /**
      * It returns the mesh which owns the refinement pattern
      */
     TPZGeoMesh *Mesh() {return fOwnerMesh;}
+	
+    /**
+     * It returns the mesh of the element refined
+     */
+	TPZGeoMesh &InternalMesh() {return fInternalMesh;}
 
     /**
      * Refine the element if it touches an element with a material id included in matids
@@ -106,7 +115,6 @@ static void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids);
     
     void ReadPattern2();
 
-    
     /**
      * It calculates the hashings between the sides of the son and the father 
      */
