@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.41 2009-08-07 19:01:39 phil Exp $
+//$Id: pzcmesh.h,v 1.42 2009-11-04 14:08:13 fortiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -567,13 +567,12 @@ static  void SetAllCreateFunctions(TPZCompEl &cel);
   /** This method compute the jump solution of interface and convert discontinuous elements with
    * jump less than eps in continuous elements.
    * It may be compared the following values to eps:
-   * int val = 1: (leftsol - rightsol)^2
-   * int val = 2: (DSolLeft - DSolRight)^2
-   * int val = 0: (leftsol - rightsol)^2 + (DSolLeft - DSolRight)^2
+   * int val = 0: Sqrt [ Integral [ (leftsol - rightsol)^2 ] ]
+   * int val = 1: Max[ Abs[leftsol - rightsol] ]
    */
-  void ConvertDiscontinuous2Continuous(REAL eps, int val, bool InterfaceBetweenContinuous = false);
+  void ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<REAL> &celJumps, bool InterfaceBetweenContinuous);
 
-  void Discontinuous2Continuous(int disc_index, int &new_index, bool InterfaceBetweenContinuous = false);
+  void Discontinuous2Continuous(int disc_index, int &new_index, bool InterfaceBetweenContinuous);
 
   //@}
 

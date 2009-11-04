@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.82 2009-09-01 22:08:04 phil Exp $
+//$Id: pzcmesh.cpp,v 1.83 2009-11-04 14:08:13 fortiago Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1019,8 +1019,8 @@ void TPZCompMesh::Discontinuous2Continuous(int disc_index, int &new_index, bool 
     LOGPZ_FATAL(logger, "New created element is not the same as referenced by geometric element");
   }
 
-  //  ExpandSolution();
-  //  intel->InterpolateSolution(*disc);
+  ExpandSolution();
+  intel->InterpolateSolution(*disc);
   delete cel;
 
 }//method
@@ -2097,45 +2097,57 @@ void TPZCompMesh::SetAllCreateFunctions(TPZCompEl &cel){
   cel.SetCreateFunctions();
 }
 
-void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int val, bool InterfaceBetweenContinuous){
+void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<REAL> &celJumps, bool InterfaceBetweenContinuous){
   const int nelements = this->NElements();
-  TPZVec<REAL> celJumps(nelements);
+  celJumps.Resize(nelements);
   TPZVec<TPZCompEl*> AllCels(nelements);
   AllCels.Fill(NULL);
   celJumps.Fill(0.0);
-  TPZCompEl * cel;
-  TPZInterfaceElement * face;
-  TPZManVector<REAL> faceerror;
+
   for(int i = 0; i < nelements; i++){
-    cel = this->ElementVec()[i];
+    TPZCompEl * cel = this->ElementVec()[i];
     if (!cel) continue;
-    face = dynamic_cast<TPZInterfaceElement *>(cel);
+    TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement *>(cel);
     if (!face){
       AllCels[i] = cel;
       continue;
     }
-    face->EvaluateInterfaceJumps(faceerror);
+    TPZManVector<REAL> facejump;
+    face->EvaluateInterfaceJump(facejump,opt);
     const int leftel  = face->LeftElement()->Index();
     const int rightel = face->RightElement()->Index();
 #ifdef DEBUG
-    if (this->ElementVec()[leftel]  != face->LeftElement() ) LOGPZ_FATAL(logger, "inconsistent data structure");
-    if (this->ElementVec()[rightel] != face->RightElement()) LOGPZ_FATAL(logger, "inconsistent data structure");
+    if(this->ElementVec()[leftel]  != face->LeftElement()){
+      LOGPZ_FATAL(logger, "inconsistent data structure");
+      DebugStop();
+    }
+    if(this->ElementVec()[rightel] != face->RightElement()){
+      LOGPZ_FATAL(logger, "inconsistent data structure");
+      DebugStop();
+    }
 #endif
-    celJumps[leftel] += faceerror[val]*faceerror[val];
-    celJumps[rightel] += faceerror[val]*faceerror[val];
-  }//for i
+
+    double jumpNorm = 0.;
+    for(int ij = 0; ij < facejump.NElements(); ij++){
+      jumpNorm += facejump[ij]*facejump[ij];
+    }
+    jumpNorm = sqrt(jumpNorm);
+
+    celJumps[leftel] += jumpNorm;
+    celJumps[rightel] += jumpNorm;
+  }///for i
 
   for(int i = 0; i < nelements; i++){
     if (!AllCels[i]) continue;
     TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(AllCels[i]);
     if (!disc) continue;
-    const REAL celJumpError = sqrt(celJumps[i]);
+    if(disc->Reference()->Dimension() != dim) continue;
+    const REAL celJumpError = celJumps[i];
     if (celJumpError < eps){
       int index;
-      //      if (disc->Dimension() == 1) cout << "Teje preso, malandro" << std::endl;
       this->Discontinuous2Continuous(i, index, InterfaceBetweenContinuous);
-    }//if
-  }//for i
+    }///if
+  }///for i
 
   this->CleanUpUnconnectedNodes();
   this->AdjustBoundaryElements();
