@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.92 2009-10-09 15:05:43 fortiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.93 2009-11-04 14:10:50 fortiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -258,16 +258,20 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index,
 
 void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
+
+#ifdef DEBUG
   if(!mat || mat->Name() == "no_name"){
       PZError << "TPZInterfaceElement::CalcResidual interface material null, do nothing\n";
       ef.Reset();
       DebugStop();
       return;
    }
+#endif
 
    TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
    TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
 
+#ifdef DEBUG
    if (!left || !right){
      PZError << "\nError at TPZInterfaceElement::CalcResidual null neighbour\n";
      ef.Reset();
@@ -280,48 +284,14 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
       DebugStop();
       return;
    }
+#endif
 
   TPZMaterialData data;
   const int dim = this->Dimension();
   const int diml = left->Dimension();
   const int dimr = right->Dimension();
-  int nshapel = left ->NShapeF();
-  int nshaper = right->NShapeF();
-  const int nstatel = left->Material()->NStateVariables();
-  const int nstater = right->Material()->NStateVariables();
   this->InitMaterialData(data,left,right);
-
-   TPZManVector<TPZConnect*> ConnectL, ConnectR;
-   TPZManVector<int> ConnectIndexL, ConnectIndexR;
-
-   this->GetConnects( this->LeftElementSide(),  ConnectL, ConnectIndexL );
-   this->GetConnects( this->RightElementSide(), ConnectR, ConnectIndexR );
-   const int ncon = ConnectL.NElements() + ConnectR.NElements();
-   const int neql = nshapel * nstatel;
-   const int neqr = nshaper * nstater;
-   const int neq = neql + neqr;
-   ef.fMat.Redim(neq,1);
-   ef.fBlock.SetNBlocks(ncon);
-   ef.fConnect.Resize(ncon);
-
-   int ic = 0;
-   int n = ConnectL.NElements();
-   for(int i = 0; i < n; i++) {
-    const int nshape = left->NConnectShapeF(i);
-    const int con_neq = nstatel * nshape;
-    ef.fBlock.Set(ic,con_neq);
-    (ef.fConnect)[ic] = ConnectIndexL[i];
-    ic++;
-   }
-   n = ConnectR.NElements();
-   for(int i = 0; i < n; i++) {
-    const int nshape = right->NConnectShapeF(i);
-    const int con_neq = nstater * nshape;
-    ef.fBlock.Set(ic,con_neq);
-    (ef.fConnect)[ic] = ConnectIndexR[i];
-    ic++;
-   }
-   ef.fBlock.Resequence();
+  this->InitializeElementMatrix(ef);
 
    //LOOKING FOR MAX INTERPOLATION ORDER
    data.leftp = left->MaxOrder();
@@ -743,20 +713,74 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
   ReadObjects(buf,fCenterNormal);
 }
 
-void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
-
-  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
-  if(!mat || mat->Name() == "no_name"){
-      PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
-      ek.Reset();
-      ef.Reset();
-      DebugStop();
-      return;
-   }
+void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 
    TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
    TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
 
+#ifdef DEBUG
+   if (!left || !right){
+     PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
+     ef.Reset();
+     DebugStop();
+     return;
+   }
+   if(!left->Material() || !right->Material()){
+      PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
+      ef.Reset();
+      DebugStop();
+      return;
+   }
+#endif
+
+  const int numdof = this->Material()->NStateVariables();
+  ef.fNumStateVars = numdof;
+
+  int nshapel = left ->NShapeF();
+  int nshaper = right->NShapeF();
+  const int nstatel = left->Material()->NStateVariables();
+  const int nstater = right->Material()->NStateVariables();
+
+   TPZManVector<TPZConnect*> ConnectL, ConnectR;
+   TPZManVector<int> ConnectIndexL, ConnectIndexR;
+
+   this->GetConnects( this->LeftElementSide(),  ConnectL, ConnectIndexL );
+   this->GetConnects( this->RightElementSide(), ConnectR, ConnectIndexR );
+   const int ncon = ConnectL.NElements() + ConnectR.NElements();
+   const int neql = nshapel * nstatel;
+   const int neqr = nshaper * nstater;
+   const int neq = neql + neqr;
+   ef.fMat.Redim(neq,1);
+   ef.fBlock.SetNBlocks(ncon);
+   ef.fConnect.Resize(ncon);
+
+   int ic = 0;
+   int n = ConnectL.NElements();
+   for(int i = 0; i < n; i++) {
+    const int nshape = left->NConnectShapeF(i);
+    const int con_neq = nstatel * nshape;
+    ef.fBlock.Set(ic,con_neq);
+    (ef.fConnect)[ic] = ConnectIndexL[i];
+    ic++;
+   }
+   n = ConnectR.NElements();
+   for(int i = 0; i < n; i++) {
+    const int nshape = right->NConnectShapeF(i);
+    const int con_neq = nstater * nshape;
+    ef.fBlock.Set(ic,con_neq);
+    (ef.fConnect)[ic] = ConnectIndexR[i];
+    ic++;
+   }
+   ef.fBlock.Resequence();
+
+}
+
+void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef){
+
+   TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
+   TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
+
+#ifdef DEBUG
    if (!left || !right){
      PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
      ek.Reset();
@@ -771,16 +795,16 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
       DebugStop();
       return;
    }
+#endif
 
-  TPZMaterialData data;
-  const int dim = this->Dimension();
-  const int diml = left->Dimension();
-  const int dimr = right->Dimension();
+  const int numdof = this->Material()->NStateVariables();
+  ek.fNumStateVars = numdof;
+  ef.fNumStateVars = numdof;
+
   int nshapel = left ->NShapeF();
   int nshaper = right->NShapeF();
   const int nstatel = left->Material()->NStateVariables();
   const int nstater = right->Material()->NStateVariables();
-  this->InitMaterialData(data,left,right);
 
    TPZManVector<TPZConnect*> ConnectL, ConnectR;
    TPZManVector<int> ConnectIndexL, ConnectIndexR;
@@ -821,6 +845,54 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
    }
    ek.fBlock.Resequence();
    ef.fBlock.Resequence();
+}
+
+
+void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
+
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
+#ifdef DEBUG
+  if(!mat || mat->Name() == "no_name"){
+      PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
+      ek.Reset();
+      ef.Reset();
+      DebugStop();
+      return;
+   }
+#endif
+
+   TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
+   TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
+
+#ifdef DEBUG
+   if (!left || !right){
+     PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
+     ek.Reset();
+     ef.Reset();
+     DebugStop();
+     return;
+   }
+   if(!left->Material() || !right->Material()){
+      PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
+      ek.Reset();
+      ef.Reset();
+      DebugStop();
+      return;
+   }
+#endif
+
+  TPZMaterialData data;
+  const int dim = this->Dimension();
+  const int diml = left->Dimension();
+  const int dimr = right->Dimension();
+  this->InitMaterialData(data,left,right);
+  this->InitializeElementMatrix(ek,ef);
+
+   TPZManVector<TPZConnect*> ConnectL, ConnectR;
+   TPZManVector<int> ConnectIndexL, ConnectIndexR;
+
+   this->GetConnects( this->LeftElementSide(),  ConnectL, ConnectIndexL );
+   this->GetConnects( this->RightElementSide(), ConnectR, ConnectIndexR );
 
    //LOOKING FOR MAX INTERPOLATION ORDER
    data.leftp = left->MaxOrder();
@@ -829,7 +901,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
    const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
 
    TPZGeoEl *ref = Reference();
-   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p+1) );
+   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p );
    if(mat->HasForcingFunction()){
       TPZManVector<int,10> order(3);
       intrule->GetOrder(order);
@@ -900,7 +972,8 @@ void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*>
 
 }//end of method
 
-void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
+void TPZInterfaceElement::EvaluateInterfaceJump(TPZVec<REAL> &jump, int opt){
+
    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
    if(!mat || mat->Name() == "no_name"){
       PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
@@ -908,17 +981,12 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
       return;
    }
 
-   int NErrors = this->Material()->NEvalErrors();
-   errors.Resize(NErrors);
-   errors.Fill(0.0);
-
    TPZMaterialData data;
-   int nstatel = this->LeftElement()->Material()->NStateVariables();
-   int nstater = this->RightElement()->Material()->NStateVariables();
-   int diml = this->LeftElement()->Dimension();
-   int dimr = this->RightElement()->Dimension();
+   const int nstatel = this->LeftElement()->Material()->NStateVariables();
+   const int nstater = this->RightElement()->Material()->NStateVariables();
+   const int njump = (nstatel > nstater) ? nstatel : nstater;
 
-   //LOOKING FOR MAX INTERPOLATION ORDER
+   ///LOOKING FOR MAX INTERPOLATION ORDER
    TPZGeoEl *ref = Reference();
    TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2 );
    TPZManVector<int> order(3);
@@ -927,55 +995,63 @@ void TPZInterfaceElement::EvaluateInterfaceJumps(TPZVec<REAL> &errors){
    order.Fill(maxorder);
    intrule->SetOrder(order);
    const int npoints = intrule->NPoints();
-   TPZManVector<REAL> intpoint(3), x(3);
+   TPZManVector<REAL> intpoint(3);
+   data.x.Resize(3);
    REAL weight;
-   //LOOP OVER INTEGRATION POINTS
-   for(int ip = 0; ip < npoints; ip++){
-      intrule->Point(ip,intpoint,weight);
-      ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
-      weight *= fabs(data.detjac);
-      ref->X(intpoint, x);
 
-      //method NeighbourSolution will compute the transformation in this->MapQsi every time it is called
-      //(which means for all integration point). Instead of calling NeighbourSolution the whole method
-      //may be written here but keeping the transformation computed at first integration point (as done in CalcStiff).
-      this->NeighbourSolution(this->LeftElementSide(), intpoint, data.soll, data.dsoll, data.axesleft);
-      this->NeighbourSolution(this->RightElementSide(), intpoint, data.solr, data.dsolr, data.axesright);
+   jump.Resize(njump);
+   jump.Fill(0.);
+    ///LOOP OVER INTEGRATION POINTS
+  for(int ip = 0; ip < npoints; ip++){
+    intrule->Point(ip,intpoint,weight);
+    ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+    ref->X(intpoint,data.x);
+    weight *= fabs(data.detjac);
 
-      TPZManVector<REAL> leftNormalDeriv(nstatel), rightNormalDeriv(nstater), normal;
-      this->Normal(data.axes,normal);
+    ///method NeighbourSolution will compute the transformation in this->MapQsi every time it is called
+    ///(which means for all integration point). Instead of calling NeighbourSolution the whole method
+    ///may be written here but keeping the transformation computed at first integration point (as done in CalcStiff).
+    this->NeighbourSolution(this->LeftElementSide(), intpoint, data.soll, data.dsoll, data.axesleft);
+    this->NeighbourSolution(this->RightElementSide(), intpoint, data.solr, data.dsolr, data.axesright);
 
-      if (data.soll.NElements()){
-        for(int iv = 0; iv < nstatel; iv++){
-          leftNormalDeriv[iv] = 0.;
-          for(int d = 0; d < diml; d++){
-            leftNormalDeriv[iv]  += data.dsoll(d,iv)* normal[d];
-          }//for d
-        }//for iv
-      }//if
+    if (LeftElement()->NConnects() == 0){
+      data.soll.Resize(0);
+      data.dsoll.Resize(0,0);
+    }
 
-      if (data.solr.NElements()){
-        for(int iv = 0; iv < nstater; iv++){
-          rightNormalDeriv[iv] = 0.;
-          for(int d = 0; d < dimr; d++){
-            rightNormalDeriv[iv] += data.dsolr(d,iv)* normal[d];
-          }//for d
-        }  //for iv
-      }//if
+    if (RightElement()->NConnects() == 0){
+      data.solr.Resize(0);
+      data.dsolr.Resize(0,0);
+    }
 
-      TPZManVector<REAL> localerror(NErrors);
-      mat->InterfaceJumps(data.x, data.soll, leftNormalDeriv, data.solr, rightNormalDeriv, localerror);
+    TPZManVector<REAL> localjump(njump,0.);
+    mat->InterfaceJump(data.x, data.soll, data.solr, localjump);
 
-      for(int ier = 0; ier < NErrors; ier++){
-        errors[ier] += localerror[ier]*weight;
+    if(opt == 0){
+      for(int ier = 0; ier < njump; ier++){
+        jump[ier] += localjump[ier]*localjump[ier]*weight;
       }
-   }//loop over integration points
-   delete intrule;
-   //Norma sobre o elemento
-   for(int ier = 0; ier < NErrors; ier++)
-   errors[ier] = sqrt(errors[ier]);
+    }
+    if(opt == 1){
+      for(int ier = 0; ier < njump; ier++){
+        if( fabs(localjump[ier]) > jump[ier] ){
+          jump[ier] = fabs( localjump[ier] );
+        }///if
+      }///for
+    }///if
 
-}//method
+  }///loop over integration points
+
+  delete intrule;
+
+  ///Norma sobre o elemento
+  if(opt == 0){
+    for(int ier = 0; ier < njump; ier++){
+      jump[ier] = sqrt(jump[ier]);
+    }///for
+  }///if
+
+}///method
 
 void TPZInterfaceElement::ComputeErrorFace(int errorid,
                                        TPZVec<REAL> &errorL,

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.57 2009-10-09 15:19:32 fortiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.58 2009-11-04 14:10:51 fortiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -106,6 +106,9 @@ protected:
   void ComputeCenterNormal(TPZVec<REAL> &normal);
 
  public:
+
+  void InitializeElementMatrix(TPZElementMatrix &ef);
+  void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
   /**
    * Maps qsi coordinate at this master element to qsi coordinate at neighbor master element.
@@ -364,7 +367,10 @@ protected:
 
    void IntegrateInterface(int variable, TPZVec<REAL> & value);
 
-  void EvaluateInterfaceJumps(TPZVec<REAL> &errors);
+  /** opt = 0 -> Evaluates Sqrt [ Integral [ (leftsol - rightsol)^2 ] ]
+   *  opt = 1 -> Evaluates Max[ Abs[leftsol - rightsol] ]
+   */
+  void EvaluateInterfaceJump(TPZVec<REAL> &jump, int opt);
 
   /**
   * returns the unique identifier for reading/writing objects to streams

@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.114 2009-09-01 22:08:04 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.115 2009-11-04 14:10:50 fortiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.114 2009-09-01 22:08:04 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.115 2009-11-04 14:10:50 fortiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -515,6 +515,7 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
       LOGPZ_ERROR(logger, mess.str() );
       continue;
     }
+    discel->fShapefunctionType = this->fShapefunctionType;
     discel->SetDegree(deg);
   }
 
