@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.h,v 1.7 2009-10-30 22:20:20 fortiago Exp $
+//$Id: pzexplfinvolanal.h,v 1.8 2009-11-04 14:13:24 fortiago Exp $
 
 #ifndef EXPLFINVOLANALH
 #define EXPLFINVOLANALH
@@ -32,8 +32,7 @@ public:
    * Assemble fluxes
   **/
   void AssembleFluxes(const TPZFMatrix & Solution, std::set<int> *MaterialIds = NULL){
-//     this->AssembleFluxes2ndOrder(Solution);
-    this->AssembleFluxesNew(Solution);
+    this->AssembleFluxes2ndOrder(Solution);
   }
 
   int NStateVariables(){
@@ -43,9 +42,6 @@ public:
   int Dimension(){
     return 3;
   }
-
-  void AssembleFluxesOld(const TPZFMatrix & Solution, std::set<int> *MaterialIds = NULL);
-  void AssembleFluxesNew(const TPZFMatrix & Solution);
 
   /** Computes next solution based on the last
    */

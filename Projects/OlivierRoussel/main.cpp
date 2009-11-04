@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.9 2009-10-30 22:20:20 fortiago Exp $
+//$Id: main.cpp,v 1.10 2009-11-04 14:13:24 fortiago Exp $
 
 #include "malhas.h"
 #include "MultiResMesh.h"
@@ -97,6 +97,8 @@
 
 using namespace std;
 
+int gLMax;
+
 int main(int argc, char *argv[])
 {
   if (argc > 1) 
@@ -111,6 +113,7 @@ int main(int argc, char *argv[])
 	InitializePZLOG();
   }
   const int L = 4;
+  gLMax = L-1;
 
   REAL timeStep;
 //   TPZCompMesh * cmesh = CreateMeshLaxAndSod(L,timeStep);
@@ -119,7 +122,7 @@ int main(int argc, char *argv[])
   cout << "generating interpolation space...\n";
 	TPZGeoMesh *gmesh = CreateCoarseMesh(L);
   TPZCompMesh * cmesh = CreateMeshMultires(gmesh);
-timeStep = ComputeTimeStep(0.1,L,L,cmesh->Reference());
+  timeStep = ComputeTimeStep(1.,L,cmesh->Reference());
   
 //   TPZCompMesh * cmesh = CreateMeshLinearConvection(L,timeStep);
 //   TPZGeoMesh* gmesh= cmesh->Reference();
@@ -152,7 +155,8 @@ timeStep = ComputeTimeStep(0.1,L,L,cmesh->Reference());
 
   InitializeSolver(an);
   const double PhysicalTime = 0.1;
-  int niter = PhysicalTime/timeStep+1;
+  int niter = 10;///PhysicalTime/timeStep+1;
+  cout << "L = " << L << endl;
   cout << "\nnequations = " << cmesh->NEquations();
   cout << "\nNiter = " << niter << "\n";
 
@@ -166,17 +170,19 @@ timeStep = ComputeTimeStep(0.1,L,L,cmesh->Reference());
   an.Set(timeStep,niter,1e-10);
   an.SetSaveFrequency(1,0);
 
-/* TPZVec<string> scal(3-2),vec(0);
+ TPZVec<string> scal(3-2),vec(0);
  scal[0] = "density";
 //  scal[1] = "energy";
 //  scal[2] = "Mach";
  stringstream nome; nome << "testeL"<<".dx";
- an.DefineGraphMesh(3,scal,vec,nome.str());
-  an.Run();	*/
+//  an.DefineGraphMesh(3,scal,vec,nome.str());
+//  an.Run();
 
-	double Epsl = 1.e-3;//0.125 * 0.1*5.0;
+	double Epsl = 1.e-3;
   an.MultiResolution( Epsl );
-an.CloseGraphMesh();
+
+
+
 
 //   delete cmesh;
 //   delete gmesh;

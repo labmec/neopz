@@ -1,4 +1,4 @@
-//$Id: MultiResMesh.h,v 1.1 2009-08-28 22:59:35 fortiago Exp $
+//$Id: MultiResMesh.h,v 1.2 2009-11-04 14:13:24 fortiago Exp $
 
 class TPZGeoMesh;
 class TPZCompMesh;
@@ -12,6 +12,6 @@ class TPZFMatrix;
 TPZCompMesh *CreateMeshMultires(TPZGeoMesh * gmesh);
 void InitialSolutionMultires(TPZFMatrix &InitialSol, TPZCompMesh * cmesh);
 
-double ComputeTimeStep(double CFL, int maxLevel, int meshlevel, TPZGeoMesh * gmesh);
+double ComputeTimeStep(double CFL, int Level, TPZGeoMesh * gmesh);
 
 TPZGeoMesh * CreateCoarseMesh(int nLevel);

@@ -1,4 +1,4 @@
-//$Id: pzexplfinvolanal.cpp,v 1.9 2009-10-30 22:20:20 fortiago Exp $
+// //$Id: pzexplfinvolanal.cpp,v 1.10 2009-11-04 14:13:24 fortiago Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -50,9 +50,14 @@ void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
 
    this->DX(0, "testeinicial_");
    cout << "Starting adapt .... \n";cout.flush();
-   GetAdaptedMesh(this->Mesh(), Epsl);
+   TPZCompMesh * cmesh = this->Mesh();
+   GetAdaptedMesh(cmesh, Epsl);
    cout << "Adapt finished .... \n";cout.flush();
-   this->SetCompMesh(this->Mesh());   
+    this->SetCompMesh(cmesh);   
+    this->fSolution = this->Mesh()->Solution();
+    TPZAnalysis::LoadSolution();
+    this->Mesh()->LoadReferences();
+    this->Mesh()->Reference()->RestoreReference(this->Mesh());
 
 
   fSimulationTime = 0.;
@@ -64,7 +69,19 @@ void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
   for(int iter = 0; iter < this->fNMaxIter; iter++){
 
     this->InitializeAuxiliarVariables();
-   this->TimeEvolution(LastSol,NextSol);
+    this->TimeEvolution(LastSol,NextSol);
+
+      ///checking steady state
+      double steadynorm = 0.;
+      for(int i = 0; i < LastSol.Rows(); i++){
+        double val = (NextSol(i,0)-LastSol(i,0));
+        steadynorm += val*val;
+      }
+      steadynorm = sqrt(steadynorm);
+   std::cout << "*********** Steady state error at iteration " << iter << ", " << iter*fTimeStep << " = " << steadynorm << "\n\n";
+   cout << "Norm(LastSol) = " << Norm(LastSol) << " , Norm(NextSol) = " << Norm(NextSol) << endl;
+   cout << "LastSol.Rows = " << LastSol.Rows() << " , NextSol.Rows = " << NextSol.Rows() << endl;
+   cout << "cmesh->NEquations() = " << cmesh->NEquations() << endl;
 
     this->CleanAuxiliarVariables();
     LastSol = NextSol;
@@ -74,19 +91,16 @@ void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
   if( iter % 5  == 0){
 //     this->DX(iter, "antes_");
     cout << "Starting adapt .... \n";cout.flush();
-   GetAdaptedMesh(this->Mesh(), Epsl);
-   cout << "Adapt finished .... \n";cout.flush();
-   this->SetCompMesh(this->Mesh());   
+    GetAdaptedMesh(this->Mesh(), Epsl);
+    cout << "Adapt finished .... \n";cout.flush();
+    this->SetCompMesh(this->Mesh());   
 //    this->DX(iter, "depois_");
-  }
-   
-//    return;
-
     this->fSolution = this->Mesh()->Solution();
     LastSol = fSolution;
     TPZAnalysis::LoadSolution();
-	  this->Mesh()->LoadReferences();
-	  this->Mesh()->Reference()->RestoreReference(this->Mesh());
+    this->Mesh()->LoadReferences();
+    this->Mesh()->Reference()->RestoreReference(this->Mesh());
+  }
 
     if (this->fSaveFrequency){
       if ((!(iter % fSaveFrequency)) || (iter == (this->fNMaxIter-1))){
@@ -116,6 +130,8 @@ void TPZExplFinVolAnal::DX(int iter, string filename){
 }
 
 void TPZExplFinVolAnal::Run(std::ostream &out){
+
+  cout << "  PASSO DE TEMPO = " << this->fTimeStep << endl;
 
   this->InitializeAuxiliarVariables();
 
@@ -199,61 +215,6 @@ REAL TPZExplFinVolAnal::TimeStep(){
   return this->fTimeStep;
 }
 
-void TPZExplFinVolAnal::AssembleFluxesOld(const TPZFMatrix & Solution, std::set<int> *MaterialIds){
-
-  this->FromConservativeToPrimitiveAndLoad(Solution);
-
-  const int nelem = this->Mesh()->NElements();
-  TPZElementMatrix ef(this->Mesh(), TPZElementMatrix::EF);
-
-  for(int iel = 0; iel < nelem; iel++){
-    TPZCompEl *el = this->Mesh()->ElementVec()[iel];
-    if(!el) continue;
-
-    if(MaterialIds){
-      TPZAutoPointer<TPZMaterial> mat = el->Material();
-      if (!mat) continue;
-      int matid = mat->Id();
-      if (MaterialIds->find(matid) == MaterialIds->end()) continue;
-    }///if
-
-    TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(el);
-    if(!face) continue;
-
-    el->CalcResidual(ef);
-    ef.ComputeDestinationIndices();
-    this->fRhs.AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
-
-  }///for iel = TPZInterfaceElement
-
-  for(int iel=0; iel < nelem; iel++){
-    TPZCompEl *el = this->Mesh()->ElementVec()[iel];
-    if(!el) continue;
-
-    if(MaterialIds){
-      TPZAutoPointer<TPZMaterial> mat = el->Material();
-      if (!mat) continue;
-      int matid = mat->Id();
-      if (MaterialIds->find(matid) == MaterialIds->end()) continue;
-    }///if
-
-    TPZInterpolationSpace* sp = dynamic_cast<TPZInterpolationSpace*>(el);
-    if(!sp) continue;
-
-    if(el->Reference()->Dimension() != 3) continue;
-
-    const REAL volume = el->Reference()->Volume();
-    sp->InitializeElementMatrix(ef);
-    ef.ComputeDestinationIndices();
-    const int n = ef.fDestinationIndex.NElements();
-    for(int i = 0; i < n; i++){
-      int pos = ef.fDestinationIndex[i];
-      this->fRhs(pos,0) *= this->fTimeStep/volume;
-    }
-
-  }///for iel = TPZInterpolationSpace
-
-}///void
 
 void TPZExplFinVolAnal::FromConservativeToPrimitiveAndLoad(const TPZFMatrix & Solution){
   this->fSolution.Redim(this->Mesh()->NEquations(),1);///fSolution is now zeroed
@@ -369,48 +330,6 @@ void TPZExplFinVolAnal::AssembleFluxes2ndOrder(const TPZFMatrix & Solution){
   TPZEulerEquation::SetComputeFlux();
   this->ParallelComputeFlux( this->fFacePtrList );
   this->DivideByVolume(fRhs,fTimeStep);
-}///void
-
-void TPZExplFinVolAnal::AssembleFluxesNew(const TPZFMatrix & Solution){
-
-  this->FromConservativeToPrimitiveAndLoad(Solution);
-
-  TPZElementMatrix ef(this->Mesh(), TPZElementMatrix::EF);
-
-  TPZManVector<REAL,10> solL, solR;
-  std::list< TPZInterfaceElement* >::iterator w;
-  for(w = this->fFacePtrList.begin(); w != this->fFacePtrList.end(); w++){
-    TPZInterfaceElement * face = *w;
-    if(!face){
-      PZError << "\nFatal error in " << __PRETTY_FUNCTION__ << "\n";
-      DebugStop();
-    }
-
-    this->GetNeighbourSolution(face,solL,solR);
-    this->CalcResidualFiniteVolumeMethod(face,ef,solL,solR);
-    ef.ComputeDestinationIndices();
-    this->fRhs.AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
-
-  }///for iel = TPZInterfaceElement
-
-  std::map< TPZInterpolationSpace*, std::pair< REAL, TPZVec<int> > >:: iterator wVol;
-  for(wVol = this->fVolumeData.begin(); wVol != this->fVolumeData.end(); wVol++){
-    TPZInterpolationSpace *sp = wVol->first;
-    if(!sp){
-      PZError << "\nFatal error in " << __PRETTY_FUNCTION__ << "\n";
-      DebugStop();
-    }
-
-    const REAL volume = wVol->second.first;
-    TPZVec<int> destIndices = wVol->second.second;
-    const int n = destIndices.NElements();
-    for(int i = 0; i < n; i++){
-      int pos = destIndices[i];
-      this->fRhs(pos,0) *= this->fTimeStep/volume;
-    }
-
-  }///for iel = TPZInterpolationSpace
-
 }///void
 
 void * TPZExplFinVolAnal::ExecuteParallelComputeFlux(void * ExtData){
@@ -662,7 +581,7 @@ void TPZExplFinVolAnal::ComputeGradientForDetails(const TPZFMatrix & PrimitiveSo
 	///fSolution must have zeros in gradient positions
   this->fRhs.Redim(this->Mesh()->NEquations(),1);
 	this->fRhs.Zero();
-	TPZEulerEquation::SetComputeGradient();
+ 	TPZEulerEquation::SetComputeGradient();
 	this->ComputeFlux( this->fFacePtrList );
 	this->DivideByVolume(fRhs,1.);
 	fSolution += fRhs;///fRhs has zeros in state variables position and fSolution has zeros in gradient positions

@@ -33,7 +33,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.olivier.adapt"));
 #endif
 
-static int gLMax = 5; 
+extern int gLMax;
 
 int mainAdapt ( int argc, char *argv[] )
 {
@@ -199,6 +199,10 @@ TPZAutoPointer < TPZRefPattern > GetUsedRefinementPattern ( TPZCompMesh * CMesh 
  */
 void GetAdaptedMesh ( TPZCompMesh * CMesh, double Epsl )
 {
+
+  cout << "\ngLMax = " << gLMax << "\n";
+  cout.flush();
+
 	const int nelem = CMesh->NElements();
 	TPZManVector < EAdaptElementAction,1000 > DivideOrCoarsen ( nelem, ENone );
 	// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
@@ -416,7 +420,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 						   TPZVec < TPZCompMesh * > & gradedMeshVec )
 {
 #ifndef NDEBUG
-	{dfsdfssdf
+	{
 		if ( !CheckReferences( OriginalMesh ) )
 		{
 			std::stringstream sout;
@@ -444,7 +448,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	int im = 0;
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
-	{dfsfsd
+	{
 		TPZGeoMesh * gMesh = OriginalMesh.Reference();
 		int i =0;
 		std::stringstream sout;
@@ -462,8 +466,9 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 #endif
 	gradedMeshVec [0] = OriginalMesh.Clone();
 	(gradedMeshVec [0])->LoadReferences();
+  
 #ifndef NDEBUG
-	{fdsdsf
+	{
 		if ( !CheckReferences(*gradedMeshVec[0]) )
 		{
 			std::stringstream sout;
@@ -477,7 +482,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
-	{dsfds
+	{
 		TPZGeoMesh * gMesh = OriginalMesh.Reference();
 		int i =0;
 		std::stringstream sout;
@@ -493,13 +498,12 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	}
 #endif
 #endif
-	
 	for ( im = 1; im < nlevels; im++ )
 	{
     cout << "clonando nivel " << im << "\n"; cout.flush(); 
 		gradedMeshVec[ im ] = CoarsenOneLevel ( * (gradedMeshVec [ im - 1 ]) );
 #ifndef NDEBUG
-		{fdsfsd
+		{
 			if ( !CheckReferences ( *gradedMeshVec [ im ] ) )
 			{
 				std::stringstream sout;
@@ -512,7 +516,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 #endif
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
-		{ddsf
+		{
 			stringstream sout;
 			gradedMeshVec[im]->Print(sout);
 			LOGPZ_DEBUG ( logger, sout.str().c_str() );
@@ -524,7 +528,6 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	//Verify the projection method
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
-fdsfds
 	for ( im = 0; im < nlevels; im++ )
 	{
 		TPZCompMesh * cmesh = gradedMeshVec[ im ];
@@ -676,9 +679,9 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 	    	cout << __PRETTY_FUNCTION__ << " Created a non discontinuous element\n";
 	    }
 		CoarseMesh->ExpandSolution();
-		CoarseMesh->CleanUpUnconnectedNodes();
-		CoarseMesh->AdjustBoundaryElements();
-		CoarseMesh->ExpandSolution();
+// 		CoarseMesh->CleanUpUnconnectedNodes();
+// 		CoarseMesh->AdjustBoundaryElements();
+// 		CoarseMesh->ExpandSolution();
 		
 		TPZConnect coarseCon = coarseEl->Connect(0);
 		int coarseSeqNum = coarseCon.SequenceNumber();
@@ -695,6 +698,11 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 			coarseBlock.Put( coarseSeqNum, 0, isol, 0, 0.0 );
 		}
 	}
+  
+    CoarseMesh->ExpandSolution();
+    CoarseMesh->CleanUpUnconnectedNodes();
+    CoarseMesh->AdjustBoundaryElements();
+    CoarseMesh->ExpandSolution();
 	
 	TPZExplFinVolAnal gradAnalysis ( CoarseMesh );
 	TPZFMatrix solAndGrad;
@@ -974,8 +982,8 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			{
 				cout << __PRETTY_FUNCTION__ << " Created a non discontinuous element\n";
 			}
-/*			CMesh.ExpandSolution();
-			CMesh.CleanUpUnconnectedNodes();
+			CMesh.ExpandSolution();
+			/*CMesh.CleanUpUnconnectedNodes();
 			CMesh.AdjustBoundaryElements();
 			CMesh.ExpandSolution();		*/}
 	}
@@ -1101,9 +1109,9 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			{
 				cout << __PRETTY_FUNCTION__ << " Created a non discontinuous element\n";
 			}
-			CMesh.ExpandSolution();
-			CMesh.CleanUpUnconnectedNodes();
-			CMesh.AdjustBoundaryElements();
+// 			CMesh.ExpandSolution();
+// 			CMesh.CleanUpUnconnectedNodes();
+// 			CMesh.AdjustBoundaryElements();
 			CMesh.ExpandSolution();
 			
 			TPZConnect coarseCon = coarseEl->Connect(0);

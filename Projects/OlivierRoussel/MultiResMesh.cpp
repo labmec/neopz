@@ -1,4 +1,4 @@
-//$Id: MultiResMesh.cpp,v 1.5 2009-10-30 22:20:19 fortiago Exp $
+//$Id: MultiResMesh.cpp,v 1.6 2009-11-04 14:13:24 fortiago Exp $
 
 #include "malhas.h"
 #include "TPZFakeFunction.h"
@@ -205,7 +205,7 @@ void InitialSolutionMultires(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
   TPZVec<REAL> celerity(3,0.);
   celerity[0] = 1.;
 #ifdef LinearConvection
-  TPZEulerEquation::SetLinearConvection(celerity);
+  TPZEulerEquation::SetLinearConvection(cmesh, celerity);
 #endif
 }
 
@@ -275,21 +275,20 @@ void DefineRefinementPattern ( TPZGeoMesh * GMesh )
 
 }
 
-double ComputeTimeStep(double CFL, int maxLevel, int meshlevel, TPZGeoMesh * gmesh){
-  double r = 0.;
-  int currentLevel = 0;
+double ComputeTimeStep(double CFL, int Level, TPZGeoMesh * gmesh){
+  double MinR = 1e12;
   for(int iel = 0; iel < gmesh->NElements(); iel++){
     TPZGeoEl * gel = gmesh->ElementVec()[iel];
     if(!gel) continue;
     if(gel->Dimension() == 3){
-      currentLevel = gel->Level();
-      if(meshlevel == currentLevel){
-        r = gel->ElementRadius();
-        break;
+      int currentLevel = gel->Level();
+      if(Level == currentLevel){
+        double r = gel->ElementRadius();
+        if(r < MinR) MinR = r;
       }
     }
   }///for
 
-  const REAL min = 2.*r/pow(2.,maxLevel-meshlevel);
-  return CFL*min;
+  double timeStep = CFL*MinR;
+  return timeStep;
 }

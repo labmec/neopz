@@ -106,6 +106,7 @@ inline void DummyFunction2(TPZVec<REAL> &co, TPZVec<REAL> &val)
 {
 	val.Fill(co[0]);//(1-co[0])*co[0]);
 }
+
 void GetAdaptedMesh( TPZCompMesh * cmesh, double Epsl );
 
 
