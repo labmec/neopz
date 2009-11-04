@@ -17,7 +17,7 @@ TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out);
 
 TPZNonLinearAnalysis();
 
-virtual ~TPZNonLinearAnalysis(void);
+virtual ~TPZNonLinearAnalysis();
 
 /**
  * It process a Newton's method to solve the non-linear problem.
@@ -29,11 +29,6 @@ virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool lines
 void LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
 
 REAL SolutionNorm();
-
-/**
- * Assemble only the residual vector
- **/
-virtual void AssembleResidual();
 
 virtual void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase);
 

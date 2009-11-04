@@ -28,13 +28,7 @@ TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,ostream &out) : TPZ
 	fSolution.Zero();
 }
 
-TPZNonLinearAnalysis::~TPZNonLinearAnalysis(void){}
-
-void TPZNonLinearAnalysis::AssembleResidual(){
-  int sz = this->Mesh()->NEquations();
-  this->Rhs().Redim(sz,1);
-  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
-}///void
+TPZNonLinearAnalysis::~TPZNonLinearAnalysis(){}
 
 // #define DEBUGLINESEARCH
 #ifdef DEBUGLINESEARCH
@@ -157,7 +151,6 @@ void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter, b
 	  CheckConvergence(*this,fSolution,range,coefs);
   }
   
-	
    while(error > tol && iter < numiter) {
 
       fSolution.Redim(0,0);
@@ -176,14 +169,14 @@ void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter, b
       
       prevsol -= fSolution;
       REAL normDeltaSol = Norm(prevsol);
+      prevsol = fSolution;
+      TPZAnalysis::LoadSolution();
       this->AssembleResidual();
       double NormResLambda = Norm(fRhs);
       double norm = NormResLambda;
 //       out << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << endl;
       out << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << NormResLambda << endl;
 
-      prevsol = fSolution;
-      TPZAnalysis::LoadSolution();
       if(norm < tol) {
          out << "\nTolerancia atingida na iteracao : " << (iter+1) << endl;
          out << "\n\nNorma da solucao |Delta(Un)|  : " << norm << endl << endl;
