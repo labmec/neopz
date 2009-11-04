@@ -1,4 +1,4 @@
-//$Id: pzeuler.h,v 1.5 2009-08-28 22:58:56 fortiago Exp $
+//$Id: pzeuler.h,v 1.6 2009-11-04 14:05:16 fortiago Exp $
 
 #ifndef PZEULER_H
 #define PZEULER_H
@@ -12,6 +12,7 @@
 #include "pzausmflux.h"
 #include "pzgradientflux.h"
 #include "pzlog.h"
+class TPZCompMesh;
 
 #define LinearConvection
 
@@ -36,13 +37,13 @@ public:
   }
 
 #ifdef LinearConvection
-  static void SetLinearConvection(TPZVec<REAL> &Celerity);
+  static void SetLinearConvection(TPZCompMesh * cmesh, TPZVec<REAL> &Celerity);
 #endif
 
 private:
 
 #ifdef LinearConvection
-  static TPZVec<REAL> gCelerity;
+  TPZVec<REAL> fCelerity;
 #endif
 
   static CALCType gType;

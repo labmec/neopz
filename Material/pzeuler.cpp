@@ -1,4 +1,4 @@
-//$Id: pzeuler.cpp,v 1.5 2009-08-28 22:58:56 fortiago Exp $
+//$Id: pzeuler.cpp,v 1.6 2009-11-04 14:05:15 fortiago Exp $
 
 #include "pzeuler.h"
 
@@ -19,10 +19,22 @@ TPZEulerEquation::CALCType TPZEulerEquation::gType = EFlux;
 REAL TPZEulerEquation::gGamma = 1.4;
 
 #ifdef LinearConvection
-  TPZVec<REAL> TPZEulerEquation::gCelerity(3,0);
-  void TPZEulerEquation::SetLinearConvection(TPZVec<REAL> &Celerity){
-    gCelerity = Celerity;
+void TPZEulerEquation::SetLinearConvection(TPZCompMesh * cmesh, TPZVec<REAL> &Celerity){
+  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator w;
+  for(w = cmesh->MaterialVec().begin(); w != cmesh->MaterialVec().end(); w++){
+    TPZMaterial * mat = w->second.operator->();
+    TPZEulerEquation * matcast = dynamic_cast< TPZEulerEquation * >(mat);
+    if(matcast){
+      cout << "old celerity = ";
+      for(int i = 0; i < matcast->fCelerity.NElements(); i++)  cout << matcast->fCelerity[i] << "  ";
+      cout << "\n";
+      matcast->fCelerity = Celerity;
+      cout << "new celerity = ";
+      for(int i = 0; i < matcast->fCelerity.NElements(); i++)  cout << matcast->fCelerity[i] << "  ";
+      cout << "\n";
+    }
   }
+}
 #endif
 
 void TPZEulerEquation::FromPrimitiveToConservative(TPZVec<REAL> &sol,REAL gamma){
@@ -69,7 +81,7 @@ TPZEulerEquation::TPZEulerEquation(int nummat, REAL gamma) :
 }
 
 TPZEulerEquation::TPZEulerEquation():TPZDiscontinuousGalerkin(),fAUSMFlux(-1.),fGradientFlux(){
-  gGamma = -1.;
+
 }
 
 TPZEulerEquation::TPZEulerEquation(const TPZEulerEquation &cp) : 
@@ -118,10 +130,12 @@ int TPZEulerEquation::NSolutionVariables(int var){
 
 void TPZEulerEquation::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 
+#ifndef LinearConvection
   if(fabs(Sol[0]) < 1.e-10){
     PZError << "\nTPZEulerEquation::Solution: Density almost null\n"
             << "Density = " << Sol[0] << endl;
   }
+#endif
 
   if(var == 1) {
     Solout.Resize(1);
@@ -189,7 +203,7 @@ void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, REAL weight, T
     fGradientFlux.ApplyLimiter(data);
     TPZManVector<REAL,15> Flux(5,0.);
     double dot = 0.;
-    for(int i = 0; i < 3; i++) dot += data.normal[i]*gCelerity[i];
+    for(int i = 0; i < 3; i++) dot += data.normal[i]*fCelerity[i];
     if(dot > 0.){
       Flux[0] = dot*data.soll[0];
     }
