@@ -71,6 +71,8 @@ int TPZMaterial::VariableIndex(const std::string &name) {
    if(!strcmp(name.c_str(),"H1ErrorPerArea")) return 108;
    if(!strcmp(name.c_str(),"dudxErrorPerArea")) return 109;
    if(!strcmp(name.c_str(),"dudyErrorPerArea")) return 110;
+   if(!strcmp(name.c_str(),"ContDisc")) return 111;
+   
 
    std::cout << __PRETTY_FUNCTION__ << " Variable " << name << " not found\n";
 
@@ -99,6 +101,7 @@ int TPZMaterial::NSolutionVariables(int index) {
    if (index == 108) return 1;
    if (index == 109) return 1;
    if (index == 110) return 1;
+   if (index == 111) return 1;
    PZError << "TPZMaterial::NSolutionVariables called index = " << index << "\n";
    return 0;
 }
