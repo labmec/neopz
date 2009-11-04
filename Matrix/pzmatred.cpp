@@ -448,6 +448,11 @@ void TPZMatRed<TSideMatrix>::MultAdd(const TPZFMatrix &x,
 //   int i = 0;
 //   int j = 0;
 
+	if(!fIsReduced)
+	{
+		TPZMatrix::MultAdd(x,y,z,alpha,beta,opt,stride);
+		return;
+	}
   /**
    * It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
    * @param x Is x on the above operation
