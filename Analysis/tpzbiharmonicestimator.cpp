@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "tpzbiharmonicestimator.h"
-#include <pzbiharmonic.h>
+#include "pzbiharmonic.h"
 #include "pzbndcond.h"
 TPZBiharmonicEstimator::TPZBiharmonicEstimator(int nummat, REAL f):
 TPZBiharmonic( nummat,  f)

@@ -19,7 +19,7 @@
  ***************************************************************************/
 #ifndef TPZBIHARMONICESTIMATOR_H
 #define TPZBIHARMONICESTIMATOR_H
-#include <pzbiharmonic.h>
+#include "pzbiharmonic.h"
 
 /**
 	@author joao <joao@joao-laptop>

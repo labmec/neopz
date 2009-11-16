@@ -12,7 +12,7 @@
 #ifndef PZNONLINELLIPTIC_H
 #define PZNONLINELLIPTIC_H
 
-#include <pzmaterial.h>
+#include "pzmaterial.h"
 
 /**
  * Implements a non linear elliptic equation.

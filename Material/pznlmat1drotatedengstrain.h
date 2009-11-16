@@ -1,10 +1,10 @@
-//$Id: pznlmat1drotatedengstrain.h,v 1.6 2009-09-01 19:44:47 phil Exp $
+//$Id: pznlmat1drotatedengstrain.h,v 1.7 2009-11-16 18:41:59 diogo Exp $
 // -*- c++ -*-
 
 #ifndef TPZNLMAT1DROTATEDENGSTRAIN_H
 #define TPZNLMAT1DROTATEDENGSTRAIN_H
 
-#include <pznlmat1d.h>
+#include "pznlmat1d.h"
 #include <fstream>
 #include <iostream>
 
@@ -28,7 +28,7 @@ public:
     /**
 	 * Destructor
      */
-    ~TPZNLMat1dRotatedEngStrain();
+    virtual ~TPZNLMat1dRotatedEngStrain();
 
     /**
      * Returns the name of the material

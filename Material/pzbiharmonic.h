@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzbiharmonic.h,v 1.11 2009-09-01 19:44:46 phil Exp $
+//$Id: pzbiharmonic.h,v 1.12 2009-11-16 18:41:59 diogo Exp $
 
 #ifndef  TPZBIHARMONICHPP
 #define TPZBIHARMONICHPP
@@ -15,7 +15,7 @@
  */
 class TPZBiharmonic : public TPZDiscontinuousGalerkin {
 
-private:
+protected:
   REAL  fXf;
 
   //Problem dimention
