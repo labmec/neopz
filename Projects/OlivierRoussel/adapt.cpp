@@ -1005,8 +1005,8 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 	{
 		if ( DivideOrCoarsen[el] != ECoarse ) continue;
 		TPZCompEl *cel = CMesh.ElementVec()[el];
-		if(cel->Reference()->Dimension() != 3) continue;
 		if (!cel  || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
+    if(cel->Reference()->Dimension() != 3) continue;
 		TPZGeoEl *gel = cel->Reference();
 		TPZGeoEl *father = gel->Father();
 		if ( !father ) continue; //there are not brothers to coasen
