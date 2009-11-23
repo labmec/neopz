@@ -332,7 +332,7 @@ virtual MElementType Type(int side) =0;
   virtual TPZGeoEl *CreateGeoElement(MElementType type,
                                        TPZVec<int>& nodeindexes,
                                        int matid,
-                                       int& index);
+                                       int& index) = 0;
 
   /** method which creates a geometric element on the side of an existing element */
   virtual TPZGeoEl *CreateBCGeoEl(int side, int bc) = 0;
@@ -398,6 +398,12 @@ virtual MElementType Type(int side) =0;
   /**compute the transformation between the master element space of one side
      of an element to the master element space of a higher dimension side*/
   virtual TPZTransform SideToSideTransform(int sidefrom,int sideto)= 0;
+	
+	/// Projection of the point to the side
+	/**
+	 * Compute the projection of the point within the interior of the element to the side of the element
+	 */
+	TPZTransform Projection(int side);
 
   /**get the transform id the face to face*/
 	int GetTransformId2dQ(TPZVec<int> &idfrom,TPZVec<int> &idto);
@@ -540,7 +546,7 @@ void CheckSubelDataStructure();
 //  virtual void Center(TPZVec<REAL> &center) { center[0] = 0.; }
 
 //void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi);
-void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol = 1.e-6);
+void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol = 1.e-12);
 
 TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 
@@ -561,6 +567,11 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
   static REAL TriangleArea(TPZVec<TPZGeoNode *> &nodes);
 
   virtual REAL ElementRadius();//TPZGeoEl
+	
+	/**
+	 * return a size which is caracteristic for the element
+	 */
+	virtual REAL CharacteristicSize();
 
   static REAL Distance(TPZVec<REAL> &centel,TPZVec<REAL> &centface);
 
