@@ -61,6 +61,7 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Mesh/pzgeoelrefless.o ../Mesh/pzgeoelside.o ../Mesh/pzgmesh.o ../Mesh/pzgnode.o \
 	../Mesh/pzintel.o ../Mesh/pzinterpolationspace.o ../Mesh/pzmeshid.o \
 	../Mesh/pzreferredcompel.o ../Mesh/pzstackmesh.o ../Mesh/pzsubcmesh.o ../Mesh/pzvecmesh.o \
+	../Mesh/pzcreateapproxspace.o \
 	../Mesh/tpzcompmeshreferred.o ../Mesh/tpzgeoelmapped.o ../Mesh/tpzgeoelrefpattern.o ../Mesh/tpzgeoblend.o \
 	../Multigrid/pzmgsolver.o ../Multigrid/pztransfer.o ../Multigrid/pztrnsform.o ../Post/pzdxmesh.o \
 	../Post/pzgraphel.o ../Post/pzgraphel1d.o ../Post/pzgraphel1dd.o ../Post/pzgraphelq2d.o \
