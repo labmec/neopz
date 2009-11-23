@@ -904,8 +904,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   TPZGeoEl *elgq2d = gmesh->CreateGeoElement(EQuadrilateral,nodes,1,index);
 
   //construtor descont�nuo
-  TPZGeoElement<TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
 
 //  int interfdim = 1;
 //  TPZCompElDisc::gInterfaceDimension = interfdim;
@@ -1024,8 +1023,7 @@ TPZMaterial *TresTriangulos(int grau){
   nodes[1] = 4;
   nodes[2] = 3;
   TPZGeoEl *elgt2d2 = gmesh->CreateGeoElement(ETriangle,nodes,1,index);
-  TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
 //  int interfdim = 1;
 //  TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -1259,11 +1257,7 @@ TPZMaterial *FluxConst3D(int grau){
   nodes[7] = 7;
   TPZGeoEl *elgc3d = gmesh->CreateGeoElement(ECube,nodes,1,index);
   //construtor descont�nuo
-  TPZGeoElement<TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  //TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  //TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  //TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
 //  int interfdim = 2;
 //  TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -1446,8 +1440,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
     elem[i] = gmesh->CreateGeoElement(EQuadrilateral,nodes,1,index);
   }
   //construtor descont�nuo
-  TPZGeoElement<TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
 //  int interfdim = 1;
  // TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -1667,10 +1660,7 @@ TPZMaterial *NoveCubos(int grau){
   }
 
   //elemento de volume descont�nuo
-  TPZGeoElement<TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  //TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  //TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
 //  int interfdim = 2;
 //  TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
@@ -1914,8 +1904,7 @@ TPZMaterial *Quadrado(int grau){
   elem = gmesh->CreateGeoElement(EQuadrilateral,nodes,1,index);
 
   //construtor descont�nuo
-  TPZGeoElement<TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
 //  int interfdim = 1;
 //  TPZCompElDisc::gInterfaceDimension = interfdim;
   gmesh->BuildConnectivity();
