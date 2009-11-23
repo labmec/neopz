@@ -19,6 +19,13 @@
 #include "pzaxestools.h"
 class TPZGeoMesh;
 
+#include "pzlog.h"
+#include <sstream>
+
+#ifdef LOG4CXX
+static LoggerPtr loggermapped(Logger::getLogger("pz.mesh.geoelmapped"));
+#endif
+
 /**
 This class implements a geometric element which uses its ancestral to compute its jacobian. Its main intent is to make the division of specially mapped elements easier: if the coarse grid map is consistent, then so will all refined meshes
 
@@ -119,10 +126,27 @@ public:
         nodeX[id] = this->NodePtr(in)->Coord(id);
       }
 
-      aux.Fill(0.);
-      ptancestor.Fill(0.);
-      father->ComputeXInverse(nodeX, aux,1e-10);
-      const int sideProjected = father->ProjectInParametricDomain(aux,ptancestor);
+		TPZGeoElSide gels(this,in);
+		TPZGeoElSide nextfatherside = gels.Father2();
+		TPZGeoElSide fatherside;
+		while(nextfatherside.Element())
+		{
+			fatherside = nextfatherside;
+			nextfatherside = nextfatherside.Father2();			
+		}
+		TPZTransform trzero(0);
+		TPZTransform tr = this->BuildTransform2(in,father,trzero);
+		TPZTransform trfather = fatherside.Element()->SideToSideTransform(fatherside.Side(),fatherside.Element()->NSides()-1);
+		tr = trfather.Multiply(tr);
+		TPZVec<REAL> zero(0);
+		tr.Apply(zero, aux);
+		//aux.Fill(0.);
+		ptancestor.Fill(0.);
+		father->ComputeXInverse(nodeX, aux,1e-10);
+		int pointside = father->WhichSide(aux);
+		TPZTransform project = father->Projection(pointside);
+		project.Apply(aux,ptancestor);
+//      const int sideProjected = father->ProjectInParametricDomain(aux,ptancestor);
 
 #ifdef DEBUG
 {
@@ -139,7 +163,7 @@ public:
         std::cout << "\nptancestor:\n";
         for(int i = 0; i < ptancestor.NElements(); i++) std::cout << ptancestor[i] << "\t";
         std::cout << "\n";
-        DebugStop();
+//        DebugStop();
       }
 
       TPZManVector<REAL,3> fatherX(3);
@@ -174,22 +198,33 @@ public:
         diff = fatherX[i]-fatherXaux[i];
         error += diff*diff;
       }
+//	REAL size = father->CharacteristicSize();
       error = sqrt(error);
       if(error > 1e-8){
-        std::cout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
-        std::cout << "this->Index = " << this->Index() << "\n";
-        std::cout << "aux:\n";
-        for(int i = 0; i < aux.NElements(); i++) std::cout << aux[i] << "\t";
-        std::cout << "\nptancestor:\n";
-        for(int i = 0; i < ptancestor.NElements(); i++) std::cout << ptancestor[i] << "\t";
-        std::cout << "\n";
-        std::cout << "nodeX:\n";
-        for(int i = 0; i < nodeX.NElements(); i++) std::cout << nodeX[i] << "\t";
-        std::cout << "\nfatherX:\n";
-        for(int i = 0; i < fatherX.NElements(); i++) std::cout << fatherX[i] << "\t";
-        std::cout << "\nfatherXaux:\n";
-        for(int i = 0; i < fatherXaux.NElements(); i++) std::cout << fatherXaux[i] << "\t";
-        std::cout << "\n";
+		  std::stringstream sout;
+		  
+		  sout.precision(16);
+        sout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
+        sout << "this->Index = " << this->Index() << "\n";
+		  sout << "Node number " << in << std::endl;
+		  sout << "Node index " << this->NodeIndex(in) << std::endl;
+		  sout << "Father side " << this->FatherSide(in,0) << std::endl;
+        sout << "aux:\n";
+        for(int i = 0; i < aux.NElements(); i++) sout << aux[i] << "\t";
+        sout << "\nptancestor:\n";
+        for(int i = 0; i < ptancestor.NElements(); i++) sout << ptancestor[i] << "\t";
+        sout << "\n";
+        sout << "nodeX:\n";
+        for(int i = 0; i < nodeX.NElements(); i++) sout << nodeX[i] << "\t";
+        sout << "\nfatherX:\n";
+        for(int i = 0; i < fatherX.NElements(); i++) sout << fatherX[i] << "\t";
+        sout << "\nfatherXaux:\n";
+        for(int i = 0; i < fatherXaux.NElements(); i++) sout << fatherXaux[i] << "\t";
+        std::cout << sout.str();
+#ifdef LOG4CXX
+		  father->Mesh()->Print(sout);
+		  LOGPZ_ERROR(loggermapped,sout.str())
+#endif
         DebugStop();
       }
 
