@@ -70,65 +70,6 @@ using namespace pztopology;
 #include "pzgeoelrefless.h.h"
 #endif
 
-TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(!gel->Reference() && gel->NumInterfaces() == 0)
-  	return new TPZIntelGen<TPZShapePoint>(mesh,gel,index);
-  return NULL;
-}
-TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(!gel->Reference() && gel->NumInterfaces() == 0)
-  	return new TPZIntelGen<TPZShapeLinear>(mesh,gel,index);
-  return NULL;
-}
-TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(!gel->Reference() && gel->NumInterfaces() == 0)
-    return new TPZIntelGen<TPZShapeQuad>(mesh,gel,index);
-  return NULL;
-}
-TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(!gel->Reference() && gel->NumInterfaces() == 0)
-    return new TPZIntelGen<TPZShapeTriang>(mesh,gel,index);
-  return NULL;
-}
-TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(!gel->Reference() && gel->NumInterfaces() == 0)
-    return new TPZIntelGen<TPZShapeCube>(mesh,gel,index);
-  return NULL;
-}
-TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(!gel->Reference() && gel->NumInterfaces() == 0)
-    return new TPZIntelGen<TPZShapePrism>(mesh,gel,index);
-  return NULL;
-}
-TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(!gel->Reference() && gel->NumInterfaces() == 0)
-    return new TPZIntelGen<TPZShapePiram>(mesh,gel,index);
-  return NULL;
-}
-TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(!gel->Reference() && gel->NumInterfaces() == 0)
-    return new TPZIntelGen<TPZShapeTetra>(mesh,gel,index);
-  return NULL;
-}
-
-
-template<>
-TPZCompEl *(*TPZGeoElRefLess<TPZGeoPoint>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
-template<>
-TPZCompEl *(*TPZGeoElRefLess<TPZGeoLinear>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
-template<>
-TPZCompEl *(*TPZGeoElRefLess<TPZGeoQuad>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;
-template<>
-TPZCompEl *(*TPZGeoElRefLess<TPZGeoTriangle>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
-template<>
-TPZCompEl *(*TPZGeoElRefLess<TPZGeoCube>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateCubeEl;
-template<>
-TPZCompEl *(*TPZGeoElRefLess<TPZGeoPrism>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePrismEl;
-template<>
-TPZCompEl *(*TPZGeoElRefLess<TPZGeoTetrahedra>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;
-template<>
-TPZCompEl *(*TPZGeoElRefLess<TPZGeoPyramid>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePyramEl;
-
 
 template class TPZGeoElRefLess<TPZGeoCube>;
 template class TPZGeoElRefLess<TPZGeoLinear>;
