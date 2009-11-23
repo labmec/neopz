@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.39 2009-10-09 15:01:25 fortiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.40 2009-11-23 19:53:33 phil Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -656,7 +656,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
           #ifdef LOG4CXX
                 {
                   std::stringstream sout;
-                  std::sout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
+                  sout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
                   sout << "left gel:\n";
                   leftGel->Print(sout);
                   sout << "right gel:";
@@ -751,7 +751,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
           #ifdef LOG4CXX
                 {
                   std::stringstream sout;
-                  std::sout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
+                  sout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
                   sout << "left gel:\n";
                   leftGel->Print(sout);
                   sout << "right gel:";
