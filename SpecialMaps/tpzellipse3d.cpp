@@ -339,14 +339,18 @@ TPZFMatrix TPZEllipse3D::DEllipseR2equationDang(double ang)
 
 #include "tpzgeoelmapped.h"
 
-///CreateGeoElement -> TPZEllipse3D
-template< >
-TPZGeoEl *TPZGeoElRefLess<TPZEllipse3D >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+/**
+ * Creates a geometric element according to the type of the father element
+ */
+
+TPZGeoEl *TPZEllipse3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									   TPZVec<int>& nodeindexes,
+									   int matid,
+									   int& index)
 {
-	TPZGeoMesh &mesh = *(this->Mesh());
-	if(!&mesh) return 0;
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
+
 
 #define TPZGEOELEMENTELLIPSE3DID 301
 template<>
@@ -358,8 +362,6 @@ int TPZGeoElRefPattern<TPZEllipse3D>::ClassId() const
 template class 
 TPZRestoreClass< TPZGeoElRefPattern<TPZEllipse3D>, TPZGEOELEMENTELLIPSE3DID>;
 
-template<>
-TPZCompEl *(*TPZGeoElRefLess<TPZEllipse3D>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
 
 template class TPZGeoElRefLess<TPZEllipse3D>;
 template class pzgeom::TPZNodeRep<2,TPZEllipse3D>;

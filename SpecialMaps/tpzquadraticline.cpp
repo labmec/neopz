@@ -88,16 +88,22 @@ TPZGeoEl *TPZQuadraticLine::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
   return newel;
 }
 
+#include "tpzgeoelmapped.h"
+/**
+ * Creates a geometric element according to the type of the father element
+ */
+
+TPZGeoEl *TPZQuadraticLine::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									   TPZVec<int>& nodeindexes,
+									   int matid,
+									   int& index)
+{
+	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
 
 
 ///CreateGeoElement -> TPZQuadraticLine
-                template< >
-                TPZGeoEl *TPZGeoElRefLess<TPZQuadraticLine >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
-            {
-              TPZGeoMesh &mesh = *(this->Mesh());
-              if(!&mesh) return 0;
-              return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-            }
 
 #define TPZGEOELEMENTQUADRATICLINEID 3111
             template<>
@@ -107,8 +113,6 @@ TPZGeoEl *TPZQuadraticLine::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
                 template class 
                     TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticLine>, TPZGEOELEMENTQUADRATICLINEID>;
 
-                template<>
-                    TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticLine>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
 
                 
          template class pzgeom::TPZNodeRep<3,TPZQuadraticLine>;
