@@ -903,84 +903,124 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
 
 }
 */
+
+/**
+ * return a size which is caracteristic for the element
+ */
+REAL TPZGeoEl::CharacteristicSize()
+{
+	REAL xmin,xmax;
+	TPZManVector<REAL,3> values(3);
+	int nn = NNodes();
+	if(!nn) return 0.;
+	NodePtr(0)->GetCoordinates(values);
+	xmin = values[0];
+	xmax = values[0];
+	int ic;
+	for(ic=0; ic<3; ic++)
+	{
+		xmin = min(values[ic],xmin);
+		xmax = max(values[ic],xmax);
+	}
+	int in;
+	for(in=1; in<nn; in++)
+	{
+		NodePtr(in)->GetCoordinates(values);
+		for(ic=0; ic<3; ic++)
+		{
+			xmin = min(values[ic],xmin);
+			xmax = max(values[ic],xmax);
+		}
+	}
+	return xmax-xmin;
+}
+
 void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 
   REAL error = 10.;
   int iter = 0;
   const int nMaxIter = 1000;
-  while(error > Tol && iter < nMaxIter)
-  {
-      iter++;
-      TPZManVector<REAL,3> X0(3,0.);
-      if(ksi.NElements()!=Dimension()) {
+	REAL radius = CharacteristicSize();
+	int dim = Dimension();
+	TPZManVector<REAL,3> X0(3);
+	
+
+	
+	
+	// First verify if the entry ksi yields the right point
+	if(ksi.NElements()!= dim) {
         PZError << "\nTPZGeoEl::ComputeXInverse vector dimension error\n";
         ksi.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
         //return;
-      }
-      X(ksi,X0);//ksi deve ter dimensao do elemento atual
-      TPZFNMatrix<9> DelX(3,1);
-      int i;
-      for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
-      int dim = Dimension();
-      TPZFNMatrix<9> residual(dim,1),delksi(dim,1);
-      REAL detJ;
-      TPZFNMatrix<9> J(dim,dim,0.),axes(3,3,0.),Inv(dim,dim,0.);
-      TPZFNMatrix<9> JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
-#ifdef DEBUG
-      int nao = 0;
-      if(NSides() == 19 && nao){
-              ksi.Resize(3,0.);
-              REAL epsilon = 0.002;
-              ofstream outp("JACOBIANO");
-              for(int l=0;l<10;l++){
-                    ksi[0] = l*epsilon;
-                    ksi[1] = l*epsilon/2.0;
-                    outp << "ksi : " << ksi[0] << "  "	<< ksi[1] << endl;
-                Jacobian(ksi,J,axes,detJ,Inv);
-                    outp << "\nJacobiano ";
-                    J.Print("",outp);
-                    outp << "\nInversa do Jacobiano ";
-                    Inv.Print("",outp);
-                    TPZFMatrix Unit = J*Inv;
-                    outp << "Jac * InvJac = ";
-                    Unit.Print("",outp);
-                    outp << "\n det Jacobiano : " << detJ << "\n";
-              }
-              outp.flush();
-              //outp.close();
-              //exit(-1);
-      }
-#endif
-      Jacobian(ksi,J,axes,detJ,Inv);
-if(fabs(detJ) < 1e-10){
-  for(int ik = 0; ik < ksi.NElements(); ik++) ksi[ik] += 0.1;
-  residual(0,0) = 1e12;
-}
-else{
-      TPZFNMatrix<9> axest;
-      axes.Transpose(&axest);
-      axest.Resize(3,dim);//casos 1D e 2D onde JX espacial � 1x3 e 2x3 respectivamente
-      if(dim==1){
-            JX(0,0) = axest(0,0)*J(0,0);
-            JX(1,0) = axest(1,0)*J(0,0);
-            JX(2,0) = axest(2,0)*J(0,0);
-      } else {
-          axest.Multiply(J,JX,0,1);
-      }
-      JX.Transpose(&JXt);
-      JXt.Multiply(JX,JXtJX,0,1);//JXtJX = JXt*JX;
-      JXt.Multiply(DelX,residual);//cout << "\nComputeXInverse: : \n";
-      JXtJX.SolveDirect(residual,ELU);//cout << "Atual/dimensao : " << Id() << " / " << Dimension();
-      for(i=0; i<dim; i++) ksi[i] += residual(i,0);
-}
-      X(ksi,X0);
-      for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
-      ///A norma sobre coordenada parametrica eh mais objetiva pois os limites do
-      ///elemento mestre sao mais claros que os do elemento real
-//       error = Norm(DelX);
-      error = Norm(residual);
-  }
-
+	}
+	X(ksi,X0);//ksi deve ter dimensao do elemento atual
+	TPZFNMatrix<9> DelX(3,1);
+	int i;
+	for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
+	error = Norm(DelX)/radius;
+	if(error <= Tol) return;
+	
+	// Verify if the point is not a corner node
+	TPZManVector<REAL,3> values(3);
+	int nn = NNodes();
+	if(nn <= 1) return;
+	int in;
+	for(in=0; in<nn; in++)
+	{
+		NodePtr(in)->GetCoordinates(values);
+		TPZFNMatrix<3> DelX(3,1);
+		for(i=0; i<3; i++) DelX(i,0) = XD[i]-values[i];
+		error = Norm(DelX)/radius;
+		if(error <= Tol)
+		{
+			TPZVec<REAL> zero(0);
+			TPZTransform tr = SideToSideTransform(in, NSides()-1);
+			tr.Apply(zero, ksi);
+			return;
+		}
+	}
+	
+	while(error > Tol && iter < nMaxIter)
+	{
+		iter++;
+		TPZFNMatrix<9> residual(dim,1),delksi(dim,1);
+		REAL detJ;
+		TPZFNMatrix<9> J(dim,dim,0.),axes(3,3,0.),Inv(dim,dim,0.);
+		TPZFNMatrix<9> JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
+		Jacobian(ksi,J,axes,detJ,Inv);
+		if(fabs(detJ) < 1e-10){
+			TPZManVector<REAL,3> center(Dimension(),0.);
+			CenterPoint(NSides()-1, center);
+			cout << "ComputeXInverse found zero Jacobian Index " << this->fIndex << " ksi " << ksi << " detJ " << detJ << std::endl;
+			for(int ik = 0; ik < ksi.NElements(); ik++) ksi[ik] += Tol*(center[ik]-ksi[ik]);
+			residual(0,0) = 1e12;
+		}
+		else
+		{
+			TPZFNMatrix<9> axest;
+			axes.Transpose(&axest);
+			axest.Resize(3,dim);//casos 1D e 2D onde JX espacial � 1x3 e 2x3 respectivamente
+			if(dim==1){
+				JX(0,0) = axest(0,0)*J(0,0);
+				JX(1,0) = axest(1,0)*J(0,0);
+				JX(2,0) = axest(2,0)*J(0,0);
+			} else {
+				axest.Multiply(J,JX,0,1);
+			}
+			JX.Transpose(&JXt);
+			JXt.Multiply(JX,JXtJX,0,1);//JXtJX = JXt*JX;
+			JXt.Multiply(DelX,residual);//cout << "\nComputeXInverse: : \n";
+			JXtJX.SolveDirect(residual,ELU);//cout << "Atual/dimensao : " << Id() << " / " << Dimension();
+			for(i=0; i<dim; i++) ksi[i] += residual(i,0);
+		}
+		X(ksi,X0);
+		for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
+		///A norma sobre coordenada parametrica eh mais objetiva pois os limites do
+		///elemento mestre sao mais claros que os do elemento real
+		//       error = Norm(DelX);
+		error = Norm(DelX)/radius;
+	}
+	
 #ifdef DEBUG
   if(iter == nMaxIter){
     std::stringstream sout;
@@ -989,7 +1029,7 @@ else{
 #ifdef LOG4CXX
     LOGPZ_ERROR(logger,sout.str().c_str());
 #endif
-    DebugStop();
+//    DebugStop();
   }///if
 
   if(this->IsInParametricDomain(ksi) == false){
@@ -1006,7 +1046,8 @@ else{
 #ifdef LOG4CXX
     LOGPZ_ERROR(logger,sout.str().c_str());
 #endif
-    DebugStop();
+	  ProjectInParametricDomain(ksi, ksi);
+//    DebugStop();
   }///if
 
 #endif
@@ -1427,6 +1468,7 @@ using namespace pzgeom;
 using namespace pzrefine;
 using namespace pzshape;
 
+/*
 TPZGeoEl *TPZGeoEl::CreateGeoElement(MElementType type,
                                        TPZVec<int>& nodeindexes,
                                        int matid,
@@ -1499,6 +1541,7 @@ TPZGeoEl *TPZGeoEl::CreateGeoElement(MElementType type,
     }
   }
 }
+ */
 
 int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension);
 
@@ -1633,3 +1676,17 @@ void TPZGeoEl::BuildBlendConnectivity(){
   }///for byside
 }///method
 
+/// Projection of the point to the side
+/**
+ * Compute the projection of the point within the interior of the element to the side of the element
+ */
+TPZTransform TPZGeoEl::Projection(int side)
+{
+	TPZTransform tr = SideToSideTransform(NSides()-1,side);
+	TPZTransform tr2 = SideToSideTransform(side,NSides()-1);
+	TPZTransform tr3 = tr2.Multiply(tr);
+//	std::cout << "interior to side " << side << " trans " << tr << std::endl;
+//	std::cout << "side to interior " << side << " trans " << tr2 << std::endl;
+//	std::cout << "side to side " << side << " trans " << tr3 << std::endl;
+	return tr3;
+}
