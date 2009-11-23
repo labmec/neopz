@@ -97,7 +97,17 @@ protected:
     * This points are CornerNodes, when projected in the opposing side
     */
     static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint);
-
+	
+public:
+	/**
+	 * Creates a geometric element according to the type of the father element
+	 */
+	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									  TPZVec<int>& nodeindexes,
+									  int matid,
+									  int& index);
+	
+	
 };
 
 };

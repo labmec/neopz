@@ -212,5 +212,15 @@ TPZGeoEl *TPZGeoCube::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc) {
   return 0;
 }
 
-
+	/**
+	 * Creates a geometric element according to the type of the father element
+	 */
+	TPZGeoEl *TPZGeoCube::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+											TPZVec<int>& nodeindexes,
+											int matid,
+											int& index)
+	{
+		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
+	}
+	
 };

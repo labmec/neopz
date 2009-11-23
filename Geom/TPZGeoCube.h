@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: TPZGeoCube.h,v 1.10 2009-04-06 19:13:09 phil Exp $
+// $Id: TPZGeoCube.h,v 1.11 2009-11-23 19:30:53 phil Exp $
 
 //HEADER FILE FOR CLASS TPZGeoCube
 
@@ -83,7 +83,17 @@ static void Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian,
 				TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
 
 static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
-
+	  
+  public:
+	  /**
+	   * Creates a geometric element according to the type of the father element
+	   */
+	  static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+										TPZVec<int>& nodeindexes,
+										int matid,
+										int& index);
+	  
+	  
 };
 
 };

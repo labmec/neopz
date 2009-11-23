@@ -504,4 +504,15 @@ void TPZGeoPrism::FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<R
     }
 }
 
+	/**
+	 * Creates a geometric element according to the type of the father element
+	 */
+	TPZGeoEl *TPZGeoPrism::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+											TPZVec<int>& nodeindexes,
+											int matid,
+											int& index)
+	{
+		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
+	}
+	
 };

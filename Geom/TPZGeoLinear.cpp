@@ -47,4 +47,15 @@ TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
   return 0;
 }
 
+	/**
+	 * Creates a geometric element according to the type of the father element
+	 */
+	TPZGeoEl *TPZGeoLinear::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+											TPZVec<int>& nodeindexes,
+											int matid,
+											int& index)
+	{
+		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
+	}
+	
 };

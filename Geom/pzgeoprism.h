@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeoprism.h,v 1.13 2009-04-06 19:07:49 phil Exp $
+// $Id: pzgeoprism.h,v 1.14 2009-11-23 19:30:53 phil Exp $
 
 // TPZGeoPrism.h: interface for the TPZGeoQuad class.
 //
@@ -97,6 +97,18 @@ protected:
     * This points are CornerNodes, when projected in the opposing side
     */
     static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint);
+
+	
+public:
+	/**
+	 * Creates a geometric element according to the type of the father element
+	 */
+	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									  TPZVec<int>& nodeindexes,
+									  int matid,
+									  int& index);
+	
+	
 };
 
 };

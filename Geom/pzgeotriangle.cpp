@@ -223,4 +223,15 @@ void TPZGeoTriangle::FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVe
     }
 }
 
+	/**
+	 * Creates a geometric element according to the type of the father element
+	 */
+	TPZGeoEl *TPZGeoTriangle::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+											TPZVec<int>& nodeindexes,
+											int matid,
+											int& index)
+	{
+		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
+	}
+	
 };
