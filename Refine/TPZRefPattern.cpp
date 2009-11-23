@@ -1123,6 +1123,7 @@ void TPZRefPattern::CreateMidSideNodes (TPZGeoEl * gel, int side, TPZVec<int> &n
   TPZGeoElSide gelside(gel,side);
   TPZGeoElSide neighbour(gelside.Neighbour());
   TPZManVector<int> sideindices(0);
+	TPZTransform SideProjection = Element(0)->Projection(side);
   while(neighbour.Element() && neighbour != gelside) {
     //if(!neighbour.HasSubElement()) {
     if(neighbour.HasSubElement() && neighbour.Element()->NSideSubElements2(neighbour.Side()) > 1) {
@@ -1138,12 +1139,15 @@ void TPZRefPattern::CreateMidSideNodes (TPZGeoEl * gel, int side, TPZVec<int> &n
     TPZManVector<REAL,3> neighbourcoord(3,0.);
     for (k=0;k<3;k++) refnodecoord[k] = fInternalMesh.NodeVec()[index].Coord(k);
     //passando para as coordenadas do elemento da malha real...
-    TPZManVector<REAL,3> newnodecoord(Element(0)->Dimension(),0.);
+	  int dim = Element(0)->Dimension();
+	  TPZManVector<REAL,3> newnodecoord(dim,0.), projectnewnode(dim,0.);
     //coordenada no espaco do elemento mestre do elemento de
     //referencia da malha refpattern
-    Element(0)->ComputeXInverse(refnodecoord,newnodecoord);
+	// isto poderia ser feito apenas uma vez!!
+    Element(0)->ComputeXInverse(refnodecoord,newnodecoord,1.e-12);
+	  SideProjection.Apply(newnodecoord, projectnewnode);
     //coordenada espacial do no na malha real
-    gel->X(newnodecoord,refnodecoord);
+    gel->X(projectnewnode,refnodecoord);
     newnodeindexes[index] = -1;
     REAL mindif = -1.;
     int mindifindex = -1;
@@ -1179,6 +1183,13 @@ void TPZRefPattern::CreateMidSideNodes (TPZGeoEl * gel, int side, TPZVec<int> &n
     if (newnodeindexes[index] == -1) {
       //Caso o no nao exista nos vizinhos sera necessario cria-lo...
       int newindex = gmesh->NodeVec().AllocateNewElement();
+		if(newindex == 464)
+		{
+			std::stringstream sout;
+			sout.precision(16);
+			sout << refnodecoord << endl;
+			LOGPZ_DEBUG(logger,sout.str())
+		}
       gmesh->NodeVec()[newindex].Initialize(refnodecoord,*gmesh);
       newnodeindexes[index] = newindex;
     }
