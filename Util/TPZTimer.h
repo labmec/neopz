@@ -9,7 +9,7 @@
  *
  * @author Cantao!
  */
-// $Id: TPZTimer.h,v 1.9 2009-11-04 15:31:49 caju Exp $
+// $Id: TPZTimer.h,v 1.10 2009-11-23 20:20:27 phil Exp $
 
 #ifndef TPZTIMER_H
 #define TPZTIMER_H
@@ -17,7 +17,9 @@
 #include <string>
 #include <vector>
 #include <iostream>
-//#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef BORLAND
 #include <winsock2.h>
