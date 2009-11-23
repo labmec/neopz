@@ -16,9 +16,14 @@
 #include "pzeltype.h"
 #include "tpzint1point.h"
 
+#include "pzcreateapproxspace.h"
+
 using namespace std;
 
 namespace pztopology {
+
+TPZCompEl *(*TPZPyramid::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePyramEl;
+	
 
 TPZPyramid::TPZPyramid()
 {

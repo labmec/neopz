@@ -14,7 +14,12 @@
 #include "tpzint1point.h"
 #include "pzeltype.h"
 
+#include "pzcreateapproxspace.h"
+
 namespace pztopology {
+
+TPZCompEl *(*TPZPoint::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
+	
 
 TPZPoint::TPZPoint()
 {

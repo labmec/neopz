@@ -17,10 +17,18 @@
 #include "tpzint1point.h"
 #include "pzeltype.h"
 
+#include "pzcreateapproxspace.h"
+
 using namespace std;
 
 namespace pztopology {
 
+/// function pointer which determines the type of computational element
+/**
+ * function pointer which determines what type of computational element will be created
+ */
+	TPZCompEl *(*TPZCube::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateCubeEl;
+	
 TPZCube::TPZCube()
 {
 }

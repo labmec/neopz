@@ -24,6 +24,10 @@ class TPZIntPoints;
 class TPZInt1Point;
 class TPZGraphEl1dd;
 
+class TPZCompEl;
+class TPZGeoEl;
+class TPZCompMesh;
+
 namespace pztopology {
 
 /**
@@ -147,7 +151,12 @@ static int NConnects() {return 1;}
     TPZTransform t(0,0);
     return t;
   }
-
+	/// function pointer which determines the type of computational element
+	/**
+	 * function pointer which determines what type of computational element will be created
+	 */
+	static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+	
 };
 
 }

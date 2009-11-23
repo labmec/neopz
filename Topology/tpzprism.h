@@ -21,6 +21,10 @@ class TPZIntPoints;
 class TPZIntPrism3D;
 class TPZGraphElPrismMapped;
 
+class TPZCompEl;
+class TPZGeoEl;
+class TPZCompMesh;
+
 namespace pztopology {
 
 /**
@@ -127,6 +131,12 @@ static int NSideConnects(int side);
   */
 static int SideConnectLocId(int side, int c);
 
+	/// function pointer which determines the type of computational element
+	/**
+	 * function pointer which determines what type of computational element will be created
+	 */
+	static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+	
 protected:
     /** 
       * Data structure which defines the hexahedral transformations and topology

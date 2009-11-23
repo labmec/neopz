@@ -26,6 +26,10 @@ class TPZIntPoints;
 class TPZIntQuad;
 class TPZGraphElQ2dd;
 
+class TPZCompEl;
+class TPZGeoEl;
+class TPZCompMesh;
+
 namespace pztopology {
 
 /**
@@ -130,7 +134,12 @@ static TPZTransform TransformSideToElement(int side);
 /** Verifies if the parametric point pt is in the element parametric domain
  */
 static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
-
+	/// function pointer which determines the type of computational element
+	/**
+	 * function pointer which determines what type of computational element will be created
+	 */
+	static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+	
 };
 
 }

@@ -18,10 +18,14 @@
 #include "tpzint1point.h"
 #include "pzeltype.h"
 
+#include "pzcreateapproxspace.h"
+
 using namespace std;
 
 
 namespace pztopology {
+
+TPZCompEl *(*TPZLine::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
 
 TPZLine::TPZLine()
 {

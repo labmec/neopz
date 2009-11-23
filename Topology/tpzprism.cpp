@@ -22,9 +22,14 @@
 #include "tpzint1point.h"
 #include "pzeltype.h"
 
+#include "pzcreateapproxspace.h"
+
 using namespace std;
 
 namespace pztopology {
+
+TPZCompEl *(*TPZPrism::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePrismEl;
+	
 
 TPZPrism::TPZPrism()
 {

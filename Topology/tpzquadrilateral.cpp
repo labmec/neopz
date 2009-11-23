@@ -18,9 +18,13 @@
 #include "tpzint1point.h"
 #include "pzeltype.h"
 
+#include "pzcreateapproxspace.h"
+
 using namespace std;
 
 namespace pztopology {
+
+TPZCompEl *(*TPZQuadrilateral::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;	
 
 TPZQuadrilateral::TPZQuadrilateral()
 {
