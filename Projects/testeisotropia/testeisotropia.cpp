@@ -55,9 +55,12 @@ int main(){
   axes(0,2)=0.0; axes(1,2)=0.0; axes(2,2)=1.0;
 
 
-  
-  mat1->Solution(sol,dsol,axes,2,solout1);
-  mat2->Solution(sol,dsol,axes,2,solout2);
+	TPZMaterialData data;
+	data.sol = sol;
+	data.dsol = dsol;
+	data.axes = axes;
+  mat1->Solution(data,2,solout1);
+  mat2->Solution(data,2,solout2);
  
   ofstream saida("testesai2.dat");
   REAL dif;
