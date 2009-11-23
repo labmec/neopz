@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.83 2009-11-04 14:08:13 fortiago Exp $
+//$Id: pzcmesh.cpp,v 1.84 2009-11-23 19:47:00 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -2040,58 +2040,6 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 #include "pzgeopoint.h"
 #include "pzshapepoint.h"
 
-void TPZCompMesh::SetAllCreateFunctionsDiscontinuous(){
-
-  TPZGeoElement< pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement< pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement< pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction(TPZCompElDisc::CreateDisc);
-}
-
-
-void TPZCompMesh::SetAllCreateFunctionsContinuous(){
-  TPZGeoElement< pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction( CreatePointEl);
-  TPZGeoElement< pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction( CreateLinearEl);
-  TPZGeoElement< pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction( CreateQuadEl);
-  TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction( CreateTriangleEl);
-  TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction( CreatePrismEl);
-  TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction( CreateTetraEl);
-  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreatePyramEl);
-  TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateCubeEl);
-
-
-}
-
-#include "pzreferredcompel.h"
-#include "pzelctemp.h"
-void TPZCompMesh::SetAllCreateFunctionsDiscontinuousReferred(){
-
-  TPZGeoElement< pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement< pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement< pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction(CreateReferredDisc);
-  TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction(CreateReferredDisc);
-}
-
-void TPZCompMesh::SetAllCreateFunctionsContinuousReferred(){
-
-  TPZGeoElement< pzgeom::TPZGeoPoint,      pzrefine::TPZRefPoint>      ::SetCreateFunction( CreateReferredPointEl );
-  TPZGeoElement< pzgeom::TPZGeoLinear,     pzrefine::TPZRefLinear>     ::SetCreateFunction( CreateReferredLinearEl );
-  TPZGeoElement< pzgeom::TPZGeoQuad,       pzrefine::TPZRefQuad>       ::SetCreateFunction( CreateReferredQuadEl );
-  TPZGeoElement< pzgeom::TPZGeoTriangle,   pzrefine::TPZRefTriangle>   ::SetCreateFunction( CreateReferredTriangleEl );
-  TPZGeoElement< pzgeom::TPZGeoPrism,      pzrefine::TPZRefPrism>      ::SetCreateFunction( CreateReferredPrismEl );
-  TPZGeoElement< pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra> ::SetCreateFunction( CreateReferredTetraEl );
-  TPZGeoElement< pzgeom::TPZGeoPyramid,    pzrefine::TPZRefPyramid>    ::SetCreateFunction( CreateReferredPyramEl );
-  TPZGeoElement< pzgeom::TPZGeoCube,       pzrefine::TPZRefCube>       ::SetCreateFunction( CreateReferredCubeEl );
-
-}
 
 void TPZCompMesh::SetAllCreateFunctions(TPZCompEl &cel){
   cel.SetCreateFunctions();
