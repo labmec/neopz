@@ -65,7 +65,17 @@ public:
      static void X(TPZFMatrix &coord, TPZVec<REAL> &loc,TPZVec<REAL> &result);
 
      static void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &param, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);
-
+	
+public:
+	/**
+	 * Creates a geometric element according to the type of the father element
+	 */
+	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									  TPZVec<int>& nodeindexes,
+									  int matid,
+									  int& index);
+	
+	
 };
 
 #endif

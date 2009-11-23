@@ -172,25 +172,30 @@ TPZGeoEl *TPZCurvedTriangle::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
      return 0;
 }
 
+
+/**
+ * Creates a geometric element according to the type of the father element
+ */
+
+TPZGeoEl *TPZCurvedTriangle::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									 TPZVec<int>& nodeindexes,
+									 int matid,
+									 int& index)
+{
+	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+
 ///CreateGeoElement -> TPZCurvedTriangle
-        template< >
-            TPZGeoEl *TPZGeoElRefLess<TPZCurvedTriangle >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
-        {
-          TPZGeoMesh &mesh = *(this->Mesh());
-          if(!&mesh) return 0;
-          return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-        }
 
 #define TPZGEOELEMENTCURVEDTRIANGLEID 302
-        template<>
-            int TPZGeoElRefPattern<TPZCurvedTriangle>::ClassId() const {
-          return TPZGEOELEMENTCURVEDTRIANGLEID;
-            }
-            template class 
-                TPZRestoreClass< TPZGeoElRefPattern<TPZCurvedTriangle>, TPZGEOELEMENTCURVEDTRIANGLEID>;
+template<>
+int TPZGeoElRefPattern<TPZCurvedTriangle>::ClassId() const {
+	return TPZGEOELEMENTCURVEDTRIANGLEID;
+}
+template class 
+TPZRestoreClass< TPZGeoElRefPattern<TPZCurvedTriangle>, TPZGEOELEMENTCURVEDTRIANGLEID>;
 
-            template<>
-                TPZCompEl *(*TPZGeoElRefLess<TPZCurvedTriangle>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
 
-            template class TPZGeoElRefLess<TPZCurvedTriangle>;
+template class TPZGeoElRefLess<TPZCurvedTriangle>;
             template class pzgeom::TPZNodeRep<3,TPZCurvedTriangle>;

@@ -63,6 +63,17 @@ public:
     static std::string TypeName() { return "Linear";}
     static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
 
+	
+public:
+	/**
+	 * Creates a geometric element according to the type of the father element
+	 */
+	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									  TPZVec<int>& nodeindexes,
+									  int matid,
+									  int& index);
+	
+	
     /**
      * fA @param - Half of Ellipse Axe in X direction
      * fB @param - Half of Ellipse Axe in Y direction

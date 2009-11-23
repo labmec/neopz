@@ -59,7 +59,17 @@ public:
 
     static std::string TypeName() { return "Linear";}
     static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
-
+	
+public:
+	/**
+	 * Creates a geometric element according to the type of the father element
+	 */
+	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									  TPZVec<int>& nodeindexes,
+									  int matid,
+									  int& index);
+	
+	
 protected:
 
     void ComputeAtributes(TPZFMatrix &coord);

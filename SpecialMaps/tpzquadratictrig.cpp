@@ -127,26 +127,31 @@ TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
      return 0;
 }
 
+
+/**
+ * Creates a geometric element according to the type of the father element
+ */
+
+TPZGeoEl *TPZQuadraticTrig::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									 TPZVec<int>& nodeindexes,
+									 int matid,
+									 int& index)
+{
+	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+
 ///CreateGeoElement -> TPZQuadraticTrig
-                    template< >
-                        TPZGeoEl *TPZGeoElRefLess<TPZQuadraticTrig >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
-                    {
-                      TPZGeoMesh &mesh = *(this->Mesh());
-                      if(!&mesh) return 0;
-                      return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-                    }
 
 #define TPZGEOELEMENTQUADRATICTRIANGLEID 313
-                    template<>
-                        int TPZGeoElRefPattern<TPZQuadraticTrig>::ClassId() const {
-                      return TPZGEOELEMENTQUADRATICTRIANGLEID;
-                        }
-                        template class 
-                            TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>, TPZGEOELEMENTQUADRATICTRIANGLEID>;
+template<>
+int TPZGeoElRefPattern<TPZQuadraticTrig>::ClassId() const {
+	return TPZGEOELEMENTQUADRATICTRIANGLEID;
+}
+template class 
+TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTrig>, TPZGEOELEMENTQUADRATICTRIANGLEID>;
 
-                        template<>
-                            TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticTrig>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
 
-                        template class TPZGeoElRefLess<TPZQuadraticTrig>;
-         template class pzgeom::TPZNodeRep<6,TPZQuadraticTrig>;
+template class TPZGeoElRefLess<TPZQuadraticTrig>;
+template class pzgeom::TPZNodeRep<6,TPZQuadraticTrig>;
 

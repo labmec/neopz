@@ -4,7 +4,10 @@
 #include <math.h>
 #include "pzreal.h"
 #include "pzvec.h"
+#include "pzeltype.h"
 
+class TPZGeoEl;
+class TPZGeoMesh;
 /**
 	@author caju2008 <caju@skol>
 */
@@ -26,7 +29,17 @@ public:
     REAL yla(REAL x);
 
     void ProjectPoint(TPZVec<REAL> &pt, int maxPt = 1000);
-
+	
+public:
+	/**
+	 * Creates a geometric element according to the type of the father element
+	 */
+	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									  TPZVec<int>& nodeindexes,
+									  int matid,
+									  int& index);
+	
+	
 private:
 
     REAL P();

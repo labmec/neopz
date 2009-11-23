@@ -220,3 +220,19 @@ void TPZBlendNACA::ProjectPoint(TPZVec<REAL> &pt, int maxPt)
         pt[1] = yua(par);
     }
 }
+
+#include "tpzgeoelmapped.h"
+
+/**
+ * Creates a geometric element according to the type of the father element
+ */
+
+TPZGeoEl *TPZBlendNACA::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									 TPZVec<int>& nodeindexes,
+									 int matid,
+									 int& index)
+{
+	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+

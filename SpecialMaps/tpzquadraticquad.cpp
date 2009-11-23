@@ -157,15 +157,21 @@ TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 }
 
 
+/**
+ * Creates a geometric element according to the type of the father element
+ */
+
+TPZGeoEl *TPZQuadraticQuad::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									 TPZVec<int>& nodeindexes,
+									 int matid,
+									 int& index)
+{
+	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+
 
 ///CreateGeoElement -> TPZQuadraticQuad
-                template< >
-                TPZGeoEl *TPZGeoElRefLess<TPZQuadraticQuad >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
-            {
-              TPZGeoMesh &mesh = *(this->Mesh());
-              if(!&mesh) return 0;
-              return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-            }
 
 #define TPZGEOELEMENTQUADRATICQUADID 311
             template<>
@@ -175,9 +181,6 @@ TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
                 template class 
                     TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticQuad>, TPZGEOELEMENTQUADRATICQUADID>;
 
-                template<>
-                    TPZCompEl *(*TPZGeoElRefLess<TPZQuadraticQuad>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;
-
                
-         template class pzgeom::TPZNodeRep<8,TPZQuadraticQuad>;
- template class TPZGeoElRefLess<TPZQuadraticQuad>;
+template class pzgeom::TPZNodeRep<8,TPZQuadraticQuad>;
+template class TPZGeoElRefLess<TPZQuadraticQuad>;

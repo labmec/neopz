@@ -196,15 +196,21 @@ TPZGeoEl *TPZEllipse::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 }
 
 #include "tpzgeoelmapped.h"
+/**
+ * Creates a geometric element according to the type of the father element
+ */
 
-///CreateGeoElement -> TPZEllipse
-template< >
-TPZGeoEl *TPZGeoElRefLess<TPZEllipse >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
+TPZGeoEl *TPZEllipse::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									 TPZVec<int>& nodeindexes,
+									 int matid,
+									 int& index)
 {
-	TPZGeoMesh &mesh = *(this->Mesh());
-	if(!&mesh) return 0;
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
+
+
+#include "tpzgeoelmapped.h"
+
 
 #define TPZGEOELEMENTELLIPSEID 30103
 template<>
@@ -215,8 +221,6 @@ int TPZGeoElRefPattern<TPZEllipse>::ClassId() const
 template class 
 TPZRestoreClass< TPZGeoElRefPattern<TPZEllipse>, TPZGEOELEMENTELLIPSEID>;
 
-template<>
-TPZCompEl *(*TPZGeoElRefLess<TPZEllipse>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
 
 template class TPZGeoElRefLess<TPZEllipse>;
 template class pzgeom::TPZNodeRep<2,TPZEllipse>;

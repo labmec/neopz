@@ -300,18 +300,25 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
      return 0;
 }
 
+
+/**
+ * Creates a geometric element according to the type of the father element
+ */
+
+TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+											  TPZVec<int>& nodeindexes,
+											  int matid,
+											  int& index)
+{
+	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+
 #include "pzgeoelrefless.h.h"
 #include "tpzgeoelrefpattern.h.h"
 #include "pznoderep.h.h"
 
 ///CreateGeoElement -> TPZArc3D
-             template< >
-             TPZGeoEl *TPZGeoElRefLess<TPZArc3D >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index)
-{
-  TPZGeoMesh &mesh = *(this->Mesh());
-  if(!&mesh) return 0;
-  return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-}
 
 #define TPZGEOELEMENTARC3DID 350
     template<>
@@ -320,9 +327,6 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
         }
         template class
             TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
-
-        template<>
-            TPZCompEl *(*TPZGeoElRefLess<TPZArc3D>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
 
 
 //         template class pzgeom::TPZNodeRep<3,TPZArc3D>;
