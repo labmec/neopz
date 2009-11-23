@@ -232,7 +232,7 @@ TPZGeoEl * TPZGeoElRefLess<TGeo>::CreateGeoElement(MElementType type,
 												   int matid,
 												   int& index)
 {
-	return TPZGeoEl::CreateGeoElement(type,nodeindexes,matid,index);
+	return fGeo.CreateGeoElement(*Mesh(),type,nodeindexes,matid,index);
 }
 
 template<class TGeo>

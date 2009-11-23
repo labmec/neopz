@@ -88,7 +88,6 @@ public:
     fGeo.Initialize(this);
   }
 
-  static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
 
   static int main_refless();
 
@@ -99,7 +98,6 @@ public:
   //virtual int HasSubElement();
   virtual  TPZCompEl *CreateCompEl(TPZCompMesh &mesh,int &index);
 
-  static void SetCreateFunction(TPZCompEl *(*f)(TPZGeoEl *el,TPZCompMesh &mesh,int &index));
 
   /** return 1 if the element has subelements along side*/
   virtual  int HasSubElement() {return 0;}//fSubEl[0]!=0;}
@@ -320,22 +318,8 @@ int TPZGeoElRefLess<TGeo>::ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<RE
 template<class TGeo>
 inline
 TPZCompEl *TPZGeoElRefLess<TGeo>::CreateCompEl(TPZCompMesh &mesh,int &index){
-  return fp(this,mesh,index);
+	return TGeo::fp(this,mesh,index);
 }
 
-template<class TGeo>
-inline
-void TPZGeoElRefLess<TGeo>::SetCreateFunction(TPZCompEl *(*f)(TPZGeoEl *el,TPZCompMesh &mesh,int &index)){
-  fp = f;
-}
-
-TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
 
 #endif
