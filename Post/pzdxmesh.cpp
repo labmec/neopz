@@ -1,4 +1,4 @@
-//$Id: pzdxmesh.cpp,v 1.14 2009-02-02 09:57:39 phil Exp $
+//$Id: pzdxmesh.cpp,v 1.15 2009-11-23 19:57:15 phil Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -99,7 +99,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
   MElementType eltypes[] = {ENoType, EOned, EQuadrilateral, ETriangle,ECube};
   int firsttype[4] = {1,2,4,0}, lasttype[4] = {2,4,5,0};
   int numnod[] = {0,2,4,3,8};
-  char *elname[] = {"noname","lines","quads","triangles","cubes"};
+	std::string elname[] = {"noname","lines","quads","triangles","cubes"};
   int object = fNextDataField;
   fNodePosObject[dim1] = object;
   long nn = NPoints();
