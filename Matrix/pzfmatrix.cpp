@@ -524,6 +524,10 @@ void TPZFMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
       z.Redim(Cols()*stride,x.Cols());
     }
   }
+  if(Cols() == 0)
+  {
+	  z.Zero();
+  }
   unsigned numeq = opt ? Cols() : Rows();
   long rows = Rows();
   long cols = Cols();
