@@ -491,6 +491,20 @@ TPZGeoEl *TPZGeoBlend<TGeo>::CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc)
   return newel;
 }
 
+
+/**
+ * Creates a geometric element according to the type of the father element
+ */
+template <class TGeo>
+TPZGeoEl *TPZGeoBlend<TGeo>::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+									   TPZVec<int>& nodeindexes,
+									   int matid,
+									   int& index)
+{
+	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+}
+
+
 template class TPZGeoBlend<TPZGeoCube>;
 template class TPZGeoBlend<TPZGeoTriangle>;
 template class TPZGeoBlend<TPZGeoPrism>;
@@ -507,13 +521,6 @@ template class TPZGeoBlend<TPZGeoPoint>;
 
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
-template< > \
-TPZGeoEl *TPZGeoElRefLess<TPZGeoBlend<TGEO> >::CreateGeoElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index) \
-{ \
-TPZGeoMesh &mesh = *(this->Mesh()); \
-if(!&mesh) return 0; \
-return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index); \
-} \
 \
 template<> \
 int TPZGeoElRefPattern<TPZGeoBlend<TGEO>  >::ClassId() const { \
@@ -521,9 +528,6 @@ return CLASSID; \
 } \
 template class \
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >, CLASSID>; \
-\
-template<> \
-TPZCompEl *(*TPZGeoElRefLess<TPZGeoBlend<TGEO> >::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CREATEFUNCTION; \
 \
 template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;\
 template class TPZGeoElRefPattern<TPZGeoBlend<TGEO> >;
