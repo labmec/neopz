@@ -352,6 +352,10 @@ inline TPZFNMatrix(const TPZFMatrix &copy) : TPZFMatrix(0,0,fBuf,N)
 {
   *this = copy;
 }
+	
+	virtual ~TPZFNMatrix()
+	{
+	}
 
   CLONEDEF(TPZFNMatrix)
   /*
