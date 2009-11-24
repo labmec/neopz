@@ -1,4 +1,4 @@
-//$Id: main.cpp,v 1.10 2009-11-04 14:13:24 fortiago Exp $
+//$Id: main.cpp,v 1.11 2009-11-24 17:12:37 fortiago Exp $
 
 #include "malhas.h"
 #include "MultiResMesh.h"
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 
   InitializeSolver(an);
   const double PhysicalTime = 0.1;
-  int niter = 10;///PhysicalTime/timeStep+1;
+  int niter = PhysicalTime/timeStep+1;
   cout << "L = " << L << endl;
   cout << "\nnequations = " << cmesh->NEquations();
   cout << "\nNiter = " << niter << "\n";
@@ -168,17 +168,17 @@ int main(int argc, char *argv[])
   an.SetInitialSolution(InitialSol);
 
   an.Set(timeStep,niter,1e-10);
-  an.SetSaveFrequency(1,0);
+  an.SetSaveFrequency(niter/6,0);
 
- TPZVec<string> scal(3-2),vec(0);
- scal[0] = "density";
-//  scal[1] = "energy";
-//  scal[2] = "Mach";
- stringstream nome; nome << "testeL"<<".dx";
+//  TPZVec<string> scal(3-2),vec(0);
+//  scal[0] = "density";
+// //  scal[1] = "energy";
+// //  scal[2] = "Mach";
+//  stringstream nome; nome << "testeL"<<".dx";
 //  an.DefineGraphMesh(3,scal,vec,nome.str());
 //  an.Run();
 
-	double Epsl = 1.e-3;
+	double Epsl = 1.e12;
   an.MultiResolution( Epsl );
 
 

@@ -239,6 +239,9 @@ void GetSolution ( TPZCompMesh & CMesh,
 }
 //-----------------------------------------------------------------------------------------------
 
+// ofstream detailfile("detail.txt");
+// ofstream dividecoarsenfile("dividecoarsen.txt");
+// int contador = 0;
 void ErrorEstimation ( TPZCompMesh & CMesh,
 					   TPZVec < EAdaptElementAction > & DivideOrCoarsen,
 					  double Epslref)
@@ -279,6 +282,9 @@ cout <<  "EvaluateAverageOfSolution( ... \n"; cout.flush();
 	EvaluateDetail ( * fineMesh , AverageSolutionFineVec, levelToElementUhatVec, fineDetail );
 	//EvaluateDetail ( * coarseMesh, AverageSolutionCoarseVec, levelToElementUhatVec, coarseDetail );
 
+//   detailfile << "contador = " << contador << endl; 
+
+
 cout <<  "Adaptando ... \n"; cout.flush();
 	int i = 0;
   fineMesh->Reference()->ResetReference();
@@ -292,6 +298,9 @@ cout <<  "Adaptando ... \n"; cout.flush();
 
 		int l = fineMesh->ElementVec()[i]->Reference()->Level();
 		double Epsl = Epslref * pow ( 2.0 ,(double)( l - gLMax ));
+    
+//     detailfile << i << "\t" << fineDetail[i] << "\t" << Epsl << endl;
+    
 		if ( fineDetail[ i ] > Epsl )
 		{
 			DivideOrCoarsen[ i ] = EDivide;
@@ -326,6 +335,11 @@ cout <<  "Adaptando ... \n"; cout.flush();
 			if ( coarseDetail [ coarseIndex ] < Epsl ) */ DivideOrCoarsen[ i ] = ECoarse;
 		}
 	}
+//  detailfile.flush(); 
+//  dividecoarsenfile << "contador = " << contador << endl;
+//  for(int i = 0; i < DivideOrCoarsen.NElements(); i++) dividecoarsenfile << i << "\t" << DivideOrCoarsen[i] << endl;
+//  dividecoarsenfile.flush();
+//  contador++;
 }
 
 
@@ -865,7 +879,7 @@ void  EvaluateAverageOfSolution ( TPZCompMesh & CompMesh,
 	}
 }
 
-
+// ofstream reallydividecoarsenfile("reallydividecoarsen.txt");
 void AdaptMesh ( TPZCompMesh & CMesh,
 				 TPZVec < EAdaptElementAction > & DivideOrCoarsen,
 				 TPZAutoPointer < TPZRefPattern > & RefPattern )
@@ -928,6 +942,11 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
+
+//   reallydividecoarsenfile << "contador = " << contador-1 << endl;
+//  for(int i = 0; i < DivideOrCoarsen.NElements(); i++) reallydividecoarsenfile << i << "\t" << DivideOrCoarsen[i] << endl;
+//  reallydividecoarsenfile.flush();
+
 	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();	
 	//Let's divide the elements
 	for (el=0;el<nel;el++)
@@ -1039,6 +1058,9 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			int subindex = subCel->Index();
 			if ( DivideOrCoarsen[subindex] == EDivide )
 			{
+//        cout << "\ncedric = ";   
+//        int opa;
+//        cin >> opa;
 				break;
 			}
 			subCElVec [isub] = subindex;
@@ -1137,7 +1159,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 	CMesh.AdjustBoundaryElements();
 	CMesh.ExpandSolution();
 	//By now, the mesh is adapted. We need to check the difference of level of refinement between neighbors
-	CheckRefinementLevel ( CMesh, RefPattern );
+// 	CheckRefinementLevel ( CMesh, RefPattern );
 }
 
 

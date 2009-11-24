@@ -1,4 +1,4 @@
-// //$Id: pzexplfinvolanal.cpp,v 1.10 2009-11-04 14:13:24 fortiago Exp $
+// //$Id: pzexplfinvolanal.cpp,v 1.11 2009-11-24 17:13:09 fortiago Exp $
 
 #include "pzexplfinvolanal.h"
 #include "TPZSpStructMatrix.h"
@@ -88,7 +88,7 @@ void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
     fSolution = NextSol;
     TPZAnalysis::LoadSolution();
 
-  if( iter % 5  == 0){
+  if( iter % 1  == 0){
 //     this->DX(iter, "antes_");
     cout << "Starting adapt .... \n";cout.flush();
     GetAdaptedMesh(this->Mesh(), Epsl);
@@ -362,7 +362,7 @@ void TPZExplFinVolAnal::ParallelComputeFlux(std::list< TPZInterfaceElement* > &F
 
 void TPZExplFinVolAnal::TimeEvolution(TPZFMatrix &LastSol, TPZFMatrix &NextSol){
 
-  const int order = 1;
+  const int order = 3;
   if(order == 1){
     ///Euler explicit:
     int sz = fCompMesh->NEquations();
