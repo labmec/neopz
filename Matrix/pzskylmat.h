@@ -167,12 +167,14 @@ class TPZSkylMatrix : public TPZMatrix
   */
   static void ComputeMaxSkyline(const TPZSkylMatrix &first, const TPZSkylMatrix &second, TPZVec<int> &res);
 
+protected:
   /**
      fElem is of size number of equation+1
      fElem[i] is the first element of the skyline of equation i
      fElem[Rows()] is one element beyond the last equation
   */
   TPZVec<REAL *> fElem;
+private:
   /**
      fStorage is a unique vector which contains all the data of the skyline matrix
   */
