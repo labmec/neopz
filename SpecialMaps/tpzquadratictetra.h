@@ -46,6 +46,7 @@ public:
      TPZQuadraticTetra(const TPZQuadraticTetra &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
      }
 
+virtual	~TPZQuadraticTetra();
      /**
      * returns the type name of the element
      */

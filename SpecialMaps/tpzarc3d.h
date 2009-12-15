@@ -84,4 +84,23 @@ protected:
     double fRadius;
 };
 
+
+
+//#include "pzgeoelrefless.h.h"
+//#include "tpzgeoelrefpattern.h.h"
+//#include "pznoderep.h.h"
+
+///CreateGeoElement -> TPZArc3D
+
+#define TPZGEOELEMENTARC3DID 350
+template<>
+inline int TPZGeoElRefPattern<TPZArc3D>::ClassId() const {
+	return TPZGEOELEMENTARC3DID;
+}
+
+
+//         template class pzgeom::TPZNodeRep<3,TPZArc3D>;
+//template class TPZGeoElRefLess<TPZArc3D>;
+
+
 #endif

@@ -188,7 +188,7 @@ TPZGeoEl *TPZCurvedTriangle::CreateGeoElement(TPZGeoMesh &mesh, MElementType typ
 
 ///CreateGeoElement -> TPZCurvedTriangle
 
-#define TPZGEOELEMENTCURVEDTRIANGLEID 302
+#define TPZGEOELEMENTCURVEDTRIANGLEID 351
 template<>
 int TPZGeoElRefPattern<TPZCurvedTriangle>::ClassId() const {
 	return TPZGEOELEMENTCURVEDTRIANGLEID;

@@ -313,21 +313,6 @@ TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
 
+template class
+TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
 
-#include "pzgeoelrefless.h.h"
-#include "tpzgeoelrefpattern.h.h"
-#include "pznoderep.h.h"
-
-///CreateGeoElement -> TPZArc3D
-
-#define TPZGEOELEMENTARC3DID 350
-    template<>
-        int TPZGeoElRefPattern<TPZArc3D>::ClassId() const {
-      return TPZGEOELEMENTARC3DID;
-        }
-        template class
-            TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
-
-
-//         template class pzgeom::TPZNodeRep<3,TPZArc3D>;
-        template class TPZGeoElRefLess<TPZArc3D>;
