@@ -441,6 +441,14 @@ public:
         {
           fId = id;
         }
+	
+	/**
+	 * deletes the statically allocated data structure
+	 */
+	static void CleanUp()
+	{
+		fPermutations.clear();
+	}
       
 protected: // Protected attributes
   /** Identifier for the refinement pattern */
