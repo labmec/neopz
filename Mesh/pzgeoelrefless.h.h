@@ -9,6 +9,9 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
+#ifndef PZGEOELREFLESS_H_H
+#define PZGEOELREFLESS_H_H
+
 #include "pzgeoelrefless.h"
 
 #include <sstream>
@@ -514,5 +517,4 @@ TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
 	 #endif*/
 }
 
-
-
+#endif

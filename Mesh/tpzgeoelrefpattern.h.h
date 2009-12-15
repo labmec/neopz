@@ -1,3 +1,6 @@
+#ifndef TPZGEOELREFPATTERN_H_H
+#define TPZGEOELREFPATTERN_H_H
+
 //
 // C++ Interface: tpzgeoelrefpattern
 //
@@ -93,3 +96,4 @@ TPZGeoEl * TPZGeoElRefPattern<TGeo>::ClonePatchEl(TPZGeoMesh &DestMesh,
   return new TPZGeoElRefPattern<TGeo>(DestMesh, *this, gl2lcNdMap, gl2lcElMap);
 }
 
+#endif
