@@ -1,4 +1,4 @@
-//$Id: pzelasAXImat.cpp,v 1.5 2009-01-19 23:43:39 erick Exp $
+//$Id: pzelasAXImat.cpp,v 1.6 2009-12-15 17:28:28 phil Exp $
 // -*- c++ -*-
 #include "pzelasAXImat.h" 
 #include "pzelmat.h"
@@ -730,7 +730,7 @@ TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(const TPZElasticityAxiMateria
 
 int TPZElasticityAxiMaterial::ClassId() const
 {
-  return TPZELASTICITYMATERIALID;
+  return TPZELASTICITYAXIMATERIALID;
 }
 
 #ifndef BORLAND
