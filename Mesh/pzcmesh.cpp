@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.84 2009-11-23 19:47:00 phil Exp $
+//$Id: pzcmesh.cpp,v 1.85 2009-12-15 17:20:42 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -1060,6 +1060,7 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
 }//method
 
 /**ExpandSolution must be called before calling this*/
+// it is a gather permutation
 void TPZCompMesh::Permute(TPZVec<int> &permute) {
 
   ExpandSolution();

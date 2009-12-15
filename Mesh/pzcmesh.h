@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.42 2009-11-04 14:08:13 fortiago Exp $
+//$Id: pzcmesh.h,v 1.43 2009-12-15 17:20:42 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -548,6 +548,7 @@ static  void SetAllCreateFunctions(TPZCompEl &cel);
 
   /**
    * Permute the sequence number of the connect objects
+   * It is a permute gather operation
    * @param permute vector of elements to permute
    */
   void Permute(TPZVec<int> &permute);
