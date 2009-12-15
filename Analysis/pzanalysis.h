@@ -157,7 +157,7 @@ public:
    **/
   virtual  void Assemble();
   
-  void AssembleResidual();
+  virtual void AssembleResidual();
 
   /**
    *Invert the stiffness matrix

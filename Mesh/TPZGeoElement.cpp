@@ -103,41 +103,49 @@ TPZRestoreClass< TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>, TPZFGEOELEMENTPYRAM
 
 #else
 
+template<>
 int
 TPZGeoElement<TPZGeoPoint,TPZRefPoint>::ClassId() const {
   return TPZFGEOELEMENTPOINTID;
 }
 
+template<>
 int
 TPZGeoElement<TPZGeoLinear,TPZRefLinear>::ClassId() const {
   return TPZFGEOELEMENTLINEARID;
 }
 
+template<>
 int
 TPZGeoElement<TPZGeoQuad,TPZRefQuad>::ClassId() const {
   return TPZFGEOELEMENTQUADID;
 }
 
+template<>
 int
 TPZGeoElement<TPZGeoTriangle,TPZRefTriangle>::ClassId() const {
   return TPZFGEOELEMENTRIANGLEID;
 }
 
+template<>
 int
 TPZGeoElement<TPZGeoCube,TPZRefCube>::ClassId() const {
   return TPZFGEOELEMENTCUBEID;
 }
 
+template<>
 int
 TPZGeoElement<TPZGeoPrism,TPZRefPrism>::ClassId() const {
   return TPZFGEOELEMENTPRISMID;
 }
 
+template<>
 int
 TPZGeoElement<TPZGeoTetrahedra,TPZRefTetrahedra>::ClassId() const {
   return TPZFGEOELEMENTTETRAID;
 }
 
+template<>
 int
 TPZGeoElement<TPZGeoPyramid,TPZRefPyramid>::ClassId() const {
   return TPZFGEOELEMENTPYRAMID;
