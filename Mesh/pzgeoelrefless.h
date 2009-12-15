@@ -296,9 +296,8 @@ public:
 
 };
 
-#ifdef BORLAND
-#include "pzgeoelrefless.h.h"
-#endif
+//#ifdef BORLAND
+//#endif
 
 
 template<class TGeo>
@@ -321,5 +320,6 @@ TPZCompEl *TPZGeoElRefLess<TGeo>::CreateCompEl(TPZCompMesh &mesh,int &index){
 	return TGeo::fp(this,mesh,index);
 }
 
+#include "pzgeoelrefless.h.h"
 
 #endif

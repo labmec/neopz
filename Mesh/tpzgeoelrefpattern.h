@@ -580,5 +580,6 @@ void TPZGeoElRefPattern<TGeo>::Print(std::ostream & out)
   }
 }
 
+#include "tpzgeoelrefpattern.h.h"
 
 #endif

@@ -514,10 +514,6 @@ template class TPZGeoBlend<TPZGeoQuad>;
 template class TPZGeoBlend<TPZGeoLinear>;
 template class TPZGeoBlend<TPZGeoPoint>;
 
-#ifndef WIN32
-#include "pzgeoelrefless.h.h"
-#include "tpzgeoelrefpattern.h.h"
-#endif
 
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
