@@ -1,4 +1,4 @@
-//$Id: pzcmesh.cpp,v 1.85 2009-12-15 17:20:42 phil Exp $
+﻿//$Id: pzcmesh.cpp,v 1.86 2009-12-15 18:50:27 caju Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -77,42 +77,26 @@ void TPZCompMesh::CleanUp() {
   // THIS ROUTINE NEEDS TO INCLUDE THE DELETION OF THE LIST POINTERS
   TPZGeoMesh *ref = Reference();
   if (ref){
-    ref->ResetReference();
-    this->LoadReferences();
+	ref->ResetReference();
+	this->LoadReferences();
   }
   int i, nelem = this->NElements();
-  for(i=0; i<nelem; i++) {
-    TPZCompEl *el = fElementVec[i];
-    if(!el) continue;
 
-#ifdef HUGE_DEBUG
-    TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(el);
-    if(disc)
-      {
-	disc->RemoveInterfaces();
-      }
-    if(el && el->Type() != EInterface)
-      {
-	delete el;
-	fElementVec[i] = 0;
-      }
-#else
-    delete el;
-#endif
+  ///deleting interfaces
+  for(i=0; i<nelem; i++){
+	TPZCompEl *el = fElementVec[i];
+	TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(el);
+	if(face){
+	  delete el;
+	}
   }
 
-#ifdef HUGE_DEBUG
+  ///deleting other elements
   for(i=0; i<nelem; i++) {
-    TPZCompEl *el = fElementVec[i];
-    if(!el) continue;
-    if(el && el->Type() == EInterface)
-      {
-	cout << "TPZCompMesh::CleanUp some interface elements were not deleted\n";
+	TPZCompEl *el = fElementVec[i];
+	if(!el) continue;
 	delete el;
-	fElementVec[i] = 0;
-      }
   }
-#endif
 
   fElementVec.Resize(0);
   fElementVec.CompactDataStructure(1);

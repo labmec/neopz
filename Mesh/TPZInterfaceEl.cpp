@@ -1,6 +1,6 @@
-// -*- c++ -*-
+﻿// -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.94 2009-11-04 20:04:26 fortiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.95 2009-12-15 18:50:27 caju Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -70,8 +70,8 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
 void TPZInterfaceElement::DecreaseElConnected(){
    const int ncon = this->NConnects();
    for(int i = 0; i < ncon; i++){
-      int index = this->ConnectIndex(i);
-      fMesh->ConnectVec()[index].DecrementElConnected();
+	  int index = this->ConnectIndex(i);
+	  fMesh->ConnectVec()[index].DecrementElConnected();
    }
 }
 

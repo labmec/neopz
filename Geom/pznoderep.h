@@ -227,8 +227,6 @@ public:
 
 };
 
-#ifdef BORLAND
 #include "pznoderep.h.h"
-#endif
 
 #endif

@@ -1,4 +1,4 @@
-//
+﻿//
 // C++ Interface: pzgeoelrefless
 //
 // Description:
@@ -399,7 +399,7 @@ TPZGeoElRefLess<TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform
 
 template<class TGeo>
 TPZTransform
-TPZGeoElRefLess<TGeo>::GetTransform(int side,int son){
+TPZGeoElRefLess<TGeo>::GetTransform(int /*side*/,int /*son*/){
 	//  return TRef::GetTransform(side,son);
 	//  if(side<0 || side>NSides()-1){
     PZError << "TPZGeoElRefLess<TGeo>::GetTransform::Never should be called\n";

@@ -19,7 +19,7 @@ TPZPrInteg<TFather>::~TPZPrInteg()
 }
 
 template<class TFather>
-TPZIntPoints *TPZPrInteg<TFather>::PrismExtend(int order)
+TPZIntPoints *TPZPrInteg<TFather>::PrismExtend(int /*order*/)
 {
   std::cout << "Please implement me " << __PRETTY_FUNCTION__;
   return 0;
