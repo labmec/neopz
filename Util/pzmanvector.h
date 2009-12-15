@@ -4,7 +4,7 @@
  * @file pzmanvector.h
  * @brief Free store vector implementation.
  */
-// $Id: pzmanvector.h,v 1.10 2009-11-03 00:51:02 phil Exp $
+// $Id: pzmanvector.h,v 1.11 2009-12-15 17:26:17 phil Exp $
 
 #ifndef PZMANVECTOR_H
 #define PZMANVECTOR_H
@@ -296,6 +296,11 @@ TPZManVector< T, NumExtAlloc >& TPZManVector< T, NumExtAlloc >::operator=(
 	
 	if(nel <= NumExtAlloc)
 	{
+		if(this->fStore != fExtAlloc)
+		{
+			delete []this->fStore;
+		}
+		this->fNAlloc = 0;
 		this->fStore = fExtAlloc;
 		this->fNElements = nel;		
 	}
@@ -333,71 +338,71 @@ TPZManVector< T, NumExtAlloc >::~TPZManVector()
 template< class T, int NumExtAlloc >
 void TPZManVector< T, NumExtAlloc >::Expand( const int newsize )
 {
-   // If newsize is negative then return.
-   if( newsize <= fNAlloc || newsize <= NumExtAlloc )
-   {
-      return;
-   }
-   else
-   {// the size is larger than the allocated memory
-      T* newstore = new T[ newsize ];
-
-      for ( int i = 0; i < this->fNElements; i++)
-      {
-	 newstore[i] = this->fStore[i];
-      }
+	// If newsize is negative then return.
+	if( newsize <= fNAlloc || newsize <= NumExtAlloc )
+	{
+		return;
+	}
+	else
+	{// the size is larger than the allocated memory
+		T* newstore = new T[ newsize ];
 		
-      if( this->fStore != fExtAlloc )
-      {
-	 delete [] this->fStore;
-      }
-
-      this->fStore  = newstore;
-      fNAlloc = newsize;
-   }
+		for ( int i = 0; i < this->fNElements; i++)
+		{
+			newstore[i] = this->fStore[i];
+		}
+		
+		if( this->fStore != fExtAlloc )
+		{
+			delete [] this->fStore;
+		}
+		
+		this->fStore  = newstore;
+		fNAlloc = newsize;
+	}
 }
 
 template< class T, int NumExtAlloc >
 void TPZManVector< T, NumExtAlloc >::Shrink()
 {
-   // Philippe : Porque NumExtAlloc <= fNAlloc????
-   //    if(this->fNElements <= NumExtAlloc && NumExtAlloc <= fNAlloc) {
-   if (this->fNElements <= NumExtAlloc)
-   {
-      if (this->fStore != fExtAlloc)
-      {
-	 for (int i = 0; i < this->fNElements; i++)
-	    fExtAlloc[i] = this->fStore[i];
-				
-	 if (this->fStore)
-	    delete [] this->fStore;
-
-	 this->fStore  = fExtAlloc;
-	 fNAlloc = NumExtAlloc;
-      }
-   }
-   else if (fNAlloc != this->fNElements)
-   {  // then  fExtAlloc != this->fStore  because  NumExtAlloc != fNAlloc
-      // Philippe : Memoria alocada externamente nao pode ser deletada
-      //          if(fExtAlloc) delete[] fExtAlloc;
-      T *newstore = 0;
+	// Philippe : Porque NumExtAlloc <= fNAlloc????
+	//    if(this->fNElements <= NumExtAlloc && NumExtAlloc <= fNAlloc) {
+	if (this->fNElements <= NumExtAlloc)
+	{
+		if (this->fStore != fExtAlloc)
+		{
+			for (int i = 0; i < this->fNElements; i++)
+				fExtAlloc[i] = this->fStore[i];
+			
+			if (this->fStore)
+				delete [] this->fStore;
+			
+			this->fStore  = fExtAlloc;
+			fNAlloc = NumExtAlloc;
+		}
+	}
+	else if (fNAlloc != this->fNElements)
+	{  // then  fExtAlloc != this->fStore  because  NumExtAlloc != fNAlloc
+		// Philippe : Memoria alocada externamente nao pode ser deletada
+		//          if(fExtAlloc) delete[] fExtAlloc;
+		T *newstore = 0;
 		
-      if (this->fNElements)
-	 newstore = new T[this->fNElements];			
-
-      for (int i = 0; i < this->fNElements; i++)
-	 newstore[i] = this->fStore[i];			
-
-      if (this->fStore)
-	 delete[]this->fStore;
+		if (this->fNElements)
+			newstore = new T[this->fNElements];			
 		
-      this->fStore = newstore;
-      fNAlloc = this->fNElements;
-
-      // Philippe Isto eh um absurdo
-      //          fExtAlloc = this->fStore;
-      //          NumExtAlloc = fNAlloc;
-   }
+		for (int i = 0; i < this->fNElements; i++)
+			newstore[i] = this->fStore[i];			
+		
+		if (this->fStore)
+			delete[]this->fStore;
+		
+		this->fStore = newstore;
+		fNAlloc = this->fNElements;
+		
+		// Philippe Isto eh um absurdo
+		//          fExtAlloc = this->fStore;
+		//          NumExtAlloc = fNAlloc;
+	}
 }
 
 template< class T, int NumExtAlloc >
@@ -470,54 +475,54 @@ template< class T, int NumExtAlloc >
 void TPZManVector< T, NumExtAlloc >::Resize(const int newsize)
 {
 #ifndef NOTDEBUG
-   if (newsize < 0)
-   {
-      PZError << "TManVec::Resize. Bad parameter newsize." << std::endl;
-      PZError.flush ();
-      return;
-   }
+	if (newsize < 0)
+	{
+		PZError << "TManVec::Resize. Bad parameter newsize." << std::endl;
+		PZError.flush ();
+		return;
+	}
 #endif
 	
-   if (newsize == this->fNElements)
-      return;
-
-   if (newsize <= fNAlloc)
-   {
-      this->fNElements = newsize;
-   }
-   else if (newsize <= NumExtAlloc)
-   {  // that is, fExtAlloc != this->fStore
-     if(this->fStore != fExtAlloc) {
-       for (int i = 0; i < this->fNElements; i++)
-	 {
-	   fExtAlloc[i] = this->fStore[i];
-	 }
-       delete [] this->fStore;
-       this->fStore     = fExtAlloc;
-     }
-
-     this->fNElements = newsize;
-     fNAlloc    = NumExtAlloc;
-   }
-   else
-   {  // the size is larger than the allocated memory, then this->fNElements
-      // is always lower than newsize because fNElemets <=fNAllocs
-    
-      int realsize = ExpandSize (newsize);
-      T *newstore = new T[realsize];
+	if (newsize == this->fNElements)
+		return;
+	
+	if (newsize <= fNAlloc)
+	{
+		this->fNElements = newsize;
+	}
+	else if (newsize <= NumExtAlloc)
+	{  // that is, fExtAlloc != this->fStore
+		if(this->fStore != fExtAlloc) {
+			for (int i = 0; i < this->fNElements; i++)
+			{
+				fExtAlloc[i] = this->fStore[i];
+			}
+			delete [] this->fStore;
+			this->fStore     = fExtAlloc;
+		}
 		
-      for (int i = 0; i < this->fNElements; i++)
-      {
-	 newstore[i] = this->fStore[i];
-      }
+		this->fNElements = newsize;
+		fNAlloc    = NumExtAlloc;
+	}
+	else
+	{  // the size is larger than the allocated memory, then this->fNElements
+		// is always lower than newsize because fNElemets <=fNAllocs
 		
-      if( this->fStore != fExtAlloc )
-	 delete [] this->fStore;
-
-      this->fStore = newstore;
-      this->fNElements = newsize;
-      fNAlloc = realsize;
-   }
+		int realsize = ExpandSize (newsize);
+		T *newstore = new T[realsize];
+		
+		for (int i = 0; i < this->fNElements; i++)
+		{
+			newstore[i] = this->fStore[i];
+		}
+		
+		if( this->fStore != fExtAlloc )
+			delete [] this->fStore;
+		
+		this->fStore = newstore;
+		this->fNElements = newsize;
+		fNAlloc = realsize;
+	}
 }
 
 template< class T, int NumExtAlloc >
