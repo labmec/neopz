@@ -9,6 +9,10 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
+
+#ifndef PZNODEREPHH
+#define PZNODEREPHH
+
 #include "pznoderep.h"
 #include "pzlog.h"
 #include <sstream>
@@ -93,3 +97,5 @@ bool TPZNodeRep<N,Topology>::IsInSideParametricDomain(int side, TPZVec<REAL> &pt
 }///method
 
 }
+
+#endif

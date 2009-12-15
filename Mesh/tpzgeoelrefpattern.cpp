@@ -122,8 +122,6 @@ TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh, MElementType type,
 
 /** ClassId method for each instantiation followed by the registration of the class in the TPZRestoreClass */
 
-#ifndef WIN32
-
 template < >
 int TPZGeoElRefPattern<TPZGeoCube>::ClassId() const{
 	return TPZGEOELREFPATCUBEID;
@@ -187,7 +185,6 @@ int TPZGeoElRefPattern<TPZGeoPoint>::ClassId() const{
 
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPoint>, TPZGEOELREFPATPOINTID>;
-#endif
 
 // class TPZGeoElRefPattern<TPZGeoCube>;
 // class TPZGeoElRefPattern<TPZGeoLinear>;
