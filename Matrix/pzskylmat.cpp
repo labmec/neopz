@@ -787,7 +787,55 @@ TPZSkylMatrix::Decompose_Cholesky()
 int
 TPZSkylMatrix::Decompose_LDLt(std::list<int> &singular)
 {
-  return Decompose_LDLt();
+	singular.clear();
+	if( fDecomposed == ELDLt) return 1;
+	if (  fDecomposed )
+		TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
+
+	// Third try
+	REAL *elj,*ell;
+	int j,l,minj,minl,minrow,dimension = Dim();
+	REAL sum;
+	j = 1;
+  while(j < dimension) {
+/*    if(!(j%100) && Dim() > 100) {
+      cout <<  j << ' ';
+      cout.flush();
+    }
+    if(!(j%1000)) cout << endl;*/
+    minj = j-Size(j)+1;
+    l = minj;
+    while(l <= j) {
+      minl = l-Size(l)+1;
+      minrow = (minj<minl)? minl:minj;
+      int k = minrow;
+      //			DiagkPtr = fDiag+minrow;
+			elj = fElem[j]+j-minrow;
+      ell = fElem[l]+l-minrow;
+      sum = 0.;
+      while(k < l) {
+	sum += *elj-- * *ell-- * *(fElem[k++]);
+			}
+			*elj -= sum;
+			if(ell != elj) *elj /= *ell;
+			else if(IsZero(*elj)) {
+				singular.push_back(l);
+				*elj = 1.;
+			}
+      l++;
+    }
+    j++;
+	}
+
+	if(Rows() && (GetVal(Rows()-1,Rows()-1)) < 1.e-15)
+  {
+    singular.push_back(Rows()-1);
+    PutVal(Rows()-1,Rows()-1,1.);
+	}
+  fDecomposed  = ELDLt;
+  fDefPositive = 0;
+  //if(Dim() > 100) cout << endl;
+  return( 1 );
 }
 
 int
