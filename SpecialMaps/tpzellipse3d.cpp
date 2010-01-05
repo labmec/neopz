@@ -65,7 +65,6 @@ void TPZEllipse3D::SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<RE
 		fSemiAxeY[i] = SemiAxeY[i];
 	}
 
-	
 	fsAxeX = sqrt(fSemiAxeX[0]*fSemiAxeX[0] + fSemiAxeX[1]*fSemiAxeX[1] + fSemiAxeX[2]*fSemiAxeX[2]);
 	fsAxeY = sqrt(fSemiAxeY[0]*fSemiAxeY[0] + fSemiAxeY[1]*fSemiAxeY[1] + fSemiAxeY[2]*fSemiAxeY[2]);
 }
@@ -75,7 +74,7 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 	TPZFNMatrix<6> ICnEllip(2,3,0.);
 	TPZFNMatrix<6> IEllipCn(3,2,0.);
 	TPZFNMatrix<3> viniCn(3,1,0.), vfinCn(3,1,0.);
-	
+
 	for(int i = 0; i < 3; i++)
 	{
 		//basis change matrix from R3 canonic base to R2 ellipse base
@@ -85,9 +84,9 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 		//basis change matrix from R2 ellipse base to R3 canonic base
 		IEllipCn(i,0) = fSemiAxeX[i]/fsAxeX;
 		IEllipCn(i,1) = fSemiAxeY[i]/fsAxeY;
-		
-		viniCn(i,0) = nodeCoord(0,i) - fOrigin[i];
-		vfinCn(i,0) = nodeCoord(1,i) - fOrigin[i];
+
+		viniCn(i,0) = nodeCoord(i,0) - fOrigin[i];
+		vfinCn(i,0) = nodeCoord(i,1) - fOrigin[i];
 	}
 
 	//** Basis change from canonic R3 base to R2 ellipse base
@@ -96,6 +95,7 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 	ICnEllip.Multiply(viniCn,viniEllip);
 	ICnEllip.Multiply(vfinCn,vfinEllip);
 
+	//important verifications that avoid program crashes
 		if(fabs(viniEllip(0,0)/fsAxeX) > 1.0)
 		{
 			cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
@@ -106,9 +106,9 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 			cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
 			exit(-1);
 		}
-	   
-		double varx;
-		double vary;
+
+		double varx, vary;
+
 		varx = viniEllip(0,0);
 		vary = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
 		if(fabs(fabs(vary) - fabs(viniEllip(1,0))) > tolerance)
@@ -116,6 +116,7 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 			cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
 			exit(-1);
 		}
+
 		varx = vfinEllip(0,0);
 		vary = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
 		if(fabs(fabs(vary) - fabs(vfinEllip(1,0))) > tolerance)
@@ -123,18 +124,19 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 			cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
 			exit(-1);
 		}
-	
+	//end of verification
+
 	//working in R2 ellipse base
 	double QSI = qsi[0];
 	double ang = Angle(QSI, viniEllip, vfinEllip);
 	TPZFNMatrix<2> xEllip = EllipseR2equation(ang);//x in R2 ellipse base
-	
+
 	//working in R3 canonic base
 	TPZFNMatrix<3> xCn(3,1,0.);//x in R3 canonic base
 	//** Basis change from R2 ellipse base to canonic R3 base
 	//     IEllipCn.vEllip = vCn
 	IEllipCn.Multiply(xEllip, xCn);
-	
+
 	//The happy ending :)
 	x.Resize(3);
 	x[0] = xCn(0,0) + fOrigin[0];
@@ -158,8 +160,8 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
 		IEllipCn(i,0) = fSemiAxeX[i]/fsAxeX;
 		IEllipCn(i,1) = fSemiAxeY[i]/fsAxeY;
 		
-		viniCn(i,0) = nodeCoord(0,i) - fOrigin[i];
-		vfinCn(i,0) = nodeCoord(1,i) - fOrigin[i];
+		viniCn(i,0) = nodeCoord(i,0) - fOrigin[i];
+		vfinCn(i,0) = nodeCoord(i,1) - fOrigin[i];
 	}
 
 	//** Basis change from canonic R3 base to R2 ellipse base
@@ -226,38 +228,89 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
 	jacinv = 1./detjac;
 }
 
-void TPZEllipse3D::GetNodeCoord(TPZGeoMesh &mesh, TPZFMatrix &nodes)
+void TPZEllipse3D::GetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix &nodes)
 {
-	for(int i = 0; i < NNodes; i++){
+	for(int i = 0; i < NNodes; i++)
+	{
 		const int nodeindex = this->fNodeIndexes[i];
 		TPZGeoNode * np = &(mesh.NodeVec()[nodeindex]);
-		for(int j = 0; j < 3; j++){
+		for(int j = 0; j < 3; j++)
+		{
 			nodes(j,i) = np->Coord(j);
 		}
 	}
 }///void
 
-void TPZEllipse3D::AdjustNodeCoordinates(TPZGeoMesh &mesh)
+void TPZEllipse3D::SetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix &nodes)
 {
-	
-	const int nnodes = NNodes;
-	const int dimension = 1;
-	TPZFNMatrix<3*nnodes> nodes(3,nnodes);
-	this->GetNodeCoord(mesh,nodes);
-	
-	TPZManVector<REAL,3> qsi(dimension);
-	TPZManVector<REAL,3> MappedX(3);
-	
-	for(int inode = 0; inode < nnodes; inode++){
-		const int nodeindex = this->fNodeIndexes[inode];
-		this->CenterPoint(inode, qsi);
-		this->X(nodes,qsi,MappedX);
-		for(int dim = 0; dim < 3; dim++){
-			mesh.NodeVec()[nodeindex].SetCoord(dim,MappedX[dim]);
+	for(int i = 0; i < NNodes; i++)
+	{
+		const int nodeindex = this->fNodeIndexes[i];
+		TPZGeoNode * np = &(mesh.NodeVec()[nodeindex]);
+		for(int j = 0; j < 3; j++)
+		{
+			np->SetCoord(j,nodes(j,i));
 		}
-		
-	}///for inode
+	}
 }///void
+
+#include <Math.h>
+void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
+{
+	const int nnodes = NNodes;   //NNodes = 2
+	const int dimension = 1;
+	TPZFNMatrix<3*nnodes> node(3,nnodes), nodeCoord(nnodes,3);
+	this->GetNodesCoords(mesh,node);
+	node.Transpose(&nodeCoord);
+
+	TPZFNMatrix<6> ICnEllip(2,3,0.);
+	TPZFNMatrix<6> IEllipCn(3,2,0.);
+	TPZFNMatrix<3> viniCn(3,1,0.), vfinCn(3,1,0.);
+
+	for(int i = 0; i < 3; i++)
+	{
+		//basis change matrix from R3 canonic base to R2 ellipse base
+		ICnEllip(0,i) = fSemiAxeX[i]/fsAxeX;
+		ICnEllip(1,i) = fSemiAxeY[i]/fsAxeY;
+
+		//basis change matrix from R2 ellipse base to R3 canonic base
+		IEllipCn(i,0) = fSemiAxeX[i]/fsAxeX;
+		IEllipCn(i,1) = fSemiAxeY[i]/fsAxeY;
+
+		viniCn(i,0) = nodeCoord(i,0) - fOrigin[i];
+		vfinCn(i,0) = nodeCoord(i,1) - fOrigin[i];
+	}
+
+	//** Basis change from canonic R3 base to R2 ellipse base, i.e.: ICnEllip.vCn = vEllip
+	TPZFNMatrix<2> viniEllip(2,1,0.), vfinEllip(2,1,0.);
+	ICnEllip.Multiply(viniCn,viniEllip);
+	ICnEllip.Multiply(vfinCn,vfinEllip);
+
+	double varx, vary;
+
+	varx = ((fsAxeX*fsAxeY*viniEllip(0,0))/sqrt(fsAxeY*fsAxeY*viniEllip(0,0)*viniEllip(0,0) + fsAxeX*fsAxeX*viniEllip(1,0)*viniEllip(1,0)));
+	vary = viniEllip(1,0)/fabs(viniEllip(1,0))*(fsAxeY * sqrt(1.0 - (varx*varx)/(fsAxeX*fsAxeX)));
+	viniEllip(0,0) = varx;
+	viniEllip(1,0) = vary;
+
+	varx = ((fsAxeX*fsAxeY*vfinEllip(0,0))/sqrt(fsAxeY*fsAxeY*vfinEllip(0,0)*vfinEllip(0,0) + fsAxeX*fsAxeX*vfinEllip(1,0)*vfinEllip(1,0)));
+	vary = vfinEllip(1,0)/fabs(vfinEllip(1,0))*(fsAxeY * sqrt(1.0 - (varx*varx)/(fsAxeX*fsAxeX)));
+	vfinEllip(0,0) = varx;
+	vfinEllip(1,0) = vary;
+
+	//** Basis change from R2 ellipse base to canonic R3 base, i.e.: IEllipCn.vEllip = vCn
+	IEllipCn.Multiply(viniEllip, viniCn);
+    IEllipCn.Multiply(vfinEllip, vfinCn);
+
+	for(int coord = 0; coord < 3; coord++)
+	{
+		node(coord,0) = viniCn(coord,0) + fOrigin[coord];
+		node(coord,1) = vfinCn(coord,0) + fOrigin[coord];
+	}
+
+	this->SetNodesCoords(mesh,node);
+}///void
+
 
 TPZGeoEl *TPZEllipse3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {
@@ -330,11 +383,6 @@ TPZFMatrix TPZEllipse3D::DEllipseR2equationDang(double ang)
 	
 	return x;
 }
-
-
-
-
-
 
 
 #include "tpzgeoelmapped.h"

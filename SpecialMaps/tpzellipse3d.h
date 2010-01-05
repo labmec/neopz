@@ -26,7 +26,7 @@ class TPZEllipse3D : public TPZNodeRep<2,TPZLine> {
 	
 public:
 	
-    enum {NNodes = 2};
+	enum {NNodes = 2};
 	
     bool IsLinearMapping() const { return false; }
 	
@@ -47,25 +47,23 @@ public:
     TPZEllipse3D(const TPZEllipse3D &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
     }
 	
-    TPZEllipse3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
-		this->AdjustNodeCoordinates(mesh);
-    }
+	TPZEllipse3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
+	}
 	
     /** 
-     * Adjust node coordinate in case the non-linear mapping
-     * changes node coordinates
-     * It happens for instance in TPZEllipse3D
+	 * Adjust node coordinates in case of does not belong to the
+	 * ellipse arc defined by the given origin and semiAxes
      */
-    virtual void AdjustNodeCoordinates(TPZGeoMesh &mesh);
+	virtual void AdjustNodesCoordinates(TPZGeoMesh &mesh);
 
     /**
      * Origin defines the translation of ellipse while semi-axes defines the rotation of ellipse, i.:
      * - SemiAxeX is the vector that defines the direction of X axes of ellipse, whose value is its norm.
-     * - SemiAxeY is the vector that defines the direction of Y axes of ellipse, whose value is its norm.
-     */
-    void SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<REAL> SemiAxeY);
-	
-     /**
+	 * - SemiAxeY is the vector that defines the direction of Y axes of ellipse, whose value is its norm.
+	 */
+	void SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<REAL> SemiAxeY);
+
+	 /**
       * Este metodo estabelece o mapeamento de um elemento linear de dominio [-1,1]
       * para o arco de elipse definido pelos nohs inicial e final, os quais devem pertencer ao lugar geometrico da elipse,
       * seguindo a regra da mao direita (sentido anti-horario em relacao ao sistema local definido pelos vetores dos semi-eixos X e Y.
@@ -79,7 +77,7 @@ public:
 	
     static std::string TypeName() { return "Linear";}
     static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
-public:
+
 	/**
 	 * Creates a geometric element according to the type of the father element
 	 */
@@ -90,7 +88,7 @@ public:
 	
 	
 
-private:
+private://metodos utilizados apenas pelos metodos publicos desta classe!
 	
    /**
     * Este metodo retorna o angulo[ang(vini),ang(vfin)] que corresponde a um qsi[-1,1]
@@ -112,7 +110,8 @@ private:
      */	
     TPZFMatrix DEllipseR2equationDang(double ang);
 		
-    void GetNodeCoord(TPZGeoMesh &mesh, TPZFMatrix &nodes);
+	void GetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix &nodes);
+	void SetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix &nodes);
 	
     /**
      * fSemiAxeX @param - Half of Ellipse Axe in X direction
