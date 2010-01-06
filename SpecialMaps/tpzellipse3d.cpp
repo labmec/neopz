@@ -202,7 +202,6 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
 	double QSI = qsi[0];
 	double ang = Angle(QSI, viniEllip, vfinEllip);
 	TPZFNMatrix<2> jacEllip = DEllipseR2equationDang(ang);//jac in R2 ellipse base
-	double temp = DAngleDqsi(viniEllip, vfinEllip);
 	jacEllip(0,0) = jacEllip(0,0)*DAngleDqsi(viniEllip, vfinEllip);
 	jacEllip(1,0) = jacEllip(1,0)*DAngleDqsi(viniEllip, vfinEllip);
 	
@@ -258,10 +257,8 @@ void TPZEllipse3D::SetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix &nodes)
 void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
 {
 	const int nnodes = NNodes;   //NNodes = 2
-	const int dimension = 1;
-	TPZFNMatrix<3*nnodes> node(3,nnodes), nodeCoord(nnodes,3);
-	this->GetNodesCoords(mesh,node);
-	node.Transpose(&nodeCoord);
+	TPZFNMatrix<3*nnodes> nodeCoord(3,nnodes);
+	this->GetNodesCoords(mesh,nodeCoord);
 
 	TPZFNMatrix<6> ICnEllip(2,3,0.);
 	TPZFNMatrix<6> IEllipCn(3,2,0.);
@@ -304,11 +301,11 @@ void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
 
 	for(int coord = 0; coord < 3; coord++)
 	{
-		node(coord,0) = viniCn(coord,0) + fOrigin[coord];
-		node(coord,1) = vfinCn(coord,0) + fOrigin[coord];
+		nodeCoord(coord,0) = viniCn(coord,0) + fOrigin[coord];
+		nodeCoord(coord,1) = vfinCn(coord,0) + fOrigin[coord];
 	}
 
-	this->SetNodesCoords(mesh,node);
+	this->SetNodesCoords(mesh,nodeCoord);
 }///void
 
 

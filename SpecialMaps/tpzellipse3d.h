@@ -28,7 +28,10 @@ public:
 	
 	enum {NNodes = 2};
 	
-    bool IsLinearMapping() const { return false; }
+    bool IsLinearMapping() const
+	{
+		return false;
+	}
 	
     TPZEllipse3D(const TPZEllipse3D &cp,std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
     }
@@ -66,7 +69,7 @@ public:
 	 /**
       * Este metodo estabelece o mapeamento de um elemento linear de dominio [-1,1]
       * para o arco de elipse definido pelos nohs inicial e final, os quais devem pertencer ao lugar geometrico da elipse,
-      * seguindo a regra da mao direita (sentido anti-horario em relacao ao sistema local definido pelos vetores dos semi-eixos X e Y.
+      * ========> SEGUINDO A REGRA DA MAO DIREITA (sentido anti-horario em relacao ao sistema local definido pelos vetores dos semi-eixos X e Y).
       */
     void X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x);
 	
