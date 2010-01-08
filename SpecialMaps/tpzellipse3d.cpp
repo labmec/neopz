@@ -107,19 +107,22 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 			exit(-1);
 		}
 
-		double varx, vary;
+		double varx, fVarX, vary;
 
 		varx = viniEllip(0,0);
-		vary = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
-		if(fabs(fabs(vary) - fabs(viniEllip(1,0))) > tolerance)
+		fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+		vary = viniEllip(1,0);
+		
+		if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
 		{
 			cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
 			exit(-1);
 		}
 
 		varx = vfinEllip(0,0);
-		vary = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
-		if(fabs(fabs(vary) - fabs(vfinEllip(1,0))) > tolerance)
+		fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+		vary = vfinEllip(1,0);
+		if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
 		{
 			cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
 			exit(-1);
@@ -170,33 +173,39 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
 	ICnEllip.Multiply(viniCn,viniEllip);
 	ICnEllip.Multiply(vfinCn,vfinEllip);
 
-		if(fabs(viniEllip(0,0)/fsAxeX) > 1.0)
-		{
-			cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
-			exit(-1);
-		}
-		if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
-		{
-			cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
-			exit(-1);
-		}
-
-		double varx;
-		double vary;
-		varx = viniEllip(0,0);
-		vary = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
-		if(fabs(fabs(vary) - fabs(viniEllip(1,0))) > tolerance)
-		{
-			cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
-			exit(-1);
-		}
-		varx = vfinEllip(0,0);
-		vary = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
-		if(fabs(fabs(vary) - fabs(vfinEllip(1,0))) > tolerance)
-		{
-			cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
-			exit(-1);
-		}
+	//important verifications that avoid program crashes
+	if(fabs(viniEllip(0,0)/fsAxeX) > 1.0)
+	{
+		cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+		exit(-1);
+	}
+	if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
+	{
+		cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+		exit(-1);
+	}
+	
+	double varx, fVarX, vary;
+	
+	varx = viniEllip(0,0);
+	fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+	vary = viniEllip(1,0);
+	
+	if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
+	{
+		cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
+		exit(-1);
+	}
+	
+	varx = vfinEllip(0,0);
+	fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+	vary = vfinEllip(1,0);
+	if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
+	{
+		cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
+		exit(-1);
+	}
+	//end of verification
 	
 	//working in R2 ellipse base
 	double QSI = qsi[0];
@@ -283,22 +292,39 @@ void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
 	ICnEllip.Multiply(viniCn,viniEllip);
 	ICnEllip.Multiply(vfinCn,vfinEllip);
 
-	double varx, vary;
-
+	double varx, vary, Y, val;
+	int signal;
+	
+	///... initial node
 	varx = ((fsAxeX*fsAxeY*viniEllip(0,0))/sqrt(fsAxeY*fsAxeY*viniEllip(0,0)*viniEllip(0,0) + fsAxeX*fsAxeX*viniEllip(1,0)*viniEllip(1,0)));
-	vary = viniEllip(1,0)/fabs(viniEllip(1,0))*(fsAxeY * sqrt(1.0 - (varx*varx)/(fsAxeX*fsAxeX)));
+	//
+	val = 1.0 - (varx*varx)/(fsAxeX*fsAxeX);
+	if(val < 1.E-30) val = 0.;
+	Y = viniEllip(1,0);
+	(fabs(Y) < 1.E-30) ? signal = 0 : signal = Y/fabs(Y);
+	//
+	vary = signal*(fsAxeY * sqrt(val));
 	viniEllip(0,0) = varx;
 	viniEllip(1,0) = vary;
+	///... end of initial node
 
+	///... final node
 	varx = ((fsAxeX*fsAxeY*vfinEllip(0,0))/sqrt(fsAxeY*fsAxeY*vfinEllip(0,0)*vfinEllip(0,0) + fsAxeX*fsAxeX*vfinEllip(1,0)*vfinEllip(1,0)));
-	vary = vfinEllip(1,0)/fabs(vfinEllip(1,0))*(fsAxeY * sqrt(1.0 - (varx*varx)/(fsAxeX*fsAxeX)));
+	//
+	val = 1.0 - (varx*varx)/(fsAxeX*fsAxeX);
+	if(val < 1.E-30) val = 0.;
+	Y = vfinEllip(1,0);
+	(fabs(Y) < 1.E-30) ? signal = 0 : signal = Y/fabs(Y);
+	//
+	vary = signal*(fsAxeY * sqrt(val));
 	vfinEllip(0,0) = varx;
 	vfinEllip(1,0) = vary;
-
+	///... end of final node
+	
 	//** Basis change from R2 ellipse base to canonic R3 base, i.e.: IEllipCn.vEllip = vCn
 	IEllipCn.Multiply(viniEllip, viniCn);
     IEllipCn.Multiply(vfinEllip, vfinCn);
-
+	
 	for(int coord = 0; coord < 3; coord++)
 	{
 		nodeCoord(coord,0) = viniCn(coord,0) + fOrigin[coord];
