@@ -177,43 +177,43 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
 	ICnEllip.Multiply(vfinCn,vfinEllip);
 
 	//important verifications that avoid program crashes
-	if(fabs(viniEllip(0,0)/fsAxeX) > 1.0)
-	{
-		cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
-        cout << "See " << __PRETTY_FUNCTION__ << endl;
-		exit(-1);
-	}
-	if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
-	{
-		cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
-        cout << "See " << __PRETTY_FUNCTION__ << endl;
-		exit(-1);
-	}
-	
-	double varx, fVarX, vary;
-	
-	varx = viniEllip(0,0);
-	fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
-	vary = viniEllip(1,0);
-	
-	if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
-	{
-		cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
-        cout << "See " << __PRETTY_FUNCTION__ << endl;
-		exit(-1);
-	}
-	
-	varx = vfinEllip(0,0);
-	fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
-	vary = vfinEllip(1,0);
-	if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
-	{
-		cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
-        cout << "See " << __PRETTY_FUNCTION__ << endl;
-		exit(-1);
-	}
+        if(fabs(viniEllip(0,0)/fsAxeX) > 1.0)
+        {
+            cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+            cout << "See " << __PRETTY_FUNCTION__ << endl;
+            exit(-1);
+        }
+        if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
+        {
+            cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+            cout << "See " << __PRETTY_FUNCTION__ << endl;
+            exit(-1);
+        }
+
+        double varx, fVarX, vary;
+
+        varx = viniEllip(0,0);
+        fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+        vary = viniEllip(1,0);
+
+        if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
+        {
+            cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
+            cout << "See " << __PRETTY_FUNCTION__ << endl;
+            exit(-1);
+        }
+
+        varx = vfinEllip(0,0);
+        fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+        vary = vfinEllip(1,0);
+        if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
+        {
+            cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
+            cout << "See " << __PRETTY_FUNCTION__ << endl;
+            exit(-1);
+        }
 	//end of verification
-	
+
 	//working in R2 ellipse base
 	double QSI = qsi[0];
 	double ang = Angle(QSI, viniEllip, vfinEllip);
