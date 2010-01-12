@@ -1,4 +1,4 @@
-//$Id: pzdxmesh.cpp,v 1.15 2009-11-23 19:57:15 phil Exp $
+//$Id: pzdxmesh.cpp,v 1.16 2010-01-12 12:13:18 caju Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -444,3 +444,4 @@ void TPZDXGraphMesh::SetFileName(const std::string &filename)
 	TPZGraphMesh::SetFileName(filename);
 	fOutFile.open(filename.c_str());
 }
+
