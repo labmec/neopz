@@ -11,13 +11,16 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.geoblend"));
 #endif
 
 template <class TGeo>
-void TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) {
-  if(!fNeighbours[side-TGeo::NNodes].Element()){
+void TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans)
+{
+  if(!fNeighbours[side-TGeo::NNodes].Element())
+  {
     fNeighbours[side-TGeo::NNodes] = neigh;
     fTrans[side - TGeo::NNodes] = trans;
   }
-  else{
-#ifdef LOG4CXX
+  else
+  {
+	#ifdef LOG4CXX
     std::stringstream mess;
     mess << "Trying to SetNeighbourInfo for an already set element\n";
     mess << "* this * = " << __PRETTY_FUNCTION__ << "\n";
@@ -25,7 +28,7 @@ void TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTrans
     mess << "* neigh * = \n";
     neigh.Element()->Print(mess);
     LOGPZ_DEBUG(logger,mess.str());
-#endif
+	#endif
   }
 }
 
@@ -38,27 +41,28 @@ bool TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZV
      TPZManVector< REAL, 3 > SidePar(SideDim);
      const bool check = this->MapToSide(side, InternalPar, SidePar,JacSide);
 
-#ifdef LOG4CXX
-  if(logger->isDebugEnabled())
-  {
-    std::stringstream sout;
-    sout << "side " << side << std::endl;
-    sout << "InternalPar: ";
-    for(int i = 0; i < InternalPar.NElements(); i++) sout << InternalPar[i] << "\t";
-    sout << "\n";
-    
-    sout << "SidePar: ";
-    for(int i = 0; i < SidePar.NElements(); i++) sout << SidePar[i] << "\t";
-    sout << "\n";
+	#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "side " << side << std::endl;
+        sout << "InternalPar: ";
+        for(int i = 0; i < InternalPar.NElements(); i++) sout << InternalPar[i] << "\t";
+        sout << "\n";
 
-    JacSide.Print("JacSide = ",sout);
-    LOGPZ_DEBUG(logger,sout.str())
-  }
-#endif
+        sout << "SidePar: ";
+        for(int i = 0; i < SidePar.NElements(); i++) sout << SidePar[i] << "\t";
+        sout << "\n";
 
-     if(!check){
-		  return false;
-	   }
+        JacSide.Print("JacSide = ",sout);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+	#endif
+
+     if(!check)
+     {
+	 	return false;
+	 }
 
      NeighPar.Resize(SideDim);
      TransfBetweenNeigh(side).Apply(SidePar,NeighPar);
@@ -66,19 +70,19 @@ bool TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZV
      JacNeighSide.Resize(TransfBetweenNeigh(side).Mult().Rows(),JacSide.Cols());
      TransfBetweenNeigh(side).Mult().Multiply(JacSide,JacNeighSide);
 
-#ifdef LOG4CXX
-  if(logger->isDebugEnabled())
-  {
-    std::stringstream sout;
+	#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
 
-    sout << "NeighPar: ";
-    for(int i = 0; i < NeighPar.NElements(); i++) sout << NeighPar[i] << "\t";
-    sout << "\n";
+        sout << "NeighPar: ";
+        for(int i = 0; i < NeighPar.NElements(); i++) sout << NeighPar[i] << "\t";
+        sout << "\n";
 
-    JacNeighSide.Print("JacNeighSide = ",sout);
-    LOGPZ_DEBUG(logger,sout.str())
-  }
-#endif
+        JacNeighSide.Print("JacNeighSide = ",sout);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+	#endif
 
 	return true;
 }
@@ -86,17 +90,7 @@ bool TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZV
 template <class TGeo>
 void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result)
 {
-    ///Criando uma cópia das coordenadas dos nós
-    TPZManVector< TPZManVector<REAL,3>,27 > NodeCoord(TGeo::NNodes);
-    for(int i = 0; i < TGeo::NNodes; i++)
-    {
-        NodeCoord[i].Resize(3);
-        for(int j = 0; j < 3; j++)
-        {
-            NodeCoord[i][j] = coord(j,i);
-        }
-    }
-#ifdef LOG4CXX
+	#ifdef LOG4CXX
 	if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -104,9 +98,8 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
 		sout << "NodeCoord " << NodeCoord;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
-#endif
-	
-    ///
+	#endif
+
     result.Fill(0.);
     TPZManVector<REAL,3> NeighPar, SidePar, Xside(3,0.);
 
@@ -127,33 +120,25 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
             REAL blendTemp = 0.;
             for(int a = 0; a < LowNodeSides.NElements(); a++)
             {
-                ///Mapeando os Nós ( para contemplar casos em que CoordNó != X(CoordNó) )
-                TPZManVector<REAL,3> coordTemp(3);
-                TGeo::CenterPoint(LowNodeSides[a],coordTemp);
-                MapToNeighSide(byside,coordTemp,NeighPar,NotUsedHere);
-                Neighbour(byside).X(NeighPar,Xside);
-#ifdef DEBUG
-                TPZManVector<REAL,3> previous ( NodeCoord[LowNodeSides[a]] );
-#endif
-                NodeCoord[LowNodeSides[a]] = Xside;
-                ///
                 blendTemp += blend(LowNodeSides[a],0);
             }
 
             if(!MapToNeighSide(byside,par,NeighPar,NotUsedHere))
 			{
-#ifdef LOG4CXX
+				#ifdef LOG4CXX
 				if(logger->isDebugEnabled())
 				{
 					std::stringstream sout;
 					sout << "MapToNeighSide is singular for par " << par << " and side " << byside << " skipping the side ";
 					LOGPZ_DEBUG(logger,sout.str())
 				}
-#endif
+				#endif
+
 				continue;
 			}
             Neighbour(byside).X(NeighPar,Xside);
-#ifdef LOG4CXX
+
+			#ifdef LOG4CXX
 			if(logger->isDebugEnabled())
 			{
 				std::stringstream sout;
@@ -162,7 +147,7 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
 				sout << "blendTemp " << blendTemp;
 				LOGPZ_DEBUG(logger,sout.str())
 			}
-#endif
+			#endif
 			
             for(int c = 0; c < 3; c++)
             {
@@ -175,33 +160,32 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
             }
         }
     }
-#ifdef LOG4CXX
+
+	#ifdef LOG4CXX
 	if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "sidescounter before contributing linear map " << SidesCounter;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
-#endif
+	#endif
 	
     for(int a = 0; a < TGeo::NNodes; a++)
     {
         for(int b = 0; b < 3; b++)
         {
-                /// Aqui usa-se os Nós mapeados --------.
-                /// (ao inves de coord(a,b))            |
-                ///                                     v
-            result[b] += (1 - SidesCounter[a]) * NodeCoord[a][b]*blend(a,0);
+            result[b] += (1 - SidesCounter[a]) * coord(b,a)*blend(a,0);
         }
     }
-#ifdef LOG4CXX
+
+	#ifdef LOG4CXX
 	if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "result " << result;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
-#endif
+	#endif
 	
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -214,30 +198,20 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
 
     TPZManVector<REAL> SidesCounter(TGeo::NSides,0);
     TPZStack<int> LowNodeSides, LowAllSides;
-#ifdef LOG4CXX
+
+	#ifdef LOG4CXX
 	if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "input parameter par " << par;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
-#endif
+	#endif
+
     TPZFNMatrix<24> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
     TGeo::Shape(par,blend,Dblend);
 
-    ///Criando uma cópia das coordenadas dos nós
-    TPZVec< TPZVec<REAL> > NodeCoord(TGeo::NNodes);
-    for(int i = 0; i < TGeo::NNodes; i++)
-    {
-        NodeCoord[i].Resize(3);
-        for(int j = 0; j < 3; j++)
-        {
-            NodeCoord[i][j] = coord(j,i);
-        }
-    }
-    ///
-
-    TPZFNMatrix<9> J1, J2, Ax, JacTemp(3,TGeo::Dimension, 0.), Jneighbourhood; 
+    TPZFNMatrix<9> J1, J2, Ax, JacTemp(3,TGeo::Dimension, 0.), Jneighbourhood;
     REAL Det;
     for(int byside = majorSide; byside >= TGeo::NNodes; byside--)
     {
@@ -254,63 +228,56 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
             Neighbour(byside).Jacobian(NeighPar,J1,Ax,Det,Inv);
             Ax.Transpose(); 
             Ax.Multiply(J1,J2);
-#ifdef LOG4CXX
+
+			#ifdef LOG4CXX
 			if(logger->isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "byside " << byside << std::endl;
-        sout << "side of the neighbour " << Neighbour(byside).Side() << std::endl;
-        Neighbour(byside).Element()->Print(sout);
+        		sout << "side of the neighbour " << Neighbour(byside).Side() << std::endl;
+        		Neighbour(byside).Element()->Print(sout);
 				sout << "neighbour parameter(NeighPar) " << NeighPar << std::endl;
 				sout << "Jacobian of the map(Jneighborhood) " << Jneighbourhood << std::endl;
 				sout << "Xside " << Xside << std::endl;
 				sout << "jacobian neighbour(J1) " << J1 << std::endl;
-        Ax.Print("Ax of the neighbour (Ax) ",sout);        
+        		Ax.Print("Ax of the neighbour (Ax) ",sout);
 				sout << "jacobian of the neighbour multiplied by the axes(J2) " << J2 << std::endl;
 				LOGPZ_DEBUG(logger,sout.str())
 			}
-#endif
+			#endif
+
             J2.Multiply(Jneighbourhood,J1);
-#ifdef LOG4CXX
+
+			#ifdef LOG4CXX
 			if(logger->isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "acumulated jacobian(J1) " << J1 << std::endl;
 				LOGPZ_DEBUG(logger,sout.str())
 			}
-#endif
+			#endif
+
             REAL blendTemp = 0.; 
             TPZManVector<REAL,3> DblendTemp(TGeo::Dimension,0.);
             for(int a = 0; a < LowNodeSides.NElements(); a++)
             {
-                    ///Mapeando os Nós ( para contemplar casos em que CoordNó != X(CoordNó) )
-                    TPZVec<REAL> coordTemp(3);
-                    TGeo::CenterPoint(LowNodeSides[a],coordTemp);
-                    if(!(MapToNeighSide(byside,coordTemp,NeighPar,NotUsedHere)))
-					{
-						cout << __PRETTY_FUNCTION__ << " This should never happen\n";
-						DebugStop();
-					}
-                    Neighbour(byside).X(NeighPar,XNode);
-                    NodeCoord[LowNodeSides[a]] = XNode;
-                    ///
-                    TPZVec<REAL> parChanged(par.NElements());
-                    TGeo::FixSingularity(byside,par,parChanged);
-                    TGeo::Shape(parChanged,blend,Dblend);
+                TPZVec<REAL> parChanged(par.NElements());
+                TGeo::FixSingularity(byside,par,parChanged);
+                TGeo::Shape(parChanged,blend,Dblend);
 
-                    blendTemp += blend(LowNodeSides[a],0);
-                    for(int b = 0; b < TGeo::Dimension; b++) 
-                    {
-                        DblendTemp[b] += Dblend(b,LowNodeSides[a]);
-                    }
+                blendTemp += blend(LowNodeSides[a],0);
+                for(int b = 0; b < TGeo::Dimension; b++)
+                {
+                    DblendTemp[b] += Dblend(b,LowNodeSides[a]);
+                }
             }
 
             for(int a = 0; a < 3; a++)
             {
-                    for(int b = 0; b < TGeo::Dimension; b++) 
-                    {
-                        JacTemp(a,b) += (1 - SidesCounter[byside]) * (J1(a,b)*blendTemp + Xside[a]*DblendTemp[b]);
-                    }
+                for(int b = 0; b < TGeo::Dimension; b++)
+                {
+                    JacTemp(a,b) += (1 - SidesCounter[byside]) * (J1(a,b)*blendTemp + Xside[a]*DblendTemp[b]);
+                }
             }
             for(int a = 0; a < LowAllSides.NElements(); a++) 
             {
@@ -318,7 +285,8 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
             }
         }
     }
-#ifdef LOG4CXX
+
+	#ifdef LOG4CXX
 	{
 		std::stringstream sout;
 		JacTemp.Print("Jabobian before contributing the nodes",sout);
@@ -327,17 +295,15 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
 		sout << "NodeCoord " << NodeCoord << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
-#endif
+	#endif
+
     for(int a = 0; a < TGeo::NNodes; a++)
     {
         for(int b = 0; b < 3; b++) 
         { 
             for(int c = 0; c < TGeo::Dimension; c++)
-            { 
-                /// Aqui usa-se os Nós mapeados --------------.
-                /// (ao inves de coord(a,b))                  |
-                ///                                           v
-                JacTemp(b,c) += (1 - SidesCounter[a]) * NodeCoord[a][b]*Dblend(c,a);
+            {
+            	JacTemp(b,c) += (1 - SidesCounter[a]) * coord(b,a)*Dblend(c,a);
             }
         }
     }
@@ -345,37 +311,43 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
     JacTemp.GramSchmidt(axest,jacobian);
     axest.Transpose(&axes);
 
-    if(TGeo::Dimension == 1)
+    switch(TGeo::Dimension)
     {
-      detjac = jacobian(0,0);
-      jacinv(0,0) = 1./detjac;
-    }
-    else if(TGeo::Dimension == 2)
-    {
-        detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
-        jacinv(0,0) =  jacobian(1,1) / detjac;
-        jacinv(1,1) =  jacobian(0,0) / detjac;
-        jacinv(0,1) = -jacobian(0,1) / detjac;
-        jacinv(1,0) = -jacobian(1,0) / detjac;
-    }
-    else if(TGeo::Dimension == 3)
-    {
-        detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0);//- a02 a11 a20
-        detjac += jacobian(0,1)*jacobian(1,2)*jacobian(2,0);//+ a01 a12 a20
-        detjac += jacobian(0,2)*jacobian(1,0)*jacobian(2,1);//+ a02 a10 a21
-        detjac -= jacobian(0,0)*jacobian(1,2)*jacobian(2,1);//- a00 a12 a21
-        detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
-        detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
+        case(1):
+        {
+          detjac = jacobian(0,0);
+          jacinv(0,0) = 1./detjac;
+          break;
+        }
+        case(2):
+        {
+            detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
+            jacinv(0,0) =  jacobian(1,1) / detjac;
+            jacinv(1,1) =  jacobian(0,0) / detjac;
+            jacinv(0,1) = -jacobian(0,1) / detjac;
+            jacinv(1,0) = -jacobian(1,0) / detjac;
+            break;
+        }
+        case(3):
+        {
+            detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0);//- a02 a11 a20
+            detjac += jacobian(0,1)*jacobian(1,2)*jacobian(2,0);//+ a01 a12 a20
+            detjac += jacobian(0,2)*jacobian(1,0)*jacobian(2,1);//+ a02 a10 a21
+            detjac -= jacobian(0,0)*jacobian(1,2)*jacobian(2,1);//- a00 a12 a21
+            detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
+            detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
 
-        jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2)) / detjac;//-a12 a21 + a11 a22
-        jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2)) / detjac;// a02 a21 - a01 a22
-        jacinv(0,2) = (-jacobian(0,2)*jacobian(1,1)+jacobian(0,1)*jacobian(1,2)) / detjac;//-a02 a11 + a01 a12
-        jacinv(1,0) = ( jacobian(1,2)*jacobian(2,0)-jacobian(1,0)*jacobian(2,2)) / detjac;// a12 a20 - a10 a22
-        jacinv(1,1) = (-jacobian(0,2)*jacobian(2,0)+jacobian(0,0)*jacobian(2,2)) / detjac;//-a02 a20 + a00 a22
-        jacinv(1,2) = ( jacobian(0,2)*jacobian(1,0)-jacobian(0,0)*jacobian(1,2)) / detjac;// a02 a10 - a00 a12
-        jacinv(2,0) = (-jacobian(1,1)*jacobian(2,0)+jacobian(1,0)*jacobian(2,1)) / detjac;//-a11 a20 + a10 a21
-        jacinv(2,1) = ( jacobian(0,1)*jacobian(2,0)-jacobian(0,0)*jacobian(2,1)) / detjac;// a01 a20 - a00 a21
-        jacinv(2,2) = (-jacobian(0,1)*jacobian(1,0)+jacobian(0,0)*jacobian(1,1)) / detjac;//-a01 a10 + a00 a11
+            jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2)) / detjac;//-a12 a21 + a11 a22
+            jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2)) / detjac;// a02 a21 - a01 a22
+            jacinv(0,2) = (-jacobian(0,2)*jacobian(1,1)+jacobian(0,1)*jacobian(1,2)) / detjac;//-a02 a11 + a01 a12
+            jacinv(1,0) = ( jacobian(1,2)*jacobian(2,0)-jacobian(1,0)*jacobian(2,2)) / detjac;// a12 a20 - a10 a22
+            jacinv(1,1) = (-jacobian(0,2)*jacobian(2,0)+jacobian(0,0)*jacobian(2,2)) / detjac;//-a02 a20 + a00 a22
+            jacinv(1,2) = ( jacobian(0,2)*jacobian(1,0)-jacobian(0,0)*jacobian(1,2)) / detjac;// a02 a10 - a00 a12
+            jacinv(2,0) = (-jacobian(1,1)*jacobian(2,0)+jacobian(1,0)*jacobian(2,1)) / detjac;//-a11 a20 + a10 a21
+            jacinv(2,1) = ( jacobian(0,1)*jacobian(2,0)-jacobian(0,0)*jacobian(2,1)) / detjac;// a01 a20 - a00 a21
+            jacinv(2,2) = (-jacobian(0,1)*jacobian(1,0)+jacobian(0,0)*jacobian(1,1)) / detjac;//-a01 a10 + a00 a11
+            break;
+        }
     }
 }
 
@@ -389,8 +361,8 @@ void TPZGeoBlend<TGeo>::Print(std::ostream &out)
   {
     if(fNeighbours[is-TGeo::NNodes].Element())
     {
-          out << "Side: " << is << " El/side: " << fNeighbours[is-TGeo::NNodes].Element()->Index() << ":" <<
-          fNeighbours[is-TGeo::NNodes].Side() << '\n';
+      out << "Side: " << is << " El/side: " << fNeighbours[is-TGeo::NNodes].Element()->Index() << ":" <<
+      fNeighbours[is-TGeo::NNodes].Side() << '\n';
     }
   }
 }
@@ -456,7 +428,7 @@ TPZGeoEl *TPZGeoBlend<TGeo>::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
   }
   if(straight)
   {
-      return TGeo::CreateBCGeoEl(orig,side,bc);
+    return TGeo::CreateBCGeoEl(orig,side,bc);
   }
   else
   {
