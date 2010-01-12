@@ -99,11 +99,13 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 		if(fabs(viniEllip(0,0)/fsAxeX) > 1.0)
 		{
 			cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+            cout << "See " << __PRETTY_FUNCTION__ << endl;
 			exit(-1);
 		}
 		if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
 		{
 			cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+            cout << "See " << __PRETTY_FUNCTION__ << endl;
 			exit(-1);
 		}
 
@@ -125,6 +127,7 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 		if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
 		{
 			cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
+            cout << "See " << __PRETTY_FUNCTION__ << endl;
 			exit(-1);
 		}
 	//end of verification
@@ -177,11 +180,13 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
 	if(fabs(viniEllip(0,0)/fsAxeX) > 1.0)
 	{
 		cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+        cout << "See " << __PRETTY_FUNCTION__ << endl;
 		exit(-1);
 	}
 	if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
 	{
 		cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+        cout << "See " << __PRETTY_FUNCTION__ << endl;
 		exit(-1);
 	}
 	
@@ -194,6 +199,7 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
 	if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
 	{
 		cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
+        cout << "See " << __PRETTY_FUNCTION__ << endl;
 		exit(-1);
 	}
 	
@@ -203,6 +209,7 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
 	if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
 	{
 		cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
+        cout << "See " << __PRETTY_FUNCTION__ << endl;
 		exit(-1);
 	}
 	//end of verification
