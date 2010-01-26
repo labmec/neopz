@@ -1,4 +1,4 @@
-//Id: $
+﻿//Id: $
 
 // -*- c++ -*-
 /**File : pzgeoel.c
@@ -447,7 +447,7 @@ int TPZGeoEl::WhichSide(TPZVec<REAL> &pt){
 		for(d=0; d<dim; d++) {
 			dif += (pt[d]-pt2[d])*(pt[d]-pt2[d]);
 		}
-		//dif = sqrt(dif/dim);
+		dif = sqrt(dif/dim);
 		if(dif < tol) return is;
 	}
   cout << "TPZGeoEl::WhichSide ERROR : side not found" << endl ;

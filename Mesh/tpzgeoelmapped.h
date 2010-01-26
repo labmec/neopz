@@ -1,4 +1,4 @@
-//
+﻿//
 // C++ Interface: tpzgeoelmapped
 //
 // Description: 
@@ -81,6 +81,8 @@ public:
                                      int& index);
 
 
+
+
   /**Sets the father element index*/
   virtual void SetFather(int fatherindex)
   {
@@ -151,7 +153,7 @@ public:
 #ifdef DEBUG
 {
       double ksidiff = 0.;
-      for(int i = 0; i < ptancestor.NElements(); i++){  
+      for(int i = 0; i < ptancestor.NElements(); i++){
         ksidiff += (aux[i]-ptancestor[i])*(aux[i]-ptancestor[i]);
       }///i
       ksidiff = sqrt(ksidiff);
@@ -163,7 +165,7 @@ public:
         std::cout << "\nptancestor:\n";
         for(int i = 0; i < ptancestor.NElements(); i++) std::cout << ptancestor[i] << "\t";
         std::cout << "\n";
-//        DebugStop();
+        DebugStop();
       }
 
       TPZManVector<REAL,3> fatherX(3);
