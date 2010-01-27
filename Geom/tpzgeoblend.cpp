@@ -95,7 +95,7 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
 	{
 		std::stringstream sout;
 		sout << "input parameter par " << par << std::endl;
-		sout << "NodeCoord " << NodeCoord;
+		sout << "NodeCoord " << coord;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 	#endif
@@ -292,7 +292,7 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
 		JacTemp.Print("Jabobian before contributing the nodes",sout);
 		sout << "SidesCounter " << SidesCounter << std::endl;
 		sout << "DBlend " << Dblend << std::endl;
-		sout << "NodeCoord " << NodeCoord << std::endl;
+		sout << "NodeCoord " << coord << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 	#endif
