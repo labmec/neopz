@@ -72,7 +72,7 @@ using namespace pztopology;
 //#include "pzgeoelrefless.h.h"
 #endif
 
-<<<<<<< pzgeoelrefless.cpp
+/*<<<<<<< pzgeoelrefless.cpp
 TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
   if(!gel->Reference() && gel->NumInterfaces() == 0)
   	return new TPZIntelGen<TPZShapePoint>(mesh,gel,index);
@@ -137,7 +137,7 @@ template<>
 TPZCompEl *(*TPZGeoElRefLess<TPZGeoPyramid>::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePyramEl;
 
 =======
->>>>>>> 1.24
+>>>>>>> 1.24         */
 
 template class TPZGeoElRefLess<TPZGeoCube>;
 template class TPZGeoElRefLess<TPZGeoLinear>;
