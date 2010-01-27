@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.29 2009-06-17 22:08:24 fortiago Exp $
+﻿//$Id: pzgeoelside.cpp,v 1.30 2010-01-27 16:45:32 fortiago Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -238,69 +238,71 @@ void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
 */
 
 void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
-  if(fSide < fGeoEl->NCornerNodes()) 
+  if(fSide < fGeoEl->NCornerNodes())
     {
       AllNeighbours(compneigh);
       return;
     }
   int nsnodes = NSideNodes();
   TPZStack<TPZGeoElSide> GeoElSideSet;
-  TPZStack<TPZGeoEl *> GeoElSet[27];
+  TPZStack<int> GeoElSet[27];
   int in;
   TPZManVector<int> nodeindexes(nsnodes);
-  for(in=0; in<nsnodes; in++) 
-    {
-      nodeindexes[in] = SideNodeIndex(in);
-      int locnod = fGeoEl->SideNodeLocIndex(fSide,in);
-      GeoElSideSet.Resize(0);
-      TPZGeoElSide locside(fGeoEl,locnod);
-      locside.AllNeighbours(GeoElSideSet);
-      int nel = GeoElSideSet.NElements();
-      int el;
-      for(el=0; el<nel; el++) {
-	GeoElSet[in].Push(GeoElSideSet[el].Element());
-      }
-      Sort<TPZGeoEl *>(GeoElSet[in]);
-    }
-  TPZStack<TPZGeoEl *,100> result;
+  for(in=0; in<nsnodes; in++)
+	{
+	  nodeindexes[in] = SideNodeIndex(in);
+	  int locnod = fGeoEl->SideNodeLocIndex(fSide,in);
+	  GeoElSideSet.Resize(0);
+	  TPZGeoElSide locside(fGeoEl,locnod);
+	  locside.AllNeighbours(GeoElSideSet);
+	  int nel = GeoElSideSet.NElements();
+	  int el;
+	  for(el=0; el<nel; el++) {
+	GeoElSet[in].Push(GeoElSideSet[el].Element()->Index());
+	  }
+	  Sort<int>(GeoElSet[in]);
+	}
+  TPZStack<int,100> result;
   switch(nsnodes) {
   case 1:
-    {
-      result = GeoElSet[0];
-    }
-    break;
+	{
+	  result = GeoElSet[0];
+	}
+	break;
   case 2:
-    Intersect<TPZGeoEl *,100>(GeoElSet[0],GeoElSet[1],result);
-    break;
+	Intersect<int,100>(GeoElSet[0],GeoElSet[1],result);
+	break;
   case 3:
-    Intersect<TPZGeoEl *,100>(GeoElSet[0],GeoElSet[1],GeoElSet[2],result);
-    break;
+	Intersect<int,100>(GeoElSet[0],GeoElSet[1],GeoElSet[2],result);
+	break;
   case 4:
-    {
-      TPZStack<TPZGeoEl *> inter1, inter2;
-      Intersect<TPZGeoEl *,100>(GeoElSet[0],GeoElSet[2],inter1);
-      if(inter1.NElements()==0) break;
-      Intersect<TPZGeoEl *,100>(GeoElSet[1],GeoElSet[3],inter2);
-      if(inter2.NElements()==0) break;
-      Intersect<TPZGeoEl *,100>(inter1,inter2,result);
-    }
-    break;
+	{
+	  TPZStack<int> inter1, inter2;
+	  Intersect<int,100>(GeoElSet[0],GeoElSet[2],inter1);
+	  if(inter1.NElements()==0) break;
+	  Intersect<int,100>(GeoElSet[1],GeoElSet[3],inter2);
+	  if(inter2.NElements()==0) break;
+	  Intersect<int,100>(inter1,inter2,result);
+	}
+	break;
   default:
-    {
-      TPZStack<TPZGeoEl *> inter1, inter2;
-      inter1 = GeoElSet[0];
-      for(in=0; in<nsnodes-1; in++) {
+	{
+	  TPZStack<int> inter1, inter2;
+	  inter1 = GeoElSet[0];
+	  for(in=0; in<nsnodes-1; in++) {
 	inter2.Resize(0);
-	Intersect<TPZGeoEl *,100>(inter1,GeoElSet[in+1],inter2);
+	Intersect<int,100>(inter1,GeoElSet[in+1],inter2);
 	if(inter2.NElements() == 0) break;
 	inter1 = inter2;
-      }
-      result = inter2;
-    }
+	  }
+	  result = inter2;
+	}
   }
   int el,nel = result.NElements();
+  TPZGeoMesh * geoMesh = fGeoEl->Mesh();
   for(el=0; el<nel; el++) {
-    compneigh.Push(TPZGeoElSide(result[el],result[el]->WhichSide(nodeindexes)));
+	TPZGeoEl * gelResult = geoMesh->ElementVec()[result[el]];
+	compneigh.Push(TPZGeoElSide( gelResult, gelResult->WhichSide(nodeindexes)));
   }
 }
 
