@@ -87,8 +87,6 @@ public:
 
   TPZGeoEl *CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc);
 
-  TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type, TPZVec<int>& nodeindexes, int matid, int& index);
-	
   TPZGeoEl *CreateGeoBlend(TPZGeoMesh &mesh, MElementType type, TPZVec<int>& nodeindexes, int matid, int& index);
 
 	
