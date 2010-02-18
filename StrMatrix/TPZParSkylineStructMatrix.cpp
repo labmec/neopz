@@ -41,7 +41,8 @@ TPZMatrix * TPZParSkylineStructMatrix::Create(){
     fMesh->Skyline(skyline);
     FilterSkyline(skyline);
     neq = skyline.NElements();
-    return new TPZSkylParMatrix(neq,skyline,2);
+	int numthreads = 2;
+    return new TPZSkylParMatrix(neq,skyline,numthreads);
 }
 TPZMatrix * TPZParSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs){
   TPZMatrix *mat = Create();
