@@ -240,6 +240,7 @@ public:
     }///for
 
   }///method
+	
 
   /**return the Jacobian matrix at the point (from son to father)*/
   virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)
@@ -297,18 +298,17 @@ public:
   }
 
   /**return the coordinate in real space of the point coordinate in the master element space*/
-  virtual void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result)
+  virtual void X(TPZVec<REAL> &ksi,TPZVec<REAL> &result)
   {
     TPZGeoEl *father = TBase::Father();
 
     if(!father)
     {
-        return TBase::X(coordinate,result);
+        return TBase::X(ksi,result);
     }
 
     else
     {
-        TPZManVector<REAL,3> ksibar(this->Dimension());
         TPZGeoEl *nextfather = 0;
         if(father) nextfather = father->Father();
         while(nextfather)
@@ -317,7 +317,8 @@ public:
           nextfather = father->Father();
         }
 
-        KsiBar(coordinate,ksibar);
+        TPZManVector<REAL,3> ksibar(this->Dimension());
+        KsiBar(ksi,ksibar);
         father->X(ksibar,result);
     }
   }
