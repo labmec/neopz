@@ -1,4 +1,4 @@
-//$Id: pzelasAXImat.cpp,v 1.6 2009-12-15 17:28:28 phil Exp $
+//$Id: pzelasAXImat.cpp,v 1.7 2010-02-18 20:16:08 phil Exp $
 // -*- c++ -*-
 #include "pzelasAXImat.h" 
 #include "pzelmat.h"
@@ -152,9 +152,9 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
   /**
    * Plain strain materials values
    */
-  REAL nu1 = 1 - fnu;//(1-nu)
-  REAL nu2 = (1-2*fnu)/2;
-  REAL F = fE/((1+fnu)*(1-2*fnu));
+//  REAL nu1 = 1 - fnu;//(1-nu)
+//  REAL nu2 = (1-2*fnu)/2;
+//  REAL F = fE/((1+fnu)*(1-2*fnu));
 
   TPZFNMatrix<4> dphiRZi(2,1), dphiRZj(2,1);
 
@@ -734,7 +734,7 @@ int TPZElasticityAxiMaterial::ClassId() const
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZElasticityAxiMaterial,TPZELASTICITYMATERIALID>;
+template class TPZRestoreClass<TPZElasticityAxiMaterial,TPZELASTICITYAXIMATERIALID>;
 #endif
 
 void TPZElasticityAxiMaterial::Read(TPZStream &buf, void *context)
