@@ -38,6 +38,7 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
+static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
 
@@ -208,7 +209,7 @@ void TPZFMatrix::AddFel(TPZFMatrix &rhs,TPZVec<int> &destination) {
 }
 
 void TPZFMatrix::AddFel(TPZFMatrix &rhs,TPZVec<int> &source, TPZVec<int> &destination) {
-	if(rhs.Cols() != Cols()) {
+	if(rhs.Cols() != Cols() && source.NElements()) {
    	PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
 		DebugStop();
 		return;
@@ -1453,6 +1454,45 @@ void TPZFMatrix::Read( TPZStream &buf, void *context ){
 void TPZFMatrix::Write( TPZStream &buf, int withclassid ) {
   TPZMatrix::Write(buf,withclassid);
   buf.Write(fElem,fRow*fCol);
+}
+
+/// Compare the object for identity with the object pointed to, eventually copy the object
+/**
+ * compare both objects bitwise for identity. Put an entry in the log file if different
+ * overwrite the calling object if the override flag is true
+ */
+bool TPZFMatrix::Compare(TPZSaveable *copy, bool override)
+{
+	TPZFMatrix *fmat = dynamic_cast<TPZFMatrix *> (copy);
+	if(!fmat) return false;
+
+	bool matresult = TPZMatrix::Compare(copy,false);
+	int nel = fRow*fCol;
+	REAL diff=0.;
+	int numdif = 0;
+	int iel;
+	for(iel=0; iel<nel; iel++)
+	{
+		if(fElem[iel] != fmat->fElem[iel]) 
+		{
+			matresult = false;
+			numdif++;
+		}
+		diff += fabs(fElem[iel]-fmat->fElem[iel]);
+	}
+	if(!matresult)
+	{
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__ << " did not compare ";
+		sout << " number different terms " << numdif << " number terms " << fRow*fCol;
+		sout << " difference in norm L1 " << diff;
+		LOGPZ_ERROR(loggerCheck,sout.str())
+	}
+	if(!matresult && override) 
+	{
+		this->operator=(*fmat);
+	}
+	return matresult;
 }
 
 void TPZFMatrix::PrintStatic(const REAL *ptr, int rows, int cols, const char *name, std::ostream& out,const MatrixOutputFormat form){

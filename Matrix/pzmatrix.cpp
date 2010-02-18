@@ -36,6 +36,7 @@
 #include "pzlog.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatrix"));
+static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
 #ifdef DEBUG
@@ -1047,6 +1048,29 @@ void TPZMatrix::Write( TPZStream &buf, int withclassid ) {
   buf.Write(&tmp,1);
 }
 
+/// Compare the object for identity with the object pointed to, eventually copy the object
+/**
+ * compare both objects bitwise for identity. Put an entry in the log file if different
+ * overwrite the calling object if the override flag is true
+ */
+bool TPZMatrix::Compare(TPZSaveable *copy, bool override)
+{
+	TPZMatrix *copmat = dynamic_cast<TPZMatrix *> (copy);
+	if(!copmat) return false;
+	bool result = true;
+	if(fRow != copmat->fRow || fCol != copmat->fCol || fDecomposed != copmat->fDecomposed) result = false;
+	if(!result)
+	{
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__ << " did not compare ";
+		LOGPZ_ERROR(loggerCheck,sout.str())
+	}
+	if(override && !result)
+	{
+		this->operator=(*copmat);
+	}
+	return result;
+}
 
 
 

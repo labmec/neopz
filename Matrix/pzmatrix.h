@@ -657,6 +657,14 @@ public:
    * @param buf Buffer which will receive the bytes
    */
   virtual void Write( TPZStream &buf, int withclassid );
+	
+	/// Compare the object for identity with the object pointed to, eventually copy the object
+	/**
+	 * compare both objects bitwise for identity. Put an entry in the log file if different
+	 * overwrite the calling object if the override flag is true
+	 */
+	virtual bool Compare(TPZSaveable *copy, bool override = false);
+	
   /**
   * Extract the block indicated by the indices from the matrix
   */
