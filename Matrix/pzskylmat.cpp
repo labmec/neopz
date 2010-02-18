@@ -849,6 +849,11 @@ TPZSkylMatrix::Decompose_LDLt()
   // Third try
   REAL *elj,*ell;
   int j,l,minj,minl,minrow,dimension = Dim();
+	TPZVec<REAL> diag(dimension);
+	for(j=0; j<dimension; j++)
+	{
+		diag[j] = *fElem[j];
+	}
   REAL sum;
   j = 1;
   while(j < dimension) {
@@ -866,17 +871,31 @@ TPZSkylMatrix::Decompose_LDLt()
       //			DiagkPtr = fDiag+minrow;
       elj = fElem[j]+j-minrow;
       ell = fElem[l]+l-minrow;
+		REAL *diagptr = &diag[k];
       sum = 0.;
       while(k < l) {
-	sum += *elj-- * *ell-- * *(fElem[k++]);
+//		  sum += *elj-- * *ell-- * *(fElem[k++]);
+		  sum += *elj-- * *ell-- * *diagptr++;
+		  k++;
       }
       *elj -= sum;
       if(ell != elj) *elj /= *ell;
       else if(IsZero(*elj)) {
+#ifdef LOG4CXX
+		  std::stringstream sout;
+		  sout << "col = " << j << " diagonal " << *elj;
+		  LOGPZ_DEBUG(logger,sout.str())
+#endif
+		  
+		  *diagptr = *elj;
 	cout << "TPZSkylMatrix pivot = " << *elj << endl;
 	cout << "TPZSkylMatrix::DecomposeLDLt zero pivot\n";
 	cout << "j = " << j << " l = " << l << endl;
       }
+		else
+		{
+			*diagptr = *elj;
+		}
       l++;
     }
     j++;
