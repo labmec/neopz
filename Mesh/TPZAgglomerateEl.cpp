@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.49 2009-09-01 22:08:04 phil Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.50 2010-02-18 20:25:19 phil Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -169,7 +169,6 @@ REAL TPZAgglomerateElement::VolumeOfEl(){
 }
 
 
-// a regra de integra� ser�criada no CalcStiff e CalcRes cada ves
 void TPZAgglomerateElement::CalcResidual(TPZFMatrix &Rhs,TPZCompElDisc *el){
 
   PZError << "TPZAgglomerateElement::CalcResidual DEVE SER IMPLEMENTADO";
