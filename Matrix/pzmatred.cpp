@@ -39,7 +39,6 @@ TPZMatRed<TSideMatrix>::TPZMatRed () : TPZMatrix( 0, 0 ), fK01(0,0),fK10(0,0),fK
 {
   fDim0=0;
   fDim1=0;
-  fDecomposeType=ENoDecompose;
   fF0IsComputed=0;
   fK11IsReduced=0;
 	fK01IsComputed = 0;
@@ -56,7 +55,6 @@ TPZMatRed<TSideMatrix>::TPZMatRed( int dim, int dim00 ):TPZMatrix( dim,dim ), fK
   if(dim<dim00) TPZMatrix::Error(__PRETTY_FUNCTION__,"dim k00> dim");
   fDim0=dim00;
   fDim1=dim-dim00;
-  fDecomposeType=ENoDecompose;
   fF0IsComputed=0;
   fK11IsReduced=0;
 	fK01IsComputed = 0;
@@ -70,7 +68,6 @@ TPZMatRed<TSideMatrix>::TPZMatRed(const TPZMatRed &cp) : TPZMatrix(cp), fK01(cp.
 {
   fDim0=cp.fDim0;
   fDim1=cp.fDim1;
-  fDecomposeType=cp.fDecomposeType;
   fF0IsComputed=cp.fF0IsComputed;
   fK11IsReduced=cp.fK11IsReduced;
 	fK01IsComputed = cp.fK01IsComputed;
@@ -377,25 +374,6 @@ TPZMatRed<TSideMatrix>::Print(const char *name , std::ostream &out ,const Matrix
 
 }
 
-template<class TSideMatrix>
-int TPZMatRed<TSideMatrix>::Substitution(TPZFMatrix *B) const{
-	switch(fDecomposeType) {
-		case ENoDecompose:
-			default:
-				TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZMatRed<TSideMatrix>::Substitution called without initialized solver\n");
-				return 0;
-
-		case ELU:
-			return( fK00->Substitution(B) );
-
-		case ECholesky:
-			return ( fK00->Subst_Forward( B ) && fK00->Subst_Backward( B )  );
-
-		case ELDLt:
-			return ( fK00->Subst_LForward( B )
-				 && fK00->Subst_Diag( B ) && fK00->Subst_LBackward( B ) );
-	}
-}
 
 template<class TSideMatrix>
 int TPZMatRed<TSideMatrix>::Redim(int dim, int dim00){
@@ -406,7 +384,6 @@ int TPZMatRed<TSideMatrix>::Redim(int dim, int dim00){
 
 	fDim0=dim00;
 	fDim1=dim-dim00;
-	fDecomposeType=ENoDecompose;
 	fF0IsComputed=0;
 	fK11IsReduced=0;
 	fF1IsReduced=0;
@@ -511,11 +488,8 @@ void TPZMatRed<TSideMatrix>::Write(TPZStream &buf, int withclassid)
   {//Ints
     buf.Write(&this->fDim0, 1);
     buf.Write(&this->fDim1, 1);
-    int dcType = (int)this->fDecomposeType;
-    buf.Write(&dcType, 1);
   }
   {//chars
-    buf.Write(&this->fDecomposed, 1);
     buf.Write(&this->fDefPositive, 1);
     buf.Write(&this->fF0IsComputed, 1);
     buf.Write(&this->fF1IsReduced, 1);
@@ -567,12 +541,8 @@ void TPZMatRed<TSideMatrix>::Read(TPZStream &buf, void *context)
   {//Ints
     buf.Read(&this->fDim0, 1);
     buf.Read(&this->fDim1, 1);
-    int dcType = 0;
-    buf.Read(&dcType, 1);
-    this->fDecomposeType = (DecomposeType) dcType;
   }
   {//chars
-    buf.Read(&this->fDecomposed, 1);
     buf.Read(&this->fDefPositive, 1);
     buf.Read(&this->fF0IsComputed, 1);
     buf.Read(&this->fF1IsReduced, 1);

@@ -115,10 +115,6 @@ public:
    * @param F vector containing data to stored in current object
    */
   void SetF(const TPZFMatrix & F);
-  void SetDecomposeType(const DecomposeType t = ELU)
-  {
-    fDecomposeType = t;
-  }
 
   /**
    * Computes the reduced version of the right hand side
@@ -153,11 +149,6 @@ public:
   void Print(const char *name = NULL, std::ostream &out = std::cout,
       const MatrixOutputFormat = EFormatted) const;
 
-  /**
-   * Performs substitution.
-   * Not sure which one
-   */
-  int Substitution(TPZFMatrix *right_side) const;
 
   /**
    * Redim: Set the dimension of the complete matrix
@@ -229,7 +220,6 @@ private:
    */
   TPZFMatrix fF0, fF1;
 
-  DecomposeType fDecomposeType;
 
   /**
    * Stores matricess fKij dimensions
