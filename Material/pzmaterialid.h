@@ -26,7 +26,7 @@ const int TPZNLMAT1D = 310;
 const int TPZMATPOISSON3D = 311;
 const int TPZELASTICITYAXIMATERIALID = 312;
 
-
+const int TPZMATERIALDATAID = 313;
 
 void RegisterMaterialClasses();
 

@@ -1,10 +1,12 @@
-//$Id: pzmaterialdata.h,v 1.11 2009-06-17 22:08:23 fortiago Exp $
+//$Id: pzmaterialdata.h,v 1.12 2010-02-18 20:16:51 phil Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
 
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
+#include "pzmaterialid.h"
+
 
 /**
 This class implements an interface between TPZCompEl::CalcStiff and TPZMaterial::Contribute methods. It request to the material which attributes must be computed by the computational element and trigger their computation. Attributes are solution and its derivatives, X coordinate, etc.
@@ -13,7 +15,7 @@ This class implements an interface between TPZCompEl::CalcStiff and TPZMaterial:
 */
 
 
-class TPZMaterialData{
+class TPZMaterialData : public TPZSaveable {
 
 public:
 
@@ -56,6 +58,36 @@ public:
 
   TPZMaterialData &operator= (const TPZMaterialData &cp );
 
+	/**
+	 * Save the element data to a stream
+	 */
+	virtual void Write(TPZStream &buf, int withclassid);
+	
+	/**
+	 * Read the element data from a stream
+	 */
+	virtual void Read(TPZStream &buf, void *context);
+	
+	/// Compare the object for identity with the object pointed to, eventually copy the object
+	/**
+	 * compare both objects bitwise for identity. Put an entry in the log file if different
+	 * overwrite the calling object if the override flag is true
+	 */
+	virtual bool Compare(TPZSaveable *copy, bool override = false);
+	
+	/// Compare the object for identity with the object pointed to, eventually copy the object
+	/**
+	 * compare both objects bitwise for identity. Put an entry in the log file if different
+	 * overwrite the calling object if the override flag is true
+	 */
+	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
+	
+
+	virtual int ClassId() const
+	{
+		return TPZMATERIALDATAID;
+	}
 };
+
 
 #endif
