@@ -12,7 +12,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-  static LoggerPtr logger(Logger::getLogger("toto"));
+  static LoggerPtr logger(Logger::getLogger("pz.saveable"));
+static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
 using namespace std;
@@ -81,6 +82,33 @@ TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
   return 0;
 #endif
 }
+
+/// Compare the object for identity with the object pointed to, eventually copy the object
+/**
+ * compare both objects bitwise for identity. Put an entry in the log file if different
+ * overwrite the calling object if the override flag is true
+ */
+bool TPZSaveable::Compare(TPZSaveable *copy, bool override)
+{
+	std::stringstream sout;
+	sout << "Class id " << ClassId() << " Compare needs to be implemented";
+	LOGPZ_ERROR(loggerCheck,sout.str())
+	return false;
+}
+
+/// Compare the object for identity with the object pointed to, eventually copy the object
+/**
+ * compare both objects bitwise for identity. Put an entry in the log file if different
+ * overwrite the calling object if the override flag is true
+ */
+bool TPZSaveable::Compare(TPZSaveable *copy, bool override) const
+{
+	std::stringstream sout;
+	sout << "Class id " << ClassId() << " Compare needs to be implemented";
+	LOGPZ_ERROR(loggerCheck,sout.str())
+	return false;
+}
+
 
 template class TPZRestoreClass<TPZSaveable, -1>;
 

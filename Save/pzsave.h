@@ -69,8 +69,24 @@ virtual int ClassId() const ;
 /// write this object to the TPZStream buffer. Include the classid if withclassid = true
 virtual void Write(TPZStream &buf, int withclassid);
 
+/// read objects from the stream
 virtual void Read(TPZStream &buf, void *context);
 
+/// Compare the object for identity with the object pointed to, eventually copy the object
+/**
+ * compare both objects bitwise for identity. Put an entry in the log file if different
+ * overwrite the calling object if the override flag is true
+ */
+virtual bool Compare(TPZSaveable *copy, bool override = false);
+	
+/// Compare the object for identity with the object pointed to, eventually copy the object
+/**
+ * compare both objects bitwise for identity. Put an entry in the log file if different
+ * overwrite the calling object if the override flag is true
+ */
+virtual bool Compare(TPZSaveable *copy, bool override = false) const;
+	
+	
 template<class T>
 static void WriteObjects(TPZStream &buf, TPZVec<T> &vec)
 {
