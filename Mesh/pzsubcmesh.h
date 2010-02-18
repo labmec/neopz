@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.21 2009-09-01 20:56:05 phil Exp $
+//$Id: pzsubcmesh.h,v 1.22 2010-02-18 20:37:37 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -19,7 +19,10 @@
 #include "pzreal.h"
 
 class TPZSubMeshFrontalAnalysis;
+class TPZSubMeshAnalysis;
 class TPZAnalysis;
+
+#define SUBFRONTAL
 
 /// Implements a group of computational elements as a mesh and an element
 /**
@@ -36,8 +39,11 @@ protected:
   /**
    * Pointer to submesh analysis object. Defines the resolution type.
    */
-  TPZSubMeshFrontalAnalysis *fAnalysis;
-
+#ifdef SUBFRONTAL
+  TPZAutoPointer<TPZSubMeshFrontalAnalysis> fAnalysis;
+#else
+	TPZAutoPointer<TPZSubMeshAnalysis> fAnalysis;
+#endif
   /**
    * Pointer to external location index of the connection.
    * If the connection hasn't external location return the local id.
@@ -250,12 +256,17 @@ public:
   //     */
 	virtual void SetConnectIndex(int inode, int index);
 
-  //	/**
-  //     * Calculates the submesh stiffness matrix
-  //     */
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
 
-  //	/**
+  	/**
+	 * Calculates the submesh stiffness matrix
+	 */
+	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
+	
+	/**
+	 * Verifies if any element needs to be computed corresponding to the material ids
+	 */
+	bool NeedsComputing(const std::set<int> &matids);
+	//	/**
   //     * Virtual Method!
   //     */
 	virtual int AllocateNewConnectSub(int blocksize, int order);

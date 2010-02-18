@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.30 2009-09-01 22:08:04 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.31 2010-02-18 20:39:20 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -15,10 +15,12 @@
 #include "pzsolve.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
+#include "TPZParSkylineStructMatrix.h"
 #include "pzfstrmatrix.h"
 #include "TPZFrontStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
 #include "pzsmfrontalanal.h"
+#include "pzsmanal.h"
 #include "pzbndcond.h"
 
 #include <stdio.h>
@@ -756,7 +758,13 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	{
 		this->SetAnalysis();
 	}
-		
+	std::set<int> matids = fAnalysis->StructMatrix()->MaterialIds();
+	if(!NeedsComputing(matids))
+	{
+		ek.Reset();
+		ef.Reset();
+		return;
+	}	
 	int i=0;
 	CleanUpUnconnectedNodes();
 	PermuteExternalConnects();
@@ -780,6 +788,10 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	numeq = (TPZCompMesh::NEquations()) - numeq;
 //??
 
+	TPZAutoPointer<TPZMaterial> mat = MaterialVec().begin()->second;
+	int nstate = mat->NStateVariables();
+	ek.fNumStateVars = nstate;
+	ef.fNumStateVars = nstate;
 	ek.fMat.Redim(numeq,numeq);
 	ef.fMat.Redim(numeq,1);
 
@@ -801,7 +813,10 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		(ek.fConnect)[i] = ConnectIndex(i);
 	  }
 	if (! fAnalysis){
-		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this);
+		TPZFStructMatrix local(this);
+		TPZAutoPointer<TPZMatrix> stiff = local.CreateAssemble(ef.fMat);
+		ek.fMat = *(stiff.operator->());
+//		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this,-1,-1);
 	}
 	else{
 		if(!fAnalysis->Solver().Matrix())
@@ -809,7 +824,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 			fAnalysis->Run(std::cout);
 		}
 
-		TPZSubMeshFrontalAnalysis *sman = dynamic_cast<TPZSubMeshFrontalAnalysis *> (fAnalysis);
+		TPZSubMeshFrontalAnalysis *sman = dynamic_cast<TPZSubMeshFrontalAnalysis *> (fAnalysis.operator->());
 		if(sman)
 		{
 			TPZAbstractFrontMatrix *frontmat = dynamic_cast<TPZAbstractFrontMatrix *> (fAnalysis->Solver().Matrix().operator->());
@@ -826,16 +841,29 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 }
 
 void TPZSubCompMesh::SetAnalysis(){
-	if(fAnalysis) delete fAnalysis;
+	
+	
+	
+#ifdef SUBFRONTAL
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
 	//	int numint = NumInternalEquations();
-	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
-//	TPZParFrontStructMatrix<TPZFrontSym> fstr(this);
-//	fstr.SetNumberOfThreads(5);
+//	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
+	TPZParFrontStructMatrix<TPZFrontSym> fstr(this);
+	fstr.SetNumberOfThreads(3);
 	fAnalysis->SetStructuralMatrix(fstr);
 	
 	TPZStepSolver solver;
 	fAnalysis->SetSolver(solver);
+#else
+	fAnalysis = new TPZSubMeshAnalysis(this);
+	TPZParSkylineStructMatrix *parskyl = new TPZParSkylineStructMatrix(this);
+	TPZAutoPointer<TPZStructMatrix> str = parskyl;
+	fAnalysis->SetStructuralMatrix(str);
+	TPZStepSolver *step = new TPZStepSolver();
+	step->SetDirect(ECholesky);
+	TPZAutoPointer<TPZMatrixSolver> autostep = step;
+	fAnalysis->SetSolver(autostep);
+#endif
 	PermuteExternalConnects();
 	
 	int neq = TPZCompMesh::NEquations(); 
@@ -1120,7 +1148,7 @@ void TPZSubCompMesh::GetExternalConnectIndex (TPZVec<int> &extconn){
 
 TPZAnalysis * TPZSubCompMesh::GetAnalysis()
 {
-	return fAnalysis;
+	return fAnalysis.operator->();
 }
 
   /**
@@ -1191,4 +1219,79 @@ void TPZSubCompMesh::CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimens
 		if(!cel) continue;
 		cel->CreateGraphicalElement(graphmesh, dimension);
 	}
+}
+
+/**
+ * Verifies if any element needs to be computed corresponding to the material ids
+ */
+bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
+{
+	std::set<int> meshmatids;
+	if(! matids.size())
+	{
+		return true;
+	}
+	int numtrue=0,numfalse=0;
+	// loop over the elements
+	int iel, nelem = ElementVec().NElements();
+	for(iel=0; iel<nelem; iel++)
+	{
+		TPZCompEl *cel = ElementVec()[iel];
+		if(!cel) continue;
+		TPZAutoPointer<TPZMaterial> mat = cel->Material();
+		if(!mat)
+		{
+			TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (cel);
+			if(submesh)
+			{
+				bool result = submesh->NeedsComputing(matids);
+				if(result) numtrue++;
+				else numfalse++;
+			}
+		}
+		else 
+		{
+			int matid = mat->Id();
+			meshmatids.insert(matid);
+			if(matids.find(matid) != matids.end())
+			{
+				numtrue++;
+			}
+			else {
+				numfalse++;
+			}
+
+		}
+	}
+	{
+		std::stringstream sout;
+		sout << "Material ids contained in the mesh ";
+		std::set<int>::iterator it;
+		for(it = meshmatids.begin(); it != meshmatids.end(); it++)
+		{
+			sout << *it << " ";
+		}
+		sout << std::endl << "Material ids which should be computed ";
+		std::set<int>::const_iterator it2;
+		for(it2= matids.begin(); it2 != matids.end(); it2++)
+		{
+			sout << *it2 << " ";
+		}
+		sout << std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+	if(numtrue && numfalse)
+	{
+		std::stringstream sout;
+		sout << "A substructure should have either all elements computable or not numtrue " << numtrue << " numfalse " << numfalse;
+		LOGPZ_ERROR(logger,sout.str())
+	}
+	if(numtrue)
+	{
+		return true;
+	}
+	else {
+		return false;
+	}
+	return false;
 }
