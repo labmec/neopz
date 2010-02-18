@@ -61,14 +61,14 @@ void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)
 
 /////////////
 /** This method compute the 3 given points with respect to R2 Basis */
-void TPZArc3D::ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double &xb, double &yb, double &angle)
+void TPZArc3D::ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double &xb, double &yb, double &angle) const
 {
      /** vector (ini - middle) written in new R2 base */
      TPZVec<REAL> Axe(3,0.), Temp(3,0.);
      for(int i = 0; i < 3; i++) Axe[i] = coord(i,0) - coord(i,2);
      for(int i = 0; i < 3; i++)
      {
-          for(int j = 0; j < 3; j++) Temp[i] += fICnBase(i,j)*Axe[j];
+          for(int j = 0; j < 3; j++) Temp[i] += fICnBase.GetVal(i,j)*Axe[j];
      }
      xa = Temp[0]; ya = Temp[1];
      Temp.Fill(0.);
@@ -77,7 +77,7 @@ void TPZArc3D::ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double
      for(int i = 0; i < 3; i++) Axe[i] = coord(i,1) - coord(i,2);
      for(int i = 0; i < 3; i++)
      {
-          for(int j = 0; j < 3; j++) Temp[i] += fICnBase(i,j)*Axe[j];
+          for(int j = 0; j < 3; j++) Temp[i] += fICnBase.GetVal(i,j)*Axe[j];
      }
      xb = Temp[0]; yb = Temp[1];
 
@@ -87,11 +87,11 @@ void TPZArc3D::ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double
 ///////////////
 /** This method return the absolute angle with respect of the arc formed between (ini - center) and (fin - center), passing by midnode
     Note: (xm,ym) don't appear because this coordinates are always (0,0) - it's the origin of R2 basis */
-double TPZArc3D::ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb)
+double TPZArc3D::ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb) const
 {
      double cos, Angle1, Angle2, Angle3, Xcenter, Ycenter;
 
-     /** Computing the Center Coordinates in this R2 base */
+     /** Computing the Center Coordinates in this R2 base M_PI */
      Xcenter = xa/2.;
      Ycenter = (-xa*xb + xb*xb + yb*yb) / (2.*yb);
 
@@ -159,7 +159,7 @@ void TPZArc3D::X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result)
      }
 
      /** Computing Atributes (Center, Radius), since the 3 poinst are NOT co-linear! */
-     ComputeAtributes(nodes);
+     //ComputeAtributes(nodes);
 
      double Xa, Ya, Xb, Yb, Angle;
      ComputeR2Points(nodes,Xa,Ya,Xb,Yb,Angle);
@@ -237,7 +237,7 @@ void TPZArc3D::Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobi
      }
 
      /** Computing Atributes (Center, Radius, ArcLengh, ArcAngle), since the 3 poinst are NOT co-linear! */
-     ComputeAtributes(coord);
+     //ComputeAtributes(coord);
 
      double Xa, Ya, Xb, Yb, Angle; ComputeR2Points(coord,Xa,Ya,Xb,Yb,Angle);
      jacobian(0,0) = Angle * fRadius/2.; jacinv(0,0) = 1./jacobian(0,0); detjac = jacobian(0,0);

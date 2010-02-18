@@ -32,6 +32,10 @@ public:
     bool IsLinearMapping() const { return false; }
 
     TPZArc3D(const TPZArc3D &cp,std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
+		this->fICnBase = cp.fICnBase;
+		this->fIBaseCn = cp.fIBaseCn;
+		this->fCenter3D = cp.fCenter3D;
+		this->fRadius = cp.fRadius;		
     }
 
     TPZArc3D() : TPZNodeRep<NNodes,pztopology::TPZLine>(){
@@ -52,9 +56,25 @@ public:
     }
 
     TPZArc3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
+		int nnod = nodeindexes.NElements();
+		if(nnod != 3)
+		{
+			std::cout << "Arc geometry created with " << nnod << " nodes, bailing out\n";
+			DebugStop();
+		}
+		TPZFMatrix coord(3,nnod);
+		int nod, co;
+		for(nod=0; nod<3; nod++)
+		{
+			for(co=0; co<3; co++)
+			{
+				coord(co,nod) = mesh.NodeVec()[nodeindexes[nod]].Coord(co);
+			}
+		}
+		ComputeAtributes(coord);
     }
 
-    void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
+    void X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result);
     void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);
 
     static std::string TypeName() { return "Linear";}
@@ -73,8 +93,8 @@ public:
 protected:
 
     void ComputeAtributes(TPZFMatrix &coord);
-    void ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double &xb, double &yb, double &angle);
-    double ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb);
+    void ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double &xb, double &yb, double &angle) const;
+    double ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb) const;
 
 
     /** Atributes */
