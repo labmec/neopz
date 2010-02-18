@@ -24,9 +24,6 @@
 #include "pzmanvector.h"
 #include "pzskylmat.h"
 
-#ifdef PZNTPAR
-	#include <omnithread.h>
-#endif
 
 #include <stdlib.h>
 #include <signal.h>
@@ -34,15 +31,10 @@
 #include <time.h>
 
 //parallel libraries
-#ifndef PZNTPAR
 	#include <pthread.h>
-#endif
-#ifdef OOPARLIB
 
-#include "pzsaveable.h"
-#include "pzmatdefs.h"
+#include <set>
 
-#endif
 
 
 class TPZSkylParMatrix : public TPZSkylMatrix
@@ -62,29 +54,29 @@ class TPZSkylParMatrix : public TPZSkylMatrix
   virtual ~TPZSkylParMatrix();
   //Parallel procedure using pthreads
   //Implement all data structure used in procedure.
-#ifndef PZNTPAR
   int Decompose_Cholesky(std::list<int> &singular);
   int Decompose_Cholesky();
-#endif
-#ifdef OMNITHREAD
-  int Decompose_Cholesky(std::list<int> &singular);
-  int Decompose_Cholesky();
-#endif
+
+	int Decompose_LDLt(std::list<int> &singular);
+	int Decompose_LDLt();
 
   void SetSkyline(const TPZVec<int> &skyline);
 
  private:
 
-#ifdef OMNITHREAD
-  static void *OmniParallelCholesky(void *t);
-#endif
 
-#ifndef PZNTPAR 
+	static void *ParallelLDLt(void *t);
+	static void *ParallelLDLt2(void *t);
   static void *ParallelCholesky(void *t);
-#endif
 
+	/** Determine which column can be decomposed with respect to which column
+	 */
   void ColumnToWork(int &lcol, int &lprevcol);
-  void DecomposeColumn(int lcol, int lprevcol);
+	// Determine which column has some equations to decompose
+	void ColumnToWork(int &lcol);
+  void DecomposeColumnCholesky(int lcol, int lprevcol);
+	void DecomposeColumnLDLt(int lcol, int lprevcol);
+	void DecomposeColumnLDLt2(int lcol);
   void PrintState();
  public:
   TPZVec<int> fDec;  
@@ -92,6 +84,8 @@ class TPZSkylParMatrix : public TPZSkylMatrix
  private:
   int fEqDec, fNthreads;
   int * fThreadUsed;
+	std::set<int> fColUsed;
+	int fNumDecomposed;
 
 #ifdef OOPARLIB
 						
