@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.42 2009-09-03 22:47:09 phil Exp $
+// $Id: pzcompel.h,v 1.43 2010-02-18 20:23:07 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -361,7 +361,17 @@ public:
    * @param ek element stiffness matrix
    * @param ef element loads matrix
    */
-  virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
+	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
+	
+	/**
+	 * Verify if the material associated with the element is contained in the set
+	 */
+	virtual bool HasMaterial(const std::set<int> &materialids)
+	{
+		TPZAutoPointer<TPZMaterial> mat = Material();
+		if(!mat) return false;
+		return materialids.find(mat->Id()) != materialids.end();
+	}
 
   /**
    * Compute the element right hand side
@@ -718,7 +728,7 @@ inline void TPZCompEl::CreateGraphicalElement(TPZGraphMesh &, int) {
 
 
 inline void TPZCompEl::CalcStiff(TPZElementMatrix &,TPZElementMatrix &){
-  std::cout << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
+	std::cout << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
 }
 
 inline void TPZCompEl::ProjectFlux(TPZElementMatrix &ek,TPZElementMatrix &ef) {
