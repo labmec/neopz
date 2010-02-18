@@ -55,6 +55,10 @@ class TPZBFileStream : public TPZStream
 
   void OpenRead(const std::string &filename) {
     ifd = fopen(filename.c_str(), "rb");
+	  if(!ifd)
+	  {
+		  std::cout << "could not open file " << filename << std::endl;
+	  }
   }
 
   virtual void Write(int *p, int size) {
@@ -127,7 +131,10 @@ class TPZBFileStream : public TPZStream
   template<class T>
     void Reads(T *p, int size)
   {
-    fread(p,sizeof(T),size,ifd);
+	  if(ifd)
+	  {
+		  fread(p,sizeof(T),size,ifd);
+	  }
   }
 
 };
