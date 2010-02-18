@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.45 2009-09-01 22:05:26 phil Exp $
+//$Id: pzeuleranalysis.cpp,v 1.46 2010-02-18 20:14:06 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -124,7 +124,8 @@ void TPZEulerAnalysis::BufferLastStateAssemble()
    fRhsLast.Zero();
    fRhsLast.Redim(fCompMesh->NEquations(),1);
    SetLastState();
-   TPZStructMatrix::Assemble(fRhsLast, *fFlowCompMesh);
+	fStructMatrix->Assemble(fRhsLast);
+//   TPZStructMatrix::Assemble(fRhsLast, *fFlowCompMesh);
    SetAdvancedState();
    UpdateHistory();
 }
@@ -138,11 +139,13 @@ REAL TPZEulerAnalysis::EvaluateFluxEpsilon()
    Flux.Zero();
 // contribution of last state
    SetLastState();
-   TPZStructMatrix::Assemble(Flux, *fFlowCompMesh);
+	fStructMatrix->Assemble(Flux);
+//   TPZStructMatrix::Assemble(Flux, *fFlowCompMesh);
 
 // constribution of adv state
    SetAdvancedState();
-   TPZStructMatrix::Assemble(Flux, *fFlowCompMesh);
+	fStructMatrix->Assemble(Flux);
+//   TPZStructMatrix::Assemble(Flux, *fFlowCompMesh);
 
 // reseting the residual type to residual
    fFlowCompMesh->SetResidualType(Residual_RT);
@@ -229,7 +232,8 @@ void TPZEulerAnalysis::AssembleRhs()
 
    // Contributing referring to the advanced state
    // (n+1 index)
-   TPZStructMatrix::Assemble(fRhs, *fFlowCompMesh);
+	fStructMatrix->Assemble(fRhs);
+//   TPZStructMatrix::Assemble(fRhs, *fFlowCompMesh);
 
 }
 
@@ -618,7 +622,7 @@ void TPZEulerAnalysis::CompareRhs()
 
   TPZAdmChunkVector<TPZCompEl *> &elementvec = fCompMesh->ElementVec();
   TPZFNMatrix<64> diff(8,8);
-  REAL diffnorm;
+//  REAL diffnorm;
 
   for(iel=0; iel < nelem; iel++) {
     TPZCompEl *el = elementvec[iel];

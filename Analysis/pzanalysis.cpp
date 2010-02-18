@@ -1,4 +1,4 @@
-//$Id: pzanalysis.cpp,v 1.52 2009-12-15 17:11:48 phil Exp $
+//$Id: pzanalysis.cpp,v 1.53 2010-02-18 20:13:10 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -167,7 +167,8 @@ void TPZAnalysis::SetBlockNumber(){
 void TPZAnalysis::AssembleResidual(){
   int sz = this->Mesh()->NEquations();
   this->Rhs().Redim(sz,1);
-  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
+	fStructMatrix->Assemble(this->Rhs());
+//  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
 }///void
 
 void TPZAnalysis::Assemble()
