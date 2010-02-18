@@ -325,6 +325,24 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix & stiffness, TPZFMatrix & r
      if(fElementOrder[iel] < 0) continue;
      TPZCompEl *el = elementvec[fElementOrder[iel]];
      if(!el) continue;
+	  TPZAutoPointer<TPZMaterial> mat = el->Material();
+	  if(mat)
+	  {
+		  int matid = mat->Id();
+		  if(fMaterialIds.size() && fMaterialIds.find(matid) == fMaterialIds.end())
+		  {
+			  continue;
+		  }
+	  }
+	  else 
+	  {
+		  TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
+		  if(!submesh)
+		  {
+			  continue;
+		  }
+	  }
+
      //		int dim = el->NumNodes();
 
      //Builds elements stiffness matrix
