@@ -143,7 +143,7 @@ TPZGeoEl *TPZQuadraticTrig::CreateGeoElement(TPZGeoMesh &mesh, MElementType type
 
 ///CreateGeoElement -> TPZQuadraticTrig
 
-#define TPZGEOELEMENTQUADRATICTRIANGLEID 313
+#define TPZGEOELEMENTQUADRATICTRIANGLEID 318
 template<>
 int TPZGeoElRefPattern<TPZQuadraticTrig>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICTRIANGLEID;
