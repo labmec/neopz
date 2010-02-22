@@ -73,6 +73,10 @@ public:
 		}
 		ComputeAtributes(coord);
     }
+	
+	TPZArc3D(TPZFMatrix &coord){
+		ComputeAtributes(coord);
+	}
 
     void X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result);
     void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);
@@ -93,24 +97,16 @@ public:
 protected:
 
     void ComputeAtributes(TPZFMatrix &coord);
-    void ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double &xb, double &yb, double &angle) const;
+    void ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double &xb, double &yb);
     double ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb) const;
 
-
-    /** Atributes */
-    TPZFMatrix fICnBase;
-    TPZFMatrix fIBaseCn;
-    TPZVec< REAL > fCenter3D;
-    double fRadius;
+	/** Atributes */
+    TPZFMatrix fICnBase, fIBaseCn;
+    TPZVec< REAL > fCenter3D, finitialVector;
+    double fAngle, fRadius, fXcenter, fYcenter;
 };
 
 
-
-//#include "pzgeoelrefless.h.h"
-//#include "tpzgeoelrefpattern.h.h"
-//#include "pznoderep.h.h"
-
-///CreateGeoElement -> TPZArc3D
 
 #define TPZGEOELEMENTARC3DID 350
 template<>
