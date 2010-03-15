@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.43 2009-12-15 17:20:42 phil Exp $
+//$Id: pzcmesh.h,v 1.44 2010-03-15 12:28:19 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -450,7 +450,7 @@ public:
    * This method computes the skyline of the system of equations
    * @param skyline vector where the skyline will be computed
    */
-  void Skyline(TPZVec<int> &skyline);
+  virtual void Skyline(TPZVec<int> &skyline);
 
   /**
    * Assemble the vector with errors estimators
