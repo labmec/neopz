@@ -339,6 +339,7 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMat
 #ifdef DEBUG
 	if(detjac == 0){
 		std::cout << "\nJacobiano nulo\n";
+		DebugStop();
 	}
 #endif
 	//   if(TGeo::NNodes == 2) {
