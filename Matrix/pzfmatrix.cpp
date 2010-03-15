@@ -1424,6 +1424,7 @@ int TPZFMatrix::Error(const char *msg1,const char *msg2 ) {
   if(msg2) out << msg2;
   out << ".\n";
   LOGPZ_ERROR (logger, out.str().c_str());
+	DebugStop();
  // int temp;//para testes
  // cin >> temp;//para testes
   //exit( 1 );//para testes
