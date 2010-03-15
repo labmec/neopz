@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.46 2009-09-03 22:47:09 phil Exp $
+//$Id: pzcompel.cpp,v 1.47 2010-03-15 12:28:57 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -292,16 +292,24 @@ TPZConnect &TPZCompEl::Connect(int i) const{
 }
 
 void TPZCompEl::Print(std::ostream & out) const {
-  out << "Output for a computable element index: " << fIndex ;
+	out << "Output for a computable element index: " << fIndex << std::endl;
   if(this->Reference())
   {
-    out << " Center coordinate: ";
+    out << "Center coordinate: ";
     TPZVec< REAL > centerMaster( this->Reference()->Dimension(),0. );
     TPZVec< REAL > centerEuclid( 3,0.);
     this->Reference()->CenterPoint(this->Reference()->NSides()-1,centerMaster);
     this->Reference()->X(centerMaster,centerEuclid);
 		out << centerEuclid << std::endl;
-	}
+  }
+  if(this->Material())
+  {
+	  out << "Material id " << this->Material()->Id() << "\n";
+  }
+  else {
+	  out << "No material\n";
+  }
+
   out << "Number of connects = " << NConnects() << " Node indexes : ";
   int nod;
   for(nod=0; nod< NConnects(); nod++)
