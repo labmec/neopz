@@ -35,9 +35,9 @@ void TPZSubMeshAnalysis::Assemble(){
 	fSolver->SetMatrix(fStructMatrix->Create());	
 //	fReducableStiff.SetK00(fSolver->Matrix());
 	// this will initialize fK00 too
-	matred->SetSolver(fSolver);
+	matred->SetSolver(dynamic_cast<TPZMatrixSolver *>(fSolver->Clone()));
 //	TPZStructMatrix::Assemble(fReducableStiff,fRhs, *fMesh);
-	fStructMatrix->Assemble(fReducableStiff,fRhs);
+	fStructMatrix->pthread_Assemble(fReducableStiff,fRhs);
 	
 }
 
