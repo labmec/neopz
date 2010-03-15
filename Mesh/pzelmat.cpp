@@ -1,4 +1,4 @@
-//$Id: pzelmat.cpp,v 1.9 2007-10-17 19:21:12 joao Exp $
+//$Id: pzelmat.cpp,v 1.10 2010-03-15 12:30:00 phil Exp $
 
 #include "pzelmat.h"
 #include "pzfmatrix.h"
@@ -93,7 +93,7 @@ void TPZElementMatrix::ComputeDestinationIndices(){
 
 void TPZElementMatrix::ApplyConstraints(){
 
-  if (!this->fNumStateVars){
+  if (!this->fNumStateVars && this->fMat.Rows() != 0){
     LOGPZ_FATAL(logger, "this->fNumStateVars not initialized");
   }
 
