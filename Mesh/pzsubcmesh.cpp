@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.31 2010-02-18 20:39:20 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.32 2010-03-15 12:34:04 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -837,6 +837,17 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 //		ek.fMat->Print("ek reduzido");
 //		std::cout.flush();
 	}
+#ifdef LOG4CXX
+	if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout << "Substructure stiffness matrix\n";
+		ek.Print(sout);
+		sout << "Substructure right hand side\n";
+		ef.Print(sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 	//ek.fMat->Print();
 }
 
@@ -848,15 +859,30 @@ void TPZSubCompMesh::SetAnalysis(){
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
 	//	int numint = NumInternalEquations();
 //	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
+#ifdef USING_PTHREAD
+	const int numthreads = USING_PTHREAD;
 	TPZParFrontStructMatrix<TPZFrontSym> fstr(this);
-	fstr.SetNumberOfThreads(3);
+	fstr.SetNumberOfThreads(numthreads);
+#else
+#ifdef NO_PTHREAD
+	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
+#else
+	const int numthreads = 4;
+	TPZParFrontStructMatrix<TPZFrontSym> fstr(this);
+	fstr.SetNumberOfThreads(numthreads);
+#endif
+#endif
 	fAnalysis->SetStructuralMatrix(fstr);
 	
 	TPZStepSolver solver;
 	fAnalysis->SetSolver(solver);
 #else
 	fAnalysis = new TPZSubMeshAnalysis(this);
+#ifdef USING_PTHREAD
 	TPZParSkylineStructMatrix *parskyl = new TPZParSkylineStructMatrix(this);
+#else
+	TPZSkylineStructMatrix *parskyl = new TPZSkylineStructMatrix(this);
+#endif
 	TPZAutoPointer<TPZStructMatrix> str = parskyl;
 	fAnalysis->SetStructuralMatrix(str);
 	TPZStepSolver *step = new TPZStepSolver();
