@@ -107,7 +107,7 @@ class TPZBlock : public TPZSaveable
   */
   int Verify() const;
 
-  REAL & operator()(const int block_row,const int block_col,const int r,const int c );
+  REAL & operator()(const int block_row,const int block_col,const int r,const int c ) const;
 
   // Le e escreve um elemento na matriz, fazendo verificacoes.
   const REAL & Get(const int block_row,const int block_col,const int r,const int c ) const;

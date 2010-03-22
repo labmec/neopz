@@ -360,7 +360,7 @@ TPZBlock::GetVal(const int bRow,const int bCol,const int r,const int c ) const
 
 
 REAL &
-TPZBlock::operator()(const int bRow,const int bCol,const int r,const int c )
+TPZBlock::operator()(const int bRow,const int bCol,const int r,const int c ) const
 {
   int MaxBlocks = fBlock.NElements();
   int row(r),col(c);
