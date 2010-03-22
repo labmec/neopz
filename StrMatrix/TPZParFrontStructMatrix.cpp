@@ -13,6 +13,7 @@
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"
+#include "pzsubcmesh.h"
 #include "pzmat2dlin.h"
 #include "pzbndcond.h"
 
@@ -64,7 +65,11 @@ template<class front>
 TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZCompMesh *mesh): TPZFrontStructMatrix<front>(mesh)
 {
      fMaxStackSize = 500;
-     fNThreads = 3;
+#ifdef USING_PTHREAD
+	fNThreads = 2+USING_PTHREAD < 3 ? 3 : 2+USING_PTHREAD;
+#else
+	fNThreads = 3;
+#endif
 }
 
 template<class front>
@@ -268,6 +273,24 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
      if(parfront->fElementOrder[local_element] < 0) continue;
      TPZCompEl *el = elementvec[parfront->fElementOrder[local_element]];
      if(!el) continue;
+	  TPZAutoPointer<TPZMaterial> mat = el->Material();
+	  if(mat)
+	  {
+		  int matid = mat->Id();
+		  if(parfront->fMaterialIds.size() && parfront->fMaterialIds.find(matid) == parfront->fMaterialIds.end())
+		  {
+			  continue;
+		  }
+	  }
+	  else 
+	  {
+		  TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
+		  if(!submesh)
+		  {
+			  continue;
+		  }
+	  }
+	  
      //Searches for next element
      int i=0;
      int aux = -1;
