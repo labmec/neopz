@@ -1,4 +1,4 @@
-//$Id: pzelmat.cpp,v 1.10 2010-03-15 12:30:00 phil Exp $
+//$Id: pzelmat.cpp,v 1.11 2010-03-22 17:23:53 phil Exp $
 
 #include "pzelmat.h"
 #include "pzfmatrix.h"
@@ -44,7 +44,30 @@ void TPZElementMatrix::Print(std::ostream &out){
    	out << "Connect index " << fConstrConnect[ic] << endl;
    	this->fMesh->ConnectVec()[fConstrConnect[ic]].Print(*fMesh,out);
    }
+	if(fType == EK)
+	{
+		ComputeDestinationIndices();
+		bool hasdepend = HasDependency();
+		int size = fSourceIndex.NElements();
+		TPZFMatrix constrmatrix(size,size,0.);
+		int in,jn;
+		for(in=0; in<size; in++)
+		{
+			for (jn=0; jn<size; jn++) {
+				if(hasdepend)
+				{
+					constrmatrix(in,jn) = fConstrMat(fSourceIndex[in],fSourceIndex[jn]);
+				}
+				else {
+					constrmatrix(in,jn) = fMat(fSourceIndex[in],fSourceIndex[jn]);
+				}
 
+			}
+		}
+		std::stringstream sout;
+		sout << "CondMatrix";
+		constrmatrix.Print(sout.str().c_str(), out, EMathematicaInput);
+	}
 }
 
 void TPZElementMatrix::ComputeDestinationIndices(){
