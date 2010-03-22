@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.22 2009-09-01 20:05:06 phil Exp $
+//$Id: pzconnect.cpp,v 1.23 2010-03-22 17:22:47 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -52,7 +52,7 @@ void TPZConnect::operator=(const TPZConnect &copy) {
   if(copy.fDependList) fDependList = new TPZDepend(*copy.fDependList);
 }
 
-void TPZConnect::Print(TPZCompMesh &mesh, std::ostream & out) {
+void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
   out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fOrder;
   if(fSequenceNumber > -1)
   {

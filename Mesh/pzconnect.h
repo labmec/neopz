@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.16 2008-04-04 13:54:01 fortiago Exp $
+//$Id: pzconnect.h,v 1.17 2010-03-22 17:22:47 phil Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -112,7 +112,7 @@ class TPZConnect {
   /**Print the information for the connect element. The mesh
      argument allows the object to identify the number of variables
      associated with it and the solution*/
-  void Print(TPZCompMesh &mesh, std::ostream & out = std::cout);
+  void Print(const TPZCompMesh &mesh, std::ostream & out = std::cout);
 
   /**
    * Also print the center point of the side associated to the connect
