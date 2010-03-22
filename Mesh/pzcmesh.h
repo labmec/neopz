@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.44 2010-03-15 12:28:19 phil Exp $
+//$Id: pzcmesh.h,v 1.45 2010-03-22 17:21:53 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -190,7 +190,7 @@ public:
   /**
    *Number of connects allocated including free nodes
    */
-  int NConnects() {return fConnectVec.NElements();}
+  int NConnects() const {return fConnectVec.NElements();}
 
   /**
    * Number of independent connect objects
@@ -200,12 +200,12 @@ public:
   /**
    * Number of computational elements allocated
    */
-  int NElements() {return fElementVec.NElements();}
+  int NElements() const {return fElementVec.NElements();}
 
   /**
    * Number of materials
    */
-  int NMaterials() {return fMaterialVec.size();}
+  int NMaterials() const {return fMaterialVec.size();}
 
   /**
    * Number of connects with boundary condition
@@ -247,9 +247,14 @@ public:
   /**
    * Access the block structure of the solution vector
    */
-  TPZBlock &Block() { return fBlock;}
+  const TPZBlock &Block() const { return fBlock;}
 
-  /**
+	/**
+	 * Access the block structure of the solution vector
+	 */
+	TPZBlock &Block() { return fBlock;}
+	
+	/**
    * Access the solution vector
    */
   TPZFMatrix &Solution(){ return fSolution;}
@@ -314,7 +319,7 @@ public:
    * Prints mesh data
    * @param out indicates the device where the data will be printed
    */
-  virtual void Print(std::ostream & out = std::cout);
+  virtual void Print(std::ostream & out = std::cout) const;
 
   /**
    * Print the solution by connect index

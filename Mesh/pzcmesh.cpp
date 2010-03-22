@@ -1,4 +1,4 @@
-﻿//$Id: pzcmesh.cpp,v 1.86 2009-12-15 18:50:27 caju Exp $
+﻿//$Id: pzcmesh.cpp,v 1.87 2010-03-22 17:21:53 phil Exp $
 
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
@@ -114,9 +114,9 @@ void TPZCompMesh::SetName (const string &nm) {
   fName = nm;
 }
 
-void TPZCompMesh::Print (std::ostream & out) {
+void TPZCompMesh::Print (std::ostream & out) const {
 
-  ComputeNodElCon();
+  //ComputeNodElCon();
   out << "\n\t\tCOMPUTABLE GRID INFORMATIONS:\n\n";
   out << "TITLE-> " << fName << "\n\n";
 
@@ -150,7 +150,7 @@ void TPZCompMesh::Print (std::ostream & out) {
     out << "\tReference Index = " << el->Reference()->Index() << std::endl << std::endl;
   }
   out << "\n\tMaterial Information:\n\n";
-  std::map<int, TPZAutoPointer<TPZMaterial> >::iterator mit;
+  std::map<int, TPZAutoPointer<TPZMaterial> >::const_iterator mit;
   nelem = NMaterials();
   for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
     mit->second->Print(out);
