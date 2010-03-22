@@ -223,7 +223,8 @@ TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs, std::se
 	}
 	TPZVec <int> numelconnected(fMesh->NEquations(),0);
 	
-	TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
+	TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
+	//TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
 	OrderElement();
 	
 	AdjustSequenceNumbering();
