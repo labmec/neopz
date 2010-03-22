@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.22 2010-02-18 20:37:37 phil Exp $
+//$Id: pzsubcmesh.h,v 1.23 2010-03-22 17:27:21 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -243,7 +243,7 @@ public:
    * This method use the virtual method from Computacional Mesh class.
    * @param out indicates the device where the data will be printed
    */
-  virtual void Print(std::ostream &out = std::cout);
+  virtual void Print(std::ostream &out = std::cout) const;
 
   /**
    * @name Element

@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.32 2010-03-15 12:34:04 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.33 2010-03-22 17:27:21 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -474,7 +474,7 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 	}
 }
 
-void TPZSubCompMesh::Print(std::ostream &out){
+void TPZSubCompMesh::Print(std::ostream &out) const {
 
 	out << "Sub Mesh" << (void *) this;
  TPZCompEl::Print(out);
@@ -851,6 +851,8 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	//ek.fMat->Print();
 }
 
+#define NO_PTHREAD
+
 void TPZSubCompMesh::SetAnalysis(){
 	
 	
@@ -1091,6 +1093,9 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 
 void TPZSubCompMesh::LoadSolution(){
   //	int count = 0;
+#warning ME TIRE DAQUI
+//	return;
+
 	int i=0;
 	int seqnumext;
 	int seqnumint;
@@ -1310,7 +1315,7 @@ bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
 	{
 		std::stringstream sout;
 		sout << "A substructure should have either all elements computable or not numtrue " << numtrue << " numfalse " << numfalse;
-		LOGPZ_ERROR(logger,sout.str())
+		LOGPZ_WARN(logger,sout.str())
 	}
 	if(numtrue)
 	{
