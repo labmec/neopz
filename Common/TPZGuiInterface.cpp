@@ -1,4 +1,4 @@
-//$Id: TPZGuiInterface.cpp,v 1.1 2010-03-30 14:37:06 fortiago Exp $
+//$Id: TPZGuiInterface.cpp,v 1.2 2010-04-06 17:22:03 fortiago Exp $
 
 #include "TPZGuiInterface.h"
 #include "pzerror.h"
@@ -13,6 +13,7 @@ TPZGuiInterface::TPZGuiInterface(){
 
 TPZGuiInterface::~TPZGuiInterface(){
 	///nothing to be done
+	int i = 0;
 }
 
 void TPZGuiInterface::UpdateCaption(){

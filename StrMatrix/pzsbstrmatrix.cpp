@@ -8,10 +8,10 @@
 TPZStructMatrix * TPZSBandStructMatrix::Clone(){
     return new TPZSBandStructMatrix(*this);
 }
-TPZMatrix * TPZSBandStructMatrix::CreateAssemble(TPZFMatrix &rhs){
+TPZMatrix * TPZSBandStructMatrix::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
   TPZMatrix *mat = Create();
   rhs.Redim(mat->Rows(),1);
-    Assemble(*mat,rhs);
+	Assemble(*mat,rhs,guiInterface);
     return mat;
 }
 TPZMatrix * TPZSBandStructMatrix::Create(){

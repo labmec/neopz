@@ -8,12 +8,12 @@
 TPZStructMatrix * TPZSkylineStructMatrix::Clone(){
     return new TPZSkylineStructMatrix(fMesh);
 }
-TPZMatrix * TPZSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs){
-    int neq = fMesh->NEquations();
-    if(HasRange()) neq = fMaxEq-fMinEq;
-    TPZMatrix *stiff = Create();
-    rhs.Redim(neq,1);
-    Assemble(*stiff,rhs);
+TPZMatrix * TPZSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+	int neq = fMesh->NEquations();
+	if(HasRange()) neq = fMaxEq-fMinEq;
+	TPZMatrix *stiff = Create();
+	rhs.Redim(neq,1);
+	Assemble(*stiff,rhs, guiInterface);
     return stiff;
 }
 TPZMatrix * TPZSkylineStructMatrix::Create(){

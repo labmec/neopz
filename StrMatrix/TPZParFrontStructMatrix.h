@@ -62,12 +62,13 @@ public:
      /**
       * Returns a poniter to TPZMatrix
       */
-     virtual TPZMatrix * CreateAssemble(
-          TPZFMatrix &rhs //! Load matrix
-          );
-     
-     
-     virtual void Assemble(TPZMatrix & mat, TPZFMatrix & rhs);
+	 virtual TPZMatrix * CreateAssemble(
+		  TPZFMatrix &rhs //! Load matrix
+		  ,TPZAutoPointer<TPZGuiInterface> guiInterface
+		  );
+
+
+	 virtual void Assemble(TPZMatrix & mat, TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 
      /** Used only for testing */
      static int main();
@@ -77,13 +78,13 @@ public:
       * It is passed as a parameter to the  pthread_create() function. \n
       * It is a 'static void *' to be used by pthread_create
       */
-     static void *ElementAssemble(void *t);
+	 static void *ElementAssemble(void *t);
      /**
-      * It assembles element matrices in the global stiffness matrix, it is also executed in an independent thread. \n
+	  * It assembles element matrices in the global stiffness matrix, it is also executed in an independent thread. \n
       * It is passed as a parameter to the  pthread_create() function. \n
       * It is a 'static void *' to be used by pthread_create
       */
-     static void *GlobalAssemble(void *t);
+	 static void *GlobalAssemble(void *t);
      /**
       * It writes decomposed equations to a binary file on disk. It is executed in an independent thread. \n
       * It is passed as a parameter to the  pthread_create() function. \n
@@ -94,15 +95,15 @@ private:
      /**
       * Number of threads used in the process. \n
       * It needs at least three independet threads to execute:\n
-          *ElementAssemble\n
-          *GlobalAssemble\n
+		  *ElementAssemble\n
+		  *GlobalAssemble\n
           *WriteFile\n
       */  
      int fNThreads;
      /**Current computed element*/
      int fCurrentElement;
-     /**Current assembled element in the global stiffness matrix*/
-     int fCurrentAssembled;
+	 /**Current assembled element in the global stiffness matrix*/
+	 int fCurrentAssembled;
      /**Total number of elements*/
      int fNElements;
      /**
@@ -117,9 +118,9 @@ private:
      TPZFMatrix * fRhs;
 
      /**
-      * Stack containing elements to be assembled on Stiffness matrix. \n
-      * ElemenAssemble pushes elements on the stack. \n
-      * GlobalAssemble pops elements from the stack.
+	  * Stack containing elements to be assembled on Stiffness matrix. \n
+	  * ElemenAssemble pushes elements on the stack. \n
+	  * GlobalAssemble pops elements from the stack.
       */
      TPZStack <int> felnum;
      TPZStack <TPZElementMatrix *> fekstack;

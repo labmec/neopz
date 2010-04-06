@@ -15,11 +15,11 @@ static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 
 using namespace std;
 
-TPZMatrix * TPZFStructMatrix::CreateAssemble(TPZFMatrix &rhs){
-    TPZMatrix *stiff = Create();
-    int neq = stiff->Rows();
-    rhs.Redim(neq,1);
-    Assemble(*stiff,rhs);
+TPZMatrix * TPZFStructMatrix::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+	TPZMatrix *stiff = Create();
+	int neq = stiff->Rows();
+	rhs.Redim(neq,1);
+	Assemble(*stiff,rhs,guiInterface);
 
 #ifdef LOG4CXX
 	if(loggerel->isDebugEnabled())

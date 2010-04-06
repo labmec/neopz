@@ -35,13 +35,13 @@ enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
   // this should be used to create a sequence solver
 //  TPZMatrix * Create(int color);
   
-  virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs);
+  virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 
   virtual TPZStructMatrix * Clone();    
 
 public:
 
-    void AssembleBlockDiagonal(TPZBlockDiagonal & block);
+	void AssembleBlockDiagonal(TPZBlockDiagonal & block);
 private:
     void BlockSizes(TPZVec < int > & blocksizes);
     

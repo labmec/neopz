@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.33 2010-03-22 17:27:21 phil Exp $
+﻿//$Id: pzsubcmesh.cpp,v 1.34 2010-04-06 17:22:03 fortiago Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -814,7 +814,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	  }
 	if (! fAnalysis){
 		TPZFStructMatrix local(this);
-		TPZAutoPointer<TPZMatrix> stiff = local.CreateAssemble(ef.fMat);
+		TPZAutoPointer<TPZMatrix> stiff = local.CreateAssemble(ef.fMat,NULL);
 		ek.fMat = *(stiff.operator->());
 //		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this,-1,-1);
 	}

@@ -95,30 +95,24 @@ public:
       */ 	
      void AssembleNew(
      	TPZMatrix & stiffness //! Stiffness matrix to assembled
-	     , TPZFMatrix & rhs //! Matrix contaning ???
+		 , TPZFMatrix & rhs //! Matrix contaning ???
+		 ,TPZAutoPointer<TPZGuiInterface> guiInterface
 	);
      
      /**
-      *Assemble a stiffness matrix.
+	  *Assemble a stiffness matrix.
       */ 	
-     void Assemble(
-     	TPZMatrix & stiffness //! Stiffness matrix to assembled
-     	, TPZFMatrix & rhs //! Vector contaning loads
+	 void Assemble(
+		TPZMatrix & stiffness //! Stiffness matrix to assembled
+		, TPZFMatrix & rhs //! Vector contaning loads
+		,TPZAutoPointer<TPZGuiInterface> guiInterface
           );
 
-     /**
-      *Assemble a stiffness matrix.
-      */ 	
-     void Assemble(
-     	TPZMatrix & stiffness //! Stiffness matrix to assembled
-     	, TPZFMatrix & rhs //! Vector contaning loads
-        , std::set<int> &MaterialIds  );
-     
      /**
       * Computes element matrices. \n
       * Each computed element matrices would then be added to Stiffness matrix
       */
-     void AssembleElement(
+	 void AssembleElement(
           TPZCompEl *el //! Actual element being computed
           , TPZElementMatrix & ek //! Formed element matrix
           , TPZElementMatrix & ef //! Formed element load matrix
@@ -131,18 +125,9 @@ public:
       * This is a mandatory function, it is neded by all StructMatrix. \n
       * Except in frontal matrices, the returned matrix is not in its decomposed form.
       */
-     TPZMatrix * CreateAssemble(
-          TPZFMatrix &rhs //!Load matrix
-          );
-
-     /**
-      * Returns a pointer to TPZMatrix. \n
-      * This is a mandatory function, it is neded by all StructMatrix. \n
-      * Except in frontal matrices, the returned matrix is not in its decomposed form.
-      */
-     TPZMatrix * CreateAssemble(
-          TPZFMatrix &rhs //!Load matrix
-          , std::set<int> &MaterialIds);
+	 TPZMatrix * CreateAssemble(
+		  TPZFMatrix &rhs //!Load matrix
+		  , TPZAutoPointer<TPZGuiInterface> guiInterface);
 
     void SetQuiet(int quiet);
 

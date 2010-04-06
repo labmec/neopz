@@ -212,7 +212,7 @@ void TPZNonLinearAnalysis::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coe
 	tangent.Redim(neq,neq);
 	TPZFMatrix rhs(neq,1);
 //	TPZStructMatrix::Assemble(tangent, rhs, *Mesh());
-	fStructMatrix->Assemble(tangent,rhs);
+	fStructMatrix->Assemble(tangent,rhs,NULL);
 }
 
 int TPZNonLinearAnalysis::NumCases(){
@@ -223,7 +223,7 @@ void TPZNonLinearAnalysis::Residual(TPZFMatrix &residual, int icase){
 	int neq = fCompMesh->NEquations();
 	TPZFMatrix tangent(neq,neq);
 	residual.Redim(neq,1);
-	fStructMatrix->Assemble(tangent,residual);
+	fStructMatrix->Assemble(tangent,residual,NULL);
 //	TPZStructMatrix::Assemble(tangent, residual, *Mesh());
 	residual *= -1.;
 }

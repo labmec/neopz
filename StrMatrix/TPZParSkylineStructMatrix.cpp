@@ -1,4 +1,4 @@
-#include "TPZFrontStructMatrix.h"
+﻿#include "TPZFrontStructMatrix.h"
 #include "TPZParSkylineStructMatrix.h"
 #include "pzskylmatpar.h"
 #include "pzvec.h"
@@ -48,10 +48,10 @@ TPZMatrix * TPZParSkylineStructMatrix::Create(){
 #endif
     return new TPZSkylParMatrix(neq,skyline,numthreads);
 }
-TPZMatrix * TPZParSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs){
+TPZMatrix * TPZParSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
   TPZMatrix *mat = Create();
   rhs.Redim(mat->Rows(),1);
-  Assemble(*mat,rhs);
+  Assemble(*mat,rhs,guiInterface);
   return mat;
 }
 int TPZParSkylineStructMatrix::main() {

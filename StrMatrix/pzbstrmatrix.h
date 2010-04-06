@@ -24,7 +24,7 @@ public:
 
     virtual TPZMatrix * Create();
 
-    virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs);
+    virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
     virtual TPZStructMatrix * Clone();
 
