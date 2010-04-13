@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientanalysis.cpp,v 1.11 2010-02-18 20:15:31 phil Exp $
+//$Id: pztransientanalysis.cpp,v 1.12 2010-04-13 14:43:24 phil Exp $
 
 #include "pztransientanalysis.h"
 #include "pztransientmat.h"
@@ -287,11 +287,11 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::Assemble(){
   if (exist){
     if (fIsLinearProblem){
 //      TPZStructMatrix::Assemble(fRhs, *Mesh());
-		fStructMatrix->Assemble(fRhs);
+		fStructMatrix->Assemble(fRhs,NULL);
     }
     else{
       fSolver->Matrix()->Zero();
-      fStructMatrix->Assemble(fSolver->Matrix(),fRhs);
+      fStructMatrix->Assemble(fSolver->Matrix(),fRhs,NULL);
     }
   }
   else{
@@ -300,7 +300,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::Assemble(){
                                                             << " methodTPZTransientAnalysis::ComputeLinearTangentMatrix()"
                                                             << " when (this->fIsLinearProblem == true)\n";
     }
-    TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
+    TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
     fSolver->SetMatrix(mat);
   }
   fSolver->UpdateFrom(fSolver->Matrix());
@@ -312,7 +312,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeLinearTangentMatrix(){
   this->SetCurrentState();
   const int sz = this->Mesh()->NEquations();
   fRhs.Redim(sz,1);
-  TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
+  TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
   fSolver->SetMatrix(mat);
 }///method
 
@@ -321,7 +321,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeMassMatrix(){
   this->SetMassMatrix();
   const int sz = this->Mesh()->NEquations();
   fRhs.Redim(sz,1);
-  TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
+  TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
   fSolver->SetMatrix(mat);
 }///method
 
@@ -338,7 +338,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeFluxOnly(){
   int sz = fCompMesh->NEquations();
   fRhs.Redim(sz,1);
   if(fSolver->Matrix() && fSolver->Matrix()->Rows()==sz){
-	  fStructMatrix->Assemble(fRhs);
+	  fStructMatrix->Assemble(fRhs,NULL);
 //    TPZStructMatrix::Assemble(fRhs, *Mesh());
   }///if
 }///method
