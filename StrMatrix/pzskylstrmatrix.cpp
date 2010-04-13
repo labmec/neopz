@@ -25,6 +25,11 @@ TPZMatrix * TPZSkylineStructMatrix::Create(){
       neq = fMaxEq-fMinEq;
       FilterSkyline(skyline);
     }
+	else {
+		// This statement is needed for compatibility with TPZSubCompMesh The number of equations of the stiffness matrix corresponds to "only" the internal nodes
+		neq = skyline.NElements();
+	}
+
     return new TPZSkylMatrix(neq,skyline);
 }
 TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
