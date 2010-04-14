@@ -130,6 +130,13 @@ public:
 		fGuiInterface = gui;
 	}
 
+	bool AmIKilled(){
+		if(fGuiInterface){
+			return fGuiInterface->AmIKilled();
+		}
+		else return false;
+	}
+
   /**
 	 * Set the computational mesh of the analysis.
 	 **/
