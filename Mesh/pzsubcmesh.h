@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.23 2010-03-22 17:27:21 phil Exp $
+//$Id: pzsubcmesh.h,v 1.24 2010-04-14 21:37:48 fortiago Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -21,8 +21,7 @@
 class TPZSubMeshFrontalAnalysis;
 class TPZSubMeshAnalysis;
 class TPZAnalysis;
-
-#define SUBFRONTAL
+class TPZGuiInterface;
 
 /// Implements a group of computational elements as a mesh and an element
 /**
@@ -36,16 +35,18 @@ class TPZSubCompMesh :
 	public TPZCompEl
 {
 protected:
+	/**
+	 * Pointer to submesh analysis object. Defines the resolution type.
+	 */
+//#ifdef SUBFRONTAL
+//	TPZAutoPointer<TPZSubMeshFrontalAnalysis> fAnalysis;
+//#else
+//	TPZAutoPointer<TPZSubMeshAnalysis> fAnalysis;
+//#endif
+	TPZAutoPointer<TPZAnalysis> fAnalysis;
+
   /**
-   * Pointer to submesh analysis object. Defines the resolution type.
-   */
-#ifdef SUBFRONTAL
-  TPZAutoPointer<TPZSubMeshFrontalAnalysis> fAnalysis;
-#else
-	TPZAutoPointer<TPZSubMeshAnalysis> fAnalysis;
-#endif
-  /**
-   * Pointer to external location index of the connection.
+	 * Pointer to external location index of the connection.
    * If the connection hasn't external location return the local id.
    */
   TPZManVector<int> fConnectIndex;
@@ -109,7 +110,8 @@ public:
   /**
    * Set the analysis type.
    */
-  void SetAnalysis();
+	void SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	void SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
   /**
    * This method will load the elements of the grid in their corresponding geometric

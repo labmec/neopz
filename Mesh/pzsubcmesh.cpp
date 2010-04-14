@@ -1,4 +1,4 @@
-﻿//$Id: pzsubcmesh.cpp,v 1.34 2010-04-06 17:22:03 fortiago Exp $
+﻿//$Id: pzsubcmesh.cpp,v 1.35 2010-04-14 21:37:48 fortiago Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -756,7 +756,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 	else
 	{
-		this->SetAnalysis();
+		DebugStop();//this->SetAnalysis();
 	}
 	std::set<int> matids = fAnalysis->StructMatrix()->MaterialIds();
 	if(!NeedsComputing(matids))
@@ -822,6 +822,9 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		if(!fAnalysis->Solver().Matrix())
 		{
 			fAnalysis->Run(std::cout);
+			if(fAnalysis->AmIKilled()){
+        return;
+			}
 		}
 
 		TPZSubMeshFrontalAnalysis *sman = dynamic_cast<TPZSubMeshFrontalAnalysis *> (fAnalysis.operator->());
@@ -833,9 +836,23 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 				sman->SetFront(frontmat->GetFront());
 			}
 		}
-		fAnalysis->CondensedSolution(ek.fMat,ef.fMat);
-//		ek.fMat->Print("ek reduzido");
-//		std::cout.flush();
+
+		///Trying to get a derived Analysis which is a SubMeshAnalysis.
+		///It could be better done with an abstract class SubMeshAnalysis which defines CondensedSolution method
+		TPZSubMeshAnalysis * castedAnal = dynamic_cast<TPZSubMeshAnalysis *>(fAnalysis.operator->());
+		if(castedAnal){
+			castedAnal->CondensedSolution(ek.fMat,ef.fMat);
+		}
+
+		TPZSubMeshFrontalAnalysis * castedAnalFrontal = dynamic_cast<TPZSubMeshFrontalAnalysis *>(fAnalysis.operator->());
+		if(castedAnalFrontal){
+			castedAnalFrontal->CondensedSolution(ek.fMat,ef.fMat);
+		}
+
+		if(!castedAnal && !castedAnalFrontal){
+			DebugStop();
+		}
+
 	}
 #ifdef LOG4CXX
 	if(logger->isDebugEnabled())
@@ -851,53 +868,54 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	//ek.fMat->Print();
 }
 
-#define NO_PTHREAD
-
-void TPZSubCompMesh::SetAnalysis(){
-	
-	
-	
-#ifdef SUBFRONTAL
-	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
-	//	int numint = NumInternalEquations();
-//	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
-#ifdef USING_PTHREAD
-	const int numthreads = USING_PTHREAD;
-	TPZParFrontStructMatrix<TPZFrontSym> fstr(this);
-	fstr.SetNumberOfThreads(numthreads);
-#else
-#ifdef NO_PTHREAD
-	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
-#else
-	const int numthreads = 4;
-	TPZParFrontStructMatrix<TPZFrontSym> fstr(this);
-	fstr.SetNumberOfThreads(numthreads);
-#endif
-#endif
-	fAnalysis->SetStructuralMatrix(fstr);
-	
-	TPZStepSolver solver;
-	fAnalysis->SetSolver(solver);
-#else
+void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	fAnalysis = new TPZSubMeshAnalysis(this);
+	fAnalysis->SetGuiInterface(guiInterface);
+
 #ifdef USING_PTHREAD
-	TPZParSkylineStructMatrix *parskyl = new TPZParSkylineStructMatrix(this);
+	TPZParSkylineStructMatrix *parskyl = new TPZParSkylineStructMatrix(this,numThreads);
 #else
 	TPZSkylineStructMatrix *parskyl = new TPZSkylineStructMatrix(this);
 #endif
+
 	TPZAutoPointer<TPZStructMatrix> str = parskyl;
+	str->SetNumThreads(numThreads);
+
 	fAnalysis->SetStructuralMatrix(str);
 	TPZStepSolver *step = new TPZStepSolver();
 	step->SetDirect(ECholesky);
 	TPZAutoPointer<TPZMatrixSolver> autostep = step;
 	fAnalysis->SetSolver(autostep);
-#endif
+
 	PermuteExternalConnects();
-	
-	int neq = TPZCompMesh::NEquations(); 
-	neq *= 2;
-//	ofstream out("subcmesh.dat");
-//	Prints(out);
+
+	//int neq = TPZCompMesh::NEquations();
+	//neq *= 2;
+
+}
+
+void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface){
+
+	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
+  fAnalysis->SetGuiInterface(guiInterface);
+
+#ifdef USING_PTHREAD
+	TPZParFrontStructMatrix<TPZFrontSym> fstr(this);
+	fstr.SetNumberOfThreads(numThreads);
+#else
+	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
+#endif
+
+	fstr.SetNumThreads(numThreads);
+	fAnalysis->SetStructuralMatrix(fstr);
+
+	TPZStepSolver solver;
+	fAnalysis->SetSolver(solver);
+
+	PermuteExternalConnects();
+
+	//int neq = TPZCompMesh::NEquations();
+	//neq *= 2;
 }
 
 /**
@@ -1094,7 +1112,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 void TPZSubCompMesh::LoadSolution(){
   //	int count = 0;
 #warning ME TIRE DAQUI
-//	return;
+	return;
 
 	int i=0;
 	int seqnumext;
