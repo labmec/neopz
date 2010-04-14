@@ -25,11 +25,13 @@ using namespace std;
 void UniformRefine(int num, TPZGeoMesh &m);
 
 TPZParSkylineStructMatrix::TPZParSkylineStructMatrix(const TPZParSkylineStructMatrix &cp) : TPZSkylineStructMatrix(cp){
-
+	fNumThreads = cp.fNumThreads;
 }
 
-TPZParSkylineStructMatrix::TPZParSkylineStructMatrix(TPZCompMesh *mesh) : TPZSkylineStructMatrix(mesh)
-{}
+TPZParSkylineStructMatrix::TPZParSkylineStructMatrix(TPZCompMesh *mesh, int numthreads) : TPZSkylineStructMatrix(mesh)
+{
+	fNumThreads = numthreads;
+}
 
 TPZStructMatrix * TPZParSkylineStructMatrix::Clone(){
     return new TPZParSkylineStructMatrix(*this);
@@ -41,12 +43,7 @@ TPZMatrix * TPZParSkylineStructMatrix::Create(){
     fMesh->Skyline(skyline);
     FilterSkyline(skyline);
     neq = skyline.NElements();
-#ifdef USING_PTHREAD
-	int numthreads = USING_PTHREAD;
-#else
-	int numthreads = 4;
-#endif
-    return new TPZSkylParMatrix(neq,skyline,numthreads);
+    return new TPZSkylParMatrix(neq,skyline,fNumThreads);
 }
 TPZMatrix * TPZParSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
   TPZMatrix *mat = Create();
@@ -160,7 +157,8 @@ int TPZParSkylineStructMatrix::main() {
 	//TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(cmesh.NEquations());
 	//TPZFrontMatrix<TPZStackEqnStorage> *mat = new TPZFrontMatrix<TPZStackEqnStorage>(cmesh.NEquations());
 
-     TPZParSkylineStructMatrix mat(&cmesh);
+			const int numthreads = 2;
+     TPZParSkylineStructMatrix mat(&cmesh,numthreads);
 
 //   TPZFStructMatrix mat2(&cmesh);
 //  mat->SetNumElConnected(numelconnected);

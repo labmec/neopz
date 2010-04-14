@@ -15,10 +15,13 @@ class TPZMatrix;
      @ingroup structural
 */
 class TPZParSkylineStructMatrix : public TPZSkylineStructMatrix {
-public:    
-    static int main();
-    
-    TPZParSkylineStructMatrix(TPZCompMesh *);
+
+	int fNumThreads;
+
+public:
+		static int main();
+
+		TPZParSkylineStructMatrix(TPZCompMesh *, int numthreads);
     
     TPZParSkylineStructMatrix(const TPZParSkylineStructMatrix &cp);
 

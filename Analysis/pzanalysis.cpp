@@ -1,4 +1,4 @@
-﻿//$Id: pzanalysis.cpp,v 1.54 2010-04-06 17:22:03 fortiago Exp $
+﻿//$Id: pzanalysis.cpp,v 1.55 2010-04-14 18:06:41 fortiago Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -53,45 +53,45 @@ static LoggerPtr logger(Logger::getLogger("pz.analysis"));
 using namespace std;
 
 void TPZAnalysis::SetStructuralMatrix(TPZStructMatrix &strmatrix){
-  fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix.Clone());
+	fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix.Clone());
 }
 
 void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix){
-    fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix->Clone());
+		fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix->Clone());
 }
-TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fTable() {
-   fGraphMesh[0] = 0;
-   fGraphMesh[1] = 0;
-   fGraphMesh[2] = 0;
+TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fGuiInterface(NULL), fRenumber(new RENUMBER), fTable() {
+	 fGraphMesh[0] = 0;
+	 fGraphMesh[1] = 0;
+	 fGraphMesh[2] = 0;
 }
 
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh,std::ostream &out) :
-    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER),  fTable()
+		fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fGuiInterface(NULL), fRenumber(new RENUMBER),  fTable()
 {
-  fGraphMesh[0] = 0;
-  fGraphMesh[1] = 0;
-  fGraphMesh[2] = 0;
-  this->SetCompMesh(mesh);
+	fGraphMesh[0] = 0;
+	fGraphMesh[1] = 0;
+	fGraphMesh[2] = 0;
+	this->SetCompMesh(mesh);
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh,std::ostream &out) :
-    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0),fRenumber(new RENUMBER),  fTable()
+		fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fGuiInterface(NULL), fRenumber(new RENUMBER),  fTable()
 {
-  fGraphMesh[0] = 0;
-  fGraphMesh[1] = 0;
-  fGraphMesh[2] = 0;
-  this->SetCompMesh(mesh.operator ->());
+	fGraphMesh[0] = 0;
+	fGraphMesh[1] = 0;
+	fGraphMesh[2] = 0;
+	this->SetCompMesh(mesh.operator ->());
 }
 
 
 void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh) {
 	fCompMesh = mesh;
-   fGeoMesh = mesh->Reference();
-   fGraphMesh[0] = 0;
-   fGraphMesh[1] = 0;
-   fGraphMesh[2] = 0;
-   if(fSolver) fSolver->ResetMatrix();
+	 fGeoMesh = mesh->Reference();
+	 fGraphMesh[0] = 0;
+	 fGraphMesh[1] = 0;
+	 fGraphMesh[2] = 0;
+	 if(fSolver) fSolver->ResetMatrix();
    SetBlockNumber();
    fStep = 0;
    fTime = 0.;
@@ -167,7 +167,7 @@ void TPZAnalysis::SetBlockNumber(){
 void TPZAnalysis::AssembleResidual(){
   int sz = this->Mesh()->NEquations();
   this->Rhs().Redim(sz,1);
-	fStructMatrix->Assemble(this->Rhs(),NULL);
+	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
 //  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
 }///void
 
@@ -196,11 +196,11 @@ void TPZAnalysis::Assemble()
   if(fSolver->Matrix() && fSolver->Matrix()->Rows()==sz)
   {
     fSolver->Matrix()->Zero();
-    fStructMatrix->Assemble(*(fSolver->Matrix().operator ->()),fRhs,NULL);
+		fStructMatrix->Assemble(*(fSolver->Matrix().operator ->()),fRhs,fGuiInterface);
   }
   else
   {
-    TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
+		TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
     fSolver->SetMatrix(mat);
     //aqui TPZFMatrix n� �nula
   }
@@ -353,7 +353,7 @@ void TPZAnalysis::LoadShape(double ,double , int ,TPZConnect* start){
 
 void TPZAnalysis::Run(std::ostream &out)
 {
-  Assemble();
+	Assemble();
   Solve();
 }
 
@@ -445,7 +445,7 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
 void TPZAnalysis::AnimateRun(int num_iter, int steps,
 			     TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, const std::string &plotfile)
 {
-  Assemble();
+	Assemble();
 
   int numeq = fCompMesh->NEquations();
   if(fRhs.Rows() != numeq ) return;
@@ -687,7 +687,7 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
     {
       TPZBlockDiagonalStructMatrix blstr(fCompMesh);
       TPZBlockDiagonal *sp = new TPZBlockDiagonal();
-      blstr.AssembleBlockDiagonal(*sp);
+			blstr.AssembleBlockDiagonal(*sp);
 //      std::ofstream out("Direct assembly");
 //      sp->Print("Directly assembled",out);
 /*      int numbl = sp->NumberofBlocks();

@@ -6,8 +6,14 @@
 #include "pzvec.h"
 
 TPZStructMatrix * TPZSkylineStructMatrix::Clone(){
-    return new TPZSkylineStructMatrix(fMesh);
+    return new TPZSkylineStructMatrix(*this);
 }
+
+TPZSkylineStructMatrix::TPZSkylineStructMatrix(const TPZSkylineStructMatrix &cp)
+ 		 :TPZStructMatrix(cp) {
+///nothing here
+}
+
 TPZMatrix * TPZSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	int neq = fMesh->NEquations();
 	if(HasRange()) neq = fMaxEq-fMinEq;

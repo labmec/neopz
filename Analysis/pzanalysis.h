@@ -19,6 +19,8 @@ class TPZMaterial;
 
 
 #include "pzfmatrix.h"
+#include "TPZGuiInterface.h"
+
 /**
  * Class TPZAnalysis implements analysis procedures
  * @ingroup analysis
@@ -89,7 +91,10 @@ public:
   /**
    * Renumbering scheme
    */
-  TPZAutoPointer<TPZRenumbering> fRenumber;
+	TPZAutoPointer<TPZRenumbering> fRenumber;
+
+	/** Pointer for gui interface object */
+	TPZAutoPointer<TPZGuiInterface> fGuiInterface;
 
   /// datastructure which defines postprocessing for one dimensional meshes
   struct TTablePostProcess {
@@ -118,7 +123,12 @@ public:
   /**
    *Create an TPZAnalysis object from one mesh pointer
    */
-  TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh,std::ostream &out = std::cout);
+	TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh,std::ostream &out = std::cout);
+
+	/** Defines gui interface object */
+	void SetGuiInterface(TPZAutoPointer<TPZGuiInterface> gui){
+		fGuiInterface = gui;
+	}
 
   /**
 	 * Set the computational mesh of the analysis.
@@ -237,7 +247,12 @@ public:
   /**
    *load the solution into the computable grid
    */
-  void LoadSolution();
+	void LoadSolution();
+
+	virtual void LoadSolution(TPZFMatrix &sol){
+		this->Solution() = sol;
+		this->LoadSolution();
+	}
 
   void SetExact(void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix &deriv));
 
