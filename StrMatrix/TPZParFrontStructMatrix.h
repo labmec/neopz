@@ -37,6 +37,11 @@ template<class front>
  * @ingroup frontal structural
  */
 class TPZParFrontStructMatrix : public TPZFrontStructMatrix<front> {
+
+private:
+
+	TPZAutoPointer<TPZGuiInterface> fGuiInterface;
+
 public:     
 
      /**

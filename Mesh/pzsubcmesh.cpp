@@ -1,4 +1,4 @@
-﻿//$Id: pzsubcmesh.cpp,v 1.35 2010-04-14 21:37:48 fortiago Exp $
+﻿//$Id: pzsubcmesh.cpp,v 1.36 2010-04-15 19:57:54 fortiago Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -872,13 +872,14 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInt
 	fAnalysis = new TPZSubMeshAnalysis(this);
 	fAnalysis->SetGuiInterface(guiInterface);
 
-#ifdef USING_PTHREAD
-	TPZParSkylineStructMatrix *parskyl = new TPZParSkylineStructMatrix(this,numThreads);
-#else
-	TPZSkylineStructMatrix *parskyl = new TPZSkylineStructMatrix(this);
-#endif
+	TPZAutoPointer<TPZStructMatrix> str = NULL;
+	if(numThreads){
+		str = new TPZParSkylineStructMatrix(this,numThreads);
+	}
+	else{
+		str = new TPZSkylineStructMatrix(this);
+	}
 
-	TPZAutoPointer<TPZStructMatrix> str = parskyl;
 	str->SetNumThreads(numThreads);
 
 	fAnalysis->SetStructuralMatrix(str);
@@ -889,9 +890,6 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInt
 
 	PermuteExternalConnects();
 
-	//int neq = TPZCompMesh::NEquations();
-	//neq *= 2;
-
 }
 
 void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface){
@@ -899,23 +897,23 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
   fAnalysis->SetGuiInterface(guiInterface);
 
-#ifdef USING_PTHREAD
-	TPZParFrontStructMatrix<TPZFrontSym> fstr(this);
-	fstr.SetNumberOfThreads(numThreads);
-#else
-	TPZFrontStructMatrix<TPZFrontSym> fstr(this);
-#endif
+	TPZAutoPointer<TPZStructMatrix> fstr = NULL;
+	if(numThreads){
+		fstr = new TPZParFrontStructMatrix<TPZFrontSym>(this);
+		static_cast<TPZParFrontStructMatrix<TPZFrontSym> *>(fstr.operator->())
+		    ->SetNumberOfThreads(numThreads+2);///o frontal tem dois threads auxiliares
+	}
+	else{
+		fstr = new TPZFrontStructMatrix<TPZFrontSym>(this);
+	}
 
-	fstr.SetNumThreads(numThreads);
+	fstr->SetNumThreads(numThreads);
 	fAnalysis->SetStructuralMatrix(fstr);
 
 	TPZStepSolver solver;
 	fAnalysis->SetSolver(solver);
 
 	PermuteExternalConnects();
-
-	//int neq = TPZCompMesh::NEquations();
-	//neq *= 2;
 }
 
 /**

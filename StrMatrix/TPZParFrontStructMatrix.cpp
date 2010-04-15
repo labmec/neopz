@@ -113,8 +113,9 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 
 
 
-  while(parfront->fCurrentElement < parfront->fNElements) {
-     ek = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EK);
+	while(parfront->fCurrentElement < parfront->fNElements) {
+
+		 ek = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EK);
      ef = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EF);
 
      /**
@@ -223,7 +224,9 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
      // o thread de assemblagem utiliza mutexassemble
      // e feito em outro thread     AssembleElement(el, ek, ef, stiffness, rhs);
 
-
+		if(parfront->fGuiInterface) if(parfront->fGuiInterface->AmIKilled()){
+			break;
+		}
   }//fim for iel
 
 #ifdef LOG4CXX
@@ -243,11 +246,12 @@ template<class front>
 void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
   TPZParFrontStructMatrix<front> *parfront = (TPZParFrontStructMatrix<front> *) t;
   TPZAdmChunkVector<TPZCompEl *> &elementvec = parfront->fMesh->ElementVec();
-  while(parfront->fCurrentAssembled < parfront->fNElements) {
+	while(parfront->fCurrentAssembled < parfront->fNElements) {
+
 	 #ifndef USING_ATLAS
      cout << "*";
      cout.flush();
-     if(!(parfront->fCurrentAssembled%20)){
+		 if(!(parfront->fCurrentAssembled%20)){
           if(parfront->fCurrentElement!=parfront->fNElements){
                cout << " " << (100*parfront->fCurrentElement/parfront->fNElements) << "% Elements computed " << (100*parfront->fCurrentAssembled/parfront->fNElements) << "% Elements assembled " << endl;
                cout.flush();
@@ -348,16 +352,24 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 			TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZStackEqnStorage, front>* > (parfront->fStiffness);
 			mat->FinishWriting();
 #ifdef LOG4CXX
-		  {
-			  std::stringstream sout;
-			  sout << "fFinishedComputing set to 1";
-			  LOGPZ_DEBUG(logger,sout.str())
-		  }
+			{
+				std::stringstream sout;
+				sout << "fFinishedComputing set to 1";
+				LOGPZ_DEBUG(logger,sout.str())
+			}
 #endif
-	  }
-	  
-     delete ekaux;
-     delete efaux;
+		}
+
+		 delete ekaux;
+		 delete efaux;
+
+		 if(parfront->fGuiInterface) if(parfront->fGuiInterface->AmIKilled()){
+			 TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZStackEqnStorage, front>* > (parfront->fStiffness);
+			 mat->FinishWriting();
+			 break;
+		 }
+
+
   }//fim for iel
 #ifdef LOG4CXX
 	{
@@ -375,6 +387,8 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 template<class front>
 void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
+	this->fGuiInterface = guiInterface;
+
 	TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZStackEqnStorage, front> *>(&matref);
   if(!mat)
   {
@@ -423,7 +437,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
       */
      //pthread_create(&allthreads[fNThreads-1],NULL,this->GlobalAssemble, this);
      // try{
-          res[nthreads-1] = pthread_create(&allthreads[nthreads-1],NULL,this->GlobalAssemble, this);
+					res[nthreads-1] = pthread_create(&allthreads[nthreads-1],NULL,this->GlobalAssemble, this);
           if(!res[nthreads-1]){
  	          cout << "GlobalAssemble Thread created Successfuly "<< allthreads[nthreads-1] << endl;
  	          cout.flush();
@@ -431,19 +445,19 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
  	          cout << "GlobalAssemble Thread Fail "<< allthreads[nthreads-1] << endl;
                cout.flush();
  	 //          exit;
-          }
-          res[nthreads-2] = pthread_create(&allthreads[nthreads-2],NULL,mat->WriteFile, mat);
+					}
+					res[nthreads-2] = pthread_create(&allthreads[nthreads-2],NULL,mat->WriteFile, mat);
           if(!res[nthreads-2]){
- 	          cout << "WriteFile Thread created Successfuly "<< allthreads[nthreads-2] << endl;
+						cout << "WriteFile Thread created Successfuly "<< allthreads[nthreads-2] << endl;
  	          cout.flush();
           }else{
- 	          cout << "WriteFile Thread Fail "<< allthreads[nthreads-2] << endl;
+						cout << "WriteFile Thread Fail "<< allthreads[nthreads-2] << endl;
  	          cout.flush();
  	 //          exit;
           }
 
           for(i=0;i<nthreads-2;i++){
- 	          res[i] = pthread_create(&allthreads[i],NULL,this->ElementAssemble, this);
+						res[i] = pthread_create(&allthreads[i],NULL,this->ElementAssemble, this);
  	          if(!res[i]){
  	               cout << "ElementAssemble Thread "<< i+1 <<  " created Successfuly "<< allthreads[i] << endl;
                     cout.flush();

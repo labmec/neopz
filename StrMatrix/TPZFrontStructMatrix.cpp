@@ -226,7 +226,11 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix & stiffness, TPZFMatrix 
   OrderElement();
 
 
-  for(iel=0; iel < nelem; iel++) {
+	for(iel=0; iel < nelem; iel++) {
+
+		if(guiInterface) if(guiInterface->AmIKilled()){
+			break;
+		}
 
     if(fElementOrder[iel] < 0) continue;
     TPZCompEl *el = elementvec[fElementOrder[iel]];
