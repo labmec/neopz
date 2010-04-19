@@ -1,4 +1,4 @@
-﻿//$Id: pzsubcmesh.cpp,v 1.36 2010-04-15 19:57:54 fortiago Exp $
+﻿//$Id: pzsubcmesh.cpp,v 1.37 2010-04-19 14:59:22 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -7,6 +7,7 @@
 #include "pzsubcmesh.h"
 #include "pzgmesh.h"
 #include "pzcompel.h"
+#include "TPZInterfaceEl.h"
 #include "pzcmesh.h"
 #include "pzelmat.h"
 #include "pzmathyperelastic.h"
@@ -668,7 +669,11 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
 	for (i=0; i<ncon; i++){
 		int superind = cel->ConnectIndex(i);
 		int subindex = GetFromSuperMesh(superind,father);
-		cel->SetConnectIndex(i,subindex);
+		TPZInterfaceElement *interf = dynamic_cast<TPZInterfaceElement *> (cel);
+		if(!interf)
+		{
+			cel->SetConnectIndex(i,subindex);
+		}
 	}
 	cel->SetMesh(this);
         if(cel->Reference())
