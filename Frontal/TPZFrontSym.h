@@ -3,13 +3,7 @@ class TPZEqnArray;
 
 #ifndef TPZFRONTSYM_H
 #define TPZFRONTSYM_H
-#ifdef USING_BLAS
-extern "C"{
-     #include "cblas.h"
-//#include "g2c.h"
-//#include "fblaswr.h"
-};
-#endif
+
 #ifdef USING_ATLAS
 extern "C"{
      #include <cblas.h>

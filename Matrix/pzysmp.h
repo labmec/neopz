@@ -15,7 +15,7 @@
 #define YSMPMATH
 #ifdef USING_BLAS
 extern "C"{
-     #include <cblas.h>
+     #include "cblas.h"
      };
 #endif
 

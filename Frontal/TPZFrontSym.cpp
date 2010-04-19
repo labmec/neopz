@@ -10,10 +10,13 @@
 
 using namespace std;
 #ifdef USING_BLAS
+
+#include "cblas.h"
+/*
 void cblas_dspr(const enum CBLAS_ORDER order, const enum CBLAS_UPLO Uplo,
                 const int N, const double alpha, const double *X,
                 const int incX, double *Ap);
-
+*/
 //#include <cblas.h>
 //#include <clapack.h>
 //#include <f2c.h>

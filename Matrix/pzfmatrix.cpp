@@ -53,7 +53,7 @@ void cblas_daxpy(const int N, const void *alpha, const void *X,
 #endif
 #ifdef USING_BLAS
 extern "C"{
-     #include <cblas.h>
+     #include "cblas.h"
      };
 double cblas_ddot(const int N, const double *X, const int incX,
                   const double *Y, const int incY);

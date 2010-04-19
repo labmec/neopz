@@ -20,7 +20,7 @@ class TPZEqnArray;
 
 #ifdef USING_BLAS
 extern "C"{
-  #include <cblas.h>
+  #include "cblas.h"
 //#include "g2c.h"
 //#include "fblaswr.h"
 };
