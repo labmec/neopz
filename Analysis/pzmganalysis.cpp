@@ -29,7 +29,7 @@
 using namespace std;
 
 class TPZTransfer;
-static ofstream deduce("deduce.txt");
+//static ofstream deduce("deduce.txt");
 
 TPZMGAnalysis::TPZMGAnalysis(TPZCompMesh *cmesh) : TPZAnalysis(cmesh) {
   fMeshes.Push(cmesh);
