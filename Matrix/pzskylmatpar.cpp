@@ -133,6 +133,13 @@ void TPZSkylParMatrix::ColumnToWork(int &lcol, int &lprevcol) {
 void TPZSkylParMatrix::ColumnToWork(int &lcol) {
 	int neq = Dim();
 	int lcolentry = lcol;
+#ifdef DEBUG
+	if(lcolentry < 0 || lcolentry >= neq)
+	{
+		LOGPZ_ERROR(logger,"ColumnToWork called with wrong lcol argument")
+		DebugStop();
+	}
+#endif
 	lcol++;
 	lcol = lcol%neq;
 	while(lcol != lcolentry)
@@ -299,6 +306,7 @@ void * TPZSkylParMatrix::ParallelLDLt2(void *t) {
 			cout.flush();
 			if(neq-loc->fNumDecomposed > loc->fNthreads){
 				pthread_cond_wait(&condition, &skymutex);
+				col = 0;
 			}else
 			{
 				//loc->fNthreads--;
