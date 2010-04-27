@@ -827,7 +827,7 @@ TPZSkylMatrix::Decompose_LDLt(std::list<int> &singular)
     j++;
 	}
 
-	if(Rows() && (GetVal(Rows()-1,Rows()-1)) < 1.e-15)
+	if(Rows() && fabs(GetVal(Rows()-1,Rows()-1)) < 1.e-15)
   {
     singular.push_back(Rows()-1);
     PutVal(Rows()-1,Rows()-1,1.);
