@@ -47,7 +47,7 @@ const int templatedepth = 10;
 */
 TPZSkylParMatrix::TPZSkylParMatrix(const int dim, const TPZVec<int> &skyline,int NumThreads)
 
-  : TPZSkylMatrix(dim, skyline),fDec(dim)
+: TPZSkylMatrix(dim, skyline),fDec(dim), fCorrectSingular(false)
 {
   int i;
   
@@ -62,12 +62,12 @@ TPZSkylParMatrix::TPZSkylParMatrix(const int dim, const TPZVec<int> &skyline,int
 }
 
 TPZSkylParMatrix::TPZSkylParMatrix(const TPZSkylParMatrix &copy) : TPZSkylMatrix(copy), fDec(copy.fDec),fSkyline(copy.fSkyline),fEqDec(copy.fEqDec),
-        fNthreads(copy.fNthreads),fThreadUsed(0)
+	fNthreads(copy.fNthreads),fThreadUsed(0),fCorrectSingular(false)
 {
 }
 
 TPZSkylParMatrix::TPZSkylParMatrix()
-  : TPZSkylMatrix(),fDec(0)
+	: TPZSkylMatrix(),fDec(0),fCorrectSingular(false)
 {
   //something
 }
@@ -88,6 +88,7 @@ void TPZSkylParMatrix::SetSkyline(const TPZVec<int> &skyline)
   int i,neq=Dim();
   for(i=0;i<neq;i++) fDec[i]=skyline[i]-1;
   fEqDec=-1;
+	fCorrectSingular = false;
   TPZSkylMatrix::SetSkyline(skyline);
 }
 
@@ -100,6 +101,11 @@ void TPZSkylParMatrix::PrintState() {
   int neq = Dim();
   for(i=0; i<neq; i++) cout << fDec[i] << ' ';
   cout << endl;
+	cout << "Singular equations ";
+	std::list<int>::iterator it;
+	for (it=fSingular.begin(); it!=fSingular.end(); it++) {
+		cout << *it << ' ';
+	}
   cout.flush();
 }
 
@@ -342,7 +348,12 @@ void * TPZSkylParMatrix::ParallelLDLt2(void *t) {
 
 int TPZSkylParMatrix::Decompose_Cholesky(std::list<int> &singular)
 {
-	return Decompose_Cholesky();
+	bool sing = this->fCorrectSingular;
+	this->fCorrectSingular = true;
+	int ans = Decompose_Cholesky();
+	singular = this->fSingular;
+	this->fCorrectSingular = sing;
+	return ans;
 }
 
 int TPZSkylParMatrix::Decompose_Cholesky()
@@ -392,7 +403,12 @@ int TPZSkylParMatrix::Decompose_Cholesky()
 
 int TPZSkylParMatrix::Decompose_LDLt(std::list<int> &singular)
 {
-  return Decompose_LDLt();
+	bool sing = this->fCorrectSingular;
+	this->fCorrectSingular = true;
+	int ans = Decompose_LDLt();
+	singular = this->fSingular;
+	this->fCorrectSingular = sing;
+	return ans;	
 }
 
 int TPZSkylParMatrix::Decompose_LDLt()
@@ -519,6 +535,14 @@ void TPZSkylParMatrix::DecomposeColumnCholesky(int col, int prevcol){
   if(run1 != run2){
     *run2 /= *run1;
   }else{
+	  if (this->fCorrectSingular && *run2 < 1.e-10 ) {
+		  this->fSingular.push_back(col);
+		  *run2 = 1.;
+	  } else if (*run2 < 1.e-25) {
+		  std::cout << __PRETTY_FUNCTION__ << " Singular pivot at column " << col;
+		  DebugStop();
+	  }
+	  
     *run2=sqrt(*run2);
   }
   
@@ -617,6 +641,11 @@ void TPZSkylParMatrix::DecomposeColumnLDLt2(int col){
 		if(run1 != run2){
 			*run2 /= *run1;
 		}else{
+			if (this->fCorrectSingular &&  fabs(*run2) < 1.e-10 ) {
+				this->fSingular.push_back(col);
+				*run2 = 1.;
+			}
+			
 #ifdef LOG4CXX
 			std::stringstream sout;
 			sout << "col = " << col << " diagonal " << *run2;

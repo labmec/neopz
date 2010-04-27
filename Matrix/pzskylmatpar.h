@@ -86,6 +86,8 @@ class TPZSkylParMatrix : public TPZSkylMatrix
   int * fThreadUsed;
 	std::set<int> fColUsed;
 	int fNumDecomposed;
+	bool fCorrectSingular;
+	std::list<int> fSingular;
 
 #ifdef OOPARLIB
 						
