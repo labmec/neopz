@@ -269,7 +269,7 @@ void TPZEllipse3D::SetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix &nodes)
 	}
 }///void
 
-#include <Math.h>
+#include <math.h>
 void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
 {
 	const int nnodes = NNodes;   //NNodes = 2
