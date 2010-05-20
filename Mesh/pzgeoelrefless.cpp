@@ -43,7 +43,7 @@
 #include "pzgeopoint.h"
 #include "pzshapepoint.h"
 #include "tpzellipse3d.h"
-#include "tpzarc3D.h"
+#include "tpzarc3d.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 //#include "TPZRefPattern.h"
