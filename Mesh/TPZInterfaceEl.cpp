@@ -1,6 +1,6 @@
 ﻿// -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.95 2009-12-15 18:50:27 caju Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.96 2010-05-25 13:17:10 fortiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -383,7 +383,7 @@ int TPZInterfaceElement::ConnectIndex(int i) const {
    return -1;
 }
 
-void TPZInterfaceElement::Print(std::ostream &out){
+void TPZInterfaceElement::Print(std::ostream &out) const{
 
   out << "\nInterface element : \n";
   if(!LeftElement() || !LeftElement()->Reference()) out << "\tNULL LeftElement - this is inconsistent";

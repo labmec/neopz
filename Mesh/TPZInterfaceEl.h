@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.58 2009-11-04 14:10:51 fortiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.59 2010-05-25 13:17:11 fortiago Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -189,22 +189,22 @@ protected:
   /**
    * it returns the right element from the element interface
    */
-  TPZCompEl *RightElement() {return fRightElSide.Element();}
+	TPZCompEl *RightElement() const {return fRightElSide.Element();}
 
-  /**
-   * it returns the left element from the element interface
-   */
-  TPZCompEl *LeftElement() {return fLeftElSide.Element();}
+	/**
+	 * it returns the left element from the element interface
+	 */
+	TPZCompEl *LeftElement() const {return fLeftElSide.Element();}
 
-  /**
-   * Returns left neighbor
-   */
-  TPZCompElSide &LeftElementSide(){ return this->fLeftElSide; }
+	/**
+	 * Returns left neighbor
+	 */
+	TPZCompElSide &LeftElementSide() { return this->fLeftElSide; }
 
-  /**
-   * Returns right neighbor
-   */
-  TPZCompElSide &RightElementSide(){ return this->fRightElSide; }
+	/**
+	 * Returns right neighbor
+	 */
+	TPZCompElSide &RightElementSide() { return this->fRightElSide; }
 
   /**
    * it returns the normal of this interface which goes from left to right neighbors
@@ -322,7 +322,7 @@ protected:
   /**
    * Print attributes of the object
    */
-  void Print(std::ostream &out = std::cout);
+  void Print(std::ostream &out = std::cout) const;
 
   /**
    * @see Base class for comments
