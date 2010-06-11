@@ -1,4 +1,4 @@
-﻿#include "tpzgeoblend.h"
+#include "tpzgeoblend.h"
 
 #include "pzgeoelside.h"
 #include "tpzgeoelmapped.h"

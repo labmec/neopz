@@ -1,6 +1,6 @@
-﻿// -*- c++ -*-
+// -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.96 2010-05-25 13:17:10 fortiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.97 2010-06-11 18:45:57 diogo Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"

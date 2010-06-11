@@ -1,4 +1,4 @@
-﻿#ifndef GEOELEMHPP
+#ifndef GEOELEMHPP
 #define GEOELEMHPP
 
 #include <iostream>
