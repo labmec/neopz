@@ -1,4 +1,4 @@
-﻿//$Id: pzanalysis.cpp,v 1.55 2010-04-14 18:06:41 fortiago Exp $
+﻿//$Id: pzanalysis.cpp,v 1.56 2010-06-11 18:19:05 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -237,6 +237,24 @@ void TPZAnalysis::Solve() {
 	}
 #endif
 	fSolver->Solve(residual, delu);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		TPZStepSolver *step = dynamic_cast<TPZStepSolver *> (fSolver);
+		if(!step) DebugStop();
+		int nsing = step->Singular().size();
+		sout << "Number of singular equations " << nsing;
+		std::list<int>::iterator it = step->Singular().begin();
+		if(nsing) sout << "\nSingular modes ";
+		while(it != step->Singular().end())
+		{
+			sout << *it << " ";
+			it++;
+		}
+		if(nsing) sout << std::endl;
+		LOGPZ_WARN(logger,sout.str())
+	}
+#endif
 #ifdef LOG4CXX_KEEP
 	{
 		std::stringstream sout;
