@@ -63,6 +63,7 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
   SetStructuralMatrix(skstr);
   int nmeshes = fSolvers.NElements();
   TPZTransfer *tr = new TPZTransfer;
+	TPZAutoPointer<TPZTransfer> trauto(tr);
   mesh->BuildTransferMatrix(*coarse,*tr);
   TPZFMatrix sol(mesh->NEquations(),1);
   tr->TransferSolution(fSolution,sol);
@@ -71,14 +72,17 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
   TPZBlockDiagonalStructMatrix bdstr(mesh);
   TPZBlockDiagonal *bd = (TPZBlockDiagonal *) bdstr.Create();
   bdstr.AssembleBlockDiagonal(*bd);
-  TPZStepSolver s1(bd);
+	TPZAutoPointer<TPZMatrix> bdauto(bd);
+  TPZStepSolver s1(bdauto);
   s1.SetDirect(ELU);
-  int nvar = mesh->MaterialVec()[0]->NStateVariables();
+  int nvar = mesh->MaterialVec().begin()->second->NStateVariables();
 
   TPZMatrixSolver *prec;
   prec = fPrecondition[nmeshes-1];
   if(!prec) prec = fSolvers[nmeshes-1];
-  TPZMGSolver s2(tr,*prec,nvar);
+	TPZAutoPointer<TPZGuiInterface> guiInterface = new TPZGuiInterface;
+	TPZAutoPointer<TPZMatrix> skauto = skstr.CreateAssemble(fRhs, guiInterface);
+  TPZMGSolver s2(trauto,*prec,nvar,skauto);
   TPZSequenceSolver s3;
   s3.ShareMatrix(s2);
   s3.AppendSolver(s1);
@@ -120,7 +124,7 @@ void TPZMGAnalysis::MeshError(TPZCompMesh *fine, TPZCompMesh *coarse, TPZVec<REA
 			      void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),TPZVec<REAL> &truervec){
   coarse->Reference()->ResetReference();
   coarse->LoadReferences();
-  int dim = fine->MaterialVec()[0]->Dimension();
+  int dim = fine->MaterialVec().begin()->second->Dimension();
   ervec.Resize(coarse->NElements());
   if(f) {
     truervec.Resize(coarse->NElements());
@@ -173,7 +177,7 @@ void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),REAL &truerro
   TPZFMatrix loclocmat(locmatsize,locmatsize,loclocmatstore,500);
   TPZFMatrix loccormat(locmatsize,cormatsize,loccormatstore,500);
 
-  TPZIntPoints &intrule = fine->GetIntegrationRule();
+  TPZAutoPointer<TPZIntPoints> intrule = fine->GetIntegrationRule().Clone();
   int dimension = fine->Dimension();
   int numdof = fine->Material()->NStateVariables();
   TPZBlock &locblock = fine->Mesh()->Block();
@@ -190,7 +194,7 @@ void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),REAL &truerro
 
   TPZManVector<int> prevorder(dimension),
     order(dimension);
-  intrule.GetOrder(prevorder);
+  intrule->GetOrder(prevorder);
 
   TPZManVector<int> interpolation(dimension);
   fine->GetInterpolationOrder(interpolation);
@@ -204,7 +208,7 @@ void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),REAL &truerro
   for(dim=0; dim<dimension; dim++) {
 	  order[dim] = 20;
   }
-  intrule.SetOrder(order);
+  intrule->SetOrder(order);
 
 
   REAL locphistore[50]={0.},locdphistore[150]={0.};
@@ -227,11 +231,11 @@ void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),REAL &truerro
   TPZFMatrix axesfine(3,3,axesstore,9);
   TPZManVector<REAL> xfine(3);
   TPZFMatrix jaccoarse(dimension,dimension),jacinvcoarse(dimension,dimension);
-  TPZFMatrix axescoarse(3,3), axesinner(3,3);
+  TPZFMatrix axescoarse(3,3), axesinner(dimension,dimension);
   TPZManVector<REAL> xcoarse(3);
 
   REAL jacdetcoarse;
-  int numintpoints = intrule.NPoints();
+  int numintpoints = intrule->NPoints();
   REAL weight;
   int i,j,k;
 
@@ -239,7 +243,7 @@ void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),REAL &truerro
   TPZFMatrix truedsol(dimension,numdof);
   for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
 
-    intrule.Point(int_ind,int_point,weight);
+    intrule->Point(int_ind,int_point,weight);
     REAL jacdetfine;
     fine->Reference()->Jacobian( int_point, jacfine , axesfine, jacdetfine, jacinvfine);
     fine->Reference()->X(int_point, xfine);
@@ -251,8 +255,8 @@ void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),REAL &truerro
     coarse->Reference()->X(coarse_int_point,xcoarse);
     REAL dist = (xfine[0]-xcoarse[0])*(xfine[0]-xcoarse[0])+(xfine[1]-xcoarse[1])*(xfine[1]-xcoarse[1])+(xfine[2]-xcoarse[2])*(xfine[2]-xcoarse[2]);
     if(dist > 1.e-6) cout << "TPZMGAnalysis::ElementError transformation between fine and coarse is wrong\n";
-    for(i=0; i<3; i++) {
-      for(j=0; j<3; j++) {
+    for(i=0; i<dimension; i++) {
+      for(j=0; j<dimension; j++) {
 	axesinner(i,j) = 0.;
 	for(k=0; k<3; k++) axesinner(i,j) += axesfine(i,k)*axescoarse(j,k);
       }
@@ -362,7 +366,7 @@ void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),REAL &truerro
       }
     }
   }
-  intrule.SetOrder(prevorder);
+  intrule->SetOrder(prevorder);
   return error;
 }
 
@@ -388,7 +392,7 @@ void TPZMGAnalysis::Solve() {
   int nsolvers = fSolvers.NElements();
 
   TPZFMatrix residual(fRhs);
-  TPZFMatrix delu(numeq,1);
+  TPZFMatrix delu(numeq,1,0.);
   TPZMatrixSolver *solve = dynamic_cast<TPZMatrixSolver *> (fSolvers[nsolvers-1]);
   if(fSolution.Rows() != numeq) {
     fSolution.Redim(numeq,1);
