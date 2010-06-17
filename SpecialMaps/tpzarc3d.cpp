@@ -42,7 +42,7 @@ void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)
 #endif
 	
 	/** fIBaseCn -> Basis Change Matrix: from Base(R2) to Canonic(R3) | fIBaseCn 1st column = BaseX | fIBaseCn 2nd column = BaseY */
-	TPZFMatrix IBaseCnCP(3,3,0.), NotUsedHere(3,3,0.);
+	TPZFNMatrix<9> IBaseCnCP(3,3,0.), NotUsedHere(3,3,0.);
 	fIBaseCn.Resize(3,3); fICnBase.Resize(3,3); fCenter3D.Resize(3);
 	for(int i = 0; i < 3; i++)
 	{
@@ -55,12 +55,14 @@ void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)
 	IBaseCnCP(1,2) =  coord(0,1)*coord(2,0) - coord(0,2)*coord(2,0) - coord(0,0)*coord(2,1) + coord(0,2)*coord(2,1) + coord(0,0)*coord(2,2) - coord(0,1)*coord(2,2);
 	IBaseCnCP(2,2) = -coord(0,1)*coord(1,0) + coord(0,2)*coord(1,0) + coord(0,0)*coord(1,1) - coord(0,2)*coord(1,1) - coord(0,0)*coord(1,2) + coord(0,1)*coord(1,2);
 	
-	TPZFMatrix axest;
+	TPZFNMatrix<9> axest(IBaseCnCP.Rows(),IBaseCnCP.Cols());
 	IBaseCnCP.GramSchmidt(axest,NotUsedHere);
+	
+	fIBaseCn = axest;
 	axest.Transpose(&fICnBase);
 	
 	/** fICnBase -> Basis Change Matrix: from Canonic(R3) to Base(R2) | fICnBase(i,0) = Inverse[fIBaseCn] */
-	fIBaseCn = fICnBase; fIBaseCn.Transpose();
+//	fIBaseCn = fICnBase; fIBaseCn.Transpose();
 	
 	double Xa, Ya, Xb, Yb;
 	ComputeR2Points(coord,Xa,Ya,Xb,Yb);
