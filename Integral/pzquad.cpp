@@ -15,20 +15,20 @@
 
 
 
-void TPZIntPyram3D::GetOrder(TPZVec<int> &ord) {
+void TPZIntPyram3D::GetOrder(TPZVec<int> &ord) const {
   ord[0] = (short) fOrdKsi;
   ord[1] = ord[0];
   ord[2] = ord[0];
 }
 
 
-int TPZInt1d::GetMaxOrder() {return TPZIntRule::NUMINT_RULES - 1;}
-int TPZIntTriang::GetMaxOrder() {return TPZIntRuleT::NUMINT_RULEST - 1 ;}
-int TPZIntQuad::GetMaxOrder() {return TPZIntRule::NUMINT_RULES - 2 ;}
-int TPZIntCube3D::GetMaxOrder() {return TPZIntRule::NUMINT_RULES - 3;}
-int TPZIntTetra3D::GetMaxOrder() {return TPZIntRuleT3D::NUMINT_RULEST3D - 1;}
-int TPZIntPyram3D::GetMaxOrder() {return TPZIntRuleT3D::NUMINT_RULEST3D - 1;}
-int TPZIntPrism3D::GetMaxOrder() {return TPZIntRuleP3D::NUMINT_RULESP3D - 1;}
+int TPZInt1d::GetMaxOrder() const{return TPZIntRule::NUMINT_RULES - 1;}
+int TPZIntTriang::GetMaxOrder() const{return TPZIntRuleT::NUMINT_RULEST - 1 ;}
+int TPZIntQuad::GetMaxOrder() const{return TPZIntRule::NUMINT_RULES - 2 ;}
+int TPZIntCube3D::GetMaxOrder() const {return TPZIntRule::NUMINT_RULES - 3;}
+int TPZIntTetra3D::GetMaxOrder() const {return TPZIntRuleT3D::NUMINT_RULEST3D - 1;}
+int TPZIntPyram3D::GetMaxOrder() const{return TPZIntRuleT3D::NUMINT_RULEST3D - 1;}
+int TPZIntPrism3D::GetMaxOrder() const {return TPZIntRuleP3D::NUMINT_RULESP3D - 1;}
 
 
 
@@ -50,17 +50,17 @@ void TPZInt1d::SetOrder(TPZVec<int> &ord){
   fIntP   = gIntRuleList.GetRule(ord[0]);
 }
 
-void TPZInt1d::GetOrder(TPZVec<int> &ord) {
-  ord[0] = (short) fOrdKsi;
+void TPZInt1d::GetOrder(TPZVec<int> &ord) const{
+  ord[0] =  fOrdKsi;
 }
 
-int TPZInt1d::NPoints(){
+int TPZInt1d::NPoints() const {
   if(fIntP) return fIntP->NInt();
   PZError << "Null Pointer passed to method TPZInt1d::TPZInt1d(TPZIntRule *)\n";
   return 0;
 }
 
-void TPZInt1d::Point(int ip, TPZVec<REAL> &pos, REAL &w){
+void TPZInt1d::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
   if((fIntP) && ((ip >= 0) && (ip < NPoints()))){
     pos[0] 	= fIntP->Loc(ip);
     w        = fIntP->W(ip);
@@ -84,7 +84,7 @@ TPZIntQuad::TPZIntQuad(int OrdK, int OrdE){
 }
 
 
-int TPZIntQuad::NPoints(){
+int TPZIntQuad::NPoints() const {
   if (!fIntKsi || !fIntEta){
     PZError << "Null Pointer passed to method TPZInt1d::TPZInt1d(TPZIntRule *)\n";
     return 0;
@@ -92,7 +92,7 @@ int TPZIntQuad::NPoints(){
   return fIntKsi->NInt() * fIntEta->NInt();
 }
 
-void TPZIntQuad::Point(int ip, TPZVec<REAL> &pos, REAL &w){
+void TPZIntQuad::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
   if((fIntEta) && (fIntKsi) && ((ip >= 0) && (ip < NPoints()))){
     int ik, ie;
     ik = ip/fIntEta->NInt();
@@ -117,7 +117,7 @@ void TPZIntQuad::SetOrder(TPZVec<int> &ord){
   fIntEta = gIntRuleList.GetRule(ord[1]);
 }
 
-void TPZIntQuad::GetOrder(TPZVec<int> &ord) {
+void TPZIntQuad::GetOrder(TPZVec<int> &ord) const {
   ord[0] = (short) fOrdKsi;
   ord[1] = (short) fOrdEta;
 }
@@ -129,7 +129,7 @@ TPZIntTriang::TPZIntTriang(	int OrdK){
   fIntKsi = gIntRuleList.GetRuleT(OrdK);
 }
 
-int  TPZIntTriang::NPoints(){
+int  TPZIntTriang::NPoints() const{
   if (!fIntKsi){
     PZError << "Null Pointer passed to method TPZIntTriang::NPoints()\n";
     return 0;
@@ -137,7 +137,7 @@ int  TPZIntTriang::NPoints(){
   return fIntKsi->NInt();
 }
 
-void TPZIntTriang::Point(int ip, TPZVec<REAL> &pos, REAL &w){
+void TPZIntTriang::Point(int ip, TPZVec<REAL> &pos, REAL &w) const{
   if((fIntKsi) && ((ip >= 0) && (ip < NPoints()))){
     fIntKsi->Loc(ip, pos);
     w = fIntKsi->W(ip);
@@ -158,7 +158,7 @@ void TPZIntTriang::SetOrder(TPZVec<int> &ord){
   if(ord[0] <0 || ord[0]>11 || ord[1] <0 || ord[1]>11) fOrdKsi = 10;//havendo erro assume a maxima ordem
 }
 
-void TPZIntTriang::GetOrder(TPZVec<int> &ord) {
+void TPZIntTriang::GetOrder(TPZVec<int> &ord) const {
   ord[0] = (short) fOrdKsi;
   ord[1] = ord[0];
 }
@@ -182,7 +182,7 @@ void TPZIntCube3D::SetOrder(TPZVec<int> &ord){
   fIntZeta = gIntRuleList.GetRule(ord[2]);
 }
 //------------------------------------------------------------------------------
-int TPZIntCube3D::NPoints(){
+int TPZIntCube3D::NPoints() const {
   if (!fIntKsi || !fIntEta|| !fIntZeta){
     PZError << "Null Pointer passed to method TPZIntCube3D::NPoints()\n";
     return 0;
@@ -190,7 +190,7 @@ int TPZIntCube3D::NPoints(){
   return fIntKsi->NInt() * fIntEta->NInt() * fIntZeta->NInt();
 }
 //------------------------------------------------------------------------------
-void TPZIntCube3D::Point(int ip, TPZVec<REAL> &pos, REAL &w){
+void TPZIntCube3D::Point(int ip, TPZVec<REAL> &pos, REAL &w) const{
 
   if((fIntZeta) && (fIntEta) && (fIntKsi) && ((ip >= 0) && (ip < NPoints()))){
     int ik, ie , iz;
@@ -213,7 +213,7 @@ void TPZIntCube3D::Point(int ip, TPZVec<REAL> &pos, REAL &w){
 		<< NPoints() << endl;
 }
 //------------------------------------------------------------------------------
-void TPZIntCube3D::GetOrder(TPZVec<int> &ord) {
+void TPZIntCube3D::GetOrder(TPZVec<int> &ord) const {
   ord[0] = (short) fOrdKsi;
   ord[1] = (short) fOrdEta;
   ord[2] = (short) fOrdZeta;
@@ -224,22 +224,6 @@ TPZIntTetra3D::TPZIntTetra3D(int OrdK){
   fOrdKsi = OrdK;
   fIntKsi = gIntRuleList.GetRuleT3D(OrdK);
 }
-//**************************************
-TPZIntRuleT3D* TPZIntRuleList::GetRuleT3D(int precision) {
-
-  if (precision >= intavailT3D) {
-    PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision << endl;
-    precision = intavailT3D-1;
-    PZError << "\nERROR(TPZIntRuleList::getrule)-> precision gotten = " << precision << endl;
-  }
-  if (precision < 0) {
-    PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision << endl;
-    precision = 0;
-    PZError << "\nERROR(TPZIntRuleList::getrule)-> precision gotten = " << precision << endl;
-  }
-
-  return intlistT3D[precision];
-}
 //------------------------------------------------------------------------------
 void TPZIntTetra3D::SetOrder(TPZVec<int> &ord){
 
@@ -248,7 +232,7 @@ void TPZIntTetra3D::SetOrder(TPZVec<int> &ord){
   fIntKsi = gIntRuleList.GetRuleT3D(fOrdKsi);
 }
 //------------------------------------------------------------------------------
-int TPZIntTetra3D::NPoints(){
+int TPZIntTetra3D::NPoints() const {
   if (!fIntKsi){
     PZError << "Null Pointer passed to method TPZIntTetra3D::NPoints()\n";
     return 0;
@@ -256,7 +240,7 @@ int TPZIntTetra3D::NPoints(){
   return fIntKsi->NInt();
 }
 //------------------------------------------------------------------------------
-void TPZIntTetra3D::Point(int ip, TPZVec<REAL> &pos, REAL &w){
+void TPZIntTetra3D::Point(int ip, TPZVec<REAL> &pos, REAL &w) const{
 
   if((fIntKsi) && ((ip >= 0) && (ip < NPoints()))){
     fIntKsi->Loc(ip, pos);
@@ -271,7 +255,7 @@ void TPZIntTetra3D::Point(int ip, TPZVec<REAL> &pos, REAL &w){
 		<< NPoints() << endl;
 }
 //------------------------------------------------------------------------------
-void TPZIntTetra3D::GetOrder(TPZVec<int> &ord) {
+void TPZIntTetra3D::GetOrder(TPZVec<int> &ord) const {
   ord[0] = (short) fOrdKsi;
   ord[1] = ord[0];
   ord[2] = ord[0];
@@ -296,7 +280,7 @@ void TPZIntPrism3D::SetOrder(TPZVec<int> &ord){
   fIntTriang.SetOrder(prc2);
 }
 //------------------------------------------------------------------------------
-int TPZIntPrism3D::NPoints(){
+int TPZIntPrism3D::NPoints() const {
   if (!&fIntRule1D || !&fIntTriang){
     PZError << "Null Pointer passed to method TPZIntPrism3D::NPoints()\n";
     return 0;
@@ -304,7 +288,7 @@ int TPZIntPrism3D::NPoints(){
   return fIntRule1D.NPoints()*fIntTriang.NPoints();
 }
 //------------------------------------------------------------------------------
-void TPZIntPrism3D::Point(int ip, TPZVec<REAL> &pos, REAL &w){
+void TPZIntPrism3D::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 
   if((&fIntRule1D && &fIntTriang) && ((ip >= 0) && (ip < NPoints()))){
 
@@ -325,7 +309,7 @@ void TPZIntPrism3D::Point(int ip, TPZVec<REAL> &pos, REAL &w){
 		<< NPoints() << endl;
 }
 //------------------------------------------------------------------------------
-void TPZIntPrism3D::GetOrder(TPZVec<int> &ord) {
+void TPZIntPrism3D::GetOrder(TPZVec<int> &ord) const{
   ord[0] = fOrdKsi;
   ord[1] = fOrdKti;
   ord[2] = ord[1];
@@ -356,7 +340,7 @@ void TPZIntPyram3D::SetOrder(TPZVec<int> &ord){
   fIntKsi = gIntRuleList.GetRuleP3D(fOrdKsi);
 }
 //------------------------------------------------------------------------------
-int TPZIntPyram3D::NPoints(){
+int TPZIntPyram3D::NPoints() const{
   if (!fIntKsi){
     PZError << "Null Pointer passed to method TPZIntPyram3D::NPoints()\n";
     return 0;
@@ -364,7 +348,7 @@ int TPZIntPyram3D::NPoints(){
   return fIntKsi->NInt();
 }
 //------------------------------------------------------------------------------
-void TPZIntPyram3D::Point(int ip, TPZVec<REAL> &pos, REAL &w){
+void TPZIntPyram3D::Point(int ip, TPZVec<REAL> &pos, REAL &w) const{
 
   if((fIntKsi) && ((ip >= 0) && (ip < NPoints()))){
     fIntKsi->Loc(ip, pos);

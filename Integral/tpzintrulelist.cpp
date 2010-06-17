@@ -145,6 +145,23 @@ TPZIntRuleT* TPZIntRuleList::GetRuleT(int precision) {
   return intlistT[precision];
 }
 
+//**************************************
+TPZIntRuleT3D* TPZIntRuleList::GetRuleT3D(int precision) {
+	
+	if (precision >= intavailT3D) {
+		PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision << std::endl;
+		precision = intavailT3D-1;
+		PZError << "\nERROR(TPZIntRuleList::getrule)-> precision gotten = " << precision << std::endl;
+	}
+	if (precision < 0) {
+		PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision << std::endl;
+		precision = 0;
+		PZError << "\nERROR(TPZIntRuleList::getrule)-> precision gotten = " << precision << std::endl;
+	}
+	
+	return intlistT3D[precision];
+}
+
 
 
 TPZIntRuleList  gIntRuleList;

@@ -22,7 +22,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
     PZError << "TPZIntRule creation precision gotten = " << precision << "\n";
   }
 
-  fNumInt = (short) precision;
+  fNumInt =  precision;
   int rule = 0;
   if (precision ==  0 || precision == 1) rule = 1;//fNumInt =  1;//integra constantes
   else if (precision <=  2) rule = 2;
@@ -1777,7 +1777,7 @@ TPZIntRuleT::~TPZIntRuleT(){
 
 //***************************************
 //***************************************
-void TPZIntRuleT::Loc(int i, TPZVec<REAL> &Points) {
+void TPZIntRuleT::Loc(int i, TPZVec<REAL> &Points) const{
 
   if (fLocationKsi && fLocationEta && i>=0 && i<fNumInt){
     Points[0] = fLocationKsi[i];
@@ -1791,7 +1791,7 @@ void TPZIntRuleT::Loc(int i, TPZVec<REAL> &Points) {
 
 //***************************************
 //***************************************
-REAL TPZIntRuleT::W(int i) {
+REAL TPZIntRuleT::W(int i) const {
 
   // Quando eu encontrar o IDIOTA que introduziu este bug!!!
   // Philippe

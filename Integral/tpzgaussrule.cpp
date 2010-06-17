@@ -45,7 +45,7 @@ TPZGaussRule::TPZGaussRule(int precision){
 //   if(!(precision%2)) numpoints++;
   int numpoints = (int)((precision+1.)/2.+0.5);
   if(numpoints > 20) exit(-1);
-  fNumInt = (short) intpoints[numpoints];
+  fNumInt =  intpoints[numpoints];
   fLocation = new REAL[fNumInt];
   fWeight = new REAL[fNumInt];
 
@@ -746,7 +746,7 @@ TPZGaussRule::~TPZGaussRule(){
 
 //***************************************
 //***************************************
-REAL TPZGaussRule::Loc(int i) {
+REAL TPZGaussRule::Loc(int i) const {
 
   if (fLocation && i>=0 && i<fNumInt)
     return fLocation[i];
@@ -758,7 +758,7 @@ REAL TPZGaussRule::Loc(int i) {
 
 //***************************************
 //***************************************
-REAL TPZGaussRule::W(int i) {
+REAL TPZGaussRule::W(int i) const {
 
   if (fWeight && i>=0 && i<fNumInt)
     return fWeight[i];

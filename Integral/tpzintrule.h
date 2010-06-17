@@ -1,4 +1,4 @@
-//$Id: tpzintrule.h,v 1.2 2009-06-16 02:48:55 erick Exp $
+//$Id: tpzintrule.h,v 1.3 2010-06-17 13:07:27 phil Exp $
 #ifndef TPZINTRULE_H
 #define TPZINTRULE_H
 
@@ -23,11 +23,11 @@ public:
 
     public:
 
-      short NInt();							//return number of integration points
+      int NInt() const;							//return number of integration points
 
-      REAL Loc(int i);						//return location of the ith pot
+      REAL Loc(int i) const;						//return location of the ith pot
 
-      REAL W(int i);						//return weight for the ith point
+      REAL W(int i) const;						//return weight for the ith point
   };
 
 #endif

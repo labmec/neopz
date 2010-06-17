@@ -35,11 +35,11 @@ class TPZIntRuleT{
   public:
     enum {NUMINT_RULEST = 19};
 
-    short NInt(){ return fNumInt;}	//return number of integration points
+    short NInt() const { return fNumInt;}	//return number of integration points
 
-    void Loc(int i, TPZVec<REAL> &pos);			   //return location of the ith pot
+    void Loc(int i, TPZVec<REAL> &pos) const;			   //return location of the ith pot
 
-    REAL W(int i);						//return weight for the ith point
+    REAL W(int i) const;						//return weight for the ith point
 
 
 };

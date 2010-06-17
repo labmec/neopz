@@ -31,11 +31,11 @@ public:
 
     public:
 
-      short NInt(){ return fNumInt;}	//return number of integration points
+      int NInt() const{ return fNumInt;}	//return number of integration points
 
-      REAL Loc(int i);						//return location of the ith pot
+      REAL Loc(int i) const;						//return location of the ith pot
 
-      REAL W(int i);						//return weight for the ith point
+      REAL W(int i) const;						//return weight for the ith point
   };
 
 #endif

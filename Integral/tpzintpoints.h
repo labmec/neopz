@@ -27,14 +27,16 @@ public:
     virtual ~TPZIntPoints()
     {
     }
-    virtual int NPoints() = 0;
-    virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) = 0;
+    virtual int NPoints() const = 0;
+    virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const = 0;
     virtual void SetOrder(TPZVec<int> &ord) = 0;
-    virtual void GetOrder(TPZVec<int> &ord) = 0;
-    virtual int GetMaxOrder() = 0;
-    virtual int Dimension() = 0;
+    virtual void GetOrder(TPZVec<int> &ord) const = 0;
+    virtual int GetMaxOrder() const = 0;
+    virtual int Dimension() const = 0;
+	virtual TPZIntPoints *Clone() const = 0;
     virtual TPZIntPoints *PrismExtend(int order) = 0;
-    virtual void Print(std::ostream &out)
+	
+    virtual void Print(std::ostream &out) const
     {
       int np = NPoints();
       out << "integration rule numpoints " << np << std::endl;

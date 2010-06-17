@@ -49,13 +49,17 @@ public:
     {
       SetOrder(order);
     }
+	
+	TPZPrInteg(const TPZPrInteg &copy ) : TFather(copy), fOrdKsi(copy.fOrdKsi), fIntP(copy.fIntP)
+	{
+	}
     virtual ~TPZPrInteg();
     
-    int NPoints()
+    int NPoints() const
     {
       return TFather::NPoints()*fIntP->NInt();
     }
-    void Point(int ip, TPZVec<REAL> &pos, REAL &w)
+    void Point(int ip, TPZVec<REAL> &pos, REAL &w) const
     {
       int ipf = ip/fIntP->NInt();
       int iploc = ip%(fIntP->NInt());
@@ -75,7 +79,7 @@ public:
       fOrdKsi = ord[Dim-1];
       fIntP   = gIntRuleList.GetRule(ord[Dim-1]);
     }
-    void GetOrder(TPZVec<int> &ord)
+    void GetOrder(TPZVec<int> &ord) const
     {
 #ifndef NODEBUG
       if(ord.NElements() < Dim) {
@@ -87,19 +91,23 @@ public:
       ord[Dim-1] = fOrdKsi;
     }
     
-    int Dimension()
+    int Dimension() const
     {
       return Dim;
     }
     
     virtual TPZIntPoints *PrismExtend(int order);
 
-    int GetMaxOrder()
+    int GetMaxOrder() const
     {
       int fatmax = TFather::GetMaxOrder();
       return (fatmax > fOrdKsi) ? fatmax : fOrdKsi;
           
     }
+	virtual TPZIntPoints *Clone() const
+	{
+		return new TPZPrInteg<TFather>(*this);
+	}
 
 };
 

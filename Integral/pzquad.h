@@ -31,15 +31,18 @@ class TPZInt1d : public TPZIntPoints{
  public:
    enum {Dim = 1};
   TPZInt1d(int OrdK = 0);
+	TPZInt1d(const TPZInt1d &copy ) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntP(copy.fIntP)
+	{
+	}
   virtual ~TPZInt1d()
   {
   }
-  virtual int NPoints();
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
+  virtual int NPoints() const;
+  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
   virtual void SetOrder(TPZVec<int> &ord);
-  virtual void GetOrder(TPZVec<int> &ord);
-  virtual int GetMaxOrder();
-  virtual int Dimension() 
+  virtual void GetOrder(TPZVec<int> &ord) const;
+  virtual int GetMaxOrder() const;
+  virtual int Dimension() const
   {
     return Dim;
   }
@@ -47,6 +50,10 @@ class TPZInt1d : public TPZIntPoints{
   {
     return new TPZPrInteg<TPZInt1d>(order);
   }
+	virtual TPZIntPoints *Clone() const
+	{
+		return new TPZInt1d(*this);
+	}
 };
 //*******************************************************************
 // Base Class TPZIntTriang - which handles the integration
@@ -63,12 +70,15 @@ class TPZIntTriang : public TPZIntPoints{
   virtual ~TPZIntTriang()
   {
   }
+	TPZIntTriang(const TPZIntTriang &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
+	{
+	}
   virtual void SetOrder(TPZVec<int> &ord);
-  virtual int  NPoints();
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
-  virtual void GetOrder(TPZVec<int> &ord);
-  virtual int GetMaxOrder();
-  virtual int Dimension()
+  virtual int  NPoints() const;
+  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+  virtual void GetOrder(TPZVec<int> &ord) const;
+  virtual int GetMaxOrder() const;
+  virtual int Dimension() const
   {
     return Dim;
   }
@@ -76,6 +86,10 @@ class TPZIntTriang : public TPZIntPoints{
   {
     return new TPZPrInteg<TPZIntTriang>(order);
   }
+	virtual TPZIntPoints *Clone() const
+	{
+		return new TPZIntTriang(*this);
+	}
 
 };
 //*******************************************************************
@@ -95,12 +109,15 @@ class TPZIntQuad : public TPZIntPoints{
   virtual ~TPZIntQuad()
   {
   }
+	TPZIntQuad(const TPZIntQuad &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fIntKsi(copy.fIntKsi),fIntEta(copy.fIntEta)
+	{
+	}
   virtual void SetOrder(TPZVec<int> &ord);
-  virtual int NPoints();
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
-  virtual void GetOrder(TPZVec<int> &ord);
-  virtual int GetMaxOrder();  
-  virtual int Dimension()
+  virtual int NPoints() const;
+  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+  virtual void GetOrder(TPZVec<int> &ord) const;
+  virtual int GetMaxOrder() const;  
+  virtual int Dimension() const
   {
     return Dim;
   }
@@ -108,6 +125,10 @@ class TPZIntQuad : public TPZIntPoints{
   {
     return new TPZPrInteg<TPZIntQuad>(order);
   }
+	virtual TPZIntPoints* Clone() const
+	{
+		return new TPZIntQuad(*this);
+	}
 };
 
 //#########################################################################
@@ -132,12 +153,16 @@ class TPZIntCube3D : public TPZIntPoints{
   virtual ~TPZIntCube3D()
   {
   }
+	TPZIntCube3D(const TPZIntCube3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fOrdZeta(copy.fOrdZeta),
+		fIntKsi(copy.fIntKsi), fIntEta(copy.fIntEta), fIntZeta(copy.fIntZeta)
+	{
+	}
   virtual void SetOrder(TPZVec<int> &ord);
-  virtual int NPoints();
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
-  virtual void GetOrder(TPZVec<int> &ord);
-  virtual int GetMaxOrder();
-  virtual int Dimension()
+  virtual int NPoints() const;
+  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+  virtual void GetOrder(TPZVec<int> &ord) const;
+  virtual int GetMaxOrder() const;
+  virtual int Dimension() const
   {
     return Dim;
   }
@@ -145,6 +170,10 @@ class TPZIntCube3D : public TPZIntPoints{
   {
     return new TPZPrInteg<TPZIntCube3D>(order);
   }
+	virtual TPZIntPoints *Clone() const
+	{
+		return new TPZIntCube3D(*this);
+	}
 };
 
 //#########################################################################
@@ -161,12 +190,15 @@ class TPZIntTetra3D : public TPZIntPoints {
  public:
    enum {Dim = 3};
   TPZIntTetra3D(int OrdK = 2);
+	TPZIntTetra3D(const TPZIntTetra3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
+	{
+	}
   virtual void SetOrder(TPZVec<int> &ord);
-  virtual int NPoints();
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
-  virtual void GetOrder(TPZVec<int> &ord);
-  virtual int GetMaxOrder();  
-  virtual int Dimension()
+  virtual int NPoints() const;
+  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+  virtual void GetOrder(TPZVec<int> &ord) const;
+  virtual int GetMaxOrder() const;  
+  virtual int Dimension() const
   {
     return Dim;
   }
@@ -174,6 +206,10 @@ class TPZIntTetra3D : public TPZIntPoints {
   {
     return new TPZPrInteg<TPZIntTetra3D>(order);
   }
+	virtual TPZIntPoints* Clone() const
+	{
+		return new TPZIntTetra3D(*this);
+	}
 };
 //#########################################################################
 //#########################################################################
@@ -190,12 +226,15 @@ class TPZIntPyram3D : public TPZIntPoints {
  public:
    enum {Dim =3};
   TPZIntPyram3D(int OrdK = 2);
+	TPZIntPyram3D(const TPZIntPyram3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
+	{
+	}
   virtual void SetOrder(TPZVec<int> &ord);
-  virtual int NPoints();
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w);
-  virtual void GetOrder(TPZVec<int> &ord);
-  virtual int GetMaxOrder();  
-  virtual int Dimension()
+  virtual int NPoints() const;
+  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+  virtual void GetOrder(TPZVec<int> &ord) const;
+  virtual int GetMaxOrder() const;  
+  virtual int Dimension() const
   {
     return Dim;
   }
@@ -203,6 +242,10 @@ class TPZIntPyram3D : public TPZIntPoints {
   {
     return new TPZPrInteg<TPZIntPyram3D>(order);
   }
+	TPZIntPoints *Clone() const
+	{
+		return new TPZIntPyram3D(*this);
+	}
 };
 //#########################################################################
 //#########################################################################
@@ -221,13 +264,17 @@ class TPZIntPrism3D  : public TPZIntPoints {
 
    enum {Dim = 3};
   TPZIntPrism3D(int OrdK = 2,int OrdL = 2);
+	TPZIntPrism3D(const TPZIntPrism3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdKti(copy.fOrdKti), fIntRule1D(copy.fIntRule1D),
+			fIntTriang(copy.fIntTriang)
+	{
+	}
   virtual ~TPZIntPrism3D();
   void SetOrder(TPZVec<int> &ord) ;
-  int NPoints();
-  void Point(int ip, TPZVec<REAL> &pos, REAL &w);
-  void GetOrder(TPZVec<int> &ord);
-  virtual int GetMaxOrder();  
-  virtual int Dimension()
+  int NPoints() const;
+  void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+  void GetOrder(TPZVec<int> &ord) const;
+  virtual int GetMaxOrder() const;  
+  virtual int Dimension() const
   {
     return Dim;
   }
@@ -235,6 +282,10 @@ class TPZIntPrism3D  : public TPZIntPoints {
   {
     return new TPZPrInteg<TPZIntPrism3D>(order);
   }
+	TPZIntPoints *Clone() const
+	{
+		return new TPZIntPrism3D(*this);
+	}
 };
 
 #endif

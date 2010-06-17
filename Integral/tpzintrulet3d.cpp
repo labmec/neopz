@@ -13,7 +13,7 @@
 #include "pzerror.h"
 #include "pzvec.h"
 
-REAL TPZIntRuleT3D::W(int i) {
+REAL TPZIntRuleT3D::W(int i) const {
 
   if (fWeight && i>=0 && i<fNumInt)
     return fWeight[i];
@@ -33,7 +33,7 @@ TPZIntRuleT3D::~TPZIntRuleT3D(){
 
 }
 //------------------------------------------------------------------------------
-void TPZIntRuleT3D::Loc(int i, TPZVec<REAL> &Points) {
+void TPZIntRuleT3D::Loc(int i, TPZVec<REAL> &Points) const {
 
   if (fLocationKsi && fLocationEta && fLocationZeta && i>=0 && i<fNumInt){
     Points[0] = fLocationKsi[i];
@@ -53,7 +53,7 @@ TPZIntRuleT3D::TPZIntRuleT3D(int precision){
     precision = NUMINT_RULEST3D;
   }
 
-  fNumInt = (short) precision;
+  fNumInt = precision;
 
   if (precision <= 1)  fNumInt =   1;//integra constantes e lineares
   else if (precision == 2)  fNumInt =   4;//integra quadraticas

@@ -1,4 +1,4 @@
-//$Id: tpzintrule.cpp,v 1.2 2009-06-16 02:48:55 erick Exp $
+//$Id: tpzintrule.cpp,v 1.3 2010-06-17 13:07:27 phil Exp $
 #include "tpzintrule.h"
 #include "tpzintrulelist.h"
 #include "pzerror.h"
@@ -10,14 +10,14 @@ TPZIntRule::~TPZIntRule(){
 
 }
 
-REAL TPZIntRule::Loc(int i) {
+REAL TPZIntRule::Loc(int i) const {
 	return INTRULE_PARENT::Loc(i);
 }
 
-REAL TPZIntRule::W(int i) {
+REAL TPZIntRule::W(int i) const{
 	return INTRULE_PARENT::W(i);
 }
 
-short TPZIntRule::NInt(){
+int TPZIntRule::NInt() const{
 	return INTRULE_PARENT::NInt();
 }

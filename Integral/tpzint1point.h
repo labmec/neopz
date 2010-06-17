@@ -27,17 +27,24 @@ class TPZInt1Point : public TPZIntPoints {
     enum {Dim = 0};
     TPZInt1Point(int order=0);
     TPZInt1Point(TPZVec<int> &ord);
+	TPZInt1Point(const TPZInt1Point &copy ) : TPZIntPoints(copy)
+	{
+	}
     virtual ~TPZInt1Point();
     void SetOrder(TPZVec<int> &ord);
-    int NPoints();
-    void Point(int ip, TPZVec<REAL> &pos, REAL &w);
-    void GetOrder(TPZVec<int> &ord);
-    int GetMaxOrder();  
-    int Dimension()
+    int NPoints() const;
+    void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+    void GetOrder(TPZVec<int> &ord) const;
+    int GetMaxOrder() const;  
+    int Dimension() const
     {
       return Dim;
     }
     TPZIntPoints *PrismExtend(int order);
+	TPZIntPoints *Clone() const
+	{
+		return new TPZInt1Point(*this);
+	}
 
 };
 
@@ -51,11 +58,11 @@ inline TPZInt1Point::TPZInt1Point(int order) {
 inline void  TPZInt1Point::SetOrder(TPZVec<int> &ord) {
 }
 
-inline int TPZInt1Point::NPoints() {
+inline int TPZInt1Point::NPoints() const{
   return 1;
 }
 
-inline void TPZInt1Point::Point(int ip, TPZVec<REAL> &pos, REAL &w) {
+inline void TPZInt1Point::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 #ifndef NODEBUG
   if(ip!=0) {
     std::cout << "TPZInt1Point:: Bad number point " << ip << std::endl;
@@ -65,11 +72,11 @@ inline void TPZInt1Point::Point(int ip, TPZVec<REAL> &pos, REAL &w) {
   w = 1.;
 }
 
-inline void TPZInt1Point::GetOrder(TPZVec<int> &/* ord */) {
+inline void TPZInt1Point::GetOrder(TPZVec<int> &/* ord */) const{
 }
 
 
-inline int TPZInt1Point::GetMaxOrder() {return 1;}
+inline int TPZInt1Point::GetMaxOrder() const {return 1;}
 
 inline TPZIntPoints *TPZInt1Point::PrismExtend(int order) 
 {
