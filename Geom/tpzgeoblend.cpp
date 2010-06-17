@@ -67,6 +67,7 @@ bool TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZV
      NeighPar.Resize(SideDim);
      TransfBetweenNeigh(side).Apply(SidePar,NeighPar);
 
+	JacNeighSide.Resize(0, 0);
      JacNeighSide.Resize(TransfBetweenNeigh(side).Mult().Rows(),JacSide.Cols());
      TransfBetweenNeigh(side).Mult().Multiply(JacSide,JacNeighSide);
 

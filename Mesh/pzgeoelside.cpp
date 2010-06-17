@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.31 2010-06-11 18:45:57 diogo Exp $
+//$Id: pzgeoelside.cpp,v 1.32 2010-06-17 17:22:27 phil Exp $
 
 // -*- c++ -*-
 #include "pzgeoelside.h"
@@ -262,7 +262,7 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 	  }
 	  Sort<int>(GeoElSet[in]);
 	}
-  TPZStack<int,100> result;
+  TPZStack<int> result;
   switch(nsnodes) {
   case 1:
 	{
@@ -270,19 +270,19 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 	}
 	break;
   case 2:
-	Intersect<int,100>(GeoElSet[0],GeoElSet[1],result);
+	Intersect<int,DEFAULTVEC_ALLOC>(GeoElSet[0],GeoElSet[1],result);
 	break;
   case 3:
-	Intersect<int,100>(GeoElSet[0],GeoElSet[1],GeoElSet[2],result);
+	Intersect<int,DEFAULTVEC_ALLOC>(GeoElSet[0],GeoElSet[1],GeoElSet[2],result);
 	break;
   case 4:
 	{
 	  TPZStack<int> inter1, inter2;
-	  Intersect<int,100>(GeoElSet[0],GeoElSet[2],inter1);
+	  Intersect<int,DEFAULTVEC_ALLOC>(GeoElSet[0],GeoElSet[2],inter1);
 	  if(inter1.NElements()==0) break;
-	  Intersect<int,100>(GeoElSet[1],GeoElSet[3],inter2);
+	  Intersect<int,DEFAULTVEC_ALLOC>(GeoElSet[1],GeoElSet[3],inter2);
 	  if(inter2.NElements()==0) break;
-	  Intersect<int,100>(inter1,inter2,result);
+	  Intersect<int,DEFAULTVEC_ALLOC>(inter1,inter2,result);
 	}
 	break;
   default:
@@ -291,7 +291,7 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 	  inter1 = GeoElSet[0];
 	  for(in=0; in<nsnodes-1; in++) {
 	inter2.Resize(0);
-	Intersect<int,100>(inter1,GeoElSet[in+1],inter2);
+	Intersect<int,DEFAULTVEC_ALLOC>(inter1,GeoElSet[in+1],inter2);
 	if(inter2.NElements() == 0) break;
 	inter1 = inter2;
 	  }
