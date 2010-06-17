@@ -1,4 +1,4 @@
-//$Id: pzeuler.cpp,v 1.6 2009-11-04 14:05:15 fortiago Exp $
+//$Id: pzeuler.cpp,v 1.7 2010-06-17 17:23:18 phil Exp $
 
 #include "pzeuler.h"
 
@@ -286,6 +286,7 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
     TPZEulerEquation::FromPrimitiveToConservative(data.soll,gGamma);
     if (bc.Type() == EFreeSlip){
       TPZManVector<REAL,15> Flux(5);
+#warning One needs to invert the velocity component
       fAUSMFlux.ComputeFlux(data.soll,data.soll,data.normal,Flux);
       for(int i = 0; i < 5; i++) ef(i,0)   += +1. * weight*Flux[i];
     }///if FreeSlip
