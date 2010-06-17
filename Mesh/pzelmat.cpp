@@ -1,4 +1,4 @@
-//$Id: pzelmat.cpp,v 1.11 2010-03-22 17:23:53 phil Exp $
+//$Id: pzelmat.cpp,v 1.12 2010-06-17 17:21:12 phil Exp $
 
 #include "pzelmat.h"
 #include "pzfmatrix.h"
@@ -65,7 +65,8 @@ void TPZElementMatrix::Print(std::ostream &out){
 			}
 		}
 		std::stringstream sout;
-		sout << "CondMatrix";
+		out << "Matrix size " << constrmatrix.Rows() << "\n";
+		sout << "ConstrainedMatrix = ";
 		constrmatrix.Print(sout.str().c_str(), out, EMathematicaInput);
 	}
 }
