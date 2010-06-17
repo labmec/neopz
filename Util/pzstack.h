@@ -2,7 +2,7 @@
  * @file pzstack.h
  * @brief A simple stack.
  */
-// $Id: pzstack.h,v 1.4 2005-04-25 02:55:51 phil Exp $
+// $Id: pzstack.h,v 1.5 2010-06-17 12:41:22 phil Exp $
 
 #ifndef PZSTACK_H
 #define PZSTACK_H
@@ -23,7 +23,7 @@
  * TPZManVector class. The class T needs to implement the assignment
  * operator and copy constructor.
  */
-template< class T, int NumExtAlloc = 100 >
+template< class T, int NumExtAlloc = DEFAULTVEC_ALLOC >
 class TPZStack : public TPZManVector< T, NumExtAlloc >
 {
    public:

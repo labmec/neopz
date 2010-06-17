@@ -4,7 +4,7 @@
  * @file pzmanvector.h
  * @brief Free store vector implementation.
  */
-// $Id: pzmanvector.h,v 1.11 2009-12-15 17:26:17 phil Exp $
+// $Id: pzmanvector.h,v 1.12 2010-06-17 12:41:12 phil Exp $
 
 #ifndef PZMANVECTOR_H
 #define PZMANVECTOR_H
@@ -12,7 +12,7 @@
 #include "pzvec.h"
 #include "pzerror.h"
 
-
+const int DEFAULTVEC_ALLOC = 200;
 /**
  * @ingroup util
  *
@@ -28,7 +28,7 @@
  *
  * @see Shrink
  */
-template < class T, int NumExtAlloc = 100 >
+template < class T, int NumExtAlloc = DEFAULTVEC_ALLOC >
 class TPZManVector : public TPZVec< T >
 {
    public:
