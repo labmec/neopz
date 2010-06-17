@@ -260,7 +260,8 @@ void TPZRefPattern::ReadPattern(std::istream &in,std::vector< TPZAutoPointer<TPZ
   {
     int ip;
     in >> ip;
-    fPermutedRefPatterns[el] = collect[ip]->Id();
+	  int collectid = collect[ip]->Id();
+    fPermutedRefPatterns[el] = collectid;
   }
   TPZGeoEl *father = fInternalMesh.ElementVec()[0];
   int nsides = father->NSides();
@@ -1044,7 +1045,7 @@ bool TPZRefPattern::ConstJacobian(TPZGeoElSide gelside, REAL tol)
 	int np = rule->NPoints();
 	rule->Point(0, pt, weight);
 	TPZFNMatrix<9> jacobian(dim,dim,0.),jacinv(dim,dim,0.);
-	TPZFNMatrix<9> axes(3,3,0.);
+	TPZFNMatrix<9> axes(dim,3,0.);
 	REAL detjac;
 	gelside.Jacobian(pt, jacobian, axes , detjac, jacinv);
 	int ip;
@@ -1053,7 +1054,7 @@ bool TPZRefPattern::ConstJacobian(TPZGeoElSide gelside, REAL tol)
 		rule->Point(ip, pt, weight);
 		TPZFNMatrix<9> jacobian2(dim,dim,0.),jacinv2(dim,dim,0.);
 		REAL detjac2;
-		TPZFNMatrix<9> axes2(3,3,0.);
+		TPZFNMatrix<9> axes2(dim,3,0.);
 		gelside.Jacobian(pt, jacobian2, axes2 , detjac2, jacinv2);
 		jacobian2 -= jacobian;
 		axes2 -= axes;
@@ -1376,7 +1377,7 @@ void TPZRefPattern::GeneratePermuted(TPZGeoEl *gel)
     for(ip=0; ip<npoint; ip++)
     {
       integ->Point(ip,point,w);
-      TPZFNMatrix<9> jac(dim,dim),jacinv(dim,dim),axes(3,3);
+      TPZFNMatrix<9> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
       REAL detjac,detjac2;
       gelp->Jacobian(point,jac,axes,detjac,jacinv);
       gel->Jacobian(point,jac,axes,detjac2,jacinv);
@@ -1394,6 +1395,7 @@ void TPZRefPattern::GeneratePermuted(TPZGeoEl *gel)
       candidate.fTransform = gel->ComputeParamTrans(gelp,gel->NSides()-1,gel->NSides()-1);
       fPermutations[gel->Type()].push_back(candidate);
     }
+	  delete gelp;
     permute++;
   }
 

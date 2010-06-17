@@ -18,7 +18,7 @@ TPZTransform::TPZTransform(int dim) :
 }
 
 TPZTransform::TPZTransform() :
-  fMult(), fSum() {
+  fMult(0,0,fStore,9), fSum(0,1,fStore+9,3) {
     fRow = 0;
     fCol = 0;
 }
