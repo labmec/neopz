@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.38 2010-06-11 18:45:57 diogo Exp $
+//$Id: pzsubcmesh.cpp,v 1.39 2010-06-17 17:26:07 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -23,6 +23,7 @@
 #include "pzsmfrontalanal.h"
 #include "pzsmanal.h"
 #include "pzbndcond.h"
+#include "pzvisualmatrix.h"
 
 #include <stdio.h>
 
@@ -773,6 +774,8 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	int i=0;
 	CleanUpUnconnectedNodes();
 	PermuteExternalConnects();
+	
+	
 
 	TPZBlock &block = Mesh()->Block();
 	//	TPZFMatrix &MeshSol = Mesh()->Solution();
@@ -791,6 +794,34 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		}
 	}
 	numeq = (TPZCompMesh::NEquations()) - numeq;
+	
+	// check whether the connects are properly enumerated
+#ifdef DEBUG 
+	{
+		int in;
+		int globeq = TPZCompMesh::NEquations();
+		int nconnects = ConnectVec().NElements();
+		for(in=0; in<nconnects; in++)
+		{
+			TPZConnect &df = ConnectVec()[in];
+			if( ! df.NElConnected() || df.SequenceNumber() == -1) continue;
+			int seqnum = df.SequenceNumber();
+			int eq = Block().Position(seqnum);
+			if(eq < numeq && fExternalLocIndex[in] != -1)
+			{
+				std::stringstream sout;
+				sout << "Connect " << in << " has equation " << eq << " but is external";
+				LOGPZ_ERROR(logger,sout.str())
+			}
+			if(eq < globeq && df.HasDependency())
+			{
+				std::stringstream sout;
+				sout << "Connect " << in << " with dependency was not put at the end of the stack equation " << eq << " global equations " << globeq;
+				LOGPZ_ERROR(logger,sout.str())
+			}
+		}
+	}
+#endif
 //??
 
 	TPZAutoPointer<TPZMaterial> mat = MaterialVec().begin()->second;
@@ -876,7 +907,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	fAnalysis = new TPZSubMeshAnalysis(this);
 	fAnalysis->SetGuiInterface(guiInterface);
-
+	
 	TPZAutoPointer<TPZStructMatrix> str = NULL;
 	if(numThreads){
 		str = new TPZParSkylineStructMatrix(this,numThreads);
@@ -894,13 +925,40 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInt
 	fAnalysis->SetSolver(autostep);
 
 	PermuteExternalConnects();
-
+#ifdef DEBUG 
+	{
+		TPZFMatrix fillin;
+		int resolution = 100;
+		ComputeFillIn(resolution,fillin);		
+#ifdef USING_BOOST
+		std::string out("matrix_boost.vtk");
+#else
+		std::string out("matrix_native.vtk");
+#endif
+		VisualMatrix(fillin,out);
+	}
+#endif
+	
 }
 
 void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface){
 
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
-  fAnalysis->SetGuiInterface(guiInterface);
+	fAnalysis->SetGuiInterface(guiInterface);
+	
+#ifdef DEBUG
+	{
+		TPZFMatrix fillin;
+		int resolution = 100;
+		ComputeFillIn(resolution,fillin);		
+#ifdef USING_BOOST
+		std::string out("matrix_boost.vtk");
+#else
+		std::string out("matrix_native.vtk");
+#endif
+		VisualMatrix(fillin,out);
+	}
+#endif
 
 	TPZAutoPointer<TPZStructMatrix> fstr = NULL;
 	if(numThreads){
