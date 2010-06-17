@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.17 2010-03-22 17:22:47 phil Exp $
+//$Id: pzconnect.h,v 1.18 2010-06-17 13:49:38 phil Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -47,7 +47,7 @@ class TPZConnect {
   struct TPZDepend
   {
     int			fDepConnectIndex;
-    TPZFMatrix	fDepMatrix;
+    TPZFNMatrix<50>	fDepMatrix;
     TPZDepend		*fNext;
 
     TPZDepend(int DepConnectIndex,TPZFMatrix &depmat,int ipos,int jpos, int isize, int jsize);
