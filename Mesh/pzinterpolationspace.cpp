@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.40 2009-11-23 19:53:33 phil Exp $
+//$Id: pzinterpolationspace.cpp,v 1.41 2010-06-17 17:57:10 phil Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -72,6 +72,8 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
   int dim = this->Dimension();
   int nshape = NShapeF();
 
+	//jacobian.Zero();
+	//jacinv.Zero();
   ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
   this->Shape(intpoint,phi,dphi);
   int ieq;
@@ -116,7 +118,7 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
   const int nstate = this->Material()->NStateVariables();
   data.phi.Redim(nshape,1);
   data.dphix.Redim(dim,nshape);
-  data.axes.Redim(3,3);
+  data.axes.Redim(dim,3);
   data.jacobian.Redim(dim,dim);
   data.jacinv.Redim(dim,dim);
   data.x.Resize(3);
@@ -263,17 +265,18 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
   TPZManVector<REAL,3> intpoint(dim,0.);
   REAL weight = 0.;
 
-  TPZIntPoints &intrule = GetIntegrationRule();
+#warning "I DONT LIKE MESSING WITH INTEGRATION RULES HERE"
+  TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
   TPZManVector<int,3> p2(dim,data.p*2);
-  intrule.SetOrder(p2);
+  intrule->SetOrder(p2);
   if(material->HasForcingFunction()) {
-    TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
-    intrule.SetOrder(order);
+    TPZManVector<int,3> order(dim,intrule->GetMaxOrder());
+    intrule->SetOrder(order);
   }
 
-  int intrulepoints = intrule.NPoints();
+  int intrulepoints = intrule->NPoints();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-    intrule.Point(int_ind,intpoint,weight);
+    intrule->Point(int_ind,intpoint,weight);
     this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     weight *= fabs(data.detjac);
 	data.intPtIndex = int_ind;
@@ -304,19 +307,19 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
   TPZManVector<REAL,3> intpoint(dim,0.);
   REAL weight = 0.;
 
-  TPZIntPoints &intrule = GetIntegrationRule();
+  TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
   TPZManVector<int,3> p2(dim,data.p*2);
 
-  intrule.SetOrder(p2);
+  intrule->SetOrder(p2);
 
   if(material->HasForcingFunction()) {
-    TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
-    intrule.SetOrder(order);
+    TPZManVector<int,3> order(dim,intrule->GetMaxOrder());
+    intrule->SetOrder(order);
   }
 
-  int intrulepoints = intrule.NPoints();
+  int intrulepoints = intrule->NPoints();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-    intrule.Point(int_ind,intpoint,weight);
+    intrule->Point(int_ind,intpoint,weight);
 
     this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
 
@@ -401,7 +404,7 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
   data.sol.Fill(0.);
   data.dsol.Redim(dim,numdof);
   data.dsol.Zero();
-  data.axes.Redim(3,3);
+  data.axes.Redim(dim,3);
   data.axes.Zero();
   this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
 
@@ -445,19 +448,19 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
   TPZFMatrix projectmat(locmatsize,nvar,0.);
 
   TPZManVector<int,3> prevorder(dimension);
-  TPZIntPoints &intrule = GetIntegrationRule();
-  intrule.GetOrder(prevorder);
+  TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
+  intrule->GetOrder(prevorder);
 
   int thismaxorder = this->MaxOrder();
   int coarsemaxorder = coarsel.MaxOrder();
   int maxorder = (thismaxorder > coarsemaxorder) ? thismaxorder : coarsemaxorder;
   // Cesar 2003-11-25 -->> To avoid integration warnings...
-  maxorder = (2*maxorder > intrule.GetMaxOrder() ) ? intrule.GetMaxOrder() : 2*maxorder;
+  maxorder = (2*maxorder > intrule->GetMaxOrder() ) ? intrule->GetMaxOrder() : 2*maxorder;
   TPZManVector<int,3> order(dimension,maxorder);
   for(int dim = 0; dim < dimension; dim++){
     order[dim] = maxorder*2;
   }
-  intrule.SetOrder(order);
+  intrule->SetOrder(order);
 
   TPZFNMatrix<220> locphi(locmatsize,1);
   TPZFNMatrix<660> locdphi(dimension,locmatsize);//derivative of the shape function in the master domain
@@ -473,14 +476,14 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
   TPZManVector<REAL,10> u(nvar);
   TPZFNMatrix<30> du(dimension,nvar);
 
-  int numintpoints = intrule.NPoints();
+  int numintpoints = intrule->NPoints();
   REAL weight;
   int lin,ljn,cjn;
   TPZConnect *df;
 //   TPZBlock &coarseblock = coarsel.Mesh()->Block();
 
   for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
-    intrule.Point(int_ind,int_point,weight);
+    intrule->Point(int_ind,int_point,weight);
     REAL jac_det = 1.;
     this->ComputeShape(int_point, x, jacobian, axes, jac_det, jacinv, locphi, locdphi);
     weight *= jac_det;
@@ -511,7 +514,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
       iv++;
     }
   }
-  intrule.SetOrder(prevorder);
+  intrule->SetOrder(prevorder);
 }//InterpolateSolution
 
 void TPZInterpolationSpace::CreateInterfaces(bool BetweenContinuous){
@@ -897,13 +900,13 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
   //this->MaxOrder is usefull to evaluate polynomial function of the aproximation space.
   //fp can be any function and max order of the integration rule could produce best results
   int dim = Dimension();
-  TPZIntPoints &intrule = this->GetIntegrationRule();
-  int maxIntOrder = intrule.GetMaxOrder();
+  TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
+  int maxIntOrder = intrule->GetMaxOrder();
   TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
   //end
-  intrule.GetOrder(prevorder);
+  intrule->GetOrder(prevorder);
 
-  intrule.SetOrder(maxorder);
+  intrule->SetOrder(maxorder);
 
   int ndof = material->NStateVariables();
   int nflux = material->NFluxes();
@@ -917,9 +920,9 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
   TPZMaterialData data;
   this->InitMaterialData(data);
 
-  for(int nint = 0; nint < intrule.NPoints(); nint++) {
+  for(int nint = 0; nint < intrule->NPoints(); nint++) {
 
-    intrule.Point(nint,intpoint,weight);
+    intrule->Point(nint,intpoint,weight);
     this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     weight *= fabs(data.detjac);
     this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
@@ -937,7 +940,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
     errors[ier] = sqrt(errors[ier]);
   }//for ier
 
-  intrule.SetOrder(prevorder);
+  intrule->SetOrder(prevorder);
 
 }//method
 
@@ -960,24 +963,24 @@ void TPZInterpolationSpace::ComputeError(int errorid,
   int dim = Dimension();
   TPZVec<REAL> intpoint(dim,0.);
 
-  TPZIntPoints &intrule = this->GetIntegrationRule();
+  TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 
   TPZManVector<int,3> prevorder(dim), maxorder(dim, this->MaxOrder());
-  intrule.GetOrder(prevorder);
-  intrule.SetOrder(maxorder);
+  intrule->GetOrder(prevorder);
+  intrule->SetOrder(maxorder);
 
   data.p = this->MaxOrder();
   data.HSize = 2.*this->InnerRadius();
   error.Fill(0.);
-  int npoints = intrule.NPoints(), ip;
+  int npoints = intrule->NPoints(), ip;
   for(ip=0;ip<npoints;ip++){
-    intrule.Point(ip,intpoint,weight);
+    intrule->Point(ip,intpoint,weight);
     this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     weight *= fabs(data.detjac);
     this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
     material->ContributeErrors(data,weight,error,errorid);
   }
-  intrule.SetOrder(prevorder);
+  intrule->SetOrder(prevorder);
 }
 
 void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
@@ -1000,7 +1003,7 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
   value.Resize(varsize);
   value.Fill(0.);
 
-  TPZIntPoints &intrule = this->GetIntegrationRule();
+  const TPZIntPoints &intrule = this->GetIntegrationRule();
   int npoints = intrule.NPoints(), ip, iv;
   for(ip=0;ip<npoints;ip++){
     intrule.Point(ip,intpoint,weight);
@@ -1036,7 +1039,7 @@ void TPZInterpolationSpace::IntegrateSolution(TPZVec<REAL> & value){
   value.Resize(varsize);
   value.Fill(0.);
 
-  TPZIntPoints &intrule = this->GetIntegrationRule();
+  const TPZIntPoints &intrule = this->GetIntegrationRule();
   int npoints = intrule.NPoints(), ip, iv;
   for(ip=0;ip<npoints;ip++){
     intrule.Point(ip,intpoint,weight);
@@ -1069,7 +1072,7 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
   int dim = Dimension();
   int nshape = NShapeF();
   int ncon = NConnects();
-  TPZIntPoints &intrule = GetIntegrationRule();
+  const TPZIntPoints &intrule = GetIntegrationRule();
 
   int numeq = nshape;
   ek.fMat.Resize(numeq,numeq);
@@ -1120,26 +1123,26 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL>
   const int dim = Dimension();
   TPZManVector<REAL,3> intpoint(dim,0.);
 
-  TPZIntPoints &intrule = GetIntegrationRule();
+  TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
   TPZManVector<int,3> prevorder(dim,0);
-  intrule.GetOrder(prevorder);
+  intrule->GetOrder(prevorder);
 
-  TPZManVector<int,3> maxorder(dim,intrule.GetMaxOrder());
-  intrule.SetOrder(maxorder);
+  TPZManVector<int,3> maxorder(dim,intrule->GetMaxOrder());
+  intrule->SetOrder(maxorder);
 
   TPZManVector<REAL,10> sol;
   TPZFNMatrix<30> dsol;
   TPZFNMatrix<9> axes(3,3,0.);
   REAL weight;
 
-  int intrulepoints = intrule.NPoints();
-  intrule.Point(0,intpoint,weight);
+  int intrulepoints = intrule->NPoints();
+  intrule->Point(0,intpoint,weight);
   this->ComputeSolution(intpoint, sol, dsol, axes);
   min = sol;
   max = sol;
   const int nvars = sol.NElements();
   for(int int_ind = 1; int_ind < intrulepoints; int_ind++){
-    intrule.Point(int_ind,intpoint,weight);
+    intrule->Point(int_ind,intpoint,weight);
     this->ComputeSolution(intpoint, sol, dsol, axes);
     for(int iv = 0; iv < nvars; iv++){
       if (sol[iv] < min[iv]) min[iv] = sol[iv];
@@ -1147,7 +1150,7 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL>
     }//iv
   }//loop over integratin points
 
-  intrule.SetOrder(prevorder);
+  intrule->SetOrder(prevorder);
 
 }//void
 void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform &t, TPZTransfer &transfer){
@@ -1208,11 +1211,11 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
   loclocmat.Zero();
   loccormat.Zero();
 
-  TPZIntPoints &intrule = GetIntegrationRule();
+  TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
   int dimension = Dimension();
 
   TPZManVector<int> prevorder(dimension),order(dimension);
-  intrule.GetOrder(prevorder);
+  intrule->GetOrder(prevorder);
 
 
   // compute the interpolation order of the shapefunctions squared
@@ -1220,7 +1223,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
   for(dim=0; dim<dimension; dim++) {
     order[dim] = mymaxorder*2;
   }
-  intrule.SetOrder(order);
+  intrule->SetOrder(order);
 
   TPZBlock locblock(0,locnod);
 
@@ -1254,13 +1257,13 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
   ref->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
   REAL multiplier = 1./jac_det;
 
-  int numintpoints = intrule.NPoints();
+  int numintpoints = intrule->NPoints();
   REAL weight;
   int lin,ljn,cjn;
 
   for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
 
-    intrule.Point(int_ind,int_point,weight);
+    intrule->Point(int_ind,int_point,weight);
     ref->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
     ref->X(int_point, x);
     Shape(int_point,locphi,locdphi);
@@ -1327,7 +1330,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
       transfer.SetBlockMatrix(locblocknumber,globblockvec[jnn],small);
     }
   }
-  intrule.SetOrder(prevorder);
+  intrule->SetOrder(prevorder);
 }
 
 

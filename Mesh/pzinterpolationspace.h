@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.h,v 1.15 2009-06-17 22:08:24 fortiago Exp $
+//$Id: pzinterpolationspace.h,v 1.16 2010-06-17 17:55:30 phil Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -51,10 +51,10 @@ public:
   /**
    * it returns the shapes number of the element
    */
-  virtual int NShapeF() = 0;
+  virtual int NShapeF() const = 0;
 
   /**returns the number of shapefunctions associated with a connect*/
-  virtual int NConnectShapeF(int inod) = 0;
+  virtual int NConnectShapeF(int inod) const = 0;
 
   /** Returns the max order of interpolation. */
   virtual int MaxOrder();
@@ -116,7 +116,7 @@ public:
 
   /**returns a reference to an integration rule suitable for integrating
      the interior of the element */
-  virtual TPZIntPoints &GetIntegrationRule() = 0;
+  virtual const TPZIntPoints &GetIntegrationRule() const = 0;
 
   /**
    * Returns the inner radius value.

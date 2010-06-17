@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzintel.cpp,v 1.72 2009-06-17 22:08:24 fortiago Exp $
+// $Id: pzintel.cpp,v 1.73 2010-06-17 17:53:28 phil Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -72,7 +72,7 @@ TPZInterpolatedElement::TPZInterpolatedElement() :
 TPZInterpolatedElement::~TPZInterpolatedElement() {
 }
 
-int TPZInterpolatedElement::NShapeF() {
+int TPZInterpolatedElement::NShapeF() const {
   int nn = NConnects();
   int in,res=0;
   for(in=0;in<nn;in++) res += NConnectShapeF(in);
@@ -105,6 +105,13 @@ TPZConnect *TPZInterpolatedElement::SideConnect(int connect,int side) {
 }
 
 void TPZInterpolatedElement::ForceSideOrder(int side, int order){
+	if(side < Reference()->NCornerNodes())
+	{
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__ << " setting an order for a corner side " << side << " order " << order;
+		LOGPZ_ERROR(logger,sout.str())
+		DebugStop();
+	}
   TPZCompElSide thisside(this,side);
   TPZCompElSide large = thisside.LowerLevelElementList(1);
   if(large.Exists()) {
@@ -463,11 +470,11 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
   loclocmat.Zero();
   loccormat.Zero();
 
-  TPZIntPoints &intrule = GetIntegrationRule();
+  TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
   int dimension = Dimension();
 
   TPZManVector<int> prevorder(dimension),order(dimension);
-  intrule.GetOrder(prevorder);
+  intrule->GetOrder(prevorder);
 
   TPZManVector<int> interpolation(dimension);
   GetInterpolationOrder(interpolation);
@@ -481,7 +488,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
   for(dim=0; dim<dimension; dim++) {
     order[dim] = maxorder*2+2;
   }
-  intrule.SetOrder(order);
+  intrule->SetOrder(order);
 
   TPZBlock locblock(0,locnod);
 
@@ -515,13 +522,13 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
   ref->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
   REAL multiplier = 1./jac_det;
 
-  int numintpoints = intrule.NPoints();
+  int numintpoints = intrule->NPoints();
   REAL weight;
   int lin,ljn,cjn;
 
   for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
 
-    intrule.Point(int_ind,int_point,weight);
+    intrule->Point(int_ind,int_point,weight);
     ref->Jacobian( int_point, jacobian , axes, jac_det, jacinv);
     ref->X(int_point, x);
     Shape(int_point,locphi,locdphi);
@@ -588,7 +595,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
       transfer.SetBlockMatrix(locblocknumber,globblockvec[jnn],small);
     }
   }
-  intrule.SetOrder(prevorder);
+  intrule->SetOrder(prevorder);
 }
 
 int TPZInterpolatedElement::CreateMidSideConnect(int side) {
@@ -1385,7 +1392,7 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
   // At this point we assume grids are identical
   TPZCompEl *otherelement = Reference()->Reference();
 
-  TPZIntPoints &intrule = GetIntegrationRule();
+  const TPZIntPoints &intrule = GetIntegrationRule();
   TPZGeoEl *ref = Reference();
 
   for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
@@ -1403,7 +1410,7 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
   return error;
 }
 
-void TPZInterpolatedElement::Print(std::ostream &out) {
+void TPZInterpolatedElement::Print(std::ostream &out) const {
   out << "Index = " << fIndex ;
   out << " - Center coordinate: ";
   for (int i=0;i<Reference()->NCornerNodes();i++)
@@ -1431,7 +1438,7 @@ void TPZInterpolatedElement::Print(std::ostream &out) {
     out << "material id " << material->Id() << endl;
   }
   int id;
-  TPZIntPoints &intrule = GetIntegrationRule();
+  const TPZIntPoints &intrule = GetIntegrationRule();
   int dim = Dimension();
 
   TPZManVector<int> prevorder(dim);

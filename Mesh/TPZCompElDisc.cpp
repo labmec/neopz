@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.115 2009-11-04 14:10:50 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.116 2010-06-17 17:58:22 phil Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.115 2009-11-04 14:10:50 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.116 2010-06-17 17:58:22 phil Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -404,7 +404,7 @@ int TPZCompElDisc::CreateMidSideConnect(){
   return fConnectIndex;
 }
 
-int TPZCompElDisc::NShapeF(){
+int TPZCompElDisc::NShapeF() const {
   if(fConnectIndex == -1) return 0;
   //deve ter pelo menos um connect
 
@@ -417,7 +417,7 @@ int TPZCompElDisc::NShapeF(){
   
 }
 
-int TPZCompElDisc::NConnectShapeF(int inod){
+int TPZCompElDisc::NConnectShapeF(int inod) const {
 #ifdef DEBUG2
   if (inod != 0){
     PZError << "\nFATAL ERROR AT " << __PRETTY_FUNCTION__
@@ -955,11 +955,11 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi,
   normal.Resize(0);
 }//method
 
-TPZIntPoints &TPZCompElDisc::GetIntegrationRule(){
-  if (!this->fIntRule){
-    int integ = max( 2 * this->Degree()+1, 0);
-    this->fIntRule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
-  }
+const TPZIntPoints &TPZCompElDisc::GetIntegrationRule() const {
+//  if (!this->fIntRule){
+//    int integ = max( 2 * this->Degree()+1, 0);
+//    this->fIntRule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
+//  }
   return *fIntRule;
 }
 
@@ -1008,10 +1008,10 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
   }
   
   const int dim = disc->Dimension();
-  TPZIntPoints &intrule = cel->GetIntegrationRule();
+  TPZAutoPointer<TPZIntPoints> intrule = cel->GetIntegrationRule().Clone();
   if(material->HasForcingFunction()) {
-    TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
-    intrule.SetOrder(order);
+    TPZManVector<int,3> order(dim,intrule->GetMaxOrder());
+    intrule->SetOrder(order);
   }
   
   TPZMaterialData data;
@@ -1021,9 +1021,9 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
   REAL weight = 0.; 
 
   REAL SquareResidual = 0.;
-  int intrulepoints = intrule.NPoints();
+  int intrulepoints = intrule->NPoints();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-    intrule.Point(int_ind,intpoint,weight);
+    intrule->Point(int_ind,intpoint,weight);
     disc->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.dphix);
     disc->ComputeSolution(intpoint,data.phi,data.dphix,data.axes,data.sol,data.dsol);    
     weight *= fabs(data.detjac);

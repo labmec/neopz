@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.73 2009-05-23 03:16:18 erick Exp $
+//$Id: TPZCompElDisc.h,v 1.74 2010-06-17 17:57:35 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -219,7 +219,7 @@ protected:
 
   /**returns a reference to an integration rule suitable for integrating
      the interior of the element */
-  virtual TPZIntPoints &GetIntegrationRule();
+  virtual const TPZIntPoints &GetIntegrationRule() const;
 
   /**
    * Type of the element
@@ -281,7 +281,7 @@ protected:
   /**
    * it returns the shapes number of the element
    */
-  virtual int NShapeF();
+  virtual int NShapeF() const;
   
   /** Returns the max order of interpolation. */
   virtual int MaxOrder();
@@ -290,7 +290,7 @@ protected:
   int MaxOrderExceptExternalShapes();
 
   /**returns the number of shapefunctions associated with a connect*/
-  virtual int NConnectShapeF(int inod);
+  virtual int NConnectShapeF(int inod) const;
 
   REAL CenterPoint(int index) {return fCenterPoint[index];}
 
