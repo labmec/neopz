@@ -1240,6 +1240,63 @@ void TPZSkylMatrix::DecomposeColumn(int col, int prevcol){
   }
   
 }
+
+void TPZSkylMatrix::DecomposeColumn(int col, int prevcol,std::list<int> &singular){
+	REAL *ptrprev;     //Pointer to prev column
+	REAL *ptrcol;      //Pointer to col column
+	int skprev, skcol; //prev and col Skyline height respectively
+	int minline;
+	
+	skprev = SkyHeight(prevcol);
+	skcol = SkyHeight(col);
+	
+	ptrprev = Diag(prevcol);
+	ptrcol = Diag(col);
+	
+	if((prevcol-skprev) > (col-skcol)){
+		minline = prevcol - skprev;
+	}else
+    {
+		minline = col - skcol;
+    }
+	if(minline > prevcol) {
+		cout << "error condition\n";
+		cout.flush();
+		return;
+	}
+	REAL *run1 = ptrprev + (prevcol-minline);
+	REAL *run2 = ptrcol + (col-minline);
+	REAL sum = 0;
+	/*
+	 while(run1-ptrprev > templatedepth) {
+	 run1-=templatedepth-1;
+	 run2-=templatedepth-1;
+	 sum += TemplateSum<templatedepth>(run1--,run2--);
+	 }
+	 */
+	
+	while(run1 != ptrprev) sum += (*run1--)*(*run2--);
+	*run2-=sum;
+	if(run1 != run2){
+		*run2 /= *run1;
+	}else{
+		REAL pivot = *run2;
+		if ( pivot < 1.e-10 ) {
+#ifdef LOG4CXX
+			std::stringstream sout;
+			sout << "equation " << col << " is singular pivot " << pivot;
+			LOGPZ_WARN(logger,sout.str())
+#endif
+			singular.push_back(col);
+			pivot = 1.;
+		}
+		
+		*run2=sqrt(pivot);
+	}
+	
+}
+
+
 void TPZSkylMatrix::DecomposeColumn2(int col, int prevcol){
   
   //cout << "lcol " << lcol << " with " << lprevcol << endl;

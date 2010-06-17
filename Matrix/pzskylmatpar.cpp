@@ -210,7 +210,14 @@ void * TPZSkylParMatrix::ParallelCholesky(void *t) {
 	}
 	pthread_cond_signal(&condition);
 	pthread_mutex_unlock(&skymutex);
-	loc->DecomposeColumn(col, prevcol);//loc->DecomposeColumn2(col, prevcol);
+		  if(loc->fCorrectSingular)
+		  {
+			  loc->DecomposeColumn(col, prevcol,loc->fSingular);//loc->DecomposeColumn2(col, prevcol);
+		  }
+		  else {
+			  loc->DecomposeColumn(col, prevcol);
+		  }
+
 	pthread_mutex_lock(&skymutex);
 	loc->fDec[col]=prevcol;
 	loc->fThreadUsed[aux_col]=-1;
@@ -388,7 +395,18 @@ int TPZSkylParMatrix::Decompose_Cholesky()
 	for(i=0;i<fNthreads-1;i++) pthread_join(allthreads[i], NULL);
 	
 	delete []allthreads;// fThreadUsed, fDec;
-	
+#ifdef LOG4CXX
+	if(fSingular.size())
+	{
+		std::stringstream sout;
+		sout << "Singular equations ";
+		std::list<int>::iterator it;
+		for (it=fSingular.begin(); it!=fSingular.end(); it++) {
+			sout << *it << " ";
+		}
+		LOGPZ_WARN(logger,sout.str())
+	}
+#endif
 	for(i=0;i<Dim();i++) {
 		fDec[i]=fSkyline[i]-1;
 	}

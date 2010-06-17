@@ -151,6 +151,8 @@ class TPZSkylMatrix : public TPZMatrix
   REAL *Diag(int col) { return fElem[col];}
 
   void DecomposeColumn(int col, int prevcol);
+	void DecomposeColumn(int col, int prevcol, std::list<int> &singular);
+	
   void DecomposeColumn2(int col, int prevcol);
  private:
 
