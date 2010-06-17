@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.36 2009-06-05 00:54:42 erick Exp $
+//$Id: pzintel.h,v 1.37 2010-06-17 17:52:00 phil Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -96,10 +96,10 @@ public:
   /**
    * Print the relevant data of the element to the output stream
    */
-  virtual void Print(std::ostream &out = std::cout);
+  virtual void Print(std::ostream &out = std::cout) const;
 
   /**returns the total number of shapefunctions*/
-  int NShapeF();
+  int NShapeF() const;
 
   /**returns the number of shape functions on a side*/
   int NSideShapeF(int side);
@@ -159,7 +159,7 @@ public:
   int AdjustPreferredSideOrder(int side, int order);
 
   /**returns the actual interpolation order of the polynomial along the side*/
-  virtual int SideOrder(int side) = 0;
+  virtual int SideOrder(int side) const = 0;
 
   //@}
 
