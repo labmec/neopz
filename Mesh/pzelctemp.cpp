@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.44 2009-06-17 22:08:23 fortiago Exp $
+// $Id: pzelctemp.cpp,v 1.45 2010-06-17 17:55:00 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -141,7 +141,7 @@ void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, int connectindex){
 }
 
 template<class TSHAPE>
-int TPZIntelGen<TSHAPE>::NConnectShapeF(int connect){
+int TPZIntelGen<TSHAPE>::NConnectShapeF(int connect) const{
   if(connect < TSHAPE::NCornerNodes) return 1;
   int order = SideOrder(connect);
   if(order < 0) return 0;
@@ -259,7 +259,7 @@ void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
 
 /**returns the actual interpolation order of the polynomial along the side*/
 template<class TSHAPE>
-int TPZIntelGen<TSHAPE>::SideOrder(int side) {
+int TPZIntelGen<TSHAPE>::SideOrder(int side) const {
   if(side < TSHAPE::NCornerNodes || side >= TSHAPE::NSides) return 0;
   if(fConnectIndexes[side] == -1)
   {

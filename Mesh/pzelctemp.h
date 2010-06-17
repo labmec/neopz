@@ -1,4 +1,4 @@
-//$Id: pzelctemp.h,v 1.16 2009-06-17 22:08:23 fortiago Exp $
+//$Id: pzelctemp.h,v 1.17 2010-06-17 17:54:33 phil Exp $
 
 // -*- c++ -*-
 #ifndef PZELCTEMPH
@@ -65,7 +65,7 @@ public:
 
   virtual void SetConnectIndex(int i, int connectindex);
 
-  virtual int NConnectShapeF(int connect);
+  virtual int NConnectShapeF(int connect) const;
 
   virtual int Dimension() const {
     return TSHAPE::Dimension;
@@ -101,7 +101,7 @@ public:
   virtual void SetSideOrder(int side, int order);
 
   /**returns the actual interpolation order of the polynomial along the side*/
-  virtual int SideOrder(int side);
+  virtual int SideOrder(int side) const;
 
   /**transform a point in the parameter space of the side into a point in the space
      of the master element*/
@@ -126,7 +126,7 @@ public:
    */
   TPZTransform TransformSideToElement(int side);
 
-  virtual TPZIntPoints &GetIntegrationRule() {
+  virtual const TPZIntPoints &GetIntegrationRule() const {
     return fIntRule;
   }
 
