@@ -38,7 +38,7 @@ public:
 		this->fRadius = cp.fRadius;		
     }
 
-    TPZArc3D() : TPZNodeRep<NNodes,pztopology::TPZLine>(){
+    TPZArc3D() : TPZNodeRep<NNodes,pztopology::TPZLine>(),fICnBase(3,3),fIBaseCn(3,3) {
     }
 
     TPZArc3D(const TPZArc3D &cp) : TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
@@ -55,7 +55,7 @@ public:
           this->fRadius   = cp.fRadius;
     }
 
-    TPZArc3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
+    TPZArc3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
 		int nnod = nodeindexes.NElements();
 		if(nnod != 3)
 		{
@@ -101,8 +101,8 @@ protected:
     double ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb) const;
 
 	/** Atributes */
-    TPZFMatrix fICnBase, fIBaseCn;
-    TPZVec< REAL > fCenter3D, finitialVector;
+    TPZFNMatrix<9> fICnBase, fIBaseCn;
+    TPZManVector< REAL,3 > fCenter3D, finitialVector;
     double fAngle, fRadius, fXcenter, fYcenter;
 };
 
