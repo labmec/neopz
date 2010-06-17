@@ -5,6 +5,10 @@
 #include "fstream"
 
 
-void VisualMatrix(TPZFMatrix &matrix, char *outfilename);
+void VisualMatrix(TPZFMatrix &matrix, const std::string &outfilename);
+
+void VisualMatrixDX(TPZFMatrix &matrix, const std::string &outfilename);
+
+void VisualMatrixVTK(TPZFMatrix &matrix, const std::string &outfilename);
 
 #endif
