@@ -245,7 +245,7 @@ void TPZGeoEl::Print(std::ostream & out) {
   }
   out << "Number of nodes    " << NNodes() << endl;
   out << "Corner nodes       " << NCornerNodes() << endl;
-  out << "Nodes ids          ";
+  out << "Nodes indexes          ";
   int i;
   for (i = 0;i < NNodes();i++) out << NodeIndex(i) << " ";
   out << "\nNumber of sides    " << NSides() << endl;
@@ -985,7 +985,7 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 		iter++;
 		TPZFNMatrix<9> residual(dim,1),delksi(dim,1);
 		REAL detJ;
-		TPZFNMatrix<9> J(dim,dim,0.),axes(3,3,0.),Inv(dim,dim,0.);
+		TPZFNMatrix<9> J(dim,dim,0.),axes(dim,3,0.),Inv(dim,dim,0.);
 		TPZFNMatrix<9> JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
 		Jacobian(ksi,J,axes,detJ,Inv);
 		if(fabs(detJ) < 1e-10){
@@ -1077,7 +1077,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
   int tam = (dimss+1);
   TPZFNMatrix<16> hess(tam,tam,0.),grad0(tam,1,0.);
   TPZIntPoints *intrule = CreateSideIntegrationRule(sideson,2);
-  TPZManVector<int,2> order(dimss,2);
+  TPZManVector<int,3> order(dimss,2);
   intrule->SetOrder(order);
   //integra��o sobre o lado-filho contido no lado-pai
   int ij,ik,indp;
