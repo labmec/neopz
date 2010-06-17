@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.44 2009-11-04 14:07:06 fortiago Exp $
+//$Id: pzpoisson3d.cpp,v 1.45 2010-06-17 13:53:07 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -204,6 +204,7 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 	      phi(jn,0) * weight;     // peso de contorno => integral de contorno
       }
     }
+		  break;
   case 3: // outflow condition
     int id, il, jl;
     REAL normal[3];
