@@ -280,8 +280,7 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
 
     int QTDcomp = Rows();
     int QTDvec = Cols();
-    Orthog.Resize(QTDcomp,QTDvec);
-    Orthog.Zero();
+    Orthog.Redim (QTDcomp,QTDvec);
     /// Making a copy of *this (Ortog = *this)
     for(int r = 0; r < QTDcomp; r++)
     {
@@ -364,7 +363,7 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
     TransfToOrthog.operator *=( 1./scale );
 
 #ifdef DEBUG
-  TPZFNMatrix<9> OrthogT;
+  TPZFNMatrix<9> OrthogT(Orthog.Cols(),Orthog.Rows());
   Orthog.Transpose(&OrthogT);
   TPZAxesTools::VerifyAxes(OrthogT);
 #endif
@@ -890,11 +889,14 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
   if(fGiven && fElem != fGiven && newsize <= fSize) 
   {
     newElem = fGiven;
-  } else 
+  } else if (newsize == 0) {
+	  newElem = 0;
+  }
+  else 
   {
     newElem = new( REAL[ newRows * newCols ] );
   }
-  if ( newElem == NULL )
+  if (newsize && newElem == NULL )
           Error( "Resize <memory allocation error>." );
 
   long minRow  = ( fRow < newRows ? fRow : newRows );
@@ -927,6 +929,32 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
   fRow  = newRows;
   fCol  = newCols;
   return( 1 );
+}
+
+/**************/
+/*** Resize ***/
+
+
+int TPZFMatrix::SetSize(const int newRows,const int newCols) {
+	long newsize = ((long)newRows)*newCols;
+	long oldsize = fRow*fCol;
+	if(newsize == oldsize) return 1;
+	if(fElem && fElem != fGiven)
+	{
+		delete []fElem;
+		fElem = 0;
+	}
+	if(fGiven && newsize <= fSize) 
+	{
+		fElem = fGiven;
+	} else 
+	{
+		fElem = new( REAL[ newRows * newCols ] );
+	}
+	if (newsize && fElem == NULL )
+		Error( "Resize <memory allocation error>." );
+	
+	return( 1 );
 }
 
 int TPZFMatrix::Remodel(const int newRows,const int newCols) {
@@ -997,8 +1025,13 @@ int TPZFMatrix::Remodel(const int newRows,const int newCols) {
 /*** Transpose () ***/
 
 
-void TPZFMatrix::Transpose(TPZMatrix *const T) const{
-	  T->Resize( Cols(), Rows() );
+void TPZFMatrix::Transpose(TPZMatrix *const T) const {
+	if( T == this)
+	{
+		Error("cant transpose on yourself", "Inconsistent call");
+	}
+	T->Resize(0, 0);
+	T->Resize  ( Cols(), Rows() );
 //Transposta por filas
 	 REAL * p = fElem;
 	 for ( int c = 0; c < Cols(); c++ ) {
@@ -1010,7 +1043,7 @@ void TPZFMatrix::Transpose(TPZMatrix *const T) const{
 }
 
 void TPZFMatrix::Transpose() {
-  TPZFMatrix temp;
+  TPZFNMatrix<100> temp;
   Transpose(&temp);
   *this = temp;
 }

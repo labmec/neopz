@@ -207,6 +207,9 @@ static void MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,con
 
   // Redimension a matrix, but maintain your elements.
   int Resize(const int newRows,const int wCols );
+	
+	// Redimension the matrix doing nothing with the elements
+	int SetSize(int newRows, int newCols);
 
   // Remodel the shape of the  matrix, but keeping the same dimension.
   int Remodel(const int newRows,const int wCols );
@@ -297,12 +300,17 @@ static int Error(const char *msg1,const char *msg2=0 );
 inline TPZFMatrix::TPZFMatrix(const int rows,const int cols,REAL * buf,const int sz)
   : TPZMatrix( rows, cols ), fElem(buf),fGiven(buf),fSize(sz) {
     int size = rows * cols;
-    if(size > sz) {
-      fElem=new REAL[size];
+	  if(size == 0)
+	  {
+		  fElem = NULL;
+	  }
+	  else if(size > sz) 
+	  {
+		  fElem=new REAL[size];
 #ifndef NODEBUG
-      if ( fElem == NULL && size) Error( "Constructor <memory allocation error>." );
+		  if ( fElem == NULL && size) Error( "Constructor <memory allocation error>." );
 #endif
-    }
+	  }
   }
 
 inline TPZFMatrix::TPZFMatrix(const int rows,const int cols,const REAL & val )
