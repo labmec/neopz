@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.97 2010-06-11 18:45:57 diogo Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.98 2010-06-17 17:50:51 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -15,6 +15,7 @@
 #include "pzlog.h"
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
+#include "pzvec_extras.h"
 
 using namespace std;
 
@@ -383,19 +384,22 @@ int TPZInterfaceElement::ConnectIndex(int i) const {
    return -1;
 }
 
-void TPZInterfaceElement::Print(std::ostream &out) const{
+void TPZInterfaceElement::Print(std::ostream &out) const {
 
+	TPZCompEl::Print(out);
   out << "\nInterface element : \n";
-  if(!LeftElement() || !LeftElement()->Reference()) out << "\tNULL LeftElement - this is inconsistent";
+  if(!LeftElement() || !LeftElement()->Reference()) out << "\tNULL LeftElement - this is inconsistent\n";
   else{
     out << "\tLeft Geometric Index: " << LeftElement()->Reference()->Index() << endl;
     out << "\tLeft Geometric Id: " << LeftElement()->Reference()->Id() << endl;
+	  out << "\tElement Dimension " << LeftElement()->Reference()->Dimension() << endl;
   }
 
   if(!RightElement() || !RightElement()->Reference()) out << "\tNULL RightElement - this is inconsistent";
   else{
     out << "\tRight Geometric Index: " << RightElement()->Reference()->Index() << endl;
     out << "\tRight Geometric Id: " << RightElement()->Reference()->Id() << endl;
+	  out << "\tElement Dimension " << RightElement()->Reference()->Dimension() << endl;
   }
 
   out << "\tMaterial id : " << Reference()->MaterialId() << endl;
@@ -406,6 +410,7 @@ void TPZInterfaceElement::Print(std::ostream &out) const{
 
  void TPZInterfaceElement::SetConnectIndex(int node, int index) {
    cout << "TPZInterfaceElement::SetConnectIndex should never be called\n";
+	 DebugStop();
  }
 
 int TPZInterfaceElement::main(TPZCompMesh &cmesh){
@@ -536,7 +541,8 @@ void TPZInterfaceElement::ComputeCenterNormal(TPZVec<REAL> &normal){
 }
 
 void TPZInterfaceElement::ComputeNormal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal){
-  TPZFNMatrix<9> jacobian(3,3),jacinv(3,3),axes(3,3);
+	int dim = Reference()->Dimension();
+  TPZFNMatrix<9> jacobian(dim,dim),jacinv(dim,dim),axes(dim,3);
   REAL detjac;
   this->Reference()->Jacobian(qsi,jacobian,axes,detjac,jacinv);
   this->ComputeNormal(axes,normal);
@@ -570,7 +576,30 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal){
   fRightEl->Reference()->X(centright,xvolright);
   for(i=0;i<3;i++) vec[i] = xvolright[i]-xvolleft[i];//n� deve ser nulo
 
-  int InterfaceDimension =  fLeftEl->Material()->Dimension() - 1;
+	int myinterfacedim = Reference()->Dimension();
+	int InterfaceDimension =  fLeftEl->Material()->Dimension() - 1;
+	if (myinterfacedim != InterfaceDimension) {
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__ << "the dimension of the interface element " << myinterfacedim << " is not compatible with the dimension of the material " << InterfaceDimension <<
+		" Expect trouble ";
+#ifdef LOG4CXX
+		LOGPZ_ERROR(logger,sout.str())
+#else
+		std::cout << sout.str() << std::endl;
+#endif
+		InterfaceDimension = myinterfacedim;
+	}
+	
+	
+	REAL vecnorm = sdot(vec, vec);
+	if(InterfaceDimension && vecnorm < 1.e-10)
+	{
+		int index = fabs(axes(0,0)) < fabs(axes(0,1)) ? 0 : 1;
+		index = fabs(axes(0,index)) < fabs(axes(0,2)) ? index : 2;
+		vec[index] = 1.;
+		LOGPZ_ERROR(logger,"Left and Right elements coincide")
+	}
+
 
   switch(InterfaceDimension){
   case 0:
@@ -586,7 +615,18 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal){
     normalize = 0.;
     for(i=0;i<3;i++) normalize += normal[i]*normal[i];
     if(normalize == 0.0)
-      PZError << "TPZInterfaceElement::NormalToFace null normal vetor\n";
+	{
+      PZError << __PRETTY_FUNCTION__ << " null normal vetor\n";
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			Print(sout);
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		
+		DebugStop();
+	}
     normalize = sqrt(normalize);
     for(i=0;i<3;i++) normal[i] = normal[i]/normalize;
     break;
@@ -1310,9 +1350,9 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
   data.dphixl.Redim(diml,nshapel);
   data.phir.Redim(nshaper,1);
   data.dphixr.Redim(dimr,nshaper);
-  data.axes.Redim(3,3);
-  data.axesleft.Redim(3,3);
-  data.axesright.Redim(3,3);
+  data.axes.Redim(dim,3);
+  data.axesleft.Redim(diml,3);
+  data.axesright.Redim(dimr,3);
   data.jacobian.Redim(dim,dim);
   data.leftjac.Redim(diml,diml);
   data.rightjac.Redim(dimr,dimr);
@@ -1371,8 +1411,8 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
     data.HSize = faceSize;
   }
 
-  if(!this->Reference()->IsLinearMapping()){
-    this->ComputeNormal(data.axes,data.normal);
+  if(data.fNeedsNormal && !this->Reference()->IsLinearMapping()){
+		  this->ComputeNormal(data.axes,data.normal);
   }
 
 }//void
