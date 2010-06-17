@@ -10,6 +10,7 @@
 #include <set>
 #include "tpzpermutation.h"
 #include "pztrnsform.h"
+#include "pzgeoelside.h"
 
 class TPZGeoNode;
 class TPZCompMesh;
@@ -377,12 +378,13 @@ private:
   
   int operator==(const TPZAutoPointer<TPZRefPattern> compare) const;
 
-protected:    
+public:    
     /**
     *  Automatically generate all permuted numberings for the element type
     */
-    void GeneratePermuted(TPZGeoEl *gel);
+    static void GeneratePermuted(TPZGeoEl *gel);
     
+protected:
     /**
      * Copy the mesh structure applying the permutation on the nodenumbers of the first element
      */
@@ -454,6 +456,8 @@ protected: // Protected attributes
   /** Identifier for the refinement pattern */
   std::string fName;
   
+public:
+	
 struct TPZRefPatternPermute
 {
   // permutation of the nodes
@@ -487,6 +491,7 @@ struct TPZRefPatternPermute
   /** map of all valid permutations */
 static std::map<MElementType, std::list<TPZRefPatternPermute> > fPermutations;
 
+protected:
   /**
    * vector of refinement patterns for each permutation of the master element.
    * The vector stores the id correspondent to the refinement pattern vector in fOwnerMesh
