@@ -349,8 +349,9 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
      parfront->AssembleElement(el, *ekaux, *efaux, *parfront->fStiffness, *parfront->fRhs);
 	  if(parfront->fCurrentAssembled == parfront->fNElements)
 	  {
-			TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZStackEqnStorage, front>* > (parfront->fStiffness);
-			mat->FinishWriting();
+//		  TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZFileEqnStorage, front>* > (parfront->fStiffness);
+		  TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZStackEqnStorage, front>* > (parfront->fStiffness);
+		  mat->FinishWriting();
 #ifdef LOG4CXX
 			{
 				std::stringstream sout;
@@ -393,6 +394,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
   if(!mat)
   {
     cout << __PRETTY_FUNCTION__ << " we are in serious trouble : wrong type of matrix"<< endl;
+	  DebugStop();
   }
 
      int nthreads;
@@ -673,7 +675,8 @@ TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs,TPZAu
     this->fMaxEq = neq;
   }
 
-  TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZParFrontMatrix<TPZStackEqnStorage, front>(neq);
+//  TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(neq);
+	TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZParFrontMatrix<TPZStackEqnStorage, front>(neq);
   rhs.Redim(neq,1);
 
 	Assemble(*mat,rhs,guiInterface);
