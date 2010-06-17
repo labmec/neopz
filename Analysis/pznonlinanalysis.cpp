@@ -12,8 +12,14 @@
 #include "checkconv.h"
 #include "pzstrmatrix.h"
 
+#include "pzlog.h"
+
 #include <stdio.h>
 #include <fstream>
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.nonlinearanalysis"));
+#endif
 
 using namespace std;
 
@@ -29,6 +35,10 @@ TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,ostream &out) : TPZ
 }
 
 TPZNonLinearAnalysis::~TPZNonLinearAnalysis(){}
+
+
+//void LogWellSolution(TPZCompMesh &cmesh, int wellMatId);
+
 
 // #define DEBUGLINESEARCH
 #ifdef DEBUGLINESEARCH
@@ -62,7 +72,11 @@ void TPZNonLinearAnalysis::LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMa
       lambdak = Interval; lambdak *= 0.382; lambdak += ak;
       ///computing residual
       this->LoadSolution(lambdak);
+		LOGPZ_DEBUG(logger,"After LoadSolution")
+//		LogWellSolution(*this->Mesh(), 6);
       this->AssembleResidual();
+		LOGPZ_DEBUG(logger,"After AssembleResidual")
+//		LogWellSolution(*this->Mesh(), 6);
       NormResLambda = Norm(fRhs);
     }
     
