@@ -78,7 +78,7 @@ public:
     		
 private:    
      /**Buffer of pointers to decomposed equations. Stored in a Stack.*/
-     TPZStack<TPZEqnArray *,100> fEqnStack;
+     TPZStack<TPZEqnArray *> fEqnStack;
      /**Boolean responsibility. Assumes values 0 and 1*/
      int fFinish;
      /**Mutual exclusion locks used in management of writeing to disk and decomposition.*/
