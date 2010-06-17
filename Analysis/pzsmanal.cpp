@@ -37,15 +37,24 @@ void TPZSubMeshAnalysis::Assemble(){
 	// this will initialize fK00 too
 	matred->SetSolver(dynamic_cast<TPZMatrixSolver *>(fSolver->Clone()));
 //	TPZStructMatrix::Assemble(fReducableStiff,fRhs, *fMesh);
+	time_t before = time (NULL);
 	fStructMatrix->Assemble(fReducableStiff,fRhs,fGuiInterface);
-	
+	time_t after = time(NULL);
+	double diff = difftime(after, before);
+	std::cout << __PRETTY_FUNCTION__ << " tempo " << diff << std::endl;
 }
 
 void TPZSubMeshAnalysis::Run(std::ostream &out){
 
 	//fReducableStiff.Print("Reducable stiff before assembled");
 	fReferenceSolution = fSolution;
+	time_t tempo = time(NULL);
 	Assemble();
+	time_t tempodepois = time(NULL);
+	double elapsedtime = difftime(tempodepois, tempo);
+	
+	std::cout << "Tempo para assemblagem " << elapsedtime << std::endl;
+	
 	TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
 	matred->SetF(fRhs);
 	//fReducableStiff.Print("Reducable stiff assembled");
@@ -61,11 +70,18 @@ void TPZSubMeshAnalysis::Run(std::ostream &out){
     //out.flush();
 }
 void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef){
+	time_t tempo = time(NULL);
+	
 	TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
 	ek = matred->K11Red();
 	ef = matred->F1Red();
 	//ek.Print("ek condensed");
 //	cout.flush();
+	time_t tempodepois = time(NULL);
+	double elapsedtime = difftime(tempodepois, tempo);
+	
+	std::cout << "Tempo para inversao " << elapsedtime << std::endl;
+	
 }
 
 void TPZSubMeshAnalysis::LoadSolution(TPZFMatrix &sol)
