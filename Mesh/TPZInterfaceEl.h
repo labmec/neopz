@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.h,v 1.59 2010-05-25 13:17:11 fortiago Exp $
+//$Id: TPZInterfaceEl.h,v 1.60 2010-06-17 17:46:56 phil Exp $
 
 #ifndef ELEMINTERFACEHH
 #define ELEMINTERFACEHH
@@ -159,6 +159,9 @@ protected:
 
   /** Class destructor */
   ~TPZInterfaceElement();
+	
+	virtual int IsInterface() { return 1; }
+
 
   /** Set neighbors.
   */
@@ -189,22 +192,26 @@ protected:
   /**
    * it returns the right element from the element interface
    */
-	TPZCompEl *RightElement() const {return fRightElSide.Element();}
+  TPZCompEl *RightElement() const {
+	  return fRightElSide.Element();
+  }
 
-	/**
-	 * it returns the left element from the element interface
-	 */
-	TPZCompEl *LeftElement() const {return fLeftElSide.Element();}
+  /**
+   * it returns the left element from the element interface
+   */
+  TPZCompEl *LeftElement() const {
+	  return fLeftElSide.Element();
+  }
 
-	/**
-	 * Returns left neighbor
-	 */
-	TPZCompElSide &LeftElementSide() { return this->fLeftElSide; }
+  /**
+   * Returns left neighbor
+   */
+  TPZCompElSide &LeftElementSide(){ return this->fLeftElSide; }
 
-	/**
-	 * Returns right neighbor
-	 */
-	TPZCompElSide &RightElementSide() { return this->fRightElSide; }
+  /**
+   * Returns right neighbor
+   */
+  TPZCompElSide &RightElementSide(){ return this->fRightElSide; }
 
   /**
    * it returns the normal of this interface which goes from left to right neighbors
