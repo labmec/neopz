@@ -28,16 +28,16 @@ void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)
 	}
 	catch(...){
 		std::cout << "Arc3D element with nodes coordinates non initialized!!!\n";
-		exit(-1);
+		DebugStop();
 	}
 	
 	/** If Cross[(mid-ini),(fin-ini)] == 0, than the 3 given points are co-linear */
-	if(CrossX <= 1.E-3 && CrossY <= 1.E-3 && CrossZ <= 1.E-3)
+	if(CrossX <= 1.E-6 && CrossY <= 1.E-6 && CrossZ <= 1.E-6)
 	{
 		cout << "The 3 given poinst that define an TPZArc3D are co-linear!\n";
 		cout << "Method aborted!";
 		
-		exit(-1);
+		DebugStop();
 	}
 #endif
 	
