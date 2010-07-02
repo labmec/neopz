@@ -5,8 +5,7 @@ using namespace std;
 
 #include "pthread.h"
 
-TPZSloan::TPZSloan(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes),
-	fNodeWeights(0), fElementGraph(0), fElementGraphIndex(0)
+TPZSloan::TPZSloan(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes)
 {
 	fNNodes = NNodes;
 	fNElements = NElements;
@@ -129,8 +128,20 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 	int i;
 //	int k=0;
 	int nnodes_per_element=fMaxNodesElement;
+	
+	TPZVec<int> elementgraph(fElementGraph.NElements()+1);
+	TPZVec<int> elementgraphindex(fElementGraphIndex.NElements()+1);
+	
+	int n = fElementGraph.NElements();
+	for (i=0; i<n; i++) {
+		elementgraph[i+1] = fElementGraph[i]+1;
+	}
+	n = fElementGraphIndex.NElements();
+	for (i=0; i<n; i++) {
+		elementgraphindex[i+1] = fElementGraphIndex[i]+1;
+	}
 
-	int iadj = fElementGraph.NElements()* nnodes_per_element* (nnodes_per_element-1);
+	int iadj = elementgraph.NElements()* nnodes_per_element* (nnodes_per_element-1);
 	TPZVec<int> adj(iadj);
 	TPZVec<int> xadj(fNNodes+2,-1);
 	int nop = 0;
@@ -150,20 +161,20 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 	int iel;
 	for(iel=0; iel<fNElements; iel++)
 	{
-		int firstindex = fElementGraphIndex[iel+1];
-		int lastindex = fElementGraphIndex[iel+2];
+		int firstindex = elementgraphindex[iel+1];
+		int lastindex = elementgraphindex[iel+2];
 		int no;
 		cout << "Element : " << iel+1 << " : ";
 		for(no = firstindex; no<lastindex; no++)
 		{
-			cout << fElementGraph[no] << " ";
+			cout << elementgraph[no] << " ";
 		}
 		cout << endl;
 	}
 #endif
   static pthread_mutex_t Lock_clindex = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_lock(&Lock_clindex);
-	gegra_(&fNNodes, &fNElements, &inpn, &fElementGraph[1], &fElementGraphIndex[1], &iadj, &adj[0], &xadj[0], &nop);
+	gegra_(&fNNodes, &fNElements, &inpn, &elementgraph[1], &elementgraphindex[1], &iadj, &adj[0], &xadj[0], &nop);
 	pthread_mutex_unlock(&Lock_clindex);
 	//gegra_(&fNNodes, &fNElements, &inpn, npn, xnpn, &iadj, adj, xadj, &nop);
 #ifdef SLOANDEBUG
@@ -213,24 +224,5 @@ void TPZSloan::Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 	for(i=0;i<perm.NElements();i++) perm[i]=aux[i+1]-1;
 	iperm.Resize(perm.NElements());
 	for(i=0;i<perm.NElements();i++) iperm[perm[i]]=i;
-}
-void TPZSloan::ClearDataStructures(){
-	fNodeWeights.Resize(0);
-	fElementGraph.Resize(0);
-	fElementGraphIndex.Resize(0);
-}
-
-void TPZSloan::SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex){
-#ifdef SLOANDEBUG
-	Print(elgraph, elgraphindex, "original element graph", cout);
-#endif
-	int i;
-	fElementGraph.Resize(elgraph.NElements()+1);
-	fElementGraphIndex.Resize(elgraphindex.NElements()+1);
-	for(i=0;i<elgraph.NElements();i++) fElementGraph[i+1] = elgraph[i]+1;
-	for(i=0;i<elgraphindex.NElements();i++) fElementGraphIndex[i+1] = elgraphindex[i]+1;
-}
-void TPZSloan::SetNodeWeights(TPZVec<int> &weights){
-	fNodeWeights = weights;
 }
 

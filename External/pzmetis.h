@@ -17,20 +17,6 @@ public:
    */
   void Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm);
   /**
-   * This method declares the element graph to the object
-   * The first vector contains the element node number
-   * The second vector contains the index where to find the first node number
-   * of each element
-   *the size of second vector is fNElements+1
-   */
-  void SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex);
-  /**
-   * This will reset all datastructures the object may contain.
-   * Node resequencing algorithms may require a possibly large
-   * amount of temporary data
-   */
-  virtual void ClearDataStructures();
-  /**
    * Constructor.
    * Instantiates an object which will compute the resequencing
    * scheme of the metis package.

@@ -24,16 +24,6 @@ TPZMetis::TPZMetis(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes)
   fElementGraph(0), fElementGraphIndex(0) {
 }
 
-void TPZMetis::ClearDataStructures(){
- fNodeWeights.Resize(0);
- fElementGraph.Resize(0);
- fElementGraphIndex.Resize(0);
-}
-
-void TPZMetis::SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex){
- fElementGraph = elgraph;
- fElementGraphIndex = elgraphindex;
-}
 
 void TPZMetis::Print(std::ostream &out,char * title) {
 

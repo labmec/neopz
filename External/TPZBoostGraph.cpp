@@ -30,18 +30,10 @@ TPZBoostGraph::~TPZBoostGraph()
 }
 
 
-void TPZBoostGraph::SetNodeWeights(TPZVec<int> &weights)
-{
-}
 void TPZBoostGraph::ClearDataStructures()
 {
   m_Edges.clear();
-}
-void TPZBoostGraph::SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex)
-{
-  fElementGraph = elgraph;
-  fElementGraphIndex = elgraphindex;
-  
+	TPZRenumbering::ClearDataStructures();
 }
 
 void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
@@ -408,54 +400,6 @@ index_map[inv_perm[c]] <<
 
 }
 */
-void TPZBoostGraph::SetElementGraphOld(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex)
-{
-
-  int i = 0;
-  int j = 0;
-  TPZVec<int> nodegraph(0),nodegraphindex(0);
-  ConvertGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
-
-  std::ofstream outfile("adjacencia.txt");
-  //Criar pares e adicionar ao vetor m_Edges
-  for(i=0;i<nodegraphindex.NElements()-1;i++)
-  {
-    for(j = nodegraphindex[i]; j< nodegraphindex[i+1];j++)
-    {
-      //std::cout << "Creating Entry: " << i << ":" << nodegraph[j] << std::endl;
-      Pair node(i,nodegraph[j]);
-      outfile << i << " " << nodegraph[j] << std::endl;
-      m_Edges.push_back(node);
-    }
-  }
-  outfile.close();
-  
-  for (int i = 0; i < (int)m_Edges.size(); ++i)
-  {
-    add_edge(m_Edges[i].first, m_Edges[i].second, m_Graph);
-  }
-  
-  //boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
-
-  //Creating a property_map with the degrees of the degrees of each vertex
-  //m_Degrees = get(vertex_degree, m_Graph);
-  //for (boost::tie(ui, ui_end) = vertices(m_Graph); ui != ui_end; ++ui)
-  //{
-  //  m_Degrees[*ui] = degree(*ui, m_Graph);
-  //}
-
-  //Creating a property_map for the indices of a vertex
-  //property_map<Graph, vertex_index_t>::type 
-  //m_Index_map = get(vertex_index, m_Graph);
-  //= get(vertex_index, G);
-  std::cout << "Original bandwidth: " << bandwidth(m_Graph) << std::endl;
-  std::cout << "Original profile: " << profile(m_Graph) << std::endl;
-  std::cout << "Original max_wavefront: " << max_wavefront(m_Graph) << std::endl;
-  std::cout << "Original aver_wavefront: " << aver_wavefront(m_Graph) << std::endl;
-  std::cout << "Original rms_wavefront: " << rms_wavefront(m_Graph) << std::endl;
-  
-  
-}
 
 /*
   std::vector<Vertex> inv_perm(num_vertices(m_Graph));

@@ -292,3 +292,17 @@ void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int> &elgraph, TPZVe
 	eltoelweight.Resize(eltoelgraph.NElements());
 }
 
+void TPZRenumbering::SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex){
+#ifdef SLOANDEBUG
+	Print(elgraph, elgraphindex, "original element graph", cout);
+#endif
+	fElementGraph = elgraph;
+	fElementGraphIndex = elgraphindex;
+}
+
+void TPZRenumbering::ClearDataStructures(){
+	fNodeWeights.Resize(0);
+	fElementGraph.Resize(0);
+	fElementGraphIndex.Resize(0);
+}
+

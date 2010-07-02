@@ -75,20 +75,6 @@ public:
    */
   void ResequenceOld(TPZVec<int> &perm, TPZVec<int> &inverseperm);
   void Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm);
-  /**
-   * This method declares the element graph to the object
-   * The first vector contains the element node number
-   * The second vector contains the number of nodes of each element
-   */
-  virtual void SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex);
-  virtual void SetElementGraphOld(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex);
-
-  /**
-   * Sets the number of equations associated with each node
-   * The derived class may or may not take this data into
-   * consideration
-   */
-  virtual void SetNodeWeights(TPZVec<int> &weights);
 
   /**
    * This will reset all datastructures the object may contain.
@@ -117,16 +103,7 @@ private:
 
   //Creating a property_map for the indices of a vertex
   boost::property_map<Graph, boost::vertex_index_t>::type m_Index_map;
-  // = get(vertex_index, G);
-  /**Node number of each element*/
-  TPZVec<int> fElementGraph;
-  
-
-  /**Indicates for each element the index of the first entry with
-     fElementGraph for that element
-     Size of the vector fNElements+1*/
-  TPZVec<int> fElementGraphIndex;
-  
+  // = get(vertex_index, G);  
   std::vector<int> m_Connects;
 
 };

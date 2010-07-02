@@ -15,34 +15,13 @@ class TPZSloan : public TPZRenumbering {
 //  void Resequence(int n_nodes, int n_elements, int *nnn,int *npn, int *xnpn, int old_profile, int new_profile);
   virtual void Resequence(TPZVec<int> &perm, TPZVec<int> &iperm);
 
-  void SetElementGraph(TPZVec<int> &elgraph, TPZVec<int> &elgraphindex);
-  /**Sets the number of equations associated with each node
-     The derived class may or may not take this data into 
-     consideration*/
-  void SetNodeWeights(TPZVec<int> &weights);
-  /**This will reset all datastructures the object may contain.
-     Node resequencing algorithms may require a possibly large 
-     amount of temporary data*/
-  virtual void ClearDataStructures();
 
 
 
   
  private:
 
-  //ConvertGraph
-  /**Number of equations associated with each node*/
-  TPZVec<int> fNodeWeights;
   
-
-  /**Node number of each element*/
-  TPZVec<int> fElementGraph;
-  
-
-  /**Indicates for each element the index of the first entry with
-     fElementGraph for that element
-     Size of the vector fNElements+1*/
-  TPZVec<int> fElementGraphIndex;
 
 
   int fMaxNodesElement;
@@ -54,7 +33,7 @@ class TPZSloan : public TPZRenumbering {
  public:
    
    TPZSloan(): TPZRenumbering(),
-            fNodeWeights(0), fElementGraph(0), fElementGraphIndex(0),fMaxNodesElement(27)
+            fMaxNodesElement(27)
    {
    }
   TPZSloan(int NElements, int NNodes);
