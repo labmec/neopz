@@ -1,12 +1,14 @@
-//$Id: main.cc,v 1.19 2009-06-24 20:14:56 phil Exp $
+//$Id: main.cc,v 1.20 2010-07-19 19:38:03 caju Exp $
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+#include "pzbfilestream.h"
 #include "pzgeoel.h"
 #include "pzgnode.h"
 #include "pzgmesh.h"
-
+#include "pzbiharmonic.h"
+#include "pzcmesh.h"
 #include "pzintel.h"
 #include "pzcompel.h"
 
@@ -19,6 +21,8 @@
 #include "pzfstrmatrix.h"
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
+#include "pzgeopyramid.h"
+#include "TPZGeoLinear.h"
 
 #include <TPZRefPattern.h>
 
@@ -47,7 +51,8 @@
 #include <dl_attributes.h>
 */
 #include <vector>
-
+#include "TPZRefPatternDataBase.h"
+#include "TPZRefPatternTools.h"
 // #ifdef LOG4CXX
 // #include <log4cxx/logger.h>
 // #include <log4cxx/basicconfigurator.h>
@@ -62,7 +67,13 @@ void TriangleRefine2(TPZGeoMesh *gmesh);
 void QuadRefine(TPZGeoMesh *gmesh);
 TPZAutoPointer<TPZRefPattern> GetBestRefPattern(TPZVec<int> &sides, std::list<TPZAutoPointer<TPZRefPattern> > &patlist);
 
+void PrintGMeshVTKcopy(TPZGeoMesh * gmesh, std::ofstream &file);
+void PrintGMeshVTKneighbourcopy(TPZGeoMesh * gmesh, std::ofstream &file, int neighMaterial);
+void PrintGMeshVTKmaterialcopy(TPZGeoMesh * gmesh, std::ofstream &file, std::set<int> Material);
+
 void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids, int destmatid);
+
+TPZCompMesh *CreateCompMesh ( TPZGeoMesh &gmesh, int porder );
 
 
 //#include "MeshReader.cpp"
@@ -85,7 +96,6 @@ void LoadRefPattern(std::string &path);
 
 void  FilterBoundingBox(TPZGeoMesh *geomesh);
 
-
  struct coord{
    public:
      double X;
@@ -94,46 +104,16 @@ void  FilterBoundingBox(TPZGeoMesh *geomesh);
      coord():X(-9.),Y(-9.),Z(-9.){}
  };
 
- void ReadGidMesh (std::ifstream &fonte, std::ofstream &saida){
-
-   int i;
-   double x;
-   int d;
-   int k;
-   for (i=0; i<55; i++){
-     fonte >> d;
-     saida << d-1 << "  " ;
-
-     for (k=0; k<3; k++){
-       fonte >> x ;
-       saida << x << "  ";
-     }
-
-     saida << std::endl;
-   }
-
-   for (i=0; i<107; i++){
-
-     fonte >> d;
-     saida << d-1 << "  1  ";
-
-     for (k=0; k<4; k++){
-       fonte >> x;
-       saida << x << "  ";
-     }
-     saida << std::endl;
-   }
- }
-
-
 void InsertNewPattern(std::ifstream &arquivo, TPZGeoMesh &geomesh, std::ofstream &padroes)
 {
-   TPZRefPattern *pattern = new TPZRefPattern (&geomesh, arquivo);
-   pattern->InsertPermuted(/*geomesh*/);
+   TPZRefPattern *pattern = new TPZRefPattern(arquivo);
+   pattern->InsertPermuted();
+	
    delete pattern;
-   geomesh.RefPatternFile(padroes);
+	
+	//AQUI
+   gRefDBase.WriteRefPatternDBase(padroes);
  }
-
 
 void ReadF17(TPZGeoMesh *geomesh)
 {
@@ -146,7 +126,7 @@ void ReadF17(TPZGeoMesh *geomesh)
   path = PZSOURCEDIR;
   path += "/Projects/Heman/Files/Meshes/";
 #else
-  path = "";
+  path = "/Users/Cesar/Documents/Projects/NeoPZ/Projects/Heman/Files/Meshes/";
 #endif
 
   std::cout << "===============================================================\n"
@@ -250,7 +230,8 @@ void LoadRefPatternDataBase(TPZGeoMesh *geomesh)
   if(!fonte.fail())
   {
     try {
-      geomesh->PatternFileLoad(fonte);
+      //AQUI
+      gRefDBase.ReadRefPatternDBase(fonte);
     }
     catch (...)
     {
@@ -268,19 +249,22 @@ void LoadRefPatternDataBase(TPZGeoMesh *geomesh)
       std::string fullname = prefix+filename;
       if(!filelist.fail())
       {
-        TPZRefPattern *refp = new TPZRefPattern(geomesh, fullname);
-        refp->InsertPermuted(/**geomesh*/);
+        TPZRefPattern *refp = new TPZRefPattern(fullname);
+        refp->InsertPermuted();
         delete refp;
       }
     }
     std::ofstream out(allpatterns.c_str());
-    geomesh->RefPatternFile(out);
-
+	  
+	//AQUI
+    gRefDBase.WriteRefPatternDBase(out);
   }
 
+		//AQUI
+	/*
   std::ofstream shortlist("shortlist.txt");
   geomesh->PatternSidesFile(shortlist);
-
+*/
   {
     std::ofstream arquivo ("NotListedPatterns4.txt");
   }
@@ -291,7 +275,6 @@ void LoadRefPatternDataBase(TPZGeoMesh *geomesh)
     std::ofstream padroes_lados ("PatternsandSides3.txt");
   }
 }
-
 
 void InitializeLOG()
 {
@@ -333,21 +316,21 @@ void InitializeLOG()
 #endif
 }
 
-
 TPZGeoMesh * choiceMesh(std::string &meshName)
 {
   TPZGeoMesh *geomesh;
-  int opt = -1;
+	int opt = 2;//-1;
   cout << "Choose the mesh to be processed:\n"
       << "\t1 - plane plate\n"
       << "\t2 - yf17\n";
-  cin >> opt;
+  //cin >> opt;
 
   switch (opt)
   {
     case (1) :
     {
-      std::string file_path = PZSOURCEDIR;
+			//AQUI
+		std::string file_path;// = PZSOURCEDIR;
       file_path += "/Projects/Heman/Files/Meshes/placa_plana.txt";
       std::ifstream file (file_path.c_str());
       TPZCompMesh *compmesh = ReadMesh (file);
@@ -371,47 +354,15 @@ TPZGeoMesh * choiceMesh(std::string &meshName)
   return geomesh;
 }
 
-void LoadPatternDB(TPZGeoMesh *gMesh)
-{
-  cout << "\tinitialize uniform refinement patterns...\n";
-  gMesh->InitializeRefPatterns();
-
-  cout << "\tinitialize refinement patterns from file data base...\n";
-  LoadRefPatternDataBase(gMesh);
-/*  cout << "...0...\n";
-  std::string file_path = PZSOURCEDIR;
-  file_path += "/Projects/Heman/Files/RefPatterns/Hexa_Half.rpt";
-  std::ifstream inparq (file_path.c_str());
-  std::string outfile = PZSOURCEDIR;
-  outfile += "/Projects/Heman/Files/RefPatterns/hexa_plus_tetra.rpt";
-  std::ofstream outarq (outfile.c_str());
-
-  cout << "...1...\n";
-  InsertNewPattern(inparq, *gMesh, outarq);
-
-  file_path = PZSOURCEDIR;
-  file_path += "/Projects/Heman/Files/RefPatterns/Hexa_2AdjRibs.rpt";
-  std::ifstream inparq2 (file_path.c_str());
-  cout << "...2...\n";
-  InsertNewPattern(inparq2, *gMesh, outarq);
-
-  file_path = PZSOURCEDIR;
-  file_path += "/Projects/Heman/Files/RefPatterns/Prism_2AdjRibs.rpt";
-  std::ifstream inparq3 (file_path.c_str());
-  cout << "...3...\n";
-  InsertNewPattern(inparq3, *gMesh, outarq);*/
-}
-
-int main ()
+int main/*F17*/()
 {
   cout << "Initilizing log system...\n";
-  InitializePZLOG();
-
+  InitializePZLOG("log4cxx.cfg");
+	
+	gRefDBase.InitializeRefPatterns();
+	
   std::string meshname;
   TPZGeoMesh *geomesh = choiceMesh(meshname);
-
-  cout << "Loading refinement patterns...\n";
-  LoadPatternDB(geomesh);
 
   cout << "Filtering bounding box...\n";
   FilterBoundingBox(geomesh);
@@ -424,9 +375,9 @@ int main ()
   int count = 0;
   int destmatid = 2;
 
-  int el, nref = -1;
+  int el, nref = 6;//-1;
   cout << "number of refinement steps:\n";
-  cin >> nref;
+  //cin >> nref;
   cout << endl;
 
   int i;
@@ -436,69 +387,31 @@ int main ()
     cout << "\tEntering refinement step: " << i << " number of elements = " << nelements << endl;
     cout << "\tRefining...\n";
 
-    //map<set<int>, TPZRefPattern*> MyMap;
-    TPZStack<int> refinesides;
     for (el=0; el<nelements; el++)
     {
-      cout << ".";
-      if (!(el+1)%40) cout << endl;
-      else cout.flush();
       TPZGeoEl *elemento = geomesh->ElementVec()[el];
-      RefineDirectional(elemento,matids,destmatid);
+	  TPZRefPatternTools::RefineDirectional(elemento, matids, destmatid);
     }
-    cout << "\nWriting dx files...\n";
-    {
-      std::stringstream nome(meshname);
-      nome << count << "_boundary_a.dx";
-      ofstream dx_arq_ref (nome.str().c_str());
-      WriteMesh(geomesh,dx_arq_ref,destmatid);
-    }
-    {
-      cout << "\tfor all boundaries\n";
-      std::stringstream nome(meshname);
-      nome << count++ << "_boundary_ref";
-      std::string elMesh = nome.str().c_str();
-      nome << ".dx";
-      ofstream dx_arq_ref (nome.str().c_str());
-      WriteMesh(geomesh,dx_arq_ref,destmatid+1);
-
-      cout << "\tfor tetrahedres\n";
-      std::string aux = elMesh;
-      aux += "-tetra.dx";
-      std::ofstream dx_tetra_arq (aux.c_str());
-      WriteElementMesh(geomesh,dx_tetra_arq,destmatid+1,4);
-
-      cout << "\tfor pyramides\n";
-      aux = elMesh;
-      aux += "-pyramid.dx";
-      std::ofstream dx_pyra_arq (aux.c_str());
-      WriteElementMesh(geomesh,dx_pyra_arq,destmatid+1,5);
-
-      cout << "\tfor prims\n";
-      aux = elMesh;
-      aux += "-prism.dx";
-      std::ofstream dx_prism_arq (aux.c_str());
-      WriteElementMesh(geomesh,dx_prism_arq,destmatid+1,6);
-
-      cout << "\tfor hexahedres\n";
-      aux = elMesh;
-      aux += "-hexa.dx";
-      std::ofstream dx_hexa_arq (aux.c_str());
-      WriteElementMesh(geomesh,dx_hexa_arq,destmatid+1,7);
-    }
-    destmatid += 2;
+	destmatid += 2;
+	  
+	  std::stringstream sout;
+	  int ii = i + 1;
+	  sout << "F17casca" << ii << "ref_FINAL.vtk";
+	  
+	  ofstream out(sout.str().c_str());
+	  std::set<int> mat2;
+	  mat2.insert(-1);
+	  
+	  PrintGMeshVTKneighbourcopy(geomesh, out, -1);	  
   }
   cout << "Finalizing...\n";
   destmatid--;
-  //geomesh->Print(cout);
-  //string ref = "refpattern.txt" ;
-  /*TPZRefPattern *patt = */ //new TPZRefPattern(ref) ;
-  //geomesh->Print();
+	
+	
   return 0 ;
 }
 
-
-void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
+void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids, int destmatid)
 {
   int matid = gel->MaterialId();
   if(matids.count(matid)) return;
@@ -554,8 +467,12 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
   }
 //  TPZGeoMesh *gmesh = gel->Mesh();
   std::list<TPZAutoPointer<TPZRefPattern> > patlist;
-  TPZRefPattern::GetCompatibleRefinementPatterns(gel, patlist);
-  TPZAutoPointer<TPZRefPattern> patt = GetBestRefPattern(sidestorefine,patlist);
+	
+	std::list<TPZAutoPointer<TPZRefPattern> > compatible;
+		//TPZAutoPointer<TPZRefPattern> patt = TPZRefPatternTools::PerfectMatchRefPattern(gel);
+	TPZRefPatternTools::GetCompatibleRefPatterns(gel,patlist);
+	TPZAutoPointer<TPZRefPattern> patt = GetBestRefPattern(sidestorefine, patlist);
+	
   static int count = 1;
   if(patt)
   {
@@ -564,10 +481,10 @@ void RefineDirectional(TPZGeoEl *gel,std::set<int> &matids,int destmatid)
     TPZManVector<TPZGeoEl *> subel;
     gel->Divide(subel);
     gel->SetMaterialId(destmatid);
-    std::cout << "-";
   }
   else
   {
+	cout << "Nao encontrei o padrao!!!" << std::endl;
     std::ofstream arquivo ("NotListedPatterns4.txt",std::ios::app);
     if(count++ == 1) std::cout << "couldnt find a suitable refinement pattern\n";
     std::cout << "|";
@@ -677,6 +594,8 @@ void FilterBoundingBox(TPZGeoMesh *geomesh)
   }
   int el,nelem;
   nelem = geomesh->ElementVec().NElements();
+	int num4 = 0;
+	int num1 = 0;
   for(el=0; el<nelem; el++)
   {
       TPZGeoEl *gel = geomesh->ElementVec()[el];
@@ -704,14 +623,390 @@ void FilterBoundingBox(TPZGeoMesh *geomesh)
         REAL detjac;
         TPZManVector<REAL,3> coor(2,0.3333);
         gel->Jacobian(coor,jac,axes,detjac,jacinv);
-        if((fabs(axes(2,0))-1.) < 1.e-3 || (fabs(axes(2,1))-1.) < 1.e-3 || (fabs(axes(2,2))-1.) < 1.e-3)
+		  
+		  TPZManVector<REAL,3> vectorialProd(3,0.);
+		  vectorialProd[0] = -axes(0,2)*axes(1,1) + axes(0,1)*axes(1,2);
+		  vectorialProd[1] = axes(0,2)*axes(1,0) - axes(0,0)*axes(1,2);
+		  vectorialProd[2] = -axes(0,1)*axes(1,0) + axes(0,0)*axes(1,1);
+        if( fabs(fabs(vectorialProd[0]) -1.) < 1.e-3 || fabs (fabs(vectorialProd[1])-1.) < 1.e-3 || fabs (fabs(vectorialProd[2])-1.) < 1.e-3 )
         {
           gel->SetMaterialId(-4);
+			num4++;
         }
         else
         {
           gel->SetMaterialId(-1);
+			num1++;
         }
       }
   }
+	std::cout << "Number of elements with -4 condition " << num4 << " with -1 condition " << num1 << std::endl;
+}
+
+TPZCompMesh *CreateCompMesh( TPZGeoMesh &gmesh, int porder )
+{
+	TPZCompEl::SetgOrder ( porder );
+	TPZCompMesh *result = new TPZCompMesh ( &gmesh );
+	result->SetDimModel ( 2 );
+	result->SetAllCreateFunctionsDiscontinuousReferred();
+		//result->SetAllCreateFunctionsContinuousReferred();
+	TPZBiharmonic *material ;
+	material = new TPZBiharmonic( 1,0. );
+	TPZAutoPointer<TPZMaterial> material9 = new TPZBiharmonic( 9,0. );
+	TPZAutoPointer<TPZMaterial> mat ( material );
+	
+	result->InsertMaterialObject ( mat );
+	result->InsertMaterialObject(material9);
+	
+	TPZFMatrix val1 ( 2,1,0. ), val2 ( 2,1,0. ); // (2,1,0.) pq cada cond. tem Dirichlet e Neumann
+	TPZAutoPointer<TPZMaterial> bnd1 = material->CreateBC ( mat,-1,0, val1, val2 );
+	TPZAutoPointer<TPZMaterial> bnd2 = material->CreateBC ( mat,-2,0, val1, val2 );
+	TPZAutoPointer<TPZMaterial> bnd3 = material->CreateBC ( mat,-3,0, val1, val2 );
+	TPZAutoPointer<TPZMaterial> bnd4 = material->CreateBC ( mat,-4,0, val1, val2 );
+	
+	result->InsertMaterialObject ( bnd1 );
+	result->InsertMaterialObject ( bnd2 );
+	result->InsertMaterialObject ( bnd3 );
+	result->InsertMaterialObject ( bnd4 );
+	
+	result->AutoBuild();
+	ofstream arc ( "cmesh.txt" );
+	result->Print ( arc );
+	return result;
+}
+
+void PrintGMeshVTKcopy(TPZGeoMesh * gmesh, std::ofstream &file)
+{
+	file.clear();
+	int nelements = gmesh->NElements();
+	
+	stringstream node, connectivity, type;
+	
+	//Header
+	file << "# vtk DataFile Version 3.0" << std::endl;
+	file << "TPZGeoMesh VTK Visualization" << std::endl;
+	file << "ASCII" << std::endl << std::endl;
+	
+	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+	file << "POINTS ";
+	
+	int actualNode = -1, size = 0, nVALIDelements = 0;
+	
+	for(int el = 0; el < nelements; el++)
+	{				
+		if(gmesh->ElementVec()[el]->Type() == EOned)//Exclude Lines and Arc3D
+		{
+			continue;
+		}
+		if(gmesh->ElementVec()[el]->HasSubElement())
+		{
+			continue;
+		}
+		
+		int elNnodes = gmesh->ElementVec()[el]->NNodes();
+		size += (1+elNnodes);
+		connectivity << elNnodes;
+		
+		for(int t = 0; t < elNnodes; t++)
+		{
+			for(int c = 0; c < 3; c++)
+			{
+				double coord = gmesh->NodeVec()[gmesh->ElementVec()[el]->NodeIndex(t)].Coord(c);
+				node << coord << " ";
+			}			
+			node << std::endl;
+			
+			actualNode++;
+			connectivity << " " << actualNode;
+		}
+		connectivity << std::endl;
+		
+		int elType;
+		switch (gmesh->ElementVec()[el]->Type())
+		{
+			case (ETriangle):
+			{
+				elType = 5;
+				break;				
+			}
+			case (EQuadrilateral):
+			{
+				elType = 9;
+				break;				
+			}
+			case (ETetraedro):
+			{
+				elType = 10;
+				break;				
+			}
+			case (EPiramide):
+			{
+				elType = 14;
+				break;				
+			}
+			case (EPrisma):
+			{
+				elType = 13;
+				break;				
+			}
+			case (ECube):
+			{
+				elType = 12;
+				break;				
+			}
+			default:
+			{
+				elType = -1;//ElementType NOT Found!!!
+				DebugStop();
+				break;	
+			}
+		}
+		type << elType << std::endl;
+		nVALIDelements++;
+	}
+	node << std::endl;
+	actualNode++;
+	file << actualNode << " float" << std::endl << node.str();
+	
+	file << "CELLS " << nVALIDelements << " ";
+	
+	file << size << std::endl;
+	file << connectivity.str() << std::endl;
+	
+	file << "CELL_TYPES " << nVALIDelements << std::endl;
+	file << type.str();
+}
+
+void PrintGMeshVTKneighbourcopy(TPZGeoMesh * gmesh, std::ofstream &file, int neighMaterial)
+{
+	file.clear();
+	int nelements = gmesh->NElements();
+	
+	stringstream node, connectivity, type;
+	
+	//Header
+	file << "# vtk DataFile Version 3.0" << std::endl;
+	file << "TPZGeoMesh VTK Visualization" << std::endl;
+	file << "ASCII" << std::endl << std::endl;
+	
+	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+	file << "POINTS ";
+	
+	int actualNode = -1, size = 0, nVALIDelements = 0;
+	
+	for(int el = 0; el < nelements; el++)
+	{				
+		if(gmesh->ElementVec()[el]->Type() == EOned)//Exclude Lines and Arc3D
+		{
+			continue;
+		}
+		if(gmesh->ElementVec()[el]->HasSubElement())
+		{
+			continue;
+		}
+		
+		if(neighMaterial != -1E-15)
+		{
+			bool matFound = false;
+			for(int s = 0; s < gmesh->ElementVec()[el]->NSides(); s++)
+			{
+				TPZGeoElSide thisSide(gmesh->ElementVec()[el], s);
+				TPZGeoElSide neighSide = thisSide.Neighbour();
+				
+				while(thisSide != neighSide)
+				{
+					if(neighSide.Element()->MaterialId() == neighMaterial)
+					{
+						matFound = true;
+						break;
+					}
+					neighSide = neighSide.Neighbour();
+				}
+				if(matFound)
+				{
+					break;
+				}
+			}
+			if(!matFound)
+			{
+				continue;
+			}
+		}
+		
+		int elNnodes = gmesh->ElementVec()[el]->NNodes();
+		size += (1+elNnodes);
+		connectivity << elNnodes;
+		
+		for(int t = 0; t < elNnodes; t++)
+		{
+			for(int c = 0; c < 3; c++)
+			{
+				double coord = gmesh->NodeVec()[gmesh->ElementVec()[el]->NodeIndex(t)].Coord(c);
+				node << coord << " ";
+			}			
+			node << std::endl;
+			
+			actualNode++;
+			connectivity << " " << actualNode;
+		}
+		connectivity << std::endl;
+		
+		int elType;
+		switch (gmesh->ElementVec()[el]->Type())
+		{
+			case (ETriangle):
+			{
+				elType = 5;
+				break;				
+			}
+			case (EQuadrilateral):
+			{
+				elType = 9;
+				break;				
+			}
+			case (ETetraedro):
+			{
+				elType = 10;
+				break;				
+			}
+			case (EPiramide):
+			{
+				elType = 14;
+				break;				
+			}
+			case (EPrisma):
+			{
+				elType = 13;
+				break;				
+			}
+			case (ECube):
+			{
+				elType = 12;
+				break;				
+			}
+			default:
+			{
+				elType = -1;//ElementType NOT Found!!!
+				DebugStop();
+				break;	
+			}
+		}
+		type << elType << std::endl;
+		nVALIDelements++;
+	}
+	node << std::endl;
+	actualNode++;
+	file << actualNode << " float" << std::endl << node.str();
+	
+	file << "CELLS " << nVALIDelements << " ";
+	
+	file << size << std::endl;
+	file << connectivity.str() << std::endl;
+	
+	file << "CELL_TYPES " << nVALIDelements << std::endl;
+	file << type.str();
+}
+
+void PrintGMeshVTKmaterialcopy(TPZGeoMesh * gmesh, std::ofstream &file, std::set<int> Material)
+{
+	file.clear();
+	int nelements = gmesh->NElements();
+	
+	stringstream node, connectivity, type;
+	
+	//Header
+	file << "# vtk DataFile Version 3.0" << std::endl;
+	file << "TPZGeoMesh VTK Visualization" << std::endl;
+	file << "ASCII" << std::endl << std::endl;
+	
+	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+	file << "POINTS ";
+	
+	int actualNode = -1, size = 0, nVALIDelements = 0;
+	
+	for(int el = 0; el < nelements; el++)
+	{				
+		if(gmesh->ElementVec()[el]->Type() == EOned)//Exclude Lines and Arc3D
+		{
+			continue;
+		}
+		int mat = gmesh->ElementVec()[el]->MaterialId();
+		bool found = !(Material.find(mat) == Material.end() );
+		if(gmesh->ElementVec()[el]->HasSubElement() || !found)
+		{
+			continue;
+		}
+		
+		int elNnodes = gmesh->ElementVec()[el]->NNodes();
+		size += (1+elNnodes);
+		connectivity << elNnodes;
+		
+		for(int t = 0; t < elNnodes; t++)
+		{
+			for(int c = 0; c < 3; c++)
+			{
+				double coord = gmesh->NodeVec()[gmesh->ElementVec()[el]->NodeIndex(t)].Coord(c);
+				node << coord << " ";
+			}			
+			node << std::endl;
+			
+			actualNode++;
+			connectivity << " " << actualNode;
+		}
+		connectivity << std::endl;
+		
+		int elType;
+		switch (gmesh->ElementVec()[el]->Type())
+		{
+			case (ETriangle):
+			{
+				elType = 5;
+				break;				
+			}
+			case (EQuadrilateral):
+			{
+				elType = 9;
+				break;				
+			}
+			case (ETetraedro):
+			{
+				elType = 10;
+				break;				
+			}
+			case (EPiramide):
+			{
+				elType = 14;
+				break;				
+			}
+			case (EPrisma):
+			{
+				elType = 13;
+				break;				
+			}
+			case (ECube):
+			{
+				elType = 12;
+				break;				
+			}
+			default:
+			{
+				elType = -1;//ElementType NOT Found!!!
+				DebugStop();
+				break;	
+			}
+		}
+		type << elType << std::endl;
+		nVALIDelements++;
+	}
+	node << std::endl;
+	actualNode++;
+	file << actualNode << " float" << std::endl << node.str();
+	
+	file << "CELLS " << nVALIDelements << " ";
+	
+	file << size << std::endl;
+	file << connectivity.str() << std::endl;
+	
+	file << "CELL_TYPES " << nVALIDelements << std::endl;
+	file << type.str();
 }

@@ -404,6 +404,11 @@ virtual MElementType Type(int side) =0;
 	 * Compute the projection of the point within the interior of the element to the side of the element
 	 */
 	TPZTransform Projection(int side);
+	
+	void SetIndex(int index)
+	{
+		fIndex = index;
+	}
 
   /**get the transform id the face to face*/
 	int GetTransformId2dQ(TPZVec<int> &idfrom,TPZVec<int> &idto);

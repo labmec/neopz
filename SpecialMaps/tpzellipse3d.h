@@ -88,10 +88,10 @@ public:
 									  TPZVec<int>& nodeindexes,
 									  int matid,
 									  int& index);
-
+	
 	void GetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix &nodes);
 	void SetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix &nodes);
-
+	
 	TPZVec<REAL> SemiAxeX()
 	{
 		return this->fSemiAxeX;
@@ -137,7 +137,7 @@ private://metodos utilizados apenas pelos metodos publicos desta classe!
 
 	private:
 
-    /**
+   /**
      * fSemiAxeX @param - Half of Ellipse Axe in X direction
      * fSemiAxeY @param - Half of Ellipse Axe in Y direction
      */

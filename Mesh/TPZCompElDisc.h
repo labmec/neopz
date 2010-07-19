@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.74 2010-06-17 17:57:35 phil Exp $
+//$Id: TPZCompElDisc.h,v 1.75 2010-07-19 19:33:35 caju Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -206,8 +206,7 @@ protected:
     */
    void Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix &phi,TPZFMatrix &dphi);
 
-  virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv,
-                            TPZFMatrix &phi, TPZFMatrix &dphix);
+  virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv, TPZFMatrix &phi, TPZFMatrix &dphix);
 
   /**
    */
@@ -245,15 +244,19 @@ protected:
   /**
    * it returns the degree of interpolation of the element
    */
-  virtual int Degree() const{
-    if (fConnectIndex < 0) return -1;
-    return this->Connect(0).Order() ;
+  virtual int Degree() const
+  {
+	  if (fConnectIndex < 0)
+	  {
+		  return -1;
+	  }
+	  return this->Connect(0).Order() ;
   }
 
   /**
    * it assigns the degree of the element
    */
-  virtual void SetDegree(int degree);// {fDegree = degree;}
+  virtual void SetDegree(int degree);
 
   virtual int NConnects() const;
 

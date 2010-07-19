@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.23 2009-06-17 22:08:24 fortiago Exp $
+//$Id: pzgeoelside.h,v 1.24 2010-07-19 19:39:48 caju Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -16,6 +16,7 @@ class TPZFMatrix;
 #include "pzvec.h"
 #include "pzstack.h"
 #include "pzgmesh.h"
+#include <set>
 
 class TPZGeoElSide;
 
@@ -68,7 +69,7 @@ class TPZGeoElSide {
   TPZGeoEl *fGeoEl;
   int fSide;
  public:
-	 int NSubElements2();
+	 int NSubElements();
 	 void GetSubElements2(TPZStack<TPZGeoElSide> &subelements);
 	 TPZGeoElSide StrictFather();
 	 TPZGeoElSide Father2();
@@ -83,10 +84,17 @@ class TPZGeoElSide {
   bool IsAncestor(TPZGeoElSide other);
 
          /** By Caju */
-         void X(TPZVec< REAL > &loc, TPZVec< REAL > &result);
-         /** By Caju */
-         void Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+  void X(TPZVec< REAL > &loc, TPZVec< REAL > &result);
+	
+  /** By Caju */
+  void Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
 
+  int NNeighbours();
+	
+	/**
+	 * Returns the number of neighbours, excluding the given element (thisElem)
+	 */
+	int NNeighboursButThisElem(TPZGeoEl *thisElem);
 
 	 /**
 	  * Will return all elements of equal or higher level than than the current element
@@ -101,7 +109,13 @@ class TPZGeoElSide {
   TPZGeoElSide(){ fGeoEl = 0; fSide  = -1;}
   //TPZGeoElSide(const TPZGeoElSide &gelside);
 
-  TPZGeoElSide(TPZGeoEl *gel,int side){  fGeoEl = gel; fSide  = side;}
+  TPZGeoElSide(TPZGeoEl *gel,int side){  fGeoEl = gel; fSide = side;}
+
+	/**
+	 * This constructor set an TPZGeoElSide based in the cornerNodes of an side of gel
+	 * If the cornerNodes are not consistent, the TPZGeoElSide created is NULL
+	 */
+	TPZGeoElSide(TPZGeoEl *gel, std::set<int> &sideCornerNodes);
   
   TPZGeoElSide(const TPZGeoElSideIndex &index, TPZGeoMesh * mesh){
     this->fSide = index.Side();
@@ -213,6 +227,7 @@ static void BuildConnectivities(TPZVec<TPZGeoElSide> &elvec, TPZVec<TPZGeoElSide
 
   /**returns the index of the nodenum node of side*/
   int SideNodeIndex(int nodenum) const;
+	std::set<int> SideNodeIndexes();
 
   /**returns 1 if neighbour is a neighbour of the element along side*/
   int NeighbourExists(const TPZGeoElSide &neighbour) const;

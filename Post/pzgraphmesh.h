@@ -61,6 +61,8 @@ public:
 	
 protected:
   TPZCompMesh *fCompMesh;
+  TPZGeoMesh *fGeoMesh;
+	
   TPZAutoPointer<TPZMaterial> fMaterial;
   int fDimension;
   TPZAdmChunkVector<TPZGraphEl *> fElementList;

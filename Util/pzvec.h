@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.14 2010-05-10 13:27:42 fortiago Exp $
+// $Id: pzvec.h,v 1.15 2010-07-19 19:40:52 caju Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -169,7 +169,7 @@ class TPZVec {
        * output stream. This method will not print the objects
        * themselves!
        */
-      void Print(std::ostream &out);
+	void Print(std::ostream &out = std::cout);
 
    protected:
       /**

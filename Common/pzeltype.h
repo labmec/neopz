@@ -1,7 +1,10 @@
 #ifndef PZELTYPEH
 #define PZELTYPEH
 
-// $Id: pzeltype.h,v 1.4 2003-11-07 00:41:50 phil Exp $
+#include <string>
+#include <iostream>
+
+// $Id: pzeltype.h,v 1.5 2010-07-19 19:38:19 caju Exp $
 /**
    @enum MElementType
  * Defines the element types
@@ -25,13 +28,156 @@
  * @param EAgglomerate      element nD - type agglomerate  -  associated index 17
  * @param ENoType           element 0D - type none         -  associated index 18
  */
-//                     0      1        2            3             4            5        
-enum MElementType { EPoint, EOned, ETriangle, EQuadrilateral, ETetraedro, EPiramide,
-//		       6        7         8           9             10
-		    EPrisma,  ECube, EPolygonal, EInterface, EInterfacePoint,
-//                        11                 12                13          14       
-		    EInterfaceLinear, EInterfaceSurface, ESubstructure, EGlobLoc,
-//                       15              16             17          18
-		    EDiscontinuous, EAgglomerate, ENoType, EInterfaceDisc = EInterface};
+
+enum MElementType
+{
+	/*0*/	EPoint,
+	/*1*/	EOned,
+	/*2*/	ETriangle,
+	/*3*/	EQuadrilateral,
+	/*4*/	ETetraedro,
+	/*5*/	EPiramide,
+	/*6*/	EPrisma,
+	/*7*/	ECube,
+	/*8*/	EPolygonal,
+	/*9*/	EInterface,
+	/*10*/	EInterfacePoint,
+	/*11*/	EInterfaceLinear,
+	/*12*/	EInterfaceSurface,
+	/*13*/	ESubstructure,
+	/*14*/	EGlobLoc,
+	/*15*/	EDiscontinuous,
+	/*16*/	EAgglomerate,
+	/*17*/	ENoType,
+	/*18*/	EInterfaceDisc = EInterface
+};
+
+inline int MElementType_NNodes(MElementType elType)
+{
+	switch(elType)
+	{
+		case(1)://line
+		{
+			return 2;
+		}
+		case(2)://triangle
+		{
+			return 3;
+		}
+		case(3)://quadrilateral
+		{
+			return 4;
+		}
+		case(4)://tetraedron
+		{
+			return 4;
+		}
+		case(5)://pyramid
+		{
+			return 5;
+		}
+		case(6)://prism
+		{
+			return 6;
+		}
+		case(7)://cube
+		{
+			return 8;
+		}
+		default:
+		{
+			std::cout << "ElementType not found!";
+			exit(-1);
+		}
+	}
+}
+
+inline std::string MElementType_Name(MElementType elType)
+{
+	int elTypeId = elType;
+	switch (elTypeId)
+	{
+		case 0:
+		{
+			return "EPoint";
+		}
+		case 1:
+		{
+			return "EOned";
+		}
+		case 2:
+		{
+			return "ETriangle";
+		}
+		case 3:
+		{
+			return "EQuadrilateral";
+		}
+		case 4:
+		{
+			return "ETetraedro";
+		}
+		case 5:
+		{
+			return "EPiramide";
+		}
+		case 6:
+		{
+			return "EPrisma";
+		}
+		case 7:
+		{
+			return "ECube";
+		}
+		case 8:
+		{
+			return "EPolygonal";
+		}
+		case 9:
+		{
+			return "EInterface";
+		}
+		case 10:
+		{
+			return "EInterfacePoint";
+		}
+		case 11:
+		{
+			return "EInterfaceLinear";
+		}
+		case 12:
+		{
+			return "EInterfaceSurface";
+		}
+		case 13:
+		{
+			return "ESubstructure";
+		}
+		case 14:
+		{
+			return "EGlobLoc";
+		}
+		case 15:
+		{
+			return "EDiscontinuous";
+		}
+		case 16:
+		{
+			return "EAgglomerate";
+		}
+		case 17:
+		{
+			return "ENoType";
+		}
+		case 18:
+		{
+			return "EInterfaceDisc = EInterface";
+		}
+		default:
+		{
+			return "ElementType not found!";
+		}
+	}
+}
                      
 #endif

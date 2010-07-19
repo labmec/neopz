@@ -57,7 +57,7 @@ TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetRefPattern (TPZGeoEl *fa
 				PZError << "TPZIdentifyRefPattern::GetRefPattern ERROR : wrong linear partition detected!" << endl;
 				exit (-1);
 			}
-			TPZRefPattern * newRef = new TPZRefPattern (father->Mesh(),"/home/pos/cesar/RefPattern/Unif_Linear.rpt");
+			TPZRefPattern * newRef = new TPZRefPattern ("/home/pos/cesar/RefPattern/Unif_Linear.rpt");
 			rp = newRef;
     }
     default : {
@@ -71,13 +71,13 @@ TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetRefPattern (TPZGeoEl *fa
 			}
 		}
 	}
-	TPZAutoPointer<TPZRefPattern> mesh_rp = father->Mesh()->GetRefPattern (eltype,rp->GetName());
+	TPZAutoPointer<TPZRefPattern> mesh_rp = gRefDBase.FindRefPattern(rp);
 	//If the refinement pattern is already defined delete the created refinement pattern
 	if (mesh_rp) {
 		return mesh_rp.operator->();
 	}
 	//Insert a new refinement pattern into mesh
-	father->Mesh()->InsertRefPattern(rp);
+	gRefDBase.InsertRefPattern(rp);
 	return rp;
 }
 
@@ -171,7 +171,7 @@ TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetUniform(TPZGeoEl * gel){
 		}
 	}
 	fullfilename += "Unif.rpt";
-	TPZRefPattern *rp = new TPZRefPattern(gel->Mesh(),fullfilename);
+	TPZRefPattern *rp = new TPZRefPattern(fullfilename);
 	return rp;
 }
 
@@ -218,7 +218,7 @@ TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetSideRefPattern(TPZGeoEl 
 		}
 	}
 	fullfilename += "Unif.rpt";
-	TPZRefPattern *rp = new TPZRefPattern(gel->Mesh(),fullfilename);
+	TPZRefPattern *rp = new TPZRefPattern(fullfilename);
 	return rp;
 }
 

@@ -801,41 +801,45 @@ int TPZGeoEl::main(TPZGeoEl *gel,int type){
   return 1;
 }
 */
+
 /**Initializes the external connectivities of the subelements*/
 void TPZGeoEl::SetSubElementConnectivities() {
 
-//  this->Print(cout);
-  int side;//,el;
-  for(side=0; side<NCornerNodes(); side++) {
-    TPZGeoElSide thisside(this,side);
-    TPZStack<TPZGeoElSide> subel;
-    this->GetSubElements2(side,subel);
-    //Isso ocorre com padroes de refinamento direcional... Cesar 23-02-2004
-    //if(subel.NElements() != 1) {
-    //  cout << "TPZGeoEl::SetSubElementConnectivities wrong data\n";
-    //} else {
-    //for (el=0;el<subel.NElements();el++)
-      if(!subel[0].NeighbourExists(thisside)) subel[0].SetConnectivity(thisside);
-    //}
-  }
-  for(side=NCornerNodes(); side<NSides(); side++) {
-	  TPZGeoElSide thisside(this,side);
-	  TPZGeoElSide neighbour = this->Neighbour(side);
-	  while(neighbour.Exists() && neighbour != thisside) {
-		  if(neighbour.HasSubElement() && neighbour.NSubElements2() != 1) {
-			  TPZStack<TPZGeoElSide> elvec,neighvec;
-			  GetSubElements2(side,elvec);
-			  neighbour.GetSubElements2(neighvec);
-        // The currently divided element may have only one element as a son. In this case, the son is already
-        // neighbour of the father
-			  if(elvec.NElements() > 1) TPZGeoElSide::BuildConnectivities(elvec,neighvec);
-			  break;
+	int side;
+	for(side=0; side<NCornerNodes(); side++)
+	{
+		TPZGeoElSide thisside(this,side);
+		TPZStack<TPZGeoElSide> subel;
+		this->GetSubElements2(side,subel);
+		if(!subel[0].NeighbourExists(thisside))
+		{
+			subel[0].SetConnectivity(thisside);
+		}
+	}
+	for(side=NCornerNodes(); side<NSides(); side++)
+	{
+		TPZGeoElSide thisside(this,side);
+		TPZGeoElSide neighbour = this->Neighbour(side);
+		while(neighbour.Exists() && neighbour != thisside)
+		{
+			if(neighbour.HasSubElement() && neighbour.NSubElements() != 1) {
+			TPZStack<TPZGeoElSide> elvec,neighvec;
+			GetSubElements2(side,elvec);
+			neighbour.GetSubElements2(neighvec);
+				
+			// The currently divided element may have only one element as a son. In this case, the son is already
+			// neighbour of the father
+				
+			if(elvec.NElements() > 1) TPZGeoElSide::BuildConnectivities(elvec,neighvec);
+				
+			break;
 		  }
 		  neighbour = neighbour.Neighbour();
-	  }
-  }
+		}
+	}
   InitializeNeighbours();
 }
+
 /*
 void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
 
@@ -944,14 +948,11 @@ void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 	int dim = Dimension();
 	TPZManVector<REAL,3> X0(3);
 	
-
-	
-	
 	// First verify if the entry ksi yields the right point
-	if(ksi.NElements()!= dim) {
+	if(ksi.NElements()!= dim)
+	{
         PZError << "\nTPZGeoEl::ComputeXInverse vector dimension error\n";
         ksi.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
-        //return;
 	}
 	X(ksi,X0);//ksi deve ter dimensao do elemento atual
 	TPZFNMatrix<9> DelX(3,1);
