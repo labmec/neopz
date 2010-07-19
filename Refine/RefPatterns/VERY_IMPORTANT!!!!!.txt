@@ -1,0 +1,44 @@
+IMPORTANT!!!!!
+
+1. Only the regular refinement patterns (nodes localized in the middle of edges or c.g. of faces/volume) might have name different than "noname". This is because the refPatterns implementation uses this names to identify this regular refpatterns!. But if you want to put a name in a non regular refpattern, go ahead (its good to avoid, but its not prohibit).
+
+2. If you don't care about the Id of refpatterns, use -50. By this way, the implementation identify that a unused Id (unique, free Id) must be steed. If you use refPatternId different than -50, the implementation will use this given Id, so you could localize this refPattern for some reason. But be careful… your given Id could be in use for another refpattern! In this case, see Log files or use "crazy" Ids to avoid this situation, like 946394 or something else ;)
+
+The refPattern file must follow this instructions:
+
+ *********************************************************************************************************************
+ *
+ * The archive to be imported (of an Refinement Pattern) refers to an geoMesh that contains the father element and its sub-elements.
+ * Its format data is the following one:
+ *
+ * begin of file ....................................
+ *
+ * //block 1
+ * int(nNodes)	int(nElements)
+ * int(Id)	string(refName)
+ *
+ * //block 2 - [the line above repeat for each node]
+ * double(nodeCoordinates)
+ * 
+ * //block 3 - [the line above repeat for each element]
+ * int(elType)		int(matId)		int(topologySequence)
+ * 
+ * ................................................................. end of file
+ *
+ * Obs.:
+ *
+ * - The refName of refinement pattern must be "noname" if the refpattern is NOT regular (nodes in the middle of edges or c.g. of faces/volume)
+ *
+ * - The nodeCoordinates of block 2 MUST be in R3 dimension (x,y,z);
+ *
+ * - The sequence described for the nodeCoordinates will assumption that the first will be the node of Id=0, second node of Id=1 etc.
+ *   This convention will be used to describe the topologySequence of elements;
+ *
+ * - The first element described on the block 3 will be considered as the father element of RefPatternMesh.
+ *   The following ones will be its sons (sub-elements);
+ *
+ * - The values of elType, can be:  line(1), triangle(2), quadrilateral(3), tetrahedron(4), pyramid(5), prism(6), hexaedron(7).
+ *
+ * - The topologySequence is the nodes Ids whose sequence declaration will define the element topology
+ *
+ *********************************************************************************************************************
