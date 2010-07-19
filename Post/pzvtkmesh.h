@@ -20,12 +20,10 @@ class TPZVTKGraphMesh : public TPZGraphMesh {
 	
 public:
 	
-	TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat,
-					const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames);
+	TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames);
 	TPZVTKGraphMesh(TPZCompMesh *cmesh,int dim,TPZVTKGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat);
 	
 	virtual void DrawMesh(int numcases);
-	
 	virtual void DrawNodes();
 	virtual void DrawConnectivity(MElementType type);
 	virtual void DrawSolution(int step, REAL time);

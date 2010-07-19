@@ -611,11 +611,6 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
     {
         return fIndex;
     }
-	
-	void SetIndex(int index)
-	{
-		fIndex = index;
-	}
 
  protected:
 //  REAL fMesure;

@@ -109,22 +109,23 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 			exit(-1);
 		}
 
-		double varx, fVarX, vary;
+		//Func_varx = f(varx) = y
+		double varx, Func_varx, vary;
 
 		varx = viniEllip(0,0);
-		fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+		Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
 		vary = viniEllip(1,0);
 		
-		if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
+		if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
 		{
 			cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
 			exit(-1);
 		}
 
 		varx = vfinEllip(0,0);
-		fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+		Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
 		vary = vfinEllip(1,0);
-		if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
+		if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
 		{
 			cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
             cout << "See " << __PRETTY_FUNCTION__ << endl;
@@ -190,13 +191,13 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
             exit(-1);
         }
 
-        double varx, fVarX, vary;
+        double varx, Func_varx, vary;
 
         varx = viniEllip(0,0);
-        fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+        Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
         vary = viniEllip(1,0);
 
-        if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
+        if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
         {
             cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
             cout << "See " << __PRETTY_FUNCTION__ << endl;
@@ -204,9 +205,9 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
         }
 
         varx = vfinEllip(0,0);
-        fVarX = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+        Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
         vary = vfinEllip(1,0);
-        if(fabs(fabs(fVarX) - fabs(vary)) > tolerance)
+        if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
         {
             cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
             cout << "See " << __PRETTY_FUNCTION__ << endl;
@@ -316,7 +317,7 @@ void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
 	///... end of initial node
 
 	///... final node
-	varx = ((fsAxeX*fsAxeY*vfinEllip(0,0))/sqrt(fsAxeY*fsAxeY*vfinEllip(0,0)*vfinEllip(0,0) + fsAxeX*fsAxeX*vfinEllip(1,0)*vfinEllip(1,0)));
+	varx = ((fsAxeX*fsAxeY*vfinEllip(0,0))/sqrt(fsAxeY*fsAxeY*vfinEllip(0,0)*vfinEllip(0,0) + fsAxeX*fsAxeX*vfinEllip(1,0)*vfinEllip(1,0)));	
 	//
 	val = 1.0 - (varx*varx)/(fsAxeX*fsAxeX);
 	if(val < 1.E-30) val = 0.;
@@ -340,7 +341,6 @@ void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
 
 	this->SetNodesCoords(mesh,nodeCoord);
 }///void
-
 
 TPZGeoEl *TPZEllipse3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {

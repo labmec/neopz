@@ -80,7 +80,7 @@ void QuadTwoAdjacentRibRefine(TPZGeoMesh *gmesh)
   }
 
   //Wmesh->Print(cout);
-  TPZRefPattern  *patt = new TPZRefPattern(gmesh, *Wmesh) ;
+  TPZRefPattern  *patt = new TPZRefPattern(*Wmesh) ;
   patt->SetId(0);
   std::ofstream teste("qua2adjribref.txt");
 //  patt->CreateFile(teste);

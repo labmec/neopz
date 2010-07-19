@@ -42,12 +42,45 @@ public:
     void Read(TPZStream &buf);
     
     void Write(TPZStream &buf);
+	
+	TPZManVector<int> Counter()
+	{
+		return fCounter;
+	}
+	
+	TPZManVector<int>Order()
+	{
+		return fOrder;
+	}
 
 protected:
-  /// Variable which represents a counter for the permutations
+	
+    /// Variable which represents a counter for the permutations
     TPZManVector<int> fCounter;
+	
     /// Variable which contains the current permutations
     TPZManVector<int> fOrder;
 };
+
+inline std::ostream &operator<<(std::ostream &out, TPZPermutation &obj)
+{
+	out << "imprimindo TPZPermutation::fCounter\n";
+	for(int i = 0; i < obj.Counter().NElements(); i++)
+	{
+		out << obj.Counter()[i] << std::endl;
+	}
+	out << "\n\n";
+	
+	out << "imprimindo TPZPermutation::fOrder\n";
+	for(int i = 0; i < obj.Order().NElements(); i++)
+	{
+		out << obj.Order()[i] << std::endl;
+	}
+	out << "\n\n";
+	
+	return out;
+}
+
+
 
 #endif
