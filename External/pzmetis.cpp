@@ -20,8 +20,8 @@ static LoggerPtr logger(Logger::getLogger("pz.metis"));
 #include <iostream>
 using namespace std;
 
-TPZMetis::TPZMetis(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes),
-  fElementGraph(0), fElementGraphIndex(0) {
+TPZMetis::TPZMetis(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes)
+{
 }
 
 

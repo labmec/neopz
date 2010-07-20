@@ -48,16 +48,7 @@ public:
    */
    void Subdivide(int nParts, TPZVec < int >  & Domains);
 private:
-  /**
-   * Node number of each element
-   */
-  TPZVec<int> fElementGraph;
-  /**
-   * Indicates for each element the index of the first entry with
-   * fElementGraph for that element
-   * Size of the vector fNElements+1
-   */
-  TPZVec<int> fElementGraphIndex;
+
 };
 
 #endif //TPZMETIS_H
