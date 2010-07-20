@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.39 2010-06-17 17:26:07 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.40 2010-07-20 20:52:10 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -304,6 +304,22 @@ void TPZSubCompMesh::ComputeNodElCon()
 		if(fExternalLocIndex[ic] != -1)
 		{
 			fConnectVec[ic].IncrementElConnected();
+		}
+	}
+}
+
+/**
+ * Compute the number of elements connected to each connect object
+ */
+void TPZSubCompMesh::ComputeNodElCon(TPZVec<int> &nelconnected) const
+{
+	TPZCompMesh::ComputeNodElCon(nelconnected);
+	int ic;
+	for(ic = 0; ic< fConnectVec.NElements(); ic++)
+	{
+		if(fExternalLocIndex[ic] != -1)
+		{
+			nelconnected[ic]++;
 		}
 	}
 }
@@ -623,7 +639,8 @@ void TPZSubCompMesh::MakeAllInternal(){
 void TPZSubCompMesh::PotentialInternal(std::list<int> &connectindices) const {
   int i;
   TPZCompMesh *father = FatherMesh();
-  father->ComputeNodElCon();
+	TPZVec<int> nelconnected;
+  father->ComputeNodElCon(nelconnected);
   //TPZCompMesh::Print();
   //father->Print();
   for (i=0;i<fConnectVec.NElements();i++){
@@ -911,9 +928,11 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInt
 	TPZAutoPointer<TPZStructMatrix> str = NULL;
 	if(numThreads){
 		str = new TPZParSkylineStructMatrix(this,numThreads);
+		str->AssembleOnlyInternalEquations();
 	}
 	else{
 		str = new TPZSkylineStructMatrix(this);
+		str->AssembleOnlyInternalEquations();
 	}
 
 	str->SetNumThreads(numThreads);
@@ -990,10 +1009,10 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int> &permute) const
   std::map<int,int> independent;
   std::list<int> internal;
   this->PotentialInternal(internal);
-/*#ifdef LOG4CXX
+#ifdef LOG4CXX
   {
     std::stringstream sout;
-    sout << "Internal connects ic/seqnum";
+    sout << "Index = " << Index() << " Internal connects ic/seqnum";
     std::list<int>::iterator it;
     for(it=internal.begin(); it!= internal.end(); it++)
     {
@@ -1001,7 +1020,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int> &permute) const
     }
     LOGPZ_DEBUG(logger,sout.str())
   }
-#endif*/
+#endif
   TPZCompMesh *father = this->FatherMesh();
   std::list<int>::iterator it;
   for(it=internal.begin(); it!= internal.end(); it++)
@@ -1027,7 +1046,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int> &permute) const
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
-		sout << "Independent connect sequence numbers and indices ";
+		sout << "Mesh Address " << (void *) this << " Index = " << Index() << " \nIndependent connect sequence numbers and indices ";
 		std::map<int,int>::iterator mapit;
 		for(mapit=independent.begin(); mapit!= independent.end(); mapit++)
 		{
@@ -1045,6 +1064,13 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int> &permute) const
   {
     permute[mapit->first] = count++;
   }
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Index = " << Index() << " Permutation vector 1 " << permute;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
   std::map<int,int> seqmap;
   int ind;
   for(ind=0; ind < fConnectVec.NElements(); ind++)
@@ -1060,7 +1086,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int> &permute) const
 #ifdef LOG4CXX
   {
     std::stringstream sout;
-    sout << "Permutation vector " << permute;
+    sout << "Index = " << Index() << " Permutation vector 2 " << permute;
     LOGPZ_DEBUG(logger,sout.str())
   }
 #endif
@@ -1073,6 +1099,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int> &permute) const
 void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int> &permute)
 {
 	this->ComputePermutationInternalFirst(permute);
+	LOGPZ_DEBUG(logger,"Permuting")
 	Permute(permute);
 }
 
@@ -1163,7 +1190,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
-		sout << "Permutations " << permute;
+		sout << "Index = " << " Permutations " << permute;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
@@ -1202,7 +1229,7 @@ void TPZSubCompMesh::LoadSolution(){
 }
 
 
-void TPZSubCompMesh::Skyline(TPZVec<int> &skyline) {
+void TPZSubCompMesh::SkylineInternal(TPZVec<int> &skyline) {
 	TPZCompMesh::Skyline(skyline);
 	skyline.Resize(NumInternalEquations());
 }
