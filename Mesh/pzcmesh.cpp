@@ -1,5 +1,5 @@
 
-//$Id: pzcmesh.cpp,v 1.89 2010-07-19 19:33:35 caju Exp $
+//$Id: pzcmesh.cpp,v 1.90 2010-07-20 20:46:14 phil Exp $
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
 #include "pzeltype.h"
@@ -529,6 +529,30 @@ void TPZCompMesh::ComputeNodElCon() {
   }
 }
 
+void TPZCompMesh::ComputeNodElCon(TPZVec<int> &nelconnected ) const {
+	
+	int i, nelem = NConnects();
+	nelconnected.Resize(nelem);
+	nelconnected.Fill(0);
+	TPZStack<int> nodelist;
+	int numnod;
+	// modified Philippe 22/7/97
+	// in order to account for constrained nodes
+	nelem = NElements();
+	for(i=0; i<nelem; i++) {
+		TPZCompEl *el = fElementVec[i];
+		if(!el) continue;
+		nodelist.Resize(0);
+		el->BuildConnectList(nodelist);
+		numnod = nodelist.NElements();
+		for (int in=0; in<numnod; ++in) {
+			int dfnindex = nodelist[in];
+			nelconnected[dfnindex]++;
+		}
+	}
+}
+
+
 int TPZCompMesh::NEquations() {
 
   int neq = 0;
@@ -634,7 +658,7 @@ void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
       int leq = fBlock.Position(ibl);
       int heq = leq+fBlock.Size(ibl);
       for(l=leq;l<heq;l++) {
-	skyline[l] = skyline[l] < loweq ? skyline[l] : loweq;
+		  skyline[l] = skyline[l] < loweq ? skyline[l] : loweq;
       }
     }
   }
@@ -1043,6 +1067,10 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
 
 }//method
 
+#ifdef LOG4CXX
+#include "pzsubcmesh.h"
+#endif
+
 /**ExpandSolution must be called before calling this*/
 // it is a gather permutation
 void TPZCompMesh::Permute(TPZVec<int> &permute) {
@@ -1051,6 +1079,17 @@ void TPZCompMesh::Permute(TPZVec<int> &permute) {
   //   if (permute.NElements() != fBlock.NBlocks()) {
   //     PZError << "TPZCompMesh::Permute : permute vector size not equal to fBlock size\n";
   //   }
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (this);
+		if (submesh) {
+			sout << "Index = " << submesh->Index() << " ";
+		}
+		sout << "Permutation " << permute;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
   int i,j;
   int permutenel = permute.NElements();
   for (i = 0; i < permutenel; i++) fBlock.Set(permute[i],fSolutionBlock.Size(i));

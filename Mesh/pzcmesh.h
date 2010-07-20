@@ -1,5 +1,5 @@
 // -*- c++ -*-
-//$Id: pzcmesh.h,v 1.45 2010-03-22 17:21:53 phil Exp $
+//$Id: pzcmesh.h,v 1.46 2010-07-20 20:46:14 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -344,6 +344,11 @@ public:
    */
   virtual void ComputeNodElCon();
 
+	/**
+	 * Compute the number of elements connected to each connect object
+	 */
+	virtual void ComputeNodElCon(TPZVec<int> &nelconnected) const;
+	
   /**
    * Delete the nodes which have no elements connected to them
    */
