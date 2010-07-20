@@ -607,7 +607,7 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
         \fn TPZGeoEl::Index()
     return the index of the element within the elementvector of the mesh
      */
-    int Index()
+    int Index() const
     {
         return fIndex;
     }

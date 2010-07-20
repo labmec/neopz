@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.43 2010-02-18 20:23:07 phil Exp $
+// $Id: pzcompel.h,v 1.44 2010-07-20 20:46:43 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -221,7 +221,7 @@ public:
   /**
    * Return element index of the mesh fELementVec list
    */
-  int Index();
+  int Index() const;
 
   /**
    * Set element index of the mesh fELementVec list
@@ -753,7 +753,7 @@ inline std::ostream &operator << (std::ostream &out,const TPZCompElSide &celside
   return out;
 }
 
-inline int TPZCompEl::Index() {
+inline int TPZCompEl::Index() const {
   return fIndex;
 }
 
