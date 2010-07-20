@@ -3,6 +3,7 @@
 #include "pzskylstrmatrix.h"
 #include "pzskylmat.h"
 #include "pzcmesh.h"
+#include "pzsubcmesh.h"
 #include "pzvec.h"
 
 TPZStructMatrix * TPZSkylineStructMatrix::Clone(){
@@ -25,7 +26,18 @@ TPZMatrix * TPZSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointe
 TPZMatrix * TPZSkylineStructMatrix::Create(){
     int neq = fMesh->NEquations();
     TPZVec<int> skyline;
-    fMesh->Skyline(skyline);
+	if (fOnlyInternal) {
+		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (fMesh);
+		if (submesh) {
+			submesh->SkylineInternal(skyline);
+		}
+		else {
+			fMesh->Skyline(skyline);
+		}
+	}
+	else {
+		fMesh->Skyline(skyline);
+	}
     if(HasRange())
     {
       neq = fMaxEq-fMinEq;
