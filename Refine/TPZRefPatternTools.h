@@ -270,6 +270,128 @@ public:
 	}
 	
 	/**
+	 * Generate an output of all geomesh to VTK, associating to each one the given data
+	 */
+	static void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVec<int> &elData)
+	{
+		if(gmesh->NElements() != elData.NElements())
+		{
+			std::cout << "Wrong vector size of elements data!" << std::endl;
+			std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
+		}
+		file.clear();
+		int nelements = gmesh->NElements();
+		
+		stringstream node, connectivity, type, material;
+		
+		//Header
+		file << "# vtk DataFile Version 3.0" << std::endl;
+		file << "TPZGeoMesh VTK Visualization" << std::endl;
+		file << "ASCII" << std::endl << std::endl;
+		
+		file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+		file << "POINTS ";
+		
+		int actualNode = -1, size = 0, nVALIDelements = 0;
+		
+		for(int el = 0; el < nelements; el++)
+		{				
+			if(gmesh->ElementVec()[el]->Type() == EOned)//Exclude Lines, Arc3D and Ellipse3D
+			{
+				continue;
+			}
+			if(gmesh->ElementVec()[el]->HasSubElement())
+			{
+				continue;
+			}
+			
+			int elNnodes = gmesh->ElementVec()[el]->NNodes();
+			size += (1+elNnodes);
+			connectivity << elNnodes;
+			
+			for(int t = 0; t < elNnodes; t++)
+			{
+				for(int c = 0; c < 3; c++)
+				{
+					double coord = gmesh->NodeVec()[gmesh->ElementVec()[el]->NodeIndex(t)].Coord(c);
+					node << coord << " ";
+				}			
+				node << std::endl;
+				
+				actualNode++;
+				connectivity << " " << actualNode;
+			}
+			connectivity << std::endl;
+			
+			int elType;
+			switch (gmesh->ElementVec()[el]->Type())
+			{
+				case (ETriangle):
+				{
+					elType = 5;
+					break;				
+				}
+				case (EQuadrilateral):
+				{
+					elType = 9;
+					break;				
+				}
+				case (ETetraedro):
+				{
+					elType = 10;
+					break;				
+				}
+				case (EPiramide):
+				{
+					elType = 14;
+					break;				
+				}
+				case (EPrisma):
+				{
+					elType = 13;
+					break;				
+				}
+				case (ECube):
+				{
+					elType = 12;
+					break;				
+				}
+				default:
+				{
+					elType = -1;//ElementType NOT Found!!!
+					DebugStop();
+					break;	
+				}
+			}
+			type << elType << std::endl;
+			
+			material << elData[el] << std::endl;
+			
+			nVALIDelements++;
+		}
+		node << std::endl;
+		actualNode++;
+		file << actualNode << " float" << std::endl << node.str();
+		
+		file << "CELLS " << nVALIDelements << " ";
+		
+		file << size << std::endl;
+		file << connectivity.str() << std::endl;
+		
+		file << "CELL_TYPES " << nVALIDelements << std::endl;
+		file << type.str() << std::endl;
+		
+		file << "CELL_DATA" << " " << nVALIDelements << std::endl;
+		file << "FIELD FieldData 1" << std::endl;
+
+		file << "Substructure 1 " << nVALIDelements << " int" << std::endl;
+
+		file << material.str();
+		
+		file.close();
+	}
+	
+	/**
 	 * Based on a given geomesh, just the elements that have an neighbour with a given material id will be exported to an VTK file
 	 */
 	static void PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofstream &file, int neighMaterial, bool matColor = false)
