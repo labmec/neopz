@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.15 2010-07-19 19:40:52 caju Exp $
+// $Id: pzvec.h,v 1.16 2010-07-20 20:55:42 phil Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -388,6 +388,12 @@ inline void TPZVec<T>::Print(std::ostream &out)
 
    //   for(int i=0;i<fNElements;i++)
    //   out << setw( 14 ) << setprecision( 6 ) << fStore[i];
+}
+
+inline std::ostream &operator<<(std::ostream &out, std::pair<int,int> &element)
+{
+	out << element.first << "|" << element.second;
+	return out;
 }
 
 #endif
