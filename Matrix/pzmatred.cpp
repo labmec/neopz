@@ -43,6 +43,7 @@ TPZMatRed<TSideMatrix>::TPZMatRed () : TPZMatrix( 0, 0 ), fK01(0,0),fK10(0,0),fK
   fK11IsReduced=0;
 	fK01IsComputed = 0;
   fF1IsReduced=0;
+	fIsReduced = 0;
 
 }
 
@@ -59,6 +60,7 @@ TPZMatRed<TSideMatrix>::TPZMatRed( int dim, int dim00 ):TPZMatrix( dim,dim ), fK
   fK11IsReduced=0;
 	fK01IsComputed = 0;
   fF1IsReduced=0;
+	fIsReduced = 0;
 
 }
 
@@ -71,7 +73,8 @@ TPZMatRed<TSideMatrix>::TPZMatRed(const TPZMatRed &cp) : TPZMatrix(cp), fK01(cp.
   fF0IsComputed=cp.fF0IsComputed;
   fK11IsReduced=cp.fK11IsReduced;
 	fK01IsComputed = cp.fK01IsComputed;
-  fF1IsReduced=fF1IsReduced;
+  fF1IsReduced=cp.fF1IsReduced;
+	fIsReduced = cp.fIsReduced;
 
   if(cp.fK00) fK00 = cp.fK00->Clone();
 }
@@ -427,6 +430,7 @@ void TPZMatRed<TSideMatrix>::MultAdd(const TPZFMatrix &x,
 
 	if(!fIsReduced)
 	{
+		LOGPZ_WARN(logger,"TPZMatRed not reduced, expect trouble")
 		TPZMatrix::MultAdd(x,y,z,alpha,beta,opt,stride);
 		return;
 	}

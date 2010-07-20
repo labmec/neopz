@@ -76,6 +76,7 @@ public:
   void SetReduced()
   {
     TPZMatrix::Resize(fDim1, fDim1);
+	  fIsReduced = 1;
   }
 
   /**
