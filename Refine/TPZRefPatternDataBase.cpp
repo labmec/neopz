@@ -448,7 +448,7 @@ void TPZRefPatternDataBase::InitializeAllUniformRefPatterns()
 }
 
 
-/** #define REFPATTERNDIR "/Users/Cesar/Documents/Projects/NeoPZ/Refine/RefPatterns" */
+	//#define REFPATTERNDIR "/Users/Cesar/Documents/Projects/NeoPZ/Refine/RefPatterns"
 void TPZRefPatternDataBase::InitializeRefPatterns()
 {
 
@@ -536,6 +536,24 @@ TPZAutoPointer<TPZRefPattern>  TPZRefPatternDataBase::FindRefPattern(int id)
 	}
 	
 	return refPatReturned;
+}
+
+//.........................................................................................................................................................................................
+TPZAutoPointer<TPZRefPattern> TPZRefPatternDataBase::FindRefPattern(std::string name)
+{
+	TPZAutoPointer<TPZRefPattern> refp = NULL;
+	
+	std::map< int , TPZAutoPointer<TPZRefPattern> >::iterator it;
+	for(it = 	fIdRefPatterns.begin(); it != fIdRefPatterns.end(); it++)
+	{
+		if( (it->second)->fName == name)
+		{
+			refp = it->second;
+			break;
+		}
+	}
+	
+	return refp;
 }
 
 //.........................................................................................................................................................................................

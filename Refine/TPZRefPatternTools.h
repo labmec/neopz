@@ -144,14 +144,14 @@ public:
 	/**
 	 * Generate an output of all geomesh to VTK
 	 */
-	static void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file)
+	static void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool matColor = false)
 	{
 		file.clear();
 		int nelements = gmesh->NElements();
 		
-		stringstream node, connectivity, type;
+		stringstream node, connectivity, type, material;
 		
-			//Header
+		//Header
 		file << "# vtk DataFile Version 3.0" << std::endl;
 		file << "TPZGeoMesh VTK Visualization" << std::endl;
 		file << "ASCII" << std::endl << std::endl;
@@ -163,7 +163,7 @@ public:
 		
 		for(int el = 0; el < nelements; el++)
 		{				
-			if(gmesh->ElementVec()[el]->Type() == EOned)//Exclude Lines and Arc3D
+			if(gmesh->ElementVec()[el]->Type() == EOned)//Exclude Lines, Arc3D and Ellipse3D
 			{
 				continue;
 			}
@@ -231,6 +231,15 @@ public:
 				}
 			}
 			type << elType << std::endl;
+			if(matColor == true)
+			{
+				material << gmesh->ElementVec()[el]->MaterialId() << std::endl;
+			}
+			else
+			{
+				material << elType << std::endl;
+			}
+
 			nVALIDelements++;
 		}
 		node << std::endl;
@@ -243,7 +252,19 @@ public:
 		file << connectivity.str() << std::endl;
 		
 		file << "CELL_TYPES " << nVALIDelements << std::endl;
-		file << type.str();
+		file << type.str() << std::endl;
+		
+		file << "CELL_DATA" << " " << nVALIDelements << std::endl;
+		file << "FIELD FieldData 1" << std::endl;
+		if(matColor == true)
+		{
+			file << "material 1 " << nVALIDelements << " int" << std::endl;
+		}
+		else
+		{
+			file << "ElementType 1 " << nVALIDelements << " int" << std::endl;
+		}
+		file << material.str();
 		
 		file.close();
 	}
@@ -251,14 +272,14 @@ public:
 	/**
 	 * Based on a given geomesh, just the elements that have an neighbour with a given material id will be exported to an VTK file
 	 */
-	static void PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofstream &file, int neighMaterial)
+	static void PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofstream &file, int neighMaterial, bool matColor = false)
 	{
 		file.clear();
 		int nelements = gmesh->NElements();
 		
-		stringstream node, connectivity, type;
+		stringstream node, connectivity, type, material;
 		
-			//Header
+		//Header
 		file << "# vtk DataFile Version 3.0" << std::endl;
 		file << "TPZGeoMesh VTK Visualization" << std::endl;
 		file << "ASCII" << std::endl << std::endl;
@@ -270,7 +291,7 @@ public:
 		
 		for(int el = 0; el < nelements; el++)
 		{				
-			if(gmesh->ElementVec()[el]->Type() == EOned)//Exclude Lines and Arc3D
+			if(gmesh->ElementVec()[el]->Type() == EOned)//Exclude Lines, Arc3D and Ellipse3D
 			{
 				continue;
 			}
@@ -363,6 +384,15 @@ public:
 				}
 			}
 			type << elType << std::endl;
+			if(matColor == true)
+			{
+				material << gmesh->ElementVec()[el]->MaterialId() << std::endl;
+			}
+			else
+			{
+				material << elType << std::endl;
+			}
+			
 			nVALIDelements++;
 		}
 		node << std::endl;
@@ -377,20 +407,32 @@ public:
 		file << "CELL_TYPES " << nVALIDelements << std::endl;
 		file << type.str();
 		
+		file << "CELL_DATA" << " " << nVALIDelements << std::endl;
+		file << "FIELD FieldData 1" << std::endl;
+		if(matColor == true)
+		{
+			file << "material 1 " << nVALIDelements << " int" << std::endl;
+		}
+		else
+		{
+			file << "ElementType 1 " << nVALIDelements << " int" << std::endl;
+		}
+		file << material.str();
+		
 		file.close();
 	}
 	
 	/**
 	 * Based on a given geomesh, just the elements that have the given material id will be exported to an VTK file
 	 */
-	static void PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &file, std::set<int> myMaterial)
+	static void PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &file, std::set<int> myMaterial, bool matColor = false)
 	{
 		file.clear();
 		int nelements = gmesh->NElements();
 		
-		stringstream node, connectivity, type;
+		stringstream node, connectivity, type, material;
 		
-			//Header
+		//Header
 		file << "# vtk DataFile Version 3.0" << std::endl;
 		file << "TPZGeoMesh VTK Visualization" << std::endl;
 		file << "ASCII" << std::endl << std::endl;
@@ -402,7 +444,7 @@ public:
 		
 		for(int el = 0; el < nelements; el++)
 		{				
-			if(gmesh->ElementVec()[el]->Type() == EOned)//Exclude Lines and Arc3D
+			if(gmesh->ElementVec()[el]->Type() == EOned)//Exclude Lines, Arc3D and Ellipse3D
 			{
 				continue;
 			}
@@ -472,6 +514,14 @@ public:
 				}
 			}
 			type << elType << std::endl;
+			if(matColor == true)
+			{
+				material << gmesh->ElementVec()[el]->MaterialId() << std::endl;
+			}
+			else
+			{
+				material << elType << std::endl;
+			}
 			nVALIDelements++;
 		}
 		node << std::endl;
@@ -485,6 +535,18 @@ public:
 		
 		file << "CELL_TYPES " << nVALIDelements << std::endl;
 		file << type.str();
+		
+		file << "CELL_DATA" << " " << nVALIDelements << std::endl;
+		file << "FIELD FieldData 1" << std::endl;
+		if(matColor == true)
+		{
+			file << "material 1 " << nVALIDelements << " int" << std::endl;
+		}
+		else
+		{
+			file << "ElementType 1 " << nVALIDelements << " int" << std::endl;
+		}
+		file << material.str();
 		
 		file.close();
 	}

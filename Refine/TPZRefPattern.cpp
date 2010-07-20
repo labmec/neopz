@@ -1362,10 +1362,51 @@ void TPZRefPattern::TPZSideTransform::Print(TPZGeoMesh &gmesh, std::ostream &out
 	}
 }
 
-void TPZRefPattern::PrintVTK(std::ofstream &file)
+void TPZRefPattern::PrintVTK(std::ofstream &file, bool matColor)
 {
-	TPZGeoMesh * gmesh = &(RefPatternMesh());
-	TPZRefPatternTools::PrintGMeshVTK(gmesh, file);
+//	TPZGeoMesh * gmesh = &(RefPatternMesh());
+//	TPZRefPatternTools::PrintGMeshVTK(gmesh, file, matColor);
+	
+	TPZGeoMesh * Rgmesh = &(RefPatternMesh());
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	
+	int nNodes = Rgmesh->NNodes();
+	int nElements = Rgmesh->NElements();
+
+	TPZVec < TPZVec <REAL> > NodeCoord(nNodes);
+	for(int i = 0; i < nNodes; i++) NodeCoord[i].Resize(3,0.);
+	
+	//setting nodes coords
+	for(int n = 0; n < nNodes; n++)
+	{
+		NodeCoord[n][0] = Rgmesh->NodeVec()[n].Coord(0);
+		NodeCoord[n][1] = Rgmesh->NodeVec()[n].Coord(1);
+		NodeCoord[n][2] = Rgmesh->NodeVec()[n].Coord(2);
+	}
+	
+	//initializing gmesh->NodeVec()
+	gmesh->NodeVec().Resize(nNodes);
+	TPZVec <TPZGeoNode> Node(nNodes);
+	for(int n = 0; n < nNodes; n++)
+	{
+		Node[n].SetNodeId(n);
+		Node[n].SetCoord(&NodeCoord[n][0]);
+		gmesh->NodeVec()[n] = Node[n]; 
+	}
+	for(int el = 1; el < nElements; el++)
+	{
+		TPZGeoEl * Elem = Rgmesh->ElementVec()[el];
+		TPZVec<int> cornerindexes(Elem->NNodes());
+		int id = Elem->Id();
+		for(int n = 0; n < Elem->NNodes(); n++)
+		{
+			cornerindexes[n] = Elem->NodeIndex(n);
+		}
+		gmesh->CreateGeoElement(Elem->Type(), cornerindexes, Elem->MaterialId(), id);
+	}
+	gmesh->BuildConnectivity();
+	
+	TPZRefPatternTools::PrintGMeshVTK(gmesh, file, matColor);
 }
 
 //protected

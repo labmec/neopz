@@ -79,6 +79,8 @@ class TPZRefPatternDataBase
 	
 		TPZAutoPointer<TPZRefPattern> FindRefPattern(int id);
 	
+	TPZAutoPointer<TPZRefPattern> FindRefPattern(std::string name);
+	
 		/**
 		 * Return the complete set of refinement patterns availabe
 		 */

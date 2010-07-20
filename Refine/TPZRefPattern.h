@@ -297,7 +297,7 @@ public:
 		return fRefPatternMesh;
 	}
 	
-	void PrintVTK(std::ofstream &file);
+	void PrintVTK(std::ofstream &file, bool matColor = false);
 	
 private:
 	
@@ -508,7 +508,7 @@ public:
 		}
 	};
 	
-		//protected:
+	protected:
 	
 	/**
 	 * Map of all valid permutations
