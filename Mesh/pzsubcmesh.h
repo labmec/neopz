@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.24 2010-04-14 21:37:48 fortiago Exp $
+//$Id: pzsubcmesh.h,v 1.25 2010-07-20 20:50:12 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -162,7 +162,7 @@ public:
    * This method computes the skyline of the system of equations
    * @param skyline vector where the skyline will be computed
    */
-  virtual void Skyline(TPZVec<int> &skyline);
+  virtual void SkylineInternal(TPZVec<int> &skyline);
 
   /**
    * Returns the rootmesh who have the specified connection.
@@ -298,7 +298,12 @@ public:
 	 */
 	virtual void ComputeNodElCon();
 	
-  //    /**
+	/**
+	 * Compute the number of elements connected to each connect object
+	 */
+	virtual void ComputeNodElCon(TPZVec<int> &nelconnected) const;
+	
+	//    /**
   //     * Returns the connection index i.
   //     */
 	virtual int ConnectIndex(int i) const;
