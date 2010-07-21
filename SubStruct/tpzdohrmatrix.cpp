@@ -57,14 +57,39 @@ void TPZDohrMatrix<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
   
   typename SubsList::const_iterator iter;
 	int isub = 0;
-  for (iter=fGlobal.begin();iter!=fGlobal.end();iter++,isub++) {
-	  TPZFMatrix xlocal,zlocal;
-	  fAssembly->Extract(isub,x,xlocal);
-	  zlocal.Redim(xlocal.Rows(),xlocal.Cols());
-    (*iter)->ContributeKULocal(alpha,xlocal,zlocal);
-	  fAssembly->Assemble(isub,zlocal,z);
-//         z.Print("Resultado intermediario");
-  }
+	if (fNumThreads == 0) {
+		for (iter=fGlobal.begin();iter!=fGlobal.end();iter++,isub++) {
+			TPZFMatrix xlocal,zlocal;
+			fAssembly->Extract(isub,x,xlocal);
+			zlocal.Redim(xlocal.Rows(),xlocal.Cols());
+			(*iter)->ContributeKULocal(alpha,xlocal,zlocal);
+			fAssembly->Assemble(isub,zlocal,z);
+			//         z.Print("Resultado intermediario");
+		}		
+	}
+	else {
+		TPZAutoPointer<TPZDohrAssembleList> assemblelist = new TPZDohrAssembleList(fGlobal.size(),z,this->fAssembly);
+				
+		TPZDohrThreadMultList<TSubStruct> multwork(x,alpha,fAssembly,assemblelist);
+		typename std::list<TPZAutoPointer<TSubStruct> >::const_iterator iter;
+		int isub=0;
+		for (iter=fGlobal.begin(); iter!=fGlobal.end(); iter++,isub++) {
+			TPZDohrThreadMultData<TSubStruct> data(isub,*iter);
+			multwork.AddItem(data);
+		}
+		TPZVec<pthread_t> AllThreads(fNumThreads+1);
+		int i;
+		for (i=0; i<fNumThreads; i++) {
+			pthread_create(&AllThreads[i+1], 0, TPZDohrThreadMultList<TSubStruct>::ThreadWork, &multwork);
+		}
+		pthread_create(&AllThreads[0], 0, TPZDohrAssembleList::Assemble, assemblelist.operator->());
+
+		for (i=0; i<fNumThreads+1; i++) {
+			void *result;
+			pthread_join(AllThreads[i], &result);
+		}
+	}
+
 }
 
 template<class TSubStruct>
@@ -76,7 +101,7 @@ void TPZDohrMatrix<TSubStruct>::Initialize()
 	int isub = 0;
 	for (iter=fGlobal.begin();iter!=fGlobal.end();iter++,isub++) {
         //Basic initialization for each substructure (compute the matrices)
-        (*iter)->Initialize();
+        //(*iter)->Initialize();
 		TPZFMatrix diaglocal;
         (*iter)->ContributeDiagonalLocal(diaglocal);
 		LOGPZ_DEBUG(logger,"Before assemble diagonal")
@@ -131,6 +156,22 @@ void TPZDohrMatrix<TSubStruct>::AddInternalSolution(TPZFMatrix &solution)
 	for (iter=fGlobal.begin();iter!=fGlobal.end();iter++) {
 		(*iter)->AddInternalSolution(solution);
 	}
+}
+
+template<class TSubStruct>
+void *TPZDohrThreadMultList<TSubStruct>::ThreadWork(void *ptr)
+{
+	TPZDohrThreadMultList<TSubStruct> *myptr = (TPZDohrThreadMultList<TSubStruct> *) ptr;
+	TPZDohrThreadMultData<TSubStruct> runner = myptr->PopItem();
+	while (runner.IsValid()) {
+		TPZFMatrix xlocal;
+		myptr->fAssembly->Extract(runner.fisub,*(myptr->fInput),xlocal);
+		TPZAutoPointer<TPZDohrAssembleItem> assembleItem = new TPZDohrAssembleItem(runner.fisub,xlocal.Rows(),xlocal.Cols());
+		runner.fSub->ContributeKULocal(myptr->fAlpha,xlocal,assembleItem->fAssembleData);
+		myptr->fAssemblyStructure->AddItem(assembleItem);
+		runner = myptr->PopItem();
+	}
+	return ptr;
 }
 
 template class TPZDohrMatrix<TPZDohrSubstruct>;

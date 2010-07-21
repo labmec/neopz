@@ -27,12 +27,15 @@
 #include "tpzdohrsubstruct.h"
 #include "tpzdohrsubstructCondense.h"
 #include "tpzdohrassembly.h"
+
+#include "tpzdohrassemblelist.h"
+
 /**
  This class represents a matrix divided into substructures
  
  @author Philippe Devloo
  */
-template <class TSubStruct = TPZDohrSubstruct> 
+template <class TSubStruct> 
 class TPZDohrMatrix : public TPZMatrix
 {
 public:
@@ -141,6 +144,83 @@ void AdjustResidual(TPZFMatrix &res);
  * Add the solution corresponding to the internal residual
  */
 void AddInternalSolution(TPZFMatrix &solution);
+};
+
+template <class TSubStruct> 
+struct TPZDohrThreadMultData
+{
+	
+	TPZDohrThreadMultData() : fisub(-1), fSub(0)
+	{
+	}
+	TPZDohrThreadMultData(int isub, TPZAutoPointer<TSubStruct> submesh) : fisub(isub), fSub(submesh)
+	{
+	}
+	TPZDohrThreadMultData(const TPZDohrThreadMultData<TSubStruct> &cp) : fisub(cp.fisub), fSub(cp.fSub)
+	{
+	}
+	TPZDohrThreadMultData<TSubStruct> &operator=(const TPZDohrThreadMultData<TSubStruct> &cp)
+	{
+		fisub = cp.fisub;
+		fSub = cp.fSub;
+		return *this;
+	}
+	int fisub;
+	TPZAutoPointer<TSubStruct> fSub;	
+	
+	bool IsValid()
+	{
+		return (fisub >= 0);
+	}
+};
+
+template <class TSubStruct> 
+struct TPZDohrThreadMultList
+{
+	/// the vector with which we will multiply
+	const TPZFMatrix *fInput;
+	/// scalar multiplication factor
+	REAL fAlpha;
+	/// mutex which will enable the access protection of the list
+	pthread_mutex_t fAccessLock;
+	/// The data structure which defines the assemble destinations
+	TPZAutoPointer<TPZDohrAssembly> fAssembly;
+	/// The list of data objects which need to treated by the threads
+	std::list<TPZDohrThreadMultData<TSubStruct> > fWork;
+	/// the local contribution to the v2 vector
+	TPZAutoPointer<TPZDohrAssembleList> fAssemblyStructure;
+	
+	TPZDohrThreadMultList(const TPZFMatrix &x, REAL alpha, TPZAutoPointer<TPZDohrAssembly> assembly, TPZAutoPointer<TPZDohrAssembleList> &assemblestruct) : fInput(&x), fAlpha(alpha), 
+			fAssembly(assembly), fAssemblyStructure(assemblestruct)
+	{
+		pthread_mutex_init(&fAccessLock, 0);
+	}
+	TPZDohrThreadMultList()
+	{
+		pthread_mutex_destroy(&fAccessLock);
+	}
+	
+	/// The procedure which executes the lengthy process
+	static void *ThreadWork(void *voidptr);
+	/// interface to add items in a thread safe way
+	void AddItem(TPZDohrThreadMultData<TSubStruct> &data)
+	{
+		pthread_mutex_lock(&fAccessLock);
+		fWork.push_back(data);
+		pthread_mutex_unlock(&fAccessLock);
+	}
+	/// interface to pop an item in a thread safe way
+	TPZDohrThreadMultData<TSubStruct> PopItem()
+	{
+		TPZDohrThreadMultData<TSubStruct> result;
+		pthread_mutex_lock(&fAccessLock);
+		if (fWork.size()) {
+			result = *fWork.begin();
+			fWork.pop_front();
+		}
+		pthread_mutex_unlock(&fAccessLock);
+		return result;
+	}
 };
 
 #endif
