@@ -1,5 +1,5 @@
 
-//$Id: pzcmesh.cpp,v 1.90 2010-07-20 20:46:14 phil Exp $
+//$Id: pzcmesh.cpp,v 1.91 2010-07-21 19:52:20 phil Exp $
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
 #include "pzeltype.h"
@@ -1835,6 +1835,7 @@ REAL TPZCompMesh::LesserEdgeOfMesh(){
     @param resolution Number of rows and columns of the matrix
     @param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element */
 void TPZCompMesh::ComputeFillIn(int resolution, TPZFMatrix &fillin){
+	ComputeNodElCon();
   int nequations = NEquations();
   int divider = nequations/resolution;
   if(divider*resolution != nequations) divider++;
