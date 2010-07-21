@@ -124,6 +124,7 @@ TPZMatrix * TPZDohrStructMatrix::Create()
 			continue;
 		}
 		TPZAutoPointer<TPZDohrSubstructCondense> substruct = new TPZDohrSubstructCondense();
+		submesh->ComputeNodElCon();
 		int neq = ((TPZCompMesh *)submesh)->NEquations();
 		//    int neq = substruct->fStiffness->Rows();
 		
@@ -521,6 +522,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 	for (isub=0; isub<nsub; isub++) {
 		submeshes[isub]->MakeAllInternal();
 	}
+	fMesh->ComputeNodElCon();
 	fMesh->CleanUpUnconnectedNodes();
 }
 
