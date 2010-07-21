@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.25 2010-07-20 20:50:12 phil Exp $
+//$Id: pzsubcmesh.h,v 1.26 2010-07-21 19:49:56 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -56,6 +56,10 @@ protected:
    * If the connection isn't external id is -1!
    */
   TPZManVector<int> fExternalLocIndex;
+	/**
+	 * map indicating the correspondence between the connect index of the father mesh and de local connect id
+	 */
+	std::map<int,int> fFatherToLocal;
 
 
 private:
@@ -319,7 +323,7 @@ public:
   //     */
 	virtual void LoadSolution();
 
-	virtual void GetExternalConnectIndex (TPZVec<int> &extconn);
+	//virtual void GetExternalConnectIndex (TPZVec<int> &extconn);
 
  /**
   * Computes solution and its derivatives in the local coordinate qsi.
@@ -376,6 +380,8 @@ public:
   Read the element data from a stream
   */
   virtual void Read(TPZStream &buf, void *context);
+	
+	bool VerifyDatastructureConsistency();
 
 };
 
