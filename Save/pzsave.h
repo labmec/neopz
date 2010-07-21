@@ -122,7 +122,18 @@ static void WriteObjects(TPZStream &buf, std::vector<T> &vec)
     WriteObjects(buf,vec.fNFree);
   }
 
-
+	static void WriteObjects(TPZStream &buf, const std::map<int,int> &vec)
+	{
+		int sz = vec.size();
+		TPZManVector<int> cp(sz*2);
+		int count = 0;
+		std::map<int,int>::const_iterator it;
+		for (it=vec.begin(); it!=vec.end(); it++) {
+			cp[count++] = it->first;
+			cp[count++] = it->second;
+		}
+		WriteObjects(buf, cp);
+	}
 
 
 template<class T>
@@ -279,6 +290,19 @@ static void ReadObjects(TPZStream &buf, TPZManVector<REAL,N> &vec)
     ReadObjects(buf,vec.fNFree);
   }
 
+	static void ReadObjects(TPZStream &buf, std::map<int,int> &vec)
+	{
+		
+		TPZManVector<int> cp;
+		ReadObjects(buf, cp);
+		int sz = cp.NElements();
+		int count = 0;
+		int i;
+		for (i=0; i<sz; i+=2) {
+			vec[cp[i]] = cp[i+1];
+		}
+	}
+	
 template<class T>
 static void ReadObjectPointers(TPZStream &buf, TPZVec<T *> &vec, void *context)
 {
