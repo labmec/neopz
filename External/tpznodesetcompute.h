@@ -93,7 +93,7 @@ return fNodegraphindex;
 }
 
 private:
-  TPZVec<int> fNodegraph;
+  TPZManVector<int> fNodegraph;
   TPZVec<int> fNodegraphindex;
   int fMaxSeqNum;
   int fMaxLevel;
