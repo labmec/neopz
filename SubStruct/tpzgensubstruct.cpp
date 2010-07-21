@@ -147,8 +147,8 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
     LOGPZ_DEBUG(logger,str.str());
   }
 #endif
-  std::cout << "Identifying corner nodes\n";
-  IdentifyCornerNodes();
+//  std::cout << "Identifying corner nodes\n";
+//  IdentifyCornerNodes();
 	return fCMesh;
 }
 
@@ -232,8 +232,12 @@ void TPZGenSubStruct::SubStructure()
         if(subels[sub].Reference().Dimension() == fDimension)
         {
           submesh->TransferElement(cmesh,subels[sub].Element()->Index());
+#ifdef DEBUG 
+			submesh->VerifyDatastructureConsistency();
+#endif
         }
-      }      
+      }
+		submesh->ExpandSolution();
     }
   }
   // transfer the point load
@@ -276,8 +280,10 @@ void TPZGenSubStruct::SubStructure()
   }
 //#define MAKEINTERNAL
 #ifdef MAKEINTERNAL
+	std::cout << "Making Internal";
 	// make all nodes internal
 	nel = fCMesh->NElements();
+	fCMesh->ComputeNodElCon();
 	for(iel=0; iel<nel; iel++)
 	{
 		TPZCompEl *cel = fCMesh->ElementVec()[iel];
@@ -286,6 +292,7 @@ void TPZGenSubStruct::SubStructure()
 		if(!submesh) continue;
 		submesh->MakeAllInternal();
 	}
+	std::cout << " == Finished\n";
 	fCMesh->CleanUpUnconnectedNodes();
 #endif
 }
