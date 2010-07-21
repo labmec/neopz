@@ -666,7 +666,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	matred->SetSolver(InvertedInternalStiffness);
 	matred->SetReduced();
 	substruct->fMatRed = matred;
-	
+	substruct->Initialize();
 
 }
 
