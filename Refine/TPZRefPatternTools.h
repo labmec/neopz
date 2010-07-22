@@ -193,6 +193,11 @@ public:
 			int elType;
 			switch (gmesh->ElementVec()[el]->Type())
 			{
+				case(EPoint):
+				{
+					elType = 1;
+					break;
+				}
 				case (ETriangle):
 				{
 					elType = 5;
@@ -326,6 +331,11 @@ public:
 			int elType;
 			switch (gmesh->ElementVec()[el]->Type())
 			{
+				case(EPoint):
+				{
+					elType = 1;
+					break;
+				}
 				case (ETriangle):
 				{
 					elType = 5;
@@ -468,6 +478,11 @@ public:
 			int elType;
 			switch (gmesh->ElementVec()[el]->Type())
 			{
+				case(EPoint):
+				{
+					elType = 1;
+					break;
+				}
 				case (ETriangle):
 				{
 					elType = 5;
@@ -598,6 +613,11 @@ public:
 			int elType;
 			switch (gmesh->ElementVec()[el]->Type())
 			{
+				case(EPoint):
+				{
+					elType = 1;
+					break;
+				}
 				case (ETriangle):
 				{
 					elType = 5;

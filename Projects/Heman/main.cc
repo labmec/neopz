@@ -1,4 +1,4 @@
-//$Id: main.cc,v 1.20 2010-07-19 19:38:03 caju Exp $
+//$Id: main.cc,v 1.21 2010-07-22 17:43:43 caju Exp $
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -359,7 +359,7 @@ int main/*F17*/()
   cout << "Initilizing log system...\n";
   InitializePZLOG("log4cxx.cfg");
 	
-	gRefDBase.InitializeRefPatterns();
+  gRefDBase.InitializeRefPatterns();
 	
   std::string meshname;
   TPZGeoMesh *geomesh = choiceMesh(meshname);
@@ -375,11 +375,17 @@ int main/*F17*/()
   int count = 0;
   int destmatid = 2;
 
-  int el, nref = 6;//-1;
+  int el, nref = 3;//-1;
   cout << "number of refinement steps:\n";
   //cin >> nref;
   cout << endl;
 
+	ofstream outt("F17casca0ref_FINAL.vtk");
+	std::set<int> mat1;
+	mat1.insert(-1);
+	
+	TPZRefPatternTools::PrintGMeshVTKneighbour_material(geomesh, outt, -1);	
+	
   int i;
   for(i=0; i<nref; i++)
   {
@@ -402,7 +408,7 @@ int main/*F17*/()
 	  std::set<int> mat2;
 	  mat2.insert(-1);
 	  
-	  PrintGMeshVTKneighbourcopy(geomesh, out, -1);	  
+	  TPZRefPatternTools::PrintGMeshVTKneighbour_material(geomesh, out, -1);	  
   }
   cout << "Finalizing...\n";
   destmatid--;
