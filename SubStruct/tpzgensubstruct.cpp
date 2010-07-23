@@ -138,15 +138,6 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
     LOGPZ_DEBUG(logger,str.str());
   }
 #endif
-  std::cout << "Substructuring the mesh\n";
-  SubStructure();
-#ifdef LOG4CXX
-  {
-    std::stringstream str;
-    fCMesh->Print(str);
-    LOGPZ_DEBUG(logger,str.str());
-  }
-#endif
 //  std::cout << "Identifying corner nodes\n";
 //  IdentifyCornerNodes();
 	return fCMesh;

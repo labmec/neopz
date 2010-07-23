@@ -88,9 +88,10 @@ void ReorderInternalNodes(TPZSubCompMesh *sub, std::map<int,int> &globaltolocal,
     /// divide the geometric elements till num levels is achieved
     void UniformRefine();
     
+public:
     /// divide the elements in substructures
     void SubStructure();
-    
+private:
     /// identify cornernodes
     void IdentifyCornerNodes();
     
