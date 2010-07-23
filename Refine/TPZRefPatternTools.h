@@ -305,8 +305,8 @@ public:
 			{
 				continue;
 			}
-			if(gmesh->ElementVec()[el]->HasSubElement())
-			{
+//			if(gmesh->ElementVec()[el]->HasSubElement())
+			if (elData[el] == -999) {
 				continue;
 			}
 			
