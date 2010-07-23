@@ -90,6 +90,15 @@ void TPZNodesetCompute::AnalyseNode(int node, TPZVec< std::set<int> > &nodeset)
       // Its graph is smaller than mine
       AnalyseNode(othernode,nodeset);
       minlevel = minlevel < fLevel[othernode]+1 ? fLevel[othernode]+1 : minlevel;
+#ifdef LOG4CXX
+		if(fLevel[othernode] >= 0)
+		{
+			std::stringstream sout;
+			sout << "The level of " << node << " is increased because of " << othernode << " ";
+			sout << "Level of othernode " << fLevel[othernode] << " Seqnumber othernode " << fSeqNumber[othernode];
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
     }
     else if(!diff)
     {
@@ -104,11 +113,20 @@ void TPZNodesetCompute::AnalyseNode(int node, TPZVec< std::set<int> > &nodeset)
     {
       // the level should be at least the level of the other node
       minlevel = minlevel < fLevel[othernode] ? fLevel[othernode] : minlevel;
+		// should not happen because if the nodes are equal, they both have the same sequence number
+		DebugStop();
     }
   }
   // assign a sequence number to the node
   fMaxSeqNum++;
   fSeqNumber[node] = fMaxSeqNum;
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Assigning Seq Number " << fMaxSeqNum << " and level " << minlevel << " to nodes " << node << " " << equalnodes;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
   fSeqCard.Push(1);
   // the maximum level of the set of nodes
   fMaxLevel = fMaxLevel < minlevel ? minlevel : fMaxLevel;
@@ -128,6 +146,7 @@ void TPZNodesetCompute::AnalyseNode(int node, TPZVec< std::set<int> > &nodeset)
 		if(othernode == node)
 		{
 			LOGPZ_ERROR(logger," othernode equal to node!!")
+			DebugStop();
 			break;
 		}
 	}
