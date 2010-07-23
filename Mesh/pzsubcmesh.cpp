@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.41 2010-07-21 19:49:56 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.42 2010-07-23 02:01:51 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -602,16 +602,16 @@ void TPZSubCompMesh::MakeAllInternal(){
 	//father->ComputeNodElCon();
 #endif
 	//father->ComputeNodElCon(nelcon);
-#ifdef DEBUG 
-	int in;
-	int nn = nelcon.NElements();
-	for (in=0; in<nn; in++) {
-		if(father->ConnectVec()[in].NElConnected() != nelcon[in])
-		{
-			std::cout << "NelConnected " << in << " " << father->ConnectVec()[in].NElConnected() << " != " << nelcon[in] << std::endl;
-		}
-	}
-#endif
+//#ifdef DEBUG 
+//	int in;
+//	int nn = nelcon.NElements();
+//	for (in=0; in<nn; in++) {
+//		if(father->ConnectVec()[in].NElConnected() != nelcon[in])
+//		{
+//			std::cout << "NelConnected " << in << " " << father->ConnectVec()[in].NElConnected() << " != " << nelcon[in] << std::endl;
+//		}
+//	}
+//#endif
 	//TPZCompMesh::Print();
 	//father->Print();
 	std::map<int,int>::iterator it;
