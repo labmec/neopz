@@ -22,7 +22,7 @@ template <class TGeo>
 void TPZGeoElRefPattern<TGeo>::Read(TPZStream &str, void *context)
 {
 	TPZGeoElRefLess<TGeo>::Read(str, context);
-	TPZGeoMesh *gmesh = (TPZGeoMesh *) context;
+	//TPZGeoMesh *gmesh = (TPZGeoMesh *) context;
 	int refpatternindex;
 	str.Read(&refpatternindex, 1);
 	if(refpatternindex != -1)

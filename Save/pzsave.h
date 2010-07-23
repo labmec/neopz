@@ -296,7 +296,6 @@ static void ReadObjects(TPZStream &buf, TPZManVector<REAL,N> &vec)
 		TPZManVector<int> cp;
 		ReadObjects(buf, cp);
 		int sz = cp.NElements();
-		int count = 0;
 		int i;
 		for (i=0; i<sz; i+=2) {
 			vec[cp[i]] = cp[i+1];
