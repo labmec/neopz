@@ -24,6 +24,7 @@
 
 #include "TPZBoostGraph.h"
 #include "pzvisualmatrix.h"
+#include "TPZRefPatternTools.h"
 
 #include <sstream>
 #include "pzlog.h"
@@ -275,6 +276,9 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 		LOGPZ_DEBUG(logger,str.str());
 	}
 #endif
+#ifdef DEBUG
+	std::set<int> cornerseqnums;
+#endif
 	int nnodes = nodeset.Levels().NElements();
 	int maxlev = nodeset.MaxLevel();
 	int in;
@@ -282,6 +286,9 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 	{
 		if(nodeset.Levels()[in] == maxlev) 
 		{
+#ifdef DEBUG
+			cornerseqnums.insert(in);
+#endif
 			//      this->fCornerEqs.insert(in);
 			//		int seqnum = fCMesh->ConnectVec()[in].SequenceNumber();
 			int pos = fMesh->Block().Position(in);
@@ -293,6 +300,62 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 			}
 		}
 	}
+#ifdef DEBUG
+	std::set<int> connectindices;
+	TPZStack<int> geonodeindices;
+	int ncon = fMesh->ConnectVec().NElements();
+	int ic;
+	for (ic=0; ic<ncon; ic++) {
+		if (cornerseqnums.find(fMesh->ConnectVec()[ic].SequenceNumber()) != cornerseqnums.end()) {
+			connectindices.insert(ic);
+		}
+	}
+	int el;
+	int numcel = fMesh->NElements();
+	for (el=0; el<numcel; el++) {
+		TPZCompEl *cel = fMesh->ElementVec()[el];
+		if(!cel) continue;
+		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (cel);
+		if(!submesh) continue;
+		int elsub;
+		int nelsub = submesh->NElements();
+		for (elsub=0; elsub<nelsub; elsub++) {
+			TPZCompEl *cel = submesh->ElementVec()[elsub];
+			if (!cel) {
+				continue;
+			}
+			int ic;
+			int nc = cel->NConnects();
+			for (ic=0; ic<nc ; ic++) {
+				int connectindex = cel->ConnectIndex(ic);
+				int fatherindex = submesh->NodeIndex(connectindex,fMesh.operator->());
+				if(fatherindex != -1)
+				{
+					if (connectindices.find(fatherindex) != connectindices.end()) 
+					{
+					// good one
+						TPZGeoEl *gel = cel->Reference();
+						geonodeindices.Push(gel->NodeIndex(ic));
+						connectindices.erase(fatherindex);
+					}
+				}
+			}
+		}
+	}
+	TPZAutoPointer<TPZGeoMesh> pointgmesh = new TPZGeoMesh;
+	pointgmesh->NodeVec() = fMesh->Reference()->NodeVec();
+	TPZManVector<int> nodeindices(1,0);
+	int ngeo = geonodeindices.NElements();
+	int igeo;
+	for (igeo=0; igeo<ngeo; igeo++) {
+		nodeindices[0] = geonodeindices[igeo];
+		int index;
+		pointgmesh->CreateGeoElement(EPoint,nodeindices,1,index);
+	}
+	pointgmesh->BuildConnectivity();
+	std::ofstream arquivo("PointMesh.vtk");
+	TPZRefPatternTools::PrintGMeshVTK(pointgmesh.operator->(),arquivo);
+#endif
 	
 #ifdef LOG4CXX
 	{
@@ -487,23 +550,42 @@ void TPZDohrStructMatrix::IdentifySubCornerEqs(std::map<int,int> &globaltolocal,
 	 coarseindex.Resize(localcount);
 }
 
+
 // partition the mesh in submeshes
-void TPZDohrStructMatrix::SubStructure(int nsub )
+void TPZDohrStructMatrix::SubStructure(TPZAutoPointer<TPZCompMesh> cMesh, int nsub )
 {
-	int nel = fMesh->NElements();
-	int nnodes = fMesh->NIndependentConnects();
+	int nel = cMesh->NElements();
+	int nnodes = cMesh->NIndependentConnects();
 	TPZMetis metis(nel,nnodes);
 	TPZStack<int> elgraph,elgraphindex;
-	fMesh->ComputeElGraph(elgraph,elgraphindex);
+	cMesh->ComputeElGraph(elgraph,elgraphindex);
 	metis.SetElementGraph(elgraph, elgraphindex);
 	TPZVec<int> domain_index(nel,-1);
 	metis.Subdivide(nsub, domain_index);
-
+#ifdef DEBUG 
+	{
+		TPZGeoMesh *gmesh = cMesh->Reference();
+		int nelgeo = gmesh->NElements();
+		TPZVec<int> domaincolor(nelgeo,-999);
+		int cel;
+		for (cel=0; cel<nel; cel++) {
+			TPZCompEl *compel = cMesh->ElementVec()[cel];
+			if(!compel) continue;
+			TPZGeoEl *gel = compel->Reference();
+			if (!gel) {
+				continue;
+			}
+			domaincolor[gel->Index()] = domain_index[cel];
+		}
+		ofstream vtkfile("partition.vtk");
+		TPZRefPatternTools::PrintGMeshVTK(gmesh, vtkfile, domaincolor);
+	}
+#endif
 	int isub;
 	TPZManVector<TPZSubCompMesh *> submeshes(nsub,0);
 	for (isub=0; isub<nsub; isub++) {
 		int index;
-		submeshes[isub] = new TPZSubCompMesh(fMesh,index);
+		submeshes[isub] = new TPZSubCompMesh(cMesh,index);
 		if (index < domain_index.NElements()) {
 			domain_index[index] = -1;
 		}
@@ -512,18 +594,18 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 	for (iel=0; iel<nel; iel++) {
 		int domindex = domain_index[iel];
 		if (domindex >= 0) {
-			TPZCompEl *cel = fMesh->ElementVec()[iel];
+			TPZCompEl *cel = cMesh->ElementVec()[iel];
 			if (!cel) {
 				continue;
 			}
-			submeshes[domindex]->TransferElement(fMesh.operator->(),iel);
+			submeshes[domindex]->TransferElement(cMesh.operator->(),iel);
 		}
 	}
 	for (isub=0; isub<nsub; isub++) {
 		submeshes[isub]->MakeAllInternal();
 	}
-	fMesh->ComputeNodElCon();
-	fMesh->CleanUpUnconnectedNodes();
+	cMesh->ComputeNodElCon();
+	cMesh->CleanUpUnconnectedNodes();
 }
 
 

@@ -27,7 +27,7 @@ public:
 	virtual ~TPZDohrStructMatrix();
 	
 	// partition the mesh in submeshes
-	void SubStructure(int nsub);
+	static void SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, int nsub);
 	
 	// this will create a DohrMatrix
 	virtual TPZMatrix * Create();
