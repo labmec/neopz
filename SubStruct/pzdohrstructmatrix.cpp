@@ -280,11 +280,12 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 	std::set<int> cornerseqnums;
 #endif
 	int nnodes = nodeset.Levels().NElements();
-	int maxlev = nodeset.MaxLevel();
+//	int maxlev = nodeset.MaxLevel();
+	int maxlev = 1;
 	int in;
 	for(in=0; in<nnodes; in++)
 	{
-		if(nodeset.Levels()[in] == maxlev) 
+		if(nodeset.Levels()[in] >= maxlev) 
 		{
 #ifdef DEBUG
 			cornerseqnums.insert(in);
@@ -335,7 +336,12 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 					{
 					// good one
 						TPZGeoEl *gel = cel->Reference();
-						geonodeindices.Push(gel->NodeIndex(ic));
+						int ncornernodes = gel->NCornerNodes();
+						if(ic<ncornernodes)
+						{
+							int nodeindex = gel->NodeIndex(ic);
+							geonodeindices.Push(nodeindex);
+						}
 						connectindices.erase(fatherindex);
 					}
 				}
@@ -601,6 +607,7 @@ void TPZDohrStructMatrix::SubStructure(TPZAutoPointer<TPZCompMesh> cMesh, int ns
 			submeshes[domindex]->TransferElement(cMesh.operator->(),iel);
 		}
 	}
+	cMesh->ComputeNodElCon();
 	for (isub=0; isub<nsub; isub++) {
 		submeshes[isub]->MakeAllInternal();
 	}
@@ -613,12 +620,12 @@ void TPZDohrStructMatrix::SubStructure(TPZAutoPointer<TPZCompMesh> cMesh, int ns
 void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly,
 						pthread_mutex_t &TestThread)
 {
-	static std::set<int> subindexes;
-	int index = submesh->Index();
-	if (subindexes.find(index) != subindexes.end()) {
-		DebugStop();
-	}
-	subindexes.insert(index);
+//	static std::set<int> subindexes;
+//	int index = submesh->Index();
+//	if (subindexes.find(index) != subindexes.end()) {
+//		DebugStop();
+//	}
+//	subindexes.insert(index);
 	
 	typedef TPZDohrSubstructCondense::ENumbering ENumbering;
 	typedef std::pair<ENumbering,ENumbering> pairnumbering;
