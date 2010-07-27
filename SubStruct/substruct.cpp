@@ -52,8 +52,8 @@ int main(int argc, char *argv[])
 	InitializePZLOG("log4cxx.cfg");
 	
 	int dim = 2;
-	int maxlevel = 3;
-	int sublevel = 2;
+	int maxlevel = 6;
+	int sublevel = 3;
 	int plevel = 2;
 	int numthreads = 3;
 	TPZGeoMesh *gmesh = 0;
@@ -63,6 +63,10 @@ int main(int argc, char *argv[])
 		TPZCompEl::SetgOrder(plevel);
 		
 		TPZAutoPointer<TPZCompMesh> cmesh = sub.GenerateMesh();
+		
+		TPZDohrStructMatrix dohrstruct(cmesh);
+		
+		dohrstruct.IdentifyExternalConnectIndexes();
 		
 		std::cout << "Substructuring the mesh\n";
 		TPZDohrStructMatrix::SubStructure(cmesh,1<<2*sublevel);
@@ -79,7 +83,6 @@ int main(int argc, char *argv[])
 		gmesh = cmesh->Reference();
 		
 		
-		TPZDohrStructMatrix dohrstruct(cmesh);
 		dohrstruct.SetNumThreads(numthreads);
 		
 		TPZAutoPointer<TPZGuiInterface> gui;
