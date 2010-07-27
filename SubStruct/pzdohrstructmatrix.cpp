@@ -21,6 +21,7 @@
 #include "tpzpairstructmatrix.h"
 
 #include "pzsubcmesh.h"
+#include "pzintel.h"
 
 #include "TPZBoostGraph.h"
 #include "pzvisualmatrix.h"
@@ -258,14 +259,59 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 	fCornerEqs.clear();
 	TPZNodesetCompute nodeset;
 	TPZStack<int> elementgraph,elementgraphindex;
+	TPZStack<int> expelementgraph,expelementgraphindex;
+	std::set<int> subelindexes;
+	int nelem = fMesh->NElements();
+	int iel;
+	for (iel=0; iel<nelem ; iel++) {
+		TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *> (fMesh->ElementVec()[iel]);
+		if (sub) {
+			subelindexes.insert(iel);
+		}
+	}
 	//    fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
 	int nindep = fMesh->NIndependentConnects();
 	//  int neq = fCMesh->NEquations();
 	fMesh->ComputeElGraph(elementgraph,elementgraphindex);
+	// expand the element graph to include a ficticious internal node to all elements
+	expelementgraphindex.Push(0);
 	int nel = elementgraphindex.NElements()-1;
+	int count = 0;
+	for (iel=0; iel<nel; iel++) {
+		int nc = elementgraphindex[iel+1]-elementgraphindex[iel];
+		if (nc) {
+			int index = elementgraphindex[iel];
+			int ic;
+			for (ic=0; ic<nc; ic++) {
+				expelementgraph.Push(0);
+				expelementgraph[count++] = elementgraph[index++];
+			}
+			expelementgraph.Push(0);
+			expelementgraph[count++] = nindep;
+			nindep++;
+		}
+		expelementgraphindex.Push(count);
+	}
+	// add the external connects
+	int next = fExternalConnectIndexes.NElements();
+	if (next) {
+		
+		int iext;
+		for (iext=0; iext<next; iext++) {
+			int extindex = fExternalConnectIndexes[iext];
+			int seqnum = fMesh->ConnectVec()[extindex].SequenceNumber();
+			if (seqnum >= 0) {
+				expelementgraph.Push(0);
+				expelementgraph[count++] = seqnum;
+			}
+		}
+		expelementgraphindex.Push(count);
+	}
+	
+	nel = expelementgraphindex.NElements()-1;
 	TPZRenumbering renum(nel,nindep);
     //nodeset.Print(file,elementgraphindex,elementgraph);
-	renum.ConvertGraph(elementgraph,elementgraphindex,nodeset.Nodegraph(),nodeset.Nodegraphindex());
+	renum.ConvertGraph(expelementgraph,expelementgraphindex,nodeset.Nodegraph(),nodeset.Nodegraphindex());
 	//   cout << "nodegraphindex " << nodeset.Nodegraphindex() << endl;
 	//   cout << "nodegraph " << nodeset.Nodegraph() << endl;
 	nodeset.AnalyseGraph();
@@ -278,10 +324,19 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 #endif
 #ifdef DEBUG
 	std::set<int> cornerseqnums;
+//	{
+//		int ind = expelementgraphindex[nel-1];
+//		int fin = expelementgraphindex[nel];
+//		int no;
+//		for (no=ind ; no<fin ; no++) {
+//			cornerseqnums.insert(expelementgraph[no]);
+//		}
+//	}
 #endif
+	/*
 	int nnodes = nodeset.Levels().NElements();
-//	int maxlev = nodeset.MaxLevel();
-	int maxlev = 1;
+	int maxlev = nodeset.MaxLevel();
+//	int maxlev = 1;
 	int in;
 	for(in=0; in<nnodes; in++)
 	{
@@ -299,6 +354,24 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 			{
 				this->fCornerEqs.insert(pos+ieq);
 			}
+		}
+	}
+	 */
+	int nnodes = nodeset.IsIncluded().NElements();
+	int in;
+	for (in=0; in<nnodes; in++) {
+		if (!nodeset.IsIncluded()[in]) {
+#ifdef DEBUG
+			cornerseqnums.insert(in);
+#endif
+			int pos = fMesh->Block().Position(in);
+			int size = fMesh->Block().Size(in);
+			int ieq;
+			for(ieq=0; ieq<size; ieq++)
+			{
+				this->fCornerEqs.insert(pos+ieq);
+			}
+			
 		}
 	}
 #ifdef DEBUG
@@ -824,3 +897,73 @@ void *ThreadDohrmanAssemblyList::ThreadWork(void *voidptr)
 	return 0;
 }
 
+/// Identify the external connects
+void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
+{
+	// for each computational element
+	std::set<int> connectindexes;
+	int iel;
+	int nel = fMesh->NElements();
+	for (iel=0; iel<nel; iel++) {
+	// if it has a neighbour along its interior, skip
+		TPZCompEl *cel = fMesh->ElementVec()[iel];
+		if (!cel) {
+			continue;
+		}
+		TPZGeoEl *gel = cel->Reference();
+		if (!gel) {
+			continue;
+		}
+		int is;
+		int ns = gel->NSides();
+		int dim = gel->Dimension();
+		TPZStack<TPZCompElSide> compneigh;
+
+		// if there is a neighbour along the side of dimension dim skip
+		TPZGeoElSide gelside(gel,ns-1);
+		gelside.ConnectedCompElementList(compneigh,0,0);
+		if (compneigh.NElements()) {
+			continue;
+		}
+		TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cel);
+		if (!intel) {
+			continue;
+		}
+		// loop over the sides of dimension dim-1
+		for (is=0; is<ns; is++) 
+		{
+			// if there is a neighbour of dimension >= dim skip
+			// the side connects are external
+			TPZGeoElSide gelside(gel,is);
+			if (gelside.Dimension() != dim-1) {
+				continue;
+			}
+			compneigh.Resize(0);
+			gelside.ConnectedCompElementList(compneigh, 0, 0);
+			int ncomp = compneigh.NElements();
+			int ic;
+			for (ic=0; ic<ncomp; ic++) {
+				TPZCompElSide celside = compneigh[ic];
+				TPZGeoElSide gelside = celside.Reference();
+				if (gelside.Element()->Dimension() == dim) {
+					break;
+				}
+			}
+			// if no neighbour has dimension dim
+			if (ic == ncomp) {
+				int nsconnect = intel->NSideConnects(is);
+				int isc;
+				for (isc=0; isc<nsconnect; isc++) {
+					int ind = intel->SideConnectIndex(isc,is);
+					connectindexes.insert(ind);
+				}
+			}
+		}
+	}
+	std::set<int>::iterator it;
+	fExternalConnectIndexes.Resize(connectindexes.size());
+	int i = 0;
+	for (it=connectindexes.begin(); it != connectindexes.end(); it++,i++) {
+		fExternalConnectIndexes[i] = *it;
+	}
+}

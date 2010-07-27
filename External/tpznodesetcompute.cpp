@@ -48,6 +48,8 @@ void TPZNodesetCompute::AnalyseGraph()
   fSeqNumber.Resize(nnodes);
   this->fLevel.Resize(nnodes);
   fSeqNumber.Fill(-1);
+	fIsIncluded.Resize(nnodes);
+	fIsIncluded.Fill(0);
   fLevel.Fill(0);
   TPZVec<std::set<int> > nodeset(nnodes);
   int in;
@@ -88,6 +90,7 @@ void TPZNodesetCompute::AnalyseNode(int node, TPZVec< std::set<int> > &nodeset)
     {
       // Analyse the connectivity graph of the other node
       // Its graph is smaller than mine
+		fIsIncluded[othernode] = 1;
       AnalyseNode(othernode,nodeset);
       minlevel = minlevel < fLevel[othernode]+1 ? fLevel[othernode]+1 : minlevel;
 #ifdef LOG4CXX
@@ -103,11 +106,16 @@ void TPZNodesetCompute::AnalyseNode(int node, TPZVec< std::set<int> > &nodeset)
     else if(!diff)
     {
       // The graphs are equal. These nodes should be grouped
+		if(fIsIncluded[node]) 
+		{
+			fIsIncluded[othernode] = 1;
+		}
       equalnodes.Push(othernode);
     }
     // the other node has been analysed (and is probably not equal...)
     if(inc && diff && fSeqNumber[othernode] != -1)
     {
+		fIsIncluded[othernode] = 1;
       minlevel = minlevel < fLevel[othernode]+1 ? fLevel[othernode]+1 : minlevel;
     } else if(!diff && fSeqNumber[othernode] != -1)
     {

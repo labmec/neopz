@@ -91,15 +91,28 @@ return fNodegraph;
 TPZVec<int> &Nodegraphindex() {
 return fNodegraphindex;
 }
+	
+	TPZVec<int> &IsIncluded()
+	{
+		return fIsIncluded;
+	}
 
 private:
+	// the node graph as passed on by the finite element mesh
+	// this node graph is organized by sequence numbers
   TPZManVector<int> fNodegraph;
   TPZVec<int> fNodegraphindex;
+	// counter for the condensed node graph
   int fMaxSeqNum;
   int fMaxLevel;
+	// sequence number associated with each node after condensing
   TPZVec<int> fSeqNumber;
+	// number of nodes associated with each sequence number
   TPZStack<int> fSeqCard;
+	// inclusion relation ship between nodes
   TPZVec<int> fLevel;
+	// vector indicating whether a node connectivity is included in another one
+	TPZVec<int> fIsIncluded;
 
 /**
  * This method will analyse the set inclusion of the current node, calling the method

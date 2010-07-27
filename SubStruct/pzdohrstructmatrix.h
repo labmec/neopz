@@ -67,9 +67,17 @@ protected:
 	/// Identify the corner equations associated with a substructure
 	void IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
 							  TPZVec<int> &coarseindex);
+	
+public:
+	/// Identify the external connects
+	void IdentifyExternalConnectIndexes();
 
+private:
 	/// identify cornernodes
 	void IdentifyCornerNodes();
+	
+	/// The connect indexes which are external
+	TPZManVector<int> fExternalConnectIndexes;
 	
 	/// A self administred pointer to the computational mesh
 	TPZAutoPointer<TPZCompMesh> fMesh;
