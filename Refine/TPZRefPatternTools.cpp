@@ -567,6 +567,11 @@ std::string TPZRefPatternTools::BuildRefPatternModelName(TPZRefPattern &refp)
 	}
 	rpName >> refpTypeName;
 	
+	if(refpTypeName.length() == 0)
+	{
+		refpTypeName = nonInitializedName;
+	}
+	
 	return refpTypeName;
 }
 
@@ -603,6 +608,11 @@ std::string TPZRefPatternTools::BuildRefPatternModelName(TPZAutoPointer<TPZRefPa
 	}
 	rpName >> refpTypeName;
 	
+	if(refpTypeName.length() == 0)
+	{
+		refpTypeName = nonInitializedName;
+	}
+	
 	return refpTypeName;
 }
 
@@ -636,6 +646,11 @@ std::string TPZRefPatternTools::BuildRefPatternModelName(TPZGeoEl *gel)
 		rpName << sidesToRefine[s];
 	}
 	rpName >> refpTypeName;
+	
+	if(refpTypeName.length() == 0)
+	{
+		refpTypeName = nonInitializedName;
+	}
 	
 	return refpTypeName;
 }
