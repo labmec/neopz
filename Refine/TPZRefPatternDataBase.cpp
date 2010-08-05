@@ -16,7 +16,6 @@ TPZRefPatternDataBase gRefDBase;
 TPZRefPatternDataBase::TPZRefPatternDataBase()
 {
 	this->clear();
-	InitializeAllUniformRefPatterns();
 }
 
 //.........................................................................................................................................................................................
@@ -160,14 +159,71 @@ int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path)
 TPZAutoPointer<TPZRefPattern> TPZRefPatternDataBase::GetUniformRefPattern(MElementType type)
 {
 	std::list< TPZAutoPointer<TPZRefPattern> > ElTypeList = RefPatternList(type);
+	std::list< TPZAutoPointer<TPZRefPattern> >::iterator it;
+
+	std::string unifRefName;
+	switch (type)
+	{
+		case (EOned) :
+		{
+			unifRefName = "UnifLin";
+			break;
+		}
+		case (ETriangle) :
+		{
+			unifRefName = "UnifTri";			
+			break;
+		}
+		case (EQuadrilateral) :
+		{
+			unifRefName = "UnifQua";
+			break;
+		}
+		case (ETetraedro) :
+		{
+			unifRefName = "UnifTet";
+			break;
+		}
+		case (EPiramide) :
+		{
+			unifRefName = "UnifPyr";
+			break;
+		}
+		case (EPrisma) :
+		{
+			unifRefName = "UnifPri";
+			break;
+		}
+		case (ECube) :
+		{
+			unifRefName = "UnifHex";
+			break;
+		}
+		default:
+		{
+			//none
+			break;
+		}
+	}
+	TPZAutoPointer < TPZRefPattern > UnifRefPat = NULL;
+	for(it = ElTypeList.begin(); it != ElTypeList.end(); it++)
+	{
+		if( (*it)->Name() == unifRefName )
+		{
+			UnifRefPat = (*it);
+			break;
+		}
+	}
 	
-	/**
-	 *	The RefPatternDataBase constructor initialize all Uniform RefPatterns by first, so
-	 * the first refpattern of MElementType Indexing is the uniform
-	 */
-	TPZAutoPointer < TPZRefPattern > FIRSTrefpat = *(ElTypeList.begin());
+	#ifdef DEBUG
+	if(!UnifRefPat)
+	{
+		std::cout << "Uniform refpattern " << unifRefName << " was not initialized!" << std::endl;
+		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
+	}
+	#endif
 	
-	return FIRSTrefpat;
+	return UnifRefPat;
 }
 
 //.........................................................................................................................................................................................
@@ -184,7 +240,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			std::cout << "\n\ninserting uniform refpattern: line\n";
 			char buf[] =
 			"3		3	"
-			"-50	Lin001	"
+			"-50	UnifLin	"
 			"-1.	0.		0. "
 			"1.	0.		0. "
 			"0.	0.		0. "
@@ -206,7 +262,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			std::cout << "\n\ninserting uniform refpattern: triangle\n";
 			char buf[] =
 			"6			5	"
-			"-50		Tri0001110	"
+			"-50		UnifTri	"
 			"0.		0.		0. "
 			"1.		0.		0. "
 			"0.		1.		0. "
@@ -233,7 +289,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			std::cout << "\n\ninserting uniform refpattern: quadrilateral\n";
 			char buf[] =
 			"9			5	"
-			"-50		Qua000011111	"
+			"-50		UnifQua	"
 			"-1.		-1.	0. "
 			"1.		-1.	0. "
 			"1.		1.		0. "
@@ -263,7 +319,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			std::cout << "\n\ninserting uniform refpattern: tetrahedre\n";
 			char buf[] =
 			"10  7"
-			"-50	Tet000011111100000	"
+			"-50	UnifTet	"
 			"0.	0.		0. "
 			"1.	0.		0. "
 			"0.	1.		0. "
@@ -296,7 +352,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			std::cout << "\n\ninserting uniform refpattern: pyramid\n";
 			char buf[] =
 			"14		11	"
-			"-50		Pyr0000011111111100000	"
+			"-50		UnifPyr	"
 			"-1.		-1.	0. "
 			"1.		-1.	0. "
 			"1.		1.		0. "
@@ -337,7 +393,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			std::cout << "\n\ninserting uniform refpattern: prism\n";
 			char buf[] =
 			"18		9	"
-			"-50		Pri000000111111111011100	"
+			"-50		UnifPri 	"
 			"0.		0.		-1.	"
 			"1.		0.		-1.	"
 			"0.		1.		-1.	"
@@ -380,7 +436,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			std::cout << "\n\ninserting uniform refpattern: hexahedre\n";
 			char buf[] =
 			"27		9	"
-			"-50		Hex000000001111111111111111111		"
+			"-50		UnifHex		"
 			"-1.		-1.	-1.	"
 			" 1.		-1.	-1.	"
 			" 1.		1.		-1.	"
@@ -448,7 +504,7 @@ void TPZRefPatternDataBase::InitializeAllUniformRefPatterns()
 }
 
 
-	//#define REFPATTERNDIR "/Users/Cesar/Documents/Projects/NeoPZ/Refine/RefPatterns"
+#define REFPATTERNDIR "/Users/Cesar/Documents/Projects/NeoPZ/Refine/RefPatterns"
 void TPZRefPatternDataBase::InitializeRefPatterns()
 {
 

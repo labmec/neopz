@@ -771,6 +771,72 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 		TPZManVector<TPZGeoEl *> subel;
 		gel->Divide(subel);
 	}
+	else
+	{		
+		std::cout << "|"; std::cout.flush();
+		std::ofstream arquivo ("NotListedPatterns.txt",std::ios::app);
+		std::list<TPZAutoPointer<TPZRefPattern> >::iterator it;
+		arquivo << "Compatible refinement patterns\n";
+		
+		arquivo << std::endl;
+		arquivo << "Element Type :" << gel->Type() << std::endl;
+		arquivo << "Sides selected for refinement :" << std::endl;
+		int i;
+		for (i=0 ; i<gel->NSides() ; i++)
+		{
+			if(cornerstorefine[i] == 1)
+			{
+				arquivo << " " << i << " ";
+			}
+			if (sidestorefine[i] == 1) {
+				arquivo << " " << i << " " ;
+			}
+		}
+		gel->Print(arquivo);
+		int in;
+		arquivo << std::endl;
+		arquivo << "Neighbouring information \n";
+		for(in=0; in<gel->NSides(); in++)
+		{
+			arquivo << "Side : " << in << " ";
+			TPZGeoElSide gels(gel,in);
+			arquivo << "Dim " << gels.Dimension() << " ";
+			TPZGeoElSide neigh(gels.Neighbour());
+			while(gels != neigh)
+			{
+				if(matids.count(neigh.Element()->MaterialId()))
+				{
+					arquivo << neigh.Element()->Id() << "-l-" << neigh.Side() << " ";
+					if (neigh.Side() == 9 && gel->Type() == ETetraedro)
+					{
+						arquivo << "Teje pego meliante..." << std::endl;
+						neigh.Element()->Print(arquivo);
+					}
+				}
+				neigh = neigh.Neighbour();
+			}
+			arquivo << std::endl;
+		}
+		arquivo << std::endl;
+		
+		arquivo << "Element information : " << gel->Index() << std::endl;
+		arquivo << "Vizinhos dos lados maraados para refinamento:" << std::endl;
+		for (i=0 ; i<gel->NSides() ; i++)
+		{
+			if(cornerstorefine[i] == 1 || sidestorefine[i] == 1)
+			{
+				TPZGeoElSide gelside (gel,i);
+				TPZGeoElSide neigh = gelside.Neighbour();
+				while (neigh != gelside)
+				{
+					arquivo << "*********** my side = " << i << " neighside " << neigh.Side() << std::endl;
+					neigh.Element()->Print(arquivo);
+					neigh = neigh.Neighbour();
+				}
+			}
+		}
+		arquivo << std::endl << std::endl << std::endl << std::endl;
+	}
 	
 	return;
 }
@@ -914,6 +980,39 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids,
 	}	
 
 	return;
+}
+
+void TPZRefPatternTools::RefineUniformIfNeighMat(TPZGeoEl *gel, std::set<int> &matids)
+{
+	int nsides = gel->NSides();
+	for(int s = 0; s < nsides; s++)
+	{
+		TPZGeoElSide gelside(gel,s);
+		TPZGeoElSide neighside(gelside.Neighbour());
+		while(gelside != neighside)
+		{
+			if(matids.count(neighside.Element()->MaterialId()))
+			{
+				TPZAutoPointer<TPZRefPattern> refP = gRefDBase.GetUniformRefPattern(gel->Type());
+				if(refP)
+				{
+					TPZVec<TPZGeoEl*> sons;
+					gel->SetRefPattern(refP);
+					gel->Divide(sons);
+					
+					return;
+				}
+				else
+				{
+					std::cout << "Uniform refpattern was not found!" << std::endl;
+					std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
+					return;
+				}
+
+			}
+			neighside = neighside.Neighbour();
+		}
+	}
 }
 
 bool TPZRefPatternTools::ConstJacobian(TPZGeoElSide gelside, REAL tol)

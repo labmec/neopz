@@ -108,6 +108,8 @@ public:
 	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids);
 	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids, int gelMat);
 	
+	static void RefineUniformIfNeighMat(TPZGeoEl *gel, std::set<int> &matids);
+	
 	/**
 	 * Method to test if the jacobian of a TPZGeoElSide element is constant
 	 */
@@ -190,52 +192,9 @@ public:
 			}
 			connectivity << std::endl;
 			
-			int elType;
-			switch (gmesh->ElementVec()[el]->Type())
-			{
-				case(EPoint):
-				{
-					elType = 1;
-					break;
-				}
-				case (ETriangle):
-				{
-					elType = 5;
-					break;				
-				}
-				case (EQuadrilateral):
-				{
-					elType = 9;
-					break;				
-				}
-				case (ETetraedro):
-				{
-					elType = 10;
-					break;				
-				}
-				case (EPiramide):
-				{
-					elType = 14;
-					break;				
-				}
-				case (EPrisma):
-				{
-					elType = 13;
-					break;				
-				}
-				case (ECube):
-				{
-					elType = 12;
-					break;				
-				}
-				default:
-				{
-					elType = -1;//ElementType NOT Found!!!
-					DebugStop();
-					break;	
-				}
-			}
+			int elType = TPZRefPatternTools::GetVTK_ElType(gmesh->ElementVec()[el]);
 			type << elType << std::endl;
+			
 			if(matColor == true)
 			{
 				material << gmesh->ElementVec()[el]->MaterialId() << std::endl;
@@ -328,51 +287,7 @@ public:
 			}
 			connectivity << std::endl;
 			
-			int elType;
-			switch (gmesh->ElementVec()[el]->Type())
-			{
-				case(EPoint):
-				{
-					elType = 1;
-					break;
-				}
-				case (ETriangle):
-				{
-					elType = 5;
-					break;				
-				}
-				case (EQuadrilateral):
-				{
-					elType = 9;
-					break;				
-				}
-				case (ETetraedro):
-				{
-					elType = 10;
-					break;				
-				}
-				case (EPiramide):
-				{
-					elType = 14;
-					break;				
-				}
-				case (EPrisma):
-				{
-					elType = 13;
-					break;				
-				}
-				case (ECube):
-				{
-					elType = 12;
-					break;				
-				}
-				default:
-				{
-					elType = -1;//ElementType NOT Found!!!
-					DebugStop();
-					break;	
-				}
-			}
+			int elType = TPZRefPatternTools::GetVTK_ElType(gmesh->ElementVec()[el]);
 			type << elType << std::endl;
 			
 			material << elData[el] << std::endl;
@@ -475,52 +390,9 @@ public:
 			}
 			connectivity << std::endl;
 			
-			int elType;
-			switch (gmesh->ElementVec()[el]->Type())
-			{
-				case(EPoint):
-				{
-					elType = 1;
-					break;
-				}
-				case (ETriangle):
-				{
-					elType = 5;
-					break;				
-				}
-				case (EQuadrilateral):
-				{
-					elType = 9;
-					break;				
-				}
-				case (ETetraedro):
-				{
-					elType = 10;
-					break;				
-				}
-				case (EPiramide):
-				{
-					elType = 14;
-					break;				
-				}
-				case (EPrisma):
-				{
-					elType = 13;
-					break;				
-				}
-				case (ECube):
-				{
-					elType = 12;
-					break;				
-				}
-				default:
-				{
-					elType = -1;//ElementType NOT Found!!!
-					DebugStop();
-					break;	
-				}
-			}
+			int elType = TPZRefPatternTools::GetVTK_ElType(gmesh->ElementVec()[el]);
 			type << elType << std::endl;
+			
 			if(matColor == true)
 			{
 				material << gmesh->ElementVec()[el]->MaterialId() << std::endl;
@@ -610,52 +482,9 @@ public:
 			}
 			connectivity << std::endl;
 			
-			int elType;
-			switch (gmesh->ElementVec()[el]->Type())
-			{
-				case(EPoint):
-				{
-					elType = 1;
-					break;
-				}
-				case (ETriangle):
-				{
-					elType = 5;
-					break;				
-				}
-				case (EQuadrilateral):
-				{
-					elType = 9;
-					break;				
-				}
-				case (ETetraedro):
-				{
-					elType = 10;
-					break;				
-				}
-				case (EPiramide):
-				{
-					elType = 14;
-					break;				
-				}
-				case (EPrisma):
-				{
-					elType = 13;
-					break;				
-				}
-				case (ECube):
-				{
-					elType = 12;
-					break;				
-				}
-				default:
-				{
-					elType = -1;//ElementType NOT Found!!!
-					DebugStop();
-					break;	
-				}
-			}
+			int elType = TPZRefPatternTools::GetVTK_ElType(gmesh->ElementVec()[el]);
 			type << elType << std::endl;
+			
 			if(matColor == true)
 			{
 				material << gmesh->ElementVec()[el]->MaterialId() << std::endl;
@@ -691,6 +520,82 @@ public:
 		file << material.str();
 		
 		file.close();
+	}
+	
+	static int GetVTK_ElType(TPZGeoEl * gel)
+	{
+		MElementType pzElType = gel->Type();
+		
+		int elType;
+		switch (pzElType)
+		{
+			case(EPoint):
+			{
+				elType = 1;
+				break;
+			}
+			case (ETriangle):
+			{
+				if(gel->IsLinearMapping())
+				{
+					elType = 5;	
+				}
+				else if(!gel->IsGeoBlendEl())
+				{
+					elType = 22;
+				}
+
+				break;				
+			}
+			case (EQuadrilateral):
+			{
+				if(gel->IsLinearMapping())
+				{
+					elType = 9;					
+				}
+				else if(!gel->IsGeoBlendEl())
+				{
+					elType = 23;
+				}
+
+				break;				
+			}
+			case (ETetraedro):
+			{
+				if(gel->IsLinearMapping())
+				{
+					elType = 10;
+				}
+				else if(!gel->IsGeoBlendEl())
+				{
+					elType = 24;
+				}
+				break;				
+			}
+			case (EPiramide):
+			{
+				elType = 14;
+				break;				
+			}
+			case (EPrisma):
+			{
+				elType = 13;
+				break;				
+			}
+			case (ECube):
+			{
+				elType = 12;
+				break;				
+			}
+			default:
+			{
+				elType = -1;//ElementType NOT Found!!!
+				DebugStop();
+				break;	
+			}
+		}
+		
+		return elType;
 	}
 };
 
