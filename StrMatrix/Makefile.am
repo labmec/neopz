@@ -20,7 +20,7 @@ noinst_LIBRARIES = libpzstrmatrix.a
 
 libpzstrmatrix_a_SOURCES = TPBSpStructMatrix.cpp TPZFrontStructMatrix.cpp \
 	TPZMTAssemble.cpp TPZParFrontStructMatrix.cpp TPZParSkylineStructMatrix.cpp \
-	TPZSpStructMatrix.cpp pzbdstrmatrix.cpp pzbstrmatrix.cpp pzfstrmatrix.cpp pzmaterialids \
+	TPZSpStructMatrix.cpp pzbdstrmatrix.cpp pzbstrmatrix.cpp pzfstrmatrix.cpp \
 	pzsbstrmatrix.cpp pzskylstrmatrix.cpp pzstrmatrix.cpp \
 	tpzsparseblockdiagonalstructmatrix.cpp TPZMTAssemble.cpp
 
