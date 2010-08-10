@@ -24,6 +24,6 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 SUBDIRS = CarmargoCorrea CursoPZ DiffusionTest Heman LuisGuilherme \
 	SingularShapeFunction angletest checkconv descontinuo materialhyperelastico matrix multplaca \
-	termica teste testeisotropia testgeom testmat testshape viga3d visualmatrix
+	termica teste testeisotropia testgeom testmat testshape viga3d visualmatrix SubStruct
 
 ## --| NeoPZ |------------------------------------------------------------------
