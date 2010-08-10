@@ -18,7 +18,7 @@ commoninc_HEADERS= $(top_srcdir)/Common/*.h
 
 noinst_LIBRARIES = libCommon.a
 
-libCommon_a_SOURCES = pzreal.cpp
+libCommon_a_SOURCES = pzreal.cpp TPZGuiInterface.cpp
 
 
 ## --| NeoPZ |------------------------------------------------------------------
