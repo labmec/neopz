@@ -1,17 +1,24 @@
--include /home/longhin/Projetos/PZInstall/PZ_user.mk
+#
+# NeoPZ SubStruct makefile
+#
+# It will be processed by GNU automake to produce Makefile.in
+#
+# $Id#
+#
 
-bin_PROGRAMS = substruct
-substruct_SOURCES = converge substruct.cpp time.txt tpzdohrmatrix.cpp \
-	tpzdohrprecond.cpp tpzdohrsubstruct.cpp tpzgensubstruct.cpp
+DISTCLEANFILES = @PZ_DISTCLEANFILES@
+CLEANFILES     = @PZ_CLEANFILES@
 
-# set the include path found by configure
-INCLUDES= $(PZ_INCLUDES) $(all_includes)
+-include $(top_builddir)/@PZ_MK@
 
-# the library search path.
-substruct_LDFLAGS = $(PZ_LIBDIR) $(all_libraries) 
+matrixdir = $(prefix)/SubStruct
 
-AM_CXXFLAGS = $(PZ_CXXFLAGS)
+matrixincdir = $(includedir)/SubStruct
+matrixinc_HEADERS= $(top_srcdir)/SubStruct/*.h
 
-substruct_LDADD = -L/hd/longhin/Projetos/metis-4.0/ $(PZ_LIB)
-noinst_HEADERS = tpzdohrsubstruct.h tpzdohrmatrix.h tpzdohrprecond.h \
-	tpzgensubstruct.h
+noinst_LIBRARIES = libpzsubstruct.a
+
+libpzsubstruct_a_SOURCES = pzdohrstructmatrix.cpp tpzdohrsubstruct.cpp tpzdohrsubstructCondense.cpp tpzdohrassemblelist.cpp tpzgensubstruct.cpp tpzdohrassembly.cpp tpzmatredstructmatrix.cpp tpzdohrmatrix.cpp tpzpairstructmatrix.cpp tpzdohrprecond.cpp
+
+
+## --| NeoPZ |------------------------------------------------------------------
