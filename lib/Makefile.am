@@ -18,7 +18,7 @@ libpz_a_SOURCES =
 libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o \
 	../Analysis/pzanalysis.o ../Analysis/pzanalysiserror.o ../Analysis/pzeuleranalysis.o \
 	../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o ../Analysis/pzsmanal.o \
-	../Analysis/pzsmfrontalanal.o ../Analysis/pztransientanalysis.o ../Analysis/pzblackoilanalysis.o ../Common/pzreal.o \
+	../Analysis/pzsmfrontalanal.o ../Analysis/pztransientanalysis.o ../Analysis/pzblackoilanalysis.o ../Common/pzreal.o ../Common/TPZGuiInterface.o \
 	../Cosys/pzcartsys.o ../Cosys/pzcosys.o ../Cosys/pzcylinsys.o ../Cosys/pzesfersys.o \
 	../External/TPZBoostGraph.o ../External/pzmetis.o ../External/pzrenumbering.o ../External/pzsloan.o \
 	../External/sloan/diamtr.o ../External/sloan/gegra.o ../External/sloan/iorele.o \
@@ -54,15 +54,38 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Matrix/pzsespmat.o ../Matrix/pzsfulmat.o ../Matrix/pzshtmat.o ../Matrix/pzskylmat.o \
 	../Matrix/pzskylmatpar.o ../Matrix/pzsolve.o ../Matrix/pzspblockdiagpivot.o \
 	../Matrix/pzstencil.o ../Matrix/pzstepsolver.o ../Matrix/pzsysmp.o ../Matrix/pzysmp.o ../Matrix/tpzverysparsematrix.o \
-	../Matrix/tpzsparseblockdiagonal.o ../Mesh/TPZAgglomerateEl.o ../Mesh/TPZCompElDisc.o \
-	../Mesh/TPZInterfaceEl.o ../Mesh/pzcheckgeom.o ../Mesh/pzcheckmesh.o ../Mesh/pzcheckrestraint.o \
-	../Mesh/pzcmesh.o ../Mesh/pzcompel.o ../Mesh/pzconnect.o ../Mesh/pzelctemp.o \
-	../Mesh/pzelmat.o ../Mesh/pzflowcmesh.o ../Mesh/pzgeoel.o ../Mesh/pzgeoelbc.o \
-	../Mesh/pzgeoelrefless.o ../Mesh/pzgeoelside.o ../Mesh/pzgmesh.o ../Mesh/pzgnode.o \
-	../Mesh/pzintel.o ../Mesh/pzinterpolationspace.o ../Mesh/pzmeshid.o \
-	../Mesh/pzreferredcompel.o ../Mesh/pzstackmesh.o ../Mesh/pzsubcmesh.o ../Mesh/pzvecmesh.o \
-	../Mesh/pzcreateapproxspace.o \
-	../Mesh/tpzcompmeshreferred.o ../Mesh/tpzgeoelmapped.o ../Mesh/tpzgeoelrefpattern.o ../Mesh/tpzgeoblend.o \
+	../Matrix/tpzsparseblockdiagonal.o \
+	../Mesh/TPZAgglomerateEl.o \
+	../Mesh/TPZCompElDisc.o \
+	../Mesh/TPZInterfaceEl.o \
+../Mesh/pzcheckgeom.o \
+../Mesh/pzcheckmesh.o \
+../Mesh/pzcheckrestraint.o \
+../Mesh/pzcmesh.o \
+../Mesh/pzcompel.o \
+../Mesh/pzconnect.o \
+../Mesh/pzcreateapproxspace.o \
+../Mesh/pzelctemp.o \
+../Mesh/pzelmat.o \
+../Mesh/pzflowcmesh.o \
+../Mesh/pzgeoel.o \
+../Mesh/pzgeoelbc.o \
+../Mesh/pzgeoelrefless.o \
+../Mesh/pzgeoelside.o \
+../Mesh/pzgmesh.o \
+../Mesh/pzgnode.o \
+../Mesh/pzintel.o \
+../Mesh/pzinterpolationspace.o \
+../Mesh/pzmeshid.o \
+../Mesh/pzreferredcompel.o \
+../Mesh/pzstackmesh.o \
+../Mesh/pzsubcmesh.o \
+../Mesh/pzvecmesh.o \
+../Mesh/tpzagglomeratemesh.o \
+../Mesh/tpzcompmeshreferred.o \
+../Mesh/tpzgeoblend.o \
+../Mesh/tpzgeoelmapped.o \
+../Mesh/tpzgeoelrefpattern.o \
 	../Multigrid/pzmgsolver.o ../Multigrid/pztransfer.o ../Multigrid/pztrnsform.o ../Post/pzdxmesh.o \
 	../Post/pzgraphel.o ../Post/pzgraphel1d.o ../Post/pzgraphel1dd.o ../Post/pzgraphelq2d.o \
 	../Post/pzgraphelq2dd.o ../Post/pzgraphelq3dd.o ../Post/pzgraphmesh.o ../Post/pzgraphnode.o \
@@ -70,9 +93,10 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Post/pzvisualmatrix.o ../Post/tpzgraphelprismmapped.o ../Post/tpzgraphelpyramidmapped.o \
 	../Post/tpzgraphelt2dmapped.o ../Post/tpzgraphelt3d.o ../Post/pzvtkmesh.o ../Pre/TPZExtendGridDimension.o \
 	../Pre/TPZGMSHReadMesh.o ../Pre/pzgengrid.o ../Pre/pzpargrid.o ../Pre/pzreadmesh.o \
-	../Pre/pzreadmeshhr.o ../Pre/pzreadtetgen.o ../Refine/TPZRefCube.o ../Refine/TPZRefLinear.o \
+	../Pre/pzreadmeshhr.o ../Pre/pzreadtetgen.o \
+	../Refine/TPZRefCube.o ../Refine/TPZRefLinear.o \
 	../Refine/TPZRefPattern.o ../Refine/pzrefpoint.o ../Refine/pzrefprism.o ../Refine/pzrefpyram.o \
-	../Refine/pzrefquad.o ../Refine/pzreftetrahedra.o ../Refine/pzreftriangle.o \
+	../Refine/pzrefquad.o ../Refine/pzreftetrahedra.o ../Refine/pzreftriangle.o ../Refine/TPZRefPatternDataBase.o ../Refine/TPZRefPatternTools.o \
 	../Save/pzfilebuffer.o ../Save/pzsave.o ../Shape/TPZShapeDisc.o ../Shape/pzshapecube.o \
 	../Shape/pzshapelinear.o ../Shape/pzshapepiram.o ../Shape/pzshapeprism.o ../Shape/pzshapequad.o \
 	../Shape/pzshapetetra.o ../Shape/pzshapetriang.o ../StrMatrix/TPBSpStructMatrix.o \
@@ -84,8 +108,28 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Topology/tpzquadrilateral.o ../Topology/tpztetrahedron.o ../Topology/tpztriangle.o \
 	../Util/TPZTimer.o ../Util/pzfunction.o ../Util/pzlog.o ../Util/pzmap.o ../Util/pzstring.o \
 	../Util/tpzautopointer.o ../Util/tpzpermutation.o \
-  ../SpecialMaps/convtest.o ../SpecialMaps/tpzarc3d.o ../SpecialMaps/tpzblendnaca.o \
-  ../SpecialMaps/tpzchangeel.o ../SpecialMaps/tpzcurvedtriangle.o ../SpecialMaps/tpzellipse.o ../SpecialMaps/tpzmathtools.o \
-  ../SpecialMaps/tpzquadraticquad.o ../SpecialMaps/tpzquadratictetra.o ../SpecialMaps/tpzquadratictrig.o ../SpecialMaps/tpzquadraticline.o
+	../SubStruct/pzdohrstructmatrix.o \
+	../SubStruct/tpzdohrassemblelist.o \
+	../SubStruct/tpzdohrassembly.o \
+	../SubStruct/tpzdohrmatrix.o \
+	../SubStruct/tpzdohrprecond.o \
+	../SubStruct/tpzdohrsubstruct.o \
+	../SubStruct/tpzdohrsubstructCondense.o \
+	../SubStruct/tpzgensubstruct.o \
+	../SubStruct/tpzmatredstructmatrix.o \
+	../SubStruct/tpzpairstructmatrix.o \
+	../SpecialMaps/convtest.o \
+	../SpecialMaps/tpzcurvedtriangle.o \
+	../SpecialMaps/tpzquadraticquad.o \
+	../SpecialMaps/tpzarc3d.o \
+	../SpecialMaps/tpzellipse3d.o \
+	../SpecialMaps/tpzquadratictetra.o \
+	../SpecialMaps/tpzblendnaca.o \
+	../SpecialMaps/tpzmathtools.o \
+	../SpecialMaps/tpzquadratictrig.o \
+	../SpecialMaps/tpzchangeel.o \
+	../SpecialMaps/tpzquadraticline.o
+
+
 
 ## --| NeoPZ |------------------------------------------------------------------
