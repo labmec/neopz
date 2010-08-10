@@ -27,6 +27,14 @@
 /**
 @author Philippe Devloo
 */
+
+
+#warning Hardcoded definition of MAKEINTERNAL !!!!
+#define MAKEINTERNAL
+
+
+
+
 class TPZDohrSubstruct{
 public:
     TPZDohrSubstruct();
