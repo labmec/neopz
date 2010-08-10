@@ -20,6 +20,6 @@ refineinc_HEADERS= $(top_srcdir)/Refine/*.h $(top_srcdir)/Refine/RefPatterns/*
 
 noinst_LIBRARIES = libpzrefine.a
 
-libpzrefine_a_SOURCES = pzrefpoint.cpp pzrefprism.cpp pzrefpyram.cpp pzrefquad.cpp pzreftetrahedra.cpp pzreftriangle.cpp TPZRefCube.cpp TPZRefLinear.cpp TPZRefPattern.cpp
+libpzrefine_a_SOURCES = pzrefpoint.cpp pzrefprism.cpp pzrefpyram.cpp pzrefquad.cpp pzreftetrahedra.cpp pzreftriangle.cpp TPZRefCube.cpp TPZRefLinear.cpp TPZRefPattern.cpp TPZRefPatternDataBase.cpp TPZRefPatternTools.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
