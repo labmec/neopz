@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzintel.cpp,v 1.73 2010-06-17 17:53:28 phil Exp $
+// $Id: pzintel.cpp,v 1.74 2010-08-12 13:04:59 phil Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -105,7 +105,7 @@ TPZConnect *TPZInterpolatedElement::SideConnect(int connect,int side) {
 }
 
 void TPZInterpolatedElement::ForceSideOrder(int side, int order){
-	if(side < Reference()->NCornerNodes())
+	if(side < Reference()->NCornerNodes() || side >= Reference()->NSides())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " setting an order for a corner side " << side << " order " << order;
