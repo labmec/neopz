@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.h,v 1.12 2010-02-18 20:16:51 phil Exp $
+//$Id: pzmaterialdata.h,v 1.13 2010-08-12 13:50:04 phil Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
@@ -58,6 +58,14 @@ public:
 
   TPZMaterialData &operator= (const TPZMaterialData &cp );
 
+	/**
+	 * Print the data
+	 */
+	void Print(std::ostream &out) const;
+	/**
+	 * Print the data in a format suitable for Mathematica
+	 */
+	void PrintMathematica(std::ostream &out) const;
 	/**
 	 * Save the element data to a stream
 	 */

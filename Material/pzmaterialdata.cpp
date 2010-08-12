@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.cpp,v 1.13 2010-02-18 20:16:51 phil Exp $ 
+//$Id: pzmaterialdata.cpp,v 1.14 2010-08-12 13:50:04 phil Exp $ 
 
 #include "pzmaterialdata.h"
 #include "pzmaterial.h"
@@ -21,6 +21,9 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 TPZMaterialData::TPZMaterialData(){
   this->SetAllRequirements(false);
   this->intPtIndex = -1;
+	this->leftdetjac = 0.;
+	this->rightdetjac = 0.;
+	
 }
 
 TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ){
@@ -349,3 +352,83 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override) const
 }
 
 template class TPZRestoreClass<TPZMaterialData,TPZMATERIALDATAID>;
+
+/**
+ * Print the data
+ */
+void TPZMaterialData::Print(std::ostream &out) const
+{
+	phi.Print("phi",out);
+	phil.Print("phil",out);
+	phir.Print("phir",out);
+	dphix.Print("dphix",out);
+	dphixl.Print("dphixl",out);
+	dphixr.Print("dphixr",out);
+	axes.Print("axes",out);
+	axesleft.Print("axesleft",out);
+	axesright.Print("axesright",out);
+	jacobian.Print("jacobian",out);
+	leftjac.Print("leftjac",out);
+	rightjac.Print("rightjac",out);
+	jacinv.Print("jacinv",out);
+	leftjacinv.Print("leftjacinv",out);
+	rightjacinv.Print("rightjacinv",out);
+	out << "normal " << normal << std::endl;
+	out << "x " << x << std::endl;
+	out << "p " << p << std::endl;
+	out << "leftp " << leftp << std::endl;
+	out << "rightp " << rightp << std::endl;
+	out << "sol " << sol << std::endl;
+	out << "soll " << soll << std::endl;
+	out << "solr " << solr << std::endl;
+	dsol.Print("dsol",out);
+	dsoll.Print("dsoll",out);
+	dsolr.Print("dsolr",out);
+	out << "HSize " << HSize << std::endl;
+	out << "detjac " << detjac << std::endl;
+	out << "leftdetjac " << leftdetjac << std::endl;
+	out << "rightdetjac " << rightdetjac << std::endl;
+	out << "XLeftElCenter " << XLeftElCenter << std::endl;
+	out << "XRightElCenter " << XRightElCenter << std::endl;
+	out << "intPtIndex " << intPtIndex << std::endl;
+}
+
+/**
+ * Print the data in a format suitable for Mathematica
+ */
+void TPZMaterialData::PrintMathematica(std::ostream &out) const
+{
+	phi.Print("phi = ",out,EMathematicaInput);
+	phil.Print("phil = ",out,EMathematicaInput);
+	phir.Print("phir = ",out,EMathematicaInput);
+	dphix.Print("dphix = ",out,EMathematicaInput);
+	dphixl.Print("dphixl = ",out,EMathematicaInput);
+	dphixr.Print("dphixr = ",out,EMathematicaInput);
+	axes.Print("axes = ",out,EMathematicaInput);
+	axesleft.Print("axesleft = ",out,EMathematicaInput);
+	axesright.Print("axesright = ",out,EMathematicaInput);
+	jacobian.Print("jacobian = ",out,EMathematicaInput);
+	leftjac.Print("leftjac = ",out,EMathematicaInput);
+	rightjac.Print("rightjac = ",out,EMathematicaInput);
+	jacinv.Print("jacinv = ",out,EMathematicaInput);
+	leftjacinv.Print("leftjacinv = ",out,EMathematicaInput);
+	rightjacinv.Print("rightjacinv = ",out,EMathematicaInput);
+	out << "normal = {" << normal << "};" << std::endl;
+	out << "x = {" << x << "};" << std::endl;
+	out << "p = " << p << ";" << std::endl;
+	out << "leftp = " << leftp << ";" << std::endl;
+	out << "rightp = " << rightp << ";" << std::endl;
+	out << "sol = { " << sol << "};" << std::endl;
+	out << "soll = { " << soll << "};" << std::endl;
+	out << "solr = { " << solr << "};" << std::endl;
+	dsol.Print("dsol = ",out,EMathematicaInput);
+	dsoll.Print("dsoll = ",out,EMathematicaInput);
+	dsolr.Print("dsolr = ",out,EMathematicaInput);
+	out << "HSize = " << HSize << ";" << std::endl;
+	out << "detjac = " << detjac << ";" << std::endl;
+	out << "leftdetjac =  " << leftdetjac << ";" << std::endl;
+	out << "rightdetjac =  " << rightdetjac << ";" << std::endl;
+	out << "XLeftElCenter = {" << XLeftElCenter << "};" << std::endl;
+	out << "XRightElCenter = { " << XRightElCenter << "};"  << std::endl;
+	out << "intPtIndex = " << intPtIndex << ";" <<std::endl;
+}
