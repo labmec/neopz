@@ -119,12 +119,16 @@ void TPZArc3D::ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double
     Note: (xm,ym) don't appear because this coordinates are always (0,0) - it's the origin of R2 basis */
 double TPZArc3D::ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb) const
 {
-     double cos, Angle1, Angle2, Angle3, Xcenter, Ycenter;
+     REAL cos, Angle1, Angle2, Angle3, Xcenter, Ycenter, myAngle, sinBig, cosBig;
 
      /** Computing the Center Coordinates in this R2 base M_PI */
      Xcenter = xa/2.;
      Ycenter = (-xa*xb + xb*xb + yb*yb) / (2.*yb);
 
+	cosBig = (xb-Xcenter)*(xa-Xcenter)+(yb-Ycenter)*(ya-Ycenter);
+	sinBig = (xa-Xcenter)*(yb-Ycenter)-(xb-Xcenter)*(ya-Ycenter);
+	myAngle = -atan2(sinBig, cosBig);
+	return myAngle;
      /** angle between (ini-center) 'n' (mid-center) */
      cos = (-((xa - Xcenter)*Xcenter) - (ya - Ycenter)*Ycenter) / (sqrt(pow(xa - Xcenter,2) + pow(ya - Ycenter,2))*sqrt(pow(Xcenter,2) + pow(Ycenter,2)));
      if(cos < -0.999) cos = -1.; if(cos > 0.999) cos = 1.;
@@ -132,19 +136,21 @@ double TPZArc3D::ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, do
 
      /** angle between (fin-center) 'n' (mid-center) */
      cos = (-((xb - Xcenter)*Xcenter) - (yb - Ycenter)*Ycenter) / (sqrt(pow(xb - Xcenter,2) + pow(yb - Ycenter,2))*sqrt(pow(Xcenter,2) + pow(Ycenter,2)));
-     if(cos < -0.999) cos = -1.; if(cos > 0.999) cos = 1.;
+     if(cos < -0.99999) cos = -1.; if(cos > 0.99999) cos = 1.;
      Angle2 = acos(cos);
 
      /** angle between (ini-center) 'n' (fin-center) */
      cos = ((xa - Xcenter)*(xb - Xcenter) + (ya - Ycenter)*(yb - Ycenter)) / (sqrt(pow(xa - Xcenter,2) + pow(ya - Ycenter,2))*sqrt(pow(xb - Xcenter,2) + pow(yb - Ycenter,2)));
-     if(cos < -0.999) cos = -1.; if(cos > 0.999) cos = 1.;
+     if(cos < -0.99999) cos = -1.; if(cos > 0.99999) cos = 1.;
      Angle3 = acos(cos);
 
      /** verification if midpoint is in smaller arc angle (<= pi) or in the bigger arc angle (>= pi)
          Note: smaller and bigger arc angles reffers to the angle formed between
          (ini-center) and (fin-center) vectors, where [smaller + bigger = 2PI] */
-     if( fabs(Angle3/(Angle1 + Angle2)) > 0.99 ) return Angle3; /** Smaller Arc Angle = Angle3 */
-     else return (2.*acos(-1) - Angle3); /** Bigger Arc Angle = 2Pi - Angle3 */
+	REAL result;
+     if( fabs(Angle3/(Angle1 + Angle2)) > 0.99 ) result = Angle3; /** Smaller Arc Angle = Angle3 */
+     else result = (2.*M_PI - Angle3); /** Bigger Arc Angle = 2Pi - Angle3 */
+	return result;
 }
 
 ///////////////
