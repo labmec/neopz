@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.98 2010-06-17 17:50:51 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.99 2010-08-12 13:03:53 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -21,6 +21,7 @@ using namespace std;
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterfacelement"));
+static LoggerPtr logdata(Logger::getLogger("pz.material.axisymetric.data"));
 #endif
 
 
@@ -861,6 +862,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
    ef.fBlock.SetNBlocks(ncon);
    ek.fConnect.Resize(ncon);
    ef.fConnect.Resize(ncon);
+	
+#ifdef DEBUG
+	TPZStack<REAL> solutionvec;
+#endif
 
    int ic = 0;
    int n = ConnectL.NElements();
@@ -871,6 +876,16 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
     ef.fBlock.Set(ic,con_neq);
     (ef.fConnect)[ic] = ConnectIndexL[i];
     (ek.fConnect)[ic] = ConnectIndexL[i];
+#ifdef DEBUG
+	   TPZConnect &con = Mesh()->ConnectVec()[ConnectIndexL[i]];
+	   int seqnum = con.SequenceNumber();
+	   int blsize = Mesh()->Block().Size(seqnum);
+	   int pos = Mesh()->Block().Position(seqnum);
+	   for (int ip=0; ip<blsize; ip++) 
+	   {
+		   solutionvec.Push(Mesh()->Solution()(pos+ip)*1.e15);
+	   }
+#endif
     ic++;
    }
    n = ConnectR.NElements();
@@ -881,8 +896,29 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
     ef.fBlock.Set(ic,con_neq);
     (ef.fConnect)[ic] = ConnectIndexR[i];
     (ek.fConnect)[ic] = ConnectIndexR[i];
-    ic++;
+#ifdef DEBUG
+	   TPZConnect &con = Mesh()->ConnectVec()[ConnectIndexR[i]];
+	   int seqnum = con.SequenceNumber();
+	   int blsize = Mesh()->Block().Size(seqnum);
+	   int pos = Mesh()->Block().Position(seqnum);
+	   for (int ip=0; ip<blsize; ip++) 
+	   {
+		   solutionvec.Push(Mesh()->Solution()(pos+ip)*1.e15);
+	   }
+#endif
+	   ic++;
    }
+#ifdef DEBUG
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout.precision(15);
+		sout << "ElementSolution = { " << solutionvec << " }/1000000000000000.;" << std::endl;
+		LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
+#endif
    ek.fBlock.Resequence();
    ef.fBlock.Resequence();
 }
@@ -1333,7 +1369,8 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 }//method
 
 void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *left, TPZInterpolationSpace *right){
-  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
+	TPZMaterial *matorig = Material().operator->();
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(matorig);
   if (!mat){
     PZError << "FATAL ERROR AT "  << __PRETTY_FUNCTION__ << "\n";
     DebugStop();
