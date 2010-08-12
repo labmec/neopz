@@ -149,6 +149,7 @@ int TPZFYsmpMatrix::PutVal(const int row, const int col, const REAL &Value){
     if(!flag) 
     {
       cout << "TPZFYsmpMatrix::PutVal: Non existing position on sparse matrix: line = " << row << " column " << col << endl;
+		DebugStop();
       return 0;
     }
     else
