@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.16 2010-07-20 20:55:42 phil Exp $
+// $Id: pzvec.h,v 1.17 2010-08-12 12:55:32 phil Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -114,11 +114,13 @@ class TPZVec {
       {
          std::streamsize width = Out.width();
 
-	 const char* sep = ( width == 0 ? " " : "" );
+	 const char* sep = ( width == 0 ? ", " : "" );
 
          int size = v.NElements();
+		  
+		  if(size) Out << std::setw(width) << v.fStore[0];
 
-         for( int ii = 0; ii < size; ii++ )
+         for( int ii = 1; ii < size; ii++ )
          {
             Out << std::setw( width ) << sep << v.fStore[ ii ];
          }
@@ -146,7 +148,13 @@ class TPZVec {
        */
       inline int NElements() const { return fNElements; }
 
-      /**
+	/**
+	 * Returns the number of elements of the vector
+	 * @return number of elements used by the vector
+	 */
+	inline int size() const { return fNElements; }
+	
+	/**
        * Resizes the vector object reallocating the necessary storage,
        * copying the existing objects to the new storage.
        *
