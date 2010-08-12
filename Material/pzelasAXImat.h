@@ -12,7 +12,7 @@
 const REAL Pi = 4.*atan(1);
 
 /// This class implements a two dimensional elastic material in plane stress or strain
-class TPZElasticityAxiMaterial : public TPZMaterial {
+class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 
 public :
 
@@ -26,11 +26,23 @@ public :
   */
   TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy);
 
+//------------------- FEITO POR AGNALDO : 05/02/10 . Só para teste ----------
+/**Creates an elastic material test with:
+	elasticity modulus  =   E
+	poisson coefficient  =   nu
+	forcing function -x =   fx
+	forcing function -y =   fy
+	symmetrical method = coefTheta (-1-> symmetric, 1->nonsymmetric)
+	penalty term = coefAlpha
+ */
+TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, REAL coefTheta,  REAL coefAlpha);
+//-----------------------------------------------------------------------------------
+	
  /** Set the origin of Revolution Axis (Z),
      the direction of Revolution Axis (Z),
      and the Radius vector (orthogonal with respect of Z axis)
  */
- void SetOrigin(std::vector<REAL> &Orig, std::vector<REAL> &AxisZ, std::vector<REAL> &AxisR);
+ void SetOrigin(TPZManVector<REAL> &Orig, TPZManVector<REAL> &AxisZ, TPZManVector<REAL> &AxisR);
 
  REAL ComputeR(TPZVec<REAL> &x);
 
@@ -79,11 +91,10 @@ public :
   virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 			    TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
-  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
-    PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
-  }
+  virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef);
 
   virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+	  return;
     PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
   }
 
@@ -127,10 +138,11 @@ public :
 
   virtual void Write(TPZStream &buf, int withclassid);
 
-  std::vector<REAL> GetAxisR();
-  std::vector<REAL> GetAxisZ();
-  std::vector<REAL> GetOrigin();
+  TPZManVector<REAL> GetAxisR();
+  TPZManVector<REAL> GetAxisZ();
+  TPZManVector<REAL> GetOrigin();
 
+	REAL fIntegral;
 
 private:
 
@@ -154,13 +166,20 @@ private:
   REAL fEover1MinNu2;
 
   /**Direction of Surface*/
-  std::vector<REAL> f_AxisR;
+  TPZManVector<REAL> f_AxisR;
 
   /**Revolution Axis*/
-  std::vector<REAL> f_AxisZ;
+  TPZManVector<REAL> f_AxisZ;
 
   /**Origin of AxisR and AxisZ*/
-  std::vector<REAL> f_Origin;
+  TPZManVector<REAL> f_Origin;
+	
+ /**symmetric*/ 
+ REAL fSymmetric;
+
+ /**penalty term*/
+ REAL fPenalty;
+	
 };
 
 #endif

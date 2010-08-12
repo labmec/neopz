@@ -1,4 +1,4 @@
-//$Id: pzelasAXImat.cpp,v 1.7 2010-02-18 20:16:08 phil Exp $
+//$Id: pzelasAXImat.cpp,v 1.8 2010-08-12 13:52:29 phil Exp $
 // -*- c++ -*-
 #include "pzelasAXImat.h" 
 #include "pzelmat.h"
@@ -12,12 +12,13 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.material.axisymetric"));
+static LoggerPtr logdata(Logger::getLogger("pz.material.axisymetric.data"));
 #endif
 
 #include <fstream>
 using namespace std;
 
-TPZElasticityAxiMaterial::TPZElasticityAxiMaterial() : TPZMaterial(0), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.) {
+TPZElasticityAxiMaterial::TPZElasticityAxiMaterial() : TPZDiscontinuousGalerkin(0), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.), fIntegral(0.) {
   f_AxisZ[1] = 1.;
   f_AxisR[0] = 1.;
   fE	= -1.;  // Young modulus
@@ -32,7 +33,7 @@ TPZElasticityAxiMaterial::TPZElasticityAxiMaterial() : TPZMaterial(0), f_AxisR(3
   f_phi = 0.;
 }
 
-TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy) : TPZMaterial(num) {
+TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy) : TPZDiscontinuousGalerkin(num) , fIntegral(0.){
 
   fE	= E;  // Young modulus
   fnu	= nu;   // poisson coefficient
@@ -45,7 +46,26 @@ TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REA
   f_phi = 0.;
 }
 
-void TPZElasticityAxiMaterial::SetOrigin(vector<REAL> &Orig, vector<REAL> &AxisZ, vector<REAL> &AxisR)
+//--------------------------------------------------------------------------------------------------------------------------------------
+TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, REAL coefTheta, REAL coefAlpha) : 
+	TPZDiscontinuousGalerkin(num), fIntegral(0.) {
+	
+	fE	= E;  // Young modulus
+	fnu	= nu;   // poisson coefficient
+	ff[0]	= fx; // X component of the body force
+	ff[1]	= fy; // Y component of the body force
+	ff[2] = 0.; // Z component of the body force - not used for this class
+	fEover1MinNu2 = E/(1-fnu*fnu);  //G = E/2(1-nu);
+	fEover21PlusNu = E/(2.*(1+fnu));//E/(1-nu)
+	f_c = 0.;
+	f_phi = 0.;
+	fSymmetric = coefTheta;
+	fPenalty = coefAlpha;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+
+void TPZElasticityAxiMaterial::SetOrigin(TPZManVector<REAL> &Orig, TPZManVector<REAL> &AxisZ, TPZManVector<REAL> &AxisR)
 {
   if(Orig.size() == 3 && AxisZ.size() == 3 && AxisR.size() == 3)
   {
@@ -78,17 +98,17 @@ REAL TPZElasticityAxiMaterial::ComputeR(TPZVec<REAL> &x)
   return (x[0] - f_Origin[0])*f_AxisR[0] + (x[1] - f_Origin[1])*f_AxisR[1] + (x[2] - f_Origin[2])*f_AxisR[2];
 }
 
-vector<REAL> TPZElasticityAxiMaterial::GetAxisR()
+TPZManVector<REAL> TPZElasticityAxiMaterial::GetAxisR()
 {
   return f_AxisR;
 }
 
-vector<REAL> TPZElasticityAxiMaterial::GetAxisZ()
+TPZManVector<REAL> TPZElasticityAxiMaterial::GetAxisZ()
 {
   return f_AxisZ;
 }
 
-vector<REAL> TPZElasticityAxiMaterial::GetOrigin()
+TPZManVector<REAL> TPZElasticityAxiMaterial::GetOrigin()
 {
   return f_Origin;
 }
@@ -101,6 +121,7 @@ int TPZElasticityAxiMaterial::NStateVariables() {
 }
 
 void TPZElasticityAxiMaterial::Print(std::ostream &out) {
+	TPZMaterial::Print(out);
   out << "name of material : " << Name() << "\n";
   out << "properties : \n";
   out << "\tE   = " << fE   << endl;
@@ -148,13 +169,15 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 
   int s = (R > 0)? 1:-1;
   R = fabs(R);
+	if(R < 1.e-10) R = 1.e-10;
 
+	
   /**
    * Plain strain materials values
    */
-//  REAL nu1 = 1 - fnu;//(1-nu)
-//  REAL nu2 = (1-2*fnu)/2;
-//  REAL F = fE/((1+fnu)*(1-2*fnu));
+ // REAL nu1 = 1. - fnu;//(1-nu)
+//  REAL nu2 = (1.-2.*fnu)/2.;
+//  REAL F = fE/((1.+fnu)*(1.-2.*fnu));
 
   TPZFNMatrix<4> dphiRZi(2,1), dphiRZj(2,1);
 
@@ -168,6 +191,10 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
   }
 
   double R2PI = 2. * M_PI * R;
+
+  //criado para resolver o problema de Girkmann	
+  fIntegral += R2PI*weight;
+	
   for( int in = 0; in < phr; in++ )
   {
     ef(2*in, 0)   += weight * R2PI * (ff[0] * phi(in,0)); // direcao x
@@ -234,7 +261,10 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
   int s = (R > 0) ? 1:-1;
   R = fabs(R);
   double R2PI = 2. * M_PI * R;
-  
+
+ //criado para resolver o problema de Girkmann	
+  bc.fIntegral += R2PI*weight;
+	
   static REAL accum1 = 0., accum2 = 0.;
 
   switch (bc.Type())
@@ -328,6 +358,424 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
   }      // �nulo introduzindo o BIGNUMBER pelos valores da condicao
 }         // 1 Val1 : a leitura �00 01 10 11
 
+///---------------------------- --------------------------------------
+void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data,REAL weight,
+								 TPZFMatrix &ek, TPZFMatrix &ef){
+	
+	TPZFMatrix &dphiL = data.dphixl;
+	TPZFMatrix &dphiR = data.dphixr;
+	TPZFMatrix &phiL = data.phil;
+	TPZFMatrix &phiR = data.phir;
+	TPZFMatrix &axesL = data.axesleft;
+	TPZFMatrix &axesR = data.axesright;
+	
+	TPZManVector<REAL,3> &normal = data.normal;
+	
+	int &LeftPOrder=data.leftp;
+	int &RightPOrder=data.rightp;
+	
+	REAL &faceSize=data.HSize;
+	
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		data.phil.Print("phil",sout);
+		data.phir.Print("phir",sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout << "Origin = { " << f_Origin << "};" << std::endl;
+		sout << "AxisR = { " << f_AxisR << "};" << std::endl;
+		sout << "AxisZ = { " << f_AxisZ << "};" << std::endl;
+		data.PrintMathematica(sout);
+		LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
+	
+	int nrowl = phiL.Rows();
+	int nrowr = phiR.Rows();
+	int il,jl,ir,jr;	
+	
+	/** R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!*/
+	REAL R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
+	int s = (R > 0)? 1:-1;
+	R = fabs(R);
+	
+	
+	TPZFNMatrix<16> dphiRZiL(2,1), dphiRZjL(2,1), dphiRZiR(2,1), dphiRZjR(2,1);
+	
+	double axis0DOTrL = 0., axis1DOTrL = 0., axis0DOTzL = 0., axis1DOTzL = 0.;
+	double axis0DOTrR = 0., axis1DOTrR = 0., axis0DOTzR = 0., axis1DOTzR = 0.;
+	for(int pos = 0; pos < 3; pos++)
+	{
+		axis0DOTrL += axesL.GetVal(0,pos) * f_AxisR[pos] * s;
+		axis1DOTrL += axesL.GetVal(1,pos) * f_AxisR[pos] * s;
+		axis0DOTzL += axesL.GetVal(0,pos) * f_AxisZ[pos];
+		axis1DOTzL += axesL.GetVal(1,pos) * f_AxisZ[pos];
+		axis0DOTrR += axesR.GetVal(0,pos) * f_AxisR[pos] * s;
+		axis1DOTrR += axesR.GetVal(1,pos) * f_AxisR[pos] * s;
+		axis0DOTzR += axesR.GetVal(0,pos) * f_AxisZ[pos];
+		axis1DOTzR += axesR.GetVal(1,pos) * f_AxisZ[pos];
+	}
+	
+	REAL R2PI = 2.0 * M_PI * R;
+	
+	REAL symmetry = fSymmetric; //thermo of symmetry ( -1: method symmetric; 1: method not symmetric)
+	REAL penalty = fPenalty; //thermo of penalty
+	penalty *= (0.5 * (LeftPOrder*LeftPOrder + RightPOrder*RightPOrder)) / faceSize;
+	
+	REAL beta;
+	if (symmetry==1.0) {
+		beta=0.;
+	}else {
+		beta=1.0;
+	}
+	
+	double lambda = -((fE*fnu)/((1. + fnu)*(2.*fnu-1.)));
+	double mu =  fE/(2.*(1. + fnu));
+
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout.precision(16);
+		sout << "Penalty = " << fPenalty << ";" << std::endl;
+		sout << "R = " << R << ";" << std::endl;
+		sout << "fE = " << fE << ";" << std::endl;
+		sout << "fnu = " << fnu << ";" << std::endl;
+		sout << "Lambda = " << lambda << ";" << std::endl;
+		sout << "Mu = " << mu << ";" << std::endl;
+		sout << "weight = " << weight << ";" << std::endl;
+		data.dsol.Print("dsol = ",sout,EMathematicaInput);
+		LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
+	
+#ifdef LOG4CXX
+	TPZFNMatrix<4> DSolLAxes(2,2), DSolRAxes(2,2);
+	DSolLAxes(0,0) = data.dsoll(0,0)*axis0DOTrL+data.dsoll(1,0)*axis1DOTrL;
+	DSolLAxes(1,0) = data.dsoll(0,0)*axis0DOTzL+data.dsoll(1,0)*axis1DOTzL;
+	DSolLAxes(0,1) = data.dsoll(0,1)*axis0DOTrL+data.dsoll(1,1)*axis1DOTrL;
+	DSolLAxes(1,1) = data.dsoll(0,1)*axis0DOTzL+data.dsoll(1,1)*axis1DOTzL;
+
+	DSolRAxes(0,0) = data.dsolr(0,0)*axis0DOTrR+data.dsolr(1,0)*axis1DOTrR;
+	DSolRAxes(1,0) = data.dsolr(0,0)*axis0DOTzR+data.dsolr(1,0)*axis1DOTzR;
+	DSolRAxes(0,1) = data.dsolr(0,1)*axis0DOTrR+data.dsolr(1,1)*axis1DOTrR;
+	DSolRAxes(1,1) = data.dsolr(0,1)*axis0DOTzR+data.dsolr(1,1)*axis1DOTzR;
+	
+	TPZFNMatrix<9> DeformL(3,3,0.),DeformR(3,3,0.);
+	DeformL(0,0) = DSolLAxes(0,0); 
+	DeformL(1,1) = DSolLAxes(1,1);
+	DeformL(0,1) = (DSolLAxes(0,1)+DSolLAxes(1,0))/2.;
+	DeformL(1,0) = DeformL(0,1);
+	DeformL(2,2) = data.soll[0]/R;
+
+	DeformR(0,0) = DSolRAxes(0,0); 
+	DeformR(1,1) = DSolRAxes(1,1);
+	DeformR(0,1) = (DSolRAxes(0,1)+DSolRAxes(1,0))/2.;
+	DeformR(1,0) = DeformR(0,1);
+	DeformR(2,2) = data.solr[0]/R;
+	
+	TPZFNMatrix<9> TensorL(3,3,0.),TensorR(3,3,0.);
+	REAL TrDeformL, TrDeformR;
+	TrDeformL = DeformL(0,0)+DeformL(1,1)+DeformL(2,2);
+	TrDeformR = DeformR(0,0)+DeformR(1,1)+DeformR(2,2);
+	TensorL = (2.*mu)*DeformL;
+	TensorR = (2.*mu)*DeformR;
+	REAL normalCompL, normalCompR;
+	for (int i=0; i<3; i++) {
+		TensorL(i,i) += lambda*TrDeformL;
+		TensorR(i,i) += lambda*TrDeformR;
+	}
+	normalCompL = TensorL(1,0)*normal[0]+TensorL(1,1)*normal[1];
+	normalCompR = TensorR(1,0)*normal[0]+TensorR(1,1)*normal[1];
+	if (logdata->isDebugEnabled() && TrDeformL != 0.)
+	{
+		std::stringstream sout;
+		sout.precision(15);
+		TensorL.Print("TensorL = ",sout,EMathematicaInput);
+		TensorR.Print("TensorR = ",sout,EMathematicaInput);
+		sout << "NormalCompL = " << normalCompL << ";" << std::endl;
+		sout << "NormalCompR = " << normalCompR << ";" << std::endl;
+		LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
+	
+	///Calcule: Integrate { -[v].<sigma(u).n> + symmetry *[u].<sigma(v).n> + penalty*[u].[v] } ds
+	
+	// 1) Matrix Band:  phi_I_Left, phi_J_Left
+	
+	for(il = 0; il< nrowl; il++ )
+	{	
+		//dphiL_i/dr = dphi_i/axis0 <axes0,f_AxisR> + dphi_i/axis1 <axes1,f_AxisR>
+		dphiRZiL.PutVal(0,0, dphiL.GetVal(0,il)*axis0DOTrL + dphiL.GetVal(1,il)*axis1DOTrL );
+		
+		//dphiL_i/dz = dphi_i/axis0 <axes0,f_AxisZ> + dphi_i/axis1 <axes1,f_AxisZ>
+		dphiRZiL.PutVal(1,0, dphiL.GetVal(0,il)*axis0DOTzL + dphiL.GetVal(1,il)*axis1DOTzL );
+		
+		
+		for( jl = 0; jl < nrowl; jl++ )
+		{
+			//dphiL_j/dr = dphi_j/axis0 <axes0,f_AxisR> + dphi_j/axis1 <axes1,f_AxisR>
+			dphiRZjL.PutVal(0,0, dphiL.GetVal(0,jl)*axis0DOTrL + dphiL.GetVal(1,jl)*axis1DOTrL );
+			
+			//dphiL_j/dz = dphi_j/axis0 <axes0,f_AxisZ> + dphi_j/axis1 <axes1,f_AxisZ>
+			dphiRZjL.PutVal(1,0, dphiL.GetVal(0,jl)*axis0DOTzL + dphiL.GetVal(1,jl)*axis1DOTzL );
+			
+			double nr = normal[0];
+			double nz = normal[1];
+			
+			double term00 = -1.*(lambda*nr*phiL(il,0)*phiL(jl,0)/(2.*R) +
+								 mu*nz*phiL(il,0)*dphiRZjL(1,0)/2. + 
+								 lambda*nr*phiL(il,0)*dphiRZjL(0,0)/2. + 
+								 mu*nr*phiL(il,0)*dphiRZjL(0,0));
+			term00 += symmetry*(lambda*nr*phiL(il,0)*phiL(jl,0)/(2.*R) +
+								mu*nz*phiL(jl,0)*dphiRZiL(1,0)/2. + 
+								lambda*nr*phiL(jl,0)*dphiRZiL(0,0)/2. +
+								mu*nr*phiL(jl,0)*dphiRZiL(0,0));
+			term00 += beta*penalty*phiL(il,0)*phiL(jl,0);
+			
+			
+			double term01 = -1.*(lambda*nr*phiL(il,0)*dphiRZjL(1,0)/2. +
+								 mu*nz*phiL(il,0)*dphiRZjL(0,0)/2.);
+			term01 += symmetry*(lambda*nz*phiL(il,0)*phiL(jl,0)/(2.*R) +
+								mu*nr*phiL(jl,0)*dphiRZiL(1,0)/2. + 
+								lambda*nz*phiL(jl,0)*dphiRZiL(0,0)/2.);
+			
+			
+			double term10 = -1.*(lambda*nz*phiL(il,0)*phiL(jl,0)/(2.*R) +
+								 mu*nr*phiL(il,0)*dphiRZjL(1,0)/2. + 
+								 lambda*nz*phiL(il,0)*dphiRZjL(0,0)/2.);
+			term10 += symmetry*(lambda*nr*phiL(jl,0)*dphiRZiL(1,0)/2. + 
+								mu*nz*phiL(jl,0)*dphiRZiL(0,0)/2.);
+			
+			
+			double term11 = -1.*(lambda*nz*phiL(il,0)*dphiRZjL(1,0)/2. + 
+								 mu*nz*phiL(il,0)*dphiRZjL(1,0) + 
+								 mu*nr*phiL(il,0)*dphiRZjL(0,0)/2.);
+			term11 += symmetry*(lambda*nz*phiL(jl,0)*dphiRZiL(1,0)/2. +
+								mu*nz*phiL(jl,0)*dphiRZiL(1,0) + 
+								mu*nr*phiL(jl,0)*dphiRZiL(0,0)/2.);
+			term11 +=beta*penalty*phiL(il,0)*phiL(jl,0);
+			
+			
+			ek(2*il, 2*jl)     += weight*R2PI*term00;
+			ek(2*il, 2*jl+1) += weight*R2PI*term01;
+			ek(2*il+1, 2*jl)     += weight*R2PI*term10;
+			ek(2*il+1, 2*jl+1) += weight*R2PI*term11;
+			
+		}
+	}
+	
+	
+	// 2) Matrix Band:  phi_I_Left, phi_J_Right
+	for( il = 0; il < nrowl; il++ )
+	{	
+		//dphiL_i/dr = dphi_i/axis0 <axes0,f_AxisR> + dphi_i/axis1 <axes1,f_AxisR>
+		dphiRZiL.PutVal(0,0, dphiL.GetVal(0,il)*axis0DOTrL + dphiL.GetVal(1,il)*axis1DOTrL );
+		
+		//dphiL_i/dz = dphi_i/axis0 <axes0,f_AxisZ> + dphi_i/axis1 <axes1,f_AxisZ>
+		dphiRZiL.PutVal(1,0, dphiL.GetVal(0,il)*axis0DOTzL + dphiL.GetVal(1,il)*axis1DOTzL );
+		
+		for(jr = 0; jr < nrowr; jr++ )
+		{
+			//dphiR_j/dr = dphi_j/axis0 <axes0,f_AxisR> + dphi_j/axis1 <axes1,f_AxisR>
+			dphiRZjR.PutVal(0,0, dphiR.GetVal(0,jr)*axis0DOTrR + dphiR.GetVal(1,jr)*axis1DOTrR );
+			
+			//dphiR_j/dz = dphi_j/axis0 <axes0,f_AxisZ> + dphi_j/axis1 <axes1,f_AxisZ>
+			dphiRZjR.PutVal(1,0, dphiR.GetVal(0,jr)*axis0DOTzR + dphiR.GetVal(1,jr)*axis1DOTzR );
+			
+			
+			double lambda = -((fE*fnu)/((1. + fnu)*(2.*fnu-1.)));
+			double mu =  fE/(2.*(1. + fnu));
+			double nr = normal[0];
+			double nz = normal[1];
+			
+			double term02 = -1.*(lambda*nr*phiL(il,0)*phiR(jr,0)/(2.*R) +
+								 mu*nz*phiL(il,0)*dphiRZjR(1,0)/2. + 
+								 lambda*nr*phiL(il,0)*dphiRZjR(0,0)/2. +
+								 mu*nr*phiL(il,0)*dphiRZjR(0,0));
+			term02 += -1.*symmetry*(lambda*nr*phiL(il,0)*phiR(jr,0)/(2.*R) +
+									mu*nz*phiR(jr,0)*dphiRZiL(1,0)/2. + 
+									lambda*nr*phiR(jr,0)*dphiRZiL(0,0)/2. +
+									mu*nr*phiR(jr,0)*dphiRZiL(0,0));
+			term02 += -1.*beta*penalty*phiL(il,0)*phiR(jr,0);
+			
+			
+			double term03 = -1.*(lambda*nr*phiL(il,0)*dphiRZjR(1,0)/2. +
+								 mu*nz*phiL(il,0)*dphiRZjR(0,0)/2.);
+			term03 += -1.*symmetry*(lambda*nz*phiL(il,0)*phiR(jr,0)/(2.*R) +
+									mu*nr*phiR(jr,0)*dphiRZiL(1,0)/2. + 
+									lambda*nz*phiR(jr,0)*dphiRZiL(0,0)/2.);
+			
+			
+			double term12 = -1.*(lambda*nz*phiL(il,0)*phiR(jr,0)/(2.*R) +
+								 mu*nr*phiL(il,0)*dphiRZjR(1,0)/2. + 
+								 lambda*nz*phiL(il,0)*dphiRZjR(0,0)/2.);
+			term12 += -1.*symmetry*(lambda*nr*phiR(jr,0)*dphiRZiL(1,0)/2. +
+									mu*nz*phiR(jr,0)*dphiRZiL(0,0)/2.);
+			
+			
+			double term13 = -1.*(lambda*nz*phiL(il,0)*dphiRZjR(1,0)/2. +
+								 mu*nz*phiL(il,0)*dphiRZjR(1,0) + 
+								 mu*nr*phiL(il,0)*dphiRZjR(0,0)/2.);
+			term13 += -1.*symmetry*(lambda*nz*phiR(jr,0)*dphiRZiL(1,0)/2. +
+									mu*nz*phiR(jr,0)*dphiRZiL(1,0) + 
+									mu*nr*phiR(jr,0)*dphiRZiL(0,0)/2.);
+			term13 += -1.*beta*penalty*phiL(il,0)*phiR(jr,0);
+			
+			ek(2*il, 2*jr+2*nrowl) += weight*R2PI*term02;
+			ek(2*il, 2*jr+2*nrowl+1) += weight*R2PI*term03;
+			ek(2*il+1, 2*jr+2*nrowl) += weight*R2PI*term12;
+			ek(2*il+1, 2*jr+2*nrowl+1) += weight*R2PI*term13;
+			
+		}
+	}
+	
+	// 3) Matrix Band:  phi_I_Right, phi_J_Left
+	for( ir = 0; ir < nrowr; ir++ )
+	{	
+		//dphiR_i/dr = dphi_i/axis0 <axes0,f_AxisR> + dphi_i/axis1 <axes1,f_AxisR>
+		dphiRZiR.PutVal(0,0, dphiR.GetVal(0,ir)*axis0DOTrR + dphiR.GetVal(1,ir)*axis1DOTrR );
+		
+		//dphiR_i/dz = dphi_i/axis0 <axes0,f_AxisZ> + dphi_i/axis1 <axes1,f_AxisZ>
+		dphiRZiR.PutVal(1,0, dphiR.GetVal(0,ir)*axis0DOTzR + dphiR.GetVal(1,ir)*axis1DOTzR );
+		
+		for( jl = 0; jl < nrowl; jl++ )
+		{
+			//dphiL_j/dr = dphi_j/axis0 <axes0,f_AxisR> + dphi_j/axis1 <axes1,f_AxisR>
+			dphiRZjL.PutVal(0,0, dphiL.GetVal(0,jl)*axis0DOTrL + dphiL.GetVal(1,jl)*axis1DOTrL );
+			
+			//dphiL_j/dz = dphi_j/axis0 <axes0,f_AxisZ> + dphi_j/axis1 <axes1,f_AxisZ>
+			dphiRZjL.PutVal(1,0, dphiL.GetVal(0,jl)*axis0DOTzL + dphiL.GetVal(1,jl)*axis1DOTzL );
+			
+			
+			double lambda = -((fE*fnu)/((1. + fnu)*(2.*fnu-1.)));
+			double mu =  fE/(2.*(1. + fnu));
+			double nr = normal[0];
+			double nz = normal[1];
+			
+			double term20 = (lambda*nr*phiR(ir,0)*phiL(jl,0)/(2.*R) + 
+							 mu*nz*phiR(ir,0)*dphiRZjL(1,0)/2. + 
+							 lambda*nr*phiR(ir,0)*dphiRZjL(0,0)/2. +
+							 mu*nr*phiR(ir,0)*dphiRZjL(0,0));
+			term20 += symmetry*(lambda*nr*phiR(ir,0)*phiL(jl,0)/(2.*R) +
+								mu*nz*phiL(jl,0)*dphiRZiR(1,0)/2. + 
+								lambda*nr*phiL(jl,0)*dphiRZiR(0,0)/2. +
+								mu*nr*phiL(jl,0)*dphiRZiR(0,0));
+			term20 += -1.*beta*penalty*phiR(ir,0)*phiL(jl,0);
+			
+			
+			double term21 = (lambda*nr*phiR(ir,0)*dphiRZjL(1,0)/2. +
+							 mu*nz*phiR(ir,0)*dphiRZjL(0,0)/2.);
+			term21 += symmetry*(lambda*nz*phiR(ir,0)*phiL(jl,0)/(2.*R) +
+								mu*nr*phiL(jl,0)*dphiRZiR(1,0)/2. + 
+								lambda*nz*phiL(jl,0)*dphiRZiR(0,0)/2.);
+			
+			
+			double term30 = (lambda*nz*phiR(ir,0)*phiL(jl,0)/(2.*R) +
+							 mu*nr*phiR(ir,0)*dphiRZjL(1,0)/2. + 
+							 lambda*nz*phiR(ir,0)*dphiRZjL(0,0)/2.);
+			term30 += symmetry*(lambda*nr*phiL(jl,0)*dphiRZiR(1,0)/2. + 
+								mu*nz*phiL(jl,0)*dphiRZiR(0,0)/2.);
+			
+			
+			double term31 = (lambda*nz*phiR(ir,0)*dphiRZjL(1,0)/2. +
+							 mu*nz*phiR(ir,0)*dphiRZjL(1,0) + 
+							 mu*nr*phiR(ir,0)*dphiRZjL(0,0)/2.);
+			term31 += symmetry*(lambda*nz*phiL(jl,0)*dphiRZiR(1,0)/2. +
+								mu*nz*phiL(jl,0)*dphiRZiR(1,0) + 
+								mu*nr*phiL(jl,0)*dphiRZiR(0,0)/2.);
+			term31 += -1.*beta*penalty*phiR(ir,0)*phiL(jl,0);
+			
+			ek(2*ir+2*nrowl, 2*jl)     += weight*R2PI*term20;
+			ek(2*ir+2*nrowl, 2*jl+1) += weight*R2PI*term21;
+			ek(2*ir+2*nrowl+1, 2*jl)     += weight*R2PI*term30;
+			ek(2*ir+2*nrowl+1, 2*jl+1) += weight*R2PI*term31;
+			
+		}
+	}
+	
+	// 4) Matrix Band:  phi_I_Right, phi_J_Right
+	
+	for(ir = 0; ir < nrowr; ir++ )
+	{	
+		//dphiR_i/dr = dphi_i/axis0 <axes0,f_AxisR> + dphi_i/axis1 <axes1,f_AxisR>
+		dphiRZiR.PutVal(0,0, dphiR.GetVal(0,ir)*axis0DOTrR + dphiR.GetVal(1,ir)*axis1DOTrR );
+		
+		//dphiR_i/dz = dphi_i/axis0 <axes0,f_AxisZ> + dphi_i/axis1 <axes1,f_AxisZ>
+		dphiRZiR.PutVal(1,0, dphiR.GetVal(0,ir)*axis0DOTzR + dphiR.GetVal(1,ir)*axis1DOTzR );
+		
+		for( jr = 0; jr < nrowr; jr++ )
+		{
+			//dphiR_j/dr = dphi_j/axis0 <axes0,f_AxisR> + dphi_j/axis1 <axes1,f_AxisR>
+			dphiRZjR.PutVal(0,0, dphiR.GetVal(0,jr)*axis0DOTrR + dphiR.GetVal(1,jr)*axis1DOTrR );
+			
+			//dphiR_j/dz = dphi_j/axis0 <axes0,f_AxisZ> + dphi_j/axis1 <axes1,f_AxisZ>
+			dphiRZjR.PutVal(1,0, dphiR.GetVal(0,jr)*axis0DOTzR + dphiR.GetVal(1,jr)*axis1DOTzR );
+			
+			double lambda = -((fE*fnu)/((1. + fnu)*(2.*fnu-1.)));
+			double mu =  fE/(2.*(1. + fnu));
+			double nr = normal[0];
+			double nz = normal[1];
+			
+			double term22 = (lambda*nr*phiR(ir,0)*phiR(jr,0)/(2.*R) +
+							 mu*nz*phiR(ir,0)*dphiRZjR(1,0)/2. + 
+							 lambda*nr*phiR(ir,0)*dphiRZjR(0,0)/2. +
+							 mu*nr*phiR(ir,0)*dphiRZjR(0,0));
+			term22 += -1.*symmetry*(lambda*nr*phiR(ir,0)*phiR(jr,0)/(2.*R) +
+									mu*nz*phiR(jr,0)*dphiRZiR(1,0)/2. + 
+									lambda*nr*phiR(jr,0)*dphiRZiR(0,0)/2. +
+									mu*nr*phiR(jr,0)*dphiRZiR(0,0));
+			term22 += beta*penalty*phiR(ir,0)*phiR(jr,0);
+			
+			
+			double term23 = (lambda*nr*phiR(ir,0)*dphiRZjR(1,0)/2. +
+							 mu*nz*phiR(ir,0)*dphiRZjR(0,0)/2.);
+			term23 += -1.*symmetry*(lambda*nz*phiR(ir,0)*phiR(jr,0)/(2.*R) +
+									mu*nr*phiR(jr,0)*dphiRZiR(1,0)/2. + 
+									lambda*nz*phiR(jr,0)*dphiRZiR(0,0)/2.);
+			
+			
+			double term32 = (lambda*nz*phiR(ir,0)*phiR(jr,0)/(2.*R) +
+							 mu*nr*phiR(ir,0)*dphiRZjR(1,0)/2. + 
+							 lambda*nz*phiR(ir,0)*dphiRZjR(0,0)/2.);
+			term32 += -1.*symmetry*(lambda*nr*phiR(jr,0)*dphiRZiR(1,0)/2. +
+									mu*nz*phiR(jr,0)*dphiRZiR(0,0)/2.);
+			
+			
+			double term33 = (lambda*nz*phiR(ir,0)*dphiRZjR(1,0)/2. +
+							 mu*nz*phiR(ir,0)*dphiRZjR(1,0) + 
+							 mu*nr*phiR(ir,0)*dphiRZjR(0,0)/2.);
+			term33 += -1.*symmetry*(lambda*nz*phiR(jr,0)*dphiRZiR(1,0)/2. +
+									mu*nz*phiR(jr,0)*dphiRZiR(1,0) + 
+									mu*nr*phiR(jr,0)*dphiRZiR(0,0)/2.);
+			term33 += beta*penalty*phiR(ir,0)*phiR(jr,0);
+			
+			
+			ek(2*ir+2*nrowl, 2*jr+2*nrowl) += weight*R2PI*term22;
+			ek(2*ir+2*nrowl, 2*jr+2*nrowl+1) += weight*R2PI*term23;
+			ek(2*ir+2*nrowl+1, 2*jr+2*nrowl) += weight*R2PI*term32;
+			ek(2*ir+2*nrowl+1, 2*jr+2*nrowl+1) += weight*R2PI*term33;
+			
+		}
+	}
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+		std::stringstream sout;
+		ek.Print("ek = ",sout,EMathematicaInput);
+		LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
+}
+
+///-------------------------------------------------------------------
+
 /** returns the variable index associated with the name*/
 int TPZElasticityAxiMaterial::VariableIndex(const std::string &name)
 {
@@ -389,8 +837,13 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 
   double R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
   int s = (R>0) ? 1:-1;
+	
+  if(fabs(R)<1e-15) R = 0.000001;
+	
   R = fabs(R);
-
+	
+  
+	
   double axis0DOTr = 0., axis1DOTr = 0., axis0DOTz = 0., axis1DOTz = 0.;
   for(int pos = 0; pos < 3; pos++)
   {
@@ -718,10 +1171,10 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatri
 
 
 TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy) : 
-		TPZMaterial(copy), fE(copy.fE),
+		TPZDiscontinuousGalerkin(copy), fE(copy.fE),
         fnu(copy.fnu), fEover21PlusNu(copy.fEover21PlusNu),
         fEover1MinNu2(copy.fEover1MinNu2),f_c(copy.f_c),f_phi(copy.f_phi),
-		f_Origin(copy.f_Origin),f_AxisZ(copy.f_AxisZ),f_AxisR(copy.f_AxisR)
+		f_Origin(copy.f_Origin),f_AxisZ(copy.f_AxisZ),f_AxisR(copy.f_AxisR), fIntegral(copy.fIntegral)
 {
 	ff[0] = copy.ff[0];
 	ff[1] = copy.ff[1];
@@ -730,11 +1183,11 @@ TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(const TPZElasticityAxiMateria
 
 int TPZElasticityAxiMaterial::ClassId() const
 {
-  return TPZELASTICITYAXIMATERIALID;
+  return TPZELASTICITYMATERIALID;
 }
 
 #ifndef BORLAND
-template class TPZRestoreClass<TPZElasticityAxiMaterial,TPZELASTICITYAXIMATERIALID>;
+template class TPZRestoreClass<TPZElasticityAxiMaterial,TPZELASTICITYMATERIALID>;
 #endif
 
 void TPZElasticityAxiMaterial::Read(TPZStream &buf, void *context)
