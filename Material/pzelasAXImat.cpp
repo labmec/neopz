@@ -1,4 +1,4 @@
-//$Id: pzelasAXImat.cpp,v 1.8 2010-08-12 13:52:29 phil Exp $
+//$Id: pzelasAXImat.cpp,v 1.9 2010-08-16 20:11:49 caju Exp $
 // -*- c++ -*-
 #include "pzelasAXImat.h" 
 #include "pzelmat.h"
@@ -261,9 +261,6 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
   int s = (R > 0) ? 1:-1;
   R = fabs(R);
   double R2PI = 2. * M_PI * R;
-
- //criado para resolver o problema de Girkmann	
-  bc.fIntegral += R2PI*weight;
 	
   static REAL accum1 = 0., accum2 = 0.;
 

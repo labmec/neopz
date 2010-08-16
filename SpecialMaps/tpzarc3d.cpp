@@ -14,7 +14,7 @@ using namespace std;
 using namespace pzgeom;
 using namespace pzshape;
 
-//////////////////
+	//////////////////
 void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)
 {
 #ifdef DEBUG
@@ -62,7 +62,7 @@ void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)
 	axest.Transpose(&fICnBase);
 	
 	/** fICnBase -> Basis Change Matrix: from Canonic(R3) to Base(R2) | fICnBase(i,0) = Inverse[fIBaseCn] */
-//	fIBaseCn = fICnBase; fIBaseCn.Transpose();
+		//	fIBaseCn = fICnBase; fIBaseCn.Transpose();
 	
 	double Xa, Ya, Xb, Yb;
 	ComputeR2Points(coord,Xa,Ya,Xb,Yb);
@@ -89,7 +89,7 @@ void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)
 	finitialVector[0] = Xa - fXcenter; finitialVector[1] = Ya - fYcenter;
 }
 
-/////////////
+	/////////////
 /** This method compute the 3 given points with respect to R2 Basis */
 void TPZArc3D::ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double &xb, double &yb)
 {
@@ -114,46 +114,56 @@ void TPZArc3D::ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double
 	fAngle = ArcAngle(coord,xa, ya, xb, yb);
 }
 
-///////////////
+	///////////////
 /** This method return the absolute angle with respect of the arc formed between (ini - center) and (fin - center), passing by midnode
-    Note: (xm,ym) don't appear because this coordinates are always (0,0) - it's the origin of R2 basis */
+ Note: (xm,ym) don't appear because this coordinates are always (0,0) - it's the origin of R2 basis */
 double TPZArc3D::ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb) const
 {
-     REAL cos, Angle1, Angle2, Angle3, Xcenter, Ycenter, myAngle, sinBig, cosBig;
-
-     /** Computing the Center Coordinates in this R2 base M_PI */
-     Xcenter = xa/2.;
-     Ycenter = (-xa*xb + xb*xb + yb*yb) / (2.*yb);
-
+	REAL Xcenter, Ycenter, arcAngle, sinBig, cosBig;
+	
+	/** Computing the Center Coordinates in this R2 base M_PI */
+	Xcenter = xa/2.;
+	Ycenter = (-xa*xb + xb*xb + yb*yb) / (2.*yb);
+	
 	cosBig = (xb-Xcenter)*(xa-Xcenter)+(yb-Ycenter)*(ya-Ycenter);
 	sinBig = (xa-Xcenter)*(yb-Ycenter)-(xb-Xcenter)*(ya-Ycenter);
-	myAngle = -atan2(sinBig, cosBig);
-	return myAngle;
-     /** angle between (ini-center) 'n' (mid-center) */
-     cos = (-((xa - Xcenter)*Xcenter) - (ya - Ycenter)*Ycenter) / (sqrt(pow(xa - Xcenter,2) + pow(ya - Ycenter,2))*sqrt(pow(Xcenter,2) + pow(Ycenter,2)));
-     if(cos < -0.999) cos = -1.; if(cos > 0.999) cos = 1.;
-     Angle1 = acos(cos);
-
-     /** angle between (fin-center) 'n' (mid-center) */
-     cos = (-((xb - Xcenter)*Xcenter) - (yb - Ycenter)*Ycenter) / (sqrt(pow(xb - Xcenter,2) + pow(yb - Ycenter,2))*sqrt(pow(Xcenter,2) + pow(Ycenter,2)));
-     if(cos < -0.99999) cos = -1.; if(cos > 0.99999) cos = 1.;
-     Angle2 = acos(cos);
-
-     /** angle between (ini-center) 'n' (fin-center) */
-     cos = ((xa - Xcenter)*(xb - Xcenter) + (ya - Ycenter)*(yb - Ycenter)) / (sqrt(pow(xa - Xcenter,2) + pow(ya - Ycenter,2))*sqrt(pow(xb - Xcenter,2) + pow(yb - Ycenter,2)));
-     if(cos < -0.99999) cos = -1.; if(cos > 0.99999) cos = 1.;
-     Angle3 = acos(cos);
-
-     /** verification if midpoint is in smaller arc angle (<= pi) or in the bigger arc angle (>= pi)
-         Note: smaller and bigger arc angles reffers to the angle formed between
-         (ini-center) and (fin-center) vectors, where [smaller + bigger = 2PI] */
-	REAL result;
-     if( fabs(Angle3/(Angle1 + Angle2)) > 0.99 ) result = Angle3; /** Smaller Arc Angle = Angle3 */
-     else result = (2.*M_PI - Angle3); /** Bigger Arc Angle = 2Pi - Angle3 */
-	return result;
+	arcAngle = -atan2(sinBig, cosBig);
+	return arcAngle;
+	
+	//old code (still here until above code be totally validated)
+	REAL cos, Angle1, Angle2, Angle3;
+	
+	/** angle between (ini-center) 'n' (mid-center) */
+	cos = (-((xa - Xcenter)*Xcenter) - (ya - Ycenter)*Ycenter) /
+	(sqrt((xa - Xcenter)*(xa - Xcenter) + (ya - Ycenter)*(ya - Ycenter))*sqrt(Xcenter*Xcenter + Ycenter*Ycenter));
+	Angle1 = acos(cos);
+	
+	/** angle between (fin-center) 'n' (mid-center) */
+	cos = (-((xb - Xcenter)*Xcenter) - (yb - Ycenter)*Ycenter) /
+	(sqrt((xb - Xcenter)*(xb - Xcenter) + (yb - Ycenter)*(yb - Ycenter))*sqrt(Xcenter*Xcenter + Ycenter*Ycenter));
+	Angle2 = acos(cos);
+	
+	/** angle between (ini-center) 'n' (fin-center) */
+	cos = ((xa - Xcenter)*(xb - Xcenter) + (ya - Ycenter)*(yb - Ycenter)) /
+	(sqrt((xa - Xcenter)*(xa - Xcenter) + (ya - Ycenter)*(ya - Ycenter))*sqrt((xb - Xcenter)*(xb - Xcenter) + (yb - Ycenter)*(yb - Ycenter)));
+	Angle3 = acos(cos);
+	
+	/** verification if midpoint is in smaller arc angle (<= pi) or in the bigger arc angle (>= pi)
+	 Note: smaller and bigger arc angles reffers to the angle formed between
+	 (ini-center) and (fin-center) vectors, where [smaller + bigger = 2PI] */
+	if( fabs(Angle3/(Angle1 + Angle2)) >= 1. )
+	{
+		arcAngle = Angle3; /** Smaller Arc Angle = Angle3 */
+	}
+	else
+	{
+		arcAngle = (2.*M_PI - Angle3); /** Bigger Arc Angle = 2Pi - Angle3 */
+	}
+	
+	return arcAngle;
 }
 
-///////////////
+	///////////////
 /** Mapping -> result = f(NodesCoord,qsi) */
 void TPZArc3D::X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result)
 {
@@ -189,7 +199,7 @@ void TPZArc3D::X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result)
 	}
 }
 
-///////////////
+	///////////////
 void TPZArc3D::Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv)
 {
 	jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
@@ -226,31 +236,31 @@ void TPZArc3D::Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobi
 	for(int j = 0; j < 3; j++) axes(0,j) = Vt[j]/sqrt(Vtnorm);
 }
 
-///////////////
+	///////////////
 TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {
-     if(side==2)
-     {
-          TPZManVector<int> nodes(3);
-          nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2); int index;
-          TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
-          TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::SideConnectLocId(side,0)));
-          TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::SideConnectLocId(side,1)));
-          TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
-          return gel;
-     }
-
-     else if(side==0 || side==1)
-     {
-          TPZManVector<int> nodeindexes(1);
-          nodeindexes[0] = orig->SideNodeIndex(side,0); int index;
-          TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
-          TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
-          return gel;
-     }
-
-     else PZError << "\nTPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
-     return 0;
+	if(side==2)
+	{
+		TPZManVector<int> nodes(3);
+		nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2); int index;
+		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
+		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::SideConnectLocId(side,0)));
+		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::SideConnectLocId(side,1)));
+		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
+		return gel;
+	}
+	
+	else if(side==0 || side==1)
+	{
+		TPZManVector<int> nodeindexes(1);
+		nodeindexes[0] = orig->SideNodeIndex(side,0); int index;
+		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
+		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
+		return gel;
+	}
+	
+	else PZError << "\nTPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
+	return 0;
 }
 
 
@@ -259,9 +269,9 @@ TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
  */
 
 TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											  TPZVec<int>& nodeindexes,
-											  int matid,
-											  int& index)
+									 TPZVec<int>& nodeindexes,
+									 int matid,
+									 int& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }

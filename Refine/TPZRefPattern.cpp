@@ -10,6 +10,8 @@
 #include "tpzpermutation.h"
 #include "pzgeoel.h"
 #include "pzlog.h"
+#include "TPZVTKGeoMesh.h"
+
 #include <set>
 
 #include <fstream>
@@ -1406,7 +1408,7 @@ void TPZRefPattern::PrintVTK(std::ofstream &file, bool matColor)
 	}
 	gmesh->BuildConnectivity();
 	
-	TPZRefPatternTools::PrintGMeshVTK(gmesh, file, matColor);
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file, matColor);
 }
 
 //protected
