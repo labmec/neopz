@@ -3,7 +3,7 @@
  *  NeoPZ
  *
  *  Created by caju on 8/3/09.
- *  Copyright 2009 __MyCompanyName__. All rights reserved.
+ *  Copyright 2009 LabMeC. All rights reserved.
  *
  */
 

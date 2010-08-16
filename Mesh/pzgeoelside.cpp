@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.33 2010-07-19 19:33:35 caju Exp $
+//$Id: pzgeoelside.cpp,v 1.34 2010-08-16 14:16:34 caju Exp $
 // -*- c++ -*-
 #include "pzgeoelside.h"
 #include "pzgeoel.h"
@@ -339,7 +339,11 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
   TPZGeoMesh * geoMesh = fGeoEl->Mesh();
   for(el=0; el<nel; el++) {
 	TPZGeoEl * gelResult = geoMesh->ElementVec()[result[el]];
-	compneigh.Push(TPZGeoElSide( gelResult, gelResult->WhichSide(nodeindexes)));
+	  int whichSd = gelResult->WhichSide(nodeindexes);
+	  if(whichSd > 0)
+	  {
+		  compneigh.Push(TPZGeoElSide( gelResult, whichSd));
+	  }
   }
 }
 
