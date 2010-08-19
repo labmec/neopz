@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.24 2010-07-19 19:39:48 caju Exp $
+//$Id: pzgeoelside.h,v 1.25 2010-08-19 18:05:37 nathan Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -283,13 +283,13 @@ inline TPZGeoElSide TPZGeoElSide::Neighbour() const {
 
 inline void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
 #ifndef NDEBUG
-  if(! Exists() || ! this->Neighbour().Exists()) 
+	TPZGeoElSide neigh = Neighbour();
+  if(! Exists() || ! neigh.Exists()) 
     {
       std::cout << "TPZGeoElSide AllNeighbours inconsistent\n";
       return;
     }
 #endif
-  TPZGeoElSide neigh = Neighbour();
   while(neigh != *this)
     {
       allneigh.Push(neigh);
