@@ -552,7 +552,7 @@ void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
    int fOpt;
    int fStride;
 */
-  const int numthreads = 2;
+  const int numthreads = 1;//2;
   pthread_t allthreads[numthreads];
   TPZMThread alldata[numthreads];
   int res[numthreads];
@@ -766,20 +766,21 @@ void *TPZFYsmpMatrix::ExecuteMT(void *entrydata)
       }
   
     // Compute alpha * A^T * x
-      else {
-        cout << "This code doesn't work" << endl;
-        DebugStop();
-        exit(-1);
+      else 
+	{
         int jc;
         int icol;
-        for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
-      for(icol=mat->fIA[ir]; icol<mat->fIA[ir+1]; icol++ ) {
-        if(mat->fJA[icol]==-1) break; //Checa a exist�cia de dado ou n�
-        jc = mat->fJA[icol];
-        data->fZ->operator()(jc*data->fStride,ic) += data->fAlpha * mat->fA[icol] * data->fX->g(jc*data->fStride,ic);
-      }
+        for(ir=data->fFirsteq; ir<data->fLasteq; ir++) 
+	{
+		for(icol=mat->fIA[ir]; icol<mat->fIA[ir+1]; icol++ ) 
+		{
+		  if(mat->fJA[icol]==-1) break; //Checa a exist�cia de dado ou n�
+		  jc = mat->fJA[icol];
+			data->fZ->operator()(jc*data->fStride,ic) += data->fAlpha * mat->fA[icol] * data->fX->g(ir,ic);			
+		}
         }
-      }
+      
+	}
     }
   }
   return 0;
