@@ -1,6 +1,6 @@
 //pzanalysis.cpp
-//$Id: pzanalysis.cpp,v 1.57 2010-06-11 18:48:35 diogo Exp $
-//$Id: pzanalysis.cpp,v 1.57 2010-06-11 18:48:35 diogo Exp $
+//$Id: pzanalysis.cpp,v 1.58 2010-08-20 21:04:31 diogo Exp $
+//$Id: pzanalysis.cpp,v 1.58 2010-08-20 21:04:31 diogo Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -170,7 +170,7 @@ void TPZAnalysis::AssembleResidual(){
   int sz = this->Mesh()->NEquations();
   this->Rhs().Redim(sz,1);
 	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
-//  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
+ //TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
 }///void
 
 void TPZAnalysis::Assemble()
