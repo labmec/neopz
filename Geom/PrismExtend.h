@@ -10,6 +10,7 @@
 namespace pztopology 
 {
 
+/// This class defines the Prismatic extension of a topology
 template<class TFather>
 class Pr :
 	public TFather
