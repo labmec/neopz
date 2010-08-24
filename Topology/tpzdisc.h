@@ -13,23 +13,6 @@
 #define PZTOPOLOGYTPZDISC_H
 
 
-#include "pzfmatrix.h"
-#include "pzvec.h"
 
-namespace pztopology {
-
-/**
-@author Philippe R. B. Devloo
-*/
-class TPZDisc{
-public:
-
-    TPZDisc();
-
-    virtual ~TPZDisc();
-
-};
-
-}
 
 #endif

@@ -33,6 +33,8 @@ This class defines the topology of a triangle
 
 @author Philippe R. B. Devloo
 */
+	
+/// This class defines the topology of the Triangle element
 class TPZTriangle{
 public:
 

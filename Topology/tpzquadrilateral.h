@@ -35,6 +35,8 @@ namespace pztopology {
 /**
 @author Philippe R. B. Devloo
 */
+	
+/// This class defines the topology of a Quadrilateral element
 class TPZQuadrilateral{
 public:
 	 enum {NSides = 9, NCornerNodes = 4, Dimension = 2};

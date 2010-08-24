@@ -11,16 +11,3 @@
 //
 #include "tpzdisc.h"
 
-namespace pztopology {
-
-TPZDisc::TPZDisc()
-{
-}
-
-
-TPZDisc::~TPZDisc()
-{
-}
-
-
-}
