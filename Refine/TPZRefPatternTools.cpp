@@ -779,7 +779,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 		arquivo << "Compatible refinement patterns\n";
 		
 		arquivo << std::endl;
-		arquivo << "Element Type :" << gel->Type() << std::endl;
+		arquivo << "Element Type : " << gel->Type() << ' ' << gel->TypeName() << std::endl;
 		arquivo << "Sides selected for refinement :" << std::endl;
 		int i;
 		for (i=0 ; i<gel->NSides() ; i++)
@@ -920,7 +920,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids,
 		arquivo << "Compatible refinement patterns\n";
 		
 		arquivo << std::endl;
-		arquivo << "Element Type :" << gel->Type() << std::endl;
+		arquivo << "Element Type : " << gel->Type() << ' ' << gel->TypeName() << std::endl;
 		arquivo << "Sides selected for refinement :" << std::endl;
 		int i;
 		for (i=0 ; i<gel->NSides() ; i++)
@@ -1143,9 +1143,9 @@ void TPZRefPatternTools::TransformationTest(TPZRefPattern * refp)
 				}
 				else
 				{
-					std::cout << "Transformacao OK!\n";
-					std::cout << "Filho/lado : " << subel->Id() << "/" << sd << std::endl;
-					std::cout << "Pai : " << father->Id() << std::endl << std::endl;
+//					std::cout << "Transformacao OK!\n";
+//					std::cout << "Filho/lado : " << subel->Id() << "/" << sd << std::endl;
+//					std::cout << "Pai : " << father->Id() << std::endl << std::endl;
 				}//fim if sqrt..
 			}//fim rule
 			
