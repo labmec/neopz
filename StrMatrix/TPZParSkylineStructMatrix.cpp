@@ -8,6 +8,7 @@
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"
+#include "pzsubcmesh.h"
 #include "pzmat2dlin.h"
 #include "pzbndcond.h"
 
@@ -40,9 +41,27 @@ TPZStructMatrix * TPZParSkylineStructMatrix::Clone(){
 TPZMatrix * TPZParSkylineStructMatrix::Create(){
     int neq = fMesh->NEquations();
     TPZVec<int> skyline;
-    fMesh->Skyline(skyline);
-    FilterSkyline(skyline);
-    neq = skyline.NElements();
+	if (fOnlyInternal) {
+		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (fMesh);
+		if (submesh) {
+			submesh->SkylineInternal(skyline);
+		}
+		else {
+			fMesh->Skyline(skyline);
+		}
+	}
+	else {
+		fMesh->Skyline(skyline);
+	}
+    if(HasRange())
+    {
+		neq = fMaxEq-fMinEq;
+		FilterSkyline(skyline);
+    }
+	else {
+		// This statement is needed for compatibility with TPZSubCompMesh The number of equations of the stiffness matrix corresponds to "only" the internal nodes
+		neq = skyline.NElements();
+	}
     return new TPZSkylParMatrix(neq,skyline,fNumThreads);
 }
 TPZMatrix * TPZParSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
