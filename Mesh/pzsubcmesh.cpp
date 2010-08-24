@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.42 2010-07-23 02:01:51 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.43 2010-08-24 17:09:34 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -991,7 +991,8 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInt
 	fAnalysis->SetGuiInterface(guiInterface);
 	
 	TPZAutoPointer<TPZStructMatrix> str = NULL;
-	if(numThreads){
+
+	if(numThreads && 0){
 		str = new TPZParSkylineStructMatrix(this,numThreads);
 		str->AssembleOnlyInternalEquations();
 	}
