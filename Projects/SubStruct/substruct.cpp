@@ -33,47 +33,72 @@
 #include "pzstepsolver.h"
 #include "pzcompel.h"
 
+#include "pzelast3d.h"
+#include "pzbndcond.h"
+
 #include "tpzdohrassembly.h"
 
 #include "pzlog.h"
 #include "tpzgensubstruct.h"
+#include "tpzpairstructmatrix.h"
 #include "pzlog.h"
 
-#include "TPZRefPatternDataBase.h"
+/*
+#include "TPZfTime.h"
+#include "TPZTimeTemp.h"
+#include "TPZDataBase.h"
+ */
+#include <fstream>
+#include <string>
 
 #ifdef LOG4CXX
 static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
 static LoggerPtr logger(Logger::getLogger("main"));
 #endif
+#include "tpzdohrmatrix.h"
+
+void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh);
+TPZGeoMesh *MalhaPredio();
 
 using namespace std;
+
 
 int main(int argc, char *argv[])
 {
 	/* Quando se está usando o tal log4cxx */
 	InitializePZLOG("log4cxx.cfg");
-
-	gRefDBase.InitializeRefPatterns();
 	
 	int dim = 2;
-	int maxlevel = 6;
-	int sublevel = 3;
-	int plevel = 2;
-	int numthreads = 3;
+	int maxlevel = 5;
+	int sublevel = 4;
+	int plevel = 1;
+	TPZPairStructMatrix::gNumThreads = 2;
+	int numthreads = 2;
+//	tempo.fNumthreads = numthreads;					// alimenta timeTemp com o numero de threads
 	TPZGeoMesh *gmesh = 0;
 	{
-		TPZGenSubStruct sub(dim,maxlevel,sublevel);
+		//TPZGenSubStruct sub(dim,maxlevel,sublevel);
+		gmesh = MalhaPredio();
 
 		TPZCompEl::SetgOrder(plevel);
 		
-		TPZAutoPointer<TPZCompMesh> cmesh = sub.GenerateMesh();
+		//TPZAutoPointer<TPZCompMesh> cmesh = sub.GenerateMesh();
+		
+		TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
+		InsertElasticity(cmesh);
+		cmesh->AutoBuild();
+		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
+
 		
 		TPZDohrStructMatrix dohrstruct(cmesh);
 		
 		dohrstruct.IdentifyExternalConnectIndexes();
 		
 		std::cout << "Substructuring the mesh\n";
-		TPZDohrStructMatrix::SubStructure(cmesh,1<<2*sublevel);
+//		TPZfTime timetosub; // init of timer
+		TPZDohrStructMatrix::SubStructure(cmesh,8);
+//		tempo.ft0sub = timetosub.ReturnTimeDouble();  // end of timer
+//		std::cout << tempo.ft0sub << std::endl;
 		
 //		sub.SubStructure();
 #ifdef LOG4CXX
@@ -97,6 +122,7 @@ int main(int argc, char *argv[])
 		
 		TPZFMatrix diag(dohr->Rows(),1,5.), produto(dohr->Rows(),1);
 		std::cout << "Numero de equacoes " << dohr->Rows() << std::endl;
+//		tempo.fNumEqCoarse = dohr->Rows();											// alimenta timeTemp com o numero de equacoes coarse
 		dohr->Multiply(diag,produto);
 		
 		TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr = dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *> (dohr.operator->());
@@ -120,7 +146,31 @@ int main(int argc, char *argv[])
 		//  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
 		
 		cg.SetCG(100,pre,1.e-8,0);
+		
+
+//		TPZfTime timetosolve; // init of timer
 		cg.Solve(produto,diag);
+//		tempo.ft6iter = timetosolve.ReturnTimeDouble(); // end of timer
+//		cout << "Total: " << tempo.ft6iter << std::endl;
+		
+//		cout << "Tempos para multiplicacao: " << tempo.fMultiply << std::endl;
+//		cout << "Tempos para precondicionamento: " << tempo.fPreCond << std::endl;
+
+		
+		string FileName;
+		FileName = "Times_in_Line.txt";
+		ofstream OutputFile;
+		
+//		bool shouldprint = tempo.NeedsHeader(FileName);			// verify the need of a header
+//		OutputFile.open(FileName.c_str(), ios::app);					// creates the file
+//		if (shouldprint == true) tempo.PrintHeader(OutputFile);		// prints the header if It is the first time the program is executed
+		
+			
+//		tempo.PrintLine(OutputFile);		// print all the information in one line
+		
+		//TPZDataBase data;
+		//data.Read(FileName);				
+		
 #ifdef LOG4CXX
 		{
 			std::stringstream sout;
@@ -372,3 +422,204 @@ int main2(int argc, char *argv[])
 	
 	return EXIT_SUCCESS;
 }
+
+void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
+{
+	int nummat = 1;
+	REAL E = 1.e6;
+	REAL poisson = 0.3;
+	TPZManVector<REAL> force(3,0.);
+	force[1] = 20.;
+	TPZElasticity3D *elast = new TPZElasticity3D(nummat,E,poisson,force);
+	TPZAutoPointer<TPZMaterial> elastauto(elast);
+	TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+	TPZBndCond *bc = elast->CreateBC(elastauto, -1, 0, val1, val2);
+	TPZAutoPointer<TPZMaterial> bcauto(bc);
+	mesh->InsertMaterialObject(elastauto);
+	mesh->InsertMaterialObject(bcauto);
+}
+
+TPZGeoMesh *MalhaPredio()
+{
+	//int nBCs = 1;
+	int numnodes=-1;
+	int numelements=-1;
+	
+	string FileName;
+	FileName = "8andares02.txt";
+	
+	{
+		bool countnodes = false;
+		bool countelements = false;
+		
+		ifstream read (FileName.c_str());
+		
+		while(read)
+		{
+			char buf[1024];
+			read.getline(buf, 1024);
+			std::string str(buf);
+			if(str == "Coordinates") countnodes = true;
+			if(str == "end coordinates") countnodes = false;
+			if(countnodes) numnodes++;
+			
+			if(str == "Elements") countelements = true;
+			if(str == "end elements") countelements = false;
+			if(countelements) numelements++;
+		}
+	}
+	
+	TPZGeoMesh * gMesh = new TPZGeoMesh;
+	
+	gMesh -> NodeVec().Resize(numnodes);
+	
+	TPZVec <int> TopolTetra(4);
+	
+	const int Qnodes = numnodes;
+	TPZVec <TPZGeoNode> Node(Qnodes);
+	
+	//setting nodes coords
+	int nodeId = 0, elementId = 0, matElId = 1;
+	
+	ifstream read;
+	read.open(FileName.c_str());
+	
+	double nodecoordX , nodecoordY , nodecoordZ ;
+	
+	char buf[1024];
+	read.getline(buf, 1024);
+	read.getline(buf, 1024);
+	std::string str(buf);
+	int in;
+	for(in=0; in<numnodes; in++)
+	{ 
+		read >> nodeId;
+		read >> nodecoordX;
+		read >> nodecoordY;
+		read >> nodecoordZ;
+		Node[nodeId-1].SetNodeId(nodeId);
+		Node[nodeId-1].SetCoord(0,nodecoordX);
+		Node[nodeId-1].SetCoord(1,nodecoordY);
+		Node[nodeId-1].SetCoord(2,nodecoordZ);
+		gMesh->NodeVec()[nodeId-1] = Node[nodeId-1];
+		
+		
+	}
+	
+	{
+		
+		read.close();
+		read.open(FileName.c_str());
+		
+		
+		
+		int l , m = numnodes+5;
+		for(l=0; l<m; l++)
+		{
+			read.getline(buf, 1024);
+		}
+		
+		
+		int el;
+		int matBCid = -1;
+		//std::set<int> ncoordz; //jeitoCaju
+		for(el=0; el<numelements; el++)
+		{
+			read >> elementId;
+			read >> TopolTetra[0]; //node 1
+			read >> TopolTetra[1]; //node 2
+			read >> TopolTetra[2]; //node 3
+			read >> TopolTetra[3]; //node 4
+			
+			// O GID comeca com 1 na contagem dos nodes, e nao zero como no PZ, assim o node 1 na verdade é o node 0
+			TopolTetra[0]--;
+			TopolTetra[1]--;
+			TopolTetra[2]--;
+			TopolTetra[3]--;
+			
+			int index;
+			TPZGeoEl * tetra = gMesh->CreateGeoElement(ETetraedro, TopolTetra, matElId, index);
+			
+			// Colocando as condicoes de contorno
+			TPZVec <TPZGeoNode> Nodefinder(4);
+			TPZVec <REAL> nodecoord(3);
+			TPZVec<int> ncoordzVec(0); int sizeOfVec = 0;
+			//ncoordz.clear(); //jeitoCaju
+			for (int i = 0; i < 4; i++) 
+			{
+				Nodefinder[i] = gMesh->NodeVec()[TopolTetra[i]];
+				Nodefinder[i].GetCoordinates(nodecoord);
+				if (nodecoord[2] == 0.)
+				{
+					//ncoordz.insert(TopolTetra[i]); //jeitoCaju
+					sizeOfVec++;
+					ncoordzVec.Resize(sizeOfVec);
+					ncoordzVec[sizeOfVec-1] = TopolTetra[i];
+				}
+			}
+			//if(ncoordz.size() == 3) //jeitoCaju
+			if(ncoordzVec.NElements() == 3)
+			{
+				/*
+				 //jeitoCaju
+				 for(int s = tetra->NNodes(); s < tetra->NSides(); s++)
+				 {
+				 TPZGeoElSide tetraSide(tetra, s);
+				 if(tetraSide.NSideNodes() != 3)
+				 {
+				 continue;
+				 }
+				 
+				 bool ok = true;
+				 for(int n = 0; n < tetraSide.NSideNodes(); n++)
+				 {
+				 int node = tetraSide.SideNodeIndex(n);
+				 
+				 if(ncoordz.find(node) == ncoordz.end())
+				 {
+				 ok = false;
+				 break;
+				 }
+				 }
+				 if(ok)
+				 {
+				 TPZGeoElBC(tetraSide,matBCid, *gMesh);						
+				 break;
+				 }
+				 }
+				 */
+				
+				int lado = tetra->WhichSide(ncoordzVec);
+				TPZGeoElSide tetraSide(tetra, lado);
+				TPZGeoElBC(tetraSide,matBCid, *gMesh);		
+				//std::cout << "BC #" << nBCs << std::endl;
+				//nBCs++;
+			}
+		}
+		
+		gMesh->BuildConnectivity();
+		
+	}
+	
+	
+	
+	// identificando as superficies que terao cond de contorno. Coord z dos 3 nos = 0
+	//	for (int el = 0; el < numnodes-1; el++) 
+	//	{
+	//		Nodefind[el] = gMesh->NodeVec()[el];
+	//
+	//	}
+	//	Nodefind.Print(std::cout);
+	//	std::cout.flush();
+	
+	//TPZGeoElBC(TPZGeoEl *el,int side,int matid, TPZGeoMesh &mesh);
+	//TPZGeoElBC(TPZGeoElSide &elside,int matid, TPZGeoMesh &mesh);
+	
+	ofstream arg("malhaPZ.txt");
+	gMesh->Print(arg);
+	
+	return gMesh;
+	
+}
+
+
