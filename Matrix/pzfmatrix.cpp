@@ -264,6 +264,13 @@ TPZFMatrix TPZFMatrix::operator-(const TPZFMatrix &A ) const {
 
 void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
 {
+#ifdef LOG4CXX2
+	{
+		std::stringstream sout;
+		Print("GrSchmidt Entrada",sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
     double scale = 1.;
     for(int j = 0; j < this->Cols(); j++){
       double norm = 0.;
@@ -280,7 +287,8 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
 
     int QTDcomp = Rows();
     int QTDvec = Cols();
-    Orthog.Redim (QTDcomp,QTDvec);
+    Orthog.Resize(QTDcomp,QTDvec);
+    Orthog.Zero();
     /// Making a copy of *this (Ortog = *this)
     for(int r = 0; r < QTDcomp; r++)
     {
@@ -290,7 +298,7 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
         }
     }
 
-#ifdef DEBUG2
+#ifdef DEBUG
     int check = 0;
     for(int c = 0; c < QTDvec; c++)
     {
@@ -301,7 +309,9 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
         }
         if(fabs(summ) < 0.00001)
         {
-            cout << "Null Vector on Gram-Schmidt Method! Col = " << c << "\n";
+			std::stringstream sout;
+            sout << "Null Vector on Gram-Schmidt Method! Col = " << c << "\n";
+			LOGPZ_ERROR(logger,sout.str())
             check = 1;
         }
     }
@@ -321,12 +331,14 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
             }
             if(dotDown < 1.E-8) 
             { 
-                #ifdef DEBUG2
+#ifdef DEBUG
                 if(check == 0)
                 {
-                    cout << "Parallel Vectors on Gram-Schmidt Method! Col = " << stop << "\n";
+					std::stringstream sout;
+                    sout << "Parallel Vectors on Gram-Schmidt Method! Col = " << stop << "\n";
+					LOGPZ_ERROR(logger,sout.str())
                 }
-                #endif
+#endif
 
                 for(int r = 0; r < QTDcomp; r++) 
                 { 
@@ -335,6 +347,13 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
             }
             else
             {
+#ifdef LOG4CXX2
+				{
+					std::stringstream sout;
+					sout << "dotdown = " << dotDown << " dotup = " << dotUp;
+					LOGPZ_DEBUG(logger,sout.str())
+				}
+#endif
                 for(int r = 0; r < QTDcomp; r++)
                 {
                     Orthog(r,c) -= dotUp*Orthog(r,stop)/dotDown;
@@ -349,21 +368,43 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
         {
             dotUp += Orthog(r,c)*Orthog(r,c);
         }
-        if(dotUp)
+        if(dotUp > 1.e-8)
         {
             for(int r = 0; r < QTDcomp; r++)
             {
                 Orthog(r,c) = Orthog(r,c)/sqrt(dotUp);
             }
         }
+		else {
+#ifdef LOG4CXX
+			std::stringstream sout;
+			sout << "Linearly dependent columns dotUp = " << dotUp;
+			LOGPZ_ERROR(logger,sout.str())
+#endif
+            for(int r = 0; r < QTDcomp; r++)
+            {
+                Orthog(r,c) = 0.;
+            }			
+		}
+
     }
     Orthog.Multiply(*this,TransfToOrthog,1);
 
     this->operator *=( 1./scale );
     TransfToOrthog.operator *=( 1./scale );
 
+#ifdef LOG4CXX2
+	{
+		std::stringstream sout;
+		sout << "Output this = ";
+		Print("Output GS",sout);
+		Orthog.Print("Orthog matrix",sout);
+		TransfToOrthog.Print("TransfToOrthog matrix",sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 #ifdef DEBUG
-  TPZFNMatrix<9> OrthogT(Orthog.Cols(),Orthog.Rows());
+  TPZFNMatrix<9> OrthogT;
   Orthog.Transpose(&OrthogT);
   TPZAxesTools::VerifyAxes(OrthogT);
 #endif
@@ -889,14 +930,11 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
   if(fGiven && fElem != fGiven && newsize <= fSize) 
   {
     newElem = fGiven;
-  } else if (newsize == 0) {
-	  newElem = 0;
-  }
-  else 
+  } else 
   {
     newElem = new( REAL[ newRows * newCols ] );
   }
-  if (newsize && newElem == NULL )
+  if ( newElem == NULL )
           Error( "Resize <memory allocation error>." );
 
   long minRow  = ( fRow < newRows ? fRow : newRows );
@@ -929,32 +967,6 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
   fRow  = newRows;
   fCol  = newCols;
   return( 1 );
-}
-
-/**************/
-/*** Resize ***/
-
-
-int TPZFMatrix::SetSize(const int newRows,const int newCols) {
-	long newsize = ((long)newRows)*newCols;
-	long oldsize = fRow*fCol;
-	if(newsize == oldsize) return 1;
-	if(fElem && fElem != fGiven)
-	{
-		delete []fElem;
-		fElem = 0;
-	}
-	if(fGiven && newsize <= fSize) 
-	{
-		fElem = fGiven;
-	} else 
-	{
-		fElem = new( REAL[ newRows * newCols ] );
-	}
-	if (newsize && fElem == NULL )
-		Error( "Resize <memory allocation error>." );
-	
-	return( 1 );
 }
 
 int TPZFMatrix::Remodel(const int newRows,const int newCols) {
@@ -1025,13 +1037,8 @@ int TPZFMatrix::Remodel(const int newRows,const int newCols) {
 /*** Transpose () ***/
 
 
-void TPZFMatrix::Transpose(TPZMatrix *const T) const {
-	if( T == this)
-	{
-		Error("cant transpose on yourself", "Inconsistent call");
-	}
-	T->Resize(0, 0);
-	T->Resize  ( Cols(), Rows() );
+void TPZFMatrix::Transpose(TPZMatrix *const T) const{
+	  T->Resize( Cols(), Rows() );
 //Transposta por filas
 	 REAL * p = fElem;
 	 for ( int c = 0; c < Cols(); c++ ) {
@@ -1043,7 +1050,7 @@ void TPZFMatrix::Transpose(TPZMatrix *const T) const {
 }
 
 void TPZFMatrix::Transpose() {
-  TPZFNMatrix<100> temp;
+  TPZFMatrix temp;
   Transpose(&temp);
   *this = temp;
 }
@@ -1589,4 +1596,28 @@ int TPZFMatrix::ClassId() const
 #ifndef WIN32
 template class TPZRestoreClass< TPZFMatrix, TPZFMATRIXID>;
 #endif
+
+
+
+int TPZFMatrix::SetSize(const int newRows,const int newCols) {
+	long newsize = ((long)newRows)*newCols;
+	long oldsize = fRow*fCol;
+	if(newsize == oldsize) return 1;
+	if(fElem && fElem != fGiven)
+	{
+		delete []fElem;
+		fElem = 0;
+	}
+	if(fGiven && newsize <= fSize) 
+	{
+		fElem = fGiven;
+	} else 
+	{
+		fElem = new( REAL[ newRows * newCols ] );
+	}
+	if (newsize && fElem == NULL )
+		Error( "Resize <memory allocation error>." );
+	
+	return( 1 );
+}
 
