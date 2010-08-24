@@ -12,6 +12,7 @@
 TPZDohrAssembleList::TPZDohrAssembleList(int numitems, TPZFMatrix &output, TPZAutoPointer<TPZDohrAssembly> assembly) : fNumItems(numitems),
 fAssembleIndexes(assembly), fOutput(&output)
 {
+/*
 #ifdef MACOSX
 	std::stringstream sout;
 	static int counter = 0;
@@ -28,7 +29,7 @@ fAssembleIndexes(assembly), fOutput(&output)
 		std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
 	}
 #endif
-	
+*/	
 	pthread_mutex_init(&fAssemblyLock, 0);
 	pthread_mutex_init(&fListAccessLock, 0);
 }
@@ -37,11 +38,13 @@ TPZDohrAssembleList::~TPZDohrAssembleList()
 {
 	pthread_mutex_destroy(&fAssemblyLock);
 	pthread_mutex_destroy(&fListAccessLock);
+/*
 #ifdef MACOSX
 	sem_close(fSemaphore);
 #else
 	sem_destroy(&fSemaphore);
 #endif
+*/
 }
 
 /// Add an item to the list in a thread safe way
@@ -49,11 +52,14 @@ void TPZDohrAssembleList::AddItem(TPZAutoPointer<TPZDohrAssembleItem> assembleIt
 {
 	pthread_mutex_lock(&fListAccessLock);
 	fWork.push_back(assembleItem);
+	fSemaphore.Post();
+/*
 #ifdef MACOSX
 	sem_post(fSemaphore);
 #else
 	sem_post(&fSemaphore);
 #endif
+*/
 	pthread_mutex_unlock(&fListAccessLock);
 }
 /// remove an item from the list
@@ -82,11 +88,14 @@ void *TPZDohrAssembleList::Assemble(void *voidptr)
 		}
 		else {
 			// wait for a signal
+			myptr->fSemaphore.Wait();
+/*
 #ifdef MACOSX
 			sem_wait(myptr->fSemaphore);
 #else
 			sem_wait(&myptr->fSemaphore);
 #endif
+*/
 		}
 		
 	}

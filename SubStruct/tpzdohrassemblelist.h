@@ -12,6 +12,7 @@
 #include "pzfmatrix.h"
 #include "tpzautopointer.h"
 #include "tpzdohrassembly.h"
+#include "TPZSemaphore.h"
 
 #include <pthread.h>
 #include <list>
@@ -42,11 +43,14 @@ struct TPZDohrAssembleList {
 	/// the number of items that will be assembled before returning
 	int fNumItems;
 	// semaphore (to wake up assembly thread)
+	/*
 #ifdef MACOSX
 	sem_t *fSemaphore;
 #else
 	sem_t fSemaphore;
 #endif
+	 */
+	TPZSemaphore fSemaphore;
 	/// this is the mutex which controls the access to the list
 	pthread_mutex_t fListAccessLock;
 	/// this is the mutex which controls the assembly
