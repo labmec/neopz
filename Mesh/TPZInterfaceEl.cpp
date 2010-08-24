@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.99 2010-08-12 13:03:53 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.100 2010-08-24 17:08:45 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -584,9 +584,9 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal){
 		sout << __PRETTY_FUNCTION__ << "the dimension of the interface element " << myinterfacedim << " is not compatible with the dimension of the material " << InterfaceDimension <<
 		" Expect trouble ";
 #ifdef LOG4CXX
-		LOGPZ_ERROR(logger,sout.str())
+		LOGPZ_WARN(logger,sout.str())
 #else
-		std::cout << sout.str() << std::endl;
+//		std::cout << sout.str() << std::endl;
 #endif
 		InterfaceDimension = myinterfacedim;
 	}
@@ -598,7 +598,7 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal){
 		int index = fabs(axes(0,0)) < fabs(axes(0,1)) ? 0 : 1;
 		index = fabs(axes(0,index)) < fabs(axes(0,2)) ? index : 2;
 		vec[index] = 1.;
-		LOGPZ_ERROR(logger,"Left and Right elements coincide")
+		LOGPZ_WARN(logger,"Left and Right element centers coincide")
 	}
 
 
