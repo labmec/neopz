@@ -62,6 +62,12 @@ int TPZRefPatternDataBase::ReturnUniqueId()
 }
 
 //.........................................................................................................................................................................................
+void TPZRefPatternDataBase::ReadRefPatternDBase(const std::string &filename)
+{
+	std::ifstream in(filename.c_str());
+	ReadRefPatternDBase(in);
+}	
+//.........................................................................................................................................................................................
 void TPZRefPatternDataBase::ReadRefPatternDBase(std::ifstream &filename)
 {
 	int nRefpatterns;
@@ -507,8 +513,9 @@ void TPZRefPatternDataBase::InitializeAllUniformRefPatterns()
 	InitializeUniformRefPattern(ECube);
 }
 
-
+#ifndef REFPATTERNDIR
 #define REFPATTERNDIR "/Users/Cesar/Documents/Projects/NeoPZ/Refine/RefPatterns"
+#endif
 void TPZRefPatternDataBase::InitializeRefPatterns()
 {
 

@@ -33,9 +33,11 @@ class TPZRefPatternDataBase
 		/**
 		 * Read all refpatterns available in the given file
 		 */
-		void ReadRefPatternDBase(std::ifstream &filename);
+	void ReadRefPatternDBase(const std::string &filename);
 	
-		void WriteRefPatternDBase(std::ofstream &filename);
+		void ReadRefPatternDBase(std::ifstream &filein);
+	
+		void WriteRefPatternDBase(std::ofstream &fileout);
 	
 		/**
 		 * Import a library of refinement patterns from the install directory
