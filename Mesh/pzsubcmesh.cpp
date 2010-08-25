@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.43 2010-08-24 17:09:34 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.44 2010-08-25 03:04:29 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -456,7 +456,11 @@ int TPZSubCompMesh::PutinSuperMesh(int local, TPZCompMesh *super){
 
 int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 	if(super == this) return superind;
-	if(super != FatherMesh()) superind = FatherMesh()->GetFromSuperMesh(superind,super);
+	if(super != FatherMesh()) 
+	{
+		superind = FatherMesh()->GetFromSuperMesh(superind,super);
+		super = FatherMesh();
+	}
 	std::map<int,int>::iterator it = fFatherToLocal.find(superind);
 //	int i,nc = fConnectIndex.NElements();
 //	for(i=0; i<nc; i++) if(fConnectIndex[i] == superind) break;
@@ -464,7 +468,7 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 	if(it == fFatherToLocal.end())
 	{
 		int blocksize=super->ConnectVec()[superind].NDof(*(TPZCompMesh *)super);
-                int order = super->ConnectVec()[superind].Order();
+		int order = super->ConnectVec()[superind].Order();
 		int gl = AllocateNewConnectSub(blocksize,order);
 		fConnectIndex.Resize(fConnectIndex.NElements()+1);
 		fConnectIndex[fConnectIndex.NElements()-1] = superind;
@@ -580,6 +584,16 @@ void TPZSubCompMesh::MakeInternal(int local){
   fExternalLocIndex[local]= -1;
 }
 
+void TPZSubCompMesh::MakeInternalFast(int local){
+	TransferDependencies(local);
+	int i;
+	int localindex = fExternalLocIndex[local];
+	int fatherindex = fConnectIndex[localindex];
+	fConnectIndex[localindex] = -1;
+	fFatherToLocal.erase(fatherindex);
+	fExternalLocIndex[local]= -1;
+}
+
 
 TPZCompMesh * TPZSubCompMesh::RootMesh(int local){
 	if (fExternalLocIndex[local] == -1) return this;
@@ -594,10 +608,11 @@ TPZCompMesh * TPZSubCompMesh::RootMesh(int local){
  * talvez primeiro copiar a estrutura dos n�s dependentes e DEPOIS tir� los da malha pai
  */
 void TPZSubCompMesh::MakeAllInternal(){
-	TPZStack<int> stack;
+//	TPZStack<int> stack;
 	int i,j;
 	//TPZVec<int> nelcon;
 	TPZCompMesh *father = FatherMesh();
+	TPZAdmChunkVector<TPZConnect> &connectvec = father->ConnectVec();
 #ifdef DEBUG
 	//father->ComputeNodElCon();
 #endif
@@ -614,12 +629,15 @@ void TPZSubCompMesh::MakeAllInternal(){
 //#endif
 	//TPZCompMesh::Print();
 	//father->Print();
+	std::set<int> cantransfer;
+	std::set<int> delaytransfer;
 	std::map<int,int>::iterator it;
 	for (it=fFatherToLocal.begin(); it!=fFatherToLocal.end(); it++) {
 		// put the candidate nodes in the stack
 		if (father->ConnectVec()[it->first].NElConnected() == 1) 
 		{
-			stack.Push(it->second);
+			cantransfer.insert(it->second);
+//			stack.Push(it->second);
 //#ifdef DEBUG 
 //			if(father->ConnectVec()[it->first].NElConnected() != 1)
 //			{
@@ -629,6 +647,38 @@ void TPZSubCompMesh::MakeAllInternal(){
 //#endif
 		}
 	}
+	// look for dependent nodes
+	while (cantransfer.size() || delaytransfer.size()) 
+	{
+		std::set<int>::iterator itset;
+		for (itset = cantransfer.begin(); itset != cantransfer.end(); itset++) {
+			TPZConnect &con = connectvec[*itset];
+			TPZConnect::TPZDepend *listdepend = con.FirstDepend();
+			while (listdepend) {
+				if (cantransfer.find(listdepend->fDepConnectIndex) != cantransfer.end()) {
+					delaytransfer.insert(listdepend->fDepConnectIndex);
+				}
+				listdepend = listdepend->fNext;
+			}
+		}
+		for (itset=delaytransfer.begin(); itset != delaytransfer.end(); itset++) {
+			cantransfer.erase(*itset);
+		}
+		
+		for (itset=cantransfer.begin(); itset!=cantransfer.end(); itset++) 
+		{
+#ifdef LOG4CXX
+			{
+				std::stringstream sout;
+				sout << "Making the connect index " << locind << " internal";
+				LOGPZ_DEBUG(logger,sout.str())				
+			}
+#endif
+			MakeInternalFast(*itset);
+		}
+		cantransfer = delaytransfer;
+		delaytransfer.clear();
+	}
 	/*
 	 for (i=0;i<fConnectVec.NElements();i++){
 	 if (fExternalLocIndex[i]==-1) continue;
@@ -637,6 +687,8 @@ void TPZSubCompMesh::MakeAllInternal(){
 	 }
 	 */
 	// put the independent connects first
+	
+	/*
 	while(stack.NElements()) {
 		int locind = stack.Pop();
 		int can = 0;
@@ -690,6 +742,21 @@ void TPZSubCompMesh::MakeAllInternal(){
             MakeInternal(locind);
 		}
 	}
+	 */
+	
+	fConnectIndex.Resize(fFatherToLocal.size());
+	int count = 0;
+	for (it=fFatherToLocal.begin(); it!=fFatherToLocal.end(); it++) 
+	{
+		fConnectIndex[count] = it->first;
+		fExternalLocIndex[it->second] = count;
+		count++;
+	}	
+#ifdef DEBUG 
+	if (count != fFatherToLocal.size()) {
+		DebugStop();
+	}
+#endif
 	TPZCompMesh::ExpandSolution();
 	//TPZCompMesh::Print();
 	//father->Print();
@@ -726,21 +793,29 @@ void TPZSubCompMesh::SetConnectIndex(int inode, int index){
 
 int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
 	if(mesh == this) return elindex;
-		if (! IsAllowedElement(mesh,elindex)) {
+#ifdef DEBUG
+	if (! IsAllowedElement(mesh,elindex)) {
 		std::cout <<"TPZSubCompMesh::TransferElementFrom ERROR: trying to transfer an element not allowed" << std::endl;
+		DebugStop();
 		return -1;
 	}
+#endif
 	if (mesh != FatherMesh()){
 		elindex = FatherMesh()->TransferElementFrom(mesh,elindex);
+		mesh = FatherMesh();
 	}
+#ifdef DEBUG 
 	if (CommonMesh(mesh) != mesh){
 		std::cout <<"TPZSubCompMesh::TransferElementFrom ERROR: mesh is not supermesh" << std::endl;
+		DebugStop();
 		return -1;
 	}
+#endif
 	TPZCompMesh *father = FatherMesh();
 	TPZCompEl *cel = father->ElementVec()[elindex];
 	if (!cel) {
 		std::cout <<"TPZSubCompMesh::TransferElementFrom ERROR: element not existing" << std::endl;
+		DebugStop();
 		return -1;
 	}
 	int i,ncon = cel->NConnects();
@@ -773,11 +848,13 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
 }
 
 int TPZSubCompMesh::TransferElementTo(TPZCompMesh *mesh, int elindex){
+#ifdef DEBUG 
 	TPZCompMesh *common = CommonMesh(mesh);
 	if ( common!= mesh){
 		std::cout <<"TPZSubCompMesh::TransferElementTo ERROR: mesh is not supermesh" << std::endl;
 		return -1;
 	}
+#endif
 	if(mesh == this) return elindex;
 
 	if (mesh != FatherMesh()){
@@ -816,8 +893,6 @@ int TPZSubCompMesh::TransferElement(TPZCompMesh *mesh, int elindex){
 	TPZCompMesh *comm = CommonMesh(mesh);
 	int newelind = mesh->TransferElementTo(comm,elindex);
 	int ell=TransferElementFrom(comm,newelind);
-//	InitializeBlock();
-#warning DONT KNOW ABOUT THIS
 	return ell;
 }
 

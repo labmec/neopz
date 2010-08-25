@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.26 2010-07-21 19:49:56 phil Exp $
+//$Id: pzsubcmesh.h,v 1.27 2010-08-25 03:04:29 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -72,6 +72,11 @@ private:
    * Transfer one element from a specified mesh to the current submesh.
    */
   int TransferElementFrom(TPZCompMesh *mesh, int elindex);
+
+	/**
+	 * Mark the connect to be local
+	 */
+	void MakeInternalFast(int local);
 
 
 public:
