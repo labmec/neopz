@@ -448,6 +448,11 @@ void TPZMatRed<TSideMatrix>::MultAdd(const TPZFMatrix &x,
 
 	if(!opt)
 	{
+		if(fK01IsComputed)
+		{
+			DebugStop();
+		}
+
 		TPZFMatrix l_Res(fK01.Rows(), x.Cols(), 0);
 		fK01.Multiply(x,l_Res,0,1);
 		fSolver->Solve(l_Res,l_Res);
