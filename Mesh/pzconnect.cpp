@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.23 2010-03-22 17:22:47 phil Exp $
+//$Id: pzconnect.cpp,v 1.24 2010-08-25 03:05:06 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -193,6 +193,17 @@ void TPZConnect::AddToList(int myindex, TPZCompMesh &mesh, TPZStack<int> &connec
     depc.AddToList(dp->fDepConnectIndex,mesh,connectlist);
     dp = dp->fNext;
   }
+}
+
+void TPZConnect::AddToList(int myindex, TPZCompMesh &mesh, std::set<int> &connectlist){
+	connectlist.insert(myindex);
+	// this inserts the node in the list and increments the pointer firstfree
+	TPZDepend *dp = fDependList;
+	while(dp) {
+		TPZConnect &depc = mesh.ConnectVec()[dp->fDepConnectIndex];
+		depc.AddToList(dp->fDepConnectIndex,mesh,connectlist);
+		dp = dp->fNext;
+	}
 }
 
 void TPZConnect::SetDependenceOrder(int myindex, TPZCompMesh &mesh, int CurrentOrder,TPZVec<int> &ConnectList,TPZVec<int> &DependenceOrder) {
@@ -533,6 +544,19 @@ void TPZConnect::BuildConnectList(TPZStack<int> &connectlist, TPZVec<int> &Conne
     dfn = & (mesh.ConnectVec()[ dfnindex ]);
     dfn->AddToList(dfnindex,mesh,connectlist);
   }//for in
+}//void
+
+void TPZConnect::BuildConnectList(std::set<int> &connectlist, std::set<int> &additional, TPZCompMesh &mesh){
+	TPZConnect *dfn;
+	int dfnindex;
+	TPZAdmChunkVector<TPZConnect> &connectvec = mesh.ConnectVec();
+	int nconnects = additional.size();
+	std::set<int>::iterator it;
+	for(it = additional.begin() ; it != additional.end(); it++){
+		dfnindex = *it;
+		dfn = & connectvec[ dfnindex ];
+		dfn->AddToList(dfnindex,mesh,connectlist);
+	}//for in
 }//void
 
 void TPZConnect::BuildDependencyOrder(TPZVec<int> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh) {

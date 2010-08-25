@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.47 2010-03-15 12:28:57 phil Exp $
+//$Id: pzcompel.cpp,v 1.48 2010-08-25 03:05:06 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -431,12 +431,28 @@ void TPZCompEl::BuildConnectList(std::set<int> &indepconnectlist,
 }
 
 void TPZCompEl::BuildConnectList(TPZStack<int> &connectlist) {
-  const int ncon = this->NConnects();
-  TPZManVector<int> ThisConnectIndices(ncon);
-  for(int i = 0; i < ncon; i++) {
-    ThisConnectIndices[i] = this->ConnectIndex(i);
-  }
-  TPZConnect::BuildConnectList(connectlist, ThisConnectIndices, *this->Mesh());
+	std::set<int> buf;
+	int ncon = connectlist.NElements();
+	for(int i = 0; i < ncon; i++) {
+		buf.insert(connectlist[i]);
+	}
+	BuildConnectList(buf);
+	ncon = buf.size();
+	connectlist.Resize(ncon);
+	std::set<int>::iterator it = buf.begin();
+	for(int i = 0; i < ncon; i++,it++) 
+	{
+		connectlist[i] = *it;
+	}
+}
+
+void TPZCompEl::BuildConnectList(std::set<int> &connectlist) {
+	std::set<int> additional;
+	const int ncon = this->NConnects();
+	for(int i = 0; i < ncon; i++) {
+		additional.insert(this->ConnectIndex(i));
+	}
+	TPZConnect::BuildConnectList(connectlist, additional, *this->Mesh());
 }
 
 int TPZCompEl::HasDependency() {

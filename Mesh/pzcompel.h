@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.44 2010-07-20 20:46:43 phil Exp $
+// $Id: pzcompel.h,v 1.45 2010-08-25 03:05:06 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -499,7 +499,14 @@ public:
    * @param connectlist stack to receive the list
    */
   virtual void BuildConnectList(TPZStack<int> &connectlist);
-
+	/**
+	 * Builds the list of all connectivities related to the element including the
+	 * connects pointed to by dependent connects
+	 * Note : this method ADDS connects to the set.
+	 * @param connectlist stack to receive the list
+	 */
+	virtual void BuildConnectList(std::set<int> &connectlist);
+	
   /**
    * Returns 1 if the element has at least one dependent node
    * returns 0 otherwise

@@ -1,4 +1,4 @@
-//$Id: pzconnect.h,v 1.18 2010-06-17 13:49:38 phil Exp $
+//$Id: pzconnect.h,v 1.19 2010-08-25 03:05:06 phil Exp $
 
 // -*- c++ -*-
 //HEADER FILE FOR CLASS NODE
@@ -154,7 +154,10 @@ class TPZConnect {
   /**Adds itself and the connects from which it depends to the list*/
   void AddToList(int myindex, TPZCompMesh &mesh, TPZStack<int> &connectlist);
 
-  void SetDependenceOrder(int myindex, TPZCompMesh &mesh, int CurrentOrder,TPZVec<int> &connectlist,TPZVec<int> &DependenceOrder);
+	/**Adds itself and the connects from which it depends to the list*/
+	void AddToList(int myindex, TPZCompMesh &mesh, std::set<int> &connectlist);
+	
+	void SetDependenceOrder(int myindex, TPZCompMesh &mesh, int CurrentOrder,TPZVec<int> &connectlist,TPZVec<int> &DependenceOrder);
 
   void ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &blocksize, TPZFMatrix &phi, TPZFMatrix &dphi);
 
@@ -199,7 +202,18 @@ class TPZConnect {
    */
   static void BuildConnectList(TPZStack<int> &connectlist, TPZVec<int> &ConnectIndex, TPZCompMesh &mesh);
 
-  /**
+	/**
+	 * Builds the list of all connectivities related to ConnectIndex including the
+	 * connects pointed to by dependent connects
+	 * Note : this method does not reset the set to zero. The calling
+	 * method should do this
+	 * @param connectlist [out] set to receive the list
+	 * @param additional [in] connects which should be added along with their dependencies
+	 * @param mesh [in]
+	 */
+	static void BuildConnectList(std::set<int> &connectlist, std::set<int> &additional, TPZCompMesh &mesh);
+	
+	/**
    * This method builds the vector DependenceOrder which indicates in which
    * order constrained nodes need to be processed
    * connectlist need to be computed by BuildConnectList
