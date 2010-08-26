@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.44 2010-08-25 03:04:29 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.45 2010-08-26 02:35:56 erick Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -670,7 +670,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 #ifdef LOG4CXX
 			{
 				std::stringstream sout;
-				sout << "Making the connect index " << locind << " internal";
+				sout << "Making the connect index " << /*locind <<*/ " internal";
 				LOGPZ_DEBUG(logger,sout.str())				
 			}
 #endif

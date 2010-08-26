@@ -3,8 +3,9 @@
 
 #include <string>
 #include <iostream>
+#include <cstdlib>
 
-// $Id: pzeltype.h,v 1.5 2010-07-19 19:38:19 caju Exp $
+// $Id: pzeltype.h,v 1.6 2010-08-26 02:35:56 erick Exp $
 /**
    @enum MElementType
  * Defines the element types

@@ -160,7 +160,7 @@ int TPZRenumbering::ColorNodes(TPZVec<int> &nodegraph, TPZVec<int> &nodegraphind
   return ncolors;
 }
 
-void TPZRenumbering::Print(TPZVec<int> &grapho, TPZVec<int> &graphoindex, const char *name, ostream& out){
+void TPZRenumbering::Print(TPZVec<int> &grapho, TPZVec<int> &graphoindex, const char *name, std::ostream& out){
 
 	int i,j;
 	out << "Grapho: " << name << endl;
