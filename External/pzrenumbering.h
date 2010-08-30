@@ -4,6 +4,7 @@
 #define TPZRENUMBERING_H
 
 #include "pzvec.h"
+#include <set>
 /**This abstract class defines the behaviour which derived classes
 need to implement
 for implementing node sequence numbering optimization*/
@@ -82,6 +83,12 @@ public:
    * Prints graph
    */
   void Print(TPZVec<int> &grapho, TPZVec<int> &graphoindex, const char *name = 0, std::ostream &out = std::cout);
+	
+	/**
+	 * Analyse the graph, find the corner nodes
+	 * Number of elements which should be considered for determining corner nodes
+	 */
+	void CornerEqs(int mincorners, int nelconsider, std::set<int> &cornernodes);
 
 protected:
   /**

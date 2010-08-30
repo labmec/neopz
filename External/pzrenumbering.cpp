@@ -7,6 +7,7 @@
 #include "pzstack.h"
 #include <map>
 #include <set>
+#include <multimap.h>
 
 #include "pzlog.h"
 
@@ -304,5 +305,130 @@ void TPZRenumbering::ClearDataStructures(){
 	fNodeWeights.Resize(0);
 	fElementGraph.Resize(0);
 	fElementGraphIndex.Resize(0);
+}
+
+/**
+ * Analyse the graph, find the corner nodes
+ */
+void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &cornernodes)
+{
+	
+	int nod,el;
+	TPZVec<int> nodtoelgraphindex;
+	TPZVec<int> nodtoelgraph;
+	int sub = 0;
+	
+	NodeToElGraph(fElementGraph,fElementGraphIndex,nodtoelgraph,nodtoelgraphindex);
+
+	int nelem = fElementGraphIndex.NElements()-1;
+	int element;
+	for (element=0; element < nelconsider; element++) 
+	{
+		int firstindex = fElementGraphIndex[element];
+		int lastindex = fElementGraphIndex[element+1];
+		if (firstindex == lastindex) {
+			continue;
+		}
+		TPZStack<int> corners;
+		// a vector of sets of element connections for each node
+		std::multimap<int,std::pair<int,std::set<int> > > connectivities;
+		typedef std::multimap<int,std::pair<int,std::set<int> > > map_type;
+		int ind;
+		int maxelcon = 0;
+		for (ind=firstindex; ind<lastindex; ind++) {
+			int node = fElementGraph[ind];
+			int firstelind = nodtoelgraphindex[node];
+			int lastelind = nodtoelgraphindex[node+1];
+			std::set<int> elcon;
+			elcon.insert(&nodtoelgraph[firstelind],&nodtoelgraph[lastelind]);
+			maxelcon = maxelcon < elcon.size() ? elcon.size() : maxelcon;
+			connectivities.insert(map_type::value_type(elcon.size(), std::pair<int, std::set<int> >(node,elcon)));
+		}
+		/*
+		int ielcon;
+		std::cout << "sub = " << sub << std::endl;
+		for (ielcon = 1; ielcon <= maxelcon; ielcon++) {
+			std::cout << "Number of element with " << ielcon << " connected " << connectivities.count(ielcon) << std::endl;
+		}
+		*/
+		map_type::reverse_iterator it = connectivities.rbegin();		
+		// put all nodes with maximum connectivities on the stack
+		int maxconnect = it->first;
+		std::pair<map_type::const_iterator, map_type::const_iterator> p = connectivities.equal_range(it->first);
+		map_type::const_iterator ithead;
+		for (ithead = p.first; ithead != p.second; ithead++) 
+		{
+			int numelements = ithead->first;
+			corners.Push(ithead->second.first);
+			cornernodes.insert(ithead->second.first);
+		}
+		
+		// look the included sets
+		map_type::iterator itf = connectivities.begin();		
+		for (itf=connectivities.begin(); itf != connectivities.end(); itf++)
+		{
+			map_type::reverse_iterator it = connectivities.rbegin();
+			int maxelconnected = it->first;
+			int elconnected = itf->first;
+			while (it->first > itf->first && it!=connectivities.rend()) 
+			{
+				std::set<int>::iterator smallsetbeg, smallsetend, largesetbeg, largesetend;
+				smallsetbeg = itf->second.second.begin();
+				smallsetend = itf->second.second.end();
+				largesetbeg = it->second.second.begin();
+				largesetend = it->second.second.end();
+				/*
+				if(sub == 53)
+				{
+					std::set<int>::iterator ittemp;
+					std::cout << "small node " << itf->second.first << " * ";
+					for (ittemp=smallsetbeg; ittemp != smallsetend; ittemp++) {
+						std::cout << *ittemp << " ";
+					}
+					std::cout << std::endl;
+					std::cout << "large node " << it->second.first << " * ";
+					for (ittemp=largesetbeg; ittemp != largesetend; ittemp++) {
+						std::cout << *ittemp << " ";
+					}
+					std::cout << std::endl;
+				}
+				 */
+				if (std::includes(largesetbeg,largesetend,smallsetbeg,smallsetend)) {
+					break;
+				}
+				it++;
+			}
+			// the set is not included in any
+			// we allready put the maxconnect nodes on the stack
+			if (it->first == itf->first && it->first != maxconnect) {
+				corners.Push(itf->second.first);
+				cornernodes.insert(itf->second.first);
+			}
+		}
+		if (corners.NElements() < mincorners) {
+			it = connectivities.rbegin();
+			int numelconnected = it->first-1;
+			int ncorners = corners.NElements();
+			while (numelconnected > 1 && ncorners < mincorners) {
+				std::pair<map_type::const_iterator, map_type::const_iterator> p = connectivities.equal_range(numelconnected);
+				map_type::const_iterator ithead;
+				for (ithead = p.first; ithead != p.second; ithead++) 
+				{
+					corners.Push(ithead->second.first);
+					cornernodes.insert(ithead->second.first);
+					ncorners++;
+				}
+				numelconnected--;
+			}
+		}
+		int ieq;
+		for (ieq=0; ieq<corners.NElements(); ieq++) {
+			if (cornernodes.find(corners[ieq]) == cornernodes.end()) {
+				DebugStop();
+			}
+		}
+//		std::cout << "numcorners = " << corners.NElements() << " " << corners << std::endl;
+		sub++;
+	}
 }
 
