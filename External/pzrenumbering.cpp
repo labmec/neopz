@@ -319,6 +319,8 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 	int sub = 0;
 	
 	NodeToElGraph(fElementGraph,fElementGraphIndex,nodtoelgraph,nodtoelgraphindex);
+	
+//	Print(nodtoelgraph,nodtoelgraphindex,"node to el graph");
 
 	int nelem = fElementGraphIndex.NElements()-1;
 	int element;
@@ -340,7 +342,7 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 			int firstelind = nodtoelgraphindex[node];
 			int lastelind = nodtoelgraphindex[node+1];
 			std::set<int> elcon;
-			elcon.insert(&nodtoelgraph[firstelind],&nodtoelgraph[lastelind]);
+			elcon.insert(&nodtoelgraph[firstelind],(&nodtoelgraph[lastelind-1])+1);
 			maxelcon = maxelcon < elcon.size() ? elcon.size() : maxelcon;
 			connectivities.insert(map_type::value_type(elcon.size(), std::pair<int, std::set<int> >(node,elcon)));
 		}
