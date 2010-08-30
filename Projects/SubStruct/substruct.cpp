@@ -70,23 +70,34 @@ int main(int argc, char *argv[])
 	
 	int dim = 2;
 	int maxlevel = 5;
-	int sublevel = 4;
+	int sublevel = 3;
 	int plevel = 1;
 	TPZPairStructMatrix::gNumThreads = 2;
 	int numthreads = 2;
 //	tempo.fNumthreads = numthreads;					// alimenta timeTemp com o numero de threads
 	TPZGeoMesh *gmesh = 0;
 	{
-		//TPZGenSubStruct sub(dim,maxlevel,sublevel);
-		gmesh = MalhaPredio();
-
 		TPZCompEl::SetgOrder(plevel);
+
+		TPZAutoPointer<TPZCompMesh> cmesh;
 		
-		//TPZAutoPointer<TPZCompMesh> cmesh = sub.GenerateMesh();
+		if(0)
+		{
+			TPZGenSubStruct sub(dim,maxlevel,sublevel);
+			cmesh = sub.GenerateMesh();
+			cmesh->SetDimModel(dim);
+			gmesh = cmesh->Reference();
+		}
+		else 
+		{
+			gmesh = MalhaPredio();
+			cmesh = new TPZCompMesh(gmesh);
+			cmesh->SetDimModel(3);
+			InsertElasticity(cmesh);
+			cmesh->AutoBuild();
+		}
 		
-		TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
-		InsertElasticity(cmesh);
-		cmesh->AutoBuild();
+		
 		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
 
 		
@@ -96,21 +107,19 @@ int main(int argc, char *argv[])
 		
 		std::cout << "Substructuring the mesh\n";
 //		TPZfTime timetosub; // init of timer
-		TPZDohrStructMatrix::SubStructure(cmesh,8);
+		dohrstruct.SubStructure(200);
 //		tempo.ft0sub = timetosub.ReturnTimeDouble();  // end of timer
 //		std::cout << tempo.ft0sub << std::endl;
 		
 //		sub.SubStructure();
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
 		{
 			std::stringstream str;
 			cmesh->Print(str);
 			LOGPZ_DEBUG(logger,str.str());
 		}
 #endif
-		
-		gmesh = cmesh->Reference();
-		
+
 		
 		dohrstruct.SetNumThreads(numthreads);
 		
@@ -145,7 +154,7 @@ int main(int argc, char *argv[])
 		TPZStepSolver cg(dohr);
 		//  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
 		
-		cg.SetCG(100,pre,1.e-8,0);
+		cg.SetCG(500,pre,1.e-8,0);
 		
 
 //		TPZfTime timetosolve; // init of timer
@@ -425,6 +434,7 @@ int main2(int argc, char *argv[])
 
 void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 {
+	mesh->SetDimModel(3);
 	int nummat = 1;
 	REAL E = 1.e6;
 	REAL poisson = 0.3;
