@@ -27,7 +27,7 @@ public:
 	virtual ~TPZDohrStructMatrix();
 	
 	// partition the mesh in submeshes
-	static void SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, int nsub);
+	void SubStructure(int nsub);
 	
 	// this will create a DohrMatrix
 	virtual TPZMatrix * Create();
@@ -49,6 +49,16 @@ public:
 	{
 		return new TPZDohrStructMatrix(*this);
 	}
+	
+	/// Verifies if the subdomains are connected by sides of connectdimension and separate them if not
+	// nsub : number of subdomains
+	// returns the new number of subdomains
+	int SeparateUnconnected(TPZVec<int> &domain_index, int nsub, int connectdimension);
+	
+	/// Eliminate subdomains who are embedded in other subdomains
+	// returns the number of subdomains
+	int ClusterIslands(TPZVec<int> &domain_index,int nsub,int connectdimension);
+
 	
 protected:
 	
