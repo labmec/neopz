@@ -48,6 +48,9 @@
 #include <sstream>
 #include "pzlog.h"
 
+#include "TPZfTime.h"
+#include "TPZTimeTemp.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.gensubstruct"));
 #endif
@@ -128,9 +131,12 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
   TPZAutoPointer<TPZMaterial> matbc(bc);
   fCMesh->InsertMaterialObject(matbc);
   gmesh->BuildConnectivity();
+  std::cout << "Uniform refine "; std::cout.flush();
   UniformRefine();
+  std::cout << "AutoBuild "; std::cout.flush();
   fCMesh->AutoBuild();
 	cout << "Number of equations " << fCMesh->NEquations() << std::endl;
+	//tempo.fNumEq = fCMesh->NEquations();													// alimenta timeTemp com o numero de equacoes
 #ifdef LOG4CXX
   {
     std::stringstream str;
@@ -150,6 +156,7 @@ void TPZGenSubStruct::UniformRefine()
   int il;
   for(il=0; il<fNumLevels; il++)
   {
+	std::cout << il << ' '; std::cout.flush();
     int nel = gmesh->NElements();
     int iel;
     int nk = fK.NElements();
@@ -191,6 +198,8 @@ void TPZGenSubStruct::UniformRefine()
 // divide the elements in substructures
 void TPZGenSubStruct::SubStructure()
 {
+  TPZfTime timesubstructuring; // init of timer for substructuring mesh
+	
   TPZGeoMesh *gmesh = fCMesh->Reference();
   int nel = gmesh->NElements();
   int iel;
@@ -217,6 +226,8 @@ void TPZGenSubStruct::SubStructure()
       int index;
       TPZCompMesh *cmesh = fCMesh.operator->();
       TPZSubCompMesh *submesh = new TPZSubCompMesh(*cmesh,index);
+	  std::cout << '*';
+	  std::cout.flush();
       int sub;
       for(sub=0; sub<nelstack; sub++)
       {
@@ -231,6 +242,9 @@ void TPZGenSubStruct::SubStructure()
 		submesh->ExpandSolution();
     }
   }
+	
+  std::cout << timesubstructuring.ReturnTimeString(); // end of timer for substructuring mesh
+	
   // transfer the point load
   // find the point elements
   nel = fCMesh->NElements();
@@ -269,11 +283,15 @@ void TPZGenSubStruct::SubStructure()
       if(!celpoint) break;
     }
   }
+
 //#define MAKEINTERNAL
 #ifdef MAKEINTERNAL
 	std::cout << "Making Internal";
 	// make all nodes internal
 	nel = fCMesh->NElements();
+	
+	std::cout << "Make all Internal \n";
+	TPZfTime timeformakeallinternal; // init for timer
 	fCMesh->ComputeNodElCon();
 	for(iel=0; iel<nel; iel++)
 	{
@@ -281,10 +299,13 @@ void TPZGenSubStruct::SubStructure()
 		if(!cel) continue;
 		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *>(cel);
 		if(!submesh) continue;
+		std::cout << '-'; std::cout.flush();
 		submesh->MakeAllInternal();
 	}
 	std::cout << " == Finished\n";
 	fCMesh->CleanUpUnconnectedNodes();
+	
+	std::cout << timeformakeallinternal.ReturnTimeString();
 #endif
 }
 
@@ -302,10 +323,16 @@ void TPZGenSubStruct::IdentifyCornerNodes()
   int nel = elementgraphindex.NElements()-1;
   TPZMetis renum(nel,nindep);
     //nodeset.Print(file,elementgraphindex,elementgraph);
+	std::cout << "Convert Graph ";
+	TPZfTime convertgraph;
   renum.ConvertGraph(elementgraph,elementgraphindex,nodeset.Nodegraph(),nodeset.Nodegraphindex());
+    std::cout << convertgraph.ReturnTimeString();
   //   cout << "nodegraphindex " << nodeset.Nodegraphindex() << endl;
   //   cout << "nodegraph " << nodeset.Nodegraph() << endl;
-  nodeset.AnalyseGraph();
+	std::cout << "AnalyseGraph ";
+	TPZfTime analysegraph;
+   nodeset.AnalyseGraph();
+	std::cout << analysegraph.ReturnTimeString();
 #ifdef LOG4CXX
   {
     std::stringstream str;

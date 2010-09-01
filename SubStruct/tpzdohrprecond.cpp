@@ -31,11 +31,13 @@
 #include <sstream>
 #include "pzlog.h"
 
+#include "TPZfTime.h"
+#include "TPZTimeTemp.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrprecond"));
 static LoggerPtr loggerv1v2(Logger::getLogger("substruct.v1v2"));
 #endif
-
 
 using namespace std;
 
@@ -72,6 +74,7 @@ void TPZDohrPrecond<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
 	}
+	TPZfTime precondi; // init of timer
 	int rows = Rows();
 	int cols = Cols();
 	int c;
@@ -173,6 +176,7 @@ void TPZDohrPrecond<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y
 	for (c=0; c<rows; c++) {
 		z(c,0) += v2(c,0);
 	}
+	tempo.fPreCond.Push(precondi.ReturnTimeDouble()); // end of timer
 }
 
 
