@@ -301,9 +301,9 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 	int nindep = fMesh->NIndependentConnects();
 	//  int neq = fCMesh->NEquations();
 	fMesh->ComputeElGraph(elementgraph,elementgraphindex);
+	int nel = elementgraphindex.NElements()-1;
 	// expand the element graph to include a ficticious internal node to all elements
 	expelementgraphindex.Push(0);
-	int nel = elementgraphindex.NElements()-1;
 	int nelprev = nel;
 
 	int count = 0;
@@ -379,9 +379,11 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 		expelementgraphindex.Push(count);
 	}
 	nel = expelementgraphindex.NElements()-1;
+//	nel = elementgraphindex.NElements()-1;
 	TPZRenumbering renum(nel,nindep);
 
 	renum.SetElementGraph(expelementgraph, expelementgraphindex);
+//	renum.SetElementGraph(elementgraph, elementgraphindex);
 	std::set<int> othercornereqs;
 	renum.CornerEqs(3,nelprev,othercornereqs);
 
@@ -744,14 +746,16 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 		TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, domaincolor);
 	}
 #endif
-	int nsubnew = 0;
-	while (nsubnew != nsub)
+	if(meshdim == 3)
 	{
-		nsubnew = SeparateUnconnected(domain_index,nsub,meshdim-1);
-		nsub = nsubnew;
-	}
-	nsub = ClusterIslands(domain_index,nsub,meshdim-1);
-	
+		int nsubnew = 0;
+		while (nsubnew != nsub)
+		{
+			nsubnew = SeparateUnconnected(domain_index,nsub,meshdim-1);
+			nsub = nsubnew;
+		}
+		nsub = ClusterIslands(domain_index,nsub,meshdim-1);
+	}	
 #ifdef DEBUG 
 	{
 		TPZGeoMesh *gmesh = fMesh->Reference();
@@ -938,12 +942,14 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	TPZStepSolver *InvertedStiffness = new TPZStepSolver(Stiffness);
     InvertedStiffness->SetMatrix(Stiffness);
     InvertedStiffness->SetDirect(ECholesky);
+	Stiffness->Decompose_Cholesky();
 	matredbig->SetSolver(InvertedStiffness);
 	
 	
 	TPZStepSolver *InvertedInternalStiffness = new TPZStepSolver(InternalStiffness);
     InvertedInternalStiffness->SetMatrix(InternalStiffness);
     InvertedInternalStiffness->SetDirect(ECholesky);
+	InternalStiffness->Decompose_Cholesky();
 	matred->SetSolver(InvertedInternalStiffness);
 	matred->SetReduced();
 	substruct->fMatRed = matred;
