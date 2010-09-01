@@ -53,7 +53,16 @@ void TPZNodesetCompute::AnalyseGraph()
   fLevel.Fill(0);
   TPZVec<std::set<int> > nodeset(nnodes);
   int in;
-  for(in=0; in<nnodes; in++) AnalyseNode(in,nodeset);
+  for(in=0; in<nnodes; in++) 
+  {
+	  if(!(in%1000))
+	  {
+		  std::cout << "*";
+		  std::cout.flush();
+	  }
+	  AnalyseNode(in,nodeset);
+  }
+	std::cout << std::endl;
   
 }
 
