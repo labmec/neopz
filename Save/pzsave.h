@@ -439,6 +439,12 @@ class TPZRestoreClass {
 public:
 TPZRestoreClass()
 {
+#ifdef DEBUG 
+	std::string func_name = __PRETTY_FUNCTION__;
+#ifndef WIN32
+  std::cout << func_name << std::endl;
+#endif
+#endif
   TPZSaveable::Register(N,Restore);
 }
 
