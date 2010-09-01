@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.34 2010-08-16 14:16:34 caju Exp $
+//$Id: pzgeoelside.cpp,v 1.35 2010-09-01 17:55:59 phil Exp $
 // -*- c++ -*-
 #include "pzgeoelside.h"
 #include "pzgeoel.h"
@@ -90,7 +90,7 @@ void TPZGeoElSide::Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix 
   TPZManVector< REAL,3 > paramElement(DIM,0.);
 
   ThisTransf.Apply(param,paramElement);
-  double DetElement;
+  REAL DetElement;
 
   TPZFNMatrix<9> JCn(3,DIM,0.), JacElement(DIM,DIM,0.), AxesElement(DIM,3,0.), Temp(3,DIM,0.), InvElement(DIM,DIM,0.), axest(3,DIM);
 

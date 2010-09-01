@@ -23,7 +23,7 @@ class TPZStream {
 
   virtual void Write(int *p, int size=1)=0;
 
-  virtual void Write(double *p, int size=1)=0;
+  virtual void Write(REAL  *p, int size=1)=0;
 
   virtual void Write(const char *p, int size=1)=0;
   
@@ -39,7 +39,7 @@ class TPZStream {
 
   virtual void Read(int *p, int size=1)=0;
 
-  virtual void Read(double *p, int size=1)=0;
+  virtual void Read(REAL *p, int size=1)=0;
 
 #ifndef ELLIPS
   void Read(std::TPZFlopCounter *p, int size=1)
@@ -82,8 +82,8 @@ class TPZFileStream : public TPZStream {
     Writes<int>(p,size);
   }
   
-  virtual void Write(double *p, int size) {
-    Writes<double>(p,size);
+  virtual void Write(REAL *p, int size) {
+    Writes<REAL>(p,size);
   }
 
   virtual void Write(const char *p, int size) {
@@ -106,8 +106,8 @@ class TPZFileStream : public TPZStream {
     Reads<int>(p,size);
   }
 
-  virtual void Read(double *p, int size) {
-    Reads<double>(p,size);
+  virtual void Read(REAL *p, int size) {
+    Reads<REAL>(p,size);
   }
 
   virtual void Read(char *p, int size) {

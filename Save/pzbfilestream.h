@@ -67,9 +67,9 @@ class TPZBFileStream : public TPZStream
 #endif
   }
   
-  virtual void Write(double *p, int size) {
+  virtual void Write(REAL *p, int size) {
 #ifndef WIN32
-    Writes<double>(p,size);
+    Writes<REAL>(p,size);
 #endif
   }
 
@@ -102,9 +102,9 @@ class TPZBFileStream : public TPZStream
 #endif
   }
 
-  virtual void Read(double *p, int size) {
+  virtual void Read(REAL *p, int size) {
 #ifndef WIN32
-    Reads<double>(p,size);
+    Reads<REAL>(p,size);
 #endif
   }
 

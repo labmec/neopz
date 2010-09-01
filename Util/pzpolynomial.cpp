@@ -83,9 +83,9 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
         REAL M = sqrt(-D);
         REAL r = sqrt(q * q / 4. + M * M);
         REAL t = acos(-q / 2. / r);
-        raiz[0] = 2.* pow(r, (REAL) 1. / 3.) * cos(t / 3.) - A / 3;
-        raiz[1] = 2.* pow(r, (REAL) 1. / 3.) * cos((t + 2. * pi) / 3.) - A / 3.;
-        raiz[2] = 2.* pow(r, (REAL) 1. / 3.) * cos((t + 4. * pi) / 3.) - A / 3.;
+        raiz[0] = 2.* pow((double) r, (double) 1. / 3.) * cos(t / 3.) - A / 3;
+        raiz[1] = 2.* pow((double) r, (double) 1. / 3.) * cos((t + 2. * pi) / 3.) - A / 3.;
+        raiz[2] = 2.* pow((double) r, (double) 1. / 3.) * cos((t + 4. * pi) / 3.) - A / 3.;
         //Colocação das tensões em ordem crescente
 	sort(&raiz[0], &raiz[3], greater<REAL>());
 /*
@@ -101,17 +101,17 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
         REAL u, v;
         REAL u3 = -q / 2. + sqrt(D);
         if (u3 < 0) {
-            u = -pow(-u3, (REAL) 1. / 3.);
+            u = -pow((double)-u3, (REAL) 1. / 3.);
         }
         else {
-            u = pow(u3, (REAL) 1. / 3.);
+            u = pow((double)u3, (REAL) 1. / 3.);
         }
         REAL v3 = -q / 2. - sqrt(D);
         if (v3 < 0.) {
-            v = -pow(-v3, (REAL) 1. / 3.);
+            v = -pow((double)-v3, (REAL) 1. / 3.);
         }
         else {
-            v = pow(v3, (REAL) 1. / 3.);
+            v = pow((double) v3, (REAL) 1. / 3.);
         }
         raiz[0] = u + v - A / 3.;
         Delta = (A + raiz[0]) * (A + raiz[0]) + 4 * C / raiz[0];
