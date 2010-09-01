@@ -117,7 +117,7 @@ for (nod=0;nod<fNNodes;nod++) {perm[nod] = inverseperm[nod] = nod;}
 void TPZMetis::Subdivide(int nParts,
           TPZVec < int > & Domains)
 {
-	TPZVec<int> Adjacency,AdjacencyWeight,AdjacencyIndex;
+	TPZManVector<int> Adjacency,AdjacencyWeight,AdjacencyIndex;
 	ConvertToElementoToElementGraph(fElementGraph,fElementGraphIndex,Adjacency,AdjacencyWeight,AdjacencyIndex);
 
 #ifdef LOG4CXX
