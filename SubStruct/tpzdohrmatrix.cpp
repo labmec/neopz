@@ -23,9 +23,13 @@
 #include "tpzdohrassembly.h"
 #include "pzlog.h"
 
+#include "TPZfTime.h"
+#include "TPZTimeTemp.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));
 #endif
+
 
 template<class TSubStruct>
 TPZDohrMatrix<TSubStruct>::TPZDohrMatrix(TPZAutoPointer<TPZDohrAssembly> assembly)
@@ -44,6 +48,7 @@ template<class TSubStruct>
 void TPZDohrMatrix<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
                         const REAL alpha,const REAL beta,const int opt,const int stride) const
 {
+	TPZfTime mult;
   if ((!opt && Cols() != x.Rows()*stride) || Rows() != x.Rows()*stride)
     Error( "Operator* <matrixs with incompatible dimensions>" );
   if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
@@ -89,13 +94,14 @@ void TPZDohrMatrix<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			pthread_join(AllThreads[i], &result);
 		}
 	}
-
+	tempo.fMultiply.Push(mult.ReturnTimeDouble());
 }
 
 template<class TSubStruct>
 void TPZDohrMatrix<TSubStruct>::Initialize() 
 {
 	std::cout << "Number of substructures " << fGlobal.size() << std::endl;
+	tempo.fNumSub = fGlobal.size();																// alimenta timeTemp com o numero de substruturas
 	TPZFMatrix diag(Rows(),1,0.);
 	typename SubsList::iterator iter;
 	int isub = 0;
