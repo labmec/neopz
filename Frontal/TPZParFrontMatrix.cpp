@@ -166,11 +166,13 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
 
 template<class store, class front>
 void TPZParFrontMatrix<store, front>::FinishWriting(){
-	pthread_mutex_lock(&fwritelock);
+	// FinishWriting already has a lock
+	//pthread_mutex_lock(&fwritelock);
 	cout << endl << "FinishWriting" << endl;
 	cout.flush();     
 	fFinish = 1;
-	pthread_mutex_unlock(&fwritelock);
+	// FinishWriting already has a lock
+	//pthread_mutex_unlock(&fwritelock);
 	pthread_cond_signal(&fwritecond);
 } 
 
