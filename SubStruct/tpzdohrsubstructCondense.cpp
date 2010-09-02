@@ -20,6 +20,7 @@
 #include "tpzdohrsubstructCondense.h"
 #include <iostream>
 #include "pzlog.h"
+#include "TPZfTime.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstructcondense"));
@@ -274,6 +275,7 @@ void TPZDohrSubstructCondense::ContributeKULocal(const REAL alpha, const TPZFMat
 	}
 #endif
 	fMatRed->Multiply(uborder,resborder);
+	
 	TPZFMatrix resglobal(nglob,ncols,0.),resloc(fNumExternalEquations,ncols,0.);
 	PermuteScatter(itrelat2->second, resborder, resglobal, fNumInternalEquations, fNEquations);
 	PermuteGather(itrelat->second, resglobal, resloc, 0, u.Rows());
