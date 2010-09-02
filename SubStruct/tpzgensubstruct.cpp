@@ -106,7 +106,7 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
     }
     int matid = 1;
     int index;
-    gmesh->CreateGeoElement(ECube,nodeindices,matid,index);
+    gmesh->CreateGeoElement(ECube,nodeindices,matid,index,0);
   }
   this->fCMesh = new TPZCompMesh(gmesh);
   TPZVec<int> nodeindices(1,0);
