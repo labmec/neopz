@@ -17,12 +17,14 @@
 class TPZDohrStructMatrix : public TPZStructMatrix
 {
 	
+	int fNumThreadsDecompose;
+	
 public:
 	// we assume that the mesh consists of subcompmeshes
-	TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> compmesh);
+	TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> compmesh, int numthreads_compute, int numthreads_decompose);
 	
 	// copy constructors
-	TPZDohrStructMatrix(const TPZStructMatrix &copy);
+	TPZDohrStructMatrix(const TPZDohrStructMatrix &copy);
 	
 	virtual ~TPZDohrStructMatrix();
 	
@@ -106,6 +108,9 @@ private:
 
 struct ThreadDohrmanAssembly {
 	
+	enum MTask {ENone, EComputeMatrix, EDecomposeInternal, EDecomposeBig};
+	
+	MTask fTask;
 	TPZAutoPointer<TPZCompMesh> fMesh;
 	int fSubMeshIndex;
 	TPZAutoPointer<TPZDohrSubstructCondense> fSubstruct;
@@ -113,9 +118,29 @@ struct ThreadDohrmanAssembly {
 	
 	ThreadDohrmanAssembly(TPZAutoPointer<TPZCompMesh> mesh, int submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct,
 						  TPZAutoPointer<TPZDohrAssembly> assembly) : 
-		fMesh(mesh), fSubMeshIndex(submesh), fSubstruct(substruct), fAssembly(assembly)
+		fTask(ENone), fMesh(mesh), fSubMeshIndex(submesh), fSubstruct(substruct), fAssembly(assembly)
 	{
 		
+	}
+	
+	ThreadDohrmanAssembly(const ThreadDohrmanAssembly &copy) : fTask(copy.fTask), fMesh(copy.fMesh), fSubMeshIndex(copy.fSubMeshIndex),
+			fSubstruct(copy.fSubstruct),fAssembly(copy.fAssembly)
+	{
+	}
+
+	ThreadDohrmanAssembly(TPZAutoPointer<ThreadDohrmanAssembly> copy) : fTask(copy->fTask), fMesh(copy->fMesh), fSubMeshIndex(copy->fSubMeshIndex),
+	fSubstruct(copy->fSubstruct),fAssembly(copy->fAssembly)
+	{
+	}
+	
+	ThreadDohrmanAssembly &operator=(const ThreadDohrmanAssembly &copy)
+	{
+		fTask = copy.fTask;
+		fMesh = copy.fMesh;
+		fSubMeshIndex = copy.fSubMeshIndex;
+		fSubstruct = copy.fSubstruct;
+		fAssembly = copy.fAssembly;
+		return *this;
 	}
 	
 	void AssembleMatrices(pthread_mutex_t &testthread);
@@ -131,6 +156,7 @@ struct ThreadDohrmanAssemblyList {
 	
 	void Append(TPZAutoPointer<ThreadDohrmanAssembly> object);
 	
+	// returns an object and removes it from the list in a thread safe way
 	TPZAutoPointer<ThreadDohrmanAssembly> NextObject();
 	
 	static void *ThreadWork(void *voidptr);

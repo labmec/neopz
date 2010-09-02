@@ -48,10 +48,22 @@ static int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
 static TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
 
 // This is a lengthy process which should run on the remote processor
-static void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
+static void ComputeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
+static void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
+static void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
 
-TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrix(cmesh.operator->()), fDohrAssembly(0),
-	fDohrPrecond(0), fMesh(cmesh)
+TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh, int numthreads_compute, int numthreads_decompose) : 
+		TPZStructMatrix(cmesh.operator->()), fDohrAssembly(0),
+		fDohrPrecond(0), fMesh(cmesh)
+{
+	fNumThreads = numthreads_compute;
+	fNumThreadsDecompose = numthreads_decompose;
+	
+	pthread_mutex_init(&fAccessElement, 0);
+}
+
+TPZDohrStructMatrix::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) : TPZStructMatrix(copy), fDohrAssembly(copy.fDohrAssembly),
+		fDohrPrecond(copy.fDohrPrecond), fMesh(copy.fMesh), fNumThreadsDecompose(copy.fNumThreadsDecompose)
 {
 	pthread_mutex_init(&fAccessElement, 0);
 }
@@ -241,14 +253,19 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 			worklist.Append(work);
 		}
 		else {
+			work->fTask = ThreadDohrmanAssembly::EComputeMatrix;
+			work->AssembleMatrices((worklist.fTestThreads));
+			work->fTask = ThreadDohrmanAssembly::EDecomposeBig;
+			work->AssembleMatrices((worklist.fTestThreads));
+			work->fTask = ThreadDohrmanAssembly::EDecomposeInternal;
 			work->AssembleMatrices((worklist.fTestThreads));
 			delete work;
 		}
 		it++;
 	}
 	
-	const int numthreads = fNumThreads;
-	std::vector<pthread_t> allthreads(numthreads);
+	const int numthreads_assemble = fNumThreads;
+	std::vector<pthread_t> allthreads_assemble(numthreads_assemble);
 	int itr;
 	if(guiInterface){
 		if(guiInterface->AmIKilled()){
@@ -257,21 +274,58 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	}
 
 	
-	std::cout << "ThreadDohrmanAssembly\n"; 
+	std::cout << "ThreadDohrmanAssembly\n";
+	// First pass : assembling the matrices
+	ThreadDohrmanAssemblyList worklistAssemble(worklist);
+	std::list<TPZAutoPointer<ThreadDohrmanAssembly> >::iterator itwork = worklistAssemble.fList.begin();
+	while (itwork != worklistAssemble.fList.end()) {
+		(*itwork)->fTask = ThreadDohrmanAssembly::EComputeMatrix;
+		itwork++;
+	}
+	
 	TPZfTime timerforassembly; // init of timer
 	
 
-	for(itr=0; itr<numthreads; itr++)
+	for(itr=0; itr<numthreads_assemble; itr++)
 	{
-		pthread_create(&allthreads[itr], NULL,ThreadDohrmanAssemblyList::ThreadWork, &worklist);
+		pthread_create(&allthreads_assemble[itr], NULL,ThreadDohrmanAssemblyList::ThreadWork, &worklistAssemble);
 	}
-	for(itr=0; itr<numthreads; itr++)
+	for(itr=0; itr<numthreads_assemble; itr++)
 	{
-		pthread_join(allthreads[itr],NULL);
+		pthread_join(allthreads_assemble[itr],NULL);
+	}
+
+	const int numthreads_decompose = this->fNumThreadsDecompose;
+	std::vector<pthread_t> allthreads_decompose(numthreads_decompose);
+
+	std::cout << "ThreadDohrmanCompute\n";
+	// First pass : assembling the matrices
+	ThreadDohrmanAssemblyList worklistDecompose;
+	itwork = worklist.fList.begin();
+	while (itwork != worklist.fList.end()) {
+		TPZAutoPointer<ThreadDohrmanAssembly> pt1 = new ThreadDohrmanAssembly(*itwork);
+		pt1->fTask = ThreadDohrmanAssembly::EDecomposeBig;
+		worklistDecompose.Append(pt1);
+		TPZAutoPointer<ThreadDohrmanAssembly> pt2 = new ThreadDohrmanAssembly(*itwork);
+		pt2->fTask = ThreadDohrmanAssembly::EDecomposeInternal;
+		worklistDecompose.Append(pt2);
+		itwork++;
+	}
+	
+	TPZfTime timerfordecompose; // init of timer
+	
+	
+	for(itr=0; itr<numthreads_assemble; itr++)
+	{
+		pthread_create(&allthreads_decompose[itr], NULL,ThreadDohrmanAssemblyList::ThreadWork, &worklistDecompose);
+	}
+	for(itr=0; itr<numthreads_decompose; itr++)
+	{
+		pthread_join(allthreads_decompose[itr],NULL);
 	}
 	
 
-	tempo.ft5dohrassembly = timerforassembly.ReturnTimeDouble(); // end of timer
+	tempo.ft5dohrassembly = timerfordecompose.ReturnTimeDouble(); // end of timer
 	std::cout << "Time to ThreadDohrmanAssembly" << tempo.ft5dohrassembly << std::endl;
 
 	dohr->Initialize();
@@ -811,7 +865,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 
 
 // This is a lengthy process which should run on the remote processor
-void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly,
+void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly,
 						pthread_mutex_t &TestThread)
 {
 //	static std::set<int> subindexes;
@@ -821,148 +875,186 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 //	}
 //	subindexes.insert(index);
 	
-	typedef TPZDohrSubstructCondense::ENumbering ENumbering;
-	typedef std::pair<ENumbering,ENumbering> pairnumbering;
-	pairnumbering fromsub(TPZDohrSubstructCondense::Submesh,TPZDohrSubstructCondense::InternalFirst);
-	TPZVec<int> &permutescatter = substruct->fPermutationsScatter[fromsub];
 	
-	// create a skyline matrix based on the current numbering of the mesh
-	// put the stiffness matrix in a TPZMatRed object to facilitate the computation of phi and zi
-	TPZSkylineStructMatrix skylstr(submesh);
-	skylstr.AssembleAllEquations();
-	
-
-	TPZAutoPointer<TPZMatrix> Stiffness = skylstr.Create();
-
-	
-	TPZMatRed<TPZFMatrix> *matredbig = new TPZMatRed<TPZFMatrix>(Stiffness->Rows()+substruct->fCoarseNodes.NElements(),Stiffness->Rows());
-
-
-	matredbig->SetK00(Stiffness);
-	substruct->fMatRedComplete = matredbig;
-	
-	
-	TPZVec<int> permuteconnectscatter;
-	
-	substruct->fNumInternalEquations = submesh->NumInternalEquations();
-	
-#ifdef LOG4CXX
 	{
-		std::stringstream sout;
-		sout << "SubMesh Index = " << submesh->Index() << " Before permutation sequence numbers ";
-		int i;
-		int ncon = submesh->ConnectVec().NElements();
-		for (i=0; i<ncon; i++) {
-			sout << i << '|' << submesh->ConnectVec()[i].SequenceNumber() << " ";
+		typedef TPZDohrSubstructCondense::ENumbering ENumbering;
+		typedef std::pair<ENumbering,ENumbering> pairnumbering;
+		pairnumbering fromsub(TPZDohrSubstructCondense::Submesh,TPZDohrSubstructCondense::InternalFirst);
+		TPZVec<int> &permutescatter = substruct->fPermutationsScatter[fromsub];
+		// create a skyline matrix based on the current numbering of the mesh
+		// put the stiffness matrix in a TPZMatRed object to facilitate the computation of phi and zi
+		TPZSkylineStructMatrix skylstr(submesh);
+		skylstr.AssembleAllEquations();
+		
+
+		TPZAutoPointer<TPZMatrix> Stiffness = skylstr.Create();
+
+		
+		TPZMatRed<TPZFMatrix> *matredbig = new TPZMatRed<TPZFMatrix>(Stiffness->Rows()+substruct->fCoarseNodes.NElements(),Stiffness->Rows());
+
+
+		matredbig->SetK00(Stiffness);
+		substruct->fMatRedComplete = matredbig;
+		
+		
+		TPZVec<int> permuteconnectscatter;
+		
+		substruct->fNumInternalEquations = submesh->NumInternalEquations();
+		
+	#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "SubMesh Index = " << submesh->Index() << " Before permutation sequence numbers ";
+			int i;
+			int ncon = submesh->ConnectVec().NElements();
+			for (i=0; i<ncon; i++) {
+				sout << i << '|' << submesh->ConnectVec()[i].SequenceNumber() << " ";
+			}
+			LOGPZ_DEBUG(logger,sout.str())
 		}
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-	// change the sequencing of the connects of the mesh, putting the internal connects first
-	submesh->PermuteInternalFirst(permuteconnectscatter);
+	#endif
+		// change the sequencing of the connects of the mesh, putting the internal connects first
+		submesh->PermuteInternalFirst(permuteconnectscatter);
 
-//	pthread_mutex_lock(&TestThread);
+	//	pthread_mutex_lock(&TestThread);
 
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "SubMesh Index = " << submesh->Index() << " After permutation sequence numbers ";
-		int i;
-		int ncon = submesh->ConnectVec().NElements();
-		for (i=0; i<ncon; i++) {
-			sout << i << '|' << submesh->ConnectVec()[i].SequenceNumber() << " ";
+	#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "SubMesh Index = " << submesh->Index() << " After permutation sequence numbers ";
+			int i;
+			int ncon = submesh->ConnectVec().NElements();
+			for (i=0; i<ncon; i++) {
+				sout << i << '|' << submesh->ConnectVec()[i].SequenceNumber() << " ";
+			}
+			LOGPZ_DEBUG(logger,sout.str())
 		}
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "SubMesh Index = " << submesh->Index() << "\nComputed scatter vector ";
-		sout << permuteconnectscatter;
-		sout << "\nStored scatter vector " << permutescatter;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-	
+	#endif
+	#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "SubMesh Index = " << submesh->Index() << "\nComputed scatter vector ";
+			sout << permuteconnectscatter;
+			sout << "\nStored scatter vector " << permutescatter;
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+	#endif
+		
 
-	// create a "substructure matrix" based on the submesh using a skyline matrix structure as the internal matrix
-	TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix> redstruct(submesh);
-	TPZMatRed<TPZVerySparseMatrix> *matredptr = dynamic_cast<TPZMatRed<TPZVerySparseMatrix> *>(redstruct.Create());
-	TPZAutoPointer<TPZMatRed<TPZVerySparseMatrix> > matred = matredptr;
-	
-	// create a structural matrix which will assemble both stiffnesses simultaneously
-	TPZPairStructMatrix pairstructmatrix(submesh,permutescatter);
-	
-	// reorder the sequence numbering of the connects to reflect the original ordering
-	TPZVec<int> invpermuteconnectscatter(permuteconnectscatter.NElements());
-	int iel;
-	for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
-		invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;
-	}
-	TPZAutoPointer<TPZMatrix> InternalStiffness = matred->K00();
-	
-#ifdef DEBUG 
-	std::stringstream filename;
-	filename << "SubMatrixInternal" << submesh->Index() << ".vtk";
-	TPZFMatrix fillin(50,50);
-	submesh->ComputeFillIn(50, fillin);
-	VisualMatrix(fillin, filename.str().c_str());
-#endif
-	
-	submesh->Permute(invpermuteconnectscatter);
-	
-	
+		// create a "substructure matrix" based on the submesh using a skyline matrix structure as the internal matrix
+		TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix> redstruct(submesh);
+		TPZMatRed<TPZVerySparseMatrix> *matredptr = dynamic_cast<TPZMatRed<TPZVerySparseMatrix> *>(redstruct.Create());
+		TPZAutoPointer<TPZMatRed<TPZVerySparseMatrix> > matred = matredptr;
+		
+		// create a structural matrix which will assemble both stiffnesses simultaneously
+		TPZPairStructMatrix pairstructmatrix(submesh,permutescatter);
+		
+		// reorder the sequence numbering of the connects to reflect the original ordering
+		TPZVec<int> invpermuteconnectscatter(permuteconnectscatter.NElements());
+		int iel;
+		for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
+			invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;
+		}
+		TPZAutoPointer<TPZMatrix> InternalStiffness = matred->K00();
+		
+	#ifdef DEBUG 
+		std::stringstream filename;
+		filename << "SubMatrixInternal" << submesh->Index() << ".vtk";
+		TPZFMatrix fillin(50,50);
+		submesh->ComputeFillIn(50, fillin);
+		VisualMatrix(fillin, filename.str().c_str());
+	#endif
+		
+		submesh->Permute(invpermuteconnectscatter);
+		
+		
 
-//	pthread_mutex_unlock(&TestThread);
-	
-	// compute both stiffness matrices simultaneously
-	substruct->fLocalLoad.Redim(Stiffness->Rows(),1);
-	pairstructmatrix.Assemble(-1, -1, Stiffness.operator->(), matredptr, substruct->fLocalLoad);
-	matredbig->Simetrize();
-	matredptr->Simetrize();
-	
-	substruct->fWeights.Resize(Stiffness->Rows());
-	int i;
-	for(i=0; i<substruct->fWeights.NElements(); i++)
-	{
-		substruct->fWeights[i] = Stiffness->GetVal(i,i);
+	//	pthread_mutex_unlock(&TestThread);
+		
+		// compute both stiffness matrices simultaneously
+		substruct->fLocalLoad.Redim(Stiffness->Rows(),1);
+		pairstructmatrix.Assemble(-1, -1, Stiffness.operator->(), matredptr, substruct->fLocalLoad);
+		matredbig->Simetrize();
+		matredptr->Simetrize();
+		
+		substruct->fWeights.Resize(Stiffness->Rows());
+		int i;
+		for(i=0; i<substruct->fWeights.NElements(); i++)
+		{
+			substruct->fWeights[i] = Stiffness->GetVal(i,i);
+		}
+		// Desingularize the matrix without affecting the solution
+		int ncoarse = substruct->fCoarseNodes.NElements(), ic;
+		int neq = Stiffness->Rows();
+		for(ic=0; ic<ncoarse; ic++)
+		{
+			int coarse = substruct->fCoarseNodes[ic];
+			Stiffness->operator()(coarse,coarse) += 10.;
+			matredbig->operator()(neq+ic,coarse) = 1.;
+			matredbig->operator()(coarse,neq+ic) = 1.;
+		}
+		//substruct->fStiffness = Stiffness;
+		TPZStepSolver *InvertedStiffness = new TPZStepSolver(Stiffness);
+		InvertedStiffness->SetMatrix(Stiffness);
+		InvertedStiffness->SetDirect(ECholesky);
+		matredbig->SetSolver(InvertedStiffness);
+		
+		
+		TPZStepSolver *InvertedInternalStiffness = new TPZStepSolver(InternalStiffness);
+		InvertedInternalStiffness->SetMatrix(InternalStiffness);
+		InvertedInternalStiffness->SetDirect(ECholesky);
+		matred->SetSolver(InvertedInternalStiffness);
+		matred->SetReduced();
+		substruct->fMatRed = matred;
+
 	}
-	// Desingularize the matrix without affecting the solution
-	int ncoarse = substruct->fCoarseNodes.NElements(), ic;
-	int neq = Stiffness->Rows();
-	for(ic=0; ic<ncoarse; ic++)
+}
+void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly,
+					  pthread_mutex_t &TestThread)
+{
+	
 	{
-		int coarse = substruct->fCoarseNodes[ic];
-		Stiffness->operator()(coarse,coarse) += 10.;
-		matredbig->operator()(neq+ic,coarse) = 1.;
-		matredbig->operator()(coarse,neq+ic) = 1.;
+		TPZAutoPointer<TPZMatRed<TPZFMatrix> > matredbig = substruct->fMatRedComplete;
+		
+		TPZAutoPointer<TPZMatrix> Stiffness = matredbig->K00();
+
+		Stiffness->Decompose_Cholesky();
+		substruct->Initialize();
 	}
-	//substruct->fStiffness = Stiffness;
-	TPZStepSolver *InvertedStiffness = new TPZStepSolver(Stiffness);
-    InvertedStiffness->SetMatrix(Stiffness);
-    InvertedStiffness->SetDirect(ECholesky);
-	Stiffness->Decompose_Cholesky();
-	matredbig->SetSolver(InvertedStiffness);
+}
+void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly,
+					  pthread_mutex_t &TestThread)
+{
 	
-	
-	TPZStepSolver *InvertedInternalStiffness = new TPZStepSolver(InternalStiffness);
-    InvertedInternalStiffness->SetMatrix(InternalStiffness);
-    InvertedInternalStiffness->SetDirect(ECholesky);
-	InternalStiffness->Decompose_Cholesky();
-	matred->SetSolver(InvertedInternalStiffness);
-	matred->SetReduced();
-	substruct->fMatRed = matred;
-	substruct->Initialize();
+	{
+		TPZAutoPointer<TPZMatRed<TPZVerySparseMatrix> > matred = substruct->fMatRed;
+		TPZAutoPointer<TPZMatrix> InternalStiffness = matred->K00();
+		InternalStiffness->Decompose_Cholesky();
+	}
 
 }
 
+//EComputeMatrix, EDecomposeInternal, EDecomposeBig
 void ThreadDohrmanAssembly::AssembleMatrices(pthread_mutex_t &threadtest)
 {	
 	ThreadDohrmanAssembly *threadData = this;
 	TPZSubCompMesh *submesh = SubMesh(threadData->fMesh,threadData->fSubMeshIndex);
-	InitializeMatrices(submesh, threadData->fSubstruct, threadData->fAssembly,threadtest);
+	switch (fTask) {
+		case EComputeMatrix:
+			::AssembleMatrices(submesh,threadData->fSubstruct,threadData->fAssembly,threadtest);
+			break;
+		case EDecomposeInternal:
+			DecomposeInternal(submesh,threadData->fSubstruct,threadData->fAssembly,threadtest);
+			break;
+		case EDecomposeBig:
+			DecomposeBig(submesh,threadData->fSubstruct,threadData->fAssembly,threadtest);
+			break;
+		default:
+			DebugStop();
+			break;
+	}
 #ifdef LOG4CXX
+	if (fTask == EComputeMatrix)
 	{
 		std::stringstream sout;
 		/*      sout << "Submesh for element " << iel << std::endl;
