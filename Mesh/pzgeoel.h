@@ -536,22 +536,8 @@ int WhichSubel();
 ///checa a estrutura de dados de Father() e GetSubelement2()
 void CheckSubelDataStructure();
 
-     /*testa as transformacoes entre lados de pais e filhos*/
-/* int main(TPZGeoEl *gel,int type); */
-  //@}
-
-  /**Jorge 17/7/99*/
-  /** Return the measure of the geometrical element - Area */
-//  virtual REAL Mesure(int dim) { return fMesure; }
-	/**
-	 * Return into the center a especial point of the geometrical element
-	 * If 1-d => middle point,
-	 * If 2-d => barycenter, orthocenter, etc
-	 */
-//  virtual void Center(TPZVec<REAL> &center) { center[0] = 0.; }
-
-//void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi);
-void ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol = 1.e-12);
+//Compute the XInverse and returns if ksi belongs to master element domain
+bool ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol = 1.e-12);
 
 TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 

@@ -53,7 +53,6 @@ TPZRefPattern::TPZRefPattern(TPZGeoMesh &RefPatternMesh): fRefPatternMesh(RefPat
 	
 	SetRefPatternMeshToMasterDomain();
 	
-	fRefPatternMesh.BuildConnectivity();/**conectividades entre sub-elementos*/
 	ComputeTransforms();/**calcula as transformacoes entre filhos e pai*/
 	ComputePartition();/**efetua a particao do elemento pai de acordo com os lados dos sub-elementos*/
 	GenerateSideRefPatterns();
@@ -65,6 +64,7 @@ TPZRefPattern::TPZRefPattern(const TPZRefPattern &copy) : fRefPatternMesh(copy.f
 	fNSubEl = copy.fNSubEl;
 	ComputeTransforms();/**calcula as transformacoes entre filhos e pai*/
 	ComputePartition();/**efetua a particao do elemento pai de acordo com os lados dos sub-elementos*/
+	GenerateSideRefPatterns();
 }
 
 TPZRefPattern::TPZRefPattern(const TPZRefPattern &copy, const TPZPermutation &permute) : fRefPatternMesh(copy.fRefPatternMesh), fId(nonInitializedId), fName("noname")
@@ -76,7 +76,6 @@ TPZRefPattern::TPZRefPattern(const TPZRefPattern &copy, const TPZPermutation &pe
 	
 	ComputeTransforms();/**calcula as transformacoes entre filhos e pai*/
 	ComputePartition();/**efetua a particao do elemento pai de acordo com os lados dos sub-elementos*/
-	
 	GenerateSideRefPatterns();
 }
 
@@ -662,8 +661,7 @@ void TPZRefPattern::CreateNewNodes(TPZGeoEl * gel, TPZVec<int> &newnodeindexes)
 
 void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int> &newnodeindexes)
 {
-	
-	int i,j,k,index;
+	int i, j, k, index;
 	TPZGeoMesh *gmesh = gel->Mesh();
 	//SideNodes retorna um vetor com os indices dos nos internos da malha refpatern
 	//com ele eu sei quantos nos internos ou, na linguagem antiga , quantos MidSideNodes tem
@@ -807,7 +805,9 @@ void TPZRefPattern::GenerateSideRefPatterns()
 	int nsides = gel->NSides();
 	fSideRefPattern.Resize(nsides,-1);
 	fSideRefPattern.Fill(-1.);
-	fSideRefPattern[nsides-1] = this->Id();
+	
+	int thisId = this->Id();
+	fSideRefPattern[nsides-1] = thisId;
 	
 	int is;
 	for(is=0; is<nsides-1; is++)

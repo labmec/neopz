@@ -26,7 +26,7 @@ class TPZRefPatternDataBase
 	public:
 	
 		TPZRefPatternDataBase();
-	  ~TPZRefPatternDataBase();
+	    ~TPZRefPatternDataBase();
 	
 		int ReturnUniqueId();
 	

@@ -12,7 +12,7 @@
 
 TPZRefPatternTools::TPZRefPatternTools()
 {
-
+	
 }
 
 TPZRefPatternTools::~TPZRefPatternTools()
@@ -56,7 +56,7 @@ void TPZRefPatternTools::GetCompatibleRefPatterns(TPZGeoEl *gel, std::list<TPZAu
 			neighside = neighside.Neighbour();
 		}
 	}
-
+	
 	// having the refinement patterns associated with the sides, look for compatible refinement patterns
 	std::list< TPZAutoPointer<TPZRefPattern> > gelReflist = gRefDBase.RefPatternList(gel->Type());
 	std::list< TPZAutoPointer<TPZRefPattern> >::iterator gelReflistIt;
@@ -70,9 +70,9 @@ void TPZRefPatternTools::GetCompatibleRefPatterns(TPZGeoEl *gel, std::list<TPZAu
 			TPZAutoPointer<TPZRefPattern> NeighSideRefPattern = NeighSideRefPatternVec[side];
 			
 			if(GelSideRefPattern && NeighSideRefPattern)
-			{
+			{				
 				if(  !( (TPZRefPattern &)GelSideRefPattern == NeighSideRefPattern)  )
-				{					
+				{			
 					break;
 				}
 			}
@@ -94,28 +94,43 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::ModelRefPattern(TPZGeoEl *gel,
 	int nnodes = gel->NNodes();
 	int nsides = gel->NSides();
 	
-	bool isrefined, topolAreCompatibles;
+	bool neigh_isrefined, topolAreCompatibles;
 	
 	std::list< TPZAutoPointer<TPZRefPattern> > candidates = gRefDBase.RefPatternList(gel->Type());
 	std::list< TPZAutoPointer<TPZRefPattern> >::iterator it;
-
+	
 	int side;
 	for(it = candidates.begin(); it != candidates.end(); it++)
 	{
 		modelPat = *it;
+		
 		for(side = nnodes; side < nsides; side++)
 		{
 			TPZGeoElSide gelside(gel, side);
 			TPZGeoElSide neighside = gelside.Neighbour();
 			
-			isrefined = false;
+			neigh_isrefined = false;
 			topolAreCompatibles = false;
+			
+			//Se meu lado nao tem vizinho, significa que nao precisa ser refinado!
+			//Mas se o candidato a modelRefPattern quer refinar por este lado, jah nao serve... vamos para outro candidato!
+			if(neighside == gelside && modelPat->SideRefPattern(side) && side != nsides-1)
+			{
+				neigh_isrefined = true;
+				topolAreCompatibles = false;
+				break;
+			}
+			//Se eu nao tenho vizinho pelo lado (nsides-1), o candidato a modelRefPattern pode refina-lo!!!
+			else if(neighside == gelside && side == nsides-1)
+			{
+				continue;
+			}
 			
 			while(neighside != gelside)
 			{
 				if(neighside.NSubElements() > 1)
 				{
-					isrefined = true;
+					neigh_isrefined = true;
 					TPZAutoPointer<TPZRefPattern> neighRefp = neighside.Element()->GetRefPattern()->SideRefPattern(neighside.Side());
 					TPZAutoPointer<TPZRefPattern> modelsideRefp = modelPat->SideRefPattern(side);
 					
@@ -138,7 +153,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::ModelRefPattern(TPZGeoEl *gel,
 				}
 				neighside = neighside.Neighbour();
 			}
-			if(isrefined && !topolAreCompatibles)
+			if( (neigh_isrefined && !topolAreCompatibles) || (!neigh_isrefined && modelPat->SideRefPattern(side)) )
 			{
 				neighCorresp.clear();
 				break;
@@ -208,17 +223,17 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 	{
 		return 0;
 	}
-	
 	TPZAutoPointer<TPZRefPattern> pat = PerfectMatchRefPattern(gel, sidestorefine);
 	
 	if(!pat)
 	{
 		//if no refpattern matches perfectly...
 		std::map<int, std::pair<TPZGeoEl *, std::map<int,int> > > neighCorresp;
-		pat = TPZRefPatternTools::ModelRefPattern(gel, neighCorresp);	
-		if(pat)
+		TPZAutoPointer<TPZRefPattern> modelPat = TPZRefPatternTools::ModelRefPattern(gel, neighCorresp);	
+		if(modelPat)
 		{
-			TPZRefPatternTools::DragModelPatNodes(gel, pat, neighCorresp);
+			modelPat->Print();
+			pat = TPZRefPatternTools::DragModelPatNodes(gel, modelPat, neighCorresp);
 		}
 		else
 		{
@@ -232,8 +247,9 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 	return pat;
 }
 
-void TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * gel, TPZAutoPointer<TPZRefPattern> modelPat, std::map<int, std::pair<TPZGeoEl *, std::map<int,int> > > &neighCorresp)
+TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * gel, TPZAutoPointer<TPZRefPattern> modelPat, std::map<int, std::pair<TPZGeoEl *, std::map<int,int> > > &neighCorresp)
 {
+	TPZAutoPointer<TPZRefPattern> modelPat_copy = new TPZRefPattern(modelPat);
 	int nnodes = gel->NNodes();
 	int nsides = gel->NSides();
 	
@@ -252,9 +268,10 @@ void TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * gel, TPZAutoPointer<TPZRef
 		{
 			if(neighside.Element() == neighStored)
 			{
+				int SideOfNeighSide = neighside.Side();
 				TPZAutoPointer<TPZRefPattern> neighRefp = neighside.Element()->GetRefPattern()->SideRefPattern(neighside.Side());
-				TPZAutoPointer<TPZRefPattern> modelsideRefp = modelPat->SideRefPattern(side);
-
+				TPZAutoPointer<TPZRefPattern> modelsideRefp = modelPat_copy->SideRefPattern(side);
+				
 				TPZTransform transBetweenNeigh = neighside.NeighbourSideTransform(gelside);
 				TPZTransform transBetweenSides = gel->SideToSideTransform(side, nsides-1);
 				
@@ -263,7 +280,7 @@ void TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * gel, TPZAutoPointer<TPZRef
 				
 				//correspondencias entre nohs entre LADO DO PADRAO MODELO e o proprio PADRAO MODELO
 				std::map<int, int> pairSideNodes;
-				PairMeshesNodesMatchingCoordinates(modelsideRefp->RefPatternMesh(), modelPat->RefPatternMesh(), transBetweenSides, pairSideNodes);
+				PairMeshesNodesMatchingCoordinates(modelsideRefp->RefPatternMesh(), modelPat_copy->RefPatternMesh(), transBetweenSides, pairSideNodes);
 				std::map<int, int>::iterator it, jt;
 				for(it = pairedNodes.begin(); it != pairedNodes.end(); it++)
 				{
@@ -272,31 +289,33 @@ void TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * gel, TPZAutoPointer<TPZRef
 					neighRefp->RefPatternMesh().NodeVec()[it->first].GetCoordinates(neighNodeCoord);
 					transBetweenNeigh.Apply(neighNodeCoord, sideNodeCoord);
 					transBetweenSides.Apply(sideNodeCoord, NodeCoord);
-
+					
 					jt = pairSideNodes.find(it->second);
 					if(jt != pairSideNodes.end())
 					{
 						int gNode = jt->second;
 						for(int n = 0; n < 3; n++)
 						{
-							modelPat->RefPatternMesh().NodeVec()[gNode].SetCoord(n, NodeCoord[n]);
+							modelPat_copy->RefPatternMesh().NodeVec()[gNode].SetCoord(n, NodeCoord[n]);
 						}
 					}
 				}
-
+				
 				break;
 			}
 			neighside = neighside.Neighbour();
 		}
 	}
-	modelPat->ComputeTransforms();
-	modelPat->ComputePartition();
-	modelPat->GenerateSideRefPatterns();
-	if(!gRefDBase.FindRefPattern(modelPat))
+	modelPat_copy->ComputeTransforms();
+	modelPat_copy->ComputePartition();
+	modelPat_copy->GenerateSideRefPatterns();
+	if(!gRefDBase.FindRefPattern(modelPat_copy))
 	{
-		gRefDBase.InsertRefPattern(modelPat);
-		modelPat->InsertPermuted();
+		gRefDBase.InsertRefPattern(modelPat_copy);
+		modelPat_copy->InsertPermuted();
 	}
+	
+	return modelPat_copy;
 }
 
 bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA, TPZAutoPointer<TPZRefPattern> refB, TPZTransform &fromAtoB, std::map<int, int> &pairedNodes)
@@ -343,21 +362,21 @@ bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA, T
 			return false;
 		}
 	}
-
+	
 	//PARTY BEGINS!!!!!!!!!	
-	PairMeshesNodesMatchingCoordinates(meshA, meshB, fromAtoB, pairedNodes);
-
+	PairMeshesCornerNodesMatchingCoordinates(meshA, meshB, fromAtoB, pairedNodes);
+	
 	TPZGeoEl* fatherA = meshA.ElementVec()[0];
 	int unpairedNNodes = meshA.NNodes() - pairedNodes.size();
 	
-	#ifdef DEBUG
+#ifdef DEBUG
 	if(pairedNodes.size() < fatherA->NNodes())
 	{
 		std::cout << "\nThere is something going wrong with meshA and/or meshB in " << __PRETTY_FUNCTION__ << std::endl;
 		std::cout << "father->ConnerNodes should be paired at least!!!\n\n";
 		DebugStop();
 	}
-	#endif
+#endif
 	
 	std::map<int, int>::iterator pairedNodesIT;
 	
@@ -402,11 +421,11 @@ bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA, T
 	TPZVec<bool> AsubelementIsAlreadyPaired(meshA.NElements(), false);
 	TPZVec<bool> BsubelementIsAlreadyPaired(meshB.NElements(), false);
 	
-	#define IwantPairedElementsToo
-	#ifdef IwantPairedElementsToo
+#define IwantPairedElementsToo
+#ifdef IwantPairedElementsToo
 	std::map<int, int> pairedElements;
 	pairedElements[0] = 0;//fathers are already paired at this line of code
-	#endif
+#endif
 	
 	std::list<TPZGeoEl*>::iterator elAit, elBit;
 	std::list< std::list<TPZGeoEl*>::iterator > pointedB;
@@ -429,41 +448,41 @@ bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA, T
 					Anodes[n] = A->NodeIndex(n);
 					pairedNodesIT = pairedNodes.find(Anodes[n]);
 					if(pairedNodesIT != pairedNodes.end())
-				   {
-					   pairedNodesCount++;
-				   }
+					{
+						pairedNodesCount++;
+					}
 				}
 				if(pairedNodesCount > 1)
-			   {
-				   BthatMatch.clear();
-				   pointedB.clear();
-				   for(elBit = eltypeBit->second.begin(); elBit != eltypeBit->second.end(); elBit++)
-				   {
-					   TPZGeoEl * B = *elBit;
-					   TPZRefPatternTools::GetGelPermutations(B, Bnodes);
-					   for(int p = 0; p < Bnodes.NElements(); p++)
-					   {
-						   bool goodCandidate = true;
-						   for(int n = 0; n < Anodes.NElements(); n++)
-						   {
-							   int nA = Anodes[n];
-							   int nB = Bnodes[p][n];
-							   
-							   pairedNodesIT = pairedNodes.find(nA);
-							   if(pairedNodesIT != pairedNodes.end() && pairedNodesIT->second != nB)
-							   {
-								   goodCandidate = false;
-								   break;
-							   }
-						   }
-						   if(goodCandidate)
-						   {
-							   BthatMatch.push_back(Bnodes[p]);
-							   pointedB.push_back(elBit);  
-						   }
-					   }
-				   }//for elBit
-			   }//if(pairedNodesCount > 1)
+				{
+					BthatMatch.clear();
+					pointedB.clear();
+					for(elBit = eltypeBit->second.begin(); elBit != eltypeBit->second.end(); elBit++)
+					{
+						TPZGeoEl * B = *elBit;
+						TPZRefPatternTools::GetGelPermutations(B, Bnodes);
+						for(int p = 0; p < Bnodes.NElements(); p++)
+						{
+							bool goodCandidate = true;
+							for(int n = 0; n < Anodes.NElements(); n++)
+							{
+								int nA = Anodes[n];
+								int nB = Bnodes[p][n];
+								
+								pairedNodesIT = pairedNodes.find(nA);
+								if(pairedNodesIT != pairedNodes.end() && pairedNodesIT->second != nB)
+								{
+									goodCandidate = false;
+									break;
+								}
+							}
+							if(goodCandidate)
+							{
+								BthatMatch.push_back(Bnodes[p]);
+								pointedB.push_back(elBit);  
+							}
+						}
+					}//for elBit
+				}//if(pairedNodesCount > 1)
 				if(pairedNodesCount > 1 && BthatMatch.size() == 1)//se temos apenas 1 candidato da lista de B
 				{
 					for(int n = 0; n < Anodes.NElements(); n++)//pareando os nohs ainda nao pareados e deletando da lista os elementos pareados
@@ -477,11 +496,11 @@ bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA, T
 					}
 					nRemainingSubels--;
 					
-					#ifdef IwantPairedElementsToo
+#ifdef IwantPairedElementsToo
 					int Aid = (*(elAit))->Id();
 					int Bid = (*(*(pointedB.begin())))->Id();
 					pairedElements[Aid] = Bid;
-					#endif
+#endif
 					
 					eltypeAit->second.erase(elAit);
 					eltypeBit->second.erase(*pointedB.begin());
@@ -503,7 +522,39 @@ bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA, T
 	return false;
 }
 
-void TPZRefPatternTools::PairMeshesNodesMatchingCoordinates(TPZGeoMesh &meshA, TPZGeoMesh &meshB, TPZTransform fromAtoB, std::map<int, int> &pairedNodes)
+void TPZRefPatternTools::PairMeshesCornerNodesMatchingCoordinates(TPZGeoMesh meshA, TPZGeoMesh meshB, TPZTransform fromAtoB, std::map<int, int> &pairedNodes)
+{
+	TPZVec<REAL> ANodeCoord(3,0.), BNodeCoord(3,0.);
+	
+	int Annodes = meshA.ElementVec()[0]->NNodes();
+	int Bnnodes = meshB.ElementVec()[0]->NNodes();
+	for(int nA = 0; nA < Annodes; nA++)
+	{
+		meshA.NodeVec()[meshA.ElementVec()[0]->NodeIndex(nA)].GetCoordinates(ANodeCoord);
+		fromAtoB.Apply(ANodeCoord, BNodeCoord);
+		
+		TPZVec<REAL> BNodeCoord_compare(3,0.);
+		for(int nB = 0; nB < Bnnodes; nB++)
+		{
+			double dif = 0.;
+			meshB.NodeVec()[meshB.ElementVec()[0]->NodeIndex(nB)].GetCoordinates(BNodeCoord_compare);
+			for(int c = 0; c < 3; c++)
+			{
+				dif += fabs(BNodeCoord[c] - BNodeCoord_compare[c]);
+			}
+			if(dif < 1.E-10)
+			{
+				int nA_Id = meshA.NodeVec()[meshA.ElementVec()[0]->NodeIndex(nA)].Id();
+				int nB_Id = meshB.NodeVec()[meshB.ElementVec()[0]->NodeIndex(nB)].Id();
+				pairedNodes[nA_Id] = nB_Id;
+				
+				break;
+			}
+		}
+	}
+}
+
+void TPZRefPatternTools::PairMeshesNodesMatchingCoordinates(TPZGeoMesh meshA, TPZGeoMesh meshB, TPZTransform fromAtoB, std::map<int, int> &pairedNodes)
 {
 	TPZVec<REAL> ANodeCoord(3,0.), BNodeCoord(3,0.);
 	
@@ -528,6 +579,7 @@ void TPZRefPatternTools::PairMeshesNodesMatchingCoordinates(TPZGeoMesh &meshA, T
 				int nA_Id = meshA.NodeVec()[nA].Id();
 				int nB_Id = meshB.NodeVec()[nB].Id();
 				pairedNodes[nA_Id] = nB_Id;
+
 				break;
 			}
 		}
@@ -680,13 +732,13 @@ bool TPZRefPatternTools::SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref)
 				int ns = neighside.Side();
 				TPZVec<int> MidNodesIndexes;
 				
-				TPZAutoPointer<TPZRefPattern> elrefpattern = neighside.Element()->GetRefPattern();
-				
+				TPZAutoPointer<TPZRefPattern> elrefpattern = neighside.Element()->GetRefPattern();				
 				TPZAutoPointer<TPZRefPattern> refSide = elrefpattern->SideRefPattern(ns);
-				if (!refSide) {
-
+				if (!refSide)
+				{
 					std::cout << "An element is refined but the pattern has no side refpattern along side " << ns << "\n";
 					neighside.Element()->GetRefPattern()->Print(cout);
+					
 					DebugStop();
 				}
 				elrefpattern->SideNodes(ns, MidNodesIndexes);
@@ -978,7 +1030,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids,
 		}
 		arquivo << std::endl << std::endl << std::endl << std::endl;
 	}	
-
+	
 	return;
 }
 
@@ -1008,7 +1060,7 @@ void TPZRefPatternTools::RefineUniformIfNeighMat(TPZGeoEl *gel, std::set<int> &m
 					std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
 					return;
 				}
-
+				
 			}
 			neighside = neighside.Neighbour();
 		}
@@ -1138,7 +1190,7 @@ void TPZRefPatternTools::TransformationTest(TPZRefPattern * refp)
 					PZError << "son    = " << (subel->Id()) << std::endl;
 					PZError << "father = " << (father->Id()) << std::endl;
 					PZError << "side   = " << sd << std::endl << std::endl;
-
+					
 					DebugStop();
 				}
 				else
@@ -1179,14 +1231,14 @@ void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, std::vector<int>& NodesH
         }
     }
 	
-	#ifdef DEBUG
+#ifdef DEBUG
     if(posIni == -1 || posFin == -1)
     {
         std::cout << "Initial Node index or Final Node index doesn't belong to the given TPZGeoNode std::vector!\n";
         std::cout << "See NodesHunter method!\n";
 		exit(-1);
     }
-	#endif
+#endif
 	
 	/// Computing BasisChange Matrix
 	/// Where NewBase X_axis is defined by IniNode->FinNode orientation
@@ -1234,10 +1286,10 @@ void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, std::vector<int>& NodesH
         if( VectorialNotation.GetVal(h,0) >= VectorialNotation.GetVal(posIni,0) &&
 		   VectorialNotation.GetVal(h,0) <= VectorialNotation.GetVal(posFin,0) &&
 		   (fabs(VectorialNotation.GetVal(h,1)) + fabs(VectorialNotation.GetVal(h,2))) < Tol )
-			{
-				std::pair< double , int> Item(VectorialNotation.GetVal(h,0), gMesh.NodeVec()[h].Id());
-				mymap.insert(Item);
-			}
+		{
+			std::pair< double , int> Item(VectorialNotation.GetVal(h,0), gMesh.NodeVec()[h].Id());
+			mymap.insert(Item);
+		}
     }
     NodesHunted.resize(mymap.size());
     std::map<double, int>::iterator it = mymap.begin();
@@ -1341,7 +1393,7 @@ void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZV
 			permutation[p][0] = 0; permutation[p][1] = 2; permutation[p][2] = 1;  permutation[p][3] = 3; p++;
 			permutation[p][0] = 2; permutation[p][1] = 1; permutation[p][2] = 0;  permutation[p][3] = 3; p++;
 			permutation[p][0] = 1; permutation[p][1] = 0; permutation[p][2] = 2;  permutation[p][3] = 3; p++;
-				//
+			//
 			permutation[p][0] = 0; permutation[p][1] = 1; permutation[p][2] = 3;  permutation[p][3] = 2; p++;
 			permutation[p][0] = 1; permutation[p][1] = 3; permutation[p][2] = 0;  permutation[p][3] = 2; p++;
 			permutation[p][0] = 3; permutation[p][1] = 0; permutation[p][2] = 1;  permutation[p][3] = 2; p++;
@@ -1349,7 +1401,7 @@ void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZV
 			permutation[p][0] = 0; permutation[p][1] = 3; permutation[p][2] = 1;  permutation[p][3] = 2; p++;
 			permutation[p][0] = 3; permutation[p][1] = 1; permutation[p][2] = 0;  permutation[p][3] = 2; p++;
 			permutation[p][0] = 1; permutation[p][1] = 0; permutation[p][2] = 3;  permutation[p][3] = 2; p++;
-				//
+			//
 			permutation[p][0] = 0; permutation[p][1] = 3; permutation[p][2] = 2;  permutation[p][3] = 1; p++;
 			permutation[p][0] = 3; permutation[p][1] = 2; permutation[p][2] = 0;  permutation[p][3] = 1; p++;
 			permutation[p][0] = 2; permutation[p][1] = 0; permutation[p][2] = 3;  permutation[p][3] = 1; p++;
@@ -1357,7 +1409,7 @@ void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZV
 			permutation[p][0] = 0; permutation[p][1] = 2; permutation[p][2] = 3;  permutation[p][3] = 1; p++;
 			permutation[p][0] = 2; permutation[p][1] = 3; permutation[p][2] = 0;  permutation[p][3] = 1; p++;
 			permutation[p][0] = 3; permutation[p][1] = 0; permutation[p][2] = 2;  permutation[p][3] = 1; p++;
-				//
+			//
 			permutation[p][0] = 3; permutation[p][1] = 1; permutation[p][2] = 2;  permutation[p][3] = 0; p++;
 			permutation[p][0] = 1; permutation[p][1] = 2; permutation[p][2] = 3;  permutation[p][3] = 0; p++;
 			permutation[p][0] = 2; permutation[p][1] = 3; permutation[p][2] = 1;  permutation[p][3] = 0; p++;
@@ -1407,7 +1459,7 @@ void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZV
 			permutation[p][0] = 0; permutation[p][1] = 2; permutation[p][2] = 1; permutation[p][3] = 3; permutation[p][4] = 5; permutation[p][5] = 4; p++;
 			permutation[p][0] = 2; permutation[p][1] = 1; permutation[p][2] = 0; permutation[p][3] = 5; permutation[p][4] = 4; permutation[p][5] = 3; p++;
 			permutation[p][0] = 1; permutation[p][1] = 0; permutation[p][2] = 2; permutation[p][3] = 4; permutation[p][4] = 3; permutation[p][5] = 5; p++;
-				//
+			//
 			permutation[p][0] = 3; permutation[p][1] = 4; permutation[p][2] = 5; permutation[p][3] = 0; permutation[p][4] = 1; permutation[p][5] = 2; p++;
 			permutation[p][0] = 4; permutation[p][1] = 5; permutation[p][2] = 3; permutation[p][3] = 1; permutation[p][4] = 2; permutation[p][5] = 0; p++;
 			permutation[p][0] = 5; permutation[p][1] = 3; permutation[p][2] = 4; permutation[p][3] = 2; permutation[p][4] = 0; permutation[p][5] = 1; p++;
@@ -1437,7 +1489,7 @@ void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZV
 			permutation[p][0] = 3; permutation[p][1] = 2; permutation[p][2] = 1; permutation[p][3] = 0; permutation[p][4] = 7; permutation[p][5] = 6; permutation[p][6] = 5; permutation[p][7] = 4; p++;
 			permutation[p][0] = 2; permutation[p][1] = 1; permutation[p][2] = 0; permutation[p][3] = 3; permutation[p][4] = 6; permutation[p][5] = 5; permutation[p][6] = 4; permutation[p][7] = 7; p++;
 			permutation[p][0] = 1; permutation[p][1] = 0; permutation[p][2] = 3; permutation[p][3] = 2; permutation[p][4] = 5; permutation[p][5] = 4; permutation[p][6] = 7; permutation[p][7] = 6; p++;
-				//
+			//
 			permutation[p][0] = 0; permutation[p][1] = 1; permutation[p][2] = 5; permutation[p][3] = 4; permutation[p][4] = 3; permutation[p][5] = 2; permutation[p][6] = 6; permutation[p][7] = 7; p++;
 			permutation[p][0] = 1; permutation[p][1] = 5; permutation[p][2] = 4; permutation[p][3] = 0; permutation[p][4] = 2; permutation[p][5] = 6; permutation[p][6] = 7; permutation[p][7] = 3; p++;
 			permutation[p][0] = 5; permutation[p][1] = 4; permutation[p][2] = 0; permutation[p][3] = 1; permutation[p][4] = 6; permutation[p][5] = 7; permutation[p][6] = 3; permutation[p][7] = 2; p++;
@@ -1447,7 +1499,7 @@ void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZV
 			permutation[p][0] = 4; permutation[p][1] = 5; permutation[p][2] = 1; permutation[p][3] = 0; permutation[p][4] = 7; permutation[p][5] = 6; permutation[p][6] = 2; permutation[p][7] = 3; p++;
 			permutation[p][0] = 5; permutation[p][1] = 1; permutation[p][2] = 0; permutation[p][3] = 4; permutation[p][4] = 6; permutation[p][5] = 2; permutation[p][6] = 3; permutation[p][7] = 7; p++;
 			permutation[p][0] = 1; permutation[p][1] = 0; permutation[p][2] = 4; permutation[p][3] = 5; permutation[p][4] = 2; permutation[p][5] = 3; permutation[p][6] = 7; permutation[p][7] = 6; p++;
-				//
+			//
 			permutation[p][0] = 1; permutation[p][1] = 2; permutation[p][2] = 6; permutation[p][3] = 5; permutation[p][4] = 0; permutation[p][5] = 3; permutation[p][6] = 7; permutation[p][7] = 4; p++;
 			permutation[p][0] = 2; permutation[p][1] = 6; permutation[p][2] = 5; permutation[p][3] = 1; permutation[p][4] = 3; permutation[p][5] = 7; permutation[p][6] = 4; permutation[p][7] = 0; p++;
 			permutation[p][0] = 6; permutation[p][1] = 5; permutation[p][2] = 1; permutation[p][3] = 2; permutation[p][4] = 7; permutation[p][5] = 4; permutation[p][6] = 0; permutation[p][7] = 3; p++;
@@ -1457,7 +1509,7 @@ void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZV
 			permutation[p][0] = 5; permutation[p][1] = 6; permutation[p][2] = 2; permutation[p][3] = 1; permutation[p][4] = 4; permutation[p][5] = 7; permutation[p][6] = 3; permutation[p][7] = 0; p++;
 			permutation[p][0] = 6; permutation[p][1] = 2; permutation[p][2] = 1; permutation[p][3] = 5; permutation[p][4] = 7; permutation[p][5] = 3; permutation[p][6] = 0; permutation[p][7] = 4; p++;
 			permutation[p][0] = 2; permutation[p][1] = 1; permutation[p][2] = 5; permutation[p][3] = 6; permutation[p][4] = 3; permutation[p][5] = 0; permutation[p][6] = 4; permutation[p][7] = 7; p++;
-				//
+			//
 			permutation[p][0] = 2; permutation[p][1] = 3; permutation[p][2] = 7; permutation[p][3] = 6; permutation[p][4] = 1; permutation[p][5] = 0; permutation[p][6] = 4; permutation[p][7] = 5; p++;
 			permutation[p][0] = 3; permutation[p][1] = 7; permutation[p][2] = 6; permutation[p][3] = 2; permutation[p][4] = 0; permutation[p][5] = 4; permutation[p][6] = 5; permutation[p][7] = 1; p++;
 			permutation[p][0] = 7; permutation[p][1] = 6; permutation[p][2] = 2; permutation[p][3] = 3; permutation[p][4] = 4; permutation[p][5] = 5; permutation[p][6] = 1; permutation[p][7] = 0; p++;
@@ -1467,7 +1519,7 @@ void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZV
 			permutation[p][0] = 6; permutation[p][1] = 7; permutation[p][2] = 3; permutation[p][3] = 2; permutation[p][4] = 5; permutation[p][5] = 4; permutation[p][6] = 0; permutation[p][7] = 1; p++;
 			permutation[p][0] = 7; permutation[p][1] = 3; permutation[p][2] = 2; permutation[p][3] = 6; permutation[p][4] = 4; permutation[p][5] = 0; permutation[p][6] = 1; permutation[p][7] = 5; p++;
 			permutation[p][0] = 3; permutation[p][1] = 2; permutation[p][2] = 6; permutation[p][3] = 7; permutation[p][4] = 0; permutation[p][5] = 1; permutation[p][6] = 5; permutation[p][7] = 4; p++;			
-				//
+			//
 			permutation[p][0] = 3; permutation[p][1] = 0; permutation[p][2] = 4; permutation[p][3] = 7; permutation[p][4] = 1; permutation[p][5] = 5; permutation[p][6] = 6; permutation[p][7] = 4; p++;
 			permutation[p][0] = 0; permutation[p][1] = 4; permutation[p][2] = 7; permutation[p][3] = 3; permutation[p][4] = 5; permutation[p][5] = 6; permutation[p][6] = 4; permutation[p][7] = 1; p++;
 			permutation[p][0] = 4; permutation[p][1] = 7; permutation[p][2] = 3; permutation[p][3] = 0; permutation[p][4] = 6; permutation[p][5] = 4; permutation[p][6] = 1; permutation[p][7] = 5; p++;
@@ -1477,7 +1529,7 @@ void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZV
 			permutation[p][0] = 7; permutation[p][1] = 4; permutation[p][2] = 0; permutation[p][3] = 3; permutation[p][4] = 6; permutation[p][5] = 5; permutation[p][6] = 1; permutation[p][7] = 2; p++;
 			permutation[p][0] = 4; permutation[p][1] = 0; permutation[p][2] = 3; permutation[p][3] = 7; permutation[p][4] = 5; permutation[p][5] = 1; permutation[p][6] = 2; permutation[p][7] = 6; p++;
 			permutation[p][0] = 0; permutation[p][1] = 3; permutation[p][2] = 7; permutation[p][3] = 4; permutation[p][4] = 1; permutation[p][5] = 2; permutation[p][6] = 6; permutation[p][7] = 5; p++;
-				//
+			//
 			permutation[p][0] = 4; permutation[p][1] = 5; permutation[p][2] = 6; permutation[p][3] = 7; permutation[p][4] = 0; permutation[p][5] = 1; permutation[p][6] = 2; permutation[p][7] = 3; p++;
 			permutation[p][0] = 5; permutation[p][1] = 6; permutation[p][2] = 7; permutation[p][3] = 4; permutation[p][4] = 1; permutation[p][5] = 2; permutation[p][6] = 3; permutation[p][7] = 0; p++;
 			permutation[p][0] = 6; permutation[p][1] = 7; permutation[p][2] = 4; permutation[p][3] = 5; permutation[p][4] = 2; permutation[p][5] = 3; permutation[p][6] = 0; permutation[p][7] = 1; p++;

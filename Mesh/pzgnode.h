@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.12 2009-11-02 23:43:05 phil Exp $
+//$Id: pzgnode.h,v 1.13 2010-09-03 12:41:26 caju Exp $
 
 /**File : pzgnode.h
 
@@ -70,7 +70,10 @@ virtual  ~TPZGeoNode() { }
   }
 
   /**Return the identity of the current node*/
-  int Id() const { return fId; }
+  int Id() const
+ {
+	return fId; 
+ }
 
   void SetNodeId(int id) { fId = id;}
 

@@ -548,20 +548,15 @@ void TPZRefPatternDataBase::InsertRefPattern(TPZAutoPointer<TPZRefPattern> &refp
 		refpat->SetId(id);
 	}
 	
-	#ifdef DEBUG
 	else//the refpattern already have an Id initialized
 	{
 		std::map< int , TPZAutoPointer<TPZRefPattern> >::iterator itid = fIdRefPatterns.find(refpat->Id());
 		if(itid != fIdRefPatterns.end())//the Id is already in use by another refpattern
 		{
-			std::cout << "\n************************************************************************************************\n";
-			std::cout << "You are inserting an refPattern with initialized Id (id = " << refpat->Id() << "), but its Id is already in use by another refpattern!" << std::endl;
-			std::cout << "Older refpattern was subscribed in ***fIdRefPatterns map atribute***! Watch if this situation will not bug you!" << std::endl;
-			std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
-			std::cout << "************************************************************************************************\n\n";
+			int id = ReturnUniqueId();
+			refpat->SetId(id);
 		}
 	}
-	#endif
 	
 	fElTypeRefPatterns[eltype].push_back(refpat);
 	fIdRefPatterns[refpat->Id()] = refpat;
