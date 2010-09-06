@@ -108,6 +108,7 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Topology/tpzquadrilateral.o ../Topology/tpztetrahedron.o ../Topology/tpztriangle.o \
 	../Util/TPZTimer.o ../Util/pzfunction.o ../Util/pzlog.o ../Util/pzmap.o ../Util/pzstring.o \
 	../Util/tpzautopointer.o ../Util/tpzpermutation.o \
+	../Util/TPZSemaphore.o \
 	../SubStruct/pzdohrstructmatrix.o \
 	../SubStruct/tpzdohrassemblelist.o \
 	../SubStruct/tpzdohrassembly.o \
@@ -118,6 +119,10 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../SubStruct/tpzgensubstruct.o \
 	../SubStruct/tpzmatredstructmatrix.o \
 	../SubStruct/tpzpairstructmatrix.o \
+	../SubStruct/PrintTime.o \
+	../SubStruct/TPZDataBase.o \
+	../SubStruct/TPZfTime.o \
+	../SubStruct/TPZTimeTemp.o \
 	../SpecialMaps/convtest.o \
 	../SpecialMaps/tpzcurvedtriangle.o \
 	../SpecialMaps/tpzquadraticquad.o \

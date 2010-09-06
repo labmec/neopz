@@ -22,7 +22,7 @@ CLEANFILES     = @PZ_CLEANFILES@
 
 #longhin Bench
 
-SUBDIRS = CarmargoCorrea CursoPZ DiffusionTest Heman LuisGuilherme \
+SUBDIRS = CarmargoCorrea CursoPZ DiffusionTest \
 	SingularShapeFunction angletest checkconv descontinuo materialhyperelastico matrix multplaca \
 	termica teste testeisotropia testgeom testmat testshape viga3d visualmatrix SubStruct
 

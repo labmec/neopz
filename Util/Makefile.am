@@ -21,7 +21,7 @@ noinst_LIBRARIES = libpzutil.a
 
 libpzutil_a_SOURCES = TPZTimer.cpp pzfunction.cpp pzline.cpp pzlog.cpp \
 	pzmap.cpp pznumeric.cpp pzplane.cpp pzpolynomial.cpp pzstring.cpp \
-	tpzautopointer.cpp tpzpermutation.cpp
+	tpzautopointer.cpp tpzpermutation.cpp TPZSemaphore.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------
 noinst_HEADERS = pzfunction.h
