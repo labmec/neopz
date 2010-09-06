@@ -100,14 +100,15 @@ int main(int argc, char *argv[])
 		
 		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
 
-		
-		TPZDohrStructMatrix dohrstruct(cmesh);
+		int numthread_assemble = 8;
+		int numthread_decompose = 8;
+		TPZDohrStructMatrix dohrstruct(cmesh,numthread_assemble,numthread_decompose);
 		
 		dohrstruct.IdentifyExternalConnectIndexes();
 		
 		std::cout << "Substructuring the mesh\n";
 //		TPZfTime timetosub; // init of timer
-		dohrstruct.SubStructure(200);
+		dohrstruct.SubStructure(8);
 //		tempo.ft0sub = timetosub.ReturnTimeDouble();  // end of timer
 //		std::cout << tempo.ft0sub << std::endl;
 		
