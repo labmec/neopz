@@ -61,7 +61,8 @@ int main1(){
   TPZAutoPointer<TPZFunction> extShapes = new TExtFunction();
   cel->SetExternalShapeFunction(extShapes);  
   TPZVec<int> ord(3,10);
-  cel->GetIntegrationRule().SetOrder(ord);
+	TPZAutoPointer<TPZIntPoints> points = cel->GetIntegrationRule().Clone();
+  points->SetOrder(ord);
   const int npoints = cel->GetIntegrationRule().NPoints();
   TPZVec<REAL> qsi(2);
   REAL w;
@@ -71,7 +72,7 @@ int main1(){
   saidaX << "{";
   saidaY << "{";
   for(int i = 0; i < npoints; i++){
-    cel->GetIntegrationRule().Point(i, qsi, w);
+    points->Point(i, qsi, w);
     cel->Shape(qsi, phi, dphi);
     TPZVec<REAL> X(3);
     cel->Reference()->X(qsi,X);
@@ -346,7 +347,11 @@ int main(){
     step.SetDirect(ELU);//ECholesky); 
 #else 
 //       TPZCopySolve precond( matrix.Create() );step.ShareMatrix( precond );  
-     TPZFMatrix fakeRhs(cmesh->NEquations(),1);/*TPZFrontStructMatrix<TPZFrontNonSym>*/ TPZBandStructMatrix PrecondMatrix(cmesh); TPZStepSolver precond(PrecondMatrix.CreateAssemble(fakeRhs));precond.SetDirect(ELU);
+	TPZAutoPointer<TPZGuiInterface> gui;
+	TPZFMatrix fakeRhs(cmesh->NEquations(),1);
+	TPZBandStructMatrix PrecondMatrix(cmesh); 
+	TPZStepSolver precond(PrecondMatrix.CreateAssemble(fakeRhs,gui));
+	precond.SetDirect(ELU);
       
       step.SetGMRES( 300000, 160, precond, 1.e-14, 0 );
 #endif  

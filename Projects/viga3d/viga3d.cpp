@@ -120,7 +120,7 @@ int main(int argc, char* argv[]){
 	angle = pi/4.;
 	TPZNonLinearAnalysis an(&comp,output);
 	int numeq = comp.NEquations();
-        TPZParSkylineStructMatrix StrSkyLine(&comp);
+        TPZParSkylineStructMatrix StrSkyLine(&comp,2);
         an.SetStructuralMatrix(StrSkyLine);
         an.Solution().Zero();
         TPZStepSolver step;
