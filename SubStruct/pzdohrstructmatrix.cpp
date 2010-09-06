@@ -24,6 +24,7 @@
 #include "pzintel.h"
 
 #include "TPZBoostGraph.h"
+#include "pzsloan.h"
 #include "pzvisualmatrix.h"
 #include "TPZRefPatternTools.h"
 
@@ -120,10 +121,17 @@ TPZMatrix * TPZDohrStructMatrix::Create()
 		int nindep = submesh->NIndependentConnects();
 		submesh->ComputeElGraph(elgraph,elgraphindex);
 		int nel = elgraphindex.NElements()-1;
+#ifdef USING_BOOST
 		TPZBoostGraph boost(nel,nindep);
 		boost.fGType = TPZBoostGraph::KMCExpensive;
 		boost.SetElementGraph(elgraph, elgraphindex);
 		boost.Resequence(perm, iperm);
+#else
+		TPZSloan sloan(nel,nindep);
+		sloan.SetElementGraph(elgraph, elgraphindex);
+		sloan.Resequence(perm, iperm);
+#endif
+		
 		submesh->Permute(perm);
 #ifdef DEBUG 
 		std::stringstream filename;
