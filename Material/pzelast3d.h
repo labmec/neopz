@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzelast3d.h,v 1.12 2009-09-01 19:44:47 phil Exp $
+//$Id: pzelast3d.h,v 1.13 2010-09-06 14:50:47 phil Exp $
 
 #ifndef PZELAST3D
 #define PZELAST3D
@@ -10,6 +10,8 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include <vector>
+
+//#define CODE1
 
 /** This class implements a 3D isotropic elasticity material.
  *  @since Aug 31, 2005.
@@ -162,7 +164,12 @@ REAL fE;
  */
 REAL fPoisson;
 
-/** External forces.
+#ifndef CODE1
+	REAL C1; //= E / (2.+ 2.*nu);
+	REAL C2; // = E * nu / (-1. + nu + 2.*nu*nu);
+	REAL C3; // = E * (nu - 1.) / (-1. + nu +2. * nu * nu);
+#endif
+	/** External forces.
  */
 TPZManVector<REAL,3> fForce;
 

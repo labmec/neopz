@@ -1,4 +1,4 @@
-//$Id: pzelast3d.cpp,v 1.15 2009-06-16 03:06:39 erick Exp $
+//$Id: pzelast3d.cpp,v 1.16 2010-09-06 14:50:47 phil Exp $
  
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -26,6 +26,12 @@ TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> 
   this->fPostProcessDirection.Fill(0.);
   this->fPostProcessDirection[0] = 1.;
   this->SetYieldingStress(1.);
+#ifndef CODE1
+	C1 = E / (2.+ 2.*poisson);
+	C2 = E * poisson / (-1. + poisson + 2.*poisson*poisson);
+	C3 = E * (poisson - 1.) / (-1. + poisson +2. * poisson * poisson);
+#endif
+	
 }//method
 
 TPZElasticity3D::TPZElasticity3D() : TPZMaterial(0),fE(0.), fPoisson(0.),fForce(3,0.),fPostProcessDirection(3,0.), 
@@ -80,6 +86,8 @@ TPZManVector<REAL,3> &x = data.x;
   //this matrix will store {{dvdx*dudx, dvdx*dudy, dvdx*dudz},
                           //{dvdy*dudx, dvdy*dudy, dvdy*dudz},
                           //{dvdz*dudx, dvdz*dudy, dvdz*dudz}}
+	
+#ifdef CODE1
   TPZFNMatrix<9> Deriv(3,3);
   const REAL E  = this->fE;
   const REAL nu = this->fPoisson;
@@ -135,7 +143,53 @@ TPZManVector<REAL,3> &x = data.x;
       
     }//jn
   }//in
-  
+#else
+	REAL Deriv[3][3];
+	
+	int in;
+	for(in = 0; in < phr; in++) {
+		int kd;
+		for(kd = 0; kd < 3; kd++){
+			ef(in*3+kd, 0) += weight* fForce[kd] * phi(in,0);
+		}//kd
+		REAL val;
+		for( int jn = 0; jn < phr; jn++ ) {
+			
+			//Compute Deriv matrix
+			for(int ud = 0; ud < 3; ud++){
+				for(int vd = 0; vd < 3; vd++){
+					Deriv[vd][ud] = dphi(vd,in)*dphi(ud,jn);
+				}//ud
+			}//vd
+			
+			//First equation Dot[Sigma1, gradV1]
+			REAL *ptr1 = &ek(in*3,jn*3);
+			/*ek(in*3+0,jn*3+0)*/ *ptr1++ += weight * (( Deriv[1][1] + Deriv[2][2] ) * C1 + Deriv[0][0] * C3);
+			
+			//Second equation Dot[Sigma2, gradV2]
+			/*ek(in*3+1,jn*3+0)*/ *ptr1++ += weight * (Deriv[0][1] * C1 - Deriv[1][0] * C2);
+			
+			//Third equation Dot[Sigma3, gradV3]
+			/*ek(in*3+2,jn*3+0)*/ *ptr1 += weight * (Deriv[0][2] * C1 - Deriv[2][0] * C2);
+
+			REAL *ptr2 = &ek(in*3+0, jn*3+1);
+			/*ek(in*3+0,jn*3+1)*/ *ptr2++ += weight * (Deriv[1][0] * C1 - Deriv[0][1] * C2);
+			
+			/*ek(in*3+1,jn*3+1)*/ *ptr2++ += weight * (( Deriv[0][0] + Deriv[2][2] ) * C1 + Deriv[1][1] * C3);
+			
+			/*ek(in*3+2,jn*3+1)*/ *ptr2 += weight * (Deriv[1][2] * C1 - Deriv[2][1] * C2);
+			
+			REAL *ptr3 = &ek(in*3+0, jn*3+2);
+			/*ek(in*3+0,jn*3+2)*/ *ptr3++ += weight * (Deriv[2][0] * C1 - Deriv[0][2] * C2);
+			
+			/*ek(in*3+1,jn*3+2)*/ *ptr3++ += weight * (Deriv[2][1] * C1 - Deriv[1][2] * C2);
+						
+			/*ek(in*3+2,jn*3+2)*/ *ptr3 += weight * (( Deriv[0][0] + Deriv[1][1] ) * C1 + Deriv[2][2] * C3);
+			
+		}//jn
+	}//in
+	
+#endif
 #ifdef DEBUG   
    if ( !ek.VerifySymmetry( 1.e-8 ) ) PZError << __PRETTY_FUNCTION__ << "\nERROR - NON SYMMETRIC MATRIX" << std::endl;
 #endif
