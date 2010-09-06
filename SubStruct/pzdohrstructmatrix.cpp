@@ -27,6 +27,8 @@
 #include "pzvisualmatrix.h"
 #include "TPZRefPatternTools.h"
 
+//#include "TPZfTime.h"
+
 #include <sstream>
 #include "pzlog.h"
 
@@ -34,7 +36,6 @@
 #include "TPZfTime.h"
 #include "TPZTimeTemp.h"
 #include "TPZVTKGeoMesh.h"
-
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("structmatrix.dohrstructmatrix"));
@@ -78,7 +79,6 @@ TPZMatrix * TPZDohrStructMatrix::Create()
 {
 
 	TPZfTime timeforcopute; // init of timer for compute
-
 	fMesh->ComputeNodElCon();
 	TPZAutoPointer<TPZDohrAssembly> assembly = new TPZDohrAssembly;
 	fDohrAssembly = assembly;
@@ -92,10 +92,16 @@ TPZMatrix * TPZDohrStructMatrix::Create()
 		int nindep = fMesh->NIndependentConnects();
 		fMesh->ComputeElGraph(elgraph,elgraphindex);
 		int nel = elgraphindex.NElements()-1;
+#ifdef USING_BOOST
 		TPZBoostGraph boost(nel,nindep);
 		boost.fGType = TPZBoostGraph::KMCExpensive;
 		boost.SetElementGraph(elgraph, elgraphindex);
 		boost.Resequence(perm, iperm);
+#else
+		TPZSloan sloan(nel,nindep);
+		sloan.SetElementGraph(elgraph, elgraphindex);
+		sloan.Resequence(perm, iperm);
+#endif
 		fMesh->Permute(perm);
 	}
 	int nsub = NSubMesh(fMesh);
@@ -272,7 +278,6 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 			return 0;
 		}
 	}
-
 	
 	std::cout << "ThreadDohrmanAssembly\n";
 	// First pass : assembling the matrices
@@ -323,7 +328,6 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	{
 		pthread_join(allthreads_decompose[itr],NULL);
 	}
-	
 
 	tempo.ft5dohrassembly = timerfordecompose.ReturnTimeDouble(); // end of timer
 	std::cout << "Time to ThreadDohrmanAssembly" << tempo.ft5dohrassembly << std::endl;
@@ -420,7 +424,6 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 //	if (next) {
 	if (0) {
 		count = expelementgraph.NElements();
-
 		int iext;
 		for (iext=0; iext<next; iext++) {
 			int extindex = fExternalConnectIndexes[iext];
@@ -435,12 +438,10 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 	nel = expelementgraphindex.NElements()-1;
 //	nel = elementgraphindex.NElements()-1;
 	TPZRenumbering renum(nel,nindep);
-
 	renum.SetElementGraph(expelementgraph, expelementgraphindex);
 //	renum.SetElementGraph(elementgraph, elementgraphindex);
 	std::set<int> othercornereqs;
 	renum.CornerEqs(3,nelprev,othercornereqs);
-
 #ifdef LOG4CXX
 	{
 		std::stringstream str;
@@ -769,7 +770,6 @@ void TPZDohrStructMatrix::IdentifySubCornerEqs(std::map<int,int> &globaltolocal,
 void TPZDohrStructMatrix::SubStructure(int nsub )
 {
 
-
 	int nel = fMesh->NElements();
 	int meshdim = fMesh->Dimension();
 	int nnodes = fMesh->NIndependentConnects();
@@ -780,7 +780,6 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 	metis.SetElementGraph(elgraph, elgraphindex);
 	TPZVec<int> domain_index(nel,-1);
 	metis.Subdivide(nsub, domain_index);
-
 #ifdef DEBUG 
 	{
 		TPZGeoMesh *gmesh = fMesh->Reference();
@@ -835,7 +834,6 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 		int index;
 		std::cout << '^'; std::cout.flush();
 		submeshes[isub] = new TPZSubCompMesh(fMesh,index);
-
 		if (index < domain_index.NElements()) {
 			domain_index[index] = -1;
 		}
@@ -859,8 +857,6 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 
 	fMesh->ComputeNodElCon();
 	fMesh->CleanUpUnconnectedNodes();
-
-
 }
 
 
