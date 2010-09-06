@@ -9,7 +9,7 @@
 #include "pzgnode.h"
 #include "pzgeoelside.h"
 
-#include <pzgeoel.h>
+#include "pzgeoel.h"
 #include "pzcompel.h"
 #include "TPZCompElDisc.h"
 #include "pzmatrix.h"
@@ -83,7 +83,7 @@
 #include "pzgeotriangle.h"
 #include "tpzcurvedtriangle.h"
 #include "tpzquadratictrig.h"
-#include "tpzquadratictetra.h"
+//#include "tpzquadratictetra.h"
 #include "tpzquadraticquad.h"
 #include "tpzarc3d.h"
 #include "tpzgeoelrefpattern.h"
@@ -94,8 +94,8 @@
 #include "pzgeoprism.h"
 #include "pzgeopyramid.h"
 #include "TPZGeoCube.h"
-#include <pzcompel.h>
-#include "tpzellipse.h"
+#include "pzcompel.h"
+//#include "tpzellipse.h"
 #include "tpzblendnaca.h"
 #include "pzelasAXImat.h"
 #include "pzmaterialdata.h"
@@ -364,7 +364,7 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
                          double X5, double h1, double h2, double Py, double es, MatIds &mat)
 {
     TPZGeoMesh * Mesh = new TPZGeoMesh;
-    Mesh->InitializeRefPatterns();
+    //Mesh->InitializeRefPatterns();
     int Qnodes = 62;
     TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
     for(int i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3);
@@ -1095,7 +1095,7 @@ TPZGeoMesh * CxEspiral2D(double Bb, double Hr, double Bt, double Hl, double Cx, 
 TPZCompMesh * SquareMesh()
 {
   TPZGeoMesh * gmesh = new TPZGeoMesh;
-  gmesh->InitializeRefPatterns();
+  //gmesh->InitializeRefPatterns();
 
   int Qnodes = 4;
   TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
@@ -1159,9 +1159,9 @@ TPZCompMesh * SquareMesh()
   REAL fx = 0., fy = 0.;
   TPZAutoPointer<TPZMaterial> mat = new TPZElasticityAxiMaterial(QuadMat, 2500., 0.0, fx, fy);
 
-  vector<REAL> Orig(3);  Orig[0] = 2.5; Orig[1] = 0.; Orig[2] = 0.;
-  vector<REAL> AxisZ(3); AxisZ[0] = 0.; AxisZ[1] = 1.; AxisZ[2] = 0.;
-  vector<REAL> AxisR(3); AxisR[0] = 1.; AxisR[1] = 0.; AxisR[2] = 0.;
+  TPZManVector<REAL> Orig(3);  Orig[0] = 2.5; Orig[1] = 0.; Orig[2] = 0.;
+  TPZManVector<REAL> AxisZ(3); AxisZ[0] = 0.; AxisZ[1] = 1.; AxisZ[2] = 0.;
+  TPZManVector<REAL> AxisR(3); AxisR[0] = 1.; AxisR[1] = 0.; AxisR[2] = 0.;
 
   (dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->()))->SetOrigin(Orig, AxisZ, AxisR);
 
@@ -1236,9 +1236,9 @@ TPZCompMesh * SpiralMesh(MatIds &MatId)
 
   TPZAutoPointer<TPZMaterial> mat = new TPZElasticityAxiMaterial(MatIds::ElMat, E, nu, fx, fy);
   TPZElasticityAxiMaterial *aximat = dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->());
-  vector<REAL> Orig(3);  Orig[0] = 15.;  Orig[1] = 0.;  Orig[2] = 0.;
-  vector<REAL> AxisZ(3); AxisZ[0] = 0.; AxisZ[1] = 1.; AxisZ[2] = 0.;
-  vector<REAL> AxisR(3); AxisR[0] = -1.; AxisR[1] = 0.; AxisR[2] = 0.;
+  TPZManVector<REAL> Orig(3);  Orig[0] = 15.;  Orig[1] = 0.;  Orig[2] = 0.;
+  TPZManVector<REAL> AxisZ(3); AxisZ[0] = 0.; AxisZ[1] = 1.; AxisZ[2] = 0.;
+  TPZManVector<REAL> AxisR(3); AxisR[0] = -1.; AxisR[1] = 0.; AxisR[2] = 0.;
   aximat->SetOrigin(Orig, AxisZ, AxisR);
   REAL EPre = 0.116 * 210.e3;
   REAL nuPre = 0.2;
@@ -1327,9 +1327,9 @@ TPZCompMesh * SpiralMesh(MatIds &MatId)
 void ApplyDisplacements(TPZCompMesh & cmesh)
 {
   TPZElasticityAxiMaterial * AxiMat = (dynamic_cast<TPZElasticityAxiMaterial*>(cmesh.MaterialVec()[1].operator->()));
-  std::vector<REAL> AxisR = AxiMat->GetAxisR();
-  std::vector<REAL> AxisZ = AxiMat->GetAxisZ();
-  std::vector<REAL> Orig = AxiMat->GetOrigin();
+  TPZManVector<REAL> AxisR = AxiMat->GetAxisR();
+  TPZManVector<REAL> AxisZ = AxiMat->GetAxisZ();
+  TPZManVector<REAL> Orig = AxiMat->GetOrigin();
 
   double alpha = 0.1;
 
