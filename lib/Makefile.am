@@ -122,6 +122,7 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../SubStruct/tpzpairstructmatrix.o \
 	../SubStruct/PrintTime.o \
 	../SubStruct/TPZDataBase.o \
+	../SubStruct/TPZfTime.o \
 	../SubStruct/TPZTimeTemp.o \
 	../SpecialMaps/convtest.o \
 	../SpecialMaps/tpzcurvedtriangle.o \
