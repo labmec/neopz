@@ -18,7 +18,6 @@ matrixinc_HEADERS= $(top_srcdir)/SubStruct/*.h
 
 noinst_LIBRARIES = libpzsubstruct.a
 
-libpzsubstruct_a_SOURCES = pzdohrstructmatrix.cpp tpzdohrsubstruct.cpp tpzdohrsubstructCondense.cpp tpzdohrassemblelist.cpp tpzgensubstruct.cpp tpzdohrassembly.cpp tpzmatredstructmatrix.cpp tpzdohrmatrix.cpp tpzpairstructmatrix.cpp tpzdohrprecond.cpp TPZTimeTemp.cpp TPZfTime.cpp PrintTime.cpp TPZDataBase.cpp
-
+libpzsubstruct_a_SOURCES = pzdohrstructmatrix.cpp tpzdohrsubstruct.cpp tpzdohrsubstructCondense.cpp tpzdohrassemblelist.cpp tpzgensubstruct.cpp tpzdohrassembly.cpp tpzmatredstructmatrix.cpp tpzdohrmatrix.cpp tpzpairstructmatrix.cpp tpzdohrprecond.cpp TPZTimeTemp.cpp PrintTime.cpp TPZDataBase.cpp
 
 ## --| NeoPZ |------------------------------------------------------------------

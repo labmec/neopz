@@ -18,7 +18,8 @@ libpz_a_SOURCES =
 libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o \
 	../Analysis/pzanalysis.o ../Analysis/pzanalysiserror.o ../Analysis/pzeuleranalysis.o \
 	../Analysis/pzmganalysis.o ../Analysis/pznonlinanalysis.o ../Analysis/pzsmanal.o \
-	../Analysis/pzsmfrontalanal.o ../Analysis/pztransientanalysis.o ../Analysis/pzblackoilanalysis.o ../Common/pzreal.o ../Common/TPZGuiInterface.o \
+	../Analysis/pzsmfrontalanal.o ../Analysis/pztransientanalysis.o \
+	../Common/pzreal.o ../Common/TPZGuiInterface.o \
 	../Cosys/pzcartsys.o ../Cosys/pzcosys.o ../Cosys/pzcylinsys.o ../Cosys/pzesfersys.o \
 	../External/TPZBoostGraph.o ../External/pzmetis.o ../External/pzrenumbering.o ../External/pzsloan.o \
 	../External/sloan/diamtr.o ../External/sloan/gegra.o ../External/sloan/iorele.o \
@@ -121,7 +122,6 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../SubStruct/tpzpairstructmatrix.o \
 	../SubStruct/PrintTime.o \
 	../SubStruct/TPZDataBase.o \
-	../SubStruct/TPZfTime.o \
 	../SubStruct/TPZTimeTemp.o \
 	../SpecialMaps/convtest.o \
 	../SpecialMaps/tpzcurvedtriangle.o \
