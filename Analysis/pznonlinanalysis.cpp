@@ -29,7 +29,7 @@ TPZNonLinearAnalysis::TPZNonLinearAnalysis() : TPZAnalysis() {
 	fSolution.Zero();
 }
 
-TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,ostream &out) : TPZAnalysis(mesh,out) {
+TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,out) {
 	Mesh()->Solution().Zero();
 	fSolution.Zero();
 }
@@ -148,7 +148,7 @@ void TPZNonLinearAnalysis::LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMa
 
 }///void
 
-void TPZNonLinearAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv) {
+void TPZNonLinearAnalysis::IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv) {
 
    int iter = 0;
    REAL error = 1.e10;
