@@ -116,6 +116,21 @@ public:
    * @param F vector containing data to stored in current object
    */
   void SetF(const TPZFMatrix & F);
+	
+	/**
+	 * Indicate whether F0 needs to be reduced or not
+	 */
+	void SetF0IsComputed(bool value)
+	{
+		fF0IsComputed = value;
+	}
+	/*
+	 * Indicate that the value of F1 has been reduced
+	 */
+	void SetF1IsReduced(bool value)
+	{
+		fF1IsReduced = value;
+	}
 
   /**
    * Computes the reduced version of the right hand side
