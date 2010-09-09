@@ -919,9 +919,16 @@ TPZSkylMatrix::Subst_Forward( TPZFMatrix *B ) const
   if ( (B->Rows() != Dim()) || fDecomposed != ECholesky)
     TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Forward not decomposed with cholesky");
 
+//	std::cout << "SubstForward this " << (void *) this << " neq " << Dim() << " normb " << Norm(*B) << std::endl;
   int dimension=Dim();
-  for ( int k = 0; k < dimension; k++ )
     for ( int j = 0; j < B->Cols(); j++ )
+	{
+		int k=0;
+		while (k<dimension && (*B)(k,j) == 0) {
+			k++;
+		}
+//		std::cout << "kstart " << k << std::endl;
+		for (; k < dimension; k++ )
       {
 	// Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
 	//
@@ -940,6 +947,7 @@ TPZSkylMatrix::Subst_Forward( TPZFMatrix *B ) const
 	*BPtr-= sum;
 	*BPtr /= fElem[k][0];
       }
+	}
 
   return( 1 );
 }
@@ -957,11 +965,20 @@ TPZSkylMatrix::Subst_Backward( TPZFMatrix *B ) const
   if ( (B->Rows() != Dim()) || fDecomposed != ECholesky)
     TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Backward not decomposed with cholesky");
 
+//	std::cout << "SubstBackward this " << (void *) this << " neq " << Dim() << " ncols " << B->Cols() << std::endl;
+
   int Dimension = Dim();
   if(!Dimension) return 1;	// nothing to do
-  int j,k;
-  for ( k = Dimension-1; k > 0; k-- )
+  int j;
     for ( j = 0; j < B->Cols(); j++ )
+	{
+		int k = Dimension-1;
+		while (k>0 && (*B)(k,j) == 0.) {
+			k--;
+		}
+//		std::cout << "kstart " << k << std::endl;
+		
+		for (;k > 0; k-- )
       {
 	// Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
 	//
@@ -975,8 +992,8 @@ TPZSkylMatrix::Subst_Backward( TPZFMatrix *B ) const
 	// substract the column of the skyline matrix from the vector.
 	while(elem_ki < end_ki) *--BPtr -= (*elem_ki++) * val;
       }
-
-  for( j = 0; j< B->Cols(); j++) (*B)(0,j) /= fElem[k][0];
+	}
+  for( j = 0; j< B->Cols(); j++) (*B)(0,j) /= fElem[0][0];
   return( 1 );
 }
 
