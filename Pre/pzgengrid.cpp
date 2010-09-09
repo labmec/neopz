@@ -74,16 +74,16 @@ void TPZGenGrid::GenerateElements(TPZGeoMesh &grid) {
 	for(i=0; i<num_rectangles; i++) {
 		ElementConnectivity(i,nos);
 		if(fElementType == 0) {
-      grid.CreateGeoElement(EQuadrilateral,nos, 1, index);
+      grid.CreateGeoElement(EQuadrilateral,nos, 1, index,0);
 		} else if(fElementType == 1) {
-      grid.CreateGeoElement(ETriangle,nos, 1, index);  
+      grid.CreateGeoElement(ETriangle,nos, 1, index,0);  
 			nos[1] = nos[2];
 			nos[2] = nos[3];
-			grid.CreateGeoElement(ETriangle,nos, 1, index);  
+			grid.CreateGeoElement(ETriangle,nos, 1, index,0);  
 		} else if(fElementType == 2) {
       std::cout << __PRETTY_FUNCTION__ << " - Quadratic interpolation is not available";
       exit(-1);        
-			grid.CreateGeoElement(EQuadrilateral,nos, 1, index);  
+			grid.CreateGeoElement(EQuadrilateral,nos, 1, index,0);  
     }
 	}
 	grid.BuildConnectivity();
