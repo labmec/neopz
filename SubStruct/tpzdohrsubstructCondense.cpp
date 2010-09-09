@@ -160,6 +160,8 @@ void TPZDohrSubstructCondense::SolveSystemPhi() {
 		rhs(fNEquations+i,i) = 1.;
 	}
 	fMatRedComplete->SetF(rhs);
+	fMatRedComplete->SetF0IsComputed(true);
+	fMatRedComplete->SetF1IsReduced(true);
 	fKCi.Resize(ncoarse,ncoarse);
 	fMatRedComplete->U1(fKCi);
 	fMatRedComplete->UGlobal(fKCi,rhs);
