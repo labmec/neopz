@@ -139,7 +139,7 @@ void TPZRefQuad::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {
     TPZManVector<int>  cornerindexes(TPZShapeQuad::NCornerNodes);
     for(int j=0;j<TPZShapeQuad::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
     int index;
-    TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EQuadrilateral,cornerindexes,matid,index);
+    TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EQuadrilateral,cornerindexes,matid,index,0);
     geo->SetSubElement(i , subel);
   }
   
