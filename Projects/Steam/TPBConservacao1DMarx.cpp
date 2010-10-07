@@ -55,9 +55,9 @@ int main()
 	initial[TPBrCellMarx::ESaturationOil] = Saturation[TPBrCellMarx::EOil];
 	initial[TPBrCellMarx::ESaturationWater] = Saturation[TPBrCellMarx::EWater];
 	initial[TPBrCellMarx::ESaturationSteam] = Saturation[TPBrCellMarx::ESteam];
-	initial[TPBrCellMarx::EEnergyOil] = Energy[TPBrCellMarx::EOil];
-	initial[TPBrCellMarx::EEnergyWater] = Energy[TPBrCellMarx::EWater];
-	initial[TPBrCellMarx::EEnergySteam] = Energy[TPBrCellMarx::ESteam];
+	initial[TPBrCellMarx::EEnthalpyOil] = Energy[TPBrCellMarx::EOil];
+	initial[TPBrCellMarx::EEnthalpyWater] = Energy[TPBrCellMarx::EWater];
+	initial[TPBrCellMarx::EEnthalpySteam] = Energy[TPBrCellMarx::ESteam];
 	initial[TPBrCellMarx::ETotalEnergy] = TotalEnergy;
 	initial[TPBrCellMarx::ETemperature] = Temperature;
 	initial[TPBrCellMarx::EPhaseChange] = 0.;
