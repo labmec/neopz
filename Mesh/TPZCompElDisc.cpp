@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.116 2010-06-17 17:58:22 phil Exp $
+﻿//$Id: TPZCompElDisc.cpp,v 1.117 2010-10-08 12:57:52 fortiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.116 2010-06-17 17:58:22 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.117 2010-10-08 12:57:52 fortiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -43,6 +43,7 @@
 #include <math.h>
 #include <stdio.h>
 #include "pzmaterialdata.h"
+#include "tpzautopointer.h"
 
 #include "pzlog.h"
 
@@ -103,30 +104,31 @@ TPZCompElDisc::~TPZCompElDisc() {
   if (ref){
     if(ref->Reference() == this) ref->ResetReference();
   }//if (ref)
-  if (this->fIntRule){
-    delete this->fIntRule;
-    this->fIntRule = NULL;
-  }
 }
 
 TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fExternalShape(), fCenterPoint(3,0.)
 {
   this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
-  this->fIntRule = NULL;
+  this->fIntRule = this->CreateIntegrationRule();
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
 		TPZInterpolationSpace(mesh,0,index), fExternalShape(), fCenterPoint(3){
   this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
-  this->fIntRule = NULL;
+  this->fIntRule = this->CreateIntegrationRule();
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
     TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(copy.fConstC), fCenterPoint(copy.fCenterPoint) {
   fShapefunctionType = copy.fShapefunctionType;
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
-  this->fIntRule = NULL;
-  if (copy.fIntRule) this->GetIntegrationRule();
+  if (copy.fIntRule){
+    this->fIntRule = copy.GetIntegrationRule().Clone();
+  }
+  else{
+    this->fIntRule = NULL;
+  }
+
   this->SetExternalShapeFunction(copy.fExternalShape);
 }
 
@@ -139,11 +141,14 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
   fShapefunctionType = copy.fShapefunctionType;
   TPZAutoPointer<TPZMaterial> mat = copy.Material();
   gl2lcElMap[copy.fIndex] = this->fIndex;
-  if (this->fIntRule){
-    delete this->fIntRule;
+
+  if (copy.fIntRule){
+    this->fIntRule = copy.GetIntegrationRule().Clone();
+  }
+  else{
     this->fIntRule = NULL;
   }
-  if (copy.fIntRule) this->GetIntegrationRule();
+
   this->SetExternalShapeFunction(copy.fExternalShape);
 }
 
@@ -157,15 +162,18 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &i
   CreateMidSideConnect();
   this->SetDegree( copy.Degree() );
   //as interfaces foram clonadas
-  this->fIntRule = NULL;
-  if (copy.fIntRule) this->GetIntegrationRule();
+  if (copy.fIntRule){
+    this->fIntRule = copy.GetIntegrationRule().Clone();
+  }
+  else{
+    this->fIntRule = NULL;
+  }
   this->SetExternalShapeFunction(copy.fExternalShape);
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
 		TPZInterpolationSpace(mesh,ref,index), fExternalShape(), fCenterPoint(3){
   this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
-  this->fIntRule = NULL;
   ref->SetReference(this);
   CreateMidSideConnect();
   this->SetDegree( fMesh->GetDefaultOrder() );
@@ -175,6 +183,9 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
   fConstC = NormalizeConst();
   //criando os elementos interface
   CreateInterfaces();
+
+  this->fIntRule = this->CreateIntegrationRule();
+
 }
 
 REAL TPZCompElDisc::NormalizeConst()
@@ -902,8 +913,8 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMa
   const int dim = ref->Dimension();
   TPZFMatrix phix(nshape,1),dphix(dim,nshape);
 
-  TPZFMatrix jacobian(dim,dim);
-  TPZFMatrix jacinv(dim,dim);
+  TPZFNMatrix<9> jacobian(dim,dim);
+  TPZFNMatrix<9> jacinv(dim,dim);
   REAL detjac;
   
   TPZManVector<REAL,3> x(3,0.);
@@ -955,12 +966,23 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi,
   normal.Resize(0);
 }//method
 
+TPZAutoPointer<TPZIntPoints> TPZCompElDisc::CreateIntegrationRule() const{
+  TPZGeoEl * gel = this->Reference();
+  if(gel){
+    const int integ = max( 2 * this->Degree()+1, 0);
+    TPZAutoPointer<TPZIntPoints> result = gel->CreateSideIntegrationRule(gel->NSides()-1,integ);
+    return result;
+  }
+  else{
+    return NULL;
+  }
+}///method
+
 const TPZIntPoints &TPZCompElDisc::GetIntegrationRule() const {
-//  if (!this->fIntRule){
-//    int integ = max( 2 * this->Degree()+1, 0);
-//    this->fIntRule = Reference()->CreateSideIntegrationRule(Reference()->NSides()-1,integ);
-//  }
-  return *fIntRule;
+  if(this->fIntRule == NULL){
+    DebugStop();
+  }
+  return *(fIntRule.operator->());
 }
 
 int TPZCompElDisc::MaxOrderExceptExternalShapes(){

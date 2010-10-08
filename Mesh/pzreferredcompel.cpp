@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.21 2009-06-03 14:42:29 fortiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.22 2010-10-08 12:57:52 fortiago Exp $
 
 
 #include "pzreferredcompel.h"
@@ -143,7 +143,9 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec
   TPZFNMatrix<100> OtherDSol,OtherDSol2;
   TPZFNMatrix<9> otheraxes(3,3,0.);
   other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
-  AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,axes);
+  if(OtherSol.NElements()){
+    AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,axes);
+  }
   Append(ThisSol,OtherSol,sol);
   Append(ThisDSol,OtherDSol2,dsol);
 }
@@ -302,55 +304,38 @@ template class TPZReferredCompEl< TPZIntelGen<TPZShapePiram> >;
 template class TPZReferredCompEl< TPZIntelGen<TPZShapeTetra> >;
 
 TPZCompEl * CreateReferredPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(gel->NumInterfaces() == 0)
   	return new TPZReferredCompEl< TPZIntelGen<TPZShapePoint> >(mesh,gel,index);
-  return NULL;
 }
 
 TPZCompEl * CreateReferredLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(gel->NumInterfaces() == 0)
     return new TPZReferredCompEl< TPZIntelGen<TPZShapeLinear> >(mesh,gel,index);
-  return NULL;
 }
 
 TPZCompEl * CreateReferredQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(gel->NumInterfaces() == 0)
     return new TPZReferredCompEl< TPZIntelGen<TPZShapeQuad> >(mesh,gel,index);
-  return NULL;
 }
 
 TPZCompEl * CreateReferredTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(gel->NumInterfaces() == 0)
     return new TPZReferredCompEl< TPZIntelGen<TPZShapeTriang> >(mesh,gel,index);
-  return NULL;
 }
 
 TPZCompEl * CreateReferredCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(gel->NumInterfaces() == 0)
     return new TPZReferredCompEl< TPZIntelGen<TPZShapeCube> >(mesh,gel,index);
-  return NULL;
 }
 
 TPZCompEl * CreateReferredPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(gel->NumInterfaces() == 0)
     return new TPZReferredCompEl< TPZIntelGen<TPZShapePrism> >(mesh,gel,index);
-  return NULL;
 }
 
 TPZCompEl * CreateReferredPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(gel->NumInterfaces() == 0)
     return new TPZReferredCompEl< TPZIntelGen<TPZShapePiram> >(mesh,gel,index);
-  return NULL;
 }
 
 TPZCompEl * CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(gel->NumInterfaces() == 0)
     return new TPZReferredCompEl< TPZIntelGen<TPZShapeTetra> >(mesh,gel,index);
-  return NULL;
 }
 
 TPZCompEl * CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
-  if(gel->NumInterfaces() == 0)
     return new TPZReferredCompEl< TPZCompElDisc >(mesh,gel,index);
-  return NULL;
 }
+

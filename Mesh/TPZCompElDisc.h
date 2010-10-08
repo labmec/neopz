@@ -1,6 +1,6 @@
-// -*- c++ -*-
+﻿// -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.75 2010-07-19 19:33:35 caju Exp $
+//$Id: TPZCompElDisc.h,v 1.76 2010-10-08 12:57:52 fortiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -36,9 +36,13 @@ class TPZCompMesh;
 */
 class TPZCompElDisc : public TPZInterpolationSpace{
 
+private:
+
+TPZAutoPointer<TPZIntPoints> CreateIntegrationRule() const;
+
 protected:
 
-  TPZIntPoints * fIntRule;
+  TPZAutoPointer<TPZIntPoints> fIntRule;
 
   /**
    * Shape function type used by the element
