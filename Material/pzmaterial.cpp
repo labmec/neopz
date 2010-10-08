@@ -27,11 +27,13 @@ REAL TPZMaterial::gBigNumber = 1.e12;
 TPZMaterial::TPZMaterial(){
   this->fId = -666;
   this->fForcingFunction = NULL;
+  this->fLinearContext = true;
 }
 
 TPZMaterial::TPZMaterial(int id) {
    this->SetId(id);
    fForcingFunction = 0;
+  this->fLinearContext = true;
 }
 
 TPZMaterial::~TPZMaterial()
@@ -42,6 +44,11 @@ TPZMaterial::~TPZMaterial()
 TPZMaterial::TPZMaterial(const TPZMaterial &material) {
    fId = material.fId;
    fForcingFunction = material.fForcingFunction;
+   fLinearContext = material.fLinearContext;
+}
+
+void TPZMaterial::SetLinearContext(bool IsLinear){
+  fLinearContext = IsLinear;
 }
 
 void TPZMaterial::FillDataRequirements(TPZMaterialData &data){

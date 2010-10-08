@@ -264,4 +264,7 @@ void TPZBndCond::FillDataRequirements(TPZMaterialData &data){
 		return;
 	}
 	fMaterial->	FillDataRequirements(data);
-} 
+  if(fLinearContext == false){
+    data.fNeedsSol = true;
+  }
+}

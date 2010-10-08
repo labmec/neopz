@@ -41,6 +41,13 @@ private:
    protected:
       void (*fForcingFunction)(TPZVec<REAL> &loc,TPZVec<REAL> &result);
 
+      ///Defines whether the equation context is linear solver or non linear
+      /**
+       * True means linear (default)
+       * @since 08 oct 2010
+       */
+      bool fLinearContext;
+
    public:
 
       static REAL gBigNumber;
@@ -275,9 +282,18 @@ private:
    * Frees an entry in the material with memory internal history storage
    */
   virtual void FreeMemItem(int index){ return; }
-	
-	
+
+  /// Set fLinearContext attribute
+  void SetLinearContext(bool IsLinear);
+
+  /// Returns fLinearContext attribute
+  bool GetLinearContext() const;
+
 };
+
+inline bool TPZMaterial::GetLinearContext() const{
+  return fLinearContext;
+}
 
 extern TPZVec< void(*) ( TPZVec<REAL> &, TPZVec<REAL>& ) > GFORCINGVEC;
 

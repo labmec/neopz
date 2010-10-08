@@ -1,9 +1,10 @@
-﻿//$Id: TPZCompElDisc.cpp,v 1.117 2010-10-08 12:57:52 fortiago Exp $
+﻿
+//$Id: TPZCompElDisc.cpp,v 1.118 2010-10-08 19:18:16 fortiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.117 2010-10-08 12:57:52 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.118 2010-10-08 19:18:16 fortiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -882,7 +883,18 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
     int zero = 0;
     buf.Write(&zero,1);
   }
-}
+  if( this->fIntRule ){
+    int HasIntRule = 1;
+    buf.Write(&HasIntRule,1);
+    TPZManVector<int> pOrder(3);
+    this->fIntRule->GetOrder(pOrder);
+    TPZSaveable::WriteObjects(buf,pOrder);
+  }
+  else{
+    int HasIntRule = 0;
+    buf.Write(&HasIntRule,1);
+  }
+}///method
 
   /**
   Read the element data from a stream
@@ -905,7 +917,27 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
   #warning Como faz?
 #warning    this->fExternalShape->
   }
- }
+
+  int HasIntRule;
+  buf.Read(&HasIntRule,1);
+  if( HasIntRule ){
+    TPZManVector<int> pOrder(3);
+    TPZSaveable::ReadObjects(buf,pOrder);
+
+    TPZGeoEl* gel = this->Reference();
+    if(gel){
+      TPZAutoPointer<TPZIntPoints> result = gel->CreateSideIntegrationRule(gel->NSides()-1, 0);
+      result->SetOrder(pOrder);
+    }
+    else{
+      this->fIntRule = NULL;
+    }
+  }
+  else{
+    this->fIntRule = NULL;
+  }
+
+}///method
 
 void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix & axes){
   TPZGeoEl * ref = this->Reference();

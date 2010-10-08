@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzdiscgal.cpp,v 1.11 2009-11-04 14:04:43 fortiago Exp $
+// $Id: pzdiscgal.cpp,v 1.12 2010-10-08 19:18:15 fortiago Exp $
 
 #include "pzdiscgal.h"
 #include "pzmaterialdata.h"
@@ -18,6 +18,9 @@ std::string TPZDiscontinuousGalerkin::Name() { return "TPZDiscontinuousGalerkin"
 void TPZDiscontinuousGalerkin::FillDataRequirementsInterface(TPZMaterialData &data){
   data.SetAllRequirements(true);
   data.fNeedsSol = false;
+  if(fLinearContext == false){
+    data.fNeedsNeighborSol = true;
+  }
 }
 
 void TPZDiscontinuousGalerkin::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
