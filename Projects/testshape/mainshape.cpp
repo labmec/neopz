@@ -82,9 +82,10 @@ int main() {
 	int max_order, elem_type;
 	TPZInterpolatedElement *el;
 	TPZVec<REAL> normal(3,0.);
+		
 	ofstream saida("malha.txt");
 	elem_type = 0; // se igual a 1 triangulo, se diferente quadrilatero
-
+	
 	// Insere malha geometrica e computacional
 	max_order = 15;
 	TPZAutoPointer<TPZCompMesh> cmesh = CompMesh();
@@ -177,7 +178,17 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 		}
 		saida << "  Side " << side << ": " << "  side connects: " << nsideconnects << "  n side shape: " << nsideshapef << endl;
 		transform = gel->SideToSideTransform(side,(nsides-1));
-		pointIntRule = el->Reference()->CreateSideIntegrationRule(side,order);
+		pointIntRule = el->Reference()->CreateSideIntegrationRule(side,1);
+		int maxorder = pointIntRule->GetMaxOrder();
+		TPZManVector<int,3> sideorder(el->Reference()->SideDimension(side),0);
+		if (maxorder > order) {
+			sideorder.Fill(order);
+		}
+		else {
+			sideorder.Fill(maxorder);
+		}
+		pointIntRule->SetOrder(sideorder);
+
 		npoints = pointIntRule->NPoints();
 		for(point=0;point<npoints;point++) {
 			pointIntRule->Point(point,p_side,peso[point]);
