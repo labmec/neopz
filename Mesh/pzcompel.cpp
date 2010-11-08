@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.48 2010-08-25 03:05:06 phil Exp $
+//$Id: pzcompel.cpp,v 1.49 2010-11-08 15:45:05 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -842,4 +842,24 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
   if(locexpand[i].Element()) expandvec.Push(locexpand[i]);
 }
 
+
+/**
+ * Identify the material object associated with the element
+ */
+TPZAutoPointer<TPZMaterial> TPZCompEl::Material() const
+{
+    TPZAutoPointer<TPZMaterial> result;
+    if(fMesh && Reference()) result = fMesh->FindMaterial(Reference()->MaterialId());
+    return result;
+}
+
+/**
+ * Verify if the material associated with the element is contained in the set
+ */
+bool TPZCompEl::HasMaterial(const std::set<int> &materialids)
+{
+	TPZAutoPointer<TPZMaterial> mat = Material();
+	if(!mat) return false;
+	return materialids.find(mat->Id()) != materialids.end();
+}
 
