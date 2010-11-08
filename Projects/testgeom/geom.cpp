@@ -40,7 +40,7 @@ int main() {
   tline::Diagnostic();
   quad.Diagnostic();
   geoline.Diagnostic(coordd);
-  return 0;
+//  return 0;
 
 	double coordstore[4][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.}};
 	// criar um objeto tipo malha geometrica
@@ -82,7 +82,7 @@ int main() {
 	malha.Print();
 
 	TPZGeoMesh malha2;
-	LerMalha("quad_st_800_1R_16X.gri",malha2);
+	LerMalha("../quad_st_800_1R_16X.gri",malha2);
 	
 	ofstream output("output.dat");
 	malha2.Print(output);
