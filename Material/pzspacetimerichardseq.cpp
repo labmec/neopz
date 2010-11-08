@@ -1,4 +1,4 @@
-//$Id: pzspacetimerichardseq.cpp,v 1.4 2009-02-02 10:25:22 phil Exp $
+//$Id: pzspacetimerichardseq.cpp,v 1.5 2010-11-08 15:48:59 phil Exp $
 
 #include "pzspacetimerichardseq.h"
 #include "pzbndcond.h"
@@ -293,6 +293,7 @@ REAL TPZSpaceTimeRichardsEq::DKDsol(REAL sol){
   return dkdsol*LCoeff/(TCoeff*LCoeff);
 }
 
+/*
 #include <iostream>
 #include "pzcmesh.h"
 #include "pzgmesh.h"
@@ -343,10 +344,10 @@ int TPZSpaceTimeRichardsEq::main(){
   an.LoadSolution(an.Solution());
   an.IterativeProcess(cout, 1e-10, 50, true, true);
   
-/*  int nnodes = cmesh->Reference()->NodeVec().NElements();
-  for(int i = 0; i < nnodes; i++){
-    cmesh->Reference()->NodeVec()[i].SetCoord(0, cmesh->Reference()->NodeVec()[i].Coord(0) * 86400.);
-  }*/
+//  int nnodes = cmesh->Reference()->NodeVec().NElements();
+//  for(int i = 0; i < nnodes; i++){
+//    cmesh->Reference()->NodeVec()[i].SetCoord(0, cmesh->Reference()->NodeVec()[i].Coord(0) * 86400.);
+//  }
   
   TPZVec<std::string> scalnames(1);
   scalnames[0] = "state";
@@ -449,3 +450,4 @@ TPZCompMesh * TPZSpaceTimeRichardsEq::CreateMesh(REAL L, REAL Time, int p, int n
   return cmesh;
 
 }
+*/
