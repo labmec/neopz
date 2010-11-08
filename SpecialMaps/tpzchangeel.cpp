@@ -17,8 +17,6 @@
 #include <sstream>
 using namespace std;
 using namespace pzgeom;
-using namespace pzshape;
-using namespace pzrefine;
 
 TPZChangeEl::TPZChangeEl()
 {
