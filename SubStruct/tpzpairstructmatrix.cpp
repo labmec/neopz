@@ -14,6 +14,7 @@
 #include "pzstrmatrix.h"
 #include "pzsubcmesh.h"
 #include "pzanalysis.h"
+#include "pzmaterial.h"
 
 using namespace std;
 

@@ -1,4 +1,5 @@
 #include "tpzmathtools.h"
+#include "tpzintpoints.h"
 
 TPZMathTools::TPZMathTools()
 {

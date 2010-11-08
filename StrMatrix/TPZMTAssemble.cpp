@@ -1,4 +1,4 @@
-//$Id: TPZMTAssemble.cpp,v 1.2 2009-08-07 19:10:37 phil Exp $
+//$Id: TPZMTAssemble.cpp,v 1.3 2010-11-08 15:47:57 phil Exp $
 
 #include "TPZMTAssemble.h"
 #include "pzstrmatrix.h"
@@ -14,6 +14,8 @@
 
 #include "pzgnode.h"
 #include "TPZTimer.h"
+
+#include "pzmaterial.h"
 
 using namespace std;
 
