@@ -7,7 +7,7 @@
 #include "pzadmchunk.h"
 #include "pzvec.h"
 #include "tpzautopointer.h"
-#include "pzmaterial.h"
+//#include "pzmaterial.h"
 
 #include <iostream>
 class TPZGraphNode;

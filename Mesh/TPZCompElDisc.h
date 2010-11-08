@@ -1,6 +1,6 @@
 ﻿// -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.76 2010-10-08 12:57:52 fortiago Exp $
+//$Id: TPZCompElDisc.h,v 1.77 2010-11-08 15:46:46 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -17,7 +17,7 @@
 #include "pzreal.h"
 #include "TPZShapeDisc.h"
 #include "tpzautopointer.h"
-#include "pzmaterial.h"
+//#include "pzmaterial.h"
 #include "pzquad.h"
 #include "pzfunction.h"
 

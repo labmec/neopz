@@ -1,11 +1,11 @@
-//$Id: pzintel.h,v 1.37 2010-06-17 17:52:00 phil Exp $
+//$Id: pzintel.h,v 1.38 2010-11-08 15:46:31 phil Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
 
 #include "pzcompel.h"
 #include "pzinterpolationspace.h"
-#include "pzmaterial.h"
+//#include "pzmaterial.h"
 struct TPZElementMatrix;
 
 class TPZIntPoints;

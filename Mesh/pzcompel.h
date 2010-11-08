@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.45 2010-08-25 03:05:06 phil Exp $
+// $Id: pzcompel.h,v 1.46 2010-11-08 15:44:31 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -12,7 +12,7 @@
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 #include "pzsave.h"
-#include "pzmaterial.h"
+//#include "pzmaterial.h"
 
 
 class TPZBlockDiagonal;
@@ -248,12 +248,7 @@ public:
   /**
    * Identify the material object associated with the element
    */
-  virtual TPZAutoPointer<TPZMaterial> Material() const
-  {
-    TPZAutoPointer<TPZMaterial> result;
-    if(fMesh && Reference()) result = fMesh->FindMaterial(Reference()->MaterialId());
-    return result;
-  }
+	virtual TPZAutoPointer<TPZMaterial> Material() const;
 
   /**
    * Set the material associated with the object
@@ -366,12 +361,7 @@ public:
 	/**
 	 * Verify if the material associated with the element is contained in the set
 	 */
-	virtual bool HasMaterial(const std::set<int> &materialids)
-	{
-		TPZAutoPointer<TPZMaterial> mat = Material();
-		if(!mat) return false;
-		return materialids.find(mat->Id()) != materialids.end();
-	}
+	virtual bool HasMaterial(const std::set<int> &materialids);
 
   /**
    * Compute the element right hand side
