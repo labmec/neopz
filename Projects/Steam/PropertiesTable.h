@@ -20,14 +20,12 @@
 	double specificheat;
 	double thermalconductivity;
 	
-	double viscosity;
 	double porosity;
-	double PrandtlNumber;
 	
-	PhysicalProperties(char *name,double rho,double cp,double lamda,double poros,double mu,double prandtl);
+	PhysicalProperties(char *name,double rho,double cp,double lamda,double poros);
 	PhysicalProperties(int type,int rockid);
 
-	void PutData(const char *name,double rho,double cp,double lamda,double poros,double mu,double prandtl);
+	void PutData(const char *name,double rho,double cp,double lamda,double poros);
 };
 
 // Funções para inicializar as tabelas abaixo

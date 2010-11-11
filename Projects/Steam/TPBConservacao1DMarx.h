@@ -13,6 +13,7 @@
 //#ifdef _AUTODIFF
 #include "fadType.h"
 //#endif
+#include "PropertiesTable.h"
 
 #include <iostream>
 
@@ -44,7 +45,6 @@ class TPBrCellMarx
 	REAL fPorosityRock;
 	REAL fSpecificHeatRock;
 	REAL fDensityRock;
-	REAL fThermalConductivityRock;
 	
 	REAL fResidualOil;
 	
@@ -64,20 +64,21 @@ public:
 	
 	virtual ~TPBrCellMarx();
 	
-	void SetMaterialProperty(REAL &materialpermeability, REAL delt)
+	void SetMaterialProperty(REAL materialpermeability, REAL delt, PhysicalProperties &rock)
 	{
 		fMaterialPermeability = materialpermeability;
 		fTimeStep = delt;
+		fPorosityRock = rock.porosity;
+		fDensityRock = rock.density;
+		fSpecificHeatRock = rock.specificheat;
 	}
 	
-	void SetGeometry(REAL cellvolume, REAL leftarea, REAL rightarea, REAL cellsize, REAL porosityrock, REAL densityrock)
+	void SetGeometry(REAL cellvolume, REAL leftarea, REAL rightarea, REAL cellsize)
 	{
 		fCellVolume = cellvolume;
 		fLeftArea = leftarea;
 		fRightArea = rightarea;
 		fCellSize = cellsize;
-		fPorosityRock = porosityrock;
-		fDensityRock = densityrock;
 	}
 	
 	void SetInjectionState(REAL pressurewater, TPZVec<REAL> &massflux, TPZManVector<REAL> &leftstate)
@@ -138,6 +139,9 @@ public:
 	
 	template<class T>
 	void Outflow(TPZVec<T> &rightval, TPZVec<T> &flux);
+	
+	void ReferenceResidualValues(TPZManVector<REAL> &state, TPZManVector<REAL> &scalevalues);
+	void ReferenceStateValues(TPZManVector<REAL> &state, TPZManVector<REAL> &statescalevalues);
 	
 	template<class T>
 	void InternalEquations(TPZVec<T> &state, TPZVec<T> &residual);
@@ -211,6 +215,77 @@ inline void TPBrCellMarx::Outflow(TPZVec<T> &state, TPZVec<T> &flux)
 				)*fRightArea*fTimeStep;
 }
 
+inline void TPBrCellMarx::ReferenceResidualValues(TPZManVector<REAL> &state, TPZManVector<REAL> &scalevalues)
+{
+	REAL maxmassflux = max(state[EMassFluxOil],state[EMassFluxWater]);
+	maxmassflux = max(state[EMassFluxSteam],maxmassflux);
+	scalevalues[0] = maxmassflux *fTimeStep;// fCellVolume*fPorosityRock*DensityOil(state[ETemperature]);
+	scalevalues[1] = maxmassflux*fTimeStep;
+	scalevalues[2] = maxmassflux * fTimeStep;
+	
+	scalevalues[3] = maxmassflux;
+	scalevalues[4] = maxmassflux;
+	scalevalues[5] = maxmassflux;
+	
+	REAL mindesity = min( DensityWater(fInitialState[ETemperature]), DensitySteam(fInitialState[ETemperature]) );
+	scalevalues[6] = maxmassflux*fCellSize/(mindesity*fRightArea);
+	scalevalues[7] = maxmassflux*fCellSize/(mindesity*fRightArea);
+	scalevalues[8] = maxmassflux*fCellSize/(mindesity*fRightArea);
+	
+	scalevalues[9] = 1.;
+	scalevalues[10] = 1.;
+	scalevalues[11] = 1.;
+	
+	EnthalpyOil(state[ETemperature]);
+	EnthalpyWater(state[ETemperature]);
+	EnthalpySteam(state[ETemperature]);
+	scalevalues[12] = EnthalpyOil(state[ETemperature]);
+	scalevalues[13] = EnthalpyWater(state[ETemperature]);
+	scalevalues[14] = EnthalpySteam(state[ETemperature]);
+	
+	scalevalues[15] = EnthalpyWater(state[ETemperature])*DensityWater(state[ETemperature])*fCellVolume
+					+ (1.-fPorosityRock)*fSpecificHeatRock*fDensityRock*fCellVolume*state[ETemperature];
+	scalevalues[16] = EnthalpyWater(state[ETemperature])*DensityWater(state[ETemperature])*fCellVolume
+					+ (1.-fPorosityRock)*fSpecificHeatRock*fDensityRock*fCellVolume*state[ETemperature];
+
+	scalevalues[17] = 1.;
+}
+
+inline void TPBrCellMarx::ReferenceStateValues(TPZManVector<REAL> &state, TPZManVector<REAL> &statescalevalues)
+{
+	REAL maxmassflux = max(state[EMassFluxOil],state[EMassFluxWater]);
+	maxmassflux = max(state[EMassFluxSteam],maxmassflux);
+	
+	statescalevalues[0] = maxmassflux;
+	statescalevalues[1] = maxmassflux;
+	statescalevalues[2] = maxmassflux;
+	
+	statescalevalues[3] = fInitialState[EPressureOil];
+	statescalevalues[4] = fInitialState[EPressureWater];
+	statescalevalues[5] = fInitialState[EPressureSteam];
+
+	REAL mindesity = min( DensityWater(fInitialState[ETemperature]), DensitySteam(fInitialState[ETemperature]) );
+	REAL vDarcy = maxmassflux*fCellSize/(mindesity*fRightArea);
+	statescalevalues[6] = vDarcy;
+	statescalevalues[7] = vDarcy;
+	statescalevalues[8] = vDarcy;
+	
+	statescalevalues[9] = fInitialState[ESaturationOil];
+	statescalevalues[10] = fInitialState[ESaturationWater];
+	statescalevalues[11] = fInitialState[ESaturationSteam];
+	
+	statescalevalues[12] = fInitialState[EEnthalpyOil];
+	statescalevalues[13] = fInitialState[EEnthalpyWater];
+	statescalevalues[14] = fInitialState[EEnthalpySteam];
+	
+	statescalevalues[15] = fInitialState[ETotalEnergy];
+	
+	statescalevalues[16] = fInitialState[ETemperature];
+	
+	REAL phasechange = maxmassflux;
+	statescalevalues[17] = phasechange;
+	
+}
 template<class T>
 inline void TPBrCellMarx::InternalEquations(TPZVec<T> &state, TPZVec<T> &residual)
 {

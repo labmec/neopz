@@ -9,6 +9,7 @@
 
 #include "TPBConservacao1DMarx.h"
 #include "ThermalMethodsTables.h"
+#include "PropertiesTable.h"
 
 #include <math.h>
 int main()
@@ -36,9 +37,7 @@ int main()
 	
 	//dados da rocha
 	REAL MaterialPermeability = 0.8e-12;
-	REAL Porosity = 0.4;
-	REAL DensityRock = 1945;
-	
+	PhysicalProperties minharocha(0,1);
 	//dados da injecao
 	REAL PressureWater(2.e6);
 	REAL tempReservtorio = 98.0;
@@ -56,10 +55,14 @@ int main()
 	TPZManVector<REAL> initial(TPBrCellMarx::NUMVARS,0.), residual(TPBrCellMarx::NUMVARS,0.);
 	TPZManVector<REAL> leftstate(TPBrCellMarx::NUMVARS,0.),rightstate(TPBrCellMarx::NUMVARS,0.);
 	
-	first.SetMaterialProperty(MaterialPermeability, TimeStep);
-	first.SetGeometry(CellVolume,LeftArea,RightArea,CellSize,Porosity, DensityRock);
+	first.SetMaterialProperty(MaterialPermeability, TimeStep,minharocha);
+	first.SetGeometry(CellVolume,LeftArea,RightArea,CellSize);
 	first.SetCellState(PressureWater,InitialSaturation,Temperature);
 	first.SetInjectionState(PressureWater, Massflux, leftstate);
+	
+	//TPZManVector <REAL> vecState(18,0.), scalevalues(18,0.), statescalevalues(18,0.);
+//	first.ReferenceResidualValues(leftstate, scalevalues);
+//	first.ReferenceStateValues(leftstate,statescalevalues);
 	
 	first.InitializeState(initial);
 	
@@ -68,8 +71,7 @@ int main()
 	TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > tangent(TPBrCellMarx::NUMVARS,0.), state(TPBrCellMarx::NUMVARS,0.);
 	first.InitializeState(state);
 	first.TotalResidual(leftstate, state, tangent);
-	
-	
+		
 	TPZFMatrix tangentmatrix,residualmatrix,statematrix;
 	first.ExtractMatrix(tangent,tangentmatrix);
 	first.ExtractMatrix(residual,residualmatrix);
@@ -101,6 +103,20 @@ int main()
 	
 	tangentmatrix.Print("tangent = ",cout, EMathematicaInput);
 	residualmatrix.Print("Residual = ",cout, EMathematicaInput);
+	
+	
+	TPZManVector <REAL> vecState(18,0.), scalevalues(18,0.), statescalevalues(18,0.);
+	TPZFMatrix scalevaluesmatrix,statescalevaluesmatrix;
+	
+	first.ReferenceResidualValues(leftstate, scalevalues);
+	first.ReferenceStateValues(leftstate,statescalevalues);
+	
+	
+	first.ExtractMatrix(scalevalues,scalevaluesmatrix);
+	first.ExtractMatrix(statescalevalues,statescalevaluesmatrix);
+	scalevaluesmatrix.Print("scalevalues ",cout, EMathematicaInput);
+	statescalevaluesmatrix.Print("statescalevalues ",cout, EMathematicaInput);
+	
 	
 	return 0;
 };
