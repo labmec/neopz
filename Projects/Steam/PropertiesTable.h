@@ -12,7 +12,7 @@
 
 //#include "string.h"
 
-struct PhysicalProperties {
+   struct PhysicalProperties {
 
 	char MaterialName[64];
 	

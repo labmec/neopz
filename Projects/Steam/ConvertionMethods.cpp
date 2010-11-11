@@ -9,18 +9,20 @@
 
 #include "ConvertionMethods.h"
 
-// Unidades de comprimento
+//--------- Unidades de comprimento --------------------
 double ConvertFeetToMeter(double lenght) {
 	return (lenght*0.30480061);
 }
 
-// Unidades de energia
+//------------ Unidades de energia -----------------------------
 double ConvertBtuperFtCuboTokJpermCubo(double value) {
 	return (37.259*value);
 }
+
 double ConvertBtuTokJ(double value) {
 	return value*1.055056; 
 }
+
 double ConvertBtuPerHourTokJPerSecond(double value) {
 	return value*(1.055056/3600.0);
 }
@@ -33,7 +35,7 @@ double ConvertWTokJperH(double value) {
 	return (3.6*value);
 }
 
-// Unidades de temperatura
+//----------- Unidades de temperatura --------------------
 double ConvertCToF(double temperature) {
 	return (1.8*temperature + 32.);
 }
@@ -42,7 +44,7 @@ double ConvertCToK(double temperature) {
 	return (temperature + 273.15);
 }
 
-// Unidades em tempo
+//----------- Unidades em tempo -----------------------
 double ConvertHourToSecond(double horas) {
 	return horas*3600;
 }

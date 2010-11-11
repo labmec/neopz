@@ -10,93 +10,118 @@
 #include "TPBConservacao1DMarx.h"
 #include "ThermalMethodsTables.h"
 
-
+#include <math.h>
 int main()
 {
+	REAL PI = 4*atan(1.);	
 	TPBrCellMarx first;
-	REAL MaterialPermeability = 1.e-12;
-	TPZManVector<REAL> Viscosity(3,1.e-4);
-	TPZManVector<REAL> Density(3,1000.);
-	TPZManVector<REAL,3> SpecificHeat(3,1.);
-	REAL TimeStep = 1.;
 	
-	REAL CellVolume = 1.;
-	REAL LeftArea = 1.;
-	REAL RightArea = 1.;
-	REAL CellSize = 0.1;
-	REAL Porosity = 0.8;
-	REAL DensityRock = 3000.;
+	//WaterDataInStateOfSaturation aux;
+//	double temp =0.;
+//	double pres = 2000.;
+//	temp= aux.getSaturationStateTemperature(pres);
+//	pres = aux.getSaturationStatePressure(temp);
 	
-	TPZManVector<REAL> Pressure(3,1.e6);
-	TPZManVector<REAL> Massflux(3,100.);
-	TPZManVector<REAL> DarcyVelocity(3,1.);
-	TPZManVector<REAL> Saturation(3,0.);
-	Saturation[0] = 1.;
-	TPZManVector<REAL,3> Energy(3,5.);
-	REAL TotalEnergy(15.);
-	REAL Temperature(100.);
+	//----------------- dados de entrada ------------------------------
+	//dados numerico
+	REAL TimeStep = 0.01;
 	
+	//dados da celula
+	REAL rint = 0.15;
+	REAL rext = 1.5;
+	REAL CellSize = 1.;
+	REAL LeftArea = PI*rint*rint;
+	REAL RightArea = PI*rext*rext;
+	REAL CellVolume = PI*(rext-rint)*(rext-rint)*CellSize;// 5.725552611167399 ;
+	
+	//dados da rocha
+	REAL MaterialPermeability = 0.8e-12;
+	REAL Porosity = 0.4;
+	REAL DensityRock = 1945;
+	
+	//dados da injecao
+	REAL PressureWater(2.e6);
+	REAL tempReservtorio = 98.0;
+	REAL Temperature(tempReservtorio);
+	TPZManVector<REAL> InitialSaturation(3,0.);
+	InitialSaturation[TPBrCellMarx::EOil] = 0.0170871;
+	InitialSaturation[TPBrCellMarx::EWater] = 1.-0.0170871;
+	InitialSaturation[TPBrCellMarx::ESteam] = 0. ;
+	TPZManVector<REAL> Massflux(3,0.);
+	Massflux[TPBrCellMarx::EOil] = 0.0;
+	Massflux[TPBrCellMarx::EWater] = 0.121951;
+	Massflux[TPBrCellMarx::ESteam] = 0.555556 ;
+	//-----------------------------------------------------------------------------------------
 	
 	TPZManVector<REAL> initial(TPBrCellMarx::NUMVARS,0.), residual(TPBrCellMarx::NUMVARS,0.);
 	TPZManVector<REAL> leftstate(TPBrCellMarx::NUMVARS,0.),rightstate(TPBrCellMarx::NUMVARS,0.);
 	
-	first.SetMaterialProperty(MaterialPermeability, Viscosity,SpecificHeat,TimeStep);
+	first.SetMaterialProperty(MaterialPermeability, TimeStep);
 	first.SetGeometry(CellVolume,LeftArea,RightArea,CellSize,Porosity, DensityRock);
-	first.SetState(Pressure,Massflux,DarcyVelocity,Density,Saturation,Energy,Temperature);
-	initial[TPBrCellMarx::EPressureOil] = Pressure[TPBrCellMarx::EOil];
-	initial[TPBrCellMarx::EPressureWater] = Pressure[TPBrCellMarx::EWater];
-	initial[TPBrCellMarx::EPressureSteam] = Pressure[TPBrCellMarx::ESteam];
-	initial[TPBrCellMarx::EDarcyVelocityOil] = DarcyVelocity[TPBrCellMarx::EOil];
-	initial[TPBrCellMarx::EDarcyVelocityWater] = DarcyVelocity[TPBrCellMarx::EWater];
-	initial[TPBrCellMarx::EDarcyVelocitySteam] = DarcyVelocity[TPBrCellMarx::ESteam];
-	initial[TPBrCellMarx::EMassFluxOil] = Massflux[TPBrCellMarx::EOil];
-	initial[TPBrCellMarx::EMassFluxWater] = Massflux[TPBrCellMarx::EWater];
-	initial[TPBrCellMarx::EMassFluxSteam] = Massflux[TPBrCellMarx::ESteam];
-	initial[TPBrCellMarx::ESaturationOil] = Saturation[TPBrCellMarx::EOil];
-	initial[TPBrCellMarx::ESaturationWater] = Saturation[TPBrCellMarx::EWater];
-	initial[TPBrCellMarx::ESaturationSteam] = Saturation[TPBrCellMarx::ESteam];
-	initial[TPBrCellMarx::EEnthalpyOil] = Energy[TPBrCellMarx::EOil];
-	initial[TPBrCellMarx::EEnthalpyWater] = Energy[TPBrCellMarx::EWater];
-	initial[TPBrCellMarx::EEnthalpySteam] = Energy[TPBrCellMarx::ESteam];
-	initial[TPBrCellMarx::ETotalEnergy] = TotalEnergy;
-	initial[TPBrCellMarx::ETemperature] = Temperature;
-	initial[TPBrCellMarx::EPhaseChange] = 0.;
+	first.SetCellState(PressureWater,InitialSaturation,Temperature);
+	first.SetInjectionState(PressureWater, Massflux, leftstate);
 	
-	leftstate = initial;
-	rightstate = initial;
+	first.InitializeState(initial);
 	
-	first.TotalResidual(leftstate,rightstate,residual);
+	first.TotalResidual(leftstate,initial,residual);
 	
-	TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > tangent(TPBrCellMarx::NUMVARS,0.);
-	first.TotalResidual(leftstate, rightstate, tangent);
+	TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > tangent(TPBrCellMarx::NUMVARS,0.), state(TPBrCellMarx::NUMVARS,0.);
+	first.InitializeState(state);
+	first.TotalResidual(leftstate, state, tangent);
 	
 	
 	TPZFMatrix tangentmatrix,residualmatrix,statematrix;
 	first.ExtractMatrix(tangent,tangentmatrix);
 	first.ExtractMatrix(residual,residualmatrix);
-
+	first.ExtractMatrix(initial,statematrix);
+		
+	std::cout << "state matrix " << statematrix << std::endl;
 	std::cout << "Residual " << residual << std::endl;
 	std::cout << "Tangent " << tangent << std::endl;
+			
+	//tangentmatrix.Print("tangent = ",cout, EMathematicaInput);
+	//residualmatrix.Print("Residual = ",cout, EMathematicaInput);
+	
+	//while (Norm(residualmatrix) > 1.e-6) {
+//		tangentmatrix.SolveDirect(residualmatrix, ELU);
+//		residualmatrix.Print("ResidualMatrix",cout);
+//		statematrix -= residualmatrix;
+//		statematrix.Print("statematrix", cout);
+//		
+//		first.ConvertState(statematrix,rightstate);
+//		first.ConvertState(statematrix,state);
+//		first.TotalResidual(leftstate, rightstate, residual);
+//		first.TotalResidual(leftstate, state, tangent);
+//		tangentmatrix.Zero();
+//		first.ExtractMatrix(tangent,tangentmatrix);
+//	}
+//	
+//	std::cout << "Residual " << residual << std::endl;
+//	std::cout << "Tangent " << tangent << std::endl;
 	
 	tangentmatrix.Print("tangent = ",cout, EMathematicaInput);
+	residualmatrix.Print("Residual = ",cout, EMathematicaInput);
 	
 	return 0;
-	
-	while (Norm(residualmatrix) > 1.e-6) {
-		tangentmatrix.SolveDirect(residualmatrix, ELU);
-		statematrix -= residualmatrix;
-		first.ConvertState(statematrix,rightstate);
-		first.TotalResidual(leftstate, rightstate, residual);
-		first.TotalResidual(leftstate, rightstate, tangent);
-	}
-	
-	std::cout << "Residual " << residual << std::endl;
-	std::cout << "Tangent " << tangent << std::endl;
-	
-	tangentmatrix.Print("tangent = ",cout, EMathematicaInput);
-	return 0;
-	
 };
+
+template<class T>
+// by Agnaldo
+//uso a formula dada na tese SteamFlood, pagina 34
+//pressuresteam-> Pa
+//[Celsius]
+T TPBrCellMarx::TemperatureSaturatedSteam(T pressuresteam){
+      
+	T  val_log, temp;
+	T temp_de_saturac;
+	val_log = log(pressuresteam*0.0001450377438972831);
+	temp=561.435 + 33.8866*val_log + 2.18893*(val_log*val_log) + 0.0808998*(val_log*val_log*val_log) +
+			 0.0342030*(val_log*val_log*val_log*val_log);
+	temp_de_saturac = (temp-32 - 459.67)/1.8;
+	
+	return temp_de_saturac;
+}
+
 
 // metodos para recuperar os dados tabulados em funcao
 template<class T>
@@ -144,7 +169,8 @@ void TPBrCellMarx::ComputeRelativePermeability(TPZManVector<T> &saturation,TPZMa
 template<class T>
 T TPBrCellMarx::TemperatureSaturation(T p) {
 	WaterDataInStateOfSaturation water;
-	return water.getSaturationStateTemperature(p);
+	T p1000 = p/1000.;
+	return water.getSaturationStateTemperature(p1000);
 }
 
 template<class T>

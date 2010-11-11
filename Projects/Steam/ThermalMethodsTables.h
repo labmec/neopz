@@ -81,7 +81,7 @@ public:
 // O índice 6(líquido) e 11(vapor) armazenam o calor específico [ kJ/(kg * K) ]
 // O índice 7(líquido) e 12(vapor) armazenam a condutividade térmica [ kJ/(sec*m*K) ]
 // O índice 8(líquido) e 13(vapor) armazenam a entalphia específica [ kJ/kg ]
-class WaterDataInStateOfSaturation : public DataInTable {
+class  WaterDataInStateOfSaturation : public DataInTable {
 	
 public:
 	WaterDataInStateOfSaturation();
@@ -415,6 +415,7 @@ inline T WaterDataInStateOfSaturation::getSaturationWater(int i,T quality,T So) 
 	
 }
 
+//-------------------------------------------------------------------------------------------------------------------------------------
 template<class T>
 inline T getInterpolatedValue(std::vector<std::vector<double> > &fTable,T var,int index) {
 	// Determinando primeiro em qual intervalo de dados da tabela está o valor no qual interpolaremos - value
@@ -462,7 +463,7 @@ inline T DataInTable::getInterpolatedValue(double initialvar,double initialvalue
 template<class T>
 inline T DataInTable::getInterpolatedValue(T temp,int indexproperty) {
 	int index = getIndex(temp);
-	if(index < 0 || !fTable.size() || indexproperty < 2 || (indexproperty+1) > fTable[0].size()) return 0.0;
+	if(index < 0 || !fTable.size() || indexproperty < 0 || (indexproperty+1) > fTable[0].size()) return 0.0;
 	// aqui ja temos valores validos de index e de indexproperty
 	if(!index) return fTable[0][indexproperty];
 	T value = getInterpolatedValue(fTable[index-1][fIndependentVarIndex],fTable[index-1][indexproperty],fTable[index][fIndependentVarIndex],fTable[index][indexproperty],temp);
@@ -475,7 +476,9 @@ inline int DataInTable::getIndex(T temp) {
 	int indice = -1;
 	int last = fTable.size();
 	if(last < 2 || temp < fTable[0][fIndependentVarIndex] || temp > fTable[last-1][fIndependentVarIndex])
-		return indice;
+	{
+		DebugStop();
+	}
 	// Procurando a linha i até a qual superamos o valor de temp
 	for(indice=1;indice<last;indice++)
 		if(temp < fTable[indice][fIndependentVarIndex])
