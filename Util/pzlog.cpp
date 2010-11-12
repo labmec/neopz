@@ -23,7 +23,7 @@ void InitializePZLOG()
 {
   std::string path;
   std::string configfile;
-#ifdef HAVE_CONFIG_H
+#ifdef PZSOURCEDIR
   path = PZSOURCEDIR;
   path += "/Util/";
 #else
