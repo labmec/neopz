@@ -17,7 +17,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr loggernoderep(Logger::getLogger("pz.geom.extend"));
+static LoggerPtr loggernoderep2(Logger::getLogger("pz.geom.extend"));
 #endif
 
 class TPZFMatrix;
@@ -76,7 +76,7 @@ int fNodeIndexes[TFather::NNodes];
 			  sout << "ERROR in - " << __PRETTY_FUNCTION__
 				  << " trying to clone a node " << i << " index " << cp.fNodeIndexes[i]
 				  << " wich is not mapped";
-			  LOGPZ_ERROR(loggernoderep,sout.str().c_str());
+			  LOGPZ_ERROR(loggernoderep2,sout.str().c_str());
 			  fNodeIndexes[i] = -1;
 			  continue;
 		}
