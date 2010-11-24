@@ -12,6 +12,9 @@
 #include "PropertiesTable.h"
 
 #include <math.h>
+
+void ScaleFactor(TPZFMatrix &tangentmatrix, TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues, TPZManVector<REAL> &statescalevalues );
+void ScaleFactorSol(TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues );
 int main()
 {
 	REAL PI = 4*atan(1.);	
@@ -60,63 +63,64 @@ int main()
 	first.SetCellState(PressureWater,InitialSaturation,Temperature);
 	first.SetInjectionState(PressureWater, Massflux, leftstate);
 	
-	//TPZManVector <REAL> vecState(18,0.), scalevalues(18,0.), statescalevalues(18,0.);
-//	first.ReferenceResidualValues(leftstate, scalevalues);
-//	first.ReferenceStateValues(leftstate,statescalevalues);
-	
 	first.InitializeState(initial);
-	
+		
 	first.TotalResidual(leftstate,initial,residual);
-	
+			
 	TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > tangent(TPBrCellMarx::NUMVARS,0.), state(TPBrCellMarx::NUMVARS,0.);
 	first.InitializeState(state);
 	first.TotalResidual(leftstate, state, tangent);
-		
+	
+	
+	//-------------------------- FATORES DE ESCALA  ---------------------------------------------------
+	TPZManVector <REAL> vecState(initial), scalevalues(18,0.), statescalevalues(18,0.);
+	TPZFMatrix scalevaluesmatrix,statescalevaluesmatrix;
+	vecState[TPBrCellMarx::EMassFluxOil] = leftstate[TPBrCellMarx::EMassFluxOil];
+	vecState[TPBrCellMarx::EMassFluxWater] = leftstate[TPBrCellMarx::EMassFluxWater];
+	vecState[TPBrCellMarx::EMassFluxSteam] = leftstate[TPBrCellMarx::EMassFluxSteam];
+	first.ReferenceResidualValues(leftstate, scalevalues);
+	first.ReferenceStateValues(vecState,statescalevalues);
+	
+	first.ExtractMatrix(scalevalues,scalevaluesmatrix);
+	first.ExtractMatrix(statescalevalues,statescalevaluesmatrix);
+	scalevaluesmatrix.Print("scalevalues = ",cout, EMathematicaInput);
+	statescalevaluesmatrix.Print("statescalevalues = ",cout, EMathematicaInput);
+	
+	//----------------------------- corrigir residuo e tangente -----------------------------
 	TPZFMatrix tangentmatrix,residualmatrix,statematrix;
 	first.ExtractMatrix(tangent,tangentmatrix);
 	first.ExtractMatrix(residual,residualmatrix);
 	first.ExtractMatrix(initial,statematrix);
-		
-	std::cout << "state matrix " << statematrix << std::endl;
-	std::cout << "Residual " << residual << std::endl;
-	std::cout << "Tangent " << tangent << std::endl;
+	
+	ScaleFactor(tangentmatrix, residualmatrix, scalevalues, statescalevalues );
+	//---------------------------------------------------------------------------------------------	
 			
-	//tangentmatrix.Print("tangent = ",cout, EMathematicaInput);
-	//residualmatrix.Print("Residual = ",cout, EMathematicaInput);
+	tangentmatrix.Print("tangentmatrix = ",cout, EMathematicaInput);
+	residualmatrix.Print("Residualmatrix = ",cout, EMathematicaInput);
 	
-	//while (Norm(residualmatrix) > 1.e-6) {
-//		tangentmatrix.SolveDirect(residualmatrix, ELU);
-//		residualmatrix.Print("ResidualMatrix",cout);
-//		statematrix -= residualmatrix;
-//		statematrix.Print("statematrix", cout);
-//		
-//		first.ConvertState(statematrix,rightstate);
-//		first.ConvertState(statematrix,state);
-//		first.TotalResidual(leftstate, rightstate, residual);
-//		first.TotalResidual(leftstate, state, tangent);
-//		tangentmatrix.Zero();
-//		first.ExtractMatrix(tangent,tangentmatrix);
-//	}
-//	
-//	std::cout << "Residual " << residual << std::endl;
-//	std::cout << "Tangent " << tangent << std::endl;
-	
-	tangentmatrix.Print("tangent = ",cout, EMathematicaInput);
-	residualmatrix.Print("Residual = ",cout, EMathematicaInput);
-	
-	
-	TPZManVector <REAL> vecState(18,0.), scalevalues(18,0.), statescalevalues(18,0.);
-	TPZFMatrix scalevaluesmatrix,statescalevaluesmatrix;
-	
-	first.ReferenceResidualValues(leftstate, scalevalues);
-	first.ReferenceStateValues(leftstate,statescalevalues);
+	cout << "\n ======= Metodo de Newton =======\n\n";
+	while (Norm(residualmatrix) > 1.e-6) {
+		tangentmatrix.SolveDirect(residualmatrix, ELU);
+		residualmatrix.Print("ResidualMatrix",cout);
+		// multiplicar o valor pelo scalestate
+		ScaleFactorSol(residualmatrix, statescalevalues);
+		
+		statematrix += residualmatrix;
+		statematrix.Print("statematrix", cout);
+		first.ConvertState(statematrix,rightstate);
+		first.ConvertState(statematrix,state);
+		first.TotalResidual(leftstate, rightstate, residual);
+		first.TotalResidual(leftstate, state, tangent);
+		tangentmatrix.Zero();
+		first.ExtractMatrix(tangent,tangentmatrix);
+		
+		// aplicar os fatores de escala novamente no tangentmatrix e residual
+		ScaleFactor(tangentmatrix, residualmatrix, scalevalues, statescalevalues );
+	}
 	
 	
-	first.ExtractMatrix(scalevalues,scalevaluesmatrix);
-	first.ExtractMatrix(statescalevalues,statescalevaluesmatrix);
-	scalevaluesmatrix.Print("scalevalues ",cout, EMathematicaInput);
-	statescalevaluesmatrix.Print("statescalevalues ",cout, EMathematicaInput);
-	
+	tangentmatrix.Print("tangentmatrix = ",cout, EMathematicaInput);
+	residualmatrix.Print("Residualmatrix = ",cout, EMathematicaInput);
 	
 	return 0;
 };
@@ -209,3 +213,33 @@ T TPBrCellMarx::EnthalpyOil(T temperature) {
 	return  oil.getSpecificHeatToOil(temperature);
 }
 
+
+void ScaleFactor(TPZFMatrix &tangentmatrix, TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues, TPZManVector<REAL> &statescalevalues ){
+	
+	int numvar = TPBrCellMarx ::NUMVARS;
+	for (int ir =0; ir<numvar; ir++) {
+		residualmatrix(ir,0) = residualmatrix(ir,0)/scalevalues[ir] ;
+	}
+	
+	TPZFMatrix  tangentmatrixtr;
+	for (int it = 0; it<numvar; it++) {
+		for (int jt = 0; jt<numvar; jt++) {
+			tangentmatrix(it,jt) = tangentmatrix(it,jt)/scalevalues[it];  
+		}
+	}
+	tangentmatrix.Transpose(&tangentmatrixtr);
+	for (int itr = 0; itr<numvar; itr++) {
+		for (int jtr = 0; jtr<numvar; jtr++) {
+			tangentmatrixtr(itr,jtr) = tangentmatrixtr(itr,jtr)*statescalevalues[itr];  
+		}
+	}
+	tangentmatrixtr.Transpose(&tangentmatrix);
+}
+
+void ScaleFactorSol(TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues ){
+	
+	int numvar = TPBrCellMarx ::NUMVARS;
+	for (int ir =0; ir<numvar; ir++) {
+		residualmatrix(ir,0) = residualmatrix(ir,0)*scalevalues[ir] ;
+	}	
+}
