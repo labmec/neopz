@@ -7,6 +7,7 @@
 #include "pzstack.h"
 #include <map>
 #include <set>
+#include <algorithm>
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -393,7 +394,7 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 					std::cout << std::endl;
 				}
 				 */
-				if (std::includes(largesetbeg,largesetend,smallsetbeg,smallsetend)) {
+				if (includes(largesetbeg,largesetend,smallsetbeg,smallsetend)) {
 					break;
 				}
 				it++;
