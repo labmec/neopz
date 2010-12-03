@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
                           tpzgeoelrefpattern.h  -  description
                              -------------------
     begin                : Tue Dec 23 2003
@@ -120,9 +120,8 @@ public:
 	virtual void ResetSubElements();
 	
 	/** Saveable methods */
-#ifndef WIN32
+
 	virtual int ClassId() const;
-#endif
 	virtual void Read(TPZStream &str, void *context);
 	virtual void Write(TPZStream &str, int withclassid);
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
