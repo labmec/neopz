@@ -9,6 +9,7 @@
 #include <set>
 #include <algorithm>
 #include "pzlog.h"
+#include <algorithm>
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.renumbering"));
