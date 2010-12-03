@@ -4,8 +4,9 @@
 #include <string>
 #include <iostream>
 #include <cstdlib>
+#include "pzerror.h"
 
-// $Id: pzeltype.h,v 1.6 2010-08-26 02:35:56 erick Exp $
+// $Id: pzeltype.h,v 1.7 2010-12-03 16:28:18 phil Exp $
 /**
    @enum MElementType
  * Defines the element types
@@ -88,7 +89,7 @@ inline int MElementType_NNodes(MElementType elType)
 		default:
 		{
 			std::cout << "ElementType not found!";
-			exit(-1);
+			DebugStop();
 		}
 	}
 }
