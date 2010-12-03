@@ -825,6 +825,9 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 	}
 	else
 	{		
+#ifdef WIN32
+	DebugStop();
+#endif
 		std::cout << "|"; std::cout.flush();
 		std::ofstream arquivo ("NotListedPatterns.txt",std::ios::app);
 		std::list<TPZAutoPointer<TPZRefPattern> >::iterator it;

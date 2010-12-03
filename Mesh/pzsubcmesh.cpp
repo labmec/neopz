@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.46 2010-08-30 21:47:19 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.47 2010-12-03 16:32:41 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -950,13 +950,14 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 				numeq += Block().Size(seqnum);
 //		}
 	}
-	numeq = (TPZCompMesh::NEquations()) - numeq;
 	
 	// check whether the connects are properly enumerated
 #ifdef DEBUG 
 	{
-		int in;
 		int globeq = TPZCompMesh::NEquations();
+		int numinteq = globeq - numeq;
+		int in;
+		//int globeq = TPZCompMesh::NEquations();
 		int nconnects = ConnectVec().NElements();
 		for(in=0; in<nconnects; in++)
 		{
@@ -964,17 +965,25 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 			if( ! df.NElConnected() || df.SequenceNumber() == -1) continue;
 			int seqnum = df.SequenceNumber();
 			int eq = Block().Position(seqnum);
-			if(eq < numeq && fExternalLocIndex[in] != -1)
+			if(eq < numinteq && fExternalLocIndex[in] != -1)
 			{
 				std::stringstream sout;
 				sout << "Connect " << in << " has equation " << eq << " but is external";
 				LOGPZ_ERROR(logger,sout.str())
+				DebugStop();
+			}
+			if (eq >= numinteq && fExternalLocIndex[in] == -1 && !df.HasDependency()) {
+				std::stringstream sout;
+				sout << "Connect " << in << " has equation " << eq << " but is internal and has no dependencies ";
+				LOGPZ_ERROR(logger,sout.str())
+				DebugStop();
 			}
 			if(eq < globeq && df.HasDependency())
 			{
 				std::stringstream sout;
 				sout << "Connect " << in << " with dependency was not put at the end of the stack equation " << eq << " global equations " << globeq;
 				LOGPZ_ERROR(logger,sout.str())
+				DebugStop();
 			}
 		}
 	}
