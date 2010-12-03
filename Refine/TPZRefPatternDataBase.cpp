@@ -14,6 +14,11 @@
 #include "TPZRefPatternDataBase.h"
 #include "pzgeoelside.h"
 
+#ifdef BORLAND
+#include <io.h>
+#include <fcntl.h>
+#endif
+
 TPZRefPatternDataBase gRefDBase;
 
 //.........................................................................................................................................................................................
