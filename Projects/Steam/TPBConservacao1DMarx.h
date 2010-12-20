@@ -58,20 +58,33 @@ public:
 		EEnthalpyOil,EEnthalpyWater,EEnthalpySteam,ETotalEnergy,ETemperature,EPhaseChange};
 	
 	//Original
-	//enum NUMBEREQUATIONS {EqMassConservationOil, EqMassConservationWater,EqMassConservationSteam, 
-//		EqRelationMassFlowVDarcyOil, EqRelationMassFlowVDarcyWater, EqRelationMassFlowVDarcySteam, 
-//		EqRelationDpDxDarcyOil, EqRelationDpDxDarcyWater, EqRelationDpDxDarcySteam, 
-//		EqCapilaryPressureOilWater, EqCapilaryPressureOilSteam, EqSumSaturation,
-//		EqEnergyOil, EqEnergyWater, EqEnergySteam,
-//		EqTotalEnergy, EqEnergyConservation, EqZeroSaturation};
-	
-	//Swap
 	enum NUMBEREQUATIONS {EqMassConservationOil, EqMassConservationWater,EqMassConservationSteam, 
-		EqRelationDpDxDarcyOil, EqRelationMassFlowVDarcyWater, EqRelationDpDxDarcySteam, 
-		EqCapilaryPressureOilWater, EqCapilaryPressureOilSteam, EqRelationDpDxDarcyWater, 
-		EqRelationMassFlowVDarcyOil, EqSumSaturation, EqRelationMassFlowVDarcySteam,
+		EqRelationMassFlowVDarcyOil, EqRelationMassFlowVDarcyWater, EqRelationMassFlowVDarcySteam, 
+		EqRelationDpDxDarcyOil, EqRelationDpDxDarcyWater, EqRelationDpDxDarcySteam, 
+		EqCapilaryPressureOilWater, EqCapilaryPressureOilSteam, EqSumSaturation,
 		EqEnergyOil, EqEnergyWater, EqEnergySteam,
 		EqTotalEnergy, EqEnergyConservation, EqZeroSaturation};
+	
+	
+	//Only Swap
+	//enum NUMBEREQUATIONS {EqRelationMassFlowVDarcyOil, EqRelationMassFlowVDarcyWater, EqRelationMassFlowVDarcySteam,
+//		EqEnergyConservation,EqMassConservationOil,EqRelationDpDxDarcySteam, 
+//		EqCapilaryPressureOilWater, EqCapilaryPressureOilSteam, EqRelationDpDxDarcyWater,EqTotalEnergy,
+//		EqRelationDpDxDarcyOil,EqMassConservationWater,EqEnergyOil,EqEnergyWater, EqEnergySteam,EqSumSaturation,
+//		EqZeroSaturation,EqMassConservationSteam
+//	};
+	
+	
+	
+	//Swap and factor scale
+	//enum NUMBEREQUATIONS {EqMassConservationOil, EqMassConservationWater,EqMassConservationSteam,
+//		EqRelationDpDxDarcyOil,EqRelationMassFlowVDarcyWater,EqRelationDpDxDarcySteam, 
+//		EqCapilaryPressureOilWater, EqCapilaryPressureOilSteam,EqRelationDpDxDarcyWater,
+//		EqRelationMassFlowVDarcyOil,EqSumSaturation,EqRelationMassFlowVDarcySteam, 
+//		EqEnergyOil, EqEnergyWater, EqEnergySteam,
+//		EqTotalEnergy, EqEnergyConservation, EqZeroSaturation
+//	};
+	
 	
 	enum VARINDEX {EOil, EWater, ESteam};
 	
@@ -80,6 +93,9 @@ public:
 	TPBrCellMarx();
 	
 	virtual ~TPBrCellMarx();
+	
+	void SetTimeStep(REAL &timestep);
+	
 	
 	void SetMaterialProperty(REAL materialpermeability, REAL delt, PhysicalProperties &rock)
 	{
@@ -111,30 +127,29 @@ public:
 		
 	}
 	
-	void SetCellState(REAL pressurewater, 
-				  TPZVec<REAL> &saturation, REAL temperature )
-	{
-		fInitialState[EPressureOil] = pressurewater;
-		fInitialState[EPressureWater] = pressurewater;
-		fInitialState[EPressureSteam] = pressurewater;
+void SetCellState(REAL pressurewater, TPZVec<REAL> &saturation, REAL temperature ){
+								
 		fInitialState[EMassFluxOil] = 0.;
 		fInitialState[EMassFluxWater] = 0.;
 		fInitialState[EMassFluxSteam] = 0.;
 		fInitialState[EDarcyVelocityOil] = 0.;
 		fInitialState[EDarcyVelocityWater] = 0.;
 		fInitialState[EDarcyVelocitySteam] = 0.;
+		fInitialState[EPressureOil] = pressurewater;
+		fInitialState[EPressureWater] = pressurewater;
+		fInitialState[EPressureSteam] = pressurewater;
 		fInitialState[ESaturationOil] = saturation[EOil];
 		fInitialState[ESaturationWater] = saturation[EWater];
 		fInitialState[ESaturationSteam] = saturation[ESteam];
 		fInitialState[EEnthalpyOil] = EnthalpyOil(temperature);
 		fInitialState[EEnthalpyWater] = EnthalpyWater(temperature);
 		fInitialState[EEnthalpySteam] = EnthalpySteam(temperature);
-		fInitialState[ETemperature] = temperature;
 		//([kJ/kg]*[kg/m3])*[m3] + [kJ/(kg*Kelvin)][kg/m3]*[m3]*[Celsius] -> [kJ]
 		fInitialState[ETotalEnergy] = fPorosityRock*(EnthalpyOil(temperature)*DensityOil(temperature)*saturation[EOil] +
 													 EnthalpyWater(temperature)*DensityWater(temperature)*saturation[EWater] +
 													 EnthalpySteam(temperature)*DensitySteam(temperature)*saturation[ESteam])*fCellVolume 
 		+ (1.-fPorosityRock)*fSpecificHeatRock*fDensityRock*fCellVolume*temperature;
+		fInitialState[ETemperature] = temperature;
 	}
 	
 	template<class T>
@@ -200,41 +215,40 @@ public:
 	
 };
 
+
+
 TPBrCellMarx::TPBrCellMarx() : fInitialState(NUMVARS,0.)
 {
 	fInitialState[ESaturationOil] = 1.;
 	fResidualOil = 0.01;
 }
+
 TPBrCellMarx::~TPBrCellMarx() {
+}
+
+void TPBrCellMarx::SetTimeStep(REAL &timestep)
+{
+	fTimeStep = timestep;
 }
 
 template<class T>
 inline void TPBrCellMarx::Inflow(TPZVec<REAL> &leftval, TPZVec<T> &flux)
-{
-	double mfluxO,mfluxS, mfluxW;
-	mfluxO = leftval[EMassFluxOil]*fTimeStep;
-	mfluxW = leftval[EMassFluxWater]*fTimeStep;
-	mfluxS = leftval[EMassFluxSteam]*fTimeStep;
-	
+{		
 	flux[EqMassConservationOil] = leftval[EMassFluxOil]*fTimeStep;
 	flux[EqMassConservationWater] = leftval[EMassFluxWater]*fTimeStep;
 	flux[EqMassConservationSteam] = leftval[EMassFluxSteam]*fTimeStep;
-	//( [kJ/kg]*[m/s]*[kg/m3] )*[m2]*[s] -> [kJ]
+	//( [kJ/kg]*[kg/s] )*[s] -> [kJ]
 	flux[EqEnergyConservation] = (leftval[EEnthalpyOil]*leftval[EMassFluxOil]
 			   +leftval[EEnthalpyWater]*leftval[EMassFluxWater]
 			   +leftval[EEnthalpySteam]*leftval[EMassFluxSteam]
-			   )*fLeftArea*fTimeStep;
+			   )*fTimeStep;
+	//cout << "\nFluxo de entrada --> "<< flux[EqEnergyConservation] <<endl; 
 }
 
 template<class T>
 inline void TPBrCellMarx::Outflow(TPZVec<T> &state, TPZVec<T> &flux)
-{
-	T mfluxO_Saida,mfluxS_Saida, mfluxW_Saida;
-	mfluxO_Saida = state[EMassFluxOil]*fTimeStep;
-	mfluxW_Saida = state[EMassFluxWater]*fTimeStep;
-	mfluxS_Saida = state[EMassFluxSteam]*fTimeStep;
-	
-	flux[EqMassConservationOil] = state[EMassFluxOil]*fTimeStep;
+{		
+	flux[EqMassConservationOil] =state[EMassFluxOil]*fTimeStep;
 	flux[EqMassConservationWater] = state[EMassFluxWater]*fTimeStep;
 	flux[EqMassConservationSteam] = state[EMassFluxSteam]*fTimeStep;
 	//( [kJ/kg]*[m/s]*[kg/m3] )*[m2]*[s] -> [kJ]
@@ -242,13 +256,16 @@ inline void TPBrCellMarx::Outflow(TPZVec<T> &state, TPZVec<T> &flux)
 				+fInitialState[EEnthalpyWater]*state[EDarcyVelocityWater]*DensityWater(fInitialState[ETemperature])
 				+fInitialState[EEnthalpySteam]*state[EDarcyVelocitySteam]*DensitySteam(fInitialState[ETemperature])
 				)*fRightArea*fTimeStep;
+	
+	//cout << "\nFluxo de saida --> "<< flux[EqEnergyConservation] <<endl; 
+	
 }
 
 inline void TPBrCellMarx::ReferenceResidualValues(TPZManVector<REAL> &state, TPZManVector<REAL> &scalevalues)
 {
 	REAL maxmassflux = max(state[EMassFluxOil],state[EMassFluxWater]);
 	maxmassflux = max(state[EMassFluxSteam],maxmassflux);
-	scalevalues[EqMassConservationOil] = maxmassflux *fTimeStep;// fCellVolume*fPorosityRock*DensityOil(state[ETemperature]);
+	scalevalues[EqMassConservationOil] = maxmassflux *fTimeStep;
 	scalevalues[EqMassConservationWater] = maxmassflux*fTimeStep;
 	scalevalues[EqMassConservationSteam] = maxmassflux * fTimeStep;
 	
@@ -292,9 +309,9 @@ inline void TPBrCellMarx::ReferenceStateValues(TPZManVector<REAL> &state, TPZMan
 	
 	REAL pressure = max(state[EPressureOil],state[EPressureWater]);
 	pressure = max(pressure,state[EPressureSteam]);
-	statescalevalues[EPressureOil] = 100;
-	statescalevalues[EPressureSteam] = 100;
-	statescalevalues[EPressureWater] = 100;
+	statescalevalues[EPressureOil] = 100.;
+	statescalevalues[EPressureSteam] = 100.;
+	statescalevalues[EPressureWater] = 100.;
 
 	REAL mindensity = max( DensityWater(state[ETemperature]), DensitySteam(state[ETemperature]) );
 	REAL vDarcy = maxmassflux/(mindensity*fRightArea);
@@ -302,9 +319,9 @@ inline void TPBrCellMarx::ReferenceStateValues(TPZManVector<REAL> &state, TPZMan
 	statescalevalues[EDarcyVelocitySteam] = vDarcy;
 	statescalevalues[EDarcyVelocityWater] = vDarcy;
 	
-	statescalevalues[ESaturationOil] = 1;	
-	statescalevalues[ESaturationWater] = 1;
-	statescalevalues[ESaturationSteam] = 1;
+	statescalevalues[ESaturationOil] = 1.;	
+	statescalevalues[ESaturationWater] = 1.;
+	statescalevalues[ESaturationSteam] = 1.;
 	
 	statescalevalues[EEnthalpyOil] = state[EEnthalpyOil];
 	statescalevalues[EEnthalpyWater] = state[EEnthalpyWater];
@@ -324,21 +341,18 @@ inline void TPBrCellMarx::InternalEquations(TPZVec<T> &state, TPZVec<T> &residua
 	
 	// conservation of mass of oil in the cell -> ESaturationOil
 	// [m3]*[Kg/m3] -> [kg]
-	T desnOilIni = DensityOil(fInitialState[ETemperature]);//Deletar depois
-	residual[EqMassConservationOil] = fCellVolume*fPorosityRock*(DensityOil(fInitialState[ETemperature])*state[ESaturationOil]-DensityOil(fInitialState[ETemperature])*fInitialState[ESaturationOil]);
+	residual[EqMassConservationOil] = fCellVolume*fPorosityRock*(DensityOil(state[ETemperature])*state[ESaturationOil]-DensityOil(fInitialState[ETemperature])*fInitialState[ESaturationOil]);
 	
 	// conservation of mass of water in the cell ->ESaturationWater
 	// [m3]*[Kg/m3] -> [kg]
-	T desnWaterIni = DensityWater(fInitialState[ETemperature]);//Deletar depois
-	residual[EqMassConservationWater] = fCellVolume*fPorosityRock*(DensityWater(fInitialState[ETemperature])*state[ESaturationWater]-DensityWater(fInitialState[ETemperature])*fInitialState[ESaturationWater])+state[EPhaseChange];
+	residual[EqMassConservationWater] = fCellVolume*fPorosityRock*(DensityWater(state[ETemperature])*state[ESaturationWater]-DensityWater(fInitialState[ETemperature])*fInitialState[ESaturationWater])+state[EPhaseChange];
 	
 	// conservation of mass of steam in the cell ->ESaturationSteam
 	// [m3]*[Kg/m3] -> [kg]
-	T desnSteamIni = DensitySteam(fInitialState[ETemperature]);//Deletar depois
-	residual[EqMassConservationSteam] = fCellVolume*fPorosityRock*(DensitySteam(fInitialState[ETemperature])*state[ESaturationSteam]-DensitySteam(fInitialState[ETemperature])*fInitialState[ESaturationSteam])-state[EPhaseChange];
+	residual[EqMassConservationSteam] = fCellVolume*fPorosityRock*(DensitySteam(state[ETemperature])*state[ESaturationSteam]-DensitySteam(fInitialState[ETemperature])*fInitialState[ESaturationSteam])-state[EPhaseChange];
 	
 	// relation between massflow rate and darcy velocity ->EMassFluxOil
-	//[gk/s] - [m/s]*[gk/m3]*[m2] -> [gk/s]
+	//[gk/s] - [m/s]*[gk/m3]*[m2] -> [kg/s]
 	residual[EqRelationMassFlowVDarcyOil] = state[EMassFluxOil]-state[EDarcyVelocityOil]*DensityOil(fInitialState[ETemperature])*fRightArea;
 	
 	// relation between massflow rate and darcy velocity ->EMassFluxWater
@@ -349,42 +363,26 @@ inline void TPBrCellMarx::InternalEquations(TPZVec<T> &state, TPZVec<T> &residua
 	//[gk/s] - [m/s]*[gk/m3]*[m2] -> [gk/s]
 	residual[EqRelationMassFlowVDarcySteam] = state[EMassFluxSteam]-state[EDarcyVelocitySteam]*DensitySteam(fInitialState[ETemperature])*fRightArea;
 	
-	TPZManVector<REAL> saturation(3), relatpermeability(3);
-	saturation[EOil]=fInitialState[ESaturationOil];
-	saturation[EWater]=fInitialState[ESaturationWater ];
-	saturation[ESteam]=fInitialState[ESaturationSteam ];
+	TPZManVector<T> saturation(3), relatpermeability(3);
+	saturation[EOil]=state[ESaturationOil];
+	saturation[EWater]=state[ESaturationWater];
+	saturation[ESteam]=state[ESaturationSteam];
 	ComputeRelativePermeability(saturation, relatpermeability);
 	// relation between dp/dx and the darcy velocity ->EDarcyVelocityOil
-	//[Pa]*[m2]/[Pa*sec] - [m/sec]*[m] -> [m2/s] - [m2/s] -> ... ->[m/s]  
+	//[Pa]*[m2]/[Pa*sec] - [m/sec]*[m] -> [m2/s] - [m2/s] -> ... ->[m/s] 
 	residual[EqRelationDpDxDarcyOil] = (fInitialState[EPressureOil]-state[EPressureOil])*fMaterialPermeability*relatpermeability[EOil]/ViscosityOil(fInitialState[ETemperature])-state[EDarcyVelocityOil]*fCellSize;
-	//----deletar depois
-	T viscoil = ViscosityOil(fInitialState[ETemperature]);
-	T KrOil = relatpermeability[EOil];
-	T pressaoIniOil =fInitialState[EPressureOil];
-	T presscal6 = fMaterialPermeability*relatpermeability[EOil]/viscoil;
-	//---------------
-	
+		
 	// relation between dp/dx and the darcy velocity -> EDarcyVelocityWater
 	//[Pa]*[m2]/[Pa*sec] - [m/sec]*[m] -> [m2/s] - [m2/s] -> ... ->[m/s]
 	residual[EqRelationDpDxDarcyWater] = (fInitialState[EPressureWater]-state[EPressureWater])*fMaterialPermeability*relatpermeability[EWater]/ViscosityWater(fInitialState[ETemperature])-state[EDarcyVelocityWater]*fCellSize;
-	//----deletar depois
-	T viscWater = ViscosityWater(fInitialState[ETemperature]);
-	T KrWater = relatpermeability[EWater];
-	T pressaoIniWater =fInitialState[EPressureWater];
-	//--------------
 	
 	// relation between dp/dx and the darcy velocity -> EDarcyVelocitySteam
 	//[Pa]*[m2]/[Pa*sec] - [m/sec]*[m] -> [m2/s] - [m2/s] -> ... ->[m/s]
 	residual[EqRelationDpDxDarcySteam] = (fInitialState[EPressureSteam]-state[EPressureSteam])*fMaterialPermeability*relatpermeability[ESteam]/ViscositySteam(fInitialState[ETemperature])-state[EDarcyVelocitySteam]*fCellSize;
-	//----deletar depois
-	T viscSteam = ViscositySteam(fInitialState[ETemperature]);
-	T KrSteam = relatpermeability[ESteam];
-	T pressaoIniSteam =fInitialState[EPressureSteam];
-	//--------------
 	
 	// relation between the pressure of oil and water (capillary pressure) -> EPressureWater
 	//[Pa] - [Pa] -> [Pa]
-	if(state[ESaturationOil]<fResidualOil) {
+	if(state[ESaturationOil]<=fResidualOil) {
 		residual[EqCapilaryPressureOilWater] = state[ESaturationOil]-fResidualOil;
 	}
 	else {
@@ -397,17 +395,17 @@ inline void TPBrCellMarx::InternalEquations(TPZVec<T> &state, TPZVec<T> &residua
 	
 	// the sum of saturations is equal 1 -> EPressureOil
 	//dimensionless
+	
 	residual[EqSumSaturation] = state[ESaturationOil]+state[ESaturationWater]+state[ESaturationSteam] - 1.;
 
 	// ENERGIA **************
-	T Temp = TemperatureSaturation(state[EPressureWater]);
+	T Temp = TemperatureSaturation(fInitialState[EPressureWater]);
 	//([kJ/kg][kg/m3] + [kJ/kg][kg/m3])*[m3] - ([kJ/(kg*Kelvin)][Celsius][kg/m3])*(m3) ->...->[kJ]
-	T EnergiaT = fCellVolume*
-	(
-		fPorosityRock*(EnthalpyOil(Temp)*DensityOil(Temp)*state[ESaturationOil]
-					+EnthalpyWater(Temp)*DensityWater(Temp)*(state[ESaturationWater]+state[ESaturationSteam]))
-											+(1. - fPorosityRock)*fSpecificHeatRock*fDensityRock*state[ETemperature]
-	 );
+	T EnergiaT = fCellVolume*fPorosityRock*(EnthalpyOil(Temp)*DensityOil(Temp)*state[ESaturationOil]
+											+EnthalpyWater(Temp)*DensityWater(Temp)*(state[ESaturationWater]/*+state[ESaturationSteam]*/)
+											+EnthalpySteam(Temp)*DensitySteam(Temp)*state[ESaturationSteam])
+	+(1. - fPorosityRock)*fCellVolume*fSpecificHeatRock*fDensityRock*state[ETemperature];
+	//cout << "\nEnergiaT --> " <<EnergiaT<<endl;
 	
 	// energy of the different fases : oil -> EEnthalpyOil
 	//EEnthalpyOil ->[kJ/(kg*Kelvin)][Celsius] -> [kJ/kg]
@@ -423,17 +421,19 @@ inline void TPBrCellMarx::InternalEquations(TPZVec<T> &state, TPZVec<T> &residua
 	
 	// total energy -> ETotalEnergy
 	//ETotalEnergy -> ([kJ/kg]*[kg/m3])*[m3] - ([kJ/(kg*Kelvin)]*[kg/m3]*[m3]*[Celsius]) -> [kJ] 
-	residual[EqTotalEnergy] = state[ETotalEnergy]-fPorosityRock*(EnthalpyOil(state[ETemperature])*DensityOil(state[ETemperature])*state[ESaturationOil]
+	residual[EqTotalEnergy] = state[ETotalEnergy]-fCellVolume*fPorosityRock*(EnthalpyOil(state[ETemperature])*DensityOil(state[ETemperature])*state[ESaturationOil]
 		+EnthalpyWater(state[ETemperature])*DensityWater(state[ETemperature])*state[ESaturationWater]
-		+EnthalpySteam(state[ETemperature])*DensitySteam(state[ETemperature])*state[ESaturationSteam])*fCellVolume
-	+(1.-fPorosityRock)*fSpecificHeatRock*fDensityRock*fCellVolume*state[ETemperature];
+		+EnthalpySteam(state[ETemperature])*DensitySteam(state[ETemperature])*state[ESaturationSteam])
+	-(1.-fPorosityRock)*fSpecificHeatRock*fDensityRock*fCellVolume*state[ETemperature];
 	
 	// conservation of energy internal contribution -> ETemperature -> EPhaseChange
 	//[kJ]
 	residual[EqEnergyConservation] = (state[ETotalEnergy]-fInitialState[ETotalEnergy]);
+	//cout << "\nETotalInicial --> " << fInitialState[ETotalEnergy] <<endl;
+	//cout << "\nETotalFinal --> " << state[ETotalEnergy] <<endl;
 	
-	if(state[ETotalEnergy] < EnergiaT/*EnergyCondensedSystem(state)*/)
-	{
+	T TotalEnergy = state[ETotalEnergy]; 
+	if(state[ETotalEnergy] < EnergiaT/*EnergyCondensedSystem(state)*/){
 		// Energy < EMin
 		residual[EqZeroSaturation] = state[ESaturationSteam];
 	} else {
@@ -453,13 +453,13 @@ inline void TPBrCellMarx::TotalResidual(TPZVec<REAL> &leftval, TPZVec<T> &state,
 	InternalEquations(state, internal);
 	int i;
 	for (i=0; i<NUMVARS; i++) {
-		residual[i] = fluxl[i]-fluxr[i]+internal[i];
+		residual[i] = internal[i]-(fluxl[i]-fluxr[i]);
 	}
 }
 
 template<>
 inline void TPBrCellMarx::InitializeState(TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > &state)
-{
+{		
 	state.Resize(NUMVARS);
 	state[EPressureOil] = fInitialState[EPressureOil];
 	state[EPressureOil].fastAccessDx(EPressureOil) = 1.;
@@ -504,6 +504,26 @@ template<>
 inline void TPBrCellMarx::InitializeState(TPZManVector<REAL> &state)
 {
 	state=fInitialState;
+	
+	//state.Resize(NUMVARS);
+//	state[EPressureOil] = 1.9755862983093257e6;
+//	state[EPressureWater] = 1.9755862983093257e6;
+//	state[EPressureSteam] = 1.9755862983093257e6;
+//	state[EMassFluxOil] = 0.18397689836721653;
+//	state[EMassFluxWater] = 0.45115809177932803;
+//	state[EMassFluxSteam] = 0.;
+//	state[EDarcyVelocityOil] = 0.00003337274897335301;
+//	state[EDarcyVelocityWater] = 0.00006651848185443374;
+//	state[EDarcyVelocitySteam] = 0.;
+//	state[ESaturationOil] = 0.017084997912007262;
+//	state[ESaturationWater] = 0.9829150020879928;
+//	state[ESaturationSteam] = 0.;
+//	state[EEnthalpyOil] = fInitialState[EEnthalpyOil];
+//	state[EEnthalpyWater] = fInitialState[EEnthalpyWater];
+//	state[EEnthalpySteam] = fInitialState[EEnthalpySteam];
+//	state[ETotalEnergy] = fInitialState[ETotalEnergy];
+//	state[ETemperature] = fInitialState[ETemperature];
+//	state[EPhaseChange] = -0.00555556;
 }
 
 void TPBrCellMarx::ExtractMatrix(TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > &input, TPZFMatrix &output)

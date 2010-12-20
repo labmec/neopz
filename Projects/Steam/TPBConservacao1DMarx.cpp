@@ -10,25 +10,21 @@
 #include "TPBConservacao1DMarx.h"
 #include "ThermalMethodsTables.h"
 #include "PropertiesTable.h"
-
+#include "pzseqsolver.h"
 #include <math.h>
 
 void ScaleFactor(TPZFMatrix &tangentmatrix, TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues, TPZManVector<REAL> &statescalevalues );
-void ScaleFactorSol(TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues );
+void ScaleFactorSol(TPZFMatrix &residualmatrix, TPZManVector<REAL> &statescalevalues );
+
 int main()
 {
 	REAL PI = 4*atan(1.);	
 	TPBrCellMarx first;
-	
-	//WaterDataInStateOfSaturation aux;
-//	double temp =0.;
-//	double pres = 2000.;
-//	temp= aux.getSaturationStateTemperature(pres);
-//	pres = aux.getSaturationStatePressure(temp);
-	
+		
 	//----------------- dados de entrada ------------------------------
 	//dados numerico
-	REAL TimeStep = 0.01;
+	REAL TimeStep = 1260.;//(1260. s = tempo para atingir a Energia máxima)
+	//REAL TimeStep_target =1400.;
 	
 	//dados da celula
 	REAL rint = 0.15;
@@ -36,12 +32,12 @@ int main()
 	REAL CellSize = 1.;
 	REAL LeftArea = PI*rint*rint;
 	REAL RightArea = PI*rext*rext;
-	REAL CellVolume = PI*(rext-rint)*(rext-rint)*CellSize;// 5.725552611167399 ;
+	REAL CellVolume = PI*(rext-rint)*(rext-rint)*CellSize;
 	
 	//dados da rocha
 	REAL MaterialPermeability = 0.8e-12;
 	PhysicalProperties minharocha(0,1);
-	//dados da injecao
+	//dados de injecao
 	REAL PressureWater(2.e6);
 	REAL tempReservtorio = 98.0;
 	REAL Temperature(tempReservtorio);
@@ -52,7 +48,7 @@ int main()
 	TPZManVector<REAL> Massflux(3,0.);
 	Massflux[TPBrCellMarx::EOil] = 0.0;
 	Massflux[TPBrCellMarx::EWater] = 0.121951;
-	Massflux[TPBrCellMarx::ESteam] = 0.555556 ;
+	Massflux[TPBrCellMarx::ESteam] = 0.555556;
 	//-----------------------------------------------------------------------------------------
 	
 	TPZManVector<REAL> initial(TPBrCellMarx::NUMVARS,0.), residual(TPBrCellMarx::NUMVARS,0.);
@@ -64,8 +60,8 @@ int main()
 	first.SetInjectionState(PressureWater, Massflux, leftstate);
 	
 	first.InitializeState(initial);
-		
 	first.TotalResidual(leftstate,initial,residual);
+	
 			
 	TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > tangent(TPBrCellMarx::NUMVARS,0.), state(TPBrCellMarx::NUMVARS,0.);
 	first.InitializeState(state);
@@ -83,47 +79,83 @@ int main()
 	
 	first.ExtractMatrix(scalevalues,scalevaluesmatrix);
 	first.ExtractMatrix(statescalevalues,statescalevaluesmatrix);
-	scalevaluesmatrix.Print("scalevalues = ",cout, EMathematicaInput);
-	statescalevaluesmatrix.Print("statescalevalues = ",cout, EMathematicaInput);
+	//scalevaluesmatrix.Print("scalevalues = ",cout, EMathematicaInput);
+	//statescalevaluesmatrix.Print("statescalevalues = ",cout, EMathematicaInput);
 	
 	//----------------------------- corrigir residuo e tangente -----------------------------
-	TPZFMatrix tangentmatrix,residualmatrix,statematrix;
+	TPZFNMatrix<20> tangentmatrix,residualmatrix,statematrix;
 	first.ExtractMatrix(tangent,tangentmatrix);
 	first.ExtractMatrix(residual,residualmatrix);
 	first.ExtractMatrix(initial,statematrix);
 	
-	ScaleFactor(tangentmatrix, residualmatrix, scalevalues, statescalevalues );
+	ScaleFactor(tangentmatrix, residualmatrix, scalevalues, statescalevalues);
 	//---------------------------------------------------------------------------------------------	
 			
-	tangentmatrix.Print("tangentmatrix = ",cout, EMathematicaInput);
+	//tangentmatrix.Print("tangentmatrix = ",cout, EMathematicaInput);
+	//residualmatrix.Print("Residualmatrix = ",cout, EMathematicaInput);
+	
+	
+	REAL norma;
+	int IterNewton =0;
+	TPZVec<int> ind;
+	norma = Norm(residualmatrix);
+	cout<< "Norma --> " << norma <<endl;
+//	while(TimeStep < TimeStep_target){
+//		IterNewton =0;
+//		norma =1.;
+		cout << "\n ======= Metodo de Newton =======\n"; 
+		while (IterNewton <100 && norma > 1.e-10) {
+			IterNewton++;
+			//cout<< "iter --> " << IterNewton <<endl;
+			tangentmatrix.Decompose_LU(ind);
+			tangentmatrix.Substitution(&residualmatrix, ind);
+			//tangentmatrix.SolveDirect(residualmatrix, ELU);
+			
+			// multiplicar o valor pelo scalestate
+			ScaleFactorSol(residualmatrix, statescalevalues);
+			
+			statematrix -= residualmatrix;
+						
+			first.ConvertState(statematrix,rightstate);
+			first.ConvertState(statematrix,state);
+			first.TotalResidual(leftstate, rightstate, residual);
+			first.TotalResidual(leftstate, state, tangent);
+			
+			tangentmatrix.Zero();
+			residualmatrix.Zero();
+			first.ExtractMatrix(residual,residualmatrix);
+			first.ExtractMatrix(tangent,tangentmatrix);
+			
+			// aplicar os fatores de escala novamente no tangentmatrix e residual
+			ScaleFactor(tangentmatrix, residualmatrix, scalevalues, statescalevalues);
+			
+			norma =Norm(residualmatrix);
+			cout<< "\nNorma --> " << norma <<endl;
+			
+			
+			//if(fabs(statematrix(TPBrCellMarx::ETemperature,0) - 212.23974763)<0.00001){
+//				cout<< "TimeStep --> " << TimeStep <<endl;
+//				residualmatrix.Print("residualmatrix = ",cout, EMathematicaInput);
+//				statematrix.Print("statematrixFim = ",cout, EMathematicaInput);
+//			}
+			
+		}
+//		TimeStep = 1.5*TimeStep;
+//		first.SetTimeStep(TimeStep);
+//		if(TimeStep > TimeStep_target) TimeStep = TimeStep_target;
+//		cout<< "TimeStep --> " << TimeStep <<endl;
+//}
+	
+	//cout << "\n Numero de Iteracoes = "<< IterNewton <<endl<<endl;
+	//tangentmatrix.Print("tangentmatrix = ",cout, EMathematicaInput);
+	//cout << endl;
 	residualmatrix.Print("Residualmatrix = ",cout, EMathematicaInput);
-	
-	cout << "\n ======= Metodo de Newton =======\n\n";
-	while (Norm(residualmatrix) > 1.e-6) {
-		tangentmatrix.SolveDirect(residualmatrix, ELU);
-		residualmatrix.Print("ResidualMatrix",cout);
-		// multiplicar o valor pelo scalestate
-		ScaleFactorSol(residualmatrix, statescalevalues);
-		
-		statematrix += residualmatrix;
-		statematrix.Print("statematrix", cout);
-		first.ConvertState(statematrix,rightstate);
-		first.ConvertState(statematrix,state);
-		first.TotalResidual(leftstate, rightstate, residual);
-		first.TotalResidual(leftstate, state, tangent);
-		tangentmatrix.Zero();
-		first.ExtractMatrix(tangent,tangentmatrix);
-		
-		// aplicar os fatores de escala novamente no tangentmatrix e residual
-		ScaleFactor(tangentmatrix, residualmatrix, scalevalues, statescalevalues );
-	}
-	
-	
-	tangentmatrix.Print("tangentmatrix = ",cout, EMathematicaInput);
-	residualmatrix.Print("Residualmatrix = ",cout, EMathematicaInput);
+	cout<<endl;
+	statematrix.Print("statematrixFim = ",cout, EMathematicaInput);
 	
 	return 0;
 };
+
 
 template<class T>
 // by Agnaldo
@@ -137,7 +169,7 @@ T TPBrCellMarx::TemperatureSaturatedSteam(T pressuresteam){
 	val_log = log(pressuresteam*0.0001450377438972831);
 	temp=561.435 + 33.8866*val_log + 2.18893*(val_log*val_log) + 0.0808998*(val_log*val_log*val_log) +
 			 0.0342030*(val_log*val_log*val_log*val_log);
-	temp_de_saturac = (temp-32 - 459.67)/1.8;
+	temp_de_saturac = (temp-32. - 459.67)/1.8;
 	
 	return temp_de_saturac;
 }
@@ -236,10 +268,10 @@ void ScaleFactor(TPZFMatrix &tangentmatrix, TPZFMatrix &residualmatrix, TPZManVe
 	tangentmatrixtr.Transpose(&tangentmatrix);
 }
 
-void ScaleFactorSol(TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues ){
+void ScaleFactorSol(TPZFMatrix &residualmatrix, TPZManVector<REAL> &statescalevalues ){
 	
 	int numvar = TPBrCellMarx ::NUMVARS;
 	for (int ir =0; ir<numvar; ir++) {
-		residualmatrix(ir,0) = residualmatrix(ir,0)*scalevalues[ir] ;
+		residualmatrix(ir,0) = residualmatrix(ir,0)*statescalevalues[ir] ;
 	}	
 }
