@@ -24,8 +24,7 @@
 class TPBrCellMarx
 {
 	// Passo de tempo
-	REAL fTimeStep;
-	
+		
 	// Célula
 	/**
 	*Volume [m3]; Area [m2] e Size [m]
@@ -55,7 +54,7 @@ class TPBrCellMarx
 public:
 	enum VARNAME {EMassFluxOil,EMassFluxWater,EMassFluxSteam,EDarcyVelocityOil,EDarcyVelocityWater,EDarcyVelocitySteam,
 		EPressureOil,EPressureWater,EPressureSteam,ESaturationOil,ESaturationWater,ESaturationSteam,
-		EEnthalpyOil,EEnthalpyWater,EEnthalpySteam,ETotalEnergy,ETemperature,EPhaseChange};
+		EEnthalpyOil,EEnthalpyWater,EEnthalpySteam,ETotalEnergy,ETemperature,EPhaseChange, EDeltaT};
 	
 	//Original
 	enum NUMBEREQUATIONS {EqMassConservationOil, EqMassConservationWater,EqMassConservationSteam, 
@@ -63,7 +62,7 @@ public:
 		EqRelationDpDxDarcyOil, EqRelationDpDxDarcyWater, EqRelationDpDxDarcySteam, 
 		EqCapilaryPressureOilWater, EqCapilaryPressureOilSteam, EqSumSaturation,
 		EqEnergyOil, EqEnergyWater, EqEnergySteam,
-		EqTotalEnergy, EqEnergyConservation, EqZeroSaturation};
+		EqTotalEnergy, EqEnergyConservation, EqZeroSaturation, EqTemperSaturation};
 	
 	
 	//Only Swap
@@ -88,19 +87,16 @@ public:
 	
 	enum VARINDEX {EOil, EWater, ESteam};
 	
-	static const int NUMVARS = 18;
+	static const int NUMVARS = 19;
 	
 	TPBrCellMarx();
 	
 	virtual ~TPBrCellMarx();
 	
-	void SetTimeStep(REAL &timestep);
 	
-	
-	void SetMaterialProperty(REAL materialpermeability, REAL delt, PhysicalProperties &rock)
+	void SetMaterialProperty(REAL materialpermeability, PhysicalProperties &rock)
 	{
 		fMaterialPermeability = materialpermeability;
-		fTimeStep = delt;
 		fPorosityRock = rock.porosity;
 		fDensityRock = rock.density;
 		fSpecificHeatRock = rock.specificheat;
@@ -127,8 +123,8 @@ public:
 		
 	}
 	
-void SetCellState(REAL pressurewater, TPZVec<REAL> &saturation, REAL temperature ){
-								
+void SetCellState(REAL pressurewater, TPZVec<REAL> &saturation, REAL temperature, REAL deltIni ){
+	     
 		fInitialState[EMassFluxOil] = 0.;
 		fInitialState[EMassFluxWater] = 0.;
 		fInitialState[EMassFluxSteam] = 0.;
@@ -150,6 +146,7 @@ void SetCellState(REAL pressurewater, TPZVec<REAL> &saturation, REAL temperature
 													 EnthalpySteam(temperature)*DensitySteam(temperature)*saturation[ESteam])*fCellVolume 
 		+ (1.-fPorosityRock)*fSpecificHeatRock*fDensityRock*fCellVolume*temperature;
 		fInitialState[ETemperature] = temperature;
+	      fInitialState[EDeltaT] = deltIni;
 	}
 	
 	template<class T>
@@ -169,7 +166,7 @@ void SetCellState(REAL pressurewater, TPZVec<REAL> &saturation, REAL temperature
 	void InitializeState(TPZManVector<T> &state);
 	
 	template<class T>
-	void Inflow(TPZVec<REAL> &leftval, TPZVec<T> &flux);
+	void Inflow(TPZVec<REAL> &leftval, TPZVec<T> &flux, T timestep);
 	
 	template<class T>
 	void Outflow(TPZVec<T> &rightval, TPZVec<T> &flux);
@@ -226,36 +223,36 @@ TPBrCellMarx::TPBrCellMarx() : fInitialState(NUMVARS,0.)
 TPBrCellMarx::~TPBrCellMarx() {
 }
 
-void TPBrCellMarx::SetTimeStep(REAL &timestep)
-{
-	fTimeStep = timestep;
-}
 
 template<class T>
-inline void TPBrCellMarx::Inflow(TPZVec<REAL> &leftval, TPZVec<T> &flux)
+inline void TPBrCellMarx::Inflow(TPZVec<REAL> &leftval, TPZVec<T> &flux, T timestep)
 {		
-	flux[EqMassConservationOil] = leftval[EMassFluxOil]*fTimeStep;
-	flux[EqMassConservationWater] = leftval[EMassFluxWater]*fTimeStep;
-	flux[EqMassConservationSteam] = leftval[EMassFluxSteam]*fTimeStep;
+	flux[EqMassConservationOil] = leftval[EMassFluxOil]*timestep;
+	flux[EqMassConservationWater] = leftval[EMassFluxWater]*timestep;
+	flux[EqMassConservationSteam] = leftval[EMassFluxSteam]*timestep;
 	//( [kJ/kg]*[kg/s] )*[s] -> [kJ]
 	flux[EqEnergyConservation] = (leftval[EEnthalpyOil]*leftval[EMassFluxOil]
 			   +leftval[EEnthalpyWater]*leftval[EMassFluxWater]
 			   +leftval[EEnthalpySteam]*leftval[EMassFluxSteam]
-			   )*fTimeStep;
+			   )*timestep;
 	//cout << "\nFluxo de entrada --> "<< flux[EqEnergyConservation] <<endl; 
 }
 
 template<class T>
 inline void TPBrCellMarx::Outflow(TPZVec<T> &state, TPZVec<T> &flux)
 {		
-	flux[EqMassConservationOil] =state[EMassFluxOil]*fTimeStep;
-	flux[EqMassConservationWater] = state[EMassFluxWater]*fTimeStep;
-	flux[EqMassConservationSteam] = state[EMassFluxSteam]*fTimeStep;
+	//T QWaterSaida = state[EMassFluxWater]*state[EDeltaT];
+	//cout << " \nQWaterSaida = "<< QWaterSaida<< endl;
+//	cout << " \nVolumeCelula = "<< fCellVolume <<endl;
+
+	flux[EqMassConservationOil] =state[EMassFluxOil]*state[EDeltaT];
+	flux[EqMassConservationWater] = state[EMassFluxWater]*state[EDeltaT];
+	flux[EqMassConservationSteam] = state[EMassFluxSteam]*state[EDeltaT];
 	//( [kJ/kg]*[m/s]*[kg/m3] )*[m2]*[s] -> [kJ]
 	flux[EqEnergyConservation] = (fInitialState[EEnthalpyOil]*state[EDarcyVelocityOil]*DensityOil(fInitialState[ETemperature])
 				+fInitialState[EEnthalpyWater]*state[EDarcyVelocityWater]*DensityWater(fInitialState[ETemperature])
 				+fInitialState[EEnthalpySteam]*state[EDarcyVelocitySteam]*DensitySteam(fInitialState[ETemperature])
-				)*fRightArea*fTimeStep;
+				)*fRightArea*state[EDeltaT];
 	
 	//cout << "\nFluxo de saida --> "<< flux[EqEnergyConservation] <<endl; 
 	
@@ -265,9 +262,9 @@ inline void TPBrCellMarx::ReferenceResidualValues(TPZManVector<REAL> &state, TPZ
 {
 	REAL maxmassflux = max(state[EMassFluxOil],state[EMassFluxWater]);
 	maxmassflux = max(state[EMassFluxSteam],maxmassflux);
-	scalevalues[EqMassConservationOil] = maxmassflux *fTimeStep;
-	scalevalues[EqMassConservationWater] = maxmassflux*fTimeStep;
-	scalevalues[EqMassConservationSteam] = maxmassflux * fTimeStep;
+	scalevalues[EqMassConservationOil] = maxmassflux *1000.;
+	scalevalues[EqMassConservationWater] = maxmassflux*1000.;
+	scalevalues[EqMassConservationSteam] = maxmassflux *1000.;
 	
 	scalevalues[EqRelationMassFlowVDarcyOil] = maxmassflux;
 	scalevalues[EqRelationMassFlowVDarcyWater] = maxmassflux;
@@ -296,6 +293,8 @@ inline void TPBrCellMarx::ReferenceResidualValues(TPZManVector<REAL> &state, TPZ
 					+ (1.-fPorosityRock)*fSpecificHeatRock*fDensityRock*fCellVolume*state[ETemperature];
 
 	scalevalues[EqZeroSaturation] = 1.;
+	
+	scalevalues[EqTemperSaturation] = 200.;
 }
 
 inline void TPBrCellMarx::ReferenceStateValues(TPZManVector<REAL> &state, TPZManVector<REAL> &statescalevalues)
@@ -334,6 +333,8 @@ inline void TPBrCellMarx::ReferenceStateValues(TPZManVector<REAL> &state, TPZMan
 	REAL phasechange = maxmassflux;
 	statescalevalues[EPhaseChange] = phasechange;
 	
+	statescalevalues[EDeltaT] = 1000.;
+	
 }
 template<class T>
 inline void TPBrCellMarx::InternalEquations(TPZVec<T> &state, TPZVec<T> &residual)
@@ -345,10 +346,12 @@ inline void TPBrCellMarx::InternalEquations(TPZVec<T> &state, TPZVec<T> &residua
 	
 	// conservation of mass of water in the cell ->ESaturationWater
 	// [m3]*[Kg/m3] -> [kg]
+	//T  dw = DensityWater(fInitialState[ETemperature]);
 	residual[EqMassConservationWater] = fCellVolume*fPorosityRock*(DensityWater(state[ETemperature])*state[ESaturationWater]-DensityWater(fInitialState[ETemperature])*fInitialState[ESaturationWater])+state[EPhaseChange];
 	
 	// conservation of mass of steam in the cell ->ESaturationSteam
 	// [m3]*[Kg/m3] -> [kg]
+	//T  dS = DensitySteam(fInitialState[ETemperature]);
 	residual[EqMassConservationSteam] = fCellVolume*fPorosityRock*(DensitySteam(state[ETemperature])*state[ESaturationSteam]-DensitySteam(fInitialState[ETemperature])*fInitialState[ESaturationSteam])-state[EPhaseChange];
 	
 	// relation between massflow rate and darcy velocity ->EMassFluxOil
@@ -399,11 +402,11 @@ inline void TPBrCellMarx::InternalEquations(TPZVec<T> &state, TPZVec<T> &residua
 	residual[EqSumSaturation] = state[ESaturationOil]+state[ESaturationWater]+state[ESaturationSteam] - 1.;
 
 	// ENERGIA **************
-	T Temp = TemperatureSaturation(fInitialState[EPressureWater]);
+	T TempSaturation = TemperatureSaturation(fInitialState[EPressureWater]);
 	//([kJ/kg][kg/m3] + [kJ/kg][kg/m3])*[m3] - ([kJ/(kg*Kelvin)][Celsius][kg/m3])*(m3) ->...->[kJ]
-	T EnergiaT = fCellVolume*fPorosityRock*(EnthalpyOil(Temp)*DensityOil(Temp)*state[ESaturationOil]
-											+EnthalpyWater(Temp)*DensityWater(Temp)*(state[ESaturationWater]/*+state[ESaturationSteam]*/)
-											+EnthalpySteam(Temp)*DensitySteam(Temp)*state[ESaturationSteam])
+	T EnergiaT = fCellVolume*fPorosityRock*(EnthalpyOil(TempSaturation)*DensityOil(TempSaturation)*state[ESaturationOil]
+											+EnthalpyWater(TempSaturation)*DensityWater(TempSaturation)*(state[ESaturationWater]/*+state[ESaturationSteam]*/)
+											+EnthalpySteam(TempSaturation)*DensitySteam(TempSaturation)*state[ESaturationSteam])
 	+(1. - fPorosityRock)*fCellVolume*fSpecificHeatRock*fDensityRock*state[ETemperature];
 	//cout << "\nEnergiaT --> " <<EnergiaT<<endl;
 	
@@ -432,13 +435,19 @@ inline void TPBrCellMarx::InternalEquations(TPZVec<T> &state, TPZVec<T> &residua
 	//cout << "\nETotalInicial --> " << fInitialState[ETotalEnergy] <<endl;
 	//cout << "\nETotalFinal --> " << state[ETotalEnergy] <<endl;
 	
-	T TotalEnergy = state[ETotalEnergy]; 
-	if(state[ETotalEnergy] < EnergiaT/*EnergyCondensedSystem(state)*/){
+	//T TotalEnergy = state[ETotalEnergy]; 
+	//if(state[ETotalEnergy] <= EnergiaT/*EnergyCondensedSystem(state)*/){
 		// Energy < EMin
 		residual[EqZeroSaturation] = state[ESaturationSteam];
-	} else {
-		residual[EqZeroSaturation] = state[ETemperature] - Temp/*CondensationTemperature(state)*/;
-	}
+	//} else {
+//		residual[EqZeroSaturation] = state[ETemperature] - TempSaturation/*CondensationTemperature(state)*/;
+//		cout <<" Entrei ======="<<endl;
+//		cout << " Energia_min = "<< EnergiaT<<endl;
+//		
+//	}
+	
+	//equacao para obter o valor de DeltaT, para o qual a teperatura eh igual a temperatura de saturacao de vapor
+	residual[EqTemperSaturation] = state[ETemperature] - TempSaturation;
 
 }
 
@@ -448,7 +457,7 @@ inline void TPBrCellMarx::TotalResidual(TPZVec<REAL> &leftval, TPZVec<T> &state,
 	TPZManVector<T> fluxl(NUMVARS,0.);
 	TPZManVector<T> fluxr(NUMVARS,0.);
 	TPZManVector<T> internal(NUMVARS,0.);
-	Inflow(leftval, fluxl);
+	Inflow(leftval, fluxl, state[EDeltaT]);
 	Outflow(state, fluxr);
 	InternalEquations(state, internal);
 	int i;
@@ -497,6 +506,8 @@ inline void TPBrCellMarx::InitializeState(TPZManVector<TFad<TPBrCellMarx::NUMVAR
 	state[ETemperature].fastAccessDx(ETemperature) = 1.;
 	state[EPhaseChange] = fInitialState[EPhaseChange];
 	state[EPhaseChange].fastAccessDx(EPhaseChange) = 1.;
+	state[EDeltaT] = fInitialState[EDeltaT];
+	state[EDeltaT].fastAccessDx(EDeltaT) = 1.;
 
 }
 

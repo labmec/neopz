@@ -23,7 +23,7 @@ int main()
 		
 	//----------------- dados de entrada ------------------------------
 	//dados numerico
-	REAL TimeStep = 1260.;//(1260. s = tempo para atingir a Energia máxima)
+	REAL TimeStep =10.;//(1260. s = tempo para atingir a Energia máxima)
 	//REAL TimeStep_target =1400.;
 	
 	//dados da celula
@@ -54,9 +54,9 @@ int main()
 	TPZManVector<REAL> initial(TPBrCellMarx::NUMVARS,0.), residual(TPBrCellMarx::NUMVARS,0.);
 	TPZManVector<REAL> leftstate(TPBrCellMarx::NUMVARS,0.),rightstate(TPBrCellMarx::NUMVARS,0.);
 	
-	first.SetMaterialProperty(MaterialPermeability, TimeStep,minharocha);
+	first.SetMaterialProperty(MaterialPermeability, minharocha);
 	first.SetGeometry(CellVolume,LeftArea,RightArea,CellSize);
-	first.SetCellState(PressureWater,InitialSaturation,Temperature);
+	first.SetCellState(PressureWater,InitialSaturation,Temperature, TimeStep);
 	first.SetInjectionState(PressureWater, Massflux, leftstate);
 	
 	first.InitializeState(initial);
@@ -69,7 +69,7 @@ int main()
 	
 	
 	//-------------------------- FATORES DE ESCALA  ---------------------------------------------------
-	TPZManVector <REAL> vecState(initial), scalevalues(18,0.), statescalevalues(18,0.);
+	TPZManVector <REAL> vecState(initial), scalevalues(19,0.), statescalevalues(19,0.);
 	TPZFMatrix scalevaluesmatrix,statescalevaluesmatrix;
 	vecState[TPBrCellMarx::EMassFluxOil] = leftstate[TPBrCellMarx::EMassFluxOil];
 	vecState[TPBrCellMarx::EMassFluxWater] = leftstate[TPBrCellMarx::EMassFluxWater];
@@ -79,8 +79,8 @@ int main()
 	
 	first.ExtractMatrix(scalevalues,scalevaluesmatrix);
 	first.ExtractMatrix(statescalevalues,statescalevaluesmatrix);
-	//scalevaluesmatrix.Print("scalevalues = ",cout, EMathematicaInput);
-	//statescalevaluesmatrix.Print("statescalevalues = ",cout, EMathematicaInput);
+	scalevaluesmatrix.Print("scalevalues = ",cout, EMathematicaInput);
+	statescalevaluesmatrix.Print("statescalevalues = ",cout, EMathematicaInput);
 	
 	//----------------------------- corrigir residuo e tangente -----------------------------
 	TPZFNMatrix<20> tangentmatrix,residualmatrix,statematrix;
@@ -91,8 +91,8 @@ int main()
 	ScaleFactor(tangentmatrix, residualmatrix, scalevalues, statescalevalues);
 	//---------------------------------------------------------------------------------------------	
 			
-	//tangentmatrix.Print("tangentmatrix = ",cout, EMathematicaInput);
-	//residualmatrix.Print("Residualmatrix = ",cout, EMathematicaInput);
+	tangentmatrix.Print("tangentmatrix = ",cout, EMathematicaInput);
+	residualmatrix.Print("Residualmatrix = ",cout, EMathematicaInput);
 	
 	
 	REAL norma;
@@ -110,12 +110,13 @@ int main()
 			tangentmatrix.Decompose_LU(ind);
 			tangentmatrix.Substitution(&residualmatrix, ind);
 			//tangentmatrix.SolveDirect(residualmatrix, ELU);
-			
+			residualmatrix.Print("Residualmatrix = ",cout, EMathematicaInput);
 			// multiplicar o valor pelo scalestate
 			ScaleFactorSol(residualmatrix, statescalevalues);
 			
 			statematrix -= residualmatrix;
-						
+			statematrix.Print("statematrixFim = ",cout, EMathematicaInput);		
+			
 			first.ConvertState(statematrix,rightstate);
 			first.ConvertState(statematrix,state);
 			first.TotalResidual(leftstate, rightstate, residual);
