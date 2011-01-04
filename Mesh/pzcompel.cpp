@@ -1,4 +1,4 @@
-//$Id: pzcompel.cpp,v 1.49 2010-11-08 15:45:05 phil Exp $
+﻿//$Id: pzcompel.cpp,v 1.50 2011-01-04 10:07:59 fortiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -514,7 +514,7 @@ void TPZCompEl::CalcResidual(TPZElementMatrix &ef){
 
 TPZGeoEl * TPZCompEl::GetRefElPatch(){
   std::stringstream sout;
-  sout << "Obtendo elemento geom�rico de refer�cia " << Index() << endl;
+  sout << "Obtendo elemento geometrico de referencia " << Index() << endl;
   Print(sout);
   TPZGeoEl *ref = Reference();
   if (!ref) {
