@@ -9,8 +9,8 @@
 
 #include "ThermalMethodsTables.h"
 #include "ConvertionMethods.h"
-#include "pzerror.h"
-#include "pzreal.h"
+//#include "pzerror.h"
+//#include "pzreal.h"
 
 #include <math.h>
 

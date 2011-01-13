@@ -3,8 +3,6 @@
 
 #pragma hdrstop
 
-#include "ConvertionMethods.h"
-#include "ThermalMethodsTables.h"
 #include "TSwxSteamInjectionData.h"
 
 //---------------------------------------------------------------------------
