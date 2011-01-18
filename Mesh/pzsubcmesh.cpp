@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.48 2011-01-18 10:44:59 phil Exp $
+﻿//$Id: pzsubcmesh.cpp,v 1.49 2011-01-18 14:04:44 fortiago Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -967,7 +967,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 			int eq = Block().Position(seqnum);
 			int blsize = Block().Size(seqnum);
 			// se o connect nao tem funcoes de forma associadas nao ha o que verificar
-			if (size == 0) 
+			if (blsize == 0)
 			{
 				continue;
 			}
