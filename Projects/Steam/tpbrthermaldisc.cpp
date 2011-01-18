@@ -10,30 +10,38 @@
 
 #include "tpbrthermaldisc.h"
 #include "pzsbndmat.h"
+#include "pzskylmat.h"
 #include "pzstepsolver.h"
 
 /// Compute the stiffness matrix
 void TPBRThermalDisc::ComputeStiffness()
 {
-	TPZSBMatrix	*bnd = new TPZSBMatrix(fNElements+1,1);
+	TPZManVector<int> skyline(fNElements+1,0);
+	for (int i=1; i<=fNElements; i++) {
+		skyline[i] = i-1;
+	}
+	TPZSkylMatrix	*skyl = new TPZSkylMatrix(fNElements+1,skyline);
 	REAL delx = fDomainSize/fNElements;
 	REAL diag = fTimeStep*fK/delx+fCp*delx/2;
 	REAL offdiag = -fTimeStep*fK/delx;
-	bnd->PutVal(0, 0, diag);
-	bnd->PutVal(0, 1, offdiag);
-	bnd->PutVal(fNElements, fNElements, diag);
+	skyl->PutVal(0, 0, diag);
+	skyl->PutVal(0, 1, offdiag);
+	skyl->PutVal(fNElements, fNElements, diag);
 	diag *= 2.;
 	for (int i=1; i<fNElements; i++) {
-		bnd->PutVal(i, i, diag);
-		bnd->PutVal(i, i+1, offdiag);
+		skyl->PutVal(i, i, diag);
+		skyl->PutVal(i, i+1, offdiag);
 	}
-	TPZStepSolver *step = new TPZStepSolver(bnd);
+	skyl->Print("Band matrix",std::cout);
+	TPZStepSolver *step = new TPZStepSolver(skyl);
 	step->SetDirect(ECholesky);
 	fSolver = step;
 	fUnitFluxSolution.Redim(fNElements+1,1);
-	TPZFMatrix rhs(fNElements,1,0.);
+	TPZFMatrix rhs(fNElements+1,1,0.);
 	rhs(0,0) = fTimeStep;
 	fSolver->Solve(rhs, fUnitFluxSolution, 0);
+	skyl->Print("Band matrix after decompose",std::cout);
+	fUnitFluxSolution.Print("UnitFlux",std::cout);
 }
 
 /// Compute the next solution
