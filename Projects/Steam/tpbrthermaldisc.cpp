@@ -45,7 +45,7 @@ void TPBRThermalDisc::ComputeStiffness()
 }
 
 /// Compute the next solution
-void TPBRThermalDisc::NextSolution(REAL inletTemp, TPZFMatrix &prevSol, TPZFMatrix &nextSol)
+void TPBRThermalDisc::NextSolution(REAL inletTemp, TPZFMatrix &prevSol, TPZFMatrix &nextSol, REAL &flux)
 {
 	TPZFMatrix rhs(fNElements+1,1);
 	REAL delx = fDomainSize/fNElements;
@@ -57,6 +57,7 @@ void TPBRThermalDisc::NextSolution(REAL inletTemp, TPZFMatrix &prevSol, TPZFMatr
 	nextSol.SetSize(fNElements+1, 1);
 	fSolver->Solve(prevSol,nextSol);
 	REAL scale = (inletTemp-nextSol(0,0))/fUnitFluxSolution(0,0);
+	flux = scale;
 	nextSol += scale*fUnitFluxSolution;
 }
 

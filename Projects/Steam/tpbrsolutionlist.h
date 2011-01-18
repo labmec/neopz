@@ -35,6 +35,8 @@ public:
 		return varEnergy;
 	}
 	/// Compute the solution for the next timestep
-	void AdvanceSolution(REAL delt, REAL inletTemp);
+	void AdvanceSolution(REAL delt, REAL inletTemp, REAL &DQDT);
+	
+	REAL DQDT(REAL delt, REAL inletTemp);
 };
 #endif

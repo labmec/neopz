@@ -83,6 +83,6 @@ public:
 	}
 	
 	/// Compute the next solution
-	void NextSolution(REAL inletTemp, TPZFMatrix &prevSol, TPZFMatrix &nextSol);
+	void NextSolution(REAL inletTemp, TPZFMatrix &prevSol, TPZFMatrix &nextSol, REAL &flux);
 };
 #endif
