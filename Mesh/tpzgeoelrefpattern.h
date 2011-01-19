@@ -397,6 +397,10 @@ template<class TGeo>
 void
 TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	if (!fRefPattern) {
+		if(!gRefDBase.GetUniformRefPattern(this->Type()))
+		{
+			gRefDBase.InitializeUniformRefPattern(this->Type());
+		}
 		TPZAutoPointer<TPZRefPattern> uniform = gRefDBase.GetUniformRefPattern(this->Type());
 		std::list<TPZAutoPointer<TPZRefPattern> > compat;
 		TPZRefPatternTools::GetCompatibleRefPatterns(this,compat);
