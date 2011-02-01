@@ -92,7 +92,8 @@ libpz_a_LIBADD = ../Material/pzelasAXImat.o ../Analysis/TPZNLMultGridAnalysis.o 
 	../Post/pzgraphelq2dd.o ../Post/pzgraphelq3dd.o ../Post/pzgraphmesh.o ../Post/pzgraphnode.o \
 	../Post/pzmvmesh.o ../Post/pztrigraph.o ../Post/pztrigraphd.o ../Post/pzv3dmesh.o \
 	../Post/pzvisualmatrix.o ../Post/tpzgraphelprismmapped.o ../Post/tpzgraphelpyramidmapped.o \
-	../Post/tpzgraphelt2dmapped.o ../Post/tpzgraphelt3d.o ../Post/pzvtkmesh.o ../Pre/TPZExtendGridDimension.o \
+	../Post/tpzgraphelt2dmapped.o ../Post/tpzgraphelt3d.o ../Post/pzvtkmesh.o ../Post/TPZVTKGeoMesh.o \
+	../Pre/TPZExtendGridDimension.o \
 	../Pre/TPZGMSHReadMesh.o ../Pre/pzgengrid.o ../Pre/pzpargrid.o ../Pre/pzreadmesh.o \
 	../Pre/pzreadmeshhr.o ../Pre/pzreadtetgen.o \
 	../Refine/TPZRefCube.o ../Refine/TPZRefLinear.o \
