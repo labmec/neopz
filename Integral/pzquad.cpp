@@ -43,7 +43,7 @@ TPZInt1d::TPZInt1d(int OrdX){
 
 void TPZInt1d::SetOrder(TPZVec<int> &ord){
   if(ord.NElements() < 1) {
-    cout << "TPZINt1d::SetOrder: NULL number of integration points specified\n";
+    std::cout << "TPZINt1d::SetOrder: NULL number of integration points specified\n";
     return;
   }
   fOrdKsi = ord[0];
@@ -71,7 +71,7 @@ void TPZInt1d::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 		<< "TPZInt1d::TPZInt1d(TPZIntRule *)\n";
   if((ip < 0) || (ip >= NPoints()))
     PZError 	<< "ip = " << ip << ", Out of Range: 0 -> "
-		<< NPoints() << endl;
+		<< NPoints() << std::endl;
 }
 
 //**************************************
@@ -107,7 +107,7 @@ void TPZIntQuad::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 		<< "TPZInt1d::TPZInt1d(TPZIntRule *)\n";
   if((ip < 0) || (ip >= NPoints()))
     PZError 	<< "ip = " << ip << ", Out of Range: 0 -> "
-		<< NPoints() << endl;
+		<< NPoints() << std::endl;
 }
 
 void TPZIntQuad::SetOrder(TPZVec<int> &ord){
@@ -148,7 +148,7 @@ void TPZIntTriang::Point(int ip, TPZVec<REAL> &pos, REAL &w) const{
 		<< "TPZIntTriang::Point(..)\n";
   if((ip < 0) || (ip >= NPoints()))
     PZError 	<< "ip = " << ip << ", Out of Range: 0 -> "
-		<< NPoints() << endl;
+		<< NPoints() << std::endl;
 }
 
 void TPZIntTriang::SetOrder(TPZVec<int> &ord){
@@ -210,7 +210,7 @@ void TPZIntCube3D::Point(int ip, TPZVec<REAL> &pos, REAL &w) const{
 		<< "TPZIntCube3D::Point(..)\n";
   if((ip < 0) || (ip >= NPoints()))
     PZError 	<< "ip = " << ip << ", Out of Range: 0 -> "
-		<< NPoints() << endl;
+		<< NPoints() << std::endl;
 }
 //------------------------------------------------------------------------------
 void TPZIntCube3D::GetOrder(TPZVec<int> &ord) const {
@@ -252,7 +252,7 @@ void TPZIntTetra3D::Point(int ip, TPZVec<REAL> &pos, REAL &w) const{
 		<< "TPZIntTetra3D::Point(..)\n";
   if((ip < 0) || (ip >= NPoints()))
     PZError 	<< "ip = " << ip << ", Out of Range: 0 -> "
-		<< NPoints() << endl;
+		<< NPoints() << std::endl;
 }
 //------------------------------------------------------------------------------
 void TPZIntTetra3D::GetOrder(TPZVec<int> &ord) const {
@@ -306,7 +306,7 @@ void TPZIntPrism3D::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 		<< "TPZIntPrism3D::Point(..)\n";
   if((ip < 0) || (ip >= NPoints()))
     PZError 	<< "ip = " << ip << ", Out of Range: 0 -> "
-		<< NPoints() << endl;
+		<< NPoints() << std::endl;
 }
 //------------------------------------------------------------------------------
 void TPZIntPrism3D::GetOrder(TPZVec<int> &ord) const{
@@ -360,7 +360,7 @@ void TPZIntPyram3D::Point(int ip, TPZVec<REAL> &pos, REAL &w) const{
 		<< "TPZIntPyram3D::Point(..)\n";
   if((ip < 0) || (ip >= NPoints()))
     PZError 	<< "ip = " << ip << ", Out of Range: 0 -> "
-		<< NPoints() << endl;
+		<< NPoints() << std::endl;
 }
 //------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////

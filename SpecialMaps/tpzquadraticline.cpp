@@ -8,6 +8,8 @@
 #include "pznoderep.h.h"
 
 using namespace pzshape;
+using namespace pzgeom;
+using namespace pztopology;
 
 void TPZQuadraticLine::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
   REAL qsi = param[0];

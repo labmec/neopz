@@ -1,4 +1,4 @@
-#ifndef TPZCURVEDTRIANGLE_H
+﻿#ifndef TPZCURVEDTRIANGLE_H
 #define TPZCURVEDTRIANGLE_H
 
 // #include "pzfmatrix.h"
@@ -11,17 +11,13 @@
 
 #include <iostream>
 
-using namespace std;
-using namespace pzgeom;
-using namespace pztopology;
-
   /**
   / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
   / LabMeC - FEC - UNICAMP
   / 2007
  */
 
-class TPZCurvedTriangle : public TPZNodeRep<3,TPZTriangle> {
+class TPZCurvedTriangle : public pzgeom::TPZNodeRep<3,pztopology::TPZTriangle> {
 
 public:
 
@@ -33,23 +29,23 @@ public:
 
    ~TPZCurvedTriangle();
 
-    TPZCurvedTriangle(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
+    TPZCurvedTriangle(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
     {
     }
 
-    TPZCurvedTriangle() : TPZNodeRep<NNodes,pztopology::TPZTriangle>()
+    TPZCurvedTriangle() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>()
     {
     }
 
-    TPZCurvedTriangle(const TPZCurvedTriangle &cp,std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap)
+    TPZCurvedTriangle(const TPZCurvedTriangle &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap)
     {
     }
 
-    TPZCurvedTriangle(const TPZCurvedTriangle &cp) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
+    TPZCurvedTriangle(const TPZCurvedTriangle &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
     {
     }
 
-    TPZCurvedTriangle(const TPZCurvedTriangle &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
+    TPZCurvedTriangle(const TPZCurvedTriangle &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
     {
     }
 

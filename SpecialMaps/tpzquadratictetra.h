@@ -11,17 +11,13 @@
 
 #include <iostream>
 
-using namespace std;
-using namespace pzgeom;
-using namespace pztopology;
-
   /**
   / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
   / LabMeC - FEC - UNICAMP
   / 2007
  */
 
-class TPZQuadraticTetra : public TPZNodeRep<10,TPZTetrahedron> {
+class TPZQuadraticTetra : public pzgeom::TPZNodeRep<10,pztopology::TPZTetrahedron> {
 
 public:
 
@@ -31,19 +27,19 @@ public:
           return false;
      }
 
-     TPZQuadraticTetra(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes) {
+     TPZQuadraticTetra(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes) {
      }
 
-     TPZQuadraticTetra() : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>() {
+     TPZQuadraticTetra() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>() {
      }
 
-     TPZQuadraticTetra(const TPZQuadraticTetra &cp,std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap) {
+     TPZQuadraticTetra(const TPZQuadraticTetra &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap) {
      }
 
-     TPZQuadraticTetra(const TPZQuadraticTetra &cp) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
+     TPZQuadraticTetra(const TPZQuadraticTetra &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
      }
 
-     TPZQuadraticTetra(const TPZQuadraticTetra &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
+     TPZQuadraticTetra(const TPZQuadraticTetra &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp) {
      }
 
 virtual	~TPZQuadraticTetra();

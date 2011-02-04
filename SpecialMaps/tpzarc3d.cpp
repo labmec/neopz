@@ -12,6 +12,7 @@
 
 using namespace std;
 using namespace pzgeom;
+using namespace pztopology;
 using namespace pzshape;
 
 	//////////////////

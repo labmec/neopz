@@ -147,13 +147,13 @@ void TPZSYsmpMatrix::Print(const char *title, ostream &out ,const MatrixOutputFo
     out << "\tIA\tJA\tA\n"
 	<< "\t--\t--\t-\n";
     for(i=0; i<=Rows(); i++) {
-      cout << i      << '\t'
+      std::cout << i      << '\t'
 	   << fIA[i] << '\t'
 	   << fJA[i] << '\t'
 	   << fA[i]  << '\n';
     }
     for(i=Rows()+1; i<fIA[Rows()]-1; i++) {
-      cout << i      << "\t\t"
+      std::cout << i      << "\t\t"
 	   << fJA[i] << '\t'
 	   << fA[i]  << '\n';
     }
@@ -184,7 +184,7 @@ void TPZSYsmpMatrix::SolveSOR( int &numiterations,const TPZFMatrix &rhs, TPZFMat
 			       const int FromCurrent,const int direction )  {
 
   if(!fDiag) {
-    cout << "TPZSYsmpMatrix::SolveSOR cannot be called without diagonal\n";
+    std::cout << "TPZSYsmpMatrix::SolveSOR cannot be called without diagonal\n";
     numiterations = 0;
     if(residual) {
       Residual(x,rhs,*residual);

@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.41 2010-06-17 17:57:10 phil Exp $
+﻿//$Id: pzinterpolationspace.cpp,v 1.42 2011-02-04 08:53:03 fortiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -949,7 +949,7 @@ void TPZInterpolationSpace::ComputeError(int errorid,
 
   TPZAutoPointer<TPZMaterial> material = Material();
   if(!material){
-    cout << "TPZCompElDisc::ComputeError : no material for this element\n";
+    std::cout << "TPZCompElDisc::ComputeError : no material for this element\n";
     return;
   }
 
@@ -1059,7 +1059,7 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
 
   TPZAutoPointer<TPZMaterial> material = Material();
   if(!material){
-    stringstream sout;
+    std::stringstream sout;
     sout << "Exiting ProjectFlux: no material for this element\n";
     Print(sout);
     LOGPZ_ERROR(logger,sout.str());
@@ -1169,9 +1169,9 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
   int ic;
   int coarsemaxorder = this->MaxOrder();
   if(coarsemaxorder > mymaxorder) {
-    stringstream sout;
+    std::stringstream sout;
     sout << "Exiting BuildTransferMatrix - compute the transfer matrix coarse "
-        << coarsemaxorder << " me " << mymaxorder << endl;
+        << coarsemaxorder << " me " << mymaxorder << std::endl;
     LOGPZ_ERROR(logger,sout.str());
     return;
   }

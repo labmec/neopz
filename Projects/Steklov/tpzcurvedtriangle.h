@@ -1,4 +1,4 @@
-#ifndef TPZCURVEDTRIANGLE_H
+﻿#ifndef TPZCURVEDTRIANGLE_H
 #define TPZCURVEDTRIANGLE_H
 
 // #include "pzfmatrix.h"
@@ -10,10 +10,6 @@
 // #include "tpztriangle.h"
 
 #include <iostream>
-
-using namespace std;
-using namespace pzgeom;
-using namespace pztopology;
 
   /**
   / Class made by Paulo Cesar de Alvarenga Lucci (Caju)

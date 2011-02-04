@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include "pzerror.h"
 
-// $Id: pzeltype.h,v 1.7 2010-12-03 16:28:18 phil Exp $
+// $Id: pzeltype.h,v 1.8 2011-02-04 08:53:02 fortiago Exp $
 /**
    @enum MElementType
  * Defines the element types
@@ -92,6 +92,8 @@ inline int MElementType_NNodes(MElementType elType)
 			DebugStop();
 		}
 	}
+  DebugStop();
+  return -1;
 }
 
 inline std::string MElementType_Name(MElementType elType)
@@ -180,6 +182,8 @@ inline std::string MElementType_Name(MElementType elType)
 			return "ElementType not found!";
 		}
 	}
+  DebugStop();
+  return "";
 }
                      
 #endif

@@ -1,4 +1,4 @@
-//$Id: pzblackoil2p3d.h,v 1.3 2009-02-18 12:28:13 fortiago Exp $
+//$Id: pzblackoil2p3d.h,v 1.4 2011-02-04 08:53:02 fortiago Exp $
 
 #ifndef PZBLACKOIL2P3D_H
 #define PZBLACKOIL2P3D_H
@@ -8,7 +8,6 @@
 
 #ifdef _AUTODIFF
 
-using namespace std;
 #include "fad.h"
 
 

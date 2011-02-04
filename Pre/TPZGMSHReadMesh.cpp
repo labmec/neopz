@@ -200,5 +200,5 @@ void TPZGMSHReadMesh::Resequence(TPZStack<int> &Indexes,char *meshfile){
 void TPZGMSHReadMesh::PrintGeoMesh(ostream &out){
 
   fGeoMesh->Print(out);
-  cout << "TPZGMSHReadMesh::PrintGeoMesh the geometric mesh of the NeoPZ was printed\n";
+  std::cout << "TPZGMSHReadMesh::PrintGeoMesh the geometric mesh of the NeoPZ was printed\n";
 }

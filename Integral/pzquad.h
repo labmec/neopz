@@ -1,4 +1,4 @@
-//HEADER FILE FOR THE INTEGRATION VECTOR
+﻿//HEADER FILE FOR THE INTEGRATION VECTOR
 
 // _*_ c++ _*_
 
@@ -6,7 +6,7 @@
 #define INTQUADHPP
 
 #include <iostream>
-using namespace std;
+
 #include "pzreal.h"
 template<class T>
 class TPZVec;

@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  ThermalMethodsTables.h
  *  FrenteVapor
  *
@@ -15,7 +15,6 @@
 #include "pzerror.h"
 #include "pzreal.h"
 
-using namespace std;
 
 #include "tfad.h"
 

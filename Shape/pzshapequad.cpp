@@ -1,4 +1,4 @@
-// $Id: pzshapequad.cpp,v 1.14 2009-06-17 22:08:24 fortiago Exp $
+﻿// $Id: pzshapequad.cpp,v 1.15 2011-02-04 08:53:04 fortiago Exp $
 #include "pzshapequad.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
@@ -326,3 +326,6 @@ void TPZShapeQuad::TransformDerivativeFromRibToQuad(int rib,int num,TPZVec<FADRE
 #endif
 
 };
+
+
+

@@ -10,6 +10,8 @@
 #include "TPZRefPatternTools.h"
 #define debugCaju
 
+using namespace std;
+
 TPZRefPatternTools::TPZRefPatternTools()
 {
 	

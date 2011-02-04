@@ -12,6 +12,7 @@
 using namespace std;
 using namespace pzgeom;
 using namespace pzshape;
+using namespace pztopology;
 
 //////////////////
 void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)

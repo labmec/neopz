@@ -18,7 +18,6 @@
  *
  */
 
-using namespace std;
 
 #include <set>
 #include "pzgeoel.h"

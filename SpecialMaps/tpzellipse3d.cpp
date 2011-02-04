@@ -26,6 +26,7 @@
 
 using namespace std;
 using namespace pzgeom;
+using namespace pztopology;
 using namespace pzshape;
 
 const double tolerance = 1.E-10;

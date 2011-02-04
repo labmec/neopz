@@ -2,8 +2,10 @@
 #include "pzshapetetra.h"
 #include "tpzgeoelmapped.h"
 
-
+using namespace pzgeom;
+using namespace pztopology;
 using namespace pzshape;
+using namespace std;
 
 TPZQuadraticTetra::~TPZQuadraticTetra()
 {

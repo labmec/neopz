@@ -11,17 +11,13 @@
 
 #include <iostream>
 
-using namespace std;
-using namespace pzgeom;
-using namespace pztopology;
-
   /**
   / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
   / LabMeC - FEC - UNICAMP
   / 2007
  */
 
-class TPZQuadraticLine : public TPZNodeRep<3,TPZLine> {
+class TPZQuadraticLine : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> {
 
 public:
 
@@ -31,23 +27,23 @@ enum {NNodes = 3};
       return false;
   }
 
-  TPZQuadraticLine(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
+  TPZQuadraticLine(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
   {
   }
 
-  TPZQuadraticLine() : TPZNodeRep<NNodes,pztopology::TPZLine>()
+  TPZQuadraticLine() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>()
   {
   }
 
-  TPZQuadraticLine(const TPZQuadraticLine &cp,std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap)
+  TPZQuadraticLine(const TPZQuadraticLine &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap)
   {
   }
 
-  TPZQuadraticLine(const TPZQuadraticLine &cp) : TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
+  TPZQuadraticLine(const TPZQuadraticLine &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
   {
   }
 
-  TPZQuadraticLine(const TPZQuadraticLine &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
+  TPZQuadraticLine(const TPZQuadraticLine &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp)
   {
   }
 

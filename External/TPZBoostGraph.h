@@ -16,7 +16,6 @@
 #include <boost/graph/wavefront.hpp>
 
   //using namespace boost;
-  //using namespace std;
 
   /**
    * Defining the graph type 

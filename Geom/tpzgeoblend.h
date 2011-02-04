@@ -1,4 +1,4 @@
-#ifndef TPZGEOBLEND_H
+﻿#ifndef TPZGEOBLEND_H
 #define TPZGEOBLEND_H
 
 #include "pzgeotriangle.h"
@@ -8,10 +8,6 @@
 #include "pznoderep.h"
 
 #include <iostream>
-
-using namespace std;
-using namespace pzgeom;
-using namespace pztopology;
 
   /**
   / Class made by Paulo Cesar de Alvarenga Lucci (Caju)

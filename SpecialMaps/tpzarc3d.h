@@ -13,17 +13,13 @@
 
 #include <iostream>
 
-using namespace std;
-using namespace pzgeom;
-using namespace pztopology;
-
   /**
   / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
   / LabMeC - FEC - UNICAMP
   / 2007
  */
 
-class TPZArc3D : public TPZNodeRep<3,TPZLine> {
+class TPZArc3D : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> {
 
 public:
 
@@ -31,31 +27,31 @@ public:
 
     bool IsLinearMapping() const { return false; }
 
-    TPZArc3D(const TPZArc3D &cp,std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
+    TPZArc3D(const TPZArc3D &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 		this->fICnBase = cp.fICnBase;
 		this->fIBaseCn = cp.fIBaseCn;
 		this->fCenter3D = cp.fCenter3D;
 		this->fRadius = cp.fRadius;		
     }
 
-    TPZArc3D() : TPZNodeRep<NNodes,pztopology::TPZLine>(),fICnBase(3,3),fIBaseCn(3,3) {
+    TPZArc3D() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(),fICnBase(3,3),fIBaseCn(3,3) {
     }
 
-    TPZArc3D(const TPZArc3D &cp) : TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
+    TPZArc3D(const TPZArc3D &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
           this->fICnBase = cp.fICnBase;
           this->fIBaseCn = cp.fIBaseCn;
           this->fCenter3D = cp.fCenter3D;
           this->fRadius = cp.fRadius;
     }
 
-    TPZArc3D(const TPZArc3D &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
+    TPZArc3D(const TPZArc3D &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
           this->fICnBase  = cp.fICnBase;
           this->fIBaseCn  = cp.fIBaseCn;
           this->fCenter3D = cp.fCenter3D;
           this->fRadius   = cp.fRadius;
     }
 
-    TPZArc3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
+    TPZArc3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
 		int nnod = nodeindexes.NElements();
 		if(nnod != 3)
 		{
@@ -73,7 +69,7 @@ public:
 		}
 		ComputeAtributes(coord);
     }
-	
+
 	TPZArc3D(TPZFMatrix &coord){
 		ComputeAtributes(coord);
 	}
@@ -83,7 +79,7 @@ public:
 
     static std::string TypeName() { return "Linear";}
     static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
-	
+
 public:
 	/**
 	 * Creates a geometric element according to the type of the father element

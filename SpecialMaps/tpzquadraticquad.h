@@ -11,17 +11,13 @@
 
 #include <iostream>
 
-using namespace std;
-using namespace pzgeom;
-using namespace pztopology;
-
   /**
   / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
   / LabMeC - FEC - UNICAMP
   / 2007
  */
 
-class TPZQuadraticQuad : public TPZNodeRep<8,TPZQuadrilateral> {
+class TPZQuadraticQuad : public pzgeom::TPZNodeRep<8,pztopology::TPZQuadrilateral> {
 
 public:
 
@@ -31,23 +27,23 @@ public:
           return false;
      }
 
-     TPZQuadraticQuad(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
+     TPZQuadraticQuad(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
      {
      }
 
-     TPZQuadraticQuad() : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
+     TPZQuadraticQuad() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
      {
      }
 
-     TPZQuadraticQuad(const TPZQuadraticQuad &cp,std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
+     TPZQuadraticQuad(const TPZQuadraticQuad &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
      {
      }
 
-     TPZQuadraticQuad(const TPZQuadraticQuad &cp) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+     TPZQuadraticQuad(const TPZQuadraticQuad &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
      {
      }
 
-     TPZQuadraticQuad(const TPZQuadraticQuad &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
+     TPZQuadraticQuad(const TPZQuadraticQuad &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
      {
      }
 

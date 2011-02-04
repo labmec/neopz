@@ -16,7 +16,6 @@
 
 #include "pzmatrix.h"
 
-using namespace std;
 class TPZFMatrix;
 
 /**
@@ -60,7 +59,7 @@ class TPZSYsmpMatrix : public TPZMatrix {
   virtual void SetData( int *const IA, int *const JA, REAL *const A );
   // Pass the data to the class.
 
-  virtual void Print(const char *title, ostream &out = cout ,const MatrixOutputFormat = EFormatted ) const;
+  virtual void Print(const char *title, ostream &out = std::cout ,const MatrixOutputFormat = EFormatted ) const;
   // Print the matrix along with a identification title
 
   void SolveSOR(int &numiterations,const TPZFMatrix &rhs, TPZFMatrix &x,

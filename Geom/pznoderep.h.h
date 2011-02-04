@@ -30,8 +30,6 @@
 static LoggerPtr loggernoderep(Logger::getLogger("pz.geom.noderep"));
 #endif
 
-//using namespace pztopology;
-
 namespace pzgeom {
 
   /**

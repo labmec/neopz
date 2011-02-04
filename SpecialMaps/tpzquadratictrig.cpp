@@ -20,6 +20,8 @@
 
 using namespace std;
 using namespace pzshape;
+using namespace pzgeom;
+using namespace pztopology;
 
   /**
   / Class made by Paulo Cesar de Alvarenga Lucci (Caju)

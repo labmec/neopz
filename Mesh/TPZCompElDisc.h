@@ -1,6 +1,6 @@
 ﻿// -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.77 2010-11-08 15:46:46 phil Exp $
+//$Id: TPZCompElDisc.h,v 1.78 2011-02-04 08:53:03 fortiago Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -243,7 +243,7 @@ protected:
   /**
    * it prints the features of the element
    */
-  virtual void Print(std::ostream & out = std::cout);
+  virtual void Print(std::ostream & out = std::cout) const;
 
   /**
    * it returns the degree of interpolation of the element

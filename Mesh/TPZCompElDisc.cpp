@@ -1,10 +1,10 @@
 ﻿
-//$Id: TPZCompElDisc.cpp,v 1.118 2010-10-08 19:18:16 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.119 2011-02-04 08:53:03 fortiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.118 2010-10-08 19:18:16 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.119 2011-02-04 08:53:03 fortiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -334,7 +334,7 @@ void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix &ph
   }
 }
 
-void TPZCompElDisc::Print(std::ostream &out) {
+void TPZCompElDisc::Print(std::ostream &out) const{
 
   out << "\nDiscontinous element : \n";
   if(Reference()) out << "\tGeometric reference index : " << Reference()->Index() << endl;

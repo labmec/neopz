@@ -7,17 +7,13 @@
 
 class TPZGeoEl;
 
-using namespace std;
-using namespace pzgeom;
-using namespace pztopology;
-
   /**
   / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
   / LabMeC - FEC - UNICAMP
   / 2007
  */
 
-class TPZQuadraticTrig : public TPZNodeRep<6,TPZTriangle> {
+class TPZQuadraticTrig : public pzgeom::TPZNodeRep<6,pztopology::TPZTriangle> {
 
      public:
 
@@ -27,19 +23,19 @@ class TPZQuadraticTrig : public TPZNodeRep<6,TPZTriangle> {
           return false;
      }
 
-     TPZQuadraticTrig(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes) {
+     TPZQuadraticTrig(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes) {
      }
 
-     TPZQuadraticTrig() : TPZNodeRep<NNodes,pztopology::TPZTriangle>() {
+     TPZQuadraticTrig() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>() {
      }
 
-     TPZQuadraticTrig(const TPZQuadraticTrig &cp,std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap) {
+     TPZQuadraticTrig(const TPZQuadraticTrig &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap) {
      }
 
-     TPZQuadraticTrig(const TPZQuadraticTrig &cp) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
+     TPZQuadraticTrig(const TPZQuadraticTrig &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
      }
 
-     TPZQuadraticTrig(const TPZQuadraticTrig &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
+     TPZQuadraticTrig(const TPZQuadraticTrig &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
      }
      /**
      * returns the type name of the element

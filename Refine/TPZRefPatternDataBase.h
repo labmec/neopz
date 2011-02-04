@@ -19,7 +19,6 @@
 #include "tpzautopointer.h"
 #include "TPZRefPattern.h"
 
-using namespace std;
 
 class TPZRefPatternDataBase
 {

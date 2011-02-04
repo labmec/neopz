@@ -20,7 +20,6 @@ class TPZGeoElSide;
 #include <fstream>
 /*************/
 
-using namespace std;
 class TPZGMSHReadMesh {
 
   /**
@@ -77,7 +76,7 @@ class TPZGMSHReadMesh {
    * it prints in the exit defined for out the characteristics of the geometric mesh 
    * created by the NeoPZ based on the mesh generated for the GMSH
    */
-  void PrintGeoMesh(ostream &out = cout);
+  void PrintGeoMesh(ostream &out = std::cout);
   
 };
 

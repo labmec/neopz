@@ -18,11 +18,7 @@
 
 class TPZGeoMesh;
 
-using namespace std;
-using namespace pzgeom;
-using namespace pztopology;
-
-class TPZEllipse3D : public TPZNodeRep<2,TPZLine> {
+class TPZEllipse3D : public pzgeom::TPZNodeRep<2,pztopology::TPZLine> {
 
 public:
 
@@ -33,10 +29,10 @@ public:
 		return false;
 	}
 
-    TPZEllipse3D(const TPZEllipse3D &cp,std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
+    TPZEllipse3D(const TPZEllipse3D &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
     }
 
-    TPZEllipse3D() : TPZNodeRep<NNodes,pztopology::TPZLine>(){
+    TPZEllipse3D() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(){
     }
 
     virtual ~TPZEllipse3D()
@@ -44,13 +40,13 @@ public:
 
     }
 
-    TPZEllipse3D(const TPZEllipse3D &cp) : TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
+    TPZEllipse3D(const TPZEllipse3D &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
     }
 
-    TPZEllipse3D(const TPZEllipse3D &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
+    TPZEllipse3D(const TPZEllipse3D &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
     }
 
-	TPZEllipse3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
+	TPZEllipse3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
 	}
 
     /**
