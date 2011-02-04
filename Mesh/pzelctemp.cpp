@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.46 2010-08-12 13:48:30 phil Exp $
+// $Id: pzelctemp.cpp,v 1.47 2011-02-04 08:57:14 fortiago Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -392,62 +392,13 @@ void TPZIntelGen<TSHAPE>::Read(TPZStream &buf, void *context)
   }
 }
 
-#include "tpzint1point.h"
-#include "pzshapecube.h"
-#include "TPZRefCube.h"
-#include "pzshapelinear.h"
-#include "TPZRefLinear.h"
-#include "pzrefquad.h"
-#include "pzshapequad.h"
-#include "pzgeoquad.h"
-#include "pzshapetriang.h"
-#include "pzreftriangle.h"
-#include "pzgeotriangle.h"
-#include "pzshapeprism.h"
-#include "pzrefprism.h"
-#include "pzgeoprism.h"
-#include "pzshapetetra.h"
-#include "pzreftetrahedra.h"
-#include "pzgeotetrahedra.h"
-#include "pzshapepiram.h"
-#include "pzrefpyram.h"
-#include "pzgeopyramid.h"
-#include "pzrefpoint.h"
-#include "pzgeopoint.h"
-#include "pzshapepoint.h"
-#include "pzgraphelq2dd.h"
-#include "tpzgraphelt3d.h"
-#include "pzgraphel1dd.h"
-#include "pztrigraphd.h"
-#include "pzgraphelq3dd.h"
-#include "tpzgraphelprismmapped.h"
-#include "tpzgraphelpyramidmapped.h"
-#include "tpzgraphelt2dmapped.h"
-
-using namespace pztopology;
-
-#include "tpzpoint.h"
-#include "tpzline.h"
-#include "tpzquadrilateral.h"
-#include "tpztriangle.h"
-#include "tpzcube.h"
-#include "tpztetrahedron.h"
-#include "tpzprism.h"
-#include "tpzpyramid.h"
-/*
-void TPZIntelGen<TPZPoint,TPZShapePoint>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
-  phi(0,0) = 1.;
-}
-*/
-using namespace pzgeom;
 using namespace pzshape;
 
+#include "pzshapepoint.h"
 template<>
-void TPZIntelGen<TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+void TPZIntelGen<pzshape::TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
   if(dimension == 0) std::cout << "A point element has no graphical representation\n";
 }
-
-
 
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
@@ -457,7 +408,7 @@ void TPZIntelGen<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dim
 }
 
 template<>
-int TPZIntelGen<TPZShapePoint>::ClassId() const
+int TPZIntelGen<pzshape::TPZShapePoint>::ClassId() const
 {
   return TPZINTELPOINTID;
 }
@@ -468,8 +419,9 @@ template class
 #endif
 
 
+#include "pzshapelinear.h"
 template<>
-int TPZIntelGen<TPZShapeLinear>::ClassId() const
+int TPZIntelGen<pzshape::TPZShapeLinear>::ClassId() const
 {
   return TPZINTELLINEARID;
 }
@@ -479,8 +431,9 @@ template class
 		TPZRestoreClass< TPZIntelGen<TPZShapeLinear>, TPZINTELLINEARID>;
 #endif
 
+#include "pzshapetriang.h"
 template<>
-int TPZIntelGen<TPZShapeTriang>::ClassId() const
+int TPZIntelGen<pzshape::TPZShapeTriang>::ClassId() const
 {
 	return TPZINTELTRIANGLEID;
 }
@@ -490,8 +443,9 @@ template class
 		TPZRestoreClass< TPZIntelGen<TPZShapeTriang>, TPZINTELTRIANGLEID>;
 #endif
 
+#include "pzshapequad.h"
 template<>
-int TPZIntelGen<TPZShapeQuad>::ClassId() const
+int TPZIntelGen<pzshape::TPZShapeQuad>::ClassId() const
 {
 	return TPZINTELQUADID;
 }
@@ -501,8 +455,9 @@ template class
 		TPZRestoreClass< TPZIntelGen<TPZShapeQuad>, TPZINTELQUADID>;
 #endif
 
+#include "pzshapecube.h"
 template<>
-int TPZIntelGen<TPZShapeCube>::ClassId() const
+int TPZIntelGen<pzshape::TPZShapeCube>::ClassId() const
 {
 	return TPZINTELCUBEID;
 }
@@ -512,8 +467,9 @@ template class
 		TPZRestoreClass< TPZIntelGen<TPZShapeCube>, TPZINTELCUBEID>;
 #endif
 
+#include "pzshapetetra.h"
 template<>
-int TPZIntelGen<TPZShapeTetra>::ClassId() const
+int TPZIntelGen<pzshape::TPZShapeTetra>::ClassId() const
 {
 	return TPZINTELTETRAID;
 }
@@ -523,6 +479,7 @@ template class
 		TPZRestoreClass< TPZIntelGen<TPZShapeTetra>, TPZINTELTETRAID>;
 #endif
 
+#include "pzshapeprism.h"
 template<>
 int TPZIntelGen<TPZShapePrism>::ClassId() const
 {
@@ -534,6 +491,7 @@ template class
 		TPZRestoreClass< TPZIntelGen<TPZShapePrism>, TPZINTELPRISMID>;
 #endif
 
+#include "pzshapepiram.h"
 template<>
 int TPZIntelGen<TPZShapePiram>::ClassId() const
 {
@@ -545,6 +503,48 @@ template class
 		TPZRestoreClass< TPZIntelGen<TPZShapePiram>, TPZINTELPYRAMID>;
 #endif
 
+
+#include "tpzint1point.h"
+
+#include "TPZRefCube.h"
+
+#include "TPZRefLinear.h"
+#include "pzrefquad.h"
+
+#include "pzgeoquad.h"
+
+#include "pzreftriangle.h"
+#include "pzgeotriangle.h"
+
+#include "pzrefprism.h"
+#include "pzgeoprism.h"
+
+#include "pzreftetrahedra.h"
+#include "pzgeotetrahedra.h"
+
+#include "pzrefpyram.h"
+#include "pzgeopyramid.h"
+#include "pzrefpoint.h"
+#include "pzgeopoint.h"
+#include "pzgraphelq2dd.h"
+#include "tpzgraphelt3d.h"
+#include "pzgraphel1dd.h"
+#include "pztrigraphd.h"
+#include "pzgraphelq3dd.h"
+#include "tpzgraphelprismmapped.h"
+#include "tpzgraphelpyramidmapped.h"
+#include "tpzgraphelt2dmapped.h"
+
+
+
+#include "tpzpoint.h"
+#include "tpzline.h"
+#include "tpzquadrilateral.h"
+#include "tpztriangle.h"
+#include "tpzcube.h"
+#include "tpztetrahedron.h"
+#include "tpzprism.h"
+#include "tpzpyramid.h"
 
 template class TPZIntelGen<TPZShapeTriang>;
 template class TPZIntelGen<TPZShapePoint>;
