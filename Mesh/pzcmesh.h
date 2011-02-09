@@ -1,5 +1,5 @@
-// -*- c++ -*-
-//$Id: pzcmesh.h,v 1.46 2010-07-20 20:46:14 phil Exp $
+﻿// -*- c++ -*-
+//$Id: pzcmesh.h,v 1.47 2011-02-09 09:22:53 fortiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -529,7 +529,7 @@ static  void SetAllCreateFunctions(TPZCompEl &cel);
    * solution for the restricted nodes
    * @param sol given solution matrix
    */
-  void LoadSolution(TPZFMatrix &sol);
+  void LoadSolution(const TPZFMatrix &sol);
 
   /**
    * Divide the element corresponding to index

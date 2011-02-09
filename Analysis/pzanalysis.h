@@ -256,7 +256,7 @@ public:
    */
 	void LoadSolution();
 
-	virtual void LoadSolution(TPZFMatrix &sol){
+	virtual void LoadSolution(const TPZFMatrix &sol){
 		this->Solution() = sol;
 		this->LoadSolution();
 	}

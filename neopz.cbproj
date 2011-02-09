@@ -18,9 +18,10 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<Defines>BORLAND;$(Defines)</Defines>
 			<DCC_UnitSearchPath>..\Filtro;..\External\pthreads;..\NeoPZ\External\sloan;..\NeoPZ\Util;..\NeoPZ\Topology;..\NeoPZ\StrMatrix;..\NeoPZ\Shape;..\NeoPZ\Save;..\NeoPZ\Refine;..\NeoPZ\Pre;..\NeoPZ\Post;..\NeoPZ\Matrix;..\NeoPZ\Material;..\NeoPZ\Integral;..\NeoPZ\Frontal;..\NeoPZ\External;..\NeoPZ\Analysis;..\NeoPZ\Mesh;..\NeoPZ\Geom;..\NeoPZ\Multigrid;..\SWXTools\SWXFrames;..\ProdIndex\src;..\NeoPZ\Common;.\;$(BDS)\lib;$(BDS)\lib\obj;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<BCC_PCHUsage>None</BCC_PCHUsage>
-			<BCC_Defines>NO_STRICT;_RTLDLL;BORLAND;WIN32;$(BCC_Defines)</BCC_Defines>
+			<BCC_Defines>NO_STRICT;_RTLDLL;WIN32;$(BCC_Defines)</BCC_Defines>
 			<Multithreaded>true</Multithreaded>
 			<ProjectType>CppStaticLibrary</ProjectType>
 			<PackageImports>vclx.bpi;vcl.bpi;vclimg.bpi;dbrtl.bpi;Rave77VCL.bpi;bdertl.bpi;rtl.bpi;bcbie.bpi;vclactnband.bpi;xmlrtl.bpi;bcbsmp.bpi;vcldb.bpi;vcldbx.bpi;vcltouch.bpi;dsnap.bpi;dsnapcon.bpi;TeeUI.bpi;TeeDB.bpi;Tee.bpi;vclib.bpi;ibxpress.bpi;adortl.bpi;IndyCore.bpi;IndySystem.bpi;IndyProtocols.bpi;inet.bpi;intrawebdb_100_140.bpi;Intraweb_100_140.bpi;vclie.bpi;inetdb.bpi;webdsnap.bpi;websnap.bpi;inetdbbde.bpi;inetdbxpress.bpi;soaprtl.bpi;vclribbon.bpi;DbxCommonDriver.bpi;DbxClientDriver.bpi;DBXInterBaseDriver.bpi;DBXMySQLDriver.bpi;dbexpress.bpi;dbxcds.bpi;TSWXNumEdit.bpi</PackageImports>
@@ -43,526 +44,14 @@
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
 			<IncludePath>..\FAD;..\FAD\Fad;..\FAD\TinyFad;..\FAD\TinyFadET;$(IncludePath)</IncludePath>
 			<IntermediateOutputDir>USING_PTHREAD_FAD</IntermediateOutputDir>
-			<Defines>_AUTODIFF;$(Defines)</Defines>
+			<Defines>_AUTODIFF;DEBUG;$(Defines)</Defines>
 		</PropertyGroup>
 		<ItemGroup>
-			<CppCompile Include="External\sloan\iorele.cpp">
-				<BuildOrder>17</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\tpznodesetcompute.cpp">
-				<BuildOrder>20</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\sloan\diamtr.cpp">
-				<BuildOrder>19</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\sloan\gegra.cpp">
-				<BuildOrder>18</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Geom\pznoderep.cpp">
-				<DependentOn>Geom\pznoderep.h</DependentOn>
-				<BuildOrder>37</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Frontal\tpzeqnarray.cpp">
-				<BuildOrder>32</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\pzrenumbering.cpp">
-				<BuildOrder>23</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Geom\pzgeotriangle.cpp">
-				<BuildOrder>38</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Analysis\pznonlinanalysis.cpp">
-				<BuildOrder>6</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Analysis\pzsmanal.cpp">
-				<BuildOrder>5</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\sloan\profi1.cpp">
-				<BuildOrder>13</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\sloan\rootls.cpp">
-				<BuildOrder>12</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\sloan\label.cpp">
-				<BuildOrder>15</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Frontal\TPZParFrontMatrix.cpp">
-				<BuildOrder>26</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Frontal\TPZStackEqnStorage.cpp">
-				<BuildOrder>25</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Analysis\pzeuleranalysis.cpp">
-				<BuildOrder>8</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\tpzsparseblockdiagonal.cpp">
-				<BuildOrder>100</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzstepsolver.cpp">
-				<BuildOrder>103</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzartdiff.cpp">
-				<BuildOrder>98</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzbctension.cpp">
-				<BuildOrder>97</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzseqsolver.cpp">
-				<BuildOrder>112</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzskylmatpar.cpp">
-				<BuildOrder>107</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzespmat.cpp">
-				<BuildOrder>118</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzfmatrix.cpp">
-				<BuildOrder>117</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzspblockdiagpivot.cpp">
-				<BuildOrder>105</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\TPZFVHybrid.cpp">
-				<BuildOrder>60</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Frontal\TPZFrontSym.cpp">
-				<BuildOrder>27</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzsolve.cpp">
-				<BuildOrder>106</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Frontal\TPZFrontMatrix.cpp">
-				<BuildOrder>29</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\pzmetis.cpp">
-				<BuildOrder>24</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\TPZDiffusionConsLaw.cpp">
-				<BuildOrder>63</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Frontal\TPZFront.cpp">
-				<BuildOrder>30</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Integral\tpzintrule.cpp">
-				<BuildOrder>49</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Integral\tpzgaussrule.cpp">
-				<BuildOrder>52</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Integral\tpzintrulep3d.cpp">
-				<BuildOrder>47</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Integral\pzquad.cpp">
-				<BuildOrder>54</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzpoisson3dreferred.cpp">
-				<BuildOrder>69</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\TPZConsLawTest.cpp">
-				<BuildOrder>64</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\TPZLinearConvection.cpp">
-				<BuildOrder>59</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Integral\tpzintpoints.cpp">
-				<BuildOrder>50</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\TPZMulticamadaOrtho.cpp">
-				<BuildOrder>57</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Integral\tpzprinteg.cpp">
-				<BuildOrder>44</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Geom\pzgeotetrahedra.cpp">
-				<BuildOrder>39</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Integral\tpzintrulet.cpp">
-				<BuildOrder>46</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Integral\tpzintrulet3d.cpp">
-				<BuildOrder>45</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Geom\pzgeoquad.cpp">
-				<BuildOrder>40</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Geom\TPZGeoElement.cpp">
-				<DependentOn>Geom\TPZGeoElement.h</DependentOn>
-				<BuildOrder>35</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\tpzmultcamada.cpp">
-				<BuildOrder>58</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\sloan\vsrtp1.cpp">
-				<BuildOrder>11</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\sloan\number.cpp">
-				<BuildOrder>14</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Frontal\TPZFileEqnStorage.cpp">
-				<BuildOrder>31</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Analysis\pzsmfrontalanal.cpp">
-				<BuildOrder>4</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\TPZBoostGraph.cpp">
-				<BuildOrder>21</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\sloan\isorti.cpp">
-				<BuildOrder>16</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Analysis\pzmganalysis.cpp">
-				<BuildOrder>7</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="External\pzsloan.cpp">
-				<BuildOrder>22</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Analysis\pzanalysis.cpp">
-				<BuildOrder>9</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Frontal\TPZFrontNonSym.cpp">
-				<BuildOrder>28</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\TPZPlacaOrthotropic.cpp">
-				<BuildOrder>55</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\TPZEuler.cpp">
-				<BuildOrder>62</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\TPZEulerConsLaw.cpp">
-				<BuildOrder>61</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\tpzoutofrange.cpp">
-				<BuildOrder>56</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Integral\tpzint1point.cpp">
-				<BuildOrder>51</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Common\pzreal.cpp">
-				<BuildOrder>10</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\TPZInterfaceEl.cpp">
-				<BuildOrder>122</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\eulerdif.cpp">
-				<BuildOrder>99</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzsysmp.cpp">
-				<BuildOrder>102</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzmat1dlin.cpp">
-				<BuildOrder>84</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzbiharmonic.cpp">
-				<BuildOrder>96</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\tpzverysparsematrix.cpp">
-				<BuildOrder>256</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzmatred.cpp">
-				<BuildOrder>255</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzysmp.cpp">
-				<BuildOrder>101</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzcoupledtransportdarcyBC.cpp">
-				<BuildOrder>91</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pznonlinearpoisson3d.cpp">
-				<BuildOrder>72</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzmathyperelastic.cpp">
-				<BuildOrder>79</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzpoisson3d.cpp">
-				<BuildOrder>70</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzelasmat.cpp">
-				<BuildOrder>89</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzmaterial.cpp">
-				<BuildOrder>82</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzmaterialdata.cpp">
-				<BuildOrder>81</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzdiscgal.cpp">
-				<BuildOrder>90</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzincnskeps.cpp">
-				<BuildOrder>86</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="SpecialMaps\tpzellipse3d.cpp">
-				<BuildOrder>252</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="SpecialMaps\tpzmathtools.cpp">
-				<BuildOrder>253</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="SpecialMaps\tpzchangeel.cpp">
-				<BuildOrder>250</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="SpecialMaps\tpzcurvedtriangle.cpp">
-				<BuildOrder>251</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="SpecialMaps\tpzquadratictetra.cpp">
-				<BuildOrder>256</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="SpecialMaps\tpzquadratictrig.cpp">
-				<BuildOrder>257</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="SpecialMaps\tpzquadraticline.cpp">
-				<BuildOrder>254</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="SpecialMaps\tpzquadraticquad.cpp">
-				<BuildOrder>255</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzburger.cpp">
-				<BuildOrder>94</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzconslaw.cpp">
-				<BuildOrder>93</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzmat2dlin.cpp">
-				<BuildOrder>83</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Common\TPZGuiInterface.cpp">
-				<DependentOn>Common\TPZGuiInterface.h</DependentOn>
-				<BuildOrder>254</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="SpecialMaps\tpzarc3d.cpp">
-				<BuildOrder>248</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="SpecialMaps\tpzblendnaca.cpp">
-				<BuildOrder>249</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzelast3d.cpp">
-				<BuildOrder>88</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="SpecialMaps\convtest.cpp">
-				<BuildOrder>247</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzbndmat.cpp">
-				<BuildOrder>119</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\tpzagglomeratemesh.cpp">
-				<BuildOrder>128</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzsbndmat.cpp">
-				<BuildOrder>113</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzlink.cpp">
-				<BuildOrder>116</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\tpzgeoelrefpattern.cpp">
-				<BuildOrder>123</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pznlmat1drotatedengstrain.cpp">
-				<BuildOrder>74</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\TPZCompElDisc.cpp">
-				<BuildOrder>127</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Geom\pzgeopyramid.cpp">
-				<BuildOrder>41</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzsespmat.cpp">
-				<BuildOrder>111</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzsfulmat.cpp">
-				<BuildOrder>110</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzblock.cpp">
-				<BuildOrder>121</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzskylmat.cpp">
-				<BuildOrder>108</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzmatrix.cpp">
-				<BuildOrder>115</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzmatrixid.cpp">
-				<DependentOn>Matrix\pzmatrixid.h</DependentOn>
-				<BuildOrder>114</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzshtmat.cpp">
-				<BuildOrder>109</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzstencil.cpp">
-				<BuildOrder>104</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzl2projection.cpp">
-				<BuildOrder>85</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzmaterialid.cpp">
-				<DependentOn>Material\pzmaterialid.h</DependentOn>
-				<BuildOrder>80</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzmattest.cpp">
-				<BuildOrder>78</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\TPZConservationLaw.cpp">
-				<BuildOrder>65</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzmultplaca.cpp">
-				<BuildOrder>76</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pztransientmat.cpp">
-				<BuildOrder>67</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzplaca.cpp">
-				<BuildOrder>71</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzmattest3d.cpp">
-				<BuildOrder>77</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzbndcond.cpp">
-				<BuildOrder>95</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\tpzcompmeshreferred.cpp">
-				<BuildOrder>126</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pznonlinbiharmonic.cpp">
-				<BuildOrder>73</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzcoupledtransportdarcy.cpp">
-				<BuildOrder>92</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pzthermicelast3d.cpp">
-				<BuildOrder>68</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Material\pznlmat1d.cpp">
-				<BuildOrder>75</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\tpzgeoblend.cpp">
-				<BuildOrder>125</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Matrix\pzblockdiag.cpp">
-				<BuildOrder>120</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzreferredcompel.cpp">
-				<BuildOrder>133</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzintel.cpp">
-				<BuildOrder>136</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzsubcmesh.cpp">
-				<BuildOrder>131</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzvecmesh.cpp">
-				<BuildOrder>130</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzelctemp.cpp">
-				<DependentOn>Mesh\pzelctemp.h</DependentOn>
-				<BuildOrder>145</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzcompel.cpp">
-				<BuildOrder>148</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzinterpolationspace.cpp">
-				<BuildOrder>135</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzgeoel.cpp">
-				<BuildOrder>142</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzgeoelbc.cpp">
-				<DependentOn>Mesh\pzgeoelbc.h</DependentOn>
-				<BuildOrder>141</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzelmat.cpp">
-				<BuildOrder>144</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzgeoelside.cpp">
-				<DependentOn>Mesh\pzgeoelside.h</DependentOn>
-				<BuildOrder>139</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzgmesh.cpp">
-				<BuildOrder>138</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzgnode.cpp">
-				<BuildOrder>137</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzgeoelrefless.cpp">
-				<BuildOrder>140</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzflowcmesh.cpp">
-				<BuildOrder>143</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzmeshid.cpp">
-				<DependentOn>Mesh\pzmeshid.h</DependentOn>
-				<BuildOrder>134</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzcmesh.cpp">
-				<BuildOrder>149</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzcheckgeom.cpp">
-				<BuildOrder>152</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzconnect.cpp">
-				<DependentOn>Mesh\pzconnect.h</DependentOn>
-				<BuildOrder>147</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzcreateapproxspace.cpp">
-				<BuildOrder>146</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Util\pzstring.cpp">
-				<BuildOrder>229</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Util\pzpolynomial.cpp">
-				<BuildOrder>231</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzcheckmesh.cpp">
-				<BuildOrder>151</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Shape\pzshapeprism.cpp">
-				<BuildOrder>199</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Post\tpzgraphelt2dmapped.cpp">
-				<BuildOrder>157</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Post\pzvtkmesh.cpp">
-				<BuildOrder>160</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Multigrid\pzmgsolver.cpp">
-				<BuildOrder>155</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Multigrid\pztransfer.cpp">
-				<BuildOrder>154</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Multigrid\pztrnsform.cpp">
-				<BuildOrder>153</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Shape\pzshapetetra.cpp">
-				<BuildOrder>197</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Post\tpzgraphelprismmapped.cpp">
-				<BuildOrder>159</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\pzcheckrestraint.cpp">
-				<DependentOn>Mesh\pzcheckrestraint.h</DependentOn>
-				<BuildOrder>150</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Post\pzvisualmatrix.cpp">
-				<BuildOrder>161</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Post\pzgraphel1d.cpp">
-				<BuildOrder>172</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Post\pztrigraphd.cpp">
-				<BuildOrder>163</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Post\pzv3dmesh.cpp">
-				<BuildOrder>162</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Post\pzmvmesh.cpp">
-				<BuildOrder>165</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Pre\TPZExtendGridDimension.cpp">
-				<BuildOrder>176</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Post\pzgraphmesh.cpp">
-				<BuildOrder>167</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Post\pzdxmesh.cpp">
-				<BuildOrder>174</BuildOrder>
+			<CppCompile Include="Post\pzgraphel1dd.cpp">
+				<BuildOrder>171</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Post\pzgraphelq2d.cpp">
+				<BuildOrder>170</BuildOrder>
 			</CppCompile>
 			<CppCompile Include="Post\pzgraphelq2dd.cpp">
 				<BuildOrder>169</BuildOrder>
@@ -570,11 +59,11 @@
 			<CppCompile Include="Post\pztrigraph.cpp">
 				<BuildOrder>164</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Post\pzgraphel1dd.cpp">
-				<BuildOrder>171</BuildOrder>
+			<CppCompile Include="Pre\TPZGMSHReadMesh.cpp">
+				<BuildOrder>175</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Post\pzgraphelq2d.cpp">
-				<BuildOrder>170</BuildOrder>
+			<CppCompile Include="Post\pzgraphnode.cpp">
+				<BuildOrder>166</BuildOrder>
 			</CppCompile>
 			<CppCompile Include="Post\pzgraphel.cpp">
 				<BuildOrder>173</BuildOrder>
@@ -582,36 +71,35 @@
 			<CppCompile Include="Post\pzgraphelq3dd.cpp">
 				<BuildOrder>168</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Pre\TPZGMSHReadMesh.cpp">
-				<BuildOrder>175</BuildOrder>
+			<CppCompile Include="Post\pztrigraphd.cpp">
+				<BuildOrder>163</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Post\pzgraphnode.cpp">
-				<BuildOrder>166</BuildOrder>
+			<CppCompile Include="Post\pzv3dmesh.cpp">
+				<BuildOrder>162</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Pre\pzreadtetgen.cpp">
-				<BuildOrder>177</BuildOrder>
+			<CppCompile Include="Post\pzvisualmatrix.cpp">
+				<BuildOrder>161</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Post\tpzgraphelt3d.cpp">
-				<BuildOrder>156</BuildOrder>
+			<CppCompile Include="Post\pzgraphel1d.cpp">
+				<BuildOrder>172</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Pre\pzreadmesh.cpp">
-				<BuildOrder>179</BuildOrder>
+			<CppCompile Include="Post\pzgraphmesh.cpp">
+				<BuildOrder>167</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Pre\pzreadmeshhr.cpp">
-				<BuildOrder>178</BuildOrder>
+			<CppCompile Include="Post\pzdxmesh.cpp">
+				<BuildOrder>174</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Pre\pzidentifyrefpattern.cpp">
-				<BuildOrder>181</BuildOrder>
+			<CppCompile Include="Post\pzmvmesh.cpp">
+				<BuildOrder>165</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Mesh\pzstackmesh.cpp">
-				<BuildOrder>132</BuildOrder>
+			<CppCompile Include="Pre\TPZExtendGridDimension.cpp">
+				<BuildOrder>176</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Save\pzsave.cpp">
-				<DependentOn>Save\pzsave.h</DependentOn>
-				<BuildOrder>192</BuildOrder>
+			<CppCompile Include="Shape\pzshapetriang.cpp">
+				<BuildOrder>196</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Post\tpzgraphelpyramidmapped.cpp">
-				<BuildOrder>158</BuildOrder>
+			<CppCompile Include="Shape\TPZShapeDisc.cpp">
+				<BuildOrder>195</BuildOrder>
 			</CppCompile>
 			<CppCompile Include="Save\pzbfilestream.cpp">
 				<BuildOrder>194</BuildOrder>
@@ -619,11 +107,11 @@
 			<CppCompile Include="Pre\pzpargrid.cpp">
 				<BuildOrder>180</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Shape\pzshapetriang.cpp">
-				<BuildOrder>196</BuildOrder>
+			<CppCompile Include="Shape\pzshapepiram.cpp">
+				<BuildOrder>200</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Shape\TPZShapeDisc.cpp">
-				<BuildOrder>195</BuildOrder>
+			<CppCompile Include="Pre\pzgengrid.cpp">
+				<BuildOrder>182</BuildOrder>
 			</CppCompile>
 			<CppCompile Include="Shape\pzshapequad.cpp">
 				<BuildOrder>198</BuildOrder>
@@ -632,112 +120,165 @@
 				<DependentOn>Save\pzfilebuffer.h</DependentOn>
 				<BuildOrder>193</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Shape\pzshapepiram.cpp">
-				<BuildOrder>200</BuildOrder>
+			<CppCompile Include="Pre\pzreadmesh.cpp">
+				<BuildOrder>179</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Pre\pzgengrid.cpp">
-				<BuildOrder>182</BuildOrder>
+			<CppCompile Include="Pre\pzreadmeshhr.cpp">
+				<BuildOrder>178</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Pre\pzreadtetgen.cpp">
+				<BuildOrder>177</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Post\tpzgraphelt3d.cpp">
+				<BuildOrder>156</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Save\pzsave.cpp">
+				<DependentOn>Save\pzsave.h</DependentOn>
+				<BuildOrder>192</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Post\tpzgraphelpyramidmapped.cpp">
+				<BuildOrder>158</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Pre\pzidentifyrefpattern.cpp">
+				<BuildOrder>181</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzstackmesh.cpp">
+				<BuildOrder>132</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzgeoelside.cpp">
+				<DependentOn>Mesh\pzgeoelside.h</DependentOn>
+				<BuildOrder>139</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzgmesh.cpp">
+				<BuildOrder>138</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzgeoelbc.cpp">
+				<DependentOn>Mesh\pzgeoelbc.h</DependentOn>
+				<BuildOrder>141</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzelmat.cpp">
+				<BuildOrder>144</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzflowcmesh.cpp">
+				<BuildOrder>143</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzmeshid.cpp">
+				<DependentOn>Mesh\pzmeshid.h</DependentOn>
+				<BuildOrder>134</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzgnode.cpp">
+				<BuildOrder>137</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzgeoelrefless.cpp">
+				<BuildOrder>140</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzsubcmesh.cpp">
+				<BuildOrder>131</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzvecmesh.cpp">
+				<BuildOrder>130</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzreferredcompel.cpp">
+				<BuildOrder>133</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzintel.cpp">
+				<BuildOrder>136</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzinterpolationspace.cpp">
+				<BuildOrder>135</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzgeoel.cpp">
+				<BuildOrder>142</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzelctemp.cpp">
+				<DependentOn>Mesh\pzelctemp.h</DependentOn>
+				<BuildOrder>145</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzcompel.cpp">
+				<BuildOrder>148</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Multigrid\pzmgsolver.cpp">
+				<BuildOrder>155</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Multigrid\pztransfer.cpp">
+				<BuildOrder>154</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Post\tpzgraphelt2dmapped.cpp">
+				<BuildOrder>157</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Post\pzvtkmesh.cpp">
+				<BuildOrder>160</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Post\tpzgraphelprismmapped.cpp">
+				<BuildOrder>159</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzcheckrestraint.cpp">
+				<DependentOn>Mesh\pzcheckrestraint.h</DependentOn>
+				<BuildOrder>150</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Multigrid\pztrnsform.cpp">
+				<BuildOrder>153</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Shape\pzshapetetra.cpp">
+				<BuildOrder>197</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzconnect.cpp">
+				<DependentOn>Mesh\pzconnect.h</DependentOn>
+				<BuildOrder>147</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzcreateapproxspace.cpp">
+				<BuildOrder>146</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzcmesh.cpp">
+				<BuildOrder>149</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzcheckgeom.cpp">
+				<BuildOrder>152</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\pzcheckmesh.cpp">
+				<BuildOrder>151</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Shape\pzshapeprism.cpp">
+				<BuildOrder>199</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Util\pzstring.cpp">
+				<BuildOrder>229</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Util\pzpolynomial.cpp">
+				<BuildOrder>231</BuildOrder>
 			</CppCompile>
 			<CppCompile Include="Util\pzline.cpp">
 				<BuildOrder>237</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Util\tpzautopointer.cpp">
-				<BuildOrder>227</BuildOrder>
+			<CppCompile Include="Refine\TPZRefPattern.cpp">
+				<BuildOrder>245</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Util\tpzpermutation.cpp">
-				<BuildOrder>226</BuildOrder>
+			<CppCompile Include="Refine\pzreftriangle.cpp">
+				<BuildOrder>248</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="StrMatrix\pzsbstrmatrix.cpp">
-				<BuildOrder>213</BuildOrder>
+			<CppCompile Include="Refine\pzrefpyram.cpp">
+				<BuildOrder>251</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="StrMatrix\pzbdstrmatrix.cpp">
-				<BuildOrder>216</BuildOrder>
+			<CppCompile Include="Refine\pzrefquad.cpp">
+				<BuildOrder>250</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Topology\tpzline.cpp">
-				<BuildOrder>223</BuildOrder>
+			<CppCompile Include="Util\pzchunkgen.cpp">
+				<BuildOrder>239</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Util\pzstackgen.cpp">
-				<BuildOrder>230</BuildOrder>
+			<CppCompile Include="Util\pzmap.cpp">
+				<BuildOrder>234</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Topology\tpzcube.cpp">
-				<BuildOrder>225</BuildOrder>
+			<CppCompile Include="Util\pznumeric.cpp">
+				<BuildOrder>233</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Util\pzvecgen.cpp">
-				<BuildOrder>228</BuildOrder>
+			<CppCompile Include="Util\pzplane.cpp">
+				<BuildOrder>232</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="StrMatrix\TPZSpStructMatrix.cpp">
-				<BuildOrder>205</BuildOrder>
+			<CppCompile Include="Util\pzmanvectorgen.cpp">
+				<BuildOrder>235</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="StrMatrix\TPZParFrontStructMatrix.cpp">
-				<BuildOrder>208</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="StrMatrix\TPZParSkylineStructMatrix.cpp">
-				<BuildOrder>207</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="StrMatrix\pzfstrmatrix.cpp">
-				<BuildOrder>214</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="StrMatrix\pzbstrmatrix.cpp">
-				<BuildOrder>215</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="StrMatrix\tpzsparseblockdiagonalstructmatrix.cpp">
-				<BuildOrder>206</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Shape\pzshapecube.cpp">
-				<BuildOrder>202</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Shape\pzshapelinear.cpp">
-				<BuildOrder>201</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Frontal\pzvecfrontal.cpp">
-				<BuildOrder>33</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Geom\TPZGeoCube.cpp">
-				<DependentOn>Geom\TPZGeoCube.h</DependentOn>
-				<BuildOrder>36</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\tpzgeoelmapped.cpp">
-				<BuildOrder>124</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Mesh\TPZAgglomerateEl.cpp">
-				<BuildOrder>129</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Integral\tpzgausslobattorule.cpp">
-				<BuildOrder>53</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Integral\tpzintrulelist.cpp">
-				<BuildOrder>48</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Geom\pzgeopoint.cpp">
-				<BuildOrder>43</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Geom\TPZGeoLinear.cpp">
-				<DependentOn>Geom\TPZGeoLinear.h</DependentOn>
-				<BuildOrder>34</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Topology\tpzquadrilateral.cpp">
-				<BuildOrder>219</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Topology\tpztetrahedron.cpp">
-				<BuildOrder>218</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Topology\tpzprism.cpp">
-				<BuildOrder>221</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Topology\tpzdisc.cpp">
-				<BuildOrder>224</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Geom\pzgeoprism.cpp">
-				<BuildOrder>42</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Topology\tpzpoint.cpp">
-				<BuildOrder>222</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Topology\tpztriangle.cpp">
-				<BuildOrder>217</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Topology\tpzpyramid.cpp">
-				<BuildOrder>220</BuildOrder>
+			<CppCompile Include="Util\pzadmchunkgen.cpp">
+				<BuildOrder>240</BuildOrder>
 			</CppCompile>
 			<CppCompile Include="Util\pzfunction.cpp">
 				<BuildOrder>238</BuildOrder>
@@ -746,71 +287,24 @@
 				<DependentOn>Util\pzlog.h</DependentOn>
 				<BuildOrder>236</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="Util\pzmanvectorgen.cpp">
-				<BuildOrder>235</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Util\pzadmchunkgen.cpp">
-				<BuildOrder>240</BuildOrder>
-			</CppCompile>
-			<None Include="LinearSolvers\cheby.h">
-				<BuildOrder>246</BuildOrder>
-			</None>
-			<None Include="LinearSolvers\cgs.h">
-				<BuildOrder>245</BuildOrder>
-			</None>
 			<CppCompile Include="Refine\pzreftetrahedra.cpp">
 				<BuildOrder>249</BuildOrder>
 			</CppCompile>
 			<None Include="LinearSolvers\gmres.h">
 				<BuildOrder>247</BuildOrder>
 			</None>
-			<CppCompile Include="Refine\pzrefpyram.cpp">
-				<BuildOrder>251</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Refine\pzrefquad.cpp">
-				<BuildOrder>250</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Refine\TPZRefPattern.cpp">
+			<None Include="LinearSolvers\cheby.h">
+				<BuildOrder>246</BuildOrder>
+			</None>
+			<None Include="LinearSolvers\cgs.h">
 				<BuildOrder>245</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Refine\pzreftriangle.cpp">
+			</None>
+			<None Include="LinearSolvers\ir.h">
 				<BuildOrder>248</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Util\pznumeric.cpp">
-				<BuildOrder>233</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Util\pzplane.cpp">
-				<BuildOrder>232</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Util\pzchunkgen.cpp">
-				<BuildOrder>239</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="Util\pzmap.cpp">
-				<BuildOrder>234</BuildOrder>
-			</CppCompile>
-			<None Include="LinearSolvers\bicgstab.h">
-				<BuildOrder>242</BuildOrder>
 			</None>
-			<None Include="LinearSolvers\bicg.h">
-				<BuildOrder>241</BuildOrder>
-			</None>
-			<CppCompile Include="Refine\pzrefpoint.cpp">
-				<BuildOrder>253</BuildOrder>
-			</CppCompile>
-			<None Include="LinearSolvers\cg.h">
-				<BuildOrder>243</BuildOrder>
-			</None>
-			<CppCompile Include="StrMatrix\TPZFrontStructMatrix.cpp">
-				<BuildOrder>209</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="StrMatrix\pzskylstrmatrix.cpp">
-				<BuildOrder>212</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="StrMatrix\pzstrmatrix.cpp">
-				<BuildOrder>211</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="StrMatrix\TPBSpStructMatrix.cpp">
-				<BuildOrder>210</BuildOrder>
+			<CppCompile Include="Refine\TPZRefPatternTools.cpp">
+				<DependentOn>Refine\TPZRefPatternTools.h</DependentOn>
+				<BuildOrder>250</BuildOrder>
 			</CppCompile>
 			<CppCompile Include="Refine\TPZRefPatternDataBase.cpp">
 				<DependentOn>Refine\TPZRefPatternDataBase.h</DependentOn>
@@ -819,12 +313,11 @@
 			<None Include="LinearSolvers\qmr.h">
 				<BuildOrder>249</BuildOrder>
 			</None>
-			<None Include="LinearSolvers\ir.h">
-				<BuildOrder>248</BuildOrder>
+			<None Include="LinearSolvers\cgbet.h">
+				<BuildOrder>244</BuildOrder>
 			</None>
-			<CppCompile Include="Refine\TPZRefPatternTools.cpp">
-				<DependentOn>Refine\TPZRefPatternTools.h</DependentOn>
-				<BuildOrder>250</BuildOrder>
+			<CppCompile Include="Refine\pzrefprism.cpp">
+				<BuildOrder>252</BuildOrder>
 			</CppCompile>
 			<CppCompile Include="Refine\TPZRefCube.cpp">
 				<DependentOn>Refine\TPZRefCube.h</DependentOn>
@@ -834,11 +327,519 @@
 				<DependentOn>Refine\TPZRefLinear.h</DependentOn>
 				<BuildOrder>246</BuildOrder>
 			</CppCompile>
-			<None Include="LinearSolvers\cgbet.h">
-				<BuildOrder>244</BuildOrder>
+			<CppCompile Include="Refine\pzrefpoint.cpp">
+				<BuildOrder>253</BuildOrder>
+			</CppCompile>
+			<None Include="LinearSolvers\cg.h">
+				<BuildOrder>243</BuildOrder>
 			</None>
-			<CppCompile Include="Refine\pzrefprism.cpp">
+			<None Include="LinearSolvers\bicgstab.h">
+				<BuildOrder>242</BuildOrder>
+			</None>
+			<None Include="LinearSolvers\bicg.h">
+				<BuildOrder>241</BuildOrder>
+			</None>
+			<CppCompile Include="StrMatrix\pzstrmatrix.cpp">
+				<BuildOrder>211</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="StrMatrix\TPBSpStructMatrix.cpp">
+				<BuildOrder>210</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="StrMatrix\TPZFrontStructMatrix.cpp">
+				<BuildOrder>209</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="StrMatrix\pzskylstrmatrix.cpp">
+				<BuildOrder>212</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="StrMatrix\TPZParSkylineStructMatrix.cpp">
+				<BuildOrder>207</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="StrMatrix\pzfstrmatrix.cpp">
+				<BuildOrder>214</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="StrMatrix\TPZSpStructMatrix.cpp">
+				<BuildOrder>205</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="StrMatrix\TPZParFrontStructMatrix.cpp">
+				<BuildOrder>208</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Shape\pzshapecube.cpp">
+				<BuildOrder>202</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Shape\pzshapelinear.cpp">
+				<BuildOrder>201</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="StrMatrix\pzbstrmatrix.cpp">
+				<BuildOrder>215</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="StrMatrix\tpzsparseblockdiagonalstructmatrix.cpp">
+				<BuildOrder>206</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="StrMatrix\pzsbstrmatrix.cpp">
+				<BuildOrder>213</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="StrMatrix\pzbdstrmatrix.cpp">
+				<BuildOrder>216</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Util\tpzautopointer.cpp">
+				<BuildOrder>227</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Util\tpzpermutation.cpp">
+				<BuildOrder>226</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Topology\tpzcube.cpp">
+				<BuildOrder>225</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Util\pzvecgen.cpp">
+				<BuildOrder>228</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Topology\tpzline.cpp">
+				<BuildOrder>223</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Util\pzstackgen.cpp">
+				<BuildOrder>230</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Topology\tpzprism.cpp">
+				<BuildOrder>221</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Topology\tpzdisc.cpp">
+				<BuildOrder>224</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Topology\tpzquadrilateral.cpp">
+				<BuildOrder>219</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Topology\tpztetrahedron.cpp">
+				<BuildOrder>218</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Topology\tpztriangle.cpp">
+				<BuildOrder>217</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Topology\tpzpyramid.cpp">
+				<BuildOrder>220</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Geom\pzgeoprism.cpp">
+				<BuildOrder>42</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Topology\tpzpoint.cpp">
+				<BuildOrder>222</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\tpzgeoelmapped.cpp">
+				<BuildOrder>124</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\TPZAgglomerateEl.cpp">
+				<BuildOrder>129</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Frontal\pzvecfrontal.cpp">
+				<BuildOrder>33</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Geom\TPZGeoCube.cpp">
+				<DependentOn>Geom\TPZGeoCube.h</DependentOn>
+				<BuildOrder>36</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Geom\pzgeopoint.cpp">
+				<BuildOrder>43</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Geom\TPZGeoLinear.cpp">
+				<DependentOn>Geom\TPZGeoLinear.h</DependentOn>
+				<BuildOrder>34</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Integral\tpzgausslobattorule.cpp">
+				<BuildOrder>53</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Integral\tpzintrulelist.cpp">
+				<BuildOrder>48</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Geom\pzgeotetrahedra.cpp">
+				<BuildOrder>39</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Integral\tpzintrulet.cpp">
+				<BuildOrder>46</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\TPZMulticamadaOrtho.cpp">
+				<BuildOrder>57</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Integral\tpzprinteg.cpp">
+				<BuildOrder>44</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Geom\TPZGeoElement.cpp">
+				<DependentOn>Geom\TPZGeoElement.h</DependentOn>
+				<BuildOrder>35</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\tpzmultcamada.cpp">
+				<BuildOrder>58</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Integral\tpzintrulet3d.cpp">
+				<BuildOrder>45</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Geom\pzgeoquad.cpp">
+				<BuildOrder>40</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Integral\tpzintrulep3d.cpp">
+				<BuildOrder>47</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Integral\pzquad.cpp">
+				<BuildOrder>54</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Integral\tpzintrule.cpp">
+				<BuildOrder>49</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Integral\tpzgaussrule.cpp">
+				<BuildOrder>52</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\TPZLinearConvection.cpp">
+				<BuildOrder>59</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Integral\tpzintpoints.cpp">
+				<BuildOrder>50</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzpoisson3dreferred.cpp">
+				<BuildOrder>69</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\TPZConsLawTest.cpp">
+				<BuildOrder>64</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\TPZPlacaOrthotropic.cpp">
+				<BuildOrder>55</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\TPZEuler.cpp">
+				<BuildOrder>62</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Analysis\pzanalysis.cpp">
+				<BuildOrder>9</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Frontal\TPZFrontNonSym.cpp">
+				<BuildOrder>28</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Integral\tpzint1point.cpp">
+				<BuildOrder>51</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Common\pzreal.cpp">
+				<BuildOrder>10</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\TPZEulerConsLaw.cpp">
+				<BuildOrder>61</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\tpzoutofrange.cpp">
+				<BuildOrder>56</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Frontal\TPZFileEqnStorage.cpp">
+				<BuildOrder>31</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Analysis\pzsmfrontalanal.cpp">
+				<BuildOrder>4</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\sloan\vsrtp1.cpp">
+				<BuildOrder>11</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\sloan\number.cpp">
+				<BuildOrder>14</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Analysis\pzmganalysis.cpp">
+				<BuildOrder>7</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\pzsloan.cpp">
+				<BuildOrder>22</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\TPZBoostGraph.cpp">
+				<BuildOrder>21</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\sloan\isorti.cpp">
+				<BuildOrder>16</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\sloan\profi1.cpp">
+				<BuildOrder>13</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\sloan\rootls.cpp">
+				<BuildOrder>12</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Analysis\pznonlinanalysis.cpp">
+				<BuildOrder>6</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Analysis\pzsmanal.cpp">
+				<BuildOrder>5</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Frontal\TPZStackEqnStorage.cpp">
+				<BuildOrder>25</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Analysis\pzeuleranalysis.cpp">
+				<BuildOrder>8</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\sloan\label.cpp">
+				<BuildOrder>15</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Frontal\TPZParFrontMatrix.cpp">
+				<BuildOrder>26</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\sloan\diamtr.cpp">
+				<BuildOrder>19</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\sloan\gegra.cpp">
+				<BuildOrder>18</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\sloan\iorele.cpp">
+				<BuildOrder>17</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\tpznodesetcompute.cpp">
+				<BuildOrder>20</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\pzrenumbering.cpp">
+				<BuildOrder>23</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Geom\pzgeotriangle.cpp">
+				<BuildOrder>38</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Geom\pznoderep.cpp">
+				<DependentOn>Geom\pznoderep.h</DependentOn>
+				<BuildOrder>37</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Frontal\tpzeqnarray.cpp">
+				<BuildOrder>32</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Frontal\TPZFrontSym.cpp">
+				<BuildOrder>27</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzsolve.cpp">
+				<BuildOrder>106</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzspblockdiagpivot.cpp">
+				<BuildOrder>105</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\TPZFVHybrid.cpp">
+				<BuildOrder>60</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\TPZDiffusionConsLaw.cpp">
+				<BuildOrder>63</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Frontal\TPZFront.cpp">
+				<BuildOrder>30</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Frontal\TPZFrontMatrix.cpp">
+				<BuildOrder>29</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="External\pzmetis.cpp">
+				<BuildOrder>24</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzartdiff.cpp">
+				<BuildOrder>98</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzbctension.cpp">
+				<BuildOrder>97</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\tpzsparseblockdiagonal.cpp">
+				<BuildOrder>100</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzstepsolver.cpp">
+				<BuildOrder>103</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzespmat.cpp">
+				<BuildOrder>118</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzfmatrix.cpp">
+				<BuildOrder>117</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzseqsolver.cpp">
+				<BuildOrder>112</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzskylmatpar.cpp">
+				<BuildOrder>107</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\TPZInterfaceEl.cpp">
+				<BuildOrder>122</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzblock.cpp">
+				<BuildOrder>121</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzskylmat.cpp">
+				<BuildOrder>108</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzsespmat.cpp">
+				<BuildOrder>111</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzsfulmat.cpp">
+				<BuildOrder>110</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzshtmat.cpp">
+				<BuildOrder>109</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzstencil.cpp">
+				<BuildOrder>104</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzmatrix.cpp">
+				<BuildOrder>115</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzmatrixid.cpp">
+				<DependentOn>Matrix\pzmatrixid.h</DependentOn>
+				<BuildOrder>114</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzsbndmat.cpp">
+				<BuildOrder>113</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzlink.cpp">
+				<BuildOrder>116</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzbndmat.cpp">
+				<BuildOrder>119</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\tpzagglomeratemesh.cpp">
+				<BuildOrder>128</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\TPZCompElDisc.cpp">
+				<BuildOrder>127</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Geom\pzgeopyramid.cpp">
+				<BuildOrder>41</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\tpzgeoelrefpattern.cpp">
+				<BuildOrder>123</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pznlmat1drotatedengstrain.cpp">
+				<BuildOrder>74</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pznonlinbiharmonic.cpp">
+				<BuildOrder>73</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzcoupledtransportdarcy.cpp">
+				<BuildOrder>92</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzbndcond.cpp">
+				<BuildOrder>95</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\tpzcompmeshreferred.cpp">
+				<BuildOrder>126</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Mesh\tpzgeoblend.cpp">
+				<BuildOrder>125</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzblockdiag.cpp">
+				<BuildOrder>120</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzthermicelast3d.cpp">
+				<BuildOrder>68</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pznlmat1d.cpp">
+				<BuildOrder>75</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzmattest.cpp">
+				<BuildOrder>78</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\TPZConservationLaw.cpp">
+				<BuildOrder>65</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzl2projection.cpp">
+				<BuildOrder>85</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzmaterialid.cpp">
+				<DependentOn>Material\pzmaterialid.h</DependentOn>
+				<BuildOrder>80</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzplaca.cpp">
+				<BuildOrder>71</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzmattest3d.cpp">
+				<BuildOrder>77</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzmultplaca.cpp">
+				<BuildOrder>76</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pztransientmat.cpp">
+				<BuildOrder>67</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzpoisson3d.cpp">
+				<BuildOrder>70</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzelasmat.cpp">
+				<BuildOrder>89</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pznonlinearpoisson3d.cpp">
+				<BuildOrder>72</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzmathyperelastic.cpp">
+				<BuildOrder>79</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzdiscgal.cpp">
+				<BuildOrder>90</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzincnskeps.cpp">
+				<BuildOrder>86</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzmaterial.cpp">
+				<BuildOrder>82</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzmaterialdata.cpp">
+				<BuildOrder>81</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzmat1dlin.cpp">
+				<BuildOrder>84</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzbiharmonic.cpp">
+				<BuildOrder>96</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\eulerdif.cpp">
+				<BuildOrder>99</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzsysmp.cpp">
+				<BuildOrder>102</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzysmp.cpp">
+				<BuildOrder>101</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzcoupledtransportdarcyBC.cpp">
+				<BuildOrder>91</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\tpzverysparsematrix.cpp">
+				<BuildOrder>256</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Matrix\pzmatred.cpp">
+				<BuildOrder>255</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzmat2dlin.cpp">
+				<BuildOrder>83</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Common\TPZGuiInterface.cpp">
+				<DependentOn>Common\TPZGuiInterface.h</DependentOn>
+				<BuildOrder>254</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzburger.cpp">
+				<BuildOrder>94</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzconslaw.cpp">
+				<BuildOrder>93</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="Material\pzelast3d.cpp">
+				<BuildOrder>88</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="SpecialMaps\convtest.cpp">
+				<BuildOrder>247</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="SpecialMaps\tpzarc3d.cpp">
+				<BuildOrder>248</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="SpecialMaps\tpzblendnaca.cpp">
+				<BuildOrder>249</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="SpecialMaps\tpzchangeel.cpp">
+				<BuildOrder>250</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="SpecialMaps\tpzcurvedtriangle.cpp">
+				<BuildOrder>251</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="SpecialMaps\tpzellipse3d.cpp">
 				<BuildOrder>252</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="SpecialMaps\tpzmathtools.cpp">
+				<BuildOrder>253</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="SpecialMaps\tpzquadraticline.cpp">
+				<BuildOrder>254</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="SpecialMaps\tpzquadraticquad.cpp">
+				<BuildOrder>255</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="SpecialMaps\tpzquadratictetra.cpp">
+				<BuildOrder>256</BuildOrder>
+			</CppCompile>
+			<CppCompile Include="SpecialMaps\tpzquadratictrig.cpp">
+				<BuildOrder>257</BuildOrder>
 			</CppCompile>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>

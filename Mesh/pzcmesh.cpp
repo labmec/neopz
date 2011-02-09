@@ -1,5 +1,5 @@
-
-//$Id: pzcmesh.cpp,v 1.91 2010-07-21 19:52:20 phil Exp $
+﻿
+//$Id: pzcmesh.cpp,v 1.92 2011-02-09 09:22:53 fortiago Exp $
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
 #include "pzeltype.h"
@@ -371,12 +371,12 @@ void TPZCompMesh::ExpandSolution() {
   fSolutionBlock = fBlock;
 }
 
-void TPZCompMesh::LoadSolution(TPZFMatrix &mat){
+void TPZCompMesh::LoadSolution(const TPZFMatrix &mat){
 
   int nrow = mat.Rows();
   int ncol = mat.Cols();
   int i,j;
-  for(j=0;j<ncol;j++) for(i=0;i<nrow;i++) fSolution(i,j) = (mat)(i,j);
+  for(j=0;j<ncol;j++) for(i=0;i<nrow;i++) fSolution(i,j) = mat.GetVal(i,j);
   int nelem = NElements();
   TPZCompEl *cel;
   for(i=0; i<nelem; i++) {

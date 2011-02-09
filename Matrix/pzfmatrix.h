@@ -422,6 +422,13 @@ inline TPZFMatrix::~TPZFMatrix () {
 /**************/
 /*** GetVal ***/
 inline const REAL &TPZFMatrix::GetVal( const int row, const int col ) const {
+#ifdef DEBUG
+  if(row >= Rows() || row<0 || col >= Cols() || col<0) {
+    Error("TPZFMatrix::operator() "," Index out of bounds");
+    DebugStop();
+    return gZero;
+  }
+#endif
   return( fElem[ ((unsigned)col) * Rows() + row ] );
 }
 
