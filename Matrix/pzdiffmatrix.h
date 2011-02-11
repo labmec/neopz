@@ -1,4 +1,4 @@
-//$Id: pzdiffmatrix.h,v 1.6 2009-04-21 01:40:23 erick Exp $
+//$Id: pzdiffmatrix.h,v 1.7 2011-02-11 17:27:11 phil Exp $
 
 #ifndef PZDIFFMATRIX_H
 #define PZDIFFMATRIX_H
@@ -17,12 +17,6 @@
  * @author Cedric Ayala
  * @since June 1, 2003.
  */
-
-#ifdef _AUTODIFF
-#define IsZero( a )  ( fabs(shapeFAD::val(shapeFAD::val(a)) ) < 1.e-20 )
-#else
-#define IsZero( a )  ( fabs( a ) < 1.e-20 )
-#endif
 
 enum EStatus {EOk = 0, EIncompDim, EZeroPivot};
 

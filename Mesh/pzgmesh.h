@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.37 2010-07-19 19:40:04 caju Exp $
+//$Id: pzgmesh.h,v 1.38 2011-02-11 17:27:11 phil Exp $
 
 /**
  File : pzgmes.h
@@ -16,10 +16,6 @@
 #ifndef PZGEOMESHH
 #define PZGEOMESHH
 
-#ifndef ISZERO
-#define ISZERO
-#define IsZero( x )    ( (x) < 1.e-10 && (x) > -1.e-10 )
-#endif
 
 #include "pzsave.h"
 #include "pzreal.h"

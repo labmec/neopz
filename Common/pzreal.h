@@ -21,6 +21,20 @@
 #define  __PRETTY_FUNCTION__ __FILE__
 #endif
 
+/*
+#ifndef ISZERO
+#define ISZERO
+#define IsZero( x )    ( (x) < 1.e-10 && (x) > -1.e-10 )
+#endif
+*/
+
+#ifdef _AUTODIFF
+#define IsZero( a )  ( fabs(shapeFAD::val(shapeFAD::val(a)) ) < 1.e-10 )
+#else
+#define IsZero( a )  ( fabs( a ) < 1.e-10 )
+#endif
+
+
 #ifndef ELLIPS
 
 extern int gPrintLevel;

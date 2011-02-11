@@ -137,7 +137,7 @@ void TPZSYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 //
 // ****************************************************************************
 
-void TPZSYsmpMatrix::Print(const char *title, ostream &out ,const MatrixOutputFormat form) const {
+void TPZSYsmpMatrix::Print(const char *title, std::ostream &out ,const MatrixOutputFormat form) const {
   // Print the matrix along with a identification title
   if(form != EInputFormat) {
     out << "\nTSYsmpMatrix Print: " << title << '\n'

@@ -1,4 +1,4 @@
-//$Id: pzeuler.cpp,v 1.7 2010-06-17 17:23:18 phil Exp $
+//$Id: pzeuler.cpp,v 1.8 2011-02-11 17:27:11 phil Exp $
 
 #include "pzeuler.h"
 
@@ -53,7 +53,7 @@ void TPZEulerEquation::FromPrimitiveToConservative(TPZVec<REAL> &sol,REAL gamma)
   sol[4] = rhoE;
   double p = TPZEulerEquation::Pressure(sol,gamma);
   if(fabs(p-keepP) > 1e-4){
-    cout << "\np = " << p << "  keepP = " << keepP << "\n";
+	  std::cout << "\np = " << p << "  keepP = " << keepP << "\n";
   }
 }///void
 
@@ -114,7 +114,7 @@ int TPZEulerEquation::VariableIndex(const std::string &name) {
   if( !strcmp(name.c_str(),"solution") )     return 5;//(ro,u,v,w,E)
   if( !strcmp(name.c_str(),"normvelocity") ) return 6;//sqrt(u+v+w)
   if( !strcmp(name.c_str(),"Mach") )         return 7;//sqrt(u+v+w)/c
-  cout << "TPZEulerEquation::VariableIndex not defined\n";
+	std::cout << "TPZEulerEquation::VariableIndex not defined\n";
   return TPZMaterial::VariableIndex(name);
 }
 
@@ -124,7 +124,7 @@ int TPZEulerEquation::NSolutionVariables(int var){
   if(var == 2) return Dimension();
   if(var == 5) return NStateVariables();
 
-  cout << "TPZEulerEquation::NSolutionVariables not defined\n";
+	std::cout << "TPZEulerEquation::NSolutionVariables not defined\n";
   return 0;
 }
 
@@ -133,7 +133,7 @@ void TPZEulerEquation::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &a
 #ifndef LinearConvection
   if(fabs(Sol[0]) < 1.e-10){
     PZError << "\nTPZEulerEquation::Solution: Density almost null\n"
-            << "Density = " << Sol[0] << endl;
+	  << "Density = " << Sol[0] << std::endl;
   }
 #endif
 
@@ -183,17 +183,17 @@ void TPZEulerEquation::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &a
 
 void TPZEulerEquation::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 ///nothing to be done here
-  cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
+	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }
 
 void TPZEulerEquation::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
 ///nothing to be done here
-  cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
+	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }
 
 void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
   this->ContributeInterface(data,weight,ef);
-  cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
+	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }
 
 
@@ -257,7 +257,7 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
                                               TPZFMatrix &ek,TPZFMatrix &ef,
                                               TPZBndCond &bc){
   this->ContributeBCInterface(data,weight,ef,bc);
-  cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
+	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }///void
 
 void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
