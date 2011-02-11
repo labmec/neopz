@@ -1,10 +1,10 @@
 ﻿
-//$Id: TPZCompElDisc.cpp,v 1.119 2011-02-04 08:53:03 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.120 2011-02-11 08:58:16 santos Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.119 2011-02-04 08:53:03 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.120 2011-02-11 08:58:16 santos Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -962,9 +962,12 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatr
   TPZBlock &block = Mesh()->Block();
   TPZFMatrix &MeshSol = Mesh()->Solution();
 
-  sol.Resize(nstate);
+  int solVecSize = nstate;
+  if(!ncon) solVecSize = 0;
+
+  sol.Resize(solVecSize);
   sol.Fill(0.);
-  dsol.Redim(dphix.Rows(), nstate);
+  dsol.Redim(dphix.Rows(), solVecSize);
   dsol.Zero();
 
   int iv = 0, d;

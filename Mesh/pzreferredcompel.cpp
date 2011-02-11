@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.22 2010-10-08 12:57:52 fortiago Exp $
+// $Id: pzreferredcompel.cpp,v 1.23 2011-02-11 08:58:16 santos Exp $
 
 
 #include "pzreferredcompel.h"
@@ -143,8 +143,8 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec
   TPZFNMatrix<100> OtherDSol,OtherDSol2;
   TPZFNMatrix<9> otheraxes(3,3,0.);
   other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
-  if(OtherSol.NElements()){
-    AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,axes);
+  if(OtherSol.NElements() && ThisSol.NElements()){
+	AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,axes);
   }
   Append(ThisSol,OtherSol,sol);
   Append(ThisDSol,OtherDSol2,dsol);
