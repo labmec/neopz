@@ -243,11 +243,12 @@ void TPZNonLinearAnalysis::Residual(TPZFMatrix &residual, int icase){
 }
 
 void TPZNonLinearAnalysis::LoadSolution(const TPZFMatrix &state){
+ fSolution = state;
+ TPZAnalysis::LoadSolution();
 
-	Mesh()->LoadSolution(state);
 }
 
 void TPZNonLinearAnalysis::LoadState(TPZFMatrix &state){
 
-	Mesh()->LoadSolution(state);
+  this->LoadSolution(state);
 }
