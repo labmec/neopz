@@ -27,6 +27,7 @@ include_directories(
 
 set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "directory where pthread.h can be found")
 set (PTHREAD_LIB_INCLUDE "/usr/lib" CACHE PATH "directory where the pthread library can be found")
+link_libraries(pthread)
 
 option(USING_BOOST "Whether the Boost package will be linked with the library" ON)
 

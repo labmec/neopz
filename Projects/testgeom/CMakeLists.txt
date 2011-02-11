@@ -6,7 +6,7 @@ add_executable(TestGeom ${main_SRCS})
 
 configure_file(quad_st_800_1R_16X.gri quad_st_800_1R_16X.gri COPYONLY)
 
-target_link_libraries(TestGeom pz)
+target_link_libraries(TestGeom pz pthread)
 
 #original Makefile.am contents follow:
 

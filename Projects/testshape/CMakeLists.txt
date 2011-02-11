@@ -5,7 +5,7 @@ set(main_SRCS mainshape.cpp)
 
 add_executable(TestShape ${main_SRCS})
 
-target_link_libraries(TestShape pz)
+target_link_libraries(TestShape pz pthread)
 
 enable_testing()
 
