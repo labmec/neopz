@@ -27,7 +27,6 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzsfmatrix"));
 
 
 #define Min(a, b)    ( (a) < (b) ? (a) : (b) )
-#define IsZero( a )  ( (a) < 1.e-10 && (a) > -1.e-10 )
 
 using namespace std;
 

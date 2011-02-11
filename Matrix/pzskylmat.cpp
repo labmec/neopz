@@ -41,8 +41,6 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylmatrix"));
 #endif
 
 
-#define IsZero( a )  (  ((a) < 1.e-20)  &&  ((a) > -1.e-20)  )
-//#define IsZero( a )  (  (a == 0.) )
 #define Max( a, b )  ( (a) > (b) ? (a) : (b) )
 #define Min( a, b )  ( (a) < (b) ? (a) : (b) )
 

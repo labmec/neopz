@@ -25,7 +25,6 @@
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfbmatrix"));
 #endif
 
-#define IsZero( a )   ( (a) < 1.e-10 && (a) > -1.e-10 )
 #define Max( a, b )   ( (a) > (b) ? (a) : (b) )
 #define Min( a, b )   ( (a) < (b) ? (a) : (b) )
 

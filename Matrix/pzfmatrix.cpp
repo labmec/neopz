@@ -62,7 +62,6 @@ void cblas_daxpy(const int N, const void *alpha, const void *X,
 #endif
 
 
-#define IsZero( a )  ( (a) > -1.e-20 && (a) < 1.e-20 )
 
 using namespace std;
 
