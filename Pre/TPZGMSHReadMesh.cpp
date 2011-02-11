@@ -17,7 +17,7 @@ void TPZGMSHReadMesh::ReadMesh2D(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,T
   //nesse casso deveram ser resequenciados
   TPZStack<int> Indexes;
   Resequence(Indexes,meshfile);
-  ifstream mesh(meshfile);
+	std::ifstream mesh(meshfile);
   char title[256];
   int nnodes,number;
   mesh >> title;//$NOD
@@ -67,7 +67,7 @@ void TPZGMSHReadMesh::ReadMesh2D(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,T
 
 void TPZGMSHReadMesh::ReadMesh2D2(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,TPZStack<TPZGeoElSide> &elembclist){
 
-  ifstream mesh(meshfile);
+	std::ifstream mesh(meshfile);
   char title[256];
   int nnodes,number;
   mesh >> title;//$NOD
@@ -122,7 +122,7 @@ void TPZGMSHReadMesh::ReadMesh3D(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,T
   //nesse casso deveram ser resequenciados
   TPZStack<int> Indexes;
   Resequence(Indexes,meshfile);
-  ifstream mesh(meshfile);
+	std::ifstream mesh(meshfile);
   char title[256];
   int nnodes,number;
   mesh >> title;//$NOD
@@ -174,7 +174,7 @@ void TPZGMSHReadMesh::ReadMesh3D(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,T
 
 void TPZGMSHReadMesh::Resequence(TPZStack<int> &Indexes,char *meshfile){
 
-  ifstream mesh(meshfile);
+	std::ifstream mesh(meshfile);
   char title[256];
   int nnod,pos;
   mesh >> title;//$NOD
@@ -197,7 +197,7 @@ void TPZGMSHReadMesh::Resequence(TPZStack<int> &Indexes,char *meshfile){
   mesh.close();
 }
 
-void TPZGMSHReadMesh::PrintGeoMesh(ostream &out){
+void TPZGMSHReadMesh::PrintGeoMesh(std::ostream &out){
 
   fGeoMesh->Print(out);
   std::cout << "TPZGMSHReadMesh::PrintGeoMesh the geometric mesh of the NeoPZ was printed\n";

@@ -24,6 +24,7 @@
 #include <math.h>
 
 using namespace pzshape;
+using namespace std;
 
 
 TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int elem_type);

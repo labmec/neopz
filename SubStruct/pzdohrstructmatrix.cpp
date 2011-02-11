@@ -143,7 +143,7 @@ TPZMatrix * TPZDohrStructMatrix::Create()
 	}		
 
 	tempo.ft1comput = timeforcopute.ReturnTimeDouble(); //end of time for compute
-	cout << tempo.ft1comput << std::endl;
+	std::cout << tempo.ft1comput << std::endl;
 	
 	std::cout << "Identifying corner nodes\n";
 	TPZfTime timefornodes; // init of timer

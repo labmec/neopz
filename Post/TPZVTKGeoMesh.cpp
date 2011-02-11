@@ -9,6 +9,8 @@
 
 #include "TPZVTKGeoMesh.h"
 
+#include <sstream>
+
 /**
  * Generate an output of all geomesh to VTK
  */
@@ -17,7 +19,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 	file.clear();
 	int nelements = gmesh->NElements();
 	
-	stringstream node, connectivity, type, material;
+	std::stringstream node, connectivity, type, material;
 	
 	//Header
 	file << "# vtk DataFile Version 3.0" << std::endl;
@@ -112,7 +114,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 	file.clear();
 	int nelements = gmesh->NElements();
 	
-	stringstream node, connectivity, type, material;
+	std::stringstream node, connectivity, type, material;
 	
 	//Header
 	file << "# vtk DataFile Version 3.0" << std::endl;
@@ -190,7 +192,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofs
 	file.clear();
 	int nelements = gmesh->NElements();
 	
-	stringstream node, connectivity, type, material;
+	std::stringstream node, connectivity, type, material;
 	
 	//Header
 	file << "# vtk DataFile Version 3.0" << std::endl;
@@ -305,7 +307,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &
 	file.clear();
 	int nelements = gmesh->NElements();
 	
-	stringstream node, connectivity, type, material;
+	std::stringstream node, connectivity, type, material;
 	
 	//Header
 	file << "# vtk DataFile Version 3.0" << std::endl;

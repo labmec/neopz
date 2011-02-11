@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.52 2009-09-01 22:07:16 phil Exp $
+//$Id: pzeulerconslaw.cpp,v 1.53 2011-02-11 18:23:52 phil Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -102,9 +102,9 @@ void TPZEulerConsLaw2::Print(std::ostream &out) {
 
   TPZConservationLaw2::Print(out);
   out << "Artificial Diffusion: " <<
-  fArtDiff.DiffusionName().Str() << endl;
-  out << "Number of State Variables: " << NStateVariables() << endl;
-  out << "Number of Fluxes: " << NFluxes() << endl;
+	fArtDiff.DiffusionName().Str() << std::endl;
+	out << "Number of State Variables: " << NStateVariables() << std::endl;
+	out << "Number of Fluxes: " << NFluxes() << std::endl;
 
   switch(fDiff)
   {
@@ -145,7 +145,7 @@ void TPZEulerConsLaw2::Print(std::ostream &out) {
       out << "Approximate Implicit Face Convective term\n";
       break;
      default:
-        cout << "No Face Convective term\n";
+		  std::cout << "No Face Convective term\n";
   }
 
 
@@ -159,7 +159,7 @@ int TPZEulerConsLaw2::VariableIndex(const std::string &name) {
   if( !strcmp(name.c_str(),"solution") )     return 5;//(ro,u,v,w,E)
   if( !strcmp(name.c_str(),"normvelocity") ) return 6;//sqrt(u+v+w)
   if( !strcmp(name.c_str(),"Mach") )         return 7;//sqrt(u+v+w)/c
-  cout << "TPZEulerConsLaw2::VariableIndex not defined\n";
+	std::cout << "TPZEulerConsLaw2::VariableIndex not defined\n";
   return TPZMaterial::VariableIndex(name);
 }
 
@@ -169,7 +169,7 @@ int TPZEulerConsLaw2::NSolutionVariables(int var){
   if(var == 2) return Dimension();
   if(var == 5) return NStateVariables();
 
-  cout << "TPZEulerConsLaw2::NSolutionVariables not defined\n";
+	std::cout << "TPZEulerConsLaw2::NSolutionVariables not defined\n";
   return 0;
 }
 
@@ -199,7 +199,7 @@ REAL TPZEulerConsLaw2::Det(TPZFMatrix & Mat)
 //        break;
       default:
         PZError << "TPZEulerConsLaw2::Det error: unhandled matrix size: " <<
-	          Mat.Rows() << endl;
+		   Mat.Rows() << std::endl;
    }
 
    return 0.;
@@ -216,7 +216,7 @@ void TPZEulerConsLaw2::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &a
 
   if(fabs(Sol[0]) < 1.e-10) {
     PZError << "\nTPZEulerConsLaw2::Solution: Density almost null\n"
-            << "Density = " << Sol[0] << endl;
+	  << "Density = " << Sol[0] << std::endl;
   }
 
   if(var == 1) {
@@ -520,7 +520,7 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 	    ContributeImplDiff(x, jacinv, FADsol,FADdsol, weight, ek, ef);
 	 #endif
       #else
-         cout << "TPZEulerConsLaw2::Contribute> Implicit diffusive contribution: _AUTODIFF directive not configured -> Using an approximation to the tgMatrix";
+	   std::cout << "TPZEulerConsLaw2::Contribute> Implicit diffusive contribution: _AUTODIFF directive not configured -> Using an approximation to the tgMatrix";
          ContributeApproxImplDiff(x, jacinv, sol,dsol,weight,phi,dphi,ek,ef);
       #endif
    }else
@@ -626,7 +626,7 @@ void TPZEulerConsLaw2::ContributeInterface(TPZMaterialData &data, REAL weight, T
 #ifdef LOG4CXX
     if(fluxroe->isDebugEnabled()){
       std::stringstream sout;
-      sout << "solL " << data.soll << endl << "solR " << data.solr << endl;
+		sout << "solL " << data.soll << std::endl << "solR " << data.solr << std::endl;
       LOGPZ_DEBUG(fluxroe,sout.str().c_str());
       LOGPZ_DEBUG(fluxappr,sout.str().c_str());
     }
@@ -655,7 +655,7 @@ void TPZEulerConsLaw2::ContributeInterface(TPZMaterialData &data, REAL weight, T
 #endif
 #else
       // forcing explicit contribution and issueing an warning
-         cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
+	  std::cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
 //         ContributeApproxImplConvFace(x,data.HSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
          ContributeExplConvFace(data.x,data.soll,data.solr,weight,data.normal,data.phil,data.phir,ef);
 #endif
@@ -790,7 +790,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
 #endif
 #else
       // forcint explicit contribution and issueing an warning
-         cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
+	  std::cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
 //         ComputeGhostState(FADsolL, FADsolR, normal, bc, entropyFix);
 //         ContributeApproxImplConvFace(x,solL,solR,weight,normal,phiL,phiR,ek,ef,entropyFix);
 #endif
@@ -937,7 +937,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
             REAL fluxs = fabs(flux[0]+flux2[0])+fabs(flux[1]+flux2[1])+fabs(flux[2]+flux2[2])+fabs(flux[3]+flux2[3]);
             if(fluxs > 1.e-10)
             {
-               cout << "Fluxo nao simetrico fluxs = " << fluxs << endl;
+				std::cout << "Fluxo nao simetrico fluxs = " << fluxs << std::endl;
             }
 
             if(bc.Type() ==5)
@@ -946,7 +946,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
                REAL err = fabs(flux[0])+fabs(norflux)+fabs(flux[3]);
                if(err > 1.e-5)
                {
-                  cout << "fluxo de parede errado 2 err " << err << endl;
+				   std::cout << "fluxo de parede errado 2 err " << err << std::endl;
                  Roe_Flux<REAL>(data.soll,solR,data.normal,fGamma,flux);
                } else
                {

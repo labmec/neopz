@@ -25,7 +25,7 @@ class TPZGMSHReadMesh {
   /**
    * archive generated for the GMSH to be used (interpreted) inside of the NeoPZ
    */
-  ifstream fInGSMHGeoMesh;
+	std::ifstream fInGSMHGeoMesh;
 
   /**
    * defined geometric mesh in the NeoPZ
@@ -76,7 +76,7 @@ class TPZGMSHReadMesh {
    * it prints in the exit defined for out the characteristics of the geometric mesh 
    * created by the NeoPZ based on the mesh generated for the GMSH
    */
-  void PrintGeoMesh(ostream &out = std::cout);
+	void PrintGeoMesh(std::ostream &out = std::cout);
   
 };
 

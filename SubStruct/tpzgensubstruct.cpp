@@ -135,7 +135,7 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
   UniformRefine();
   std::cout << "AutoBuild "; std::cout.flush();
   fCMesh->AutoBuild();
-	cout << "Number of equations " << fCMesh->NEquations() << std::endl;
+	std::cout << "Number of equations " << fCMesh->NEquations() << std::endl;
 	//tempo.fNumEq = fCMesh->NEquations();													// alimenta timeTemp com o numero de equacoes
 #ifdef LOG4CXX
   {
@@ -758,7 +758,7 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 	int nblocks = origblock.NBlocks();
 	if(scatterpermuteblock.NElements() != origblock.NBlocks())
 	{
-		cout << __PRETTY_FUNCTION__ << " something seriously wrong!!!\n";
+		std::cout << __PRETTY_FUNCTION__ << " something seriously wrong!!!\n";
 	}
 	int ib;
 	for(ib=0; ib<nblocks; ib++)
