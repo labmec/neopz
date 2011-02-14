@@ -28,7 +28,7 @@
 #endif
 */
 
-#ifdef _AUTODIFF
+#ifdef _AUTODIFF_shapeFAD
 #define IsZero( a )  ( fabs(shapeFAD::val(shapeFAD::val(a)) ) < 1.e-10 )
 #else
 #define IsZero( a )  ( fabs( a ) < 1.e-10 )
