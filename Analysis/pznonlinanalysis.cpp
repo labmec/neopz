@@ -25,12 +25,12 @@ using namespace std;
 
 
 TPZNonLinearAnalysis::TPZNonLinearAnalysis() : TPZAnalysis() {
-	Mesh()->Solution().Zero();
+  if(Mesh()) Mesh()->Solution().Zero();
 	fSolution.Zero();
 }
 
 TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,out) {
-	Mesh()->Solution().Zero();
+	if(Mesh()) Mesh()->Solution().Zero();
 	fSolution.Zero();
 }
 
