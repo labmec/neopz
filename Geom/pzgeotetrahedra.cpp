@@ -21,6 +21,7 @@ using namespace pzshape;
 
 namespace pzgeom {
 
+const double tol = pzgeom_TPZNodeRep_tol;
 
 void TPZGeoTetrahedra::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
   phi(0,0)  = 1-pt[0]-pt[1]-pt[2];

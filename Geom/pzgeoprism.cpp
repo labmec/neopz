@@ -18,6 +18,7 @@ using namespace std;
 
 namespace pzgeom {
 
+const double tol = pzgeom_TPZNodeRep_tol;
 
 void TPZGeoPrism::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 

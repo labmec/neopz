@@ -27,9 +27,9 @@ class TPZGeoMesh;
 static LoggerPtr lognoderep(Logger::getLogger("pz.geom.tpznoderep"));
 #endif
 
-const double tol = 1.E-6;
-
 namespace pzgeom {
+
+const double pzgeom_TPZNodeRep_tol = 1.E-6;
 
 template<int N, class Topology>
 class TPZNodeRep : public Topology

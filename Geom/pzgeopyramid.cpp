@@ -1,4 +1,4 @@
-// TPZGeoPyramid.c: implementation of the TPZGeoPyramid class.
+﻿// TPZGeoPyramid.c: implementation of the TPZGeoPyramid class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -19,6 +19,8 @@ using namespace pzshape;
 using namespace std;
 
 namespace pzgeom {
+
+const double tol = pzgeom_TPZNodeRep_tol;
 
 void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
   if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {

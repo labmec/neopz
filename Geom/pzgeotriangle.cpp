@@ -14,6 +14,8 @@ using namespace std;
 
 namespace pzgeom {
 
+const double tol = pzgeom_TPZNodeRep_tol;
+
 void TPZGeoTriangle::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
 	REAL qsi = param[0], eta = param[1];
 	phi(0,0) = 1.-qsi-eta;
