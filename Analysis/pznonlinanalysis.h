@@ -26,7 +26,7 @@ virtual ~TPZNonLinearAnalysis();
 virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch = false, bool checkconv = false);
 
 /** Implements a golden section line search. */
-void LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
+void LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
 
 REAL SolutionNorm();
 

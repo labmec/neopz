@@ -44,7 +44,7 @@ TPZNonLinearAnalysis::~TPZNonLinearAnalysis(){}
 #ifdef DEBUGLINESEARCH
 ofstream alphafile("alpha.txt");
 #endif
-void TPZNonLinearAnalysis::LineSearch(TPZFMatrix &Wn, TPZFMatrix &DeltaW, TPZFMatrix &NextW, REAL tol, int niter){
+void TPZNonLinearAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter){
   REAL error = 2.*tol+1.;
   REAL A, B, L, M;
   TPZFMatrix ak, bk, lambdak, muk, Interval;
@@ -243,12 +243,10 @@ void TPZNonLinearAnalysis::Residual(TPZFMatrix &residual, int icase){
 }
 
 void TPZNonLinearAnalysis::LoadSolution(const TPZFMatrix &state){
- fSolution = state;
- TPZAnalysis::LoadSolution();
-
+  fSolution = state;
+  TPZAnalysis::LoadSolution();
 }
 
 void TPZNonLinearAnalysis::LoadState(TPZFMatrix &state){
-
   this->LoadSolution(state);
 }
