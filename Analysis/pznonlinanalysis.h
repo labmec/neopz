@@ -25,7 +25,12 @@ virtual ~TPZNonLinearAnalysis();
  */
 virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch = false, bool checkconv = false);
 
-/** Implements a golden section line search. */
+/** Implements a golden section line search.
+ * Parameter DeltaW must be a copy. Please do not put a &
+ * It is because usually here and in derive classes fSolution was passed
+ * as DeltaW. But fSolution changes in the linesearch procedure when LoadSolution
+ * is called before AssembleResidual.
+ */
 void LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
 
 REAL SolutionNorm();
