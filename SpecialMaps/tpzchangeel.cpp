@@ -49,7 +49,7 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
                     Coord4[i] = (Node1.Coord(i) + Node2.Coord(i)) / 2.;
                     Coord5[i] = (Node2.Coord(i) + Node0.Coord(i)) / 2.;
                }
-               Node3.SetCoord(&Coord3[0]); Node4.SetCoord(&Coord4[0]); Node5.SetCoord(&Coord5[0]);
+               Node3.SetCoord(Coord3); Node4.SetCoord(Coord4); Node5.SetCoord(Coord5);
 
                /** Setting Midnodes Id's */
                int NewNodeId = Mesh->CreateUniqueNodeId();
@@ -93,7 +93,7 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
                     Coord6[i] = (Node2.Coord(i) + Node3.Coord(i)) / 2.;
                     Coord7[i] = (Node3.Coord(i) + Node0.Coord(i)) / 2.;
                }
-               Node4.SetCoord(&Coord4[0]); Node5.SetCoord(&Coord5[0]); Node6.SetCoord(&Coord6[0]); Node7.SetCoord(&Coord7[0]);
+               Node4.SetCoord(Coord4); Node5.SetCoord(Coord5); Node6.SetCoord(Coord6); Node7.SetCoord(Coord7);
 
                /** Setting Midnodes Id's */
                int NewNodeId = Mesh->CreateUniqueNodeId();
@@ -132,7 +132,7 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
                {
                     Coord2[i] = (Node0.Coord(i) + Node1.Coord(i)) / 2.;
                }
-               Node2.SetCoord(&Coord2[0]);
+               Node2.SetCoord(Coord2);
 
                /** Setting Midnodes Id's */
                int NewNodeId = Mesh->CreateUniqueNodeId();

@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.13 2010-09-03 12:41:26 caju Exp $
+//$Id: pzgnode.h,v 1.14 2011-02-17 11:03:36 fortiago Exp $
 
 /**File : pzgnode.h
 
@@ -89,7 +89,9 @@ virtual  ~TPZGeoNode() { }
   REAL Coord(int i) const;
 
   /**Set all coordinates into the current node. It gets the dim values from x */
-  void SetCoord(REAL *x,int dim = 3);
+  void SetCoord(const TPZVec<REAL> &x);
+
+
   /**Set the i-th coordinate for current node*/
   void SetCoord(int i,REAL coord);
 	
