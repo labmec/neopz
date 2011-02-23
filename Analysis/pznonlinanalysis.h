@@ -31,7 +31,7 @@ virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool lines
  * as DeltaW. But fSolution changes in the linesearch procedure when LoadSolution
  * is called before AssembleResidual.
  */
-void LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
+REAL LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
 
 REAL SolutionNorm();
 

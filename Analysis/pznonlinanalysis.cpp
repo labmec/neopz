@@ -40,11 +40,11 @@ TPZNonLinearAnalysis::~TPZNonLinearAnalysis(){}
 //void LogWellSolution(TPZCompMesh &cmesh, int wellMatId);
 
 
-// #define DEBUGLINESEARCH
+//#define DEBUGLINESEARCH
 #ifdef DEBUGLINESEARCH
-ofstream alphafile("alpha.txt");
+ofstream alphafile("c:\\Temp\\tmp\\alpha.txt");
 #endif
-void TPZNonLinearAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter){
+REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter){
   REAL error = 2.*tol+1.;
   REAL A, B, L, M;
   TPZFMatrix ak, bk, lambdak, muk, Interval;
@@ -133,8 +133,8 @@ void TPZNonLinearAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, T
       ncontrib++;
     }
   }
-  REAL MeanAlpha = sum/ncontrib;
-  alphafile << MeanAlpha << "\t" << "ALPHA = " << ALPHA << "\n";
+  //REAL MeanAlpha = sum/ncontrib;
+  alphafile << /*MeanAlpha << "\t" <<*/ "ALPHA = " << ALPHA << "\n";
   alphafile.flush();
 #endif
 
@@ -144,7 +144,10 @@ void TPZNonLinearAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, T
 #ifdef DEBUGLINESEARCH
  alphafile << "ALPHA LIMIT APPLIED. Alpha = 1.\n";
 #endif
+    return 1.;
   }
+
+  return ALPHA;
 
 }///void
 
