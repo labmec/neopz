@@ -1,10 +1,10 @@
 ﻿
-//$Id: TPZCompElDisc.cpp,v 1.120 2011-02-11 08:58:16 santos Exp $
+//$Id: TPZCompElDisc.cpp,v 1.121 2011-03-02 11:20:02 fortiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.120 2011-02-11 08:58:16 santos Exp $
+//$Id: TPZCompElDisc.cpp,v 1.121 2011-03-02 11:20:02 fortiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -1063,17 +1063,15 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
     DebugStop();
     return -1.;
   }
-  
-  const int dim = disc->Dimension();
-  TPZAutoPointer<TPZIntPoints> intrule = cel->GetIntegrationRule().Clone();
-  if(material->HasForcingFunction()) {
-    TPZManVector<int,3> order(dim,intrule->GetMaxOrder());
-    intrule->SetOrder(order);
-  }
-  
+
   TPZMaterialData data;
   disc->InitMaterialData(data);
   data.p = disc->MaxOrder();
+  const int dim = disc->Dimension();
+
+  TPZAutoPointer<TPZIntPoints> intrule = cel->GetIntegrationRule().Clone();
+  material->SetIntegrationRule(intrule, data.p, dim);
+
   TPZManVector<REAL,3> intpoint(dim,0.);
   REAL weight = 0.; 
 

@@ -8,6 +8,7 @@
 #include "pzbndcond.h"
 #include "pzreal.h"
 #include "pzadmchunk.h"
+#include "tpzintpoints.h"
 
 #include "pzlog.h"
 
@@ -158,6 +159,17 @@ void TPZMaterial::Clone(std::map<int, TPZAutoPointer<TPZMaterial> >&matvec) {
    TPZAutoPointer<TPZMaterial> newmat = NewMaterial();
    newmat->SetForcingFunction(TPZMaterial::fForcingFunction);
    matvec[matid] = newmat;
+}
+
+void TPZMaterial::SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
+                                     int elPMaxOrder,
+                                     int elDimension){
+  TPZManVector<int,3> p2(elDimension,2*elPMaxOrder);
+  rule->SetOrder(p2);
+  if(this->HasForcingFunction()) {
+    TPZManVector<int,3> order(elDimension,rule->GetMaxOrder());
+    rule->SetOrder(order);
+  }
 }
 
 //#ifdef _AUTODIFF

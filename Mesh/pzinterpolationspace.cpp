@@ -1,4 +1,4 @@
-﻿//$Id: pzinterpolationspace.cpp,v 1.42 2011-02-04 08:53:03 fortiago Exp $
+﻿//$Id: pzinterpolationspace.cpp,v 1.43 2011-03-02 11:20:02 fortiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -265,14 +265,8 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
   TPZManVector<REAL,3> intpoint(dim,0.);
   REAL weight = 0.;
 
-#warning "I DONT LIKE MESSING WITH INTEGRATION RULES HERE"
   TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
-  TPZManVector<int,3> p2(dim,data.p*2);
-  intrule->SetOrder(p2);
-  if(material->HasForcingFunction()) {
-    TPZManVector<int,3> order(dim,intrule->GetMaxOrder());
-    intrule->SetOrder(order);
-  }
+  material->SetIntegrationRule(intrule, data.p, dim);
 
   int intrulepoints = intrule->NPoints();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
@@ -308,14 +302,7 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
   REAL weight = 0.;
 
   TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
-  TPZManVector<int,3> p2(dim,data.p*2);
-
-  intrule->SetOrder(p2);
-
-  if(material->HasForcingFunction()) {
-    TPZManVector<int,3> order(dim,intrule->GetMaxOrder());
-    intrule->SetOrder(order);
-  }
+  material->SetIntegrationRule(intrule, data.p, dim);
 
   int intrulepoints = intrule->NPoints();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
@@ -1010,7 +997,7 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
     data.sol.Fill(0.);
     this->Solution(intpoint, variable, data.sol);
     //Tiago: Next call is performet only for computing detcaj. The previous method (Solution) has already computed jacobian.
-    //       It means that the next call would not be necessary if I write the whole code here.
+    //       It means that the next call would not be necessary if I wrote the whole code here.
     this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
     weight *= fabs(data.detjac);
     for(iv = 0; iv < varsize; iv++){

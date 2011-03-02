@@ -25,6 +25,7 @@
 class TPZBndCond;
 class TPZMaterial;
 class TPZMaterialData;
+class TPZIntPoints;
 
 /// This abstract class defines the behaviour which each derived class needs to implement
 /**
@@ -202,6 +203,14 @@ private:
       }
 
       virtual int HasForcingFunction() {return (fForcingFunction != 0);}
+
+      /** Set the integration rule order based on the element
+      *   p order of interpolation, its dimension and the characteristics
+      *   of the material
+      */
+      virtual void SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
+                                      int elPMaxOrder,
+                                      int elDimension);
 
       /**Compute the error due to the difference between the
 	 interpolated flux and the flux computed based on the

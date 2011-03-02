@@ -1,6 +1,6 @@
-// -*- c++ -*-
+﻿// -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.100 2010-08-24 17:08:45 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.101 2011-03-02 11:20:02 fortiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -302,14 +302,8 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
    const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
 
    TPZGeoEl *ref = Reference();
-   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p);
-   if(mat->HasForcingFunction()){
-      TPZManVector<int,10> order(3);
-      intrule->GetOrder(order);
-      int maxorder = intrule->GetMaxOrder();
-      order.Fill(maxorder);
-      intrule->SetOrder(order);
-   }
+   TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p);
+   mat->SetIntegrationRule(intrule, p, dim);
    const int npoints = intrule->NPoints();
 
    //integration points in left and right elements: making transformations to neighbour elements
@@ -344,7 +338,6 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 
    }//loop over integration points
 
-   delete intrule;
 }
 
 int TPZInterfaceElement::NConnects() const {
@@ -971,14 +964,8 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
    const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
 
    TPZGeoEl *ref = Reference();
-   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p );
-   if(mat->HasForcingFunction()){
-      TPZManVector<int,10> order(3);
-      intrule->GetOrder(order);
-      int maxorder = intrule->GetMaxOrder();
-      order.Fill(maxorder);
-      intrule->SetOrder(order);
-   }
+   TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p );
+   mat->SetIntegrationRule(intrule, p, dim);
    const int npoints = intrule->NPoints();
 
    //integration points in left and right elements: making transformations to neighbour elements
@@ -1012,8 +999,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
       mat->ContributeInterface(data, weight, ek.fMat, ef.fMat);
 
    }//loop over integration points
-
-   delete intrule;
 
 }
 
@@ -1058,7 +1043,7 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZVec<REAL> &jump, int opt){
 
    ///LOOKING FOR MAX INTERPOLATION ORDER
    TPZGeoEl *ref = Reference();
-   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2 );
+   TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2 );
    TPZManVector<int> order(3);
    intrule->GetOrder(order);
    int maxorder = intrule->GetMaxOrder();
@@ -1111,8 +1096,6 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZVec<REAL> &jump, int opt){
     }///if
 
   }///loop over integration points
-
-  delete intrule;
 
   ///Norma sobre o elemento
   if(opt == 0){
@@ -1168,14 +1151,8 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
    const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
 
    TPZGeoEl *ref = Reference();
-   TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p );
-   if(mat->HasForcingFunction()){
-      TPZManVector<int,10> order(3);
-      intrule->GetOrder(order);
-      int maxorder = intrule->GetMaxOrder();
-      order.Fill(maxorder);
-      intrule->SetOrder(order);
-   }
+   TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p );
+   mat->SetIntegrationRule(intrule, p, dim);
    const int npoints = intrule->NPoints();
 
    //integration points in left and right elements: making transformations to neighbour elements
@@ -1211,7 +1188,6 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 
    }//loop over integration points
 
-   delete intrule;
 }
 
 void TPZInterfaceElement::Integrate(int variable, TPZVec<REAL> & value){
@@ -1259,14 +1235,8 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
   const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
 
   ///Integration rule
-  TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p);
-  if(material->HasForcingFunction()){
-    TPZManVector<int,10> order(3);
-    intrule->GetOrder(order);
-    int maxorder = intrule->GetMaxOrder();
-    order.Fill(maxorder);
-    intrule->SetOrder(order);
-  }
+  TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*p);
+  material->SetIntegrationRule(intrule, p, ref->Dimension());
 
   ///loop over integration points
   const int npoints = intrule->NPoints();
@@ -1287,7 +1257,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
       value[iv] += locval[iv]*weight;
     }///for iv
   }///for ip
-  delete intrule;
+
 }///method
 
 void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf){
