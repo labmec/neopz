@@ -46,7 +46,7 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 		cout << "TPZMVGraphMesh no material found\n";
 		return;
 	}
-	if(fOutFile) 
+	if(fOutFile.is_open())
 	{
 		fOutFile.close();
 	}

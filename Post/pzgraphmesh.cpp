@@ -124,7 +124,7 @@ void TPZGraphMesh::SequenceNodes(){
 void TPZGraphMesh::SetFileName(const std::string &filename)
 {
 	fFileName = filename;
-	if(fOutFile)
+	if(fOutFile.is_open())
 	{
 		fOutFile.close();
 	}
