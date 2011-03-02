@@ -1,4 +1,4 @@
-//$Id: pzl2projection.h,v 1.12 2009-09-01 19:44:47 phil Exp $
+//$Id: pzl2projection.h,v 1.13 2011-03-02 11:41:14 fortiago Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
@@ -26,6 +26,9 @@ protected:
  /** Argument defining this material is a referred material */
   bool fIsReferred;
 
+  /** Order for setting the integration rule */
+  int fIntegrationOrder;
+
 public:
 
   /** Class constructor 
@@ -34,7 +37,8 @@ public:
    * @param nstate number of state variables
    * @param sol constant solution vector
    */
-  TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol);
+  TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol,
+                  int IntegrationOrder = -1);
 
   /** Class destructor
    */
@@ -47,6 +51,12 @@ public:
   /** Solution indices of post-processing
     */
   enum ESolutionVars { ENone = 0, ESolution = 1 };
+
+  /** See base class
+   */
+  virtual void SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
+                          int elPMaxOrder,
+                          int elDimension);
 
   /** Contribute method
    */

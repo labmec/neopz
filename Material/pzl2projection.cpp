@@ -1,13 +1,16 @@
-//$Id: pzl2projection.cpp,v 1.11 2011-02-11 09:01:37 fortiago Exp $ 
+//$Id: pzl2projection.cpp,v 1.12 2011-03-02 11:41:14 fortiago Exp $
 
 #include "pzl2projection.h"
 #include "pzbndcond.h"
+#include "tpzintpoints.h"
 
-TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol)
+TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol,
+                                 int IntegrationOrder)
   :TPZDiscontinuousGalerkin(id){
   this->fDim = dim;
   this->fNStateVars = nstate;
   this->fSol = sol;
+  this->fIntegrationOrder = IntegrationOrder;
   this->SetIsReferred(false);
 }
 
@@ -15,6 +18,7 @@ TPZL2Projection::TPZL2Projection(const TPZL2Projection &cp):TPZDiscontinuousGale
   this->fDim = cp.fDim;
   this->fNStateVars = cp.fNStateVars;
   this->fSol = cp.fSol;
+  this->fIntegrationOrder = cp.fIntegrationOrder;
   this->SetIsReferred(cp.fIsReferred);
 }
 
@@ -128,4 +132,16 @@ void TPZL2Projection::Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
   Solout.Resize(0);
 }
 
+void TPZL2Projection::SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
+                                     int elPMaxOrder,
+                                     int elDimension){
+  if(this->fIntegrationOrder == -1){
+    TPZDiscontinuousGalerkin::SetIntegrationRule(rule,elPMaxOrder,elDimension);
+  }
+  else{
+    const int order = (fIntegrationOrder > (2*elPMaxOrder) ) ? fIntegrationOrder : 2*elPMaxOrder;
+    TPZManVector<int,3> p2(elDimension,order);
+    rule->SetOrder(p2);
+  }
+}
 
