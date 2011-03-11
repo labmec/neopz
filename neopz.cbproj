@@ -43,11 +43,9 @@
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
 			<BCC_SourceDebuggingOn>true</BCC_SourceDebuggingOn>
-			<BCC_OptimizeForSpeed>false</BCC_OptimizeForSpeed>
-			<BCC_DisableOptimizations>true</BCC_DisableOptimizations>
 			<IncludePath>..\FAD;..\FAD\Fad;..\FAD\TinyFad;..\FAD\TinyFadET;$(IncludePath)</IncludePath>
 			<IntermediateOutputDir>USING_PTHREAD_FAD</IntermediateOutputDir>
-			<Defines>_AUTODIFF;DEBUG;$(Defines)</Defines>
+			<Defines>_AUTODIFF;$(Defines)</Defines>
 		</PropertyGroup>
 		<ItemGroup>
 			<CppCompile Include="Post\pzgraphel1dd.cpp">

@@ -21,20 +21,6 @@
 #define  __PRETTY_FUNCTION__ __FILE__
 #endif
 
-/*
-#ifndef ISZERO
-#define ISZERO
-#define IsZero( x )    ( (x) < 1.e-10 && (x) > -1.e-10 )
-#endif
-*/
-
-#ifdef _AUTODIFF_shapeFAD
-#define IsZero( a )  ( fabs(shapeFAD::val(shapeFAD::val(a)) ) < 1.e-10 )
-#else
-#define IsZero( a )  ( fabs( a ) < 1.e-10 )
-#endif
-
-
 #ifndef ELLIPS
 
 extern int gPrintLevel;
@@ -355,5 +341,19 @@ typedef std::TPZFlopCounter REAL;
 typedef double REAL;
 //typedef double *REALPtr;
 #endif
+
+inline bool IsZero( REAL a ){
+  return ( fabs( a ) < 1.e-10 );
+}
+
+template <class T>
+inline const T& Max( const T &a, const T &b ){
+  return a > b ? a : b;
+}
+
+template <class T>
+inline const T& Min( const T & a, const T &b ){
+  return a < b ? a : b;
+}
 
 #endif

@@ -1,4 +1,4 @@
-//$Id: pzgnode.h,v 1.14 2011-02-17 11:03:36 fortiago Exp $
+//$Id: pzgnode.h,v 1.15 2011-03-11 13:27:49 fortiago Exp $
 
 /**File : pzgnode.h
 
@@ -44,6 +44,9 @@ class TPZGeoNode : public TPZSaveable {
   TPZGeoNode();
   /**Constructor copy*/
   TPZGeoNode(const TPZGeoNode &node);
+
+  TPZGeoNode & operator=(const TPZGeoNode &node);
+
   /**Destructor*/
 virtual  ~TPZGeoNode() { }
   

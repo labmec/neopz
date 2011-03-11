@@ -1,4 +1,4 @@
-//$Id: pzgnode.cpp,v 1.9 2011-02-17 11:03:36 fortiago Exp $
+//$Id: pzgnode.cpp,v 1.10 2011-03-11 13:27:49 fortiago Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -26,6 +26,13 @@ TPZGeoNode::TPZGeoNode(const TPZGeoNode &node) {
   fId = node.Id();
   for(int i=0;i<3;i++) fCoord[i] = node.Coord(i);
 }
+
+TPZGeoNode & TPZGeoNode::operator=(const TPZGeoNode &node){
+  fId = node.Id();
+  for(int i=0;i<3;i++) fCoord[i] = node.Coord(i);
+  return *this;
+}
+
 void TPZGeoNode::Initialize(TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
   fId = mesh.CreateUniqueNodeId();
   int i,dim = coord.NElements();

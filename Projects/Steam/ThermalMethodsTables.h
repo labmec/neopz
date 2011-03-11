@@ -10,8 +10,6 @@
 #ifndef ThermalMethodsTablesToSteamHHH
 #define ThermalMethodsTablesToSteamHHH
 
-#define IsZero( a )    ( (a) < 1.e-8 && (a) > -1.e-8 )
-
 #include "pzerror.h"
 #include "pzreal.h"
 
