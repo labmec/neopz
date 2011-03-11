@@ -254,7 +254,7 @@ public:
   /**
    *load the solution into the computable grid
    */
-	void LoadSolution();
+	virtual void LoadSolution();
 
 	virtual void LoadSolution(const TPZFMatrix &sol){
 		this->Solution() = sol;

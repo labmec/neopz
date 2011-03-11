@@ -187,7 +187,7 @@ void TPZNonLinearAnalysis::IterativeProcess(std::ostream &out,REAL tol,int numit
       prevsol -= fSolution;
       REAL normDeltaSol = Norm(prevsol);
       prevsol = fSolution;
-      TPZAnalysis::LoadSolution();
+      this->LoadSolution(fSolution);
       this->AssembleResidual();
       double NormResLambda = Norm(fRhs);
       double norm = NormResLambda;
@@ -250,6 +250,11 @@ void TPZNonLinearAnalysis::LoadSolution(const TPZFMatrix &state){
   TPZAnalysis::LoadSolution();
 }
 
+void TPZNonLinearAnalysis::LoadSolution(){
+  this->LoadSolution(fSolution);
+}
+
 void TPZNonLinearAnalysis::LoadState(TPZFMatrix &state){
   this->LoadSolution(state);
 }
+

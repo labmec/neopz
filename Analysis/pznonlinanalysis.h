@@ -41,6 +41,8 @@ int NumCases();
 
 virtual void Residual(TPZFMatrix &residual, int icase);
 
+virtual void LoadSolution();
+
 virtual void LoadSolution(const TPZFMatrix &state);
 
 void LoadState(TPZFMatrix &state);
