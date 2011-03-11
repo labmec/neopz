@@ -1,4 +1,4 @@
-#include "tpzgeoblend.h"
+﻿#include "tpzgeoblend.h"
 
 #include "pzgeoelside.h"
 #include "tpzgeoelmapped.h"
@@ -262,7 +262,7 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
             TPZManVector<REAL,3> DblendTemp(TGeo::Dimension,0.);
             for(int a = 0; a < LowNodeSides.NElements(); a++)
             {
-                TPZVec<REAL> parChanged(par.NElements());
+                TPZManVector<REAL> parChanged(par.NElements());
                 TGeo::FixSingularity(byside,par,parChanged);
                 TGeo::Shape(parChanged,blend,Dblend);
 
@@ -308,7 +308,7 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
             }
         }
     }
-    TPZFMatrix axest;
+    TPZFNMatrix<9> axest;
     JacTemp.GramSchmidt(axest,jacobian);
     axest.Transpose(&axes);
 
@@ -337,6 +337,10 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
             detjac -= jacobian(0,0)*jacobian(1,2)*jacobian(2,1);//- a00 a12 a21
             detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
             detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
+
+            if(fabs(detjac) < 1e-16){
+              DebugStop();
+            }
 
             jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2)) / detjac;//-a12 a21 + a11 a22
             jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2)) / detjac;// a02 a21 - a01 a22

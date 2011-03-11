@@ -207,9 +207,9 @@ void TPZArc3D::Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobi
 	jacobian(0,0) = fAngle * fRadius/2.; jacinv(0,0) = 1./jacobian(0,0); detjac = jacobian(0,0);
 	
 	/** Computing Axes */
-	TPZVec< REAL > Vpc(3), Vpa(3), Vpb(3), Vt(3), OUT(3);
+	TPZManVector< REAL > Vpc(3), Vpa(3), Vpb(3), Vt(3), OUT(3);
 	
-	TPZVec< REAL > middle(1, 0.);
+	TPZManVector< REAL > middle(1, 0.);
 	X(coord,middle,OUT);
 	
 	/** Vector From MappedPoint to Ini */
@@ -234,6 +234,8 @@ void TPZArc3D::Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobi
 		if( fabs(Vt[i]) < 1.E-12 ) Vt[i] = 0.;
 		Vtnorm += Vt[i]*Vt[i];
 	}
+  if(Vtnorm < 0.) DebugStop();
+  if(sqrt(Vtnorm) < 1e-16) DebugStop();
 	for(int j = 0; j < 3; j++) axes(0,j) = Vt[j]/sqrt(Vtnorm);
 }
 

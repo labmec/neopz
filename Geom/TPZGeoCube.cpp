@@ -1,4 +1,4 @@
-#include "TPZGeoCube.h"
+﻿#include "TPZGeoCube.h"
 //#include "pzelgpoint.h"
 //#include "pzelg1d.h"
 //#include "pzelgq2d.h"
@@ -18,10 +18,9 @@ void TPZGeoCube::X(TPZFMatrix &nodes,TPZVec<REAL> & loc,TPZVec<REAL> &result){
   if(nrow != 3 || ncol != 8){//8x3 n� por linhas
 	cout << "TPZGeoCube::X nodes matrix error size\n";
   }
-  REAL spacephi[12],spacedphi[30];
   int i,j;
-  TPZFMatrix phi(8,1,spacephi,12);
-  TPZFMatrix dphi(3,8,spacedphi,30);
+  TPZFNMatrix<12> phi(8,1);
+  TPZFNMatrix<30> dphi(3,8);
   Shape(loc,phi,dphi);
   for(j=0;j<3;j++) {
     result[j] = 0.0;
@@ -117,10 +116,8 @@ void TPZGeoCube::Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jaco
 	cout << "TPZGeoCube::X nodes matrix error size\n";
   }
 
-  REAL spacephi[12];
-  TPZFMatrix phi(8,1,spacephi,12);
-  REAL spacedphi[30];
-  TPZFMatrix dphi(3,8,spacedphi,30);
+  TPZFNMatrix<12> phi(8,1);
+  TPZFNMatrix<30> dphi(3,8);
   Shape(param,phi,dphi);
   jacobian.Zero();
   REAL coor;
