@@ -51,7 +51,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
   Graph G;
   size_type i;
   size_type elgraphsize = fElementGraphIndex.NElements()-1;
-  std::vector<int> nconnects(fNNodes,0);
+  TPZVec<int> nconnects(fNNodes,0);
   for(i=0; i < elgraphsize; i++)
   {
     int first, second;
@@ -103,8 +103,8 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
 //   std::cout << "Number of Edges " << num_edges(G) << std::endl;
   int nVertices = num_vertices(G);
 //  std::cout << "Number of Vertices " << nVertices << std::endl;
-  std::vector<Vertex> inv_perm(nVertices);
-  std::vector<size_type> l_perm(nVertices);
+  TPZVec<Vertex> inv_perm(nVertices);
+  TPZVec<size_type> l_perm(nVertices);
   for(size_type i = 0; i < l_perm.size(); i++) l_perm[i]=-1;
   for(size_type i = 0; i < l_perm.size(); i++) inv_perm[i]=0;
   perm.Resize(fNNodes,-1);

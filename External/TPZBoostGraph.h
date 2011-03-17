@@ -6,7 +6,7 @@
 
 #ifdef USING_BOOST
 
-#include <vector>
+#include "pzvec.h"
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/sloan_ordering.hpp>
 #include <boost/graph/cuthill_mckee_ordering.hpp>
@@ -85,7 +85,7 @@ private:
   /**
    * Defines the list of Edges for the current Graph
    */
-  std::vector<Pair> m_Edges;
+  TPZVec<Pair> m_Edges;
   /**
    * Defines the Graph itself.
    * This structure will be submitted to the Boost kernel
@@ -103,7 +103,7 @@ private:
   //Creating a property_map for the indices of a vertex
   boost::property_map<Graph, boost::vertex_index_t>::type m_Index_map;
   // = get(vertex_index, G);  
-  std::vector<int> m_Connects;
+  TPZVec<int> m_Connects;
 
 };
 

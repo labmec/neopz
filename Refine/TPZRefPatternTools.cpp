@@ -397,10 +397,10 @@ bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA, T
 				int nodeFinA = pairedNodesIT->first;
 				int nodeFinB = pairedNodesIT->second;			
 				
-				std::vector<int> NodesHuntedA;
+				TPZManVector<int> NodesHuntedA;
 				NodesHunter(meshA, NodesHuntedA, nodeIniA, nodeFinA);
 				
-				std::vector<int> NodesHuntedB;
+				TPZManVector<int> NodesHuntedB;
 				NodesHunter(meshB, NodesHuntedB, nodeIniB, nodeFinB);
 				
 				for(int n = 1; n < NodesHuntedA.size()-1; n++)
@@ -1211,7 +1211,7 @@ void TPZRefPatternTools::TransformationTest(TPZRefPattern * refp)
 	}//fim for isub
 }
 
-void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, std::vector<int>& NodesHunted, int IdIni, int IdFin, double Tol)
+void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, TPZVec<int>& NodesHunted, int IdIni, int IdFin, double Tol)
 {
     /** Although this method considers coordinates in R3, Coord-Z must be constant for all nodes */
     /** i.e., nodes coordinates belong to XY parallel plane */
@@ -1239,7 +1239,7 @@ void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, std::vector<int>& NodesH
 #ifdef DEBUG
     if(posIni == -1 || posFin == -1)
     {
-        std::cout << "Initial Node index or Final Node index doesn't belong to the given TPZGeoNode std::vector!\n";
+        std::cout << "Initial Node index or Final Node index doesn't belong to the given TPZGeoNode TPZVec!\n";
         std::cout << "See NodesHunter method!\n";
 		exit(-1);
     }
@@ -1271,7 +1271,7 @@ void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, std::vector<int>& NodesH
     /** Changing VectorialNotation from Canonic Base to NewBase */
     for(int i = 0; i < VecSize; i++)
     {
-		std::vector <double> temp; temp.resize(3);
+		TPZManVector <double> temp; temp.Resize(3);
 		for(int j = 0; j < dim; j++)
 		{
 			double val = 0.;
@@ -1296,7 +1296,7 @@ void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, std::vector<int>& NodesH
 			mymap.insert(Item);
 		}
     }
-    NodesHunted.resize(mymap.size());
+    NodesHunted.Resize(mymap.size());
     std::map<double, int>::iterator it = mymap.begin();
     int i = 0;
     for(it = mymap.begin(); it!= mymap.end(); it++, i++)

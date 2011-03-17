@@ -141,7 +141,7 @@ public:
 	 * NodesHunted vector is the sequential nodesIds that belongs (i.e.: "Tol" far) to InitialNode(IdIni)~FinalNode(IdFin) alignment of gMesh.NodeVec()
 	 * Obs.: InitialNode and FinalNode are also included!!!
 	 */
-	static void NodesHunter(TPZGeoMesh &gMesh, std::vector<int>& NodesHunted, int IdIni, int IdFin, double Tol = 1.E-1);
+	static void NodesHunter(TPZGeoMesh &gMesh, TPZVec<int>& NodesHunted, int IdIni, int IdFin, double Tol = 1.E-1);
 
 	/**
 	 * Fill the TPZVec "permutation" with the valid permutations of "gel"
