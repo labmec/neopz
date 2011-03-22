@@ -43,7 +43,12 @@ void TPZGeoTriangle::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix
         }
         VecMatrix.GramSchmidt(axest,jacobian);
         axest.Transpose(&axes);
-	detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
+      	detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
+
+        if(IsZero(detjac)){
+          detjac = ZeroTolerance();
+        }
+
         if(detjac)
         {
           jacinv(0,0) =  jacobian(1,1)/detjac;

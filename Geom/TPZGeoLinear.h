@@ -121,10 +121,15 @@ inline void TPZGeoLinear::Jacobian(TPZFMatrix &coord,TPZVec<REAL> &param,TPZFMat
   mod1 = sqrt(mod1);
   jacobian(0,0) = mod1;
   detjac = mod1;
-  jacinv(0,0) = 1./mod1;
+
+  if(IsZero(detjac)){
+    detjac = ZeroTolerance();
+  }
+
+  jacinv(0,0) = 1./detjac;
 
   for(ic=0; ic<3; ic++) {
-    axes(0,ic) = v1[ic]/mod1;
+    axes(0,ic) = v1[ic]/detjac;
   }
 
   // VERSAO ORIGINAL

@@ -317,12 +317,18 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
         case(1):
         {
           detjac = jacobian(0,0);
+          if(IsZero(detjac)){
+            detjac = ZeroTolerance();
+          }
           jacinv(0,0) = 1./detjac;
           break;
         }
         case(2):
         {
             detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
+            if(IsZero(detjac)){
+              detjac = ZeroTolerance();
+            }
             jacinv(0,0) =  jacobian(1,1) / detjac;
             jacinv(1,1) =  jacobian(0,0) / detjac;
             jacinv(0,1) = -jacobian(0,1) / detjac;
@@ -338,8 +344,8 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
             detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
             detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
 
-            if(fabs(detjac) < 1e-16){
-              DebugStop();
+            if(IsZero(detjac)){
+              detjac = ZeroTolerance();
             }
 
             jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2)) / detjac;//-a12 a21 + a11 a22

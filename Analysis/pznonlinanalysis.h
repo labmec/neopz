@@ -27,7 +27,7 @@ virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool lines
 
 /** Implements a golden section line search.
  * Parameter DeltaW must be a copy. Please do not put a &
- * It is because usually here and in derive classes fSolution was passed
+ * It is because usually here and in derived classes fSolution was passed
  * as DeltaW. But fSolution changes in the linesearch procedure when LoadSolution
  * is called before AssembleResidual.
  */

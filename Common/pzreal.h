@@ -342,8 +342,12 @@ typedef double REAL;
 //typedef double *REALPtr;
 #endif
 
+inline REAL ZeroTolerance(){
+  return 1e-10;
+}
+
 inline bool IsZero( REAL a ){
-  return ( fabs( a ) < 1.e-10 );
+  return ( fabs( a ) < ZeroTolerance() );
 }
 
 template <class T>
