@@ -8,7 +8,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("boostgraph"));
+static LoggerPtr logger(Logger::getLogger("pz.external.boostgraph"));
 #endif
 
 using namespace boost;
