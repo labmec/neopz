@@ -1023,7 +1023,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
 		invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;
 	}
-	TPZAutoPointer<TPZMatrix> InternalStiffness = matred->K00();
+	TPZAutoPointer<TPZMatrix> InternalStiffness = matredptr->K00();
 
 
 	submesh->Permute(invpermuteconnectscatter);
@@ -1060,9 +1060,11 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	TPZStepSolver *InvertedInternalStiffness = new TPZStepSolver(InternalStiffness);
     InvertedInternalStiffness->SetMatrix(InternalStiffness);
     InvertedInternalStiffness->SetDirect(ECholesky);
-	matred->SetSolver(InvertedInternalStiffness);
-	matred->SetReduced();
-	substruct->fMatRed = matred;
+	matredptr->SetSolver(InvertedInternalStiffness);
+	matredptr->SetReduced();
+	TPZMatRed<TPZFMatrix> *matred2 = new TPZMatRed<TPZFMatrix> (*matredptr);
+
+	substruct->fMatRed = matred2;
 }
 
 /// return the number of submeshes
