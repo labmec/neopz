@@ -339,6 +339,16 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 
 	tempo.ft5dohrassembly = timerfordecompose.ReturnTimeDouble(); // end of timer
 	std::cout << "Time to ThreadDohrmanAssembly" << tempo.ft5dohrassembly << std::endl;
+//	int isub;
+	for (it=sublist.begin(), isub=0; it != sublist.end(); it++,isub++) {
+		
+		// const std::list<TPZAutoPointer<TPZDohrSubstructCondense> > &sublist
+		// *it represents the substructure
+		TPZFMatrix rhsloc((*it)->fNumExternalEquations,1,0.);
+		(*it)->ContributeRhs(rhsloc);
+		fDohrAssembly->Assemble(isub,rhsloc,rhs);
+	}
+	
 
 	dohr->Initialize();
 	TPZDohrPrecond<TPZDohrSubstructCondense> *precond = new TPZDohrPrecond<TPZDohrSubstructCondense> (*dohr,fDohrAssembly);
@@ -803,7 +813,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 			}
 			domaincolor[gel->Index()] = domain_index[cel];
 		}
-		ofstream vtkfile("partitionbefore.vtk");
+		std::ofstream vtkfile("partitionbefore.vtk");
 		TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, domaincolor);
 	}
 #endif
@@ -832,7 +842,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 			}
 			domaincolor[gel->Index()] = domain_index[cel];
 		}
-		ofstream vtkfile("partition.vtk");
+		std::ofstream vtkfile("partition.vtk");
 		TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, domaincolor);
 	}
 #endif
@@ -948,9 +958,10 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		// create a "substructure matrix" based on the submesh using a skyline matrix structure as the internal matrix
 		TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix> redstruct(submesh);
 		TPZMatRed<TPZVerySparseMatrix> *matredptr = dynamic_cast<TPZMatRed<TPZVerySparseMatrix> *>(redstruct.Create());
-		TPZAutoPointer<TPZMatRed<TPZVerySparseMatrix> > matred = matredptr;
+		//TPZAutoPointer<TPZMatRed<TPZVerySparseMatrix> > matred = matredptr;
 		
 		// create a structural matrix which will assemble both stiffnesses simultaneously
+		// permutescatter will reorder the equations to internal first
 		TPZPairStructMatrix pairstructmatrix(submesh,permutescatter);
 		
 		// reorder the sequence numbering of the connects to reflect the original ordering
@@ -959,7 +970,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
 			invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;
 		}
-		TPZAutoPointer<TPZMatrix> InternalStiffness = matred->K00();
+		TPZAutoPointer<TPZMatrix> InternalStiffness = matredptr->K00();
 		
 	#ifdef DEBUG 
 		std::stringstream filename;
@@ -969,6 +980,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		VisualMatrix(fillin, filename.str().c_str());
 	#endif
 		
+		// put the equation back in the optimized ordering for all equations (original ordering)
 		submesh->Permute(invpermuteconnectscatter);
 		
 		
@@ -978,6 +990,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		// compute both stiffness matrices simultaneously
 		substruct->fLocalLoad.Redim(Stiffness->Rows(),1);
 		pairstructmatrix.Assemble(-1, -1, Stiffness.operator->(), matredptr, substruct->fLocalLoad);
+		// fLocalLoad is in the original ordering of the submesh
 		matredbig->Simetrize();
 		matredptr->Simetrize();
 		
@@ -1007,9 +1020,10 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		TPZStepSolver *InvertedInternalStiffness = new TPZStepSolver(InternalStiffness);
 		InvertedInternalStiffness->SetMatrix(InternalStiffness);
 		InvertedInternalStiffness->SetDirect(ECholesky);
-		matred->SetSolver(InvertedInternalStiffness);
-		matred->SetReduced();
-		substruct->fMatRed = matred;
+		matredptr->SetSolver(InvertedInternalStiffness);
+		matredptr->SetReduced();
+		TPZMatRed<TPZFMatrix> *matredfull = new TPZMatRed<TPZFMatrix>(*matredptr);
+		substruct->fMatRed = matredfull;
 
 	}
 }
@@ -1031,7 +1045,7 @@ void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructC
 {
 	
 	{
-		TPZAutoPointer<TPZMatRed<TPZVerySparseMatrix> > matred = substruct->fMatRed;
+		TPZAutoPointer<TPZMatRed<TPZFMatrix> > matred = substruct->fMatRed;
 		TPZAutoPointer<TPZMatrix> InternalStiffness = matred->K00();
 		InternalStiffness->Decompose_Cholesky();
 	}
