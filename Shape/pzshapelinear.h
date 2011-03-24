@@ -3,7 +3,6 @@
 #ifndef SHAPELINEARHPP
 #define SHAPELINEARHPP
 
-//#include "..\..\MULTIGRID\pztrnsform.h"	// Added by ClassView
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include "pztrnsform.h"
