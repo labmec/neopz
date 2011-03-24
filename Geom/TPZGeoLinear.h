@@ -98,40 +98,6 @@ static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 
 };
 
-inline void TPZGeoLinear::Jacobian(TPZFMatrix &coord,TPZVec<REAL> &param,TPZFMatrix &jacobian,
-							TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
-
-
-//   REAL mod1 = (coord(0,1)-coord(0,0))*0.5;
-//   jacobian(0,0) = mod1;
-//   detjac = mod1;
-//   jacinv(0,0) = 1./detjac;
-//   axes(0,0) = 1.;
-
-  //VERSAO FUNCIONAL
-  jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
-  int ic;
-  REAL v1[3] = {0.};
-  int nrow = coord.Rows();
-  REAL mod1 = 0.;
-  for(ic=0; ic<nrow; ic++) {
-    v1[ic] = (coord(ic,1)-coord(ic,0))*0.5;
-    mod1 += v1[ic]*v1[ic];
-  }
-  mod1 = sqrt(mod1);
-  jacobian(0,0) = mod1;
-  detjac = mod1;
-
-  if(IsZero(detjac)){
-    detjac = ZeroTolerance();
-  }
-
-  jacinv(0,0) = 1./detjac;
-
-  for(ic=0; ic<3; ic++) {
-    axes(0,ic) = v1[ic]/detjac;
-  }
-
   // VERSAO ORIGINAL
 //   TPZFNMatrix<9> phi(NNodes, pztopology::TPZLine,1);
 //   TPZFNMatrix<18> dphi(1,NNodes, pztopology::TPZLine);
@@ -160,7 +126,6 @@ inline void TPZGeoLinear::Jacobian(TPZFMatrix &coord,TPZVec<REAL> &param,TPZFMat
 //   for(ic=0; ic<3; ic++) {
 //     axes(0,ic) = v1[ic]/mod1;
 //   }
-}
 
 inline void TPZGeoLinear::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
 

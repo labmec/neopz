@@ -6,6 +6,12 @@
 #include "pzshapelinear.h"
 #include "pzgeoel.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static log4cxx::LoggerPtr logger(Logger::getLogger("pz.geom.pzgeolinear"));
+#endif
+
 using namespace pzshape;
 using namespace std;
 
@@ -57,5 +63,42 @@ TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
-	
+
+    void TPZGeoLinear::Jacobian(TPZFMatrix &coord,TPZVec<REAL> &param,TPZFMatrix &jacobian,
+                                       TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
+        
+        
+        //   REAL mod1 = (coord(0,1)-coord(0,0))*0.5;
+        //   jacobian(0,0) = mod1;
+        //   detjac = mod1;
+        //   jacinv(0,0) = 1./detjac;
+        //   axes(0,0) = 1.;
+        
+        //VERSAO FUNCIONAL
+        jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
+        int ic;
+        REAL v1[3] = {0.};
+        int nrow = coord.Rows();
+        REAL mod1 = 0.;
+        for(ic=0; ic<nrow; ic++) {
+            v1[ic] = (coord(ic,1)-coord(ic,0))*0.5;
+            mod1 += v1[ic]*v1[ic];
+        }
+        mod1 = sqrt(mod1);
+        jacobian(0,0) = mod1;
+        detjac = mod1;
+        if(IsZero(detjac))
+        {
+            std::stringstream sout;
+            sout << "Singular Jacobian " << detjac;
+            LOGPZ_ERROR(logger, sout.str())
+            detjac = zeroVal;
+        }
+        jacinv(0,0) = 1./mod1;
+        
+        for(ic=0; ic<3; ic++) {
+            axes(0,ic) = v1[ic]/mod1;
+        }
+    }
+
 };
