@@ -67,8 +67,14 @@ TPZSBMatrix::PutVal(const int r,const int c,const REAL& value )
 
   int index;
   if ( (index = col-row) > fBand )
+  {
+#ifdef DEBUG
+	  if (value) {
+		  DebugStop();
+	  }
+#endif
     return( 0 );        // O elemento esta fora da banda.
-
+  }
   fDiag[ col * (fBand+1) + index ] = value;
   fDecomposed = 0;
   return( 1 );
@@ -558,7 +564,10 @@ TPZSBMatrix::Decompose_Cholesky(std::list<int> &singular)
 int
 TPZSBMatrix::Decompose_Cholesky()
 {
-  if (  fDecomposed )  TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
+  if (  fDecomposed && fDecomposed != ECholesky )  TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
+	if (fDecomposed) {
+		return 1;
+	}
   int size = fBand + 1; // Tamanho da banda.
   int next = fBand + 1; // O quanto se soma para "andar" na diagonal.
   REAL *row_k   = fDiag;
@@ -609,7 +618,7 @@ TPZSBMatrix::Decompose_Cholesky()
 	}
     }
 
-  fDecomposed  = 1;
+  fDecomposed  = ECholesky;
   fDefPositive = 1;
   return( 1 );
 }
