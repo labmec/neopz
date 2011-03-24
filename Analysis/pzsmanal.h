@@ -31,6 +31,10 @@ public:
 	**/
 	virtual ~TPZSubMeshAnalysis();
 
+	TPZAutoPointer<TPZMatrix> Matrix()
+	{
+		return fReducableStiff;
+	}
 
   /**
     *Run: assemble the stiffness matrix
