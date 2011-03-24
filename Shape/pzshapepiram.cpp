@@ -1,4 +1,4 @@
-// $Id: pzshapepiram.cpp,v 1.10 2009-09-01 22:09:15 phil Exp $
+// $Id: pzshapepiram.cpp,v 1.11 2011-03-24 19:56:23 phil Exp $
 #include "pzshapepiram.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -51,10 +51,26 @@ void TPZShapePiram::CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &d
      }
      return;
   }*/
-  REAL T0xz = .5*(1.-pt[2]-pt[0]) / (1.-pt[2]);
-  REAL T0yz = .5*(1.-pt[2]-pt[1]) / (1.-pt[2]);
-  REAL T1xz = .5*(1.-pt[2]+pt[0]) / (1.-pt[2]);
-  REAL T1yz = .5*(1.-pt[2]+pt[1]) / (1.-pt[2]);
+	REAL T0xz,T0yz,T1xz,T1yz;
+	if (fabs(1.-pt[2]) < 1.e-8) 
+	{
+		if (fabs(pt[0]) > 1.e-8 || fabs(pt[1]) > 1.e-8) 
+		{
+			DebugStop();
+		}
+		T0xz = 0.5;
+		T0yz = 0.5;
+		T1xz = 0.5;
+		T1yz = 0.5;
+	}
+	else 
+	{
+		T0xz = .5*(1.-pt[2]-pt[0]) / (1.-pt[2]);
+		T0yz = .5*(1.-pt[2]-pt[1]) / (1.-pt[2]);
+		T1xz = .5*(1.-pt[2]+pt[0]) / (1.-pt[2]);
+		T1yz = .5*(1.-pt[2]+pt[1]) / (1.-pt[2]);
+	}
+
   REAL lmez = (1.-pt[2]);
   phi(0,0)  = T0xz*T0yz*lmez;
   phi(1,0)  = T1xz*T0yz*lmez;
