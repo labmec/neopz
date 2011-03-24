@@ -88,7 +88,14 @@ public:
 									  TPZVec<int>& nodeindexes,
 									  int matid,
 									  int& index);
-	
+	void Print(std::ostream &out)
+	{
+		pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Print(out);
+		out << "fCenter3D " << fCenter3D << " finitialVector " << finitialVector << std::endl;
+		out << "fAngle " << fAngle << " fRadius " << fRadius << " fXcenter " << fXcenter << " fYcenter " << fYcenter << std::endl;
+		fICnBase.Print("fICnBase", out);
+		fIBaseCn.Print("fIBaseCn", out);
+	}
 	
 protected:
 
