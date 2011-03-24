@@ -1,4 +1,4 @@
-﻿//$Id: pzsubcmesh.cpp,v 1.49 2011-01-18 14:04:44 fortiago Exp $
+﻿//$Id: pzsubcmesh.cpp,v 1.50 2011-03-24 18:23:48 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -935,8 +935,20 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	// clean ek and ef
 
 	int nmeshnodes = fConnectVec.NElements();
-	int numeq=0;
+	int numeq=0, numeq2=0;
 	//??
+	int ic;
+	for (ic=0; ic<fConnectIndex.NElements(); ic++) {
+		int conindex = fConnectIndex[ic];
+		TPZConnect &cn = Mesh()->ConnectVec()[conindex];
+		if (cn.SequenceNumber()<0 || cn.HasDependency()) {
+			DebugStop();
+		}
+		int seqnum = cn.SequenceNumber();
+		int blsize = Mesh()->Block().Size(seqnum);
+		numeq2 += blsize;
+	}
+	int numeq3 = Mesh()->NEquations();
 
 	std::map<int,int>::iterator it;
 	for (it=fFatherToLocal.begin(); it!=fFatherToLocal.end(); it++) 
@@ -945,20 +957,59 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 //	for (i=0; i< nmeshnodes; i++){
 //		if(fExternalLocIndex[i] == -1) {
 				TPZConnect &df = fConnectVec[i];
+		if (fExternalLocIndex[i] == -1) {
+			LOGPZ_ERROR(logger,"fExternalLocIndex and fFatherToLocal are out of sink")
+			DebugStop();
+		}
 				if(df.HasDependency() || !df.NElConnected() || df.SequenceNumber() == -1) continue;
 				int seqnum = df.SequenceNumber();
 				numeq += Block().Size(seqnum);
 //		}
 	}
+	int nconstrconnects = 0;
+	int globeq2 = 0;
+	for (ic=0; ic<fConnectVec.NElements(); ic++) {
+		TPZConnect &cn = fConnectVec[ic];
+		if (cn.HasDependency()) {
+			nconstrconnects++;
+		}
+		else if(cn.SequenceNumber() >= 0) {
+			globeq2 += Block().Size(cn.SequenceNumber());
+		}
+
+	}
+	
+	if (numeq != numeq2 || numeq > numeq3) {
+		DebugStop();
+	}
+	int numextconnects = fConnectIndex.NElements();
+	int nconnects = fConnectVec.NElements();
+	int numintconnects = nconnects-numextconnects-nconstrconnects;
 	
 	// check whether the connects are properly enumerated
 #ifdef DEBUG 
 	{
 		int globeq = TPZCompMesh::NEquations();
+		if (globeq2 != globeq) {
+			DebugStop();
+		}
 		int numinteq = globeq - numeq;
 		int in;
+		// verify whether the block structure is resequenced...
+		for (in=0; in<nconnects-1; in++) {
+			int blsize = Block().Size(in);
+			int pos1 = Block().Position(in);
+			int pos2 = Block().Position(in+1);
+			if (pos2-pos1 != blsize) {
+				DebugStop();
+			}
+		}
+		int numinteq2 = Block().Position(numintconnects);
+		if (numinteq != numinteq2) {
+			DebugStop();
+		}
 		//int globeq = TPZCompMesh::NEquations();
-		int nconnects = ConnectVec().NElements();
+		
 		for(in=0; in<nconnects; in++)
 		{
 			TPZConnect &df = ConnectVec()[in];
@@ -966,25 +1017,21 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 			int seqnum = df.SequenceNumber();
 			int eq = Block().Position(seqnum);
 			int blsize = Block().Size(seqnum);
-			// se o connect nao tem funcoes de forma associadas nao ha o que verificar
-			if (blsize == 0)
-			{
-				continue;
-			}
-			if(eq < numinteq && fExternalLocIndex[in] != -1)
+			if((eq < numinteq || seqnum < numintconnects) && fExternalLocIndex[in] != -1 )
 			{
 				std::stringstream sout;
 				sout << "Connect " << in << " has equation " << eq << " but is external";
 				LOGPZ_ERROR(logger,sout.str())
 				DebugStop();
 			}
-			if (eq >= numinteq && fExternalLocIndex[in] == -1 && !df.HasDependency()) {
+			if ((eq >= numinteq || seqnum >= numintconnects) && blsize && !df.HasDependency() && fExternalLocIndex[in] == -1) {
 				std::stringstream sout;
 				sout << "Connect " << in << " has equation " << eq << " but is internal and has no dependencies ";
+				df.Print(*this,sout);
 				LOGPZ_ERROR(logger,sout.str())
 				DebugStop();
 			}
-			if(eq < globeq && df.HasDependency())
+			if((eq < globeq || seqnum < nconnects-nconstrconnects) && df.HasDependency())
 			{
 				std::stringstream sout;
 				sout << "Connect " << in << " with dependency was not put at the end of the stack equation " << eq << " global equations " << globeq;
