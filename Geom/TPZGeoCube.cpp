@@ -1,10 +1,16 @@
-﻿#include "TPZGeoCube.h"
 //#include "pzelgpoint.h"
 //#include "pzelg1d.h"
 //#include "pzelgq2d.h"
+#include "TPZGeoCube.h"
 #include "pzgeoel.h"
 #include "pzshapecube.h"
 #include "pzquad.h"
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger = Logger::getLogger("pz.geom.tpzgeocube");
+#endif
 
 using namespace pzshape;
 using namespace std;
@@ -131,17 +137,22 @@ void TPZGeoCube::Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jaco
     }
   }
 
-  detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0);//- a02 a11 a20
-  detjac += jacobian(0,1)*jacobian(1,2)*jacobian(2,0);//+ a01 a12 a20
-  detjac += jacobian(0,2)*jacobian(1,0)*jacobian(2,1);//+ a02 a10 a21
-  detjac -= jacobian(0,0)*jacobian(1,2)*jacobian(2,1);//- a00 a12 a21
-  detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
-  detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
+  detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0)
+        + jacobian(0,1)*jacobian(1,2)*jacobian(2,0)
+        + jacobian(0,2)*jacobian(1,0)*jacobian(2,1)
+        - jacobian(0,0)*jacobian(1,2)*jacobian(2,1)
+        - jacobian(0,1)*jacobian(1,0)*jacobian(2,2)
+    + jacobian(0,0)*jacobian(1,1)*jacobian(2,2);
 
-  if(IsZero(detjac)){
-    detjac = ZeroTolerance();
-  }
-
+    if(IsZero(detjac))
+    {
+        std::stringstream sout;
+        sout << "Singular Jacobian " << detjac;
+#ifdef LOG4CXX
+        LOGPZ_ERROR(logger , sout.str())
+#endif
+        detjac = ZeroTolerance();
+    }
   jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2))/detjac;//-a12 a21 + a11 a22
   jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2))/detjac;// a02 a21 - a01 a22
   jacinv(0,2) = (-jacobian(0,2)*jacobian(1,1)+jacobian(0,1)*jacobian(1,2))/detjac;//-a02 a11 + a01 a12

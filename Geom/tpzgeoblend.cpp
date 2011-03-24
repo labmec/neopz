@@ -200,15 +200,15 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
     TPZManVector<REAL> SidesCounter(TGeo::NSides,0);
     TPZStack<int> LowNodeSides, LowAllSides;
 
-	#ifdef LOG4CXX
+#ifdef LOG4CXX
 	if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "input parameter par " << par;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
-	#endif
-
+#endif
+	
     TPZFNMatrix<24> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
     TGeo::Shape(par,blend,Dblend);
 
@@ -230,7 +230,7 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
             Ax.Transpose(); 
             Ax.Multiply(J1,J2);
 
-			#ifdef LOG4CXX
+#ifdef LOG4CXX
 			if(logger->isDebugEnabled())
 			{
 				std::stringstream sout;
@@ -245,18 +245,18 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
 				sout << "jacobian of the neighbour multiplied by the axes(J2) " << J2 << std::endl;
 				LOGPZ_DEBUG(logger,sout.str())
 			}
-			#endif
+#endif
 
             J2.Multiply(Jneighbourhood,J1);
 
-			#ifdef LOG4CXX
+#ifdef LOG4CXX
 			if(logger->isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "acumulated jacobian(J1) " << J1 << std::endl;
 				LOGPZ_DEBUG(logger,sout.str())
 			}
-			#endif
+#endif
 
             REAL blendTemp = 0.; 
             TPZManVector<REAL,3> DblendTemp(TGeo::Dimension,0.);
@@ -287,7 +287,7 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
         }
     }
 
-	#ifdef LOG4CXX
+#ifdef LOG4CXX
 	{
 		std::stringstream sout;
 		JacTemp.Print("Jabobian before contributing the nodes",sout);
@@ -296,7 +296,7 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
 		sout << "NodeCoord " << coord << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
-	#endif
+#endif
 
     for(int a = 0; a < TGeo::NNodes; a++)
     {
@@ -345,7 +345,33 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
             detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
 
             if(IsZero(detjac)){
-              detjac = ZeroTolerance();
+#ifdef LOG4CXX
+				{
+					std::stringstream sout;
+					Print(sout);
+                    sout << "Parameter " << par << std::endl;
+					coord.Print("Corner coordinates ", sout);
+/*					JacTemp.Print("Gradient of the coordinates",sout);
+					axes.Print("axes matrix", sout);
+					jacobian.Print("Jacobian", sout);
+					sout << "detjac " << detjac << std::endl;
+					int is;
+					for(is=TGeo::NNodes; is<TGeo::NSides-1; is++)
+					{
+						if(fNeighbours[is-TGeo::NNodes].Element())
+						{
+							sout << "Side: " << is << " El/side: " << fNeighbours[is-TGeo::NNodes].Element()->Index() << ":" <<
+							fNeighbours[is-TGeo::NNodes].Side() << '\n';
+							TPZGeoEl *gel = fNeighbours[is-TGeo::NNodes].Element();
+							gel->Print(sout);
+						}
+					}
+*/
+					sout << "Singular jacobian " << detjac;
+					LOGPZ_ERROR(logger,sout.str())
+				}
+#endif
+                detjac = zeroVal;
             }
 
             jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2)) / detjac;//-a12 a21 + a11 a22

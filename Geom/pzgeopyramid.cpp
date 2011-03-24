@@ -15,6 +15,12 @@
 #include "pzshapetetra.h"
 #include "pzshapepiram.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.geom.pzgeopyramid"));
+#endif
+
 using namespace pzshape;
 using namespace std;
 
@@ -127,6 +133,13 @@ void TPZGeoPyramid::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix 
 	detjac -= jacobian(0,0)*jacobian(1,2)*jacobian(2,1);//- a00 a12 a21
 	detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
 	detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
+    if(IsZero(detjac))
+    {
+        std::stringstream sout;
+        sout << "Singular Jacobian " << detjac;
+        LOGPZ_ERROR(logger, sout.str())
+        detjac = zeroVal;
+    }
 
   if(IsZero(detjac)){
     detjac = ZeroTolerance();

@@ -337,11 +337,11 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMat
 	fGeo.Jacobian(nodes,coordinate,jac,axes,detjac,jacinv);
 	
 #ifdef DEBUG
-	if(detjac == 0){
+	if(IsZero(detjac)){
 		std::stringstream sout;
 		sout << "Jacobiano nulo\n";
 		LOGPZ_ERROR(loggerrefless,sout.str())
-		detjac = 1.e-10;
+		detjac = ZeroTolerance();
 	}
 #endif
 	//   if(TGeo::NNodes == 2) {

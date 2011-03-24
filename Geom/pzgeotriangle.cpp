@@ -8,6 +8,11 @@
 #include "pzshapetriang.h"
 #include "pzgmesh.h"
 //#include "pzgeoelrefless.h.h"
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static log4cxx::LoggerPtr logger(Logger::getLogger("pz.geom.pzgeotriangle"));
+#endif
 
 using namespace pzshape;
 using namespace std;
@@ -43,12 +48,14 @@ void TPZGeoTriangle::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix
         }
         VecMatrix.GramSchmidt(axest,jacobian);
         axest.Transpose(&axes);
-      	detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
-
-        if(IsZero(detjac)){
-          detjac = ZeroTolerance();
-        }
-
+	detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
+    if(IsZero(detjac))
+    {
+        std::stringstream sout;
+        sout << "Singular Jacobian " << detjac;
+        LOGPZ_ERROR(logger, sout.str())
+        detjac = ZeroTolerance();
+    }
         if(detjac)
         {
           jacinv(0,0) =  jacobian(1,1)/detjac;

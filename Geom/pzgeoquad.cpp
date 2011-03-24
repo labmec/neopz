@@ -12,6 +12,12 @@
 //#include "pzshapequad.h"
 
 //using namespace pzshape;
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static log4cxx::LoggerPtr logger(Logger::getLogger("pz.geom.pzgeoquad"));
+#endif
+
 using namespace std;
 
 namespace pzgeom {
@@ -73,11 +79,13 @@ void TPZGeoQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &ja
   VecMatrix.GramSchmidt(axest,jacobian);
   axest.Transpose(&axes);
   detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
-
-  if(IsZero(detjac)){
-    detjac = ZeroTolerance();
-  }
-
+    if(IsZero(detjac))
+    {
+        std::stringstream sout;
+        sout << "Singular Jacobian " << detjac;
+        LOGPZ_ERROR(logger, sout.str())
+        detjac = ZeroTolerance();
+    }
   if(detjac)
   {
     jacinv(0,0) =  jacobian(1,1)/detjac;

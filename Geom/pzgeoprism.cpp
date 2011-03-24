@@ -6,19 +6,19 @@
 #include "pzfmatrix.h"
 #include "pzgeoel.h"
 #include "pzquad.h"
-//#include "pzelgpoint.h"
-//#include "pzelg1d.h"
-//#include "pzelgt2d.h"
-//#include "pzelgq2d.h"
-//#include "pzelgpr3d.h"
 #include "pzshapeprism.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.geom.pzgeoprism"));
+#endif
 using namespace pzshape;
 using namespace std;
 
 namespace pzgeom {
 
-const double tol = pzgeom_TPZNodeRep_tol;
+static const double tol = pzgeom_TPZNodeRep_tol;
 
 void TPZGeoPrism::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
@@ -100,9 +100,13 @@ void TPZGeoPrism::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &j
   detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
   detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
 
-  if(IsZero(detjac)){
-    detjac = ZeroTolerance();
-  }
+    if(IsZero(detjac))
+    {
+        std::stringstream sout;
+        sout << "Singular Jacobian " << detjac;
+        LOGPZ_ERROR(logger, sout.str())
+        detjac = ZeroTolerance();
+    }
 
   jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2))/detjac;//-a12 a21 + a11 a22
   jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2))/detjac;//a02 a21 - a01 a22
