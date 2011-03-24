@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.27 2010-08-25 03:04:29 phil Exp $
+//$Id: pzsubcmesh.h,v 1.28 2011-03-24 19:50:33 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -121,6 +121,11 @@ public:
    */
 	void SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	void SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	
+	TPZAutoPointer<TPZAnalysis> Analysis()
+	{
+		return fAnalysis;
+	}
 
   /**
    * This method will load the elements of the grid in their corresponding geometric
