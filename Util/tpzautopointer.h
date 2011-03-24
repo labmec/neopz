@@ -52,6 +52,7 @@ struct TPZReference
   ~TPZReference()
   {
     if(fPointer) delete fPointer;
+	  fPointer = 0;
   }
   
   
