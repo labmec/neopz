@@ -4,7 +4,7 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.17 2010-08-12 12:55:32 phil Exp $
+// $Id: pzvec.h,v 1.18 2011-03-24 19:58:12 phil Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -133,6 +133,11 @@ class TPZVec {
        *  @return The fStore pointer.
        */
       operator T*() const { return fStore; }
+    
+    /**
+     * return a pointer to the first element
+     */
+    T *begin();
 
       /**
        * Will fill the elements of the vector with a copy object.
@@ -178,6 +183,11 @@ class TPZVec {
        * themselves!
        */
 	void Print(std::ostream &out = std::cout);
+    
+    /**
+     * empty the vector, make its size zero
+     */
+    virtual void clear();
 
    protected:
       /**
@@ -213,7 +223,7 @@ inline TPZVec<T>::TPZVec() : fStore( 0 ), fNElements( 0 )
 template< class T >
 TPZVec<T>::TPZVec( const int size ) : fStore( 0 )
 {
-#ifndef NOTDEBUG
+#ifndef NDEBUG
    if( size < 0 )
    {
       PZError << "TPZVec constructor. Bad parameter size, then size = 0."
@@ -237,7 +247,7 @@ TPZVec<T>::TPZVec( const int size ) : fStore( 0 )
 template< class T >
 TPZVec<T>::TPZVec( const int size, const T& copy ) : fStore( 0 )
 {
-#ifndef NOTDEBUG
+#ifndef NDEBUG
    if( size < 0 )
    {
       PZError << "TPZVec constructor. Bad parameter size, then size = 0."
@@ -313,7 +323,7 @@ TPZVec<T>& TPZVec<T>::operator=( const T& a )
 
 template< class T >
 void TPZVec<T>::Resize(const int newsize,const T& object){
-#ifndef NOTDEBUG
+#ifndef NDEBUG
    if(newsize<0) {
       PZError << "TPZVec::Resize. Bad parameter newsize." << std::endl;
       PZError.flush();
@@ -339,7 +349,7 @@ void TPZVec<T>::Resize(const int newsize,const T& object){
 
 template< class T >
 void TPZVec<T>::Resize(const int newsize){
-#ifndef NOTDEBUG
+#ifndef NDEBUG
    if(newsize<0) {
       PZError << "TPZVec::Resize. Bad parameter newsize." << newsize <<  std::endl;
       PZError.flush();
@@ -366,10 +376,27 @@ void TPZVec<T>::Resize(const int newsize){
    fNElements = newsize;
 }
 
+template<class T>
+void TPZVec<T>::clear()
+{
+    this->Resize(0);
+}
 
+template<class T>
+T *TPZVec<T>::begin()
+{
+#ifndef NDEBUG
+    if(!fStore)
+    {
+        PZError << "TPZVec::begin requested for empty vector\n";
+        DebugStop();
+    }
+#endif
+    return fStore;
+}
 template< class T >
 void TPZVec<T>::Fill(const T& copy, const int from, const int numelem){
-#ifndef NOTDEBUG
+#ifndef NDEBUG
    if(numelem<0 && numelem != -1) {
       PZError << "TPZVec::Fill" << std::endl
               << "It's negative parameter numelem, then numelem = "

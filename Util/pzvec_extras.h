@@ -3,7 +3,7 @@
  * @file pzvec_extra.h
  * @brief Extra utilities for TPZVec.
  */
-// $Id: pzvec_extras.h,v 1.11 2005-04-25 02:55:52 phil Exp $
+// $Id: pzvec_extras.h,v 1.12 2011-03-24 19:58:12 phil Exp $
 
 #ifndef PZVEC_EXTRAS_H
 #define PZVEC_EXTRAS_H
@@ -79,7 +79,7 @@ double sdot(TPZVec< T1 > & x, TPZVec< T1 > & y)
    int size = x.NElements();
    double sum = 0.0;
 
-#ifndef NOTDEBUG
+#ifndef NDEBUG
    if( size != y.NElements() ) {
       PZError << "SDOT error!" << std::endl
 	      << "Vectors with different sizes #x = " << size

@@ -4,7 +4,7 @@
  * @file pzmanvector.h
  * @brief Free store vector implementation.
  */
-// $Id: pzmanvector.h,v 1.12 2010-06-17 12:41:12 phil Exp $
+// $Id: pzmanvector.h,v 1.13 2011-03-24 19:58:12 phil Exp $
 
 #ifndef PZMANVECTOR_H
 #define PZMANVECTOR_H
@@ -408,7 +408,7 @@ void TPZManVector< T, NumExtAlloc >::Shrink()
 template< class T, int NumExtAlloc >
 void TPZManVector< T, NumExtAlloc >::Resize(const int newsize, const T& object)
 {
-#ifndef NOTDEBUG
+#ifndef NDEBUG
    if (newsize < 0)
    {
       PZError << "TManVec::Resize. Bad parameter newsize." << std::endl;
@@ -474,7 +474,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const int newsize, const T& object)
 template< class T, int NumExtAlloc >
 void TPZManVector< T, NumExtAlloc >::Resize(const int newsize)
 {
-#ifndef NOTDEBUG
+#ifndef NDEBUG
 	if (newsize < 0)
 	{
 		PZError << "TManVec::Resize. Bad parameter newsize." << std::endl;
