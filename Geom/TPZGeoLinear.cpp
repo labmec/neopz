@@ -92,7 +92,7 @@ TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
             std::stringstream sout;
             sout << "Singular Jacobian " << detjac;
             LOGPZ_ERROR(logger, sout.str())
-            detjac = zeroVal;
+            detjac = ZeroTolerance();
         }
         jacinv(0,0) = 1./mod1;
         

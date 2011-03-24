@@ -138,7 +138,7 @@ void TPZGeoPyramid::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix 
         std::stringstream sout;
         sout << "Singular Jacobian " << detjac;
         LOGPZ_ERROR(logger, sout.str())
-        detjac = zeroVal;
+        detjac = ZeroTolerance();
     }
 
   if(IsZero(detjac)){

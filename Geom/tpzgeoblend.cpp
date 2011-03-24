@@ -371,7 +371,7 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
 					LOGPZ_ERROR(logger,sout.str())
 				}
 #endif
-                detjac = zeroVal;
+                detjac = ZeroTolerance();
             }
 
             jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2)) / detjac;//-a12 a21 + a11 a22
