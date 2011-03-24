@@ -8,9 +8,10 @@
  */
 
 #include "TPBConservacao1DMarx.h"
-//#include "ThermalMethodsTables.h"
-//#include "PropertiesTable.h"
-//#include "pzseqsolver.h"
+#include "ThermalMethodsTables.h"
+#include "PropertiesTable.h"
+#include "pzseqsolver.h"
+#include "tpbrthermaldisc.h"
 #include <math.h>
 
 TPBrCellMarx::TPBrCellMarx() : fInitialState(NUMVARS,0.)
@@ -40,6 +41,31 @@ void TPBrCellMarx::SetGeometry(REAL cellvolume, REAL leftarea, REAL rightarea, R
 
 void TPBrCellMarx::SetInjectionState(REAL pressurewater, TPZVec<REAL> &massflux, TPZManVector<REAL> &leftstate)
 {
+	
+	REAL domainsize = 100.;
+	int nelements = 50;
+	REAL cp = 1.;
+	REAL K = 1.;
+	REAL initialtemp = 0.;
+	TPBRThermalDisc discrete(domainsize,nelements,cp,K,initialtemp);
+	TPZFMatrix sol(nelements+1,1,0.), nextsol(nelements+1,1,0.);
+	discrete.SetTimeStep(1.);
+	discrete.ComputeStiffness();
+	REAL flux;
+	discrete.NextSolution(1., sol,nextsol,flux);
+	nextsol.Print("Next Solution", std::cout);
+	discrete.NextSolution(1., nextsol,nextsol,flux);
+	nextsol.Print("Next Solution", std::cout);
+	return 0;
+#warning "this should be resolved"
+	
+	REAL PI = 4*atan(1.);	
+	TPBrCellMarx first;
+		
+	//----------------- dados de entrada ------------------------------
+	//dados numerico
+	REAL TimeStep =10.;//(1260. s = tempo para atingir a Energia máxima)
+	//REAL TimeStep_target =1400.;
 	REAL temperature = TemperatureSaturation (pressurewater);
 	leftstate[ETemperature] = temperature;
 	leftstate[EEnthalpyOil] = EnthalpyOil(temperature);
