@@ -236,6 +236,89 @@ void TPZDohrSubstructCondense::ComputeWeightsLocal(TPZFMatrix &StiffnessDiagLoca
 		}
 	}
 }
+/**
+ * Computes the condensed right hand side for the substructure
+ * @param rhs the right hand side ordered external first
+ */
+void TPZDohrSubstructCondense::ContributeRhs(TPZFMatrix &rhs)
+{
+	int nglob = fNEquations;
+	int ncols = rhs.Cols();
+	typedef std::pair<ENumbering,ENumbering> Numbering;
+	Numbering relat(ExternalFirst,Submesh);
+	Numbering relat2(InternalFirst,Submesh);
+	std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::const_iterator itrelat, itrelat2, itrelat3;
+	itrelat = fPermutationsScatter.find(relat);
+	itrelat2 = fPermutationsScatter.find(relat2);
+	if(itrelat == fPermutationsScatter.end() || itrelat2 == fPermutationsScatter.end() )
+	{
+		DebugStop();
+		return;
+	}
+	TPZFMatrix resglobal(nglob,ncols,0.),resloc(fNumExternalEquations,ncols,0.);
+	PermuteGather (itrelat2->second, fLocalLoad, resglobal, 0, nglob);
+	fMatRed->SetF(resglobal);
+	resloc = fMatRed->F1Red();
+	resglobal.Zero();
+	PermuteScatter(itrelat->second, resloc, resglobal, 0, fNumExternalEquations);
+	PermuteGather(itrelat->second, resglobal, rhs, 0, fNumExternalEquations);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		resloc.Print("Condensed F", sout);
+		resglobal.Print("Scattered F", sout);
+		rhs.Print("External first", sout);
+		sout << "vector for scatter " << itrelat->second << std::endl;
+		sout << "vector for gather " << itrelat->second << std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+#ifdef DEBUG 
+	TPZFMatrix test(resloc);
+	test -= rhs;
+	REAL err = Norm(test);
+#endif
+}
+
+/**
+ * Computes the global solution based on the interface solution
+ */
+void TPZDohrSubstructCondense::UGlobal(TPZFMatrix &UGlob, TPZFMatrix &USub)
+{
+	int nglob = fNEquations;
+	int ncols = UGlob.Cols();
+	USub.Redim (nglob, ncols);
+	typedef std::pair<ENumbering,ENumbering> Numbering;
+	Numbering relat(Submesh,ExternalFirst);
+	Numbering relat2(InternalFirst,Submesh);
+	std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::const_iterator itrelat, itrelat2, itrelat3;
+	itrelat2 = fPermutationsScatter.find(relat2);
+	itrelat = fPermutationsScatter.find(relat);
+	if(itrelat2 == fPermutationsScatter.end() || itrelat == fPermutationsScatter.end())
+	{
+		DebugStop();
+		return;
+	}
+	{
+		TPZFMatrix uloc(nglob,ncols,0.);
+		{
+			TPZFNMatrix<200> uext(fNumExternalEquations,ncols);
+			PermuteGather(itrelat->second, UGlob, uext, 0, fNumExternalEquations);
+			
+			fMatRed->UGlobal2(uext,uloc);
+		}
+		PermuteScatter(itrelat2->second, uloc, USub , 0, nglob);
+	}
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+//		uext.Print("Boundary node solution", sout);
+//		uloc.Print("Complete solution internal first", sout);
+		UGlob.Print("submesh solution", sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+}
 
 
 void TPZDohrSubstructCondense::ContributeKULocal(const REAL alpha, const TPZFMatrix &u, TPZFMatrix &z) const

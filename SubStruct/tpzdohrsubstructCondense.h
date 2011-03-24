@@ -98,6 +98,15 @@ class TPZDohrSubstructCondense
 		 */
 		void ComputeWeightsLocal(TPZFMatrix &StiffnessDiagLocal);
 		/**
+		 * Computes the condensed right hand side for the substructure
+		 * @param rhs the right hand side ordered external first
+		 */
+		void ContributeRhs(TPZFMatrix &rhs);
+		/**
+		 * Computes the global solution based on the interface solution
+		 */
+		void UGlobal(TPZFMatrix &Uext, TPZFMatrix &UGlobal);
+		/**
 		 * Initializes the substructure.
 		 */
 		void Initialize();
@@ -233,7 +242,7 @@ class TPZDohrSubstructCondense
 		 * Inverted (LU or Cholesky or LDLt) stiffness matrix for the internal degrees of freedom
 		 * Calculado
 		 */
-		mutable TPZAutoPointer<TPZMatRed<TPZVerySparseMatrix> > fMatRed; //R(Ii)*K(i)*R(Ii)invertida
+		mutable TPZAutoPointer<TPZMatRed<TPZFMatrix> > fMatRed; //R(Ii)*K(i)*R(Ii)invertida
 		/**
 		 * Sparse matrices corresponding to the matrices after the internal equations were reordered as first
 		 */
