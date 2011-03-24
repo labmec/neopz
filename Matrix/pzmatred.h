@@ -26,6 +26,7 @@
 #include "pzreal.h"
 #include "pzfmatrix.h"
 #include "pzsolve.h"
+#include "tpzverysparsematrix.h"
 
 #ifdef OOPARLIB
 #include "pzsaveable.h"
@@ -45,6 +46,9 @@ template<class TSideMatrix = TPZFMatrix>
 class TPZMatRed: public TPZMatrix
 {
 public:
+	
+	friend class TPZMatRed<TPZFMatrix>;
+	friend class TPZMatRed<TPZVerySparseMatrix>;
   /**
    *Simple constructor
    */
@@ -57,7 +61,22 @@ public:
    */
   TPZMatRed(const int dim, const int dim00);
 
-  TPZMatRed(const TPZMatRed &cp);
+	template<class TSideCopy>
+	TPZMatRed<TSideMatrix>(const TPZMatRed<TSideCopy> &cp): TPZMatrix(cp), fK01(cp.fK01), fK10(cp.fK10), fK11(cp.fK11), fF0(cp.fF0), fF1(cp.fF1)
+	{
+		fDim0=cp.fDim0;
+		fDim1=cp.fDim1;
+		fF0IsComputed=cp.fF0IsComputed;
+		fK11IsReduced=cp.fK11IsReduced;
+		fK01IsComputed = cp.fK01IsComputed;
+		fF1IsReduced=cp.fF1IsReduced;
+		fIsReduced = cp.fIsReduced;
+		fSolver = cp.fSolver;
+		
+		if(cp.fK00) fK00 = cp.fK00;
+	}
+	
+	
 
   CLONEDEF(TPZMatRed)
   /**
@@ -156,6 +175,7 @@ public:
    * @param result contains the result of the operation
    */
   void UGlobal(const TPZFMatrix & U1, TPZFMatrix & result);
+	void UGlobal2(TPZFMatrix & U1, TPZFMatrix & result);
   //  TPZFMatrix U0(TPZMatrix *u1 = NULL);
 
 
@@ -278,5 +298,6 @@ inline void TPZMatRed<TSideMatrix>::Swap(int *a, int *b)
   *a = *b;
   *b = aux;
 }
+
 
 #endif
