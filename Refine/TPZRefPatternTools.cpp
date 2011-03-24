@@ -270,7 +270,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * g
 		{
 			if(neighside.Element() == neighStored)
 			{
-				int SideOfNeighSide = neighside.Side();
+				//int SideOfNeighSide = neighside.Side();
 				TPZAutoPointer<TPZRefPattern> neighRefp = neighside.Element()->GetRefPattern()->SideRefPattern(neighside.Side());
 				TPZAutoPointer<TPZRefPattern> modelsideRefp = modelPat_copy->SideRefPattern(side);
 				
