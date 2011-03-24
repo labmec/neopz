@@ -1,4 +1,4 @@
-//$Id: pzgmesh.h,v 1.38 2011-02-11 17:27:11 phil Exp $
+//$Id: pzgmesh.h,v 1.39 2011-03-24 18:32:51 phil Exp $
 
 /**
  File : pzgmes.h
@@ -210,7 +210,7 @@ public:
 	 * @param index index of the element in the vector of element pointers
 	 * @param reftype defines the type of refinement : 0 -> uniform 1-> refinement pattern
 	 */
-	virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes,int matid,int &index, int reftype = 0);
+	virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes,int matid,int &index, int reftype = 1);
 	
 	/**
 	 * Creates a geometric element in same fashion of CreateGeoElement but here the elements are blend, as Caju master thesis
