@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
 		TPZAutoPointer<TPZCompMesh> cmesh;
 		
-		if(0)
+		if(1)
 		{
 			TPZGenSubStruct sub(dim,maxlevel,sublevel);
 			cmesh = sub.GenerateMesh();
@@ -90,6 +90,7 @@ int main(int argc, char *argv[])
 		}
 		else 
 		{
+			dim = 3;
 			gmesh = MalhaPredio();
 			cmesh = new TPZCompMesh(gmesh);
 			cmesh->SetDimModel(3);
@@ -102,7 +103,8 @@ int main(int argc, char *argv[])
 
 		int numthread_assemble = 8;
 		int numthread_decompose = 8;
-		TPZDohrStructMatrix dohrstruct(cmesh,numthread_assemble,numthread_decompose);
+		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
+		TPZDohrStructMatrix dohrstruct(cmeshauto,numthread_assemble,numthread_decompose);
 		
 		dohrstruct.IdentifyExternalConnectIndexes();
 		
@@ -125,7 +127,7 @@ int main(int argc, char *argv[])
 		dohrstruct.SetNumThreads(numthreads);
 		
 		TPZAutoPointer<TPZGuiInterface> gui;
-		TPZFMatrix rhs;
+		TPZFMatrix rhs(cmesh->NEquations(),1,0.);
 		TPZAutoPointer<TPZMatrix> dohr = dohrstruct.CreateAssemble(rhs, gui);
 		TPZAutoPointer<TPZMatrix> precond = dohrstruct.Preconditioner();
 		
@@ -175,7 +177,6 @@ int main(int argc, char *argv[])
 //		OutputFile.open(FileName.c_str(), ios::app);					// creates the file
 //		if (shouldprint == true) tempo.PrintHeader(OutputFile);		// prints the header if It is the first time the program is executed
 		
-			
 //		tempo.PrintLine(OutputFile);		// print all the information in one line
 		
 		//TPZDataBase data;
@@ -190,6 +191,23 @@ int main(int argc, char *argv[])
 #endif
 		
 		dohrptr->AddInternalSolution(diag);
+
+		
+		typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense> > subtype;
+		const subtype &sublist = dohrptr->SubStructures(); 
+		subtype::const_iterator it = sublist.begin();
+		int subcount=0;
+		while (it != sublist.end()) 
+		{
+			TPZFMatrix subext,subu;
+			dohrptr->fAssembly->Extract(subcount,diag,subext);
+			(*it)->UGlobal(subext,subu);
+			TPZCompMesh *submesh = SubMesh(cmeshauto, subcount);
+			submesh->LoadSolution(subu);
+			subcount++;
+			it++;
+		}
+		
 #ifdef LOG4CXX
 		{
 			std::stringstream sout;
