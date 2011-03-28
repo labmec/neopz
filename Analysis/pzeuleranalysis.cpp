@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.cpp,v 1.48 2010-06-11 18:45:57 diogo Exp $
+﻿//$Id: pzeuleranalysis.cpp,v 1.49 2011-03-28 18:19:40 fortiago Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -159,20 +159,20 @@ void TPZEulerAnalysis::Assemble()
    {
       PZError << "TPZEulerAnalysis::Assemble Error: No Computational Mesh\n";
 //      return;
-      exit(-1);
+      DebugStop();
    }
 
    if(!fStructMatrix)
    {
       PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
-      exit(-1);
+      DebugStop();
 //      return;
    }
 
    if(!fSolver)
    {
       PZError << "TPZEulerAnalysis::Assemble Error: No Solver\n";
-      exit(-1);
+      DebugStop();
 //      return;
    }
 
@@ -191,7 +191,7 @@ void TPZEulerAnalysis::Assemble()
       if(!pTangentMatrix)
       {
          PZError << "TPZEulerAnalysis::Assemble Error: No Structural Matrix\n";
-         exit(-1);
+         DebugStop();
 //         return;
 
       }

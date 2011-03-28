@@ -1,5 +1,5 @@
 ﻿
-//$Id: pzcmesh.cpp,v 1.92 2011-02-09 09:22:53 fortiago Exp $
+//$Id: pzcmesh.cpp,v 1.93 2011-03-28 18:19:42 fortiago Exp $
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
 #include "pzeltype.h"
@@ -492,7 +492,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
     if(static_cast<int>(check.size()) != nelem)
       {
 	cout << __PRETTY_FUNCTION__ << " The permutation vector is not a permutation!\n" << permute << endl;
-	exit(-1);
+	DebugStop();
       }
 #endif
     Permute(permute);
@@ -1417,7 +1417,7 @@ int TPZCompMesh::GetFromSuperMesh (int superind, TPZCompMesh *super){
   int dim = intel->Dimension();
   if(dim != 1) {
   cout << "TPZCompMesh::Step3 not dimension implemented , dimension = " << cel->Dimension() << endl;
-  exit(1);
+  DebugStop();
   }
   for(int side=0;side<2;side++) {
   int ly = Nc;

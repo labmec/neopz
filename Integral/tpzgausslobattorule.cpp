@@ -1,4 +1,4 @@
-// $Id: tpzgausslobattorule.cpp,v 1.1 2009-06-16 02:48:55 erick Exp $
+// $Id: tpzgausslobattorule.cpp,v 1.2 2011-03-28 18:19:41 fortiago Exp $
 #include "tpzgausslobattorule.h"
 #include "tpzintrulelist.h"
 #include "pzerror.h"
@@ -19,7 +19,7 @@ TPZGaussLobattoRule::TPZGaussLobattoRule(int precision){
 
   int numpoints = (int)((precision+3.)/2.+0.5);
 	
-  if(numpoints > 10) exit(-1);
+  if(numpoints > 10) DebugStop();
   fNumInt = (short) intpoints[numpoints];
   fLocation = new REAL[fNumInt];
   fWeight = new REAL[fNumInt];

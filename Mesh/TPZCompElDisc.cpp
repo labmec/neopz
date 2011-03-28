@@ -1,10 +1,10 @@
 ﻿
-//$Id: TPZCompElDisc.cpp,v 1.121 2011-03-02 11:20:02 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.122 2011-03-28 18:19:42 fortiago Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.121 2011-03-02 11:20:02 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.122 2011-03-28 18:19:42 fortiago Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -651,7 +651,7 @@ int TPZCompElDisc::NInterfaces(){
 
     default:
       PZError << "TPZCompElDisc::NFaces() - Unknown element shape!" << endl;
-      exit (-1);
+      DebugStop();
 	}
 	return 0;
 }

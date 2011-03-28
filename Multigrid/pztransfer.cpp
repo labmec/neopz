@@ -108,7 +108,7 @@ void TPZTransfer::AddBlockNumbers(int row, TPZVec<int> &colnumbers){
   if(HasRowDefinition(row)) {
     cout << "TPZTransfer:SetBlocks called for an already defined row = " <<
       row << endl;
-    exit(-1);
+    DebugStop();
   }
   fColPosition[row] = fColumnBlockLastUsed;
   fNumberofColumnBlocks[row] = colnumbers.NElements();
@@ -145,7 +145,7 @@ void TPZTransfer::SetBlockMatrix(int row, int col, TPZFMatrix &mat){
     cout << "TPZTransfer::SetBlockMatrix called for ilegal parameters : "
 	 << " row = " << row << " col = " << col << " colpos = " << colpos <<
       " numcolblocks = " << numcolblocks << endl;
-    exit(-1);
+    DebugStop();
   }
   int ic = colpos, lastic = colpos+numcolblocks;
   for(;ic<lastic;ic++) {
@@ -154,7 +154,7 @@ void TPZTransfer::SetBlockMatrix(int row, int col, TPZFMatrix &mat){
   if(ic == lastic) {
     cout << "TPZTransfer::SetBlockMatrix column not found for row = " << row <<
       " col = " << col << endl;
-    exit(-1);
+    DebugStop();
   }
   int nblrows = fRowBlock.Size(row);
   int nblcols = fColBlock.Size(col);
@@ -162,7 +162,7 @@ void TPZTransfer::SetBlockMatrix(int row, int col, TPZFMatrix &mat){
     cout << "TPZTransfer::SetBlockMatrix matrix has incompatible dimensions : "
       " nblrows = " << nblrows << " nblcols = " << nblcols << " mat.rows = " <<
       mat.Rows() << " mat.cols " << mat.Cols() << endl;
-    exit(-1);
+    DebugStop();
   }
   ExpandDoubleValueEntries(nblrows*nblcols);
   TPZFMatrix bl(nblrows,nblcols,&fDoubleValues[fDoubleValLastUsed],nblrows*nblcols);

@@ -80,13 +80,13 @@ void TPZSkylMatrix::AddSameStruct(TPZSkylMatrix &B, double k){
   if(size != B.fElem.NElements()){
     PZError << "\nFATAL ERROR at " << __PRETTY_FUNCTION__ << "\n";
     PZError.flush();
-    exit(-1);
+    DebugStop();
   }
   for(int i = 0; i < size; i++){
     if((this->fElem[i]-this->fElem[0]) != (B.fElem[i]-B.fElem[0])){
       PZError << "\nFATAL ERROR at " << __PRETTY_FUNCTION__ << "\n";
       PZError.flush();
-      exit(-1);
+      DebugStop();
     }
   }
 }
@@ -154,7 +154,7 @@ TPZSkylMatrix::operator()(const int r, const int c) {
   if ( index >= Size(col) ) {
     //Error("TPZSkylMatrix::operator()","Index out of range");
     TPZMatrix::Error(__PRETTY_FUNCTION__,"Index out of range");
-    exit(-1);
+    DebugStop();
   }
   return fElem[col][index];
 }
@@ -369,7 +369,7 @@ TPZSkylMatrix::GetVal(const int r,const int c ) const
   else {
     if(gZero != 0.) {
       cout << "TPZSkylMatrix gZero = " << gZero << endl;
-      exit(0);
+      DebugStop();
     }
     return( gZero );
   }
@@ -1111,7 +1111,7 @@ TPZSkylMatrix::Error(const char *msg1,const char* msg2 )
   out << "TPZSkylMatrix::" << msg1 << msg2 << ".\n";
   //pzerror.Show();
   LOGPZ_ERROR (logger, out.str().c_str());
-  exit( 1 );
+  DebugStop();
   return 0;
 }
 */

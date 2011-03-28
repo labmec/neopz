@@ -43,7 +43,7 @@ void TPZStepSolver::ResetMatrix()
 void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual){
   if(!Matrix()) {
     cout << "TPZMatrixSolver::Solve called without a matrix pointer\n";
-    exit(-1);
+    DebugStop();
   }
 	
   TPZAutoPointer<TPZMatrix> mat = Matrix();

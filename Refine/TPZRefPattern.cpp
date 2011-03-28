@@ -1127,7 +1127,7 @@ void TPZRefPattern::ComputeTransforms()
 	if(!fath)
 	{
 		PZError << "TPZRefPattern::ComputePartition Father not exists?!\n";
-		exit(-1);
+		DebugStop();
 	}
 	
 	int isub, nsubs = NSubElements();/**total filhos*/

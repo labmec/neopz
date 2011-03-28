@@ -20,7 +20,7 @@ TPZMGSolver::TPZMGSolver(TPZAutoPointer<TPZTransfer> trf,const  TPZMatrixSolver 
 void TPZMGSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual){
   if(!Matrix() || !TransferMatrix()) {
     cout << "TPZMGSolver::Solve called without a matrix pointer\n";
-    exit(-1);
+    DebugStop();
   }
   TPZAutoPointer<TPZMatrix> mat = Matrix();
   if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {

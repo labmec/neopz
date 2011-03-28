@@ -1,4 +1,4 @@
-
+﻿
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -1120,7 +1120,7 @@ int TPZFMatrix::Decompose_LU(TPZVec<int> &index) {
 		for (i=j+1;i<nRows;i++){
 			if (fabs(piv) < 1e-12) { 
 				cout << "Pivot < 1e-12. Probably matrix is singular." << endl;
-				exit(-1);      
+				DebugStop();
 			}
 			REAL aux = Get(i,j) / piv;
 			PutVal(i,j,aux);
@@ -1466,7 +1466,7 @@ int TPZFMatrix::Error(const char *msg1,const char *msg2 ) {
 	DebugStop();
  // int temp;//para testes
  // cin >> temp;//para testes
-  //exit( 1 );//para testes
+  //DebugStop();//para testes
   return 0;
 }
 

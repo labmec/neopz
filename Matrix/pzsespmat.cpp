@@ -462,7 +462,7 @@ TPZSSpMatrix::Error(const char *msg1,const char *msg2 )
   out << "TPZSSpMatrix::" << msg1 << msg2 << ".\n";
   //pzerror.show();
   LOGPZ_ERROR (logger, out.str().c_str());
-  exit( 1 );
+  DebugStop();
   return 0;
 }*/
 
@@ -530,7 +530,7 @@ int TPZSSpMatrix::Unpack (TReceiveStorage *buf ){
   TSimMatrix::Unpack(buf);
   long class_id;
   buf->UpkLong(&class_id);
-  if(!fMat.DerivedFrom(class_id)) exit(-1);
+  if(!fMat.DerivedFrom(class_id)) DebugStop();
   fMat.Unpack(buf);
   return 1;
 }

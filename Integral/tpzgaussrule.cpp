@@ -44,7 +44,7 @@ TPZGaussRule::TPZGaussRule(int precision){
 //   int numpoints = (precision+1) >> 1;
 //   if(!(precision%2)) numpoints++;
   int numpoints = (int)((precision+1.)/2.+0.5);
-  if(numpoints > 20) exit(-1);
+  if(numpoints > 20) DebugStop();
   fNumInt =  intpoints[numpoints];
   fLocation = new REAL[fNumInt];
   fWeight = new REAL[fNumInt];

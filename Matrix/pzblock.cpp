@@ -351,7 +351,7 @@ TPZBlock::GetVal(const int bRow,const int bCol,const int r,const int c ) const
   int row(r),col(c);
   if(bRow <0 || bRow >= MaxBlocks || bCol <0 || bCol >= MaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
     cout << "TPZBlock::GetVal indexes out of range\n";
-    exit(-1);
+    DebugStop();
   }
   row += fBlock[bRow].pos;
   col += fBlock[bCol].pos;
@@ -366,7 +366,7 @@ TPZBlock::operator()(const int bRow,const int bCol,const int r,const int c ) con
   int row(r),col(c);
   if(bRow <0 || bRow >= MaxBlocks || bCol <0 || bCol >= MaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
     cout << "TPZBlock::operator() indexes out of range\n";
-    exit(-1);
+    DebugStop();
   }
   row += fBlock[bRow].pos;
   col += fBlock[bCol].pos;
@@ -530,7 +530,7 @@ TPZBlock::Error(const char *msg )
   out << "TPZBlock::" << msg << ".\n";
   // pzerror.Show();
   LOGPZ_ERROR (logger, out.str().c_str());
-  exit( 1 );
+  DebugStop();
 }
 */
 void TPZBlock::TNode::Read(TPZStream &buf, void *context)

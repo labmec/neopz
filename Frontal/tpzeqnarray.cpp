@@ -133,7 +133,7 @@ void TPZEqnArray::EqnForward(TPZFMatrix & F, DecomposeType dec){
       int index = fEqStart[j];
       if(fEqValues[index] == 0.){
           cout << "Diagonal Value = 0 >> Aborting on Index = " << index << " Equation = " << j << endl;
-          exit(-1);
+          DebugStop();
       }          
       int last_term;
       if(j==fNumEq-1){
@@ -162,7 +162,7 @@ void TPZEqnArray::EqnForward(TPZFMatrix & F, DecomposeType dec){
       
       if(fEqValues[index] == 0.){
           cout << "Diagonal Value = 0 >> Aborting on Index = " << index << " Equation = " << j << endl;
-          exit(-1);
+          DebugStop();
       }          
       
       int last_term;

@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.cpp,v 1.50 2010-02-18 20:25:19 phil Exp $
+﻿//$Id: TPZAgglomerateEl.cpp,v 1.51 2011-03-28 18:19:42 fortiago Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -79,7 +79,7 @@ void TPZAgglomerateElement::InitializeElement() {
     if(mat2 != mat){
       for(int k=0;k<10;k++)
 	PZError << "TPZAgglomerateElement::TPZAgglomerateElement data error, distinct material\n";
-      exit(-1);
+      DebugStop();
     }
   }
   if(indsize < 1){
@@ -110,7 +110,7 @@ void TPZAgglomerateElement::AccumulateIntegrationRule(int degree, TPZStack<REAL>
     TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(SubElement(i));
     if(!disc){
       PZError << "TPZAgglomerateElement::AccumulateIntegrationRule, null index element\n";
-      exit(-1);
+      DebugStop();
     }
     //acumule integration rule
     disc->AccumulateIntegrationRule(degree,point,weight);
@@ -277,7 +277,7 @@ int TPZAgglomerateElement::CreateMidSideConnect(){
   if(!Material())
   {
     PZError << "\nTPZCompElDisc::CreateMidSideConnect Material nulo\n";
-    exit(-1);
+    DebugStop();
   }
 
   TPZStack<TPZCompElSide> list;
@@ -835,7 +835,7 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 #ifdef DEBUG
     if(k == size){
       PZError << "TPZCompElDisc::CreateAgglomerateMesh material not found\n";
-      exit(-1);
+      DebugStop();
     }
 #endif
 

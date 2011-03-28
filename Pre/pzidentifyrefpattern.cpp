@@ -48,14 +48,14 @@ TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetRefPattern (TPZGeoEl *fa
 		case (EPoint) : {
 			if (nelem != 1){
 				PZError << "TPZIdentifyRefPattern::GetRefPattern ERROR : point partition detected!" << endl;
-				exit (-1);
+				DebugStop();
 			}
 			return 0;// return refpattern for point!!
 		}
 		case (EOned) :{
 			if (nelem != 2){
 				PZError << "TPZIdentifyRefPattern::GetRefPattern ERROR : wrong linear partition detected!" << endl;
-				exit (-1);
+				DebugStop();
 			}
 			TPZRefPattern * newRef = new TPZRefPattern ("/home/pos/cesar/RefPattern/Unif_Linear.rpt");
 			rp = newRef;

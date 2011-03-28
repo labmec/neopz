@@ -38,14 +38,14 @@ void TPZEllipse3D::SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<RE
 		if(SemiAxeX.size != 3 || SemiAxeY.size != 3 || Origin.size != 3)
 		{
 			cout << "\nThe two semi-axes and origin of TPZEllipse3D must be in 3D!!!\n";
-			exit(-1);
+			DebugStop();
 		}
 	
 		double dotXY = sqrt(SemiAxeX[0]*SemiAxeY[0] + SemiAxeX[1]*SemiAxeY[1] + SemiAxeX[2]*SemiAxeY[2]);
 		if(dotXY < tolerance)
 		{
 			cout << "\nThe two semi-axes of TPZEllipse3D must be orthogonal!!!\n";
-			exit(-1);
+			DebugStop();
 		}
 	
 		double dotXX = sqrt(fSemiAxeX[0]*fSemiAxeX[0] + fSemiAxeX[1]*fSemiAxeX[1] + fSemiAxeX[2]*fSemiAxeX[2]);
@@ -53,7 +53,7 @@ void TPZEllipse3D::SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<RE
 		if(dotXX < tolerance || dotYY < tolerance)
 		{
 			cout << "n\Null semi-axe(s) on TPZEllipse3D!!!\n";
-			exit(-1);
+			DebugStop();
 		}
 	#endif
 	
@@ -101,13 +101,13 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 		{
 			cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
             cout << "See " << __PRETTY_FUNCTION__ << endl;
-			exit(-1);
+			DebugStop();
 		}
 		if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
 		{
 			cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
             cout << "See " << __PRETTY_FUNCTION__ << endl;
-			exit(-1);
+			DebugStop();
 		}
 
 		//Func_varx = f(varx) = y
@@ -120,7 +120,7 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 		if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
 		{
 			cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
-			exit(-1);
+			DebugStop();
 		}
 
 		varx = vfinEllip(0,0);
@@ -130,7 +130,7 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 		{
 			cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
             cout << "See " << __PRETTY_FUNCTION__ << endl;
-			exit(-1);
+			DebugStop();
 		}
 	//end of verification
 
@@ -183,13 +183,13 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
         {
             cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
             cout << "See " << __PRETTY_FUNCTION__ << endl;
-            exit(-1);
+            DebugStop();
         }
         if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
         {
             cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
             cout << "See " << __PRETTY_FUNCTION__ << endl;
-            exit(-1);
+            DebugStop();
         }
 
         double varx, Func_varx, vary;
@@ -202,7 +202,7 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
         {
             cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
             cout << "See " << __PRETTY_FUNCTION__ << endl;
-            exit(-1);
+            DebugStop();
         }
 
         varx = vfinEllip(0,0);
@@ -212,7 +212,7 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
         {
             cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
             cout << "See " << __PRETTY_FUNCTION__ << endl;
-            exit(-1);
+            DebugStop();
         }
 	//end of verification
 

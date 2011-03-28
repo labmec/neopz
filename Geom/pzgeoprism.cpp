@@ -147,7 +147,6 @@ bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
 		cout << "Point (qsi,eta,zeta) = (" << qsi << "," << eta << "," << zeta << ") is out of TPZGeoPrism Master Element Range!\n";
 		cout << "See TPZGeoPrism::MapToSide() method!\n";
 		DebugStop();
-		exit(-1);
 	}
 	bool regularmap = true;
 	switch(side)
@@ -334,7 +333,6 @@ bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &S
      {
           cout << "Cant compute MapToSide method in TPZGeoPrism class!\nParameter (SIDE) must be between 6 and 19!\nMethod Aborted!\n"; 
 		 DebugStop();
-		 exit(-1);
      }
 	return regularmap;
 }

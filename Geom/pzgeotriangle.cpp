@@ -93,7 +93,6 @@ bool TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL>
          cout << "Point (qsi,eta) = (" << qsi << "," << eta << ") is out of TPZGeoTriangle Master Element Range!\n";
          cout << "See TPZGeoTriangle::MapToSide() method!\n";
 		 DebugStop();
-         exit(-1);
      }
 	if(qsi < 0.) qsi = 0.;
 	if(eta < 0.) eta = 0.;
@@ -154,7 +153,6 @@ bool TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL>
      {
 		 cout << "Cant compute MapToSide method in TPZGeoTriangle class!\nParameter (SIDE) must be 3, 4 or 5!\nMethod Aborted!\n"; 
 		 DebugStop();
-		 exit(-1);
      }
 	return regularmap;
 }

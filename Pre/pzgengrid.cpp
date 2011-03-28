@@ -82,7 +82,7 @@ void TPZGenGrid::GenerateElements(TPZGeoMesh &grid) {
 			grid.CreateGeoElement(ETriangle,nos, 1, index,0);  
 		} else if(fElementType == 2) {
       std::cout << __PRETTY_FUNCTION__ << " - Quadratic interpolation is not available";
-      exit(-1);        
+      DebugStop();
 			grid.CreateGeoElement(EQuadrilateral,nos, 1, index,0);  
     }
 	}

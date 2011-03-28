@@ -1241,7 +1241,7 @@ void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, TPZVec<int>& NodesHunted
     {
         std::cout << "Initial Node index or Final Node index doesn't belong to the given TPZGeoNode TPZVec!\n";
         std::cout << "See NodesHunter method!\n";
-		exit(-1);
+		DebugStop();
     }
 #endif
 	
@@ -1550,7 +1550,7 @@ void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZV
 		default:
 		{
 			cout << "Cant return permutation because MElementType was not found on " << __PRETTY_FUNCTION__ << endl;
-			exit(-1);
+			DebugStop();
 		}
 	}
 }

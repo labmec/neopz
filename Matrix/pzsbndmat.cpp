@@ -871,7 +871,7 @@ TPZSBMatrix::Error(const char *msg1,const char* msg2 )
   out << "TPZSBMatrix::" << msg1 << msg2 << ".\n";
   //pzerror.show();
   LOGPZ_ERROR (logger, out.str().c_str());
-  exit( 1 );
+  DebugStop();
   return 1;
 }*/
 

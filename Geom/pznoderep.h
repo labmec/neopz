@@ -47,7 +47,7 @@ public:
   virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) {
      std::cout << "Element that is NOT TPZGeoBlend trying to Set Neighbour Information on Geometric Mesh!\n";
      std::cout << "See TPZGeoElRefLess::SetNeighbourInfo() Method!\n";
-     exit(-1);
+     DebugStop();
   }
 
   bool IsLinearMapping() const { return true; }

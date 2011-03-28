@@ -1,4 +1,4 @@
-﻿//$Id: pzcompel.cpp,v 1.50 2011-01-04 10:07:59 fortiago Exp $
+﻿//$Id: pzcompel.cpp,v 1.51 2011-03-28 18:19:42 fortiago Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -176,7 +176,7 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int,int>
     std::map<int,int>::iterator it;
     for (it=gl2lcElMap.begin();it!=gl2lcElMap.end();it++) sout << " ( " << it->first << " | " << it->second << " ) ;";
     LOGPZ_ERROR (logger,sout.str().c_str());
-    exit(-1);
+    DebugStop();
   }
   int index = gl2lcElMap[copy.fIndex];
   if(index >= 0) mesh.ElementVec()[index] = this;
@@ -282,7 +282,7 @@ TPZConnect &TPZCompEl::Connect(int i) const{
     }
   } else {
     LOGPZ_FATAL(logger, "Connect called for an element without mesh\n");
-    exit(-1);
+    DebugStop();
   }
   static TPZConnect dummy;
   return dummy;

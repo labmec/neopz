@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.35 2010-09-01 17:55:59 phil Exp $
+﻿//$Id: pzgeoelside.cpp,v 1.36 2011-03-28 18:19:42 fortiago Exp $
 // -*- c++ -*-
 #include "pzgeoelside.h"
 #include "pzgeoel.h"
@@ -771,7 +771,7 @@ void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZG
   int neighsize = neighvec.NElements();
   if(size!=neighsize || !size){
     PZError << "TPZGeoElSide::BuildConnectivities wrong vectors: abort!!!\n";
-    exit(-1);
+    DebugStop();
   }
   int iv,ivn,side,neighside,sidedim,neighsidedim;
   TPZGeoElSide subside,neighsubside;

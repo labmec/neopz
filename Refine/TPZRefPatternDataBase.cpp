@@ -503,7 +503,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 		default:
 		{
 			cout << "Cant generate uniform refpattern because MElementType was not found on " << __PRETTY_FUNCTION__ << endl;
-			exit(-1);
+			DebugStop();
 		}
 	}
 }

@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.59 2010-07-19 19:39:58 caju Exp $
+//$Id: pzgmesh.cpp,v 1.60 2011-03-28 18:19:42 fortiago Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -937,7 +937,7 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 	{
 		cout << "Exception catched! " << e.what() << std::endl;
 		cout.flush();
-		exit(-1);
+		DebugStop();
 	}
 }
 
@@ -1004,7 +1004,7 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 	{
 		cout << "Exception catched! " << e.what() << std::endl;
 		cout.flush();
-		exit(-1);
+		DebugStop();
 	}
 }//method
 

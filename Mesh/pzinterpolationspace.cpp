@@ -1,4 +1,4 @@
-﻿//$Id: pzinterpolationspace.cpp,v 1.43 2011-03-02 11:20:02 fortiago Exp $
+﻿//$Id: pzinterpolationspace.cpp,v 1.44 2011-03-28 18:19:42 fortiago Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -816,7 +816,7 @@ void TPZInterpolationSpace::RemoveInterfaces(){
       while(++k < neq) if(equal[k].Element()->Type() != EInterface) break;//procurando elemento descont�uo cujo
       if(!neq || k == neq){                               //lado faz parte da parti� do lado side do this
 	      LOGPZ_FATAL(logger, " Inconsistency of data");
-	      exit(-1);//elemento descont�uo n� achado: ERRO
+	      DebugStop();//elemento descont�uo n� achado: ERRO
       }// chame removeinterface do elemento menor
 
       TPZInterpolationSpace * equalkSp = dynamic_cast<TPZInterpolationSpace*>(equal[k].Element());

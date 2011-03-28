@@ -1026,7 +1026,7 @@ int TPZMatrix::Error(const char *msg ,const char *msg2) {
     DebugStop();
 	std::bad_exception myex;
 	throw myex;
-//    exit( 1 );
+//    DebugStop();
 //    return 0;
 }
 

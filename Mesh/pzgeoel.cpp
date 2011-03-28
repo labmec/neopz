@@ -1,4 +1,4 @@
-	//Id: $
+﻿	//Id: $
 
 	// -*- c++ -*-
 /**File : pzgeoel.c
@@ -202,7 +202,7 @@ int TPZGeoEl::WhichSide(TPZVec<int> &SideNodeIds) {
 			}
 		} else if(cap<1 || cap > 4) {
 			PZError << "TPZGeoEl::WhichSide must be extended\n";
-			exit(-1);
+			DebugStop();
 		}
 	}
 	return -1;
@@ -879,7 +879,7 @@ void TPZGeoEl::SetSubElementConnectivities() {
  }
  outp.flush();
  //outp.close();
- //exit(-1);
+ //DebugStop();
  }
  Jacobian(ksi,J,axes,detJ,Inv);
  TPZFNMatrix<9> axest;
@@ -1081,7 +1081,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
 	int dimss = SideDimension(sideson);
 	if(dimsf < dimss){
 		PZError << "\nTPZGeoEl::ComputeParamTrans called with sides error\n";
-		exit(-1);
+		DebugStop();
 	}
 	
 	/**para o canto do pai n�o existe transformac�o definida*/
@@ -1400,7 +1400,7 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> 
 		sout << "ERROR in - " << __PRETTY_FUNCTION__
         << " original father element index: " << cp.fIndex << " is not mapped!";
 		LOGPZ_ERROR (logger,sout.str().c_str());
-		exit(-1);
+		DebugStop();
 	}
 	else this->fFatherIndex = org2clnMap[cp.fFatherIndex];
 	
@@ -1410,7 +1410,7 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> 
 		sout << "ERROR in - " << __PRETTY_FUNCTION__
 		<< " original element index: " << cp.fIndex << " is not mapped!";
 		LOGPZ_ERROR (logger,sout.str().c_str());
-		exit(-1);
+		DebugStop();
 	}
 	
 	this->fIndex = org2clnMap[cp.fIndex];

@@ -136,7 +136,6 @@ bool TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
          cout << "Point (qsi,eta,zeta) = (" << qsi << "," << eta << "," << zeta << ") is out of TPZGeoTetrahedra Master Element Range!\n";
          cout << "See TPZGeoTetrahedra::MapToSide() method!\n";
 		 DebugStop();
-         exit(-1);
      }
 	bool regularmap = true;
      switch(side)
@@ -303,7 +302,6 @@ bool TPZGeoTetrahedra::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REA
      {
           cout << "Cant compute MapToSide method in TPZGeoTetrahedra class!\nParameter (SIDE) must be between 4 and 13!\nMethod Aborted!\n"; 
 		 DebugStop();
-		 exit(-1);
      }
 	return regularmap;
 }

@@ -1,6 +1,6 @@
 ﻿// -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.101 2011-03-02 11:20:02 fortiago Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.102 2011-03-28 18:19:42 fortiago Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -138,11 +138,11 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 #ifdef DEBUG
    if( !fLeftElSide.Element() || ! fRightElSide.Element() ) {
       cout << "Something wrong with clone of interface element\n";
-      exit(-1);
+      DebugStop();
    }
    if(fLeftElSide.Element()->Mesh() != &mesh || fRightElSide.Element()->Mesh() != &mesh) {
       cout << "The discontinuous elements should be cloned before the interface elements\n";
-      exit(-1);
+      DebugStop();
    }
 #endif
 
@@ -177,7 +177,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
          << " trying to generate an interface for discontinuous elements that are not cloned."
          << " Right idx = " << cprgtIdx << " left index = " << cplftIdx;
     LOGPZ_ERROR (logger,sout.str().c_str());
-    exit(-1);
+    DebugStop();
   }
 
   this->fLeftElSide.SetElement( mesh.ElementVec()[gl2lcElIdx[cplftIdx]] );
@@ -189,11 +189,11 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
 #ifdef DEBUG
   if( !fLeftElSide.Element() || ! fRightElSide.Element() ) {
     cout << "Something wrong with clone of interface element\n";
-    exit(-1);
+    DebugStop();
   }
   if(fLeftElSide.Element()->Mesh() != &mesh || fRightElSide.Element()->Mesh() != &mesh) {
     cout << "The discontinuous elements should be cloned before the interface elements\n";
-    exit(-1);
+    DebugStop();
   }
 #endif
 
@@ -228,12 +228,12 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
 #ifdef DEBUG
   if( !fLeftElSide.Element() || ! fRightElSide.Element() ) {
     cout << "TPZInterfaceElement::TPZInterfaceElement Something wrong with clone of interface element\n";
-    exit(-1);
+    DebugStop();
   }
   if(fLeftElSide.Element()->Mesh() != &mesh || fRightElSide.Element()->Mesh() != &mesh) {
     cout << "TPZInterfaceElement::TPZInterfaceElement The discontinuous elements should be cloned "
 	 << "before the interface elements\n";
-    exit(-1);
+    DebugStop();
   }
 #endif
 

@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.47 2011-02-04 08:57:14 fortiago Exp $
+// $Id: pzelctemp.cpp,v 1.48 2011-03-28 18:19:42 fortiago Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -71,7 +71,7 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
 //     sout << "ERROR in : " << __PRETTY_FUNCTION__
 //         << " trying to clone an already cloned element index: " << copy.fIndex;
 //     LOGPZ_ERROR(logger, sout.str().c_str());
-//     exit(-1);
+//     DebugStop();
 //   }
 
   fPreferredOrder = copy.fPreferredOrder;

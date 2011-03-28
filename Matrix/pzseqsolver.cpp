@@ -28,7 +28,6 @@ void TPZSequenceSolver::ResetSolver() {
 void TPZSequenceSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual){
   if(!Matrix()) {
     cout << "TPZSequenceSolver::Solve called without a matrix pointer\n";
-    exit(-1);
   }
   TPZAutoPointer<TPZMatrix> mat = Matrix();
   if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {

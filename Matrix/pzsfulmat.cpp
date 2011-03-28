@@ -838,7 +838,7 @@ TPZSFMatrix::Error(const char *msg1,const char *msg2 )
   out << "TPZSFMatrix::" << msg1 << msg2 << ".\n";
   //pzerror.Show();
   LOGPZ_ERROR (logger, out.str().c_str());
-  exit( 1 );
+  DebugStop();
   return 0;
 }*/
 

@@ -351,7 +351,7 @@ int TPZShapeCube::NShapeF(TPZVec<int> &order) {
 void TPZShapeCube::LowerDimensionSides(int side,TPZStack<int> &smallsides) {
 
 	cout << "TPZShapeCube::LowerDimensionSides Nao deve ser usado";
-	exit(-1);
+	DebugStop();
 
   if (side < 8) return;
   int i;

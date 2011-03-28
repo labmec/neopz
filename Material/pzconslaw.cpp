@@ -1,4 +1,4 @@
-//$Id: pzconslaw.cpp,v 1.11 2007-05-11 19:15:17 joao Exp $
+//$Id: pzconslaw.cpp,v 1.12 2011-03-28 18:19:41 fortiago Exp $
 
 #include "pzconslaw.h" 
 #include "pzelmat.h"
@@ -31,7 +31,7 @@ fResidualType(Flux_RT)
    if(dim < 1 || dim > 3)
    {
       PZError << "TPZConservationLaw2::TPZConservationLaw2 (abort) error dimension = " << dim << endl;
-      exit(-1);
+      DebugStop();
    }
    fDim = dim;
    fResidualType = Residual_RT;

@@ -1,4 +1,4 @@
-/*****************************************************************************
+﻿/*****************************************************************************
  * O contedo desse arquivo �de propriedade do LabMeC-DES-FEC-UNICAMP e do
  * CENPES-Petrobras.
  * O uso de qualquer parte ou do todo est�condicionado �expressa autoriza�o
@@ -224,7 +224,7 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
         LOGPZ_FATAL( logger,sout.str().c_str() );
 #endif
         std::cout << sout.str().c_str() << std::endl;
-        exit(-1);
+        DebugStop();
       break;
     }
   }

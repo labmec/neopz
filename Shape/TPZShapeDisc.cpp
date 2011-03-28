@@ -1,4 +1,4 @@
-#include "TPZShapeDisc.h"
+﻿#include "TPZShapeDisc.h"
 #include "pzshapelinear.h"
 #include "pzreal.h"
 #include <math.h>
@@ -26,7 +26,7 @@ void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,T
    
    if(degree < 0){
       PZError << "TPZShapeDisc::Polynomial the degree of the polynomial cannot be minus, aborting\n";
-      exit(-1);
+      DebugStop();
    }
    phi.Redim(degree+1,1);
    dphi.Redim(n,degree+1);
@@ -53,7 +53,7 @@ void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,T
 void TPZShapeDisc::PolynomialWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n){
    if(degree < 0){
       PZError << "TPZShapeDisc::Polynomial the degree of the polynomial cannot be minus, aborting\n";
-      exit(-1);
+      DebugStop();
    }
    phi.Redim(degree+1,1);
    dphi.Redim(n,degree+1);
@@ -139,7 +139,7 @@ void TPZShapeDisc::Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,
     default:{
       PZError << "\nFATAL ERROR at " << __PRETTY_FUNCTION__ << "\n";
       PZError.flush();
-      exit(-1);
+      DebugStop();
     }
   }
 }
@@ -148,7 +148,7 @@ void  TPZShapeDisc::Shape0D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,T
 
   if(degree < 0){
     PZError << "TPZShapeDisc::Polynomial the degree of the polynomial cannot be minus, aborting\n";
-    exit(-1);
+    DebugStop();
   }
   int cap = degree+1;
   phi.Redim(cap,1);

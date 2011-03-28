@@ -645,7 +645,7 @@ TPZMatRed<TSideMatrix>::Error(const char *msg ,const char *msg2)
   ostringstream out;
   out << "TPZMatRed<TSideMatrix>::" << msg << msg2 << ".\n";
   LOGPZ_ERROR (logger, out.str().c_str());
-  exit( 1 );
+  DebugStop();
   return 0;
 }*/
 
