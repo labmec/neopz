@@ -15,6 +15,12 @@ TPZSkylineStructMatrix::TPZSkylineStructMatrix(const TPZSkylineStructMatrix &cp)
 ///nothing here
 }
 
+TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
+{}
+
+TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrix(cmesh)
+{}
+
 TPZMatrix * TPZSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	int neq = fMesh->NEquations();
 	if(HasRange()) neq = fMaxEq-fMinEq;
@@ -50,9 +56,6 @@ TPZMatrix * TPZSkylineStructMatrix::Create(){
 
     return new TPZSkylMatrix(neq,skyline);
 }
-TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
-{}
-
 TPZSkylineStructMatrix::~TPZSkylineStructMatrix(){}
 
 

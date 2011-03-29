@@ -1,5 +1,5 @@
 ﻿
-//$Id: pzcmesh.cpp,v 1.93 2011-03-28 18:19:42 fortiago Exp $
+//$Id: pzcmesh.cpp,v 1.94 2011-03-29 10:58:08 phil Exp $
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
 #include "pzeltype.h"
@@ -39,6 +39,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompmesh"));
 #endif
 using namespace std;
 
+
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
 					    fConnectVec(0),fMaterialVec(),
 					    fSolution(0,1) {
@@ -59,6 +60,28 @@ TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : fElementVec(0),
   fSolutionBlock.SetMatrix(&fSolution);
 }
 
+
+TPZCompMesh::TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh) : fGMesh(gmesh),fElementVec(0),
+fConnectVec(0),fMaterialVec(),
+  fSolution(0,1)
+{
+    fDefaultOrder = TPZCompEl::GetgOrder();
+    
+    //Initializing class members
+    fDimModel = 0;
+    fReference = gmesh.operator->();
+    //  fChecked = 0;
+    //fName[0] = '\0';
+    //fName[126] = '\0';
+    if(fReference) {
+        SetName( fReference->Name() );
+        fReference->ResetReference();
+        fReference->SetReference(this);
+    }
+    fBlock.SetMatrix(&fSolution);
+    fSolutionBlock.SetMatrix(&fSolution);
+
+}
 
 TPZCompMesh::~TPZCompMesh() {
 

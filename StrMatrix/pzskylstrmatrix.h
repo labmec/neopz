@@ -15,6 +15,8 @@ class TPZSkylineStructMatrix : public TPZStructMatrix {
 public:    
 
 		TPZSkylineStructMatrix(TPZCompMesh *);
+    
+    TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh);
 
 		TPZSkylineStructMatrix(const TPZSkylineStructMatrix &cp);
     
