@@ -806,10 +806,10 @@ void TPZGeoEl::CheckSubelDataStructure(){
 void TPZGeoEl::SetSubElementConnectivities() {
 	
 	int side;
+	TPZStack<TPZGeoElSide> subel;
 	for(side=0; side<NCornerNodes(); side++)
 	{
 		TPZGeoElSide thisside(this,side);
-		TPZStack<TPZGeoElSide> subel;
 		this->GetSubElements2(side,subel);
 		if(!subel[0].NeighbourExists(thisside))
 		{
@@ -837,7 +837,11 @@ void TPZGeoEl::SetSubElementConnectivities() {
 			neighbour = neighbour.Neighbour();
 		}
 	}
-	InitializeNeighbours();
+	int nsubel = NSubElements();
+	for (int isub=0; isub<nsubel; isub++) 
+	{
+		this->SubElement(isub)->InitializeNeighbours();
+	}
 }
 
 /*
@@ -1331,9 +1335,8 @@ void TPZGeoEl::RemoveConnectivities(){
 
 void TPZGeoEl::InitializeNeighbours(){
 	int i,j;
-	for (i=0;i<NSides();i++){
-		
-		TPZStack <TPZGeoElSide> subel;
+	TPZStack <TPZGeoElSide> subel;
+	for (i=0;i<NSides();i++){		
 		if (HasSubElement()){
 			GetSubElements2(i,subel);
 			for (j=0;j<subel.NElements();j++){
