@@ -36,6 +36,18 @@ public :
 	penalty term = coefAlpha
  */
 TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, REAL coefTheta,  REAL coefAlpha);
+
+    /**Copies the data of one TPZElasticityAxiMaterial object to
+     another*/
+    TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy);
+    
+    /**Creates a new material from the current object   ??*/
+    virtual TPZAutoPointer<TPZMaterial> NewMaterial() { return new TPZElasticityAxiMaterial(*this);}
+    
+    /**Destructor*/
+    virtual ~TPZElasticityAxiMaterial();
+    
+
 //-----------------------------------------------------------------------------------
 	
  /** Set the origin of Revolution Axis (Z),
@@ -51,16 +63,16 @@ TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, REAL coefTh
     f_c = c;
     f_phi = phi;
  }
-
-  /**Copies the data of one TPZElasticityAxiMaterial object to
-     another*/
-  TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy);
-
-  /**Creates a new material from the current object   ??*/
-  virtual TPZAutoPointer<TPZMaterial> NewMaterial() { return new TPZElasticityAxiMaterial(*this);}
-
-  /**Destructor*/
-  virtual ~TPZElasticityAxiMaterial();
+    
+    void SetThermalExpansionCoefficient(REAL alpha)
+    {
+        fAlpha = alpha;
+    }
+    
+    void SetTemperature(REAL delt)
+    {
+        fDelTemperature = delt;
+    }
 
   /**Returns the dimension*/
   int Dimension() { return 2;}
@@ -131,6 +143,11 @@ TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, REAL coefTh
 
   /**SetPresStress Tensor*/
   void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy);
+    
+    void SetTemperatureFunction(void (*func)(const TPZVec<REAL> &rz, REAL &temperature))
+    {
+        fTemperatureFunction = func;
+    }
 
   virtual int ClassId() const;
 
@@ -146,19 +163,26 @@ TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, REAL coefTh
 
 private:
 
-  /** Mohr Coulomb Plasticity Criteria Data */
+  /// Mohr Coulomb Plasticity Criteria Data 
   REAL f_phi;
+    /// Mohr Coulomb Plasticity Criteria Data 
   REAL f_c;
 
-  /**Elasticity modulus*/
+  /// Elasticity modulus
   REAL fE;
 
-  /**Poison coeficient*/
+  /// Poison coeficient
   REAL fnu;
 
-  /**Forcing vector*/
+    /// Thermal expansion coeficient
+    REAL fAlpha;
+    
+  /// Forcing vector
   REAL ff[3];
 
+    /// Temperature difference
+    REAL fDelTemperature;
+    
   /**G = E/2(1-nu)*/
   REAL fEover21PlusNu;
 
@@ -179,6 +203,9 @@ private:
 
  /**penalty term*/
  REAL fPenalty;
+    
+    ///Function which defines the temperature
+    void (*fTemperatureFunction)(const TPZVec<REAL> &rz, REAL &temperature);
 	
 };
 
