@@ -15,6 +15,7 @@
 #include "pzfmatrix.h"
 
 //#ifdef _AUTODIFF
+using namespace std;
 #include "fadType.h"
 //#endif
 
