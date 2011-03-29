@@ -1,5 +1,5 @@
 ﻿// -*- c++ -*-
-//$Id: pzcmesh.h,v 1.47 2011-02-09 09:22:53 fortiago Exp $
+//$Id: pzcmesh.h,v 1.48 2011-03-29 10:51:13 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -54,6 +54,11 @@ protected:
    * Geometric grid to which this grid refers
    */
   TPZGeoMesh	*fReference;
+    
+    /**
+     * autopointer to the geometric mesh used in case the user has passed an autopointer
+     */
+    TPZAutoPointer<TPZGeoMesh> fGMesh;
 
   /**
    * Grid name for model identification
@@ -115,6 +120,11 @@ public:
    * @param gr pointer to geometrical reference mesh
    */
   TPZCompMesh(TPZGeoMesh* gr=0);
+    
+    /**
+     * Constructor based on an autopointer to a geometric mesh
+     */
+    TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh);
 
   /**
    * Copy constructor
@@ -166,9 +176,12 @@ public:
   /**set de dimension of the domain of the problem*/
   void SetDimModel(int dim){fDimModel = dim;}
 
-  /** Sets the geometric reference mesh */
+  /// Sets the geometric reference mesh 
   void SetReference(TPZGeoMesh * gmesh);
 
+    /// Sets the geometric reference mesh 
+    void SetReference(TPZAutoPointer<TPZGeoMesh> &gmesh);
+    
   /**return the dimension of the simulation*/
   int Dimension() const {return fDimModel;}
 
@@ -646,6 +659,12 @@ inline int TPZCompMesh::AllocateNewConnect(int blocksize) {
 
 inline void TPZCompMesh::SetReference(TPZGeoMesh * gmesh){
   this->fReference = gmesh;
+    fGMesh = TPZAutoPointer<TPZGeoMesh>(0);
+}
+
+inline void TPZCompMesh::SetReference(TPZAutoPointer<TPZGeoMesh> & gmesh){
+    this->fReference = gmesh.operator->();
+    fGMesh = gmesh;
 }
 
 #endif
