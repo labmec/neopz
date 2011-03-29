@@ -40,6 +40,16 @@ if(USING_BOOST)
    		endif()
 endif()
 
+option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
+
+if(USING_FAD)
+	
+	set(FAD_INCLUDE "/usr/local/include" CACHE PATH "directory to the source of FAD")
+	add_definitions(-D_AUTODIFF)
+    include_directories(${FAD_INCLUDE},${FAD_INCLUDE}/Fad,${FAD_INCLUDE}/TinyFad,${FAD_INCLUDE}/TinyFadET)
+endif()
+
+
 option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)
 	set (LOG4CXX_INCLUDE "/usr/local/include" CACHE PATH "directory where log4cxx header files can be found")
@@ -50,8 +60,8 @@ if(USING_LOG4CXX)
 	link_libraries(log4cxx)
 endif()
 
-configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/config.h)
-configure_file(${PROJECT_SOURCE_DIR}/PZ_USER.mk.in ${PROJECT_BINARY_DIR}/PZ_USER.mk)
+#configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/config.h)
+#configure_file(${PROJECT_SOURCE_DIR}/PZ_USER.mk.in ${PROJECT_BINARY_DIR}/PZ_USER.mk)
 
 add_subdirectory(Util)
 add_subdirectory(Common)
