@@ -43,6 +43,9 @@ void TPZRefPatternTools::GetCompatibleRefPatterns(TPZGeoEl *gel, std::list<TPZAu
 	{
 		TPZGeoElSide gelside(gel, side);
 		TPZGeoElSide neighside = gelside.Neighbour();
+    if(!neighside.Element()){
+      DebugStop();
+    }
 		while(neighside != gelside)
 		{
 			if(neighside.NSubElements() > 1)
