@@ -23,34 +23,37 @@ static LoggerPtr logger(Logger::getLogger("pz.extend"));
 void LerMalha(const std::string &arquivo,TPZGeoMesh &mesh);
 
 int main() {
-  
+
+#ifdef LOG4CXX
+	InitializePZLOG();
+#endif  
+	
+/*
   pztopology::Pr<pztopology::TPZPoint> line;
   typedef pztopology::Pr<pztopology::TPZPoint> tline;
   pztopology::Pr<pztopology::Pr<pztopology::TPZPoint> > quad;
   pzshape::SPr<pzshape::TPZShapePoint> shline;
   pzgeom::GPr<pzgeom::TPZGeoPoint,pztopology::Pr<pztopology::TPZPoint> > geoline;
-  
   TPZFMatrix coordd(3,2,0.);
   int ic;
   for(ic=0;ic<3;ic++) coordd(ic,1) = 1.;
   
-#ifdef LOG4CXX
-  InitializePZLOG();
-#endif  
   tline::Diagnostic();
   quad.Diagnostic();
   geoline.Diagnostic(coordd);
 //  return 0;
-
-	double coordstore[4][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.}};
+*/
+	
+	double coordstore[][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.}
+	, {0.,0.,1.},{1.,0.,1.},{1.,1.,1.},{0.,1.,1.}};
 	// criar um objeto tipo malha geometrica
 	TPZGeoMesh malha;
 
 	// criar quatro nos
 	int i,j;
 	TPZVec<REAL> coord(3,0.);
-	malha.NodeVec().Resize(4);
-	for(i=0; i<4; i++) {
+	malha.NodeVec().Resize(8);
+	for(i=0; i<8; i++) {
 		// initializar as coordenadas do no em um vetor
 		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
 
@@ -65,16 +68,32 @@ int main() {
 	// criar um elemento
 
 	// initializar os indices dos n�s
-	TPZVec<int> indices(4);
-	for(i=0; i<4; i++) indices[i] = i;
+	TPZVec<int> indices(8);
+	for(i=0; i<8; i++) indices[i] = i;
 
 	// O proprio construtor vai inserir o elemento na malha
         int index;
-	TPZGeoEl *gel = malha.CreateGeoElement(EQuadrilateral,indices,1,index,1);
+	TPZGeoEl *gel = malha.CreateGeoElement(ECube,indices,1,index,0);
 
 
 	malha.BuildConnectivity ();
+	
+	int nrefloop = 8;
+	int iref;
+	TPZManVector<TPZGeoEl *> subs;
+	for (iref=0; iref<7; iref++) 
+	{
+		int nel = malha.NElements();
+		int iel;
+		for (iel=0; iel<nel; iel++) {
+			malha.ElementVec()[iel]->Divide(subs);
+		}
+		std::cout << "Refinement step " << iref << " Number of elements " << malha.NElements() << std::endl;
+		std::cout.flush();
+	}
+	DebugStop();
 
+	return 0;
 	// Associar o lado de um elemento com uma condicao de contorno
 	// Este objeto ira inserir-se automaticamente na malha
 	TPZGeoElBC(gel,4,-1,malha);
