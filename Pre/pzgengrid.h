@@ -21,6 +21,7 @@ class TPZGeoMesh;
 #include <stdio.h>
 #include <iostream>
 #include "pzreal.h"
+#include "tpzautopointer.h"
 
 #include <fstream>
 
@@ -43,11 +44,26 @@ TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, RE
 virtual ~TPZGenGrid();
 
 virtual short Read (TPZGeoMesh & malha);
+    
 
+    /// Generate boundary geometric elements associated with the side
+    /*
+     * 0 <= side < 4
+     */
 virtual void SetBC(TPZGeoMesh *gr, int side, int bc);
 
 virtual void SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, int bc);
 
+    void SetBC(TPZAutoPointer<TPZGeoMesh> gr, int side, int bc)
+    {
+        SetBC(gr.operator->(), side, bc);
+    }
+    
+    void SetBC(TPZAutoPointer<TPZGeoMesh> gr, TPZVec<REAL> &start, TPZVec<REAL> &end, int bc)
+    {
+        SetBC(gr.operator->(), start, end, bc);
+    }
+    
 virtual void Print( char *name = NULL, std::ostream &out = std::cout );
 
 virtual void SetElementType(int type);
