@@ -1,17 +1,11 @@
 
-include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
-
-
 ########### next target ###############
 
 set(main_SRCS main.cpp TExtFunction.cpp TDiscoFunction.cpp)
 
-kde4_add_executable(main ${main_SRCS})
+add_executable(discShape ${main_SRCS})
 
-target_link_libraries(main ${KDE4_KDECORE_LIBS})
-
-install(TARGETS main ${INSTALL_TARGETS_DEFAULT_ARGS})
-
+target_link_libraries(discShape pz pthread)
 
 ########### install files ###############
 

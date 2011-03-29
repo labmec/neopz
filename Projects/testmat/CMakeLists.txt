@@ -1,16 +1,11 @@
 
-include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
-
-
 ########### next target ###############
 
 set(main_SRCS mainmat.cpp)
 
-kde4_add_executable(main ${main_SRCS})
+add_executable(testmat ${main_SRCS})
 
-target_link_libraries(main ${KDE4_KDECORE_LIBS})
-
-install(TARGETS main ${INSTALL_TARGETS_DEFAULT_ARGS})
+target_link_libraries(testmat pz pthread)
 
 
 ########### install files ###############

@@ -1,16 +1,9 @@
 
-include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
-
-
-########### next target ###############
-
 set(testeangular_SRCS testeangular.cpp)
 
-kde4_add_executable(testeangular ${testeangular_SRCS})
+add_executable(testeangular ${testeangular_SRCS})
 
-target_link_libraries(testeangular ${KDE4_KDECORE_LIBS})
-
-install(TARGETS testeangular ${INSTALL_TARGETS_DEFAULT_ARGS})
+target_link_libraries(testeangular pz pthread)
 
 
 ########### install files ###############
