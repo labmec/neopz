@@ -1,5 +1,5 @@
 ﻿// -*- c++ -*-
-//$Id: pzcmesh.h,v 1.48 2011-03-29 10:51:13 phil Exp $
+//$Id: pzcmesh.h,v 1.49 2011-03-31 18:43:59 fortiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -498,8 +498,9 @@ public:
 
   /**
    * Creates the computational elements, and the degree of freedom nodes
+   * If MaterialIDs is passed, only element of material id in the set<int> will be created
    */
-  virtual void AutoBuild();
+  virtual void AutoBuild(std::set<int> *MaterialIDs = NULL);
 
 //   /**
 //    * Enumerate to help AutoBuildContDisc() to be nice.
@@ -512,8 +513,6 @@ public:
    * indices contains the type of the element. Element type are given by the enumerate MCreationType.
    */
   virtual void AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const TPZVec<TPZGeoEl*> &discontinuous);
-
-  void AutoBuild(std::set<int> &MaterialIDs);
 
 static  void SetAllCreateFunctionsDiscontinuous();
 static  void SetAllCreateFunctionsContinuous();

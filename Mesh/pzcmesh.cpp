@@ -1,5 +1,5 @@
 ﻿
-//$Id: pzcmesh.cpp,v 1.95 2011-03-31 12:54:33 santos Exp $
+//$Id: pzcmesh.cpp,v 1.96 2011-03-31 18:43:59 fortiago Exp $
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
 #include "pzeltype.h"
@@ -199,7 +199,7 @@ TPZAutoPointer<TPZMaterial> TPZCompMesh::FindMaterial(int matid){	// find the ma
   return result;
 }
 
-void TPZCompMesh::AutoBuild() {
+void TPZCompMesh::AutoBuild(std::set<int> *MaterialIDs) {
   TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
   int i, nelem = elvec.NElements();
   int neltocreate = 0;
@@ -231,6 +231,12 @@ void TPZCompMesh::AutoBuild() {
 	      gel->Print(cout);
       }
 
+      ///checking material in MaterialIDs
+      if(MaterialIDs){
+        std::set<int>::iterator found = MaterialIDs->find(matid);
+        if (found == MaterialIDs->end()) continue;
+      }
+
 			if(!gel->Reference() && gel->NumInterfaces() == 0)
 			{
 				gel->CreateCompEl(*this,index);
@@ -242,7 +248,6 @@ void TPZCompMesh::AutoBuild() {
 
 }
 
-//#include "pzgeoelside.h"
 void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const TPZVec<TPZGeoEl*> &discontinuous) {
 
   TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
@@ -292,52 +297,6 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 	      gel->Print(cout);
       }
 
-      if(gel->NumInterfaces() == 0){
-        gel->CreateCompEl(*this,index);
-      }
-    }
-  }
-
-  this->InitializeBlock();
-}
-
-void TPZCompMesh::AutoBuild(std::set<int> &MaterialIDs){
-
-  std::set<int> gel2create;
-  std::set<int>::iterator it;
-
-  TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
-  int nelem = elvec.NElements();
-
-  int i, matid;
-  for(i = 0; i < nelem; i++) {
-    TPZGeoEl *gel = elvec[i];
-    if(!gel) continue;
-    matid = gel->MaterialId();
-    
-    ///checking material in TPZCompMesh
-    TPZAutoPointer<TPZMaterial> mat = this->FindMaterial(matid);
-    if(!mat)continue;
-    
-    ///checking material in MaterialIDs
-    std::set<int>::iterator found = MaterialIDs.find(matid);
-    if (found == MaterialIDs.end()) continue;
-    if(!gel->HasSubElement()) {
-      if (gel->Index() != i){
-        PZError << "\nFATAL ERROR AT " << __PRETTY_FUNCTION__ << "@" << __LINE__ << "\n";
-      }
-      gel2create.insert(gel->Index());
-    }
-  }
-
-//  int neltocreate = gel2create.size();
-//   fBlock.SetNBlocks( fBlock.NBlocks() + neltocreate );
-
-  for(it = gel2create.begin(); it != gel2create.end(); it++){
-    int index = *it;
-    TPZGeoEl *gel = elvec[index];
-    if(!gel) continue;
-    if(!gel->HasSubElement()) {
       if(gel->NumInterfaces() == 0){
         gel->CreateCompEl(*this,index);
       }
