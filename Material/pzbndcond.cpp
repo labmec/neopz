@@ -197,16 +197,16 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
 }
 
 void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
-///nothing to be done here
+  DebugStop();/////nothing to be done here
 }
 
 void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc){
-///nothing to be done here
+  DebugStop();/////nothing to be done here
 }
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
-  if(!mat) return;
+  if(!mat) DebugStop();// return;
   this->UpdataBCValues(data);
 
   if(data.phil.Rows() == 0){//it meanst right data has been filled
@@ -218,7 +218,7 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMat
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
   TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
-  if(!mat) return;
+  if(!mat) DebugStop();//return;
   this->UpdataBCValues(data);
 
   if(data.phil.Rows() == 0){//it meanst right data has been filled
@@ -229,11 +229,11 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMat
 }
 
 void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
-///nothing to be done here
+  DebugStop();/////nothing to be done here
 }
 
 void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
-///nothing to be done here
+  DebugStop();/////nothing to be done here
 }
 
 
