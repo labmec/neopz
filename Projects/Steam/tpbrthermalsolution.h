@@ -29,6 +29,21 @@ public:
 	TPBRThermalSolution(REAL area) : fSolution(), fArea(area), fEnergy(0.)
 	{
 	}
+    /// copy constructor
+    TPBRThermalSolution(const TPBRThermalSolution &copy) : fSolution(copy.fSolution), fArea(copy.fArea), fEnergy(copy.fEnergy)
+    {
+        
+    }
+    
+    /// implement an otherwise implicit = operator
+    TPBRThermalSolution &operator=(const TPBRThermalSolution &copy)
+    {
+        fSolution = copy.fSolution;
+        fArea = copy.fArea;
+        fEnergy = copy.fEnergy;
+        return *this;
+    }
+    
 	/// Update the solution and associated energy
 	void UpdateSolution(TPZFMatrix &solution, REAL energy)
 	{

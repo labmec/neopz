@@ -14,7 +14,7 @@
 #include "pzstepsolver.h"
 
 /// Compute the stiffness matrix
-void TPBRThermalDisc::ComputeStiffness()
+void TPBRThermalDiscretization::ComputeStiffness()
 {
 	TPZManVector<int> skyline(fNElements+1,0);
 	for (int i=1; i<=fNElements; i++) {
@@ -38,24 +38,25 @@ void TPBRThermalDisc::ComputeStiffness()
 	fSolver = step;
 	fUnitFluxSolution.Redim(fNElements+1,1);
 	TPZFMatrix rhs(fNElements+1,1,0.);
-	rhs(0,0) = fTimeStep;
+	rhs(0,0) = 1.;
 	fSolver->Solve(rhs, fUnitFluxSolution, 0);
 	skyl->Print("Band matrix after decompose",std::cout);
 	fUnitFluxSolution.Print("UnitFlux",std::cout);
+    std::cout << "Energy of unit flux " << Energy(fUnitFluxSolution) << std::endl;
 }
 
 /// Compute the next solution
-void TPBRThermalDisc::NextSolution(REAL inletTemp, TPZFMatrix &prevSol, TPZFMatrix &nextSol, REAL &flux)
+void TPBRThermalDiscretization::NextSolution(REAL inletTemp, TPZFMatrix &prevSol, TPZFMatrix &nextSol, REAL &flux)
 {
-	TPZFMatrix rhs(fNElements+1,1);
+	TPZFNMatrix<11> rhs(fNElements+1,1);
 	REAL delx = fDomainSize/fNElements;
 	rhs(0,0) = prevSol(0,0)*fCp*delx/2.;
-	rhs(fNElements,0) = prevSol(fNElements,0)*delx/2.;
+	rhs(fNElements,0) = prevSol(fNElements,0)*fCp*delx/2.;
 	for (int i=1; i<fNElements; i++) {
-		rhs(i,0) = prevSol(i,0)*delx;
+		rhs(i,0) = prevSol(i,0)*delx*fCp;
 	}
 	nextSol.SetSize(fNElements+1, 1);
-	fSolver->Solve(prevSol,nextSol);
+	fSolver->Solve(rhs,nextSol);
 	REAL scale = (inletTemp-nextSol(0,0))/fUnitFluxSolution(0,0);
 	flux = scale;
 	nextSol += scale*fUnitFluxSolution;

@@ -20,7 +20,7 @@
 void ScaleFactor(TPZFMatrix &tangentmatrix, TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues, TPZManVector<REAL> &statescalevalues );
 void ScaleFactorSol(TPZFMatrix &residualmatrix, TPZManVector<REAL> &statescalevalues );
 
-int main()
+int mainvapor()
 {
 	
 	//REAL domainsize = 100.;

@@ -10,8 +10,11 @@
 #include "TPBConservacao1DMarx.h"
 #include "ThermalMethodsTables.h"
 #include "PropertiesTable.h"
+#include "tpbrsteammesh.h"
+#include "pzlog.h"
 #include "pzseqsolver.h"
 #include "tpbrthermaldisc.h"
+#include "tpbrsolutionlist.h"
 #include <math.h>
 
 TPBrCellMarx::TPBrCellMarx() : fInitialState(NUMVARS,0.)
@@ -39,26 +42,124 @@ void TPBrCellMarx::SetGeometry(REAL cellvolume, REAL leftarea, REAL rightarea, R
 	fCellSize = cellsize;
 }
 
-void TPBrCellMarx::SetInjectionState(REAL pressurewater, TPZVec<REAL> &massflux, TPZManVector<REAL> &leftstate)
+WaterDataInStateOfSaturation waterdata;
+OilData oildata;
+
+void ScaleFactor(TPZFMatrix &tangentmatrix, TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues, TPZManVector<REAL> &statescalevalues );
+void ScaleFactorSol(TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues );
+
+/// compute the flux and energy timestepping with step delt
+void FluxEvolution(REAL tinlet, REAL delt, REAL Tfinal, const std::string &fluxfilename, const std::string &energyfilename);
+
+/// compute the flux and energy as the domain expands at a linear rate
+void ExpandingDomain(REAL tinlet, REAL DADt, REAL deltatime, REAL TimeFinal, const std::string &fluxfilename, const std::string &energyfilename);
+
+int main()
 {
+#ifdef LOG4CXX
+	InitializePZLOG();
+#endif
+    /*
+	int numcells = 1;
+	REAL temperature = 98.;
+	REAL pressure = 2.e6;
+	REAL WellRadius = 0.13;
+	REAL ReservoirRadius = 100.;
+	REAL oilsaturation = 0.7;
 	
+	TPBrSteamMesh mesh(numcells,temperature,pressure,WellRadius,ReservoirRadius,oilsaturation);
+	mesh.TimeStep(10.);
+	return 0;
+	*/
+
+	REAL tinlet(100.);
+    REAL deltatime = 1.;
+    REAL timefinal(20.);
+//    FluxEvolution(tinlet, deltatime, timefinal, "fluxdelt1.txt","energy1.txt");
+//    FluxEvolution(tinlet, deltatime/10., timefinal, "fluxdelt01.txt","energy01.txt");
+    REAL DADt(1.);
+    ExpandingDomain(tinlet, DADt, deltatime, timefinal, "fluxdelt1.txt","energy1.txt");
+    ExpandingDomain(tinlet, DADt, deltatime/10., timefinal, "fluxdelt01.txt","energy01.txt");
 	REAL domainsize = 100.;
 	int nelements = 50;
 	REAL cp = 1.;
 	REAL K = 1.;
 	REAL initialtemp = 0.;
-	TPBRThermalDisc discrete(domainsize,nelements,cp,K,initialtemp);
+	TPBRThermalDiscretization discrete(domainsize,nelements,cp,K,initialtemp);
 	TPZFMatrix sol(nelements+1,1,0.), nextsol(nelements+1,1,0.);
 	discrete.SetTimeStep(1.);
 	discrete.ComputeStiffness();
-	REAL flux;
-	discrete.NextSolution(1., sol,nextsol,flux);
+	REAL flux1,flux2;
+    REAL energy1, energy2;
+    REAL dQdT = discrete.DQDT();
+	discrete.NextSolution(1., sol,nextsol,flux1);
+    energy1 = discrete.Energy(nextsol);
+	discrete.NextSolution(2., sol,nextsol,flux2);
+    energy2 = discrete.Energy(nextsol);
+    REAL residual = flux2-flux1-dQdT;
+    std::cout << "flux2 " << flux2 << " flux1 " << flux1 << " dQdT " << dQdT << " residual " << residual << std::endl;
+    std::cout << "energy1 " << energy1 << " energy2 " << energy2 << std::endl;
 	nextsol.Print("Next Solution", std::cout);
-	discrete.NextSolution(1., nextsol,nextsol,flux);
+	discrete.NextSolution(1., nextsol,nextsol,flux1);
 	nextsol.Print("Next Solution", std::cout);
 	return 0;
 #warning "this should be resolved"
-	
+}
+
+void FluxEvolution(REAL tinlet, REAL delt, REAL Tfinal, const std::string &fluxfilename, const std::string &energyfilename)
+{
+	REAL domainsize = 100.;
+	int nelements = 100;
+	REAL cp = 1.;
+	REAL K = 1.;
+	REAL initialtemp = 0.;
+	TPBRThermalDiscretization discrete(domainsize,nelements,cp,K,initialtemp);
+	TPZFNMatrix<11> sol(nelements+1,1,0.);
+    //sol(0,0) = tinlet;
+	discrete.SetTimeStep(delt);
+	discrete.ComputeStiffness();
+    std::ofstream outflux(fluxfilename.c_str());
+    std::ofstream outenergy(energyfilename.c_str());
+    REAL flux;
+    REAL t;
+    for (t=0; t<= Tfinal; t+=delt) {
+        discrete.NextSolution(tinlet, sol, sol, flux);
+        outflux << t+delt << " " << flux <<  std::endl;
+        outenergy << t+delt << " " << discrete.Energy(sol) <<  std::endl;
+    }
+    
+}
+
+/// compute the flux and energy as the domain expands at a linear rate
+void ExpandingDomain(REAL tinlet, REAL DADt, REAL deltatime, REAL TimeFinal, const std::string &fluxfilename, const std::string &energyfilename)
+{
+    TPBRSolutionList locallist;
+    REAL domainsize = 100.;
+	int nelements = 100;
+	REAL cp = 1.;
+	REAL K = 1.;
+	REAL initialtemp = 0.;
+	TPBRThermalDiscretization discrete(domainsize,nelements,cp,K,initialtemp);
+    locallist.SetDiscretization(discrete);
+    std::ofstream outflux(fluxfilename.c_str());
+    std::ofstream outenergy(energyfilename.c_str());
+    REAL flux, DQDT;
+    REAL t;
+    for (t=0; t<= TimeFinal; t+=deltatime) 
+    {
+        TPBRThermalSolution sol(deltatime*DADt);
+        locallist.AddSolution(sol);
+        locallist.AdvanceSolution(deltatime, tinlet, flux, DQDT, true);
+        REAL energy = locallist.Energy();
+        outflux << t+deltatime << " " << flux <<  std::endl;
+        outenergy << t+deltatime << " " << energy  <<  std::endl;
+    }
+
+
+}
+
+void TPBrCellMarx::SetInjectionState(REAL pressurewater, TPZVec<REAL> &massflux, TPZManVector<REAL> &leftstate)
+{
 	REAL PI = 4*atan(1.);	
 	TPBrCellMarx first;
 		

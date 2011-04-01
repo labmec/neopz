@@ -13,7 +13,7 @@
 #include "pzsolve.h"
 
 /// Definition of the properties and mesh size of the confining layer
-class TPBRThermalDisc 
+class TPBRThermalDiscretization 
 {
 private:
 	
@@ -42,18 +42,40 @@ private:
 	TPZFMatrix fUnitFluxSolution;
 	
 public:
-	
+	/// create an invalid object
+    TPBRThermalDiscretization() :fDomainSize(-1.),fNElements(0),fK(0.),fCp(0.),fInitialTemp(0.)
+    {
+    }
 	/// constructor
-	TPBRThermalDisc(REAL domainsize, int nelements, REAL cp, REAL K, REAL initialtemp) : 
+	TPBRThermalDiscretization(REAL domainsize, int nelements, REAL cp, REAL K, REAL initialtemp) : 
 		fDomainSize(domainsize), fNElements(nelements), fK(K), fCp(cp), fInitialTemp(initialtemp), fTimeStep(-1), fUnitFluxSolution()
 	{
 	}
+    
+    TPBRThermalDiscretization &operator=(const TPBRThermalDiscretization &copy)
+    {
+        fDomainSize = copy.fDomainSize;
+        fNElements = copy.fNElements;
+        fK = copy.fK;
+        fCp = copy.fCp;
+        fInitialTemp = copy.fInitialTemp;
+        fSolver = copy.fSolver;
+        fTimeStep = copy.fTimeStep;
+        fUnitFluxSolution = copy.fUnitFluxSolution;
+        return *this;
+    }
 	
 	/// Set the timestep
 	void SetTimeStep(REAL delt)
 	{
 		fTimeStep = delt;
 	}
+    
+    void InitializeSolution(TPZFMatrix &sol)
+    {
+        sol.Redim(fNElements+1, 1);
+        sol += fInitialTemp;
+    }
 	
 	/// Compute the stiffness matrix
 	void ComputeStiffness();

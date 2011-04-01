@@ -21,22 +21,26 @@ private:
 	/// list of solutions
 	std::list<TPBRThermalSolution> fList;
 	/// discretization
-	TPBRThermalDisc fDiscretization;
+	TPBRThermalDiscretization fDiscretization;
 
 public:
+    
+    /// initialize the discretization
+    void SetDiscretization(TPBRThermalDiscretization &discretization)
+    {
+        fDiscretization = discretization;
+    }
+    
 	/// total energy of the solution list
-	REAL Energy()
-	{
-		REAL varEnergy = 0.;
-		std::list<TPBRThermalSolution>::iterator it = fList.begin();
-		while (it != fList.end()) {
-			varEnergy += it->Energy();
-		}
-		return varEnergy;
-	}
+	REAL Energy();
 	/// Compute the solution for the next timestep
-	void AdvanceSolution(REAL delt, REAL inletTemp, REAL &flux, REAL &DQDT);
+	void AdvanceSolution(REAL delt, REAL inletTemp, REAL &flux, REAL &DQDT, bool storesolution);
 	
+    /// Compute the variation of the flux with respect to the inlet temperature
 	REAL DQDT(REAL delt, REAL inletTemp);
+    
+    /// Add a solution to the list
+    void AddSolution(TPBRThermalSolution &nextsol);
+    
 };
 #endif
