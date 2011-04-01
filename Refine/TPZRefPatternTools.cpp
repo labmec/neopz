@@ -844,10 +844,10 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 		int i;
 		for (i=0 ; i<gel->NSides() ; i++)
 		{
-			if(cornerstorefine[i] == 1)
+	/*		if(cornerstorefine[i] == 1)
 			{
 				arquivo << " " << i << " ";
-			}
+			}     */
 			if (sidestorefine[i] == 1) {
 				arquivo << " " << i << " " ;
 			}

@@ -806,10 +806,10 @@ void TPZGeoEl::CheckSubelDataStructure(){
 void TPZGeoEl::SetSubElementConnectivities() {
 	
 	int side;
-	TPZStack<TPZGeoElSide> subel;
 	for(side=0; side<NCornerNodes(); side++)
 	{
 		TPZGeoElSide thisside(this,side);
+		TPZStack<TPZGeoElSide> subel;
 		this->GetSubElements2(side,subel);
 		if(!subel[0].NeighbourExists(thisside))
 		{
@@ -1335,8 +1335,9 @@ void TPZGeoEl::RemoveConnectivities(){
 
 void TPZGeoEl::InitializeNeighbours(){
 	int i,j;
-	TPZStack <TPZGeoElSide> subel;
 	for (i=0;i<NSides();i++){		
+		
+		TPZStack <TPZGeoElSide> subel;
 		if (HasSubElement()){
 			GetSubElements2(i,subel);
 			for (j=0;j<subel.NElements();j++){
