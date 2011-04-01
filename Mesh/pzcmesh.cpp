@@ -1,5 +1,5 @@
 ﻿
-//$Id: pzcmesh.cpp,v 1.96 2011-03-31 18:43:59 fortiago Exp $
+//$Id: pzcmesh.cpp,v 1.97 2011-04-01 11:50:07 fortiago Exp $
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
 #include "pzeltype.h"
@@ -199,7 +199,7 @@ TPZAutoPointer<TPZMaterial> TPZCompMesh::FindMaterial(int matid){	// find the ma
   return result;
 }
 
-void TPZCompMesh::AutoBuild(std::set<int> *MaterialIDs) {
+void TPZCompMesh::AutoBuild(const std::set<int> *MaterialIDs) {
   TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
   int i, nelem = elvec.NElements();
   int neltocreate = 0;
@@ -233,7 +233,7 @@ void TPZCompMesh::AutoBuild(std::set<int> *MaterialIDs) {
 
       ///checking material in MaterialIDs
       if(MaterialIDs){
-        std::set<int>::iterator found = MaterialIDs->find(matid);
+        std::set<int>::const_iterator found = MaterialIDs->find(matid);
         if (found == MaterialIDs->end()) continue;
       }
 

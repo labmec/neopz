@@ -1,5 +1,5 @@
 ﻿// -*- c++ -*-
-//$Id: pzcmesh.h,v 1.49 2011-03-31 18:43:59 fortiago Exp $
+//$Id: pzcmesh.h,v 1.50 2011-04-01 11:50:07 fortiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -496,11 +496,31 @@ public:
   void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer &transfer);
   void ProjectSolution(TPZFMatrix &projectsol);
 
+private:
+
   /**
    * Creates the computational elements, and the degree of freedom nodes
    * If MaterialIDs is passed, only element of material id in the set<int> will be created
    */
-  virtual void AutoBuild(std::set<int> *MaterialIDs = NULL);
+  virtual void AutoBuild(const std::set<int> *MaterialIDs);
+
+public:
+
+  /**
+   * Creates the computational elements, and the degree of freedom nodes
+   * Only element of material id in the set<int> will be created
+   */
+  virtual void AutoBuild(const std::set<int> MaterialIDs){
+    this->AutoBuild(&MaterialIDs);
+  }
+
+  /**
+   * Creates the computational elements, and the degree of freedom nodes
+   * Only element of material id in the set<int> will be created
+   */
+  virtual void AutoBuild(){
+    this->AutoBuild(NULL);
+  }
 
 //   /**
 //    * Enumerate to help AutoBuildContDisc() to be nice.
