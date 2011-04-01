@@ -1,5 +1,5 @@
 ﻿// -*- c++ -*-
-//$Id: pzcmesh.h,v 1.50 2011-04-01 11:50:07 fortiago Exp $
+//$Id: pzcmesh.h,v 1.51 2011-04-01 11:52:28 fortiago Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -510,7 +510,7 @@ public:
    * Creates the computational elements, and the degree of freedom nodes
    * Only element of material id in the set<int> will be created
    */
-  virtual void AutoBuild(const std::set<int> MaterialIDs){
+  virtual void AutoBuild(const std::set<int> &MaterialIDs){
     this->AutoBuild(&MaterialIDs);
   }
 
