@@ -1,4 +1,4 @@
-//$Id: pzblackoilanalysis.cpp,v 1.6 2009-02-18 13:28:55 fortiago Exp $
+//$Id: pzblackoilanalysis.cpp,v 1.7 2011-04-01 16:23:11 phil Exp $
 
 #include "pzblackoilanalysis.h"
 #include "pzblackoil2p3d.h"
@@ -47,7 +47,8 @@ void TPZBlackOilAnalysis::AssembleResidual(){
   this->SetCurrentState();
   int sz = this->Mesh()->NEquations();
   this->Rhs().Redim(sz,1);
-  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
+#warning FIX ME!!
+//  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
   this->fRhs += fLastState;
 }///void
 
@@ -255,11 +256,13 @@ void TPZBlackOilAnalysis::Assemble(){
   if(fSolver->Matrix()) if (fSolver->Matrix()->Rows()==sz) exist = true;
   if (exist){
     fSolver->Matrix()->Zero();
-    fStructMatrix->Assemble(fSolver->Matrix(),fRhs);
+#warning FIX ME
+//    fStructMatrix->Assemble(fSolver->Matrix(),fRhs);
   }
   else{
-    TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
-    fSolver->SetMatrix(mat);
+#warning FIX ME
+//    TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
+//    fSolver->SetMatrix(mat);
   }
   fSolver->UpdateFrom(fSolver->Matrix());
 }
