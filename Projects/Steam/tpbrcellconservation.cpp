@@ -9,6 +9,9 @@
 
 #include "tpbrcellconservation.h"
 #include "tpbrsteamflux.h"
+
+#ifdef _AUTODIFF
+
 #include "fadType.h"
 
 #include "pzlog.h"
@@ -161,3 +164,4 @@ void TPBrCellConservation::CellResidual(TPZVec<T> &leftflux, TPZVec<T> &cellstat
 	}
 }
 
+#endif

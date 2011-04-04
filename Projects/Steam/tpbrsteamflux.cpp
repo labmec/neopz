@@ -12,6 +12,8 @@
 
 #include "ThermalMethodsTables.h"
 
+#ifdef _AUTODIFF
+
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -392,3 +394,4 @@ void TPBrSteamFlux::ComputeRelativePermeability(TPZManVector<T> &saturation,TPZM
 
 
 
+#endif

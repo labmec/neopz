@@ -34,17 +34,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "pzmathyperelastic.h"
-#include "fadType.h"
 #include "pzskylmat.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
+
+#ifdef _AUTODIFF
+#include "fadType.h"
+void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
+#endif
 
 TPZCompMesh *CreateMesh();
 int mainFull();
 void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh & Mesh);
 TPZCompMesh *CreateMesh();
 TPZMatrix * CreateAssemble(TPZFMatrix &rhs, int method, TPZCompMesh & Mesh);
-void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
 
 /*
 void error(char * err)
@@ -106,6 +109,8 @@ int main()
 
 ////////////////
 
+#ifdef _AUTODIFF
+    
   TPZVec<FADFADREAL> solFAD(ndof);
   TPZVec<FADFADREAL> dsolFAD(ndof * dim);// x, y and z data aligned
 
@@ -158,6 +163,9 @@ FADToMatrix(U, ekFAD, efFAD);
  ef.Print("Right hand side");
  REAL dif = Norm(ek);
  cout << "Difference in norm " << dif << endl;
+    
+#endif
+    
   return 0;
 }
 
@@ -410,6 +418,8 @@ void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh &
 }
 */
 
+#ifdef _AUTODIFF
+
 void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef)
 {
   int efsz = ef.Rows();
@@ -433,3 +443,4 @@ void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef)
      }
   }
 }
+#endif

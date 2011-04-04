@@ -33,10 +33,10 @@ TSwxReservoirData::TSwxReservoirData(double h,PhysicalProperties *rock, double t
 	double WaterSaturation[17] = {0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9 };
 	double RelativePermeability_Vapour[17] = {0.85, 0.71, 0.6, 0.51, 0.43, 0.36, 0.3, 0.25, 0.215, 0.187, 0.166, 0.137, 0.11, 0.1, 0.065, 0.03, 0.001};
 	double RelativePermeability_Water[17] = {0.008, 0.011, 0.015, 0.023, 0.035, 0.048, 0.065, 0.083, 0.105, 0.127, 0.152, 0.185, 0.23, 0.28, 0.39, 0.56, 0.91};
-	vector<vector<double> >::iterator it;
+    std::vector<std::vector<double> >::iterator it;
 	int i;
 	for(i=0,it=fTable.begin();it<fTable.end();i++,it++) {
-		vector<double> vec;
+        std::vector<double> vec;
 		vec.push_back(WaterSaturation[i]);
 		vec.push_back(RelativePermeability_Vapour[i]);
 		vec.push_back(RelativePermeability_Water[i]);
@@ -207,9 +207,9 @@ void TSwxSteamInjectionData::PrintRadiosToMathematicaFile(std::ostream &out) {
 		out << "{" << fOutput.fSteamFrontPos[i].second << "," << getSteamFrontPosStored(i) << "}";
 		if(i != NTempos-1) out << ",";
 	}
-	out << "};" << endl;
-	out << "gr=ListPlot[graphareas,Joined->True,Frame->True]" << endl;
-	out << "gr=ListPlot[graphraios,Joined->True,Frame->True]" << endl;
+	out << "};" << std::endl;
+	out << "gr=ListPlot[graphareas,Joined->True,Frame->True]" << std::endl;
+	out << "gr=ListPlot[graphraios,Joined->True,Frame->True]" << std::endl;
 }
 void TSwxSteamInjectionData::PrintAreasToMathematicaFile(std::ostream &out) {
 	// Tabela de áreas das regiões esquentadas para cada passo de tempo
@@ -221,5 +221,5 @@ void TSwxSteamInjectionData::PrintAreasToMathematicaFile(std::ostream &out) {
 		out << "{" << fOutput.fSteamFrontPos[i].second << "," << M_PI*raio*raio << "}";
 		if(i != NTempos-1) out << ",";
 	}
-	out << "};" << endl;
+	out << "};" << std::endl;
 }

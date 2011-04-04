@@ -9,6 +9,9 @@
  *
  */
 #include "pzfmatrix.h"
+
+#ifdef _AUTODIFF
+
 #include "tpbrsteamflux.h"
 #include "tpbrcellconservation.h"
 /*
@@ -137,4 +140,8 @@ public:
 	void TimeStep(REAL delt);
 
 };
+
+// Nothing is compiled if _AUTODIFF isnt defined
+#endif
+
 #endif

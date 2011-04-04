@@ -11,9 +11,12 @@
 
 #include "pzvec.h"
 #include "pzfmatrix.h"
+#include "ThermalMethodsTables.h"
+
+#ifdef _AUTODIFF
+
 using namespace std;
 #include "fadType.h"
-#include "ThermalMethodsTables.h"
 
 extern WaterDataInStateOfSaturation waterdata;
 extern OilData oildata;
@@ -143,6 +146,7 @@ inline void TPBrCellConservation::Initialize(TPZVec<REAL> &state, TPZVec<TFad<N,
 	
 }
 
-
+// Nothing is compiled if _AUTODIFF isnt defined
+#endif
 
 #endif

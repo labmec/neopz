@@ -1,3 +1,6 @@
+#ifndef TPBCONSERVACAO1DMARX
+#define TPBCONSERVACAO1DMARX
+
 /*
  *  TPBConservacao1D.h
  *  IP3D_v4
@@ -14,10 +17,10 @@
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
 
-//#ifdef _AUTODIFF
+#ifdef _AUTODIFF
 using namespace std;
 #include "fadType.h"
-//#endif
+
 
 //@TODO COLOCAR ENERGIA
 
@@ -581,3 +584,8 @@ void  TPBrCellMarx::RazaoVexpVcel(TPZVec<T> &state, REAL &razao){
 	
 	razao = VexpAgua/Vcel;
 }
+
+// nothing is compiled if _AUTODIFF isnt defined
+#endif
+
+#endif

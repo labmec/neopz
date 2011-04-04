@@ -2,6 +2,8 @@
 #define STEAMFLUXHPP
 
 #include "pzvec.h"
+
+#ifdef _AUTODIFF
 using namespace std;
 #include "fadType.h"
 /*
@@ -142,5 +144,8 @@ inline void TPBrSteamFlux::Initialize(TPZVec<REAL> &state, TPZVec<TFad<N,REAL> >
 	fadstate[EEnergyFlux].fastAccessDx(EEnergyFlux+offset) = 1.;
 	
 }
+
+// nothing is compiled if _AUTODIFF isnt defined
+#endif
 
 #endif

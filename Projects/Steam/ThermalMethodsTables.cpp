@@ -114,10 +114,10 @@ WaterDataInStateOfSaturation::WaterDataInStateOfSaturation() : DataInTable(39,13
 		1185.2,1236.8, 1290., 1345., 1402.4, 1462.6, 1526.5, 1595.5, 1671.9, 1764.2, 1890.2, 2107.4};//[kJoule/kg]
 	// Caso a temperatura seja T = 0.01 a entalpia especifica é ZERO para a aguar em fase liquida, e se T = 372 a entalpia especifica eh 1935.6
 	
-	vector<vector<double> >::iterator it;
+    std::vector<std::vector<double> >::iterator it;
 	int i;
 	for(i=0,it=fTable.begin();it<fTable.end();i++,it++) {
-		vector<double> vec;
+        std::vector<double> vec;
 		vec.push_back(Temperature[i]);
 		vec.push_back(Pression[i]);
 		vec.push_back(LatentHeat[i]);

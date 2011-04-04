@@ -13,6 +13,8 @@
 #include "tpbrcellconservation.h"
 #include "pzbndmat.h"
 
+#ifdef _AUTODIFF
+
 // ESaturationWater, ESaturationOil, ESaturationSteam, ETemperature, EPressureWater, EPressureSteam, EPressureOil,EPhaseChange
 
 /// initialize the state variables
@@ -237,3 +239,4 @@ REAL TPBrSteamMesh::Iterate()
 }
 
 
+#endif

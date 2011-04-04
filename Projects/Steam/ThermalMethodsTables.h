@@ -13,8 +13,10 @@
 #include "pzerror.h"
 #include "pzreal.h"
 
+#ifdef _AUTODIFF
 using namespace std;
 #include "tfad.h"
+#endif
 
 #include <vector>
 
