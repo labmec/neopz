@@ -375,7 +375,7 @@ bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA, T
 	int unpairedNNodes = meshA.NNodes() - pairedNodes.size();
 	
 #ifdef DEBUG
-	if(pairedNodes.size() < fatherA->NNodes())
+	if((int) pairedNodes.size() < fatherA->NNodes())
 	{
 		std::cout << "\nThere is something going wrong with meshA and/or meshB in " << __PRETTY_FUNCTION__ << std::endl;
 		std::cout << "father->ConnerNodes should be paired at least!!!\n\n";
