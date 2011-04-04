@@ -27,6 +27,8 @@ include_directories(
 
 set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "directory where pthread.h can be found")
 set (PTHREAD_LIB_INCLUDE "/usr/lib" CACHE PATH "directory where the pthread library can be found")
+include_directories(${PTHREAD_INCLUDE})
+link_directories(${PTHREAD_LIB_INCLUDE})
 link_libraries(pthread)
 
 option(USING_BOOST "Whether the Boost package will be linked with the library" ON)
@@ -46,7 +48,7 @@ if(USING_FAD)
 	
 	set(FAD_INCLUDE "/usr/local/include" CACHE PATH "directory to the source of FAD")
 	add_definitions(-D_AUTODIFF)
-    include_directories(${FAD_INCLUDE},${FAD_INCLUDE}/Fad,${FAD_INCLUDE}/TinyFad,${FAD_INCLUDE}/TinyFadET)
+    include_directories(${FAD_INCLUDE} ${FAD_INCLUDE}/Fad ${FAD_INCLUDE}/TinyFad ${FAD_INCLUDE}/TinyFadET)
 endif()
 
 
@@ -95,48 +97,3 @@ add_test (TestShapeRuns Projects/testshape/TestShape)
 add_test (TestGeomRuns Projects/testgeom/TestGeom)
 
 include(CTest)
-########### install files ###############
-
-#install(FILES  PZ_user.mk DESTINATION )
-
-
-
-#original Makefile.am contents follow:
-
-##
-## Top Makefile.am for NeoPZ
-##
-## It will be processed by GNU automake to produce Makefile.in
-##
-## $Id: Makefile.am,v 1.10 2009-03-26 20:35:33 fortiago Exp $
-##
-#
-#usermkdir = $(prefix)
-#
-#usermk_DATA = PZ_user.mk
-#
-#SUBDIRS = SpecialMaps Topology External Common Mesh Refine Geom Util Matrix Cosys Multigrid Material Post Shape Integral Analysis Frontal StrMatrix Pre LinearSolvers Save lib Projects
-#
-#DISTCLEANFILES = @PZ_DISTCLEANFILES@
-#CLEANFILES     = @PZ_CLEANFILES@
-#
-#PACKAGE = PZ
-#DEVELOPER_ID = LabMeC
-#
-#clean-project:
-#	cd Projects && make distclean
-#
-#backup: clean-project distclean
-#	@ echo Making $(PACKAGE) backup...
-#	@ echo -----------------------------------------------------------------
-#	@ echo Generating tarball...
-#	@ cd .. && tar --exclude={*.a,*.so,*.bz2,.tm_*,.snprj} -cf \
-#          $(PACKAGE)-$(DEVELOPER_ID)-`date +%Y%m%d_%Hh%Mm`.tar ./Pantheon
-#	@ echo Compacting...
-#	@ cd .. && bzip2 $(PACKAGE)-*.tar
-#	@ echo Generated file:
-#	@ echo $(PACKAGE)-$(DEVELOPER_ID)-`date +%Y%m%d_%Hh%Mm`.tar
-#	@ echo -----------------------------------------------------------------
-#
-### --| NeoPZ |------------------------------------------------------------------
-#AM_CXXFLAGS = -D_AUTODIFF -DUSING_METIS

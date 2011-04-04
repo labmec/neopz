@@ -1,15 +1,7 @@
 // -*- c++ -*-
 #include "pzgmesh.h"
-#include "pzcmesh.h"
-#include "pzmat2dlin.h"
-#include "pzbndcond.h"
-#include "pzvtkmesh.h"
-#include "PrismExtend.h"
-#include "TPZGeoExtend.h"
-#include "pzshapepoint.h"
-#include "pzshapeextend.h"
-#include "tpzpoint.h"
-#include "pzgeopoint.h"
+#include "TPZVTKGeoMesh.h"
+#include "pzlog.h"
 
 #include <fstream>
 
@@ -21,7 +13,7 @@ static LoggerPtr logger(Logger::getLogger("pz.extend"));
 #endif
 
 /// Read the geometric data from a file
-void LerMalha(const std::string &arquivo,TPZGeoMesh &mesh);
+void LerMalhaGeom(const std::string &arquivo,TPZGeoMesh &mesh);
 /// Test the capability of generating a large geometric mesh
 void LargeMesh(int nrefloop);
 /// Test the prismatic extension of the topology
@@ -29,7 +21,7 @@ void TestTopology();
 
 /// Program to exemplify the reading a a geometric mesh
 int main() {
-
+    
 #ifdef LOG4CXX
 	InitializePZLOG();
 #endif  
@@ -38,53 +30,25 @@ int main() {
     int nrefloop = 5;
     /// create a very large mesh
     LargeMesh(nrefloop);
-
-
+    
+    
     /// test the prismatic extension of the topology
     TestTopology();
     
 	TPZGeoMesh malha2;
-	LerMalha("../quad_st_800_1R_16X.gri",malha2);
+	LerMalhaGeom("../quad_st_800_1R_16X.gri",malha2);
 	
 	ofstream output("output.dat");
 	malha2.Print(output);
-
-	// criar malha computacional
-	TPZCompMesh comp(&malha2);
-
-	// inserir os materiais
-        TPZMat2dLin *meumat  = new TPZMat2dLin(1);
-	TPZAutoPointer<TPZMaterial> mat(meumat);
-	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
-	meumat->SetMaterial (xk,xc,xf);
-	comp.InsertMaterialObject(mat);
-
-	// inserir a condicao de contorno
-	TPZFMatrix val1(1,1,0.),val2(1,1,0.);
-	TPZAutoPointer<TPZMaterial> bnd = mat->CreateBC (mat,-4,0,val1,val2);
-	comp.InsertMaterialObject(bnd);
-
-	comp.AutoBuild();
-	comp.InitializeBlock();
-
-	comp.Print(output);
-
-	TPZVec<std::string> scalarnames(1),vecnames(0);
-	scalarnames[0] = "state";
-
-	TPZVTKGraphMesh graph(&comp,2,mat,scalarnames,vecnames);
-	graph.SetFileName("output.vtk");
-	graph.SetResolution(0);
- 
-	graph.DrawMesh(1);
-	graph.DrawSolution(0,0.);
+    
+    std::ofstream graphfile("output.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(&malha2, graphfile);
 	return 0;
-
 }
 
-void LerMalha(const std::string &nome, TPZGeoMesh &grid) {
+void LerMalhaGeom(const std::string &nome, TPZGeoMesh &grid) {
 	ifstream infile(nome.c_str());
-
+    
 	int linestoskip;
 	char buf[256];
 	infile >> linestoskip;
@@ -102,7 +66,7 @@ void LerMalha(const std::string &nome, TPZGeoMesh &grid) {
 	infile >> ntri >> npoin >> nbouf >> nquad >> nsidif;
 	infile.getline (buf,255);
 	infile.getline(buf,255);
-
+    
 	grid.NodeVec ().Resize(npoin+1);
 	TPZVec<int> nodeindices(4);
 	int mat, elid;
@@ -110,12 +74,12 @@ void LerMalha(const std::string &nome, TPZGeoMesh &grid) {
 		infile >> elid;
 		for(j=0; j<4;j++) infile >> nodeindices[j];
 		infile >> mat;
-                int index;
+        int index;
 		grid.CreateGeoElement(EQuadrilateral,nodeindices,mat,index,1);
 	}
 	infile.getline(buf,255);
 	infile.getline(buf,255);
-
+    
 	int nodeid,dum;
 	char c;
 	TPZVec<REAL> coord(3,0.);
@@ -125,7 +89,7 @@ void LerMalha(const std::string &nome, TPZGeoMesh &grid) {
 	}
 	infile.getline (buf,255);
 	infile.getline (buf,255);
-
+    
 	TPZVec<int> sideid(2,0);
 	for(i=0; i<nbouf; i++) {
 		infile >> sideid[0] >> sideid[1] >> elid >> dum >> mat;
@@ -134,9 +98,16 @@ void LerMalha(const std::string &nome, TPZGeoMesh &grid) {
 		TPZGeoElBC(el,side,-mat,grid);
 	}
 	grid.BuildConnectivity();
-
+    
 	return;
 }
+
+#include "PrismExtend.h"
+#include "TPZGeoExtend.h"
+#include "pzshapepoint.h"
+#include "pzshapeextend.h"
+#include "tpzpoint.h"
+#include "pzgeopoint.h"
 
 void TestTopology()
 {

@@ -1,4 +1,4 @@
-//$Id: pzgmesh.cpp,v 1.60 2011-03-28 18:19:42 fortiago Exp $
+//$Id: pzgmesh.cpp,v 1.61 2011-04-04 23:37:34 phil Exp $
 
 // -*- c++ -*-
 /**File : pzgmesh.c
@@ -686,29 +686,32 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
                                        int matid,
                                        int& index,
                                        int reftype){
-	if (!reftype)  switch( type )
-	{
-		case 0://point
-			return new TPZGeoElement< TPZGeoPoint, TPZRefPoint>(nodeindexes, matid, *this, index );
-		case 1://line
-			return new TPZGeoElement< TPZGeoLinear, TPZRefLinear>(nodeindexes, matid, *this, index );
-		case 2://triangle
-			return new TPZGeoElement< TPZGeoTriangle, TPZRefTriangle >(nodeindexes, matid, *this, index );
-		case 3://quadrilatera
-			return  new TPZGeoElement< TPZGeoQuad, TPZRefQuad >(nodeindexes, matid, *this, index );
-		case 4://tetraedra
-			return new TPZGeoElement< TPZGeoTetrahedra, TPZRefTetrahedra >(nodeindexes, matid, *this, index );
-		case 5:
-			return new TPZGeoElement< TPZGeoPyramid, TPZRefPyramid >(nodeindexes, matid, *this, index );
-		case 6:
-			return new TPZGeoElement< TPZGeoPrism, TPZRefPrism >(nodeindexes, matid, *this, index );
-		case 7:
-			return new TPZGeoElement< TPZGeoCube, TPZRefCube >(nodeindexes, matid, *this, index );
-		default:
-			PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
-			<< " type = " << type << std::endl;
-			return NULL;
-	}
+	if (reftype == 0)  
+    {
+        switch( type )
+        {
+            case 0://point
+                return new TPZGeoElement< TPZGeoPoint, TPZRefPoint>(nodeindexes, matid, *this, index );
+            case 1://line
+                return new TPZGeoElement< TPZGeoLinear, TPZRefLinear>(nodeindexes, matid, *this, index );
+            case 2://triangle
+                return new TPZGeoElement< TPZGeoTriangle, TPZRefTriangle >(nodeindexes, matid, *this, index );
+            case 3://quadrilatera
+                return  new TPZGeoElement< TPZGeoQuad, TPZRefQuad >(nodeindexes, matid, *this, index );
+            case 4://tetraedra
+                return new TPZGeoElement< TPZGeoTetrahedra, TPZRefTetrahedra >(nodeindexes, matid, *this, index );
+            case 5:
+                return new TPZGeoElement< TPZGeoPyramid, TPZRefPyramid >(nodeindexes, matid, *this, index );
+            case 6:
+                return new TPZGeoElement< TPZGeoPrism, TPZRefPrism >(nodeindexes, matid, *this, index );
+            case 7:
+                return new TPZGeoElement< TPZGeoCube, TPZRefCube >(nodeindexes, matid, *this, index );
+            default:
+                PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
+                << " type = " << type << std::endl;
+                return NULL;
+        }
+    }
 	else
 	{
 		//TPZAutoPointer<TPZRefPattern> ref = GetUniformPattern(type);
