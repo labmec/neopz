@@ -22,6 +22,7 @@
  *
  * Persistency within the PZ environment are implemented by deriving class from the TPZSave
  * class and implementing the Read and Write method
+ *
  * The association of the Class Id and a unique function is implemented in the
  * TPZRestoreClass . The mere "instantiation" of the class will create a global object
  * which will create the association
@@ -85,7 +86,6 @@ virtual bool Compare(TPZSaveable *copy, bool override = false);
  * overwrite the calling object if the override flag is true
  */
 virtual bool Compare(TPZSaveable *copy, bool override = false) const;
-	
 	
 template<class T>
 static void WriteObjects(TPZStream &buf, TPZVec<T> &vec)
@@ -430,6 +430,7 @@ TPZSaveable *Restore(TPZStream &buf, void *context) {
 #ifndef ELLIPS
 /// this class implements an interface to register a class id and a restore function
 /**
+ * @ingroup save
 A declaration of the type "template class<classname, classid> put in .cpp file does the trick
 The static object which is "automatically" created calls the proper interface of the TPZSaveable class
 */

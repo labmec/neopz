@@ -51,6 +51,7 @@ enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNon
 
 class TPZFMatrix;
 
+/// Root matrix class
 /**
  * Abstract class TPZMatrix which defines interface of derived matrix classes.
  * @ingroup matrix

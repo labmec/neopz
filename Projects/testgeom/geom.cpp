@@ -3,7 +3,7 @@
 #include "pzcmesh.h"
 #include "pzmat2dlin.h"
 #include "pzbndcond.h"
-#include "pzdxmesh.h"
+#include "pzvtkmesh.h"
 #include "PrismExtend.h"
 #include "TPZGeoExtend.h"
 #include "pzshapepoint.h"
@@ -20,86 +20,29 @@ using std::ofstream;
 static LoggerPtr logger(Logger::getLogger("pz.extend"));
 #endif
 
+/// Read the geometric data from a file
 void LerMalha(const std::string &arquivo,TPZGeoMesh &mesh);
+/// Test the capability of generating a large geometric mesh
+void LargeMesh(int nrefloop);
+/// Test the prismatic extension of the topology
+void TestTopology();
 
+/// Program to exemplify the reading a a geometric mesh
 int main() {
 
 #ifdef LOG4CXX
 	InitializePZLOG();
 #endif  
-	
-/*
-  pztopology::Pr<pztopology::TPZPoint> line;
-  typedef pztopology::Pr<pztopology::TPZPoint> tline;
-  pztopology::Pr<pztopology::Pr<pztopology::TPZPoint> > quad;
-  pzshape::SPr<pzshape::TPZShapePoint> shline;
-  pzgeom::GPr<pzgeom::TPZGeoPoint,pztopology::Pr<pztopology::TPZPoint> > geoline;
-  TPZFMatrix coordd(3,2,0.);
-  int ic;
-  for(ic=0;ic<3;ic++) coordd(ic,1) = 1.;
-  
-  tline::Diagnostic();
-  quad.Diagnostic();
-  geoline.Diagnostic(coordd);
-//  return 0;
-*/
-	
-	double coordstore[][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.}
-	, {0.,0.,1.},{1.,0.,1.},{1.,1.,1.},{0.,1.,1.}};
-	// criar um objeto tipo malha geometrica
-	TPZGeoMesh malha;
-
-	// criar quatro nos
-	int i,j;
-	TPZVec<REAL> coord(3,0.);
-	malha.NodeVec().Resize(8);
-	for(i=0; i<8; i++) {
-		// initializar as coordenadas do no em um vetor
-		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
-
-		// identificar um espa�o no vetor onde podemos armazenar
-		// este vetor
-		//		int nodeindex = malha.NodeVec ().AllocateNewElement ();
-
-		// initializar os dados do n�
-		malha.NodeVec ()[i].Initialize (i,coord,malha);
-	}
-
-	// criar um elemento
-
-	// initializar os indices dos n�s
-	TPZVec<int> indices(8);
-	for(i=0; i<8; i++) indices[i] = i;
-
-	// O proprio construtor vai inserir o elemento na malha
-        int index;
-	TPZGeoEl *gel = malha.CreateGeoElement(ECube,indices,1,index,0);
+    
+    /// number of uniform refinements applied to a single cube
+    int nrefloop = 5;
+    /// create a very large mesh
+    LargeMesh(nrefloop);
 
 
-	malha.BuildConnectivity ();
-	
-	int nrefloop = 8;
-	int iref;
-	TPZManVector<TPZGeoEl *> subs;
-	for (iref=0; iref<7; iref++) 
-	{
-		int nel = malha.NElements();
-		int iel;
-		for (iel=0; iel<nel; iel++) {
-			malha.ElementVec()[iel]->Divide(subs);
-		}
-		std::cout << "Refinement step " << iref << " Number of elements " << malha.NElements() << std::endl;
-		std::cout.flush();
-	}
-	DebugStop();
-
-	return 0;
-	// Associar o lado de um elemento com uma condicao de contorno
-	// Este objeto ira inserir-se automaticamente na malha
-	TPZGeoElBC(gel,4,-1,malha);
-
-	malha.Print();
-
+    /// test the prismatic extension of the topology
+    TestTopology();
+    
 	TPZGeoMesh malha2;
 	LerMalha("../quad_st_800_1R_16X.gri",malha2);
 	
@@ -129,8 +72,8 @@ int main() {
 	TPZVec<std::string> scalarnames(1),vecnames(0);
 	scalarnames[0] = "state";
 
-	TPZDXGraphMesh graph(&comp,2,mat,scalarnames,vecnames);
-	graph.SetFileName("output.dx");
+	TPZVTKGraphMesh graph(&comp,2,mat,scalarnames,vecnames);
+	graph.SetFileName("output.vtk");
 	graph.SetResolution(0);
  
 	graph.DrawMesh(1);
@@ -149,6 +92,12 @@ void LerMalha(const std::string &nome, TPZGeoMesh &grid) {
 	for(i=0; i<linestoskip;i++) infile.getline(buf,255);
 	infile.getline (buf,255);
 	infile.getline (buf,255);
+    /**
+     * ntri : number of triangles
+     * npoin : number of pints
+     * nbouf : number of boundary faces
+     * nquad : number of quadrilaterals
+     */
 	int ntri,npoin,nbouf,nquad,nsidif;
 	infile >> ntri >> npoin >> nbouf >> nquad >> nsidif;
 	infile.getline (buf,255);
@@ -187,4 +136,76 @@ void LerMalha(const std::string &nome, TPZGeoMesh &grid) {
 	grid.BuildConnectivity();
 
 	return;
+}
+
+void TestTopology()
+{
+    // A line is a prismatic extension of a point
+    pztopology::Pr<pztopology::TPZPoint> line;
+    typedef pztopology::Pr<pztopology::TPZPoint> tline;
+    // A quadrilateral is a prismatic extension of a line
+    pztopology::Pr<pztopology::Pr<pztopology::TPZPoint> > quad;
+    // A prismatic extension of a point shape function is a line
+    pzshape::SPr<pzshape::TPZShapePoint> shline;
+    // the topologic extension of a point is a line (geometry)
+    pzgeom::GPr<pzgeom::TPZGeoPoint,pztopology::Pr<pztopology::TPZPoint> > geoline;
+    TPZFMatrix coordd(3,2,0.);
+    int ic;
+    for(ic=0;ic<3;ic++) coordd(ic,1) = 1.;
+    
+    tline::Diagnostic();
+    quad.Diagnostic();
+    geoline.Diagnostic(coordd);
+}
+
+void LargeMesh(int nrefloop)
+{
+    
+	double coordstore[][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},{0.,1.,0.}
+        , {0.,0.,1.},{1.,0.,1.},{1.,1.,1.},{0.,1.,1.}};
+	// criar um objeto tipo malha geometrica
+	TPZGeoMesh malha;
+    
+	// criar quatro nos
+	int i,j;
+	TPZVec<REAL> coord(3,0.);
+	malha.NodeVec().Resize(8);
+	for(i=0; i<8; i++) {
+		// initializar as coordenadas do no em um vetor
+		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
+        
+		// identificar um espaco no vetor onde podemos armazenar
+		// este vetor
+		//		int nodeindex = malha.NodeVec ().AllocateNewElement ();
+        
+		// initializar os dados do no
+		malha.NodeVec ()[i].Initialize (i,coord,malha);
+	}
+    
+	// criar um elemento
+    
+	// initializar os indices dos n�s
+	TPZVec<int> indices(8);
+	for(i=0; i<8; i++) indices[i] = i;
+    
+	// O proprio construtor vai inserir o elemento na malha
+    int index;
+	malha.CreateGeoElement(ECube,indices,1,index,0);
+    
+    
+	malha.BuildConnectivity ();
+	
+	int iref;
+	TPZManVector<TPZGeoEl *> subs;
+	for (iref=0; iref<nrefloop; iref++) 
+	{
+		int nel = malha.NElements();
+		int iel;
+		for (iel=0; iel<nel; iel++) {
+			malha.ElementVec()[iel]->Divide(subs);
+		}
+		std::cout << "Refinement step " << iref << " Number of elements " << malha.NElements() << std::endl;
+		std::cout.flush();
+	}
+	//DebugStop();
 }
