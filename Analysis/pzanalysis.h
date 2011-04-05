@@ -22,7 +22,7 @@ class TPZMaterial;
 #include "TPZGuiInterface.h"
 
 /**
- * Class TPZAnalysis implements analysis procedures
+ * @brief Class TPZAnalysis implements analysis procedures
  * @ingroup analysis
  */
 class TPZStructMatrix;
