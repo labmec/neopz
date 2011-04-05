@@ -1,10 +1,14 @@
-//$Id: TPZGuiInterface.h,v 1.1 2010-03-30 14:37:06 fortiago Exp $
+//$Id: TPZGuiInterface.h,v 1.2 2011-04-05 19:32:54 calle Exp $
 
 #ifndef TPZGuiInterfaceH
 #define TPZGuiInterfaceH
 
 #include "iostream"
-
+/** jorge
+ * @brief This class implements a very simple interface from PZ kernel to GUI.
+ * It implements for instance the capability of cancel the execution
+ * @ingroup common
+ */
 /** This class implements a very simple interface from PZ kernel to GUI.
  * It implements for instance the capability of cancel the execution
  * The GUI must define a derived class which reimplements the messages and update methods

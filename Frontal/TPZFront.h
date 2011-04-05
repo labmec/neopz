@@ -12,7 +12,10 @@ class TPZEqnArray;
 /** 
  * The Front matrix itself. \n
  * It is controled by TPZFrontMatrix.
- * @ingroup frontal matrix
+ * @ingroup frontal
+ */
+/** Jorge
+ * @brief Abstract class implements storage and decomposition process of the frontal matrix
  */
 class TPZFront {
 

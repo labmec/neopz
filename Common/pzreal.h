@@ -51,7 +51,10 @@ std::ostream &operator<<(std::ostream &out,const TPZCounter &count);
 
 namespace std {
 
-/// This class implements floating point number associated with a counter
+/** Jorge
+ * @brief This class implements floating point number associated with a counter
+ * @ingroup common
+ */
 /**
 By modifying the definition of the type of REAL, the number of floating point operations can be counted
 */
@@ -333,6 +336,9 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 
 #endif
 
+/** Jorge
+ * @ingroup common
+ */
 #ifdef contar
 typedef std::TPZFlopCounter REAL;
 //typedef std::TPZFlopCounter* REALPtr;

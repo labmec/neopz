@@ -44,7 +44,7 @@
 template <class T>
 class TPZVec;
 /**
- * Non abstract class which defines full matrices
+ * @brief Non abstract class which defines full matrices
  * @ingroup matrix
  */
 class TPZFMatrix : public TPZMatrix {

@@ -27,7 +27,7 @@
 #endif
 
 /**
- * Defines banded matrix. 
+ * @brief Defines banded matrix. 
  * @ingroup matrix
  */
 class TPZFBMatrix : public TPZMatrix

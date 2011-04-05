@@ -22,13 +22,15 @@ class TPZEqnArray;
 
 
 /**
- * FrontMatrix with parallel techniques included. \n
+ * @brief FrontMatrix with parallel techniques included. \n
  * Is derived from TPZFrontMatrix. \n
+ * @ingroup frontal
+ */
+/**
  * As its base class it is also a template class. The parameters store and front can \n
  * assume the values TPZFileEqnStorage or TPZStackEqnStorage for store and TPZFrontSym or TPZFrontNonSym \n
  * for front.
- * @ingroup frontal matrix
- */
+*/ 
 template <class store, class front>
 class TPZParFrontMatrix : public TPZFrontMatrix<store, front> 
 {

@@ -11,6 +11,10 @@
 class TPZSubCompMesh;
 
 #include "pzfmatrix.h"	// Added by ClassView
+
+/** Jorge
+ * @ingroup analysis
+ */
 class TPZSubMeshAnalysis : public TPZAnalysis  
 {
 private:

@@ -1,4 +1,4 @@
-//$Id: pzblackoilanalysis.h,v 1.5 2009-02-18 13:28:55 fortiago Exp $
+//$Id: pzblackoilanalysis.h,v 1.6 2011-04-05 19:32:55 calle Exp $
 
 #ifndef BLACKOILANALH
 #define BLACKOILANALH
@@ -15,7 +15,10 @@ class TPZFMatrix;
 class TPZFStructMatrix;
 
 #ifdef _AUTODIFF
-
+/** Jorge
+ * @brief Derived from TPZNonLinearAnalysis class
+ * @ingroup analysis
+ */
 class TPZBlackOilAnalysis : public TPZNonLinearAnalysis {
 
 private:

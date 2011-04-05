@@ -23,6 +23,7 @@
 
 /**
 	@author joao <joao@joao-laptop>
+ * @ingroup analysis
 */
 class TPZBiharmonicEstimator: public  TPZBiharmonic
 {

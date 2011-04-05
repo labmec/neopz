@@ -20,7 +20,7 @@
 #include "pzvec.h"
 
 /**
-   Defines block diagonal matrices
+   @brief Defines block diagonal matrices
    @ingroup matrix
 */
 class TPZBlockDiagonal : public TPZMatrix

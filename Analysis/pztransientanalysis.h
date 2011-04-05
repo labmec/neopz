@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pztransientanalysis.h,v 1.6 2009-05-06 20:22:17 fortiago Exp $
+//$Id: pztransientanalysis.h,v 1.7 2011-04-05 19:32:55 calle Exp $
 
 #ifndef TRANSIENTANALH
 #define TRANSIENTANALH
@@ -17,9 +17,10 @@ class TPZCompMesh;
 class TPZFMatrix;
 class TPZFStructMatrix;
 
-/** Implements a very simple manner to perform transient simulations
+/** It is associated to a TPZTransientMaterial< TRANSIENTCLASS >
+ * @brief Implements a very simple manner to perform transient simulations
  * It uses an implicit or explicit Euler scheme for time derivative
- * It is associated to a TPZTransientMaterial< TRANSIENTCLASS > class
+ * @ingroup analysis
  */
 template<class TRANSIENTCLASS>
 class TPZTransientAnalysis : public TPZNonLinearAnalysis {

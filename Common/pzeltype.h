@@ -6,7 +6,12 @@
 #include <cstdlib>
 #include "pzerror.h"
 
-// $Id: pzeltype.h,v 1.8 2011-02-04 08:53:02 fortiago Exp $
+/** Jorge
+ * @ingroup common
+ * @brief Define the element types
+ */
+
+// $Id: pzeltype.h,v 1.9 2011-04-05 19:32:54 calle Exp $
 /**
    @enum MElementType
  * Defines the element types

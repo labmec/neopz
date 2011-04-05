@@ -9,6 +9,10 @@
 class TPZCompMesh;
 class TPZFMatrix;
 
+/** Jorge
+ * @brief Derived class from TPZAnalysis implements non linear analysis (Newton's method)
+ * @ingroup analysis
+ */
 class TPZNonLinearAnalysis : public TPZAnalysis {
 
 public:

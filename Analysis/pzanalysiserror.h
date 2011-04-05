@@ -14,6 +14,10 @@ class TPZCompElSide;
 
 /**This class implements : "A Fast hp Adaptive Finite Element Mesh Design"
                        for : A. A. Novotny et al.*/
+/** Jorge
+ * @brief Class TPZAnalysisError implements analysis procedures with hp adaptivity
+ * @ingroup analysis
+ */
 class TPZAnalysisError : public TPZAnalysis {
 
    TPZManVector<int> fElIndexes;

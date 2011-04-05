@@ -39,7 +39,10 @@ extern "C"{
  * The Front matrix itself. \n
  * It is controled by TPZFrontMatrix. \n
  * TPZFrontNonSym is a non symmetrical matrix. It uses LU decomposition scheme.
- * @ingroup frontal matrix
+ * @ingroup frontal
+ */
+/** Jorge
+ * @brief Abstract class implements storage and decomposition process of the frontal matrix involving non-simetry characteristics
  */
 class TPZFrontNonSym : public TPZFront {
 public:

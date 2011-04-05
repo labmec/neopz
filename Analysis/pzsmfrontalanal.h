@@ -14,7 +14,8 @@ class TPZFront;
 
 #include "pzfmatrix.h"	// Added by ClassView
 /**
- * Analysis for substructuring
+ * @brief Analysis for substructuring. Use a frontal matrix.
+ * @ingroup analysis
  */
 class TPZSubMeshFrontalAnalysis : public TPZAnalysis  
 {

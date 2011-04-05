@@ -26,7 +26,7 @@
 #include "pzsave.h"
 
 /**
- * Implements block matrices
+ * @brief Implements block matrices
  * @ingroup matrix
  */
 class TPZBlock : public TPZSaveable

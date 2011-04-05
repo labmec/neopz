@@ -1,4 +1,4 @@
-//$Id: pzeuleranalysis.h,v 1.21 2009-09-01 19:31:17 phil Exp $
+//$Id: pzeuleranalysis.h,v 1.22 2011-04-05 19:32:55 calle Exp $
 
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
@@ -18,7 +18,10 @@
 
 #include <iostream>
 
-/// This class implements an analysis procedure for computing the steady state solution of a compressible Euler flow simulation
+/** Jorge
+ * @brief This class implements an analysis procedure for computing the steady state solution of a compressible Euler flow simulation
+ * @ingroup analysis
+ */
 /**
 This class implements several tricks to obtain the steady state solution as fast as possible
 It evoluates the CFL of the simulation according to the residual of the system of equations and according to the number of iterations of the Newton method at each step

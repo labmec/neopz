@@ -19,7 +19,7 @@ class TPZGeoEl;
 
 
 /**
- * Class TPZNonLinMultGridAnalysis derived from TPZAnalysis
+ * @brief Class TPZNonLinMultGridAnalysis derived from TPZAnalysis
  * @ingroup Analysis
  */
 

@@ -1,4 +1,4 @@
-//$Id: pzdiffmatrix.h,v 1.7 2011-02-11 17:27:11 phil Exp $
+//$Id: pzdiffmatrix.h,v 1.8 2011-04-05 19:32:54 calle Exp $
 
 #ifndef PZDIFFMATRIX_H
 #define PZDIFFMATRIX_H
@@ -11,7 +11,7 @@
 #endif
 
 /**
- * Matrix class to hold the flux derivatives A B C and
+ * @brief Matrix class to hold the flux derivatives A B C and
  * diffusive matrix coefficients.
  * @author Erick Slis
  * @author Cedric Ayala

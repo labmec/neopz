@@ -9,11 +9,13 @@
 #include "tpzeqnarray.h"
 #include "pzfmatrix.h"
 /** 
- * Has the same purpouse of EqnStack but stores the EqnArrays \n
+ * @brief Has the same purpouse of EqnStack but stores the EqnArrays \n
  * in a different form (binary files). \n
  * It has methods for operating over a set of equations. \n
- * The arrays of equations are in the form of a binary files of EqnArrays.
  * @ingroup frontal
+ */
+/**
+ * The arrays of equations are in the form of a binary files of EqnArrays.
  */
 class TPZFileEqnStorage {
 public:

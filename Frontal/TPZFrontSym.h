@@ -29,7 +29,10 @@ extern "C"{
  * It is controled by TPZFrontMatrix.\n
  * TPZFrontSym is a symmetrical matrix. \n
  * It uses a Cholesky decomposition scheme.
- * @ingroup frontal matrix
+ * @ingroup frontal
+ */
+/** Jorge
+ * @brief Abstract class implements storage and decomposition process of the frontal matrix involving simetry characteristics
  */
 
 class TPZFrontSym : public TPZFront {
