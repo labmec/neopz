@@ -25,6 +25,8 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/External/sloan"
  )
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
+
 set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "directory where pthread.h can be found")
 set (PTHREAD_LIB_INCLUDE "/usr/lib" CACHE PATH "directory where the pthread library can be found")
 include_directories(${PTHREAD_INCLUDE})
