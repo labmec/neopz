@@ -652,9 +652,8 @@ EXCLUDE                = ./Projects/Adapt_Phil \
                          ./Projects/Error \
                          ./Projects/descontinuo \
                          ./Projects/placyl \
-                         ./Mesh/OutOfData \
-                         ./Mesh/Mesh-1.moved-aside \
-                         *OutOfDate/*
+                         ./Mesh/OutOfDate/* \
+                         ./Mesh/Mesh-1.moved-aside/*
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix filesystem feature) are excluded 
@@ -668,7 +667,8 @@ EXCLUDE_SYMLINKS       = NO
 # against the file with absolute path, so to exclude all test directories 
 # for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = *OutOfDate
+EXCLUDE_PATTERNS       = */OutOfDate/* \
+                         */*moved-aside/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names 
 # (namespaces, classes, functions, etc.) that should be excluded from the 
