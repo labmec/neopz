@@ -26,7 +26,7 @@ class TPZWorkPool;
 
 
 /**
- * Implements a linked list with undefined elements
+ * @brief Implements a linked list with undefined elements
  * @ingroup matrix
  */
 template< class ElemType >

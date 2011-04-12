@@ -36,8 +36,8 @@
 class TPZFMatrix;
 
 /**
- * Implements a simple substructuring of a linear system of equations
- *
+ * @brief Implements a simple substructuring of a linear system of equations
+
  *			[K00][U0] + [K01][U1] = [F0]
  *			[K10][U0] + [K11][U1] = [F1]
  *@ingroup matrix

@@ -343,7 +343,7 @@ inline TPZFMatrix TPZFMatrix::operator*( TPZFMatrix A ) const {
 }
 
 /**
- * Non abstract class which implements full matrices with preallocated storage
+ * @brief Non abstract class which implements full matrices with preallocated storage
  * @ingroup matrix
  */
 template<int N>

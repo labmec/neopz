@@ -40,9 +40,11 @@ class TPZFMatrix;
 
 
 /**
- * @brief Defines sparce matrix class. \n
- * Stores data in a sparce storage scheme
+ * @brief Defines sparce matrix class.
+ 
  * @ingroup matrix
+
+ * Stores data in a sparce storage scheme
  */
 class TPZSpMatrix : public TPZMatrix
 {
