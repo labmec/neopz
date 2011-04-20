@@ -21,6 +21,7 @@ class TPZFMatrix;
 /**
 Purpose:  Define operations on symmetric sparse matrices stored
           in the (old) Yale Sparse Matrix Package format.
+ @brief Implements a symmetric sparse matrix
 */
 class TPZSYsmpMatrix : public TPZMatrix {
 

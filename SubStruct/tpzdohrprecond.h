@@ -30,7 +30,7 @@
 #include "tpzdohrassemblelist.h"
 
 /**
-This class represents a matrix which computes the preconditioner developed by Dohrmann
+@brief Implements a matrix which computes the preconditioner developed by Dohrmann
 
 @author Philippe Devloo
 */

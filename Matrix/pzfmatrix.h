@@ -44,8 +44,9 @@
 template <class T>
 class TPZVec;
 /**
- * @brief Non abstract class which defines full matrices
+ * @brief Full matrix class
  * @ingroup matrix
+ * The full matrix class is special in that the data is stored column wise
  */
 class TPZFMatrix : public TPZMatrix {
 

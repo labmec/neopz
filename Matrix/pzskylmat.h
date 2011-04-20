@@ -35,7 +35,9 @@ class TPZFMatrix;
           matrizes SkyLine sao simetricas (e portanto quadradas).
 */
 
-/************************************/
+/**
+ * @brief Implements a skyline storage format
+ */
 class TPZSkylMatrix : public TPZMatrix
 {
  public:

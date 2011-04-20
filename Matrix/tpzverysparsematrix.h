@@ -12,7 +12,8 @@ class TPZFYsmpMatrix;
 #define TPZVERYSPARSEMATRIX_ID 28291001;
 
 /**
- @author Agnaldo Monteiro Farias <agnaldo@tuborg>
+ @author Agnaldo Monteiro Farias <agnaldo@labmec.fec.unicamp.br>
+ @brief Implements a matrix whose nonzero elements are stored in binary tree
  */
 class TPZVerySparseMatrix: public TPZMatrix
 {

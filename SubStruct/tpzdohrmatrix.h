@@ -31,7 +31,7 @@
 #include "tpzdohrassemblelist.h"
 
 /**
- This class represents a matrix divided into substructures
+ @brief Implements a matrix divided into substructures
  
  @author Philippe Devloo
  */

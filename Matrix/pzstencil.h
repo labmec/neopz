@@ -21,6 +21,7 @@ class TPZFMatrix;
 
 /**
 Purpose:  Define operations on sparse matrices stored by stencils
+ @brief Implements a sparse matrix defined by a stencil
 */
 class TPZStencilMatrix : public TPZMatrix {
 

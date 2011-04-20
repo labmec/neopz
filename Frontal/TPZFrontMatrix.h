@@ -17,7 +17,9 @@
 #include "pzmatrix.h"
 
 class TPZFMatrix;
-
+/**
+ @brief Implements a matrix stored in a frontal decomposition scheme
+ */
 class TPZAbstractFrontMatrix : public TPZMatrix
 {
 public:

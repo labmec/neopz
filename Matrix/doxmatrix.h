@@ -9,6 +9,11 @@
  * This module contains all classes involved in the frontal process
  */
 /**
+ * @defgroup matrixutility matrix utility classes
+ * @ingroup matrix
+ * Implements helper classes for matrices
+ */
+/**
  * @defgroup structural Structural Matrix classes
  * This module contains all classes which defines Structural Matrices
  * 

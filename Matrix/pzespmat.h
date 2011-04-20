@@ -44,7 +44,7 @@ class TPZFMatrix;
  
  * @ingroup matrix
 
- * Stores data in a sparce storage scheme
+ * Stores data as a linked list of nonzero elements
  */
 class TPZSpMatrix : public TPZMatrix
 {

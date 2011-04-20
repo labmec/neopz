@@ -8,7 +8,9 @@
 
 /**this class implements a rectangular sparse block matrix
 it is assumed that the data is entered one row at a time
-the matrix structure cannot be modified after being defined*/
+the matrix structure cannot be modified after being defined
+ @brief Implements a rectangular matrix stored in a block structure
+ */
 class TPZTransfer : public TPZMatrix {
 
   public :

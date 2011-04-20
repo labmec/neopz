@@ -31,6 +31,7 @@ class TPZFMatrix;
 /**
 Define operations on general sparse matrices stored
 in the (old) Yale Sparse Matrix Package format.
+ @brief Implements a non symmetric sparse matrix (Yale Sparse Matrix Storage)
 */
 class TPZFYsmpMatrix : public TPZMatrix {
 

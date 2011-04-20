@@ -39,7 +39,7 @@ class TSFMatrix;
 
 
 /**
-TPZSSpMatrix implement sparce symmetric matrices
+@brief TPZSSpMatrix implement sparce symmetric matrix using a linked list of elements
 */
 class TPZSSpMatrix : public TPZMatrix
 {

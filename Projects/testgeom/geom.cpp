@@ -29,7 +29,7 @@ int main() {
     /// number of uniform refinements applied to a single cube
     int nrefloop = 5;
     /// create a very large mesh
-    LargeMesh(nrefloop);
+//    LargeMesh(nrefloop);
     
     
     /// test the prismatic extension of the topology

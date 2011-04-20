@@ -30,6 +30,7 @@ class TPZFMatrix;
 /**
 * @brief Implements symmetric band matrices.
 * @ingroup matrix
+ * @brief Implements symmetric band matrices
 */
 class TPZSBMatrix : public TPZMatrix
 {

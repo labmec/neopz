@@ -40,11 +40,14 @@ class TPZFMatrix;
 
  *			[K00][U0] + [K01][U1] = [F0]
  *			[K10][U0] + [K11][U1] = [F1]
+ *@brief Implements a matrix composed of 4 submatrices
  *@ingroup matrix
  */
+/// Implements a matrix composed of 4 submatrices
 template<class TSideMatrix = TPZFMatrix>
 class TPZMatRed: public TPZMatrix
 {
+    // @ingroup matrix
 public:
 	
 	friend class TPZMatRed<TPZFMatrix>;

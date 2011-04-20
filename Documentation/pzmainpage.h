@@ -6,12 +6,13 @@
 \author Jorge Lizardo Diaz Calle
 \author Edimar Cesar Rylo
 \author Gustavo Camargo Longhin
-\author Cedric Marcelo Ayalo Bravo
+\author Cedric Augusto Marcelo Ayalo Bravo
 \author Erick Raggio Slis dos Santos
 \author Tiago Luis Duarte Forti
 \author Cesar Lucci
 \author Denise A Siqueira
 \author Agnaldo Monteiro Farias
+\author Joao Luis Gonzalez
 \author Diogo Cecilio
 \author Nathan Shauer
 \author Others
@@ -60,7 +61,7 @@ The section \ref sec_finite_element_different is dedicated to describing which a
 environment are different from regular finite element codes
 
 
-\page page_finite_element_different
+\page page_finite_element_different Differences from Regular Finite Element Computations
 \section sec_finite_element_different Differences from Regular Finite Element Computations
 PZ integrates zero, one, two and three dimensional simulations into a single finite element library.
 It also incorporates non linear geometric maps, hp adaptive meshes and runs a large variety of finite
@@ -71,8 +72,36 @@ In this section we describe which finite element concepts were modified or exten
 environment and how these concepts translated in an object oriented framework
 
 \subsection sec_neighbour Neigbouring Information
+Within the geometric mesh, all geometric elements keep track of their neighbours along all the sides (see \ref sec_topology) of the element
 \subsection sec_jacobian Jacobian Matrix
 \subsection sec_topological Topological Concepts associated with an Element
+Within PZ a geometric element is considered as the union of open sets of points. These sets of points are named sides. As such:
+- linear element (pzgeom::TPZGeoLinear) has 3 sides (2 points and one line)
+- quadralaterial element (pzgeom::TPZGeoQuad) has 9 sides (4 points 4 lines and one area)
+- triangular element (pzgeom::TPZGeoTriangle) has 7 sides (3 points 3 lines and one area)
+- hexahedral element (pzgeom::TPZGeoCube) has 27 sides (8 points 12 lines 6 quadrilaterials and one volume)
+- prism element (pzgeom::TPZGeoPrism) has 21 sides (6 points 9 lines 2 triangles 3 quadrilaterials and one volume)
+- pyramid element (pzgeom::TPZGeoPyramid) has 5+8+5+1 sides
+- tetrahedral element (pzgeom::TPZGeoTetrahedra) has 4+6+4+1 sides
+- point element (pzgeom::TPZGeoPoint) has one side: the point itself
+
+All geometries are grouped in the namespace \ref pzgeom. The topology themselves are defined in the namespace \ref pztopology.
+
+Each topology is associated with an area within the dimension associated with the topology. For example the one dimensional line element
+is associated with the line segment \f$]-1,1[\subset R\f$. A quadrilateral element is associated with the area \f$]-1,1[x]-1,1[\subset R^2\f$. The area associated
+with a topology is named parameter space. In finite element textbooks the parameter space is associated with the space of the master element.
+Theoretically each finite element code can define its own parameter space. In the PZ environment the parameter space is defined and/or can be modified by specifying other topologies.
+
+Each sides of an element associated with a topology (point, line, quadrilateral, etc). The closure of a side (remember that a side is an open set of points) includes
+its neighbouring topologies. For instance the closure of the line includes two point topologies, the closure of a quadrilateral topology includes the four lines and four points.
+
+The topology associated with a side of a topology is returned in the method Type(int side). This method exists in all classes of the \ref pztopology namespace
+
+The sides included in the closure of a given side are returned in the method LowerDimensionSides. 
+
+As each side has its own parameter space, an affine parameter transformation can be defined between the lower dimension sides and the side itself. This affine transformation is
+returned in the SideToSideTransform method
+
 \subsection sec_template_elements Elements based on templates
 \subsection sec_matrix Matrix concept as a Linear Transformation
 \subsection sec_solver A Matrix invertion procedure as an object
@@ -99,4 +128,5 @@ discontinuous approximation spaces, among others.
 \subsection sec_prefinement Shape Functions of Arbitrary Order
 \subsection sec_restraints Shape Function Restraints
 \subsection sec_discontinous Discontinous Approximation Spaces
+
 */

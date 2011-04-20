@@ -33,7 +33,7 @@ class TPZFMatrix;
 
 
 /**
-It implement symmetric full matrix
+@brief implements a symmetric full matrix
 */
 class TPZSFMatrix : public TPZMatrix {
   //  friend class TSimMatrix;
