@@ -126,7 +126,7 @@ void TPZReadMeshHR::ReadElements (int NElem, TPZGeoMesh & GMesh)
 #ifndef WINDOWS
         sout << __PRETTY_FUNCTION__;
 #endif
-        sout << "N� sei que elemento " << type << " �esse indicado para o elemento " << id;
+        sout << "Nao sei que elemento " << type << " eh esse indicado para o elemento " << id;
 #ifdef LOG4CXX
         LOGPZ_WARN (logger,sout.str().c_str());
 #else
