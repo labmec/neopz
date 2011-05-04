@@ -225,7 +225,8 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternDataBase::GetUniformRefPattern(MEleme
 	TPZAutoPointer < TPZRefPattern > UnifRefPat = NULL;
 	for(it = ElTypeList.begin(); it != ElTypeList.end(); it++)
 	{
-		if( (*it)->Name() == unifRefName )
+		std::string compareRefrName = (*it)->Name();
+		if( compareRefrName == unifRefName )
 		{
 			UnifRefPat = (*it);
 			break;
@@ -266,9 +267,14 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			"1		2		2		1 ";
 			std::istringstream str(buf);
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(str);
-			if(!FindRefPattern(refpat))
+			TPZAutoPointer<TPZRefPattern> refpatFound = FindRefPattern(refpat);
+			if(!refpatFound)
 			{
 				InsertRefPattern(refpat);
+			}
+			else
+			{
+				refpatFound->SetName(refpat->Name());
 			}
 			refpat->InsertPermuted();
 			
@@ -293,9 +299,14 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			"2			3		4	5	3 ";
 			std::istringstream str(buf);
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(str);
-			if(!FindRefPattern(refpat))
+			TPZAutoPointer<TPZRefPattern> refpatFound = FindRefPattern(refpat);
+			if(!refpatFound)
 			{
 				InsertRefPattern(refpat);
+			}
+			else
+			{
+				refpatFound->SetName(refpat->Name());
 			}
 			refpat->InsertPermuted();
 			
@@ -323,12 +334,17 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			"3			4		7	8	6	3 ";
 			std::istringstream str(buf);
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(str);
-			if(!FindRefPattern(refpat))
+			TPZAutoPointer<TPZRefPattern> refpatFound = FindRefPattern(refpat);
+			if(!refpatFound)
 			{
 				InsertRefPattern(refpat);
 			}
+			else
+			{
+				refpatFound->SetName(refpat->Name());
+			}
 			refpat->InsertPermuted();
-			
+
 			break;
 		}
 		case 4://ETetraedro
@@ -356,12 +372,17 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			"5		5		8	4	6	9	5 ";
 			std::istringstream str(buf);
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(str);
-			if(!FindRefPattern(refpat))
+			TPZAutoPointer<TPZRefPattern> refpatFound = FindRefPattern(refpat);
+			if(!refpatFound)
 			{
 				InsertRefPattern(refpat);
 			}
+			else
+			{
+				refpatFound->SetName(refpat->Name());
+			}
 			refpat->InsertPermuted();
-			
+
 			break;
 		}
 		case 5://EPiramide
@@ -397,9 +418,14 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			"4			4		8		13	12	9	";
 			std::istringstream str(buf);
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(str);
-			if(!FindRefPattern(refpat))
+			TPZAutoPointer<TPZRefPattern> refpatFound = FindRefPattern(refpat);
+			if(!refpatFound)
 			{
 				InsertRefPattern(refpat);
+			}
+			else
+			{
+				refpatFound->SetName(refpat->Name());
 			}
 			refpat->InsertPermuted();
 			
@@ -440,9 +466,14 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			"6			6		14	13	12	17	16	15	";
 			std::istringstream str(buf);
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(str);
-			if(!FindRefPattern(refpat))
+			TPZAutoPointer<TPZRefPattern> refpatFound = FindRefPattern(refpat);
+			if(!refpatFound)
 			{
 				InsertRefPattern(refpat);
+			}
+			else
+			{
+				refpatFound->SetName(refpat->Name());
 			}
 			refpat->InsertPermuted();
 			
@@ -492,9 +523,14 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			"7			8		24	26	23	15	19	25	18	7	";
 			std::istringstream str(buf);
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(str);
-			if(!FindRefPattern(refpat))
+			TPZAutoPointer<TPZRefPattern> refpatFound = FindRefPattern(refpat);
+			if(!refpatFound)
 			{
 				InsertRefPattern(refpat);
+			}
+			else
+			{
+				refpatFound->SetName(refpat->Name());
 			}
 			refpat->InsertPermuted();
 			
