@@ -67,7 +67,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
       }
     }
   }
-  for(i=0; i< nconnects.size(); i++)
+  for(i=0; i< (size_type)nconnects.size(); i++)
   {
     if(!nconnects[i]) 
     {
@@ -105,8 +105,8 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
 //  std::cout << "Number of Vertices " << nVertices << std::endl;
   TPZVec<Vertex> inv_perm(nVertices);
   TPZVec<size_type> l_perm(nVertices);
-  for(size_type i = 0; i < l_perm.size(); i++) l_perm[i]=-1;
-  for(size_type i = 0; i < l_perm.size(); i++) inv_perm[i]=0;
+  for(size_type i = 0; i < (size_type)l_perm.size(); i++) l_perm[i]=-1;
+  for(size_type i = 0; i < (size_type)l_perm.size(); i++) inv_perm[i]=0;
   perm.Resize(fNNodes,-1);
   switch(fGType)
   {
@@ -158,7 +158,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
     break;
 
   }
-    for (size_type c = 0; c != inv_perm.size(); ++c)
+    for (size_type c = 0; c != (size_type)inv_perm.size(); ++c)
     {
       l_perm[inv_perm[c]] = c;
     }
@@ -206,7 +206,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
         << std::endl;*/
     perm.Resize(l_perm.size());
     inverseperm.Resize(inv_perm.size());
-    for(i=0; i<l_perm.size(); i++)
+    for(i=0; i<(size_type)l_perm.size(); i++)
     {
       perm[i] = l_perm[i];
       inverseperm[i] = inv_perm[i];

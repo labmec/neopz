@@ -127,23 +127,22 @@ void TPZMetis::Subdivide(int nParts,
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-  int i;
   int nVertices = AdjacencyIndex.NElements() -1;
   TPZVec<int> Options(5);
   Options.Resize(5);
   Options[0]=0;
 //  int CommVolume = 0;
-  int flag1 = 0;
-  int flag2 = 0;
   TPZVec<int> partIndex(nVertices);
   partIndex.Resize(nVertices);
-	int nEdgesCutted = 0;
 	Domains.Resize(nVertices);
 //	TPZVec<int> Partition(nVertices);
 
 //  int lStyle = 0;
 //  int lWeigth = 0;
 #ifdef USING_METIS
+    int flag1 = 0;
+    int flag2 = 0;
+	int nEdgesCutted = 0;
 	METIS_PartGraphRecursive(&nVertices, &AdjacencyIndex[0], &Adjacency[0], NULL, &AdjacencyWeight[0], &flag1,
 														&flag2, &nParts, Options, &nEdgesCutted, &Domains[0]);
 #endif

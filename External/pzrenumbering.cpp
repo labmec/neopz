@@ -313,7 +313,6 @@ void TPZRenumbering::ClearDataStructures(){
 void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &cornernodes)
 {
 	
-	int nod,el;
 	TPZVec<int> nodtoelgraphindex;
 	TPZVec<int> nodtoelgraph;
 	int sub = 0;
@@ -323,6 +322,9 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 //	Print(nodtoelgraph,nodtoelgraphindex,"node to el graph");
 
 	int nelem = fElementGraphIndex.NElements()-1;
+    if (nelconsider > nelem) {
+        DebugStop();
+    }
 	int element;
 	for (element=0; element < nelconsider; element++) 
 	{
@@ -343,7 +345,7 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 			int lastelind = nodtoelgraphindex[node+1];
 			std::set<int> elcon;
 			elcon.insert(&nodtoelgraph[firstelind],(&nodtoelgraph[lastelind-1])+1);
-			maxelcon = maxelcon < elcon.size() ? elcon.size() : maxelcon;
+			maxelcon = maxelcon < (int)elcon.size() ? elcon.size() : maxelcon;
 			connectivities.insert(map_type::value_type(elcon.size(), std::pair<int, std::set<int> >(node,elcon)));
 		}
 		/*
@@ -360,7 +362,7 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 		map_type::const_iterator ithead;
 		for (ithead = p.first; ithead != p.second; ithead++) 
 		{
-			int numelements = ithead->first;
+//			int numelements = ithead->first;
 			corners.Push(ithead->second.first);
 			cornernodes.insert(ithead->second.first);
 		}
@@ -370,8 +372,8 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 		for (itf=connectivities.begin(); itf != connectivities.end(); itf++)
 		{
 			map_type::reverse_iterator it = connectivities.rbegin();
-			int maxelconnected = it->first;
-			int elconnected = itf->first;
+//			int maxelconnected = it->first;
+//			int elconnected = itf->first;
 			while (it->first > itf->first && it!=connectivities.rend()) 
 			{
 				std::set<int>::iterator smallsetbeg, smallsetend, largesetbeg, largesetend;
