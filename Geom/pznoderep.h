@@ -17,10 +17,14 @@
 
 #include <map>
 #include <memory.h>
-#include "pzgeoelside.h"
-#include "tpzgeoelrefpattern.h"
+//#include "pzgeoelside.h"
+//#include "tpzgeoelrefpattern.h"
+#include "pzmanvector.h"
+#include "pztrnsform.h"
 
 class TPZGeoMesh;
+class TPZGeoEl;
+class TPZGeoElSide;
 
 #include "pzlog.h"
 #ifdef LOG4CXX
@@ -57,6 +61,7 @@ public:
   }
 
   static const int NNodes=N;
+	/// index of the nodes of the element
   int fNodeIndexes[N];
   /**
    * Constructor with list of nodes
@@ -92,15 +97,7 @@ public:
     memcpy(fNodeIndexes,cp.fNodeIndexes,N*sizeof(int));
   }
 
-  /** Adjust node coordinate in case the non-linear mapping
-   * changes node coordinates
-   * It happens for instance in TPZEllipse
-   */
-  virtual void AdjustNodeCoordinates(TPZGeoMesh &mesh){
-    ///nothing to be done here
-  }
-
-  void Initialize(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh)
+  void Initialize(TPZVec<int> &nodeindexes)
   {
     int nn = nodeindexes.NElements() < N ? nodeindexes.NElements() : N;
 #ifndef NDEBUG
@@ -119,8 +116,6 @@ public:
     int i;
     for(i=nn; i<N; i++) fNodeIndexes[i]=-1;
 
-    this->AdjustNodeCoordinates(mesh);
-
   }
   void Initialize(TPZGeoEl *refel)
   {
@@ -128,6 +123,7 @@ public:
     /**
    * Create an element along the side with material id bc
      */
+    /*
   TPZGeoEl *CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
   {
     int ns = orig->NSideNodes(side);
@@ -144,14 +140,15 @@ public:
     newelside.InsertConnectivity(me);
     return newel;
   }
-
+*/
   /** Verifies if the parametric point pt is in the element parametric domain
    */
+    /*
   bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6){
     const bool result = Topology::IsInParametricDomain(pt, tol);
     return result;
   }///method
-
+*/
   /** Projects point pt (in parametric coordinate system) in the element parametric domain.
    * Returns the side where the point was projected.
    * Observe that if the point is already in the parametric domain, the method will return
@@ -201,7 +198,7 @@ public:
 
   }///method
 
-  void Print(std::ostream &out)
+  void Print(std::ostream &out) const
   {
     int nn;
     out << "Nodeindices :";
