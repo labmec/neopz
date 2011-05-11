@@ -1,6 +1,6 @@
-﻿// -*- c++ -*-
+// -*- c++ -*-
 
-//$Id: TPZCompElDisc.h,v 1.78 2011-02-04 08:53:03 fortiago Exp $
+//$Id: TPZCompElDisc.h,v 1.79 2011-05-11 02:48:14 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
 // Discontinous Elements
@@ -232,7 +232,7 @@ protected:
   /**
    * it returns the constant that normalizes the bases of the element
    */
-  REAL ConstC(){return fConstC;}
+  REAL ConstC() const {return fConstC;}
 
   void SetConstC(REAL c){fConstC = c;}
 
@@ -267,7 +267,7 @@ protected:
   /**
    * amount of vertices of the element
    */
-  int NCornerConnects() { return Reference()->NNodes();}
+  int NCornerConnects() const { return Reference()->NNodes();}
 
   /**
    * it returns dimension from the element
@@ -299,7 +299,7 @@ protected:
   /**returns the number of shapefunctions associated with a connect*/
   virtual int NConnectShapeF(int inod) const;
 
-  REAL CenterPoint(int index) {return fCenterPoint[index];}
+  REAL CenterPoint(int index) const {return fCenterPoint[index];}
 
   virtual void CenterPoint(TPZVec<REAL> &center);
 

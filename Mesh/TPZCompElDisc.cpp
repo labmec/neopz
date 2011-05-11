@@ -1,10 +1,9 @@
-﻿
-//$Id: TPZCompElDisc.cpp,v 1.122 2011-03-28 18:19:42 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.123 2011-05-11 02:48:14 phil Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.122 2011-03-28 18:19:42 fortiago Exp $
+//$Id: TPZCompElDisc.cpp,v 1.123 2011-05-11 02:48:14 phil Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -1014,7 +1013,7 @@ TPZAutoPointer<TPZIntPoints> TPZCompElDisc::CreateIntegrationRule() const{
 }///method
 
 const TPZIntPoints &TPZCompElDisc::GetIntegrationRule() const {
-  if(this->fIntRule == NULL){
+  if(this->fIntRule == 0){
     DebugStop();
   }
   return *(fIntRule.operator->());
