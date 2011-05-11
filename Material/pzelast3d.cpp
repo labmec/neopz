@@ -1,4 +1,4 @@
-//$Id: pzelast3d.cpp,v 1.16 2010-09-06 14:50:47 phil Exp $
+//$Id: pzelast3d.cpp,v 1.17 2011-05-11 02:24:19 phil Exp $
  
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -152,7 +152,6 @@ TPZManVector<REAL,3> &x = data.x;
 		for(kd = 0; kd < 3; kd++){
 			ef(in*3+kd, 0) += weight* fForce[kd] * phi(in,0);
 		}//kd
-		REAL val;
 		for( int jn = 0; jn < phr; jn++ ) {
 			
 			//Compute Deriv matrix

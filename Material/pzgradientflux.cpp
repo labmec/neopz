@@ -1,4 +1,4 @@
-//$Id: pzgradientflux.cpp,v 1.1 2009-08-28 19:43:44 fortiago Exp $
+//$Id: pzgradientflux.cpp,v 1.2 2011-05-11 02:24:19 phil Exp $
 
 #include "pzgradientflux.h"
 
@@ -50,7 +50,6 @@ void TPZGradientFlux::ApplyMinModLimiter(REAL &soll, REAL &solr,
                                          const TPZVec<REAL>& gradL, const TPZVec<REAL> &gradR,
                                          const TPZVec<REAL> &normal, 
                                          const TPZVec<REAL> &dL, const TPZVec<REAL> & dR){
-  const int dim = 3;
   const double sL = this->Dot(gradL,normal);
   const double sR = this->Dot(gradR,normal);
   if((sL*sR) < 0.){
@@ -76,7 +75,6 @@ void TPZGradientFlux::ApplyVanAlbadaLimiter(REAL &soll, REAL &solr,
                                             const TPZVec<REAL>& gradL, const TPZVec<REAL> &gradR,
                                             const TPZVec<REAL> &normal, 
                                             const TPZVec<REAL> &dL, const TPZVec<REAL> & dR){
-  const int dim = 3;
   const double sL = this->Dot(gradL,normal);
   const double sR = this->Dot(gradR,normal);
   if(fabs(sL) < 1e-12){

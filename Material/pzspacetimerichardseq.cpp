@@ -1,4 +1,4 @@
-//$Id: pzspacetimerichardseq.cpp,v 1.5 2010-11-08 15:48:59 phil Exp $
+//$Id: pzspacetimerichardseq.cpp,v 1.6 2011-05-11 02:24:19 phil Exp $
 
 #include "pzspacetimerichardseq.h"
 #include "pzbndcond.h"
@@ -49,21 +49,6 @@ void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZF
   TPZFMatrix &phi = data.phi;
   TPZFMatrix &dphi = data.dphix;
   const REAL sol = data.sol[0];
-  const REAL K = this->K_Coef(sol);
-  const REAL dKdSol = this->DKDsol(sol);
-  const REAL C = this->C_Coef(sol);
-  const REAL dCdSol = this->DCDsol(sol);
-//   const REAL dCUdSol = dCdSol*sol+C;
-//   const REAL BetaBarT = data.detjac*C/(2.*fabs(C));
-
-
-/*  double delx = 0.;
-  for(int di=0; di<2; di++) {
-    for(int dj=0; dj<2; dj++) {
-      delx = (delx<fabs(data.jacinv(di,dj))) ? fabs(data.jacinv(di,dj)) : delx;
-    }
-  }
-  delx = 2./delx;*/
 
   const REAL BetaBarT = 0*LCoeff*data.detjac/2.; ///beta=(0,1)
 
@@ -75,24 +60,10 @@ void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZF
 
   for(i = 0; i < phr; i++){
     const REAL BetaBarGradV = BetaBarT*dphi(1,i);
-//     ef(i,0) += -1.*weight *( -1.*0*sol*dphi(1,i) + 1.*dsol(1,0)*BetaBarGradV + /*(K/C)*/(dsol(0,0)+1.*0)*dphi(0,i) + 0*K*(dsol(0,0)+1.)*phi(i,0)*((-1./(C*C))*dCdSol*dsol(0,0)) );
     ef(i,0) += -1.*weight *( -1.*sol*dphi(1,i) +1.*dsol(1,0)*BetaBarGradV + /*(K/C)*/(dsol(0,0))*dphi(0,i));
     for(j = 0; j < phr; j++){
       ek(i,j) += weight * ( -1.*phi(j,0)*dphi(1,i)+dphi(1,j)*BetaBarGradV + dphi(0,i)*dphi(0,j) );
     }
-/*    for(j = 0; j < phr; j++){
-      ek(i,j) += weight * ( -1.*phi(j,0)*dphi(1,i) + dphi(1,j)*BetaBarGradV
-                            + (dKdSol/C + K*(-1./(C*C)*dCdSol))*phi(j,0)*(dsol(0,0)+1.)*dphi(0,i)
-                            + (K/C)*dphi(0,i)*dphi(0,j)
-                            
-                            + dKdSol*phi(j,0) *(dsol(0,0)+1.)*phi(i,0)*((-1./(C*C))*dCdSol*dsol(0,0))
-                            
-                            + K * dphi(0,j) * phi(i,0)*((-1./(C*C))*dCdSol*dsol(0,0))
-                            
-                            + K *(dsol(0,0)+1.)*phi(i,0)* (  (-2./(C*C*C))*dCdSol*phi(j,0)*dCdSol*dsol(0,0) -(1./(C*C))*dCdSol*phi(j,0)*dsol(0,0)  -(1./(C*C))*dCdSol*dphi(0,j) )
-  
-                             );
-    }///for j*/
   }///for i
   
 // ek.Identity();ek*=LCoeff;
