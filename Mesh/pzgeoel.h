@@ -1,3 +1,7 @@
+//$Id: pzgeoel.h,v 1.50 2011-05-11 02:33:43 phil Exp $
+
+// -*- c++ -*-
+
 #ifndef GEOELEMHPP
 #define GEOELEMHPP
 
@@ -34,7 +38,7 @@ class TPZStack;
  */
 class TPZGeoEl : public TPZSaveable { 	// header file for the element class
 
- private:
+ protected:
 
   /**pointer to the mesh to which the element belongs*/
   TPZGeoMesh *fMesh;
@@ -45,7 +49,6 @@ class TPZGeoEl : public TPZSaveable { 	// header file for the element class
   /** Reference to the element currently loaded. Pointer is given as this->Mesh()->Reference()->ElementVec()[fReference] */
   TPZCompEl * fReference;
 
- protected:
 
   /** index of the element from which the element is a subelement*/
   int fFatherIndex;
@@ -160,7 +163,7 @@ public:
   {
   }
 
-  virtual void Initialize(int materialindex, TPZGeoMesh &mesh, int &index);
+//  virtual void Initialize(int materialindex, TPZGeoMesh &mesh, int &index);
 
   virtual void Read(TPZStream &str, void *context);
 
@@ -281,6 +284,11 @@ virtual MElementType Type(int side) =0;
   /**returns the local index of a node on a side*/
   virtual int SideNodeLocIndex(int side, int nodenum) = 0;
 
+  /**
+   * Compute the permutation for an HDiv side
+   */
+  virtual void HDivPermutation(int side, TPZVec<int> &permutegather);
+
   /**returns 1 if the side has not been defined by buildconnectivity
      After construction the side is undefined. The buildconnectivity method
      loops over all elements and tries to identify neighbours along their
@@ -298,6 +306,11 @@ virtual MElementType Type(int side) =0;
   * return the number of subelements as returned by GetSubElements2(side)
   */
   virtual int NSideSubElements2(int side) = 0;
+
+	//HDiv
+
+	 virtual void VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector ) = 0;
+
 
   /**return a pointer to the father*/
   TPZGeoEl *Father()
@@ -559,12 +572,38 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 
   virtual REAL ElementRadius();//TPZGeoEl
 	
+  static REAL Distance(TPZVec<REAL> &centel,TPZVec<REAL> &centface);
+
 	/**
-	 * return a size which is caracteristic for the element
+   * Compute the set of normals for defining HDiv approximation spaces
+   * This method will accumulate the normals for all the sides
+   * @param normals normal associated with each side
+   * @param vectorsides side associated with each normal vector
+   * the normal vectors are initially ordered according to the return of LowerDimensionSides
+   * and then permuted according to the node id's
 	 */
+  void ComputeNormals(TPZFMatrix &normals, TPZVec<int> &vectorsides);
 	virtual REAL CharacteristicSize();
 
-  static REAL Distance(TPZVec<REAL> &centel,TPZVec<REAL> &centface);
+  /**
+   * Compute the set of normals along a side for defining HDiv approximation spaces
+   * @param normals normal associated with each side
+   * @param vectorsides side associated with each normal vector
+   * the normal vectors are initially ordered according to the return of LowerDimensionSides
+   * and then permuted according to the node id's
+   */
+  void ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vectorsides);
+  /**
+   * Compute the permutation needed to order the normal vectors in a consistent way
+   * normal(indexfrom[i]) = normal(i)
+   * this permutation needs to be applied to the shape functions
+   */
+  void ComputePermutationNormals(int side, TPZVec<int> &indexfrom);
+
+	/**
+	 * Determine the orientation of the normal vector comparing the ids of the neighbouring elements
+	 */
+	int NormalOrientation(int side);
 
   /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
   virtual void SetRefPattern(TPZAutoPointer<TPZRefPattern> );
@@ -575,8 +614,9 @@ TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
   /** Verify coordinate of element nodes checking if they
    * are coincident to the X mapping of the corner nodes of
    * parametric elements
+   * @return true if everything OK else false
    */
-  void VerifyNodeCoordinates(REAL tol = 1e-6);
+  bool VerifyNodeCoordinates(REAL tol = 1e-6);
 
   /** Verifies if the parametric point pt is in the element parametric domain
    */

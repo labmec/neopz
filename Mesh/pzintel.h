@@ -1,4 +1,4 @@
-//$Id: pzintel.h,v 1.38 2010-11-08 15:46:31 phil Exp $
+//$Id: pzintel.h,v 1.39 2011-05-11 02:41:36 phil Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -105,23 +105,30 @@ public:
   int NSideShapeF(int side);
 
   /**return the number of dof nodes along side iside*/
-  virtual int NSideConnects(int iside) = 0;
+  virtual int NSideConnects(int iside) const = 0;
 
   /**
    * returns the local node number of icon along is
    * @param icon connect number along side is
    * @is side which is being queried
    */
-  virtual int SideConnectLocId(int icon,int is) = 0;
+  virtual int SideConnectLocId(int icon,int is) const = 0;
 
   /**
    * returns the local id of the connect in the middle of the side
    * @param is side which is being queried
    */
-  virtual int MidSideConnectLocId(int is);
+  virtual int MidSideConnectLocId(int is) const;
+
+    /**
+     * returns a reference to the connect in the middle of the side
+     * @param is side which is being queried
+     */
+    virtual TPZConnect &MidSideConnect(int is);
+    
 
   /**return the index of the c th connect object along side is*/
-  int SideConnectIndex(int icon,int is);
+  int SideConnectIndex(int icon,int is) const;
 
   /**
    * return a pointer to the icon th connect object along side is
@@ -134,7 +141,7 @@ public:
   virtual int Dimension() const = 0;
 
   /**return the number of corner connects of the element*/
-  virtual int NCornerConnects() = 0;
+  virtual int NCornerConnects() const = 0;
 
   /**return the number of connect objects of the element*/
   virtual int NConnects() const = 0;

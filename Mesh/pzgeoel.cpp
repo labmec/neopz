@@ -1,6 +1,4 @@
-﻿	//Id: $
-
-	// -*- c++ -*-
+// -*- c++ -*-
 /**File : pzgeoel.c
  
  Contains the methods definition for (abstract) base class TPZGeoEl.
@@ -107,6 +105,7 @@ TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh) {
 		//	fMesure = 0.;
 }
 
+/*
 void TPZGeoEl::Initialize(int materialid, TPZGeoMesh &mesh, int &index){
 	this->fId = mesh.CreateUniqueElementId();
 	this->fMesh = &mesh;
@@ -117,6 +116,7 @@ void TPZGeoEl::Initialize(int materialid, TPZGeoMesh &mesh, int &index){
 	this->Mesh()->ElementVec()[index] = this;
 	this->fIndex = index;
 }
+*/
 
 void TPZGeoEl::Shape1d(double x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
 	if(num != 2 && num != 3){
@@ -1429,7 +1429,7 @@ TPZAutoPointer<TPZRefPattern> TPZGeoEl::GetRefPattern()
 	return result;
 }
 
-void TPZGeoEl::VerifyNodeCoordinates(REAL tol){
+bool TPZGeoEl::VerifyNodeCoordinates(REAL tol){
 	const int nnodes = this->NCornerNodes();
 	TPZManVector<REAL,3> qsi(this->Dimension());
 	TPZManVector<REAL,3> MappedX(3), NodeX(3);
@@ -1453,10 +1453,10 @@ void TPZGeoEl::VerifyNodeCoordinates(REAL tol){
 			LOGPZ_ERROR(logger,mess.str().c_str());
 #endif
 			DebugStop();
-			return;
+			return false;
 		}
 	}///for i
-	
+	return true;
 }///method
 
 
@@ -1566,14 +1566,9 @@ using namespace pzshape;
  */
 
 int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension);
+void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal);
+void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 
-void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
-{
-}
-
-void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
-{
-}
 
 void TPZGeoEl::ComputeNormals(TPZMatrix &normals)
 {
@@ -1628,25 +1623,6 @@ void TPZGeoEl::ComputeNormals(TPZMatrix &normals)
 	}
 }
 
-int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension)
-{
-	std::set<int> allside;
-	allside.insert(&allsides[0],&allsides[allsides.NElements()-1]);
-	TPZStack<TPZGeoElSide> highsides;
-	int targetdimension = gel->SideDimension(side)+1;
-	gel->AllHigherDimensionSides(side,targetdimension,highsides);
-	int nhigh = highsides.NElements();
-	int is;
-	for(is=0; is<nhigh; is++)
-	{
-		int highside = highsides[is].Side();
-		if(allside.find(highside) == allside.end())
-		{
-			return highside;
-		}
-	}
-	return -1;
-}
 void TPZGeoEl::SetNeighbourForBlending(int side){
 	if( !this->IsGeoBlendEl() ) return;
 	
@@ -1712,3 +1688,339 @@ TPZTransform TPZGeoEl::Projection(int side)
 		//	std::cout << "side to side " << side << " trans " << tr3 << std::endl;
 	return tr3;
 }
+
+int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension);
+
+void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
+{
+	TPZGeoEl *gel = LC.Element();
+	// take the centerpoint of LC and the centerpoint of LS
+	TPZManVector<REAL,3> LCCenter(3,0.), LSCenter(3,0.);
+	TPZManVector<REAL,3> XLC(3,0.),XLS(3,0.);
+	LC.CenterPoint(LCCenter);
+	gel->X(LCCenter,XLC);
+	LS.CenterPoint(LSCenter);
+	gel->X(LSCenter,XLS);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << " Center complementary side " << XLC << " center side " << XLS;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	TPZManVector<REAL,3> dir(3,0.);
+	// The normal vector needs to be in the plane of LC and perpendicular to LS
+	// A starting vector is the direction of one center to the next
+	int i;
+	for(i=0; i<3; i++) dir[i] = XLS[i]-XLC[i];
+	TPZFNMatrix<10> jacobian,axes,jacinv;
+	REAL detjac;
+	LS.Jacobian(LSCenter,jacobian,axes,detjac,jacinv);
+	TPZFNMatrix<20> axtrans(axes.Cols(),axes.Rows()+1,0.);
+	int j;
+	for(i=0; i<3; i++) for(j=0; j<axes.Rows(); j++)
+	{
+		axtrans(i,j) = axes(j,i);
+	}
+	int lastcol = j;
+	for(i=0; i<3; i++)
+	{
+		axtrans(i,lastcol) = dir[i];
+	}
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		axtrans.Print("Matrix to be orthogonalized",sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	// Then orthogonalize the vectors of the LS side with this vector
+	TPZFNMatrix<20> transf, ortho;
+	axtrans.GramSchmidt(ortho,transf);
+	normal.Resize(3);
+	for(i=0; i<3; i++)
+	{
+		normal[i] = ortho(i,lastcol);
+	}
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		ortho.Print("Orthogonalized matrix",sout);
+		sout << " lastcol = " << lastcol << " normal vector " << normal;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+}
+
+void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
+{
+	REAL inner = 0.;
+	int i;
+	for(i=0; i<normlow.NElements(); i++)
+	{
+		inner += normlow[i]*normal[i];
+	}
+	for(i=0; i<normlow.NElements(); i++)
+	{
+        normlow[i] /= inner;
+	}
+}
+
+void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vectorsides)
+{
+	int numbernormals = 0;
+	int dimension = Dimension();
+	int sidedimension = SideDimension(side);
+	TPZStack<int> lowdim;
+	LowerDimensionSides(side,lowdim);
+	lowdim.Push(side);
+	// the normals corresponding to the internal shape functions
+	// Compute the number of normals we need to compute
+	int nsides = NSides();
+	if(sidedimension == dimension-1)
+	{
+		numbernormals = lowdim.NElements();
+	}
+	else if(sidedimension == dimension)
+	{
+		numbernormals = nsides;
+	}
+	else
+	{
+		numbernormals = 0;
+	}
+	normals.Redim(3, numbernormals);
+	vectorsides.Resize(numbernormals);
+	vectorsides.Fill(0);
+	if(!numbernormals)
+	{
+		return;
+	}
+	int is = side;
+	if(sidedimension == dimension-1)
+	{
+		int nlowdim = lowdim.NElements();
+		int lowis;
+		// work from lowest dimension sides upward
+		for(lowis=0; lowis < nlowdim; lowis++)
+		{
+			int lowsidedimension = SideDimension(lowdim[lowis]);
+			// find a side which is not contained in the currently analysed side
+			// whose dimension is one higher than the dimension of lowdim[lowis]
+			int conj_side = ConjugateSide(this,lowdim[lowis],lowdim,lowsidedimension+1);
+			// the normal vector is in the alignment of the conjugate side
+			TPZGeoElSide LC(this,conj_side);
+			TPZGeoElSide LS(this,lowdim[lowis]);
+			TPZManVector<REAL> normal(3,0.);
+			// the normal vector goes from the center of the conjugate side to
+			// the center of the LS side
+			NormalVector(LC,LS,normal);
+#ifdef LOG4CXX
+			{
+				std::stringstream sout;
+				sout << "The normal vector between side " << lowdim[lowis] << " and side " << conj_side << " is " << normal;
+				//cout << sout.str() << std::endl;
+				LOGPZ_DEBUG(logger,sout.str())
+			}
+#endif
+			int d;
+			for(d=0; d<3; d++) normals(d,lowis) = normal[d];
+			vectorsides[lowis] = lowdim[lowis];
+		}
+		// Why mormalize a vector which has just been computed?
+		TPZManVector<REAL> normal(3,0.);
+		int d;
+		for(d=0; d<3; d++) normal[d] = normals(d,nlowdim-1);
+		for(lowis = 0; lowis < nlowdim; lowis++)
+		{
+			TPZManVector<REAL,3> normlow(3,0.);
+			for(d=0; d<3; d++) normlow[d] = normals(d,lowis);
+#ifdef LOG4CXX
+			{
+				std::stringstream sout;
+				sout << "lowis " << lowis << " normlow " << normlow;
+				LOGPZ_DEBUG(logger,sout.str())
+			}
+#endif
+			Normalize(normlow,normal);
+#ifdef LOG4CXX
+			{
+				std::stringstream sout;
+				sout << "after normalize normlow " << normlow;
+				LOGPZ_DEBUG(logger,sout.str())
+			}
+#endif
+			for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
+		}
+		TPZManVector<int> sidepermutationgather(nlowdim);
+		HDivPermutation(is,sidepermutationgather);
+		TPZFNMatrix<12> sidenormals(3,nlowdim);
+		TPZManVector<int> localvecsides(nlowdim);
+		// compute whether the side is from this element to the next or contrary
+		int sideorient = NormalOrientation(side);
+		int i;
+		for(i=0; i<nlowdim; i++)
+		{
+			for(d=0; d<3; d++)
+			{
+				sidenormals(d,i) = normals(d,sidepermutationgather[i]);
+			}
+			localvecsides[i] = vectorsides[sidepermutationgather[i]];
+		}
+		for(i=0; i<nlowdim; i++)
+		{
+			for(d=0; d<3; d++)
+			{
+				normals(d,i) = sidenormals(d,i)*sideorient;
+			}
+			vectorsides[i] = localvecsides[i];
+		}
+	}
+	else if(sidedimension == dimension)
+	{
+		int counter = 0;
+		for(is=0; is<nsides; is++)
+		{
+			if(SideDimension(is) > 0)
+			{
+				TPZManVector<REAL,3> Center(3,0.);
+				TPZManVector<REAL,3> X;
+				TPZFNMatrix<10> jacobian, jacinv, axes;
+				REAL detjac;
+				TPZGeoElSide gelside(this,is);
+				gelside.CenterPoint(Center);
+				gelside.Jacobian(Center,jacobian,axes,detjac,jacinv);
+				int d,s;
+				dimension = SideDimension(is);
+				for(d=0; d<dimension; d++)
+				{
+					for(s=0; s<3; s++)
+					{
+						normals(s,counter) = axes(d,s);
+					}
+					vectorsides[counter] = is;
+					counter++;
+				}
+			}
+		}
+		vectorsides.Resize(counter);
+		normals.Resize(3,counter);
+	}
+}
+
+void TPZGeoEl::ComputeNormals(TPZFMatrix &normals, TPZVec<int> &vectorsides)
+{
+	int numbernormals = 0;
+    //	int dimension = Dimension();
+	// the normals corresponding to the internal shape functions
+	int is;
+	// Compute the number of normals we need to compute
+	int nsides = NSides();
+	numbernormals = nsides*2;
+	normals.Redim(3, numbernormals);
+	vectorsides.Resize(numbernormals);
+	vectorsides.Fill(0);
+	int counter = 0;
+	// effectively compute the normals
+	for(is=0; is<nsides; is++)
+	{
+		TPZFNMatrix<100> sidenormals;
+		TPZManVector<int> sidevectors;
+		ComputeNormals(is,sidenormals,sidevectors);
+		int numnormals = sidevectors.NElements();
+		int in;
+		for(in=0; in<numnormals; in++)
+		{
+			int d;
+			for(d=0; d<3; d++)
+			{
+				normals(d,counter) = sidenormals(d,in);
+			}
+			vectorsides[counter] = sidevectors[in];
+			counter++;
+		}
+	}
+}
+
+/**
+ * Determine the orientation of the normal vector comparing the ids of the neighbouring elements
+ */
+int TPZGeoEl::NormalOrientation(int side)
+{
+	int dimel = Dimension();
+	int dimside = SideDimension(side);
+	if(dimside != dimel-1)
+	{
+		LOGPZ_ERROR(logger,"NormalOrientation called with wrong side")
+		return 0;
+	}
+	TPZGeoElSide thisside(this,side);
+	TPZGeoElSide neighbour(thisside.Neighbour());
+	if(!neighbour.Exists() || neighbour.Element()->Dimension() < dimel) 
+	{
+		return 1;
+	}
+	
+	TPZGeoElSide fatherside = thisside.Father2();
+	while(fatherside.Exists())
+	{
+		thisside = fatherside;
+		fatherside = fatherside.Father2();
+	}
+	fatherside = neighbour;
+	while (fatherside.Exists()) {
+		neighbour = fatherside;
+		fatherside = fatherside.Father2();
+	}
+	if(thisside.Element()->Id() < neighbour.Element()->Id())
+	{
+		return 1;
+	}
+	else {
+		return -1;
+	}
+    
+}
+
+int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension)
+{
+	std::set<int> allside;
+	allside.insert(&allsides[0],&allsides[0]+allsides.NElements());
+	TPZStack<TPZGeoElSide> highsides;
+	// the dimension of the conjugate side
+	int targetdimension = gel->SideDimension(side)+1;
+	// find all sides connected to side which have target dimension
+	gel->AllHigherDimensionSides(side,targetdimension,highsides);
+	int nhigh = highsides.NElements();
+	int is;
+	// find the side which is not contained in allsides
+	for(is=0; is<nhigh; is++)
+	{
+		int highside = highsides[is].Side();
+		if(allside.find(highside) == allside.end())
+		{
+			return highside;
+		}
+	}
+	return -1;
+}
+
+/**
+ * Compute the permutation for an HDiv side
+ */
+void TPZGeoEl::HDivPermutation(int side, TPZVec<int> &permutegather)
+{
+	int dimension = Dimension();
+	int sidedimension = SideDimension(side);
+    
+	if(dimension != sidedimension+1)
+	{
+		std::stringstream sout;
+		sout << "HDivPermutation called with wrong side parameter " << side;
+#ifdef LOG4CXX
+		LOGPZ_ERROR(logger,sout.str())
+#endif
+		cout << sout.str() << std::endl;
+	}
+}
+

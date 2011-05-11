@@ -1,4 +1,4 @@
-//$Id: pzconnect.cpp,v 1.24 2010-08-25 03:05:06 phil Exp $
+//$Id: pzconnect.cpp,v 1.25 2011-05-11 02:45:38 phil Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
 
@@ -550,7 +550,7 @@ void TPZConnect::BuildConnectList(std::set<int> &connectlist, std::set<int> &add
 	TPZConnect *dfn;
 	int dfnindex;
 	TPZAdmChunkVector<TPZConnect> &connectvec = mesh.ConnectVec();
-	int nconnects = additional.size();
+//	int nconnects = additional.size();
 	std::set<int>::iterator it;
 	for(it = additional.begin() ; it != additional.end(); it++){
 		dfnindex = *it;

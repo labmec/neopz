@@ -63,40 +63,46 @@ TPZGeoElRefLess<TGeo>::~TPZGeoElRefLess(){
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) :
-TPZGeoEl(matind,mesh), fGeo(nodeindices,mesh) {
+TPZGeoEl(matind,mesh), fGeo(nodeindices) {
 	
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
+    fGeo.Initialize(this);
 }
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TGeo &geo,int matind,TPZGeoMesh &mesh) :
-TPZGeoEl(matind,mesh), fGeo(geo,mesh) {
+TPZGeoEl(matind,mesh), fGeo(geo) {
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
+    fGeo.Initialize(this);
 }
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
-TPZGeoEl(matind,mesh,index) , fGeo(nodeindices,mesh) 
+TPZGeoEl(matind,mesh,index) , fGeo(nodeindices) 
 {
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
+    fGeo.Initialize(this);
 }
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh) :
-TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes,mesh) {
+TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes) {
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
+    fGeo.Initialize(this);
 }
 
+/*
 template< class TGeo>
-void TPZGeoElRefLess<TGeo>::Initialize(TPZVec<int> &nodeindices, int matind, TPZGeoMesh& mesh, int& index ) {
-	fGeo.Initialize(nodeindices,mesh);
+void TPZGeoElRefLess<TGeo>::Initialize(TPZVec<int> &nodeindices) {
+	fGeo.Initialize(nodeindices);
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
 }
+*/
 
 template<class TGeo>
 int
@@ -519,5 +525,114 @@ TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
 	 LOGPZ_DEBUG( logger, sout.str().c_str() );
 	 #endif*/
 }
+
+#include "pzgeoquad.h"
+/**
+ * Compute the permutation for an HDiv side
+ */
+template<>
+inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::HDivPermutation(int side, TPZVec<int> &permutegather)
+{
+	if(side < 4 || side > 7)
+	{
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__ << " called with wrong side parameter " << side;
+#ifdef LOG4CXX
+		LOGPZ_ERROR(loggerrefless,sout.str())
+#endif
+        std::cout << sout.str() << std::endl;
+	}
+	permutegather.Resize(3);
+	int id1 = NodePtr(SideNodeLocIndex(side,0))->Id();
+	int id2 = NodePtr(SideNodeLocIndex(side,1))->Id();
+	if(id1<id2)
+	{
+		permutegather[0] = 0;
+		permutegather[1] = 1;
+		permutegather[2] = 2;
+	}
+	else
+	{
+		permutegather[0] = 1;
+		permutegather[1] = 0;
+		permutegather[2] = 2;
+	}
+}
+
+#include "pzgeotriangle.h"
+/**
+ * Compute the permutation for an HDiv side
+ */
+template<>
+inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::HDivPermutation(int side, TPZVec<int> &permutegather)
+{
+	if(side < 3 || side > 5)
+	{
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__ << " called with wrong side parameter " << side;
+#ifdef LOG4CXX
+		LOGPZ_ERROR(loggerrefless,sout.str())
+#endif
+        std::cout << sout.str() << std::endl;
+	}
+	permutegather.Resize(3);
+	int id1 = NodePtr(SideNodeLocIndex(side,0))->Id();
+	int id2 = NodePtr(SideNodeLocIndex(side,1))->Id();
+	if(id1<id2)
+	{
+		permutegather[0] = 0;
+		permutegather[1] = 1;
+		permutegather[2] = 2;
+	}
+	else
+	{
+		permutegather[0] = 1;
+		permutegather[1] = 0;
+		permutegather[2] = 2;
+	}
+}
+
+/**
+ * Compute the permutation for an HDiv side
+ */
+template<class TGeo>
+inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permutegather)
+{
+	int dimension = TGeo::Dimension;
+	int sidedimension = TGeo::SideDimension(side);
+	
+	if(dimension != sidedimension+1)
+	{
+		std::stringstream sout;
+		sout << "HDivPermutation called with wrong side parameter " << side;
+#ifdef LOG4CXX
+		LOGPZ_ERROR(loggerrefless,sout.str())
+#endif
+	}
+	TPZManVector<int,TGeo::NCornerNodes> id(TGeo::NCornerNodes);
+	for(int i=0; i<TGeo::NCornerNodes; i++) id[i] = fGeo.fNodeIndexes[i];
+	TGeo::GetSideHDivPermutation(side, id, permutegather);
+}
+
+//HDiv
+template<>
+inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )
+{
+    pzgeom::TPZGeoQuad::VecHdiv(coordinate,normalvec,sidevector);
+}
+
+template<>
+inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )
+{
+	pzgeom::TPZGeoTriangle::VecHdiv(coordinate,normalvec,sidevector);
+}
+
+
+template<class TGeo>
+inline void TPZGeoElRefLess<TGeo>::VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )
+{
+    PZError << __PRETTY_FUNCTION__ << " nao esta implementado\n";
+}
+
 
 #endif

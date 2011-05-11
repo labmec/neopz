@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzintel.cpp,v 1.74 2010-08-12 13:04:59 phil Exp $
+// $Id: pzintel.cpp,v 1.75 2011-05-11 02:41:36 phil Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -86,13 +86,23 @@ int TPZInterpolatedElement::NSideShapeF(int side) {
   return res;
 }
 
-int TPZInterpolatedElement::MidSideConnectLocId(int side) {
-  int il = 1 + NConnects() - (Reference()->NSides());
+int TPZInterpolatedElement::MidSideConnectLocId(int side) const {
+  int il = 1;
   int nodloc = SideConnectLocId(NSideConnects(side)-il,side);
   return nodloc;
 }
 
-int TPZInterpolatedElement::SideConnectIndex(int connect, int side) {
+/**
+ * returns a reference to the connect in the middle of the side
+ * @param is side which is being queried
+ */
+TPZConnect &TPZInterpolatedElement::MidSideConnect(int is)
+{
+	return Connect(MidSideConnectLocId(is));
+}
+
+
+int TPZInterpolatedElement::SideConnectIndex(int connect, int side) const {
   return ConnectIndex(SideConnectLocId(connect,side));
 }
 
@@ -251,7 +261,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
   } else {
     // There is no larger element connected to the side
     // identify the new side order by comparing the orders of the equal level elements
-    if(Connect(side).HasDependency()) {
+    if(MidSideConnect(side).HasDependency()) {
       LOGPZ_WARN(logger, "TPZInterpolatedElement SetSideOrder fodeu");
       large = thisside.LowerLevelElementList(1);
     }
@@ -273,7 +283,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side){
       equal = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
       if (!equal) continue;
       equalside = elvec[il].Side();
-      if(equal->ConnectIndex(equalside) != -1) {
+      if(equal->ConnectIndex(equal->MidSideConnectLocId(equalside)) != -1) {
         equal->SetSideOrder(equalside,neworder);
       }
     }
@@ -653,7 +663,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
   }
   int newnodecreated = 0;
   if(cel) {
-    newnodeindex = cel->ConnectIndex(side_neig);
+    newnodeindex = cel->ConnectIndex(cel->MidSideConnectLocId(side_neig));
     SetConnectIndex(nodloc,newnodeindex);
   } else {
     newnodeindex = cmesh->AllocateNewConnect();
@@ -702,7 +712,7 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
     // The element does not have a larger element connected along the side
     // The insertion of the new element may have an effect on the interpolation
     // order of all equal level elements which are connected
-    if(Connect(side).HasDependency()) {
+    if(Connect(MidSideConnectLocId(side)).HasDependency()) {
       stringstream sout;
       sout << "TPZInterpolatedElement fodeu side " << side << endl;
       LOGPZ_WARN(logger,sout.str());

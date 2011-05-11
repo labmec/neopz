@@ -75,13 +75,14 @@ public:
   TPZGeoElRefLess(TGeo &Geo, int matind,TPZGeoMesh &mesh);
 
   TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
+    
   TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
 
   virtual void Read(TPZStream &str, void *context);
 
   virtual void Write(TPZStream &str, int withclassid);
 
-  virtual void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
+//  virtual void Initialize(TPZVec<int> &nodeindices);
   
   virtual void Initialize()
   {
@@ -109,6 +110,15 @@ public:
    virtual  TPZGeoElSide Neighbour(int side) { return TPZGeoElSide(fNeighbours[side],this->Mesh()); }
 
    virtual  int NodeIndex(int node);
+	//HDiv
+
+ virtual void VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec ,TPZVec<int> &sidevector);
+
+ /**
+  * Compute the permutation for an HDiv side
+  */
+ virtual void HDivPermutation(int side, TPZVec<int> &permutegather);
+
 
   /**fill in the data structure for the neighbouring information*/
   virtual  void SetNeighbour(int side,const TPZGeoElSide &neighbour){

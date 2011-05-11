@@ -99,6 +99,21 @@ void TPZCompMesh::SetAllCreateFunctionsContinuous(){
 	
 }
 
+#include "pzelchdiv.h"
+
+void TPZCompMesh::SetAllCreateFunctionsHDiv(){
+	
+    pzgeom::TPZGeoPoint::fp =  CreateHDivPointEl;
+	pzgeom::TPZGeoLinear::fp =  CreateHDivLinearEl;
+	pzgeom::TPZGeoQuad::fp = CreateHDivQuadEl;
+	pzgeom::TPZGeoTriangle::fp =  CreateHDivTriangleEl;
+	pzgeom::TPZGeoPrism::fp = CreateHDivPrismEl;
+	pzgeom::TPZGeoTetrahedra::fp = CreateHDivTetraEl;
+	pzgeom::TPZGeoPyramid::fp = CreateHDivPyramEl;
+	pzgeom::TPZGeoCube::fp = CreateHDivCubeEl;
+}
+
+
 #include "pzreferredcompel.h"
 #include "pzelctemp.h"
 void TPZCompMesh::SetAllCreateFunctionsDiscontinuousReferred(){
@@ -125,4 +140,5 @@ void TPZCompMesh::SetAllCreateFunctionsContinuousReferred(){
 	pzgeom::TPZGeoCube::fp = CreateReferredCubeEl;
 	
 }
+
 

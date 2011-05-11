@@ -1,4 +1,4 @@
-//$Id: pzelctemp.h,v 1.17 2010-06-17 17:54:33 phil Exp $
+//$Id: pzelctemp.h,v 1.18 2011-05-11 02:45:38 phil Exp $
 
 // -*- c++ -*-
 #ifndef PZELCTEMPH
@@ -15,6 +15,8 @@ By varying the classes passed as template arguments, the complete family of comp
 template<class TSHAPE>
 class TPZIntelGen : public TPZInterpolatedElement {
 
+protected:
+	
   int fConnectIndexes[TSHAPE::NSides];
 
   //int fPreferredSideOrder;
@@ -24,6 +26,8 @@ class TPZIntelGen : public TPZInterpolatedElement {
 public:
 
   TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
+
+	TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index, int nocreate);
 
   TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy);
 
@@ -59,7 +63,7 @@ public:
 
   virtual MElementType Type();
 
-  virtual int NConnects() const{
+  virtual int NConnects() const {
     return TSHAPE::NSides;
   }
 
@@ -71,13 +75,13 @@ public:
     return TSHAPE::Dimension;
   }
 
-  virtual int NCornerConnects() {
+  virtual int NCornerConnects() const {
     return TSHAPE::NCornerNodes;
   }
 
-  virtual int NSideConnects(int side);
+  virtual int NSideConnects(int side) const;
 
-  virtual int SideConnectLocId(int node, int side);
+  virtual int SideConnectLocId(int node, int side) const;
 
   virtual int ConnectIndex(int node) const;
 
@@ -101,7 +105,9 @@ public:
   virtual void SetSideOrder(int side, int order);
 
   /**returns the actual interpolation order of the polynomial along the side*/
-  virtual int SideOrder(int side) const;
+    virtual int SideOrder(int side) const;
+ /**returns the actual interpolation order of the polynomial for a connect*/
+	virtual int ConnectOrder(int connect) const;
 
   /**transform a point in the parameter space of the side into a point in the space
      of the master element*/
