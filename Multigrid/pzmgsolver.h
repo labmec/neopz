@@ -36,7 +36,7 @@ public:
 
   void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
 
-  virtual int ClassId()
+  virtual int ClassId() const
   {
     return TPZMGSOLVER_ID;
   }
