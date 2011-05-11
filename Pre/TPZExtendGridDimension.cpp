@@ -39,7 +39,6 @@ TPZGeoMesh * TPZExtendGridDimension::ExtendedMesh(){
   //cria��o dos n� da malha 3D
   for(i=0;i<nnodes;i++){
     gnode = fFineGeoMesh->NodeVec()[i];
-    if(!&gnode) continue; 
     coord[0] = gnode.Coord(0);
     coord[1] = gnode.Coord(1);
     coord[2] = gnode.Coord(2);// = 0.0
