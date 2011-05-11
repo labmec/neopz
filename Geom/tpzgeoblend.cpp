@@ -1,7 +1,9 @@
-﻿#include "tpzgeoblend.h"
+#include "tpzgeoblend.h"
 
 #include "pzgeoelside.h"
 #include "tpzgeoelmapped.h"
+#include "pzgeoelrefless.h"
+#include "tpzgeoelrefpattern.h"
 
 #include "pzlog.h"
 #include <sstream>
@@ -312,79 +314,72 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
     JacTemp.GramSchmidt(axest,jacobian);
     axest.Transpose(&axes);
 
-    switch(TGeo::Dimension)
+    if(TGeo::Dimension == 1)
     {
-        case(1):
-        {
-          detjac = jacobian(0,0);
-          if(IsZero(detjac)){
+        detjac = jacobian(0,0);
+        if(IsZero(detjac)){
             detjac = ZeroTolerance();
-          }
-          jacinv(0,0) = 1./detjac;
-          break;
         }
-        case(2):
-        {
-            detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
-            if(IsZero(detjac)){
-              detjac = ZeroTolerance();
-            }
-            jacinv(0,0) =  jacobian(1,1) / detjac;
-            jacinv(1,1) =  jacobian(0,0) / detjac;
-            jacinv(0,1) = -jacobian(0,1) / detjac;
-            jacinv(1,0) = -jacobian(1,0) / detjac;
-            break;
+        jacinv(0,0) = 1./detjac;
+    } else if(TGeo::Dimension == 2)
+    {
+        detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
+        if(IsZero(detjac)){
+            detjac = ZeroTolerance();
         }
-        case(3):
-        {
-            detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0);//- a02 a11 a20
-            detjac += jacobian(0,1)*jacobian(1,2)*jacobian(2,0);//+ a01 a12 a20
-            detjac += jacobian(0,2)*jacobian(1,0)*jacobian(2,1);//+ a02 a10 a21
-            detjac -= jacobian(0,0)*jacobian(1,2)*jacobian(2,1);//- a00 a12 a21
-            detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
-            detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
-
-            if(IsZero(detjac)){
+        jacinv(0,0) =  jacobian(1,1) / detjac;
+        jacinv(1,1) =  jacobian(0,0) / detjac;
+        jacinv(0,1) = -jacobian(0,1) / detjac;
+        jacinv(1,0) = -jacobian(1,0) / detjac;
+    }
+    else
+    {
+        detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0);//- a02 a11 a20
+        detjac += jacobian(0,1)*jacobian(1,2)*jacobian(2,0);//+ a01 a12 a20
+        detjac += jacobian(0,2)*jacobian(1,0)*jacobian(2,1);//+ a02 a10 a21
+        detjac -= jacobian(0,0)*jacobian(1,2)*jacobian(2,1);//- a00 a12 a21
+        detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
+        detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
+        
+        if(IsZero(detjac)){
 #ifdef LOG4CXX
-				{
-					std::stringstream sout;
-					Print(sout);
-                    sout << "Parameter " << par << std::endl;
-					coord.Print("Corner coordinates ", sout);
-/*					JacTemp.Print("Gradient of the coordinates",sout);
-					axes.Print("axes matrix", sout);
-					jacobian.Print("Jacobian", sout);
-					sout << "detjac " << detjac << std::endl;
-					int is;
-					for(is=TGeo::NNodes; is<TGeo::NSides-1; is++)
-					{
-						if(fNeighbours[is-TGeo::NNodes].Element())
-						{
-							sout << "Side: " << is << " El/side: " << fNeighbours[is-TGeo::NNodes].Element()->Index() << ":" <<
-							fNeighbours[is-TGeo::NNodes].Side() << '\n';
-							TPZGeoEl *gel = fNeighbours[is-TGeo::NNodes].Element();
-							gel->Print(sout);
-						}
-					}
-*/
-					sout << "Singular jacobian " << detjac;
-					LOGPZ_ERROR(logger,sout.str())
-				}
-#endif
-                detjac = ZeroTolerance();
+            {
+                std::stringstream sout;
+                Print(sout);
+                sout << "Parameter " << par << std::endl;
+                coord.Print("Corner coordinates ", sout);
+                /*					JacTemp.Print("Gradient of the coordinates",sout);
+                 axes.Print("axes matrix", sout);
+                 jacobian.Print("Jacobian", sout);
+                 sout << "detjac " << detjac << std::endl;
+                 int is;
+                 for(is=TGeo::NNodes; is<TGeo::NSides-1; is++)
+                 {
+                 if(fNeighbours[is-TGeo::NNodes].Element())
+                 {
+                 sout << "Side: " << is << " El/side: " << fNeighbours[is-TGeo::NNodes].Element()->Index() << ":" <<
+                 fNeighbours[is-TGeo::NNodes].Side() << '\n';
+                 TPZGeoEl *gel = fNeighbours[is-TGeo::NNodes].Element();
+                 gel->Print(sout);
+                 }
+                 }
+                 */
+                sout << "Singular jacobian " << detjac;
+                LOGPZ_ERROR(logger,sout.str())
             }
-
-            jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2)) / detjac;//-a12 a21 + a11 a22
-            jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2)) / detjac;// a02 a21 - a01 a22
-            jacinv(0,2) = (-jacobian(0,2)*jacobian(1,1)+jacobian(0,1)*jacobian(1,2)) / detjac;//-a02 a11 + a01 a12
-            jacinv(1,0) = ( jacobian(1,2)*jacobian(2,0)-jacobian(1,0)*jacobian(2,2)) / detjac;// a12 a20 - a10 a22
-            jacinv(1,1) = (-jacobian(0,2)*jacobian(2,0)+jacobian(0,0)*jacobian(2,2)) / detjac;//-a02 a20 + a00 a22
-            jacinv(1,2) = ( jacobian(0,2)*jacobian(1,0)-jacobian(0,0)*jacobian(1,2)) / detjac;// a02 a10 - a00 a12
-            jacinv(2,0) = (-jacobian(1,1)*jacobian(2,0)+jacobian(1,0)*jacobian(2,1)) / detjac;//-a11 a20 + a10 a21
-            jacinv(2,1) = ( jacobian(0,1)*jacobian(2,0)-jacobian(0,0)*jacobian(2,1)) / detjac;// a01 a20 - a00 a21
-            jacinv(2,2) = (-jacobian(0,1)*jacobian(1,0)+jacobian(0,0)*jacobian(1,1)) / detjac;//-a01 a10 + a00 a11
-            break;
+#endif
+            detjac = ZeroTolerance();
         }
+        
+        jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2)) / detjac;//-a12 a21 + a11 a22
+        jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2)) / detjac;// a02 a21 - a01 a22
+        jacinv(0,2) = (-jacobian(0,2)*jacobian(1,1)+jacobian(0,1)*jacobian(1,2)) / detjac;//-a02 a11 + a01 a12
+        jacinv(1,0) = ( jacobian(1,2)*jacobian(2,0)-jacobian(1,0)*jacobian(2,2)) / detjac;// a12 a20 - a10 a22
+        jacinv(1,1) = (-jacobian(0,2)*jacobian(2,0)+jacobian(0,0)*jacobian(2,2)) / detjac;//-a02 a20 + a00 a22
+        jacinv(1,2) = ( jacobian(0,2)*jacobian(1,0)-jacobian(0,0)*jacobian(1,2)) / detjac;// a02 a10 - a00 a12
+        jacinv(2,0) = (-jacobian(1,1)*jacobian(2,0)+jacobian(1,0)*jacobian(2,1)) / detjac;//-a11 a20 + a10 a21
+        jacinv(2,1) = ( jacobian(0,1)*jacobian(2,0)-jacobian(0,0)*jacobian(2,1)) / detjac;// a01 a20 - a00 a21
+        jacinv(2,2) = (-jacobian(0,1)*jacobian(1,0)+jacobian(0,0)*jacobian(1,1)) / detjac;//-a01 a10 + a00 a11
     }
 }
 
@@ -407,31 +402,34 @@ void TPZGeoBlend<TGeo>::Print(std::ostream &out)
 template <class TGeo>
 void TPZGeoBlend<TGeo>::Initialize(TPZGeoEl *refel)
 {
-  for(int byside = TGeo::NNodes; byside < (TGeo::NSides); byside++)
-  {
-    TPZGeoElSide ElemSide(refel,byside);
-    TPZGeoElSide NextSide(refel,byside);
-    while(NextSide.Neighbour().Element() != ElemSide.Element())
+    for(int byside = TGeo::NNodes; byside < (TGeo::NSides); byside++)
     {
-      if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
-      {
-        TPZGeoElSide NeighSide = NextSide.Neighbour();
-        TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
-        ElemSide.SideTransform3(NeighSide,NeighTransf);
-        SetNeighbourInfo(byside,NeighSide,NeighTransf);
-        break;
-      }
-      NextSide = NextSide.Neighbour();
+        TPZGeoElSide ElemSide(refel,byside);
+        TPZGeoElSide NextSide(refel,byside);
+        if(!NextSide.Neighbour().Element()) continue;
+        while(NextSide.Neighbour().Element() != ElemSide.Element())
+        {
+            if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
+            {
+                TPZGeoElSide NeighSide = NextSide.Neighbour();
+                TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
+                ElemSide.SideTransform3(NeighSide,NeighTransf);
+                SetNeighbourInfo(byside,NeighSide,NeighTransf);
+                break;
+            }
+            NextSide = NextSide.Neighbour();
+        }
     }
-  }
 }
 
+/*
 ///inseri este método pois o compilador não encontrou
 template <class TGeo>
-void TPZGeoBlend<TGeo>::Initialize(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh)
+void TPZGeoBlend<TGeo>::Initialize(TPZVec<int> &nodeindexes)
 {
-  TGeo::Initialize(nodeindexes, mesh);
+  TGeo::Initialize(nodeindexes);
 }
+*/
 
 #include "TPZGeoCube.h"
 #include "TPZGeoLinear.h"

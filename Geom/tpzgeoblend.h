@@ -1,4 +1,4 @@
-﻿#ifndef TPZGEOBLEND_H
+#ifndef TPZGEOBLEND_H
 #define TPZGEOBLEND_H
 
 #include "pzgeotriangle.h"
@@ -27,7 +27,7 @@ public:
           return true; 
      }
 
-     TPZGeoBlend(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TGeo(nodeindexes,mesh) {
+     TPZGeoBlend(TPZVec<int> &nodeindexes) : TGeo(nodeindexes) {
      }
 
      TPZGeoBlend() : TGeo() {
@@ -72,7 +72,7 @@ public:
    */
     void Initialize(TPZGeoEl *refel);
 
-    void Initialize(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh);
+    //void Initialize(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh);
 
    /**
     * Method which creates a geometric boundary condition 
