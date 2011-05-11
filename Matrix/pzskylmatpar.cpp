@@ -308,7 +308,6 @@ void * TPZSkylParMatrix::ParallelLDLt(void *t) {
 void * TPZSkylParMatrix::ParallelLDLt2(void *t) {
 	
 	TPZSkylParMatrix *loc = (TPZSkylParMatrix *) t;
-	int aux_col;//, k;
 	int col = 0, prevcol;
 	prevcol=0;
 	pthread_mutex_lock(&skymutex);
@@ -329,7 +328,6 @@ void * TPZSkylParMatrix::ParallelLDLt2(void *t) {
 		else {
 			
 			//Registers the working column number
-			int i;
 			loc->fColUsed.insert(col);
 			pthread_cond_signal(&condition);
 			pthread_mutex_unlock(&skymutex);
