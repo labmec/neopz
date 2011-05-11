@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzreferredcompel.cpp,v 1.23 2011-02-11 08:58:16 santos Exp $
+// $Id: pzreferredcompel.cpp,v 1.24 2011-05-11 02:50:03 phil Exp $
 
 
 #include "pzreferredcompel.h"
@@ -62,7 +62,7 @@ TPZCompEl * TPZReferredCompEl<TCOMPEL>::ReferredElement(){
 }
 
 template< class TCOMPEL>
-void TPZReferredCompEl<TCOMPEL>::Print(std::ostream & out){
+void TPZReferredCompEl<TCOMPEL>::Print(std::ostream & out) const{
   out << "\n" << __PRETTY_FUNCTION__ << "\n";
   TCOMPEL::Print(out);
 

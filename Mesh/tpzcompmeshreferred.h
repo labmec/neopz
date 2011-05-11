@@ -40,7 +40,7 @@ public:
 
     TPZCompEl *ReferredEl(int index);
 
-    TPZCompMesh *ReferredMesh()
+    TPZCompMesh *ReferredMesh() const
     {
       return fReferred;
     }
@@ -53,7 +53,7 @@ public:
    * Prints mesh data
    * @param out indicates the device where the data will be printed
    */
-  virtual void Print(std::ostream & out = std::cout);
+  virtual void Print(std::ostream & out = std::cout) const;
 
 };
 

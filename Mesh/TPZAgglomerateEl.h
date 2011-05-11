@@ -1,4 +1,4 @@
-//$Id: TPZAgglomerateEl.h,v 1.28 2009-09-01 20:58:35 phil Exp $
+//$Id: TPZAgglomerateEl.h,v 1.29 2011-05-11 02:48:49 phil Exp $
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 
@@ -229,7 +229,7 @@ virtual REAL LesserEdgeOfEl();
   /**
    * it prints the features of the element 
    */
-  virtual void Print(std::ostream & out = std::cout);
+  virtual void Print(std::ostream & out = std::cout) const;
 
   /**
    * create copy of the materials tree

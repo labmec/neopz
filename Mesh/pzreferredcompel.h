@@ -1,4 +1,4 @@
-//$Id: pzreferredcompel.h,v 1.10 2009-05-23 03:16:18 erick Exp $
+//$Id: pzreferredcompel.h,v 1.11 2011-05-11 02:50:03 phil Exp $
 
 // -*- c++ -*-
 #ifndef PZSPECIAL
@@ -79,7 +79,7 @@ virtual void ComputeSolution(TPZVec<REAL> &qsi,
    * Prints element data
    * @param out indicates the device where the data will be printed
    */
-  virtual void Print(std::ostream & out = std::cout);
+  virtual void Print(std::ostream & out = std::cout) const;
 
   protected:
 

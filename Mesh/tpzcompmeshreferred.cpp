@@ -13,7 +13,7 @@
 #include "pzgmesh.h"
 #include "pzcompel.h"
 
-void TPZCompMeshReferred::Print(std::ostream & out){
+void TPZCompMeshReferred::Print(std::ostream & out) const {
   out << __PRETTY_FUNCTION__ << "\n";
   TPZCompMesh::Print(out);
   out << "ReferredMesh = " << this->ReferredMesh() << "\n";

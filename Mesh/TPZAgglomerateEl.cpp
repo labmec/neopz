@@ -1,4 +1,4 @@
-﻿//$Id: TPZAgglomerateEl.cpp,v 1.51 2011-03-28 18:19:42 fortiago Exp $
+//$Id: TPZAgglomerateEl.cpp,v 1.52 2011-05-11 02:48:49 phil Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
@@ -306,7 +306,7 @@ int TPZAgglomerateElement::Dimension() const {
   return this->Material()->Dimension();
 }
 
-void TPZAgglomerateElement::Print(ostream &out) {
+void TPZAgglomerateElement::Print(ostream &out) const {
 
   out << "\nTPZAgglomerateElement element : \n";
   out << "\tComputational mesh : " << fMotherMesh << endl;
