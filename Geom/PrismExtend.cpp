@@ -214,54 +214,54 @@ TPZTransform Pr<TFather>::SideToSideTransform(int sidefrom, int sideto)
 }
 
 template<class TFather>
-int Pr<TFather>::NConnects() {
-	return TFather::NConnects()*3;
+int Pr<TFather>::NumSides() {
+	return TFather::NumSides()*3;
 }
 
 
 template<class TFather>
-int Pr<TFather>::NSideConnects(int side) {
+int Pr<TFather>::NContainedSides(int side) {
 	int ftns = side/TFather::NSides;
 	int fatherside = side%TFather::NSides;
-	if(ftns<2) return TFather::NSideConnects(fatherside);
-	return TFather::NSideConnects(fatherside)*3;
+	if(ftns<2) return TFather::NContainedSides(fatherside);
+	return TFather::NContainedSides(fatherside)*3;
 }
 
 template<class TFather>
-int Pr<TFather>::SideConnectLocId(int side,int c) {
-	int nsconnect = NSideConnects(side);
+int Pr<TFather>::ContainedSideLocId(int side,int c) {
+	int nsconnect = NContainedSides(side);
     if(c >= nsconnect)
     {
-		PZError << "Pr<TFather>::SideConnectLocId, side = " << side << " connect = " << c << endl;
+		PZError << "Pr<TFather>::ContainedSideLocId, side = " << side << " connect = " << c << endl;
 		return -1;
     }
 	int ftns = side/TFather::NSides;
 	int fatherside = side%TFather::NSides;
-	if(ftns == 0) return TFather::SideConnectLocId(fatherside,c);
-	if(ftns == 1) return TFather::SideConnectLocId(fatherside,c)+TFather::NSides;
-	int nsideconfather = TFather::NSideConnects(fatherside);
+	if(ftns == 0) return TFather::ContainedSideLocId(fatherside,c);
+	if(ftns == 1) return TFather::ContainedSideLocId(fatherside,c)+TFather::NSides;
+	int nsideconfather = TFather::NContainedSides(fatherside);
 	int confather = c%nsideconfather;
 	int level = c/nsideconfather;
-	return TFather::SideConnectLocId(fatherside,confather)+level*TFather::NSides;
+	return TFather::ContainedSideLocId(fatherside,confather)+level*TFather::NSides;
 }
 
 template<class TFather>
 void Pr<TFather>::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      int is;
      for(is=0; is<nsidecon-1; is++)
-     smallsides.Push(SideConnectLocId(side,is));
+     smallsides.Push(ContainedSideLocId(side,is));
 }
 
 template<class TFather>
 void Pr<TFather>::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      for(int is = 0; is < nsidecon - 1; is++) {
-     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+     if (SideDimension(ContainedSideLocId(side,is)) == DimTarget) smallsides.Push(ContainedSideLocId(side,is));
   }
 }
 
@@ -526,37 +526,37 @@ void Pr<TFather>::Diagnostic()
     LOGPZ_DEBUG(logger,sout.str());
   }
 
-//  static int NConnects();
+//  static int NSides;
   {
     std::stringstream sout;
-    sout << "Testing NConnects\n";
-    sout << "nconnects " << NConnects();
+    sout << "Testing NumSides\n";
+    sout << "nsides " << NumSides();
     LOGPZ_DEBUG(logger,sout.str());
   }
 
-//  static int NSideConnects(int side);
+//  static int NContainedSides(int side);
   {
     std::stringstream sout;
-    sout << "Testing NSideConnects(side)\n";
+    sout << "Testing NContainedSides(side)\n";
     int is;
     for(is=0; is<NSides; is++)
     {
-      sout << "side " << is << " nsideconnects " << NSideConnects(is) << endl;
+      sout << "side " << is << " nsideconnects " << NContainedSides(is) << endl;
     }
     LOGPZ_DEBUG(logger,sout.str());
   }
-//  static int SideConnectLocId(int side, int c);
+//  static int ContainedSideLocId(int side, int c);
   {
     std::stringstream sout;
-    sout << "Testing SideConnectLocId(is,ic)\n";
+    sout << "Testing ContainedSideLocId(is,ic)\n";
     int is,ic;
     for(is=0; is<NSides; is++)
     {
-      int nc = NSideConnects(is);
+      int nc = NContainedSides(is);
       sout << "side " << is << " connects ";
       for(ic=0; ic<nc; ic++)
       {
-        sout << SideConnectLocId(is,ic) << " ";
+        sout << ContainedSideLocId(is,ic) << " ";
       }
       sout << endl;
     }

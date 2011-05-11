@@ -54,6 +54,23 @@ public:
  */
   static int NConnectShapeF(int side, int order) { return 1;}
 
+	/**
+	 * Total number of shapefunctions, considering the order
+	 * of interpolation of the element
+	 * @order vector of integers indicating the interpolation order of the element
+	 * @return number of shape functions
+	 */
+	static int NShapeF(TPZVec<int> &order){return 1;}
+
+	/**
+	 * Compute the permutation of the connects of the sides such that the order of the shape functions
+	 * becomes independent of the element orientation
+	 */
+	static void PermuteSides(int side, TPZVec<int> &id, TPZVec<int> &permutegather)
+	{
+		permutegather.Resize(1);
+		permutegather[0] = 0;
+	}
 
 };
 

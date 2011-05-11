@@ -1,4 +1,4 @@
-// $Id: pzshapepiram.cpp,v 1.11 2011-03-24 19:56:23 phil Exp $
+// $Id: pzshapepiram.cpp,v 1.12 2011-05-11 01:47:45 phil Exp $
 #include "pzshapepiram.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -115,8 +115,8 @@ void TPZShapePiram::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatri
   for(is=NCornerNodes; is<NCornerNodes+8; is++)
   {
     int is1,is2;
-    is1 = SideConnectLocId(is,0);
-    is2 = SideConnectLocId(is,1);
+    is1 = ContainedSideLocId(is,0);
+    is2 = ContainedSideLocId(is,1);
     phi(is,0) = phi(is1,0)*phi(is2,0);
     dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
     dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
@@ -139,9 +139,9 @@ void TPZShapePiram::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatri
   for(;is<18; is++)
   {
     int is1,is2,is3;
-    is1 = SideConnectLocId(is,0);
-    is2 = SideConnectLocId(is,1);
-    is3 = SideConnectLocId(is,2);
+    is1 = ContainedSideLocId(is,0);
+    is2 = ContainedSideLocId(is,1);
+    is3 = ContainedSideLocId(is,2);
     phi(is,0) = phi(is1,0)*phi(is2,0)*phi(is3,0);
     dphi(0,is) = dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3);
     dphi(1,is) = dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3);

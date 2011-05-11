@@ -1,4 +1,4 @@
-﻿// $Id: pzshapequad.cpp,v 1.15 2011-02-04 08:53:04 fortiago Exp $
+// $Id: pzshapequad.cpp,v 1.16 2011-05-11 01:47:45 phil Exp $
 #include "pzshapequad.h"
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"

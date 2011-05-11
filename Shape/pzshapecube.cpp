@@ -96,8 +96,8 @@ void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix
   for(is=8; is<20; is++)
   {
     int is1,is2;
-    is1 = SideConnectLocId(is,0);
-    is2 = SideConnectLocId(is,1);
+    is1 = ContainedSideLocId(is,0);
+    is2 = ContainedSideLocId(is,1);
     phi(is,0) = phi(is1,0)*phi(is2,0);
     dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
     dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
@@ -107,8 +107,8 @@ void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix
   for(is=20; is<26; is++)
   {
     int is1,is2;
-    is1 = SideConnectLocId(is,0);
-    is2 = SideConnectLocId(is,2);
+    is1 = ContainedSideLocId(is,0);
+    is2 = ContainedSideLocId(is,2);
     phi(is,0) = phi(is1,0)*phi(is2,0);
     dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
     dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);

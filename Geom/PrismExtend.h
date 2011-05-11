@@ -99,16 +99,16 @@ static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar
  * Number of connects of the element (3)
  * @return number of connects of the element
  */
-static int NConnects();
+static int NumSides();
 
  /**
   * return the number of nodes (not connectivities) associated with a side
   */
-static int NSideConnects(int side);
+static int NContainedSides(int side);
  /**
   * returns the local connect number of the connect "c" along side "side"
   */
-static int SideConnectLocId(int side, int c);
+static int ContainedSideLocId(int side, int c);
 
 /**
  * uses log4cxx to print the results of all methods
