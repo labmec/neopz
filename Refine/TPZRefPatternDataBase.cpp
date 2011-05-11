@@ -556,9 +556,9 @@ void TPZRefPatternDataBase::InitializeAllUniformRefPatterns()
 	InitializeUniformRefPattern(ECube);
 }
 
-#ifndef REFPATTERNDIR
-#define REFPATTERNDIR "/Users/Cesar/Documents/Projects/NeoPZ/Refine/RefPatterns"
-#endif
+//#ifndef REFPATTERNDIR
+//#define REFPATTERNDIR "/Users/Cesar/Documents/Projects/NeoPZ/Refine/RefPatterns"
+//#endif
 void TPZRefPatternDataBase::InitializeRefPatterns()
 {
 
