@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.48 2011-03-28 18:19:42 fortiago Exp $
+// $Id: pzelctemp.cpp,v 1.49 2011-05-11 02:51:31 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -45,6 +45,18 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
   //TPZManVector<int,3> order(3,20);
   fIntRule.SetOrder(order);
 
+}
+
+template<class TSHAPE>
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index, int nocreate) :
+TPZInterpolatedElement(mesh,gel,index)
+{
+	int ic;
+	for(ic=0; ic<TSHAPE::NSides; ic++)
+	{
+		fConnectIndexes[ic] = -1;
+	}
+	fPreferredOrder = -1;
 }
 
 template<class TSHAPE>
@@ -166,13 +178,13 @@ void TPZIntelGen<TSHAPE>::SetIntegrationRule(int ord) {
 //}
 
 template<class TSHAPE>
-int TPZIntelGen<TSHAPE>::NSideConnects(int side){
-  return TSHAPE::NSideConnects(side);
+int TPZIntelGen<TSHAPE>::NSideConnects(int side) const {
+  return TSHAPE::NContainedSides(side);
 }
 
 template<class TSHAPE>
-int TPZIntelGen<TSHAPE>::SideConnectLocId(int node, int side) {
-  return TSHAPE::SideConnectLocId(side,node);
+int TPZIntelGen<TSHAPE>::SideConnectLocId(int node, int side) const {
+  return TSHAPE::ContainedSideLocId(side,node);
 }
 
 /**Sets the interpolation order for the interior of the element*/
@@ -208,7 +220,7 @@ template<class TSHAPE>
 int TPZIntelGen<TSHAPE>::ConnectIndex(int con) const{
 
 #ifndef NODEBUG
-  if(con<0 || con>= TSHAPE::NSides) {
+  if(con<0 || con>= NConnects()) {
     std::cout << "TPZIntelgen::ConnectIndex wrong parameter con " << con <<
       " NSides " << TSHAPE::NSides << std::endl;
     return -1;
@@ -279,6 +291,12 @@ int TPZIntelGen<TSHAPE>::SideOrder(int side) const {
   TPZConnect &c = Connect(side);
   return c.Order();
 }
+/**returns the actual interpolation order of the polynomial for a connect*/
+template<class TSHAPE>
+int TPZIntelGen<TSHAPE>::ConnectOrder(int connect) const {
+	return SideOrder(connect);
+}
+
 
 /**transform a point in the parameter space of the side into a point in the space
    of the master element*/
@@ -297,7 +315,7 @@ int TPZIntelGen<TSHAPE>::SideOrder(int side) const {
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &phi,TPZFMatrix &dphi) {
 
-  int nc = TSHAPE::NSideConnects(side);
+  int nc = TSHAPE::NContainedSides(side);
   int nn = TSHAPE::NSideNodes(side);
   TPZManVector<int,27> id(nn),order(nc-nn);
   int n,c;
@@ -307,7 +325,7 @@ void TPZIntelGen<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
     id [n] = ref->NodePtr(nodloc)->Id();
   }
   for (c=nn;c<nc;c++){
-    int conloc = TSHAPE::SideConnectLocId(side,c);
+    int conloc = TSHAPE::ContainedSideLocId(side,c);
     order[c-nn] = SideOrder(conloc);
   }
   TSHAPE::SideShape(side, point, id, order, phi, dphi);
@@ -504,7 +522,6 @@ template class
 #endif
 
 
-#include "tpzint1point.h"
 
 #include "TPZRefCube.h"
 
