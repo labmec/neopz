@@ -1,6 +1,6 @@
 // -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.45 2010-06-17 13:53:07 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.46 2011-05-11 02:22:56 phil Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -354,7 +354,7 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
   TPZManVector<REAL> sol(1),dsol(3,0.);
   Solution(u,dudx,axes,1,sol);
   Solution(u,dudx,axes,2,dsol);
-  int id,jd;
+  int id;
   //values[1] : eror em norma L2
   values[1]  = (sol[0] - u_exact[0])*(sol[0] - u_exact[0]);
   //values[2] : erro em semi norma H1
@@ -371,7 +371,7 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 
 }
 
-void TPZMatPoisson3d::BCInterfaceJump(TPZVec<REAL> &leftu,TPZBndCond &bc,TPZVec<REAL> & jump){
+void TPZMatPoisson3d::BCInterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZBndCond &bc,TPZVec<REAL> & jump){
   jump.Resize(1);
   if(bc.Type() == 0){ ///DIRICHLET
     REAL f = bc.Val2()(0,0);

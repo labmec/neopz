@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.34 2009-11-04 14:07:06 fortiago Exp $
+//$Id: pzpoisson3d.h,v 1.35 2011-05-11 02:22:56 phil Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -247,7 +247,7 @@ public:
    * Returns sol-u_dirichlet
    * @since Mar 08, 2006
    */
-  virtual void BCInterfaceJump(TPZVec<REAL> &leftu,TPZBndCond &bc,TPZVec<REAL> & jump);
+  virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZBndCond &bc,TPZVec<REAL> & jump);
 
   virtual int IsInterfaceConservative(){ return 1;}
 
