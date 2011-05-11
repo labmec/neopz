@@ -157,9 +157,9 @@ void TPZPairStructMatrix::MultiThread_Assemble(int mineq, int maxeq, TPZMatrix *
 
 TPZPairStructMatrix::ThreadData::ThreadData(TPZCompMesh &mesh, TPZMatrix &mat1, TPZMatrix &mat2, 
 										TPZFMatrix &rhs, int mineq, int maxeq)
-: fNextElement(0), fMesh(&mesh),
+: fMesh(&mesh), 
 fGlobMatrix1(&mat1), fGlobMatrix2(&mat2), fGlobRhs(&rhs),
-fMinEq(mineq), fMaxEq(maxeq)
+fMinEq(mineq), fMaxEq(maxeq),fNextElement(0)
 {	
 	pthread_mutex_init(&fAccessElement,NULL);
 }
@@ -248,7 +248,6 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 	pthread_mutex_lock(&(data->fAccessElement));
 	int nextel = data->fNextElement;
 	int numprocessed = data->fProcessed1.size();
-	bool globalresult = true;
 	while(nextel < nel || numprocessed)
 	{
 		std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > >::iterator itavail;
@@ -316,7 +315,6 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 	pthread_mutex_lock(&(data->fAccessElement));
 	int nextel = data->fNextElement;
 	int numprocessed = data->fProcessed2.size();
-	bool globalresult = true;
 	while(nextel < nel || numprocessed)
 	{
 		std::map<int, TPZAutoPointer<TPZElementMatrix> >::iterator itavail;

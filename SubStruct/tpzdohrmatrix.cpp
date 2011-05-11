@@ -33,7 +33,7 @@ static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));
 
 template<class TSubStruct>
 TPZDohrMatrix<TSubStruct>::TPZDohrMatrix(TPZAutoPointer<TPZDohrAssembly> assembly)
- : TPZMatrix(), fAssembly(assembly), fNumThreads(0)
+ : TPZMatrix(), fNumThreads(0), fAssembly(assembly)
 {
 }
 
@@ -54,10 +54,6 @@ void TPZDohrMatrix<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
   if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
     Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
   }
-  int rows = Rows();
-  int cols = Cols();
-  int xcols = x.Cols();
-  int ic, c, r;
   PrepareZ(y,z,beta,opt,stride);
   
   typename SubsList::const_iterator iter;

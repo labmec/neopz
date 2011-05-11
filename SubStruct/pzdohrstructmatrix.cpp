@@ -50,7 +50,9 @@ static int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
 static TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
 
 // This is a lengthy process which should run on the remote processor
+/*
 static void ComputeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
+ */
 static void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
 static void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
 
@@ -64,8 +66,8 @@ TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh, int 
 	pthread_mutex_init(&fAccessElement, 0);
 }
 
-TPZDohrStructMatrix::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) : TPZStructMatrix(copy), fDohrAssembly(copy.fDohrAssembly),
-		fDohrPrecond(copy.fDohrPrecond), fMesh(copy.fMesh), fNumThreadsDecompose(copy.fNumThreadsDecompose)
+TPZDohrStructMatrix::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) : TPZStructMatrix(copy), fNumThreadsDecompose(copy.fNumThreadsDecompose), fDohrAssembly(copy.fDohrAssembly),
+		fDohrPrecond(copy.fDohrPrecond), fMesh(copy.fMesh)
 {
 	pthread_mutex_init(&fAccessElement, 0);
 }
@@ -1210,7 +1212,6 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 	std::map<int,int> domain_index_count;
 	int iel;
 	int nel = fMesh->NElements();
-	int meshdim = fMesh->Dimension();
 	for (iel=0; iel<nel; iel++) {
 		TPZCompEl *cel = fMesh->ElementVec()[iel];
 		if (!cel) {
@@ -1253,7 +1254,6 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 			
 			int nsides = gel->NSides();
 			int is;
-			int geldim = gel->Dimension();
 			for (is=0; is<nsides; is++) {
 				int sidedim = gel->SideDimension(is);
 				if (sidedim != connectdimension) {
@@ -1276,8 +1276,8 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 				}
 			}
 		}
-		if (gelcluster.size() != domain_index_count[mydomainindex]) {
-			if (gelcluster.size() > domain_index_count[mydomainindex]) {
+		if (gelcluster.size() != (size_type)domain_index_count[mydomainindex]) {
+			if (gelcluster.size() > (size_type)domain_index_count[mydomainindex]) {
 				DebugStop();
 			}
 			domain_index_count[mydomainindex] -= gelcluster.size();
@@ -1330,7 +1330,6 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 		}
 		int nsides = gel->NSides();
 		int is;
-		int geldim = gel->Dimension();
 		for (is=0; is<nsides; is++) {
 			int sidedim = gel->SideDimension(is);
 			if (sidedim != connectdimension) {

@@ -1,4 +1,4 @@
-//$Id: TPZMTAssemble.cpp,v 1.3 2010-11-08 15:47:57 phil Exp $
+//$Id: TPZMTAssemble.cpp,v 1.4 2011-05-11 03:11:17 phil Exp $
 
 #include "TPZMTAssemble.h"
 #include "pzstrmatrix.h"
@@ -115,7 +115,7 @@ void TPZMTAssemble::AssembleMT(TPZFMatrix & rhs, TPZCompMesh &mesh, int mineq, i
 // ofstream effilemt("MTEF.txt");
 void TPZMTAssemble::ContributeEFs(){
   
-  for(int i = 0; i < TPZMTAssemble::gComputedEF.size(); i++){
+  for(int i = 0; i < (int)TPZMTAssemble::gComputedEF.size(); i++){
   
     TPZElementMatrix * ef = TPZMTAssemble::gComputedEF[i].first;
     SMTAssembleResidual * data = TPZMTAssemble::gComputedEF[i].second;

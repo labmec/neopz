@@ -81,7 +81,6 @@ void TPZDohrSubstructCondense::Contribute_v2_local(TPZFMatrix &residual_local, T
 	TPZVec<int> &scatter = ScatterVec(ExternalFirst, Submesh);
 	int ncoarse = fCoarseNodes.NElements();
 	TPZFMatrix LocalWeightedResidual(fNEquations+ncoarse,1,0.);
-	int neqs = fNEquations;
 	int ninput = residual_local.Rows();
 	int i;
 	for (i=0;i<ninput;i++) 
@@ -276,7 +275,7 @@ void TPZDohrSubstructCondense::ContributeRhs(TPZFMatrix &rhs)
 #ifdef DEBUG 
 	TPZFMatrix test(resloc);
 	test -= rhs;
-	REAL err = Norm(test);
+//	REAL err = Norm(test);
 #endif
 }
 
