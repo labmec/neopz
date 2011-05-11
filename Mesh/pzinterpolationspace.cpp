@@ -1,4 +1,4 @@
-﻿//$Id: pzinterpolationspace.cpp,v 1.44 2011-03-28 18:19:42 fortiago Exp $
+//$Id: pzinterpolationspace.cpp,v 1.45 2011-05-11 02:53:17 phil Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -70,12 +70,13 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
   }//if
   TPZFNMatrix<660> dphi(dphix.Rows(), dphix.Cols(), 0.);
   int dim = this->Dimension();
-  int nshape = NShapeF();
 
 	//jacobian.Zero();
 	//jacinv.Zero();
   ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
   this->Shape(intpoint,phi,dphi);
+    
+    int nshape = phi.Rows();
   int ieq;
   switch(dim){
   case 0:
@@ -159,7 +160,6 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 	int thisFace, neighbourFace, i, dim;
 	TPZGeoEl * thisGeoEl, * neighbourGeoEl;
 	TPZManVector<REAL,3> thisCenter(3,0.), neighbourCenter(3,0.), thisXVol(3,0.), neighbourXVol(3,0.), vec(3), axes1(3), axes2(3);
-	REAL size;
 
 	thisGeoEl = this->Reference();
 	thisFace = thisGeoEl->NSides() - 1;
