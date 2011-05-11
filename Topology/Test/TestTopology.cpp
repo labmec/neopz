@@ -6,7 +6,6 @@
 //  Copyright 2011 UNICAMP. All rights reserved.
 //
 
-#include "TestTopology.h"
 #include "pzmanvector.h"
 #include "pztrnsform.h"
 #include "tpzline.h"
