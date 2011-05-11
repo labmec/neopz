@@ -13,6 +13,7 @@
 #include "TPZGeoElement.h.h"
 #include "pzgeoelside.h"
 #include "pzstack.h"
+#include "tpzgeoelrefpattern.h"
 
 #include <sstream>
 using namespace std;
