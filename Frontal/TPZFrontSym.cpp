@@ -50,7 +50,7 @@ void TPZFrontSym::PrintGlobal(const char *name, ostream& out){
 	}
 	out << endl;
 }
-void TPZFrontSym::Print(const char *name, ostream& out)
+void TPZFrontSym::Print(const char *name, ostream& out) const
 {
   if(name) out << name << endl;
   int i,j,loop_limit;

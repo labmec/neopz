@@ -101,6 +101,16 @@ public:
      REAL & Element(int i, int j){
              return fData[fMaxFront*j + i];
      }
+    
+    /**
+     * Returns the ith,jth element of the matrix.
+     * @associates <{mat(sourceindex[i],sourceindex[j])}>
+     * @semantics += 
+     */
+    const REAL & Element(int i, int j) const{
+        return fData[fMaxFront*j + i];
+    }
+    
     /**Add a contribution of a stiffness matrix*/
     void AddKel(
           TPZFMatrix &elmat //! Already formed element matrix
@@ -150,13 +160,8 @@ public:
     /**
      * It prints TPZFront data 
      */
-#ifndef WIN32
-     void Print(const char *name, std::ostream& out);
+     void Print(const char *name, std::ostream& out) const;
      void PrintGlobal(const char *name, std::ostream& out);
-#else
-     void Print(const char *name, std::ostream& out);
-     void PrintGlobal(const char *name, std::ostream& out);
-#endif
      /**Returns decomposition type. \n Default LU*/
      DecomposeType GetDecomposeType() const;
 

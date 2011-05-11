@@ -39,7 +39,7 @@ void TPZFrontNonSym::PrintGlobal(const char *name, ostream& out = cout){
 	out << endl;
 	out.flush();
 }
-void TPZFrontNonSym::Print(const char *name, ostream& out = cout)
+void TPZFrontNonSym::Print(const char *name, ostream& out = cout) const
 {
   if(name) out << name << endl;
   int i,j,loop_limit;

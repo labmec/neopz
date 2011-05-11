@@ -102,6 +102,21 @@ public:
 	}
 	return fData[(j*(j+1))/2+i];
 }
+    /**
+     * Returns ith, jth element of matrix.
+     * @associates <{mat(sourceindex[i],sourceindex[j])}>
+     * @semantics += 
+     */
+    //REAL & Element(int i, int j);
+    const REAL & Element(int i, int j) const {
+        if(i>j){
+            int i_temp=i;
+            i=j;
+            j=i_temp;
+            //cout << "Changing row column indexes !"<<endl;
+        }
+        return fData[(j*(j+1))/2+i];
+    }
     /**Add a contribution of a stiffness matrix*/
     void AddKel(TPZFMatrix &elmat, TPZVec<int> &destinationindex);
 
@@ -142,7 +157,7 @@ public:
      /**
       * It prints TPZFront data 
       */
-     void Print(const char *name, std::ostream& out=std::cout);
+     void Print(const char *name, std::ostream& out=std::cout) const;
      void PrintGlobal(const char *name, std::ostream& out = std::cout);
 
      /**Returns decomposition type*/
