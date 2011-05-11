@@ -1,4 +1,4 @@
-﻿//$Id: pzgeoelside.cpp,v 1.36 2011-03-28 18:19:42 fortiago Exp $
+//$Id: pzgeoelside.cpp,v 1.37 2011-05-11 02:44:37 phil Exp $
 // -*- c++ -*-
 #include "pzgeoelside.h"
 #include "pzgeoel.h"
@@ -30,7 +30,7 @@ TPZGeoElSide::TPZGeoElSide(TPZGeoEl *gel, std::set<int> &sideCornerNodes)
 	{
 		nodes.clear();
 		TPZGeoElSide actualSide(gel, s);
-		if(actualSide.NSideNodes() != sideCornerNodes.size())
+		if(actualSide.NSideNodes() != (int)sideCornerNodes.size())
 		{
 			continue;
 		}
@@ -274,6 +274,33 @@ void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const{
   }
 }
 
+void TPZGeoElSide::CenterPoint(TPZVec<REAL> &center)
+  {
+	  if(!fGeoEl) return;
+	  fGeoEl->CenterPoint(fSide,center);
+  }
+
+/*
+TPZGeoElSide TPZGeoElSide::Neighbour() const {
+  if (!fGeoEl) return TPZGeoElSide();
+  TPZGeoElSide neighbour = fGeoEl->Neighbour(fSide);
+  return neighbour;
+}
+
+void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
+	if(! Exists() || ! this->Neighbour().Exists())
+	{
+		return;
+	}
+	TPZGeoElSide neigh = Neighbour();
+	while(neigh != *this)
+	{
+		allneigh.Push(neigh);
+		neigh = neigh.Neighbour();
+	}
+}
+*/
+
 void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
   if(fSide < fGeoEl->NCornerNodes())
     {
@@ -346,6 +373,8 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 	  }
   }
 }
+
+
 
 TPZTransform TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
 
@@ -618,6 +647,12 @@ int TPZGeoElSide::NSideNodes() const {
 int TPZGeoElSide::SideNodeIndex(int nodenum) const {
     if(!fGeoEl) return -1;
     return ( fGeoEl->SideNodeIndex(fSide,nodenum) );
+}
+
+/**returns the index of the local nodenum  node of side*/
+int TPZGeoElSide::SideNodeLocIndex(int nodenum) const {
+    if(!fGeoEl) return -1;
+    return ( fGeoEl->SideNodeLocIndex(fSide,nodenum) );
 }
 
 std::set<int> TPZGeoElSide::SideNodeIndexes()

@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.26 2010-09-01 17:55:25 phil Exp $
+//$Id: pzgeoelside.h,v 1.27 2011-05-11 02:44:37 phil Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -134,6 +134,8 @@ class TPZGeoElSide {
 
   int Exists() const {return (fGeoEl != 0 && fSide > -1);}
 
+  void CenterPoint(TPZVec<REAL> &center);
+
   TPZGeoElSide Neighbour() const;//return neighbour of the side fSide
 
   /**
@@ -228,6 +230,10 @@ static void BuildConnectivities(TPZVec<TPZGeoElSide> &elvec, TPZVec<TPZGeoElSide
   /**returns the index of the nodenum node of side*/
   int SideNodeIndex(int nodenum) const;
 	std::set<int> SideNodeIndexes();
+
+	/**returns the index of the local nodenum node of side*/
+	int SideNodeLocIndex(int nodenum) const;
+
 
   /**returns 1 if neighbour is a neighbour of the element along side*/
   int NeighbourExists(const TPZGeoElSide &neighbour) const;
