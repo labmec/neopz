@@ -40,7 +40,7 @@ void TPZFront::PrintGlobal(const char *name, ostream& out){
 }
 
 
-void TPZFront::Print(const char *name, ostream& out)
+void TPZFront::Print(const char *name, ostream& out) const
 {
   if(name) out << name << endl;
   /*int i,j,loop_limit;

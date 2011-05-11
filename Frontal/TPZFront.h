@@ -90,7 +90,7 @@ virtual	void ExtractFrontMatrix(TPZFMatrix &front) {
     /**
      * It prints TPZFront data 
      */
-     void Print(const char *name, std::ostream& out);
+     void Print(const char *name, std::ostream& out) const;
      void PrintGlobal(const char *name, std::ostream& out = std::cout);
 
 	/**

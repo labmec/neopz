@@ -56,7 +56,7 @@ public:
     void Print(
         const char *name //!file title to print to
         , std::ostream& out   //!object type file
-        );
+        ) const;
     /**Resets data structure */
     void Reset();
     /** Executes a Backward substitution Stack object */

@@ -68,7 +68,7 @@ public:
     void Print(
           const char *name //!File name to print to
           , std::ostream& out //!ofstream object name
-          ); 
+          ) const; 
     /** Resets data */
     void Reset();
     /** Executes a Backward substitution */

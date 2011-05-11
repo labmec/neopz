@@ -12,7 +12,7 @@ void TPZStackEqnStorage::SetBlockSize(){}
 
 void TPZStackEqnStorage::ReOpen(){}
 
-void TPZStackEqnStorage::Print(const char *name, ostream& out){
+void TPZStackEqnStorage::Print(const char *name, ostream& out) const {
     int i, loop_limit;
 	loop_limit=fEqnStack.NElements();
     out <<  "Number of entries on EqnStack  "<< fEqnStack.NElements() << endl;
