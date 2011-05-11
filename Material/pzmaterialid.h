@@ -28,7 +28,6 @@ const int TPZELASTICITYAXIMATERIALID = 312;
 
 const int TPZMATERIALDATAID = 313;
 
-void RegisterMaterialClasses();
-
+const int TPZMATERIALVOIDFLUX = 314;
 
 #endif //PZMATERIALIDH
