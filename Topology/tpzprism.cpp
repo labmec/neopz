@@ -23,6 +23,11 @@
 #include "pzeltype.h"
 
 #include "pzcreateapproxspace.h"
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.topology.pzprism"));
+#endif
 
 using namespace std;
 
@@ -234,18 +239,18 @@ static REAL MidSideNode[21][3] = {
 void TPZPrism::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      int is;
      for(is=0; is<nsidecon-1; is++)
-     smallsides.Push(SideConnectLocId(side,is));
+     smallsides.Push(ContainedSideLocId(side,is));
 }
 
 void TPZPrism::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      for(int is = 0; is < nsidecon - 1; is++) {
-     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+     if (SideDimension(ContainedSideLocId(side,is)) == DimTarget) smallsides.Push(ContainedSideLocId(side,is));
   }
 }
 
@@ -269,6 +274,18 @@ int TPZPrism::NSideNodes(int side)
 {
 	return nsidenodes[side];
 }
+	//Tentando criar o metodo
+	int TPZPrism::NumSides(int dimension) {
+		if(dimension<0 || dimension> 3) {
+			PZError << "TPZPyramid::NumSides. Bad parameter i.\n";
+			return 0;
+		}
+		if(dimension==0) return 6;
+		if(dimension==1) return 9;
+		if(dimension==2) return 5;
+		if(dimension==3) return 1;
+		return -1;
+	}
 
 int TPZPrism::SideNodeLocId(int side, int node)
 {
@@ -591,12 +608,12 @@ MElementType TPZPrism::Type(int side)
   }
 }
 
-int TPZPrism::NConnects() {
-	return 21;
+int TPZPrism::NumSides() {
+	return NSides;
 }
 
 
-int TPZPrism::NSideConnects(int side) {
+int TPZPrism::NContainedSides(int side) {
   if(side<0)   return -1;
   if(side<6)   return 1;//cantos : 0 a 5
   if(side<15)  return 3;//arestas
@@ -606,7 +623,7 @@ int TPZPrism::NSideConnects(int side) {
   return -1;
 }
 
-int TPZPrism::SideConnectLocId(int side, int node) {
+int TPZPrism::ContainedSideLocId(int side, int node) {
   if(side<0 || side>20 || node < 0) return -1;
   if(side<6) {
     if(node==0) return side;
@@ -641,7 +658,7 @@ int TPZPrism::SideConnectLocId(int side, int node) {
 	      if(side==20 && node<21){
 		return node;
 	      }
-  PZError << "TPZShapePrism::SideConnectLocId called for node = "
+  PZError << "TPZShapePrism::ContainedSideLocId called for node = "
 	  << node << " and side = " << side << "\n";
   return -1;
 }
@@ -662,4 +679,45 @@ bool TPZPrism::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
 
 }///method
 
+	/**
+	 * Method which identifies the transformation based on the IDs
+	 * of the corner nodes
+	 * @param id indexes of the corner nodes
+	 * @return index of the transformation of the point corresponding to the topology
+	 */
+	int TPZPrism::GetTransformId(TPZVec<int> &id)
+	{
+		LOGPZ_ERROR(logger,"Please implement me")
+		return -1;
+	}
+	
+	/**
+	 * Method which identifies the transformation of a side based on the IDs
+	 * of the corner nodes
+	 * @param id indexes of the corner nodes
+	 * @return index of the transformation of the point corresponding to the topology
+	 */	
+	int TPZPrism::GetTransformId(int side, TPZVec<int> &id)
+	{
+		LOGPZ_ERROR(logger,"Please implement me")
+		return -1;
+	}
+	
+	/**
+	 * Identifies the permutation of the nodes needed to make neighbouring elements compatible 
+	 * in terms of order of shape functions
+	 * @param side : side for which the permutation is needed
+	 * @param id : ids of the corner nodes of the elements
+	 * @param permgather : permutation vector in a gather order
+	 */
+	void TPZPrism::GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather)
+	{
+		LOGPZ_ERROR(logger,"Please implement me")
+		int nel = permgather.NElements();
+		int iel;
+		for(iel=0; iel<nel; iel++)
+			permgather[iel]=iel;
+	}
+	
+	
 }

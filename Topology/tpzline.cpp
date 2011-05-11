@@ -18,7 +18,13 @@
 #include "tpzint1point.h"
 #include "pzeltype.h"
 
+#include "pzlog.h"
 #include "pzcreateapproxspace.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.topology.pzline"));
+#endif
+
 
 using namespace std;
 
@@ -65,21 +71,32 @@ int TPZLine::NSideNodes(int side)
 	return nsidenodes[side];
 }
 
+int TPZLine::NumSides(int dimension) {
+	if(dimension<0 || dimension> 1) {
+	PZError << "TPZLine::NumSides. Bad parameter i.\n";
+	return 0;
+	}
+	if(dimension==0) return 2;
+	if(dimension==1) return 1;
+	return -1;
+	}
+	
+
 void TPZLine::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      int is;
      for(is=0; is<nsidecon-1; is++)
-     smallsides.Push(SideConnectLocId(side,is));
+     smallsides.Push(ContainedSideLocId(side,is));
 }
 
 void TPZLine::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      for(int is = 0; is < nsidecon - 1; is++) {
-     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+     if (SideDimension(ContainedSideLocId(side,is)) == DimTarget) smallsides.Push(ContainedSideLocId(side,is));
   }
 }
 
@@ -170,7 +187,7 @@ TPZTransform TPZLine::TransformElementToSide(int side){
   }
 
 //  int sidedim = SideDimension(side);
-  TPZTransform t(0,1);//t(dimto,2)
+  TPZTransform t(SideDimension(side),1);//t(dimto,2)
   t.Mult().Zero();	//TPZGeoElQ2d *gq;
   t.Sum().Zero();//int dimto = gq->SideDimension(side);
 
@@ -245,33 +262,102 @@ MElementType TPZLine::Type(int side)
 }
 
 
-int TPZLine::NConnects() {
+int TPZLine::NumSides() {
 	return 3;
 }
 
 
-int TPZLine::NSideConnects(int i) {
+int TPZLine::NContainedSides(int i) {
   if(i==0 || i==1) return 1;
   else if(i==2) return 3;
-  PZError << "TPZShapeLinear::NSideConnects. Bad parameter i = " << i << " .\n";
+  PZError << "TPZLine::NContainedSides. Bad parameter i = " << i << " .\n";
   return 0;
 }
 
-int TPZLine::SideConnectLocId(int side,int c) {
+int TPZLine::ContainedSideLocId(int side,int c) {
   switch(side) {
   case 0:
   case 1:
     if(c != 0)
     {
-      PZError << "TPZShapeLinear::SideConnectLocId, connect = " << c << endl;
+      PZError << "TPZLine::ContainedSideLocId, connect = " << c << endl;
     }
     return side;
   case 2:
     return c;
   default:
-    PZError << "TPZShapeLinear::SideConnectLocId called with side = " << side << endl;
+    PZError << "TPZLine::ContainedSideLocId called with side = " << side << endl;
     return 0;
   }
 }
 
+/**
+ * Method which identifies the transformation based on the IDs
+ * of the corner nodes
+ * @param id indexes of the corner nodes
+ * @return index of the transformation of the point corresponding to the topology
+ */
+int TPZLine::GetTransformId(TPZVec<int> &id)
+{
+	return id[0] < id[1] ? 0 : 1;
+}
+
+/**
+ * Method which identifies the transformation of a side based on the IDs
+ * of the corner nodes
+ * @param id indexes of the corner nodes
+ * @return index of the transformation of the point corresponding to the topology
+ */	
+int TPZLine::GetTransformId(int side, TPZVec<int> &id)
+{
+	switch (side) {
+		case 0:
+		case 1:
+			return 0;
+			break;
+		case 2:
+			return id[0] < id[1] ? 0 : 1;
+		default:
+			break;
+	}
+	LOGPZ_ERROR(logger,"Wrong input parameter")
+	return -1;
+}
+
+/**
+ * Identifies the permutation of the nodes needed to make neighbouring elements compatible 
+ * in terms of order of shape functions
+ * @param side : side for which the permutation is needed
+ * @param id : ids of the corner nodes of the elements
+ * @param permgather : permutation vector in a gather order
+ */
+	void TPZLine::GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather)
+	{
+		switch (side) {
+			case 0:
+			case 1:
+				permgather[0] = 0;
+				break;
+			case 2:
+				if(id[0]<id[1])
+				{
+					permgather[0] = 0;
+					permgather[1] = 1;
+					permgather[2] = 2;
+				}
+				else 
+				{
+					permgather[0] = 1;
+					permgather[1] = 0;
+					permgather[2] = 2;
+				}
+
+			default:
+				break;
+		}
+		LOGPZ_ERROR(logger,"Wrong input parameter")
+	}
+	
+	
+	
 }

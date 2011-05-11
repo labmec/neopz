@@ -19,6 +19,13 @@
 #include "pzeltype.h"
 
 #include "pzcreateapproxspace.h"
+#include "pzshapequad.h"
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.topology.pzquadrilateral"));
+#endif
 
 using namespace std;
 
@@ -117,18 +124,18 @@ int TPZQuadrilateral::SideNodeLocId(int side, int node)
 void TPZQuadrilateral::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      int is;
      for(is=0; is<nsidecon-1; is++)
-     smallsides.Push(SideConnectLocId(side,is));
+     smallsides.Push(ContainedSideLocId(side,is));
 }
 
 void TPZQuadrilateral::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      for(int is = 0; is < nsidecon - 1; is++) {
-     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+     if (SideDimension(ContainedSideLocId(side,is)) == DimTarget) smallsides.Push(ContainedSideLocId(side,is));
   }
 }
 
@@ -235,10 +242,6 @@ MElementType TPZQuadrilateral::Type(int side)
   }
 }
 
-int TPZQuadrilateral::NConnects() {
-		return 9;
-}
-
 TPZTransform TPZQuadrilateral::SideToSideTransform(int sidefrom, int sideto)
 {
 	if(sidefrom <0 || sidefrom >= NSides || sideto <0 || sideto >= NSides) {
@@ -283,9 +286,9 @@ int TPZQuadrilateral::SideDimension(int side) {
 	return sidedimension[side];
 }
 
-int TPZQuadrilateral::NSideConnects(int side) {
+int TPZQuadrilateral::NContainedSides(int side) {
   if(side<0 || side>8) {
-    PZError << "TPZShapeQuad::NSideConnects. Bad parameter i.\n";
+    PZError << "TPZShapeQuad::NContainedSides. Bad parameter i.\n";
     return 0;
   }
   if(side<4) return 1;
@@ -293,8 +296,21 @@ int TPZQuadrilateral::NSideConnects(int side) {
   return 9;//Cedric
 }
 
-/**It do not verify the values of the c*/
-int TPZQuadrilateral::SideConnectLocId(int side,int c) {
+int TPZQuadrilateral::NumSides(int dimension) {
+	if(dimension<0 || dimension> 2) {
+	PZError << "TPZShapeQuad::NumSides. Bad parameter i.\n";
+	return 0;
+	}
+	if(dimension==0) return 4;
+	if(dimension==1) return 4;
+	if(dimension==2) return 1;
+	return -1;
+	 		
+}
+	
+	/**It do not verify the values of the c*/
+	// side é o lado do elemento, c é o noh do lado
+int TPZQuadrilateral::ContainedSideLocId(int side,int c) {
   switch(side) {
   case 0:
   case 1:
@@ -311,7 +327,7 @@ int TPZQuadrilateral::SideConnectLocId(int side,int c) {
   case 8:
     return c;
   default:
-    PZError << "TPZShapeQuad::SideConnectLocId, connect = " << c << endl;
+    PZError << "TPZShapeQuad::ContainedSideLocId, connect = " << c << endl;
     return -1;
   }
 }
@@ -367,4 +383,159 @@ TPZTransform TPZQuadrilateral::TransformSideToElement(int side){
   }
 	return TPZTransform(0,0);
 }
+
+	
+	/**
+	 * Method which identifies the transformation based on the IDs
+	 * of the corner nodes
+	 * @param id indexes of the corner nodes
+	 * @return index of the transformation of the point corresponding to the topology
+	 */
+	int TPZQuadrilateral::GetTransformId(TPZVec<int> &id)
+	{
+		return pzshape::TPZShapeQuad::GetTransformId2dQ(id);
+	}
+	/**
+	 * Method which identifies the transformation of a side based on the IDs
+	 * of the corner nodes
+	 * @param id indexes of the corner nodes
+	 * @return index of the transformation of the point corresponding to the topology
+	 */	
+	int TPZQuadrilateral::GetTransformId(int side, TPZVec<int> &id)
+	{
+		switch (side) {
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+				return 0;
+				break;
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			{
+				int in1 = ContainedSideLocId(side,0);
+				int in2 = ContainedSideLocId(side,1);
+				return id[in1]<id[in2] ? 0 : 1;
+			}
+				break;
+			case 8:
+			{
+				return pzshape::TPZShapeQuad::GetTransformId2dQ(id);
+			}
+				break;
+			default:
+				break;
+		}
+		LOGPZ_ERROR(logger,"Wrong side parameter")
+		return -1;
+	}
+	
+	/**
+	 * Identifies the permutation of the nodes needed to make neighbouring elements compatible 
+	 * in terms of order of shape functions
+	 * @param side : side for which the permutation is needed
+	 * @param id : ids of the corner nodes of the elements
+	 * @param permgather : permutation vector in a gather order
+	 */
+	void TPZQuadrilateral::GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather)
+	{
+		switch (side) {
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+				permgather[0] = 0;
+				break;
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			{
+				int in1 = ContainedSideLocId(side,0);
+				int in2 = ContainedSideLocId(side,1);
+				if(in1<in2)
+				{
+					permgather[0] = 0;
+					permgather[1] = 1;
+					permgather[2] = 2;
+				} 
+				else 
+				{
+					permgather[0] = 1;
+					permgather[1] = 0;
+					permgather[2] = 2;
+				}
+			}
+				break;
+			case 8:
+			{
+				int i;
+				int tid = pzshape::TPZShapeQuad::GetTransformId2dQ(id);
+				if(tid%2 == 0)
+				{
+					switch (tid)
+					{
+						case 0:
+							for(i=0; i<9; i++) permgather[i] = i;
+							break;
+						case 2:
+							for(i=0; i<4; i++) permgather[i] = (i+1)%4;
+							for(i=4; i<8; i++) permgather[i] = 4+(i+1)%4;
+							permgather[8] = 8;
+							break;
+						case 4:
+							for(i=0; i<4; i++) permgather[i] = (i+2)%4;
+							for(i=4; i<8; i++) permgather[i] = 4+(i+2)%4;
+							permgather[8] = 8;
+							break;
+						case 6:
+							for(i=0; i<4; i++) permgather[i] = (i+3)%4;
+							for(i=4; i<8; i++) permgather[i] = 4+(i+3)%4;
+							permgather[8] = 8;
+							break;
+					}
+				}
+				else
+				{
+					TPZManVector<int,4> invid(4);
+					invid[0] = 0;
+					invid[1] = 3;
+					invid[2] = 2;
+					invid[3] = 1;
+					switch (tid) {
+						case 1:
+							for(i=0; i<4; i++) permgather[i] = invid[i];
+							for(i=4; i<8; i++) permgather[i] = 4+invid[(i+0)%4];
+							permgather[8] = 8;
+							break;
+						case 3:
+							for(i=0; i<4; i++) permgather[i] = invid[(i+1)%4];
+							for(i=4; i<8; i++) permgather[i] = 4+invid[(i+1)%4];
+							permgather[8] = 8;
+							break;
+						case 5:
+							for(i=0; i<4; i++) permgather[i] = invid[(i+2)%4];
+							for(i=4; i<8; i++) permgather[i] = 4+invid[(i+2)%4];
+							permgather[8] = 8;
+							break;
+						case 7:
+							for(i=0; i<4; i++) permgather[i] = invid[(i+3)%4];
+							for(i=4; i<8; i++) permgather[i] = 4+invid[(i+3)%4];
+							permgather[8] = 8;
+							break;
+						default:
+							break;
+					}
+				}
+			}
+				break;
+			default:
+				break;
+		}
+		LOGPZ_ERROR(logger,"Wrong side parameter")
+	}
+	
+
 }

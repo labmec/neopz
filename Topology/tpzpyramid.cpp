@@ -17,6 +17,11 @@
 #include "tpzint1point.h"
 
 #include "pzcreateapproxspace.h"
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.topology.pzpyramid"));
+#endif
 
 using namespace std;
 
@@ -199,18 +204,18 @@ static REAL MidSideNode[19][3] = {
 void TPZPyramid::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      int is;
      for(is=0; is<nsidecon-1; is++)
-     smallsides.Push(SideConnectLocId(side,is));
+     smallsides.Push(ContainedSideLocId(side,is));
 }
 
 void TPZPyramid::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      for(int is = 0; is < nsidecon - 1; is++) {
-     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+     if (SideDimension(ContainedSideLocId(side,is)) == DimTarget) smallsides.Push(ContainedSideLocId(side,is));
   }
 }
 
@@ -547,12 +552,23 @@ MElementType TPZPyramid::Type(int side)
 }
 
 
-int TPZPyramid::NConnects() {
+int TPZPyramid::NumSides() {
 	return 19;
 }
 
-
-int TPZPyramid::NSideConnects(int side) {
+	//Tentando criar o metodo
+	int TPZPyramid::NumSides(int dimension) {
+		if(dimension<0 || dimension> 3) {
+			PZError << "TPZPyramid::NumSides. Bad parameter i.\n";
+			return 0;
+		}
+		if(dimension==0) return 5;
+		if(dimension==1) return 8;
+		if(dimension==2) return 5;
+		if(dimension==3) return 1;
+		return -1;
+	}
+int TPZPyramid::NContainedSides(int side) {
   if(side<0)   return -1;
   if(side<5)   return 1;//cantos : 0 a 4
   if(side<13)  return 3;//lados : 5 a 12
@@ -562,7 +578,7 @@ int TPZPyramid::NSideConnects(int side) {
   return -1;
 }
 
-int TPZPyramid::SideConnectLocId(int side, int node) {
+int TPZPyramid::ContainedSideLocId(int side, int node) {
   if(side<0 || side>19 || node < 0) return -1;
   if(side<5) {
     if(node==0) return side;
@@ -586,7 +602,7 @@ int TPZPyramid::SideConnectLocId(int side, int node) {
   else if(side==18 && node<19){
     return node;
   }
-  PZError << "TPZShapePiram::SideConnectLocId called for node = "
+  PZError << "TPZShapePiram::ContainedSideLocId called for node = "
 	  << node << " and side = " << side << "\n";
   return -1;
 }
@@ -607,6 +623,20 @@ bool TPZPyramid::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
     return true;
   }  
 
+	
 }///method
 
+
+	/**
+	 * Identifies the permutation of the nodes needed to make neighbouring elements compatible 
+	 * in terms of order of shape functions
+	 * @param side : side for which the permutation is needed
+	 * @param id : ids of the corner nodes of the elements
+	 * @param permgather : permutation vector in a gather order
+	 */
+void TPZPyramid::GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather)
+{
+	std::cout << "Please implement me\n";
+	DebugStop();
+}
 }

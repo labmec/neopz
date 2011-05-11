@@ -19,6 +19,12 @@
 #include "pzeltype.h"
 
 #include "pzcreateapproxspace.h"
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.topology.pztetrahedron"));
+#endif
+
 
 using namespace std;
 
@@ -166,18 +172,18 @@ static REAL MidSideNode[15][3] = {
 void TPZTetrahedron::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      int is;
      for(is=0; is<nsidecon-1; is++)
-     smallsides.Push(SideConnectLocId(side,is));
+     smallsides.Push(ContainedSideLocId(side,is));
 }
 
 void TPZTetrahedron::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      for(int is = 0; is < nsidecon - 1; is++) {
-     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+     if (SideDimension(ContainedSideLocId(side,is)) == DimTarget) smallsides.Push(ContainedSideLocId(side,is));
   }
 }
 
@@ -195,7 +201,18 @@ int TPZTetrahedron::NSideNodes(int side)
 {
 	return nsidenodes[side];
 }
-
+	//Tentando criar o metodo
+	int TPZTetrahedron::NumSides(int dimension) {		if(dimension<0 || dimension> 3) {
+		PZError << "TPZTetrahedron::NumSides. Bad parameter i.\n";
+		return 0;
+	}
+		if(dimension==0) return 4;
+		if(dimension==1) return 6;
+		if(dimension==2) return 4;
+		if(dimension==3) return 1;
+		return -1;
+	}
+	
 int TPZTetrahedron::SideNodeLocId(int side, int node)
 {
 	if(side<4 && node == 0) return side;
@@ -454,21 +471,21 @@ MElementType TPZTetrahedron::Type(int side)
 }
 
 
-int TPZTetrahedron::NConnects() {
+int TPZTetrahedron::NumSides() {
 	return NSides;
 }
 
 
-int TPZTetrahedron::NSideConnects(int side) {
+int TPZTetrahedron::NContainedSides(int side) {
 	if(side<0)   return -1;
 	if(side<4)   return 1;//cantos : 0 a 3
    if(side<10)  return 3;//lados : 4 a 9
    if(side<14)	 return 7;//faces : 10 a 13
-   if(side==14) return 15;//centro : 15
+   if(side==14) return 15;//centro : 14
    return -1;
 }
 
-int TPZTetrahedron::SideConnectLocId(int side, int node) {
+int TPZTetrahedron::ContainedSideLocId(int side, int node) {
 	if(side<0 || side>15) return -1;
    if(side<4) {
    	if(node==0) return side;
@@ -492,7 +509,7 @@ int TPZTetrahedron::SideConnectLocId(int side, int node) {
    if(side==14 && node<15){
    	return node;
    }
-	PZError << "TPZShapeTetra::SideConnectLocId called for node = "
+	PZError << "TPZShapeTetra::ContainedSideLocId called for node = "
    	      << node << " and side = " << side << "\n";
    return -1;
 }
@@ -513,4 +530,46 @@ bool TPZTetrahedron::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
 
 }///method
 
+	/**
+	 * Method which identifies the transformation based on the IDs
+	 * of the corner nodes
+	 * @param id indexes of the corner nodes
+	 * @return index of the transformation of the point corresponding to the topology
+	 */
+	int TPZTetrahedron::GetTransformId(TPZVec<int> &id)
+	{
+		LOGPZ_ERROR(logger,"Please implement me")
+		return -1;
+	}
+	
+	/**
+	 * Method which identifies the transformation of a side based on the IDs
+	 * of the corner nodes
+	 * @param id indexes of the corner nodes
+	 * @return index of the transformation of the point corresponding to the topology
+	 */	
+	int TPZTetrahedron::GetTransformId(int side, TPZVec<int> &id)
+	{
+		LOGPZ_ERROR(logger,"Please implement me")
+		return -1;
+	}
+	
+	/**
+	 * Identifies the permutation of the nodes needed to make neighbouring elements compatible 
+	 * in terms of order of shape functions
+	 * @param side : side for which the permutation is needed
+	 * @param id : ids of the corner nodes of the elements
+	 * @param permgather : permutation vector in a gather order
+	 */
+	void TPZTetrahedron::GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather)
+	{
+		LOGPZ_ERROR(logger,"Please implement me")
+		int nel = permgather.NElements();
+		int iel;
+		for(iel=0; iel<nel; iel++)
+			permgather[iel]=iel;
+	}
+	
+	
+	
 }

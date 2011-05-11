@@ -16,9 +16,15 @@
 #include "pzquad.h"
 #include "tpzint1point.h"
 #include "pzeltype.h"
+#include "tpzquadrilateral.h"
 
 #include "pzcreateapproxspace.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.topology.pzcube"));
+#endif
 using namespace std;
 
 namespace pztopology {
@@ -256,17 +262,17 @@ static REAL MidSideNode[27][3] = {
 void TPZCube::LowerDimensionSides(int side,TPZStack<int> &smallsides)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      for(int is = 0; is < nsidecon - 1; is++)
-     smallsides.Push(SideConnectLocId(side,is));
+     smallsides.Push(ContainedSideLocId(side,is));
 }
 
 void TPZCube::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
 {
      smallsides.Resize(0);
-     int nsidecon = NSideConnects(side);
+     int nsidecon = NContainedSides(side);
      for(int is = 0; is < nsidecon - 1; is++) {
-     if (SideDimension(SideConnectLocId(side,is)) == DimTarget) smallsides.Push(SideConnectLocId(side,is));
+     if (SideDimension(ContainedSideLocId(side,is)) == DimTarget) smallsides.Push(ContainedSideLocId(side,is));
   }
 }
 
@@ -630,12 +636,12 @@ MElementType TPZCube::Type(int side)
 }
 
 
-int TPZCube::NConnects() {
+int TPZCube::NumSides() {
 	return 27;
 }
 
 
-int TPZCube::NSideConnects(int side) {
+int TPZCube::NContainedSides(int side) {
   if(side<0) return -1;
   if(side<8) return 1;//cantos : 0 a 7
   if(side<20)	return 3;//lados : 8 a 19
@@ -643,9 +649,23 @@ int TPZCube::NSideConnects(int side) {
   if(side==26)	return 27;//centro : 26
   return -1;
 }
-
+	/**
+	 return number of sides of dimension dimension
+	 **/
+	int TPZCube::NumSides(int dimension) {
+		if(dimension<0 || dimension> 3) {
+		PZError << "TPZCube::NumSides. Bad parameter i.\n";
+		return 0;
+	}
+		if(dimension==0) return 8;
+		if(dimension==1) return 12;
+		if(dimension==2) return 6;
+		if(dimension==3) return 1;
+		return -1;
+	}
+	
 // Pronto 23/04/98
-int TPZCube::SideConnectLocId(int side, int node) {
+int TPZCube::ContainedSideLocId(int side, int node) {
   if(side<0 || side>26) return -1;
   if(side<8) {
     if(node==0) return side;
@@ -675,7 +695,7 @@ int TPZCube::SideConnectLocId(int side, int node) {
   else if(side==26){
     return node;
   }
-  PZError << "TPZShapeCube::SideConnectLocId called for node = "
+  PZError << "TPZShapeCube::ContainedSideLocId called for node = "
 	  << node << " and side = " << side << "\n";
   return -1;
 }
@@ -692,4 +712,88 @@ bool TPZCube::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
   }  
 }///method
 
+/**
+ * Method which identifies the transformation based on the IDs
+ * of the corner nodes
+ * @param id indexes of the corner nodes
+ * @return index of the transformation of the point corresponding to the topology
+ */
+int TPZCube::GetTransformId(TPZVec<int> &id)
+{
+	LOGPZ_ERROR(logger,"GetTransformId not implemented")
+	return -1;
 }
+/**
+ * Method which identifies the transformation of a side based on the IDs
+ * of the corner nodes
+ * @param id indexes of the corner nodes
+ * @return index of the transformation of the point corresponding to the topology
+ */	
+int TPZCube::GetTransformId(int side, TPZVec<int> &id)
+{
+	switch (side) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+			return 0;
+			break;
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		case 14:
+		case 15:
+		case 16:
+		case 17:
+		case 18:
+		case 19:
+		{
+			int in1 = ContainedSideLocId(side,0);
+			int in2 = ContainedSideLocId(side,1);
+			return id[in1]<id[in2] ? 0 : 1;
+		}
+			break;
+		case 20:
+		case 21:
+		case 22:
+		case 23:
+		case 24:
+		case 25:
+		{
+			TPZManVector<int,4> locid;
+			int i;
+			for(i=0; i<4; i++) locid[i] = id[ContainedSideLocId(side,i)];
+            return pztopology::TPZQuadrilateral::GetTransformId(locid);
+//			return pzshape::TPZShapeQuad::GetTransformId2dQ(locid);
+		}
+			break;			
+		case 26:
+			LOGPZ_ERROR(logger,"Please Implement me")
+			return -1;
+		default:
+			break;
+	}
+	return -1;
+}
+
+/**
+ * Identifies the permutation of the nodes needed to make neighbouring elements compatible 
+ * in terms of order of shape functions
+ * @param side : side for which the permutation is needed
+ * @param id : ids of the corner nodes of the elements
+ * @param permgather : permutation vector in a gather order
+ */
+void TPZCube::GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather)
+{
+}
+	
+	
+	
+};

@@ -60,6 +60,11 @@ static void HigherDimensionSides(int side, TPZStack<int> &high);
   * return the number of nodes (not connectivities) associated with a side
   */
 static int NSideNodes(int side);
+	/**
+	 * return the number of connects for a set dimension
+	 */
+static int NumSides(int dimension);
+	
  /**
   * returns the local node number of the node "node" along side "side"
   */
@@ -121,23 +126,49 @@ static MElementType Type(int side);
  * Number of connects of the element (3)
  * @return number of connects of the element
  */
-static int NConnects();
+static int NumSides();
 
  /**
   * return the number of nodes (not connectivities) associated with a side
   */
-static int NSideConnects(int side);
+static int NContainedSides(int side);
  /**
   * returns the local connect number of the connect "c" along side "side"
   */
-static int SideConnectLocId(int side, int c);
+static int ContainedSideLocId(int side, int c);
 
 	/// function pointer which determines the type of computational element
-	/**
+/**
 	 * function pointer which determines what type of computational element will be created
-	 */
-	static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+ */
+ static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+    
+ /**
+ * Method which identifies the transformation based on the IDs
+ * of the corner nodes
+ * @param id indexes of the corner nodes
+ * @return index of the transformation of the point corresponding to the topology
+ */
+static int GetTransformId(TPZVec<int> &id);
 
+/**
+ * Method which identifies the transformation of a side based on the IDs
+ * of the corner nodes
+ * @param id indexes of the corner nodes
+ * @return index of the transformation of the point corresponding to the topology
+ */	
+static int GetTransformId(int side, TPZVec<int> &id);
+
+/**
+ * Identifies the permutation of the nodes needed to make neighbouring elements compatible 
+ * in terms of order of shape functions
+ * @param side : side for which the permutation is needed
+ * @param id : ids of the corner nodes of the elements
+ * @param permgather : permutation vector in a gather order
+ */
+static void GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather);
+	
+	
 };
 
 }
