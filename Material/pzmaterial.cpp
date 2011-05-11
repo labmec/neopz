@@ -52,7 +52,8 @@ void TPZMaterial::SetLinearContext(bool IsLinear){
   fLinearContext = IsLinear;
 }
 
-void TPZMaterial::FillDataRequirements(TPZMaterialData &data){
+void TPZMaterial::FillDataRequirements(TPZMaterialData &data)
+{
   data.SetAllRequirements(true);
   data.fNeedsNeighborSol = false;
   data.fNeedsNeighborCenter = false;
