@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
+
 project (PZ)
 
 include_directories(
@@ -33,14 +34,18 @@ include_directories(${PTHREAD_INCLUDE})
 link_directories(${PTHREAD_LIB_INCLUDE})
 link_libraries(pthread)
 
+#specify where the refinement patterns can be found (default behaviour when running the code)
+add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
+
 option(USING_BOOST "Whether the Boost package will be linked with the library" ON)
 
 if(USING_BOOST)
 	
-	find_package( Boost 1.36.0 )
+	find_package( Boost )
    		if(Boost_FOUND)
 			add_definitions(-DUSING_BOOST)
       		include_directories(${Boost_INCLUDE_DIRS})
+			link_libraries($(Boost_LIB_DIRS))
    		endif()
 endif()
 
@@ -64,14 +69,11 @@ if(USING_LOG4CXX)
 	link_libraries(log4cxx)
 endif()
 
-#configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/config.h)
-#configure_file(${PROJECT_SOURCE_DIR}/PZ_USER.mk.in ${PROJECT_BINARY_DIR}/PZ_USER.mk)
-
 add_subdirectory(Util)
 add_subdirectory(Common)
 add_subdirectory(Save)
 add_subdirectory(Integral)
-#add_subdirectory(LinearSolvers)
+add_subdirectory(LinearSolvers)
 add_subdirectory(Matrix)
 add_subdirectory(Topology)
 add_subdirectory(Geom)
@@ -82,7 +84,6 @@ add_subdirectory(External)
 add_subdirectory(Material)
 add_subdirectory(Mesh)
 add_subdirectory(Analysis)
-#add_subdirectory(Cosys)
 add_subdirectory(Multigrid)
 add_subdirectory(Post)
 add_subdirectory(Frontal)
@@ -94,8 +95,6 @@ add_subdirectory(Projects)
 
 enable_testing()
 
-add_test (TestShapeRuns Projects/testshape/TestShape)
-
-add_test (TestGeomRuns Projects/testgeom/TestGeom)
+add_test (PZTesting Projects/UnitTest/PZTests)
 
 include(CTest)
