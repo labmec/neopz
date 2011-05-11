@@ -159,7 +159,8 @@ int Count()
 {
   return fRef->fCounter;
 }
-const int Count() const
+
+int Count() const
 {
   return fRef->fCounter;
 }
