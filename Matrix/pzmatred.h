@@ -65,7 +65,7 @@ public:
   TPZMatRed(const int dim, const int dim00);
 
 	template<class TSideCopy>
-	TPZMatRed<TSideMatrix>(const TPZMatRed<TSideCopy> &cp): TPZMatrix(cp), fK01(cp.fK01), fK10(cp.fK10), fK11(cp.fK11), fF0(cp.fF0), fF1(cp.fF1)
+	TPZMatRed<TSideMatrix>(const TPZMatRed<TSideCopy> &cp): TPZMatrix(cp), fK11(cp.fK11), fK01(cp.fK01), fK10(cp.fK10), fF0(cp.fF0), fF1(cp.fF1)
 	{
 		fDim0=cp.fDim0;
 		fDim1=cp.fDim1;
@@ -224,7 +224,7 @@ template class TPZMatRed<TPZFMatrix>;
   /**
    * Saveable methods
    */
-  int ClassId();
+  int ClassId() const;
 
   //TPZMATRED_FMATRIX_ID
   virtual void Write(TPZStream &buf, int withclassid);

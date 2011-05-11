@@ -89,7 +89,7 @@ public:
   /**
    * Saveable methods
    */
-  int ClassId()
+  int ClassId() const
   {
     return TPZVERYSPARSEMATRIX_ID;
   }

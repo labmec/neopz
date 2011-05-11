@@ -35,7 +35,7 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatred"));
 /******************/
 /*** Construtor ***/
 template<class TSideMatrix>
-TPZMatRed<TSideMatrix>::TPZMatRed () : TPZMatrix( 0, 0 ), fK01(0,0),fK10(0,0),fK11(0,0),fF0(0,0),fF1(0,0)
+TPZMatRed<TSideMatrix>::TPZMatRed () : TPZMatrix( 0, 0 ), fK11(0,0),fK01(0,0),fK10(0,0),fF0(0,0),fF1(0,0)
 {
   fDim0=0;
   fDim1=0;
@@ -49,8 +49,8 @@ TPZMatRed<TSideMatrix>::TPZMatRed () : TPZMatrix( 0, 0 ), fK01(0,0),fK10(0,0),fK
 
 
 template<class TSideMatrix>
-TPZMatRed<TSideMatrix>::TPZMatRed( int dim, int dim00 ):TPZMatrix( dim,dim ), fK01(dim00,dim-dim00,0.), 
-	fK10(dim-dim00,dim00,0.), fK11(dim-dim00,dim-dim00,0.), fF0(dim00,1,0.),fF1(dim-dim00,1,0.) 
+TPZMatRed<TSideMatrix>::TPZMatRed( int dim, int dim00 ):TPZMatrix( dim,dim ), fK11(dim-dim00,dim-dim00,0.), fK01(dim00,dim-dim00,0.), 
+	fK10(dim-dim00,dim00,0.), fF0(dim00,1,0.),fF1(dim-dim00,1,0.) 
 {
 
   if(dim<dim00) TPZMatrix::Error(__PRETTY_FUNCTION__,"dim k00> dim");
@@ -653,19 +653,20 @@ TPZMatRed<TSideMatrix>::Error(const char *msg ,const char *msg2)
 
 #include "tpzverysparsematrix.h"
 
+template <>
+int TPZMatRed<TPZVerySparseMatrix>::ClassId() const
+{
+    return TPZMATRED_VERYSPARSE_ID;
+}
+template <>
+int TPZMatRed<TPZFMatrix>::ClassId() const
+{
+    return TPZMATRED_FMATRIX_ID;
+}
+
+
 template class TPZMatRed<TPZVerySparseMatrix>;
 template class TPZMatRed<TPZFMatrix>;
-
-template <>
-int TPZMatRed<TPZVerySparseMatrix>::ClassId()
-{
-  return TPZMATRED_VERYSPARSE_ID;
-}
-template <>
-int TPZMatRed<TPZFMatrix>::ClassId()
-{
-  return TPZMATRED_FMATRIX_ID;
-}
 
 template class TPZRestoreClass<TPZMatRed<TPZVerySparseMatrix>, TPZMATRED_VERYSPARSE_ID>;
 template class TPZRestoreClass<TPZMatRed<TPZFMatrix>, TPZMATRED_FMATRIX_ID>;
