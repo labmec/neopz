@@ -76,14 +76,16 @@ TPZGeoElement<TGeo,TRef>::TPZGeoElement(int id,TPZVec<int> &nodeindexes,int mati
   for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }
 
+/*
 template< class TGeo, class TRef >
-void TPZGeoElement< TGeo, TRef >::Initialize(TPZVec<int> &nodeindices, int matind, TPZGeoMesh& mesh, int& index ) {
+void TPZGeoElement< TGeo, TRef >::Initialize(TPZVec<int> &nodeindices ) {
 
-TPZGeoElRefLess<TGeo>::Initialize(nodeindices,matind,mesh,index);
+    TPZGeoElRefLess<TGeo>::Initialize(nodeindices);
   for( int i = 0; i < TRef::NSubEl; i++ ){
      fSubEl[ i ] = 0;
   }
 }
+*/
 
 template<class TGeo, class TRef>
 TPZGeoElement<TGeo,TRef>::TPZGeoElement() : TPZGeoElRefLess<TGeo>() {

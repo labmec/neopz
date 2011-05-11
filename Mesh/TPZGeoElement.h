@@ -1,7 +1,7 @@
 
 // -*- c++ -*-
 
-// $Id: TPZGeoElement.h,v 1.20 2007-11-30 11:34:28 phil Exp $
+// $Id: TPZGeoElement.h,v 1.21 2011-05-11 01:43:23 phil Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
@@ -50,7 +50,7 @@ public:
                   std::map<int,int> &gl2lcNdIdx,
                   std::map<int,int> &gl2lcElIdx );
 
-  void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
+//  void Initialize(TPZVec<int> &nodeindices);
   //  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh );
   //  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh, int& index );
 
