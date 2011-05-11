@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.cpp,v 1.14 2010-08-12 13:50:04 phil Exp $ 
+//$Id: pzmaterialdata.cpp,v 1.15 2011-05-11 02:18:08 phil Exp $ 
 
 #include "pzmaterialdata.h"
 #include "pzmaterial.h"
@@ -16,9 +16,7 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
-
-
-TPZMaterialData::TPZMaterialData(){
+TPZMaterialData::TPZMaterialData() : numberdualfunctions(0){
   this->SetAllRequirements(false);
   this->intPtIndex = -1;
 	this->leftdetjac = 0.;
@@ -69,6 +67,12 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
   this->intPtIndex = cp.intPtIndex;
   this->XLeftElCenter = cp.XLeftElCenter;
   this->XRightElCenter = cp.XRightElCenter;
+	this->fVecShapeIndex = cp.fVecShapeIndex;
+	this->fNormalVec = cp.fNormalVec;
+	this->numberdualfunctions = cp.numberdualfunctions;
+	
+	
+	
   return *this;
 }
 
@@ -114,26 +118,8 @@ void TPZMaterialData::InvertLeftRightData(){
     this->normal[i] *= -1.;
   }
 }
-/*
-TPZFNMatrix<220> phi, phil, phir;
-TPZFNMatrix<660> dphix, dphixl, dphixr;
-TPZFNMatrix<9> axes, axesleft, axesright;
-TPZFNMatrix<9> jacobian, leftjac, rightjac;
-TPZFNMatrix<9> jacinv, leftjacinv, rightjacinv;
-TPZManVector<REAL,3> normal;
-TPZManVector<REAL,3> x;
-int p, leftp, rightp;
-TPZManVector<REAL,10> sol, soll, solr;
-TPZFNMatrix<30> dsol, dsoll, dsolr;
-REAL HSize;
-REAL detjac, leftdetjac, rightdetjac;
-TPZManVector<REAL,3> XLeftElCenter, XRightElCenter;
 
-// Index of the current integration point being evaluated 
-// Needed for materials with memory 
 
-int intPtIndex;
-*/
 
 /**
  * Save the element data to a stream

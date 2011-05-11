@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.h,v 1.13 2010-08-12 13:50:04 phil Exp $
+//$Id: pzmaterialdata.h,v 1.14 2011-05-11 02:18:08 phil Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
@@ -36,6 +36,17 @@ public:
   REAL HSize;
   REAL detjac, leftdetjac, rightdetjac;
   TPZManVector<REAL,3> XLeftElCenter, XRightElCenter;
+
+	int numberdualfunctions;
+	TPZManVector<std::pair<int,int> > fVecShapeIndex;
+//	TPZManVector<int> fShapeIndex;
+	TPZFNMatrix<100> fNormalVec;
+
+
+
+
+
+
 
 /** Index of the current integration point being evaluated **/
 /** Needed for materials with memory **/
