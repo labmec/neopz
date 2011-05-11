@@ -27,7 +27,7 @@ enum {NNodes = 3};
       return false;
   }
 
-  TPZQuadraticLine(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
+  TPZQuadraticLine(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
   {
   }
 

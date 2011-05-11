@@ -1,4 +1,4 @@
-﻿#ifndef TPZCURVEDTRIANGLE_H
+#ifndef TPZCURVEDTRIANGLE_H
 #define TPZCURVEDTRIANGLE_H
 
 // #include "pzfmatrix.h"
@@ -29,7 +29,7 @@ public:
 
    ~TPZCurvedTriangle();
 
-    TPZCurvedTriangle(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
+    TPZCurvedTriangle(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes)
     {
     }
 

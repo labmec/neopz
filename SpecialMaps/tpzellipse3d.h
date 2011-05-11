@@ -46,7 +46,7 @@ public:
     TPZEllipse3D(const TPZEllipse3D &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
     }
 
-	TPZEllipse3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
+	TPZEllipse3D(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
 	}
 
     /**

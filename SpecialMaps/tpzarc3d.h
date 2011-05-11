@@ -6,10 +6,12 @@
 // #include "pzgmesh.h"
 
 
-//#include "pzgeoel.h"
+#include "pzgeoel.h"
 #include "pznoderep.h"
 // #include "pzgnode.h"
 #include "tpzline.h"
+#include "tpzgeoelrefpattern.h"
+
 
 #include <iostream>
 
@@ -51,28 +53,36 @@ public:
           this->fRadius   = cp.fRadius;
     }
 
-    TPZArc3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
+    TPZArc3D(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes), fICnBase(3,3), fIBaseCn(3,3) {
 		int nnod = nodeindexes.NElements();
 		if(nnod != 3)
 		{
 			std::cout << "Arc geometry created with " << nnod << " nodes, bailing out\n";
 			DebugStop();
 		}
+    }
+
+	TPZArc3D(TPZFMatrix &coord){
+		ComputeAtributes(coord);
+	}
+    
+    /// Initialize the internal data structure of the arc using the coordinates of the nodes
+    void Initialize(TPZGeoEl *refel)
+    {
+        int nnod = 3;
 		TPZFMatrix coord(3,nnod);
 		int nod, co;
 		for(nod=0; nod<3; nod++)
 		{
 			for(co=0; co<3; co++)
 			{
-				coord(co,nod) = mesh.NodeVec()[nodeindexes[nod]].Coord(co);
+				coord(co,nod) = refel->NodePtr(nod)->Coord(co);
 			}
 		}
 		ComputeAtributes(coord);
+        
     }
 
-	TPZArc3D(TPZFMatrix &coord){
-		ComputeAtributes(coord);
-	}
 
     void X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result);
     void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);

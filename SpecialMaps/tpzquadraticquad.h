@@ -27,7 +27,7 @@ public:
           return false;
      }
 
-     TPZQuadraticQuad(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
+     TPZQuadraticQuad(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
      {
      }
 
