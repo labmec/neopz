@@ -1,4 +1,3 @@
-﻿
 //
 // Author: PHILIPPE DEVLOO
 //
