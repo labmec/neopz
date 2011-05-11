@@ -38,7 +38,7 @@ void TPZBiharmonicEstimator::SetExactSolutions(
   this->fDualExactSol = fd;
 }
 
-static REAL Pi = 4.*atan(1.);
+//static REAL Pi = 4.*atan(1.);
 std::ofstream CE ( "debugContributeErros.txt" );
 // std::ofstream CoutPontual ( "solPontual.txt" );
 void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,

@@ -1,6 +1,6 @@
 //pzanalysis.cpp
-//$Id: pzanalysis.cpp,v 1.58 2010-08-20 21:04:31 diogo Exp $
-//$Id: pzanalysis.cpp,v 1.58 2010-08-20 21:04:31 diogo Exp $
+//$Id: pzanalysis.cpp,v 1.59 2011-05-11 01:12:37 phil Exp $
+//$Id: pzanalysis.cpp,v 1.59 2011-05-11 01:12:37 phil Exp $
 
 // -*- c++ -*-
 #include "pzanalysis.h"
@@ -61,7 +61,8 @@ void TPZAnalysis::SetStructuralMatrix(TPZStructMatrix &strmatrix){
 void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix){
 		fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix->Clone());
 }
-TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fGuiInterface(NULL), fRenumber(new RENUMBER), fTable() {
+TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER)
+        , fGuiInterface(NULL), fTable() {
 	 fGraphMesh[0] = 0;
 	 fGraphMesh[1] = 0;
 	 fGraphMesh[2] = 0;
@@ -69,7 +70,7 @@ TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSo
 
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh,std::ostream &out) :
-		fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fGuiInterface(NULL), fRenumber(new RENUMBER),  fTable()
+		fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -78,7 +79,7 @@ TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh,std::ostream &out) :
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh,std::ostream &out) :
-		fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fGuiInterface(NULL), fRenumber(new RENUMBER),  fTable()
+		fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -370,11 +371,26 @@ void TPZAnalysis::LoadShape(double ,double , int ,TPZConnect* start){
    fSolution.Zero();
 
 }
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
 
 void TPZAnalysis::Run(std::ostream &out)
 {
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
 	Assemble();
-  Solve();
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    Solve();
+
+#ifdef USING_BOOST
+    boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
+
+    std::cout << "Time for assembly " << t2-t1 << " Time for solving " << t3-t2 << std::endl;
+#endif
 }
 
 void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile) {
