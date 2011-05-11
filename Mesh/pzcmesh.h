@@ -1,5 +1,5 @@
-﻿// -*- c++ -*-
-//$Id: pzcmesh.h,v 1.51 2011-04-01 11:52:28 fortiago Exp $
+// -*- c++ -*-
+//$Id: pzcmesh.h,v 1.52 2011-05-11 02:39:30 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
@@ -13,6 +13,7 @@
 #include "tpzautopointer.h"
 #include "pzreal.h" // Added by ClassView
 #include "pzsave.h"
+#include "pzgmesh.h"
 
 //#include "pzanalysis.h"
 //#include <iostream>
@@ -287,7 +288,7 @@ public:
    * Return an index to a new connect
    * @param blocksize new connect block size - default value = 0
    */
-  virtual  int AllocateNewConnect(int blocksize=0);
+  virtual  int AllocateNewConnect(int blocksize=0, int order = 0);
 
   /**
    * Insert a material object in the datastructure
@@ -538,6 +539,7 @@ static  void SetAllCreateFunctionsDiscontinuous();
 static  void SetAllCreateFunctionsContinuous();
 static  void SetAllCreateFunctionsDiscontinuousReferred();
 static  void SetAllCreateFunctionsContinuousReferred();
+static  void SetAllCreateFunctionsHDiv();
 static  void SetAllCreateFunctions(TPZCompEl &cel);
 
   /**
@@ -667,12 +669,13 @@ static  void SetAllCreateFunctions(TPZCompEl &cel);
 /**
  * Allocates new connecto in the mesh
  */
-inline int TPZCompMesh::AllocateNewConnect(int blocksize) {
+inline int TPZCompMesh::AllocateNewConnect(int blocksize, int order) {
   int connectindex = fConnectVec.AllocateNewElement();
   int blocknum = fBlock.NBlocks();
   fBlock.SetNBlocks(blocknum+1);
   fBlock.Set(blocknum,blocksize);
   fConnectVec[connectindex].SetSequenceNumber(blocknum);
+    fConnectVec[connectindex].SetOrder(order);
   return connectindex;
 }
 
