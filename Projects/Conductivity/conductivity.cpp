@@ -55,7 +55,9 @@
 static LoggerPtr logger(Logger::getLogger("pz.conductivity"));
 #endif
 
+#ifdef USING_BOOST
 #include "boost/date_time/posix_time/posix_time.hpp"
+#endif
 
 using namespace std;
 
@@ -290,10 +292,14 @@ REAL Conductivity(REAL L, REAL delta, REAL height)
     an.SetSolver(solve);
     std::cout << "before running\n";
     std::cout << "neq " << cmesh->NEquations() << std::endl;
+#ifdef USING_BOOST
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
     an.Run();
+#ifdef USING_BOOST
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
     std::cout << "t1 " << t1 << " t2 " << t2 << " elapse " << t2-t1 << "finished\n";
+#endif
     
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("POrder");

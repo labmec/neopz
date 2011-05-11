@@ -17,6 +17,8 @@
 
 #else
 
+#include <iostream>
+
 int main()
 {
     std::cout << "Boost needs to be configured for testing to work\n";
