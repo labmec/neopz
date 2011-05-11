@@ -31,6 +31,7 @@
 //#include "TPZfTime.h"
 
 #include <sstream>
+#include <map>
 #include "pzlog.h"
 
 
@@ -1276,8 +1277,8 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 				}
 			}
 		}
-		if (gelcluster.size() != (size_type)domain_index_count[mydomainindex]) {
-			if (gelcluster.size() > (size_type)domain_index_count[mydomainindex]) {
+		if (gelcluster.size() != (std::set<TPZCompEl *>::size_type)domain_index_count[mydomainindex]) {
+			if (gelcluster.size() > (std::set<TPZCompEl *>::size_type)domain_index_count[mydomainindex]) {
 				DebugStop();
 			}
 			domain_index_count[mydomainindex] -= gelcluster.size();
