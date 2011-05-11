@@ -29,10 +29,11 @@ class TPZGeoQuad  : public TPZNodeRep<4, pztopology::TPZQuadrilateral>
 public:
 
 	enum {NNodes = 4};
+	enum {NVectors = 18};
   /**
   * Constructor with list of nodes
    */
- TPZGeoQuad(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
+ TPZGeoQuad(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
  {
  }
   
@@ -72,6 +73,16 @@ static std::string TypeName() { return "Quad";}
 
   /** implementation of two-dimensional bilinear interpolation*/
 static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
+
+	/** implementation of normal vector to Hdiv space*/
+	/** construct the normal vector for element hdiv*/
+static void VecHdiv(TPZFMatrix & coord,TPZFMatrix &fNormalVec,TPZVec<int> & fVectorSide);
+	/** computes the vecorial product of the two vectors*/ 
+static void VectorialProduct(TPZVec<REAL> &v1, TPZVec<REAL> &v2,TPZVec<REAL> &result);
+	/** computes */
+static void ComputeNormal(TPZVec<REAL> &p1, TPZVec<REAL> &p2,TPZVec<REAL> &p3,TPZVec<REAL> &result);
+	
+	
 
   /**Computes the jacobian*/
 static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);

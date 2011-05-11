@@ -45,7 +45,7 @@ namespace pzgeom {
 		/**
 		 * Constructor with list of nodes
 		 */
-		TPZGeoPoint(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
+		TPZGeoPoint(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
 		{
 		}
 		

@@ -31,7 +31,7 @@ public:
   /**
   * Constructor with list of nodes
    */
- TPZGeoTetrahedra(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes)
+ TPZGeoTetrahedra(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes)
  {
  }
   

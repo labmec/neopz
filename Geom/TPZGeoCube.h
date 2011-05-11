@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: TPZGeoCube.h,v 1.11 2009-11-23 19:30:53 phil Exp $
+// $Id: TPZGeoCube.h,v 1.12 2011-05-11 01:38:40 phil Exp $
 
 //HEADER FILE FOR CLASS TPZGeoCube
 
@@ -30,7 +30,7 @@ public:
   /**
   * Constructor with list of nodes
    */
- TPZGeoCube(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes, pztopology::TPZCube>(nodeindexes)
+ TPZGeoCube(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZCube>(nodeindexes)
  {
  }
   

@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzgeopyramid.h,v 1.12 2009-11-23 19:30:53 phil Exp $
+// $Id: pzgeopyramid.h,v 1.13 2011-05-11 01:38:41 phil Exp $
 
 // TPZGeoPiramid.h: interface for the TPZGeoQuad class.
 //
@@ -29,7 +29,7 @@ public:
   /**
   * Constructor with list of nodes
    */
- TPZGeoPyramid(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(nodeindexes)
+ TPZGeoPyramid(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(nodeindexes)
  {
  }
   

@@ -30,7 +30,7 @@ public:
   /**
   * Constructor with list of nodes
    */
- TPZGeoLinear(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
+ TPZGeoLinear(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
  {
  }
   
