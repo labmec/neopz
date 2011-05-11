@@ -31,7 +31,19 @@ void TPZSubMeshFrontalAnalysis::Run(std::ostream &out){
 	//fReducableStiff.Print("Reducable stiff before assembled");
 	fReferenceSolution = fSolution;
 	Assemble();
-	fSolver->Matrix()->Subst_Forward(&fRhs);
+//    fSolver->Solve(fRhs, fRhs);
+    if(fSolver->Matrix()->IsDecomposed() == ELU)
+    {
+        fSolver->Matrix()->Subst_Forward(&fRhs);
+    } else if(fSolver->Matrix()->IsDecomposed() == ECholesky)
+    {
+        fSolver->Matrix()->Subst_Forward(&fRhs);
+    } else if(fSolver->Matrix()->IsDecomposed() == ELDLt)
+    {
+        std::cout << "Dont know what to do...\n";
+        DebugStop();
+    }
+    
 }
 void TPZSubMeshFrontalAnalysis::CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef){
 //	ek = fReducableStiff.K11Red();
@@ -67,7 +79,18 @@ void TPZSubMeshFrontalAnalysis::LoadSolution(TPZFMatrix &sol)
 	}
 //	soltemp.Print("Solucao temporaria");
 //	cout.flush();
-	fSolver->Matrix()->Subst_Backward(&soltemp);
+    if(fSolver->Matrix()->IsDecomposed() == ELU)
+    {
+        fSolver->Matrix()->Subst_Backward(&soltemp);
+    } else if(fSolver->Matrix()->IsDecomposed() == ECholesky)
+    {
+        fSolver->Matrix()->Subst_Backward(&soltemp);
+    } else if(fSolver->Matrix()->IsDecomposed() == ELDLt)
+    {
+        std::cout << "Dont know what to do...\n";
+        DebugStop();
+    }
+
 	fSolution = fReferenceSolution + soltemp;
 //	fSolution.Print("Final Solution");
 //	cout.flush();
