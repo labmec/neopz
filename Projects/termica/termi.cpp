@@ -52,6 +52,11 @@
 //class TPZVec;
 //#define NOTDEBUG
 
+#include "pzgengrid.h"
+
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
 using namespace std;
 //M�todo para inser��o de materiais
 void InicializarMaterial(TPZCompMesh &cmesh);
@@ -66,7 +71,53 @@ void UmElemento3D(TPZGeoMesh &malha);
 //Inser�o de uma condi�o de contorno dada por uma fun�o
 void forcingfunction(TPZVec<REAL> &ponto, TPZVec<REAL> &force);
 
-int main(){
+int main()
+{
+//    TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
+    TPZVec<int> nx(2,64);
+    TPZVec<REAL> x0(2,0.),x1(2,1.);
+    TPZGenGrid grid(nx,x0,x1);
+    TPZGeoMesh gmesh;
+    grid.Read(gmesh);
+    grid.SetBC(&gmesh,0,-1);
+    grid.SetBC(&gmesh,1,-1);
+    grid.SetBC(&gmesh,2,-1);
+    grid.SetBC(&gmesh,3,-1);
+    TPZCompMesh cmesh(&gmesh);
+    TPZMatPoisson3d *poiss = new TPZMatPoisson3d(1,2);
+    TPZAutoPointer<TPZMaterial> autopoiss(poiss);
+    TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+    cmesh.InsertMaterialObject(autopoiss);
+    TPZBndCond *bc = new TPZBndCond(autopoiss, -1, 0, val1, val2);
+    TPZAutoPointer<TPZMaterial> bcauto(bc);
+    cmesh.InsertMaterialObject(bcauto);
+    cmesh.SetDefaultOrder(2);
+    cmesh.AutoBuild();
+    TPZAnalysis an(&cmesh);
+    TPZSkylineStructMatrix strskyl(&cmesh);
+    strskyl.SetNumThreads(2);
+    an.SetStructuralMatrix(strskyl);
+    TPZStepSolver solve;
+    solve.SetDirect(ECholesky);
+    an.SetSolver(solve);
+    std::cout << "before running\n";
+    std::cout << "neq " << cmesh.NEquations() << std::endl;
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    an.Run();
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+    std::cout << "t1 " << t1 << " t2 " << t2 << " elapse " << t2-t1 << "finished\n";
+#endif
+    TPZFMatrix vismat;
+    cmesh.ComputeFillIn(100,vismat);
+    VisualMatrixVTK(vismat,"matrixstruct.vtk");
+    return 0;
+    
+}
+
+int main44(){
   int n = 34, m = 42, p = 25;
   std::ofstream matrices("matrices.txt");
   TPZFMatrix A(m,n);
