@@ -1,4 +1,4 @@
-﻿//$Id: pzsubcmesh.cpp,v 1.50 2011-03-24 18:23:48 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.51 2011-05-11 02:54:17 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -242,13 +242,14 @@ int TPZSubCompMesh::main() {
 
 
 
-TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, int &index) : TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index)  {
+TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, int &index) : TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index),
+        fSingularConnect(-1) {
 
 	fAnalysis = NULL;
 
 }
 
-TPZSubCompMesh::TPZSubCompMesh() : TPZCompMesh(), TPZCompEl()  {
+TPZSubCompMesh::TPZSubCompMesh() : TPZCompMesh(), TPZCompEl(), fSingularConnect(-1)  {
 
 	fAnalysis = NULL;
 }
@@ -302,6 +303,10 @@ void TPZSubCompMesh::ComputeNodElCon()
 	for (it=fFatherToLocal.begin(); it!=fFatherToLocal.end(); it++) {
 		fConnectVec[it->second].IncrementElConnected();
 	}
+    if(fSingularConnect >= 0)
+    {
+        fConnectVec[fSingularConnect].IncrementElConnected();
+    }
 	/*
 	int ic;
 	for(ic = 0; ic< fConnectVec.NElements(); ic++)
@@ -379,7 +384,7 @@ int TPZSubCompMesh::NodeIndex(int nolocal, TPZCompMesh *super)
 	return neighbour->GetFromSuperMesh(rootindex,root);*/
 }
 
-int TPZSubCompMesh::AllocateNewConnectSub(int blocksize, int order){
+int TPZSubCompMesh::AllocateNewConnect(int blocksize, int order){
 /*	int connectindex = fConnectIndex.AllocateNewElement();
 	int blocknum = fBlock.NBlocks();
 	fBlock.SetNBlocks(blocknum+1);
@@ -469,7 +474,7 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 	{
 		int blocksize=super->ConnectVec()[superind].NDof(*(TPZCompMesh *)super);
 		int order = super->ConnectVec()[superind].Order();
-		int gl = AllocateNewConnectSub(blocksize,order);
+		int gl = AllocateNewConnect(blocksize,order);
 		fConnectIndex.Resize(fConnectIndex.NElements()+1);
 		fConnectIndex[fConnectIndex.NElements()-1] = superind;
 		fExternalLocIndex[gl] = fConnectIndex.NElements()-1;
@@ -586,7 +591,6 @@ void TPZSubCompMesh::MakeInternal(int local){
 
 void TPZSubCompMesh::MakeInternalFast(int local){
 	TransferDependencies(local);
-	int i;
 	int localindex = fExternalLocIndex[local];
 	int fatherindex = fConnectIndex[localindex];
 	fConnectIndex[localindex] = -1;
@@ -609,7 +613,6 @@ TPZCompMesh * TPZSubCompMesh::RootMesh(int local){
  */
 void TPZSubCompMesh::MakeAllInternal(){
 //	TPZStack<int> stack;
-	int i,j;
 	//TPZVec<int> nelcon;
 	TPZCompMesh *father = FatherMesh();
 	TPZAdmChunkVector<TPZConnect> &connectvec = father->ConnectVec();
@@ -753,7 +756,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 		count++;
 	}	
 #ifdef DEBUG 
-	if (count != fFatherToLocal.size()) {
+	if (count != (int)fFatherToLocal.size()) {
 		DebugStop();
 	}
 #endif
@@ -934,7 +937,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	//	TPZFMatrix &MeshSol = Mesh()->Solution();
 	// clean ek and ef
 
-	int nmeshnodes = fConnectVec.NElements();
+//	int nmeshnodes = fConnectVec.NElements();
 	int numeq=0, numeq2=0;
 	//??
 	int ic;
@@ -949,7 +952,16 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		numeq2 += blsize;
 	}
 	int numeq3 = Mesh()->NEquations();
-
+    {
+        int ftlsize = fFatherToLocal.size();
+        int ncon = fConnectIndex.NElements();
+    
+        if(ftlsize != ncon)
+        {
+            std::cout << "Number of connects of the submesh out of sink\n";
+            DebugStop();
+        }
+    }
 	std::map<int,int>::iterator it;
 	for (it=fFatherToLocal.begin(); it!=fFatherToLocal.end(); it++) 
 	{
@@ -1184,18 +1196,19 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
 
 	TPZAutoPointer<TPZStructMatrix> fstr = NULL;
 	if(numThreads){
-		fstr = new TPZParFrontStructMatrix<TPZFrontSym>(this);
-		static_cast<TPZParFrontStructMatrix<TPZFrontSym> *>(fstr.operator->())
+		fstr = new TPZParFrontStructMatrix<TPZFrontNonSym>(this);
+		static_cast<TPZParFrontStructMatrix<TPZFrontNonSym> *>(fstr.operator->())
 		    ->SetNumberOfThreads(numThreads+2);///o frontal tem dois threads auxiliares
 	}
 	else{
-		fstr = new TPZFrontStructMatrix<TPZFrontSym>(this);
+		fstr = new TPZFrontStructMatrix<TPZFrontNonSym>(this);
 	}
 
 	fstr->SetNumThreads(numThreads);
 	fAnalysis->SetStructuralMatrix(fstr);
 
 	TPZStepSolver solver;
+    solver.SetDirect(ELU);
 	fAnalysis->SetSolver(solver);
 
 	PermuteExternalConnects();
@@ -1514,6 +1527,7 @@ void TPZSubCompMesh::Write(TPZStream &buf, int withclassid)
   WriteObjects(buf,fConnectIndex);
   WriteObjects(buf,fExternalLocIndex);
 	WriteObjects(buf, fFatherToLocal);
+    buf.Write(&fSingularConnect,1);
 }
 
   /**
@@ -1526,6 +1540,7 @@ void TPZSubCompMesh::Read(TPZStream &buf, void *context)
   ReadObjects(buf,fConnectIndex);
   ReadObjects(buf,fExternalLocIndex);
 	ReadObjects(buf, fFatherToLocal);
+    buf.Read(&fSingularConnect,1);
 }
 
 void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
@@ -1641,7 +1656,7 @@ bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
 bool TPZSubCompMesh::VerifyDatastructureConsistency()
 {
 	// all elements of fConnectIndex should be found in fFatherToSub map
-	if (fConnectIndex.NElements() != fFatherToLocal.size()) {
+	if (fConnectIndex.NElements() != (int)fFatherToLocal.size()) {
 		DebugStop();
 	}
 	int numberexternal = fConnectIndex.NElements();
@@ -1669,4 +1684,56 @@ bool TPZSubCompMesh::VerifyDatastructureConsistency()
 		}
 	}
 	return true;
+}
+
+int TPZSubCompMesh::NumberRigidBodyModes()
+{
+	if (fSingularConnect == -1) {
+		return 0;
+	}
+	int seqnum = fConnectVec[fSingularConnect].SequenceNumber();
+	return fBlock.Size(seqnum);
+	
+}
+
+
+/// Set the number of rigid body modes associated with the internal degrees of freedom
+void TPZSubCompMesh::SetNumberRigidBodyModes(int nrigid)
+{
+	if (fSingularConnect == -1) {
+		fSingularConnect = AllocateNewConnect(nrigid,0);
+		fConnectVec[fSingularConnect].IncrementElConnected();
+		int extind = FatherMesh()->AllocateNewConnect(nrigid);
+		FatherMesh()->ConnectVec()[extind].IncrementElConnected();
+		int next = fConnectIndex.NElements();
+		fConnectIndex.Resize(next+1);
+		fConnectIndex[next] = extind;
+		fExternalLocIndex[fSingularConnect] = next;
+        fFatherToLocal[extind] = fSingularConnect;
+        ExpandSolution();
+	}
+	else if(fSingularConnect != -1 && nrigid >0 ) {
+		int seqnum = fConnectVec[fSingularConnect].SequenceNumber();
+		fBlock.Set(seqnum,nrigid);
+        ExpandSolution();
+		int extind = fExternalLocIndex[fSingularConnect];
+		TPZCompMesh *fathermesh = FatherMesh();
+		if (fathermesh && extind < 0) {
+			DebugStop();
+		}
+		while (fathermesh && extind > 0) {
+			seqnum = fathermesh->ConnectVec()[extind].SequenceNumber();
+			fathermesh->Block().Set(seqnum, nrigid);
+            fathermesh->ExpandSolution();
+			TPZSubCompMesh *subfather = dynamic_cast<TPZSubCompMesh *> (fathermesh);
+			if (subfather) {
+				extind = subfather->fExternalLocIndex[extind];
+			}
+			fathermesh = fathermesh->FatherMesh();
+		}
+	}
+	else {
+		// not implemented yet
+		DebugStop();
+	}	
 }

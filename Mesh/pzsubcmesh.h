@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.h,v 1.28 2011-03-24 19:50:33 phil Exp $
+//$Id: pzsubcmesh.h,v 1.29 2011-05-11 02:54:17 phil Exp $
 
 // -*- c++ -*-
 // subcmesh.h: interface for the TPZSubCompMesh class.
@@ -17,6 +17,7 @@
 //#include "pzsmanal.h"
 #include "pzvec.h"
 #include "pzreal.h"
+#include "pzanalysis.h"
 
 class TPZSubMeshFrontalAnalysis;
 class TPZSubMeshAnalysis;
@@ -60,6 +61,9 @@ protected:
 	 * map indicating the correspondence between the connect index of the father mesh and de local connect id
 	 */
 	std::map<int,int> fFatherToLocal;
+    
+    /// Number of rigid body modes expected by the internal matrix inversion
+    int fSingularConnect;
 
 
 private:
@@ -285,7 +289,7 @@ public:
 	//	/**
   //     * Virtual Method!
   //     */
-	virtual int AllocateNewConnectSub(int blocksize, int order);
+	virtual int AllocateNewConnect(int blocksize, int order);
 
   //    /**
   //     * Gives the id node  of one local node in containing mesh.
@@ -392,6 +396,12 @@ public:
   virtual void Read(TPZStream &buf, void *context);
 	
 	bool VerifyDatastructureConsistency();
+    
+    /// Set the number of rigid body modes associated with the internal degrees of freedom
+    void SetNumberRigidBodyModes(int nrigid);
+    
+    /// Return the number of rigid body modes associated with the internal degrees of freedom
+    int NumberRigidBodyModes();
 
 };
 
