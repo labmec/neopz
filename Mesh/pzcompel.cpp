@@ -1,4 +1,4 @@
-﻿//$Id: pzcompel.cpp,v 1.51 2011-03-28 18:19:42 fortiago Exp $
+//$Id: pzcompel.cpp,v 1.52 2011-05-11 02:27:20 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS
 
@@ -840,6 +840,25 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
   }
   for(i=0;i<nelems;i++)
   if(locexpand[i].Element()) expandvec.Push(locexpand[i]);
+}
+
+
+ /// Return the index of the middle side connect alon fSide
+int TPZCompElSide::ConnectIndex() const
+{
+    if(fEl)
+    {
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(fEl);
+        if(intel)
+        {
+            return intel->ConnectIndex(intel->MidSideConnectLocId(fSide));
+        }
+        else
+        {
+            return fEl->ConnectIndex(fSide);
+        }
+    }
+    else return -1;
 }
 
 

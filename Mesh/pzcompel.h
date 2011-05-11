@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// $Id: pzcompel.h,v 1.46 2010-11-08 15:44:31 phil Exp $
+// $Id: pzcompel.h,v 1.47 2011-05-11 02:27:20 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
@@ -706,10 +706,7 @@ public:
   /**
    * Return the index of the middle side connect alon fSide
    */
-  int ConnectIndex() const{
-    if(fEl) return fEl->ConnectIndex(fSide);
-    else return -1;
-  }
+    int ConnectIndex() const;
 
   bool operator != (const TPZCompElSide &other);
   bool operator == (const TPZCompElSide &other);
