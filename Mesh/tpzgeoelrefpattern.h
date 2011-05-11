@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
                           tpzgeoelrefpattern.h  -  description
                              -------------------
     begin                : Tue Dec 23 2003
@@ -59,7 +59,7 @@ public:
 	TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
 	TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
 	TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
-	void Initialize(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index,TPZAutoPointer<TPZRefPattern> refpat);
+//	void Initialize(TPZVec<int> &nodeindices, TPZAutoPointer<TPZRefPattern> refpat);
 	
 	/** return 1 if the element has subelements along side*/
 	int HasSubElement()
@@ -185,9 +185,10 @@ TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int
 TPZGeoElRefLess<TGeo>(id,nodeindexes,matind,mesh) {
 }
 
+/*
 template<class TGeo>
-void TPZGeoElRefPattern<TGeo>::Initialize(TPZVec<int> &nodeindices, int matind, TPZGeoMesh& mesh, int& index, TPZAutoPointer<TPZRefPattern> refpat) {
-	TPZGeoElRefLess<TGeo>::Initialize(nodeindices,matind,mesh,index);
+void TPZGeoElRefPattern<TGeo>::Initialize(TPZVec<int> &nodeindices, TPZAutoPointer<TPZRefPattern> refpat) {
+	TPZGeoElRefLess<TGeo>::Initialize(nodeindices);
 	fRefPattern = refpat;
 	if(fRefPattern)
 	{
@@ -195,6 +196,7 @@ void TPZGeoElRefPattern<TGeo>::Initialize(TPZVec<int> &nodeindices, int matind, 
 		fSubEl.Fill(-1);
 	}
 }
+*/
 
 template<class TGeo>
 void TPZGeoElRefPattern<TGeo>::SetSubElement(int id, TPZGeoEl *el){
