@@ -283,6 +283,13 @@ void DeterminantInverse(REAL &determinant, TPZFMatrix &inverse);
 	 */
 	virtual bool Compare(TPZSaveable *copy, bool override = false);
 	
+	/// Compare the object for identity with the object pointed to, eventually copy the object
+	/**
+	 * compare both objects bitwise for identity. Put an entry in the log file if different
+	 * generate an interupt if the override flag is true and the objects are different
+	 */
+	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
+	
   operator const REAL*() const { return fElem; }
 
   static void PrintStatic(const REAL *ptr, int rows, int cols, const char *name, std::ostream& out,const MatrixOutputFormat form);

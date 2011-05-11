@@ -1,4 +1,3 @@
-﻿
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -1531,6 +1530,45 @@ bool TPZFMatrix::Compare(TPZSaveable *copy, bool override)
 	if(!matresult && override) 
 	{
 		this->operator=(*fmat);
+	}
+	return matresult;
+}
+
+/// Compare the object for identity with the object pointed to, eventually copy the object
+/**
+ * compare both objects bitwise for identity. Put an entry in the log file if different
+ * overwrite the calling object if the override flag is true
+ */
+bool TPZFMatrix::Compare(TPZSaveable *copy, bool override) const
+{
+	TPZFMatrix *fmat = dynamic_cast<TPZFMatrix *> (copy);
+	if(!fmat) return false;
+    
+	bool matresult = TPZMatrix::Compare(copy,false);
+	int nel = fRow*fCol;
+	REAL diff=0.;
+	int numdif = 0;
+	int iel;
+	for(iel=0; iel<nel; iel++)
+	{
+		if(fElem[iel] != fmat->fElem[iel]) 
+		{
+			matresult = false;
+			numdif++;
+		}
+		diff += fabs(fElem[iel]-fmat->fElem[iel]);
+	}
+	if(!matresult)
+	{
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__ << " did not compare ";
+		sout << " number different terms " << numdif << " number terms " << fRow*fCol;
+		sout << " difference in norm L1 " << diff;
+		LOGPZ_ERROR(loggerCheck,sout.str())
+	}
+	if(!matresult && override) 
+	{
+		DebugStop();
 	}
 	return matresult;
 }
