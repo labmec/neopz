@@ -83,7 +83,7 @@ virtual bool Compare(TPZSaveable *copy, bool override = false);
 /// Compare the object for identity with the object pointed to, eventually copy the object
 /**
  * compare both objects bitwise for identity. Put an entry in the log file if different
- * overwrite the calling object if the override flag is true
+ * generate an interupt if the override flag is true
  */
 virtual bool Compare(TPZSaveable *copy, bool override = false) const;
 	
