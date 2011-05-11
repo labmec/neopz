@@ -6,6 +6,7 @@
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include "pzgeoel.h"
+#include "tpzgeoelrefpattern.h"
 
 using namespace std;
 

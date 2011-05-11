@@ -5,6 +5,7 @@
 #include "pzquad.h"
 #include "pzshapelinear.h"
 #include "pzgeoel.h"
+#include "tpzgeoelrefpattern.h"
 
 #include "pzlog.h"
 
@@ -34,8 +35,8 @@ TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
       int index;
       TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
       //      TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
-      TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::SideConnectLocId(side,0)));
-      TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::SideConnectLocId(side,1)));
+      TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
+      TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
       TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
       return gel;
   }
@@ -90,7 +91,7 @@ TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
         if(IsZero(detjac))
         {
             std::stringstream sout;
-            sout << "Singular Jacobian " << detjac;
+            sout << __PRETTY_FUNCTION__ << "Singular Jacobian " << detjac;
             LOGPZ_ERROR(logger, sout.str())
             detjac = ZeroTolerance();
         }

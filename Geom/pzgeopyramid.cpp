@@ -1,4 +1,4 @@
-﻿// TPZGeoPyramid.c: implementation of the TPZGeoPyramid class.
+// TPZGeoPyramid.c: implementation of the TPZGeoPyramid class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -14,6 +14,8 @@
 //#include "pzelgt3d.h"
 #include "pzshapetetra.h"
 #include "pzshapepiram.h"
+#include "tpzgeoelrefpattern.h"
+
 
 #include "pzlog.h"
 
@@ -513,8 +515,8 @@ TPZGeoEl *TPZGeoPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		int index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 		//		TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
-		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::SideConnectLocId(side,0)));
-		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::SideConnectLocId(side,1)));
+		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::ContainedSideLocId(side,0)));
+		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::ContainedSideLocId(side,1)));
 		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;
 	}
@@ -529,7 +531,7 @@ TPZGeoEl *TPZGeoPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		  TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EQuadrilateral,nodes,bc,index);
 		  //      		gelq = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
 			for (iside=0; iside<8; iside++){
-				TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::SideConnectLocId(side,iside)));
+				TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::ContainedSideLocId(side,iside)));
 			}
 			TPZGeoElSide(gel,8).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;
@@ -540,7 +542,7 @@ TPZGeoEl *TPZGeoPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
 			//			gelt = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
 			for (iside=0; iside<6; iside++){
-				TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::SideConnectLocId(side,iside)));
+				TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::ContainedSideLocId(side,iside)));
 			}
 			TPZGeoElSide(gel,6).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;

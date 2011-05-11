@@ -13,6 +13,8 @@
 //#include "pzelgpi3d.h"
 //#include "pzelgt3d.h"
 #include "pzshapetetra.h"
+#include "tpzgeoelrefpattern.h"
+
 
 using namespace pzshape;
 using namespace std;
@@ -332,8 +334,8 @@ TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		int index;
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
 		//		TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
-		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::SideConnectLocId(side,0)));
-		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::SideConnectLocId(side,1)));
+		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,0)));
+		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,1)));
 		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;
 	} else if (side > 9) {//side = 10 a 13 : faces
@@ -346,7 +348,7 @@ TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
 		//		TPZGeoElT2d *gel = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
 		for (in=0;in<6;in++){
-			TPZGeoElSide(gel,in).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::SideConnectLocId(side,in)));
+			TPZGeoElSide(gel,in).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,in)));
 		}
 		TPZGeoElSide(gel,6).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;

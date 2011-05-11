@@ -5,6 +5,7 @@
 #include "pzgeoel.h"
 #include "pzshapecube.h"
 #include "pzquad.h"
+#include "tpzgeoelrefpattern.h"
 
 #include "pzlog.h"
 
@@ -198,8 +199,8 @@ TPZGeoEl *TPZGeoCube::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc) {
       //      TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
       int index;
       TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
-      TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeCube::SideConnectLocId(side,0)));
-      TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeCube::SideConnectLocId(side,1)));
+      TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeCube::ContainedSideLocId(side,0)));
+      TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeCube::ContainedSideLocId(side,1)));
       TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
       return gel;
     } 
@@ -214,7 +215,7 @@ TPZGeoEl *TPZGeoCube::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc) {
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EQuadrilateral,nodes,bc,index);
 		//		TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
 		for (in=0;in<8;in++){
-			TPZGeoElSide(gel,in).SetConnectivity(TPZGeoElSide(orig,TPZShapeCube::SideConnectLocId(side,in)));
+			TPZGeoElSide(gel,in).SetConnectivity(TPZGeoElSide(orig,TPZShapeCube::ContainedSideLocId(side,in)));
 		}
 		TPZGeoElSide(gel,8).SetConnectivity(TPZGeoElSide(orig,side));
 		return gel;

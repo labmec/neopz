@@ -7,6 +7,7 @@
 #include "pzgeoel.h"
 #include "pzquad.h"
 #include "pzshapeprism.h"
+#include "tpzgeoelrefpattern.h"
 
 #include "pzlog.h"
 
@@ -365,9 +366,9 @@ TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		nodes[1] = orig->SideNodeIndex(side,1);//NodeIndex(TPZCompElPr3d::SideNodes[s][1]);
 		//TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
-		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,0)));
+		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::ContainedSideLocId(side,0)));
 		//(TPZGeoElSide(this,TPZCompElPr3d::SideNodes[s][0]));
-		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,1)));
+		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::ContainedSideLocId(side,1)));
 		//(TPZGeoElSide(this,TPZCompElPr3d::SideNodes[s][1]));
 		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));//(TPZGeoElSide(this,side));
 		result = gel;//->CreateCompEl(cmesh,index);
@@ -385,7 +386,7 @@ TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
     		//gelq = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
 			
 			for (iside=0;iside<8;iside++){
-				TPZGeoElSide(gelq,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,iside)));
+				TPZGeoElSide(gelq,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::ContainedSideLocId(side,iside)));
 			}
 			TPZGeoElSide(gelq,8).SetConnectivity(TPZGeoElSide(orig,side));
 			result = gelq;
@@ -395,7 +396,7 @@ TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 			//			gelt = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
 			int iside;
 			for (iside=0;iside<6;iside++){
-				TPZGeoElSide(gelt,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::SideConnectLocId(side,iside)));
+				TPZGeoElSide(gelt,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePrism::ContainedSideLocId(side,iside)));
 			}
 			TPZGeoElSide(gelt,6).SetConnectivity(TPZGeoElSide(orig,side));
 			result = gelt;
