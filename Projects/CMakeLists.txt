@@ -12,6 +12,9 @@ add_subdirectory(testmat)
 add_subdirectory(visualmatrix)
 add_subdirectory(Steam)
 add_subdirectory(ThermalStress)
+add_subdirectory(HDiv)
+add_subdirectory(Conductivity)
+add_subdirectory(UnitTest)
 
 #add_subdirectory(viga3d)
 #add_subdirectory(CarmargoCorrea)
@@ -23,39 +26,5 @@ add_subdirectory(ThermalStress)
 #add_subdirectory(teste)
 
 
-########### install files ###############
 
 
-
-
-#original Makefile.am contents follow:
-
-##
-## NeoPZ Projects makefile
-##
-## It will be processed by GNU automake to produce Makefile.in
-##
-## $Id#
-##
-#
-#DISTCLEANFILES = @PZ_DISTCLEANFILES@
-#CLEANFILES     = @PZ_CLEANFILES@
-#
-#-include $(top_builddir)/@PZ_MK@
-#
-##SUBDIRS =
-##checkconv testmat Adapt_MultThread termica Descontinuo2 Heman NonLinBiharmonic
-#
-##deletecheckcont cycleref qualif
-#
-##caju cylin placyl 
-#
-##cesar pzvc  Adapt_MultThread adaptivity Adapt_Phil  Error Bench
-#
-##longhin Bench
-#
-#SUBDIRS = CarmargoCorrea CursoPZ DiffusionTest Heman LuisGuilherme \
-#	SingularShapeFunction angletest checkconv materialhyperelastico matrix multplaca \
-#	termica teste testgeom testmat testshape viga3d visualmatrix
-#
-### --| NeoPZ |------------------------------------------------------------------
