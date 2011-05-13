@@ -1204,10 +1204,8 @@ int TPZCompElHDiv<TPZShapePoint>::ClassId() const
   return TPZHDIVPOINTID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZCompElHDiv<TPZShapePoint>, TPZHDIVPOINTID>;
-#endif
 
 
 template<>
@@ -1216,10 +1214,8 @@ int TPZCompElHDiv<TPZShapeLinear>::ClassId() const
   return TPZHDIVLINEARID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>, TPZINTELLINEARID>;
-#endif
 
 template<>
 int TPZCompElHDiv<TPZShapeTriang>::ClassId() const
@@ -1227,10 +1223,8 @@ int TPZCompElHDiv<TPZShapeTriang>::ClassId() const
 	return TPZHDIVTRIANGLEID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZCompElHDiv<TPZShapeTriang>, TPZHDIVTRIANGLEID>;
-#endif
 
 template<>
 int TPZCompElHDiv<TPZShapeQuad>::ClassId() const
@@ -1238,10 +1232,8 @@ int TPZCompElHDiv<TPZShapeQuad>::ClassId() const
 	return TPZHDIVQUADID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZCompElHDiv<TPZShapeQuad>, TPZHDIVQUADID>;
-#endif
 
 template<>
 int TPZCompElHDiv<TPZShapeCube>::ClassId() const
@@ -1249,10 +1241,8 @@ int TPZCompElHDiv<TPZShapeCube>::ClassId() const
 	return TPZHDIVCUBEID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZCompElHDiv<TPZShapeCube>, TPZHDIVCUBEID>;
-#endif
 
 template<>
 int TPZCompElHDiv<TPZShapeTetra>::ClassId() const
@@ -1260,10 +1250,8 @@ int TPZCompElHDiv<TPZShapeTetra>::ClassId() const
 	return TPZHDIVTETRAID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZCompElHDiv<TPZShapeTetra>, TPZHDIVTETRAID>;
-#endif
 
 template<>
 int TPZCompElHDiv<TPZShapePrism>::ClassId() const
@@ -1271,10 +1259,8 @@ int TPZCompElHDiv<TPZShapePrism>::ClassId() const
 	return TPZHDIVPRISMID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>, TPZHDIVPRISMID>;
-#endif
 
 template<>
 int TPZCompElHDiv<TPZShapePiram>::ClassId() const
@@ -1282,10 +1268,8 @@ int TPZCompElHDiv<TPZShapePiram>::ClassId() const
 	return TPZHDIVPYRAMID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>, TPZHDIVPYRAMID>;
-#endif
 
 
 template class TPZCompElHDiv<TPZShapeTriang>;

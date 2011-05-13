@@ -553,9 +553,7 @@ int TPZBlock::ClassId() const
   return TPZBLOCKID;
 }
 
-#ifndef WIN32
 template class TPZRestoreClass< TPZBlock, TPZBLOCKID>;
-#endif
 
   /**
   Save the element data to a stream

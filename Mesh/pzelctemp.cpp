@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-// $Id: pzelctemp.cpp,v 1.49 2011-05-11 02:51:31 phil Exp $
+// $Id: pzelctemp.cpp,v 1.50 2011-05-13 20:19:55 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -431,10 +431,8 @@ int TPZIntelGen<pzshape::TPZShapePoint>::ClassId() const
   return TPZINTELPOINTID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZIntelGen<TPZShapePoint>, TPZINTELPOINTID>;
-#endif
 
 
 #include "pzshapelinear.h"
@@ -444,10 +442,8 @@ int TPZIntelGen<pzshape::TPZShapeLinear>::ClassId() const
   return TPZINTELLINEARID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZIntelGen<TPZShapeLinear>, TPZINTELLINEARID>;
-#endif
 
 #include "pzshapetriang.h"
 template<>
@@ -456,10 +452,8 @@ int TPZIntelGen<pzshape::TPZShapeTriang>::ClassId() const
 	return TPZINTELTRIANGLEID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZIntelGen<TPZShapeTriang>, TPZINTELTRIANGLEID>;
-#endif
 
 #include "pzshapequad.h"
 template<>
@@ -468,10 +462,8 @@ int TPZIntelGen<pzshape::TPZShapeQuad>::ClassId() const
 	return TPZINTELQUADID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZIntelGen<TPZShapeQuad>, TPZINTELQUADID>;
-#endif
 
 #include "pzshapecube.h"
 template<>
@@ -480,10 +472,8 @@ int TPZIntelGen<pzshape::TPZShapeCube>::ClassId() const
 	return TPZINTELCUBEID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZIntelGen<TPZShapeCube>, TPZINTELCUBEID>;
-#endif
 
 #include "pzshapetetra.h"
 template<>
@@ -492,10 +482,8 @@ int TPZIntelGen<pzshape::TPZShapeTetra>::ClassId() const
 	return TPZINTELTETRAID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZIntelGen<TPZShapeTetra>, TPZINTELTETRAID>;
-#endif
 
 #include "pzshapeprism.h"
 template<>
@@ -504,10 +492,8 @@ int TPZIntelGen<TPZShapePrism>::ClassId() const
 	return TPZINTELPRISMID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZIntelGen<TPZShapePrism>, TPZINTELPRISMID>;
-#endif
 
 #include "pzshapepiram.h"
 template<>
@@ -516,10 +502,8 @@ int TPZIntelGen<TPZShapePiram>::ClassId() const
 	return TPZINTELPYRAMID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZIntelGen<TPZShapePiram>, TPZINTELPYRAMID>;
-#endif
 
 
 

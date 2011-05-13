@@ -1,6 +1,6 @@
 /** @file TPZTimer.cpp */
 
-// $Id: TPZTimer.cpp,v 1.5 2011-05-13 19:41:30 phil Exp $
+// $Id: TPZTimer.cpp,v 1.6 2011-05-13 20:19:54 phil Exp $
 
 #include <sstream>
 #include <algorithm>
@@ -48,7 +48,7 @@ void TPZTimer::stop()
 }
 
 // Prints the time nicely formated.
-ostream& operator<<( ostream& Out, const TPZTimer& t )
+std::ostream& operator<<( std::ostream& Out, const TPZTimer& t )
 {
 	 double AcS = t.AccumSec;
 
@@ -87,7 +87,7 @@ ostream& operator<<( ostream& Out, const TPZTimer& t )
 
 // Prints the time nicely formated.
 
-ostream& operator<<( ostream& Out, const TPZMultiTimer& t )
+std::ostream& operator<<( std::ostream& Out, const TPZMultiTimer& t )
 {
    // First, we find the bigger process name, to align things.
 
