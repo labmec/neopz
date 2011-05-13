@@ -195,7 +195,7 @@ public:
   /**
    *Returns the pointer to the computational mesh
    **/
-  TPZCompMesh *Mesh() { return fCompMesh;}
+  TPZCompMesh *Mesh()const { return fCompMesh;}
   /**
   * Returns a reference to the structural matrix
   */
