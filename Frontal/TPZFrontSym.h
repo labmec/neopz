@@ -41,10 +41,8 @@ public:
      std::string GetMatrixType();
 
     /** Static main used for testing */
-#ifndef WIN32
 	 static void main();
-#endif
-    /** Simple destructor */
+		/** Simple destructor */
     ~TPZFrontSym();
     /** Simple constructor */
     TPZFrontSym();

@@ -375,7 +375,6 @@ TPZFrontNonSym::~TPZFrontNonSym(){}
 
 
 	
-#ifndef WIN32
 void TPZFrontNonSym::main()
 {
 	int i, j;
@@ -463,11 +462,10 @@ void TPZFrontNonSym::main()
 	Result.EqnBackward(Load_2, decType);
 	
 	Load_2.Print("Eqn");
-	
+
 
 
 }
-#endif
 
 std::string TPZFrontNonSym::GetMatrixType(){
      return "Non symmetric matrix";

@@ -172,7 +172,6 @@ TPZFront::~TPZFront(){
 
 
 /** Implements tests for TPZFront */
-#ifndef WIN32
 void TPZFront::main()
 {
 	int i, j;
@@ -196,15 +195,15 @@ void TPZFront::main()
 
 //	Prova.Decompose_Cholesky();
 	Prova.Print("TPZFMatrix Cholesky");
-	
+
 	TPZFront TestFront(matsize);
 
-		
+
 	TPZVec<int> DestIndex(matsize);
 	for(i=0;i<matsize;i++) DestIndex[i]=i;
 
 	TestFront.SymbolicAddKel(DestIndex);
-	TestFront.SymbolicDecomposeEquations(0,matsize-1); 
+	TestFront.SymbolicDecomposeEquations(0,matsize-1);
 
 	std::string OutFile;
 	OutFile = "TPZFrontTest.txt";
@@ -214,14 +213,14 @@ void TPZFront::main()
 //	TestFront.Compress();
 
 //	TestFront.AllocData();
-	
+
 //	TestFront.AddKel(TestMatrix, DestIndex);
 	TPZEqnArray Result;
-	
+
 	/*TestFront.DecomposeEquations(0,0,Result);
-	
+
 	TestFront.Print(OutFile, output);
-	
+
 	ofstream outeqn("TestEQNArray.txt",ios::app);
 	Result.Print("TestEQNArray.txt",outeqn);
 
@@ -233,7 +232,7 @@ void TPZFront::main()
 	ofstream outeqn("TestEQNArray.txt",ios::app);
 
 	Result.Print("TestEQNArray.txt",outeqn);
-	
+
 
 	TPZFMatrix Load(matsize);
 
@@ -248,23 +247,22 @@ void TPZFront::main()
 
 //	Prova.Subst_Forward(&Load);
 //	Prova.Subst_Backward(&Load);
-	
+
 
 	DecomposeType decType = ECholesky;
 	Prova.SolveDirect(Load, decType);
 
 	Load.Print();
 	//TestFront.Print(OutFile, output);
-	
+
 	Result.EqnForward(Load_2, decType);
 	Result.EqnBackward(Load_2, decType);
-	
+
 	Load_2.Print("Eqn");
-	
+
 
 
 }
-#endif
 void TPZFront::Reset(int GlobalSize)
 {
 	fData.Resize(0);
@@ -274,8 +272,8 @@ void TPZFront::Reset(int GlobalSize)
 	fLocal.Resize(GlobalSize);
 	fLocal.Fill(-1);
 	fMaxFront=0;
-        fExpandRatio = 200;
-        fWork = 0;
+				fExpandRatio = 200;
+				fWork = 0;
 }
 
 int TPZFront::NElements(){

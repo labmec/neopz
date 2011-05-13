@@ -22,11 +22,9 @@ class TPZFront {
 public:
 
     /** Static main used for testing */
-#ifndef WIN32
 
 	static void main();
 
-#endif
 	int NElements();
     /** Simple destructor */
     virtual ~TPZFront();

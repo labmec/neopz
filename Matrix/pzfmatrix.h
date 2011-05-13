@@ -515,7 +515,6 @@ inline int TPZFMatrix::Redim(const int newRows,const int newCols) {
 /***************/
 /****Zero*******/
 
-
 inline int TPZFMatrix::Zero() {
 	 int size = fRow * fCol * sizeof(REAL);
 	 memset(fElem,'\0',size);

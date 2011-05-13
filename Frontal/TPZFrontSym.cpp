@@ -338,7 +338,6 @@ TPZFrontSym::TPZFrontSym(){
 
 
 TPZFrontSym::~TPZFrontSym(){}
-#ifndef WIN32
 void TPZFrontSym::main()
 {
 	int i, j;
@@ -362,15 +361,15 @@ void TPZFrontSym::main()
 
 //	Prova.Decompose_Cholesky();
 	Prova.Print("TPZFMatrix Cholesky");
-	
+
 	TPZFrontSym TestFront(matsize);
 
-		
+
 	TPZVec<int> DestIndex(matsize);
 	for(i=0;i<matsize;i++) DestIndex[i]=i;
 
 	TestFront.SymbolicAddKel(DestIndex);
-	TestFront.SymbolicDecomposeEquations(0,matsize-1); 
+	TestFront.SymbolicDecomposeEquations(0,matsize-1);
 
 	std::string OutFile;
 	OutFile = "TPZFrontSymTest.txt";
@@ -380,14 +379,14 @@ void TPZFrontSym::main()
 	TestFront.Compress();
 
 	TestFront.AllocData();
-	
+
 	TestFront.AddKel(TestMatrix, DestIndex);
 	TPZEqnArray Result;
-	
+
 	/*TestFront.DecomposeEquations(0,0,Result);
-	
+
 	TestFront.Print(OutFile, output);
-	
+
 	ofstream outeqn("TestEQNArray.txt",ios::app);
 	Result.Print("TestEQNArray.txt",outeqn);
 
@@ -399,7 +398,7 @@ void TPZFrontSym::main()
 	ofstream outeqn("TestEQNArray.txt",ios::app);
 
 	Result.Print("TestEQNArray.txt",outeqn);
-	
+
 
 	TPZFMatrix Load(matsize);
 
@@ -414,23 +413,22 @@ void TPZFrontSym::main()
 
 //	Prova.Subst_Forward(&Load);
 //	Prova.Subst_Backward(&Load);
-	
+
 
 	DecomposeType decType = ECholesky;
 	Prova.SolveDirect(Load, decType);
 
 	Load.Print();
 	//TestFront.Print(OutFile, output);
-	
+
 	Result.EqnForward(Load_2, decType);
 	Result.EqnBackward(Load_2, decType);
-	
+
 	Load_2.Print("Eqn");
-	
+
 
 
 }
-#endif
 
 std::string TPZFrontSym::GetMatrixType(){
      return "Symmetric matrix";

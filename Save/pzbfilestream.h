@@ -62,7 +62,7 @@ class TPZBFileStream : public TPZStream
   }
 
   virtual void Write(int *p, int size) {
-    Writes<int>(p,size);
+		Writes<int>(p,size);
   }
   
   virtual void Write(REAL *p, int size) {
