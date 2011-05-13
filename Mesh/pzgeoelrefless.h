@@ -50,7 +50,12 @@ public:
   TPZGeoElRefLess();
 
   /** Copy constructor */
-  TPZGeoElRefLess(const TPZGeoElRefLess &gel);
+	TPZGeoElRefLess(const TPZGeoElRefLess &gel);
+
+	virtual TPZGeoEl *Clone(TPZGeoMesh &dest) const
+	{
+			return new TPZGeoElRefLess(dest,*this);
+	}
 
   /** Copy constructor with elements in different meshes */
   TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeoElRefLess &cp);
@@ -62,13 +67,18 @@ public:
    * @param DestMesh destination patch mesh
    * @param cp element to be copied
    * @param gl2lcNdMap map of the node indexes between original and clone mesh
-   * @param gl2lcElMap map of the element indexes between original and clone mesh
+	 * @param gl2lcElMap map of the element indexes between original and clone mesh
    */
   TPZGeoElRefLess(TPZGeoMesh &DestMesh,
                   const TPZGeoElRefLess &cp,
-                  std::map<int,int> & gl2lcNdMap,
-                  std::map<int,int> & gl2lcElMap);
+									std::map<int,int> & gl2lcNdMap,
+									std::map<int,int> & gl2lcElMap);
 
+	TPZGeoEl *ClonePatchEl(TPZGeoMesh &destmesh,std::map<int,int> & gl2lcNdMap,
+									std::map<int,int> & gl2lcElMap) const
+	{
+		return new TPZGeoElRefLess(destmesh,*this,gl2lcNdMap, gl2lcElMap);
+	}
 
   TPZGeoElRefLess(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
 
@@ -93,7 +103,9 @@ public:
   static int main_refless();
 
   /** divides the element and puts the resulting elements in the vector */
-  virtual void Divide(TPZVec < TPZGeoEl * > & pv) = 0;
+	virtual void Divide(TPZVec < TPZGeoEl * > & pv){
+		DebugStop();
+	}
 
   /** return 1 if the element has subelements along side */
   //virtual int HasSubElement();
@@ -110,8 +122,8 @@ public:
    virtual  TPZGeoElSide Neighbour(int side) { return TPZGeoElSide(fNeighbours[side],this->Mesh()); }
 
    virtual  int NodeIndex(int node);
-	//HDiv
 
+	//HDiv
  virtual void VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec ,TPZVec<int> &sidevector);
 
  /**
@@ -286,7 +298,9 @@ public:
 
   virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
 
-  virtual void ResetSubElements()=0;
+	virtual void ResetSubElements(){
+		DebugStop();
+	}
 
   virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans)
   {
