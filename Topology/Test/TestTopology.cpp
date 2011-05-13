@@ -10,8 +10,6 @@
 #include "pztrnsform.h"
 #include "tpzline.h"
 
-#ifdef USING_BOOST
-
 #define BOOST_TEST_DYN_LINK
 //#define BOOST_TEST_MODULE topology trying
 #include <boost/test/unit_test.hpp>
@@ -47,5 +45,3 @@ BOOST_AUTO_TEST_CASE(projection_tests2)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
-#endif
