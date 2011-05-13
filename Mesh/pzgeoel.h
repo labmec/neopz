@@ -1,4 +1,4 @@
-//$Id: pzgeoel.h,v 1.50 2011-05-11 02:33:43 phil Exp $
+﻿//$Id: pzgeoel.h,v 1.51 2011-05-13 15:56:25 phil Exp $
 
 // -*- c++ -*-
 
@@ -308,8 +308,8 @@ virtual MElementType Type(int side) =0;
   virtual int NSideSubElements2(int side) = 0;
 
 	//HDiv
-
-	 virtual void VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector ) = 0;
+   /// computes the normal vectors needed for forming HDiv vector valued shape functions
+	 virtual void VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )=0;
 
 
   /**return a pointer to the father*/
