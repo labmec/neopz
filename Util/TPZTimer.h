@@ -9,7 +9,7 @@
  *
  * @author Cantao!
  */
-// $Id: TPZTimer.h,v 1.10 2009-11-23 20:20:27 phil Exp $
+// $Id: TPZTimer.h,v 1.11 2011-05-13 19:41:30 phil Exp $
 
 #ifndef TPZTIMER_H
 #define TPZTIMER_H
@@ -17,72 +17,19 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef BORLAND
-#include <winsock2.h>
-#include <time.h>
-#endif
-
 //--| resuse.{h,c} from GNU time |----------------------------------------------
 
 #include <time.h>
 
-// Checking for resource usage structure.
-
-#if HAVE_SYS_RUSAGE_H
-// This rusage structure measures nanoseconds instead of microseconds.
-#   define TV_MSEC tv_nsec / 1000000
-#   include <sys/rusage.h>
-#else
-#   define TV_MSEC tv_usec / 1000
-#   if HAVE_WAIT3
-#      include <sys/resource.h>
-# 	endif
-
-/// Process resource usage structure.
-struct pzrusage
-{
-  struct timeval ru_utime;	// User time used.
-  struct timeval ru_stime;	// System time used.
-
-  // They're here just for completeness.
-  int ru_maxrss, ru_ixrss, ru_idrss, ru_isrss,
-  ru_minflt, ru_majflt, ru_nswap, ru_inblock,
-  ru_oublock, ru_msgsnd, ru_msgrcv, ru_nsignals,
-  ru_nvcsw, ru_nivcsw;
-};
-#endif
-
 /// Information on the resources used by a child process.
 struct PZResourceUsage
 {
-      int waitstatus;
+			int waitstatus;
 
-      struct pzrusage ru;
 
-      struct timeval start, elapsed;   // Wallclock time of process.
+			clock_t start, elapsed;   // Wallclock time of process.
 } ;   // Change from the original "RESUSE".
 
-#if !HAVE_WAIT3
-#	ifndef BORLAND
-#   	include <sys/times.h>
-#   	ifndef HZ
-#      		include <sys/param.h>
-#   	endif
-#	endif
-#   if !defined(HZ) && defined(CLOCKS_PER_SEC)
-#      define HZ CLOCKS_PER_SEC
-#   endif
-#   if !defined(HZ) && defined(CLK_TCK)
-#      define HZ CLK_TCK
-#   endif
-#   ifndef HZ
-#      define HZ 60
-#   endif
-#endif
 
 //--| TPZTimer |----------------------------------------------------------------
 
