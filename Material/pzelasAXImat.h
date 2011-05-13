@@ -1,4 +1,4 @@
-#ifndef ELASAXIMATHPP
+﻿#ifndef ELASAXIMATHPP
 #define ELASAXIMATHPP
 
 #include <iostream>
@@ -9,7 +9,7 @@
 #include <vector>
 #include <math.h>
 
-const REAL Pi = 4.*atan(1);
+//const REAL Pi = 4.*atan(1);
 
 /// This class implements a two dimensional elastic material in plane stress or strain
 class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
