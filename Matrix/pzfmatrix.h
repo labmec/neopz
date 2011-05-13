@@ -515,9 +515,6 @@ inline int TPZFMatrix::Redim(const int newRows,const int newCols) {
 /***************/
 /****Zero*******/
 
-#ifdef WIN32
-#include <mem.h>
-#endif
 
 inline int TPZFMatrix::Zero() {
 	 int size = fRow * fCol * sizeof(REAL);

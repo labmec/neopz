@@ -1630,9 +1630,7 @@ int TPZFMatrix::ClassId() const
   return TPZFMATRIXID; 
 }
 
-#ifndef WIN32
 template class TPZRestoreClass< TPZFMatrix, TPZFMATRIXID>;
-#endif
 
 
 

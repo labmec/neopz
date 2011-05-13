@@ -340,8 +340,6 @@ int TPZMaterialTest3D::ClassId() const
   return TPZMATTEST3DID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass < TPZMaterialTest3D,TPZMATTEST3DID > ;
-#endif
 

@@ -22,9 +22,6 @@ extern "C"{
 #include "pzmatrix.h"
 #include "tpzverysparsematrix.h" 
 
-#ifdef WIN32
-#include <mem.h>
-#endif
 
 class TPZFMatrix;
 

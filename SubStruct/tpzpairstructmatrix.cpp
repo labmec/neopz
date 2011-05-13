@@ -89,9 +89,7 @@ void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix *first,
 			second->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
 		}
 		
-#ifndef WIN32
 		assemble.stop();
-#endif		
 	}//fim for iel
 #ifdef LOG4CXX
 	{

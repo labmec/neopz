@@ -5,9 +5,6 @@
 #include <fstream>
 #include <sstream>
 
-#ifdef WIN32
-#pragma warning (disable:4786)
-#endif
 
 #include "pzlog.h"
 

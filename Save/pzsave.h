@@ -6,9 +6,6 @@
 #include <map>
 #include <vector>
 
-#ifdef WIN32
-#pragma warning (disable:4786)
-#endif
 
 #include "pzvec.h"
 #include "pzmanvector.h"

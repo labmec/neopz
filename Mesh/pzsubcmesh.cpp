@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.51 2011-05-11 02:54:17 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.52 2011-05-13 20:46:50 phil Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -1512,10 +1512,8 @@ int TPZSubCompMesh::ClassId() const
   return TPZSUBCOMPMESHID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZSubCompMesh, TPZSUBCOMPMESHID>;
-#endif
 
   /**
   Save the element data to a stream

@@ -1,9 +1,9 @@
-//$Id: TPZCompElDisc.cpp,v 1.123 2011-05-11 02:48:14 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.124 2011-05-13 20:46:50 phil Exp $
 
 // -*- c++ -*-
 // -*- c++ -*-
 
-//$Id: TPZCompElDisc.cpp,v 1.123 2011-05-11 02:48:14 phil Exp $
+//$Id: TPZCompElDisc.cpp,v 1.124 2011-05-13 20:46:50 phil Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -855,10 +855,8 @@ int TPZCompElDisc::ClassId() const
   return TPZCOMPELDISCID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZCompElDisc, TPZCOMPELDISCID>;
-#endif
 
   /**
   Save the element data to a stream

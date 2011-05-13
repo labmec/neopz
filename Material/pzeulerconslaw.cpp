@@ -1,4 +1,4 @@
-//$Id: pzeulerconslaw.cpp,v 1.53 2011-02-11 18:23:52 phil Exp $
+//$Id: pzeulerconslaw.cpp,v 1.54 2011-05-13 20:46:51 phil Exp $
 
 #include "pzeulerconslaw.h"
 //#include "TPZDiffusionConsLaw.h"
@@ -2639,8 +2639,6 @@ void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
     return TPZEULERCONSLAW2ID;
 	}
 
-#ifndef WIN32
 	template class
 			TPZRestoreClass< TPZEulerConsLaw2, TPZEULERCONSLAW2ID>;
-#endif
 

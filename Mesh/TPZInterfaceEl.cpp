@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: TPZInterfaceEl.cpp,v 1.103 2011-05-11 02:49:31 phil Exp $
+//$Id: TPZInterfaceEl.cpp,v 1.104 2011-05-13 20:46:50 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -688,10 +688,8 @@ int TPZInterfaceElement::ClassId() const
   return TPZINTERFACEELEMENTID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZInterfaceElement, TPZINTERFACEELEMENTID>;
-#endif
 
   /**
   Save the element data to a stream

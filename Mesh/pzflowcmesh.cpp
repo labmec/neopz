@@ -1,4 +1,4 @@
-//$Id: pzflowcmesh.cpp,v 1.20 2008-04-09 14:26:31 caju Exp $
+//$Id: pzflowcmesh.cpp,v 1.21 2011-05-13 20:46:50 phil Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
@@ -225,10 +225,8 @@ int TPZFlowCompMesh::ClassId() const
    return TPZFLOWCOMPMESHID;
 }
 
-#ifndef WIN32
 template class
 		TPZRestoreClass< TPZFlowCompMesh, TPZFLOWCOMPMESHID>;
-#endif
 
 void TPZFlowCompMesh::Write(TPZStream &buf, int withclassid)
 {
