@@ -77,8 +77,10 @@ template class TPZGeoElRefLess<TPZGeoTetrahedra>;
 template class TPZGeoElRefLess<TPZGeoPyramid>;
 template class TPZGeoElRefLess<TPZGeoPoint>;
 
-int main_refless()
+static int main_refless()
 {
+
+TPZGeoEl * teste = new TPZGeoElRefLess<TPZGeoTriangle>;
 return 0;
 }
 
