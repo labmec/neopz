@@ -11,7 +11,6 @@
 #include "tpzline.h"
 
 #define BOOST_TEST_DYN_LINK
-//#define BOOST_TEST_MODULE topology trying
 #include <boost/test/unit_test.hpp>
 
 using namespace pztopology;
