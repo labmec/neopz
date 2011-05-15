@@ -96,5 +96,6 @@ add_subdirectory(Projects)
 enable_testing()
 
 add_test (PZTesting Projects/UnitTest/PZTests)
+add_test (VoidFluxTest Projects/Conductivity)
 
 include(CTest)
