@@ -19,18 +19,19 @@ public:
     /**
      * @param conductivity conductivity of the porous material
      */
-    TPZVoidFlux(int materialid, REAL conductivity) : TPZDiscontinuousGalerkin(materialid), fConductivity(conductivity)
+    TPZVoidFlux(int materialid, REAL conductivity, REAL bridgesize) : TPZDiscontinuousGalerkin(materialid), fConductivity(conductivity),
+        fBridgeSize(bridgesize)
     {
         
     }
     
     /// copy constructor
-    TPZVoidFlux(const TPZVoidFlux &cp) : TPZDiscontinuousGalerkin(cp), fConductivity(cp.fConductivity)
+    TPZVoidFlux(const TPZVoidFlux &cp) : TPZDiscontinuousGalerkin(cp), fConductivity(cp.fConductivity), fBridgeSize(cp.fBridgeSize)
     {
         
     }
     
-    TPZVoidFlux() : TPZDiscontinuousGalerkin(), fConductivity(0.)
+    TPZVoidFlux() : TPZDiscontinuousGalerkin(), fConductivity(0.), fBridgeSize(0.)
     {
         
     }
@@ -202,6 +203,9 @@ protected:
     
     /// Conductivity of the porous material
     REAL fConductivity;
+    
+    /// Thickness of the bridges between the voids
+    REAL fBridgeSize;
 };
 
 

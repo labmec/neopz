@@ -9,6 +9,14 @@
 #include "pzvoidflux.h"
 #include "pzbndcond.h"
 
+REAL fluxfunction(REAL ratio)
+{
+    REAL expval = log(ratio);
+    REAL logvalue = -3.04-2.21*expval-0.51*expval*expval-0.0597*expval*expval*expval-0.002638*expval*expval*expval*expval;
+    REAL result = exp(logvalue);
+    return result;
+}
+
 /** Fill material data parameter with necessary requirements for the
  * Contribute method. Here, in base class, all requirements are considered
  * as necessary. Each derived class may optimize performance by selecting
@@ -36,7 +44,7 @@ void TPZVoidFlux::FillDataRequirementsInterface(TPZMaterialData &data)
     data.fNeedsNeighborSol = false;
     data.fNeedsHSize = true;
     data.fNeedsNeighborCenter = true;
-    data.fNeedsNormal = false;
+    data.fNeedsNormal = true;
     if(fLinearContext == false){
         data.fNeedsNeighborSol = true;
     }
@@ -118,27 +126,41 @@ void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMa
     int nleft = data.phil.Rows();
     int nright = data.phir.Rows();
     if (nleft != 1 || nright != 1) {
+        std::cout << __PRETTY_FUNCTION__ << " works only for constant shape functions\n";
         DebugStop();
     }
+    TPZManVector<REAL,3> delleft(3), delright(3);
+    for (int i=0; i<3; i++) {
+        delleft[i] = data.x[i]-data.XLeftElCenter[i];
+        delright[i] = data.x[i] - data.XRightElCenter[i];
+    }
+    REAL distleft(0.),distright(0.);
+    for (int i=0; i<3; i++) {
+        distleft += delleft[i]*data.normal[i];
+        distright += delright[i]*data.normal[i];
+    }
+    REAL sumdist = fabs(distleft)+fabs(distright);
+    REAL ratio = fBridgeSize/sumdist;
+    REAL mult = fluxfunction(ratio);
     int il,jl,ir,jr;
     for (il=0; il<nleft; il++) {
         for (jl=0; jl<nleft; jl++) {
-            ek(il,jl) += weight*fConductivity*data.phil(il,0)*data.phil(jl,0);
+            ek(il,jl) += weight*fConductivity*mult*data.phil(il,0)*data.phil(jl,0);
         }
     }
     for (il=0; il<nleft; il++) {
         for (jr=0; jr<nright; jr++) {
-            ek(il,nleft+jr) -= weight*fConductivity*data.phil(il,0)*data.phir(jr,0);
+            ek(il,nleft+jr) -= weight*fConductivity*mult*data.phil(il,0)*data.phir(jr,0);
         }
     }
     for (ir=0; ir<nright; ir++) {
         for (jl=0; jl<nleft; jl++) {
-            ek(ir+nleft,jl) -= weight*fConductivity*data.phir(ir,0)*data.phil(jl,0);
+            ek(ir+nleft,jl) -= weight*fConductivity*mult*data.phir(ir,0)*data.phil(jl,0);
         }
     }
     for (ir=0; ir<nright; ir++) {
         for (jr=0; jr<nright; jr++) {
-            ek(ir+nleft,jr+nleft) += weight*fConductivity*data.phir(ir,0)*data.phir(jr,0);
+            ek(ir+nleft,jr+nleft) += weight*fConductivity*mult*data.phir(ir,0)*data.phir(jr,0);
         }
     }
 }
@@ -171,6 +193,18 @@ void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZF
     if (nleft != 1) {
         DebugStop();
     }
+    TPZManVector<REAL,3> delleft(3);
+    for (int i=0; i<3; i++) {
+        delleft[i] = data.x[i]-data.XLeftElCenter[i];
+    }
+    REAL distleft(0.);
+    for (int i=0; i<3; i++) {
+        distleft += delleft[i]*data.normal[i];
+    }
+    REAL sumdist = fabs(distleft);
+    REAL ratio = fBridgeSize/sumdist/2.;
+    REAL mult = fluxfunction(ratio);
+
     switch (bc.Type()) {
             /// Dirichlet pressure boundary
         case 0:
@@ -178,9 +212,9 @@ void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZF
             int il,jl;
             for (il=0; il<nleft; il++) {
                 for (jl=0; jl<nleft; jl++) {
-                    ek(il,jl) += weight*fConductivity*data.phil(il,0)*data.phil(jl,0);
+                    ek(il,jl) += weight*fConductivity*mult*data.phil(il,0)*data.phil(jl,0);
                 }
-                ef(il,0) += weight*fConductivity*bc.Val2()(0,0);
+                ef(il,0) += weight*fConductivity*mult*bc.Val2()(0,0);
             }
         }
             break;
@@ -271,6 +305,7 @@ void TPZVoidFlux::Write(TPZStream &buf, int withclassid)
 {
     TPZDiscontinuousGalerkin::Write(buf,withclassid);
     buf.Write(&fConductivity);
+    buf.Write(&fBridgeSize);
 }
 
 /**
@@ -280,6 +315,7 @@ void TPZVoidFlux::Read(TPZStream &buf, void *context)
 {
     TPZDiscontinuousGalerkin::Read(buf, context);
     buf.Read(&fConductivity);
+    buf.Read(&fBridgeSize);
 }
 
 /// create another material of the same type
@@ -293,6 +329,7 @@ void TPZVoidFlux::SetData(std::istream &data)
 {
     TPZDiscontinuousGalerkin::SetData(data);
     data >> fConductivity;
+    data >> fBridgeSize;
 }
 
 
