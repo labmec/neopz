@@ -1299,7 +1299,10 @@ REAL TPZGeoEl::SideArea(int side){
 		PZError << "TPZGeoEl::AreaFromTheFace side error, side = " << side << endl;
 	
 	if(SideDimension(side) != 2)
-		cout << "TPZGeoEl::SideArea not implemented for side = " << side << endl;
+    {
+		TPZGeoElSide gelside(this,side);
+        return gelside.Area();
+    }
 	
 	if(SideDimension(side) == 2){
 		

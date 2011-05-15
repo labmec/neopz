@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.h,v 1.27 2011-05-11 02:44:37 phil Exp $
+//$Id: pzgeoelside.h,v 1.28 2011-05-15 21:09:19 phil Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
@@ -86,8 +86,11 @@ class TPZGeoElSide {
          /** By Caju */
   void X(TPZVec< REAL > &loc, TPZVec< REAL > &result);
 	
-  /** By Caju */
+  /// Jacobian associated with the side of the element
   void Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+    
+    /// Area associated with the side
+    REAL Area();
 
   int NNeighbours();
 	
@@ -135,6 +138,9 @@ class TPZGeoElSide {
   int Exists() const {return (fGeoEl != 0 && fSide > -1);}
 
   void CenterPoint(TPZVec<REAL> &center);
+    
+    /// return the number of sides in which the current side can be decomposed
+    int NSides();
 
   TPZGeoElSide Neighbour() const;//return neighbour of the side fSide
 

@@ -1,4 +1,4 @@
-//$Id: pzgeoelside.cpp,v 1.37 2011-05-11 02:44:37 phil Exp $
+//$Id: pzgeoelside.cpp,v 1.38 2011-05-15 21:09:19 phil Exp $
 // -*- c++ -*-
 #include "pzgeoelside.h"
 #include "pzgeoel.h"
@@ -10,6 +10,7 @@
 #include "pzshapetriang.h"
 #include "pzcompel.h"
 #include "pzintel.h"
+#include "tpzintrule.h"
 
 using namespace pzshape;
 using namespace std;
@@ -140,6 +141,40 @@ void TPZGeoElSide::Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix 
       jacinv(2,2) = (-(jacobian(0,1)*jacobian(1,0)) + jacobian(0,0)*jacobian(1,1))/detjac;
   }
 }
+
+/// return the number of sides in which the current side can be decomposed
+int TPZGeoElSide::NSides()
+{
+    TPZStack<int> lower;
+    fGeoEl->LowerDimensionSides(fSide,lower);
+    return lower.NElements()+1;
+}
+
+
+/// Area associated with the side
+REAL TPZGeoElSide::Area()
+{
+	TPZManVector<REAL,3> elparam(fGeoEl->Dimension(),0.), sideparam(Dimension(),0);
+    TPZTransform tr = fGeoEl->SideToSideTransform(fGeoEl->NSides()-1, fSide);
+	REAL detjac;
+	TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3);
+    //supondo jacobiano constante: X linear
+	CenterPoint(elparam);
+    tr.Apply(elparam, sideparam);
+	Jacobian(sideparam,jacobian,axes,detjac,jacinv);
+    TPZIntPoints *intrule = fGeoEl->CreateSideIntegrationRule(fSide, 0);
+    REAL RefElVolume = 0.;
+    int np = intrule->NPoints();
+    TPZManVector<REAL,3> points(Dimension());
+    REAL weight;
+    for (int ip=0; ip<np; ip++) {
+        intrule->Point(ip, points, weight);
+        RefElVolume += weight;
+    }
+	return (RefElVolume*detjac);//RefElVolume(): volume do elemento de refer�ncia
+
+}
+
 
 int TPZGeoElSide::NNeighbours()
 {
