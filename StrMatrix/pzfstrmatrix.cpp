@@ -49,6 +49,9 @@ TPZMatrix * TPZFStructMatrix::Create(){
 }
 TPZFStructMatrix::TPZFStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {}
+
+TPZFStructMatrix::TPZFStructMatrix(TPZAutoPointer<TPZCompMesh> mesh) : TPZStructMatrix(mesh)
+{}
 TPZStructMatrix * TPZFStructMatrix::Clone(){
     return new TPZFStructMatrix(*this);
 }

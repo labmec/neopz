@@ -16,6 +16,8 @@ public:
 
     TPZFStructMatrix(TPZCompMesh *);
 
+    TPZFStructMatrix(TPZAutoPointer<TPZCompMesh> );
+    
     virtual TPZMatrix * Create();
 
     virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
