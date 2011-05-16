@@ -26,6 +26,7 @@ TPBrSteamMesh::TPBrSteamMesh(int numcells, REAL temperature, REAL pressure, REAL
 	fReservoirRadius = ReservoirRadius;
 	SetGeometricProgression(1.5);
 	fPrevState(0,0) = pressure;
+    fDelt = 1.;
 	int ic;
 	for (ic=0; ic<numcells; ic++) {
 		TPZManVector<int> equation,state;
@@ -58,11 +59,12 @@ int TPBrSteamMesh::Bandwidth()
 void TPBrSteamMesh::ExtractCellState(int cell, TPZFMatrix &glob, TPZVec<REAL> &cellstate)
 {
 	TPZManVector<int> equation,state;
-	CellDestination(cell,equation,state);
-	int nstate = equation.NElements();
+	CellDestination(cell,state,equation);
+	int nstate = state.NElements();
+    cellstate.Resize(nstate);
 	int is;
 	for (is=0; is<nstate; is++) {
-		cellstate[is] = glob(equation[is],0);
+		cellstate[is] = glob(state[is],0);
 	}
 }
 
@@ -70,11 +72,12 @@ void TPBrSteamMesh::ExtractCellState(int cell, TPZFMatrix &glob, TPZVec<REAL> &c
 void TPBrSteamMesh::ExtractInterfaceState(int interface, TPZFMatrix &glob, TPZVec<REAL> &interfacestate)
 {
 	TPZManVector<int> equation,state;
-	FluxDestination(interface,equation,state);
-	int nstate = equation.NElements();
+	FluxDestination(interface,state,equation);
+	int nstate = state.NElements();
+    interfacestate.Resize(nstate);
 	int is;
 	for (is=0; is<nstate; is++) {
-		interfacestate[is] = glob(equation[is],0);
+		interfacestate[is] = glob(state[is],0);
 	}
 }
 
@@ -178,6 +181,15 @@ void TPBrSteamMesh::ComputeTangent(TPZMatrix &tangent, TPZFMatrix &residual)
 	REAL coord = NodeCoord(0);
 	area = 2.*M_PI*coord;
 	delx = fFirstCellSize*(1.+1./fGeometricProgression)/2.;
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "before computing the inlet calcstiff\n";
+        sout << "inlet state " << inlet << std::endl;
+        sout << "face state " << face << std::endl;
+        sout << "cell state " << rightstate << std::endl;
+    }
+#endif
 	fInterface.InletCalcStiff(inlet,rightstate,face,delx,area,delt,ek,ef);
 	AssembleInterface(0, ek, ef, tangent, residual);
 	
@@ -236,6 +248,50 @@ REAL TPBrSteamMesh::Iterate()
 	bnd.SolveDirect(rhs,ELU);
 	fNextState -= rhs;
 	return residual;
+}
+
+
+void TPBrSteamMesh::Print(std::ostream &out)
+{
+    out << "Mesh for steam flux\n";
+    out << "Number of cells " << fNumCells << std::endl;
+    out << "Well radius " << fWellRadius << std::endl;
+    out << "Reservoir radius " << fReservoirRadius << std::endl;
+    out << "Geometric progression " << fGeometricProgression << std::endl;
+    out << "First cell size " << fFirstCellSize << std::endl;
+    out << "Time step " << fDelt << std::endl;
+    out << "Previous state " << fPrevState << std::endl;
+    fCell.Print(out);
+    fInterface.Print();
+    out << "Cell indexing\n";
+    int icell;
+    for (icell=-1; icell<fNumCells; icell++) {
+    	TPZManVector<int> equation,state;
+        CellDestination(icell,state,equation);
+        out << "Cell " << icell << " Equations " << equation << " state vars " << state << std::endl;
+    }
+    
+    out << "Cell states\n";
+    for (icell=-1; icell<fNumCells; icell++) {
+        TPZManVector<REAL> cellstate;
+        ExtractCellState(icell, fPrevState, cellstate);
+        out << "Cell " << icell << " cell state " << cellstate << std::endl;
+    }
+    out << "Interface indexing\n";
+    int iface;
+    for(iface = 0; iface <= fNumCells ; iface++)
+    {
+        TPZManVector<int> equation,state;
+        FluxDestination(iface,state,equation);
+        out << "Face " << iface << " Equations " << equation << " state vars " << state << std::endl;
+    }
+    out << "Interface states\n";
+    for(iface = 0; iface <= fNumCells ; iface++)
+    {
+        TPZManVector<REAL> facestate;
+        ExtractInterfaceState(iface, fPrevState, facestate);
+        out << "Face " << iface << " face state " << facestate << std::endl;
+    }
 }
 
 

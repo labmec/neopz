@@ -164,4 +164,22 @@ void TPBrCellConservation::CellResidual(TPZVec<T> &leftflux, TPZVec<T> &cellstat
 	}
 }
 
+/*
+static REAL fPorosityRock;
+static REAL fDensityRock;
+static REAL fSpecificHeatRock;
+static REAL fResidualOil;
+*/
+
+/// Print the data of the cell
+void TPBrCellConservation::Print(std::ostream &out)
+{
+    out << "Cell conservation\n";
+    out << "Rock porosity " << fPorosityRock << std::endl;
+    out << "Rock density " << fDensityRock << std::endl;
+    out << "Specific heat " << fSpecificHeatRock << std::endl;
+    out << "Residual saturation oil "  << fResidualOil << std::endl;
+}
+
+
 #endif

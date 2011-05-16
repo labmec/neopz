@@ -74,6 +74,9 @@ public:
 	/// Incorporate the partial derivatives in the state variables
 	template<int N>
 	static void Initialize(TPZVec<REAL> &state, TPZVec<TFad<N,REAL> > &fadstate, int offset);
+    
+    /// Print the data of the cell
+    void Print(std::ostream &out = std::cout);
 };
 
 

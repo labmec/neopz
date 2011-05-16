@@ -56,7 +56,7 @@ void FluxEvolution(REAL tinlet, REAL delt, REAL Tfinal, const std::string &fluxf
 /// compute the flux and energy as the domain expands at a linear rate
 void ExpandingDomain(REAL tinlet, REAL DADt, REAL deltatime, REAL TimeFinal, const std::string &fluxfilename, const std::string &energyfilename);
 
-int main()
+int mainMarx()
 {
     
 #ifdef LOG4CXX

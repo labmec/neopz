@@ -92,9 +92,10 @@ void TPBrSteamFlux::InletCalcStiff(TPZVec<REAL> &inletstate, TPZVec<REAL> &right
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
+        sout << "before calling inlet flux residual\n";
 		sout << "inletfad " << inletfad << std::endl;
 		sout << "interfacefad " << interfacefad << std::endl;
-		sout << "cellfad " << rightcellfad << std::endl;
+        sout << "rightcellfad " << rightcellfad << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
@@ -103,6 +104,13 @@ void TPBrSteamFlux::InletCalcStiff(TPZVec<REAL> &inletstate, TPZVec<REAL> &right
 	
 	InletFluxResidual(inletfad, interfacefad, rightcellfad, delx, area, delt, cellresidualfad );
 	
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "cellresidual " << cellresidualfad;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	ek.Redim(NumFluxEq+NumInletVars, totaleq);
 	ef.Redim(NumFluxEq+NumInletVars, 1);
 	int i,j;
@@ -169,6 +177,8 @@ void TPBrSteamFlux::InitializeInlet(TPZVec<REAL> &state, TPZVec<TFad<N,REAL> > &
 	fadstate[EInletPressure].fastAccessDx(EInletPressure+offset) = 1.;
 	fadstate[EInletSteamSaturation] = state[EInletSteamSaturation];
 	fadstate[EInletSteamSaturation].fastAccessDx(EInletSteamSaturation+offset) = 1.;
+	fadstate[EInletTemperature] = state[EInletTemperature];
+	fadstate[EInletTemperature].fastAccessDx(EInletTemperature+offset) = 1.;
 }
 
 
@@ -281,9 +291,12 @@ void TPBrSteamFlux::ComputeLeftState(TPZVec<T> &inletstate, TPZVec<T> &leftstate
 {
 	T pressure = inletstate[EInletPressure];
 	T saturationSteam = inletstate[EInletSteamSaturation];
-	leftstate[TPBrCellConservation::ESaturationWater] = 1.-saturationSteam;
+    T temperature = inletstate[EInletTemperature];
+
+    leftstate[TPBrCellConservation::ESaturationWater] = 1.-saturationSteam;
 	leftstate[TPBrCellConservation::ESaturationOil] = 0.;
-	leftstate[TPBrCellConservation::ETemperature] = TPBrCellConservation::TemperatureSaturation(pressure);
+    leftstate[TPBrCellConservation::ESaturationSteam] = saturationSteam;
+	leftstate[TPBrCellConservation::ETemperature] = temperature;
 	leftstate[TPBrCellConservation::EPressureWater] = pressure;
 	leftstate[TPBrCellConservation::EPressureSteam] = pressure;
 	leftstate[TPBrCellConservation::EPressureOil] = pressure;
@@ -296,12 +309,15 @@ template<class T>
 void TPBrSteamFlux::InletFluxResidual(TPZVec<T> &inletstate, TPZVec<T> &rightstate, TPZVec<T> &interfacestate, REAL delx, REAL area, REAL delt, TPZVec<T> &fluxresidual)
 {
 	TPZManVector<T> leftstate(TPBrCellConservation::NumCellEq);
-	ComputeLeftState(inletstate,leftstate);
+    ComputeLeftState(inletstate,leftstate);
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
+        sout << "Transferring the inletstate to a leftstate\n";
 		sout << "\ninletstate " << inletstate;
 		sout << "\nleftstate " << leftstate;
+        sout << "\nrightstate " << rightstate;
+        sout << "\ninterfacestate " << interfacestate;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
@@ -310,8 +326,58 @@ void TPBrSteamFlux::InletFluxResidual(TPZVec<T> &inletstate, TPZVec<T> &rightsta
 	for (i=NumInletVars; i<NumFluxEq+NumInletVars; i++) {
 		fluxresidual[i] = fluxresidual[i-NumInletVars];
 	}
+
 	fluxresidual[EInletMassFlux] = fInletMassFlux*delt - interfacestate[EMassFluxSteam] - interfacestate[EMassFluxWater];
 	fluxresidual[EInletEnergyFlux] = fInletEnergyFlux*delt - interfacestate[EEnergyFlux];
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "residual of the inlet mass flux " << fluxresidual[EInletMassFlux] << std::endl;
+        sout << "residual of the inlet energy " << fluxresidual[EInletEnergyFlux] << std::endl;
+        sout << "fInletMassFlux " << fInletMassFlux << std::endl;
+        sout << "interfacestate[EMassFluxSteam] " << interfacestate[EMassFluxSteam] << std::endl;
+        sout << "interfacestate[EMassFluxWater] " << interfacestate[EMassFluxWater] << std::endl;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    T saturationtemperature = TemperatureSaturation(inletstate[EInletPressure]);
+    std::stringstream sout;
+    if (inletstate[EInletTemperature] > saturationtemperature) 
+    {
+        sout << "The inlet temperature is larger than the saturation temperature at line " << __LINE__;
+        fluxresidual[EInletStateEqs] = inletstate[EInletTemperature]-saturationtemperature;
+        inletstate[EInletTemperature] = saturationtemperature;
+    }
+    if (inletstate[EInletSteamSaturation] < T(0.))
+    {
+        sout << "The steam saturation is less than zero at line " << __LINE__;
+        fluxresidual[EInletStateEqs] = inletstate[EInletSteamSaturation];
+        inletstate[EInletSteamSaturation] = 0.;
+    }
+    if (inletstate[EInletSteamSaturation] > T(0.))
+    {
+        sout << "The inlet steam saturation is larger than zero " << __LINE__;
+        fluxresidual[EInletStateEqs] = inletstate[EInletTemperature]-saturationtemperature;
+    }
+    else if(inletstate[EInletTemperature] < saturationtemperature)
+    {
+        sout << "The temperature is lower than the saturation temperature " << __LINE__;
+        fluxresidual[EInletStateEqs] = inletstate[EInletSteamSaturation];
+    }
+    else if(fluxresidual[EInletEnergyFlux] > T(0.))
+    {
+        sout << "Very unusual border case steam saturation zero AND inlet temperature is steam temperature AND positive Flux balance" << __LINE__;
+        fluxresidual[EInletStateEqs] = inletstate[EInletTemperature]-saturationtemperature;
+    }
+    else
+    {
+        sout << "Very unusual border case steam saturation zero AND inlet temperature is steam temperature AND non positive Flux balance" << __LINE__;
+        fluxresidual[EInletStateEqs] = inletstate[EInletSteamSaturation];        
+    }
+#ifdef LOG4CXX
+    sout << std::endl;
+    LOGPZ_DEBUG(logger, sout.str())
+#endif
 }
 
 /// complete residual vector as a function of the inletstate and rightstate
@@ -392,6 +458,34 @@ void TPBrSteamFlux::ComputeRelativePermeability(TPZManVector<T> &saturation,TPZM
 	relativepermeability = saturation;
 }
 
+/*	REAL fMaterialPermeability;
+ 
+ static REAL fFarfieldPressureOil;
+ static REAL fFarfieldPressureWater;
+ static REAL fFarfieldPressureSteam;
+ static REAL fFarfieldTemperature;
+ static REAL fFarfieldSaturationOil;
+ static REAL fFarfieldSaturationWater;
+ static REAL fFarfieldSaturationSteam;
+ 
+ static REAL fInletEnergyFlux; //[KJ/s]
+ static REAL fInletMassFlux; //[Kg/s];
 
+ */
+
+void TPBrSteamFlux::Print(std::ostream &out)
+{
+    out << "Steam flux data\n";
+    out << "Material permeability " << fMaterialPermeability << std::endl;
+    out << "Farfield pressure oil " << fFarfieldPressureOil << std::endl;
+    out << "Farfield pressure water " << fFarfieldPressureWater << std::endl;
+    out << "Farfield pressure steam " << fFarfieldPressureSteam << std::endl;
+    out << "Farfield temperature " << fFarfieldTemperature << std::endl;
+    out << "Farfield saturation oil " << fFarfieldSaturationOil << std::endl;
+    out << "Farfield saturation water " << fFarfieldSaturationWater << std::endl;
+    out << "Farfield saturation steam " << fFarfieldSaturationSteam << std::endl;
+    out << "Energy inlet flux " << fInletEnergyFlux << std::endl;
+    out << "Inlet mass flux " << fInletMassFlux << std::endl;
+}
 
 #endif

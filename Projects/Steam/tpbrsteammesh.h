@@ -138,6 +138,9 @@ public:
 	
 	/// perform a time step
 	void TimeStep(REAL delt);
+    
+    /// print the state of the mesh
+    void Print(std::ostream &out = std::cout);
 
 };
 

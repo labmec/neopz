@@ -43,13 +43,18 @@ public:
 		EMassFluxWater, EMassFluxSteam, EMassFluxOil, EDarcyVelocityWater, EDarcyVelocitySteam, EDarcyVelocityOil, EEnergyFlux
 	};
 
-	enum EInletEq { EInletMassFlux, EInletEnergyFlux };
+	enum EInletEq { EInletMassFlux, EInletEnergyFlux, EInletStateEqs };
 	
-	enum EInletVars { EInletPressure, EInletSteamSaturation };
+	enum EInletVars { EInletPressure, EInletSteamSaturation, EInletTemperature };
 	
 	
 	enum VARINDEX {EOil, EWater, ESteam};
 
+	
+	static const int NumFluxEq = 7;
+	
+	/// this variable allows to incorporate inlet variable specifications such as energy flux, and mass flux
+	static const int NumInletVars = 3;
 
 	/// Compute the relative permeabilities between fases
 	template<class T>
@@ -77,6 +82,9 @@ public:
 	template<class T>
 	T DensitySteam(T temp);//[kg/m3]
 	
+    template<class T>
+	static T TemperatureSaturation(T p);//[Celsius]
+
 	
 	/// calcula o fluxo entre duas celulas
 	template<class T>
@@ -94,11 +102,6 @@ public:
 	void OutletCalcStiff(TPZVec<REAL> &leftstate, TPZVec<REAL> &interfacestate, REAL delx, REAL area, REAL delt, 
 						TPZFMatrix &ek, TPZFMatrix &ef);
 	
-	
-	static const int NumFluxEq = 7;
-	
-	/// this variable allows to incorporate inlet variable specifications such as energy flux, and mass flux
-	static const int NumInletVars = 2;
 	
 	/// Incorporate the partial derivatives in the state variables
 	template<int N>
@@ -119,6 +122,8 @@ public:
 	/// compute left state as a function of the inletstate
 	template<class T>
 	void ComputeLeftState(TPZVec<T> &inletstate, TPZVec<T> &leftstate);
+    
+    void Print(std::ostream &out = std::cout);
 };
 
 
@@ -143,6 +148,19 @@ inline void TPBrSteamFlux::Initialize(TPZVec<REAL> &state, TPZVec<TFad<N,REAL> >
 	fadstate[EEnergyFlux].val() = state[EEnergyFlux];
 	fadstate[EEnergyFlux].fastAccessDx(EEnergyFlux+offset) = 1.;
 	
+}
+
+template<class T>
+inline T TPBrSteamFlux::TemperatureSaturation(T pressuresteam)//[Celsius]
+{
+	T  val_log, temp;
+	T temp_de_saturac;
+	val_log = log(pressuresteam*0.0001450377438972831);
+	temp=561.435 + 33.8866*val_log + 2.18893*(val_log*val_log) + 0.0808998*(val_log*val_log*val_log) +
+	0.0342030*(val_log*val_log*val_log*val_log);
+	temp_de_saturac = (temp - 32. - 459.67)/1.8;
+	
+	return temp_de_saturac;
 }
 
 // nothing is compiled if _AUTODIFF isnt defined
