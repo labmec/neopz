@@ -449,9 +449,10 @@ TPZGeoEl *TPZGeoBlend<TGeo>::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {
   TPZStack<int> LowAllSides;
   TGeo::LowerDimensionSides(side,LowAllSides);
-  if(side < 0 || side >= TGeo::NSides-1)
-  {
-    return 0;
+	if(side < 0 || side > TGeo::NSides-1)
+	{
+		DebugStop();
+		return 0;
   }
   bool straight = true;
   for(int lowside = 0; lowside < LowAllSides.NElements(); lowside++)
