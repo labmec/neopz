@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzbndcond.h,v 1.28 2009-11-04 14:04:43 fortiago Exp $
+//$Id: pzbndcond.h,v 1.29 2011-05-20 18:57:15 santos Exp $
 
 //HEADER FILE FOR CLASS BNDCOND
 
@@ -99,7 +99,17 @@ public :
 
   TPZFMatrix &Val2() { return fBCVal2; }
 
-  TPZAutoPointer<TPZMaterial> Material() { return fMaterial; }
+	TPZAutoPointer<TPZMaterial> Material() { return fMaterial; }
+
+	/** Set the integration rule order based on the element
+	*   p order of interpolation, its dimension and the characteristics
+	*   of the material
+	*/
+	virtual void SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
+																	int elPMaxOrder,
+																	int elDimension){
+		this->fMaterial->SetIntegrationRule(rule,elPMaxOrder,elDimension);
+	}
 
   /**compute the value of the flux function to be used by ZZ error estimator*/
   void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux){
