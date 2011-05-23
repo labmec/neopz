@@ -130,6 +130,10 @@ public:
 		fGuiInterface = gui;
 	}
 
+  TPZAutoPointer<TPZGuiInterface> GetGuiInterface() const{
+    return fGuiInterface;
+  }
+
 	bool AmIKilled(){
 		if(fGuiInterface){
 			return fGuiInterface->AmIKilled();
