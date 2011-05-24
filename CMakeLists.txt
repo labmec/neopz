@@ -45,7 +45,7 @@ if(USING_BOOST)
    		if(Boost_FOUND)
 			add_definitions(-DUSING_BOOST)
       		include_directories(${Boost_INCLUDE_DIRS})
-			link_libraries($(Boost_LIB_DIRS))
+			link_libraries(${Boost_LIB_DIRS})
    		endif()
 endif()
 
