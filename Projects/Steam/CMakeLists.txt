@@ -6,7 +6,7 @@ file(GLOB locsources *.cpp)
 
 set(MarxLang_SRCS ConvertionMethods.cpp PropertiesTable.cpp
     ThermalMethodsTables.cpp TPBConservacao1DMarx.cpp 
-    TSwxSteamInjectionData.cpp)
+    TSwxSteamInjectionData.cpp tpbrsolutionlist.cpp tpbrthermaldisc.cpp)
 
 set(main_SRCS ${locheaders} ${MarxLang_SRCS})
 
@@ -15,7 +15,7 @@ add_executable(MarxLang ${main_SRCS})
 target_link_libraries(MarxLang pz pthread)
 
 set(steam_SRCS tpbrsolutionlist.cpp tpbrsteamflux.cpp tpbrsteammesh.cpp
-    TPBRSteamSimulation.cpp tpbrthermaldisc.cpp tpbrthermalsolution.cpp
+    TPBRSteamSimulation.cpp tpbrthermaldisc.cpp tpbrthermalsolution.cpp ThermalMethodsTables.cpp ConvertionMethods.cpp tpbrcellconservation.cpp
     ${locheaders})
 
 add_executable(Steam ${steam_SRCS})

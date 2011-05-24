@@ -8,7 +8,11 @@
 
 #include "TPBrSteamSimulation.h"
 #include "tpbrsteammesh.h"
+#include "ThermalMethodsTables.h"
 #include "pzlog.h"
+
+WaterDataInStateOfSaturation waterdata;
+OilData oildata;
 
 int main()
 {
