@@ -3,7 +3,7 @@ file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 
 
-if(USING_BOOST)
+if(BUILD_TESTING)
 	set(pztest
 		${pztest}
 		${headers}

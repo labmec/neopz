@@ -6,9 +6,9 @@
 //  Copyright 2011 UNICAMP. All rights reserved.
 //
 
-//#include "TestMain.h"
 
-#ifdef USING_BOOST
+
+#ifdef USING_UNIT_TEST
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MAIN my application tests

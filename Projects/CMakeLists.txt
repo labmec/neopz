@@ -14,7 +14,10 @@ add_subdirectory(Steam)
 add_subdirectory(ThermalStress)
 add_subdirectory(HDiv)
 add_subdirectory(Conductivity)
+
+if(BUILD_TESTING)
 add_subdirectory(UnitTest)
+endif()
 
 #add_subdirectory(viga3d)
 #add_subdirectory(CarmargoCorrea)

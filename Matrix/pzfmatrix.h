@@ -97,6 +97,9 @@ inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,colum
      Simple destructor
   */
   virtual  ~TPZFMatrix();
+	
+	/// Fill the matrix with random values (non singular matrix)
+	void FillMatrix();
 
   int PutVal(const int row,const int col,const REAL & value );
   const REAL &GetVal(const int row,const int col ) const;

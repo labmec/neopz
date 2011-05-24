@@ -1656,3 +1656,8 @@ int TPZFMatrix::SetSize(const int newRows,const int newCols) {
 	return( 1 );
 }
 
+/// Fill the matrix with random values (non singular matrix)
+void TPZFMatrix::FillMatrix()
+{
+		
+}

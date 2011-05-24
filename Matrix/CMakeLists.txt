@@ -12,3 +12,9 @@ file(GLOB sources *.cpp)
 		PARENT_SCOPE
 		)
 
+add_subdirectory(Test)
+
+	set(pztest
+		${pztest}
+		PARENT_SCOPE
+		)

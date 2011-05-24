@@ -20,7 +20,7 @@ int main(){
   FillMatrix(*cheia,neq,banda);
 
   TPZVec <int> skyvec(neq,0);
-  for (i=0;i<neq;i++);{
+  for (i=0;i<neq;i++){
     skyvec[i] = i-banda;
     if(skyvec[i] < 0) skyvec[i] = 0;
   }
@@ -51,7 +51,7 @@ int main(){
   step.Solve(F,resultcheia);
 
   
-  resultcheia.Print("Solucão ",cout);
+  resultcheia.Print("Solucao ",cout);
 	return 0;
 }
 
