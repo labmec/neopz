@@ -81,7 +81,7 @@ static REAL g_Length = 0.;
 ///Insercao de uma condicao de contorno dada por uma funcao
 void forcingfunction(TPZVec<REAL> &ponto, TPZVec<REAL> &force);
 
-int main22()
+int main()
 {
     InitializePZLOG();
     
