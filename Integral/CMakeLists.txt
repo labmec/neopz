@@ -11,3 +11,10 @@ file(GLOB sources *.cpp)
 		PARENT_SCOPE
 		)
 
+if(BUILD_TESTING2) 
+	add_subdirectory(Test)
+	set(pztest
+		${pztest}
+		PARENT_SCOPE
+		)	
+endif()

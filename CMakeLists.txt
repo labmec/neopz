@@ -69,6 +69,8 @@ if(USING_LOG4CXX)
 	link_libraries(log4cxx)
 endif()
 
+add_definitions(-DBUILD_TESTING=FALSE)
+
 add_subdirectory(Util)
 add_subdirectory(Common)
 add_subdirectory(Save)

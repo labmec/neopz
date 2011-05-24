@@ -4,19 +4,17 @@ install(FILES ${headers} DESTINATION include/pz)
 
 file(GLOB sources *.cpp)
 
-
-
-	set(pzsources
+set(pzsources
 		${pzsources}
 		${headers}
 		${sources}
 		PARENT_SCOPE
 		)
 
-add_subdirectory(Test)
-
+if(BUILD_TESTING2)
+	add_subdirectory(Test)
 	set(pztest
 		${pztest}
 		PARENT_SCOPE
 		)
-
+endif()

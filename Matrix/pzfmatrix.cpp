@@ -1659,5 +1659,18 @@ int TPZFMatrix::SetSize(const int newRows,const int newCols) {
 /// Fill the matrix with random values (non singular matrix)
 void TPZFMatrix::FillMatrix()
 {
-		
+	Zero();
+	int i, j;
+	double sum;
+	// Fill the matrix elements
+	for(i=0;i<Rows();i++) {
+		sum = 0.0;
+		for(j=0;j<Cols();j++) {
+			PutVal(i,j,(rand()/RAND_MAX));
+			sum += GetVal(i,j);
+		}
+		// Making diagonally dominant then non-singular matrix
+		if(j>i) PutVal(i,i,sum);
+	}
+	
 }
