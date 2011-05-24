@@ -11,7 +11,7 @@ file(GLOB sources *.cpp)
 		PARENT_SCOPE
 		)
 
-if(BUILD_TESTING2) 
+if(BUILD_TESTING) 
 	add_subdirectory(Test)
 	set(pztest
 		${pztest}
