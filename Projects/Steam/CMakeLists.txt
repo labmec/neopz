@@ -4,33 +4,21 @@ file(GLOB locheaders *.h)
 
 file(GLOB locsources *.cpp)
 
-set(main_SRCS ${locheaders} ${locsources})
+set(MarxLang_SRCS ConvertionMethods.cpp PropertiesTable.cpp
+    ThermalMethodsTables.cpp TPBConservacao1DMarx.cpp 
+    TSwxSteamInjectionData.cpp)
 
-add_executable(Steam ${main_SRCS})
+set(main_SRCS ${locheaders} ${MarxLang_SRCS})
 
-#configure_file(quad_st_800_1R_16X.gri quad_st_800_1R_16X.gri COPYONLY)
+add_executable(MarxLang ${main_SRCS})
+
+target_link_libraries(MarxLang pz pthread)
+
+set(steam_SRCS tpbrsolutionlist.cpp tpbrsteamflux.cpp tpbrsteammesh.cpp
+    TPBRSteamSimulation.cpp tpbrthermaldisc.cpp tpbrthermalsolution.cpp
+    ${locheaders})
+
+add_executable(Steam ${steam_SRCS})
 
 target_link_libraries(Steam pz pthread)
 
-#original Makefile.am contents follow:
-
-##
-## NeoPZ adaptivity makefile
-##
-## It will be processed by GNU automake to produce Makefile.in
-##
-## $Id#
-##
-#
-#DISTCLEANFILES = @PZ_DISTCLEANFILES@
-#CLEANFILES     = @PZ_CLEANFILES@
-#
-#-include $(top_builddir)/@PZ_MK@
-#
-#bin_PROGRAMS = main
-#
-#main_SOURCES = pzgbmesh.cpp geom.cpp 
-#
-#
-### --| NeoPZ |------------------------------------------------------------------
-#main_DEPENDENCIES = $(top_builddir)/lib/libpz.a
