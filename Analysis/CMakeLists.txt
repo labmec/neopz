@@ -12,3 +12,4 @@ file(GLOB sources *.cpp)
 		PARENT_SCOPE
 		)
 
+		set(pzanalysis_STAT_SRCS ${sources} ${headers} PARENT_SCOPE)

@@ -11,6 +11,8 @@ set(pzsources
 		PARENT_SCOPE
 		)
 
+		set(pztopology_STAT_SRCS ${sources} ${headers} PARENT_SCOPE)
+
 if(BUILD_TESTING)
 	add_subdirectory(Test)
 	set(pztest

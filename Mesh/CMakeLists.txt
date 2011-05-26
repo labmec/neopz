@@ -10,3 +10,4 @@ file(GLOB sources *.cpp)
 		${sources}
 		PARENT_SCOPE
 		)
+		set(pzmesh_STAT_SRCS ${sources} ${headers} PARENT_SCOPE)

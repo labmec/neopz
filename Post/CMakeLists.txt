@@ -11,3 +11,5 @@ set(pzsources
 	PARENT_SCOPE
 )
 
+set(pzpost_STAT_SRCS ${sources} ${headers} PARENT_SCOPE)
+

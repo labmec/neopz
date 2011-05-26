@@ -10,3 +10,4 @@ set(pzsources
 	${sources}
 	PARENT_SCOPE
 )
+set(pzsubstruct_STAT_SRCS ${sources} ${headers} PARENT_SCOPE)

@@ -11,3 +11,4 @@ file(GLOB sources *.cpp)
 		PARENT_SCOPE
 		)
 
+		set(pzmultigrid_STAT_SRCS ${sources} ${headers} PARENT_SCOPE)

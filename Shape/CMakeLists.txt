@@ -12,4 +12,5 @@ file(GLOB sources *.cpp)
 		PARENT_SCOPE
 		)
 
+		set(pzshape_STAT_SRCS ${sources} ${headers} PARENT_SCOPE)
 

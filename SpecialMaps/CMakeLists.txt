@@ -10,4 +10,5 @@ set(pzsources
 	${sources}
 	PARENT_SCOPE
 )
+set(pzspecialmaps_STAT_SRCS ${sources} ${headers} PARENT_SCOPE)
 

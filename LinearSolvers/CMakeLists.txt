@@ -8,3 +8,4 @@ set(pzsources
 	PARENT_SCOPE
 	)
 
+	set(pzlinearsolvers_STAT_SRCS ${sources} ${headers} PARENT_SCOPE)

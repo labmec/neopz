@@ -9,3 +9,4 @@ file(GLOB sources *.cpp)
 		${sources}
 		PARENT_SCOPE
 		)
+		set(pzfrontal_STAT_SRCS ${sources} ${headers} PARENT_SCOPE)
