@@ -151,6 +151,7 @@ TPZSkylMatrix::operator()(const int r, const int c) {
 
   // Indice do vetor coluna.
   int index = col - row;
+	int toto = Size(col);
   if ( index >= Size(col) ) {
     //Error("TPZSkylMatrix::operator()","Index out of range");
     TPZMatrix::Error(__PRETTY_FUNCTION__,"Index out of range");

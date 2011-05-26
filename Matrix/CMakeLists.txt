@@ -4,7 +4,7 @@ install(FILES ${headers} DESTINATION include/pz)
 
 file(GLOB sources *.cpp)
 
-set(${matrix_STAT_SRCS} ${headers} ${sources} PARENT_SCOPE)
+set(matrix_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
 
 	set(pzsources
 		${pzsources}
