@@ -1,4 +1,4 @@
-//$Id: pzl2projection.cpp,v 1.12 2011-03-02 11:41:14 fortiago Exp $
+//$Id: pzl2projection.cpp,v 1.13 2011-05-26 03:28:57 phil Exp $
 
 #include "pzl2projection.h"
 #include "pzbndcond.h"
@@ -132,6 +132,23 @@ void TPZL2Projection::Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
   Solout.Resize(0);
 }
 
+/** 
+ * Get the order of the integration rule necessary to integrate an
+ * element with polinomial order p
+ */
+int TPZL2Projection::IntegrationRuleOrder(int elPMaxOrder) const
+{
+    if (this->fIntegrationOrder == -1) {
+        return TPZDiscontinuousGalerkin::IntegrationRuleOrder(elPMaxOrder);
+    }
+    else
+    {
+        int order = (fIntegrationOrder > (2*elPMaxOrder) ) ? fIntegrationOrder : 2*elPMaxOrder;
+        return order;
+    }
+}
+
+/*
 void TPZL2Projection::SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
                                      int elPMaxOrder,
                                      int elDimension){
@@ -144,4 +161,4 @@ void TPZL2Projection::SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
     rule->SetOrder(p2);
   }
 }
-
+*/

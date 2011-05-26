@@ -204,14 +204,20 @@ public:
     
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
     
+    /** 
+     * Get the order of the integration rule necessary to integrate an
+     * element with polinomial order p
+     */
+    virtual int IntegrationRuleOrder(int elPMaxOrder) const;
+    
     /** Set the integration rule order based on the element
      *   p order of interpolation, its dimension and the characteristics
      *   of the material
-     */
+     *
     virtual void SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
                                     int elPMaxOrder,
                                     int elDimension);
-    
+    */
     /**Compute the error due to the difference between the
 	 interpolated flux and the flux computed based on the
 	 derivative of the solution*/

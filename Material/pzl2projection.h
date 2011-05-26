@@ -1,4 +1,4 @@
-//$Id: pzl2projection.h,v 1.13 2011-03-02 11:41:14 fortiago Exp $
+//$Id: pzl2projection.h,v 1.14 2011-05-26 03:28:57 phil Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
@@ -52,12 +52,18 @@ public:
     */
   enum ESolutionVars { ENone = 0, ESolution = 1 };
 
+    /** 
+     * Get the order of the integration rule necessary to integrate an
+     * element with polinomial order p
+     */
+    virtual int IntegrationRuleOrder(int elPMaxOrder) const;
   /** See base class
-   */
+   
   virtual void SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
                           int elPMaxOrder,
                           int elDimension);
-
+   */
+    
   /** Contribute method
    */
   virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);

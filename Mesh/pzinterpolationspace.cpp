@@ -1,4 +1,4 @@
-//$Id: pzinterpolationspace.cpp,v 1.45 2011-05-11 02:53:17 phil Exp $
+//$Id: pzinterpolationspace.cpp,v 1.46 2011-05-26 03:28:57 phil Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -266,7 +266,14 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
   REAL weight = 0.;
 
   TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
-  material->SetIntegrationRule(intrule, data.p, dim);
+    int order = material->IntegrationRuleOrder(data.p);
+    if(material->HasForcingFunction())
+    {
+        order = intrule->GetMaxOrder();
+    }
+    TPZManVector<int,3> intorder(dim,order);
+    intrule->SetOrder(intorder);
+//    material->SetIntegrationRule(intrule, data.p, dim);
 
   int intrulepoints = intrule->NPoints();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
@@ -302,7 +309,14 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
   REAL weight = 0.;
 
   TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
-  material->SetIntegrationRule(intrule, data.p, dim);
+    int order = material->IntegrationRuleOrder(data.p);
+    if(material->HasForcingFunction())
+    {
+        order = intrule->GetMaxOrder();
+    }
+    TPZManVector<int,3> intorder(dim,order);
+    intrule->SetOrder(intorder);
+//  material->SetIntegrationRule(intrule, data.p, dim);
 
   int intrulepoints = intrule->NPoints();
   for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){

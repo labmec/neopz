@@ -162,6 +162,16 @@ void TPZMaterial::Clone(std::map<int, TPZAutoPointer<TPZMaterial> >&matvec) {
    matvec[matid] = newmat;
 }
 
+/** 
+ * Get the order of the integration rule necessary to integrate an
+ * element with polinomial order p
+ */
+int TPZMaterial::IntegrationRuleOrder(int elPMaxOrder) const
+{
+    return 2*elPMaxOrder;
+}
+
+/*
 void TPZMaterial::SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
                                      int elPMaxOrder,
                                      int elDimension){
@@ -172,6 +182,7 @@ void TPZMaterial::SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
     rule->SetOrder(order);
   }
 }
+*/
 
 //#ifdef _AUTODIFF
 
