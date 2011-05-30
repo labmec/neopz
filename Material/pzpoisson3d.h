@@ -1,6 +1,6 @@
 // -*- c++ -*-
 
-//$Id: pzpoisson3d.h,v 1.35 2011-05-11 02:22:56 phil Exp $
+//$Id: pzpoisson3d.h,v 1.36 2011-05-30 19:22:18 denise Exp $
 
 #ifndef MATPOISSON3DH
 #define MATPOISSON3DH
@@ -155,7 +155,10 @@ public:
 
   virtual void Contribute(TPZMaterialData &data,REAL weight,
 			  TPZFMatrix &ek,TPZFMatrix &ef);
-
+ virtual void ContributeBCHDiv(TPZMaterialData &data,REAL weight,
+							   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+	virtual void ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
+	
   virtual void Contribute(TPZMaterialData &data,REAL weight,
 			  TPZFMatrix &ef)
 			  {
