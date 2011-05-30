@@ -1,4 +1,4 @@
-//$Id: pzmaterialdata.h,v 1.14 2011-05-11 02:18:08 phil Exp $
+//$Id: pzmaterialdata.h,v 1.15 2011-05-30 20:19:12 denise Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H
@@ -39,7 +39,6 @@ public:
 
 	int numberdualfunctions;
 	TPZManVector<std::pair<int,int> > fVecShapeIndex;
-//	TPZManVector<int> fShapeIndex;
 	TPZFNMatrix<100> fNormalVec;
 
 
