@@ -16,7 +16,16 @@ void cblas_dcopy(const int N, const double *X, const int incX,
                  double *Y, const int incY);
 #endif
 
+const REAL TOL=1.e-10;
+
 using namespace std;
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+
+static LoggerPtr logger(Logger::getLogger("pz.frontstrmatrix.frontnonsym"));
+#endif
 
 DecomposeType TPZFrontNonSym::GetDecomposeType() const{
 	return fDecomposeType;
@@ -96,6 +105,7 @@ void TPZFrontNonSym::Reset(int GlobalSize)
 	fLocal.Fill(-1);
 	fMaxFront=0;
 	fWork=0;
+	fNextRigidBodyMode = GlobalSize;
 }
 
 int TPZFrontNonSym::NFree()
@@ -105,6 +115,7 @@ int TPZFrontNonSym::NFree()
 
 int TPZFrontNonSym::Local(int global){
 	int index;
+	
 	if(fLocal[global]!=-1) return fLocal[global];
 	if(fFree.NElements()){
 		index=fFree.Pop();
@@ -137,9 +148,29 @@ void TPZFrontNonSym::FreeGlobal(int global)
 }
 void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 {
+	std::cout<<" fNextRigidBodyMode AQQQQ "<<fNextRigidBodyMode<<endl;
+	
+//	if (fNextRigidBodyMode > fLocal.NElements()|| fNextRigidBodyMode == fLocal.NElements()) {
+	//	DebugStop();
+//	}
      //eqnarray.SetNonSymmetric();
      int i, ilocal;
      ilocal = Local(ieq);
+	double diagonal=fabs(Element(ilocal,ilocal));
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout<<" Valor da Diagonal ( " << ilocal<< ", "<< ilocal<< " ) = "<< diagonal<<std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	
+	
+	if(fabs(Element(ilocal,ilocal)) <TOL) 
+	{
+		Local(fNextRigidBodyMode);
+	}
+
      TPZVec<REAL> AuxVecRow(fFront);
      TPZVec<REAL> AuxVecCol(fFront);
 
@@ -158,6 +189,23 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 	
 	
 	REAL diag = AuxVecRow[ilocal];
+	
+	if (fabs(diag) < TOL ) {
+		if (fNextRigidBodyMode < fLocal.NElements()) {
+			int jlocal = Local(fNextRigidBodyMode);
+			
+			
+			AuxVecRow[ilocal] = 1.;
+			AuxVecRow[jlocal] = -1.;
+			AuxVecCol[jlocal] = -1.;
+			diag = 1.;
+			Element(ilocal, jlocal) = -1.;
+			Element(jlocal, ilocal) = -1.;
+			Element(jlocal, jlocal) =  1.;
+			fNextRigidBodyMode++;
+		}
+	}
+	
 #ifdef USING_ATLAS
 	
 	cblas_dscal(fFront, (1/diag), &AuxVecCol[0], 1);
@@ -469,4 +517,31 @@ void TPZFrontNonSym::main()
 
 std::string TPZFrontNonSym::GetMatrixType(){
      return "Non symmetric matrix";
+}
+
+void TPZFrontNonSym::ExtractFrontMatrix(TPZFMatrix &front)
+{
+	// Extend the front with the non initialized rigid body modes
+	int ieq;
+	int maxeq = fLocal.NElements();
+	for (ieq = fNextRigidBodyMode; ieq< maxeq; ieq++) {
+		int ilocal = Local(ieq);
+		Element(ilocal, ilocal) = 1.;
+	}
+	
+	int mineq = 0;
+	for(mineq=0; mineq<maxeq; mineq++) if(fLocal[mineq] != -1) break;
+	int numeq = maxeq-mineq;
+	front.Redim(numeq,numeq);
+	int jeq;
+	for(ieq=mineq;ieq<maxeq;ieq++) {
+		if(fLocal[ieq] == -1) continue;
+		int il = ieq-mineq;
+		for(jeq=0;jeq<maxeq;jeq++) {
+			if(fLocal[jeq] == -1) continue;
+			int jl = jeq-mineq;
+			front(il,jl) = this->Element(fLocal[ieq],fLocal[jeq]);
+		}
+	}
+	
 }
