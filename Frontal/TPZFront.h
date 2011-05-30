@@ -56,7 +56,16 @@ public:
 	int Work(){
 	return fWork;
 	}
+	/**
+	 * Indicate the first equation dedicated to rigid body modes
+	 */
+	void SetNumRigidBodyModes(int nrigid)
+	{
+		fNextRigidBodyMode = fLocal.NElements()-nrigid;
 
+		std::cout << " fNextRigidBody Mode neste ponto " << fNextRigidBodyMode<<std::endl;
+	}
+	
 protected:
 	int fWork;
 private:    
@@ -79,6 +88,7 @@ public:
 	/** Extracts the so far condensed matrix */
 virtual	void ExtractFrontMatrix(TPZFMatrix &front) {
 	std::cout << "TPZFront ExtractFrontMatrix should never be called\n";
+	DebugStop();
 }
     /** Returns the number of free equations */
 	virtual int NFree();
@@ -129,6 +139,11 @@ protected:
      * Actual front size 
      */
     int fFront;
+
+	/**
+	 * Equation where rigid body modes can be stored
+	 */
+	int fNextRigidBodyMode;
 
     /**
      * Colection of already decomposed equations still on the front 
