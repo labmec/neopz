@@ -57,6 +57,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 	TPZManVector<int,3> order(3,sideorder);
 	//TPZManVector<int,3> order(3,20);
 	this->fIntRule.SetOrder(order);
+	/*
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -65,7 +66,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	
+	*/
 }
 
 template<class TSHAPE>
@@ -165,9 +166,20 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 {
 	if(connect == 0)
 	{
+
 		TPZManVector<int,1> order(1,ConnectOrder(connect));
-		return TSHAPE::NShapeF(order);
+		//se a ordem eh maior depedenra do tipo de TSHAPE
+				
+			if (order[0]>1) {
+				return TSHAPE::NShapeF(order)-1;
+			}
+			else{
+				return TSHAPE::NShapeF(order);
+			}
+	
 	}
+
+		
 	else
 	{
 		DebugStop();
@@ -373,10 +385,30 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 	
 	for(int iside=0;iside<TSHAPE::NSides;iside++)
 	{
-		int order= SideOrder(iside);
+		int order= SideOrder(iside)-1;
 		Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
 		
 	}
+	/*
+	Index.Resize(TSHAPE::NSides+1);
+	Index[0]=0;
+	
+	for(int iside=0;iside<TSHAPE::NSides;iside++)
+	{
+#warning Alteri AQ estou verificando se o lado e de dimensao 1 e tirando a ultima function
+		if (TSHAPE::SideDimension(iside)==TSHAPE::Dimension) {
+			int order= SideOrder(iside)-1;//estava -1 para quadrilatero caso contrario tira
+			Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+			}
+		
+		else{
+			int order= SideOrder(iside);
+			Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+			
+		}
+		
+	}
+	*/
 	
 #ifdef LOG4CXX
     std::stringstream sout;
@@ -416,7 +448,7 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFM
 		LOGPZ_ERROR(logger,"Inconsistent neighbour")
 		return;
 	}
-	int nshapeneigh = neighel->NSideShapeF(neighgeo.Side());
+	int nshapeneigh = neighel->NSideShapeF(neighgeo.Side())+1;
 //	int nconnectneigh = neighel->NConnects();
 //	int ndiscshape = neighel->NConnectShapeF(nconnectneigh-1);
 	phi.Redim(nshapeneigh, 1);
@@ -471,6 +503,7 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 	TPZVec<int> FirstIndex;
 	// the first index of the shape functions
 	FirstShapeIndex(FirstIndex);
+	/*
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -478,17 +511,26 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
+	 */
 	int tamanho= this->NShapeF();
 	
 	ShapeAndVec.Resize(tamanho);
 	int count=0;
-	for(int jvec=0;jvec< VectorSide.NElements();jvec++)
+	for(int jvec=0;jvec< VectorSide.NElements();jvec++)//coloquei -1
 	{
 		int lside=VectorSide[jvec];
 		int fshape1= FirstIndex[lside];
 		int fshape2= FirstIndex[lside+1];
 		for (int ishape=fshape1; ishape<fshape2; ishape++)
 		{
+			
+			 #ifdef LOG4CXX
+			 std::stringstream sout;
+			sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
+			 LOGPZ_DEBUG(logger,sout.str())
+			 #endif
+			 	
+			
 			ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
 		}
 		
