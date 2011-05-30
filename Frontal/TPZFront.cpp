@@ -143,12 +143,13 @@ TPZFront::TPZFront(){
 	fFront = 0;
 	fMaxFront=0;
 	fWork = 0;
+	fNextRigidBodyMode = 0;
 }
 
 TPZFront::TPZFront(const TPZFront &cp) : fMaxFront(cp.fMaxFront),
   fGlobal(cp.fGlobal),
   fLocal(cp.fLocal),fFront(cp.fFront),fFree(cp.fFree),
-  fData(cp.fData),fExpandRatio(cp.fExpandRatio)
+  fData(cp.fData),fExpandRatio(cp.fExpandRatio), fNextRigidBodyMode(cp.fNextRigidBodyMode)
 {
 }
 
@@ -165,6 +166,7 @@ TPZFront::TPZFront(int GlobalSize)
 	int i;
 	for(i=0;i<GlobalSize;i++) fLocal[i]=-1;
 	fWork = 0;
+	fNextRigidBodyMode = GlobalSize;
 }
 
 TPZFront::~TPZFront(){
@@ -272,8 +274,9 @@ void TPZFront::Reset(int GlobalSize)
 	fLocal.Resize(GlobalSize);
 	fLocal.Fill(-1);
 	fMaxFront=0;
-				fExpandRatio = 200;
-				fWork = 0;
+        fExpandRatio = 200;
+        fWork = 0;
+	fNextRigidBodyMode = GlobalSize;
 }
 
 int TPZFront::NElements(){
