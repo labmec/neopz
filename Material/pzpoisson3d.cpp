@@ -1,6 +1,6 @@
 ﻿// -*- c++ -*-
  
-//$Id: pzpoisson3d.cpp,v 1.47 2011-05-13 20:53:11 phil Exp $
+//$Id: pzpoisson3d.cpp,v 1.48 2011-05-30 20:20:09 denise Exp $
 
 #include "pzpoisson3d.h"
 #include "pzelmat.h"
@@ -10,6 +10,11 @@
 #include "pzerror.h"
 #include "pzmaterialdata.h"
 #include <math.h>
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.material.poisson3d"));
+#endif
 
 using namespace std;
 REAL TPZMatPoisson3d::gAlfa = 0.5;
@@ -93,6 +98,14 @@ void TPZMatPoisson3d::Print(ostream &out) {
 }
 
 void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef) {
+	
+	if(data.numberdualfunctions)
+	{
+		ContributeHDiv(data , weight , ek, ef);
+		
+		return;
+	}
+	
 TPZFMatrix  &phi = data.phi;
 TPZFMatrix &dphi = data.dphix;
 TPZVec<REAL>  &x = data.x;
@@ -169,9 +182,177 @@ TPZFMatrix &jacinv = data.jacinv;
     
 }
 
+/// Compute the contribution at an integration point to the stiffness matrix of the HDiv formulation
+void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef)
+{
+	/** monta a matriz
+	 |A B^T |  = |0 |
+	 |B 0		|		 |f |
+	 
+	 **/
+	if(fForcingFunction) {            // phi(in, 0) = phi_in
+		TPZManVector<REAL> res(1);
+		fForcingFunction(data.x,res);       // dphi(i,j) = dphi_j/dxi
+		fXf = res[0];
+	}
+	int numvec = data.fVecShapeIndex.NElements();
+	int numdual = data.numberdualfunctions;
+	int numprimalshape = data.phi.Rows()-numdual;
 
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "number of vector functions " << numvec << " number of dual functions " << numdual<< " number of primal shape functions " << numprimalshape<<std::endl;
+		sout <<"Verificando as phi's " <<std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << " phi's para fluxo " << data.phi;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	int i,j;
+	for(i=0; i<numvec; i++)
+	{
+		int ivecind = data.fVecShapeIndex[i].first;
+		int ishapeind = data.fVecShapeIndex[i].second;
+		for (j=0; j<numvec; j++) {
+			int jvecind = data.fVecShapeIndex[j].first;
+			int jshapeind = data.fVecShapeIndex[j].second;
+			REAL prod = data.fNormalVec(0,ivecind)*data.fNormalVec(0,jvecind)+
+			data.fNormalVec(1,ivecind)*data.fNormalVec(1,jvecind)+
+			data.fNormalVec(2,ivecind)*data.fNormalVec(2,jvecind);//faz o produto escalar entre u e v--> Matriz A
+			ek(i,j) += weight*data.phi(ishapeind,0)*data.phi(jshapeind,0)*prod;
+					
+		
+			 	 
+		}
+		TPZFNMatrix<3> ivec(3,1);
+		ivec(0,0) = data.fNormalVec(0,ivecind);
+		ivec(1,0) = data.fNormalVec(1,ivecind);
+		ivec(2,0) = data.fNormalVec(2,ivecind);
+		TPZFNMatrix<3> axesvec(3,1);
+		data.axes.Multiply(ivec,axesvec);
+		int iloc;
+		REAL divwq = 0.;
+		for(iloc=0; iloc<fDim; iloc++)
+		{
+			divwq += axesvec(iloc,0)*data.dphix(iloc,ishapeind);
+		}
+		/*
+#ifdef LOG4CXX2
+		{
+			std::stringstream sout;
+			data.axes.Print("axes",sout);
+			ivec.Print("ivec",sout);
+			axesvec.Print("axesvec",sout);
+			data.dphix.Print("dphix",sout);
+			data.phi.Print("dphix",sout);
+			sout << "divwq " << divwq;
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		 */
+		for (j=0; j<numdual; j++) {
+			REAL fact = weight*data.phi(numprimalshape+j,0)*divwq;//calcula o termo da matriz B^T  e B
+			ek(i,numvec+j) += -fact;
+			ek(numvec+j,i) += -fact;//-div
+		}
+	}
+	for(i=0; i<numdual; i++)
+	{
+		ef(numvec+i,0) += weight*fXf*data.phi(numprimalshape+i,0);//calcula o termo da matriz f
+	}
+	/*
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		ek.Print("Matrix Rigidez El",sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	*/
+	
+	
+}
+
+void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
+									   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+	int numvec = data.fVecShapeIndex.NElements();
+	int numdual = data.numberdualfunctions;
+	int numprimalshape = data.phi.Rows()-numdual;
+	
+	TPZFMatrix  &phi = data.phi;
+	//   TPZFMatrix &dphi = data.dphix;
+	//   TPZVec<REAL>  &x = data.x;
+	REAL v2[1];
+	v2[0] = bc.Val2()(0,0);
+	//		cout << v2 <<endl;
+	switch (bc.Type()) {
+		case 1 :			// Neumann condition
+			int i,j;
+			for(i=0; i<numvec; i++)
+			{
+				int ishapeind = data.fVecShapeIndex[i].second;
+				ef(i,0)+= gBigNumber * v2[0] * phi(ishapeind,0) * weight;
+				for (j=0; j<numvec; j++) {
+					int jshapeind = data.fVecShapeIndex[j].second;
+					ek(i,j) += gBigNumber * phi(ishapeind,0) * phi(jshapeind,0) * weight; 
+				}
+			}
+			break;
+		case 0 :	
+		{// Dirichlet condition
+			int in;
+			for(in = 0 ; in < numvec; in++) {
+				int ishapeind = data.fVecShapeIndex[in].second;
+				ef(in,0) += v2[0] * phi(ishapeind,0) * weight;
+			}
+		}
+			break;
+		case 2 :		// mixed condition
+		{
+			int in,jn;
+			for(in = 0 ; in < numvec; in++) {
+				int ishapeind = data.fVecShapeIndex[in].second;
+				ef(in,0) += v2[0] * phi(ishapeind,0) * weight;
+				for (jn = 0; jn < numvec; jn++) {
+					int jshapeind = data.fVecShapeIndex[jn].second;
+					ek(in,jn) += weight*bc.Val1()(0,0)*phi(ishapeind,0)*phi(jshapeind,0);
+				}
+			}
+		}
+			break;
+		case 3: // outflow condition
+			break;
+	}
+	
+	if (this->IsSymetric()) {//only 1.e-3 because of bignumbers.
+		if ( !ek.VerifySymmetry( 1.e-3 ) ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
+	}
+	/*
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		ek.Print("Matrix Rigidez El",sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	 */
+}
 void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 				   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+	
+	if(data.fVecShapeIndex.NElements())
+	{
+		
+		ContributeBCHDiv(data , weight , ek, ef, bc);
+		
+		return;
+	}
 
   TPZFMatrix  &phi = data.phi;
 //   TPZFMatrix &dphi = data.dphix;
