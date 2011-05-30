@@ -122,7 +122,9 @@ public:
           ,  TPZVec<int> &destinationindex //! Destine index on the global matrix
           );    
 
-
+	/// Extract the front matrix
+	virtual void ExtractFrontMatrix(TPZFMatrix &front);
+	
 private:    
 	
     /**
