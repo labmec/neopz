@@ -1,4 +1,4 @@
-//$Id: pzsubcmesh.cpp,v 1.52 2011-05-13 20:46:50 phil Exp $
+//$Id: pzsubcmesh.cpp,v 1.53 2011-05-30 20:35:37 denise Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
 //
@@ -32,7 +32,9 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.subcmesh"));
+static LoggerPtr logger2(Logger::getLogger("pz.mesh.tpzcompmesh"));
 #endif
+
 
 const int numel=1;
 
@@ -479,6 +481,7 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 		fConnectIndex[fConnectIndex.NElements()-1] = superind;
 		fExternalLocIndex[gl] = fConnectIndex.NElements()-1;
 		fFatherToLocal[superind] = gl;
+		/*
 #ifdef LOG4CXX
 		{
 			std::stringstream sout;
@@ -486,6 +489,7 @@ int TPZSubCompMesh::GetFromSuperMesh(int superind, TPZCompMesh *super){
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
+		 */
 		return gl;
 	} else {
 		int j;
@@ -529,7 +533,7 @@ void TPZSubCompMesh::Print(std::ostream &out) const {
 	int i;
 	for (i=0; i<fConnectVec.NElements(); i++){
 		out << "Node[" << i <<"]\t" << fExternalLocIndex[i];
-		if (fExternalLocIndex[i] != -1) out << "Index in father mesh:\t" << fConnectIndex[fExternalLocIndex[i]];
+		if (fExternalLocIndex[i] != -1) out << " Index in father mesh:\t" << fConnectIndex[fExternalLocIndex[i]];
 		out << std::endl;
 	}
 	std::map<int,int>::const_iterator it;
@@ -918,7 +922,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 	else
 	{
-		DebugStop();//this->SetAnalysis();
+	 DebugStop();//this->SetAnalysis();
 	}
 	std::set<int> matids = fAnalysis->StructMatrix()->MaterialIds();
 	if(!NeedsComputing(matids))
@@ -1211,6 +1215,7 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
     solver.SetDirect(ELU);
 	fAnalysis->SetSolver(solver);
 
+	LOGPZ_DEBUG(logger2,__PRETTY_FUNCTION__)
 	PermuteExternalConnects();
 }
 
@@ -1368,7 +1373,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 	{
 		std::stringstream sout;
 		sout << " numinternal " << numinternal << " numconstraints " << numconstraints << " numexternal " << numexternal << std::endl;
-		sout << " permute so far " << permute;
+	//	sout << " permute so far " << permute;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
