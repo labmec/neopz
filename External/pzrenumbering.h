@@ -11,6 +11,8 @@ for implementing node sequence numbering optimization*/
 class TPZRenumbering {
 public:
 
+	int fHDivPermute;
+	
   TPZRenumbering() : fNElements(0), fNNodes(0)
   {
   }
@@ -53,6 +55,10 @@ public:
 
   virtual void Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
 	{
+		/*if(fHDivPermute)
+		{
+			AdjustHDivPermutation(perm, iperm);
+		}*/
 		std::cout << "Resequence not implemented\n";
 		DebugStop();
 	}
