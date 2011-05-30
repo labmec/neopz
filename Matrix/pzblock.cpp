@@ -467,7 +467,7 @@ TPZBlock::PrintBlock(const int bRow,const int bCol,const char *title,
   for ( int r = 0; r < fBlock[bRow].dim; r++ )
     {
       out << "\n  ";
-      for ( int c = 0; c < fBlock[bCol].dim; c++ )
+      for ( int c = 0; c < 1/*fBlock[bCol].dim*/; c++ )
 	out << GetVal( bRow, bCol, r, c ) << "  ";
     }
   out << "\n";
@@ -485,15 +485,18 @@ TPZBlock::Print(const char *title, TPZostream &out,TPZMatrix *mat) {
   char block_title[32];
 
   int MaxBlocks = fBlock.NElements();
-  out << title << ":";
+  out << title << ":\n";
   for ( int bRow = 0; bRow < MaxBlocks; bRow++ )
-    for ( int bCol = 0; bCol < MaxBlocks; bCol++ )
+  {
+	out << "block " << bRow << " pos " << fBlock[bRow].pos << " dim " << fBlock[bRow].dim << "\n";  
+    for ( int bCol = 0; bCol < 1/*MaxBlocks*/; bCol++ )
       {
 	out << "\n";
 	sprintf( block_title, "Block (%d,%d) of %dX%d:", bRow, bCol,
 		 fBlock[bRow].dim,fBlock[bCol].dim );
 	PrintBlock(bRow,bCol,block_title,out);
       }
+  }
   out << "\n";
   SetMatrix( sol);
 }
