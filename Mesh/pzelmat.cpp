@@ -1,4 +1,4 @@
-//$Id: pzelmat.cpp,v 1.12 2010-06-17 17:21:12 phil Exp $
+//$Id: pzelmat.cpp,v 1.13 2011-05-30 20:27:35 denise Exp $
 
 #include "pzelmat.h"
 #include "pzfmatrix.h"
@@ -88,6 +88,14 @@ void TPZElementMatrix::ComputeDestinationIndices(){
         this->fDestinationIndex[destindex++] = firsteq+idf;
       }//for idf
     }//for in
+	  
+#ifdef LOG4CXX
+	  {
+		  std::stringstream sout;
+		  sout<<" fSourceIndex " <<fSourceIndex<< " fDestinationIndex "<<fDestinationIndex<<std::endl;
+		  LOGPZ_DEBUG(logger,sout.str())
+	  }
+#endif
   }//if
   else{
     int destindex = 0;
