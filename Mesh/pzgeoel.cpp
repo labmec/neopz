@@ -451,229 +451,7 @@ int TPZGeoEl::WhichSide(TPZVec<REAL> &pt){
 		if(dif < tol) return is;
 	}
 	cout << "TPZGeoEl::WhichSide ERROR : side not found" << endl ;
-	/*
-	 if(nums==3){//LINHA
-	 if((pt[0]<-1.-O) || (pt[0]>1.+O) || pt[1]<-O || pt[1]>O || pt[2]<-O || pt[2]>O) return -1;//est� fora da linha
-	 if(pt[0]<=-1.+O) return 0;
-	 if(pt[0]>= 1.-O) return 1;
-	 return 3;//interior � linha
-	 } else
-	 if(nums == 7){//TRI�NGULO
-	 int r0=0,r1=0,r2=0;
-	 if(pt[2]<-O || pt[2]>O) return -1;//est� fora do tri�ngulo
-	 if( (O<pt[0]) && (pt[0]<1.-O) && (O<pt[1]) && (pt[1]<1.-pt[0]-O) ) return 6;//interior ao tri�ngulo
-	 REAL ptz = pt[1]-(1.-pt[0]);
-	 if( (-O<=pt[0]) && (pt[0]<=1.+O) && (-O<=pt[1]) && (pt[1]<=O   ) ) r0 = 1;
-	 if( (-O<=pt[0]) && (pt[0]<=1.+O) && (-O<=ptz  ) && (ptz  <=O   ) ) r1 = 1;
-	 if( (-O<=pt[0]) && (pt[0]<=   O) && (-O<=pt[1]) && (pt[1]<=1.+O) ) r2 = 1;
-	 if(r0){
-	 if(r1) return 1;//canto c1=1
-	 if(r2) return 0;//canto c0=0
-	 return 3;//aresta r0=3
-	 }
-	 if(r1){
-	 if(r2) return 2;//canto c2=2
-	 return 4;//aresta r1=4
-	 }
-	 if(r2) return 5;//aresta r2=5
-	 return -1;//esta fora do tri�ngulo
-	 } else
-	 if(nums==9){//QUADRIL�TERO
-  	 int r0=0,r1=0,r2=0,r3=0;
-	 if(pt[2]<-O || pt[2]>O) return -1;//est� fora do quadril�tero
-	 if( (-1.+O< pt[0]) && (pt[0]<  1.-O) && (-1.+O< pt[1]) && (pt[1]<  1.-O) ) return 9;
-	 if( (-1.-O<=pt[0]) && (pt[0]<= 1.+O) && (-1.-O<=pt[1]) && (pt[1]<=-1.+O) ) r0 = 1;
-	 if( ( 1.-O<=pt[0]) && (pt[0]<= 1.+O) && (-1.-O<=pt[1]) && (pt[1]<= 1.+O) ) r1 = 1;
-	 if( (-1.-O<=pt[0]) && (pt[0]<= 1.+O) && ( 1.-O<=pt[1]) && (pt[1]<= 1.+O) ) r2 = 1;
-	 if( (-1.-O<=pt[0]) && (pt[0]<=-1.+O) && (-1.-O<=pt[1]) && (pt[1]<= 1.+O) ) r3 = 1;
-	 if(r0){
-	 if(r3) return 0;//canto c0=0
-	 if(r1) return 1;//canto c1=1
-	 return 4;//aresta r0=4
-	 }
-	 if(r1){
-	 if(r2) return 2;//canto c2=2
-	 return 5;//aresta r1=5
-	 }
-	 if(r2){
-	 if(r3) return 3;//canto c3=3
-	 return 6;//aresta r2=6
-	 }
-	 if(r3) return 7;//aresta r3=7
-	 return -1;//esta fora do quadril�tero
-	 } else
-	 if(nums==15){//TETRAEDRO
-	 int f0=0,f1=0,f2=0,f3=0;//faces
-	 if(-O<=pt[2] && pt[2]<=O && -O<=pt[0] && pt[0]<=1.+O && -O<=pt[1] && pt[1]<=1.-pt[0]+O) f0 = 1;
-	 if(-O<=pt[1] && pt[1]<=O && -O<=pt[0] && pt[0]<=1.+O && -O<=pt[2] && pt[2]<=1.-pt[0]+O) f1 = 1;
-	 if(-O<=pt[0] && pt[0]<=O && -O<=pt[1] && pt[1]<=1.+O && -O<=pt[2] && pt[2]<=1.-pt[1]+O) f3 = 1;
-	 if(-O<=pt[0] && pt[0]<=1.+O && -O<=pt[1] && (pt[1]<=1.-pt[0]+O) && (1.-pt[0]-pt[1]-O<=pt[2]) && (pt[2]<=1.-pt[0]-pt[1]+O)) f2 = 1;
-	 if(f0){
-	 if(f1){
-	 if(f2) return 1;
-	 if(f3) return 0;
-	 return 4;
-	 }
-	 if(f2 && f3) return 2;
-	 if(f2) return 5;
-	 if(f3) return 6;
-	 return 10;
-	 }
-	 if(f1){
-	 if(f2 && f3) return 3;
-	 if(f2) return 8;
-	 if(f3) return 7;
-	 return 11;
-	 }
-	 if(f2){
-	 if(f3) return 9;
-	 return 12;
-	 }
-	 if(f3) return 13;
-	 if(O<pt[0] && pt[0]<1.-O && O<pt[1] && (pt[1]<1.-pt[0]-O) && O<pt[2] && (pt[2]<1.-pt[0]-pt[1]-O)) return 14;
-	 return -1;
-	 } else
-	 if(nums==27){//HEXAEDRO
-	 int f0=0,f1=0,f2=0,f3=0,f4=0,f5=0;
-	 if(-1.-O<=pt[2] && pt[2]<=-1.+O && -1.-O<=pt[0] && pt[0]<=1.+O && -1.-O<=pt[1] && pt[1]<=1.+O) f0 = 1;
-	 if(-1.-O<=pt[1] && pt[1]<=-1.+O && -1.-O<=pt[0] && pt[0]<=1.+O && -1.-O<=pt[2] && pt[2]<=1.+O) f1 = 1;
-	 if( 1.-O<=pt[0] && pt[0]<= 1.+O && -1.-O<=pt[1] && pt[1]<=1.+O && -1.-O<=pt[2] && pt[2]<=1.+O) f2 = 1;
-	 if( 1.-O<=pt[1] && pt[1]<= 1.+O && -1.-O<=pt[0] && pt[0]<=1.+O && -1.-O<=pt[2] && pt[2]<=1.+O) f3 = 1;
-	 if(-1.-O<=pt[0] && pt[0]<=-1.+O && -1.-O<=pt[1] && pt[1]<=1.+O && -1.-O<=pt[2] && pt[2]<=1.+O) f4 = 1;
-	 if( 1.-O<=pt[2] && pt[2]<= 1.+O && -1.-O<=pt[0] && pt[0]<=1.+O && -1.-O<=pt[1] && pt[1]<=1.+O) f5 = 1;
-	 if(f0){
-	 if(f1){
-	 if(f2) return 1;
-	 if(f4) return 0;
-	 return 8;
-	 }
-	 if(f3){
-	 if(f2) return 2;
-	 if(f4) return 3;
-	 return 10;
-	 }
-	 if(f2) return 9;
-	 if(f4) return 11;
-	 return 20;
-	 }
-	 if(f5){
-	 if(f1){
-	 if(f2) return 5;
-	 if(f4) return 4;
-	 return 16;
-	 }
-	 if(f3){
-	 if(f2) return 6;
-	 if(f4) return 7;
-	 return 18;
-	 }
-	 if(f2) return 17;
-	 if(f4) return 19;
-	 return 25;
-	 }
-	 if(f1){
-	 if(f2) return 13;
-	 if(f4) return 12;
-	 return 21;
-	 }
-	 if(f3){
-	 if(f2) return 14;
-	 if(f4) return 15;
-	 return 23;
-	 }
-	 if(f2) return 22;
-	 if(f4) return 24;
-	 if((-1.+O<pt[0]) && (pt[0]<1.-O) && (-1.+O<pt[1]) && (pt[1]<1.-O) && (-1.+O<pt[2]) && (pt[2]<1.-O)) return 26;
-	 return -1;
-	 } else
-	 if(nums==19){//PIR�MIDE
-	 int f0=0,f1=0,f2=0,f3=0,f4=0;
-	 if(-O<=pt[2] && pt[2]<=O && (-1.-O<=pt[0]) && (pt[0]<=1.+O) && (-1.-O<=pt[1]) && (pt[1]<=1.+O)) f0 = 1;
-	 if((-1.-O<=pt[0]) && (pt[0]<=1.+O) && (-1.-O<=pt[1]) && (pt[1]<=-fabs(pt[0])+O) && (1.+pt[1]-O<=pt[2]) && (pt[2]<=1.+pt[1]+O)) f1 = 1;
-	 if((fabs(pt[1])-O<=pt[0]) && (pt[0]<=1.+O) && (-1.-O<=pt[1]) && (pt[1]<=1.+O) && (1.-pt[0]-O<=pt[2]) && (pt[2]<=1.+pt[0]+O)) f2 = 1;
-	 if((-1.-O<=pt[0]) && (pt[0]<=1.+O) && (fabs(pt[0])-O<=pt[1]) && (pt[1]<=1.+O) && (1.-pt[1]-O<=pt[2]) && (pt[2]<=1.-pt[1]+O)) f3 = 1;
-	 if((-1.-O<=pt[0]) && (pt[0]<=-fabs(pt[1])+O) && (-1.-O<=pt[1]) && (pt[1]<=1.+O) && (1.+pt[0]-O<=pt[2]) && (pt[2]<=1.+pt[0]+O)) f4 = 1;
-	 if(f0){
-	 if(f1){
-	 if(f4) return 0;
-	 if(f2) return 1;
-	 return 5;
-	 }
-	 if(f3){
-	 if(f4) return 3;
-	 if(f2) return 2;
-	 return 7;
-	 }
-	 if(f2) return 6;
-	 if(f4) return 8;
-	 return 13;
-	 }
-	 if(f1){
-	 if(f2 && f4) return 4;
-	 if(f2) return 10;
-	 if(f4) return 9;
-	 return 14;
-	 }
-	 if(f3){
-	 if(f2) return 11;
-	 if(f4) return 12;
-	 return 16;
-	 }
-	 if(f2) return 15;
-	 if(f4) return 17;
-	 if((-1.+O<pt[0]) && (pt[0]<1.-O) && (-1.+O<pt[1]) && (pt[1]<=-fabs(pt[0])) && O<pt[2] && (pt[2]<1.+pt[1]-O)) return 18;
-	 if((fabs(pt[1])<=pt[0]) && (pt[0]<1.-O) && (-1.+O<pt[1]) && (pt[1]<=1.-O) && O<pt[2] && (pt[2]<1.-pt[0]-O)) return 18;
-	 if((-1.+O<pt[0]) && (pt[0]<1.-O) && (fabs(pt[0])<=pt[1]) && (pt[1]<1.-O) && O<pt[2] && (pt[2]<1.-pt[1]-O)) return 18;
-	 if((-1.+O<pt[0]) && (pt[0]<=-fabs(pt[1])) && (-1.+O<pt[1]) && (pt[1]<=1.-O) && O<pt[2] && (pt[2]<1.+pt[0]-O)) return 18;
-	 return -1;
-	 } else
-	 if(nums==21){//PRISMA
-	 int f0=0,f1=0,f2=0,f3=0,f4=0;
-	 if((-1.-O<=pt[2]) && (pt[2]<=-1.+O) && -O<=pt[0] && (pt[0]<=1.+O) && -O<=pt[1] && (pt[1]<=1.-pt[0]+O)) f0 = 1;
-	 if((-O<=pt[0]) && (pt[0]<=1.+O) && -O<=pt[1] && (pt[1]<=O) && (-1.-O<=pt[2]) && (pt[2]<=1.+O)) f1 = 1;
-	 if((-O<=pt[0]) && (pt[0]<=1.+O) && (1.-pt[0]-O<=pt[1]) && (pt[1]<=1.-pt[0]+O) && (-1.-O<=pt[2]) && (pt[2]<=1.+O)) f2 = 1;
-	 if((-O<=pt[0]) && pt[0]<=O && -O<=pt[1] && (pt[1]<=1.+O) && (-1.-O<=pt[2]) && (pt[2]<=1.+O)) f3 = 1;
-	 if((1.-O<=pt[2]) && (pt[2]<=1.+O) && -O<=pt[0] && (pt[0]<=1.+O) && -O<=pt[1] && (pt[1]<=1.-pt[0]+O)) f4 = 1;
-	 if(f0){
-	 if(f1){
-	 if(f2) return 1;
-	 if(f3) return 0;
-	 return 6;
-	 }
-	 if(f2){
-	 if(f3) return 2;
-	 return 7;
-	 }
-	 if(f3) return 8;
-	 return 15;
-	 }
-	 if(f1){
-	 if(f4){
-	 if(f2) return 4;
-	 if(f3) return 3;
-	 return 12;
-	 }
-	 if(f2) return 10;
-	 if(f3) return 9;
-	 return 16;
-	 }
-	 if(f4){
-	 if(f2){
-	 if(f3) return 5;
-	 return 13;
-	 }
-	 if(f3) return 14;
-	 return 19;
-	 }
-	 if(f2){
-	 if(f3) return 11;
-	 return 17;
-	 }
-	 if(f3) return 18;
-	 if((-1.+O<pt[2]) && (pt[2]<1.-O) && O<pt[0] && (pt[0]<1.-O) && O<pt[1] && (pt[1]<1.-pt[0]-O)) return 20;
-	 return -1;
-	 }
-	 */
+
 	return -1;
 }
 
@@ -737,70 +515,7 @@ void TPZGeoEl::CheckSubelDataStructure(){
 	out.close();
 }
 
-/*
- int TPZGeoEl::main(TPZGeoEl *gel,int type){
- 
- TPZVec<TPZGeoEl *> subs;
- gel->Divide(subs);
- int sn,sd,i;
- REAL x1store[3],x2store[3];
- TPZManVector<REAL> x1(3,x1store,2),x2(3,x2store,2);//x1 no filho deformado, x2 no pai deformado
- REAL ptstore0[3],ptstore1[3],ptstore2[3],ptstore3[3];
- TPZManVector<REAL> ps(3,ptstore0,3),pss(3,ptstore1,3),pf(3,ptstore2,3),pfs(3,ptstore3,3);
- //point son, point side son, point father, point side father : elemento mestre
- pss[1] = 0.; pss[2] = 0.;//1d e 2d
- pfs[1] = 0.; pfs[2] = 0.;
- pf[1] = 0.; pf[2] = 0.;
- for(sn = 0; sn < NSubElements(); sn++){
- TPZGeoEl *son = subs[sn];
- for(sd=0; sd < NSides(); sd++){
- if(type==2) for(i=0;i<3;i++) ps[i] = TPZGeoEl1d::MidSideNode[sd][i];
- if(type==3) for(i=0;i<3;i++) ps[i] = TPZGeoElT2d::MidSideNode[sd][i];
- if(type==4) for(i=0;i<3;i++) ps[i] = TPZGeoElQ2d::MidSideNode[sd][i];
- if(type==7) for(i=0;i<3;i++) ps[i] = TPZGeoElT3d::MidSideNode[sd][i];
- if(type==5) for(i=0;i<3;i++) ps[i] = TPZGeoElPi3d::MidSideNode[sd][i];
- if(type==6) for(i=0;i<3;i++) ps[i] = TPZGeoElPr3d::MidSideNode[sd][i];
- if(type==8) for(i=0;i<3;i++) ps[i] = TPZGeoElC3d::MidSideNode[sd][i];
- TPZTransform telsd(0,0);
- if(type==2) telsd = TPZShapeLinear::TransformElementToSide(sd);//1x1
- if(type==3) telsd = TPZShapeTriang::TransformElementToSide(sd);//2x2
- if(type==4) telsd = TPZShapeQuad::TransformElementToSide(sd);//2x2
- if(type==7) telsd = TPZShapeTetra::TransformElementToSide(sd);//3x3
- if(type==5) telsd = TPZShapePiram::TransformElementToSide(sd);//3x3
- if(type==6) telsd = TPZShapePrism::TransformElementToSide(sd);//3x3
- if(type==8) telsd = TPZShapeCube::TransformElementToSide(sd);//3x3
- telsd.Apply(ps,pss);//son element -> side
- son->X(ps,x1);//ponto deformado filho
- TPZTransform(son->SideDimension(sd);
- TPZTransform t = son->BuildTransform2(sd,gel,trans);
- t.Apply(pss,pfs);//son side -> fat side
- int sdfat = son->Father2(sd).Side();
- if(type==2) telsd = TPZShapeLinear::TransformSideToElement(sdfat);//1x1
- if(type==3) telsd = TPZShapeTriang::TransformSideToElement(sdfat);//2x2
- if(type==4) telsd = TPZShapeQuad::TransformSideToElement(sdfat);//2x2
- if(type==7) telsd = TPZShapeTetra::TransformSideToElement(sdfat);//3x3
- if(type==5) telsd = TPZShapePiram::TransformSideToElement(sdfat);//3x3
- if(type==6) telsd = TPZShapePrism::TransformSideToElement(sdfat);//3x3
- if(type==8) telsd = TPZShapeCube::TransformSideToElement(sdfat);//3x3
- telsd.Apply(pfs,pf);//lado do pai -> pai
- son->Father2(son->NSides()-1).Element()->X(pf,x2);
- if( sqrt( (x1[0]-x2[0])*(x1[0]-x2[0]) + (x1[1]-x2[1])*(x1[1]-x2[1]) ) > 1.e-10 ){
- PZError << "\nTransformacao furada\n";
- PZError << "son    = " << (son->Id()) << endl;
- PZError << "father = " << ((son->Father2(son->NSides()-1).Element())->Id()) << endl;
- PZError << "side   = " << sd << endl << endl;
- int ok;
- cin >> ok;
- } else {
- cout << "Transformacao OK!\n";
- cout << "Filho/lado : " << son->Id() << "/" << sd << endl;
- cout << "Pai : " << son->Father2(son->NSides()-1).Element()->Id() << endl << endl;
- }
- }
- }
- return 1;
- }
- */
+
 
 /**Initializes the external connectivities of the subelements*/
 void TPZGeoEl::SetSubElementConnectivities() {
@@ -844,73 +559,6 @@ void TPZGeoEl::SetSubElementConnectivities() {
 	}
 }
 
-/*
- void TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi){
- 
- TPZManVector<REAL,3> X0(3,0.);
- if(ksi.NElements()!=Dimension()) {
- PZError << "\nTPZGeoEl::ComputeXInverse vector dimension error\n";
- ksi.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
- //return;
- }
- X(ksi,X0);//ksi deve ter dimensao do elemento atual
- TPZFNMatrix<3> DelX(3,1);
- int i;
- for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
- int dim = Dimension();
- TPZFNMatrix<3> residual(dim,1),delksi(dim,1);
- REAL detJ;
- TPZFNMatrix<9> J(dim,dim,0.),axes(3,3,0.),Inv(dim,dim,0.);
- TPZFNMatrix<9> JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
- int nao = 0;
- if(NSides() == 19 && nao){
- ksi.Resize(3,0.);
- REAL epsilon = 0.002;
- ofstream outp("JACOBIANO");
- for(int l=0;l<10;l++){
- ksi[0] = l*epsilon;
- ksi[1] = l*epsilon/2.0;
- outp << "ksi : " << ksi[0] << "  "	<< ksi[1] << endl;
- Jacobian(ksi,J,axes,detJ,Inv);
- outp << "\nJacobiano ";
- J.Print("",outp);
- outp << "\nInversa do Jacobiano ";
- Inv.Print("",outp);
- TPZFMatrix Unit = J*Inv;
- outp << "Jac * InvJac = ";
- Unit.Print("",outp);
- outp << "\n det Jacobiano : " << detJ << "\n";
- }
- outp.flush();
- //outp.close();
- //DebugStop();
- }
- Jacobian(ksi,J,axes,detJ,Inv);
- TPZFNMatrix<9> axest;
- axes.Transpose(&axest);
- axest.Resize(3,dim);//casos 1D e 2D onde JX espacial � 1x3 e 2x3 respectivamente
- if(dim==1){
- JX(0,0) = axest(0,0)*J(0,0);
- JX(1,0) = axest(1,0)*J(0,0);
- JX(2,0) = axest(2,0)*J(0,0);
- } else {
- axest.Multiply(J,JX,0,1);
- }
- JX.Transpose(&JXt);
- JXt.Multiply(JX,JXtJX,0,1);//JXtJX = JXt*JX;
- JXt.Multiply(DelX,residual);//cout << "\nComputeXInverse: : \n";
- JXtJX.SolveDirect(residual,ELU);//cout << "Atual/dimensao : " << Id() << " / " << Dimension();
- for(i=0; i<dim; i++) ksi[i] += residual(i,0);
- X(ksi,X0);
- for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
- REAL error = Norm(DelX);
- if(error > 1.0E-4) {
- cout << "ComputeXInverse did not compute the inverse correctly\n";
- Jacobian(ksi,J,axes,detJ,Inv);
- }
- 
- }
- */
 
 /**
  * return a size which is caracteristic for the element
@@ -1704,6 +1352,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	gel->X(LCCenter,XLC);
 	LS.CenterPoint(LSCenter);
 	gel->X(LSCenter,XLS);
+	/*
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -1711,6 +1360,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
+	 */
 	TPZManVector<REAL,3> dir(3,0.);
 	// The normal vector needs to be in the plane of LC and perpendicular to LS
 	// A starting vector is the direction of one center to the next
@@ -1730,6 +1380,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	{
 		axtrans(i,lastcol) = dir[i];
 	}
+	/*
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -1737,6 +1388,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
+	 */
 	// Then orthogonalize the vectors of the LS side with this vector
 	TPZFNMatrix<20> transf, ortho;
 	axtrans.GramSchmidt(ortho,transf);
@@ -1745,6 +1397,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	{
 		normal[i] = ortho(i,lastcol);
 	}
+	/*
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -1753,6 +1406,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
+	 */
 }
 
 void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
@@ -1771,6 +1425,16 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
 
 void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vectorsides)
 {
+	/*
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Verificando normais dos lados do elemento " <<std::endl;
+		cout << sout.str() << std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	 */
 	int numbernormals = 0;
 	int dimension = Dimension();
 	int sidedimension = SideDimension(side);
@@ -1818,6 +1482,7 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vector
 			// the normal vector goes from the center of the conjugate side to
 			// the center of the LS side
 			NormalVector(LC,LS,normal);
+		/*	
 #ifdef LOG4CXX
 			{
 				std::stringstream sout;
@@ -1826,6 +1491,7 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vector
 				LOGPZ_DEBUG(logger,sout.str())
 			}
 #endif
+	*/		 
 			int d;
 			for(d=0; d<3; d++) normals(d,lowis) = normal[d];
 			vectorsides[lowis] = lowdim[lowis];
@@ -1838,6 +1504,7 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vector
 		{
 			TPZManVector<REAL,3> normlow(3,0.);
 			for(d=0; d<3; d++) normlow[d] = normals(d,lowis);
+			/*
 #ifdef LOG4CXX
 			{
 				std::stringstream sout;
@@ -1845,7 +1512,9 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vector
 				LOGPZ_DEBUG(logger,sout.str())
 			}
 #endif
+			 */
 			Normalize(normlow,normal);
+			/*
 #ifdef LOG4CXX
 			{
 				std::stringstream sout;
@@ -1853,6 +1522,7 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vector
 				LOGPZ_DEBUG(logger,sout.str())
 			}
 #endif
+			 */
 			for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
 		}
 		TPZManVector<int> sidepermutationgather(nlowdim);
@@ -1909,6 +1579,15 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vector
 		vectorsides.Resize(counter);
 		normals.Resize(3,counter);
 	}
+	/*
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Normals Vector of side " << side <<" " << normals;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	 */
 }
 
 void TPZGeoEl::ComputeNormals(TPZFMatrix &normals, TPZVec<int> &vectorsides)
@@ -1950,6 +1629,15 @@ void TPZGeoEl::ComputeNormals(TPZFMatrix &normals, TPZVec<int> &vectorsides)
  */
 int TPZGeoEl::NormalOrientation(int side)
 {
+	/*
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "Orientacao dos Vetores do lado " <<side << " do el -> "<<this->fId;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	*/
 	int dimel = Dimension();
 	int dimside = SideDimension(side);
 	if(dimside != dimel-1)
@@ -1965,21 +1653,49 @@ int TPZGeoEl::NormalOrientation(int side)
 	}
 	
 	TPZGeoElSide fatherside = thisside.Father2();
-	while(fatherside.Exists())
+	while(fatherside.Exists() && fatherside.Dimension() == dimside)//a segunda condicional eu inclui agora
 	{
 		thisside = fatherside;
 		fatherside = fatherside.Father2();
 	}
 	fatherside = neighbour;
-	while (fatherside.Exists()) {
+	while (fatherside.Exists()&& fatherside.Dimension() == dimside) {//eu inclui agora a segunda condicao
 		neighbour = fatherside;
 		fatherside = fatherside.Father2();
 	}
+	if(!thisside.NeighbourExists(neighbour))//inclui agora esta verificacao
+	{
+		std::stringstream sout;
+#ifdef LOG4CXX
+		LOGPZ_ERROR(logger,sout.str().c_str());
+#endif
+		DebugStop();
+		
+	}
+	
 	if(thisside.Element()->Id() < neighbour.Element()->Id())
 	{
+		/*
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "Orientacao do vec assoc ao lado ------" <<side << " -> " << 1<<std::endl;
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		 */
 		return 1;
 	}
 	else {
+		/*
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "Orientacao do vec assoc ao lado -------- " <<side << " -> " << -1<<std::endl;
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		 */
 		return -1;
 	}
     
