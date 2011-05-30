@@ -106,6 +106,15 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 		numelconnected += fMesh->ConnectVec()[ic].NElConnected();
 		firstelconnect[ic+1] = firstelconnect[ic]+fMesh->ConnectVec()[ic].NElConnected();
 	}
+	
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout<<"numelconnected " << numelconnected << endl;
+		sout<< "firstelconnect "<< firstelconnect;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 //cout << "numelconnected " << numelconnected << endl;
 //cout << "firstelconnect ";
 //  for(ic=0; ic<nconnect; ic++) cout << firstelconnect[ic] << ' ';
@@ -126,17 +135,33 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   		}
   	}
 //  for(ic=0; ic<numelconnected; ic++) cout << elconnect[ic] << endl;
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout<< "elconnect "<< elconnect;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
   	firstelconnect[0] = 0;
   	for(ic=0; ic<nconnect; ic++) {
   		firstelconnect[ic+1] = firstelconnect[ic]+fMesh->ConnectVec()[ic].NElConnected();
   	}
   //cout << "elconnect\n";
 //  int no;
-//  for(no=0; no< fMesh->ConnectVec().NElements(); no++) {
+  for(int no=0; no< fMesh->ConnectVec().NElements(); no++) {
+#ifdef LOG4CXX
+	  {
+		  std::stringstream sout;
+		  sout<< "no numero " << no << ' ' << " seq num " << fMesh->ConnectVec()[no].SequenceNumber() << ' ';
+		  LOGPZ_DEBUG(logger,sout.str())
+	  }
+#endif
   	//cout << "no numero " << no << ' ' << " seq num " << fMesh->ConnectVec()[no].SequenceNumber() << ' ';
 //       for(ic=firstelconnect[no]; ic<firstelconnect[no+1];ic++) cout << elconnect[ic] << ' ';
   	//cout << endl;
-//  }
+  }
+	
+	
   	fElementOrder.Resize(fMesh->ElementVec().NElements(),-1);
   	fElementOrder.Fill(-1);
   	TPZVec<int> nodeorder(fMesh->ConnectVec().NElements(),-1);
@@ -146,7 +171,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   		if(seqnum >= 0) nodeorder[seqnum] = ic;
   	}
 //  cout << "nodeorder ";
-/*  for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) cout << nodeorder[ic] << ' ';
+  /*for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) cout << nodeorder[ic] << ' ';
   cout << endl;
   cout.flush();*/
   	int seq;
@@ -174,6 +199,13 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   		if(elorderinv[seq] == -1) continue;
   		fElementOrder[elorderinv[seq]] = seq;
   	}
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout<< "elorderinv " << elorderinv<<std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 //  cout << "elorder" << endl;
 //  for(ic=0; ic<fMesh->ElementVec().NElements(); ic++) cout << elorder[ic] << endl;
 
@@ -193,15 +225,34 @@ TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs, TPZAuto
     fMaxEq = neq;
   }
      TPZManVector <int> numelconnected(neq,0);
-	 TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
+	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(neq);//(fMesh->NEquations());
 
-	 //TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(neq);
-     GetNumElConnected(numelconnected);
+	TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(neq);
+	
+	/// if the frontal matrix is applied to a submesh, we assume there may be rigid body modes
+	TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (fMesh);	
+	if (subcmesh) {
+		int nrigid = subcmesh->NumberRigidBodyModes();
+		if (nrigid > 0) {
+			mat->GetFront().SetNumRigidBodyModes(nrigid);
+
+		}
+	}
+	
+	GetNumElConnected(numelconnected);
      mat->SetNumElConnected(numelconnected);
 
      OrderElement();
 
      Assemble(*mat,rhs,guiInterface);
+	
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		mat->Print("Frontal matrix", sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 
 	mat->FinishWriting();
 	mat->ReOpen();
@@ -321,16 +372,28 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix & stiffness, TPZFMatrix & r
 
 	 //Builds elements stiffness matrix
 	 el->CalcStiff(ek,ef);
+
+
+	  std::cout<< " assemblando elemento frontal " << iel <<std::endl;
+	  
+#ifdef LOG4CXX
+		  {
+		  std::stringstream sout;
+		  ek.fMat.Print("Element stiffness Frontal",sout);
+		  LOGPZ_DEBUG(logger,sout.str())
+	  }
+#endif
+	  
+	 AssembleElement(el, ek, ef, stiffness, rhs);
 #ifdef LOG4CXX
 	  if(loggerel->isDebugEnabled())
 	  {
 		  std::stringstream sout;
-		  ek.fMat.Print("Element stiffness",sout);
-		  ef.fMat.Print("Element right hand side",sout);
-		  LOGPZ_DEBUG(loggerel,sout.str())
+		  ek.fMat.Print("Element stiffness depois de assemblada ",sout);
+		   LOGPZ_DEBUG(loggerel,sout.str())
 	  }
 #endif
-	 AssembleElement(el, ek, ef, stiffness, rhs);
+	  
 	 if(!f_quiet)
 	 {
 		cout << '*';
