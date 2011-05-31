@@ -13,10 +13,10 @@ file(GLOB sources *.cpp)
 
 		set(pzintegral_STAT_SRCS ${sources} ${headers} PARENT_SCOPE)
 
-#if(BUILD_TESTING) 
-#	add_subdirectory(Test)
-#	set(pztest
-#		${pztest}
-#		PARENT_SCOPE
-#		)	
-#endif()
+if(BUILD_TESTING) 
+	add_subdirectory(Test)
+	set(pztest
+		${pztest}
+		PARENT_SCOPE
+		)	
+endif()
