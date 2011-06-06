@@ -15,7 +15,7 @@ add_executable(MarxLang ${main_SRCS})
 target_link_libraries(MarxLang pz pthread)
 
 set(steam_SRCS tpbrsolutionlist.cpp tpbrsteamflux.cpp tpbrsteammesh.cpp
-    TPBRSteamSimulation.cpp tpbrthermaldisc.cpp tpbrthermalsolution.cpp ThermalMethodsTables.cpp ConvertionMethods.cpp tpbrcellconservation.cpp
+    TPBRSteamSimulation.cpp tpbrthermaldisc.cpp tpbrthermalsolution.cpp ThermalMethodsTables.cpp ConvertionMethods.cpp tpbrcellconservation.cpp PropertiesTable.cpp
     ${locheaders})
 
 add_executable(Steam ${steam_SRCS})
