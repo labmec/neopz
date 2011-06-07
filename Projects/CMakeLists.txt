@@ -14,6 +14,7 @@ add_subdirectory(Steam)
 add_subdirectory(ThermalStress)
 add_subdirectory(HDiv)
 add_subdirectory(Conductivity)
+add_subdirectory(SteamInjection)
 
 if(BUILD_TESTING)
 add_subdirectory(UnitTest)

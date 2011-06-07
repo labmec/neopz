@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+
+<InjecaoVaporLabels>
+
+<Calcular>Execute</Calcular>
+
+<Abortar>Abort</Abortar>
+
+<DadosEnt>
+<Titulo>Input data</Titulo>
+
+<Reservatorio>
+<Titulo>Reservoir</Titulo>
+<Rw>Wellbore radius</Rw>
+<Re>Drainage radius</Re>
+<Hr>Thickness</Hr>
+<Pe>Static pressure</Pe>
+<Kh>Hor. permeability</Kh>
+<Poros>Porosity</Poros>
+<Rho>Density</Rho>
+<CalorEspec>Specific heat</CalorEspec>
+<So>Oil saturation</So>
+<To>Initial temperature</To>
+<Agua>Water</Agua>
+<Oleo>Oil</Oleo>
+<Rocha>Rock</Rocha>
+</Reservatorio>
+
+<CamadasConf>
+<Titulo>Overburden layers</Titulo>
+<K>Thermal conductivity</K>
+<Rho>Density</Rho>
+<CalorEspec>Specific heat</CalorEspec>
+</CamadasConf>
+
+<Vapor>
+<Titulo>Steam</Titulo>
+<TempInj>Injection temperature</TempInj>
+<Titularidade>??Titularidade??</Titularidade>
+<CalorLatente>Latent heat</CalorLatente>
+<CalorEspec>Water specific heat</CalorEspec>
+<ViscAgua>Water viscosity</ViscAgua>
+<EnergiaDisp>Available energy</EnergiaDisp>
+</Vapor>
+
+<Injecao>
+<Titulo>Injection table</Titulo>
+<Vazao>Flow rate</Vazao>
+<Tempo>Time</Tempo>
+</Injecao>
+
+</DadosEnt>
+
+<Resultados>
+<Titulo>Results</Titulo>
+
+<FrenteVapor>
+<Titulo>Steam front position</Titulo>
+<Chart>
+<Titulo>Steam front position</Titulo>
+<Serie>Steam front position</Serie>
+</Chart>
+<Tempo>Time</Tempo>
+<Posicao>Position</Posicao>
+</FrenteVapor>
+
+<Pressoes>
+<Titulo>Pressures</Titulo>
+<Chart>
+<Titulo>Injection and fracture pressures</Titulo>
+<SerieInj>Injection pressure</SerieInj>
+<SerieQuebra>Fracture pressure</SerieQuebra>
+</Chart>
+
+<Tempo>Time</Tempo>
+<Pressao>Pressure</Pressao>
+</Pressoes>
+</Resultados>
+
+</InjecaoVaporLabels>
+

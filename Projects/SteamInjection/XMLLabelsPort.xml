@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+
+<InjecaoVaporLabels>
+
+<Calcular>Calcular</Calcular>
+
+<Abortar>Abortar</Abortar>
+
+<DadosEnt>
+<Titulo>Dados de Entrada</Titulo>
+
+<Reservatorio>
+<Titulo>Reservatório</Titulo>
+<Rw>Raio poço</Rw>
+<Re>Radio drenagem</Re>
+<Hr>Espessura</Hr>
+<Pe>Pressão estática</Pe>
+<Kh>Permeabilidade Hor.</Kh>
+<Poros>Porosidade</Poros>
+<Rho>Massa específ.</Rho>
+<CalorEspec>Calor específ.</CalorEspec>
+<So>Saturação óleo</So>
+<To>Temperatura inicial</To>
+<Agua>Água</Agua>
+<Oleo>Óleo</Oleo>
+<Rocha>Rocha</Rocha>
+</Reservatorio>
+
+<CamadasConf>
+<Titulo>Camadas confinantes</Titulo>
+<K>Condutividade térmica</K>
+<Rho>Massa específ.</Rho>
+<CalorEspec>Calor específ.</CalorEspec>
+</CamadasConf>
+
+<Vapor>
+<Titulo>Vapor</Titulo>
+<TempInj>Temperatura injeção</TempInj>
+<Titularidade>Titularidade</Titularidade>
+<CalorLatente>Calor latente</CalorLatente>
+<CalorEspec>Calor específ. água</CalorEspec>
+<ViscAgua>Viscosidade água</ViscAgua>
+<EnergiaDisp>Energia disponível</EnergiaDisp>
+</Vapor>
+
+<Injecao>
+<Titulo>Tabela de injeção</Titulo>
+<Vazao>Vazao</Vazao>
+<Tempo>Tempo</Tempo>
+</Injecao>
+
+</DadosEnt>
+
+<Resultados>
+<Titulo>Resultados</Titulo>
+
+<FrenteVapor>
+<Titulo>Frente de vapor</Titulo>
+<Chart>
+<Titulo>Posição da frente de vapor</Titulo>
+<Serie>Frente de vapor</Serie>
+</Chart>
+<Tempo>Tempo</Tempo>
+<Posicao>Posição</Posicao>
+</FrenteVapor>
+
+<Pressoes>
+<Titulo>Pressões</Titulo>
+<Chart>
+<Titulo>Pressões de injeção e quebra</Titulo>
+<SerieInj>Pressão de injeção</SerieInj>
+<SerieQuebra>Pressão de quebra</SerieQuebra>
+</Chart>
+
+<Tempo>Tempo</Tempo>
+<Pressao>Pressão</Pressao>
+</Pressoes>
+</Resultados>
+
+</InjecaoVaporLabels>
+

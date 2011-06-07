@@ -24,6 +24,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/LinearSolvers"
 	"${PROJECT_SOURCE_DIR}/External"
 	"${PROJECT_SOURCE_DIR}/External/sloan"
+	"${PROJECT_SOURCE_DIR}/PlaneFracture"
  )
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
@@ -94,7 +95,7 @@ add_subdirectory(Pre)
 add_subdirectory(SubStruct)
 add_subdirectory(lib)
 add_subdirectory(Projects)
-
+add_subdirectory(PlaneFracture)
 
 enable_testing()
 

@@ -1,4 +1,4 @@
-﻿//$Id: pzgeoel.h,v 1.51 2011-05-13 15:56:25 phil Exp $
+//$Id: pzgeoel.h,v 1.51 2011-05-13 15:56:25 phil Exp $
 
 // -*- c++ -*-
 
