@@ -1,10 +1,13 @@
 //---------------------------------------------------------------------------
 
+/*
 #include "TSWXSteam.h"
+*/
 #include "TPZGuiInterface.h"
 
 int main()
 {
+    /*
 	std::ifstream input("steamInjectionFILE.txt");
 	
 	TSwxSteam steam;
@@ -16,7 +19,7 @@ int main()
 	
 	std::ofstream outMath("steamInjectionMATHEMATICA.nb");
 	steam.PrintToMathematicaFile(Time_Radius_MaxSigmaTheta, outMath);
-	
+	*/
 	return 0;
 };
 

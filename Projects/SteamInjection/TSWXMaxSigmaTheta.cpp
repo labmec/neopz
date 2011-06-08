@@ -1,4 +1,4 @@
-﻿//$Id: TSWXMaxSigmaTheta.cpp,v 1.5 2009-07-03 19:43:07 caju Exp $
+//$Id: TSWXMaxSigmaTheta.cpp,v 1.5 2009-07-03 19:43:07 caju Exp $
 
 /*
  *  TSWXMaxSigmaTheta.cpp
@@ -11,6 +11,7 @@
 
 #include "TSWXMaxSigmaTheta.h"
 #include "TPZRefPatternTools.h"
+#include "tpzgeoelrefpattern.h"
 
 
 //public methods:
@@ -329,9 +330,9 @@ void TSWXMaxSigmaTheta::CreateCompMesh(double DistrRightDown)
 	
 	TPZAutoPointer<TPZMaterial> mat = new TPZElasticityAxiMaterial(matElId, fE, fnu, fx, fy);
 	
-	TPZManVector<REAL,3> Orig(3);		Orig[0] = 0.;	Orig[1] = 0.;	Orig[2] = 0.;
-	TPZManVector<REAL,3> AxisZ(3);		AxisZ[0] = 0.;	AxisZ[1] = 1.;	AxisZ[2] = 0.;
-	TPZManVector<REAL,3> AxisR(3);		AxisR[0] = 1.;	AxisR[1] = 0.;	AxisR[2] = 0.;
+	TPZManVector<REAL> Orig(3);		Orig[0] = 0.;	Orig[1] = 0.;	Orig[2] = 0.;
+	TPZManVector<REAL> AxisZ(3);		AxisZ[0] = 0.;	AxisZ[1] = 1.;	AxisZ[2] = 0.;
+	TPZManVector<REAL> AxisR(3);		AxisR[0] = 1.;	AxisR[1] = 0.;	AxisR[2] = 0.;
 	TPZElasticityAxiMaterial * aximat = dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->());
 	aximat->SetOrigin(Orig, AxisZ, AxisR);
 

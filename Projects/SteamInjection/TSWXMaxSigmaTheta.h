@@ -1,4 +1,4 @@
-﻿//$Id: TSWXMaxSigmaTheta.h,v 1.5 2009-07-03 19:43:07 caju Exp $
+//$Id: TSWXMaxSigmaTheta.h,v 1.5 2009-07-03 19:43:07 caju Exp $
 
 /*
  *  TSWXMaxSigmaTheta.h
@@ -15,18 +15,19 @@
 #ifndef MaxSigmaThetaH
 #define MaxSigmaThetaH
 
+#include "pzreal.h"
 #include <iostream>
 #include <cstdlib>
 #include <Math.h>
 
-#include <pzvec.h>
+#include "pzvec.h"
 #include "pzgmesh.h"
 #include "pzgeoquad.h"
 #include "TPZGeoLinear.h"
 #include "pzgeopoint.h"
 #include "pzcmesh.h"
 #include "pzmaterial.h"
-#include "pzelasAXImat.h"d
+#include "pzelasAXImat.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
 #include "pzanalysis.h"

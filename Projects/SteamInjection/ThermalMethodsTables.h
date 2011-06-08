@@ -10,7 +10,7 @@
 #ifndef ThermalMethodsTablesToSteamHHH
 #define ThermalMethodsTablesToSteamHHH
 
-#define IsZero( a )    ( (a) < 1.e-8 && (a) > -1.e-8 )
+//#define IsZero( a )    ( (a) < 1.e-8 && (a) > -1.e-8 )
 
 #include <vector>
 

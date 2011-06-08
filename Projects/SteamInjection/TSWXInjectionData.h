@@ -3,8 +3,8 @@
 #ifndef TSWXInjectionDataH
 #define TSWXInjectionDataH
 
-#include <map.h>
-#include <vector.h>
+#include <map>
+#include <vector>
 
 //---------------------------------------------------------------------------
 
@@ -14,7 +14,8 @@ class TSwxInjectionData
 
 	TSwxInjectionData()
 	{
-		 fTable.resize(0);
+
+		 fTable.resize(0);
 		 fMassRate.clear();
 	}
 

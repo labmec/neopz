@@ -6,12 +6,16 @@
 
 #include "ThermalMethodsTables.h"
 #include "ConvertionMethods.h"
+
 #include "PropertiesTable.h"
 
 #include "TSWXReservoirData.h"
+
 #include "TSWXConfinementData.h"
+
 #include "TSWXInjectionData.h"
-#include "TSwxMaxSigmaTheta.h"
+
+#include "TSwxMaxSigmaTheta.h"
 
 /** Dados de entrada */
 class TSWXInputData
@@ -21,8 +25,10 @@ class TSWXInputData
 
 	TSWXInputData() : fReservoirData(), fInjectionData(), fConfinementData(), fWaterInSaturationState()
 	{
-		fMaxSigmaThetaData = new TSWXMaxSigmaTheta;
-	}
+
+		fMaxSigmaThetaData = new TSWXMaxSigmaTheta;
+
+	}
 
 	double getLiquidWaterViscosity()
 	{
@@ -51,6 +57,7 @@ class TSWXInputData
 	TSwxConfinementData fConfinementData;
 	WaterDataInStateOfSaturation fWaterInSaturationState;
 	TSWXMaxSigmaTheta * fMaxSigmaThetaData;
+ 
 };
 
 #endif
