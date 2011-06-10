@@ -225,34 +225,36 @@ void TSwxSteam::PrintToMathematicaFile(std::map< double , std::pair<double, doub
 
 	std::map< double , std::pair<double, double> >::iterator it;
 
-	int i, NTempos = TempoRaioSigmaTheta.size();
+	int i = 0, NTempos = TempoRaioSigmaTheta.size();
 
-	//---------------------- Posicao da frente de vapor
+	//---------------------- Posicao da frente de vapor em cada instante
 
 	out << "(*{tempo,raio}*)" << endl;
 	out << "graphRaios = {";
-	for(it = TempoRaioSigmaTheta.begin(); it != TempoRaioSigmaTheta.end(); it++)
+	for(it = TempoRaioSigmaTheta.begin(); it != TempoRaioSigmaTheta.end(); it++, i++)
 	{
-									//** tempo					//** raio
-		out << "{" << it->first << "," << it->second.first << "}";
+		double instante = it->first/3600.; //em horas
+		double posicao = it->second.first; //em metros
+		out << "{" << instante << "," << posicao << "}";
 		if(i != NTempos-1) out << ",";
 	}
-	out << "};" << endl;
-	out << "radiusGR=ListPlot[graphRaios,Joined->True,Frame->True];" << endl << endl;
+	out << "};" << endl << endl;
+	out << "radiusGR=ListLinePlot[graphRaios, Filling -> Axis, AxesLabel -> {h, m}, AxesOrigin -> {0, 0}, PlotLabel -> \"Posicao da Frente de Vapor x Tempo\"]" << endl << endl;
 
-	//---------------------- Sigma theta maximo para cada posicao
+	//---------------------- Sigma theta maximo em cada instante
 
 	out << "(*{tempo,sigmathetaMax}*)" << endl;
 	out << "graphSigmaMax = {";
-	for(it = TempoRaioSigmaTheta.begin(); it != TempoRaioSigmaTheta.end(); it++)
+	i = 0;
+	for(it = TempoRaioSigmaTheta.begin(); it != TempoRaioSigmaTheta.end(); it++, i++)
 	{
-									//** tempo					//** sigmathetaMaximo
-		out << "{" << it->first << "," << it->second.second << "}";
+		double instante = it->first/3600.; //em horas
+		double tensaoMax = it->second.second/(1.E6); //em MPa
+		out << "{" << instante << "," << tensaoMax << "}";
 		if(i != NTempos-1) out << ",";
 	}
-	out << "};" << endl;
-	out << "stressGR=ListPlot[graphSigmaMax,Joined->True,Frame->True,PlotStyle->Red];" << endl << endl;
-	out << "Show[radiusGR,stressGR]";
+	out << "};" << endl << endl;
+	out << "stressGR=ListLinePlot[graphSigmaMax, Filling -> Axis, AxesLabel -> {h, MPa}, AxesOrigin -> {0, 0}, PlotStyle -> Red, FillingStyle -> Opacity[0.2, Red], PlotLabel -> \"SigmaThetaMax x Tempo\"]" << endl << endl;
 
 	out.flush();
 }
@@ -271,19 +273,31 @@ void TSwxSteam::getRadiusAndMaxSigmaThetaForTheseTimes(const std::vector<double>
 
 	for(int i = 0; i < nTimes; i++)
 	{
-			double T = SItime[i];
-			double r = getRadiusOfSteamFront(T);
-			if(r < 5.*rw)
-			{
-				validTimes--;
-				continue;
-			}
 
-			//ProgressBar da GUI
-			if(progressInfo)
-			{
-					if(progressInfo->AmIKilled()) return;
-					ini++;
+			double T = SItime[i];
+
+			double r = getRadiusOfSteamFront(T);
+
+			if(r < 5.*rw)
+
+			{
+
+				validTimes--;
+
+				continue;
+
+			}
+
+
+			//ProgressBar da GUI
+
+			if(progressInfo)
+
+			{
+
+					if(progressInfo->AmIKilled()) return;
+
+					ini++;
 					int barPos = int( 100. * ini/double(validTimes+1) + 0.5);
 					progressInfo->ProgressBarPos() = barPos;
 
@@ -293,36 +307,59 @@ void TSwxSteam::getRadiusAndMaxSigmaThetaForTheseTimes(const std::vector<double>
 					progressInfo->UpdateCaption();
 			}
 
-			time_r[T] = r;
-			double mass = getMassRateOfSteam(T);
-			double DistrRightDown = ComputeSteamPressure(T);
-			fInput.getMaxSigmaThetaData()->ComputeMaxSigmaTheta(T, r, DistrRightDown);
-	}
 
-	if(progressInfo)
-	{
-		progressInfo->ProgressBarPos() = 0;
+			time_r[T] = r;
+
+			double mass = getMassRateOfSteam(T);
+
+			double DistrRightDown = ComputeSteamPressure(T);
+			fInput.getMaxSigmaThetaData()->ComputeMaxSigmaTheta(T, r, DistrRightDown);
+
+	}
+
+
+	if(progressInfo)
+
+	{
+
+		progressInfo->ProgressBarPos() = 0;
 		progressInfo->Message() = "";
 		progressInfo->UpdateCaption();
-	}
+
+	}
 	time_maxSigma = fInput.getMaxSigmaThetaData()->GetSolution();
 
-	std::map<double, double>::iterator itR, itS;
-	for(itR = time_r.begin(), itS = time_maxSigma.begin(); itR != time_r.end(); itR++, itS++)
-	{
-			double timeR = itR->first;
-			double timeS = itS->first;
-			if(fabs(timeR - timeS) > 1.E-5)
-			{
-					std::cout << "Time dont match on TSwxSteam::getRadiusAndMaxSigmaThetaForTheseTimes(...)!\n";
-					DebugStop();
-			}
-			double radius = itR->second;
-			double sigmaMax = itS->second;
 
-			Time_Radius_MaxSigmaTheta[timeR] = std::make_pair(radius,sigmaMax);
-	}
-}
+	std::map<double, double>::iterator itR, itS;
+
+	for(itR = time_r.begin(), itS = time_maxSigma.begin(); itR != time_r.end(); itR++, itS++)
+
+	{
+
+			double timeR = itR->first;
+
+			double timeS = itS->first;
+
+			if(fabs(timeR - timeS) > 1.E-5)
+
+			{
+
+					std::cout << "Time dont match on TSwxSteam::getRadiusAndMaxSigmaThetaForTheseTimes(...)!\n";
+
+					DebugStop();
+
+			}
+
+			double radius = itR->second;
+
+			double sigmaMax = itS->second;
+
+
+			Time_Radius_MaxSigmaTheta[timeR] = std::make_pair(radius,sigmaMax);
+
+	}
+
+}
 //---------------------------------------------------------------------------
 
 void TSwxSteam::getRadiusAndMaxSigmaThetaForTableTimes(std::map< double , std::pair<double, double> > &Time_Radius_MaxSigmaTheta, TPZGuiInterface * progressInfo)
@@ -397,12 +434,17 @@ double TSwxSteam::ComputeSteamPressure(double time)
 	double satWater = 1. - satOil;
 	double viscWater = fInput.getLiquidWaterViscosity();
 
-	double r = getRadiusOfSteamFront(time);
-	double massRate = getMassRateOfSteam(time);
 
-	/**
-	 * Valor da Pressao na Frente de Vapor ocasionada pela condensacao da agua!!!
-	 */
+	double r = getRadiusOfSteamFront(time);
+
+	double massRate = getMassRateOfSteam(time);
+
+
+	/**
+
+	 * Valor da Pressao na Frente de Vapor ocasionada pela condensacao da agua!!!
+
+	 */
 	double Lg = log(r/re);
 	double pi = M_PI;
 	double DistrRightDown = pe - massRate/(2.*pi*r*H) * 1./(specificMassOil*K*satOil/viscOil + specificMassWater*K*satWater/viscWater) * Lg;

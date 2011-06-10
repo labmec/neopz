@@ -1,0 +1,38 @@
+ReservoirData:
+rw 0.01
+Hr 6.096
+Poros 0.4
+Tr 98
+RockDensity 1945
+RockSpecificHeat 1.7627
+re 120
+Pe 2000
+Kh 9.86923e-17
+So 0.09
+OilDensity 800
+OilSpecificHeat 1.821
+OilVisc 0.0001
+confinCondut 2.41
+confinSpecificMass 2682
+confinSpecificHeat 0.84
+E 2.5e+09
+nu 0.1
+steamTemperature 294.667
+steamQuality 0.8
+
+ConfinementData:
+table:
+4
+0 0
+360000 841.114
+3.6e+06 1682.23
+7.2e+06 2523.34
+
+massRate:
+3
+360000 111
+3.6e+06 222
+7.2e+06 333
+
+ProcedureTimeStep:
+timeStep 900000
