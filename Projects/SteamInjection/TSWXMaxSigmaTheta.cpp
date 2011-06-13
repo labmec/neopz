@@ -1,4 +1,4 @@
-//$Id: TSWXMaxSigmaTheta.cpp,v 1.5 2009-07-03 19:43:07 caju Exp $
+﻿//$Id: TSWXMaxSigmaTheta.cpp,v 1.5 2009-07-03 19:43:07 caju Exp $
 
 /*
  *  TSWXMaxSigmaTheta.cpp
@@ -31,9 +31,15 @@ TSWXMaxSigmaTheta::TSWXMaxSigmaTheta(double rw, double h, double E, double nu)
 	SetData(rw, h, E, nu);
 }
 
+#define NO_Refinement
 void TSWXMaxSigmaTheta::SetData(double rw, double h, double E, double nu)
 {
+	#ifndef NO_Refinement
 	fDirectNdiv = (h < 5) ? 10 : 11;
+	#else
+	fDirectNdiv = 0;
+	#endif
+
 	fUnifNDiv = 0;
 	fDivMAX = 6;
 	fOrder = 4;
