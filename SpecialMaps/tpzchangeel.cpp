@@ -208,8 +208,11 @@ TPZGeoEl * TPZChangeEl::ChangeToLinear(TPZGeoMesh *Mesh, int ElemIndex)
 
 TPZGeoEl* TPZChangeEl::QuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int side)
 {
-     TPZGeoEl *OldElem = NULL;
-     OldElem = Mesh->ElementVec()[ElemIndex];
+     TPZGeoEl *OldElem = Mesh->ElementVec()[ElemIndex];
+    if(!OldElem)
+    {
+        DebugStop();
+    }
      if(OldElem->TypeName() == "Triangle" && OldElem->NNodes() == 3)
      {
           if(side < 0 || side > 6) { cout << "Invalid Side to Compute Quarter Points!\nSee QuarterPoints Method!\n"; exit(-1);}

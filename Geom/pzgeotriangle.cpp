@@ -275,7 +275,6 @@ bool TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL>
 	if(eta < 0.) eta = 0.;
 	if(qsi+eta > 1.)
 	{
-		// O BUG ESTAVA AQUI!!!
 		REAL qsieta = 1.-qsi-eta;
 		qsi += qsieta/2.;
 		eta += qsieta/2.;
