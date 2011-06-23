@@ -14,6 +14,8 @@
 
 #include "tpbrsteamflux.h"
 #include "tpbrcellconservation.h"
+#include "tpbrsolutionlist.h"
+
 /*
  Uma malha de coordenadas
  Um metodo para calcular o residuo
@@ -57,28 +59,66 @@ class TPBrSteamMesh
 	
 	/// time step
 	REAL fDelt;
-	
+    
+    /// Height of the permeable layer
+    REAL fHeight;
+    
+    
+public:
+    
+    /// data structure which defines the properties of the confinement layer
+    struct TPBrConfinementLayer
+    {
+        TPBrConfinementLayer() : fThermalCapacity(0.5643),fConductivity(0.001758),
+            fDensity(2900),fHeight(100.),fNumElements(200)
+        {
+            
+        }
+        /// thermal capacity of the confinement layer [KJ/Kg]
+        REAL fThermalCapacity;
+        /// conductivity of the confinement layer [KJ/(m s C)]
+        REAL fConductivity;
+        /// density of the confinement layer [Kg/m3]
+        REAL fDensity;
+        /// height of the confinement layer [m]
+        REAL fHeight;
+        /// number of elements for the confinement layer discretization
+        int fNumElements;
+    };
+    
+    /// object defining the confinement layer configuration
+    TPBrConfinementLayer fLayer;
+    
 	/// state at timestep n
 	TPZFMatrix fPrevState;
 	
 	/// guess of state at timestep n+1
 	TPZFMatrix fNextState;
-	
+private:
 	TPBrSteamFlux fInterface;
 	
 	TPBrCellConservation fCell;
+    
+    TPBRSolutionList fThermal;
+    
+    /// initialize the data structure of the thermal problem
+    void InitializeThermalProblem();
 	
 	/// extract the state variables of the cell
 	void ExtractCellState(int cell, TPZFMatrix &glob, TPZVec<REAL> &cellstate);
 	
 	/// extract the state variables of the interface element
+	void ExtractInletfaceState(TPZFMatrix &glob, TPZVec<REAL> &interfacestate);
+	
+	/// extract the state variables of the interface element
 	void ExtractInterfaceState(int interface, TPZFMatrix &glob, TPZVec<REAL> &interfacestate);
 	
 	/// assemble the contribution of the cell
-	void AssembleCell(int cell, TPZFMatrix &ekcell, TPZFMatrix &efcell, TPZMatrix &glob, TPZFMatrix &res);
+	void AssembleCell(int cell, TPZFMatrix &ekcell, TPZFMatrix &efcell, TPZMatrix &glob, TPZFMatrix &res,
+                      TPZVec<REAL> &statescales);
 	
 	/// assemble the contribution of the cell
-	void AssembleInterface(int interface, TPZFMatrix &ekinterface, TPZFMatrix &efinterface, TPZMatrix &glob, TPZFMatrix &res);
+	void AssembleInterface(int interface, TPZFMatrix &ekinterface, TPZFMatrix &efinterface, TPZMatrix &glob, TPZFMatrix &res, TPZVec<REAL> &statescales);
 	
 	/// abstract assemble procedure
 	void AssembleElement(TPZFMatrix &ek, TPZFMatrix &ef, TPZVec<int> &equation, TPZVec<int> &state, TPZMatrix &glob, TPZFMatrix &res);
@@ -88,8 +128,36 @@ class TPBrSteamMesh
 	
 	/// equation and state destination indexes for an interface
 	void FluxDestination(int interface, TPZVec<int> &equation, TPZVec<int> &state);
-	
+    
+	/// equation and state destination indexes for an interface
+	void FluxDestinationInlet(TPZVec<int> &equation, TPZVec<int> &state);
+    
+    /// equation number of the first variable associated with the cell
+    int FirstCellEquation(int cell)
+    {
+        int eq = TPBrSteamFlux::NumInletVars+(2+cell)*TPBrSteamFlux::NumFluxEq+cell*TPBrCellConservation::NumCellEq;
+        return eq;
+    }
+    
+    /// equation number of the first variable associated with the interface
+    int FirstInterfaceEquation(int interface)
+    {
+        int eq;
+        if(interface == 0)
+        {
+            eq = TPBrSteamFlux::NumInletVars;
+        }
+        else
+        {
+            eq = TPBrSteamFlux::NumInletVars+TPBrSteamFlux::NumFluxEq+(interface-1)*(TPBrSteamFlux::NumFluxEq+TPBrCellConservation::NumCellEq);
+        }
+        return eq;
+    }
+    
 public:
+	
+    /// compute the scales associated with the state variables
+    void StateScales(TPZStack<REAL> &scales);
 	
 	/// Flux access method
 	TPBrSteamFlux &Interface()
@@ -104,18 +172,54 @@ public:
 	}
 	
 	/// initialize the state variables
-	TPBrSteamMesh(int numcells, REAL temperature, REAL pressure, REAL WellRadius, REAL ReservoirRadius, REAL oilsaturation);
+	TPBrSteamMesh(int numcells, REAL temperature, REAL pressure, REAL WellRadius, REAL ReservoirRadius, REAL reservoirheight, REAL oilsaturation);
+    
+    /// initialize the confining layer properties
+    void SetConfinementLayers(REAL height, REAL thermalcapacity, REAL density, REAL conductivity);
+    
+    /// initialize the mass fluxes considering [kg/s]
+    void SetMassFlux(REAL waterflux, REAL oilflux);
+    
+    /// initialize the saturation
+    void SetWaterSaturation(REAL saturation);
+    
+    /// initialize the cell pressure
+    void SetCellPressure(int cell, REAL pressure);
+    
+    /// initialize the temperature
+    void SetTemperature(REAL temperature);
+    
+    /// initialize the injection data
+    void SetWaterInjection(REAL massflux, REAL temperature);
+    
+    /// initialize the steam quality for the inlet pressure
+    void SetSteamQuality(REAL quality, REAL pressurereference);
 	
 	/// Define the progression of the mesh
 	void SetGeometricProgression(REAL alfa)
 	{
 		fGeometricProgression = alfa;
-		fFirstCellSize = (fReservoirRadius-fWellRadius)*(1.-alfa)/(1-pow(alfa, fNumCells));
+        if(alfa != 1.)
+        {
+            fFirstCellSize = (fReservoirRadius-fWellRadius)*(1.-alfa)/(1-pow(alfa, fNumCells));
+        }
+        else
+        {
+            fFirstCellSize = (fReservoirRadius-fWellRadius)/fNumCells;
+        }
+        InitializeThermalProblem();
 	}
 	
 	REAL NodeCoord(int node)
 	{
-		return fWellRadius+fFirstCellSize*(1-pow(fGeometricProgression, node))/(1.-fGeometricProgression);
+        if(fGeometricProgression != 1.)
+        {
+            return fWellRadius+fFirstCellSize*(1-pow(fGeometricProgression, node))/(1.-fGeometricProgression);
+        }
+        else
+        {
+            return fWellRadius+fFirstCellSize*node;
+        }
 	}
 	
 	/// return the size of ith cell
@@ -134,14 +238,49 @@ public:
 	REAL Iterate();
 	
 	/// compute the tangent matrix and residual
-	void ComputeTangent(TPZMatrix &tangent, TPZFMatrix &residual);
+	void ComputeTangent(TPZMatrix &tangent, TPZFMatrix &residual, TPZVec<REAL> &statescales);
+	
+	/// compute the tangent matrix and residual for checking purposes
+	void ComputeTangent2(TPZMatrix &tangent, TPZFMatrix &residual, TPZVec<REAL> &statescales);
 	
 	/// perform a time step
 	void TimeStep(REAL delt);
     
+    /// Update the solution of the confinement layer
+    void UpdateConfinementLayer();
+    
+    /// set the timestep
+    void SetTimeStep(REAL delt)
+    {
+        fDelt = delt;
+    }
+    
+    /// Limit correction range
+    REAL LimitRange(TPZFMatrix &prevsol, TPZFMatrix &correction);
+    
+    /// Project the solution to an allowable state
+    void ProjectSolution(TPZFMatrix &solution);
+    
     /// print the state of the mesh
     void Print(std::ostream &out = std::cout);
+    
+    /// verify the consistency of the tangent matrix
+    void VerifyTangent(TPZFMatrix &direction);
+    
+    /// verify the conservation of energy between prevstate and nextstate
+    void EnergyBalance(REAL &leftin, REAL &rightout, REAL &energychange);
+    
+    /// write the steam saturation to a file
+    void PrintSaturations(std::ostream &out);
+    
+    /// write the temperature to a file
+    void PrintTemperature(std::ostream &out);
+    
+    /// write the pressure to a file
+    void PrintPressure(std::ostream &out);
 
+    /// write all solutions for a given time
+    void PrintAll(REAL time);
 };
 
 // Nothing is compiled if _AUTODIFF isnt defined

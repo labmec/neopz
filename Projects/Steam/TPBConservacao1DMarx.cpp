@@ -87,17 +87,18 @@ int main()
 	int nelements = 50;
 	REAL cp = 1.;
 	REAL K = 1.;
-	REAL initialtemp = 0.;
-	TPBRThermalDiscretization discrete(domainsize,nelements,cp,K,initialtemp);
-	TPZFMatrix sol(nelements+1,1,0.), nextsol(nelements+1,1,0.);
+    REAL density = 1.;
+	REAL initialtemp = 100.;
+	TPBRThermalDiscretization discrete(domainsize,nelements,cp,K,density,initialtemp);
+	TPZFNMatrix<101> sol(nelements+1,1,initialtemp), nextsol(nelements+1,1,0.);
 	discrete.SetTimeStep(1.);
 	discrete.ComputeStiffness();
 	REAL flux1,flux2;
     REAL energy1, energy2;
     REAL dQdT = discrete.DQDT();
-	discrete.NextSolution(1., sol,nextsol,flux1);
+	discrete.NextSolution(100., sol,nextsol,flux1);
     energy1 = discrete.Energy(nextsol);
-	discrete.NextSolution(2., sol,nextsol,flux2);
+	discrete.NextSolution(101., sol,nextsol,flux2);
     energy2 = discrete.Energy(nextsol);
     REAL residual = flux2-flux1-dQdT;
     std::cout << "flux2 " << flux2 << " flux1 " << flux1 << " dQdT " << dQdT << " residual " << residual << std::endl;
@@ -115,8 +116,9 @@ void FluxEvolution(REAL tinlet, REAL delt, REAL Tfinal, const std::string &fluxf
 	int nelements = 100;
 	REAL cp = 1.;
 	REAL K = 1.;
+    REAL density = 1.;
 	REAL initialtemp = 0.;
-	TPBRThermalDiscretization discrete(domainsize,nelements,cp,K,initialtemp);
+	TPBRThermalDiscretization discrete(domainsize,nelements,cp,K,density,initialtemp);
 	TPZFNMatrix<11> sol(nelements+1,1,0.);
     //sol(0,0) = tinlet;
 	discrete.SetTimeStep(delt);
@@ -141,8 +143,9 @@ void ExpandingDomain(REAL tinlet, REAL DADt, REAL deltatime, REAL TimeFinal, con
 	int nelements = 100;
 	REAL cp = 1.;
 	REAL K = 1.;
+    REAL density = 1.;
 	REAL initialtemp = 0.;
-	TPBRThermalDiscretization discrete(domainsize,nelements,cp,K,initialtemp);
+	TPBRThermalDiscretization discrete(domainsize,nelements,cp,K,density,initialtemp);
     locallist.SetDiscretization(discrete);
     std::ofstream outflux(fluxfilename.c_str());
     std::ofstream outenergy(energyfilename.c_str());
@@ -152,7 +155,7 @@ void ExpandingDomain(REAL tinlet, REAL DADt, REAL deltatime, REAL TimeFinal, con
     {
         TPBRThermalSolution sol(deltatime*DADt);
         locallist.AddSolution(sol);
-        locallist.AdvanceSolution(deltatime, tinlet, flux, DQDT, true);
+        locallist.AdvanceAllSolutions(deltatime, tinlet, flux, DQDT, true);
         REAL energy = locallist.Energy();
         outflux << t+deltatime << " " << flux <<  std::endl;
         outenergy << t+deltatime << " " << energy  <<  std::endl;

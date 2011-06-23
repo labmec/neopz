@@ -28,6 +28,15 @@
 	void PutData(const char *name,double rho,double cp,double lamda,double poros);
 };
 
+struct TPBrScales
+{
+    static const double fPressureScale;
+    static const double fEnergyScale;
+    static const double fPermeability;
+    static double fReferencePressure;
+    
+};
+
 // Funções para inicializar as tabelas abaixo
 //extern void InitializePhysicalPropertiesRocks();
 

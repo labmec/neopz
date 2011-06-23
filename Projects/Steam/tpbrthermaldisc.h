@@ -17,17 +17,20 @@ class TPBRThermalDiscretization
 {
 private:
 	
-	/// total size of the domain
+	/// total size of the domain [m]
 	REAL fDomainSize;
 	
 	/// number of elements
 	int fNElements;
 	
-	/// thermal conductivity (unit : )
+	/// thermal conductivity [KJ/(m C s]
 	REAL fK;
 	
-	/// thermal capacity
+	/// thermal capacity [KJ/(kg C]
 	REAL fCp;
+    
+    /// density of the material
+    REAL fDensity;
 	
 	/// initial temperature (C)
 	REAL fInitialTemp;
@@ -35,7 +38,7 @@ private:
 	/// matrix solution procedure for computing the next solution
 	TPZAutoPointer<TPZSolver> fSolver;
 	
-	/// timestep
+	/// timestep [s]
 	REAL fTimeStep;
 	
 	/// variation of the temperature with the thermal flux
@@ -43,12 +46,19 @@ private:
 	
 public:
 	/// create an invalid object
-    TPBRThermalDiscretization() :fDomainSize(-1.),fNElements(0),fK(0.),fCp(0.),fInitialTemp(0.)
+    TPBRThermalDiscretization() :fDomainSize(-1.),fNElements(0),fK(0.),fCp(0.),fDensity(-1.),fInitialTemp(0.)
     {
     }
 	/// constructor
-	TPBRThermalDiscretization(REAL domainsize, int nelements, REAL cp, REAL K, REAL initialtemp) : 
-		fDomainSize(domainsize), fNElements(nelements), fK(K), fCp(cp), fInitialTemp(initialtemp), fTimeStep(-1), fUnitFluxSolution()
+    /**
+     * domainsize [m]
+     * cp thermal capacity [KJ/Kg]
+     * K conductivity [KJ/(s m C)]
+     * density [Kg/m3]
+     * initialtemp [C]
+     */
+	TPBRThermalDiscretization(REAL domainsize, int nelements, REAL cp, REAL K, REAL density, REAL initialtemp) : 
+		fDomainSize(domainsize), fNElements(nelements), fK(K), fCp(cp), fDensity(density), fInitialTemp(initialtemp), fTimeStep(-1), fUnitFluxSolution()
 	{
 	}
     
@@ -58,6 +68,7 @@ public:
         fNElements = copy.fNElements;
         fK = copy.fK;
         fCp = copy.fCp;
+        fDensity = copy.fDensity;
         fInitialTemp = copy.fInitialTemp;
         fSolver = copy.fSolver;
         fTimeStep = copy.fTimeStep;
@@ -65,10 +76,24 @@ public:
         return *this;
     }
 	
+    TPBRThermalDiscretization(const TPBRThermalDiscretization &copy)
+    {
+        fDomainSize = copy.fDomainSize;
+        fNElements = copy.fNElements;
+        fK = copy.fK;
+        fCp = copy.fCp;
+        fDensity = copy.fDensity;
+        fInitialTemp = copy.fInitialTemp;
+        fSolver = copy.fSolver;
+        fTimeStep = copy.fTimeStep;
+        fUnitFluxSolution = copy.fUnitFluxSolution;
+    }
+	
 	/// Set the timestep
 	void SetTimeStep(REAL delt)
 	{
 		fTimeStep = delt;
+        ComputeStiffness();
 	}
     
     void InitializeSolution(TPZFMatrix &sol)
@@ -83,7 +108,7 @@ public:
 	/// Compute the derivative of the heat flux rate with respect to the inlet temperature
 	REAL DQDT()
 	{
-		return 1./fUnitFluxSolution(0,0);
+		return 1./fUnitFluxSolution(0,0); // [KJ/(m2 C)]
 	}
 	
 	/// Compute the energy associated with the solution
@@ -100,7 +125,7 @@ public:
 		for (i=1; i<fNElements; i++) {
 			VarEnergy += solution(i,0);
 		}
-		VarEnergy *= delx*fCp;
+		VarEnergy *= delx*fCp*fDensity; // [KJ/m2]
 		return VarEnergy;
 	}
 	

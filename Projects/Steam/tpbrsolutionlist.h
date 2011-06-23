@@ -9,7 +9,7 @@
 #ifndef TPBRSOLUTIONLIST
 #define TPBRSOLUTIONLIST
 
-#include <list>
+#include <vector>
 #include "pzreal.h"
 #include "tpbrthermalsolution.h"
 #include "tpbrthermaldisc.h"
@@ -19,9 +19,11 @@ class TPBRSolutionList
 {
 private:
 	/// list of solutions
-	std::list<TPBRThermalSolution> fList;
+	std::vector<TPBRThermalSolution> fList;
 	/// discretization
 	TPBRThermalDiscretization fDiscretization;
+    /// current time step
+    REAL fDelt;
 
 public:
     
@@ -33,14 +35,41 @@ public:
     
 	/// total energy of the solution list
 	REAL Energy();
+
 	/// Compute the solution for the next timestep
-	void AdvanceSolution(REAL delt, REAL inletTemp, REAL &flux, REAL &DQDT, bool storesolution);
+	void AdvanceAllSolutions(REAL delt, REAL inletTemp, REAL &flux, REAL &DQDT, bool storesolution);
+	
+    /// Set the timestep
+    void SetDelt(REAL delt);
+
+    /// Compute the variation of the flux with respect to the inlet temperature
+//	REAL DQDT(REAL delt, REAL inletTemp);
+    
+	/// total energy of the solution list
+	REAL Energy(int icell);
+    
+	/// Compute the solution for the next timestep
+	void AdvanceSolution(int icell, REAL inletTemp, REAL &flux, REAL &DQDT, bool storesolution);
 	
     /// Compute the variation of the flux with respect to the inlet temperature
-	REAL DQDT(REAL delt, REAL inletTemp);
+    /**
+     * inletTemp : temperature at the inlet (input)
+     * Flux : flux corresponding to the inlet temperature
+     * return : variation of the flux with temperature
+     */
+	REAL DQDT(int icell, REAL inletTemp, REAL &Flux);
     
     /// Add a solution to the list
     void AddSolution(TPBRThermalSolution &nextsol);
+    
+    /// Remove all solutions
+    void ClearSolutions()
+    {
+        fList.resize(0);
+    }
+    
+    /// Set the timestep and compute the stiffness matrix
+    void SetTimeStep(REAL delt);
     
 };
 #endif

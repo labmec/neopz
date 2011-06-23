@@ -126,3 +126,9 @@ void PhysicalProperties::PutData(const char *name,double rho,double cp,double la
 	porosity = poros;
 }
 
+const double TPBrScales::fPressureScale = 100.;
+const double TPBrScales::fEnergyScale = 1.e4;
+const double TPBrScales::fPermeability = 1.e-12;
+double TPBrScales::fReferencePressure = 1.e6;
+
+

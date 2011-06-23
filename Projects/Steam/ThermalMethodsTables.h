@@ -87,7 +87,7 @@ public:
 	
 	// Método que devolve a temperatura associada a pressão fornecida para um correspondente estado de saturação
 	template<class T>
-	T getSaturationStateTemperature(T pressure);//[ C - graus Celsius ]
+	T getSaturationStateTemperature(T pressure);//[ C - graus Celsius pressure kPa]
 	
 	// Método que devolve a pressão e o calor latente associados a temperatura (temp) fornecida para um correspondente estado de saturação
 	template<class T>
@@ -213,6 +213,7 @@ inline T OilData::getDynamicViscosityToOil(T temp) {
 // O fato de ser armazenado em forma crescente ou decrescente pode ser definido olhando as primeiras entradas da tabela
 template<class T>
 //[ C - graus Celsius ]
+//[ pressure kpa]
 inline T WaterDataInStateOfSaturation::getSaturationStateTemperature(T pressure) {
 	fIndependentVarIndex = 1;
 	T temp = getInterpolatedValue(pressure,0);
@@ -348,14 +349,14 @@ inline T WaterDataInStateOfSaturation::getThermalConductivityToLiquidWater(T tem
 template<class T>
 //[kJoule/kg]
 inline T WaterDataInStateOfSaturation::getSpecificEnthalpyToLiquidWater(T temp) {
-	if(IsZero(temp - 0.01))
-		return 0.0;
-	else if(temp < 130.)
+	if((temp - T(0.01 - ZeroTolerance())) < 0. && (-temp + T(0.01) - T(ZeroTolerance())) < 0.)
+		return T(0.0);
+	else if(temp < T(130.))
 		return (4.2*temp);
-	else if(temp < 310)
-		return (4.2*temp + (0.003*(temp-130)*(temp-130)));
-	else if(temp < 373)
-		return (4.2*temp + (0.003*(temp-130)*(temp-130)) + (0.0008*(temp-310)*(temp-310)*(temp-310)));
+	else if(temp < T(310))
+		return (4.2*temp + (0.003*(temp-T(130.))*(temp-T(130))));
+	else if(temp < T(373.))
+		return (4.2*temp + (0.003*(temp-T(130.))*(temp-T(130.))) + (0.0008*(temp-T(310.))*(temp-T(310.))*(temp-T(310.))));
 	return getSaturationStateSpecificEnthalpyToLiquidWater(temp);
 }
 
@@ -453,18 +454,19 @@ inline T getInterpolatedValue(std::vector<std::vector<double> > &fTable,T var,in
 
 template<class T>
 inline T DataInTable::getInterpolatedValue(double initialvar,double initialvalue,double finalvar,double finalvalue,T var) {
+    T zero = T(0.);
 	if(initialvar > var || finalvar < var)
-		return 0.0;
-	return (initialvalue + ((var-initialvar)*((finalvalue-initialvalue)/(finalvar-initialvar))));
+		return zero;
+	return (T(initialvalue) + ((var-T(initialvar))*T((finalvalue-initialvalue)/(finalvar-initialvar))));
 }
 
 // Devolve o valor interpolado da propriedade i entre as linhas correspondentes da variável independente que contem o valor temp no meio
 template<class T>
 inline T DataInTable::getInterpolatedValue(T temp,int indexproperty) {
 	int index = getIndex(temp);
-	if(index < 0 || !fTable.size() || indexproperty < 0 || (indexproperty+1) > fTable[0].size()) return 0.0;
+	if(index < 0 || !fTable.size() || indexproperty < 0 || (indexproperty+1) > fTable[0].size()) return T(0.0);
 	// aqui ja temos valores validos de index e de indexproperty
-	if(!index) return fTable[0][indexproperty];
+	if(!index) return T(fTable[0][indexproperty]);
 	T value = getInterpolatedValue(fTable[index-1][fIndependentVarIndex],fTable[index-1][indexproperty],fTable[index][fIndependentVarIndex],fTable[index][indexproperty],temp);
 	return value;
 }

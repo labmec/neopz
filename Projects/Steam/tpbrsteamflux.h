@@ -6,6 +6,11 @@
 #ifdef _AUTODIFF
 using namespace std;
 #include "fadType.h"
+
+class TPBrSteamSimulation;
+class TPBrSteamMesh;
+#include "ThermalMethodsTables.h"
+
 /*
  *  tpbrsteamflux.h
  *  PZ
@@ -15,8 +20,14 @@ using namespace std;
  *
  */
 
+//extern WaterDataInStateOfSaturation waterdata;
+//extern OilData oildata;
+
 class TPBrSteamFlux
 {
+    friend class TPBrSteamSimulation;
+    friend class TPBrSteamMesh;
+    
 	REAL fMaterialPermeability;
 	
 	static REAL fFarfieldPressureOil;
@@ -43,7 +54,7 @@ public:
 		EMassFluxWater, EMassFluxSteam, EMassFluxOil, EDarcyVelocityWater, EDarcyVelocitySteam, EDarcyVelocityOil, EEnergyFlux
 	};
 
-	enum EInletEq { EInletMassFlux, EInletEnergyFlux, EInletStateEqs };
+	enum EInletEq { EInletEnergyFlux, EInletStateEqs, EInletMassFlux };
 	
 	enum EInletVars { EInletPressure, EInletSteamSaturation, EInletTemperature };
 	
@@ -61,26 +72,26 @@ public:
 	void ComputeRelativePermeability(TPZManVector<T> &saturation,TPZManVector<T> &relativepermeability);//dimensionless
 
 	template<class T>
-	T EnthalpyWater(T temperature);//[kJ/kg]
+	static T EnthalpyWater(T temperature);//[kJ/kg]
 	template<class T>
-	T EnthalpySteam(T temperature);//[kJ/kg]
+	static T EnthalpySteam(T temperature);//[kJ/kg]
 	template<class T>
-	T EnthalpyOil(T temperature);//[kJ/kg]
+	static T EnthalpyOil(T temperature);//[kJ/kg]
 	
 	template<class T>
-	T ViscosityOil(T temp);//[Pa*sec]
+	static T ViscosityOil(T temp);//[Pa*sec]
 	template<class T>
-	T ViscosityWater(T temp);//[Pa*sec]
+	static T ViscosityWater(T temp);//[Pa*sec]
 	template<class T>
-	T ViscositySteam(T temp);//[Pa*sec]
+	static T ViscositySteam(T temp);//[Pa*sec]
 	
 	// metodos para recuperar os dados tabulados em funcao
 	template<class T>
-	T DensityOil(T temp);//[kg/m3]
+	static T DensityOil(T temp);//[kg/m3]
 	template<class T>
-	T DensityWater(T temp);//[kg/m3]
+	static T DensityWater(T temp);//[kg/m3]
 	template<class T>
-	T DensitySteam(T temp);//[kg/m3]
+	static T DensitySteam(T temp);//[kg/m3]
 	
     template<class T>
 	static T TemperatureSaturation(T p);//[Celsius]
@@ -95,13 +106,18 @@ public:
 				   TPZFMatrix &ek, TPZFMatrix &ef);
 	
 	/// calcula a contribuicao para a matriz de rigidez das equacoes de entrada
-	void InletCalcStiff(TPZVec<REAL> &inletstate, TPZVec<REAL> &rightstate, TPZVec<REAL> &interfacestate, REAL delx, REAL area, REAL delt, 
+	void InletCalcStiff(TPZVec<REAL> &rightstate, TPZVec<REAL> &interfacestate, REAL delx, REAL area, REAL delt, 
 				   TPZFMatrix &ek, TPZFMatrix &ef);
 	
 	/// calcula a contribuicao para a matriz de rigidez das equacoes de entrada
 	void OutletCalcStiff(TPZVec<REAL> &leftstate, TPZVec<REAL> &interfacestate, REAL delx, REAL area, REAL delt, 
 						TPZFMatrix &ek, TPZFMatrix &ef);
 	
+    /// Compute a limit for correcting the solution
+    static REAL LimitRangeInlet(REAL scale,TPZVec<REAL> &inletstate,TPZVec<REAL> &cellstate, TPZVec<REAL> &inletcorrection, TPZVec<REAL> &cellcorrection);
+	
+    /// Compute a limit for correcting the solution
+    static REAL LimitRange(REAL scale,TPZVec<REAL> &interfacestate,TPZVec<REAL> &interfacecorrection);
 	
 	/// Incorporate the partial derivatives in the state variables
 	template<int N>
@@ -113,7 +129,7 @@ public:
 	
 	/// complete residual vector as a function of the inletstate and rightstate
 	template<class T>
-	void InletFluxResidual(TPZVec<T> &inletstate, TPZVec<T> &rightstate, TPZVec<T> &interfacestate, REAL delx, REAL area, REAL delt, TPZVec<T> &fluxresidual);
+	void InletFluxResidual(TPZVec<T> &rightstate, TPZVec<T> &interfacestate, REAL delx, REAL area, REAL delt, TPZVec<T> &fluxresidual);
 
 	/// complete residual vector as a function of the inletstate and rightstate
 	template<class T>
@@ -124,6 +140,13 @@ public:
 	void ComputeLeftState(TPZVec<T> &inletstate, TPZVec<T> &leftstate);
     
     void Print(std::ostream &out = std::cout);
+    
+    /// associate scale factors with the equations and state variables
+    static void Scales(TPZVec<REAL> &eqscales, TPZVec<REAL> &statescales);
+
+    /// associate scale factors with the equations and state variables for the inlet equations
+    static void InletScales(TPZVec<REAL> &eqscales, TPZVec<REAL> &statescales);
+
 };
 
 
@@ -150,18 +173,6 @@ inline void TPBrSteamFlux::Initialize(TPZVec<REAL> &state, TPZVec<TFad<N,REAL> >
 	
 }
 
-template<class T>
-inline T TPBrSteamFlux::TemperatureSaturation(T pressuresteam)//[Celsius]
-{
-	T  val_log, temp;
-	T temp_de_saturac;
-	val_log = log(pressuresteam*0.0001450377438972831);
-	temp=561.435 + 33.8866*val_log + 2.18893*(val_log*val_log) + 0.0808998*(val_log*val_log*val_log) +
-	0.0342030*(val_log*val_log*val_log*val_log);
-	temp_de_saturac = (temp - 32. - 459.67)/1.8;
-	
-	return temp_de_saturac;
-}
 
 // nothing is compiled if _AUTODIFF isnt defined
 #endif

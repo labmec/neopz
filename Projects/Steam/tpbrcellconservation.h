@@ -18,8 +18,6 @@
 using namespace std;
 #include "fadType.h"
 
-extern WaterDataInStateOfSaturation waterdata;
-extern OilData oildata;
 
 class TPBrCellConservation
 {
@@ -32,32 +30,32 @@ public:
 	
 	// metodos para recuperar os dados tabulados em funcao
 	template<class T>
-	T DensityOil(T temp);//[kg/m3]
+	static T DensityOil(T temp);//[kg/m3]
 	template<class T>
-	T DensityWater(T temp);//[kg/m3]
+	static T DensityWater(T temp);//[kg/m3]
 	template<class T>
-	T DensitySteam(T temp);//[kg/m3]
+	static T DensitySteam(T temp);//[kg/m3]
 
 	template<class T>
 	static T TemperatureSaturation(T p);//[Celsius]
 	template<class T>
-	T EnthalpyWater(T temperature);//[kJ/kg]
+	static T EnthalpyWater(T temperature);//[kJ/kg]
 	template<class T>
-	T EnthalpySteam(T temperature);//[kJ/kg]
+	static T EnthalpySteam(T temperature);//[kJ/kg]
 	template<class T>
-	T EnthalpyOil(T temperature);//[kJ/kg]
+	static T EnthalpyOil(T temperature);//[kJ/kg]
 	
 	
 	
 public:
 	/// Equation associated with a cell
-	enum ECellEq { EMassWater, EMassOil, EMassSteam, ECapillaryPressureWO, ECapillaryPressureOS, ESumSaturation, EEnergyCons,
-		EZeroSaturation
+	enum ECellEq { EMassWater, EMassOil, EEnergyCons, ECapillaryPressureOS, ECapillaryPressureWO, EMassSteam,
+		EZeroSaturation, ESumSaturation
 	};
 	
 	/// State variables associated with a cell
 	enum ECellState {
-		ESaturationWater, ESaturationOil, ESaturationSteam, ETemperature, EPressureWater, EPressureSteam, EPressureOil,EPhaseChange
+		ESaturationWater, ESaturationOil, ETemperature, EPressureSteam, EPressureOil,EPhaseChange, ESaturationSteam, EPressureWater
 	};
 	
 	static const int NumCellEq = 8;
@@ -75,55 +73,19 @@ public:
 	template<int N>
 	static void Initialize(TPZVec<REAL> &state, TPZVec<TFad<N,REAL> > &fadstate, int offset);
     
+    /// limit the correction of the Newton Iteration
+    static REAL LimitRange(REAL scale,TPZVec<REAL> &cellstate,TPZVec<REAL> &cellcorrection);
+    
     /// Print the data of the cell
     void Print(std::ostream &out = std::cout);
+    
+    /// Compute the total energy of the cell
+    static REAL Energy(TPZVec<REAL> &cellstate, REAL volume);
+    
+    /// associate scale factors with the equations and state variables
+    static void Scales(TPZVec<REAL> &eqscales, TPZVec<REAL> &statescales);
 };
 
-
-// metodos para recuperar os dados tabulados em funcao
-template<class T>
-inline T TPBrCellConservation::DensityOil(T temp)//[kg/m3]
-{
-	return oildata.getDensityToOil(temp);
-}
-template<class T>
-inline T TPBrCellConservation::DensityWater(T temp)//[kg/m3]
-{
-	return waterdata.getSaturationStateDensityToLiquidWater(temp);
-}
-template<class T>
-inline T TPBrCellConservation::DensitySteam(T temp)//[kg/m3]
-{
-	return waterdata.getSaturationStateDensityToSteam(temp);
-}
-
-template<class T>
-inline T TPBrCellConservation::TemperatureSaturation(T pressuresteam)//[Celsius]
-{
-	T  val_log, temp;
-	T temp_de_saturac;
-	val_log = log(pressuresteam*0.0001450377438972831);
-	temp=561.435 + 33.8866*val_log + 2.18893*(val_log*val_log) + 0.0808998*(val_log*val_log*val_log) +
-	0.0342030*(val_log*val_log*val_log*val_log);
-	temp_de_saturac = (temp - 32. - 459.67)/1.8;
-	
-	return temp_de_saturac;
-}
-template<class T>
-inline T TPBrCellConservation::EnthalpyWater(T temperature)//[kJ/kg]
-{
-	return waterdata.getSaturationStateSpecificEnthalpyToLiquidWater(temperature);
-}
-template<class T>
-inline T TPBrCellConservation::EnthalpySteam(T temperature)//[kJ/kg]
-{
-	return waterdata.getSaturationStateSpecificEnthalpyToSteam(temperature);
-}
-template<class T>
-inline T TPBrCellConservation::EnthalpyOil(T temperature)//[kJ/kg]
-{
-	return  oildata.getSpecificHeatToOil(temperature);	
-}
 
 /// Incorporate the partial derivatives in the state variables
 template<int N>

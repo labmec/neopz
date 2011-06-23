@@ -17,14 +17,19 @@
 class TPBRThermalSolution
 {
 private:
-	/// Solution vector
+	/// Solution vector [C]
 	TPZFMatrix fSolution;
-	/// Area associated with the thermal problem
-	REAL fArea;
-	/// Energy associated with the solution
+	/// Area associated with the thermal problem [m2]
+	REAL fArea; 
+	/// Energy associated with the solution [KJ]
 	REAL fEnergy;
 	
 public:
+    
+	/// constructor
+	TPBRThermalSolution() : fSolution(), fArea(0.), fEnergy(0.)
+	{
+	}
 	/// constructor
 	TPBRThermalSolution(REAL area) : fSolution(), fArea(area), fEnergy(0.)
 	{

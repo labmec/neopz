@@ -10,15 +10,16 @@
 #include "tpbrsolutionlist.h"
 
 /// Compute the solution for the next timestep
-void TPBRSolutionList::AdvanceSolution(REAL delt, REAL inletTemp, REAL &flux, REAL &DQDT, bool storesolution)
+void TPBRSolutionList::AdvanceAllSolutions(REAL delt, REAL inletTemp, REAL &flux, REAL &DQDT, bool storesolution)
 {
 	fDiscretization.SetTimeStep(delt);
 	fDiscretization.ComputeStiffness();
+    fDelt = delt;
 	TPZFMatrix nextsol;
 	flux = 0.;
 	DQDT = 0.;
 	REAL localDQDT = fDiscretization.DQDT();
-	std::list<TPBRThermalSolution>::iterator it = fList.begin();
+	std::vector<TPBRThermalSolution>::iterator it = fList.begin();
 	while (it != fList.end()) {
 		REAL localFlux;
 		REAL area = it->Area();
@@ -35,6 +36,17 @@ void TPBRSolutionList::AdvanceSolution(REAL delt, REAL inletTemp, REAL &flux, RE
 	}
 }
 
+/// Set the timestep
+void TPBRSolutionList::SetDelt(REAL delt)
+{
+    if(fDelt != delt)
+    {
+        fDiscretization.SetTimeStep(delt);
+    }
+    fDelt = delt;
+}
+
+
 /// Add a solution to the list
 void TPBRSolutionList::AddSolution(TPBRThermalSolution &nextsol)
 {
@@ -46,11 +58,54 @@ void TPBRSolutionList::AddSolution(TPBRThermalSolution &nextsol)
 REAL TPBRSolutionList::Energy()
 {
     REAL varEnergy = 0.;
-    std::list<TPBRThermalSolution>::iterator it;
+    std::vector<TPBRThermalSolution>::iterator it;
     for (it=fList.begin(); it != fList.end(); it++) 
     {
         varEnergy += it->Energy();
     }
     return varEnergy;
 }
+
+/// total energy of the solution list
+REAL TPBRSolutionList::Energy(int icell)
+{
+    return fList[icell].Energy();
+}
+
+/// Compute the solution for the next timestep
+void TPBRSolutionList::AdvanceSolution(int icell, REAL inletTemp, REAL &flux, REAL &DQDT, bool storesolution)
+{
+	TPZFMatrix nextsol;
+	flux = 0.;
+	DQDT = 0.;
+	REAL localDQDT = fDiscretization.DQDT();
+    REAL localFlux;
+    REAL area = fList[icell].Area();
+    fDiscretization.NextSolution(inletTemp,fList[icell].Solution(),nextsol, localFlux);
+    if(storesolution)
+    {
+        REAL energy = fDiscretization.Energy(nextsol)*area;
+        fList[icell].UpdateSolution(nextsol,energy);
+	}
+    flux += area*localFlux;
+    DQDT += area*localDQDT;		
+    
+}
+
+/// Compute the variation of the flux with respect to the inlet temperature
+REAL TPBRSolutionList::DQDT(int icell, REAL inletTemp, REAL &flux)
+{
+	TPZFNMatrix<201> nextsol;
+	flux = 0.;
+	REAL dfluxdt = 0.;
+	REAL localDQDT = fDiscretization.DQDT();
+    REAL localFlux;
+    REAL area = fList[icell].Area();
+    fDiscretization.NextSolution(inletTemp,fList[icell].Solution(),nextsol, localFlux);
+    flux += area*localFlux;
+    dfluxdt += area*localDQDT;
+	return dfluxdt;	
+    
+}
+
 
