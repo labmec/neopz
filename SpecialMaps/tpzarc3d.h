@@ -20,6 +20,8 @@
   / LabMeC - FEC - UNICAMP
   / 2007
  */
+namespace pzgeom
+{
 
 class TPZArc3D : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> {
 
@@ -119,11 +121,11 @@ protected:
     double fAngle, fRadius, fXcenter, fYcenter;
 };
 
-
+};
 
 #define TPZGEOELEMENTARC3DID 350
 template<>
-inline int TPZGeoElRefPattern<TPZArc3D>::ClassId() const {
+inline int TPZGeoElRefPattern<pzgeom::TPZArc3D>::ClassId() const {
 	return TPZGEOELEMENTARC3DID;
 }
 

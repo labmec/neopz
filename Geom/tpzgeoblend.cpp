@@ -12,8 +12,10 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.geoblend"));
 #endif
 
+    
+
 template <class TGeo>
-void TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans)
+void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans)
 {
   if(!fNeighbours[side-TGeo::NNodes].Element())
   {
@@ -35,7 +37,7 @@ void TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTrans
 }
 
 template <class TGeo>
-bool TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide)
+bool pzgeom::TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide)
 {
      int SideDim    = fNeighbours[side-TGeo::NNodes].Dimension();
      TPZFNMatrix<9> JacSide;
@@ -91,7 +93,7 @@ bool TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZV
 }
 
 template <class TGeo>
-void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result)
+void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result)
 {
 	#ifdef LOG4CXX
 	if(logger->isDebugEnabled())
@@ -194,7 +196,7 @@ void TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &r
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TGeo>
-void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)
+void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)
 {
     TPZManVector<REAL,3> NeighPar, SidePar, Xside(3,0.), XNode(3,0.);
     int majorSide = TGeo::NSides - 1;
@@ -384,7 +386,7 @@ void TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatr
 }
 
 template <class TGeo>
-void TPZGeoBlend<TGeo>::Print(std::ostream &out)
+void pzgeom::TPZGeoBlend<TGeo>::Print(std::ostream &out)
 {
   TGeo::Print(out);
   out << "Neighbours/transformations used for mapping the sides :\n";
@@ -400,7 +402,7 @@ void TPZGeoBlend<TGeo>::Print(std::ostream &out)
 }
 
 template <class TGeo>
-void TPZGeoBlend<TGeo>::Initialize(TPZGeoEl *refel)
+void pzgeom::TPZGeoBlend<TGeo>::Initialize(TPZGeoEl *refel)
 {
     for(int byside = TGeo::NNodes; byside < (TGeo::NSides); byside++)
     {
@@ -445,7 +447,7 @@ void TPZGeoBlend<TGeo>::Initialize(TPZVec<int> &nodeindexes)
 using namespace pzgeom;
 
 template <class TGeo>
-TPZGeoEl *TPZGeoBlend<TGeo>::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
+TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {
   TPZStack<int> LowAllSides;
   TGeo::LowerDimensionSides(side,LowAllSides);
@@ -475,7 +477,7 @@ TPZGeoEl *TPZGeoBlend<TGeo>::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 }
 
 template <class TGeo>
-TPZGeoEl *TPZGeoBlend<TGeo>::CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc)
+TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc)
 {
   int ns = orig->NSideNodes(side);
   TPZManVector<int> nodeindices(ns);
@@ -504,7 +506,7 @@ TPZGeoEl *TPZGeoBlend<TGeo>::CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc)
  * Creates a geometric element according to the type of the father element
  */
 template <class TGeo>
-TPZGeoEl *TPZGeoBlend<TGeo>::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 									   TPZVec<int>& nodeindexes,
 									   int matid,
 									   int& index)
@@ -513,15 +515,17 @@ TPZGeoEl *TPZGeoBlend<TGeo>::CreateGeoElement(TPZGeoMesh &mesh, MElementType typ
 }
 
 
-template class TPZGeoBlend<TPZGeoCube>;
-template class TPZGeoBlend<TPZGeoTriangle>;
-template class TPZGeoBlend<TPZGeoPrism>;
-template class TPZGeoBlend<TPZGeoPyramid>;
-template class TPZGeoBlend<TPZGeoTetrahedra>;
-template class TPZGeoBlend<TPZGeoQuad>;
-template class TPZGeoBlend<TPZGeoLinear>;
-template class TPZGeoBlend<TPZGeoPoint>;
 
+
+
+template class pzgeom::TPZGeoBlend<TPZGeoCube>;
+template class pzgeom::TPZGeoBlend<TPZGeoTriangle>;
+template class pzgeom::TPZGeoBlend<TPZGeoPrism>;
+template class pzgeom::TPZGeoBlend<TPZGeoPyramid>;
+template class pzgeom::TPZGeoBlend<TPZGeoTetrahedra>;
+template class pzgeom::TPZGeoBlend<TPZGeoQuad>;
+template class pzgeom::TPZGeoBlend<TPZGeoLinear>;
+template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \

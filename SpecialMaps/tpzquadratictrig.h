@@ -13,6 +13,10 @@ class TPZGeoEl;
   / 2007
  */
 
+namespace pzgeom
+{
+
+/// Defines a triangular geometric element with quadratic map
 class TPZQuadraticTrig : public pzgeom::TPZNodeRep<6,pztopology::TPZTriangle> {
 
      public:
@@ -65,6 +69,8 @@ public:
 									  int& index);
 	
 	
+};
+    
 };
 
 #endif

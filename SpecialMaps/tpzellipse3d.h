@@ -18,6 +18,10 @@
 
 class TPZGeoMesh;
 
+namespace pzgeom
+{
+    
+/// Defines a linear geometric element which maps a line segment to an ellipse
 class TPZEllipse3D : public pzgeom::TPZNodeRep<2,pztopology::TPZLine> {
 
 public:
@@ -146,4 +150,5 @@ private://metodos utilizados apenas pelos metodos publicos desta classe!
     TPZVec<REAL> fOrigin;
 };
 
+};
 #endif

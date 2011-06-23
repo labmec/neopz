@@ -16,7 +16,10 @@
   / LabMeC - FEC - UNICAMP
   / 2007
  */
+namespace pzgeom
+{
 
+/// implements a triange with straight sides but with nonlinear map
 class TPZCurvedTriangle : public pzgeom::TPZNodeRep<3,pztopology::TPZTriangle> {
 
 public:
@@ -62,7 +65,7 @@ public:
     static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 
     /**
-    /Aqui o X engloba a transforma��o curva (Caju) e a transforma��o linear (PZ 3node element)
+    /Aqui o X engloba a transformacao curva (Caju) e a transformacao linear (PZ 3node element)
    */
     static void X(TPZFMatrix &coord, TPZVec<REAL>& par, TPZVec< REAL > &result);
 
@@ -79,4 +82,5 @@ public:
 	
 };
 
+};
 #endif

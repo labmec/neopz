@@ -16,7 +16,10 @@
   / LabMeC - FEC - UNICAMP
   / 2007
  */
+namespace pzgeom
+{
 
+/// Defines a quadrilateral geometric element with quadratic map
 class TPZQuadraticQuad : public pzgeom::TPZNodeRep<8,pztopology::TPZQuadrilateral> {
 
 public:
@@ -77,4 +80,5 @@ public:
 	
 };
 
+};
 #endif

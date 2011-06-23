@@ -14,7 +14,10 @@
   / LabMeC - FEC - UNICAMP
   / 2007
  */
+namespace pzgeom 
+{
 
+/// Implements a blending map from curved boundaries to the interior of the element
 template <class TGeo>
 class TPZGeoBlend : public TGeo {
 
@@ -105,4 +108,5 @@ protected:
     TPZTransform fTrans[1+TGeo::NSides - TGeo::NNodes];
 };
 
+};
 #endif

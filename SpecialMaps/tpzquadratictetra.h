@@ -17,6 +17,10 @@
   / 2007
  */
 
+namespace pzgeom
+{
+
+/// Defines a tetrahedral geometric element with quadratic map
 class TPZQuadraticTetra : public pzgeom::TPZNodeRep<10,pztopology::TPZTetrahedron> {
 
 public:
@@ -73,6 +77,8 @@ public:
 									  int& index);
 	
 	
+};
+
 };
 
 #endif

@@ -16,7 +16,10 @@
   / LabMeC - FEC - UNICAMP
   / 2007
  */
+namespace pzgeom
+{
 
+/// Defines a linear geometric element with quadratic map
 class TPZQuadraticLine : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> {
 
 public:
@@ -77,4 +80,5 @@ public:
   static void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);
 };
 
+};
 #endif
