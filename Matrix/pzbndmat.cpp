@@ -615,7 +615,68 @@ TPZFBMatrix::Transpose (TPZMatrix *const T) const
 int
 TPZFBMatrix::Decompose_LU(std::list<int> &singular)
 {
-  return Decompose_LU();
+    if (  fDecomposed && fDecomposed == ELU) {
+        return ELU;
+    } else if(fDecomposed) {
+        TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
+    }
+    int rows = Rows();
+    int  min = rows - 1;
+    int imax;
+    REAL nn;
+    
+    REAL *kFirstPtr = fElem+fBand+1;
+    int k;
+    for ( k = 0; k < min ; k++ )
+    {
+        REAL *iPtr = fElem+fBand*(2*k+1)+k;
+        REAL pivot = *iPtr;
+        if ( IsZero(pivot))
+        {
+            (*iPtr)++;
+            pivot++;
+            std::cout << __PRETTY_FUNCTION__ << " at row " << k << " is singular\n";
+//            TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LU <matrix is singular>" );
+        }
+        
+        //       if(IsZero(pivot)){
+        //         if(pivot < 0.) *iPtr = -1.e-10;
+        //         else *iPtr = +1.e-10;
+        //         pivot = *iPtr;
+        //       }
+        
+        REAL *jFirstPtr = fElem+fBand*(2*k+3)+k+1;
+        imax = k+fBand+1;
+        if(imax > rows) imax = rows;
+        REAL *kLastPtr = fElem+fBand*(2*k+1)+imax;
+        REAL *kPtr, *jPtr;
+        for ( int i = k+1; i < imax; i++ )
+        {
+            iPtr += 2*fBand;
+            *iPtr /= pivot;
+            nn = *iPtr;
+            kPtr = kFirstPtr;
+            jPtr = jFirstPtr;
+            while(kPtr < kLastPtr) *jPtr++ -= nn * *kPtr++;
+            jFirstPtr += 2*fBand;
+            //			for ( int j = k+1; j < Cols(); j++ )
+            //				PutVal( i, j, GetVal( i, j ) - nn * GetVal( k, j ) );
+        }
+        kFirstPtr += 2*fBand+1;
+    }
+    REAL *iPtr = fElem+fBand*(2*k+1)+k;
+    REAL pivot = *iPtr;
+    if ( IsZero(pivot))
+    {
+        (*iPtr)++;
+        pivot++;
+        std::cout << __PRETTY_FUNCTION__ << " at row " << k << " is singular\n";
+        //            TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LU <matrix is singular>" );
+    }
+
+    fDecomposed = ELU;
+    return 1;
+
 }
 
 int
@@ -636,8 +697,10 @@ TPZFBMatrix::Decompose_LU()
     {
       REAL *iPtr = fElem+fBand*(2*k+1)+k;
       REAL pivot = *iPtr;
-      if ( pivot == 0.0 )
-	TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LU <matrix is singular>" );
+      if ( IsZero(pivot) )
+      {
+          TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LU <matrix is singular>" );
+      }
   
 //       if(IsZero(pivot)){
 //         if(pivot < 0.) *iPtr = -1.e-10;

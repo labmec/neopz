@@ -159,7 +159,10 @@ TPZFBMatrix::GetVal(const int row,const int col ) const {
 
 inline REAL &TPZFBMatrix::operator()(const int row, const int col){  
   if( (col+fBand >= row) && (col <= (row+fBand)) )
+  {
     return( fElem[ fBand * (2*row + 1) + col ] );
+  }
+    DebugStop();
   gZero = 0.;
   return( gZero );
 }
