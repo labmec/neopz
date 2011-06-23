@@ -331,6 +331,54 @@ void TPZGenGrid::SetElementType(int type) {
 }
 
 /// compute the geometric progression such that the first elements have this size
+REAL TPZGenGrid::GeometricProgression(REAL minsize, REAL domainsize, int numdiv)
+{
+    REAL progression = 1.;
+    REAL factor = domainsize/minsize;
+    REAL func = 0.;//pow(progression[idim],fNx[idim])-1.+factor[idim]*(1.-progression[idim]);
+    REAL nextsize = 1.;
+    for (int i=0; i<numdiv; i++) {
+        func += nextsize;
+        nextsize *= progression;
+    }
+    func -= factor;
+    int iter = 0;
+    int maxiter = 200;
+    while (fabs(func/factor) >= 1.e-10 && iter < 200) {
+        REAL dfunc = 0.;// fNx[idim]*pow(progression[idim], fNx[idim]-1)-factor[idim];
+        func = 0.;
+        nextsize = 1.;
+        for (int i=0; i<numdiv; i++) {
+            func += nextsize;
+            dfunc += i*nextsize/progression;
+            nextsize *= progression;
+        }
+        func -= factor;
+        //std::cout << "func = " << func << std::endl;
+        progression -= func/dfunc;
+        func = 0.;//pow(progression[idim],fNx[idim])-1.+factor[idim]*(1.-progression[idim]);
+        nextsize = 1.;
+        dfunc = 0.;
+        for (int i=0; i<numdiv; i++) {
+            func += nextsize;
+            dfunc += i*nextsize/progression;
+            nextsize *= progression;
+        }
+        func -= factor;
+        
+        iter++;
+    }
+    if (iter == maxiter)
+    {
+        DebugStop();
+    }
+    return progression;
+
+}
+
+
+
+/// compute the geometric progression such that the first elements have this size
 void TPZGenGrid::ComputeGeometricProgression(TPZVec<REAL> &minsizes, TPZVec<REAL> &progression)
 {
     int idim;

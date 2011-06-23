@@ -47,6 +47,9 @@ public:
     virtual short Read (TPZGeoMesh & malha);
     
     /// compute the geometric progression such that the first elements have this size
+    static REAL GeometricProgression(REAL minsize, REAL size, int numdiv);
+
+    /// compute the geometric progression such that the first elements have this size
     void ComputeGeometricProgression(TPZVec<REAL> &minsizes, TPZVec<REAL> &progression);
     
     /// set the geometric progression of the mesh to be generated
