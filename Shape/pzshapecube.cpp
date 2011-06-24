@@ -348,6 +348,7 @@ int TPZShapeCube::NShapeF(TPZVec<int> &order) {
   return res;
 }
 
+/*
 void TPZShapeCube::LowerDimensionSides(int side,TPZStack<int> &smallsides) {
 
 	cout << "TPZShapeCube::LowerDimensionSides Nao deve ser usado";
@@ -374,7 +375,7 @@ void TPZShapeCube::LowerDimensionSides(int side,TPZStack<int> &smallsides) {
     for (i=0;i<25;i++) smallsides.Push(i);
   }
 }
-
+*/
 #ifdef _AUTODIFF
 
 void TPZShapeCube::ShapeCube(TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZVec<FADREAL> &phi)

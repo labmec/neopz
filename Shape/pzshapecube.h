@@ -62,6 +62,8 @@ static void ShapeCube(TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, 
  */
 static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
 
+private:
+
 /**
  * Computes the generating shape functions for a quadrilateral element
  * @param pt (input) point where the shape function is computed
@@ -202,6 +204,7 @@ static REAL gFaceTrans3dCube2d[6][2][3];
  */
 static REAL gRibTrans3dCube1d[12][3];
 
+public:
 /**
  * Number of shapefunctions of the connect associated with the side, considering the order
  * of interpolation of the element
@@ -222,7 +225,7 @@ static int NShapeF(TPZVec<int> &order);
  /**
  * it returns the sides from lesser dimension associates to the side of the element
  */
-static void LowerDimensionSides(int side,TPZStack<int> &smallsides);
+//static void LowerDimensionSides(int side,TPZStack<int> &smallsides);
 
 };
 
