@@ -807,7 +807,52 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
 	if(TSHAPE::SideDimension(side)!= TSHAPE::Dimension -1 ){
 			return ;
 	}
-	TPZIntelGen<TSHAPE>::SideShapeFunction(side,point,phi,dphi);
+    int ncontained = TSHAPE::NContainedSides(side);
+    int nsideshape = 0;
+    int order = SideOrder(side);
+    int is;
+    for (is=0; is<ncontained; is++) {
+        int ic = TSHAPE::ContainedSideLocId(side,is);
+        nsideshape += TSHAPE::NConnectShapeF(ic,order);
+    }
+    if (nsideshape != this->NSideShapeF(side)) {
+        // create a philoc and copy
+        TPZFNMatrix<200> philoc(nsideshape,1),dphiloc(TSHAPE::SideDimension(side),nsideshape);
+        TPZIntelGen<TSHAPE>::SideShapeFunction(side,point,philoc,dphiloc);
+        int nsh = phi.Rows();
+        for (int ish = 0; ish < nsh; ish++) {
+            phi(ish,0) = philoc(ish,0);
+            for (int d=0; d<TSHAPE::SideDimension(side); d++) {
+                dphi(d,ish) = dphiloc(d,ish);
+            }
+        }
+    }
+    else
+    {
+        TPZIntelGen<TSHAPE>::SideShapeFunction(side,point,phi,dphi);
+    }
+    
+    if(TSHAPE::SideDimension(side) == 1)
+    {
+        int locnod0 = TSHAPE::SideNodeLocId(side,0);
+        int locnod1 = TSHAPE::SideNodeLocId(side,1);
+        TPZGeoEl *gel = this->Reference();
+        int locnodid0 = gel->NodePtr(locnod0)->Id();
+        int locnodid1 = gel->NodePtr(locnod1)->Id();
+        if(locnodid0 > locnodid1)
+        {
+            REAL temp;
+            temp = phi(0,0);
+            phi(0,0) = phi(1,0);
+            phi(1,0) = temp;
+            int d;
+            for (d=0; d<TSHAPE::SideDimension(side); d++) {
+                temp = dphi(d,0);
+                dphi(d,0) = dphi(d,1);
+                dphi(d,1) = temp;
+            }
+        }
+    }
 	/*
 	TPZFNMatrix<300> phi1,dphi1,phi2,dphi2;
 	TPZTransform tr = TSHAPE::SideToSideTransform(side,TSHAPE::NSides-1);
