@@ -214,7 +214,13 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order){
   }
 }
 
-void TPZInterpolatedElement::IdentifySideOrder(int side){
+void TPZInterpolatedElement::IdentifySideOrder(int side)
+{
+    if(MidSideConnectLocId(side) == -1)
+    {
+        // there is no connect to adjust the order for
+        return;
+    }
   TPZCompElSide thisside(this,side);
   TPZCompElSide large = thisside.LowerLevelElementList(1);
   int sideorder = SideOrder(side);
