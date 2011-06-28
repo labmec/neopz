@@ -851,7 +851,16 @@ int TPZCompElSide::ConnectIndex() const
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(fEl);
         if(intel)
         {
-            return intel->ConnectIndex(intel->MidSideConnectLocId(fSide));
+            int locid = intel->MidSideConnectLocId(fSide);
+            // verify whether there is a connect associated with this side
+            if(locid >= 0)
+            {
+                return intel->ConnectIndex(intel->MidSideConnectLocId(fSide));
+            }
+            else
+            {
+                return -1;
+            }
         }
         else
         {
