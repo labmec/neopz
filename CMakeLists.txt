@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 project (PZ)
 
+#Specify where the headers files must be finded
 include_directories(
 	"${PROJECT_SOURCE_DIR}/Util"
 	"${PROJECT_SOURCE_DIR}/Common"
@@ -27,51 +28,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/PlaneFracture"
  )
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
-
-set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "directory where pthread.h can be found")
-set (PTHREAD_LIB_INCLUDE "/usr/lib" CACHE PATH "directory where the pthread library can be found")
-include_directories(${PTHREAD_INCLUDE})
-link_directories(${PTHREAD_LIB_INCLUDE})
-link_libraries(pthread)
-
-#specify where the refinement patterns can be found (default behaviour when running the code)
-add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
-
-option(USING_BOOST "Whether the Boost package will be linked with the library" ON)
-
-if(USING_BOOST)
-	
-	find_package( Boost )
-   		if(Boost_FOUND)
-			add_definitions(-DUSING_BOOST)
-      		include_directories(${Boost_INCLUDE_DIRS})
-			link_libraries(${Boost_LIB_DIRS})
-   		endif()
-endif()
-
-option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
-
-if(USING_FAD)
-	
-	set(FAD_INCLUDE "/usr/local/include" CACHE PATH "directory to the source of FAD")
-	add_definitions(-D_AUTODIFF)
-    include_directories(${FAD_INCLUDE} ${FAD_INCLUDE}/Fad ${FAD_INCLUDE}/TinyFad ${FAD_INCLUDE}/TinyFadET)
-endif()
-
-
-option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
-if(USING_LOG4CXX)
-	set (LOG4CXX_INCLUDE "/usr/local/include" CACHE PATH "directory where log4cxx header files can be found")
-	set (LOG4CXX_LIB_INCLUDE "/usr/local/lib" CACHE PATH "directory where the log4cxx library can be found")
-	include_directories(${LOG4CXX_INCLUDE})
-	link_directories(${LOG4CXX_LIB_INCLUDE})
-	add_definitions(-DLOG4CXX -DPZSOURCEDIR=\"${PROJECT_SOURCE_DIR}\")
-	link_libraries(log4cxx)
-endif()
-
-add_definitions(-DBUILD_TESTING=FALSE)
-
+#increment all the directories where the sources files is
 add_subdirectory(Util)
 add_subdirectory(Common)
 add_subdirectory(Save)
@@ -94,12 +51,78 @@ add_subdirectory(StrMatrix)
 add_subdirectory(Pre)
 add_subdirectory(SubStruct)
 add_subdirectory(lib)
-add_subdirectory(Projects)
-add_subdirectory(PlaneFracture)
 
-enable_testing()
+#To insert doxygen documentation file and other text files into the project environment (to facility changes)
+file(GLOB_RECURSE makefiles ./CMake*.txt)
+file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
+#creating text files group 
+source_group(CMakeFiles FILES ${makefiles})
+source_group(DoxyFiles FILES ${doxyfiles})
+add_custom_target(pzdocs SOURCES ${makefiles} ${doxyfiles})
 
-add_test (PZTesting Projects/UnitTest/PZTests)
-add_test (VoidFluxTest Projects/Conductivity)
 
-include(CTest)
+#Defining variables
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
+
+set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "directory where pthread.h can be found")
+set (PTHREAD_LIB_INCLUDE "/usr/lib" CACHE PATH "directory where the pthread library can be found")
+include_directories(${PTHREAD_INCLUDE})
+link_directories(${PTHREAD_LIB_INCLUDE})
+link_libraries(pthread)
+
+#specify where the refinement patterns can be found (default behaviour when running the code)
+add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
+
+#enabling Boost library 
+option(USING_BOOST "Whether the Boost package will be linked with the library" ON)
+
+if(USING_BOOST)
+	find_package( Boost )
+   		if(Boost_FOUND)
+			add_definitions(-DUSING_BOOST)
+      		include_directories(${Boost_INCLUDE_DIRS})
+			link_libraries(${Boost_LIB_DIRS})
+   		endif()
+endif()
+
+#enabling FAD library
+option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
+
+if(USING_FAD)
+	set(FAD_INCLUDE "/usr/local/include" CACHE PATH "directory to the source of FAD")
+	add_definitions(-D_AUTODIFF)
+    include_directories(${FAD_INCLUDE} ${FAD_INCLUDE}/Fad ${FAD_INCLUDE}/TinyFad ${FAD_INCLUDE}/TinyFadET)
+endif()
+
+#enabling to use LOG4CXX library
+option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
+if(USING_LOG4CXX)
+	set (LOG4CXX_INCLUDE "/usr/local/include" CACHE PATH "directory where log4cxx header files can be found")
+	set (LOG4CXX_LIB_INCLUDE "/usr/local/lib" CACHE PATH "directory where the log4cxx library can be found")
+	include_directories(${LOG4CXX_INCLUDE})
+	link_directories(${LOG4CXX_LIB_INCLUDE})
+	add_definitions(-DLOG4CXX -DPZSOURCEDIR=\"${PROJECT_SOURCE_DIR}\")
+	link_libraries(log4cxx)
+endif()
+
+#To enable unit test using boost UnitTest framework
+option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
+add_definitions(-DBUILD_UNITTESTING=FALSE)
+#To building several examples for training and experimentation PZ
+option(BUILD_TUTORIAL "To build examples for training or teaching PZ" OFF)
+add_definitions(-D BUILD_TUTORIAL=FALSE)
+
+if(BUILD_UNITTESTING)
+	link_libraries(boost_unit_test_framework)
+	add_subdirectory(UnitTest_PZ)
+else()
+	add_subdirectory(PlaneFracture)
+	add_subdirectory(Projects)
+endif()
+
+
+#Creating log file to cmake process  -- it's temporary, only to check variable contents
+set(LogFile
+	"${PROJECT_SOURCE_DIR}/LogCMake.txt"
+	CACHE STRING "Log file to control CMake process"
+	) 

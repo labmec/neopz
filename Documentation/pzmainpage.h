@@ -17,7 +17,7 @@
 \author Nathan Shauer
 \author Others
 
-The PZ environment is a object oriented environment for the deveopment finite element simulations.
+The PZ environment is a object oriented environment for the development finite element simulations.
 
 The PZ environment (in the future quoted as simply PZ) incorporates several advanced finite element
 technologies in a single coherent structure, allowing its user to develop sophisticated simulations

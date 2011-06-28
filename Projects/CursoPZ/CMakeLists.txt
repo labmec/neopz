@@ -1,33 +1,16 @@
 
-include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
+if(BUILD_TUTORIAL)
 
-add_subdirectory(Class_5)
-add_subdirectory(Class_1)
-add_subdirectory(Class_2)
-add_subdirectory(Class_3)
-add_subdirectory(Class_4)
+	#Example using integration rules: IntegralExample
+	add_subdirectory(cursoPZ_1)
+	#Example using matrizes and solvers: MatrixExample
+	add_subdirectory(cursoPZ_2)
+	#Example using large mesh and topological elements (prismatic): TopologyExample
+	add_subdirectory(cursoPZ_3)
+	#Example testing refinement: RefineExample
+	add_subdirectory(cursoPZ_4)
+	#Example using writing and reading meshes: IOMeshExample
+	add_subdirectory(cursoPZ_5)
 
+endif()
 
-########### install files ###############
-
-
-
-
-#original Makefile.am contents follow:
-
-##
-## NeoPZ Projects makefile
-##
-## It will be processed by GNU automake to produce Makefile.in
-##
-## $Id#
-##
-#
-#DISTCLEANFILES = @PZ_DISTCLEANFILES@
-#CLEANFILES     = @PZ_CLEANFILES@
-#
-#-include $(top_builddir)/@PZ_MK@
-#
-#SUBDIRS = Class_5 Class_1 Class_2 Class_3 Class_4
-#
-### --| NeoPZ |------------------------------------------------------------------
