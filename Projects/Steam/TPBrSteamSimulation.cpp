@@ -5,7 +5,7 @@
 //  Created by Philippe Devloo on 5/15/11.
 //  Copyright 2011 UNICAMP. All rights reserved.
 //
-#include <fstream.h>
+#include <fstream>
 
 #include "TPBrSteamSimulation.h"
 #include "tpbrsteammesh.h"
