@@ -48,11 +48,13 @@ int main()
   MatTest.SetContributionTime(Advanced_CT);
   MatTest.Print(cout);
 
+    TPZMaterialData data;
+
   // emulating state variables
-  TPZFMatrix dsol(dim,nstate, 0.);
-  TPZFMatrix dphi(dim,nphi, 0.);
-  TPZFMatrix phi(nphi,1, 0.);
-  TPZVec<REAL> sol(nstate);
+  data.dsol.Redim(dim,nstate);
+  data.dphix.Redim(dim,nphi);
+  data.phi.Redim(nphi,1);
+  data.sol.Resize(nstate);
 
   TPZFMatrix ef(nphi * nstate, 1, 0.);
   TPZFMatrix ek(nphi * nstate, nphi * nstate, 0.);
@@ -63,19 +65,19 @@ int main()
   // generating data
 
   //phi
-  phi(0)=2.3;
-  phi(1)=3.5;
-  phi(2)=5.7;
-  phi(3)=7.11;
-  phi(4)=11.13;
-  phi(5)=13.17;
+  data.phi(0)=2.3;
+  data.phi(1)=3.5;
+  data.phi(2)=5.7;
+  data.phi(3)=7.11;
+  data.phi(4)=11.13;
+  data.phi(5)=13.17;
 
   //dphi
   int i;
   int j;
   for(i=0;i<dim;i++)
      for(j=0;j<nphi;j++)
-        dphi(i,j)=45.8*i-3.2*j+2.; // any choice
+        data.dphix(i,j)=45.8*i-3.2*j+2.; // any choice
 
   // individual solution coefficients
   TPZFMatrix u(nstate * nphi,1, 0.);
@@ -88,16 +90,17 @@ int main()
    cout << "\nu" << u;
 
   //flattening solution
-  Flatten(u, phi, dphi, sol, dsol);
+  Flatten(u, data.phi, data.dphix, data.sol, data.dsol);
 
-  cout << "\nsol" << sol;
+  cout << "\nsol" << data.sol;
 
-  cout << "\ndsol" << dsol;
+  cout << "\ndsol" << data.dsol;
 
-  TPZFMatrix jacinv(dim, dim, 7.);
-  TPZVec<REAL> x(3);
+  data.jacinv.Redim(dim, dim);
+  data.x.Resize(3);
 
-  MatTest.Contribute(x, jacinv, sol, dsol, 13, jacinv, phi, dphi, ek, ef);
+
+  MatTest.Contribute(data,13., ek, ef);
 
 cout << "\nef\n" << ef;
 
@@ -107,7 +110,7 @@ cout << "\nek\n" << ek;
 
 cout.flush();
 
-  CheckConv(.0001, u, phi, dphi, MatTest);
+  CheckConv(.0001, u, data.phi, data.dphix, MatTest);
 
   return 0;
 }
@@ -155,8 +158,6 @@ void CheckConv(const double step,
 
    cout << "\nCheckConv matrix\n";
 
-   TPZVec<REAL> sol;
-   TPZFMatrix dsol;
 
    int nCoeff = coeff.Rows(), i, j;
 
@@ -171,12 +172,16 @@ void CheckConv(const double step,
    	      F2(nCoeff,1, 0.);
 
    int dim = dphi.Rows();
-   TPZFMatrix jacinv(dim, dim, 7.);
-   TPZVec<REAL> x(3);
+    TPZMaterialData data;
+    data.phi = phi;
+    data.dphix = dphi;
+    data.jacinv.Resize(dim,dim);
+//   TPZFMatrix jacinv(dim, dim, 7.);
+   data.x.Resize(3);
 
-   Flatten(coeff, phi, dphi, sol, dsol);
+   Flatten(coeff, data.phi, data.dphix, data.sol, data.dsol);
 
-   MatTest.Contribute(x, jacinv, sol, dsol, 13, jacinv, phi, dphi, Tangent, F0);
+   MatTest.Contribute(data, 13., Tangent, F0);
 
 /* To test the explicit last state contributions, remember to comment out
 the contributions to T1 and T2;
@@ -199,12 +204,12 @@ the contributions to T1 and T2;
       F2.Zero();
 
       updatedCoeff = coeff + deltaCoeff1;
-      Flatten(updatedCoeff, phi, dphi, sol, dsol);
-      MatTest.Contribute(x, jacinv, sol, dsol, 13, jacinv, phi, dphi, TrashTangent, F1);
+      Flatten(updatedCoeff, data.phi, data.dphix, data.sol, data.dsol);
+      MatTest.Contribute(data, 13., TrashTangent, F1);
 
       updatedCoeff = coeff + deltaCoeff2;
-      Flatten(updatedCoeff, phi, dphi, sol, dsol);
-      MatTest.Contribute(x, jacinv, sol, dsol, 13, jacinv, phi, dphi, TrashTangent, F2);
+      Flatten(updatedCoeff, data.phi, data.dphix, data.sol, data.dsol);
+      MatTest.Contribute(data, 13., TrashTangent, F2);
 
       F1 -= F0;
       F2 -= F0;
