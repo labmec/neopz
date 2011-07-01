@@ -1,7 +1,8 @@
-
+#include "SimpleShock.h"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
+#include "pzbndcond.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"
 #include "pzreal.h"
@@ -171,7 +172,7 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
 
 // Boundary conditions
 
-   TPZAutoPointer<TPZMaterial>  bc;
+   TPZBndCond *bc;
    TPZFMatrix val1(4,4), val2(4,1);
    REAL rhol  = 1.,
         rhoul = 1.,

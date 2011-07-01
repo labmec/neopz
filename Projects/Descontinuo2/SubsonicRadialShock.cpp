@@ -1,7 +1,8 @@
-
+#include "SubsonicRadialShock.h"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
+#include "pzbndcond.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"
 #include "pzreal.h"
@@ -26,14 +27,14 @@
  using namespace pzrefine;
 const int nn = 2;
 const int mm = 4;
-const REAL pi = 3.14159265359;
+
 
 void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 {
    REAL ri = 1.8,
         ro = 5.,
 	deltar = ro - ri,
-	alpha = pi / (2. * nn)/8.,
+	alpha = M_PI / (2. * nn)/8.,
 	alphai,
 	r;
 
@@ -177,7 +178,7 @@ TPZFlowCompMesh *
 
 // Boundary conditions
 
-   TPZAutoPointer<TPZMaterial>  bc;
+   TPZBndCond *bc;
    TPZFMatrix val1(4,4), val2(4,1);
 
    //aresta superior: Parede

@@ -1,4 +1,6 @@
 
+#include "oneElementMesh.h"
+
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"

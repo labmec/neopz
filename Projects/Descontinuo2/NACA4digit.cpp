@@ -3,6 +3,7 @@
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
+#include "pzbndcond.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"
 #include "pzreal.h"
@@ -109,21 +110,19 @@ double entrance = 5. * scale,
 */
 
 double
- entrance = 25.,
- exitlength = 25.,
- cord = 1.,
- extraheight = 5.,
- height = 40.,
- qn, ql, q,
- scale = 5.;
+entrance = 25.,
+exitlength = 25.,
+cord = 1.,
+extraheight = 5.,
+height = 40.,
+qn, ql, q,
+scale = 5.;
 
 int l, m, n, p, k;
-
 void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int nSubdiv)
 {
 
-
-
+    
  m = nSubdiv;
 
  n = 5 * m / 9 * (int) pow(scale, .6);
@@ -132,7 +131,7 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
 
  q  = pow(7., 1./(double)m);
  qn = pow(196., 1./(double)n);
- double ql = pow(7., 1./(double)l);
+ ql = pow(7., 1./(double)l);
 
 
 
@@ -905,7 +904,7 @@ TPZFlowCompMesh *
    cout << "\nAirfoil angle [degrees]\n";
    cin >> profangle;
    options << profangle << std::endl;
-   profangle *= PI/180.;
+   profangle *= M_PI/180.;
 
    TPZNACAXXXX profile(cord,digits,profangle,x0);
 

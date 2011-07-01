@@ -1,7 +1,10 @@
 
+#include "reflectedShock.h"
+
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
+#include "pzbndcond.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"
 #include "pzreal.h"

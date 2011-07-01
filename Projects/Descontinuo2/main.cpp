@@ -1,12 +1,20 @@
 
-#include "oneElementMesh.cpp"
-#include "reflectedShock.cpp"
-#include "reflectedShock_nonalignedmesh.cpp"
-#include "SimpleShock.cpp"
-#include "ShockTube2d.cpp"
-#include "SubsonicRadialShock.cpp"
-#include "NACA4digit.cpp"
-#include "sphere3D.cpp"
+//#include "oneElementMesh.cpp"
+//#include "reflectedShock.cpp"
+//#include "reflectedShock_nonalignedmesh.cpp"
+//#include "SimpleShock.cpp"
+//#include "ShockTube2d.cpp"
+//#include "SubsonicRadialShock.cpp"
+//#include "NACA4digit.cpp"
+//#include "sphere3D.cpp"
+#include "oneElementMesh.h"
+#include "reflectedShock.h"
+#include "reflectedShock_nonalignedmesh.h"
+#include "SimpleShock.h"
+#include "ShockTube2d.h"
+#include "SubsonicRadialShock.h"
+#include "NACA4digit.h"
+#include "sphere3D.h"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
@@ -752,11 +760,12 @@ int run(std::istream & input, std::ostream & output)
 #endif
    output << "Generating File:" << file.Str() << endl;
 
-   ofstream * dxout = new ofstream((file+".dx" ).Str());
+   //ofstream * dxout = new ofstream((file+".dx" ).Str());
+    std::string outfile(file+".vtk");
    ofstream *   out = new ofstream((file+".csv").Str());
 
 
-   An.Run(* out, * dxout, max(0, p-1));
+   An.Run(* out, outfile, max(0, p-1));
 
    An.WriteCMesh((file+".pzf").Str());
 

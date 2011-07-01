@@ -1,7 +1,10 @@
 
+#include "ShockTube2d.h"
+
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
+#include "pzbndcond.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"
 #include "pzreal.h"
@@ -174,7 +177,7 @@ TPZFlowCompMesh * STCompMesh(REAL CFL, REAL delta,
 
 // Boundary conditions
 
-   TPZAutoPointer<TPZMaterial> bc;
+   TPZBndCond *bc;
 
    REAL rhol  = 1.,
         ul = 1.e-8,

@@ -1,7 +1,9 @@
+#include "sphere3D.h"
 #include "ratio.h"
 #include "pzeuleranalysis.h"
 #include "pzconslaw.h"
 #include "pzmaterial.h"
+#include "pzbndcond.h"
 #include "pzeulerconslaw.h"
 #include "pzartdiff.h"
 #include "pzreal.h"
@@ -460,7 +462,7 @@ TPZFlowCompMesh *
 
 // Boundary conditions
 
-   TPZAutoPointer<TPZMaterial>  bc;
+   TPZBndCond *bc;
    TPZFMatrix val1(5,5), val2(5,1);
 
    int nn = nSubdiv + 1;
