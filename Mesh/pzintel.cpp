@@ -88,6 +88,7 @@ int TPZInterpolatedElement::NSideShapeF(int side) {
 
 int TPZInterpolatedElement::MidSideConnectLocId(int side) const {
   int il = 1;
+    if(NSideConnects(side) == 0) return -1;
   int nodloc = SideConnectLocId(NSideConnects(side)-il,side);
   return nodloc;
 }
@@ -98,6 +99,10 @@ int TPZInterpolatedElement::MidSideConnectLocId(int side) const {
  */
 TPZConnect &TPZInterpolatedElement::MidSideConnect(int is)
 {
+    if(NSideConnects(is) == 0)
+    {
+        DebugStop();
+    }
 	return Connect(MidSideConnectLocId(is));
 }
 
