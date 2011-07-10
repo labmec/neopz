@@ -660,7 +660,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 	
 	
 	// VectorSide indicates the side associated with each vector entry
-	TPZVec<int> FirstIndex;
+	TPZManVector<int,27> FirstIndex;
 	// the first index of the shape functions
 	FirstShapeIndex(FirstIndex);
 
@@ -685,7 +685,33 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 				
 				
 			}
-			
+            else if(jvec==16 || jvec ==17)
+            {
+                int lside = VectorSide[jvec];
+                int order = SideOrder(lside);
+                int nshape = TSHAPE::NConnectShapeF(lside,order);
+                TPZFNMatrix<25> sideorders(2,nshape);
+                int ksi,eta;
+                int loccount = 0;
+                for (ksi=0; ksi<order-1; ksi++) {
+                    for (eta=0; eta<order-1; eta++) {
+                        sideorders(0,loccount) = ksi+2;
+                        sideorders(1,loccount) = eta+2;
+                        loccount++;
+                    }
+                }
+                int ish;
+                int fshape1 = FirstIndex[lside];
+                for (ish=0; ish<nshape; ish++) {
+                    if (jvec ==16 && sideorders(1,ish) < order) {
+                        ShapeAndVec[count++]=std::pair<int,int>(jvec,fshape1+ish);
+                    }
+                    if (jvec ==17 && sideorders(0,ish) < order) {
+                        ShapeAndVec[count++]=std::pair<int,int>(jvec,fshape1+ish);
+                    }
+                }
+            }
+			/*
 			else if (jvec==16) {
 				int lside=VectorSide[jvec];
 				int node=0;
@@ -699,7 +725,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 				
 				int fshape2= FirstIndex[lside+1];
 				int nfuncXY=nfuncint-2*(ConnectOrder(idcon)-2);//n. func. q assumem as duas direcoes
-				int indXY=fshape1+1;
+				int indXY=fshape1;
 				//funcoes q vao nas duas direcoes
 				for (int ishapeXY=indXY; ishapeXY<indXY+nfuncXY; ishapeXY++){//comecava em fshape+1 penso q deve comecar em fshape..acho q a ultima e de maior ordem
 					ShapeAndVec[count++]=std::pair<int,int>(jvec,ishapeXY);
@@ -723,7 +749,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 				int fshape1= FirstIndex[lside];
 				int nfuncint=TSHAPE::NConnectShapeF(lside,ConnectOrder(idcon))-1;//n. func. somente internas, estamenos um pq estou tirando a ultima
 				int nfuncXY=nfuncint-2*(ConnectOrder(idcon)-2);//n. func. q assumem as duas direcoes
-				int indXY=fshape1+1;
+				int indXY=fshape1;
 				//funcoes q vao nas duas direcoes
 				for (int ishapeXY=indXY; ishapeXY<indXY+nfuncXY; ishapeXY++){
 					ShapeAndVec[count++]=std::pair<int,int>(jvec,ishapeXY);
@@ -742,7 +768,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 					}
 		
 			}
-			
+			*/
 			//----
 			else{
 				
