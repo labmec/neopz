@@ -12,7 +12,7 @@ if(BUILD_TUTORIAL)
 		#Example using large mesh and topological elements (prismatic): TopologyExample
 		#Example testing refinement: RefineExample
 		#Example using writing and reading meshes: IOMeshExample
-	add_subdirectory(cursoPZ)
+	add_subdirectory(CursoPZ)
 		#add_subdirectory(cursoPZ_1)
 		#add_subdirectory(cursoPZ_2)
 		#add_subdirectory(cursoPZ_3)
