@@ -12,6 +12,7 @@ using namespace pzgeom;
 using namespace pztopology;
 
 void TPZQuadraticQuad::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
+    
    REAL qsi = param[0], eta = param[1];
 
    phi(0,0)  = -0.25*(-1. + eta)*(-1. + qsi)*(1. + eta + qsi);

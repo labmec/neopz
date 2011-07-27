@@ -32,6 +32,7 @@ using namespace pztopology;
 void TPZQuadraticTrig::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi)
 {
      REAL qsi = param[0], eta = param[1];
+    
      phi(0,0) = (qsi+eta-1.)*(2.*qsi+2.*eta-1.);
      phi(1,0) = qsi*(2.*qsi-1.);
      phi(2,0) = eta*(2.*eta-1.);

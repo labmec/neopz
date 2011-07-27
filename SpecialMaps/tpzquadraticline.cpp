@@ -12,16 +12,16 @@ using namespace pzgeom;
 using namespace pztopology;
 
 void TPZQuadraticLine::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
+    
   REAL qsi = param[0];
   
-  phi(0,0)  = 1.+(-1.+qsi/2.)*(1.+qsi);
-  phi(1,0)  = 0.5*qsi*(1.+qsi);
+  phi(0,0)  = -qsi*(1.-qsi)/2.;
+  phi(1,0)  = +qsi*(1.+qsi)/2.;
   phi(2,0)  = (1.-qsi)*(1.+qsi);
   
-  dphi(0,0) = -1.+qsi/2.+(1.+qsi)/2.;
-  dphi(0,1) = qsi/2.+(1.+qsi)/2.;
+  dphi(0,0) = qsi-0.5;
+  dphi(0,1) = qsi+0.5;
   dphi(0,2) = -2.*qsi;
- 
 }
 
 void TPZQuadraticLine::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
