@@ -32,181 +32,170 @@ class TPZWorkPool;
 template< class ElemType >
 class TPZLink
 {
-  /**
+	/**
      \struct Node
-     Defines a Node structure that contains an element type index and a node index.
+     @brief Defines a Node structure that contains an element type index and a node index.
      @param elem Describes element type.
      @param next Describes next element.
-   */
-  struct Node
-  {
-    ElemType elem;
-    Node     *next; 
-  };
-
- public:
-  /**
-   * Simple constructor
-   */
-  TPZLink();
-  /**
-   * Simple destructor
-   */
-  ~TPZLink();
-
+	 */
+	struct Node
+	{
+		ElemType elem;
+		Node     *next; 
+	};
+	
+public:
+	/**
+	 * @brief Simple constructor
+	 */
+	TPZLink();
+	/**
+	 * @brief Simple destructor
+	 */
+	~TPZLink();
+	
 #ifdef WORKPOOL
-  /**
-   * Sets a memory block for auxiliar manipulations
-   * @param *wp Available workpool
-   */
-  void SetWorkPool(TPZWorkPool *wp);
+	/**
+	 * @brief Sets a memory block for auxiliar manipulations
+	 * @param *wp Available workpool
+	 */
+	void SetWorkPool(TPZWorkPool *wp);
 #endif
-
-  /**
-   * @name Manipulators
-   * Those methods implement manipulations routine with the linked list
-   */
-  //@{
-  /**
-   * Inserts a element on the list
-   * @param &elem Element being inserted
-   */
-  int Insert( ElemType &elem );
-  /**
-   * Appends an element to the list
-   * @param &elem Element being appended
-   */
-  int Append( ElemType &elem );
-  /**
-   * Removes an element from the list
-   */
-  int Remove();
-  /**
-   * Updates the current list
-   * @param &elem Updated element on the list
-   */
-  int Update( ElemType &elem );
-  /**
-   * Clears the entire list
-   */
-  int Clear();
-  //@}
-
-  TPZLink<ElemType> &operator=( TPZLink<ElemType> & );
-  /**
-   * Returns to the head of the list
-   */
-  int Head();
-  /**
-   * Moves to the next element on list
-   */
-  int Next();
-  /**
-   * Returns an element from the list
-   * @param *pElem contains the returned element
-   */
-  int Get( ElemType *pElem );
-  /**
-   * Returns the node's element type
-   */
-  ElemType *GetNode();
-  /**
-   * Returns the last element on the list
-   * @param *pELem contains the last element
-   */
-  int GetLast( ElemType *pElem );
-
- private:
-  /**
-   * Pointer to head of the list
-   */
-  Node *fHead;
-  /**
-   * Pointer to last element on list
-   */
-  Node *fLast;
-  /**
-   * Pointer to current element
-   */
-  Node *fThis;
-  /**
-   * What the hell
-   */
-  Node **fpBefore;
+	
+	/**
+	 * @name Manipulators
+	 * @brief Those methods implement manipulations routine with the linked list
+	 */
+	//@{
+	/**
+	 * @brief Inserts a element on the list
+	 * @param &elem Element being inserted
+	 */
+	int Insert( ElemType &elem );
+	/**
+	 * @brief Appends an element to the list
+	 * @param &elem Element being appended
+	 */
+	int Append( ElemType &elem );
+	/**
+	 * @brief Removes an element from the list
+	 */
+	int Remove();
+	/**
+	 * @brief Updates the current list
+	 * @param &elem Updated element on the list
+	 */
+	int Update( ElemType &elem );
+	/**
+	 * @brief Clears the entire list
+	 */
+	int Clear();
+	//@}
+	
+	TPZLink<ElemType> &operator=( TPZLink<ElemType> & );
+	/**
+	 * @brief Returns to the head of the list
+	 */
+	int Head();
+	/**
+	 * @brief Moves to the next element on list
+	 */
+	int Next();
+	/**
+	 * @brief Returns an element from the list
+	 * @param *pElem contains the returned element
+	 */
+	int Get( ElemType *pElem );
+	/**
+	 * @brief Returns the node's element type
+	 */
+	ElemType *GetNode();
+	/**
+	 * @brief Returns the last element on the list
+	 * @param *pELem contains the last element
+	 */
+	int GetLast( ElemType *pElem );
+	
+private:
+	/**
+	 * @brief Pointer to head of the list
+	 */
+	Node *fHead;
+	/**
+	 * @brief Pointer to last element on list
+	 */
+	Node *fLast;
+	/**
+	 * @brief Pointer to current element
+	 */
+	Node *fThis;
+	/**
+	 * What the hell
+	 */
+	Node **fpBefore;
 #ifdef WORKPOOL
-  /**
-   * Pointer to workpool
-   */
-  TPZWorkPool *fWp;
+	/**
+	 * @brief Pointer to workpool
+	 */
+	TPZWorkPool *fWp;
 #endif
-
+	
 };
 
 
-
 /*** Head ***/
-
 template< class ElemType >
 inline int
 TPZLink<ElemType>::Head()
 {
-  fpBefore = &fHead;
-  return( (fThis = fHead) != NULL );
+	fpBefore = &fHead;
+	return( (fThis = fHead) != NULL );
 }
 
-
-
 /*** Next ***/
-
 template< class ElemType >
 inline int
 TPZLink<ElemType>::Next()
 {
-  if ( fThis == NULL )
-    return( 0 );
-
-  fpBefore = &fThis->next;
-  fThis    =  fThis->next;
-  return( 1 );
+	if ( fThis == NULL )
+		return( 0 );
+	
+	fpBefore = &fThis->next;
+	fThis    =  fThis->next;
+	return( 1 );
 }
 
-
-
 /*** Get ***/
-
 template< class ElemType >
 inline int
 TPZLink<ElemType>::Get( ElemType *pElem )
 {
-  if ( fThis == NULL )
-    return( 0 );
-
-  *pElem = fThis->elem;
-  return( 1 );
+	if ( fThis == NULL )
+		return( 0 );
+	
+	*pElem = fThis->elem;
+	return( 1 );
 }
 
 /*** GetNode ***/
-
 template< class ElemType >
 inline ElemType *
 TPZLink<ElemType>::GetNode()//TPZLink<ElemType>::GetNode()
 {
-  if(fThis) return &(fThis->elem);
-  else return NULL;
+	if(fThis) return &(fThis->elem);
+	else return NULL;
 }
 
-
 /*** Get Last ***/
-
 template< class ElemType >
 inline int
 TPZLink<ElemType>::GetLast( ElemType *pElem )
 {
-  if ( fLast == NULL )
-    return( 0 );
-
-  *pElem = fLast->elem;
-  return( 1 );
+	if ( fLast == NULL )
+		return( 0 );
+	
+	*pElem = fLast->elem;
+	return( 1 );
 }
 
 //#include "tlink.h2"
@@ -216,7 +205,7 @@ template< class ElemType >
 inline void
 TPZLink<ElemType>::SetWorkPool( TPZWorkPool *wp )
 {
-  fWp = wp;
+	fWp = wp;
 }
 #endif
 

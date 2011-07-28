@@ -18,22 +18,22 @@ TPZSolver::~TPZSolver()
 }
 
 TPZMatrixSolver::TPZMatrixSolver(TPZAutoPointer<TPZMatrix> Refmat) :
-  fScratch()
+fScratch()
 {
-  fContainer = Refmat;
+	fContainer = Refmat;
 }
 
 TPZMatrixSolver::TPZMatrixSolver() :
-  fScratch()
+fScratch()
 {
 }
 
 //misael
 TPZMatrixSolver::TPZMatrixSolver(const TPZMatrixSolver &Source) :
-  fScratch()
+fScratch()
 {
-  fReferenceMatrix = Source.fReferenceMatrix;
-  fContainer = Source.fContainer;
+	fReferenceMatrix = Source.fReferenceMatrix;
+	fContainer = Source.fContainer;
 }
 
 // philippe 6/2/97
@@ -43,79 +43,79 @@ TPZMatrixSolver::~TPZMatrixSolver()
 
 void TPZMatrixSolver::SetMatrix(TPZAutoPointer<TPZMatrix> Refmat)
 {
-  fContainer = Refmat;
+	fContainer = Refmat;
 }
 
 void TPZMatrixSolver::ResetMatrix()
 {
-  TPZAutoPointer<TPZMatrix> reset;
-  fContainer = reset;
+	TPZAutoPointer<TPZMatrix> reset;
+	fContainer = reset;
 }
 
 void TPZMatrixSolver::ShareMatrix(TPZMatrixSolver &other)
 {
-  if (this == &other)
-    return;
-  fContainer = other.fContainer;
+	if (this == &other)
+		return;
+	fContainer = other.fContainer;
 }
 
 void TPZMatrixSolver::Write(TPZStream &buf, int withclassid)
 {
 #ifdef LOG4CXX
-  {
-    std::stringstream sout;
-    sout << "Entering " << __PRETTY_FUNCTION__;
-    LOGPZ_DEBUG(logger,sout.str());
-  }
+	{
+		std::stringstream sout;
+		sout << "Entering " << __PRETTY_FUNCTION__;
+		LOGPZ_DEBUG(logger,sout.str());
+	}
 #endif
-  TPZSaveable::Write(buf,withclassid);
-  if(fContainer)
-  {
+	TPZSaveable::Write(buf,withclassid);
+	if(fContainer)
+	{
 #ifdef LOG4CXX
-    {
-      std::stringstream sout;
-      sout << "fContainer AutoPointer valid on " << __PRETTY_FUNCTION__;
-      LOGPZ_DEBUG(logger,sout.str());
-    }
+		{
+			std::stringstream sout;
+			sout << "fContainer AutoPointer valid on " << __PRETTY_FUNCTION__;
+			LOGPZ_DEBUG(logger,sout.str());
+		}
 #endif
-
-    fContainer->Write(buf, 1);
-  }
-  else
-  {
-    int flag = -1;
-    buf.Write(&flag, 1);
-  }
-  if(fReferenceMatrix)
-  {
+		
+		fContainer->Write(buf, 1);
+	}
+	else
+	{
+		int flag = -1;
+		buf.Write(&flag, 1);
+	}
+	if(fReferenceMatrix)
+	{
 #ifdef LOG4CXX
-    {
-      std::stringstream sout;
-      sout << "fReferenceMatrix AutoPointer valid! It Shouldn't ! Expect Trouble " << __PRETTY_FUNCTION__;
-      LOGPZ_WARN(logger,sout.str());
-    }
+		{
+			std::stringstream sout;
+			sout << "fReferenceMatrix AutoPointer valid! It Shouldn't ! Expect Trouble " << __PRETTY_FUNCTION__;
+			LOGPZ_WARN(logger,sout.str());
+		}
 #endif
-    fReferenceMatrix->Write(buf, 1);
-  }
-  else
-  {
-    int flag = -1;
-    buf.Write(&flag, 1);
-  }
+		fReferenceMatrix->Write(buf, 1);
+	}
+	else
+	{
+		int flag = -1;
+		buf.Write(&flag, 1);
+	}
 #ifdef LOG4CXX
-  {
-    std::stringstream sout;
-    sout << "Leaving" << __PRETTY_FUNCTION__;
-    LOGPZ_DEBUG(logger,sout.str());
-  }
+	{
+		std::stringstream sout;
+		sout << "Leaving" << __PRETTY_FUNCTION__;
+		LOGPZ_DEBUG(logger,sout.str());
+	}
 #endif
 }
 
 void TPZMatrixSolver::Read(TPZStream &buf, void *context)
 {
-  TPZSaveable::Read(buf,context);
-  fContainer = dynamic_cast<TPZMatrix *>(TPZSaveable::Restore(buf, context));
-  fReferenceMatrix = dynamic_cast<TPZMatrix *>(TPZSaveable::Restore(buf, context));
+	TPZSaveable::Read(buf,context);
+	fContainer = dynamic_cast<TPZMatrix *>(TPZSaveable::Restore(buf, context));
+	fReferenceMatrix = dynamic_cast<TPZMatrix *>(TPZSaveable::Restore(buf, context));
 }
 
 //template class TPZRestoreClass< TPZMatrixSolver, TPZMATRIXSOLVER_ID>;

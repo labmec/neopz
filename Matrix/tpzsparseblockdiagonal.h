@@ -15,10 +15,10 @@
 #include "pzblockdiag.h"
 
 /**
-This class implements a block diagonal matrix where the blocks are not contiguous
-
-@author Philippe R. B. Devloo
-*/
+ @brief This class implements a block diagonal matrix where the blocks are not contiguous
+ @ingroup matrix
+ @author Philippe R. B. Devloo
+ */
 class TPZSparseBlockDiagonal : public TPZBlockDiagonal
 {
 public:
@@ -26,9 +26,9 @@ public:
     TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows);
     
     TPZSparseBlockDiagonal(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex,int rows, int color, TPZVec<int> &colors);
-
+	
     ~TPZSparseBlockDiagonal();
-
+	
     const REAL& Get(const int row, const int col) const;
     const REAL& GetVal(const int row, const int col) const;
     int Put(const int row, const int col, const REAL& value);
@@ -42,23 +42,23 @@ public:
     void GetBlock(int i, TPZFMatrix& block);
     void MultAdd(const TPZFMatrix& x, const TPZFMatrix& y, TPZFMatrix& z, const REAL alpha, const REAL beta, const int opt, const int stride) const;
     void FindBlockIndex(int glob, int &block, int &blockind) const;
-
-   /**
-   * Updates the values of the matrix based on the values of the matrix
-   */
-   virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
-  
+	
+	/**
+	 * @brief Updates the values of the matrix based on the values of the matrix
+	 */
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
+	
     
 protected:
-/**
-Equation numbers for each block
-*/
+	/**
+	 @brief Equation numbers for each block
+	 */
     TPZVec<int> fBlock;
-/**
-Index to first element of each block
-*/
+	/**
+	 @brief Index to first element of each block
+	 */
     TPZVec<int> fBlockIndex;
-
+	
     void Scatter(const TPZFMatrix &in, TPZFMatrix &out, int stride) const;
     void Gather(const TPZFMatrix &in, TPZFMatrix &out, int stride) const;
 };

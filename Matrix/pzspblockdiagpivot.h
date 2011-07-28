@@ -15,15 +15,15 @@
 #include "tpzsparseblockdiagonal.h"
 
 /**
-Derivation using decompose LU with pivot.
-
-@author Philippe R. B. Devloo
-*/
+ @brief Derivation using decompose LU with pivot.
+ @ingroup matrix
+ @author Philippe R. B. Devloo
+ */
 class TPZSpBlockDiagPivot : public TPZSparseBlockDiagonal
 {
 public:
     TPZSpBlockDiagPivot();
-
+	
     ~TPZSpBlockDiagPivot();
     
     virtual int Decompose_LU();
@@ -32,16 +32,16 @@ public:
 	{
         return TPZBlockDiagonal::Decompose_LU(singular);
     }
-
+	
 	virtual int Substitution( TPZFMatrix * B ) const;
-     
+	
 private:
-  /** Attribute to store equation changes in LU decomposition.
-   */
-  TPZVec<int> fPivotIndices;
-  
-  int Substitution2( TPZFMatrix * B ) const;
-
+	/** @brief Attribute to store equation changes in LU decomposition.
+	 */
+	TPZVec<int> fPivotIndices;
+	
+	int Substitution2( TPZFMatrix * B ) const;
+	
 };
 
 #endif

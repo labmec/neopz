@@ -7,63 +7,66 @@
 
 class TPZFMatrix;
 
+/** @ingroup solver */
 #define TPZSQUENCESOLVER_ID 29281006
 
 /**
-   Defines sequence solvers
-   @ingroup solver
-*/
+ * @brief Defines sequence solvers
+ * @ingroup solver
+ */
 class TPZSequenceSolver : public TPZMatrixSolver {
 public:
-  /**
-     Constructor with initialization parameter
+	/**
+     @brief Constructor with initialization parameter
      @param refmat Sets reference matrix to NILL
-  */
-  TPZSequenceSolver(TPZMatrix *refmat = 0);
-  /**
-     Copy constructor
+	 */
+	TPZSequenceSolver(TPZMatrix *refmat = 0);
+	/**
+     @brief Copy constructor
      @param copy Model object to be copied from
-  */
-  TPZSequenceSolver(const TPZSequenceSolver & copy);
-  
-  void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
-
-  /**
-  This method will reinitialize the solver object, including the solution procedure
-  */  
-  void ResetSolver();
-  
-  /**
-  This method will reset the matrix associated with the solver
-  This is useful when the matrix needs to be recomputed in a non linear problem
-  */
-  virtual void ResetMatrix();
-  
-  /**
-  * Updates the values of the preconditioner based on the values of the matrix
-  */
-  virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
-  /**
-  This method gives a preconditioner to share a matrix with the referring solver object
-  */
-//  virtual void SetMatrix(TPZMatrixSolver *solver);
-  
-  void AppendSolver(TPZMatrixSolver & solve);
-  
-  virtual TPZSolver * Clone() const;
-
-  /**
-   * Saveable specific methods
-   */
-  virtual int ClassId() const
-  {
-    return TPZSQUENCESOLVER_ID;
-  }
-  virtual void Write(TPZStream &buf, int withclassid);
-  virtual void Read(TPZStream &buf, void *context);
-
-
- private:    
-  TPZStack < TPZMatrixSolver * > fSolvers;
+	 */
+	TPZSequenceSolver(const TPZSequenceSolver & copy);
+	
+	void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
+	
+	/**
+	 @brief This method will reinitialize the solver object, including the solution procedure
+	 */  
+	void ResetSolver();
+	
+	/**
+	 @brief This method will reset the matrix associated with the solver
+	 
+	 This is useful when the matrix needs to be recomputed in a non linear problem
+	 */
+	virtual void ResetMatrix();
+	
+	/**
+	 * @brief Updates the values of the preconditioner based on the values of the matrix
+	 */
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
+	/**
+	 This method gives a preconditioner to share a matrix with the referring solver object
+	 */
+	//  virtual void SetMatrix(TPZMatrixSolver *solver);
+	
+	void AppendSolver(TPZMatrixSolver & solve);
+	
+	virtual TPZSolver * Clone() const;
+	
+	/**
+	 * Saveable specific methods
+	 */
+	virtual int ClassId() const
+	{
+		return TPZSQUENCESOLVER_ID;
+	}
+	virtual void Write(TPZStream &buf, int withclassid);
+	virtual void Read(TPZStream &buf, void *context);
+	
+	
+private:    
+	TPZStack < TPZMatrixSolver * > fSolvers;
 };
+
 #endif //TPZSEQUENCESOLVER_H

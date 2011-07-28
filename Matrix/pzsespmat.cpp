@@ -12,8 +12,6 @@
 // Versao: 04 / 1996.
 //
 
-
-
 #include <math.h>
 #include <stdlib.h>
 

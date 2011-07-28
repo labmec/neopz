@@ -21,14 +21,12 @@
 template< class ElemType >
 TPZLink<ElemType>::TPZLink()
 {
-  fHead = fThis = fLast = NULL;
-  fpBefore = &fHead;
+	fHead = fThis = fLast = NULL;
+	fpBefore = &fHead;
 #ifdef WORKPOOL
-  fWp = 0;
+	fWp = 0;
 #endif
 }
-
-
 
 /*** Destructor ***/
 
@@ -36,19 +34,19 @@ template< class ElemType >
 TPZLink<ElemType>::~TPZLink()
 {
 #ifdef WORKPOOL
-  if(!fWp) {
+	if(!fWp) {
 #endif
-    fThis = fHead;
-    while ( fHead != NULL )
-      {
-	fHead = fHead->next;
-	delete( fThis );
-	fThis = fHead;
-      }
+		fThis = fHead;
+		while ( fHead != NULL )
+		{
+			fHead = fHead->next;
+			delete( fThis );
+			fThis = fHead;
+		}
 #ifdef WORKPOOL
-    //  } else {
-    //	Clear();
-  }
+		//  } else {
+		//	Clear();
+	}
 #endif
 }
 
@@ -60,23 +58,23 @@ template< class ElemType >
 int
 TPZLink<ElemType>::Insert( ElemType &elem )
 {
-  Node *newNode;
+	Node *newNode;
 #ifdef WORKPOOL
-  if(fWp) newNode = (Node *) fWp->NewPointer(sizeof(Node));
-  else newNode = new (Node);
+	if(fWp) newNode = (Node *) fWp->NewPointer(sizeof(Node));
+	else newNode = new (Node);
 #else
-  newNode = new( Node );
+	newNode = new( Node );
 #endif
-  if ( newNode == NULL )
-    return( 0 );
-
-  newNode->elem = elem;
-  if ( (newNode->next = fThis) == NULL )
-    fLast = newNode;
-  
-  *fpBefore = fThis = newNode;
-  
-  return( 1 );
+	if ( newNode == NULL )
+		return( 0 );
+	
+	newNode->elem = elem;
+	if ( (newNode->next = fThis) == NULL )
+		fLast = newNode;
+	
+	*fpBefore = fThis = newNode;
+	
+	return( 1 );
 }
 
 
@@ -87,14 +85,14 @@ template< class ElemType >
 int
 TPZLink<ElemType>::Append( ElemType &elem )
 {
-  // Vai para o final da lista.
-  while ( fThis != NULL )
+	// Vai para o final da lista.
+	while ( fThis != NULL )
     {
-      fpBefore = &fThis->next;
-      fThis    =  fThis->next;
+		fpBefore = &fThis->next;
+		fThis    =  fThis->next;
     }
-
-  return( Insert( elem ) );
+	
+	return( Insert( elem ) );
 }
 
 
@@ -105,35 +103,35 @@ template< class ElemType >
 int
 TPZLink<ElemType>::Remove()
 {
-  if ( fThis == NULL )
-    return( 0 );
-
-  fThis = fThis->next;
+	if ( fThis == NULL )
+		return( 0 );
+	
+	fThis = fThis->next;
 #ifdef WORKPOOL
-  if(!fWp) delete( *fpBefore );
-  else fWp->Release(*fpBefore);
+	if(!fWp) delete( *fpBefore );
+	else fWp->Release(*fpBefore);
 #else
-  delete( *fpBefore );
+	delete( *fpBefore );
 #endif
-  *fpBefore = fThis;
-
-  // Se removeu o ultimo elemento, ajusta o ponteiro fLast.
-  //
-  if ( fThis == NULL )
+	*fpBefore = fThis;
+	
+	// Se removeu o ultimo elemento, ajusta o ponteiro fLast.
+	//
+	if ( fThis == NULL )
     {
-      Head();
-      if ( fThis == NULL )
-	fLast = NULL;
-      else
-	{
-	  while ( fThis->next != NULL )
-	    fThis = fThis->next;
-	  fLast = fThis;
-	  fThis = NULL;
-	}
+		Head();
+		if ( fThis == NULL )
+			fLast = NULL;
+		else
+		{
+			while ( fThis->next != NULL )
+				fThis = fThis->next;
+			fLast = fThis;
+			fThis = NULL;
+		}
     }
-
-  return( 1 );
+	
+	return( 1 );
 }
 
 
@@ -143,11 +141,11 @@ TPZLink<ElemType>::Remove()
 template< class ElemType >
 int TPZLink<ElemType>::Update( ElemType &elem )
 {
-  if ( fThis == NULL )
-    return( 0 );
-
-  fThis->elem = elem;
-  return( 1 );
+	if ( fThis == NULL )
+		return( 0 );
+	
+	fThis->elem = elem;
+	return( 1 );
 }
 
 
@@ -158,21 +156,21 @@ template< class ElemType >
 int
 TPZLink<ElemType>::Clear()
 {
-  fThis = fHead;
-  while ( fThis != NULL )
+	fThis = fHead;
+	while ( fThis != NULL )
     {
-      fThis = fThis->next;
+		fThis = fThis->next;
 #ifdef WORKPOOL
-      if(fWp) fWp->Release(fHead);
-      else delete fHead;
+		if(fWp) fWp->Release(fHead);
+		else delete fHead;
 #else
-      delete( fHead );
+		delete( fHead );
 #endif
-      fHead = fThis;
+		fHead = fThis;
     }
-  fpBefore = &fHead;
-  fThis = fLast = NULL;
-  return( 1 );
+	fpBefore = &fHead;
+	fThis = fLast = NULL;
+	return( 1 );
 }
 
 
@@ -183,26 +181,26 @@ template< class ElemType >
 TPZLink<ElemType> &
 TPZLink<ElemType>::operator=( TPZLink<ElemType> &src )
 {
-  // Guarda a posicao atual da lista 'src'.
-  Node **oldBefore = src.fpBefore;
-
-  Clear();
-
-  // Copia os elementos da lista.
-  src.Head();
-  ElemType elem;
-  while ( src.Get( &elem ) )
+	// Guarda a posicao atual da lista 'src'.
+	Node **oldBefore = src.fpBefore;
+	
+	Clear();
+	
+	// Copia os elementos da lista.
+	src.Head();
+	ElemType elem;
+	while ( src.Get( &elem ) )
     {
-      Append( elem );
-      src.Next();
+		Append( elem );
+		src.Next();
     }
-
-  // Volta a lista 'src' aa posicao inicial.
-  src.fpBefore = oldBefore;
-  src.fThis    = *oldBefore;
-
-  Head();
-  return( *this );
+	
+	// Volta a lista 'src' aa posicao inicial.
+	src.fpBefore = oldBefore;
+	src.fThis    = *oldBefore;
+	
+	Head();
+	return( *this );
 }
 
 
@@ -211,14 +209,4 @@ TPZLink<ElemType>::operator=( TPZLink<ElemType> &src )
 
 
 template class TPZLink<TPZSpMatrix::TPZNode>;
-
-
-
-
-
-
-
-
-
-
 
