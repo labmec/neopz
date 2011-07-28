@@ -1,6 +1,18 @@
+Instructions to use NeoPZ environment:
+
+1. Download NeoPZ from Google Code, using:
+	anonimous: cvs 
+	commiter
+	
+	To be commiter you need to register with phil@...
+	
+
+
+# obsolete
+
 Instruções gerais para uso do NeoPZ:
 
-1. Baixe o NeoPZ do CVS (se você está lendo isto, parabéns! Já
+1. Baixe o NeoPZ do CVS (se voce esta lendo isto, parabéns! Já
    conseguiu!).
 
 2. Sendo desenvolvedor, você vai precisar atualizar alguns arquivos de
