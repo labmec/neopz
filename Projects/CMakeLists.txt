@@ -23,8 +23,10 @@ if(BUILD_TUTORIAL)
 	#Using visual matrix of the DX
 	add_subdirectory(visualmatrix)
 
-endif()
+elseif(BUILD_UNITTESTING)
+	add_subdirectory(UnitTest)
 
+else(BUILD_TUTORIAL)
 	add_subdirectory(HyperElasticityFAD)
 	#Increment singular shape function: SingularShapeFunction
 	add_subdirectory(SingularShapeFunction)
@@ -42,6 +44,4 @@ endif()
 	add_subdirectory(ConsLaw)
 	add_subdirectory(Descontinuo2)
 
-if(BUILD_UNITTESTING)
-	add_subdirectory(UnitTest)
-endif()
+endif(BUILD_TUTORIAL)

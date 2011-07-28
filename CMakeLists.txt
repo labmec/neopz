@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8.5)
 
 project (PZ)
 
@@ -28,13 +28,27 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/PlaneFracture"
  )
 
+
 #To insert doxygen documentation file and other text files into the project environment (to facility changes)
-file(GLOB_RECURSE makefiles ./CMake*.txt)
+file(GLOB_RECURSE makefiles CMake*.txt README)
+#Only CMakeList.txt corresponding any pz module but CMakeList.txt from UnitTest case can be considered
+#If your CMake version is less than 2.8.5 but up to 2.6 the following loop must to be commented, because the FIND command isn't in that 
+foreach(arq ${makefiles}) 
+	string(FIND ${arq} "Project" val)
+	if(${val} LESS 0)
+		string(FIND ${arq} "UnitTest" val)
+		if(${val} LESS 0)
+			list(APPEND makefilescpy ${arq})
+		endif()
+	endif()
+endforeach()
+
 file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
+
 #creating text files group 
-source_group(CMakeFiles FILES ${makefiles})
+source_group(CMakeFiles FILES ${makefilescpy})
 source_group(DoxyFiles FILES ${doxyfiles})
-add_custom_target(pzdocs SOURCES ${makefiles} ${doxyfiles})
+add_custom_target(pzdocs SOURCES ${makefilescpy} ${doxyfiles})
 
 
 #Defining variables
@@ -65,10 +79,13 @@ endif()
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 
 if(USING_FAD)
-	set(FAD_INCLUDE "/usr/local/include" CACHE PATH "directory to the source of FAD")
-	add_definitions(-D_AUTODIFF)
-    include_directories(${FAD_INCLUDE} ${FAD_INCLUDE}/Fad ${FAD_INCLUDE}/TinyFad ${FAD_INCLUDE}/TinyFadET)
-endif()
+	find_path(fadpath FAD)
+	if(NOT fadpath-NOTFOUND)
+		set(FAD_INCLUDE ${fadpath}/FAD CACHE PATH "directory to the source of FAD")
+		add_definitions(-D_AUTODIFF)
+		include_directories(${FAD_INCLUDE} ${FAD_INCLUDE}/Fad ${FAD_INCLUDE}/TinyFad ${FAD_INCLUDE}/TinyFadET)
+	endif()
+endif(USING_FAD)
 
 #enabling to use LOG4CXX library
 option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
@@ -94,7 +111,7 @@ endif()
 
 if(BUILD_UNITTESTING)
 	link_libraries(boost_unit_test_framework)
-#	add_subdirectory(UnitTest_PZ)
+	add_subdirectory(UnitTest_PZ)
 endif()
 
 #increment all the directories where the sources files is
@@ -124,9 +141,8 @@ add_subdirectory(lib)
 	add_subdirectory(PlaneFracture)
 	add_subdirectory(Projects)
 
-
 #Creating log file to cmake process  -- it's temporary, only to check variable contents
-set(LogFile
-	"${PROJECT_SOURCE_DIR}/LogCMake.txt"
-	CACHE STRING "Log file to control CMake process"
-	) 
+#set(LogFile
+#	"${PROJECT_SOURCE_DIR}/LogCMake.txt"
+#	CACHE STRING "Log file to control CMake process"
+#	) 
