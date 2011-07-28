@@ -1,107 +1,108 @@
 #include "pztrnsform.h"
 #include "pzvec.h"
+
 using namespace std;
 
 TPZTransform::TPZTransform(int dim) :
-  fMult(dim,dim,fStore,9), fSum(dim,1,fStore+9,3) {
-  
-  fRow = dim;
-  fCol = dim;
-  fMult.Zero();
-  fSum.Zero();
-  int d;
-  
-  for(d=0; d<dim; d++) {
-    fMult(d,d) = 1.;
-  }
-  
+fMult(dim,dim,fStore,9), fSum(dim,1,fStore+9,3) {
+	
+	fRow = dim;
+	fCol = dim;
+	fMult.Zero();
+	fSum.Zero();
+	int d;
+	
+	for(d=0; d<dim; d++) {
+		fMult(d,d) = 1.;
+	}
+	
 }
 
 TPZTransform::TPZTransform() :
-  fMult(0,0,fStore,9), fSum(0,1,fStore+9,3) {
+fMult(0,0,fStore,9), fSum(0,1,fStore+9,3) {
     fRow = 0;
     fCol = 0;
 }
 
- 
+
 
 TPZTransform::TPZTransform(int row,int col) : fMult(row,col,fStore,9)
-     ,fSum(row,1,fStore+9,3) {
-  fRow = row;
-  fCol = col;
-  fMult.Zero();
-  fSum.Zero();
-  int d;
-  if (fRow == fCol) {
-    for(d=0; d<fRow; d++) {
-      fMult(d,d) = 1.;
-    }
-  }
+,fSum(row,1,fStore+9,3) {
+	fRow = row;
+	fCol = col;
+	fMult.Zero();
+	fSum.Zero();
+	int d;
+	if (fRow == fCol) {
+		for(d=0; d<fRow; d++) {
+			fMult(d,d) = 1.;
+		}
+	}
 }
 
 TPZTransform::TPZTransform(const TPZTransform &t) : fMult(t.fRow,t.fCol,fStore,9),
-       fSum(t.fRow,1,fStore+9,3) {
-  fRow = t.fRow;
-  fCol = t.fCol;
-  fMult = t.fMult;
-  fSum = t.fSum;
+fSum(t.fRow,1,fStore+9,3) {
+	fRow = t.fRow;
+	fCol = t.fCol;
+	fMult = t.fMult;
+	fSum = t.fSum;
 }
 
 TPZTransform::~TPZTransform() {
 	fRow = 0;
-   fCol = 0;
-   fMult.Resize(0,0);
-   fSum.Resize(0,0);
+	fCol = 0;
+	fMult.Resize(0,0);
+	fSum.Resize(0,0);
 }
 
 TPZTransform &TPZTransform::operator=(const TPZTransform &t) {
-  fMult = t.fMult;
-  fSum = t.fSum;
-  fRow = t.fRow;
-  fCol = t.fCol;
-  return *this;
+	fMult = t.fMult;
+	fSum = t.fSum;
+	fRow = t.fRow;
+	fCol = t.fCol;
+	return *this;
 }
 
 void TPZTransform::Read(TPZStream &buf){
-  buf.Read(&this->fRow, 1);
-  buf.Read(&this->fCol, 1);
-  this->fMult.Read(buf, NULL);
-  this->fSum.Read(buf, NULL);
-  buf.Read(&fStore[0], 12);
+	buf.Read(&this->fRow, 1);
+	buf.Read(&this->fCol, 1);
+	this->fMult.Read(buf, NULL);
+	this->fSum.Read(buf, NULL);
+	buf.Read(&fStore[0], 12);
 }
-    
+
 void TPZTransform::Write(TPZStream &buf){
-  buf.Write(&this->fRow, 1);
-  buf.Write(&this->fCol, 1);
-  this->fMult.Write(buf, false);
-  this->fSum.Write(buf, false);
-  buf.Write(&fStore[0], 12);
+	buf.Write(&this->fRow, 1);
+	buf.Write(&this->fCol, 1);
+	this->fMult.Write(buf, false);
+	this->fSum.Write(buf, false);
+	buf.Write(&fStore[0], 12);
 }
 
 void TPZTransform::SetMatrix(TPZFMatrix &mult, TPZFMatrix &sum) {
-  fRow = mult.Rows();
-  fCol = mult.Cols();
-  fMult = mult;
-  fSum = sum;
+	fRow = mult.Rows();
+	fCol = mult.Cols();
+	fMult = mult;
+	fSum = sum;
 }
 
 TPZTransform TPZTransform::Multiply(TPZTransform &right) {
-  TPZTransform res(fRow,right.fCol);
-  fMult.Multiply(right.fMult,res.fMult);
-  fMult.Multiply(right.fSum,res.fSum);
-  res.fSum += fSum;
-  return res;
+	TPZTransform res(fRow,right.fCol);
+	fMult.Multiply(right.fMult,res.fMult);
+	fMult.Multiply(right.fSum,res.fSum);
+	res.fSum += fSum;
+	return res;
 }
 
 void TPZTransform::Apply(TPZVec<REAL> &in, TPZVec<REAL> &out){
-  
-  int i,j;
-  for(i=0; i<fRow; i++) {
-    out[i] = fSum(i,0);
-    for(j=0; j<fCol; j++) {
-      out[i] += fMult(i,j)*in[j];
-    }
-  }
+	
+	int i,j;
+	for(i=0; i<fRow; i++) {
+		out[i] = fSum(i,0);
+		for(j=0; j<fCol; j++) {
+			out[i] += fMult(i,j)*in[j];
+		}
+	}
 }
 
 void TPZTransform::PrintInputForm(ostream &out) {
@@ -127,7 +128,7 @@ void TPZTransform::PrintInputForm(ostream &out) {
 }
 #include <math.h>
 int TPZTransform::Compare(TPZTransform &t,REAL tol){
-
+	
 	if(fCol != t.fCol || fRow != t.fRow)
 		return 1;
 	int i,j;
