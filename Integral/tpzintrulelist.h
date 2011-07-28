@@ -16,14 +16,16 @@ class TPZIntRule;
 class TPZIntRuleT;
 class TPZIntRuleT3D;
 class TPZIntRuleP3D;
+
 /**
-This class creates instances of all integration rules for rapid selection
-
-	@author Philippe R. B. Devloo <phil@fec.unicamp.br>
-*/
-class TPZIntRuleList{
-
-  
+ * @ingroup integral
+ * @brief This class creates instances of all integration rules for rapid selection
+ *
+ * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
+ */
+class TPZIntRuleList {
+	
+	
     int		intavail;	// number of integration rules available
     int        	intavailT;  // number of integration rules available for triangles
     int        	intavailT3D;
@@ -32,23 +34,25 @@ class TPZIntRuleList{
     TPZIntRuleT   **intlistT; 	// pointer to an array of integration rules
     TPZIntRuleT3D **intlistT3D;
     TPZIntRuleP3D **intlistP3D;
-
+	
     public :
+	
+	TPZIntRuleList();	// method which initializes all integration rules
+	// should be called only once!
+	
+	~TPZIntRuleList();
+	
+	TPZIntRule *GetRule(int numint);	// returns a pointer to an integration
+	// rule with numint integration points
+	
+	TPZIntRuleT *GetRuleT(int numint); // returns a pointer to an integration
+	// rule for a triangle
+	TPZIntRuleT3D *GetRuleT3D(int numint);
+	TPZIntRuleP3D *GetRuleP3D(int numint);
+};
 
-      TPZIntRuleList();	// method which initializes all integration rules
-  // should be called only once!
-
-      ~TPZIntRuleList();
-
-      TPZIntRule *GetRule(int numint);	// returns a pointer to an integration
-  // rule with numint integration points
-
-      TPZIntRuleT *GetRuleT(int numint); // returns a pointer to an integration
-  // rule for a triangle
-      TPZIntRuleT3D *GetRuleT3D(int numint);
-      TPZIntRuleP3D *GetRuleP3D(int numint);
-  };
-
-  extern  TPZIntRuleList  gIntRuleList;
+/// @ingroup integral
+/// Extern variable with list of all integration rules
+extern  TPZIntRuleList  gIntRuleList;
 
 #endif

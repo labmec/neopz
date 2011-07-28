@@ -17,32 +17,40 @@ template<class T>
 class TPZVec;
 
 /**
-Integration rule for tetrahedra
-
-	@author Philippe R. B. Devloo <phil@fec.unicamp.br>
-*/
-class TPZIntRuleT3D{
-
+ * @ingroup integral
+ * @brief Integration rule for tetrahedra
+ * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
+ */
+class TPZIntRuleT3D {
+	
     friend class TPZIntRuleList;
     
-    short	 fNumInt;		// number of integration points for this object
-    REAL	*fLocationKsi;	// location of the integration point Ksi
-    REAL	*fLocationEta;	// location of the integration point Eta
-    REAL	*fLocationZeta;	// location of the integration point Eta
-    REAL	*fWeight;		// weight of the integration point
-
+	/// number of integration points for this object
+    short	 fNumInt;
+	/// location of the integration point Ksi
+    REAL	*fLocationKsi;
+	/// location of the integration point Eta
+    REAL	*fLocationEta;
+	/// location of the integration point ZEta
+    REAL	*fLocationZeta;
+	/// weight of the integration point
+    REAL	*fWeight;
+	
     TPZIntRuleT3D(int i = 2);
     ~TPZIntRuleT3D();
-
-    public:
-      enum {NUMINT_RULEST3D = 8};
-
-      int NInt() const { return fNumInt;}	//return number of integration points
-
-      void Loc(int i, TPZVec<REAL> &pos) const;			   //return location of the ith pot
-
-      REAL W(int i) const;						//return weight for the ith point
-
+	
+public:
+	enum {NUMINT_RULEST3D = 8};
+	
+ 	///return number of integration points
+	int NInt() const { return fNumInt;}
+	
+	/// return location of the ith point
+	void Loc(int i, TPZVec<REAL> &pos) const;
+	
+	///return weight for the ith point
+	REAL W(int i) const;
+	
 };
 
 #endif

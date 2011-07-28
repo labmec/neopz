@@ -16,13 +16,13 @@
 template<class T>
 class TPZVec;
 #include "pzvec.h"
-             
-/**
-Abstract class defining integration rules
 
-	@author Philippe R. B. Devloo <phil@fec.unicamp.br>
-*/
-class TPZIntPoints{
+/**
+ * @ingroup integral
+ * @brief Abstract class defining integration rules
+ * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
+ */
+class TPZIntPoints {
 public:
     virtual ~TPZIntPoints()
     {
@@ -38,16 +38,16 @@ public:
 	
     virtual void Print(std::ostream &out) const
     {
-      int np = NPoints();
-      out << "integration rule numpoints " << np << std::endl;
-      int ip;
-      TPZVec<REAL> pos(Dimension());
-      REAL w;
-      for(ip=0; ip<np; ip++)
-      {
-        Point(ip,pos,w);
-        out << "ip " << ip << " pos " << pos << " w " << w << std::endl;
-      }
+		int np = NPoints();
+		out << "integration rule numpoints " << np << std::endl;
+		int ip;
+		TPZVec<REAL> pos(Dimension());
+		REAL w;
+		for(ip=0; ip<np; ip++)
+		{
+			Point(ip,pos,w);
+			out << "ip " << ip << " pos " << pos << " w " << w << std::endl;
+		}
     }
 };
 

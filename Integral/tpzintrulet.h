@@ -17,31 +17,37 @@ template<class T>
 class TPZVec;
 
 /**
-Integration rule (points and weights) for triangles
-
-	@author Philippe R. B. Devloo <phil@fec.unicamp.br>
-*/
-class TPZIntRuleT{
-  friend class TPZIntRuleList;
-  
-  short	   fNumInt;		// number of integration points for this object
-  REAL	*fLocationKsi;	// location of the integration point Ksi
-  REAL	*fLocationEta;	// location of the integration point Eta
-  REAL	*fWeight;		// weight of the integration point
-
-  TPZIntRuleT(int i);
-  ~TPZIntRuleT();
-
-  public:
+ * @ingroup integral
+ * @brief Integration rule (points and weights) for triangles
+ * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
+ */
+class TPZIntRuleT {
+	friend class TPZIntRuleList;
+	
+	/// number of integration points for this object
+	short	   fNumInt;
+	/// location of the integration point Ksi
+	REAL	*fLocationKsi;
+	/// location of the integration point Eta
+	REAL	*fLocationEta;
+	/// weight of the integration point
+	REAL	*fWeight;
+	
+	TPZIntRuleT(int i);
+	~TPZIntRuleT();
+	
+public:
     enum {NUMINT_RULEST = 19};
-
-    short NInt() const { return fNumInt;}	//return number of integration points
-
-    void Loc(int i, TPZVec<REAL> &pos) const;			   //return location of the ith pot
-
-    REAL W(int i) const;						//return weight for the ith point
-
-
+	
+	///return number of integration points
+    short NInt() const { return fNumInt;}
+	
+	/// return location of the ith point
+    void Loc(int i, TPZVec<REAL> &pos) const;
+	
+	///return weight for the ith point
+    REAL W(int i) const;
+	
 };
 
 #endif

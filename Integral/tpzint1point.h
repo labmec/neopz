@@ -16,14 +16,15 @@
 #include "tpzprinteg.h"
 
 /**
-Integration rule for one point
-
-	@author Philippe R. B. Devloo <phil@fec.unicamp.br>
-*/
+ * @ingroup integral
+ * @brief Integration rule for one point
+ *
+ * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
+ */
 class TPZInt1Point : public TPZIntPoints {
-  
-  public:
-
+	
+public:
+	
     enum {Dim = 0};
     TPZInt1Point(int order=0);
     TPZInt1Point(TPZVec<int> &ord);
@@ -38,14 +39,14 @@ class TPZInt1Point : public TPZIntPoints {
     int GetMaxOrder() const;  
     int Dimension() const
     {
-      return Dim;
+		return Dim;
     }
     TPZIntPoints *PrismExtend(int order);
 	TPZIntPoints *Clone() const
 	{
 		return new TPZInt1Point(*this);
 	}
-
+	
 };
 
 inline TPZInt1Point::~TPZInt1Point() 
@@ -59,17 +60,17 @@ inline void  TPZInt1Point::SetOrder(TPZVec<int> &ord) {
 }
 
 inline int TPZInt1Point::NPoints() const{
-  return 1;
+	return 1;
 }
 
 inline void TPZInt1Point::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 #ifndef NODEBUG
-  if(ip!=0) {
-    std::cout << "TPZInt1Point:: Bad number point " << ip << std::endl;
-    return;
-  }
+	if(ip!=0) {
+		std::cout << "TPZInt1Point:: Bad number point " << ip << std::endl;
+		return;
+	}
 #endif
-  w = 1.;
+	w = 1.;
 }
 
 inline void TPZInt1Point::GetOrder(TPZVec<int> &/* ord */) const{
@@ -80,9 +81,7 @@ inline int TPZInt1Point::GetMaxOrder() const {return 1;}
 
 inline TPZIntPoints *TPZInt1Point::PrismExtend(int order) 
 {
-  return new TPZPrInteg<TPZInt1Point> (order);
+	return new TPZPrInteg<TPZInt1Point> (order);
 }
-
-
 
 #endif

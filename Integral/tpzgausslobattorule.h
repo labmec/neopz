@@ -5,27 +5,39 @@
 #include "pzreal.h"
 
 /**
-	@author Erick Slis
-*/
-class TPZGaussLobattoRule{
+ * @ingroup integral
+ *
+ * @brief  Similar to Gaussian quadrature with the following differences: \n
+ * The integration points include the end points of the integration interval.
+ * 
+ * It is accurate for polynomials up to degree 2n–3, where n is the number of integration points.
+ *
+ * @author Erick Slis
+ */
+class TPZGaussLobattoRule {
 public:
-
-  enum {NUMINT_RULES = 11};
+	
+	enum {NUMINT_RULES = 11};
     friend class TPZIntRuleList;
-    short	   fNumInt;		// number of integration points for this object
-    REAL	*fLocation;	// location of the integration point
-    REAL	*fWeight;	// weight of the integration point
-
+	/// number of integration points for this object
+    short	   fNumInt;
+	/// location of the integration point
+    REAL	*fLocation;
+	/// weight of the integration point
+    REAL	*fWeight;
+	
+	/// Constructor indicating the order
     TPZGaussLobattoRule(int i);
+	/// Destructor
     ~TPZGaussLobattoRule();
-
-    public:
-
-      short NInt(){ return fNumInt;}	//return number of integration points
-
-      REAL Loc(int i);						//return location of the ith pot
-
-      REAL W(int i);						//return weight for the ith point
-  };
+	
+public:
+	///return number of integration points
+	short NInt(){ return fNumInt;}
+	///return location of the ith point
+	REAL Loc(int i);
+	///return weight for the ith point
+	REAL W(int i);
+};
 
 #endif

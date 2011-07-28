@@ -12,21 +12,20 @@
 #ifndef PZINTEGTPZINTPOINT_H
 #define PZINTEGTPZINTPOINT_H
 
-namespace pzinteg {
-
-/**
-Abstract class defining integration rules
-
-	@author Philippe R. B. Devloo <phil@fec.unicamp.br>
-*/
-class TPZIntPoint{
+/** 
+ * @ingroup integral
+ *
+ * @brief Basic class defining integration rules (Jorge? This class is used?)
+ * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
+ */
+class TPZIntPoint {
+	
 public:
-    TPZIntPoint();
-
-    ~TPZIntPoint();
-
+	/// Simple constructor
+	TPZIntPoint();
+	/// Destructor
+	~TPZIntPoint();
+	
 };
-
-}
 
 #endif

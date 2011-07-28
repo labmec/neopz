@@ -15,27 +15,34 @@
 #include "pzreal.h"
 
 /**
-	@author Philippe R. B. Devloo <phil@fec.unicamp.br>
-*/
+ * @ingroup integral
+ *
+ * @brief Implements the Gaussian quadrature.
+ * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
+ */
 class TPZGaussRule{
 public:
-
-  enum {NUMINT_RULES = 38};
+	
+	enum {NUMINT_RULES = 38};
     friend class TPZIntRuleList;
-    short	   fNumInt;		// number of integration points for this object
-    REAL	*fLocation;	// location of the integration point
-    REAL	*fWeight;	// weight of the integration point
-
+	/// number of integration points for this object
+    short	   fNumInt;
+	/// location of the integration point
+    REAL	*fLocation;
+	/// weight of the integration point
+    REAL	*fWeight;
+	
     TPZGaussRule(int i);
     ~TPZGaussRule();
+	
+public:
+	///return number of integration points
+	int NInt() const{ return fNumInt;}
+	///return location of the ith point
+	REAL Loc(int i) const;
+	///return weight for the ith point
+	REAL W(int i) const;
+};
 
-    public:
-
-      int NInt() const{ return fNumInt;}	//return number of integration points
-
-      REAL Loc(int i) const;						//return location of the ith pot
-
-      REAL W(int i) const;						//return weight for the ith point
-  };
 
 #endif

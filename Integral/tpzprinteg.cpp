@@ -21,23 +21,24 @@ TPZPrInteg<TFather>::~TPZPrInteg()
 template<class TFather>
 TPZIntPoints *TPZPrInteg<TFather>::PrismExtend(int /*order*/)
 {
-  std::cout << "Please implement me " << __PRETTY_FUNCTION__;
-  return 0;
+	std::cout << "Please implement me " << __PRETTY_FUNCTION__;
+	return 0;
 }
 
 #ifndef BORLAND
 template<>
 TPZIntPoints *TPZPrInteg<TPZInt1Point>::PrismExtend(int order)
 {
-  return new TPZPrInteg<TPZPrInteg<TPZInt1Point> >(order);
+	return new TPZPrInteg<TPZPrInteg<TPZInt1Point> >(order);
 }
 
 template<>
 TPZIntPoints *TPZPrInteg< TPZPrInteg<TPZInt1Point> >::PrismExtend(int order)
 {
-  return new TPZPrInteg<TPZPrInteg<TPZPrInteg<TPZInt1Point> > >(order);
+	return new TPZPrInteg<TPZPrInteg<TPZPrInteg<TPZInt1Point> > >(order);
 }
 #endif
+
 template class TPZPrInteg<TPZInt1d>;
 template class TPZPrInteg<TPZIntTriang>;
 template class TPZPrInteg<TPZIntQuad>;

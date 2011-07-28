@@ -3,11 +3,10 @@
 #include "tpzintrulelist.h"
 #include "pzerror.h"
 
-
 TPZIntRule::TPZIntRule(int precision) : INTRULE_PARENT(precision){ ; }
 
 TPZIntRule::~TPZIntRule(){
-
+	
 }
 
 REAL TPZIntRule::Loc(int i) const {

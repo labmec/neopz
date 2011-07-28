@@ -20,36 +20,42 @@ class TPZIntRule;
 #include "tpzintpoints.h"
 #include "tpzprinteg.h"
 
+/** \addtogroup integral
+ * @{
+ */
+
 //*******************************************************************
 // Base Class TInt1D - 	which handles the integration
 //								for 1D problems
 //*******************************************************************
-
+/** 
+ * @brief Handles the numerical integration for one-dimensional problems
+ */
 class TPZInt1d : public TPZIntPoints{
-  int fOrdKsi;
-  TPZIntRule *fIntP;
- public:
-   enum {Dim = 1};
-  TPZInt1d(int OrdK = 0);
+	int fOrdKsi;
+	TPZIntRule *fIntP;
+public:
+	enum {Dim = 1};
+	TPZInt1d(int OrdK = 0);
 	TPZInt1d(const TPZInt1d &copy ) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntP(copy.fIntP)
 	{
 	}
-  virtual ~TPZInt1d()
-  {
-  }
-  virtual int NPoints() const;
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
-  virtual void SetOrder(TPZVec<int> &ord);
-  virtual void GetOrder(TPZVec<int> &ord) const;
-  virtual int GetMaxOrder() const;
-  virtual int Dimension() const
-  {
-    return Dim;
-  }
-  virtual TPZIntPoints *PrismExtend(int order)
-  {
-    return new TPZPrInteg<TPZInt1d>(order);
-  }
+	virtual ~TPZInt1d()
+	{
+	}
+	virtual int NPoints() const;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual void SetOrder(TPZVec<int> &ord);
+	virtual void GetOrder(TPZVec<int> &ord) const;
+	virtual int GetMaxOrder() const;
+	virtual int Dimension() const
+	{
+		return Dim;
+	}
+	virtual TPZIntPoints *PrismExtend(int order)
+	{
+		return new TPZPrInteg<TPZInt1d>(order);
+	}
 	virtual TPZIntPoints *Clone() const
 	{
 		return new TPZInt1d(*this);
@@ -60,71 +66,75 @@ class TPZInt1d : public TPZIntPoints{
 //									for 2D problems, triangle
 //									elements
 //*******************************************************************
-
+/**
+ * @brief Handles the numerical integration for two-dimensional problems using triangular elements.
+ */
 class TPZIntTriang : public TPZIntPoints{
-  int fOrdKsi;
-  TPZIntRuleT *fIntKsi;
- public:
-   enum {Dim = 2};
-  TPZIntTriang(	int OrdK = 2);
-  virtual ~TPZIntTriang()
-  {
-  }
+	int fOrdKsi;
+	TPZIntRuleT *fIntKsi;
+public:
+	enum {Dim = 2};
+	TPZIntTriang(	int OrdK = 2);
+	virtual ~TPZIntTriang()
+	{
+	}
 	TPZIntTriang(const TPZIntTriang &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
 	{
 	}
-  virtual void SetOrder(TPZVec<int> &ord);
-  virtual int  NPoints() const;
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
-  virtual void GetOrder(TPZVec<int> &ord) const;
-  virtual int GetMaxOrder() const;
-  virtual int Dimension() const
-  {
-    return Dim;
-  }
-  virtual TPZIntPoints *PrismExtend(int order)
-  {
-    return new TPZPrInteg<TPZIntTriang>(order);
-  }
+	virtual void SetOrder(TPZVec<int> &ord);
+	virtual int  NPoints() const;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual void GetOrder(TPZVec<int> &ord) const;
+	virtual int GetMaxOrder() const;
+	virtual int Dimension() const
+	{
+		return Dim;
+	}
+	virtual TPZIntPoints *PrismExtend(int order)
+	{
+		return new TPZPrInteg<TPZIntTriang>(order);
+	}
 	virtual TPZIntPoints *Clone() const
 	{
 		return new TPZIntTriang(*this);
 	}
-
+	
 };
 //*******************************************************************
 // Base Class TPZIntQuad - 	which handles the integration
 //									for 2D problems, quadrilaterals
 //									elements
 //*******************************************************************
-
+/** 
+ * @brief Handles the numerical integration for two-dimensional problems using quadrilateral elements.
+ */
 class TPZIntQuad : public TPZIntPoints{
-  int fOrdKsi;
-  int fOrdEta;
-  TPZIntRule *fIntKsi;
-  TPZIntRule *fIntEta;
- public:
-   enum {Dim = 2};
-  TPZIntQuad(int OrdK = 2, int OrdE = 2);
-  virtual ~TPZIntQuad()
-  {
-  }
+	int fOrdKsi;
+	int fOrdEta;
+	TPZIntRule *fIntKsi;
+	TPZIntRule *fIntEta;
+public:
+	enum {Dim = 2};
+	TPZIntQuad(int OrdK = 2, int OrdE = 2);
+	virtual ~TPZIntQuad()
+	{
+	}
 	TPZIntQuad(const TPZIntQuad &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fIntKsi(copy.fIntKsi),fIntEta(copy.fIntEta)
 	{
 	}
-  virtual void SetOrder(TPZVec<int> &ord);
-  virtual int NPoints() const;
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
-  virtual void GetOrder(TPZVec<int> &ord) const;
-  virtual int GetMaxOrder() const;  
-  virtual int Dimension() const
-  {
-    return Dim;
-  }
-  virtual TPZIntPoints *PrismExtend(int order)
-  {
-    return new TPZPrInteg<TPZIntQuad>(order);
-  }
+	virtual void SetOrder(TPZVec<int> &ord);
+	virtual int NPoints() const;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual void GetOrder(TPZVec<int> &ord) const;
+	virtual int GetMaxOrder() const;  
+	virtual int Dimension() const
+	{
+		return Dim;
+	}
+	virtual TPZIntPoints *PrismExtend(int order)
+	{
+		return new TPZPrInteg<TPZIntQuad>(order);
+	}
 	virtual TPZIntPoints* Clone() const
 	{
 		return new TPZIntQuad(*this);
@@ -139,37 +149,40 @@ class TPZIntQuad : public TPZIntPoints{
 //   				elemento hexaedro
 //*******************************************************************
 // Cedric
+/** 
+ * @brief Handles the numerical integration for three-dimensional problems using cube elements.
+ */
 
 class TPZIntCube3D : public TPZIntPoints{
-  int fOrdKsi;
-  int fOrdEta;
-  int fOrdZeta;
-  TPZIntRule *fIntKsi;
-  TPZIntRule *fIntEta;
-  TPZIntRule *fIntZeta;
- public:
-   enum {Dim = 3};
-  TPZIntCube3D(int OrdK = 2, int OrdE = 2, int OrdZ = 2);
-  virtual ~TPZIntCube3D()
-  {
-  }
-	TPZIntCube3D(const TPZIntCube3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fOrdZeta(copy.fOrdZeta),
-		fIntKsi(copy.fIntKsi), fIntEta(copy.fIntEta), fIntZeta(copy.fIntZeta)
+	int fOrdKsi;
+	int fOrdEta;
+	int fOrdZeta;
+	TPZIntRule *fIntKsi;
+	TPZIntRule *fIntEta;
+	TPZIntRule *fIntZeta;
+public:
+	enum {Dim = 3};
+	TPZIntCube3D(int OrdK = 2, int OrdE = 2, int OrdZ = 2);
+	virtual ~TPZIntCube3D()
 	{
 	}
-  virtual void SetOrder(TPZVec<int> &ord);
-  virtual int NPoints() const;
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
-  virtual void GetOrder(TPZVec<int> &ord) const;
-  virtual int GetMaxOrder() const;
-  virtual int Dimension() const
-  {
-    return Dim;
-  }
-  virtual TPZIntPoints *PrismExtend(int order)
-  {
-    return new TPZPrInteg<TPZIntCube3D>(order);
-  }
+	TPZIntCube3D(const TPZIntCube3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fOrdZeta(copy.fOrdZeta),
+	fIntKsi(copy.fIntKsi), fIntEta(copy.fIntEta), fIntZeta(copy.fIntZeta)
+	{
+	}
+	virtual void SetOrder(TPZVec<int> &ord);
+	virtual int NPoints() const;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual void GetOrder(TPZVec<int> &ord) const;
+	virtual int GetMaxOrder() const;
+	virtual int Dimension() const
+	{
+		return Dim;
+	}
+	virtual TPZIntPoints *PrismExtend(int order)
+	{
+		return new TPZPrInteg<TPZIntCube3D>(order);
+	}
 	virtual TPZIntPoints *Clone() const
 	{
 		return new TPZIntCube3D(*this);
@@ -184,28 +197,31 @@ class TPZIntCube3D : public TPZIntPoints{
 //  			      elemento Tetraedro
 //*******************************************************************
 // Cedric
+/** 
+ * @brief Handles the numerical integration for three-dimensional problems using tetraedra elements.
+ */
 class TPZIntTetra3D : public TPZIntPoints {
-  int fOrdKsi;
-  TPZIntRuleT3D *fIntKsi;
- public:
-   enum {Dim = 3};
-  TPZIntTetra3D(int OrdK = 2);
+	int fOrdKsi;
+	TPZIntRuleT3D *fIntKsi;
+public:
+	enum {Dim = 3};
+	TPZIntTetra3D(int OrdK = 2);
 	TPZIntTetra3D(const TPZIntTetra3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
 	{
 	}
-  virtual void SetOrder(TPZVec<int> &ord);
-  virtual int NPoints() const;
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
-  virtual void GetOrder(TPZVec<int> &ord) const;
-  virtual int GetMaxOrder() const;  
-  virtual int Dimension() const
-  {
-    return Dim;
-  }
-  virtual TPZIntPoints *PrismExtend(int order)
-  {
-    return new TPZPrInteg<TPZIntTetra3D>(order);
-  }
+	virtual void SetOrder(TPZVec<int> &ord);
+	virtual int NPoints() const;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual void GetOrder(TPZVec<int> &ord) const;
+	virtual int GetMaxOrder() const;  
+	virtual int Dimension() const
+	{
+		return Dim;
+	}
+	virtual TPZIntPoints *PrismExtend(int order)
+	{
+		return new TPZPrInteg<TPZIntTetra3D>(order);
+	}
 	virtual TPZIntPoints* Clone() const
 	{
 		return new TPZIntTetra3D(*this);
@@ -220,28 +236,31 @@ class TPZIntTetra3D : public TPZIntPoints {
 //  			      elemento Pir�mide
 //*******************************************************************
 // Cedric
+/** 
+ * @brief Handles the numerical integration for three-dimensional problems using pyramid elements.
+ */
 class TPZIntPyram3D : public TPZIntPoints {
-  int fOrdKsi;
-  TPZIntRuleP3D *fIntKsi;
- public:
-   enum {Dim =3};
-  TPZIntPyram3D(int OrdK = 2);
+	int fOrdKsi;
+	TPZIntRuleP3D *fIntKsi;
+public:
+	enum {Dim =3};
+	TPZIntPyram3D(int OrdK = 2);
 	TPZIntPyram3D(const TPZIntPyram3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
 	{
 	}
-  virtual void SetOrder(TPZVec<int> &ord);
-  virtual int NPoints() const;
-  virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
-  virtual void GetOrder(TPZVec<int> &ord) const;
-  virtual int GetMaxOrder() const;  
-  virtual int Dimension() const
-  {
-    return Dim;
-  }
-  virtual TPZIntPoints *PrismExtend(int order)
-  {
-    return new TPZPrInteg<TPZIntPyram3D>(order);
-  }
+	virtual void SetOrder(TPZVec<int> &ord);
+	virtual int NPoints() const;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual void GetOrder(TPZVec<int> &ord) const;
+	virtual int GetMaxOrder() const;  
+	virtual int Dimension() const
+	{
+		return Dim;
+	}
+	virtual TPZIntPoints *PrismExtend(int order)
+	{
+		return new TPZPrInteg<TPZIntPyram3D>(order);
+	}
 	TPZIntPoints *Clone() const
 	{
 		return new TPZIntPyram3D(*this);
@@ -256,36 +275,41 @@ class TPZIntPyram3D : public TPZIntPoints {
 //  			      elemento Prisma
 //*******************************************************************
 // Cedric
+/** 
+ * @brief Handles the numerical integration for three-dimensional problems using prism elements.
+ */
 class TPZIntPrism3D  : public TPZIntPoints {
-  int fOrdKsi,fOrdKti;
-  TPZInt1d fIntRule1D;
-  TPZIntTriang fIntTriang;
- public:
-
-   enum {Dim = 3};
-  TPZIntPrism3D(int OrdK = 2,int OrdL = 2);
+	int fOrdKsi,fOrdKti;
+	TPZInt1d fIntRule1D;
+	TPZIntTriang fIntTriang;
+public:
+	
+	enum {Dim = 3};
+	TPZIntPrism3D(int OrdK = 2,int OrdL = 2);
 	TPZIntPrism3D(const TPZIntPrism3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdKti(copy.fOrdKti), fIntRule1D(copy.fIntRule1D),
-			fIntTriang(copy.fIntTriang)
+	fIntTriang(copy.fIntTriang)
 	{
 	}
-  virtual ~TPZIntPrism3D();
-  void SetOrder(TPZVec<int> &ord) ;
-  int NPoints() const;
-  void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
-  void GetOrder(TPZVec<int> &ord) const;
-  virtual int GetMaxOrder() const;  
-  virtual int Dimension() const
-  {
-    return Dim;
-  }
-  virtual TPZIntPoints *PrismExtend(int order)
-  {
-    return new TPZPrInteg<TPZIntPrism3D>(order);
-  }
+	virtual ~TPZIntPrism3D();
+	void SetOrder(TPZVec<int> &ord) ;
+	int NPoints() const;
+	void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	void GetOrder(TPZVec<int> &ord) const;
+	virtual int GetMaxOrder() const;  
+	virtual int Dimension() const
+	{
+		return Dim;
+	}
+	virtual TPZIntPoints *PrismExtend(int order)
+	{
+		return new TPZPrInteg<TPZIntPrism3D>(order);
+	}
 	TPZIntPoints *Clone() const
 	{
 		return new TPZIntPrism3D(*this);
 	}
 };
+
+/** @} */
 
 #endif

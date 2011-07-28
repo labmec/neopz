@@ -6,28 +6,31 @@
 #include "tpzgaussrule.h"
 #include "tpzgausslobattorule.h"
 
-
+/// @ingroup integral
 typedef TPZGaussRule INTRULE_PARENT;
 //typedef TPZGaussLobattoRule INTRULE_PARENT;
 
 /**
-	@author Philippe R. B. Devloo <phil@fec.unicamp.br>
-*/
+ * @ingroup integral
+ * @brief Integration rule basic class.
+ * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
+ */
 class TPZIntRule : public INTRULE_PARENT{
 public:
-
+	
     friend class TPZIntRuleList;
-
+	
     TPZIntRule(int i);
     ~TPZIntRule();
-
-    public:
-
-      int NInt() const;							//return number of integration points
-
-      REAL Loc(int i) const;						//return location of the ith pot
-
-      REAL W(int i) const;						//return weight for the ith point
-  };
+	
+public:
+	
+	///return number of integration points
+	int NInt() const;
+	/// return location of the ith point
+	REAL Loc(int i) const;
+	///return weight for the ith point
+	REAL W(int i) const;
+};
 
 #endif
